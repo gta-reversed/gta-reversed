@@ -19,6 +19,18 @@ public:
     bool m_bScanAllowedScriptPed;
     bool m_bScanAllowedInVehicle;
     bool m_bScanAllowedScriptedTask;
+
+    void SetOnlyScriptPedAllowed() {
+        m_bScanAllowedScriptPed    = true;
+        m_bScanAllowedInVehicle    = false;
+        m_bScanAllowedScriptedTask = false;
+    }
+
+    void TurnOffAllScanners() {
+        m_bScanAllowedScriptPed    = false;
+        m_bScanAllowedInVehicle    = false;
+        m_bScanAllowedScriptedTask = false;
+    }
 };
 
 class CVehiclePotentialCollisionScanner {
@@ -67,6 +79,10 @@ public:
     void Clear();
     void ScanForEvents(CPed& ped);
     void ScanForEventsNow(const CPed& ped, bool bDontScan);
+
+    auto& GetAcquaintanceScanner() {
+        return m_pedAcquaintanceScanner;
+    }
 };
 
 VALIDATE_SIZE(CEventScanner, 0xD4);
