@@ -141,20 +141,20 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
 
     if (m_anim) {
         if (m_updatePedPos) {
-            const auto animOffset = [&, this] {
+            const auto animOffsetOS = [&, this] {
                 switch (currAnimId) {
                 case ANIM_ID_BED_LOOP_L:
                 case ANIM_ID_BED_OUT_L:
                     return CCarEnterExit::ms_vecPedBedLAnimOffset;
                 case ANIM_ID_BED_LOOP_R:
                 case ANIM_ID_BED_OUT_R:
-                    return CCarEnterExit::ms_vecPedBedRAnimOffset;;
+                    return CCarEnterExit::ms_vecPedBedRAnimOffset;
                 default:
                     NOTSA_UNREACHABLE();
                 }
             }();
-            const auto& pedPos = ped->GetPosition();
-            ped->SetPosn({ animOffset.x, animOffset.y, pedPos.z });
+            const auto animOffsetWS = *ped->m_matrix * animOffsetOS; // Transform to world space
+            ped->SetPosn({ animOffsetWS.x, animOffsetWS.y, ped->GetPosition().z });
             if (currAnimId == GetAnimIdInSeq(AnimSeqIdx::LOOP)) {
                 ped->m_fAimingRotation = ped->m_fCurrentRotation = CGeneral::LimitRadianAngle(ped->m_fCurrentRotation + PI);
                 ped->SetHeading(ped->m_fCurrentRotation);
