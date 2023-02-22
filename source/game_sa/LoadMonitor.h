@@ -37,7 +37,7 @@ public:
     uint32              m_VarConsoleDisplayType;
     EProcessingLevel    m_eProcLevel;
     EProcessingLevel    m_eProcLevelToForce;    
-    char  field_1C;
+    bool                m_bEnableAmbientCrime;
     char  field_1D;
     char  field_1E;
     char  field_1F;
