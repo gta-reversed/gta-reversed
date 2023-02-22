@@ -31,7 +31,7 @@ public:
     CTaskComplexKillCriminal(const CTaskComplexKillCriminal&);
     ~CTaskComplexKillCriminal();
 
-    CTask* CreateSubTask(eTaskType tt, CPed* ped, bool force);
+    CTask* CreateSubTask(eTaskType tt, CPed* ped, bool force = false);
     CPed* FindNextCriminalToKill(CPed* ped, bool any);
     bool ChangeTarget(CPed* ped);
 
