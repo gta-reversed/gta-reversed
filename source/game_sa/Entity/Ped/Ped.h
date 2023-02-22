@@ -616,6 +616,12 @@ public:
      */
     CVector GetRealPosition() const { return IsInVehicle() ? m_pVehicle->GetPosition() : GetPosition(); }
 
+    /*!
+    * @notsa
+    * Can this ped be ever considered as a criminal
+    */
+    bool CanBeCriminal() const;
+
 private:
     void RenderThinBody() const;
     void RenderBigHead() const;

@@ -3828,6 +3828,29 @@ void CPed::RenderBigHead() const {
     }
 }
 
+bool CPed::CanBeCriminal() const {
+    if (IsPlayer() || IsCreatedBy(PED_MISSION)) {
+        return false;
+    }
+
+    switch (m_nPedType) {
+    case PED_TYPE_COP:
+    case PED_TYPE_MEDIC:
+    case PED_TYPE_FIREMAN:
+    case PED_TYPE_MISSION1:
+    case PED_TYPE_MISSION2:
+    case PED_TYPE_MISSION3:
+    case PED_TYPE_MISSION4:
+    case PED_TYPE_MISSION5:
+    case PED_TYPE_MISSION6:
+    case PED_TYPE_MISSION7:
+    case PED_TYPE_MISSION8:
+        return false;
+    }
+
+    return true;
+}
+
 // NOTSA
 void CPed::RenderThinBody() const {
     if (!CCheat::IsActive(CHEAT_THIN_BODY)) {
