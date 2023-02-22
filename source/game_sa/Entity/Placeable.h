@@ -48,6 +48,10 @@ public:
     void AllocateMatrix();
     void SetMatrix(CMatrix& matrix);
 
+    //! Check if another entity is in radius of this - NOTSA
+    bool InRadiusOf(CPlaceable* o, float radius) { return (o->GetPosition() - GetPosition()).SquaredMagnitude() <= sq(radius); }
+
+
     // NOTSA
     bool IsPointInRange(const CVector& point, float range);
     bool IsEntityInRange(const CPlaceable* entity, float range) { return IsPointInRange(entity->GetPosition(), range); }
