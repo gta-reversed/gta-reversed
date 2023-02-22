@@ -11,7 +11,7 @@ class CAnimBlendAssociation;
 class CEntity;
 class CWeaponInfo;
 
-enum class eDrivebyStyle : int8 {
+enum class eDrivebyStyle : uint8 {
     FIXED_LHS,
     FIXED_RHS,
 
