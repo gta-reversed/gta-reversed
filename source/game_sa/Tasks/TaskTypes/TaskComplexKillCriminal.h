@@ -2,40 +2,49 @@
 
 #include "TaskComplex.h"
 
-#include "Enums/eCarDrivingStyle.h"
-#include "Enums/eCarMission.h"
-
-class CTask;
 class CTaskComplexKillCriminal;
+class CEvent;
+class CTask;
 class CCopPed;
 class CPed;
-class CEvent;
-
 
 class NOTSA_EXPORT_VTABLE CTaskComplexKillCriminal : public CTaskComplex {
-public:
-    static constexpr auto Type = eTaskType::TASK_COMPLEX_KILL_CRIMINAL;
 
+public:
+    CPed* m_criminal{};
+    CCopPed* m_cop{};           
+    float m_timeToGetOutOfCar{3.f};
+    bool m_randomize{};         
+    bool m_finished{};          
+    bool m_cantGetInCar{};      
+    int8 m_origDrivingMode{};   
+    int8 m_origMission{};       
+    uint8 m_origCruiseSpeed{};  
+    bool m_isSetUp{};           
+
+public:
     static void InjectHooks();
 
-    CTaskComplexKillCriminal(CPed* criminal, bool randomize = false);
+    static constexpr auto Type = eTaskType::TASK_COMPLEX_KILL_CRIMINAL;
+
+    CTaskComplexKillCriminal(CPed* criminal, bool randomize);
     CTaskComplexKillCriminal(const CTaskComplexKillCriminal&);
     ~CTaskComplexKillCriminal();
 
     CTask* CreateSubTask(eTaskType tt, CPed* ped, bool force);
-    CPed*  FindNextCriminalToKill(CPed* ped, bool any);
-    int8   ChangeTarget(CPed* newTarget);
+    CPed* FindNextCriminalToKill(CPed* ped, bool any);
+    bool ChangeTarget(CPed* ped);
 
-    CTask*    Clone() const override { return new CTaskComplexKillCriminal{ *this }; }
-    eTaskType GetTaskType() const override { return Type; }
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, CEvent const* event = nullptr) override;
+    CTask*    Clone() override { return new CTaskComplexKillCriminal{ *this }; } // 0x68CE50
+    eTaskType GetTaskType() override { return Type; } // 0x68BF20
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
 
 private: // Wrappers for hooks
     // 0x68BE70
-    CTaskComplexKillCriminal* Constructor(CPed * criminal, bool randomize) {
+    CTaskComplexKillCriminal* Constructor(CPed* criminal, bool randomize) {
         this->CTaskComplexKillCriminal::CTaskComplexKillCriminal(criminal, randomize);
         return this;
     }
@@ -45,16 +54,4 @@ private: // Wrappers for hooks
         this->CTaskComplexKillCriminal::~CTaskComplexKillCriminal();
         return this;
     }
-
-private:
-    CPed*            m_Criminal{}; 
-    CCopPed*         m_Cop{}; 
-    float            m_TimeToGetOutOfCar{3.f};
-    bool             m_Randomize{}; 
-    bool             m_Finished{}; 
-    bool             m_CantGetInCar{}; 
-    eCarDrivingStyle m_OrigDrivingStyle{}; 
-    eCarMission      m_OrigMission{}; 
-    uint8            m_OrigCruiseSpeed{}; 
-    bool             m_IsSetUp{}; 
 };
