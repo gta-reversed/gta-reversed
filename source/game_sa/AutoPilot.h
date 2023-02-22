@@ -109,6 +109,8 @@ public:
         m_nCarMission = carMission;
         m_nCruiseSpeed = cruiseSpeed;
     }
+
+    void SetDrivingStyle(eCarDrivingStyle style) { m_nCarDrivingStyle = style; }
 };
 
 VALIDATE_SIZE(CAutoPilot, 0x98);
