@@ -294,7 +294,7 @@
 #include "TaskSimpleGiveCPR.h"
 #include "TaskSimpleCarSetPedInAsPassenger.h"
 #include "TaskComplexDriveFireTruck.h"
-#include "TaskInteriorLieInBed.h"
+#include "Interior/TaskInteriorLieInBed.h"
 #include "TaskSimpleSwim.h"
 #include "TaskComplexWalkRoundObject.h"
 #include "TaskSimplePause.h"
