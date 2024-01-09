@@ -27,13 +27,13 @@ CTaskInteriorLieInBed::CTaskInteriorLieInBed(
     bool rightHandSide,
     bool doInstantly
 ) :
-    m_intInfo{intInfo},
-    m_getOutAfterInterval{duration},
-    m_instant{doInstantly},
-    m_baseAnimId{ rightHandSide ? ANIM_ID_BED_IN_R : ANIM_ID_BED_IN_L },
+    m_IntInfo{intInfo},
+    m_GetOutAfterInterval{duration},
+    m_bDoInstantly{doInstantly},
+    m_BaseAnimId{ rightHandSide ? ANIM_ID_BED_IN_R : ANIM_ID_BED_IN_L },
 
 #ifdef FIX_BUGS
-    m_rightHandSide{rightHandSide}
+    m_bRghtHandSide{rightHandSide}
 #endif
 {   
 }
@@ -41,60 +41,62 @@ CTaskInteriorLieInBed::CTaskInteriorLieInBed(
 // For `0x675EF0`
 CTaskInteriorLieInBed::CTaskInteriorLieInBed(const CTaskInteriorLieInBed& o) :
     CTaskInteriorLieInBed{
-        m_getOutAfterInterval,
-        m_intInfo,
-        m_rightHandSide,
-        m_instant
+        m_GetOutAfterInterval,
+        m_IntInfo,
+        m_bRghtHandSide,
+        m_bDoInstantly
     }
 {
 }
 
 // 0x675E90
 CTaskInteriorLieInBed::~CTaskInteriorLieInBed() {
-    if (m_anim) {
-        m_anim->SetDefaultFinishCallback();
+    if (m_Anim) {
+        m_Anim->SetDefaultFinishCallback();
     }
 }
 
 // 0x675FC0
 void CTaskInteriorLieInBed::FinishAnimCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = static_cast<CTaskInteriorLieInBed*>(data);
+    const auto self = CTask::Cast<CTaskInteriorLieInBed>(static_cast<CTask*>(data));
 
-    self->m_prevAnimId = (AnimationId)anim->m_nAnimId;
-    if (self->m_prevAnimId == self->GetAnimIdInSeq(AnimSeqIdx::GET_OUT) // Last animation in the sequence
-     || self->m_taskAborting && self->m_prevAnimId == (AnimationId)self->m_baseAnimId
+    self->m_PrevAnimId = (AnimationId)anim->m_nAnimId;
+
+    if (self->m_PrevAnimId == self->GetAnimIdInSeq(AnimSeqIdx::GET_OUT) // Last animation in the sequence
+     || self->m_TaskAborting && self->m_PrevAnimId == (AnimationId)self->m_BaseAnimId
     ) { 
         anim->m_fBlendDelta = -1000.f;
-        self->m_lastAnimFinished = true;
+        self->m_LastAnimFinished = true;
     }
-    self->m_anim = nullptr;
+
+    self->m_Anim = nullptr;
 }
 
 // 0x675F60
 bool CTaskInteriorLieInBed::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     if (priority == ABORT_PRIORITY_IMMEDIATE) {
-        if (m_anim) {
-            m_anim->m_fBlendDelta = -1000.f;
-            m_anim->SetDefaultFinishCallback();
-            m_anim = nullptr;
+        if (m_Anim) {
+            m_Anim->m_fBlendDelta = -1000.f;
+            m_Anim->SetDefaultFinishCallback();
+            m_Anim = nullptr;
         }
         ped->GetIntelligence()->GetEventScanner().GetAcquaintanceScanner().SetOnlyScriptPedAllowed();
         return true;
     } else {
-        m_taskAborting = true;
+        m_TaskAborting = true;
         return false;
     }
 }
 
 // 0x6772E0
 bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
-    const auto currAnimId = m_anim
-        ? (AnimationId)m_anim->m_nAnimId
+    const auto currAnimId = m_Anim
+        ? (AnimationId)m_Anim->m_nAnimId
         : ANIM_ID_UNDEFINED;
 
     ped->SetMoveState(PEDMOVE_STILL);
 
-    if (m_lastAnimFinished) {
+    if (m_LastAnimFinished) {
         if (!RpAnimBlendClumpGetAssociation(ped->m_pRwClump, GetAnimIdInSeq(AnimSeqIdx::GET_OUT))) { // Check if last anim has really finished
             ped->GetIntelligence()->GetEventScanner().GetAcquaintanceScanner().SetOnlyScriptPedAllowed();
             return true;
@@ -102,45 +104,36 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
     }
 
     const auto CreateNextAnim = [&, this](AnimSeqIdx seqIdx, float blendDelta = 1000.f) {
-        m_anim->SetDefaultFinishCallback();
-        // Set next animation
-        // TODO/NOTE: No need to delete the anim here or smth?
-        m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_INT_HOUSE, GetAnimIdInSeq(seqIdx), blendDelta);
-        m_anim->SetFinishCallback(FinishAnimCB, this);
+        m_Anim->SetDefaultFinishCallback();
+        
+        m_Anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_INT_HOUSE, GetAnimIdInSeq(seqIdx), blendDelta);
+        m_Anim->SetFinishCallback(FinishAnimCB, this);
 
-        m_updatePedPos = true;
+        m_UpdatePedPos = true;
     };
 
-    if (m_taskAborting) {
+    if (m_TaskAborting) {
         if (!InteriorManager_c::AreAnimsLoaded(ANIM_GROUP_DEFAULT)) {
             ped->GetIntelligence()->GetEventScanner().GetAcquaintanceScanner().SetOnlyScriptPedAllowed();
             return true;
         }
 
-#ifdef FIX_BUGS
-        // It might happen that `MakeAbortable` was
-        // called before the animation was created
-        // I think.. Even if not, the analyzer
-        // will complain of null access if this
-        // isn't here :D
-        if (!m_anim) {
-            NOTSA_UNREACHABLE();
-        }
-#endif
+        assert(m_Anim);
+
         if (currAnimId == GetAnimIdInSeq(AnimSeqIdx::GET_IN)) {
-            m_anim->m_fBlendDelta = -8.f;
+            m_Anim->m_fBlendDelta = -8.f;
         } else if (currAnimId == GetAnimIdInSeq(AnimSeqIdx::LOOP)) {
-            if (!m_updatePedPos) {
+            if (!m_UpdatePedPos) {
                 CreateNextAnim(AnimSeqIdx::GET_OUT);
                 return false;
             }
         } else if (currAnimId == GetAnimIdInSeq(AnimSeqIdx::GET_OUT)) {
-            m_anim->m_fBlendDelta = 3.f;
+            m_Anim->m_fBlendDelta = 3.f;
         }
     }
 
-    if (m_anim) {
-        if (m_updatePedPos) {
+    if (m_Anim) {
+        if (m_UpdatePedPos) {
             const auto animOffsetOS = [&, this] {
                 switch (currAnimId) {
                 case ANIM_ID_BED_LOOP_L:
@@ -161,7 +154,7 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
             }
         }
 
-        if (m_getOutTimer.IsOutOfTime()) {
+        if (m_GetOutTimer.IsOutOfTime()) {
             if (currAnimId != GetAnimIdInSeq(AnimSeqIdx::GET_OUT)) {
                 CreateNextAnim(AnimSeqIdx::GET_OUT);
             }
@@ -169,7 +162,7 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
 
         // Update ped's anim shift and rotation
         if (currAnimId != GetAnimIdInSeq(AnimSeqIdx::GET_OUT)) {
-            auto pedToIntDir           = m_intInfo->m_position - ped->GetPosition();
+            auto pedToIntDir           = m_IntInfo->m_position - ped->GetPosition();
             const auto pedToIntMag     = pedToIntDir.NormaliseAndMag();
             const auto pedToIntShiftWS = pedToIntDir * std::min(pedToIntMag, 0.2f);
 
@@ -180,22 +173,22 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
                 pedToIntShiftWS.Dot(ped->GetForward()),
             };
 
-            ped->m_fAimingRotation = m_intInfo->m_targetPoint.Heading();
+            ped->m_fAimingRotation = m_IntInfo->m_targetPoint.Heading();
         }
     } else if (InteriorManager_c::AreAnimsLoaded(ANIM_GROUP_DEFAULT)) { // Create animation
         const auto CreateNextAnimAndStartTimer = [&, this](AnimSeqIdx offset, float blendDelta = 1000.f) {
-            m_getOutTimer.Start(m_getOutAfterInterval);
+            m_GetOutTimer.Start(m_GetOutAfterInterval);
             CreateNextAnim(offset, blendDelta);
         };
 
-        if (m_prevAnimId != ANIM_ID_UNDEFINED) {
-            if (m_prevAnimId == GetAnimIdInSeq(AnimSeqIdx::GET_IN)) {
+        if (m_PrevAnimId != ANIM_ID_UNDEFINED) {
+            if (m_PrevAnimId == GetAnimIdInSeq(AnimSeqIdx::GET_IN)) {
                 CreateNextAnimAndStartTimer(AnimSeqIdx::LOOP);
             }
         } else {
             ped->GetIntelligence()->GetEventScanner().GetAcquaintanceScanner().TurnOffAllScanners();
             CreateNextAnimAndStartTimer(
-                m_instant
+                m_bDoInstantly
                     ? AnimSeqIdx::LOOP
                     : AnimSeqIdx::GET_IN,
                 4.f
@@ -210,7 +203,7 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
 AnimationId CTaskInteriorLieInBed::GetAnimIdInSeq(AnimSeqIdx sequenceIdx) {
     using enum AnimSeqIdx;
 
-    switch (m_baseAnimId) {
+    switch (m_BaseAnimId) {
     case ANIM_ID_BED_IN_R:
         switch (sequenceIdx) {
         case GET_IN:  return ANIM_ID_BED_IN_R;

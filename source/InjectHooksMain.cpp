@@ -294,6 +294,7 @@
 #include "TaskSimpleGiveCPR.h"
 #include "TaskSimpleCarSetPedInAsPassenger.h"
 #include "TaskComplexDriveFireTruck.h"
+#include "TaskInteriorLieInBed.h"
 #include "TaskSimpleSwim.h"
 #include "TaskComplexWalkRoundObject.h"
 #include "TaskSimplePause.h"
@@ -955,7 +956,7 @@ void InjectHooksMain() {
             CTaskInteriorBeInOffice::InjectHooks();
             CTaskInteriorBeInShop::InjectHooks();
             CTaskInteriorGoToInfo::InjectHooks();
-        // CTaskInteriorLieInBed::InjectHooks();
+            CTaskInteriorLieInBed::InjectHooks();
             CTaskInteriorShopKeeper::InjectHooks();
             CTaskInteriorSitAtDesk::InjectHooks();
         // CTaskInteriorSitInChair::InjectHooks();
