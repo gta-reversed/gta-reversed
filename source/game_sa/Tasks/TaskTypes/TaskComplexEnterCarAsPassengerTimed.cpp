@@ -46,17 +46,18 @@ void CTaskComplexEnterCarAsPassengerTimed::StopTimer(const CEvent* event) {
 // 0x63B120
 bool CTaskComplexEnterCarAsPassengerTimed::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     const bool bSubTaskAborted = m_pSubTask->MakeAbortable(ped, priority, event);
-    if (bSubTaskAborted) {
-        switch (priority) {
-        case ABORT_PRIORITY_IMMEDIATE:
-        case ABORT_PRIORITY_URGENT: {
-            if (!event || !CEventHandler::IsTemporaryEvent(*event)) {
-                m_Timer.Stop();
-            }
-        }
+    if (!bSubTaskAborted) {
+        return false;
+    }
+    switch (priority) {
+    case ABORT_PRIORITY_IMMEDIATE:
+    case ABORT_PRIORITY_URGENT: {
+        if (!event || !CEventHandler::IsTemporaryEvent(*event)) {
+            m_Timer.Stop();
         }
     }
-    return bSubTaskAborted;
+    }
+    return true;
 }
 
 // 0x640660
