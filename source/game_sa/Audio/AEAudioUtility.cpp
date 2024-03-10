@@ -14,8 +14,8 @@ void CAEAudioUtility::InjectHooks() {
     RH_ScopedClass(CAEAudioUtility);
     RH_ScopedCategory("Audio");
 
-    RH_ScopedOverloadedInstall(GetRandomNumberInRange, "int", 0x4d9c10, int32(*)(const int32, const int32));
-    RH_ScopedOverloadedInstall(GetRandomNumberInRange, "float", 0x4d9c50, float(*)(float, float));
+    RH_ScopedInstall(GetRandomNumberInRange<int32>, 0x4d9c10);
+    RH_ScopedInstall(GetRandomNumberInRange<float>, 0x4d9c50);
     RH_ScopedInstall(ResolveProbability, 0x4d9c80);
     RH_ScopedInstall(GetPiecewiseLinear, 0x4d9d90);
     RH_ScopedInstall(AudioLog10, 0x4d9e50);
@@ -26,18 +26,6 @@ void CAEAudioUtility::InjectHooks() {
 
     RH_ScopedInstall(GetCurrentTimeInMS, 0x4d9e80);
     RH_ScopedInstall(StaticInitialise, 0x5b97f0);
-}
-
-// 0x4d9c10
-int32 CAEAudioUtility::GetRandomNumberInRange(const int32 min, const int32 max) {
-    // This and CGeneral differs in that this function returns a number [min, max + 1], while
-    // the other [min, max]. To solve this we do `max + 1`
-    return CGeneral::GetRandomNumberInRange(min, max + 1);
-}
-
-// 0x4d9c50
-float CAEAudioUtility::GetRandomNumberInRange(float a, float b) {
-    return CGeneral::GetRandomNumberInRange(a, b);
 }
 
 // 0x4d9c80

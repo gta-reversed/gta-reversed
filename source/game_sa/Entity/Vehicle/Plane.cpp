@@ -425,7 +425,7 @@ void CPlane::ProcessControl() {
 
     CAutomobile::ProcessControl();
 
-    m_vehicleAudio.field_7C = static_cast<int16>(field_9A0);
+    m_vehicleAudio.m_DoCountStalls = static_cast<int16>(field_9A0);
     if (field_9A0) {
         field_9A0 = 0;
     }

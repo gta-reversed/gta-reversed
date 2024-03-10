@@ -7,8 +7,15 @@ class CAEAudioUtility {
 public:
     static void      StaticInitialise();
 
-    static int32     GetRandomNumberInRange(const int32 min, const int32 max);
-    static float     GetRandomNumberInRange(float a, float b);
+    template<typename T>
+    static inline T GetRandomNumberInRange(T min, T max) {
+        if constexpr (std::is_integral_v<T>) {
+            return CGeneral::GetRandomNumberInRange<T>(min, max + 1);
+        } else {
+            return CGeneral::GetRandomNumberInRange<T>(min, max);
+        }
+
+    }
 
     static CVehicle* FindVehicleOfPlayer();
     static bool      ResolveProbability(float prob);
