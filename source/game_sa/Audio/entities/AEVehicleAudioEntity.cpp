@@ -130,7 +130,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessPlayerJet, 0x501650, { .reversed = false });
     RH_ScopedInstall(ProcessDummyJet, 0x501960, { .reversed = false });
     RH_ScopedInstall(ProcessAircraft, 0x501C50);
-    RH_ScopedInstall(ProcessVehicle, 0x501E10, { .reversed = false });
+    RH_ScopedInstall(ProcessVehicle, 0x501E10);
     RH_ScopedInstall(ProcessSpecialVehicle, 0x501AB0);
     RH_ScopedInstall(Service, 0x502280, { .reversed = false });
 
@@ -699,18 +699,18 @@ int16 CAEVehicleAudioEntity::GetVehicleTypeForAudio() {
 bool CAEVehicleAudioEntity::IsAccInhibited(cVehicleParams& params) const {
     return !AEAudioHardware.IsSoundBankLoaded(m_nEngineAccelerateSoundBankId, 40)
         || params.ThisBrake > 0
-        || params.bHandbrakeOn || IsAccInhibitedBackwards(params);
+        || params.IsHandbrakeOn || IsAccInhibitedBackwards(params);
 }
 
 // inlined?
 // 0x4F4FC0
 bool CAEVehicleAudioEntity::IsAccInhibitedBackwards(cVehicleParams& params) const {
-    return params.fWheelSpin > 5.0f || !params.NumDriveWheelsOnGround;
+    return params.WheelSpin > 5.0f || !params.NumDriveWheelsOnGround;
 }
 
 // 0x4F4FF0
 bool CAEVehicleAudioEntity::IsAccInhibitedForLowSpeed(cVehicleParams& params) const {
-    return !m_bInhibitAccForLowSpeed && params.fSpeed < 0.1f; // 0.1f is static
+    return !m_bInhibitAccForLowSpeed && params.Speed < 0.1f; // 0.1f is static
 }
 
 // inlined?
@@ -1144,13 +1144,13 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(cVehicleParams& params, 
     float fVolume = 0.0f;
     switch (gear) {
     case 1:
-        fVolume = 4.0f * params.fRealRevsRatio - 4.0f;
+        fVolume = 4.0f * params.RealRevsRatio - 4.0f;
         break;
     case 2: {
         if (params.Vehicle->m_nModelIndex == MODEL_CADDY) {
             fVolume = -30.0f - 3.0f;
         } else {
-            fVolume = 1.5f * params.fRealRevsRatio - 3.0f;
+            fVolume = 1.5f * params.RealRevsRatio - 3.0f;
         }
         break;
     }
@@ -1864,7 +1864,7 @@ void CAEVehicleAudioEntity::ProcessVehicleRoadNoise(cVehicleParams& params) {
 
     // Check if any wheels touch the ground. (Perhaps params.m_nWheelsOnGround could be used?)
     const auto GetNumContactWheels = [=]() -> uint8 {
-        switch (params.nBaseVehicleType) {
+        switch (params.BaseVehicleType) {
         case VEHICLE_TYPE_AUTOMOBILE: return vehicle->AsAutomobile()->m_nNumContactWheels;
         case VEHICLE_TYPE_BIKE: return vehicle->AsBike()->m_nNoOfContactWheels;
         default: return 4;
@@ -1888,7 +1888,7 @@ void CAEVehicleAudioEntity::ProcessVehicleRoadNoise(cVehicleParams& params) {
     }
     }
 
-    const float velocity = std::fabs(params.fSpeed);
+    const float velocity = std::fabs(params.Speed);
     if (velocity <= 0.0f) {
         CancelRoadNoise();
         return;
@@ -1939,7 +1939,7 @@ void CAEVehicleAudioEntity::ProcessReverseGear(cVehicleParams& params) {
 
         float fReverseGearVelocityProgress = 0.0f;
         if (vehicle->m_nWheelsOnGround) {
-            fReverseGearVelocityProgress = params.fSpeed / params.Transmission->m_maxReverseGearVelocity;
+            fReverseGearVelocityProgress = params.Speed / params.Transmission->m_maxReverseGearVelocity;
         } else {
             if (vehicle->m_wheelsOnGrounPrev) {
                 vehicle->m_fGasPedalAudio *= 0.4f;
@@ -1971,7 +1971,7 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(cVehicleParams& params) {
     float fUnk                      = 0.0f;
     auto  nWheels                   = 0;
 
-    switch (params.nBaseVehicleType) {
+    switch (params.BaseVehicleType) {
     case VEHICLE_TYPE_AUTOMOBILE: {
         nWheels = 4;
 
@@ -2015,9 +2015,9 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(cVehicleParams& params) {
 
         const auto dt = params.Transmission->m_nDriveType;
         if (dt == '4' || dt == 'F' && bIsFrontWheel || dt == 'R' && !bIsFrontWheel) {
-            fTotalSkidValue += GetVehicleDriveWheelSkidValue(params.Vehicle, thisWheelState, fUnk, *params.Transmission, params.fSpeed);
+            fTotalSkidValue += GetVehicleDriveWheelSkidValue(params.Vehicle, thisWheelState, fUnk, *params.Transmission, params.Speed);
         } else {
-            fTotalSkidValue += GetVehicleNonDriveWheelSkidValue(params.Vehicle, thisWheelState, *params.Transmission, params.fSpeed);
+            fTotalSkidValue += GetVehicleNonDriveWheelSkidValue(params.Vehicle, thisWheelState, *params.Transmission, params.Speed);
         }
     }
 
@@ -2108,7 +2108,7 @@ void CAEVehicleAudioEntity::ProcessBoatMovingOverWater(cVehicleParams& params) {
 
     // Originally there was a multiply by 1.33, that's the recp. of 0.75f, which makes sense
     // because the abs. velocity is clamped to 0.75f
-    const float fVelocityProgress = std::min(0.75f, std::fabs(params.fSpeed)) / 0.75f;
+    const float fVelocityProgress = std::min(0.75f, std::fabs(params.Speed)) / 0.75f;
 
     float fVolume = -100.0f;
     if (boat->m_nBoatFlags.bOnWater && fVelocityProgress >= 0.00001f) {
@@ -2496,19 +2496,20 @@ void CAEVehicleAudioEntity::ProcessAircraft(cVehicleParams& params) {
 
 // 0x501E10
 void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
-    plugin::CallMethod<0x501E10, CAEVehicleAudioEntity*, CPhysical*>(this, physical);
-    return;
-
-    CVehicle*  vehicle      = physical->AsVehicle();
-    const auto bIsNotSimple = vehicle->m_nStatus != STATUS_SIMPLE;
+    auto* const vehicle        = physical->AsVehicle();
+    const auto  isStatusSimple = vehicle->m_nStatus == STATUS_SIMPLE;
 
     cVehicleParams params{};
-    params.Vehicle                = vehicle;
-    params.Transmission           = vehicle->m_pHandlingData ? &vehicle->m_pHandlingData->m_transmissionData : nullptr;
-    params.nModelIndexMinusOffset = physical->m_nModelIndex - 400;
-    params.fSpeed                 = !bIsNotSimple ? vehicle->m_autoPilot.m_speed / 50.0f : DotProduct(physical->m_vecMoveSpeed, physical->m_matrix->GetForward());
-    params.nBaseVehicleType       = vehicle->m_nVehicleType;
-    params.nSpecificVehicleType   = vehicle->m_nVehicleSubType;
+    params.Vehicle               = vehicle;
+    params.ModelIndexMinusOffset = physical->m_nModelIndex - 400;
+    params.BaseVehicleType       = vehicle->m_nVehicleType;
+    params.SpecificVehicleType   = vehicle->m_nVehicleSubType;
+    params.Transmission          = vehicle->m_pHandlingData
+        ? &vehicle->m_pHandlingData->m_transmissionData
+        : nullptr;
+    params.Speed                 = isStatusSimple
+        ? DotProduct(physical->m_vecMoveSpeed, physical->m_matrix->GetForward())
+        : vehicle->m_autoPilot.m_speed / 50.0f;
 
     switch (m_Settings.m_nVehicleSoundType) {
     case VEHICLE_SOUND_CAR:
@@ -2519,11 +2520,12 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
         }
 
         ProcessVehicleRoadNoise(params);
+
         if (m_bPlayerDriver) {
             ProcessReverseGear(params);
         }
 
-        if (bIsNotSimple) {
+        if (!isStatusSimple) {
             ProcessVehicleSkidding(params);
             ProcessVehicleFlatTyre(params);
         }
@@ -2536,7 +2538,7 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
             ProcessDummyVehicleEngine(params);
         }
 
-        if (bIsNotSimple) {
+        if (!isStatusSimple) {
             ProcessEngineDamage(params);
         }
 
@@ -2552,10 +2554,10 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
             ProcessPlayerCombine(params);
         }
 
-        vehicle->AsAutomobile()->m_fMoveDirection = params.fSpeed;
+        vehicle->AsAutomobile()->m_fMoveDirection = params.Speed;
         break;
 
-    case VEHICLE_SOUND_MOTORCYCLE:
+    case VEHICLE_SOUND_MOTORCYCLE: {
         if (m_bSoundsStopped) {
             break;
         }
@@ -2563,7 +2565,7 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
         UpdateGasPedalAudio(vehicle, vehicle->m_nVehicleType);
         ProcessVehicleRoadNoise(params);
 
-        if (bIsNotSimple) {
+        if (!isStatusSimple) {
             ProcessVehicleSkidding(params);
         }
 
@@ -2575,17 +2577,17 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
             ProcessDummyVehicleEngine(params);
         }
 
-        if (bIsNotSimple) {
+        if (!isStatusSimple) {
             ProcessEngineDamage(params);
             ProcessVehicleFlatTyre(params);
         }
 
         ProcessRainOnVehicle(params);
 
-        vehicle->AsBike()->m_fPrevSpeed = params.fSpeed;
+        vehicle->AsBike()->m_fPrevSpeed = params.Speed;
         break;
-
-    case VEHICLE_SOUND_BICYCLE:
+    }
+    case VEHICLE_SOUND_BICYCLE: {
         if (m_bSoundsStopped) {
             break;
         }
@@ -2600,50 +2602,52 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
             ProcessDummyBicycle(params);
         }
 
-        vehicle->AsBike()->m_fPrevSpeed = params.fSpeed;
+        vehicle->AsBike()->m_fPrevSpeed = params.Speed;
         break;
-
-    case VEHICLE_SOUND_BOAT:
+    }
+    case VEHICLE_SOUND_BOAT: {
         ProcessBoatEngine(params);
         ProcessRainOnVehicle(params);
         ProcessBoatMovingOverWater(params);
         break;
-
-    case VEHICLE_SOUND_HELI:
+    }
+    case VEHICLE_SOUND_HELI: {
         UpdateGasPedalAudio(vehicle, vehicle->m_nVehicleType);
         ProcessAircraft(params);
         ProcessRainOnVehicle(params);
         break;
-
-    case VEHICLE_SOUND_PLANE:
+    }
+    case VEHICLE_SOUND_PLANE: {
         UpdateGasPedalAudio(vehicle, vehicle->m_nVehicleType);
         ProcessAircraft(params);
         ProcessRainOnVehicle(params);
         ProcessMovingParts(params);
         break;
-
-    case VEHICLE_SOUND_NON_VEH:
+    }
+    case VEHICLE_SOUND_NON_VEH: {
         ProcessAircraft(params);
         ProcessRainOnVehicle(params);
         ProcessBoatMovingOverWater(params);
         break;
-
-    case VEHICLE_SOUND_TRAIN:
+    }
+    case VEHICLE_SOUND_USED_BY_NONE_VEH:
+        break;
+    case VEHICLE_SOUND_TRAIN: {
         ProcessTrainTrackSound(params);
+        ProcessDummyTrainEngine(params);
         if (m_bPlayerDriver) {
-            ProcessDummyTrainEngine(params);
             ProcessPlayerTrainBrakes(params);
-        } else {
-            ProcessDummyTrainEngine(params);
         }
         break;
-
-    case VEHICLE_SOUND_TRAILER:
+    }
+    case VEHICLE_SOUND_TRAILER: {
         ProcessSpecialVehicle(params);
         break;
-
+    }
+    case VEHICLE_SOUND_SPECIAL:
+        break;
     default:
-        return;
+        NOTSA_UNREACHABLE();
     }
 }
 

@@ -51,25 +51,25 @@ struct tEngineDummySlot {
 VALIDATE_SIZE(tEngineDummySlot, 0x4);
 
 struct cVehicleParams {
-    int32          nSpecificVehicleType{ VEHICLE_TYPE_IGNORE };
-    int32          nBaseVehicleType{ VEHICLE_TYPE_IGNORE };
-    bool           bDistanceCalculated{ false };
-    float          fDistSqr{ 0.0f };
+    int32          SpecificVehicleType{ VEHICLE_TYPE_IGNORE };
+    int32          BaseVehicleType{ VEHICLE_TYPE_IGNORE };
+    bool           IsDistCalculated{ false };
+    float          DistSq{ 0.0f };
     CVehicle*      Vehicle{ nullptr };
     cTransmission* Transmission{ nullptr };
-    uint32         nModelIndexMinusOffset{ 0 };
-    float          fSpeed{ 0.0f };
+    uint32         ModelIndexMinusOffset{ 0 }; // Offset is `400`
+    float          Speed{ 0.0f };
     int16          ThisAccel{ 0 };
     int16          ThisBrake{ 0 };
-    float          fAbsSpeed{ 0.0f };
-    float          fZOverSpeed{};
-    float          fSpeedRatio{ 0.0f };
-    float*         pfGasPedalAudioRevs{ nullptr };
-    float          fPrevSpeed{ 0.0f };
+    float          AbsSpeed{ 0.0f };
+    float          ZOverSpeed{};
+    float          SpeedRatio{ 0.0f };
+    float*         GasPedalAudioRevs{ nullptr };
+    float          PrevSpeed{ 0.0f };
     uint8          RealGear{ 0 };
-    bool           bHandbrakeOn{ false };
-    float          fRealRevsRatio{ 0.0f };
-    float          fWheelSpin{ 0.0f };
+    bool           IsHandbrakeOn{ false };
+    float          RealRevsRatio{ 0.0f };
+    float          WheelSpin{ 0.0f };
     int16          NumGears{};
     uint8          NumDriveWheelsOnGround{};
     uint8          NumDriveWheelsOnGroundLastFrame{};
