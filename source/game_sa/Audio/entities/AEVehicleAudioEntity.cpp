@@ -128,7 +128,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessDummyGolfCart, 0x501270, { .reversed = false });
     RH_ScopedInstall(ProcessDummyVehicleEngine, 0x501480, { .reversed = false });
     RH_ScopedInstall(ProcessPlayerJet, 0x501650, { .reversed = false });
-    RH_ScopedInstall(ProcessDummyJet, 0x501960, { .reversed = false });
+    RH_ScopedInstall(ProcessDummyJet, 0x501960);
     RH_ScopedInstall(ProcessAircraft, 0x501C50);
     RH_ScopedInstall(ProcessVehicle, 0x501E10);
     RH_ScopedInstall(ProcessSpecialVehicle, 0x501AB0);
@@ -2430,8 +2430,23 @@ void CAEVehicleAudioEntity::ProcessPlayerJet(cVehicleParams& params) {
 }
 
 // 0x501960
-void CAEVehicleAudioEntity::ProcessDummyJet(cVehicleParams& params) {
-    plugin::CallMethod<0x501960, CAEVehicleAudioEntity*, cVehicleParams&>(this, params);
+void CAEVehicleAudioEntity::ProcessDummyJet(cVehicleParams& vp) {
+    auto* const plane = vp.Vehicle->AsPlane();
+    const auto isRecordingVehicle = plane->m_autoPilot.m_vehicleRecordingId >= 0;
+
+    const auto engineSpeedFactor = isRecordingVehicle
+        ? 0.7f + 0.3f * std::clamp(std::max(plane->m_fGasPedal, plane->m_fBreakPedal), 0.f, 1.f)
+        : plane->m_fPropSpeed / 0.34f; // * 2.941 ???
+
+    ProcessGenericJet(
+        plane->vehicleFlags.bEngineOn || isRecordingVehicle,
+        vp,
+        std::clamp(engineSpeedFactor, 0.2f, 1.f) * 1.25f,
+        plane->m_fGasPedal / 255.f,
+        plane->m_fBreakPedal / 255.f,
+        0.f,
+        1.f
+    );
 }
 
 // 0x501C50
@@ -2440,7 +2455,7 @@ void CAEVehicleAudioEntity::ProcessAircraft(cVehicleParams& params) {
         return;
     }
 
-    if (!AEAudioHardware.IsSoundBankLoaded(138u, 19)) {
+    if (!AEAudioHardware.IsSoundBankLoaded(138, 19)) {
         return;
     }
 
