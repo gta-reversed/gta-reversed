@@ -22,10 +22,10 @@ void CTaskComplexEnterCarAsPassengerTimed::InjectHooks() {
 
 // 0x63B030
 CTaskComplexEnterCarAsPassengerTimed::CTaskComplexEnterCarAsPassengerTimed(CVehicle* vehicle, uint32 targetSeat, uint32 timeMs, bool bCarryOnAfterFallingOff) :
-    m_TargetCar{vehicle},
-    m_TargetSeat{targetSeat},
-    m_Time{timeMs},
-    m_bCarryOnAfterFallingOff{bCarryOnAfterFallingOff}
+    m_TargetCar{ vehicle },
+    m_TargetSeat{ targetSeat },
+    m_Time{ timeMs },
+    m_bCarryOnAfterFallingOff{ bCarryOnAfterFallingOff }
 {   
 }
 
@@ -39,7 +39,7 @@ CTaskComplexEnterCarAsPassengerTimed::CTaskComplexEnterCarAsPassengerTimed(const
 // 0x63B2E0
 void CTaskComplexEnterCarAsPassengerTimed::StopTimer(const CEvent* event) {
     if (!CEventHandler::IsTemporaryEvent(*event)) {
-        m_Timer.Stop();
+        m_Timer.Pause();
     }
 }
 
@@ -52,7 +52,7 @@ bool CTaskComplexEnterCarAsPassengerTimed::MakeAbortable(CPed* ped, eAbortPriori
     case ABORT_PRIORITY_IMMEDIATE:
     case ABORT_PRIORITY_URGENT: {
         if (!event || !CEventHandler::IsTemporaryEvent(*event)) {
-            m_Timer.Stop();
+            m_Timer.Pause();
         }
     }
     }
@@ -64,7 +64,9 @@ CTask* CTaskComplexEnterCarAsPassengerTimed::CreateFirstSubTask(CPed* ped) {
     if (!m_TargetCar) {
         return nullptr;
     }
+
     m_Timer.Start(m_Time);
+
     const auto tEnterCar = new CTaskComplexEnterCarAsPassenger{m_TargetCar, (int32)m_TargetSeat, m_bCarryOnAfterFallingOff};
     tEnterCar->SetMoveState(m_MoveState);
     return tEnterCar;
@@ -75,15 +77,11 @@ CTask* CTaskComplexEnterCarAsPassengerTimed::ControlSubTask(CPed* ped) {
     if (!m_TargetCar) {
         return nullptr;
     }
-    if (m_Timer.IsOutOfTime()) {
-        if (m_pSubTask->MakeAbortable(ped)) {
-            if (!ped->bInVehicle) {
-                if ( m_TargetSeat == 0 && m_TargetCar->m_nNumPassengers < m_TargetCar->m_nMaxPassengers ||
-                    !m_TargetCar->GetPassengers()[CCarEnterExit::ComputePassengerIndexFromCarDoor(m_TargetCar, m_TargetSeat)]
-                ) {
-                    return new CTaskSimpleCarSetPedInAsPassenger{m_TargetCar, (eTargetDoor)m_TargetSeat, true};
-                }
-            }
+    if (m_Timer.IsOutOfTime() && m_pSubTask->MakeAbortable(ped) && !ped->bInVehicle) {
+        if (   m_TargetSeat == 0 && m_TargetCar->m_nNumPassengers < m_TargetCar->m_nMaxPassengers
+            || !m_TargetCar->GetPassengers()[CCarEnterExit::ComputePassengerIndexFromCarDoor(m_TargetCar, m_TargetSeat)]
+        ) {
+            return new CTaskSimpleCarSetPedInAsPassenger{m_TargetCar, (eTargetDoor)m_TargetSeat, true};
         }
     }
     return m_pSubTask;
