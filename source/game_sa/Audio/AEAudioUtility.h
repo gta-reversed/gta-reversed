@@ -25,7 +25,9 @@ public:
     static uint32    ConvertFromMSToBytes(uint32 a, uint32 frequency, uint16 frequencyMult);
 
     static bool      GetBankAndSoundFromScriptSlotAudioEvent(int32& slot, int32& outBank, int32& outSound, int32 a4);
-    static float     GetPiecewiseLinear(float x, int16 dataCount, float (*data)[2]);
+    static float     GetPiecewiseLinear(float x, int16 dataCount, const float (*data)[2]);
+    template<int16 DataCnt>
+    static float     GetPiecewiseLinearT(float x, const float (&points)[DataCnt][2]) { return GetPiecewiseLinear(x, DataCnt, points); }
     static uint64    GetCurrentTimeInMS();
 
     // NOTSA

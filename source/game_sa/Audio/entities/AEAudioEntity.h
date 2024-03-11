@@ -14,7 +14,7 @@ class CEntity;
 
 class NOTSA_EXPORT_VTABLE CAEAudioEntity {
 public:
-    CEntity* m_pEntity;
+    CEntity* m_Entity;
     CAESound m_tempSound;
 
 private:

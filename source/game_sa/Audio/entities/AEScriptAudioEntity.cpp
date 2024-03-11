@@ -30,7 +30,7 @@ void CAEScriptAudioEntity::Reset() {
         ClearMissionAudio(i);
     }
     field_7C = 0;
-    m_pEntity = nullptr;
+    m_Entity = nullptr;
     field_7D = 0;
     field_8C = 2.0f;
 }
@@ -353,7 +353,7 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
                 AESoundManager.CancelSoundsInBankSlot(40, 0);
             AEAudioHardware.LoadSoundBank(44, 40);
         }
-        m_pEntity = physical;
+        m_Entity = physical;
         field_7D = 1;
         break;
     case AE_CAS4_FJ:
@@ -375,7 +375,7 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
         if (field_7D) {
             AESoundManager.CancelSoundsInBankSlot(40, 1);
             PlayResidentSoundEvent(40, 44, 3, eventId, posn, physical, 0.0f, 1.0f, 0, 2.5f);
-            m_pEntity = nullptr;
+            m_Entity = nullptr;
             field_7D = 0;
         }
         break;

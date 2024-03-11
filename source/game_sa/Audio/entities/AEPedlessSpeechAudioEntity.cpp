@@ -9,7 +9,7 @@ CAEPedlessSpeechAudioEntity::CAEPedlessSpeechAudioEntity() : CAEPedSpeechAudioEn
 
 // 0x4E4E10
 void CAEPedlessSpeechAudioEntity::Initialise() {
-    m_pEntity                  = nullptr;
+    m_Entity                  = nullptr;
     m_Entity                   = nullptr;
     m_pSound                   = nullptr;
     m_fVoiceVolume             = -100.0f;

@@ -9,7 +9,7 @@
 #include "AEAudioEntity.h"
 #include "cTransmission.h"
 #include "AETwinLoopSoundEntity.h"
-
+#include <extensions/FixedFloat.hpp>
 #include "eAudioEvents.h"
 #include "eRadioID.h"
 #include "eVehicleType.h"
@@ -52,43 +52,43 @@ struct tEngineDummySlot {
 VALIDATE_SIZE(tEngineDummySlot, 0x4);
 
 struct cVehicleParams {
-    int32          SpecificVehicleType{ VEHICLE_TYPE_IGNORE };
-    int32          BaseVehicleType{ VEHICLE_TYPE_IGNORE };
-    bool           IsDistCalculated{ false };
-    float          DistSq{ 0.0f };
-    CVehicle*      Vehicle{ nullptr };
-    cTransmission* Transmission{ nullptr };
-    uint32         ModelIndexMinusOffset{ 0 }; // Offset is `400`
-    float          Speed{ 0.0f };
-    int16          ThisAccel{ 0 };
-    int16          ThisBrake{ 0 };
-    float          AbsSpeed{ 0.0f };
-    float          ZOverSpeed{};
-    float          SpeedRatio{ 0.0f };
-    float*         GasPedalAudioRevs{ nullptr };
-    float          PrevSpeed{ 0.0f };
-    uint8          RealGear{ 0 };
-    bool           IsHandbrakeOn{ false };
-    float          RealRevsRatio{ 0.0f };
-    float          WheelSpin{ 0.0f };
-    int16          NumGears{};
-    uint8          NumDriveWheelsOnGround{};
-    uint8          NumDriveWheelsOnGroundLastFrame{};
-    tWheelState*   WheelState{};
+    int32                    SpecificVehicleType{ VEHICLE_TYPE_IGNORE };
+    int32                    BaseVehicleType{ VEHICLE_TYPE_IGNORE };
+    bool                     IsDistCalculated{ false };
+    float                    DistSq{ 0.0f };
+    CVehicle*                Vehicle{ nullptr };
+    cTransmission*           Transmission{ nullptr };
+    uint32                   ModelIndexMinusOffset{ 0 }; // Offset is `400`
+    float                    Speed{ 0.0f };
+    FixedFloat<int16, 255.f> ThisAccel{ 0 };
+    FixedFloat<int16, 255.f> ThisBrake{ 0 };
+    float                    AbsSpeed{ 0.0f };
+    float                    ZOverSpeed{};
+    float                    SpeedRatio{ 0.0f };
+    float*                   GasPedalAudioRevs{ nullptr };
+    float                    PrevSpeed{ 0.0f };
+    uint8                    RealGear{ 0 };
+    bool                     IsHandbrakeOn{ false };
+    float                    RealRevsRatio{ 0.0f };
+    float                    WheelSpin{ 0.0f };
+    int16                    NumGears{};
+    uint8                    NumDriveWheelsOnGround{};
+    uint8                    NumDriveWheelsOnGroundLastFrame{};
+    tWheelState*             WheelState{};
 };
 VALIDATE_SIZE(cVehicleParams, 0x4C);
 
-class NOTSA_EXPORT_VTABLE tVehicleSound {
+class NOTSA_EXPORT_VTABLE tEngineSound {
 public:
-    uint32    m_nIndex;
-    CAESound* m_pSound;
-
-    void Init(auto index) {
-        m_nIndex = index;
-        m_pSound = nullptr;
+    void Init(uint32 index) {
+        EngineSoundType = index;
     }
+
+    uint32    EngineSoundType{};
+    CAESound* Sound{};
+
 };
-VALIDATE_SIZE(tVehicleSound, 0x8);
+VALIDATE_SIZE(tEngineSound, 0x8);
 
 struct tVehicleAudioSettings {
     eVehicleSoundType VehicleAudioType;
@@ -120,6 +120,18 @@ VALIDATE_SIZE(tVehicleAudioSettings, 0x24);
 class CPed;
 
 class NOTSA_EXPORT_VTABLE CAEVehicleAudioEntity : public CAEAudioEntity {
+private:
+    // Indices for EngineSound[] for aircrafts
+    enum eAircraftSoundType {
+        AE_SOUND_AIRCRAFT_DISTANT     = 1,
+        AE_SOUND_AIRCRAFT_FRONT       = 2,
+        AE_SOUND_AIRCRAFT_NEAR        = 3,
+        AE_SOUND_AIRCRAFT_REAR        = 4,
+        AE_SOUND_AIRCRAFT_THRUST      = 5,
+        AE_SOUND_PLANE_WATER_SKIM     = 6,
+        AE_SOUND_AIRCRAFT_JET_DISTANT = 7,
+    };
+
 public:
     int16                  m_DoCountStalls;
     tVehicleAudioSettings  m_AuSettings;
@@ -153,7 +165,7 @@ public:
     int16                  m_DummyEngineBank;
     int16                  m_PlayerEngineBank;
     int16                  m_DummySlot;
-    tVehicleSound          m_EngineSounds[12];
+    tEngineSound          m_EngineSounds[12];
 
     int32                  m_TimeLastServiced;
 
@@ -229,7 +241,7 @@ public:
     void Service();
     static void StaticService();
 
-    int16 GetVehicleTypeForAudio();
+    int16 GetVehicleTypeForAudio() const;
 
     void InhibitAccForTime(uint32 time);
     bool IsAccInhibited(cVehicleParams& params) const;
@@ -255,7 +267,8 @@ public:
     void JustGotOutOfVehicleAsDriver();
 
     void StartVehicleEngineSound(int16, float, float);
-    void CancelVehicleEngineSound(int16 engineSoundStateId);
+    void CancelVehicleEngineSound(size_t engineSoundStateId);
+    void CancelAllVehicleEngineSounds(); // notsa
     void RequestNewPlayerCarEngineSound(int16 vehicleSoundId, float speed, float changeSound);
     float GetFreqForPlayerEngineSound(cVehicleParams& params, int16 engineState_QuestionMark);
     float GetVolForPlayerEngineSound(cVehicleParams& params, int16 gear);
@@ -283,9 +296,9 @@ public:
 
     [[nodiscard]] float GetBaseVolumeForBicycleTyre(float fGearVelocityProgress) const;
     void GetHornState(bool* out, cVehicleParams& params);
-    void GetAccelAndBrake(cVehicleParams& params);
+    void GetAccelAndBrake(cVehicleParams& vp) const;
 
-    void PlayAircraftSound(int16 engineState, int16 bankSlotId, int16 sfxId, float volume = -100.0f, float speed = 1.0f);
+    void PlayAircraftSound(eAircraftSoundType engineState, int16 bankSlotId, int16 sfxId, float volume = -100.0f, float speed = 1.0f);
     void PlayRoadNoiseSound(int16 newRoadNoiseSoundType, float speed = 1.0f, float volume = -100.0f);
     void PlayFlatTyreSound(int16 soundType, float speed = 1.0f, float volume = -100.0f);
     void PlayReverseSound(int16 soundType, float speed = 1.0f, float volume = -100.0f);
@@ -306,6 +319,7 @@ public:
     void ProcessDummyHeli(cVehicleParams& params);
     void ProcessPlayerHeli(cVehicleParams& params);
     void ProcessAIProp(cVehicleParams& params);
+    void ProcessProp(cVehicleParams& vp, bool isProp); // notsa
     void ProcessDummyProp(cVehicleParams& params);
     void ProcessPlayerProp(cVehicleParams& params);
     void ProcessAircraft(cVehicleParams& params);
@@ -351,7 +365,7 @@ public:
                         float fTimeScale = 1.0f, eSoundEnvironment individualEnvironment = SOUND_REQUEST_UPDATES, int16 playPos = 0);
 
 private:
-    void ProcessPlanePropellerStall(CPlane* plane, float& outVolume, float& outFreq);
+    void ProcessPropStall(CPlane* plane, float& outVolume, float& outFreq);
 
 private:
     friend void InjectHooksMain();
