@@ -40,16 +40,16 @@ enum eRadioType : int8 {
     RADIO_DISABLED  = -1,
 };
 
-struct tEngineDummySlot {
-    int16 m_nBankId;
-    int16 m_nUsageCount;
+struct tDummyEngineSlot {
+    int16 BankID;
+    int16 RefCnt;
 
     void Reset() {
-        m_nBankId     = -1;
-        m_nUsageCount = 0;
+        BankID = -1;
+        RefCnt = 0;
     }
 };
-VALIDATE_SIZE(tEngineDummySlot, 0x4);
+VALIDATE_SIZE(tDummyEngineSlot, 0x4);
 
 struct cVehicleParams {
     int32                    SpecificVehicleType{ VEHICLE_TYPE_IGNORE };
@@ -121,8 +121,8 @@ class CPed;
 
 class NOTSA_EXPORT_VTABLE CAEVehicleAudioEntity : public CAEAudioEntity {
 private:
-    // Indices for EngineSound[] for aircrafts
-    enum eAircraftSoundType {
+    // Indices for `EngineSound[]` (?) depending on the vehicle type:
+    enum eAircraftSoundType { // For planes (aircrafts)
         AE_SOUND_AIRCRAFT_DISTANT     = 1,
         AE_SOUND_AIRCRAFT_FRONT       = 2,
         AE_SOUND_AIRCRAFT_NEAR        = 3,
@@ -130,6 +130,93 @@ private:
         AE_SOUND_AIRCRAFT_THRUST      = 5,
         AE_SOUND_PLANE_WATER_SKIM     = 6,
         AE_SOUND_AIRCRAFT_JET_DISTANT = 7,
+    };
+
+    enum { // For automobiles
+        AE_SOUND_ENGINE_OFF     = 0,
+
+        AE_SOUND_CAR_REV        = 1,
+        AE_SOUND_CAR_ID         = 2,
+
+        AE_SOUND_PLAYER_CRZ     = 3,
+        AE_SOUND_PLAYER_AC      = 4,
+        AE_SOUND_PLAYER_OFF     = 5,
+        AE_SOUND_PLAYER_REVERSE = 6,
+
+        AE_SOUND_NITRO1         = 7,
+        AE_SOUND_NITRO2         = 8,
+
+        AE_SOUND_STEAM          = 9,
+
+        AE_SOUND_FUCKED         = 10,
+
+        AE_SOUND_MOVING_PARTS   = 11,
+
+        AE_SOUND_ENGINE_MAX     = 12,
+    };
+
+    enum { // For trains
+        AE_SOUND_TRAIN_ENGINE  = 1,
+        AE_SOUND_TRAIN_TRACK   = 2,
+        AE_SOUND_TRAIN_DISTANT = 3,
+    };
+
+    enum { // For heli
+        AE_PLAYER_HELI_FRONT = 0,
+        AE_PLAYER_HELI_REAR  = 1,
+        AE_PLAYER_HELI_START = 2,
+        AE_PLAYER_HELI_TAIL  = 3,
+    };
+
+    enum { // For bicycle
+        AE_SOUND_BICYCLE_TYRE        = 1,
+        AE_SOUND_BICYCLE_SPROCKET_1  = 2,
+        AE_SOUND_BICYCLE_CHAIN_CLANG = 3,
+    };
+
+    enum { // For boat
+        AE_SOUND_BOAT_IDLE       = 1,
+        AE_SOUND_BOAT_ENGINE     = 2,
+        AE_SOUND_BOAT_DISTANT    = 3,
+        AE_SOUND_BOAT_PADDING1   = 4,
+        AE_SOUND_BOAT_PADDING2   = 5,
+        AE_SOUND_BOAT_WATER_SKIM = 6,
+    };
+
+    enum  { // AE Vehicle types (?)
+        AE_CAR                 = 0,
+        AE_BIKE                = 1,
+        AE_BMX                 = 2,
+        AE_BOAT                = 3,
+        AE_AIRCRAFT_HELICOPTOR = 4,
+        AE_AIRCRAFT_PLANE      = 5,
+        AE_AIRCRAFT_SEAPLANE   = 6,
+        AE_ONE_GEAR            = 7,
+        AE_TRAIN               = 8,
+        AE_SPECIAL             = 9,
+        AE_NO_VEHICLE          = 10,
+    };
+
+    enum { // Enums for `m_State` (?)
+        AE_STATE_CAR_OFF              = 0,
+
+        AE_STATE_DUMMY_ID             = 1, // Idle?
+        AE_STATE_DUMMY_CRZ            = 2, // Tf?
+
+        AE_STATE_PLAYER_AC_FULL       = 3, // What the fuck is AC? Air-Conditioner?
+        AE_STATE_PLAYER_WHEEL_SPIN    = 4,
+        AE_STATE_PLAYER_CRZ           = 5,
+        AE_STATE_PLAYER_ID            = 6,
+        AE_STATE_PLAYER_REVERSE       = 7,
+        AE_STATE_PLAYER_REVERSE_OFF   = 8,
+        AE_STATE_PLAYER_FAILING_TO_AC = 9, // ????
+
+        AE_CAR_ENGINE_STATE_MAX       = 10,
+    };
+
+    enum { // ????
+        AE_DUMMY_CRZ = 0x0,
+        AE_DUMMY_ID = 0x1,
     };
 
 public:
@@ -141,7 +228,7 @@ public:
     bool                   m_IsPlayerDriverAboutToExit;
     bool                   m_IsWreckedVehicle;
     char                   m_State; // Engine state?
-    uint8                  m_AuGear;
+    uint8                  m_AuGear; // AudioGear
     float                  m_CrzCount; // Crz = Cruise ?
     bool                   m_IsSingleGear;
     int16                  m_RainDropCounter;
@@ -165,14 +252,14 @@ public:
     int16                  m_DummyEngineBank;
     int16                  m_PlayerEngineBank;
     int16                  m_DummySlot;
-    tEngineSound          m_EngineSounds[12];
+    tEngineSound           m_EngineSounds[AE_SOUND_ENGINE_MAX];
 
     int32                  m_TimeLastServiced;
 
     int16                  m_ACPlayPositionThisFrame;
     int16                  m_ACPlayPositionLastFrame;
     int16                  m_FramesAgoACLooped;
-    int16                  m_ACPlayPercentWhenStopped; 
+    int16                  m_ACPlayPercentWhenStopped;  // [0, 100]
     uint32                 m_TimeACStopped;
     int16                  m_ACPlayPositionWhenStopped;
 
@@ -214,8 +301,8 @@ public:
     static int16&                  s_NextDummyEngineSlot;
     static tVehicleAudioSettings*& s_pVehicleAudioSettingsForRadio;
 
-    static constexpr int32 NUM_DUMMY_ENGINE_SLOTS = 10;
-    static tEngineDummySlot (&s_DummyEngineSlots)[NUM_DUMMY_ENGINE_SLOTS];
+    static constexpr int32 NUM_DUMMY_ENGINE_SLOTS = AE_CAR_ENGINE_STATE_MAX;
+    static tDummyEngineSlot (&s_DummyEngineSlots)[AE_CAR_ENGINE_STATE_MAX];
 
 public:
     CAEVehicleAudioEntity();
