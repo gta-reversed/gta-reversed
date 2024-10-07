@@ -99,11 +99,16 @@ void CQuaternion::Copy(const CQuaternion& from) {
 }
 
 // Gets a dot product for quats
-void CQuaternion::Dot(const CQuaternion& a) {
-    ((void(__thiscall*)(CQuaternion*, const CQuaternion&))0x4CFA00)(this, a);
+float CQuaternion::Dot(const CQuaternion& rhs) {
+    return this->w * rhs.w + this->z * rhs.z + this->y * rhs.y + this->x * rhs.x;
 }
 
 // Normalises a quat
 void CQuaternion::Normalise() {
-    ((void(__thiscall*)(CQuaternion*))0x4D1610)(this);
+    const auto sqMag = GetLengthSquared();
+    if (sqMag == 0.f) {
+        w = 1.0;
+    } else {
+        *this = *this / std::sqrt(sqMag);
+    }
 }

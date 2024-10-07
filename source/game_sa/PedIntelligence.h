@@ -7,6 +7,7 @@
 #pragma once
 
 #include "eEventType.h"
+#include "Enums/eMoveState.h"
 #include "TaskManager.h"
 #include "EventHandler.h"
 #include "EventGroup.h"
@@ -18,6 +19,7 @@
 #include "MentalHealth.h"
 #include "PedScanner.h"
 #include "Collision/CollisionEventScanner.h"
+#include "Enums/eMoveState.h"
 
 class CPed;
 class CEntity;
@@ -45,8 +47,8 @@ public:
     float                  m_fSeeingRange;
     uint32                 m_nDmNumPedsToScan;
     float                  m_fDmRadius;
-    float                  field_CC;
-    char                   field_D0;
+    float                  m_FollowNodeThresholdDistance;
+    char                   m_NextEventResponseSequence;
     uint8                  m_nEventId;
     uint8                  m_nEventPriority;
     char                   field_D3;
@@ -86,7 +88,7 @@ public:
     bool IsInSeeingRange(const CVector& posn) const;
     bool FindRespectedFriendInInformRange();
     bool IsRespondingToEvent(eEventType eventType);
-    void AddTaskPhysResponse(CTask* task, int32 unUsed);
+    void AddTaskPhysResponse(CTask* task, int32 unUsed = 1);
     void AddTaskEventResponseTemp(CTask* task, int32 unUsed);
     void AddTaskEventResponseNonTemp(CTask* task, int32 unUsed);
     void AddTaskPrimaryMaybeInGroup(CTask* task, bool bAffectsPed);
@@ -100,12 +102,13 @@ public:
     CTaskSimpleJetPack* GetTaskJetPack();
     CTaskSimpleInAir* GetTaskInAir();
     CTaskSimpleClimb* GetTaskClimb();
+    CTaskSimpleDuck* GetTaskSecondaryDuck();
     bool GetUsingParachute();
     void SetTaskDuckSecondary(uint16 nLengthOfDuck);
     void ClearTaskDuckSecondary();
     void ClearTasks(bool bClearPrimaryTasks, bool bClearSecondaryTasks);
     void FlushImmediately(bool bSetPrimaryDefaultTask);
-    C2dEffect* GetEffectInUse();
+    C2dEffect* GetEffectInUse() const;
     void SetEffectInUse(C2dEffect* effect);
     void ProcessAfterProcCol();
     void ProcessAfterPreRender();
@@ -116,7 +119,7 @@ public:
     bool IsInACarOrEnteringOne();
     static bool AreFriends(const CPed& ped1, const CPed& ped2);
     bool IsPedGoingSomewhereOnFoot();
-    int32 GetMoveStateFromGoToTask();
+    eMoveState GetMoveStateFromGoToTask();
     void FlushIntelligence();
     bool TestForStealthKill(CPed* pTarget, bool bFullTest);
     void RecordEventForScript(int32 eventId, int32 eventPriority);
@@ -129,8 +132,9 @@ public:
     void ProcessStaticCounter();
     void ProcessFirst();
     void Process();
-    CTask* GetActivePrimaryTask();
+    CTask* GetActivePrimaryTask() const;
     float GetPedFOVRange() const;
+    void IncrementAngerAtPlayer(uint8 anger);
 
     void SetDmRadius(float r) { m_fDmRadius = r; }
     void SetNumPedsToScan(uint32 n) { m_nDmNumPedsToScan = n; }
@@ -166,3 +170,4 @@ private:
 };
 
 VALIDATE_SIZE(CPedIntelligence, 0x294);
+VALIDATE_OFFSET(CPedIntelligence, m_AnotherStaticCounter, 0x274);

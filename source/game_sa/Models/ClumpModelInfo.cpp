@@ -13,21 +13,21 @@
 
 void CClumpModelInfo::InjectHooks()
 {
-    RH_ScopedClass(CClumpModelInfo);
+    RH_ScopedVirtualClass(CClumpModelInfo, 0x85BD30, 17);
     RH_ScopedCategory("Models");
 
-    RH_ScopedVirtualInstall(GetModelType, 0x4C5720);
-    RH_ScopedVirtualInstall(Init, 0x4C4E40);
-    RH_ScopedVirtualInstall(Shutdown, 0x4C4E60);
-    RH_ScopedVirtualInstall(DeleteRwObject, 0x4C4E70);
-    RH_ScopedVirtualInstall(GetRwModelType, 0x4C5730);
-    // clang moment: RH_ScopedVirtualOverloadedInstall(CreateInstance, "void", 0x4C5140, RwObject * (CClumpModelInfo::*)());
-    // clang moment: RH_ScopedVirtualOverloadedInstall(CreateInstance, "mat", 0x4C5110, RwObject * (CClumpModelInfo::*)(RwMatrix*));
-    RH_ScopedVirtualInstall(SetAnimFile, 0x4C5200);
-    RH_ScopedVirtualInstall(ConvertAnimFileIndex, 0x4C5250);
-    RH_ScopedVirtualInstall(GetAnimFileIndex, 0x4C5740);
-    RH_ScopedVirtualInstall(GetBoundingBox, 0x4C5710);
-    RH_ScopedVirtualInstall(SetClump, 0x4C4F70);
+    RH_ScopedVMTInstall(GetModelType, 0x4C5720);
+    RH_ScopedVMTInstall(Init, 0x4C4E40);
+    RH_ScopedVMTInstall(Shutdown, 0x4C4E60);
+    RH_ScopedVMTInstall(DeleteRwObject, 0x4C4E70);
+    RH_ScopedVMTInstall(GetRwModelType, 0x4C5730);
+    RH_ScopedVMTOverloadedInstall(CreateInstance, "void", 0x4C5140, RwObject * (CClumpModelInfo::*)());
+    RH_ScopedVMTOverloadedInstall(CreateInstance, "mat", 0x4C5110, RwObject * (CClumpModelInfo::*)(RwMatrix*));
+    RH_ScopedVMTInstall(SetAnimFile, 0x4C5200);
+    RH_ScopedVMTInstall(ConvertAnimFileIndex, 0x4C5250);
+    RH_ScopedVMTInstall(GetAnimFileIndex, 0x4C5740);
+    RH_ScopedVMTInstall(GetBoundingBox, 0x4C5710);
+    RH_ScopedVMTInstall(SetClump, 0x4C4F70);
     RH_ScopedInstall(SetFrameIds, 0x4C5460);
     RH_ScopedInstall(SetHierarchyForSkinAtomic, 0x4C4EF0);
     RH_ScopedInstall(AtomicSetupLightingCB, 0x4C4F30);
@@ -43,39 +43,27 @@ void CClumpModelInfo::InjectHooks()
     RH_ScopedInstall(SetClumpModelInfoFlags, 0x5B3C30);
 }
 
+// 0x4C5720
 ModelInfoType CClumpModelInfo::GetModelType()
-{
-    return CClumpModelInfo::GetModelType_Reversed();
-}
-ModelInfoType CClumpModelInfo::GetModelType_Reversed()
 {
     return ModelInfoType::MODEL_INFO_CLUMP;
 }
 
+// 0x4C4E40
 void CClumpModelInfo::Init()
-{
-    CClumpModelInfo::Init_Reversed();
-}
-void CClumpModelInfo::Init_Reversed()
 {
     CBaseModelInfo::Init();
     m_nAnimFileIndex = -1;
 }
 
+// 0x4C4E60
 void CClumpModelInfo::Shutdown()
-{
-    return CClumpModelInfo::Shutdown_Reversed();
-}
-void CClumpModelInfo::Shutdown_Reversed()
 {
     CBaseModelInfo::Shutdown();
 }
 
+// 0x4C4E70
 void CClumpModelInfo::DeleteRwObject()
-{
-    CClumpModelInfo::DeleteRwObject_Reversed();
-}
-void CClumpModelInfo::DeleteRwObject_Reversed()
 {
     if (!m_pRwObject)
         return;
@@ -96,20 +84,13 @@ void CClumpModelInfo::DeleteRwObject_Reversed()
         CBaseModelInfo::DeleteCollisionModel();
 }
 
+// 0x4C5730
 uint32 CClumpModelInfo::GetRwModelType()
-{
-    return CClumpModelInfo::GetRwModelType_Reversed();
-}
-uint32 CClumpModelInfo::GetRwModelType_Reversed()
 {
     return rpCLUMP;
 }
 
 RwObject* CClumpModelInfo::CreateInstance()
-{
-    return CClumpModelInfo::CreateInstance_Reversed();
-}
-RwObject* CClumpModelInfo::CreateInstance_Reversed()
 {
     if (!m_pRwObject)
         return nullptr;
@@ -127,9 +108,8 @@ RwObject* CClumpModelInfo::CreateInstance_Reversed()
 
     if (bHasAnimBlend) {
         RpAnimBlendClumpInit(clonedClump);
-        auto animBlend = CAnimManager::GetAnimation(m_nKey, &CAnimManager::ms_aAnimBlocks[m_nAnimFileIndex]);
-        if (animBlend) {
-            CAnimManager::BlendAnimation(clonedClump, animBlend, ANIMATION_LOOPED, 1.0F);
+        if (const auto anim = CAnimManager::GetAnimation(m_nKey, &CAnimManager::GetAnimBlocks()[m_nAnimFileIndex])) {
+            CAnimManager::BlendAnimation(clonedClump, anim, ANIMATION_IS_LOOPED, 1.0F);
         }
     }
 
@@ -139,10 +119,6 @@ RwObject* CClumpModelInfo::CreateInstance_Reversed()
 
 RwObject* CClumpModelInfo::CreateInstance(RwMatrix* matrix)
 {
-    return CClumpModelInfo::CreateInstance_Reversed(matrix);
-}
-RwObject* CClumpModelInfo::CreateInstance_Reversed(RwMatrix* matrix)
-{
     if (!m_pRwObject)
         return nullptr;
 
@@ -151,11 +127,8 @@ RwObject* CClumpModelInfo::CreateInstance_Reversed(RwMatrix* matrix)
     return clump;
 }
 
+// 0x4C5200
 void CClumpModelInfo::SetAnimFile(const char* filename)
-{
-    CClumpModelInfo::SetAnimFile_Reversed(filename);
-}
-void CClumpModelInfo::SetAnimFile_Reversed(const char* filename)
 {
     if (!strcmp(filename, "null"))
         return;
@@ -166,11 +139,8 @@ void CClumpModelInfo::SetAnimFile_Reversed(const char* filename)
     m_animFileName = name;
 }
 
+// 0x4C5250
 void CClumpModelInfo::ConvertAnimFileIndex()
-{
-    CClumpModelInfo::ConvertAnimFileIndex_Reversed();
-}
-void CClumpModelInfo::ConvertAnimFileIndex_Reversed()
 {
     if (m_nAnimFileIndex == -1)
         return;
@@ -180,30 +150,20 @@ void CClumpModelInfo::ConvertAnimFileIndex_Reversed()
     m_nAnimFileIndex = iIndex;
 }
 
+// 0x4C5740
 int32 CClumpModelInfo::GetAnimFileIndex()
-{
-    return CClumpModelInfo::GetAnimFileIndex_Reversed();
-}
-int32 CClumpModelInfo::GetAnimFileIndex_Reversed()
 {
     return m_nAnimFileIndex;
 }
 
+// 0x4C5710
 CBox* CClumpModelInfo::GetBoundingBox()
-{
-    return CClumpModelInfo::GetBoundingBox_Reversed();
-}
-CBox* CClumpModelInfo::GetBoundingBox_Reversed()
 {
     return &GetColModel()->GetBoundingBox();
 }
 
 // 0x4C4F70
 void CClumpModelInfo::SetClump(RpClump* clump)
-{
-    CClumpModelInfo::SetClump_Reversed(clump);
-}
-void CClumpModelInfo::SetClump_Reversed(RpClump* clump)
 {
     if (m_pRwObject) {
         if (auto atomic = Get2DEffectAtomic(m_pRwClump))

@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include "FileMgr.h"
 #include "GxtChar.h"
 #include "Data.h"
 #include "KeyArray.h"
@@ -40,7 +41,7 @@ public:
      *
      * @return The text identified by the given key or the GXT error string.
      */
-    [[nodiscard]] const char* Get(const char* key);
+    [[nodiscard]] const GxtChar* Get(const char* key);
     void GetNameOfLoadedMissionText(char* outStr);
 
     void LoadMissionText(const char* mission);

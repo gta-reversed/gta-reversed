@@ -9,6 +9,8 @@
 
 #include "TaskManager.h"
 
+#include "TaskComplexFacial.h"
+
 void CTaskManager::InjectHooks() {
     RH_ScopedClass(CTaskManager);
     RH_ScopedCategory("Tasks");
@@ -23,8 +25,8 @@ void CTaskManager::InjectHooks() {
     RH_ScopedInstall(Flush, 0x681850);
     RH_ScopedInstall(FlushImmediately, 0x6818A0);
     RH_ScopedInstall(SetNextSubTask, 0x681920);
-    RH_ScopedOverloadedInstall(GetSimplestTask, "of-task", 0x681970, CTask*(*)(CTask*));
-    RH_ScopedOverloadedInstall(GetSimplestTask, "at-index", 0x681A00, CTask*(CTaskManager::*)(ePrimaryTasks));
+    //RH_ScopedOverloadedInstall(GetLastTaskOf, "of-task", 0x681970, CTask*(*)(CTask*));
+    //RH_ScopedOverloadedInstall(GetLastTaskOf, "at-index", 0x681A00, CTask*(CTaskManager::*)(ePrimaryTasks));
     RH_ScopedInstall(StopTimers, 0x6819A0);
     RH_ScopedInstall(GetSimplestActiveTask, 0x6819D0);
     RH_ScopedInstall(AddSubTasks, 0x681A30);
@@ -71,6 +73,15 @@ CTask* CTaskManager::GetActiveTask() {
     return nullptr;
 }
 
+size_t CTaskManager::GetActiveTaskIndex() const {
+    for (auto&& [i, task] : notsa::enumerate(m_aPrimaryTasks)) {
+        if (task) {
+            return (size_t)i;
+        }
+    }
+    return (size_t)-1;
+}
+
 // 0x681740
 CTask* CTaskManager::FindActiveTaskByType(eTaskType taskType) {
     // First try current active task and it's sub-tasks
@@ -97,6 +108,10 @@ CTask* CTaskManager::FindTaskByType(ePrimaryTasks taskIndex, eTaskType taskId) {
 // 0x681810
 CTask* CTaskManager::GetTaskSecondary(eSecondaryTask taskIndex) {
     return m_aSecondaryTasks[taskIndex];
+}
+
+CTaskComplexFacial* CTaskManager::GetTaskSecondaryFacial() {
+    return CTask::Cast<CTaskComplexFacial>(GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX));
 }
 
 // NOTSA?
@@ -127,10 +142,8 @@ void CTaskManager::Flush() {
 // 0x6818A0
 void CTaskManager::FlushImmediately() {
     ApplyToRootTasks([this](CTask*& task) {
-        if (task) {
-            if (task->MakeAbortable(m_pPed, ABORT_PRIORITY_IMMEDIATE, nullptr)) {
-                DeleteTaskAndNull(task);
-            }
+        if (task && task->MakeAbortable(m_pPed, ABORT_PRIORITY_IMMEDIATE, nullptr)) {
+            delete std::exchange(task, nullptr);
         }
     });
 }
@@ -141,22 +154,23 @@ void CTaskManager::SetNextSubTask(CTaskComplex* ofTask) {
         return;
     }
 
-    for (auto task = ofTask; task; task = static_cast<CTaskComplex*>(task->m_pParentTask)) {
+    assert(ofTask->IsComplex());
+
+    for (auto task = ofTask; task; task = task->GetParent()) {
         if (const auto next = task->CreateNextSubTask(m_pPed)) {
             task->SetSubTask(next);
             AddSubTasks(next);
-            break;
-        } else {
-            // If no subtask is created, the `task` is considered done,
-            // thus we go to it's parent and create it's new subtask
-            // which by effect will delete the current `task`, and so on...
-            task->SetSubTask(nullptr);
+            return;
         }
+
+        // If no subtask is created, the `task` is considered done.
+        // So we go to it's parent and create it's next subtask.
+        task->SetSubTask(nullptr); // This also deletes the previous sub-task
     }
 }
 
 // 0x681970
-CTask* CTaskManager::GetSimplestTask(CTask* task) {
+CTask* CTaskManager::GetLastTaskOf(CTask* task) {
     auto last{task};
     for (; task; task = task->GetSubTask())
         last = task;
@@ -185,8 +199,8 @@ void CTaskManager::AddSubTasks(CTask* toTask) {
             ctask->SetSubTask(sub);
             task = sub; // Go on creating the subtask of the created task
         } else { // No sub task created, so we can stop here
-            if (ctask->m_pParentTask) {
-                SetNextSubTask(ctask->m_pParentTask->AsComplex()); // We're a subtask of the parent (if any), thus parent must be complex
+            if (const auto parent = ctask->GetParent()) {
+                SetNextSubTask(parent);
             }
             break;
         }
@@ -196,17 +210,19 @@ void CTaskManager::AddSubTasks(CTask* toTask) {
 // 0x681A80
 void CTaskManager::ParentsControlChildren(CTask* parent) {
     for (auto task = parent; task && !task->IsSimple();) {
-        const auto ctask = task->AsComplex();
-        const auto subTask = ctask->GetSubTask();
-        const auto newSubTask = ctask->ControlSubTask(m_pPed); // The function might return a new or the current sub-task or null, the latter indicating that the task is done
-        if (newSubTask == subTask) { // [Invered] Subtask hasn't changed, so continue
-            task = subTask;
-        } else { // Subtask has changed, abort old, set new
-            subTask->MakeAbortable(m_pPed, ABORT_PRIORITY_URGENT, nullptr);
+        const auto ctask      = task->AsComplex();
+        const auto oldSubTask = ctask->GetSubTask();
+
+        const auto newSubTask = ctask->ControlSubTask(m_pPed);
+
+        if (newSubTask != oldSubTask) {
+            oldSubTask->MakeAbortable(m_pPed);
             ctask->SetSubTask(newSubTask);
             AddSubTasks(newSubTask);
-            break;
+            return;
         }
+
+        task = oldSubTask;
     }
 }
 
@@ -232,81 +248,102 @@ void CTaskManager::ClearTaskEventResponse() {
 
 // 0x681C10
 void CTaskManager::ManageTasks() {
-    // Get taskIndex of first available primary task
-    int32 taskIndex = 0;
-    while (!GetTaskPrimary(taskIndex)) {
-        taskIndex = taskIndex + 1;
-        if (taskIndex >= TASK_PRIMARY_MAX) {
-            break;
-        }
-    }
+    // Obviously this isn't how they did it, but, I wanted it to be readable...
+    enum ProcessResult {
+        TT_FINISHED, //< The task tree has finished.
+        TT_SUCCESS,  //< There's currently an active task.
+        TT_ADVANCED  //< New sub-tasks were created, and there's currently an active task.
+    };
+    const auto ProcessTaskTree = [this](CTask* root, bool bIsPrimary) {
+        ParentsControlChildren(root);
 
-    if (taskIndex > -1 && taskIndex < TASK_PRIMARY_MAX) {
-        CTask* simplestTask = GetSimplestTask(GetTaskPrimary(taskIndex));
-        if (!simplestTask->IsSimple()) {
-            delete m_aPrimaryTasks[taskIndex];
-            m_aPrimaryTasks[taskIndex] = nullptr;
+        auto lastTask = GetLastTaskOf(root);
+
+        // The task tree can only be "terminated" with a `Simple` task. (Because a complex task must always have a sub-task)
+        // If the last task is complex that means that creating all sub-tasks (See `AddSubTasks`) failed.
+        // (Meaning that the task tree has finished and the root can be deleted)
+        if (!lastTask->IsSimple()) {
+            if (!bIsPrimary) {
+                return TT_FINISHED;
+            }
+
+            // Try setting next sub-task
+            SetNextSubTask(lastTask->GetParent());
+
+            // If setting the next sub-task above was successful then the last task has changed
+            lastTask = GetLastTaskOf(root);
+
+            // A complex task in this case means that the primary task has finished
+            if (lastTask->IsComplex()) {
+                return TT_FINISHED;
+            }
+        }
+
+        // Check if the simple task has finished
+        if (!lastTask->AsSimple()->ProcessPed(m_pPed)) {
+            return TT_SUCCESS;
+        }
+
+        // It has, try creating the next sub-task
+        SetNextSubTask(lastTask->GetParent());
+
+        // Check if the task tree has finished (See `SetNextSubTask` for more info)
+        if (!root->GetSubTask()) {
+            return TT_FINISHED;
+        }
+
+        // New sub-tasks were successfully created
+        return TT_ADVANCED;
+    };
+
+    // Process active primary task's tree
+    if (const auto activeTaskIdx = GetActiveTaskIndex(); activeTaskIdx != (size_t)-1) {
+        auto*& activePrimaryTask = m_aPrimaryTasks[activeTaskIdx];
+
+        if (!GetLastTaskOf(activePrimaryTask)->IsSimple()) {
+            delete std::exchange(activePrimaryTask, nullptr);
             return;
         }
 
-        for (int32 i = 0; i < TASK_PRIMARY_MAX + TASK_SECONDARY_MAX; i++) {
-            ParentsControlChildren((CTaskComplex*)GetTaskPrimary(taskIndex));
-            simplestTask = GetSimplestTask(GetTaskPrimary(taskIndex));
-            if (!simplestTask->IsSimple()) {
-                SetNextSubTask((CTaskComplex*)simplestTask->m_pParentTask);
-                simplestTask = GetSimplestTask(GetTaskPrimary(taskIndex));
-                if (!simplestTask->IsSimple()) {
-                    delete m_aPrimaryTasks[taskIndex];
-                    m_aPrimaryTasks[taskIndex] = nullptr;
-                    break;
-                }
+        // The `10` here has no particular meaning, it's just an arbitrary iteration limit
+        for (size_t i = 0; i < 10; i++) {
+            const auto res = ProcessTaskTree(activePrimaryTask, true);
+
+            if (res == TT_FINISHED) {
+                delete std::exchange(activePrimaryTask, nullptr);
             }
 
-            simplestTask = GetSimplestTask(GetTaskPrimary(taskIndex));
-            if (!simplestTask->AsSimple()->ProcessPed(m_pPed)) {
+            if (res != TT_ADVANCED) { // TT_FINISHED, TT_SUCCESS
                 break;
-            } else {
-                SetNextSubTask((CTaskComplex*)simplestTask->m_pParentTask);
-                if (!GetTaskPrimary(taskIndex)->GetSubTask()) {
-                    delete m_aPrimaryTasks[taskIndex];
-                    m_aPrimaryTasks[taskIndex] = nullptr;
-                    break;
-                }
             }
         }
     }
-
+    
+    // Process secondary task-tree's
     for (auto& secondaryTask : m_aSecondaryTasks) {
-        if (!secondaryTask)
-            continue;
-
-        bool bProcessPedFailed = false;
-        while (true) {
-            ParentsControlChildren((CTaskComplex*)secondaryTask);
-            auto simplestTask1 = GetSimplestTask(secondaryTask);
-            if (!simplestTask1->IsSimple()) {
-                break;
-            }
-
-            simplestTask1 = GetSimplestTask(secondaryTask);
-            if (!simplestTask1->AsSimple()->ProcessPed(m_pPed)) {
-                bProcessPedFailed = true;
-                break;
-            }
-
-            SetNextSubTask((CTaskComplex*)simplestTask1->m_pParentTask);
-            if (!secondaryTask->GetSubTask()) {
-                break;
-            }
-        }
-
-        if (bProcessPedFailed) {
+        if (!secondaryTask) {
             continue;
         }
-
-        delete secondaryTask;
-        secondaryTask = nullptr;
+        ProcessResult res;
+        while ((res = ProcessTaskTree(secondaryTask, false)) == TT_ADVANCED);
+        if (res == TT_FINISHED) {
+            delete std::exchange(secondaryTask, nullptr);
+        }
     }
+}
+
+// @notsa
+CTask* CTaskManager::GetPresistentEventResponseTask() const {
+    for (const auto i : { TASK_PRIMARY_PHYSICAL_RESPONSE, TASK_PRIMARY_EVENT_RESPONSE_NONTEMP }) {
+        if (const auto t = GetTaskPrimary(i)) {
+            return t; 
+        }
+    }
+    return nullptr;
+}
+
+CTask* CTaskManager::GetTemporaryEventResponseTask() const {
+    return  GetTaskPrimary(TASK_PRIMARY_EVENT_RESPONSE_TEMP);
 }
 
 void CTaskManager::ChangeTaskInSlot(CTask*& taskInSlot, CTask* changeTo) {
@@ -322,7 +359,8 @@ void CTaskManager::ChangeTaskInSlot(CTask*& taskInSlot, CTask* changeTo) {
     taskInSlot = changeTo;
     AddSubTasks(taskInSlot);
 
-    if (taskInSlot && !GetSimplestTask(taskInSlot)->IsSimple()) {
-        DeleteTaskAndNull(taskInSlot); // Delete it (TODO: Why?)
+    // Task trees must always end with a simple task, so if that's not the case delete it immidiately.
+    if (taskInSlot && !GetLastTaskOf(taskInSlot)->IsSimple()) {
+        delete std::exchange(taskInSlot, nullptr);
     }
 }

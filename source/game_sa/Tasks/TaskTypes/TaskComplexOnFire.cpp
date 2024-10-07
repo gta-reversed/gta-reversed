@@ -43,13 +43,7 @@ CTask* CTaskComplexOnFire::CreateSubTask(eTaskType taskType) {
         return new CTaskComplexDie{
             WEAPON_UNARMED,
             ANIM_GROUP_DEFAULT,
-            ANIM_ID_KO_SHOT_FRONT_0,
-            4.0,
-            0.0,
-            false,
-            false,
-            eFallDir::FORWARD,
-            false
+            ANIM_ID_KO_SHOT_FRONT_0
         };
     case TASK_COMPLEX_SMART_FLEE_ENTITY:
         return new CTaskComplexSmartFleeEntity{
@@ -94,17 +88,17 @@ CTask* CTaskComplexOnFire::ControlSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType()) {
     case TASK_COMPLEX_SMART_FLEE_ENTITY: {
         if (!ped->m_pFire) {
-            MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr);
+            MakeAbortable(ped);
             return nullptr;
         }
 
         if (CLocalisation::PedsOnFire()) {
-            ped->Say(346, 0, 0.1f);
+            ped->Say(CTX_GLOBAL_PAIN_ON_FIRE, 0, 0.1f);
         }
 
         CPedDamageResponse resp{};
         ComputeFireDamage(ped, resp);
-        if (resp.m_bHealthZero && MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+        if (resp.m_bHealthZero && MakeAbortable(ped)) {
             CEventHandler::RegisterKill(ped, ped->m_pFire->m_pEntityCreator, WEAPON_MOLOTOV, false);
             return CreateSubTask(TASK_COMPLEX_DIE);
         }

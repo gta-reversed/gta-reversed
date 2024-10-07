@@ -194,7 +194,7 @@ bool CGame::Shutdown() {
     g_procObjMan.Exit();
     g_waterCreatureMan.Exit();
     D3DResourceSystem::SetUseD3DResourceBuffering(false);
-    CStencilShadowObject::Shutdown();
+    CStencilShadows::Shutdown();
     CPlantMgr::Shutdown();
     CGrassRenderer::Shutdown();
     CRopes::Shutdown();

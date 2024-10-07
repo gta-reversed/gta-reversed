@@ -8,7 +8,7 @@ enum ePartnerState : int8 {
     PARTNER_STATE_UNK_1 = 1
 };
 
-class CTaskComplexPartner : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexPartner : public CTaskComplex {
 public:
     int32         field_C;
     int32         field_10;

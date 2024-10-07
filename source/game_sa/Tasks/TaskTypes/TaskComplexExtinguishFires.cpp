@@ -81,7 +81,7 @@ CTask* CTaskComplexExtinguishFires::ControlSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_GUN_CTRL: {
         if (nearestFireNow != m_fireToExt) {
-            if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+            if (m_pSubTask->MakeAbortable(ped)) {
                 return CreateFirstSubTask(ped);
             }
         }

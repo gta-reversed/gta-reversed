@@ -1,12 +1,14 @@
 #include "StdInc.h"
 
+#include "Event.h"
 #include "EventGroup.h"
 
 void CEventGroup::InjectHooks() {
-    RH_ScopedClass(CEventGroup);
+    RH_ScopedVirtualClass(CEventGroup, 0x85AAB0, 1);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x4AB340);
+
     RH_ScopedOverloadedInstall(Add, "", 0x4AB420, CEvent*(CEventGroup::*)(CEvent*, bool));
     RH_ScopedInstall(HasScriptCommandOfTaskType, 0x4AB840);
     RH_ScopedInstall(HasEventOfType, 0x4AB5E0);
@@ -21,77 +23,73 @@ void CEventGroup::InjectHooks() {
 }
 
 // 0x4AB340
-CEventGroup::CEventGroup(CPed* ped) {
-    m_pPed = ped;
-    m_count = 0;
-    std::ranges::fill(m_events, nullptr);
+CEventGroup::CEventGroup(CPed* ped) :
+    m_pPed{ped}
+{
 }
 
 CEventGroup::~CEventGroup() {
-    Flush(false);
-}
-
-CEventGroup* CEventGroup::Constructor(CPed* ped) {
-    this->CEventGroup::CEventGroup(ped);
-    return this;
+    Flush();
 }
 
 // 0x4AB420
 CEvent* CEventGroup::Add(CEvent* event, bool bValid) {
     if (m_pPed) {
-        bool bAddToEventGroup = false;
-        bool bInformGroup = false;
-        bool bInformRespectedFriends = false;
-        bool bTriggerLookAt = false;
-        auto eventEditable = static_cast<CEventEditableResponse*>(event);
         if (event->HasEditableResponse()) {
-            bInformGroup = eventEditable->ComputeResponseTaskOfType(m_pPed, TASK_SIMPLE_INFORM_GROUP);
-            bInformRespectedFriends = eventEditable->ComputeResponseTaskOfType(m_pPed, TASK_SIMPLE_INFORM_RESPECTED_FRIENDS);
-            bTriggerLookAt = eventEditable->ComputeResponseTaskOfType(m_pPed, TASK_SIMPLE_LOOK_AT_ENTITY_OR_COORD);
-            eventEditable->ComputeResponseTaskType(m_pPed, false);
-            if (eventEditable->WillRespond() || (eventEditable->GetEventType() == EVENT_DAMAGE && eventEditable->m_bAddToEventGroup)) {
-                bAddToEventGroup = true;
+            const auto eventResp = static_cast<CEventEditableResponse*>(event);
+
+            const auto bIsEventDamage          = event->GetEventType() == EVENT_DAMAGE;
+            const auto bInformGroup            = eventResp->ComputeResponseTaskOfType(m_pPed, TASK_SIMPLE_INFORM_GROUP);
+            const auto bInformRespectedFriends = eventResp->ComputeResponseTaskOfType(m_pPed, TASK_SIMPLE_INFORM_RESPECTED_FRIENDS);
+            const auto bTriggerLookAt          = eventResp->ComputeResponseTaskOfType(m_pPed, TASK_SIMPLE_LOOK_AT_ENTITY_OR_COORD);
+
+            eventResp->ComputeResponseTaskType(m_pPed, false);
+
+            const auto bAddToEventGroup        = eventResp->WillRespond() || (bIsEventDamage && eventResp->m_bAddToEventGroup);
+
+            if (!event->AffectsPed(m_pPed)) {
+                return nullptr;
+            }
+            if (bInformGroup) {
+                eventResp->InformGroup(m_pPed);
+            }
+            if (bInformRespectedFriends && (!bIsEventDamage || !static_cast<CEventDamage*>(event)->m_bStealthMode)) {
+                eventResp->InformRespectedFriends(m_pPed);
+            }
+            if (bTriggerLookAt) {
+                eventResp->TriggerLookAt(m_pPed);
+            }
+            eventResp->InformVehicleOccupants(m_pPed);
+            if (!bAddToEventGroup) {
+                return nullptr;
             }
         } else {
-            bAddToEventGroup = true;
-        }
-        if (!event->AffectsPed(m_pPed))
-            return nullptr;
-        if (event->HasEditableResponse()) {
-            if (bInformGroup) {
-                eventEditable->InformGroup(m_pPed);
+            if (!event->AffectsPed(m_pPed)) {
+                return nullptr;
             }
-            auto* damageEvent = static_cast<CEventDamage*>(event);
-            if (bInformRespectedFriends && (eventEditable->GetEventType() != EVENT_DAMAGE || !damageEvent->m_b05)) {
-                eventEditable->InformRespectedFriends(m_pPed);
-            }
-            if (bTriggerLookAt)
-                eventEditable->TriggerLookAt(m_pPed);
-            eventEditable->InformVehicleOccupants(m_pPed);
         }
-        m_pPed->GetIntelligence()->RecordEventForScript(eventEditable->GetEventType(), eventEditable->GetEventPriority());
-        if (!bAddToEventGroup)
-            return nullptr;
+        m_pPed->GetIntelligence()->RecordEventForScript(event->GetEventType(), event->GetEventPriority());
     }
 
-    if (m_count < TOTAL_EVENTS_PER_EVENTGROUP) {
-        CEvent* clonedEvent = event->Clone();
-        clonedEvent->m_bValid = bValid;
-        if (m_pPed)
-            clonedEvent->ReportCriminalEvent(m_pPed);
-        m_events[m_count] = clonedEvent;
-        m_count++;
-        return clonedEvent;
+    if (m_count >= TOTAL_EVENTS_PER_EVENTGROUP) {
+        return nullptr;
     }
-    return nullptr;
+
+    const auto clonedEvent = event->Clone();
+    clonedEvent->m_bValid  = bValid;
+    if (m_pPed) {
+        clonedEvent->ReportCriminalEvent(m_pPed);
+    }
+    m_events[m_count++] = clonedEvent;
+    
+    return clonedEvent;
 }
 
 // 0x4AB840
 bool CEventGroup::HasScriptCommandOfTaskType(eTaskType taskId) {
     for (auto& event : GetEvents()) {
-        if (event && event->GetEventType() == EVENT_SCRIPT_COMMAND) {
-            auto theEvent = static_cast<CEventScriptCommand*>(event);
-            if (theEvent->m_task && theEvent->m_task->GetTaskType() == taskId) {
+        if (const auto eScriptCmd = CEvent::DynCast<CEventScriptCommand>(event)) {
+            if (eScriptCmd->m_task && eScriptCmd->m_task->GetTaskType() == taskId) {
                 return true;
             }
         }
@@ -100,12 +98,8 @@ bool CEventGroup::HasScriptCommandOfTaskType(eTaskType taskId) {
 }
 
 // 0x4AB5E0
-bool CEventGroup::HasEventOfType(CEvent* event) {
-    for (auto& tevent : GetEvents()) {
-        if (event->GetEventType() == tevent->GetEventType())
-            return true;
-    }
-    return false;
+bool CEventGroup::HasEventOfType(CEvent* eventOfType) const {
+    return GetEventOfType(eventOfType->GetEventType()) != nullptr;
 }
 
 // 0x4AB7C0
@@ -131,86 +125,71 @@ CEvent* CEventGroup::GetHighestPriorityEvent() {
 
 // 0x4AB6D0
 void CEventGroup::TickEvents() {
-    for (auto& event : GetEvents()) {
-        event->m_nTimeActive++;
-    }
+    rng::for_each(GetEvents(), &CEvent::Tick);
 }
 
 // 0x4AB6A0
-bool CEventGroup::HasEvent(CEvent* event) {
-    for (auto& tevent : GetEvents()) {
-        if (event == tevent)
-            return true;
-    }
-    return false;
+bool CEventGroup::HasEvent(CEvent* needle) {
+    return notsa::contains(GetEvents(), needle);
 }
 
 // 0x4AB5A0
 void CEventGroup::Remove(CEvent* event) {
-    for (auto& tevent : GetEvents()) {
-        if (event == tevent) {
-            tevent = nullptr;
-            delete event;
-            break;
-        }
+    const auto it = rng::find(GetEvents(), event);
+    if (it != GetEvents().end()) {
+        delete std::exchange(*it, nullptr);
     }
 }
 
 // 0x4AB760
-void CEventGroup::RemoveInvalidEvents(bool bRemoveNonScriptCommandEvents) {
+void CEventGroup::RemoveInvalidEvents(bool bEverythingButScriptEvents) {
     for (auto& event : GetEvents()) {
-        if (event) {
-            if (!event->IsValid(m_pPed) || bRemoveNonScriptCommandEvents && event->GetEventType() != EVENT_SCRIPT_COMMAND) {
-                delete event;
-                event = nullptr;
+        if (!event) {
+            continue;
+        }
+        if (event->IsValid(m_pPed)) {
+            if (!bEverythingButScriptEvents || event->GetEventType() == EVENT_SCRIPT_COMMAND) {
+                continue;
             }
         }
+        delete std::exchange(event, nullptr);
     }
 }
 
 // 0x4AB700
 void CEventGroup::Reorganise() {
-    CEvent* theEvents[TOTAL_EVENTS_PER_EVENTGROUP];
-    int32 eventCount = 0;
-    for (auto& event : GetEvents()) {
-        if (event) {
-            theEvents[eventCount++] = event;
-            event = nullptr;
+    const auto   old{m_events}; // Copy old event array
+    const size_t cnt{m_count};  // And count
+    m_count = 0;
+    for (size_t i = 0; i < cnt; i++) { // Make array contiguous and re-count number of events
+        if (const auto e = old[i]) {
+            m_events[m_count++] = e;
         }
-    }
-    m_count = eventCount;
-    for (int32 i = 0; i < m_count; i++) {
-        m_events[i] = theEvents[i];
     }
 }
 
 // 0x4AB370
-void CEventGroup::Flush(bool bAvoidFlushingTaskComplexBeInGroup) {
-    CEvent* eventScriptCommand = nullptr;
-    if (bAvoidFlushingTaskComplexBeInGroup && m_count > 0) {
-        for (auto& event : GetEvents()) {
-            if (event->GetEventType() == EVENT_SCRIPT_COMMAND) {
-                auto theEvent = static_cast<CEventScriptCommand*>(event);
-                if (theEvent->m_task && theEvent->m_task->GetTaskType() == TASK_COMPLEX_BE_IN_GROUP) {
-                    eventScriptCommand = event;
-                    event = nullptr;
-                    break;
+void CEventGroup::Flush(bool bKeepJoinGroupScriptCommands) {
+    const auto eScriptCmdBeInGroup = [=, this]() -> CEvent* {
+        if (bKeepJoinGroupScriptCommands) {
+            for (auto& event : GetEvents()) {
+                if (const auto eScriptCmd = CEvent::DynCast<CEventScriptCommand>(event)) {
+                    if (eScriptCmd->m_task && eScriptCmd->m_task->GetTaskType() == TASK_COMPLEX_BE_IN_GROUP) {
+                        return std::exchange(event, nullptr); // null the slot out so it doesn't get deleted
+                    }
                 }
             }
         }
-    }
+        return nullptr;
+    }();
 
     for (auto& event : GetEvents()) {
-        if (event) {
-            delete event;
-            event = nullptr;
-        }
+        delete std::exchange(event, nullptr);
     }
 
     m_count = 0;
-    if (eventScriptCommand) {
-        m_events[0] = eventScriptCommand;
-        m_count = 1;
+    if (eScriptCmdBeInGroup) {
+        m_events[m_count++] = eScriptCmdBeInGroup;
     }
 }
 

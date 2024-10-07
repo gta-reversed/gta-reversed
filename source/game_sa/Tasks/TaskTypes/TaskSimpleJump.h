@@ -2,7 +2,7 @@
 
 #include "TaskSimple.h"
 
-class CTaskSimpleJump : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleJump : public CTaskSimple {
 public:
     CVector  m_vecClimbPos;
     float    m_fClimbAngle;
@@ -34,8 +34,5 @@ public:
 
     static void InjectHooks();
     CTaskSimpleJump* Constructor(bool bCanClimb);
-    CTask*  Clone_Reversed() const;
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool ProcessPed_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskSimpleJump, 0x2C);

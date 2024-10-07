@@ -53,7 +53,6 @@ private:
     CCopPed* Constructor(uint32_t copTypeOrModelID);
     CCopPed* Destructor();
 
-    void ProcessControl_Reversed();
 };
 
 VALIDATE_SIZE(CCopPed, 0x7C4);

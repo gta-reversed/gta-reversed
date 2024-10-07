@@ -158,7 +158,7 @@ bool CEntryExit::IsVisibleByTime() const {
 
 // Transforms a point into the entrance rect
 CVector CEntryExit::TransformEntrancePoint(const CVector& point) const {
-    return MultiplyMatrixWithVector(GetRectEntranceMatrix(), point - GetPosition());
+    return GetRectEntranceMatrix().TransformPoint(point - GetPosition());
 }
 
 // 0x43EAF0
@@ -290,7 +290,7 @@ bool CEntryExit::TransitionStarted(CPed* ped) {
             // 0x44031A
             auto fixedModePos = GetPosition() - lookAtDir * 3.f;
             fixedModePos.z += 1.f;
-            TheCamera.SetCamPositionForFixedMode(&fixedModePos, {});
+            TheCamera.SetCamPositionForFixedMode(fixedModePos, {});
             TheCamera.TakeControlNoEntity(GetPosition() + lookAtDir, eSwitchType::JUMPCUT, 1);
         };
 

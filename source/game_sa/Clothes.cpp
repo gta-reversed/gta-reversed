@@ -220,7 +220,7 @@ void CClothes::RebuildPlayer(CPlayerPed* player, bool bIgnoreFatAndMuscle) {
     ConstructPedModel(player->m_nModelIndex, *player->m_pPlayerData->m_pPedClothesDesc, &PlayerClothes, 0);
     player->Dress();
     RpAnimBlendClumpGiveAssociations(player->m_pRwClump, assoc);
-    PlayerClothes = player->m_pPlayerData->m_pPedClothesDesc;
+    PlayerClothes = *player->m_pPlayerData->m_pPedClothesDesc;
 }
 
 // 0x5A8270
@@ -284,7 +284,7 @@ AssocGroupId CClothes::GetDefaultPlayerMotionGroup() {
         return ANIM_GROUP_PLAYER;
 
     CAnimBlock* animBlock = CAnimManager::GetAnimationBlock(group);
-    if (!animBlock || !animBlock->bLoaded)
+    if (!animBlock || !animBlock->IsLoaded)
         return ANIM_GROUP_PLAYER;
 
     return group;

@@ -1,7 +1,11 @@
 #include "StdInc.h"
+
 #include "TaskSimpleFightingControl.h"
 #include "PedStats.h"
 #include "TaskSimpleFight.h"
+
+#include "EventObjectCollision.h"
+#include "EventBuildingCollision.h"
 
 constexpr auto FIGHT_CTRL_MAX_ATTACK_ANGLE_RAD = RWDEG2RAD(15);
 constexpr auto FIGHT_CTRL_FIGHT_IDLE_TIME = 60000.f;
@@ -200,7 +204,7 @@ bool CTaskSimpleFightingControl::ProcessPed(CPed* ped) {
 
     const auto pedFightTask = ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK);
     if (pedFightTask->GetTaskType() != TASK_SIMPLE_FIGHT) {
-        pedFightTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr);
+        pedFightTask->MakeAbortable(ped);
         return false;
     }
 

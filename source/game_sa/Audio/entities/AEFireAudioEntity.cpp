@@ -145,7 +145,7 @@ void CAEFireAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
 }
 
 void CAEFireAudioEntity::InjectHooks() {
-    RH_ScopedClass(CAEFireAudioEntity);
+    RH_ScopedVirtualClass(CAEFireAudioEntity, 0x85AA94, 1);
     RH_ScopedCategory("Audio/Entities");
 
     RH_ScopedInstall(Initialise, 0x4DCF20);
@@ -154,9 +154,5 @@ void CAEFireAudioEntity::InjectHooks() {
     RH_ScopedInstall(AddAudioEvent, 0x4DD3C0);
     RH_ScopedInstall(PlayFireSounds, 0x4DD0D0);
     RH_ScopedInstall(PlayWaterSounds, 0x4DD270);
-    RH_ScopedVirtualInstall(UpdateParameters, 0x4DCF60);
-}
-
-void CAEFireAudioEntity::UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) {
-    CAEFireAudioEntity::UpdateParameters(sound, curPlayPos);
+    RH_ScopedVMTInstall(UpdateParameters, 0x4DCF60);
 }

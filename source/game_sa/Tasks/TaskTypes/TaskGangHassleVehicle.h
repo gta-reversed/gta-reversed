@@ -8,7 +8,7 @@ class Entity;
 class CVehicle;
 class CEntity;
 
-class CTaskGangHassleVehicle : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskGangHassleVehicle : public CTaskComplex {
 public:
     uint8     gapC[4];
     CVehicle* m_Vehicle;

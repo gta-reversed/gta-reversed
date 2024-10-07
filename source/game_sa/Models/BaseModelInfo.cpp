@@ -9,18 +9,18 @@
 #include "BaseModelInfo.h"
 
 void CBaseModelInfo::InjectHooks() {
-    RH_ScopedClass(CBaseModelInfo);
+    RH_ScopedVirtualClass(CBaseModelInfo, 0x85BB9C, 15);
     RH_ScopedCategory("Models");
 
-    RH_ScopedVirtualInstall(AsAtomicModelInfoPtr, 0x4C4A80);
-    RH_ScopedVirtualInstall(AsDamageAtomicModelInfoPtr, 0x4C4A90);
-    RH_ScopedVirtualInstall(AsLodAtomicModelInfoPtr, 0x4C4AA0);
-    RH_ScopedVirtualInstall(GetTimeInfo, 0x4C4AB0);
-    RH_ScopedVirtualInstall(Init, 0x4C4B10);
-    RH_ScopedVirtualInstall(Shutdown, 0x4C4D50);
-    RH_ScopedVirtualInstall(SetAnimFile, 0x4C4AC0);
-    RH_ScopedVirtualInstall(ConvertAnimFileIndex, 0x4C4AD0);
-    RH_ScopedVirtualInstall(GetAnimFileIndex, 0x4C4AE0);
+    RH_ScopedVMTInstall(AsAtomicModelInfoPtr, 0x4C4A80);
+    RH_ScopedVMTInstall(AsDamageAtomicModelInfoPtr, 0x4C4A90);
+    RH_ScopedVMTInstall(AsLodAtomicModelInfoPtr, 0x4C4AA0);
+    RH_ScopedVMTInstall(GetTimeInfo, 0x4C4AB0);
+    RH_ScopedVMTInstall(Init, 0x4C4B10);
+    RH_ScopedVMTInstall(Shutdown, 0x4C4D50);
+    RH_ScopedVMTInstall(SetAnimFile, 0x4C4AC0);
+    RH_ScopedVMTInstall(ConvertAnimFileIndex, 0x4C4AD0);
+    RH_ScopedVMTInstall(GetAnimFileIndex, 0x4C4AE0);
     RH_ScopedInstall(SetTexDictionary, 0x4C4B40);
     RH_ScopedInstall(ClearTexDictionary, 0x4C4B70);
     RH_ScopedInstall(AddTexDictionaryRef, 0x4C4B80);
@@ -51,44 +51,34 @@ void CBaseModelInfo::InjectHooks() {
     RH_ScopedInstall(SetBaseModelInfoFlags, 0x5B3AD0);
 }
 
-// 0x4C4A80
+
 CBaseModelInfo::CBaseModelInfo() {
     m_nRefCount = 0;
     ClearTexDictionary();
 }
 
+// 0x4C4A80
 CAtomicModelInfo* CBaseModelInfo::AsAtomicModelInfoPtr() {
-    return CBaseModelInfo::AsAtomicModelInfoPtr_Reversed();
-}
-CAtomicModelInfo* CBaseModelInfo::AsAtomicModelInfoPtr_Reversed() {
     return nullptr;
 }
 
+// 0x4C4A90
 CDamageAtomicModelInfo* CBaseModelInfo::AsDamageAtomicModelInfoPtr() {
-    return CBaseModelInfo::AsDamageAtomicModelInfoPtr_Reversed();
-}
-CDamageAtomicModelInfo* CBaseModelInfo::AsDamageAtomicModelInfoPtr_Reversed() {
     return nullptr;
 }
 
+// 0x4C4AA0
 CLodAtomicModelInfo* CBaseModelInfo::AsLodAtomicModelInfoPtr() {
-    return CBaseModelInfo::AsLodAtomicModelInfoPtr_Reversed();
-}
-CLodAtomicModelInfo* CBaseModelInfo::AsLodAtomicModelInfoPtr_Reversed() {
     return nullptr;
 }
 
+// 0x4C4AB0
 CTimeInfo* CBaseModelInfo::GetTimeInfo() {
-    return CBaseModelInfo::GetTimeInfo_Reversed();
-}
-CTimeInfo* CBaseModelInfo::GetTimeInfo_Reversed() {
     return nullptr;
 }
 
+// 0x4C4B10
 void CBaseModelInfo::Init() {
-    CBaseModelInfo::Init_Reversed();
-}
-void CBaseModelInfo::Init_Reversed() {
     m_nRefCount = 0;
     m_pColModel = nullptr;
     ClearTexDictionary();
@@ -102,10 +92,8 @@ void CBaseModelInfo::Init_Reversed() {
     bIsLod = true;
 }
 
+// 0x4C4D50
 void CBaseModelInfo::Shutdown() {
-    CBaseModelInfo::Shutdown_Reversed();
-}
-void CBaseModelInfo::Shutdown_Reversed() {
     DeleteRwObject();
     DeleteCollisionModel();
 
@@ -115,26 +103,18 @@ void CBaseModelInfo::Shutdown_Reversed() {
     Init2dEffects();
 }
 
-void CBaseModelInfo::SetAnimFile(const char* filename) {
-    CBaseModelInfo::SetAnimFile_Reversed(filename);
-}
-void CBaseModelInfo::SetAnimFile_Reversed(const char* filename) {}
+// 0x4C4AC0
+void CBaseModelInfo::SetAnimFile(const char* filename) {}
 
+// 0x4C4AD0
 void CBaseModelInfo::ConvertAnimFileIndex() {
-    CBaseModelInfo::ConvertAnimFileIndex_Reversed();
-}
-void CBaseModelInfo::ConvertAnimFileIndex_Reversed() {
     // NOP
 }
 
+// 0x4C4AE0
 int32 CBaseModelInfo::GetAnimFileIndex() {
-    return CBaseModelInfo::GetAnimFileIndex_Reversed();
-}
-int32 CBaseModelInfo::GetAnimFileIndex_Reversed() {
     return -1;
-}
-
-void CBaseModelInfo::SetTexDictionary(const char* txdName) {
+}void CBaseModelInfo::SetTexDictionary(const char* txdName) {
     m_nTxdIndex = CTxdStore::FindOrAddTxdSlot(txdName);
 }
 

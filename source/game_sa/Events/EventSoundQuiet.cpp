@@ -4,12 +4,12 @@
 
 void CEventSoundQuiet::InjectHooks()
 {
-    RH_ScopedClass(CEventSoundQuiet);
+    RH_ScopedVirtualClass(CEventSoundQuiet, 0x86C2B0, 17);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x5E05B0);
-    RH_ScopedVirtualInstall(AffectsPed, 0x4B5240);
-    RH_ScopedVirtualInstall(CloneEditable, 0x5E0670);
+    RH_ScopedVMTInstall(AffectsPed, 0x4B5240);
+    RH_ScopedVMTInstall(CloneEditable, 0x5E0670);
 }
 
 // 0x5E05B0
@@ -40,17 +40,6 @@ CEventSoundQuiet* CEventSoundQuiet::Constructor(CEntity* entity, float fLocalSou
 // 0x4B5240
 bool CEventSoundQuiet::AffectsPed(CPed* ped)
 {
-    return CEventSoundQuiet::AffectsPed_Reversed(ped);
-}
-
-// 0x5E0670
-CEventEditableResponse* CEventSoundQuiet::CloneEditable()
-{
-    return CEventSoundQuiet::CloneEditable_Reversed();
-}
-
-bool CEventSoundQuiet::AffectsPed_Reversed(CPed* ped)
-{
     if (ped->IsPlayer() || !ped->IsAlive()|| !GetSourceEntity())
         return false;
 
@@ -70,7 +59,8 @@ bool CEventSoundQuiet::AffectsPed_Reversed(CPed* ped)
     return true;
 }
 
-CEventEditableResponse* CEventSoundQuiet::CloneEditable_Reversed()
+// 0x5E0670
+CEventEditableResponse* CEventSoundQuiet::CloneEditable()
 {
     return new CEventSoundQuiet(m_entity, m_fLocalSoundLevel, m_startTimeInMs, m_position);
 }

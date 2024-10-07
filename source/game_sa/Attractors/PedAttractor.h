@@ -7,7 +7,7 @@ class CEntity;
 class CPed;
 class CTask;
 
-class CPedAttractor {
+class NOTSA_EXPORT_VTABLE CPedAttractor {
 public:
     C2dEffect*    m_pEffect;
     CEntity*      m_pEntity;

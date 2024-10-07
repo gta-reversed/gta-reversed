@@ -19,6 +19,13 @@ enum eVehicleLightsSize : uint8 {
 };
 
 struct tHandlingData {
+public:
+    int32 InitFromData(int32 id, const char* line);
+
+    cTransmission& GetTransmission()       { return m_transmissionData; }
+    auto           GetAnimGroupId()    const { return static_cast<AssocGroupId>((uint32)ANIM_GROUP_STDCARAMIMS + m_nAnimGroup); }
+
+public:
     int32         m_nVehicleId;
     float         m_fMass; // 1.0 to 50000.0
     float         m_fMassRecpr; // = 1.f / m_fMass
@@ -126,11 +133,7 @@ struct tHandlingData {
     uint32             m_nMonetaryValue;      // 1 to 100000
     eVehicleLightsSize m_nFrontLights;
     eVehicleLightsSize m_nRearLights;
-    uint8              m_nAnimGroup;
-
-    cTransmission& GetTransmission() { return m_transmissionData; }
-
-    int32 InitFromData(int32 id, const char* line);
+    uint8              m_nAnimGroup;          // TODO(Pirulax): to get AssocGroupId: `ANIM_GROUP_STDCARAMIMS + m_nAnimGroup`
 };
 
 VALIDATE_SIZE(tHandlingData, 0xE0);

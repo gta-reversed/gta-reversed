@@ -15,6 +15,7 @@ project(GTASA C CXX)
 
 if (MSVC)
     add_compile_options("/bigobj")
+    add_compile_options("/utf-8")
 endif()
 
 option(BUILD_DOC "Build documentation" OFF)

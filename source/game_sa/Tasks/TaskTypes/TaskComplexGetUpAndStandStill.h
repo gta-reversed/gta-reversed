@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexGetUpAndStandStill : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGetUpAndStandStill : public CTaskComplex {
 public:
     static constexpr auto Type = TASK_COMPLEX_GET_UP_AND_STAND_STILL;
 
@@ -22,9 +22,6 @@ private:
 
     CTaskComplexGetUpAndStandStill* Constructor();
 
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
 };
 
 VALIDATE_SIZE(CTaskComplexGetUpAndStandStill, 0xC);

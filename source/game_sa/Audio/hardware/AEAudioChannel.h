@@ -7,7 +7,7 @@
 #define USE_DSOUND
 
 #pragma pack(push, 1)
-class CAEAudioChannel {
+class NOTSA_EXPORT_VTABLE CAEAudioChannel {
 public:
 #ifdef USE_DSOUND
     IDirectSound*         m_pDirectSound;
@@ -79,7 +79,6 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    void SetFrequencyScalingFactor_Reversed(float factor);
 };
 #pragma pack(pop)
 VALIDATE_SIZE(CAEAudioChannel, 0x60);

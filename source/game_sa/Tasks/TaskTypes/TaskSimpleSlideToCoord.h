@@ -5,7 +5,7 @@
 
 constexpr auto STAND_STILL_TIME = 20000; // 0x86DB24
 
-class CTaskSimpleSlideToCoord : public CTaskSimpleRunNamedAnim {
+class NOTSA_EXPORT_VTABLE CTaskSimpleSlideToCoord : public CTaskSimpleRunNamedAnim {
 public:
     CVector m_SlideToPos;
     float   m_fAimingRotation; // Heading
@@ -33,9 +33,5 @@ private:
     CTaskSimpleSlideToCoord* Constructor(const CVector& pos, float fAimingRotation, float radius) { this->CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(pos, fAimingRotation, radius); return this; }
     CTaskSimpleSlideToCoord* Constructor(const CVector& pos, float aimRot, float radius, const char* animName, const char* fileName, int32 flags, float frameDelta, bool isActiveSequence, int32 time) { this->CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(pos, aimRot, radius, animName, fileName, flags, frameDelta, isActiveSequence, time); return this; }
     CTaskSimpleSlideToCoord* Destructor() { this->CTaskSimpleSlideToCoord::~CTaskSimpleSlideToCoord(); return this; }
-    CTask* Clone_Reversed() { return CTaskSimpleSlideToCoord::Clone(); }
-    eTaskType GetTaskType_Reversed() { return CTaskSimpleSlideToCoord::GetTaskType(); }
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) { return CTaskSimpleSlideToCoord::MakeAbortable(ped, priority, event); }
-    bool ProcessPed_Reversed(CPed* ped) { return CTaskSimpleSlideToCoord::ProcessPed(ped); }
 };
 VALIDATE_SIZE(CTaskSimpleSlideToCoord, 0x80);

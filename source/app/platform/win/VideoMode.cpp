@@ -27,30 +27,19 @@ char** GetVideoModeList() {
     }
     gCurrentGpu = RwEngineGetCurrentSubSystem();
 
-    const auto numVidModes = RwEngineGetNumVideoModes();
+    uint32 numVidModes = RwEngineGetNumVideoModes();
     assert(numVidModes != -1 && "Failed to get Video Modes");
 
     gVideoModes = (char**)CMemoryMgr::Calloc(numVidModes, sizeof(char*));
 
-    for (auto modeId = 0; modeId < numVidModes; modeId++) {
+    for (auto modeId = 0u; modeId < numVidModes; modeId++) {
         const auto videoMode = RwEngineGetVideoModeInfo(modeId);
 
         gVideoModes[modeId] = nullptr;
-
         if ((videoMode.flags & rwVIDEOMODEEXCLUSIVE) == 0) {
-            if (notsa::IsFixBugs()) {
-                gVideoModes[modeId] = (char*)CMemoryMgr::Calloc(100, sizeof(char));
-                sprintf_s(gVideoModes[modeId], 100 * sizeof(char), "WINDOWED");
-
 #ifdef VIDEO_MODE_LOGS
-                DEV_LOG("Available video mode id={:02d}: {}", modeId, gVideoModes[modeId]);
+            DEV_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: video mode not exclusive]", modeId, videoMode.width, videoMode.height, videoMode.depth);
 #endif
-            } else {
-                // Ignore windowed mode.
-#ifdef VIDEO_MODE_LOGS
-                DEV_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: video mode not exclusive]", modeId, videoMode.width, videoMode.height, videoMode.depth);
-#endif
-            }
             continue;
         }
 
@@ -61,27 +50,22 @@ char** GetVideoModeList() {
             continue;
         }
 
-        const auto aspectRatio = float(videoMode.height) / float(videoMode.width);
-        if (!IsFullScreenRatio(aspectRatio) && !IsWideScreenRatio(aspectRatio)) {
+        float fRatio = float(videoMode.height) / float(videoMode.width);
+        if (!IS_FULLSCREEN_RATIO(fRatio) && !IS_WIDESCREEN_RATIO(fRatio)) {
 #ifdef VIDEO_MODE_LOGS
-            const auto gcd = std::gcd(videoMode.width, videoMode.height);
-            const auto ratioW = videoMode.width / gcd, ratioH = videoMode.height / gcd;
-            DEV_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: ratio {}:{}]", modeId, videoMode.width, videoMode.height, videoMode.depth, ratioW, ratioH);
+            DEV_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: ratio {:0.2f}]", modeId, videoMode.width, videoMode.height, videoMode.depth, fRatio);
 #endif
             continue;
         }
 
         if (videoMode.width != APP_MINIMAL_WIDTH || videoMode.height != APP_MINIMAL_HEIGHT) {
             if (s_OSStatus.VRAM.Avail - videoMode.height * videoMode.width * videoMode.depth / 8 <= GAME_FREE_VIDEO_MEM_REQUIRED) {
-#ifdef VIDEO_MODE_LOGS
-                DEV_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: out of vram]", modeId, videoMode.width, videoMode.height, videoMode.depth);
-#endif
                 continue;
             }
         }
 
-        gVideoModes[modeId] = (char*)CMemoryMgr::Calloc(100, sizeof(char));
-        sprintf_s(gVideoModes[modeId], 100 * sizeof(char), "%lu X %lu X %lu", videoMode.width, videoMode.height, videoMode.depth);
+        gVideoModes[modeId] = (char*)CMemoryMgr::Calloc(100, sizeof(char));                                  // 100 chars
+        sprintf_s(gVideoModes[modeId], 100 * sizeof(char), "%lu X %lu X %lu", videoMode.width, videoMode.height, videoMode.depth); // rwsprintf
 
 #ifdef VIDEO_MODE_LOGS
         DEV_LOG("Available video mode id={:02d}: {}", modeId, gVideoModes[modeId]);

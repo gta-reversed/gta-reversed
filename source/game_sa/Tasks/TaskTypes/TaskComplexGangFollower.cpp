@@ -3,7 +3,7 @@
 #include "TaskComplexGangFollower.h"
 
 void CTaskComplexGangFollower::InjectHooks() {
-    RH_ScopedClass(CTaskComplexGangFollower);
+    RH_ScopedVirtualClass(CTaskComplexGangFollower, 0x86F938, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x65EAA0, { .reversed = false });

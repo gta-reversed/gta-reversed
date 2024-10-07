@@ -1,9 +1,9 @@
 #include "StdInc.h"
-
 #include "Event.h"
 
+
 void CEvent::InjectHooks() {
-    RH_ScopedClass(CEvent);
+    RH_ScopedVirtualClass(CEvent, 0x85AB38, 16);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x4ABFC0);
@@ -11,6 +11,7 @@ void CEvent::InjectHooks() {
     RH_ScopedInstall(GetSoundLevel, 0x4B2850);
 }
 
+// 0x4ABFC0
 CEvent::CEvent() {
     m_nTimeActive = 0;
     m_bValid = false;
@@ -20,6 +21,7 @@ CEvent::~CEvent() {
     // nothing here
 }
 
+// 0x4ABFC0
 CEvent* CEvent::Constructor() {
     this->CEvent::CEvent();
     return this;
@@ -53,3 +55,4 @@ float CEvent::CalcSoundLevelIncrement(float level1, float level2) {
     level2 = std::powf(10.0f, level2 * 0.1f);
     return std::log10f((level1 + level2) / level1) * 10.0f;
 }
+

@@ -6,7 +6,7 @@
 class CEntity;
 class CColSphere;
 
-class CTaskComplexAvoidEntity : CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexAvoidEntity : CTaskComplex {
 public:
     CEntity*   m_Entity;
     eMoveState m_moveState;
@@ -54,8 +54,5 @@ private:
     static void InjectHooks();
 
     CTaskComplexAvoidEntity* Constructor(eMoveState moveState, CEntity* entity, const CVector& pos) { this->CTaskComplexAvoidEntity::CTaskComplexAvoidEntity(moveState, entity, pos); return this; };
-    CTask* ControlSubTask_Reversed(CPed* ped) { return ControlSubTask(ped); }
-    CTask* CreateFirstSubTask_Reversed(CPed* ped) { return CreateFirstSubTask(ped); }
-    CTask* CreateNextSubTask_Reversed(CPed* ped) { return CreateNextSubTask(ped); }
-};
+            };
 VALIDATE_SIZE(CTaskComplexAvoidEntity, 0x54);

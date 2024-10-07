@@ -2,7 +2,7 @@
 
 #include "TaskSimple.h"
 
-class CTaskSimpleCreateCarAndGetIn : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleCreateCarAndGetIn : public CTaskSimple {
 public:
     CVector   m_Pos;
     int32     m_nModel;
@@ -20,7 +20,7 @@ public:
     ~CTaskSimpleCreateCarAndGetIn() override;
 
     CTask* Clone() const override { return new CTaskSimpleCreateCarAndGetIn{ *this }; }
-    eTaskType GetTaskType() const override { return Type; };
+    eTaskType GetTaskType() const override { return Type; }
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool ProcessPed(CPed* ped) override;
 
@@ -31,9 +31,5 @@ private:
     static void InjectHooks();
     CTaskSimpleCreateCarAndGetIn* Constructor(CVector const& pos, int32 model) { this->CTaskSimpleCreateCarAndGetIn::CTaskSimpleCreateCarAndGetIn(pos, model); return this; }
     CTaskSimpleCreateCarAndGetIn* Destructor() { this->CTaskSimpleCreateCarAndGetIn::~CTaskSimpleCreateCarAndGetIn(); return this; }
-    CTask * Clone_Reversed() { return CTaskSimpleCreateCarAndGetIn::Clone(); }
-    auto GetTaskType_Reversed() { return CTaskSimpleCreateCarAndGetIn::GetTaskType(); }
-    bool MakeAbortable_Reversed(CPed * ped, eAbortPriority priority, CEvent const* event) { return CTaskSimpleCreateCarAndGetIn::MakeAbortable(ped, priority, event); }
-    bool ProcessPed_Reversed(CPed * ped) { return CTaskSimpleCreateCarAndGetIn::ProcessPed(ped); }
 };
 VALIDATE_SIZE(CTaskSimpleCreateCarAndGetIn, 0x34);

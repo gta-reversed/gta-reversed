@@ -93,19 +93,32 @@ eWeaponFire CWeaponInfo::FindWeaponFireType(const char* name) {
 
 // Check if weapon has skill stats
 // NOTSA
-bool CWeaponInfo::WeaponHasSkillStats(eWeaponType type) {
-    return type >= WEAPON_PISTOL && type <= WEAPON_TEC9;
+bool CWeaponInfo::TypeHasSkillStats(eWeaponType wt) {
+    return wt >= FIRST_WEAPON_WITH_SKILLS && wt <= LAST_WEAPON_WITH_SKILLS;
+}
+
+//! @notsa
+bool CWeaponInfo::TypeIsWeapon(eWeaponType type) {
+    return type < WEAPON_LAST_WEAPON;
 }
 
 // Get weapon info index for this type and with this skill
 // NOTSA
-uint32 CWeaponInfo::GetWeaponInfoIndex(eWeaponType weaponType, eWeaponSkill skill) {
-    const auto numWeaponsWithSkill = (WEAPON_TEC9 - WEAPON_PISTOL) + 1;
+uint32 CWeaponInfo::GetWeaponInfoIndex(eWeaponType wt, eWeaponSkill skill) {
+    assert(TypeIsWeapon(wt));
+
+    const auto GetNonSTDSkillLevelIndex = [wt](uint32 i) {
+        assert(TypeHasSkillStats(wt));
+        return WEAPON_LAST_WEAPON           // Offset for std skill level
+            + wt - FIRST_WEAPON_WITH_SKILLS // Offset for this weapon [relative to the other weapons with skill levels]
+            + i * NUM_WEAPONS_WITH_SKILL;   // Offset for skill level
+    };
+
     switch (skill) {
-    case eWeaponSkill::POOR: return (uint32)weaponType + 25u + 0 * numWeaponsWithSkill;
-    case eWeaponSkill::STD:  return (uint32)weaponType;
-    case eWeaponSkill::PRO:  return (uint32)weaponType + 25u + 1 * numWeaponsWithSkill;
-    case eWeaponSkill::COP:  return (uint32)weaponType + 25u + 2 * numWeaponsWithSkill;
+    case eWeaponSkill::POOR: return GetNonSTDSkillLevelIndex(0);
+    case eWeaponSkill::STD:  return (uint32)wt;
+    case eWeaponSkill::PRO:  return GetNonSTDSkillLevelIndex(1);
+    case eWeaponSkill::COP:  return GetNonSTDSkillLevelIndex(2);
     default:                 NOTSA_UNREACHABLE("Invalid weapon skill");
     }
 }
@@ -196,8 +209,10 @@ void CWeaponInfo::LoadWeaponData() {
             ) >= 25);
 
             const auto weaponType = FindWeaponType(weaponName);
-            const auto skillLevel = WeaponHasSkillStats(weaponType) ? (eWeaponSkill)skill : eWeaponSkill::STD;
-            auto& wi = aWeaponInfo[GetWeaponInfoIndex(weaponType, skillLevel)];
+            const auto skillLevel = TypeHasSkillStats(weaponType)
+                ? (eWeaponSkill)skill
+                : eWeaponSkill::STD;
+            auto& wi = *GetWeaponInfo(weaponType, skillLevel);
             wi.m_nWeaponFire = FindWeaponFireType(fireTypeName);
             wi.m_fTargetRange = targetRange;
             wi.m_fWeaponRange = weaponRange;
@@ -328,22 +343,21 @@ CWeaponInfo* CWeaponInfo::GetWeaponInfo(eWeaponType weaponID, eWeaponSkill skill
 }
 
 // 0x743CD0
-eStats CWeaponInfo::GetSkillStatIndex(eWeaponType weaponType) {
-    if (!WeaponHasSkillStats(weaponType)) {
-        assert(0);
-        return (eStats)-1;
+eStats CWeaponInfo::GetSkillStatIndex(eWeaponType wt) {
+    switch (wt) {
+    case WEAPON_PISTOL:          return STAT_PISTOL_SKILL;
+    case WEAPON_PISTOL_SILENCED: return STAT_SILENCED_PISTOL_SKILL;
+    case WEAPON_DESERT_EAGLE:    return STAT_DESERT_EAGLE_SKILL;
+    case WEAPON_SHOTGUN:         return STAT_SHOTGUN_SKILL;
+    case WEAPON_SAWNOFF_SHOTGUN: return STAT_SAWN_OFF_SHOTGUN_SKILL;
+    case WEAPON_SPAS12_SHOTGUN:  return STAT_COMBAT_SHOTGUN_SKILL;
+    case WEAPON_MICRO_UZI:       return STAT_MACHINE_PISTOL_SKILL;
+    case WEAPON_MP5:             return STAT_SMG_SKILL;
+    case WEAPON_AK47:            return STAT_AK_47_SKILL;
+    case WEAPON_M4:              return STAT_M4_SKILL;
+    case WEAPON_TEC9:            return STAT_MACHINE_PISTOL_SKILL;
+    default:                     NOTSA_UNREACHABLE("Weapon type({}) has no skill levels", (int)wt);
     }
-
-    if (weaponType <= WEAPON_M4)
-        return (eStats)(weaponType - WEAPON_PISTOL + STAT_PISTOL_SKILL);
-
-    if (weaponType == WEAPON_TEC9)
-        return (eStats)STAT_MACHINE_PISTOL_SKILL;
-
-    if (weaponType == WEAPON_COUNTRYRIFLE)
-        return (eStats)STAT_GAMBLING;
-
-    return (eStats)(weaponType + STAT_PISTOL_SKILL);
 }
 
 // 0x743D10

@@ -1,8 +1,8 @@
 #include "StdInc.h"
-
 #include "EventPotentialWalkIntoBuilding.h"
 
-CEventPotentialWalkIntoBuilding::CEventPotentialWalkIntoBuilding() : CEventBuildingCollision(0, 0.0f, m_building, &m_impactNormal, &m_impactPos, m_pieceType) {} // last param pieceType??
+
+CEventPotentialWalkIntoBuilding::CEventPotentialWalkIntoBuilding() : CEventBuildingCollision(0, 0.0f, m_building, &m_impactNormal, &m_impactPos, m_pieceType) {}
 
 bool CEventPotentialWalkIntoBuilding::AffectsPed(CPed* ped) {
     if (ped->IsPlayer() || !ped->IsAlive() || ped->m_pAttachedTo)
@@ -21,3 +21,4 @@ bool CEventPotentialWalkIntoBuilding::AffectsPed(CPed* ped) {
     }
     return false;
 }
+

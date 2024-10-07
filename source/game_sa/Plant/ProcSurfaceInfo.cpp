@@ -8,7 +8,7 @@ void ProcSurfaceInfo_c::InjectHooks() {
     RH_ScopedCategory("Plant");
 
     RH_ScopedInstall(Init, 0x5A2EB0);
-    RH_ScopedInstall(Exit, 0x5A3270, {.reversed = false});
+    RH_ScopedInstall(Exit, 0x5A3270);
     RH_ScopedInstall(AddObject, 0x5A32D0, {.reversed = false});
     RH_ScopedInstall(AddObjects, 0x5A3850, {.reversed = false});
 }
@@ -51,12 +51,17 @@ void ProcSurfaceInfo_c::Init(
 
 // 0x5A3270
 void ProcSurfaceInfo_c::Exit() {
-    plugin::CallMethod<0x5A3270, ProcSurfaceInfo_c*>(this);
+    for (auto it = m_Objects.GetHead(); it;) {
+        auto* next = m_Objects.GetNext(it);
 
-    // for (auto it = m_Objects.GetHead(); it; it = m_Objects.GetNext(it)) {
-    //     m_Objects.Remove(it);
-    //     g_procObjMan.m_list.AddItem(it);
-    // }
+        m_Objects.RemoveItem(it);
+        g_procObjMan.m_ObjectsList.AddItem(it);
+        it->m_Obj->DeleteRwObject();
+        CWorld::Remove(it->m_Obj);
+        delete std::exchange(it->m_Obj, nullptr);
+
+        it = next;
+    }
 }
 
 // 0x5A32D0

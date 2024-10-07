@@ -135,6 +135,15 @@ BOOL GTATranslateShiftKey(RsKeyCodes*) { // The in keycode is ignored, so we won
 // 0x747EB0
 LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     const auto imio = ImGui::GetCurrentContext() ? &ImGui::GetIO() : nullptr;
+
+    if (imio) {
+        if (imio->MouseDrawCursor) {
+            imio->ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+        } else {
+            imio->ConfigFlags |= ImGuiConfigFlags_NoMouse;
+        }
+    }
+
     if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
         return true;
     }
@@ -149,10 +158,6 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     case WM_SYSKEYDOWN: 
     case WM_KEYUP:
     case WM_SYSKEYUP: { //< 0x74823B - wParam is a `VK_` (virtual key), lParam are the flags (See https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-keyup)]
-        if (imio && imio->WantCaptureKeyboard) {
-            return 0;
-        }
-
         if (RsKeyCodes ck; GTATranslateKey(&ck, lParam, wParam)) {
             RsKeyboardEventHandler(
                 (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)
@@ -168,9 +173,6 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         return 0;
     }
     case WM_MOUSEMOVE: { //< 0x748323
-        if (imio && imio->WantCaptureMouse) {
-            return 0;
-        }
         FrontEndMenuManager.m_nMousePosWinX = GET_X_LPARAM(lParam);
         FrontEndMenuManager.m_nMousePosWinY = GET_Y_LPARAM(lParam);
         break;
@@ -178,18 +180,12 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
     case WM_MBUTTONDOWN: {
-        if (imio && imio->WantCaptureMouse) {
-            return 0;
-        }
         SetCapture(hWnd);
         return 0;
     }
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
     case WM_MBUTTONUP: {
-        if (imio && imio->WantCaptureMouse) {
-            return 0;
-        }
         ReleaseCapture();
         return 0;
     }
@@ -221,7 +217,7 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         //> 0x748087 - Set gamma (If changed)
         if (gbGammaChanged) {
             if (const auto dev = RwD3D9GetCurrentD3DDevice()) {
-                dev->SetGammaRamp(9, 0, wndBeingActivated ? &gammaTable : &savedGamma);
+                dev->SetGammaRamp(9, 0, wndBeingActivated ? &CGamma::ms_GammaTable : &CGamma::ms_SavedGamma);
             }
         }
 

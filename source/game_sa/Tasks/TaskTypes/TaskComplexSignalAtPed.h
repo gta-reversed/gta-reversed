@@ -17,7 +17,7 @@ public:
 
     constexpr static auto Type = eTaskType::TASK_COMPLEX_SIGNAL_AT_PED;
 
-    CTaskComplexSignalAtPed(CPed* pedToSignalAt, int32 unused1, bool playAnimAtEnd);
+    CTaskComplexSignalAtPed(CPed* pedToSignalAt, int32 unused1 = -1, bool playAnimAtEnd = false);
     CTaskComplexSignalAtPed(const CTaskComplexSignalAtPed& o);
     ~CTaskComplexSignalAtPed();
 

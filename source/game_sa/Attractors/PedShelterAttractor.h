@@ -27,7 +27,4 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    void ComputeAttractPos_Reversed(int32 pedId, CVector& posn);
-    void ComputeAttractHeading_Reversed(int32 bQueue, float& heading);
-    void BroadcastDeparture_Reversed(CPed* ped);
 };

@@ -12,7 +12,7 @@
 class CBox;
 class CRect;
 
-class CPlaceable {
+class NOTSA_EXPORT_VTABLE CPlaceable {
 public:
     CSimpleTransform m_placement;
     CMatrixLink *m_matrix;

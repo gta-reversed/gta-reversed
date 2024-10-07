@@ -3,7 +3,7 @@
 #include "PedAttractor.h"
 
 void CPedAttractor::InjectHooks() {
-    RH_ScopedClass(CPedAttractor);
+    RH_ScopedVirtualClass(CPedAttractor, 0x86C538, 6);
     RH_ScopedCategory("Attractors");
 
     //RH_ScopedInstall(Constructor, 0x5EDFB0, { .reversed = false });

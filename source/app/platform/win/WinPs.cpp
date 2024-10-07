@@ -522,14 +522,7 @@ bool psSelectDevice() {
 
     if (!UseDefaultVM && !MultipleSubSystems) {
         const auto vmDisplay = FrontEndMenuManager.m_nDisplayVideoMode;
-
-        // IMPROVEMENT/NOTSA: Originally `vmDisplay == 0`.
-        // Originally 0 (which is windowed vm) is a sentinel value for resolution settings.
-        // If that sentinel value is selected, the game searches for 'real default video mode'. (SA: 800x600)
-        //
-        // Zero as a sentinel value prevents us to save the game with windowed mode, so it's converted to -1.
-        // Look at: `SetToDefaultSettings` lambda at CMenuManager::LoadSettings.
-        if (vmDisplay == -1 || !GetVideoModeList()[vmDisplay]) {
+        if (!vmDisplay || !GetVideoModeList()[vmDisplay]) {
             if (IsVMNotSelected && !CheckDefaultVideoModeSupported()) {
                 return FALSE;
             }

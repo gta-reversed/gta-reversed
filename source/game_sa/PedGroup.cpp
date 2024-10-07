@@ -4,6 +4,7 @@
 #include <TaskSimpleCarSetPedOut.h>
 #include <TaskComplexFollowLeaderInFormation.h>
 
+//! @addr 0x5FB010
 //! @returns Distance of the furthers member from the leader
 float CPedGroup::FindDistanceToFurthestMember() {
     return plugin::CallMethodAndReturn<float, 0x5FB010, CPedGroup*>(this);
@@ -69,51 +70,61 @@ void CPedGroup::PlayerGaveCommand_Attack(CPed* playerPed, CPed* target) {
         return;
     }
     if (target && target->m_nPedType != PED_TYPE_GANG2) {
-        target->Say(target->IsGangster() ? 147 : 148);
+        target->Say(target->IsGangster() ? CTX_GLOBAL_ORDER_ATTACK_MANY : CTX_GLOBAL_ORDER_ATTACK_SINGLE);
     }
 }
 
+// 0x5FAB60
 void CPedGroup::PlayerGaveCommand_Gather(CPed* ped) {
     plugin::CallMethod<0x5FAB60, CPedGroup*, CPed*>(this, ped);
 }
 
+// 0x5FC7E0
 void CPedGroup::Process() {
     m_groupMembership.Process();
     m_groupIntelligence.Process();
 }
 
+// 0x5FB7D0
 void CPedGroup::RemoveAllFollowers() {
     GetMembership().RemoveAllFollowers(false);
 }
 
+// 0x5F7AD0
 void CPedGroup::Teleport(const CVector& pos) {
-    if (const auto leader = GetMembership().GetLeader()) {
+    const auto leader = GetMembership().GetLeader();
+
+    if (leader && leader->IsAlive()) {
         leader->Teleport(pos, false);
     }
 
-    if (const auto oevent = m_groupIntelligence.m_pOldEventGroupEvent) {
-        if (oevent->GetEventType() == EVENT_LEADER_ENTRY_EXIT) {
-            return;
-        }
+    if (const auto oe = m_groupIntelligence.GetOldEvent(); !oe || oe->GetEventType() == EVENT_LEADER_ENTRY_EXIT) {
+        return;
     }
 
     // Set *followers* out of the vehicle
-    for (auto& flwr : GetMembership().GetMembers(false)) {
-        if (!flwr.IsAlive() || !flwr.bInVehicle || flwr.IsCreatedByMission()) {
-            continue;
+    if (leader && !leader->bInVehicle) {
+        for (auto& f : GetMembership().GetFollowers()) {
+            if (!f.IsAlive() || !f.bInVehicle || f.IsCreatedByMission()) {
+                continue;
+            }
+            CTaskSimpleCarSetPedOut{
+                f.m_pVehicle,
+                (eTargetDoor)CCarEnterExit::ComputeTargetDoorToExit(f.m_pVehicle, &f),
+                false
+            }.ProcessPed(&f);
         }
-        CTaskSimpleCarSetPedOut{ flwr.m_pVehicle, (eTargetDoor)CCarEnterExit::ComputeTargetDoorToExit(flwr.m_pVehicle, &flwr), false }.ProcessPed(&flwr);
     }
 
     // Teleport *followers*
     const auto& offsets = CTaskComplexFollowLeaderInFormation::ms_offsets.offsets;
-    for (auto&& [offsetIdx, flwr] : notsa::enumerate(GetMembership().GetMembers(false))) {
-        if (!flwr.IsAlive()) {
+    for (auto&& [offsetIdx, f] : notsa::enumerate(GetMembership().GetFollowers())) {
+        if (!f.IsAlive()) {
             continue;
         }
-        flwr.Teleport(pos + CVector{ offsets[offsetIdx] }, false);
-        flwr.PositionAnyPedOutOfCollision();
-        flwr.GetTaskManager().AbortFirstPrimaryTaskIn({ TASK_PRIMARY_PHYSICAL_RESPONSE, TASK_PRIMARY_EVENT_RESPONSE_TEMP, TASK_PRIMARY_EVENT_RESPONSE_NONTEMP }, &flwr);
+        f.Teleport(pos + CVector{ offsets[offsetIdx] }, false);
+        f.PositionAnyPedOutOfCollision();
+        f.GetTaskManager().AbortFirstPrimaryTaskIn({ TASK_PRIMARY_PHYSICAL_RESPONSE, TASK_PRIMARY_EVENT_RESPONSE_TEMP, TASK_PRIMARY_EVENT_RESPONSE_NONTEMP }, &f);
     }
 }
 
@@ -127,7 +138,7 @@ bool CPedGroup::IsActive() const {
 
 void CPedGroup::InjectHooks() {
     RH_ScopedClass(CPedGroup);
-    RH_ScopedCategory(); // TODO: Change this to the appropriate category!
+    RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Constructor, 0x5FC150);
     RH_ScopedInstall(Destructor, 0x5FC190);

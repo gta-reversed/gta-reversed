@@ -169,21 +169,25 @@ void CGangWars::CheerVictory() {
 
     CPed* nearestMember = nullptr;
     playerGroup.FindDistanceToNearestMember(&nearestMember);
-    if (!nearestMember)
+    if (!nearestMember) {
         return;
-
-    static constexpr const char* zoneNames[] = {
-        "CHC", "LFL", "EBE", "ELF", "JEF",
-        "GLN", "IWD", "GAN", "LMEX", "LIND",
-        "PLS", "SUN"
-    };
-
-    for (auto i = 0u; i < std::size(zoneNames); i++) {
-        if (!_stricmp(pZoneToFightOver->m_TextLabel, zoneNames[i])) {
-            nearestMember->Say(208 + i);
-            break;
-        }
     }
+
+    static const auto mapping = notsa::make_mapping<notsa::ci_string_view, eGlobalSpeechContext>({
+        {"CHC",  CTX_GLOBAL_TAKE_TURF_LAS_COLINAS      },
+        {"LFL",  CTX_GLOBAL_TAKE_TURF_LOS_FLORES       },
+        {"EBE",  CTX_GLOBAL_TAKE_TURF_EAST_BEACH       },
+        {"ELF",  CTX_GLOBAL_TAKE_TURF_EAST_LS          },
+        {"JEF",  CTX_GLOBAL_TAKE_TURF_JEFFERSON        },
+        {"GLN",  CTX_GLOBAL_TAKE_TURF_GLEN_PARK        },
+        {"IWD",  CTX_GLOBAL_TAKE_TURF_IDLEWOOD         },
+        {"GAN",  CTX_GLOBAL_TAKE_TURF_GANTON           },
+        {"LMEX", CTX_GLOBAL_TAKE_TURF_LITTLE_MEXICO    },
+        {"LIND", CTX_GLOBAL_TAKE_TURF_WILLOWFIELD      },
+        {"PLS",  CTX_GLOBAL_TAKE_TURF_PLAYA_DEL_SEVILLE},
+        {"SUN",  CTX_GLOBAL_TAKE_TURF_TEMPLE           },
+    });
+    nearestMember->Say(notsa::find_value(mapping, pZoneToFightOver->m_TextLabel));
 }
 
 // 0x443FF0
@@ -226,7 +230,7 @@ bool CGangWars::CreateDefendingGroup(int32 unused) {
     if (!node.IsValid())
         return false;
 
-    auto nodePos = ThePaths.GetPathNode(node)->GetNodeCoors();
+    auto nodePos = ThePaths.GetPathNode(node)->GetPosition();
     auto playerPos = FindPlayerCoors();
     if (DistanceBetweenPoints2D(playerPos, nodePos) <= 40.0f)
         return false;
@@ -285,7 +289,7 @@ bool CGangWars::CreateDefendingGroup(int32 unused) {
 
     for (auto i = 0; i < 3; i++) { // todo: magic number
         auto carNode = ThePaths.FindNthNodeClosestToCoors(PointOfAttack, 0, 100.0f, false, false, i, false, true, nullptr);
-        auto carNodePos = ThePaths.GetPathNode(carNode)->GetNodeCoors();
+        auto carNodePos = ThePaths.GetPathNode(carNode)->GetPosition();
 
         if (DistanceBetweenPoints2D(carNodePos, playerPos) <= 25.0f)
             continue;

@@ -1,18 +1,20 @@
-add_subdirectory(ogg EXCLUDE_FROM_ALL)
-add_library(Ogg::ogg ALIAS ogg)
-set(BUILD_SHARED_LIBS 1)
-set(INSTALL_DOCS 0)
-set(INSTALL_PKG_CONFIG_MODULE 0)
-set(INSTALL_CMAKE_PACKAGE_MODULE 0)
-set(OGG_LIBRARY ogg)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
+set(BUILD_SHARED_LIBS ON)
+set(INSTALL_DOCS OFF)
+set(INSTALL_PKG_CONFIG_MODULE OFF)
+set(INSTALL_CMAKE_PACKAGE_MODULE OFF)
 set(OGG_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs/ogg/include")
-set(OGG_FOUND 1)
+set(OGG_LIBRARY ogg)
+add_subdirectory(ogg EXCLUDE_FROM_ALL)
 
 add_subdirectory(vorbis EXCLUDE_FROM_ALL)
 
-option(SPDLOG_ENABLE_PCH "" ON)
-option(SPDLOG_USE_STD_FORMAT "" ON)
+set(SPDLOG_ENABLE_PCH ON)
+set(SPDLOG_USE_STD_FORMAT ON)
 add_subdirectory(spdlog EXCLUDE_FROM_ALL)
+
+add_subdirectory(json EXCLUDE_FROM_ALL)
 
 #############################################################################################
 ############# create the imgui project
@@ -46,7 +48,7 @@ target_compile_definitions(imgui PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 # set options before add_subdirectory
 # available options: TRACY_ENABLE , TRACY_ON_DEMAND , TRACY_NO_BROADCAST , TRACY_NO_CODE_TRANSFER , ...
-option(TRACY_ENABLE "" ON)
-option(TRACY_ON_DEMAND "" ON)
-option(TRACY_CALLSTACK "" ON)
+set(TRACY_ENABLE ON)
+set(TRACY_ON_DEMAND ON)
+set(TRACY_CALLSTACK ON)
 add_subdirectory(tracy) # target: TracyClient or alias Tracy :: TracyClient

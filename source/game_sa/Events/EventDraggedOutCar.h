@@ -30,6 +30,5 @@ private:
     static void InjectHooks();
 
     CEventDraggedOutCar* Constructor(CVehicle* vehicle, CPed* carjacker, bool IsDriverSeat);
-    CEventEditableResponse* CloneEditable_Reversed();
 };
 VALIDATE_SIZE(CEventDraggedOutCar, 0x20);

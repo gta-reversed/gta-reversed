@@ -6,14 +6,14 @@ uint32 &CTaskSimpleFall::m_nMaxPlayerDownTime = *reinterpret_cast<uint32*>(0x8D2
 
 void CTaskSimpleFall::InjectHooks()
 {
-    RH_ScopedClass(CTaskSimpleFall);
+    RH_ScopedVirtualClass(CTaskSimpleFall, 0x870430, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x6782C0);
     RH_ScopedInstall(StartAnim, 0x67CA40);
     RH_ScopedInstall(ProcessFall, 0x6784C0);
     RH_ScopedInstall(FinishFallAnimCB, 0x6786B0);
-    RH_ScopedVirtualInstall(ProcessPed, 0x67FAF0);
-    RH_ScopedVirtualInstall(MakeAbortable, 0x678370);
+    RH_ScopedVMTInstall(ProcessPed, 0x67FAF0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x678370);
 }
 
 CTaskSimpleFall* CTaskSimpleFall::Constructor(AnimationId nAnimId, AssocGroupId nAnimGroup, int32 nDownTime)
@@ -43,17 +43,6 @@ CTaskSimpleFall::~CTaskSimpleFall()
 
 // 0x67FAF0
 bool CTaskSimpleFall::ProcessPed(CPed* ped)
-{
-    return ProcessPed_Reversed(ped);
-}
-
-// 0x678370
-bool CTaskSimpleFall::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event)
-{
-    return MakeAbortable_Reversed(ped, priority, event);
-}
-
-bool CTaskSimpleFall::ProcessPed_Reversed(CPed* ped)
 {
     ped->m_pedIK.bSlopePitch = true;
     ped->bFallenDown = true;
@@ -92,7 +81,8 @@ bool CTaskSimpleFall::ProcessPed_Reversed(CPed* ped)
     return false;
 }
 
-bool CTaskSimpleFall::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event)
+// 0x678370
+bool CTaskSimpleFall::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event)
 {
     auto pFallAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_FALL_FRONT);
     if (!pFallAnim)
@@ -103,10 +93,10 @@ bool CTaskSimpleFall::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority,
         auto pThisAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, m_nAnimId);
 
         if (pThisAnim)
-            pThisAnim->m_fBlendDelta = -1000.0F;
+            pThisAnim->m_BlendDelta = -1000.0F;
 
         if (pFallAnim)
-            pFallAnim->m_fBlendDelta = -1000.0F;
+            pFallAnim->m_BlendDelta = -1000.0F;
 
         m_bIsFinished = true;
         m_nCurrentDownTime = 0;
@@ -129,11 +119,11 @@ bool CTaskSimpleFall::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority,
                     fBlendDelta = -8.0F;
 
                 if (pFallAnim)
-                    pFallAnim->m_fBlendDelta = fBlendDelta;
+                    pFallAnim->m_BlendDelta = fBlendDelta;
 
                 if (m_pAnim)
                 {
-                    m_pAnim->m_fBlendDelta = fBlendDelta;
+                    m_pAnim->m_BlendDelta = fBlendDelta;
                     m_pAnim->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
                 }
 
@@ -171,15 +161,15 @@ bool CTaskSimpleFall::StartAnim(CPed* ped)
         {
             m_pAnim->Start(0.0F);
             m_pAnim->SetBlend(0.0F, 8.0F);
-            m_pAnim->m_nFlags |= ANIMATION_FREEZE_LAST_FRAME;
-            m_pAnim->m_nFlags &= ~ANIMATION_UNLOCK_LAST_FRAME;
+            m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
+            m_pAnim->m_Flags &= ~ANIMATION_IS_FINISH_AUTO_REMOVE;
             m_pAnim->SetFinishCallback(CTaskSimpleFall::FinishFallAnimCB, this);
         }
         else
         {
             m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_nAnimGroup, m_nAnimId, 8.0F);
-            m_pAnim->m_nFlags |= ANIMATION_FREEZE_LAST_FRAME;
-            m_pAnim->m_nFlags &= ~ANIMATION_UNLOCK_LAST_FRAME;
+            m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
+            m_pAnim->m_Flags &= ~ANIMATION_IS_FINISH_AUTO_REMOVE;
             m_pAnim->SetFinishCallback(CTaskSimpleFall::FinishFallAnimCB, this);
             if (m_nAnimId == ANIM_ID_BIKE_FALLR)
                 m_pAnim->SetCurrentTime(0.4F);
@@ -198,9 +188,9 @@ void CTaskSimpleFall::ProcessFall(CPed* ped)
         )
     {
         CAnimBlendAssociation* anim;
-        auto pFirstAnim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_PARTIAL);
+        auto pFirstAnim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_PARTIAL);
 
-        if (pFirstAnim && (pFirstAnim->m_nAnimId == ANIM_ID_FALL_BACK || pFirstAnim->m_nAnimId == ANIM_ID_FALL_FRONT))
+        if (pFirstAnim && (pFirstAnim->m_AnimId == ANIM_ID_FALL_BACK || pFirstAnim->m_AnimId == ANIM_ID_FALL_FRONT))
             anim = pFirstAnim;
         else
             anim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_FALL_BACK);
@@ -210,10 +200,10 @@ void CTaskSimpleFall::ProcessFall(CPed* ped)
 
         if (anim)
         {
-            if (anim->m_fBlendAmount > 0.3F
-                && anim->m_fBlendDelta >= 0.0F
-                && anim->m_fCurrentTime > 0.667F
-                && anim->m_fCurrentTime - anim->m_fTimeStep <= 0.667F
+            if (anim->m_BlendAmount > 0.3F
+                && anim->m_BlendDelta >= 0.0F
+                && anim->m_CurrentTime > 0.667F
+                && anim->m_CurrentTime - anim->m_TimeStep <= 0.667F
                 )
             {
                 anim->Start(0.0F);
@@ -221,8 +211,8 @@ void CTaskSimpleFall::ProcessFall(CPed* ped)
         }
         else
         {
-            if (pFirstAnim && pFirstAnim->m_fCurrentTime > pFirstAnim->m_pHierarchy->m_fTotalTime * 0.8F)
-                CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, pFirstAnim->m_nFlags & ANIMATION_800 ? ANIM_ID_FALL_FRONT : ANIM_ID_FALL_BACK, 8.0F);
+            if (pFirstAnim && pFirstAnim->m_CurrentTime > pFirstAnim->m_BlendHier->m_fTotalTime * 0.8F)
+                CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, pFirstAnim->m_Flags & ANIMATION_800 ? ANIM_ID_FALL_FRONT : ANIM_ID_FALL_BACK, 8.0F);
         }
     }
     else if ((ped->bKnockedUpIntoAir || ped->bKnockedOffBike)
@@ -236,12 +226,12 @@ void CTaskSimpleFall::ProcessFall(CPed* ped)
         if (anim)
         {
             ped->bKnockedUpIntoAir = false;
-            anim->m_fSpeed = 3.0F;
+            anim->m_Speed = 3.0F;
         }
         else
         {
-            auto firstAnim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_PARTIAL);
-            if (firstAnim && !(firstAnim->m_nFlags & ANIMATION_STARTED))
+            auto firstAnim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_PARTIAL);
+            if (firstAnim && !(firstAnim->m_Flags & ANIMATION_IS_PLAYING))
                 ped->bKnockedUpIntoAir = false;
         }
     }

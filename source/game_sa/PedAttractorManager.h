@@ -42,7 +42,7 @@ public:
     CPed* GetPedUsingEffect(const C2dEffect* effect, const CEntity* entity = nullptr);
 
     void* GetRelevantAttractor(const CPed* ped, const C2dEffect* effect, const CEntity* entity, const SArray<CPedAttractor*>& array);
-    void* GetRelevantAttractor(const CPed* ped, const C2dEffect* effect, const CEntity* entity);
+    void* GetRelevantAttractor(const CPed* ped, const C2dEffectBase* effect, const CEntity* entity);
 
     static void ComputeEffectPos(const C2dEffect* effect, const CMatrix& mat, CVector& vec);
     static void ComputeEffectUseDir(const C2dEffect* effect, const CMatrix& mat, CVector& vec);
@@ -50,7 +50,7 @@ public:
     static void ComputeEffectForwardDir(const C2dEffect* effect, const CMatrix& mat, CVector& vec);
 
     void RegisterPed(CPed* ped, C2dEffect*, CEntity*, int32, SArray<CPedAttractor*>& array);
-    void RegisterPedWithAttractor(CPed* ped, C2dEffect*, CEntity*, int32);
+    CPedAttractor* RegisterPedWithAttractor(CPed* ped, C2dEffectBase* fx, CEntity* entity, eMoveState ms);
 
     static bool IsApproachable(C2dEffect* effect, const CMatrix& mat, int32 unused, CPed* ped);
 };

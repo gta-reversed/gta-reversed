@@ -73,10 +73,10 @@ void CFallingGlassPane::Render() {
             { 0.6f, 0.6f },
         };
         for (auto i = 0u; i < 3u; i++) {
-            auto& vertex = aTempBufferVertices[CGlass::H1iLightPolyVerticesIdx + i];
+            auto& vertex = TempBufferVertices.m_3d[CGlass::H1iLightPolyVerticesIdx + i];
 
             const auto pos2DOS = CGlass::PanePolyPositions[m_nPieceIndex][i] - CGlass::PanePolyCenterPositions[m_nPieceIndex];
-            vertices[i] = MultiplyMatrixWithVector(m_Matrix, { pos2DOS.x, 0.f, pos2DOS.y });
+            vertices[i] = m_Matrix.TransformPoint({ pos2DOS.x, 0.f, pos2DOS.y });
             RxObjSpace3DVertexSetPos(&vertex, &vertices[i]);
 
             RxObjSpace3DVertexSetU(&vertex, uv[i].u);
@@ -98,14 +98,14 @@ void CFallingGlassPane::Render() {
     if (m_bRenderShatter) {
         const auto color = CalculateShatterPolyColor();
         for (auto i = 0u; i < 3u; i++) {
-            auto& vertex = aTempBufferVertices[CGlass::ShatteredVerticesBaseIdx + i];
+            auto vertex = &TempBufferVertices.m_3d[CGlass::ShatteredVerticesBaseIdx + i];
 
-            RxObjSpace3DVertexSetPos(&vertex, &vertices[i]);
-            RxObjSpace3DVertexSetPreLitColor(&vertex, &color);
+            RxObjSpace3DVertexSetPos(vertex, &vertices[i]);
+            RxObjSpace3DVertexSetPreLitColor(vertex, &color);
 
             const auto uv = CGlass::PanePolyPositions[m_nPieceIndex][i] * m_fSize * 4.f;
-            RxObjSpace3DVertexSetU(&vertex, uv.x);
-            RxObjSpace3DVertexSetV(&vertex, uv.y);
+            RxObjSpace3DVertexSetU(vertex, uv.x);
+            RxObjSpace3DVertexSetV(vertex, uv.y);
         }
 
         uint32 i = CGlass::ShatteredVerticesBaseIdx;

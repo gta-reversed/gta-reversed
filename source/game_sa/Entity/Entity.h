@@ -11,6 +11,7 @@
 #include "Rect.h"
 #include "ColModel.h"
 #include "Plugins\TwoDEffectPlugin\2dEffect.h"
+#include <extensions/EntityRef.hpp>
 
 #include "eEntityType.h"
 #include "eEntityStatus.h"
@@ -36,6 +37,9 @@ class CPhysical;
 class CBaseModelInfo;
 
 class NOTSA_EXPORT_VTABLE CEntity : public CPlaceable {
+public:
+    using Ref = notsa::EntityRef<CEntity>;
+
 public:
     union {
         struct RwObject* m_pRwObject;
@@ -118,7 +122,7 @@ public:
     virtual void SetModelIndexNoCreate(uint32 index);               // VTab: 6
     virtual void CreateRwObject();                                  // VTab: 7
     virtual void DeleteRwObject();                                  // VTab: 8
-    virtual CRect* GetBoundRect(CRect* pRect);                      // VTab: 9 - TODO: Most likely RVO'd. Should probably return a `CRect`, and take no args.
+    virtual CRect GetBoundRect();                                   // VTab: 9
     virtual void ProcessControl();                                  // VTab: 10
     virtual void ProcessCollision();                                // VTab: 11
     virtual void ProcessShift();                                    // VTab: 12
@@ -174,6 +178,11 @@ public:
     bool IsVisible();
     float GetDistanceFromCentreOfMassToBaseOfModel();
     void CleanUpOldReference(CEntity** entity); // See helper SafeCleanUpOldReference
+
+    /*!
+     * @addr 0x571A40
+     * @brief Clear (set to null) references to `this`
+    */
     void ResolveReferences();
     void PruneReferences();
     void RegisterReference(CEntity** entity);
@@ -285,6 +294,7 @@ public:
     auto AsTrain()            { return reinterpret_cast<CTrain*>(this); }
     auto AsTrain()      const { return reinterpret_cast<const CTrain*>(this); }
     auto AsPed()              { return reinterpret_cast<CPed*>(this); }
+    auto AsPed()        const { return reinterpret_cast<const CPed*>(this); }
     auto AsObject()           { return reinterpret_cast<CObject*>(this); }
     auto AsBuilding()         { return reinterpret_cast<CBuilding*>(this); }
     auto AsDummy()            { return reinterpret_cast<CDummy*>(this); }
@@ -297,37 +307,9 @@ public:
 
     bool IsScanCodeCurrent() const;
     void SetCurrentScanCode();
-
-    auto GetBoundRect() {
-        CRect r{};
-        GetBoundRect(&r);
-        return r;
-    }
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
-
-    void Add_Reversed();
-    void Add_Reversed(const CRect& rect);
-    void Remove_Reversed();
-    void SetIsStatic_Reversed(bool isStatic);
-    void SetModelIndex_Reversed(uint32 index);
-    void SetModelIndexNoCreate_Reversed(uint32 index);
-    void CreateRwObject_Reversed();
-    void DeleteRwObject_Reversed();
-    CRect* GetBoundRect_Reversed(CRect* pRect);
-    void ProcessControl_Reversed();
-    void ProcessCollision_Reversed();
-    void ProcessShift_Reversed();
-    bool TestCollision_Reversed(bool bApplySpeed);
-    void Teleport_Reversed(CVector destination, bool resetRotation);
-    void SpecialEntityPreCollisionStuff_Reversed(CPhysical* colPhysical, bool bIgnoreStuckCheck, bool& bCollisionDisabled, bool& bCollidedEntityCollisionIgnored, bool& bCollidedEntityUnableToMove, bool& bThisOrCollidedEntityStuck);
-    uint8 SpecialEntityCalcCollisionSteps_Reversed(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2);
-    void PreRender_Reversed();
-    void Render_Reversed();
-    bool SetupLighting_Reversed();
-    void RemoveLighting_Reversed(bool bRemove);
-    void FlagToDestroyWhenNextProcessed_Reversed();
 };
 
 VALIDATE_SIZE(CEntity, 0x38);

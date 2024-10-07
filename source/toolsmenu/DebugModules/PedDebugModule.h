@@ -2,18 +2,20 @@
 
 #include "DebugModule.h"
 
-class PedDebugModule : public DebugModule {
+class PedDebugModule final : public DebugModule {
 public:
     void RenderWindow() override final;
     void RenderMenuEntry() override final;
+
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(PedDebugModule, m_CollapseToggleDist, m_DrawDist, m_IsVisible, m_AutoCollapseEnabled, m_IsOpen);
 
 private:
     void ProcessPed(struct PedInfo&);
 
 private:
-    float m_collapseToggleDist{ 20.f };
-    float m_drawDist{ 200.f };
-    bool  m_visible{};
-    bool  m_autoCollapse{};
+    float m_CollapseToggleDist{ 20.f };
+    float m_DrawDist{ 200.f };
+    bool  m_IsVisible{};
+    bool  m_AutoCollapseEnabled{};
     bool  m_IsOpen{};
 };

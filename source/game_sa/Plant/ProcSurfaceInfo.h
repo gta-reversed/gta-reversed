@@ -2,7 +2,7 @@
 
 #include "Vector.h"
 
-class ProcObjectMan_c;
+class ProcObjectListItem;
 class CPlantLocTri;
 
 class ProcSurfaceInfo_c {
@@ -25,7 +25,7 @@ public:
     float  m_fOffsetMaxZ;
     bool   m_Align;
     float  m_fUseGrid;
-    TList_c<ProcObjectMan_c> m_Objects;
+    TList_c<ProcObjectListItem> m_Objects;
 
 public:
     static void InjectHooks();

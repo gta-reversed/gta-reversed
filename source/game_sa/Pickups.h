@@ -19,7 +19,7 @@ constexpr uint32 MAX_PICKUP_MESSAGES = 16;
 constexpr uint32 MAX_NUM_PICKUPS = 620;
 
 // Dump @ 0x8A5F50
-constexpr uint16 AmmoForWeapon_OnStreet[NUM_WEAPONS]{ 0u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 8u, 8u, 8u, 8u, 4u, 4u, 30u, 10u, 10u, 15u, 10u, 10u, 60u, 60u, 80u, 80u, 60u, 20u, 10u, 4u, 3u, 100u, 500u, 5u, 1u, 500u, 500u, 36u, 0u, 0u, 1u, 0u};
+constexpr uint16 AmmoForWeapon_OnStreet[NUM_WEAPONS]{ 0u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 8u, 8u, 8u, 8u, 4u, 4u, 30u, 10u, 10u, 15u, 10u, 10u, 60u, 60u, 80u, 80u, 60u, 20u, 10u, 4u, 3u, 100u, 500u, 5u, 1u, 500u, 500u, 36u, 0u, 0u, 1u };
 
 // NOTSA
 union tPickupReference {
@@ -57,7 +57,7 @@ public:
     static void AddToCollectedPickupsArray(int32 pickupIndex);
     static void CreatePickupCoorsCloseToCoors(float inX, float inY, float inZ, float& outX, float& outY, float& outZ);
     static void CreateSomeMoney(CVector coors, int32 amount);
-    static void DetonateMinesHitByGunShot(CVector* shotOrigin, CVector* shotTarget);
+    static void DetonateMinesHitByGunShot(const CVector& shotOrigin, const CVector& shotTarget);
 
     static void DoCollectableEffects(CEntity* entity);
     static void DoMineEffects(CEntity* entity);

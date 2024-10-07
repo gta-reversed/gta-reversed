@@ -49,9 +49,6 @@ public:
     CTaskSimpleDie* Constructor(CAnimBlendHierarchy* animHierarchy, eAnimationFlags animFlags, float blendDelta, float animSpeed);
     CTaskSimpleDie* Destructor();
 
-    CTask*     Clone_Reversed() const;
-    bool      MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool      ProcessPed_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskSimpleDie, 0x28);
 extern void CTaskSimpleDie__InjectHooks();

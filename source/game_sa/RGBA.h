@@ -65,4 +65,13 @@ public:
 
     operator RwRGBAReal() { return { (RwReal)r / 255.f, (RwReal)g / 255.f, (RwReal)b / 255.f, (RwReal)a / 255.f }; }
     operator RwRGBA()     { return { r, g, b, a }; }
+
+    // NOTSA
+    uint8 operator[](size_t i) const {
+        return (&r)[i];
+    }
+
+    uint8& operator[](size_t i) {
+        return (&r)[i];
+    }
 };

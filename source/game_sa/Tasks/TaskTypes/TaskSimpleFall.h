@@ -3,7 +3,7 @@
 #include "TaskSimple.h"
 class CAnimBlendAssociation;
 
-class CTaskSimpleFall : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleFall : public CTaskSimple {
 public:
     bool                   m_bIsFinished;
     AnimationId            m_nAnimId;
@@ -25,8 +25,6 @@ public:
     bool ProcessPed(CPed* ped) override;
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
 
-    bool ProcessPed_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 
     bool StartAnim(CPed* ped);
     void ProcessFall(CPed* ped);

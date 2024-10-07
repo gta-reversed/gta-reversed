@@ -23,39 +23,43 @@ void CTaskComplexSmartFleeEntity::InjectHooks() {
 
 // 0x65C430
 CTaskComplexSmartFleeEntity::CTaskComplexSmartFleeEntity(
-    CEntity* fleeEntity,
+    CEntity* fleeFrom,
     bool scream,
     float safeDistance,
     int32 fleeTime,
     int32 posCheckPeriod,
-    float posChangeTolerance
+    float posChangeTolerance,
+
+    // VVV NOTSA ARGS VVV //
+    eMoveState moveState
 )  :
 
-    m_entity{fleeEntity},
+    fleeFrom{fleeFrom},
     m_pedScream{scream},
     m_safeDistance{safeDistance},
     m_time{fleeTime},
-    m_posCheckPeriod{ posCheckPeriod },
-    m_posChangeTolerance{ posChangeTolerance }
+    m_posCheckPeriod{posCheckPeriod},
+    m_posChangeTolerance{posChangeTolerance},
+    m_moveState{moveState}
 {
-    CEntity::SafeRegisterRef(m_entity);
+    CEntity::SafeRegisterRef(fleeFrom);
 }
 
 CTaskComplexSmartFleeEntity::CTaskComplexSmartFleeEntity(const CTaskComplexSmartFleeEntity& o) :
-    CTaskComplexSmartFleeEntity{ o.m_entity, o.m_pedScream, o.m_safeDistance, o.m_time, o.m_posCheckPeriod, o.m_posChangeTolerance }
+    CTaskComplexSmartFleeEntity{ o.fleeFrom, o.m_pedScream, o.m_safeDistance, o.m_time, o.m_posCheckPeriod, o.m_posChangeTolerance }
 {
 }
 
 // 0x65C4D0
 CTaskComplexSmartFleeEntity::~CTaskComplexSmartFleeEntity() {
-    CEntity::SafeCleanUpRef(m_entity);
+    CEntity::SafeCleanUpRef(fleeFrom);
 }
 
 // 0x65C680
 CTask* CTaskComplexSmartFleeEntity::CreateNextSubTask(CPed* ped) {
      return CreateSubTask([this] {
          switch (m_pSubTask->GetTaskType()) {
-         /* Dead code
+         /* Dead code (A subtask of this type is never created)
          case TASK_SIMPLE_STAND_STILL:
              return m_entity
                     ? TASK_COMPLEX_SMART_FLEE_POINT
@@ -71,7 +75,7 @@ CTask* CTaskComplexSmartFleeEntity::CreateNextSubTask(CPed* ped) {
 
 // 0x65C6F0
 CTask* CTaskComplexSmartFleeEntity::CreateFirstSubTask(CPed* ped) {
-    if (!m_entity) {
+    if (!fleeFrom) {
         return nullptr;
     }
 
@@ -81,9 +85,9 @@ CTask* CTaskComplexSmartFleeEntity::CreateFirstSubTask(CPed* ped) {
         g_ikChainMan.LookAt(
             "TaskSmartFleeEntity",
             ped,
-            m_entity,
+            fleeFrom,
             3000,
-            m_entity->m_nStatus == STATUS_PHYSICS
+            fleeFrom->m_nStatus == STATUS_PHYSICS
                 ? BONE_HEAD
                 : BONE_UNKNOWN,
             nullptr,
@@ -100,15 +104,15 @@ CTask* CTaskComplexSmartFleeEntity::CreateFirstSubTask(CPed* ped) {
 
 // 0x65C780
 CTask* CTaskComplexSmartFleeEntity::ControlSubTask(CPed* ped) {
-    if (m_entity) {
+    if (fleeFrom) {
         if (const auto fleePointTask = CTask::DynCast<CTaskComplexSmartFleePoint>(m_pSubTask)) {
             fleePointTask->m_moveState = m_moveState;
 
-            // Check if position update timer is out of time, if so, update position (if outside tolerance)
+            // Check if position update timer is out of time, if so, update position (if still outside tolerance)
             if (m_posCheckTimer.IsOutOfTime()) {
                 m_posCheckTimer.Start(m_posCheckPeriod);
 
-                const auto& currPos = m_entity->GetPosition();
+                const auto& currPos = fleeFrom->GetPosition();
                 if ((currPos - m_pos).SquaredMagnitude() >= sq(m_posChangeTolerance)) {
                     m_pos = currPos;
                     fleePointTask->SetFleePosition(m_pos, m_safeDistance, m_pedScream);
@@ -133,13 +137,13 @@ CTask* CTaskComplexSmartFleeEntity::ControlSubTask(CPed* ped) {
 // 0x65C530
 CTask* CTaskComplexSmartFleeEntity::CreateSubTask(eTaskType taskType) {
     switch (taskType) {
-    /* Dead code
+    /* Dead code - The function is never called with this type
     case TASK_SIMPLE_STAND_STILL:
         return new CTaskSimpleStandStill{ CGeneral::GetRandomNumberInRange(0, 50) };
     */
     case TASK_COMPLEX_SMART_FLEE_POINT: {
         m_posCheckTimer.Start(m_posCheckPeriod);
-        m_pos = m_entity->GetPosition();
+        m_pos = fleeFrom->GetPosition();
         return new CTaskComplexSmartFleePoint{
             m_pos,
             m_pedScream,

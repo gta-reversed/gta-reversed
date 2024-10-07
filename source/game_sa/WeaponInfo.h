@@ -14,7 +14,6 @@
 #include "eWeaponSkill.h"
 #include "eWeaponFire.h"
 
-#define MAX_WEAPON_INFOS 80
 #define MAX_WEAPON_NAMES 50
 
 #define WEAPONINFO_NUM_WEAPONS_WITH_SKILLS 11
@@ -33,6 +32,18 @@ struct CGunAimingOffset {
 static inline CGunAimingOffset(&g_GunAimingOffsets)[20] = *(CGunAimingOffset(*)[20])0xC8A8A8;
 
 class CWeaponInfo {
+    constexpr static auto FIRST_WEAPON_WITH_SKILLS = WEAPON_PISTOL;
+    constexpr static auto LAST_WEAPON_WITH_SKILLS  = WEAPON_TEC9;
+
+    constexpr static auto NUM_WEAPONS_WITH_SKILL = (LAST_WEAPON_WITH_SKILLS - FIRST_WEAPON_WITH_SKILLS) + 1; //< Weapons with multiple skills levels (other than `eWeaponSkill::STD`)
+    static_assert(NUM_WEAPONS_WITH_SKILL == 11);
+
+    constexpr static auto NUM_WEAPON_INFOS = NUM_WEAPONS + NUM_WEAPONS_WITH_SKILL * (NUM_WEAPON_SKILLS - 1); // `-1` to account for `std` that all weapons have
+    static_assert(NUM_WEAPON_INFOS == 80);
+
+    //! Memory Layout(Assuming vanilla settings): [STD 0 - 47][POOR 47 - 57][PRO 58 - 68][COP 69 - 79]
+    static inline CWeaponInfo(&aWeaponInfo)[NUM_WEAPON_INFOS] = *(CWeaponInfo(*)[NUM_WEAPON_INFOS])0xC8AAB8;
+    
 public:
     eWeaponFire m_nWeaponFire;
     float       m_fTargetRange; // max targeting range
@@ -111,8 +122,17 @@ public:
     auto GetCrouchReloadAnimationID() const -> AnimationId;
     auto GetTargetHeadRange() const -> float;
     auto GetWeaponReloadTime() const -> uint32;
+    auto GetAnimLoopStart(bool isSet2 = false) const { return isSet2 ? m_fAnimLoop2Start : m_fAnimLoopStart; }
+    auto GetAnimLoopEnd(bool isSet2 = false) const { return isSet2 ? m_fAnimLoop2End : m_fAnimLoopEnd; }
 
-    static bool WeaponHasSkillStats(eWeaponType type);
+    auto GetFireType() const { return m_nWeaponFire; }
+
+    static bool TypeHasSkillStats(eWeaponType type);
+
+    /*!
+     * @return Whenever the given type is an actual weapon
+    */
+    static bool TypeIsWeapon(eWeaponType type);
     static uint32 GetWeaponInfoIndex(eWeaponType weaponType, eWeaponSkill skill);
     // Return both model IDs as an array
     [[nodiscard]] auto GetModels() const { return std::to_array({ m_nModelId1, m_nModelId2 }); }
@@ -128,6 +148,3 @@ public:
     const auto& GetAimingOffset() const { return g_GunAimingOffsets[m_nAimOffsetIndex]; }
 };
 VALIDATE_SIZE(CWeaponInfo, 0x70);
-
-// list of weapon infos. Count: MAX_WEAPON_INFOS (80)
-static inline CWeaponInfo(&aWeaponInfo)[MAX_WEAPON_INFOS] = *(CWeaponInfo(*)[MAX_WEAPON_INFOS])0xC8AAB8;

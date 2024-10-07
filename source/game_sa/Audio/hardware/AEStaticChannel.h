@@ -39,12 +39,5 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    void   Service_Reversed();
-    bool   IsSoundPlaying_Reversed();
-    int16  GetPlayTime_Reversed();
-    uint16 GetLength_Reversed();
-    void   Play_Reversed(int16 a, int8 b, float c);
-    void   SynchPlayback_Reversed();
-    void   Stop_Reversed();
 };
 VALIDATE_SIZE(CAEStaticChannel, 0x90);

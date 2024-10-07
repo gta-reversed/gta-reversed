@@ -21,7 +21,7 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
     auto vecPos = CVector(m_wMidX, m_wMidY, m_wMidZ) / 4.0F;
     float temp1, temp2;
 
-    if (!CalcScreenCoors(vecPos, &COcclusion::gCenterOnScreen, &temp1, &temp2) || COcclusion::gCenterOnScreen.z < -150.0F || COcclusion::gCenterOnScreen.z > 300.0F)
+    if (!CalcScreenCoors(vecPos, COcclusion::gCenterOnScreen, temp1, temp2) || COcclusion::gCenterOnScreen.z < -150.0F || COcclusion::gCenterOnScreen.z > 300.0F)
         return false;
 
     auto fMagnitude = (CVector(m_wWidth, m_wLength, m_wHeight)  / 4.0F ).Magnitude();
@@ -50,13 +50,13 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
         && fWidth  / 4.0F != 0.0F
         && fHeight / 4.0F != 0.0F) {
         auto vecWidth = CVector(fWidth / 8.0F, 0.0F, 0.0F);
-        auto vecTransWidth = matTransform * vecWidth;
+        auto vecTransWidth = matTransform.TransformPoint(vecWidth);
 
         auto vecLength = CVector(0.0F, fLength / 8.0F, 0.0F);
-        auto vecTransLength = matTransform * vecLength;
+        auto vecTransLength = matTransform.TransformPoint(vecLength);
 
         auto vecHeight = CVector(0.0F, 0.0F, fHeight / 8.0F);
-        auto vecTransHeight = matTransform * vecHeight;
+        auto vecTransHeight = matTransform.TransformPoint(vecHeight);
 
         CVector aVecArr[6]{
             vecTransLength, -vecTransLength,
@@ -86,7 +86,7 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
         COcclusion::gOccluderCoors[7] = vecPos + aVecArr[1] + aVecArr[3] + aVecArr[5];
 
         for (auto i = 0; i < 8; ++i) {
-            COcclusion::gOccluderCoorsValid[i] = CalcScreenCoors(COcclusion::gOccluderCoors[i], &COcclusion::gOccluderCoorsOnScreen[i], &temp1, &temp2);
+            COcclusion::gOccluderCoorsValid[i] = CalcScreenCoors(COcclusion::gOccluderCoors[i], COcclusion::gOccluderCoorsOnScreen[i], temp1, temp2);
         }
 
         // Between two differently facing sides we see an edge, so process those
@@ -126,24 +126,24 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
     CVector vec1, vec2;
     if (fLength / 4.0F == 0.0F) {
         auto vecWidth = CVector(fWidth / 8.0F, 0.0F, 0.0F);
-        vec1 = matTransform * vecWidth;
+        vec1 = matTransform.TransformPoint(vecWidth);
 
         auto vecHeight = CVector(0.0F, 0.0F, fHeight / 8.0F);
-        vec2 = matTransform * vecHeight;
+        vec2 = matTransform.TransformPoint(vecHeight);
     }
     else if (fWidth / 4.0F == 0.0F) {
         auto vecLength = CVector(0.0F, fLength / 8.0F, 0.0F);
-        vec1 = matTransform * vecLength;
+        vec1 = matTransform.TransformPoint(vecLength);
 
         auto vecHeight = CVector(0.0F, 0.0F, fHeight / 8.0F);
-        vec2 = matTransform * vecHeight;
+        vec2 = matTransform.TransformPoint(vecHeight);
     }
     else if (fHeight / 4.0F == 0.0F) {
         auto vecLength = CVector(0.0F, fLength / 8.0F, 0.0F);
-        vec1 = matTransform * vecLength;
+        vec1 = matTransform.TransformPoint(vecLength);
 
         auto vecWidth = CVector(fWidth / 8.0F, 0.0F, 0.0F);
-        vec2 = matTransform * vecWidth;
+        vec2 = matTransform.TransformPoint(vecWidth);
     }
 
     COcclusion::gOccluderCoors[0] = vecPos + vec1 + vec2;
@@ -152,7 +152,7 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
     COcclusion::gOccluderCoors[3] = vecPos + vec1 - vec2;
 
     for (auto i = 0; i < 4; ++i) {
-        COcclusion::gOccluderCoorsValid[i] = CalcScreenCoors(COcclusion::gOccluderCoors[i], &COcclusion::gOccluderCoorsOnScreen[i], &temp1, &temp2);
+        COcclusion::gOccluderCoorsValid[i] = CalcScreenCoors(COcclusion::gOccluderCoors[i], COcclusion::gOccluderCoorsOnScreen[i], temp1, temp2);
     }
 
     if (   !ProcessLineSegment(0, 1, activeOccluder)
@@ -186,15 +186,15 @@ bool COccluder::ProcessLineSegment(int32 iIndFrom, int32 iIndTo, CActiveOccluder
         vecScreenFrom = COcclusion::gOccluderCoorsOnScreen[iIndFrom];
     }
     else {
-        auto fFromDepth = fabs((TheCamera.m_mViewMatrix * COcclusion::gOccluderCoors[iIndFrom]).z - 1.1F);
-        auto fToDepth = fabs((TheCamera.m_mViewMatrix * COcclusion::gOccluderCoors[iIndTo]).z - 1.1F);
+        auto fFromDepth = fabs((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::gOccluderCoors[iIndFrom])).z - 1.1F);
+        auto fToDepth = fabs((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::gOccluderCoors[iIndTo])).z - 1.1F);
 
         auto fProgress = fToDepth / (fFromDepth + fToDepth);
         vecScreenFrom = (1.0F - fProgress) * COcclusion::gOccluderCoors[iIndTo];
         vecScreenTo = vecScreenFrom + fProgress * COcclusion::gOccluderCoors[iIndFrom];
 
         float fTemp1, fTemp2;
-        if (!CalcScreenCoors(vecScreenTo, &vecScreenFrom, &fTemp1, &fTemp2))
+        if (!CalcScreenCoors(vecScreenTo, vecScreenFrom, fTemp1, fTemp2))
             return true;
     }
 
@@ -202,15 +202,15 @@ bool COccluder::ProcessLineSegment(int32 iIndFrom, int32 iIndTo, CActiveOccluder
         vecScreenTo = COcclusion::gOccluderCoorsOnScreen[iIndTo];
     }
     else {
-        auto fFromDepth = fabs((TheCamera.m_mViewMatrix * COcclusion::gOccluderCoors[iIndFrom]).z - 1.1F);
-        auto fToDepth = fabs((TheCamera.m_mViewMatrix * COcclusion::gOccluderCoors[iIndTo]).z - 1.1F);
+        auto fFromDepth = fabs((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::gOccluderCoors[iIndFrom])).z - 1.1F);
+        auto fToDepth = fabs((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::gOccluderCoors[iIndTo])).z - 1.1F);
 
         auto fProgress = fToDepth / (fFromDepth + fToDepth);
         auto vecFrom = (1.0F - fProgress) * COcclusion::gOccluderCoors[iIndTo];
         auto vecTo = vecFrom + fProgress * COcclusion::gOccluderCoors[iIndFrom];
 
         float fTemp1, fTemp2;
-        if (!CalcScreenCoors(vecTo, &vecScreenTo, &fTemp1, &fTemp2))
+        if (!CalcScreenCoors(vecTo, vecScreenTo, fTemp1, fTemp2))
             return true;
     }
 

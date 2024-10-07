@@ -12,30 +12,44 @@ class CEntity;
 
 class NOTSA_EXPORT_VTABLE CTaskSimpleThrowProjectile : public CTaskSimple {
 public:
-    bool                   m_bIsAborting;
-    bool                   m_bFinished;
-    bool                   m_bStarted;
-    CAnimBlendAssociation* m_pAnim;
-    CEntity*               m_pTarget;
-    CVector                m_vecPosition;
-    uint32                 m_nStartTime;
-
-public:
     static constexpr auto Type = TASK_SIMPLE_THROW_PROJECTILE;
 
+    static void InjectHooks();
+
     CTaskSimpleThrowProjectile(CEntity* target, CVector posn);
+    CTaskSimpleThrowProjectile(const CTaskSimpleThrowProjectile&);
     ~CTaskSimpleThrowProjectile() override;
 
-    eTaskType GetTaskType() const override { return Type; } // 0x61F6F0
-    CTask* Clone() const override { return new CTaskSimpleThrowProjectile(m_pTarget, m_vecPosition); } // 0x623030
-    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
-    bool ProcessPed(CPed* ped) override;
+    eTaskType   GetTaskType() const override { return Type; } // 0x61F6F0
+    CTask*      Clone() const override { return new CTaskSimpleThrowProjectile{ *this }; } // 0x623030
+    bool        MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
+    bool        ProcessPed(CPed* ped) override;
 
-    bool ControlThrow(bool bUpdateStartTime, CEntity* entity, CVector* posn);
-    void FinishAnimThrowProjectileCB(CAnimBlendAssociation* anim, void* data);
-    void StartAnim(CPed* ped);
+    bool        ControlThrow(bool bButtonReleased, CEntity* entity, const CVector* pos);
 
-    static void InjectHooks();
-    CTaskSimpleThrowProjectile* Constructor(CEntity* target, CVector posn);
+    static void FinishAnimThrowProjectileCB(CAnimBlendAssociation* anim, void* data);
+    void        StartAnim(CPed* ped);
+
+public:
+    bool                   m_bIsFinished{};
+    bool                   m_bStartThrowFinished{};
+    bool                   m_bButtonReleased{};
+    CAnimBlendAssociation* m_Anim{};
+    CEntity*               m_TargetEntity{};
+    CVector                m_TargetPos{};
+    uint32                 m_ButtonCounter{};
+
+private:
+    // 0x61F660
+    CTaskSimpleThrowProjectile* Constructor(CEntity * pEntity, CVector firingPoint) {
+        this->CTaskSimpleThrowProjectile::CTaskSimpleThrowProjectile(pEntity, firingPoint);
+        return this;
+    }
+
+    // 0x61F700
+    CTaskSimpleThrowProjectile* Destructor() {
+        this->CTaskSimpleThrowProjectile::~CTaskSimpleThrowProjectile();
+        return this;
+    }
 };
 VALIDATE_SIZE(CTaskSimpleThrowProjectile, 0x24);

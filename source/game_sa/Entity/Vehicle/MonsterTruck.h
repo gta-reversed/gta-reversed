@@ -67,15 +67,6 @@ private:
     CMonsterTruck* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) { this->CMonsterTruck::CMonsterTruck(modelIndex, createdBy); return this; };
     CMonsterTruck* Destructor() { this->CMonsterTruck::~CMonsterTruck(); return this; };
 
-    int32 ProcessEntityCollision_Reversed(CEntity* entity, CColPoint* colPoint) { return CMonsterTruck::ProcessEntityCollision(entity, colPoint); }
-    void ProcessSuspension_Reversed() { CMonsterTruck::ProcessSuspension(); }
-    void ProcessControlCollisionCheck_Reversed(bool applySpeed) { CMonsterTruck::ProcessControlCollisionCheck(applySpeed); }
-    void ProcessControl_Reversed() { CMonsterTruck::ProcessControl(); }
-    void SetupSuspensionLines_Reversed() { CMonsterTruck::SetupSuspensionLines(); }
-    void PreRender_Reversed() { CMonsterTruck::PreRender(); }
-    bool BurstTyre_Reversed(uint8 tyreComponentId, bool bPhysicalEffect) { return CMonsterTruck::BurstTyre(tyreComponentId, bPhysicalEffect); }
-    bool SetUpWheelColModel_Reversed(CColModel* colModel) { return CMonsterTruck::SetUpWheelColModel(colModel); }
-    void ResetSuspension_Reversed() { CMonsterTruck::ResetSuspension(); }
 };
 
 VALIDATE_SIZE(CMonsterTruck, 0x99C);

@@ -2,7 +2,7 @@
 
 #include "TaskSimple.h"
 
-class CTaskSimpleDrownInCar : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleDrownInCar : public CTaskSimple {
 public:
     static constexpr auto Type = TASK_SIMPLE_DROWN_IN_CAR;
 
@@ -18,5 +18,4 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    bool ProcessPed_Reversed(CPed* ped);
 };

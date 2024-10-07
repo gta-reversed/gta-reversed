@@ -35,8 +35,6 @@ private:
     CTaskSimpleRunAnim* Constructor(AssocGroupId animGroup, AnimationId animId, float fBlendDelta, bool bHoldLastFrame);
     CTaskSimpleRunAnim* Constructor2(AssocGroupId animGroup, AnimationId animId, float fBlendDelta, int32 nTaskType, const char* taskName _IGNORED_, bool bHoldLastFrame);
 
-    CTask*  Clone_Reversed() const;
-    bool ProcessPed_Reversed(CPed* ped);
 };
 
 VALIDATE_SIZE(CTaskSimpleRunAnim, 0x20);

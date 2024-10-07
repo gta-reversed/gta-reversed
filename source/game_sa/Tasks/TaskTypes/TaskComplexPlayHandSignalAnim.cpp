@@ -21,7 +21,7 @@ void CTaskComplexPlayHandSignalAnim::InjectHooks() {
 // 0x61B2B0
 CTaskComplexPlayHandSignalAnim::CTaskComplexPlayHandSignalAnim(AnimationId animationId, float blendFactor) :
     m_animationId{animationId},
-    m_fBlendFactor{blendFactor}
+    m_AnimBlenDelta{blendFactor}
 {
 }
 
@@ -43,15 +43,15 @@ CTaskComplexPlayHandSignalAnim::~CTaskComplexPlayHandSignalAnim() {
 
     // Remove hand model refs
     for (const auto i : { LEFT, RIGHT }) {
-        CModelInfo::GetModelInfo(handModels[i][m_bUseFatHands ? FAT : NONFAT])->RemoveRef();
+        CModelInfo::GetModelInfo(handModels[i][m_DoUseFatHands ? FAT : NONFAT])->RemoveRef();
     }
 
     // Deal with anim
     if (m_bAnimationLoaded) { // Remove anim ref
         CAnimManager::RemoveAnimBlockRef(ms_animBlock);
-    } else if (ms_animBlock != -1 && !CAnimManager::ms_aAnimBlocks[ms_animBlock].usRefs) { 
+    } else if (ms_animBlock != -1 && !CAnimManager::GetAnimBlocks()[ms_animBlock].RefCnt) { 
         if (!rng::all_of(std::array{ LEFT, RIGHT }, [&, this](auto i) { // Unload anim block if not all of the models has refs
-            return CModelInfo::GetModelInfo(handModels[i][m_bUseFatHands ? FAT : NONFAT])->m_nRefCount != 0;
+            return CModelInfo::GetModelInfo(handModels[i][m_DoUseFatHands ? FAT : NONFAT])->m_nRefCount != 0;
         })) {
             CStreaming::RemoveModel(IFPToModelId(ms_animBlock));        
         }

@@ -14,7 +14,7 @@
 class CPhysical;
 class CPed;
 
-class CAEWeaponAudioEntity : public CAEAudioEntity {
+class NOTSA_EXPORT_VTABLE CAEWeaponAudioEntity : public CAEAudioEntity {
 public:
     bool       m_bPlayedMiniGunFireSound;
     bool       field_7D; // see PlayMiniGunFireSounds
@@ -81,6 +81,5 @@ private:
     CAEWeaponAudioEntity* Constructor();
     CAEWeaponAudioEntity* Destructor();
 
-    void UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos);
 };
 VALIDATE_SIZE(CAEWeaponAudioEntity, 0xA0);

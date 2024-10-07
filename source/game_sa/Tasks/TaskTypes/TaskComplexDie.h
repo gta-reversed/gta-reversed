@@ -2,9 +2,9 @@
 
 #include "TaskComplex.h"
 #include "eWeaponType.h"
-class CVehicle;
+#include "eDirection.h"
 
-enum class eFallDir : uint8 { FORWARD, LEFT, BACKWARD, RIGHT };
+class CVehicle;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexDie : public CTaskComplex {
 public:
@@ -22,7 +22,7 @@ public:
             uint32 m_bFallToDeathOverRailing : 1;
         };
     };
-    eFallDir m_nFallToDeathDir;
+    eDirection m_nFallToDeathDir;
 
 public:
     static constexpr auto Type = TASK_COMPLEX_DIE;
@@ -35,7 +35,7 @@ public:
         float fAnimSpeed = 0.f,
         bool bBeingKilledByStealth = false,
         bool bFallingToDeath = false,
-        eFallDir nFallToDeathDir = eFallDir::FORWARD,
+        eDirection nFallToDeathDir = eDirection::FORWARD,
         bool bFallToDeathOverRailing = false
     );
     ~CTaskComplexDie() override = default; // 0x6300C0 0x637910
@@ -56,10 +56,7 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTaskComplexDie* Constructor(eWeaponType nWeaponType, AssocGroupId animGroup, AnimationId animID, float fBlendDelta, float fAnimSpeed, bool bBeingKilledByStealth, bool bFallingToDeath, eFallDir nFallToDeathDir, bool bFallToDeathOverRailing);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
+    CTaskComplexDie* Constructor(eWeaponType nWeaponType, AssocGroupId animGroup, AnimationId animID, float fBlendDelta, float fAnimSpeed, bool bBeingKilledByStealth, bool bFallingToDeath, eDirection nFallToDeathDir, bool bFallToDeathOverRailing);
 };
 
 VALIDATE_SIZE(CTaskComplexDie, 0x28);

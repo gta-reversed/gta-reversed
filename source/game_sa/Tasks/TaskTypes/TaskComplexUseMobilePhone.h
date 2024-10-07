@@ -9,7 +9,7 @@
 #include "TaskComplex.h"
 #include "TaskTimer.h"
 
-class CTaskComplexUseMobilePhone : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexUseMobilePhone : public CTaskComplex {
 public:
     int32      m_nDuration;
     CTaskTimer m_timer;

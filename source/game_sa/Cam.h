@@ -149,6 +149,7 @@ public:
     void LookRight(bool bLookRight);
     void RotCamIfInFrontCar(const CVector&, float);
     bool Using3rdPersonMouseCam();
+    bool GetWeaponFirstPersonOn();
 
     bool Process();
     bool ProcessArrestCamOne();

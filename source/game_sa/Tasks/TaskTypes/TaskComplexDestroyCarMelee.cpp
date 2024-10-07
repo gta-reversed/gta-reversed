@@ -74,7 +74,7 @@ bool CTaskComplexDestroyCarMelee::MakeAbortable(CPed* ped, eAbortPriority priori
             }
         }
 
-        return m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr);
+        return m_pSubTask->MakeAbortable(ped);
     }
     case ABORT_PRIORITY_LEISURE: {
         m_bNeedsToCreatefirstSubTask = true;

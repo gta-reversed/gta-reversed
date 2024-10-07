@@ -25,8 +25,6 @@ private:
 
     CEventVehicleDied* Constructor(CVehicle* vehicle);
 
-    CEvent* Clone_Reversed();
-    bool AffectsPed_Reversed(CPed* ped);
 };
 
 VALIDATE_SIZE(CEventVehicleDied, 0x14);

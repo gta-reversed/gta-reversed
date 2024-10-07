@@ -149,7 +149,7 @@ void EnableDisabledAttractorOnObject(CObject& object, bool enabled) {
 namespace Animation {
 void SetObjectAnimSpeed(CObject& obj, const char* animName, float speed) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(obj.m_pRwClump, animName)) {
-        anim->m_fSpeed = speed;
+        anim->m_Speed = speed;
     }
 }
 
@@ -168,14 +168,14 @@ bool IsObjectPlayingAnim(CObject& obj, const char* animName) {
 
 auto GetObjectAnimCurrentTime(CObject& obj, const char* animName) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(obj.m_pRwClump, animName)) {
-        return anim->m_fCurrentTime / anim->m_pHierarchy->m_fTotalTime;
+        return anim->m_CurrentTime / anim->m_BlendHier->m_fTotalTime;
     }
     return 0.f;
 }
 
 auto SetObjectAnimCurrentTime(CObject& obj, const char* animName, float progress) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(obj.m_pRwClump, animName)) {
-        anim->SetCurrentTime(anim->m_fSpeed * progress);
+        anim->SetCurrentTime(anim->m_Speed * progress);
     }
 }
 } // namespace Animation

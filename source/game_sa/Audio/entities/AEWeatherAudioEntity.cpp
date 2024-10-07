@@ -47,16 +47,12 @@ void CAEWeatherAudioEntity::Service() {
 }
 
 void CAEWeatherAudioEntity::InjectHooks() {
-    RH_ScopedClass(CAEWeatherAudioEntity);
+    RH_ScopedVirtualClass(CAEWeatherAudioEntity, 0x872A74, 1);
     RH_ScopedCategory("Audio/Entities");
 
     RH_ScopedInstall(StaticInitialise, 0x5B9A70);
     RH_ScopedInstall(StaticReset, 0x5052B0);
     RH_ScopedInstall(AddAudioEvent, 0x506800, { .reversed = false });
-    RH_ScopedVirtualInstall(UpdateParameters, 0x505A00, { .reversed = false });
+    RH_ScopedVMTInstall(UpdateParameters, 0x505A00, { .reversed = false });
     RH_ScopedInstall(Service, 0x5052F0, { .reversed = false });
-}
-
-void CAEWeatherAudioEntity::UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) {
-    CAEWeatherAudioEntity::UpdateParameters(sound, curPlayPos);
 }

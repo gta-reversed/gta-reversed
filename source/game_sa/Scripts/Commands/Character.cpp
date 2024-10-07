@@ -15,7 +15,9 @@
 #include <TaskTypes/TaskComplexWanderStandard.h>
 #include <TaskTypes/TaskComplexTurnToFaceEntityOrCoord.h>
 #include <TaskTypes/TaskComplexKillPedOnFoot.h>
-//#include <TaskTypes/TaskComplexUseEffect.h>
+#include <TaskTypes/TaskComplexEnterCarAsDriver.h>
+#include <TaskTypes/TaskComplexEnterCarAsPassenger.h>
+#include <TaskTypes/TaskSimpleCarSetPedOut.h>
 
 #include <Attractors/PedAttractorPedPlacer.h>
 
@@ -23,10 +25,8 @@
 #include <World.h>
 #include <EntryExitManager.h>
 #include <TimeCycle.h>
-#include <ePedBones.h>
+#include <eBoneTag.h>
 #include <SearchLight.h>
-#include <TaskComplexEnterCarAsDriver.h>
-#include <TaskSimpleCarSetPedOut.h>
 
 using namespace notsa::script;
 /*!
@@ -158,7 +158,7 @@ auto SetCharAreaVisible(CPed& ped, eAreaCodes area) {
     CTimeCycle::StopExtraColour(0);
 }
 
-auto AttachFxSystemToCharBone(tScriptEffectSystem& fx, CPed& ped, ePedBones bone) {
+auto AttachFxSystemToCharBone(tScriptEffectSystem& fx, CPed& ped, eBoneTag bone) {
     fx.m_pFxSystem->AttachToBone(&ped, bone);
 }
 
@@ -433,11 +433,11 @@ auto LocateCharAnyMeansObject2D(CRunningScript& S, CPed& ped, CObject& obj, CVec
     return LocateCharEntity2D(S, ped, obj, radius, highlightArea, false, false);
 }
 
-auto LocateCharOnFootObject2D(CRunningScript& S, CPed& ped, CVehicle& obj, CVector2D radius, bool highlightArea) {
+auto LocateCharOnFootObject2D(CRunningScript& S, CPed& ped, CObject& obj, CVector2D radius, bool highlightArea) {
     return LocateCharEntity2D(S, ped, obj, radius, highlightArea, false, true);
 }
 
-auto LocateCharInCarObject2D(CRunningScript& S, CPed& ped, CVehicle& obj, CVector2D radius, bool highlightArea) {
+auto LocateCharInCarObject2D(CRunningScript& S, CPed& ped, CObject& obj, CVector2D radius, bool highlightArea) {
     return LocateCharEntity2D(S, ped, obj, radius, highlightArea, true, false);
 }
 
@@ -677,7 +677,7 @@ auto SetCharOnlyDamagedByPlayer(CPed& ped, bool enabled) {
 auto GetClosestCharNode(CVector pos) -> CVector {
     CWorld::PutToGroundIfTooLow(pos);
     if (const auto node = ThePaths.FindNodeClosestToCoors(pos)) {
-        return ThePaths.GetPathNode(node)->GetNodeCoors();
+        return ThePaths.GetPathNode(node)->GetPosition();
     }
     return {}; // Can't find anything nearby
 }
@@ -778,15 +778,16 @@ auto ExplodeCharHead(CPed& ped) {
         false,
         (bool)(ped.bInVehicle)
     };
+    CPedDamageResponseCalculator dmgCalc{
+        nullptr,
+        1000.f,
+        WEAPON_SNIPERRIFLE,
+        PED_PIECE_HEAD,
+        false
+    };
     dmgEvent.ComputeDamageResponseIfAffectsPed(
         &ped,
-        CPedDamageResponseCalculator{
-            nullptr,
-            1000.f,
-            WEAPON_SNIPERRIFLE,
-            PED_PIECE_HEAD,
-            false
-        },
+        dmgCalc,
         true
     );
     ped.GetEventGroup().Add(dmgEvent);
@@ -1023,7 +1024,7 @@ auto GetCharWeaponInSlot(CPed& ped, eWeaponSlot slut) {
 
 // GET_OFFSET_FROM_CHAR_IN_WORLD_COORDS
 auto GetOffsetFromCharInWorldCoords(CPed& ped, CVector offset) {
-    return ped.GetMatrix() * offset;
+    return ped.GetMatrix().TransformPoint(offset);
 }
 
 // HAS_CHAR_BEEN_PHOTOGRAPHED
@@ -1209,14 +1210,14 @@ auto IsCharPlayingAnim(CPed& ped, const char* animName) {
 // SET_CHAR_ANIM_PLAYING_FLAG
 auto SetCharAnimPlayingFlag(CPed& ped, const char* animName, bool started) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
-        anim->SetFlag(ANIMATION_STARTED, started);
+        anim->SetFlag(ANIMATION_IS_PLAYING, started);
     }
 }
 
 // GET_CHAR_ANIM_CURRENT_TIME
 auto GetCharAnimCurrentTime(CPed& ped, const char* animName) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
-        return anim->m_fCurrentTime / anim->m_pHierarchy->m_fTotalTime;
+        return anim->m_CurrentTime / anim->m_BlendHier->m_fTotalTime;
     }
     return 0.f;
 }
@@ -1224,14 +1225,14 @@ auto GetCharAnimCurrentTime(CPed& ped, const char* animName) {
 // SET_CHAR_ANIM_CURRENT_TIME
 auto SetCharAnimCurrentTime(CPed& ped, const char* animName, float progress) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
-        anim->SetCurrentTime(progress * anim->m_pHierarchy->m_fTotalTime);
+        anim->SetCurrentTime(progress * anim->m_BlendHier->m_fTotalTime);
     }
 }
 
 // GET_CHAR_ANIM_TOTAL_TIME (In seconds)
 auto GetCharAnimTotalTime(CPed& ped, const char* animName) {
     if (const auto anim = RpAnimBlendClumpGetAssociation(ped.m_pRwClump, animName)) {
-        return anim->m_pHierarchy->m_fTotalTime * 1000.f;
+        return anim->m_BlendHier->m_fTotalTime * 1000.f;
     }
     return 0.f;
 }
@@ -1360,19 +1361,13 @@ CVehicle* GetCarCharIsUsing(CPed& ped) {
     if (ped.bInVehicle) {
         return ped.m_pVehicle;
     }
-
-    auto task = reinterpret_cast<CTaskComplexEnterCar*>([&ped]() -> CTask* {
-        if (auto driver = ped.GetIntelligence()->FindTaskByType(TASK_COMPLEX_ENTER_CAR_AS_DRIVER)) {
-            return driver;
-        }
-        if (auto passenger = ped.GetIntelligence()->FindTaskByType(TASK_COMPLEX_ENTER_CAR_AS_PASSENGER)) {
-            return passenger;
-        }
-
-        return nullptr;
-    }());
-
-    return task ? task->m_car : nullptr;
+    if (const auto task = ped.GetTaskManager().Find<CTaskComplexEnterCarAsDriver>(false)) {
+        return task->GetTargetCar();
+    }
+    if (const auto task = ped.GetTaskManager().Find<CTaskComplexEnterCarAsPassenger>(false)) {
+        return task->GetTargetCar();
+    }
+    return nullptr;
 }
 
 // ENABLE_CHAR_SPEECH
@@ -1419,23 +1414,27 @@ void RemoveCharFromCarMaintainPosition(CPed& ped, CVehicle& vehicle) {
 }
 
 // SET_CHAR_SAY_CONTEXT_IMPORTANT
-int16 SetCharSayContextImportant(CPed& ped, uint16 phraseId, uint8 arg3, uint8 arg4, uint8 arg5) {
-    return ped.Say(phraseId, 0u, 1.0f, arg3, arg4, arg5);
+int16 SetCharSayContextImportant(CPed& ped, uint16 phraseId, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    return ped.Say((eGlobalSpeechContext)phraseId, 0u, 1.0f, overrideSilence, isForceAudible, isFrontEnd);
 }
 
-// SET_CHAR_SAY_SCRIPT
-void SetCharSayScript(CPed& ped, uint8 arg1, uint8 arg2, uint8 arg3, uint8 arg4) {
-    ped.SayScript(arg1, arg2, arg3, arg4);
+// SET_CHAR_SAY_SCRIPT - 0x47ABC0
+void SetCharSayScript(CPed& ped, eAudioEvents scriptID, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    ped.SayScript(scriptID, overrideSilence, isForceAudible, isFrontEnd);
 }
 
 // IS_CHAR_GETTING_IN_INTO_A_CAR
 bool IsCharGettingInToACar(CPed& ped) {
-    return ped.GetTaskManager().FindActiveTaskFromList({TASK_COMPLEX_ENTER_CAR_AS_DRIVER, TASK_COMPLEX_ENTER_CAR_AS_PASSENGER, TASK_COMPLEX_GO_TO_CAR_DOOR_AND_STAND_STILL});
+    return ped.GetTaskManager().FindActiveTaskFromList({
+        TASK_COMPLEX_ENTER_CAR_AS_DRIVER,
+        TASK_COMPLEX_ENTER_CAR_AS_PASSENGER,
+        TASK_COMPLEX_GO_TO_CAR_DOOR_AND_STAND_STILL
+    });
 }
 
 // GET_CHAR_AREA_VISIBLE
 uint32 GetCharAreaVisible(CPed& ped) {
-    return ped.m_nAreaCode;
+    return ped.m_nAreaCode != eAreaCodes::AREA_CODE_NORMAL_WORLD;
 }
 
 // HAS_CHAR_SPOTTED_CHAR_IN_FRONT
@@ -1541,7 +1540,7 @@ void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_START_CHAR_FIRE, StartCharFire);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_BLEEDING, SetCharBleeding);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_VISIBLE, SetCharVisible);
-    REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_CHAR_ELEGANTLY, RemoveCharElegantly);
+    //REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_CHAR_ELEGANTLY, RemoveCharElegantly); // TODO(FIXME): It also needs the pool ref, regardless of whenever the ped was deleted from the pool or not, so taking a simple CPed* won't work...
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_STAY_IN_SAME_PLACE, SetCharStayInSamePlace);
     REGISTER_COMMAND_HANDLER(COMMAND_WARP_CHAR_FROM_CAR_TO_COORD, WarpCharFromCarToCoord);
     REGISTER_COMMAND_HANDLER(COMMAND_HAS_CHAR_SPOTTED_CHAR, HasCharSpottedChar);
@@ -1745,7 +1744,6 @@ void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_CHAR_STOPPED_IN_AREA_ON_FOOT_3D);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_CHAR_STOPPED_IN_AREA_IN_CAR_3D);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_TURN_CHAR_TO_FACE_COORD);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_CREATE_CHAR_AS_PASSENGER);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CHAR_OBJ_KILL_CHAR_ON_FOOT);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CHAR_OBJ_KILL_PLAYER_ON_FOOT);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CHAR_OBJ_KILL_CHAR_ANY_MEANS);

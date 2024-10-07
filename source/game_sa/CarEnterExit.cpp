@@ -18,9 +18,9 @@ void CCarEnterExit::InjectHooks() {
     RH_ScopedInstall(AddInCarAnim, 0x64F720);
     RH_ScopedInstall(CarHasDoorToClose, 0x64EE10);
     // RH_ScopedInstall(CarHasDoorToOpen, 0x0);
-    // RH_ScopedInstall(CarHasOpenableDoor, 0x0);
+    RH_ScopedInstall(CarHasOpenableDoor, 0x64EE50);
     // RH_ScopedInstall(CarHasPartiallyOpenDoor, 0x0);
-    // RH_ScopedInstall(ComputeDoorFlag, 0x0);
+    RH_ScopedInstall(ComputeDoorFlag, 0x64E550);
     // RH_ScopedInstall(ComputeOppositeDoorFlag, 0x0);
     RH_ScopedInstall(ComputePassengerIndexFromCarDoor, 0x64F1E0);
     RH_ScopedInstall(ComputeSlowJackedPed, 0x64F070);
@@ -31,8 +31,8 @@ void CCarEnterExit::InjectHooks() {
     RH_ScopedInstall(GetPositionToOpenCarDoor, 0x64E740, { .reversed = false });
     RH_ScopedInstall(IsCarDoorInUse, 0x64ec90, { .reversed = false });
     // RH_ScopedInstall(IsCarDoorReady, 0x0);
-    // RH_ScopedInstall(IsCarQuickJackPossible, 0x0);
-    // RH_ScopedInstall(IsCarSlowJackRequired, 0x0);
+    RH_ScopedInstall(IsCarQuickJackPossible, 0x64EF00);
+    RH_ScopedInstall(IsCarSlowJackRequired, 0x64EF70, { .reversed = false });
     RH_ScopedInstall(IsClearToDriveAway, 0x6509B0);
     RH_ScopedInstall(IsPathToDoorBlockedByVehicleCollisionModel, 0x651210);
     RH_ScopedInstall(IsPedHealthy, 0x64EEE0);
@@ -60,7 +60,7 @@ void CCarEnterExit::AddInCarAnim(const CVehicle* vehicle, CPed* ped, bool bAsDri
                     return { ANIM_GROUP_DEFAULT, ANIM_ID_DRIVE_BOAT };
                 }
             } else if (vehicle->vehicleFlags.bLowVehicle) {
-                return { ANIM_GROUP_DEFAULT, ANIM_ID_CAR_SITPLO };
+                return { ANIM_GROUP_DEFAULT, ANIM_ID_CAR_LSIT };
             }
 
             return { ANIM_GROUP_DEFAULT, ANIM_ID_CAR_SIT };
@@ -81,17 +81,18 @@ void CCarEnterExit::AddInCarAnim(const CVehicle* vehicle, CPed* ped, bool bAsDri
 // 0x64EE10
 bool CCarEnterExit::CarHasDoorToClose(const CVehicle* vehicle, int32 doorId) {
     auto& veh = const_cast<CVehicle&>(*vehicle);
-    return !veh.IsDoorMissing(doorId) && !veh.IsDoorClosed(doorId);
+    return !veh.IsDoorMissingU32(doorId) && !veh.IsDoorClosedU32(doorId);
 }
 
-// 0X64EDD0
+// 0x64EDD0
 bool CCarEnterExit::CarHasDoorToOpen(const CVehicle* vehicle, int32 doorId) {
-    return plugin::CallAndReturn<bool, 0X64EDD0, const CVehicle*, int32>(vehicle, doorId);
+    auto& veh = const_cast<CVehicle&>(*vehicle);
+    return !veh.IsDoorMissingU32((uint32)doorId) && !veh.IsDoorMissingU32((uint32)doorId);
 }
 
-// 0x
+// 0x64EE50
 bool CCarEnterExit::CarHasOpenableDoor(const CVehicle* vehicle, int32 doorId_UnusedArg, const CPed* ped) {
-    return plugin::CallAndReturn<bool, 0x0, const CVehicle*, int32, const CPed*>(vehicle, doorId_UnusedArg, ped);
+    return vehicle->CanPedOpenLocks(ped);
 }
 
 // 0x
@@ -99,9 +100,27 @@ bool CCarEnterExit::CarHasPartiallyOpenDoor(const CVehicle* vehicle, int32 doorI
     return plugin::CallAndReturn<bool, 0x0, const CVehicle*, int32>(vehicle, doorId);
 }
 
-// 0x
-int32 CCarEnterExit::ComputeDoorFlag(const CVehicle* vehicle, int32 doorId, bool bCheckVehicleType) {
-    return plugin::CallAndReturn<int32, 0x0, const CVehicle*, int32, bool>(vehicle, doorId, bCheckVehicleType);
+// 0x64E550
+int32 CCarEnterExit::ComputeDoorFlag(const CVehicle* vehicle, int32 doorId, bool bSettingFlags) {
+    if (bSettingFlags && (vehicle->IsBike() || vehicle->m_pHandlingData->m_bTandemSeats)) {
+        switch (doorId) {
+        case 8:
+        case 10:
+        case 18: return 5;
+        case 9:
+        case 11: return 10;
+        default: NOTSA_UNREACHABLE(); // Originally `return 0`
+        }
+    } else {
+        switch (doorId) {
+        case 8:  return 4;
+        case 9:  return 8;
+        case 10:
+        case 18: return 1;
+        case 11: return 2;
+        default: NOTSA_UNREACHABLE(); // Originally `return 0`
+        }
+    }
 }
 
 // 0x
@@ -246,9 +265,9 @@ bool CCarEnterExit::GetNearestCarDoor(const CPed* ped, const CVehicle* vehicle, 
 
     if (vehicle->m_pTrailer) {
         if (dir2DToDoorFLeft.SquaredMagnitude() < dir2DToDoorFRight.SquaredMagnitude()) {
-            if (IsPathToDoorBlockedByVehicleCollisionModel(ped, vehicle, &posDoorFRight)) {
+            if (IsPathToDoorBlockedByVehicleCollisionModel(ped, vehicle, posDoorFRight)) {
                 dir2DToDoorFRight = { 999.90002f, 999.90002f };
-            } else if (IsPathToDoorBlockedByVehicleCollisionModel(ped, vehicle, &posDoorFLeft)) {
+            } else if (IsPathToDoorBlockedByVehicleCollisionModel(ped, vehicle, posDoorFLeft)) {
                 dir2DToDoorFLeft = { 999.90002f, 999.90002f };
             }
         }
@@ -365,14 +384,20 @@ bool CCarEnterExit::IsCarDoorReady(const CVehicle* vehicle, int32 doorId) {
     return plugin::CallAndReturn<bool, 0x0, const CVehicle*, int32>(vehicle, doorId);
 }
 
-// 0x
-bool CCarEnterExit::IsCarQuickJackPossible(const CVehicle* vehicle, int32 doorId, const CPed* ped) {
-    return plugin::CallAndReturn<bool, 0x0, const CVehicle*, int32, const CPed*>(vehicle, doorId, ped);
+// 0x64EF00
+bool CCarEnterExit::IsCarQuickJackPossible(CVehicle* vehicle, int32 doorId, const CPed* ped) {
+    // I think doorId 10 is the driver's door
+    //if (doorId == 10 && vehicle->IsAutomobile() && !vehicle->IsDoorMissingU32(doorId) && vehicle->IsDoorClosedU32(doorId)) {
+    //    // This does *nothing* - I tried `return vehicle->CanPedOpenLocks(ped);` but that just breaks everything.
+    //    // Basically, returning anything but `false` from here breaks the code (in `CTaskComplexEnterCar`)
+    //    vehicle->CanPedOpenLocks(ped); 
+    //}
+    return false;
 }
 
-// 0x
+// 0x64EF70
 bool CCarEnterExit::IsCarSlowJackRequired(const CVehicle* vehicle, int32 doorId) {
-    return plugin::CallAndReturn<bool, 0x0, const CVehicle*, int32>(vehicle, doorId);
+    return plugin::CallAndReturn<bool, 0x64EF70, const CVehicle*, int32>(vehicle, doorId);
 }
 
 // 0x6509B0
@@ -392,8 +417,8 @@ bool CCarEnterExit::IsPathToDoorBlockedByVehicleCollisionModel(const CPed* ped, 
 
     const auto vehMatInv = Invert(*vehicle->m_matrix);
     const CColLine line{
-        vehMatInv * ped->GetPosition(),
-        vehMatInv * pos
+        vehMatInv.TransformPoint(ped->GetPosition()),
+        vehMatInv.TransformPoint(pos)
     };
 
     for (const auto& sp : vehicle->GetColModel()->GetData()->GetSpheres()) {
@@ -502,8 +527,9 @@ void CCarEnterExit::MakeUndraggedDriverPedLeaveCar(const CVehicle* vehicle, cons
     plugin::Call<0x0, const CVehicle*, const CPed*>(vehicle, ped);
 }
 
+// 0x64F540
 void CCarEnterExit::MakeUndraggedPassengerPedsLeaveCar(const CVehicle* targetVehicle, const CPed* draggedPed, const CPed* ped) {
-    plugin::Call<0x0, const CVehicle*, const CPed*, const CPed*>(targetVehicle, draggedPed, ped);
+    plugin::Call<0x64F540, const CVehicle*, const CPed*, const CPed*>(targetVehicle, draggedPed, ped);
 }
 
 // unused
@@ -514,17 +540,17 @@ void CCarEnterExit::QuitEnteringCar(CPed* ped, CVehicle* vehicle, int32 doorId, 
 // 0x64F680
 void CCarEnterExit::RemoveCarSitAnim(const CPed* ped) {
     for (auto anim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_SECONDARY_TASK_ANIM); anim; anim = RpAnimBlendGetNextAssociation(anim, ANIMATION_SECONDARY_TASK_ANIM)) {
-        anim->SetFlag(ANIMATION_FREEZE_LAST_FRAME);
-        anim->m_fBlendDelta = -1000.f;
+        anim->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
+        anim->m_BlendDelta = -1000.f;
     }
     CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.0);
 }
 
 // 0x64F6E0
 void CCarEnterExit::RemoveGetInAnims(const CPed* ped) {
-    for (auto anim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_PARTIAL); anim; anim = RpAnimBlendGetNextAssociation(anim, ANIMATION_PARTIAL)) {
-        anim->SetFlag(ANIMATION_FREEZE_LAST_FRAME);
-        anim->m_fBlendDelta = -1000.f;
+    for (auto anim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_PARTIAL); anim; anim = RpAnimBlendGetNextAssociation(anim, ANIMATION_IS_PARTIAL)) {
+        anim->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
+        anim->m_BlendDelta = -1000.f;
     }
 }
 
@@ -550,9 +576,9 @@ void CCarEnterExit::SetAnimOffsetForEnterOrExitVehicle() {
 
     {
         const auto anim = CAnimManager::GetAnimAssociation(ANIM_GROUP_DEFAULT, ANIM_ID_GETUP_0);
-        CAnimManager::UncompressAnimation(anim->m_pHierarchy);
-        const auto& seq = anim->m_pHierarchy->GetSequences()[0];
-        ms_vecPedGetUpAnimOffset = seq.m_nFrameCount ? seq.GetUncompressedFrame(0)->translation : CVector{};
+        CAnimManager::UncompressAnimation(anim->m_BlendHier);
+        const auto& seq = anim->m_BlendHier->GetSequences()[0];
+        ms_vecPedGetUpAnimOffset = seq.m_FramesNum ? seq.GetUKeyFrame(0)->Trans : CVector{};
     }
 
     ms_vecPedQuickDraggedOutCarAnimOffset = CVector{ -1.841797f, -0.3261719f, -0.01269531f };
@@ -567,10 +593,10 @@ void CCarEnterExit::SetAnimOffsetForEnterOrExitVehicle() {
         // Calculate translation delta between first and last sequence frames
         *out = [grpId, animId] {
             const auto anim = CAnimManager::GetAnimAssociation(grpId, animId);
-            CAnimManager::UncompressAnimation(anim->m_pHierarchy);
-            const auto& seq = anim->m_pHierarchy->GetSequences()[0];
-            if (seq.m_nFrameCount > 0) {
-                return seq.GetUncompressedFrame(seq.m_nFrameCount - 1)->translation - seq.GetUncompressedFrame(0)->translation;
+            CAnimManager::UncompressAnimation(anim->m_BlendHier);
+            const auto& seq = anim->m_BlendHier->GetSequences()[0];
+            if (seq.m_FramesNum > 0) {
+                return seq.GetUKeyFrame(seq.m_FramesNum - 1)->Trans - seq.GetUKeyFrame(0)->Trans;
             }
             return CVector{};
         }();

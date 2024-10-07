@@ -8,14 +8,14 @@
 #include "TaskSimpleClimb.h"
 
 void CTaskComplexJump::InjectHooks() {
-    RH_ScopedClass(CTaskComplexJump);
+    RH_ScopedVirtualClass(CTaskComplexJump, 0x870570, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x67A030);
     RH_ScopedInstall(CreateSubTask, 0x67D980);
-    RH_ScopedVirtualInstall(CreateFirstSubTask, 0x67FD10);
-    RH_ScopedVirtualInstall(CreateNextSubTask, 0x67FC00);
-    RH_ScopedVirtualInstall(Clone, 0x67C5A0);
-    RH_ScopedVirtualInstall(MakeAbortable, 0x67A070);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x67FD10);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x67FC00);
+    RH_ScopedVMTInstall(Clone, 0x67C5A0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x67A070);
 }
 
 CTaskComplexJump* CTaskComplexJump::Constructor(eComplexJumpType jumpType) {
@@ -31,35 +31,18 @@ CTaskComplexJump::CTaskComplexJump(eComplexJumpType type) : CTaskComplex() {
 
 // 0x67C5A0
 CTask* CTaskComplexJump::Clone() const {
-    return Clone_Reversed();
-}
-
-// 0x67FD10
-CTask* CTaskComplexJump::CreateFirstSubTask(CPed* ped) {
-    return CreateFirstSubTask_Reversed(ped);
-}
-
-// 0x67FC00
-CTask* CTaskComplexJump::CreateNextSubTask(CPed* ped) {
-    return CreateNextSubTask_Reversed(ped);
-}
-
-// 0x67A070
-bool CTaskComplexJump::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    return MakeAbortable_Reversed(ped, priority, event);
-}
-
-CTask* CTaskComplexJump::Clone_Reversed() const {
     auto newTask = new CTaskComplexJump(m_nType);
     newTask->m_bHighJump = this->m_bHighJump;
     return newTask;
 }
 
-CTask* CTaskComplexJump::CreateFirstSubTask_Reversed(CPed* ped) {
+// 0x67FD10
+CTask* CTaskComplexJump::CreateFirstSubTask(CPed* ped) {
     return CreateSubTask(TASK_SIMPLE_JUMP, ped);
 }
 
-CTask* CTaskComplexJump::CreateNextSubTask_Reversed(CPed* ped) {
+// 0x67FC00
+CTask* CTaskComplexJump::CreateNextSubTask(CPed* ped) {
     eTaskType subTaskType = m_pSubTask->GetTaskType();
 
     if (subTaskType == TASK_SIMPLE_CLIMB)
@@ -91,7 +74,8 @@ CTask* CTaskComplexJump::CreateNextSubTask_Reversed(CPed* ped) {
     return nullptr;
 }
 
-bool CTaskComplexJump::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) {
+// 0x67A070
+bool CTaskComplexJump::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     if (priority == ABORT_PRIORITY_URGENT && event) {
         if (event->GetEventType() == EVENT_DAMAGE) {
             const auto pDamageEvent = static_cast<const CEventDamage*>(event);

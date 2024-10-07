@@ -1,47 +1,45 @@
 #include "StdInc.h"
 
 #include "TaskComplexHitByGunResponse.h"
-//#include "TaskSimpleHitByGunFromRear.h"
-//#include "TaskSimpleHitByGunFromLeft.h"
-//#include "TaskSimpleHitByGunFromRear.h"
-//#include "TaskSimpleHitByGunFromRight.h"
+#include "TaskSimpleHitByGunFromFront.h"
+#include "TaskSimpleHitByGunFromLeft.h"
+#include "TaskSimpleHitByGunFromRear.h"
+#include "TaskSimpleHitByGunFromRight.h"
 
 void CTaskComplexHitByGunResponse::InjectHooks() {
-    RH_ScopedClass(CTaskComplexHitByGunResponse);
+    RH_ScopedVirtualClass(CTaskComplexHitByGunResponse, 0x86e06c, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x631DD0);
     RH_ScopedInstall(Destructor, 0x631E30);
-    RH_ScopedInstall(CreateFirstSubTask, 0x631E50, { .reversed = false });
+
+    RH_ScopedVMTInstall(Clone, 0x636640);
+    RH_ScopedVMTInstall(GetTaskType, 0x631DF0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x631E00);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x631E40);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x631E50);
+    RH_ScopedVMTInstall(ControlSubTask, 0x631F70);
 }
 
 // 0x631DD0
-CTaskComplexHitByGunResponse::CTaskComplexHitByGunResponse(int32 direction) : CTaskComplex() {
-    m_Direction = direction;
+CTaskComplexHitByGunResponse::CTaskComplexHitByGunResponse(eDirection hs) :
+    m_HitSide{hs}
+{
 }
 
-// 0x631E00
-bool CTaskComplexHitByGunResponse::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    switch (priority) {
-    case ABORT_PRIORITY_URGENT:
-    case ABORT_PRIORITY_IMMEDIATE:
-        return m_pSubTask->MakeAbortable(ped, priority, event);
-    default:
-        return false;
-    }
+//! @notsa
+CTaskComplexHitByGunResponse::CTaskComplexHitByGunResponse(const CTaskComplexHitByGunResponse& o) :
+    CTaskComplexHitByGunResponse{ o.m_HitSide }
+{
 }
 
 // 0x631E50
 CTask* CTaskComplexHitByGunResponse::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x631E50, CTaskComplexHitByGunResponse*, CPed*>(this, ped);
-
-    /*
-    switch (m_Direction) {
-    case 0:  return new CTaskSimpleHitByGunFromRear();
-    case 1:  return new CTaskSimpleHitByGunFromLeft();
-    case 2:  return new CTaskSimpleHitByGunFromRear();
-    case 3:  return new CTaskSimpleHitByGunFromRight();
-    default: return nullptr;
+    switch (m_HitSide) {
+    case eDirection::FORWARD:  return new CTaskSimpleHitByGunFromFront{};
+    case eDirection::LEFT:     return new CTaskSimpleHitByGunFromLeft{};
+    case eDirection::BACKWARD: return new CTaskSimpleHitByGunFromRear{};
+    case eDirection::RIGHT:    return new CTaskSimpleHitByGunFromRight{};
+    default:                   NOTSA_UNREACHABLE();
     }
-     */
 }

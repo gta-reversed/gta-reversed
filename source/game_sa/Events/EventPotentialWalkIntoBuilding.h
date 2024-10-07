@@ -1,6 +1,8 @@
 #pragma once
 
-#include "EntityCollisionEvents.h"
+#include "EventBuildingCollision.h"
+
+
 
 class CEventPotentialWalkIntoBuilding : public CEventBuildingCollision {
 public:
@@ -12,3 +14,4 @@ public:
     CEventBuildingCollision* Clone() override { return new CEventPotentialWalkIntoBuilding(); }
     bool AffectsPed(CPed* ped) override;
 };
+

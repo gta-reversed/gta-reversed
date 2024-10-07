@@ -7,7 +7,7 @@ enum ePedPieceTypes;
 
 class CAnimBlendAssociation;
 
-class CTaskSimpleBeHit : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleBeHit : public CTaskSimple {
 public:
     CPed*          m_Attacker;
     bool           m_bIsFinished;

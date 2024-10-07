@@ -23,6 +23,7 @@
 #include "FxSystem.h"
 #include "Fire.h"
 
+#include <extensions/EntityRef.hpp>
 #include <Enums/eControllerType.h>
 
 /*  Thanks to MTA team for https://github.com/multitheftauto/mtasa-blue/blob/master/Client/game_sa/CVehicleSA.cpp */
@@ -91,27 +92,30 @@ enum eVehicleOverrideLightsState {
 };
 
 enum eCarPiece {
-    CAR_PIECE_DEFAULT = 0,
-    CAR_PIECE_BONNET,
-    CAR_PIECE_BOOT,
-    CAR_PIECE_BUMP_FRONT,
-    CAR_PIECE_BUMP_REAR,
-    CAR_PIECE_DOOR_LF,
-    CAR_PIECE_DOOR_RF,
-    CAR_PIECE_DOOR_LR,
-    CAR_PIECE_DOOR_RR,
-    CAR_PIECE_WING_LF,
-    CAR_PIECE_WING_RF,
-    CAR_PIECE_WING_LR,
-    CAR_PIECE_WING_RR,
-    CAR_PIECE_WHEEL_LF, // front wheel for 2 wheel bike
-    CAR_PIECE_WHEEL_RF,
-    CAR_PIECE_WHEEL_RL, // rear wheel for 2 wheel bike
-    CAR_PIECE_WHEEL_RR,
-    CAR_PIECE_WINDSCREEN = 19,
+    CAR_PIECE_DEFAULT     = 0,
+    CAR_PIECE_BONNET      = 1,
+    CAR_PIECE_BOOT        = 2,
+    CAR_PIECE_BUMP_FRONT  = 3,
+    CAR_PIECE_BUMP_REAR   = 4,
+    CAR_PIECE_DOOR_LF     = 5,
+    CAR_PIECE_DOOR_RF     = 6,
+    CAR_PIECE_DOOR_LR     = 7,
+    CAR_PIECE_DOOR_RR     = 8,
+    CAR_PIECE_WING_LF     = 9,
+    CAR_PIECE_WING_RF     = 10,
+    CAR_PIECE_WING_LR     = 11,
+    CAR_PIECE_WING_RR     = 12,
+    CAR_PIECE_WHEEL_LF    = 13, // front wheel for 2 wheel bike
+    CAR_PIECE_WHEEL_RF    = 14,
+    CAR_PIECE_WHEEL_RL    = 15, // rear wheel for 2 wheel bike
+    CAR_PIECE_WHEEL_RR    = 16,
+    CAR_PIECE_BIKEWHEEL_F = 17,
+    CAR_PIECE_BIKEWHEEL_R = 18,
+    CAR_PIECE_WINDSCREEN  = 19,
 };
 constexpr inline eCarPiece eCarPiece_WheelPieces[]{ CAR_PIECE_WHEEL_LF, CAR_PIECE_WHEEL_RF, CAR_PIECE_WHEEL_RL, CAR_PIECE_WHEEL_RR };
 
+// Do not change the order!
 enum eRotationAxis : int32 {
     AXIS_X = 0,
     AXIS_Y = 1,
@@ -177,6 +181,9 @@ struct tHydraulicData {
 VALIDATE_SIZE(tHydraulicData, 0x28);
 
 class NOTSA_EXPORT_VTABLE CVehicle : public CPhysical {
+public:
+    using Ref = notsa::EntityRef<CVehicle>;
+    
 public:
     static constexpr auto NUM_VEHICLE_UPGRADES = 15u;
 
@@ -452,16 +459,21 @@ public:
     virtual bool IsComponentPresent(int32 componentId) { return false; }
     virtual void OpenDoor(CPed* ped, int32 componentId, eDoors door, float doorOpenRatio, bool playSound) { /* Do nothing */ }
     virtual void ProcessOpenDoor(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime);
+
+    //!!!!!!!!!!!!!!!!!!!
+    // PAY CLOSE ATTENTION TO WHICH VERSION OF THE FUNCTIONS DOWN BELOW YOU'RE CALLING!
+    //!!!!!!!!!!!!!!!!!!!
+    virtual float GetDooorAngleOpenRatioU32(uint32 door) { return 0.0F; }
     virtual float GetDooorAngleOpenRatio(eDoors door) { return 0.0F; }
-    virtual float GetDooorAngleOpenRatio(uint32 door) { return 0.0F; }
+    virtual bool IsDoorReadyU32(uint32 door) { return false; }
     virtual bool IsDoorReady(eDoors door) { return false; }
-    virtual bool IsDoorReady(uint32 door) { return false; }
+    virtual bool IsDoorFullyOpenU32(uint32 door) { return false; }
     virtual bool IsDoorFullyOpen(eDoors door) { return false; }
-    virtual bool IsDoorFullyOpen(uint32 door) { return false; }
+    virtual bool IsDoorClosedU32(uint32 door){ return false; }
     virtual bool IsDoorClosed(eDoors door){ return false; }
-    virtual bool IsDoorClosed(uint32 door){ return false; }
+    virtual bool IsDoorMissingU32(uint32 door){ return false; }
     virtual bool IsDoorMissing(eDoors door) { return false; }
-    virtual bool IsDoorMissing(uint32 door){ return false; }
+
     // check if car has roof as extra
     virtual bool IsOpenTopCar(){ return false; }
     // remove ref to this entity
@@ -524,7 +536,7 @@ public:
     void KillPedsInVehicle();
     bool IsUpsideDown() const;
     bool IsOnItsSide() const;
-    bool CanPedOpenLocks(CPed* ped);
+    bool CanPedOpenLocks(const CPed* ped) const;
     [[nodiscard]] bool CanDoorsBeDamaged() const;
     bool CanPedEnterCar();
     void ProcessCarAlarm();
@@ -569,11 +581,11 @@ public:
     void InitWinch(int32 arg0);
     void UpdateWinch();
     void RemoveWinch();
-    void ReleasePickedUpEntityWithWinch();
-    void PickUpEntityWithWinch(CEntity* entity);
-    CEntity* QueryPickedUpEntityWithWinch();
-    float GetRopeHeightForHeli();
-    void SetRopeHeightForHeli(float height);
+    void ReleasePickedUpEntityWithWinch() const;
+    void PickUpEntityWithWinch(CEntity* entity) const;
+    CEntity* QueryPickedUpEntityWithWinch() const;
+    float GetRopeHeightForHeli() const;
+    void SetRopeHeightForHeli(float height) const;
     void RenderDriverAndPassengers();
     void PreRenderDriverAndPassengers();
     float GetPlaneGunsAutoAimAngle();
@@ -739,28 +751,6 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    void SetModelIndex_Reversed(uint32 index);
-    void DeleteRwObject_Reversed();
-    void SpecialEntityPreCollisionStuff_Reversed(CPhysical* colPhysical,
-                                                 bool bIgnoreStuckCheck,
-                                                 bool& bCollisionDisabled,
-                                                 bool& bCollidedEntityCollisionIgnored,
-                                                 bool& bCollidedEntityUnableToMove,
-                                                 bool& bThisOrCollidedEntityStuck);
-    uint8 SpecialEntityCalcCollisionSteps_Reversed(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2);
-    void PreRender_Reversed();
-    void Render_Reversed();
-    bool SetupLighting_Reversed();
-    void RemoveLighting_Reversed(bool bRemove);
-    void ProcessOpenDoor_Reversed(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime);
-    void ProcessDrivingAnims_Reversed(CPed* driver, bool blend);
-    float GetHeightAboveRoad_Reversed();
-    bool CanPedStepOutCar_Reversed(bool bIgnoreSpeedUpright) const;
-    bool CanPedJumpOutCar_Reversed(CPed* ped);
-    bool GetTowHitchPos_Reversed(CVector& outPos, bool bCheckModelInfo, CVehicle* vehicle);
-    bool GetTowBarPos_Reversed(CVector& outPos, bool bCheckModelInfo, CVehicle* vehicle);
-    bool Save_Reversed();
-    bool Load_Reversed();
 };
 VALIDATE_SIZE(CVehicle, 0x5A0);
 

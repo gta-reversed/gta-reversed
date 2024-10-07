@@ -24,3 +24,7 @@ Furniture_c* FurnitureSubGroup_c::GetFurniture(int16 id, uint8 wealth) {
 int32 FurnitureSubGroup_c::GetRandomId(uint8 a2) {
     return plugin::CallMethodAndReturn<int32, 0x590FD0, FurnitureSubGroup_c*, uint8>(this, a2);
 }
+
+void FurnitureSubGroup_c::Exit() {
+    m_Furnitures.RemoveAll();
+}

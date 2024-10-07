@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexStuckInAir : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexStuckInAir : public CTaskComplex {
 public:
     static constexpr auto Type = TASK_COMPLEX_STUCK_IN_AIR;
 
@@ -19,9 +19,4 @@ public:
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
-
-    CTask* ControlSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateSubTask_Reversed(eTaskType taskType, CPed* ped);
 };

@@ -16,61 +16,71 @@
 
 class FxEmitterPrt_c;
 
+static constexpr auto FX_MANAGER_NUM_EMITTERS = 1000;
+
 class FxManager_c {
 public:
-    TList_c<FxSystemBP_c>   m_fxSystemBPs;
-    TList_c<FxSystem_c>     m_fxSystems;
-    FxEmitterPrt_c*         m_pFxEmitters;
-    TList_c<FxEmitterPrt_c> m_fxEmitterParticles;
-    int32                     m_nFxTxdIndex;
-    RwV3d*                  m_pWindDir;
-    float*                  m_pfWindSpeed;
-    FxFrustumInfo_c         m_frustum;
-    uint32                  m_nCurrentMatrix;
-    RwMatrix*               m_apMatrices[8];
-    FxMemoryPool_c          m_pool;
-    bool                    m_bHeatHazeEnabled;
+    TList_c<FxSystemBP_c>    m_FxSystemBPs;
+    TList_c<FxSystem_c>      m_FxSystems;
+    FxEmitterPrt_c*          m_FxEmitters;
+    TList_c<Particle_c>      m_FxEmitterParticles;
+    int32                    m_nFxTxdIndex;
+    CVector*                 m_pWindDir;
+    float*                   m_pfWindSpeed;
+    FxFrustumInfo_c          m_Frustum;
+    uint32                   m_nCurrentMatrix;
+    std::array<RwMatrix*, 8> m_apMatrices;
+    FxMemoryPool_c           m_Pool;
+    bool                     m_bHeatHazeEnabled;
 
 public:
     static void InjectHooks();
 
     FxManager_c();
+    ~FxManager_c() = default; // 0x4A90A0
     FxManager_c* Constructor();
-
-    ~FxManager_c();
     FxManager_c* Destructor();
 
     bool Init();
     void Exit();
     void DestroyFxSystem(FxSystem_c* system);
     void DestroyAllFxSystems();
-    void Update(RwCamera* arg0, float timeDelta);
 
-    bool LoadFxProject(const char* filename);
+    bool LoadFxProject(const char* path);
     void UnloadFxProject();
 
-    FxSystemBP_c* LoadFxSystemBP(char* filename, int32 file);
+    void LoadFxSystemBP(Const char* filename, FILESTREAM file);
     FxSystemBP_c* FindFxSystemBP(const char* name);
 
-    FxFrustumInfo_c* GetFrustumInfo();
+    FxFrustumInfo_c* GetFrustumInfo() { return &m_Frustum; } // 0x4A9130
     void CalcFrustumInfo(RwCamera* camera);
 
     void ReturnParticle(FxEmitterPrt_c* emitter);
-    FxEmitterPrt_c* GetParticle(int8 arg0);
+    Particle_c* GetParticle(int8 primType);
     void FreeUpParticle();
 
-    void Render(RwCamera* camera, uint8 arg1);
+    void Update(RwCamera* camera, float timeDelta);
+    void Render(RwCamera* camera, bool bHeatHaze);
 
-    void SetWindData(RwV3d* dir, float* speed);
+    void SetWindData(CVector* dir, float* speed);
 
     RwMatrix* FxRwMatrixCreate();
     void FxRwMatrixDestroy(RwMatrix* matrix);
 
-    bool ShouldCreate(FxSystemBP_c* bpSystem, RwMatrix* transform, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
-    FxSystem_c* CreateFxSystem(FxSystemBP_c* bpSystem, RwMatrix* transform, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
-    FxSystem_c* CreateFxSystem(const char* name, RwMatrix* transform, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
-    FxSystem_c* CreateFxSystem(FxSystemBP_c* bpSystem, RwV3d* position, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
-    FxSystem_c* CreateFxSystem(const char* name, RwV3d* position, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
+    bool ShouldCreate(FxSystemBP_c* system, const RwMatrix& transform, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
+    FxSystem_c* CreateFxSystem(Const char* name, const RwMatrix& transform, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
+    FxSystem_c* CreateFxSystem(Const char* name, const CVector& point, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
+    FxSystem_c* CreateFxSystem(FxSystemBP_c* systemBP, const CVector& point, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
+    FxSystem_c* CreateFxSystem(FxSystemBP_c* systemBP, const RwMatrix& transform, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
+
+    FxMemoryPool_c& GetMemPool() { return m_Pool; }
+
+    template <typename Type>
+    Type* Allocate(int32 count) {
+        const auto size = sizeof(Type) * count;
+        const auto align = std::min(sizeof(Type), sizeof(int32));
+        return (Type*)GetMemPool().GetMem(size, align);
+    }
 };
 
 VALIDATE_SIZE(FxManager_c, 0xBC);

@@ -41,6 +41,7 @@ private: // Wrappers for hooks
         this->CTaskSimpleCarOpenLockedDoorFromOutside::CTaskSimpleCarOpenLockedDoorFromOutside(veh, door, lineUpTask);
         return this;
     }
+
     // 0x6460F0
     CTaskSimpleCarOpenLockedDoorFromOutside* Destructor() {
         this->CTaskSimpleCarOpenLockedDoorFromOutside::~CTaskSimpleCarOpenLockedDoorFromOutside();

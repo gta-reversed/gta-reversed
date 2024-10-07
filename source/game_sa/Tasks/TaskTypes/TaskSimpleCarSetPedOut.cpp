@@ -15,6 +15,11 @@ CTaskSimpleCarSetPedOut::~CTaskSimpleCarSetPedOut() {
     CEntity::SafeCleanUpRef(m_pTargetVehicle);
 }
 
+// 0x6479B0
+void CTaskSimpleCarSetPedOut::PositionPedOutOfCollision(CPed* ped, CVehicle* veh, int32 door) {
+    return plugin::Call<0x6479B0>(ped, veh, door);
+}
+
 CTask* CTaskSimpleCarSetPedOut::Clone() const {
     return plugin::CallMethodAndReturn<CTask*, 0x649F50, const CTask*>(this);
 }

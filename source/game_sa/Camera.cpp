@@ -935,7 +935,7 @@ void CCamera::StoreValuesDuringInterPol(CVector* sourceDuringInter, CVector* tar
     m_vecUpDuringInter     = *upDuringInter;
     m_fFOVDuringInter      = *FOVDuringInter;
 
-    auto dist = sourceDuringInter - m_vecTargetDuringInter;
+    auto dist = *sourceDuringInter - m_vecTargetDuringInter;
     m_fBetaDuringInterPol = CGeneral::GetATanOfXY(dist.x, dist.y);
 
     float distOnGround = dist.Magnitude2D();
@@ -1060,6 +1060,7 @@ void CCamera::TakeControl(CEntity* target, eCamMode modeToGoTo, eSwitchType swit
             return;
         }
     }
+    m_nWhoIsInControlOfTheCamera = whoIsInControlOfTheCamera;
 
     const auto [newGoToMode, newTargetEntity] = [&, this]() -> std::tuple<eCamMode, CEntity*>{
         if (target) {
@@ -1085,7 +1086,7 @@ void CCamera::TakeControl(CEntity* target, eCamMode modeToGoTo, eSwitchType swit
     CEntity::ChangeEntityReference(m_pTargetEntity, newTargetEntity);
     m_nModeToGoTo = newGoToMode;
 
-    m_nMusicFadingDirection = (eFadeFlag)switchType; // TODO: Investigate, this looks sus
+    m_nTypeOfSwitch    = switchType;
     m_bLookingAtPlayer = m_bLookingAtVector = false;
     m_bStartInterScript = true;
 }
@@ -1238,7 +1239,8 @@ bool CCamera::IsSphereVisible(const CVector& origin, float radius, RwMatrix* tra
 
 // 0x420D40 - NOTE: Function has no hook
 bool CCamera::IsSphereVisible(const CVector& origin, float radius) {
-    return IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatInverse) || (m_bMirrorActive && IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatMirrorInverse));
+    return IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatInverse)
+        || (m_bMirrorActive && IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatMirrorInverse));
 }
 
 // 0x50CEB0
@@ -1527,8 +1529,8 @@ void CCamera::FinishCutscene() {
 }
 
 // 0x514970
-void CCamera::Find3rdPersonCamTargetVector(float range, CVector source, CVector* pCamera, CVector* pPoint) {
-    plugin::CallMethod<0x514970, CCamera*, float, CVector, CVector*, CVector*>(this, range, source, pCamera, pPoint);
+void CCamera::Find3rdPersonCamTargetVector(float range, CVector vecGunMuzzle, CVector& outSource, CVector& outTarget) {
+    plugin::CallMethod<0x514970, CCamera*, float, CVector, CVector*, CVector*>(this, range, vecGunMuzzle, &outSource, &outTarget);
 }
 
 // 0x514B80

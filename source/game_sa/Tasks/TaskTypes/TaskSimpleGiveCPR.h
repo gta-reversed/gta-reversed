@@ -3,7 +3,7 @@
 #include "TaskSimple.h"
 class CAccident;
 
-class CTaskSimpleGiveCPR : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleGiveCPR : public CTaskSimple {
 public:
     union {
         struct {
@@ -36,8 +36,5 @@ private:
 
     CTaskSimpleGiveCPR* Constructor(CAccident* pAccident);
 
-    CTask*  Clone_Reversed() const;
-    bool ProcessPed_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(class CPed* ped, eAbortPriority priority, const CEvent* event);
 };
 VALIDATE_SIZE(CTaskSimpleGiveCPR, 0x18);

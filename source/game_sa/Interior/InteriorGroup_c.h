@@ -3,21 +3,28 @@
 #include "Base.h"
 
 #include "Vector.h"
+#include "InteriorInfo_t.h"
 
 class CEntity;
 class CPed;
 class Interior_c;
 struct InteriorInfo_t;
 
+enum class eInteriorGroupType : int8 {
+    HOUSE = 0,
+    SHOP = 1,
+    OFFICE = 2,
+};
+
 class InteriorGroup_c : public ListItem_c<InteriorGroup_c> {
 public:
     CEntity*    m_pEntity;             // 0x8
     uint8       m_id;                  // 0xC
     uint8       m_groupId;             // 0xD
-    uint8       m_groupType;           // 0xE
+    uint8       m_groupType;           // 0xE - TODO: eInteriorGroupType
     uint8       m_numInteriors;        // 0xF
     Interior_c* m_interiors[8];        // 0x10
-    CEntryExit* m_enex;                // 0x30
+    CEntryExit* m_EnEx;                // 0x30
     bool        m_isVisible;           // 0x34
     bool        m_lastIsVisible;       // 0x35
     int8        m_numPeds;             // 0x36
@@ -48,8 +55,10 @@ public:
     int8 Exit();
     int8 ContainsInteriorType(int32 a2);
     int8 CalcIsVisible();
-    int8 DereferenceAnims();
+
+    void DereferenceAnims();
     void ReferenceAnims();
+
     void UpdateOfficePeds();
     int8 RemovePed(CPed* a2);
     int32 SetupShopPeds();
@@ -57,11 +66,15 @@ public:
     CEntity* GetEntity();
     CPed* GetPed(int32);
     bool FindClosestInteriorInfo(int32 a, CVector point, float b, InteriorInfo_t** interiorInfo, Interior_c** interior, float* pSome);
-    bool FindInteriorInfo(int32 a2, InteriorInfo_t** a3, Interior_c** a4);
+    bool FindInteriorInfo(eInteriorInfoType infoType, InteriorInfo_t** a3, Interior_c** a4);
     int32 GetNumInteriorInfos(int32 a2);
     int32 GetRandomInterior();
     auto GetId() const { return m_id; }
 
     auto GetInteriors() const { return m_interiors | std::views::take(m_numInteriors); }
+private:
+
+    //! @notsa
+    const char* GetAnimBlockName();
 };
 VALIDATE_SIZE(InteriorGroup_c, 0xBC);

@@ -7,7 +7,7 @@ class NOTSA_EXPORT_VTABLE CTaskComplexGoToBoatSteeringWheel : public CTaskComple
 public:
     CVector   m_TargetPos{};
     CVehicle* m_Vehicle{};
-    bool      m_unused{};
+    bool      m_bAchievedPoint{};
     uint32    m_FirstSubTaskStartTime{};
 
 public:
@@ -18,6 +18,7 @@ public:
 
     CTask* CreateSubTask(eTaskType taskType);
     void ComputeTargetPos();
+    bool HasAchievedPoint() const { return m_bAchievedPoint; }
 
     eTaskType GetTaskType() const override { return Type; }
     CTask* Clone() const override { return new CTaskComplexGoToBoatSteeringWheel(m_Vehicle); } // 0x64A350

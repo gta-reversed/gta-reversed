@@ -23,16 +23,16 @@ CAEStreamingChannel::~CAEStreamingChannel() {
         m_pDirectSoundBuffer8->SetFX(0, nullptr, nullptr);
 
     if (m_pSilenceBuffer)
-        m_pSilenceBuffer->Release();
+        std::exchange(m_pSilenceBuffer, nullptr)->Release();
 
     if (m_pDirectSoundBuffer)
-        m_pDirectSoundBuffer->Release();
+        std::exchange(m_pDirectSoundBuffer, nullptr)->Release();
 
     if (m_pStreamingDecoder)
-        delete m_pStreamingDecoder;
+        delete std::exchange(m_pStreamingDecoder, nullptr);
 
     if (m_pNextStreamingDecoder)
-        delete m_pNextStreamingDecoder;
+        delete std::exchange(m_pNextStreamingDecoder, nullptr);
 }
 
 // 0x4F22F0
@@ -450,7 +450,7 @@ void CAEStreamingChannel::Service() {
 }
 
 void CAEStreamingChannel::InjectHooks() {
-    RH_ScopedClass(CAEStreamingChannel);
+    RH_ScopedVirtualClass(CAEStreamingChannel, 0x85F3F0, 9);
     RH_ScopedCategory("Audio/Hardware");
 
     RH_ScopedInstall(Constructor, 0x4F1800, { .reversed = false }); // makes game not load radio
@@ -470,11 +470,11 @@ void CAEStreamingChannel::InjectHooks() {
     RH_ScopedInstall(GetActiveTrackID, 0x4F1A40);
     RH_ScopedInstall(UpdatePlayTime, 0x4F18A0, { .reversed = false });
     RH_ScopedInstall(RemoveFX, 0x4F1C20);
-    RH_ScopedVirtualInstall(Service, 0x4F2550, { .reversed = false });
-    RH_ScopedVirtualInstall(IsSoundPlaying, 0x4F2040);
-    RH_ScopedVirtualInstall(GetPlayTime, 0x4F19E0);
-    RH_ScopedVirtualInstall(GetLength, 0x4F1880);
-    RH_ScopedVirtualInstall(Play, 0x4F1D40);
+    RH_ScopedVMTInstall(Service, 0x4F2550, { .reversed = false });
+    RH_ScopedVMTInstall(IsSoundPlaying, 0x4F2040);
+    RH_ScopedVMTInstall(GetPlayTime, 0x4F19E0);
+    RH_ScopedVMTInstall(GetLength, 0x4F1880);
+    RH_ScopedVMTInstall(Play, 0x4F1D40);
     // RH_ScopedVirtualOverloadedInstall(Stop, "", 0x4F21C0, int8(CAEStreamingChannel::*)()); <-- unused, maybe inlined?
-    RH_ScopedVirtualInstall(SetFrequencyScalingFactor, 0x4F2060);
+    RH_ScopedVMTInstall(SetFrequencyScalingFactor, 0x4F2060);
 }

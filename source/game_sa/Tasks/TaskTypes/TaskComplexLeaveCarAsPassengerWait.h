@@ -5,7 +5,6 @@
 class CPed;
 class CTask;
 class CVehicle;
-class CTaskComplexLeaveCarAsPassengerWait;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexLeaveCarAsPassengerWait : public CTaskComplex {
 public:
@@ -36,6 +35,7 @@ private: // Wrappers for hooks
         this->CTaskComplexLeaveCarAsPassengerWait::CTaskComplexLeaveCarAsPassengerWait(veh);
         return this;
     }
+
     // 0x63B4A0
     CTaskComplexLeaveCarAsPassengerWait* Destructor() {
         this->CTaskComplexLeaveCarAsPassengerWait::~CTaskComplexLeaveCarAsPassengerWait();

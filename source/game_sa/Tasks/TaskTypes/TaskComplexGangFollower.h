@@ -5,10 +5,10 @@
 
 class CPedGroup;
 
-class CTaskComplexGangFollower : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGangFollower : public CTaskComplex {
 public:
     CPedGroup* m_PedGroup;
-    CPed*      m_Ped;
+    CPed*      m_Leader;
     CVector    m_PedPosn;
     CVector    dword20;
     CVector    dword2C;
@@ -22,6 +22,8 @@ public:
 
 public:
     static constexpr auto Type = eTaskType::TASK_COMPLEX_GANG_FOLLOWER;
+
+    static constexpr bool ms_bUseClimbing = true; // 0x8D2EDC
 
     CTaskComplexGangFollower(CPedGroup* pedGroup, CPed* ped, uint8 a4, CVector pos, float a6);
     ~CTaskComplexGangFollower() override;

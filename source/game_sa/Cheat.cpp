@@ -4,6 +4,7 @@
 #include "PedType.h"
 #include "PedClothesDesc.h"
 
+#include "Events/EventAcquaintancePedHate.h"
 #include "TaskSimpleJetPack.h"
 #include "PostEffects.h"
 #include "Hud.h"

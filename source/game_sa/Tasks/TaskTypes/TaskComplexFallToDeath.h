@@ -1,15 +1,14 @@
 #pragma once
 
 #include "TaskComplex.h"
+#include "Enums/eDirection.h"
 
-enum class eFallDir : uint8;
-
-class CTaskComplexFallToDeath : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexFallToDeath : public CTaskComplex {
 public:
     CVector     m_Posn;
     AnimationId m_nAnimId;
     AnimationId m_nAnimId1;
-    eFallDir    m_nFallToDeathDir;
+    eDirection    m_nFallToDeathDir;
     union {
         struct {
             uint8 b0x1  : 1;
@@ -38,6 +37,8 @@ public:
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* CreateNextSubTask(CPed* ped) override;
 
+    static bool CalcFall(CPed* ped, int32& fallDir, bool& bFallToDeathOverRailing);
+
 private:
     void UpdateAnims(CPed* ped);
 
@@ -45,9 +46,5 @@ private:
     static void InjectHooks();
 
     CTaskComplexFallToDeath* Constructor(int32 direction, const CVector& posn, bool a4, bool a5);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    CTask* ControlSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskComplexFallToDeath, 0x24);

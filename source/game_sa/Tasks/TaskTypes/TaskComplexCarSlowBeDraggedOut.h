@@ -6,7 +6,7 @@
 class CVehicle;
 class CTaskSimpleCarFallOut;
 
-class CTaskComplexCarSlowBeDraggedOut : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexCarSlowBeDraggedOut : public CTaskComplex {
 public:
     CVehicle* m_Vehicle;
     int32     m_Door;

@@ -154,7 +154,7 @@ public:
     static void InjectHooks();
 
     /// Get uncompressed world position
-    CVector GetNodeCoors() const {
+    CVector GetPosition() const {
         return UncompressLargeVector(m_vPos);
     }
 
@@ -193,21 +193,21 @@ public:
     * The first part of the array has the vehicle nodes (count: `m_anNumVehicleNodes`)
     * the remaining part has ped nodes (count: `m_anNumPedNodes`)
     */
-    CPathNode*             m_pPathNodes[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0x804
+    CPathNode*             m_pPathNodes[NUM_TOTAL_PATH_NODE_AREAS]; // 0x804
 
     // Use CPathFind::GetCarPathLink to access
-    CCarPathLink*          m_pNaviNodes[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0x924
-    CNodeAddress*          m_pNodeLinks[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0xA44
-    uint8*                 m_pLinkLengths[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0xB64
-    CPathIntersectionInfo* m_pPathIntersections[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0xC84
+    CCarPathLink*          m_pNaviNodes[NUM_TOTAL_PATH_NODE_AREAS]; // 0x924
+    CNodeAddress*          m_pNodeLinks[NUM_TOTAL_PATH_NODE_AREAS]; // 0xA44
+    uint8*                 m_pLinkLengths[NUM_TOTAL_PATH_NODE_AREAS]; // 0xB64
+    CPathIntersectionInfo* m_pPathIntersections[NUM_TOTAL_PATH_NODE_AREAS]; // 0xC84
     CCarPathLinkAddress*   m_pNaviLinks[NUM_PATH_MAP_AREAS]; // 0xDA4
     void*                  m_aUnused[22]; // 0xEA4
     uint32                 m_aUnk[NUM_PATH_MAP_AREAS - 22]; // 0xEFC
-    uint32                 m_anNumNodes[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0xFA4
-    uint32                 m_anNumVehicleNodes[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0x10C4
-    uint32                 m_anNumPedNodes[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS]; // 0x11E4
-    uint32                 m_anNumCarPathLinks[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS];
-    uint32                 m_anNumAddresses[NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS];
+    uint32                 m_anNumNodes[NUM_TOTAL_PATH_NODE_AREAS]; // 0xFA4
+    uint32                 m_anNumVehicleNodes[NUM_TOTAL_PATH_NODE_AREAS]; // 0x10C4
+    uint32                 m_anNumPedNodes[NUM_TOTAL_PATH_NODE_AREAS]; // 0x11E4
+    uint32                 m_anNumCarPathLinks[NUM_TOTAL_PATH_NODE_AREAS];
+    uint32                 m_anNumAddresses[NUM_TOTAL_PATH_NODE_AREAS];
     int32                  m_aDynamicLinksBaseIds[NUM_PATH_MAP_AREAS][NUM_DYNAMIC_LINKS_PER_AREA];
     int32                  m_aDynamicLinksIds[NUM_PATH_MAP_AREAS][NUM_DYNAMIC_LINKS_PER_AREA];
     uint32                 m_totalNumNodesInPathFindHashTable; // Number of items in total in all buckets of `m_pathFindHashTable`
@@ -460,7 +460,7 @@ public:
     CPathNode* GetPathNode(CNodeAddress address);
 
     inline CCarPathLink& GetCarPathLink(const CCarPathLinkAddress& address) {
-        assert(address.m_wAreaId < NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS);
+        assert(address.m_wAreaId < NUM_TOTAL_PATH_NODE_AREAS);
         return m_pNaviNodes[address.m_wAreaId][address.m_wCarPathLinkId];
     }
 

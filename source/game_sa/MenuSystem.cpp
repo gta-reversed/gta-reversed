@@ -341,7 +341,7 @@ void CMenuSystem::DisplayStandardMenu(MenuId id, bool bRightFont /*bBrightFont*/
     };
 
     // 0x581216
-    char buffer[400];
+    GxtChar buffer[400];
     // draw rows
     for (auto row = 0; row < menu->m_nNumRows; row++) {
         for (auto column = 0; column < menu->m_nNumColumns; column++) {

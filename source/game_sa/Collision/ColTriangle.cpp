@@ -4,9 +4,9 @@
 
 // NOTSA
 void CColTriangle::DrawWireFrame(CRGBA color, const CompressedVector* vertices, const CMatrix& transform) const {
-    const CVector a = transform * UncompressVector(vertices[vA]);
-    const CVector b = transform * UncompressVector(vertices[vB]);
-    const CVector c = transform * UncompressVector(vertices[vC]);
+    const CVector a = transform.TransformPoint(UncompressVector(vertices[vA]));
+    const CVector b = transform.TransformPoint(UncompressVector(vertices[vB]));
+    const CVector c = transform.TransformPoint(UncompressVector(vertices[vC]));
 
     const auto colorARGB = color.ToInt();
     CLines::RenderLineNoClipping(a, b, colorARGB, colorARGB);

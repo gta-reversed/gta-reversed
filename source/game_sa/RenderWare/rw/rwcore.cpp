@@ -294,6 +294,7 @@ RwRaster* RwRasterShowRaster(RwRaster* raster, void* dev, RwUInt32 flags) {
     return ((RwRaster*(__cdecl *)(RwRaster*, void*, RwUInt32))0x7FB1A0)(raster, dev, flags);
 }
 
+//! NOTE: This function is responsible for calculating the `stride` in the `raster`
 RwUInt8* RwRasterLock(RwRaster* raster, RwUInt8 level, RwInt32 lockMode) {
     return ((RwUInt8*(__cdecl *)(RwRaster*, RwUInt8, RwInt32))0x7FB2D0)(raster, level, lockMode);
 }
@@ -778,8 +779,8 @@ void RwD3D9DeletePixelShader() {
     ((void(__cdecl *)(void))0x7FACF0)();
 }
 
-const D3DCAPS9* RwD3D9GetCaps() {
-    return ((const D3DCAPS9*(__cdecl *)(void))0x7FAD20)();
+D3DCAPS9* RwD3D9GetCaps() {
+    return ((D3DCAPS9*(__cdecl *)(void))0x7FAD20)();
 }
 
 RwBool RwD3D9CameraIsSphereFullyInsideFrustum(const void* camera, const void* sphere) {

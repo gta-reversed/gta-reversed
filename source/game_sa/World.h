@@ -14,6 +14,8 @@ class CRepeatSector;
 class CPtrListSingleLink;
 class CPed;
 class CVehicle;
+class CPlayerPed;
+class CWanted;
 
 constexpr int32 MAX_PLAYERS = 2;
 constexpr int32 MAX_WORLD_UNITS = 6000;
@@ -270,6 +272,11 @@ public:
         if (pos.z <= MAP_Z_LOW_LIMIT) {
             pos.z = CWorld::FindGroundZForCoord(pos.x, pos.y);
         }
+    }
+
+    // @notsa
+    static CVector AddGroundZToCoord(CVector2D xy) {
+        return CVector{ xy, FindGroundZForCoord(xy.x, xy.y) };
     }
 };
 

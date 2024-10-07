@@ -5,7 +5,7 @@
 
 class CEntity;
 
-class CTaskComplexTrackEntity : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexTrackEntity : public CTaskComplex {
 public:
     CEntity* m_toTrack{};          // 0xC
     CVector m_offsetPosn{};              // 0x10

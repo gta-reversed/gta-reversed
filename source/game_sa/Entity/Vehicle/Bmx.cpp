@@ -1,20 +1,20 @@
 #include "StdInc.h"
 
 void CBmx::InjectHooks() {
-    RH_ScopedClass(CBmx);
+    RH_ScopedVirtualClass(CBmx, 0x871528, 67);
     RH_ScopedCategory("Vehicle");
 
     RH_ScopedInstall(Constructor, 0x6BF820);
-    RH_ScopedVirtualInstall(SetUpWheelColModel, 0x6BF9B0);
-    RH_ScopedVirtualInstall(BurstTyre, 0x6BF9C0);
-    RH_ScopedVirtualInstall(FindWheelWidth, 0x6C0550);
+    RH_ScopedVMTInstall(SetUpWheelColModel, 0x6BF9B0);
+    RH_ScopedVMTInstall(BurstTyre, 0x6BF9C0);
+    RH_ScopedVMTInstall(FindWheelWidth, 0x6C0550);
 }
 
 // 0x6BF820
 CBmx::CBmx(int32 modelIndex, eVehicleCreatedBy createdBy) : CBike(modelIndex, createdBy) {
     auto mi = CModelInfo::GetModelInfo(modelIndex);
     m_nVehicleSubType = VEHICLE_TYPE_BMX;
-    m_RideAnimData.m_nAnimGroup = CAnimManager::ms_aAnimBlocks[mi->GetAnimFileIndex()].animationStyle;
+    m_RideAnimData.m_nAnimGroup = CAnimManager::GetAnimBlocks()[mi->GetAnimFileIndex()].GroupId;
     if (m_RideAnimData.m_nAnimGroup < ANIM_GROUP_BMX || m_RideAnimData.m_nAnimGroup > ANIM_GROUP_CHOPPA) {
         m_RideAnimData.m_nAnimGroup = ANIM_GROUP_BMX;
     }

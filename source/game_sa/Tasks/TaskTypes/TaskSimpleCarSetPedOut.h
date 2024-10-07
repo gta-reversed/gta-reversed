@@ -9,7 +9,7 @@
 #include "TaskSimple.h"
 class CVehicle;
 
-class CTaskSimpleCarSetPedOut : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleCarSetPedOut : public CTaskSimple {
 public:
     CVehicle*   m_pTargetVehicle{};
     eTargetDoor m_nTargetDoor{};
@@ -26,9 +26,12 @@ public:
     CTaskSimpleCarSetPedOut(CVehicle* targetVehicle, eTargetDoor nTargetDoor, bool bSwitchOffEngine, bool warpingOutOfCar /*notsa arg*/ = false);
     ~CTaskSimpleCarSetPedOut() override;
 
+    static void PositionPedOutOfCollision(CPed* ped, CVehicle* veh, int32 door);
+
     eTaskType GetTaskType() const override { return Type; };
     CTask* Clone() const override;
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return false; }
     bool ProcessPed(CPed* ped) override;
+
 };
 VALIDATE_SIZE(CTaskSimpleCarSetPedOut, 0x18);

@@ -32,16 +32,6 @@ public:
     // vtable added methods
     virtual void SetAtomic(RpAtomic* atomic);
 
-    // vtable implementations;
-    CAtomicModelInfo* AsAtomicModelInfoPtr_Reversed();
-    ModelInfoType GetModelType_Reversed();
-    void Init_Reversed();
-    void DeleteRwObject_Reversed();
-    uint32 GetRwModelType_Reversed();
-    RwObject* CreateInstance_Reversed();
-    RwObject* CreateInstance_Reversed(RwMatrix* matrix);
-    void SetAtomic_Reversed(RpAtomic* atomic);
-
     // class methods
     struct RpAtomic* GetAtomicFromDistance(float distance);
     void SetupVehicleUpgradeFlags(const char* name);

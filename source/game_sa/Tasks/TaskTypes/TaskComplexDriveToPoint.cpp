@@ -4,7 +4,7 @@
 #include "TaskComplexGoToPointAnyMeans.h"
 
 // 0x63CE00
-CTaskComplexDriveToPoint::CTaskComplexDriveToPoint(CVehicle* vehicle, const CVector& point, float speed, int32 arg4, int32 carModelIndexToCreate, float radius, eCarDrivingStyle drivingStyle) :
+CTaskComplexDriveToPoint::CTaskComplexDriveToPoint(CVehicle* vehicle, const CVector& point, float speed, int32 arg4, eModelID carModelIndexToCreate, float radius, eCarDrivingStyle drivingStyle) :
       CTaskComplexCarDrive(vehicle, speed, carModelIndexToCreate, drivingStyle),
       m_Point{ point },
       field_30{ arg4 },
@@ -16,40 +16,40 @@ CTaskComplexDriveToPoint::CTaskComplexDriveToPoint(CVehicle* vehicle, const CVec
 
 // 0x63CE80
 CTask* CTaskComplexDriveToPoint::CreateSubTaskCannotGetInCar(CPed* ped) {
-    return new CTaskComplexGoToPointAnyMeans(PEDMOVE_RUN, m_Point, 0.5f, m_carModelIndexToCreate);
+    return new CTaskComplexGoToPointAnyMeans(PEDMOVE_RUN, m_Point, 0.5f, m_DesiredCarModel);
 }
 
 // 0x63CF00
 void CTaskComplexDriveToPoint::SetUpCar() {
-    m_nOldCarDrivingStyle = m_pVehicle->m_autoPilot.m_nCarDrivingStyle;
-    m_nCarMission         = m_pVehicle->m_autoPilot.m_nCarMission;
-    m_nSpeed              = m_pVehicle->m_autoPilot.m_nCruiseSpeed;
+    m_OriginalDrivingStyle = m_Veh->m_autoPilot.m_nCarDrivingStyle;
+    m_OriginalMission         = m_Veh->m_autoPilot.m_nCarMission;
+    m_OriginalSpeed              = m_Veh->m_autoPilot.m_nCruiseSpeed;
 
-    m_bSavedVehicleBehavior = true;
+    m_bIsCarSetUp = true;
 
-    if (m_fSpeed > 0.0f) {
-        assert(m_fSpeed < 255.0f);
-        m_pVehicle->m_autoPilot.m_nCruiseSpeed = (uint8)m_fSpeed;
+    if (m_CruiseSpeed > 0.0f) {
+        assert(m_CruiseSpeed < 255.0f);
+        m_Veh->m_autoPilot.m_nCruiseSpeed = (uint8)m_CruiseSpeed;
     }
-    m_pVehicle->m_autoPilot.m_nCarDrivingStyle    = m_nCarDrivingStyle;
-    m_pVehicle->m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
+    m_Veh->m_autoPilot.m_nCarDrivingStyle    = static_cast<eCarDrivingStyle>(m_CarDrivingStyle);
+    m_Veh->m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
 }
 
 // 0x645420
 CTask* CTaskComplexDriveToPoint::Drive(CPed* ped) {
     return plugin::CallMethodAndReturn<CTask*, 0x645420, CTaskComplexDriveToPoint*, CPed*>(this, ped); // untested
 
-    auto dist = DistanceBetweenPoints(m_pVehicle->GetPosition(), m_Point);
+    auto dist = DistanceBetweenPoints(m_Veh->GetPosition(), m_Point);
     if (dist < m_Radius) {
-        m_pVehicle->m_autoPilot.m_nCarMission = MISSION_NONE;
+        m_Veh->m_autoPilot.m_nCarMission = MISSION_NONE;
         field_38 = true;
         return CTaskComplexCarDrive::CreateSubTask(TASK_FINISHED, ped);
     }
 
-    if (dist >= 3.0f || m_pVehicle->m_autoPilot.m_nCarMission) {
-        if (!m_pVehicle->m_autoPilot.m_nCruiseSpeed) {
-            assert(m_fSpeed < 255.0f);
-            m_pVehicle->m_autoPilot.m_nCruiseSpeed = (uint8)m_fSpeed;
+    if (dist >= 3.0f || m_Veh->m_autoPilot.m_nCarMission) {
+        if (!m_Veh->m_autoPilot.m_nCruiseSpeed) {
+            assert(m_CruiseSpeed < 255.0f);
+            m_Veh->m_autoPilot.m_nCruiseSpeed = (uint8)m_CruiseSpeed;
         }
 
         if (IsTargetBlocked(ped)) {
@@ -59,16 +59,16 @@ CTask* CTaskComplexDriveToPoint::Drive(CPed* ped) {
 
         switch (field_30) {
         case field_30_enum::DEFAULT:
-            CCarAI::GetCarToGoToCoors(m_pVehicle, &m_Point, m_nCarDrivingStyle, false);
+            CCarAI::GetCarToGoToCoors(m_Veh, &m_Point, m_CarDrivingStyle, false);
             return m_pSubTask;
         case field_30_enum::ACCURATE:
-            CCarAI::GetCarToGoToCoorsAccurate(m_pVehicle, &m_Point, m_nCarDrivingStyle, false);
+            CCarAI::GetCarToGoToCoorsAccurate(m_Veh, &m_Point, m_CarDrivingStyle, false);
             return m_pSubTask;
         case field_30_enum::STRAIGHT_LINE:
-            CCarAI::GetCarToGoToCoorsStraightLine(m_pVehicle, &m_Point, m_nCarDrivingStyle, false);
+            CCarAI::GetCarToGoToCoorsStraightLine(m_Veh, &m_Point, m_CarDrivingStyle, false);
             return m_pSubTask;
         case field_30_enum::RACING:
-            CCarAI::GetCarToGoToCoorsRacing(m_pVehicle, &m_Point, m_nCarDrivingStyle, false);
+            CCarAI::GetCarToGoToCoorsRacing(m_Veh, &m_Point, m_CarDrivingStyle, false);
             return m_pSubTask;
         default:
             return m_pSubTask;

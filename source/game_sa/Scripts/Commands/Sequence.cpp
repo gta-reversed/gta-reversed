@@ -13,7 +13,7 @@ void SetSequenceToRepeat(int32 index, bool repeat) {
         DEV_LOG("COMMAND_SET_SEQUENCE_TO_REPEAT: Index should be in [0, 64], it is {}", actualIndex);
         return;
     }
-    CTaskSequences::GetActiveSequence().m_bRepeatSequence = repeat;
+    CTaskSequences::GetActiveSequence().SetRepeatMode(repeat);
 }
 
 void notsa::script::commands::sequence::RegisterHandlers() {

@@ -2,7 +2,7 @@
 
 #include "TaskComplexPartner.h"
 
-class CTaskComplexPartnerChat : public CTaskComplexPartner {
+class NOTSA_EXPORT_VTABLE CTaskComplexPartnerChat : public CTaskComplexPartner {
 public:
     int32 field_70;
     bool m_conversationEnabled;

@@ -198,6 +198,11 @@ bool CCam::Using3rdPersonMouseCam() {
     return CCamera::m_bUseMouse3rdPerson && m_nMode == MODE_FOLLOWPED;
 }
 
+// 0x509DC0
+bool CCam::GetWeaponFirstPersonOn() {
+    return m_pCamTargetEntity && m_pCamTargetEntity->IsPed() && m_pCamTargetEntity->AsPed()->GetActiveWeapon().m_IsFirstPersonWeaponModeSelected;
+}
+
 // 0x526FC0
 bool CCam::Process() {
     assert(0); return false;

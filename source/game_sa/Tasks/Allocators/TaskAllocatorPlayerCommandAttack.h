@@ -3,7 +3,7 @@
 #include "TaskAllocatorAttack.h"
 #include "ePedType.h"
 
-class CTaskAllocatorPlayerCommandAttack : public CTaskAllocatorAttack {
+class NOTSA_EXPORT_VTABLE CTaskAllocatorPlayerCommandAttack : public CTaskAllocatorAttack {
 public:
     CTaskAllocatorPlayerCommandAttack(CPed* ped, int32 groupId, ePedType pedType);
 

@@ -11,8 +11,8 @@ enum class eSlotState {
 class CGenericGameStorage {
     static constexpr auto BUFFER_SIZE{ (uint32)(50u * 1024u) };
 
-    using tSlotSaveDate = char[70];
-    using tSlotFileName = char[MAX_PATH];
+    using tSlotSaveDate = GxtChar[70];
+    using tSlotFileName = GxtChar[MAX_PATH];
 
     enum class eBlocks {
         SIMPLE_VARIABLES,
@@ -104,7 +104,7 @@ private:
     static const char* GetBlockName(eBlocks);
 };
 
-const char* GetSavedGameDateAndTime(int32 slot);
+const GxtChar* GetSavedGameDateAndTime(int32 slot);
 
 // Pirulax: I don't even have to mention the stuff below is NOTSA
 /*

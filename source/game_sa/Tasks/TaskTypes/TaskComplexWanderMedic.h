@@ -3,7 +3,7 @@
 #include "TaskComplexWander.h"
 #include "eMoveState.h"
 
-class CTaskComplexWanderMedic : public CTaskComplexWander {
+class NOTSA_EXPORT_VTABLE CTaskComplexWanderMedic : public CTaskComplexWander {
 public:
     CTaskComplexWanderMedic(eMoveState MoveState, uint8 Dir, bool bWanderSensibly = true);
 

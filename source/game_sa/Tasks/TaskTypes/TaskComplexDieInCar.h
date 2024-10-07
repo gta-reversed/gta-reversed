@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexDieInCar : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexDieInCar : public CTaskComplex {
 public:
     eWeaponType m_nWeaponType;
     uint32      m_nTimeMS;
@@ -30,9 +30,5 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTask* ControlSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 };
 VALIDATE_SIZE(CTaskComplexDieInCar, 0x1C);

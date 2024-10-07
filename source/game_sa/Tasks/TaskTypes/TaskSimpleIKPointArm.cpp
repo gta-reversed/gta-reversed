@@ -4,60 +4,70 @@
 #include "IKChainManager_c.h"
 
 void CTaskSimpleIKPointArm::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleIKPointArm);
+    RH_ScopedVirtualClass(CTaskSimpleIKPointArm, 0x86E3A4, 10);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x634150);
     RH_ScopedInstall(Destructor, 0x634240);
     RH_ScopedInstall(UpdatePointArmInfo, 0x634370);
-    RH_ScopedInstall(Clone_Reversed, 0x634250);
-    RH_ScopedInstall(GetTaskType_Reversed, 0x634230);
-    RH_ScopedInstall(CreateIKChain_Reversed, 0x6342F0);
+    RH_ScopedVMTInstall(Clone, 0x634250);
+    RH_ScopedVMTInstall(GetTaskType, 0x634230);
+    RH_ScopedVMTInstall(CreateIKChain, 0x6342F0);
 }
 
 // 0x634150
-CTaskSimpleIKPointArm::CTaskSimpleIKPointArm(const char* purpose, int32 hand, CEntity* targetEntity, ePedBones bone, CVector offsetPos, float speed, int32 blendTime)
-    : CTaskSimpleIKChain{purpose, hand ? BONE_L_HAND : BONE_R_HAND, CVector{ 0.f, 0.05f, 0.f }, BONE_NORMAL, targetEntity, bone, offsetPos, speed, 999'999, blendTime}
+CTaskSimpleIKPointArm::CTaskSimpleIKPointArm(const char* purpose, eIKArm arm, CEntity* targetEntity, eBoneTag offsetBoneTag, CVector offsetPos, float speed, int32 blendTime) :
+    CTaskSimpleIKChain{
+        purpose,
+        IKArmToBoneTag(arm),
+        CVector{ 0.f, 0.05f, 0.f },
+        BONE_ROOT,
+        targetEntity,
+        offsetBoneTag,
+        offsetPos,
+        speed,
+        999'999,
+        blendTime
+    },
+    m_Arm{arm}
 {
-    m_Hand = hand;
 }
 
 // 0x634250
 CTask* CTaskSimpleIKPointArm::Clone() const {
-    auto* task = new CTaskSimpleIKPointArm("", m_Hand, m_pEntity, m_nOffsetBoneTag, m_vecOffsetPos, m_fSpeed, m_nBlendTime);
-    if (m_pIKChain) {
-        task->m_fBlend       = m_fBlend;
-        task->m_nEndTime     = m_nEndTime;
-        task->m_fTargetBlend = m_fTargetBlend;
-        task->m_nTargetTime  = m_nTargetTime;
+    const auto clone = new CTaskSimpleIKPointArm("", m_Arm, m_TargetEntity, m_OffsetBone, m_OffsetPos, m_Speed, m_BlendDuration);
+    if (m_IKChain) {
+        clone->m_Blend       = m_Blend;
+        clone->m_EndTime     = m_EndTime;
+        clone->m_TargetBlend = m_TargetBlend;
+        clone->m_TargetTime  = m_TargetTime;
     }
-    return task;
+    return clone;
 }
 
 // 0x634370
-void CTaskSimpleIKPointArm::UpdatePointArmInfo(const char* purpose, CEntity* entity, ePedBones bone, CVector posn, float speed, int32 timeOffset) {
-    m_bEntityExist = !!entity;
-    CEntity::ChangeEntityReference(m_pEntity, entity);
+void CTaskSimpleIKPointArm::UpdatePointArmInfo(const char* purpose, CEntity* pointAtEntity, eBoneTag32 offsetBoneTag, CVector offset, float speed, int32 blendDuration) {
+    m_TargetEntityExisted = !!pointAtEntity;
+    m_TargetEntity        = pointAtEntity;
+    m_OffsetBone          = offsetBoneTag;
+    m_OffsetPos           = offset;
+    m_Speed               = speed;
+    m_BlendDuration       = blendDuration;
+    m_EndTime             = CTimer::GetTimeInMS() + 999'999;
+    m_TargetBlend         = 1.f;
+    m_TargetTime          = CTimer::GetTimeInMS() + blendDuration;
+    m_IsBlendingOut       = false;
 
-    m_nOffsetBoneTag = bone;
-    m_vecOffsetPos = posn;
-    m_fSpeed = speed;
-    m_nBlendTime = timeOffset;
-    m_nEndTime = CTimer::GetTimeInMS() + 999'999;
-    m_fTargetBlend = 1.f;
-    m_nTargetTime = CTimer::GetTimeInMS() + timeOffset;
-    m_bIsBlendingOut = false;
-
-    // Update IK chain
-    if (m_pIKChain) {
-        m_pIKChain->UpdateEntity(m_pEntity);
-        m_pIKChain->UpdateOffset(m_nOffsetBoneTag, m_vecOffsetPos);
-        m_pIKChain->UpdateTarget(true);
+    if (m_IKChain) {
+        m_IKChain->UpdateEntity(m_TargetEntity);
+        m_IKChain->UpdateOffset(m_OffsetBone, m_OffsetPos);
+        m_IKChain->UpdateTarget(true);
     }
 }
 
 // 0x6342F0
 bool CTaskSimpleIKPointArm::CreateIKChain(CPed* ped) {
-    m_pIKChain = g_ikChainMan.AddIKChain("", m_Hand ? BONE_SPINE : BONE_PELVIS, ped, m_nEffectorBoneTag, m_vecEffectorVec, BONE_NECK, m_pEntity, m_nOffsetBoneTag, m_vecOffsetPos, m_fSpeed, 3);
-    return m_pIKChain != nullptr;
+    m_PivotBone = BONE_NECK;
+    m_IKChain      = g_ikChainMan.AddIKChain("", IKArmToIKSlot(m_Arm), ped, m_EffectorBone, m_EffectorOffset, BONE_NECK, m_TargetEntity, m_OffsetBone, m_OffsetPos, m_Speed, 3);
+    return !!m_IKChain;
 }

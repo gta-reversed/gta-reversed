@@ -7,7 +7,7 @@ CTaskComplexPolicePursuit::CTaskComplexPolicePursuit() : CTaskComplex() {
     plugin::CallMethod<0x68BA70, CTaskComplexPolicePursuit*>(this);
 }
 
-// 0x68CDD0
+
 CTaskComplexPolicePursuit::CTaskComplexPolicePursuit(const CTaskComplexPolicePursuit& o) :
     CTaskComplexPolicePursuit{}
 {
@@ -59,7 +59,7 @@ void CTaskComplexPolicePursuit::SetWeapon(CPed* ped) {
 }
 
 void CTaskComplexPolicePursuit::InjectHooks() {
-    RH_ScopedClass(CTaskComplexPolicePursuit);
+    RH_ScopedVirtualClass(CTaskComplexPolicePursuit, 0x8709D4, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x68BA70, { .reversed = false });
     RH_ScopedInstall(SetWeapon, 0x68BAD0, { .reversed = false });
@@ -67,11 +67,11 @@ void CTaskComplexPolicePursuit::InjectHooks() {
     RH_ScopedInstall(SetPursuit, 0x68BBD0, { .reversed = false });
     RH_ScopedInstall(PersistPursuit, 0x68BDC0, { .reversed = false });
     RH_ScopedInstall(CreateSubTask, 0x68D910, { .reversed = false });
-    RH_ScopedVirtualInstall(Clone, 0x68CDD0, { .reversed = false });
-    RH_ScopedVirtualInstall(MakeAbortable, 0x68BAB0, { .reversed = false });
-    RH_ScopedVirtualInstall(CreateNextSubTask, 0x68BAC0, { .reversed = false });
-    RH_ScopedVirtualInstall(CreateFirstSubTask, 0x6908E0, { .reversed = false });
-    RH_ScopedVirtualInstall(ControlSubTask, 0x690920, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x68CDD0, { .reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x68BAB0, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x68BAC0, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6908E0, { .reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x690920, { .reversed = false });
 }
 
 CTaskComplexPolicePursuit* CTaskComplexPolicePursuit::Constructor() {
@@ -79,27 +79,4 @@ CTaskComplexPolicePursuit* CTaskComplexPolicePursuit::Constructor() {
     return this;
 }
 
-// 0x68CDD0
-CTask* CTaskComplexPolicePursuit::Clone_Reversed() const {
-    return CTaskComplexPolicePursuit::Clone();
-}
-
-// 0x68BAB0
-bool CTaskComplexPolicePursuit::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    return CTaskComplexPolicePursuit::MakeAbortable(ped, priority, event);
-}
-
-// 0x68BAC0
-CTask* CTaskComplexPolicePursuit::CreateNextSubTask_Reversed(CPed* ped) {
-    return CTaskComplexPolicePursuit::CreateNextSubTask(ped);
-}
-
-// 0x6908E0
-CTask* CTaskComplexPolicePursuit::CreateFirstSubTask_Reversed(CPed* ped) {
-    return CTaskComplexPolicePursuit::CreateFirstSubTask(ped);
-}
-
-// 0x690920
-CTask* CTaskComplexPolicePursuit::ControlSubTask_Reversed(CPed* ped) {
-    return CTaskComplexPolicePursuit::ControlSubTask(ped);
-}
+// 0x68CDD0// 0x68BAC0// 0x6908E0// 0x690920

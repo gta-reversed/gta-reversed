@@ -9,7 +9,7 @@
 #include "TaskComplexEnterCar.h"
 #include "Ped.h" // eMoveState
 
-class CTaskComplexEnterCarAsDriver : public CTaskComplexEnterCar {
+class NOTSA_EXPORT_VTABLE CTaskComplexEnterCarAsDriver : public CTaskComplexEnterCar {
 public:
     static constexpr auto Type = TASK_COMPLEX_ENTER_CAR_AS_DRIVER;
 

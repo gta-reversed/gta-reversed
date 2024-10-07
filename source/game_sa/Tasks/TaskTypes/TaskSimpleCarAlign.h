@@ -7,7 +7,7 @@ class CTaskUtilityLineUpPedWithCar;
 class CAnimBlendAssociation;
 class CVehicle;
 
-class CTaskSimpleCarAlign : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleCarAlign : public CTaskSimple {
 
 public:
     bool m_animHasFinished = {};                     // 8

@@ -124,7 +124,7 @@ void CAEWaterCannonAudioEntity::Service() {
 }
 
 void CAEWaterCannonAudioEntity::InjectHooks() {
-    RH_ScopedClass(CAEWaterCannonAudioEntity);
+    RH_ScopedVirtualClass(CAEWaterCannonAudioEntity, 0x872A60, 1);
     RH_ScopedCategory("Audio/Entities");
 
     RH_ScopedInstall(Constructor, 0x728A90);
@@ -133,14 +133,10 @@ void CAEWaterCannonAudioEntity::InjectHooks() {
     RH_ScopedInstall(Service, 0x5030D0);
     RH_ScopedInstall(SetSplashInfo, 0x502F50);
     RH_ScopedInstall(ClearSplashInfo, 0x502F20);
-    RH_ScopedVirtualInstall(UpdateParameters, 0x502EF0);
+    RH_ScopedVMTInstall(UpdateParameters, 0x502EF0);
 }
 
 CAEWaterCannonAudioEntity* CAEWaterCannonAudioEntity::Constructor() {
     this->CAEWaterCannonAudioEntity::CAEWaterCannonAudioEntity();
     return this;
-}
-
-void CAEWaterCannonAudioEntity::UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) {
-    CAEWaterCannonAudioEntity::UpdateParameters(sound, curPlayPos);
 }

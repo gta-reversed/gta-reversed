@@ -6,28 +6,31 @@
 
 class CColSphere;
 
-class CTaskComplexAvoidOtherPedWhileWandering : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexAvoidOtherPedWhileWandering : public CTaskComplex {
 public:
-    CPed*      m_ped;
-    CVector    field_10;
-    CVector    field_1C;
-    CVector    field_28;
-    int32      field_34;
-    int32      field_38;
-    int32      field_3C;
-    CTaskTimer field_40;
-    CTaskTimer field_4C;
-    eMoveState m_moveState;
-    int8       m_flag1 : 1;
-    int8       m_flag2 : 1;
-    int8       m_flag3 : 1;
-    int8       m_flag4 : 1;
-    char       field_5D[3];
-
+    CPed*      m_OtherPed{};
+    CVector    m_StartPoint{};
+    CVector    m_TargetPt{};
+    CVector    m_DetourTarget{};
+    CVector    m_NewTarget{};
+    CTaskTimer m_Timer{};
+    CTaskTimer m_DontQuitYetTimer{};
+    eMoveState m_MoveState{};
+    bool       m_bDoingIK : 1{};
+    bool       m_bWantsToQuit : 1{};
+    bool       m_bMovingTarget : 1{};
+    
 public:
     static constexpr auto Type = TASK_COMPLEX_AVOID_OTHER_PED_WHILE_WANDERING;
 
-    CTaskComplexAvoidOtherPedWhileWandering(CPed* ped, const CVector& targetPoint, int32 moveState);
+    CTaskComplexAvoidOtherPedWhileWandering(
+        CPed* ped,
+        const CVector& targetPoint,
+        eMoveState moveState,
+
+        //VVV NOTSA ARGS VVV//
+        bool bMovingTarget = false
+    );
     ~CTaskComplexAvoidOtherPedWhileWandering() override;
 
     CTask* Clone() const override;
@@ -46,10 +49,14 @@ public:
     bool ComputeDetourTarget(CPed* ped);
 
 private:
+    CTaskComplexAvoidOtherPedWhileWandering* Constructor(CPed* ped, const CVector& targetPoint, eMoveState moveState) {
+        this->CTaskComplexAvoidOtherPedWhileWandering::CTaskComplexAvoidOtherPedWhileWandering(ped, targetPoint, moveState);
+        return this;
+    }
+
+private:
     friend void InjectHooksMain();
     static void InjectHooks();
-
-    CTaskComplexAvoidOtherPedWhileWandering* Constructor(CPed* ped, const CVector& targetPoint, int32 moveState);
 };
 
 VALIDATE_SIZE(CTaskComplexAvoidOtherPedWhileWandering, 0x60);

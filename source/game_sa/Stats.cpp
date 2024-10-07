@@ -383,8 +383,8 @@ void CStats::RegisterBestPosition(eStats stat, int32 position) {
 }
 
 // 0x55A210
-char* CStats::FindCriminalRatingString() {
-    return plugin::CallAndReturn<char*, 0x55A210>();
+GxtChar* CStats::FindCriminalRatingString() {
+    return plugin::CallAndReturn<GxtChar*, 0x55A210>();
 }
 
 // 0x55A780

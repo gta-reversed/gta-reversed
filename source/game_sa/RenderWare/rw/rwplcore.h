@@ -5249,6 +5249,12 @@ RwStream* _rwStreamInitialize(RwStream* stream, RwBool rwOwned, RwStreamType typ
 RwStream* RwStreamOpen(RwStreamType type, RwStreamAccessType accessType, const void* data); // 0x7ECEF0
 RwBool RwStreamClose(RwStream* stream, void* data); // 0x7ECE20
 RwUInt32 RwStreamRead(RwStream* stream, void* buffer, RwUInt32 length); // 0x7EC9D0
+template<typename T>
+T RwStreamRead(RwStream* stream, size_t size = sizeof(T)) {
+    T data;
+    RwStreamRead(stream, &data, size);
+    return data;
+}
 RwStream* RwStreamWrite(RwStream* stream, const void* buffer, RwUInt32 length); // 0x7ECB30
 RwStream* RwStreamSkip(RwStream* stream, RwUInt32 offset); // 0x7ECD00
 RwBool _rwStringOpen(); // 0x80A240

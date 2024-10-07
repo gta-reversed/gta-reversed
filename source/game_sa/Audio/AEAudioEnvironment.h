@@ -17,8 +17,8 @@ public:
     static float GetDistanceAttenuation(float dist);
     static float GetDirectionalMikeAttenuation(const CVector& soundDir);
     static void  GetReverbEnvironmentAndDepth(int8* reverbEnv, int32* depth);
-    static void  GetPositionRelativeToCamera(CVector* vecOut, const CVector* vecPos);
-    static void  GetPositionRelativeToCamera(CVector* vecOut, CPlaceable* placeable);
+    static CVector  GetPositionRelativeToCamera(const CVector& pos);
+    static CVector  GetPositionRelativeToCamera(CPlaceable* placeable);
 };
 
 static constexpr int32 NUM_AUDIO_ENVIRONMENTS = 68;

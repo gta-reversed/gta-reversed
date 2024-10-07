@@ -5,16 +5,16 @@
 #include "AESmoothFadeThread.h"
 
 void CAEStaticChannel::InjectHooks() {
-    RH_ScopedClass(CAEStaticChannel);
+    RH_ScopedVirtualClass(CAEStaticChannel, 0x85F3CC, 9);
     RH_ScopedCategory("Audio/Hardware");
 
-    RH_ScopedVirtualInstall(Service, 0x4F10D0);
-    RH_ScopedVirtualInstall(IsSoundPlaying, 0x4F0F40);
-    RH_ScopedVirtualInstall(GetPlayTime, 0x4F0F70);
-    RH_ScopedVirtualInstall(GetLength, 0x4F0FA0);
-    RH_ScopedVirtualInstall(Play, 0x4F0BD0);
-    RH_ScopedVirtualInstall(SynchPlayback, 0x4F1040);
-    RH_ScopedVirtualInstall(Stop, 0x4F0FB0);
+    RH_ScopedVMTInstall(Service, 0x4F10D0);
+    RH_ScopedVMTInstall(IsSoundPlaying, 0x4F0F40);
+    RH_ScopedVMTInstall(GetPlayTime, 0x4F0F70);
+    RH_ScopedVMTInstall(GetLength, 0x4F0FA0);
+    RH_ScopedVMTInstall(Play, 0x4F0BD0);
+    RH_ScopedVMTInstall(SynchPlayback, 0x4F1040);
+    RH_ScopedVMTInstall(Stop, 0x4F0FB0);
 
     RH_ScopedInstall(SetAudioBuffer, 0x4F0C40, {.reversed = false});
 }
@@ -68,9 +68,6 @@ void CAEStaticChannel::Service() {
         }
     }
 }
-void CAEStaticChannel::Service_Reversed() {
-    CAEStaticChannel::Service();
-}
 
 // 0x4F0F40
 bool CAEStaticChannel::IsSoundPlaying() {
@@ -82,9 +79,6 @@ bool CAEStaticChannel::IsSoundPlaying() {
 
     return CAEAudioChannel::IsBufferPlaying();
 }
-bool CAEStaticChannel::IsSoundPlaying_Reversed() {
-    return CAEStaticChannel::IsSoundPlaying();
-}
 
 // 0x4F0F70
 int16 CAEStaticChannel::GetPlayTime() {
@@ -94,16 +88,10 @@ int16 CAEStaticChannel::GetPlayTime() {
     const auto curPos = CAEAudioChannel::GetCurrentPlaybackPosition();
     return CAEAudioChannel::ConvertFromBytesToMS(curPos);
 }
-int16 CAEStaticChannel::GetPlayTime_Reversed() {
-    return CAEStaticChannel::GetPlayTime();
-}
 
 // 0x4F0FA0
 uint16 CAEStaticChannel::GetLength() {
     return CAEAudioChannel::ConvertFromBytesToMS(m_nLengthInBytes);
-}
-uint16 CAEStaticChannel::GetLength_Reversed() {
-    return CAEStaticChannel::GetLength();
 }
 
 // 0x4F0BD0
@@ -117,10 +105,10 @@ void CAEStaticChannel::Play(int16 timeInMs, int8 unused, float scalingFactor) {
     m_bNeedsSynch = true;
     m_bNoScalingFactor = scalingFactor == 0.0f;
 }
-void CAEStaticChannel::Play_Reversed(int16 a, int8 b, float c) {
-    CAEStaticChannel::Play(a, b, c);
-}
-    // 0x4F1040
+
+    
+
+// 0x4F1040
 void CAEStaticChannel::SynchPlayback() {
     if (!m_pDirectSoundBuffer || !m_bNeedsSynch || m_bNoScalingFactor)
         return;
@@ -136,9 +124,6 @@ void CAEStaticChannel::SynchPlayback() {
     m_pDirectSoundBuffer->Play(0, 0, m_bLooped);
     m_nSyncTime = CTimer::GetTimeInMS();
     m_bNeedsSynch = false;
-}
-void CAEStaticChannel::SynchPlayback_Reversed() {
-    CAEStaticChannel::SynchPlayback();
 }
 
 // 0x4F0FB0
@@ -162,9 +147,6 @@ void CAEStaticChannel::Stop() {
         m_pDirectSound3DBuffer = nullptr;
     }
     }
-}
-void CAEStaticChannel::Stop_Reversed() {
-    CAEStaticChannel::Stop();
 }
 
 bool CAEStaticChannel::SetAudioBuffer(IDirectSound3DBuffer* buffer, uint16 size, int16 f88, int16 f8c, int16 loopOffset, uint16 frequency) {

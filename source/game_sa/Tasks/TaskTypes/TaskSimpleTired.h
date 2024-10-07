@@ -5,7 +5,7 @@
 
 class CAnimBlendAssociation;
 
-class CTaskSimpleTired : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleTired : public CTaskSimple {
 public:
     uint32 m_TiredDurationMs;
     uint32 m_AnimStartMs;

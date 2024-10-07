@@ -3,7 +3,7 @@
 #include "TaskComplex.h"
 class CEntity;
 
-class CTaskComplexEvasiveStep : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexEvasiveStep : public CTaskComplex {
 public:
     CVector  m_Pos;
     CEntity* m_Entity;

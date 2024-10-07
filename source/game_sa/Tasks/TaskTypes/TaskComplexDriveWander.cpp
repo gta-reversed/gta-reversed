@@ -5,32 +5,32 @@
 
 // 0x63CB10
 CTaskComplexCarDriveWander::CTaskComplexCarDriveWander(CVehicle* vehicle, eCarDrivingStyle carDrivingStyle, float fSpeed)
-    : CTaskComplexCarDrive(vehicle, fSpeed, -1, carDrivingStyle)
+    : CTaskComplexCarDrive(vehicle, fSpeed, MODEL_INVALID, carDrivingStyle)
 {
     // NOP
 }
 
 // 0x63CB60
 void CTaskComplexCarDriveWander::SetUpCar() {
-    m_nOldCarDrivingStyle = m_pVehicle->m_autoPilot.m_nCarDrivingStyle;
-    m_nCarMission         = m_pVehicle->m_autoPilot.m_nCarMission;
-    m_nSpeed              = m_pVehicle->m_autoPilot.m_nCruiseSpeed;
-    m_bSavedVehicleBehavior = true;
+    m_OriginalDrivingStyle = m_Veh->m_autoPilot.m_nCarDrivingStyle;
+    m_OriginalMission      = m_Veh->m_autoPilot.m_nCarMission;
+    m_OriginalSpeed        = m_Veh->m_autoPilot.m_nCruiseSpeed;
+    m_bIsCarSetUp          = true;
     if (!CCarCtrl::bCarIsBeingCreated) {
-        CCarCtrl::JoinCarWithRoadSystem(m_pVehicle);
-        m_pVehicle->m_nStatus = STATUS_PHYSICS;
-        m_pVehicle->m_autoPilot.m_nCarMission = MISSION_CRUISE;
-        m_pVehicle->m_autoPilot.m_nCruiseSpeed = (uint8)m_fSpeed;
-        m_pVehicle->m_autoPilot.m_speed = m_pVehicle->m_autoPilot.m_nCruiseSpeed;
-        m_pVehicle->m_autoPilot.m_nCarDrivingStyle = static_cast<eCarDrivingStyle>(m_nCarDrivingStyle);
+        CCarCtrl::JoinCarWithRoadSystem(m_Veh);
+        m_Veh->m_nStatus = STATUS_PHYSICS;
+        m_Veh->m_autoPilot.m_nCarMission = MISSION_CRUISE;
+        m_Veh->m_autoPilot.m_nCruiseSpeed = (uint8)m_CruiseSpeed;
+        m_Veh->m_autoPilot.m_speed = m_Veh->m_autoPilot.m_nCruiseSpeed;
+        m_Veh->m_autoPilot.m_nCarDrivingStyle = static_cast<eCarDrivingStyle>(m_CarDrivingStyle);
     }
-    if (m_pVehicle->vehicleFlags.bEngineBroken) {
-        m_pVehicle->vehicleFlags.bEngineOn = false;
-        m_pVehicle->vehicleFlags.bIsLawEnforcer = false;
+    if (m_Veh->vehicleFlags.bEngineBroken) {
+        m_Veh->vehicleFlags.bEngineOn = false;
+        m_Veh->vehicleFlags.bIsLawEnforcer = false;
     } else {
-        m_pVehicle->vehicleFlags.bEngineOn = true;
+        m_Veh->vehicleFlags.bEngineOn = true;
     }
-    m_pVehicle->m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
+    m_Veh->m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
 }
 
 // 0x643240

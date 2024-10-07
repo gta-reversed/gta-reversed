@@ -65,17 +65,6 @@ private:
 
     CQuadBike* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy);
 
-    void Fix_Reversed() { CQuadBike::Fix(); }
-    CRideAnimData* GetRideAnimData_Reversed() { return CQuadBike::GetRideAnimData(); }
-    void PreRender_Reversed() { CQuadBike::PreRender(); }
-    bool ProcessAI_Reversed(uint32& extraHandlingFlags) { return CQuadBike::ProcessAI(extraHandlingFlags); }
-    void ProcessControl_Reversed() { CQuadBike::ProcessControl(); }
-    void ProcessControlInputs_Reversed(uint8 playerNum) { CQuadBike::ProcessControlInputs(playerNum); }
-    void ProcessDrivingAnims_Reversed(CPed* driver, bool blend) { CQuadBike::ProcessDrivingAnims(driver, blend); }
-    void ProcessSuspension_Reversed() { CQuadBike::ProcessSuspension(); }
-    void ResetSuspension_Reversed() { CQuadBike::ResetSuspension(); }
-    void SetupDamageAfterLoad_Reversed() { CQuadBike::SetupDamageAfterLoad(); }
-    void SetupSuspensionLines_Reversed() { CQuadBike::SetupSuspensionLines(); }
 };
 
 VALIDATE_SIZE(CQuadBike, 0x9BC);

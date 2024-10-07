@@ -21,7 +21,11 @@ public:
     ~CTaskComplexWanderCop() override;
 
     eWanderType GetWanderType() override { return WANDER_TYPE_COP; } // 0x460D50
-    CTask* Clone() const override { return new CTaskComplexWanderCop(m_nMoveState, m_nDir); } // 0x460CE0
+
+// 0x0
+CTask* Clone() const override { return new CTaskComplexWanderCop(m_nMoveState, m_nDir); }
+
+ // 0x460CE0
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
@@ -38,11 +42,6 @@ private:
 
     CTaskComplexWanderCop* Constructor(eMoveState moveState, uint8 dir);
 
-    CTask*  Clone_Reversed() const;
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
-    void ScanForStuff_Reversed(CPed* ped);
 };
 
 VALIDATE_SIZE(CTaskComplexWanderCop, 0x50);

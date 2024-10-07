@@ -20,8 +20,6 @@ public:
     CTimeInfo* GetTimeInfo() override;
 
 private:
-    ModelInfoType GetModelType_Reversed();
-    CTimeInfo* GetTimeInfo_Reversed();
 };
 
 VALIDATE_SIZE(CTimeModelInfo, 0x24);

@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexObserveTrafficLightsAndAchieveHeading : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexObserveTrafficLightsAndAchieveHeading : public CTaskComplex {
 public:
     int32 m_nDurationInMs;
     float m_fTargetHeading;
@@ -25,14 +25,14 @@ public:
 private:
     friend void InjectHooksMain();
     static void InjectHooks() {
-        RH_ScopedClass(CTaskComplexObserveTrafficLightsAndAchieveHeading);
+        RH_ScopedVirtualClass(CTaskComplexObserveTrafficLightsAndAchieveHeading, 0x86DFC4, 11);
         RH_ScopedCategory("Tasks/TaskTypes");
 
-        RH_ScopedVirtualInstall(Clone, 0x636490);
-        RH_ScopedVirtualInstall(ControlSubTask, 0x631AD0);
-        RH_ScopedVirtualInstall(CreateFirstSubTask, 0x631AC0);
-        RH_ScopedVirtualInstall(CreateNextSubTask, 0x631A70);
-        RH_ScopedVirtualInstall(MakeAbortable, 0x631950);
+        RH_ScopedVMTInstall(Clone, 0x636490);
+        RH_ScopedVMTInstall(ControlSubTask, 0x631AD0);
+        RH_ScopedVMTInstall(CreateFirstSubTask, 0x631AC0);
+        RH_ScopedVMTInstall(CreateNextSubTask, 0x631A70);
+        RH_ScopedVMTInstall(MakeAbortable, 0x631950);
     }
 
     CTaskComplexObserveTrafficLightsAndAchieveHeading* Constructor(int32 durationInMs, float fTargetHeading) {
@@ -40,11 +40,6 @@ private:
         return this;
     }
 
-    CTask* Clone_Reversed() { return Clone(); }
-    CTask* ControlSubTask_Reversed(CPed* ped) { return ControlSubTask(ped); }
-    CTask* CreateFirstSubTask_Reversed(CPed* ped) { return CreateFirstSubTask(ped); }
-    CTask* CreateNextSubTask_Reversed(CPed* ped) { return CreateNextSubTask(ped); }
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) { return MakeAbortable(ped, priority, event); }
 };
 
 VALIDATE_SIZE(CTaskComplexObserveTrafficLightsAndAchieveHeading, 0x14);

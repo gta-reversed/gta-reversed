@@ -4,7 +4,7 @@
 
 class CPointRoute;
 
-class CTaskComplexFollowPedFootsteps : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexFollowPedFootsteps : public CTaskComplex {
 public:
     CPed*        m_targetPed;
     uint32       m_subTaskCreateCheckTimer;

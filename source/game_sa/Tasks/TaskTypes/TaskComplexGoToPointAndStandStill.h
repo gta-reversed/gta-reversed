@@ -5,27 +5,33 @@
 
 class CTaskSimpleGoToPoint;
 
-class CTaskComplexGoToPointAndStandStill : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGoToPointAndStandStill : public CTaskComplex {
 public:
     eMoveState m_moveState;
     CVector    m_vecTargetPoint;
     float      m_fRadius;          ///< Ped stops moving after it is within the radius of the point.
     float      m_fMoveStateRadius; ///< The ped will either sprint, run, or walk depending on far it is from the radius
-    union {
-        struct {
-            uint8 m_b01 : 1;                    // 0x1
-            uint8 m_bGoToPoint : 1;             // 0x2
-            uint8 m_bTargetPointUpdated : 1;    // 0x4
-            uint8 m_b04 : 1;                    // 0x8
-            uint8 m_b05 : 1;                    // 0x10
-        };
-        uint8 m_nFlags;
+    struct {
+        bool m_bMustOverShootTarget : 1 {}; // 0x1
+        bool m_bStopExactly : 1 {};         // 0x2
+        bool m_bNewTarget : 1 {};           // 0x4
+        bool m_bTrackingEntity : 1 {};      // 0x8
+        bool m_bWasSuccessful : 1 {};       // 0x10
     };
 
 public:
     static constexpr auto Type = TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL;
 
-    CTaskComplexGoToPointAndStandStill(eMoveState moveState, const CVector& targetPoint, float fRadius = 1.5f, float fMoveStateRadius = 2.f, bool bUnknown = false, bool bGoToPoint = false);
+    CTaskComplexGoToPointAndStandStill(
+        eMoveState moveState,
+        const CVector& targetPoint,
+        float fRadius = 1.5f,
+        float fMoveStateRadius = 2.f,
+        bool bMustOverShootTarget = false,
+        bool bStopExactly = false,
+        /* \/\/\/ NOTSA ARGS \/\/\/ */
+        bool bTrackingEntity = false
+    );
     ~CTaskComplexGoToPointAndStandStill() override;
 
     eTaskType GetTaskType() const override { return Type; }
@@ -34,14 +40,9 @@ public:
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
 
-    CTask*  Clone_Reversed() const;
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
-
     void   GoToPoint(const CVector& targetPoint, float fRadius = 1.5f, float fMoveStateRadius = 2.f, bool bUpdateTargetEvenIfItsTheSame = false);
     void   SelectMoveState(CTaskSimpleGoToPoint* pGotoPointTask, CPed* ped, float fMoveStateRadius, float fRunOrSprintRadius);
-    CTask* CreateFirstSubTask(int32 taskId, CPed* ped);
+    CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
 private:
     friend void InjectHooksMain();

@@ -6,7 +6,7 @@
 class CPed;
 class CEntity;
 
-class CTaskComplexTurnToFaceEntityOrCoord : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexTurnToFaceEntityOrCoord : public CTaskComplex {
 public:
     CEntity* m_EntityToFace{};
     bool     m_bFaceEntity{};
@@ -16,6 +16,8 @@ public:
 
 public:
     constexpr static auto Type = TASK_COMPLEX_TURN_TO_FACE_ENTITY;
+
+    static void InjectHooks();
 
     CTaskComplexTurnToFaceEntityOrCoord(CEntity* entity, float changeRateMult = 0.5f, float maxHeading = 0.2f);
     CTaskComplexTurnToFaceEntityOrCoord(const CVector& coords, float changeRateMult = 0.5f, float maxHeading = 0.2f);
@@ -27,9 +29,10 @@ public:
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
 
-    float ComputeTargetHeading(CPed* ped) const;
-    static void InjectHooks();
+    float   ComputeTargetHeading(CPed* ped) const;
+    CVector ComputeTargetPos() const; // NOTSA
 
+private:
     CTaskComplexTurnToFaceEntityOrCoord* Constructor(CEntity* entity, float changeRateMult, float maxHeading) { this->CTaskComplexTurnToFaceEntityOrCoord::CTaskComplexTurnToFaceEntityOrCoord(entity, changeRateMult, maxHeading); return this; }
     CTaskComplexTurnToFaceEntityOrCoord* Constructor(CVector const& coords, float changeRateMult, float maxHeading) { this->CTaskComplexTurnToFaceEntityOrCoord::CTaskComplexTurnToFaceEntityOrCoord(coords, changeRateMult, maxHeading); return this; }
     CTaskComplexTurnToFaceEntityOrCoord* Destructor() { this->CTaskComplexTurnToFaceEntityOrCoord::~CTaskComplexTurnToFaceEntityOrCoord(); return this; }

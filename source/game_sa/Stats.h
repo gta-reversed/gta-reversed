@@ -98,7 +98,7 @@ public:
     static void SetStatValue(eStats stat, float value);
     static void RegisterFastestTime(eStats stat, int32 fastestTime);
     static void RegisterBestPosition(eStats stat, int32 position);
-    static char* FindCriminalRatingString();
+    static GxtChar* FindCriminalRatingString();
     static int32 ConstructStatLine(int32 arg0, uint8 arg1);
     static void ProcessReactionStatsOnIncrement(eStats stat);
     static void DisplayScriptStatUpdateMessage(eStatUpdateState state, eStats stat, float value);

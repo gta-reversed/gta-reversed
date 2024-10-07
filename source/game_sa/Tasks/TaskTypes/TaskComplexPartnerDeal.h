@@ -2,7 +2,7 @@
 
 #include "TaskComplexPartner.h"
 
-class CTaskComplexPartnerDeal : public CTaskComplexPartner {
+class NOTSA_EXPORT_VTABLE CTaskComplexPartnerDeal : public CTaskComplexPartner {
 public:
     int32 field_70;
 

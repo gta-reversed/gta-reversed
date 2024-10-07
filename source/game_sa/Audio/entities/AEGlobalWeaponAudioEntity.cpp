@@ -95,7 +95,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
 }
 
 void CAEGlobalWeaponAudioEntity::InjectHooks() {
-    RH_ScopedClass(CAEGlobalWeaponAudioEntity);
+    RH_ScopedVirtualClass(CAEGlobalWeaponAudioEntity, 0x862E5C, 1);
     RH_ScopedCategory("Audio/Entities");
 
     RH_ScopedInstall(Constructor, 0x5075B0);

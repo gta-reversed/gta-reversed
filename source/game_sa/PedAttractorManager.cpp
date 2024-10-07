@@ -219,13 +219,13 @@ void* CPedAttractorManager::GetRelevantAttractor(const CPed* ped, const C2dEffec
 }
 
 // 0x5EBF50
-void* CPedAttractorManager::GetRelevantAttractor(const CPed* ped, const C2dEffect* effect, const CEntity* entity) {
-    return plugin::CallMethodAndReturn<void*, 0x5EBF50, CPedAttractorManager*, const CPed*, const C2dEffect*, const CEntity*>(this, ped, effect, entity);
+void* CPedAttractorManager::GetRelevantAttractor(const CPed* ped, const C2dEffectBase* effect, const CEntity* entity) {
+    return plugin::CallMethodAndReturn<void*, 0x5EBF50, CPedAttractorManager*, const CPed*, const C2dEffectBase*, const CEntity*>(this, ped, effect, entity);
 }
 
 // 0x5E96C0
 void CPedAttractorManager::ComputeEffectPos(const C2dEffect* effect, const CMatrix& mat, CVector& vec) {
-    vec.FromMultiply(mat, &effect->m_pos);
+    vec.FromMultiply(mat, effect->m_pos);
 }
 
 // 0x5E96E0
@@ -249,8 +249,8 @@ void CPedAttractorManager::RegisterPed(CPed* ped, C2dEffect*, CEntity*, int32, S
 }
 
 // 0x5EFCA0
-void CPedAttractorManager::RegisterPedWithAttractor(CPed* ped, C2dEffect*, CEntity*, int32) {
-    assert(false);
+CPedAttractor* CPedAttractorManager::RegisterPedWithAttractor(CPed* ped, C2dEffectBase* fx, CEntity* entity, eMoveState ms) {
+    return plugin::CallMethodAndReturn<CPedAttractor*, 0x5EFCA0>(this, ped, fx, entity, ms);
 }
 
 // 0x5EA220

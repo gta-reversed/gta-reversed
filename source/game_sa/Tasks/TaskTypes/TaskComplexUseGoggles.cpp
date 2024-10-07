@@ -13,7 +13,7 @@ CTask* CTaskComplexUseGoggles::CreateNextSubTask(CPed* ped) {
         return nullptr;
     case TASK_SIMPLE_GOGGLES_ON:
         ped->PutOnGoggles();
-        ped->m_weaponAudio.AddAudioEvent(AE_WEAPON_FIRE);
+        ped->GetWeaponAE().AddAudioEvent(AE_WEAPON_FIRE);
         return nullptr;
     default:
         return nullptr;
@@ -48,14 +48,14 @@ CTask* CTaskComplexUseGoggles::ControlSubTask(CPed* ped) {
 }
 
 void CTaskComplexUseGoggles::InjectHooks() {
-    RH_ScopedClass(CTaskComplexUseGoggles);
+    RH_ScopedVirtualClass(CTaskComplexUseGoggles, 0x86E4A8, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedVirtualInstall(Clone, 0x637060);
-    RH_ScopedVirtualInstall(GetTaskType, 0x634F10);
-    RH_ScopedVirtualInstall(CreateNextSubTask, 0x634F40);
-    RH_ScopedVirtualInstall(CreateFirstSubTask, 0x634F90);
-    RH_ScopedVirtualInstall(ControlSubTask, 0x635050);
+    RH_ScopedVMTInstall(Clone, 0x637060);
+    RH_ScopedVMTInstall(GetTaskType, 0x634F10);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x634F40);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x634F90);
+    RH_ScopedVMTInstall(ControlSubTask, 0x635050);
 };
 
 void TaskComplexUseGogglesTestCode() {

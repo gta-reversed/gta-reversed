@@ -4,7 +4,7 @@
 
 struct CScriptedEffectPair;
 
-class CTaskComplexAttractorPartnerWait : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexAttractorPartnerWait : public CTaskComplex {
 public:
     bool byteC;
     const CScriptedEffectPair* m_Pair;

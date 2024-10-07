@@ -110,16 +110,17 @@ void PedDebugModule::ProcessPed(PedInfo& pi) {
         return; // Too distant
     }
 
-    SetNextWindowPos(CVector2D{ pi.posScreen });
-    SetNextWindowSize(CVector2D{ 600, 400 } / remap(depth, 0.f, 100.f, 1.f, 4.f));
+    SetNextWindowPos({ pi.posScreen.x, pi.posScreen.y });
+    const auto size = CVector2D{ 600, 400 } / remap(depth, 0.f, 100.f, 1.f, 4.f);
+    SetNextWindowSize({size.x, size.y});
     //SetNextWindowSize({ 600, 400 }, ImGuiCond_FirstUseEver);
 
     // Format a title with a custom ID that should hopefully match only this ped
     char title[1024];
     *std::format_to(title, "Ped Debug###{}{}", (ptrdiff_t)(pi.ped), pi.ped->m_nRandomSeed) = 0; // Null terminate :D
 
-    if (m_autoCollapse) {
-        SetNextWindowCollapsed((pi.ped->GetPosition() - TheCamera.GetPosition()).SquaredMagnitude() >= sq(m_collapseToggleDist));
+    if (m_AutoCollapseEnabled) {
+        SetNextWindowCollapsed((pi.ped->GetPosition() - TheCamera.GetPosition()).SquaredMagnitude() >= sq(m_CollapseToggleDist));
     } else {
         SetNextWindowCollapsed(true, ImGuiCond_Once);
     }
@@ -136,7 +137,7 @@ void PedDebugModule::ProcessPed(PedInfo& pi) {
 
 // Gotta use this function because `Update` is outside a frame context
 void PedDebugModule::RenderWindow() {
-    if (!m_visible) {
+    if (!m_IsVisible) {
         return;
     }
 
@@ -158,12 +159,12 @@ void PedDebugModule::RenderWindow() {
                 .posWorld = ped.GetPosition()
             };
 
-            if (!CalcScreenCoors(ped.GetBonePosition(BONE_HEAD) + ped.GetRightVector() * 0.5f, &pi.posScreen)) {
+            if (!CalcScreenCoors(ped.GetBonePosition(BONE_HEAD) + ped.GetRightVector() * 0.5f, pi.posScreen)) {
                 DEV_LOG("Failed to calculate on-screen coords of ped");
                 return std::nullopt;
             }
                
-            if (pi.posScreen.z >= m_drawDist) { // posScreen.z == depth == distance from camera
+            if (pi.posScreen.z >= m_DrawDist) { // posScreen.z == depth == distance from camera
                 return std::nullopt;
             }
 
@@ -182,14 +183,14 @@ void PedDebugModule::RenderWindow() {
 
 void PedDebugModule::RenderMenuEntry() {
     notsa::ui::DoNestedMenuIL({ "Visualization", "Peds" }, [&] {
-        Checkbox("Enable", &m_visible);
+        Checkbox("Enable", &m_IsVisible);
 
-        const notsa::ui::ScopedDisable disable1{ !m_visible };
-        SliderFloat("Draw distance", &m_drawDist, 4.f, 300.f); // Realistically GTA won't generate peds even at 200 units
+        const notsa::ui::ScopedDisable disable1{ !m_IsVisible };
+        SliderFloat("Draw distance", &m_DrawDist, 4.f, 300.f); // Realistically GTA won't generate peds even at 200 units
 
-        Checkbox("Auto-Collapse", &m_autoCollapse);
+        Checkbox("Auto-Collapse", &m_AutoCollapseEnabled);
         SameLine();
-        const notsa::ui::ScopedDisable disable2{ !m_autoCollapse };
-        SliderFloat("Distance", &m_collapseToggleDist, 4.f, 300.f);
+        const notsa::ui::ScopedDisable disable2{ !m_AutoCollapseEnabled };
+        SliderFloat("Distance", &m_CollapseToggleDist, 4.f, 300.f);
     });
 }

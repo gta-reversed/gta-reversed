@@ -16,13 +16,14 @@
 #include "Garages.h"
 #include "UIRenderer.h"
 #include "Gamma.h"
-#include <Birds.h>
-#include <Skidmarks.h>
-#include <Ropes.h>
-#include <Glass.h>
-#include <WaterCannons.h>
-#include <VehicleRecording.h>
-#include <PostEffects.h>
+#include "Birds.h"
+#include "Skidmarks.h"
+#include "Ropes.h"
+#include "Glass.h"
+#include "WaterCannons.h"
+#include "VehicleRecording.h"
+#include "PostEffects.h"
+#include "CarFXRenderer.h"
 
 #include "extensions/Configs/FastLoader.hpp"
 
@@ -207,7 +208,7 @@ void RenderScene() {
         RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLBACK));
     }
 
-    gRenderStencil();
+    CStencilShadows::RenderStencilShadows();
 }
 
 // 0x53E530

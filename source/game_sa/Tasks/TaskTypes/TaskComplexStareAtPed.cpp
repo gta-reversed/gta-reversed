@@ -74,7 +74,7 @@ CTask* CTaskComplexStareAtPed::ControlSubTask(CPed* ped) {
         }
     } else if (CTaskComplexGangLeader::ShouldLoadGangAnims()) {
         const auto blk = CAnimManager::GetAnimationBlockIndex("gangs");
-        if (CAnimManager::ms_aAnimBlocks[blk].bLoaded) {
+        if (CAnimManager::GetAnimBlocks()[blk].IsLoaded) {
             CAnimManager::AddAnimBlockRef(blk);
             m_animsReferenced = true;
         } else {

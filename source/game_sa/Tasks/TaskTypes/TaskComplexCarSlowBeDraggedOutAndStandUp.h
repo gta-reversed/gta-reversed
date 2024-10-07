@@ -5,7 +5,7 @@
 class CVehicle;
 class CEvent;
 
-class CTaskComplexCarSlowBeDraggedOutAndStandUp : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexCarSlowBeDraggedOutAndStandUp : public CTaskComplex {
 public:
     CVehicle* m_Vehicle;
     int32     dword10;

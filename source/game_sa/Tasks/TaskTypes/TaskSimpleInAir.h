@@ -12,7 +12,7 @@
 class CAnimBlendAssociation;
 class CEntity;
 
-class CTaskSimpleInAir : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleInAir : public CTaskSimple {
 public:
     CVector                m_vecPosn;
     float                  m_fAngle;
@@ -46,8 +46,6 @@ public:
     bool ProcessPed(CPed* ped) override;
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
 
-    bool ProcessPed_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 
     static void DeleteAnimCB(CAnimBlendAssociation* anim, void* data);
 

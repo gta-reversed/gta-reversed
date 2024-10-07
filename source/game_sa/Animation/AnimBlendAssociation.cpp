@@ -31,16 +31,16 @@ void CAnimBlendAssociation::InjectHooks() {
 
 // 0x4CE9B0
 CAnimBlendAssociation::CAnimBlendAssociation() {
-    m_nAnimGroup = -1;
-    m_pNodeArray = nullptr;
-    m_pHierarchy = nullptr;
-    m_fBlendAmount = 1.0f;
-    m_fBlendDelta = 0.0f;
-    m_fCurrentTime = 0.0f;
-    m_fSpeed = 1.0f;
-    m_fTimeStep = 0.0f;
-    m_nAnimId = -1;
-    m_nFlags = 0;
+    m_AnimGroupId = ANIM_GROUP_NONE;
+    m_BlendNodes = nullptr;
+    m_BlendHier = nullptr;
+    m_BlendAmount = 1.0f;
+    m_BlendDelta = 0.0f;
+    m_CurrentTime = 0.0f;
+    m_Speed = 1.0f;
+    m_TimeStep = 0.0f;
+    m_AnimId = ANIM_ID_UNDEFINED;
+    m_Flags = 0;
     m_nCallbackType = ANIM_BLEND_CALLBACK_NONE;
     // NOTSA
     m_pCallbackFunc = nullptr;
@@ -54,156 +54,161 @@ CAnimBlendAssociation::CAnimBlendAssociation(RpClump* clump, CAnimBlendHierarchy
 
 // 0x4CF020
 CAnimBlendAssociation::CAnimBlendAssociation(CAnimBlendAssociation& assoc) {
-    m_pNodeArray = nullptr;
-    m_fBlendAmount = 1.0f;
-    m_fBlendDelta = 0.0f;
-    m_fCurrentTime = 0.0f;
-    m_fSpeed = 1.0f;
-    m_fTimeStep = 0.0f;
+    m_BlendNodes = nullptr;
+    m_BlendAmount = 1.0f;
+    m_BlendDelta = 0.0f;
+    m_CurrentTime = 0.0f;
+    m_Speed = 1.0f;
+    m_TimeStep = 0.0f;
     m_nCallbackType = ANIM_BLEND_CALLBACK_NONE;
     Init(assoc);
-    if ((m_nFlags & ANIMATION_BLOCK_REFERENCED) == 0) {
-        CAnimManager::AddAnimBlockRef(m_pHierarchy->m_nAnimBlockId);
-        m_nFlags |= ANIMATION_BLOCK_REFERENCED;
+    if ((m_Flags & ANIMATION_REFERENCE_BLOCK) == 0) {
+        CAnimManager::AddAnimBlockRef(m_BlendHier->m_nAnimBlockId);
+        m_Flags |= ANIMATION_REFERENCE_BLOCK;
     }
 }
 
 // 0x4CF080
 CAnimBlendAssociation::CAnimBlendAssociation(CAnimBlendStaticAssociation& assoc) {
-    m_pNodeArray = nullptr;
-    m_fBlendAmount = 1.0f;
-    m_fBlendDelta = 0.0f;
-    m_fCurrentTime = 0.0f;
-    m_fSpeed = 1.0f;
-    m_fTimeStep = 0.0f;
+    m_BlendNodes = nullptr;
+    m_BlendAmount = 1.0f;
+    m_BlendDelta = 0.0f;
+    m_CurrentTime = 0.0f;
+    m_Speed = 1.0f;
+    m_TimeStep = 0.0f;
     m_nCallbackType = ANIM_BLEND_CALLBACK_NONE;
     Init(assoc);
-    if ((m_nFlags & ANIMATION_BLOCK_REFERENCED) == 0) {
-        CAnimManager::AddAnimBlockRef(m_pHierarchy->m_nAnimBlockId);
-        m_nFlags |= ANIMATION_BLOCK_REFERENCED;
+    if ((m_Flags & ANIMATION_REFERENCE_BLOCK) == 0) {
+        CAnimManager::AddAnimBlockRef(m_BlendHier->m_nAnimBlockId);
+        m_Flags |= ANIMATION_REFERENCE_BLOCK;
     }
 }
 
 // 0x4CECF0
 CAnimBlendAssociation::~CAnimBlendAssociation() {
-    if (m_pNodeArray) {
-        CMemoryMgr::FreeAlign(m_pNodeArray);
+    if (m_BlendNodes) {
+        CMemoryMgr::FreeAlign(m_BlendNodes);
     }
     m_Link.Remove();
-    if (m_nFlags & ANIMATION_BLOCK_REFERENCED) {
-        CAnimManager::RemoveAnimBlockRef(m_pHierarchy->m_nAnimBlockId);
+    if (m_Flags & ANIMATION_REFERENCE_BLOCK) {
+        CAnimManager::RemoveAnimBlockRef(m_BlendHier->m_nAnimBlockId);
     }
+}
+
+float CAnimBlendAssociation::GetTimeProgress() const {
+    return m_CurrentTime / m_BlendHier->m_fTotalTime;
 }
 
 // 0x4CED50
 void CAnimBlendAssociation::Init(RpClump* clump, CAnimBlendHierarchy* animHierarchy) {
-    CAnimBlendClumpData* animClumpData = RpClumpGetAnimBlendClumpData(clump);
-    m_nNumBlendNodes = animClumpData->m_NumFrames;
-    AllocateAnimBlendNodeArray(m_nNumBlendNodes);
-    for (auto i = 0; i < m_nNumBlendNodes; i++) {
-        m_pNodeArray[i].m_pAnimBlendAssociation = this;
+    CAnimBlendClumpData* animClumpData = RpAnimBlendClumpGetData(clump);
+    m_NumBlendNodes = animClumpData->m_NumFrameData;
+    AllocateAnimBlendNodeArray(m_NumBlendNodes);
+    for (auto i = 0; i < m_NumBlendNodes; i++) {
+        m_BlendNodes[i].m_BlendAssoc = this;
     }
 
-    m_pHierarchy = animHierarchy;
-    for (auto& sequence : m_pHierarchy->GetSequences()) {
-        AnimBlendFrameData* frame = nullptr;
-        if (sequence.m_hasBoneIdSet) {
-            frame = RpAnimBlendClumpFindBone(clump, sequence.m_boneId);
-        } else {
-            frame = RpAnimBlendClumpFindFrameFromHashKey(clump, sequence.m_hash);
+    m_BlendHier = animHierarchy;
+    for (auto& seq : m_BlendHier->GetSequences()) {
+        if (!seq.m_FramesNum) {
+            continue;
         }
-        if (frame && sequence.m_nFrameCount > 0) {
-            m_pNodeArray[frame - animClumpData->m_Frames].m_pAnimSequence = &sequence;
+        const auto frame = seq.IsUsingBoneTag()
+            ? RpAnimBlendClumpFindBone(clump, seq.GetBoneTag())
+            : RpAnimBlendClumpFindFrameFromHashKey(clump, seq.GetNameHashKey());
+        if (!frame) {
+            continue;
         }
+        m_BlendNodes[frame - animClumpData->m_FrameDatas].m_Seq = &seq;
     }
 }
-
+ 
 // 0x4CEE40
 void CAnimBlendAssociation::Init(CAnimBlendAssociation& assoc) {
-    m_pHierarchy     = assoc.m_pHierarchy;
-    m_nNumBlendNodes = assoc.m_nNumBlendNodes;
-    m_nFlags         = assoc.m_nFlags;
-    m_nAnimId        = assoc.m_nAnimId;
-    m_nAnimGroup     = assoc.m_nAnimGroup;
-    AllocateAnimBlendNodeArray(m_nNumBlendNodes);
-    for (auto i = 0; i < m_nNumBlendNodes; i++) {
-        m_pNodeArray[i] = assoc.m_pNodeArray[i];
-        m_pNodeArray[i].m_pAnimBlendAssociation = this;
+    m_BlendHier     = assoc.m_BlendHier;
+    m_NumBlendNodes = assoc.m_NumBlendNodes;
+    m_Flags         = assoc.m_Flags;
+    m_AnimId        = assoc.m_AnimId;
+    m_AnimGroupId     = assoc.m_AnimGroupId;
+    AllocateAnimBlendNodeArray(m_NumBlendNodes);
+    for (auto i = 0; i < m_NumBlendNodes; i++) {
+        m_BlendNodes[i] = assoc.m_BlendNodes[i];
+        m_BlendNodes[i].m_BlendAssoc = this;
     }
 }
 
 // 0x4CEEC0
 void CAnimBlendAssociation::Init(CAnimBlendStaticAssociation& assoc) {
-    m_pHierarchy     = assoc.m_pHierarchy;
-    m_nNumBlendNodes = assoc.m_nNumBlendNodes;
-    m_nFlags         = assoc.m_nFlags;
-    m_nAnimId        = assoc.m_nAnimId;
-    m_nAnimGroup     = assoc.m_nAnimGroup;
-    AllocateAnimBlendNodeArray(m_nNumBlendNodes);
-    for (auto i = 0; i < m_nNumBlendNodes; i++) {
-        m_pNodeArray[i].m_pAnimSequence = assoc.m_pSequenceArray[i];
-        m_pNodeArray[i].m_pAnimBlendAssociation = this;
+    m_BlendHier     = assoc.m_BlendHier;
+    m_NumBlendNodes = assoc.m_NumBlendNodes;
+    m_Flags         = assoc.m_Flags;
+    m_AnimId        = assoc.m_AnimId;
+    m_AnimGroupId    = assoc.m_AnimGroupId;
+    AllocateAnimBlendNodeArray(m_NumBlendNodes);
+    for (auto i = 0; i < m_NumBlendNodes; i++) {
+        m_BlendNodes[i].m_Seq = assoc.m_BlendSeqs[i];
+        m_BlendNodes[i].m_BlendAssoc = this;
     }
 }
 
 // 0x4CEB70
 void CAnimBlendAssociation::Start(float currentTime) {
-    m_nFlags |= ANIMATION_STARTED;
+    m_Flags |= ANIMATION_IS_PLAYING;
     SetCurrentTime(currentTime);
 }
 
 uint32 CAnimBlendAssociation::GetHashKey() const noexcept {
-    return m_pHierarchy->m_hashKey;
+    return m_BlendHier->m_hashKey;
 }
 
 // 0x4CE9F0
 void CAnimBlendAssociation::AllocateAnimBlendNodeArray(int32 count) {
-    m_pNodeArray = (CAnimBlendNode*)CMemoryMgr::MallocAlign(count * sizeof(CAnimBlendNode), 64);
-    for (auto& node : std::span{ m_pNodeArray, (size_t)count }) {
+    m_BlendNodes = (CAnimBlendNode*)CMemoryMgr::MallocAlign(count * sizeof(CAnimBlendNode), 64);
+    for (auto& node : std::span{ m_BlendNodes, (size_t)count }) {
         node.Init();
     }
 }
 
 // 0x4CEA40
 void CAnimBlendAssociation::FreeAnimBlendNodeArray() {
-    if (m_pNodeArray) {
-        CMemoryMgr::FreeAlign(m_pNodeArray);
+    if (m_BlendNodes) {
+        CMemoryMgr::FreeAlign(m_BlendNodes);
     }
 }
 
 // 0x4CEBA0
 void CAnimBlendAssociation::SetBlend(float blendAmount, float blendDelta) {
-    m_fBlendAmount = blendAmount;
-    m_fBlendDelta  = blendDelta;
+    m_BlendAmount = blendAmount;
+    m_BlendDelta  = blendDelta;
 }
 
 // 0x4CEB80
 void CAnimBlendAssociation::SetBlendTo(float blendAmount, float blendDelta) {
-    m_fBlendDelta = (blendAmount - m_fBlendAmount) * blendDelta;
+    m_BlendDelta = (blendAmount - m_BlendAmount) * blendDelta;
 }
 
 // 0x4CEA80
 void CAnimBlendAssociation::SetCurrentTime(float currentTime) {
-    for (m_fCurrentTime = currentTime; m_fCurrentTime >= m_pHierarchy->m_fTotalTime; m_fCurrentTime -= m_pHierarchy->m_fTotalTime) {
-        if (!IsRepeating()) {
-            m_fCurrentTime = m_pHierarchy->m_fTotalTime;
+    for (m_CurrentTime = currentTime; m_CurrentTime >= m_BlendHier->m_fTotalTime; m_CurrentTime -= m_BlendHier->m_fTotalTime) {
+        if (!IsLooped()) {
+            m_CurrentTime = m_BlendHier->m_fTotalTime;
             break;
         }
     }
 
-    CAnimManager::UncompressAnimation(m_pHierarchy);
+    CAnimManager::UncompressAnimation(m_BlendHier);
 
     // ANIM_COMPRESSION strangely PC has this but android doesn't
-    if (m_pHierarchy->m_bKeepCompressed) {
-        for (auto i = 0; i < m_nNumBlendNodes; i++) {
-            if (m_pNodeArray[i].m_pAnimSequence) {
-                m_pNodeArray[i].SetupKeyFrameCompressed();
+    if (m_BlendHier->m_bKeepCompressed) {
+        for (auto i = 0; i < m_NumBlendNodes; i++) {
+            if (m_BlendNodes[i].m_Seq) {
+                m_BlendNodes[i].SetupKeyFrameCompressed();
             }
         }
     } else {
-        for (auto i = 0; i < m_nNumBlendNodes; i++) {
-            if (m_pNodeArray[i].m_pAnimSequence) {
-                m_pNodeArray[i].FindKeyFrame(m_fCurrentTime);
+        for (auto i = 0; i < m_NumBlendNodes; i++) {
+            if (m_BlendNodes[i].m_Seq) {
+                m_BlendNodes[i].FindKeyFrame(m_CurrentTime);
             }
         }
     }
@@ -225,18 +230,18 @@ void CAnimBlendAssociation::SetFinishCallback(void (*callback)(CAnimBlendAssocia
 
 // 0x4CEB40
 void CAnimBlendAssociation::SyncAnimation(CAnimBlendAssociation* syncWith) {
-    const auto progress = syncWith->m_fCurrentTime / syncWith->m_pHierarchy->m_fTotalTime * m_pHierarchy->m_fTotalTime;
-    SetCurrentTime(progress);
+    SetCurrentTime(syncWith->GetTimeProgress() * m_BlendHier->GetTotalTime());
 }
 
 // 0x4D1490
-bool CAnimBlendAssociation::UpdateBlend(float mult) {
-    m_fBlendAmount += mult * m_fBlendDelta;
-    if (m_fBlendAmount <= 0.0f && m_fBlendDelta < 0.0f) {
-        // We're faded out and are not fading in
-        m_fBlendAmount = 0.0f;
-        m_fBlendDelta = std::max(0.0f, m_fBlendDelta);
-        if (m_nFlags & ANIMATION_FREEZE_LAST_FRAME) {
+bool CAnimBlendAssociation::UpdateBlend(float timeStep) {
+    m_BlendAmount += m_BlendDelta * timeStep;
+
+    if (m_BlendAmount <= 0.0f && m_BlendDelta < 0.0f) { // We're faded out and are not fading in
+        m_BlendAmount = 0.0f;
+        m_BlendDelta  = std::max(0.0f, m_BlendDelta);
+
+        if (m_Flags & ANIMATION_IS_BLEND_AUTO_REMOVE) {
             if (m_nCallbackType == ANIM_BLEND_CALLBACK_DELETE || m_nCallbackType == ANIM_BLEND_CALLBACK_FINISH) { // condition simplified
                 m_pCallbackFunc(this, m_pCallbackData);
                 SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
@@ -246,77 +251,86 @@ bool CAnimBlendAssociation::UpdateBlend(float mult) {
         }
     }
 
-    if (m_fBlendAmount > 1.0f) {
-        // Maximally faded in, clamp values
-        m_fBlendAmount = 1.0f;
-        m_fBlendDelta = std::min(0.0f, m_fBlendDelta);
+    if (m_BlendAmount > 1.0f) { // Maximally faded in, clamp values
+        m_BlendAmount = 1.0f;
+        m_BlendDelta  = std::min(0.0f, m_BlendDelta);
     }
 
     return true;
 }
 
 // 0x4D13D0
-bool CAnimBlendAssociation::UpdateTime(float a1, float a2) {
-    UNUSED(a1);
-    UNUSED(a2);
+bool CAnimBlendAssociation::UpdateTime(float timeStep, float timeMult) {
+    UNUSED(timeStep);
+    UNUSED(timeMult);
 
-    if (!IsRunning())
-        return true;
-
-    if (m_fCurrentTime >= (double)m_pHierarchy->m_fTotalTime) {
-        SetFlag(ANIMATION_STARTED, true);
+    if (!IsPlaying()) {
         return true;
     }
 
-    m_fCurrentTime += m_fTimeStep;
-    if (m_fCurrentTime < m_pHierarchy->m_fTotalTime) {
+    // Finished yet?
+    if (m_CurrentTime >= (double)m_BlendHier->GetTotalTime()) {
+        SetFlag(ANIMATION_IS_PLAYING, false);
         return true;
     }
 
-    if (IsRepeating()) {
-        m_fCurrentTime -= m_pHierarchy->m_fTotalTime;
+    // Okay, so advance...
+    m_CurrentTime += m_TimeStep;
+
+    // Is it finished now?
+    if (m_CurrentTime < m_BlendHier->GetTotalTime()) {
         return true;
     }
 
-    m_fCurrentTime = m_pHierarchy->m_fTotalTime;
-    if (m_nFlags & ANIMATION_UNLOCK_LAST_FRAME) {
-        SetFlag(ANIMATION_FREEZE_LAST_FRAME, true);
-        m_fBlendDelta = -4.0f;
+    // Should it be repeating? If so, jump to beginning
+    if (IsLooped()) {
+        m_CurrentTime -= m_BlendHier->GetTotalTime();
+        return true;
     }
 
+    // Anim has finished
+    m_CurrentTime = m_BlendHier->GetTotalTime();
+
+    // Maybe auto-remove
+    if (m_Flags & ANIMATION_IS_FINISH_AUTO_REMOVE) {
+        SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE, true);
+        m_BlendDelta = -4.0f;
+    }
+
+    // Call finish callback (if any)
     if (m_nCallbackType == ANIM_BLEND_CALLBACK_FINISH) {
         m_nCallbackType = ANIM_BLEND_CALLBACK_NONE;
         m_pCallbackFunc(this, m_pCallbackData);
         SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
     }
+
+    // And we're done
     return true;
 }
 
 // 0x4D13A0
-void CAnimBlendAssociation::UpdateTimeStep(float speedMult, float timeMult) {
-    if (IsRunning()) {
-        if (IsMoving()) {
-            m_fTimeStep = m_pHierarchy->m_fTotalTime * timeMult * speedMult;
-        } else {
-            m_fTimeStep = m_fSpeed * speedMult;
-        }
+void CAnimBlendAssociation::UpdateTimeStep(float timeStep, float totalTimeRecp) {
+    if (IsPlaying()) {
+        m_TimeStep = IsSyncronised()
+            ? m_BlendHier->m_fTotalTime * totalTimeRecp
+            : m_Speed;
+        m_TimeStep *= timeStep;
     }
+}
+
+bool CAnimBlendAssociation::HasFinished() const {
+    return m_CurrentTime == m_BlendHier->m_fTotalTime;
 }
 
 // 0x4CEA50
 void CAnimBlendAssociation::ReferenceAnimBlock() {
-    if (m_nFlags & ANIMATION_BLOCK_REFERENCED) {
+    if (m_Flags & ANIMATION_REFERENCE_BLOCK) {
         return;
     }
-    CAnimManager::AddAnimBlockRef(m_pHierarchy->m_nAnimBlockId);
-    SetFlag(ANIMATION_FREEZE_TRANSLATION, true);
+    CAnimManager::AddAnimBlockRef(m_BlendHier->m_nAnimBlockId);
+    SetFlag(ANIMATION_IGNORE_ROOT_TRANSLATION, true);
 }
 
-// 0x4CEB60
-CAnimBlendNode* CAnimBlendAssociation::GetNode(int32 nodeIndex) {
-    return &m_pNodeArray[nodeIndex];
-}
-
-float SClumpAnimAssoc::GetTimeProgress() const {
-    return m_fCurrentTime / m_pHierarchy->m_fTotalTime;
+std::span<CAnimBlendNode> CAnimBlendAssociation::GetNodes() {
+    return std::span{ m_BlendNodes, m_NumBlendNodes };
 }

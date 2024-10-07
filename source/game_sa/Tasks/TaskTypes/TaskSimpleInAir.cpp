@@ -10,13 +10,13 @@ uint32 CTaskSimpleInAir::ms_nMaxSlowFallFrames = 10;
 
 void CTaskSimpleInAir::InjectHooks()
 {
-    RH_ScopedClass(CTaskSimpleInAir);
+    RH_ScopedVirtualClass(CTaskSimpleInAir, 0x8704D8, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x678CD0);
     RH_ScopedInstall(DeleteAnimCB, 0x678E60);
-    RH_ScopedVirtualInstall(ProcessPed, 0x680600);
-    RH_ScopedVirtualInstall(MakeAbortable, 0x678DC0);
+    RH_ScopedVMTInstall(ProcessPed, 0x680600);
+    RH_ScopedVMTInstall(MakeAbortable, 0x678DC0);
 }
 
 CTaskSimpleInAir* CTaskSimpleInAir::Constructor(bool bUsingJumpGlide, bool bUsingFallGlide, bool bUsingClimbJump)
@@ -52,18 +52,7 @@ CTaskSimpleInAir::~CTaskSimpleInAir()
 // 0x680600
 bool CTaskSimpleInAir::ProcessPed(CPed* ped)
 {
-    return ProcessPed_Reversed(ped);
-}
-
-// 0x678DC0
-bool CTaskSimpleInAir::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event)
-{
-    return MakeAbortable_Reversed(ped, priority, event);
-}
-
-bool CTaskSimpleInAir::ProcessPed_Reversed(CPed* ped)
-{
-    CColPoint colPoint{}; // default initialization is NOTSA
+    CColPoint colPoint{};
     CEntity* colEntity;
 
     CVector originalPosn = ped->m_matrix->GetPosition();
@@ -72,21 +61,19 @@ bool CTaskSimpleInAir::ProcessPed_Reversed(CPed* ped)
     if (m_timer.IsOutOfTime()
         && ped->m_nPedState != PEDSTATE_ABSEIL_FROM_HELI
         && ped->m_vecMoveSpeed.z * 50.0F <= -20.0F
-        )
-    {
-        ped->Say(ped->IsPlayer() ? 358 : 346, 0, 1.0F, false, false, false);
+    ) {
+        ped->Say(ped->IsPlayer() ? CTX_GLOBAL_PAIN_CJ_HIGH_FALL : CTX_GLOBAL_PAIN_ON_FIRE);
         m_timer.m_bStarted = false;
     }
 
-    if (!m_pAnim)
-    {
+    if (!m_pAnim) {
         ped->bIsInTheAir = true;
         if (m_bUsingJumpGlide)
         {
             m_pAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_JUMP_GLIDE);
             if (!m_pAnim)
                 m_pAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_CLIMB_JUMP);
-            if (!m_pAnim || m_pAnim->m_fBlendAmount < 1.0F && m_pAnim->m_fBlendDelta <= 0.0F)
+            if (!m_pAnim || m_pAnim->m_BlendAmount < 1.0F && m_pAnim->m_BlendDelta <= 0.0F)
                 CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_JUMP_GLIDE, 4.0F);
         }
         else if (m_bUsingFallGlide)
@@ -101,7 +88,7 @@ bool CTaskSimpleInAir::ProcessPed_Reversed(CPed* ped)
         else
         {
             m_pAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_CLIMB_JUMP);
-            if (!m_pAnim || m_pAnim->m_fBlendAmount < 1.0F && m_pAnim->m_fBlendDelta <= 0.0F)
+            if (!m_pAnim || m_pAnim->m_BlendAmount < 1.0F && m_pAnim->m_BlendDelta <= 0.0F)
                 m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_FALL_GLIDE, 4.0F);
         }
 
@@ -110,10 +97,10 @@ bool CTaskSimpleInAir::ProcessPed_Reversed(CPed* ped)
     }
 
     if (m_pAnim
-        && m_pAnim->m_nAnimId == ANIM_ID_CLIMB_JUMP
+        && m_pAnim->m_AnimId == ANIM_ID_CLIMB_JUMP
         && !ped->bIsStanding
-        && m_pAnim->m_fCurrentTime < m_pAnim->m_pHierarchy->m_fTotalTime
-        && (m_pAnim->m_fBlendAmount >= 1.0F || m_pAnim->m_fBlendDelta > 0.0F)
+        && m_pAnim->m_CurrentTime < m_pAnim->m_BlendHier->m_fTotalTime
+        && (m_pAnim->m_BlendAmount >= 1.0F || m_pAnim->m_BlendDelta > 0.0F)
         )
     {
         ped->ApplyMoveForce(0.0F, 0.0F, CTimer::GetTimeStep() * ped->m_fMass * 0.35F * GAME_GRAVITY);
@@ -124,7 +111,7 @@ bool CTaskSimpleInAir::ProcessPed_Reversed(CPed* ped)
     {
         if (!m_bUsingFallGlide)
         {
-            if (m_pParentTask && m_pParentTask->m_pParentTask && m_pParentTask->m_pParentTask->GetTaskType() == TASK_COMPLEX_JUMP)
+            if (GetParent() && GetParent()->GetParent() && GetParent()->GetParent()->GetTaskType() == TASK_COMPLEX_JUMP) // God bless you
             {
                 float moveSpeedForward = DotProduct(ped->GetForward(), ped->m_vecMoveSpeed);
                 float maxMoveSpeedForward = 0.1F * 0.5F;
@@ -162,7 +149,7 @@ bool CTaskSimpleInAir::ProcessPed_Reversed(CPed* ped)
         {
             if (ped->m_nPedState != PEDSTATE_ABSEIL_FROM_HELI && ped->m_vecMoveSpeed.z < -0.1F)
             {
-                if (m_pAnim && m_pAnim->m_nAnimId != ANIM_ID_FALL_FALL)
+                if (m_pAnim && m_pAnim->m_AnimId != ANIM_ID_FALL_FALL)
                 {
                     m_pAnim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
                     m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_FALL_FALL, 4.0F);
@@ -181,8 +168,8 @@ bool CTaskSimpleInAir::ProcessPed_Reversed(CPed* ped)
         {
             if (m_pAnim && m_bUsingFallGlide)
             {
-                m_pAnim->m_fBlendDelta = -1000.0F;
-                m_pAnim->m_nFlags |= ANIMATION_FREEZE_LAST_FRAME;
+                m_pAnim->m_BlendDelta = -1000.0F;
+                m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
                 m_pAnim->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
                 m_pAnim = nullptr;
             }
@@ -199,23 +186,24 @@ bool CTaskSimpleInAir::ProcessPed_Reversed(CPed* ped)
         && ped->m_vecMoveSpeed.Magnitude2D() > 0.05F)
     {
         if (!(
-            m_pParentTask
-            && m_pParentTask->GetTaskType() == TASK_COMPLEX_IN_AIR_AND_LAND
-            && reinterpret_cast<CTaskComplexInAirAndLand*>(m_pParentTask)->m_bInvalidClimb
+            m_Parent
+            && m_Parent->GetTaskType() == TASK_COMPLEX_IN_AIR_AND_LAND
+            && reinterpret_cast<CTaskComplexInAirAndLand*>(m_Parent)->m_bInvalidClimb
             ))
         {
             m_pClimbEntity = CTaskSimpleClimb::TestForClimb(ped, m_vecPosn, m_fAngle, m_nSurfaceType, false);
             if (m_pClimbEntity)
                 m_pClimbEntity->RegisterReference(&m_pClimbEntity);
-            else if (m_fAngle < -1000.0F && m_pParentTask)
-                reinterpret_cast<CTaskComplexInAirAndLand*>(m_pParentTask)->m_bInvalidClimb = true;
+            else if (m_fAngle < -1000.0F && m_Parent)
+                reinterpret_cast<CTaskComplexInAirAndLand*>(m_Parent)->m_bInvalidClimb = true;
         }
     }
 
     return false;
 }
 
-bool CTaskSimpleInAir::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event)
+// 0x678DC0
+bool CTaskSimpleInAir::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event)
 {
     if (priority == ABORT_PRIORITY_IMMEDIATE
         || priority == ABORT_PRIORITY_URGENT && (
@@ -226,8 +214,8 @@ bool CTaskSimpleInAir::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority
     {
         if (m_pAnim)
         {
-            m_pAnim->m_fBlendDelta = -8.0F;
-            m_pAnim->m_nFlags |= ANIMATION_FREEZE_LAST_FRAME;
+            m_pAnim->m_BlendDelta = -8.0F;
+            m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
             m_pAnim->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
             m_pAnim = nullptr;
         }

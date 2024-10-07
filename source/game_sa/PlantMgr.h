@@ -9,7 +9,7 @@ class CPlantLocTri;
 class CPlantMgr {
 public:
     static inline RwTexture* (&PC_PlantTextureTab)[4][4] = *(RwTexture * (*)[4][4])0xC039A0;
-    static inline RpAtomic* (&PC_PlantModelsTab)[4][4] = *(RpAtomic * (*)[4][4])0xC039A0;
+    static inline RpAtomic* (&PC_PlantModelsTab)[4][4] = *(RpAtomic * (*)[4][4])0xC039F0;
 
     static inline int16& m_scanCode = *(int16*)0xC03980;
     static inline CPlantLocTri* m_UnusedLocTriListHead = *(CPlantLocTri**)0xC03984;

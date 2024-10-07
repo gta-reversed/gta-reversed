@@ -407,6 +407,3 @@ CAEWeaponAudioEntity* CAEWeaponAudioEntity::Destructor() {
 }
 
 // 0x504B70
-void CAEWeaponAudioEntity::UpdateParameters_Reversed(CAESound *sound, int16 curPlayPos) {
-    CAEWeaponAudioEntity::UpdateParameters(sound, curPlayPos);
-}

@@ -13,7 +13,7 @@ public:
     static constexpr auto Type = TASK_SIMPLE_CAR_DRIVE_TIMED;
 
     CTaskSimpleCarDriveTimed() = delete;
-    CTaskSimpleCarDriveTimed(CVehicle* vehicle, int32 nTime);
+    CTaskSimpleCarDriveTimed(CVehicle* vehicle, int32 nTime = -1);
     ~CTaskSimpleCarDriveTimed() override = default;
 
     eTaskType GetTaskType() const override { return Type; }

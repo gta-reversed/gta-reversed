@@ -3,7 +3,7 @@
 #include "TaskComplexPartnerChat.h"
 
 void CTaskComplexPartnerChat::InjectHooks() {
-    RH_ScopedClass(CTaskComplexPartnerChat);
+    RH_ScopedVirtualClass(CTaskComplexPartnerChat, 0x8707C4, 14);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x684290);
 }

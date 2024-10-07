@@ -215,7 +215,7 @@ void CQuadBike::ProcessControl() {
         return;
     }
 
-    const auto turnSpeed_Mult_Matrix = Multiply3x3(m_vecTurnSpeed, *m_matrix);
+    const auto turnSpeed_Mult_Matrix = m_matrix->InverseTransformVector(m_vecTurnSpeed);
     float v2 = vecQuadResistance.y, v5 = vecQuadResistance.x;
     if (AreFrontWheelsNotTouchingGround()) {
         if (!AreRearWheelsNotTouchingGround() && m_matrix->GetForward().z > 0.0f) {
@@ -231,19 +231,19 @@ void CQuadBike::ProcessControl() {
         }
     }
 
-    const CVector worldSpaceSpeed = Multiply3x3(m_vecTurnSpeed, *m_matrix);
+    const CVector velocityOS = m_matrix->InverseTransformVector(m_vecTurnSpeed);
     CVector unk{ // In the original code `x` is calculated once then immediately overwritten by the below line
         std::pow(vecQuadResistance.x, CTimer::GetTimeStep()),
-        vecQuadResistance.y / (worldSpaceSpeed.y * worldSpaceSpeed.y + 1.0f),
+        vecQuadResistance.y / (velocityOS.y * velocityOS.y + 1.0f),
         1.0f
     };
-    const auto worldCentreOfMass = Multiply3x3(m_vecCentreOfMass, *m_matrix);
+    const auto centreOfMassOS = m_matrix->InverseTransformVector(m_vecCentreOfMass);
 
-    const float v9 = std::pow(unk.y, CTimer::GetTimeStep()) * worldSpaceSpeed.y - worldSpaceSpeed.y;
-    ApplyTurnForce(m_matrix->GetUp() * -1.0f * v9 * m_fTurnMass, m_matrix->GetRight() + worldCentreOfMass);
+    const float v9 = std::pow(unk.y, CTimer::GetTimeStep()) * velocityOS.y - velocityOS.y;
+    ApplyTurnForce(m_matrix->GetUp() * -1.0f * v9 * m_fTurnMass, m_matrix->GetRight() + centreOfMassOS);
 
-    const float v19 = worldSpaceSpeed.x * unk.x - worldSpaceSpeed.x;
-    ApplyTurnForce(m_matrix->GetUp() * v19 * m_fTurnMass, m_matrix->GetForward() + worldCentreOfMass);
+    const float v19 = velocityOS.x * unk.x - velocityOS.x;
+    ApplyTurnForce(m_matrix->GetUp() * v19 * m_fTurnMass, m_matrix->GetForward() + centreOfMassOS);
 
     CAutomobile::ProcessControl();
 }

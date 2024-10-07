@@ -89,7 +89,7 @@ void CPlantMgr::InjectHooks() {
     RH_ScopedInstall(_ProcessEntryCollisionDataSections_AddLocTris, 0x5DC8B0);
     RH_ScopedInstall(_ProcessEntryCollisionDataSections_RemoveLocTris, 0x5DBF20);
     RH_ScopedInstall(_UpdateLocTris, 0x5DCF00);
-    RH_ScopedGlobalInstall(LoadModels, 0x5DD220);
+    //RH_ScopedGlobalInstall(LoadModels, 0x5DD220); // uses `__usercall`, can't hook
 
     // Do not uncomment!
     // RH_ScopedInstall(_CalcDistanceSqrToEntity, 0x5DBE40, {.reversed = false}); <-- bad call conv.
@@ -110,45 +110,51 @@ bool CPlantMgr::Initialise() {
     if (!ReloadConfig())
         return false;
 
-    CStreaming::MakeSpaceFor(0x8800);
-    CStreaming::ImGonnaUseStreamingMemory();
-    CTxdStore::PushCurrentTxd();
-    auto slot = CTxdStore::FindOrAddTxdSlot("grass_pc");
-    CTxdStore::LoadTxd(slot, "models\\grass\\plant1.txd");
-    CTxdStore::AddRef(slot);
-    CTxdStore::SetCurrentTxd(slot);
+    // Load textures
+    {
+        CStreaming::MakeSpaceFor(0x8800);
+        CStreaming::ImGonnaUseStreamingMemory();
+        CTxdStore::PushCurrentTxd();
+        auto slot = CTxdStore::FindOrAddTxdSlot("grass_pc");
+        CTxdStore::LoadTxd(slot, "models\\grass\\plant1.txd");
+        CTxdStore::AddRef(slot);
+        CTxdStore::SetCurrentTxd(slot);
 
-    const auto ReadTexture = [](const char* name) {
-        auto texture = RwTextureRead(name, nullptr);
-        RwTextureSetAddressing(texture, rwTEXTUREADDRESSWRAP);
-        RwTextureSetFilterMode(texture, rwFILTERLINEAR);
-        return texture;
-    };
+        const auto ReadTexture = [](const char* name) {
+            auto texture = RwTextureRead(name, nullptr);
+            RwTextureSetAddressing(texture, rwTEXTUREADDRESSWRAP);
+            RwTextureSetFilterMode(texture, rwFILTERLINEAR);
+            return texture;
+        };
 
-    for (auto&& [i, tab] : notsa::enumerate(PC_PlantTextureTab | rng::views::take(2))) {
-        for (auto&& [j, tex] : notsa::enumerate(tab)) {
-            tex = ReadTexture(std::format("txgrass{}_{}", i, j).c_str());
+        for (auto&& [i, tab] : notsa::enumerate(PC_PlantTextureTab | rng::views::take(2))) {
+            for (auto&& [j, tex] : notsa::enumerate(tab)) {
+                tex = ReadTexture(std::format("txgrass{}_{}", i, j).c_str());
+            }
         }
+        tex_gras07Si = ReadTexture("gras07Si");
+        CTxdStore::PopCurrentTxd();
+        CStreaming::IHaveUsedStreamingMemory();
+
+        grassTexturesPtr[0] = grassTexturesPtr[2] = *PC_PlantTextureTab[0];
+        grassTexturesPtr[1] = grassTexturesPtr[3] = *PC_PlantTextureTab[1];
     }
-    tex_gras07Si = ReadTexture("gras07Si");
-    CTxdStore::PopCurrentTxd();
-    CStreaming::IHaveUsedStreamingMemory();
 
-    grassTexturesPtr[0] = grassTexturesPtr[2] = *PC_PlantTextureTab[0];
-    grassTexturesPtr[1] = grassTexturesPtr[3] = *PC_PlantTextureTab[1];
+    // Load models
+    {
+        const auto models1 = { "grass0_1.dff", "grass0_2.dff", "grass0_3.dff", "grass0_4.dff" };
+        const auto models2 = { "grass1_1.dff", "grass1_2.dff", "grass1_3.dff", "grass1_4.dff" };
+        if (LoadModels(models1, PC_PlantModelsTab[0]) && LoadModels(models2, PC_PlantModelsTab[1])) {
+            grassModelsPtr[0] = grassModelsPtr[2] = *PC_PlantModelsTab[0];
+            grassModelsPtr[1] = grassModelsPtr[3] = *PC_PlantModelsTab[1];
 
-    const auto models1 = { "grass0_1.dff", "grass0_2.dff", "grass0_3.dff", "grass0_4.dff" };
-    const auto models2 = { "grass1_1.dff", "grass1_2.dff", "grass1_3.dff", "grass1_4.dff" };
-    if (LoadModels(models1, PC_PlantModelsTab[0]) && LoadModels(models2, PC_PlantModelsTab[1])) {
-        grassModelsPtr[0] = grassModelsPtr[2] = *PC_PlantModelsTab[0];
-        grassModelsPtr[1] = grassModelsPtr[3] = *PC_PlantModelsTab[1];
+            for (auto i = 0u; i < 4u; i++) {
+                CGrassRenderer::SetPlantModelsTab(i, PC_PlantModelsTab[0]); // grassModelsPtr[0]
+            }
 
-        for (auto i = 0u; i < 4u; i++) {
-            CGrassRenderer::SetPlantModelsTab(i, PC_PlantModelsTab[0]); // grassModelsPtr[0]
+            CGrassRenderer::SetCloseFarAlphaDist(3.0f, 60.0f);
+            return true;
         }
-
-        CGrassRenderer::SetCloseFarAlphaDist(3.0f, 60.0f);
-        return true;
     }
 
     return false;
@@ -156,37 +162,39 @@ bool CPlantMgr::Initialise() {
 
 // 0x5DB940
 void CPlantMgr::Shutdown() {
-    for (auto it = m_CloseColEntListHead; it; it = it->m_NextEntry) {
-        it->ReleaseEntry();
+    for (auto it = m_CloseColEntListHead; it;) {
+        std::exchange(it, it->m_NextEntry)->ReleaseEntry();
     }
 
-    const auto DestroyAtomics = [](auto& atomics) {
-        for (auto& atomic : atomics) {
-            if (atomic) {
-                if (auto frame = RpAtomicGetFrame(atomic)) {
-                    RpAtomicSetFrame(atomic, nullptr);
-                    RwFrameDestroy(frame);
-                }
-                RpAtomicDestroy(atomic);
-                atomic = nullptr;
-            }
-        }
-    };
-
-    const auto DestroyTextures = [](auto& textures) {
-        for (auto& texture : textures) {
-            if (texture) {
-                RwTextureDestroy(texture);
-                texture = nullptr;
-            }
-        }
-    };
-
+    // Destroy atomics
     for (auto i = 0u; i < 4u; i++) {
+        const auto DestroyAtomics = [](auto& atomics) {
+            for (auto& a : atomics) {
+                if (a) {
+                    if (const auto f = RpAtomicGetFrame(a)) {
+                        RpAtomicSetFrame(a, nullptr);
+                        RwFrameDestroy(f);
+                    }
+                    RpAtomicDestroy(std::exchange(a, nullptr));
+                }
+            }
+        };
         DestroyAtomics(PC_PlantModelsTab[i]);
+    }
+
+    // Destroy textures
+    for (auto i = 0u; i < 4u; i++) {
+        const auto DestroyTextures = [](auto& textures) {
+            for (auto& t : textures) {
+                if (t) {
+                    RwTextureDestroy(std::exchange(t, nullptr));
+                }
+            }
+        };
         DestroyTextures(PC_PlantTextureTab[i]);
     }
 
+    // And finally unload the texture's txd
     CTxdStore::SafeRemoveTxdSlot("grass_pc");
 }
 
@@ -480,7 +488,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections(const CPlantColEntEntry& entr
         auto& box = faceGroup.bb;
 
         CVector out[2]{};
-        TransformPoints(out, 2, (RwMatrix&)entry.m_Entity->GetMatrix(), (CVector*)&box);
+        TransformPoints(out, 2, entry.m_Entity->GetMatrix(), (CVector*)&box);
         box.Set(out[0], out[1]);
         box.Recalc();
 
@@ -509,7 +517,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEnt
             cd->GetTrianglePoint(vertices[1], tri.vB);
             cd->GetTrianglePoint(vertices[2], tri.vC);
 
-            TransformPoints(vertices, 3, (RwMatrix&)entity->GetMatrix(), vertices);
+            TransformPoints(vertices, 3, entity->GetMatrix(), vertices);
 
             CVector cmp[] = {
                 vertices[1],

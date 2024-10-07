@@ -34,6 +34,20 @@ CTaskComplexUseScriptedBrain::~CTaskComplexUseScriptedBrain() {
     ClearCurrentTask();
 }
 
+// 0x635970
+bool CTaskComplexUseScriptedBrain::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
+    if (!event || event->GetEventType() != EVENT_SCRIPT_COMMAND) {
+        return m_pSubTask->MakeAbortable(ped, priority, event);
+    }
+
+    if (auto* e = CEvent::DynCast<const CEventScriptCommand>(event); !e || e->m_task->GetTaskType() != TASK_COMPLEX_USE_EFFECT) {
+        return m_pSubTask->MakeAbortable(ped, priority, event);
+    }
+
+    m_aborting = true;
+    return false;
+}
+
 // 0x6359C0
 CTask* CTaskComplexUseScriptedBrain::CreateNextSubTask(CPed* ped) {
     ClearCurrentTask();

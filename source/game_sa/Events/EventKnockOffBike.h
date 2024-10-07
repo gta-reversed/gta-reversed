@@ -57,8 +57,6 @@ private:
     CEventKnockOffBike* Constructor(CVehicle* vehicle, CVector* moveSpeed, CVector* collisionImpactVelocity, float damageIntensity, float a6, uint8 knockOffType, uint8 knockOutDirection, int32 time, CPed* ped, bool isVictimDriver, bool forceKnockOff);
     CEventKnockOffBike* Constructor();
 
-    bool AffectsPed_Reversed(CPed* ped);
-    void ReportCriminalEvent_Reversed(CPed* ped);
 };
 
 VALIDATE_SIZE(CEventKnockOffBike, 0x3C);

@@ -48,13 +48,13 @@ void CPedGeometryAnalyser::InjectHooks() {
 }
 
 // 0x5F1B00
-void CPedGeometryAnalyser::CanPedJumpObstacle(const CPed& ped, const CEntity& entity) {
-    assert(false);
+bool CPedGeometryAnalyser::CanPedJumpObstacle(const CPed& ped, const CEntity& entity) {
+    return plugin::CallAndReturn<bool, 0x5F1B00, CPed const&, CEntity const&>(ped, entity);
 }
 
 // 0x5F32D0
-void CPedGeometryAnalyser::CanPedJumpObstacle(const CPed& ped, const CEntity& entity, const CVector&, const CVector&) {
-    assert(false);
+bool CPedGeometryAnalyser::CanPedJumpObstacle(const CPed& ped, const CEntity& entity, const CVector& contactNormal, const CVector& contactPos) {
+    return plugin::CallAndReturn<bool, 0x5F32D0, CPed const&, CEntity const&, CVector const&, CVector const&>(ped, entity, contactNormal, contactPos);
 }
 
 // 0x5F1C40
@@ -203,8 +203,19 @@ void CPedGeometryAnalyser::ComputeEntityBoundingSphere(const CPed& ped, CEntity&
 }
 
 // 0x5F3730
-int32 CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity, CVector& posn) {
-    return plugin::CallAndReturn<int32, 0x5F3730, const CPed&, CEntity&, CVector&>(ped, entity, posn);
+int32 CPedGeometryAnalyser::ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity, CVector& outDirToAvoidEntity) {
+    return plugin::CallAndReturn<int32, 0x5F3730, const CPed&, CEntity&, CVector&>(ped, entity, outDirToAvoidEntity);
+}
+
+//! @notsa
+CVector CPedGeometryAnalyser::ComputeEntityDir(const CEntity& entity, eDirection dir) {
+    switch (dir) {
+    case eDirection::FORWARD:  return entity.GetForward();
+    case eDirection::LEFT:     return -entity.GetRight();
+    case eDirection::BACKWARD: return -entity.GetForward();
+    case eDirection::RIGHT:    return entity.GetRight();
+    default:                   NOTSA_UNREACHABLE();
+    }
 }
 
 // 0x5F1500
@@ -283,8 +294,8 @@ bool CPedGeometryAnalyser::IsInAir(const CPed& ped) {
 }
 
 // 0x5F2F70
-bool CPedGeometryAnalyser::IsWanderPathClear(const CVector& a1, const CVector& a2, float a3, int32 a4) {
-    return plugin::CallAndReturn<bool, 0x5F2F70, const CVector&, const CVector&, float, int32>(a1, a2, a3, a4);
+CPedGeometryAnalyser::WanderPathClearness CPedGeometryAnalyser::IsWanderPathClear(const CVector& a1, const CVector& a2, float a3, int32 a4) {
+    return plugin::CallAndReturn<WanderPathClearness, 0x5F2F70, const CVector&, const CVector&, float, int32>(a1, a2, a3, a4);
 }
 
 // 0x5F3880

@@ -22,7 +22,7 @@ enum eSwimState : uint16 {
 class CPed;
 class CPlayerPed;
 
-class CTaskSimpleSwim : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleSwim : public CTaskSimple {
 public:
     bool        m_bFinishedBlending;
     bool        m_bAnimBlockRefAdded;
@@ -76,7 +76,5 @@ private:
     static void InjectHooks();
 
     CTaskSimpleSwim* Constructor(CVector* pos, CPed* ped);
-    bool ProcessPed_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 };
 VALIDATE_SIZE(CTaskSimpleSwim, 0x64);

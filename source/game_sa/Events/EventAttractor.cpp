@@ -6,21 +6,13 @@
 
 void CEventAttractor::InjectHooks()
 {
-    RH_ScopedClass(CEventAttractor);
+    RH_ScopedVirtualClass(CEventAttractor, 0x85B1B8, 17);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x4AF350);
-    RH_ScopedVirtualInstall(AffectsPed, 0x4AF4B0);
-    RH_ScopedVirtualInstall(CloneEditable, 0x4B7440);
+    RH_ScopedVMTInstall(AffectsPed, 0x4AF4B0);
+    RH_ScopedVMTInstall(CloneEditable, 0x4B7440);
     RH_ScopedInstall(IsEffectActive, 0x4AF460);
-}
-
-void CEventScriptedAttractor::InjectHooks()
-{
-    RH_ScopedClass(CEventScriptedAttractor);
-    RH_ScopedCategory("Events");
-
-    RH_ScopedInstall(Constructor, 0x5FEF40);
 }
 
 CEventAttractor::CEventAttractor(C2dEffect* effect, CEntity* entity, bool bAvoidLookingAtAttractor, eTaskType taskType) :
@@ -46,17 +38,6 @@ CEventAttractor* CEventAttractor::Constructor(C2dEffect* effect, CEntity* entity
 
 // 0x4AF4B0
 bool CEventAttractor::AffectsPed(CPed* ped)
-{
-    return CEventAttractor::AffectsPed_Reversed(ped);
-}
-
-// 0x4B7440
-CEventEditableResponse* CEventAttractor::CloneEditable()
-{
-    return CEventAttractor::CloneEditable_Reversed();
-}
-
-bool CEventAttractor::AffectsPed_Reversed(CPed* ped)
 {
     if (ped->IsAlive()
         && (GetEventType() != EVENT_ATTRACTOR || m_entity)
@@ -85,7 +66,7 @@ bool CEventAttractor::AffectsPed_Reversed(CPed* ped)
                     return true;
                 if (!g_ikChainMan.IsLooking(ped)) {
                     uint32 time = CGeneral::GetRandomNumberInRange(2000, 4000);
-                    CVector point = m_entity->GetMatrix() * m_2dEffect->m_pos;
+                    CVector point = m_entity->GetMatrix().TransformPoint(m_2dEffect->m_pos);
                     g_ikChainMan.LookAt("CEventAttractor", ped, 0, time, BONE_UNKNOWN, &point, false, 0.25f, 500, 3, false);
                 }
             }     
@@ -94,7 +75,8 @@ bool CEventAttractor::AffectsPed_Reversed(CPed* ped)
     return false;
 }
 
-CEventEditableResponse* CEventAttractor::CloneEditable_Reversed()
+// 0x4B7440
+CEventEditableResponse* CEventAttractor::CloneEditable()
 {
     return new CEventAttractor(m_2dEffect, m_entity, m_bAvoidLookingAtAttractor);
 }
@@ -108,15 +90,4 @@ bool CEventAttractor::IsEffectActive(CEntity* entity, const C2dEffect* effect)
             return true;
     }
     return false;
-}
-
-CEventScriptedAttractor::CEventScriptedAttractor(C2dEffect* the2dEffect, CEntity* entity, bool bAvoidLookingAtAttractor) :
-    CEventAttractor(the2dEffect, entity, false)
-{
-}
-
-CEventScriptedAttractor* CEventScriptedAttractor::Constructor(C2dEffect* the2dEffect, CEntity* entity, bool bAvoidLookingAtAttractor)
-{
-    this->CEventScriptedAttractor::CEventScriptedAttractor(the2dEffect, entity, bAvoidLookingAtAttractor);
-    return this;
 }

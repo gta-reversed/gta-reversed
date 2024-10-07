@@ -3,7 +3,7 @@
 #include "TaskComplex.h"
 #include "Accident.h"
 
-class CTaskComplexTreatAccident : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexTreatAccident : public CTaskComplex {
 public:
     CAccident* m_pAccident;
 
@@ -28,9 +28,5 @@ private:
 
     CTaskComplexTreatAccident* Constructor(CAccident* pAcc);
 
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
-    CTask*  Clone_Reversed() const;
 };
 VALIDATE_SIZE(CTaskComplexTreatAccident, 0x10);

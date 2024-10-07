@@ -224,7 +224,7 @@ public:
     void   RetuneRadio(eRadioID radioId);
 
     void  DisplayRadioStationName();
-    const char* GetRadioStationName(eRadioID id);
+    const GxtChar* GetRadioStationName(eRadioID id);
     void  GetRadioStationNameKey(eRadioID id, char* outStr);
     static bool IsVehicleRadioActive();
 

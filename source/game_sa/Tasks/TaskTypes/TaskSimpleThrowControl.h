@@ -6,7 +6,7 @@
 
 class CEntity;
 
-class CTaskSimpleThrowControl : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleThrowControl : public CTaskSimple {
 public:
     uint8    byte8{};
     uint8    m_isAttacking{};

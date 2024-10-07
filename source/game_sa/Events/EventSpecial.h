@@ -1,6 +1,9 @@
 #pragma once
 
-class CEventSpecial : public CEventEditableResponse {
+#include "EventEditableResponse.h"
+
+
+class NOTSA_EXPORT_VTABLE CEventSpecial : public CEventEditableResponse {
 public:
     CEventSpecial() = default; // 0x4B1AE0
     ~CEventSpecial() override = default; // 0x4B6750 ?

@@ -84,7 +84,7 @@ union tScriptParam {
     uint16 u16Param;
     int16  i16Param;
 
-    uint32 uParam;
+    uint32 uParam{0u};
     int32  iParam;
 
     float  fParam;
@@ -210,8 +210,11 @@ public:
     int16 GetPadState(uint16 playerIndex, eButtonId buttonId);
 
     tScriptParam* GetPointerToLocalVariable(int32 varId);
-    tScriptParam* GetPointerToLocalArrayElement(int32 arrVarOffset, uint16 arrElemIdx, uint8 arrElemSize);
+    tScriptParam* GetPointerToLocalArrayElement(int32 arrVarOffset, uint16 arrElemIdx, uint8 arrayEntriesSizeAsParams);
     tScriptParam* GetPointerToScriptVariable(eScriptVariableType variableType);
+
+    tScriptParam* GetPointerToGlobalArrayElement(int32 arrBase, uint16 arrIdx, uint8 arrayEntriesSizeAsParams);
+    tScriptParam* GetPointerToGlobalVariable(int32 varId);
     uint16        GetIndexOfGlobalVariable();
 
     void DoDeathArrestCheck(); // original name DoDeatharrestCheck
@@ -262,7 +265,7 @@ public:
     }
 
     //! Return the custom command handler of a function (or null) as a reference
-    static notsa::script::CommandHandlerFunction& CustomCommandHandlerOf(eScriptCommands command); // Returning a ref here for convinience (instead of having to make a `Set` function too)
+    static notsa::script::CommandHandlerFunction& CustomCommandHandlerOf(eScriptCommands command); // Returning a ref here for convenience (instead of having to make a `Set` function too)
 };
 
 VALIDATE_SIZE(CRunningScript, 0xE0);

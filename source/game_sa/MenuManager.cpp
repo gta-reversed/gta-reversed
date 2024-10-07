@@ -491,7 +491,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_bWidescreenOn                  = false;
         m_bMapLegend                     = false;
         m_nRadarMode                     = eRadarMode::MAPS_AND_BLIPS;
-        m_nDisplayVideoMode              = -1; // Originally m_nPrefsVideoMode. Look at: `psSelectDevice`.
+        m_nDisplayVideoMode              = m_nPrefsVideoMode;
         m_ShowLocationsBlips             = true;
         m_ShowContactsBlips              = true;
         m_ShowMissionBlips               = true;
@@ -600,7 +600,7 @@ void CMenuManager::LoadSettings() {
         SetDefaultPreferences(SCREEN_DISPLAY_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
         SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
-        m_nPrefsVideoMode = -1; // Originally 0. Look at: `psSelectDevice`.
+        m_nPrefsVideoMode = 0;
         m_nPrefsLanguage = eLanguage::AMERICAN;
         m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
 
@@ -767,9 +767,9 @@ void CMenuManager::SaveStatsToFile() {
     char date[12]{};
     _strdate_s(date, 12u);
 
-    const char* lastMissionPassed = TheText.Get("ITBEG"); // In the beginning
+    const GxtChar* lastMissionPassedKey = TheText.Get("ITBEG"); // In the beginning
     if (CStats::LastMissionPassedName[0]) {
-        lastMissionPassed = TheText.Get(CStats::LastMissionPassedName);
+        lastMissionPassedKey = TheText.Get(CStats::LastMissionPassedName);
     }
 
     auto file = CFileMgr::OpenFile("stats.html", "w");
@@ -785,10 +785,14 @@ void CMenuManager::SaveStatsToFile() {
     }
 
     const auto ToUpperCase = [](const char* s) {
-        std::string str{s};
-        rng::for_each(str, [](char& c) { c = (char)std::toupper(c); });
-        return str;
+        // HACK: This seems to be the cleanest way...
+        auto wide = UTF8ToUnicode(s);
+        rng::transform(wide, wide.begin(), towupper);
+        return UnicodeToUTF8(wide);
     };
+
+    // FIX_BUGS: Use UTF-8 instead of ANSI.
+    fprintf_s(file, "<meta charset=\"UTF-8\"/>\n");
 
     fprintf_s(file, "<title>Grand Theft Auto San Andreas Stats</title>\n");
     fprintf_s(file, "<body bgcolor=\"#000000\" leftmargin=\"10\" topmargin=\"10\" marginwidth=\"10\" marginheight=\"10\">\n");
@@ -797,20 +801,20 @@ void CMenuManager::SaveStatsToFile() {
                   "<td height=\"59\" colspan=\"2\" bgcolor=\"#000000\"><div align=\"center\"><font color=\"#FFFFFF\" size=\"5\" face=\"Arial, \n");
     fprintf_s(file, "Helvetica, sans-serif\">-------------------------------------------------------------------</font><font \nsize=\"5\" face=\"Arial, Helvetica, sans-serif\"><br>\n");
     fprintf_s(file, "<strong><font color=\"#FFFFFF\">GRAND THEFT AUTO SAN ANDREAS ");
-    fprintf_s(file, "%s</font></strong><br><font\n", ToUpperCase(TheText.Get("FEH_STA")).c_str()); // Stats
+    fprintf_s(file, "%s</font></strong><br><font\n", ToUpperCase(GxtCharToUTF8(TheText.Get("FEH_STA"))).c_str()); // Stats
     fprintf_s(file, "color=\"#FFFFFF\">-------------------------------------------------------------------</font></font></div></td> </tr>\n");
     fprintf_s(file, "<tr align=\"center\" valign=\"top\" bgcolor=\"#000000\">     <td height=\"22\" colspan=\"2\">&nbsp;</td>  </tr>\n"
                     "<tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> \n");
     fprintf_s(file, R"(<td height="40" colspan="2"> <p><font color="#F0000C" size="2" face="Arial, Helvetica, sans-serif"><stro)");
-    fprintf_s(file, "ng><font color=\"#F0000C\" size=\"1\">%s: \n", GxtCharToAscii(TheText.Get("FES_DAT"), 0u)); // DATE
-    fprintf_s(file, "%s</font><br>        %s: </strong>", date, GxtCharToAscii(TheText.Get("FES_CMI"), 0u));     // LAST MISSION PASSED
-    fprintf_s(file, "%s<strong><br></strong> </font></p></td></tr>\n", ToUpperCase(GxtCharToAscii(lastMissionPassed, 0u)).c_str());
+    fprintf_s(file, "ng><font color=\"#F0000C\" size=\"1\">%s: \n", GxtCharToUTF8(TheText.Get("FES_DAT"), 0u)); // DATE
+    fprintf_s(file, "%s</font><br>        %s: </strong>", date, GxtCharToUTF8(TheText.Get("FES_CMI"), 0u));     // LAST MISSION PASSED
+    fprintf_s(file, "%s<strong><br></strong> </font></p></td></tr>\n", ToUpperCase(GxtCharToUTF8(lastMissionPassedKey)).c_str());
     fprintf_s(file, "<tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> <td height=\"5\" colspan=\"2\"></td> </tr> <tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> \n"
                   "<td height=\"10\" colspan=\"2\"></td> </tr> <tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> \n");
     fprintf_s(file, R"(<td height="20" colspan="2"><font color="#F0000C" size="2" face="Arial, Helvetica, sans-serif">)");
-    fprintf_s(file, "<strong> %s</strong>\n ", GxtCharToAscii(TheText.Get("CRIMRA"), 0u)); // Criminal rating:
+    fprintf_s(file, "<strong> %s</strong>\n ", GxtCharToUTF8(TheText.Get("CRIMRA"), 0u)); // Criminal rating:
     TextCopy(gGxtString, CStats::FindCriminalRatingString());
-    fprintf_s(file, "%s (%d)</font></td>  </tr>", GxtCharToAscii(gGxtString, 0u), CStats::FindCriminalRatingNumber());
+    fprintf_s(file, "%s (%d)</font></td>  </tr>", GxtCharToUTF8(gGxtString, 0u), CStats::FindCriminalRatingNumber());
     fprintf_s(file, "<tr align=\"left\" valign=\"top\" bgcolor=\"#000000\"><td height=\"10\" colspan=\"2\"></td>  </tr>\n");
 
     static constexpr const char* strToPrint[] = {
@@ -823,7 +827,7 @@ void CMenuManager::SaveStatsToFile() {
         fprintf_s(file, "</font></strong></div></td> </tr> <tr align=\"left\" valign=\"top\" bgcolor=\"#000000\">  <td height=\"25\" colspan=\"2\"></td> </tr>\n"
                       "<tr align=\"left\" valign=\"top\"><td height=\"30\" bgcolor=\"#000000\"><font color=\"#009900\" size=\"4\" face=\"Arial, Helvetica, sans-serif\"><strong>\n");
 
-        fprintf_s(file, "%s", GxtCharToAscii(TheText.Get(strToPrint[menuItem]), 0u));
+        fprintf_s(file, "%s", GxtCharToUTF8(TheText.Get(strToPrint[menuItem]), 0u));
         fprintf_s(file, "</strong></font></td> <td width=\"500\" align=\"right\" valign=\"middle\" bgcolor=\"#000000\"> <div align=\"right\"><strong><font color=\"#FF0CCC\">\n");
         if (numStatLines <= 0)
             continue;
@@ -831,7 +835,7 @@ void CMenuManager::SaveStatsToFile() {
         for (auto stat = 0; stat < numStatLines; stat++) {
             CStats::ConstructStatLine(stat, menuItem);
 
-            auto str = GxtCharToAscii(gGxtString, 0u);
+            auto str = GxtCharToUTF8(gGxtString, 0u);
             if (*str) {
                 fprintf_s(file, "</font></strong></div></td> </tr> <tr align=\"left\" valign=\"top\" bgcolor=\"#000000\">  <td height=\"10\" colspan=\"2\"></td> </tr>\n");
             }
@@ -839,7 +843,7 @@ void CMenuManager::SaveStatsToFile() {
             fprintf_s(file, "<tr align=\"left\" valign=\"top\"><td width=\"500\" height=\"22\" bgcolor=\"#555555\"><font color=\"#FFFFFF\" size=\"2\" face=\"Arial, Helvetica, sans-serif\"><strong>\n");
             fprintf_s(file, "%s", (*str) ? str : " ");
             fprintf_s(file, "</strong></font></td> <td width=\"500\" align=\"right\" valign=\"middle\" bgcolor=\"#555555\"> <div align=\"right\"><strong><font color=\"#FFFFFF\">\n");
-            auto val = GxtCharToAscii(gGxtString2, 0u);
+            auto val = GxtCharToUTF8(gGxtString2, 0u);
             auto valFormatted = (char*)val;
 
             // todo. xref: CStats::ConstructStatLine, PrintStats
@@ -925,7 +929,7 @@ void CMenuManager::DisplayHelperText(const char* key) {
 
     CFont::SetColor(CRGBA(255, 255, 255, alpha));
 
-    const char* text{};
+    const GxtChar* text{};
     switch (m_nHelperText) {
     case FET_APP:
         text = TheText.Get("FET_APP"); // CLICK LMB / RETURN - APPLY NEW SETTING
@@ -1087,7 +1091,8 @@ void CMenuManager::SmallMessageScreen(const char* key) {
     if (!TheText.m_bCdErrorLoaded) {
         for (auto& k : { "NOCD", "OPENCD", "WRONGCD", "CDERROR" }) {
             if (!_stricmp(k, key)) {
-                AsciiToGxtChar(text, TheText.m_szCdErrorText);
+                // FIX_BUGS: AsciiToGxtChar <-> GxtCharToAscii (then UTF-8)
+                GxtCharToUTF8(TheText.m_szCdErrorText, text);
             }
         }
     }

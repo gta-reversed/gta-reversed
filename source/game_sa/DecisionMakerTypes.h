@@ -20,14 +20,17 @@ public:
 
 class CDecisionMakerTypes {
 public:
-    static inline std::array<uint16, 20>& ScriptReferenceIndex = *(std::array<uint16, 20>*)0xC0AFF4;
+    static constexpr auto NUM_TYPES = 20u;
+
+    static inline auto& ScriptReferenceIndex = *(std::array<uint16, NUM_TYPES>*)0xC0AFF4;
+    static inline auto& m_bIsActive          = *(std::array<bool, NUM_TYPES>*)0xC0B01C;
 
     static void InjectHooks();
 
     static CDecisionMakerTypes* GetInstance();
 
     int32 AddDecisionMaker(CDecisionMaker* decisionMaker, eDecisionTypes decisionMakerType, bool bUseMissionCleanup);
-    void MakeDecision(CPed* ped, int32 eventType, int32 eventSourceType, bool bIsPedInVehicle, int32 taskId1, int32 taskId2, int32 taskId3, int32 taskId4, bool bInGroup, int16& taskId, int16& field_10);
+    void MakeDecision(CPed* ped, int32 eventType, int32 eventSourceType, bool bIsPedInVehicle, int32 taskTypeToAvoid1, int32 taskTypeToAvoid2, int32 taskTypeToAvoid3, int32 taskTypeToSeek, bool bUseInGroupDecisionMaker, int16& taskType, int16& facialTaskType);
     int32 MakeDecision(CPedGroup* pedGroup, int32 eventType, int32 eventSourceType, bool bIsPedInVehicle, int32 taskId1, int32 taskId2, int32 taskId3, int32 taskId4);
     void AddEventResponse(int32 decisionMakerIndex, int32 eventType, int32 taskId, float* responseChances, int32* flags);
     void FlushDecisionMakerEventResponse(int32 decisionMakerIndex, int32 eventId);

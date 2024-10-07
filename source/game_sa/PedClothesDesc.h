@@ -11,8 +11,8 @@
 
 class CPedClothesDesc {
 public:
-    std::array<uint32, 10> m_anModelKeys;
-    std::array<uint32, 18> m_anTextureKeys;
+    std::array<uint32, CLOTHES_MODEL_TOTAL> m_anModelKeys;
+    std::array<uint32, CLOTHES_TEXTURE_TOTAL> m_anTextureKeys;
     float  m_fFatStat;
     float  m_fMuscleStat;
 
@@ -21,12 +21,6 @@ public:
 
     CPedClothesDesc();
     CPedClothesDesc* Constructor();
-
-    // todo: ugly?
-    CPedClothesDesc& operator=(const CPedClothesDesc* rhs) {
-        memcpy(this, &rhs, sizeof(CPedClothesDesc));
-        return *this;
-    }
 
     void Initialise();
 

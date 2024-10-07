@@ -8,12 +8,14 @@
 
 #include "CarAI.h"
 #include "CarCtrl.h"
+#include "TaskComplexMedicTreatInjuredPed.h"
+#include "TaskSimpleCarDrive.h"
 
 void CCarAI::InjectHooks() {
     RH_ScopedClass(CCarAI);
     RH_ScopedCategory("AI");
 
-    RH_ScopedInstall(AddAmbulanceOccupants, 0x41C4A0, { .reversed = false });
+    RH_ScopedInstall(AddAmbulanceOccupants, 0x41C4A0, { .reversed = true });
     RH_ScopedInstall(AddFiretruckOccupants, 0x41C600, { .reversed = false });
     RH_ScopedInstall(AddPoliceCarOccupants, 0x41C070, { .reversed = false });
     RH_ScopedInstall(BackToCruisingIfNoWantedLevel, 0x41BFA0, { .reversed = false });
@@ -42,7 +44,13 @@ void CCarAI::InjectHooks() {
 
 // 0x41C4A0
 void CCarAI::AddAmbulanceOccupants(CVehicle* vehicle) {
-    plugin::Call<0x41C4A0, CVehicle*>(vehicle);
+    CPed* driver    = vehicle->SetUpDriver(PED_TYPE_NONE, false, false);
+    CPed* passenger = vehicle->SetupPassenger(1, PED_TYPE_NONE, false, false);
+
+    driver->GetTaskManager().SetTask(new CTaskSimpleCarDrive{ vehicle }, TASK_PRIMARY_DEFAULT);
+    driver->GetTaskManager().SetTask(new CTaskComplexMedicTreatInjuredPed{ vehicle, passenger, true }, TASK_PRIMARY_PRIMARY);
+    passenger->GetTaskManager().SetTask(new CTaskSimpleCarDrive{ vehicle }, TASK_PRIMARY_DEFAULT);
+    passenger->GetTaskManager().SetTask(new CTaskComplexMedicTreatInjuredPed{ vehicle, driver, false }, TASK_PRIMARY_PRIMARY);
 }
 
 // 0x41C600

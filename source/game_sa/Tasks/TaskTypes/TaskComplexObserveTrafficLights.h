@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexObserveTrafficLights : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexObserveTrafficLights : public CTaskComplex {
 public:
     CTaskTimer m_Timer;
 

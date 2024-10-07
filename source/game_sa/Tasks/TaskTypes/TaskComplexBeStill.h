@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexBeStill : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexBeStill : public CTaskComplex {
 public:
     static constexpr auto Type = TASK_COMPLEX_BE_STILL;
 

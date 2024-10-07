@@ -18,7 +18,7 @@ public:
 
     constexpr static auto Type = eTaskType::TASK_SIMPLE_CAR_WAIT_FOR_DOOR_NOT_TO_BE_IN_USE;
 
-    CTaskSimpleCarWaitForDoorNotToBeInUse(CVehicle * veh, uint32 doorToWaitFor1, uint32 doorToWaitFor2);
+    CTaskSimpleCarWaitForDoorNotToBeInUse(CVehicle * veh, uint32 doorToWaitFor1, uint32 doorToWaitFor2 = 0);
     CTaskSimpleCarWaitForDoorNotToBeInUse(const CTaskSimpleCarWaitForDoorNotToBeInUse&);
     ~CTaskSimpleCarWaitForDoorNotToBeInUse();
 

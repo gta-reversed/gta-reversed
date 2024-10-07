@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexGoToAttractor : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGoToAttractor : public CTaskComplex {
 public:
     CPedAttractor* m_Attractor;
     CVector        m_vecAttrPosn;

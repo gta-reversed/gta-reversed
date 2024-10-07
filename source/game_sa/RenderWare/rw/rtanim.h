@@ -172,7 +172,7 @@ struct RtAnimInterpolatorInfo
             /**< The ID of the interpolation scheme. */
     RwInt32                             interpKeyFrameSize;
             /**< Size, in bytes, of the interpolated keyframe structure. */
-    //RwInt32                             animKeyFrameSize;
+    RwInt32                             animKeyFrameSize;
             /**< Size, in bytes, of the animation keyframe structure. */
     RtAnimKeyFrameApplyCallBack         keyFrameApplyCB;
             /**< Pointer to a function that converts a keyframe to the needed
@@ -456,3 +456,7 @@ RwBool RtAnimInterpolatorAddTogether(RtAnimInterpolator* outAnim, RtAnimInterpol
 RtAnimInterpolator* RtAnimInterpolatorCreateSubInterpolator(RtAnimInterpolator* parentAnim, RwInt32 startNode, RwInt32 numNodes, RwInt32 maxInterpKeyFrameSize); // 0x7CDCB0
 RwBool RtAnimInterpolatorBlendSubInterpolator(RtAnimInterpolator* outAnim, RtAnimInterpolator* inAnim1, RtAnimInterpolator* inAnim2, RwReal alpha); // 0x7CDCF0
 RwBool RtAnimInterpolatorAddSubInterpolator(RtAnimInterpolator* outAnim, RtAnimInterpolator* mainAnim, RtAnimInterpolator* subAnim); // 0x7CDEF0
+
+namespace RtAnim {
+    void InjectHooks();
+};

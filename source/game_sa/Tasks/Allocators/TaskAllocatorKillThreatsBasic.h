@@ -2,7 +2,7 @@
 
 #include "TaskAllocator.h"
 
-class CTaskAllocatorKillThreatsBasic : public CTaskAllocator {
+class NOTSA_EXPORT_VTABLE CTaskAllocatorKillThreatsBasic : public CTaskAllocator {
 public:
     explicit CTaskAllocatorKillThreatsBasic(CPed* ped);
     ~CTaskAllocatorKillThreatsBasic() override;

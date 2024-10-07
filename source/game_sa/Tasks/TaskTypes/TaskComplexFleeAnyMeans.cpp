@@ -45,7 +45,7 @@ CTaskComplexFleeAnyMeans::CTaskComplexFleeAnyMeans(
 
 CTaskComplexFleeAnyMeans::CTaskComplexFleeAnyMeans(const CTaskComplexFleeAnyMeans& o) :
     CTaskComplexFleeAnyMeans{
-        o.m_entity,
+        o.fleeFrom,
         o.m_shootWhileFleeing,
         o.m_safeDistance,
         o.m_time,
@@ -71,7 +71,7 @@ CTask* CTaskComplexFleeAnyMeans::CreateSubTask(eTaskType taskType, CPed* ped) {
     switch (taskType) {
     case TASK_COMPLEX_FLEE_SHOOTING:
         return new CTaskComplexFleeShooting{
-            m_entity,
+            fleeFrom,
             m_pedScream,
             m_safeDistance,
             m_time,
@@ -147,7 +147,7 @@ CTask* CTaskComplexFleeAnyMeans::CreateFirstSubTask(CPed* ped) {
 
 // 0x65D780
 CTask* CTaskComplexFleeAnyMeans::ControlSubTask(CPed* ped) {
-    if (!m_entity) {
+    if (!fleeFrom) {
         return m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_LEISURE, nullptr)
             ? nullptr
             : m_pSubTask;
@@ -173,7 +173,7 @@ CTask* CTaskComplexFleeAnyMeans::ControlSubTask(CPed* ped) {
     const auto& pedPos = ped->GetPosition();
 
     // Check if we're far enough from the entity we're fleeing from to enter a car
-    if (sq(m_minDistFromFleeEntityToStealCar) >= (pedPos - m_entity->GetPosition()).SquaredMagnitude()) {
+    if (sq(m_minDistFromFleeEntityToStealCar) >= (pedPos - fleeFrom->GetPosition()).SquaredMagnitude()) {
         return m_pSubTask;
     }
 

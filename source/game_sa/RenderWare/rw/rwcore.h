@@ -2891,7 +2891,7 @@ void RwD3D9DeleteVertexDeclaration(); // 0x7FAC10
 void RwD3D9DeleteVertexShader(); // 0x7FAC90
 RwBool RwD3D9CreatePixelShader(const RwUInt32* function, void* shader); // 0x7FACC0
 void RwD3D9DeletePixelShader(); // 0x7FACF0
-const D3DCAPS9* RwD3D9GetCaps(); // 0x7FAD20
+D3DCAPS9* RwD3D9GetCaps(); // 0x7FAD20
 RwBool RwD3D9CameraIsSphereFullyInsideFrustum(const void* camera, const void* sphere); // 0x7FAD30
 RwBool RwD3D9CameraIsBBoxFullyInsideFrustum(const void* camera, const void* boundingBox); // 0x7FAD90
 void _rwD3D9RasterConvertToNonPalettized(RwRaster* raster); // 0x4CD250

@@ -2012,7 +2012,7 @@ bool CRadar::Save() {
  * @brief Get name of a blip type. (See CRadar::DrawLegend)
  * @returns The name of the blip type
  */
-const char* CRadar::GetBlipName(eRadarSprite blipType) {
+const GxtChar* CRadar::GetBlipName(eRadarSprite blipType) {
     switch (blipType) {
     case RADAR_SPRITE_PLAYER_INTEREST:  return TheText.Get("LG_56");
     case RADAR_SPRITE_THREAT:           return TheText.Get("LG_55");

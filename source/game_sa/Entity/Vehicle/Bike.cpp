@@ -35,34 +35,34 @@ void CBike::InjectHooks() {
     RH_ScopedInstall(FixHandsToBars, 0x6B7F90, { .reversed = false });
     RH_ScopedInstall(PlaceOnRoadProperly, 0x6BEEB0, { .reversed = false });
     RH_ScopedInstall(GetCorrectedWorldDoorPosition, 0x6BF230, { .reversed = false });
-    RH_ScopedVirtualInstall(Fix, 0x6B7050);
-    RH_ScopedVirtualInstall(BlowUpCar, 0x6BEA10, { .reversed = false });
-    RH_ScopedVirtualInstall(ProcessDrivingAnims, 0x6BF400);
-    RH_ScopedVirtualInstall(BurstTyre, 0x6BEB20, { .reversed = false });
-    RH_ScopedVirtualInstall(ProcessControlInputs, 0x6BE310, { .reversed = false });
+    RH_ScopedVMTInstall(Fix, 0x6B7050);
+    RH_ScopedVMTInstall(BlowUpCar, 0x6BEA10, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessDrivingAnims, 0x6BF400);
+    RH_ScopedVMTInstall(BurstTyre, 0x6BEB20, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessControlInputs, 0x6BE310, { .reversed = false });
     RH_ScopedVMTInstall(ProcessEntityCollision, 0x6BDEA0);
-    RH_ScopedVirtualInstall(Render, 0x6BDE20);
-    RH_ScopedVirtualInstall(PreRender, 0x6BD090, { .reversed = false });
-    RH_ScopedVirtualInstall(Teleport, 0x6BCFC0);
-    RH_ScopedVirtualInstall(ProcessControl, 0x6B9250, { .reversed = false });
-    RH_ScopedVirtualInstall(VehicleDamage, 0x6B8EC0, { .reversed = false });
-    RH_ScopedVirtualInstall(SetupSuspensionLines, 0x6B89B0, { .reversed = false });
-    RH_ScopedVirtualInstall(SetModelIndex, 0x6B8970);
-    RH_ScopedVirtualInstall(PlayCarHorn, 0x6B7080, { .reversed = false });
-    RH_ScopedVirtualInstall(SetupDamageAfterLoad, 0x6B7070);
-    RH_ScopedVirtualInstall(DoBurstAndSoftGroundRatios, 0x6B6950, { .reversed = false });
-    RH_ScopedVirtualInstall(SetUpWheelColModel, 0x6B67E0, { .reversed = false });
-    RH_ScopedVirtualInstall(RemoveRefsToVehicle, 0x6B67B0);
-    RH_ScopedVirtualInstall(ProcessControlCollisionCheck, 0x6B6620, { .reversed = false });
-    RH_ScopedVirtualInstall(GetComponentWorldPosition, 0x6B5990);
-    RH_ScopedVirtualInstall(ProcessOpenDoor, 0x6B58D0);
+    RH_ScopedVMTInstall(Render, 0x6BDE20);
+    RH_ScopedVMTInstall(PreRender, 0x6BD090, { .reversed = false });
+    RH_ScopedVMTInstall(Teleport, 0x6BCFC0);
+    RH_ScopedVMTInstall(ProcessControl, 0x6B9250, { .reversed = false });
+    RH_ScopedVMTInstall(VehicleDamage, 0x6B8EC0, { .reversed = false });
+    RH_ScopedVMTInstall(SetupSuspensionLines, 0x6B89B0, { .reversed = false });
+    RH_ScopedVMTInstall(SetModelIndex, 0x6B8970);
+    RH_ScopedVMTInstall(PlayCarHorn, 0x6B7080, { .reversed = false });
+    RH_ScopedVMTInstall(SetupDamageAfterLoad, 0x6B7070);
+    RH_ScopedVMTInstall(DoBurstAndSoftGroundRatios, 0x6B6950, { .reversed = false });
+    RH_ScopedVMTInstall(SetUpWheelColModel, 0x6B67E0, { .reversed = false });
+    RH_ScopedVMTInstall(RemoveRefsToVehicle, 0x6B67B0);
+    RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6B6620);
+    RH_ScopedVMTInstall(GetComponentWorldPosition, 0x6B5990);
+    RH_ScopedVMTInstall(ProcessOpenDoor, 0x6B58D0);
 }
 
 // 0x6BF430
 CBike::CBike(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy) {
     auto mi = CModelInfo::GetModelInfo(modelIndex)->AsVehicleModelInfoPtr();
     if (mi->m_nVehicleType == VEHICLE_TYPE_BIKE) {
-        const auto& animationStyle = CAnimManager::ms_aAnimBlocks[mi->GetAnimFileIndex()].animationStyle;
+        const auto& animationStyle = CAnimManager::GetAnimBlocks()[mi->GetAnimFileIndex()].GroupId;
         m_RideAnimData.m_nAnimGroup = animationStyle;
         if (animationStyle < ANIM_GROUP_BIKES || animationStyle > ANIM_GROUP_WAYFARER) {
             m_RideAnimData.m_nAnimGroup = ANIM_GROUP_BIKES;
@@ -360,7 +360,7 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
                 } else {
                     for (auto i = 0; i < numPedEntityColPts && numColPts < 32; i++) {
                         const auto& pedEntityCP = pedCPs[i];
-                        if (pedEntityCP.m_nPieceTypeA == PED_PIECE_UNKNOWN) {
+                        if (pedEntityCP.m_nPieceTypeA == PED_COL_SPHERE_LEG) {
                             continue;
                         }
                         outColPoints[numColPts++] = pedEntityCP;
@@ -589,7 +589,32 @@ void CBike::RemoveRefsToVehicle(CEntity* entityToRemove) {
 
 // 0x6B6620
 void CBike::ProcessControlCollisionCheck(bool applySpeed) {
-    plugin::CallMethod<0x6B6620, CBike*, bool>(this, applySpeed);
+    const CMatrix oldMat = GetMatrix();
+    m_bIsStuck = false;
+    SkipPhysics();
+    physicalFlags.bSkipLineCol     = false;
+    physicalFlags.bProcessingShift = false;
+    m_fMovingSpeed                 = 0.0f;
+    rng::fill(m_aWheelRatios, 1.0f);
+
+    if (applySpeed) {
+        ApplyMoveSpeed();
+        ApplyTurnSpeed();
+
+        for (auto i = 0; CheckCollision() && i < 5; i++) {
+            GetMatrix() = oldMat;
+            ApplyMoveSpeed();
+            ApplyTurnSpeed();
+        }
+    } else {
+        const auto usesCollision = m_bUsesCollision;
+        m_bUsesCollision = false;
+        CheckCollision();
+        m_bUsesCollision = usesCollision;
+    }
+
+    m_bIsStuck          = false;
+    m_bIsInSafePosition = true;
 }
 
 // 0x6B5990
@@ -604,3 +629,4 @@ void CBike::GetComponentWorldPosition(int32 componentId, CVector& outPos) {
 void CBike::ProcessOpenDoor(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime) {
     // NOP
 }
+

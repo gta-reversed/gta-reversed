@@ -21,6 +21,33 @@ RootHookCategory& GetRootCategory() {
     return s_RootCategory;
 }
 
+SetCatOrItemStateResult SetCategoryOrItemStateByPath(std::string_view path, bool enabled) {
+    if (path.ends_with("/")) {
+        path.remove_suffix(1);
+    }
+
+    const auto    seperated = SplitStringView(path, "/") | rng::to<std::vector>();
+    HookCategory* cat       = &GetRootCategory();
+    for (auto name : std::span(seperated).first(seperated.size() - 1)) {
+        cat = cat->FindSubcategory(name);
+        if (!cat) {
+            return SetCatOrItemStateResult::NotFound;
+        }
+    }
+
+    if (auto category = cat->FindSubcategory(seperated.back())) {
+        category->SetAllItemsEnabled(enabled);
+        return SetCatOrItemStateResult::Done;
+    } else if (auto item = cat->FindItem(seperated.back())) {
+        if (item->Hooked() == enabled) {
+            return SetCatOrItemStateResult::Done;
+        }
+        return item->State(enabled) ? SetCatOrItemStateResult::Done : SetCatOrItemStateResult::Locked;
+    }
+
+    return SetCatOrItemStateResult::NotFound;
+}
+
 void CheckAll() {
     s_RootCategory.ForEachItem([](auto& item) {
         item->Check();
@@ -57,8 +84,8 @@ void OnInjectionEnd() {
     // WriteHooksToFile("C:/hooks.csv");
 }
 
-void InstallVirtual(std::string_view category, std::string fnName, void** vtblGTA, void** vtblOur, void* fnGTAAddr, size_t nVirtFns, const HookInstallOptions& opt) {
-    // Find
+void InstallVirtual(std::string_view category, std::string fnName, void** vtblGTA, void** vtblOur, void* fnGTAAddr, void* fnOurAddr, size_t nVirtFns, const HookInstallOptions& opt) {
+    // Find fn index in vtbl
     const auto spanGTAVTbl = std::span{ vtblGTA, nVirtFns };
     const auto iter = rng::find(spanGTAVTbl, fnGTAAddr);
     if (iter == spanGTAVTbl.end()) {
@@ -69,6 +96,9 @@ void InstallVirtual(std::string_view category, std::string fnName, void** vtblGT
         NOTSA_UNREACHABLE("{}: Couldn't find function [{} @ {}] in vtable\n", category, fnName, fnGTAAddr);
     }
     const auto fnVTblIdx = (size_t)rng::distance(spanGTAVTbl.begin(), iter);
+
+    // Make sure vtable entries correspond to GTA's layout
+    //assert(vtblOur[fnVTblIdx] == fnOurAddr); // Doesn't work because the compiler generates thunks in debug mode
 
 #ifdef HOOKS_DEBUG
     std::cout << std::format("{}::{} => {}\n", category, fnName, fnVTblIdx);
@@ -135,12 +165,25 @@ void VirtualCopy(void* dst, void* src, size_t nbytes) {
     VirtualProtect(dst, nbytes, dwProtect[0], &dwProtect[1]);
 }
 
+// Really fucking simple name mangling for msvc
+// Check this out: https://en.m.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
+void MangleClassNameMSVC(CHAR* out, std::string_view name) {
+    if (const auto openerPos = name.find('<'); openerPos != std::string_view::npos) { // Templated class, this only works for single templated classes (for now)
+        // ??_7?$CTaskComplexSeekEntity@VCEntitySeekPosCalculatorStandard@@@@6B@
+        const auto closerPos = name.rfind('>');
+        *std::format_to(out, "??_7?${}@V{}@@@@6B@", name.substr(0, openerPos), name.substr(openerPos + 1, closerPos - openerPos - 1)) = 0;
+    } else {
+        // ??_7CTaskSimple@@6B@
+        *std::format_to(out, "??_7{}@@6B@", name) = 0;
+    }
+}
+
 // The VTable is exported as a symbol, in the format `??_7<class name>@@6B@` where `<class name>` is the name of the class.
 // In order for this to work the class has to be exported (So the `NOTSA_EXPORT_VTABLE` macro has to be used)
 void** GetVTableAddress(std::string_view className) {
-    CHAR buffer[1024];
-    sprintf_s(buffer, "??_7%.*s@@6B@", (int)className.length(), className.data());
-    if (const auto vtbl = reinterpret_cast<void**>(GetProcAddress(s_hThisDLL, buffer))) {
+    CHAR mangledName[1024];
+    MangleClassNameMSVC(mangledName, className);
+    if (const auto vtbl = reinterpret_cast<void**>(GetProcAddress(s_hThisDLL, mangledName))) {
 #ifdef HOOKS_DEBUG
         std::cout << std::format("{}: Our VMT: {} \n", className, (void*)vtbl);
 #endif

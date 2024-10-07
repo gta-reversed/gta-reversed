@@ -24,8 +24,8 @@ void AngledRect::DrawWireFrame(CRGBA color, float z, const CMatrix& transform) c
     // Calculate corners
     CVector corners[4];
     rng::transform(GetCorners(), corners, [&](auto& c) {
-        return transform * CVector{ c.x, c.y, z };
-        });
+        return transform.TransformPoint(CVector{ c.x, c.y, z });
+    });
 
     // Draw lines going from one corner to another
     for (auto i = 0u; i < 4; i++) {
@@ -38,7 +38,7 @@ void AngledRect::DrawWireFrame(CRGBA color, float z, const CMatrix& transform) c
 
 void AngledRect::HighlightWithMarkers(const CMatrix& transform) const {
     for (const auto& corner : GetCorners()) {
-        auto corner3D = transform * CVector{ corner, CWorld::FindGroundZForCoord(corner.x, corner.y) };
+        auto corner3D = transform.TransformPoint(CVector{ corner, CWorld::FindGroundZForCoord(corner.x, corner.y) });
         C3dMarkers::PlaceMarkerSet(
             reinterpret_cast<uint32>(this) + rand(),
             MARKER3D_CYLINDER,

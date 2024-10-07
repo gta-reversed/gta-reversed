@@ -13,18 +13,18 @@
 #include "eCarDrivingStyle.h"
 
 void CTaskComplexCopInCar::InjectHooks() {
-    RH_ScopedClass(CTaskComplexCopInCar);
+    RH_ScopedVirtualClass(CTaskComplexCopInCar, 0x870A2C, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x68C7F0);
     RH_ScopedInstall(Destructor, 0x68C8C0);
     RH_ScopedInstall(CreateSubTask, 0x68C9E0);
-    RH_ScopedInstall(Clone_Reversed, 0x68CEC0);
-    RH_ScopedInstall(GetTaskType_Reversed, 0x68C8B0);
-    RH_ScopedInstall(MakeAbortable_Reversed, 0x68C940);
-    RH_ScopedInstall(CreateNextSubTask_Reversed, 0x68FA50);
-    RH_ScopedInstall(CreateFirstSubTask_Reversed, 0x68FA10);
-    RH_ScopedInstall(ControlSubTask_Reversed, 0x68FD50);
+    RH_ScopedVMTInstall(Clone, 0x68CEC0);
+    RH_ScopedVMTInstall(GetTaskType, 0x68C8B0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x68C940);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x68FA50);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x68FA10);
+    RH_ScopedVMTInstall(ControlSubTask, 0x68FD50);
 }
 
 // 0x68C7F0
@@ -109,6 +109,8 @@ CTask* CTaskComplexCopInCar::CreateSubTask(eTaskType taskType, CPed* copPed) {
 }
 
 // 0x68C940
+
+
 bool CTaskComplexCopInCar::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     if (!m_pSubTask) {
         return true;
@@ -140,6 +142,8 @@ bool CTaskComplexCopInCar::MakeAbortable(CPed* ped, eAbortPriority priority, CEv
 }
 
 // 0x68FA50
+
+
 CTask* CTaskComplexCopInCar::CreateNextSubTask(CPed* ped) {
     // Ped is a CopPed*
 
@@ -205,18 +209,22 @@ CTask* CTaskComplexCopInCar::CreateNextSubTask(CPed* ped) {
 }
 
 // 0x68FA10
+
+
 CTask* CTaskComplexCopInCar::CreateFirstSubTask(CPed* ped) {
     ped->GetIntelligence()->SetPedDecisionMakerType(DM_EVENT_SHOT_FIRED);
     if (!m_Cop) {
-        m_bSuspectDeadOrLost = true;
+        m_bSuspectDeadOrLost = true; // TODO/NOTE: Weird???
     }
     return CreateSubTask(TASK_SIMPLE_CAR_DRIVE, ped);
 }
 
 // 0x68FD50
+
+// 0x0
 CTask* CTaskComplexCopInCar::ControlSubTask(CPed* ped) {
     if (!m_Suspect || m_Suspect->IsStateDead()) { // Inverted
-        return m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr) ? CreateSubTask(TASK_FINISHED, ped) : m_pSubTask; // Inverted
+        return m_pSubTask->MakeAbortable(ped) ? CreateSubTask(TASK_FINISHED, ped) : m_pSubTask; // Inverted
     }
 
     // 0x68FD7E
@@ -268,23 +276,23 @@ CTask* CTaskComplexCopInCar::ControlSubTask(CPed* ped) {
             return m_pSubTask;
         }
 
-        return m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)
+        return m_pSubTask->MakeAbortable(ped)
                    ? CreateSubTask(TASK_COMPLEX_ENTER_CAR_AS_DRIVER, ped)
                    : m_pSubTask;
     }
     case TASK_COMPLEX_WANDER: {
-        return m_Timer2.IsOutOfTime() && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)
+        return m_Timer2.IsOutOfTime() && m_pSubTask->MakeAbortable(ped)
                    ? CreateSubTask(TASK_COMPLEX_POLICE_PURSUIT, ped)
                    : m_pSubTask; // Inverted
     }
     case TASK_COMPLEX_CAR_DRIVE_MISSION: { // 0x68FDDE
         if ((bool)m_bIsSuspectInCar != m_Suspect->bInVehicle) {
-            if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+            if (m_pSubTask->MakeAbortable(ped)) {
                 m_bIsSuspectInCar = m_Suspect->bInVehicle;
                 return CreateSubTask(TASK_COMPLEX_CAR_DRIVE_MISSION, ped);
             }
         }
-        return m_flag0x2 && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)
+        return m_flag0x2 && m_pSubTask->MakeAbortable(ped)
                    ? CreateSubTask(TASK_SIMPLE_CAR_DRIVE, ped)
                    : m_pSubTask; // Inverted
     }
@@ -294,7 +302,7 @@ CTask* CTaskComplexCopInCar::ControlSubTask(CPed* ped) {
         }
 
         if (!m_bSuspectDeadOrLost) {
-            if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+            if (m_pSubTask->MakeAbortable(ped)) {
                 m_flag0x2 = false;
                 return CreateNextSubTask(ped);
             }
@@ -310,10 +318,10 @@ CTask* CTaskComplexCopInCar::ControlSubTask(CPed* ped) {
             || m_Suspect->m_pVehicle == m_Vehicle
             || (m_Suspect->m_pVehicle->m_vecMoveSpeed.SquaredMagnitude() * CTimer::GetTimeStep() * 50.f <= 1.f
             && (m_Suspect->m_pVehicle->GetPosition() - ped->GetPosition()).SquaredMagnitude() <= 10.f * 10.f) // Same code used above
-            || !m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr) // This is really weird.. Here they check if its not abortable, then below check if its abortable..
+            || !m_pSubTask->MakeAbortable(ped) // This is really weird.. Here they check if its not abortable, then below check if its abortable..
         ) {
             if (m_Timer1.IsOutOfTime()) {
-                if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+                if (m_pSubTask->MakeAbortable(ped)) {
                     m_flag0x2 = false;
                     m_Timer1.m_bStarted = false;
                     return CreateNextSubTask(ped);
@@ -332,3 +340,4 @@ CTask* CTaskComplexCopInCar::ControlSubTask(CPed* ped) {
     }
     return m_pSubTask;
 }
+

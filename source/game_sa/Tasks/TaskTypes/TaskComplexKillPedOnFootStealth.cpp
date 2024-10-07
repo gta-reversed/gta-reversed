@@ -46,7 +46,7 @@ CTask* CTaskComplexKillPedOnFootStealth::CreateNextSubTask(CPed* ped) {
 
 // 0x62B810
 CTask* CTaskComplexKillPedOnFootStealth::CreateFirstSubTask(CPed* ped) {
-    ped->Say(205);
+    ped->Say(CTX_GLOBAL_STEALTH_DEF_SIGHTING);
     return CTaskComplexKillPedOnFoot::CreateFirstSubTask(ped);
 }
 
@@ -80,7 +80,7 @@ CTask* CTaskComplexKillPedOnFootStealth::ControlSubTask(CPed* ped) {
             switch (m_pSubTask->GetTaskType()) {
             case TASK_COMPLEX_SEQUENCE:
             case TASK_COMPLEX_INVESTIGATE_DISTURBANCE: {
-                if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+                if (m_pSubTask->MakeAbortable(ped)) {
                     return CTaskComplexKillPedOnFoot::CreateFirstSubTask(ped);
                 }
                 break;
@@ -94,7 +94,7 @@ CTask* CTaskComplexKillPedOnFootStealth::ControlSubTask(CPed* ped) {
         return m_pSubTask;
     }
 
-    ped->Say(206);
+    ped->Say(CTX_GLOBAL_STEALTH_NOTHING_THERE);
 
     if (!m_pSubTask) {
         return nullptr;
@@ -102,10 +102,10 @@ CTask* CTaskComplexKillPedOnFootStealth::ControlSubTask(CPed* ped) {
 
     const auto sttype = m_pSubTask->GetTaskType();
     if (m_targetPos.z > -9999.9004f) {
-        if (sttype != TASK_COMPLEX_INVESTIGATE_DISTURBANCE && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+        if (sttype != TASK_COMPLEX_INVESTIGATE_DISTURBANCE && m_pSubTask->MakeAbortable(ped)) {
             return new CTaskComplexInvestigateDisturbance{ m_targetPos, m_target };
         }
-    } else if (sttype == TASK_COMPLEX_SEQUENCE && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+    } else if (sttype == TASK_COMPLEX_SEQUENCE && m_pSubTask->MakeAbortable(ped)) {
         return new CTaskComplexSequence{
             new CTaskSimpleStandStill{1000},
             new CTaskSimpleRunAnim{ped->m_nAnimGroup, ANIM_ID_ROADCROSS},

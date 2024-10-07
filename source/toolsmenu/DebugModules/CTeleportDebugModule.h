@@ -5,12 +5,18 @@
 
 struct ImGuiSettingsHandler;
 
-class TeleportDebugModule : public DebugModule {
+class TeleportDebugModule final : public DebugModule {
 public:
     void OnImGuiInitialised(ImGuiContext* ctx) override;
     void RenderWindow() override;
     void RenderMenuEntry() override;
     void Update() override;
+
+    json Serialize() const final override { return *this; }
+    void Deserialize(const json& j) final override;
+    std::string_view GetID() const final { return "TeleportDebugModule"; }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(TeleportDebugModule, m_IsOpen);
 
     static void TeleportTo(const CVector& pos, eAreaCodes areaCode = eAreaCodes::AREA_CODE_NORMAL_WORLD);
 
@@ -19,64 +25,45 @@ private:
     void RenderSavedPositions();
     void RenderTeleporterWindow();
     auto GetVisibleItems() {
-        return s_SavedLocations | rng::views::filter(
-                 [
-                     filter = std::string_view{ s_nameFilter }
-                 ](auto& l) {
-                     return filter.empty() || StringContainsString(l.name, filter, false);
-                 }
-            );
+        return m_SavedLocations | rng::views::filter(
+            [
+                filter = std::string_view{ m_Input.Search }
+            ](auto& l) {
+                return filter.empty() || StringContainsString(l.Name, filter, false);
+            }
+        );
     }
 
-    void AddSettingsHandler(ImGuiContext* ctx);
-    static void Settings_ReadLine(ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line);
-    static void Settings_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* out_buf);
-    static void Settings_ApplyAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler);
-
     void ProcessShortcuts();
+
+    //! Legacy ImGUI backed data storage. Replaced by the Serialization/Deserialization DebugModule API.
+    void AddSettingsHandler(ImGuiContext* ctx);
+
 private:
     struct SavedLocation {
-        SavedLocation() = default;
+        std::string Name{};
+        CVector     Pos{};
+        eAreaCodes  AreaCode{ eAreaCodes::AREA_CODE_NORMAL_WORLD };
+        bool        FindGroundZ{ true };
+        bool        IsSelected{ false };
 
-        SavedLocation(const char* name, CVector pos, eAreaCodes code, bool bFindGround) :
-            name(name),
-            pos(pos),
-            areaCode(code),
-            findGround(bFindGround)
-        {
-        }
-
-        SavedLocation(const char* name, CVector pos) :
-            name(name),
-            pos(pos)
-        {
-        }
-
-        //! Size of serialized text data [in bytes]
-        size_t GetTextSerializedSize() {
-            return name.size() + sizeof(pos) * 3 * 8 + sizeof(areaCode) * 4 + sizeof(findGround) * 4;
-        }
-
-    public:
-        std::string name{};
-        CVector     pos{};
-        eAreaCodes  areaCode{ eAreaCodes::AREA_CODE_NORMAL_WORLD };
-        bool        findGround{ true };
-        bool        selected{};
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(SavedLocation, Name, Pos, AreaCode, FindGroundZ, IsSelected);
     };
 
 private:
-    bool                       m_isOpen{false};
-    bool                       m_isVisible{};
-    std::vector<SavedLocation> s_SavedLocations{};
-    bool                       s_findZGround{ true };
-    SavedLocation              s_prevLocation{};
-    char                       s_nameFilter[256]{};
+    bool                       m_IsOpen{ false };
+    bool                       m_IsStateFromDeserialization{ false };
+    bool                       m_IsFirstUseEver{ true };
+    std::vector<SavedLocation> m_SavedLocations{};
+    bool                       m_FindGroundZ{ true };
+    SavedLocation              m_PrevLocation{};
 
-    // UI Input stuff
-    struct {
-        char    name[256]{};
-        CVector pos{};
-        int     areaCode{};
-    } m_input;
+    struct InputData {
+        char    Name[256]{};
+        char    Search[256]{};
+        CVector Pos{};
+        int     AreaCode{};
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(InputData, Name, Search, Pos, AreaCode);
+    } m_Input;
 };

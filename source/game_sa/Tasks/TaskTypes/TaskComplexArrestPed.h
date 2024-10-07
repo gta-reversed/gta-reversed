@@ -4,7 +4,7 @@
 
 class CVehicle;
 
-class CTaskComplexArrestPed : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexArrestPed : public CTaskComplex {
 public:
     bool      m_bSubTaskNeedsToBeCreated;
     CPed*     m_PedToArrest;
@@ -33,9 +33,5 @@ private:
 
     CTaskComplexArrestPed* Constructor(CPed* ped) { this->CTaskComplexArrestPed::CTaskComplexArrestPed(ped); return this; }
     CTaskComplexArrestPed* Destructor() { this->CTaskComplexArrestPed::~CTaskComplexArrestPed(); return this; }
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskComplexArrestPed, 0x24);

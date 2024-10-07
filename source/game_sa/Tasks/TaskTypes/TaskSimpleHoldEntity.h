@@ -12,7 +12,7 @@ class CAnimBlock;
 class CAnimBlendHierarchy;
 class CAnimBlendAssociation;
 
-class CTaskSimpleHoldEntity : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleHoldEntity : public CTaskSimple {
 public:
     CEntity*               m_pEntityToHold;
     CVector                m_vecPosition;
@@ -79,10 +79,6 @@ private:
     CTaskSimpleHoldEntity* Constructor(CEntity* entityToHold, CVector* posn, uint8 boneFrameId, uint8 boneFlags, const char* animName, const char* animBlockName, eAnimationFlags animFlags);
     CTaskSimpleHoldEntity* Constructor(CEntity* entityToHold, CVector* posn, uint8 boneFrameId, uint8 boneFlags, CAnimBlock* animBlock, CAnimBlendHierarchy* animHierarchy, eAnimationFlags animFlags);
 
-    CTask*  Clone_Reversed() const;
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool ProcessPed_Reversed(CPed* ped);
-    bool SetPedPosition_Reversed(CPed* ped);
 };
 
 VALIDATE_SIZE(CTaskSimpleHoldEntity, 0x3C);

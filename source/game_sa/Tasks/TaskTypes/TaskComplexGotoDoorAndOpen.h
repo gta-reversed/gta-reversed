@@ -6,7 +6,7 @@
 class CEntity;
 class CObject;
 
-class CTaskComplexGotoDoorAndOpen : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGotoDoorAndOpen : public CTaskComplex {
 public:
     CObject* m_Object;
     CVector  m_Start;

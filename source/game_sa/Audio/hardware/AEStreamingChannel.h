@@ -82,35 +82,7 @@ private:
         CAEStreamingChannel::~CAEStreamingChannel();
     }
 
-    void Service_Reversed() {
-        CAEStreamingChannel::Service();
-    }
-
-    bool IsSoundPlaying_Reversed() {
-        return CAEStreamingChannel::IsSoundPlaying();
-    }
-
-    int32 GetPlayTime_Reversed() {
-        return CAEStreamingChannel::GetPlayTime();
-    }
-
-    int32 GetLength_Reversed() {
-        return CAEStreamingChannel::GetLength();
-    }
-
-    void Play_Reversed(int16 a2, char a3, float a4) {
-        CAEStreamingChannel::Play(a2, a3, a4);
-    }
-
-    void Stop_Reversed() {
-        CAEStreamingChannel::Stop();
-    }
-
-    void SetFrequencyScalingFactor_Reversed(float a2) {
-        CAEStreamingChannel::SetFrequencyScalingFactor(a2);
-    }
-
-    // NOTSA
+                                // NOTSA
     void DirectSoundBufferFadeToSilence() {
         if (!AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, -100.0, 35, true))
             m_pDirectSoundBuffer->Stop();

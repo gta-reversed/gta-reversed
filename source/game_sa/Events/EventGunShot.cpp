@@ -5,41 +5,37 @@
 float& CEventGunShot::ms_fGunShotSenseRangeForRiot2 = *(float*)0x8A625C;
 
 void CEventGunShot::InjectHooks() {
-    RH_ScopedClass(CEventGunShot);
+    RH_ScopedVirtualClass(CEventGunShot, 0x85ABE0, 17);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x4AC610);
-    RH_ScopedVirtualInstall(AffectsPed, 0x4B2CD0);
-    RH_ScopedVirtualInstall(IsCriminalEvent, 0x4AC810);
-    RH_ScopedVirtualInstall(TakesPriorityOver, 0x4AC780);
-    RH_ScopedVirtualInstall(CloneEditable, 0x4B6B20);
+    RH_ScopedVMTInstall(AffectsPed, 0x4B2CD0);
+    RH_ScopedVMTInstall(IsCriminalEvent, 0x4AC810);
+    RH_ScopedVMTInstall(TakesPriorityOver, 0x4AC780);
+    RH_ScopedVMTInstall(CloneEditable, 0x4B6B20);
 }
 
 CEventGunShot* CEventGunShot::Constructor(CEntity* entity, CVector startPoint, CVector endPoint, bool bHasNoSound) { this->CEventGunShot::CEventGunShot(entity, startPoint, endPoint, bHasNoSound); return this; }
-bool CEventGunShot::AffectsPed(CPed* ped) { return CEventGunShot::AffectsPed_Reversed(ped); }
-bool CEventGunShot::IsCriminalEvent() { return CEventGunShot::IsCriminalEvent_Reversed(); }
-bool CEventGunShot::TakesPriorityOver(const CEvent& refEvent) { return CEventGunShot::TakesPriorityOver_Reversed(refEvent); }
-CEventEditableResponse* CEventGunShot::CloneEditable() { return CEventGunShot::CloneEditable_Reversed(); }
 
 // 0x4AC610
 CEventGunShot::CEventGunShot(CEntity* entity, CVector startPoint, CVector endPoint, bool bHasNoSound) : CEventEditableResponse() {
     m_startPoint = startPoint;
     m_endPoint = endPoint;
-    m_entity = entity;
+    m_firedBy = entity;
     m_bHasNoSound = bHasNoSound;
-    CEntity::SafeRegisterRef(m_entity);
+    CEntity::SafeRegisterRef(m_firedBy);
 }
 
 CEventGunShot::~CEventGunShot() {
-    CEntity::SafeCleanUpRef(m_entity);
+    CEntity::SafeCleanUpRef(m_firedBy);
 }
 
 // 0x4B2CD0
-bool CEventGunShot::AffectsPed_Reversed(CPed* ped) {
-    if (!m_entity)
+bool CEventGunShot::AffectsPed(CPed* ped) {
+    if (!m_firedBy)
         return false;
 
-    if (m_entity->IsPed() && CPedGroups::AreInSameGroup(ped, m_entity->AsPed()))
+    if (m_firedBy->IsPed() && CPedGroups::AreInSameGroup(ped, m_firedBy->AsPed()))
         return false;
 
     if (!ped->IsInVehicleThatHasADriver()) {
@@ -47,11 +43,11 @@ bool CEventGunShot::AffectsPed_Reversed(CPed* ped) {
         if (ped->m_nPedType == PED_TYPE_COP && playerWanted->m_nWantedLevel > 0) {
             CCopPed* cop = static_cast<CCopPed*>(ped);
             if (playerWanted->IsInPursuit(cop) || playerWanted->CanCopJoinPursuit(cop)) {
-                if (m_entity != FindPlayerPed())
+                if (m_firedBy != FindPlayerPed())
                     return false;
             }
         }
-        if (ped->IsAlive() && ped != m_entity && !ped->IsPlayer()) {
+        if (ped->IsAlive() && ped != m_firedBy && !ped->IsPlayer()) {
             float fGunShotRange = 45.0f;
             if (CEventGunShot::ms_fGunShotSenseRangeForRiot2 <= 0.0f) {
                 if (ped->IsCreatedByMission()) {
@@ -62,7 +58,7 @@ bool CEventGunShot::AffectsPed_Reversed(CPed* ped) {
             }
 
             const auto& pedPos = ped->GetPosition();
-            if (DistanceBetweenPointsSquared(m_entity->GetPosition(), pedPos) <= sq(fGunShotRange)) {
+            if (DistanceBetweenPointsSquared(m_firedBy->GetPosition(), pedPos) <= sq(fGunShotRange)) {
                 if (!m_bHasNoSound)
                     return true;
 
@@ -77,21 +73,21 @@ bool CEventGunShot::AffectsPed_Reversed(CPed* ped) {
 }
 
 // 0x4AC810
-bool CEventGunShot::IsCriminalEvent_Reversed() {
-    return m_entity && m_entity->IsPed() && m_entity->AsPed()->IsPlayer();
+bool CEventGunShot::IsCriminalEvent() {
+    return m_firedBy && m_firedBy->IsPed() && m_firedBy->AsPed()->IsPlayer();
 }
 
 // 0x4AC780
-bool CEventGunShot::TakesPriorityOver_Reversed(const CEvent& refEvent) {
+bool CEventGunShot::TakesPriorityOver(const CEvent& refEvent) {
     if (refEvent.GetEventType() == GetEventType()) {
         bool bIsPlayer = false;
         bool otherPedIsPlayer = false;
         const auto refEventGunShot = static_cast<const CEventGunShot*>(&refEvent);
-        if (m_entity && m_entity->AsPed()->IsPed()) {
-            bIsPlayer = m_entity->AsPed()->IsPlayer();
+        if (m_firedBy && m_firedBy->AsPed()->IsPed()) {
+            bIsPlayer = m_firedBy->AsPed()->IsPlayer();
         }
 
-        CPed* otherPed = refEventGunShot->m_entity->AsPed();
+        CPed* otherPed = refEventGunShot->m_firedBy->AsPed();
         if (otherPed && otherPed->IsPed())
             otherPedIsPlayer = otherPed->IsPlayer();
 
@@ -101,6 +97,6 @@ bool CEventGunShot::TakesPriorityOver_Reversed(const CEvent& refEvent) {
 }
 
 // 0x4B6B20
-CEventEditableResponse* CEventGunShot::CloneEditable_Reversed() {
-    return new CEventGunShot(m_entity, m_startPoint, m_endPoint, m_bHasNoSound);
+CEventEditableResponse* CEventGunShot::CloneEditable() {
+    return new CEventGunShot(m_firedBy, m_startPoint, m_endPoint, m_bHasNoSound);
 }

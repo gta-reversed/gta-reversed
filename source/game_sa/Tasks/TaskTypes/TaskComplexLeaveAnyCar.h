@@ -26,10 +26,5 @@ private:
 
     CTaskComplexLeaveAnyCar* Constructor(int32 delayTime, bool sensibleLeaveCar, bool forceGetOut) { this->CTaskComplexLeaveAnyCar::CTaskComplexLeaveAnyCar(delayTime, sensibleLeaveCar, forceGetOut); return this; }
     CTaskComplexLeaveAnyCar* Destructor() { this->CTaskComplexLeaveAnyCar::~CTaskComplexLeaveAnyCar(); return this; }
-    CTask* Clone_Reversed() { return CTaskComplexLeaveAnyCar::Clone(); }
-    eTaskType GetTaskType_Reversed() { return CTaskComplexLeaveAnyCar::GetTaskType(); }
-    CTask* CreateNextSubTask_Reversed(CPed* ped) { return CTaskComplexLeaveAnyCar::CreateNextSubTask(ped); }
-    CTask* CreateFirstSubTask_Reversed(CPed* ped) { return CTaskComplexLeaveAnyCar::CreateFirstSubTask(ped); }
-    CTask* ControlSubTask_Reversed(CPed* ped) { return CTaskComplexLeaveAnyCar::ControlSubTask(ped); }
 };
 VALIDATE_SIZE(CTaskComplexLeaveAnyCar, 0x14);

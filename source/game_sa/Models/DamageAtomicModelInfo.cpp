@@ -8,42 +8,33 @@ bool& CDamageAtomicModelInfo::ms_bCreateDamagedVersion = *(bool*)0xA9B0B0;
 
 void CDamageAtomicModelInfo::InjectHooks()
 {
-    RH_ScopedClass(CDamageAtomicModelInfo);
+    RH_ScopedVirtualClass(CDamageAtomicModelInfo, 0x85BC30, 16);
     RH_ScopedCategory("Models");
 
-    RH_ScopedVirtualInstall(Init, 0x4C48B0);
-    RH_ScopedVirtualInstall(AsDamageAtomicModelInfoPtr, 0x4C55C0);
-    RH_ScopedVirtualInstall(DeleteRwObject, 0x4C49D0);
+    RH_ScopedVMTInstall(Init, 0x4C48B0);
+    RH_ScopedVMTInstall(AsDamageAtomicModelInfoPtr, 0x4C55C0);
+    RH_ScopedVMTInstall(DeleteRwObject, 0x4C49D0);
     // clang moment: RH_ScopedVirtualOverloadedInstall(CreateInstance, "void", 0x4C4960, RwObject * (CDamageAtomicModelInfo::*)());
     // clang moment: RH_ScopedVirtualOverloadedInstall(CreateInstance, "rwmat", 0x4C4910, RwObject * (CDamageAtomicModelInfo::*)(RwMatrix*));
 
     RH_ScopedInstall(SetDamagedAtomic, 0x4C48D0);
 }
 
+// 0x4C55C0
 CDamageAtomicModelInfo* CDamageAtomicModelInfo::AsDamageAtomicModelInfoPtr()
-{
-    return CDamageAtomicModelInfo::AsDamageAtomicModelInfoPtr_Reversed();
-}
-CDamageAtomicModelInfo* CDamageAtomicModelInfo::AsDamageAtomicModelInfoPtr_Reversed()
 {
     return this;
 }
 
+// 0x4C48B0
 void CDamageAtomicModelInfo::Init()
-{
-    CDamageAtomicModelInfo::Init_Reversed();
-}
-void CDamageAtomicModelInfo::Init_Reversed()
 {
     CBaseModelInfo::Init();
     m_pDamagedAtomic = nullptr;
 }
 
+// 0x4C49D0
 void CDamageAtomicModelInfo::DeleteRwObject()
-{
-    CDamageAtomicModelInfo::DeleteRwObject_Reversed();
-}
-void CDamageAtomicModelInfo::DeleteRwObject_Reversed()
 {
     if (m_pDamagedAtomic) {
         auto frame = RpAtomicGetFrame(m_pDamagedAtomic);
@@ -56,10 +47,6 @@ void CDamageAtomicModelInfo::DeleteRwObject_Reversed()
 }
 
 RwObject* CDamageAtomicModelInfo::CreateInstance()
-{
-    return CDamageAtomicModelInfo::CreateInstance_Reversed();
-}
-RwObject* CDamageAtomicModelInfo::CreateInstance_Reversed()
 {
     if (!CDamageAtomicModelInfo::ms_bCreateDamagedVersion)
         return CAtomicModelInfo::CreateInstance();
@@ -74,10 +61,6 @@ RwObject* CDamageAtomicModelInfo::CreateInstance_Reversed()
 }
 
 RwObject* CDamageAtomicModelInfo::CreateInstance(RwMatrix* matrix)
-{
-    return CDamageAtomicModelInfo::CreateInstance_Reversed(matrix);
-}
-RwObject* CDamageAtomicModelInfo::CreateInstance_Reversed(RwMatrix* matrix)
 {
     if (!CDamageAtomicModelInfo::ms_bCreateDamagedVersion)
         return CAtomicModelInfo::CreateInstance(matrix);

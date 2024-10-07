@@ -4,7 +4,7 @@
 
 class CEntity;
 
-class CTaskGangHasslePed : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskGangHasslePed : public CTaskComplex {
 public:
     CPed* m_Ped;
     int32 dword10; // values are 0, 1, 2

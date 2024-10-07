@@ -55,20 +55,6 @@ public:
     virtual CBox* GetBoundingBox();
     virtual void SetClump(RpClump* clump);
 
-    // Reversed vtable methods
-    ModelInfoType GetModelType_Reversed();
-    void Init_Reversed();
-    void Shutdown_Reversed();
-    void DeleteRwObject_Reversed();
-    uint32 GetRwModelType_Reversed();
-    RwObject* CreateInstance_Reversed();
-    RwObject* CreateInstance_Reversed(RwMatrix* matrix);
-    void SetAnimFile_Reversed(const char* filename);
-    void ConvertAnimFileIndex_Reversed();
-    int32 GetAnimFileIndex_Reversed();
-    CBox* GetBoundingBox_Reversed();
-    void SetClump_Reversed(RpClump* clump);
-
     // Class functions
     void SetFrameIds(RwObjectNameIdAssocation* data);
 

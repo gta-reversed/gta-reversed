@@ -53,15 +53,15 @@ void CTaskSimpleDie::StartAnim(CPed* ped) {
         m_animAssociation = CAnimManager::BlendAnimation(ped->m_pRwClump, m_animGroupId, m_animId, m_blendDelta);
 
     m_animAssociation->SetFinishCallback(FinishAnimDieCB, this);
-    m_animAssociation->m_nFlags &=   ANIMATION_TRANSLATE_X | ANIMATION_TRANSLATE_Y
-                                   | ANIMATION_MOVEMENT
-                                   | ANIMATION_PARTIAL
-                                   | ANIMATION_FREEZE_LAST_FRAME
-                                   | ANIMATION_LOOPED
-                                   | ANIMATION_STARTED;
+    m_animAssociation->m_Flags &=   ANIMATION_CAN_EXTRACT_X_VELOCITY | ANIMATION_CAN_EXTRACT_VELOCITY
+                                   | ANIMATION_IS_SYNCRONISED
+                                   | ANIMATION_IS_PARTIAL
+                                   | ANIMATION_IS_BLEND_AUTO_REMOVE
+                                   | ANIMATION_IS_LOOPED
+                                   | ANIMATION_IS_PLAYING;
 
     if (m_animSpeed > 0.0f)
-        m_animAssociation->m_fSpeed = m_animSpeed;
+        m_animAssociation->m_Speed = m_animSpeed;
 
     ped->ClearAll();
     ped->m_fHealth = 0.0f;                     // todo: SetHealth or something ?
@@ -70,6 +70,8 @@ void CTaskSimpleDie::StartAnim(CPed* ped) {
 }
 
 // 0x635DA0
+
+// 0x0
 CTask* CTaskSimpleDie::Clone() const {
     if (m_animHierarchy) {
         return new CTaskSimpleDie(m_animHierarchy, m_animFlags, m_blendDelta, m_animSpeed);
@@ -82,7 +84,7 @@ CTask* CTaskSimpleDie::Clone() const {
 bool CTaskSimpleDie::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     if (priority == ABORT_PRIORITY_IMMEDIATE) {
         if (m_animAssociation)
-            m_animAssociation->m_fBlendDelta = -1000.0f;
+            m_animAssociation->m_BlendDelta = -1000.0f;
 
         ped->SetPedState(PEDSTATE_IDLE);
         ped->SetMoveState(PEDMOVE_STILL);
@@ -136,7 +138,7 @@ void CTaskSimpleDie::FinishAnimDieCB(CAnimBlendAssociation* association, void* d
 }
 
 void CTaskSimpleDie__InjectHooks() {
-    RH_ScopedClass(CTaskSimpleDie);
+    RH_ScopedVirtualClass(CTaskSimpleDie, 0x86DDBC, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedOverloadedInstall(Constructor, "1", 0x62FA00, CTaskSimpleDie*(CTaskSimpleDie::*)(AssocGroupId, AnimationId, float, float));
     RH_ScopedOverloadedInstall(Constructor, "2", 0x62FA60, CTaskSimpleDie*(CTaskSimpleDie::*)(const char*, const char*, eAnimationFlags, float, float));
@@ -144,8 +146,8 @@ void CTaskSimpleDie__InjectHooks() {
     RH_ScopedInstall(FinishAnimDieCB, 0x62FC10);
     RH_ScopedInstall(StartAnim, 0x637520);
     // clang moment: RH_ScopedVirtualOverloadedInstall(Clone, "", 0x635DA0,  CTask *(CTaskSimpleDie::*)());
-    RH_ScopedVirtualInstall(MakeAbortable, 0x62FBA0);
-    RH_ScopedVirtualInstall(ProcessPed, 0x6397E0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x62FBA0);
+    RH_ScopedVMTInstall(ProcessPed, 0x6397E0);
 }
 
 // 0x62FA00
@@ -165,12 +167,4 @@ CTaskSimpleDie* CTaskSimpleDie::Constructor(CAnimBlendHierarchy* animHierarchy, 
     return this;
 }
 
-// 0x62FBA0
-bool CTaskSimpleDie::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    return CTaskSimpleDie::MakeAbortable(ped, priority, event);
-}
-
-// 0x6397E0
-bool CTaskSimpleDie::ProcessPed_Reversed(CPed* ped) {
-    return CTaskSimpleDie::ProcessPed(ped);
-}
+// 0x62FBA0// 0x6397E0

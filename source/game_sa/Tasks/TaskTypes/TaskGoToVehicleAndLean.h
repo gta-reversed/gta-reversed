@@ -3,7 +3,7 @@
 #include "TaskComplex.h"
 class CVehicle;
 
-class CTaskGoToVehicleAndLean : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskGoToVehicleAndLean : public CTaskComplex {
 public:
     CVehicle* m_Vehicle;
     int32     m_LeanAnimDurationInMs;

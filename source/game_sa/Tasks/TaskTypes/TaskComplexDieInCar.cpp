@@ -7,21 +7,16 @@
 #include "CarCtrl.h"
 
 void CTaskComplexDieInCar::InjectHooks() {
-    RH_ScopedClass(CTaskComplexDieInCar);
+    RH_ScopedVirtualClass(CTaskComplexDieInCar, 0x86DE04, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(ControlSubTask_Reversed, 0x6377B0);
+    RH_ScopedVMTInstall(ControlSubTask, 0x6377B0);
     RH_ScopedInstall(CreateSubTask, 0x62FD50);
-    RH_ScopedInstall(CreateFirstSubTask_Reversed, 0x6375F0);
-    RH_ScopedInstall(CreateNextSubTask_Reversed, 0x637850);
-    RH_ScopedInstall(MakeAbortable_Reversed, 0x62FCC0);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6375F0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x637850);
+    RH_ScopedVMTInstall(MakeAbortable, 0x62FCC0);
     RH_ScopedInstall(PreparePedVehicleForPedDeath, 0x62FD00);
 }
-
-CTask* CTaskComplexDieInCar::ControlSubTask(CPed* ped) { return CTaskComplexDieInCar::ControlSubTask_Reversed(ped); }
-CTask* CTaskComplexDieInCar::CreateFirstSubTask(CPed* ped) { return CTaskComplexDieInCar::CreateFirstSubTask_Reversed(ped); }
-CTask* CTaskComplexDieInCar::CreateNextSubTask(CPed* ped) { return CTaskComplexDieInCar::CreateNextSubTask_Reversed(ped); }
-bool CTaskComplexDieInCar::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) { return CTaskComplexDieInCar::MakeAbortable_Reversed(ped, priority, event); }
 
 // 0x62FC80
 CTaskComplexDieInCar::CTaskComplexDieInCar(eWeaponType weaponType) : CTaskComplex() {
@@ -33,7 +28,9 @@ CTaskComplexDieInCar::CTaskComplexDieInCar(eWeaponType weaponType) : CTaskComple
 }
 
 // 0x6377B0
-CTask* CTaskComplexDieInCar::ControlSubTask_Reversed(CPed* ped) {
+
+
+CTask* CTaskComplexDieInCar::ControlSubTask(CPed* ped) {
     if (m_pSubTask->GetTaskType() != TASK_SIMPLE_CAR_DRIVE || !m_bPreparedForDeath)
         return m_pSubTask;
 
@@ -66,7 +63,9 @@ CTask* CTaskComplexDieInCar::CreateSubTask(eTaskType taskType, CPed* ped) {
 }
 
 // 0x6375F0
-CTask* CTaskComplexDieInCar::CreateFirstSubTask_Reversed(CPed* ped) {
+
+
+CTask* CTaskComplexDieInCar::CreateFirstSubTask(CPed* ped) {
     assert(ped);
     ped->SetPedState(PEDSTATE_DIE);
 
@@ -131,7 +130,9 @@ void CTaskComplexDieInCar::PreparePedVehicleForPedDeath(CVehicle *vehicle) {
 }
 
 // 0x637850
-CTask* CTaskComplexDieInCar::CreateNextSubTask_Reversed(CPed* ped) {
+
+
+CTask* CTaskComplexDieInCar::CreateNextSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_DIE_IN_CAR:
         return CreateSubTask(TASK_FINISHED, ped);
@@ -143,7 +144,9 @@ CTask* CTaskComplexDieInCar::CreateNextSubTask_Reversed(CPed* ped) {
 }
 
 // 0x62FCC0
-bool CTaskComplexDieInCar::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) {
+
+// 0x0
+bool CTaskComplexDieInCar::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     switch (priority) {
     case ABORT_PRIORITY_URGENT:
     case ABORT_PRIORITY_IMMEDIATE:

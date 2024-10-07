@@ -190,7 +190,7 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
         if (effect->m_type != e2dEffectType::EFFECT_LIGHT)
             continue;
 
-        auto vecLightPos = entity->GetMatrix() * effect->m_pos;
+        auto vecLightPos = entity->GetMatrix().TransformPoint(effect->m_pos);
         vecCenter += vecLightPos;
         int32 iColorState = eTrafficLightsState::LIGHT_GREEN;
         if (effect->light.m_color.red > 200) {
@@ -274,7 +274,7 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
                     reinterpret_cast<uint32>(entity),
                     eShadowType::SHADOW_ADDITIVE,
                     gpShadowExplosionTex,
-                    &vecCenter,
+                    vecCenter,
                     8.0F,
                     0.0F,
                     0.0F,
@@ -341,10 +341,10 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
         auto p4 = CVector(vecMidPoint.x, vecMidPoint.y, vecCorner2.z);
 
         CShinyTexts::RegisterOne(
-            entity->GetMatrix() * p1,
-            entity->GetMatrix() * p2,
-            entity->GetMatrix() * p3,
-            entity->GetMatrix() * p4,
+            entity->GetMatrix().TransformPoint(p1),
+            entity->GetMatrix().TransformPoint(p2),
+            entity->GetMatrix().TransformPoint(p3),
+            entity->GetMatrix().TransformPoint(p4),
             0.5F,
             0.0F,
             0.0F,
@@ -371,10 +371,10 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
         auto p4 = CVector(vecCorner1.x, vecCorner1.y, vecCorner2.z);
 
         CShinyTexts::RegisterOne(
-            entity->GetMatrix()* p1,
-            entity->GetMatrix()* p2,
-            entity->GetMatrix()* p3,
-            entity->GetMatrix()* p4,
+            entity->GetMatrix().TransformPoint(p1),
+            entity->GetMatrix().TransformPoint(p2),
+            entity->GetMatrix().TransformPoint(p3),
+            entity->GetMatrix().TransformPoint(p4),
             1.0F,
             0.0F,
             0.5F,
