@@ -250,6 +250,7 @@ public:
 
 // NOTSA
     void UnstuckAndReposition();
+    void ReportCollision(CPhysical* entity1, CEntity* entity2, bool iѕFirstA, CColPoint& colPoint, float collisionImpact1, float collisionImpact2 = 1.f);
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
