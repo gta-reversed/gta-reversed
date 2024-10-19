@@ -935,7 +935,7 @@ void CCamera::StoreValuesDuringInterPol(CVector* sourceDuringInter, CVector* tar
     m_vecUpDuringInter     = *upDuringInter;
     m_fFOVDuringInter      = *FOVDuringInter;
 
-    auto dist = sourceDuringInter - m_vecTargetDuringInter;
+    auto dist = *sourceDuringInter - m_vecTargetDuringInter;
     m_fBetaDuringInterPol = CGeneral::GetATanOfXY(dist.x, dist.y);
 
     float distOnGround = dist.Magnitude2D();
@@ -1239,7 +1239,8 @@ bool CCamera::IsSphereVisible(const CVector& origin, float radius, RwMatrix* tra
 
 // 0x420D40 - NOTE: Function has no hook
 bool CCamera::IsSphereVisible(const CVector& origin, float radius) {
-    return IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatInverse) || (m_bMirrorActive && IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatMirrorInverse));
+    return IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatInverse)
+        || (m_bMirrorActive && IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatMirrorInverse));
 }
 
 // 0x50CEB0

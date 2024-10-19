@@ -1414,23 +1414,27 @@ void RemoveCharFromCarMaintainPosition(CPed& ped, CVehicle& vehicle) {
 }
 
 // SET_CHAR_SAY_CONTEXT_IMPORTANT
-int16 SetCharSayContextImportant(CPed& ped, uint16 phraseId, uint8 arg3, uint8 arg4, uint8 arg5) {
-    return ped.Say(phraseId, 0u, 1.0f, arg3, arg4, arg5);
+int16 SetCharSayContextImportant(CPed& ped, uint16 phraseId, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    return ped.Say((eGlobalSpeechContext)phraseId, 0u, 1.0f, overrideSilence, isForceAudible, isFrontEnd);
 }
 
-// SET_CHAR_SAY_SCRIPT
-void SetCharSayScript(CPed& ped, uint8 arg1, uint8 arg2, uint8 arg3, uint8 arg4) {
-    ped.SayScript(arg1, arg2, arg3, arg4);
+// SET_CHAR_SAY_SCRIPT - 0x47ABC0
+void SetCharSayScript(CPed& ped, eAudioEvents scriptID, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    ped.SayScript(scriptID, overrideSilence, isForceAudible, isFrontEnd);
 }
 
 // IS_CHAR_GETTING_IN_INTO_A_CAR
 bool IsCharGettingInToACar(CPed& ped) {
-    return ped.GetTaskManager().FindActiveTaskFromList({TASK_COMPLEX_ENTER_CAR_AS_DRIVER, TASK_COMPLEX_ENTER_CAR_AS_PASSENGER, TASK_COMPLEX_GO_TO_CAR_DOOR_AND_STAND_STILL});
+    return ped.GetTaskManager().FindActiveTaskFromList({
+        TASK_COMPLEX_ENTER_CAR_AS_DRIVER,
+        TASK_COMPLEX_ENTER_CAR_AS_PASSENGER,
+        TASK_COMPLEX_GO_TO_CAR_DOOR_AND_STAND_STILL
+    });
 }
 
 // GET_CHAR_AREA_VISIBLE
 uint32 GetCharAreaVisible(CPed& ped) {
-    return ped.m_nAreaCode;
+    return ped.m_nAreaCode != eAreaCodes::AREA_CODE_NORMAL_WORLD;
 }
 
 // HAS_CHAR_SPOTTED_CHAR_IN_FRONT
@@ -1740,7 +1744,6 @@ void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_CHAR_STOPPED_IN_AREA_ON_FOOT_3D);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_CHAR_STOPPED_IN_AREA_IN_CAR_3D);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_TURN_CHAR_TO_FACE_COORD);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_CREATE_CHAR_AS_PASSENGER);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CHAR_OBJ_KILL_CHAR_ON_FOOT);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CHAR_OBJ_KILL_PLAYER_ON_FOOT);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CHAR_OBJ_KILL_CHAR_ANY_MEANS);

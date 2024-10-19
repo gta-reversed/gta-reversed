@@ -205,7 +205,7 @@ void CAECollisionAudioEntity::ReportGlassCollisionEvent(eAudioEvents glassSoundT
 
     if (time) {
         auto& snd = m_tempSound;
-        snd.m_fMaxVolume = (float)(time + CTimer::GetTimeInMS());
+        snd.m_ClientVariable = (float)(time + CTimer::GetTimeInMS());
         snd.m_nEvent = glassSoundType;
         snd.m_bRequestUpdates = true;
     }
@@ -248,7 +248,7 @@ void CAECollisionAudioEntity::ReportWaterSplash(CVector posn, float volume) {
         SOUND_REQUEST_UPDATES
     );
     m_tempSound.m_nEvent = AE_FRONTEND_BACK;
-    m_tempSound.m_fMaxVolume = static_cast<float>(CTimer::GetTimeInMS() + 166);
+    m_tempSound.m_ClientVariable = static_cast<float>(CTimer::GetTimeInMS() + 166);
 }
 
 // 0x4DAE40

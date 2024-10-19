@@ -44,7 +44,7 @@ public:
     auto GetBones()       { return std::span{ m_Bones, (size_t)m_BonesCount }; }
 
     auto GetIKSlot() const { return m_IKSlot; }
-    auto GetPed() const { return m_Ped; }
+    CPed* GetPed() const { return m_Ped; }
 
 private:
     CPed::Ref                    m_Ped{};

@@ -4,6 +4,7 @@
 #include "TaskSimpleUseGun.h"
 #include "TaskSimpleGetUp.h"
 #include "TaskSimpleDuck.h"
+#include "TaskSimpleFight.h"
 
 void CTaskSimpleUseGun::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleUseGun, 0x86D724, 9);
@@ -303,7 +304,7 @@ void CTaskSimpleUseGun::AimGun(CPed* ped) {
         const auto [lookAtPos, lookAtBone] = GetAimLookAtInfo(); // 0x61EDB8
 
         if (!ped->IsPlayer()) {
-            ped->Say(220);
+            ped->Say(CTX_GLOBAL_TARGET);
         }
 
         if (ped->m_pedIK.bUseArm) { // Removed redudant `if` check from here
@@ -782,7 +783,9 @@ void CTaskSimpleUseGun::StartAnim(CPed* ped) {
         m_Anim = CAnimManager::BlendAnimation( // 0x62503A
             ped->m_pRwClump,
             m_WeaponInfo->m_eAnimGroup,
-            ped->bIsDucking && m_WeaponInfo->flags.bCrouchFire ? ANIM_ID_CROUCHFIRE : ANIM_ID_FIRE
+            ped->bIsDucking && m_WeaponInfo->flags.bCrouchFire
+                ? ANIM_ID_CROUCHFIRE
+                : ANIM_ID_FIRE
         );
 
         if (m_LastCmd == eGunCommand::RELOAD) {
@@ -809,7 +812,9 @@ void CTaskSimpleUseGun::StartAnim(CPed* ped) {
             m_Anim = CAnimManager::BlendAnimation( // 0x62511C
                 ped->m_pRwClump,
                 m_WeaponInfo->m_eAnimGroup,
-                ped->bIsDucking && m_WeaponInfo->flags.bCrouchFire ? ANIM_ID_CROUCHRELOAD : ANIM_ID_RELOAD
+                ped->bIsDucking && m_WeaponInfo->flags.bCrouchFire
+                    ? ANIM_ID_CROUCHRELOAD
+                    : ANIM_ID_RELOAD
             );
             m_Anim->Start();
             m_Anim->SetFinishCallback(FinishGunAnimCB, this);
@@ -825,11 +830,12 @@ void CTaskSimpleUseGun::StartAnim(CPed* ped) {
         if (tDuck && tDuck->StopFireGun()) {
             return;
         }
-
         m_Anim = CAnimManager::BlendAnimation( // 0x6251DC
             ped->m_pRwClump,
-            ANIM_GROUP_DEFAULT,
-            ped->bIsDucking ? ANIM_ID_FIGHT_2 : ANIM_ID_FIGHT_1
+            CTaskSimpleFight::m_aComboData[12].m_nAnimGroup,
+            ped->bIsDucking
+                ? ANIM_ID_FIGHT_2
+                : ANIM_ID_FIGHT_1
         );
         m_Anim->SetFinishCallback(FinishGunAnimCB, this);
         break;

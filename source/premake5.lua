@@ -41,6 +41,10 @@ project "gta_sa_modern"
         "../libs/tracy/public",
         "../libs/json/include"
     }
+
+    filter "options:script-tracing"
+        defines { "NOTSA_SCRIPT_TRACING" }
+    filter {}
     
     defines { 
         "NOMINMAX", 

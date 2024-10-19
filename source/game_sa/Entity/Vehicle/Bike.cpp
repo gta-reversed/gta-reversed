@@ -360,7 +360,7 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
                 } else {
                     for (auto i = 0; i < numPedEntityColPts && numColPts < 32; i++) {
                         const auto& pedEntityCP = pedCPs[i];
-                        if (pedEntityCP.m_nPieceTypeA == PED_PIECE_UNKNOWN) {
+                        if (pedEntityCP.m_nPieceTypeA == PED_COL_SPHERE_LEG) {
                             continue;
                         }
                         outColPoints[numColPts++] = pedEntityCP;

@@ -7,7 +7,9 @@
 #pragma once
 
 #include <RenderWare.h>
-
+#include <Vector.h>
+#include <Vector2D.h>
+#include <Cam.h>
 #include "QueuedMode.h"
 #include "CamPathSplines.h"
 #include "eCamMode.h"

@@ -180,9 +180,9 @@ inline T Read(CRunningScript* S) {
         if constexpr (std::is_pointer_v<T>) { // This is a special case, as some basic ops need a reference instead of a value
             switch (ptype) {
             case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-                return reinterpret_cast<Y*>(&CTheScripts::ScriptSpace[S->ReadAtIPAs<int16>()]);
+                return reinterpret_cast<Y*>(&CTheScripts::ScriptSpace[S->ReadAtIPAs<uint16>()]);
             case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
-                return reinterpret_cast<Y*>(S->GetPointerToLocalVariable(S->ReadAtIPAs<int16>()));
+                return reinterpret_cast<Y*>(S->GetPointerToLocalVariable(S->ReadAtIPAs<uint16>()));
             case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY: {
                 const auto [offset, idx] = detail::ReadArrayInfo(S);
                 return reinterpret_cast<Y*>(&CTheScripts::ScriptSpace[offset + sizeof(tScriptParam) * idx]);
@@ -197,9 +197,9 @@ inline T Read(CRunningScript* S) {
             case SCRIPT_PARAM_STATIC_INT_32BITS:
                 return detail::safe_arithmetic_cast<T>(S->ReadAtIPAs<int32>());
             case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-                return *reinterpret_cast<T*>(&CTheScripts::ScriptSpace[S->ReadAtIPAs<int16>()]);
+                return *reinterpret_cast<T*>(&CTheScripts::ScriptSpace[S->ReadAtIPAs<uint16>()]);
             case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
-                return *reinterpret_cast<T*>(S->GetPointerToLocalVariable(S->ReadAtIPAs<int16>()));
+                return *reinterpret_cast<T*>(S->GetPointerToLocalVariable(S->ReadAtIPAs<uint16>()));
             case SCRIPT_PARAM_STATIC_INT_8BITS:
                 return detail::safe_arithmetic_cast<T>(S->ReadAtIPAs<int8>());
             case SCRIPT_PARAM_STATIC_INT_16BITS:

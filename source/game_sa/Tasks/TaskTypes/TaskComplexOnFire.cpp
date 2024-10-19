@@ -93,7 +93,7 @@ CTask* CTaskComplexOnFire::ControlSubTask(CPed* ped) {
         }
 
         if (CLocalisation::PedsOnFire()) {
-            ped->Say(346, 0, 0.1f);
+            ped->Say(CTX_GLOBAL_PAIN_ON_FIRE, 0, 0.1f);
         }
 
         CPedDamageResponse resp{};

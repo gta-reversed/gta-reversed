@@ -26,30 +26,22 @@ template<typename T>
     requires (std::is_arithmetic_v<T>)
 inline void StoreArg(CRunningScript* S, const T& arg) { // Add requirements to filter out possible mistakes (Like returning an unsupported type)
     tScriptParam* dest = [&] {
-        auto& ip = S->m_IP;
-
-        // Helper
-        const auto ReadArrayInfo = [S] {
-            uint16 offset{};
+        const auto GetFromArray = [S](auto&& GetArrayElement) {
+            uint16 base{};
             int32 idx{};
-            S->ReadArrayInformation(true, &offset, &idx);
-            return std::make_tuple(offset, idx);
+            S->ReadArrayInformation(true, &base, &idx);
+            return std::invoke(GetArrayElement, S, base, idx, 1);
         };
 
-        switch (const auto t = CTheScripts::Read1ByteFromScript(ip)) {
+        switch (const auto t = S->ReadAtIPAs<int8>()) {
         case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-            return reinterpret_cast<tScriptParam*>(&CTheScripts::ScriptSpace[CTheScripts::Read2BytesFromScript(ip)]);
-        case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE: {
-            return S->GetPointerToLocalVariable(CTheScripts::Read2BytesFromScript(ip));
-        }
-        case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY: {
-            const auto [offset, idx] = ReadArrayInfo();
-            return reinterpret_cast<tScriptParam*>(&CTheScripts::ScriptSpace[offset + 4 * idx]);
-        }
-        case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY: {
-            const auto [offset, idx] = ReadArrayInfo();
-            return S->GetPointerToLocalArrayElement(offset, idx, 1);
-        }
+            return S->GetPointerToGlobalVariable(S->ReadAtIPAs<uint16>());
+        case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
+            return S->GetPointerToLocalVariable(S->ReadAtIPAs<uint16>());
+        case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY:
+            return GetFromArray(&CRunningScript::GetPointerToGlobalArrayElement);
+        case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY:
+            return GetFromArray(&CRunningScript::GetPointerToLocalArrayElement);
         default:
             NOTSA_UNREACHABLE("Variable type unknown ={:x}", t);
         }

@@ -120,7 +120,7 @@ void CPickups::CreateSomeMoney(CVector coors, int32 amount) {
 }
 
 // 0x4590C0
-void CPickups::DetonateMinesHitByGunShot(CVector* shotOrigin, CVector* shotTarget) {
+void CPickups::DetonateMinesHitByGunShot(const CVector& shotOrigin, const CVector& shotTarget) {
     for (auto& pickup : aPickUps) {
         if (pickup.m_nPickupType == PICKUP_NAUTICAL_MINE_ARMED) {
             pickup.ProcessGunShot(shotOrigin, shotTarget);

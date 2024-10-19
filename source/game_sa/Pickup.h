@@ -84,7 +84,7 @@ public:
     void Remove();
     void GiveUsAPickUpObject(CObject** obj, int32 slotIndex);
     bool Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId);
-    void ProcessGunShot(CVector* origin, CVector* target);
+    void ProcessGunShot(const CVector& origin, const CVector& target);
 
     static ePickupPropertyText FindTextIndexForString(const char* message);
     static const char* FindStringForTextIndex(ePickupPropertyText index);

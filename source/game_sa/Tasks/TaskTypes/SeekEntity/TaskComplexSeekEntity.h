@@ -287,7 +287,7 @@ public:
                         if (FindPlayerPed()->GetPlayerGroup().GetMembership().IsFollower(ped)) { // And ped is part of the player's group
                             if (ped->IsJoggingOrFaster()) {
                                 if (((uint16)CTimer::GetFrameCounter() + ped->m_nRandomSeed) % 16384 == 0) {
-                                    ped->Say(91);
+                                    ped->Say(CTX_GLOBAL_FOLLOW_CONSTANT);
                                 }
                             }
                         }

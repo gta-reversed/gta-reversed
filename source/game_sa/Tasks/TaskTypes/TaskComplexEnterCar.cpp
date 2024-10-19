@@ -334,7 +334,9 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
         m_bQuitAfterDraggingPedOut = false;
         return C(m_DraggedPed ? TASK_SIMPLE_WAIT_UNTIL_PED_OUT_CAR : TASK_FINISHED);
     }
+    case TASK_SIMPLE_WAIT_UNTIL_PED_OUT_CAR:
     case TASK_COMPLEX_FALL_AND_GET_UP:
+    case TASK_SIMPLE_CAR_DRIVE_TIMED:
         return C(TASK_FINISHED);
     default:
         NOTSA_UNREACHABLE("SubTaskType = {}", tt);
@@ -518,7 +520,10 @@ CTask* CTaskComplexEnterCar::CreateFirstSubTask(CPed* ped) {
     }
 
     if (ped->bInVehicle) {
-        return C(ped->m_pVehicle == m_Car ? TASK_SIMPLE_CAR_DRIVE_TIMED : TASK_COMPLEX_LEAVE_CAR);
+        return C(ped->m_pVehicle == m_Car
+            ? TASK_SIMPLE_CAR_DRIVE_TIMED
+            : TASK_COMPLEX_LEAVE_CAR
+        );
     }
 
     if (m_Car->IsBoat()) {

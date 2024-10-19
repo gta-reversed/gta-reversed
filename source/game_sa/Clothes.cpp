@@ -220,7 +220,7 @@ void CClothes::RebuildPlayer(CPlayerPed* player, bool bIgnoreFatAndMuscle) {
     ConstructPedModel(player->m_nModelIndex, *player->m_pPlayerData->m_pPedClothesDesc, &PlayerClothes, 0);
     player->Dress();
     RpAnimBlendClumpGiveAssociations(player->m_pRwClump, assoc);
-    PlayerClothes = player->m_pPlayerData->m_pPedClothesDesc;
+    PlayerClothes = *player->m_pPlayerData->m_pPedClothesDesc;
 }
 
 // 0x5A8270

@@ -13,7 +13,7 @@ CTask* CTaskComplexUseGoggles::CreateNextSubTask(CPed* ped) {
         return nullptr;
     case TASK_SIMPLE_GOGGLES_ON:
         ped->PutOnGoggles();
-        ped->m_weaponAudio.AddAudioEvent(AE_WEAPON_FIRE);
+        ped->GetWeaponAE().AddAudioEvent(AE_WEAPON_FIRE);
         return nullptr;
     default:
         return nullptr;

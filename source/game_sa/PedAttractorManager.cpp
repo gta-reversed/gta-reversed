@@ -225,7 +225,7 @@ void* CPedAttractorManager::GetRelevantAttractor(const CPed* ped, const C2dEffec
 
 // 0x5E96C0
 void CPedAttractorManager::ComputeEffectPos(const C2dEffect* effect, const CMatrix& mat, CVector& vec) {
-    vec.FromMultiply(mat, &effect->m_pos);
+    vec.FromMultiply(mat, effect->m_pos);
 }
 
 // 0x5E96E0

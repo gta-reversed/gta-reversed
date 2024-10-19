@@ -97,9 +97,9 @@ void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, Rp
         for (auto j = 0; j < plant.num_plants; j++) {
             CVector posn = InterpolateTriangle(
                 posn,
-                &plant.V1,
-                &plant.V2,
-                &plant.V3,
+                plant.V1,
+                plant.V2,
+                plant.V3,
                 CGeneral::GetRandomNumberInRange(0.0f, 1.0f),
                 CGeneral::GetRandomNumberInRange(0.0f, 1.0f)
             );
