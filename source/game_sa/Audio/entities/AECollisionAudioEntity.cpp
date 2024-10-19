@@ -19,7 +19,7 @@ void CAECollisionAudioEntity::InjectHooks() {
     RH_ScopedInstall(ReportGlassCollisionEvent, 0x4DA070);
     RH_ScopedInstall(UpdateLoopingCollisionSound, 0x4DA540, { .reversed = false });
     RH_ScopedInstall(GetCollisionSoundStatus, 0x4DA830, { .reversed = true });
-    RH_ScopedInstall(ReportObjectDestruction, 0x4DAB60, { .reversed = false });
+    RH_ScopedInstall(ReportObjectDestruction, 0x4DAB60);
     RH_ScopedInstall(PlayOneShotCollisionSound, 0x4DB150, { .reversed = false });
     RH_ScopedInstall(PlayLoopingCollisionSound, 0x4DB450, { .reversed = false });
     RH_ScopedInstall(PlayBulletHitCollisionSound, 0x4DB7C0, { .reversed = false });
@@ -267,7 +267,28 @@ void CAECollisionAudioEntity::ReportWaterSplash(CPhysical* physical, float heigh
 
 // 0x4DAB60
 void CAECollisionAudioEntity::ReportObjectDestruction(CEntity* entity) {
-    return plugin::CallMethod<0x4DAB60, CAECollisionAudioEntity*, CEntity*>(this, entity);
+    if (entity) {
+        const auto surface = [&]{
+            if (entity->GetModelID() == MODEL_MOLOTOV) { // 0x4DAB7B
+                return SURFACE_GLASS;
+            }
+            if (entity->GetModelID() == ModelIndices::MI_GRASSHOUSE) { // 0x4DAB89
+                const auto cd = entity->GetColData();
+                if (!cd) {
+                    return SURFACE_NONE;
+                }
+                if (const auto spheres = cd->GetSpheres(); !spheres.empty()) {
+                    return spheres[0].m_Surface.m_nMaterial;
+                }
+                if (const auto boxes = cd->GetBoxes(); !boxes.empty()) {
+                    return boxes[0].m_Surface.m_nMaterial;
+                }
+                if (const auto tris = cd->GetTris(); !tris.empty()) {
+                    return tris[0].GetSurfaceType();
+                }
+            }
+        }();
+    }
 }
 
 // 0x4DBA10

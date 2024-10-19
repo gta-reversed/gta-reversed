@@ -7,6 +7,7 @@
 #pragma once
 
 enum eSurfaceType : uint8 {
+    SURFACE_NONE = 0xFF, // NOTSA
     SURFACE_DEFAULT = 0,
     SURFACE_TARMAC = 1,
     SURFACE_TARMAC_FUCKED = 2,
