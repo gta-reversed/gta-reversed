@@ -57,7 +57,7 @@ public:
     static void AddToCollectedPickupsArray(int32 pickupIndex);
     static void CreatePickupCoorsCloseToCoors(float inX, float inY, float inZ, float& outX, float& outY, float& outZ);
     static void CreateSomeMoney(CVector coors, int32 amount);
-    static void DetonateMinesHitByGunShot(CVector* shotOrigin, CVector* shotTarget);
+    static void DetonateMinesHitByGunShot(const CVector& shotOrigin, const CVector& shotTarget);
 
     static void DoCollectableEffects(CEntity* entity);
     static void DoMineEffects(CEntity* entity);

@@ -35,7 +35,7 @@ CTaskSimpleGunControl::CTaskSimpleGunControl(CEntity* targetEntity, CVector cons
 }
 
 CTaskSimpleGunControl::CTaskSimpleGunControl(const CTaskSimpleGunControl& o) :
-    CTaskSimpleGunControl{o.m_targetEntity, &o.m_targetPos, &o.m_moveTarget, o.m_firingTask, o.m_burstAmmoCnt, o.m_leisureDurMs}
+    CTaskSimpleGunControl{o.m_targetEntity, o.m_targetPos, o.m_moveTarget, o.m_firingTask, o.m_burstAmmoCnt, o.m_leisureDurMs}
 {
     m_aimImmidiately = o.m_aimImmidiately;
 }

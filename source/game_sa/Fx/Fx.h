@@ -77,7 +77,7 @@ public:
     void Exit();
     void Reset();
 
-    void CreateEntityFx(CEntity* entity, const char* fxName, CVector* pos, RwMatrix* transform);
+    void CreateEntityFx(CEntity* entity, const char* fxName, const CVector& pos, RwMatrix* transform);
     void DestroyEntityFx(CEntity* entity);
 
     void Update(RwCamera* camera, float timeDelta);

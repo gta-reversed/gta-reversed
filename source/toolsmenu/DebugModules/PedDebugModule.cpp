@@ -147,6 +147,8 @@ void PedDebugModule::RenderWindow() {
         return std::vector<elem_t>{r.begin(), r.end()};
     };
 
+    if (!GetPedPool()) return;
+
     auto peds = to_vector(
             GetPedPool()->GetAllValid()
         | rng::views::transform([this](CPed& ped) -> std::optional<PedInfo> {

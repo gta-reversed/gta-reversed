@@ -708,12 +708,10 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
     if (target->bInVehicle)
         return false;
 
-    CVector bonePosition;
-    target->GetBonePosition(bonePosition, BONE_HEAD, false);
     if (target->bIsDucking || target->m_fHealth < 1.0f)
         return false;
 
-    if (bonePosition.z < target->GetPosition().z)
+    if (target->GetBonePosition(BONE_HEAD).z < target->GetPosition().z)
         return false;
 
     if (bFullTest)

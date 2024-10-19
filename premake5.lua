@@ -9,6 +9,10 @@
 --]]
 
 newoption {
+    trigger     = "script-tracing",
+    description = "Enable script command trace logging (Slow!)"
+}
+newoption {
     trigger     = "outdir",
     value       = "path",
     description = "Output directory for the build files"

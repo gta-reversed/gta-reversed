@@ -80,11 +80,11 @@ void CPlayerPed::InjectHooks() {
 }
 
 struct WorkBufferSaveData {
-    uint32          saveSize = sizeof(WorkBufferSaveData); // Never read, but written
-    uint32          chaosLevel{};
-    uint32          wantedLevel{};
-    CPedClothesDesc clothesDesc{};
-    uint32          chosenWeapon{};
+    uint32          SaveSize = sizeof(WorkBufferSaveData); // Never read, but written
+    uint32          ChaosLevel{};
+    uint32          WantedLevel{};
+    CPedClothesDesc ClothesDesc{};
+    uint32          ChosenWeapon{};
 };
 VALIDATE_SIZE(WorkBufferSaveData, 132u + 4u);
 
@@ -97,15 +97,16 @@ bool CPlayerPed::Load() {
 
     CPed::Load();
 
-    WorkBufferSaveData savedData{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&savedData, sizeof(WorkBufferSaveData));
+    WorkBufferSaveData sd{};
+    CGenericGameStorage::LoadDataFromWorkBuffer(&sd, sizeof(WorkBufferSaveData));
+    assert(sd.SaveSize == sizeof(sd));
 
     CWanted* wanted = m_pPlayerData->m_pWanted;
-    wanted->m_nChaosLevel = savedData.chaosLevel;
-    wanted->m_nWantedLevel= savedData.wantedLevel;
+    wanted->m_nChaosLevel = sd.ChaosLevel;
+    wanted->m_nWantedLevel= sd.WantedLevel;
 
-    m_pPlayerData->m_nChosenWeapon   = savedData.chosenWeapon;
-    m_pPlayerData->m_pPedClothesDesc = &savedData.clothesDesc;
+    m_pPlayerData->m_nChosenWeapon   = sd.ChosenWeapon;
+    *m_pPlayerData->m_pPedClothesDesc = sd.ClothesDesc;
 
     return true;
 }
@@ -120,11 +121,10 @@ bool CPlayerPed::Save() {
     WorkBufferSaveData saveData{};
 
     CWanted* wanted = m_pPlayerData->m_pWanted;
-    saveData.chaosLevel = wanted->m_nChaosLevel;
-    saveData.wantedLevel = wanted->m_nWantedLevel;
-
-    saveData.chosenWeapon = m_pPlayerData->m_nChosenWeapon;
-    saveData.clothesDesc  = m_pPlayerData->m_pPedClothesDesc;
+    saveData.ChaosLevel = wanted->m_nChaosLevel;
+    saveData.WantedLevel = wanted->m_nWantedLevel;
+    saveData.ChosenWeapon = m_pPlayerData->m_nChosenWeapon;
+    saveData.ClothesDesc  = *m_pPlayerData->m_pPedClothesDesc;
 
     CGenericGameStorage::SaveDataToWorkBuffer(&saveData, sizeof(WorkBufferSaveData));
 
@@ -532,12 +532,12 @@ void CPlayerPed::ClearAdrenaline() {
 
 // 0x60A0A0
 void CPlayerPed::DisbandPlayerGroup() {
-    CPedGroupMembership& membership = GetPlayerGroup().GetMembership();
-    const uint32 nMembers = membership.CountMembersExcludingLeader();
-    if (nMembers > 0)
-        Say(nMembers > 1 ? 149 : 150);
-    else
-        membership.RemoveAllFollowers(true);
+    auto& ms = GetPlayerGroup().GetMembership();
+    if (const auto numMembers = ms.CountMembersExcludingLeader()) {
+        Say(numMembers > 1 ? CTX_GLOBAL_ORDER_DISBAND_MANY : CTX_GLOBAL_ORDER_ATTACK_SINGLE);
+    } else {
+        ms.RemoveAllFollowers(true);
+    }
 }
 
 // 0x60A110
@@ -590,19 +590,19 @@ void CPlayerPed::TellGroupToStartFollowingPlayer(bool arg0, bool arg1, bool arg2
             const float distToFurthest = group.FindDistanceToFurthestMember();
             if (nMembers > 1) {
                 if (distToFurthest >= 3.0f)
-                    Say(distToFurthest >= 10.0f ? 151 : 153);
+                    Say(distToFurthest >= 10.0f ? CTX_GLOBAL_ORDER_FOLLOW_FAR_MANY : CTX_GLOBAL_ORDER_FOLLOW_NEAR_MANY);
                 else
-                    Say(155);
+                    Say(CTX_GLOBAL_ORDER_FOLLOW_VNEAR_MANY);
             } else {
                 if (distToFurthest >= 3.0f)
-                    Say(distToFurthest >= 10.0f ? 152 : 154);
+                    Say(distToFurthest >= 10.0f ? CTX_GLOBAL_ORDER_FOLLOW_FAR_ONE : CTX_GLOBAL_ORDER_FOLLOW_NEAR_ONE);
                 else
-                    Say(156);
+                    Say(CTX_GLOBAL_ORDER_FOLLOW_VNEAR_ONE);
             }
         } else if (nMembers > 1) {
-            Say(159);
+            Say(CTX_GLOBAL_ORDER_WAIT_MANY);
         } else {
-            Say(160);
+            Say(CTX_GLOBAL_ORDER_WAIT_ONE);
         }
     }
 }
@@ -765,18 +765,16 @@ void CPlayerPed::MakeChangesForNewWeapon(eWeaponType weaponType) {
 bool LOSBlockedBetweenPeds(CEntity* entity1, CEntity* entity2) {
     CVector origin{};
     if (entity1->IsPed()) {
-        entity1->AsPed()->GetBonePosition(origin, eBoneTag::BONE_NECK, false);
+        origin = entity1->AsPed()->GetBonePosition(eBoneTag::BONE_NECK, false);
         if (entity1->AsPed()->bIsDucking)
             origin.z += 0.35f;
     } else {
         origin = entity1->GetPosition();
     }
 
-    CVector target{};
-    if (entity2->IsPed())
-        entity1->AsPed()->GetBonePosition(target, eBoneTag::BONE_NECK, false);
-    else
-        target = entity1->GetPosition();
+    const auto target = entity2->IsPed()
+        ? entity1->AsPed()->GetBonePosition(eBoneTag::BONE_NECK, false)
+        : entity1->GetPosition();
 
     CColPoint colPoint;
     CEntity* hitEntity;
@@ -1244,14 +1242,14 @@ void CPlayerPed::ProcessControl() {
                 float distance = group.FindDistanceToNearestMember(nullptr);
                 if (distance > 20.0f && distance < 100.0f && CGame::currArea == AREA_CODE_NORMAL_WORLD) {
                     if (memberCount == 1)
-                        Say(158);
+                        Say(CTX_GLOBAL_ORDER_KEEP_UP_ONE);
                     else
-                        Say(157);
+                        Say(CTX_GLOBAL_ORDER_KEEP_UP_MANY);
                     for (int32 i = 0; i < TOTAL_PED_GROUP_FOLLOWERS; ++i) {
                         CPed* member = group.m_groupMembership.GetMember(i);
                         if (member && CGeneral::GetRandomNumberInRange(0.0f, 1.0f) < 0.5f) {
                             int32 offset = CGeneral::GetRandomNumberInRange(3000, 4500);
-                            member->Say(92, offset);
+                            member->Say(CTX_GLOBAL_FOLLOW_REPLY, offset);
                         }
                     }
                 }
@@ -1259,5 +1257,5 @@ void CPlayerPed::ProcessControl() {
         }
     }
     if (!bInVehicle && GetLightingTotal() <= 0.05f && !CEntryExitManager::WeAreInInteriorTransition())
-        Say(338);
+        Say(CTX_GLOBAL_BREATHING);
 }

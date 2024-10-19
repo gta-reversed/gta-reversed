@@ -68,6 +68,7 @@ public:
     void   SetReady();
     void   PrepareStream(CAEStreamingDecoder* stream, int8 arg2, uint32 audioBytes);
     void   Pause();
+    void   StopTrue();
 
 private:
     friend void InjectHooksMain();

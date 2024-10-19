@@ -667,9 +667,9 @@ void CTaskSimpleClimb::StartAnim(CPed* ped) {
 void CTaskSimpleClimb::StartSpeech(CPed* ped) {
     if (ped->IsPlayer()) {
         if (m_nHeightForAnim == CLIMB_PULLUP)
-            ped->Say(354);
+            ped->Say(CTX_GLOBAL_PAIN_CJ_STRAIN);
         else if (m_nHeightForAnim == CLIMB_STANDUP)
-            ped->Say(355);
+            ped->Say(CTX_GLOBAL_PAIN_CJ_STRAIN_EXHALE);
     }
 }
 

@@ -171,7 +171,7 @@ bool CGameLogic::IsPlayerAllowedToGoInThisDirection(CPed* ped, CVector moveDirec
             return false;
         }
 
-        if (!CWorld::GetIsLineOfSightClear(TheCamera.GetGameCamPosition(), headPos, true, false, false, false, false, true, false)) {
+        if (!CWorld::GetIsLineOfSightClear(*TheCamera.GetGameCamPosition(), headPos, true, false, false, false, false, true, false)) {
             return false;
         }
     }
@@ -378,7 +378,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
         fire->Extinguish();
         fire = nullptr;
     }
-    player->m_pedAudio.TurnOffJetPack();
+    player->GetAE().TurnOffJetPack();
     player->bInVehicle = false;
     if (auto vehicle = player->m_pVehicle) {
         CEntity::CleanUpOldReference(vehicle);
@@ -655,7 +655,7 @@ void CGameLogic::Update() {
             } else if (ped->m_nPedState == PEDSTATE_ARRESTED) {
                 ped->ClearAdrenaline();
                 player.ArrestPlayer();
-                ped->Say(15, 2300, 1.0f, 1u, 1u);
+                ped->Say(CTX_GLOBAL_ARRESTED, 2300, 1.0f, 1u, 1u);
                 GameState = GAMELOGIC_STATE_BUSTED;
                 TimeOfLastEvent = CTimer::GetTimeInMS();
 
@@ -903,4 +903,29 @@ void CGameLogic::UpdateSkip() {
     default:
         return;
     }
+}
+
+// notsa
+bool CGameLogic::IsAPlayerInFocusOn2PlayerGame() {
+    return n2PlayerPedInFocus == eFocusedPlayer::PLAYER1 || n2PlayerPedInFocus == eFocusedPlayer::PLAYER2;
+}
+
+// notsa
+CPlayerPed* CGameLogic::GetFocusedPlayerPed() {
+    if (!IsAPlayerInFocusOn2PlayerGame()) {
+        return nullptr;
+    } else {
+        return FindPlayerPed((int32)n2PlayerPedInFocus);
+    }
+}
+
+// notsa
+bool CGameLogic::CanPlayerTripSkip() {
+    return SkipState == SKIP_AVAILABLE || SkipState == SKIP_AFTER_MISSION;
+}
+
+// notsa
+void CGameLogic::SetMissionFailed(){
+    GameState = GAMELOGIC_STATE_MISSION_FAILED;
+    TimeOfLastEvent = CTimer::GetTimeInMS();
 }

@@ -1227,7 +1227,7 @@ void CStreaming::LoadCdDirectory(const char* filename, int32 archiveId) {
             modelId = TXDToModelId(txdSlot);
 
         } else if (ExtensionIs("COL")) {
-            int32 colSlot = CColStore::FindColSlot();
+            int32 colSlot = notsa::IsFixBugs() ? CColStore::FindColSlot(entry.m_szName) : CColStore::FindColSlot();
             if (colSlot == -1)
                 colSlot = CColStore::AddColSlot(entry.m_szName);
             modelId = COLToModelId(colSlot);

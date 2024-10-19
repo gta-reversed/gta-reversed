@@ -111,7 +111,7 @@ void CTrailer::ScanForTowLink() {
 
     int16 count = 0;
     CEntity* objects[16]{};
-    CWorld::FindObjectsInRange(&towHitchPos, 10.0f, true, &count, int16(std::size(objects)), objects, false, true, false, false, false);
+    CWorld::FindObjectsInRange(towHitchPos, 10.0f, true, &count, int16(std::size(objects)), objects, false, true, false, false, false);
 
     CVector towBarPos;
     CVehicle* vehicle = nullptr;

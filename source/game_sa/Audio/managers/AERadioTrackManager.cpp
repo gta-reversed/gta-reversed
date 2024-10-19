@@ -499,7 +499,7 @@ void CAERadioTrackManager::UpdateRadioVolumes() {
                         if (!missionAudioPosition)
                             break;
 
-                        CAEAudioEnvironment::GetPositionRelativeToCamera(&v9, missionAudioPosition);
+                        CAEAudioEnvironment::GetPositionRelativeToCamera(v9, missionAudioPosition);
                         if (CVector::Magnitude(&v9) <= 15.0f)
                             break;
                     }

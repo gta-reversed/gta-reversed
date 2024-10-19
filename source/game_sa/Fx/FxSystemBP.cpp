@@ -84,7 +84,7 @@ void FxSystemBP_c::Load(Const char* filename, FILESTREAM file, int32 version) {
         ReadLine(file, line, sizeof(line));
         RET_IGNORED(sscanf(line, "%s %f %f %f %f", field, &vecCenter.x, &vecCenter.y, &vecCenter.z, &fRadius));
         m_BoundingSphere = nullptr;
-        SetBoundingSphere(&vecCenter, fRadius);
+        SetBoundingSphere(vecCenter, fRadius);
     }
 
     m_nNumPrims = ReadField<uint8>(file, "NUM_PRIMS:");
@@ -165,7 +165,7 @@ FxSphere_c* FxSystemBP_c::GetBoundingSphere() const {
 }
 
 // 0x4AA200
-void FxSystemBP_c::SetBoundingSphere(CVector* center, float radius) {
+void FxSystemBP_c::SetBoundingSphere(const CVector& center, float radius) {
     if (!m_BoundingSphere && radius > 0.0f) {
         m_BoundingSphere = new (true) FxSphere_c();
         m_BoundingSphere->m_vecCenter = center;

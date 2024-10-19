@@ -1484,7 +1484,7 @@ int32 CFileLoader::LoadPedObject(const char* line) {
     mi->m_nKey = CKeyGen::GetUppercaseKey(modelName);
     mi->SetTexDictionary(texName);
     mi->SetAnimFile(animFile);
-    mi->SetColModel(&colModelPeds, false);
+    mi->SetColModel(&CTempColModels::ms_colModelPed1, false);
     mi->m_nPedType          = CPedType::FindPedType(pedType);
     mi->m_nStatType         = CPedStats::GetPedStatType(statName);
     mi->m_nAnimType         = CAnimManager::GetAnimationGroupIdByName(animGroup);

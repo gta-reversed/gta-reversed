@@ -45,3 +45,15 @@ using WEnumU32 = WEnum<E, std::uint32_t>;
 template<typename E>
 using WEnumS32 = WEnum<E, std::int32_t>;
 };
+
+#define NOTSA_WENUM_DEFS_FOR(_e) \
+    using _e##S8 = notsa::WEnumS8<_e>; \
+    using _e##S16 = notsa::WEnumS16<_e>; \
+    using _e##S32 = notsa::WEnumS32<_e>;
+
+//! Use unary operator + instead of ugly `static_cast` for enum (class) for casting to underlaying type
+template <typename T>
+    requires std::is_enum_v<T>
+inline constexpr auto operator+(T e) noexcept {
+    return static_cast<std::underlying_type_t<T>>(e);
+}

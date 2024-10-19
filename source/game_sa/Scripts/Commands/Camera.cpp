@@ -13,7 +13,7 @@ bool IsPointOnScreen(CVector pos, float radius) {
     if (pos.z <= MAP_Z_LOW_LIMIT) {
         pos.z = CWorld::FindGroundZForCoord(pos.x, pos.y);
     }
-    return TheCamera.IsSphereVisible(&pos, radius);
+    return TheCamera.IsSphereVisible(pos, radius);
 }
 
 void ShakeCam(float strength) {

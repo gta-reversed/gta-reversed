@@ -577,6 +577,11 @@ void CAutomobile::ProcessControl()
     }
 
     for (auto& collisionEntity : m_apWheelCollisionEntity) {
+        // FIXME(yukani): I need this to test anything outside, do not remove
+        // until game doesn't crash on me here.
+        if (collisionEntity == (CPhysical*)0xffffffff) {
+            collisionEntity = nullptr;
+        }
         if (collisionEntity) {
             vehicleFlags.bRestingOnPhysical = true;
             if (!CWorld::bForceProcessControl && collisionEntity->m_bIsInSafePosition) {
@@ -2834,13 +2839,13 @@ void CAutomobile::PlayCarHorn()
     if (const auto r = m_nCarHornTimer % 8; r < 4) {
         if (r >= 2) {
             if (m_pDriver && m_autoPilot.carCtrlFlags.bHonkAtCar) {
-                m_pDriver->Say(AE_FRONTEND_FRENZY_ONGOING);
+                m_pDriver->Say(CTX_GLOBAL_BLOCKED);
             }
         }
         m_nHornCounter = 45;
     } else {
         if (m_pDriver) {
-            m_pDriver->Say(AE_FRONTEND_FRENZY_ONGOING);
+            m_pDriver->Say(CTX_GLOBAL_BLOCKED);
         }
     }
 }
@@ -3029,7 +3034,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
         // 0x6A7B63
         const auto moveSpeedMagSq = m_vecMoveSpeed.SquaredMagnitude();
         if (moveSpeedMagSq > 0.02f / 50.0f) {
-            dmgDrawCarCollidingParticles(vecCollisionCoors, calcDmgIntensity * collForceMult, weapon);
+            dmgDrawCarCollidingParticles(*vecCollisionCoors, calcDmgIntensity * collForceMult, weapon);
         }
 
         if (m_matrix->GetUp().z > 0.f /*Not flipped on roof*/ || moveSpeedMagSq > 0.3f) {
@@ -3039,7 +3044,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
             // [-oo, 0] - Left side (In bounding box if: [-1, 0] )
             // [0, +oo] - Right side (In bounding box if: [0, 1] )
             const auto GetCollisionPointLocalDirection = [&, this] {
-                const auto collDirDotRight = DotProduct(vecCollisionCoors - GetPosition() , m_matrix->GetRight());
+                const auto collDirDotRight = DotProduct(*vecCollisionCoors - GetPosition() , m_matrix->GetRight());
 
                 // Since the dot product is scaled by the distance of the collision point from us
                 // If we divide it by the width of our bounding box we can determinate how far
@@ -3196,13 +3201,13 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
                             if (&damagedVeh != FindPlayerVehicle() || damagedVeh.IsMissionVehicle()) {
                                 switch (m_vehicleAudio.GetVehicleTypeForAudio()) {
                                 case 1:
-                                    m_pDriver->Say(66);
+                                    m_pDriver->Say(CTX_GLOBAL_CRASH_BIKE);
                                     break;
                                 case 0:
-                                    m_pDriver->Say(67);
+                                    m_pDriver->Say(CTX_GLOBAL_CRASH_CAR);
                                     break;
                                 default:
-                                    m_pDriver->Say(68);
+                                    m_pDriver->Say(CTX_GLOBAL_CRASH_GENERIC);
                                     break;
                                 }
                             }
@@ -3210,7 +3215,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
                     }
                     if (this == FindPlayerVehicle()) {
                         if (const auto p = PickRandomPassenger()) {
-                            p->Say(m_pDamageEntity->IsPed() ? 36 : 29);
+                            p->Say(m_pDamageEntity->IsPed() ? CTX_GLOBAL_CAR_HIT_PED : CTX_GLOBAL_CAR_CRASH);
                         }
                     }
                 }
@@ -3273,7 +3278,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
         CEntity::SafeRegisterRef(m_pLastDamageEntity);
 
         if (const auto passenger = PickRandomPassenger()) {
-            passenger->Say(33, 1500);
+            passenger->Say(CTX_GLOBAL_CAR_FIRE, 1500);
         }
     }
 }
@@ -4336,7 +4341,7 @@ void CAutomobile::DoNitroEffect(float power) {
         else if (firstExhaustFxSystem->GetPlayStatus() == eFxSystemPlayStatus::FX_STOPPED && !firstExhaustSubmergedInWater)
             firstExhaustFxSystem->Play();
     } else if (!firstExhaustSubmergedInWater && rwMatrix) {
-        firstExhaustFxSystem = g_fxMan.CreateFxSystem("nitro", &exhaustPosition, rwMatrix, true);
+        firstExhaustFxSystem = g_fxMan.CreateFxSystem("nitro", exhaustPosition, rwMatrix, true);
         m_exhaustNitroFxSystem[0] = firstExhaustFxSystem;
         if (firstExhaustFxSystem) {
             firstExhaustFxSystem->SetLocalParticles(true);
@@ -4353,7 +4358,7 @@ void CAutomobile::DoNitroEffect(float power) {
             else if (secondExhaustFxSystem->GetPlayStatus() == eFxSystemPlayStatus::FX_STOPPED && !secondExhaustSubmergedInWater)
                 secondExhaustFxSystem->Play();
         } else if (!firstExhaustSubmergedInWater && rwMatrix) {
-            secondExhaustFxSystem = g_fxMan.CreateFxSystem("nitro", &secondExhaustPosition, rwMatrix, true);
+            secondExhaustFxSystem = g_fxMan.CreateFxSystem("nitro", secondExhaustPosition, rwMatrix, true);
             m_exhaustNitroFxSystem[1] = secondExhaustFxSystem;
             if (secondExhaustFxSystem) {
                 secondExhaustFxSystem->SetLocalParticles(1);
@@ -4927,9 +4932,12 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
         auto pos = GetDummyPosition(DUMMY_ENGINE);
         if (const auto mat = GetModellingMatrix()) {
             m_pFireParticle = g_fxMan.CreateFxSystem(
-                typ == 1 ? "fire_car" : "fire_large",
-                &pos,
-                mat);
+                typ == 1
+                    ? "fire_car"
+                    : "fire_large",
+                pos,
+                mat
+            );
         }
         if (m_pFireParticle) {
             m_pFireParticle->Play();
@@ -6048,7 +6056,7 @@ void CAutomobile::DoHeliDustEffect(float timeConstMult, float fxMaxZMult) {
     // Create and play fx if it doesn't exist.
     if (!m_pDustParticle) {
         CVector fxPos{0.f, 0.f, 0.f};
-        m_pDustParticle = g_fxMan.CreateFxSystem("heli_dust", &fxPos, nullptr, true);
+        m_pDustParticle = g_fxMan.CreateFxSystem("heli_dust", CVector{0.f, 0.f, 0.f}, nullptr, true);
         if (!m_pDustParticle) { // Failed, return
             return;
         }

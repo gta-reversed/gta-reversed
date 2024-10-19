@@ -178,7 +178,7 @@ void CTheZones::FillZonesWithGangColours(bool disableRadarGangColors) {
             const auto GetVW = [&](eGangID g) {
                 return WeightedValue<uint32, uint32>{ gaGangColors[g].components[i], z.GangDensity[g] };
             };
-            color[i] = (uint8)multiply_weighted({ GetVW(GANG_BALLAS), GetVW(GANG_GROVE), GetVW(GANG_VAGOS) }) / std::max(1, gdSum);
+            color[i] = (uint8)(multiply_weighted({ GetVW(GANG_BALLAS), GetVW(GANG_GROVE), GetVW(GANG_VAGOS) }) / std::max(1, gdSum));
         }
 
         z.radarMode = gdSum && !disableRadarGangColors && CGangWars::CanPlayerStartAGangWarHere(&z)
