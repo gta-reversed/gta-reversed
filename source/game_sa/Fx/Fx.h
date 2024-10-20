@@ -50,7 +50,6 @@ public:
     FxSystem_c*             m_Glass;
     TList_c<FxEntitySystem> m_FxEntities;
     uint32                  m_Randomizer;
-
     FxQuality_e             m_FxQuality;
     uint32                  m_nVerticesCount2;
     uint32                  m_nVerticesCount;
