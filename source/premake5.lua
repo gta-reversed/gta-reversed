@@ -13,6 +13,10 @@ project "gta_sa_modern"
     filter "configurations:Debug*"
         floatingpoint "strict"
 
+    filter "system:windows"
+        includedirs { "../libs/wil/include" }
+        links { "wil" }
+
     filter {} -- Clear filter
 
     vpaths {
@@ -39,7 +43,7 @@ project "gta_sa_modern"
         "../libs/dxsdk",
         "../libs/spdlog/include",
         "../libs/tracy/public",
-        "../libs/json/include"
+        "../libs/json/include",
     }
 
     filter "options:script-tracing"
@@ -78,7 +82,7 @@ project "gta_sa_modern"
         "dsound.lib",
         "d3d9.lib",
         "dbghelp",
-        "json"
+        "json",
     }
 
     libdirs { 

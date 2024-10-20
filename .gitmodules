@@ -17,3 +17,6 @@
 [submodule "libs/json"]
 	path = libs/json
 	url = https://github.com/nlohmann/json.git
+[submodule "libs/wil"]
+	path = libs/wil
+	url = https://github.com/microsoft/wil.git

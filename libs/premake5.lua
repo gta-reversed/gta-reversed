@@ -247,3 +247,24 @@ project "json"
     includedirs { 
         "json/include",
     }
+
+project "wil"
+    language "C++"
+    kind "None"
+    targetname "wil"
+    warnings "Off"
+
+    filter "system:windows"
+        vpaths {
+            ["Headers/*"] = {"wil/include/wil/**.hpp",},
+            ["Sources/*"] = {"wil/include/wil/**.c*",},
+            ["*"] = {"premake5.lua", "CMakeLists.txt"}
+        }
+
+        files {
+            "wil/include/wil*.*",
+        }
+
+        includedirs {
+            "wil/include/wil",
+        }

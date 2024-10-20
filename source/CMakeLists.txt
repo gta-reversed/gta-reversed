@@ -32,6 +32,10 @@ function(supress_deps_warnings targets)
 endfunction()
 supress_deps_warnings(ogg imgui vorbisfile spdlog nlohmann_json)
 
+if (MSVC)
+    supress_deps_warnings(WIL)
+endif()
+
 set_target_properties(${RE_PROJECT_LIB_NAME}
     PROPERTIES
     SUFFIX ".asi"
@@ -74,7 +78,10 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     nlohmann_json
 )
 
-if(WIN32) 
+if(WIN32)
+    target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
+        WIL
+    )
     if(MSVC) # MSVC knows how to find dbghelp on it's own
         target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
             dbghelp
