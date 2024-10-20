@@ -157,6 +157,7 @@
 #include "Birds.h"
 #include "Hud.h"
 #include "CarFXRenderer.h"
+#include "Curves.h"
 #include "ProcObjectMan.h"
 #include "ProcSurfaceInfo.h"
 #include "Pickup.h"
@@ -540,6 +541,7 @@ void InjectHooksMain() {
     CRopes::InjectHooks();
     CWeaponInfo::InjectHooks();
     CCurrentVehicle::InjectHooks();
+    CCurves::InjectHooks();
     CPlaceName::InjectHooks();
     CUserDisplay::InjectHooks();
     COnscreenTimer::InjectHooks();
