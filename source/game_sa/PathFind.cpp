@@ -490,7 +490,7 @@ void CPathFind::ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVec
 
 // 0x44D960
 void CPathFind::SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, float fYMax, bool value) {
-    const auto areaRect = CRect{ {fXMin, fYMax}, {fXMax, fYMin} };
+    const auto areaRect = CRect{ {fXMin, fYMin}, {fXMax, fYMax} };
 
     for (auto areaId = 0u; areaId < NUM_PATH_MAP_AREAS; areaId++) {
         if (!IsAreaLoaded(areaId)) {
@@ -499,7 +499,7 @@ void CPathFind::SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, floa
 
         for (auto n = 0u; n < m_anNumCarPathLinks[areaId]; n++) {
             auto& node = GetCarPathLink({ areaId, n });
-            if (areaRect.IsPointInside(node.GetNodeCoors())) {
+            if (areaRect.IsPointInside(node.GetNodeCoors() * 0.125f)) {
                 node.m_bridgeLights = value;
             }
         }
