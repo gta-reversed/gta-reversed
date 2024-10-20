@@ -136,7 +136,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(Service, 0x502280, { .reversed = false });
 
     RH_ScopedOverloadedInstall(AddAudioEvent, "0", 0x4F6420, void(CAEVehicleAudioEntity::*)(eAudioEvents, float), { .reversed = false });
-    RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CVehicle*), { .reversed = false });
+    RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CEntity*), { .reversed = false });
 }
 
 // 0x4F63E0
@@ -601,8 +601,8 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float fVolume) {
 }
 
 // 0x4F7580
-void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, CVehicle* vehicle) {
-    plugin::CallMethod<0x4F7580, CAEVehicleAudioEntity*, eAudioEvents, CVehicle*>(this, event, vehicle);
+void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, CEntity* entity) {
+    plugin::CallMethod<0x4F7580, CAEVehicleAudioEntity*, eAudioEvents, CEntity*>(this, event, entity);
 }
 
 // 0x502280
