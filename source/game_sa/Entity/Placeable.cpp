@@ -89,7 +89,7 @@ void CPlaceable::SetHeading(float heading) {
         m_placement.m_fHeading = heading;
 }
 
-float CPlaceable::GetHeading() {
+float CPlaceable::GetHeading() const {
     if (!m_matrix) {
         return m_placement.m_fHeading;
     }

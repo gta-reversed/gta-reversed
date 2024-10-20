@@ -16,8 +16,6 @@
 
 #include "extensions/File.hpp"
 
-static inline bool gAllowScriptedFixedCameraCollision = false;
-
 void CTheScripts::InjectHooks() {
     // Has to have these, because there seems to be something going on with the variable init order
     // For now I just changed it to use static addresses, not sure whats going on..
