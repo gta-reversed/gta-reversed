@@ -4,8 +4,8 @@ env:
     # Compile in parallel where possible.
     CL: /MP
 
-    # Path to the CMake bin directory.
-    build: '${{ github.workspace }}/bin'
+    # Path to the CMake build directory.
+    build: '${{ github.workspace }}/build'
 
 # Triggers the workflow on push or pull request events for all branches.
 on: [ push, pull_request ]
@@ -25,8 +25,8 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ windows-2022 ]
-                arch: [ win32 ]
-                conf: [ debug, rel ]
+                arch: [ x86 ]
+                conf: [ Debug, Release ]
 
         steps:
             -   name: Checkout
@@ -35,17 +35,15 @@ jobs:
                     fetch-depth: 1
                     submodules: recursive
 
-            -   name: Configure ${{ matrix.arch }}-${{ matrix.conf }}
+            -   name: Configure ${{ matrix.arch }}
                 shell: cmd
-                #run: cmake -B ${{ env.build }} -H. -A Win32 # ${{ matrix.arch }}
-                run: cmake --preset ${{ matrix.arch }}-${{ matrix.conf }}-tracy-msbuild
+                run: cmake -B ${{ env.build }} -H. -A Win32 # ${{ matrix.arch }}
 
-            -   name: Build  ${{ matrix.arch }}-${{ matrix.conf }}
+            -   name: Build ${{ matrix.conf }}
                 shell: cmd
-                #run: cmake --build build --config ${{ matrix.conf }}
-                run: cmake --build --preset ${{ matrix.arch }}-${{ matrix.conf }}-tracy-msbuild
+                run: cmake --build build --config ${{ matrix.conf }}
 
-            -   name: Upload artifacts for ${{ matrix.arch }}-${{ matrix.conf }}
+            -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
                 uses: actions/upload-artifact@v3
                 with:
                     name: gta_reversed-${{ matrix.conf }}
