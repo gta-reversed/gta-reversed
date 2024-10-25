@@ -1,0 +1,125 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "generator:ninja-x86",
+            "hidden": true,
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            },
+            "architecture": {
+                "value": "x86",
+                "strategy": "external"
+            },
+            "toolset": {
+                "value": "host=x86",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "generator:msbuild-x86",
+            "hidden": true,
+            "generator": "Visual Studio 17 2022",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            },
+            "architecture": {
+                "value": "Win32",
+                "strategy": "set"
+            }
+        },
+
+        {
+            "name": "build:debug",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "NOTSA_DEBUG": "1"
+            },
+            "binaryDir": "${sourceDir}/bin/debug"
+        },
+        {
+            "name": "build:release-with-symbols",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            },
+            "binaryDir": "${sourceDir}/bin/release"
+        },
+        {
+            "name": "build:release-no-symbols",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            },
+            "binaryDir": "${sourceDir}/bin/release"
+        },
+
+        {
+            "name": "compiler:msvc-cl",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl",
+                "CMAKE_CXX_COMPILER": "cl"
+            }
+        },
+
+        {
+            "name": "use-tracy",
+            "hidden": true,
+            "cacheVariables": {
+                "TRACY_STATIC": "ON",
+                "TRACY_ENABLE": "ON",
+                "TRACY_ON_DEMAND": "ON",
+                "TRACY_CALLSTACK": "ON"
+            }
+        },
+
+        {
+            "name": "win32-debug-tracy-msbuild",
+            "description": "Windows Debug build, x86, with tracy and symbols",
+            "inherits": [
+                "generator:msbuild-x86",
+                "compiler:msvc-cl",
+                "build:debug",
+                "use-tracy"
+            ]
+        },
+        {
+            "name": "win32-rel-tracy-msbuild",
+            "description": "Windows Release build, x86, with tracy and symbols",
+            "inherits": [
+                "generator:msbuild-x86",
+                "compiler:msvc-cl",
+                "build:release-with-symbols",
+                "use-tracy"
+            ]
+        },
+        {
+            "name": "win32-debug-tracy-ninja",
+            "description": "Windows Debug build, x86, with tracy and symbols",
+            "inherits": [
+                "generator:ninja-x86",
+                "compiler:msvc-cl",
+                "build:debug",
+                "use-tracy"
+            ]
+        },
+        {
+            "name": "win32-rel-tracy-ninja",
+            "description": "Windows Release build, x86, with tracy and symbols",
+            "inherits": [
+                "generator:ninja-x86",
+                "compiler:msvc-cl",
+                "build:release-with-symbols",
+                "use-tracy"
+            ]
+        }
+    ]
+}
