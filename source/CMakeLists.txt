@@ -59,6 +59,8 @@ if (${RE_PROJECT}_WITH_SANITIZERS)
     # add_sanitizers(${RE_PROJECT_LIB_NAME})
 endif()
 
+target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS" "/SAFESEH")
+
 target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     ogg
     vorbisfile
