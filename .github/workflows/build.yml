@@ -4,8 +4,8 @@ env:
     # Compile in parallel where possible.
     CL: /MP
 
-    # Path to the CMake build directory.
-    build: '${{ github.workspace }}/build'
+    # Path to the CMake bin directory.
+    build: '${{ github.workspace }}/bin'
 
 # Triggers the workflow on push or pull request events for all branches.
 on: [ push, pull_request ]
@@ -45,7 +45,7 @@ jobs:
                 #run: cmake --build build --config ${{ matrix.conf }}
                 run: cmake --build --preset ${{ matrix.arch }}-${{ matrix.conf }}-tracy-msbuild
 
-            -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
+            -   name: Upload artifacts for ${{ matrix.arch }}-${{ matrix.conf }}
                 uses: actions/upload-artifact@v3
                 with:
                     name: gta_reversed-${{ matrix.conf }}
@@ -65,6 +65,6 @@ jobs:
 
                 # Upload SARIF file to GitHub Code Scanning Alerts
             -   name: Upload SARIF to GitHub
-                uses: github/codeql-action/upload-sarif@v2
+                uses: github/codeql-action/upload-sarif@v3
                 with:
                     sarif_file: ${{ steps.run-analysis.outputs.sarif }}
