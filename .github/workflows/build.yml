@@ -25,8 +25,8 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ windows-2022 ]
-                arch: [ x86 ]
-                conf: [ Debug, Release ]
+                arch: [ win32 ]
+                conf: [ debug, rel ]
 
         steps:
             -   name: Checkout
@@ -35,13 +35,15 @@ jobs:
                     fetch-depth: 1
                     submodules: recursive
 
-            -   name: Configure ${{ matrix.arch }}
+            -   name: Configure ${{ matrix.arch }}-${{ matrix.conf }}
                 shell: cmd
-                run: cmake -B ${{ env.build }} -H. -A Win32 # ${{ matrix.arch }}
+                #run: cmake -B ${{ env.build }} -H. -A Win32 # ${{ matrix.arch }}
+                run: cmake --preset ${{ matrix.arch }}-${{ matrix.conf }}-tracy-msbuild
 
-            -   name: Build ${{ matrix.conf }}
+            -   name: Build  ${{ matrix.arch }}-${{ matrix.conf }}
                 shell: cmd
-                run: cmake --build build --config ${{ matrix.conf }}
+                #run: cmake --build build --config ${{ matrix.conf }}
+                run: cmake --build --preset ${{ matrix.arch }}-${{ matrix.conf }}-tracy-msbuild
 
             -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
                 uses: actions/upload-artifact@v3

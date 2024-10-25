@@ -121,5 +121,23 @@
                 "use-tracy"
             ]
         }
+    ],
+    "buildPresets": [
+        {
+            "name": "win32-debug-tracy-msbuild",
+            "configurePreset": "win32-debug-tracy-msbuild"
+        },
+        {
+            "name": "win32-rel-tracy-msbuild",
+            "configurePreset": "win32-rel-tracy-msbuild"
+        },
+        {
+            "name": "win32-debug-tracy-ninja",
+            "configurePreset": "win32-debug-tracy-ninja"
+        },
+        {
+            "name": "win32-rel-tracy-ninja",
+            "configurePreset": "win32-rel-tracy-ninja"
+        }
     ]
 }
