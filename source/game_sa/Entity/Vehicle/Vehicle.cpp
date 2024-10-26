@@ -92,7 +92,7 @@ void CVehicle::InjectHooks() {
 
     RH_ScopedOverloadedInstall(IsPassenger, "Ped", 0x6D1BD0, bool(CVehicle::*)(CPed*) const);
     RH_ScopedOverloadedInstall(IsPassenger, "ModelID", 0x6D1C00, bool(CVehicle::*)(int32) const);
-    RH_ScopedOverloadedInstall(IsDriver, "Ped", 0x6D1C40, bool(CVehicle::*)(CPed*) const);
+    RH_ScopedOverloadedInstall(IsDriver, "Ped", 0x6D1C40, bool(CVehicle::*)(const CPed*) const);
     RH_ScopedOverloadedInstall(IsDriver, "ModelID", 0x6D1C60, bool(CVehicle::*)(int32) const);
     RH_ScopedInstall(Shutdown, 0x6D0B40);
     RH_ScopedInstall(GetRemapIndex, 0x6D0B70);
@@ -1639,7 +1639,7 @@ bool CVehicle::IsPedOfModelInside(eModelID model) const {
     return IsDriver(model) || IsPassenger(model);
 }
 
-bool CVehicle::IsDriver(CPed* ped) const {
+bool CVehicle::IsDriver(const CPed* ped) const {
     return ped ? ped == m_pDriver : false;
 }
 

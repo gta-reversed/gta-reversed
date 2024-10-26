@@ -34,7 +34,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(GetCoreDataForDWCineyCamMode, 0x517130);
     RH_ScopedInstall(GetLookFromLampPostPos, 0x5161A0, { .reversed = false });
     RH_ScopedInstall(GetVectorsReadyForRW, 0x509CE0);
-    RH_ScopedInstall(Get_TwoPlayer_AimVector, 0x513E40, { .reversed = false });
+    RH_ScopedInstall(Get_TwoPlayer_AimVector, 0x513E40);
     RH_ScopedInstall(IsTimeToExitThisDWCineyCamMode, 0x517400, { .reversed = false });
     RH_ScopedInstall(KeepTrackOfTheSpeed, 0x509DF0, { .reversed = false });
     RH_ScopedInstall(LookBehind, 0x520690, { .reversed = false });
@@ -245,9 +245,33 @@ void CCam::GetVectorsReadyForRW() {
     m_vecUp = CrossProduct(a, m_vecFront);
 }
 
-// 0x513E40
+// 0x513E40 -- not tested
 void CCam::Get_TwoPlayer_AimVector(CVector& out) {
-    NOTSA_UNREACHABLE();
+    const auto player = [&] {
+        auto* p1 = FindPlayerPed(PED_TYPE_PLAYER1);
+        if (p1->m_pVehicle && !p1->m_pVehicle->IsDriver(p1)) {
+            return FindPlayerPed(PED_TYPE_PLAYER2);
+        }
+        return p1;
+    }();
+
+    const auto weaponInfo = player->GetActiveWeapon().GetWeaponInfo(player);
+    const auto nearestTargetEntityInScreen = CWeapon::FindNearestTargetEntityWithScreenCoors(
+        m_fX_Targetting,
+        m_fY_Targetting,
+        2 * weaponInfo.m_fWeaponRange,
+        player->GetPosition()
+    );
+
+    if (nearestTargetEntityInScreen) {
+        out = nearestTargetEntityInScreen->GetPosition() - m_vecSource;
+    } else {
+        const auto right  = CrossProduct(m_vecFront, m_vecUp);
+        const auto tanFov = std::tan(m_fFOV * PI / 360.0f);
+
+        out = m_fX_Targetting * m_fY_Targetting * tanFov * right + m_vecFront - tanFov / CDraw::ms_fAspectRatio * m_vecUp;
+    }
+    out.Normalise();
 }
 
 // 0x517400
