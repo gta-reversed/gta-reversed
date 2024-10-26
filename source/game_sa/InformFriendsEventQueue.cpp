@@ -11,7 +11,7 @@ void CInformFriendsEventQueue::InjectHooks() {
     RH_ScopedInstall(Init, 0x4B2990);
     RH_ScopedInstall(Flush, 0x4AC2A0);
     RH_ScopedInstall(Add, 0x4AC1E0);
-    RH_ScopedInstall(Process, 0x4AC2E0, { .reversed = false });
+    RH_ScopedInstall(Process, 0x4AC2E0);
 }
 
 // 0x4B2990
@@ -55,5 +55,20 @@ bool CInformFriendsEventQueue::Add(CPed* ped, CEvent* event) {
 
 // 0x4AC2E0
 void CInformFriendsEventQueue::Process() {
-    plugin::Call<0x4AC2E0>();
+    for (auto& e : ms_informFriendsEvents) {
+        if (e.m_Ped) {
+            if (e.m_Time >= CTimer::GetTimeInMS()) {
+                // Event is vaild and not yet elapsed, do not remove.
+                continue;
+            }
+            e.m_Ped->GetEventGroup().Add(e.m_Event);
+
+            CEntity::SafeCleanUpRef(e.m_Ped);
+            e.m_Ped = nullptr;
+        }
+        if (e.m_Event) {
+            delete std::exchange(e.m_Event, nullptr);
+        }
+        e.m_Time = -1;
+    }
 }
