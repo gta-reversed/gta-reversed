@@ -2,7 +2,15 @@
 
 class CEvent;
 class CEntity;
+class CPed;
 class CPedGroup;
+
+struct CInformGroupEvent {
+    CPed*   m_Ped;
+    CEvent* m_Event;
+    int32   m_Time;
+};
+VALIDATE_SIZE(CInformGroupEvent, 0xC);
 
 class CInformGroupEventQueue {
 public:
