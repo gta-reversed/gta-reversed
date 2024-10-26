@@ -17,6 +17,6 @@ public:
 
     static void Init();
     static void Flush();
-    static bool Add(CEntity* entity, CEvent* event);
+    static bool Add(CPed* ped, CEvent* event);
     static void Process();
 };
