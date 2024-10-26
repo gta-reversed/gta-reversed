@@ -31,7 +31,7 @@ void CInformFriendsEventQueue::Flush() {
 
 // 0x4AC1E0
 bool CInformFriendsEventQueue::Add(CPed* ped, CEvent* event) {
-    CInformGroupEvent* freeField{};
+    CInformFriendsEvent* freeField{};
     for (auto& e : ms_informFriendsEvents) {
         if (e.m_Ped == ped) {
             if (event->GetEventType() == e.m_Event->GetEventType()) {
@@ -48,6 +48,7 @@ bool CInformFriendsEventQueue::Add(CPed* ped, CEvent* event) {
     }
 
     freeField->m_Ped   = ped;
+    CEntity::SafeRegisterRef(freeField->m_Ped);
     freeField->m_Event = event;
     freeField->m_Time  = CTimer::GetTimeInMS() - static_cast<uint32>(CGeneral::GetRandomNumberInRange(-500.0f, 0.0f)) + 300;
     return true;
