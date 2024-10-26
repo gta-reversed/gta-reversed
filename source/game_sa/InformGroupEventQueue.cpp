@@ -9,7 +9,7 @@ void CInformGroupEventQueue::InjectHooks() {
     RH_ScopedInstall(Init, 0x4B2AD0);
     RH_ScopedInstall(Add, 0x4B7CD0);
     RH_ScopedInstall(Flush, 0x4AC410);
-    RH_ScopedInstall(Process, 0x4B2AE0, { .reversed = false });
+    RH_ScopedInstall(Process, 0x4B2AE0);
 }
 
 // 0x4B2AD0
@@ -18,7 +18,7 @@ void CInformGroupEventQueue::Init() {
 }
 
 // 0x4B7CD0
-bool CInformGroupEventQueue::Add(CPed* ped, CPedGroup* pedGroup, CEventAcquaintancePed* event) {
+bool CInformGroupEventQueue::Add(CPed* ped, CPedGroup* pedGroup, CEventEditableResponse* event) {
     CInformGroupEvent* freeField{};
     for (auto& e : ms_informGroupEvents) {
         if (e.m_Ped == ped) {
@@ -42,8 +42,7 @@ bool CInformGroupEventQueue::Add(CPed* ped, CPedGroup* pedGroup, CEventAcquainta
 
         event->ComputeResponseTaskType(pedGroup);
         if (FindPlayerPed()->GetPlayerGroup().GetMembership().IsMember(ped) ||
-            ped->IsCreatedByMission() ||
-            !event->m_AcquaintancePed->bInVehicle ||
+            ped->IsCreatedByMission() || !static_cast<CEventAcquaintancePed*>(event)->m_AcquaintancePed->bInVehicle ||
             event->m_taskId == TASK_NONE) {
             return 0;
         }
@@ -71,6 +70,6 @@ void CInformGroupEventQueue::Flush() {
 
 // 0x4B2AE0
 void CInformGroupEventQueue::Process() {
-    plugin::Call<0x4B2AE0>();
+    rng::for_each(ms_informGroupEvents, &CInformGroupEvent::Process);
 }
 

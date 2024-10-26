@@ -1,17 +1,9 @@
 #pragma once
+#include "InformGroupEvent.h"
 
-class CEvent;
-class CEntity;
+class CEventEditableResponse;
 class CPed;
 class CPedGroup;
-
-struct CInformGroupEvent {
-    CPed*      m_Ped;
-    CPedGroup* m_PedGroup;
-    CEvent*    m_Event;
-    int32      m_Time;
-};
-VALIDATE_SIZE(CInformGroupEvent, 0x10);
 
 class CInformGroupEventQueue {
 public:
@@ -21,7 +13,7 @@ public:
     static void InjectHooks();
 
     static void Init();
-    static bool Add(CPed* ped, CPedGroup* pedGroup, CEventAcquaintancePed* event);
+    static bool Add(CPed* ped, CPedGroup* pedGroup, CEventEditableResponse* event);
     static void Flush();
     static void Process();
 };

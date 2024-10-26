@@ -705,6 +705,7 @@ void InjectHooksMain() {
     CDraw::InjectHooks();
     CEntryExitManager::InjectHooks();
     CEntryExit::InjectHooks();
+    CInformGroupEvent::InjectHooks();
     CInformGroupEventQueue::InjectHooks();
     CGangs::InjectHooks();
     CPlayerInfo::InjectHooks();

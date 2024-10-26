@@ -4,9 +4,9 @@ class CEntity;
 class CEvent;
 
 struct CInformFriendsEvent {
-    CPed*   m_Ped;
-    CEvent* m_Event;
-    int32   m_Time;
+    CPed*   m_Ped{};
+    CEvent* m_Event{};
+    int32   m_Time{-1};
 };
 VALIDATE_SIZE(CInformFriendsEvent, 0xC);
 

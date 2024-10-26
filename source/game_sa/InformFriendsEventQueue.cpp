@@ -58,7 +58,8 @@ bool CInformFriendsEventQueue::Add(CPed* ped, CEvent* event) {
 void CInformFriendsEventQueue::Process() {
     for (auto& e : ms_informFriendsEvents) {
         if (e.m_Ped) {
-            if (e.m_Time >= CTimer::GetTimeInMS()) {
+            // FIXME: This cast isn't safe. Also in CInformGroupEvent::Process.
+            if (static_cast<uint32>(e.m_Time) >= CTimer::GetTimeInMS()) {
                 // Event is vaild and not yet elapsed, do not remove.
                 continue;
             }
