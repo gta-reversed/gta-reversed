@@ -22,6 +22,8 @@ static inline CVector& DWCineyCamLastFwd = StaticRef<CVector>(0xB6FEB0);
 static inline float& DWCineyCamLastNearClip = StaticRef<float>(0xB6EC08);
 static inline float& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
 
+void WellBufferMe(float target, float& valueToChange, float& speedSoFar, float topSpeed, float speedStep, bool isAnAngle);
+
 void CCam::InjectHooks() {
     RH_ScopedClass(CCam);
     RH_ScopedCategory("Camera");
@@ -69,6 +71,8 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_Rocket, 0x511B50);
     RH_ScopedInstall(Process_SpecialFixedForSyphon, 0x517500, { .reversed = false });
     RH_ScopedInstall(Process_WheelCam, 0x512110, { .reversed = false });
+
+    RH_ScopedGlobalInstall(WellBufferMe, 0x509AE0);
 }
 
 // 0x517730
@@ -1037,4 +1041,34 @@ bool bIsLampPost(eModelID modelId) {
         },
         modelId
     );
+}
+
+// 0x509AE0
+void WellBufferMe(float target, float& valueToChange, float& speedSoFar, float topSpeed, float speedStep, bool isAnAngle) {
+    const auto valueToTargetDiff = [&] {
+        auto d = target - valueToChange;
+        if (isAnAngle) {
+            for (; d >= DegreesToRadians(180.0f); d -= DegreesToRadians(360.0f)) {
+                ;
+            }
+            for (; d < DegreesToRadians(-180.0f); d += DegreesToRadians(360.0f)) {
+                ;
+            }
+        }
+        return d;
+    }();
+
+    const auto fullSpeedStep = valueToTargetDiff * topSpeed;
+    const auto speedStep = std::abs(fullSpeedStep - speedSoFar) * CTimer::GetTimeStep() * speedStep;
+    speedSoFar += std::abs(speedStep);
+
+    if (fullSpeedStep >= 0.0f || fullSpeedStep <= speedSoFar) {
+        if (fullSpeedStep > 0.0f && fullSpeedStep < speedSoFar) {
+            speedSoFar = fullSpeedStep;
+        }
+    } else {
+        speedSoFar = fullSpeedStep;
+    }
+
+    valueToChange += std::min(CTimer::GetTimeStep(), 10.0f) * speedSoFar;
 }
