@@ -51,7 +51,7 @@ void CCam::InjectHooks() {
     RH_ScopedInstall(Process_Cam_TwoPlayer, 0x525E50, { .reversed = false });
     RH_ScopedInstall(Process_Cam_TwoPlayer_InCarAndShooting, 0x519810, { .reversed = false });
     RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars, 0x513510, { .reversed = false });
-    RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars_TopDown, 0x513BE0, { .reversed = false });
+    RH_ScopedInstall(Process_Cam_TwoPlayer_Separate_Cars_TopDown, 0x513BE0);
     RH_ScopedInstall(Process_DW_BirdyCam, 0x51B850, { .reversed = false });
     RH_ScopedInstall(Process_DW_CamManCam, 0x51B120, { .reversed = false });
     RH_ScopedInstall(Process_DW_HeliChaseCam, 0x51A740, { .reversed = false });
@@ -615,7 +615,33 @@ void CCam::Process_Cam_TwoPlayer_Separate_Cars() {
 
 // 0x513BE0
 void CCam::Process_Cam_TwoPlayer_Separate_Cars_TopDown() {
-    NOTSA_UNREACHABLE();
+    m_fFOV = 80.0f;
+    const auto p1 = FindPlayerEntity(PED_TYPE_PLAYER1), p2 = FindPlayerEntity(PED_TYPE_PLAYER2);
+
+    const auto p1p2Centroid = (p1->GetPosition() + p2->GetPosition()) / 2.0f;
+    const auto p1p2Distance = DistanceBetweenPoints(p1->GetPosition(), p2->GetPosition());
+
+    auto camHeightMult = std::abs([&] {
+        if (FindPlayerVehicle(PED_TYPE_PLAYER1)) {
+            return FindPlayerVehicle(PED_TYPE_PLAYER2) ? 1.0f : 0.75f;
+        }
+        return FindPlayerVehicle(PED_TYPE_PLAYER2) ? 0.75f : 0.45f;
+    }() - m_fCameraHeightMultiplier);
+
+    if (const auto s = CTimer::GetTimeStep() / 200.0f; camHeightMult >= s) {
+        camHeightMult = (camHeightMult >= 0.0f ? s : -s) + m_fCameraHeightMultiplier;
+    }
+    m_fCameraHeightMultiplier = camHeightMult;
+
+    const auto v21 = std::max(p1p2Distance + 10.0f, 30.0f);
+    m_vecSource.Set(
+        p1p2Centroid.x,
+        p1p2Centroid.y - v21 * std::sin(0.4f),
+        p1p2Centroid.z - v21 * -std::cos(0.4f)
+    );
+    m_vecFront.Set(0.0f, std::sin(0.4f), -std::cos(0.4f));
+    m_vecUp.Set(0.0f, m_vecSource.y, std::sin(0.4f));
+    m_vecTargetCoorsForFudgeInter = m_vecSource;
 }
 
 // 0x51B850
