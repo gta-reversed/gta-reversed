@@ -213,11 +213,14 @@ CTaskAllocator* CGroupEventHandler::ComputeResponsePlayerCommand(const CEventPla
     case ePlayerGroupCommand::PLAYER_GROUP_COMMAND_GATHER:
         return ComputeResponseGather(static_cast<const CEventPlayerCommandToGroupGather&>(e), pg, originator);
     case ePlayerGroupCommand::PLAYER_GROUP_COMMAND_ATTACK:
-        return new CTaskAllocatorPlayerCommandAttack{
-            e.m_target,
-            e.m_target->GetGroupId(),
-            e.m_target->m_nPedType
-        };
+        if (e.m_target) {
+            return new CTaskAllocatorPlayerCommandAttack{
+                e.m_target,
+                e.m_target->GetGroupId(),
+                e.m_target->m_nPedType
+            };
+        }
+        break;
     }
     return nullptr;
 }
