@@ -16,7 +16,7 @@ public:
     void Deserialize(const json& j) final override;
     std::string_view GetID() const final { return "TeleportDebugModule"; }
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(TeleportDebugModule, m_IsOpen);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(TeleportDebugModule, m_IsOpen, m_SavedLocations);
 
     static void TeleportTo(const CVector& pos, eAreaCodes areaCode = eAreaCodes::AREA_CODE_NORMAL_WORLD);
 

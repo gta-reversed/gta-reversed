@@ -375,6 +375,9 @@ RpHAnimFrameGetHierarchy(RwFrame *frame);
 extern RwMatrix *
 RpHAnimHierarchyGetMatrixArray(RpHAnimHierarchy *hierarchy);
 
+extern RwMatrix *
+RpHAnimHierarchyGetNodeMatrix(RpHAnimHierarchy *hierarchy, RwInt32 boneID); // NOTSA
+
 extern RwBool
 RpHAnimHierarchyUpdateMatrices(RpHAnimHierarchy *hierarchy);
 

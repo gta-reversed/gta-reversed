@@ -548,7 +548,7 @@ void CEntity::PreRender()
                 CShadows::StoreShadowToBeRendered(
                     eShadowTextureType::SHADOW_TEX_PED,
                     gpShadowExplosionTex,
-                    &vecPos,
+                    vecPos,
                     8.0F,
                     0.0F,
                     0.0F,
@@ -609,7 +609,7 @@ void CEntity::PreRender()
             CShadows::StoreShadowToBeRendered(
                 eShadowTextureType::SHADOW_TEX_PED,
                 gpShadowExplosionTex,
-                &vecPos,
+                vecPos,
                 8.0F,
                 0.0F,
                 0.0F,
@@ -697,7 +697,7 @@ void CEntity::PreRender()
                 CShadows::StoreShadowToBeRendered(
                     eShadowType::SHADOW_DEFAULT,
                     gpShadowPedTex,
-                    &GetPosition(),
+                    GetPosition(),
                     0.4F,
                     0.0F,
                     0.0F,
@@ -724,7 +724,7 @@ void CEntity::PreRender()
                 CShadows::StoreShadowToBeRendered(
                     eShadowType::SHADOW_DEFAULT,
                     gpShadowPedTex,
-                    &GetPosition(),
+                    GetPosition(),
                     2.0F,
                     0.0F,
                     0.0F,
@@ -1123,7 +1123,7 @@ void CEntity::CreateEffects()
             break;
         }
         case e2dEffectType::EFFECT_PARTICLE: {
-            g_fx.CreateEntityFx(this, effect->particle.m_szName, &effect->m_pos, GetModellingMatrix());
+            g_fx.CreateEntityFx(this, effect->particle.m_szName, effect->m_pos, GetModellingMatrix());
             break;
         }
         case e2dEffectType::EFFECT_ATTRACTOR: {
@@ -2264,7 +2264,7 @@ void CEntity::ProcessLightsForEntity()
                     reinterpret_cast<uint32>(this) + iFxInd,
                     eShadowType::SHADOW_ADDITIVE,
                     effect->light.m_pShadowTex,
-                    &vecEffPos,
+                    vecEffPos,
                     effect->light.m_fShadowSize,
                     0.0F,
                     0.0F,
@@ -2285,7 +2285,7 @@ void CEntity::ProcessLightsForEntity()
                     reinterpret_cast<uint32>(this) + iFxInd,
                     eShadowType::SHADOW_ADDITIVE,
                     effect->light.m_pShadowTex,
-                    &vecEffPos,
+                    vecEffPos,
                     effect->light.m_fShadowSize,
                     0.0F,
                     0.0F,

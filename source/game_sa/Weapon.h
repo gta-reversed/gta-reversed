@@ -86,7 +86,7 @@ public:
     * @param owner Camera owner - unused.
     * @param point Pos of the camflash effect
     */
-    bool TakePhotograph(CEntity* owner, CVector* point);
+    bool TakePhotograph(CEntity* owner, const CVector* point);
     void SetUpPelletCol(int32 numPellets, CEntity* owner, CEntity* victim, CVector& point, CColPoint& colPoint, CMatrix& outMatrix);
     bool CanBeUsedFor2Player();
 

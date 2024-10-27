@@ -444,6 +444,14 @@ void CAEStreamingChannel::Stop() {
     }
 }
 
+// unused
+// 0x4F21C0
+void CAEStreamingChannel::StopTrue() {
+    DirectSoundBufferFadeToSilence();
+    m_nState = StreamingChannelState::UNK_MINUS_5;
+    field_60088 = 0;
+}
+
 // 0x4F2550
 void CAEStreamingChannel::Service() {
     plugin::CallMethod<0x4F2550, CAEStreamingChannel*>(this);
@@ -475,6 +483,6 @@ void CAEStreamingChannel::InjectHooks() {
     RH_ScopedVMTInstall(GetPlayTime, 0x4F19E0);
     RH_ScopedVMTInstall(GetLength, 0x4F1880);
     RH_ScopedVMTInstall(Play, 0x4F1D40);
-    // RH_ScopedVirtualOverloadedInstall(Stop, "", 0x4F21C0, int8(CAEStreamingChannel::*)()); <-- unused, maybe inlined?
+    RH_ScopedVMTInstall(StopTrue, 0x4F21C0);
     RH_ScopedVMTInstall(SetFrequencyScalingFactor, 0x4F2060);
 }

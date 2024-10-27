@@ -2488,7 +2488,7 @@ void CPhysical::ApplySpeed()
                 ApplyFriction(10.0f * fAbsoluteMoveSpeed, colPoint);
                 if (IsObject())
                 {
-                    AudioEngine.ReportMissionAudioEvent(AE_CAS4_FE, object);
+                    AudioEngine.ReportMissionAudioEvent(AE_SCRIPT_POOL_HIT_CUSHION, object);
                     object->m_nLastWeaponDamage = 4 * (object->m_nLastWeaponDamage == 0xFF) + WEAPON_RUNOVERBYCAR;
                 }
             }

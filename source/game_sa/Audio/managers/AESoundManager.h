@@ -40,6 +40,31 @@ public:
     void      PauseManually(uint8 bPause);
     void      Service();
     CAESound* RequestNewSound(CAESound* pSound);
+
+    struct tSoundPlayParams {
+        int16           BankSlotID;               //!< The slot to play the sound from (From the currently loaded bank (?))
+        tSoundID        SoundID;                  //!< The sound ID to play (From the specified bank slot)
+        CAEAudioEntity* AudioEntity;              //!< The audio entity that requested this sound
+        CVector         Pos;                      //!< The position
+        float           Volume;                   //!< The volume (in dB)
+        float           RollOffFactor{ 1.f };     //!< ??
+        float           Speed{ 1.f };             //!< Speed
+        float           Doppler{ 1.f };           //!< Scales the factor of doppler shift effect, see `CAEAudioEnvironment::GetDopplerRelativeFrequency`
+        uint8           FrameDelay{ 0 };          //!< After how many frames the sound will be played
+        uint32          Flags{ 0 };               //!< See `eSoundEnvironment`
+        float           FrequencyVariance{ 0.f }; //!< Random speed variance (?)
+        int16           PlayTime{ 0 };            //!< Where to start the sound
+
+        // NOTSA Args //
+        CEntity*        RegisterWithEntity{};     //!< The entity to register this sound with (Automatically adds the `SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY` flag)
+        int32           EventID{ AE_UNDEFINED };  //!< Event ID
+        float           ClientVariable{ 0.f };    //!< Custom value that is just stored
+    };
+    /*!
+     * @brief Play a new sound (Works like calling `RequestNewSound` with an initialized `CAESound` object)
+     * @return The sound object, or null if it can't be played
+     */
+    CAESound* PlaySound(tSoundPlayParams p);
     int16     AreSoundsPlayingInBankSlot(int16 bankSlot);
     int16     AreSoundsOfThisEventPlayingForThisEntity(int16 eventId, CAEAudioEntity* audioEntity);
     int16     AreSoundsOfThisEventPlayingForThisEntityAndPhysical(int16 eventId, CAEAudioEntity* audioEntity, CPhysical* physical);

@@ -48,7 +48,7 @@ CTask* CTaskComplexInvestigateDisturbance::CreateNextSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType())
     {
     case TASK_SIMPLE_ANIM: { // 0x674a23
-        ped->Say(206);
+        ped->Say(CTX_GLOBAL_STEALTH_NOTHING_THERE);
         return new CTaskSimpleScratchHead{};
     }
     case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL:
@@ -86,11 +86,11 @@ CTask* CTaskComplexInvestigateDisturbance::CreateFirstSubTask(CPed* ped) {
     if (const auto event = ped->GetIntelligence()->GetEventHandler().GetHistory().GetCurrentEvent()) {
         switch (event->GetEventType()) {
         case EVENT_SOUND_QUIET: {
-            ped->Say(CGeneral::RandomBool(20) ? 204 : 202);
+            ped->Say(CGeneral::RandomBool(20) ? CTX_GLOBAL_STEALTH_ALERT_GENERIC : CTX_GLOBAL_STEALTH_ALERT_SOUND);
             break;
         }
         case EVENT_ACQUAINTANCE_PED_HATE_BADLY_LIT: {
-            ped->Say(CGeneral::RandomBool(20) ? 204 : 203);
+            ped->Say(CGeneral::RandomBool(20) ? CTX_GLOBAL_STEALTH_ALERT_GENERIC : CTX_GLOBAL_STEALTH_ALERT_SIGHT);
             break;
         }
         }

@@ -163,6 +163,7 @@
 #include "Pickups.h"
 #include "PedIK.h"
 #include "HandShaker.h"
+#include "TempColModels.h"
 
 // Plant
 #include "PlantMgr.h"
@@ -624,6 +625,7 @@ void InjectHooksMain() {
     CPed::InjectHooks();
     CPedIntelligence::InjectHooks();
     CCollision::InjectHooks();
+    CTempColModels::InjectHooks();
     CColSphere::InjectHooks();
     CColLine::InjectHooks();
     CColTrianglePlane::InjectHooks();
@@ -703,6 +705,7 @@ void InjectHooksMain() {
     CDraw::InjectHooks();
     CEntryExitManager::InjectHooks();
     CEntryExit::InjectHooks();
+    CInformGroupEvent::InjectHooks();
     CInformGroupEventQueue::InjectHooks();
     CGangs::InjectHooks();
     CPlayerInfo::InjectHooks();

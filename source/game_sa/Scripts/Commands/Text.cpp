@@ -50,6 +50,23 @@ void ClearPrints() {
     CMessages::ClearMessages(false);
 }
 
+// COMMAND_USE_TEXT_COMMANDS - 0x48961F
+void UseTextCommands(bool state) {
+    using enum CTheScripts::eUseTextCommandState;
+    CTheScripts::UseTextCommands = state ? ENABLED_BY_SCRIPT : DISABLE_NEXT_FRAME;
+}
+
+// COMMAND_DISPLAY_TEXT - 0x481A0C
+void DisplayText(CVector2D pos, const char* gxtKey) {
+    assert(CTheScripts::UseTextCommands != CTheScripts::eUseTextCommandState::DISABLED);
+
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame++];
+    line->m_Pos      = pos;
+    line->param1     = -1;
+    line->param2     = -1;
+    strcpy_s(line->m_szGxtEntry, gxtKey);
+}
+
 void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_SMALL_PRINTS, ClearSmallPrints);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_HELP, ClearHelp);
@@ -59,4 +76,5 @@ void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_NOW, PrintNow);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_PRINT_BIG_NOW, ClearThisPrintBigNow);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_PRINTS, ClearPrints);
+    REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT, DisplayText);
 }

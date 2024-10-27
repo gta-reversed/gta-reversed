@@ -120,7 +120,6 @@ namespace fs = std::filesystem;
 #include "game_sa\Enums\eClothesTexturePart.h"
 #include "game_sa\Enums\eCrimeType.h"
 #include "game_sa\Enums\eDecisionMakerEvents.h"
-#include "game_sa\Enums\eEmergencyPedVoices.h"
 #include "game_sa\Enums\eEntityStatus.h"
 #include "game_sa\Enums\eEntityType.h"
 #include "game_sa\Enums\eEventType.h"

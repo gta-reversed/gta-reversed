@@ -114,7 +114,7 @@ constexpr float TWO_PI         = 6.28318f;          // τ (TAU)
 constexpr float COS_45 = SQRT_2 / 2.f; // cos(45deg)
 
 template<typename T>
-constexpr T sq(T x) { return x * x; }
+NOTSA_FORCEINLINE constexpr T sq(T x) { return x * x; }
 
 struct SpriteFileName {
     const char* name;

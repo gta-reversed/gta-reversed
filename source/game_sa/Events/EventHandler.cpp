@@ -1261,7 +1261,7 @@ void CEventHandler::ComputeDraggedOutCarResponse(CEventDraggedOutCar* e, CTask* 
             }
 
             // Talk a little
-            m_Ped->Say(120);
+            m_Ped->Say(CTX_GLOBAL_JACKED_ON_STREET);
 
             // Try stealing the car back
             if (e->m_IsDriverSeat) {
@@ -1841,7 +1841,7 @@ void CEventHandler::ComputePedToFleeResponse(CEventPedToFlee* e, CTask* tactive,
         if (!e->m_ped) {
             return nullptr;
         }
-        m_Ped->Say(69);
+        m_Ped->Say(CTX_GLOBAL_CRIMINAL_PLEAD);
         return new CTaskComplexSmartFleeEntity{e->m_ped, true, 100.f, -1};
     }();
 }
@@ -1877,7 +1877,7 @@ void CEventHandler::ComputePersonalityResponseToDamage(CEventDamage* e, CPed* sr
         case TASK_COMPLEX_FLEE_ANY_MEANS: // 0x4BFC28
             return new CTaskComplexFleeAnyMeans{src, true, 60.f};
         case TASK_COMPLEX_SMART_FLEE_ENTITY: // 0x4BFC58
-            m_Ped->Say(178);
+            m_Ped->Say(CTX_GLOBAL_RUN_FROM_FIGHT);
             [[fallthrough]];
         case TASK_COMPLEX_FLEE_ENTITY: { // 0x4BFD1B
             if (m_Ped->bWantedByPolice && src->IsCop()) {
@@ -1931,7 +1931,7 @@ void CEventHandler::ComputePlayerCollisionWithPedResponse(CEventPlayerCollisionW
         }
 
         if (e->m_victim->GetTaskManager().GetActiveTaskAs<CTaskComplexFollowLeaderInFormation>()) { // 0x4B8DAE - Moved here to be able to early out
-            return {nullptr, new CTaskSimpleSay{28}};
+            return {nullptr, new CTaskSimpleSay{CTX_GLOBAL_BUMP}};
         }
 
         const auto victimToPlayer             = (e->m_victim->GetPosition() - plyr->GetPosition());
@@ -1962,7 +1962,7 @@ void CEventHandler::ComputePlayerCollisionWithPedResponse(CEventPlayerCollisionW
                         plyr->AnnoyPlayerPed(false);
                     }
                 }
-                return {nullptr, new CTaskSimpleSay{28}}; // Just say something, and move on
+                return {nullptr, new CTaskSimpleSay{CTX_GLOBAL_BUMP}}; // Just say something, and move on
             }
         } else if (!notsa::contains({PEDMOVE_RUN, PEDMOVE_SPRINT}, e->GetMoveState()) || !notsa::contains({PEDMOVE_WALK, PEDMOVE_RUN, PEDMOVE_SPRINT}, e->GetVictimMoveState())) { // 0x4B8EDC - One of the peds was walking and the othe was running/sprinting
             if (e->m_movestate == PEDMOVE_STILL && notsa::contains({ PEDMOVE_WALK, PEDMOVE_RUN, PEDMOVE_SPRINT }, e->GetVictimMoveState()) && isCollisionBehindVictim) {
@@ -1971,18 +1971,18 @@ void CEventHandler::ComputePlayerCollisionWithPedResponse(CEventPlayerCollisionW
                     e->m_victimMoveState != PEDMOVE_WALK
                         ? new CTaskComplexHitResponse{(eDirection)CPedGeometryAnalyser::ComputePedHitSide(*e->m_victim, *plyr)}
                         : nullptr,
-                    new CTaskSimpleSay{28}
+                    new CTaskSimpleSay{CTX_GLOBAL_BUMP}
                 };
             } else if (notsa::contains({PEDMOVE_RUN, PEDMOVE_SPRINT}, e->GetMoveState())) { // 0x4B8FBF
                 if (notsa::contains({PEDMOVE_NONE, PEDMOVE_STILL}, e->GetVictimMoveState()) && isCollisionInFrontOfPlayer && e->GetMoveState() == PEDMOVE_SPRINT) { // 0x4B8FCD
                     DoLookAt(plyr, 2'000);
-                    return {nullptr, new CTaskSimpleSay{28}};
+                    return {nullptr, new CTaskSimpleSay{CTX_GLOBAL_BUMP}};
                 }
             }
         } else if (!isCollisionInFrontOfPlayer && isCollisionBehindVictim || !isCollisionBehindVictim) { // 0x4B9057 and 0x4B905F
             DoLookAt(plyr, 2'000);
             plyr->AnnoyPlayerPed(false);
-            return {nullptr, new CTaskSimpleSay{28}};
+            return {nullptr, new CTaskSimpleSay{CTX_GLOBAL_BUMP}};
         } else if (e->m_victimMoveState != PEDMOVE_WALK) { // 0x4B9068
             const auto plyrHitSide = CPedGeometryAnalyser::ComputePedHitSide(*e->m_victim, *plyr);
             plyr->AnnoyPlayerPed(false);
@@ -1995,7 +1995,7 @@ void CEventHandler::ComputePlayerCollisionWithPedResponse(CEventPlayerCollisionW
                     e->m_movestate == PEDMOVE_SPRINT
                         ? new CTaskComplexHitResponse{(eDirection)plyrHitSide}
                         : nullptr,
-                    new CTaskSimpleSay{28}
+                    new CTaskSimpleSay{CTX_GLOBAL_BUMP}
                 };
             }
             return { // 0x4B90DF
@@ -2134,7 +2134,7 @@ void CEventHandler::ComputeReviveResponse(CEventRevived* e, CTask* tactive, CTas
         
         return {
             new CTaskComplexGetUpAndStandStill{},
-            new CTaskSimpleSay{179}
+            new CTaskSimpleSay{CTX_GLOBAL_SAVED}
         };
     }();
 }
@@ -2831,7 +2831,7 @@ void CEventHandler::ComputeVehicleToStealResponse(CEventVehicleToSteal* e, CTask
 // 0x4BAE30
 void CEventHandler::ComputeWaterCannonResponse(CEventHitByWaterCannon* e, CTask* tactive, CTask* tsimplest) {
     m_EventResponseTask = [&]() -> CTask* {
-        m_Ped->Say(344);
+        m_Ped->Say(CTX_GLOBAL_PAIN_HIGH);
         m_Ped->ApplyMoveForce({ 0.f, 0.f, CTimer::GetTimeStep() * 2.f });
         m_Ped->SetMoveSpeedXY((CVector2D{e->m_moveSpeed} * 0.6f + CVector2D{m_Ped->GetMoveSpeed()}) / 2.f);
         if (const auto speed = m_Ped->GetMoveSpeed().Magnitude2D(); speed >= 0.2f) {

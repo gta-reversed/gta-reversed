@@ -72,7 +72,7 @@ void TeleportDebugModule::TeleportTo(const CVector& pos, eAreaCodes areaCode) {
     // Teleport player's group too
     if (auto group = CPedGroups::GetPedsGroup(player)) {
         if (group->GetMembership().CountMembersExcludingLeader()) {
-            group->Teleport(&pos);
+            group->Teleport(pos);
         }
     }
 }

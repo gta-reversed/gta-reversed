@@ -300,6 +300,33 @@ CAESound* CAESoundManager::RequestNewSound(CAESound* pSound) {
     return s;
 }
 
+CAESound* CAESoundManager::PlaySound(tSoundPlayParams p) {
+    if (p.RegisterWithEntity) {
+        p.Flags |= SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY;
+    }
+    CAESound s;
+    s.Initialise(
+        p.BankSlotID,
+        p.SoundID,
+        p.AudioEntity,
+        p.Pos,
+        p.Volume,
+        p.RollOffFactor,
+        p.Speed,
+        p.Doppler,
+        p.FrameDelay,
+        p.Flags,
+        p.FrequencyVariance,
+        p.PlayTime
+    );
+    s.m_nEvent = p.EventID;
+    s.m_ClientVariable = p.ClientVariable;
+    if (p.Flags & SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY) {
+        s.RegisterWithPhysicalEntity(p.RegisterWithEntity);
+    }
+    return RequestNewSound(&s);
+}
+
 // 0x4EF520
 int16 CAESoundManager::AreSoundsPlayingInBankSlot(int16 bankSlot) {
     auto nPlaying = eSoundPlayingStatus::SOUND_NOT_PLAYING;

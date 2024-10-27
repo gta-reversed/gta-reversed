@@ -365,7 +365,7 @@ void CPlayerInfo::WorkOutEnergyFromHunger() {
         if (CClock::GetGameClockHours() == s_lastTimeHungryStateProcessed)
             return;
 
-        m_pPed->Say(337);
+        m_pPed->Say(CTX_GLOBAL_STOMACH_RUMBLE);
         pad->StartShake(400, 110u, 0);
 
         if (s_bHungryMessageShown) {

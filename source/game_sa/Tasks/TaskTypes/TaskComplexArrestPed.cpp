@@ -112,7 +112,7 @@ CTask* CTaskComplexArrestPed::ControlSubTask(CPed* ped) {
         [this, ped] {
             if (m_PedToArrest && m_PedToArrest->IsPlayer()) {
                 if (FindPlayerWanted()->m_nCopsInPursuit == 1) {
-                    ped->Say(199);
+                    ped->Say(CTX_GLOBAL_SOLO);
                 }
             }
         }
@@ -298,8 +298,7 @@ CTask* CTaskComplexArrestPed::CreateSubTask(eTaskType taskType, CPed* ped) {
         return new CTaskComplexOpenPassengerDoor(m_PedToArrest->m_pVehicle, 8); // todo: magic number
 
     case TASK_SIMPLE_WAIT_UNTIL_PED_OUT_CAR: {
-        auto out = m_PedToArrest->GetPosition() - ped->GetPosition();
-        return new CTaskSimpleWaitUntilPedIsOutCar(m_PedToArrest, &out);
+        return new CTaskSimpleWaitUntilPedIsOutCar{m_PedToArrest, m_PedToArrest->GetPosition() - ped->GetPosition()};
     }
     default:
         return nullptr;

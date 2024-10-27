@@ -130,7 +130,7 @@ public:
     CVector* AttachMissionAudioToObject(uint8 sampleId, CObject* object);
     CVector* AttachMissionAudioToPhysical(uint8 sampleId, CPhysical* physical);
 
-    void SayPedless(int32 a1, int16 a2, CEntity* entity, uint32 playOffset, float a5, uint8 a6, uint8 a7, uint8 a8);
+    void SayPedless(eAudioEvents audioEvent, eGlobalSpeechContext gCtx, CEntity* attachTo, uint32 startTimeDelayMs, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd);
 
     void EnablePoliceScanner();
     void DisablePoliceScanner(uint8, uint8);

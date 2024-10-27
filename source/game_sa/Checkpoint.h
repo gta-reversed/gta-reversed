@@ -29,6 +29,7 @@ enum class eCheckpointType : uint32 {
     NUM = 0x9,   ///< Count of different checkpoint types
     NA  = 0x101, ///< Sentinel value (Used for markers not in use)
 };
+using eCheckpointTypeU16 = notsa::WEnumU16<eCheckpointType>;
 
 class CCheckpoint {
 public:
@@ -66,19 +67,19 @@ public:
     void SetHeading(float headingDeg);
 
 public:
-    notsa::WEnumU16<eCheckpointType> m_Type{eCheckpointType::NA};
-    bool                             m_IsUsed{false};
-    bool                             m_RotFlag{true};
-    int32                            m_ID{0};
-    CRGBA                            m_Colour{255, 255, 255, 255};
-    uint16                           m_PulsePeriod{1'024};
-    int16                            m_RotateRate{5};
-    CVector                          m_Pos{};
-    CVector                          m_Fwd{}; ///< Pointing direction
-    float                            m_PulseFraction{0.25f};
-    float                            m_Size{1.f};
-    float                            m_DistToCam2D{0.f}; ///< (AKA CameraRange) - Distance to player's camera at the moment it's placed
-    float                            m_MultiSize{0.f};
+    eCheckpointTypeU16 m_Type{ eCheckpointType::NA };
+    bool               m_IsUsed{ false };
+    bool               m_RotFlag{ true };
+    int32              m_ID{ 0 };
+    CRGBA              m_Colour{ 255, 255, 255, 255 };
+    uint16             m_PulsePeriod{ 1'024 };
+    int16              m_RotateRate{ 5 };
+    CVector            m_Pos{};
+    CVector            m_Fwd{}; ///< Pointing direction
+    float              m_PulseFraction{ 0.25f };
+    float              m_Size{ 1.f };
+    float              m_DistToCam2D{ 0.f }; ///< (AKA CameraRange) - Distance to player's camera at the moment it's placed
+    float              m_MultiSize{ 0.f };
 
 };
 VALIDATE_SIZE(CCheckpoint, 0x38);

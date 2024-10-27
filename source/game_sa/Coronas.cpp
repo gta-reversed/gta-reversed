@@ -553,7 +553,7 @@ void CCoronas::DoSunAndMoon() {
                 (uint8)cc.m_nSunCoreGreen,
                 (uint8)cc.m_nSunCoreBlue,
                 255u,
-                &coronaPos,
+                coronaPos,
                 cc.m_fSunSize * radiusMult,
                 999999.88f,
                 gpCoronaTexture[0],
