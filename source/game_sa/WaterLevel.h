@@ -267,7 +267,7 @@ public:
     static void FindNearestWaterAndItsFlow();
     static bool GetWaterLevelNoWaves(CVector pos, float * pOutWaterLevel, float * fUnkn1 = nullptr, float * fUnkn2 = nullptr);
     static void RenderWaterFog();
-    static void CalculateWavesOnlyForCoordinate(int32 x, int32 y, float lowFreqMult, float midHighFreqMult, float& outWave, float& colorMult, float& glare, CVector& vecNormal);
+    static void CalculateWavesOnlyForCoordinate(int32 x, int32 y, float bigWavesAmplitude, float smallWavesAmplitude, float& outWave, float& colorMult, float& glare, CVector& vecNormal);
     static void MarkQuadsAndPolysToBeRendered(int32 blockX, int32 blockY, bool isInInterior);
     static void BlockHit(int32 X, int32 Y);
 

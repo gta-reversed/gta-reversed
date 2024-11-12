@@ -527,14 +527,14 @@ void CWaterLevel::SplitWaterRectangleAlongXLine(int32 splitAtX, int32 minX, int3
     RenderWaterRectangle(
         minX, splitAtX,
         Y1, Y2,
-        P1, P12, P34, P4
+        P1, P12, P3, P34
     );
 
     // Right
     RenderWaterRectangle(
         splitAtX, maxX,
         Y1, Y2,
-        P12, P2, P3, P34
+        P12, P2, P34, P4
     );
 }
 
@@ -544,27 +544,21 @@ void CWaterLevel::SplitWaterRectangleAlongYLine(int32 splitAtY, int32 minX, int3
 
     const auto t = (float)(splitAtY - minY) / (float)(maxY - minY);
 
-    const auto P14 = lerp(P1, P4, t);
-    const auto P23 = lerp(P2, P3, t);
-
-    // Pirulax:
-    // There's a visual glitch caused by (presumeably) bad interpolation of P's
-    // Original code seemingly does it a little differently (IIRC they use P13 (Instead of P14) and P24 (instead of P23))
-    // It doesn't make a lot of sense so I did it this way
-    // (And the visual glitch is presumeably because they fucked it up somewhere else too, so it looked correct)
+    const auto P13 = lerp(P1, P3, t);
+    const auto P24 = lerp(P2, P4, t);
 
     // Top
     RenderWaterRectangle(
         minX, maxX,
         Y1, splitAtY,
-        P1, P2, P23, P14
+        P1, P2, P13, P24
     );
 
     // Bottom
     RenderWaterRectangle(
         minX,     maxX,
         splitAtY, Y2,
-        P14, P23, P3, P4
+        P13, P24, P3, P4
     );
 }
 
@@ -669,8 +663,8 @@ void CWaterLevel::RenderWaterFog() {
 // 0x6E6EF0
 void CWaterLevel::CalculateWavesOnlyForCoordinate(
     int32 x, int32 y,
-    float lowFreqMult,
-    float midHighFreqMult,
+    float bigWavesAmplitude,
+    float smallWavesAmplitude,
     float& outWave,
     float& colorMult,
     float& glare,
@@ -679,58 +673,55 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate(
 {
     x = std::abs(x);
     y = std::abs(y);
-    vecNormal = CVector{};
+    vecNormal = CVector(0.f, 0.f, 1.f);
 
-    constexpr auto tauToChar = 256.0f / TWO_PI;
-    float waveMult = faWaveMultipliersX[(x / 2) % 8] * faWaveMultipliersX[(y / 2) % 8] * CWeather::Wavyness;
+    constexpr auto argToSinus = 256.0f / TWO_PI;
+    float waveMult = faWaveMultipliersX[(x / 2) % 8] * faWaveMultipliersY[(y / 2) % 8] * CWeather::Wavyness;
     float fX = (float)x, fY = (float)y;
 
     // literal AIDS code
-    const auto CalculateWave = [&](int32 offset, float angularFreqX, float angularFreqY) {
+    const auto CalculateWave = [&](int32 offset, float angularFreqX, float angularFreqY, float amplitude) {
         const float freqOffsetMult = TWO_PI / static_cast<float>(offset);
-        const CVector2D w{ TWO_PI * angularFreqX, TWO_PI * angularFreqY }; // w = angular frequency
+        const CVector2D waveVector{ TWO_PI * angularFreqX, TWO_PI * angularFreqY }; // w = angular frequency
 
+        auto step  = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
+        auto wavePhase = (step * freqOffsetMult + fX * waveVector.x + fY * waveVector.y) * argToSinus;
+
+        auto sinPhase = CMaths::ms_SinTable[static_cast<uint8>(wavePhase) + 1];
+        auto cosPhase = CMaths::ms_SinTable[static_cast<uint8>(wavePhase + 64.0f) + 1]; // Table has 256 elements, and spans [0:2PI), 64 index move equals PI/2 move on the X axis, and cos(x) == sin(x + PI/2)
+        outWave += sinPhase * waveMult * amplitude;
+
+        // Wave normal calculation - seems broken but maybe R* just knows something that we don't :D
+        // Normal generation is completely skipped on later releases of the game (android / definitive)
         switch (offset) {
         case 5000: {
-            auto step = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
-            auto index = (step * freqOffsetMult + fX * w.x + fY * w.y) * tauToChar;
-
-            outWave += CMaths::ms_SinTable[static_cast<uint8>(index) + 1] * 2.0f * waveMult * lowFreqMult;
-            auto outNext = -(CMaths::ms_SinTable[static_cast<uint8>(index + 64.0f) + 1] * 2.0f * waveMult * lowFreqMult * w.x);
-            vecNormal += { outNext, outNext, 1.0f };
+            auto normalDerivative = -cosPhase * waveMult * amplitude * waveVector.x;
+            vecNormal += { normalDerivative, normalDerivative, 0.0f };
             break;
         }
         case 3500: {
-            auto step = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
-            auto index = (step * freqOffsetMult + fX * w.x + fY * w.y) * tauToChar;
-
-            outWave += CMaths::ms_SinTable[static_cast<uint8>(index) + 1] * 1.0f * waveMult * midHighFreqMult;
-            auto outNext = CMaths::ms_SinTable[static_cast<uint8>(index + 64.0f) + 1];
-            auto vAdd = outNext * waveMult * w.x * w.x;
-            vecNormal += { vAdd, vAdd, 0.0f };
+            auto normalDerivative = cosPhase * waveMult * amplitude * waveVector.x;
+            vecNormal += { normalDerivative, normalDerivative, 0.0f };
             break;
         }
         case 3000: {
-            auto step = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
-            auto index = (step * freqOffsetMult + fX * w.x + fY * w.y) * tauToChar;
-
-            outWave += CMaths::ms_SinTable[static_cast<uint8>(index) + 1] * 0.5f * waveMult * midHighFreqMult;
-            auto outNext = CMaths::ms_SinTable[static_cast<uint8>(index + 64.0f) + 1];
-            vecNormal.x += waveMult * (outNext / 2.0f) * midHighFreqMult * (PI / 10.0f);
+            auto normalDerivative = cosPhase * waveMult * amplitude * (PI / 10.0f);
+            vecNormal += { normalDerivative, 0.0f, 0.0f };
             break;
         }
         }
     };
 
-    CalculateWave(5000, 1.f / 64.0f, 1.f / 64.0f);
-    CalculateWave(3500, 1.f / 26.0f, 1.f / 52.0f);
-    CalculateWave(3000, 0.0f,        1.f / 20.0f);
+    CalculateWave(5000, 1.f / 64.0f, 1.f / 64.0f, 2.0f * bigWavesAmplitude);
+    CalculateWave(3500, 1.f / 26.0f, 1.f / 52.0f, 1.0f * smallWavesAmplitude);
+    CalculateWave(3000, 0.0f,        1.f / 20.0f, 0.5f * smallWavesAmplitude);
 
+    const auto eulerConstant = 0.577f;
     vecNormal.Normalise();
-    auto v17 = (vecNormal.x + vecNormal.y + vecNormal.z) * 0.57700002f;
+    auto glareLevel = (vecNormal.x + vecNormal.y + vecNormal.z) * eulerConstant;
 
-    colorMult = std::max(v17, 0.0f) * 0.65f + 0.27f;
-    glare = std::clamp(8.0f * v17 - 5.0f, 0.0f, 0.99f) * CWeather::SunGlare;
+    colorMult = std::max(glareLevel, 0.0f) * 0.65f + 0.27f;
+    glare = std::clamp(8.0f * glareLevel - 5.0f, 0.0f, 0.99f) * CWeather::SunGlare;
 }
 
 // 0x6E5810
