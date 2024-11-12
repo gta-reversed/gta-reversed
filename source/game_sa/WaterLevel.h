@@ -140,8 +140,8 @@ class CWaterLevel {
     static inline auto& m_CurrentFlow        = *(CVector2D*)0xC22890;
     static inline auto& m_CurrentDesiredFlow = *(CVector2D*)0xC22898;
 
-    static constexpr uint32 WATER_BLOCK_SIZE                       = 500u;
-    static constexpr uint32 NUM_WATER_BLOCKS_ROWCOL                = 6000 / WATER_BLOCK_SIZE; // 6000 => map size
+    static constexpr int32 WATER_BLOCK_SIZE                       = 500;
+    static constexpr int32 NUM_WATER_BLOCKS_ROWCOL                = 6000 / WATER_BLOCK_SIZE; // 6000 => map size
     static inline    int32  m_MaxNumBlocksOutsideWorldToBeRendered = 70; // NOTSA: We just want a variable for the debug tool. Value may never be higher than the below array's size.
     static inline    auto&  m_NumBlocksOutsideWorldToBeRendered    = *(uint32*)0xC215EC;
     static inline    auto&  m_BlocksToBeRenderedOutsideWorldX      = *(std::array<int16, 70>*)0xC21560;
