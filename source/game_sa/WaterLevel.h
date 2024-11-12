@@ -144,8 +144,8 @@ class CWaterLevel {
     static constexpr uint32 NUM_WATER_BLOCKS_ROWCOL                = 6000 / WATER_BLOCK_SIZE; // 6000 => map size
     static inline    int32  m_MaxNumBlocksOutsideWorldToBeRendered = 70; // NOTSA: We just want a variable for the debug tool. Value may never be higher than the below array's size.
     static inline    auto&  m_NumBlocksOutsideWorldToBeRendered    = *(uint32*)0xC215EC;
-    static inline    auto&  m_BlocksToBeRenderedOutsideWorldX      = *(std::array<int32, 70>*)0xC21560;
-    static inline    auto&  m_BlocksToBeRenderedOutsideWorldY      = *(std::array<int32, 70>*)0xC214D0;
+    static inline    auto&  m_BlocksToBeRenderedOutsideWorldX      = *(std::array<int16, 70>*)0xC21560;
+    static inline    auto&  m_BlocksToBeRenderedOutsideWorldY      = *(std::array<int16, 70>*)0xC214D0;
 
     // NOTSA: Color of wake segment parts (So we can make rainbows)
     static inline struct {

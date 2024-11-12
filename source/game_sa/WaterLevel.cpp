@@ -772,9 +772,12 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate2( // TODO: Original name didn'
 void CWaterLevel::BlockHit(int32 blockX, int32 blockY) {
     if (blockX >= 0 && blockX < NUM_WATER_BLOCKS_ROWCOL && blockY >= 0 && blockY < NUM_WATER_BLOCKS_ROWCOL) {
         MarkQuadsAndPolysToBeRendered(blockX, blockY, CGame::currArea != AREA_CODE_NORMAL_WORLD);
-    } else { // Original check was: `blockX <= 0 || blockX >= 11 || blockY <= 0 || blockY >= 11`, but that's erronous (because of `<= 0`)
+    }
+
+    // Blocks at the edge of the world (index 0 and 11) need to be handled both ways, the quads and polys are to be rendered, but also the general ocean plane needs to be rendered on them
+    if (blockX <= 0 || blockX >= (NUM_WATER_BLOCKS_ROWCOL - 1) || blockY <= 0 || blockY >= (NUM_WATER_BLOCKS_ROWCOL - 1)) {
         if (m_NumBlocksOutsideWorldToBeRendered < (uint32)m_MaxNumBlocksOutsideWorldToBeRendered) {
-            const auto idx = m_NumBlocksOutsideWorldToBeRendered++;
+            const auto idx                         = m_NumBlocksOutsideWorldToBeRendered++;
             m_BlocksToBeRenderedOutsideWorldX[idx] = blockX;
             m_BlocksToBeRenderedOutsideWorldY[idx] = blockY;
         }
