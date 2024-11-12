@@ -675,8 +675,8 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate(
     y = std::abs(y);
     vecNormal = CVector(0.f, 0.f, 1.f);
 
-    constexpr auto argToSinus = 256.0f / TWO_PI;
-    float waveMult = faWaveMultipliersX[(x / 2) % 8] * faWaveMultipliersY[(y / 2) % 8] * CWeather::Wavyness;
+    constexpr auto argToSinus = 256.0f / TWO_PI; //TODO: Move it to shared space if it is used anywhere else (CMaths most likely)
+    const float waveMult = faWaveMultipliersX[(x / 2) % 8] * faWaveMultipliersY[(y / 2) % 8] * CWeather::Wavyness;
     float fX = (float)x, fY = (float)y;
 
     // literal AIDS code
@@ -684,28 +684,28 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate(
         const float freqOffsetMult = TWO_PI / static_cast<float>(offset);
         const CVector2D waveVector{ TWO_PI * angularFreqX, TWO_PI * angularFreqY }; // w = angular frequency
 
-        auto step  = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
-        auto wavePhase = (step * freqOffsetMult + fX * waveVector.x + fY * waveVector.y) * argToSinus;
+        const auto step  = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
+        const auto wavePhase = (step * freqOffsetMult + fX * waveVector.x + fY * waveVector.y) * argToSinus;
 
-        auto sinPhase = CMaths::ms_SinTable[static_cast<uint8>(wavePhase) + 1];
-        auto cosPhase = CMaths::ms_SinTable[static_cast<uint8>(wavePhase + 64.0f) + 1]; // Table has 256 elements, and spans [0:2PI), 64 index move equals PI/2 move on the X axis, and cos(x) == sin(x + PI/2)
+        const auto sinPhase = CMaths::ms_SinTable[static_cast<uint8>(wavePhase) + 1];
+        const auto cosPhase = CMaths::ms_SinTable[static_cast<uint8>(wavePhase + 64.0f) + 1]; // Table has 256 elements, and spans [0:2PI), 64 index move equals PI/2 move on the X axis, and cos(x) == sin(x + PI/2)
         outWave += sinPhase * waveMult * amplitude;
 
         // Wave normal calculation - seems broken but maybe R* just knows something that we don't :D
         // Normal generation is completely skipped on later releases of the game (android / definitive)
         switch (offset) {
         case 5000: {
-            auto normalDerivative = -cosPhase * waveMult * amplitude * waveVector.x;
+            const auto normalDerivative = -cosPhase * waveMult * amplitude * waveVector.x;
             vecNormal += { normalDerivative, normalDerivative, 0.0f };
             break;
         }
         case 3500: {
-            auto normalDerivative = cosPhase * waveMult * amplitude * waveVector.x;
+            const auto normalDerivative = cosPhase * waveMult * amplitude * waveVector.x;
             vecNormal += { normalDerivative, normalDerivative, 0.0f };
             break;
         }
         case 3000: {
-            auto normalDerivative = cosPhase * waveMult * amplitude * (PI / 10.0f);
+            const auto normalDerivative = cosPhase * waveMult * amplitude * (PI / 10.0f);
             vecNormal += { normalDerivative, 0.0f, 0.0f };
             break;
         }
@@ -716,9 +716,8 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate(
     CalculateWave(3500, 1.f / 26.0f, 1.f / 52.0f, 1.0f * smallWavesAmplitude);
     CalculateWave(3000, 0.0f,        1.f / 20.0f, 0.5f * smallWavesAmplitude);
 
-    const auto eulerConstant = 0.577f;
     vecNormal.Normalise();
-    auto glareLevel = (vecNormal.x + vecNormal.y + vecNormal.z) * eulerConstant;
+    const auto glareLevel = (vecNormal.x + vecNormal.y + vecNormal.z) * E_CONST;
 
     colorMult = std::max(glareLevel, 0.0f) * 0.65f + 0.27f;
     glare = std::clamp(8.0f * glareLevel - 5.0f, 0.0f, 0.99f) * CWeather::SunGlare;
