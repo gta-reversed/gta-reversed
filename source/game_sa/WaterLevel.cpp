@@ -857,66 +857,19 @@ struct SortableVtx {
 //! Sort vertices in clockwise order (With a few assumptions)
 template<size_t N>
 auto DoVtxSortAndGetRange(SortableVtx (&verts)[N], bool clockwise) {
-    // Center point
-    int32 cx{}, cy{};
-    for (auto& v : verts) {
-        cx += v.x; cy += v.y;
-    }
-    cx /= (int32)N; cy /= (int32)N;
-
-    // Based on https://stackoverflow.com/a/6989383
-    const auto CWCompare = [&](SortableVtx& a, SortableVtx& b) {
-        // Computes the quadrant for a and b (0-3):
-        //   COUNTER_CLOCKWISE:
-        //   2 | 3
-        //  ---+-->
-        //   0 | 1
-        //
-        //   CLOCKWISE:
-        //   0 | 1
-        //  ---+-->
-        //   2 | 3
-        //
-        const auto QuadrantOf = [&](int32 x, int32 y) {
-            const uint8 dx = x < cx; // 1 = left, 0 = right
-            const uint8 dy = y > cy; // 1 = top,  0 = bottom
-            if (clockwise) {
-                if (dx && dy) {
-                    return 0;
-                } else if (!dx && dy) {
-                    return 1;
-                } else if (dx && !dy) {
-                    return 2;
-                } else {
-                    return 3;
-                }
-            } else {
-                if (dx && !dy) {
-                    return 0;
-                } else if (!dx && !dy) {
-                    return 1;
-                } else if (dx && dy) {
-                    return 2;
-                } else {
-                    return 3;
-                }
-            }
-        };
-
-        const auto qa = QuadrantOf(a.x, a.y), qb = QuadrantOf(b.x, b.y);
-
-        if (qa == qb) {
-            return (b.x - cx) * (a.y - cy) > (b.y - cy) * (a.x - cx);
-        } else {
-            return qa < qb;
+    const auto VertexComparator = [&](SortableVtx& a, SortableVtx& b) {
+        if (a.y == b.y) {
+            return a.x < b.x; // Sort by x if y is the same
         }
+        return a.y < b.y; // Otherwise, sort by y
     };
-    
-    // Sort array to be clockwise
-    rng::sort(verts, CWCompare);
+
+    rng::sort(verts, VertexComparator);
 
     // Return a range of vertex indices that can be passed to the constructor of `CWaterPolygon`
-    return verts | rng::views::transform([](auto& vtx) { return vtx.idx; });
+    return verts | rng::views::transform([](auto& vtx) {
+               return vtx.idx;
+           });
 }
 
 // 0x6E7EF0
@@ -924,12 +877,17 @@ void CWaterLevel::AddWaterLevelQuad(int32 X1, int32 Y1, CRenPar P1, int32 X2, in
     if ((X1 == X2 && X1 == X3 && X1 == X4) || (Y1 == Y2 && Y1 == Y3 && Y1 == Y4)) {
         return;
     }
-    
+
+    // Seemingly only axis aligned rectangles can be used as quads
+    // NOTSA: to verify the above.
+    assert(X1 == X2 || X1 == X3 || X1 == X4 || X2 == X3 || X2 == X4 || X3 == X4);
+    assert(Y1 == Y2 || Y1 == Y3 || Y1 == Y4 || Y2 == Y3 || Y2 == Y4 || Y3 == Y4);
+
     SortableVtx verts[]{
-        {X1, Y1, P1},
-        {X2, Y2, P2},
-        {X3, Y3, P3},
-        {X4, Y4, P4},
+        {X1,  Y1, P1},
+        { X2, Y2, P2},
+        { X3, Y3, P3},
+        { X4, Y4, P4},
     };
 
     // Now actually create the quad
@@ -946,17 +904,53 @@ void CWaterLevel::AddWaterLevelTriangle(int32 X1, int32 Y1, CRenPar P1, int32 X2
         return;
     }
 
+    // Sorting seemingly always cares about only 2 of 3 vertices, looking at water.dat, in every single case 2 of 3 vertices have the same y coordinate,
+    // I assume that's a limitation, and at least 2 of 3 vertices need to fall on the same x/y axis.
+    // NOTSA: to verify the above.
+    assert(X1 == X2 || X1 == X3 || X2 == X3);
+    assert(Y1 == Y2 || Y1 == Y3 || Y2 == Y3);
+
     SortableVtx verts[]{
-        {X1, Y1, P1},
-        {X2, Y2, P2},
-        {X3, Y3, P3},
+        {X1,  Y1, P1},
+        { X2, Y2, P2},
+        { X3, Y3, P3},
     };
+
+    int16_t indices[3];
+    if (verts[0].y == verts[1].y) {
+        if (verts[0].x < verts[1].x) {
+            indices[0] = verts[0].idx;
+            indices[1] = verts[1].idx;
+        } else {
+            indices[0] = verts[1].idx;
+            indices[1] = verts[0].idx;
+        }
+        indices[2] = verts[2].idx;
+    } else if (verts[0].y == verts[2].y) {
+        if (verts[0].x >= verts[2].x) {
+            indices[0] = verts[2].idx;
+            indices[1] = verts[0].idx;
+        } else {
+            indices[0] = verts[0].idx;
+            indices[1] = verts[2].idx;
+        }
+        indices[2] = verts[1].idx;
+    } else {
+        if (verts[1].x >= verts[2].x) {
+            indices[0] = verts[2].idx;
+            indices[1] = verts[1].idx;
+        } else {
+            indices[0] = verts[1].idx;
+            indices[1] = verts[2].idx;
+        }
+        indices[2] = verts[0].idx;
+    }
 
     // Now actually create the triangle
     WaterTriangles[NumWaterTriangles++] = CWaterTriangle{
         (Flags & 1) == 0,
         (Flags & 2) != 0,
-        DoVtxSortAndGetRange(verts, true)
+        indices | rng::views::all
     };
 }
 
