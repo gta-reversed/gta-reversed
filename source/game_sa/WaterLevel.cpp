@@ -684,7 +684,7 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate(
         const CVector2D waveVector{ TWO_PI * angularFreqX, TWO_PI * angularFreqY }; // w = angular frequency
 
         const auto step  = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
-        const auto wavePhase = step * freqOffsetMult + fX * waveVector.x + fY * waveVector.y);
+        const auto wavePhase = step * freqOffsetMult + fX * waveVector.x + fY * waveVector.y;
 
         const auto sinPhase = CMaths::GetSinFast(wavePhase);
         const auto cosPhase = CMaths::GetCosFast(wavePhase);
