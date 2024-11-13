@@ -856,7 +856,7 @@ struct SortableVtx {
 //! NOTSA
 //! Sort vertices in clockwise order (With a few assumptions)
 template<size_t N>
-auto DoVtxSortAndGetRange(SortableVtx (&verts)[N], bool clockwise) {
+auto DoVtxSortAndGetRange(SortableVtx (&verts)[N]) {
     const auto VertexComparator = [&](SortableVtx& a, SortableVtx& b) {
         if (a.y == b.y) {
             return a.x < b.x; // Sort by x if y is the same
@@ -894,7 +894,7 @@ void CWaterLevel::AddWaterLevelQuad(int32 X1, int32 Y1, CRenPar P1, int32 X2, in
     WaterQuads[NumWaterQuads++] = CWaterQuad{
         (Flags & 1) == 0,
         (Flags & 2) != 0,
-        DoVtxSortAndGetRange(verts, false)
+        DoVtxSortAndGetRange(verts)
     };
 }
 
