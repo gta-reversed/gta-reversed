@@ -675,7 +675,6 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate(
     y = std::abs(y);
     vecNormal = CVector(0.f, 0.f, 1.f);
 
-    constexpr auto argToSinus = 256.0f / TWO_PI; //TODO: Move it to shared space if it is used anywhere else (CMaths most likely)
     const float waveMult = faWaveMultipliersX[(x / 2) % 8] * faWaveMultipliersY[(y / 2) % 8] * CWeather::Wavyness;
     float fX = (float)x, fY = (float)y;
 
@@ -685,10 +684,10 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate(
         const CVector2D waveVector{ TWO_PI * angularFreqX, TWO_PI * angularFreqY }; // w = angular frequency
 
         const auto step  = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
-        const auto wavePhase = (step * freqOffsetMult + fX * waveVector.x + fY * waveVector.y) * argToSinus;
+        const auto wavePhase = step * freqOffsetMult + fX * waveVector.x + fY * waveVector.y);
 
-        const auto sinPhase = CMaths::ms_SinTable[static_cast<uint8>(wavePhase) + 1];
-        const auto cosPhase = CMaths::ms_SinTable[static_cast<uint8>(wavePhase + 64.0f) + 1]; // Table has 256 elements, and spans [0:2PI), 64 index move equals PI/2 move on the X axis, and cos(x) == sin(x + PI/2)
+        const auto sinPhase = CMaths::GetSinFast(wavePhase);
+        const auto cosPhase = CMaths::GetCosFast(wavePhase);
         outWave += sinPhase * waveMult * amplitude;
 
         // Wave normal calculation - seems broken but maybe R* just knows something that we don't :D
