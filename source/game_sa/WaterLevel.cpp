@@ -33,8 +33,8 @@ void CWaterLevel::InjectHooks() {
     // no clue what is the issue
     // one quad that doesn't load can be seen from -1610, 168
     // it's at water.dat:252
-    RH_ScopedGlobalInstall(AddWaterLevelQuad, 0x6E7EF0, { .enabled = true });
-    RH_ScopedGlobalInstall(AddWaterLevelTriangle, 0x6E7D40, { .enabled = true });
+    RH_ScopedGlobalInstall(AddWaterLevelQuad, 0x6E7EF0);
+    RH_ScopedGlobalInstall(AddWaterLevelTriangle, 0x6E7D40);
     RH_ScopedGlobalInstall(AddWaterLevelVertex, 0x6E5A40);
 
     RH_ScopedGlobalInstall(RenderBoatWakes, 0x6ED9A0);
