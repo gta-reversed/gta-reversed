@@ -47,7 +47,7 @@ void CGrassRenderer::AddTriPlant(PPTriPlant* srcPlant, uint32 plantModelSet) {
 }
 
 // 0x5DAD00
-void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, RpAtomic** plantModelsTab, RwMatrix* ltm) {
+void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, RpAtomic** plantModelsTab) {
     { // debug
         CFont::InitPerFrame();
         char buf[32]{};
@@ -74,7 +74,11 @@ void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, Rp
 
         const auto atomic = plantModelsTab[plant.model_id];
         auto frame = RpAtomicGetFrame(atomic);
-        srand((uint32)plant.seed);
+
+        // Original implementation used srand(), which is absolutely not thread safe, and caused all the plants to just jump randomly all over the screen.
+        std::mt19937                      randomGen(*(uint32*)&plant.seed);
+        std::uniform_real_distribution<float>    randomDistribution(0, 1.f);
+        //srand((uint32)plant.seed);
 
         RwRGBA newColorIntensity{};
         if (nearDist >= farDist) {
@@ -100,27 +104,28 @@ void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, Rp
                 plant.V1,
                 plant.V2,
                 plant.V3,
-                CGeneral::GetRandomNumberInRange(0.0f, 1.0f),
-                CGeneral::GetRandomNumberInRange(0.0f, 1.0f)
+                randomDistribution(randomGen),
+                randomDistribution(randomGen)
             );
 
             if (DistanceBetweenPoints(m_vecCameraPos, posn) < m_closeDist - 2.0f) {
-                CGeneral::GetRandomNumber();
-                CGeneral::GetRandomNumber();
-                CGeneral::GetRandomNumber();
+                // Intentionally discard the random value 3 times to keep the seed consistent.
+                static_cast<void>(randomDistribution(randomGen));
+                static_cast<void>(randomDistribution(randomGen));
+                static_cast<void>(randomDistribution(randomGen));
                 continue;
             }
 
             RwFrameTranslate(frame, &posn, rwCOMBINEREPLACE);
 
-            const auto xy = (float)rand() * RAND_MAX_FLOAT_RECIPROCAL * plant.scale_var_xy + plant.scale.x;
+            const auto xy = randomDistribution(randomGen) * plant.scale_var_xy + plant.scale.x;
             RwFrameGetMatrix(frame)->right.x *= xy;
             RwFrameGetMatrix(frame)->up.y *= xy;
 
-            const auto xy1 = ((float)rand() * RAND_MAX_FLOAT_RECIPROCAL * plant.wind_bend_var + 1.0f) * (m_windBending * plant.wind_bend_scale);
+            const auto xy1                = (randomDistribution(randomGen) * plant.wind_bend_var + 1.0f) * (m_windBending * plant.wind_bend_scale);
             RwFrameGetMatrix(frame)->at.x = xy1;
             RwFrameGetMatrix(frame)->at.y = xy1;
-            RwFrameGetMatrix(frame)->at.z = ((float)rand() * RAND_MAX_FLOAT_RECIPROCAL * plant.scale_var_z + plant.scale.y) * RwFrameGetMatrix(frame)->at.z;
+            RwFrameGetMatrix(frame)->at.z = (randomDistribution(randomGen) * plant.scale_var_z + plant.scale.y) * RwFrameGetMatrix(frame)->at.z;
 
             RwMatrixUpdate(RwFrameGetMatrix(frame));
             atomic->renderCallBack(atomic);

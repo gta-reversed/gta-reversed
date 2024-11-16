@@ -24,6 +24,7 @@
 #include "./TimeCycleDebugModule.h"
 #include "./CullZonesDebugModule.h"
 #include "./TextDebugModule.h"
+#include "./ProcObjectDebugModule.h"
 #include "./Spawner/SpawnerDebugModule.hpp"
 #include "./ImGuiDebugModule.hpp"
 #include "./ScriptDebugModule.hpp"
@@ -108,6 +109,7 @@ void DebugModules::CreateModules() {
     Add<ParticleDebugModule>();
     Add<TextDebugModule>();
     Add<notsa::debugmodules::CheckpointsDebugModule>();
+    Add<ProcObjectDebugModule>();
 
     // Stuff that is present in multiple menus
     Add<TimeCycleDebugModule>(); // Visualization + Extra

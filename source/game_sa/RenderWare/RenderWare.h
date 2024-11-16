@@ -42,3 +42,5 @@ struct RwResEntrySA : RwResEntry {
     RxD3D9ResEntryHeader header;
     RxD3D9InstanceData meshData;
 };
+
+void RwCoreInjectHooks();

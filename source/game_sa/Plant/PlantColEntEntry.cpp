@@ -29,7 +29,7 @@ CPlantColEntEntry* CPlantColEntEntry::AddEntry(CEntity* entity) {
             next->m_PrevEntry = prev;
             prev->m_NextEntry = next;
         } else {
-            prev->m_NextEntry = next;
+            prev->m_NextEntry = nullptr;
         }
     } else {
         if (CPlantMgr::m_UnusedColEntListHead = m_NextEntry) {
@@ -38,11 +38,10 @@ CPlantColEntEntry* CPlantColEntEntry::AddEntry(CEntity* entity) {
     }
     m_NextEntry = CPlantMgr::m_CloseColEntListHead;
     m_PrevEntry = nullptr;
-    CPlantMgr::m_CloseColEntListHead = nullptr;
+    CPlantMgr::m_CloseColEntListHead = this;
 
-    if (auto next = m_NextEntry) {
-        next->m_PrevEntry = this;
-    }
+    if (m_NextEntry)
+        m_NextEntry->m_PrevEntry = this;
 
     return this;
 }
@@ -78,7 +77,8 @@ void CPlantColEntEntry::ReleaseEntry() {
     }
     m_NextEntry = CPlantMgr::m_UnusedColEntListHead;
     m_PrevEntry = nullptr;
-    if (auto next = m_NextEntry) {
-        next->m_PrevEntry = this;
+    CPlantMgr::m_UnusedColEntListHead = this;
+    if (m_NextEntry) {
+        m_NextEntry->m_PrevEntry = this;
     }
 }

@@ -515,6 +515,7 @@ void InjectHooksMain() {
     ProcObjectMan_c::InjectHooks();
     ProcSurfaceInfo_c::InjectHooks();
     RwHelperInjectHooks();
+    RwCoreInjectHooks();
     CPad::InjectHooks();
     InjectCommonHooks();
     CEscalator::InjectHooks();

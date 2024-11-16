@@ -2,6 +2,14 @@
 
 #include "rwcore.h"
 
+void RwCoreInjectHooks() {
+    RH_ScopedCategory("Renderware");
+    RH_ScopedNamespaceName("RwCore");
+
+    RH_ScopedGlobalInstall(RwCameraBeginUpdate, 0x7EE190);
+    RH_ScopedGlobalInstall(RwCameraEndUpdate, 0x7EE180);
+}
+
 RxHeap* RxHeapCreate(RwUInt32 size) {
     return ((RxHeap*(__cdecl *)(RwUInt32))0x809F90)(size);
 }
@@ -1058,14 +1066,12 @@ RwBool RwBBoxContainsPoint(const RwBBox* boundBox, const RwV3d* vertex) {
 
 RwCamera* RwCameraBeginUpdate(RwCamera* camera) {
     ZoneScoped;
-
-    return ((RwCamera*(__cdecl *)(RwCamera*))0x7EE190)(camera);
+    return camera->beginUpdate(camera);
 }
 
 RwCamera* RwCameraEndUpdate(RwCamera* camera) {
     ZoneScoped;
-
-    return ((RwCamera*(__cdecl *)(RwCamera*))0x7EE180)(camera);
+    return camera->endUpdate(camera);
 }
 
 RwCamera* RwCameraClear(RwCamera* camera, RwRGBA* colour, RwInt32 clearMode) {
