@@ -256,9 +256,6 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
         }
         return C(m_Car->m_pHandlingData->m_bTandemSeats ? TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER : TASK_SIMPLE_CAR_SHUFFLE);
     }
-    case TASK_SIMPLE_CAR_CLOSE_DOOR_FROM_OUTSIDE:
-    case TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER:
-        return C(TASK_FINISHED);
     case TASK_SIMPLE_CAR_GET_IN: { // 0x63F3AF
         CCarEnterExit::MakeUndraggedPassengerPedsLeaveCar(m_Car, m_DraggedPed, ped);
         bool bDontCloseDoors{};
@@ -319,10 +316,6 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
             ? CreateNextSubTask_AfterSimpleCarAlign(ped)
             : C(TASK_SIMPLE_CAR_ALIGN);
     }
-    case TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER:
-        return C(TASK_FINISHED);
-    case TASK_NONE:
-        return C(TASK_FINISHED);
     case TASK_SIMPLE_CAR_QUICK_DRAG_PED_OUT: { // 0x63F2ED
         CCarEnterExit::MakeUndraggedPassengerPedsLeaveCar(m_Car, m_DraggedPed, ped);
         return C(TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER);
@@ -334,9 +327,14 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
         m_bQuitAfterDraggingPedOut = false;
         return C(m_DraggedPed ? TASK_SIMPLE_WAIT_UNTIL_PED_OUT_CAR : TASK_FINISHED);
     }
+    case TASK_SIMPLE_CAR_CLOSE_DOOR_FROM_OUTSIDE:
+    case TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER:
+    case TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER:
+    case TASK_SIMPLE_CAR_DRIVE_TIMED:
     case TASK_SIMPLE_WAIT_UNTIL_PED_OUT_CAR:
     case TASK_COMPLEX_FALL_AND_GET_UP:
-    case TASK_SIMPLE_CAR_DRIVE_TIMED:
+    case TASK_COMPLEX_ENTER_BOAT_AS_DRIVER:
+    case TASK_NONE:
         return C(TASK_FINISHED);
     default:
         NOTSA_UNREACHABLE("SubTaskType = {}", tt);

@@ -23,8 +23,7 @@ bool CInformGroupEventQueue::Add(CPed* ped, CPedGroup* pedGroup, CEventEditableR
     for (auto& e : ms_informGroupEvents) {
         if (e.m_Ped == ped) {
             if (event->GetEventType() == e.m_Event->GetEventType()) {
-                // Already added
-                return false;
+                return false; // Already added
             }
         } else if (!freeField && !e.m_Event) {
             freeField = &e;
@@ -72,4 +71,3 @@ void CInformGroupEventQueue::Flush() {
 void CInformGroupEventQueue::Process() {
     rng::for_each(ms_informGroupEvents, &CInformGroupEvent::Process);
 }
-

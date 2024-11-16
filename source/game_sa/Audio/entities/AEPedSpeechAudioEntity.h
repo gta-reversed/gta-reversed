@@ -234,7 +234,7 @@ protected:
 private:
     auto&& GetNextPlayTimeRef(this auto&& self, eGlobalSpeechContext gCtx) {
         return IsGlobalContextPain(gCtx)
-            ? self.m_NextTimeCanSayPain[gCtx - CTX_GLOBAL_PAIN_START + 1]
+            ? self.m_NextTimeCanSayPain[gCtx - (CTX_GLOBAL_PAIN_START + 1)]
             : gGlobalSpeechContextNextPlayTime[gCtx];
     }
 
