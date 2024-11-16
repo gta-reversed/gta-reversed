@@ -204,10 +204,10 @@ public:
     uint8  m_nNumberOfMenuOptions;
     int16  field_1B22;
     int32  field_1B24;
-    char   field_1B28;
+    bool   m_bViewRadar;
     char   field_1B29;
     int16  field_1B2A;
-    int32  field_1B2C;
+    int32  m_iRadarVisibilityChangeTime;
     uint32 m_nBriefsArrowBlinkTimeMs;
     int16  field_1B34; // CPad::DisablePlayerControls
     int16  field_1B36;

@@ -150,7 +150,7 @@ void CRadar::InjectHooks() {
     RH_ScopedInstall(SetupAirstripBlips, 0x587D20); // TEST
     RH_ScopedInstall(DrawBlips, 0x588050);
     // RH_ScopedInstall(ClipRadarPoly, 0x585040);
-    // RH_ScopedInstall(DrawAreaOnRadar, 0x5853D0);
+    RH_ScopedInstall(DrawAreaOnRadar, 0x5853D0);
     // RH_ScopedInstall(StreamRadarSections, 0x584C50);
     RH_ScopedInstall(AddBlipToLegendList, 0x5859F0);
     RH_ScopedInstall(Draw3dMarkers, 0x585BF0);
@@ -1078,37 +1078,50 @@ int32 CRadar::ClipRadarPoly(CVector2D* out, const CVector2D* in) {
 
 // 0x5853D0
 void CRadar::DrawAreaOnRadar(const CRect& rect, const CRGBA& color, bool inMenu) {
-    return plugin::Call<0x5853D0, const CRect&, const CRGBA&, bool>(rect, color, inMenu);
-
-    if (!m_radarRect.IsRectInside(rect)) {
+    if (!inMenu && m_radarRect.IsRectInside(rect)) {
         return;
     }
 
-    //// Corner positions - Not transformed
-    //const CVector2D rectCorners[]{
-    //    {rect.right, rect.top},     // Top right
-    //    {rect.right, rect.bottom},  // Bottom right
+    // Corner positions - Not transformed
+    const CVector2D rectCorners[]{
+        { rect.left,  rect.bottom},
+        { rect.right, rect.bottom},
+        { rect.right, rect.top   },
+        { rect.left,  rect.top   }
+    };
 
-    //    {rect.left,  rect.bottom},  // Bottom left
-    //    {rect.left,  rect.top}      // Top left
-    //};
+    // Corner positions - Transformed, not yet clipped
+    CVector2D polyUnclippedVertices[4];
+    rng::transform(rectCorners, polyUnclippedVertices, [](auto&& v) {
+        CVector2D transformed;
+        TransformRealWorldPointToRadarSpace(transformed, v);
+        return transformed;
+    });
 
-    //// Corner positions - Transformed, not yet clipped
-    //CVector2D polyUnclippedVertices[4];
-    //rng::transform(rectCorners, polyUnclippedVertices, [](auto&& v) {
-    //    CVector2D transformed;
-    //    TransformRealWorldPointToRadarSpace(transformed, v);
-    //    return transformed;
-    //});
+    CVector2D polyVertices[8];
+    const auto numVerts = ClipRadarPoly(polyVertices, polyUnclippedVertices);
+    if (!numVerts) {
+        return;
+    }
 
-    //// Now clip all corners to be within the radar area
-    //CVector2D polyVertices[4];
-    //const auto nVerticesInsideRadar = ClipRadarPoly(polyVertices, polyUnclippedVertices);
-
-    //RwTexCoords texCoords[4];
-    //if (nVerticesInsideRadar) {
-    //    for (auto i = 0; i < nVerticesInsideRadar; i++) {
-    //}
+    CVector2D texCoords[8];
+    for (auto i = 0; i < numVerts; i++) {
+        TransformRadarPointToScreenSpace(texCoords[i], polyVertices[i]);
+        if (FrontEndMenuManager.m_bDrawingMap) {
+            const auto scaleX = SCREEN_STRETCH_X(1.0f);
+            const auto scaleY = SCREEN_STRETCH_Y(1.0f);
+            texCoords[i].x *= scaleX;
+            texCoords[i].y *= scaleY;
+            polyVertices[i].x *= scaleX;
+            polyVertices[i].y *= scaleY;
+        }
+    }
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(NULL));
+    CSprite2d::SetVertices(numVerts, texCoords, polyVertices, color);
+    if (numVerts > 2) {
+        RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::GetVertices(), numVerts);
+    }
 }
 
 // 0x585700

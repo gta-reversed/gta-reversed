@@ -38,7 +38,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(HasLanguageChanged, 0x573CD0);
     RH_ScopedInstall(DoSettingsBeforeStartingAGame, 0x573330);
     RH_ScopedInstall(StretchX, 0x5733E0);
-    RH_ScopedInstall(StretchY, 0x573410, { .reversed = false });
+    RH_ScopedInstall(StretchY, 0x573410);
     RH_ScopedInstall(SwitchToNewScreen, 0x573680);
     RH_ScopedInstall(ScrollRadioStations, 0x573A00);
     RH_ScopedInstall(SetFrontEndRenderStates, 0x573A60);
@@ -79,7 +79,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(MessageScreen, 0x579330);
     RH_ScopedInstall(SmallMessageScreen, 0x574010);
 
-    RH_ScopedInstall(PrintMap, 0x575130, { .reversed = false });
+    RH_ScopedInstall(PrintMap, 0x575130);
     RH_ScopedInstall(PrintStats, 0x574900, { .reversed = false });
     RH_ScopedInstall(PrintBriefs, 0x576320);
     RH_ScopedInstall(PrintRadioStationList, 0x5746F0);
