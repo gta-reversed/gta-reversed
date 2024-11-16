@@ -59,10 +59,8 @@ typedef uint32    bool32;
 #if _DEBUG
 #include <format>
 #include <winuser.h>
-#include <filesystem>
 
 namespace notsa {
-namespace fs = std::filesystem;
 static const fs::path SOURCE_PATH = fs::path(__FILE__).parent_path();
 
 template<typename... Ts>

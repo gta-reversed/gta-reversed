@@ -82,7 +82,7 @@ public:
         BLOCKED_SHARP_DROP,
         CLEAR,
     };
-    static WanderPathClearness IsWanderPathClear(const CVector& a1, const CVector& a2, float a3, int32 a4);
+    static WanderPathClearness IsWanderPathClear(const CVector& from, const CVector& to, float maxHeightChange, int32 maxSamples);
 
     static bool LiesInsideBoundingBox(const CPed& ped, const CVector& posn, CEntity& entity);
 };

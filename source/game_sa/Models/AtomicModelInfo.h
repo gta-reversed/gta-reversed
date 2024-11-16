@@ -25,7 +25,7 @@ public:
     ModelInfoType GetModelType() override;
     void Init() override;
     void DeleteRwObject() override;
-    uint32 GetRwModelType() override;
+    uint32 GetRwModelType() const override { return rpATOMIC; }
     RwObject* CreateInstance() override;
     RwObject* CreateInstance(RwMatrix* matrix) override;
 

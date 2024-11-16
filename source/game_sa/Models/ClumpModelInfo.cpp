@@ -84,12 +84,6 @@ void CClumpModelInfo::DeleteRwObject()
         CBaseModelInfo::DeleteCollisionModel();
 }
 
-// 0x4C5730
-uint32 CClumpModelInfo::GetRwModelType()
-{
-    return rpCLUMP;
-}
-
 RwObject* CClumpModelInfo::CreateInstance()
 {
     if (!m_pRwObject)

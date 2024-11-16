@@ -23,7 +23,7 @@ void CTaskComplexUseEffect::InjectHooks() {
 }
 
 // 0x6321F0
-CTaskComplexUseEffect::CTaskComplexUseEffect(C2dEffectBase* attractor, CEntity* entity) :
+CTaskComplexUseEffect::CTaskComplexUseEffect(C2dEffectPedAttractor* attractor, CEntity* entity) :
     m_2dFx{attractor},
     m_Entity{entity}
 {

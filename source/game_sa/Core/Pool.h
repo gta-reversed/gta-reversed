@@ -7,6 +7,7 @@
 #pragma once
 
 #include <execution>
+#include <Base.h>
 
 #define INVALID_POOL_SLOT (-1)
 

@@ -253,11 +253,17 @@ public:
     static uint32& g2dEffectPluginOffset;
     static uint32& ms_nTxdSlot;
 
-    template<std::derived_from<C2dEffectBase> T>
-    static T* DynCast(C2dEffectBase* p) {
-        return p->m_type == T::Type
-            ? reinterpret_cast<T*>(p)
+    template<std::derived_from<C2dEffectBase> To, std::derived_from<C2dEffectBase> From>
+    static To* DynCast(From* p) {
+        return p->m_type == To::Type
+            ? reinterpret_cast<To*>(p)
             : nullptr;
+    }
+
+    template<std::derived_from<C2dEffectBase> To, std::derived_from<C2dEffectBase> From>
+    static To* Cast(From* p) {
+        assert(!p || p->m_type == To::Type);
+        return reinterpret_cast<To*>(p);
     }
 
 public:
