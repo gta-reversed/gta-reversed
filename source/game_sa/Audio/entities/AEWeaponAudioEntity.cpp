@@ -248,8 +248,6 @@ void CAEWeaponAudioEntity::WeaponFire(eWeaponType weaponType, CPhysical* parent,
     case WEAPON_NIGHTVISION:
     case WEAPON_INFRARED:
         return PlayGoggleSound(SND_GENRL_WEAPONS_NIGHT_VISION, audioEvent);
-    default:
-        NOTSA_UNREACHABLE();
     }
 }
 
