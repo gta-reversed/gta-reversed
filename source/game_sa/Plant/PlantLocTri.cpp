@@ -15,10 +15,10 @@ void CPlantLocTri::InjectHooks() {
     RH_ScopedClass(CPlantLocTri);
     RH_ScopedCategory("Plant");
 
-    RH_ScopedInstall(Add, 0x5DC290, {.enabled = false});
-    RH_ScopedInstall(Release, 0x5DB6D0, {.enabled = false});
+    RH_ScopedInstall(Add, 0x5DC290);
+    RH_ScopedInstall(Release, 0x5DB6D0);
 
-    RH_ScopedGlobalInstall(GetPlantDensity, 0x5DC210, {.enabled = false});
+    RH_ScopedGlobalInstall(GetPlantDensity, 0x5DC210);
 }
 
 // 0x5DC290

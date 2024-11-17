@@ -9,13 +9,13 @@ void CPPTriPlantBuffer::InjectHooks() {
     RH_ScopedClass(CPPTriPlantBuffer);
     RH_ScopedCategory("Plant");
 
-    RH_ScopedInstall(Flush, 0x5DB0C0, {.enabled = false});
-    RH_ScopedInstall(GetPPTriPlantPtr, 0x5DB140, {.enabled = false});
-    RH_ScopedInstall(ChangeCurrentPlantModelsSet, 0x5DB170, {.enabled = false});
-    RH_ScopedInstall(IncreaseBufferIndex, 0x5DB1A0, {.enabled = false});
-    RH_ScopedInstall(GetPlantModelsTab, 0x5DACA0, {.enabled = false});
-    RH_ScopedInstall(SetPlantModelsTab, 0x5DAC80, {.enabled = false});
-    RH_ScopedInstall(SetGrassMaterialCB, 0x5DAC10, {.enabled = false});
+    RH_ScopedInstall(Flush, 0x5DB0C0);
+    RH_ScopedInstall(GetPPTriPlantPtr, 0x5DB140);
+    RH_ScopedInstall(ChangeCurrentPlantModelsSet, 0x5DB170);
+    RH_ScopedInstall(IncreaseBufferIndex, 0x5DB1A0);
+    RH_ScopedInstall(GetPlantModelsTab, 0x5DACA0);
+    RH_ScopedInstall(SetPlantModelsTab, 0x5DAC80);
+    RH_ScopedInstall(SetGrassMaterialCB, 0x5DAC10);
 }
 
 // 0x5DB090

@@ -75,22 +75,22 @@ void CPlantMgr::InjectHooks() {
     RH_ScopedInstall(Initialise, 0x5DD910, {.enabled = false});
     RH_ScopedInstall(Shutdown, 0x5DB940, {.enabled = false});
     RH_ScopedInstall(ReloadConfig, 0x5DD780, {.enabled = false});
-    RH_ScopedInstall(MoveLocTriToList, 0x5DB590, {.enabled = false});
-    RH_ScopedInstall(MoveColEntToList, 0x5DB5F0, {.enabled = false});
-    RH_ScopedInstall(SetPlantFriendlyFlagInAtomicMI, 0x5DB650, {.enabled = false});
-    RH_ScopedInstall(Update, 0x5DCFA0, {.enabled = false});
-    RH_ScopedInstall(PreUpdateOnceForNewCameraPos, 0x5DCF30, {.enabled = false});
-    RH_ScopedInstall(UpdateAmbientColor, 0x5DB310, {.enabled = false});
+    RH_ScopedInstall(MoveLocTriToList, 0x5DB590);
+    RH_ScopedInstall(MoveColEntToList, 0x5DB5F0);
+    RH_ScopedInstall(SetPlantFriendlyFlagInAtomicMI, 0x5DB650);
+    RH_ScopedInstall(Update, 0x5DCFA0);
+    RH_ScopedInstall(PreUpdateOnceForNewCameraPos, 0x5DCF30);
+    RH_ScopedInstall(UpdateAmbientColor, 0x5DB310);
     RH_ScopedInstall(CalculateWindBending, 0x5DB3D0, {.enabled = false}); // <-- probably incorrect?
     RH_ScopedInstall(_ColEntityCache_Add, 0x5DBEB0);
     RH_ScopedInstall(_ColEntityCache_FindInCache, 0x5DB530);
     RH_ScopedInstall(_ColEntityCache_Remove, 0x5DBEF0);
     RH_ScopedInstall(_ColEntityCache_Update, 0x5DC510);
-    RH_ScopedInstall(_ProcessEntryCollisionDataSections, 0x5DCD80, {.enabled = false});
-    RH_ScopedInstall(_ProcessEntryCollisionDataSections_AddLocTris, 0x5DC8B0, {.enabled = false});
-    RH_ScopedInstall(_ProcessEntryCollisionDataSections_RemoveLocTris, 0x5DBF20, {.enabled = false});
-    RH_ScopedInstall(_UpdateLocTris, 0x5DCF00, {.enabled = false});
-    RH_ScopedInstall(Render, 0x5DBAE0, {.enabled = false});
+    RH_ScopedInstall(_ProcessEntryCollisionDataSections, 0x5DCD80);
+    RH_ScopedInstall(_ProcessEntryCollisionDataSections_AddLocTris, 0x5DC8B0);
+    RH_ScopedInstall(_ProcessEntryCollisionDataSections_RemoveLocTris, 0x5DBF20);
+    RH_ScopedInstall(_UpdateLocTris, 0x5DCF00);
+    RH_ScopedInstall(Render, 0x5DBAE0);
     //RH_ScopedGlobalInstall(LoadModels, 0x5DD220); // uses `__usercall`, can't hook
 
     // Do not uncomment!
@@ -598,7 +598,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEnt
             cd->GetTrianglePoint(vertices[1], tri.vB);
             cd->GetTrianglePoint(vertices[2], tri.vC);
 
-            TransformPoints(vertices, 3, entity->GetMatrix(), vertices);
+            TransformPoints (vertices, 3, entity->GetMatrix(), vertices);
 
             CVector cmp[] = {
                 vertices[1],
@@ -609,7 +609,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEnt
                 (vertices[1] + vertices[2]) / 2.0f
             };
 
-            if (rng::none_of(cmp, [center](auto v) { return DistanceBetweenPoints(v, center) < 10000.0f; }))
+            if (rng::none_of(cmp, [center](auto v) { return DistanceBetweenPointsSquared(v, center) < 10000.0f; }))
                 continue;
 
             auto createsPlants = g_surfaceInfos.CreatesPlants(tri.m_nMaterial);
@@ -668,11 +668,10 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_RemoveLocTris(const CPlantCol
                 (object->m_V1 + object->m_V3) / 2.0f
             };
 
-            if (rng::none_of(cmp, [center](auto v) { return DistanceBetweenPoints(v, center) < 10000.0f; }))
-                continue;
-
-            object->Release();
-            object = nullptr;
+            if (rng::all_of(cmp, [center](auto v) { return DistanceBetweenPointsSquared(v, center) >= 10000.0f; })) {
+                object->Release();
+                object = nullptr;
+            }
         }
     }
 }

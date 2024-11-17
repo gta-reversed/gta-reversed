@@ -6,10 +6,10 @@ void CPlantSurfPropMgr::InjectHooks() {
     RH_ScopedClass(CPlantSurfPropMgr);
     RH_ScopedCategory("Plant");
 
-    RH_ScopedInstall(Initialise, 0x5DD6C0, {.enabled = false});
-    RH_ScopedInstall(AllocSurfProperties, 0x5DD370, {.enabled = false});
-    RH_ScopedInstall(GetSurfProperties, 0x6F9DE0, {.enabled = false});
-    RH_ScopedInstall(LoadPlantsDat, 0x5DD3B0, {.enabled = false});
+    RH_ScopedInstall(Initialise, 0x5DD6C0);
+    RH_ScopedInstall(AllocSurfProperties, 0x5DD370);
+    RH_ScopedInstall(GetSurfProperties, 0x6F9DE0);
+    RH_ScopedInstall(LoadPlantsDat, 0x5DD3B0);
 }
 
 // 0x5DD6C0
