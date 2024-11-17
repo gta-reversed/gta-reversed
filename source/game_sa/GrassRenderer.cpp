@@ -10,19 +10,19 @@ void CGrassRenderer::InjectHooks() {
     RH_ScopedClass(CGrassRenderer);
     RH_ScopedCategory("Plant");
 
-    RH_ScopedInstall(Initialise, 0x5DD6B0);
-    RH_ScopedInstall(Shutdown, 0x5DABA0);
-    RH_ScopedInstall(AddTriPlant, 0x5DB1D0);
-    RH_ScopedInstall(DrawTriPlants, 0x5DAD00);
-    RH_ScopedInstall(FlushTriPlantBuffer, 0x5DB250);
-    RH_ScopedInstall(GetPlantModelsTab, 0x5DACE0);
-    RH_ScopedInstall(SetPlantModelsTab, 0x5DACC0);
-    RH_ScopedInstall(SetCloseFarAlphaDist, 0x5DABE0);
-    RH_ScopedInstall(SetCurrentScanCode, 0x5DABB0);
-    RH_ScopedInstall(SetGlobalCameraPos, 0x5DABC0);
-    RH_ScopedInstall(SetGlobalWindBending, 0x5DAC00);
+    RH_ScopedInstall(Initialise, 0x5DD6B0, {.enabled = false});
+    RH_ScopedInstall(Shutdown, 0x5DABA0, {.enabled = false});
+    RH_ScopedInstall(AddTriPlant, 0x5DB1D0, {.enabled = false});
+    RH_ScopedInstall(DrawTriPlants, 0x5DAD00, {.enabled = false});
+    RH_ScopedInstall(FlushTriPlantBuffer, 0x5DB250, {.enabled = false});
+    RH_ScopedInstall(GetPlantModelsTab, 0x5DACE0, {.enabled = false});
+    RH_ScopedInstall(SetPlantModelsTab, 0x5DACC0, {.enabled = false});
+    RH_ScopedInstall(SetCloseFarAlphaDist, 0x5DABE0, {.enabled = false});
+    RH_ScopedInstall(SetCurrentScanCode, 0x5DABB0, {.enabled = false});
+    RH_ScopedInstall(SetGlobalCameraPos, 0x5DABC0, {.enabled = false});
+    RH_ScopedInstall(SetGlobalWindBending, 0x5DAC00, {.enabled = false});
 
-    RH_ScopedInstall(InterpolateTriangle, 0x5DAB00);
+    RH_ScopedInstall(InterpolateTriangle, 0x5DAB00, {.enabled = false});
 }
 
 // 0x5DD6B0

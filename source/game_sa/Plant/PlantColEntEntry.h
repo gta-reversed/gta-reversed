@@ -6,11 +6,11 @@ class CPlantLocTri;
 
 class CPlantColEntEntry {
 public:
-    CEntity*           m_Entity;
-    CPlantLocTri**     m_Objects;
-    uint16             m_numTriangles;
-    CPlantColEntEntry* m_NextEntry;
-    CPlantColEntEntry* m_PrevEntry;
+    CEntity*           m_pEntity;
+    CPlantLocTri**     m_LocTriArray;
+    uint16             m_nNumTris;
+    CPlantColEntEntry* m_pNextEntry;
+    CPlantColEntEntry* m_pPrevEntry;
 
 public:
     static void InjectHooks();

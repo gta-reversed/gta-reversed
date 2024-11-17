@@ -6,10 +6,10 @@ void CPlantSurfPropMgr::InjectHooks() {
     RH_ScopedClass(CPlantSurfPropMgr);
     RH_ScopedCategory("Plant");
 
-    RH_ScopedInstall(Initialise, 0x5DD6C0);
-    RH_ScopedInstall(AllocSurfProperties, 0x5DD370);
-    RH_ScopedInstall(GetSurfProperties, 0x6F9DE0);
-    RH_ScopedInstall(LoadPlantsDat, 0x5DD3B0);
+    RH_ScopedInstall(Initialise, 0x5DD6C0, {.enabled = false});
+    RH_ScopedInstall(AllocSurfProperties, 0x5DD370, {.enabled = false});
+    RH_ScopedInstall(GetSurfProperties, 0x6F9DE0, {.enabled = false});
+    RH_ScopedInstall(LoadPlantsDat, 0x5DD3B0, {.enabled = false});
 }
 
 // 0x5DD6C0
@@ -17,7 +17,7 @@ bool CPlantSurfPropMgr::Initialise() {
     m_countSurfPropsAllocated = 0;
     rng::fill(m_SurfPropPtrTab, nullptr);
     for (auto& props : m_SurfPropTab) {
-        rng::fill(props.m_Plants, Plant{});
+        rng::fill(props.m_PlantData, CPlantSurfPropPlantData{});
     }
 
     return LoadPlantsDat("PLANTS.DAT");
@@ -28,7 +28,7 @@ void CPlantSurfPropMgr::Shutdown() {
 }
 
 // 0x5DD370
-tSurfPropTab* CPlantSurfPropMgr::AllocSurfProperties(uint16 surfaceId, bool clearAllocCount) {
+CPlantSurfProp* CPlantSurfPropMgr::AllocSurfProperties(uint16 surfaceId, bool clearAllocCount) {
     if (clearAllocCount) {
         m_countSurfPropsAllocated = 0;
         return nullptr;
@@ -43,7 +43,7 @@ tSurfPropTab* CPlantSurfPropMgr::AllocSurfProperties(uint16 surfaceId, bool clea
 }
 
 // 0x6F9DE0
-tSurfPropTab* CPlantSurfPropMgr::GetSurfProperties(uint16 index) {
+CPlantSurfProp* CPlantSurfPropMgr::GetSurfProperties(uint16 index) {
     return index < MAX_SURFACE_PTR_PROPERTIES ? m_SurfPropPtrTab[index] : nullptr;
 }
 
@@ -66,11 +66,11 @@ bool CPlantSurfPropMgr::LoadPlantsDat(const char* filename) {
             continue;
 
         ePlantField field = ePlantField::NAME;
-        tSurfPropTab* surfProperties = nullptr;
+        CPlantSurfProp* surfProperties = nullptr;
         char* lastToken{};
         char* surfaceName = strtok_s(line, " \t", &lastToken);
 
-        Plant* plant = nullptr;
+        CPlantSurfPropPlantData* plant = nullptr;
         do {
             switch (field) {
             case ePlantField::NAME:
@@ -92,55 +92,55 @@ bool CPlantSurfPropMgr::LoadPlantsDat(const char* filename) {
                 }
                 assert(surfProperties);
 
-                plant = &surfProperties->m_Plants[pcdId];
+                plant = &surfProperties->m_PlantData[pcdId];
                 break;
             case ePlantField::SLOT_ID:
-                surfProperties->m_SlotId = atoi(surfaceName);
+                surfProperties->m_nPlantSlotID = atoi(surfaceName);
                 break;
             case ePlantField::MODEL_ID:
-                plant->model_id = atoi(surfaceName);
+                plant->m_nModelID = atoi(surfaceName);
                 break;
             case ePlantField::UV_OFFSET:
-                plant->uv_offset = atoi(surfaceName);
+                plant->m_nTextureID = atoi(surfaceName);
                 break;
             case ePlantField::COLOR_R:
-                plant->color.r = atoi(surfaceName);
+                plant->m_rgbaColor.r = atoi(surfaceName);
                 break;
             case ePlantField::COLOR_G:
-                plant->color.g = atoi(surfaceName);
+                plant->m_rgbaColor.g = atoi(surfaceName);
                 break;
             case ePlantField::COLOR_B:
-                plant->color.b = atoi(surfaceName);
+                plant->m_rgbaColor.b = atoi(surfaceName);
                 break;
             case ePlantField::INTENSITY:
-                plant->intensity = atoi(surfaceName);
+                plant->m_nIntensity = atoi(surfaceName);
                 break;
             case ePlantField::INTENSITY_VARIATION:
-                plant->intensity_variation = atoi(surfaceName);
+                plant->m_nIntensityVar = atoi(surfaceName);
                 break;
             case ePlantField::COLOR_ALPHA:
-                plant->color.a = atoi(surfaceName);
+                plant->m_rgbaColor.a = atoi(surfaceName);
                 break;
             case ePlantField::SCALE_XY:
-                plant->scale_xy = static_cast<float>(atof(surfaceName));
+                plant->m_fScaleXY = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::SCALE_Z:
-                plant->scale_z = static_cast<float>(atof(surfaceName));
+                plant->m_fScaleZ = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::SCALE_VARIATION_XY:
-                plant->scale_variation_xy = static_cast<float>(atof(surfaceName));
+                plant->m_fScaleVarXY = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::SCALE_VARIATION_Z:
-                plant->scale_variation_z = static_cast<float>(atof(surfaceName));
+                plant->m_fScaleVarZ = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::WIND_BENDING_SCALE:
-                plant->wind_blending_scale = static_cast<float>(atof(surfaceName));
+                plant->m_fWindBendScale = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::WIND_BENDING_VARIATION:
-                plant->wind_blending_variation = static_cast<float>(atof(surfaceName));
+                plant->m_fWindBendVar = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::DENSITY:
-                plant->density = static_cast<float>(atof(surfaceName));
+                plant->m_fDensity = static_cast<float>(atof(surfaceName));
                 break;
             default:
                 break;

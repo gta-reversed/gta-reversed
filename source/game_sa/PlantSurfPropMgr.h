@@ -26,32 +26,32 @@ enum class ePlantField {
     ALL_FIELDS_READED
 };
 
-struct Plant {
-    uint16 model_id = uint16(-1);
-    uint16 uv_offset = 0;
-    CRGBA  color{ 255, 255, 255, 255 };
-    uint8  intensity = 255;
-    uint8  intensity_variation = 0;
-    float  scale_xy = 1.0f;
-    float  scale_z = 1.0f;
-    float  scale_variation_xy = 0.0f;
-    float  scale_variation_z  = 0.0f;
-    float  density = 0.0f;
-    float  wind_blending_scale = 0.0f;
-    float  wind_blending_variation = 0.0f;
+struct CPlantSurfPropPlantData {
+    uint16 m_nModelID = uint16(-1);
+    uint16 m_nTextureID = 0;
+    CRGBA  m_rgbaColor{ 255, 255, 255, 255 };
+    uint8  m_nIntensity = 255;
+    uint8  m_nIntensityVar = 0;
+    float  m_fScaleXY = 1.0f;
+    float  m_fScaleZ = 1.0f;
+    float  m_fScaleVarXY = 0.0f;
+    float  m_fScaleVarZ  = 0.0f;
+    float  m_fDensity = 0.0f;
+    float  m_fWindBendScale = 0.0f;
+    float  m_fWindBendVar = 0.0f;
 };
-VALIDATE_SIZE(Plant, 0x28);
+VALIDATE_SIZE(CPlantSurfPropPlantData, 0x28);
 
-struct tSurfPropTab {
-    uint16 m_SlotId;
-    Plant  m_Plants[3];
+struct CPlantSurfProp {
+    uint16 m_nPlantSlotID;
+    CPlantSurfPropPlantData  m_PlantData[3];
 };
 
 class CPlantSurfPropMgr {
 public:
-    static inline std::array<tSurfPropTab*, 178>& m_SurfPropPtrTab = *(std::array<tSurfPropTab*, 178>*)0xC38070;
+    static inline std::array<CPlantSurfProp*, 178>& m_SurfPropPtrTab = *(std::array<CPlantSurfProp*, 178>*)0xC38070;
     static inline uint32& m_countSurfPropsAllocated = *(uint32*)0xC39ED4;
-    static inline tSurfPropTab (&m_SurfPropTab)[MAX_SURFACE_PROPERTIES] = *(tSurfPropTab(*)[57])0xC38338;
+    static inline CPlantSurfProp (&m_SurfPropTab)[MAX_SURFACE_PROPERTIES] = *(CPlantSurfProp(*)[57])0xC38338;
 
 public:
     static void InjectHooks();
@@ -60,6 +60,6 @@ public:
     static void Shutdown();
 
     static bool LoadPlantsDat(const char* filename);
-    static tSurfPropTab* AllocSurfProperties(uint16 surfaceId, bool clearAllocCount);
-    static tSurfPropTab* GetSurfProperties(uint16 index);
+    static CPlantSurfProp* AllocSurfProperties(uint16 surfaceId, bool clearAllocCount);
+    static CPlantSurfProp* GetSurfProperties(uint16 index);
 };

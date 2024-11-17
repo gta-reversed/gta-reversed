@@ -15,10 +15,10 @@ void CPlantLocTri::InjectHooks() {
     RH_ScopedClass(CPlantLocTri);
     RH_ScopedCategory("Plant");
 
-    RH_ScopedInstall(Add, 0x5DC290);
-    RH_ScopedInstall(Release, 0x5DB6D0, {.reversed = true});
+    RH_ScopedInstall(Add, 0x5DC290, {.enabled = false});
+    RH_ScopedInstall(Release, 0x5DB6D0, {.enabled = false});
 
-    RH_ScopedGlobalInstall(GetPlantDensity, 0x5DC210);
+    RH_ScopedGlobalInstall(GetPlantDensity, 0x5DC210, {.enabled = false});
 }
 
 // 0x5DC290
@@ -43,15 +43,15 @@ CPlantLocTri* CPlantLocTri::Add(const CVector& p1, const CVector& p2, const CVec
 
     auto properties = CPlantSurfPropMgr::GetSurfProperties(surface);
     auto densityMult = GetPlantDensity(this);
-    auto density1 = (uint16)(densityMult * properties->m_Plants[0].density);
-    auto density2 = (uint16)(densityMult * properties->m_Plants[1].density);
-    auto density3 = (uint16)(densityMult * properties->m_Plants[2].density);
+    auto density1 = (uint16)(densityMult * properties->m_PlantData[0].m_fDensity);
+    auto density2 = (uint16)(densityMult * properties->m_PlantData[1].m_fDensity);
+    auto density3 = (uint16)(densityMult * properties->m_PlantData[2].m_fDensity);
     if (density1 + density2 + density3 > 0) {
         rng::generate(m_Seed, [] { return CGeneral::GetRandomNumberInRange(0.0f, 1.0f); });
         m_nMaxNumPlants[0] = density1;
         m_nMaxNumPlants[1] = density2;
         m_nMaxNumPlants[2] = density3;
-        CPlantMgr::MoveLocTriToList(CPlantMgr::m_UnusedLocTriListHead, CPlantMgr::m_CloseLocTriListHead[properties->m_SlotId], this);
+        CPlantMgr::MoveLocTriToList(CPlantMgr::m_UnusedLocTriListHead, CPlantMgr::m_CloseLocTriListHead[properties->m_nPlantSlotID], this);
         return this;
     }
 
@@ -73,7 +73,7 @@ void CPlantLocTri::Release() {
         g_procObjMan.ProcessTriangleRemoved(this);
 
     if (!m_createsObjects || m_createsPlants) {
-        auto head = &CPlantMgr::m_CloseLocTriListHead[CPlantSurfPropMgr::GetSurfProperties(m_SurfaceId)->m_SlotId];
+        auto head = &CPlantMgr::m_CloseLocTriListHead[CPlantSurfPropMgr::GetSurfProperties(m_SurfaceId)->m_nPlantSlotID];
 
         if (auto prev = m_PrevTri) {
             if (auto next = m_NextTri) {
