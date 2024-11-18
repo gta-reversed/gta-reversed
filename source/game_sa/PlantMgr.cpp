@@ -8,6 +8,7 @@
 #include "ColHelpers.h"
 #include "ProcObjectMan.h"
 #include <extensions/enumerate.hpp>
+#include "unordered_set"
 
 // 0x5DD100 (todo: move)
 static void AtomicCreatePrelitIfNeeded(RpAtomic* atomic) {
@@ -246,6 +247,19 @@ bool CPlantMgr::ReloadConfig() {
 
 // 0x5DB590
 void CPlantMgr::MoveLocTriToList(CPlantLocTri*& oldList, CPlantLocTri*& newList, CPlantLocTri* triangle) {
+    const auto CheckForInfiniteLoop = [](CPlantLocTri* plantTri) {
+        std::unordered_set<CPlantLocTri*> seenAddresses;
+        for (plantTri; plantTri; plantTri = plantTri->m_NextTri) {
+            if (seenAddresses.contains(plantTri)) {
+                NOTSA_UNREACHABLE();
+            }
+            seenAddresses.insert(plantTri);
+        }
+    };
+
+    CheckForInfiniteLoop(oldList);
+    CheckForInfiniteLoop(newList);
+
     if (auto prev = triangle->m_PrevTri) {
         if (auto next = triangle->m_NextTri) {
             next->m_PrevTri = prev;
@@ -265,6 +279,9 @@ void CPlantMgr::MoveLocTriToList(CPlantLocTri*& oldList, CPlantLocTri*& newList,
     if (auto next = triangle->m_NextTri) {
         next->m_PrevTri = triangle;
     }
+
+    CheckForInfiniteLoop(oldList);
+    CheckForInfiniteLoop(newList);
 }
 
 // 0x5DB5F0
@@ -401,9 +418,22 @@ void CPlantMgr::Render() {
     RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF,      RWRSTATE(NULL));
     RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTION,      RWRSTATE(rwALPHATESTFUNCTIONALWAYS));
 
+    const auto CheckForInfiniteLoop = [](CPlantLocTri* plantTri) {
+        std::unordered_set<CPlantLocTri*> seenAddresses;
+        for (plantTri; plantTri; plantTri = plantTri->m_NextTri) {
+            if (seenAddresses.contains(plantTri)) {
+                NOTSA_UNREACHABLE();
+            }
+            seenAddresses.insert(plantTri);
+        }
+    };
+
     for (auto i = 0; i < 4; i++) {
         auto* plantTri = m_CloseLocTriListHead[i];
         auto* grassTextures = grassTexturesPtr[i];
+
+        CheckForInfiniteLoop(plantTri);
+
         while (plantTri) {
             if (!plantTri->m_createsPlants) {
                 plantTri = plantTri->m_NextTri;
@@ -590,56 +620,63 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEnt
         if ((iTriProcessSkipMask != 0xFAFAFAFA && iTriProcessSkipMask != (i % 8)) || entry.m_LocTriArray[i])
             continue;
 
-        if (m_UnusedLocTriListHead) {
-            const auto& tri = cd->m_pTriangles[i];
+        if (!m_UnusedLocTriListHead)
+            continue;
+    
+        const auto& tri = cd->m_pTriangles[i];
 
-            CVector vertices[3];
-            cd->GetTrianglePoint(vertices[0], tri.vA);
-            cd->GetTrianglePoint(vertices[1], tri.vB);
-            cd->GetTrianglePoint(vertices[2], tri.vC);
+        CVector vertices[3];
+        cd->GetTrianglePoint(vertices[0], tri.vA);
+        cd->GetTrianglePoint(vertices[1], tri.vB);
+        cd->GetTrianglePoint(vertices[2], tri.vC);
 
-            TransformPoints (vertices, 3, entity->GetMatrix(), vertices);
+        TransformPoints (vertices, 3, entity->GetMatrix(), vertices);
 
-            CVector cmp[] = {
-                vertices[1],
-                vertices[2],
-                CVector::AverageN(vertices, 3),
-                (vertices[0] + vertices[1]) / 2.0f,
-                (vertices[0] + vertices[2]) / 2.0f,
-                (vertices[1] + vertices[2]) / 2.0f
-            };
+        CVector cmp[] = {
+            vertices[0],
+            vertices[1],
+            vertices[2],
+            CVector::AverageN(vertices, 3),
+            (vertices[0] + vertices[1]) / 2.0f,
+            (vertices[0] + vertices[2]) / 2.0f,
+            (vertices[1] + vertices[2]) / 2.0f
+        };
 
-            if (rng::none_of(cmp, [center](auto v) { return DistanceBetweenPointsSquared(v, center) < 10000.0f; }))
-                continue;
+        if (rng::none_of(cmp, [center](auto v) { return DistanceBetweenPointsSquared(v, center) < 10000.0f; }))
+            continue;
 
-            auto createsPlants = g_surfaceInfos.CreatesPlants(tri.m_nMaterial);
-            auto createsObjects = g_surfaceInfos.CreatesPlants(tri.m_nMaterial);
+        auto createsPlants = g_surfaceInfos.CreatesPlants(tri.m_nMaterial);
+        auto createsObjects = g_surfaceInfos.CreatesObjects(tri.m_nMaterial);
 
-            if (!createsPlants || !createsObjects)
-                continue;
+        if (!createsPlants && !createsObjects)
+            continue;
 
-            const auto unusedHead = m_UnusedLocTriListHead;
-            if (unusedHead->Add(
-                vertices[0],
-                vertices[1],
-                vertices[2],
-                tri.m_nMaterial,
-                tri.m_nLight,
-                createsPlants,
-                createsObjects)) {
-                entry.m_LocTriArray[i] = unusedHead;
+        const auto unusedHead = m_UnusedLocTriListHead;
+        bool bAdded = unusedHead->Add(
+            vertices[0],
+            vertices[1],
+            vertices[2],
+            tri.m_nMaterial,
+            tri.m_nLight,
+            createsPlants,
+            createsObjects
+        );
 
-                if (unusedHead->m_createsObjects) {
-                    if (g_procObjMan.ProcessTriangleAdded(unusedHead)) {
-                        if (!unusedHead->m_createsPlants) {
-                            unusedHead->Release();
-                        }
-                    } else {
-                        unusedHead->m_createdObjects = true;
-                    }
+        if (!bAdded)
+            continue;
+
+        entry.m_LocTriArray[i] = unusedHead;
+        if (unusedHead->m_createsObjects) {
+            auto numTrianglesAdded = g_procObjMan.ProcessTriangleAdded(unusedHead);
+            if (numTrianglesAdded == 0) {
+                if (!unusedHead->m_createsPlants) {
+                    unusedHead->Release();
                 }
+            } else {
+                unusedHead->m_createdObjects = true;
             }
         }
+
     }
 }
 

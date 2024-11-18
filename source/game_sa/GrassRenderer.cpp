@@ -12,17 +12,17 @@ void CGrassRenderer::InjectHooks() {
 
     RH_ScopedInstall(Initialise, 0x5DD6B0, {.enabled = false});
     RH_ScopedInstall(Shutdown, 0x5DABA0, {.enabled = false});
-    RH_ScopedInstall(AddTriPlant, 0x5DB1D0, {.enabled = false});
+    RH_ScopedInstall(AddTriPlant, 0x5DB1D0);
     RH_ScopedInstall(DrawTriPlants, 0x5DAD00, {.enabled = false});
-    RH_ScopedInstall(FlushTriPlantBuffer, 0x5DB250, {.enabled = false});
-    RH_ScopedInstall(GetPlantModelsTab, 0x5DACE0, {.enabled = false});
-    RH_ScopedInstall(SetPlantModelsTab, 0x5DACC0, {.enabled = false});
-    RH_ScopedInstall(SetCloseFarAlphaDist, 0x5DABE0, {.enabled = false});
-    RH_ScopedInstall(SetCurrentScanCode, 0x5DABB0, {.enabled = false});
-    RH_ScopedInstall(SetGlobalCameraPos, 0x5DABC0, {.enabled = false});
-    RH_ScopedInstall(SetGlobalWindBending, 0x5DAC00, {.enabled = false});
+    RH_ScopedInstall(FlushTriPlantBuffer, 0x5DB250);
+    RH_ScopedInstall(GetPlantModelsTab, 0x5DACE0);
+    RH_ScopedInstall(SetPlantModelsTab, 0x5DACC0);
+    RH_ScopedInstall(SetCloseFarAlphaDist, 0x5DABE0);
+    RH_ScopedInstall(SetCurrentScanCode, 0x5DABB0);
+    RH_ScopedInstall(SetGlobalCameraPos, 0x5DABC0);
+    RH_ScopedInstall(SetGlobalWindBending, 0x5DAC00);
 
-    RH_ScopedInstall(InterpolateTriangle, 0x5DAB00, {.enabled = false});
+    RH_ScopedInstall(GenPointInTriangle, 0x5DAB00);
 }
 
 // 0x5DD6B0
@@ -46,15 +46,11 @@ void CGrassRenderer::AddTriPlant(PPTriPlant* srcPlant, uint32 plantModelSet) {
     gTriPlantBuf.IncreaseBufferIndex(plantModelSet, 1);
 }
 
+// https://learn.microsoft.com/en-us/cpp/preprocessor/optimize?view=msvc-170
+// Needed to keep the PRNG working fine, otherwise some rand() calls are getting optimized out
+#pragma optimize("", off)
 // 0x5DAD00
 void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, RpAtomic** plantModelsTab) {
-    { // debug
-        CFont::InitPerFrame();
-        char buf[32]{};
-        notsa::format_to_sz(buf, "hook {}", numTriPlants);
-        CFont::PrintString(100, 200, GxtCharFromAscii(buf));
-    }
-
     const auto farDist = [] { // OG: located in loop
         switch (g_fx.GetFxQuality()) {
         case FX_QUALITY_LOW:
@@ -67,8 +63,8 @@ void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, Rp
         }
     }();
     for (const auto& plant : std::span{triPlants, (size_t)numTriPlants}) {
-        const auto nearDist = DistanceBetweenPoints(m_vecCameraPos, plant.Center);
-        if (nearDist > farDist + 20.0f) {
+        const auto camDist = DistanceBetweenPoints(m_vecCameraPos, plant.Center);
+        if (camDist > farDist + 20.0f) {
             continue;
         }
 
@@ -76,13 +72,15 @@ void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, Rp
         auto frame = RpAtomicGetFrame(atomic);
 
         // Original implementation used srand(), which is absolutely not thread safe, and caused all the plants to just jump randomly all over the screen.
-        std::mt19937                      randomGen(*(uint32*)&plant.seed);
+        std::mt19937                      randomGen(0);
         std::uniform_real_distribution<float>    randomDistribution(0, 1.f);
-        //srand((uint32)plant.seed);
+
+        // Due to how this is set up, this is always srand(0). the seed is betwee [0:1), so after the cast to int, we can't have any other result.
+        //srand(static_cast<uint32>(plant.seed));
 
         RwRGBA newColorIntensity{};
-        if (nearDist >= farDist) {
-            const auto alpha = std::floor((farDist + 20.0f - nearDist) * (float)plant.color.a / 20.0f);
+        if (camDist >= farDist) {
+            const auto alpha = std::floor((farDist + 20.0f - camDist) * (float)plant.color.a / 20.0f);
             newColorIntensity.alpha = (uint8)std::clamp(alpha, 0.0f, 255.0f);
         } else {
             newColorIntensity.alpha = plant.color.a;
@@ -99,39 +97,42 @@ void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, Rp
         RpGeometryForAllMaterials(RpAtomicGetGeometry(atomic), CPPTriPlantBuffer::SetGrassMaterialCB, &newColorIntensity);
 
         for (auto j = 0; j < plant.num_plants; j++) {
-            CVector posn = InterpolateTriangle(
+            volatile auto randX = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
+            volatile auto randY = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
+            CVector posn = GenPointInTriangle(
                 posn,
                 plant.V1,
                 plant.V2,
                 plant.V3,
-                randomDistribution(randomGen),
-                randomDistribution(randomGen)
+                randX,
+                randY
             );
 
+            //Intentally placed here, need to keep them before the if check below so that the PRNG stays consistent
+            volatile auto rand1      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
+            volatile auto rand2      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
+            volatile auto rand3      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
             if (DistanceBetweenPoints(m_vecCameraPos, posn) < m_closeDist - 2.0f) {
-                // Intentionally discard the random value 3 times to keep the seed consistent.
-                static_cast<void>(randomDistribution(randomGen));
-                static_cast<void>(randomDistribution(randomGen));
-                static_cast<void>(randomDistribution(randomGen));
                 continue;
             }
 
             RwFrameTranslate(frame, &posn, rwCOMBINEREPLACE);
 
-            const auto xy = randomDistribution(randomGen) * plant.scale_var_xy + plant.scale.x;
+            const auto xy = rand1 * plant.scale_var_xy + plant.scale.x;
             RwFrameGetMatrix(frame)->right.x *= xy;
             RwFrameGetMatrix(frame)->up.y *= xy;
+            RwFrameGetMatrix(frame)->at.z *= (rand2 * plant.scale_var_z + plant.scale.y) ;
 
-            const auto xy1                = (randomDistribution(randomGen) * plant.wind_bend_var + 1.0f) * (m_windBending * plant.wind_bend_scale);
+            const auto xy1 = (rand3 * plant.wind_bend_var + 1.0f) * (m_windBending * plant.wind_bend_scale);
             RwFrameGetMatrix(frame)->at.x = xy1;
             RwFrameGetMatrix(frame)->at.y = xy1;
-            RwFrameGetMatrix(frame)->at.z = (randomDistribution(randomGen) * plant.scale_var_z + plant.scale.y) * RwFrameGetMatrix(frame)->at.z;
 
             RwMatrixUpdate(RwFrameGetMatrix(frame));
-            atomic->renderCallBack(atomic);
+            RpAtomicRender(atomic);
         }
     }
 }
+#pragma optimize("", on)
 
 // 0x5DB250
 void CGrassRenderer::FlushTriPlantBuffer() {
@@ -139,7 +140,7 @@ void CGrassRenderer::FlushTriPlantBuffer() {
 }
 
 // 0x5DACE0
-void* CGrassRenderer::GetPlantModelsTab(uint32 type) {
+RpAtomic** CGrassRenderer::GetPlantModelsTab(uint32 type) {
     return gTriPlantBuf.GetPlantModelsTab(type);
 }
 
@@ -172,7 +173,7 @@ void CGrassRenderer::SetGlobalWindBending(float bending) {
 // Interpolates inside the triangle (v1,v2,v3) with specific step values
 // Original name unknown
 // 0x5DAB00 (inlined)
-CVector& CGrassRenderer::InterpolateTriangle(CVector& outPosn, const CVector& v1, const CVector& v2, const CVector& v3, float stepA, float stepB) {
+CVector& CGrassRenderer::GenPointInTriangle(CVector& outPosn, const CVector& v1, const CVector& v2, const CVector& v3, float stepA, float stepB) {
     if (stepA + stepB > 1.0f) {
         stepA = 1.0f - stepA;
         stepB = 1.0f - stepB;
