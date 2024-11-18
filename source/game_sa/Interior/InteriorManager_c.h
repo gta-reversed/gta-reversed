@@ -6,6 +6,10 @@
 #include "InteriorObject.h"
 #include "InteriorEffectInfo_t.h"
 
+namespace notsa::debugmodules {
+    class InteriorDebugModule;
+};
+
 class InteriorManager_c {
 public:
     static void InjectHooks();
@@ -55,16 +59,22 @@ public:
     int32 FindStealableObjectId(CEntity* entity) const;
     int32 FindStealableObjectId(int32 interiorId, int32 modelId, CVector point) const;
     bool HasInteriorHadStealDataSetup(Interior_c* interior) const;
+    void SetupInteriorStealData(Interior_c* interior); // notsa
     int8 IsGroupActive(int32 group) const;
     InteriorGroup_c* GetPedsInteriorGroup(const CPed* ped);
     void SetEntryExitPtr(CEntryExit* exit);
-    bool GetBoundingBox(FurnitureEntity_c* entity, CVector* pos);
+    bool GetBoundingBox(FurnitureEntity_c* entity, CVector(&corners)[4]);
     void ActivatePeds(bool enable);
 
     auto GetInteriorIds() const { return m_InteriorIds | rng::views::take(m_InteriorCount); }
     auto GetObjects() const { return m_Objects | rng::views::take(m_ObjectCount); }
+    auto GetEnEx() const { return m_EnEx; }
+
+    auto GetLastTimePickupsGenerated() const { return m_TimeLastPickupsGenerated; }
 
 private:
+    friend class notsa::debugmodules::InteriorDebugModule;
+
     Interior_c               m_Interiors[8]{};               // 0x0
     TList_c<Interior_c>      m_InteriorPool{};               // 0x3CA0
     InteriorGroup_c          m_InteriorGroups[8]{};          // 0x3CAC

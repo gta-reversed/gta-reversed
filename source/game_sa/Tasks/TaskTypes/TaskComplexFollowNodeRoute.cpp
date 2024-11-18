@@ -286,25 +286,25 @@ void CTaskComplexFollowNodeRoute::ComputePathNodes(CPed const* ped) {
 
                 if (pedInt) {
                     if (pedInt != routeFirstNodeInt) {
-                        if (!ThePaths.These2NodesAreAdjacent(routeFirstNode, pedInt->GetNodeAddress())) {
+                        if (!ThePaths.These2NodesAreAdjacent(routeFirstNode, pedInt->GetDoorNodeAddress())) {
                             m_NodeRoute->Clear();
                             ThePaths.ComputeRoute( // 0x66F38D
                                 PATH_TYPE_PED,
                                 ped->GetPosition(),
                                 m_TargetPt,
-                                pedInt->GetNodeAddress(),
+                                pedInt->GetDoorNodeAddress(),
                                 *m_NodeRoute
                             );
                         }
                     }
                 } else if (routeFirstNodeInt) {
-                    if (!ThePaths.These2NodesAreAdjacent(routeFirstNode, routeFirstNodeInt->GetNodeAddress())) {
+                    if (!ThePaths.These2NodesAreAdjacent(routeFirstNode, routeFirstNodeInt->GetDoorNodeAddress())) {
                         m_NodeRoute->Clear();
                         ThePaths.ComputeRoute( // 0x66F3E0
                             PATH_TYPE_PED,
                             ped->GetPosition(),
                             m_TargetPt,
-                            routeFirstNodeInt->GetNodeAddress(),
+                            routeFirstNodeInt->GetDoorNodeAddress(),
                             *m_NodeRoute
                         );
                         m_NodeRoute->Reverse();

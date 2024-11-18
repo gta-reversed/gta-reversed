@@ -8,6 +8,7 @@
 
 #include "Vector.h"
 #include "RGBA.h"
+#include "Interior/Interior_c.h"
 
 enum e2dEffectType : uint8 {
     EFFECT_LIGHT         = 0,
@@ -15,7 +16,7 @@ enum e2dEffectType : uint8 {
     EFFECT_MISSING_OR_UNK= 2,
     EFFECT_ATTRACTOR     = 3,
     EFFECT_SUN_GLARE     = 4,
-    EFFECT_INTERIOR      = 5,
+    EFFECT_INTERIOR      = 5, // AKA EFFECT_FURNITURE
     EFFECT_ENEX          = 6,
     EFFECT_ROADSIGN      = 7,
     EFFECT_TRIGGER_POINT = 8, // todo: EFFECT_SLOTMACHINE_WHEEL?
@@ -57,7 +58,7 @@ enum e2dCoronaFlashType : uint8 {
 };
 
 struct tEffectLight {
-    static inline constexpr e2dEffectType Type = EFFECT_LIGHT;
+    static inline constexpr e2dEffectType FxType = EFFECT_LIGHT;
 
     RwRGBA m_color;
     float  m_fCoronaFarClip;
@@ -99,14 +100,14 @@ struct tEffectLight {
 VALIDATE_SIZE(tEffectLight, 0x30);
 
 struct tEffectParticle {
-    static inline constexpr e2dEffectType Type = EFFECT_PARTICLE;
+    static inline constexpr e2dEffectType FxType = EFFECT_PARTICLE;
 
     char m_szName[24];
 };
 VALIDATE_SIZE(tEffectParticle, 0x18);
 
 struct tEffectPedAttractor {
-    static inline constexpr e2dEffectType Type = EFFECT_ATTRACTOR;
+    static inline constexpr e2dEffectType FxType = EFFECT_ATTRACTOR;
 
     RwV3d             m_vecQueueDir;
     RwV3d             m_vecUseDir;
@@ -120,7 +121,7 @@ struct tEffectPedAttractor {
 VALIDATE_SIZE(tEffectPedAttractor, 0x30);
 
 struct tEffectEnEx {
-    static inline constexpr e2dEffectType Type = EFFECT_ENEX;
+    static inline constexpr e2dEffectType FxType = EFFECT_ENEX;
 
     float m_fEnterAngle;
     RwV2d m_vecRadius;
@@ -151,7 +152,7 @@ struct CRoadsignAttrFlags {
 VALIDATE_SIZE(CRoadsignAttrFlags, 0x2);
 
 struct tEffectRoadsign {
-    static inline constexpr e2dEffectType Type = EFFECT_ROADSIGN;
+    static inline constexpr e2dEffectType FxType = EFFECT_ROADSIGN;
 
     RwV2d              m_vecSize;
     RwV3d              m_vecRotation;
@@ -162,14 +163,14 @@ struct tEffectRoadsign {
 VALIDATE_SIZE(tEffectRoadsign, 0x20);
 
 struct tEffectSlotMachineWheel {
-    static inline constexpr e2dEffectType Type = EFFECT_TRIGGER_POINT;
+    static inline constexpr e2dEffectType FxType = EFFECT_TRIGGER_POINT;
 
     int32 m_nId;
 };
 VALIDATE_SIZE(tEffectSlotMachineWheel, 0x4);
 
 struct tEffectCoverPoint {
-    static inline constexpr e2dEffectType Type = EFFECT_COVER_POINT;
+    static inline constexpr e2dEffectType FxType = EFFECT_COVER_POINT;
 
     RwV2d m_vecDirection;
     uint8 m_nType;
@@ -177,7 +178,7 @@ struct tEffectCoverPoint {
 VALIDATE_SIZE(tEffectCoverPoint, 0xC);
 
 struct tEffectEscalator {
-    static inline constexpr e2dEffectType Type = EFFECT_ESCALATOR;
+    static inline constexpr e2dEffectType FxType = EFFECT_ESCALATOR;
 
     RwV3d m_vecBottom;
     RwV3d m_vecTop;
@@ -187,12 +188,12 @@ struct tEffectEscalator {
 VALIDATE_SIZE(tEffectEscalator, 0x28);
 
 struct tEffectInterior {
-    static inline constexpr e2dEffectType Type = EFFECT_INTERIOR;
+    static inline constexpr e2dEffectType FxType = EFFECT_INTERIOR;
 
-    uint8 m_type;
+    eInteriorTypeS8 m_IntType;
     int8  m_groupId;
-    uint8 m_width;
-    uint8 m_depth;
+    uint8 m_width; // max tiles on X axis
+    uint8 m_depth; // max tiles on Y axis
     uint8 m_height;
     int8  m_door;
     int8  m_lDoorStart;
@@ -212,8 +213,12 @@ struct tEffectInterior {
     int8  m_noGoWidth[3];
     int8  m_noGoDepth[3];
     uint8 m_seed;
-    uint8 m_status;
+    uint8 m_status; // AKA wealth
     float m_rot;
+
+    float GetWidth() const { return static_cast<float>(m_width); }
+    float GetHeight() const { return static_cast<float>(m_height); }
+    float GetDepth() const { return static_cast<float>(m_depth); }
 };
 VALIDATE_SIZE(tEffectInterior, 0x34 - 0x10);
 
@@ -255,7 +260,7 @@ public:
 
     template<std::derived_from<C2dEffectBase> T>
     static T* DynCast(C2dEffectBase* p) {
-        return p->m_type == T::Type
+        return p->m_type == T::FxType
             ? reinterpret_cast<T*>(p)
             : nullptr;
     }
