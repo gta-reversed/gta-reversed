@@ -8,7 +8,6 @@
 #include "ColHelpers.h"
 #include "ProcObjectMan.h"
 #include <extensions/enumerate.hpp>
-#include "unordered_set"
 
 // 0x5DD100 (todo: move)
 static void AtomicCreatePrelitIfNeeded(RpAtomic* atomic) {

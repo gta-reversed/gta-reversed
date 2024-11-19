@@ -4,7 +4,6 @@
 #include "PlantMgr.h"
 #include "PlantSurfPropMgr.h"
 #include "ProcObjectMan.h"
-#include <unordered_set>
 
 // 0x5DC210
 float GetPlantDensity(CPlantLocTri* plant) {
