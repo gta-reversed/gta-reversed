@@ -73,21 +73,8 @@ void CPlantLocTri::Release() {
     if (m_createdObjects)
         g_procObjMan.ProcessTriangleRemoved(this);
 
-    const auto CheckForInfiniteLoop = [](CPlantLocTri* plantTri) {
-        std::unordered_set<CPlantLocTri*> seenAddresses;
-        for (plantTri; plantTri; plantTri = plantTri->m_NextTri) {
-            if (seenAddresses.contains(plantTri)) {
-                NOTSA_UNREACHABLE();
-            }
-            seenAddresses.insert(plantTri);
-        }
-    };
-
     if (!m_createsObjects || m_createsPlants) {
         auto head = &CPlantMgr::m_CloseLocTriListHead[CPlantSurfPropMgr::GetSurfProperties(m_SurfaceId)->m_nPlantSlotID];
-        CheckForInfiniteLoop(*head);
-        CheckForInfiniteLoop(CPlantMgr::m_UnusedLocTriListHead);
-
         if (auto prev = m_PrevTri) {
             if (auto next = m_NextTri) {
                 next->m_PrevTri = prev;
@@ -108,12 +95,8 @@ void CPlantLocTri::Release() {
             m_NextTri->m_PrevTri = this;
         }
 
-        CheckForInfiniteLoop(CPlantMgr::m_CloseLocTriListHead[CPlantSurfPropMgr::GetSurfProperties(m_SurfaceId)->m_nPlantSlotID]);
-        CheckForInfiniteLoop(CPlantMgr::m_UnusedLocTriListHead);
         m_SurfaceId = 0xFF;
     } else {
-        CheckForInfiniteLoop(CPlantMgr::m_CloseLocTriListHead[3]);
-        CheckForInfiniteLoop(CPlantMgr::m_UnusedLocTriListHead);
         if (auto prev = m_PrevTri) {
             if (auto next = m_NextTri) {
                 next->m_PrevTri = prev;
@@ -133,7 +116,6 @@ void CPlantLocTri::Release() {
             m_NextTri->m_PrevTri = this;
         }
 
-        CheckForInfiniteLoop(CPlantMgr::m_UnusedLocTriListHead);
         m_SurfaceId = 0xFE;
     }
 

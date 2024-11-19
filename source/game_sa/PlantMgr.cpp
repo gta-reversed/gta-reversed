@@ -16,17 +16,20 @@ static void AtomicCreatePrelitIfNeeded(RpAtomic* atomic) {
 }
 
 // 0x5DD1E0 (do not hook! it has retarded calling conv)
-static bool GeometrySetPrelitConstantColor(RpGeometry* geometry, uint32 color) {
-    if ((geometry->flags & rpGEOMETRYPRELIT) == 0) {
+static bool GeometrySetPrelitConstantColor(RpGeometry* geometry, RwRGBA color) {
+    if ((RpGeometryGetFlags(geometry) & rpGEOMETRYPRELIT) == 0) {
         return false;
     }
 
-    RpGeometryLock(geometry, 4095);
-    if (geometry->preLitLum) {
-        std::memset(geometry->preLitLum, CRGBA(255, 255, 255, 255).ToInt(), geometry->numVertices);
+    RpGeometryLock(geometry, rpGEOMETRYLOCKALL);
+    auto prelit = RpGeometryGetPreLightColors(geometry);
+    if (prelit) {
+        auto numVertices = RpGeometryGetNumVertices(geometry);
+        for (auto i = 0; i < numVertices; ++i) {
+            prelit[i] = color;
+        }
     }
     RpGeometryUnlock(geometry);
-
     return true;
 }
 
@@ -46,18 +49,21 @@ static bool LoadModels(std::initializer_list<const char*> models, RpAtomic** ato
         SetFilterModeOnAtomicsTextures(firstAtomic, rwFILTERMIPLINEAR);
         AtomicCreatePrelitIfNeeded(firstAtomic);
 
-        auto geometry = firstAtomic->geometry;
-        RpGeometryLock(geometry, 4095); // todo: enum?
-        geometry->flags = (geometry->flags & 0xFFFFFF8F) | rpGEOMETRYMODULATEMATERIALCOLOR;
+        auto geometry = RpAtomicGetGeometry(firstAtomic);
+        RpGeometryLock(geometry, rpGEOMETRYLOCKALL);
+        RpGeometryGetFlags(geometry) &= 0xFFFFFF8F; // Negate bit 5 and 6, nothing seems to match it currently
+        RpGeometryGetFlags(geometry) |= rpGEOMETRYMODULATEMATERIALCOLOR;
         RpGeometryUnlock(geometry);
-        GeometrySetPrelitConstantColor(geometry, CRGBA(255, 255, 255, 255).ToInt());
+        GeometrySetPrelitConstantColor(geometry, RwRGBA{ 255, 255, 255, 255 });
 
-        auto data = 0x32000000;
-        RpGeometryForAllMaterials(geometry, [](RpMaterial* material, void* data) {
-            material->color = *(RwRGBA*)data;
-            RpMaterialSetTexture(material, tex_gras07Si);
-            return material;
-        }, &data);
+
+        RwRGBA color = { 0, 0, 0, 50 };
+        RpGeometryForAllMaterials(geometry, [](RpMaterial* material, void* color) {
+                RpMaterialSetColor(material, (RwRGBA*)color);
+                RpMaterialSetTexture(material, tex_gras07Si);
+                return material;
+            }, &color
+        );
 
         auto atomicCopy = RpAtomicClone(firstAtomic);
         RpClumpDestroy(clump);
@@ -73,9 +79,9 @@ void CPlantMgr::InjectHooks() {
     RH_ScopedClass(CPlantMgr);
     RH_ScopedCategory("Plant");
 
-    RH_ScopedInstall(Initialise, 0x5DD910, {.enabled = false});
-    RH_ScopedInstall(Shutdown, 0x5DB940, {.enabled = false});
-    RH_ScopedInstall(ReloadConfig, 0x5DD780, {.enabled = false});
+    RH_ScopedInstall(Initialise, 0x5DD910);
+    RH_ScopedInstall(Shutdown, 0x5DB940);
+    RH_ScopedInstall(ReloadConfig, 0x5DD780);
     RH_ScopedInstall(MoveLocTriToList, 0x5DB590);
     RH_ScopedInstall(MoveColEntToList, 0x5DB5F0);
     RH_ScopedInstall(SetPlantFriendlyFlagInAtomicMI, 0x5DB650);
@@ -165,8 +171,11 @@ bool CPlantMgr::Initialise() {
 
 // 0x5DB940
 void CPlantMgr::Shutdown() {
-    for (auto it = m_CloseColEntListHead; it;) {
-        std::exchange(it, it->m_pNextEntry)->ReleaseEntry();
+    auto* nextEntry = CPlantMgr::m_CloseColEntListHead;
+    while (nextEntry) {
+        auto* curEntry = nextEntry;
+        nextEntry      = curEntry->m_pNextEntry;
+        curEntry->ReleaseEntry();
     }
 
     // Destroy atomics
@@ -212,7 +221,7 @@ bool CPlantMgr::ReloadConfig() {
 
     CPlantLocTri* prevTri = nullptr;
     for (auto& tab : m_LocTrisTab) {
-        tab.m_V1 = tab.m_V2 = tab.m_V3 = CVector{0.0f, 0.0f, 0.0f};
+        tab.m_V1 = tab.m_V2 = tab.m_V3 = tab.m_Center = CVector{0.0f, 0.0f, 0.0f};
         tab.m_SurfaceId = 0u;
         rng::fill(tab.m_nMaxNumPlants, 0u);
 
@@ -247,19 +256,6 @@ bool CPlantMgr::ReloadConfig() {
 
 // 0x5DB590
 void CPlantMgr::MoveLocTriToList(CPlantLocTri*& oldList, CPlantLocTri*& newList, CPlantLocTri* triangle) {
-    const auto CheckForInfiniteLoop = [](CPlantLocTri* plantTri) {
-        std::unordered_set<CPlantLocTri*> seenAddresses;
-        for (plantTri; plantTri; plantTri = plantTri->m_NextTri) {
-            if (seenAddresses.contains(plantTri)) {
-                NOTSA_UNREACHABLE();
-            }
-            seenAddresses.insert(plantTri);
-        }
-    };
-
-    CheckForInfiniteLoop(oldList);
-    CheckForInfiniteLoop(newList);
-
     if (auto prev = triangle->m_PrevTri) {
         if (auto next = triangle->m_NextTri) {
             next->m_PrevTri = prev;
@@ -279,9 +275,6 @@ void CPlantMgr::MoveLocTriToList(CPlantLocTri*& oldList, CPlantLocTri*& newList,
     if (auto next = triangle->m_NextTri) {
         next->m_PrevTri = triangle;
     }
-
-    CheckForInfiniteLoop(oldList);
-    CheckForInfiniteLoop(newList);
 }
 
 // 0x5DB5F0
@@ -391,13 +384,15 @@ float CPlantMgr::CalculateWindBending() {
 
     // TODO: Look CEntity::ModifyMatrixForTreeInWind; it's definitely inlined somewhere. (Not actually inlined anywhere, according to android debug symbols)
     if (CWeather::Wind >= 0.5f) {
-        uint32 v4 = 8 * CTimer::GetTimeInMS() + RandomSeed;
+        auto uiOffset1 = (((RandomSeed + CTimer::GetTimeInMS() * 8) & 0xFFFF) / 4'096) % 16;
+        auto uiOffset2 = (uiOffset1 + 1) % 16;
+        auto fContrib  = static_cast<float>(((RandomSeed + CTimer::GetTimeInMS() * 8) % 4'096)) / 4096.0F;
 
-        // return AIDS;
-        return CWeather::Wind
-            * (CWeather::saTreeWindOffsets[v4 >> 12] * (1.0f - (float)(v4 % 4096) / 4096.0f) + 1.0f)
-            + CWeather::saTreeWindOffsets[((v4 >> 12) + 1) % 16] * ((float)(v4 % 4096) / 4096.0f)
-            * 0.015f;
+        auto fWindOffset = (1.0F - fContrib) * CWeather::saTreeWindOffsets[uiOffset1];
+        fWindOffset += 1.0F + fContrib * CWeather::saTreeWindOffsets[uiOffset2];
+        fWindOffset *= CWeather::Wind;
+        fWindOffset *= 0.015F;
+        return fWindOffset;
     } else {
         return std::sinf(scalingFactor * (float)(CTimer::GetTimeInMS() % 4'096)) / (CWeather::Wind >= 0.2f ? 125.0f : 200.0f);
     }
@@ -418,21 +413,9 @@ void CPlantMgr::Render() {
     RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF,      RWRSTATE(NULL));
     RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTION,      RWRSTATE(rwALPHATESTFUNCTIONALWAYS));
 
-    const auto CheckForInfiniteLoop = [](CPlantLocTri* plantTri) {
-        std::unordered_set<CPlantLocTri*> seenAddresses;
-        for (plantTri; plantTri; plantTri = plantTri->m_NextTri) {
-            if (seenAddresses.contains(plantTri)) {
-                NOTSA_UNREACHABLE();
-            }
-            seenAddresses.insert(plantTri);
-        }
-    };
-
     for (auto i = 0; i < 4; i++) {
         auto* plantTri = m_CloseLocTriListHead[i];
         auto* grassTextures = grassTexturesPtr[i];
-
-        CheckForInfiniteLoop(plantTri);
 
         while (plantTri) {
             if (!plantTri->m_createsPlants) {
