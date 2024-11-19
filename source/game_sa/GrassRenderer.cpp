@@ -46,9 +46,6 @@ void CGrassRenderer::AddTriPlant(PPTriPlant* srcPlant, uint32 plantModelSet) {
     gTriPlantBuf.IncreaseBufferIndex(plantModelSet, 1);
 }
 
-// https://learn.microsoft.com/en-us/cpp/preprocessor/optimize?view=msvc-170
-// Needed to keep the PRNG working fine, otherwise some rand() calls are getting optimized out
-#pragma optimize("", off)
 // 0x5DAD00
 void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, RpAtomic** plantModelsTab) {
     const auto farDist = [] { // OG: located in loop
@@ -101,8 +98,8 @@ void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, Rp
         RpGeometryForAllMaterials(RpAtomicGetGeometry(atomic), CPPTriPlantBuffer::SetGrassMaterialCB, &newColorIntensity);
 
         for (auto j = 0; j < plant.num_plants; j++) {
-            volatile auto randX = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
-            volatile auto randY = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
+            auto randX = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
+            auto randY = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
             CVector posn = GenPointInTriangle(
                 posn,
                 plant.V1,
@@ -113,9 +110,9 @@ void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, Rp
             );
 
             //Intentally placed here, need to keep them before the if check below so that the PRNG stays consistent
-            volatile auto rand1      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
-            volatile auto rand2      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
-            volatile auto rand3      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
+            auto rand1      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
+            auto rand2      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
+            auto rand3      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
             if (DistanceBetweenPoints(m_vecCameraPos, posn) < m_closeDist - 2.0f) {
                 continue;
             }
@@ -136,7 +133,6 @@ void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, Rp
         }
     }
 }
-#pragma optimize("", on)
 
 // 0x5DB250
 void CGrassRenderer::FlushTriPlantBuffer() {
