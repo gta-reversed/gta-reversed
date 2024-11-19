@@ -404,12 +404,12 @@ BOOL CheckDefaultVideoModeSupported() {
 
     const auto SearchVideoMode = [](int32 width, int32 height) {
         for (auto i = 0; i < RwEngineGetNumVideoModes(); i++) {
-            const auto vm = RwEngineGetVideoModeInfo(i);
-            if (vm.width == width && vm.height == height && vm.depth == 32 && (vm.flags & rwVIDEOMODEEXCLUSIVE)) {
+            RwVideoMode vmi;
+            RwEngineGetVideoModeInfo(&vmi, i);
+            if (vmi.width == width && vmi.height == height && vmi.depth == 32 && (vmi.flags & rwVIDEOMODEEXCLUSIVE)) {
                 return i;
             }
         }
-
         return -1;
     };
 
@@ -541,7 +541,9 @@ bool psSelectDevice() {
 
     DEV_LOG("GcurSelVM={}", GcurSelVM);
 
-    if (const auto vmi = RwEngineGetVideoModeInfo(GcurSelVM); vmi.flags & rwVIDEOMODEEXCLUSIVE) {
+    RwVideoMode vmi;
+    RwEngineGetVideoModeInfo(&vmi, GcurSelVM);
+    if (vmi.flags & rwVIDEOMODEEXCLUSIVE) {
         if (const auto rr = GetBestRefreshRate(vmi.width, vmi.height, vmi.depth); rr != -1) {
             DEV_LOG("Refresh Rate: {} Hz", rr);
             RwD3D9EngineSetRefreshRate(rr);

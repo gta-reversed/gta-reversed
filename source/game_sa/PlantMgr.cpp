@@ -55,7 +55,6 @@ static bool LoadModels(std::initializer_list<const char*> models, RpAtomic** ato
         RpGeometryUnlock(geometry);
         GeometrySetPrelitConstantColor(geometry, RwRGBA{ 255, 255, 255, 255 });
 
-
         RwRGBA color = { 0, 0, 0, 50 };
         RpGeometryForAllMaterials(geometry, [](RpMaterial* material, void* color) {
                 RpMaterialSetColor(material, (RwRGBA*)color);

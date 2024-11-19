@@ -522,14 +522,14 @@ bool CTaskSimpleUseGun::ProcessPed(CPed* ped) {
                         const auto targetAngleToUs = CGeneral::LimitRadianAngle(aimDir.Heading() - ped->m_fCurrentRotation);
                         m_SkipAim = [&, this]{
                             if (m_TargetEntity && m_TargetEntity->IsPed() && m_TargetEntity->AsPed()->m_fHealth <= 0.f) {
-                                if (RWDEG2RAD(115.f - 40.f) < targetAngleToUs || targetAngleToUs < -RWDEG2RAD(130.f - 40.f)) {
+                                if (DegreesToRadians(115.f - 40.f) < targetAngleToUs || targetAngleToUs < -DegreesToRadians(130.f - 40.f)) {
                                     return true;
                                 }
                                 if (aimDir.Dot(ped->GetUpVector()) < -0.8f) { // 0x62AE84
                                     return true;
                                 }
                             } else {
-                                if (RWDEG2RAD(115.f) < targetAngleToUs || targetAngleToUs < -RWDEG2RAD(130.f)) {
+                                if (DegreesToRadians(115.f) < targetAngleToUs || targetAngleToUs < -DegreesToRadians(130.f)) {
                                     return true;
                                 }
                             }

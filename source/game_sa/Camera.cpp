@@ -395,7 +395,7 @@ float CCamera::Find3rdPersonQuickAimPitch() const {
 
     // https://mathworld.wolfram.com/images/eps-svg/SOHCAHTOA_500.svg
     const auto adjacent = (0.5f - m_f3rdPersonCHairMultY) * 2.f;
-    const auto opposite = std::tan(RWDEG2RAD(cam.m_fFOV / 2.0f)) * adjacent;
+    const auto opposite = std::tan(DegreesToRadians(cam.m_fFOV / 2.0f)) * adjacent;
     const auto relAngle = cam.m_fVerticalAngle - std::atan(opposite / CDraw::ms_fAspectRatio);
     return -relAngle; // Flip it
 }
