@@ -81,44 +81,42 @@ void CMenuManager::RadarZoomIn() {
         m_vMapOrigin.y -= (y * m_fMapZoom - v115);
     }
 
-    CVector2D radar, screen;
-
-    CRadar::TransformRealWorldPointToRadarSpace(radar, m_vMousePos);
+    auto radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
     CRadar::LimitRadarPoint(radar);
-    CRadar::TransformRadarPointToScreenSpace(screen, radar);
+    auto screen = CRadar::TransformRadarPointToScreenSpace(radar);
 
     while (screen.x > 576.0f) {
         m_vMousePos.x = m_vMousePos.x - 1.0f;
-        CRadar::TransformRealWorldPointToRadarSpace(radar, m_vMousePos);
+        radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
         CRadar::LimitRadarPoint(radar);
-        CRadar::TransformRadarPointToScreenSpace(screen, radar);
+        screen = CRadar::TransformRadarPointToScreenSpace(radar);
     }
 
     while (screen.x < 64.0f) {
         m_vMousePos.x = m_vMousePos.x + 1.0f;
-        CRadar::TransformRealWorldPointToRadarSpace(radar, m_vMousePos);
+        radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
         CRadar::LimitRadarPoint(radar);
-        CRadar::TransformRadarPointToScreenSpace(screen, radar);
+        screen = CRadar::TransformRadarPointToScreenSpace(radar);
     }
 
     while (screen.y < 64.0f) {
         m_vMousePos.y = m_vMousePos.y - 1.0f;
-        CRadar::TransformRealWorldPointToRadarSpace(radar, m_vMousePos);
+        radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
         CRadar::LimitRadarPoint(radar);
-        CRadar::TransformRadarPointToScreenSpace(screen, radar);
+        screen = CRadar::TransformRadarPointToScreenSpace(radar);
     }
 
     while (screen.y > 384.0f) {
         m_vMousePos.y = m_vMousePos.y + 1.0f;
-        CRadar::TransformRealWorldPointToRadarSpace(radar, m_vMousePos);
+        radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
         CRadar::LimitRadarPoint(radar);
-        CRadar::TransformRadarPointToScreenSpace(screen, radar);
+        screen = CRadar::TransformRadarPointToScreenSpace(radar);
     }
 }
 
 // 0x575130
 void CMenuManager::PrintMap() {
-    auto pad = CPad::GetPad(m_nPlayerNumber);
+    const auto pad = CPad::GetPad(m_nPlayerNumber);
     if (CPad::NewKeyState.standardKeys['Z'] || (pad, CPad::NewKeyState.standardKeys['z'])) {
         m_bMapLoaded = false;
         m_bDrawMouse = false;
@@ -128,44 +126,39 @@ void CMenuManager::PrintMap() {
     if (!m_bMapLoaded) {
         if (m_nSysMenu >= 0u) {
             CMenuSystem::SwitchOffMenu(m_nSysMenu % 2); // TODO: Remove `% 2`?
-            m_nSysMenu = 157;
+            m_nSysMenu = CMenuSystem::MENU_UNDEFINED;
         }
 
         m_vMapOrigin = CVector2D(320.0f, 206.0f);
         m_fMapZoom = 140.0f;
-        CVector worldPos = FindPlayerCentreOfWorld_NoSniperShift(0);
-
-        CVector2D out;
-        CVector2D insideRect;
-        CRadar::TransformRealWorldPointToRadarSpace(out, worldPos);
-        CRadar::LimitRadarPoint(out);
-        CRadar::TransformRadarPointToScreenSpace(insideRect, out);
+        auto radar = CRadar::TransformRealWorldPointToRadarSpace(FindPlayerCentreOfWorld_NoSniperShift(0));
+        CRadar::LimitRadarPoint(radar);
+        const auto screen = CRadar::TransformRadarPointToScreenSpace(radar);
 
         // 0x575208
-        const float dx = insideRect.x - m_vMapOrigin.x;
-        const float dy = insideRect.y - m_vMapOrigin.y;
-        const float BOUNDARY = 140.0f;
+        const auto d{ screen - m_vMapOrigin };
+        const auto BOUNDARY = 140.0f;
 
-        if (dx > BOUNDARY) {
-            m_fMapZoom -= (dx - BOUNDARY);
-        } else if (dx < -BOUNDARY) {
-            m_fMapZoom -= (-BOUNDARY - dx);
-        } else if (dy > BOUNDARY) {
-            m_fMapZoom -= (dy - BOUNDARY);
-        } else if (dy < -BOUNDARY) {
-            m_fMapZoom -= (-BOUNDARY - dy);
+        if (d.x > BOUNDARY) {
+            m_fMapZoom -= (d.x - BOUNDARY);
+        } else if (d.x < -BOUNDARY) {
+            m_fMapZoom -= (-BOUNDARY - d.x);
+        } else if (d.y > BOUNDARY) {
+            m_fMapZoom -= (d.y - BOUNDARY);
+        } else if (d.y < -BOUNDARY) {
+            m_fMapZoom -= (-BOUNDARY - d.y);
         }
         m_fMapZoom = std::max(m_fMapZoom, 70.0f);
     }
     const auto zoomFactorForStretchX = m_fMapZoom / 6;
     const auto zoomFactorForStretchY = m_fMapZoom / 5;
-    const CRect rect = {
+    const CRect rect{
         StretchX(60.0f),
         StretchY(60.0f),
         StretchX(580.0f),
         StretchY(388.0f)
     };
-    const CVector2D vect = {
+    const CVector2D vect{
         StretchX(m_vMapOrigin.x - m_fMapZoom),
         StretchY(m_vMapOrigin.y - m_fMapZoom)
     };
@@ -190,19 +183,19 @@ void CMenuManager::PrintMap() {
         if (FrontEndMenuManager.m_bViewRadar) {
             CSprite2d::DrawRect(coords, CRGBA(111, 137, 170, 255)); // blue background
             const auto stretchX = StretchX(zoomFactorForStretchX);
-            const auto stretchYValue = StretchY(zoomFactorForStretchX);
-            for (auto x = 0; x < 12; x++) {
-                for (auto y = 0; y < 12; y++) {
+            const auto stretchY = StretchY(zoomFactorForStretchX);
+            for (auto x = 0u; x < MAX_RADAR_WIDTH_TILES; x++) { // NOTE: Or does it start with Y?
+                for (auto y = 0u; y < MAX_RADAR_HEIGHT_TILES; y++) {
                     if (rect.left - stretchX < x * stretchX + vect.x) {
-                        if (rect.bottom - stretchYValue < y * stretchYValue + vect.y) {
+                        if (rect.bottom - stretchY < y * stretchY + vect.y) {
                             if (rect.right + stretchX > (x + 1) * stretchX + vect.x) {
-                                if (rect.top + stretchYValue > (y + 1) * stretchYValue + vect.y) {
+                                if (rect.top + stretchY > (y + 1) * stretchY + vect.y) {
                                     CRadar::DrawRadarSectionMap(
                                         x, y,
                                         { StretchX(zoomFactorForStretchX) * x + vect.x,
                                           StretchY(zoomFactorForStretchX) * y + vect.y,
-                                          StretchX(zoomFactorForStretchX) * x + 1 + vect.x,
-                                          StretchY(zoomFactorForStretchX) * y + 1 + vect.y }
+                                          StretchX(zoomFactorForStretchX) * (x + 1) + vect.x,
+                                          StretchY(zoomFactorForStretchX) * (y + 1) + vect.y }
                                     );
                                 }
                             }
@@ -252,14 +245,14 @@ void CMenuManager::PrintMap() {
     if (FrontEndMenuManager.m_bViewRadar || !m_bMapLoaded) {
         CRadar::DrawRadarGangOverlay(1);
         if (CTheZones::ZonesRevealed < 80) {
-            for (auto x = 0; x < 10; x++) {
-                for (auto y = 0; y < 10; y++) {
+            for (auto x = 0u; x < MAX_RADAR_WIDTH_TILES - 2; x++) { // NOTE: Or does it start with Y?
+                for (auto y = 0u; y < MAX_RADAR_HEIGHT_TILES - 2; y++) {
                     if (!CTheZones::ZonesVisited[x][y]) {
                         CSprite2d::DrawRect(
                             { StretchX(zoomFactorForStretchY) * x + vect.x,
                               StretchY(zoomFactorForStretchY) * y + vect.y,
-                              StretchX(zoomFactorForStretchY) * x + 1 + vect.x,
-                              StretchY(zoomFactorForStretchY) * y + 1 + vect.y },
+                              StretchX(zoomFactorForStretchY) * (x + 1) + vect.x,
+                              StretchY(zoomFactorForStretchY) * (y + 1) + vect.y },
                             CRGBA(111, 137, 170, 200)
                         ); // radar fog
                     }
@@ -276,7 +269,7 @@ void CMenuManager::PrintMap() {
         }
     }
 
-    // black fields
+    // border between map and background
     // TODO: Fix in Full Map (Press Z)
     CSprite2d::DrawRect(
         { 0.0f, 0.0f, SCREEN_WIDTH, rect.bottom },
@@ -298,6 +291,7 @@ void CMenuManager::PrintMap() {
         CRGBA(100, 100, 100, 255)
     );
 
+    // background
     CSprite2d::DrawRect(
         { 0.0f, 0.0f, SCREEN_WIDTH, rect.bottom - StretchY(4.0f) },
         CRGBA(0, 0, 0, 255)
@@ -340,7 +334,7 @@ void CMenuManager::PrintMap() {
 
         if (m_bMapLegend) {
             const auto iterations = (CRadar::MapLegendCounter - 1) / 2 + 3;
-            float y = StretchY(100.0f);
+            auto y = StretchY(100.0f);
             if (iterations > 0) {
                 y += StretchY(19.0f) * iterations;
             }
@@ -358,8 +352,8 @@ void CMenuManager::PrintMap() {
             CFont::SetScale(StretchX(0.3f), StretchY(0.55f));
             CFont::SetColor(CRGBA(172, 203, 241, 255));
             if (CRadar::MapLegendCounter) {
-                float currentY = StretchY(127.0f);
-                float currentX = StretchX(160.0f);
+                auto currentY = StretchY(127.0f);
+                auto currentX = StretchX(160.0f);
                 const auto midPoint = (CRadar::MapLegendCounter - 1) / 2;
                 for (auto legend = 0; legend < CRadar::MapLegendCounter; ++legend) {
                     CRadar::DrawLegend(
@@ -385,12 +379,7 @@ void CMenuManager::PrintMap() {
     CFont::SetWrapx(SCREEN_WIDTH - 10);
     CFont::SetRightJustifyWrap(10.0f);
     if (m_bMapLoaded) {
-        if (m_nSysMenu < 128u) {
-            CMenuManager::DisplayHelperText("FEH_MPB");
-            m_bMapLoaded = true;
-            return;
-        }
-        CMenuManager::DisplayHelperText("FEH_MPH");
+        CMenuManager::DisplayHelperText(m_nSysMenu < 128u ? "FEH_MPB" : "FEH_MPH");
     }
     m_bMapLoaded = true;
 }
