@@ -110,9 +110,9 @@ void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, Rp
             );
 
             //Intentally placed here, need to keep them before the if check below so that the PRNG stays consistent
-            auto rand1      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
-            auto rand2      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
-            auto rand3      = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
+            auto rand1 = randomDistribution(randomGen); //CGeneral::GetRandomNumberInRange(0.0f, 1.0f);
+            auto rand2 = randomDistribution(randomGen);
+            auto rand3 = randomDistribution(randomGen);
             if (DistanceBetweenPoints(m_vecCameraPos, posn) < m_closeDist - 2.0f) {
                 continue;
             }
