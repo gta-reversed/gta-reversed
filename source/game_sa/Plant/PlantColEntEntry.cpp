@@ -14,74 +14,74 @@ void CPlantColEntEntry::InjectHooks() {
 
 // 0x5DB7D0
 CPlantColEntEntry* CPlantColEntEntry::AddEntry(CEntity* entity) {
-    m_pEntity = entity;
-    entity->RegisterReference(&m_pEntity);
+    m_Entity = entity;
+    entity->RegisterReference(&m_Entity);
 
     auto cd = entity->GetColData();
     if (!cd || cd->m_nNumTriangles < 1u) {
         return nullptr;
     }
-    m_nNumTris = cd->m_nNumTriangles;
-    m_LocTriArray = (CPlantLocTri**)CMemoryMgr::Malloc(m_nNumTris * sizeof(CPlantLocTri*));
-    for (int i = 0; i < m_nNumTris; i++)
-        m_LocTriArray[i] = nullptr;
+    m_numTriangles = cd->m_nNumTriangles;
+    m_Objects = (CPlantLocTri**)CMemoryMgr::Malloc(m_numTriangles * sizeof(CPlantLocTri*));
+    for (int i = 0; i < m_numTriangles; i++)
+        m_Objects[i] = nullptr;
 
-    if (auto* prev = m_pPrevEntry) {
-        if (auto* next = m_pNextEntry) {
-            next->m_pPrevEntry = prev;
-            prev->m_pNextEntry = next;
+    if (auto* prev = m_PrevEntry) {
+        if (auto* next = m_NextEntry) {
+            next->m_PrevEntry = prev;
+            prev->m_NextEntry = next;
         } else {
-            prev->m_pNextEntry = nullptr;
+            prev->m_NextEntry = nullptr;
         }
     } else {
-        CPlantMgr::m_UnusedColEntListHead = m_pNextEntry;
-        if (m_pNextEntry) {
-            m_pNextEntry->m_pPrevEntry = nullptr;
+        CPlantMgr::m_UnusedColEntListHead = m_NextEntry;
+        if (m_NextEntry) {
+            m_NextEntry->m_PrevEntry = nullptr;
         }
     }
-    m_pNextEntry = CPlantMgr::m_CloseColEntListHead;
-    m_pPrevEntry = nullptr;
+    m_NextEntry = CPlantMgr::m_CloseColEntListHead;
+    m_PrevEntry = nullptr;
     CPlantMgr::m_CloseColEntListHead = this;
 
-    if (m_pNextEntry)
-        m_pNextEntry->m_pPrevEntry = this;
+    if (m_NextEntry)
+        m_NextEntry->m_PrevEntry = this;
 
     return this;
 }
 
 // 0x5DB8A0
 void CPlantColEntEntry::ReleaseEntry() {
-    if (m_LocTriArray) {
-        if (m_nNumTris) {
-            for (auto& tri : std::span{m_LocTriArray, m_nNumTris}) {
+    if (m_Objects) {
+        if (m_numTriangles) {
+            for (auto& tri : std::span{m_Objects, m_numTriangles}) {
                 if (tri) {
                     tri->Release();
                 }
             }
         }
-        CMemoryMgr::Free(m_LocTriArray);
-        m_LocTriArray = nullptr;
-        m_nNumTris = 0u;
+        CMemoryMgr::Free(m_Objects);
+        m_Objects = nullptr;
+        m_numTriangles = 0u;
     }
-    CEntity::SafeCleanUpRef(m_pEntity);
-    m_pEntity = nullptr;
+    CEntity::SafeCleanUpRef(m_Entity);
+    m_Entity = nullptr;
 
-    if (auto prev = m_pPrevEntry) {
-        if (auto next = m_pNextEntry) {
-            next->m_pPrevEntry = prev;
-            prev->m_pNextEntry = next;
+    if (auto prev = m_PrevEntry) {
+        if (auto next = m_NextEntry) {
+            next->m_PrevEntry = prev;
+            prev->m_NextEntry = next;
         } else {
-            prev->m_pNextEntry = nullptr;
+            prev->m_NextEntry = nullptr;
         }
     } else {
-        if (CPlantMgr::m_CloseColEntListHead = m_pNextEntry) {
-            CPlantMgr::m_CloseColEntListHead->m_pPrevEntry = nullptr;
+        if (CPlantMgr::m_CloseColEntListHead = m_NextEntry) {
+            CPlantMgr::m_CloseColEntListHead->m_PrevEntry = nullptr;
         }
     }
-    m_pNextEntry = CPlantMgr::m_UnusedColEntListHead;
-    m_pPrevEntry = nullptr;
+    m_NextEntry = CPlantMgr::m_UnusedColEntListHead;
+    m_PrevEntry = nullptr;
     CPlantMgr::m_UnusedColEntListHead = this;
-    if (m_pNextEntry) {
-        m_pNextEntry->m_pPrevEntry = this;
+    if (m_NextEntry) {
+        m_NextEntry->m_PrevEntry = this;
     }
 }

@@ -173,7 +173,7 @@ void CPlantMgr::Shutdown() {
     auto* nextEntry = CPlantMgr::m_CloseColEntListHead;
     while (nextEntry) {
         auto* curEntry = nextEntry;
-        nextEntry      = curEntry->m_pNextEntry;
+        nextEntry      = curEntry->m_NextEntry;
         curEntry->ReleaseEntry();
     }
 
@@ -237,18 +237,18 @@ bool CPlantMgr::ReloadConfig() {
 
     CPlantColEntEntry* prevEntry = nullptr;
     for (auto& tab : m_ColEntCacheTab) {
-        tab.m_pEntity = nullptr;
-        tab.m_LocTriArray = nullptr;
-        tab.m_nNumTris = 0u;
+        tab.m_Entity = nullptr;
+        tab.m_Objects = nullptr;
+        tab.m_numTriangles = 0u;
 
-        tab.m_pPrevEntry = prevEntry;
+        tab.m_PrevEntry = prevEntry;
         if (prevEntry) {
-            prevEntry->m_pNextEntry = &tab;
+            prevEntry->m_NextEntry = &tab;
         }
 
         prevEntry = &tab;
     }
-    m_ColEntCacheTab[255].m_pNextEntry = nullptr;
+    m_ColEntCacheTab[255].m_NextEntry = nullptr;
 
     return true;
 }
@@ -279,24 +279,24 @@ void CPlantMgr::MoveLocTriToList(CPlantLocTri*& oldList, CPlantLocTri*& newList,
 // 0x5DB5F0
 // unused/inlined
 void CPlantMgr::MoveColEntToList(CPlantColEntEntry*& oldList, CPlantColEntEntry*& newList, CPlantColEntEntry* entry) {
-    if (auto prev = entry->m_pPrevEntry) {
-        if (auto next = entry->m_pNextEntry) {
-            next->m_pPrevEntry = prev;
-            prev->m_pNextEntry = next;
+    if (auto prev = entry->m_PrevEntry) {
+        if (auto next = entry->m_NextEntry) {
+            next->m_PrevEntry = prev;
+            prev->m_NextEntry = next;
         } else {
-            prev->m_pNextEntry = nullptr;
+            prev->m_NextEntry = nullptr;
         }
     } else {
-        if (oldList = entry->m_pNextEntry) {
-            oldList->m_pPrevEntry = nullptr;
+        if (oldList = entry->m_NextEntry) {
+            oldList->m_PrevEntry = nullptr;
         }
     }
-    entry->m_pNextEntry = newList;
-    entry->m_pPrevEntry = nullptr;
+    entry->m_NextEntry = newList;
+    entry->m_PrevEntry = nullptr;
     newList = entry;
 
-    if (auto next = entry->m_pNextEntry) {
-        next->m_pPrevEntry = entry;
+    if (auto next = entry->m_NextEntry) {
+        next->m_PrevEntry = entry;
     }
 }
 
@@ -339,7 +339,7 @@ void CPlantMgr::Update(const CVector& cameraPosition) {
     _ColEntityCache_Update(cameraPosition, (++nUpdateEntCache % MAX_PLANTS) != 0);
 
     auto skipMask = nLocTriSkipCounter++ % 8;
-    for (auto head = m_CloseColEntListHead; head; head = head->m_pNextEntry) {
+    for (auto head = m_CloseColEntListHead; head; head = head->m_NextEntry) {
         _ProcessEntryCollisionDataSections(*head, cameraPosition, skipMask);
     }
 }
@@ -353,7 +353,7 @@ void CPlantMgr::PreUpdateOnceForNewCameraPos(const CVector& posn) {
     CGrassRenderer::SetGlobalWindBending(CalculateWindBending());
     _ColEntityCache_Update(posn, false);
 
-    for (auto i = m_CloseColEntListHead; i; i = i->m_pNextEntry) {
+    for (auto i = m_CloseColEntListHead; i; i = i->m_NextEntry) {
         _ProcessEntryCollisionDataSections(*i, posn, 0xFAFAFAFA);
     }
 }
@@ -428,8 +428,8 @@ void CPlantMgr::Render() {
                     continue;
                 }
 
-                auto& plantSurf = surfData->m_PlantData[k];
-                if (plantSurf.m_nModelID == 0xFFFF) {
+                auto& plantSurf = surfData->m_Plants[k];
+                if (plantSurf.model_id == 0xFFFF) {
                     continue;
                 }
 
@@ -441,24 +441,24 @@ void CPlantMgr::Render() {
                 triPlant.seed            = plantTri->m_Seed[k];
                 triPlant.num_plants = (plantTri->m_nMaxNumPlants[k] + 8) & 0xFFF8;
 
-                triPlant.model_id = plantSurf.m_nModelID;
-                triPlant.scale.x  = plantSurf.m_fScaleXY;
-                triPlant.scale.y  = plantSurf.m_fScaleZ;
-                triPlant.texture    = grassTextures[plantSurf.m_nTextureID];
+                triPlant.model_id = plantSurf.model_id;
+                triPlant.scale.x  = plantSurf.scale_xy;
+                triPlant.scale.y  = plantSurf.scale_z;
+                triPlant.texture    = grassTextures[plantSurf.uv_offset];
 
                 auto colorMix = plantTri->m_nLighting.GetCurrentLighting();
                 // Not sure if applicable: colorMix *= 255.f;
-                triPlant.color = plantSurf.m_rgbaColor;
+                triPlant.color = plantSurf.color;
                 auto alpha     = triPlant.color.a;
                 triPlant.color *= colorMix;
                 triPlant.color.a = alpha;
 
-                triPlant.intensity = plantSurf.m_nIntensity;
-                triPlant.intensity_var = plantSurf.m_nIntensityVar;
-                triPlant.scale_var_xy  = plantSurf.m_fScaleVarXY;
-                triPlant.scale_var_z   = plantSurf.m_fScaleVarZ;
-                triPlant.wind_bend_scale = plantSurf.m_fWindBendScale;
-                triPlant.wind_bend_var   = plantSurf.m_fWindBendVar;
+                triPlant.intensity = plantSurf.intensity;
+                triPlant.intensity_var = plantSurf.intensity_variation;
+                triPlant.scale_var_xy  = plantSurf.scale_variation_xy;
+                triPlant.scale_var_z   = plantSurf.scale_variation_z;
+                triPlant.wind_bend_scale = plantSurf.wind_blending_scale;
+                triPlant.wind_bend_var   = plantSurf.wind_blending_variation;
 
                 CGrassRenderer::AddTriPlant(&triPlant, i);
             }
@@ -489,8 +489,8 @@ CPlantColEntEntry* CPlantMgr::_ColEntityCache_FindInCache(CEntity* entity) {
     if (!CPlantMgr::m_CloseColEntListHead)
         return nullptr;
 
-    for (auto i = CPlantMgr ::m_CloseColEntListHead; i; i = i->m_pNextEntry) {
-        if (i->m_pEntity == entity) {
+    for (auto i = CPlantMgr ::m_CloseColEntListHead; i; i = i->m_NextEntry) {
+        if (i->m_Entity == entity) {
             return i;
         }
     }
@@ -511,8 +511,8 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
         auto* nextFastEntry = CPlantMgr::m_CloseColEntListHead;
         while (nextFastEntry) {
             auto* curEntry = nextFastEntry; // ReleaseEntry() Overwrites m_NextEntry pointer, we need to keep track of it before that can happen
-            nextFastEntry  = curEntry->m_pNextEntry;
-            if (!curEntry->m_pEntity) {
+            nextFastEntry  = curEntry->m_NextEntry;
+            if (!curEntry->m_Entity) {
                 curEntry->ReleaseEntry();
             }
         }
@@ -524,8 +524,8 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
     auto* nextEntry = CPlantMgr::m_CloseColEntListHead;
     while (nextEntry) {
         auto* curEntry = nextEntry; // ReleaseEntry() Overwrites m_NextEntry pointer, we need to keep track of it before that can happen
-        nextEntry      = curEntry->m_pNextEntry;
-        if (!curEntry->m_pEntity || _CalcDistanceSqrToEntity(curEntry->m_pEntity, cameraPos) > sq(340.0f) || !curEntry->m_pEntity->IsInCurrentAreaOrBarberShopInterior()) {
+        nextEntry      = curEntry->m_NextEntry;
+        if (!curEntry->m_Entity || _CalcDistanceSqrToEntity(curEntry->m_Entity, cameraPos) > sq(340.0f) || !curEntry->m_Entity->IsInCurrentAreaOrBarberShopInterior()) {
             curEntry->ReleaseEntry();
         }
     }
@@ -543,8 +543,8 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
 
             if (auto mi = item->GetModelInfo(); mi->GetModelType() == MODEL_INFO_ATOMIC && mi->bAtomicFlag0x200) {
                 bool foundEntity = false;
-                for (auto j = m_CloseColEntListHead; j; j = j->m_pNextEntry) {
-                    if (j->m_pEntity == item) {
+                for (auto j = m_CloseColEntListHead; j; j = j->m_NextEntry) {
+                    if (j->m_Entity == item) {
                         foundEntity = true;
                         break;
                     }
@@ -565,8 +565,8 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
 
 // 0x5DCD80
 void CPlantMgr::_ProcessEntryCollisionDataSections(const CPlantColEntEntry& entry, const CVector& center, int32 iTriProcessSkipMask) {
-    const auto cd = entry.m_pEntity->GetColData();
-    const auto numTriangles = entry.m_nNumTris;
+    const auto cd = entry.m_Entity->GetColData();
+    const auto numTriangles = entry.m_numTriangles;
 
     if (!cd || numTriangles != cd->m_nNumTriangles)
         return;
@@ -580,7 +580,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections(const CPlantColEntEntry& entr
     for (const auto& faceGroup : cd->GetFaceGroups()) {
 
         CVector out[2]{};
-        TransformPoints(out, 2, entry.m_pEntity->GetMatrix(), (CVector*)&faceGroup.bb);
+        TransformPoints(out, 2, entry.m_Entity->GetMatrix(), (CVector*)&faceGroup.bb);
         CBox box{};
         box.Set(out[0], out[1]);
         box.Recalc();
@@ -593,13 +593,13 @@ void CPlantMgr::_ProcessEntryCollisionDataSections(const CPlantColEntEntry& entr
 
 // 0x5DC8B0
 void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEntEntry& entry, const CVector& center, int32 iTriProcessSkipMask, int32 start, int32 end) {
-    const auto entity = entry.m_pEntity;
+    const auto entity = entry.m_Entity;
     const auto cd = entity->GetColData();
     if (!cd)
         return;
 
     for (auto i = start; i <= end; i++) {
-        if ((iTriProcessSkipMask != 0xFAFAFAFA && iTriProcessSkipMask != (i % 8)) || entry.m_LocTriArray[i])
+        if ((iTriProcessSkipMask != 0xFAFAFAFA && iTriProcessSkipMask != (i % 8)) || entry.m_Objects[i])
             continue;
 
         if (!m_UnusedLocTriListHead)
@@ -647,13 +647,13 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEnt
         if (!bAdded)
             continue;
 
-        entry.m_LocTriArray[i] = unusedHead;
+        entry.m_Objects[i] = unusedHead;
         if (unusedHead->m_createsObjects) {
             auto numTrianglesAdded = g_procObjMan.ProcessTriangleAdded(unusedHead);
             if (numTrianglesAdded == 0) {
                 if (!unusedHead->m_createsPlants) {
                     unusedHead->Release();
-                    entry.m_LocTriArray[i] = 0;
+                    entry.m_Objects[i] = 0;
                 }
             } else {
                 unusedHead->m_createdObjects = true;
@@ -665,11 +665,11 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEnt
 
 // 0x5DBF20
 void CPlantMgr::_ProcessEntryCollisionDataSections_RemoveLocTris(const CPlantColEntEntry& entry, const CVector& center, int32 iTriProcessSkipMask, int32 start, int32 end) {
-    const auto entity = entry.m_pEntity;
+    const auto entity = entry.m_Entity;
     const auto colModel = entity->GetColModel();
 
     for (auto i = start; i <= end; i++) {
-        if (auto object = entry.m_LocTriArray[i]; object) {
+        if (auto object = entry.m_Objects[i]; object) {
             if (object->m_createsObjects && !object->m_createdObjects && g_procObjMan.ProcessTriangleAdded(object)) {
                 object->m_createdObjects = true;
             }
@@ -678,7 +678,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_RemoveLocTris(const CPlantCol
         if (iTriProcessSkipMask != 0xFAFAFAFA && iTriProcessSkipMask != (i % 8))
             continue;
 
-        if (auto& object = entry.m_LocTriArray[i]; object) {
+        if (auto& object = entry.m_Objects[i]; object) {
             CVector cmp[] = {
                 object->m_V1,
                 object->m_V2,
@@ -698,7 +698,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_RemoveLocTris(const CPlantCol
 
 // 0x5DCF00
 void CPlantMgr::_UpdateLocTris(const CVector& center, int32 a2) {
-    for (auto i = m_CloseColEntListHead; i; i = i->m_pNextEntry) {
+    for (auto i = m_CloseColEntListHead; i; i = i->m_NextEntry) {
         _ProcessEntryCollisionDataSections(*i, center, a2);
     }
 }

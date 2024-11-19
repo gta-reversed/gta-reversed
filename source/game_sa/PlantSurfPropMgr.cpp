@@ -17,7 +17,7 @@ bool CPlantSurfPropMgr::Initialise() {
     m_countSurfPropsAllocated = 0;
     rng::fill(m_SurfPropPtrTab, nullptr);
     for (auto& props : m_SurfPropTab) {
-        rng::fill(props.m_PlantData, CPlantSurfPropPlantData{});
+        rng::fill(props.m_Plants, CPlantSurfPropPlantData{});
     }
 
     return LoadPlantsDat("PLANTS.DAT");
@@ -92,55 +92,55 @@ bool CPlantSurfPropMgr::LoadPlantsDat(const char* filename) {
                 }
                 assert(surfProperties);
 
-                plant = &surfProperties->m_PlantData[pcdId];
+                plant = &surfProperties->m_Plants[pcdId];
                 break;
             case ePlantField::SLOT_ID:
-                surfProperties->m_nPlantSlotID = atoi(surfaceName);
+                surfProperties->m_SlotId = atoi(surfaceName);
                 break;
             case ePlantField::MODEL_ID:
-                plant->m_nModelID = atoi(surfaceName);
+                plant->model_id = atoi(surfaceName);
                 break;
             case ePlantField::UV_OFFSET:
-                plant->m_nTextureID = atoi(surfaceName);
+                plant->uv_offset = atoi(surfaceName);
                 break;
             case ePlantField::COLOR_R:
-                plant->m_rgbaColor.r = atoi(surfaceName);
+                plant->color.r = atoi(surfaceName);
                 break;
             case ePlantField::COLOR_G:
-                plant->m_rgbaColor.g = atoi(surfaceName);
+                plant->color.g = atoi(surfaceName);
                 break;
             case ePlantField::COLOR_B:
-                plant->m_rgbaColor.b = atoi(surfaceName);
+                plant->color.b = atoi(surfaceName);
                 break;
             case ePlantField::INTENSITY:
-                plant->m_nIntensity = atoi(surfaceName);
+                plant->intensity = atoi(surfaceName);
                 break;
             case ePlantField::INTENSITY_VARIATION:
-                plant->m_nIntensityVar = atoi(surfaceName);
+                plant->intensity_variation = atoi(surfaceName);
                 break;
             case ePlantField::COLOR_ALPHA:
-                plant->m_rgbaColor.a = atoi(surfaceName);
+                plant->color.a = atoi(surfaceName);
                 break;
             case ePlantField::SCALE_XY:
-                plant->m_fScaleXY = static_cast<float>(atof(surfaceName));
+                plant->scale_xy = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::SCALE_Z:
-                plant->m_fScaleZ = static_cast<float>(atof(surfaceName));
+                plant->scale_z = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::SCALE_VARIATION_XY:
-                plant->m_fScaleVarXY = static_cast<float>(atof(surfaceName));
+                plant->scale_variation_xy = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::SCALE_VARIATION_Z:
-                plant->m_fScaleVarZ = static_cast<float>(atof(surfaceName));
+                plant->scale_variation_z = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::WIND_BENDING_SCALE:
-                plant->m_fWindBendScale = static_cast<float>(atof(surfaceName));
+                plant->wind_blending_scale = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::WIND_BENDING_VARIATION:
-                plant->m_fWindBendVar = static_cast<float>(atof(surfaceName));
+                plant->wind_blending_variation = static_cast<float>(atof(surfaceName));
                 break;
             case ePlantField::DENSITY:
-                plant->m_fDensity = static_cast<float>(atof(surfaceName));
+                plant->density = static_cast<float>(atof(surfaceName));
                 break;
             default:
                 break;

@@ -27,24 +27,24 @@ enum class ePlantField {
 };
 
 struct CPlantSurfPropPlantData {
-    uint16 m_nModelID = uint16(-1);
-    uint16 m_nTextureID = 0;
-    CRGBA  m_rgbaColor{ 255, 255, 255, 255 };
-    uint8  m_nIntensity = 255;
-    uint8  m_nIntensityVar = 0;
-    float  m_fScaleXY = 1.0f;
-    float  m_fScaleZ = 1.0f;
-    float  m_fScaleVarXY = 0.0f;
-    float  m_fScaleVarZ  = 0.0f;
-    float  m_fDensity = 0.0f;
-    float  m_fWindBendScale = 0.0f;
-    float  m_fWindBendVar = 0.0f;
+    uint16 model_id = uint16(-1);
+    uint16 uv_offset = 0;
+    CRGBA  color{ 255, 255, 255, 255 };
+    uint8  intensity = 255;
+    uint8  intensity_variation = 0;
+    float  scale_xy = 1.0f;
+    float  scale_z = 1.0f;
+    float  scale_variation_xy = 0.0f;
+    float  scale_variation_z  = 0.0f;
+    float  density = 0.0f;
+    float  wind_blending_scale = 0.0f;
+    float  wind_blending_variation = 0.0f;
 };
 VALIDATE_SIZE(CPlantSurfPropPlantData, 0x28);
 
 struct CPlantSurfProp {
-    uint16 m_nPlantSlotID;
-    CPlantSurfPropPlantData  m_PlantData[3];
+    uint16 m_SlotId;
+    CPlantSurfPropPlantData  m_Plants[3];
 };
 
 class CPlantSurfPropMgr {

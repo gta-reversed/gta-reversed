@@ -74,7 +74,7 @@ uint32 ProcObjectDebugModule::IteratePlantLocTriList(CPlantLocTri* plantTri) {
 
 uint32 ProcObjectDebugModule::IteratePlantColLocList(CPlantColEntEntry* colLoc) {
     std::unordered_set<CPlantColEntEntry*> seenAddresses;
-    for (colLoc; colLoc; colLoc = colLoc->m_pNextEntry) {
+    for (colLoc; colLoc; colLoc = colLoc->m_NextEntry) {
         if (seenAddresses.contains(colLoc)) {
             NOTSA_UNREACHABLE();
         }
