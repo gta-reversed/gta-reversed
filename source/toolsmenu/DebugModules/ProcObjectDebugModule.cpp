@@ -3,7 +3,10 @@
 #include "ProcObjectDebugModule.h"
 #include "ProcObjectMan.h"
 #include "PlantMgr.h"
+#include "PlantLocTri.h"
+#include "PlantColEntEntry.h"
 #include "GrassRenderer.h"
+#include <unordered_set>
 
 
 void ProcObjectDebugModule::RenderWindow() {
@@ -26,12 +29,17 @@ void ProcObjectDebugModule::RenderWindow() {
 
         ImGui::InputScalar("CPlantMgr::Update()::nUpdateEntCache", ImGuiDataType_U8, (int8*)0xC09171);
         ImGui::InputScalar("CPlantMgr::Update()::nLocTriSkipCounter", ImGuiDataType_U8, (int8*)0xC09170);
-        
+
+        ImGui::Text("CPlantMgr::m_UnusedLocTriListHead Count: %d", ProcObjectDebugModule::IteratePlantLocTriList(CPlantMgr::m_UnusedLocTriListHead));
+        for (auto i = 0; i < 4; i++) {
+            ImGui::Text("CPlantMgr::m_CloseLocTriListHead[%d] Count: %d", i, ProcObjectDebugModule::IteratePlantLocTriList(CPlantMgr::m_CloseLocTriListHead[i]));
+        }
+        ImGui::Text("CPlantMgr::m_UnusedColEntListHead Count: %d", ProcObjectDebugModule::IteratePlantColLocList(CPlantMgr::m_UnusedColEntListHead));
+        ImGui::Text("CPlantMgr::m_CloseColEntListHead Count: %d", ProcObjectDebugModule::IteratePlantColLocList(CPlantMgr::m_CloseColEntListHead));
 
         ImGui::NewLine();
 
         ImGui::InputScalar("g_GrassCurrentScanCode", ImGuiDataType_U16, &g_GrassCurrentScanCode);
-        ImGui::InputScalar("gTriPlantBuf", ImGuiDataType_U32, &gTriPlantBuf, nullptr, nullptr, "%08X");
         ImGui::Text("CGrassRenderer::m_vecCameraPos %.2f %.2f %.2f", CGrassRenderer::m_vecCameraPos.x, CGrassRenderer::m_vecCameraPos.y, CGrassRenderer::m_vecCameraPos.z);
         ImGui::InputScalar("CGrassRenderer::m_closeDist", ImGuiDataType_Float, &CGrassRenderer::m_closeDist);
         ImGui::InputScalar("CGrassRenderer::m_farDist", ImGuiDataType_Float, &CGrassRenderer::m_farDist);
@@ -43,4 +51,28 @@ void ProcObjectDebugModule::RenderMenuEntry() {
     notsa::ui::DoNestedMenuIL({ "Extra" }, [&] {
         ImGui::MenuItem("Procedural Objects", nullptr, &m_IsOpen);
     });
+}
+
+uint32 ProcObjectDebugModule::IteratePlantLocTriList(CPlantLocTri* plantTri) {
+    std::unordered_set<CPlantLocTri*> seenAddresses;
+    for (plantTri; plantTri; plantTri = plantTri->m_NextTri) {
+        if (seenAddresses.contains(plantTri)) {
+            NOTSA_UNREACHABLE();
+        }
+        seenAddresses.insert(plantTri);
+    }
+
+    return seenAddresses.size();
+}
+
+uint32 ProcObjectDebugModule::IteratePlantColLocList(CPlantColEntEntry* colLoc) {
+    std::unordered_set<CPlantColEntEntry*> seenAddresses;
+    for (colLoc; colLoc; colLoc = colLoc->m_pNextEntry) {
+        if (seenAddresses.contains(colLoc)) {
+            NOTSA_UNREACHABLE();
+        }
+        seenAddresses.insert(colLoc);
+    }
+
+    return seenAddresses.size();
 }

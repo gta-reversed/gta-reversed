@@ -82,7 +82,7 @@ void CPlantMgr::InjectHooks() {
     RH_ScopedInstall(Update, 0x5DCFA0);
     RH_ScopedInstall(PreUpdateOnceForNewCameraPos, 0x5DCF30);
     RH_ScopedInstall(UpdateAmbientColor, 0x5DB310);
-    RH_ScopedInstall(CalculateWindBending, 0x5DB3D0, {.enabled = false}); // <-- probably incorrect?
+    RH_ScopedInstall(CalculateWindBending, 0x5DB3D0);
     RH_ScopedInstall(_ColEntityCache_Add, 0x5DBEB0);
     RH_ScopedInstall(_ColEntityCache_FindInCache, 0x5DB530);
     RH_ScopedInstall(_ColEntityCache_Remove, 0x5DBEF0);
@@ -379,19 +379,19 @@ void CPlantMgr::UpdateAmbientColor() {
 // 0x5DB3D0
 float CPlantMgr::CalculateWindBending() {
     static uint32& calculateTimer = *(uint32*)0xC0916C;
-    static uint16& seed = *(uint16*)0xC09168;
+    static uint16& RandomSeed = *(uint16*)0xC09168;
 
     if ((calculateTimer % 2) == 0) {
         calculateTimer++;
-        seed = CGeneral::GetRandomNumber();
+        RandomSeed = CGeneral::GetRandomNumber();
     }
 
-    // 36 times the earth's radius, in AU.
-    constexpr float radius_x36 = 0.0015332f;
+    // The 2PI approximation here is nice, they could have went for `PI = 3` tho.
+    constexpr float scalingFactor = 6.28f / 4096.f;
 
-    // TODO: Look CEntity::ModifyMatrixForTreeInWind; it's definitely inlined somewhere.
+    // TODO: Look CEntity::ModifyMatrixForTreeInWind; it's definitely inlined somewhere. (Not actually inlined anywhere, according to android debug symbols)
     if (CWeather::Wind >= 0.5f) {
-        uint32 v4 = 8 * CTimer::GetTimeInMS() + seed;
+        uint32 v4 = 8 * CTimer::GetTimeInMS() + RandomSeed;
 
         // return AIDS;
         return CWeather::Wind
@@ -399,7 +399,7 @@ float CPlantMgr::CalculateWindBending() {
             + CWeather::saTreeWindOffsets[((v4 >> 12) + 1) % 16] * ((float)(v4 % 4096) / 4096.0f)
             * 0.015f;
     } else {
-        return std::sinf(radius_x36 * (float)(CTimer::GetTimeInMS() % 4096)) / (CWeather::Wind >= 0.2f ? 125.0f : 200.0f);
+        return std::sinf(scalingFactor * (float)(CTimer::GetTimeInMS() % 4'096)) / (CWeather::Wind >= 0.2f ? 125.0f : 200.0f);
     }
 }
 
@@ -671,6 +671,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEnt
             if (numTrianglesAdded == 0) {
                 if (!unusedHead->m_createsPlants) {
                     unusedHead->Release();
+                    entry.m_LocTriArray[i] = 0;
                 }
             } else {
                 unusedHead->m_createdObjects = true;

@@ -1448,7 +1448,8 @@ void CEntity::ModifyMatrixForTreeInWind()
     else {
         auto uiTimeOffset = (reinterpret_cast<uint32>(this) + CTimer::GetTimeInMS()) & 0xFFF;
 
-        fWindOffset = sin(uiTimeOffset * 0.0015332032F) * 0.005F;
+        constexpr float scalingFactor = 6.28f / 4096.f;
+        fWindOffset = sin(uiTimeOffset * scalingFactor) * 0.005F;
         if (CWeather::Wind >= 0.2F)
             fWindOffset *= 1.6F;
     }

@@ -39,7 +39,7 @@ CPlantLocTri* CPlantLocTri::Add(const CVector& p1, const CVector& p2, const CVec
     m_SphereRadius = DistanceBetweenPoints(m_Center, m_V1) * 1.75f;
     if (m_createsObjects && !m_createsPlants) {
         CPlantMgr::MoveLocTriToList(CPlantMgr::m_UnusedLocTriListHead, CPlantMgr::m_CloseLocTriListHead[3], this);
-        return nullptr;
+        return this;
     }
 
     auto properties = CPlantSurfPropMgr::GetSurfProperties(surface);
@@ -58,7 +58,7 @@ CPlantLocTri* CPlantLocTri::Add(const CVector& p1, const CVector& p2, const CVec
 
     if (m_createsObjects) {
         // m_nFlags = m_nFlags & 0xFE;
-        m_createsObjects = false;
+        m_createsPlants = false;
 
         CPlantMgr::MoveLocTriToList(CPlantMgr::m_UnusedLocTriListHead, CPlantMgr::m_CloseLocTriListHead[3], this);
         return this;
@@ -110,7 +110,7 @@ void CPlantLocTri::Release() {
 
         CheckForInfiniteLoop(CPlantMgr::m_CloseLocTriListHead[CPlantSurfPropMgr::GetSurfProperties(m_SurfaceId)->m_nPlantSlotID]);
         CheckForInfiniteLoop(CPlantMgr::m_UnusedLocTriListHead);
-        m_SurfaceId = -1;
+        m_SurfaceId = 0xFF;
     } else {
         CheckForInfiniteLoop(CPlantMgr::m_CloseLocTriListHead[3]);
         CheckForInfiniteLoop(CPlantMgr::m_UnusedLocTriListHead);
@@ -134,7 +134,7 @@ void CPlantLocTri::Release() {
         }
 
         CheckForInfiniteLoop(CPlantMgr::m_UnusedLocTriListHead);
-        m_SurfaceId = -2;
+        m_SurfaceId = 0xFE;
     }
 
     // m_nFlags = m_nFlags & 0xF8;

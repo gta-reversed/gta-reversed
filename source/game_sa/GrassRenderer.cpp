@@ -10,10 +10,10 @@ void CGrassRenderer::InjectHooks() {
     RH_ScopedClass(CGrassRenderer);
     RH_ScopedCategory("Plant");
 
-    RH_ScopedInstall(Initialise, 0x5DD6B0, {.enabled = false});
-    RH_ScopedInstall(Shutdown, 0x5DABA0, {.enabled = false});
+    RH_ScopedInstall(Initialise, 0x5DD6B0);
+    RH_ScopedInstall(Shutdown, 0x5DABA0);
     RH_ScopedInstall(AddTriPlant, 0x5DB1D0);
-    RH_ScopedInstall(DrawTriPlants, 0x5DAD00, {.enabled = false});
+    RH_ScopedInstall(DrawTriPlants, 0x5DAD00);
     RH_ScopedInstall(FlushTriPlantBuffer, 0x5DB250);
     RH_ScopedInstall(GetPlantModelsTab, 0x5DACE0);
     RH_ScopedInstall(SetPlantModelsTab, 0x5DACC0);
@@ -71,11 +71,15 @@ void CGrassRenderer::DrawTriPlants(PPTriPlant* triPlants, int32 numTriPlants, Rp
         const auto atomic = plantModelsTab[plant.model_id];
         auto frame = RpAtomicGetFrame(atomic);
 
-        // Original implementation used srand(), which is absolutely not thread safe, and caused all the plants to just jump randomly all over the screen.
-        std::mt19937                      randomGen(0);
-        std::uniform_real_distribution<float>    randomDistribution(0, 1.f);
+#if FIX_BUGS
+        std::mt19937 randomGen(*(uint32*)&plant.seed);
+#else
+        // Due to how this is set up, the random seed is always 0. the seed is betwee [0:1), so after the cast to int, we can't have any other result.
+        std::mt19937 randomGen(static_cast<uint32>(plant.seed));
+#endif
+        std::uniform_real_distribution<float> randomDistribution(0, 1.f);
 
-        // Due to how this is set up, this is always srand(0). the seed is betwee [0:1), so after the cast to int, we can't have any other result.
+        // Original implementation used srand(), which is absolutely not thread safe, and caused all the plants to just jump randomly all over the screen.
         //srand(static_cast<uint32>(plant.seed));
 
         RwRGBA newColorIntensity{};
