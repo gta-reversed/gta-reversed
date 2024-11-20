@@ -1434,7 +1434,6 @@ void CEntity::ModifyMatrixForTreeInWind()
 
     float fWindOffset;
     if (CWeather::Wind >= 0.5F) {
-        // TODO: This is all wrong. Missing casts, etc (they are important to wrap the number)
         auto uiOffset1 = (((m_nRandomSeed + CTimer::GetTimeInMS() * 8) & 0xFFFF) / 4096) % 16;
         auto uiOffset2 = (uiOffset1 + 1) % 16;
         auto fContrib = static_cast<float>(((m_nRandomSeed + CTimer::GetTimeInMS() * 8) % 4096)) / 4096.0F;
