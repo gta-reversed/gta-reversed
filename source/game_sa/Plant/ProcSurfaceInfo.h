@@ -43,8 +43,8 @@ public:
     );
     void Exit();
 
-    void AddObject(CVector p1, CVector p2, bool a3);
-    int32 AddObjects(CPlantLocTri* plant);
+    ProcObjectListItem* AddObject(CVector pos, CVector normal, bool lighting);
+    int32               AddObjects(CPlantLocTri* plant);
 
 };
 VALIDATE_SIZE(ProcSurfaceInfo_c, 0x48);

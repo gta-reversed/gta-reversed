@@ -65,11 +65,11 @@ void ProcSurfaceInfo_c::Exit() {
 }
 
 // 0x5A32D0
-void ProcSurfaceInfo_c::AddObject(CVector p1, CVector p2, bool a3) {
-    plugin::CallMethod<0x5A32D0, ProcSurfaceInfo_c*, CVector, CVector, bool>(this, p1, p2, a3);
+ProcObjectListItem*  ProcSurfaceInfo_c::AddObject(CVector pos, CVector normal, bool lighting) {
+    return plugin::CallMethodAndReturn<ProcObjectListItem*, 0x5A32D0, ProcSurfaceInfo_c*, CVector, CVector, bool>(this, pos, normal, lighting);
 }
 
 // 0x5A3850
-int32 ProcSurfaceInfo_c::AddObjects(CPlantLocTri* plant) {
+int32  ProcSurfaceInfo_c::AddObjects(CPlantLocTri* plant) {
     return plugin::CallMethodAndReturn<int32, 0x5A3850, ProcSurfaceInfo_c*, CPlantLocTri*>(this, plant);
 }

@@ -247,7 +247,7 @@ bool CPlantMgr::ReloadConfig() {
 
         prevEntry = &tab;
     }
-    m_ColEntCacheTab[MAX_NUM_PLANT_TRIANGLES - 1].m_NextEntry = nullptr;
+    m_ColEntCacheTab[MAX_NUM_PROC_OBJECTS - 1].m_NextEntry = nullptr;
 
     return true;
 }
@@ -524,7 +524,7 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
     while (nextEntry) {
         auto* curEntry = nextEntry; // ReleaseEntry() Overwrites m_NextEntry pointer, we need to keep track of it before that can happen
         nextEntry      = curEntry->m_NextEntry;
-        if (!curEntry->m_Entity || _CalcDistanceSqrToEntity(curEntry->m_Entity, cameraPos) > sq(340.0f) || !curEntry->m_Entity->IsInCurrentAreaOrBarberShopInterior()) {
+        if (!curEntry->m_Entity || _CalcDistanceSqrToEntity(curEntry->m_Entity, cameraPos) > PROC_OBJECTS_MAX_DISTANCE_SQUARED || !curEntry->m_Entity->IsInCurrentAreaOrBarberShopInterior()) {
             curEntry->ReleaseEntry();
         }
     }
@@ -533,7 +533,7 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
         return;
 
     CWorld::IncrementCurrentScanCode();
-    CWorld::IterateSectorsOverlappedByRect({ cameraPos, 340.0f }, [cameraPos](int32 x, int32 y) {
+    CWorld::IterateSectorsOverlappedByRect({ cameraPos, PROC_OBJECTS_MAX_DISTANCE }, [cameraPos](int32 x, int32 y) {
         for (auto i = GetSector(x, y)->m_buildings.GetNode(); i; i = i->m_next) {
             const auto item = static_cast<CEntity*>(i->m_item);
 
@@ -549,7 +549,7 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
                     }
                 }
                 if (!m_CloseColEntListHead || !foundEntity) {
-                    if (_CalcDistanceSqrToEntity(item, cameraPos) <= sq(340.0f)) {
+                    if (_CalcDistanceSqrToEntity(item, cameraPos) <= PROC_OBJECTS_MAX_DISTANCE_SQUARED) {
                         if (!m_UnusedColEntListHead || !m_UnusedColEntListHead->AddEntry(item)) {
                             return false;
                         }
