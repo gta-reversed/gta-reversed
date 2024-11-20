@@ -159,7 +159,7 @@ bool CPlantMgr::Initialise() {
                 CGrassRenderer::SetPlantModelsTab(i, PC_PlantModelsTab[0]); // grassModelsPtr[0]
             }
 
-            CGrassRenderer::SetCloseFarAlphaDist(3.0f, 60.0f);
+            CGrassRenderer::SetCloseFarAlphaDist(PLANTS_ALPHA_MIN_DIST, PLANTS_ALPHA_MAX_DIST);
             return true;
         }
     }
@@ -230,7 +230,7 @@ bool CPlantMgr::ReloadConfig() {
 
         prevTri = &tab;
     }
-    m_LocTrisTab[255].m_NextTri = nullptr;
+    m_LocTrisTab[MAX_NUM_PLANT_TRIANGLES - 1].m_NextTri = nullptr;
     m_CloseColEntListHead = nullptr;
     m_UnusedColEntListHead = m_ColEntCacheTab;
 
@@ -247,7 +247,7 @@ bool CPlantMgr::ReloadConfig() {
 
         prevEntry = &tab;
     }
-    m_ColEntCacheTab[255].m_NextEntry = nullptr;
+    m_ColEntCacheTab[MAX_NUM_PLANT_TRIANGLES - 1].m_NextEntry = nullptr;
 
     return true;
 }
@@ -402,14 +402,14 @@ void CPlantMgr::Render() {
         return;
     }
 
-    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(FALSE));
-    RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
-    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
-    RwRenderStateSet(rwRENDERSTATESRCBLEND, RWRSTATE(rwBLENDSRCALPHA));
-    RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDINVSRCALPHA));
-    RwRenderStateSet(rwRENDERSTATEFOGENABLE, RWRSTATE(TRUE));
-    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF,      RWRSTATE(NULL));
-    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTION,      RWRSTATE(rwALPHATESTFUNCTIONALWAYS));
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,         RWRSTATE(FALSE));
+    RwRenderStateSet(rwRENDERSTATEZTESTENABLE,          RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE,    RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATESRCBLEND,             RWRSTATE(rwBLENDSRCALPHA));
+    RwRenderStateSet(rwRENDERSTATEDESTBLEND,            RWRSTATE(rwBLENDINVSRCALPHA));
+    RwRenderStateSet(rwRENDERSTATEFOGENABLE,            RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(NULL));
+    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTION,    RWRSTATE(rwALPHATESTFUNCTIONALWAYS));
 
     for (auto i = 0; i < 4; i++) {
         auto* plantTri = m_CloseLocTriListHead[i];
@@ -467,10 +467,10 @@ void CPlantMgr::Render() {
 
         CGrassRenderer::FlushTriPlantBuffer();
     }
-    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(TRUE));
-    RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
-    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTION,      RWRSTATE(rwALPHATESTFUNCTIONGREATEREQUAL));
-    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF,      RWRSTATE(NULL));
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,         RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEZTESTENABLE,          RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTION,    RWRSTATE(rwALPHATESTFUNCTIONGREATEREQUAL));
+    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(NULL));
 }
 
 // 0x5DBEB0
@@ -584,7 +584,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections(const CPlantColEntEntry& entr
         box.Set(out[0], out[1]);
         box.Recalc();
 
-        if (CCollision::TestSphereBox({ center, 100.0f }, box)) {
+        if (CCollision::TestSphereBox({ center, PLANTS_MAX_DISTANCE }, box)) {
             _ProcessEntryCollisionDataSections_AddLocTris(entry, center, iTriProcessSkipMask, faceGroup.first, faceGroup.last);
         }
     }
@@ -623,8 +623,9 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEnt
             (vertices[1] + vertices[2]) / 2.0f
         };
 
-        if (rng::none_of(cmp, [center](auto v) { return DistanceBetweenPointsSquared(v, center) < 10000.0f; }))
+        if (rng::none_of(cmp, [center](auto v) { return DistanceBetweenPointsSquared(v, center) < PLANTS_MAX_DISTANCE_SQUARED; })) {
             continue;
+        }
 
         auto createsPlants = g_surfaceInfos.CreatesPlants(tri.m_nMaterial);
         auto createsObjects = g_surfaceInfos.CreatesObjects(tri.m_nMaterial);
@@ -687,7 +688,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_RemoveLocTris(const CPlantCol
                 (object->m_V1 + object->m_V3) / 2.0f
             };
 
-            if (rng::all_of(cmp, [center](auto v) { return DistanceBetweenPointsSquared(v, center) >= 10000.0f; })) {
+            if (rng::all_of(cmp, [center](auto v) { return DistanceBetweenPointsSquared(v, center) >= PLANTS_MAX_DISTANCE_SQUARED; })) {
                 object->Release();
                 object = nullptr;
             }

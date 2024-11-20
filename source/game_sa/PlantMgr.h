@@ -6,6 +6,13 @@ class CEntity;
 class CPlantColEntEntry;
 class CPlantLocTri;
 
+constexpr auto MAX_NUM_PLANT_TRIANGLES     = 256;
+constexpr auto MAX_NUM_PROC_OBJECTS        = 40;
+constexpr auto PLANTS_MAX_DISTANCE         = 100.0f;
+constexpr auto PLANTS_MAX_DISTANCE_SQUARED = PLANTS_MAX_DISTANCE * PLANTS_MAX_DISTANCE;
+constexpr auto PLANTS_ALPHA_MIN_DIST       = 3.0f;
+constexpr auto PLANTS_ALPHA_MAX_DIST       = 60.0f;
+
 class CPlantMgr {
 public:
     static inline RwTexture* (&PC_PlantTextureTab)[4][4] = *(RwTexture * (*)[4][4])0xC039A0;
@@ -17,8 +24,8 @@ public:
     static inline CPlantColEntEntry*& m_UnusedColEntListHead      = *(CPlantColEntEntry**)0xC03998;
     static inline CPlantColEntEntry*& m_CloseColEntListHead       = *(CPlantColEntEntry**)0xC0399C;
     static inline CRGBA&              m_AmbientColor              = *(CRGBA*)0xC03A44;
-    static inline CPlantLocTri        (&m_LocTrisTab)[256]        = *(CPlantLocTri(*)[256])0xC03A48;
-    static inline CPlantColEntEntry   (&m_ColEntCacheTab)[40]     = *(CPlantColEntEntry(*)[40])0xC08E48;
+    static inline CPlantLocTri        (&m_LocTrisTab)[MAX_NUM_PLANT_TRIANGLES] = *(CPlantLocTri(*)[MAX_NUM_PLANT_TRIANGLES])0xC03A48;
+    static inline CPlantColEntEntry   (&m_ColEntCacheTab)[MAX_NUM_PROC_OBJECTS] = *(CPlantColEntEntry(*)[MAX_NUM_PROC_OBJECTS])0xC08E48;
 
 public:
     static void InjectHooks();
