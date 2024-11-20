@@ -221,7 +221,7 @@ int32 ProcSurfaceInfo_c::AddObjects(CPlantLocTri* plant) {
     auto xCur = float(int32(int32(minX * step) * m_fSpacing));
     auto xEnd = float(int32((int32(maxX * step) + 1) * m_fSpacing));
     auto yCur = float(int32(int32(minY * step) * m_fSpacing));
-    auto yEnd = float(int32((int32(minY * step) + 1) * m_fSpacing));
+    auto yEnd = float(int32((int32(maxY * step) + 1) * m_fSpacing));
     normal.Normalise();
 
     for (xCur; xCur < xEnd; xCur += m_fSpacing) {
