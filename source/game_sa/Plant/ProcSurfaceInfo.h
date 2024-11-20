@@ -43,8 +43,9 @@ public:
     );
     void Exit();
 
-    ProcObjectListItem* AddObject(CVector pos, CVector normal, bool lighting);
+    ProcObjectListItem* AddObject(CVector pos, CVector normal, tColLighting lighting);
     int32               AddObjects(CPlantLocTri* plant);
+    bool                IsPtInTriangle2D(float x, float y, CVector v1, CVector v2, CVector v3, CVector normal, float* z);
 
 };
 VALIDATE_SIZE(ProcSurfaceInfo_c, 0x48);
