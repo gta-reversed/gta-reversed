@@ -751,6 +751,16 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
+    auto Constructor(eVehicleCreatedBy createdBy) {
+        this->CVehicle::CVehicle(createdBy);
+        return this;
+    }
+
+    auto Destructor() {
+        this->CVehicle::~CVehicle();
+        return this;
+    }
+
 };
 VALIDATE_SIZE(CVehicle, 0x5A0);
 

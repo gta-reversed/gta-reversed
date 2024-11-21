@@ -292,40 +292,25 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     }
 
     // Init this field which is never used
-    for (auto& v : field_8CC) {
-        constexpr auto magic = -0.15f;
-        v = (0.15f - magic) * CGeneral::GetRandomNumber() * RAND_MAX_FLOAT_RECIPROCAL + magic; // Becomes: 0.3f * CGeneral::GetRandomNumber() * RAND_MAX_FLOAT_RECIPROCAL + magic
+    for (auto& doorRot : DoorRotation) {
+        doorRot = CGeneral::GetRandomNumberInRange(-0.15f, 0.15f);
     }
 
     // 0x6B0EE6
     // Do something with misc components? Not sure..
-    switch (modelIndex) {
-    case MODEL_TOWTRUCK: {
-        if (m_aCarNodes[CAR_MISC_B]) {
-            if (auto& panelFL = m_panels[FRONT_LEFT_PANEL]; panelFL.m_nFrameId == (uint16)-1) {
-                panelFL.SetPanel(CAR_MISC_B, 2, 1.f);
-            }
-            break;
-        } // Otherwise fallthru
-        [[fallthrough]];
-    }
-    case MODEL_TRACTOR: {
-        if (m_aCarNodes[CAR_BOOT]) {
-            if (auto& panelFL = m_panels[FRONT_LEFT_PANEL]; panelFL.m_nFrameId == (uint16)-1) {
-                panelFL.SetPanel(CAR_BOOT, 1, 1.f);
-            }
-            break;
+    if (m_nModelIndex == MODEL_TOWTRUCK && m_aCarNodes[CAR_MISC_B]) {
+        if (auto& panelFL = m_panels[FRONT_LEFT_PANEL]; panelFL.m_nFrameId == (uint16)-1) {
+            panelFL.SetPanel(CAR_MISC_B, 2, 1.f);
         }
-        break;
-    }
+    } else if (m_nModelIndex == MODEL_TRACTOR && m_aCarNodes[CAR_BOOT]) {
+        if (auto& panelFL = m_panels[FRONT_LEFT_PANEL]; panelFL.m_nFrameId == (uint16)-1) {
+            panelFL.SetPanel(CAR_BOOT, 1, 1.f);
+        }
     }
 
     // 0x6B0F3B
     // Deal with swinging chassis
     if (m_pHandlingData->m_bSwingingChassis) {
-        m_swingingChassis.m_nDoorState = eDoorState::DOOR_HIT_MAX_END;
-        m_swingingChassis.m_nAxis = 2;
-        m_swingingChassis.m_nDirn = 196;
         const auto GetAngleMult = [modelIndex] {
             switch (modelIndex) {
             case MODEL_COPCARVG:
@@ -338,6 +323,9 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
         };
         m_swingingChassis.m_fOpenAngle = PI * GetAngleMult();
         m_swingingChassis.m_fClosedAngle = -m_swingingChassis.m_fOpenAngle;
+        m_swingingChassis.m_nAxis        = 2;
+        m_swingingChassis.m_nDirn        = 196;
+        m_swingingChassis.m_nDoorState = eDoorState::DOOR_HIT_MAX_END;
     } else if (modelIndex == MODEL_FIRELA) {
         m_swingingChassis.m_fOpenAngle = PI / 10.f;
         m_swingingChassis.m_fClosedAngle = -m_swingingChassis.m_fOpenAngle;
@@ -353,6 +341,7 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     m_fMass = m_pHandlingData->m_fMass;
     m_fTurnMass = m_pHandlingData->m_fTurnMass;
     m_vecCentreOfMass = m_pHandlingData->m_vecCentreOfMass;
+    m_fElasticity = 0.05f;
     m_fBuoyancyConstant = m_pHandlingData->m_fBuoyancyConstant;
     m_fAirResistance = GetDefaultAirResistance();
 
@@ -371,8 +360,19 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     m_wMiscComponentAnglePrev = 0;
 
     // 0x6B1111
-    rng::fill(m_fWheelsSuspensionCompression, 1.f);
-    rng::fill(m_fWheelsSuspensionCompressionPrev, 1.f);
+    for (auto i = 0; i < 4; ++i) {
+        m_vWheelCollisionPos[i].Set(0.f, 0.f, 0.f);
+        m_apWheelCollisionEntity[i]           = nullptr;
+        m_fWheelsSuspensionCompression[i]     = 1.f;
+        m_fWheelsSuspensionCompressionPrev[i] = 1.f;
+        m_aWheelTimer[i]                      = 0.f;
+        m_wheelRotation[i]                    = 0.f;
+        m_wheelSpeed[i]                       = 0.f;
+        m_fWheelBurnoutSpeed[i]               = 0.f;
+        m_aWheelState[i]                      = tWheelState::WHEEL_STATE_NORMAL;
+        m_wheelSkidmarkType[i]                = eSkidmarkType::DEFAULT;
+        m_wheelSkidmarkBloodState[i]          = false;
+    }
 
     m_nNumContactWheels     = 0;
     m_nWheelsOnGround       = 0;
@@ -401,8 +401,8 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     m_fUpDownLightAngle[0] = 0.0f;
     m_fForcedOrientation = -1.0f;
     m_harvesterParticleCounter = 0;
-    field_944 = 0;
-    field_940 = 0;
+    RightDoorOpenForDriveBys = 0.f;
+    LeftDoorOpenForDriveBys = 0.f;
 
     switch (m_nModelIndex) {
     case -2: { // 0x6B120F
@@ -6493,6 +6493,11 @@ CBouncingPanel* CAutomobile::CheckIfExistsGetFree(eCarNodes nodeIdx) {
 // 0x6AAB50
 void CAutomobile::PreRender() {
     plugin::CallMethod<0x6AAB50, CAutomobile*>(this);
+}
+
+// 0x6A2B10
+void CAutomobile::Render() {
+    plugin::CallMethod<0x6A2B10, CAutomobile*>(this);
 }
 
 // 0x6A9CA0

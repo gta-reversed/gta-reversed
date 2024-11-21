@@ -73,6 +73,9 @@ void CVehicle::InjectHooks() {
     RH_ScopedVirtualClass(CVehicle, 0x871e80, 66);
     RH_ScopedCategory("Vehicle");
 
+    RH_ScopedInstall(Constructor, 0x6D5F10);
+    RH_ScopedInstall(Destructor, 0x6E2B40);
+
     RH_ScopedVMTInstall(SetModelIndex, 0x6D6A40);
     RH_ScopedVMTInstall(DeleteRwObject, 0x6D6410);
     RH_ScopedVMTInstall(SpecialEntityPreCollisionStuff, 0x6D6640);
