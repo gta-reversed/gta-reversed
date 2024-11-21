@@ -275,7 +275,7 @@ void CMenuManager::CheckForMenuClosing() {
 
                 if (m_nSysMenu >= 0u) {
                     CMenuSystem::SwitchOffMenu(0);
-                    m_nSysMenu = 157;
+                    m_nSysMenu = CMenuSystem::MENU_UNDEFINED;
                 }
 
                 auto pad = CPad::GetPad(m_nPlayerNumber);

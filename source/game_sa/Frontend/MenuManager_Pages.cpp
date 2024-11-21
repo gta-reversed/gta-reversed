@@ -117,7 +117,7 @@ void CMenuManager::RadarZoomIn() {
 // 0x575130
 void CMenuManager::PrintMap() {
     const auto pad = CPad::GetPad(m_nPlayerNumber);
-    if (CPad::NewKeyState.standardKeys['Z'] || (pad, CPad::NewKeyState.standardKeys['z'])) {
+    if (CPad::NewKeyState.standardKeys['Z'] || CPad::NewKeyState.standardKeys['z']) {
         m_bMapLoaded = false;
         m_bDrawMouse = false;
     }
@@ -135,7 +135,6 @@ void CMenuManager::PrintMap() {
         CRadar::LimitRadarPoint(radar);
         const auto screen = CRadar::TransformRadarPointToScreenSpace(radar);
 
-        // 0x575208
         const auto d{ screen - m_vMapOrigin };
         const auto BOUNDARY = 140.0f;
 

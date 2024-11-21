@@ -122,7 +122,7 @@ void CRadar::InjectHooks() {
     RH_ScopedInstall(DrawRadarSprite, 0x585FF0);
     RH_ScopedInstall(DrawMap, 0x586B00);
     RH_ScopedInstall(DrawRadarMap, 0x586880);
-    RH_ScopedOverloadedInstall(StreamRadarSections, "", 0x5858D0, void (*)(const CVector&));
+    RH_ScopedOverloadedInstall(StreamRadarSections, "vec", 0x5858D0, void (*)(const CVector&));
     RH_ScopedInstall(SetupRadarRect, 0x584A80);
     RH_ScopedInstall(GetActualBlipArrayIndex, 0x582870);
     RH_ScopedInstall(LimitToMap, 0x583350);
@@ -151,14 +151,14 @@ void CRadar::InjectHooks() {
     RH_ScopedInstall(DrawBlips, 0x588050);
     // RH_ScopedInstall(ClipRadarPoly, 0x585040);
     RH_ScopedInstall(DrawAreaOnRadar, 0x5853D0);
-    // RH_ScopedInstall(StreamRadarSections, 0x584C50);
+    RH_ScopedOverloadedInstall(StreamRadarSections, "xy", 0x584C50, void (*)(int32, int32));
     RH_ScopedInstall(AddBlipToLegendList, 0x5859F0);
     RH_ScopedInstall(Draw3dMarkers, 0x585BF0);
     RH_ScopedInstall(DrawRadarSection, 0x586110);
     RH_ScopedInstall(DrawRadarSectionMap, 0x586520);
     RH_ScopedInstall(DrawRadarGangOverlay, 0x586650);
     // RH_ScopedInstall(DrawEntityBlip, 0x587000);
-    // RH_ScopedGlobalInstall(LineRadarBoxCollision, 0x584E00);
+    RH_ScopedGlobalInstall(LineRadarBoxCollision, 0x584E00);
 
     // unused
     RH_ScopedInstall(GetNewUniqueBlipIndex, 0x582820);
@@ -1067,7 +1067,48 @@ void GetTextureCorners(int32 x, int32 y, CVector2D* corners) {
 // Returns number of intersections
 // 0x584E00
 int32 LineRadarBoxCollision(CVector2D& result, const CVector2D& lineStart, const CVector2D& lineEnd) {
-    return plugin::CallAndReturn<int32, 0x584E00, CVector2D&, const CVector2D&, const CVector2D&>(result, lineStart, lineEnd);
+    auto closestIntersectionParam = 1.0f;
+    auto intersectionSide         = -1;
+
+    const auto deltaY = lineEnd.y - lineStart.y;
+    const auto deltaX = lineEnd.x - lineStart.x;
+
+    auto checkIntersection = [&](float edgeCoord, bool isX, float startDist, float endDist, int side) {
+        if (startDist * endDist < 0.0f) {
+            float intersectionParam = startDist / (startDist - endDist);
+            float intersectionVal   = (isX ? deltaY : deltaX) * intersectionParam + (isX ? lineStart.y : lineStart.x);
+            if (intersectionVal >= -1.0f && intersectionVal <= 1.0f && intersectionParam >= 0.0f && intersectionParam <= closestIntersectionParam) {
+                closestIntersectionParam = intersectionParam;
+                if (isX) {
+                    result.x = edgeCoord;
+                    result.y = intersectionVal;
+                } else {
+                    result.x = intersectionVal;
+                    result.y = edgeCoord;
+                }
+                intersectionSide = side;
+                if (intersectionParam == 0.0f) {
+                    return true; // Indicate early return
+                }
+            }
+        }
+        return false; // No early return
+    };
+
+    if (checkIntersection(-1.0f, true, -1.0f - lineStart.x, -1.0f - lineEnd.x, 3)) {
+        return 3;
+    }
+    if (checkIntersection(1.0f, true, lineStart.x - 1.0f, lineEnd.x - 1.0f, 1)) {
+        return 1;
+    }
+    if (checkIntersection(-1.0f, false, -1.0f - lineStart.y, -1.0f - lineEnd.y, 0)) {
+        return 0;
+    }
+    if (checkIntersection(1.0f, false, lineStart.y - 1.0f, lineEnd.y - 1.0f, 2)) {
+        return 2;
+    }
+
+    return intersectionSide;
 }
 
 // 0x585040
@@ -1174,7 +1215,17 @@ void CRadar::StreamRadarSections(const CVector& worldPosn) {
 
 // 0x584C50
 void CRadar::StreamRadarSections(int32 x, int32 y) {
-    plugin::Call<0x584C50, int32, int32>(x, y);
+    for (auto curY = 0; curY < MAX_RADAR_HEIGHT_TILES; curY++) {
+        for (auto curX = 0; curX < MAX_RADAR_WIDTH_TILES; curX++) {
+            if (gRadarTextures[curY][curX] != -1 && curY >= 0 && curY < MAX_RADAR_HEIGHT_TILES && curX >= 0 && curX < MAX_RADAR_WIDTH_TILES) {
+                if (curY >= y - 1 && curY <= y + 1 && curX >= x - 1 && curX <= x + 1) {
+                    CStreaming::RequestModel(TXDToModelId(gRadarTextures[curY][curX]), STREAMING_KEEP_IN_MEMORY | STREAMING_GAME_REQUIRED);
+                } else {
+                    CStreaming::RemoveModel(TXDToModelId(gRadarTextures[curY][curX]));
+                }
+            }
+        }
+    }
 }
 
 // 0x585960
