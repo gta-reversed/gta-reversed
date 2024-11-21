@@ -21,7 +21,7 @@ void cHandlingDataMgr::InjectHooks() {
     RH_ScopedInstall(HasRearWheelDrive, 0x6A04B0);
     RH_ScopedInstall(GetHandlingId, 0x6F4FD0);
     RH_ScopedInstall(ConvertDataToWorldUnits, 0x6F5010);
-    RH_ScopedInstall(ConvertDataToGameUnits, 0x6F5080);
+    RH_ScopedInstall(ConvertDataToGameUnits, 0x6F5080, {.enabled = false});
     RH_ScopedInstall(ConvertBikeDataToWorldUnits, 0x6F5240);
     RH_ScopedInstall(ConvertBikeDataToGameUnits, 0x6F5290);
     RH_ScopedInstall(FindExactWord, 0x006F4F30);
@@ -320,7 +320,7 @@ void cHandlingDataMgr::ConvertDataToGameUnits(tHandlingData* h) {
     }
 
     std::tie(t->m_fMaxVelocity, t->m_maxReverseGearVelocity) = [&]() -> std::tuple<float, float> {
-        if (h->m_nVehicleId == 38) { // RC Bandit
+        if (h->m_nVehicleId == VT_RCBANDIT) { // RC Bandit
             return { t->m_fMaxGearVelocity, -t->m_fMaxGearVelocity };
         }
 
@@ -331,7 +331,7 @@ void cHandlingDataMgr::ConvertDataToGameUnits(tHandlingData* h) {
 
         t->m_fMaxGearVelocity = maxVelocity * 1.2f;
 
-        if (h->m_nVehicleId >= 162 && h->m_nVehicleId <= 174) {
+        if (h->m_nVehicleId >= VT_BIKE && h->m_nVehicleId <= VT_FREEWAY) { // 2 wheelers
             return { maxVelocity, -0.05f };
         } else {
             return { maxVelocity, std::min(-0.2f, maxVelocity * -0.3f) };
