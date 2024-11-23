@@ -45,8 +45,8 @@ void cTransmission::DisplayGearRatios()
 void cTransmission::InitGearRatios()
 {
     memset(m_aGears, 0, sizeof(m_aGears));
-    float averageHalfGearVelocity = 0.5f * m_fMaxGearVelocity / m_nNumberOfGears;
-    float maxGearVelocity = m_fMaxGearVelocity - averageHalfGearVelocity;
+    float averageHalfGearVelocity = 0.5f * m_fMaxVelocity / m_nNumberOfGears;
+    float maxGearVelocity = m_fMaxVelocity - averageHalfGearVelocity;
     for (uint8 i = 1; i <= m_nNumberOfGears; i++)
     {
         static tTransmissionGear*& gear = *(tTransmissionGear**)0xC1CB34; // TODO | STATICREF // = nullptr;
@@ -57,7 +57,7 @@ void cTransmission::InitGearRatios()
         float velocityDifference = gear->m_maxVelocity - previousGear->m_maxVelocity;
         if (i >= m_nNumberOfGears)
         {
-            gear->m_changeUpVelocity = m_fMaxGearVelocity;
+            gear->m_changeUpVelocity = m_fMaxVelocity;
         }
         else
         {
@@ -66,16 +66,16 @@ void cTransmission::InitGearRatios()
             gear->m_changeUpVelocity = 0.6667f * velocityDifference + previousGear->m_maxVelocity;
         }
     }
-    m_aGears[0].m_maxVelocity = m_maxReverseGearVelocity;
+    m_aGears[0].m_maxVelocity = m_fMaxReverseVelocity;
     m_aGears[0].m_changeUpVelocity = -0.01f;
-    m_aGears[0].m_changeDownVelocity = m_maxReverseGearVelocity;
+    m_aGears[0].m_changeDownVelocity = m_fMaxReverseVelocity;
     m_aGears[1].m_changeDownVelocity = -0.01f;
 }
 
 // 0x6D0530
 void cTransmission::CalculateGearForSimpleCar(float speed, uint8& currentGear)
 {
-    m_fCurrentVelocity = speed;
+    m_fVelocity = speed;
     tTransmissionGear& gear = m_aGears[currentGear];
     if (speed > gear.m_changeUpVelocity)
     {
@@ -96,12 +96,12 @@ float cTransmission::CalculateDriveAcceleration(const float& gasPedal, uint8& cu
     static float& driveAcceleration = *(float*)0xC1CB38;    // TODO | STATICREF // = 0.0f;
     static float& currentVelocity = *(float*)0xC1CB40;      // TODO | STATICREF // = 0.0f;
     currentVelocity = velocity;
-    if (currentVelocity < m_maxReverseGearVelocity)
+    if (currentVelocity < m_fMaxReverseVelocity)
         return 0.0f;
 
-    while (currentVelocity <= m_fMaxGearVelocity)
+    while (currentVelocity <= m_fMaxVelocity)
     {
-        m_fCurrentVelocity = currentVelocity;
+        m_fVelocity = currentVelocity;
         tTransmissionGear& gear = m_aGears[currentGear];
         bool accelerate = false;
         bool shiftToLowerGear = false;
@@ -165,8 +165,8 @@ float cTransmission::CalculateDriveAcceleration(const float& gasPedal, uint8& cu
                         if (currentGear == 1)
                         {
                             currentDownVelocityDiff = currentVelocity
-                                + m_fMaxGearVelocity / static_cast<float>(m_nNumberOfGears) * (1.0f - 0.6667f);
-                            upDownVelocityDiff = m_fMaxGearVelocity / static_cast<float>(m_nNumberOfGears) * (1.0f - 0.6667f)
+                                + m_fMaxVelocity / static_cast<float>(m_nNumberOfGears) * (1.0f - 0.6667f);
+                            upDownVelocityDiff = m_fMaxVelocity / static_cast<float>(m_nNumberOfGears) * (1.0f - 0.6667f)
                                 + m_aGears[1].m_changeUpVelocity;
                         }
                         else
@@ -178,9 +178,9 @@ float cTransmission::CalculateDriveAcceleration(const float& gasPedal, uint8& cu
                     else
                     {
                         // reverse gear
-                        currentDownVelocityDiff = m_fMaxGearVelocity / static_cast<float>(m_nNumberOfGears) * (1.0f - 0.6667f)
+                        currentDownVelocityDiff = m_fMaxVelocity / static_cast<float>(m_nNumberOfGears) * (1.0f - 0.6667f)
                             - currentVelocity;
-                        upDownVelocityDiff = m_fMaxGearVelocity / static_cast<float>(m_nNumberOfGears) * (1.0f - 0.6667f)
+                        upDownVelocityDiff = m_fMaxVelocity / static_cast<float>(m_nNumberOfGears) * (1.0f - 0.6667f)
                             - m_aGears[0].m_changeDownVelocity;
                     }
                     const float velocityDiffRatio = currentDownVelocityDiff / upDownVelocityDiff;
@@ -230,7 +230,7 @@ float cTransmission::CalculateDriveAcceleration(const float& gasPedal, uint8& cu
         a7 = nullptr;
         allWheelsOnGround = false;
         handlingCheat = CHEAT_HANDLING_NONE;
-        if (currentVelocity < m_maxReverseGearVelocity)
+        if (currentVelocity < m_fMaxReverseVelocity)
             return 0.0f;
     }
     return 0.0f;

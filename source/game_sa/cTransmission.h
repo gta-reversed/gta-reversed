@@ -30,10 +30,10 @@ public:
     uint32            m_handlingFlags;
     float             m_fEngineAcceleration; // 0.1 to 10.0
     float             m_fEngineInertia;      // 0.0 to 50.0
-    float             m_fMaxGearVelocity;    // 5.0 to 150.0
-    float             m_fMaxVelocity;
-    float             m_maxReverseGearVelocity;
-    float             m_fCurrentVelocity;
+    float             m_fMaxVelocity;    // 5.0 to 150.0
+    float             m_fMaxFlatVelocity;
+    float             m_fMaxReverseVelocity;
+    float             m_fVelocity;
 
 public:
     static void InjectHooks();
