@@ -3252,7 +3252,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
             }
             else if (m_fHealth <= 0.f && (uint16)prevHealth > 0) { // 0x6A8354
                 m_fHealth = 1.f; // 0x6A8374
-                if (m_pDamageEntity && ModelIndices::IsRhino(m_nModelIndex) && FindPlayerVehicle()->AsAutomobile() != this) {
+                if (m_pDamageEntity && ModelIndices::IsRhino(m_pDamageEntity->m_nModelIndex) && FindPlayerVehicle()->AsAutomobile() != this) {
                     BlowUpCar(m_pDamageEntity, false);
                 }
             }
