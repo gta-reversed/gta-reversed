@@ -167,7 +167,7 @@ FxSphere_c* FxSystemBP_c::GetBoundingSphere() const {
 // 0x4AA200
 void FxSystemBP_c::SetBoundingSphere(const CVector& center, float radius) {
     if (!m_BoundingSphere && radius > 0.0f) {
-        m_BoundingSphere = new (true) FxSphere_c();
+        m_BoundingSphere = new (false) FxSphere_c();
         m_BoundingSphere->m_vecCenter = center;
         m_BoundingSphere->m_fRadius   = radius;
     }
