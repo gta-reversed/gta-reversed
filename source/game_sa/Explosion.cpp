@@ -196,7 +196,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
 
     const auto PlaySoundIfEnabled = [&]() {
         if (exp->m_bMakeSound) {
-            m_ExplosionAudioEntity.AddAudioEvent(eAudioEvents::AE_EXPLOSION, exp->m_vecPosition, -36.0f);
+            m_ExplosionAudioEntity.AddAudioEvent(eAudioEvents::AE_EXPLOSION, exp->m_vecPosition, .0f);
         }
     };
 
