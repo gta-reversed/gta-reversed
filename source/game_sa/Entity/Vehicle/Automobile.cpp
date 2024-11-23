@@ -1590,6 +1590,9 @@ void CAutomobile::ProcessSuspension() {
             if (springLength[i] < 1.0f) {
                 contactPoints[i] = m_wheelColPoint[i].m_vecPoint - GetPosition();
             }
+            else {
+                contactPoints[i].Set(0.f, 0.f, 0.f);
+            }
         }
 
         for (int32 i = 0; i < 4; i++) {
@@ -1602,8 +1605,9 @@ void CAutomobile::ProcessSuspension() {
 
             float fSuspensionForceLevel = m_pHandlingData->m_fSuspensionForceLevel;
             if (handlingFlags.bHydraulicGeom && handlingFlags.bHydraulicInst) {
-                if (handlingFlags.bNpcNeutralHandl && m_nStatus == STATUS_SIMPLE)
+                if (handlingFlags.bNpcNeutralHandl && m_nStatus == STATUS_PHYSICS) {
                     suspensionBias = 0.5f;
+                }
                 if (std::fabs(forwardSpeed) < 0.15f) {
                     fSuspensionForceLevel *= 1.5f;
                 }
@@ -1628,7 +1632,8 @@ void CAutomobile::ProcessSuspension() {
                     directions[i],
                     contactPoints[i],
                     springLength[i],
-                    suspensionBias, m_wheelColPoint[i].m_vecNormal,
+                    suspensionBias,
+                    m_wheelColPoint[i].m_vecNormal,
                     wheelSpringForceDampingLimits[i]
                 );
         }
@@ -1692,14 +1697,14 @@ void CAutomobile::ProcessSuspension() {
         CCollisionData* colData = GetColModel()->m_pColData;
         float wheelsSuspensionCompressionPrev[4]{};
         for (int32 i = 0; i < 4; i++) {
-            float wheelRadius = 1.0f - m_aSuspensionSpringLength[i] / m_aSuspensionLineLength[i];
-            wheelsSuspensionCompressionPrev[i] = (wheelsSuspensionCompressionPrev[i] - wheelRadius) / (1.0f - wheelRadius);
-            // yes, wheelsSuspensionCompressionPrev is unused here
-
             CColLine& colLine   = colData->m_pLines[wheelLineIndices[i]];
             contactPoints[i]    = colLine.m_vecStart;
             contactPoints[i].z -= m_aSuspensionLineLength[i] * springLength[i];
             contactPoints[i]    = GetMatrix().TransformVector(contactPoints[i]);
+
+            auto springTension = 1.f - (m_aSuspensionSpringLength[i] / m_aSuspensionLineLength[i]);
+            springLength[i] -= springTension;
+            springLength[i] /= (1.f - springTension);
         }
     }
 
