@@ -38,13 +38,15 @@ CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     return *object;
 }
 
-void RemoveObject(CRunningScript& S, CObject& object) {
-    CWorld::Remove(&object);
-    CWorld::RemoveReferencesToDeletedObject(&object);
-    delete &object;
+void RemoveObject(CRunningScript& S, CObject* object) {
+    if (object) {
+        CWorld::Remove(object);
+        CWorld::RemoveReferencesToDeletedObject(object);
+        delete &object;
+    }
 
     if (S.m_bUseMissionCleanup) {
-        CTheScripts::MissionCleanUp.RemoveEntityFromList(object);
+        CTheScripts::MissionCleanUp.RemoveEntityFromList((int32)object, MISSION_CLEANUP_ENTITY_TYPE_OBJECT);
     }
 }
 
