@@ -340,8 +340,7 @@ void cHandlingDataMgr::ConvertDataToGameUnits(tHandlingData* h) {
         }
     }
 
-    auto accelMult = (t->m_nDriveType == '4') ? .25f : .5f;
-    t->m_fEngineAcceleration *= accelMult;
+    t->m_fEngineAcceleration /= (t->m_nDriveType == '4') ? 4.f : 2.f;
     t->InitGearRatios();
 }
 

@@ -42,7 +42,7 @@ void RemoveObject(CRunningScript& S, CObject* object) {
     if (object) {
         CWorld::Remove(object);
         CWorld::RemoveReferencesToDeletedObject(object);
-        delete &object;
+        delete object;
     }
 
     if (S.m_bUseMissionCleanup) {
