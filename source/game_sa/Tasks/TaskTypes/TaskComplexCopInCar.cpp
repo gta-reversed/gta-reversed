@@ -89,7 +89,7 @@ CTask* CTaskComplexCopInCar::CreateSubTask(eTaskType taskType, CPed* copPed) {
             };
 
             // FindPoliceCarSpeedForWantedLevel - wanted level 3
-            auto style = m_Vehicle->m_pHandlingData->m_transmissionData.m_fMaxFlatVelocity * 60.0f * 0.9f; // TODO: This really doesn't add up.. How does this work?
+            auto style = m_Vehicle->m_pHandlingData->m_transmissionData.m_MaxFlatVelocity * 60.0f * 0.9f; // TODO: This really doesn't add up.. How does this work?
             return new CTaskComplexCarDriveMission(
                 m_Vehicle,
                 targetEntity,

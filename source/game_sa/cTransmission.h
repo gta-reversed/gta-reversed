@@ -28,12 +28,12 @@ public:
     uint8             m_nEngineType;    // P/D/E
     uint8             m_nNumberOfGears; // 1 to 6
     uint32            m_handlingFlags;
-    float             m_fEngineAcceleration; // 0.1 to 10.0
-    float             m_fEngineInertia;      // 0.0 to 50.0
-    float             m_fMaxVelocity;    // 5.0 to 150.0
-    float             m_fMaxFlatVelocity;
-    float             m_fMaxReverseVelocity;
-    float             m_fVelocity;
+    float             m_EngineAcceleration; // 0.1 to 10.0
+    float             m_EngineInertia;      // 0.0 to 50.0
+    float             m_MaxVelocity;    // 5.0 to 150.0
+    float             m_MaxFlatVelocity;
+    float             m_MaxReverseVelocity;
+    float             m_Velocity;
 
 public:
     static void InjectHooks();

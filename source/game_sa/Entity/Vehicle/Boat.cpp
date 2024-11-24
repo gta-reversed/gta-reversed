@@ -148,7 +148,7 @@ void CBoat::DebugCode() {
 // 0x6F0D90
 void CBoat::PrintThrustAndRudderInfo() {
     char cBuffer[64]{};
-    std::format_to(cBuffer, "Thrust {:3.2f}", m_pHandlingData->m_transmissionData.m_fEngineAcceleration * m_pHandlingData->m_fMass);
+    std::format_to(cBuffer, "Thrust {:3.2f}", m_pHandlingData->m_transmissionData.m_EngineAcceleration * m_pHandlingData->m_fMass);
     std::format_to(cBuffer, "Rudder Angle  {:3.2f}", m_pHandlingData->m_fSteeringLock);
 }
 
