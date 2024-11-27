@@ -225,7 +225,7 @@ void CAEStreamThread::Service() {
     if (m_iNextTrackId == -1 || m_pStreamingChannel->GetPlayingTrackID() != m_iTrackId) {
         auto* currDecoder = LoadDecoder(m_bIsUserTrack, m_iTrackId);
         if (currDecoder) {
-            currDecoder->SetCursor(currDecoder->GetStreamLengthMs());
+            currDecoder->SetCursor(m_iNextTrackId % currDecoder->GetStreamLengthMs());
 
             m_pStreamingChannel->SetNextStream(nextDecoder);
             m_pStreamingChannel->PrepareStream(currDecoder, m_TrackFlags, 1u);
@@ -248,8 +248,9 @@ void CAEStreamThread::Service() {
     if (m_bPreparingStream) {
         m_nPlayingTrackId = m_iNextTrackId == -1 ? m_iTrackId : m_iNextTrackId;
         m_nActiveTrackId = m_iNextTrackId == -1 ? m_iTrackId : m_iNextTrackId;
+    } else {
+        SaveStreamingState();
     }
-    SaveStreamingState();
 
     LeaveCriticalSection(&m_criticalSection);
 }
