@@ -225,7 +225,7 @@ void CAESoundManager::Service() {
     }
 
     // Play sounds that require that
-    for (auto i = 0, curSound = 0; i < m_nNumAvailableChannels; ++i, ++curSound) {
+    for (auto i = 0, curSound = 0; i < m_nNumAvailableChannels; ++i) {
         const auto uncancell = m_aChannelSoundUncancellable[i];
         if (uncancell == -1)
             continue;
