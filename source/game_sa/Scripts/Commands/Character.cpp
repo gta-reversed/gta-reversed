@@ -208,13 +208,20 @@ auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
     const auto veh = ped.GetVehicleIfInOne();
 
     if (GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_bUseMissionCleanup) {
+        bool bProceed = true;
+#if FIX_BUGS
+        // Gta seemingly tries to access vehicle stored at index -1 - in that case no vehicle is actually stored
+        bProceed = CTheScripts::StoreVehicleIndex >= 0;
+#endif
         // Unstore previous (If it still exists)
-        if (const auto stored = GetVehiclePool()->GetAt(CTheScripts::StoreVehicleIndex)) {
-            CCarCtrl::RemoveFromInterestingVehicleList(stored);
-            if (stored->IsMissionVehicle() && CTheScripts::StoreVehicleWasRandom) {
-                stored->SetVehicleCreatedBy(RANDOM_VEHICLE);
-                stored->vehicleFlags.bIsLocked = false;
-                CTheScripts::MissionCleanUp.RemoveEntityFromList(CTheScripts::StoreVehicleIndex, MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
+        if (bProceed) {
+            if (const auto stored = GetVehiclePool()->GetAt(CTheScripts::StoreVehicleIndex)) {
+                CCarCtrl::RemoveFromInterestingVehicleList(stored);
+                if (stored->IsMissionVehicle() && CTheScripts::StoreVehicleWasRandom) {
+                    stored->SetVehicleCreatedBy(RANDOM_VEHICLE);
+                    stored->vehicleFlags.bIsLocked = false;
+                    CTheScripts::MissionCleanUp.RemoveEntityFromList(CTheScripts::StoreVehicleIndex, MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
+                }
             }
         }
 
