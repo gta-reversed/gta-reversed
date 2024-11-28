@@ -302,7 +302,39 @@ int32 CAEStreamingChannel::GetActiveTrackID() {
 
 // 0x4F18A0
 int32 CAEStreamingChannel::UpdatePlayTime() {
-    return plugin::CallMethodAndReturn<int32, 0x4F18A0, CAEStreamingChannel*>(this);
+    if (m_nState != StreamingChannelState::Started && m_nState != StreamingChannelState::UNK_MINUS_3) {
+        m_nPlayTime = static_cast<int32>(m_nState);
+        return m_nPlayTime;
+    }
+
+    if (CAEAudioUtility::GetCurrentTimeInMS() - m_nLastUpdateTime < 1'000) {
+        return GetPlayTime();
+    }
+
+    DWORD currentPlayCursor;
+    m_pDirectSoundBuffer->GetCurrentPosition(&currentPlayCursor, nullptr);
+    auto freqFactor = m_nFrequency / 250.f;
+    auto upperLimit = 393216.f / freqFactor; //TODO: Magic number (393.216 khz can be found often with oscilators / clock generators, also that's 0x60000 in hex)
+    auto curStep    = currentPlayCursor / freqFactor;
+    if ((uint32(freqFactor) / 0x60000) > 0) {
+        if (m_lastWrittenSlot == 1) {
+            m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curStep - (2 * upperLimit));
+        } else {
+            m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curStep - upperLimit);
+        }
+    } else if (m_lastWrittenSlot == 0) {
+        m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curStep - upperLimit);
+    } else {
+        m_nPlayTime = static_cast<int32>(m_nStreamPlayTimeMs + curStep);
+    }
+
+    if (m_nPlayTime >= upperLimit) {
+        m_nPlayTime -= static_cast<int32>(upperLimit);
+    }
+
+    m_nLastUpdateTime = CAEAudioUtility::GetCurrentTimeInMS();
+    m_nPlayTime       = std::max(0, m_nPlayTime); // Originally a bitwise hack: x &= (x <= 0) - 1
+    return m_nPlayTime;
 }
 
 // 0x4F1AE0
@@ -476,7 +508,7 @@ void CAEStreamingChannel::InjectHooks() {
     RH_ScopedOverloadedInstall(Stop, "class", 0x4F1A90, void(CAEStreamingChannel::*)(bool));
     RH_ScopedInstall(GetPlayingTrackID, 0x4F1A60);
     RH_ScopedInstall(GetActiveTrackID, 0x4F1A40);
-    RH_ScopedInstall(UpdatePlayTime, 0x4F18A0, { .reversed = false });
+    RH_ScopedInstall(UpdatePlayTime, 0x4F18A0);
     RH_ScopedInstall(RemoveFX, 0x4F1C20);
     RH_ScopedVMTInstall(Service, 0x4F2550, { .reversed = false });
     RH_ScopedVMTInstall(IsSoundPlaying, 0x4F2040);

@@ -45,10 +45,9 @@ bool CAEStreamThread::Initialise(CAEStreamingChannel* streamingChannel) {
 
     m_nHandle = CreateThread(nullptr, 0, &CAEStreamThread::MainLoop, this, CREATE_SUSPENDED, (LPDWORD)(&m_lpThreadId));
     assert(m_nHandle);
-    SetThreadPriority(m_nHandle, 0);
+    SetThreadPriority(m_nHandle, THREAD_PRIORITY_NORMAL);
     InitializeCriticalSection(&m_criticalSection);
 
-    OS_MutexObtain(&m_criticalSection);
     m_pStreamingChannel = streamingChannel;
 
     m_pMp3TrackLoader = new CAEMP3TrackLoader();
@@ -111,7 +110,7 @@ int32 CAEStreamThread::GetPlayingTrackID() const {
 
 // 0x4F1230
 void CAEStreamThread::PlayTrack(uint32 iTrackId, int32 iNextTrackId, uint32 a3, int32 a4, bool bIsUserTrack, bool bNextIsUserTrack) {
-    OS_MutexObtain(&m_criticalSection);
+    EnterCriticalSection(&m_criticalSection);
 
     if (m_pStreamingChannel->GetPlayTime() == -2) {
         m_pStreamingChannel->Stop();
@@ -125,7 +124,7 @@ void CAEStreamThread::PlayTrack(uint32 iTrackId, int32 iNextTrackId, uint32 a3, 
     m_bNextIsUserTrack = bNextIsUserTrack;
     m_bNeedsService = 1;
 
-    OS_MutexRelease(&m_criticalSection);
+    LeaveCriticalSection(&m_criticalSection);
 }
 
 // 0x4F1580

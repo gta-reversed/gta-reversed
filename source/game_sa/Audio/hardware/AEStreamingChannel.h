@@ -30,7 +30,7 @@ public:
     CAEStreamingDecoder*  m_pNextStreamingDecoder{nullptr};
     StreamingChannelState m_nState{StreamingChannelState::Stopped};
     uint32                m_nStreamPlayTimeMs{0u};
-    uint32                m_nPlayTime;
+    int32                 m_nPlayTime;
     uint32                m_LastTimer;
     int32                 m_lStoppingFrameCount{0u};
     uint64                m_nLastUpdateTime;
