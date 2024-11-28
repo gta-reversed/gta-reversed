@@ -1977,7 +1977,7 @@ void CRadar::DrawBlips() {
             const auto pos = GetPlayerMarkerPosition();
 
             const auto angle = [] {
-                const auto heading = FindPlayerHeading();
+                const auto heading = FindPlayerHeading(0);
 
                 if (CCamera::GetActiveCamera().m_nMode == MODE_TOPDOWN) {
                     return heading + DegreesToRadians(180.0f);

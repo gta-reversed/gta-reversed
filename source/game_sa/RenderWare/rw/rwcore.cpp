@@ -2,6 +2,14 @@
 
 #include "rwcore.h"
 
+void RwCoreInjectHooks() {
+    RH_ScopedCategory("Renderware");
+    RH_ScopedNamespaceName("RwCore");
+
+    RH_ScopedGlobalInstall(RwCameraBeginUpdate, 0x7EE190);
+    RH_ScopedGlobalInstall(RwCameraEndUpdate, 0x7EE180);
+}
+
 RxHeap* RxHeapCreate(RwUInt32 size) {
     return ((RxHeap*(__cdecl *)(RwUInt32))0x809F90)(size);
 }
@@ -186,8 +194,8 @@ RxPipeline* RxLockedPipeSetEntryPoint(RxLockedPipe* pipeline, RxNodeInput in) {
     return ((RxPipeline*(__cdecl *)(RxLockedPipe*, RxNodeInput))0x807070)(pipeline, in);
 }
 
-RxPipeline* RxLockedPipeAddFragment(RxLockedPipe* pipeline, RwUInt32 firstIndex, RxNodeDefinition* nodeDef0, RwUInt32 nodeUnk) {
-    return plugin::CallAndReturn<RxPipeline*, 0x806BE0, RxLockedPipe*, RwUInt32, RxNodeDefinition*, RwUInt32>(pipeline, firstIndex, nodeDef0, nodeUnk);
+RxLockedPipe* RxLockedPipeAddFragment(RxLockedPipe* pipeline, RwUInt32* firstIndex, RxNodeDefinition* nodeDef0, RxNodeDefinition* __va_end__) {
+    return plugin::CallAndReturn<RxPipeline*, 0x806BE0, RxLockedPipe*, RwUInt32*, RxNodeDefinition*, RxNodeDefinition*>(pipeline, firstIndex, nodeDef0, __va_end__);
 }
 
 RxPipelineNode* RxLockedPipeGetEntryPoint(RxLockedPipe* pipeline) {
@@ -599,8 +607,8 @@ RwBool RwD3D9DeviceSupportsDXTTexture() {
     return ((RwBool(__cdecl *)(void))0x7F9C30)();
 }
 
-IDirect3DDevice9* RwD3D9GetCurrentD3DDevice() {
-    return ((IDirect3DDevice9*(__cdecl *)(void))0x7F9D50)();
+void* RwD3D9GetCurrentD3DDevice() { // IDirect3DDevice9
+    return ((void*(__cdecl *)(void))0x7F9D50)();
 }
 
 RwUInt32 RwD3D9EngineGetMaxMultiSamplingLevels() {
@@ -652,159 +660,163 @@ void _rwD3D9RenderStateFlushCache() {
 }
 
 void _rwD3D9DrawIndexedPrimitiveUP(RwUInt32 primitiveType, RwUInt32 minIndex, RwUInt32 numVertices, RwUInt32 primitiveCount, const void* indexData, const void* vertexStreamZeroData, RwUInt32 VertexStreamZeroStride) {
-    ((void(__cdecl *)(RwUInt32, RwUInt32, RwUInt32, RwUInt32, const void*, const void*, RwUInt32))0x7FA1F0)(primitiveType, minIndex, numVertices, primitiveCount, indexData, vertexStreamZeroData, VertexStreamZeroStride);
+   ((void(__cdecl *)(RwUInt32, RwUInt32, RwUInt32, RwUInt32, const void*, const void*, RwUInt32))0x7FA1F0)(primitiveType, minIndex, numVertices, primitiveCount, indexData, vertexStreamZeroData, VertexStreamZeroStride);
 }
 
 void _rwD3D9DrawPrimitiveUP(RwUInt32 primitiveType, RwUInt32 primitiveCount, const void* vertexStreamZeroData, RwUInt32 VertexStreamZeroStride) {
-    ((void(__cdecl *)(RwUInt32, RwUInt32, const void*, RwUInt32))0x7FA290)(primitiveType, primitiveCount, vertexStreamZeroData, VertexStreamZeroStride);
+   ((void(__cdecl *)(RwUInt32, RwUInt32, const void*, RwUInt32))0x7FA290)(primitiveType, primitiveCount, vertexStreamZeroData, VertexStreamZeroStride);
 }
 
 void _rwD3D9DrawIndexedPrimitive(RwUInt32 primitiveType, RwInt32 baseVertexIndex, RwUInt32 minIndex, RwUInt32 numVertices, RwUInt32 startIndex, RwUInt32 primitiveCount) {
-    ((void(__cdecl *)(RwUInt32, RwInt32, RwUInt32, RwUInt32, RwUInt32, RwUInt32))0x7FA320)(primitiveType, baseVertexIndex, minIndex, numVertices, startIndex, primitiveCount);
+   ((void(__cdecl *)(RwUInt32, RwInt32, RwUInt32, RwUInt32, RwUInt32, RwUInt32))0x7FA320)(primitiveType, baseVertexIndex, minIndex, numVertices, startIndex, primitiveCount);
 }
 
 void _rwD3D9SetVertexShaderConstant(RwUInt32 registerAddress, const void* constantData, RwUInt32 constantCount) {
-    ((void(__cdecl *)(RwUInt32, const void*, RwUInt32))0x7FACA0)(registerAddress, constantData, constantCount);
+   ((void(__cdecl *)(RwUInt32, const void*, RwUInt32))0x7FACA0)(registerAddress, constantData, constantCount);
 }
 
 void _rwD3D9SetPixelShaderConstant(RwUInt32 registerAddress, const void* constantData, RwUInt32 constantCount) {
-    ((void(__cdecl *)(RwUInt32, const void*, RwUInt32))0x7FAD00)(registerAddress, constantData, constantCount);
+   ((void(__cdecl *)(RwUInt32, const void*, RwUInt32))0x7FAD00)(registerAddress, constantData, constantCount);
 }
 
 void _rwD3D9SetFVF(RwUInt32 fvf) {
-    ((void(__cdecl *)(RwUInt32))0x7F9F30)(fvf);
+   ((void(__cdecl *)(RwUInt32))0x7F9F30)(fvf);
 }
 
 void _rwD3D9SetVertexShader(void *shader) {
-    ((void(__cdecl *)(void *))0x7F9FB0)(shader);
+   ((void(__cdecl *)(void *))0x7F9FB0)(shader);
 }
 
 void _rwD3D9SetPixelShader(void *shader) {
-    ((void(__cdecl *)(void *))0x7F9FF0)(shader);
+   ((void(__cdecl *)(void *))0x7F9FF0)(shader);
 }
 
 void RwD3D9SetRenderState(RwUInt32 state, RwUInt32 value) {
-    ((void(__cdecl *)(RwUInt32, RwUInt32))0x7FC2D0)(state, value);
+   ((void(__cdecl *)(RwUInt32, RwUInt32))0x7FC2D0)(state, value);
 }
 
 void RwD3D9GetRenderState(RwUInt32 state, void* value) {
-    ((void(__cdecl *)(RwUInt32, void*))0x7FC320)(state, value);
+   ((void(__cdecl *)(RwUInt32, void*))0x7FC320)(state, value);
 }
 
 void RwD3D9SetTextureStageState(RwUInt32 stage, RwUInt32 type, RwUInt32 value) {
-    ((void(__cdecl *)(RwUInt32, RwUInt32, RwUInt32))0x7FC340)(stage, type, value);
+   ((void(__cdecl *)(RwUInt32, RwUInt32, RwUInt32))0x7FC340)(stage, type, value);
 }
 
 void RwD3D9GetTextureStageState(RwUInt32 stage, RwUInt32 type, void* value) {
-    ((void(__cdecl *)(RwUInt32, RwUInt32, void*))0x7FC3A0)(stage, type, value);
+   ((void(__cdecl *)(RwUInt32, RwUInt32, void*))0x7FC3A0)(stage, type, value);
 }
 
 void RwD3D9SetSamplerState(RwUInt32 stage, RwUInt32 type, RwUInt32 value) {
-    ((void(__cdecl *)(RwUInt32, RwUInt32, RwUInt32))0x7FC3C0)(stage, type, value);
+   ((void(__cdecl *)(RwUInt32, RwUInt32, RwUInt32))0x7FC3C0)(stage, type, value);
 }
 
 void RwD3D9GetSamplerState(RwUInt32 stage, RwUInt32 type, void* value) {
-    ((void(__cdecl *)(RwUInt32, RwUInt32, void*))0x7FC400)(stage, type, value);
+   ((void(__cdecl *)(RwUInt32, RwUInt32, void*))0x7FC400)(stage, type, value);
 }
 
 void RwD3D9SetStencilClear(RwUInt32 stencilClear) {
-    ((void(__cdecl *)(RwUInt32))0x7F9D30)(stencilClear);
+   ((void(__cdecl *)(RwUInt32))0x7F9D30)(stencilClear);
 }
 
 RwUInt32 RwD3D9GetStencilClear() {
-    return ((RwUInt32(__cdecl *)(void))0x7F9D40)();
+   return ((RwUInt32(__cdecl *)(void))0x7F9D40)();
 }
 
 RwBool RwD3D9SetTexture(RwTexture* texture, RwUInt32 stage) {
-    return ((RwBool(__cdecl *)(RwTexture*, RwUInt32))0x7FDE70)(texture, stage);
+   return ((RwBool(__cdecl *)(RwTexture*, RwUInt32))0x7FDE70)(texture, stage);
 }
 
 RwBool RwD3D9SetTransform(RwUInt32 state, const void* matrix) {
-    return ((RwBool(__cdecl *)(RwUInt32, const void*))0x7FA390)(state, matrix);
+   return ((RwBool(__cdecl *)(RwUInt32, const void*))0x7FA390)(state, matrix);
 }
 
 void RwD3D9GetTransform(RwUInt32 state, void* matrix) {
-    ((void(__cdecl *)(RwUInt32, void*))0x7FA4F0)(state, matrix);
+   ((void(__cdecl *)(RwUInt32, void*))0x7FA4F0)(state, matrix);
 }
 
 RwBool RwD3D9SetMaterial(const void* material) {
-    return ((RwBool(__cdecl *)(const void*))0x7FC430)(material);
+   return ((RwBool(__cdecl *)(const void*))0x7FC430)(material);
 }
 
 RwBool RwD3D9SetClipPlane(RwUInt32 index, const RwV4d* plane) {
-    return ((RwBool(__cdecl *)(RwUInt32, const RwV4d*))0x7FC4A0)(index, plane);
+   return ((RwBool(__cdecl *)(RwUInt32, const RwV4d*))0x7FC4A0)(index, plane);
 }
 
 RwBool RwD3D9SetTransformWorld(const RwMatrix* matrix) {
-    return ((RwBool(__cdecl *)(const RwMatrix*))0x7FA520)(matrix);
+   return ((RwBool(__cdecl *)(const RwMatrix*))0x7FA520)(matrix);
 }
 
 RwBool RwD3D9SetSurfaceProperties(const RwSurfaceProperties* surfaceProps, const RwRGBA* color, RwUInt32 flags) {
-    return ((RwBool(__cdecl *)(const RwSurfaceProperties*, const RwRGBA*, RwUInt32))0x7FC4D0)(surfaceProps, color, flags);
+   return ((RwBool(__cdecl *)(const RwSurfaceProperties*, const RwRGBA*, RwUInt32))0x7FC4D0)(surfaceProps, color, flags);
 }
 
 RwBool RwD3D9SetLight(RwInt32 index, const void* light) {
-    return ((RwBool(__cdecl *)(RwInt32, const void*))0x7FA660)(index, light);
+   return ((RwBool(__cdecl *)(RwInt32, const void*))0x7FA660)(index, light);
 }
 
 void RwD3D9GetLight(RwInt32 index, void* light) {
-    ((void(__cdecl *)(RwInt32, void*))0x7FA820)(index, light);
+   ((void(__cdecl *)(RwInt32, void*))0x7FA820)(index, light);
 }
 
 RwBool RwD3D9EnableLight(RwInt32 index, RwBool enable) {
-    return ((RwBool(__cdecl *)(RwInt32, RwBool))0x7FA860)(index, enable);
+   return ((RwBool(__cdecl *)(RwInt32, RwBool))0x7FA860)(index, enable);
 }
 
 RwBool RwD3D9IndexBufferCreate(RwUInt32 numIndices, void* indexBuffer) {
-    return ((RwBool(__cdecl *)(RwUInt32, void*))0x4C9970)(numIndices, indexBuffer);
+   return ((RwBool(__cdecl *)(RwUInt32, void*))0x4C9970)(numIndices, indexBuffer);
 }
 
 RwBool RwD3D9CreateVertexDeclaration(const void* elements, void* vertexdeclaration) {
-    return ((RwBool(__cdecl *)(const void*, void*))0x7FAA30)(elements, vertexdeclaration);
+   return ((RwBool(__cdecl *)(const void*, void*))0x7FAA30)(elements, vertexdeclaration);
 }
 
 void RwD3D9DeleteVertexDeclaration() {
-    ((void(__cdecl *)(void))0x7FAC10)();
+   ((void(__cdecl *)(void))0x7FAC10)();
 }
 
 void RwD3D9DeleteVertexShader() {
-    ((void(__cdecl *)(void))0x7FAC90)();
+   ((void(__cdecl *)(void))0x7FAC90)();
 }
 
 RwBool RwD3D9CreatePixelShader(const RwUInt32* function, void* shader) {
-    return ((RwBool(__cdecl *)(const RwUInt32*, void*))0x7FACC0)(function, shader);
+   return ((RwBool(__cdecl *)(const RwUInt32*, void*))0x7FACC0)(function, shader);
 }
 
 void RwD3D9DeletePixelShader() {
-    ((void(__cdecl *)(void))0x7FACF0)();
+   ((void(__cdecl *)(void))0x7FACF0)();
 }
 
-D3DCAPS9* RwD3D9GetCaps() {
-    return ((D3DCAPS9*(__cdecl *)(void))0x7FAD20)();
+void _rwD3D9SetStreams(const RxD3D9VertexStream* streams, RwBool useOffsets) {
+    plugin::CallAndReturn<void, 0x7FA090>(streams, useOffsets);
+}
+
+const void* RwD3D9GetCaps() { // D3DCAPS9*
+   return ((const void*(__cdecl *)(void))0x7FAD20)();
 }
 
 RwBool RwD3D9CameraIsSphereFullyInsideFrustum(const void* camera, const void* sphere) {
-    return ((RwBool(__cdecl *)(const void*, const void*))0x7FAD30)(camera, sphere);
+   return ((RwBool(__cdecl *)(const void*, const void*))0x7FAD30)(camera, sphere);
 }
 
 RwBool RwD3D9CameraIsBBoxFullyInsideFrustum(const void* camera, const void* boundingBox) {
-    return ((RwBool(__cdecl *)(const void*, const void*))0x7FAD90)(camera, boundingBox);
+   return ((RwBool(__cdecl *)(const void*, const void*))0x7FAD90)(camera, boundingBox);
 }
 
 void _rwD3D9RasterConvertToNonPalettized(RwRaster* raster) {
-    ((void(__cdecl *)(RwRaster*))0x4CD250)(raster);
+   ((void(__cdecl *)(RwRaster*))0x4CD250)(raster);
 }
 
 RwBool _rwDeviceRegisterPlugin() {
-    return ((RwBool(__cdecl *)(void))0x7F5F60)();
+   return ((RwBool(__cdecl *)(void))0x7F5F60)();
 }
 
 void _rwD3D9DeviceSetRestoreCallback(rwD3D9DeviceRestoreCallBack callback) {
-    ((void(__cdecl *)(rwD3D9DeviceRestoreCallBack))0x7FAE20)(callback);
+   ((void(__cdecl *)(rwD3D9DeviceRestoreCallBack))0x7FAE20)(callback);
 }
 
 rwD3D9DeviceRestoreCallBack _rwD3D9DeviceGetRestoreCallback() {
-    return ((rwD3D9DeviceRestoreCallBack(__cdecl *)(void))0x7FAE30)();
+   return ((rwD3D9DeviceRestoreCallBack(__cdecl *)(void))0x7FAE30)();
 }
 
 RwImage* RwImageResample(RwImage* dstImage, const RwImage* srcImage) {
@@ -912,12 +924,12 @@ RwBool RwFrameDestroy(RwFrame* frame) {
     return ((RwBool(__cdecl *)(RwFrame*))0x7F05A0)(frame);
 }
 
-void _rwFrameInit(RwFrame* frame) {
-    ((void(__cdecl *)(RwFrame*))0x7F0450)(frame);
+RwBool _rwFrameInit(RwFrame* frame) {
+    return ((RwBool(__cdecl *)(RwFrame*))0x7F0450)(frame);
 }
 
-void _rwFrameDeInit(RwFrame* frame) {
-    ((void(__cdecl *)(RwFrame*))0x7F06F0)(frame);
+RwBool _rwFrameDeInit(RwFrame* frame) {
+    return ((RwBool(__cdecl *)(RwFrame*))0x7F06F0)(frame);
 }
 
 RwBool RwFrameDirty(const RwFrame* frame) {
@@ -1058,14 +1070,12 @@ RwBool RwBBoxContainsPoint(const RwBBox* boundBox, const RwV3d* vertex) {
 
 RwCamera* RwCameraBeginUpdate(RwCamera* camera) {
     ZoneScoped;
-
-    return ((RwCamera*(__cdecl *)(RwCamera*))0x7EE190)(camera);
+    return camera->beginUpdate(camera);
 }
 
 RwCamera* RwCameraEndUpdate(RwCamera* camera) {
     ZoneScoped;
-
-    return ((RwCamera*(__cdecl *)(RwCamera*))0x7EE180)(camera);
+    return camera->endUpdate(camera);
 }
 
 RwCamera* RwCameraClear(RwCamera* camera, RwRGBA* colour, RwInt32 clearMode) {

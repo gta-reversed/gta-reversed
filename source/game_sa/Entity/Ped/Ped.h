@@ -454,6 +454,7 @@ public:
     bool TurnBody();
     bool IsPointerValid();
     CVector GetBonePosition(eBoneTag boneId, bool updateSkinBones = false);
+    void GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones);
     void GiveObjectToPedToHold(int32 modelIndex, uint8 replace);
     void SetPedState(ePedState pedState);
     ePedState GetPedState() { return m_nPedState; }

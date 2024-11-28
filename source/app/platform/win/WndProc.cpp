@@ -21,6 +21,9 @@
 
 // Dear ImGui said I have to copy this here
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#define SHIFTED 0x8000
+#define KEY_DOWN(keystate) ((keystate & SHIFTED) != 0)
+#define KEY_UP(keystate) ((keystate & SHIFTED) == 0)
 
 // 0x747820
 BOOL GTATranslateKey(RsKeyCodes* ck, LPARAM lParam, UINT vk) {
@@ -109,23 +112,22 @@ BOOL GTATranslateShiftKey(RsKeyCodes*) { // The in keycode is ignored, so we won
         return false; // Already handled by `GTATranslateKey`
     }
 
-    constexpr struct { RsKeyCodes ck; INT vk; } Keys[]{
-        {rsLSHIFT, VK_LSHIFT},
-        {rsRSHIFT, VK_RSHIFT},
-    };
-
-    for (auto shouldBeDown : { false, true }) {
-        for (auto [ck, vk] : Keys) {
-            // GetKeyState reads from the message queue,
-            // so we must call it like the og code
-            const auto isDown = (HIWORD(GetKeyState(vk)) & 0x80) == 1; // Check is key pressed
-            if (isDown == shouldBeDown) {
-                RsEventHandler(
-                    isDown ? rsKEYDOWN : rsKEYUP,
-                    &ck
-                );
-            }
-        }
+    RsKeyCodes keyCode = rsNULL;
+    if (KEY_DOWN(GetKeyState(VK_LSHIFT))) {
+        keyCode = rsLSHIFT;
+        RsKeyboardEventHandler(rsKEYDOWN, &keyCode);
+    }
+    if (KEY_DOWN(GetKeyState(VK_RSHIFT))) {
+        keyCode = rsRSHIFT;
+        RsKeyboardEventHandler(rsKEYDOWN, &keyCode);
+    }
+    if (KEY_UP(GetKeyState(VK_LSHIFT))) {
+        keyCode = rsLSHIFT;
+        RsKeyboardEventHandler(rsKEYUP, &keyCode);
+    }
+    if (KEY_UP(GetKeyState(VK_RSHIFT))) {
+        keyCode = rsRSHIFT;
+        RsKeyboardEventHandler(rsKEYUP, &keyCode);
     }
 
     return true;
@@ -216,7 +218,7 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
         //> 0x748087 - Set gamma (If changed)
         if (gbGammaChanged) {
-            if (const auto dev = RwD3D9GetCurrentD3DDevice()) {
+            if (const auto dev = (IDirect3DDevice9*)RwD3D9GetCurrentD3DDevice()) {
                 dev->SetGammaRamp(9, 0, wndBeingActivated ? &CGamma::ms_GammaTable : &CGamma::ms_SavedGamma);
             }
         }

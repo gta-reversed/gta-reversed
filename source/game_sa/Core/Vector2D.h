@@ -50,7 +50,7 @@ public:
         return cpy;
     }
 
-    [[nodiscard]] constexpr float ComponentwiseSum() const {
+    [[nodiscard]] constexpr float CWSum() const { // Component-wise
         return x + y;
     }
 
