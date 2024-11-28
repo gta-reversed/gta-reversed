@@ -28,7 +28,7 @@ void CClothes::InjectHooks() {
     RH_ScopedInstall(RebuildPlayerIfNeeded, 0x5A8390);
     RH_ScopedInstall(RebuildPlayer, 0x5A82C0);
     RH_ScopedInstall(RebuildCutscenePlayer, 0x5A8270);
-    RH_ScopedInstall(GetTextureDependency, 0x5A7EA0);
+    RH_ScopedInstall(GetTextureDependency, 0x5A7EA0, { .reversed = false }); // Crashes when enabled - function looks simple and should be correct
     RH_ScopedInstall(GetDependentTexture, 0x5A7F30);
     RH_ScopedInstall(GetPlayerMotionGroupToLoad, 0x5A7FB0);
     RH_ScopedInstall(GetDefaultPlayerMotionGroup, 0x5A81B0);
