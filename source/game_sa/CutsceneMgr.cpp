@@ -172,7 +172,7 @@ void CCutsceneMgr::DeleteCutsceneData_overlay() {
     ms_iNumParticleEffects = 0;
 
     CMessages::ClearMessages(false);
-    CRubbish::SetVisibility(false);
+    CRubbish::SetVisibility(true);
 
     ms_cutsceneProcessing = false;
     ms_useLodMultiplier = false;
@@ -183,7 +183,7 @@ void CCutsceneMgr::DeleteCutsceneData_overlay() {
 
         CWorld::Remove(obj);
         obj->DeleteRwObject();
-        delete obj;
+        delete std::exchange(obj, nullptr);
     }
     ms_numCutsceneObjs = 0;
 
@@ -207,12 +207,12 @@ void CCutsceneMgr::DeleteCutsceneData_overlay() {
     ms_cutsceneLoadStatus = LoadStatus::NOT_LOADED;
     ms_running = false;
 
-    const auto plyr = FindPlayerPed();
+    const auto player = FindPlayerPed();
     const auto pad = CPad::GetPad(0);
-    plyr->m_bIsVisible = true;
+    player->m_bIsVisible = true;
     pad->bPlayerSkipsToDestination = false;
     pad->Clear(false, false); // moved up here
-    plyr->GetPlayerInfoForThisPlayerPed()->MakePlayerSafe(0, 10000.0);
+    player->GetPlayerInfoForThisPlayerPed()->MakePlayerSafe(0, 10000.0);
 
     if (!IsPlayingCSTheFinale()) {
         AudioEngine.StopCutsceneTrack(true);
@@ -236,7 +236,7 @@ void CCutsceneMgr::DeleteCutsceneData_overlay() {
 
     // Tell the streamer that we don't need any (possibly) loaded special chars
     for (const auto modelId : ms_iModelIndex | rngv::take(ms_numLoadObjectNames)) {
-        if (CTheScripts::ScriptResourceManager.HasResourceBeenRequested(modelId, RESOURCE_TYPE_MODEL_OR_SPECIAL_CHAR)) {
+        if (!CTheScripts::ScriptResourceManager.HasResourceBeenRequested(modelId, RESOURCE_TYPE_MODEL_OR_SPECIAL_CHAR)) {
             CStreaming::SetMissionDoesntRequireModel(modelId);
         }
     }
@@ -764,7 +764,7 @@ void CCutsceneMgr::LoadCutsceneData_preload() {
     g_bCutSceneFinishing            = false;
 
     for (auto&& name : ms_aUncompressedCutsceneAnims) { // Clear all names
-        name[0] = 0;
+        name[0] = '\0';
     }
 
     rng::fill(ms_iModelIndex, MODEL_PLAYER); // TODO: Change to MODEL_INVALID
@@ -774,8 +774,10 @@ void CCutsceneMgr::LoadCutsceneData_preload() {
     CRubbish::SetVisibility(false);
 
     FindPlayerWanted()->ClearQdCrimes();
-    FindPlayerPed()->m_bIsVisible = false;
-    CPad::GetPad()->bPlayerSkipsToDestination = false;
+    auto player = FindPlayerPed();
+    player->m_bIsVisible = false;
+    player->ResetSprintEnergy();
+    CPad::GetPad()->bPlayerSkipsToDestination = true;
     FindPlayerInfo().MakePlayerSafe(true, 10000.f);
 
     // Load cutscene data file from `CUTS.IMG`
@@ -918,8 +920,8 @@ void CCutsceneMgr::SetupCutsceneToStart() {
             } else {
                 // Get anim translation and offset the object's position by it
                 const CVector animTrans = anim->m_BlendHier->m_bIsCompressed
-                    ? (CVector)anim->m_BlendHier->m_pSequences[0].GetCKeyFrame(1)->Trans
-                    : (CVector)anim->m_BlendHier->m_pSequences[0].GetUKeyFrame(1)->Trans;
+                    ? (CVector)anim->m_BlendHier->m_pSequences->GetCKeyFrame(0)->Trans
+                    : (CVector)anim->m_BlendHier->m_pSequences->GetUKeyFrame(0)->Trans;
                 SetObjPos(ms_cutsceneOffset + animTrans);
 
                 // Start the anim
