@@ -8,6 +8,8 @@ void RwCoreInjectHooks() {
 
     RH_ScopedGlobalInstall(RwCameraBeginUpdate, 0x7EE190);
     RH_ScopedGlobalInstall(RwCameraEndUpdate, 0x7EE180);
+    RH_ScopedGlobalInstall(RwCameraClear, 0x7EE340);
+    RH_ScopedGlobalInstall(RwCameraShowRaster, 0x7EE370);
 }
 
 RxHeap* RxHeapCreate(RwUInt32 size) {
@@ -1079,11 +1081,13 @@ RwCamera* RwCameraEndUpdate(RwCamera* camera) {
 }
 
 RwCamera* RwCameraClear(RwCamera* camera, RwRGBA* colour, RwInt32 clearMode) {
-    return ((RwCamera*(__cdecl *)(RwCamera*, RwRGBA*, RwInt32))0x7EE340)(camera, colour, clearMode);
+    ZoneScoped;
+    return RwEngineInstance->stdFunc[rwSTANDARDCAMERACLEAR](camera, colour, clearMode) ? camera : nullptr;
 }
 
 RwCamera* RwCameraShowRaster(RwCamera* camera, void* pDev, RwUInt32 flags) {
-    return ((RwCamera*(__cdecl *)(RwCamera*, void*, RwUInt32))0x7EE370)(camera, pDev, flags);
+    ZoneScoped;
+    return RwRasterShowRaster(RwCameraGetRaster(camera), pDev, flags) != 0 ? camera : nullptr;
 }
 
 void RwCameraSetFreeListCreateParams(RwInt32 blockSize, RwInt32 numBlocksToPrealloc) {
