@@ -72,11 +72,12 @@ void CClothes::LoadClothesFile() {
         if (line[0] == '\0' || line[0] == '#') {
             continue;
         }
+
         if (!isRuleStarted) {
-            isRuleStarted = !strcmp("rule", line);
+            isRuleStarted = !strncmp("rule", line, 4);
             continue;
         }
-        if (!strcmp("end", line)) {
+        if (!strncmp("end", line, 3)) {
             isRuleStarted = false;
             continue;
         }
@@ -99,14 +100,14 @@ void CClothes::LoadClothesFile() {
         };
         const eClothRule ruleTag = [&](){
             constexpr struct {const char* name; eClothRule rule;} map[]{
-                {"cuts", eClothRule::TAG_CUTS},
-                {"setc", eClothRule::TAG_SETC},
-                {"tex", eClothRule::TAG_TEX},
-                {"hide", eClothRule::TAG_HIDE},
-                {"endignore", eClothRule::TAG_END_IGNORE},
-                {"ignore", eClothRule::TAG_IGNORE},
-                {"endexclusive", eClothRule::TAG_END_EXCLUSIVE},
-                {"exclusive", eClothRule::TAG_EXCLUSIVE}
+                {"CUTS", eClothRule::TAG_CUTS},
+                {"SETC", eClothRule::TAG_SETC},
+                {"TEX", eClothRule::TAG_TEX},
+                {"HIDE", eClothRule::TAG_HIDE},
+                {"ENDIGNORE", eClothRule::TAG_END_IGNORE},
+                {"IGNORE", eClothRule::TAG_IGNORE},
+                {"ENDEXCLUSIVE", eClothRule::TAG_END_EXCLUSIVE},
+                {"EXCLUSIVE", eClothRule::TAG_EXCLUSIVE}
             };
             for (const auto& [name, rule] : map) {
                 if (!strcmp(strTag, name)) {
