@@ -178,8 +178,8 @@ auto GetCharCoordinates(CPed& ped) {
     }
 }
 
-auto SetCharCoordinates(CPed& ped, CVector coords) {
-    CRunningScript::SetCharCoordinates(ped, coords, true, true);
+auto SetCharCoordinates(CRunningScript& S, CPed& ped, CVector coords) {
+    S.SetCharCoordinates(ped, coords, true, true);
 }
 
 auto IsCharInArea2D(CRunningScript& S, CPed& ped, CVector2D a, CVector2D b, bool highlightArea) {
@@ -1398,8 +1398,8 @@ void SetCharSignalAfterKill(CPed& ped, bool state) {
 }
 
 // SET_CHAR_COORDINATES_DONT_WARP_GANG_NO_OFFSET
-void SetCharCoordinatesDontWarpGangNoOffset(CPed& ped, CVector posn) {
-    CRunningScript::SetCharCoordinates(ped, posn, false, false);
+void SetCharCoordinatesDontWarpGangNoOffset(CRunningScript& S, CPed& ped, CVector posn) {
+    S.SetCharCoordinates(ped, posn, false, false);
 }
 
 // IS_CHAR_USING_MAP_ATTRACTOR

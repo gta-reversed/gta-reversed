@@ -219,7 +219,7 @@ public:
 
     void DoDeathArrestCheck(); // original name DoDeatharrestCheck
 
-    static void SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, bool offset);
+    void SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, bool offset);
     void GivePedScriptedTask(int32 pedHandle, CTask* task, int32 opcode);
     void GivePedScriptedTask(CPed* ped, CTask* task, int32 opcode); // NOTSA overload
 
