@@ -630,7 +630,8 @@ auto CreatePed(CRunningScript& S, ePedType pedType, eModelID pedModel) -> CPed& 
 //! Creates a character in the driver's seat of the vehicle
 CPed& CreateCharInsideCar(CRunningScript& S, CVehicle& veh, ePedType pedType, eModelID pedModel) {
     const auto ped = &CreatePed(S, pedType, pedModel);
-    CTaskSimpleCarSetPedInAsDriver{ &veh, false }.ProcessPed(ped); // Make ped get into da car
+    CTaskSimpleCarSetPedInAsDriver{ &veh, true, nullptr}.ProcessPed(ped); // Make ped get into da car
+    CWorld::Add(ped);
     return *ped;
 }
 
@@ -860,7 +861,7 @@ auto HasCharSpottedChar(CPed& ped, CPed& target) {
 // WARP_CHAR_INTO_CAR
 auto WarpCharIntoCar(CPed& ped, CVehicle& veh) {
     ped.GetIntelligence()->FlushImmediately(false);
-    CTaskSimpleCarSetPedInAsDriver{ &veh, false }.ProcessPed(&ped);
+    CTaskSimpleCarSetPedInAsDriver{ &veh, true, nullptr }.ProcessPed(&ped);
 }
 
 // SET_CHAR_ANIM_SPEED
