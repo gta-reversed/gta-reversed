@@ -520,7 +520,7 @@ CVector CPathFind::FindNodeCoorsForScript(CNodeAddress address, bool* bFound) {
             *bFound = found;
         }
     };
-    if (!address.IsValid() || IsAreaNodesAvailable(address)) {
+    if (!address.IsValid() || !IsAreaNodesAvailable(address)) {
         SetFound(false);
         return {};
     } else {
