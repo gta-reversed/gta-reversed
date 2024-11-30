@@ -746,8 +746,9 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
 
             for (auto& passenger : vehicle->GetPassengers()) {
                 if (passenger) {
+                    auto* passengerCopy = passenger; // Needed because something inside RemovePassenger() changes our pointer to nullptr, and we crash in CPopulation::RemovePed()
                     vehicle->RemovePassenger(passenger);
-                    CPopulation::RemovePed(passenger);
+                    CPopulation::RemovePed(passengerCopy);
                 }
             }
 
