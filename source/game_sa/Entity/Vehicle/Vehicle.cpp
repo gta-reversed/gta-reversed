@@ -1061,7 +1061,7 @@ bool CVehicle::CanPedStepOutCar(bool bIgnoreSpeedUpright) const {
 bool CVehicle::CanPedJumpOutCar(CPed* ped) {
     if (IsBike())
     {
-        if (!m_apPassengers[0] || ped == m_apPassengers[0])
+        if (!HasPassengerAtSeat(0) || ped == m_apPassengers[0])
             return m_vecMoveSpeed.SquaredMagnitude2D() >= 0.07F;
 
         return false;
@@ -1409,7 +1409,7 @@ bool CVehicle::AddPassenger(CPed* passenger, uint8 seatIdx) {
     }
 
     // Check if anyone is already in that seat
-    if (m_apPassengers[seatIdx]) {
+    if (HasPassengerAtSeat(seatIdx)) {
         return false;
     }
 

@@ -481,8 +481,8 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask_AfterSimpleCarAlign(CPed* ped) {
         }, true);
     };
 
-    AddJackedTaskToPed(m_DraggedPed, m_TargetDoor != 18 || m_Car->m_apPassengers[0] ? 10 : 11); // 0x63FF50
-    if (m_Car->IsDriver(m_DraggedPed) && m_Car->m_apPassengers[0]) {
+    AddJackedTaskToPed(m_DraggedPed, m_TargetDoor != 18 || m_Car->HasPassengerAtSeat(0) ? 10 : 11); // 0x63FF50
+    if (m_Car->IsDriver(m_DraggedPed) && m_Car->HasPassengerAtSeat(0)) {
         AddJackedTaskToPed(m_Car->GetPassengers()[0], 11);
 
         if (const auto draggedPedGrp = m_DraggedPed->GetGroup()) {
