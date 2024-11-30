@@ -727,9 +727,6 @@ public: // NOTSA functions
     [[nodiscard]] CVehicleAnimGroup& GetAnimGroup() const;
     [[nodiscard]] AssocGroupId GetAnimGroupId() const;
 
-    // Some places check for passenger this way, and with GetPassengers() we end up with an exception due to creation of span with length 0
-    auto HasPassengers() const { return m_apPassengers[0] != nullptr; }
-
     auto GetPassengers() const { return std::span{ m_apPassengers, m_nMaxPassengers }; }
     auto GetMaxPassengerSeats() { return std::span{ m_apPassengers, m_nMaxPassengers }; } // NOTE: Added this because I plan to refactor `GetPassengers()`
 
