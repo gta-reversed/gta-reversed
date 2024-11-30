@@ -47,6 +47,7 @@ bool CAEStreamThread::Initialise(CAEStreamingChannel* streamingChannel) {
     assert(m_nHandle);
     SetThreadPriority(m_nHandle, THREAD_PRIORITY_NORMAL);
     InitializeCriticalSection(&m_criticalSection);
+    //TODO: NOTSA: Replace CriticalSection usages in this class with platform independant mutex from oswrapper
 
     m_pStreamingChannel = streamingChannel;
 
