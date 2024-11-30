@@ -39,8 +39,8 @@ float GetGroundZFor3DCoord(CVector coord) {
     return CWorld::FindGroundZFor3DCoord(coord, nullptr, nullptr);
 }
 
-void PlayerMadeProgress() {
-    return CStats::IncrementStat(STAT_PROGRESS_MADE);
+void PlayerMadeProgress(int32 progress) {
+    return CStats::IncrementStat(STAT_PROGRESS_MADE, float(progress));
 }
 
 void RegisterMissionGiven() {
