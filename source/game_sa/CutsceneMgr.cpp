@@ -925,8 +925,8 @@ void CCutsceneMgr::SetupCutsceneToStart() {
             } else {
                 // Get anim translation and offset the object's position by it
                 const CVector animTrans = anim->m_BlendHier->m_bIsCompressed
-                    ? (CVector)anim->m_BlendHier->m_pSequences->GetCKeyFrame(0)->Trans
-                    : (CVector)anim->m_BlendHier->m_pSequences->GetUKeyFrame(0)->Trans;
+                    ? (CVector)anim->m_BlendHier->m_pSequences[0].GetCKeyFrame(0)->Trans
+                    : (CVector)anim->m_BlendHier->m_pSequences[0].GetUKeyFrame(0)->Trans;
                 SetObjPos(ms_cutsceneOffset + animTrans);
 
                 // Start the anim
