@@ -745,7 +745,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
             }
 
             // Need to use raw pointer here instead of a reference - the m_aPassengers array is modifed in RemovePassenger() and we would crash in RemovePed afterwards
-            for (auto* passenger : vehicle->GetPassengers()) {
+            for (const auto passenger : vehicle->GetPassengers()) {
                 if (passenger) {
                     vehicle->RemovePassenger(passenger);
                     CPopulation::RemovePed(passenger);
