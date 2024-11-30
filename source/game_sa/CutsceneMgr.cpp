@@ -799,50 +799,51 @@ void CCutsceneMgr::LoadCutsceneData_preload() {
     }
     ms_numAppendObjectNames = 0;
 
-    if (ms_numLoadObjectNames) {
-        // Request all models to be loaded [Added by `LoadCutSceneFile` and the scripts]
-        size_t specialModelOffset = 0;
-        for (auto i = 0; i < ms_numLoadObjectNames; i++) {
-            const auto& modelName = ms_cLoadObjectName[i];
-
-            if (_stricmp(modelName, "csplay") == 0) {
-                ms_iModelIndex[i] = MODEL_CSPLAY;
-                continue;
-            }
-
-            switch (ms_iModelIndex[i]) {
-            case MODEL_LOAD_THIS: { // 0x5B10F0 - Load a new model
-                auto& modelId = ms_iModelIndex[i];
-
-                if (CModelInfo::GetModelInfo(modelName, (int32*)&modelId)) { // Regular model
-                    CStreaming::RequestModel(modelId, STREAMING_PRIORITY_REQUEST | STREAMING_KEEP_IN_MEMORY | STREAMING_MISSION_REQUIRED);
-                } else { // Special model
-                    // Figure out cut-scene model ID
-                    modelId = (eModelID)(MODEL_CUTOBJ01 + specialModelOffset++);
-
-                    // Request the model to be loaded
-                    CStreaming::RequestSpecialModel(modelId, modelName, STREAMING_PRIORITY_REQUEST | STREAMING_KEEP_IN_MEMORY | STREAMING_MISSION_REQUIRED);
-
-                    // Find next not-yet loaded cutscene model
-                    while (CStreaming::IsModelLoaded((eModelID)(MODEL_CUTOBJ01 + specialModelOffset))) { // TODO/BUG: Missing check (should only try cutscene models (eg.: up to MODEL_CUTOBJ20), nothing more)
-                        specialModelOffset++;
-                    }
-                    assert(specialModelOffset <= (MODEL_CUTOBJ20 - MODEL_CUTOBJ01));
-                }
-                break;
-            }
-            case MODEL_USE_PREV: { // Just use the previous model
-                assert(i > 0);     // The model index array should always start with `MODEL_LOAD_THIS`
-                ms_iModelIndex[i] = ms_iModelIndex[i - 1];
-                break;
-            }
-            }
-        }
-        CStreaming::LoadAllRequestedModels(true);
-        ms_cutsceneLoadStatus = LoadStatus::LOADING;
-    } else {
+    if (ms_numLoadObjectNames == 0) {
         LoadCutsceneData_postload();
+        return;
     }
+
+    // Request all models to be loaded [Added by `LoadCutSceneFile` and the scripts]
+    size_t specialModelOffset = 0;
+    for (auto i = 0; i < ms_numLoadObjectNames; i++) {
+        const auto& modelName = ms_cLoadObjectName[i];
+
+        if (_stricmp(modelName, "csplay") == 0) {
+            ms_iModelIndex[i] = MODEL_CSPLAY;
+            continue;
+        }
+
+        switch (ms_iModelIndex[i]) {
+        case MODEL_LOAD_THIS: { // 0x5B10F0 - Load a new model
+            auto& modelId = ms_iModelIndex[i];
+
+            if (CModelInfo::GetModelInfo(modelName, (int32*)&modelId)) { // Regular model
+                CStreaming::RequestModel(modelId, STREAMING_PRIORITY_REQUEST | STREAMING_KEEP_IN_MEMORY | STREAMING_MISSION_REQUIRED);
+            } else { // Special model
+                // Figure out cut-scene model ID
+                modelId = (eModelID)(MODEL_CUTOBJ01 + specialModelOffset++);
+
+                // Request the model to be loaded
+                CStreaming::RequestSpecialModel(modelId, modelName, STREAMING_PRIORITY_REQUEST | STREAMING_KEEP_IN_MEMORY | STREAMING_MISSION_REQUIRED);
+
+                // Find next not-yet loaded cutscene model
+                while (CStreaming::IsModelLoaded((eModelID)(MODEL_CUTOBJ01 + specialModelOffset))) { // TODO/BUG: Missing check (should only try cutscene models (eg.: up to MODEL_CUTOBJ20), nothing more)
+                    specialModelOffset++;
+                }
+                assert(specialModelOffset <= (MODEL_CUTOBJ20 - MODEL_CUTOBJ01));
+            }
+            break;
+        }
+        case MODEL_USE_PREV: { // Just use the previous model
+            assert(i > 0);     // The model index array should always start with `MODEL_LOAD_THIS`
+            ms_iModelIndex[i] = ms_iModelIndex[i - 1];
+            break;
+        }
+        }
+    }
+    CStreaming::LoadAllRequestedModels(true);
+    ms_cutsceneLoadStatus = LoadStatus::LOADING;
 }
 
 // 0x4D5C10
