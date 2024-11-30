@@ -744,11 +744,11 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
                 CEntity::SafeCleanUpRef(driver);
             }
 
-            for (auto& passenger : vehicle->GetPassengers()) {
+            // Need to use raw pointer here instead of a reference - the m_aPassengers array is modifed in RemovePassenger() and we would crash in RemovePed afterwards
+            for (auto* passenger : vehicle->GetPassengers()) {
                 if (passenger) {
-                    auto* passengerCopy = passenger; // Needed because something inside RemovePassenger() changes our pointer to nullptr, and we crash in CPopulation::RemovePed()
                     vehicle->RemovePassenger(passenger);
-                    CPopulation::RemovePed(passengerCopy);
+                    CPopulation::RemovePed(passenger);
                 }
             }
 
