@@ -58,7 +58,7 @@ public:
     eRadarMode m_nRadarMode;
     char      field_28[4];
     int32     m_nTargetBlipIndex; // blip script handle
-    uint8     m_nSysMenu; // CMenuSystem
+    int8      m_nSysMenu; // CMenuSystem
     char      field_31;
     bool      m_bDontDrawFrontEnd;
     bool      m_bActivateMenuNextFrame;

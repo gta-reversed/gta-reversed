@@ -273,7 +273,7 @@ void CMenuManager::CheckForMenuClosing() {
                 AudioEngine.StopRadio(nullptr, false);
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
 
-                if (m_nSysMenu >= 0u) {
+                if (m_nSysMenu != CMenuSystem::MENU_UNDEFINED) {
                     CMenuSystem::SwitchOffMenu(0);
                     m_nSysMenu = CMenuSystem::MENU_UNDEFINED;
                 }

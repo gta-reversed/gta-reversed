@@ -124,8 +124,8 @@ void CMenuManager::PrintMap() {
     m_bDrawingMap = true;
     CRadar::InitFrontEndMap();
     if (!m_bMapLoaded) {
-        if (m_nSysMenu >= 0u) {
-            CMenuSystem::SwitchOffMenu(m_nSysMenu % 2); // TODO: Remove `% 2`?
+        if (m_nSysMenu != CMenuSystem::MENU_UNDEFINED) {
+            CMenuSystem::SwitchOffMenu(m_nSysMenu);
             m_nSysMenu = CMenuSystem::MENU_UNDEFINED;
         }
 
@@ -151,13 +151,13 @@ void CMenuManager::PrintMap() {
     }
     const auto zoomFactorForStretchX = m_fMapZoom / 6;
     const auto zoomFactorForStretchY = m_fMapZoom / 5;
-    const CRect rect{
+    const CRect mapArea{
         StretchX(60.0f),
         StretchY(60.0f),
         StretchX(580.0f),
         StretchY(388.0f)
     };
-    const CVector2D vect{
+    const CVector2D mapOriginOffset{
         StretchX(m_vMapOrigin.x - m_fMapZoom),
         StretchY(m_vMapOrigin.y - m_fMapZoom)
     };
@@ -183,18 +183,18 @@ void CMenuManager::PrintMap() {
             CSprite2d::DrawRect(coords, CRGBA(111, 137, 170, 255)); // blue background
             const auto stretchX = StretchX(zoomFactorForStretchX);
             const auto stretchY = StretchY(zoomFactorForStretchX);
-            for (auto x = 0u; x < MAX_RADAR_WIDTH_TILES; x++) { // NOTE: Or does it start with Y?
+            for (auto x = 0u; x < MAX_RADAR_WIDTH_TILES; x++) {
                 for (auto y = 0u; y < MAX_RADAR_HEIGHT_TILES; y++) {
-                    if (rect.left - stretchX < x * stretchX + vect.x) {
-                        if (rect.bottom - stretchY < y * stretchY + vect.y) {
-                            if (rect.right + stretchX > (x + 1) * stretchX + vect.x) {
-                                if (rect.top + stretchY > (y + 1) * stretchY + vect.y) {
+                    if (mapArea.left - stretchX < x * stretchX + mapOriginOffset.x) {
+                        if (mapArea.bottom - stretchY < y * stretchY + mapOriginOffset.y) {
+                            if (mapArea.right + stretchX > (x + 1) * stretchX + mapOriginOffset.x) {
+                                if (mapArea.top + stretchY > (y + 1) * stretchY + mapOriginOffset.y) {
                                     CRadar::DrawRadarSectionMap(
                                         x, y,
-                                        { StretchX(zoomFactorForStretchX) * x + vect.x,
-                                          StretchY(zoomFactorForStretchX) * y + vect.y,
-                                          StretchX(zoomFactorForStretchX) * (x + 1) + vect.x,
-                                          StretchY(zoomFactorForStretchX) * (y + 1) + vect.y }
+                                        { StretchX(zoomFactorForStretchX) * x + mapOriginOffset.x,
+                                          StretchY(zoomFactorForStretchX) * y + mapOriginOffset.y,
+                                          StretchX(zoomFactorForStretchX) * (x + 1) + mapOriginOffset.x,
+                                          StretchY(zoomFactorForStretchX) * (y + 1) + mapOriginOffset.y }
                                     );
                                 }
                             }
@@ -244,14 +244,14 @@ void CMenuManager::PrintMap() {
     if (FrontEndMenuManager.m_bViewRadar || !m_bMapLoaded) {
         CRadar::DrawRadarGangOverlay(1);
         if (CTheZones::ZonesRevealed < 80) {
-            for (auto x = 0u; x < MAX_RADAR_WIDTH_TILES - 2; x++) { // NOTE: Or does it start with Y?
+            for (auto x = 0u; x < MAX_RADAR_WIDTH_TILES - 2; x++) {
                 for (auto y = 0u; y < MAX_RADAR_HEIGHT_TILES - 2; y++) {
                     if (!CTheZones::ZonesVisited[x][y]) {
                         CSprite2d::DrawRect(
-                            { StretchX(zoomFactorForStretchY) * x + vect.x,
-                              StretchY(zoomFactorForStretchY) * y + vect.y,
-                              StretchX(zoomFactorForStretchY) * (x + 1) + vect.x,
-                              StretchY(zoomFactorForStretchY) * (y + 1) + vect.y },
+                            { StretchX(zoomFactorForStretchY) * x + mapOriginOffset.x,
+                              StretchY(zoomFactorForStretchY) * y + mapOriginOffset.y,
+                              StretchX(zoomFactorForStretchY) * (x + 1) + mapOriginOffset.x,
+                              StretchY(zoomFactorForStretchY) * (y + 1) + mapOriginOffset.y },
                             CRGBA(111, 137, 170, 200)
                         ); // radar fog
                     }
@@ -261,55 +261,51 @@ void CMenuManager::PrintMap() {
         if (!CTheScripts::HideAllFrontEndMapBlips && !CTheScripts::bPlayerIsOffTheMap) {
             CRadar::DrawBlips();
         }
-        if (!m_bMapLoaded && FrontEndMenuManager.m_bViewRadar) {
-            if (m_nSysMenu >= 0u) {
-                CMenuSystem::Process(m_nSysMenu);
-            }
-        }
     }
 
-    // border between map and background
-    // TODO: Fix in Full Map (Press Z)
-    CSprite2d::DrawRect(
-        { 0.0f, 0.0f, SCREEN_WIDTH, rect.bottom },
-        CRGBA(100, 100, 100, 255)
-    );
+    if ((FrontEndMenuManager.m_bViewRadar || m_bMapLoaded) && m_bMapLoaded) {
+        // border between map and background
+        CSprite2d::DrawRect(
+            { 0.0f, 0.0f, SCREEN_WIDTH, mapArea.bottom },
+            CRGBA(100, 100, 100, 255)
+        );
 
-    CSprite2d::DrawRect(
-        { 0.0f, rect.top, SCREEN_WIDTH, SCREEN_HEIGHT },
-        CRGBA(100, 100, 100, 255)
-    );
+        CSprite2d::DrawRect(
+            { 0.0f, mapArea.top, SCREEN_WIDTH, SCREEN_HEIGHT },
+            CRGBA(100, 100, 100, 255)
+        );
 
-    CSprite2d::DrawRect(
-        { 0.0f, 0.0f, rect.left, SCREEN_HEIGHT },
-        CRGBA(100, 100, 100, 255)
-    );
+        CSprite2d::DrawRect(
+            { 0.0f, 0.0f, mapArea.left, SCREEN_HEIGHT },
+            CRGBA(100, 100, 100, 255)
+        );
 
-    CSprite2d::DrawRect(
-        { rect.right, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT },
-        CRGBA(100, 100, 100, 255)
-    );
+        CSprite2d::DrawRect(
+            { mapArea.right, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT },
+            CRGBA(100, 100, 100, 255)
+        );
 
-    // background
-    CSprite2d::DrawRect(
-        { 0.0f, 0.0f, SCREEN_WIDTH, rect.bottom - StretchY(4.0f) },
-        CRGBA(0, 0, 0, 255)
-    );
+        // background
+        CSprite2d::DrawRect(
+            { 0.0f, 0.0f, SCREEN_WIDTH, mapArea.bottom - StretchY(4.0f) },
+            CRGBA(0, 0, 0, 255)
+        );
 
-    CSprite2d::DrawRect(
-        { 0.0f, rect.top + StretchY(4.0f), SCREEN_WIDTH, SCREEN_HEIGHT },
-        CRGBA(0, 0, 0, 255)
-    );
+        CSprite2d::DrawRect(
+            { 0.0f, mapArea.top + StretchY(4.0f), SCREEN_WIDTH, SCREEN_HEIGHT },
+            CRGBA(0, 0, 0, 255)
+        );
 
-    CSprite2d::DrawRect(
-        { 0.0f, 0.0f, rect.left - StretchX(4.0f), SCREEN_HEIGHT },
-        CRGBA(0, 0, 0, 255)
-    );
+        CSprite2d::DrawRect(
+            { 0.0f, 0.0f, mapArea.left - StretchX(4.0f), SCREEN_HEIGHT },
+            CRGBA(0, 0, 0, 255)
+        );
 
-    CSprite2d::DrawRect(
-        { rect.right + StretchX(4.0f), 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT },
-        CRGBA(0, 0, 0, 255)
-    );
+        CSprite2d::DrawRect(
+            { mapArea.right + StretchX(4.0f), 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT },
+            CRGBA(0, 0, 0, 255)
+        );
+    }
 
     // 0x575E21
     if (FrontEndMenuManager.m_bViewRadar) {
@@ -326,7 +322,7 @@ void CMenuManager::PrintMap() {
             CFont::SetEdge(2);
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
             CFont::PrintString(
-                rect.right - StretchX(30.0f), rect.top - StretchY(30.0f),
+                mapArea.right - StretchX(30.0f), mapArea.top - StretchY(30.0f),
                 placeName.GetForMap(m_vMousePos.x, m_vMousePos.y)
             );
         }
@@ -338,7 +334,7 @@ void CMenuManager::PrintMap() {
                 y += StretchY(19.0f) * iterations;
             }
 
-            CMenuManager::DrawWindow(
+            DrawWindow(
                 { StretchX(95.0f), StretchY(100.0f), StretchX(550.0f), y },
                 "FE_MLG", 0, CRGBA(0, 0, 0, 190), true, true
             ); // map legend
@@ -370,7 +366,7 @@ void CMenuManager::PrintMap() {
                 }
             }
         }
-        if (m_nSysMenu >= 0u) {
+        if (m_nSysMenu != CMenuSystem::MENU_UNDEFINED) {
             CMenuSystem::Process(m_nSysMenu);
         }
     }
@@ -378,7 +374,7 @@ void CMenuManager::PrintMap() {
     CFont::SetWrapx(SCREEN_WIDTH - 10);
     CFont::SetRightJustifyWrap(10.0f);
     if (m_bMapLoaded) {
-        CMenuManager::DisplayHelperText(m_nSysMenu < 128u ? "FEH_MPB" : "FEH_MPH");
+        DisplayHelperText(m_nSysMenu != CMenuSystem::MENU_UNDEFINED ? "FEH_MPB" : "FEH_MPH");
     }
     m_bMapLoaded = true;
 }
