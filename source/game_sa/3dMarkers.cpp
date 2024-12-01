@@ -338,7 +338,7 @@ void C3dMarkers::User3dMarkersDraw() {
 // 0x5D42E0
 bool C3dMarkers::LoadUser3dMarkers() {
     for (auto& marker : ms_user3dMarkers) {
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&marker, sizeof(marker));
+        CGenericGameStorage::LoadDataFromWorkBuffer(&marker, sizeof(marker));
     }
     return true;
 }

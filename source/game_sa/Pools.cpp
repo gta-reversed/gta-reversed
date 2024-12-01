@@ -147,12 +147,12 @@ bool CPools::Load() {
 // 0x5D4A40
 bool CPools::LoadObjectPool() {
     int32 iNumObjects = 0;
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&iNumObjects, sizeof(iNumObjects));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&iNumObjects, sizeof(iNumObjects));
     for (int32 i = 0; i < iNumObjects; ++i)
     {
         int32 iPoolRef = 0, iModelId = 0;
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&iPoolRef, sizeof(iPoolRef));
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&iModelId, sizeof(iModelId));
+        CGenericGameStorage::LoadDataFromWorkBuffer(&iPoolRef, sizeof(iPoolRef));
+        CGenericGameStorage::LoadDataFromWorkBuffer(&iModelId, sizeof(iModelId));
 
         auto* objInPool = GetObjectPool()->GetAtRefNoChecks(iPoolRef);
         if (objInPool)
@@ -169,16 +169,16 @@ bool CPools::LoadObjectPool() {
 // 0x5D2D70
 bool CPools::LoadPedPool() {
     int32 pedCount;
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&pedCount, sizeof(pedCount));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&pedCount, sizeof(pedCount));
 
     for (auto i = 0; i < pedCount; i++) {
         int32 poolRef;
         int32 model;
         int32 pedType;
 
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&poolRef, sizeof(poolRef));
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&model, sizeof(model));
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&pedType, sizeof(pedType));
+        CGenericGameStorage::LoadDataFromWorkBuffer(&poolRef, sizeof(poolRef));
+        CGenericGameStorage::LoadDataFromWorkBuffer(&model, sizeof(model));
+        CGenericGameStorage::LoadDataFromWorkBuffer(&pedType, sizeof(pedType));
 
         CPlayerPed* playerPed = nullptr;
         if (pedType == PED_TYPE_PLAYER1) {
@@ -198,12 +198,12 @@ bool CPools::LoadPedPool() {
 // Used in CPools::Load (Android 1.0)
 bool CPools::LoadVehiclePool() {
     int32 count;
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&count, 4);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&count, 4);
     for (auto i = 0; i < count; i++) {
         int32 modelId, createdBy;
 
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&createdBy, 4);
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&modelId, 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer(&createdBy, 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer(&modelId, 4);
 
         CStreaming::RequestModel(modelId, STREAMING_KEEP_IN_MEMORY);
         CStreaming::LoadAllRequestedModels(false);

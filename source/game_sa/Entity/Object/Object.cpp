@@ -606,8 +606,8 @@ void CObject::RemoveLighting(bool bRemove) {
 bool CObject::Load() {
     uint32 size; // unused
     CObjectSaveStructure data;
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&data, sizeof(data));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(data));
     data.Extract(this);
     return true;
 }

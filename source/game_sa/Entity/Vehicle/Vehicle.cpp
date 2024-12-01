@@ -1131,8 +1131,8 @@ bool CVehicle::Save() {
 bool CVehicle::Load() {
     uint32 size;
     CVehicleSaveStructure data;
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&size, sizeof(uint32));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&data, sizeof(CVehicleSaveStructure)); // BUG: Should use the value readen line above this, not constant
+    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(uint32));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(CVehicleSaveStructure)); // BUG: Should use the value readen line above this, not constant
     data.Extract(this);
     return true;
 }

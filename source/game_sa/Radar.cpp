@@ -1963,7 +1963,7 @@ bool CRadar::Load() {
     Initialise();
 
     for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) {
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&trace, sizeof(trace));
+        CGenericGameStorage::LoadDataFromWorkBuffer(&trace, sizeof(trace));
         if (trace.m_pEntryExit) {
             trace.m_pEntryExit = CEntryExitManager::mp_poolEntryExits->GetAt(i);
         }

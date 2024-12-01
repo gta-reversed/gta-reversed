@@ -258,14 +258,14 @@ void CGameLogic::Save() {
 
 // 0x5D3440
 void CGameLogic::Load() {
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&CGameLogic::NumAfterDeathStartPoints,                sizeof(int32));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&CGameLogic::bPenaltyForDeathApplies,                 sizeof(bool));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&CGameLogic::bPenaltyForArrestApplies,                sizeof(bool));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&CGameLogic::GameState,                               sizeof(eGameState));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&CGameLogic::TimeOfLastEvent,                         sizeof(uint32));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::NumAfterDeathStartPoints,                sizeof(int32));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::bPenaltyForDeathApplies,                 sizeof(bool));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::bPenaltyForArrestApplies,                sizeof(bool));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::GameState,                               sizeof(eGameState));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::TimeOfLastEvent,                         sizeof(uint32));
     for (int32 i = 0; i < NumAfterDeathStartPoints; ++i) {
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&CGameLogic::AfterDeathStartPoints[i],            sizeof(CVector));
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&CGameLogic::AfterDeathStartPointOrientations[i], sizeof(float));
+        CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::AfterDeathStartPoints[i],            sizeof(CVector));
+        CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::AfterDeathStartPointOrientations[i], sizeof(float));
     }
 }
 

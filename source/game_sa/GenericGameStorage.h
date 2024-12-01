@@ -82,7 +82,7 @@ public:
     static bool GenericLoad(bool& outbVariablesLoaded);
     static bool GenericSave();
     static bool CheckSlotDataValid(int32 slot);
-    static bool LoadDataFromWorkBufferOrg(void* data, int32 size);
+    static bool LoadDataFromWorkBuffer(void* data, int32 size);
     static int32 SaveDataToWorkBuffer(void* data, int32 Size);
     static bool LoadWorkBuffer();
     static bool SaveWorkBuffer(bool bIncludeChecksum);
@@ -123,7 +123,7 @@ template<typename T, bool HasSizeHeader = true>
 
 template<typename T>
 static bool LoadDataFromWorkBuffer(T& data) {
-    return CGenericGameStorage::LoadDataFromWorkBufferOrg((void*)&data, sizeof(T));
+    return CGenericGameStorage::LoadDataFromWorkBuffer((void*)&data, sizeof(T));
 }
 
 template<typename T>
@@ -184,5 +184,5 @@ static void LoadMultipleDataFromWorkBuffer(Ts*... out) {
         const auto size = LoadDataFromWorkBuffer<uint32>();
         assert(size == ExpectedSize);
     }
-    (CGenericGameStorage::LoadDataFromWorkBufferOrg((void*)out, sizeof(Ts)), ...); // And now load all data
+    (CGenericGameStorage::LoadDataFromWorkBuffer((void*)out, sizeof(Ts)), ...); // And now load all data
 }

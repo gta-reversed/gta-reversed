@@ -492,8 +492,8 @@ void CPed::SetMoveAnim() {
 bool CPed::Load() {
     CPedSaveStructure save;
     uint32 size{};
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&save, sizeof(save));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&save, sizeof(save));
 
     assert(size == sizeof(save));
     save.Extract(this);

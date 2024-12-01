@@ -257,6 +257,6 @@ void CTagManager::Load()
         return;
 
     for (auto i = 0; i < ms_numTags; ++i) {
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&ms_tagDesc[i].m_nAlpha, 1);
+        CGenericGameStorage::LoadDataFromWorkBuffer(&ms_tagDesc[i].m_nAlpha, 1);
     }
 }

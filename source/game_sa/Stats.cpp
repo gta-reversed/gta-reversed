@@ -688,15 +688,15 @@ bool CStats::Save() {
 
 // 0x5D3BF0
 bool CStats::Load() {
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(StatTypesFloat,           sizeof(StatTypesFloat));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(StatTypesInt,             sizeof(StatTypesInt));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(PedsKilledOfThisType,     sizeof(PedsKilledOfThisType));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(LastMissionPassedName,    sizeof(LastMissionPassedName));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(FavoriteRadioStationList, sizeof(FavoriteRadioStationList));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(TimesMissionAttempted,    sizeof(TimesMissionAttempted));
+    CGenericGameStorage::LoadDataFromWorkBuffer(StatTypesFloat,           sizeof(StatTypesFloat));
+    CGenericGameStorage::LoadDataFromWorkBuffer(StatTypesInt,             sizeof(StatTypesInt));
+    CGenericGameStorage::LoadDataFromWorkBuffer(PedsKilledOfThisType,     sizeof(PedsKilledOfThisType));
+    CGenericGameStorage::LoadDataFromWorkBuffer(LastMissionPassedName,    sizeof(LastMissionPassedName));
+    CGenericGameStorage::LoadDataFromWorkBuffer(FavoriteRadioStationList, sizeof(FavoriteRadioStationList));
+    CGenericGameStorage::LoadDataFromWorkBuffer(TimesMissionAttempted,    sizeof(TimesMissionAttempted));
     // todo: CGenericGameStorage::LoadDataFromWorkBuffer(&StatMessage,             sizeof(StatMessage));
     for (int32 i = 0; i < sizeof(StatMessage); i++) {
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&StatMessage[i].displayed, 1);
+        CGenericGameStorage::LoadDataFromWorkBuffer(&StatMessage[i].displayed, 1);
     }
     return true;
 }

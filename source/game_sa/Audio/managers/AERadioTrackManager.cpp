@@ -839,46 +839,46 @@ void CAERadioTrackManager::Load() {
         // todo: m_nMusicTrackIndexHistory;
 
         for (auto i = 0; i < IDENT_INDEX_HISTORY_COUNT; i++) {
-            CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nIdentIndexHistory[r].indices[i], sizeof(m_nIdentIndexHistory[r].indices[i]));
+            CGenericGameStorage::LoadDataFromWorkBuffer(&m_nIdentIndexHistory[r].indices[i], sizeof(m_nIdentIndexHistory[r].indices[i]));
         }
 
         for (auto i = 0; i < ADVERT_INDEX_HISTORY_COUNT; i++) {
-            CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nAdvertIndexHistory[r].indices[i], sizeof(m_nAdvertIndexHistory[r].indices[i]));
+            CGenericGameStorage::LoadDataFromWorkBuffer(&m_nAdvertIndexHistory[r].indices[i], sizeof(m_nAdvertIndexHistory[r].indices[i]));
         }
 
         for (auto i = 0; i < DJBANTER_INDEX_HISTORY_COUNT; i++) {
-            CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nDJBanterIndexHistory[r].indices[i], sizeof(m_nDJBanterIndexHistory[r].indices[i]));
+            CGenericGameStorage::LoadDataFromWorkBuffer(&m_nDJBanterIndexHistory[r].indices[i], sizeof(m_nDJBanterIndexHistory[r].indices[i]));
         }
     }
 
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsCitiesPassed,          sizeof(m_nStatsCitiesPassed));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedCasino3,         sizeof(m_nStatsPassedCasino3));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedCasino6,         sizeof(m_nStatsPassedCasino6));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedCasino10,        sizeof(m_nStatsPassedCasino10));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedCat1,            sizeof(m_nStatsPassedCat1));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedDesert1,         sizeof(m_nStatsPassedDesert1));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedDesert3,         sizeof(m_nStatsPassedDesert3));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedDesert5,         sizeof(m_nStatsPassedDesert5));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedDesert8,         sizeof(m_nStatsPassedDesert8));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedDesert10,        sizeof(m_nStatsPassedDesert10));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedFarlie3,         sizeof(m_nStatsPassedFarlie3));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedLAFin2,          sizeof(m_nStatsPassedLAFin2));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedMansion2,        sizeof(m_nStatsPassedMansion2));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedRyder2,          sizeof(m_nStatsPassedRyder2));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedRiot1,           sizeof(m_nStatsPassedRiot1));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedSCrash1,         sizeof(m_nStatsPassedSCrash1));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedStrap4,          sizeof(m_nStatsPassedStrap4));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedSweet2,          sizeof(m_nStatsPassedSweet2));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedTruth2,          sizeof(m_nStatsPassedTruth2));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsPassedVCrash2,         sizeof(m_nStatsPassedVCrash2));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsStartedBadlands,       sizeof(m_nStatsStartedBadlands));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsStartedCat2,           sizeof(m_nStatsStartedCat2));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsStartedCrash1,         sizeof(m_nStatsStartedCrash1));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsLastHitGameClockDays,  sizeof(m_nStatsLastHitGameClockDays));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsLastHitGameClockHours, sizeof(m_nStatsLastHitGameClockHours));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nStatsLastHitTimeOutHours,   sizeof(m_nStatsLastHitTimeOutHours));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nSpecialDJBanterPending,     sizeof(m_nSpecialDJBanterPending));
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_nSpecialDJBanterIndex,       sizeof(m_nSpecialDJBanterIndex));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsCitiesPassed,          sizeof(m_nStatsCitiesPassed));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedCasino3,         sizeof(m_nStatsPassedCasino3));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedCasino6,         sizeof(m_nStatsPassedCasino6));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedCasino10,        sizeof(m_nStatsPassedCasino10));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedCat1,            sizeof(m_nStatsPassedCat1));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedDesert1,         sizeof(m_nStatsPassedDesert1));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedDesert3,         sizeof(m_nStatsPassedDesert3));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedDesert5,         sizeof(m_nStatsPassedDesert5));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedDesert8,         sizeof(m_nStatsPassedDesert8));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedDesert10,        sizeof(m_nStatsPassedDesert10));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedFarlie3,         sizeof(m_nStatsPassedFarlie3));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedLAFin2,          sizeof(m_nStatsPassedLAFin2));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedMansion2,        sizeof(m_nStatsPassedMansion2));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedRyder2,          sizeof(m_nStatsPassedRyder2));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedRiot1,           sizeof(m_nStatsPassedRiot1));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedSCrash1,         sizeof(m_nStatsPassedSCrash1));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedStrap4,          sizeof(m_nStatsPassedStrap4));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedSweet2,          sizeof(m_nStatsPassedSweet2));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedTruth2,          sizeof(m_nStatsPassedTruth2));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsPassedVCrash2,         sizeof(m_nStatsPassedVCrash2));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsStartedBadlands,       sizeof(m_nStatsStartedBadlands));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsStartedCat2,           sizeof(m_nStatsStartedCat2));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsStartedCrash1,         sizeof(m_nStatsStartedCrash1));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsLastHitGameClockDays,  sizeof(m_nStatsLastHitGameClockDays));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsLastHitGameClockHours, sizeof(m_nStatsLastHitGameClockHours));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nStatsLastHitTimeOutHours,   sizeof(m_nStatsLastHitTimeOutHours));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nSpecialDJBanterPending,     sizeof(m_nSpecialDJBanterPending));
+    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nSpecialDJBanterIndex,       sizeof(m_nSpecialDJBanterIndex));
 }
 
 // 0x5D3EE0

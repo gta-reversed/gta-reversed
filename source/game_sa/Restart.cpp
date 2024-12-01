@@ -177,34 +177,34 @@ void CRestart::FindClosestPoliceRestartPoint(CVector point, CVector& outPos, flo
 // 0x5D3770
 bool CRestart::Load() {
     Initialise();
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&NumberOfHospitalRestarts, 2);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&NumberOfHospitalRestarts, 2);
 
     for (auto i = 0; i < NumberOfHospitalRestarts; ++i) {
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&HospitalRestartPoints[i], 12);
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&HospitalRestartHeadings[i], 4);
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&HospitalRestartWhenToUse[i], 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer(&HospitalRestartPoints[i], 12);
+        CGenericGameStorage::LoadDataFromWorkBuffer(&HospitalRestartHeadings[i], 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer(&HospitalRestartWhenToUse[i], 4);
     }
 
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&NumberOfPoliceRestarts, 2);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&NumberOfPoliceRestarts, 2);
 
     for (auto j = 0; j < NumberOfPoliceRestarts; ++j) {
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&PoliceRestartPoints[j], 12);
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&PoliceRestartHeadings[j], 4);
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&PoliceRestartWhenToUse[j], 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer(&PoliceRestartPoints[j], 12);
+        CGenericGameStorage::LoadDataFromWorkBuffer(&PoliceRestartHeadings[j], 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer(&PoliceRestartWhenToUse[j], 4);
     }
 
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&bOverrideRestart, 1);
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&OverridePosition, 12);
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&bFadeInAfterNextDeath, 1);
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&bFadeInAfterNextArrest, 1);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&bOverrideRestart, 1);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&OverridePosition, 12);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&bFadeInAfterNextDeath, 1);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&bFadeInAfterNextArrest, 1);
 
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&ExtraHospitalRestartCoors, 12);
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&ExtraHospitalRestartRadius, 4);
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&ExtraHospitalRestartHeading, 4);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&ExtraHospitalRestartCoors, 12);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&ExtraHospitalRestartRadius, 4);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&ExtraHospitalRestartHeading, 4);
 
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&ExtraPoliceStationRestartCoors, 12);
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&ExtraPoliceStationRestartRadius, 4);
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&ExtraPoliceStationRestartHeading, 4);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&ExtraPoliceStationRestartCoors, 12);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&ExtraPoliceStationRestartRadius, 4);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&ExtraPoliceStationRestartHeading, 4);
     return true;
 }
 
