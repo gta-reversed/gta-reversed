@@ -50,8 +50,8 @@ bool CSetPieces::Load() {
 
 // 0x5D3C70
 bool CSetPieces::Save() {
-    SaveDataToWorkBuffer(NumSetPieces);
-    SaveDataToWorkBuffer(aSetPieces);
+    CGenericGameStorage::SaveDataToWorkBuffer(NumSetPieces);
+    CGenericGameStorage::SaveDataToWorkBuffer(aSetPieces);
     return true;
 }
 

@@ -55,7 +55,7 @@ public:
     static bool Save();
     static bool Load();
 
-    inline static bool HasDynamicStreamingDisabled(int32 iplSlotIndex) { return GetInSlot(iplSlotIndex)->ignore; } // 0x59EB20
+    inline static bool HasDynamicStreamingDisabled(int32 iplSlotIndex) { return GetInSlot(iplSlotIndex)->disableDynamicStreaming; } // 0x59EB20
 
     // NOTSA
     static IplDef* GetInSlot(int32 slot) { return ms_pPool->GetAt(slot); }

@@ -32,7 +32,7 @@ void CGarages::InjectHooks() {
     RH_ScopedInstall(ChangeGarageType, 0x4476D0);
     RH_ScopedInstall(GetGarageNumberByName, 0x447680);
     // RH_ScopedInstall(CountCarsInHideoutGarage, 0x44A210);
-    // RH_ScopedInstall(Load, 0x5D3270, LOAD_HOOKS_ENABLED); // bad
+    RH_ScopedInstall(Load, 0x5D3270, { .enabled = LOAD_HOOKS_ENABLED }); // bad
     // RH_ScopedInstall(Save, 0x5D3160, SAVE_HOOKS_ENABLED); // possible bad
 }
 
@@ -437,8 +437,6 @@ int16 CGarages::GetGarageNumberByName(const char* name) {
 
 // 0x5D3270
 bool CGarages::Load() {
-    return plugin::CallAndReturn<bool, 0x5D3270>();
-
     CloseHideOutGaragesBeforeSave();
 
     LoadDataFromWorkBuffer(NumGarages);
@@ -485,19 +483,19 @@ bool CGarages::Load() {
 bool CGarages::Save() {
     return plugin::CallAndReturn<bool, 0x5D3160>();
 
-    SaveDataToWorkBuffer(NumGarages);
-    SaveDataToWorkBuffer(BombsAreFree);
-    SaveDataToWorkBuffer(RespraysAreFree);
-    SaveDataToWorkBuffer(NoResprays);
-    SaveDataToWorkBuffer(CarsCollected);
-    SaveDataToWorkBuffer(BankVansCollected);
-    SaveDataToWorkBuffer(PoliceCarsCollected);
+    CGenericGameStorage::SaveDataToWorkBuffer(NumGarages);
+    CGenericGameStorage::SaveDataToWorkBuffer(BombsAreFree);
+    CGenericGameStorage::SaveDataToWorkBuffer(RespraysAreFree);
+    CGenericGameStorage::SaveDataToWorkBuffer(NoResprays);
+    CGenericGameStorage::SaveDataToWorkBuffer(CarsCollected);
+    CGenericGameStorage::SaveDataToWorkBuffer(BankVansCollected);
+    CGenericGameStorage::SaveDataToWorkBuffer(PoliceCarsCollected);
 
     for (auto carType : CarTypesCollected) {
-        SaveDataToWorkBuffer(carType);
+        CGenericGameStorage::SaveDataToWorkBuffer(carType);
     }
 
-    SaveDataToWorkBuffer(LastTimeHelpMessage);
+    CGenericGameStorage::SaveDataToWorkBuffer(LastTimeHelpMessage);
 
     // NOTE: Here they messed up the order of loops
     //       C/C++ is row-major, so, the row loop should've been the outer one..
@@ -505,14 +503,14 @@ bool CGarages::Save() {
     //       Which means the data isn't saved contiguously either, so watch out for that.
     for (auto c = 0; c < 4; c++) {
         for (auto r = 0; r < 20; r++) {
-            SaveDataToWorkBuffer(aCarsInSafeHouse[r][c]);
+            CGenericGameStorage::SaveDataToWorkBuffer(aCarsInSafeHouse[r][c]);
         }
     }
 
     for (auto i = 0; i < NumGarages; i++) {
         CSaveGarage sg{};
         sg.CopyGarageIntoSaveGarage(aGarages[i]);
-        SaveDataToWorkBuffer(sg);
+        CGenericGameStorage::SaveDataToWorkBuffer(sg);
     }
 
     return true;
