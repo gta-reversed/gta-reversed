@@ -796,13 +796,13 @@ void CShopping::UpdateStats(size_t index, bool increment) {
 
 // 0x5D3E40
 void CShopping::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ms_numPriceModifiers, sizeof(int32));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&ms_numPriceModifiers, sizeof(int32));
     for (auto i = 0; i < ms_numPriceModifiers; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ms_priceModifiers[i], sizeof(PriceModifier));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&ms_priceModifiers[i], sizeof(PriceModifier));
     }
 
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ms_numBuyableItems, sizeof(uint32));
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ms_bHasBought, ms_numBuyableItems);
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&ms_numBuyableItems, sizeof(uint32));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&ms_bHasBought, ms_numBuyableItems);
 }
 
 // 0x5D3DE0

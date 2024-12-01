@@ -64,8 +64,8 @@ void CGangWars::InjectHooks() {
 bool CGangWars::Load() {
     size_t size;
     CGangWarsSaveStructure data{};
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&size, sizeof(size_t));
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&data, sizeof(CGangWarsSaveStructure));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&size, sizeof(size_t));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&data, sizeof(CGangWarsSaveStructure));
     data.Extract();
     return true;
 }

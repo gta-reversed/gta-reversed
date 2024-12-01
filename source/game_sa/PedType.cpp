@@ -88,7 +88,7 @@ void CPedType::Load() {
     for (uint32 i = 0; i < PED_TYPE_COUNT; ++i ) {
         for (auto id = 0; id < ACQUAINTANCE_NUM; ++id) {
             uint32 value;
-            CGenericGameStorage::LoadDataFromWorkBuffer_Org(&value, sizeof(uint32));
+            CGenericGameStorage::LoadDataFromWorkBufferOrg(&value, sizeof(uint32));
             GetPedTypeAcquaintances(static_cast<ePedType>(i)).SetAcquaintances(id, value);
         }
     }

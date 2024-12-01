@@ -423,22 +423,22 @@ bool CEntryExitManager::WeAreInInteriorTransition() {
 // 0x5D55C0
 bool CEntryExitManager::Load() {
     // Load entry exit stack
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ms_entryExitStackPosn, sizeof(ms_entryExitStackPosn));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&ms_entryExitStackPosn, sizeof(ms_entryExitStackPosn));
     for (auto i = 0u; i < ms_entryExitStackPosn; i++) {
         uint16 enexIdx{};
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&enexIdx, sizeof(enexIdx));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&enexIdx, sizeof(enexIdx));
         ms_entryExitStack[i] = mp_poolEntryExits->GetAt(enexIdx);
     }
 
     // Load entry exits
     int16 enexIdx{};
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&enexIdx, sizeof(enexIdx));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&enexIdx, sizeof(enexIdx));
     while (enexIdx != -1) {
         uint16 flags{};
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&flags, sizeof(flags));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&flags, sizeof(flags));
 
         int16 linkedIdx{};
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&linkedIdx, sizeof(linkedIdx));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&linkedIdx, sizeof(linkedIdx));
 
         if (auto enex = mp_poolEntryExits->GetAt(enexIdx)) {
             enex->m_nFlags = flags;
@@ -453,7 +453,7 @@ bool CEntryExitManager::Load() {
             NOTSA_UNREACHABLE(); // NOTSA - Probably corrupted save file or something.
         }
 
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&enexIdx, sizeof(enexIdx));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&enexIdx, sizeof(enexIdx));
     }
 
     return true;

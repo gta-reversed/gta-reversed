@@ -3477,7 +3477,7 @@ bool CAutomobile::Save() {
 // 0x5D2980
 bool CAutomobile::Load() {
     CVehicle::Load();
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&m_damageManager, sizeof(m_damageManager));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_damageManager, sizeof(m_damageManager));
     return true;
 }
 

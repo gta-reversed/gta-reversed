@@ -1069,7 +1069,7 @@ bool CStreaming::IsVeryBusy() {
 bool CStreaming::Load() {
     for (CStreamingInfo& info : ms_aInfoForModel) {
         uint8 flags;
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&flags, sizeof(flags));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&flags, sizeof(flags));
         if (info.IsLoaded() && flags != 255) {
             info.SetFlags(flags);
         }

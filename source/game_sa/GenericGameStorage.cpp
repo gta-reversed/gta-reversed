@@ -36,7 +36,7 @@ void CGenericGameStorage::InjectHooks() {
     RH_ScopedInstall(GenericLoad, 0x5D17B0);
     RH_ScopedInstall(GenericSave, 0x5D13E0, { .reversed = false });
     RH_ScopedInstall(CheckSlotDataValid, 0x5D1380, { .reversed = false });
-    RH_ScopedInstall(LoadDataFromWorkBuffer_Org, 0x5D1300);
+    RH_ScopedInstall(LoadDataFromWorkBufferOrg, 0x5D1300);
     //RH_ScopedInstall(SaveDataToWorkBuffer, 0x5D1270, { .reversed = false });
     RH_ScopedInstall(LoadWorkBuffer, 0x5D10B0, { .reversed = false });
     RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80, { .reversed = false });
@@ -196,7 +196,7 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
 
     for (auto block = 0u; block < (uint32)eBlocks::TOTAL; block++) {
         char header[std::size(ms_BlockTagName)]{};
-        if (!LoadDataFromWorkBuffer_Org(header, sizeof(header) - 1)) {
+        if (!LoadDataFromWorkBufferOrg(header, sizeof(header) - 1)) {
             CloseFile();
             return false;
         }
@@ -220,7 +220,7 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
             varsBackup.Construct();
 
             CSimpleVariablesSaveStructure vars{};
-            if (!LoadDataFromWorkBuffer_Org(&vars, sizeof(vars))) {
+            if (!LoadDataFromWorkBufferOrg(&vars, sizeof(vars))) {
                 ms_bFailed = true;
                 DEV_LOG("LOAD - END - SIMPLE_VARIABLES - FAIL");
                 break;
@@ -544,7 +544,7 @@ std::string spanToHexString(Iterator begin, Iterator end) {
 }
 
 // 0x5D1300
-bool CGenericGameStorage::LoadDataFromWorkBuffer_Org(void* data, int32 size) {
+bool CGenericGameStorage::LoadDataFromWorkBufferOrg(void* data, int32 size) {
     assert(data);
 
     if (ms_bFailed)
@@ -557,7 +557,7 @@ bool CGenericGameStorage::LoadDataFromWorkBuffer_Org(void* data, int32 size) {
 
     if (static_cast<uint32>(size + pos) > ms_WorkBufferSize) {
         const auto maxSize = BUFFER_SIZE - pos;
-        if (LoadDataFromWorkBuffer_Org(data, maxSize)) {
+        if (LoadDataFromWorkBufferOrg(data, maxSize)) {
             if (LoadWorkBuffer()) {
                 pos = ms_WorkBufferPos;
                 data = (uint8*)data + maxSize;

@@ -1111,12 +1111,12 @@ void CTheScripts::Load() {
     // Load chunks
     auto nParts = totalSize / MAX_SAVED_GVAR_PART_SIZE;
     for (nParts; nParts-- > 0; p += MAX_SAVED_GVAR_PART_SIZE) {
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(p, MAX_SAVED_GVAR_PART_SIZE);
+        CGenericGameStorage::LoadDataFromWorkBuffer(p, MAX_SAVED_GVAR_PART_SIZE);
     }
 
     // Load remainder
     const auto remainder = totalSize % MAX_SAVED_GVAR_PART_SIZE;
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(p, remainder);
+    CGenericGameStorage::LoadDataFromWorkBuffer(p, remainder);
 
     for (auto& sfb : ScriptsForBrains.m_aScriptForBrains) {
         LoadDataFromWorkBuffer(sfb);

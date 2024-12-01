@@ -724,18 +724,18 @@ eWeaponType CPickups::WeaponForModel(int32 modelId) {
 // 0x5D35A0
 void CPickups::Load() {
     for (auto& pickup : aPickUps) {
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&pickup, sizeof(CPickup));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&pickup, sizeof(CPickup));
         if (pickup.m_nPickupType != PICKUP_NONE && pickup.m_pObject) {
             pickup.m_pObject = nullptr;
             pickup.m_nFlags.bVisible = false;
         }
     }
     NumMessages = 0u;
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&CPickups::CollectedPickUpIndex, sizeof(uint16));
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&CPickups::DisplayHelpMessage, sizeof(uint8));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&CPickups::CollectedPickUpIndex, sizeof(uint16));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&CPickups::DisplayHelpMessage, sizeof(uint8));
 
     for (auto& collected : aPickUpsCollected) {
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&collected, sizeof(int32));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&collected, sizeof(int32));
     }
 }
 // 0x5D3540

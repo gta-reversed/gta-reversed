@@ -64,18 +64,18 @@ void CTheCarGenerators::Init() {
 void CTheCarGenerators::Load() {
     Init();
 
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&NumOfCarGenerators, sizeof(NumOfCarGenerators));
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ProcessCounter, sizeof(ProcessCounter));
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&GenerateEvenIfPlayerIsCloseCounter, sizeof(GenerateEvenIfPlayerIsCloseCounter));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&NumOfCarGenerators, sizeof(NumOfCarGenerators));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&ProcessCounter, sizeof(ProcessCounter));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&GenerateEvenIfPlayerIsCloseCounter, sizeof(GenerateEvenIfPlayerIsCloseCounter));
     for (uint32 i = 0; i < NumOfCarGenerators; i++) {
         uint16 carGenIndex;
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&carGenIndex, sizeof(carGenIndex));
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(CarGeneratorArray + carGenIndex, sizeof(CCarGenerator));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&carGenIndex, sizeof(carGenIndex));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(CarGeneratorArray + carGenIndex, sizeof(CCarGenerator));
     }
 
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&m_SpecialPlateHandler.m_nCount, sizeof(int32));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&m_SpecialPlateHandler.m_nCount, sizeof(int32));
     for (int32 i = 0; i < 15; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(m_SpecialPlateHandler.m_plateTextEntries + i, sizeof(tCarGenPlateText));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(m_SpecialPlateHandler.m_plateTextEntries + i, sizeof(tCarGenPlateText));
     }
 }
 

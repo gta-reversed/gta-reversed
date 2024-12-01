@@ -60,10 +60,10 @@ bool CStuntJumpManager::Save() {
 // 0x5D5920
 bool CStuntJumpManager::Load() {
     uint32 jumpCount;
-    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&jumpCount, sizeof(jumpCount));
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&jumpCount, sizeof(jumpCount));
     for (uint32 i = 0; i < jumpCount; i++) {
         CStuntJump* jump = mp_poolStuntJumps->New();
-        CGenericGameStorage::LoadDataFromWorkBuffer_Org(jump, sizeof(CStuntJump));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(jump, sizeof(CStuntJump));
         m_iNumJumps++;
     }
     return true;
