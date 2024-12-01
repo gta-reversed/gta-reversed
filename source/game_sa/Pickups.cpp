@@ -741,13 +741,13 @@ void CPickups::Load() {
 // 0x5D3540
 void CPickups::Save() {
     for (auto& pickup : aPickUps) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&pickup, sizeof(CPickup));
+        CGenericGameStorage::SaveDataToWorkBuffer(pickup);
     }
-    CGenericGameStorage::SaveDataToWorkBuffer(&CPickups::CollectedPickUpIndex, sizeof(uint16));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CPickups::DisplayHelpMessage, sizeof(uint8));
+    CGenericGameStorage::SaveDataToWorkBuffer(CPickups::CollectedPickUpIndex);
+    CGenericGameStorage::SaveDataToWorkBuffer(CPickups::DisplayHelpMessage);
 
     for (auto& collected : aPickUpsCollected) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&collected, sizeof(int32));
+        CGenericGameStorage::SaveDataToWorkBuffer(collected);
     }
 }
 

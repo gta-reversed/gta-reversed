@@ -965,9 +965,9 @@ CNodeAddress CPathFind::FindNodeClosestToCoorsFavourDirection(CVector pos, ePath
 
 // 0x5D34C0
 bool CPathFind::Save() {
-    CGenericGameStorage::SaveDataToWorkBuffer(&m_nNumForbiddenAreas, sizeof(m_nNumForbiddenAreas));
+    CGenericGameStorage::SaveDataToWorkBuffer(m_nNumForbiddenAreas);
     for (auto& area : std::span{ m_aForbiddenAreas, (size_t)m_nNumForbiddenAreas }) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&area, sizeof(area));
+        CGenericGameStorage::SaveDataToWorkBuffer(area);
     }
     return true;
 }
