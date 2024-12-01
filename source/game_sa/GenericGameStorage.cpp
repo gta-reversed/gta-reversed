@@ -14,9 +14,6 @@
 #include "TheScripts.h"
 #include "Garages.h"
 
-#include <spdlog/fmt/bin_to_hex.h>
-#include <spdlog/fmt/fmt.h>
-
 //#define ENABLE_SAVE_DATA_LOG
 #ifdef ENABLE_SAVE_DATA_LOG
 template<typename TInputIter>
@@ -365,6 +362,7 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
         case eBlocks::RADIOTRACKS:
             LOG_SAVE("LOAD - RADIOTRACKS");
             CAERadioTrackManager::Load();
+            break;
         case eBlocks::USER3DMARKERS:
             LOG_SAVE("LOAD - USER3DMARKERS");
             C3dMarkers::LoadUser3dMarkers();
