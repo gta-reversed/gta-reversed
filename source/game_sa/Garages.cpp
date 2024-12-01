@@ -439,19 +439,19 @@ int16 CGarages::GetGarageNumberByName(const char* name) {
 bool CGarages::Load() {
     CloseHideOutGaragesBeforeSave();
 
-    LoadDataFromWorkBuffer(NumGarages);
-    LoadDataFromWorkBuffer(BombsAreFree);
-    LoadDataFromWorkBuffer(RespraysAreFree);
-    LoadDataFromWorkBuffer(NoResprays);
-    LoadDataFromWorkBuffer(CarsCollected);
-    LoadDataFromWorkBuffer(BankVansCollected);
-    LoadDataFromWorkBuffer(PoliceCarsCollected);
+    CGenericGameStorage::LoadDataFromWorkBuffer(NumGarages);
+    CGenericGameStorage::LoadDataFromWorkBuffer(BombsAreFree);
+    CGenericGameStorage::LoadDataFromWorkBuffer(RespraysAreFree);
+    CGenericGameStorage::LoadDataFromWorkBuffer(NoResprays);
+    CGenericGameStorage::LoadDataFromWorkBuffer(CarsCollected);
+    CGenericGameStorage::LoadDataFromWorkBuffer(BankVansCollected);
+    CGenericGameStorage::LoadDataFromWorkBuffer(PoliceCarsCollected);
 
     for (auto& v : CarTypesCollected) {
-        LoadDataFromWorkBuffer(v);
+        CGenericGameStorage::LoadDataFromWorkBuffer(v);
     }
 
-    LoadDataFromWorkBuffer(LastTimeHelpMessage);
+    CGenericGameStorage::LoadDataFromWorkBuffer(LastTimeHelpMessage);
 
     // NOTE: Here they messed up the order of loops
     //       C/C++ is row-major, so, the row loop should've been the outer one..
@@ -459,15 +459,12 @@ bool CGarages::Load() {
     //       Which means the data isn't saved contiguously either, so watch out for that.
     for (auto c = 0; c < 4; c++) {
         for (auto r = 0; r < 20; r++) {
-            LoadDataFromWorkBuffer(aCarsInSafeHouse[r][c]);
+            CGenericGameStorage::LoadDataFromWorkBuffer(aCarsInSafeHouse[r][c]);
         }
     }
 
-    // our debug leftover std::ranges::for_each(aCarsInSafeHouse, [&](auto& car) { DEV_LOG("%d\n", car->m_wModelIndex); });
-
     for (auto i = 0; i < NumGarages; i++) {
-        CSaveGarage sg{};
-        LoadDataFromWorkBuffer(sg);
+        auto sg = CGenericGameStorage::LoadDataFromWorkBuffer<CSaveGarage>();
         sg.CopyGarageOutOfSaveGarage(aGarages[i]);
     }
 

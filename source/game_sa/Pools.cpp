@@ -146,13 +146,11 @@ bool CPools::Load() {
 
 // 0x5D4A40
 bool CPools::LoadObjectPool() {
-    int32 iNumObjects = 0;
-    LoadDataFromWorkBuffer(iNumObjects);
+    auto iNumObjects = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
     for (int32 i = 0; i < iNumObjects; ++i)
     {
-        int32 iPoolRef = 0, iModelId = 0;
-        LoadDataFromWorkBuffer(iPoolRef);
-        LoadDataFromWorkBuffer(iModelId);
+        auto iPoolRef = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
+        auto iModelId = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
 
         auto* objInPool = GetObjectPool()->GetAtRefNoChecks(iPoolRef);
         if (objInPool)
@@ -168,17 +166,11 @@ bool CPools::LoadObjectPool() {
 
 // 0x5D2D70
 bool CPools::LoadPedPool() {
-    int32 pedCount;
-    LoadDataFromWorkBuffer(pedCount);
-
+    auto pedCount = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
     for (auto i = 0; i < pedCount; i++) {
-        int32 poolRef;
-        int32 model;
-        int32 pedType;
-
-        LoadDataFromWorkBuffer(poolRef);
-        LoadDataFromWorkBuffer(model);
-        LoadDataFromWorkBuffer(pedType);
+        auto poolRef = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
+        auto model   = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
+        auto pedType = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
 
         CPlayerPed* playerPed = nullptr;
         if (pedType == PED_TYPE_PLAYER1) {

@@ -11,7 +11,7 @@
 #include "MenuSystem.h"
 #include "Hud.h"
 
-tStatMessage (&CStats::StatMessage)[8] = *(tStatMessage(*)[8])0xB78200;
+tStatMessage (&CStats::StatMessage)[128] = *(tStatMessage(*)[128])0xB78200;
 char (&CStats::LastMissionPassedName)[8] = *(char(*)[8])0xB78A00;
 int32 (&CStats::TimesMissionAttempted)[100] = *(int32(*)[100])0xB78CC8;
 int32 (&CStats::FavoriteRadioStationList)[14] = *(int32(*)[14])0xB78E58;
@@ -678,7 +678,7 @@ bool CStats::Save() {
     CGenericGameStorage::SaveDataToWorkBuffer(LastMissionPassedName);
     CGenericGameStorage::SaveDataToWorkBuffer(FavoriteRadioStationList);
     CGenericGameStorage::SaveDataToWorkBuffer(TimesMissionAttempted);
-    // todo: CGenericGameStorage::SaveDataToWorkBuffer(StatMessage);
+    // TODO: NOTSA: CGenericGameStorage::SaveDataToWorkBuffer(StatMessage);
     for (auto& statMessage : StatMessage) {
         CGenericGameStorage::SaveDataToWorkBuffer(statMessage.displayed);
     }
@@ -687,15 +687,15 @@ bool CStats::Save() {
 
 // 0x5D3BF0
 bool CStats::Load() {
-    LoadDataFromWorkBuffer(StatTypesFloat);
-    LoadDataFromWorkBuffer(StatTypesInt);
-    LoadDataFromWorkBuffer(PedsKilledOfThisType);
-    LoadDataFromWorkBuffer(LastMissionPassedName);
-    LoadDataFromWorkBuffer(FavoriteRadioStationList);
-    LoadDataFromWorkBuffer(TimesMissionAttempted);
-    // todo: LoadDataFromWorkBuffer(StatMessage);
+    CGenericGameStorage::LoadDataFromWorkBuffer(StatTypesFloat);
+    CGenericGameStorage::LoadDataFromWorkBuffer(StatTypesInt);
+    CGenericGameStorage::LoadDataFromWorkBuffer(PedsKilledOfThisType);
+    CGenericGameStorage::LoadDataFromWorkBuffer(LastMissionPassedName);
+    CGenericGameStorage::LoadDataFromWorkBuffer(FavoriteRadioStationList);
+    CGenericGameStorage::LoadDataFromWorkBuffer(TimesMissionAttempted);
+    // TODO: NOTSA: CGenericGameStorage::LoadDataFromWorkBuffer(StatMessage);
     for (auto& statMessage : StatMessage) {
-        LoadDataFromWorkBuffer(statMessage.displayed);
+        CGenericGameStorage::LoadDataFromWorkBuffer(statMessage.displayed);
     }
     return true;
 }

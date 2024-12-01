@@ -177,34 +177,34 @@ void CRestart::FindClosestPoliceRestartPoint(CVector point, CVector& outPos, flo
 // 0x5D3770
 bool CRestart::Load() {
     Initialise();
-    LoadDataFromWorkBuffer(NumberOfHospitalRestarts);
+    CGenericGameStorage::LoadDataFromWorkBuffer(NumberOfHospitalRestarts);
 
     for (auto i = 0; i < NumberOfHospitalRestarts; ++i) {
-        LoadDataFromWorkBuffer(HospitalRestartPoints[i]);
-        LoadDataFromWorkBuffer(HospitalRestartHeadings[i]);
-        LoadDataFromWorkBuffer(HospitalRestartWhenToUse[i]);
+        CGenericGameStorage::LoadDataFromWorkBuffer(HospitalRestartPoints[i]);
+        CGenericGameStorage::LoadDataFromWorkBuffer(HospitalRestartHeadings[i]);
+        CGenericGameStorage::LoadDataFromWorkBuffer(HospitalRestartWhenToUse[i]);
     }
 
-    LoadDataFromWorkBuffer(NumberOfPoliceRestarts);
+    CGenericGameStorage::LoadDataFromWorkBuffer(NumberOfPoliceRestarts);
 
     for (auto j = 0; j < NumberOfPoliceRestarts; ++j) {
-        LoadDataFromWorkBuffer(PoliceRestartPoints[j]);
-        LoadDataFromWorkBuffer(PoliceRestartHeadings[j]);
-        LoadDataFromWorkBuffer(PoliceRestartWhenToUse[j]);
+        CGenericGameStorage::LoadDataFromWorkBuffer(PoliceRestartPoints[j]);
+        CGenericGameStorage::LoadDataFromWorkBuffer(PoliceRestartHeadings[j]);
+        CGenericGameStorage::LoadDataFromWorkBuffer(PoliceRestartWhenToUse[j]);
     }
 
-    LoadDataFromWorkBuffer(bOverrideRestart);
-    LoadDataFromWorkBuffer(OverridePosition);
-    LoadDataFromWorkBuffer(bFadeInAfterNextDeath);
-    LoadDataFromWorkBuffer(bFadeInAfterNextArrest);
+    CGenericGameStorage::LoadDataFromWorkBuffer(bOverrideRestart);
+    CGenericGameStorage::LoadDataFromWorkBuffer(OverridePosition);
+    CGenericGameStorage::LoadDataFromWorkBuffer(bFadeInAfterNextDeath);
+    CGenericGameStorage::LoadDataFromWorkBuffer(bFadeInAfterNextArrest);
 
-    LoadDataFromWorkBuffer(ExtraHospitalRestartCoors);
-    LoadDataFromWorkBuffer(ExtraHospitalRestartRadius);
-    LoadDataFromWorkBuffer(ExtraHospitalRestartHeading);
+    CGenericGameStorage::LoadDataFromWorkBuffer(ExtraHospitalRestartCoors);
+    CGenericGameStorage::LoadDataFromWorkBuffer(ExtraHospitalRestartRadius);
+    CGenericGameStorage::LoadDataFromWorkBuffer(ExtraHospitalRestartHeading);
 
-    LoadDataFromWorkBuffer(ExtraPoliceStationRestartCoors);
-    LoadDataFromWorkBuffer(ExtraPoliceStationRestartRadius);
-    LoadDataFromWorkBuffer(ExtraPoliceStationRestartHeading);
+    CGenericGameStorage::LoadDataFromWorkBuffer(ExtraPoliceStationRestartCoors);
+    CGenericGameStorage::LoadDataFromWorkBuffer(ExtraPoliceStationRestartRadius);
+    CGenericGameStorage::LoadDataFromWorkBuffer(ExtraPoliceStationRestartHeading);
     return true;
 }
 

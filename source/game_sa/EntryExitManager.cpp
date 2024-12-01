@@ -423,22 +423,18 @@ bool CEntryExitManager::WeAreInInteriorTransition() {
 // 0x5D55C0
 bool CEntryExitManager::Load() {
     // Load entry exit stack
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_entryExitStackPosn, sizeof(ms_entryExitStackPosn));
+    CGenericGameStorage::LoadDataFromWorkBuffer(ms_entryExitStackPosn);
     for (auto i = 0u; i < ms_entryExitStackPosn; i++) {
         uint16 enexIdx{};
-        CGenericGameStorage::LoadDataFromWorkBuffer(&enexIdx, sizeof(enexIdx));
+        CGenericGameStorage::LoadDataFromWorkBuffer(enexIdx);
         ms_entryExitStack[i] = mp_poolEntryExits->GetAt(enexIdx);
     }
 
     // Load entry exits
-    int16 enexIdx{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&enexIdx, sizeof(enexIdx));
+    auto enexIdx = CGenericGameStorage::LoadDataFromWorkBuffer<int16>();
     while (enexIdx != -1) {
-        uint16 flags{};
-        CGenericGameStorage::LoadDataFromWorkBuffer(&flags, sizeof(flags));
-
-        int16 linkedIdx{};
-        CGenericGameStorage::LoadDataFromWorkBuffer(&linkedIdx, sizeof(linkedIdx));
+        auto flags     = CGenericGameStorage::LoadDataFromWorkBuffer<uint16>();
+        auto linkedIdx = CGenericGameStorage::LoadDataFromWorkBuffer<int16>();
 
         if (auto enex = mp_poolEntryExits->GetAt(enexIdx)) {
             enex->m_nFlags = flags;
@@ -453,7 +449,7 @@ bool CEntryExitManager::Load() {
             NOTSA_UNREACHABLE(); // NOTSA - Probably corrupted save file or something.
         }
 
-        CGenericGameStorage::LoadDataFromWorkBuffer(&enexIdx, sizeof(enexIdx));
+        CGenericGameStorage::LoadDataFromWorkBuffer(enexIdx);
     }
 
     return true;
@@ -468,17 +464,17 @@ bool CEntryExitManager::Save() {
     }
 
     // Save entry exits
-    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
+    for (int16 i = 0; i < mp_poolEntryExits->GetSize(); i++) {
         if (const auto enex = mp_poolEntryExits->GetAt(i)) {
             int16 data = -1;
             if (enex->m_pLink) {
                 // Make sure the link reference is valid
                 auto linkIndex = mp_poolEntryExits->GetIndex(enex->m_pLink);
-                if (linkIndex >= 0 && linkIndex <= mp_poolEntryExits->GetSize()) {
+                if (mp_poolEntryExits->IsIndexInBounds(linkIndex)) {
                     data = linkIndex;
                 }
             }
-            CGenericGameStorage::SaveDataToWorkBuffer((uint16)i); // Enex idx in pool
+            CGenericGameStorage::SaveDataToWorkBuffer(i); // Enex idx in pool
             CGenericGameStorage::SaveDataToWorkBuffer(enex->m_nFlags);
             CGenericGameStorage::SaveDataToWorkBuffer(data); // Linked enex idx in pool
         }

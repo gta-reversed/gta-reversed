@@ -454,9 +454,8 @@ CVector CPlayerInfo::GetSpeed() const {
 
 // 0x5D3B00
 bool CPlayerInfo::Load() {
-    CPlayerInfoSaveStructure data;
-    LoadDataFromWorkBuffer<int32>(); // Discarded
-    LoadDataFromWorkBuffer(data);
+    CGenericGameStorage::LoadDataFromWorkBuffer<int32>(); // Discarded
+    auto data = CGenericGameStorage::LoadDataFromWorkBuffer<CPlayerInfoSaveStructure>();
     data.Extract(this);
     return true;
 }

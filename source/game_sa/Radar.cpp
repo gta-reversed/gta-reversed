@@ -1963,7 +1963,7 @@ bool CRadar::Load() {
     Initialise();
 
     for (auto& trace : ms_RadarTrace) {
-        LoadDataFromWorkBuffer(trace);
+        CGenericGameStorage::LoadDataFromWorkBuffer(trace);
         if (trace.m_EntryExitPoolInd) {
             trace.m_pEntryExit = CEntryExitManager::mp_poolEntryExits->GetAt(trace.m_EntryExitPoolInd - 1);
         }

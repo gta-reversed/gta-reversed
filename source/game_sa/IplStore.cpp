@@ -802,12 +802,12 @@ bool CIplStore::Save() {
  * @addr 0x5D54A0
  */
 bool CIplStore::Load() {
-    const auto num = LoadDataFromWorkBuffer<int32>();
+    const auto num = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
     assert(num == ms_pPool->GetSize());
     for (auto i = 1; i < num; i++) { // skips 1st
         const auto ipl = ms_pPool->GetAt(i);
 
-        auto requestIpl = LoadDataFromWorkBuffer<bool>();
+        auto requestIpl = CGenericGameStorage::LoadDataFromWorkBuffer<bool>();
         if (!ipl) {
             continue;
         }

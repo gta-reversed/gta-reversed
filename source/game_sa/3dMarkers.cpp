@@ -338,7 +338,7 @@ void C3dMarkers::User3dMarkersDraw() {
 // 0x5D42E0
 bool C3dMarkers::LoadUser3dMarkers() {
     for (auto& marker : ms_user3dMarkers) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&marker, sizeof(marker));
+        CGenericGameStorage::LoadDataFromWorkBuffer(marker);
     }
     return true;
 }
@@ -346,7 +346,7 @@ bool C3dMarkers::LoadUser3dMarkers() {
 // 0x5D4300
 bool C3dMarkers::SaveUser3dMarkers() {
     for (auto& marker : ms_user3dMarkers) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&marker, sizeof(marker));
+        CGenericGameStorage::SaveDataToWorkBuffer(marker);
     }
     return true;
 }
