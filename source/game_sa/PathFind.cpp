@@ -974,9 +974,9 @@ bool CPathFind::Save() {
 
 // 0x5D3500
 bool CPathFind::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nNumForbiddenAreas, sizeof(m_nNumForbiddenAreas));
+    LoadDataFromWorkBuffer(m_nNumForbiddenAreas);
     for (auto& area : std::span{ m_aForbiddenAreas, (size_t)m_nNumForbiddenAreas }) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&area, sizeof(area));
+        LoadDataFromWorkBuffer(area);
     }
     return true;
 }

@@ -1963,7 +1963,7 @@ bool CRadar::Load() {
     Initialise();
 
     for (auto& trace : ms_RadarTrace) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&trace, sizeof(trace));
+        LoadDataFromWorkBuffer(trace);
         if (trace.m_EntryExitPoolInd) {
             trace.m_pEntryExit = CEntryExitManager::mp_poolEntryExits->GetAt(trace.m_EntryExitPoolInd - 1);
         }
@@ -1977,8 +1977,6 @@ bool CRadar::Load() {
  * @addr 0x5D5860
  */
 bool CRadar::Save() {
-    return plugin::CallAndReturn<bool, 0x5D5860>();
-
     for (auto& trace : ms_RadarTrace) {
         CEntryExit* savedEnex = nullptr;
         if (trace.m_pEntryExit) {

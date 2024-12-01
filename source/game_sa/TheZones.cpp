@@ -404,23 +404,23 @@ void CTheZones::Load() {
     Init();
 
     CGenericGameStorage::LoadDataFromWorkBuffer(&m_CurrLevel, sizeof(uint32));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&TotalNumberOfNavigationZones, sizeof(TotalNumberOfNavigationZones));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&TotalNumberOfZoneInfos, sizeof(TotalNumberOfZoneInfos));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&TotalNumberOfMapZones, sizeof(TotalNumberOfMapZones));
+    LoadDataFromWorkBuffer(TotalNumberOfNavigationZones);
+    LoadDataFromWorkBuffer(TotalNumberOfZoneInfos);
+    LoadDataFromWorkBuffer(TotalNumberOfMapZones);
 
     for (int32 i = 0; i < TotalNumberOfNavigationZones; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&NavigationZoneArray[i], sizeof(CZone));
+        LoadDataFromWorkBuffer(NavigationZoneArray[i]);
     }
 
     for (int32 i = 0; i < TotalNumberOfZoneInfos; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&ZoneInfoArray[i], sizeof(CZoneInfo));
+        LoadDataFromWorkBuffer(ZoneInfoArray[i]);
     }
 
     for (int32 i = 0; i < TotalNumberOfMapZones; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&MapZoneArray[i], sizeof(CZone));
+        LoadDataFromWorkBuffer(MapZoneArray[i]);
     }
     LoadDataFromWorkBuffer(ZonesVisited);
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ZonesRevealed, sizeof(ZonesRevealed));
+    LoadDataFromWorkBuffer(ZonesRevealed);
 }
 
 // dummy function

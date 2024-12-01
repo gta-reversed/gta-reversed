@@ -33,7 +33,7 @@ void CGarages::InjectHooks() {
     RH_ScopedInstall(GetGarageNumberByName, 0x447680);
     // RH_ScopedInstall(CountCarsInHideoutGarage, 0x44A210);
     RH_ScopedInstall(Load, 0x5D3270, { .enabled = LOAD_HOOKS_ENABLED }); // bad
-    // RH_ScopedInstall(Save, 0x5D3160, SAVE_HOOKS_ENABLED); // possible bad
+    RH_ScopedInstall(Save, 0x5D3160, { .enabled = SAVE_HOOKS_ENABLED }); // possible bad
 }
 
 // 0x447120
@@ -481,8 +481,6 @@ bool CGarages::Load() {
 // todo: fix Update()
 // 0x5D3160
 bool CGarages::Save() {
-    return plugin::CallAndReturn<bool, 0x5D3160>();
-
     CGenericGameStorage::SaveDataToWorkBuffer(NumGarages);
     CGenericGameStorage::SaveDataToWorkBuffer(BombsAreFree);
     CGenericGameStorage::SaveDataToWorkBuffer(RespraysAreFree);
