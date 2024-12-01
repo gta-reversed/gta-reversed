@@ -19,9 +19,9 @@ void CPools::InjectHooks() {
     RH_ScopedInstall(GetPedRef, 0x54FF60);
     RH_ScopedInstall(GetVehicle, 0x54FFF0);
     RH_ScopedInstall(GetVehicleRef, 0x54FFC0);
-    RH_ScopedInstall(Load, 0x5D0890, {.enabled = LOAD_HOOKS_ENABLED });
-    RH_ScopedInstall(LoadObjectPool, 0x5D4A40, {.enabled = LOAD_HOOKS_ENABLED });
-    RH_ScopedInstall(LoadPedPool, 0x5D2D70, { .reversed = false });
+    RH_ScopedInstall(Load, 0x5D0890, { .enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedInstall(LoadObjectPool, 0x5D4A40, { .enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedInstall(LoadPedPool, 0x5D2D70, { .enabled = LOAD_HOOKS_ENABLED });
     RH_ScopedInstall(LoadVehiclePool, 0x5D2A20);
     RH_ScopedInstall(MakeSureSlotInObjectPoolIsEmpty, 0x550080);
     RH_ScopedInstall(Save, 0x5D0880, {.enabled = SAVE_HOOKS_ENABLED });
@@ -147,12 +147,12 @@ bool CPools::Load() {
 // 0x5D4A40
 bool CPools::LoadObjectPool() {
     int32 iNumObjects = 0;
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&iNumObjects, 4);
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&iNumObjects, sizeof(iNumObjects));
     for (int32 i = 0; i < iNumObjects; ++i)
     {
         int32 iPoolRef = 0, iModelId = 0;
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&iPoolRef, 4);
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&iModelId, 4);
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&iPoolRef, sizeof(iPoolRef));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&iModelId, sizeof(iModelId));
 
         auto* objInPool = GetObjectPool()->GetAtRefNoChecks(iPoolRef);
         if (objInPool)
@@ -168,24 +168,21 @@ bool CPools::LoadObjectPool() {
 
 // 0x5D2D70
 bool CPools::LoadPedPool() {
-    return plugin::CallAndReturn<bool, 0x5D2D70>();
-
-    // unfortunately doesn't work'
     int32 pedCount;
-    CGenericGameStorage::LoadDataFromWorkBufferOrg(&pedCount, 4);
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(&pedCount, sizeof(pedCount));
 
     for (auto i = 0; i < pedCount; i++) {
-        int32 pedType;
+        int32 poolRef;
         int32 model;
-        int32 ref;
+        int32 pedType;
 
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&pedType, 4);
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&model, 4);
-        CGenericGameStorage::LoadDataFromWorkBufferOrg(&ref, 4);
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&poolRef, sizeof(poolRef));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&model, sizeof(model));
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(&pedType, sizeof(pedType));
 
         CPlayerPed* playerPed = nullptr;
-        if (!ref) {
-            playerPed = new CPlayerPed(0, false);
+        if (pedType == PED_TYPE_PLAYER1) {
+            playerPed = new(poolRef) CPlayerPed(0, false);
             playerPed->SetWeaponAccuracy(100);
             CWorld::Players[0].m_pPed = playerPed;
         }
