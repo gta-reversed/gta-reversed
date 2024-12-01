@@ -17,6 +17,36 @@
 #include <spdlog/fmt/bin_to_hex.h>
 #include <spdlog/fmt/fmt.h>
 
+//#define ENABLE_SAVE_DATA_LOG
+#ifdef ENABLE_SAVE_DATA_LOG
+template<typename TInputIter>
+std::string make_hex_string(TInputIter first, TInputIter last, bool use_uppercase = true, bool insert_spaces = false) {
+    std::ostringstream ss;
+    ss << std::hex << std::setfill('0');
+    if (use_uppercase) {
+        ss << std::uppercase;
+    }
+    while (first != last) {
+        ss << std::setw(2) << static_cast<int>(*first++);
+        if (insert_spaces && first != last) {
+            ss << " ";
+        }
+    }
+    return ss.str();
+}
+
+    #define LOG_HEX_SPAN(start, size)                                      \
+        auto span = std::span(start, size);                                \
+        auto str  = make_hex_string(span.begin(), span.end(), true, true); \
+        DEV_LOG("{}", str)
+
+    #define LOG_SAVE(msg) DEV_LOG(msg)
+
+#else
+    #define LOG_HEX_SPAN(start, size)
+    #define LOG_SAVE(msg)
+#endif
+
 constexpr uint32 SIZE_OF_ONE_GAME_IN_BYTES = 202748;
 
 void CGenericGameStorage::InjectHooks() {
@@ -193,15 +223,14 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
     ms_bLoading = true;
 
     CSimpleVariablesSaveStructure varsBackup{};
-    DEV_LOG("LOAD - START");
+    LOG_SAVE("LOAD - START");
     for (auto block = 0u; block < (uint32)eBlocks::TOTAL; block++) {
         char header[std::size(ms_BlockTagName)]{};
-        DEV_LOG("LOAD - START - HEADER");
+        LOG_SAVE("LOAD - HEADER");
         if (!LoadDataFromWorkBuffer(header, sizeof(header) - 1)) {
             CloseFile();
             return false;
         }
-        DEV_LOG("LOAD - END - HEADER");
 
         if (std::string_view{ header } != ms_BlockTagName) {
             if (block != 0) {
@@ -218,13 +247,12 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
 
         switch ((eBlocks)block) {
         case eBlocks::SIMPLE_VARIABLES: {
-            DEV_LOG("LOAD - START - SIMPLE_VARIABLES");
+            LOG_SAVE("LOAD - SIMPLE_VARIABLES");
             varsBackup.Construct();
 
             CSimpleVariablesSaveStructure vars{};
             if (!LoadDataFromWorkBuffer(vars)) {
                 ms_bFailed = true;
-                DEV_LOG("LOAD - END - SIMPLE_VARIABLES - FAIL");
                 break;
             }
 
@@ -234,139 +262,112 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
             if (GetCurrentVersionNumber() != varsVer) {
                 varsBackup.Extract(varsVer); // Restore old state
                 CloseFile();
-                DEV_LOG("LOAD - END - SIMPLE_VARIABLES - COMPLETE_FAIL");
                 return false;
             }
-            DEV_LOG("LOAD - END - SIMPLE_VARIABLES");
             break;
         }
         case eBlocks::SCRIPTS:
-            DEV_LOG("LOAD - START - SCRIPTS");
+            LOG_SAVE("LOAD - SCRIPTS");
             CTheScripts::Load();
-            DEV_LOG("LOAD - END - SCRIPTS");
             break;
         case eBlocks::POOLS:
-            DEV_LOG("LOAD - START - POOLS");
+            LOG_SAVE("LOAD - POOLS");
             if (CPools::Load()) {
                 CTheScripts::DoScriptSetupAfterPoolsHaveLoaded();
             }
-            DEV_LOG("LOAD - END - POOLS");
             break;
         case eBlocks::GARAGES:
-            DEV_LOG("LOAD - START - GARAGES");
+            LOG_SAVE("LOAD - GARAGES");
             CGarages::Load();
-            DEV_LOG("LOAD - END - GARAGES");
             break;
         case eBlocks::GAMELOGIC:
-            DEV_LOG("LOAD - START - GAMELOGIC");
+            LOG_SAVE("LOAD - GAMELOGIC");
             CGameLogic::Load();
-            DEV_LOG("LOAD - END - GAMELOGIC");
             break;
         case eBlocks::PATHS:
-            DEV_LOG("LOAD - START - PATHS");
+            LOG_SAVE("LOAD - PATHS");
             ThePaths.Load();
-            DEV_LOG("LOAD - END - PATHS");
             break;
         case eBlocks::PICKUPS:
-            DEV_LOG("LOAD - START - PICKUPS");
+            LOG_SAVE("LOAD - PICKUPS");
             CPickups::Load();
-            DEV_LOG("LOAD - END - PICKUPS");
             break;
         case eBlocks::PHONEINFO: // Unused
             break;
         case eBlocks::RESTART:
-            DEV_LOG("LOAD - START - RESTART");
+            LOG_SAVE("LOAD - RESTART");
             CRestart::Load();
-            DEV_LOG("LOAD - END - RESTART");
             break;
         case eBlocks::RADAR:
-            DEV_LOG("LOAD - START - RADAR");
+            LOG_SAVE("LOAD - RADAR");
             CRadar::Load();
-            DEV_LOG("LOAD - END - RADAR");
             break;
         case eBlocks::ZONES:
-            DEV_LOG("LOAD - START - ZONES");
+            LOG_SAVE("LOAD - ZONES");
             CTheZones::Load();
-            DEV_LOG("LOAD - END - ZONES");
             break;
         case eBlocks::GANGS:
-            DEV_LOG("LOAD - START - GANGS");
+            LOG_SAVE("LOAD - GANGS");
             CGangs::Load();
-            DEV_LOG("LOAD - END - GANGS");
             break;
         case eBlocks::CAR_GENERATORS:
-            DEV_LOG("LOAD - START - CAR_GENERATORS");
+            LOG_SAVE("LOAD - CAR_GENERATORS");
             CTheCarGenerators::Load();
-            DEV_LOG("LOAD - END - CAR_GENERATORS");
             break;
         case eBlocks::PED_GENERATORS: // Unused
             break;
         case eBlocks::AUDIO_SCRIPT_OBJECT: // Unused
             break;
         case eBlocks::PLAYERINFO:
-            DEV_LOG("LOAD - START - PLAYERINFO");
+            LOG_SAVE("LOAD - PLAYERINFO");
             FindPlayerInfo().Load();
-            DEV_LOG("LOAD - END - PLAYERINFO");
             break;
         case eBlocks::STATS:
-            DEV_LOG("LOAD - START - STATS");
+            LOG_SAVE("LOAD - STATS");
             CStats::Load();
-            DEV_LOG("LOAD - END - STATS");
             break;
         case eBlocks::SET_PIECES:
-            DEV_LOG("LOAD - START - SET_PIECES");
+            LOG_SAVE("LOAD - SET_PIECES");
             CSetPieces::Load();
-            DEV_LOG("LOAD - END - SET_PIECES");
             break;
         case eBlocks::STREAMING:
-            DEV_LOG("LOAD - START - STREAMING");
+            LOG_SAVE("LOAD - STREAMING");
             CStreaming::Load();
-            DEV_LOG("LOAD - END - STREAMING");
             break;
         case eBlocks::PED_TYPES:
-            DEV_LOG("LOAD - START - PED_TYPES");
+            LOG_SAVE("LOAD - PED_TYPES");
             CPedType::Load();
-            DEV_LOG("LOAD - END - PED_TYPES");
             break;
         case eBlocks::TAGS:
-            DEV_LOG("LOAD - START - TAGS");
+            LOG_SAVE("LOAD - TAGS");
             CTagManager::Load();
-            DEV_LOG("LOAD - END - TAGS");
             break;
         case eBlocks::IPLS:
-            DEV_LOG("LOAD - START - IPLS");
+            LOG_SAVE("LOAD - IPLS");
             CIplStore::Load();
-            DEV_LOG("LOAD - END - IPLS");
             break;
         case eBlocks::SHOPPING:
-            DEV_LOG("LOAD - START - SHOPPING");
+            LOG_SAVE("LOAD - SHOPPING");
             CShopping::Load();
-            DEV_LOG("LOAD - END - SHOPPING");
             break;
         case eBlocks::GANGWARS:
-            DEV_LOG("LOAD - START - GANGWARS");
+            LOG_SAVE("LOAD - GANGWARS");
             CGangWars::Load();
-            DEV_LOG("LOAD - END - GANGWARS");
             break;
         case eBlocks::STUNTJUMPS:
-            DEV_LOG("LOAD - START - STUNTJUMPS");
+            LOG_SAVE("LOAD - STUNTJUMPS");
             CStuntJumpManager::Load();
-            DEV_LOG("LOAD - END - STUNTJUMPS");
             break;
         case eBlocks::ENTRY_EXITS:
-            DEV_LOG("LOAD - START - ENTRY_EXITS");
+            LOG_SAVE("LOAD - ENTRY_EXITS");
             CEntryExitManager::Load();
-            DEV_LOG("LOAD - END - ENTRY_EXITS");
             break;
         case eBlocks::RADIOTRACKS:
-            DEV_LOG("LOAD - START - RADIOTRACKS");
+            LOG_SAVE("LOAD - RADIOTRACKS");
             CAERadioTrackManager::Load();
-            DEV_LOG("LOAD - END - RADIOTRACKS");
-            break;
         case eBlocks::USER3DMARKERS:
-            DEV_LOG("LOAD - START - USER3DMARKERS");
+            LOG_SAVE("LOAD - USER3DMARKERS");
             C3dMarkers::LoadUser3dMarkers();
-            DEV_LOG("LOAD - END - USER3DMARKERS");
             break;
         default:
             assert(0 && "Invalid block"); // NOTSA
@@ -380,7 +381,7 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
             return false;
         }
     }
-    DEV_LOG("LOAD - END");
+    LOG_SAVE("LOAD - END");
 
     ms_bLoading = false;
     if (!CloseFile()) {
@@ -400,149 +401,123 @@ bool CGenericGameStorage::GenericSave() {
     }
 
     ms_CheckSum = {};
-    DEV_LOG("SAVE - START");
+    LOG_SAVE("SAVE - START");
     for (auto block = 0u; block < (uint32)eBlocks::TOTAL; block++) {
-        DEV_LOG("SAVE - START - HEADER");
+        LOG_SAVE("SAVE - HEADER");
         if (!SaveDataToWorkBuffer((void*)ms_BlockTagName, strlen(ms_BlockTagName))) {
             CloseFile();
             return false;
         }
-        DEV_LOG("SAVE - END - HEADER");
 
         switch ((eBlocks)block) {
         case eBlocks::SIMPLE_VARIABLES: {
-            DEV_LOG("SAVE - START - SIMPLE_VARIABLES");
+            LOG_SAVE("SAVE - SIMPLE_VARIABLES");
             CSimpleVariablesSaveStructure vars{};
             vars.Construct();
             ms_bFailed = !SaveDataToWorkBuffer(vars);
-            DEV_LOG("SAVE - END - SIMPLE_VARIABLES");
             break;
         }
         case eBlocks::SCRIPTS:
-            DEV_LOG("SAVE - START - SCRIPTS");
+            LOG_SAVE("SAVE - SCRIPTS");
             CTheScripts::Save();
-            DEV_LOG("SAVE - END - SCRIPTS");
             break;
         case eBlocks::POOLS:
-            DEV_LOG("SAVE - START - POOLS");
+            LOG_SAVE("SAVE - POOLS");
             CPools::Save();
-            DEV_LOG("SAVE - END - POOLS");
             break;
         case eBlocks::GARAGES:
-            DEV_LOG("SAVE - START - GARAGES");
+            LOG_SAVE("SAVE - GARAGES");
             CGarages::Save();
-            DEV_LOG("SAVE - END - GARAGES");
             break;
         case eBlocks::GAMELOGIC:
-            DEV_LOG("SAVE - START - GAMELOGIC");
+            LOG_SAVE("SAVE - GAMELOGIC");
             CGameLogic::Save();
-            DEV_LOG("SAVE - END - GAMELOGIC");
             break;
         case eBlocks::PATHS:
-            DEV_LOG("SAVE - START - PATHS");
+            LOG_SAVE("SAVE - PATHS");
             ThePaths.Save();
-            DEV_LOG("SAVE - END - PATHS");
             break;
         case eBlocks::PICKUPS:
-            DEV_LOG("SAVE - START - PICKUPS");
+            LOG_SAVE("SAVE - PICKUPS");
             CPickups::Save();
-            DEV_LOG("SAVE - END - PICKUPS");
             break;
         case eBlocks::PHONEINFO: // Unused
             break;
         case eBlocks::RESTART:
-            DEV_LOG("SAVE - START - RESTART");
+            LOG_SAVE("SAVE - RESTART");
             CRestart::Save();
-            DEV_LOG("SAVE - END - RESTART");
             break;
         case eBlocks::RADAR:
-            DEV_LOG("SAVE - START - RADAR");
+            LOG_SAVE("SAVE - RADAR");
             CRadar::Save();
-            DEV_LOG("SAVE - END - RADAR");
             break;
         case eBlocks::ZONES:
-            DEV_LOG("SAVE - START - ZONES");
+            LOG_SAVE("SAVE - ZONES");
             CTheZones::Save();
-            DEV_LOG("SAVE - END - ZONES");
             break;
         case eBlocks::GANGS:
-            DEV_LOG("SAVE - START - GANGS");
+            LOG_SAVE("SAVE - GANGS");
             CGangs::Save();
-            DEV_LOG("SAVE - END - GANGS");
             break;
         case eBlocks::CAR_GENERATORS:
-            DEV_LOG("SAVE - START - CAR_GENERATORS");
+            LOG_SAVE("SAVE - CAR_GENERATORS");
             CTheCarGenerators::Save();
-            DEV_LOG("SAVE - END - CAR_GENERATORS");
             break;
         case eBlocks::PED_GENERATORS: // Unused
             break;
         case eBlocks::AUDIO_SCRIPT_OBJECT: // Unused
             break;
         case eBlocks::PLAYERINFO:
-            DEV_LOG("SAVE - START - PLAYERINFO");
+            LOG_SAVE("SAVE - PLAYERINFO");
             FindPlayerInfo().Save();
-            DEV_LOG("SAVE - END - PLAYERINFO");
             break;
         case eBlocks::STATS:
-            DEV_LOG("SAVE - START - STATS");
+            LOG_SAVE("SAVE - STATS");
             CStats::Save();
-            DEV_LOG("SAVE - END - STATS");
             break;
         case eBlocks::SET_PIECES:
-            DEV_LOG("SAVE - START - SET_PIECES");
+            LOG_SAVE("SAVE - SET_PIECES");
             CSetPieces::Save();
-            DEV_LOG("SAVE - END - SET_PIECES");
             break;
         case eBlocks::STREAMING:
-            DEV_LOG("SAVE - START - STREAMING");
+            LOG_SAVE("SAVE - STREAMING");
             CStreaming::Save();
-            DEV_LOG("SAVE - END - STREAMING");
             break;
         case eBlocks::PED_TYPES:
-            DEV_LOG("SAVE - START - PED_TYPES");
+            LOG_SAVE("SAVE - PED_TYPES");
             CPedType::Save();
-            DEV_LOG("SAVE - END - PED_TYPES");
             break;
         case eBlocks::TAGS:
-            DEV_LOG("SAVE - START - TAGS");
+            LOG_SAVE("SAVE - TAGS");
             CTagManager::Save();
-            DEV_LOG("SAVE - END - TAGS");
             break;
         case eBlocks::IPLS:
-            DEV_LOG("SAVE - START - IPLS");
+            LOG_SAVE("SAVE - IPLS");
             CIplStore::Save();
-            DEV_LOG("SAVE - END - IPLS");
             break;
         case eBlocks::SHOPPING:
-            DEV_LOG("SAVE - START - SHOPPING");
+            LOG_SAVE("SAVE - SHOPPING");
             CShopping::Save();
-            DEV_LOG("SAVE - END - SHOPPING");
             break;
         case eBlocks::GANGWARS:
-            DEV_LOG("SAVE - START - GANGWARS");
+            LOG_SAVE("SAVE - GANGWARS");
             CGangWars::Save();
-            DEV_LOG("SAVE - END - GANGWARS");
             break;
         case eBlocks::STUNTJUMPS:
-            DEV_LOG("SAVE - START - STUNTJUMPS");
+            LOG_SAVE("SAVE - STUNTJUMPS");
             CStuntJumpManager::Save();
-            DEV_LOG("SAVE - END - STUNTJUMPS");
             break;
         case eBlocks::ENTRY_EXITS:
-            DEV_LOG("SAVE - START - ENTRY_EXITS");
+            LOG_SAVE("SAVE - ENTRY_EXITS");
             CEntryExitManager::Save();
-            DEV_LOG("SAVE - END - ENTRY_EXITS");
             break;
         case eBlocks::RADIOTRACKS:
-            DEV_LOG("SAVE - START - RADIOTRACKS");
+            LOG_SAVE("SAVE - RADIOTRACKS");
             CAERadioTrackManager::Save();
-            DEV_LOG("SAVE - END - RADIOTRACKS");
             break;
         case eBlocks::USER3DMARKERS:
-            DEV_LOG("SAVE - START - USER3DMARKERS");
+            LOG_SAVE("SAVE - USER3DMARKERS");
             C3dMarkers::SaveUser3dMarkers();
-            DEV_LOG("SAVE - END - USER3DMARKERS");
             break;
         default:
             assert(0 && "Invalid block"); // NOTSA
@@ -554,7 +529,7 @@ bool CGenericGameStorage::GenericSave() {
             return false;
         }
     }
-    DEV_LOG("SAVE - END");
+    LOG_SAVE("SAVE - END");
     while (ms_WorkBufferPos + ms_FilePos < SIZE_OF_ONE_GAME_IN_BYTES && (SIZE_OF_ONE_GAME_IN_BYTES - ms_FilePos) >= BUFFER_SIZE) {
         ms_WorkBufferPos = BUFFER_SIZE;
         if (!SaveWorkBuffer(false)) {
@@ -597,21 +572,6 @@ bool CGenericGameStorage::CheckSlotDataValid(int32 slot) {
     }
 }
 
-template<typename TInputIter>
-std::string make_hex_string(TInputIter first, TInputIter last, bool use_uppercase = true, bool insert_spaces = false) {
-    std::ostringstream ss;
-    ss << std::hex << std::setfill('0');
-    if (use_uppercase) {
-        ss << std::uppercase;
-    }
-    while (first != last) {
-        ss << std::setw(2) << static_cast<int>(*first++);
-        if (insert_spaces && first != last) {
-            ss << " ";
-        }
-    }
-    return ss.str();
-}
 
 // 0x5D1300
 bool CGenericGameStorage::LoadDataFromWorkBuffer(void* data, int32 size) {
@@ -643,10 +603,7 @@ bool CGenericGameStorage::LoadDataFromWorkBuffer(void* data, int32 size) {
 
     memcpy(data, &ms_WorkBuffer[ms_WorkBufferPos], size);
     ms_WorkBufferPos += size;
-
-    auto span = std::span((uint8*)&ms_WorkBuffer[ms_WorkBufferPos - size], size);
-    auto str  = make_hex_string(span.begin(), span.end(), true, true);
-    DEV_LOG("{}", str);
+    LOG_HEX_SPAN((uint8*)&ms_WorkBuffer[ms_WorkBufferPos - size], size);
 
     return true;
 }
@@ -681,10 +638,7 @@ bool CGenericGameStorage::SaveDataToWorkBuffer(void* data, int32 size) {
 
     memcpy(&ms_WorkBuffer[ms_WorkBufferPos], data, size);
     ms_WorkBufferPos += size;
-
-    auto span = std::span((uint8*)&ms_WorkBuffer[ms_WorkBufferPos - size], size);
-    auto str  = make_hex_string(span.begin(), span.end(), true, true);
-    DEV_LOG("{}", str);
+    LOG_HEX_SPAN((uint8*)&ms_WorkBuffer[ms_WorkBufferPos - size], size);
 
     return true;
 }
