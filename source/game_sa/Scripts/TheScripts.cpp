@@ -444,7 +444,7 @@ void CTheScripts::AddToInvisibilitySwapArray(CEntity* entity, bool visible) {
 
 // 0x470980
 void CTheScripts::AddToListOfConnectedLodObjects(CObject* obj1, CObject* obj2) {
-    const auto idx1 = GetObjectPool()->GetIndex(obj1), idx2 = GetObjectPool()->GetIndex(obj2);
+    const auto idx1 = GetObjectPool()->GetRef(obj1), idx2 = GetObjectPool()->GetRef(obj2);
 
     const auto lod = rng::find_if(ScriptConnectLodsObjects, [idx1, idx2](auto& lod) {
         return lod.a == idx1 && lod.b == idx2;
