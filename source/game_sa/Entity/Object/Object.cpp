@@ -604,10 +604,8 @@ void CObject::RemoveLighting(bool bRemove) {
 
 // 0x5D2870 - Deserializes object from save storage buffer
 bool CObject::Load() {
-    uint32 size; // unused
-    CObjectSaveStructure data;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(data));
+    auto size = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
+    auto data = CGenericGameStorage::LoadDataFromWorkBuffer<CObjectSaveStructure>();
     data.Extract(this);
     return true;
 }
@@ -616,9 +614,8 @@ bool CObject::Load() {
 bool CObject::Save() {
     CObjectSaveStructure data;
     data.Construct(this);
-    uint32 size = sizeof(CObjectSaveStructure);
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::SaveDataToWorkBuffer(&data, sizeof(data));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CObjectSaveStructure));
+    CGenericGameStorage::SaveDataToWorkBuffer(data);
     return true;
 }
 

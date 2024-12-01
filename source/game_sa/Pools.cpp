@@ -26,7 +26,7 @@ void CPools::InjectHooks() {
     RH_ScopedInstall(MakeSureSlotInObjectPoolIsEmpty, 0x550080);
     RH_ScopedInstall(Save, 0x5D0880, {.enabled = SAVE_HOOKS_ENABLED });
     RH_ScopedInstall(SaveObjectPool, 0x5D4940, { .reversed = false });
-    RH_ScopedInstall(SavePedPool, 0x5D4B40, { .reversed = SAVE_HOOKS_ENABLED });
+    RH_ScopedInstall(SavePedPool, 0x5D4B40, { .reversed = false });
     RH_ScopedInstall(SaveVehiclePool, 0x5D4800, { .reversed = false });
 }
 

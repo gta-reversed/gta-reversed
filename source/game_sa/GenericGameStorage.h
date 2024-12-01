@@ -70,7 +70,7 @@ public:
     static inline bool& ms_bFailed = *(bool*)0xC16EFC;
     static inline eSlotState(&ms_Slots)[MAX_SAVEGAME_SLOTS] = *(eSlotState(*)[MAX_SAVEGAME_SLOTS])0xC16EBC;
     static inline bool& ms_bLoading = *(bool*)0xC16EFD;
-    static inline const char ms_BlockTagName[] =  "BLOCK" ;
+    static inline const char ms_BlockTagName[] = "BLOCK";
 
 public:
     static void InjectHooks();
@@ -96,10 +96,10 @@ public:
 
     // NOTSA
     template<typename T>
-    static bool LoadDataFromWorkBuffer(T& data) { return CGenericGameStorage::LoadDataFromWorkBuffer((void*)&data, sizeof(T)); }
+    static bool LoadDataFromWorkBuffer(T& data) { return LoadDataFromWorkBuffer((void*)&data, sizeof(T)); }
 
     template<typename T>
-    static T LoadDataFromWorkBuffer() { T data; LoadDataFromWorkBuffer(&data, sizeof(T)); return std::move(data); }
+    static T LoadDataFromWorkBuffer() { T data; LoadDataFromWorkBuffer((void*)&data, sizeof(T)); return data; }
 
     template<typename T>
     static bool SaveDataToWorkBuffer(const T& data) { return SaveDataToWorkBuffer(const_cast<void*>((const void*)&data), sizeof(T)); }

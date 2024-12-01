@@ -34,7 +34,7 @@ void CGenericGameStorage::InjectHooks() {
     RH_ScopedInstall(InitRadioStationPositionList, 0x618E70, { .reversed = false });
     RH_ScopedGlobalInstall(GetSavedGameDateAndTime, 0x618D00, { .reversed = false });
     RH_ScopedInstall(GenericLoad, 0x5D17B0);
-    RH_ScopedInstall(GenericSave, 0x5D13E0);
+    RH_ScopedInstall(GenericSave, 0x5D13E0, {.enabled = true });
     RH_ScopedInstall(CheckSlotDataValid, 0x5D1380, { .reversed = false });
     RH_ScopedOverloadedInstall(LoadDataFromWorkBuffer, "org", 0x5D1300, bool(*)(void*, int32));
     RH_ScopedOverloadedInstall(SaveDataToWorkBuffer, "org", 0x5D1270, bool(*)(void*, int32));
@@ -51,7 +51,7 @@ void CGenericGameStorage::InjectHooks() {
 
 // 0x5D08C0
 void CGenericGameStorage::ReportError(eBlocks nBlock, eSaveLoadError nError) {
-    char buffer[256]{};
+    char       buffer[256]{};
     const auto GetErrorString = [nError] {
         switch (nError) {
         case eSaveLoadError::LOADING:
@@ -142,7 +142,7 @@ void CGenericGameStorage::DoGameSpecificStuffBeforeSave() {
     CRopes::Shutdown();
     CPickups::RemovePickupObjects();
 
-    auto& pinfo = FindPlayerInfo(0);
+    auto& pinfo             = FindPlayerInfo(0);
     pinfo.m_pPed->m_fHealth = (float)std::min((uint8)200u, pinfo.m_nMaxHealth);
 
     CGangWars::EndGangWar(false);
@@ -163,7 +163,7 @@ void CGenericGameStorage::DoGameSpecificStuffAfterSucessLoad() {
     CStreaming::LoadAllRequestedModels(false);
     CGame::TidyUpMemory(true, false);
     JustLoadedDontFadeInYet = true;
-    StillToFadeOut = true;
+    StillToFadeOut          = true;
     TheCamera.Fade(0.f, eFadeFlag::FADE_IN);
     CTheScripts::Process();
     CTagManager::UpdateNumTagged();
@@ -184,7 +184,7 @@ void CGenericGameStorage::InitRadioStationPositionList() {
 bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
     out_bVariablesLoaded = false;
 
-    ms_bFailed = false;
+    ms_bFailed  = false;
     ms_CheckSum = 0;
     CCheat::ResetCheats();
     if (!OpenFileForReading(nullptr, 0)) {
@@ -203,7 +203,7 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
         }
         DEV_LOG("LOAD - END - HEADER");
 
-        if (std::string_view{header} != ms_BlockTagName) {
+        if (std::string_view{ header } != ms_BlockTagName) {
             if (block != 0) {
                 ReportError((eBlocks)(block - 1), eSaveLoadError::LOADING);
                 if (block == 1) {
@@ -230,7 +230,7 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
 
             uint32 varsVer{};
             vars.Extract(varsVer);
-                fprintf(stderr, "[error] GenericGameStorage: Loading failed (wrong version number = 0x%08x)!", varsVer); // NOTSA
+            fprintf(stderr, "[error] GenericGameStorage: Loading failed (wrong version number = 0x%08x)!", varsVer); // NOTSA
             if (GetCurrentVersionNumber() != varsVer) {
                 varsBackup.Extract(varsVer); // Restore old state
                 CloseFile();
@@ -247,8 +247,9 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
             break;
         case eBlocks::POOLS:
             DEV_LOG("LOAD - START - POOLS");
-            if (CPools::Load())
+            if (CPools::Load()) {
                 CTheScripts::DoScriptSetupAfterPoolsHaveLoaded();
+            }
             DEV_LOG("LOAD - END - POOLS");
             break;
         case eBlocks::GARAGES:
@@ -272,7 +273,7 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
             DEV_LOG("LOAD - END - PICKUPS");
             break;
         case eBlocks::PHONEINFO: // Unused
-             break;
+            break;
         case eBlocks::RESTART:
             DEV_LOG("LOAD - START - RESTART");
             CRestart::Load();
@@ -547,6 +548,11 @@ bool CGenericGameStorage::GenericSave() {
             assert(0 && "Invalid block"); // NOTSA
             break;
         }
+
+        if (ms_bFailed) {
+            CloseFile();
+            return false;
+        }
     }
     DEV_LOG("SAVE - END");
     while (ms_WorkBufferPos + ms_FilePos < SIZE_OF_ONE_GAME_IN_BYTES && (SIZE_OF_ONE_GAME_IN_BYTES - ms_FilePos) >= BUFFER_SIZE) {
@@ -555,18 +561,24 @@ bool CGenericGameStorage::GenericSave() {
             CloseFile();
             return false;
         }
+
+        if (ms_WorkBufferPos + ms_FilePos >= SIZE_OF_ONE_GAME_IN_BYTES) {
+            break;
+        }
+        ms_WorkBufferPos = SIZE_OF_ONE_GAME_IN_BYTES - ms_FilePos;
     }
 
-    if (SaveWorkBuffer(true)) {
-        strncpy_s(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
-        if (CloseFile()) {
-            CPad::UpdatePads();
-            return true;
-        }
+    if (!SaveWorkBuffer(true)) {
+        CloseFile();
         return false;
+	}
+
+    strncpy_s(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
+    if (CloseFile()) {
+        CPad::UpdatePads();
+        return true;
     }
-    CloseFile();
-    return true;
+    return false;
 }
 
 // 0x5D1380
@@ -585,68 +597,76 @@ bool CGenericGameStorage::CheckSlotDataValid(int32 slot) {
     }
 }
 
-template<typename Iterator>
-std::string spanToHexString(Iterator begin, Iterator end) {
-    std::ostringstream oss;
-    for (Iterator it = begin; it != end; ++it) {
-        // Output each byte in two-digit hexadecimal format
-        oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(*it);
-        if (std::next(it) != end) {
-            oss << " "; // Separate bytes with a space (optional)
+template<typename TInputIter>
+std::string make_hex_string(TInputIter first, TInputIter last, bool use_uppercase = true, bool insert_spaces = false) {
+    std::ostringstream ss;
+    ss << std::hex << std::setfill('0');
+    if (use_uppercase) {
+        ss << std::uppercase;
+    }
+    while (first != last) {
+        ss << std::setw(2) << static_cast<int>(*first++);
+        if (insert_spaces && first != last) {
+            ss << " ";
         }
     }
-    return oss.str();
+    return ss.str();
 }
 
 // 0x5D1300
 bool CGenericGameStorage::LoadDataFromWorkBuffer(void* data, int32 size) {
     assert(data);
 
-    if (ms_bFailed)
+    if (ms_bFailed) {
         return false;
+    }
 
-    if (size <= 0)
+    if (size <= 0) {
         return true;
+    }
 
-    auto pos = ms_WorkBufferPos;
-
-    if (static_cast<uint32>(size + pos) > ms_WorkBufferSize) {
-        const auto maxSize = BUFFER_SIZE - pos;
-        if (LoadDataFromWorkBuffer(data, maxSize)) {
-            if (LoadWorkBuffer()) {
-                pos = ms_WorkBufferPos;
-                data = (uint8*)data + maxSize;
-                size -= maxSize;
-            }
+    if (static_cast<uint32>(ms_WorkBufferPos + size) > ms_WorkBufferSize) {
+        const auto buffSizeRemaining = ms_WorkBufferSize - ms_WorkBufferPos;
+        if (!LoadDataFromWorkBuffer(data, buffSizeRemaining)) {
+            return false;
         }
+
+        if (!LoadWorkBuffer()) {
+            return false;
+        }
+
+        data = reinterpret_cast<uint8*>(data) + buffSizeRemaining;
+        size -= buffSizeRemaining;
     }
 
     assert(ms_WorkBuffer);
 
-    memcpy(data, &ms_WorkBuffer[pos], size);
-    auto span = std::span((char*)(ms_WorkBuffer + pos), size);
-    auto str  = spanToHexString(span.begin(), span.end());
-    DEV_LOG("{}", str);
+    memcpy(data, &ms_WorkBuffer[ms_WorkBufferPos], size);
     ms_WorkBufferPos += size;
 
-    return true;
+    auto span = std::span((uint8*)&ms_WorkBuffer[ms_WorkBufferPos - size], size);
+    auto str  = make_hex_string(span.begin(), span.end(), true, true);
+    DEV_LOG("{}", str);
 
+    return true;
 }
 
 // 0x5D1270
 bool CGenericGameStorage::SaveDataToWorkBuffer(void* data, int32 size) {
     assert(data);
 
-    if (ms_bFailed)
+    if (ms_bFailed) {
         return false;
+    }
 
-    if (size <= 0)
+    if (size <= 0) {
         return true;
+    }
 
-    if (ms_WorkBufferPos + size > BUFFER_SIZE) {
+    if (static_cast<uint32>(ms_WorkBufferPos + size) > ms_WorkBufferSize) {
         // Make space for data
 
-        const auto buffSizeRemaining = BUFFER_SIZE - ms_WorkBufferPos;
+        const auto buffSizeRemaining = ms_WorkBufferSize - ms_WorkBufferPos;
         if (!SaveDataToWorkBuffer(data, buffSizeRemaining)) { // Try writing what we have space for
             return false;
         }
@@ -660,20 +680,20 @@ bool CGenericGameStorage::SaveDataToWorkBuffer(void* data, int32 size) {
     }
 
     memcpy(&ms_WorkBuffer[ms_WorkBufferPos], data, size);
-
-    auto span = std::span((char*)&ms_WorkBuffer[ms_WorkBufferPos], size);
-    auto str  = spanToHexString(span.begin(), span.end());
-    DEV_LOG("{}", str);
-
     ms_WorkBufferPos += size;
+
+    auto span = std::span((uint8*)&ms_WorkBuffer[ms_WorkBufferPos - size], size);
+    auto str  = make_hex_string(span.begin(), span.end(), true, true);
+    DEV_LOG("{}", str);
 
     return true;
 }
 
 // 0x5D10B0
 bool CGenericGameStorage::LoadWorkBuffer() {
-    if (ms_bFailed)
+    if (ms_bFailed) {
         return false;
+    }
 
     uint32 toReadSize = BUFFER_SIZE;
     if (ms_FilePos + BUFFER_SIZE > ms_FileSize) {
@@ -694,7 +714,7 @@ bool CGenericGameStorage::LoadWorkBuffer() {
         if (CFileMgr::Read(ms_FileHandle, ms_WorkBuffer, toReadSize) == toReadSize) {
             ms_FilePos += toReadSize;
             ms_WorkBufferSize = toReadSize;
-            ms_WorkBufferPos = 0;
+            ms_WorkBufferPos  = 0;
             return true;
         }
     }
@@ -767,7 +787,7 @@ void CGenericGameStorage::MakeValidSaveName(int32 slot) {
     for (auto it = path; *it && *it != '\n'; it++) {
         if (*it == '?')
             *it = ' ';
-    }
+        }
 
     strcpy_s(ms_SaveFileName, path);
 }
@@ -785,7 +805,7 @@ bool CGenericGameStorage::CloseFile() {
 bool CGenericGameStorage::OpenFileForWriting() {
     ms_FileHandle = CFileMgr::OpenFile(ms_SaveFileName, "wb");
     if (ms_FileHandle) {
-        ms_FilePos = 0;
+        ms_FilePos       = 0;
         ms_WorkBufferPos = 0;
         if (!ms_WorkBuffer)
             ms_WorkBuffer = new uint8[BUFFER_SIZE + 1];
@@ -808,10 +828,10 @@ bool CGenericGameStorage::OpenFileForReading(const char* fileName, int32 slot) {
     ms_FileHandle = CFileMgr::OpenFile(ms_LoadFileName, "rb");
 
     if (ms_FileHandle) {
-        ms_FileSize = CFileMgr::GetTotalSize(ms_FileHandle);
-        ms_FilePos = 0;
+        ms_FileSize       = CFileMgr::GetTotalSize(ms_FileHandle);
+        ms_FilePos        = 0;
         ms_WorkBufferSize = BUFFER_SIZE;
-        ms_WorkBufferPos = BUFFER_SIZE;
+        ms_WorkBufferPos  = BUFFER_SIZE;
 
         if (!ms_WorkBuffer)
             ms_WorkBuffer = new uint8[BUFFER_SIZE + 1];
@@ -836,7 +856,7 @@ bool CGenericGameStorage::CheckDataNotCorrupt(int32 slot, const char* fileName) 
     uint32 nCheckSum = 0;
 
     while (LoadWorkBuffer()) {
-         for (auto i = 0; i != ms_WorkBufferSize; ++i) {
+        for (auto i = 0; i != ms_WorkBufferSize; ++i) {
             nCheckSum += ms_WorkBuffer[i];
         }
     }

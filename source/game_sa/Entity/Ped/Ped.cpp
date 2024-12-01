@@ -180,8 +180,8 @@ void CPed::InjectHooks() {
     RH_ScopedVMTInstall(FlagToDestroyWhenNextProcessed, 0x5E7B70);
     //RH_ScopedVirtualInstall(ProcessEntityCollision, 0x5E2530, { .reversed = false });
     RH_ScopedVMTInstall(SetMoveAnim, 0x5E4A00);
-    RH_ScopedVMTInstall(Save, 0x5D5730, {.enabled = false });
-    RH_ScopedVMTInstall(Load, 0x5D4640, {.enabled = false });
+    RH_ScopedVMTInstall(Save, 0x5D5730, {.enabled = SAVE_HOOKS_ENABLED });
+    RH_ScopedVMTInstall(Load, 0x5D4640, {.enabled = LOAD_HOOKS_ENABLED });
 
     RH_ScopedGlobalInstall(SetPedAtomicVisibilityCB, 0x5F0060);
 }
@@ -490,14 +490,15 @@ void CPed::SetMoveAnim() {
 * @addr 0x5D4640
  */
 bool CPed::Load() {
+    auto size = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
+
+    // TODO: Can't do `auto save = CGenericGameStorage::LoadDataFromWorkBuffer<CPedSaveStructure>()` dure to deleted copy constructor in CWanted which is used somehow inside.
+    // Would be nice if someone with more knowledge of templates and shit can fix that
     CPedSaveStructure save;
-    uint32 size{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&save, sizeof(save));
-
+    CGenericGameStorage::LoadDataFromWorkBuffer(save);
     assert(size == sizeof(save));
-    save.Extract(this);
 
+    save.Extract(this);
     return true;
 }
 
@@ -508,9 +509,8 @@ bool CPed::Save() {
     CPedSaveStructure save;
     save.Construct(this);
 
-    uint32 size{ sizeof(save) };
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::SaveDataToWorkBuffer(&save, sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(save);
 
     return true;
 }
