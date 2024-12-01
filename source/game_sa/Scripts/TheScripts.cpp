@@ -72,8 +72,8 @@ void CTheScripts::InjectHooks() {
     RH_ScopedInstall(IsPedStopped, 0x486110);
     RH_ScopedInstall(IsPlayerOnAMission, 0x464D50);
     RH_ScopedInstall(IsVehicleStopped, 0x4861F0);
-    RH_ScopedInstall(Load, 0x5D4FD0, {.enabled = true});
-    RH_ScopedInstall(Save, 0x5D4C40, {.enabled = true});
+    RH_ScopedInstall(Load, 0x5D4FD0, {.enabled = LOAD_HOOKS_ENABLED});
+    RH_ScopedInstall(Save, 0x5D4C40, {.enabled = SAVE_HOOKS_ENABLED});
     RH_ScopedInstall(WipeLocalVariableMemoryForMissionScript, 0x464BB0);
     RH_ScopedInstall(HasCarModelBeenSuppressed, 0x46A810);
     RH_ScopedInstall(HasVehicleModelBeenBlockedByScript, 0x46A890);

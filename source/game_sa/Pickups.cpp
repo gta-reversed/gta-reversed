@@ -56,8 +56,8 @@ void CPickups::InjectHooks() {
     RH_ScopedInstall(Update, 0x458DE0);
     RH_ScopedInstall(UpdateMoneyPerDay, 0x455680);
     RH_ScopedInstall(WeaponForModel, 0x454AE0);
-    RH_ScopedInstall(Load, 0x5D35A0, {.enabled = true });
-    RH_ScopedInstall(Save, 0x5D3540, {.enabled = true });
+    RH_ScopedInstall(Load, 0x5D35A0, {.enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedInstall(Save, 0x5D3540, {.enabled = SAVE_HOOKS_ENABLED });
 
     RH_ScopedGlobalInstall(ModifyStringLabelForControlSetting, 0x454B70);
 }

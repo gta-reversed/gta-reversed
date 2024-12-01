@@ -27,8 +27,8 @@ void C3dMarkers::InjectHooks() {
     RH_ScopedInstall(User3dMarkerFindFirstFreeSlot, 0x720FB0);
     RH_ScopedInstall(User3dMarkerSet, 0x720FD0);
     RH_ScopedInstall(User3dMarkersDraw, 0x723240);
-    RH_ScopedInstall(LoadUser3dMarkers, 0x5D42E0, {.enabled = true });
-    RH_ScopedInstall(SaveUser3dMarkers, 0x5D4300, {.enabled = true });
+    RH_ScopedInstall(LoadUser3dMarkers, 0x5D42E0, {.enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedInstall(SaveUser3dMarkers, 0x5D4300, {.enabled = SAVE_HOOKS_ENABLED });
 }
 
 // 0x724E40

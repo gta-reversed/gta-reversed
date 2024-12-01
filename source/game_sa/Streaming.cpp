@@ -96,8 +96,8 @@ void CStreaming::InjectHooks() {
     RH_ScopedInstall(RemoveReferencedTxds, 0x40D2F0);
     RH_ScopedInstall(DisableCopBikes, 0x407D10);
     RH_ScopedInstall(IsVeryBusy, 0x4076A0);
-    RH_ScopedInstall(Load, 0x5D29E0, {.enabled = true });
-    RH_ScopedInstall(Save, 0x5D29A0, {.enabled = true });
+    RH_ScopedInstall(Load, 0x5D29E0, {.enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedInstall(Save, 0x5D29A0, {.enabled = SAVE_HOOKS_ENABLED });
     RH_ScopedInstall(LoadAllRequestedModels, 0x40EA10);
     RH_ScopedOverloadedInstall(LoadCdDirectory, "char", 0x5B6170, void(*)(const char*, int32));
     RH_ScopedOverloadedInstall(LoadCdDirectory, "void", 0x5B82C0, void(*)());

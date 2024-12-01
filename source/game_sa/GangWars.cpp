@@ -56,8 +56,8 @@ void CGangWars::InjectHooks() {
     RH_ScopedInstall(TellStreamingWhichGangsAreNeeded, 0x443D50);
     RH_ScopedInstall(Update, 0x446610, { .reversed = false });                             //
     RH_ScopedInstall(UpdateTerritoryUnderControlPercentage, 0x443DE0); //
-    RH_ScopedInstall(Load, 0x5D3EB0, {.enabled = true });
-    RH_ScopedInstall(Save, 0x5D5530, {.enabled = true });
+    RH_ScopedInstall(Load, 0x5D3EB0, {.enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedInstall(Save, 0x5D5530, {.enabled = SAVE_HOOKS_ENABLED });
 }
 
 // 0x5D3EB0

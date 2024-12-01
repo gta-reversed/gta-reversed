@@ -34,8 +34,8 @@ void CShopping::InjectHooks() {
     RH_ScopedInstall(RestoreClothesState, 0x49B240);
     RH_ScopedInstall(RestoreVehicleMods, 0x49B3C0);
     RH_ScopedInstall(UpdateStats, 0x49BEF0);
-    RH_ScopedInstall(Load, 0x5D3E40, {.enabled = true });
-    RH_ScopedInstall(Save, 0x5D3DE0, {.enabled = true });
+    RH_ScopedInstall(Load, 0x5D3E40, {.enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedInstall(Save, 0x5D3DE0, {.enabled = SAVE_HOOKS_ENABLED });
 
     // address?
     // RH_ScopedInstall(AddPriceModifier, 0x0, { .reversed = false });

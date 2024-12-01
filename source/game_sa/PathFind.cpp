@@ -100,8 +100,8 @@ void CPathFind::InjectHooks() {
     RH_ScopedInstall(ReleaseRequestedNodes, 0x44DD00);
     RH_ScopedInstall(SetPathsNeededAtPosition, 0x44DCD0);
     RH_ScopedInstall(SetLinksBridgeLights, 0x44D960);
-    RH_ScopedInstall(Save, 0x5D34C0, {.enabled = true });
-    RH_ScopedInstall(Load, 0x5D3500, {.enabled = true });
+    RH_ScopedInstall(Save, 0x5D34C0, {.enabled = SAVE_HOOKS_ENABLED });
+    RH_ScopedInstall(Load, 0x5D3500, {.enabled = LOAD_HOOKS_ENABLED });
 }
 
 void CPathNode::InjectHooks() {
