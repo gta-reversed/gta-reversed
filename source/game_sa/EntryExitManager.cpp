@@ -441,6 +441,7 @@ bool CEntryExitManager::Load() {
         CGenericGameStorage::LoadDataFromWorkBuffer(&linkedIdx, sizeof(linkedIdx));
 
         if (auto enex = mp_poolEntryExits->GetAt(enexIdx)) {
+            enex->m_nFlags = flags;
             if (linkedIdx == -1) {
                 enex->m_pLink = nullptr;
             } else if (const auto linked = mp_poolEntryExits->GetAt(linkedIdx)) {
@@ -461,7 +462,7 @@ bool CEntryExitManager::Load() {
 // 0x5D5970
 bool CEntryExitManager::Save() {
     // Save entry exit stack
-    CGenericGameStorage::SaveDataToWorkBuffer(&ms_entryExitStackPosn, sizeof(ms_entryExitStackPosn));
+    CGenericGameStorage::SaveDataToWorkBuffer(ms_entryExitStackPosn);
     for (auto&& enex : std::span{ ms_entryExitStack, ms_entryExitStackPosn}) {
         CGenericGameStorage::SaveDataToWorkBuffer((uint16)mp_poolEntryExits->GetIndex(enex));
     }
@@ -469,11 +470,21 @@ bool CEntryExitManager::Save() {
     // Save entry exits
     for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
         if (const auto enex = mp_poolEntryExits->GetAt(i)) {
+            int16 data = -1;
+            if (enex->m_pLink) {
+                // Make sure the link reference is valid
+                auto linkIndex = mp_poolEntryExits->GetIndex(enex->m_pLink);
+                if (linkIndex >= 0 && linkIndex <= mp_poolEntryExits->GetSize()) {
+                    data = linkIndex;
+                }
+            }
             CGenericGameStorage::SaveDataToWorkBuffer((uint16)i); // Enex idx in pool
-            CGenericGameStorage::SaveDataToWorkBuffer((uint16)(enex->m_pLink ? mp_poolEntryExits->GetIndex(enex->m_pLink) : -1)); // Linked enex idx in pool
-            CGenericGameStorage::SaveDataToWorkBuffer((uint16)enex->m_nFlags);
+            CGenericGameStorage::SaveDataToWorkBuffer(enex->m_nFlags);
+            CGenericGameStorage::SaveDataToWorkBuffer(data); // Linked enex idx in pool
         }
     }
 
+    // Mark the end of ENEX table
+    CGenericGameStorage::SaveDataToWorkBuffer((int16)-1);
     return true;
 }
