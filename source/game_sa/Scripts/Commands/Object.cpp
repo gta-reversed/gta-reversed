@@ -183,6 +183,8 @@ auto SetObjectAnimCurrentTime(CObject& obj, const char* animName, float progress
 } // namespace Animation
 
 void notsa::script::commands::object::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Object");
+
     using namespace Object;
     using namespace Model;
     using namespace Fx;

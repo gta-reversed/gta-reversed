@@ -77,6 +77,7 @@ void CPlayerPed::InjectHooks() {
     RH_ScopedInstall(SetupPlayerPed, 0x60D790);
 
     RH_ScopedVMTInstall(ProcessControl, 0x60EA90);
+    RH_ScopedVMTInstall(SetMoveAnim, 0x609490);
 }
 
 struct WorkBufferSaveData {
@@ -1258,4 +1259,9 @@ void CPlayerPed::ProcessControl() {
     }
     if (!bInVehicle && GetLightingTotal() <= 0.05f && !CEntryExitManager::WeAreInInteriorTransition())
         Say(CTX_GLOBAL_BREATHING);
+}
+
+// 0x609490
+void CPlayerPed::SetMoveAnim() {
+    //nop
 }

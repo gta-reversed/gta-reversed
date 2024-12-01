@@ -22,7 +22,7 @@ void CAESound::InjectHooks() {
     RH_ScopedInstall(StopSound, 0x4EF1C0);
     RH_ScopedInstall(SetIndividualEnvironment, 0x4EF2B0);
     RH_ScopedInstall(UpdatePlayTime, 0x4EF2E0);
-    RH_ScopedInstall(GetRelativePosition, 0x4EF350);
+    RH_ScopedOverloadedInstall(GetRelativePosition, "orginal", 0x4EF350, void(CAESound::*)(CVector*) const);
     RH_ScopedInstall(CalculateFrequency, 0x4EF390);
     RH_ScopedInstall(UpdateFrequency, 0x4EF3E0);
     RH_ScopedInstall(GetRelativePlaybackFrequencyWithDoppler, 0x4EF400);
@@ -192,11 +192,16 @@ void CAESound::UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 play
         : loopStartTime;
 }
 
-// 0x4EF350
+// NOTSA: Simplified calling convention
 CVector CAESound::GetRelativePosition() const {
-    return GetFrontEnd()
-        ? m_vecCurrPosn
-        : CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
+    CVector outVec;
+    GetRelativePosition(&outVec);
+    return outVec;
+}
+
+// 0x4EF350 - Matches the original calling convention, to be used by reversible hooks, use the version returning CVector instead in our code
+void CAESound::GetRelativePosition(CVector* outVec) const {
+    *outVec = GetFrontEnd() ? m_vecCurrPosn : CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
 }
 
 // 0x4EF390

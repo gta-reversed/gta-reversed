@@ -180,7 +180,7 @@ void CAERadioTrackManager::ResetStatistics() {
 
 // 0x4E8350
 bool CAERadioTrackManager::IsRadioOn() const {
-    return m_nMode != eRadioTrackMode::UNK_7 || m_bInitialised || m_nStationsListed || m_nStationsListDown;
+    return m_nMode != eRadioTrackMode::RADIO_STOPPED || m_bInitialised || m_nStationsListed || m_nStationsListDown;
 }
 
 // 0x4E8370
@@ -213,7 +213,7 @@ void CAERadioTrackManager::SetBassSetting(int8 nBassSet, float fBassGrain) {
 // 0x4E9DB0
 void CAERadioTrackManager::SetBassEnhanceOnOff(bool enable) {
     m_bBassEnhance = enable;
-    if (m_nMode == eRadioTrackMode::UNK_2) {
+    if (m_nMode == eRadioTrackMode::RADIO_PLAYING) {
         m_RequestedSettings.m_nBassSet = m_ActiveSettings.m_nBassSet;
         m_RequestedSettings.m_fBassGain = m_ActiveSettings.m_fBassGain;
         if (enable) {
@@ -638,10 +638,10 @@ void CAERadioTrackManager::StartRadio(eRadioID id, int8 bassValue, float bassGai
 
     m_bInitialised = true;
     switch (m_nMode) {
-    case eRadioTrackMode::UNK_0:
-    case eRadioTrackMode::UNK_1:
-    case eRadioTrackMode::UNK_2:
-        m_nMode = eRadioTrackMode::GAME_PAUSED;
+    case eRadioTrackMode::RADIO_STARTING:
+    case eRadioTrackMode::RADIO_WAITING_TO_PLAY:
+    case eRadioTrackMode::RADIO_PLAYING:
+        m_nMode = eRadioTrackMode::RADIO_STOPPING;
         break;
     default:
         break;

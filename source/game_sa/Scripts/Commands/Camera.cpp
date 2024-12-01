@@ -47,6 +47,8 @@ void DoFade(CRunningScript* S, uint32 time, eFadeFlag direction) {
 }
 
 void RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Camera");
+
     REGISTER_COMMAND_HANDLER(COMMAND_IS_POINT_ON_SCREEN, IsPointOnScreen);
     REGISTER_COMMAND_HANDLER(COMMAND_SHAKE_CAM, ShakeCam);
     REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CAMERA_TO_VEHICLE_LOOK_AT_VEHICLE, AttachCameraToVehicleLookAtVehicle);

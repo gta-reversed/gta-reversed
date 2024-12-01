@@ -101,10 +101,14 @@ void CAnimBlendAssocGroup::CreateAssociations(const char* blockName, const char*
 
     const auto ab = AllocateForBlock(blockName, -1);
 
+    // We need to start from 0 in this case - some of the animations may not be found,
+    // and if we assume that all went well we end up with gaps in the ms_aAnimations table
+    m_NumAnims = 0;
+
     for (size_t i = 0; i < ab->NumAnims; i++) {
         const auto id    = (AnimationId)(ab->FirstAnimIdx + i);
         const auto anim  = &CAnimManager::GetAnimation(id);
-        const auto assoc = &GetAssociations()[i];
+        const auto assoc = &m_Anims[m_NumAnims]; // Can't use GetAssociations() helper method, as m_NumAnims will always be (no. of elements + 1)
 
         const auto* animName = animNames;
         const auto* modelName = modelNames;
@@ -130,6 +134,7 @@ void CAnimBlendAssocGroup::CreateAssociations(const char* blockName, const char*
         }
 
         CreateAssociation(assoc, anim, mi, i);
+        ++m_NumAnims;
 
         NOTSA_LOG_TRACE("Created Animation(Name={}; Block={}; ID={}) from model ({})", animName, blockName, (int)id, modelName);
     }

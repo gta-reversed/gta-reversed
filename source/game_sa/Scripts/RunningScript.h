@@ -219,7 +219,7 @@ public:
 
     void DoDeathArrestCheck(); // original name DoDeatharrestCheck
 
-    static void SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, bool offset);
+    void SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, bool offset);
     void GivePedScriptedTask(int32 pedHandle, CTask* task, int32 opcode);
     void GivePedScriptedTask(CPed* ped, CTask* task, int32 opcode); // NOTSA overload
 
@@ -258,9 +258,11 @@ public:
 
     //! Read a value from at the current IP then increase IP by the number of bytes read.
     template<typename T>
-    T ReadAtIPAs() {
+    T ReadAtIPAs(bool updateIP = true) {
         const auto ret = *reinterpret_cast<T*>(m_IP);
-        m_IP += sizeof(T);
+        if (updateIP) {
+            m_IP += sizeof(T);
+        }
         return ret;
     }
 

@@ -490,7 +490,7 @@ void CPathFind::ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVec
 
 // 0x44D960
 void CPathFind::SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, float fYMax, bool value) {
-    const auto areaRect = CRect{ {fXMin, fYMax}, {fXMax, fYMin} };
+    const auto areaRect = CRect{ {fXMin, fYMin}, {fXMax, fYMax} };
 
     for (auto areaId = 0u; areaId < NUM_PATH_MAP_AREAS; areaId++) {
         if (!IsAreaLoaded(areaId)) {
@@ -520,7 +520,7 @@ CVector CPathFind::FindNodeCoorsForScript(CNodeAddress address, bool* bFound) {
             *bFound = found;
         }
     };
-    if (!address.IsValid() || IsAreaNodesAvailable(address)) {
+    if (!address.IsValid() || !IsAreaNodesAvailable(address)) {
         SetFound(false);
         return {};
     } else {

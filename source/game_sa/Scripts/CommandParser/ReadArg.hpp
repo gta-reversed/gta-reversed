@@ -75,7 +75,7 @@ inline auto ReadArrayInfo(CRunningScript* S) {
 
 template<typename T>
 concept PooledType =
-    requires { detail::PoolOf<T>(); };
+    requires { detail::PoolOf<std::remove_cvref_t<T>>(); };
 };
 
 namespace detail {
@@ -118,18 +118,18 @@ inline T Read(CRunningScript* S) {
     } else if constexpr (std::is_same_v<Y, std::string_view>) { 
         auto& IP = S->m_IP;
 
-        const auto FromScriptSpace = [](const auto offset) -> std::string_view {
-            return { (const char*)&CTheScripts::ScriptSpace[offset] };
+        const auto FromScriptSpace = [](const auto offset) {
+            return (const char*)&CTheScripts::ScriptSpace[offset];
         };
 
-        const auto FromGlobalArray = [&](uint8 elemsz) -> std::string_view {
+        const auto FromGlobalArray = [&](uint8 elemsz) {
             const auto [idx, offset] = detail::ReadArrayInfo(S);
             return FromScriptSpace(elemsz * idx + offset);
         };
 
-        const auto FromLocalArray = [&](uint8 elemsz) -> std::string_view {
+        const auto FromLocalArray = [&](uint8 elemsz) {
             const auto [idx, offset] = detail::ReadArrayInfo(S);
-            return { (const char*)S->GetPointerToLocalArrayElement(offset, idx, elemsz) };
+            return (const char*)S->GetPointerToLocalArrayElement(offset, idx, elemsz);
         };
 
         const auto FromStaticString = [&](size_t strsz) -> std::string_view {
@@ -143,7 +143,7 @@ inline T Read(CRunningScript* S) {
             return FromScriptSpace(S->ReadAtIPAs<int16>());
 
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_VARIABLE:
-            return { (const char*)S->GetPointerToLocalVariable(S->ReadAtIPAs<int16>()) };
+            return (const char*)S->GetPointerToLocalVariable(S->ReadAtIPAs<int16>());
 
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_ARRAY:
             return FromGlobalArray(SHORT_STRING_SIZE);
@@ -151,9 +151,9 @@ inline T Read(CRunningScript* S) {
             return FromGlobalArray(LONG_STRING_SIZE);
 
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_ARRAY:
-            return FromLocalArray(2);
+            return FromLocalArray(2); // 8 bytes
         case SCRIPT_PARAM_LOCAL_LONG_STRING_ARRAY:
-            return FromLocalArray(4);
+            return FromLocalArray(4); // 16 bytes
 
         case SCRIPT_PARAM_LOCAL_LONG_STRING_VARIABLE:
         case SCRIPT_PARAM_STATIC_SHORT_STRING:
