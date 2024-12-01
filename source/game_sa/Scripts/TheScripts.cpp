@@ -1111,12 +1111,12 @@ void CTheScripts::Load() {
     // Load chunks
     auto nParts = totalSize / MAX_SAVED_GVAR_PART_SIZE;
     for (nParts; nParts-- > 0; p += MAX_SAVED_GVAR_PART_SIZE) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(p, MAX_SAVED_GVAR_PART_SIZE);
+        CGenericGameStorage::LoadDataFromWorkBufferOrg(p, MAX_SAVED_GVAR_PART_SIZE);
     }
 
     // Load remainder
     const auto remainder = totalSize % MAX_SAVED_GVAR_PART_SIZE;
-    CGenericGameStorage::LoadDataFromWorkBuffer(p, remainder);
+    CGenericGameStorage::LoadDataFromWorkBufferOrg(p, remainder);
 
     for (auto& sfb : ScriptsForBrains.m_aScriptForBrains) {
         LoadDataFromWorkBuffer(sfb);
@@ -1134,7 +1134,7 @@ void CTheScripts::Load() {
         bswap.m_pCBuilding = nullptr;
         switch (type) {
         case ScriptSavedObjectType::NONE:
-        case ScriptSavedObjectType::NOP:
+        case ScriptSavedObjectType::INVISIBLE:
             break;
         case ScriptSavedObjectType::BUILDING:
             bswap.m_pCBuilding = GetBuildingPool()->GetAt(poolRef);
@@ -1154,13 +1154,18 @@ void CTheScripts::Load() {
         const auto type    = LoadDataFromWorkBuffer<ScriptSavedObjectType>();
         const auto poolRef = LoadDataFromWorkBuffer<uint32>() - 1;
 
-        is = nullptr; // clear beforehand
         switch (type) {
         case ScriptSavedObjectType::NONE:
-        case ScriptSavedObjectType::NOP:
-            // set to nullptr, already done
+            is = nullptr;
+            break;
+        case ScriptSavedObjectType::INVISIBLE:
+            if (is) {
+                is->m_bUsesCollision = false;
+                is->m_bIsVisible = false;
+            }
             break;
         case ScriptSavedObjectType::BUILDING:
+            is = nullptr;
             if (auto* obj = GetBuildingPool()->GetAt(poolRef)) {
                 is                   = obj;
                 is->m_bUsesCollision = false;
@@ -1168,6 +1173,7 @@ void CTheScripts::Load() {
             }
             break;
         case ScriptSavedObjectType::OBJECT:
+            is = nullptr;
             if (auto* obj = GetObjectPool()->GetAt(poolRef)) {
                 is                   = obj;
                 is->m_bUsesCollision = false;
@@ -1175,6 +1181,7 @@ void CTheScripts::Load() {
             }
             break;
         case ScriptSavedObjectType::DUMMY:
+            is = nullptr;
             if (auto* obj = GetDummyPool()->GetAt(poolRef)) {
                 is                   = obj;
                 is->m_bUsesCollision = false;
@@ -1221,7 +1228,7 @@ void CTheScripts::Load() {
 
     auto numScripts = LoadDataFromWorkBuffer<uint32>();
     for (auto i = 0u; i < numScripts; i++) {
-        auto* script = StartNewScript((uint8*)LoadDataFromWorkBuffer<uint16>());
+        auto* script = StartNewScript(nullptr, LoadDataFromWorkBuffer<uint16>());
         {
             const auto prev = script->m_pPrev, next = script->m_pNext;
             LoadDataFromWorkBuffer(*script);
@@ -1332,9 +1339,9 @@ void CTheScripts::Save() {
     auto numNonExternalScripts = 0u;
     auto* lastScript           = pActiveScripts;
     for (auto* s = pActiveScripts; s; s = s->m_pNext) {
+        lastScript = s;
         if (!s->m_bIsExternal && s->m_nExternalType == -1) {
             numNonExternalScripts++;
-            lastScript = s;
         }
     }
     CGenericGameStorage::SaveDataToWorkBuffer(numNonExternalScripts);
