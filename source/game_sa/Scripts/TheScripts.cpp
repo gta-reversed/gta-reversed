@@ -27,7 +27,7 @@ void CTheScripts::InjectHooks() {
     RH_ScopedClass(CTheScripts);
     RH_ScopedCategory("Scripts");
 
-    RH_ScopedInstall(Init, 0x468D50);
+    RH_ScopedInstall(Init, 0x468D50, {.enabled = false });
     RH_ScopedInstall(InitialiseAllConnectLodObjects, 0x470960);
     RH_ScopedInstall(InitialiseConnectLodObjects, 0x470940);
     RH_ScopedInstall(InitialiseSpecialAnimGroupsAttachedToCharModels, 0x474730);
@@ -72,8 +72,8 @@ void CTheScripts::InjectHooks() {
     RH_ScopedInstall(IsPedStopped, 0x486110);
     RH_ScopedInstall(IsPlayerOnAMission, 0x464D50);
     RH_ScopedInstall(IsVehicleStopped, 0x4861F0);
-    RH_ScopedInstall(Load, 0x5D4FD0);
-    RH_ScopedInstall(Save, 0x5D4C40);
+    RH_ScopedInstall(Load, 0x5D4FD0, {.enabled = true});
+    RH_ScopedInstall(Save, 0x5D4C40, {.enabled = true});
     RH_ScopedInstall(WipeLocalVariableMemoryForMissionScript, 0x464BB0);
     RH_ScopedInstall(HasCarModelBeenSuppressed, 0x46A810);
     RH_ScopedInstall(HasVehicleModelBeenBlockedByScript, 0x46A890);
@@ -1105,18 +1105,18 @@ bool CTheScripts::IsVehicleStopped(CVehicle* veh) {
 void CTheScripts::Load() {
     Init();
 
-    const auto globalVarsLen = LoadDataFromWorkBuffer<uint32>();
-    if (globalVarsLen > MAX_SAVED_GVAR_PART_SIZE) {
-        const auto numParts  = (globalVarsLen - MAX_SAVED_GVAR_PART_SIZE - 1) / MAX_SAVED_GVAR_PART_SIZE + 1;
-        const auto remainder = globalVarsLen - MAX_SAVED_GVAR_PART_SIZE * numParts;
+    const auto totalSize = LoadDataFromWorkBuffer<uint32>();
+    auto       p         = ScriptSpace.data();
 
-        for (auto i = 0u; i < numParts; i++) {
-            CGenericGameStorage::LoadDataFromWorkBuffer(ScriptSpace.data(), MAX_SAVED_GVAR_PART_SIZE);
-        }
-        CGenericGameStorage::LoadDataFromWorkBuffer(ScriptSpace.data(), remainder);
-    } else {
-        CGenericGameStorage::LoadDataFromWorkBuffer(ScriptSpace.data(), globalVarsLen);
+    // Load chunks
+    auto nParts = totalSize / MAX_SAVED_GVAR_PART_SIZE;
+    for (nParts; nParts-- > 0; p += MAX_SAVED_GVAR_PART_SIZE) {
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(p, MAX_SAVED_GVAR_PART_SIZE);
     }
+
+    // Load remainder
+    const auto remainder = totalSize % MAX_SAVED_GVAR_PART_SIZE;
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(p, remainder);
 
     for (auto& sfb : ScriptsForBrains.m_aScriptForBrains) {
         LoadDataFromWorkBuffer(sfb);
@@ -1242,18 +1242,20 @@ void CTheScripts::Load() {
 
 // 0x5D4C40
 void CTheScripts::Save() {
-    const auto globalVarsLen = GetSCMChunk<tSCMGlobalVarChunk>()->m_NextChunkOffset;
-    if (globalVarsLen > MAX_SAVED_GVAR_PART_SIZE) {
-        const auto numParts  = (globalVarsLen - MAX_SAVED_GVAR_PART_SIZE - 1) / MAX_SAVED_GVAR_PART_SIZE + 1;
-        const auto remainder = globalVarsLen - MAX_SAVED_GVAR_PART_SIZE * numParts;
+    const auto totalSize = GetSCMChunk<tSCMGlobalVarChunk>()->m_NextChunkOffset;
+    auto       p         = ScriptSpace.data();
+    CGenericGameStorage::SaveDataToWorkBuffer(totalSize);
 
-        for (auto i = 0u; i < numParts; i++) {
-            CGenericGameStorage::SaveDataToWorkBuffer(ScriptSpace.data(), MAX_SAVED_GVAR_PART_SIZE);
-        }
-        CGenericGameStorage::SaveDataToWorkBuffer(ScriptSpace.data(), remainder);
-    } else {
-        CGenericGameStorage::SaveDataToWorkBuffer(ScriptSpace.data(), globalVarsLen);
+    // Load chunks
+    auto nParts = totalSize / MAX_SAVED_GVAR_PART_SIZE;
+    for (nParts; nParts-- > 0; p += MAX_SAVED_GVAR_PART_SIZE) {
+        CGenericGameStorage::SaveDataToWorkBuffer(p, MAX_SAVED_GVAR_PART_SIZE);
     }
+
+    // Load remainder
+    const auto remainder = totalSize % MAX_SAVED_GVAR_PART_SIZE;
+    CGenericGameStorage::SaveDataToWorkBuffer(p, remainder);
+
 
     for (auto& sfb : ScriptsForBrains.m_aScriptForBrains) {
         CGenericGameStorage::SaveDataToWorkBuffer(sfb);
@@ -1279,6 +1281,8 @@ void CTheScripts::Save() {
 
     for (auto& is : InvisibilitySettingArray) {
         if (!is) {
+            CGenericGameStorage::SaveDataToWorkBuffer(ScriptSavedObjectType::NONE);
+            CGenericGameStorage::SaveDataToWorkBuffer(0);
             continue;
         }
 

@@ -99,7 +99,7 @@ bool CPlayerPed::Load() {
     CPed::Load();
 
     WorkBufferSaveData sd{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&sd, sizeof(WorkBufferSaveData));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&sd, sizeof(WorkBufferSaveData));
     assert(sd.SaveSize == sizeof(sd));
 
     CWanted* wanted = m_pPlayerData->m_pWanted;

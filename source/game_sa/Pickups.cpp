@@ -56,8 +56,8 @@ void CPickups::InjectHooks() {
     RH_ScopedInstall(Update, 0x458DE0);
     RH_ScopedInstall(UpdateMoneyPerDay, 0x455680);
     RH_ScopedInstall(WeaponForModel, 0x454AE0);
-    RH_ScopedInstall(Load, 0x5D35A0);
-    RH_ScopedInstall(Save, 0x5D3540);
+    RH_ScopedInstall(Load, 0x5D35A0, {.enabled = true });
+    RH_ScopedInstall(Save, 0x5D3540, {.enabled = true });
 
     RH_ScopedGlobalInstall(ModifyStringLabelForControlSetting, 0x454B70);
 }
@@ -724,18 +724,18 @@ eWeaponType CPickups::WeaponForModel(int32 modelId) {
 // 0x5D35A0
 void CPickups::Load() {
     for (auto& pickup : aPickUps) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&pickup, sizeof(CPickup));
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&pickup, sizeof(CPickup));
         if (pickup.m_nPickupType != PICKUP_NONE && pickup.m_pObject) {
             pickup.m_pObject = nullptr;
             pickup.m_nFlags.bVisible = false;
         }
     }
     NumMessages = 0u;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CPickups::CollectedPickUpIndex, sizeof(uint16));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CPickups::DisplayHelpMessage, sizeof(uint8));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&CPickups::CollectedPickUpIndex, sizeof(uint16));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&CPickups::DisplayHelpMessage, sizeof(uint8));
 
     for (auto& collected : aPickUpsCollected) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&collected, sizeof(int32));
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&collected, sizeof(int32));
     }
 }
 // 0x5D3540

@@ -77,8 +77,8 @@ void CStats::InjectHooks() {
     RH_ScopedInstall(RegisterMissionAttempted, 0x558E80);
     RH_ScopedInstall(RegisterMissionPassed, 0x558EA0);
 
-    RH_ScopedInstall(Load, 0x5D3BF0);
-    RH_ScopedInstall(Save, 0x5D3B40);
+    RH_ScopedInstall(Load, 0x5D3BF0, {.reversed = false});
+    RH_ScopedInstall(Save, 0x5D3B40, {.reversed = false});
 }
 
 // 0x55C0C0
@@ -688,15 +688,15 @@ bool CStats::Save() {
 
 // 0x5D3BF0
 bool CStats::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(StatTypesFloat,           sizeof(StatTypesFloat));
-    CGenericGameStorage::LoadDataFromWorkBuffer(StatTypesInt,             sizeof(StatTypesInt));
-    CGenericGameStorage::LoadDataFromWorkBuffer(PedsKilledOfThisType,     sizeof(PedsKilledOfThisType));
-    CGenericGameStorage::LoadDataFromWorkBuffer(LastMissionPassedName,    sizeof(LastMissionPassedName));
-    CGenericGameStorage::LoadDataFromWorkBuffer(FavoriteRadioStationList, sizeof(FavoriteRadioStationList));
-    CGenericGameStorage::LoadDataFromWorkBuffer(TimesMissionAttempted,    sizeof(TimesMissionAttempted));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(StatTypesFloat,           sizeof(StatTypesFloat));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(StatTypesInt,             sizeof(StatTypesInt));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(PedsKilledOfThisType,     sizeof(PedsKilledOfThisType));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(LastMissionPassedName,    sizeof(LastMissionPassedName));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(FavoriteRadioStationList, sizeof(FavoriteRadioStationList));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(TimesMissionAttempted,    sizeof(TimesMissionAttempted));
     // todo: CGenericGameStorage::LoadDataFromWorkBuffer(&StatMessage,             sizeof(StatMessage));
     for (int32 i = 0; i < sizeof(StatMessage); i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&StatMessage[i].displayed, 1);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&StatMessage[i].displayed, 1);
     }
     return true;
 }

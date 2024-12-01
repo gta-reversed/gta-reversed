@@ -19,12 +19,12 @@ void CPools::InjectHooks() {
     RH_ScopedInstall(GetPedRef, 0x54FF60);
     RH_ScopedInstall(GetVehicle, 0x54FFF0);
     RH_ScopedInstall(GetVehicleRef, 0x54FFC0);
-    RH_ScopedInstall(Load, 0x5D0890);
-    RH_ScopedInstall(LoadObjectPool, 0x5D4A40);
+    RH_ScopedInstall(Load, 0x5D0890, {.enabled = true });
+    RH_ScopedInstall(LoadObjectPool, 0x5D4A40, {.enabled = true });
     RH_ScopedInstall(LoadPedPool, 0x5D2D70, { .reversed = false });
     RH_ScopedInstall(LoadVehiclePool, 0x5D2A20);
     RH_ScopedInstall(MakeSureSlotInObjectPoolIsEmpty, 0x550080);
-    RH_ScopedInstall(Save, 0x5D0880);
+    RH_ScopedInstall(Save, 0x5D0880, {.enabled = true });
     RH_ScopedInstall(SaveObjectPool, 0x5D4940, { .reversed = false });
     RH_ScopedInstall(SavePedPool, 0x5D4B40, { .reversed = false });
     RH_ScopedInstall(SaveVehiclePool, 0x5D4800, { .reversed = false });
@@ -147,12 +147,12 @@ bool CPools::Load() {
 // 0x5D4A40
 bool CPools::LoadObjectPool() {
     int32 iNumObjects = 0;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&iNumObjects, 4);
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&iNumObjects, 4);
     for (int32 i = 0; i < iNumObjects; ++i)
     {
         int32 iPoolRef = 0, iModelId = 0;
-        CGenericGameStorage::LoadDataFromWorkBuffer(&iPoolRef, 4);
-        CGenericGameStorage::LoadDataFromWorkBuffer(&iModelId, 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&iPoolRef, 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&iModelId, 4);
 
         auto* objInPool = GetObjectPool()->GetAtRefNoChecks(iPoolRef);
         if (objInPool)
@@ -172,16 +172,16 @@ bool CPools::LoadPedPool() {
 
     // unfortunately doesn't work'
     int32 pedCount;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&pedCount, 4);
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&pedCount, 4);
 
     for (auto i = 0; i < pedCount; i++) {
         int32 pedType;
         int32 model;
         int32 ref;
 
-        CGenericGameStorage::LoadDataFromWorkBuffer(&pedType, 4);
-        CGenericGameStorage::LoadDataFromWorkBuffer(&model, 4);
-        CGenericGameStorage::LoadDataFromWorkBuffer(&ref, 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&pedType, 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&model, 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ref, 4);
 
         CPlayerPed* playerPed = nullptr;
         if (!ref) {
@@ -201,12 +201,12 @@ bool CPools::LoadPedPool() {
 // Used in CPools::Load (Android 1.0)
 bool CPools::LoadVehiclePool() {
     int32 count;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&count, 4);
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&count, 4);
     for (auto i = 0; i < count; i++) {
         int32 modelId, createdBy;
 
-        CGenericGameStorage::LoadDataFromWorkBuffer(&createdBy, 4);
-        CGenericGameStorage::LoadDataFromWorkBuffer(&modelId, 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&createdBy, 4);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&modelId, 4);
 
         CStreaming::RequestModel(modelId, STREAMING_KEEP_IN_MEMORY);
         CStreaming::LoadAllRequestedModels(false);

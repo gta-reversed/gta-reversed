@@ -22,8 +22,8 @@ void CEntryExitManager::InjectHooks() {
     RH_ScopedInstall(GetEntryExitIndex, 0x43EFD0);
     RH_ScopedInstall(ResetAreaCodeForVisibleObjects, 0x43ED80);
     RH_ScopedInstall(SetAreaCodeForVisibleObjects, 0x43ECF0);
-    RH_ScopedInstall(Load, 0x5D55C0);
-    RH_ScopedInstall(Save, 0x5D5970);
+    RH_ScopedInstall(Load, 0x5D55C0, {.enabled = true});
+    RH_ScopedInstall(Save, 0x5D5970, {.enabled = true});
 }
 
 // 0x43F880
@@ -423,22 +423,22 @@ bool CEntryExitManager::WeAreInInteriorTransition() {
 // 0x5D55C0
 bool CEntryExitManager::Load() {
     // Load entry exit stack
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_entryExitStackPosn, sizeof(ms_entryExitStackPosn));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ms_entryExitStackPosn, sizeof(ms_entryExitStackPosn));
     for (auto i = 0u; i < ms_entryExitStackPosn; i++) {
         uint16 enexIdx{};
-        CGenericGameStorage::LoadDataFromWorkBuffer(&enexIdx, sizeof(enexIdx));
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&enexIdx, sizeof(enexIdx));
         ms_entryExitStack[i] = mp_poolEntryExits->GetAt(enexIdx);
     }
 
     // Load entry exits
     int16 enexIdx{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&enexIdx, sizeof(enexIdx));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&enexIdx, sizeof(enexIdx));
     while (enexIdx != -1) {
         uint16 flags{};
-        CGenericGameStorage::LoadDataFromWorkBuffer(&flags, sizeof(flags));
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&flags, sizeof(flags));
 
         int16 linkedIdx{};
-        CGenericGameStorage::LoadDataFromWorkBuffer(&linkedIdx, sizeof(linkedIdx));
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&linkedIdx, sizeof(linkedIdx));
 
         if (auto enex = mp_poolEntryExits->GetAt(enexIdx)) {
             enex->m_nFlags = flags;
@@ -453,7 +453,7 @@ bool CEntryExitManager::Load() {
             NOTSA_UNREACHABLE(); // NOTSA - Probably corrupted save file or something.
         }
 
-        CGenericGameStorage::LoadDataFromWorkBuffer(&enexIdx, sizeof(enexIdx));
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&enexIdx, sizeof(enexIdx));
     }
 
     return true;

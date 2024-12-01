@@ -56,16 +56,16 @@ void CGangWars::InjectHooks() {
     RH_ScopedInstall(TellStreamingWhichGangsAreNeeded, 0x443D50);
     RH_ScopedInstall(Update, 0x446610, { .reversed = false });                             //
     RH_ScopedInstall(UpdateTerritoryUnderControlPercentage, 0x443DE0); //
-    RH_ScopedInstall(Load, 0x5D3EB0);
-    RH_ScopedInstall(Save, 0x5D5530);
+    RH_ScopedInstall(Load, 0x5D3EB0, {.enabled = true });
+    RH_ScopedInstall(Save, 0x5D5530, {.enabled = true });
 }
 
 // 0x5D3EB0
 bool CGangWars::Load() {
     size_t size;
     CGangWarsSaveStructure data{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size_t));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(CGangWarsSaveStructure));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&size, sizeof(size_t));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&data, sizeof(CGangWarsSaveStructure));
     data.Extract();
     return true;
 }

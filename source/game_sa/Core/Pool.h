@@ -138,6 +138,11 @@ public:
         return !IsFreeSlotAtIndex(idx) ? (A*)&m_pObjects[idx] : nullptr;
     }
 
+    A* GetAtNoChecks(int32 idx) {
+        assert(IsIndexInBounds(idx));
+        return (A*)&m_pObjects[idx];
+    }
+
     // Marks slot as free / used (0x404970)
     void SetFreeAt(int32 idx, bool bFree) {
         assert(IsIndexInBounds(idx));

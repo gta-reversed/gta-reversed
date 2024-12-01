@@ -90,8 +90,8 @@ void CVehicle::InjectHooks() {
     RH_ScopedVMTInstall(CanPedJumpOutCar, 0x6D2030);
     RH_ScopedVMTInstall(GetTowHitchPos, 0x6DFB70);
     RH_ScopedVMTInstall(GetTowBarPos, 0x6DFBE0);
-    RH_ScopedVMTInstall(Save, 0x5D4760);
-    RH_ScopedVMTInstall(Load, 0x5D2900);
+    RH_ScopedVMTInstall(Save, 0x5D4760, {.enabled = false });
+    RH_ScopedVMTInstall(Load, 0x5D2900, {.enabled = false });
 
     // It can't be properly unhooked, original function assumes that CVehicle::GetVehicleAppearance doesn't spoil ECX register, and calls
     // it without making sure that the pointer in it still points to current instance. While it worked for original function, we can't
@@ -1131,8 +1131,8 @@ bool CVehicle::Save() {
 bool CVehicle::Load() {
     uint32 size;
     CVehicleSaveStructure data;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(uint32));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(CVehicleSaveStructure)); // BUG: Should use the value readen line above this, not constant
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&size, sizeof(uint32));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&data, sizeof(CVehicleSaveStructure)); // BUG: Should use the value readen line above this, not constant
     data.Extract(this);
     return true;
 }

@@ -8,8 +8,8 @@ void CSetPieces::InjectHooks() {
 
     RH_ScopedInstall(AddOne, 0x499500);
     RH_ScopedInstall(Init, 0x4994F0);
-    RH_ScopedInstall(Load, 0x5D3CA0);
-    RH_ScopedInstall(Save, 0x5D3C70);
+    RH_ScopedInstall(Load, 0x5D3CA0, {.enabled = true });
+    RH_ScopedInstall(Save, 0x5D3C70, {.enabled = true });
     RH_ScopedInstall(Update, 0x49AA00);
 }
 

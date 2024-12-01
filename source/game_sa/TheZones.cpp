@@ -31,8 +31,8 @@ void CTheZones::InjectHooks() {
     RH_ScopedGlobalInstall(PointLiesWithinZone, 0x572270);
     RH_ScopedGlobalInstall(GetNavigationZone, 0x572590);
     RH_ScopedGlobalInstall(GetMapZone, 0x5725A0);
-    RH_ScopedGlobalInstall(Save, 0x5D2E60);
-    RH_ScopedGlobalInstall(Load, 0x5D2F40);
+    RH_ScopedGlobalInstall(Save, 0x5D2E60, {.enabled = true });
+    RH_ScopedGlobalInstall(Load, 0x5D2F40, {.enabled = true });
     RH_ScopedGlobalInstall(PostZoneCreation, 0x572B70);
     RH_ScopedGlobalInstall(InitZonesPopulationSettings, 0x5720D0);
     RH_ScopedGlobalInstall(Update, 0x572D10);
@@ -403,24 +403,24 @@ void CTheZones::Save() {
 void CTheZones::Load() {
     Init();
 
-    CGenericGameStorage::LoadDataFromWorkBuffer(&m_CurrLevel, 4);
-    CGenericGameStorage::LoadDataFromWorkBuffer(&TotalNumberOfNavigationZones, 2);
-    CGenericGameStorage::LoadDataFromWorkBuffer(&TotalNumberOfZoneInfos, 2);
-    CGenericGameStorage::LoadDataFromWorkBuffer(&TotalNumberOfMapZones, 2);
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&m_CurrLevel, 4);
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&TotalNumberOfNavigationZones, 2);
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&TotalNumberOfZoneInfos, 2);
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&TotalNumberOfMapZones, 2);
 
     for (int32 i = 0; i < TotalNumberOfNavigationZones; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&NavigationZoneArray[i], 0x20u);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&NavigationZoneArray[i], 0x20u);
     }
 
     for (int32 i = 0; i < TotalNumberOfZoneInfos; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&ZoneInfoArray[i], 0x11u);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ZoneInfoArray[i], 0x11u);
     }
 
     for (int32 i = 0; i < TotalNumberOfMapZones; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&MapZoneArray[i], 0x20u);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&MapZoneArray[i], 0x20u);
     }
     LoadDataFromWorkBuffer(ZonesVisited);
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ZonesRevealed, 4u);
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ZonesRevealed, 4u);
 }
 
 // dummy function

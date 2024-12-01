@@ -34,8 +34,8 @@ void CShopping::InjectHooks() {
     RH_ScopedInstall(RestoreClothesState, 0x49B240);
     RH_ScopedInstall(RestoreVehicleMods, 0x49B3C0);
     RH_ScopedInstall(UpdateStats, 0x49BEF0);
-    RH_ScopedInstall(Load, 0x5D3E40);
-    RH_ScopedInstall(Save, 0x5D3DE0);
+    RH_ScopedInstall(Load, 0x5D3E40, {.enabled = true });
+    RH_ScopedInstall(Save, 0x5D3DE0, {.enabled = true });
 
     // address?
     // RH_ScopedInstall(AddPriceModifier, 0x0, { .reversed = false });
@@ -796,13 +796,13 @@ void CShopping::UpdateStats(size_t index, bool increment) {
 
 // 0x5D3E40
 void CShopping::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_numPriceModifiers, sizeof(int32));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ms_numPriceModifiers, sizeof(int32));
     for (auto i = 0; i < ms_numPriceModifiers; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&ms_priceModifiers[i], sizeof(PriceModifier));
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ms_priceModifiers[i], sizeof(PriceModifier));
     }
 
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_numBuyableItems, sizeof(uint32));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_bHasBought, ms_numBuyableItems);
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ms_numBuyableItems, sizeof(uint32));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ms_bHasBought, ms_numBuyableItems);
 }
 
 // 0x5D3DE0

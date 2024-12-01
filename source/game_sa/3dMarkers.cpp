@@ -27,8 +27,8 @@ void C3dMarkers::InjectHooks() {
     RH_ScopedInstall(User3dMarkerFindFirstFreeSlot, 0x720FB0);
     RH_ScopedInstall(User3dMarkerSet, 0x720FD0);
     RH_ScopedInstall(User3dMarkersDraw, 0x723240);
-    RH_ScopedInstall(LoadUser3dMarkers, 0x5D42E0);
-    RH_ScopedInstall(SaveUser3dMarkers, 0x5D4300);
+    RH_ScopedInstall(LoadUser3dMarkers, 0x5D42E0, {.enabled = true });
+    RH_ScopedInstall(SaveUser3dMarkers, 0x5D4300, {.enabled = true });
 }
 
 // 0x724E40
@@ -338,7 +338,7 @@ void C3dMarkers::User3dMarkersDraw() {
 // 0x5D42E0
 bool C3dMarkers::LoadUser3dMarkers() {
     for (auto& marker : ms_user3dMarkers) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&marker, sizeof(marker));
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&marker, sizeof(marker));
     }
     return true;
 }

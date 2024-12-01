@@ -180,8 +180,8 @@ void CPed::InjectHooks() {
     RH_ScopedVMTInstall(FlagToDestroyWhenNextProcessed, 0x5E7B70);
     //RH_ScopedVirtualInstall(ProcessEntityCollision, 0x5E2530, { .reversed = false });
     RH_ScopedVMTInstall(SetMoveAnim, 0x5E4A00);
-    RH_ScopedVMTInstall(Save, 0x5D5730);
-    RH_ScopedVMTInstall(Load, 0x5D4640);
+    RH_ScopedVMTInstall(Save, 0x5D5730, {.enabled = false });
+    RH_ScopedVMTInstall(Load, 0x5D4640, {.enabled = false });
 
     RH_ScopedGlobalInstall(SetPedAtomicVisibilityCB, 0x5F0060);
 }
@@ -492,8 +492,8 @@ void CPed::SetMoveAnim() {
 bool CPed::Load() {
     CPedSaveStructure save;
     uint32 size{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&save, sizeof(save));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&size, sizeof(size));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&save, sizeof(save));
 
     assert(size == sizeof(save));
     save.Extract(this);

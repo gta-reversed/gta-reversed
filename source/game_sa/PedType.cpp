@@ -11,8 +11,8 @@ void CPedType::InjectHooks() {
 
     RH_ScopedInstall(Initialise, 0x608E40);
     RH_ScopedInstall(Shutdown, 0x608B00);
-    RH_ScopedInstall(Save, 0x5D3CD0);
-    RH_ScopedInstall(Load, 0x5D3D10);
+    RH_ScopedInstall(Save, 0x5D3CD0, {.enabled = true });
+    RH_ScopedInstall(Load, 0x5D3D10, {.enabled = true });
     RH_ScopedInstall(LoadPedData, 0x608B30);
     RH_ScopedInstall(FindPedType, 0x608790);
     RH_ScopedInstall(GetPedFlag, 0x608830);
@@ -88,7 +88,7 @@ void CPedType::Load() {
     for (uint32 i = 0; i < PED_TYPE_COUNT; ++i ) {
         for (auto id = 0; id < ACQUAINTANCE_NUM; ++id) {
             uint32 value;
-            CGenericGameStorage::LoadDataFromWorkBuffer(&value, sizeof(uint32));
+            CGenericGameStorage::LoadDataFromWorkBuffer_Org(&value, sizeof(uint32));
             GetPedTypeAcquaintances(static_cast<ePedType>(i)).SetAcquaintances(id, value);
         }
     }

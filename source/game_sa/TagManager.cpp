@@ -30,8 +30,8 @@ void CTagManager::InjectHooks()
     RH_ScopedInstall(GetNearestTag, 0x49D160);
     RH_ScopedInstall(SetupAtomic, 0x49CE10);
     RH_ScopedInstall(RenderTagForPC, 0x49CE40);
-    RH_ScopedInstall(Save, 0x5D3D60);
-    RH_ScopedInstall(Load, 0x5D3DA0);
+    RH_ScopedInstall(Save, 0x5D3D60, {.enabled = true });
+    RH_ScopedInstall(Load, 0x5D3DA0, {.enabled = true });
 }
 
 // 0x49CC50
@@ -257,6 +257,6 @@ void CTagManager::Load()
         return;
 
     for (auto i = 0; i < ms_numTags; ++i) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&ms_tagDesc[i].m_nAlpha, 1);
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&ms_tagDesc[i].m_nAlpha, 1);
     }
 }

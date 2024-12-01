@@ -135,7 +135,7 @@ void CRadar::InjectHooks() {
     RH_ScopedInstall(GetRadarTraceColour, 0x584770);
     RH_ScopedInstall(ShowRadarMarker, 0x584480);
     RH_ScopedInstall(DrawRadarMask, 0x585700);
-    RH_ScopedInstall(Load, 0x5D53C0);
+    RH_ScopedInstall(Load, 0x5D53C0, {.enabled = true });
     RH_ScopedGlobalInstall(Save, 0x5D5860, {.reversed = false});
     RH_ScopedInstall(SetBlipFade, 0x583E00); // unused
     RH_ScopedInstall(SetCoordBlipAppearance, 0x583E50);
@@ -1963,7 +1963,7 @@ bool CRadar::Load() {
     Initialise();
 
     for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&trace, sizeof(trace));
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&trace, sizeof(trace));
         if (trace.m_pEntryExit) {
             trace.m_pEntryExit = CEntryExitManager::mp_poolEntryExits->GetAt(i);
         }

@@ -74,6 +74,9 @@ void CObject::InjectHooks()
     RH_ScopedInstall(DeleteAllTempObjectsInArea, 0x5A1980);
     RH_ScopedGlobalInstall(IsObjectPointerValid_NotInWorld, 0x5A2B90);
     RH_ScopedGlobalInstall(IsObjectPointerValid, 0x5A2C20);
+
+    RH_ScopedGlobalInstall(Save, 0x5D2830, {.enabled = false });
+    RH_ScopedGlobalInstall(Load, 0x5D2870, {.enabled = false });
 }
 
 // 0x5A1D10
@@ -603,8 +606,8 @@ void CObject::RemoveLighting(bool bRemove) {
 bool CObject::Load() {
     uint32 size; // unused
     CObjectSaveStructure data;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(data));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&size, sizeof(size));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&data, sizeof(data));
     data.Extract(this);
     return true;
 }

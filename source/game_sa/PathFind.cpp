@@ -100,8 +100,8 @@ void CPathFind::InjectHooks() {
     RH_ScopedInstall(ReleaseRequestedNodes, 0x44DD00);
     RH_ScopedInstall(SetPathsNeededAtPosition, 0x44DCD0);
     RH_ScopedInstall(SetLinksBridgeLights, 0x44D960);
-    RH_ScopedInstall(Save, 0x5D34C0);
-    RH_ScopedInstall(Load, 0x5D3500);
+    RH_ScopedInstall(Save, 0x5D34C0, {.enabled = true });
+    RH_ScopedInstall(Load, 0x5D3500, {.enabled = true });
 }
 
 void CPathNode::InjectHooks() {
@@ -974,9 +974,9 @@ bool CPathFind::Save() {
 
 // 0x5D3500
 bool CPathFind::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nNumForbiddenAreas, sizeof(m_nNumForbiddenAreas));
+    CGenericGameStorage::LoadDataFromWorkBuffer_Org(&m_nNumForbiddenAreas, sizeof(m_nNumForbiddenAreas));
     for (auto& area : std::span{ m_aForbiddenAreas, (size_t)m_nNumForbiddenAreas }) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&area, sizeof(area));
+        CGenericGameStorage::LoadDataFromWorkBuffer_Org(&area, sizeof(area));
     }
     return true;
 }
