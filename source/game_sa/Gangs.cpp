@@ -37,7 +37,7 @@ bool CGangs::Load() {
 // 0x5D3A60
 bool CGangs::Save() {
     for (auto& gang : Gang) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&gang, sizeof(CGangInfo));
+        CGenericGameStorage::SaveDataToWorkBuffer(gang);
     }
     return true;
 }
