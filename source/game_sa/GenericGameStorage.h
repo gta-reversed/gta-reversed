@@ -83,7 +83,7 @@ public:
     static bool GenericSave();
     static bool CheckSlotDataValid(int32 slot);
     static bool LoadDataFromWorkBuffer(void* data, int32 size);
-    static int32 SaveDataToWorkBuffer(void* data, int32 Size);
+    static bool SaveDataToWorkBuffer(void* data, int32 Size);
     static bool LoadWorkBuffer();
     static bool SaveWorkBuffer(bool bIncludeChecksum);
     static uint32 GetCurrentVersionNumber();
@@ -102,7 +102,7 @@ public:
     static T LoadDataFromWorkBuffer() { T data; LoadDataFromWorkBuffer(&data, sizeof(T)); return std::move(data); }
 
     template<typename T>
-    static void SaveDataToWorkBuffer(const T& data) { SaveDataToWorkBuffer(const_cast<void*>((const void*)&data), sizeof(T)); }
+    static bool SaveDataToWorkBuffer(const T& data) { return SaveDataToWorkBuffer(const_cast<void*>((const void*)&data), sizeof(T)); }
 private:
     static const char* GetBlockName(eBlocks);
 };
