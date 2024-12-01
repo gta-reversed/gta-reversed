@@ -136,7 +136,7 @@ void CRadar::InjectHooks() {
     RH_ScopedInstall(ShowRadarMarker, 0x584480);
     RH_ScopedInstall(DrawRadarMask, 0x585700);
     RH_ScopedInstall(Load, 0x5D53C0, {.enabled = LOAD_HOOKS_ENABLED });
-    RH_ScopedGlobalInstall(Save, 0x5D5860, {.reversed = false});
+    RH_ScopedGlobalInstall(Save, 0x5D5860, {.enabled = SAVE_HOOKS_ENABLED });
     RH_ScopedInstall(SetBlipFade, 0x583E00); // unused
     RH_ScopedInstall(SetCoordBlipAppearance, 0x583E50);
     RH_ScopedInstall(SetCoordBlip, 0x583820);
@@ -1962,10 +1962,10 @@ void CRadar::DrawBlips() {
 bool CRadar::Load() {
     Initialise();
 
-    for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) {
+    for (auto& trace : ms_RadarTrace) {
         CGenericGameStorage::LoadDataFromWorkBuffer(&trace, sizeof(trace));
-        if (trace.m_pEntryExit) {
-            trace.m_pEntryExit = CEntryExitManager::mp_poolEntryExits->GetAt(i);
+        if (trace.m_EntryExitPoolInd) {
+            trace.m_pEntryExit = CEntryExitManager::mp_poolEntryExits->GetAt(trace.m_EntryExitPoolInd - 1);
         }
     }
 
@@ -1980,9 +1980,13 @@ bool CRadar::Save() {
     return plugin::CallAndReturn<bool, 0x5D5860>();
 
     for (auto& trace : ms_RadarTrace) {
-        CEntryExit* enex = nullptr;
+        CEntryExit* savedEnex = nullptr;
         if (trace.m_pEntryExit) {
-            // todo:
+            auto index = CEntryExitManager::mp_poolEntryExits->GetIndex(trace.m_pEntryExit);
+            if (CEntryExitManager::mp_poolEntryExits->IsIndexInBounds(index) && !CEntryExitManager::mp_poolEntryExits->IsFreeSlotAtIndex(index)) {
+                savedEnex = trace.m_pEntryExit;
+                trace.m_EntryExitPoolInd = index + 1; // Assign the pool index for save duration, restore it later
+            }
         }
 
         const auto& blipType = trace.m_nBlipType;
@@ -1995,8 +1999,8 @@ bool CRadar::Save() {
         }
 
         CGenericGameStorage::SaveDataToWorkBuffer(&trace, sizeof(trace));
-        if (enex) {
-            trace.m_pEntryExit = enex;
+        if (savedEnex) {
+            trace.m_pEntryExit = savedEnex;
         }
         if (bIsTracking) {
             trace.m_bTrackingBlip = true;
