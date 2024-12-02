@@ -123,12 +123,12 @@ inline T Read(CRunningScript* S) {
         };
 
         const auto FromGlobalArray = [&](uint8 elemsz) {
-            const auto [idx, offset] = detail::ReadArrayInfo(S);
+            const auto [offset, idx] = detail::ReadArrayInfo(S);
             return FromScriptSpace(elemsz * idx + offset);
         };
 
         const auto FromLocalArray = [&](uint8 elemsz) {
-            const auto [idx, offset] = detail::ReadArrayInfo(S);
+            const auto [offset, idx] = detail::ReadArrayInfo(S);
             return (const char*)S->GetPointerToLocalArrayElement(offset, idx, elemsz);
         };
 
