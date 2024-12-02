@@ -433,8 +433,8 @@ bool CEntryExitManager::Load() {
     // Load entry exits
     auto enexIdx = CGenericGameStorage::LoadDataFromWorkBuffer<int16>();
     while (enexIdx != -1) {
-        auto flags     = CGenericGameStorage::LoadDataFromWorkBuffer<uint16>();
-        auto linkedIdx = CGenericGameStorage::LoadDataFromWorkBuffer<int16>();
+        const auto flags     = CGenericGameStorage::LoadDataFromWorkBuffer<uint16>();
+        const auto linkedIdx = CGenericGameStorage::LoadDataFromWorkBuffer<int16>();
 
         if (auto enex = mp_poolEntryExits->GetAt(enexIdx)) {
             enex->m_nFlags = flags;
