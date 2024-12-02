@@ -722,10 +722,10 @@ void CRunningScript::StoreParameters(int16 count) {
 // Reads array var base offset and element index from index variable.
 // 0x463CF0
 void CRunningScript::ReadArrayInformation(int32 updateIP, uint16* outArrayBase, int32* outArrayIndex) {
-    auto ipPtr     = reinterpret_cast<int16*>(m_IP);
+    auto ipPtr     = reinterpret_cast<uint16*>(m_IP);
     *outArrayBase  = static_cast<uint16>(ipPtr[0]);
     auto arrIndex  = ipPtr[1];
-    auto checkValue = ipPtr[2];
+    auto checkValue = (int16)ipPtr[2];
 
     *outArrayIndex = checkValue < 0
         ? GetPointerToGlobalVariable(arrIndex)->iParam
