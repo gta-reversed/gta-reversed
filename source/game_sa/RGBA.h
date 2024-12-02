@@ -32,7 +32,7 @@ public:
 
     CRGBA  ToRGB() const;
     uint32 ToIntRGBA() const;
-    uint32 ToIntRGB() const { return ((uint32)b << 16) | ((uint32)g << 8) | ((uint32)r << 0); } // msb(b) -> lsb(r)
+    uint32 ToIntRGB() const { return ((uint32)r << 16) | ((uint32)g << 8) | ((uint32)b << 0); } // msb(b) -> lsb(r)
     uint32 ToIntARGB() const;
     RwRGBA ToRwRGBA() const;
 
