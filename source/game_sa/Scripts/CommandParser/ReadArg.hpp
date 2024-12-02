@@ -166,15 +166,18 @@ inline T Read(CRunningScript* S) {
             assert(sz >= 0);
             const auto str = (const char*)(IP);
             IP += (ptrdiff_t)(sz);
-            return std::string_view{ str, (size_t)(sz + 1) };
+            return std::string_view{ str, (size_t)(sz) };
         }
         default:
             NOTSA_UNREACHABLE("Unknown param type: {}", (int32)(ptype));
         }
     } else if constexpr (std::is_same_v<T, const char*>) { // Read C-style string (Hacky)
         const auto sv = Read<std::string_view>(S);
-        assert(sv.data()[sv.size()] == 0); // Check if str is 0 terminated - Not using `str[]` here as it would assert.
-        return sv.data();
+        assert(sv.size() < COMMANDS_CHAR_BUFFER_SIZE - 1);
+        auto& buffer = CRunningScript::ScriptArgCharBuffers[CRunningScript::ScriptArgCharNextFreeBuffer++];
+        sv.copy(buffer.data(), sv.size());
+        buffer[sv.size()] = '\0';
+        return buffer.data();
     } else if constexpr (std::is_arithmetic_v<Y>) { // Simple arithmetic types (After reading a string, because `const char*` with cv and pointer removed is just `char` which is an arithmetic type)
         const auto ptype = S->ReadAtIPAs<eScriptParameterType>();
         if constexpr (std::is_pointer_v<T>) { // This is a special case, as some basic ops need a reference instead of a value

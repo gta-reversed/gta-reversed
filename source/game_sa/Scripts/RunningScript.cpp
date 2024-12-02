@@ -33,6 +33,9 @@ static notsa::log_ptr logger;
 //! Holds all custom command handlers (or null for commands with no custom handler)
 static inline std::array<notsa::script::CommandHandlerFunction, (size_t)(COMMAND_HIGHEST_ID_TO_HOOK) + 1> s_CustomCommandHandlerTable{};
 
+std::array<std::array<char, COMMANDS_CHAR_BUFFER_SIZE>, COMMANDS_CHAR_BUFFERS_COUNT> CRunningScript::ScriptArgCharBuffers        = {};
+uint8                                                                                CRunningScript::ScriptArgCharNextFreeBuffer = 0;
+
 void CRunningScript::InjectHooks() {
     logger = NOTSA_MAKE_LOGGER("script");
 

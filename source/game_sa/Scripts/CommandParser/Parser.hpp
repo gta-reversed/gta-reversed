@@ -73,6 +73,7 @@ inline auto NotImplemented(CRunningScript& S, eScriptCommands cmd) {
 
 template<eScriptCommands Command, auto* CommandFn>
 inline OpcodeResult CommandParser(CRunningScript* S) {
+    CRunningScript::ScriptArgCharNextFreeBuffer = 0;
     return detail::CollectArgsAndCall(S, Command, CommandFn);
 } 
 
