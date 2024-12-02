@@ -21,8 +21,8 @@ void CRestart::InjectHooks() {
     RH_ScopedInstall(SetRespawnPointForDurationOfMission, 0x460810);
     RH_ScopedInstall(FindClosestHospitalRestartPoint, 0x460850);
     RH_ScopedInstall(FindClosestPoliceRestartPoint, 0x460A50);
-    RH_ScopedInstall(Load, 0x5D3770, {.enabled = LOAD_HOOKS_ENABLED});
-    RH_ScopedInstall(Save, 0x5D3620, {.enabled = SAVE_HOOKS_ENABLED});
+    RH_ScopedInstall(Load, 0x5D3770);
+    RH_ScopedInstall(Save, 0x5D3620);
 }
 
 // 0x460630

@@ -22,8 +22,8 @@ void CEntryExitManager::InjectHooks() {
     RH_ScopedInstall(GetEntryExitIndex, 0x43EFD0);
     RH_ScopedInstall(ResetAreaCodeForVisibleObjects, 0x43ED80);
     RH_ScopedInstall(SetAreaCodeForVisibleObjects, 0x43ECF0);
-    RH_ScopedInstall(Load, 0x5D55C0, {.enabled = LOAD_HOOKS_ENABLED});
-    RH_ScopedInstall(Save, 0x5D5970, {.enabled = SAVE_HOOKS_ENABLED});
+    RH_ScopedInstall(Load, 0x5D55C0);
+    RH_ScopedInstall(Save, 0x5D5970);
 }
 
 // 0x43F880

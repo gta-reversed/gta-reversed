@@ -180,8 +180,8 @@ void CPed::InjectHooks() {
     RH_ScopedVMTInstall(FlagToDestroyWhenNextProcessed, 0x5E7B70);
     //RH_ScopedVirtualInstall(ProcessEntityCollision, 0x5E2530, { .reversed = false });
     RH_ScopedVMTInstall(SetMoveAnim, 0x5E4A00);
-    RH_ScopedVMTInstall(Save, 0x5D5730, {.enabled = SAVE_HOOKS_ENABLED });
-    RH_ScopedVMTInstall(Load, 0x5D4640, {.enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedVMTInstall(Save, 0x5D5730);
+    RH_ScopedVMTInstall(Load, 0x5D4640);
 
     RH_ScopedGlobalInstall(SetPedAtomicVisibilityCB, 0x5F0060);
 }

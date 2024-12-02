@@ -77,8 +77,8 @@ void CStats::InjectHooks() {
     RH_ScopedInstall(RegisterMissionAttempted, 0x558E80);
     RH_ScopedInstall(RegisterMissionPassed, 0x558EA0);
 
-    RH_ScopedInstall(Load, 0x5D3BF0, {.enabled = LOAD_HOOKS_ENABLED});
-    RH_ScopedInstall(Save, 0x5D3B40, {.enabled = SAVE_HOOKS_ENABLED});
+    RH_ScopedInstall(Load, 0x5D3BF0);
+    RH_ScopedInstall(Save, 0x5D3B40);
 }
 
 // 0x55C0C0

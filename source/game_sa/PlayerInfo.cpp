@@ -35,8 +35,8 @@ void CPlayerInfo::InjectHooks() {
     RH_ScopedInstall(GetSpeed_Hook, 0x56DF50);
     RH_ScopedInstall(GivePlayerParachute, 0x56EC40);
     RH_ScopedInstall(SetLastTargetVehicle, 0x56DA80);
-    RH_ScopedInstall(Load, 0x5D3B00, {.enabled = LOAD_HOOKS_ENABLED });
-    RH_ScopedInstall(Save, 0x5D3AC0, {.enabled = SAVE_HOOKS_ENABLED });
+    RH_ScopedInstall(Load, 0x5D3B00);
+    RH_ScopedInstall(Save, 0x5D3AC0);
 }
 
 // 0x571920

@@ -9,8 +9,8 @@ void CSimpleVariablesSaveStructure::InjectHooks() {
     RH_ScopedClass(CSimpleVariablesSaveStructure);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Construct, 0x5D1B80, {.enabled = SAVE_HOOKS_ENABLED });
-    RH_ScopedInstall(Extract, 0x5D1EA0, {.enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedInstall(Construct, 0x5D1B80);
+    RH_ScopedInstall(Extract, 0x5D1EA0);
 }
 
 // 0x5D1B80

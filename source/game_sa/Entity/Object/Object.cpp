@@ -75,8 +75,8 @@ void CObject::InjectHooks()
     RH_ScopedGlobalInstall(IsObjectPointerValid_NotInWorld, 0x5A2B90);
     RH_ScopedGlobalInstall(IsObjectPointerValid, 0x5A2C20);
 
-    RH_ScopedGlobalInstall(Save, 0x5D2830, {.enabled = SAVE_HOOKS_ENABLED });
-    RH_ScopedGlobalInstall(Load, 0x5D2870, {.enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedGlobalInstall(Save, 0x5D2830);
+    RH_ScopedGlobalInstall(Load, 0x5D2870);
 }
 
 // 0x5A1D10

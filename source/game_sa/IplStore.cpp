@@ -33,8 +33,8 @@ void CIplStore::InjectHooks() {
     RH_ScopedInstall(RemoveAllIpls, 0x405720);
     RH_ScopedInstall(HaveIplsLoaded, 0x405600);
     RH_ScopedInstall(RequestIpls, 0x405520);
-    RH_ScopedInstall(Load, 0x5D54A0, { .enabled = LOAD_HOOKS_ENABLED });
-    RH_ScopedInstall(Save, 0x5D5420, { .enabled = SAVE_HOOKS_ENABLED });
+    RH_ScopedInstall(Load, 0x5D54A0);
+    RH_ScopedInstall(Save, 0x5D5420);
     RH_ScopedInstall(EnsureIplsAreInMemory, 0x4053F0);
     RH_ScopedInstall(RemoveRelatedIpls, 0x405110);
     RH_ScopedInstall(SetupRelatedIpls, 0x404DE0, { .reversed = false });

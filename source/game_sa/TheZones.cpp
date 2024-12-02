@@ -31,8 +31,8 @@ void CTheZones::InjectHooks() {
     RH_ScopedGlobalInstall(PointLiesWithinZone, 0x572270);
     RH_ScopedGlobalInstall(GetNavigationZone, 0x572590);
     RH_ScopedGlobalInstall(GetMapZone, 0x5725A0);
-    RH_ScopedGlobalInstall(Save, 0x5D2E60, {.enabled = SAVE_HOOKS_ENABLED });
-    RH_ScopedGlobalInstall(Load, 0x5D2F40, {.enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedGlobalInstall(Save, 0x5D2E60);
+    RH_ScopedGlobalInstall(Load, 0x5D2F40);
     RH_ScopedGlobalInstall(PostZoneCreation, 0x572B70);
     RH_ScopedGlobalInstall(InitZonesPopulationSettings, 0x5720D0);
     RH_ScopedGlobalInstall(Update, 0x572D10);

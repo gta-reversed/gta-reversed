@@ -43,8 +43,8 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedClass(CAERadioTrackManager);
     RH_ScopedCategory("Audio/Managers");
 
-    RH_ScopedInstall(Load, 0x5D40E0, { .enabled = LOAD_HOOKS_ENABLED });
-    RH_ScopedInstall(Save, 0x5D3EE0, { .enabled = SAVE_HOOKS_ENABLED });
+    RH_ScopedInstall(Load, 0x5D40E0);
+    RH_ScopedInstall(Save, 0x5D3EE0);
     RH_ScopedInstall(Initialise, 0x5B9390);
     RH_ScopedInstall(Service, 0x4EB9A0, { .reversed = false });
     RH_ScopedInstall(DisplayRadioStationName, 0x4E9E50);

@@ -11,8 +11,8 @@ void CPedType::InjectHooks() {
 
     RH_ScopedInstall(Initialise, 0x608E40);
     RH_ScopedInstall(Shutdown, 0x608B00);
-    RH_ScopedInstall(Save, 0x5D3CD0, {.enabled = SAVE_HOOKS_ENABLED });
-    RH_ScopedInstall(Load, 0x5D3D10, {.enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedInstall(Save, 0x5D3CD0);
+    RH_ScopedInstall(Load, 0x5D3D10);
     RH_ScopedInstall(LoadPedData, 0x608B30);
     RH_ScopedInstall(FindPedType, 0x608790);
     RH_ScopedInstall(GetPedFlag, 0x608830);

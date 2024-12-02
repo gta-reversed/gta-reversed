@@ -6,8 +6,8 @@ void CGangs::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Initialise, 0x5DE680);
-    RH_ScopedInstall(Load, 0x5D3A90, {.enabled = LOAD_HOOKS_ENABLED });
-    RH_ScopedInstall(Save, 0x5D3A60, {.enabled = SAVE_HOOKS_ENABLED });
+    RH_ScopedInstall(Load, 0x5D3A90);
+    RH_ScopedInstall(Save, 0x5D3A60);
     RH_ScopedInstall(SetGangWeapons, 0x5DE550);
     RH_ScopedInstall(ChooseGangPedModel, 0x5DE5A0, { .reversed = false });
     RH_ScopedInstall(GetWillAttackPlayerWithCops, 0x5DE500);

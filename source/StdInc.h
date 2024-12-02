@@ -26,9 +26,6 @@
 #include <format>
 #undef GetCurrentTime // gtfo windows.h
 
-#define SAVE_HOOKS_ENABLED true
-#define LOAD_HOOKS_ENABLED true
-
 #include <ranges>
 namespace rng = std::ranges;
 namespace rngv = std::views;

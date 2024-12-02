@@ -19,12 +19,12 @@ void CPools::InjectHooks() {
     RH_ScopedInstall(GetPedRef, 0x54FF60);
     RH_ScopedInstall(GetVehicle, 0x54FFF0);
     RH_ScopedInstall(GetVehicleRef, 0x54FFC0);
-    RH_ScopedInstall(Load, 0x5D0890, { .enabled = LOAD_HOOKS_ENABLED });
-    RH_ScopedInstall(LoadObjectPool, 0x5D4A40, { .enabled = LOAD_HOOKS_ENABLED });
-    RH_ScopedInstall(LoadPedPool, 0x5D2D70, { .enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedInstall(Load, 0x5D0890);
+    RH_ScopedInstall(LoadObjectPool, 0x5D4A40);
+    RH_ScopedInstall(LoadPedPool, 0x5D2D70);
     RH_ScopedInstall(LoadVehiclePool, 0x5D2A20);
     RH_ScopedInstall(MakeSureSlotInObjectPoolIsEmpty, 0x550080);
-    RH_ScopedInstall(Save, 0x5D0880, {.enabled = SAVE_HOOKS_ENABLED });
+    RH_ScopedInstall(Save, 0x5D0880);
     RH_ScopedInstall(SaveObjectPool, 0x5D4940, { .reversed = false });
     RH_ScopedInstall(SavePedPool, 0x5D4B40, { .reversed = false });
     RH_ScopedInstall(SaveVehiclePool, 0x5D4800, { .reversed = false });

@@ -16,10 +16,10 @@ void CTheCarGenerators::InjectHooks()
 
     RH_ScopedInstall(CreateCarGenerator, 0x6F31A0);
     RH_ScopedInstall(Init, 0x6F3270);
-    RH_ScopedInstall(Load, 0x5D39B0, {.enabled = LOAD_HOOKS_ENABLED });
+    RH_ScopedInstall(Load, 0x5D39B0);
     RH_ScopedInstall(Process, 0x6F3F40);
     RH_ScopedInstall(RemoveCarGenerators, 0x6F3240);
-    RH_ScopedInstall(Save, 0x5D38C0, {.enabled = SAVE_HOOKS_ENABLED });
+    RH_ScopedInstall(Save, 0x5D38C0);
     RH_ScopedInstall(Get, 0x479D60);
 }
 

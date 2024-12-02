@@ -35,8 +35,8 @@ void CPlayerPed::InjectHooks() {
     RH_ScopedInstall(SetWantedLevelNoDrop, 0x609F30);
     RH_ScopedInstall(CheatWantedLevel, 0x609F50);
     RH_ScopedInstall(DoStuffToGoOnFire, 0x60A020);
-    RH_ScopedVMTInstall(Load, 0x5D46E0, { .enabled = LOAD_HOOKS_ENABLED });
-    RH_ScopedVMTInstall(Save, 0x5D57E0, { .enabled = SAVE_HOOKS_ENABLED });
+    RH_ScopedVMTInstall(Load, 0x5D46E0);
+    RH_ScopedVMTInstall(Save, 0x5D57E0);
     RH_ScopedInstall(DeactivatePlayerPed, 0x609520);
     RH_ScopedInstall(ReactivatePlayerPed, 0x609540);
     RH_ScopedInstall(GetPadFromPlayer, 0x609560);

@@ -22,8 +22,8 @@ void CGameLogic::InjectHooks() {
     RH_ScopedInstall(IsPointWithinLineArea, 0x4416E0);
     RH_ScopedInstall(IsSkipWaitingForScriptToFadeIn, 0x4416C0);
     RH_ScopedInstall(LaRiotsActiveHere, 0x441C10);
-    RH_ScopedInstall(Save, 0x5D33C0, {.enabled = SAVE_HOOKS_ENABLED});
-    RH_ScopedInstall(Load, 0x5D3440, {.enabled = LOAD_HOOKS_ENABLED});
+    RH_ScopedInstall(Save, 0x5D33C0);
+    RH_ScopedInstall(Load, 0x5D3440);
     RH_ScopedInstall(PassTime, 0x4414C0);
     RH_ScopedInstall(Remove2ndPlayerIfPresent, 0x4413C0);
     RH_ScopedInstall(ResetStuffUponResurrection, 0x442980);
