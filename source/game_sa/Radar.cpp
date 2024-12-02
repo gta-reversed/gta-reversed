@@ -1073,7 +1073,7 @@ int32 LineRadarBoxCollision(CVector2D& result, const CVector2D& lineStart, const
     const auto deltaY = lineEnd.y - lineStart.y;
     const auto deltaX = lineEnd.x - lineStart.x;
 
-    const auto checkIntersection = [&](float edgeCoord, bool isX, float startDist, float endDist, int side) {
+    const auto CheckIntersection = [&](float edgeCoord, bool isX, float startDist, float endDist, int side) {
         if (startDist * endDist < 0.0f) {
             float intersectionParam = startDist / (startDist - endDist);
             float intersectionVal   = (isX ? deltaY : deltaX) * intersectionParam + (isX ? lineStart.y : lineStart.x);
