@@ -255,8 +255,8 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
 
             uint32 varsVer{};
             vars.Extract(varsVer);
-            fprintf(stderr, "[error] GenericGameStorage: Loading failed (wrong version number = 0x%08x)!", varsVer); // NOTSA
             if (GetCurrentVersionNumber() != varsVer) {
+                fprintf(stderr, "[error] GenericGameStorage: Loading failed (wrong version number = 0x%08x)!", varsVer); // NOTSA
                 varsBackup.Extract(varsVer); // Restore old state
                 CloseFile();
                 return false;
