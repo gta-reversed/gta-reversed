@@ -166,7 +166,7 @@ inline T Read(CRunningScript* S) {
             assert(sz >= 0);
             const auto str = (const char*)(IP);
             IP += (ptrdiff_t)(sz);
-            return std::string_view{ str, (size_t)(sz) };
+            return std::string_view{ str, (size_t)(sz + 1) };
         }
         default:
             NOTSA_UNREACHABLE("Unknown param type: {}", (int32)(ptype));
