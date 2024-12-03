@@ -8,7 +8,7 @@ public:
     static inline float& m_f2DNearScreenZ      = *(float*)0xC4B8D8;
     static inline float& m_f2DFarScreenZ       = *(float*)0xC4B8D4;
     static inline float& m_fRecipNearClipPlane = *(float*)0xC4B8D0;
-    static inline uint32& m_bFlushSpriteBufferSwitchZTest = *(uint32*)0xC6A15C;
+    static inline bool& m_bFlushSpriteBufferSwitchZTest = *(bool*)0xC6A15C;
 
 public:
     static void InjectHooks();
