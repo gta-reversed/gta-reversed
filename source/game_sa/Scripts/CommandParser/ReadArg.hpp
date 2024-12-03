@@ -174,6 +174,7 @@ inline T Read(CRunningScript* S) {
     } else if constexpr (std::is_same_v<T, const char*>) { // Read C-style string (Hacky)
         const auto sv = Read<std::string_view>(S);
         assert(sv.size() < COMMANDS_CHAR_BUFFER_SIZE - 1);
+        // For explaination of why this is done this way, see the comment at CRunningScript::ScriptArgCharBuffers declaration
         auto& buffer = CRunningScript::ScriptArgCharBuffers[CRunningScript::ScriptArgCharNextFreeBuffer++];
         sv.copy(buffer.data(), sv.size());
         buffer[sv.size()] = '\0';
