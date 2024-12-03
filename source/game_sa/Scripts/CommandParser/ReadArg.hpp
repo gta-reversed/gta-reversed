@@ -255,7 +255,7 @@ inline T Read(CRunningScript* S) {
         }
 
         // Extract index and (expected) ID of the object
-        const auto index = (uint16)(HIWORD(info)), id = (uint16)(LOWORD(info));
+        const auto index = (uint16)(LOWORD(info)), id = (uint16)(HIWORD(info));
 
         // Check if the object is active (If not, it has been reused/deleted)
         if (!detail::scriptthing::IsActive<Y>(index)) {
