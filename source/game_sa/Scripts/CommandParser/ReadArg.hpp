@@ -138,12 +138,14 @@ inline T Read(CRunningScript* S) {
             return str;
         };
 
-        switch (const auto ptype = (eScriptParameterType)S->ReadAtIPAs<int8>()) {
+        switch (const auto ptype = (eScriptParameterType)S->ReadAtIPAs<uint8>()) {
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_VARIABLE:
-            return FromScriptSpace(S->ReadAtIPAs<int16>());
+        case SCRIPT_PARAM_GLOBAL_LONG_STRING_VARIABLE:
+            return FromScriptSpace(S->ReadAtIPAs<uint16>());
 
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_VARIABLE:
-            return (const char*)S->GetPointerToLocalVariable(S->ReadAtIPAs<int16>());
+        case SCRIPT_PARAM_LOCAL_LONG_STRING_VARIABLE:
+            return (const char*)S->GetPointerToLocalVariable(S->ReadAtIPAs<uint16>());
 
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_ARRAY:
             return FromGlobalArray(SHORT_STRING_SIZE);
@@ -155,11 +157,9 @@ inline T Read(CRunningScript* S) {
         case SCRIPT_PARAM_LOCAL_LONG_STRING_ARRAY:
             return FromLocalArray(4); // 16 bytes
 
-        case SCRIPT_PARAM_LOCAL_LONG_STRING_VARIABLE:
         case SCRIPT_PARAM_STATIC_SHORT_STRING:
             return FromStaticString(SHORT_STRING_SIZE);
         case SCRIPT_PARAM_STATIC_LONG_STRING:
-        case SCRIPT_PARAM_GLOBAL_LONG_STRING_VARIABLE:
             return FromStaticString(LONG_STRING_SIZE);
         case SCRIPT_PARAM_STATIC_PASCAL_STRING: {
             const auto sz = S->ReadAtIPAs<int8>(); // sign extension. max size = 127, not 255
