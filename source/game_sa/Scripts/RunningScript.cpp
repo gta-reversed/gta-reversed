@@ -470,7 +470,7 @@ void CRunningScript::ScriptTaskPickUpObject(int32 commandId) {
 void CRunningScript::SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, bool offset) {
     CWorld::PutToGroundIfTooLow(posn);
 
-    CVehicle* vehicle = ped.bInVehicle ? ped.m_pVehicle : nullptr;
+    CVehicle* vehicle = ped.GetVehicleIfInOne();
     if (vehicle) {
         posn.z += vehicle->GetDistanceFromCentreOfMassToBaseOfModel();
         vehicle->Teleport(posn, false);
