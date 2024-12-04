@@ -106,7 +106,7 @@ void CRadar::InjectHooks() {
     RH_ScopedInstall(SetMapCentreToPlayerCoords, 0x585B20);
     RH_ScopedInstall(InitFrontEndMap, 0x585960);
     RH_ScopedInstall(CalculateBlipAlpha, 0x583420);
-    // RH_ScopedInstall(TransformRadarPointToScreenSpace, 0x583480, true);
+    RH_ScopedInstall(TransformRadarPointToScreenSpace, 0x583480);
     RH_ScopedInstall(TransformRealWorldPointToRadarSpace, 0x583530);
     RH_ScopedInstall(CalculateCachedSinCos, 0x583670);
     RH_ScopedInstall(SetBlipSprite, 0x583D70);
@@ -408,6 +408,8 @@ uint8 CRadar::CalculateBlipAlpha(float distance) {
  * @addr 0x583480
  */
 void CRadar::TransformRadarPointToScreenSpace(CVector2D& out, const CVector2D& in) {
+    // CRadar::DrawRadarSection assumes this function won't spoil EDX, but it does, so we need to keep it up to data.
+    _asm { push edx };
     if (FrontEndMenuManager.m_bDrawingMap) {
         out = {
             FrontEndMenuManager.m_vMapOrigin.x + FrontEndMenuManager.m_fMapZoom * in.x,
@@ -419,6 +421,7 @@ void CRadar::TransformRadarPointToScreenSpace(CVector2D& out, const CVector2D& i
             SCREEN_STRETCH_FROM_BOTTOM(104.0f) + SCREEN_STRETCH_Y(76.0f) / 2.0f - SCREEN_STRETCH_Y(76.0f * in.y) / 2.0f
         };
     }
+    _asm { pop edx };
 }
 
 /*!
@@ -2134,13 +2137,11 @@ CRGBA tRadarTrace::GetStaticColour() const {
  * @brief Returns the position of the blip always relative to the world.
  */
 CVector tRadarTrace::GetWorldPos() const {
+    auto pos = m_vPosition;
     if (m_pEntryExit) {
-        CVector pos{};
         m_pEntryExit->GetPositionRelativeToOutsideWorld(pos);
-        return pos;
-    } else {
-        return m_vPosition;
     }
+    return pos;
 }
 
 /*!
