@@ -36,6 +36,3 @@ public:
 };
 
 VALIDATE_SIZE(CShotInfo, 0x2C);
-
-extern uint32 MAX_SHOT_INFOS; // default 100
-extern CShotInfo *aShotInfos; // CShotInfo aShotInfos[MAX_SHOT_INFOS]

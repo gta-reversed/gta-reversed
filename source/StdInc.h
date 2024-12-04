@@ -382,6 +382,7 @@ namespace fs = std::filesystem;
 #include "game_sa\Audio\AESound.h"
 #include "game_sa\Audio\AudioZones.h"
 #include "game_sa\Collision\Collision.h"
+#include "game_sa\FireManager.h"
 
 #include "game_sa\Entity\AnimatedBuilding.h"
 #include "game_sa\Entity\Building.h"
