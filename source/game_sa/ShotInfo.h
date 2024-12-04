@@ -18,7 +18,7 @@ public:
     CVector  m_vecTargetOffset;
     float    m_fRange;
     CEntity* m_pCreator;
-    int32    m_nDestroyTime;
+    float    m_DestroyTime;
     bool     m_bExist;
     bool     m_bExecuted;
     char     _pad2A[2];

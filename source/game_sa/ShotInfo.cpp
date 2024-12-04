@@ -52,7 +52,7 @@ void CShotInfo::Update() {
 
         auto  weaponType = static_cast<eWeaponType>(shot.m_nWeaponType);
         auto& weaponInfo = *CWeaponInfo::GetWeaponInfo(weaponType, eWeaponSkill::STD);
-        if (int32(CTimer::GetTimeInMS()) > shot.m_nDestroyTime) {
+        if (float(CTimer::GetTimeInMS()) > shot.m_DestroyTime) {
             shot.m_bExist = false;
         }
 
@@ -99,6 +99,7 @@ void CShotInfo::Update() {
                 CVector2D vecDir     = (creatorPos - pedPos);
                 auto      localDirection = ped->GetLocalDirection(vecDir);
                 CWeapon::GenerateDamageEvent(ped, shot.m_pCreator, weaponType, weaponInfo.m_nDamage, ePedPieceTypes::PED_PIECE_TORSO, localDirection);
+                shot.m_bExecuted = true;
             }
         }
 
