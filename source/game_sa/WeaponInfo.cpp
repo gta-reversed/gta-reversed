@@ -231,6 +231,7 @@ void CWeaponInfo::LoadWeaponData() {
             wi.m_fSpeed = speed;
             wi.m_fLifespan = lifespan;
             wi.m_fSpread = spread;
+            wi.m_fRadius = radius;
 
             const auto SetAnimLoopInfos = [&](auto& start, auto& end, auto& fire, auto idx) {
                 assert(start <= end);
