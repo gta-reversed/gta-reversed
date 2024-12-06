@@ -222,7 +222,7 @@ void CTaskManager::ParentsControlChildren(CTask* parent) {
             return;
         }
 
-        task = oldSubTask;
+        task = task->GetSubTask();
     }
 }
 

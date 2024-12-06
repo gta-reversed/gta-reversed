@@ -12,7 +12,7 @@ void CPedGroupIntelligence::InjectHooks() {
     //RH_ScopedGlobalInstall(ReportFinishedTask_, 0x5F76C0, { .reversed = false });
 
     RH_ScopedInstall(SetTask, 0x5F7540);
-    RH_ScopedInstall(Flush, 0x5F7350);
+    RH_ScopedInstall(Flush, 0x5F7350, { .reversed = false });
     RH_ScopedInstall(SetDefaultTaskAllocatorType, 0x5FBB70, { .reversed = false });
     RH_ScopedInstall(SetDefaultTaskAllocator, 0x5FB280, { .reversed = false });
     RH_ScopedInstall(ComputeDefaultTasks, 0x5F88D0, { .reversed = false });
