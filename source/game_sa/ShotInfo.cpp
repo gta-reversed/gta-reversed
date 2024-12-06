@@ -6,7 +6,7 @@ static inline auto& aShotInfos = StaticRef<std::array<CShotInfo, MAX_SHOT_INFOS>
 
 void CShotInfo::InjectHooks() {
     RH_ScopedClass(CShotInfo);
-    RH_ScopedCategory();
+    RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Initialise, 0x739B60, {.reversed = false});
     RH_ScopedInstall(Shutdown, 0x739C20, {.reversed = false});
