@@ -105,7 +105,7 @@ bool CWeaponInfo::TypeIsWeapon(eWeaponType type) {
 // Get weapon info index for this type and with this skill
 // NOTSA
 uint32 CWeaponInfo::GetWeaponInfoIndex(eWeaponType wt, eWeaponSkill skill) {
-    assert(TypeIsWeapon(wt));
+    assert(TypeIsWeapon(wt) || (skill == eWeaponSkill::STD && (wt >= WEAPON_RAMMEDBYCAR && wt <= WEAPON_FLARE))); // Damage events also have their weapon info entries
 
     const auto GetNonSTDSkillLevelIndex = [wt](uint32 i) {
         assert(TypeHasSkillStats(wt));

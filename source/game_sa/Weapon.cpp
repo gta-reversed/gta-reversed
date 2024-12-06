@@ -712,7 +712,7 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                                 ? -(incrementalHit * (int32)wi->m_nDamage)
                                 : (int32)wi->m_nDamage;
                         }(),
-                        (ePedPieceTypes)hitCP.m_nSurfaceTypeB,
+                        (ePedPieceTypes)hitCP.m_nPieceTypeB,
                         victimPed->GetLocalDirection(startPoint - victimPed->GetPosition2D())
                     );
                 }();
