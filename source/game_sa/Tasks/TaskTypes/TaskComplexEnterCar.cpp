@@ -327,15 +327,31 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
         m_bQuitAfterDraggingPedOut = false;
         return C(m_DraggedPed ? TASK_SIMPLE_WAIT_UNTIL_PED_OUT_CAR : TASK_FINISHED);
     }
+    case TASK_COMPLEX_FALL_AND_GET_UP: {
+        auto player = FindPlayerPed();
+        if (player == ped) {
+            FindPlayerInfo().SetLastTargetVehicle(nullptr);
+        }
+
+        if (m_bCarryOnAfterFallingOff) {
+            return CreateFirstSubTask(ped);
+        }
+        return C(TASK_FINISHED);
+    }
     case TASK_SIMPLE_CAR_CLOSE_DOOR_FROM_OUTSIDE:
     case TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER:
     case TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER:
     case TASK_SIMPLE_CAR_DRIVE_TIMED:
     case TASK_SIMPLE_WAIT_UNTIL_PED_OUT_CAR:
-    case TASK_COMPLEX_FALL_AND_GET_UP:
     case TASK_COMPLEX_ENTER_BOAT_AS_DRIVER:
+    case TASK_SIMPLE_STAND_STILL:
     case TASK_NONE:
         return C(TASK_FINISHED);
+
+    case TASK_SIMPLE_UNINTERRUPTABLE:
+    case TASK_SIMPLE_PAUSE:
+        return nullptr;
+
     default:
         NOTSA_UNREACHABLE("SubTaskType = {}", tt);
     }
