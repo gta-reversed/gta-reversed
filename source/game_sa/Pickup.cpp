@@ -500,7 +500,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                         m_nRegenerationTime = regenTime + 30'000;
                                         break;
                                     case PICKUP_ON_STREET_SLOW:
-                                        m_nRegenerationTime = regenTime + (mi == MI_PICKUP_BRIBE) ? 30'000 : 36'000;
+                                        m_nRegenerationTime = regenTime + ((mi == MI_PICKUP_BRIBE) ? 30'000 : 36'000);
                                         break;
                                     default:
                                         break;
