@@ -32,7 +32,7 @@ void CPickups::InjectHooks() {
     RH_ScopedInstall(DoMoneyEffects, 0x454E80);
     RH_ScopedInstall(DoPickUpEffects, 0x455720, { .reversed = false });
     RH_ScopedInstall(FindPickUpForThisObject, 0x4551C0);
-    RH_ScopedInstall(GenerateNewOne, 0x456F20, { .reversed = false });
+    //RH_ScopedInstall(GenerateNewOne, 0x456F20, { .reversed = false });
     RH_ScopedInstall(GenerateNewOne_WeaponType, 0x457380);
     RH_ScopedInstall(GetActualPickupIndex, 0x4552A0);
     RH_ScopedInstall(GetNewUniquePickupIndex, 0x456A30);
@@ -109,8 +109,8 @@ void CPickups::CreateSomeMoney(CVector coors, int32 amount) {
 
     for (auto i = 0; i < wads; i++) {
         bool result;
-        coors.x += std::sinf((float)(uint8)rand() * 0.024543693f) * 1.5f;
-        coors.y += std::cosf((float)(uint8)rand() * 0.024543693f) * 1.5f;
+        coors.x += std::sinf(CGeneral::GetRandomNumberInRange(0.f, TWO_PI)) * 1.5f;
+        coors.y += std::cosf(CGeneral::GetRandomNumberInRange(0.f, TWO_PI)) * 1.5f;
         coors.z = CWorld::FindGroundZFor3DCoord(coors, &result, nullptr) + 0.5f;
 
         if (result) {
@@ -259,10 +259,10 @@ CPickup* CPickups::FindPickUpForThisObject(CObject* object) {
 }
 
 // returns pickup handle
-// 0x456F20
+// g
 tPickupReference CPickups::GenerateNewOne(CVector coors, uint32 modelId, ePickupType pickupType, uint32 ammo, uint32 moneyPerDay, bool isEmpty, char* message) {
-    NOTSA_UNREACHABLE("For some reason the arguments are shifted by a stack slot to the right, not sure why... This function can't be hooked and must be implemented");
-    //return plugin::CallAndReturn<tPickupReference, 0x456F20, CVector, uint32, ePickupType, uint32, uint32, bool, char*>(coors, modelId, pickupType, ammo, moneyPerDay, isEmpty, message);
+    auto retVal = plugin::CallAndReturn<int32, 0x456F20, CVector, uint32, ePickupType, uint32, uint32, bool, char*>(coors, modelId, pickupType, ammo, moneyPerDay, isEmpty, message);
+    return tPickupReference(retVal);
 }
 
 /*!

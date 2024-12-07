@@ -203,7 +203,8 @@ void CPickup::ProcessGunShot(const CVector& start, const CVector& end) {
 
 // 0x4556C0
 void CPickup::Remove() {
-    CRadar::ClearBlipForEntity(BLIP_PICKUP, CPickups::GetUniquePickupIndex(this - CPickups::aPickUps.data()).num);
+    auto pickupRef = tPickupReference(*this);
+    CRadar::ClearBlipForEntity(BLIP_PICKUP, pickupRef.num);
     GetRidOfObjects();
     m_nPickupType = PICKUP_NONE;
     m_nFlags.bDisabled = true;

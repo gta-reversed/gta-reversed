@@ -649,7 +649,7 @@ void CPed::CreateDeadPedWeaponPickups() {
         // No. of ammo the pickups will contain
         const auto pickupAmmo{ std::min(wep.m_TotalAmmo, (uint32)AmmoForWeapon_OnStreet[(size_t)wep.m_Type] * 2) };
 
-        if (CPickups::TryToMerge_WeaponType(
+        if (!CPickups::TryToMerge_WeaponType(
             pickupPos,
             wep.m_Type,
             ePickupType::PICKUP_ONCE_TIMEOUT,
