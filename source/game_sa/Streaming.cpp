@@ -2361,7 +2361,7 @@ bool CStreaming::RemoveLeastUsedModel(int32 streamingFlags) {
             }
             case eModelType::SCM: {
                 const auto scmId = ModelIdToSCM(modelId);
-                if (!CTheScripts::StreamedScripts.m_aScripts[scmId].m_nStatus) {
+                if (!CTheScripts::StreamedScripts.m_aScripts[scmId].m_NumberOfUsers) {
                     RemoveModel(modelId);
                     return true;
                 }

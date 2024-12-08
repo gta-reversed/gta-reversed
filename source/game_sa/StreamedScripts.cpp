@@ -10,6 +10,7 @@ void CStreamedScripts::InjectHooks() {
     RH_ScopedInstall(Initialise, 0x470660);
     RH_ScopedInstall(LoadStreamedScript, 0x470840);
     RH_ScopedInstall(StartNewStreamedScript, 0x470890);
+    RH_ScopedInstall(GetStreamedScriptWithThisStartAddress, 0x470910);
 }
 
 // 0x470660
@@ -54,18 +55,16 @@ void CStreamedScripts::RemoveStreamedScriptFromMemory(int32 index) {
 // 0x470890
 CRunningScript* CStreamedScripts::StartNewStreamedScript(int32 index)
 {
-    auto* scriptInfo = &m_aScripts[index];
-    uint8* ip = scriptInfo->data;
-
-    if (ip)
+    auto& scr = m_aScripts[index];
+    if (auto* bip = scr.m_StreamedScriptMemory)
     {
-        CRunningScript * script = CTheScripts::StartNewScript(ip);
-        script->SetBaseIp(ip);
-        script->SetExternal(true);
+        CRunningScript* rscr = CTheScripts::StartNewScript(bip);
+        rscr->SetBaseIp(bip);
+        rscr->SetExternal(true);
 
-        scriptInfo->m_nStatus++;
+        scr.m_NumberOfUsers++;
         CStreaming::SetMissionDoesntRequireModel(SCMToModelId(index));
-        return script;
+        return rscr;
     }
 
     return nullptr;
@@ -85,7 +84,7 @@ int32 CStreamedScripts::RegisterScript(const char* scriptName) {
 uint32 CStreamedScripts::GetStreamedScriptWithThisStartAddress(uint8* dataPtr)
 {
     uint16 result;
-    for (result = 0; result < NUM_STREAMED_SCRIPTS && m_aScripts[result].data != dataPtr; ++result)
+    for (result = 0; result < NUM_STREAMED_SCRIPTS && m_aScripts[result].m_StreamedScriptMemory != dataPtr; ++result)
         ;
     return result;
 }
