@@ -148,7 +148,8 @@ bool CPedGroupIntelligence::ReportFinishedTask(const CPed* ped, const CTask* tas
 
 // 0x5F7540
 void CPedGroupIntelligence::SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, int32 slot, bool force) {
-    assert(!GetTaskPool()->IsObjectValid(&task)); // Shouldn't be `new`'d [Keep in mind that there might be false positives]
+    // Commented out as script tasks are `new`'d, and deleted after this finishes.
+    //assert(!GetTaskPool()->IsObjectValid(&task)); // Shouldn't be `new`'d [Keep in mind that there might be false positives]
 
     const auto tp = GetPedsTaskPair(ped, taskPairs);
     if (!tp) {

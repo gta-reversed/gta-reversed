@@ -378,7 +378,7 @@ public:
     CVector FindNodeCoorsForScript(CNodeAddress nodeAddrA, CNodeAddress nodeAddrB, float& outHeadingDeg, bool* outFound);
 
     void Shutdown();
-    CVector TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, uint16 randomSeed);
+    CVector TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, int16 randomSeed);
     void TakeWidthIntoAccountForCoors(CNodeAddress address, CNodeAddress address2, uint16 seed, float* fOut1, float* fOut2);
 
     /*!

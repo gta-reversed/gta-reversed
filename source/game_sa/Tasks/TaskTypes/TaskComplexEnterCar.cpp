@@ -779,7 +779,11 @@ void CTaskComplexEnterCar::PrepareVehicleForPedEnter(CPed* ped) {
 
 // 0x63ACC0
 void CTaskComplexEnterCar::CreateTaskUtilityLineUpPedWithCar(CPed* ped) {
-    assert(!m_LineUpUtility);
+    if (m_LineUpUtility && notsa::IsFixBugs()) {
+        m_LineUpUtility->Constructor(CCarEnterExit::GetPositionToOpenCarDoor(m_Car, m_TargetDoor) - ped->GetPosition(), 600, 0, m_TargetDoor);
+    } else {
+        assert(!m_LineUpUtility);
+    }
     m_LineUpUtility = new CTaskUtilityLineUpPedWithCar{
         CCarEnterExit::GetPositionToOpenCarDoor(m_Car, m_TargetDoor) - ped->GetPosition(),
         600,
