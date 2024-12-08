@@ -564,6 +564,7 @@ void InjectHooksMain() {
     CSetPiece::InjectHooks();
     CSetPieces::InjectHooks();
     CCopPed::InjectHooks();
+    CCivilianPed::InjectHooks();
     CDamageManager::InjectHooks();
     CCreepingFire::InjectHooks();
     CPtrList::InjectHooks();
