@@ -541,7 +541,7 @@ void CTheScripts::AttachSearchlightToSearchlightObject(int32 searchLightId, CObj
 }
 
 // 0x464FF0
-bool CTheScripts::CheckStreamedScriptVersion(RwStream* stream, char* filename) {
+bool CTheScripts::CheckStreamedScriptVersion(RwStream* stream, const char* filename) {
     return true;
 }
 
