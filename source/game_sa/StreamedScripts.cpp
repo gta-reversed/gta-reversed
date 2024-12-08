@@ -53,7 +53,7 @@ int32 CStreamedScripts::FindStreamedScript(const char* scriptName) {
 
 // 0x4706F0 -- inlined
 int32 CStreamedScripts::FindStreamedScriptQuiet(const char* scriptName) {
-    for (auto&& [i, scr] : notsa::enumerate(GetActiveScripts())) {
+    for (const auto&& [i, scr] : notsa::enumerate(GetActiveScripts())) {
         if (notsa::ci_string_view{ scr.m_Filename } == scriptName) {
             return i;
         }
@@ -63,7 +63,7 @@ int32 CStreamedScripts::FindStreamedScriptQuiet(const char* scriptName) {
 
 // 0x470810
 int16 CStreamedScripts::GetProperIndexFromIndexUsedByScript(int16 scmIndex) {
-    for (auto&& [i, scr] : notsa::enumerate(GetActiveScripts())) {
+    for (const auto&& [i, scr] : notsa::enumerate(GetActiveScripts())) {
         if (scr.m_IndexUsedByScriptFile == scmIndex) {
             return i;
         }
@@ -102,7 +102,7 @@ CRunningScript* CStreamedScripts::StartNewStreamedScript(int32 index)
 // 0x470750
 void CStreamedScripts::ReadStreamedScriptData()
 {
-    auto* streamedScrChunk = CTheScripts::GetSCMChunk<tSCMStreamedScriptFileInfoChunk>();
+    const auto* streamedScrChunk = CTheScripts::GetSCMChunk<tSCMStreamedScriptFileInfoChunk>();
     m_nLargestExternalSize = streamedScrChunk->m_LargestStreamScriptSize;
 
     int16 streamIdx = 0;
@@ -129,7 +129,7 @@ int32 CStreamedScripts::RegisterScript(const char* scriptName) {
 // 0x470910
 uint32 CStreamedScripts::GetStreamedScriptWithThisStartAddress(uint8* dataPtr)
 {
-    for (auto&& [i, scr] : notsa::enumerate(m_aScripts)) {
+    for (const auto&& [i, scr] : notsa::enumerate(m_aScripts)) {
         if (scr.m_StreamedScriptMemory == dataPtr) {
             return i;
         }
