@@ -8,6 +8,7 @@ void CStreamedScripts::InjectHooks() {
     RH_ScopedCategory("Scripts");
 
     RH_ScopedInstall(Initialise, 0x470660);
+    RH_ScopedInstall(LoadStreamedScript, 0x470840);
     RH_ScopedInstall(StartNewStreamedScript, 0x470890);
 }
 
@@ -16,8 +17,14 @@ void CStreamedScripts::Initialise() {
     rng::fill(m_aScripts, CStreamedScriptInfo{});
 }
 
+// 0x470840
 void CStreamedScripts::LoadStreamedScript(RwStream* stream, int32 index) {
-    plugin::CallMethod<0x470840, CStreamedScripts*, RwStream*, int32>(this, stream, index);
+    if (CTheScripts::CheckStreamedScriptVersion(stream, "UnKown")) {
+        auto& scr = m_aScripts[index];
+
+        scr.m_StreamedScriptMemory = new uint8[scr.m_SizeInBytes];
+        RwStreamRead(stream, scr.m_StreamedScriptMemory, scr.m_SizeInBytes);
+    }
 }
 
 void CStreamedScripts::ReInitialise() {
