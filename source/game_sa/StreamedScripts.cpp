@@ -54,7 +54,7 @@ int32 CStreamedScripts::FindStreamedScript(const char* scriptName) {
 // 0x4706F0 -- inlined
 int32 CStreamedScripts::FindStreamedScriptQuiet(const char* scriptName) {
     for (auto&& [i, scr] : notsa::enumerate(GetActiveScripts())) {
-        if (!_stricmp(scr.m_Filename, scriptName)) {
+        if (notsa::ci_string_view{ scr.m_Filename } == scriptName) {
             return i;
         }
     }
@@ -85,15 +85,15 @@ void CStreamedScripts::RemoveStreamedScriptFromMemory(int32 index) {
 CRunningScript* CStreamedScripts::StartNewStreamedScript(int32 index)
 {
     auto& scr = m_aScripts[index];
-    if (auto* bip = scr.m_StreamedScriptMemory)
+    if (auto* baseIP = scr.m_StreamedScriptMemory)
     {
-        CRunningScript* rscr = CTheScripts::StartNewScript(bip);
-        rscr->SetBaseIp(bip);
-        rscr->SetExternal(true);
+        CRunningScript* S = CTheScripts::StartNewScript(baseIP);
+        S->SetBaseIp(baseIP);
+        S->SetExternal(true);
 
         scr.m_NumberOfUsers++;
         CStreaming::SetMissionDoesntRequireModel(SCMToModelId(index));
-        return rscr;
+        return S;
     }
 
     return nullptr;
@@ -112,12 +112,11 @@ void CStreamedScripts::ReadStreamedScriptData()
         }
 
         // NOTSA: `streamed.m_FileName` was copied into a local string before calling find.
-        // NOTSA: Find returning -1 ends with OOB access, we don't let it do that.
-        if (const auto i = FindStreamedScript(streamed.m_FileName); i != -1) {
-            auto& scr = m_aScripts[i];
-            scr.m_SizeInBytes = streamed.m_Size;
-            scr.m_IndexUsedByScriptFile = streamIdx++;
-        }
+        const auto i = FindStreamedScript(streamed.m_FileName);
+        assert(i != -1); // Find returning -1 ends up with OOB access
+        auto& scr                   = m_aScripts[i];
+        scr.m_SizeInBytes           = streamed.m_Size;
+        scr.m_IndexUsedByScriptFile = streamIdx++;
     }
 }
 
