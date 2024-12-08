@@ -328,8 +328,7 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
         return C(m_DraggedPed ? TASK_SIMPLE_WAIT_UNTIL_PED_OUT_CAR : TASK_FINISHED);
     }
     case TASK_COMPLEX_FALL_AND_GET_UP: {
-        auto player = FindPlayerPed();
-        if (player == ped) {
+        if (FindPlayerPed() == ped) {
             FindPlayerInfo().SetLastTargetVehicle(nullptr);
         }
 

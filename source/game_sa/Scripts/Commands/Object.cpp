@@ -21,11 +21,7 @@ CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     mi->m_nAlpha  = 255u;
 
     auto* object = CObject::Create(model, false);
-    if (S.m_bIsExternal || S.m_nExternalType != -1) {
-        object->m_nObjectType = OBJECT_MISSION2;
-    } else {
-        object->m_nObjectType = OBJECT_MISSION;
-    }
+    object->m_nObjectType = (S.m_bIsExternal || S.m_nExternalType != -1) ? OBJECT_MISSION2 : OBJECT_MISSION;
     CWorld::PutToGroundIfTooLow(posn);
     posn.z += object->GetDistanceFromCentreOfMassToBaseOfModel();
     object->SetPosn(posn);

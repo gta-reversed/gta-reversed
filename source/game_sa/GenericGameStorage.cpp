@@ -32,17 +32,22 @@ std::string make_hex_string(TInputIter first, TInputIter last, bool use_uppercas
     return ss.str();
 }
 
-    #define LOG_HEX_SPAN(start, size)                                      \
-        auto span = std::span(start, size);                                \
-        auto str  = make_hex_string(span.begin(), span.end(), true, true); \
-        DEV_LOG("{}", str)
+
+void LOG_HEX_SPAN(uint8* start, size_t size) {
+    auto span = std::span(start, size);
+    auto str  = make_hex_string(span.begin(), span.end(), true, true);
+    DEV_LOG("{}", str);
+}
 
     #define LOG_SAVE(msg) DEV_LOG(msg)
 
 #else
-    #define LOG_HEX_SPAN(start, size)
+void LOG_HEX_SPAN(uint8* start, size_t size) {}
     #define LOG_SAVE(msg)
 #endif
+
+
+
 
 constexpr uint32 SIZE_OF_ONE_GAME_IN_BYTES = 202748;
 
@@ -570,7 +575,6 @@ bool CGenericGameStorage::CheckSlotDataValid(int32 slot) {
     }
 }
 
-
 // 0x5D1300
 bool CGenericGameStorage::LoadDataFromWorkBuffer(void* data, int32 size) {
     assert(data);
@@ -739,7 +743,7 @@ void CGenericGameStorage::MakeValidSaveName(int32 slot) {
     for (auto it = path; *it && *it != '\n'; it++) {
         if (*it == '?')
             *it = ' ';
-        }
+    }
 
     strcpy_s(ms_SaveFileName, path);
 }

@@ -166,11 +166,11 @@ bool CPools::LoadObjectPool() {
 
 // 0x5D2D70
 bool CPools::LoadPedPool() {
-    auto pedCount = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
+    const auto pedCount = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
     for (auto i = 0; i < pedCount; i++) {
-        auto poolRef = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
-        auto model   = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
-        auto pedType = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
+        const auto poolRef = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
+        const auto model   = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
+        const auto pedType = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
 
         CPlayerPed* playerPed = nullptr;
         if (pedType == PED_TYPE_PLAYER1) {

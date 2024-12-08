@@ -93,14 +93,13 @@ void DisableHeliAudio(CVehicle& vehicle, bool enable) {
     }
 }
 
-void IsCarInAirProper(CRunningScript& S, CVehicle& vehicle) {
-    bool inAir = true;
-    for (auto collidedEntity : vehicle.GetCollidingEntities()) {
-        if (collidedEntity && (collidedEntity->IsBuilding() || collidedEntity->IsVehicle())) {
-            inAir = false;
+bool IsCarInAirProper(CRunningScript& S, CVehicle& vehicle) {
+    for (auto* const e : vehicle.GetCollidingEntities()) {
+        if (e && (e->IsBuilding() || e->IsVehicle())) {
+            return false;
         }
     }
-    S.UpdateCompareFlag(inAir);
+    return true;
 }
 
 void notsa::script::commands::vehicle::RegisterHandlers() {
