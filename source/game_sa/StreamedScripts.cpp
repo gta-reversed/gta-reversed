@@ -7,11 +7,13 @@ void CStreamedScripts::InjectHooks() {
     RH_ScopedClass(CStreamedScripts);
     RH_ScopedCategory("Scripts");
 
+    RH_ScopedInstall(Initialise, 0x470660);
     RH_ScopedInstall(StartNewStreamedScript, 0x470890);
 }
 
+// 0x470660
 void CStreamedScripts::Initialise() {
-    plugin::CallMethod<0x470660, CStreamedScripts*>(this);
+    rng::fill(m_aScripts, CStreamedScriptInfo{});
 }
 
 void CStreamedScripts::LoadStreamedScript(RwStream* stream, int32 index) {
@@ -20,6 +22,22 @@ void CStreamedScripts::LoadStreamedScript(RwStream* stream, int32 index) {
 
 void CStreamedScripts::ReInitialise() {
     plugin::CallMethod<0x4706A0, CStreamedScripts*>(this);
+}
+
+int32 CStreamedScripts::FindStreamedScript(const char* scriptName) {
+    return int32();
+}
+
+int32 CStreamedScripts::FindStreamedScriptQuiet(const char* scriptName) {
+    return int32();
+}
+
+int16 CStreamedScripts::GetProperIndexFromIndexUsedByScript(int16 scmIndex) {
+    return int16();
+}
+
+const char* CStreamedScripts::GetStreamedScriptFilename(uint16 index) {
+    return nullptr;
 }
 
 void CStreamedScripts::RemoveStreamedScriptFromMemory(int32 index) {

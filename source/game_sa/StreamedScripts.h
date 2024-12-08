@@ -14,13 +14,13 @@ class CStreamedScripts {
 public:
     static constexpr uint16 NUM_STREAMED_SCRIPTS = 82;
 
-    struct {
-        uint8* data;
-        char   m_nStatus;
-        char   field_5;
-        int16  m_nScmIndex;
-        char   m_Name[20];
-        int32  m_nSize;
+    // Name is NOTSA, originally anonymous
+    struct CStreamedScriptInfo {
+        uint8* m_StreamedScriptMemory{};
+        uint8  m_NumberOfUsers{};
+        int16  m_IndexUsedByScriptFile{-1};
+        char   m_Filename[20]{};
+        int32  m_SizeInBytes{};
     } m_aScripts[NUM_STREAMED_SCRIPTS];
 
     int32 m_nLargestExternalSize;
