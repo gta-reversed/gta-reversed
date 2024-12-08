@@ -47,11 +47,11 @@ void CStuntJumpManager::ShutdownForRestart() {
 
 // 0x5D5570
 bool CStuntJumpManager::Save() {
-    CGenericGameStorage::SaveDataToWorkBuffer(&m_iNumJumps, sizeof(m_iNumJumps));
+    CGenericGameStorage::SaveDataToWorkBuffer(m_iNumJumps);
     for (auto i = 0; i < STUNT_JUMP_COUNT; i++) {
-        CStuntJump* jump = mp_poolStuntJumps->GetAt(i);
+        auto* jump = mp_poolStuntJumps->GetAt(i);
         if (jump) {
-            CGenericGameStorage::SaveDataToWorkBuffer(jump, sizeof(CStuntJump));
+            CGenericGameStorage::SaveDataToWorkBuffer(*jump);
         }
     }
     return true;
@@ -59,12 +59,10 @@ bool CStuntJumpManager::Save() {
 
 // 0x5D5920
 bool CStuntJumpManager::Load() {
-    uint32 jumpCount;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&jumpCount, sizeof(jumpCount));
-    for (uint32 i = 0; i < jumpCount; i++) {
-        CStuntJump* jump = mp_poolStuntJumps->New();
-        CGenericGameStorage::LoadDataFromWorkBuffer(jump, sizeof(CStuntJump));
-        m_iNumJumps++;
+    CGenericGameStorage::LoadDataFromWorkBuffer(m_iNumJumps);
+    for (int32 i = 0; i < m_iNumJumps; i++) {
+        auto& jump = *mp_poolStuntJumps->New();
+        CGenericGameStorage::LoadDataFromWorkBuffer(jump);
     }
     return true;
 }

@@ -33,6 +33,9 @@ static notsa::log_ptr logger;
 //! Holds all custom command handlers (or null for commands with no custom handler)
 static inline std::array<notsa::script::CommandHandlerFunction, (size_t)(COMMAND_HIGHEST_ID_TO_HOOK) + 1> s_CustomCommandHandlerTable{};
 
+std::array<std::array<char, COMMANDS_CHAR_BUFFER_SIZE>, COMMANDS_CHAR_BUFFERS_COUNT> CRunningScript::ScriptArgCharBuffers        = {};
+uint8                                                                                CRunningScript::ScriptArgCharNextFreeBuffer = 0;
+
 void CRunningScript::InjectHooks() {
     logger = NOTSA_MAKE_LOGGER("script");
 
@@ -467,7 +470,7 @@ void CRunningScript::ScriptTaskPickUpObject(int32 commandId) {
 void CRunningScript::SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, bool offset) {
     CWorld::PutToGroundIfTooLow(posn);
 
-    CVehicle* vehicle = ped.bInVehicle ? ped.m_pVehicle : nullptr;
+    CVehicle* vehicle = ped.GetVehicleIfInOne();
     if (vehicle) {
         posn.z += vehicle->GetDistanceFromCentreOfMassToBaseOfModel();
         vehicle->Teleport(posn, false);
@@ -722,12 +725,18 @@ void CRunningScript::StoreParameters(int16 count) {
 // Reads array var base offset and element index from index variable.
 // 0x463CF0
 void CRunningScript::ReadArrayInformation(int32 updateIP, uint16* outArrayBase, int32* outArrayIndex) {
-    *outArrayBase = ReadAtIPAs<uint16>(updateIP);
+    auto ipPtr     = reinterpret_cast<uint16*>(m_IP);
+    *outArrayBase  = static_cast<uint16>(ipPtr[0]);
+    auto arrIndex  = ipPtr[1];
+    auto checkValue = (int16)ipPtr[2];
 
-    const auto varIdx = ReadAtIPAs<uint16>(updateIP);
-    *outArrayIndex = ReadAtIPAs<int16>(updateIP) < 0
-        ? GetPointerToGlobalVariable(varIdx)->iParam
-        : GetPointerToLocalVariable(varIdx)->iParam;
+    *outArrayIndex = checkValue < 0
+        ? GetPointerToGlobalVariable(arrIndex)->iParam
+        : GetPointerToLocalVariable(arrIndex)->iParam;
+
+    if (updateIP) {
+        m_IP = reinterpret_cast<uint8*>(&ipPtr[3]);
+    }
 }
 
 // Collects parameters and puts them to local variables of new script

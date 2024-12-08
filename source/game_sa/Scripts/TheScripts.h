@@ -334,7 +334,7 @@ enum {
 
 enum class ScriptSavedObjectType : uint32 {
     NONE = 0,
-    NOP = 1, // ?
+    INVISIBLE = 1, // ?
     BUILDING = 2,
     OBJECT = 3,
     DUMMY = 4,

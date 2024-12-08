@@ -78,7 +78,7 @@ public:
 public:
     static void InjectHooks();
     
-    static void WarpGangWithPlayer(CPlayerPed* plyr);
+    void WarpGangWithPlayer(CPlayerPed* plyr);
 
     CEntryExit(
         CVector center,

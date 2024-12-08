@@ -73,7 +73,7 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(InitialiseEssentialsAfterRW, 0x5BA160);
     RH_ScopedInstall(InitialiseOnceBeforeRW, 0x53BB50);
     RH_ScopedInstall(InitialiseRenderWare, 0x5BD600);
-    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680);
+    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.enabled = false});
     RH_ScopedInstall(Process, 0x53BEE0);
     RH_ScopedInstall(ReInitGameObjectVariables, 0x53BCF0);
     RH_ScopedInstall(ReloadIPLs, 0x53BED0);

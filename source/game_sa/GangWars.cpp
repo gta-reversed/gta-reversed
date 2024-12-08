@@ -62,21 +62,18 @@ void CGangWars::InjectHooks() {
 
 // 0x5D3EB0
 bool CGangWars::Load() {
-    size_t size;
-    CGangWarsSaveStructure data{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size_t));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(CGangWarsSaveStructure));
+    CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // Discard
+    auto data = CGenericGameStorage::LoadDataFromWorkBuffer<CGangWarsSaveStructure>();
     data.Extract();
     return true;
 }
 
 // 0x5D5530
 bool CGangWars::Save() {
-    size_t size = sizeof(CGangWarsSaveStructure);
     CGangWarsSaveStructure data{};
     data.Construct();
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size_t));
-    CGenericGameStorage::SaveDataToWorkBuffer(&data, sizeof(CGangWarsSaveStructure));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CGangWarsSaveStructure));
+    CGenericGameStorage::SaveDataToWorkBuffer(data);
     return true;
 }
 

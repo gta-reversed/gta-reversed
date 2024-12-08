@@ -168,7 +168,11 @@ struct tRadarTrace {
     uint16       m_nCounter;
     float        m_fSphereRadius;
     uint16       m_nBlipSize;
-    CEntryExit*  m_pEntryExit;
+
+    union {
+        CEntryExit* m_pEntryExit;       // Used for normal usage
+        uint32      m_EntryExitPoolInd; // Used when saving/loading to save file
+    };
     eRadarSprite m_nBlipSprite;
 
     bool         m_bBright : 1;              // It makes use of bright colors. Always set.

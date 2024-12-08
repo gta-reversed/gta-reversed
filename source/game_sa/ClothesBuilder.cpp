@@ -588,7 +588,7 @@ RpClump* CClothesBuilder::CreateSkinnedClump(RpClump* bones, RwTexDictionary* di
     }
 
     //> 0x5A6C5D
-    RpGeometry* gs[NO_BODY_PARTS];
+    RpGeometry* gs[NO_BODY_PARTS]{};
     ConstructGeometryArray(gs, dscr.m_anModelKeys.data(), rNormal, rFatness, rMuscle);
 
     //> 0x5A6C6A
