@@ -21,7 +21,8 @@ public:
         int16  m_IndexUsedByScriptFile{-1};
         char   m_Filename[20]{};
         int32  m_SizeInBytes{};
-    } m_aScripts[NUM_STREAMED_SCRIPTS];
+    };
+    std::array<CStreamedScriptInfo, NUM_STREAMED_SCRIPTS> m_aScripts;
 
     int32 m_nLargestExternalSize;
     int16 m_nCountOfScripts;

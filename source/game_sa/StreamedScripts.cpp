@@ -13,6 +13,7 @@ void CStreamedScripts::InjectHooks() {
     RH_ScopedInstall(FindStreamedScript, 0x470740);
     RH_ScopedInstall(FindStreamedScriptQuiet, 0x4706F0);
     RH_ScopedInstall(GetProperIndexFromIndexUsedByScript, 0x470810);
+    RH_ScopedInstall(GetStreamedScriptFilename, 0x470900);
     RH_ScopedInstall(StartNewStreamedScript, 0x470890);
     RH_ScopedInstall(GetStreamedScriptWithThisStartAddress, 0x470910);
 }
@@ -66,8 +67,9 @@ int16 CStreamedScripts::GetProperIndexFromIndexUsedByScript(int16 scmIndex) {
     return -1;
 }
 
+// 0x470900
 const char* CStreamedScripts::GetStreamedScriptFilename(uint16 index) {
-    return nullptr;
+    return m_aScripts[index].m_Filename;
 }
 
 void CStreamedScripts::RemoveStreamedScriptFromMemory(int32 index) {
