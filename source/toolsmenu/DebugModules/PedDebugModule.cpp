@@ -10,6 +10,10 @@
 #include "Pools.h"
 #include "TaskManager.h"
 #include "Hud.h"
+#include "Lines.h"
+
+#include "Tasks/TaskTypes/TaskComplexWander.h"
+#include "Tasks/TaskTypes/TaskSimpleGoToPoint.h"
 
 // Define extra conversion function from our vector type to imgui's vec2d
 #include <imgui.h>
@@ -21,6 +25,61 @@ struct PedInfo {
     CVector posWorld{};
     CVector posScreen{};
 };
+
+namespace Visualisation {
+template<typename T>
+void VisualiseTask(T& task) {
+}
+
+template<typename T>
+void VisualiseTaskIfPossible(CTask* task) {
+    if (!task) {
+        return;
+    }
+    T* typedTask = CTask::DynCast<T>(task);
+    if (typedTask) {
+        Visualisation::VisualiseTask(*typedTask);
+    }
+}
+
+template<>
+void VisualiseTask<CTaskComplexWander>(CTaskComplexWander& task) {
+    if (task.m_LastNode && task.m_LastNode.IsValid()) {
+        CPathNode& lastPathNode = ThePaths.m_pPathNodes[task.m_LastNode.m_wAreaId][task.m_LastNode.m_wNodeId];
+        auto       nodePos      = lastPathNode.GetPosition();
+        auto       color        = CRGBA(0, 255, 0, 255).ToIntRGBA();
+        CLines::RenderLineNoClipping(nodePos + CVector{ 0.f, 0.f, 0.5f }, nodePos - CVector{ 0.f, 0.f, 0.5f }, color, color);
+    }
+
+    if (task.m_NextNode && task.m_NextNode.IsValid()) {
+        CPathNode& nextPathNode = ThePaths.m_pPathNodes[task.m_NextNode.m_wAreaId][task.m_NextNode.m_wNodeId];
+        auto       nodePos      = nextPathNode.GetPosition();
+        auto       color        = CRGBA(0, 0, 255, 255).ToIntRGBA();
+        CLines::RenderLineNoClipping(nodePos + CVector{ 0.f, 0.f, 0.5f }, nodePos - CVector{ 0.f, 0.f, 0.5f }, color, color);
+    }
+
+    if (task.m_LastNode && task.m_LastNode.IsValid() && task.m_NextNode && task.m_NextNode.IsValid()) {
+        CPathNode& lastPathNode = ThePaths.m_pPathNodes[task.m_LastNode.m_wAreaId][task.m_LastNode.m_wNodeId];
+        auto       lastNodePos  = lastPathNode.GetPosition() + CVector{ 0.f, 0.f, 0.4f };
+        CPathNode& nextPathNode = ThePaths.m_pPathNodes[task.m_NextNode.m_wAreaId][task.m_NextNode.m_wNodeId];
+        auto       nextNodePos  = nextPathNode.GetPosition() + CVector{ 0.f, 0.f, 0.4f };
+        auto       startColor   = CRGBA(0, 255, 0, 255).ToIntRGBA();
+        auto       endColor     = CRGBA(0, 0, 255, 255).ToIntRGBA();
+        CLines::RenderLineNoClipping(lastNodePos, nextNodePos, startColor, endColor);
+    }
+
+    VisualiseTaskIfPossible<CTaskSimpleGoToPoint>(task.GetSubTask());
+}
+
+template<>
+void VisualiseTask<CTaskSimpleGoToPoint>(CTaskSimpleGoToPoint& task) {
+    auto pedPosColor = CRGBA(255, 0, 0, 255).ToIntRGBA();
+    auto targetRadiusColor = CRGBA(128, 0, 0, 255).ToIntRGBA();
+    CLines::RenderLineNoClipping(task.m_vecLastPedPos + CVector{ 0.f, 0.f, 0.5f }, task.m_vecLastPedPos - CVector{ 0.f, 0.f, 0.5f }, pedPosColor, pedPosColor);
+    CLines::RenderLineCircleNoClipping(task.m_vecTargetPoint + CVector{0.f, 0.f, 0.5f}, task.m_fRadius, 10, targetRadiusColor);
+    CLines::RenderLineNoClipping(task.m_vecLastPedPos + CVector{ 0.f, 0.f, 0.5f }, task.m_vecTargetPoint + CVector{ 0.f, 0.f, 0.5f }, pedPosColor, targetRadiusColor);
+}
+}
 
 //! General tab
 namespace GeneralTab {
@@ -89,7 +148,7 @@ void ProcessPed(CPed& ped) {
     if (BeginTabItem("Tasks")) {
         auto& taskMgr = ped.GetTaskManager();
         ProcessTaskCategory("Primary", taskMgr.GetPrimaryTasks());
-        ProcessTaskCategory("Secondary", taskMgr.GetSecondaryTasks());        
+        ProcessTaskCategory("Secondary", taskMgr.GetSecondaryTasks());
         EndTabItem();
     }
 }
@@ -109,6 +168,7 @@ void PedDebugModule::ProcessPed(PedInfo& pi) {
     if (depth > 100.f) {
         return; // Too distant
     }
+    m_LastProcessedPeds.push_back(pi.ped);
 
     SetNextWindowPos({ pi.posScreen.x, pi.posScreen.y });
     const auto size = CVector2D{ 600, 400 } / remap(depth, 0.f, 100.f, 1.f, 4.f);
@@ -133,6 +193,34 @@ void PedDebugModule::ProcessPed(PedInfo& pi) {
         }
     }
     End();
+}
+
+void PedDebugModule::Render3D() {
+    if (!m_IsVisible) {
+        return;
+    }
+
+    if (!m_VisualiseTasks) {
+        return;
+    }
+
+    for (auto& ped : m_LastProcessedPeds) {
+        auto& taskMgr = ped->GetTaskManager();
+
+        // TODO: Replace with ranges::concat_view once c++ 26 is available
+        std::vector<CTask*> tasksVec(11);
+        for (auto primTask : taskMgr.GetPrimaryTasks()) {
+            tasksVec.push_back(primTask);
+        }
+        for (auto secTask : taskMgr.GetSecondaryTasks()) {
+            tasksVec.push_back(secTask);
+        }
+
+        for (auto* task : tasksVec) {
+            Visualisation::VisualiseTaskIfPossible<CTaskComplexWander>(task);
+            Visualisation::VisualiseTaskIfPossible<CTaskSimpleGoToPoint>(task);
+        }
+    }
 }
 
 // Gotta use this function because `Update` is outside a frame context
@@ -178,6 +266,7 @@ void PedDebugModule::RenderWindow() {
     // Sort by depth (furthest away first, this way when windows are rendered the closest ped's will be drawn last => on top of everythign else)
     rng::sort(peds, std::greater<>{}, [](const PedInfo& pi) -> float { return pi.posScreen.z; });
 
+    m_LastProcessedPeds.clear();
     for (PedInfo& pi : peds) {
         ProcessPed(pi);
     }
@@ -186,6 +275,7 @@ void PedDebugModule::RenderWindow() {
 void PedDebugModule::RenderMenuEntry() {
     notsa::ui::DoNestedMenuIL({ "Visualization", "Peds" }, [&] {
         Checkbox("Enable", &m_IsVisible);
+        Checkbox("Visualise", &m_VisualiseTasks);
 
         const notsa::ui::ScopedDisable disable1{ !m_IsVisible };
         SliderFloat("Draw distance", &m_DrawDist, 4.f, 300.f); // Realistically GTA won't generate peds even at 200 units
