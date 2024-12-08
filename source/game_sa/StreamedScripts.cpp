@@ -9,6 +9,7 @@ void CStreamedScripts::InjectHooks() {
 
     RH_ScopedInstall(Initialise, 0x470660);
     RH_ScopedInstall(LoadStreamedScript, 0x470840);
+    RH_ScopedInstall(ReInitialise, 0x4706A0);
     RH_ScopedInstall(StartNewStreamedScript, 0x470890);
     RH_ScopedInstall(GetStreamedScriptWithThisStartAddress, 0x470910);
 }
@@ -28,8 +29,13 @@ void CStreamedScripts::LoadStreamedScript(RwStream* stream, int32 index) {
     }
 }
 
+// 0x4706A0
 void CStreamedScripts::ReInitialise() {
-    plugin::CallMethod<0x4706A0, CStreamedScripts*>(this);
+    for (auto& scr : m_aScripts) {
+        // Remove all references so CStreaming::RemoveLeastUsedModel
+        // will garbage collect (i.e. remove) it later.
+        scr.m_NumberOfUsers = 0;
+    }
 }
 
 int32 CStreamedScripts::FindStreamedScript(const char* scriptName) {
