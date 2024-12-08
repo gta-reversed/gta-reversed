@@ -18,6 +18,7 @@ void CStreamedScripts::InjectHooks() {
     RH_ScopedInstall(RemoveStreamedScriptFromMemory, 0x4708E0);
     RH_ScopedInstall(StartNewStreamedScript, 0x470890);
     RH_ScopedInstall(ReadStreamedScriptData, 0x470750);
+    RH_ScopedInstall(RegisterScript, 0x4706C0);
     RH_ScopedInstall(GetStreamedScriptWithThisStartAddress, 0x470910);
 }
 
@@ -120,8 +121,10 @@ void CStreamedScripts::ReadStreamedScriptData()
     }
 }
 
+// 0x4706C0
 int32 CStreamedScripts::RegisterScript(const char* scriptName) {
-    return plugin::CallMethodAndReturn<int32, 0x4706C0, CStreamedScripts*, const char*>(this, scriptName);
+    strcpy_s(m_aScripts[m_nCountOfScripts].m_Filename, scriptName);
+    return m_nCountOfScripts++;
 }
 
 // 0x470910
