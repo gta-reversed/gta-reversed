@@ -35,7 +35,7 @@ using namespace notsa::script;
 
 template<typename T>
 void HandleEntityMissionCleanup(CRunningScript& S, T& entity) {
-    if (S.m_bUseMissionCleanup) {
+    if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(entity);
     }
 }
@@ -207,7 +207,7 @@ auto IsCharInArea3D(CRunningScript& S, CPed& ped, CVector a, CVector b, bool hig
 auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
     const auto veh = ped.GetVehicleIfInOne();
 
-    if (GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_bUseMissionCleanup) {
+    if (GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_UsesMissionCleanup) {
         // Unstore previous (If it still exists)
         if (CTheScripts::StoreVehicleIndex != -1) { // NOTSA: Bugfix
             if (const auto stored = GetVehiclePool()->GetAt(CTheScripts::StoreVehicleIndex)) {
@@ -616,7 +616,7 @@ auto CreatePed(CRunningScript& S, ePedType pedType, eModelID pedModel) -> CPed& 
     ped->SetCharCreatedBy(PED_MISSION);
     ped->bAllowMedicsToReviveMe = false;
     CPopulation::ms_nTotalMissionPeds++;
-    if (S.m_bUseMissionCleanup) {
+    if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(*ped);
     }
     return *ped;
@@ -742,7 +742,7 @@ auto GetRandomCharInZone(CRunningScript& S, std::string_view zoneName, bool civi
         CTheScripts::LastRandomPedId = pedHandle;
         ped.SetCharCreatedBy(PED_MISSION);
         CPopulation::ms_nTotalMissionPeds++;
-        if (S.m_bUseMissionCleanup) {
+        if (S.m_UsesMissionCleanup) {
             CTheScripts::MissionCleanUp.AddEntityToList(ped);
         }
 
@@ -826,7 +826,7 @@ auto RemoveCharElegantly(CRunningScript& S, CPed* ped) {
             CWorld::RemoveReferencesToDeletedObject(ped);
         }
     }
-    if (S.m_bUseMissionCleanup) {
+    if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.RemoveEntityFromList(*ped);
     }
 }
@@ -1100,7 +1100,7 @@ auto CreateRandomCharInVehicle(CRunningScript& S, CVehicle& veh, bool asDriver, 
     }
     ped->bAllowMedicsToReviveMe = false;
     CPopulation::ms_nTotalMissionPeds++;
-    if (S.m_bUseMissionCleanup) {
+    if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(*ped);
     }
     return *ped;
@@ -1135,7 +1135,7 @@ auto SetCharAccuracy(CPed& ped, uint8 accuracy) {
 }
 
 void DoSetPedIsWaitingForCollision(CRunningScript& S, CPed& ped) {
-    if (S.m_bUseMissionCleanup) {
+    if (S.m_UsesMissionCleanup) {
         CWorld::Remove(&ped);
         ped.m_bIsStaticWaitingForCollision = true;
         CWorld::Add(&ped);
@@ -1188,9 +1188,9 @@ auto IsCharInTaxi(CPed& ped) {
 auto LoadCharDecisionMaker(CRunningScript& S, int32 type) { // TODO: return ScriptThing<CDecisionMaker>
     char pedDMName[1024];
     CDecisionMakerTypesFileLoader::GetPedDMName(type, pedDMName);
-    const auto id = CDecisionMakerTypesFileLoader::LoadDecisionMaker(pedDMName, DECISION_ON_FOOT, S.m_bUseMissionCleanup);
+    const auto id = CDecisionMakerTypesFileLoader::LoadDecisionMaker(pedDMName, DECISION_ON_FOOT, S.m_UsesMissionCleanup);
     const auto handle = CTheScripts::GetNewUniqueScriptThingIndex(id, SCRIPT_THING_DECISION_MAKER);
-    if (S.m_bUseMissionCleanup) {
+    if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(handle, MISSION_CLEANUP_ENTITY_TYPE_DECISION_MAKER);
     }
     return handle;
@@ -1330,7 +1330,7 @@ void SetCurrentCharWeapon(CPed& ped, eWeaponType weaponType) {
 void MarkCharAsNoLongerNeeded(CRunningScript& S, int32 handle) { // TODO: Some way to get a CPed* and it's handle too (As this function seems to be called even if the handle is not pointing to a ped anymore)
     const auto ped = GetPedPool()->GetAtRef(handle); // This might be null, but we need the handle even if it is, so we can't take `CPed*` either...
     CTheScripts::CleanUpThisPed(ped);
-    if (S.m_bUseMissionCleanup) {
+    if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.RemoveEntityFromList(handle, MISSION_CLEANUP_ENTITY_TYPE_PED);
     }
 }

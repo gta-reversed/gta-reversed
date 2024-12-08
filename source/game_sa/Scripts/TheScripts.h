@@ -7,7 +7,6 @@
 #pragma once
 
 #include "Text/Text.h"
-#include "RunningScript.h"
 #include "Ped.h"
 #include "Vehicle.h"
 #include "Object.h"
@@ -19,9 +18,10 @@
 #include "StuckCarCheck.h"
 #include "UpsideDownCarCheck.h"
 #include "ScriptsForBrains.h"
-
+#include "./ScriptParam.h"
 #include "SCMChunks.hpp"
 
+class CRunningScript;
 class CCheckpoint;
 enum class eCheckpointType : uint32;
 
@@ -380,7 +380,6 @@ public:
     static inline uint16& NumberOfUsedObjects = *reinterpret_cast<uint16*>(0xA44B6C);
 
     static inline auto&   EntitiesWaitingForScriptBrain   = *(std::array<tScriptBrainWaitEntity, MAX_NUM_ENTITIES_WAITING_FOR_SCRIPT_BRAIN>*)0xA476B0;
-    static inline auto&   ScriptsArray                    = *(std::array<CRunningScript, MAX_NUM_SCRIPTS>*)0xA8B430;
     static inline auto&   IntroTextLines                  = *(std::array<tScriptText, MAX_NUM_INTRO_TEXT_LINES>*)0xA913E8;
     static inline uint16& NumberOfIntroTextLinesThisFrame = *reinterpret_cast<uint16*>(0xA44B68);
 
@@ -629,14 +628,6 @@ public:
         auto* text = TheText.Get((const char*)&ScriptSpace[*ip]);
         ip += KEY_LENGTH_IN_SCRIPT;
         return text;
-    }
-
-    static CVector2D& ReadCVector2DFromScript(uint8 offset) {
-        return *reinterpret_cast<CVector2D*>(&ScriptParams[offset]);
-    }
-
-    static CVector& ReadCVectorFromScript(uint8 offset) {
-        return *reinterpret_cast<CVector*>(&ScriptParams[offset]);
     }
 
     static uint32 GetSizeOfVariableSpace() {

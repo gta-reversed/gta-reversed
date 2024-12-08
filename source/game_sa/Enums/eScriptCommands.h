@@ -6,7 +6,7 @@
 */
 #pragma once
 
-enum eScriptCommands {
+enum eScriptCommands : uint16 {
     COMMAND_NOP = 0x0000,
     COMMAND_WAIT = 0x0001,
     COMMAND_GOTO = 0x0002,
