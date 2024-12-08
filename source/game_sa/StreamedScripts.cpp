@@ -2,6 +2,7 @@
 
 #include "StreamedScripts.h"
 #include "TheScripts.h"
+#include "SCMChunks.hpp"
 
 void CStreamedScripts::InjectHooks() {
     RH_ScopedClass(CStreamedScripts);
@@ -16,6 +17,7 @@ void CStreamedScripts::InjectHooks() {
     RH_ScopedInstall(GetStreamedScriptFilename, 0x470900);
     RH_ScopedInstall(RemoveStreamedScriptFromMemory, 0x4708E0);
     RH_ScopedInstall(StartNewStreamedScript, 0x470890);
+    RH_ScopedInstall(ReadStreamedScriptData, 0x470750);
     RH_ScopedInstall(GetStreamedScriptWithThisStartAddress, 0x470910);
 }
 
@@ -99,7 +101,23 @@ CRunningScript* CStreamedScripts::StartNewStreamedScript(int32 index)
 // 0x470750
 void CStreamedScripts::ReadStreamedScriptData()
 {
-    plugin::CallMethod<0x470750, CStreamedScripts*>(this);
+    auto* streamedScrChunk = CTheScripts::GetSCMChunk<tSCMStreamedScriptFileInfoChunk>();
+    m_nLargestExternalSize = streamedScrChunk->m_LargestStreamScriptSize;
+
+    int16 streamIdx = 0;
+    for (const auto& streamed : streamedScrChunk->GetStreamedScripts()) {
+        if (streamIdx >= m_nCountOfScripts) {
+            break;
+        }
+
+        // NOTSA: `streamed.m_FileName` was copied into a local string before calling find.
+        // NOTSA: Find returning -1 ends with OOB access, we don't let it do that.
+        if (const auto i = FindStreamedScript(streamed.m_FileName); i != -1) {
+            auto& scr = m_aScripts[i];
+            scr.m_SizeInBytes = streamed.m_Size;
+            scr.m_IndexUsedByScriptFile = streamIdx++;
+        }
+    }
 }
 
 int32 CStreamedScripts::RegisterScript(const char* scriptName) {
