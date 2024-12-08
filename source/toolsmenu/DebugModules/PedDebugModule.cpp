@@ -263,11 +263,8 @@ void PedDebugModule::Render3D() {
         }
         auto& taskMgr = ped->GetTaskManager();
 
-        // TODO: Replace with ranges::concat_view once c++ 26 is available
-        std::vector<CTask*> tasksVec(11);
-        for (auto primTask : taskMgr.GetPrimaryTasks()) {
-            tasksVec.push_back(primTask);
-        }
+        std::vector<CTask*> tasksVec(7);
+        tasksVec.push_back(taskMgr.GetActiveTask());
         for (auto secTask : taskMgr.GetSecondaryTasks()) {
             tasksVec.push_back(secTask);
         }
