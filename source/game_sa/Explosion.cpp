@@ -196,7 +196,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
 
     const auto PlaySoundIfEnabled = [&]() {
         if (exp->m_bMakeSound) {
-            m_ExplosionAudioEntity.AddAudioEvent(eAudioEvents::AE_EXPLOSION, exp->m_vecPosition, -36.0f);
+            m_ExplosionAudioEntity.AddAudioEvent(eAudioEvents::AE_EXPLOSION, exp->m_vecPosition, .0f);
         }
     };
 
@@ -208,11 +208,11 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
             if (exp->m_pVictim->m_pRwObject) {
                 if (RwMatrix* matrix = exp->m_pVictim->GetModellingMatrix()) {
                     CVector expToVictimDir = pos - exp->m_pVictim->GetPosition();
-                    fx = g_fxMan.CreateFxSystem(name, &expToVictimDir, matrix, false);
+                    fx = g_fxMan.CreateFxSystem(name, expToVictimDir, matrix, false);
                 }
             }
         } else {
-            fx = g_fxMan.CreateFxSystem(name, &exp->m_vecPosition, nullptr, false);
+            fx = g_fxMan.CreateFxSystem(name, exp->m_vecPosition, nullptr, false);
         }
         if (fx) {
             PlaySoundIfEnabled();
@@ -505,7 +505,7 @@ void CExplosion::Update() {
                     const float& fOffsetDistance = exp.m_fFuelOffsetDistance[i];
                     if (fOffsetDistance > 0.0f) {
                         CVector fxPos = exp.m_vecPosition + exp.m_vecFuelDirection[i] * (fOffsetDistance + fFuelTimerProgress * exp.m_fFuelSpeed[i]);
-                        if (auto fx = g_fxMan.CreateFxSystem("explosion_fuel_car", &fxPos, nullptr, false)) {
+                        if (auto fx = g_fxMan.CreateFxSystem("explosion_fuel_car", fxPos, nullptr, false)) {
                             fx->PlayAndKill();
                         }
                     }

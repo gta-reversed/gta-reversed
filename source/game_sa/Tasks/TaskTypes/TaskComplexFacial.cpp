@@ -67,11 +67,13 @@ CTask* CTaskComplexFacial::ControlSubTask(CPed* ped) {
     if (!ped->IsAlive() && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_IMMEDIATE)) {
         return new CTaskSimplePause{ 5'000 };
     }
+
     if (m_IsAborting && m_pSubTask->MakeAbortable(ped)) {
         m_IsAborting       = false;
         m_TalkingLastFrame = false;
         return new CTaskSimplePause{ 5'000 };
     }
+
     if (RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_IDLE_CHAT)) {
         m_RequestB         = eFacialExpression::NONE;
         m_TalkingLastFrame = true;
@@ -79,10 +81,12 @@ CTask* CTaskComplexFacial::ControlSubTask(CPed* ped) {
             ? m_pSubTask
             : new CTaskSimpleFacial{ eFacialExpression::TALKING, 0 };
     }
+
     if (m_TalkingLastFrame && m_pSubTask->MakeAbortable(ped)) {
         m_TalkingLastFrame = false;
         return new CTaskSimplePause{ 5'000 };
     }
+
     if (m_RequestA != eFacialExpression::NONE) { // Check for a new request...
         const auto requestedFacialType = std::exchange(m_RequestA, eFacialExpression::NONE);
         if (const auto st = CTask::DynCast<CTaskSimpleFacial>(m_pSubTask)) { // There's a sub-task already running, just change it
@@ -93,5 +97,6 @@ CTask* CTaskComplexFacial::ControlSubTask(CPed* ped) {
         }
         return new CTaskSimpleFacial{ requestedFacialType, m_DurationA }; // Otherwise create the task
     }
+
     return m_pSubTask;
 }

@@ -122,7 +122,7 @@ void CPickupsDebugModule::RenderWindow() {
 
         if (markm_SelectedPickupIdx) {
             CVector screenCoors{};
-            if (CalcScreenCoors(posn, &screenCoors)) {
+            if (CalcScreenCoors(posn, screenCoors)) {
                 CSprite2d::DrawRect({screenCoors, 5.0f}, pickup.m_nFlags.bDisabled ? CRGBA{255, 0, 0, 255} : CRGBA{0, 255, 0, 255});
             }
         }

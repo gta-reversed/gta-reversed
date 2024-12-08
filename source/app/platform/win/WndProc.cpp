@@ -21,6 +21,9 @@
 
 // Dear ImGui said I have to copy this here
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#define SHIFTED 0x8000
+#define KEY_DOWN(keystate) ((keystate & SHIFTED) != 0)
+#define KEY_UP(keystate) ((keystate & SHIFTED) == 0)
 
 // 0x747820
 BOOL GTATranslateKey(RsKeyCodes* ck, LPARAM lParam, UINT vk) {
@@ -109,23 +112,22 @@ BOOL GTATranslateShiftKey(RsKeyCodes*) { // The in keycode is ignored, so we won
         return false; // Already handled by `GTATranslateKey`
     }
 
-    constexpr struct { RsKeyCodes ck; INT vk; } Keys[]{
-        {rsLSHIFT, VK_LSHIFT},
-        {rsRSHIFT, VK_RSHIFT},
-    };
-
-    for (auto shouldBeDown : { false, true }) {
-        for (auto [ck, vk] : Keys) {
-            // GetKeyState reads from the message queue,
-            // so we must call it like the og code
-            const auto isDown = (HIWORD(GetKeyState(vk)) & 0x80) == 1; // Check is key pressed
-            if (isDown == shouldBeDown) {
-                RsEventHandler(
-                    isDown ? rsKEYDOWN : rsKEYUP,
-                    &ck
-                );
-            }
-        }
+    RsKeyCodes keyCode = rsNULL;
+    if (KEY_DOWN(GetKeyState(VK_LSHIFT))) {
+        keyCode = rsLSHIFT;
+        RsKeyboardEventHandler(rsKEYDOWN, &keyCode);
+    }
+    if (KEY_DOWN(GetKeyState(VK_RSHIFT))) {
+        keyCode = rsRSHIFT;
+        RsKeyboardEventHandler(rsKEYDOWN, &keyCode);
+    }
+    if (KEY_UP(GetKeyState(VK_LSHIFT))) {
+        keyCode = rsLSHIFT;
+        RsKeyboardEventHandler(rsKEYUP, &keyCode);
+    }
+    if (KEY_UP(GetKeyState(VK_RSHIFT))) {
+        keyCode = rsRSHIFT;
+        RsKeyboardEventHandler(rsKEYUP, &keyCode);
     }
 
     return true;
@@ -135,6 +137,15 @@ BOOL GTATranslateShiftKey(RsKeyCodes*) { // The in keycode is ignored, so we won
 // 0x747EB0
 LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     const auto imio = ImGui::GetCurrentContext() ? &ImGui::GetIO() : nullptr;
+
+    if (imio) {
+        if (imio->MouseDrawCursor) {
+            imio->ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+        } else {
+            imio->ConfigFlags |= ImGuiConfigFlags_NoMouse;
+        }
+    }
+
     if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) {
         return true;
     }
@@ -149,10 +160,6 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     case WM_SYSKEYDOWN: 
     case WM_KEYUP:
     case WM_SYSKEYUP: { //< 0x74823B - wParam is a `VK_` (virtual key), lParam are the flags (See https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-keyup)]
-        if (imio && imio->WantCaptureKeyboard) {
-            return 0;
-        }
-
         if (RsKeyCodes ck; GTATranslateKey(&ck, lParam, wParam)) {
             RsKeyboardEventHandler(
                 (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)
@@ -168,9 +175,6 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         return 0;
     }
     case WM_MOUSEMOVE: { //< 0x748323
-        if (imio && imio->WantCaptureMouse) {
-            return 0;
-        }
         FrontEndMenuManager.m_nMousePosWinX = GET_X_LPARAM(lParam);
         FrontEndMenuManager.m_nMousePosWinY = GET_Y_LPARAM(lParam);
         break;
@@ -178,18 +182,12 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
     case WM_MBUTTONDOWN: {
-        if (imio && imio->WantCaptureMouse) {
-            return 0;
-        }
         SetCapture(hWnd);
         return 0;
     }
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
     case WM_MBUTTONUP: {
-        if (imio && imio->WantCaptureMouse) {
-            return 0;
-        }
         ReleaseCapture();
         return 0;
     }
@@ -220,8 +218,8 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
         //> 0x748087 - Set gamma (If changed)
         if (gbGammaChanged) {
-            if (const auto dev = RwD3D9GetCurrentD3DDevice()) {
-                dev->SetGammaRamp(9, 0, wndBeingActivated ? &gammaTable : &savedGamma);
+            if (const auto dev = (IDirect3DDevice9*)RwD3D9GetCurrentD3DDevice()) {
+                dev->SetGammaRamp(9, 0, wndBeingActivated ? &CGamma::ms_GammaTable : &CGamma::ms_SavedGamma);
             }
         }
 

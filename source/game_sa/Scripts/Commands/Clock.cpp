@@ -32,6 +32,8 @@ void RestoreClock() {
 }
 
 void notsa::script::commands::clock::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Clock");
+
     REGISTER_COMMAND_HANDLER(COMMAND_GET_TIME_OF_DAY, GetTimeOfDay);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TIME_OF_DAY, SetTimeOfDay);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_MINUTES_TO_TIME_OF_DAY, GetMinutesToTimeOfDay);

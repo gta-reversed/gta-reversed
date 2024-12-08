@@ -732,7 +732,7 @@ bool CGenericGameStorage::RestoreForStartLoad() {
 }
 
 // 0x618D00
-const char* GetSavedGameDateAndTime(int32 slot) {
+const GxtChar* GetSavedGameDateAndTime(int32 slot) {
     assert(slot < MAX_SAVEGAME_SLOTS);
     return CGenericGameStorage::ms_SlotSaveDate[slot];
 }

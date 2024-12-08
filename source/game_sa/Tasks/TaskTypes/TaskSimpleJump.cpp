@@ -51,7 +51,7 @@ CTask* CTaskSimpleJump::Clone() const {
 // 0x679B60
 bool CTaskSimpleJump::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     if (m_pAnim) {
-        m_pAnim->m_Flags |= ANIMATION_FREEZE_LAST_FRAME;
+        m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
         m_pAnim->m_BlendDelta = -4.0F;
     }
 
@@ -161,7 +161,7 @@ void CTaskSimpleJump::Launch(CPed* ped) {
     if (!m_pClimbEntity) {
         if (m_bClimbJump) {
             auto anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_JUMP, 8.0F);
-            anim->m_Flags |= ANIMATION_UNLOCK_LAST_FRAME;
+            anim->m_Flags |= ANIMATION_IS_FINISH_AUTO_REMOVE;
         } else
             CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_JUMP_GLIDE, 8.0F);
     }
@@ -169,7 +169,7 @@ void CTaskSimpleJump::Launch(CPed* ped) {
     if (ped->bDoBloodyFootprints && CLocalisation::Blood()) {
         auto hier = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
         CVector v;
-        RwV3dTransformPoints(&v, &v, 1, &RpHAnimHierarchyGetMatrixArray(hier)[RpHAnimIDGetIndex(hier, ped->m_apBones[PED_NODE_LEFT_FOOT]->m_nNodeId)]);
+        RwV3dTransformPoints(&v, &v, 1, &RpHAnimHierarchyGetMatrixArray(hier)[RpHAnimIDGetIndex(hier, ped->m_apBones[PED_NODE_LEFT_FOOT]->BoneTag)]);
 
         CVector v1 = ped->GetForward() * 0.2F;
         v += v1 + CVector(0.0F, 0.0F, -0.1F);
@@ -177,7 +177,7 @@ void CTaskSimpleJump::Launch(CPed* ped) {
                                      3000, 1.0F);
 
         v.Set(0.0F, 0.0F, 0.0F);
-        RwV3dTransformPoints(&v, &v, 1, &RpHAnimHierarchyGetMatrixArray(hier)[RpHAnimIDGetIndex(hier, ped->m_apBones[PED_NODE_RIGHT_FOOT]->m_nNodeId)]);
+        RwV3dTransformPoints(&v, &v, 1, &RpHAnimHierarchyGetMatrixArray(hier)[RpHAnimIDGetIndex(hier, ped->m_apBones[PED_NODE_RIGHT_FOOT]->BoneTag)]);
         v += v1 + CVector(0.0F, 0.0F, -0.1F);
         CShadows::AddPermanentShadow(SHADOW_DEFAULT, gpBloodPoolTex, &v, v1.x * 0.26F, v1.y * 0.26F, ped->GetForward().x * 0.14F, ped->GetForward().y * 0.14F, 255, 255, 0, 0, 4.0F,
                                      3000, 1.0F);

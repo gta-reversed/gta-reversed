@@ -61,7 +61,7 @@ bool CTaskSimpleFacial::ProcessPed(CPed* ped) {
             return false;
         }
         if (anim) {
-            anim->SetFlag(ANIMATION_FREEZE_LAST_FRAME, true);
+            anim->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE, true);
             anim->SetBlendDelta(-4.0f);
         }
         return true;

@@ -161,7 +161,7 @@ CTask* CTaskComplexWander::ControlSubTask(CPed* ped) {
         if (subTaskId == TASK_SIMPLE_GO_TO_POINT) {
             static_cast<CTaskSimpleGoToPoint*>(m_pSubTask)->m_moveState = m_nMoveState;
             if (m_nMoveState <= PEDMOVE_WALK) {
-                ped->Say(45);
+                ped->Say(CTX_GLOBAL_CHAT);
             }
         }
 

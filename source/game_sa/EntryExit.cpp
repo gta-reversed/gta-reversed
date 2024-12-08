@@ -59,7 +59,7 @@ CEntryExit::CEntryExit(
     m_fExitAngle{ exitAngle },
     m_nSkyColor{ (uint8)skyColor },
     m_fEntranceZ{ center.z + 1.f },
-    m_fEntranceAngleRad{ RWDEG2RAD(entranceAngleDeg) }
+    m_fEntranceAngleRad{ DegreesToRadians(entranceAngleDeg) }
 {
     std::tie(m_nTimeOn, m_nTimeOff) = [&]() -> std::pair<uint8, uint8> {
         if (bUnknownBurglary && CGeneral::RandomBool(50.f)) {
@@ -290,7 +290,7 @@ bool CEntryExit::TransitionStarted(CPed* ped) {
             // 0x44031A
             auto fixedModePos = GetPosition() - lookAtDir * 3.f;
             fixedModePos.z += 1.f;
-            TheCamera.SetCamPositionForFixedMode(&fixedModePos, {});
+            TheCamera.SetCamPositionForFixedMode(fixedModePos, {});
             TheCamera.TakeControlNoEntity(GetPosition() + lookAtDir, eSwitchType::JUMPCUT, 1);
         };
 

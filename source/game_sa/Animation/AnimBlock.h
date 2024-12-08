@@ -11,7 +11,7 @@ public:
     char         Name[16];
     bool         IsLoaded;
     int16        RefCnt;
-    int32        FirstAnimId;
+    int32        FirstAnimIdx;
     uint32       NumAnims;
     AssocGroupId GroupId;
 };

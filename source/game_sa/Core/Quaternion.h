@@ -24,7 +24,8 @@ public:
 public:
     static void InjectHooks();
 
-    constexpr CQuaternion() {};
+    constexpr CQuaternion(const RtQuat& q) : imag{q.imag}, real{q.real} {}
+    constexpr CQuaternion() : x{}, y{}, z{}, w{} {}
     constexpr CQuaternion(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
 
     // Quat to matrix
@@ -68,7 +69,7 @@ public:
     void Copy(const CQuaternion& from);
 
     // Gets a dot product for quats
-    void Dot(const CQuaternion& a);
+    float Dot(const CQuaternion& a);
 
     // Normalises a quat
     void Normalise();
@@ -112,6 +113,8 @@ public:
 
     // NOTSA
     RtQuat* AsRtQuat() { return (RtQuat*)this; }
+
+    operator RtQuat() const { return RtQuat{x, y, z, w}; }
 };
 
 VALIDATE_SIZE(CQuaternion, 0x10);

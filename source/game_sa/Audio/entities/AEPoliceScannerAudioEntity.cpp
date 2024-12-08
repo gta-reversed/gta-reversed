@@ -204,7 +204,7 @@ void CAEPoliceScannerAudioEntity::PlayLoadedDialogue() {
         auto volume = GetDefaultVolume(AE_CRIME_COMMITTED) + s_fVolumeOffset;
         CAESound sound;
         sound.Initialise(i + 33, s_pCurrentSlots[i].sfxId, this, { 0.0, 1.0f, 0.0f }, volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
-        sound.m_fMaxVolume = (float)i;
+        sound.m_ClientVariable = (float)i;
         sound.m_nEnvironmentFlags = SOUND_FRONT_END | SOUND_UNCANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_UNDUCKABLE;
         sound.m_nEvent = AE_CRIME_COMMITTED;
 

@@ -75,7 +75,7 @@ inline auto ReadArrayInfo(CRunningScript* S) {
 
 template<typename T>
 concept PooledType =
-    requires { detail::PoolOf<T>(); };
+    requires { detail::PoolOf<std::remove_cvref_t<T>>(); };
 };
 
 namespace detail {
@@ -107,7 +107,7 @@ inline T Read(CRunningScript* S) {
     // This check here also means that all other branches must either return by-value or a pointer (not a refernce)
     if constexpr (std::is_reference_v<T>) {
         const auto ptr = Read<std::remove_reference_t<T>*>(S);
-        assert(ptr);
+        assert(ptr); // This assert is usually hit if the implementation defines an argument with a different type than the original. Eg.: `CVehicle&` instead of `CPed&`.
         return *ptr;
     } else if constexpr (std::is_same_v<Y, CVector>) {
         return { Read<float>(S), Read<float>(S), Read<float>(S) };
@@ -118,18 +118,18 @@ inline T Read(CRunningScript* S) {
     } else if constexpr (std::is_same_v<Y, std::string_view>) { 
         auto& IP = S->m_IP;
 
-        const auto FromScriptSpace = [](const auto offset) -> std::string_view {
-            return { (const char*)&CTheScripts::ScriptSpace[offset] };
+        const auto FromScriptSpace = [](const auto offset) {
+            return (const char*)&CTheScripts::ScriptSpace[offset];
         };
 
-        const auto FromGlobalArray = [&](uint8 elemsz) -> std::string_view {
+        const auto FromGlobalArray = [&](uint8 elemsz) {
             const auto [idx, offset] = detail::ReadArrayInfo(S);
             return FromScriptSpace(elemsz * idx + offset);
         };
 
-        const auto FromLocalArray = [&](uint8 elemsz) -> std::string_view {
+        const auto FromLocalArray = [&](uint8 elemsz) {
             const auto [idx, offset] = detail::ReadArrayInfo(S);
-            return { (const char*)S->GetPointerToLocalArrayElement(offset, idx, elemsz) };
+            return (const char*)S->GetPointerToLocalArrayElement(offset, idx, elemsz);
         };
 
         const auto FromStaticString = [&](size_t strsz) -> std::string_view {
@@ -143,7 +143,7 @@ inline T Read(CRunningScript* S) {
             return FromScriptSpace(S->ReadAtIPAs<int16>());
 
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_VARIABLE:
-            return { (const char*)S->GetPointerToLocalVariable(S->ReadAtIPAs<int16>()) };
+            return (const char*)S->GetPointerToLocalVariable(S->ReadAtIPAs<int16>());
 
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_ARRAY:
             return FromGlobalArray(SHORT_STRING_SIZE);
@@ -151,9 +151,9 @@ inline T Read(CRunningScript* S) {
             return FromGlobalArray(LONG_STRING_SIZE);
 
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_ARRAY:
-            return FromLocalArray(2);
+            return FromLocalArray(2); // 8 bytes
         case SCRIPT_PARAM_LOCAL_LONG_STRING_ARRAY:
-            return FromLocalArray(4);
+            return FromLocalArray(4); // 16 bytes
 
         case SCRIPT_PARAM_LOCAL_LONG_STRING_VARIABLE:
         case SCRIPT_PARAM_STATIC_SHORT_STRING:
@@ -180,9 +180,9 @@ inline T Read(CRunningScript* S) {
         if constexpr (std::is_pointer_v<T>) { // This is a special case, as some basic ops need a reference instead of a value
             switch (ptype) {
             case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-                return reinterpret_cast<Y*>(&CTheScripts::ScriptSpace[S->ReadAtIPAs<int16>()]);
+                return reinterpret_cast<Y*>(&CTheScripts::ScriptSpace[S->ReadAtIPAs<uint16>()]);
             case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
-                return reinterpret_cast<Y*>(S->GetPointerToLocalVariable(S->ReadAtIPAs<int16>()));
+                return reinterpret_cast<Y*>(S->GetPointerToLocalVariable(S->ReadAtIPAs<uint16>()));
             case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY: {
                 const auto [offset, idx] = detail::ReadArrayInfo(S);
                 return reinterpret_cast<Y*>(&CTheScripts::ScriptSpace[offset + sizeof(tScriptParam) * idx]);
@@ -197,9 +197,9 @@ inline T Read(CRunningScript* S) {
             case SCRIPT_PARAM_STATIC_INT_32BITS:
                 return detail::safe_arithmetic_cast<T>(S->ReadAtIPAs<int32>());
             case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-                return *reinterpret_cast<T*>(&CTheScripts::ScriptSpace[S->ReadAtIPAs<int16>()]);
+                return *reinterpret_cast<T*>(&CTheScripts::ScriptSpace[S->ReadAtIPAs<uint16>()]);
             case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
-                return *reinterpret_cast<T*>(S->GetPointerToLocalVariable(S->ReadAtIPAs<int16>()));
+                return *reinterpret_cast<T*>(S->GetPointerToLocalVariable(S->ReadAtIPAs<uint16>()));
             case SCRIPT_PARAM_STATIC_INT_8BITS:
                 return detail::safe_arithmetic_cast<T>(S->ReadAtIPAs<int8>());
             case SCRIPT_PARAM_STATIC_INT_16BITS:

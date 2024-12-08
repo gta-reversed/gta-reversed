@@ -34,7 +34,7 @@ void IKChainManager_c::InjectHooks() {
 
 // 0x6180A0
 bool IKChainManager_c::Init() {
-    for (auto& chain : m_Chains) {
+    for (auto& chain : m_IKChains) {
         m_FreeList.AddItem(&chain);
     }
     return true;
@@ -42,9 +42,7 @@ bool IKChainManager_c::Init() {
 
 // 0x6180D0
 void IKChainManager_c::Exit() {
-    for (auto it = m_ActiveList.GetTail(); it; it = m_ActiveList.GetPrev(it)) {
-        static_cast<IKChain_c*>(it)->Exit();
-    }
+    rng::for_each(m_ActiveList, &IKChain_c::Exit);
     m_ActiveList.RemoveAll();
     m_FreeList.RemoveAll();
 }
@@ -57,46 +55,44 @@ void IKChainManager_c::Reset() {
 
 // 0x6186D0
 void IKChainManager_c::Update(float timeStep) {
-    for (auto i = 0u; i < 4u; i++) {
+    for (auto s = 0u; s < (uint32)eIKChainSlot::COUNT; s++) {
         CWorld::IncrementCurrentScanCode();
 
-        for (auto it = m_ActiveList.GetHead(); it; it = it = m_ActiveList.GetNext(it)) {
-            auto& chain = *(IKChain_c*)it;
-            if (chain.m_IndexInList == i) {
-                // Update RpHAnim of ped (if any) - TODO: Maybe move this code into `IKChain_c::Update` as well..
-                if (chain.m_Ped) {
-                    if (!chain.m_Ped->IsScanCodeCurrent()) {
-                        chain.m_Ped->UpdateRpHAnim();
-                        chain.m_Ped->SetCurrentScanCode();
-                    }
-                }
-
-                // Now update the IKChain itself
-                chain.Update(timeStep);
+        for (auto& chain : m_ActiveList) {
+            if (chain.GetIKSlot() != (eIKChainSlot)s) {
+                continue;
             }
+
+            // Update RpHAnim of ped (if any) - TODO: Maybe move this code into `IKChain_c::Update` as well..
+            if (const auto p = chain.GetPed()) {
+                if (!p->IsScanCodeCurrent()) {
+                    p->UpdateRpHAnim();
+                    p->SetCurrentScanCode();
+                }
+            }
+
+            // Now update the IKChain itself
+            chain.Update(timeStep);
         }
     }
 }
 
-/*!
- * @addr 0x618750
- * @brief Tries initing a new chain from the free list.
- * @returns A new `IKChain_c` object, unless there are no more free chains or it's init failed.
- */
-IKChain_c* IKChainManager_c::AddIKChain(const char* name,
-                                        int32 IndexInList,
-                                        CPed* ped,
-                                        ePedBones bone1,
-                                        RwV3d bonePosn,
-                                        ePedBones bone2,
-                                        CEntity* entity,
-                                        int32 offsetBoneTag,
-                                        RwV3d posn,
-                                        float speed,
-                                        int32 priority
+// 0x618750
+IKChain_c* IKChainManager_c::AddIKChain(
+    const char*  name,
+    eIKChainSlot slot,
+    CPed*        ped,
+    eBoneTag32   effectorBone,
+    RwV3d        effectorOffset,
+    eBoneTag32   pivotBone,
+    CEntity*     entity,
+    eBoneTag32   offsetBone,
+    RwV3d        offset,
+    float        speed,
+    int32        priority
 ) {
     if (auto chain = m_FreeList.RemoveHead()) {
-        if (chain->Init(name, IndexInList, ped, bone1, bonePosn, bone2, entity, offsetBoneTag, posn, speed, priority)) {
+        if (chain->Init(name, slot, ped, effectorBone, effectorOffset, pivotBone, entity, offsetBone, offset, speed, priority)) {
             m_ActiveList.AddItem(chain);
             return chain;
         }
@@ -122,21 +118,24 @@ bool IKChainManager_c::CanAccept(CPed* ped, float dist) const {
 }
 
 // NOTSA
-CTaskSimpleIKManager* GetPedIKManagerTask(CPed* ped, bool create = false) {
+CTaskSimpleIKManager* GetPedIKManagerTask(CPed* ped, bool createIfNotExists = false) {
     if (const auto mgr = static_cast<CTaskSimpleIKManager*>(ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_IK))) {
         return mgr;
-    } else if (create) { // Doesn't exist, create it
+    }
+
+    if (createIfNotExists) {
         auto taskIKMgr = new CTaskSimpleIKManager{};
         ped->GetTaskManager().SetTaskSecondary(taskIKMgr, TASK_SECONDARY_IK);
         return taskIKMgr;
     }
+
     return nullptr;
 }
 
 // NOTSA
 CTaskSimpleIKLookAt* GetPedIKLookAtTask(CPed* ped) {
     if (const auto mgr = GetPedIKManagerTask(ped)) {
-        return static_cast<CTaskSimpleIKLookAt*>(mgr->GetTaskAtSlot(0));
+        return static_cast<CTaskSimpleIKLookAt*>(mgr->GetTaskAtSlot(eIKChainSlot::LOOK_AT));
     }
     return nullptr;
 }
@@ -155,7 +154,7 @@ CEntity* IKChainManager_c::GetLookAtEntity(CPed* ped) {
 }
 
 // 0x618210
-CVector IKChainManager_c::GetLookAtOffset(CPed* ped) { // TODO: It's possible this is incorrect, originally it took the vector as an arg (although that's probably a compiler optimization)
+CVector IKChainManager_c::GetLookAtOffset(CPed* ped) {
     if (const auto task = GetPedIKLookAtTask(ped)) {
         return task->GetLookAtOffset();
     }
@@ -169,13 +168,19 @@ void IKChainManager_c::AbortLookAt(CPed* ped, uint32 blendOutTime) {
     }
 }
 
+// notsa
+void IKChainManager_c::AbortLookAtIfLooking(CPed* ped, uint32 blendOutTime) {
+    if (IsLooking(ped)) {
+        AbortLookAt(ped, blendOutTime);
+    }
+}
+
 // 0x6188B0
 bool IKChainManager_c::CanAcceptLookAt(CPed* ped) {
     if (!CanAccept(ped, 20.f)) {
         return false;
     }
 
-    // If ped doesn't accept look at IK's abort it (if any) and return false
     if (!ped->bDontAcceptIKLookAts) {
         if (IsLooking(ped)) {
             AbortLookAt(ped);
@@ -183,69 +188,92 @@ bool IKChainManager_c::CanAcceptLookAt(CPed* ped) {
         return false;
     }
 
-    if (ped->m_pedIK.bUnk) {
+    if (ped->m_pedIK.bEverythingUsed) {
         return false;
     }
 
-    // Check if ped has any of the anims present - TODO: Make this into a CPed funtion perhaps?
-    if (rng::any_of(
-        std::array{
-            ANIM_ID_DRNKBR_PRTL,
-            ANIM_ID_SMKCIG_PRTL,
-            ANIM_ID_DRNKBR_PRTL_F
-        }, [ped](AnimationId anim) {
-            return RpAnimBlendClumpGetAssociation(ped->m_pRwClump, anim);
-        }
-    )) {
-        return false;
-    }
-
-    return !RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_SMKCIG_PRTL_F);
+    return !RpAnimBlendClumpGetAssociation(ped->m_pRwClump, {
+        ANIM_ID_DRNKBR_PRTL,
+        ANIM_ID_SMKCIG_PRTL,
+        ANIM_ID_DRNKBR_PRTL_F,
+        ANIM_ID_SMKCIG_PRTL_F
+    });
 }
 
 // 0x618970
-void IKChainManager_c::LookAt(Const char* purpose, CPed* ped, CEntity* targetEntity, int32 time, ePedBones pedBoneId, CVector* posn, bool useTorso, float fSpeed, int32 blendTime,
-                              int32 priority, bool bForceLooking) {
+void IKChainManager_c::LookAt(
+    const char* purpose,
+    CPed*       ped,
+    CEntity*    lookAtEntity,
+    int32       time,
+    eBoneTag    offsetBone,
+    CVector*    offset,
+    bool        useTorso,
+    float       fSpeed,
+    int32       blendTime,
+    int32       priority,
+    bool        bForceLooking
+) {
     if (!bForceLooking && !CanAcceptLookAt(ped)) { // byte_C1542C
         return;
     }
 
     auto& taskIKMgr = *GetPedIKManagerTask(ped, true);
 
-    const auto lookAtOffset = posn ? *posn : CVector{};
+    const auto lookAtOffset = offset ? *offset : CVector{};
 
-    // Now, either update existing task or create one
-    if (const auto lookAt = static_cast<CTaskSimpleIKLookAt*>(taskIKMgr.GetTaskAtSlot(0))) {
-        if (priority < lookAt->m_nPriority) {
+    // Now, either update existing task or createIfNotExists one
+    if (const auto tLookAt = CTask::Cast<CTaskSimpleIKLookAt>(taskIKMgr.GetTaskAtSlot(eIKChainSlot::LOOK_AT))) {
+        if (priority < tLookAt->m_nPriority) {
             return;
         }
-        if (useTorso || !lookAt->m_bUseTorso) {
-            lookAt->UpdateLookAtInfo(purpose, ped, targetEntity, time, pedBoneId, lookAtOffset, useTorso && lookAt->m_bUseTorso, fSpeed, blendTime, priority);
+        if (useTorso || !tLookAt->m_bUseTorso) {
+            tLookAt->UpdateLookAtInfo(
+                purpose,
+                ped,
+                lookAtEntity,
+                time,
+                offsetBone,
+                lookAtOffset,
+                useTorso && tLookAt->m_bUseTorso,
+                fSpeed,
+                blendTime,
+                priority
+            );
         } else {
             AbortLookAt(ped);
         }
-    } else { // Doesn't have task yet, create it
-        taskIKMgr.AddIKChainTask(new CTaskSimpleIKLookAt(purpose, targetEntity, time, pedBoneId, lookAtOffset, useTorso, fSpeed, blendTime, priority), 0);
+    } else { // Doesn't have task yet, createIfNotExists it
+        taskIKMgr.AddIKChainTask(
+            new CTaskSimpleIKLookAt{purpose, lookAtEntity, time, offsetBone, lookAtOffset, useTorso, fSpeed, blendTime, (int8)priority},
+            eIKChainSlot::LOOK_AT
+        );
     }
 }
 
 // 0x6182B0
-bool __stdcall IKChainManager_c::IsArmPointing(int32 slot, CPed* ped) {
+bool __stdcall IKChainManager_c::IsArmPointing(eIKArm arm, CPed* ped) {
     const auto mgr = GetPedIKManagerTask(ped);
-    return mgr && mgr->GetTaskAtSlot(slot + 1);
+    return mgr && mgr->GetTaskAtSlot(IKArmToIKSlot(arm));
 }
 
 // 0x6182F0
-void __stdcall IKChainManager_c::AbortPointArm(int32 slot, CPed* ped, int32 blendOutTime) {
+void __stdcall IKChainManager_c::AbortPointArm(eIKArm arm, CPed* ped, int32 blendOutTime) {
     const auto mgr = GetPedIKManagerTask(ped);
-    assert(mgr);
-    if (const auto lookAt = static_cast<CTaskSimpleIKChain*>(mgr->GetTaskAtSlot(slot + 1))) {
+    if (const auto lookAt = static_cast<CTaskSimpleIKChain*>(mgr->GetTaskAtSlot(IKArmToIKSlot(arm)))) {
         lookAt->BlendOut(blendOutTime);
     }
 }
 
+// notsa
+void IKChainManager_c::AbortPointArmIfPointing(eIKArm arm, CPed* ped, int32 blendOutTime) {
+    if (IsArmPointing(arm, ped)) {
+        AbortPointArm(arm, ped, blendOutTime);
+    }
+}
+
 // 0x618330
-bool IKChainManager_c::IsFacingTarget(CPed* ped, int32 slot) const {
+bool IKChainManager_c::IsFacingTarget(CPed* ped, eIKChainSlot slot) const {
     if (const auto mgr = GetPedIKManagerTask(ped)) {
         if (const auto task = mgr->GetTaskAtSlot(slot)) {
             return task->GetIKChain()->IsFacingTarget();
@@ -255,23 +283,18 @@ bool IKChainManager_c::IsFacingTarget(CPed* ped, int32 slot) const {
 }
 
 // 0x618B60
-void IKChainManager_c::PointArm(Const char* purpose, int32 arm, CPed* ped, CEntity* target, ePedBones pedBoneId, CVector* posn, float speed, int32 blendTime, float dist) {
-    assert(arm <= 1); // I have a theory: that is, that `arm` is a bool, like `bool isLeftArm`. Let's test it!
-
-    if (!CanAccept(ped, dist)) {
+void IKChainManager_c::PointArm(Const char* purpose, eIKArm pedArmId, CPed* ped, CEntity* lookAtEntity, eBoneTag offsetBoneTag, CVector* pOffset, float speed, int32 blendTime, float cullDist) const {
+    if (!CanAccept(ped, cullDist)) {
         return;
     }
 
-    auto& taskIKMgr = *GetPedIKManagerTask(ped, true);
+    const auto offset = pOffset ? *pOffset : CVector{};
+    const auto tIKMgr = GetPedIKManagerTask(ped, true);
 
-    const auto slot = arm + 1;
-
-    const auto offset = posn ? *posn : CVector{};
-
-    // Now, either create or update existing
-    if (const auto pointArm = static_cast<CTaskSimpleIKPointArm*>(taskIKMgr.GetTaskAtSlot(slot))) {
-        pointArm->UpdatePointArmInfo(purpose, target, pedBoneId, offset, speed, blendTime);
+    // Now, either createIfNotExists or update existing
+    if (const auto tPointArm = static_cast<CTaskSimpleIKPointArm*>(tIKMgr->GetTaskAtSlot(IKArmToIKSlot(pedArmId)))) {
+        tPointArm->UpdatePointArmInfo(purpose, lookAtEntity, offsetBoneTag, offset, speed, blendTime);
     } else { // Create task
-        taskIKMgr.AddIKChainTask(new CTaskSimpleIKPointArm{purpose, arm, target, pedBoneId, offset, speed, blendTime}, slot);
+        tIKMgr->AddIKChainTask(new CTaskSimpleIKPointArm{purpose, pedArmId, lookAtEntity, offsetBoneTag, offset, speed, blendTime}, IKArmToIKSlot(pedArmId));
     }
 }

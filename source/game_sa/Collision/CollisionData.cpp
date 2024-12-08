@@ -224,7 +224,9 @@ CLink<CCollisionData*>* CCollisionData::GetLinkPtr() {
     auto* linkPtr = static_cast<void*>(&m_pTrianglePlanes[m_nNumTriangles]);
     auto space = sizeof(CColTrianglePlane);
     auto* alignedAddress = std::align(4, sizeof(CLink<CCollisionData*>*), linkPtr, space); // 4 bytes aligned address
-    return *static_cast<CLink<CCollisionData*>**>(alignedAddress);
+    const auto l = *static_cast<CLink<CCollisionData*>**>(alignedAddress);
+    assert(l->data == this); // Sanity check
+    return l;
 }
 
 auto CCollisionData::GetNumFaceGroups() const -> uint32 {

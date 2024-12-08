@@ -148,7 +148,7 @@ void CBoat::DebugCode() {
 // 0x6F0D90
 void CBoat::PrintThrustAndRudderInfo() {
     char cBuffer[64]{};
-    std::format_to(cBuffer, "Thrust {:3.2f}", m_pHandlingData->m_transmissionData.m_fEngineAcceleration * m_pHandlingData->m_fMass);
+    std::format_to(cBuffer, "Thrust {:3.2f}", m_pHandlingData->m_transmissionData.m_EngineAcceleration * m_pHandlingData->m_fMass);
     std::format_to(cBuffer, "Rudder Angle  {:3.2f}", m_pHandlingData->m_fSteeringLock);
 }
 
@@ -573,7 +573,7 @@ void CBoat::ProcessControl() {
                 fGivenDamage /= 2.0F;
         } else {
             if (fGivenDamage > 60.0F && m_pDriver) {
-                m_pDriver->Say(68);
+                m_pDriver->Say(CTX_GLOBAL_CRASH_GENERIC);
             }
 
             fGivenDamage -= 25.0F;
@@ -606,7 +606,7 @@ void CBoat::ProcessControl() {
             if (m_fHealth < 250.0F) {
                 auto modellingMat = GetModellingMatrix();
                 if (!m_pFireParticle && modellingMat) {
-                    m_pFireParticle = g_fxMan.CreateFxSystem("fire_car", &vecFirePos, modellingMat, false);
+                    m_pFireParticle = g_fxMan.CreateFxSystem("fire_car", vecFirePos, modellingMat, false);
                     if (m_pFireParticle) {
                         m_pFireParticle->Play();
                         CEventVehicleOnFire vehOnFireEvent(this);
@@ -738,7 +738,7 @@ void CBoat::PreRender() {
             RwV3dAssign(RwMatrixGetPos(splashMat), RwMatrixGetPos(RwFrameGetLTM(prop)));
             RwMatrixUpdate(splashMat);
             auto vecPoint = CVector(0.0F, 0.0F, 0.0F);
-            splashFx = g_fxMan.CreateFxSystem("boat_prop", &vecPoint, splashMat, false);
+            splashFx = g_fxMan.CreateFxSystem("boat_prop", vecPoint, splashMat, false);
             if (splashFx) {
                 m_apPropSplashFx[iCounter] = splashFx;
                 splashFx->Play();

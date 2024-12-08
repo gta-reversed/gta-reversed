@@ -125,12 +125,13 @@ bool CTheZones::PointLiesWithinZone(const CVector* point, CZone* zone) {
 
 // Returns eLevelName from position
 eLevelName CTheZones::GetLevelFromPosition(const CVector& point) {
-    for (auto& z : GetMapZones()) {
+    const auto& mapZones = GetMapZones();
+    for (auto& z : mapZones | rng::views::drop(1)) {
         if (z.GetBB().IsPointInside(point)) {
             return z.m_nLevel;
         }
     }
-    return GetMapZones()[0].m_nLevel;
+    return mapZones[0].m_nLevel;
 }
 
 // Returns pointer to zone by a point
@@ -177,7 +178,7 @@ void CTheZones::FillZonesWithGangColours(bool disableRadarGangColors) {
             const auto GetVW = [&](eGangID g) {
                 return WeightedValue<uint32, uint32>{ gaGangColors[g].components[i], z.GangDensity[g] };
             };
-            color[i] = (uint8)multiply_weighted({ GetVW(GANG_BALLAS), GetVW(GANG_GROVE), GetVW(GANG_VAGOS) }) / std::max(1, gdSum);
+            color[i] = (uint8)(multiply_weighted({ GetVW(GANG_BALLAS), GetVW(GANG_GROVE), GetVW(GANG_VAGOS) }) / std::max(1, gdSum));
         }
 
         z.radarMode = gdSum && !disableRadarGangColors && CGangWars::CanPlayerStartAGangWarHere(&z)
@@ -428,10 +429,11 @@ void CTheZones::PostZoneCreation() {
     // NOP
 }
 
-const char* CTheZones::GetZoneName(const CVector& point) {
+const GxtChar* CTheZones::GetZoneName(const CVector& point) {
     CZone* zone{};
     auto extraInfo = GetZoneInfo(point, &zone);
     if (zone)
         return zone->GetTranslatedName();
-    return "Unknown zone";
+
+    return "Unknown zone"_gxt;
 }

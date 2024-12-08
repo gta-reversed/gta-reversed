@@ -390,16 +390,12 @@ void CEntity::DeleteRwObject()
     m_pRwObject = nullptr;
     auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
     mi->RemoveRef();
-    CStreaming::RemoveEntity(m_pStreamingLink);
-    m_pStreamingLink = nullptr;
+    CStreaming::RemoveEntity(std::exchange(m_pStreamingLink, nullptr));
 
     if (IsBuilding())
         --gBuildings;
 
-    if (mi->GetModelType() == MODEL_INFO_CLUMP
-        && mi->IsRoad()
-        && !IsObject()) {
-
+    if (mi->GetModelType() == MODEL_INFO_CLUMP && mi->IsRoad() && !IsObject()) {
         CWorld::ms_listMovingEntityPtrs.DeleteItem(this);
     }
 
@@ -552,7 +548,7 @@ void CEntity::PreRender()
                 CShadows::StoreShadowToBeRendered(
                     eShadowTextureType::SHADOW_TEX_PED,
                     gpShadowExplosionTex,
-                    &vecPos,
+                    vecPos,
                     8.0F,
                     0.0F,
                     0.0F,
@@ -613,7 +609,7 @@ void CEntity::PreRender()
             CShadows::StoreShadowToBeRendered(
                 eShadowTextureType::SHADOW_TEX_PED,
                 gpShadowExplosionTex,
-                &vecPos,
+                vecPos,
                 8.0F,
                 0.0F,
                 0.0F,
@@ -701,7 +697,7 @@ void CEntity::PreRender()
                 CShadows::StoreShadowToBeRendered(
                     eShadowType::SHADOW_DEFAULT,
                     gpShadowPedTex,
-                    &GetPosition(),
+                    GetPosition(),
                     0.4F,
                     0.0F,
                     0.0F,
@@ -728,7 +724,7 @@ void CEntity::PreRender()
                 CShadows::StoreShadowToBeRendered(
                     eShadowType::SHADOW_DEFAULT,
                     gpShadowPedTex,
-                    &GetPosition(),
+                    GetPosition(),
                     2.0F,
                     0.0F,
                     0.0F,
@@ -1127,7 +1123,7 @@ void CEntity::CreateEffects()
             break;
         }
         case e2dEffectType::EFFECT_PARTICLE: {
-            g_fx.CreateEntityFx(this, effect->particle.m_szName, &effect->m_pos, GetModellingMatrix());
+            g_fx.CreateEntityFx(this, effect->particle.m_szName, effect->m_pos, GetModellingMatrix());
             break;
         }
         case e2dEffectType::EFFECT_ATTRACTOR: {
@@ -1438,10 +1434,9 @@ void CEntity::ModifyMatrixForTreeInWind()
 
     float fWindOffset;
     if (CWeather::Wind >= 0.5F) {
-        // TODO: This is all wrong. Missing casts, etc (they are important to wrap the number)
-        auto uiOffset1 = (((m_nRandomSeed + CTimer::GetTimeInMS() * 8) & 0xFFFF) / 4096) & 0xF;
-        auto uiOffset2 = (uiOffset1 + 1) & 0xF;
-        auto fContrib = static_cast<float>(((m_nRandomSeed + CTimer::GetTimeInMS() * 8) & 0xFFF)) / 4096.0F;
+        auto uiOffset1 = (((m_nRandomSeed + CTimer::GetTimeInMS() * 8) & 0xFFFF) / 4096) % 16;
+        auto uiOffset2 = (uiOffset1 + 1) % 16;
+        auto fContrib = static_cast<float>(((m_nRandomSeed + CTimer::GetTimeInMS() * 8) % 4096)) / 4096.0F;
 
         fWindOffset = (1.0F - fContrib) * CWeather::saTreeWindOffsets[uiOffset1];
         fWindOffset += 1.0F + fContrib * CWeather::saTreeWindOffsets[uiOffset2];
@@ -1452,7 +1447,8 @@ void CEntity::ModifyMatrixForTreeInWind()
     else {
         auto uiTimeOffset = (reinterpret_cast<uint32>(this) + CTimer::GetTimeInMS()) & 0xFFF;
 
-        fWindOffset = sin(uiTimeOffset * 0.0015332032F) * 0.005F;
+        constexpr float scalingFactor = 6.28f / 4096.f;
+        fWindOffset = sin(uiTimeOffset * scalingFactor) * 0.005F;
         if (CWeather::Wind >= 0.2F)
             fWindOffset *= 1.6F;
     }
@@ -2268,7 +2264,7 @@ void CEntity::ProcessLightsForEntity()
                     reinterpret_cast<uint32>(this) + iFxInd,
                     eShadowType::SHADOW_ADDITIVE,
                     effect->light.m_pShadowTex,
-                    &vecEffPos,
+                    vecEffPos,
                     effect->light.m_fShadowSize,
                     0.0F,
                     0.0F,
@@ -2289,7 +2285,7 @@ void CEntity::ProcessLightsForEntity()
                     reinterpret_cast<uint32>(this) + iFxInd,
                     eShadowType::SHADOW_ADDITIVE,
                     effect->light.m_pShadowTex,
-                    &vecEffPos,
+                    vecEffPos,
                     effect->light.m_fShadowSize,
                     0.0F,
                     0.0F,
@@ -2333,7 +2329,7 @@ bool CEntity::IsEntityOccluded()
 
     CVector vecScreenPos;
     float fScreenX, fScreenY;
-    if (!COcclusion::NumActiveOccluders || !CalcScreenCoors(vecCenter, &vecScreenPos, &fScreenX, &fScreenY))
+    if (!COcclusion::NumActiveOccluders || !CalcScreenCoors(vecCenter, vecScreenPos, fScreenX, fScreenY))
         return false;
 
     auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
@@ -2361,7 +2357,7 @@ bool CEntity::IsEntityOccluded()
             CVector vecScreen;
 
             auto vecMin = GetMatrix().TransformPoint(bounding.m_vecMin);
-            if (!CalcScreenCoors(vecMin, &vecScreen)
+            if (!CalcScreenCoors(vecMin, vecScreen)
                 || !activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
                 || !activeOccluder.IsPointBehindOccluder(vecMin, 0.0F)
             ) {
@@ -2370,7 +2366,7 @@ bool CEntity::IsEntityOccluded()
 
             auto vecMax = GetMatrix().TransformPoint(bounding.m_vecMax);
             if (bInView
-                || !CalcScreenCoors(vecMax, &vecScreen)
+                || !CalcScreenCoors(vecMax, vecScreen)
                 || !activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
                 || !activeOccluder.IsPointBehindOccluder(vecMax, 0.0F)
             ) {
@@ -2379,7 +2375,7 @@ bool CEntity::IsEntityOccluded()
 
             auto vecDiag1 = GetMatrix().TransformVector(CVector(bounding.m_vecMin.x, bounding.m_vecMax.y, bounding.m_vecMax.z));
             if (bInView
-                || !CalcScreenCoors(vecDiag1, &vecScreen)
+                || !CalcScreenCoors(vecDiag1, vecScreen)
                 || !activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
                 || !activeOccluder.IsPointBehindOccluder(vecDiag1, 0.0F)
             ) {
@@ -2388,7 +2384,7 @@ bool CEntity::IsEntityOccluded()
 
             auto vecDiag2 = GetMatrix().TransformVector(CVector(bounding.m_vecMax.x, bounding.m_vecMin.y, bounding.m_vecMin.z));
             if (!bInView
-                && CalcScreenCoors(vecDiag2, &vecScreen)
+                && CalcScreenCoors(vecDiag2, vecScreen)
                 && activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
                 && activeOccluder.IsPointBehindOccluder(vecDiag2, 0.0F)
             ) {
@@ -2402,7 +2398,7 @@ bool CEntity::IsEntityOccluded()
                     return true;
 
                 auto vecDiag3 = GetMatrix().TransformVector(CVector(bounding.m_vecMin.x, bounding.m_vecMin.y, bounding.m_vecMax.z));
-                if (!CalcScreenCoors(vecDiag3, &vecScreen)
+                if (!CalcScreenCoors(vecDiag3, vecScreen)
                     || !activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
                     || !activeOccluder.IsPointBehindOccluder(vecDiag3, 0.0F)) {
 
@@ -2411,7 +2407,7 @@ bool CEntity::IsEntityOccluded()
 
                 auto vecDiag4 = GetMatrix().TransformVector(CVector(bounding.m_vecMax.x, bounding.m_vecMin.y, bounding.m_vecMax.z));
                 if (!bInView
-                    && CalcScreenCoors(vecDiag4, &vecScreen)
+                    && CalcScreenCoors(vecDiag4, vecScreen)
                     && activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
                     && activeOccluder.IsPointBehindOccluder(vecDiag4, 0.0F)
                 ) {

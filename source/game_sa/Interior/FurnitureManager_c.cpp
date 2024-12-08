@@ -1,6 +1,9 @@
 #include "StdInc.h"
 #include "FurnitureManager_c.h"
 
+auto& g_currSubGroupId = StaticRef<uint32, 0xBAB37C>();
+auto& g_currFurnitureId = StaticRef<uint32, 0xBAB378>();
+
 void FurnitureManager_c::InjectHooks() {
     RH_ScopedClass(FurnitureManager_c);
     RH_ScopedCategory("Interior");

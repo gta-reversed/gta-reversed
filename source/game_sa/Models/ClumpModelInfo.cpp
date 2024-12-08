@@ -21,8 +21,8 @@ void CClumpModelInfo::InjectHooks()
     RH_ScopedVMTInstall(Shutdown, 0x4C4E60);
     RH_ScopedVMTInstall(DeleteRwObject, 0x4C4E70);
     RH_ScopedVMTInstall(GetRwModelType, 0x4C5730);
-    // clang moment: RH_ScopedVirtualOverloadedInstall(CreateInstance, "void", 0x4C5140, RwObject * (CClumpModelInfo::*)());
-    // clang moment: RH_ScopedVirtualOverloadedInstall(CreateInstance, "mat", 0x4C5110, RwObject * (CClumpModelInfo::*)(RwMatrix*));
+    RH_ScopedVMTOverloadedInstall(CreateInstance, "void", 0x4C5140, RwObject * (CClumpModelInfo::*)());
+    RH_ScopedVMTOverloadedInstall(CreateInstance, "mat", 0x4C5110, RwObject * (CClumpModelInfo::*)(RwMatrix*));
     RH_ScopedVMTInstall(SetAnimFile, 0x4C5200);
     RH_ScopedVMTInstall(ConvertAnimFileIndex, 0x4C5250);
     RH_ScopedVMTInstall(GetAnimFileIndex, 0x4C5740);
@@ -108,9 +108,8 @@ RwObject* CClumpModelInfo::CreateInstance()
 
     if (bHasAnimBlend) {
         RpAnimBlendClumpInit(clonedClump);
-        auto animBlend = CAnimManager::GetAnimation(m_nKey, &CAnimManager::ms_aAnimBlocks[m_nAnimFileIndex]);
-        if (animBlend) {
-            CAnimManager::BlendAnimation(clonedClump, animBlend, ANIMATION_LOOPED, 1.0F);
+        if (const auto anim = CAnimManager::GetAnimation(m_nKey, &CAnimManager::GetAnimBlocks()[m_nAnimFileIndex])) {
+            CAnimManager::BlendAnimation(clonedClump, anim, ANIMATION_IS_LOOPED, 1.0F);
         }
     }
 
@@ -200,7 +199,7 @@ void CClumpModelInfo::SetClump(RpClump* clump)
             auto geometry = RpAtomicGetGeometry(firstAtomic);
             auto skin = RpSkinGeometryGetSkin(geometry);
             for (int32 i = 0; i < RpGeometryGetNumVertices(geometry); ++i) {
-                auto& weight = RpSkinGetVertexBoneWeights(skin)[i]; // todoL: originally RpSkinGetVertexBoneWeights returns const obj*
+                auto& weight = const_cast<RwMatrixWeights*>(RpSkinGetVertexBoneWeights(skin))[i]; // Average R* dev from 2003
                 auto fRecip = 1.0F / (weight.w0 + weight.w1 + weight.w2 + weight.w3);
                 weight.w0 *= fRecip;
                 weight.w1 *= fRecip;

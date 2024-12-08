@@ -191,7 +191,7 @@ bool CPickup::PickUpShouldBeInvisible() {
 
 // Checks if pickup collides with line (origin;target), removes pickup and creates an explosion. Used in previous GTA games for mine pickup
 // 0x4588B0
-void CPickup::ProcessGunShot(CVector* start, CVector* end) {
+void CPickup::ProcessGunShot(const CVector& start, const CVector& end) {
     if (!m_pObject)
         return;
 
@@ -574,7 +574,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                             case PICKUP_MONEY_DOESNTDISAPPEAR:
                                 FindPlayerInfo().m_nMoney += m_nAmmo; // originally player 0
                                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_MONEY);
-                                player->Say(172u);
+                                player->Say(CTX_GLOBAL_PICKUP_CASH);
                                 SetRemoved();
                                 break;
                             case PICKUP_ASSET_REVENUE:
@@ -599,7 +599,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                     CHud::SetHelpMessage(gGxtString, false, false, false);
                                 }
                                 if (CollectPickupBuffer) {
-                                    const char* textToPrint = nullptr;
+                                    const GxtChar* textToPrint = nullptr;
                                     if (CTheScripts::IsPlayerOnAMission()) {
                                         textToPrint = TheText.Get("PROP_2");
                                     } else if (FindPlayerInfo().m_nMoney < (int32)m_nAmmo) {

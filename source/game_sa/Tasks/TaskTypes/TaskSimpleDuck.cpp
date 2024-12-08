@@ -44,7 +44,7 @@ CTaskSimpleDuck::CTaskSimpleDuck(const CTaskSimpleDuck& o) :
 CTaskSimpleDuck::~CTaskSimpleDuck() {
     if (m_DuckAnim) {
         m_DuckAnim->SetDefaultFinishCallback();
-        if (m_DuckAnim->m_BlendAmount > 0.f && m_DuckAnim->m_BlendDelta >= 0.f && (m_DuckAnim->m_Flags & ANIMATION_PARTIAL)) {
+        if (m_DuckAnim->m_BlendAmount > 0.f && m_DuckAnim->m_BlendDelta >= 0.f && (m_DuckAnim->m_Flags & ANIMATION_IS_PARTIAL)) {
             m_DuckAnim->m_BlendDelta = -8.f;
         }
     }
@@ -225,7 +225,7 @@ void CTaskSimpleDuck::SetMoveAnim(CPed* ped) {
         }else if (m_MoveCmd.y == 0.f) { //> 0x693AF4 - Blend out the animation out if no more movement
             if (m_MoveAnim) {
                 if (IsCurrentMoveAnimGunCrouch()) {
-                    m_MoveAnim->SetFlag(ANIMATION_STARTED, false);
+                    m_MoveAnim->SetFlag(ANIMATION_IS_PLAYING, false);
                     m_MoveAnim->SetBlendDelta(-4.f);
                 }
             }
@@ -250,6 +250,11 @@ void CTaskSimpleDuck::ForceStopMove() {
     m_MoveCmd.y = 0.f;
 }
 
+// 0x61C420
+bool CTaskSimpleDuck::StopFireGun() const {
+    return m_MoveCmd.x != 0.f || !m_DuckAnim || m_DuckAnim->GetBlendAmount() < 1.f || m_bIsAborting || m_ShotWhizzingCounter > 0;
+}
+
 // 0x692530
 void CTaskSimpleDuck::SetDuckTimer(uint16 time) {
     if (m_DuckControlType != DUCK_SCRIPT_CONTROLLED) {
@@ -263,7 +268,7 @@ bool CTaskSimpleDuck::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent c
     case ABORT_PRIORITY_IMMEDIATE: { // 0x69210C
         // Replace/blend duck anim with idle anim
         if (m_DuckAnim) {
-            if (m_DuckAnim->m_Flags & ANIMATION_PARTIAL) {
+            if (m_DuckAnim->m_Flags & ANIMATION_IS_PARTIAL) {
                 m_DuckAnim->m_BlendDelta = -1000.f;
             } else {
                 CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, 1000.f);
@@ -308,7 +313,7 @@ bool CTaskSimpleDuck::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent c
 
     if (m_DuckAnim) {
         if (m_DuckAnim->m_BlendAmount > 0.f && m_DuckAnim->m_BlendDelta >= 0.f) {
-            if (m_DuckAnim->m_Flags & ANIMATION_PARTIAL) {
+            if (m_DuckAnim->m_Flags & ANIMATION_IS_PARTIAL) {
                 m_DuckAnim->m_BlendDelta = blendDelta;
             }
             CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, -blendDelta);
@@ -325,7 +330,7 @@ bool CTaskSimpleDuck::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent c
         if (m_MoveAnim->m_BlendAmount > 0.f && m_MoveAnim->m_BlendDelta >= 0.f) {
             if (priority == ABORT_PRIORITY_URGENT || notsa::contains({ ANIM_ID_GUNCROUCHFWD, ANIM_ID_GUNCROUCHBWD }, m_MoveAnim->GetAnimId())) {
                 m_MoveAnim->m_BlendDelta = blendDelta;
-                m_MoveAnim->SetFlag(ANIMATION_STARTED, false);
+                m_MoveAnim->SetFlag(ANIMATION_IS_PLAYING, false);
             }                
         }
 
@@ -417,7 +422,7 @@ bool CTaskSimpleDuck::ProcessPed(CPed* ped) {
 
             if (const auto weaponCruchAnim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_WEAPON_CROUCH)) { // 0x69454F
                 if (weaponCruchAnim->m_BlendAmount > 0 && weaponCruchAnim->m_BlendDelta >= 0.f) {
-                    if (weaponCruchAnim->m_Flags & ANIMATION_PARTIAL) {
+                    if (weaponCruchAnim->m_Flags & ANIMATION_IS_PARTIAL) {
                         weaponCruchAnim->m_BlendDelta = -4.f;
                     } else {
                         CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_IDLE, 4.f);

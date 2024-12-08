@@ -253,6 +253,13 @@ public:
     static uint32& g2dEffectPluginOffset;
     static uint32& ms_nTxdSlot;
 
+    template<std::derived_from<C2dEffectBase> T>
+    static T* DynCast(C2dEffectBase* p) {
+        return p->m_type == T::Type
+            ? reinterpret_cast<T*>(p)
+            : nullptr;
+    }
+
 public:
     static void InjectHooks();
 

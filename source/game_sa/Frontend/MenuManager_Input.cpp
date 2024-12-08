@@ -16,7 +16,7 @@ void CMenuManager::UserInput() {
     { // NOTSA
     const auto pad = CPad::GetPad();
     if (pad->IsStandardKeyJustPressed('q') || pad->IsStandardKeyJustPressed('Q')) {
-        CFont::PrintString(50, 250, "switched");
+        CFont::PrintString(50, 250, "switched"_gxt);
         ReversibleHooks::SwitchHook("DisplaySlider");
     }
     }

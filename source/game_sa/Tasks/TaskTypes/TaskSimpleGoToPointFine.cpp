@@ -127,7 +127,7 @@ void CTaskSimpleGoToPointFine::SetBlendedMoveAnim(CPed* ped) {
                 runAnimAssoc->m_BlendAmount = 0.0f;
                 runAnimAssoc->m_Speed = 1.0f;
             }
-            runAnimAssoc->m_Flags |= ANIMATION_STARTED;
+            runAnimAssoc->m_Flags |= ANIMATION_IS_PLAYING;
             runAnimAssoc->m_BlendDelta = 0.0f;
             runAnimAssoc->m_BlendAmount = 3.0f - m_fMoveRatio;
             if (!sprintAnimAssoc) {
@@ -135,7 +135,7 @@ void CTaskSimpleGoToPointFine::SetBlendedMoveAnim(CPed* ped) {
                 sprintAnimAssoc->m_BlendAmount = 0.0f;
                 sprintAnimAssoc->m_Speed = 1.0f;
             }
-            sprintAnimAssoc->m_Flags |= ANIMATION_STARTED;
+            sprintAnimAssoc->m_Flags |= ANIMATION_IS_PLAYING;
             sprintAnimAssoc->m_BlendDelta = 0.0f;
             moveState = PEDMOVE_SPRINT;
             sprintAnimAssoc->m_BlendAmount = m_fMoveRatio - 2.0f;
@@ -145,7 +145,7 @@ void CTaskSimpleGoToPointFine::SetBlendedMoveAnim(CPed* ped) {
                 walkAnimAssoc->m_BlendAmount = 0.0f;
                 walkAnimAssoc->m_Speed = 1.0f;
             }
-            walkAnimAssoc->m_Flags |= ANIMATION_STARTED;
+            walkAnimAssoc->m_Flags |= ANIMATION_IS_PLAYING;
             walkAnimAssoc->m_BlendDelta = 0.0f;
             walkAnimAssoc->m_BlendAmount = 2.0f - m_fMoveRatio;
             if (!runAnimAssoc) {
@@ -153,7 +153,7 @@ void CTaskSimpleGoToPointFine::SetBlendedMoveAnim(CPed* ped) {
                 runAnimAssoc->m_BlendAmount = 0.0f;
                 runAnimAssoc->m_Speed = 1.0f;
             }
-            runAnimAssoc->m_Flags |= ANIMATION_STARTED;
+            runAnimAssoc->m_Flags |= ANIMATION_IS_PLAYING;
             runAnimAssoc->m_BlendDelta = 0.0f;
             runAnimAssoc->m_BlendAmount = m_fMoveRatio - 1.0f;
             delete sprintAnimAssoc;
@@ -165,7 +165,7 @@ void CTaskSimpleGoToPointFine::SetBlendedMoveAnim(CPed* ped) {
             walkAnimAssoc->m_BlendAmount = 0.0f;
             walkAnimAssoc->m_Speed = 1.0f;
         }
-        walkAnimAssoc->m_Flags |= ANIMATION_STARTED;
+        walkAnimAssoc->m_Flags |= ANIMATION_IS_PLAYING;
         walkAnimAssoc->m_BlendAmount = 1.0f;
         walkAnimAssoc->m_BlendDelta = 0.0f;
         delete runAnimAssoc;

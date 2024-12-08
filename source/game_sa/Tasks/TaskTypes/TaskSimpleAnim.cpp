@@ -22,7 +22,7 @@ CTaskSimpleAnim::~CTaskSimpleAnim() {
         return;
 
     m_pAnim->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
-    m_pAnim->m_Flags |= ANIMATION_FREEZE_LAST_FRAME;
+    m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
     if (!m_bHoldLastFrame &&
         m_pAnim->m_BlendAmount > 0.0f &&
         m_pAnim->m_BlendDelta >= 0.0f
@@ -50,7 +50,7 @@ bool CTaskSimpleAnim::MakeAbortable(CPed* ped, eAbortPriority priority, const CE
             if (scriptCommand->m_task) {
                 if (scriptCommand->m_task->GetTaskType() == TASK_SIMPLE_NAMED_ANIM) {
                     if (m_pAnim)
-                        m_pAnim->m_Flags |= ANIMATION_FREEZE_LAST_FRAME;
+                        m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
 
                     bSkipBlend = true;
                 }
@@ -60,9 +60,9 @@ bool CTaskSimpleAnim::MakeAbortable(CPed* ped, eAbortPriority priority, const CE
 
     if (!bSkipBlend) {
         if (m_pAnim) {
-            m_pAnim->m_Flags |= ANIMATION_FREEZE_LAST_FRAME;
+            m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
             if (!m_bHoldLastFrame) {
-                if (m_pAnim->m_Flags & ANIMATION_PARTIAL)
+                if (m_pAnim->m_Flags & ANIMATION_IS_PARTIAL)
                     m_pAnim->m_BlendDelta = fBlend;
                 else
                     CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, -fBlend);

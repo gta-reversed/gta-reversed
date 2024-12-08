@@ -68,7 +68,7 @@ void CTaskInteriorBeInShop::ScanForStuff(CPed* ped) {
                 ped,
                 nullptr,
                 3'000,
-                ePedBones::BONE_UNKNOWN,
+                eBoneTag::BONE_UNKNOWN,
                 &closestIntInfo->Pos,
                 true,
                 0.25f,

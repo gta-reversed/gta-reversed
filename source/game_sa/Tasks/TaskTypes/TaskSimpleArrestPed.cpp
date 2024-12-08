@@ -69,16 +69,15 @@ bool CTaskSimpleArrestPed::ProcessPed(CPed* ped) {
         return false;
 
     if (m_Assoc) {
-        CVector point{};
-        if (m_Ped) {
-            m_Ped->GetBonePosition(point, BONE_SPINE1, false);
-        }
+        const auto point = m_Ped
+            ? m_Ped->GetBonePosition(BONE_SPINE1, false)
+            : CVector{};
         const auto& pedPos = ped->GetPosition();
         auto angle = CGeneral::GetRadianAngleBetweenPoints(point.x, point.y, pedPos.x, pedPos.y);
         ped->m_fAimingRotation = angle;
         ped->m_fCurrentRotation = angle;
         ped->SetOrientation(0.0f, 0.0f, angle);
-        ped->m_pedIK.PointGunAtPosition(&point, m_Assoc->m_BlendAmount);
+        ped->m_pedIK.PointGunAtPosition(point, m_Assoc->m_BlendAmount);
         return false;
     }
 
@@ -94,11 +93,11 @@ bool CTaskSimpleArrestPed::ProcessPed(CPed* ped) {
 // 0x68B7E0
 void CTaskSimpleArrestPed::StartAnim(CPed* ped) {
     m_Assoc = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_ARRESTGUN, 4.0f);
-    m_Assoc->SetFlag(ANIMATION_STARTED, true);
+    m_Assoc->SetFlag(ANIMATION_IS_PLAYING, true);
     m_Assoc->SetDeleteCallback(FinishAnimArrestPedCB, this);
 
     if (m_Ped->IsPlayer()) {
-        ped->Say(13u, 0, 1.0f, 1, 1);
+        ped->Say(CTX_GLOBAL_ARREST, 0, 1.0f, 1, 1);
     }
 
     if (m_Ped->CanSetPedState()) {

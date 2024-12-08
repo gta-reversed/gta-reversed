@@ -19,9 +19,9 @@ void CMenuSystem::InjectHooks() {
     RH_ScopedInstall(CheckForAccept, 0x5807C0);
     RH_ScopedInstall(CheckForSelected, 0x5807E0);
     RH_ScopedInstall(Input, 0x5825D0);
-    RH_ScopedInstall(InputStandardMenu, 0x580800, { .reversed = false }); // bad
+    RH_ScopedInstall(InputStandardMenu, 0x580800); // bad?
     RH_ScopedInstall(InputGridMenu, 0x580BD0);
-    RH_ScopedInstall(DisplayStandardMenu, 0x580E00, { .reversed = false }); // bad
+    RH_ScopedInstall(DisplayStandardMenu, 0x580E00);
     RH_ScopedInstall(DisplayGridMenu, 0x5816E0);
     RH_ScopedInstall(Process, 0x582630);
     RH_ScopedInstall(HighlightOneItem, 0x581C10);
@@ -118,8 +118,6 @@ void CMenuSystem::Input(MenuId id) {
 
 // 0x580800
 void CMenuSystem::InputStandardMenu(MenuId id) {
-    return plugin::Call<0x580800, MenuId>(id);
-
     auto menu = MenuNumber[id];
 
     if (CurrentMenuInUse < 0) {
@@ -259,11 +257,10 @@ void CMenuSystem::Display(MenuId id, uint8 unk) {
 }
 
 // 0x580E00
-void CMenuSystem::DisplayStandardMenu(MenuId id, bool bRightFont /*bBrightFont*/) {
-    return plugin::Call<0x580E00, MenuId, bool>(id, bRightFont);
-
+void CMenuSystem::DisplayStandardMenu(MenuId id, bool bBrightFont) {
     auto menu = MenuNumber[id];
-    uint8 titleDarkness = bRightFont ? 0 : 120;
+    auto fBaseY = SCREEN_STRETCH_Y(20.0f);
+    uint8 titleDarkness = bBrightFont ? 0 : 120;
 
     if (menu->m_bColumnBackground) {
         float width = 0, height = 50;
@@ -271,9 +268,9 @@ void CMenuSystem::DisplayStandardMenu(MenuId id, bool bRightFont /*bBrightFont*/
             width += menu->m_afColumnWidth[i];
             if (menu->m_aacColumnHeaders[i][0]) {
                 height = 70;
+                fBaseY = SCREEN_STRETCH_Y(40.f);
             }
         }
-        width  = width;
         height = SCREEN_STRETCH_Y(height) + SCREEN_STRETCH_Y(float(menu->m_nNumRows) * 16.f);
 
         CRect rect(menu->m_vPosn.x, menu->m_vPosn.y, menu->m_vPosn.x + width, menu->m_vPosn.y + height);
@@ -290,7 +287,9 @@ void CMenuSystem::DisplayStandardMenu(MenuId id, bool bRightFont /*bBrightFont*/
         if (!menu->m_aacColumnHeaders[0][column])
             continue;
 
-        auto alignment = static_cast<int32>(menu->m_anColumnHeaderAlignment[column]) < 0 ? eFontAlignment::ALIGN_CENTER : menu->m_anColumnHeaderAlignment[0];
+        auto alignment = static_cast<int32>(menu->m_anColumnHeaderAlignment[column]) < 0
+            ? menu->m_anColumnAlignment[0]
+            : menu->m_anColumnHeaderAlignment[0];
         CFont::SetOrientation(alignment);
         CFont::SetColor(CRGBA(225 - titleDarkness, 225 - titleDarkness, 225 - titleDarkness, 255));
 
@@ -318,8 +317,6 @@ void CMenuSystem::DisplayStandardMenu(MenuId id, bool bRightFont /*bBrightFont*/
         CFont::PrintString(x, y, text);
     }
 
-    auto fBaseY = SCREEN_STRETCH_Y(20.0f);
-
     const auto GetColor = [=](auto row) -> CRGBA {
         if (menu->m_abColumnInteractive[INTERACTIVE_DEFAULT]) {
             if (row == menu->m_nSelectedRow && menu->m_abRowSelectable[row]) {
@@ -341,7 +338,7 @@ void CMenuSystem::DisplayStandardMenu(MenuId id, bool bRightFont /*bBrightFont*/
     };
 
     // 0x581216
-    char buffer[400];
+    GxtChar buffer[400];
     // draw rows
     for (auto row = 0; row < menu->m_nNumRows; row++) {
         for (auto column = 0; column < menu->m_nNumColumns; column++) {
@@ -350,7 +347,9 @@ void CMenuSystem::DisplayStandardMenu(MenuId id, bool bRightFont /*bBrightFont*/
 
             CFont::SetColor(GetColor(row)); // NOTSA | optimized
             // formatting numbers in row titles
-            CMessages::InsertNumberInString(TheText.Get(menu->m_aaacRowTitles[0][row]), menu->m_aanNumberInRowTitle[0][row], menu->m_aadw2ndNumberInRowTitle[0][row], -1, -1, -1, -1, buffer);
+            // TODO: this only menu->m_aaacRowTitles[0][row]
+            const auto test = column ? menu->m_aaacRowTitles[1][row] : menu->m_aaacRowTitles[0][row];
+            CMessages::InsertNumberInString(TheText.Get(test), menu->m_aanNumberInRowTitle[0][row], menu->m_aadw2ndNumberInRowTitle[0][row], -1, -1, -1, -1, buffer);
             CFont::SetOrientation(menu->m_anColumnAlignment[row]);
             CMessages::InsertPlayerControlKeysInString(buffer);
 
@@ -362,39 +361,25 @@ void CMenuSystem::DisplayStandardMenu(MenuId id, bool bRightFont /*bBrightFont*/
             }
 
             // add previous columns width
-            /*
-            auto v41 = 0;
-            if (column) //
-            {
-                v42 = menu->m_afColumnWidth;
-                v43 = v34;
-                do {
-                    v41 = (unsigned __int64)((double)(unsigned __int16)v41 + *v42++);
-                    --v43;
-                } while (v43);
-            }
-            */
-            fBaseY += SCREEN_STRETCH_Y(16.0f);
-            float x1, y2;
+            float width = column ? menu->m_afColumnWidth[column] : 0.0f;
 
-            switch (menu->m_anColumnAlignment[row]) {
+            float x1 = SCREEN_STRETCH_X(10.0f) + menu->m_vPosn.x + width;
+            float y2 = fBaseY + menu->m_vPosn.y;
+            switch (menu->m_anColumnAlignment[column]) {
             case eFontAlignment::ALIGN_CENTER:
-                x1 = SCREEN_STRETCH_X(10.0f) + menu->m_afColumnWidth[row] + menu->m_vPosn.x + menu->m_afColumnWidth[column];
-                y2 = fBaseY + menu->m_vPosn.y;
+                x1 += width / 2.0f;
                 break;
             case eFontAlignment::ALIGN_LEFT:
-                x1 = SCREEN_STRETCH_X(10.0f) + menu->m_afColumnWidth[column] + menu->m_vPosn.x;
-                y2 = fBaseY + menu->m_vPosn.y;
                 break;
             case eFontAlignment::ALIGN_RIGHT:
-                x1 = SCREEN_STRETCH_X(10.0f) + menu->m_afColumnWidth[row] / 2.0f + menu->m_vPosn.x + menu->m_afColumnWidth[column];
-                y2 = fBaseY + menu->m_vPosn.y;
+                x1 += width;
                 break;
             default:
                 NOTSA_UNREACHABLE();
             }
             CFont::PrintString(x1, y2, buffer);
         }
+        fBaseY += SCREEN_STRETCH_Y(16.0f);
     }
 }
 

@@ -134,8 +134,8 @@ bool CTaskSimpleBeHit::MakeAbortable(CPed* ped, eAbortPriority priority, const C
     switch (priority) {
     case ABORT_PRIORITY_LEISURE: {
         if (m_Anim) {
-            if ((m_Anim->m_Flags & ANIMATION_STARTED) == 0) {
-                m_Anim->m_Flags |= ANIMATION_FREEZE_LAST_FRAME;
+            if ((m_Anim->m_Flags & ANIMATION_IS_PLAYING) == 0) {
+                m_Anim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
                 m_Anim->m_BlendDelta = -4.f;
             }
         }
@@ -184,9 +184,9 @@ bool CTaskSimpleBeHit::ProcessPed(CPed* ped) {
     if (   !m_Attacker
         || !m_Attacker->IsPlayer()
         || m_Attacker->m_nPedType != PED_TYPE_GANG2
-        || (ped->DisablePedSpeech(true), ped->EnablePedSpeech(), ped->Say(16, 1000) < 0)
+        || (ped->DisablePedSpeech(true), ped->EnablePedSpeech(), ped->Say(CTX_GLOBAL_ATTACK_BY_PLAYER_LIKE, 1000) < 0)
     ) {
-        ped->Say(345);
+        ped->Say(CTX_GLOBAL_PAIN_LOW);
     }
 
     StartAnim(ped);

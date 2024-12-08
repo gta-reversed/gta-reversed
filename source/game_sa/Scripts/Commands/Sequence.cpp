@@ -17,5 +17,7 @@ void SetSequenceToRepeat(int32 index, bool repeat) {
 }
 
 void notsa::script::commands::sequence::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Sequence");
+
     REGISTER_COMMAND_HANDLER(COMMAND_SET_SEQUENCE_TO_REPEAT, SetSequenceToRepeat);
 }

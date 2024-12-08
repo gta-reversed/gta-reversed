@@ -10,7 +10,7 @@ struct RwRGBA;
 
 class CRGBA {
 public:
-    uint8 r{}, g{}, b{}, a{};
+    uint8 r{}, g{}, b{}, a{}; // msb(a) -> lsb(r)
 
 public:
     CRGBA() = default;
@@ -31,7 +31,8 @@ public:
     void Set(const RwRGBA& rwcolor);
 
     CRGBA  ToRGB() const;
-    uint32 ToInt() const;
+    uint32 ToIntRGBA() const;
+    uint32 ToIntRGB() const { return ((uint32)b << 16) | ((uint32)g << 8) | ((uint32)r << 0); } // msb(b) -> lsb(r)
     uint32 ToIntARGB() const;
     RwRGBA ToRwRGBA() const;
 
@@ -65,4 +66,13 @@ public:
 
     operator RwRGBAReal() { return { (RwReal)r / 255.f, (RwReal)g / 255.f, (RwReal)b / 255.f, (RwReal)a / 255.f }; }
     operator RwRGBA()     { return { r, g, b, a }; }
+
+    // NOTSA
+    uint8 operator[](size_t i) const {
+        return (&r)[i];
+    }
+
+    uint8& operator[](size_t i) {
+        return (&r)[i];
+    }
 };

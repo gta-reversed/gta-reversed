@@ -105,7 +105,7 @@ CColModel* CPedModelInfo::AnimatePedColModelSkinned(RpClump* clump) {
     }
 
     memcpy(CGame::m_pWorkingMatrix2, CGame::m_pWorkingMatrix1, sizeof(RwMatrix));
-    auto animId = RpHAnimIDGetIndex(hierarchy, ePedBones::BONE_SPINE1);
+    auto animId = RpHAnimIDGetIndex(hierarchy, eBoneTag::BONE_SPINE1);
     auto pAnimMat = &RpHAnimHierarchyGetMatrixArray(hierarchy)[animId];
     RwMatrixTransform(CGame::m_pWorkingMatrix2, pAnimMat, RwOpCombineType::rwCOMBINEPRECONCAT);
     auto vecSpine = CVector(0.0F, 0.0F, 0.0F);
@@ -137,7 +137,7 @@ CColModel* CPedModelInfo::AnimatePedColModelSkinnedWorld(RpClump* clump) {
         sphere.m_vecCenter = vecCenter;
     }
 
-    auto animId = RpHAnimIDGetIndex(hierarchy, ePedBones::BONE_SPINE1);
+    auto animId = RpHAnimIDGetIndex(hierarchy, eBoneTag::BONE_SPINE1);
     auto pAnimMat = &RpHAnimHierarchyGetMatrixArray(hierarchy)[animId];
     auto vecSpine = CVector(0.0F, 0.0F, 0.0F);
     RwV3dTransformPoints(&vecSpine, &vecSpine, 1, pAnimMat);
@@ -154,11 +154,10 @@ CColModel* CPedModelInfo::AnimatePedColModelSkinnedWorld(RpClump* clump) {
 void CPedModelInfo::IncrementVoice() {
     if (m_nVoiceMin < 0 || m_nVoiceMax < 0) {
         m_nVoiceId = -1;
-        return;
-    }
-
-    ++m_nVoiceId;
-    if (m_nVoiceId > m_nVoiceMax || m_nVoiceId < m_nVoiceMin) {
-        m_nVoiceId = m_nVoiceMin;
+    } else {
+        ++m_nVoiceId;
+        if (m_nVoiceId > m_nVoiceMax || m_nVoiceId < m_nVoiceMin) {
+            m_nVoiceId = m_nVoiceMin;
+        }
     }
 }

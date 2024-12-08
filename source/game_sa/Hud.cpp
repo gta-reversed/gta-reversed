@@ -172,9 +172,9 @@ bool CHud::HelpMessageDisplayed() {
 }
 
 // 0x588F60
-void CHud::SetMessage(const char* message) {
+void CHud::SetMessage(const GxtChar* message) {
     if (message) {
-        strncpy_s(m_Message, message, sizeof(m_Message));
+        strncpy_s((char*)m_Message, sizeof(m_Message), AsciiFromGxtChar(message), sizeof(m_Message));
     } else {
         m_Message[0] = '\0';
     }
@@ -182,20 +182,20 @@ void CHud::SetMessage(const char* message) {
 
 // little bit different from OG
 // 0x588FC0
-void CHud::SetBigMessage(char* message, eMessageStyle style) {
+void CHud::SetBigMessage(GxtChar* message, eMessageStyle style) {
     if (BigMessageX[style] != 0.0f) {
         return;
     }
 
-    strncpy_s(m_BigMessage[style], message, sizeof(m_BigMessage[style]));
+    strncpy_s((char*)m_BigMessage[style], sizeof(m_BigMessage[style]), AsciiFromGxtChar(message), sizeof(m_BigMessage[style]));
 
     switch (style) {
     case STYLE_WHITE_MIDDLE_SMALLER: {
-        if (strcmp(message, LastBigMessage[STYLE_WHITE_MIDDLE_SMALLER]) != 0) {
+        if (strcmp(AsciiFromGxtChar(message), AsciiFromGxtChar(LastBigMessage[STYLE_WHITE_MIDDLE_SMALLER])) != 0) {
             OddJob2OffTimer = 0.0f;
             OddJob2On = 0;
         }
-        strncpy_s(LastBigMessage[style], message, sizeof(LastBigMessage[style]));
+        strncpy_s((char*)LastBigMessage[style], sizeof(LastBigMessage[style]), AsciiFromGxtChar(message), sizeof(LastBigMessage[style]));
         break;
     }
     default: {
@@ -205,7 +205,7 @@ void CHud::SetBigMessage(char* message, eMessageStyle style) {
 }
 
 // 0x588BE0
-void CHud::SetHelpMessage(const char* text, bool quickMessage, bool permanent, bool addToBrief) {
+void CHud::SetHelpMessage(const GxtChar* text, bool quickMessage, bool permanent, bool addToBrief) {
     if (m_BigMessage[STYLE_MIDDLE_SMALLER_HIGHER][0] || CGarages::MessageIDString[0] || CReplay::Mode == MODE_PLAYBACK || CCutsceneMgr::IsRunning()) {
         return;
     }
@@ -214,7 +214,7 @@ void CHud::SetHelpMessage(const char* text, bool quickMessage, bool permanent, b
     std::ranges::fill(m_pLastHelpMessage, '\0');
     std::ranges::fill(m_pHelpMessage, '\0');
 
-    CMessages::StringCopy(m_pHelpMessage, const_cast<char*>(text), sizeof(m_pHelpMessage));
+    CMessages::StringCopy(m_pHelpMessage, text, sizeof(m_pHelpMessage));
     CMessages::InsertPlayerControlKeysInString(m_pHelpMessage);
     if (m_nHelpMessageState && CMessages::StringCompare(m_pHelpMessage, m_pHelpMessageToPrint, sizeof(m_pHelpMessage)))
         return;
@@ -234,7 +234,7 @@ void CHud::SetHelpMessage(const char* text, bool quickMessage, bool permanent, b
     }
 
     if (addToBrief)
-        CMessages::AddToPreviousBriefArray(const_cast<char*>(text));
+        CMessages::AddToPreviousBriefArray(text);
 
     m_bHelpMessagePermanent = permanent;
     m_bHelpMessageQuick = quickMessage;
@@ -268,13 +268,13 @@ void CHud::SetHelpMessageStatUpdate(eStatUpdateState state, uint16 statId, float
 }
 
 // 0x588E30
-void CHud::SetHelpMessageWithNumber(const char* text, int32 number, bool quickMessage, bool permanent) {
+void CHud::SetHelpMessageWithNumber(const GxtChar* text, int32 number, bool quickMessage, bool permanent) {
     if (m_BigMessage[STYLE_MIDDLE_SMALLER_HIGHER][0] || CGarages::MessageIDString[0] || CReplay::Mode == MODE_PLAYBACK || CCutsceneMgr::IsCutsceneProcessing()) {
         return;
     }
 
-    char str[400];
-    CMessages::InsertNumberInString(const_cast<char*>(text), number, -1, -1, -1, -1, -1, str);
+    GxtChar str[400];
+    CMessages::InsertNumberInString(text, number, -1, -1, -1, -1, -1, str);
     CMessages::GetStringLength(str);
     CMessages::StringCopy(m_pHelpMessage, str, sizeof(m_pHelpMessage));
     CMessages::InsertPlayerControlKeysInString(m_pHelpMessage);
@@ -296,12 +296,12 @@ void CHud::SetHelpMessageWithNumber(const char* text, int32 number, bool quickMe
 }
 
 // 0x588F50
-void CHud::SetVehicleName(const char* name) {
+void CHud::SetVehicleName(const GxtChar* name) {
     m_pVehicleName = name;
 }
 
 // 0x588BB0
-void CHud::SetZoneName(const char* name, bool displayImmediately) {
+void CHud::SetZoneName(const GxtChar* name, bool displayImmediately) {
     if (displayImmediately) {
         m_pZoneName = name;
         return;
@@ -645,7 +645,7 @@ void CHud::DrawCrossHairs() {
     }
 
     CTaskSimpleUseGun* localTakUseGun = player->GetIntelligence()->GetTaskUseGun();
-    if (!player->m_pTargetedObject && !player->bIsRestoringLook && (!localTakUseGun || !localTakUseGun->m_bSkipAim)) {
+    if (!player->m_pTargetedObject && !player->bIsRestoringLook && (!localTakUseGun || !localTakUseGun->m_SkipAim)) {
         if (camMode == MODE_AIMWEAPON || camMode == MODE_AIMWEAPON_FROMCAR || camMode == MODE_AIMWEAPON_ATTACHED) {
             if (player->m_nPedState != ePedState::PEDSTATE_ENTER_CAR && player->m_nPedState != ePedState::PEDSTATE_CARJACK) {
                 if ((activeWeapon.m_Type >= eWeaponType::WEAPON_PISTOL &&
@@ -1186,7 +1186,7 @@ void CHud::DrawRadar() {
 void CHud::DrawScriptText(bool displayImmediately) {
     CTheScripts::DrawScriptSpritesAndRectangles(displayImmediately);
 
-    char textFormatted[400];
+    GxtChar textFormatted[400];
     for (auto& scriptText : CTheScripts::IntroTextLines) { // todo: NOTSA optimization std::span{ CTheScripts::IntroTextLines, CTheScripts::NumberOfIntroTextLinesThisFrame }
         if (!scriptText.m_szGxtEntry[0])
             continue;
@@ -1452,7 +1452,7 @@ void CHud::DrawPlayerInfo() {
 
 inline void CHud::DrawClock() {
     char ascii[16];
-    char text[16];
+    GxtChar gxtText[16];
     CFont::SetBackground(false, false);
     CFont::SetScale(SCREEN_STRETCH_X(0.55f), SCREEN_STRETCH_Y(1.1f));
     CFont::SetProportional(false);
@@ -1462,15 +1462,15 @@ inline void CHud::DrawClock() {
     CFont::SetEdge(2);
     CFont::SetDropColor({0, 0, 0, 255});
     sprintf_s(ascii, "%02d:%02d", CClock::ms_nGameClockHours, CClock::ms_nGameClockMinutes);
-    AsciiToGxtChar(ascii, text);
+    AsciiToGxtChar(ascii, gxtText);
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_GRAY));
-    CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(32.0f), SCREEN_STRETCH_Y(22.0f), text);
+    CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(32.0f), SCREEN_STRETCH_Y(22.0f), gxtText);
     CFont::SetEdge(0);
 }
 
 inline void CHud::DrawMoney(const CPlayerInfo& playerInfo, uint8 alpha) {
     char ascii[16];
-    char text[16];
+    GxtChar gxtText[16];
 
     if (playerInfo.m_nDisplayMoney < 0) {
         CFont::SetColor(HudColour.GetRGBA(HUD_COLOUR_RED, alpha));
@@ -1483,7 +1483,7 @@ inline void CHud::DrawMoney(const CPlayerInfo& playerInfo, uint8 alpha) {
         CFont::SetColor(HudColour.GetRGBA(HUD_COLOUR_GREEN, alpha));
         sprintf_s(ascii, "$%08d", std::abs(playerInfo.m_nDisplayMoney));
     }
-    AsciiToGxtChar(ascii, text);
+    AsciiToGxtChar(ascii, gxtText);
     CFont::SetProportional(false);
     CFont::SetBackground(false, false);
     CFont::SetScale(SCREEN_STRETCH_X(0.55f), SCREEN_STRETCH_Y(1.1f));
@@ -1493,7 +1493,7 @@ inline void CHud::DrawMoney(const CPlayerInfo& playerInfo, uint8 alpha) {
     CFont::SetDropShadowPosition(0);
     CFont::SetEdge(2);
     CFont::SetDropColor({ 0, 0, 0, uint8(alpha) });
-    CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(32.0f), GetYPosBasedOnHealth(CWorld::PlayerInFocus, SCREEN_STRETCH_Y(89.0f), 12), text);
+    CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(32.0f), GetYPosBasedOnHealth(CWorld::PlayerInFocus, SCREEN_STRETCH_Y(89.0f), 12), gxtText);
     CFont::SetEdge(0);
 }
 

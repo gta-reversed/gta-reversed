@@ -36,13 +36,13 @@ void CMatrix::InjectHooks()
     RH_ScopedInstall(SetRotateXOnly, 0x59AFA0);
     RH_ScopedInstall(SetRotateYOnly, 0x59AFE0);
     RH_ScopedInstall(SetRotateZOnly, 0x59B020);
+    RH_ScopedOverloadedInstall(SetRotate, "xyz", 0x59B120, void(CMatrix::*)(float, float, float));
     RH_ScopedInstall(SetRotateX, 0x59B060);
     RH_ScopedInstall(SetRotateY, 0x59B0A0);
     RH_ScopedInstall(SetRotateZ, 0x59B0E0);
-    RH_ScopedOverloadedInstall(SetRotate, "xyz", 0x59B120, void(CMatrix::*)(float, float, float));
-    RH_ScopedInstall(RotateX, 0x59B1E0);
-    RH_ScopedInstall(RotateY, 0x59B2C0);
-    RH_ScopedInstall(RotateZ, 0x59B390);
+    //RH_ScopedInstall(RotateX, 0x59B1E0, {.enabled }); // has NOTSA args, cant hook
+    //RH_ScopedInstall(RotateY, 0x59B2C0, {.enabled }); // has NOTSA args, cant hook
+    //RH_ScopedInstall(RotateZ, 0x59B390, {.enabled }); // has NOTSA args, cant hook
     RH_ScopedInstall(Rotate, 0x59B460);
     RH_ScopedInstall(Reorthogonalise, 0x59B6A0);
     RH_ScopedInstall(CopyToRwMatrix, 0x59B8B0);
@@ -240,34 +240,40 @@ void CMatrix::SetRotate(float x, float y, float z)
     m_pos.Set(0.0F, 0.0F, 0.0F);
 }
 
-void CMatrix::RotateX(float angle)
+void CMatrix::RotateX(float angle, bool bKeepPos)
 {
     auto rotMat = CMatrix();
     rotMat.SetRotateX(angle);
     m_right =   rotMat.TransformVector(m_right);
     m_forward = rotMat.TransformVector(m_forward);
     m_up =      rotMat.TransformVector(m_up);
-    m_pos =     rotMat.TransformVector(m_pos);
+    if (!bKeepPos) {
+        m_pos = rotMat.TransformVector(m_pos);
+    }
 }
 
-void CMatrix::RotateY(float angle)
+void CMatrix::RotateY(float angle, bool bKeepPos)
 {
     auto rotMat = CMatrix();
     rotMat.SetRotateY(angle);
     m_right =   rotMat.TransformVector(m_right);
     m_forward = rotMat.TransformVector(m_forward);
     m_up =      rotMat.TransformVector(m_up);
-    m_pos =     rotMat.TransformVector(m_pos);
+    if (!bKeepPos) {
+        m_pos = rotMat.TransformVector(m_pos);
+    }
 }
 
-void CMatrix::RotateZ(float angle)
+void CMatrix::RotateZ(float angle, bool bKeepPos)
 {
     auto rotMat = CMatrix();
     rotMat.SetRotateZ(angle);
     m_right =   rotMat.TransformVector(m_right);
     m_forward = rotMat.TransformVector(m_forward);
     m_up =      rotMat.TransformVector(m_up);
-    m_pos =     rotMat.TransformVector(m_pos);
+    if (!bKeepPos) {
+        m_pos = rotMat.TransformVector(m_pos);
+    }
 }
 
 // rotate on 3 axes
@@ -499,10 +505,10 @@ void CMatrix::ConvertFromEulerAngles(float x, float y, float z, uint32 uiFlags)
     m_up.Set     (fArr[2][0], fArr[2][1], fArr[2][2]);
 }
 
-void CMatrix::operator=(const CMatrix& rvalue)
-{
-    CMatrix::CopyOnlyMatrix(rvalue);
-    CMatrix::UpdateRW();
+void CMatrix::operator=(const CMatrix& other) {
+    m_pAttachMatrix = other.m_pAttachMatrix;
+    CopyOnlyMatrix(other);
+    UpdateRW();
 }
 
 void CMatrix::operator+=(const CMatrix& rvalue)

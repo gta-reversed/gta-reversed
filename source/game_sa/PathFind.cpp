@@ -488,8 +488,9 @@ void CPathFind::ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVec
     plugin::CallMethod<0x452760>(this, nodeType, &vecStart, &vecEnd, &address, &nodeRoute);
 }
 
+// 0x44D960
 void CPathFind::SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, float fYMax, bool value) {
-    const auto areaRect = CRect{ {fXMax, fYMax}, {fXMin, fYMin} };
+    const auto areaRect = CRect{ {fXMin, fYMin}, {fXMax, fYMax} };
 
     for (auto areaId = 0u; areaId < NUM_PATH_MAP_AREAS; areaId++) {
         if (!IsAreaLoaded(areaId)) {
@@ -519,7 +520,7 @@ CVector CPathFind::FindNodeCoorsForScript(CNodeAddress address, bool* bFound) {
             *bFound = found;
         }
     };
-    if (!address.IsValid() || IsAreaNodesAvailable(address)) {
+    if (!address.IsValid() || !IsAreaNodesAvailable(address)) {
         SetFound(false);
         return {};
     } else {
@@ -951,7 +952,7 @@ CNodeAddress CPathFind::FindNodeClosestToCoorsFavourDirection(CVector pos, ePath
                 continue;
             }
 
-            const auto score = dotScore - (dir.Dot(dirToNodeUN) - 1.f) * 20.f;
+            const auto score = dotScore - (dir.Dot(CVector2D{ dirToNodeUN }.Normalized()) - 1.f) * 20.f;
             if (score <= scoreOfClosest) {
                 scoreOfClosest = score;
                 closest = node.GetAddress();

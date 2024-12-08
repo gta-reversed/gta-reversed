@@ -22,7 +22,7 @@ void CAESound::InjectHooks() {
     RH_ScopedInstall(StopSound, 0x4EF1C0);
     RH_ScopedInstall(SetIndividualEnvironment, 0x4EF2B0);
     RH_ScopedInstall(UpdatePlayTime, 0x4EF2E0);
-    RH_ScopedOverloadedInstall(GetRelativePosition, "OG", 0x4EF350, void(CAESound::*)(CVector&) const);
+    RH_ScopedOverloadedInstall(GetRelativePosition, "orginal", 0x4EF350, void(CAESound::*)(CVector*) const);
     RH_ScopedInstall(CalculateFrequency, 0x4EF390);
     RH_ScopedInstall(UpdateFrequency, 0x4EF3E0);
     RH_ScopedInstall(GetRelativePlaybackFrequencyWithDoppler, 0x4EF400);
@@ -42,7 +42,7 @@ CAESound::CAESound(CAESound& sound) {
     m_nSoundIdInSlot = sound.m_nSoundIdInSlot;
     m_pBaseAudio = sound.m_pBaseAudio;
     m_nEvent = sound.m_nEvent;
-    m_fMaxVolume = sound.m_fMaxVolume;
+    m_ClientVariable = sound.m_ClientVariable;
     m_fVolume = sound.m_fVolume;
     m_fSoundDistance = sound.m_fSoundDistance;
     m_fSpeed = sound.m_fSpeed;
@@ -80,7 +80,7 @@ CAESound::CAESound(int16 bankSlotId, int16 sfxId, CAEAudioEntity* baseAudio, CVe
     m_pBaseAudio = baseAudio;
     m_vecPrevPosn = CVector(0.0f, 0.0f, 0.0f);
     m_pPhysicalEntity = nullptr;
-    m_fMaxVolume = -1.0F;
+    m_ClientVariable = -1.0F;
     m_nEvent = AE_UNDEFINED;
     m_nLastFrameUpdate = 0;
 
@@ -116,7 +116,7 @@ CAESound& CAESound::operator=(const CAESound& sound) {
     m_nSoundIdInSlot        = sound.m_nSoundIdInSlot;
     m_pBaseAudio            = sound.m_pBaseAudio;
     m_nEvent                = sound.m_nEvent;
-    m_fMaxVolume            = sound.m_fMaxVolume;
+    m_ClientVariable            = sound.m_ClientVariable;
     m_fVolume               = sound.m_fVolume;
     m_fSoundDistance        = sound.m_fSoundDistance;
     m_fSpeed                = sound.m_fSpeed;
@@ -192,12 +192,16 @@ void CAESound::UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 play
         : loopStartTime;
 }
 
-// 0x4EF350
-void CAESound::GetRelativePosition(CVector& out) const {
-    if (!GetFrontEnd()) {
-        CAEAudioEnvironment::GetPositionRelativeToCamera(&out, &m_vecCurrPosn);
-    }
-    out = m_vecCurrPosn;
+// NOTSA: Simplified calling convention
+CVector CAESound::GetRelativePosition() const {
+    CVector outVec;
+    GetRelativePosition(&outVec);
+    return outVec;
+}
+
+// 0x4EF350 - Matches the original calling convention, to be used by reversible hooks, use the version returning CVector instead in our code
+void CAESound::GetRelativePosition(CVector* outVec) const {
+    *outVec = GetFrontEnd() ? m_vecCurrPosn : CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
 }
 
 // 0x4EF390
@@ -215,14 +219,14 @@ void CAESound::UpdateFrequency() {
 }
 
 // 0x4EF400
-float CAESound::GetRelativePlaybackFrequencyWithDoppler() {
+float CAESound::GetRelativePlaybackFrequencyWithDoppler() const {
     return GetFrontEnd()
         ? m_fFrequency
         : m_fFrequency * CAEAudioEnvironment::GetDopplerRelativeFrequency(m_fPrevCamDist, m_fCurrCamDist, m_nPrevTimeUpdate, m_nCurrTimeUpdate, m_fTimeScale);
 }
 
 // 0x4EF440
-float CAESound::GetSlowMoFrequencyScalingFactor() {
+float CAESound::GetSlowMoFrequencyScalingFactor() const {
     return GetUnpausable() || !CTimer::GetIsSlowMotionActive() || CCamera::GetActiveCamera().m_nMode == eCamMode::MODE_CAMERA
         ? 1.f
         : fSlowMoFrequencyScalingFactor;
@@ -255,12 +259,12 @@ void CAESound::StopSoundAndForget() {
 }
 
 // 0x4EF880
-void CAESound::SetPosition(CVector vecPos) {
+void CAESound::SetPosition(CVector pos) {
     if (!m_nLastFrameUpdate) {
-        m_vecPrevPosn = vecPos;
-        m_vecCurrPosn = vecPos;
+        m_vecPrevPosn = pos;
+        m_vecCurrPosn = pos;
 
-        auto const fCamDist = DistanceBetweenPoints(vecPos, TheCamera.GetPosition());
+        auto const fCamDist = DistanceBetweenPoints(pos, TheCamera.GetPosition());
         m_fCurrCamDist = fCamDist;
         m_fPrevCamDist = fCamDist;
 
@@ -268,16 +272,16 @@ void CAESound::SetPosition(CVector vecPos) {
         m_nCurrTimeUpdate = CTimer::GetTimeInMS();
         m_nPrevTimeUpdate = CTimer::GetTimeInMS();
     } else if (m_nLastFrameUpdate == CTimer::GetFrameCounter()) {
-        m_vecCurrPosn = vecPos;
-        m_fCurrCamDist = DistanceBetweenPoints(vecPos, TheCamera.GetPosition());
+        m_vecCurrPosn = pos;
+        m_fCurrCamDist = DistanceBetweenPoints(pos, TheCamera.GetPosition());
         m_nCurrTimeUpdate = CTimer::GetTimeInMS();
     } else {
         m_vecPrevPosn = m_vecCurrPosn;
         m_fPrevCamDist = m_fCurrCamDist;
         m_nPrevTimeUpdate = m_nCurrTimeUpdate;
 
-        m_vecCurrPosn = vecPos;
-        m_fCurrCamDist = DistanceBetweenPoints(vecPos, TheCamera.GetPosition());
+        m_vecCurrPosn = pos;
+        m_fCurrCamDist = DistanceBetweenPoints(pos, TheCamera.GetPosition());
         m_nCurrTimeUpdate = CTimer::GetTimeInMS();
         m_nLastFrameUpdate = CTimer::GetFrameCounter();
     }
@@ -288,43 +292,43 @@ void CAESound::CalculateVolume() {
     if (GetFrontEnd())
         m_fFinalVolume = m_fVolume - m_fSoundHeadRoom;
     else {
-        CVector relativePos;
-        CAEAudioEnvironment::GetPositionRelativeToCamera(&relativePos, &m_vecCurrPosn);
-        const auto fDist = relativePos.Magnitude() / m_fSoundDistance;
+        const auto relativePos = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
+        const auto fDist = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn).Magnitude() / m_fSoundDistance;
         const auto fAttenuation = CAEAudioEnvironment::GetDistanceAttenuation(fDist);
         m_fFinalVolume = CAEAudioEnvironment::GetDirectionalMikeAttenuation(relativePos) + fAttenuation + m_fVolume - m_fSoundHeadRoom;
     }
 }
 
 // 0x4EFE50
-void CAESound::Initialise(int16 bankSlotId, int16 sfxId, CAEAudioEntity* baseAudio, CVector posn, float volume, float maxDistance, float speed, float timeScale,
-                          uint8 ignoredServiceCycles, eSoundEnvironment environmentFlags, float speedVariability, int16 currPlayPosn)
+void CAESound::Initialise(
+    int16 bankSlotId, int16 soundID, CAEAudioEntity* audioEntity, CVector pos, float volume, float rollOffFactor, float relativeFrequency, float doppler,
+                          uint8 frameDelay, uint32 flags, float frequencyVariance, int16 playTime)
 {
     UnregisterWithPhysicalEntity();
 
-    m_nSoundIdInSlot        = sfxId;
+    m_nSoundIdInSlot        = soundID;
     m_nBankSlotId           = bankSlotId;
-    m_pBaseAudio            = baseAudio;
+    m_pBaseAudio            = audioEntity;
     m_fVolume               = volume;
-    m_fSoundDistance        = maxDistance;
-    m_fSpeed                = speed;
-    m_fSpeedVariability     = speedVariability;
+    m_fSoundDistance        = rollOffFactor;
+    m_fSpeed                = relativeFrequency;
+    m_fSpeedVariability     = frequencyVariance;
     m_vecPrevPosn           .Set(0.0F, 0.0F, 0.0F);
     m_nEvent                = AE_UNDEFINED;
-    m_fMaxVolume            = -1.0F;
+    m_ClientVariable            = -1.0F;
     m_nLastFrameUpdate      = 0;
 
-    SetPosition(posn);
+    SetPosition(pos);
 
-    m_fTimeScale            = timeScale;
+    m_fTimeScale            = doppler;
     m_nSoundLength          = -1;
     m_nHasStarted           = 0;
     m_nPlayingState         = eSoundState::SOUND_ACTIVE;
     m_fSoundHeadRoom        = 0.0F;
-    m_nIgnoredServiceCycles = ignoredServiceCycles;
-    m_nEnvironmentFlags     = environmentFlags;
+    m_nIgnoredServiceCycles = frameDelay;
+    m_nEnvironmentFlags     = flags;
     m_nIsUsed               = 1;
-    m_nCurrentPlayPosition  = currPlayPosn;
+    m_nCurrentPlayPosition  = playTime;
     m_fFinalVolume          = -100.0F;
     m_fFrequency            = 1.0F;
 }

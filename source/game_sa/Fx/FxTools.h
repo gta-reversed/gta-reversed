@@ -49,7 +49,7 @@ inline void ReadFieldImpl(FILESTREAM file, Type& refValue, const char* fieldName
     VERIFY(sscanf(line, traits::fx_field_scanf_format<Type>::value(), field, &refValue) == traits::fx_field_scanf_format<Type>::num_parts());
 
     if (fieldName != nullptr && strcmp(field, fieldName) != 0) {
-        NOTSA_UNREACHABLE(std::format("Fx Project field mismatch!\nExpected:\t{}\nGot:\t{}", fieldName, field));
+        NOTSA_UNREACHABLE("Fx Project field mismatch!\nExpected:\t{}\nGot:\t{}", fieldName, field);
     }
 }
 

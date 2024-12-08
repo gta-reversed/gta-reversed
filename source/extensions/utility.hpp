@@ -76,7 +76,7 @@ constexpr inline auto find_value_or(auto&& mapping, auto&& needle, auto&& defval
 * @brief Helper function to get kv-mapping value from a key.
 * @brief Unlike `.find()`, this returns the value directly, or asserts if the key is not found.
 */
-constexpr inline auto find_value(auto&& mapping, auto&& needle, auto&& defval) {
+constexpr inline auto find_value(auto&& mapping, auto&& needle) {
     const auto it = mapping.find(needle);
     if (it != mapping.end()) {
         return it->second;
@@ -184,9 +184,14 @@ constexpr auto IsFixBugs() {
 }
 
 /// Predicate to check if `value` is null
-template<typename T>
-    requires(std::is_pointer_v<T>)
-bool IsNull(T value) { return value == nullptr; }
+struct IsNull {
+    template<typename T>
+        requires(std::is_pointer_v<T>)
+    bool operator()(T ptr) { return ptr == nullptr; }
+};
+//template<typename T>
+//    requires(std::is_pointer_v<T>)
+//bool IsNull(T value) { return value == nullptr; }
 
 /// Negate another predicate function
 template<typename T>
@@ -354,4 +359,36 @@ concept is_any_of_type_v = (std::same_as<T, Ts> || ...);
 template<typename T>
 inline constexpr bool is_standard_integer = std::is_integral_v<T> && !is_any_of_type_v<T, bool, char, wchar_t, char8_t, char16_t, char32_t>;
 
+//! Null terminated `std::format_to`. Use inplace of sprintf.
+//! NOTE: Not a complete replacement for std::format_to,
+//! e.g. it doesn't use output iterators. i don't care.
+template<size_t N, class... Args>
+void format_to_sz(char(&out)[N], std::string_view fmt, Args&&... args) {
+    *std::vformat_to(out, fmt, std::make_format_args(args...)) = '\0';
+}
+
+//! Reads a pointer as specified type.
+template<typename T> requires std::is_trivially_constructible_v<T>
+T ReadAs(void* ptr) {
+    return *static_cast<T*>(ptr);
+}
+//! Safe C string copying, use this instead of strcpy.
+inline void string_copy(char* out, const char* from, size_t size) {
+    std::snprintf(out, size, "%s", from);
+}
+
+//! Safe C string copying, use this instead of strcpy.
+template<size_t N>
+void string_copy(char (&out)[N], const char* from) {
+    std::snprintf(out, N, "%s", from);
+}
+
+// Like clamp, but wraps the number - https://stackoverflow.com/a/64273069/15363969
+template<std::floating_point F>
+F wrap(F x, F min, F max) {
+    if (min > max) {
+        std::swap(min, max);
+    }
+    return (x < 0 ? max : min) + std::fmod(x, max - min);
+}
 };

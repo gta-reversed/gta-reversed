@@ -120,7 +120,7 @@ void CPickups::CreateSomeMoney(CVector coors, int32 amount) {
 }
 
 // 0x4590C0
-void CPickups::DetonateMinesHitByGunShot(CVector* shotOrigin, CVector* shotTarget) {
+void CPickups::DetonateMinesHitByGunShot(const CVector& shotOrigin, const CVector& shotTarget) {
     for (auto& pickup : aPickUps) {
         if (pickup.m_nPickupType == PICKUP_NAUTICAL_MINE_ARMED) {
             pickup.ProcessGunShot(shotOrigin, shotTarget);
@@ -569,17 +569,17 @@ void CPickups::RemoveUnnecessaryPickups(const CVector& posn, float radius) {
 
 // 0x455000
 void CPickups::RenderPickUpText() {
-    for (auto& message : std::span{ aMessages.data(), NumMessages }) {
+    GxtChar msgText[352]{};
+    for (const auto& message : std::span{ aMessages.data(), NumMessages }) {
         if (message.price == 0u) {
             if (!message.text)
                 continue;
 
             if (message.flags & 2) {
-                CMessages::InsertNumberInString(message.text, 0, 0, 0, 0, 0, 0, gString);
+                CMessages::InsertNumberInString(message.text, 0, 0, 0, 0, 0, 0, msgText);
             }
         } else {
-            sprintf_s(gString, "$%d", message.price);
-            AsciiToGxtChar(gString, gGxtString);
+            AsciiToGxtChar(std::format("${:d}", message.price).c_str(), msgText);
         }
 
         // TODO: scaled wrong in windowed mode, but it's fine in fullscreen.
@@ -593,7 +593,7 @@ void CPickups::RenderPickUpText() {
         CFont::SetCentreSize(SCREEN_WIDTH);
         CFont::SetColor(message.color);
         CFont::SetFontStyle(eFontStyle::FONT_PRICEDOWN);
-        CFont::PrintString(message.pos.x, message.pos.y, gGxtString);
+        CFont::PrintString(message.pos.x, message.pos.y, msgText);
     }
     NumMessages = 0;
 }

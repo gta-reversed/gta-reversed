@@ -45,8 +45,8 @@ CTaskComplexPassObject::~CTaskComplexPassObject() {
 
 // 0x661290
 void CTaskComplexPassObject::AbortIK(CPed* ped) {
-    if (g_ikChainMan.IsArmPointing(0, ped)) {
-        g_ikChainMan.AbortPointArm(0, ped, 500);
+    if (g_ikChainMan.IsArmPointing(eIKArm::IK_ARM_RIGHT, ped)) {
+        g_ikChainMan.AbortPointArm(eIKArm::IK_ARM_RIGHT, ped, 500);
     }
 }
 

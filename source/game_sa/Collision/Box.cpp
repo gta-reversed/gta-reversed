@@ -63,7 +63,7 @@ void CBox::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
     workVec = m_vecMax;
     CVector v8 = transform.TransformPoint(workVec);
 
-    const auto colorARGB = color.ToInt();
+    const auto colorARGB = color.ToIntRGBA();
     CLines::RenderLineNoClipping(v1, v2, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(v1, v3, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(v1, v4, colorARGB, colorARGB);
@@ -82,4 +82,11 @@ bool CBox::IsPointInside(const CVector& point) const {
     return point.x >= m_vecMin.x && point.x <= m_vecMax.x
         && point.y >= m_vecMin.y && point.y <= m_vecMax.y
         && point.z >= m_vecMin.z && point.z <= m_vecMax.z;
+}
+
+void CBox::StretchToPoint(const CVector& pt) {
+    for (size_t i = 0; i < 3; i++) {
+        m_vecMin[i] = std::min(m_vecMin[i], pt[i]);
+        m_vecMax[i] = std::max(m_vecMax[i], pt[i]);
+    }
 }

@@ -78,7 +78,7 @@ bool CTaskSimpleSitDown::MakeAbortable(CPed* ped, eAbortPriority priority, CEven
     }
     case ABORT_PRIORITY_LEISURE: {
         if (m_anim) {
-            m_anim->SetFlag(ANIMATION_FREEZE_LAST_FRAME, true);
+            m_anim->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE, true);
             m_anim->m_BlendDelta = -4.f;
         }
         return false;

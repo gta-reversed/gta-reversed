@@ -8,8 +8,15 @@
 #pragma once
 
 #include "Quaternion.h"
+#include "AnimBlendSequence.h"
+#include "AnimBlendAssociation.h"
 
-//! Animation of a single node (bone)
+/*!
+ * @brief Represents the animation of a single node (bone)
+ *
+ * @detail An animation can move one or more nodes (bones).
+ * @detail Each node has a sequence (that contain key-frames)
+ */
 class CAnimBlendNode {
 public:
     static void InjectHooks();
@@ -58,75 +65,89 @@ public:
     bool UpdateTime(); // Unused
     bool SetupKeyFrameCompressed();
     bool FindKeyFrame(float time);
+    auto GetAnimAssoc() const { return m_BlendAssoc; }
+    bool IsValid() const { return !!m_Seq; }
+    auto GetSeq() const { return m_Seq; }
+    auto GetRootKF() const { return &m_Seq[0]; }
 
-private: // Generic implementations
+    //! @notsa
+    //! @brief Inverse progress of current frame (Eg.: How much is left of this frame)
+    template<bool IsCompressed>
+    NOTSA_FORCEINLINE float GetTimeRemainingProgress() const {
+        const auto kf = m_Seq->GetKeyFrame<IsCompressed>(m_KFCurr);
+        return kf->DeltaTime == 0.0f
+            ? 0.0f
+            : (kf->DeltaTime - m_KFRemainingTime) / kf->DeltaTime;
+    }
+
     template<bool IsCompressed>
     NOTSA_FORCEINLINE void I_GetCurrentTranslation(CVector& trans, float weight) {
         trans = CVector{0.0f, 0.0f, 0.0f};
+
+        if (!m_Seq->m_bHasTranslation) { // Moved up here
+            return;
+        }
 
         const auto blend = m_BlendAssoc->GetBlendAmount(weight);
         if (blend <= 0.0f) {
             return;
         }
 
-        const auto kfA = m_BlendSeq->GetKeyFrame<IsCompressed>(m_KeyFrameA),
-                   kfB = m_BlendSeq->GetKeyFrame<IsCompressed>(m_KeyFrameB);
-
-        const auto t = (kfA->DeltaTime - m_RemainingTime) / kfA->DeltaTime;
-
-        if (m_BlendSeq->m_bHasTranslation) {
-            trans = lerp<CVector>(kfB->Trans, kfA->Trans, t) * blend;
-        }
+        const auto kfA = m_Seq->GetKeyFrame<IsCompressed>(m_KFCurr),
+                   kfB = m_Seq->GetKeyFrame<IsCompressed>(m_KFPrev);
+        trans = lerp<CVector>(kfB->Trans, kfA->Trans, GetTimeRemainingProgress<IsCompressed>()) * blend;
     }
 
     template<bool IsCompressed>
     NOTSA_FORCEINLINE void I_GetEndTranslation(CVector& trans, float weight) {
         trans = CVector{ 0.0f, 0.0f, 0.0f };
 
-        float blend = m_BlendAssoc->GetBlendAmount(weight);
+        if (!m_Seq->m_bHasTranslation) { // Moved up here
+            return;
+        }
+
+        const auto blend = m_BlendAssoc->GetBlendAmount(weight);
         if (blend <= 0.0f) {
             return;
         }
 
-        const auto kf = m_BlendSeq->GetKeyFrame<IsCompressed>(m_BlendSeq->m_FramesNum - 1);
-        if (m_BlendSeq->m_bHasTranslation) {
-            trans = kf->Trans;
-            trans *= blend;
-        }
+        const auto kf = m_Seq->GetKeyFrame<IsCompressed>(m_Seq->m_FramesNum - 1);
+        trans = kf->Trans;
+        trans *= blend;
     }
 
     template<bool IsCompressed>
     NOTSA_FORCEINLINE bool I_NextKeyFrame() {
-        if (m_BlendSeq->m_FramesNum <= 1) {
+        if (m_Seq->m_FramesNum <= 1) {
             return false;
         }
 
         // Store old KF
-        m_KeyFrameB = m_KeyFrameA;
+        m_KFPrev = m_KFCurr;
 
-        // Advance as long as we have to
+        // Find next frame, this should usually be the next one
+        // Unless `m_BlendAssoc->m_TimeStep > NextKF->DeltaTime` (In which case `m_KFRemainingTime` becomes negative)
         bool looped = false;
-        while (m_RemainingTime <= 0.0f) {
-            m_KeyFrameA++;
+        while (m_KFRemainingTime <= 0.0f) {
+            m_KFCurr++;
 
-            if (m_KeyFrameA >= m_BlendSeq->m_FramesNum) {
+            if (m_KFCurr >= m_Seq->m_FramesNum) {
                 // reached end of animation
-                if (!m_BlendAssoc->IsRepeating()) {
-                    m_KeyFrameA--;
-                    m_RemainingTime = 0.0f;
+                if (!m_BlendAssoc->IsLooped()) {
+                    m_KFCurr--;
+                    m_KFRemainingTime = 0.0f;
                     return false;
                 }
-                looped      = true;
-                m_KeyFrameA = 0;
+                looped   = true;
+                m_KFCurr = 0;
             }
 
-            m_RemainingTime += m_BlendSeq->GetKeyFrame<IsCompressed>(m_KeyFrameA)->DeltaTime;
+            m_KFRemainingTime += m_Seq->GetKeyFrame<IsCompressed>(m_KFCurr)->DeltaTime;
         }
 
-        m_KeyFrameB = m_KeyFrameA - 1;
-        if (m_KeyFrameB < 0) {
-            m_KeyFrameB += m_BlendSeq->m_FramesNum;
-        }
+        m_KFPrev = m_KFCurr == 0
+            ? m_Seq->m_FramesNum - 1 // Previous frame was the last in the sequence
+            : m_KFCurr - 1;
 
         if constexpr (IsCompressed) {
             CalcDeltasCompressed();
@@ -144,30 +165,31 @@ private: // Generic implementations
         trans = CVector{0.0f, 0.0f, 0.0f};
         rot   = CQuaternion{0.0f, 0.0f, 0.0f, 0.0f};
 
-        if (m_BlendAssoc->IsRunning()) {
-            m_RemainingTime -= m_BlendAssoc->m_TimeStep;
-            if (m_RemainingTime <= 0.0f) {
+        if (m_BlendAssoc->IsPlaying()) {
+            m_KFRemainingTime -= m_BlendAssoc->m_TimeStep;
+            if (m_KFRemainingTime <= 0.0f) {
                 looped = I_NextKeyFrame<IsCompressed>();
             }
         }
         
-        float blend = m_BlendAssoc->GetBlendAmount(weight);
+        const auto blend = m_BlendAssoc->GetBlendAmount(weight);
         if (blend > 0.0f) {
-            const auto kfA = m_BlendSeq->GetKeyFrame<IsCompressed>(m_KeyFrameA);
-            const auto kfB = m_BlendSeq->GetKeyFrame<IsCompressed>(m_KeyFrameB);
+            const auto kfA = m_Seq->GetKeyFrame<IsCompressed>(m_KFCurr);
+            const auto kfB = m_Seq->GetKeyFrame<IsCompressed>(m_KFPrev);
 
             // Calculate interpolation t
-            const float t = kfA->DeltaTime == 0.0f
-                ? 0.0f
-                : (kfA->DeltaTime - m_RemainingTime) / kfA->DeltaTime;
+            const float t = GetTimeRemainingProgress<IsCompressed>();
+
+            // Sanity check
+            assert(m_Seq->m_bHasTranslation || m_Seq->m_bHasRotation);
 
             // Update translation
-            if (m_BlendSeq->m_bHasTranslation) {
+            if (m_Seq->m_bHasTranslation) {
                 trans = lerp<CVector>(kfB->Trans, kfA->Trans, t) * blend;
             }
 
             // Update rotation
-            if (m_BlendSeq->m_bHasRotation) {
+            if (m_Seq->m_bHasRotation) {
                 rot.Slerp(kfB->Rot, kfA->Rot, m_Theta, m_InvSinTheta, t);
                 rot *= blend;
             }
@@ -177,16 +199,12 @@ private: // Generic implementations
     }
 
 public:
-    float m_Theta;       // angle between two quaternions
-    float m_InvSinTheta; // 1 / sin(m_Theta), used in slerp calculation
-
-    // Indices into `m_BlendSeq`
-    int16 m_KeyFrameA; // Next key frame
-    int16 m_KeyFrameB; // Previous key frame
-
-    float m_RemainingTime; // Time until frames have to advance
-
-    CAnimBlendSequence*    m_BlendSeq;
-    CAnimBlendAssociation* m_BlendAssoc;
+    float                  m_Theta{};           //!< Angle between current and previous key-frames
+    float                  m_InvSinTheta{};     //!< 1 / sin(m_Theta), used in slerp calculation
+    int16                  m_KFCurr{ -1 };      //!< Current key frame (A)
+    int16                  m_KFPrev{ -1 };      //!< Previous key frame (B)
+    float                  m_KFRemainingTime{}; //!< Time until frames have to advance (So, basically time left from current key-frame, so <frame progress> = m_KFRemainingTime / KeyFrameCurr->DeltaTime)
+    CAnimBlendSequence*    m_Seq{};             //!< Node animation key-frames
+    CAnimBlendAssociation* m_BlendAssoc{};      //!< Parent anim to which this node belongs to
 };
 VALIDATE_SIZE(CAnimBlendNode, 0x18);

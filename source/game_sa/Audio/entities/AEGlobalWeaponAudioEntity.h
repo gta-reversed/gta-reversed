@@ -12,6 +12,7 @@ public:
     void AddAudioEvent(eAudioEvents audioId, eWeaponType weaponType, CPhysical* entity);
     void ProjectileFire(eWeaponType weaponType, CPhysical* physical, eAudioEvents event);
     void ServiceAmbientGunFire();
+    void PickAmbientGunFire(int32& gunShots, eWeaponType& weaponType, uint32& delay);
 
 private:
     CPhysical* m_Physical;

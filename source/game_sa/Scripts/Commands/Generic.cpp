@@ -14,4 +14,5 @@
 #include "CommandParser/Parser.hpp"
 
 void notsa::script::commands::generic::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Generic");
 }

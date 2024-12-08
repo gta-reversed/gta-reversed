@@ -121,13 +121,12 @@ CObject::CObject(CDummyObject* dummyObj) : CPhysical() {
 
 // 0x59F660
 CObject::~CObject() {
-    if (objectFlags.b0x200000 || objectFlags.b0x100000) {
-        const auto iIndex = SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_wScriptTriggerIndex].m_nIMGindex);
+    if (objectFlags.b0x100000_0x200000) {
+        const auto iIndex = SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_nStreamedScriptBrainToLoad].m_StreamedScriptIndex);
         CStreaming::SetMissionDoesntRequireModel(iIndex);
-        objectFlags.b0x100000 = false;
-        objectFlags.b0x200000 = false;
-        CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_wScriptTriggerIndex);
-        m_wScriptTriggerIndex = -1;
+        objectFlags.b0x100000_0x200000 = 0;
+        CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_nStreamedScriptBrainToLoad);
+        m_nStreamedScriptBrainToLoad = -1;
     }
 
     if (objectFlags.bHasNoModel) {
@@ -630,7 +629,7 @@ void CObject::ProcessGarageDoorBehaviour() {
 
     const auto& vecDummyPos = m_pDummyObject->GetPosition();
     auto* mi = GetModelInfo();
-    const auto fHeight = mi->GetColModel()->GetBoundingBox().GetHeight();
+    const auto fHeight = mi->GetColModel()->GetBoundingBox().GetHeight() - 0.1f;
     const auto& garage = CGarages::GetGarage(m_nGarageDoorGarageIndex);
     if (garage.m_bDoorOpensUp) {
         m_matrix->GetPosition().z = vecDummyPos.z + fHeight * garage.m_fDoorPosition * 0.48F;
@@ -865,7 +864,7 @@ void CObject::Init() {
 
     m_nColLighting.day = 0x8;
     m_nColLighting.night = 0x4;
-    m_wScriptTriggerIndex = -1;
+    m_nStreamedScriptBrainToLoad = -1;
 }
 
 // 0x59FB50
@@ -1186,7 +1185,7 @@ void CObject::Explode() {
     if (m_pObjectInfo->m_nFxType == eObjectFxType::PLAY_ON_DESTROYED) {
         auto vecPoint = m_matrix->TransformPoint(m_pObjectInfo->m_vFxOffset);
         vecPoint += GetPosition();
-        auto* fxSystem = g_fxMan.CreateFxSystem(m_pObjectInfo->m_pFxSystemBP, &vecPoint, nullptr, false);
+        auto* fxSystem = g_fxMan.CreateFxSystem(m_pObjectInfo->m_pFxSystemBP, vecPoint, nullptr, false);
         if (fxSystem)
             fxSystem->PlayAndKill();
     }

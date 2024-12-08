@@ -495,7 +495,7 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
 
     SetIplsRequired(posn);
     if (gbIplsNeededAtPosn) {
-        SetIplsRequired(&gvecIplsNeededAtPosn, CGame::currArea);
+        SetIplsRequired(gvecIplsNeededAtPosn, CGame::currArea);
     }
 
     const auto ProcessEntity = [](CPhysical* e) {

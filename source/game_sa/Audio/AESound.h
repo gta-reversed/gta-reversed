@@ -11,6 +11,8 @@
 class CAEAudioEntity;
 class CEntity;
 
+using tSoundID = int16;
+
 enum eSoundEnvironment : uint16 {
     SOUND_DEFAULT                          = 0x0,
     SOUND_FRONT_END                        = 0x1,
@@ -39,8 +41,8 @@ public:
     int16           m_nSoundIdInSlot;
     CAEAudioEntity* m_pBaseAudio;
     CEntity*        m_pPhysicalEntity;
-    eAudioEvents    m_nEvent;
-    float           m_fMaxVolume;
+    int32           m_nEvent; // Not necessarily `eAudioEvents`, for ex. see `CAEWeaponAudioEntity`
+    float           m_ClientVariable;
     float           m_fVolume;
     float           m_fSoundDistance;
     float           m_fSpeed;
@@ -98,14 +100,20 @@ public:
 
     CAESound& operator=(const CAESound& sound);
 
-    void Initialise(int16 bankSlotId, int16 sfxId, CAEAudioEntity* baseAudio, CVector posn, float volume,
-                    float maxDistance = 1.0f,
-                    float speed = 1.0f,
-                    float timeScale = 1.0f,
-                    uint8 ignoredServiceCycles = 0,
-                    eSoundEnvironment environmentFlags = static_cast<eSoundEnvironment>(0),
-                    float speedVariability = 0,
-                    int16 currPlayPosn = 0);
+    void Initialise(
+        int16           bankSlotId,
+        int16           soundID,
+        CAEAudioEntity* audioEntity,
+        CVector         pos,
+        float           volume,
+        float           rollOffFactor = 1.f,
+        float           relativeFrequency = 1.f, // Speed
+        float           doppler = 1.f,
+        uint8           frameDelay = 0,
+        uint32          flags = 0,
+        float           frequencyVariance = 0.f,
+        int16           playTime = 0
+    );
 
     void  UnregisterWithPhysicalEntity();
     void  StopSound();
@@ -124,12 +132,12 @@ public:
     bool  GetForcedFront() const { return m_bForcedFront; }
     void  SetIndividualEnvironment(uint16 envFlag, uint16 bEnabled); // pass eSoundEnvironment as envFlag
     void  UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 playProgress);
-    void GetRelativePosition(CVector& out) const;
-    CVector GetRelativePosition() const { CVector out; GetRelativePosition(out); return out; } // NOTSA
+    CVector GetRelativePosition() const;
+    void  GetRelativePosition(CVector* outVec) const;
     void  CalculateFrequency();
     void  UpdateFrequency();
-    float GetRelativePlaybackFrequencyWithDoppler();
-    float GetSlowMoFrequencyScalingFactor();
+    float GetRelativePlaybackFrequencyWithDoppler() const;
+    float GetSlowMoFrequencyScalingFactor() const;
     void  NewVPSLentry();
     void  RegisterWithPhysicalEntity(CEntity* entity);
     void  StopSoundAndForget();

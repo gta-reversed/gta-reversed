@@ -31,8 +31,8 @@ CTaskComplexUseEffect::CTaskComplexUseEffect(C2dEffectBase* attractor, CEntity* 
 }
 
 // For 0x636710
-CTaskComplexUseEffect::CTaskComplexUseEffect(const CTaskComplexUseEffect&) :
-    CTaskComplexUseEffect{m_2dFx, m_Entity}
+CTaskComplexUseEffect::CTaskComplexUseEffect(const CTaskComplexUseEffect& o) :
+    CTaskComplexUseEffect{o.m_2dFx, o.m_Entity}
 {
 }
 

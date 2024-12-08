@@ -51,6 +51,7 @@ public:
     void ControlDuckMove(CVector2D moveSpeed = {});
     void SetMoveAnim(CPed*);
     void ForceStopMove();
+    bool StopFireGun() const;
     void SetDuckTimer(uint16 time);
 
     CTask* Clone() const override { return new CTaskSimpleDuck{ *this }; }

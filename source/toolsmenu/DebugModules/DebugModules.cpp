@@ -1,5 +1,7 @@
 #include "StdInc.h"
 
+#include <fstream>
+
 #include "DebugModules.h"
 #include "imgui.h"
 
@@ -22,12 +24,15 @@
 #include "./TimeCycleDebugModule.h"
 #include "./CullZonesDebugModule.h"
 #include "./TextDebugModule.h"
+#include "./ProcObjectDebugModule.h"
 #include "./Spawner/SpawnerDebugModule.hpp"
 #include "./ImGuiDebugModule.hpp"
 #include "./ScriptDebugModule.hpp"
 #include "./CloudsDebugModule.hpp"
 #include "./AudioZonesDebugModule.h"
 #include "./WeaponDebugModule.hpp"
+#include "./CheckpointsDebugModule.hpp"
+#include "./VehicleInfoDebugModule.h"
 
 DebugModules::DebugModules(ImGuiContext* ctx) :
     m_ImCtx(ctx)
@@ -35,9 +40,20 @@ DebugModules::DebugModules(ImGuiContext* ctx) :
     CreateModules();
 }
 
+DebugModules::~DebugModules() {
+    DoSerializeModules(); // NOTE/BUG: Currently practically never runs because GTA crashes before it :D
+}
+
 void DebugModules::PreRenderUpdate() {
     for (auto& module : m_Modules) {
         module->Update();
+    }
+
+    // Handle DebugModule serialization
+    const auto now = CTimer::GetTimeInMS();
+    if ((now - m_LastSerializationTimeMs) >= MODULE_SERIALIZATION_INTERVAL_MS) {
+        DoSerializeModules();
+        m_LastSerializationTimeMs = now;
     }
 }
 
@@ -92,13 +108,20 @@ void DebugModules::CreateModules() {
     Add<notsa::debugmodules::CloudsDebugModule>();
     Add<notsa::debugmodules::WeaponDebugModule>();
     Add<ParticleDebugModule>();
+    Add<TextDebugModule>();
+    Add<notsa::debugmodules::CheckpointsDebugModule>();
+    Add<ProcObjectDebugModule>();
+    Add<VehicleInfoDebugModule>();
 
     // Stuff that is present in multiple menus
     Add<TimeCycleDebugModule>(); // Visualization + Extra
     Add<CullZonesDebugModule>(); // Visualization + Extra
     Add<COcclusionDebugModule>(); // Visualization + Extra
     Add<AudioZonesDebugModule>(); // Visualization + Extra
-    Add<notsa::debugmodules::ImGui>(); // Stats + Extra
+    Add<notsa::debugmodules::ImGuiDebugModule>(); // Stats + Extra
+
+    // Restore state of modules
+    DoDeserializeModules();
 }
 
 void DebugModules::RenderMenuBarInfo() {
@@ -116,4 +139,64 @@ void DebugModules::RenderMenuBarInfo() {
     ImGui::PushStyleColor(ImGuiCol_Text, { std::max(0.f, 1.f - FrameRateProg), std::min(1.f, FrameRateProg), 0.f, 1.f });
     ImGui::Text("%.1f FPS [%.2f ms]", io.Framerate, io.Framerate ? 1000.f / io.Framerate : 0.f); // Calculate frametime from framerate (to make the next less wobbly as the io.DeltaTime varies a lot otherwise)
     ImGui::PopStyleColor();
+}
+
+void DebugModules::DoSerializeModules() {
+    // Serialize all modules
+    json states{};
+    for (const auto& m : m_Modules) {
+        const auto id = m->GetID();
+        if (id.empty()) {
+            continue;
+        }
+        states[id] = m->Serialize();
+    }
+
+    // Save to file
+    std::ofstream outf{"DebugModules.json"};
+    outf << states;
+}
+
+void DebugModules::DoDeserializeModules() {
+    json states;
+
+    // Load from file
+    {
+        std::ifstream inf{"DebugModules.json"};
+        if (inf.fail()) {
+            return; // File doesn't exist, etc
+        }
+        try {
+            inf >> states;
+        } catch (const json::exception& e) {
+            const fs::path bakFileName{std::format("DebugModules-{}.json.bak", time(nullptr))};
+            fs::copy("DebugModules.json", bakFileName);
+            NOTSA_LOG_ERR("Error while loading `DebugModules.json`: {}", e.what());
+            NOTSA_LOG_ERR("Backing up corrupted file to {} and creating a new one.", bakFileName.string());
+            return;
+        }
+    }
+
+    // Deserialize modules
+    for (const auto& m : m_Modules) {
+        const auto id = m->GetID();
+
+        // If no ID we don't serialize the module
+        if (id.empty()) {
+            continue;
+        }
+
+        // This module might not have been serialized yet, but that's all good
+        const auto s = states.find(id);
+        if (s == states.end()) {
+            continue;
+        }
+
+        // Now deserialize... We handle exceptions too, because otherwise we get a weird crash in a dll we don't have pdb's for????
+        try {
+            m->Deserialize(*s);
+        } catch (const json::exception& e) {
+            NOTSA_LOG_ERR("JSON exception occurred while deserializing module `{}`: {}", id, e.what());
+        }
+    }
 }

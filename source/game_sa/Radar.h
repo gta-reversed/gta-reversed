@@ -293,7 +293,7 @@ public:
     static bool Save();
 
     // NOTSA
-    static const char* GetBlipName(eRadarSprite sprite);
+    static const GxtChar* GetBlipName(eRadarSprite sprite);
     static int32 FindTraceNotTrackingBlipIndex(); // Return the index of the first trace with the `TrackingBlip` flag NOT set
 
     static bool IsMapSectionInBounds(int32 x, int32 y) {

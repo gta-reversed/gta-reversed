@@ -24,6 +24,7 @@
 #include <tuple>
 #include <initializer_list>
 #include <format>
+#undef GetCurrentTime // gtfo windows.h
 
 #include <ranges>
 namespace rng = std::ranges;
@@ -119,14 +120,13 @@ namespace fs = std::filesystem;
 #include "game_sa\Enums\eClothesTexturePart.h"
 #include "game_sa\Enums\eCrimeType.h"
 #include "game_sa\Enums\eDecisionMakerEvents.h"
-#include "game_sa\Enums\eEmergencyPedVoices.h"
 #include "game_sa\Enums\eEntityStatus.h"
 #include "game_sa\Enums\eEntityType.h"
 #include "game_sa\Enums\eEventType.h"
 #include "game_sa\Enums\eFontAlignment.h"
 #include "game_sa\Enums\eGameState.h"
 #include "game_sa\Enums\eModelID.h"
-#include "game_sa\Enums\ePedBones.h"
+#include "game_sa\Enums\eBoneTag.h"
 #include "game_sa\Enums\ePedModel.h"
 #include "game_sa\Enums\ePedState.h"
 #include "game_sa\Enums\eRadioID.h"
@@ -338,7 +338,6 @@ namespace fs = std::filesystem;
 #include "game_sa\Sprite2d.h"
 #include "game_sa\Stats.h"
 #include "game_sa\StencilShadowObject.h"
-#include "game_sa\StencilShadowObjects.h"
 #include "game_sa\StencilShadows.h"
 #include "game_sa\StoredCollPoly.h"
 #include "game_sa\StreamedScripts.h"

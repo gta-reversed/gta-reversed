@@ -131,7 +131,7 @@ CTask* CTaskComplexUseSwatRope::ControlSubTask(CPed* ped) {
             ped->SetPosn(posn);
             ped->m_fAimingRotation = ped->m_fCurrentRotation - CTimer::GetTimeStep() * 0.05F;
             ped->m_vecMoveSpeed.z = -0.03f;
-            ped->Say(177);
+            ped->Say(CTX_GLOBAL_ROPE);
         }
     }
 

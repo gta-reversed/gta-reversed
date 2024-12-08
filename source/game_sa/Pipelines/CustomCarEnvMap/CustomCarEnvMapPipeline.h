@@ -10,57 +10,75 @@
 #include "Pool.h"
 #include "Object.h"
 
-constexpr auto ENV_MAP_PLUGIN_ID = 0x253F2FC;
-constexpr auto ENV_MAP_ATM_PLUGIN_ID = 0x253F2F4;
-constexpr auto SPECULAR_MAP_PLUGIN_ID = 0x253F2F6;
+#define rwID_ENVMAPPLUGIN (MAKECHUNKID(rwVENDORID_DEVELOPER, 0xFC))
+#define rwID_ENVMAPATMPLUGIN (MAKECHUNKID(rwVENDORID_DEVELOPER, 0xF4))
+#define rwID_SPECMAPATMPLUGIN (MAKECHUNKID(rwVENDORID_DEVELOPER, 0xF6))
+
 constexpr auto CUSTOM_CAR_ENV_MAP_PIPELINE_PLUGIN_ID = 0x53F2009A;
 
-struct ReflectionMaterialStream {
-    float scaleX;
-    float scaleY;
-    float transSclX;
-    float transSclY;
-    float shininess;
-    RwTexture* texture;
+struct EnvMapPipeMaterialDataBuffer {
+    CVector2D  Scale;
+    CVector2D  TranslationScale;
+    float      Shininess;
+    RwTexture* Texture;
 };
 
 struct CustomEnvMapPipeMaterialData {
-    uint8 scaleX;
-    uint8 scaleY;
-    uint8 transSclX;
-    uint8 transSclY;
+    FixedVector2D<int8, 8.f> Scale{1.f, 1.f};
+    FixedVector2D<int8, 8.f> TranslationScale{1.f, 1.f};
+    FixedFloat<int8, 255.f>  Shininess{1.f};
+    RwUInt16                 RenderFrame{};
+    RwTexture*               Texture{};
 
-    uint8 shininess;
-    int16 renderFrameCounter;
-    RwTexture* texture;
-
-    void FromStream(const ReflectionMaterialStream& stream) { // 0x5D8BE0
-        scaleX    = (uint8)(stream.scaleX * 8.0f);
-        scaleY    = (uint8)(stream.scaleY * 8.0f);
-        transSclX = (uint8)(stream.transSclX * 8.0f);
-        transSclY = (uint8)(stream.transSclY * 8.0f);
-        shininess = (uint8)(stream.shininess * 255.0f);
-        texture   = stream.texture;
-        renderFrameCounter = 0;
+    static auto FromBuffer(const EnvMapPipeMaterialDataBuffer& b) { // 0x5D8BE0
+        return CustomEnvMapPipeMaterialData{
+            .Scale            = b.Scale,
+            .TranslationScale = b.TranslationScale,
+            .Shininess        = b.Shininess,
+            .Texture          = b.Texture,
+        };
     };
+
+    auto ToBuffer() const {
+        return EnvMapPipeMaterialDataBuffer{
+            .Scale            = Scale,
+            .TranslationScale = TranslationScale,
+            .Shininess        = Shininess,
+            .Texture          = Texture,
+        };
+    }
+
+    friend bool operator==(const CustomEnvMapPipeMaterialData&, const CustomEnvMapPipeMaterialData&) = default;
 };
 VALIDATE_SIZE(CustomEnvMapPipeMaterialData, 0xC);
 
 struct CustomEnvMapPipeAtomicData {
-    float lastTrans;
-    float posx;
-    float posy;
+    float OffsetU;
+    float PrevPosX, PrevPosY; //!< World map pos
 };
 VALIDATE_SIZE(CustomEnvMapPipeAtomicData, 0xC);
 
-struct SpecMatBuffer {
-    float specularity;
-    char name[24];
+struct SpecMapPipeMaterialDataBuffer {
+    float Specularity{};
+    char TexName[24]{};
 };
 
 struct CustomSpecMapPipeMaterialData {
-    float specularity;
-    RwTexture* texture;
+    float Specularity;
+    RwTexture* Texture;
+
+    static auto FromBuffer(const SpecMapPipeMaterialDataBuffer& b) {
+        return CustomSpecMapPipeMaterialData{
+            .Specularity = b.Specularity,
+            .Texture = RwTextureRead(b.TexName, nullptr),
+        };
+    }
+
+    auto ToBuffer() const {
+        SpecMapPipeMaterialDataBuffer b{.Specularity = Specularity};
+        strcpy_s(b.TexName, RwTextureGetName(Texture));
+        return b;
+    }
 };
 VALIDATE_SIZE(CustomSpecMapPipeMaterialData, 0x8);
 
@@ -91,7 +109,7 @@ public:
     static bool CreatePipe();
     static void DestroyPipe();
     static RxPipeline* CreateCustomObjPipe();
-    static void CustomPipeRenderCB(RwResEntry* repEntry, void* object, uint8 type, uint32 flags);
+    static void CustomPipeRenderCB(RwResEntry* repEntry, void* object, RwUInt8 type, RwUInt32 flags);
     static RwBool CustomPipeInstanceCB(void* object, RwResEntry* resEntry, RxD3D9AllInOneInstanceCallBack instanceCallback);
 
     static RpMaterial* CustomPipeMaterialSetup(RpMaterial* material, void* data);
@@ -100,11 +118,14 @@ public:
     static void PreRenderUpdate();
     static CustomEnvMapPipeMaterialData* DuplicateCustomEnvMapPipeMaterialData(CustomEnvMapPipeMaterialData** data);
 
-    static void AllocEnvMapPipeAtomicData(RpAtomic* atomic);
+    static CustomEnvMapPipeAtomicData* AllocEnvMapPipeAtomicData(RpAtomic* atomic);
     static void SetCustomEnvMapPipeAtomicDataDefaults(CustomEnvMapPipeAtomicData* data);
     static void SetCustomEnvMapPipeMaterialDataDefaults(CustomEnvMapPipeMaterialData* data);
 
     // Env Mat
+    static auto*& EnvMapPlGetData(RpMaterial* obj) { return *RWPLUGINOFFSET(CustomEnvMapPipeMaterialData*, obj, ms_envMapPluginOffset); }
+    static auto*& EnvMapPlGetData(const RpMaterial* obj) { return *RWPLUGINOFFSETCONST(CustomEnvMapPipeMaterialData*, obj, ms_envMapPluginOffset); }
+
     static void* pluginEnvMatConstructorCB(void* object, int32 offsetInObject, int32 sizeInObject);
     static void* pluginEnvMatDestructorCB(void* object, int32 offsetInObject, int32 sizeInObject);
     static void* pluginEnvMatCopyConstructorCB(void* dstObject, const void* srcObject, int32 offsetInObject, int32 sizeInObject);
@@ -127,11 +148,17 @@ public:
     static void SetFxEnvTexture(RpMaterial* material, RwTexture* texture);
 
     // Env Atm
+    static auto*& EnvMapAtmPlGetData(RpAtomic* obj) { return *RWPLUGINOFFSET(CustomEnvMapPipeAtomicData*, obj, ms_envMapAtmPluginOffset); }
+    static auto*& EnvMapAtmPlGetData(const RpAtomic* obj) { return *RWPLUGINOFFSETCONST(CustomEnvMapPipeAtomicData*, obj, ms_envMapAtmPluginOffset); }
+
     static void* pluginEnvAtmConstructorCB(void* object, int32 offsetInObject, int32 sizeInObject);
     static void* pluginEnvAtmDestructorCB(void* object, int32 offsetInObject, int32 sizeInObject);
     static void* pluginEnvAtmCopyConstructorCB(void* dstObject, const void* srcObject, int32 offsetInObject, int32 sizeInObject);
 
     // Spec Mat
+    static auto*& SpecMapPlGetData(RpMaterial* obj) { return *RWPLUGINOFFSET(CustomSpecMapPipeMaterialData*, obj, ms_specularMapPluginOffset); }
+    static auto*& SpecMapPlGetData(const RpMaterial* obj) { return *RWPLUGINOFFSETCONST(CustomSpecMapPipeMaterialData*, obj, ms_specularMapPluginOffset); }
+
     static void* pluginSpecMatConstructorCB(void* object, int32 offsetInObject, int32 sizeInObject);
     static void* pluginSpecMatDestructorCB(void* object, int32 offsetInObject, int32 sizeInObject);
     static void* pluginSpecMatCopyConstructorCB(void* dstObject, const void* srcObject, int32 offsetInObject, int32 sizeInObject);
@@ -139,8 +166,8 @@ public:
     static RwStream* pluginSpecMatStreamWriteCB(RwStream* stream, int32 binaryLength, const void* object, int32 offsetInObject, int32 sizeInObject);
     static int32 pluginSpecMatStreamGetSizeCB(const void* object, int32 offsetInObject, int32 sizeInObject);
 
-    static float GetFxSpecSpecularity(RpMaterial* material);
-    static RwTexture* GetFxSpecTexture(RpMaterial* material);
+    static float GetFxSpecSpecularity(const RpMaterial* material);
+    static RwTexture* GetFxSpecTexture(const RpMaterial* material);
     static void SetFxSpecTexture(RpMaterial* material, RwTexture* texture);
     static void SetFxSpecSpecularity(RpMaterial* material, float value);
 };

@@ -51,7 +51,7 @@ void CDebug::DebugDisplayTextBuffer() {
     for (size_t i = 0; i < m_debugStrings.size(); i++)
     {
         auto& debugStr = m_debugStrings[i];
-        CFont::PrintString(debugStr.x, debugStr.y, debugStr.text.c_str());
+        CFont::PrintString(debugStr.x, debugStr.y, GxtCharFromAscii(debugStr.text.c_str()));
     }
     CFont::DrawFonts();
     m_debugStrings.clear();
