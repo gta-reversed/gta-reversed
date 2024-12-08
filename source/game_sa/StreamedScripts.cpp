@@ -14,6 +14,7 @@ void CStreamedScripts::InjectHooks() {
     RH_ScopedInstall(FindStreamedScriptQuiet, 0x4706F0);
     RH_ScopedInstall(GetProperIndexFromIndexUsedByScript, 0x470810);
     RH_ScopedInstall(GetStreamedScriptFilename, 0x470900);
+    RH_ScopedInstall(RemoveStreamedScriptFromMemory, 0x4708E0);
     RH_ScopedInstall(StartNewStreamedScript, 0x470890);
     RH_ScopedInstall(GetStreamedScriptWithThisStartAddress, 0x470910);
 }
@@ -72,8 +73,9 @@ const char* CStreamedScripts::GetStreamedScriptFilename(uint16 index) {
     return m_aScripts[index].m_Filename;
 }
 
+// 0x4708E0
 void CStreamedScripts::RemoveStreamedScriptFromMemory(int32 index) {
-    plugin::CallMethod<0x4708E0, CStreamedScripts*, int32>(this, index);
+    delete[] std::exchange(m_aScripts[index].m_StreamedScriptMemory, nullptr);
 }
 
 // 0x470890
