@@ -487,8 +487,8 @@ void CPathFind::DoPathSearch(
 }
 
 // 0x452760
-void CPathFind::ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& address, CNodeRoute& nodeRoute) {
-    plugin::CallMethod<0x452760>(this, nodeType, &vecStart, &vecEnd, &address, &nodeRoute);
+void CPathFind::ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& startAddress, CNodeRoute* route) {
+    plugin::CallMethod<0x452760>(this, nodeType, &vecStart, &vecEnd, &startAddress, route);
 }
 
 // 0x44D960
