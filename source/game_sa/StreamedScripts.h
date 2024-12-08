@@ -43,5 +43,10 @@ public:
     int32           RegisterScript(const char* scriptName);
     void            RemoveStreamedScriptFromMemory(int32 index);
     CRunningScript* StartNewStreamedScript(int32 index);
+
+    // NOTSA
+    auto GetActiveScripts() {
+        return m_aScripts | rng::views::take(m_nCountOfScripts);
+    }
 };
 VALIDATE_SIZE(CStreamedScripts, 0xA48);
