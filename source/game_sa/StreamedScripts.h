@@ -26,7 +26,6 @@ public:
 
     int32 m_nLargestExternalSize;
     int16 m_nCountOfScripts;
-    int16 field_A46;
 
 public:
     static void     InjectHooks();

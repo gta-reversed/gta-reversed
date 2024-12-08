@@ -130,8 +130,11 @@ int32 CStreamedScripts::RegisterScript(const char* scriptName) {
 // 0x470910
 uint32 CStreamedScripts::GetStreamedScriptWithThisStartAddress(uint8* dataPtr)
 {
-    uint16 result;
-    for (result = 0; result < NUM_STREAMED_SCRIPTS && m_aScripts[result].m_StreamedScriptMemory != dataPtr; ++result)
-        ;
-    return result;
+    for (auto&& [i, scr] : notsa::enumerate(m_aScripts)) {
+        if (scr.m_StreamedScriptMemory == dataPtr) {
+            return i;
+        }
+    }
+    // Originally returns '0', possibly unintended.
+    NOTSA_UNREACHABLE();
 }
