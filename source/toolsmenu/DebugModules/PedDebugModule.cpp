@@ -14,6 +14,10 @@
 
 #include "Tasks/TaskTypes/TaskComplexWander.h"
 #include "Tasks/TaskTypes/TaskSimpleGoToPoint.h"
+#include "Tasks/TaskTypes/TaskComplexBeInGroup.h"
+#include "Tasks/TaskTypes/TaskComplexGangLeader.h"
+#include "Tasks/TaskTypes/TaskComplexGangFollower.h"
+#include "Tasks/TaskTypes/SeekEntity/TaskComplexSeekEntity.h"
 
 // Define extra conversion function from our vector type to imgui's vec2d
 #include <imgui.h>
@@ -28,22 +32,22 @@ struct PedInfo {
 
 namespace Visualisation {
 template<typename T>
-void VisualiseTask(T& task) {
+void VisualiseTask(T& task, CPed& ped) {
 }
 
 template<typename T>
-void VisualiseTaskIfPossible(CTask* task) {
+void VisualiseTaskIfPossible(CTask* task, CPed& ped) {
     if (!task) {
         return;
     }
     T* typedTask = CTask::DynCast<T>(task);
     if (typedTask) {
-        Visualisation::VisualiseTask(*typedTask);
+        Visualisation::VisualiseTask(*typedTask, ped);
     }
 }
 
 template<>
-void VisualiseTask<CTaskComplexWander>(CTaskComplexWander& task) {
+void VisualiseTask<CTaskComplexWander>(CTaskComplexWander& task, CPed& ped) {
     if (task.m_LastNode && task.m_LastNode.IsValid()) {
         CPathNode& lastPathNode = ThePaths.m_pPathNodes[task.m_LastNode.m_wAreaId][task.m_LastNode.m_wNodeId];
         auto       nodePos      = lastPathNode.GetPosition();
@@ -68,16 +72,65 @@ void VisualiseTask<CTaskComplexWander>(CTaskComplexWander& task) {
         CLines::RenderLineNoClipping(lastNodePos, nextNodePos, startColor, endColor);
     }
 
-    VisualiseTaskIfPossible<CTaskSimpleGoToPoint>(task.GetSubTask());
+    VisualiseTaskIfPossible<CTaskSimpleGoToPoint>(task.GetSubTask(), ped);
 }
 
 template<>
-void VisualiseTask<CTaskSimpleGoToPoint>(CTaskSimpleGoToPoint& task) {
+void VisualiseTask<CTaskSimpleGoToPoint>(CTaskSimpleGoToPoint& task, CPed& ped) {
     auto pedPosColor = CRGBA(255, 0, 0, 255).ToIntRGBA();
     auto targetRadiusColor = CRGBA(128, 0, 0, 255).ToIntRGBA();
+    auto pedHelperLineColor = CRGBA(255, 0, 255, 255).ToIntRGBA();
+    CLines::RenderLineNoClipping(ped.GetPosition(), task.m_vecLastPedPos + CVector{ 0.f, 0.f, 0.5f }, pedHelperLineColor, pedHelperLineColor);
     CLines::RenderLineNoClipping(task.m_vecLastPedPos + CVector{ 0.f, 0.f, 0.5f }, task.m_vecLastPedPos - CVector{ 0.f, 0.f, 0.5f }, pedPosColor, pedPosColor);
     CLines::RenderLineCircleNoClipping(task.m_vecTargetPoint + CVector{0.f, 0.f, 0.5f}, task.m_fRadius, 10, targetRadiusColor);
     CLines::RenderLineNoClipping(task.m_vecLastPedPos + CVector{ 0.f, 0.f, 0.5f }, task.m_vecTargetPoint + CVector{ 0.f, 0.f, 0.5f }, pedPosColor, targetRadiusColor);
+}
+
+template<>
+void VisualiseTask<CTaskComplexBeInGroup>(CTaskComplexBeInGroup& task, CPed& ped) {
+    VisualiseTaskIfPossible<CTaskComplexGangLeader>(task.GetSubTask(), ped);
+    VisualiseTaskIfPossible<CTaskComplexGangFollower>(task.GetSubTask(), ped);
+}
+
+template<>
+void VisualiseTask<CTaskComplexGangLeader>(CTaskComplexGangLeader& task, CPed& ped) {
+    VisualiseTaskIfPossible<CTaskComplexWander>(task.GetSubTask(), ped);
+}
+
+template<>
+void VisualiseTask<CTaskComplexGangFollower>(CTaskComplexGangFollower& task, CPed& ped) {
+    VisualiseTaskIfPossible<CTaskComplexWander>(task.GetSubTask(), ped);
+    VisualiseTaskIfPossible<CTaskComplexSeekEntity<>>(task.GetSubTask(), ped);
+}
+
+template<>
+void VisualiseTask<CTaskComplexSeekEntity<>>(CTaskComplexSeekEntity<>& task, CPed& ped) {
+    VisualiseTaskIfPossible<CTaskComplexFollowNodeRoute>(task.GetSubTask(), ped);
+    VisualiseTaskIfPossible<CTaskComplexGoToPointAndStandStill>(task.GetSubTask(), ped);
+}
+
+template<>
+void VisualiseTask<CTaskComplexGoToPointAndStandStill>(CTaskComplexGoToPointAndStandStill& task, CPed& ped) {
+    VisualiseTaskIfPossible<CTaskSimpleGoToPoint>(task.GetSubTask(), ped);
+}
+
+template<>
+void VisualiseTask<CTaskComplexFollowNodeRoute>(CTaskComplexFollowNodeRoute& task, CPed& ped) {
+    auto  numEntries = task.m_PtRoute->m_NumEntries;
+    if (numEntries > 0) {
+        auto  colorStep = (255 - 100) / task.m_PtRoute->m_NumEntries;
+        auto& curPoint  = task.m_PtRoute->GetAll()[task.m_CurrPtIdx];
+        for (uint32 i = 0; i < task.m_PtRoute->m_NumEntries - 1; ++i) {
+            auto color = i == task.m_CurrPtIdx ? CRGBA(22, 181, 59, 255) : CRGBA(84, 150, 255 - (colorStep * i), 255);
+            auto nextColor  = (i + 1) == task.m_CurrPtIdx ? CRGBA(22, 181, 59, 255) : CRGBA(84, 150, 255 - (colorStep * (i + 1)), 255);
+            auto curPos    = task.m_PtRoute->m_Entries[i] + CVector{ 0.f, 0.f, 0.25f };
+            auto nextPos    = task.m_PtRoute->m_Entries[i + 1] + CVector{ 0.f, 0.f, 0.25f };
+            CLines::RenderLineNoClipping(curPos, nextPos, color.ToIntRGBA(), nextColor.ToIntRGBA());
+        }
+    }
+    
+    VisualiseTaskIfPossible<CTaskSimpleGoToPoint>(task.GetSubTask(), ped);
+    VisualiseTaskIfPossible<CTaskComplexGoToPointAndStandStill>(task.GetSubTask(), ped);
 }
 }
 
@@ -204,7 +257,10 @@ void PedDebugModule::Render3D() {
         return;
     }
 
-    for (auto& ped : m_LastProcessedPeds) {
+    for (auto* ped : m_LastProcessedPeds) {
+        if (!ped) {
+            continue;
+        }
         auto& taskMgr = ped->GetTaskManager();
 
         // TODO: Replace with ranges::concat_view once c++ 26 is available
@@ -217,8 +273,9 @@ void PedDebugModule::Render3D() {
         }
 
         for (auto* task : tasksVec) {
-            Visualisation::VisualiseTaskIfPossible<CTaskComplexWander>(task);
-            Visualisation::VisualiseTaskIfPossible<CTaskSimpleGoToPoint>(task);
+            Visualisation::VisualiseTaskIfPossible<CTaskComplexWander>(task, *ped);
+            Visualisation::VisualiseTaskIfPossible<CTaskSimpleGoToPoint>(task, *ped);
+            Visualisation::VisualiseTaskIfPossible<CTaskComplexBeInGroup>(task, *ped);
         }
     }
 }
