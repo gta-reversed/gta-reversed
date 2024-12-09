@@ -73,21 +73,21 @@ public:
 
         script.Init();
         script.SetName("gta-r-m");
-        script.m_bIsMission         = false;
-        script.m_bUseMissionCleanup = false;
-        script.m_bNotFlag           = (commandId >> 15) & 1;
+        script.m_ThisMustBeTheOnlyMissionRunning         = false;
+        script.m_UsesMissionCleanup = false;
+        script.m_NotFlag           = (commandId >> 15) & 1;
 
         // our script code
         ScriptCode code(commandId);
 
         // for all arguments: add them to script code
         code.Pack(arguments...);
-        script.m_pBaseIP = script.m_IP = code.GetData();
+        script.m_BaseIP = script.m_IP = code.GetData();
 
         script.ProcessOneCommand();
         code.SaveResultVariables(&script);
 
-        return script.m_bCondResult ? true : false;
+        return script.m_CondResult ? true : false;
     }
 
 private:

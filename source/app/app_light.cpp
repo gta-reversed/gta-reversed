@@ -98,9 +98,11 @@ void LightsDestroy(RpWorld* world) {
         return;
     }
     const auto DestroyLight = [world](RpLight*& light) {
-        RpWorldRemoveLight(world, light);
-        RwFrameDestroy(RpLightGetFrame(light));
-        RpLightDestroy(std::exchange(light, nullptr));
+        if (light) {
+            RpWorldRemoveLight(world, light);
+            RwFrameDestroy(RpLightGetFrame(light));
+            RpLightDestroy(std::exchange(light, nullptr));
+        }
     };
     DestroyLight(pAmbient);
     DestroyLight(pDirect);
