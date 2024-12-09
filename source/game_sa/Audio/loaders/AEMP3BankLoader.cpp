@@ -133,13 +133,12 @@ void CAEMP3BankLoader::UpdateVirtualChannels(tVirtualChannelSettings* settings, 
         const auto& bankSlot = m_paBankSlots[slotId];
 
         if (slotId < 0 || soundId < 0 || bankSlot.m_nBankId == -1 || (soundId >= bankSlot.m_nSoundCount && bankSlot.m_nSoundCount >= 0)) {
-            // perhaps invalid?
             lengths[i] = -1;
             loopStartTimes[i] = -1;
         } else {
             lengths[i] = CAEAudioUtility::ConvertFromBytesToMS(
                 bankSlot.CalculateSizeOfSlotItem(soundId),
-                bankSlot.m_aSlotItems[soundId].m_usSoundHeadroom,
+                bankSlot.m_aSlotItems[soundId].m_usSampleRate,
                 1u
             );
 

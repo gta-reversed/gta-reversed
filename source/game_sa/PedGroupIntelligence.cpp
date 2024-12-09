@@ -12,7 +12,7 @@ void CPedGroupIntelligence::InjectHooks() {
     //RH_ScopedGlobalInstall(ReportFinishedTask_, 0x5F76C0, { .reversed = false });
 
     RH_ScopedInstall(SetTask, 0x5F7540);
-    RH_ScopedInstall(Flush, 0x5F7350);
+    RH_ScopedInstall(Flush, 0x5F7350, { .reversed = false });
     RH_ScopedInstall(SetDefaultTaskAllocatorType, 0x5FBB70, { .reversed = false });
     RH_ScopedInstall(SetDefaultTaskAllocator, 0x5FB280, { .reversed = false });
     RH_ScopedInstall(ComputeDefaultTasks, 0x5F88D0, { .reversed = false });
@@ -148,7 +148,8 @@ bool CPedGroupIntelligence::ReportFinishedTask(const CPed* ped, const CTask* tas
 
 // 0x5F7540
 void CPedGroupIntelligence::SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, int32 slot, bool force) {
-    assert(!GetTaskPool()->IsObjectValid(&task)); // Shouldn't be `new`'d [Keep in mind that there might be false positives]
+    // Commented out as script tasks are `new`'d, and deleted after this finishes.
+    //assert(!GetTaskPool()->IsObjectValid(&task)); // Shouldn't be `new`'d [Keep in mind that there might be false positives]
 
     const auto tp = GetPedsTaskPair(ped, taskPairs);
     if (!tp) {

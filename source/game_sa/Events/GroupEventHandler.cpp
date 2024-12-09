@@ -719,12 +719,16 @@ CTaskAllocator* CGroupEventHandler::ComputeFleePedResponse(CPedGroup* pg, CPed* 
     if (!leader) {
         return nullptr;
     }
+
+    if (DistanceBetweenPoints(leader->GetPosition(), threat->GetPosition()) > 64.f) {
+        return nullptr;
+    }
     /* rand(); */
     for (auto& m : pg->GetMembership().GetMembers()) {
         pg->GetIntelligence().SetEventResponseTask(
-            threat,
+            &m,
             CTaskComplexSmartFleeEntity{
-                &m,
+                threat,
                 false,
                 60.f,
                 10'000,

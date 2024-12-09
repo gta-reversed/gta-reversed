@@ -559,7 +559,7 @@ bool CCutsceneMgr::LoadCutSceneFile(const char* csFileName) {
             { "motion"sv,     MOTION     } 
         };
         for (const auto& [name, sec] : mapping) {
-            if (str == name) {
+            if (str.starts_with(name)) {
                 return sec;
             }
         }
@@ -588,7 +588,7 @@ bool CCutsceneMgr::LoadCutSceneFile(const char* csFileName) {
             continue;
         }
 
-        if (lnsv == "end"sv) { // End of section
+        if (lnsv.starts_with("end"sv)) { // End of section
             curSec = NONE;
             continue;
         }

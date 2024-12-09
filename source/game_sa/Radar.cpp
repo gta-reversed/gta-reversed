@@ -106,7 +106,7 @@ void CRadar::InjectHooks() {
     RH_ScopedInstall(SetMapCentreToPlayerCoords, 0x585B20);
     RH_ScopedInstall(InitFrontEndMap, 0x585960);
     RH_ScopedInstall(CalculateBlipAlpha, 0x583420);
-    // RH_ScopedInstall(TransformRadarPointToScreenSpace, 0x583480, true);
+    RH_ScopedInstall(TransformRadarPointToScreenSpace, 0x583480);
     RH_ScopedInstall(TransformRealWorldPointToRadarSpace, 0x583530);
     RH_ScopedInstall(CalculateCachedSinCos, 0x583670);
     RH_ScopedInstall(SetBlipSprite, 0x583D70);
@@ -136,7 +136,7 @@ void CRadar::InjectHooks() {
     RH_ScopedInstall(ShowRadarMarker, 0x584480);
     RH_ScopedInstall(DrawRadarMask, 0x585700);
     RH_ScopedInstall(Load, 0x5D53C0);
-    RH_ScopedGlobalInstall(Save, 0x5D5860, {.reversed = false});
+    RH_ScopedInstall(Save, 0x5D5860);
     RH_ScopedInstall(SetBlipFade, 0x583E00); // unused
     RH_ScopedInstall(SetCoordBlipAppearance, 0x583E50);
     RH_ScopedInstall(SetCoordBlip, 0x583820);
@@ -408,6 +408,8 @@ uint8 CRadar::CalculateBlipAlpha(float distance) {
  * @addr 0x583480
  */
 void CRadar::TransformRadarPointToScreenSpace(CVector2D& out, const CVector2D& in) {
+    // CRadar::DrawRadarSection assumes this function won't spoil EDX, but it does, so we need to keep it up to data.
+    _asm { push edx };
     if (FrontEndMenuManager.m_bDrawingMap) {
         out = {
             FrontEndMenuManager.m_vMapOrigin.x + FrontEndMenuManager.m_fMapZoom * in.x,
@@ -419,6 +421,7 @@ void CRadar::TransformRadarPointToScreenSpace(CVector2D& out, const CVector2D& i
             SCREEN_STRETCH_FROM_BOTTOM(104.0f) + SCREEN_STRETCH_Y(76.0f) / 2.0f - SCREEN_STRETCH_Y(76.0f * in.y) / 2.0f
         };
     }
+    _asm { pop edx };
 }
 
 /*!
@@ -1962,10 +1965,10 @@ void CRadar::DrawBlips() {
 bool CRadar::Load() {
     Initialise();
 
-    for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&trace, sizeof(trace));
-        if (trace.m_pEntryExit) {
-            trace.m_pEntryExit = CEntryExitManager::mp_poolEntryExits->GetAt(i);
+    for (auto& trace : ms_RadarTrace) {
+        CGenericGameStorage::LoadDataFromWorkBuffer(trace);
+        if (trace.m_EntryExitPoolInd) {
+            trace.m_pEntryExit = CEntryExitManager::mp_poolEntryExits->GetAt(trace.m_EntryExitPoolInd - 1);
         }
     }
 
@@ -1977,12 +1980,14 @@ bool CRadar::Load() {
  * @addr 0x5D5860
  */
 bool CRadar::Save() {
-    return plugin::CallAndReturn<bool, 0x5D5860>();
-
     for (auto& trace : ms_RadarTrace) {
-        CEntryExit* enex = nullptr;
+        CEntryExit* savedEnex = nullptr;
         if (trace.m_pEntryExit) {
-            // todo:
+            const auto index = CEntryExitManager::mp_poolEntryExits->GetIndex(trace.m_pEntryExit);
+            if (CEntryExitManager::mp_poolEntryExits->IsIndexInBounds(index) && !CEntryExitManager::mp_poolEntryExits->IsFreeSlotAtIndex(index)) {
+                savedEnex = trace.m_pEntryExit;
+                trace.m_EntryExitPoolInd = index + 1; // Assign the pool index for save duration, restore it later
+            }
         }
 
         const auto& blipType = trace.m_nBlipType;
@@ -1995,8 +2000,8 @@ bool CRadar::Save() {
         }
 
         CGenericGameStorage::SaveDataToWorkBuffer(&trace, sizeof(trace));
-        if (enex) {
-            trace.m_pEntryExit = enex;
+        if (savedEnex) {
+            trace.m_pEntryExit = savedEnex;
         }
         if (bIsTracking) {
             trace.m_bTrackingBlip = true;
@@ -2132,13 +2137,11 @@ CRGBA tRadarTrace::GetStaticColour() const {
  * @brief Returns the position of the blip always relative to the world.
  */
 CVector tRadarTrace::GetWorldPos() const {
+    CVector pos = { m_vPosition };
     if (m_pEntryExit) {
-        CVector pos{};
         m_pEntryExit->GetPositionRelativeToOutsideWorld(pos);
-        return pos;
-    } else {
-        return m_vPosition;
     }
+    return pos;
 }
 
 /*!

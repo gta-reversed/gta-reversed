@@ -13,6 +13,9 @@
 #include "AEAudioHardware.h"
 #include "AEAudioUtility.h"
 
+//TODO: Remove once the cause of occasional nan here is found
+#define NANCHECK() if (isnan(m_vecCurrPosn.x)) { assert(false); }
+
 void CAESound::InjectHooks() {
     RH_ScopedClass(CAESound);
     RH_ScopedCategory("Audio");
@@ -71,6 +74,8 @@ CAESound::CAESound(CAESound& sound) {
         m_pPhysicalEntity = sound.m_pPhysicalEntity;
         m_pPhysicalEntity->RegisterReference(&m_pPhysicalEntity);
     }
+
+    NANCHECK()
 }
 
 CAESound::CAESound(int16 bankSlotId, int16 sfxId, CAEAudioEntity* baseAudio, CVector posn, float volume, float fDistance, float speed, float timeScale,
@@ -142,6 +147,7 @@ CAESound& CAESound::operator=(const CAESound& sound) {
     m_pPhysicalEntity       = nullptr;
     RegisterWithPhysicalEntity(sound.m_pPhysicalEntity);
 
+    NANCHECK()
     return *this;
 }
 
@@ -285,6 +291,8 @@ void CAESound::SetPosition(CVector pos) {
         m_nCurrTimeUpdate = CTimer::GetTimeInMS();
         m_nLastFrameUpdate = CTimer::GetFrameCounter();
     }
+
+    NANCHECK()
 }
 
 // 0x4EFA10

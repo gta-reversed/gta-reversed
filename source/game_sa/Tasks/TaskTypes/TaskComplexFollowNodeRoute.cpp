@@ -245,13 +245,13 @@ void CTaskComplexFollowNodeRoute::ComputePathNodes(CPed const* ped) {
 
     const CVector pedPos = ped->GetPosition();
 
-    if (CanGoStraightThere(ped, pedPos, m_TargetPt, ped->GetIntelligence()->m_FollowNodeThresholdDistance)) {
+    if (!CanGoStraightThere(ped, pedPos, m_TargetPt, ped->GetIntelligence()->m_FollowNodeThresholdDistance)) {
         ThePaths.ComputeRoute(
             PATH_TYPE_PED,
             ped->GetPosition(),
             m_TargetPt,
             m_StartNode,
-            *m_NodeRoute
+            m_NodeRoute
         );
         m_StartNode = {};
     }
@@ -293,7 +293,7 @@ void CTaskComplexFollowNodeRoute::ComputePathNodes(CPed const* ped) {
                                 ped->GetPosition(),
                                 m_TargetPt,
                                 pedInt->GetNodeAddress(),
-                                *m_NodeRoute
+                                m_NodeRoute
                             );
                         }
                     }
@@ -305,7 +305,7 @@ void CTaskComplexFollowNodeRoute::ComputePathNodes(CPed const* ped) {
                             ped->GetPosition(),
                             m_TargetPt,
                             routeFirstNodeInt->GetNodeAddress(),
-                            *m_NodeRoute
+                            m_NodeRoute
                         );
                         m_NodeRoute->Reverse();
                     }

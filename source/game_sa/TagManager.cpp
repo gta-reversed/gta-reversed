@@ -240,23 +240,25 @@ void CTagManager::RenderTagForPC(RpAtomic* atomic)
 // 0x5D3D60
 void CTagManager::Save()
 {
-    CGenericGameStorage::SaveDataToWorkBuffer(&ms_numTags, 4);
-    if (!ms_numTags)
-        return;
+    CGenericGameStorage::SaveDataToWorkBuffer(ms_numTags);
 
     for (auto i = 0; i < ms_numTags; ++i) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&ms_tagDesc[i].m_nAlpha, 1);
+        CGenericGameStorage::SaveDataToWorkBuffer(ms_tagDesc[i].m_nAlpha);
     }
 }
 
 // 0x5D3DA0
 void CTagManager::Load()
 {
-    CGenericGameStorage::SaveDataToWorkBuffer(&ms_numTags, 4); // Yeah, original also saves into buffer instead of loading
-    if (!ms_numTags)
-        return;
+#if FIX_BUGS
+    // TODO: Verify if there are no side effects due to this fix - it's done the same way on android but I'm not sure why this worked even without reading the data to ms_numTags
+    // The loop below always iterated the proper amount of times, so i assume the tags are loaded at some point before save is loaded, and we already have all the tags initialized
+    CGenericGameStorage::LoadDataFromWorkBuffer(ms_numTags);
+#else
+    CGenericGameStorage::SaveDataToWorkBuffer(ms_numTags); // Yeah, original also saves into buffer instead of loading
+#endif
 
     for (auto i = 0; i < ms_numTags; ++i) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&ms_tagDesc[i].m_nAlpha, 1);
+        CGenericGameStorage::LoadDataFromWorkBuffer(ms_tagDesc[i].m_nAlpha);
     }
 }

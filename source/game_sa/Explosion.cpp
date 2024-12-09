@@ -194,15 +194,15 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
 
     exp->m_nParticlesExpireTime = lifetime ? CTimer::GetTimeInMS() + lifetime : 0;
 
-    const auto PlaySoundIfEnabled = [&]() {
+    const auto PlaySoundIfEnabled = [&](float volume = .0f) {
         if (exp->m_bMakeSound) {
-            m_ExplosionAudioEntity.AddAudioEvent(eAudioEvents::AE_EXPLOSION, exp->m_vecPosition, .0f);
+            m_ExplosionAudioEntity.AddAudioEvent(eAudioEvents::AE_EXPLOSION, exp->m_vecPosition, volume);
         }
     };
 
     // Originally most likely a separate function
     // but this way its nicer
-    const auto CreateAndPlayFxWithSound = [&](const char* name) {
+    const auto CreateAndPlayFxWithSound = [&](const char* name, float volume = .0f) {
         FxSystem_c* fx{nullptr};
         if (exp->m_pVictim) {
             if (exp->m_pVictim->m_pRwObject) {
@@ -215,7 +215,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
             fx = g_fxMan.CreateFxSystem(name, exp->m_vecPosition, nullptr, false);
         }
         if (fx) {
-            PlaySoundIfEnabled();
+            PlaySoundIfEnabled(volume);
             fx->PlayAndKill();
         }
     };
@@ -261,7 +261,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
             }
         }
 
-        CreateAndPlayFxWithSound("explosion_molotov");
+        CreateAndPlayFxWithSound("explosion_molotov", -36.f);
 
         break;
     }

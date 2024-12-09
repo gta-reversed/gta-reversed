@@ -74,6 +74,7 @@ public:
             uint32 bSlowdown : 1;
             uint32 bRandSpeed : 1;
             uint32 bExpands : 1;
+            uint32 bRangeIncreasesOverTime : 1;
         } flags;
         uint32 m_nFlags;
     };

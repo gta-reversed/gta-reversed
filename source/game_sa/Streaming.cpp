@@ -1067,9 +1067,8 @@ bool CStreaming::IsVeryBusy() {
 
 // 0x5D29E0
 bool CStreaming::Load() {
-    for (CStreamingInfo& info : ms_aInfoForModel) {
-        uint8 flags;
-        CGenericGameStorage::LoadDataFromWorkBuffer(&flags, sizeof(flags));
+    for (auto& info : ms_aInfoForModel) {
+        auto flags = CGenericGameStorage::LoadDataFromWorkBuffer<uint8>();
         if (info.IsLoaded() && flags != 255) {
             info.SetFlags(flags);
         }
@@ -1080,11 +1079,8 @@ bool CStreaming::Load() {
 // 0x5D29A0
 bool CStreaming::Save() {
     for (const auto& info : ms_aInfoForModel) {
-        uint8 data = 255;
-        if (info.IsLoaded()) {
-            data = info.GetFlags();
-        }
-        CGenericGameStorage::SaveDataToWorkBuffer(&data, sizeof(data));
+        uint8 data = info.IsLoaded() ? info.GetFlags() : 255;
+        CGenericGameStorage::SaveDataToWorkBuffer(data);
     }
     return true;
 }

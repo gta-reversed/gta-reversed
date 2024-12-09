@@ -42,7 +42,7 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(ClearMouseHistory, 0x541BD0);
     RH_ScopedInstall(Clear, 0x541A70);
     RH_ScopedInstall(Update, 0x541C40);
-    RH_ScopedInstall(UpdateMouse, 0x53F3C0);
+    RH_ScopedInstall(UpdateMouse, 0x53F3C0, {.locked = true});
     RH_ScopedInstall(ProcessPad, 0x746A10);
     RH_ScopedInstall(ProcessPCSpecificStuff, 0x53FB40);
     RH_ScopedInstall(ReconcileTwoControllersInput, 0x53F530);

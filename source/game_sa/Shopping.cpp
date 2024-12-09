@@ -796,22 +796,22 @@ void CShopping::UpdateStats(size_t index, bool increment) {
 
 // 0x5D3E40
 void CShopping::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_numPriceModifiers, sizeof(int32));
+    CGenericGameStorage::LoadDataFromWorkBuffer(ms_numPriceModifiers);
     for (auto i = 0; i < ms_numPriceModifiers; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&ms_priceModifiers[i], sizeof(PriceModifier));
+        CGenericGameStorage::LoadDataFromWorkBuffer(ms_priceModifiers[i]);
     }
 
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_numBuyableItems, sizeof(uint32));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_bHasBought, ms_numBuyableItems);
+    CGenericGameStorage::LoadDataFromWorkBuffer(ms_numBuyableItems);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_bHasBought, ms_numBuyableItems); // TODO: This looks funky, check if we don't have a bug on our hands
 }
 
 // 0x5D3DE0
 void CShopping::Save() {
-    CGenericGameStorage::SaveDataToWorkBuffer(&ms_numPriceModifiers, sizeof(int32));
+    CGenericGameStorage::SaveDataToWorkBuffer(ms_numPriceModifiers);
     for (auto i = 0; i < ms_numPriceModifiers; i++) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&ms_priceModifiers[i], sizeof(PriceModifier));
+        CGenericGameStorage::SaveDataToWorkBuffer(ms_priceModifiers[i]);
     }
 
-    CGenericGameStorage::SaveDataToWorkBuffer(&ms_numBuyableItems, sizeof(uint32));
-    CGenericGameStorage::SaveDataToWorkBuffer(&ms_bHasBought, ms_numBuyableItems);
+    CGenericGameStorage::SaveDataToWorkBuffer(ms_numBuyableItems);
+    CGenericGameStorage::SaveDataToWorkBuffer(&ms_bHasBought, ms_numBuyableItems); // TODO: This looks funky, check if we don't have a bug on our hands
 }
