@@ -731,6 +731,263 @@ typedef RxPipelineNode * (*RxPipelineNodeOutputCallBack) (RxPipelineNode * node,
                                                   RxPipelineNode * outputnode,
                                                   void *callbackdata);
 
+
+#ifdef RWDEBUG
+#define RXCHECKFORUSERTRAMPLING(_pipeline)                       \
+    ( _rwPipelineCheckForTramplingOfNodePrivateSpace(_pipeline) )
+#endif /* RWDEBUG */
+
+#if (!defined(RXCHECKFORUSERTRAMPLING))
+#define RXCHECKFORUSERTRAMPLING(_pipeline) /* No op */
+#endif /* (!defined(RXCHECKFORUSERTRAMPLING)) */
+
+
+#ifdef    __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
+
+extern void
+RxPipelineSetFreeListCreateParams( RwInt32 blockSize, RwInt32 numBlocksToPrealloc );
+
+extern RwBool
+_rxPipelineOpen(void);
+
+extern RwBool
+_rxPipelineClose(void);
+
+extern RwBool
+rxPipelinePluginsAttach(void);
+
+extern RxPipeline *
+RxPipelineCreate(void);
+
+
+extern void
+_rxPipelineDestroy(RxPipeline * Pipeline);
+
+#define _RxPipelineDestroy(_ppln)  _rxPipelineDestroy(_ppln)
+#define RxPipelineDestroy(_ppln) (_rxPipelineDestroy(_ppln), TRUE)
+
+extern RxHeap      *
+RxHeapGetGlobalHeap(void);
+
+extern RxPipeline *
+RxPipelineExecute(RxPipeline  * pipeline,
+                  void        * data,
+                  RwBool       heapReset);
+
+extern RxPacket *
+RxPacketCreate(RxPipelineNode * node);
+
+extern RxCluster   *
+RxClusterSetStride(RxCluster * cluster,
+                   RwInt32 stride);
+
+extern RxCluster   *
+RxClusterSetExternalData(RxCluster * cluster,
+                         void *data,
+                         RwInt32 stride,
+                         RwInt32 numElements);
+
+extern RxCluster   *
+RxClusterSetData(RxCluster * cluster,
+                 void *data,
+                 RwInt32 stride,
+                 RwInt32 numElements);
+
+/* underlying PacketDestroy function */
+extern void
+_rxPacketDestroy(RxPacket * Packet);
+
+/* more convenient parameterization */
+#define RxPacketDestroy(pk, self) \
+    ( _rxPacketDestroy(pk) )
+
+#if (defined(RWDEBUG))
+extern RxPacket *RxPacketFetch(RxPipelineNode * Node);
+extern void      RxPacketDispatch(RxPacket * packet,
+                                  RwUInt32 output,
+                                  RxPipelineNode * self);
+extern void      RxPacketDispatchToPipeline(RxPacket * packet,
+                                            RxPipeline * dest,
+                                            RxPipelineNode * self);
+#else /* (defined(RWDEBUG)) */
+#define RxPacketFetch(_self) \
+    rxPacketFetchMacro(_self)
+#define RxPacketDispatch(     _packet, _output, _self) \
+    rxPacketDispatchMacro(_packet, _output, _self)
+#define RxPacketDispatchToPipeline(     _packet, _pipeline, _self) \
+    rxPacketDispatchToPipelineMacro(_packet, _pipeline, _self)
+#endif /* (defined(RWDEBUG)) */
+
+#define RxClusterInitialiseData(_clstr, _nmlmnts, _strd) \
+    ( RxClusterInitializeData((_clstr), (_nmlmnts), (_strd)) )
+extern RxCluster   *
+RxClusterInitializeData(RxCluster *cluster, RwUInt32 numElements, RwUInt16 stride);
+
+extern RxCluster   *
+RxClusterResizeData(RxCluster *CurrentCluster, RwUInt32 NumElements);
+
+extern RxCluster   *
+RxClusterDestroyData(RxCluster *CurrentCluster);
+
+#if (defined(RWDEBUG))
+
+extern RxCluster *RxClusterLockRead(RxPacket * packet, RwUInt32 clusterIndex);
+
+#else  /* !RWDEBUG */
+
+#define RXCLSLOT(PKT, CLIND)             \
+    ((PKT)->inputToClusterSlot[(CLIND)])
+
+#define RxClusterLockRead(PKT, CLIND)                               \
+    ( (((RwInt32)RXCLSLOT(PKT, CLIND)) == -1) ?                     \
+      ((RxCluster *)NULL) :                                         \
+      (RxClusterResetCursor(&PKT->clusters[RXCLSLOT(PKT, CLIND)]),  \
+       &PKT->clusters[RXCLSLOT(PKT, CLIND)]) )
+
+#endif /* !RWDEBUG */
+
+extern RxCluster   *
+RxClusterLockWrite(RxPacket * packet,
+                   RwUInt32 clusterIndex,
+                   RxPipelineNode * node);
+
+extern void
+RxClusterUnlock(RxCluster * cluster);
+
+extern RwUInt32
+RxPipelineNodeSendConfigMsg(RxPipelineNode * dest,
+                            RwUInt32 msg,
+                            RwUInt32 intparam,
+                            void *ptrparam);
+
+extern RxPipelineNode *
+RxPipelineNodeForAllConnectedOutputs(RxPipelineNode * node,
+                                     RxPipeline * pipeline,
+                                     RxPipelineNodeOutputCallBack callbackfn,
+                                     void *callbackdata);
+
+/* Cluster attributes api [pipeline construction time] */
+
+extern RxPipelineCluster *
+RxPipelineNodeGetPipelineCluster(RxPipelineNode *node,
+                                   RwUInt32 clustersOfInterestIndex);
+
+extern RwUInt32
+RxPipelineClusterGetCreationAttributes(RxPipelineCluster *cluster);
+
+extern RxPipelineCluster *
+RxPipelineClusterSetCreationAttributes(RxPipelineCluster *cluster,
+                                         RwUInt32 creationAttributes);
+
+/* Cluster attributes api [pipeline execution time] */
+
+extern RwUInt32
+RxClusterGetAttributes(RxCluster *cluster);
+
+extern RxCluster *
+RxClusterSetAttributes(RxCluster *cluster, RwUInt32 attributes);
+
+
+extern void
+_rxEmbeddedPacketBetweenPipelines(RxPipeline * fromPipeline,
+                                 RxPipeline * toPipeline);
+
+extern RxPipelineNode *
+_rxEmbeddedPacketBetweenNodes(RxPipeline     *pipeline,
+                             RxPipelineNode *nodeFrom,
+                             RwUInt32        whichOutput);
+
+extern RxExecutionContext _rxExecCtxGlobal;
+
+/* Summary of dispatch rules:
+ * o nodes that never fetch are safe to dispatch NULL, whether
+ *   nodes above pass them a packet or not
+ * o if you destroy the packet you can dispatch(NULL,,)
+ * o if you fetch/create and dispatch(NULL), it doesn't really
+ *   matter - the packet'll get passed on anyway */
+
+/* TODO: there's currently no way to prematurely terminate the pipeline
+ *      without doing so as an error condition. You should create an
+ *      enum for the exit code, either RXNODEEXITCONTINUE, RXNODEEXITTERMINATE
+ *      or RXNODEEXTTERMINATEERROR and then test for RXNODEEXITCONTINUE in
+ *      the below macros rather than FALSE. */
+
+/* TODO: _packet redundant here... create a new macro and legacy wrapper */
+#define rxPacketDispatchMacro(_packet, _output, _self)                      \
+MACRO_START                                                                 \
+{                                                                           \
+    RxPipeline *curPipeline = _rxExecCtxGlobal.pipeline;                    \
+                                                                            \
+    /* _packet is now an obsolete parameter */                              \
+                                                                            \
+    if ( FALSE != _rxExecCtxGlobal.exitCode )                               \
+    {                                                                       \
+        RxPipelineNode *nextNode =                                          \
+            _rxEmbeddedPacketBetweenNodes(curPipeline,                      \
+                                         _self,                             \
+                                         (_output));                        \
+        if ( nextNode != NULL )                                             \
+        {                                                                   \
+            RwUInt32 exitCode =                                             \
+                nextNode->nodeDef->nodeMethods.nodeBody(                    \
+                    nextNode, &(_rxExecCtxGlobal.params));                  \
+            /* Don't overwrite 'error' with 'success' */                    \
+            if (FALSE == exitCode) _rxExecCtxGlobal.exitCode = exitCode;    \
+        }                                                                   \
+    }                                                                       \
+    if ( curPipeline->embeddedPacketState > rxPKST_UNUSED                   \
+         /* !UNUSED and !PACKETLESS */ )                                    \
+    {                                                                       \
+        curPipeline->embeddedPacketState = rxPKST_INUSE;                    \
+        _rxPacketDestroy(curPipeline->embeddedPacket);                      \
+    }                                                                       \
+}                                                                           \
+MACRO_STOP
+
+/* TODO: _self redundant here... create a new macro and legacy wrapper */
+#define rxPacketDispatchToPipelineMacro(_packet, _pipeline, _self)          \
+MACRO_START                                                                 \
+{                                                                           \
+    RxPipeline *toPipeline = (_pipeline);                                   \
+                                                                            \
+    /* _packet is now an obsolete parameter */                              \
+                                                                            \
+    if ( FALSE != _rxExecCtxGlobal.exitCode )                               \
+    {                                                                       \
+        RwUInt32 exitCode;                                                  \
+        RxPipeline *fromPipeline = _rxExecCtxGlobal.pipeline; /* save */    \
+        _rxEmbeddedPacketBetweenPipelines(fromPipeline,                     \
+                                         toPipeline);                       \
+        _rxExecCtxGlobal.pipeline = toPipeline; /* modify */                \
+        exitCode =                                                          \
+            toPipeline->nodes[0].nodeDef->nodeMethods.nodeBody(             \
+                &toPipeline->nodes[0], &(_rxExecCtxGlobal.params));         \
+        if ( FALSE == exitCode ) _rxExecCtxGlobal.exitCode = exitCode;      \
+        _rxExecCtxGlobal.pipeline = fromPipeline; /* restore */             \
+    }                                                                       \
+    if ( toPipeline->embeddedPacketState > rxPKST_UNUSED                    \
+         /* !UNUSED and !PACKETLESS */ )                                    \
+    {                                                                       \
+        toPipeline->embeddedPacketState = rxPKST_INUSE;                     \
+        _rxPacketDestroy(toPipeline->embeddedPacket);                       \
+    }                                                                       \
+}                                                                           \
+MACRO_STOP
+
+#define rxPacketFetchMacro(_node)                                           \
+    ( ((_rxExecCtxGlobal.pipeline)->embeddedPacketState == rxPKST_PENDING) ?\
+      ((_rxExecCtxGlobal.pipeline)->embeddedPacketState = rxPKST_INUSE,     \
+       (_rxExecCtxGlobal.pipeline)->embeddedPacket) :                       \
+      (NULL) )
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+
 #ifdef RWDEBUG
 #define RXCHECKFORUSERTRAMPLING(_pipeline)                       \
     ( _rwPipelineCheckForTramplingOfNodePrivateSpace(_pipeline) )
