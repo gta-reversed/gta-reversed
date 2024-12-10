@@ -236,10 +236,10 @@ public:
     static float LimitRadarPoint(CVector2D& point);
     static void LimitToMap(float& x, float& y);
     static uint8 CalculateBlipAlpha(float distance);
-    static void TransformRadarPointToScreenSpace(CVector2D& out, const CVector2D& in);
-    static void TransformRealWorldPointToRadarSpace(CVector2D& out, const CVector2D& in);
-    static void TransformRadarPointToRealWorldSpace(CVector2D& out, const CVector2D& in);
-    static void TransformRealWorldToTexCoordSpace(CVector2D& out, const CVector2D& in, int32 x, int32 y);
+    static CVector2D TransformRadarPointToScreenSpace(const CVector2D& in);
+    static CVector2D TransformRealWorldPointToRadarSpace(const CVector2D& in);
+    static CVector2D TransformRadarPointToRealWorldSpace(const CVector2D& in);
+    static CVector2D TransformRealWorldToTexCoordSpace(const CVector2D& in, int32 x, int32 y);
     static void CalculateCachedSinCos();
     static tBlipHandle SetCoordBlip(eBlipType type, CVector posn, eBlipColour color, eBlipDisplay blipDisplay, const char* scriptName = nullptr);
     static tBlipHandle SetShortRangeCoordBlip(eBlipType type, CVector posn, eBlipColour color, eBlipDisplay blipDisplay, const char* scriptName = nullptr);

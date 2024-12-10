@@ -19,7 +19,7 @@ void CMenuSystem::InjectHooks() {
     RH_ScopedInstall(CheckForAccept, 0x5807C0);
     RH_ScopedInstall(CheckForSelected, 0x5807E0);
     RH_ScopedInstall(Input, 0x5825D0);
-    RH_ScopedInstall(InputStandardMenu, 0x580800); // bad?
+    RH_ScopedInstall(InputStandardMenu, 0x580800);
     RH_ScopedInstall(InputGridMenu, 0x580BD0);
     RH_ScopedInstall(DisplayStandardMenu, 0x580E00);
     RH_ScopedInstall(DisplayGridMenu, 0x5816E0);
