@@ -41,7 +41,7 @@ The CMake build is currently not supported, and is used only for the CI.
 The DLLs it produces **do not work**.
 
 ### Game
-1. GTA SA ***Compact exe***: Our code requires you to use this exe, otherwise you will experience random crashes.
+1. GTA SA ***Compact exe***: Our code requires you to use this exe, otherwise you will experience random crashes. (Anything else **WILL NOT** work correctly!)
 
 2. To install all the necessary files (after building the project!), run `install.py` with **__administrator privileges__** [Necessary to create symlinks on Windows] in the root directory.
 Alternatively, you can install them by yourself:
