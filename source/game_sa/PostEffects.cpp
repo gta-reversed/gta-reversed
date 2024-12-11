@@ -123,7 +123,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedClass(CPostEffects);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Initialise, 0x704630, { .reversed = false });
+    RH_ScopedInstall(Initialise, 0x704630);
     RH_ScopedInstall(Close, 0x7010C0);
     RH_ScopedInstall(DoScreenModeDependentInitializations, 0x7046D0);
     RH_ScopedInstall(SetupBackBufferVertex, 0x7043D0, { .reversed = false });
@@ -164,7 +164,15 @@ void CPostEffects::InjectHooks() {
 
 // 0x704630
 void CPostEffects::Initialise() {
-    plugin::Call<0x704630>();
+    SetupBackBufferVertex();
+    if (m_pGrainRaster = RwRasterCreate(256, 256, 32, rwRASTERFORMAT8888 | rwRASTERTYPETEXTURE)) {
+        auto* pixels = RwRasterLock(m_pGrainRaster, 0, rwRASTERLOCKWRITE);
+        for (auto i = 0; i < 256 * 256; i += 4) {
+            pixels[i + 0] = pixels[i + 1] = pixels[i + 2] = pixels[i + 3] = static_cast<uint8>(CGeneral::GetRandomNumber());
+        }
+
+        RwRasterUnlock(m_pGrainRaster);
+    }
 }
 
 // 0x7010C0
