@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include "PostEffects.h"
+#include "CustomBuildingDNPipeline.h"
 
 float& CPostEffects::SCREEN_EXTRA_MULT_CHANGE_RATE = *(float*)0x8D5168; // 0.0005f;
 float& CPostEffects::SCREEN_EXTRA_MULT_BASE_CAP = *(float*)0x8D516C;    // 0.35f;
@@ -119,6 +120,8 @@ int32 (&hpX)[180] = *(int32(*)[180])0xC3FE08;
 int32 (&hpY)[180] = *(int32(*)[180])0xC3FB38;
 int32 (&hpS)[180] = *(int32(*)[180])0xC3F868; // speed
 
+static inline float& s_DayNightBalanceParamOld = StaticRef<float>(0xC3F860);
+
 void CPostEffects::InjectHooks() {
     RH_ScopedClass(CPostEffects);
     RH_ScopedCategoryGlobal();
@@ -129,8 +132,8 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(SetupBackBufferVertex, 0x7043D0);
     RH_ScopedInstall(Update, 0x7046A0);
     RH_ScopedInstall(DrawQuad, 0x700EC0);
-    RH_ScopedInstall(FilterFX_StoreAndSetDayNightBalance, 0x7034B0, { .reversed = false });
-    RH_ScopedInstall(FilterFX_RestoreDayNightBalance, 0x7034D0, { .reversed = false });
+    RH_ScopedInstall(FilterFX_StoreAndSetDayNightBalance, 0x7034B0);
+    RH_ScopedInstall(FilterFX_RestoreDayNightBalance, 0x7034D0);
     RH_ScopedInstall(ImmediateModeFilterStuffInitialize, 0x703CC0, { .reversed = false });
     RH_ScopedInstall(ImmediateModeRenderStatesSet, 0x700D70);
     RH_ScopedInstall(ImmediateModeRenderStatesStore, 0x700CC0);
@@ -256,7 +259,7 @@ void CPostEffects::SetupBackBufferVertex() {
     cc_vertices[3].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
 
     if (pRasterFrontBuffer) {
-        DoScreenModeDependentInitializations()
+        DoScreenModeDependentInitializations();
     }
 }
 
@@ -274,7 +277,7 @@ void CPostEffects::Update() {
 void CPostEffects::DrawQuad(float x1, float y1, float x2, float y2, uint8 red, uint8 green, uint8 blue, uint8 alpha, RwRaster* raster) {
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, raster);
 
-    auto color = CRGBA(red, green, blue, alpha).ToIntARGB();
+    const auto color = CRGBA(red, green, blue, alpha).ToIntARGB();
 
     vertexGroup[0].x = x1;
     vertexGroup[0].y = y1;
@@ -318,8 +321,8 @@ void CPostEffects::DrawQuadSetUVs(float u1, float v1, float u2, float v2, float 
 
 // 0x700FE0
 void CPostEffects::DrawQuadSetPixelUVs(float u0, float v0, float u1, float v1, float u3, float v3, float u2, float v2) {
-    float x = 1.0f / fRasterFrontBufferWidth;
-    float y = 1.0f / fRasterFrontBufferHeight;
+    const float x = 1.0f / fRasterFrontBufferWidth;
+    const float y = 1.0f / fRasterFrontBufferHeight;
 
     vertexGroup[0].u = x * u0;
     vertexGroup[0].v = y * v0;
@@ -336,12 +339,17 @@ void CPostEffects::DrawQuadSetPixelUVs(float u0, float v0, float u1, float v1, f
 
 // 0x7034B0
 void CPostEffects::FilterFX_StoreAndSetDayNightBalance() {
-    plugin::Call<0x7034B0>();
+    if (!m_bInCutscene) {
+        s_DayNightBalanceParamOld = CCustomBuildingDNPipeline::m_fDNBalanceParam;
+        CCustomBuildingDNPipeline::m_fDNBalanceParam = m_VisionFXDayNightBalance;
+    }
 }
 
 // 0x7034D0
 void CPostEffects::FilterFX_RestoreDayNightBalance() {
-    return plugin::Call<0x7034D0>();
+    if (!m_bInCutscene) {
+        CCustomBuildingDNPipeline::m_fDNBalanceParam = s_DayNightBalanceParamOld;
+    }
 }
 
 // 0x703CC0
