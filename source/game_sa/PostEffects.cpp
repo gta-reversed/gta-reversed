@@ -256,8 +256,7 @@ void CPostEffects::SetupBackBufferVertex() {
     cc_vertices[3].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
 
     if (pRasterFrontBuffer) {
-        ImmediateModeFilterStuffInitialize();
-        HeatHazeFXInit();
+        DoScreenModeDependentInitializations()
     }
 }
 
