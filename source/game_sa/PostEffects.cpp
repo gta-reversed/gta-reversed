@@ -126,7 +126,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(Initialise, 0x704630);
     RH_ScopedInstall(Close, 0x7010C0);
     RH_ScopedInstall(DoScreenModeDependentInitializations, 0x7046D0);
-    RH_ScopedInstall(SetupBackBufferVertex, 0x7043D0, { .reversed = false });
+    RH_ScopedInstall(SetupBackBufferVertex, 0x7043D0);
     RH_ScopedInstall(Update, 0x7046A0);
     RH_ScopedInstall(DrawQuad, 0x700EC0);
     RH_ScopedInstall(FilterFX_StoreAndSetDayNightBalance, 0x7034B0, { .reversed = false });
@@ -179,8 +179,7 @@ void CPostEffects::Initialise() {
 void CPostEffects::Close() {
     RwRasterDestroy(m_pGrainRaster);
     if (pRasterFrontBuffer) {
-        RwRasterDestroy(pRasterFrontBuffer);
-        pRasterFrontBuffer = nullptr;
+        RwRasterDestroy(std::exchange(pRasterFrontBuffer, nullptr));
     }
 }
 
@@ -190,73 +189,76 @@ void CPostEffects::DoScreenModeDependentInitializations() {
     HeatHazeFXInit();
 }
 
+// NOTSA
+// Returns the next power of two of `n`
+uint32 GetNextPow2(uint32 n) {
+    if (n == 0) {
+        return 1;
+    }
+
+    n--;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+
+    return n + 1;
+}
+
 // 0x7043D0
 void CPostEffects::SetupBackBufferVertex() {
-    return plugin::Call<0x7043D0>();
-
     RwRaster* raster = RwCameraGetRaster(Scene.m_pRwCamera);
-    // https://www.felixcloutier.com/x86/fyl2x
-    // FYL2X — Compute y ∗ log2x
-    // log(2.0) = 0.69314718055994528623
 
     // get maximum 2^N dimensions
-    const auto width  = (int32)std::pow(2.0f, (int32)log2((float)RwRasterGetWidth(raster)));
-    const auto height = (int32)std::pow(2.0f, (int32)log2((float)RwRasterGetHeight(raster)));
+    const auto width  = GetNextPow2(RwRasterGetWidth(raster));
+    const auto height = GetNextPow2(RwRasterGetHeight(raster));
     const auto fwidth = float(width);
     const auto fheight = float(height);
 
-    const auto InitVertices = [=]() {
-        cc_vertices[0].x = 0.0f;
-        cc_vertices[0].y = 0.0f;
-        cc_vertices[0].z = RwIm2DGetNearScreenZ();
-        cc_vertices[0].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
-        cc_vertices[0].u = 0.5f / fwidth;
-        cc_vertices[0].v = 0.5f / fheight;
+    if (pRasterFrontBuffer && (width != RwRasterGetWidth(pRasterFrontBuffer) || height != RwRasterGetHeight(pRasterFrontBuffer))) {
+        RwRasterDestroy(std::exchange(pRasterFrontBuffer, nullptr));
+    }
+    if (!pRasterFrontBuffer) {
+        pRasterFrontBuffer = RasterCreatePostEffects(RwRect{ .w = (int32)width, .h = (int32)height });
 
-        cc_vertices[1].x = 0.0f;
-        cc_vertices[1].y = fheight;
-        cc_vertices[1].z = RwIm2DGetNearScreenZ();
-        cc_vertices[1].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
-        cc_vertices[1].u = 0.5f / fwidth;
-        cc_vertices[1].v = (fheight + 0.5f) / fheight;
-
-        cc_vertices[2].x = fwidth;
-        cc_vertices[2].y = fheight;
-        cc_vertices[2].z = RwIm2DGetNearScreenZ();
-        cc_vertices[3].y = 0.0f;
-        cc_vertices[2].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
-        cc_vertices[2].u = (fwidth + 0.5f) / fwidth;
-        cc_vertices[2].v = (fheight + 0.5f) / fheight;
-
-        cc_vertices[3].x = fwidth;
-        cc_vertices[3].z = RwIm2DGetNearScreenZ();
-        cc_vertices[3].u = (fwidth + 0.5f) / fwidth;
-        cc_vertices[3].v = 0.5f / fheight;
-        cc_vertices[3].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
-
-        if (pRasterFrontBuffer) {
-            DoScreenModeDependentInitializations();
+        if (!pRasterFrontBuffer) {
+            NOTSA_LOG_ERR("Error subrastering");
         }
-    };
+    }
+
+    cc_vertices[0].x   = 0.0f;
+    cc_vertices[0].y   = 0.0f;
+    cc_vertices[0].z   = RwIm2DGetNearScreenZ();
+    cc_vertices[0].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+    cc_vertices[0].u   = 0.5f / fwidth;
+    cc_vertices[0].v   = 0.5f / fheight;
+
+    cc_vertices[1].x   = 0.0f;
+    cc_vertices[1].y   = fheight;
+    cc_vertices[1].z   = RwIm2DGetNearScreenZ();
+    cc_vertices[1].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+    cc_vertices[1].u   = 0.5f / fwidth;
+    cc_vertices[1].v   = (fheight + 0.5f) / fheight;
+
+    cc_vertices[2].x   = fwidth;
+    cc_vertices[2].y   = fheight;
+    cc_vertices[2].z   = RwIm2DGetNearScreenZ();
+    cc_vertices[3].y   = 0.0f;
+    cc_vertices[2].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+    cc_vertices[2].u   = (fwidth + 0.5f) / fwidth;
+    cc_vertices[2].v   = (fheight + 0.5f) / fheight;
+
+    cc_vertices[3].x   = fwidth;
+    cc_vertices[3].z   = RwIm2DGetNearScreenZ();
+    cc_vertices[3].u   = (fwidth + 0.5f) / fwidth;
+    cc_vertices[3].v   = 0.5f / fheight;
+    cc_vertices[3].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
 
     if (pRasterFrontBuffer) {
-        if (width != RwRasterGetWidth(pRasterFrontBuffer) || height != RwRasterGetHeight(pRasterFrontBuffer)) {
-            InitVertices();
-            return;
-        }
-
-        RwRasterDestroy(pRasterFrontBuffer);
-        pRasterFrontBuffer = nullptr;
+        ImmediateModeFilterStuffInitialize();
+        HeatHazeFXInit();
     }
-
-    pRasterFrontBuffer = RasterCreatePostEffects({ 0, 0, 64, 64 });
-    if (!pRasterFrontBuffer) {
-        DEV_LOG("Error subrastering");
-        RwRasterDestroy(pRasterFrontBuffer);
-        pRasterFrontBuffer = nullptr;
-    }
-
-    InitVertices();
 }
 
 // 0x7046A0
