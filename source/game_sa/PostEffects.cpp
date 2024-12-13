@@ -63,7 +63,36 @@ int32& CPostEffects::m_SpeedFXAlpha = *(int32*)0x8D5104; // 36
 
 RwRaster*& CPostEffects::pRasterFrontBuffer = *(RwRaster**)0xC402D8;
 
-float& CPostEffects::ms_imf = *(float*)0xC40150;
+struct imf {
+    float                       screenZ;
+    float                       recipCameraZ;
+    RwRaster*                   RasterDrawBuffer;
+    int32                       sizeDrawBufferX;
+    int32                       sizeDrawBufferY;
+    float                       fFrontBufferU1;
+    float                       fFrontBufferV1;
+    float                       fFrontBufferU2;
+    float                       fFrontBufferV2;
+    std::array<RwIm2DVertex, 3> triangle;
+    float                       uMinTri;
+    float                       uMaxTri;
+    float                       vMinTri;
+    float                       vMaxTri;
+    std::array<RwIm2DVertex, 6> quad;
+    RwBlendFunction             blendSrc;
+    RwBlendFunction             blendDst;
+    RwBool                      bFog;
+    RwCullMode                  cullMode;
+    RwBool                      bZTest;
+    RwBool                      bZWrite;
+    RwShadeMode                 shadeMode;
+    RwBool                      bVertexAlpha;
+    RwTextureAddressMode        textureAddress;
+    RwTextureFilterMode         textureFilter;
+};
+
+VALIDATE_SIZE(imf, 0x158);
+static inline imf& ms_imf = *(imf*)0xC40150;
 
 bool& CPostEffects::m_bGrainEnable = *(bool*)0xC402B4;
 RwRaster*& CPostEffects::m_pGrainRaster = *(RwRaster**)0xC402B0;
@@ -148,7 +177,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(HeatHazeFXInit, 0x701450);
     RH_ScopedInstall(HeatHazeFX, 0x701780, { .reversed = false });
     RH_ScopedInstall(IsVisionFXActive, 0x7034F0);
-    RH_ScopedInstall(NightVision, 0x7011C0, { .reversed = false });
+    RH_ScopedInstall(NightVision, 0x7011C0);
     RH_ScopedInstall(NightVisionSetLights, 0x7012E0);
     RH_ScopedInstall(SetFilterMainColour, 0x703520);
     RH_ScopedInstall(InfraredVision, 0x703F80);
@@ -281,22 +310,22 @@ void CPostEffects::DrawQuad(float x1, float y1, float x2, float y2, uint8 red, u
 
     vertexGroup[0].x = x1;
     vertexGroup[0].y = y1;
-    vertexGroup[0].z = ms_imf;
+    vertexGroup[0].z = ms_imf.screenZ;
     vertexGroup[0].emissiveColor = color;
 
     vertexGroup[1].x = x1 + x2;
     vertexGroup[1].y = y1;
-    vertexGroup[1].z = ms_imf;
+    vertexGroup[1].z = ms_imf.screenZ;
     vertexGroup[1].emissiveColor = color;
 
     vertexGroup[2].x = x1;
     vertexGroup[2].y = y1 + y2;
-    vertexGroup[2].z = ms_imf;
+    vertexGroup[2].z = ms_imf.screenZ;
     vertexGroup[2].emissiveColor = color;
 
     vertexGroup[3].x = x1 + x2;
     vertexGroup[3].y = y1 + y2;
-    vertexGroup[3].z = ms_imf;
+    vertexGroup[3].z = ms_imf.screenZ;
     vertexGroup[3].emissiveColor = color;
 
     RwIm2DRenderPrimitive(rwPRIMTYPETRISTRIP, vertexGroup, std::size(vertexGroup));
@@ -547,20 +576,16 @@ bool CPostEffects::IsVisionFXActive() {
 
 // 0x7011C0
 void CPostEffects::NightVision() {
-    return plugin::Call<0x7011C0>();
-
-    // todo: fix fade-in
     if (m_fNightVisionSwitchOnFXCount > 0.0f) {
-        m_fNightVisionSwitchOnFXCount -= CTimer::GetTimeStep();
-        m_fNightVisionSwitchOnFXCount = std::min(m_fNightVisionSwitchOnFXCount, 0.0f);
+        m_fNightVisionSwitchOnFXCount = std::min(m_fNightVisionSwitchOnFXCount - CTimer::GetTimeStep(), 0.0f);
 
         ImmediateModeRenderStatesStore();
         ImmediateModeRenderStatesSet();
         RwRenderStateSet(rwRENDERSTATESRCBLEND,  RWRSTATE(rwBLENDONE));
         RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDONE));
 
-        for (int32 i = 0, end = (int32)m_fNightVisionSwitchOnFXCount; i < end; i++) {
-            DrawQuad(0.0f, 0.0f, fRasterFrontBufferWidth, fRasterFrontBufferHeight, 8, 8, 8, 255, pVisionFXRaster);
+        for (auto i = 0, end = (int32)m_fNightVisionSwitchOnFXCount; i < end; i++) {
+            DrawQuad(0.0f, 0.0f, (float)ms_imf.sizeDrawBufferX, (float)ms_imf.sizeDrawBufferY, 8, 8, 8, 255, ms_imf.RasterDrawBuffer);
         }
 
         ImmediateModeRenderStatesReStore();

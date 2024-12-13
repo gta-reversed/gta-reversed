@@ -41,8 +41,6 @@ public:
     static int32& m_defScreenXPosn;
     static int32& m_defScreenYPosn;
 
-    static float& ms_imf;
-
     static RwRaster*& pRasterFrontBuffer;
 
     static int32& m_DarknessFilterAlpha;
