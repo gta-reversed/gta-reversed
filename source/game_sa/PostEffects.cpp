@@ -63,6 +63,7 @@ int32& CPostEffects::m_SpeedFXAlpha = *(int32*)0x8D5104; // 36
 
 RwRaster*& CPostEffects::pRasterFrontBuffer = *(RwRaster**)0xC402D8;
 
+// Immediate Mode Filter
 struct imf {
     float                       screenZ;
     float                       recipCameraZ;
@@ -163,7 +164,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(DrawQuad, 0x700EC0);
     RH_ScopedInstall(FilterFX_StoreAndSetDayNightBalance, 0x7034B0);
     RH_ScopedInstall(FilterFX_RestoreDayNightBalance, 0x7034D0);
-    RH_ScopedInstall(ImmediateModeFilterStuffInitialize, 0x703CC0, { .reversed = false });
+    RH_ScopedInstall(ImmediateModeFilterStuffInitialize, 0x703CC0);
     RH_ScopedInstall(ImmediateModeRenderStatesSet, 0x700D70);
     RH_ScopedInstall(ImmediateModeRenderStatesStore, 0x700CC0);
     RH_ScopedInstall(ImmediateModeRenderStatesReStore, 0x700E00);
@@ -383,7 +384,84 @@ void CPostEffects::FilterFX_RestoreDayNightBalance() {
 
 // 0x703CC0
 void CPostEffects::ImmediateModeFilterStuffInitialize() {
-    plugin::Call<0x703CC0>();
+    ms_imf.screenZ          = RwIm2DGetNearScreenZ();
+    ms_imf.RasterDrawBuffer = pRasterFrontBuffer;
+    ms_imf.uMinTri          = 0.0f;
+    ms_imf.vMinTri          = 0.0f;
+    ms_imf.uMaxTri          = 2.0f;
+    ms_imf.vMaxTri          = 2.0f;
+    ms_imf.recipCameraZ     = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+    ms_imf.sizeDrawBufferX  = RwRasterGetWidth(ms_imf.RasterDrawBuffer);
+    ms_imf.sizeDrawBufferY  = RwRasterGetHeight(ms_imf.RasterDrawBuffer);
+
+    ms_imf.triangle[0] = {
+        .x   = 0.0f,
+        .y   = 0.0f,
+        .z   = ms_imf.screenZ,
+        .rhw = ms_imf.recipCameraZ,
+        .u   = 0.0f,
+        .v   = 0.0f
+    };
+    ms_imf.triangle[1] = {
+        .x   = 2.0f * (float)ms_imf.sizeDrawBufferX,
+        .y   = 0.0f,
+        .z   = ms_imf.screenZ,
+        .rhw = ms_imf.recipCameraZ,
+        .u   = 2.0f,
+        .v   = 0.0f
+    };
+    ms_imf.triangle[2] = {
+        .x   = 0.0f,
+        .y   = 2.0f * (float)ms_imf.sizeDrawBufferY,
+        .z   = ms_imf.screenZ,
+        .rhw = ms_imf.recipCameraZ,
+        .u   = 0.0f,
+        .v   = 2.0f
+    };
+
+    constexpr auto DEFAULT_QUAD_COLOR = 0xFF00C800;
+
+    ms_imf.quad[0] = {
+        .x             = 0.0f,
+        .y             = 0.0f,
+        .z             = ms_imf.screenZ,
+        .rhw           = ms_imf.recipCameraZ,
+        .emissiveColor = DEFAULT_QUAD_COLOR,
+        .u             = 0.0f,
+        .v             = 0.0f
+    };
+    ms_imf.quad[1] = {
+        .x             = 0.0f,
+        .y             = 0.0f,
+        .z             = ms_imf.screenZ,
+        .rhw           = ms_imf.recipCameraZ,
+        .emissiveColor = DEFAULT_QUAD_COLOR,
+        .u             = 1.0f,
+        .v             = 0.0f
+    };
+    ms_imf.quad[2] = {
+        .x             = 0.0f,
+        .y             = 0.0f,
+        .z             = ms_imf.screenZ,
+        .rhw           = ms_imf.recipCameraZ,
+        .emissiveColor = DEFAULT_QUAD_COLOR,
+        .u             = 0.0f,
+        .v             = 1.0f
+    };
+    ms_imf.quad[3] = {
+        .x             = 0.0f,
+        .y             = 0.0f,
+        .z             = ms_imf.screenZ,
+        .rhw           = ms_imf.recipCameraZ,
+        .emissiveColor = DEFAULT_QUAD_COLOR,
+        .u             = 1.0f,
+        .v             = 1.0f
+    };
+
+    const auto* frameBuffer = RwCameraGetRaster(Scene.m_pRwCamera);
+    ms_imf.fFrontBufferU1 = ms_imf.fFrontBufferV1 = 0.0f;
+    ms_imf.fFrontBufferU2 = SCREEN_WIDTH / GetNextPow2(RwRasterGetWidth(frameBuffer));
+    ms_imf.fFrontBufferV2 = SCREEN_HEIGHT / GetNextPow2(RwRasterGetHeight(frameBuffer));
 }
 
 // 0x700D70
