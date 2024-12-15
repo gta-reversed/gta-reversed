@@ -189,7 +189,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(InfraredVisionStoreAndSetLightsForHeatObjects, 0x701320);
     RH_ScopedInstall(InfraredVisionRestoreLightsForHeatObjects, 0x701410);
     RH_ScopedInstall(Fog, 0x704150);
-    RH_ScopedInstall(CCTV, 0x702F40, { .reversed = false });
+    RH_ScopedInstall(CCTV, 0x702F40);
     RH_ScopedInstall(Grain, 0x7037C0);
     RH_ScopedInstall(SpeedFX, 0x7030A0, { .reversed = false });
     RH_ScopedInstall(DarknessFilter, 0x702F00);
@@ -866,7 +866,42 @@ void CPostEffects::Fog() {
 
 // 0x702F40
 void CPostEffects::CCTV() {
-    plugin::Call<0x702F40>();
+    RwRenderStateSet(rwRENDERSTATETEXTUREADDRESS, RWRSTATE(rwTEXTUREADDRESSCLAMP));
+    RwCameraEndUpdate(Scene.m_pRwCamera);
+    RwRasterPushContext(CPostEffects::pRasterFrontBuffer);
+    RwRasterRenderFast(RwCameraGetRaster(Scene.m_pRwCamera), 0, 0);
+    RwRasterPopContext();
+    RsCameraBeginUpdate(Scene.m_pRwCamera);
+
+    RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, RWRSTATE(true));
+    RwRenderStateSet(rwRENDERSTATEFOGENABLE, RWRSTATE(false));
+    RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(true));
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(false));
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER, CPostEffects::pRasterFrontBuffer);
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(true));
+    RwRenderStateSet(rwRENDERSTATESRCBLEND, RWRSTATE(rwBLENDSRCALPHA));
+    RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDINVSRCALPHA));
+    ImmediateModeRenderStatesStore();
+    ImmediateModeRenderStatesSet();
+
+    const auto lineHeight  = static_cast<uint32>(2.0f * SCREEN_STRETCH_Y(1.0f));
+    const auto linePadding = 2 * lineHeight;
+    const auto numLines    = static_cast<uint32>(SCREEN_HEIGHT) / linePadding;
+    for (auto i = 0u, y = 0u; i < numLines; i++, y += linePadding) {
+        const auto Y = static_cast<float>(y);
+        DrawQuad(
+            0.0f,
+            Y,
+            SCREEN_WIDTH,
+            static_cast<float>(lineHeight),
+            m_CCTVcol.r,
+            m_CCTVcol.g,
+            m_CCTVcol.b,
+            255,
+            pRasterFrontBuffer
+        );
+    }
+    ImmediateModeRenderStatesReStore();
 }
 
 // 0x7037C0

@@ -154,6 +154,7 @@ public:
     static void SetupBackBufferVertex();
     static void Update();
 
+    // X2,Y2 is added to X1,Y1. So they are more like width and height in a rectangle.
     static void DrawQuad(float x1, float y1, float x2, float y2, uint8 red, uint8 green, uint8 blue, uint8 alpha, RwRaster* raster);
     static void DrawQuadSetDefaultUVs();
     static void DrawQuadSetPixelUVs(float u0, float v0, float u1, float v1, float u3, float v3, float u2, float v2);
