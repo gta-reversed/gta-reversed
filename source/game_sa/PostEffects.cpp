@@ -2,6 +2,7 @@
 
 #include "PostEffects.h"
 #include "CustomBuildingDNPipeline.h"
+#include "Clouds.h"
 
 float& CPostEffects::SCREEN_EXTRA_MULT_CHANGE_RATE = *(float*)0x8D5168; // 0.0005f;
 float& CPostEffects::SCREEN_EXTRA_MULT_BASE_CAP = *(float*)0x8D516C;    // 0.35f;
@@ -187,7 +188,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(InfraredVisionSetLightsForDefaultObjects, 0x701430);
     RH_ScopedInstall(InfraredVisionStoreAndSetLightsForHeatObjects, 0x701320);
     RH_ScopedInstall(InfraredVisionRestoreLightsForHeatObjects, 0x701410);
-    RH_ScopedInstall(Fog, 0x704150, { .reversed = false });
+    RH_ScopedInstall(Fog, 0x704150);
     RH_ScopedInstall(CCTV, 0x702F40, { .reversed = false });
     RH_ScopedInstall(Grain, 0x7037C0);
     RH_ScopedInstall(SpeedFX, 0x7030A0, { .reversed = false });
@@ -813,7 +814,54 @@ void CPostEffects::InfraredVisionRestoreLightsForHeatObjects() {
 
 // 0x704150
 void CPostEffects::Fog() {
-    plugin::Call<0x704150>();
+    static float& s_FogRadius = StaticRef<float>(0xC402E4);
+    static float& s_FogAngle  = StaticRef<float>(0xC402DC);
+
+    ImmediateModeRenderStatesStore();
+    ImmediateModeRenderStatesSet();
+    RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, RWRSTATE(rwFILTERLINEAR));
+
+    if (FindPlayerSpeed().SquaredMagnitude() <= sq(0.06f)) {
+        s_FogRadius = std::max(s_FogRadius - CTimer::GetTimeStep() / 4.0f, 0.0f);
+    } else {
+        s_FogRadius = std::min(s_FogRadius + CTimer::GetTimeStep() / 4.0f, 160.0f);
+    }
+
+    const auto skyBottom = CTimeCycle::GetCurrentSkyBottomColor();
+    for (auto i = 0; i < 10; i++) {
+        const auto angle = DegreesToRadians(36.0f * static_cast<float>(i) + s_FogAngle);
+
+        DrawQuad(
+            std::cos(angle) * (SCREEN_WIDTH / 4.0f + s_FogRadius) + SCREEN_WIDTH / 2.0f - SCREEN_WIDTH / 3.0f,
+            std::sin(angle) * (SCREEN_HEIGHT / 4.0f + s_FogRadius) + SCREEN_HEIGHT / 2.0f - SCREEN_HEIGHT / 3.0f,
+            2.0f * SCREEN_WIDTH / 3.0f,
+            2.0f * SCREEN_HEIGHT / 3.0f,
+            skyBottom.r,
+            skyBottom.g,
+            skyBottom.b,
+            11,
+            RwTextureGetRaster(CClouds::ms_vc.texture)
+        );
+    }
+
+    for (auto i = 0; i < 10; i++) {
+        const auto angle = -DegreesToRadians(36.0f * static_cast<float>(i) + s_FogAngle);
+
+        DrawQuad(
+            std::cos(angle) * (SCREEN_WIDTH * 0.35f + s_FogRadius) + SCREEN_WIDTH / 2.0f - SCREEN_WIDTH / 3.0f,
+            std::sin(angle) * (SCREEN_HEIGHT * 0.35f + s_FogRadius) + SCREEN_HEIGHT / 2.0f - SCREEN_HEIGHT / 3.0f,
+            2.0f * SCREEN_WIDTH / 3.0f,
+            2.0f * SCREEN_HEIGHT / 3.0f,
+            skyBottom.r,
+            skyBottom.g,
+            skyBottom.b,
+            11,
+            RwTextureGetRaster(CClouds::ms_vc.texture)
+        );
+    }
+
+    s_FogAngle += CTimer::GetTimeStep() / 6.0f;
+    ImmediateModeRenderStatesReStore();
 }
 
 // 0x702F40
