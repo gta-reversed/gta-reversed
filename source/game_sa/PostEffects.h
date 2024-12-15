@@ -177,7 +177,7 @@ public:
     static void ScriptNightVisionSwitch(bool enable);
     static void ScriptResetForEffects();
 
-    static void UnderWaterRipple(RwRGBA col, float xoffset, float yoffset, int32 strength, float speed, float freq);
+    static void UnderWaterRipple(RwRGBA col, float xoffset, float yoffset, float strength, float speed, float freq);
     static void UnderWaterRippleFadeToFX();
 
     static void HeatHazeFXInit();
@@ -202,6 +202,7 @@ public:
     static void DarknessFilter(int32 alpha);
     static void ColourFilter(RwRGBA pass1, RwRGBA pass2);
     static void Radiosity(int32 intensityLimit, int32 filterPasses, int32 renderPasses, int32 intensity);
+    static void SetSpeedFXManualSpeedCurrentFrame(float value);
 
     static void Render();
 };

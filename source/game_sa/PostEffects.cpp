@@ -195,7 +195,8 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(DarknessFilter, 0x702F00);
     RH_ScopedInstall(ColourFilter, 0x703650);
     RH_ScopedInstall(Radiosity, 0x702080, { .reversed = false });
-    RH_ScopedInstall(Render, 0x7046E0, { .reversed = false });
+    RH_ScopedInstall(SetSpeedFXManualSpeedCurrentFrame, 0x700BE0);
+    RH_ScopedInstall(Render, 0x7046E0);
 }
 
 // 0x704630
@@ -564,9 +565,9 @@ void CPostEffects::ScriptResetForEffects() {
     CWaterLevel::m_bWaterFogScript = true;
 }
 
-// 0x7039C0
-void CPostEffects::UnderWaterRipple(RwRGBA col, float xoffset, float yoffset, int32 strength, float speed, float freq) {
-    plugin::Call<0x7039C0, RwRGBA, float, float, int32, float, float>(col, xoffset, yoffset, strength, speed, freq);
+// 0x7039C00x7039C0
+void CPostEffects::UnderWaterRipple(RwRGBA col, float xoffset, float yoffset, float strength, float speed, float freq) {
+    plugin::Call<0x7039C0, RwRGBA, float, float, float, float, float>(col, xoffset, yoffset, strength, speed, freq);
 }
 
 // unused
@@ -998,9 +999,234 @@ void CPostEffects::Radiosity(int32 intensityLimit, int32 filterPasses, int32 ren
     plugin::Call<0x702080>();
 }
 
+// 0x700BE0
+void CPostEffects::SetSpeedFXManualSpeedCurrentFrame(float value) {
+    m_fSpeedFXManualSpeedCurrentFrame = std::clamp(value, 0.0f, 1.0f);
+}
+
 // 0x7046E0
 void CPostEffects::Render() {
     ZoneScoped;
 
-    plugin::Call<0x7046E0>();
+    static int32& s_CurrentStrength    = StaticRef<int32>(0xC40328);
+    static float& s_WaterGreen         = StaticRef<float>(0xC40324);
+    static bool&  s_WaitForOneFrame    = StaticRef<bool>(0xC40321);
+    static bool&  s_SavePhotoToGallery = StaticRef<bool>(0xC40320);
+
+    if (m_bDisableAllPostEffect) {
+        return;
+    }
+
+    RwRenderStateSet(rwRENDERSTATETEXTUREADDRESS, RWRSTATE(rwTEXTUREADDRESSCLAMP));
+    RwCameraEndUpdate(Scene.m_pRwCamera);
+    RwRasterPushContext(CPostEffects::pRasterFrontBuffer);
+    RwRasterRenderFast(RwCameraGetRaster(Scene.m_pRwCamera), 0, 0);
+    RwRasterPopContext();
+    RsCameraBeginUpdate(Scene.m_pRwCamera);
+
+    float& s_ExtraMult = ScopedStaticRef<float>(0xC4032C, 0xC40330, 1, 0.35f);
+
+    if (m_bFog) {
+        Fog();
+    }
+
+    auto [pass1, pass2] = CTimeCycle::GetPostFxColors();
+    if (m_bNightVision || m_bInfraredVision) {
+        pass1.Set(64, 64, 64);
+        pass2.Set(64, 64, 64);
+    }
+    pass1.ScaleRGB(gfLaRiotsLightMult);
+
+    auto colorMultFactor = 1.0f;
+    if (auto* player = FindPlayerPed()) {
+        const auto step   = CTimer::GetTimeStep() * SCREEN_EXTRA_MULT_CHANGE_RATE;
+        auto lightFromCol = player->GetLightingFromCol(false);
+
+        if (std::abs(lightFromCol - s_ExtraMult) >= step) {
+            if (lightFromCol <= s_ExtraMult) {
+                lightFromCol = s_ExtraMult - step;
+            } else {
+                lightFromCol = s_ExtraMult + step;
+            }
+        }
+        s_ExtraMult = std::min(lightFromCol, SCREEN_EXTRA_MULT_BASE_CAP);
+        colorMultFactor += (1.0f - s_ExtraMult / SCREEN_EXTRA_MULT_BASE_CAP) * SCREEN_EXTRA_MULT_BASE_MULT;
+    }
+
+    constexpr auto COLOR1_MULT = 1.0f, COLOR2_MULT = 1.0f;
+    pass1.ScaleRGB(COLOR1_MULT * colorMultFactor);
+    pass2.ScaleRGB(COLOR2_MULT * colorMultFactor);
+
+    if (m_bColorEnable) {
+        ColourFilter(pass1, pass2);
+    }
+
+    if (m_bDarknessFilter && !m_bNightVision && !m_bInfraredVision) {
+        DarknessFilter(m_DarknessFilterAlpha);
+        Radiosity(m_DarknessFilterRadiosityIntensityLimit, 0, 2, 255);
+    }
+
+    if (m_bSpeedFXTestMode) {
+        SetSpeedFXManualSpeedCurrentFrame(1.0f);
+    }
+
+    if (m_bSpeedFX && m_bSpeedFXUserFlag && m_bSpeedFXUserFlagCurrentFrame) {
+        auto* veh = FindPlayerVehicle();
+        if (m_fSpeedFXManualSpeedCurrentFrame == 0.0f) {
+            if (veh && !notsa::contains({ VEHICLE_TYPE_PLANE, VEHICLE_TYPE_HELI, VEHICLE_TYPE_BOAT, VEHICLE_TYPE_TRAIN }, veh->m_nVehicleType)) {
+                bool fxDrawn{};
+                if (veh->m_nVehicleType == VEHICLE_TYPE_AUTOMOBILE && veh->handlingFlags.bNosInst && veh->AsAutomobile()->m_fTireTemperature < 0.0f) {
+                    const auto dir = veh->GetMoveSpeed().Dot(veh->GetForward());
+                    if (dir > 0.2f) {
+                        SetSpeedFXManualSpeedCurrentFrame(2.0f * dir * (veh->m_fGasPedal + 1.0f));
+                        SpeedFX(m_fSpeedFXManualSpeedCurrentFrame);
+                        fxDrawn = true;
+                    }
+                }
+
+                if (!fxDrawn && !CCutsceneMgr::ms_running) {
+                    SpeedFX(FindPlayerSpeed().Magnitude());
+                }
+            }
+        } else {
+            SpeedFX(m_fSpeedFXManualSpeedCurrentFrame);
+        }
+    }
+    SetSpeedFXManualSpeedCurrentFrame(0.0f);
+    m_bSpeedFXUserFlagCurrentFrame = true;
+    m_bInCutscene                  = CCutsceneMgr::ms_running || CCutsceneMgr::ms_cutsceneProcessing;
+
+    if (m_bNightVision) {
+        if (!m_bInCutscene) {
+            NightVision();
+            Grain(m_NightVisionGrainStrength, true);
+        }
+    } else {
+        m_fNightVisionSwitchOnFXCount = m_fNightVisionSwitchOnFXTime;
+    }
+
+    if (m_bInfraredVision && !m_bInCutscene) {
+        InfraredVision(m_InfraredVisionCol, m_InfraredVisionMainCol);
+        Grain(m_InfraredVisionGrainStrength, true);
+    }
+
+    if (m_bRadiosity && !m_bDarknessFilter) {
+        if (m_bRadiosityBypassTimeCycleIntensityLimit) {
+            Radiosity(
+                m_RadiosityIntensityLimit,
+                m_RadiosityFilterPasses,
+                m_RadiosityRenderPasses,
+                m_RadiosityIntensity
+            );
+        } else {
+            Radiosity(
+                CTimeCycle::m_CurrentColours.m_nHighLightMinIntensity,
+                m_RadiosityFilterPasses,
+                m_RadiosityRenderPasses,
+                m_RadiosityIntensity
+            );
+        }
+    }
+
+    if (m_bRainEnable || s_CurrentStrength != 0) {
+        const auto rain = 128.0f * CWeather::Rain;
+        if (static_cast<float>(s_CurrentStrength) < rain) {
+            s_CurrentStrength++;
+        } else if (static_cast<float>(s_CurrentStrength) > rain) {
+            s_CurrentStrength--;
+        }
+        s_CurrentStrength = std::max(s_CurrentStrength, 0);
+
+        if (!CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && CWeather::IsUnderWater() && CGame::CanSeeOutSideFromCurrArea() && TheCamera.GetPosition().z <= 900.0f) {
+            Grain(s_CurrentStrength / 4, true);
+        }
+    }
+
+    if (m_bGrainEnable) {
+        Grain(m_grainStrength[0], true);
+    }
+
+    if (!m_bHeatHazeFX) {
+        if (CWeather::HeatHaze > 0.0f || g_fxMan.m_bHeatHazeEnabled) {
+            if (CWeather::UnderWaterness < m_fWaterFXStartUnderWaterness) {
+                if (CWeather::HeatHaze > 0.0f) {
+                    HeatHazeFX(CWeather::HeatHazeFXControl, false);
+                } else if (g_fxMan.m_bHeatHazeEnabled) {
+                    HeatHazeFX(1.0f, true);
+                }
+            }
+        } else if (CWeather::UnderWaterness >= m_fWaterFXStartUnderWaterness) {
+            HeatHazeFX(1.0f, false);
+        }
+    }
+
+    if (m_waterEnable || CWeather::UnderWaterness >= m_fWaterFXStartUnderWaterness) {
+        const auto depthLightMult = [&] {
+            if (m_bWaterDepthDarkness) {
+                return 1.0f - std::min(CWeather::WaterDepth, m_fWaterFullDarknessDepth) / m_fWaterFullDarknessDepth;
+            } else {
+                return 1.0f;
+            }
+        }();
+
+        CRGBA color{m_waterCol};
+        color.r += 184;
+        color.g += static_cast<uint8>(184.0f + s_WaterGreen);
+        color.b += 184;
+        s_WaterGreen = std::min(s_WaterGreen + CTimer::GetTimeStep(), 24.0f);
+
+        UnderWaterRipple(
+            color,
+            SCREEN_STRETCH_X(s_WaterGreen / 24.0f * m_xoffset),
+            SCREEN_STRETCH_Y(m_yoffset),
+            m_waterStrength,
+            m_waterSpeed,
+            m_waterFreq
+        );
+    } else {
+        s_WaterGreen = 0.0f;
+    }
+
+    if (m_bCCTV) {
+        CCTV();
+    }
+
+    if (CWeapon::ms_bTakePhoto && FrontEndMenuManager.m_bIsSaveDone) {
+        CWeapon::ms_bTakePhoto = false;
+        m_bSavePhotoFromScript = false;
+    }
+
+    if (s_WaitForOneFrame) {
+        if (CWeapon::ms_bTakePhoto) {
+            s_WaitForOneFrame = true;
+            CTimer::Suspend();
+            if (s_SavePhotoToGallery) {
+                CVisibilityPlugins::RenderWeaponPedsForPC();
+                CVisibilityPlugins::ms_weaponPedsForPC.Clear();
+                CFileMgr::SetDirMyDocuments();
+
+                auto photoIdx = 0;
+                do {
+                    notsa::format_to_sz(gString, "Gallery\\gallery{}.jpg", ++photoIdx);
+                } while (fs::exists(gString));
+
+                JPegCompressScreenToFile(TheCamera.m_pRwCamera, gString);
+                CFileMgr::SetDir("");
+            }
+            CTimer::Resume();
+
+            if (!FrontEndMenuManager.m_bActivateMenuNextFrame) {
+                CSpecialFX::bSnapShotActive = true;
+                CSpecialFX::SnapShotFrames  = false;
+            }
+            s_SavePhotoToGallery   = false;
+            CWeapon::ms_bTakePhoto = false;
+            m_bSavePhotoFromScript = false;
+        }
+    } else if (CWeapon::ms_bTakePhoto) {
+        if (FrontEndMenuManager.m_bSavePhotos) {
+            s_SavePhotoToGallery = true;
+        }
+        s_WaitForOneFrame = true;
+    }
 }
