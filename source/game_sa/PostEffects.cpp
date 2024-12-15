@@ -192,7 +192,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(CCTV, 0x702F40, { .reversed = false });
     RH_ScopedInstall(Grain, 0x7037C0);
     RH_ScopedInstall(SpeedFX, 0x7030A0, { .reversed = false });
-    RH_ScopedInstall(DarknessFilter, 0x702F00, { .reversed = false });
+    RH_ScopedInstall(DarknessFilter, 0x702F00);
     RH_ScopedInstall(ColourFilter, 0x703650);
     RH_ScopedInstall(Radiosity, 0x702080, { .reversed = false });
     RH_ScopedInstall(Render, 0x7046E0, { .reversed = false });
@@ -921,7 +921,10 @@ void CPostEffects::SpeedFX(float speed) {
 
 // 0x702F00
 void CPostEffects::DarknessFilter(int32 alpha) {
-    plugin::Call<0x702F00, int32>(alpha);
+    ImmediateModeRenderStatesStore();
+    ImmediateModeRenderStatesSet();
+    DrawQuad(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, alpha, nullptr);
+    ImmediateModeRenderStatesReStore();
 }
 
 // 0x703650
