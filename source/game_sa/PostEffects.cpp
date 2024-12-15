@@ -152,6 +152,8 @@ int32 (&hpS)[180] = *(int32(*)[180])0xC3F868; // speed
 
 static inline float& s_DayNightBalanceParamOld = StaticRef<float>(0xC3F860);
 
+static constexpr auto GRAIN_TEXTURE_DIM = 256u; // 256x256
+
 void CPostEffects::InjectHooks() {
     RH_ScopedClass(CPostEffects);
     RH_ScopedCategoryGlobal();
@@ -166,7 +168,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(FilterFX_RestoreDayNightBalance, 0x7034D0);
     RH_ScopedInstall(ImmediateModeFilterStuffInitialize, 0x703CC0);
     RH_ScopedInstall(ImmediateModeRenderStatesSet, 0x700D70);
-    RH_ScopedInstall(ImmediateModeRenderStatesStore, 0x700CC0);
+    RH_ScopedInstall(ImmediateModeRenderStatesStore, 0x700CC0, {.locked = true}); // EAX is overriden when unhooked for some reason
     RH_ScopedInstall(ImmediateModeRenderStatesReStore, 0x700E00);
     RH_ScopedInstall(ScriptCCTVSwitch, 0x7011B0);
     RH_ScopedInstall(ScriptDarknessFilterSwitch, 0x701170);
@@ -187,7 +189,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(InfraredVisionRestoreLightsForHeatObjects, 0x701410);
     RH_ScopedInstall(Fog, 0x704150, { .reversed = false });
     RH_ScopedInstall(CCTV, 0x702F40, { .reversed = false });
-    RH_ScopedInstall(Grain, 0x7037C0, { .reversed = false });
+    RH_ScopedInstall(Grain, 0x7037C0);
     RH_ScopedInstall(SpeedFX, 0x7030A0, { .reversed = false });
     RH_ScopedInstall(DarknessFilter, 0x702F00, { .reversed = false });
     RH_ScopedInstall(ColourFilter, 0x703650);
@@ -198,9 +200,9 @@ void CPostEffects::InjectHooks() {
 // 0x704630
 void CPostEffects::Initialise() {
     SetupBackBufferVertex();
-    if (m_pGrainRaster = RwRasterCreate(256, 256, 32, rwRASTERFORMAT8888 | rwRASTERTYPETEXTURE)) {
+    if (m_pGrainRaster = RwRasterCreate(GRAIN_TEXTURE_DIM, GRAIN_TEXTURE_DIM, 32, rwRASTERFORMAT8888 | rwRASTERTYPETEXTURE)) {
         auto* pixels = RwRasterLock(m_pGrainRaster, 0, rwRASTERLOCKWRITE);
-        for (auto i = 0; i < 256 * 256; i += 4) {
+        for (auto i = 0u; i < sq(GRAIN_TEXTURE_DIM); i += 4) {
             pixels[i + 0] = pixels[i + 1] = pixels[i + 2] = pixels[i + 3] = static_cast<uint8>(CGeneral::GetRandomNumber());
         }
 
@@ -777,19 +779,16 @@ void CPostEffects::InfraredVisionStoreAndSetLightsForHeatObjects(CPed* ped) {
         return;
 
     // store color
-    auto red   = m_fInfraredVisionHeatObjectCol.red;
-    auto green = m_fInfraredVisionHeatObjectCol.green;
-    auto blue  = m_fInfraredVisionHeatObjectCol.blue;
-    auto alpha = m_fInfraredVisionHeatObjectCol.alpha;
+    const auto red   = m_fInfraredVisionHeatObjectCol.red;
+    const auto green = m_fInfraredVisionHeatObjectCol.green;
+    const auto blue  = m_fInfraredVisionHeatObjectCol.blue;
+    const auto alpha = m_fInfraredVisionHeatObjectCol.alpha;
 
     // here we go to fuck cold carbon (Explanation: https://sampik.ru/articles/468-pochemu-piratskij-perevod-gtasa-takoj-strannyj.html)
     // gradually changing from red to blue (dead)
     if (ped->m_nPedState == PEDSTATE_DEAD) {
-        auto time = CTimer::GetTimeInMS() - ped->m_nDeathTimeMS;
-        if (time < 0)
-            time = ped->m_nDeathTimeMS - CTimer::GetTimeInMS();
-
-        auto delta = (float)time / 10'000.0f;
+        const auto time = std::abs((int32)(CTimer::GetTimeInMS() - ped->m_nDeathTimeMS));
+        const auto delta = (float)time / 10'000.0f;
 
         m_fInfraredVisionHeatObjectCol.red = std::max(m_fInfraredVisionHeatObjectCol.red - delta, 0.0f);
         m_fInfraredVisionHeatObjectCol.green = 0.0f;
@@ -824,7 +823,47 @@ void CPostEffects::CCTV() {
 
 // 0x7037C0
 void CPostEffects::Grain(int32 strengthMask, bool update) {
-    plugin::Call<0x7037C0, int32, bool>(strengthMask, update);
+    static uint32& s_NumberOfReseeds = StaticRef<uint32>(0xC4031C);
+    if (update) {
+        auto* pixels = RwRasterLock(m_pGrainRaster, 0, rwRASTERLOCKWRITE);
+
+        // std::srand(CTimer::GetTimeInMS() + OS_TimeMS())
+        std::srand(CTimer::GetCurrentTimeInCycles() / CTimer::GetCyclesPerMillisecond());
+        for (auto i = 0u, reSeedCounter = 0u; i < sq(GRAIN_TEXTURE_DIM); i++) {
+            if (++reSeedCounter >= 100) {
+                reSeedCounter = 0;
+                std::srand(CTimer::GetTimeInMS() + OS_TimeMS() + ++s_NumberOfReseeds);
+            }
+            pixels[4 * i] = pixels[4 * i + 1] = pixels[4 * i + 2] = pixels[4 * i + 3] = static_cast<uint8>(CGeneral::GetRandomNumber());
+        }
+        RwRasterUnlock(m_pGrainRaster);
+    }
+
+    ImmediateModeRenderStatesStore();
+    ImmediateModeRenderStatesSet();
+    RwRenderStateSet(rwRENDERSTATETEXTUREADDRESS, RWRSTATE(rwTEXTUREADDRESSWRAP));
+    RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, RWRSTATE(rwFILTERLINEAR));
+
+    const auto ux = SCREEN_STRETCH_X(1.5f), uy = SCREEN_HEIGHT / SCREEN_WIDTH * ux;
+
+    ms_imf.quad[0].u = 0.0f;
+    ms_imf.quad[0].v = 0.0f;
+    ms_imf.quad[1].u = ux;
+    ms_imf.quad[1].v = 0.0f;
+    ms_imf.quad[2].u = 0.0f;
+    ms_imf.quad[2].v = uy;
+    ms_imf.quad[3].u = ux;
+    ms_imf.quad[3].v = uy;
+    DrawQuad(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 255, 255, 255, strengthMask, m_pGrainRaster);
+    ms_imf.quad[0].u = 0.0f;
+    ms_imf.quad[0].v = 0.0f;
+    ms_imf.quad[1].u = 1.0f;
+    ms_imf.quad[1].v = 0.0f;
+    ms_imf.quad[2].u = 0.0f;
+    ms_imf.quad[2].v = 1.0f;
+    ms_imf.quad[3].u = 1.0f;
+    ms_imf.quad[3].v = 1.0f;
+    ImmediateModeRenderStatesReStore();
 }
 
 // 0x7030A0

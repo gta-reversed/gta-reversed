@@ -64,7 +64,7 @@ public:
     static void   EndUserPause();
     static uint32 GetCyclesPerMillisecond();
     static uint32 GetCyclesPerFrame();
-    static uint64 GetCurrentTimeInCycles();
+    static uint32 GetCurrentTimeInCycles();
     static bool   GetIsSlowMotionActive();
     static void   UpdateVariables(float timeElapsed);
     static void   Update();
