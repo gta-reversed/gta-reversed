@@ -1,6 +1,8 @@
 #include "StdInc.h"
 
 #include "PostEffects.h"
+#include "CustomBuildingDNPipeline.h"
+#include "Clouds.h"
 
 float& CPostEffects::SCREEN_EXTRA_MULT_CHANGE_RATE = *(float*)0x8D5168; // 0.0005f;
 float& CPostEffects::SCREEN_EXTRA_MULT_BASE_CAP = *(float*)0x8D516C;    // 0.35f;
@@ -62,7 +64,37 @@ int32& CPostEffects::m_SpeedFXAlpha = *(int32*)0x8D5104; // 36
 
 RwRaster*& CPostEffects::pRasterFrontBuffer = *(RwRaster**)0xC402D8;
 
-float& CPostEffects::ms_imf = *(float*)0xC40150;
+// Immediate Mode Filter
+struct imf {
+    float                       screenZ;
+    float                       recipCameraZ;
+    RwRaster*                   RasterDrawBuffer;
+    int32                       sizeDrawBufferX;
+    int32                       sizeDrawBufferY;
+    float                       fFrontBufferU1;
+    float                       fFrontBufferV1;
+    float                       fFrontBufferU2;
+    float                       fFrontBufferV2;
+    std::array<RwIm2DVertex, 3> triangle;
+    float                       uMinTri;
+    float                       uMaxTri;
+    float                       vMinTri;
+    float                       vMaxTri;
+    std::array<RwIm2DVertex, 6> quad;
+    RwBlendFunction             blendSrc;
+    RwBlendFunction             blendDst;
+    RwBool                      bFog;
+    RwCullMode                  cullMode;
+    RwBool                      bZTest;
+    RwBool                      bZWrite;
+    RwShadeMode                 shadeMode;
+    RwBool                      bVertexAlpha;
+    RwTextureAddressMode        textureAddress;
+    RwTextureFilterMode         textureFilter;
+};
+
+VALIDATE_SIZE(imf, 0x158);
+static inline imf& ms_imf = *(imf*)0xC40150;
 
 bool& CPostEffects::m_bGrainEnable = *(bool*)0xC402B4;
 RwRaster*& CPostEffects::m_pGrainRaster = *(RwRaster**)0xC402B0;
@@ -119,21 +151,25 @@ int32 (&hpX)[180] = *(int32(*)[180])0xC3FE08;
 int32 (&hpY)[180] = *(int32(*)[180])0xC3FB38;
 int32 (&hpS)[180] = *(int32(*)[180])0xC3F868; // speed
 
+static inline float& s_DayNightBalanceParamOld = StaticRef<float>(0xC3F860);
+
+static constexpr auto GRAIN_TEXTURE_DIM = 256u; // 256x256
+
 void CPostEffects::InjectHooks() {
     RH_ScopedClass(CPostEffects);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Initialise, 0x704630, { .reversed = false });
+    RH_ScopedInstall(Initialise, 0x704630);
     RH_ScopedInstall(Close, 0x7010C0);
     RH_ScopedInstall(DoScreenModeDependentInitializations, 0x7046D0);
-    RH_ScopedInstall(SetupBackBufferVertex, 0x7043D0, { .reversed = false });
+    RH_ScopedInstall(SetupBackBufferVertex, 0x7043D0);
     RH_ScopedInstall(Update, 0x7046A0);
     RH_ScopedInstall(DrawQuad, 0x700EC0);
-    RH_ScopedInstall(FilterFX_StoreAndSetDayNightBalance, 0x7034B0, { .reversed = false });
-    RH_ScopedInstall(FilterFX_RestoreDayNightBalance, 0x7034D0, { .reversed = false });
-    RH_ScopedInstall(ImmediateModeFilterStuffInitialize, 0x703CC0, { .reversed = false });
+    RH_ScopedInstall(FilterFX_StoreAndSetDayNightBalance, 0x7034B0);
+    RH_ScopedInstall(FilterFX_RestoreDayNightBalance, 0x7034D0);
+    RH_ScopedInstall(ImmediateModeFilterStuffInitialize, 0x703CC0);
     RH_ScopedInstall(ImmediateModeRenderStatesSet, 0x700D70);
-    RH_ScopedInstall(ImmediateModeRenderStatesStore, 0x700CC0);
+    RH_ScopedInstall(ImmediateModeRenderStatesStore, 0x700CC0, {.locked = true}); // EAX is overriden when unhooked for some reason
     RH_ScopedInstall(ImmediateModeRenderStatesReStore, 0x700E00);
     RH_ScopedInstall(ScriptCCTVSwitch, 0x7011B0);
     RH_ScopedInstall(ScriptDarknessFilterSwitch, 0x701170);
@@ -145,34 +181,42 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(HeatHazeFXInit, 0x701450);
     RH_ScopedInstall(HeatHazeFX, 0x701780, { .reversed = false });
     RH_ScopedInstall(IsVisionFXActive, 0x7034F0);
-    RH_ScopedInstall(NightVision, 0x7011C0, { .reversed = false });
+    RH_ScopedInstall(NightVision, 0x7011C0);
     RH_ScopedInstall(NightVisionSetLights, 0x7012E0);
     RH_ScopedInstall(SetFilterMainColour, 0x703520);
     RH_ScopedInstall(InfraredVision, 0x703F80);
     RH_ScopedInstall(InfraredVisionSetLightsForDefaultObjects, 0x701430);
     RH_ScopedInstall(InfraredVisionStoreAndSetLightsForHeatObjects, 0x701320);
     RH_ScopedInstall(InfraredVisionRestoreLightsForHeatObjects, 0x701410);
-    RH_ScopedInstall(Fog, 0x704150, { .reversed = false });
-    RH_ScopedInstall(CCTV, 0x702F40, { .reversed = false });
-    RH_ScopedInstall(Grain, 0x7037C0, { .reversed = false });
+    RH_ScopedInstall(Fog, 0x704150);
+    RH_ScopedInstall(CCTV, 0x702F40);
+    RH_ScopedInstall(Grain, 0x7037C0);
     RH_ScopedInstall(SpeedFX, 0x7030A0, { .reversed = false });
-    RH_ScopedInstall(DarknessFilter, 0x702F00, { .reversed = false });
+    RH_ScopedInstall(DarknessFilter, 0x702F00);
     RH_ScopedInstall(ColourFilter, 0x703650);
     RH_ScopedInstall(Radiosity, 0x702080, { .reversed = false });
-    RH_ScopedInstall(Render, 0x7046E0, { .reversed = false });
+    RH_ScopedInstall(SetSpeedFXManualSpeedCurrentFrame, 0x700BE0);
+    RH_ScopedInstall(Render, 0x7046E0);
 }
 
 // 0x704630
 void CPostEffects::Initialise() {
-    plugin::Call<0x704630>();
+    SetupBackBufferVertex();
+    if (m_pGrainRaster = RwRasterCreate(GRAIN_TEXTURE_DIM, GRAIN_TEXTURE_DIM, 32, rwRASTERFORMAT8888 | rwRASTERTYPETEXTURE)) {
+        auto* pixels = RwRasterLock(m_pGrainRaster, 0, rwRASTERLOCKWRITE);
+        for (auto i = 0u; i < sq(GRAIN_TEXTURE_DIM); i += 4) {
+            pixels[i + 0] = pixels[i + 1] = pixels[i + 2] = pixels[i + 3] = static_cast<uint8>(CGeneral::GetRandomNumber());
+        }
+
+        RwRasterUnlock(m_pGrainRaster);
+    }
 }
 
 // 0x7010C0
 void CPostEffects::Close() {
     RwRasterDestroy(m_pGrainRaster);
     if (pRasterFrontBuffer) {
-        RwRasterDestroy(pRasterFrontBuffer);
-        pRasterFrontBuffer = nullptr;
+        RwRasterDestroy(std::exchange(pRasterFrontBuffer, nullptr));
     }
 }
 
@@ -182,73 +226,75 @@ void CPostEffects::DoScreenModeDependentInitializations() {
     HeatHazeFXInit();
 }
 
+// NOTSA
+// Returns the next power of two of `n`
+uint32 GetNextPow2(uint32 n) {
+    if (n == 0) {
+        return 1;
+    }
+
+    n--;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+
+    return n + 1;
+}
+
 // 0x7043D0
 void CPostEffects::SetupBackBufferVertex() {
-    return plugin::Call<0x7043D0>();
-
     RwRaster* raster = RwCameraGetRaster(Scene.m_pRwCamera);
-    // https://www.felixcloutier.com/x86/fyl2x
-    // FYL2X — Compute y ∗ log2x
-    // log(2.0) = 0.69314718055994528623
 
     // get maximum 2^N dimensions
-    const auto width  = (int32)std::pow(2.0f, (int32)log2((float)RwRasterGetWidth(raster)));
-    const auto height = (int32)std::pow(2.0f, (int32)log2((float)RwRasterGetHeight(raster)));
+    const auto width  = GetNextPow2(RwRasterGetWidth(raster));
+    const auto height = GetNextPow2(RwRasterGetHeight(raster));
     const auto fwidth = float(width);
     const auto fheight = float(height);
 
-    const auto InitVertices = [=]() {
-        cc_vertices[0].x = 0.0f;
-        cc_vertices[0].y = 0.0f;
-        cc_vertices[0].z = RwIm2DGetNearScreenZ();
-        cc_vertices[0].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
-        cc_vertices[0].u = 0.5f / fwidth;
-        cc_vertices[0].v = 0.5f / fheight;
+    if (pRasterFrontBuffer && (width != RwRasterGetWidth(pRasterFrontBuffer) || height != RwRasterGetHeight(pRasterFrontBuffer))) {
+        RwRasterDestroy(std::exchange(pRasterFrontBuffer, nullptr));
+    }
+    if (!pRasterFrontBuffer) {
+        pRasterFrontBuffer = RasterCreatePostEffects(RwRect{ .w = (int32)width, .h = (int32)height });
 
-        cc_vertices[1].x = 0.0f;
-        cc_vertices[1].y = fheight;
-        cc_vertices[1].z = RwIm2DGetNearScreenZ();
-        cc_vertices[1].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
-        cc_vertices[1].u = 0.5f / fwidth;
-        cc_vertices[1].v = (fheight + 0.5f) / fheight;
-
-        cc_vertices[2].x = fwidth;
-        cc_vertices[2].y = fheight;
-        cc_vertices[2].z = RwIm2DGetNearScreenZ();
-        cc_vertices[3].y = 0.0f;
-        cc_vertices[2].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
-        cc_vertices[2].u = (fwidth + 0.5f) / fwidth;
-        cc_vertices[2].v = (fheight + 0.5f) / fheight;
-
-        cc_vertices[3].x = fwidth;
-        cc_vertices[3].z = RwIm2DGetNearScreenZ();
-        cc_vertices[3].u = (fwidth + 0.5f) / fwidth;
-        cc_vertices[3].v = 0.5f / fheight;
-        cc_vertices[3].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
-
-        if (pRasterFrontBuffer) {
-            DoScreenModeDependentInitializations();
+        if (!pRasterFrontBuffer) {
+            NOTSA_LOG_ERR("Error subrastering");
         }
-    };
+    }
+
+    cc_vertices[0].x   = 0.0f;
+    cc_vertices[0].y   = 0.0f;
+    cc_vertices[0].z   = RwIm2DGetNearScreenZ();
+    cc_vertices[0].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+    cc_vertices[0].u   = 0.5f / fwidth;
+    cc_vertices[0].v   = 0.5f / fheight;
+
+    cc_vertices[1].x   = 0.0f;
+    cc_vertices[1].y   = fheight;
+    cc_vertices[1].z   = RwIm2DGetNearScreenZ();
+    cc_vertices[1].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+    cc_vertices[1].u   = 0.5f / fwidth;
+    cc_vertices[1].v   = (fheight + 0.5f) / fheight;
+
+    cc_vertices[2].x   = fwidth;
+    cc_vertices[2].y   = fheight;
+    cc_vertices[2].z   = RwIm2DGetNearScreenZ();
+    cc_vertices[3].y   = 0.0f;
+    cc_vertices[2].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+    cc_vertices[2].u   = (fwidth + 0.5f) / fwidth;
+    cc_vertices[2].v   = (fheight + 0.5f) / fheight;
+
+    cc_vertices[3].x   = fwidth;
+    cc_vertices[3].z   = RwIm2DGetNearScreenZ();
+    cc_vertices[3].u   = (fwidth + 0.5f) / fwidth;
+    cc_vertices[3].v   = 0.5f / fheight;
+    cc_vertices[3].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
 
     if (pRasterFrontBuffer) {
-        if (width != RwRasterGetWidth(pRasterFrontBuffer) || height != RwRasterGetHeight(pRasterFrontBuffer)) {
-            InitVertices();
-            return;
-        }
-
-        RwRasterDestroy(pRasterFrontBuffer);
-        pRasterFrontBuffer = nullptr;
+        DoScreenModeDependentInitializations();
     }
-
-    pRasterFrontBuffer = RasterCreatePostEffects({ 0, 0, 64, 64 });
-    if (!pRasterFrontBuffer) {
-        DEV_LOG("Error subrastering");
-        RwRasterDestroy(pRasterFrontBuffer);
-        pRasterFrontBuffer = nullptr;
-    }
-
-    InitVertices();
 }
 
 // 0x7046A0
@@ -265,26 +311,26 @@ void CPostEffects::Update() {
 void CPostEffects::DrawQuad(float x1, float y1, float x2, float y2, uint8 red, uint8 green, uint8 blue, uint8 alpha, RwRaster* raster) {
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, raster);
 
-    auto color = CRGBA(red, green, blue, alpha).ToIntARGB();
+    const auto color = CRGBA(red, green, blue, alpha).ToIntARGB();
 
     vertexGroup[0].x = x1;
     vertexGroup[0].y = y1;
-    vertexGroup[0].z = ms_imf;
+    vertexGroup[0].z = ms_imf.screenZ;
     vertexGroup[0].emissiveColor = color;
 
     vertexGroup[1].x = x1 + x2;
     vertexGroup[1].y = y1;
-    vertexGroup[1].z = ms_imf;
+    vertexGroup[1].z = ms_imf.screenZ;
     vertexGroup[1].emissiveColor = color;
 
     vertexGroup[2].x = x1;
     vertexGroup[2].y = y1 + y2;
-    vertexGroup[2].z = ms_imf;
+    vertexGroup[2].z = ms_imf.screenZ;
     vertexGroup[2].emissiveColor = color;
 
     vertexGroup[3].x = x1 + x2;
     vertexGroup[3].y = y1 + y2;
-    vertexGroup[3].z = ms_imf;
+    vertexGroup[3].z = ms_imf.screenZ;
     vertexGroup[3].emissiveColor = color;
 
     RwIm2DRenderPrimitive(rwPRIMTYPETRISTRIP, vertexGroup, std::size(vertexGroup));
@@ -309,8 +355,8 @@ void CPostEffects::DrawQuadSetUVs(float u1, float v1, float u2, float v2, float 
 
 // 0x700FE0
 void CPostEffects::DrawQuadSetPixelUVs(float u0, float v0, float u1, float v1, float u3, float v3, float u2, float v2) {
-    float x = 1.0f / fRasterFrontBufferWidth;
-    float y = 1.0f / fRasterFrontBufferHeight;
+    const float x = 1.0f / fRasterFrontBufferWidth;
+    const float y = 1.0f / fRasterFrontBufferHeight;
 
     vertexGroup[0].u = x * u0;
     vertexGroup[0].v = y * v0;
@@ -327,17 +373,99 @@ void CPostEffects::DrawQuadSetPixelUVs(float u0, float v0, float u1, float v1, f
 
 // 0x7034B0
 void CPostEffects::FilterFX_StoreAndSetDayNightBalance() {
-    plugin::Call<0x7034B0>();
+    if (!m_bInCutscene) {
+        s_DayNightBalanceParamOld = CCustomBuildingDNPipeline::m_fDNBalanceParam;
+        CCustomBuildingDNPipeline::m_fDNBalanceParam = m_VisionFXDayNightBalance;
+    }
 }
 
 // 0x7034D0
 void CPostEffects::FilterFX_RestoreDayNightBalance() {
-    return plugin::Call<0x7034D0>();
+    if (!m_bInCutscene) {
+        CCustomBuildingDNPipeline::m_fDNBalanceParam = s_DayNightBalanceParamOld;
+    }
 }
 
 // 0x703CC0
 void CPostEffects::ImmediateModeFilterStuffInitialize() {
-    plugin::Call<0x703CC0>();
+    ms_imf.screenZ          = RwIm2DGetNearScreenZ();
+    ms_imf.RasterDrawBuffer = pRasterFrontBuffer;
+    ms_imf.uMinTri          = 0.0f;
+    ms_imf.vMinTri          = 0.0f;
+    ms_imf.uMaxTri          = 2.0f;
+    ms_imf.vMaxTri          = 2.0f;
+    ms_imf.recipCameraZ     = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+    ms_imf.sizeDrawBufferX  = RwRasterGetWidth(ms_imf.RasterDrawBuffer);
+    ms_imf.sizeDrawBufferY  = RwRasterGetHeight(ms_imf.RasterDrawBuffer);
+
+    ms_imf.triangle[0] = {
+        .x   = 0.0f,
+        .y   = 0.0f,
+        .z   = ms_imf.screenZ,
+        .rhw = ms_imf.recipCameraZ,
+        .u   = 0.0f,
+        .v   = 0.0f
+    };
+    ms_imf.triangle[1] = {
+        .x   = 2.0f * (float)ms_imf.sizeDrawBufferX,
+        .y   = 0.0f,
+        .z   = ms_imf.screenZ,
+        .rhw = ms_imf.recipCameraZ,
+        .u   = 2.0f,
+        .v   = 0.0f
+    };
+    ms_imf.triangle[2] = {
+        .x   = 0.0f,
+        .y   = 2.0f * (float)ms_imf.sizeDrawBufferY,
+        .z   = ms_imf.screenZ,
+        .rhw = ms_imf.recipCameraZ,
+        .u   = 0.0f,
+        .v   = 2.0f
+    };
+
+    constexpr auto DEFAULT_QUAD_COLOR = 0xFF00C800;
+
+    ms_imf.quad[0] = {
+        .x             = 0.0f,
+        .y             = 0.0f,
+        .z             = ms_imf.screenZ,
+        .rhw           = ms_imf.recipCameraZ,
+        .emissiveColor = DEFAULT_QUAD_COLOR,
+        .u             = 0.0f,
+        .v             = 0.0f
+    };
+    ms_imf.quad[1] = {
+        .x             = 0.0f,
+        .y             = 0.0f,
+        .z             = ms_imf.screenZ,
+        .rhw           = ms_imf.recipCameraZ,
+        .emissiveColor = DEFAULT_QUAD_COLOR,
+        .u             = 1.0f,
+        .v             = 0.0f
+    };
+    ms_imf.quad[2] = {
+        .x             = 0.0f,
+        .y             = 0.0f,
+        .z             = ms_imf.screenZ,
+        .rhw           = ms_imf.recipCameraZ,
+        .emissiveColor = DEFAULT_QUAD_COLOR,
+        .u             = 0.0f,
+        .v             = 1.0f
+    };
+    ms_imf.quad[3] = {
+        .x             = 0.0f,
+        .y             = 0.0f,
+        .z             = ms_imf.screenZ,
+        .rhw           = ms_imf.recipCameraZ,
+        .emissiveColor = DEFAULT_QUAD_COLOR,
+        .u             = 1.0f,
+        .v             = 1.0f
+    };
+
+    const auto* frameBuffer = RwCameraGetRaster(Scene.m_pRwCamera);
+    ms_imf.fFrontBufferU1 = ms_imf.fFrontBufferV1 = 0.0f;
+    ms_imf.fFrontBufferU2 = SCREEN_WIDTH / GetNextPow2(RwRasterGetWidth(frameBuffer));
+    ms_imf.fFrontBufferV2 = SCREEN_HEIGHT / GetNextPow2(RwRasterGetHeight(frameBuffer));
 }
 
 // 0x700D70
@@ -437,9 +565,9 @@ void CPostEffects::ScriptResetForEffects() {
     CWaterLevel::m_bWaterFogScript = true;
 }
 
-// 0x7039C0
-void CPostEffects::UnderWaterRipple(RwRGBA col, float xoffset, float yoffset, int32 strength, float speed, float freq) {
-    plugin::Call<0x7039C0, RwRGBA, float, float, int32, float, float>(col, xoffset, yoffset, strength, speed, freq);
+// 0x7039C00x7039C0
+void CPostEffects::UnderWaterRipple(RwRGBA col, float xoffset, float yoffset, float strength, float speed, float freq) {
+    plugin::Call<0x7039C0, RwRGBA, float, float, float, float, float>(col, xoffset, yoffset, strength, speed, freq);
 }
 
 // unused
@@ -530,20 +658,16 @@ bool CPostEffects::IsVisionFXActive() {
 
 // 0x7011C0
 void CPostEffects::NightVision() {
-    return plugin::Call<0x7011C0>();
-
-    // todo: fix fade-in
     if (m_fNightVisionSwitchOnFXCount > 0.0f) {
-        m_fNightVisionSwitchOnFXCount -= CTimer::GetTimeStep();
-        m_fNightVisionSwitchOnFXCount = std::min(m_fNightVisionSwitchOnFXCount, 0.0f);
+        m_fNightVisionSwitchOnFXCount = std::min(m_fNightVisionSwitchOnFXCount - CTimer::GetTimeStep(), 0.0f);
 
         ImmediateModeRenderStatesStore();
         ImmediateModeRenderStatesSet();
         RwRenderStateSet(rwRENDERSTATESRCBLEND,  RWRSTATE(rwBLENDONE));
         RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDONE));
 
-        for (int32 i = 0, end = (int32)m_fNightVisionSwitchOnFXCount; i < end; i++) {
-            DrawQuad(0.0f, 0.0f, fRasterFrontBufferWidth, fRasterFrontBufferHeight, 8, 8, 8, 255, pVisionFXRaster);
+        for (auto i = 0, end = (int32)m_fNightVisionSwitchOnFXCount; i < end; i++) {
+            DrawQuad(0.0f, 0.0f, (float)ms_imf.sizeDrawBufferX, (float)ms_imf.sizeDrawBufferY, 8, 8, 8, 255, ms_imf.RasterDrawBuffer);
         }
 
         ImmediateModeRenderStatesReStore();
@@ -657,19 +781,16 @@ void CPostEffects::InfraredVisionStoreAndSetLightsForHeatObjects(CPed* ped) {
         return;
 
     // store color
-    auto red   = m_fInfraredVisionHeatObjectCol.red;
-    auto green = m_fInfraredVisionHeatObjectCol.green;
-    auto blue  = m_fInfraredVisionHeatObjectCol.blue;
-    auto alpha = m_fInfraredVisionHeatObjectCol.alpha;
+    const auto red   = m_fInfraredVisionHeatObjectCol.red;
+    const auto green = m_fInfraredVisionHeatObjectCol.green;
+    const auto blue  = m_fInfraredVisionHeatObjectCol.blue;
+    const auto alpha = m_fInfraredVisionHeatObjectCol.alpha;
 
     // here we go to fuck cold carbon (Explanation: https://sampik.ru/articles/468-pochemu-piratskij-perevod-gtasa-takoj-strannyj.html)
     // gradually changing from red to blue (dead)
     if (ped->m_nPedState == PEDSTATE_DEAD) {
-        auto time = CTimer::GetTimeInMS() - ped->m_nDeathTimeMS;
-        if (time < 0)
-            time = ped->m_nDeathTimeMS - CTimer::GetTimeInMS();
-
-        auto delta = (float)time / 10'000.0f;
+        const auto time = std::abs((int32)(CTimer::GetTimeInMS() - ped->m_nDeathTimeMS));
+        const auto delta = (float)time / 10'000.0f;
 
         m_fInfraredVisionHeatObjectCol.red = std::max(m_fInfraredVisionHeatObjectCol.red - delta, 0.0f);
         m_fInfraredVisionHeatObjectCol.green = 0.0f;
@@ -694,17 +815,139 @@ void CPostEffects::InfraredVisionRestoreLightsForHeatObjects() {
 
 // 0x704150
 void CPostEffects::Fog() {
-    plugin::Call<0x704150>();
+    static float& s_FogRadius = StaticRef<float>(0xC402E4);
+    static float& s_FogAngle  = StaticRef<float>(0xC402DC);
+
+    ImmediateModeRenderStatesStore();
+    ImmediateModeRenderStatesSet();
+    RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, RWRSTATE(rwFILTERLINEAR));
+
+    if (FindPlayerSpeed().SquaredMagnitude() <= sq(0.06f)) {
+        s_FogRadius = std::max(s_FogRadius - CTimer::GetTimeStep() / 4.0f, 0.0f);
+    } else {
+        s_FogRadius = std::min(s_FogRadius + CTimer::GetTimeStep() / 4.0f, 160.0f);
+    }
+
+    const auto skyBottom = CTimeCycle::GetCurrentSkyBottomColor();
+    for (auto i = 0; i < 10; i++) {
+        const auto angle = DegreesToRadians(36.0f * static_cast<float>(i) + s_FogAngle);
+
+        DrawQuad(
+            std::cos(angle) * (SCREEN_WIDTH / 4.0f + s_FogRadius) + SCREEN_WIDTH / 2.0f - SCREEN_WIDTH / 3.0f,
+            std::sin(angle) * (SCREEN_HEIGHT / 4.0f + s_FogRadius) + SCREEN_HEIGHT / 2.0f - SCREEN_HEIGHT / 3.0f,
+            2.0f * SCREEN_WIDTH / 3.0f,
+            2.0f * SCREEN_HEIGHT / 3.0f,
+            skyBottom.r,
+            skyBottom.g,
+            skyBottom.b,
+            11,
+            RwTextureGetRaster(CClouds::ms_vc.texture)
+        );
+    }
+
+    for (auto i = 0; i < 10; i++) {
+        const auto angle = -DegreesToRadians(36.0f * static_cast<float>(i) + s_FogAngle);
+
+        DrawQuad(
+            std::cos(angle) * (SCREEN_WIDTH * 0.35f + s_FogRadius) + SCREEN_WIDTH / 2.0f - SCREEN_WIDTH / 3.0f,
+            std::sin(angle) * (SCREEN_HEIGHT * 0.35f + s_FogRadius) + SCREEN_HEIGHT / 2.0f - SCREEN_HEIGHT / 3.0f,
+            2.0f * SCREEN_WIDTH / 3.0f,
+            2.0f * SCREEN_HEIGHT / 3.0f,
+            skyBottom.r,
+            skyBottom.g,
+            skyBottom.b,
+            11,
+            RwTextureGetRaster(CClouds::ms_vc.texture)
+        );
+    }
+
+    s_FogAngle += CTimer::GetTimeStep() / 6.0f;
+    ImmediateModeRenderStatesReStore();
 }
 
 // 0x702F40
 void CPostEffects::CCTV() {
-    plugin::Call<0x702F40>();
+    RwRenderStateSet(rwRENDERSTATETEXTUREADDRESS, RWRSTATE(rwTEXTUREADDRESSCLAMP));
+    RwCameraEndUpdate(Scene.m_pRwCamera);
+    RwRasterPushContext(CPostEffects::pRasterFrontBuffer);
+    RwRasterRenderFast(RwCameraGetRaster(Scene.m_pRwCamera), 0, 0);
+    RwRasterPopContext();
+    RsCameraBeginUpdate(Scene.m_pRwCamera);
+
+    RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, RWRSTATE(true));
+    RwRenderStateSet(rwRENDERSTATEFOGENABLE, RWRSTATE(false));
+    RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(true));
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(false));
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER, CPostEffects::pRasterFrontBuffer);
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(true));
+    RwRenderStateSet(rwRENDERSTATESRCBLEND, RWRSTATE(rwBLENDSRCALPHA));
+    RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDINVSRCALPHA));
+    ImmediateModeRenderStatesStore();
+    ImmediateModeRenderStatesSet();
+
+    const auto lineHeight  = static_cast<uint32>(2.0f * SCREEN_STRETCH_Y(1.0f));
+    const auto linePadding = 2 * lineHeight;
+    const auto numLines    = static_cast<uint32>(SCREEN_HEIGHT) / linePadding;
+    for (auto i = 0u, y = 0u; i < numLines; i++, y += linePadding) {
+        const auto Y = static_cast<float>(y);
+        DrawQuad(
+            0.0f,
+            Y,
+            SCREEN_WIDTH,
+            static_cast<float>(lineHeight),
+            m_CCTVcol.r,
+            m_CCTVcol.g,
+            m_CCTVcol.b,
+            255,
+            pRasterFrontBuffer
+        );
+    }
+    ImmediateModeRenderStatesReStore();
 }
 
 // 0x7037C0
 void CPostEffects::Grain(int32 strengthMask, bool update) {
-    plugin::Call<0x7037C0, int32, bool>(strengthMask, update);
+    static uint32& s_NumberOfReseeds = StaticRef<uint32>(0xC4031C);
+    if (update) {
+        auto* pixels = RwRasterLock(m_pGrainRaster, 0, rwRASTERLOCKWRITE);
+
+        // std::srand(CTimer::GetTimeInMS() + OS_TimeMS())
+        std::srand(CTimer::GetCurrentTimeInCycles() / CTimer::GetCyclesPerMillisecond());
+        for (auto i = 0u, reSeedCounter = 0u; i < sq(GRAIN_TEXTURE_DIM); i++) {
+            if (++reSeedCounter >= 100) {
+                reSeedCounter = 0;
+                std::srand(CTimer::GetTimeInMS() + OS_TimeMS() + ++s_NumberOfReseeds);
+            }
+            pixels[4 * i] = pixels[4 * i + 1] = pixels[4 * i + 2] = pixels[4 * i + 3] = static_cast<uint8>(CGeneral::GetRandomNumber());
+        }
+        RwRasterUnlock(m_pGrainRaster);
+    }
+
+    ImmediateModeRenderStatesStore();
+    ImmediateModeRenderStatesSet();
+    RwRenderStateSet(rwRENDERSTATETEXTUREADDRESS, RWRSTATE(rwTEXTUREADDRESSWRAP));
+    RwRenderStateSet(rwRENDERSTATETEXTUREFILTER, RWRSTATE(rwFILTERLINEAR));
+
+    const auto ux = SCREEN_STRETCH_X(1.5f), uy = SCREEN_HEIGHT / SCREEN_WIDTH * ux;
+
+    ms_imf.quad[0].u = 0.0f;
+    ms_imf.quad[0].v = 0.0f;
+    ms_imf.quad[1].u = ux;
+    ms_imf.quad[1].v = 0.0f;
+    ms_imf.quad[2].u = 0.0f;
+    ms_imf.quad[2].v = uy;
+    ms_imf.quad[3].u = ux;
+    ms_imf.quad[3].v = uy;
+    DrawQuad(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 255, 255, 255, strengthMask, m_pGrainRaster);
+    ms_imf.quad[0].u = 0.0f;
+    ms_imf.quad[0].v = 0.0f;
+    ms_imf.quad[1].u = 1.0f;
+    ms_imf.quad[1].v = 0.0f;
+    ms_imf.quad[2].u = 0.0f;
+    ms_imf.quad[2].v = 1.0f;
+    ms_imf.quad[3].u = 1.0f;
+    ms_imf.quad[3].v = 1.0f;
+    ImmediateModeRenderStatesReStore();
 }
 
 // 0x7030A0
@@ -714,7 +957,10 @@ void CPostEffects::SpeedFX(float speed) {
 
 // 0x702F00
 void CPostEffects::DarknessFilter(int32 alpha) {
-    plugin::Call<0x702F00, int32>(alpha);
+    ImmediateModeRenderStatesStore();
+    ImmediateModeRenderStatesSet();
+    DrawQuad(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, alpha, nullptr);
+    ImmediateModeRenderStatesReStore();
 }
 
 // 0x703650
@@ -753,9 +999,234 @@ void CPostEffects::Radiosity(int32 intensityLimit, int32 filterPasses, int32 ren
     plugin::Call<0x702080>();
 }
 
+// 0x700BE0
+void CPostEffects::SetSpeedFXManualSpeedCurrentFrame(float value) {
+    m_fSpeedFXManualSpeedCurrentFrame = std::clamp(value, 0.0f, 1.0f);
+}
+
 // 0x7046E0
 void CPostEffects::Render() {
     ZoneScoped;
 
-    plugin::Call<0x7046E0>();
+    static int32& s_CurrentStrength    = StaticRef<int32>(0xC40328);
+    static float& s_WaterGreen         = StaticRef<float>(0xC40324);
+    static bool&  s_WaitForOneFrame    = StaticRef<bool>(0xC40321);
+    static bool&  s_SavePhotoToGallery = StaticRef<bool>(0xC40320);
+
+    if (m_bDisableAllPostEffect) {
+        return;
+    }
+
+    RwRenderStateSet(rwRENDERSTATETEXTUREADDRESS, RWRSTATE(rwTEXTUREADDRESSCLAMP));
+    RwCameraEndUpdate(Scene.m_pRwCamera);
+    RwRasterPushContext(CPostEffects::pRasterFrontBuffer);
+    RwRasterRenderFast(RwCameraGetRaster(Scene.m_pRwCamera), 0, 0);
+    RwRasterPopContext();
+    RsCameraBeginUpdate(Scene.m_pRwCamera);
+
+    float& s_ExtraMult = ScopedStaticRef<float>(0xC4032C, 0xC40330, 1, 0.35f);
+
+    if (m_bFog) {
+        Fog();
+    }
+
+    auto [pass1, pass2] = CTimeCycle::GetPostFxColors();
+    if (m_bNightVision || m_bInfraredVision) {
+        pass1.Set(64, 64, 64);
+        pass2.Set(64, 64, 64);
+    }
+    pass1.ScaleRGB(gfLaRiotsLightMult);
+
+    auto colorMultFactor = 1.0f;
+    if (auto* player = FindPlayerPed()) {
+        const auto step   = CTimer::GetTimeStep() * SCREEN_EXTRA_MULT_CHANGE_RATE;
+        auto lightFromCol = player->GetLightingFromCol(false);
+
+        if (std::abs(lightFromCol - s_ExtraMult) >= step) {
+            if (lightFromCol <= s_ExtraMult) {
+                lightFromCol = s_ExtraMult - step;
+            } else {
+                lightFromCol = s_ExtraMult + step;
+            }
+        }
+        s_ExtraMult = std::min(lightFromCol, SCREEN_EXTRA_MULT_BASE_CAP);
+        colorMultFactor += (1.0f - s_ExtraMult / SCREEN_EXTRA_MULT_BASE_CAP) * SCREEN_EXTRA_MULT_BASE_MULT;
+    }
+
+    constexpr auto COLOR1_MULT = 1.0f, COLOR2_MULT = 1.0f;
+    pass1.ScaleRGB(COLOR1_MULT * colorMultFactor);
+    pass2.ScaleRGB(COLOR2_MULT * colorMultFactor);
+
+    if (m_bColorEnable) {
+        ColourFilter(pass1, pass2);
+    }
+
+    if (m_bDarknessFilter && !m_bNightVision && !m_bInfraredVision) {
+        DarknessFilter(m_DarknessFilterAlpha);
+        Radiosity(m_DarknessFilterRadiosityIntensityLimit, 0, 2, 255);
+    }
+
+    if (m_bSpeedFXTestMode) {
+        SetSpeedFXManualSpeedCurrentFrame(1.0f);
+    }
+
+    if (m_bSpeedFX && m_bSpeedFXUserFlag && m_bSpeedFXUserFlagCurrentFrame) {
+        auto* veh = FindPlayerVehicle();
+        if (m_fSpeedFXManualSpeedCurrentFrame == 0.0f) {
+            if (veh && !notsa::contains({ VEHICLE_TYPE_PLANE, VEHICLE_TYPE_HELI, VEHICLE_TYPE_BOAT, VEHICLE_TYPE_TRAIN }, veh->m_nVehicleType)) {
+                bool fxDrawn{};
+                if (veh->m_nVehicleType == VEHICLE_TYPE_AUTOMOBILE && veh->handlingFlags.bNosInst && veh->AsAutomobile()->m_fTireTemperature < 0.0f) {
+                    const auto dir = veh->GetMoveSpeed().Dot(veh->GetForward());
+                    if (dir > 0.2f) {
+                        SetSpeedFXManualSpeedCurrentFrame(2.0f * dir * (veh->m_fGasPedal + 1.0f));
+                        SpeedFX(m_fSpeedFXManualSpeedCurrentFrame);
+                        fxDrawn = true;
+                    }
+                }
+
+                if (!fxDrawn && !CCutsceneMgr::ms_running) {
+                    SpeedFX(FindPlayerSpeed().Magnitude());
+                }
+            }
+        } else {
+            SpeedFX(m_fSpeedFXManualSpeedCurrentFrame);
+        }
+    }
+    SetSpeedFXManualSpeedCurrentFrame(0.0f);
+    m_bSpeedFXUserFlagCurrentFrame = true;
+    m_bInCutscene                  = CCutsceneMgr::ms_running || CCutsceneMgr::ms_cutsceneProcessing;
+
+    if (m_bNightVision) {
+        if (!m_bInCutscene) {
+            NightVision();
+            Grain(m_NightVisionGrainStrength, true);
+        }
+    } else {
+        m_fNightVisionSwitchOnFXCount = m_fNightVisionSwitchOnFXTime;
+    }
+
+    if (m_bInfraredVision && !m_bInCutscene) {
+        InfraredVision(m_InfraredVisionCol, m_InfraredVisionMainCol);
+        Grain(m_InfraredVisionGrainStrength, true);
+    }
+
+    if (m_bRadiosity && !m_bDarknessFilter) {
+        if (m_bRadiosityBypassTimeCycleIntensityLimit) {
+            Radiosity(
+                m_RadiosityIntensityLimit,
+                m_RadiosityFilterPasses,
+                m_RadiosityRenderPasses,
+                m_RadiosityIntensity
+            );
+        } else {
+            Radiosity(
+                CTimeCycle::m_CurrentColours.m_nHighLightMinIntensity,
+                m_RadiosityFilterPasses,
+                m_RadiosityRenderPasses,
+                m_RadiosityIntensity
+            );
+        }
+    }
+
+    if (m_bRainEnable || s_CurrentStrength != 0) {
+        const auto rain = 128.0f * CWeather::Rain;
+        if (static_cast<float>(s_CurrentStrength) < rain) {
+            s_CurrentStrength++;
+        } else if (static_cast<float>(s_CurrentStrength) > rain) {
+            s_CurrentStrength--;
+        }
+        s_CurrentStrength = std::max(s_CurrentStrength, 0);
+
+        if (!CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && CWeather::IsUnderWater() && CGame::CanSeeOutSideFromCurrArea() && TheCamera.GetPosition().z <= 900.0f) {
+            Grain(s_CurrentStrength / 4, true);
+        }
+    }
+
+    if (m_bGrainEnable) {
+        Grain(m_grainStrength[0], true);
+    }
+
+    if (!m_bHeatHazeFX) {
+        if (CWeather::HeatHaze > 0.0f || g_fxMan.m_bHeatHazeEnabled) {
+            if (CWeather::UnderWaterness < m_fWaterFXStartUnderWaterness) {
+                if (CWeather::HeatHaze > 0.0f) {
+                    HeatHazeFX(CWeather::HeatHazeFXControl, false);
+                } else if (g_fxMan.m_bHeatHazeEnabled) {
+                    HeatHazeFX(1.0f, true);
+                }
+            }
+        } else if (CWeather::UnderWaterness >= m_fWaterFXStartUnderWaterness) {
+            HeatHazeFX(1.0f, false);
+        }
+    }
+
+    if (m_waterEnable || CWeather::UnderWaterness >= m_fWaterFXStartUnderWaterness) {
+        const auto depthLightMult = [&] {
+            if (m_bWaterDepthDarkness) {
+                return 1.0f - std::min(CWeather::WaterDepth, m_fWaterFullDarknessDepth) / m_fWaterFullDarknessDepth;
+            } else {
+                return 1.0f;
+            }
+        }();
+
+        CRGBA color{m_waterCol};
+        color.r += 184;
+        color.g += static_cast<uint8>(184.0f + s_WaterGreen);
+        color.b += 184;
+        s_WaterGreen = std::min(s_WaterGreen + CTimer::GetTimeStep(), 24.0f);
+
+        UnderWaterRipple(
+            color,
+            SCREEN_STRETCH_X(s_WaterGreen / 24.0f * m_xoffset),
+            SCREEN_STRETCH_Y(m_yoffset),
+            m_waterStrength,
+            m_waterSpeed,
+            m_waterFreq
+        );
+    } else {
+        s_WaterGreen = 0.0f;
+    }
+
+    if (m_bCCTV) {
+        CCTV();
+    }
+
+    if (CWeapon::ms_bTakePhoto && FrontEndMenuManager.m_bIsSaveDone) {
+        CWeapon::ms_bTakePhoto = false;
+        m_bSavePhotoFromScript = false;
+    }
+
+    if (s_WaitForOneFrame) {
+        if (CWeapon::ms_bTakePhoto) {
+            s_WaitForOneFrame = true;
+            CTimer::Suspend();
+            if (s_SavePhotoToGallery) {
+                CVisibilityPlugins::RenderWeaponPedsForPC();
+                CVisibilityPlugins::ms_weaponPedsForPC.Clear();
+                CFileMgr::SetDirMyDocuments();
+
+                auto photoIdx = 0;
+                do {
+                    notsa::format_to_sz(gString, "Gallery\\gallery{}.jpg", ++photoIdx);
+                } while (fs::exists(gString));
+
+                JPegCompressScreenToFile(TheCamera.m_pRwCamera, gString);
+                CFileMgr::SetDir("");
+            }
+            CTimer::Resume();
+
+            if (!FrontEndMenuManager.m_bActivateMenuNextFrame) {
+                CSpecialFX::bSnapShotActive = true;
+                CSpecialFX::SnapShotFrames  = false;
+            }
+            s_SavePhotoToGallery   = false;
+            CWeapon::ms_bTakePhoto = false;
+            m_bSavePhotoFromScript = false;
+        }
+    } else if (CWeapon::ms_bTakePhoto) {
+        if (FrontEndMenuManager.m_bSavePhotos) {
+            s_SavePhotoToGallery = true;
+        }
+        s_WaitForOneFrame = true;
+    }
 }
