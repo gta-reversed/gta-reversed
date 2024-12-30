@@ -219,7 +219,7 @@ public:
     static tVehicleAudioSettings GetVehicleAudioSettings(int16 vehId);
 
     void AddAudioEvent(eAudioEvents event, float fVolume);
-    void AddAudioEvent(eAudioEvents event, CVehicle* vehicle);
+    void AddAudioEvent(eAudioEvents event, CEntity* entity);
 
     void Service();
     static void StaticService();
