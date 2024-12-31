@@ -10,6 +10,13 @@
 #include "CarCtrl.h"
 #include "TrafficLights.h"
 #include "TheScripts.h"
+#include "GangWars.h"
+#include "Game.h"
+#include "General.h"
+#include "GameLogic.h"
+#include "CutsceneMgr.h"
+#include "TheCarGenerators.h"
+#include "eAreaCodes.h"
 
 uint32& CCarCtrl::NumLawEnforcerCars = *(uint32*)0x969098;
 uint32& CCarCtrl::NumParkedCars = *(uint32*)0x9690A0;
@@ -379,9 +386,51 @@ void CCarCtrl::GenerateOneRandomCar() {
 
 // 0x4341C0
 void CCarCtrl::GenerateRandomCars() {
-    ZoneScoped;
+    if (CCutsceneMgr::ms_running) {
+        CountDownToCarsAtStart = 2;
+        return;
+    }
 
-    plugin::Call<0x4341C0>();
+    // check if a gang war is happening
+    if (CGangWars::DontCreateCivilians()) {
+        return;
+    }
+
+    // check if player is not in any interior
+    if (CGame::currArea != eAreaCodes::AREA_CODE_NORMAL_WORLD) {
+        return;
+    }
+
+    if (CGameLogic::LaRiotsActiveHere() && TimeNextMadDriverChaseCreated > 480.0f) {
+        TimeNextMadDriverChaseCreated = CGeneral::GetRandomNumberInRange(240.0f, 480.0f);
+    }
+
+    TimeNextMadDriverChaseCreated -= (CTimer::GetTimeStep() * 0.02f);
+
+    if (!(NumRandomCars >= 45)) {
+        int8_t _countDownToCarsAtStart = CountDownToCarsAtStart;
+
+        if (!_countDownToCarsAtStart) {
+            GenerateOneRandomCar();
+            GenerateOneRandomCar();
+        } else {
+            _countDownToCarsAtStart--;
+            CountDownToCarsAtStart = _countDownToCarsAtStart;
+
+            for (int i = 0; i <= 100; i++) {
+                GenerateOneRandomCar();
+            }
+
+            CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
+        }
+    }
+
+    CTrain::DoTrainGenerationAndRemoval();
+    CPlane::DoPlaneGenerationAndRemoval();
+
+    if (((CTimer::m_snPreviousTimeInMilliseconds ^ CTimer::m_snTimeInMilliseconds) & 0xFFFFF000) != 0) {
+        GenerateEmergencyServicesCar();
+    }
 }
 
 // 0x42F3C0
