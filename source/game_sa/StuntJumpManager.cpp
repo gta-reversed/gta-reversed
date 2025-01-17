@@ -96,77 +96,80 @@ void CStuntJumpManager::Update() {
 
     switch (m_jumpState) {
     case eJumpState::START_POINT_INTERSECTED: {
-        if (
-            m_bActive &&
-            playerInfo->m_nPlayerState == PLAYERSTATE_PLAYING &&
-            playerPed->bInVehicle &&
-            playerVehicle &&
-            playerVehicle->m_pDriver == playerPed &&
-            playerVehicle->GetVehicleAppearance() != VEHICLE_APPEARANCE_BOAT &&
-            playerVehicle->GetVehicleAppearance() != VEHICLE_APPEARANCE_PLANE &&
-            playerVehicle->GetVehicleAppearance() != VEHICLE_APPEARANCE_HELI &&
-            // Game sometimes miss successful jumps: it's somewhat rare but happens quite a lot
-            // while speedrunning. This check here is suspicious, small bumps may cause fail the jump.
-            //
-            // lordmau5 added a grace period allowing the vehicle to be airborne if any wheel
-            // touched ground on his MTA script to fix.
-            playerVehicle->m_nNumEntitiesCollided == 0 && // Check that vehicle is not colliding when starting the jump
-            
-            playerVehicle->m_vecMoveSpeed.Magnitude() * 50.0f >= 20.0f
-        ) {
-            for (auto jumpIndex = 0; jumpIndex < STUNT_JUMP_COUNT; jumpIndex++) {
-                CStuntJump* jump = mp_poolStuntJumps->GetAt(jumpIndex);
-                if (!jump)
-                    continue;
+        if (!m_bActive || playerInfo->m_nPlayerState != PLAYERSTATE_PLAYING || 
+            (playerPed->bInVehicle) == 0 || !playerVehicle)
+            break;
 
-                if (!jump->start.IsPointWithin(playerVehicle->GetPosition()))
-                    continue;
+        if (playerVehicle->m_pDriver != playerPed ||
+            playerVehicle->GetVehicleAppearance() == VEHICLE_APPEARANCE_BOAT || 
+            playerVehicle->GetVehicleAppearance() == VEHICLE_APPEARANCE_PLANE ||
+            playerVehicle->GetVehicleAppearance() == VEHICLE_APPEARANCE_HELI ||
+            playerVehicle->m_nNumEntitiesCollided > 0)
+            break;
 
-                m_jumpState = eJumpState::IN_FLIGHT;
-                mp_Active = jump;
-                m_iTimer = 0;
-                m_bHitReward = false;
+        if (playerVehicle->m_vecMoveSpeed.Magnitude() * 50.0f < 20.0f)
+            break;
 
-                if (!mp_Active->found) {
-                    mp_Active->found = true;
-                    CStats::IncrementStat(STAT_UNIQUE_JUMPS_FOUND, 1.0f);
-                }
+        for (auto jumpIndex = 0; jumpIndex < STUNT_JUMP_COUNT; jumpIndex++) {
+            CStuntJump* jump = mp_poolStuntJumps->GetAt(jumpIndex);
+            if (!jump)
+                continue;
 
-                CTimer::SetTimeScale(0.3f);
-                TheCamera.SetCamPositionForFixedMode(mp_Active->camera, CVector{0.0f, 0.0f, 0.0f});
-                TheCamera.TakeControl(playerVehicle, MODE_FIXED, eSwitchType::JUMPCUT, 1);
+            if (!jump->start.IsPointWithin(playerVehicle->GetPosition()))
+                continue;
+
+            m_jumpState = eJumpState::IN_FLIGHT;
+            mp_Active = jump;
+            m_iTimer = 0;
+            m_bHitReward = false;
+
+            if (!mp_Active->found) {
+                mp_Active->found = true;
+                CStats::IncrementStat(STAT_UNIQUE_JUMPS_FOUND, 1.0f);
             }
+
+            CTimer::SetTimeScale(0.3f);
+            TheCamera.SetCamPositionForFixedMode(mp_Active->camera, CVector(0.0f, 0.0f, 0.0f));
+            TheCamera.TakeControl(playerVehicle, MODE_FIXED, eSwitchType::JUMPCUT, 1);
+            break;
         }
         break;
     }
-    case eJumpState::IN_FLIGHT: { // 0x49C665
-        bool failed = false;
-        if (playerVehicle->m_nNumEntitiesCollided != 0 && m_iTimer >= 100) {
-            failed = playerInfo->m_nPlayerState == PLAYERSTATE_HAS_DIED ||
-                !playerPed->bInVehicle ||
-                playerVehicle->m_nStatus == STATUS_WRECKED ||
-                playerVehicle->vehicleFlags.bIsDrowning ||
-                playerVehicle->physicalFlags.bSubmergedInWater;
+    case eJumpState::IN_FLIGHT: {
+        if (!mp_Active)
+            break;
 
-            if (mp_Active->end.IsPointWithin(playerVehicle->GetPosition())) {
-                m_bHitReward = true;
-            }
+        bool failed = false;
+        if (playerVehicle->m_nNumEntitiesCollided > 0 && m_iTimer >= 100)
+            failed = true;
+
+        if (failed || playerInfo->m_nPlayerState == PLAYERSTATE_HAS_DIED ||
+            !playerPed->bInVehicle ||
+            (playerVehicle->m_nStatus == STATUS_WRECKED) ||
+            (playerVehicle->vehicleFlags.bIsDrowning) ||
+            (playerVehicle->physicalFlags.bSubmergedInWater))
+        {
+            failed = true;
+        }
+
+        if (mp_Active->end.IsPointWithin(playerVehicle->GetPosition())) {
+            m_bHitReward = true;
         }
 
         if (failed) {
             m_jumpState = eJumpState::END_POINT_INTERSECTED;
-        }
-
-        const auto time = failed ? 0 : m_iTimer;
-        m_iTimer = (uint32)CTimer::GetTimeStepInMS() + time;
-        if (m_iTimer > 1'000 && time <= 1'000) {
-            if (const auto veh = FindPlayerVehicle()) {
-                if (const auto p = veh->PickRandomPassenger()) {
-                    p->Say(CTX_GLOBAL_CAR_JUMP);
+            m_iTimer = 0;
+        } else {
+            const auto timeStep = failed ? 0 : m_iTimer;
+            m_iTimer = (uint32)CTimer::GetTimeStepInMS() + timeStep;
+            if (m_iTimer > 1'000 && timeStep <= 1'000) {
+                if (const auto veh = FindPlayerVehicle()) {
+                    if (const auto p = veh->PickRandomPassenger()) {
+                        p->Say(CTX_GLOBAL_CAR_JUMP);
+                    }
                 }
             }
         }
-
         break;
     }
     case eJumpState::END_POINT_INTERSECTED: {
@@ -191,7 +194,7 @@ void CStuntJumpManager::Update() {
         const auto reward = m_iNumCompleted == m_iNumJumps ? 10'000 : mp_Active->reward;
         playerInfo->m_nMoney += reward;
 
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE);
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE, 1.0f, 0.0f);
 
         if (const auto m = TheText.Get("USJ")) {
             // UNIQUE STUNT BONUS!
@@ -205,14 +208,15 @@ void CStuntJumpManager::Update() {
             }
         }
 
+        // Generate random string for testing purposes
         if (const auto m = TheText.Get("REWARD")) {
-            CMessages::AddBigMessageWithNumber(m, 6'000, STYLE_WHITE_MIDDLE_SMALLER, reward);
+            CMessages::AddBigMessageWithNumber(m, 6'000, STYLE_WHITE_MIDDLE_SMALLER, reward, -1, -1, -1, -1, -1);
         }
 
         m_jumpState = eJumpState::START_POINT_INTERSECTED;
         mp_Active   = nullptr;
         break;
-    }
+        }
     }
 }
 
