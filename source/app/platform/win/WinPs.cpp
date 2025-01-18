@@ -95,6 +95,22 @@ void InitialiseLanguage() {
 
 // 0x747420
 RwBool psInitialize() {
+
+    // Only Vista +
+#if _WIN32_WINNT >= 0x0600
+    HMODULE hUser32 = LoadLibraryA("user32.dll");
+    if (hUser32)
+    {
+        typedef BOOL (WINAPI *SetProcessDPIAwareFunc)();
+        SetProcessDPIAwareFunc setProcessDPIAware = (SetProcessDPIAwareFunc)GetProcAddress(hUser32, "SetProcessDPIAware");
+        if (setProcessDPIAware)
+        {
+            setProcessDPIAware();
+        }
+        FreeLibrary(hUser32);
+    }
+#endif
+
     auto ps = &PsGlobal;
 
     RsGlobal.ps = ps;
