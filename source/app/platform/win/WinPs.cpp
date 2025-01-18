@@ -9,6 +9,15 @@
 #include "LoadingScreen.h"
 #include "C_PcSave.h"
 
+#if _MSC_VER >= 1910 && FIX_BUGS
+#include <windows.h>
+
+void SetDPIAware() {
+    SetProcessDPIAware();
+}
+#endif
+
+
 // NOTE: This macro doesn't do a whole lot. Leaving it here for completeness sake
 #define USE_D3D9
 
@@ -95,14 +104,9 @@ void InitialiseLanguage() {
 
 // 0x747420
 RwBool psInitialize() {
-
-    // Only Vista +
-#if _WIN32_WINNT >= 0x0600
-    #include <windows.h>
-
-    setProcessDPIAware();
+#if _MSC_VER >= 1910 && FIX_BUGS
+    SetDPIAware();
 #endif
-
     auto ps = &PsGlobal;
 
     RsGlobal.ps = ps;
