@@ -61,9 +61,8 @@ bool CStuntJumpManager::Save() {
 // 0x5D5920
 bool CStuntJumpManager::Load() {
     CGenericGameStorage::LoadDataFromWorkBuffer(m_iNumJumps);
-    for (int32 i = 0; i < m_iNumJumps; i++) {
-        auto& jump = *mp_poolStuntJumps->New();
-        CGenericGameStorage::LoadDataFromWorkBuffer(jump);
+    for (auto i = m_iNumJumps; i --> 0;) {
+        CGenericGameStorage::LoadDataFromWorkBuffer(*mp_poolStuntJumps->New());
     }
     return true;
 }
@@ -187,6 +186,7 @@ void CStuntJumpManager::Update() {
         }
 
         break;
+    }
     case eJumpState::END_POINT_INTERSECTED: { // 0x49C4ED
         m_iTimer += (uint32)CTimer::GetTimeStepInMS();
         if (m_iTimer < 300) {
