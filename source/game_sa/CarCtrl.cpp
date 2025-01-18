@@ -419,11 +419,6 @@ void CCarCtrl::GenerateRandomCars() {
             GenerateOneRandomCar();
         }
     }
-void CCarCtrl::GetAIHeliToAttackPlayer(CAutomobile* automobile) {
-    plugin::Call<0x42F3C0, CAutomobile*>(automobile);
-}
-
-// 0x42A730
 void CCarCtrl::GetAIHeliToFlyInDirection(CAutomobile* automobile) {
     plugin::Call<0x42A730, CAutomobile*>(automobile);
 }
