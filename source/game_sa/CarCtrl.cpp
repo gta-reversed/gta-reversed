@@ -407,20 +407,15 @@ void CCarCtrl::GenerateRandomCars() {
 
     TimeNextMadDriverChaseCreated -= (CTimer::GetTimeStep() * 0.02f);
 
-    if (!(NumRandomCars >= 45)) {
-        int8_t _countDownToCarsAtStart = CountDownToCarsAtStart;
-
-        if (!_countDownToCarsAtStart) {
+    if (NumRandomCars < 45) {
+        if (CountDownToCarsAtStart == 0) {
             GenerateOneRandomCar();
             GenerateOneRandomCar();
         } else {
-            _countDownToCarsAtStart--;
-            CountDownToCarsAtStart = _countDownToCarsAtStart;
-
-            for (int i = 0; i <= 100; i++) {
+            CountDownToCarsAtStart--;
+            for (auto i = 100; i --> 0;) {
                 GenerateOneRandomCar();
             }
-
             CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
         }
     }
