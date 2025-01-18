@@ -23,13 +23,14 @@ void CStuntJumpManager::Init() {
     ZoneScoped;
 
     mp_poolStuntJumps = new CStuntJumpsPool(STUNT_JUMP_COUNT, "Stunt Jumps");
-    m_bActive = true;
+    m_bActive         = true;
 }
 
 // 0x49CBC0
 void CStuntJumpManager::Shutdown() {
-    if (mp_poolStuntJumps)
+    if (mp_poolStuntJumps) {
         mp_poolStuntJumps->Flush();
+    }
 
     mp_poolStuntJumps = nullptr;
 }
@@ -37,11 +38,11 @@ void CStuntJumpManager::Shutdown() {
 // 0x49CB10
 void CStuntJumpManager::ShutdownForRestart() {
     mp_poolStuntJumps->Clear(); // 0x49C9A0
-    mp_Active = nullptr;
-    m_bHitReward = false;
-    m_iTimer = 0;
-    m_jumpState = eJumpState::START_POINT_INTERSECTED;
-    m_iNumJumps = 0;
+    mp_Active       = nullptr;
+    m_bHitReward    = false;
+    m_iTimer        = 0;
+    m_jumpState     = eJumpState::START_POINT_INTERSECTED;
+    m_iNumJumps     = 0;
     m_iNumCompleted = 0;
 }
 
@@ -97,30 +98,31 @@ void CStuntJumpManager::Update() {
     }
 
     const auto plyrInfo = plyr->GetPlayerInfoForThisPlayerPed();
-    const auto plyrVeh = plyr->m_pVehicle;
+    const auto plyrVeh  = plyr->m_pVehicle;
     if (!plyrVeh || !plyrInfo) {
         return;
     }
 
-    if (m_jumpState == eJumpState::START_POINT_INTERSECTED && m_bActive) {
-        if (plyrInfo->m_nPlayerState == PLAYERSTATE_PLAYING || !plyr->IsInVehicle()) {
+    switch (m_jumpState) {
+    case eJumpState::START_POINT_INTERSECTED: { // 0x49C77A
+        if (!m_bActive) {
             return;
         }
-
-        if (notsa::contains({VEHICLE_APPEARANCE_BOAT, VEHICLE_APPEARANCE_PLANE, VEHICLE_APPEARANCE_HELI}, plyrVeh->GetVehicleAppearance())) {
+        if (plyrInfo->m_nPlayerState != PLAYERSTATE_PLAYING || !plyr->IsInVehicle()) {
             return;
         }
-
+        if (notsa::contains({ VEHICLE_APPEARANCE_BOAT, VEHICLE_APPEARANCE_PLANE, VEHICLE_APPEARANCE_HELI }, plyrVeh->GetVehicleAppearance())) {
+            return;
+        }
         // Game sometimes miss successful jumps: it's somewhat rare but happens quite a lot
         // while speedrunning. This check here is suspicious, small bumps may cause fail the jump.
         //
         // lordmau5 added a grace period allowing the vehicle to be airborne if any wheel
         // touched ground on his MTA script to fix.
-        if (plyrVeh->m_nNumEntitiesCollided > 0) {
+        if (plyrVeh->m_nNumEntitiesCollided > 0) { 
             return;
         }
-
-        if (plyrVeh->m_vecMoveSpeed.Magnitude() * 50.0 < 20.0) {
+        if (!plyrVeh->IsDriver(plyr) || plyrVeh->m_vecMoveSpeed.Magnitude() * 50.f < 20.f) {
             return;
         }
 
@@ -128,7 +130,7 @@ void CStuntJumpManager::Update() {
             for (auto& j : mp_poolStuntJumps->GetAllValid()) {
                 if (j.start.IsPointWithin(plyrVeh->GetPosition())) {
                     return &j;
-                }    
+                }
             }
             return nullptr;
         }();
@@ -147,9 +149,12 @@ void CStuntJumpManager::Update() {
         }
 
         CTimer::SetTimeScale(0.3f);
-        TheCamera.SetCamPositionForFixedMode(mp_Active->camera, CVector{0.f, 0.f, 0.f});
+        TheCamera.SetCamPositionForFixedMode(mp_Active->camera, CVector{ 0.f, 0.f, 0.f });
         TheCamera.TakeControl(plyrVeh, MODE_FIXED, eSwitchType::JUMPCUT, 1);
-    } else if (m_jumpState == eJumpState::IN_FLIGHT) {
+
+        break;
+    }
+    case eJumpState::IN_FLIGHT: { // 0x49C4E6
         if (!mp_Active) {
             m_jumpState = eJumpState::START_POINT_INTERSECTED;
             return;
@@ -157,31 +162,32 @@ void CStuntJumpManager::Update() {
 
         bool failed = false;
         if (plyrVeh->m_nNumEntitiesCollided > 0 && m_iTimer >= 100) { // NOTE: Changed `!= 0` to `> 0`
-            if (   plyrInfo->m_nPlayerState != PLAYERSTATE_PLAYING
+            if (plyrInfo->m_nPlayerState != PLAYERSTATE_PLAYING
                 || !plyr->bInVehicle
                 || plyrVeh->m_nStatus == STATUS_WRECKED
                 || plyrVeh->vehicleFlags.bIsDrowning
-                || plyrVeh->physicalFlags.bSubmergedInWater
-            ) { 
-                failed = true;
+                || plyrVeh->physicalFlags.bSubmergedInWater) {
+                failed      = true;
                 m_jumpState = eJumpState::END_POINT_INTERSECTED;
-            }   
+            }
             if (mp_Active->end.IsPointWithin(plyrVeh->GetPosition())) {
                 m_bHitReward = true;
-            }   
+            }
         }
 
         // Possibly make one of the player's vehicle's passengers say something...
         const auto time = failed ? 0 : m_iTimer;
-        m_iTimer = (uint32)CTimer::GetTimeStepInMS() + time;
-        if (m_iTimer <= 1000 || time > 1000) {
+        m_iTimer        = (uint32)CTimer::GetTimeStepInMS() + time;
+        if (m_iTimer <= 1'000 || time > 1'000) {
             if (const auto plyrVeh = FindPlayerVehicle(-1, 0)) {
                 if (const auto psgr = plyrVeh->PickRandomPassenger()) {
                     psgr->Say(CTX_GLOBAL_CAR_JUMP, 0, 1.0, 0, 0, 0);
                 }
             }
         }
-    } else if (m_jumpState == eJumpState::END_POINT_INTERSECTED) { // 0x49C4ED
+
+        break;
+    case eJumpState::END_POINT_INTERSECTED: { // 0x49C4ED
         m_iTimer += (uint32)CTimer::GetTimeStepInMS();
         if (m_iTimer < 300) {
             return;
@@ -216,6 +222,8 @@ void CStuntJumpManager::Update() {
         }
         m_jumpState = eJumpState::START_POINT_INTERSECTED;
         mp_Active   = nullptr;
+        break;
+    }
     }
 }
 
@@ -233,7 +241,7 @@ void CStuntJumpManager::Render() {
 // NOTSA
 void ResetAllJumps() {
     for (auto& j : CStuntJumpManager::mp_poolStuntJumps->GetAllValid()) {
-        j.done = false;
+        j.done  = false;
         j.found = false;
     }
 }
@@ -248,7 +256,7 @@ void StuntJumpTestCode() {
     if (pad->IsStandardKeyJustDown('2')) {
         auto player = FindPlayerPed();
         if (player) {
-            CVector posn{-2053.93848f, 236.598221f, 35.5952835f};
+            CVector posn{ -2053.93848f, 236.598221f, 35.5952835f };
             player->SetPosn(posn);
             CCheat::VehicleCheat(MODEL_NRG500);
         }
