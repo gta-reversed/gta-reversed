@@ -68,14 +68,14 @@ bool CStuntJumpManager::Load() {
 }
 
 // 0x49CB40
-void CStuntJumpManager::AddOne(const CBoundingBox& start, const CBoundingBox& end, const CVector& cameraPosn, int32 reward) {
+void CStuntJumpManager::AddOne(const CBoundingBox& start, const CBoundingBox& end, const CVector& cameraPosn, int32 eReward) {
     if (mp_poolStuntJumps) {
         CStuntJump* jump = mp_poolStuntJumps->New();
         if (jump) {
             jump->start = start;
             jump->end = end;
             jump->camera = cameraPosn;
-            jump->reward = reward;
+            jump->reward = eReward;
             jump->done = false;
             jump->found = false;
             ++m_iNumJumps;
@@ -85,7 +85,6 @@ void CStuntJumpManager::AddOne(const CBoundingBox& start, const CBoundingBox& en
 
 // 0x49C490
 void CStuntJumpManager::Update() {
-    ZoneScoped;
 
     if (!CStuntJumpManager::mp_poolStuntJumps || CReplay::Mode == MODE_PLAYBACK)
         return;
@@ -103,12 +102,9 @@ void CStuntJumpManager::Update() {
         if (playerInfo->m_nPlayerState != PLAYERSTATE_PLAYING || (PlayerPed->bInVehicle) == 0 || !playerVehicle)
             return;
 
-        switch (playerVehicle->GetVehicleAppearance()) {
-            case VEHICLE_APPEARANCE_BOAT:
-            case VEHICLE_APPEARANCE_PLANE:
-            case VEHICLE_APPEARANCE_HELI:
-                return;
-        }
+        constexpr std::array invalidVehicles = {VEHICLE_APPEARANCE_BOAT, VEHICLE_APPEARANCE_PLANE, VEHICLE_APPEARANCE_HELI};
+        if (std::ranges::find(invalidVehicles, playerVehicle->GetVehicleAppearance()) != invalidVehicles.end())
+            return;
 
         // Game sometimes miss successful jumps: it's somewhat rare but happens quite a lot
         // while speedrunning. This check here is suspicious, small bumps may cause fail the jump.
@@ -116,9 +112,8 @@ void CStuntJumpManager::Update() {
         // lordmau5 added a grace period allowing the vehicle to be airborne if any wheel
         // touched ground on his MTA script to fix.
         if (playerVehicle->m_nNumEntitiesCollided > 0 || // Check that vehicle is not colliding when starting the jump
-            (playerVehicle->m_vecMoveSpeed.Magnitude() * 50.0 < 20.0)) {
+            (playerVehicle->m_vecMoveSpeed.Magnitude() * 50.0 < 20.0))
             return;
-        }
 
         for (auto jumpIndex = 0; jumpIndex < STUNT_JUMP_COUNT; jumpIndex++) {
             CStuntJump* jump = mp_poolStuntJumps->GetAt(jumpIndex);
@@ -171,10 +166,8 @@ void CStuntJumpManager::Update() {
         if (CStuntJumpManager::m_iTimer <= 1000 || time > 1000)
             return;
 
-        CVehicle* pPedVeh = FindPlayerVehicle(-1, 0);
-        if (pPedVeh) {
-            CPed *pPedRand = pPedVeh->PickRandomPassenger();
-            if (pPedRand) {
+        if (CVehicle* pPedVeh = FindPlayerVehicle(-1, 0)) {
+            if (CPed *pPedRand = pPedVeh->PickRandomPassenger()) {
                 pPedRand->Say(CTX_GLOBAL_CAR_JUMP, 0, 1.0, 0, 0, 0);
             }
         }
@@ -187,20 +180,20 @@ void CStuntJumpManager::Update() {
         TheCamera.RestoreWithJumpCut();
         if (CStuntJumpManager::m_bHitReward) {
             if (!CStuntJumpManager::mp_Active->done) {
-                CStuntJumpManager::mp_Active->done = 1;
+                CStuntJumpManager::mp_Active->done = true;
                 ++CStuntJumpManager::m_iNumCompleted;
                 CStats::IncrementStat(STAT_UNIQUE_JUMPS_DONE, 1.0);
-                int reward;
+                int eReward;
                 if (CStuntJumpManager::m_iNumCompleted == CStuntJumpManager::m_iNumJumps) {
-                    reward = 10000;
+                    eReward = 10000;
                     // ALL UNIQUE STUNTS COMPLETED!
                     if (const auto tUsjAll = TheText.Get("USJ_ALL")) {
                         CHud::SetHelpMessage(tUsjAll, false, false, false);
                     }
                 } else {
-                    reward = CStuntJumpManager::mp_Active->reward;
+                    eReward = CStuntJumpManager::mp_Active->reward;
                 }
-                playerInfo->m_nMoney += reward;
+                playerInfo->m_nMoney += eReward;
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE, 0.0, 1.0);
 
                 // UNIQUE STUNT BONUS!
@@ -210,7 +203,7 @@ void CStuntJumpManager::Update() {
 
                 // REWARD
                 if (const auto tReward = TheText.Get("REWARD")) {
-                    CMessages::AddBigMessageWithNumber(tReward, 6000, STYLE_WHITE_MIDDLE_SMALLER, reward, -1, -1, -1, -1, -1);
+                    CMessages::AddBigMessageWithNumber(tReward, 6000, STYLE_WHITE_MIDDLE_SMALLER, eReward, -1, -1, -1, -1, -1);
                 }
             }
         }
