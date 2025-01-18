@@ -608,7 +608,7 @@ void CRunningScript::CollectParameters(int16 count) {
             uint16 index = CTheScripts::Read2BytesFromScript(m_IP);
             ScriptParams[i] = *GetPointerToLocalVariable(index);
             break;
-        }
+        }   
         case SCRIPT_PARAM_STATIC_INT_8BITS:
             ScriptParams[i].iParam = CTheScripts::Read1ByteFromScript(m_IP);
             break;

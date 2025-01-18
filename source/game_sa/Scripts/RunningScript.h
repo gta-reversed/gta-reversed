@@ -16,7 +16,7 @@
 
 enum ePedType : uint32;
 
-enum eScriptParameterType : int8 {
+enum eScriptParameterType : uint8 {
     SCRIPT_PARAM_END_OF_ARGUMENTS, //< Special type used for vararg stuff
 
     SCRIPT_PARAM_STATIC_INT_32BITS,
@@ -99,7 +99,7 @@ struct ArrayAccess {
         INT,
         FLOAT,
         STRING_SHORT,
-        STRING_LONG
+        STRING_LONG,
     };
     template<typename T>
     static constexpr auto GetElementTypeOf() {
@@ -135,6 +135,9 @@ struct Instruction {
     uint16 NotFlag : 1;
 };
 VALIDATE_SIZE(Instruction, 0x2);
+
+/** Location of a variable */
+using VarLoc = uint16;
 };
 
 class CRunningScript {
@@ -300,26 +303,26 @@ public:
 
     //! Get local variable
     template<typename T>
-    T& GetLocal(size_t loc) {
+    T& GetLocal(scm::VarLoc loc) {
         return reinterpret_cast<T&>(m_ThisMustBeTheOnlyMissionRunning ? CTheScripts::LocalVariablesForCurrentMission[loc] : m_LocalVars[loc]);
     }
 
     //! Get value from local array
     template<typename T>
-    T& GetArrayLocal(size_t base, size_t idx, size_t elemSizeInDWords = std::min<size_t>(1, sizeof(T) / sizeof(int32))) {
-        return GetLocal<T>(base + idx * elemSizeInDWords);
+    T& GetArrayLocal(scm::VarLoc base, size_t idx, size_t elemSizeInDWords = std::min<size_t>(1, sizeof(T) / sizeof(int32))) {
+        return GetLocal<T>((scm::VarLoc)(base + idx * elemSizeInDWords));
     }
 
     //! Get global variable
     template<typename T>
-    T& GetGlobal(size_t loc) {
+    T& GetGlobal(scm::VarLoc loc) {
         return reinterpret_cast<T&>(CTheScripts::ScriptSpace[loc]);
     }
 
     //! Get value from global array
     template<typename T>
-    T& GetArrayGlobal(size_t base, size_t idx, size_t elemSizeInDWords = std::min<size_t>(1, sizeof(T) / sizeof(int32))) {
-        return GetGlobal<T>(base + idx * elemSizeInDWords * sizeof(int32));
+    T& GetArrayGlobal(scm::VarLoc base, size_t idx, size_t elemSizeInDWords = std::min<size_t>(1, sizeof(T) / sizeof(int32))) {
+        return GetGlobal<T>((scm::VarLoc)(base + idx * elemSizeInDWords * sizeof(int32)));
     }
 
     //! Perform array access (Increments IP)
@@ -332,8 +335,8 @@ public:
             : GetLocal<int32>(op.IdxVarLoc);
         VERIFY(idx >= 0 && idx < op.ArraySize);
         return isGlobalArray
-            ? GetArrayGlobal<T>(op.ArrayBase, (size_t)(idx))
-            : GetArrayLocal<T>(op.ArrayBase, (size_t)(idx));
+            ? GetArrayGlobal<T>(op.ArrayBase, (scm::VarLoc)(idx))
+            : GetArrayLocal<T>(op.ArrayBase, (scm::VarLoc)(idx));
     }
 
     //! Return the custom command handler of a function (or null) as a reference

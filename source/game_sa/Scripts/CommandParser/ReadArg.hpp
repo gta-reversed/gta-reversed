@@ -109,12 +109,11 @@ inline T Read(CRunningScript* S) {
     } else if constexpr (std::is_same_v<Y, CRect>) {
         return { Read<CVector2D>(S), Read<CVector2D>(S) };
     } else if constexpr (std::is_same_v<Y, std::string_view>) { 
-        switch (const auto ptype = (eScriptParameterType)S->GetAtIPAs<int8>()) {
+        switch (const auto ptype = S->GetAtIPAs<eScriptParameterType>()) {
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_VARIABLE:
-            return S->GetGlobal<scm::ShortString>(S->GetAtIPAs<int16>());
-
+            return S->GetGlobal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>());
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_VARIABLE:
-            return S->GetLocal<scm::ShortString>(S->GetAtIPAs<int16>());
+            return S->GetLocal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>());
 
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_ARRAY:
             return S->GetAtIPFromArray<scm::ShortString>(true);
@@ -127,11 +126,13 @@ inline T Read(CRunningScript* S) {
             return S->GetAtIPFromArray<scm::LongString>(false);
 
         case SCRIPT_PARAM_LOCAL_LONG_STRING_VARIABLE:
+            return S->GetLocal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>());
+        case SCRIPT_PARAM_GLOBAL_LONG_STRING_VARIABLE:
+            return S->GetGlobal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>());
+
         case SCRIPT_PARAM_STATIC_SHORT_STRING:
             return S->GetAtIPAs<scm::ShortString>();
-
         case SCRIPT_PARAM_STATIC_LONG_STRING:
-        case SCRIPT_PARAM_GLOBAL_LONG_STRING_VARIABLE:
             return S->GetAtIPAs<scm::LongString>();
 
         case SCRIPT_PARAM_STATIC_PASCAL_STRING: {
@@ -152,10 +153,10 @@ inline T Read(CRunningScript* S) {
         if constexpr (std::is_pointer_v<T>) { // by-ref (This is a special case, as some basic ops need a reference instead of a value)
             switch (ptype) {
             case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-                return &S->GetGlobal<Y>(S->GetAtIPAs<uint16>());
+                return &S->GetGlobal<Y>(S->GetAtIPAs<scm::VarLoc>());
                 //return reinterpret_cast<Y*>(&CTheScripts::ScriptSpace[S->GetAtIPAs<uint16>()]);
             case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
-                return &S->GetLocal<Y>(S->GetAtIPAs<uint16>());
+                return &S->GetLocal<Y>(S->GetAtIPAs<scm::VarLoc>());
                 //return reinterpret_cast<Y*>(S->GetPointerToLocalVariable(S->GetAtIPAs<uint16>()));
             case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY: {
                 return &S->GetAtIPFromArray<Y>(true);
@@ -170,19 +171,23 @@ inline T Read(CRunningScript* S) {
             }
         } else { // Regular by-value
             switch (ptype) {
-            case SCRIPT_PARAM_STATIC_INT_32BITS:
-                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int32>());
             case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-                return *reinterpret_cast<T*>(&CTheScripts::ScriptSpace[S->GetAtIPAs<uint16>()]);
+                return S->GetGlobal<T>(S->GetAtIPAs<scm::VarLoc>());
+                //return *reinterpret_cast<T*>(&CTheScripts::ScriptSpace[S->GetAtIPAs<uint16>()]);
             case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
-                return *reinterpret_cast<T*>(S->GetPointerToLocalVariable(S->GetAtIPAs<uint16>()));
+                return S->GetLocal<T>(S->GetAtIPAs<scm::VarLoc>());
+                //return *reinterpret_cast<T*>(S->GetPointerToLocalVariable(S->GetAtIPAs<uint16>()));
             case SCRIPT_PARAM_STATIC_INT_8BITS:
                 return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int8>());
             case SCRIPT_PARAM_STATIC_INT_16BITS:
                 return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int16>());
+            case SCRIPT_PARAM_STATIC_INT_32BITS:
+                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int32>());
             case SCRIPT_PARAM_STATIC_FLOAT: {
                 if constexpr (!std::is_floating_point_v<T>) {
-                    DebugBreak(); // Possibly unintended truncation of `float` to integeral type! Check your call stack and change the function argument type to a float.
+                    // Check your call stack and change the function argument type to a float.
+                    // Possibly unintended truncation of `float` to integeral type!
+                    DebugBreak();
                 }
                 return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<float>());
             }
@@ -229,7 +234,7 @@ inline T Read(CRunningScript* S) {
         }
 
         // Extract index and (expected) ID of the object
-        const auto index = (uint16)(HIWORD(info)), id = (uint16)(LOWORD(info));
+        const auto id = (uint16)(HIWORD(info)), index = (uint16)(LOWORD(info));
 
         // Check if the object is active (If not, it has been reused/deleted)
         if (!detail::scriptthing::IsActive<Y>(index)) {
