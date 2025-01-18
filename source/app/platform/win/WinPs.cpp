@@ -8,14 +8,7 @@
 #include "VideoModeSelectDialog.h"
 #include "LoadingScreen.h"
 #include "C_PcSave.h"
-
-#if _MSC_VER >= 1910 && FIX_BUGS
 #include <windows.h>
-
-void SetDPIAware() {
-    SetProcessDPIAware();
-}
-#endif
 
 
 // NOTE: This macro doesn't do a whole lot. Leaving it here for completeness sake
@@ -104,9 +97,7 @@ void InitialiseLanguage() {
 
 // 0x747420
 RwBool psInitialize() {
-#if _MSC_VER >= 1910 && FIX_BUGS
-    SetDPIAware();
-#endif
+    SetProcessDPIAware();
     auto ps = &PsGlobal;
 
     RsGlobal.ps = ps;
