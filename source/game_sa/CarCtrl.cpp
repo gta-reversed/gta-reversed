@@ -419,11 +419,6 @@ void CCarCtrl::GenerateRandomCars() {
             GenerateOneRandomCar();
         }
     }
-        GenerateEmergencyServicesCar();
-    }
-}
-
-// 0x42F3C0
 void CCarCtrl::GetAIHeliToAttackPlayer(CAutomobile* automobile) {
     plugin::Call<0x42F3C0, CAutomobile*>(automobile);
 }
