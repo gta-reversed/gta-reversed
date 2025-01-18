@@ -408,22 +408,17 @@ void CCarCtrl::GenerateRandomCars() {
     TimeNextMadDriverChaseCreated -= (CTimer::GetTimeStep() * 0.02f);
 
     if (NumRandomCars < 45) {
-        if (CountDownToCarsAtStart == 0) {
-            GenerateOneRandomCar();
-            GenerateOneRandomCar();
-        } else {
+        if (CountDownToCarsAtStart) {
             CountDownToCarsAtStart--;
             for (auto i = 100; i --> 0;) {
                 GenerateOneRandomCar();
             }
             CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
+        } else {
+            GenerateOneRandomCar();
+            GenerateOneRandomCar();
         }
     }
-
-    CTrain::DoTrainGenerationAndRemoval();
-    CPlane::DoPlaneGenerationAndRemoval();
-
-    if (((CTimer::m_snPreviousTimeInMilliseconds ^ CTimer::m_snTimeInMilliseconds) & 0xFFFFF000) != 0) {
         GenerateEmergencyServicesCar();
     }
 }
