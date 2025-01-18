@@ -655,6 +655,7 @@ void InjectHooksMain() {
     CWaterLevel::InjectHooks();
     cBuoyancy::InjectHooks();
     CWanted::InjectHooks();
+    CCrime::InjectHooks();
     CEscalators::InjectHooks();
     CWeapon::InjectHooks();
     cTransmission::InjectHooks();
