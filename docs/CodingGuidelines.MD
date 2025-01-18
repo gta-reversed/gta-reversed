@@ -6,9 +6,10 @@
 ### Code style
 * 4 space indentation, LF line endings
 * No hungarian notation [It's useless]
+* Keep braces around statements, even single line if's and such
 * If some rule about something is not specified here, refer to how it's done in the code
 * Some classes may have *helper* functions to make code more readable. (Denoted by *NOTSA*) - Try adding new ones, or looking for and using them.
-* Prefer `get`-ters/`set`-ters over raw member access
+* Prefer `get`-ters/`set`-ters over raw member access (Unless the struct is meant to be accessed that way)
 * Use range-based for loops as much as possible.
 * We encourage you to write modern C++, but if that's not your style, please keep the following in mind:
 ```cpp
