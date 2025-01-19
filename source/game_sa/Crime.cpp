@@ -39,6 +39,7 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
     }
 
     if (crimeType == CRIME_DAMAGED_PED
+        && pVictim
         && pVictim->IsPed()
         && IsPedPointerValid(pVictim->AsPed())
         && !pCommitedby->AsPlayer()->GetWantedLevel()
@@ -65,7 +66,7 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
 
     const auto playerWanted = PlayerPed->m_pPlayerData->m_pWanted;
     CVector    suspectPos   = pCommitedby->GetPosition();
-    if (playerWanted->m_fMultiplier >= 0.0) {
+    if (pVictim && playerWanted->m_fMultiplier >= 0.0) {
         float SearchRadiusForCrime = CCrime::FindImmediateDetectionRange(crimeType);
         if (CWanted::WorkOutPolicePresence(suspectPos, SearchRadiusForCrime)
             || notsa::contains(
