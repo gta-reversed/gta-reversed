@@ -30,7 +30,7 @@ float CCrime::FindImmediateDetectionRange(eCrimeType CrimeType) {
 void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommitedby) {
     if (crimeType == CRIME_NONE
         || !pCommitedby
-        || pCommitedby->GetPedType() <= PED_TYPE_PLAYER2) {
+        || pCommitedby->m_nPedType <= PED_TYPE_PLAYER2) {
         return;
     }
 
@@ -56,7 +56,7 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
             CMessages::AddBigMessage(text, 5'000, eMessageStyle::STYLE_MIDDLE);
         }
 
-        if (pCommitedby->GetPedType() == PED_TYPE_PLAYER1) {
+        if (pCommitedby->m_nPedType == PED_TYPE_PLAYER1) {
             pCommitedby->AsPlayer()->GetPlayerInfoForThisPlayerPed()->m_nMoney += 50;
         }
         return;
