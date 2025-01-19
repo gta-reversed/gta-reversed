@@ -70,10 +70,10 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
         if (CWanted::WorkOutPolicePresence(suspectPos, SearchRadiusForCrime)
             || notsa::contains({ eCrimeType::CRIME_DAMAGE_CAR, eCrimeType::CRIME_DAMAGE_COP_CAR, eCrimeType::CRIME_SET_PED_ON_FIRE, eCrimeType::CRIME_SET_COP_PED_ON_FIRE }, crimeType)
                 && CLocalisation::GermanGame()) {
-            CWanted::RegisterCrime_Immediately(playerWanted, crimeType, suspectPos, pVictim->AsPed(), isPedCriminal);
-            CWanted::SetWantedLevelNoDrop(playerWanted, WANTED_LEVEL_1); // We will never know if this is a bug or not.
+            playerWanted->RegisterCrime_Immediately(crimeType, suspectPos, pVictim->AsPed(), isPedCriminal);
+            playerWanted->SetWantedLevelNoDrop(WANTED_LEVEL_1); // We will never know if this is a bug or not.
         } else {
-            CWanted::RegisterCrime(playerWanted, crimeType, suspectPos, pVictim->AsPed(), isPedCriminal);
+            playerWanted->RegisterCrime(crimeType, suspectPos, pVictim->AsPed(), isPedCriminal);
         }
     }
 
