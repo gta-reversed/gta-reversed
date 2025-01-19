@@ -35,7 +35,7 @@ CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     CTheScripts::ClearSpaceForMissionEntity(posn, object);
     CWorld::Add(object);
 
-    if (S.m_bUseMissionCleanup) {
+    if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(*object);
     }
     return *object;
@@ -48,7 +48,7 @@ void RemoveObject(CRunningScript& S, CObject* object) {
         delete object;
     }
 
-    if (S.m_bUseMissionCleanup) {
+    if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.RemoveEntityFromList((int32)object, MISSION_CLEANUP_ENTITY_TYPE_OBJECT);
     }
 }
@@ -60,7 +60,7 @@ bool DoesObjectExists(CObject* object) {
 void MarkObjectNoLongerNeeded(CRunningScript& S, CObject* object) {
     CTheScripts::CleanUpThisObject(object);
 
-    if (object && S.m_bUseMissionCleanup) {
+    if (object && S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.RemoveEntityFromList(*object);
     }
 }
