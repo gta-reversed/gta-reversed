@@ -69,9 +69,7 @@
 #include "FxEmitterBP.h"
 #include "FxEmitter.h"
 #include "Fx.h"
-
 #include "UIRenderer.h"
-
 #include "CarGenerator.h"
 #include "TheCarGenerators.h"
 #include "Radar.h"
