@@ -268,6 +268,7 @@ public:
     /*!
     * @notsa
     * @brief Find task from the give types and return the first one.
+    * @brief Use `activeOnly = false` to make it be like `CPedIntelligence::FindTaskByType`
     */
     template<eTaskType... Ts>
     CTask* Find(bool activeOnly = true) { // TODO: For now just return `CTask*`, but would be nice to return the first common base class somehow

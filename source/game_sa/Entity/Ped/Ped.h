@@ -13,7 +13,6 @@
 #include "AEPedSpeechAudioEntity.h"
 #include "AEPedWeaponAudioEntity.h"
 #include "PedIntelligence.h"
-#include "PlayerPedData.h"
 #include "AnimBlendFrameData.h"
 #include "Acquaintance.h"
 #include "PedIK.h"
@@ -32,7 +31,11 @@
 #include "ePedType.h"
 #include "eMoveState.h"
 
+class CPlayerPedData;
+class CPedClothesDesc;
 class CPedGroup;
+class CCopPed;
+class CPlayerPed;
 class CCivilianPed;
 class CEmergencyPed;
 class CCoverPoint;
@@ -530,7 +533,7 @@ public:
 
     CPedGroup* GetGroup() const { return CPedGroups::GetPedsGroup(this); }
     int32 GetGroupId();
-    CPedClothesDesc* GetClothesDesc() { return m_pPlayerData->m_pPedClothesDesc; }
+    CPedClothesDesc* GetClothesDesc();
 
     CPedIntelligence* GetIntelligence() { return m_pIntelligence; }
     CPedIntelligence* GetIntelligence() const { return m_pIntelligence; }

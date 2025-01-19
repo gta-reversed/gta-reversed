@@ -3306,6 +3306,13 @@ int32 CPed::GetGroupId() {
 
 /*!
 * @notsa
+*/
+CPedClothesDesc* CPed::GetClothesDesc() {
+    return m_pPlayerData->m_pPedClothesDesc;
+}
+
+/*!
+* @notsa
 * @returns If ped is follower of \a group
 */
 bool CPed::IsFollowerOfGroup(const CPedGroup& group) const {

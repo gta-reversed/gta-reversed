@@ -9,9 +9,9 @@
 #include "RenderWare.h"
 #include "Vector.h"
 #include "Vector2D.h"
+#include <Ped.h>
 
 class CEntity;
-class CPed;
 class CCopPed;
 class CPedClothesDesc;
 class CWanted;
@@ -91,8 +91,8 @@ public:
     uint32    m_nModelIndexOfLastBuildingShot;
     uint32    m_nLastHSMissileLOSTime : 31;
     uint32    m_bLastHSMissileLOS : 1;
-    CPed*     m_pCurrentProstitutePed;
-    CPed*     m_pLastProstituteShagged;
+    CPed::Ref m_CurrProstitute;
+    CPed::Ref m_LastProstitute;
 
 public:
     static void InjectHooks();

@@ -8,6 +8,9 @@
 
 #include "eTaskType.h"
 
+#define NOTSA_UNEXPECTED_TASK_TYPE(tt) \
+    NOTSA_UNREACHABLE("Unexpected task type ({})", tt)
+
 enum eAbortPriority : int32 {
     ABORT_PRIORITY_LEISURE = 0,
     ABORT_PRIORITY_URGENT,
