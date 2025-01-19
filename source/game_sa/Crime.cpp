@@ -44,14 +44,14 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
         && !pCommitedby->AsPlayer()->GetWantedLevel()
         && pVictim->AsPed()->bBeingChasedByPolice) {
         ePedState m_nPedState = pVictim->AsPed()->m_nPedState;
-        
+
         if (m_nPedState == PEDSTATE_DIE || m_nPedState == PEDSTATE_DEAD) {
             return;
         }
 
         // Good Citizen Bonus! +$50
         if (const auto text = TheText.Get("GOODBOY")) {
-            CMessages::AddBigMessage(text, 5'000, 0);
+            CMessages::AddBigMessage(text, 5'000, eMessageStyle::STYLE_MIDDLE);
         }
 
         CWorld::Players[CWorld::PlayerInFocus].m_nMoney += 50;
@@ -64,12 +64,18 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
     }
 
     const auto playerWanted = PlayerPed->m_pPlayerData->m_pWanted;
-    CVector suspectPos   = pCommitedby->GetPosition();
+    CVector    suspectPos   = pCommitedby->GetPosition();
     if (playerWanted->m_fMultiplier >= 0.0) {
         float SearchRadiusForCrime = CCrime::FindImmediateDetectionRange(crimeType);
         if (CWanted::WorkOutPolicePresence(suspectPos, SearchRadiusForCrime)
-            || notsa::contains({ eCrimeType::CRIME_DAMAGE_CAR, eCrimeType::CRIME_DAMAGE_COP_CAR, eCrimeType::CRIME_SET_PED_ON_FIRE, eCrimeType::CRIME_SET_COP_PED_ON_FIRE }, crimeType)
-                && CLocalisation::GermanGame()) {
+            || notsa::contains(
+               {eCrimeType::CRIME_DAMAGE_CAR,
+                eCrimeType::CRIME_DAMAGE_COP_CAR,
+                eCrimeType::CRIME_SET_PED_ON_FIRE,
+                eCrimeType::CRIME_SET_COP_PED_ON_FIRE},
+                crimeType)
+            && CLocalisation::GermanGame())
+        {
             playerWanted->RegisterCrime_Immediately(crimeType, suspectPos, pVictim->AsPed(), isPedCriminal);
             playerWanted->SetWantedLevelNoDrop(WANTED_LEVEL_1); // We will never know if this is a bug or not.
         } else {
