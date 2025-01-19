@@ -12,6 +12,7 @@ void CCrime::InjectHooks() {
     RH_ScopedInstall(ReportCrime, 0x532010);
 }
 
+// 0x531FC0
 float CCrime::FindImmediateDetectionRange(eCrimeType CrimeType) {
     switch (CrimeType) {
     case CRIME_DESTROY_HELI:
@@ -29,7 +30,7 @@ float CCrime::FindImmediateDetectionRange(eCrimeType CrimeType) {
 void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommitedby) {
     if (crimeType == CRIME_NONE
         || !pCommitedby
-        || pCommitedby->m_nPedType <= PED_TYPE_PLAYER2) {
+        || pCommitedby->GetPedType() <= PED_TYPE_PLAYER2) {
         return;
     }
 
@@ -55,7 +56,9 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
             CMessages::AddBigMessage(text, 5'000, eMessageStyle::STYLE_MIDDLE);
         }
 
-        CWorld::Players[CWorld::PlayerInFocus].m_nMoney += 50;
+        if (pCommitedby->GetPedType() == PED_TYPE_PLAYER1) {
+            pCommitedby->AsPlayer()->GetPlayerInfoForThisPlayerPed()->m_nMoney += 50;
+        }
         return;
     }
 
