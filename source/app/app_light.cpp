@@ -97,16 +97,20 @@ void LightsDestroy(RpWorld* world) {
     if (!world) {
         return;
     }
-    const auto DestroyLight = [world](RpLight*& light) {
+    const auto DestroyLight = [world](RpLight*& light, bool destroyFrame) {
         if (light) {
             RpWorldRemoveLight(world, light);
-            RwFrameDestroy(RpLightGetFrame(light));
+            if (destroyFrame) {
+                RwFrameDestroy(RpLightGetFrame(light));
+            }
             RpLightDestroy(std::exchange(light, nullptr));
         }
     };
-    DestroyLight(pAmbient);
-    DestroyLight(pDirect);
-    rng::for_each(pExtraDirectionals, DestroyLight);
+    DestroyLight(pAmbient, false);
+    DestroyLight(pDirect, true);
+    for (auto& light : pExtraDirectionals) {
+        DestroyLight(light, true);
+    }
 }
 
 // 0x735720 unused

@@ -564,6 +564,7 @@ void InjectHooksMain() {
     CSetPiece::InjectHooks();
     CSetPieces::InjectHooks();
     CCopPed::InjectHooks();
+    CCivilianPed::InjectHooks();
     CDamageManager::InjectHooks();
     CCreepingFire::InjectHooks();
     CPtrList::InjectHooks();
@@ -605,6 +606,7 @@ void InjectHooksMain() {
     CTimeModelInfo::InjectHooks();
     CDamageAtomicModelInfo::InjectHooks();
     CWeaponModelInfo::InjectHooks();
+    CShotInfo::InjectHooks();
     CPedModelInfo::InjectHooks();
     CTimeInfo::InjectHooks();
     SurfaceInfos_c::InjectHooks();
@@ -625,6 +627,7 @@ void InjectHooksMain() {
     CVisibilityPlugins::InjectHooks();
     CPed::InjectHooks();
     CPedIntelligence::InjectHooks();
+    CPedGroupIntelligence::InjectHooks();
     CCollision::InjectHooks();
     CTempColModels::InjectHooks();
     CColSphere::InjectHooks();

@@ -107,6 +107,9 @@ CTask* CTaskManager::FindTaskByType(ePrimaryTasks taskIndex, eTaskType taskId) {
 
 // 0x681810
 CTask* CTaskManager::GetTaskSecondary(eSecondaryTask taskIndex) {
+    if (notsa::IsFixBugs() && taskIndex == eSecondaryTask::TASK_SECONDARY_INVALID) {
+        return nullptr;
+    }
     return m_aSecondaryTasks[taskIndex];
 }
 
@@ -222,7 +225,7 @@ void CTaskManager::ParentsControlChildren(CTask* parent) {
             return;
         }
 
-        task = oldSubTask;
+        task = task->GetSubTask();
     }
 }
 

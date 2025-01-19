@@ -1288,10 +1288,10 @@ auto TaskKillCharOnFootWhileDucking(eScriptCommands command, CRunningScript& S, 
 }
 
 // TASK_TURN_CHAR_TO_FACE_CHAR
-auto TaskTurnCharToFaceChar(eScriptCommands command, CRunningScript& S, CPed& ped, CPed& target) {
+auto TaskTurnCharToFaceChar(eScriptCommands command, CRunningScript& S, int32 pedHandle, CPed& target) {
     S.GivePedScriptedTask(
-        &ped,
-        new CTaskComplexTurnToFaceEntityOrCoord{ &ped },
+        pedHandle,
+        new CTaskComplexTurnToFaceEntityOrCoord{ &target },
         command
     );
 }

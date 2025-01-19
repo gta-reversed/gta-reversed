@@ -576,17 +576,19 @@ tMenuScreen aScreensX[] = {
     0,
     {
       { MENU_ACTION_MENU_CLOSE,  "FEP_RES", MENU_ENTRY_BUTTON, SCREEN_NOP,           320, 140,   MENU_ALIGN_CENTER  }, // Resume
-      { MENU_ACTION_MENU,        "FEH_SGA", MENU_ENTRY_BUTTON, SCREEN_START_GAME,    320, 170,   MENU_ALIGN_CENTER  }, // START NEW GAME
-      { MENU_ACTION_MENU,        "FEH_MAP", MENU_ENTRY_BUTTON, SCREEN_MAP,           320, 200,   MENU_ALIGN_CENTER  }, // Map
-      { MENU_ACTION_MENU,        "FEP_STA", MENU_ENTRY_BUTTON, SCREEN_NOP,           320, 230,   MENU_ALIGN_CENTER  }, // Stats
-      { MENU_ACTION_MENU,        "FEH_BRI", MENU_ENTRY_BUTTON, SCREEN_BRIEF,         320, 260,   MENU_ALIGN_CENTER  }, // Brief
-      { MENU_ACTION_MENU,        "FEP_OPT", MENU_ENTRY_BUTTON, SCREEN_OPTIONS,       320, 290,   MENU_ALIGN_CENTER  }, // Options
-      { MENU_ACTION_MENU,        "FEP_QUI", MENU_ENTRY_BUTTON, SCREEN_QUIT_GAME_ASK, 320, 320,   MENU_ALIGN_CENTER  }, // Quit Game
+      { MENU_ACTION_MENU,        "FEH_SGA", MENU_ENTRY_BUTTON, SCREEN_START_GAME,      0,   0,   MENU_ALIGN_CENTER  }, // START NEW GAME
+      { MENU_ACTION_MENU,        "FEH_MAP", MENU_ENTRY_BUTTON, SCREEN_MAP,             0,   0,   MENU_ALIGN_CENTER  }, // Map
+      { MENU_ACTION_MENU,        "FEP_STA", MENU_ENTRY_BUTTON, SCREEN_NOP,             0,   0,   MENU_ALIGN_CENTER  }, // Stats
+      { MENU_ACTION_MENU,        "FEH_BRI", MENU_ENTRY_BUTTON, SCREEN_BRIEF,           0,   0,   MENU_ALIGN_CENTER  }, // Brief
+      { MENU_ACTION_MENU,        "FEP_OPT", MENU_ENTRY_BUTTON, SCREEN_OPTIONS,         0,   0,   MENU_ALIGN_CENTER  }, // Options
+      { MENU_ACTION_MENU,        "FEP_QUI", MENU_ENTRY_BUTTON, SCREEN_QUIT_GAME_ASK,   0,   0,   MENU_ALIGN_CENTER  }, // Quit Game
+      /*
       { MENU_ACTION_NA,          "",        MENU_ENTRY_NONE,   SCREEN_QUIT_GAME_ASK, 320, 350,   MENU_ALIGN_DEFAULT },
       { MENU_ACTION_NA,          "",        MENU_ENTRY_NONE,   SCREEN_QUIT_GAME_ASK, 320, 380,   MENU_ALIGN_DEFAULT },
       { MENU_ACTION_NA,          "",        MENU_ENTRY_NONE,   SCREEN_QUIT_GAME_ASK, 320, 410,   MENU_ALIGN_DEFAULT },
       { MENU_ACTION_NA,          "",        MENU_ENTRY_NONE,   SCREEN_QUIT_GAME_ASK, 320, 440,   MENU_ALIGN_DEFAULT },
       { MENU_ACTION_NA,          "",        MENU_ENTRY_NONE,   SCREEN_QUIT_GAME_ASK, 320, 470,   MENU_ALIGN_DEFAULT },
+      */
     }
   },
 
@@ -601,6 +603,7 @@ tMenuScreen aScreensX[] = {
   },
 
   // 43
+  /*
   {
     "",
     SCREEN_NOP,  
@@ -609,6 +612,7 @@ tMenuScreen aScreensX[] = {
       { MENU_ACTION_NA,      "",         MENU_ENTRY_BUTTON },
     }
   },
+  */
 
 #if USE_GALLERY
   // 44 [xbox #23] Gallery

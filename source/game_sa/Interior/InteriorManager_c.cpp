@@ -300,7 +300,7 @@ bool InteriorManager_c::IsInteriorEffectVisible(C2dEffectInterior* effect, CEnti
     };
     return CheckPoint(TheCamera.GetPosition())
         || CheckPoint(FindPlayerPed(0)->GetPosition())
-        || CheckPoint(FindPlayerPed(1)->GetPosition());
+        || FindPlayerPed(1) && CheckPoint(FindPlayerPed(1)->GetPosition());
 
     /**
      * Original horrifically complicated code:

@@ -59,6 +59,7 @@ bool CTaskComplexPassObject::MakeAbortable(CPed* ped, eAbortPriority priority, C
 // 0x6612C0
 CTask* CTaskComplexPassObject::CreateNextSubTask(CPed* ped) {
     if (m_ped && CTask::IsA<CTaskComplexTurnToFaceEntityOrCoord>(m_pSubTask)) {
+        g_ikChainMan.PointArm("CTaskComplexPassObject", eIKArm::IK_ARM_RIGHT, ped, nullptr, eBoneTag::BONE_UNKNOWN, &m_targetPos, 0.25f, 250, 30.f);
         return new CTaskSimpleStandStill{ 999'999 };
     }
     AbortIK(ped);
@@ -93,9 +94,10 @@ CTask* CTaskComplexPassObject::ControlSubTask(CPed* ped) {
 
         if (!m_isPasser && m_entityToPass) {
             if (const auto holdTask = m_ped->GetTaskManager().Find<CTaskSimpleHoldEntity>()) {
+                auto heldEntity = holdTask->m_pEntityToHold;
                 holdTask->DropEntity(m_ped, false);
                 ped->GetTaskManager().SetTaskSecondary(
-                    new CTaskSimpleHoldEntity{ m_entityToPass, CVector{}, (uint8)BONE_L_BROW },
+                    new CTaskSimpleHoldEntity{ heldEntity, CVector{}, (uint8)BONE_L_BROW },
                     TASK_SECONDARY_PARTIAL_ANIM
                 );
             }

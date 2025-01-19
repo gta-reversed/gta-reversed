@@ -35,8 +35,8 @@ void CPlayerPed::InjectHooks() {
     RH_ScopedInstall(SetWantedLevelNoDrop, 0x609F30);
     RH_ScopedInstall(CheatWantedLevel, 0x609F50);
     RH_ScopedInstall(DoStuffToGoOnFire, 0x60A020);
-    RH_ScopedVMTInstall(Load, 0x5D46E0, { .reversed = false });
-    RH_ScopedVMTInstall(Save, 0x5D57E0, { .reversed = false });
+    RH_ScopedVMTInstall(Load, 0x5D46E0);
+    RH_ScopedVMTInstall(Save, 0x5D57E0);
     RH_ScopedInstall(DeactivatePlayerPed, 0x609520);
     RH_ScopedInstall(ReactivatePlayerPed, 0x609540);
     RH_ScopedInstall(GetPadFromPlayer, 0x609560);
@@ -81,44 +81,32 @@ void CPlayerPed::InjectHooks() {
 }
 
 struct WorkBufferSaveData {
-    uint32          SaveSize = sizeof(WorkBufferSaveData); // Never read, but written
     uint32          ChaosLevel{};
     uint32          WantedLevel{};
     CPedClothesDesc ClothesDesc{};
     uint32          ChosenWeapon{};
 };
-VALIDATE_SIZE(WorkBufferSaveData, 132u + 4u);
-
-// calls of LoadDataFromWorkBuffer are optimized
-// todo: fix
+VALIDATE_SIZE(WorkBufferSaveData, 132u);
 
 // 0x5D46E0
 bool CPlayerPed::Load() {
-    return plugin::CallMethodAndReturn<bool, 0x5D46E0, CPlayerPed*>(this);
-
     CPed::Load();
 
-    WorkBufferSaveData sd{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&sd, sizeof(WorkBufferSaveData));
-    assert(sd.SaveSize == sizeof(sd));
+    CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // Discard structure size
+    auto sd = CGenericGameStorage::LoadDataFromWorkBuffer<WorkBufferSaveData>();
 
     CWanted* wanted = m_pPlayerData->m_pWanted;
     wanted->m_nChaosLevel = sd.ChaosLevel;
     wanted->m_nWantedLevel= sd.WantedLevel;
 
-    m_pPlayerData->m_nChosenWeapon   = sd.ChosenWeapon;
     *m_pPlayerData->m_pPedClothesDesc = sd.ClothesDesc;
+    m_pPlayerData->m_nChosenWeapon   = sd.ChosenWeapon;
 
     return true;
 }
 
-// calls of SaveDataToWorkBuffer are optimized
-// todo: fix
-
 // 0x5D57E0
 bool CPlayerPed::Save() {
-    return plugin::CallMethodAndReturn<bool, 0x5D57E0>(this);
-
     WorkBufferSaveData saveData{};
 
     CWanted* wanted = m_pPlayerData->m_pWanted;
@@ -127,7 +115,9 @@ bool CPlayerPed::Save() {
     saveData.ChosenWeapon = m_pPlayerData->m_nChosenWeapon;
     saveData.ClothesDesc  = *m_pPlayerData->m_pPedClothesDesc;
 
-    CGenericGameStorage::SaveDataToWorkBuffer(&saveData, sizeof(WorkBufferSaveData));
+    CPed::Save();
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(WorkBufferSaveData));
+    CGenericGameStorage::SaveDataToWorkBuffer(saveData);
 
     return true;
 }

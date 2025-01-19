@@ -605,6 +605,7 @@ void CEntryExit::WarpGangWithPlayer(CPlayerPed* player) {
 
         // Teleport them
         mem.Teleport(memTeleportTo, false);
+        mem.GetIntelligence()->FlushImmediately(false);
 
         // Make the member be heading towards the player
         mem.m_fCurrentRotation = mem.m_fAimingRotation = memHeading;

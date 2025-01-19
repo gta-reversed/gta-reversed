@@ -551,7 +551,13 @@ bool CEventHandler::IsTemporaryEvent(const CEvent& event) {
 
 // 0x4BC3E0
 bool CEventHandler::IsKillTaskAppropriate(CPed* ped1, CPed* ped2, const CEvent& event) {
-    return !ped1->IsCreatedByMission() && (!ped1->GetActiveWeapon().IsTypeMelee() || ped2->GetActiveWeapon().IsTypeMelee());
+    if (ped1->IsCreatedByMission()) {
+        return true;
+    }
+    if (!ped1->GetActiveWeapon().IsTypeMelee() || ped2->GetActiveWeapon().IsTypeMelee()) {
+        return true;
+    }
+    return false;
 }
 
 // 0x4BBF50

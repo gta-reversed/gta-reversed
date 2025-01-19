@@ -382,7 +382,7 @@ void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
 * @addr 0x69DBD0
 */
 bool CMessages::StringCompare(const GxtChar* str1, const GxtChar* str2, uint16 len) {
-    return strncmp(AsciiFromGxtChar(str1), AsciiFromGxtChar(str1), len) == 0;
+    return strncmp(AsciiFromGxtChar(str1), AsciiFromGxtChar(str2), len) == 0;
 }
 
 // 0x69DC50
