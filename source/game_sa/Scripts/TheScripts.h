@@ -155,11 +155,11 @@ VALIDATE_SIZE(tScriptText, 0x44);
 
 enum class eScriptRectangleType : int32 {
     TYPE_0,
-    TYPE_1,
-    TYPE_2,
-    TYPE_3,
-    TYPE_4,
-    TYPE_5,
+    TITLE_AND_MESSAGE,
+    TEXT,
+    MONOCOLOR,
+    TEXTURED,
+    ANGLED,
 };
 
 struct tScriptRectangle {
@@ -167,8 +167,8 @@ struct tScriptRectangle {
     bool                 m_bDrawBeforeFade;
     char                 field_5;
     int16                m_nTextureId;
-    CVector2D            cornerA;
-    CVector2D            cornerB;
+    CVector2D            cornerA; //!< Supposed to be: Top left corner (min x, y) - Sometimes this isn't the case though, for example in scripted videogames...
+    CVector2D            cornerB; //!< Supposed to be: Bottom right corner (max x, y) - Sometimes this isn't the case though, for example in scripted videogames...
     float                m_nAngle;
     CRGBA                m_nTransparentColor;
     char                 gxt1[8];

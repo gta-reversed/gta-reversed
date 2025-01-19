@@ -118,8 +118,8 @@ struct ArrayAccess {
     uint16 ArrayBase;
     /** Location of the index variable used to access the array (May be a global or local variable, see `IdxVarIsGlobal`) */
     uint16 IdxVarLoc;
-    /** Array total size (length) (TODO: Is this actually signed?) */
-    int8 ArraySize;
+    /** Array total size (length) (NOTE: Yes, it's unsigned!) */
+    uint8 ArraySize;
     /** Array elements type */
     ElementType ElemType: 7;
     /** Index is a global variable (true) or a local variable (false) */
