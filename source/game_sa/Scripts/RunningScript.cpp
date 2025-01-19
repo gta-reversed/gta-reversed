@@ -886,10 +886,9 @@ void CRunningScript::UpdateCompareFlag(bool state) {
 // Sets instruction pointer, used in GOTO-like commands
 // 0x464DA0
 void CRunningScript::UpdatePC(int32 newIP) {
-    if (newIP >= 0)
-        m_IP = &CTheScripts::ScriptSpace[newIP];
-    else
-        m_IP = m_BaseIP + std::abs(newIP);
+    m_IP = newIP >= 0
+        ? &CTheScripts::ScriptSpace[newIP]
+        : m_BaseIP + std::abs(newIP);
 }
 
 // 0x469EB0, inlined
@@ -898,7 +897,7 @@ OpcodeResult CRunningScript::ProcessOneCommand() {
 
     const auto op = GetAtIPAs<scm::Instruction>();
 
-    // Check if IP is valid post-return
+    // Check if IP is valid pre-return
     notsa::ScopeGuard guardIP{[this]() {
         const auto next{ GetAtIPAs<scm::Instruction>(false) };
         VERIFY(next.Command <= COMMAND_HIGHEST_VANILLA_ID);
@@ -942,6 +941,7 @@ OpcodeResult CRunningScript::Process() {
             m_IP = m_IPStack[0];
         }
     }
+
     CTheScripts::ReinitialiseSwitchStatementData();
     if (CTimer::GetTimeInMS() >= (uint32)m_WakeTime) {
         while (ProcessOneCommand() == OR_CONTINUE); // Process commands
