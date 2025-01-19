@@ -9,6 +9,7 @@
 #include "TaskComplexStealCar.h"
 #include "TaskComplexFleeAnyMeans.h"
 #include "TaskComplexDriveWander.h"
+#include "TaskComplexProstituteSolicit.h"
 
 #include <imgui.h>
 #include <imgui_impl_win32.h>
@@ -199,10 +200,15 @@ void UIRenderer::DebugCode() {
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {
-        player->GetTaskManager().SetTask(
-            new CTaskSimpleAchieveHeading{PI/2.f},
-            TASK_PRIMARY_PRIMARY
-        );
+        for (auto& nearbyPed : player->GetIntelligence()->GetPedScanner().GetEntities<CPed>()) { // 0x666C94
+            if (nearbyPed.m_nPedType == PED_TYPE_PROSTITUTE) {
+                nearbyPed.GetTaskManager().SetTask(
+                    new CTaskComplexProstituteSolicit{player},
+                    TASK_PRIMARY_PRIMARY
+                );
+            }
+        }
+        NOTSA_LOG_DEBUG("Made prostitues around you solicit");
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {

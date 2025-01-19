@@ -1171,7 +1171,7 @@ void InjectHooksMain() {
         CTaskComplexGoToPointAndStandStillTimed::InjectHooks();
         CTaskComplexPartnerShove::InjectHooks();
         CTaskSimpleRunNamedAnim::InjectHooks();
-        // CTaskComplexProstituteSolicit::InjectHooks();
+        CTaskComplexProstituteSolicit::InjectHooks();
         CTaskComplexStuckInAir::InjectHooks();
         CTaskSimpleHoldEntity::InjectHooks();
         CTaskSimpleGoTo::InjectHooks();

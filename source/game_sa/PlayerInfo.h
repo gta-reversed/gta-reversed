@@ -8,10 +8,10 @@
 
 #include "RenderWare.h"
 #include "Vector.h"
+#include <PlayerPedData.h>
 
 class CPed;
 class CVehicle;
-class CPlayerPedData;
 class CPlayerPed;
 class CPlayerInfoSaveStructure;
 

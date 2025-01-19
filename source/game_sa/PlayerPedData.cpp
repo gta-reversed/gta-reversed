@@ -107,8 +107,8 @@ void CPlayerPedData::SetInitialState() {
     m_nFireHSMissilePressedTime = 0;
     m_LastHSMissileTarget = nullptr;
 
-    m_pCurrentProstitutePed = nullptr;
-    m_pLastProstituteShagged = nullptr;
+    m_CurrProstitute = nullptr;
+    m_LastProstitute = nullptr;
 
     m_bCanBeDamaged = true;
     m_bRenderWeapon = true;
