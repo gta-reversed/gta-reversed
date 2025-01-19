@@ -1723,10 +1723,12 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
             continue;
         }
         switch (rt.m_nType) {
+        case eScriptRectangleType::INACTIVE:
+            break;
         case eScriptRectangleType::TITLE_AND_MESSAGE:
             FrontEndMenuManager.DrawWindowedText(
-                rt.cornerTL.x, rt.cornerTL.y,
-                rt.cornerBR.x, // ?
+                rt.cornerA.x, rt.cornerA.y,
+                rt.cornerB.x, // ?
                 rt.gxt1,
                 rt.gxt2,
                 rt.m_Alignment
@@ -1734,7 +1736,7 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
             break;
         case eScriptRectangleType::TEXT:
             FrontEndMenuManager.DrawWindow(
-                CRect{ rt.cornerTL, rt.cornerBR },
+                CRect{ rt.cornerA, rt.cornerB },
                 rt.gxt1,
                 0,
                 CRGBA{ 0, 0, 0, 190 },
@@ -1744,21 +1746,21 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
             break;
         case eScriptRectangleType::MONOCOLOR:
             CSprite2d::DrawRect(
-                CRect{ rt.cornerTL, rt.cornerBR },
+                CRect{ rt.cornerA, rt.cornerB },
                 rt.m_nTransparentColor
             );
             break;
         case eScriptRectangleType::TEXTURED:
             ScriptSprites[rt.m_nTextureId].Draw(
-                CRect{ rt.cornerTL, rt.cornerBR },
+                CRect{ rt.cornerA, rt.cornerB },
                 rt.m_nTransparentColor
             );
             break;
-        case eScriptRectangleType::ANGLED: {
+        case eScriptRectangleType::MONOCOLOR_ANGLED: {
             // mid: Vector that points to the middle of line A-B from A.
             // vAM: A to mid.
-            const auto mid = (rt.cornerTL + rt.cornerBR) / 2.0f;
-            const auto vAM = mid - rt.cornerTL;
+            const auto mid = (rt.cornerA + rt.cornerB) / 2.0f;
+            const auto vAM = mid - rt.cornerA;
             const auto cos = std::cos(rt.m_nAngle);
             const auto sin = std::sin(rt.m_nAngle);
 
@@ -1778,7 +1780,7 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
             break;
         }
         default:
-            NOTSA_UNREACHABLE("Unknown script-rect type ({})", rt.m_nType);
+            NOTSA_UNREACHABLE("Unknown script-rect type ({})", (int32)(rt.m_nType));
         }
     }
 }

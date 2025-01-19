@@ -154,12 +154,12 @@ struct tScriptText {
 VALIDATE_SIZE(tScriptText, 0x44);
 
 enum class eScriptRectangleType : int32 {
-    TYPE_0,
+    INACTIVE,           //!< This entry is inactive (Not drawn)
     TITLE_AND_MESSAGE,
     TEXT,
-    MONOCOLOR,
-    TEXTURED,
-    ANGLED,
+    MONOCOLOR,          //!< Mono-color rect
+    TEXTURED,           //!< Textured rect (basically a sprite)
+    MONOCOLOR_ANGLED,   //!< Angled mono-color rect
 };
 
 struct tScriptRectangle {
@@ -179,7 +179,7 @@ struct tScriptRectangle {
     uint32               m_nTextboxStyle;
 
     tScriptRectangle() { // 0x4691C8
-        m_nType             = eScriptRectangleType::TYPE_0;
+        m_nType             = eScriptRectangleType::INACTIVE;
         m_bDrawBeforeFade   = false;
         m_nTextureId        = -1;
         cornerA             = CVector2D();

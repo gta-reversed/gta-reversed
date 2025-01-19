@@ -203,7 +203,7 @@ public:
     bool                                     m_NotFlag;                         //< Boolean value returned by the called command should be negated
     bool                                     m_IsDeathArrestCheckEnabled;
     bool                                     m_DoneDeathArrest;
-    uint8*                                   m_SceneSkipIP;                     //< IP to use to skip the cutscene (?)
+    int32                                    m_SceneSkipIP;                     //< IP to use to skip the cutscene (?)
     bool                                     m_ThisMustBeTheOnlyMissionRunning; //< Is (this script) a mission script
 
 public:
@@ -341,6 +341,9 @@ public:
 
     //! Return the custom command handler of a function (or null) as a reference
     static notsa::script::CommandHandlerFunction& CustomCommandHandlerOf(eScriptCommands command); // Returning a ref here for convenience (instead of having to make a `Set` function too)
+
+private:
+    void ResetIPStack();
 };
 
 VALIDATE_SIZE(CRunningScript, 0xE0);

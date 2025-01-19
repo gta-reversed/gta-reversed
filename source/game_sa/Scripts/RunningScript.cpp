@@ -177,7 +177,7 @@ void CRunningScript::Init() {
     m_AndOrState                      = 0;
     m_NotFlag                         = false;
     m_DoneDeathArrest                 = false;
-    m_SceneSkipIP                     = nullptr;
+    m_SceneSkipIP                     = 0;
     m_ThisMustBeTheOnlyMissionRunning = false;
     m_IsDeathArrestCheckEnabled       = true;
 }
@@ -381,29 +381,24 @@ bool CRunningScript::ThisIsAValidRandomPed(ePedType pedType, bool civilian, bool
 
 // 0x485A50
 void CRunningScript::DoDeathArrestCheck() {
-    if (!m_IsDeathArrestCheckEnabled)
+    if (!m_IsDeathArrestCheckEnabled) {
         return;
-
-    if (!CTheScripts::IsPlayerOnAMission())
-        return;
-
-    auto& playerInfo = FindPlayerInfo();
-    if (!playerInfo.IsRestartingAfterDeath() && !playerInfo.IsRestartingAfterArrest())
-        return;
-
-    // TODO/NOTE: This is buggy, it will decrease SP to 0, and then `--m_nSP` will underflow :D
-    NOTSA_UNREACHABLE(); // Prevent random bugs
-    if (m_StackDepth > 1u) { // todo: refactor
-        do
-            --m_StackDepth;
-        while (m_StackDepth > 1u);
     }
 
-    m_IP = m_IPStack[--m_StackDepth];
+    if (!CTheScripts::IsPlayerOnAMission()) {
+        return;
+    }
+
+    if (const auto& pi = FindPlayerInfo(); !pi.IsRestartingAfterDeath() && !pi.IsRestartingAfterArrest()) {
+        return;
+    }
+
     CMessages::ClearSmallMessagesOnly();
-    CTheScripts::ScriptSpace[CTheScripts::OnAMissionFlag] = 0;
+    memset(&CTheScripts::ScriptSpace[CTheScripts::OnAMissionFlag], 0, sizeof(uint32));
+    ResetIP();
+
     m_DoneDeathArrest = true;
-    m_WakeTime = 0;
+    m_WakeTime        = 0;
 }
 
 // 0x464F50
@@ -924,27 +919,25 @@ OpcodeResult CRunningScript::ProcessOneCommand() {
 OpcodeResult CRunningScript::Process() {
     if (m_SceneSkipIP && CCutsceneMgr::IsCutsceneSkipButtonBeingPressed()) {
         CHud::m_BigMessage[1][0] = 0;
-        UpdatePC(reinterpret_cast<int32>(m_SceneSkipIP));
-        m_SceneSkipIP = nullptr;
+        UpdatePC(std::exchange(m_SceneSkipIP, 0));
         m_WakeTime = 0;
     }
 
-    if (m_UsesMissionCleanup)
+    if (m_UsesMissionCleanup) {
         DoDeathArrestCheck();
+    }
 
     if (m_ThisMustBeTheOnlyMissionRunning && CTheScripts::FailCurrentMission == 1) {
-        while (m_StackDepth > 1) // // todo: refactor | inline(?): while (stack.size > 1) { stack.pop() }
-            --m_StackDepth;
-
-        if (m_StackDepth == 1) {
-            m_StackDepth = 0;
-            m_IP = m_IPStack[0];
+        if (m_StackDepth > 0) {
+            ResetIP();
         }
     }
 
     CTheScripts::ReinitialiseSwitchStatementData();
+
     if (CTimer::GetTimeInMS() >= (uint32)m_WakeTime) {
-        while (ProcessOneCommand() == OR_CONTINUE); // Process commands
+        while (ProcessOneCommand() == OR_CONTINUE)
+            ; // Process commands
     }
 
     return OR_CONTINUE;
@@ -968,4 +961,11 @@ void CRunningScript::HighlightImportantAngledArea(uint32 id, CVector2D a, CVecto
 
 notsa::script::CommandHandlerFunction& CRunningScript::CustomCommandHandlerOf(eScriptCommands command) {
     return s_CustomCommandHandlerTable[(size_t)(command)];
+}
+
+void CRunningScript::ResetIP() {
+    assert(m_StackDepth > 0); // Original bug...
+    do {
+        m_IP = std::exchange(m_IPStack[m_StackDepth--], nullptr); // NOTSA: Also clear the stack, we don't need it anymore
+    } while (m_StackDepth);
 }
