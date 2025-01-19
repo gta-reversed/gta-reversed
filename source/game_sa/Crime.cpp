@@ -63,13 +63,13 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
     if (pVictim && plyrWanted->m_fMultiplier >= 0.0) {
         const auto& comittedByPos = pCommitedby->GetPosition();
         if (CLocalisation::GermanGame() && (
-               CWanted::WorkOutPolicePresence(comittedByPos, FindImmediateDetectionRange(crimeType))
+               CWanted::WorkOutPolicePresence(&comittedByPos, FindImmediateDetectionRange(crimeType))
             || notsa::contains({CRIME_DAMAGE_CAR, CRIME_DAMAGE_COP_CAR, CRIME_SET_PED_ON_FIRE, CRIME_SET_COP_PED_ON_FIRE}, crimeType)
         )) {
-            plyrWanted->RegisterCrime_Immediately(crimeType, comittedByPos, pVictim->AsPed(), isPedCriminal);
+            plyrWanted->RegisterCrime_Immediately(crimeType, &comittedByPos, pVictim->AsPed(), isPedCriminal);
             plyrWanted->SetWantedLevelNoDrop(WANTED_LEVEL_1); // We will never know if this is a bug or not.
         } else {
-            plyrWanted->RegisterCrime(crimeType, comittedByPos, pVictim->AsPed(), isPedCriminal);
+            plyrWanted->RegisterCrime(crimeType, &comittedByPos, pVictim->AsPed(), isPedCriminal);
         }
     }
 
