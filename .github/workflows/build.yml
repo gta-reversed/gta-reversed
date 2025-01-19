@@ -43,11 +43,21 @@ jobs:
                 shell: cmd
                 run: cmake --build build --config ${{ matrix.conf }}
 
+            -   name: Verify artifact path
+                shell: cmd
+                run: |
+                    dir bin\${{ matrix.conf }}
+                    if not exist "bin\${{ matrix.conf }}" mkdir "bin\${{ matrix.conf }}"
+
             -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
                 uses: actions/upload-artifact@v3
+                if: always()
                 with:
                     name: gta_reversed-${{ matrix.conf }}
-                    path: bin/${{ matrix.conf }}
+                    path: |
+                        bin/${{ matrix.conf }}/**
+                        !bin/${{ matrix.conf }}/*.pdb
+                    if-no-files-found: error
 
             -   name: Initialize MSVC Code Analysis
                 uses: microsoft/msvc-code-analysis-action@v0.1.1
