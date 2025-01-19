@@ -28,72 +28,57 @@ float CCrime::FindImmediateDetectionRange(eCrimeType CrimeType) {
 
 // 0x532010
 void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommitedby) {
-    if (crimeType == CRIME_NONE
-        || !pCommitedby
-        || pCommitedby->m_nPedType <= PED_TYPE_PLAYER2) {
+// 0x532010
+void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommitedby) {
+    if (crimeType == CRIME_NONE) { // Moved here from 0x5320FC
+        return;
+    }
+    if (!pCommitedby || !pCommitedby->IsPlayer()) {
         return;
     }
 
-    bool isPedCriminal = false;
-    if (pVictim && pVictim->IsPed()) {
-        isPedCriminal = CPedType::PoliceDontCareAboutCrimesAgainstPedType(pVictim->AsPed()->m_nPedType);
-    }
-
-    if (crimeType == CRIME_DAMAGED_PED
+    const bool isPedCriminal = pVictim && pVictim->IsPed() && CPedType::PoliceDontCareAboutCrimesAgainstPedType(pVictim->AsPed()->m_nPedType);
+    if (   crimeType == CRIME_DAMAGED_PED
         && pVictim
         && pVictim->IsPed()
         && IsPedPointerValid(pVictim->AsPed())
         && !pCommitedby->AsPlayer()->GetWantedLevel()
-        && pVictim->AsPed()->bBeingChasedByPolice) {
-        ePedState m_nPedState = pVictim->AsPed()->m_nPedState;
-
-        if (m_nPedState == PEDSTATE_DIE || m_nPedState == PEDSTATE_DEAD) {
-            return;
-        }
-
-        // Good Citizen Bonus! +$50
-        if (const auto text = TheText.Get("GOODBOY")) {
-            CMessages::AddBigMessage(text, 5'000, eMessageStyle::STYLE_MIDDLE);
-        }
-
-        if (pCommitedby->m_nPedType == PED_TYPE_PLAYER1) {
-            pCommitedby->AsPlayer()->GetPlayerInfoForThisPlayerPed()->m_nMoney += 50;
+        && pVictim->AsPed()->bBeingChasedByPolice
+    ) {
+        if (!pVictim->AsPed()->IsStateDying()) {
+            if (const auto text = TheText.Get("GOODBOY")) { // Good Citizen Bonus! +$50
+                CMessages::AddBigMessage(text, 5'000, eMessageStyle::STYLE_MIDDLE);
+            }
+            if (pCommitedby->m_nPedType == PED_TYPE_PLAYER1) {
+                pCommitedby->AsPlayer()->GetPlayerInfoForThisPlayerPed()->m_nMoney += 50;
+            }
         }
         return;
     }
 
-    const CPlayerPed* PlayerPed = pCommitedby ? pCommitedby->AsPlayer() : nullptr;
-    if (!PlayerPed) {
+    const auto plyrPed = pCommitedby ? pCommitedby->AsPlayer() : nullptr;
+    if (!plyrPed) {
         return;
     }
 
-    const auto playerWanted = PlayerPed->m_pPlayerData->m_pWanted;
-    CVector    suspectPos   = pCommitedby->GetPosition();
-    if (pVictim && playerWanted->m_fMultiplier >= 0.0) {
-        float SearchRadiusForCrime = CCrime::FindImmediateDetectionRange(crimeType);
-        if (CWanted::WorkOutPolicePresence(suspectPos, SearchRadiusForCrime)
-            || notsa::contains(
-               {eCrimeType::CRIME_DAMAGE_CAR,
-                eCrimeType::CRIME_DAMAGE_COP_CAR,
-                eCrimeType::CRIME_SET_PED_ON_FIRE,
-                eCrimeType::CRIME_SET_COP_PED_ON_FIRE},
-                crimeType)
-            && CLocalisation::GermanGame())
-        {
-            playerWanted->RegisterCrime_Immediately(crimeType, suspectPos, pVictim->AsPed(), isPedCriminal);
-            playerWanted->SetWantedLevelNoDrop(WANTED_LEVEL_1); // We will never know if this is a bug or not.
+    const auto plyrWanted = plyrPed->m_pPlayerData->m_pWanted;
+    if (pVictim && plyrWanted->m_fMultiplier >= 0.0) {
+        const auto comittedByPos = pCommitedby->GetPosition();
+        if (CLocalisation::GermanGame() && (
+               CWanted::WorkOutPolicePresence(comittedByPos, FindImmediateDetectionRange(crimeType))
+            || notsa::contains({CRIME_DAMAGE_CAR, CRIME_DAMAGE_COP_CAR, CRIME_SET_PED_ON_FIRE, CRIME_SET_COP_PED_ON_FIRE}, crimeType)
+        )) {
+            plyrWanted->RegisterCrime_Immediately(crimeType, comittedByPos, pVictim->AsPed(), isPedCriminal);
+            plyrWanted->SetWantedLevelNoDrop(WANTED_LEVEL_1); // We will never know if this is a bug or not.
         } else {
-            playerWanted->RegisterCrime(crimeType, suspectPos, pVictim->AsPed(), isPedCriminal);
+            plyrWanted->RegisterCrime(crimeType, comittedByPos, pVictim->AsPed(), isPedCriminal);
         }
     }
 
     switch (crimeType) {
-    case CRIME_DAMAGED_COP:
-        playerWanted->SetWantedLevelNoDrop(WANTED_LEVEL_1);
-        return;
+    case CRIME_DAMAGED_COP:   plyrWanted->SetWantedLevelNoDrop(WANTED_LEVEL_1); break;
     case CRIME_DAMAGE_COP_CAR:
-    case CRIME_STAB_COP:
-        playerWanted->SetWantedLevelNoDrop(WANTED_LEVEL_2);
-        return;
+    case CRIME_STAB_COP:      plyrWanted->SetWantedLevelNoDrop(WANTED_LEVEL_2); break;
     }
+}
 }
