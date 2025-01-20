@@ -163,19 +163,15 @@ auto AttachFxSystemToCharBone(tScriptEffectSystem& fx, CPed& ped, eBoneTag bone)
 }
 
 auto GetDeadCharCoordinates(CPed& ped) {
-    if (ped.IsInVehicle()) {
-        return ped.m_pVehicle->GetPosition();
-    } else {
-        return ped.GetBonePosition(BONE_PELVIS);
-    }
+    return ped.IsInVehicle()
+        ? ped.m_pVehicle->GetPosition()
+        : ped.GetBonePosition(BONE_PELVIS);
 }
 
 auto GetCharCoordinates(CPed& ped) {
-    if (ped.IsInVehicle()) {
-        return ped.m_pVehicle->GetPosition();
-    } else {
-        return ped.GetPosition();
-    }
+    return ped.IsInVehicle()
+        ? ped.m_pVehicle->GetPosition()
+        : ped.GetPosition();
 }
 
 auto SetCharCoordinates(CRunningScript& S, CPed& ped, CVector coords) {
@@ -1052,8 +1048,8 @@ auto GetCharArmour(CPed& ped) {
 }
 
 // 0x48C12E - COMMAND_GET_CHAR_ARMOUR
-void SetCharArmour(CPed* ped, float value) {
-    ped->m_fArmour = value;
+void SetCharArmour(CPed& ped, float value) {
+    ped.m_fArmour = value;
 }
 
 // ATTACH_CHAR_TO_OBJECT
@@ -1063,19 +1059,8 @@ auto AttachCharToObject(CPed& ped, CObject& obj, CVector offset, int32 orientati
 
 // HAS_CHAR_BEEN_DAMAGED_BY_CHAR
 auto HasCharBeenDamagedByChar(CPed* ped, CPed& byPed) {
-    if (!ped) {
-        return false;
-    }
-    if (!ped->m_pLastEntityDamage) {
-        return false;
-    }
-    if (ped->m_pLastEntityDamage == &byPed) {
-        return true;
-    }
-    if (byPed.bInVehicle && ped->m_pLastEntityDamage == byPed.m_pVehicle) {
-        return true;
-    }
-    return false;
+    return ped && ped->m_pLastEntityDamage
+        && (ped->m_pLastEntityDamage == &byPed || byPed.bInVehicle && ped->m_pLastEntityDamage == byPed.m_pVehicle);
 }
 
 // HAS_CHAR_BEEN_DAMAGED_BY_CAR
