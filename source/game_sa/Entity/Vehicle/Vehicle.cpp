@@ -215,7 +215,7 @@ void CVehicle::InjectHooks() {
     // RH_ScopedInstall(ScanAndMarkTargetForHeatSeekingMissile, 0x6E0400);
     // RH_ScopedInstall(FireHeatSeakingMissile, 0x6E05C0);
     // RH_ScopedInstall(PossiblyDropFreeFallBombForPlayer, 0x6E07E0);
-    // RH_ScopedInstall(ProcessSirenAndHorn, 0x6E0950);
+    RH_ScopedInstall(ProcessSirenAndHorn, 0x6E0950);
     // RH_ScopedInstall(DoHeadLightEffect, 0x6E0A50);
     RH_ScopedInstall(DoHeadLightReflectionSingle, 0x6E1440);
     RH_ScopedInstall(DoHeadLightReflectionTwin, 0x6E1600);
@@ -4260,9 +4260,74 @@ void CVehicle::PossiblyDropFreeFallBombForPlayer(eOrdnanceType type, bool arg1) 
 }
 
 // 0x6E0950
-void CVehicle::ProcessSirenAndHorn(bool arg0) {
-    ((void(__thiscall*)(CVehicle*, bool))0x6E0950)(this, arg0);
+// #ifdef USE_DEFAULT_FUNCTIONS
+// Legacy implementation (Part of the code is lost 'only viewable with Ghidra').
+// 0x6E0950
+// void CVehicle::ProcessSirenAndHorn(bool bPlaySound)
+// {
+//     CPad* currentPad = (this->m_pDriver->IsPlayer()) ? CPad::GetPad(0) : CPad::GetPad(1);
+//     if (this->UsesSiren()) {
+//         m_nHornCounter = 0;
+//         if (currentPad->bHornHistory[currentPad->iCurrHornHistory]) {
+//             if (currentPad->bHornHistory[(currentPad->iCurrHornHistory+4) % 5] && currentPad->bHornHistory[(currentPad->iCurrHornHistory+3) % 5]) {
+//                 m_nHornCounter = 1;
+//             }
+//         } else if (currentPad->bHornHistory[(currentPad->iCurrHornHistory+4) % 5] && !currentPad->bHornHistory[(currentPad->iCurrHornHistory+1) % 5]) {
+//             vehicleFlags.bSirenOrAlarm = !vehicleFlags.bSirenOrAlarm;
+//         }
+//     } else if (bPlaySound && CanUpdateHornCounter()) {
+//         m_nHornCounter = currentPad->GetHorn() ? 1 : 0;
+//     }
+// }
+// #else
+// NOTSA: Based on JuniorDjjr implementation. The vanilla function is broken.
+// Based on JuniorDjjr implementation
+void CVehicle::ProcessSirenAndHorn(bool canHorn)
+{
+    static unsigned int hornPressLastTime = 0;
+    static bool hornHasPressed = false;
+    static bool hornJustUp = false;
+
+    CPad* currentPad = this->m_pDriver == CWorld::Players[0].m_pPed ? CPad::GetPad(0) : CPad::GetPad(1);
+
+    // Store horn state
+    if (currentPad->HornJustDown()) {
+        hornPressLastTime = CTimer::m_snTimeInMilliseconds;
+        hornHasPressed = true;
+    }
+    if (!currentPad->GetHorn()) {
+        hornJustUp = hornHasPressed ? true : false;
+    } else {
+        hornJustUp = false;
+    }
+
+    if (this->UsesSiren())
+    {
+        // Original siren logic with modifications
+        if (currentPad->GetHorn() && CTimer::m_snTimeInMilliseconds - hornPressLastTime >= 150) {
+            // Horn held - do horn action (original horn sound)
+            this->m_nHornCounter = 1;
+        }
+        else if (hornJustUp && CTimer::m_snTimeInMilliseconds - hornPressLastTime < 150) {
+            // Short press - toggle siren
+            hornJustUp = false;
+            hornHasPressed = false;
+            this->vehicleFlags.bSirenOrAlarm = this->vehicleFlags.bSirenOrAlarm ? false : true;
+            this->m_nHornCounter = 0;
+        }
+        else {
+            // No action - reset counter
+            this->m_nHornCounter = 0;
+        }
+    }
+    else if (canHorn)
+    {
+        if (CanUpdateHornCounter()) {
+            this->m_nHornCounter = currentPad->GetHorn();
+        }
+    }
 }
+// #endif
 
 // 0x6E0A50
 bool CVehicle::DoHeadLightEffect(eVehicleDummy dummyId, CMatrix& vehicleMatrix, uint8 lightId, uint8 lightState) {

@@ -92,7 +92,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessRainOnVehicle, 0x4F92C0);
     RH_ScopedInstall(PlayAircraftSound, 0x4F93C0, { .reversed = false });
     RH_ScopedInstall(PlayBicycleSound, 0x4F9710, { .reversed = false });
-    RH_ScopedInstall(PlayHornOrSiren, 0x4F99D0, { .reversed = false });
+    RH_ScopedInstall(PlayHornOrSiren, 0x4F99D0);
     RH_ScopedInstall(UpdateBoatSound, 0x4F9E90, { .reversed = false });
     RH_ScopedInstall(ProcessBoatMovingOverWater, 0x4FA0C0, { .reversed = false });
     RH_ScopedInstall(UpdateTrainSound, 0x4FA1C0, { .reversed = false });
@@ -1563,7 +1563,7 @@ void CAEVehicleAudioEntity::PlayBicycleSound(int16 engineState, int16 bankSlotId
 
 // 0x4F99D0
 void CAEVehicleAudioEntity::PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenOrAlarm, bool bPlayHorn, cVehicleParams& params) {
-    return plugin::CallMethod<0x4F99D0, CAEVehicleAudioEntity*, bool, bool, bool, cVehicleParams&>(this, bPlayHornTone, bPlaySirenOrAlarm, bPlayHorn, params);
+    // return plugin::CallMethod<0x4F99D0, CAEVehicleAudioEntity*, bool, bool, bool, cVehicleParams&>(this, bPlayHornTone, bPlaySirenOrAlarm, bPlayHorn, params);
 
     const auto nHornToneSoundInBank = m_Settings.m_nHornToneSoundInBank;
     const auto DoTryStopHornSound = [&] {
@@ -1583,6 +1583,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenO
         };
 
         if (!nHornToneSoundInBank) {
+            DEV_LOG("STOP 0");
             DoTryStopHornSound();
             m_fHornVolume = GetDefaultVolume(AE_BIKE_BELL);
             if (!bBanksLoaded)
@@ -1605,6 +1606,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenO
         if (nHornToneSoundInBank == 0) {
             m_fHornVolume = std::max(m_fHornVolume - 1.5f, -100.0f);
             if (m_fHornVolume <= -100.0f) {
+                DEV_LOG("STOP 1");
                 DoTryStopHornSound();
             } else if (m_HornTonSound) {
                 m_HornTonSound->m_fVolume = m_fHornVolume; // Just modify speed
@@ -1629,6 +1631,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenO
             m_SirenSound = PlaySound(bIsWhoopieModel ? 40 : SLOT_HORNS_AND_SIRENS, bIsWhoopieModel ? 3 : 10, GetDefaultVolume(AE_SIREN), 1.0f, 3.0f, 0.25f);
         }
     } else if (m_bSirenOrAlarmPlaying && !m_bHornPlaying && m_SirenSound) {
+        DEV_LOG("STOP 2");
         m_SirenSound->StopSoundAndForget();
         m_SirenSound = nullptr;
     }
@@ -1639,6 +1642,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenO
         }
     } else if (m_bHornPlaying) {
         if (m_PoliceSirenSound) {
+            DEV_LOG("STOP 3");
             m_PoliceSirenSound->StopSoundAndForget();
             m_PoliceSirenSound = nullptr;
         }
