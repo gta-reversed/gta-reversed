@@ -21,7 +21,7 @@ CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     mi->m_nAlpha  = 255u;
 
     auto* object = CObject::Create(model, false);
-    object->m_nObjectType = (S.m_bIsExternal || S.m_nExternalType != -1) ? OBJECT_MISSION2 : OBJECT_MISSION;
+    object->m_nObjectType = (S.m_IsExternal || S.m_ExternalType != -1) ? OBJECT_MISSION2 : OBJECT_MISSION;
     CWorld::PutToGroundIfTooLow(posn);
     posn.z += object->GetDistanceFromCentreOfMassToBaseOfModel();
     object->SetPosn(posn);
@@ -49,7 +49,7 @@ void RemoveObject(CRunningScript& S, CObject* object) {
     }
 
     if (S.m_UsesMissionCleanup) {
-        CTheScripts::MissionCleanUp.RemoveEntityFromList((int32)object, MISSION_CLEANUP_ENTITY_TYPE_OBJECT);
+        CTheScripts::MissionCleanUp.RemoveEntityFromList(std::bit_cast<int32>(object), MISSION_CLEANUP_ENTITY_TYPE_OBJECT);
     }
 }
 

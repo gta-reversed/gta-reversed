@@ -353,7 +353,7 @@ public:
     static notsa::script::CommandHandlerFunction& CustomCommandHandlerOf(eScriptCommands command); // Returning a ref here for convenience (instead of having to make a `Set` function too)
 
 private:
-    void ResetIPStack();
+    void ResetIP();
 };
 
 VALIDATE_SIZE(CRunningScript, 0xE0);
