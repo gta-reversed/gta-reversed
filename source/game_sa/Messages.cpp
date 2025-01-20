@@ -501,14 +501,13 @@ void CMessages::InsertPlayerControlKeysInString(GxtChar* string) {
         SkipTo((const GxtChar*)pNeedle);
 
         // Get action name....
-        char aname[256];
-        ControlsManager.GetDefinedKeyByGxtName(actionId, aname, (uint16)std::size(aname));
+        const auto aname = ControlsManager.GetDefinedKeyByGxtName(actionId);
 
         // ...and insert it into the string.
         // This is kinda shit for now, as we  don't know the 
         // size of the output (dst) buffer so we might as
         // well just be writing over the stack :)
-        pDst = std::copy(aname, aname + strlen(aname), pDst);
+        pDst = std::copy(aname, aname + strlen(AsciiFromGxtChar(aname)), pDst);
 
         // We don't use SkipTo here, as we don't want to copy anything
         pHS  = GxtCharFromAscii(pNameEnd) + 1; // Go past the `~` that's after the control name

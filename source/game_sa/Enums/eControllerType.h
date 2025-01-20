@@ -5,4 +5,5 @@ enum eControllerType {
     CONTROLLER_KEYBOARD2,
     CONTROLLER_MOUSE,
     CONTROLLER_PAD,
+    CONTROLLER_NUM
 };
