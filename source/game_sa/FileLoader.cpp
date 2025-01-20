@@ -77,7 +77,7 @@ void CFileLoader::InjectHooks() {
     RH_ScopedInstall(LoadScene, 0x5B8700);
     RH_ScopedInstall(LoadObjectTypes, 0x5B8400);
 
-    RH_ScopedGlobalInstall(LinkLods, 0x5B51E0, { .reversed = false });
+    RH_ScopedGlobalInstall(LinkLods, 0x5B51E0); 
 }
 
 // copy textures from dictionary to baseDictionary
@@ -1970,8 +1970,94 @@ void CFileLoader::LoadZone(const char* line) {
 }
 
 // 0x5B51E0
-void LinkLods(int32 a1) {
-    plugin::Call<0x5B51E0, int32>(a1);
+void LinkLods(int a1)
+{
+    uint32 totalInstances = gCurrIplInstancesCount;
+    uint32 currentInstance = 0;
+    uint32 i;
+
+    // First pass: Link LODs
+    for (i = 0; i < totalInstances; ++i)
+    {
+        CEntity* currentEntity = gCurrIplInstances[i];
+        auto lodPointer = currentEntity->m_pLod;
+        if (lodPointer == -1)
+        {
+            currentEntity->m_pLod = 0;
+        }
+        else
+        {
+            CEntity* lodEntity = gCurrIplInstances[lodPointer];
+            currentEntity->m_pLod = lodEntity;
+            ++lodEntity->m_nNumLodChildren;
+        }
+    }
+
+    if (totalInstances + a1)
+    {
+        while (CColAccel::isCacheLoading())
+        {
+            if (currentInstance < gCurrIplInstancesCount)
+            {
+                CEntity* entity = gCurrIplInstances[currentInstance];
+                if (entity->m_nNumLodChildren ||
+                    TheCamera.m_fLODDistMultiplier * CModelInfo::GetModelInfo(entity->m_nModelIndex)->m_fDrawDistance > 300.0)
+                {
+                    gCurrIplInstances[currentInstance]->SetupBigBuilding();
+                }
+                
+                CEntity* lodEntity = entity->m_pLod;
+                if (lodEntity)
+                {
+                    CVehicleModelInfo* lodModelInfo = (CVehicleModelInfo*)CModelInfo::GetModelInfo(lodEntity->m_nModelIndex);
+                    int8_t lodChildrenCount = lodEntity->m_nNumLodChildren;
+                    CVehicleModelInfo* mainModelInfo = (CVehicleModelInfo*)CModelInfo::GetModelInfo(entity->m_nModelIndex);
+                    
+                    if (lodChildrenCount == 1)
+                    {
+                        entity->m_bUnderwater |= lodEntity->m_bUnderwater;
+
+                        CColModel* mainColModel = mainModelInfo->m_pColModel;
+                        if (lodModelInfo->m_pColModel != mainColModel)
+                        {
+                            if (mainColModel)
+                            {
+                                lodModelInfo->DeleteCollisionModel();
+                                lodModelInfo->SetColModel(mainColModel, 0);
+                            }
+                        }
+                    }
+                    else if (mainModelInfo->bDoWeOwnTheColModel != 0)
+                    {
+                        mainModelInfo->m_fDrawDistance = 400.0;
+                    }
+                    else
+                    {
+                        lodEntity->m_nNumLodChildren = (int)lodChildrenCount - 1;
+                        entity->m_pLod = 0;
+                    }
+                }
+
+                ++currentInstance;
+            }
+            else if (currentInstance >= gCurrIplInstancesCount)
+            {
+                CColAccel::addIPLEntity(gCurrIplInstances.data(), gCurrIplInstancesCount, currentInstance);
+                ++currentInstance;
+            }
+
+            if (currentInstance >= (unsigned int)(a1 + gCurrIplInstancesCount))
+            {
+                break; // Exit the while loop if we've processed all instances
+            }
+        }
+    }
+
+    CColAccel::cacheIPLSection(gCurrIplInstances.data(), gCurrIplInstancesCount);
+    for (uint32 j = 0; j < gCurrIplInstancesCount; ++j)
+    {
+        CWorld::Add(gCurrIplInstances[j]);
+    }
 }
 
 // 0x5B8700
