@@ -123,7 +123,15 @@ enum eRotationAxis : int32 {
 };
 
 typedef int32 eOrdnanceType;
-typedef int32 eBikeWheelSpecial;
+
+enum eBikeWheelSpecial {
+    BIKE_WHEEL_F_STD       = 0, // both wheels on ground
+    BIKE_WHEEL_R_STD       = 1, // rear wheel on ground
+    BIKE_WHEEL_F_SLIP      = 2, // only front wheel on ground
+    BIKE_WHEEL_R_SLIP      = 3, // can't happen
+    BIKE_WHEEL_R_HBRAKE    = 4,
+    BIKE_WHEEL_R_SLIPBRAKE = 5,
+};
 
 enum eFlightModel : int32 {
     FLIGHT_MODEL_UNK = 0,
@@ -136,11 +144,21 @@ enum eFlightModel : int32 {
 };
 
 enum tWheelState : int32 {
-    WHEEL_STATE_NORMAL,   // standing still or rolling normally
-    WHEEL_STATE_SPINNING, // rotating but not moving
-    WHEEL_STATE_SKIDDING,
-    WHEEL_STATE_FIXED,    // not rotating
+    WHEEL_STATE_NORMAL = 0,   // standing still or rolling normally
+    WHEEL_STATE_SPINNING = 1, // rotating but not moving
+    WHEEL_STATE_SKIDDING = 2,
+    WHEEL_STATE_FIXED = 3,    // not rotating
 };
+
+enum eEngineStatus
+{
+	ENGINE_STATUS_STEAM1 = 100,
+	ENGINE_STATUS_STEAM2 = 150,
+	ENGINE_STATUS_SMOKE = 200,
+	ENGINE_STATUS_ON_FIRE = 225,
+};
+
+constexpr float DAMAGE_HEALTH_TO_CATCH_FIRE = 250.0f;
 
 enum class eVehicleCollisionComponent : uint16
 {
@@ -608,8 +626,24 @@ public:
     void SetupRender();
     void ProcessWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
                       float adhesion, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, uint16 wheelStatus);
-    void ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
-                          float adhesion, float destabTraction, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, eBikeWheelSpecial special, uint16 wheelStatus);
+    // void ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
+    //                       float adhesion, float destabTraction, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, eBikeWheelSpecial special, uint16 wheelStatus);
+    void ProcessBikeWheel(
+        CVector*          vecForward,
+        CVector*          vecRight,
+        CVector*          vecSpeed,
+        CVector*          vecOffset,
+        int32             nNoOfContactWheels,
+        float             fDriveAcceleration,
+        float             fDriveDeceleration,
+        float             fAdhesiveLimit,
+        float             fSideAdhesiveMult,
+        int8              WheelNum,
+        float*            pWheelPitchIncrement,
+        tWheelState*      pWheelState,
+        eBikeWheelSpecial WheelSp,
+        uint16            nWheelDamage
+    );
     eCarWheel FindTyreNearestPoint(CVector2D point);
     void InflictDamage(CEntity* damager, eWeaponType weapon, float intensity, CVector coords);
     void KillPedsGettingInVehicle();
