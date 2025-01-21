@@ -15,7 +15,7 @@ public:
     static void InjectHooks();
 
     CTaskSimpleCarFallOut(CVehicle* target, eTargetDoor door, CTaskUtilityLineUpPedWithCar* lineUpUtility);
-    ~CTaskSimpleCarFallOut() override = default;
+    ~CTaskSimpleCarFallOut() override;
 
     auto ComputeAnimID();
     void StartAnim(const CPed* pPed);

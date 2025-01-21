@@ -8,6 +8,15 @@ CTaskSimpleCarFallOut::CTaskSimpleCarFallOut(CVehicle* target, eTargetDoor door,
     m_LineUpUtility{ lineUpUtility }
 { }
 
+// 0x648DE0
+CTaskSimpleCarFallOut::~CTaskSimpleCarFallOut() {
+    if (notsa::IsFixBugs()) {
+        if (const auto a = std::exchange(m_Anim, nullptr)) {
+            a->SetDefaultFinishCallback();
+        }
+    }
+}
+
 // 0x648EE0
 void CTaskSimpleCarFallOut::FinishAnimFallOutCB(CAnimBlendAssociation* anim, void* data) {
     const auto self = CTask::Cast<CTaskSimpleCarFallOut>(static_cast<CTask*>(data));
