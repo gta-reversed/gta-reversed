@@ -277,6 +277,7 @@
 #include "TaskComplexEnterCarAsPassenger.h"
 #include "TaskComplexEnterCarAsDriver.h"
 #include "TaskSimpleCarShuffle.h"
+#include "TaskSimpleCarSlowBeDraggedOut.h"
 #include "TaskComplexReactToGunAimedAt.h"
 #include "TaskSimpleNone.h"
 #include "TaskComplexKillPedOnFoot.h"
@@ -1022,7 +1023,7 @@ void InjectHooksMain() {
         CTaskSimpleCarSetPedSlowDraggedOut::InjectHooks();
         CTaskSimpleCarSetTempAction::InjectHooks();
         CTaskSimpleCarShuffle::InjectHooks();
-        // CTaskSimpleCarSlowBeDraggedOut::InjectHooks();
+        CTaskSimpleCarSlowBeDraggedOut::InjectHooks();
         CTaskSimpleCarWaitToSlowDown::InjectHooks();
         CTaskSimpleCarWaitForDoorNotToBeInUse::InjectHooks();
         // CTaskSimpleChat::InjectHooks();
