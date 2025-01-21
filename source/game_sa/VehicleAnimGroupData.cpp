@@ -33,6 +33,8 @@ void CVehicleAnimGroup::InitAnimGroup(
     sVehAnimGroupGeneralTiming* generalTiming,
     sVehAnimGroupInOutTiming* startTiming, sVehAnimGroupInOutTiming* endTiming
 ) {
+    assert(firstGroup >= ANIM_GROUP_CARS_BEGIN && firstGroup < ANIM_GROUP_CARS_END);
+    assert(secondGroup >= ANIM_GROUP_CARS_BEGIN && secondGroup < ANIM_GROUP_CARS_END);
     m_ucFirstGroup = firstGroup;
     m_ucSecondGroup = secondGroup;
     m_animFlags.intValue = animFlags;
@@ -189,9 +191,7 @@ CVector CVehicleAnimGroup::ComputeAnimDoorOffsets(eVehAnimDoorOffset doorId) {
         case EXIT_REAR:        return ANIM_ID_CAR_GETOUT_LHS_1;
         case JACK_PED_LEFT:    return ANIM_ID_CAR_JACKEDLHS;
         case JACK_PED_RIGHT:   return ANIM_ID_CAR_JACKEDRHS;
-        default:
-            assert(false); // Shouldn't enter default case ever
-            return static_cast<AnimationId>(doorId);
+        default:               NOTSA_UNREACHABLE();
         }
     }();
 
@@ -252,7 +252,6 @@ int32 CVehicleAnimGroup::InitFromData(const char* line) {
 
         &animSpecialFlags
     );
-
     // Check for fail
     if (n != 35) {
         return n;
