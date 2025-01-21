@@ -1645,7 +1645,7 @@ bool CVehicle::IsPedOfModelInside(eModelID model) const {
 }
 
 bool CVehicle::IsDriver(CPed* ped) const {
-    return ped ? ped == m_pDriver : false;
+    return ped && ped == m_pDriver;
 }
 
 bool CVehicle::IsDriver(int32 modelIndex) const {

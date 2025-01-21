@@ -35,6 +35,7 @@ void CVehicleAnimGroup::InitAnimGroup(
 ) {
     assert(firstGroup >= ANIM_GROUP_CARS_BEGIN && firstGroup < ANIM_GROUP_CARS_END);
     assert(secondGroup >= ANIM_GROUP_CARS_BEGIN && secondGroup < ANIM_GROUP_CARS_END);
+
     m_ucFirstGroup = firstGroup;
     m_ucSecondGroup = secondGroup;
     m_animFlags.intValue = animFlags;
