@@ -122,7 +122,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(AddShakeSimple, 0x50D240);
     RH_ScopedInstall(InitialiseScriptableComponents, 0x50D2D0);
     RH_ScopedInstall(DrawBordersForWideScreen, 0x514860);
-    RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970, { .reversed = false });
+    RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970);
     RH_ScopedInstall(CalculateGroundHeight, 0x514B80);
     RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60, { .reversed = false });
     RH_ScopedInstall(CalculateDerivedValues, 0x5150E0, { .reversed = false });
@@ -1524,8 +1524,44 @@ void CCamera::FinishCutscene() {
 }
 
 // 0x514970
-void CCamera::Find3rdPersonCamTargetVector(float range, CVector vecGunMuzzle, CVector& outSource, CVector& outTarget) {
-    plugin::CallMethod<0x514970, CCamera*, float, CVector, CVector*, CVector*>(this, range, vecGunMuzzle, &outSource, &outTarget);
+void CCamera::Find3rdPersonCamTargetVector(float range, CVector vecGunMuzzle, CVector& outSource, CVector& outTarget)
+{
+    auto pActiveCam = &m_aCams[m_nActiveCam];
+    
+    float fTanHalfFov = tanf((pActiveCam->m_fFOV * 0.5f) * PI / 180.0f);
+    float fAspectRatio = CDraw::ms_fAspectRatio;
+    
+    outSource = pActiveCam->m_vecSource;
+    outTarget = m_aCams[m_nActiveCam].m_vecFront;
+    
+    if (pActiveCam->m_nMode == eCamMode::MODE_TWOPLAYER_IN_CAR_AND_SHOOTING) {
+        pActiveCam->Get_TwoPlayer_AimVector(outTarget);
+    } else {
+        // Vertical offset
+        float fVertOffset = fTanHalfFov * ((0.5f - m_f3rdPersonCHairMultY) * 2.0f) / fAspectRatio;
+        outTarget += pActiveCam->m_vecUp * fVertOffset;
+        
+        // Horizontal offset
+        float fHorzOffset = fTanHalfFov * ((m_f3rdPersonCHairMultX - 0.5f) * 2.0f);
+        CVector right = pActiveCam->m_vecFront.Cross(pActiveCam->m_vecUp);
+        outTarget += right * fHorzOffset;
+        
+        // Normalize target vector
+        if (outTarget.Magnitude() <= 0.0f) {
+            outTarget = CVector(1.0f, 0.0f, 0.0f);
+        }
+        else {
+            outTarget.Normalise();
+        }
+    }
+    
+    // Calculate intersection point with muzzle
+    CVector toMuzzle = vecGunMuzzle - outSource;
+    float fDot = toMuzzle.Dot(outTarget);
+    outSource += outTarget * fDot;
+    
+    // Apply final range to target 
+    outTarget = outSource + outTarget * range;
 }
 
 // 0x514B80
