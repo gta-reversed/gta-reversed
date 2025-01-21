@@ -1046,20 +1046,12 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
 
     newEntity->SetPosn(objInstance->m_vecPosition);
 
-    if (objInstance->m_bUnderwater)
-        newEntity->m_bUnderwater = true;
-
-    if (objInstance->m_bTunnel)
-        newEntity->m_bTunnel = true;
-
-    if (objInstance->m_bTunnelTransition)
-        newEntity->m_bTunnelTransition = true;
-
-    if (objInstance->m_bRedundantStream)
-        newEntity->m_bUnimportantStream = true;
-
-    newEntity->m_nAreaCode = static_cast<eAreaCodes>(objInstance->m_nAreaCode);
-    newEntity->m_nLodIndex = objInstance->m_nLodInstanceIndex;
+    newEntity->m_bUnderwater        |= objInstance->m_bUnderwater;
+    newEntity->m_bTunnel            |= objInstance->m_bTunnel;
+    newEntity->m_bTunnelTransition  |= objInstance->m_bTunnelTransition;
+    newEntity->m_bUnimportantStream |= objInstance->m_bRedundantStream;
+    newEntity->m_nAreaCode           = static_cast<eAreaCodes>(objInstance->m_nAreaCode);
+    newEntity->m_nLodIndex           = objInstance->m_nLodInstanceIndex;
 
     if (objInstance->m_nModelId == ModelIndices::MI_TRAINCROSSING)
     {
@@ -1970,93 +1962,60 @@ void CFileLoader::LoadZone(const char* line) {
 }
 
 // 0x5B51E0
-void LinkLods(int a1)
-{
-    uint32 totalInstances = gCurrIplInstancesCount;
-    uint32 currentInstance = 0;
-    uint32 i;
-
-    // First pass: Link LODs
-    for (i = 0; i < totalInstances; ++i)
-    {
-        CEntity* currentEntity = gCurrIplInstances[i];
-        auto lodPointer = currentEntity->m_pLod;
-        if (lodPointer == -1)
-        {
-            currentEntity->m_pLod = 0;
+void LinkLods(int32 numRelatedIPLs) {
+    // Link LODs
+    for (auto& building : GetLoadedBuildings()) {
+        const auto idx = building->m_nLodIndex;
+        const auto lod = idx != -1
+            ? GetLoadedBuildings()[idx]
+            : nullptr;
+        if (idx != -1) {
+            lod->m_nNumLodChildren++;
         }
-        else
-        {
-            CEntity* lodEntity = gCurrIplInstances[lodPointer];
-            currentEntity->m_pLod = lodEntity;
-            ++lodEntity->m_nNumLodChildren;
-        }
+        building->m_pLod = lod;
     }
 
-    if (totalInstances + a1)
-    {
-        while (CColAccel::isCacheLoading())
-        {
-            if (currentInstance < gCurrIplInstancesCount)
-            {
-                CEntity* entity = gCurrIplInstances[currentInstance];
-                if (entity->m_nNumLodChildren ||
-                    TheCamera.m_fLODDistMultiplier * CModelInfo::GetModelInfo(entity->m_nModelIndex)->m_fDrawDistance > 300.0)
-                {
-                    gCurrIplInstances[currentInstance]->SetupBigBuilding();
-                }
-                
-                CEntity* lodEntity = entity->m_pLod;
-                if (lodEntity)
-                {
-                    CVehicleModelInfo* lodModelInfo = (CVehicleModelInfo*)CModelInfo::GetModelInfo(lodEntity->m_nModelIndex);
-                    int8_t lodChildrenCount = lodEntity->m_nNumLodChildren;
-                    CVehicleModelInfo* mainModelInfo = (CVehicleModelInfo*)CModelInfo::GetModelInfo(entity->m_nModelIndex);
-                    
-                    if (lodChildrenCount == 1)
-                    {
-                        entity->m_bUnderwater |= lodEntity->m_bUnderwater;
-
-                        CColModel* mainColModel = mainModelInfo->m_pColModel;
-                        if (lodModelInfo->m_pColModel != mainColModel)
-                        {
-                            if (mainColModel)
-                            {
-                                lodModelInfo->DeleteCollisionModel();
-                                lodModelInfo->SetColModel(mainColModel, 0);
-                            }
-                        }
-                    }
-                    else if (mainModelInfo->bDoWeOwnTheColModel != 0)
-                    {
-                        mainModelInfo->m_fDrawDistance = 400.0;
-                    }
-                    else
-                    {
-                        lodEntity->m_nNumLodChildren = (int)lodChildrenCount - 1;
-                        entity->m_pLod = 0;
+    // Load LODs
+    const auto totalN = gNumLoadedBuildings + numRelatedIPLs;
+    for (uint32 i{}; i < totalN; i++) {
+        const auto isIPL = i >= gNumLoadedBuildings;
+        VERIFY(!isIPL || gNumLoadedBuildings <= i && i < totalN);
+        if (!isIPL && CColAccel::isCacheLoading()) { // I'm very much unsure how this works, because `CColAccel` works on the same thread, so if its ever in loading state... it wont ever change...
+            continue;
+        }
+        if (isIPL) {
+            CColAccel::addIPLEntity(gpLoadedBuildings.data(), gNumLoadedBuildings, i);
+        }
+        const auto building = gpLoadedBuildings[i];
+        if (building->m_nNumLodChildren || TheCamera.m_fLODDistMultiplier * building->GetModelInfo()->m_fDrawDistance > 300.f) { // 0x5B5285
+            building->SetupBigBuilding();
+        }
+        if (const auto lod = building->m_pLod) { // 0x5B5293
+            const auto mi = building->GetModelInfo(),
+                lodMI = lod->GetModelInfo();
+            if (lod->m_nNumLodChildren == 1) {
+                lod->m_bUnderwater |= building->m_bUnderwater;
+                if (const auto cm = mi->GetColModel()) {
+                    if (cm != lodMI->GetColModel()) {
+                        lodMI->DeleteCollisionModel();
+                        lodMI->SetColModel(cm);
                     }
                 }
-
-                ++currentInstance;
-            }
-            else if (currentInstance >= gCurrIplInstancesCount)
-            {
-                CColAccel::addIPLEntity(gCurrIplInstances.data(), gCurrIplInstancesCount, currentInstance);
-                ++currentInstance;
-            }
-
-            if (currentInstance >= (unsigned int)(a1 + gCurrIplInstancesCount))
-            {
-                break; // Exit the while loop if we've processed all instances
+            } else if (mi->bDoWeOwnTheColModel) {
+                mi->m_fDrawDistance = 400.f;
+            } else {
+                lod->m_nNumLodChildren--;
+                building->m_pLod = nullptr;
             }
         }
     }
 
-    CColAccel::cacheIPLSection(gCurrIplInstances.data(), gCurrIplInstancesCount);
-    for (uint32 j = 0; j < gCurrIplInstancesCount; ++j)
-    {
-        CWorld::Add(gCurrIplInstances[j]);
+    // 0x5B5321
+    CColAccel::cacheIPLSection(gpLoadedBuildings.data(), gNumLoadedBuildings);
+
+    // 0x5B5358
+    for (auto& ipl : GetLoadedBuildings()) {
+        CWorld::Add(ipl);
     }
 }
 
@@ -2064,7 +2023,7 @@ void LinkLods(int a1)
 void CFileLoader::LoadScene(const char* filename) {
     ZoneScoped;
 
-    gCurrIplInstancesCount = 0;
+    gNumLoadedBuildings = 0;
 
     enum class SectionID {
         NONE = 0, // NOTSA - Placeholder value
@@ -2109,7 +2068,7 @@ void CFileLoader::LoadScene(const char* filename) {
 
             switch (sectionId) {
             case SectionID::INST: {
-                gCurrIplInstances[gCurrIplInstancesCount++] = LoadObjectInstance(line);
+                gpLoadedBuildings[gNumLoadedBuildings++] = LoadObjectInstance(line);
                 break;
             }
             case SectionID::ZONE:
@@ -2205,11 +2164,14 @@ void CFileLoader::LoadScene(const char* filename) {
 
     // This really seems like should be in CIplStore...
     auto newIPLIndex{ -1 };
-    if (gCurrIplInstancesCount > 0) {
-        newIPLIndex = CIplStore::GetNewIplEntityIndexArray(gCurrIplInstancesCount);
-        rng::copy(gCurrIplInstances | std::views::take(gCurrIplInstancesCount), CIplStore::GetIplEntityIndexArray(newIPLIndex));
+    if (gNumLoadedBuildings > 0) {
+        newIPLIndex = CIplStore::GetNewIplEntityIndexArray(gNumLoadedBuildings);
+        rng::copy(
+            gpLoadedBuildings | std::views::take(gNumLoadedBuildings),
+            CIplStore::GetIplEntityIndexArray(newIPLIndex)
+        );
     }
-    LinkLods(CIplStore::SetupRelatedIpls(filename, newIPLIndex, &gCurrIplInstances[gCurrIplInstancesCount]));
+    LinkLods(CIplStore::SetupRelatedIpls(filename, newIPLIndex, &gpLoadedBuildings[gNumLoadedBuildings]));
     CIplStore::RemoveRelatedIpls(newIPLIndex); // I mean this totally makes sense, doesn't it?
 }
 
