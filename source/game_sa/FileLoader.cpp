@@ -1975,22 +1975,35 @@ void LinkLods(int32 numRelatedIPLs) {
         building->m_pLod = lod;
     }
 
-    // Load LODs
+    // Load related IPLs (?)
+    // I'm unsure how this exactly works, but in theory:
+    // `SetupRelatedIPLs` returns how many IPLs were loaded, and that's what `numRelatedIPLs` is
+    // Thus, everything above `gNumLoadedBuildings` is such an IPL instance
+    // Here we process all buildings (and their related IPLs) + the (related) IPLs we've just loaded in `SetupRelatedIPLs`
     const auto totalN = gNumLoadedBuildings + numRelatedIPLs;
     for (uint32 i{}; i < totalN; i++) {
         const auto isIPL = i >= gNumLoadedBuildings;
         VERIFY(!isIPL || gNumLoadedBuildings <= i && i < totalN);
-        if (!isIPL && CColAccel::isCacheLoading()) { // I'm very much unsure how this works, because `CColAccel` works on the same thread, so if its ever in loading state... it wont ever change...
+        const auto building = gpLoadedBuildings[i];
+
+        // I'm very much unsure how this works, because `CColAccel`
+        // works on the same thread, so if its ever in loading state... it wont ever change...
+        if (!isIPL && CColAccel::isCacheLoading()) {
             continue;
         }
+
+        // Newly loaded IPLs have to be created
         if (isIPL) {
             CColAccel::addIPLEntity(gpLoadedBuildings.data(), gNumLoadedBuildings, i);
         }
-        const auto building = gpLoadedBuildings[i];
-        if (building->m_nNumLodChildren || TheCamera.m_fLODDistMultiplier * building->GetModelInfo()->m_fDrawDistance > 300.f) { // 0x5B5285
+
+        // 0x5B5285
+        if (building->m_nNumLodChildren || TheCamera.m_fLODDistMultiplier * building->GetModelInfo()->m_fDrawDistance > 300.f) {
             building->SetupBigBuilding();
         }
-        if (const auto lod = building->m_pLod) { // 0x5B5293
+
+        // 0x5B5293 - Now handle the collision model for the building/lod
+        if (const auto lod = building->m_pLod) {
             const auto mi = building->GetModelInfo(),
                 lodMI = lod->GetModelInfo();
             if (lod->m_nNumLodChildren == 1) {
