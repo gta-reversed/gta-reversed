@@ -163,11 +163,11 @@ void CCam::GetVectorsReadyForRW() {
     assert(0);
 }
 
-// 0x513E40 - NT
+// 0x513E40
 void CCam::Get_TwoPlayer_AimVector(CVector& out)
 {
     plugin::Call<0x513E40>(&out);
-    /*
+    /* not tested
     // Determine which player to use based on driving status
     CPlayerPed *player = FindPlayerPed(PED_TYPE_PLAYER1);
     if (player && player->m_pVehicle && !player->m_pVehicle->IsDriver(player))
