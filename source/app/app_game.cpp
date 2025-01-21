@@ -355,7 +355,7 @@ void Idle(void* param) {
         CVisibilityPlugins::RenderWeaponPedsForPC();
         CVisibilityPlugins::ms_weaponPedsForPC.Clear();
         RenderEffects();
-        if (TheCamera.m_nBlurType == MOTION_BLUR_NONE || TheCamera.m_nBlurType == MOTION_BLUR_LIGHT_SCENE) {
+        if (TheCamera.m_nBlurType == eMotionBlurType::NONE || TheCamera.m_nBlurType == eMotionBlurType::LIGHT_SCENE) {
             if (TheCamera.m_fScreenReductionPercentage > 0.0f) {
                 TheCamera.SetMotionBlurAlpha(150);
             }

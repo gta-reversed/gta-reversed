@@ -2,7 +2,7 @@
 
 #include "eModelID.h"
 
-typedef uint16 ModelIndex;
+using ModelIndex = notsa::WEnumU16<eModelID>;
 
 namespace ModelIndices {
     extern ModelIndex& MI_TRAFFICLIGHTS;
