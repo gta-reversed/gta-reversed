@@ -1524,44 +1524,38 @@ void CCamera::FinishCutscene() {
 }
 
 // 0x514970
-void CCamera::Find3rdPersonCamTargetVector(float range, CVector vecGunMuzzle, CVector& outSource, CVector& outTarget)
-{
-    auto pActiveCam = &m_aCams[m_nActiveCam];
+void CCamera::Find3rdPersonCamTargetVector(float range, CVector gunMuzzle, CVector& outSource, CVector& outTarget) {
+    const auto pActiveCam = &m_aCams[m_nActiveCam];
+    const float tanHalfFOV = std::tan(DegreesToRadians(pActiveCam->m_fFOV * 0.5f));
+    const float aspectRatio = CDraw::ms_fAspectRatio;
     
-    float fTanHalfFov = tanf((pActiveCam->m_fFOV * 0.5f) * PI / 180.0f);
-    float fAspectRatio = CDraw::ms_fAspectRatio;
-    
-    outSource = pActiveCam->m_vecSource;
-    outTarget = m_aCams[m_nActiveCam].m_vecFront;
+    // Calculate aim target direction (This will be a unit vector)
+    CVector dir = m_aCams[m_nActiveCam].m_vecFront;
     
     if (pActiveCam->m_nMode == eCamMode::MODE_TWOPLAYER_IN_CAR_AND_SHOOTING) {
-        pActiveCam->Get_TwoPlayer_AimVector(outTarget);
+        pActiveCam->Get_TwoPlayer_AimVector(dir);
     } else {
         // Vertical offset
-        float fVertOffset = fTanHalfFov * ((0.5f - m_f3rdPersonCHairMultY) * 2.0f) / fAspectRatio;
-        outTarget += pActiveCam->m_vecUp * fVertOffset;
-        
+        dir += pActiveCam->m_vecUp * (tanHalfFOV * ((0.5f - m_f3rdPersonCHairMultY) * 2.0f) / aspectRatio);
+
         // Horizontal offset
-        float fHorzOffset = fTanHalfFov * ((m_f3rdPersonCHairMultX - 0.5f) * 2.0f);
-        CVector right = pActiveCam->m_vecFront.Cross(pActiveCam->m_vecUp);
-        outTarget += right * fHorzOffset;
+        const auto right = pActiveCam->m_vecFront.Cross(pActiveCam->m_vecUp);
+        dir += right * (tanHalfFOV * ((m_f3rdPersonCHairMultX - 0.5f) * 2.0f));
         
-        // Normalize target vector
-        if (outTarget.Magnitude() <= 0.0f) {
-            outTarget = CVector(1.0f, 0.0f, 0.0f);
-        }
-        else {
-            outTarget.Normalise();
+        // Handle zero magnitude case
+        if (dir.Magnitude() <= 0.0f) {
+            dir = CVector(1.0f, 0.0f, 0.0f);
+        } else {
+            dir.Normalise();
         }
     }
     
     // Calculate intersection point with muzzle
-    CVector toMuzzle = vecGunMuzzle - outSource;
-    float fDot = toMuzzle.Dot(outTarget);
-    outSource += outTarget * fDot;
-    
+    outSource = pActiveCam->m_vecSource;
+    outSource += (gunMuzzle - outSource).ProjectOnToNormal(dir);
+
     // Apply final range to target 
-    outTarget = outSource + outTarget * range;
+    outTarget = outSource + dir * range;
 }
 
 // 0x514B80
