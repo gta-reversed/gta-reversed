@@ -24,12 +24,6 @@ void CTaskSimpleCarSlowBeDraggedOut::FinishAnimCarSlowBeDraggedOutCB(CAnimBlendA
     self->m_Anim            = nullptr;
 }
 
-// notsa
-void CTaskSimpleCarSlowBeDraggedOut::DoOpenCarDoor(CPed* ped) {
-    const auto [animGrp, animId] = ComputeAnimID();
-    m_Vehicle->ProcessOpenDoor(ped, m_Door, animGrp, animId, 1.f);
-}
-
 // 0x648330
 auto CTaskSimpleCarSlowBeDraggedOut::ComputeAnimID() {
     const auto animId = [&] {
@@ -42,6 +36,12 @@ auto CTaskSimpleCarSlowBeDraggedOut::ComputeAnimID() {
         }
     }();
     return std::make_tuple(m_Vehicle->GetAnimGroup().GetGroup(animId), animId);
+}
+
+// notsa
+void CTaskSimpleCarSlowBeDraggedOut::DoOpenCarDoor(CPed* ped) {
+    const auto [animGrp, animId] = ComputeAnimID();
+    m_Vehicle->ProcessOpenDoor(ped, m_Door, animGrp, animId, 1.f);
 }
 
 // 0x64C190

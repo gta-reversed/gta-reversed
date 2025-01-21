@@ -9,7 +9,7 @@
 #include "TaskComplexStealCar.h"
 #include "TaskComplexFleeAnyMeans.h"
 #include "TaskComplexDriveWander.h"
-#include "TaskSimpleCarSetPedSlowDraggedOut.h"
+#include "TaskComplexCarSlowBeDraggedOut.h"
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx9.h>
@@ -201,7 +201,7 @@ void UIRenderer::DebugCode() {
     if (pad->IsStandardKeyJustPressed('T')) {
         if (const auto veh = player->GetVehicleIfInOne()) {
             player->GetTaskManager().SetTask(
-                new CTaskSimpleCarSetPedSlowDraggedOut{veh, TARGET_DOOR_DRIVER},
+                new CTaskComplexCarSlowBeDraggedOut{ veh, TARGET_DOOR_DRIVER, true },
                 TASK_PRIMARY_PRIMARY
             );
         } else {

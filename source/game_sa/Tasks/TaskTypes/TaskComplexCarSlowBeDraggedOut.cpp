@@ -33,7 +33,7 @@ CTaskComplexCarSlowBeDraggedOut::CTaskComplexCarSlowBeDraggedOut(CVehicle* vehic
 { }
 
 // 0x648520
-CTaskUtilityLineUpPedWithCar* CTaskComplexCarSlowBeDraggedOut::CreateTaskUtilityLineUpPedWithCar(CPed* ped) {
+void CTaskComplexCarSlowBeDraggedOut::CreateTaskUtilityLineUpPedWithCar(CPed* ped) {
     UNUSED(ped);
 
     m_LineUpUtility = std::make_unique<CTaskUtilityLineUpPedWithCar>(CVector{}, 0, 0, m_Door);
@@ -78,10 +78,10 @@ CTask* CTaskComplexCarSlowBeDraggedOut::CreateNextSubTask(CPed* ped) {
     }
     return CreateSubTask([this, ped] {
         switch (m_pSubTask->GetTaskType()) {
-        case TASK_SIMPLE_CAR_SET_PED_OUT:
-        case TASK_SIMPLE_CAR_SET_PED_SLOW_DRAGGED_OUT: return TASK_FINISHED;
-        case TASK_SIMPLE_CAR_SLOW_BE_DRAGGED_OUT:      return TASK_SIMPLE_CAR_SET_PED_SLOW_DRAGGED_OUT;
         case TASK_SIMPLE_CAR_FALL_OUT:                 return TASK_SIMPLE_CAR_SET_PED_OUT;
+        case TASK_SIMPLE_CAR_SET_PED_OUT:
+        case TASK_SIMPLE_CAR_SLOW_BE_DRAGGED_OUT:      return TASK_SIMPLE_CAR_SET_PED_SLOW_DRAGGED_OUT;
+        case TASK_SIMPLE_CAR_SET_PED_SLOW_DRAGGED_OUT: return TASK_FINISHED;
         default:                                       NOTSA_UNREACHABLE();
         }
     }());

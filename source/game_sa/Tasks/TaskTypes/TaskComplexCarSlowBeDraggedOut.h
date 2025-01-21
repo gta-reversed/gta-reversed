@@ -12,7 +12,7 @@ class NOTSA_EXPORT_VTABLE CTaskComplexCarSlowBeDraggedOut : public CTaskComplex 
 public:
     static constexpr auto Type = TASK_COMPLEX_CAR_SLOW_BE_DRAGGED_OUT;
 
-    CTaskComplexCarSlowBeDraggedOut(CVehicle* vehicle, eTargetDoor door, bool a4);
+    CTaskComplexCarSlowBeDraggedOut(CVehicle* vehicle, eTargetDoor door, bool isDraggedBySelf);
     ~CTaskComplexCarSlowBeDraggedOut() override = default;
 
     CTask*    Clone() const override { return new CTaskComplexCarSlowBeDraggedOut(m_Vehicle, m_Door, m_IsDraggedBySelf); } // 0x64A120
@@ -24,7 +24,7 @@ public:
 
 private:
     CTask* CreateSubTask(eTaskType taskType);
-    CTaskUtilityLineUpPedWithCar* CreateTaskUtilityLineUpPedWithCar(CPed* ped);
+    void CreateTaskUtilityLineUpPedWithCar(CPed* ped);
 
     void PrepareVehicleForPedExit(CPed* ped);
     void PreparePedForVehicleExit(CPed* ped);
