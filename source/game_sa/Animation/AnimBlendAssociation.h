@@ -31,7 +31,7 @@ enum eAnimationFlags {
     ANIMATION_WALK                = 1 << 8,  //0x100,
     ANIMATION_200                 = 1 << 9,  //0x200,
     ANIMATION_DONT_ADD_TO_PARTIAL_BLEND        = 1 << 10, //0x400, // Possibly should be renamed to ANIMATION_IDLE, see `CPed::PlayFootSteps()`
-    ANIMATION_800                 = 1 << 11, //0x800,
+    ANIMATION_IS_FRONT    = 1 << 11, //0x800,
     ANIMATION_SECONDARY_TASK_ANIM = 1 << 12, //0x1000,
     // **
 
