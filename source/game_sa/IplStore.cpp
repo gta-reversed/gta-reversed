@@ -744,9 +744,9 @@ bool ExtractIPLNameFromPath(const char* iplFilePath, char(&out)[N]) {
 /*!
  * @addr 0x404DE0
  */
-int32 CIplStore::SetupRelatedIpls(const char* iplFilePath, int32 entityArraysIndex, CEntity** pIPLInsts) {
+int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** ppLoadedBuildingsArray) {
     char iplName[1024]{}; // OG Size: 32
-    if (!ExtractIPLNameFromPath(iplFilePath, iplName)) {
+    if (!ExtractIPLNameFromPath(filename, iplName)) {
         return 0;
     }
     const auto isIPLAnInterior = IsIPLAnInterior(iplName);
@@ -754,7 +754,7 @@ int32 CIplStore::SetupRelatedIpls(const char* iplFilePath, int32 entityArraysInd
     strcat_s(iplName, "_stream");
     const auto iplNameLen = strlen(iplName);
 
-    ppCurrIplInstance = pIPLInsts;
+    ppCurrIplInstance = ppLoadedBuildingsArray;
 
     if (CColAccel::isCacheLoading()) { // NOTSA: Inverted conditional
         for (auto&& [slot, def] : ms_pPool->GetAllValidWithIndex()) {
@@ -762,7 +762,7 @@ int32 CIplStore::SetupRelatedIpls(const char* iplFilePath, int32 entityArraysInd
                 continue;
             }
             def = CColAccel::getIplDef(slot);
-            def.staticIdx = entityArraysIndex;
+            def.staticIdx = index;
             def.isInterior = isIPLAnInterior;
             def.loaded = false;
             ms_pQuadTree->AddItem(&def, def.bb);
@@ -772,7 +772,7 @@ int32 CIplStore::SetupRelatedIpls(const char* iplFilePath, int32 entityArraysInd
             if (_strnicmp(iplName, def.name, iplNameLen)) {
                 continue;
             }
-            def.staticIdx = entityArraysIndex;
+            def.staticIdx = index;
             def.isInterior = isIPLAnInterior;
             def.disableDynamicStreaming = false; // NOTE: Inlined function was used to set this.
             CStreaming::RequestModel(IPLToModelId(slot), STREAMING_KEEP_IN_MEMORY);
@@ -780,9 +780,9 @@ int32 CIplStore::SetupRelatedIpls(const char* iplFilePath, int32 entityArraysInd
         CStreaming::LoadAllRequestedModels(false);
     }
 
-    const auto ret = ppCurrIplInstance - pIPLInsts; // NOTE: `ppCurrIplInstance` is set to `pIPLInsts` at the beginning.. And I doubt it's changed in-between. But who knows.
+    const auto numRelatedIPLs = ppCurrIplInstance - ppLoadedBuildingsArray;
     ppCurrIplInstance = nullptr;
-    return ret;
+    return numRelatedIPLs;
 }
 
 /*!
