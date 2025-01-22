@@ -249,7 +249,7 @@ auto CPedGroupMembership::FindClosestFollowerToLeader() -> FindClosestMemberResu
 }
 
 // NOTSA
-CPed* CPedGroupMembership::GetAMember() {
+CPed* CPedGroupMembership::GetFirstAvailableMember() {
     for (const auto m : m_members) {
         if (m) {
             return m;
