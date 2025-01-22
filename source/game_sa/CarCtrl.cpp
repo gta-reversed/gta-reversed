@@ -390,21 +390,13 @@ void CCarCtrl::GenerateRandomCars() {
         CountDownToCarsAtStart = 2;
         return;
     }
-
-    // check if a gang war is happening
-    if (CGangWars::DontCreateCivilians()) {
-        return;
-    }
-
-    // check if player is not in any interior
-    if (CGame::currArea != eAreaCodes::AREA_CODE_NORMAL_WORLD) {
+    if (CGangWars::DontCreateCivilians() || !CGame::CanSeeOutSideFromCurrArea()) {
         return;
     }
 
     if (CGameLogic::LaRiotsActiveHere() && TimeNextMadDriverChaseCreated > 480.0f) {
         TimeNextMadDriverChaseCreated = CGeneral::GetRandomNumberInRange(240.0f, 480.0f);
     }
-
     TimeNextMadDriverChaseCreated -= (CTimer::GetTimeStep() * 0.02f);
 
     if (NumRandomCars < 45) {
@@ -419,6 +411,9 @@ void CCarCtrl::GenerateRandomCars() {
             GenerateOneRandomCar();
         }
     }
+
+}
+
 void CCarCtrl::GetAIPlaneToAttackPlayer(CAutomobile* automobile) {
     plugin::Call<0x429780, CAutomobile*>(automobile);
 }
