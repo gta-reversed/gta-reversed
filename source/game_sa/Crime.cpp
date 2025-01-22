@@ -28,7 +28,6 @@ float CCrime::FindImmediateDetectionRange(eCrimeType CrimeType) {
 
 // 0x532010
 void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommitedby) {
-    
     if (crimeType == CRIME_NONE) { // Moved here from 0x5320FC
         return;
     }
