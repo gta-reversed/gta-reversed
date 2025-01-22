@@ -41,7 +41,6 @@ void CTaskComplexCarDriveMission::SetUpCar() {
     autopilot.m_nCarDrivingStyle    = (eCarDrivingStyle)m_CarDrivingStyle;
     autopilot.m_TargetEntity          = m_pTargetVehicle;
     autopilot.SetCarMission(m_nCarMission, 0);
-    
     CEntity::SafeRegisterRef(autopilot.m_TargetEntity);
 
     m_Veh->vehicleFlags.bEngineOn = m_Veh->vehicleFlags.bEngineBroken ? false : true;

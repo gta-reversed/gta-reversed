@@ -990,10 +990,5 @@ void CCarCtrl::WeaveThroughPedsSectorList(CPtrList& ptrList, CVehicle* vehicle, 
 
 // 0x427FE0
 float CCarCtrl::FindMaxSteerAngle(CVehicle* veh) {
-    const auto vel3D = veh->GetMoveSpeed().Magnitude();
-    //if (vel3D >= 0.7f) {
-    //    return 0.2f;
-    //}
-    //return std::min(0.9f - vel3D, 0.7f);
-    return std::clamp(0.9f - vel3D, 0.2f, 0.7f); // TODO: This correct?
+    return std::clamp(0.9f - veh->GetMoveSpeed().Magnitude(), 0.2f, 0.7f);
 }
