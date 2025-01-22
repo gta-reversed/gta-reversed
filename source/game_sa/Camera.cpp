@@ -122,7 +122,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(AddShakeSimple, 0x50D240);
     RH_ScopedInstall(InitialiseScriptableComponents, 0x50D2D0);
     RH_ScopedInstall(DrawBordersForWideScreen, 0x514860);
-    RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970, { .reversed = false });
+    RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970);
     RH_ScopedInstall(CalculateGroundHeight, 0x514B80);
     RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60, { .reversed = false });
     RH_ScopedInstall(CalculateDerivedValues, 0x5150E0, { .reversed = false });
@@ -1524,8 +1524,38 @@ void CCamera::FinishCutscene() {
 }
 
 // 0x514970
-void CCamera::Find3rdPersonCamTargetVector(float range, CVector vecGunMuzzle, CVector& outSource, CVector& outTarget) {
-    plugin::CallMethod<0x514970, CCamera*, float, CVector, CVector*, CVector*>(this, range, vecGunMuzzle, &outSource, &outTarget);
+void CCamera::Find3rdPersonCamTargetVector(float range, CVector gunMuzzle, CVector& outSource, CVector& outTarget) {
+    const auto pActiveCam = &m_aCams[m_nActiveCam];
+    const float tanHalfFOV = std::tan(DegreesToRadians(pActiveCam->m_fFOV * 0.5f));
+    const float aspectRatio = CDraw::ms_fAspectRatio;
+    
+    // Calculate aim target direction (This will be a unit vector)
+    CVector dir = m_aCams[m_nActiveCam].m_vecFront;
+    
+    if (pActiveCam->m_nMode == eCamMode::MODE_TWOPLAYER_IN_CAR_AND_SHOOTING) {
+        pActiveCam->Get_TwoPlayer_AimVector(dir);
+    } else {
+        // Vertical offset
+        dir += pActiveCam->m_vecUp * (tanHalfFOV * ((0.5f - m_f3rdPersonCHairMultY) * 2.0f) / aspectRatio);
+
+        // Horizontal offset
+        const auto right = pActiveCam->m_vecFront.Cross(pActiveCam->m_vecUp);
+        dir += right * (tanHalfFOV * ((m_f3rdPersonCHairMultX - 0.5f) * 2.0f));
+        
+        // Handle zero magnitude case
+        if (dir.Magnitude() <= 0.0f) {
+            dir = CVector(1.0f, 0.0f, 0.0f);
+        } else {
+            dir.Normalise();
+        }
+    }
+    
+    // Calculate intersection point with muzzle
+    outSource = pActiveCam->m_vecSource;
+    outSource += (gunMuzzle - outSource).ProjectOnToNormal(dir);
+
+    // Apply final range to target 
+    outTarget = outSource + dir * range;
 }
 
 // 0x514B80
