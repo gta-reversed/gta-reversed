@@ -10,7 +10,7 @@ struct RwRGBA;
 
 class CRGBA {
 public:
-    uint8 r{}, g{}, b{}, a{};
+    uint8 r{}, g{}, b{}, a{}; // msb(a) -> lsb(r)
 
 public:
     CRGBA() = default;
@@ -31,7 +31,8 @@ public:
     void Set(const RwRGBA& rwcolor);
 
     CRGBA  ToRGB() const;
-    uint32 ToInt() const;
+    uint32 ToIntRGBA() const;
+    uint32 ToIntRGB() const { return ((uint32)r << 16) | ((uint32)g << 8) | ((uint32)b << 0); }
     uint32 ToIntARGB() const;
     RwRGBA ToRwRGBA() const;
 

@@ -39,8 +39,8 @@ float GetGroundZFor3DCoord(CVector coord) {
     return CWorld::FindGroundZFor3DCoord(coord, nullptr, nullptr);
 }
 
-void PlayerMadeProgress() {
-    return CStats::IncrementStat(STAT_PROGRESS_MADE);
+void PlayerMadeProgress(int32 progress) {
+    return CStats::IncrementStat(STAT_PROGRESS_MADE, float(progress));
 }
 
 void RegisterMissionGiven() {
@@ -170,6 +170,8 @@ void SaveIntToDebugFile(int32 value) { /* DEBUG */ }
 void SaveFloatToDebugFile(float value) { /* DEBUG */ }
 
 void notsa::script::commands::game::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Game");
+
     REGISTER_COMMAND_HANDLER(COMMAND_SET_ALL_TAXIS_HAVE_NITRO, SetAllTaxisHaveNitro);
     REGISTER_COMMAND_HANDLER(COMMAND_ACTIVATE_PIMP_CHEAT, ActivatePimpCheat);
     REGISTER_COMMAND_HANDLER(COMMAND_ARE_ANY_CAR_CHEATS_ACTIVATED, AreAnyCarCheatsActivated);

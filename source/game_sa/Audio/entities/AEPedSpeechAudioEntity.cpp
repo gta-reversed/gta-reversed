@@ -854,6 +854,9 @@ int16 CAEPedSpeechAudioEntity::GetSoundAndBankIDs(eGlobalSpeechContext gCtx, eSp
             return m_VoiceID;
         }
     }();
+    if (voiceID == -1) {
+        return -1;
+    }
     m_BankID = GetVoiceSoundBank(gCtx, m_PedAudioType, voiceID);
 
     const auto* const ctx = GetSpecificSpeechContextInfo(sCtx, gCtx, m_PedAudioType, voiceID);

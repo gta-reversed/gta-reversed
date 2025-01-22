@@ -74,12 +74,13 @@ void CameraSize(RwCamera* camera, RwRect* rect, RwReal viewWindow, RwReal aspect
         rect->x = rect->y = 0;
     }
 
-    const auto videoMode = RwEngineGetVideoModeInfo(RwEngineGetCurrentVideoMode());
+    RwVideoMode vmi;
+    RwEngineGetVideoModeInfo(&vmi, RwEngineGetCurrentVideoMode());
 
-    if (videoMode.flags & rwVIDEOMODEEXCLUSIVE) {
+    if (vmi.flags & rwVIDEOMODEEXCLUSIVE) {
         rect->x = rect->y = 0;
-        rect->w = videoMode.width;
-        rect->h = videoMode.height;
+        rect->w = vmi.width;
+        rect->h = vmi.height;
     }
 
     if (rect->w > 0 && rect->h > 0) {
@@ -92,7 +93,7 @@ void CameraSize(RwCamera* camera, RwRect* rect, RwReal viewWindow, RwReal aspect
         zRaster->height = rect->h;
 
         CVector2D vw;
-        if (videoMode.flags & rwVIDEOMODEEXCLUSIVE) {
+        if (vmi.flags & rwVIDEOMODEEXCLUSIVE) {
             vw.x = viewWindow;
             vw.y = viewWindow / aspectRatio;
         } else {

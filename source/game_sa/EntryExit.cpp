@@ -59,7 +59,7 @@ CEntryExit::CEntryExit(
     m_fExitAngle{ exitAngle },
     m_nSkyColor{ (uint8)skyColor },
     m_fEntranceZ{ center.z + 1.f },
-    m_fEntranceAngleRad{ RWDEG2RAD(entranceAngleDeg) }
+    m_fEntranceAngleRad{ DegreesToRadians(entranceAngleDeg) }
 {
     std::tie(m_nTimeOn, m_nTimeOff) = [&]() -> std::pair<uint8, uint8> {
         if (bUnknownBurglary && CGeneral::RandomBool(50.f)) {
@@ -605,6 +605,7 @@ void CEntryExit::WarpGangWithPlayer(CPlayerPed* player) {
 
         // Teleport them
         mem.Teleport(memTeleportTo, false);
+        mem.GetIntelligence()->FlushImmediately(false);
 
         // Make the member be heading towards the player
         mem.m_fCurrentRotation = mem.m_fAimingRotation = memHeading;

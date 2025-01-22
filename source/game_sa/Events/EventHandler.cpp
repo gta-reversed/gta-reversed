@@ -551,7 +551,13 @@ bool CEventHandler::IsTemporaryEvent(const CEvent& event) {
 
 // 0x4BC3E0
 bool CEventHandler::IsKillTaskAppropriate(CPed* ped1, CPed* ped2, const CEvent& event) {
-    return !ped1->IsCreatedByMission() && (!ped1->GetActiveWeapon().IsTypeMelee() || ped2->GetActiveWeapon().IsTypeMelee());
+    if (ped1->IsCreatedByMission()) {
+        return true;
+    }
+    if (!ped1->GetActiveWeapon().IsTypeMelee() || ped2->GetActiveWeapon().IsTypeMelee()) {
+        return true;
+    }
+    return false;
 }
 
 // 0x4BBF50
@@ -1229,7 +1235,7 @@ void CEventHandler::ComputeDraggedOutCarResponse(CEventDraggedOutCar* e, CTask* 
         }
 
         const auto CreateFinalSeq = [&](CTask* response) -> CTask* {
-            const auto leaveCarTask = e->m_Vehicle->IsDriver(m_Ped) || e->m_Vehicle->GetPassengers()[0] == m_Ped // 0x4BCCF2
+            const auto leaveCarTask = e->m_Vehicle->IsDriver(m_Ped) || e->m_Vehicle->m_apPassengers[0] == m_Ped // 0x4BCCF2
                 ? new CTaskComplexLeaveCar{ e->m_Vehicle, 0, 0, false, true }
                 : nullptr;
 

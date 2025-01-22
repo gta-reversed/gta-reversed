@@ -383,7 +383,7 @@ void CCarGenerator::Process()
 }
 
 // 0x6F2E50
-void CCarGenerator::Setup(const CVector& posn, float angle, int32 modelId, int16 color1, int16 color2, uint8 bForceSpawn,
+void CCarGenerator::Setup(CVector posn, float angle, int32 modelId, int16 color1, int16 color2, uint8 bForceSpawn,
                           uint8 alarmChance, uint8 doorLockChance, uint16 minDelay, uint16 maxDelay,
                           uint8 iplId, bool ignorePopulationLimit)
 {

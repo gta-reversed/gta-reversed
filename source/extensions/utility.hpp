@@ -382,4 +382,13 @@ template<size_t N>
 void string_copy(char (&out)[N], const char* from) {
     std::snprintf(out, N, "%s", from);
 }
+
+// Like clamp, but wraps the number - https://stackoverflow.com/a/64273069/15363969
+template<std::floating_point F>
+F wrap(F x, F min, F max) {
+    if (min > max) {
+        std::swap(min, max);
+    }
+    return (x < 0 ? max : min) + std::fmod(x, max - min);
+}
 };

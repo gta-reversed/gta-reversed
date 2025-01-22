@@ -133,6 +133,7 @@ public:
     void  SetIndividualEnvironment(uint16 envFlag, uint16 bEnabled); // pass eSoundEnvironment as envFlag
     void  UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 playProgress);
     CVector GetRelativePosition() const;
+    void  GetRelativePosition(CVector* outVec) const;
     void  CalculateFrequency();
     void  UpdateFrequency();
     float GetRelativePlaybackFrequencyWithDoppler() const;

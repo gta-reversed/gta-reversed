@@ -73,6 +73,9 @@ void CVehicle::InjectHooks() {
     RH_ScopedVirtualClass(CVehicle, 0x871e80, 66);
     RH_ScopedCategory("Vehicle");
 
+    RH_ScopedInstall(Constructor, 0x6D5F10);
+    RH_ScopedInstall(Destructor, 0x6E2B40);
+
     RH_ScopedVMTInstall(SetModelIndex, 0x6D6A40);
     RH_ScopedVMTInstall(DeleteRwObject, 0x6D6410);
     RH_ScopedVMTInstall(SpecialEntityPreCollisionStuff, 0x6D6640);
@@ -87,8 +90,8 @@ void CVehicle::InjectHooks() {
     RH_ScopedVMTInstall(CanPedJumpOutCar, 0x6D2030);
     RH_ScopedVMTInstall(GetTowHitchPos, 0x6DFB70);
     RH_ScopedVMTInstall(GetTowBarPos, 0x6DFBE0);
-    RH_ScopedVMTInstall(Save, 0x5D4760);
-    RH_ScopedVMTInstall(Load, 0x5D2900);
+    RH_ScopedVMTInstall(Save, 0x5D4760, {.enabled = false });
+    RH_ScopedVMTInstall(Load, 0x5D2900, {.enabled = false });
 
     // It can't be properly unhooked, original function assumes that CVehicle::GetVehicleAppearance doesn't spoil ECX register, and calls
     // it without making sure that the pointer in it still points to current instance. While it worked for original function, we can't
@@ -1058,7 +1061,7 @@ bool CVehicle::CanPedStepOutCar(bool bIgnoreSpeedUpright) const {
 bool CVehicle::CanPedJumpOutCar(CPed* ped) {
     if (IsBike())
     {
-        if (!m_apPassengers[0] || ped == m_apPassengers[0])
+        if (!HasPassengerAtSeat(0) || ped == m_apPassengers[0])
             return m_vecMoveSpeed.SquaredMagnitude2D() >= 0.07F;
 
         return false;
@@ -1406,7 +1409,7 @@ bool CVehicle::AddPassenger(CPed* passenger, uint8 seatIdx) {
     }
 
     // Check if anyone is already in that seat
-    if (m_apPassengers[seatIdx]) {
+    if (HasPassengerAtSeat(seatIdx)) {
         return false;
     }
 
@@ -3796,7 +3799,7 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
                     auto fSteerAngle = std::fabs(m_fSteerAngle);
                     CVector vecSteer(-fSteerAngleSin, fSteerAngleCos, -fSteerAngle);
                     CVector vecSteerMoveForce = GetMatrix().TransformVector(vecSteer);
-                    vecSteerMoveForce *= fThrustDepth * m_fGasPedal * 40.0F * m_pHandlingData->m_transmissionData.m_fEngineAcceleration * m_fMass;
+                    vecSteerMoveForce *= fThrustDepth * m_fGasPedal * 40.0F * m_pHandlingData->m_transmissionData.m_EngineAcceleration * m_fMass;
 
                     if (vecSteerMoveForce.z > 0.2F)
                         vecSteerMoveForce.z = sq(1.2F - vecSteerMoveForce.z) + 0.2F;

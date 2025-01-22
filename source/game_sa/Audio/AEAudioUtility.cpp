@@ -141,14 +141,15 @@ bool CAEAudioUtility::GetBankAndSoundFromScriptSlotAudioEvent(const eAudioEvents
     }
     if (scriptID < AE_SCRIPT_SLOT_FIRST) {
         outBankID = gScriptBanksLookup[scriptID - AE_SCRIPT_BANK_FIRST];
+        outSoundID = -1;
     } else if (scriptID == AE_SCRIPT_SLOT_USE_CUSTOM) {
         outBankID  = SND_BANK_SCRIPT_NULL;
         outSoundID = slot > 3
             ? 0
             : 2 * (slot % 2);
     } else {
-        outSoundID = (slot - 2'000) % 200;
-        outBankID  = (eSoundBank)(SND_BANK_SCRIPT_FIRST + outSoundID); //SND_BANK_SCRIPT_FIRST + static_cast<int32>(std::floor(float(slot - AE_SCRIPT_SLOT_FIRST) / 200.0f));
+        outSoundID = (scriptID - AE_SCRIPT_SLOT_FIRST) % 200;
+        outBankID  = (eSoundBank)(SND_BANK_SCRIPT_FIRST + (scriptID - AE_SCRIPT_SLOT_FIRST) / 200u); // Each sound bank contains 200 sounds
     }
     return true;
 }

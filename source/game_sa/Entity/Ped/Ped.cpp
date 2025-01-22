@@ -79,7 +79,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(ClearLook, 0x5E3FF0);
     RH_ScopedInstall(TurnBody, 0x5E4000);
     RH_ScopedInstall(IsPointerValid, 0x5E4220);
-    RH_ScopedInstall(GetBonePosition, 0x5E4280);
+    RH_ScopedOverloadedInstall(GetBonePosition, "Original", 0x5E4280, void(CPed::*)(CVector*, eBoneTag, bool));
     RH_ScopedInstall(PutOnGoggles, 0x5E3AE0);
     RH_ScopedInstall(ReplaceWeaponWhenExitingVehicle, 0x5E6490);
     RH_ScopedInstall(KillPedWithCar, 0x5F0360, { .reversed = false });
@@ -490,14 +490,15 @@ void CPed::SetMoveAnim() {
 * @addr 0x5D4640
  */
 bool CPed::Load() {
+    auto size = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
+
+    // TODO: Can't do `auto save = CGenericGameStorage::LoadDataFromWorkBuffer<CPedSaveStructure>()` dure to deleted copy constructor in CWanted which is used somehow inside.
+    // Would be nice if someone with more knowledge of templates and shit can fix that
     CPedSaveStructure save;
-    uint32 size{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&save, sizeof(save));
-
+    CGenericGameStorage::LoadDataFromWorkBuffer(save);
     assert(size == sizeof(save));
-    save.Extract(this);
 
+    save.Extract(this);
     return true;
 }
 
@@ -508,9 +509,8 @@ bool CPed::Save() {
     CPedSaveStructure save;
     save.Construct(this);
 
-    uint32 size{ sizeof(save) };
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::SaveDataToWorkBuffer(&save, sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(save);
 
     return true;
 }
@@ -649,7 +649,7 @@ void CPed::CreateDeadPedWeaponPickups() {
         // No. of ammo the pickups will contain
         const auto pickupAmmo{ std::min(wep.m_TotalAmmo, (uint32)AmmoForWeapon_OnStreet[(size_t)wep.m_Type] * 2) };
 
-        if (CPickups::TryToMerge_WeaponType(
+        if (!CPickups::TryToMerge_WeaponType(
             pickupPos,
             wep.m_Type,
             ePickupType::PICKUP_ONCE_TIMEOUT,
@@ -2022,6 +2022,14 @@ CVector CPed::GetBonePosition(eBoneTag bone, bool updateSkinBones) {
         return *RwMatrixGetPos(m);
     }
     return GetPosition();
+}
+
+/*
+* @addr 0x5E4280
+* @brief Added for compatiblity reasons for hooking - use the version returning CVector where possible in code.
+*/
+void CPed::GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones) {
+    *outVec = CPed::GetBonePosition(bone, updateSkinBones);
 }
 
 /*!

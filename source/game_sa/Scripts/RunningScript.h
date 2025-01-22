@@ -102,8 +102,10 @@ enum {
     NUM_TIMERS      = 2
 };
 
-constexpr auto SHORT_STRING_SIZE = 8;
-constexpr auto LONG_STRING_SIZE = 16;
+constexpr auto SHORT_STRING_SIZE           = 8;
+constexpr auto LONG_STRING_SIZE            = 16;
+constexpr auto COMMANDS_CHAR_BUFFER_SIZE   = 64;
+constexpr auto COMMANDS_CHAR_BUFFERS_COUNT = 16;
 
 class CRunningScript {
 public:
@@ -176,6 +178,14 @@ public:
     using CommandHandlerTable_t = std::array<CommandHandlerFn_t, 27>;
 
     static inline CommandHandlerTable_t& s_OriginalCommandHandlerTable = *(CommandHandlerTable_t*)0x8A6168;
+
+    // NOTSA: We need to provide our own string buffer for arguments parser - the initial assumption that we can use string_view pointed at instruction pointer didn't work in the end.
+    // it's not always null terminated so we have to provide our own buffer for the text. I'm eyeballing the max size so this needs to be enough for now. I can't find any command
+    // using as many string at once, so 16 buffers is plenty. The most i can find is SET_MENU_COLUMN which reads 13 different strings
+    static std::array<std::array<char, COMMANDS_CHAR_BUFFER_SIZE>, COMMANDS_CHAR_BUFFERS_COUNT> ScriptArgCharBuffers;
+    static uint8                                                                                ScriptArgCharNextFreeBuffer;
+
+
 public:
     static void InjectHooks();
     static void InjectCustomCommandHooks();
@@ -219,7 +229,7 @@ public:
 
     void DoDeathArrestCheck(); // original name DoDeatharrestCheck
 
-    static void SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, bool offset);
+    void SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, bool offset);
     void GivePedScriptedTask(int32 pedHandle, CTask* task, int32 opcode);
     void GivePedScriptedTask(CPed* ped, CTask* task, int32 opcode); // NOTSA overload
 
@@ -258,9 +268,11 @@ public:
 
     //! Read a value from at the current IP then increase IP by the number of bytes read.
     template<typename T>
-    T ReadAtIPAs() {
+    T ReadAtIPAs(bool updateIP = true) {
         const auto ret = *reinterpret_cast<T*>(m_IP);
-        m_IP += sizeof(T);
+        if (updateIP) {
+            m_IP += sizeof(T);
+        }
         return ret;
     }
 
