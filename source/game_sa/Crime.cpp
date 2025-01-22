@@ -29,8 +29,11 @@ float CCrime::FindImmediateDetectionRange(eCrimeType CrimeType) {
 // 0x532010
 void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommitedby) {
     
-    if (crimeType == CRIME_NONE // Moved here from 0x5320FC
-        || !pCommitedby || !pCommitedby->IsPlayer()) { // 0x532021
+    if (crimeType == CRIME_NONE) { // Moved here from 0x5320FC
+        return;
+    }
+
+    if (!pCommitedby || !pCommitedby->IsPlayer()) { // Moved here from 0x532021
         return;
     }
 
@@ -43,7 +46,7 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
         && !pCommitedby->AsPlayer()->GetWantedLevel()
         && pVictim->AsPed()->bBeingChasedByPolice // Vanilla bug here
     ) {
-        if (!pVictim->AsPed()->IsStateDying()) { // Vanilla or here
+        if (!pVictim->AsPed()->IsStateDying()) {
             if (const auto text = TheText.Get("GOODBOY")) { // Good Citizen Bonus! +$50
                 CMessages::AddBigMessage(text, 5'000, eMessageStyle::STYLE_MIDDLE);
             }
