@@ -1245,13 +1245,10 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         if (m_nModelIndex != MODEL_TAXI && m_nModelIndex != MODEL_CABBIE) {
             CVector target = GetPosition();
             target += GetRight() * 3.0f + GetForward() * 10.0f;
-            CColPoint outColPoint{};
-            CEntity* outEntity = nullptr;
-            if (!CWorld::ProcessLineOfSight(GetPosition(), target, outColPoint, outEntity, true, true, true,
-                false, false, false, false, false)
-                || outEntity == this)
-            {
-                CCarAI::GetCarToParkAtCoors(this, &target);
+            CColPoint cp{};
+            CEntity* hit;
+            if (!CWorld::ProcessLineOfSight(GetPosition(), target, cp, hit, true, true, true, false, false, false, false, false) || hit == this) {
+                CCarAI::GetCarToParkAtCoors(this, target);
             }
         }
     }
