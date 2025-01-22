@@ -103,21 +103,21 @@ public:
     constexpr void Set(const CRGBA& rgb, uint8 alpha)                   { *this = CRGBA{rgb, alpha}; }
     constexpr void Set(const RwRGBA& rgba)                              { *this = CRGBA{rgba}; }
 
+    constexpr uint32 ToIntRGB() const {
+        return (r << 16)
+             | (g << 8)
+             | (b << 0);
+    }
+
     // TODO: Rename to `ToIntRGBA`
     //! To U32 in format RGBA (msb(r) -> lsb(a))
     constexpr uint32 ToInt() const {
-        return (r << 24)
-             | (g << 16)
-             | (b << 8)
-             | (a << 0);
+        return (ToIntRGB() << 8) | (a << 0);
     }
 
     //! To U32 in format ARGB (msb(a) -> lsb(b))
     constexpr uint32 ToIntARGB() const {
-        return (a << 24)
-             | (r << 16)
-             | (g << 8)
-             | (b << 0);
+        return (a << 24) | ToIntRGB();
     }
 
     //! To U32 in format ABGR (msb(a) -> lsb(r)) [For ImGui]
