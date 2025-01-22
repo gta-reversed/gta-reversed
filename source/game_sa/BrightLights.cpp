@@ -24,7 +24,7 @@ void CBrightLights::Init() {
 void CBrightLights::RenderOutGeometryBuffer() {
     if (uiTempBufferIndicesStored) {
         LittleTest();
-        if (RwIm3DTransform(aTempBufferVertices, uiTempBufferVerticesStored, nullptr, rwIM3D_VERTEXUV))
+        if (RwIm3DTransform(TempBufferVertices.m_3d, uiTempBufferVerticesStored, nullptr, rwIM3D_VERTEXUV))
         {
             RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, aTempBufferIndices, uiTempBufferIndicesStored);
             RwIm3DEnd();
@@ -54,7 +54,7 @@ void CBrightLights::Render() {
     for (unsigned i = 0; i < NumBrightLights; i++) {
         // Maybe render vertex buffer if running low on free items...
         if (uiTempBufferIndicesStored > TOTAL_TEMP_BUFFER_INDICES - 40u ||
-            uiTempBufferVerticesStored > TOTAL_TEMP_BUFFER_VERTICES - 40u
+            uiTempBufferVerticesStored > TOTAL_TEMP_BUFFER_3DVERTICES - 40u
         ) {
             CBrightLights::RenderOutGeometryBuffer();
         }
@@ -157,7 +157,7 @@ void tBrightLight::Render() const {
 
     // Get vertex pointer, `i` is passed to `GetVertexRealIdx`
     const auto GetVertex = [=](unsigned i) {
-        return &aTempBufferVertices[GetVertexRealIdx(i)];
+        return &TempBufferVertices.m_3d[GetVertexRealIdx(i)];
     };
 
     // Set position of vertex, workaround for taking a temporary's address

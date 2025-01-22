@@ -65,6 +65,9 @@ CTask* CTaskComplexSeekEntityAiming::CreateNextSubTask(CPed* ped) {
 
 // 0x695D30
 CTask* CTaskComplexSeekEntityAiming::CreateFirstSubTask(CPed* ped) {
+    if (!m_ToSeek) {
+        return nullptr;
+    }
     return new CTaskComplexSeekEntity<>{
         m_ToSeek,
         50'000,

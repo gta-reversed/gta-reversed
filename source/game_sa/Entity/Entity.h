@@ -11,6 +11,7 @@
 #include "Rect.h"
 #include "ColModel.h"
 #include "Plugins\TwoDEffectPlugin\2dEffect.h"
+#include <extensions/EntityRef.hpp>
 
 #include "eEntityType.h"
 #include "eEntityStatus.h"
@@ -36,6 +37,9 @@ class CPhysical;
 class CBaseModelInfo;
 
 class NOTSA_EXPORT_VTABLE CEntity : public CPlaceable {
+public:
+    using Ref = notsa::EntityRef<CEntity>;
+
 public:
     union {
         struct RwObject* m_pRwObject;
@@ -174,6 +178,11 @@ public:
     bool IsVisible();
     float GetDistanceFromCentreOfMassToBaseOfModel();
     void CleanUpOldReference(CEntity** entity); // See helper SafeCleanUpOldReference
+
+    /*!
+     * @addr 0x571A40
+     * @brief Clear (set to null) references to `this`
+    */
     void ResolveReferences();
     void PruneReferences();
     void RegisterReference(CEntity** entity);

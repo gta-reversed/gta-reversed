@@ -9,6 +9,10 @@
 --]]
 
 newoption {
+    trigger     = "script-tracing",
+    description = "Enable script command trace logging (Slow!)"
+}
+newoption {
     trigger     = "outdir",
     value       = "path",
     description = "Output directory for the build files"
@@ -27,7 +31,8 @@ end
     The Solution
 --]]
 
-solution "gta_reversed"
+workspace "gta_reversed"
+    startproject "gta_sa_modern"
     configurations { "Release", "Debug" }
 
     location(_OPTIONS["outdir"])
@@ -53,7 +58,7 @@ solution "gta_reversed"
     filter "action:vs*"
         flags { "MultiProcessorCompile" }
         linkoptions   { "/ignore:4099,4251,4275" }
-        buildoptions { "/EHsc", "/Zc:preprocessor", "/bigobj" }
+        buildoptions { "/EHsc", "/Zc:preprocessor", "/bigobj", "/utf-8" }
         disablewarnings { 26812, 26495, 4275, 4251, 4200, 4099 }
 
     filter "files:libs/**"
@@ -72,6 +77,13 @@ solution "gta_reversed"
     }
 
     include "source/"
+    local gta_exe = os.getenv("GTA_SA_EXE")
+    if gta_exe ~= nil and os.isfile(gta_exe) then
+        debugcommand "$(GTA_SA_EXE)"
+    else
+        debugcommand "$(GTA_SA_DIR)/gta_sa.exe"
+    end
+    debugdir "$(GTA_SA_DIR)"
 
     group "Dependencies"
         defines { "WIN32", "_WINDOWS" }

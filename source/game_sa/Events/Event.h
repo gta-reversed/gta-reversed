@@ -12,13 +12,8 @@ public:
     bool  m_bValid;
 
 public:
-    static void* operator new(unsigned size) {
-        return ((CEvent * (__cdecl*)(uint32))0x4B5620)(size);
-    }
-
-    static void operator delete(void* object) {
-        ((void(__cdecl*)(void*))0x4B5630)(object);
-    }
+    static void* operator new(unsigned size);
+    static void operator delete(void* object);
 
     CEvent();
 

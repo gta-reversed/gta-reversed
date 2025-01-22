@@ -68,7 +68,7 @@ CTask* CTaskComplexTreatAccident::CreateFirstSubTask(CPed* ped)
     if (targetPed && !targetPed->bFadeOut)
     {
         targetPed->m_nDeathTimeMS = CTimer::GetTimeInMS();
-        ped->Say(232, 0, 1.0F, false, false, false);
+        ped->Say(CTX_GLOBAL_VICTIM, 0, 1.0F, false, false, false);
         g_ikChainMan.LookAt("TaskTreatAccident", ped, targetPed, 5000, BONE_HEAD, nullptr, true, 0.25F, 500, 3, false);
         return CreateSubTask(TASK_SIMPLE_ACHIEVE_HEADING, ped);
     }
@@ -104,15 +104,7 @@ CTask* CTaskComplexTreatAccident::CreateSubTask(eTaskType taskType, CPed* ped)
 }
 
 // 0x658AF0
-float CTaskComplexTreatAccident::ComputeHeading(CPed* ped)
-{
-    CVector bonePositions[2];
-
-    m_pAccident->m_pPed->GetBonePosition(bonePositions[0], BONE_HEAD, false);
-    m_pAccident->m_pPed->GetBonePosition(bonePositions[1], BONE_PELVIS, false);
-    CVector targetPos = (bonePositions[0] + bonePositions[1]) * 0.5F;
-
-    float fAngle = CGeneral::GetRadianAngleBetweenPoints(targetPos.x, targetPos.y, ped->GetPosition().x, ped->GetPosition().y);
-
-    return CGeneral::LimitRadianAngle(fAngle);
+float CTaskComplexTreatAccident::ComputeHeading(CPed* ped) {
+    const auto injuredPedPos = (m_pAccident->m_pPed->GetBonePosition(BONE_HEAD) + m_pAccident->m_pPed->GetBonePosition(BONE_PELVIS)) * 0.5f;
+    return (injuredPedPos - ped->GetPosition()).Heading(true);
 }

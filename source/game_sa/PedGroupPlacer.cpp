@@ -2,7 +2,7 @@
 
 void CPedGroupPlacer::InjectHooks() {
     RH_ScopedClass(CPedGroupPlacer);
-    RH_ScopedCategory(); // TODO: Change this to the appropriate category!
+    RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(PlaceFormationGroup, 0x5FC9B0, {.reversed = false});
     RH_ScopedInstall(PlaceChatGroup, 0x5FCE80, {.reversed = false});

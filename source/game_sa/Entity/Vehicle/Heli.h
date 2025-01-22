@@ -127,12 +127,20 @@ public:
     static void SpecialHeliPreRender(); // dummy function
     static void SwitchPoliceHelis(bool enable);
     static void SearchLightCone(int32 coronaIndex,
-                                CVector origin, CVector target,
+                                CVector origin,
+                                CVector target,
                                 float targetRadius,
                                 float power,
-                                uint8 unknownFlag, uint8 drawShadow,
-                                CVector* useless0, CVector* useless1, CVector* useless2,
-                                bool a11, float baseRadius, float a13, float a14, float a15);
+                                uint8 clipIfColliding,
+                                uint8 drawShadow,
+                                CVector& useless0,
+                                CVector& useless1,
+                                CVector& useless2,
+                                bool a11,
+                                float baseRadius,
+                                float a13,
+                                float a14,
+                                float a15);
     static CHeli* GenerateHeli(CPed* target, bool newsHeli);
     static void TestSniperCollision(CVector* origin, CVector* target);
     static void UpdateHelis();

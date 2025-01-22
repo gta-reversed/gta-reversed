@@ -303,7 +303,7 @@ bool CTaskSimpleHoldEntity::SetPedPosition(CPed* ped) {
                 if (m_bBoneFlags & HOLD_ENTITY_UPDATE_TRANSLATION_ONLY) {
                     CVector entityToHoldPos = m_vecPosition;
                     RpHAnimHierarchy* pHAnimHierarchy = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
-                    int32 animIndex = RpHAnimIDGetIndex(pHAnimHierarchy, ped->m_apBones[m_nBoneFrameId]->m_nNodeId);
+                    int32 animIndex = RpHAnimIDGetIndex(pHAnimHierarchy, ped->m_apBones[m_nBoneFrameId]->BoneTag);
                     RwMatrix* pBoneMatrix = &RpHAnimHierarchyGetMatrixArray(pHAnimHierarchy)[animIndex];
                     RwV3dTransformPoints((RwV3d*)&entityToHoldPos, (RwV3d*)&entityToHoldPos, 1, pBoneMatrix);
                     m_pEntityToHold->GetMatrix().UpdateMatrix(pBoneMatrix);
@@ -312,7 +312,7 @@ bool CTaskSimpleHoldEntity::SetPedPosition(CPed* ped) {
                 else {
                     CVector entityToHoldPos = ped->GetMatrix().TransformVector(m_vecPosition);
                     RpHAnimHierarchy* pHAnimHierarchy = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
-                    int32 animIndex = RpHAnimIDGetIndex(pHAnimHierarchy, ped->m_apBones[m_nBoneFrameId]->m_nNodeId);
+                    int32 animIndex = RpHAnimIDGetIndex(pHAnimHierarchy, ped->m_apBones[m_nBoneFrameId]->BoneTag);
                     RwMatrix* pBoneMatrix = RpHAnimHierarchyGetMatrixArray(pHAnimHierarchy);
                     entityToHoldPos += *RwMatrixGetPos(&pBoneMatrix[animIndex]);
                     CMatrix rotationMatrix(ped->GetMatrix());
@@ -381,7 +381,7 @@ void CTaskSimpleHoldEntity::FinishAnimHoldEntityCB(CAnimBlendAssociation* animAs
 // 0x692FF0
 void CTaskSimpleHoldEntity::StartAnim(CPed* ped) {
     if (m_pAnimBlendHierarchy) {
-        m_animFlags |= ANIMATION_ADD_TO_BLEND | ANIMATION_FREEZE_LAST_FRAME | ANIMATION_PARTIAL;
+        m_animFlags |= ANIMATION_DONT_ADD_TO_PARTIAL_BLEND | ANIMATION_IS_BLEND_AUTO_REMOVE | ANIMATION_IS_PARTIAL;
         m_pAnimBlendAssociation = CAnimManager::BlendAnimation(ped->m_pRwClump, m_pAnimBlendHierarchy, m_animFlags, 4.0f);
     } else {
         if (m_nAnimGroupId && !m_pAnimBlock) {
@@ -398,9 +398,9 @@ void CTaskSimpleHoldEntity::StartAnim(CPed* ped) {
             m_pAnimBlock = animBlock;
         }
         m_pAnimBlendAssociation = CAnimManager::BlendAnimation(ped->m_pRwClump, m_nAnimGroupId, m_nAnimId, 4.0f);
-        m_pAnimBlendAssociation->m_Flags |= ANIMATION_FREEZE_LAST_FRAME;
+        m_pAnimBlendAssociation->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
         if (GetTaskType() == TASK_SIMPLE_HOLD_ENTITY) {
-            m_pAnimBlendAssociation->m_Flags |= ANIMATION_ADD_TO_BLEND;
+            m_pAnimBlendAssociation->m_Flags |= ANIMATION_DONT_ADD_TO_PARTIAL_BLEND;
         }
     }
 

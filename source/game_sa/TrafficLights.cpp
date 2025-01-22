@@ -274,7 +274,7 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
                     reinterpret_cast<uint32>(entity),
                     eShadowType::SHADOW_ADDITIVE,
                     gpShadowExplosionTex,
-                    &vecCenter,
+                    vecCenter,
                     8.0F,
                     0.0F,
                     0.0F,

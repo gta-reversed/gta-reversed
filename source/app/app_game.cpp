@@ -208,7 +208,7 @@ void RenderScene() {
         RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLBACK));
     }
 
-    gRenderStencil();
+    CStencilShadows::RenderStencilShadows();
 }
 
 // 0x53E530

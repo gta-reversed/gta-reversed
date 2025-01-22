@@ -107,6 +107,9 @@ CTask* CTaskManager::FindTaskByType(ePrimaryTasks taskIndex, eTaskType taskId) {
 
 // 0x681810
 CTask* CTaskManager::GetTaskSecondary(eSecondaryTask taskIndex) {
+    if (notsa::IsFixBugs() && taskIndex == eSecondaryTask::TASK_SECONDARY_INVALID) {
+        return nullptr;
+    }
     return m_aSecondaryTasks[taskIndex];
 }
 
@@ -222,7 +225,7 @@ void CTaskManager::ParentsControlChildren(CTask* parent) {
             return;
         }
 
-        task = oldSubTask;
+        task = task->GetSubTask();
     }
 }
 
@@ -262,7 +265,7 @@ void CTaskManager::ManageTasks() {
         // The task tree can only be "terminated" with a `Simple` task. (Because a complex task must always have a sub-task)
         // If the last task is complex that means that creating all sub-tasks (See `AddSubTasks`) failed.
         // (Meaning that the task tree has finished and the root can be deleted)
-        if (lastTask->IsComplex()) {
+        if (!lastTask->IsSimple()) {
             if (!bIsPrimary) {
                 return TT_FINISHED;
             }
@@ -307,8 +310,13 @@ void CTaskManager::ManageTasks() {
 
         // The `10` here has no particular meaning, it's just an arbitrary iteration limit
         for (size_t i = 0; i < 10; i++) {
-            if (ProcessTaskTree(activePrimaryTask, true) == TT_FINISHED) {
+            const auto res = ProcessTaskTree(activePrimaryTask, true);
+
+            if (res == TT_FINISHED) {
                 delete std::exchange(activePrimaryTask, nullptr);
+            }
+
+            if (res != TT_ADVANCED) { // TT_FINISHED, TT_SUCCESS
                 break;
             }
         }

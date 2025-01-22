@@ -22,14 +22,6 @@ void CAnimBlendSequence::InjectHooks() {
     RH_ScopedInstall(GetCKeyFrame, 0x4CF220);
 }
 
-// 0x4D0C10
-CAnimBlendSequence::CAnimBlendSequence() {
-    m_nFlags = 0;
-    m_FramesNum = 0;
-    m_Frames = nullptr;
-    m_BoneID = BONE_UNKNOWN;
-}
-
 // 0x4D0C30
 CAnimBlendSequence::~CAnimBlendSequence() {
     // If we allocated memory, clean it
@@ -38,27 +30,27 @@ CAnimBlendSequence::~CAnimBlendSequence() {
     }
 }
 
-// 0x4D0F40
-void CAnimBlendSequence::CompressKeyframes(uint8* frameData) {
+template<typename From, typename To>
+bool CAnimBlendSequence::ConvertKeyFrames(byte* pDataBlock) {
+    constexpr auto HasTranslation = requires{ To::Trans; };
+
+    assert(HasTranslation == m_bHasTranslation);
+
     if (m_FramesNum == 0) {
-        return;
+        return false;
     }
 
-    void* frames = (frameData ? frameData : CMemoryMgr::Malloc(GetDataSize(true)));
-    if (m_bHasTranslation) {
-        auto* kftc = (KeyFrameTransCompressed*)frames;
-        auto* kf = (KeyFrameTrans*)m_Frames;
-        for (auto i = 0; i < m_FramesNum; i++, kf++, kftc++) {
-            kftc->Rot = kf->Rot;
-            kftc->SetDeltaTime(kf->DeltaTime);
-            kftc->Trans = kf->Trans;
-        }
-    } else {
-        auto* kfc = (KeyFrameCompressed*)frames;
-        auto* kf = (KeyFrame*)m_Frames;
-        for (auto i = 0; i < m_FramesNum; i++, kf++, kfc++) {
-            kfc->Rot = kf->Rot;
-            kfc->SetDeltaTime(kf->DeltaTime);
+    void* const outFrames = pDataBlock
+        ? pDataBlock
+        : CMemoryMgr::Malloc(GetDataSize(true));
+
+    auto* inKF  = static_cast<From*>(m_Frames);
+    auto* outKF = static_cast<To*>(outFrames);
+    for (auto i = m_FramesNum; i --> 0; inKF++, outKF++) {
+        outKF->Rot = inKF->Rot;
+        outKF->DeltaTime = inKF->DeltaTime;
+        if constexpr (HasTranslation) {
+            outKF->Trans = inKF->Trans;
         }
     }
 
@@ -66,9 +58,34 @@ void CAnimBlendSequence::CompressKeyframes(uint8* frameData) {
         CMemoryMgr::Free(m_Frames);
     }
 
-    m_Frames = frames;
-    m_bUsingExternalMemory = frameData != nullptr;
-    m_bIsCompressed = true;
+    m_Frames               = outFrames;
+    m_bUsingExternalMemory = pDataBlock != nullptr;
+
+    return true;
+}
+
+// 0x4D0F40
+void CAnimBlendSequence::CompressKeyframes(uint8* pDataBlock) {
+    assert(!m_bIsCompressed);
+
+    if (m_bHasTranslation
+            ? ConvertKeyFrames<KeyFrameTrans, KeyFrameTransCompressed>(pDataBlock)
+            : ConvertKeyFrames<KeyFrame, KeyFrameCompressed>(pDataBlock)
+    ) {
+        m_bIsCompressed = true; 
+    }
+}
+
+// 0x4D0D40
+void CAnimBlendSequence::Uncompress(uint8* pDataBlock) {
+    assert(m_bIsCompressed);
+
+    if (m_bHasTranslation
+            ? ConvertKeyFrames<KeyFrameTransCompressed, KeyFrameTrans>(pDataBlock)
+            : ConvertKeyFrames<KeyFrameCompressed, KeyFrame>(pDataBlock)
+    ) {
+        m_bIsCompressed = false; 
+    }
 }
 
 // 0x4D12A0
@@ -92,27 +109,30 @@ void CAnimBlendSequence::RemoveQuaternionFlips() const {
         return;
     }
 
-    KeyFrame* frame = GetUKeyFrame(0);
-    CQuaternion last = frame->Rot;
-    for (auto i = 1; i < m_FramesNum; i++) {
-        frame = GetUKeyFrame(i);
-        if (DotProduct(last, frame->Rot) < 0.0f) {
-            frame->Rot = -frame->Rot;
+    KeyFrame* f;
+    CQuaternion last = GetUKeyFrame(0)->Rot;
+    for (auto i = 1u; i < m_FramesNum; i++) {
+        f = GetUKeyFrame(i);
+        if (DotProduct(last, f->Rot) < 0.0f) {
+            f->Rot = -f->Rot;
         }
-        last = frame->Rot;
+        last = f->Rot;
     }
 }
 
 // 0x4D0C50
 void CAnimBlendSequence::SetName(const char* name) {
-    m_FrameHashKey = CKeyGen::GetUppercaseKey(name);
+    if (notsa::IsFixBugs()) {
+        m_IsUsingBoneTag = false;
+    }
+    m_NameHashKey = CKeyGen::GetUppercaseKey(name);
 }
 
 // 0x4D0C70
-void CAnimBlendSequence::SetBoneTag(int32 boneId) {
+void CAnimBlendSequence::SetBoneTag(eBoneTag32 boneId) {
     if (boneId != BONE_UNKNOWN) {
-        m_bUsingBones = true;
-        m_BoneID = static_cast<ePedBones>(boneId);
+        m_IsUsingBoneTag = true;
+        m_BoneTag         = boneId;
     }
 }
 
@@ -126,52 +146,14 @@ void CAnimBlendSequence::SetNumFrames(uint32 count, bool bHasTranslation, bool c
     m_bIsCompressed        = compressed; // condition has been removed
 }
 
-// 0x4D0D40
-void CAnimBlendSequence::Uncompress(uint8* frameData) {
-    if (m_FramesNum == 0) {
-        return;
-    }
-
-    void* frames = (frameData ? frameData : CMemoryMgr::Malloc(GetDataSize(false)));
-    if (m_bHasTranslation) {
-        auto* kfc = (KeyFrameTransCompressed*)m_Frames; // kfc = Kentucky Fried Chkicken
-        auto* kf = (KeyFrameTrans*)frames;
-        for (auto i = 0u; i < m_FramesNum; i++, kf++, kfc++) {
-            kf->Rot = kfc->Rot;
-            kf->DeltaTime = kfc->DeltaTime;
-            kf->Trans = kfc->Trans;
-        }
-    } else {
-        auto* kfc = (KeyFrameCompressed*)m_Frames;
-        auto* kf = (KeyFrame*)frames;
-        for (auto i = 0u; i < m_FramesNum; i++, kf++, kfc++) {
-            kf->Rot = kfc->Rot;
-            kf->DeltaTime = kfc->DeltaTime;
-        }
-    }
-
-    if (!m_bUsingExternalMemory) {
-        CMemoryMgr::Free(m_Frames);
-    }
-    m_Frames = frames;
-    m_bUsingExternalMemory = frameData != nullptr;
-    m_bIsCompressed = false;
-}
-
 // 0x4D1150
 bool CAnimBlendSequence::MoveMemory() {
-    if (m_bUsingExternalMemory)
+    if (m_bUsingExternalMemory || !m_Frames) {
         return false;
+    }
 
-    if (!m_Frames)
-        return false;
-
-    auto frames = (CAnimBlendSequence*)CMemoryMgr::MoveMemory(m_Frames);
-    if (frames == m_Frames)
-        return false;
-
-    m_Frames = frames;
-    return true;
+    const auto prevPtr = std::exchange(m_Frames, (CAnimBlendSequence*)CMemoryMgr::MoveMemory(m_Frames));
+    return prevPtr != m_Frames; // Return true if the memory was moved
 }
 
 // 0x4D1180

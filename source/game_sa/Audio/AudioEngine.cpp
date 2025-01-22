@@ -105,6 +105,9 @@ void CAudioEngine::InjectHooks() {
 bool CAudioEngine::Initialise() {
     CLoadingScreen::Pause();
 
+    // NOTSA: Initialize AudioUtility before `AEAudioHardware` to avoid crash (Division by zero in `GetCurrentTimeInMS`)
+    CAEAudioUtility::StaticInitialise();
+
     if (!AEAudioHardware.Initialise()) {
         NOTSA_LOG_ERR("Failed to initialise Audio Hardware");
         return false;
@@ -138,7 +141,7 @@ bool CAudioEngine::Initialise() {
 
     m_FrontendAE.Initialise();
     CAudioEngine::SetEffectsFaderScalingFactor(0.0f);
-    CAEAudioUtility::StaticInitialise();
+    //CAEAudioUtility::StaticInitialise(); // Initialized above
     CAEPedAudioEntity::StaticInitialise();
     CAEPedSpeechAudioEntity::StaticInitialise();
     CAEVehicleAudioEntity::StaticInitialise();
@@ -436,10 +439,10 @@ void CAudioEngine::PlayPreloadedCutsceneTrack() {
 }
 
 // 0x507080
-void CAudioEngine::StopCutsceneTrack(bool a2) {
+void CAudioEngine::StopCutsceneTrack(bool bWaitForFinish) {
     AECutsceneTrackManager.StopCutsceneTrack();
 
-    if (!a2) {
+    if (!bWaitForFinish) {
         if (!m_bPlayingMissionCompleteTrack)
             return;
 
@@ -564,8 +567,8 @@ CVector* CAudioEngine::AttachMissionAudioToPhysical(uint8 sampleId, CPhysical* p
 }
 
 // 0x5073C0
-void CAudioEngine::SayPedless(int32 a1, int16 a2, CEntity* entity, uint32 playOffset, float a5, uint8 a6, uint8 a7, uint8 a8) {
-    m_PedlessSpeechAE.AddSayEvent(a1, a2, entity, playOffset, a5, a6, a7, a8);
+void CAudioEngine::SayPedless(eAudioEvents audioEvent, eGlobalSpeechContext gCtx, CEntity* attachTo, uint32 startTimeDelayMs, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    m_PedlessSpeechAE.AddSayEvent(audioEvent, gCtx, attachTo, startTimeDelayMs, probability, overrideSilence, isForceAudible, isFrontEnd);
 }
 
 // unused
@@ -789,7 +792,7 @@ bool CAudioEngine::IsRadioRetuneInProgress() {
 }
 
 // 0x507000
-const char* CAudioEngine::GetRadioStationName(eRadioID id) {
+const GxtChar* CAudioEngine::GetRadioStationName(eRadioID id) {
     return AERadioTrackManager.GetRadioStationName(id);
 }
 

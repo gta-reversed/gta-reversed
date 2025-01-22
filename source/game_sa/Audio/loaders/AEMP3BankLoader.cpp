@@ -115,7 +115,9 @@ int32 CAEMP3BankLoader::GetLoopOffset(uint16 soundId, int16 bankSlot) {
 
 // 0x4E03B0
 bool CAEMP3BankLoader::IsSoundLoaded(uint16 bankId, uint16 soundId, int16 bankSlot) {
-    return m_bInitialised && m_paBankSlots[bankSlot].m_nBankId == bankId && m_aBankSlotSound[bankSlot] == soundId;
+    return m_bInitialised
+        && m_paBankSlots[bankSlot].m_nBankId == bankId
+        && m_aBankSlotSound[bankSlot] == soundId;
 }
 
 // 0x4E0400
@@ -131,13 +133,12 @@ void CAEMP3BankLoader::UpdateVirtualChannels(tVirtualChannelSettings* settings, 
         const auto& bankSlot = m_paBankSlots[slotId];
 
         if (slotId < 0 || soundId < 0 || bankSlot.m_nBankId == -1 || (soundId >= bankSlot.m_nSoundCount && bankSlot.m_nSoundCount >= 0)) {
-            // perhaps invalid?
             lengths[i] = -1;
             loopStartTimes[i] = -1;
         } else {
             lengths[i] = CAEAudioUtility::ConvertFromBytesToMS(
                 bankSlot.CalculateSizeOfSlotItem(soundId),
-                bankSlot.m_aSlotItems[soundId].m_usSoundHeadroom,
+                bankSlot.m_aSlotItems[soundId].m_usSampleRate,
                 1u
             );
 
@@ -186,19 +187,19 @@ void CAEMP3BankLoader::LoadSoundBank(uint16 bankId, int16 bankSlot) {
 }
 
 // 0x4E07A0
-void CAEMP3BankLoader::LoadSound(uint16 bankId, uint16 soundId, int16 bankSlot) {
+bool CAEMP3BankLoader::LoadSound(uint16 bankId, uint16 soundId, int16 bankSlot) {
     if (!m_bInitialised)
-        return;
+        return false;
 
     if (soundId >= NUM_BANK_SLOT_ITEMS || bankId > m_nBankLookupCount || bankSlot < 0 || bankSlot > m_nBankSlotCount)
-        return;
+        return false;
 
     if (IsSoundLoaded(bankId, soundId, bankSlot))
-        return;
+        return true;
 
     for (auto& req : m_aRequests) {
         if (req.m_nBankId == bankId && req.m_nBankSlotId == bankSlot && req.m_nNumSounds == soundId)
-            return;
+            return true;
     }
 
     const auto bankLookup = GetBankLookup(bankId);
@@ -214,7 +215,9 @@ void CAEMP3BankLoader::LoadSound(uint16 bankId, uint16 soundId, int16 bankSlot) 
     nextRequest.m_nStatus = eSoundRequestStatus::JUST_LOADED;
 
     m_iRequestCount++;
-    m_iNextRequest = (m_iNextRequest + 1) % 50;
+    m_iNextRequest = (m_iNextRequest + 1) % std::size(m_aRequests);
+
+    return true;
 }
 
 // 0x4DFE30, broken

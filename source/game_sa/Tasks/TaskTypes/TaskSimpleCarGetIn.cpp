@@ -124,7 +124,7 @@ bool CTaskSimpleCarGetIn::ProcessPed(CPed* ped) {
     }
 
     // Apply move force for BMX like vehicles
-    if (m_veh && m_veh->IsSubBMX() && m_anim && (m_anim->m_Flags & ANIMATION_STARTED)) {
+    if (m_veh && m_veh->IsSubBMX() && m_anim && (m_anim->m_Flags & ANIMATION_IS_PLAYING)) {
         switch (m_anim->m_AnimId) {
         case ANIM_ID_CAR_GETIN_LHS_0:
         case ANIM_ID_CAR_GETIN_RHS_0:

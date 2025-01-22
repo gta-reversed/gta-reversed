@@ -1,8 +1,8 @@
 #pragma once
 
 // original name. prev name eAnimGroup
-enum AssocGroupId : uint32 {
-    ANIM_GROUP_NONE = (uint32)(-1),
+enum AssocGroupId : int32 {
+    ANIM_GROUP_NONE = -1,
     ANIM_GROUP_DEFAULT = 0,
     ANIM_GROUP_DOOR = 1,
     ANIM_GROUP_BIKES = 2,
@@ -548,6 +548,11 @@ enum AnimationId : int32 {
     ANIM_ID_CAR_FALLOUT_RHS = 388,
     ANIM_ID_CAR_DOORLOCKED_LHS = 389,
     ANIM_ID_CAR_DOORLOCKED_RHS = 390,
+
+    //
+    // Add above
+    //
+    ANIM_ID_MAX,
 };
 
 /*

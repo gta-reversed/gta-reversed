@@ -105,7 +105,7 @@ bool CTaskSimpleJetPack::MakeAbortable(class CPed* ped, eAbortPriority priority,
     m_bIsFinished = true;
 
     StopJetPackEffect();
-    ped->m_pedAudio.TurnOffJetPack();
+    ped->GetAE().TurnOffJetPack();
 
     return true;
 }
@@ -275,8 +275,8 @@ void CTaskSimpleJetPack::ProcessThrust(CPed* ped) {
     m_PrevVelocity = ped->GetMoveSpeed();
 
     if (!m_bIsFinished) {
-        ped->m_pedAudio.TurnOnJetPack();
-        ped->m_pedAudio.UpdateJetPack((float)m_ThrustFwd, m_ThrustAngle);
+        ped->GetAE().TurnOnJetPack();
+        ped->GetAE().UpdateJetPack((float)m_ThrustFwd, m_ThrustAngle);
     }
 }
 
@@ -431,10 +431,10 @@ void CTaskSimpleJetPack::ApplyRollAndPitch(CPed* ped) {
     if (ped->bIsStanding || ped->bWasStanding) {
         return;
     }
-    for (const auto nodeId : { PED_NODE_LEFT_LEG, PED_NODE_RIGHT_LEG }) {
-        const auto orientation = ped->m_apBones[nodeId]->GetFrameOrientation().AsRtQuat();
-        RtQuatRotate(orientation, &CPedIK::ZaxisIK, RWRAD2DEG(m_LegSwingFwd), rwCOMBINEPOSTCONCAT);
-        RtQuatRotate(orientation, &CPedIK::YaxisIK, RWRAD2DEG(m_LegSwingSide), rwCOMBINEPOSTCONCAT);
+    for (const auto nodeId : { PED_NODE_LEFT_LEG, PED_NODE_RIGHT_LEG }) { // Rotate legs according to current swing values
+        const auto q = &ped->m_apBones[nodeId]->KeyFrame->q;
+        RtQuatRotate(q, &CPedIK::ZaxisIK, RWRAD2DEG(m_LegSwingFwd), rwCOMBINEPOSTCONCAT);
+        RtQuatRotate(q, &CPedIK::YaxisIK, RWRAD2DEG(m_LegSwingSide), rwCOMBINEPOSTCONCAT);
     }
     ped->bUpdateMatricesRequired = true;
 }

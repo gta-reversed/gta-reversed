@@ -14,7 +14,7 @@ void CBmx::InjectHooks() {
 CBmx::CBmx(int32 modelIndex, eVehicleCreatedBy createdBy) : CBike(modelIndex, createdBy) {
     auto mi = CModelInfo::GetModelInfo(modelIndex);
     m_nVehicleSubType = VEHICLE_TYPE_BMX;
-    m_RideAnimData.m_nAnimGroup = CAnimManager::ms_aAnimBlocks[mi->GetAnimFileIndex()].GroupId;
+    m_RideAnimData.m_nAnimGroup = CAnimManager::GetAnimBlocks()[mi->GetAnimFileIndex()].GroupId;
     if (m_RideAnimData.m_nAnimGroup < ANIM_GROUP_BMX || m_RideAnimData.m_nAnimGroup > ANIM_GROUP_CHOPPA) {
         m_RideAnimData.m_nAnimGroup = ANIM_GROUP_BMX;
     }

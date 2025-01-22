@@ -6,10 +6,12 @@
 */
 #pragma once
 
-enum ePedBones : int16 {
+#include <extensions/WEnum.hpp>
+
+enum eBoneTag : int16 {
     BONE_UNKNOWN     = -1,
 
-    BONE_NORMAL      = 0, // Normal or Root, both are same
+    BONE_ROOT      = 0, // Normal or Root, both are same
     BONE_PELVIS      = 1,
     BONE_SPINE       = 2,
     BONE_SPINE1      = 3,
@@ -48,5 +50,9 @@ enum ePedBones : int16 {
     BONE_L_BREAST    = 302,
     BONE_R_BREAST    = 301,
 
-    BONE_NUM = 303
+    BONE_MAX_ID = 303,
+    MAX_BONE_NUM = 32
 };
+
+using eBoneTag16 = notsa::WEnumS16<eBoneTag>;
+using eBoneTag32 = notsa::WEnumS32<eBoneTag>;

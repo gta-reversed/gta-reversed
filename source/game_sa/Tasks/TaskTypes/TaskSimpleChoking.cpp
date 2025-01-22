@@ -8,6 +8,10 @@ CTaskSimpleChoking::CTaskSimpleChoking(CPed* attacker, bool bIsTeargas) :
     m_bIsTeargas{bIsTeargas}
 {
     CEntity::SafeRegisterRef(m_pAttacker);
+    m_pAnim          = nullptr;
+    m_bIsFinished    = false;
+    m_nTimeRemaining = CGeneral::GetRandomNumberInRange(0u, 1000u);
+    m_nTimeStarted   = CTimer::GetTimeInMS();
 }
 
 // 0x623220

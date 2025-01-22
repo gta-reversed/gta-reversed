@@ -84,7 +84,7 @@ CTask* CTaskComplexAvoidEntity::CreateFirstSubTask(CPed* ped) {
         return CreateNextSubTask(ped);
     }
 
-    return new CTaskSimpleGoToPoint(m_moveState, &f2C, 0.5f, false, false);
+    return new CTaskSimpleGoToPoint(m_moveState, f2C, 0.5f, false, false);
 }
 
 // 0x66AD70

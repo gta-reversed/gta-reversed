@@ -154,8 +154,8 @@ void CBulletTraces::AddTrace(const CVector& posMuzzle, const CVector& posBulletH
     CVector to = from + dir * fRadius;
 
     AddTrace(
-        &from,
-        &to,
+        from,
+        to,
         0.01f,
         300,
         70

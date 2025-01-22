@@ -100,7 +100,7 @@ bool CTaskSimpleStealthKill::MakeAbortable(class CPed* ped, eAbortPriority prior
 
 // 0x6296D0
 void CTaskSimpleStealthKill::ManageAnim(CPed* ped) {
-    CAnimBlock* pAnimBlock = CAnimManager::ms_aAnimAssocGroups[m_animGrpId].m_AnimBlock;
+    CAnimBlock* pAnimBlock = CAnimManager::GetAssocGroups()[m_animGrpId].m_AnimBlock;
     if (!pAnimBlock || !pAnimBlock->IsLoaded) {
         m_spentWaitingMs += (uint32)CTimer::GetTimeStepInMS();
         if (m_spentWaitingMs > 10000) {

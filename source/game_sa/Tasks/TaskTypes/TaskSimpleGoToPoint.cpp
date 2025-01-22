@@ -89,7 +89,7 @@ bool CTaskSimpleGoToPoint::ProcessPed(CPed* ped) {
                     if (!pWeaponInfo->flags.bHeavy) {
                         auto* task = static_cast<CTaskSimpleHoldEntity*>(ped->GetIntelligence()->GetTaskHold(false));
                         if (!task || !task->m_pAnimBlendAssociation) {
-                            CAnimBlendAssocGroup* animGroup = &CAnimManager::ms_aAnimAssocGroups[ped->m_nAnimGroup];
+                            CAnimBlendAssocGroup* animGroup = &CAnimManager::GetAssocGroups()[ped->m_nAnimGroup];
                             if (!ped->m_pPlayerData->m_bPlayerSprintDisabled && !g_surfaceInfos.CantSprintOn(ped->m_nContactSurface)) {
                                 auto assoc1 = animGroup->GetAnimation(ANIM_ID_RUN);
                                 auto assoc2 = animGroup->GetAnimation(ANIM_ID_SPRINT);

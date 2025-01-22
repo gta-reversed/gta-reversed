@@ -11,7 +11,7 @@
 #include "MenuSystem.h"
 #include "Hud.h"
 
-tStatMessage (&CStats::StatMessage)[8] = *(tStatMessage(*)[8])0xB78200;
+tStatMessage (&CStats::StatMessage)[128] = *(tStatMessage(*)[128])0xB78200;
 char (&CStats::LastMissionPassedName)[8] = *(char(*)[8])0xB78A00;
 int32 (&CStats::TimesMissionAttempted)[100] = *(int32(*)[100])0xB78CC8;
 int32 (&CStats::FavoriteRadioStationList)[14] = *(int32(*)[14])0xB78E58;
@@ -383,8 +383,8 @@ void CStats::RegisterBestPosition(eStats stat, int32 position) {
 }
 
 // 0x55A210
-char* CStats::FindCriminalRatingString() {
-    return plugin::CallAndReturn<char*, 0x55A210>();
+GxtChar* CStats::FindCriminalRatingString() {
+    return plugin::CallAndReturn<GxtChar*, 0x55A210>();
 }
 
 // 0x55A780
@@ -669,34 +669,33 @@ void CStats::ModifyStat(eStats stat, float value) {
 
 // 0x5D3B40
 bool CStats::Save() {
-    float unsavedKills = GetStatValue(STAT_KILLS_SINCE_LAST_CHECKPOINT);
-    IncrementStat(STAT_TOTAL_LEGITIMATE_KILLS, unsavedKills);
+    IncrementStat(STAT_TOTAL_LEGITIMATE_KILLS, GetStatValue(STAT_KILLS_SINCE_LAST_CHECKPOINT));
     SetStatValue(STAT_KILLS_SINCE_LAST_CHECKPOINT, 0.0f);
 
-    CGenericGameStorage::SaveDataToWorkBuffer(StatTypesFloat,           sizeof(StatTypesFloat));
-    CGenericGameStorage::SaveDataToWorkBuffer(StatTypesInt,             sizeof(StatTypesInt));
-    CGenericGameStorage::SaveDataToWorkBuffer(PedsKilledOfThisType,     sizeof(PedsKilledOfThisType));
-    CGenericGameStorage::SaveDataToWorkBuffer(LastMissionPassedName,    sizeof(LastMissionPassedName));
-    CGenericGameStorage::SaveDataToWorkBuffer(FavoriteRadioStationList, sizeof(FavoriteRadioStationList));
-    CGenericGameStorage::SaveDataToWorkBuffer(TimesMissionAttempted,    sizeof(TimesMissionAttempted));
-    // todo: CGenericGameStorage::SaveDataToWorkBuffer(&StatMessage,             sizeof(StatMessage));
-    for (int32 i = 0; i < sizeof(StatMessage); i++) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&StatMessage[i].displayed, 1);
+    CGenericGameStorage::SaveDataToWorkBuffer(StatTypesFloat);
+    CGenericGameStorage::SaveDataToWorkBuffer(StatTypesInt);
+    CGenericGameStorage::SaveDataToWorkBuffer(PedsKilledOfThisType);
+    CGenericGameStorage::SaveDataToWorkBuffer(LastMissionPassedName);
+    CGenericGameStorage::SaveDataToWorkBuffer(FavoriteRadioStationList);
+    CGenericGameStorage::SaveDataToWorkBuffer(TimesMissionAttempted);
+    // TODO: NOTSA: CGenericGameStorage::SaveDataToWorkBuffer(StatMessage);
+    for (auto& statMessage : StatMessage) {
+        CGenericGameStorage::SaveDataToWorkBuffer(statMessage.displayed);
     }
     return true;
 }
 
 // 0x5D3BF0
 bool CStats::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(StatTypesFloat,           sizeof(StatTypesFloat));
-    CGenericGameStorage::LoadDataFromWorkBuffer(StatTypesInt,             sizeof(StatTypesInt));
-    CGenericGameStorage::LoadDataFromWorkBuffer(PedsKilledOfThisType,     sizeof(PedsKilledOfThisType));
-    CGenericGameStorage::LoadDataFromWorkBuffer(LastMissionPassedName,    sizeof(LastMissionPassedName));
-    CGenericGameStorage::LoadDataFromWorkBuffer(FavoriteRadioStationList, sizeof(FavoriteRadioStationList));
-    CGenericGameStorage::LoadDataFromWorkBuffer(TimesMissionAttempted,    sizeof(TimesMissionAttempted));
-    // todo: CGenericGameStorage::LoadDataFromWorkBuffer(&StatMessage,             sizeof(StatMessage));
-    for (int32 i = 0; i < sizeof(StatMessage); i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&StatMessage[i].displayed, 1);
+    CGenericGameStorage::LoadDataFromWorkBuffer(StatTypesFloat);
+    CGenericGameStorage::LoadDataFromWorkBuffer(StatTypesInt);
+    CGenericGameStorage::LoadDataFromWorkBuffer(PedsKilledOfThisType);
+    CGenericGameStorage::LoadDataFromWorkBuffer(LastMissionPassedName);
+    CGenericGameStorage::LoadDataFromWorkBuffer(FavoriteRadioStationList);
+    CGenericGameStorage::LoadDataFromWorkBuffer(TimesMissionAttempted);
+    // TODO: NOTSA: CGenericGameStorage::LoadDataFromWorkBuffer(StatMessage);
+    for (auto& statMessage : StatMessage) {
+        CGenericGameStorage::LoadDataFromWorkBuffer(statMessage.displayed);
     }
     return true;
 }

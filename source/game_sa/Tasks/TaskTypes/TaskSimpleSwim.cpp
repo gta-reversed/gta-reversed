@@ -60,7 +60,7 @@ CTaskSimpleSwim::~CTaskSimpleSwim() {
 // 0x68A9F0
 void CTaskSimpleSwim::CreateFxSystem(CPed* ped, RwMatrix* mat) {
     CVector point{};
-    m_pFxSystem = g_fxMan.CreateFxSystem("water_ripples", &point, mat, false);
+    m_pFxSystem = g_fxMan.CreateFxSystem("water_ripples", point, mat, false);
     if (m_pFxSystem) {
         m_pFxSystem->CopyParentMatrix();
         m_pFxSystem->Play();
@@ -128,7 +128,7 @@ bool CTaskSimpleSwim::ProcessPed(CPed* ped) {
         ped->m_nMoveState = PEDMOVE_STILL;
         if (assoc) {
             if (assoc->m_AnimId == ANIM_ID_CLIMB_JUMP)
-                assoc->m_Flags |= ANIMATION_UNLOCK_LAST_FRAME;
+                assoc->m_Flags |= ANIMATION_IS_FINISH_AUTO_REMOVE;
             else
                 assoc->m_BlendDelta = -4.0f;
 
@@ -186,7 +186,7 @@ bool CTaskSimpleSwim::ProcessPed(CPed* ped) {
         ped->AsPlayer()->HandlePlayerBreath(bDecreaseAir, fDecreaseAirMult);
         if (m_pPed && m_nSwimState != SWIM_UNDERWATER_SPRINTING) {
             if (CStats::GetFatAndMuscleModifier(STAT_MOD_AIR_IN_LUNG) * 0.5f > ped->m_pPlayerData->m_fBreath) {
-                ped->Say(356);
+                ped->Say(CTX_GLOBAL_PAIN_CJ_SWIM_GASP);
             }
         }
         ped->SetMoveState(PEDMOVE_NONE);
@@ -241,7 +241,7 @@ void CTaskSimpleSwim::ProcessSwimAnims(CPed* ped) {
                 m_bFinishedBlending = true;
             }
         }
-        RpAnimBlendClumpSetBlendDeltas(player->m_pRwClump, 0x10, -8.0f); // todo: ANIMATION_PARTIAL ?
+        RpAnimBlendClumpSetBlendDeltas(player->m_pRwClump, 0x10, -8.0f); // todo: ANIMATION_IS_PARTIAL ?
         FxSystem_c::SafeKillAndClear(player->GetActiveWeapon().m_FxSystem); // Removes fire or something in water
 
         if (player->IsPlayer() && !m_nSwimState) {
@@ -400,7 +400,7 @@ void CTaskSimpleSwim::ProcessSwimAnims(CPed* ped) {
             if (assocJumpOut) {
                 if (assocJumpOut->m_BlendHier->m_fTotalTime / 4.0f <= assocJumpOut->m_TimeStep + assocJumpOut->m_CurrentTime) {
                     assocJumpOut = CAnimManager::BlendAnimation(player->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_CLIMB_JUMP, 8.0f);
-                    assocJumpOut->m_Flags |= ANIMATION_UNLOCK_LAST_FRAME;
+                    assocJumpOut->m_Flags |= ANIMATION_IS_FINISH_AUTO_REMOVE;
                     m_AnimID = ANIM_ID_CLIMB_JUMP;
                 }
                 break;
@@ -623,7 +623,7 @@ void CTaskSimpleSwim::ProcessEffects(CPed* ped) {
         FxPrtMult_c fxPrtMult(1.0f, 1.0f, 1.0f, 0.2f, 0.4f, 0.0f, 0.5f);
         CVector particleVelocity;
         g_fx.m_Wake->AddParticle(&particlePosition, &particleVelocity, 0.0f, &fxPrtMult, fLimitedRadianAngle, 1.2f, 0.6f, 0);
-        ped->m_pedAudio.AddAudioEvent(AE_PED_SWIM_WAKE, 0.0f, 1.0f);
+        ped->GetAE().AddAudioEvent(AE_PED_SWIM_WAKE, 0.0f, 1.0f);
 
         if (m_nSwimState == SWIM_SPRINTING) {
             RpHAnimHierarchy* animHierarchy = GetAnimHierarchyFromSkinClump(ped->m_pRwClump); // todo: almost CPed::GetBoneMatrix
@@ -634,10 +634,10 @@ void CTaskSimpleSwim::ProcessEffects(CPed* ped) {
 
             const auto AddAudioEvent = [&](RwV3d* bonePos) {
                 if (std::fabs(bonePos->z - pedPos.z) < 0.05f) {
-                    auto fx = g_fxMan.CreateFxSystem("water_swim", static_cast<CVector*>(bonePos), nullptr, false);
+                    auto fx = g_fxMan.CreateFxSystem("water_swim", *bonePos, nullptr, false);
                     if (fx) {
                         fx->PlayAndKill();
-                        ped->m_pedAudio.AddAudioEvent(AE_PED_SWIM_STROKE_SPLASH, 0.0f, 1.0f);
+                        ped->GetAE().AddAudioEvent(AE_PED_SWIM_STROKE_SPLASH, 0.0f, 1.0f);
                     }
                 }
             };
@@ -653,7 +653,7 @@ void CTaskSimpleSwim::ProcessEffects(CPed* ped) {
         }
         g_fx.TriggerWaterSplash(particlePosition);
         m_bTriggerWaterSplash = true;
-        ped->m_pedAudio.AddAudioEvent(AE_PED_SWIM_DIVE_SPLASH, 0.0f, 1.0f);
+        ped->GetAE().AddAudioEvent(AE_PED_SWIM_DIVE_SPLASH, 0.0f, 1.0f);
         break;
     }
     case SWIM_UNDERWATER_SPRINTING: {

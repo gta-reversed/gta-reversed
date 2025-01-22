@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include "UIRenderer.h"
-#include "TaskSimpleGoToPoint.h"
+#include "TaskSimpleAchieveHeading.h"
 #include "TaskComplexWalkAlongsidePed.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
 #include "TaskComplexFollowNodeRoute.h"
@@ -50,23 +50,33 @@ void UIRenderer::PreRenderUpdate() {
     ZoneScoped;
 
     m_ImIO->DeltaTime   = CTimer::GetTimeStepInSeconds();
-    m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT); // Update display size, in case of window resize after imgui was already initialized
+    m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT); // Update display size, in case of window resize after ImGui was already initialized
 
     m_DebugModules.PreRenderUpdate();
     DebugCode();
     ReversibleHooks::CheckAll();
 
-    // A delay of a frame has to be added, otherwise the release of F7 wont be processed
-    // and the menu will close
+    // A delay of a frame has to be added, otherwise
+    // the release of F7 wont be processed and the menu will close
     const auto Shortcut = [](ImGuiKeyChord chord) {
-        return ImGui::Shortcut(chord, ImGuiKeyOwner_Any, ImGuiInputFlags_RouteAlways);
+        return ImGui::IsKeyChordPressed(chord, ImGuiInputFlags_RouteAlways);
     };
     if (Shortcut(ImGuiKey_F7) || Shortcut(ImGuiKey_M | ImGuiMod_Ctrl)) {
-        m_InputActive                         = !m_InputActive;
-        m_ImIO->MouseDrawCursor               = m_InputActive;
-        m_ImIO->NavActive                     = m_InputActive;
-        CPad::GetPad()->DisablePlayerControls = m_InputActive;
-        CPad::GetPad()->Clear(m_InputActive, true);
+        const auto pad = CPad::GetPad(0);
+
+        m_InputActive = !m_InputActive;
+
+        if (m_InputActive) { // Clear controller states
+            pad->OldMouseControllerState
+                = pad->NewMouseControllerState
+                = CMouseControllerState{};
+        } else {
+            SetFocus(PSGLOBAL(window)); // Re-focus GTA main window
+        }
+        pad->Clear(false, true);
+
+        m_ImIO->MouseDrawCursor = m_InputActive;
+        m_ImIO->NavActive       = m_InputActive;
     }
 }
 
@@ -185,28 +195,32 @@ void UIRenderer::DebugCode() {
         }
     }
     if (pad->IsStandardKeyJustPressed('6')) {
-        CMessages::AddBigMessage("PRESS ~k~~PED_ANSWER_PHONE~ TO FUCK", 1000, eMessageStyle::STYLE_BOTTOM_RIGHT);
-    }
-    if (pad->IsStandardKeyJustPressed('7')) {
-        CMessages::AddMessageWithNumberQ("PRESS ~k~~PED_ANSWER_PHONE~TO FUCK ~1~~1~~1~", 1000, 0, 1, 2, 3, 4, 5, 6);
+        FindPlayerPed()->Say(CTX_GLOBAL_JACKED_CAR);
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {
-        const auto ped = new CPed(ePedType::PED_TYPE_GANG1);
-        ped->SetCreatedBy(PED_GAME);
-        ped->SetModelIndex(MODEL_MALE01);
-        ped->SetHeading(player->GetHeading());
-        CWorld::Add(ped);
-        ped->SetPosn(player->GetPosition() + player->GetForward() * 6.f);
-        ped->GetTaskManager().SetTask(
-            new CTaskSimpleGoToPoint{PEDMOVE_SPRINT, ped->GetPosition() + ped->GetForward() * 40.f},
-            TASK_PRIMARY_PRIMARY
-        );
         player->GetTaskManager().SetTask(
-            new CTaskComplexWalkAlongsidePed{ped, 15.f},
+            new CTaskSimpleAchieveHeading{PI/2.f},
             TASK_PRIMARY_PRIMARY
         );
     }
+
+    //if (pad->IsStandardKeyJustPressed('T')) {
+    //    const auto ped = new CPed(ePedType::PED_TYPE_GANG1);
+    //    ped->SetCreatedBy(PED_GAME);
+    //    ped->SetModelIndex(MODEL_MALE01);
+    //    ped->SetHeading(player->GetHeading());
+    //    CWorld::Add(ped);
+    //    ped->SetPosn(player->GetPosition() + player->GetForward() * 6.f);
+    //    ped->GetTaskManager().SetTask(
+    //        new CTaskSimpleGoToPoint{PEDMOVE_SPRINT, ped->GetPosition() + ped->GetForward() * 40.f},
+    //        TASK_PRIMARY_PRIMARY
+    //    );
+    //    player->GetTaskManager().SetTask(
+    //        new CTaskComplexWalkAlongsidePed{ped, 15.f},
+    //        TASK_PRIMARY_PRIMARY
+    //    );
+    //}
 
     //if (pad->IsStandardKeyJustPressed('8')) {
     //    CMessages::AddToPreviousBriefArray("PRESS ~k~~PED_ANSWER_PHONE~ TO FUCK");

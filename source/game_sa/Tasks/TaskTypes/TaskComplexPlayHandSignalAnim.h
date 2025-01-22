@@ -17,11 +17,11 @@ public:
 
 public:
     AnimationId m_animationId{};
-    float       m_fBlendFactor{};
+    float       m_AnimBlenDelta{};
     bool        m_bLeftHandLoaded : 1{};
     bool        m_bRightHandLoaded : 1{};
     bool        m_bAnimationLoaded : 1{};
-    bool        m_bUseFatHands : 1{};
+    bool        m_DoUseFatHands : 1{};
 
 public:
     static constexpr auto Type = TASK_COMPLEX_HANDSIGNAL_ANIM;

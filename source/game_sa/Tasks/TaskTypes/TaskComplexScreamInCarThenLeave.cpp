@@ -99,9 +99,9 @@ CTask* CTaskComplexScreamInCarThenLeave::ControlSubTask(CPed* ped) {
             if (!m_veh->m_pDriver || m_veh->CanPedStepOutCar() || m_veh->CanPedJumpOutCar(ped)) {
                 return CreateSubTask(TASK_COMPLEX_LEAVE_CAR_AND_FLEE, ped);
             }
-            ped->Say(347);
+            ped->Say(CTX_GLOBAL_PAIN_PANIC);
         } else {
-            ped->Say(227);
+            ped->Say(CTX_GLOBAL_TRAPPED);
         }
     }
     return m_pSubTask;

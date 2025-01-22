@@ -59,7 +59,7 @@ bool CTaskSimpleThrowProjectile::ControlThrow(bool bButtonReleased, CEntity* tar
     }
 
     if (targetPos) {
-        m_TargetPos = targetPos;
+        m_TargetPos = *targetPos;
     }
 
     return false;
@@ -143,7 +143,7 @@ bool CTaskSimpleThrowProjectile::ProcessPed(CPed* ped) {
         const auto animFireTime = m_Anim->m_AnimId == ANIM_ID_GRENADE_WEAPON_THROW
             ? wi->m_fAnimLoop2Fire
             : wi->m_fAnimLoopFire;
-        if (animFireTime < m_Anim->m_CurrentTime && (m_Anim->m_CurrentTime - m_Anim->m_TimeStep) <= animFireTime && m_Anim->IsRunning()) {
+        if (animFireTime < m_Anim->m_CurrentTime && (m_Anim->m_CurrentTime - m_Anim->m_TimeStep) <= animFireTime && m_Anim->IsPlaying()) {
             if (ped->IsPlayer()) {
                 if (!m_bButtonReleased) {
                     m_ButtonCounter = CTimer::GetTimeInMS() - m_ButtonCounter;
@@ -157,7 +157,7 @@ bool CTaskSimpleThrowProjectile::ProcessPed(CPed* ped) {
             }
 
             CVector firePos;
-            RwV3dTransformPoint(&firePos, &wi->m_vecFireOffset, &ped->GetBoneMatrix((ePedBones)ped->m_apBones[PED_NODE_RIGHT_HAND]->m_nNodeId));
+            RwV3dTransformPoint(&firePos, &wi->m_vecFireOffset, ped->GetBoneMatrix((eBoneTag)ped->m_apBones[PED_NODE_RIGHT_HAND]->BoneTag));
             ped->GetActiveWeapon().Fire(ped, &firePos, &firePos, nullptr, m_TargetPos.IsZero() ? nullptr : &m_TargetPos, nullptr);
         }
     }

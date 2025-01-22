@@ -61,24 +61,25 @@ void CCollision::SortOutCollisionAfterLoad() {
 void CCollision::CalculateTrianglePlanes(CCollisionData* colData) {
     ZoneScoped;
 
-    if (!colData->m_nNumTriangles)
+    if (!colData->m_nNumTriangles) { // No triangles => no planes to calculate
         return;
+    }
 
-    if (colData->m_pTrianglePlanes) {
-        auto* link = colData->GetLinkPtr();
-        link->Remove();
-        ms_colModelCache.usedListHead.Insert(link);
+    if (colData->m_pTrianglePlanes) { // Planes already calculated?
+        ms_colModelCache.Insert(*colData->GetLinkPtr()); // Re-insert link at front
     } else {
-        auto* link = ms_colModelCache.Insert(colData);
-        if (!link) {
-            auto* toRemove = ms_colModelCache.usedListTail.prev;
-            toRemove->data->RemoveTrianglePlanes();
-            ms_colModelCache.Remove(toRemove);
-            link = ms_colModelCache.Insert(colData);
-        }
+        auto l = ms_colModelCache.Insert(colData);
+        if (!l) { // No more free space?
+            // Remove least-recently used item
+            const auto llr = ms_colModelCache.GetTail();
+            llr->data->RemoveTrianglePlanes();
+            ms_colModelCache.Remove(llr);
 
+            // This should succeed now
+            VERIFY(l = ms_colModelCache.Insert(colData));
+        }
         colData->CalculateTrianglePlanes();
-        colData->SetLinkPtr(link);
+        colData->SetLinkPtr(l);
     }
 }
 
@@ -86,11 +87,12 @@ void CCollision::CalculateTrianglePlanes(CCollisionData* colData) {
 void CCollision::RemoveTrianglePlanes(CCollisionData* colData) {
     ZoneScoped;
 
-    if (!colData->m_pTrianglePlanes)
+    if (!colData->m_pTrianglePlanes) {
         return;
+    }
 
-    auto* link = colData->GetLinkPtr();
-    ms_colModelCache.Remove(link);
+    const auto l = colData->GetLinkPtr();
+    ms_colModelCache.Remove(l);
     colData->RemoveTrianglePlanes();
 }
 

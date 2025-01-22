@@ -16,7 +16,7 @@ void CMenuManager::UserInput() {
     { // NOTSA
     const auto pad = CPad::GetPad();
     if (pad->IsStandardKeyJustPressed('q') || pad->IsStandardKeyJustPressed('Q')) {
-        CFont::PrintString(50, 250, "switched");
+        CFont::PrintString(50, 250, "switched"_gxt);
         ReversibleHooks::SwitchHook("DisplaySlider");
     }
     }
@@ -81,11 +81,11 @@ bool CMenuManager::CheckRedefineControlInput() {
             }
 
             if (field_1B14) {
-                if (field_1B0A) {
+                if (m_DeleteAllBoundControls) {
                     AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
                     field_1B14 = 0;
-                    field_1B0B = 1;
-                    field_1B0A = 0;
+                    m_DeleteAllNextDefine = 1;
+                    m_DeleteAllBoundControls = 0;
                 } else {
                     if (*m_pPressedKey != rsNULL || m_nPressedMouseButton || m_nJustDownJoyButton) {
                         CheckCodesForControls(type);
@@ -95,7 +95,7 @@ bool CMenuManager::CheckRedefineControlInput() {
             } else {
                 m_pPressedKey = nullptr;
                 field_1B09 = 0;
-                field_38 = (RsKeyCodes)-1;
+                m_KeyPressedCode = (RsKeyCodes)-1;
                 m_bJustOpenedControlRedefWindow = false;
             }
         }
@@ -273,9 +273,9 @@ void CMenuManager::CheckForMenuClosing() {
                 AudioEngine.StopRadio(nullptr, false);
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
 
-                if (m_nSysMenu >= 0u) {
+                if (m_nSysMenu != CMenuSystem::MENU_UNDEFINED) {
                     CMenuSystem::SwitchOffMenu(0);
-                    m_nSysMenu = 157;
+                    m_nSysMenu = CMenuSystem::MENU_UNDEFINED;
                 }
 
                 auto pad = CPad::GetPad(m_nPlayerNumber);
@@ -296,7 +296,7 @@ void CMenuManager::CheckForMenuClosing() {
                 SaveSettings();
                 m_pPressedKey = nullptr;
                 field_EC = 0;
-                field_1AE8 = 0;
+                m_MenuIsAbleToQuit = 0;
                 m_bDontDrawFrontEnd = false;
                 m_bActivateMenuNextFrame = false;
                 field_1B09 = 0;

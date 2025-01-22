@@ -32,6 +32,8 @@ bool HasGameJustReturnedFromFrontend() {
 }
 
 void notsa::script::commands::pad::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Pad");
+
     REGISTER_COMMAND_HANDLER(COMMAND_IS_BUTTON_PRESSED, IsButtonPressed);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_PC_MOUSE_MOVEMENT, GetPCMouseMovement);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_PC_USING_JOYPAD, IsPCUsingJoyPad);

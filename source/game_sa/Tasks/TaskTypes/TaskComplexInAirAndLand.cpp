@@ -50,7 +50,7 @@ CTask* CTaskComplexInAirAndLand::CreateNextSubTask(CPed* ped) {
 
         if (m_bUsingFallGlide) {
             if (subTask->m_pAnim) {
-                subTask->m_pAnim->m_Flags |= ANIMATION_FREEZE_LAST_FRAME;
+                subTask->m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
                 subTask->m_pAnim->m_BlendDelta = -8.0F;
                 subTask->m_pAnim->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
                 subTask->m_pAnim = nullptr;
@@ -65,7 +65,7 @@ CTask* CTaskComplexInAirAndLand::CreateNextSubTask(CPed* ped) {
             else
                 newTask = new CTaskSimpleLand(ANIM_ID_FALL_COLLAPSE);
 
-            ped->m_pedAudio.AddAudioEvent(AE_PED_COLLAPSE_AFTER_FALL, 0.0F, 1.0F, 0, 0, 0, 0);
+            ped->GetAE().AddAudioEvent(AE_PED_COLLAPSE_AFTER_FALL, 0.0F, 1.0F, 0, 0, 0, 0);
 
             if (ped->m_pPlayerData) {
                 CVector          empty{};
@@ -91,7 +91,7 @@ CTask* CTaskComplexInAirAndLand::CreateNextSubTask(CPed* ped) {
 
             auto newTask = new CTaskSimpleLand(landAnimId);
 
-            ped->m_pedAudio.AddAudioEvent(AE_PED_LAND_ON_FEET_AFTER_FALL, 0.0F, 1.0F, 0, 0, 0, 0);
+            ped->GetAE().AddAudioEvent(AE_PED_LAND_ON_FEET_AFTER_FALL, 0.0F, 1.0F, 0, 0, 0, 0);
 
             if (ped->m_pPlayerData) {
                 CVector          empty{};

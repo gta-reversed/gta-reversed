@@ -162,7 +162,7 @@ void CPedGroupMembership::Process() {
 // 0x5FB190
 void CPedGroupMembership::RemoveAllFollowers(bool bCreatedByMissionOnly) {
     for (auto&& [i, mem] : notsa::enumerate(m_members)) {
-        if (IsLeader(mem)) { // Leader isn't a follower
+        if (!mem || IsLeader(mem)) { // Leader isn't a follower
             continue;
         }
         if (bCreatedByMissionOnly && mem->IsCreatedBy(PED_MISSION)) {

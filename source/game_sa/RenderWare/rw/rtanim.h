@@ -1,10 +1,7 @@
-/*
-    Plugin-SDK file
-    Authors: GTA Community. See more here
-    https://github.com/DK22Pac/plugin-sdk
-    Do not delete this comment block. Respect others' work!
-*/
-#pragma once
+#ifndef RTANIM_H
+#define RTANIM_H
+
+//#include <rtanim.rpe>          /* automatically generated header file */
 
 #define rtANIMSTREAMCURRENTVERSION 0x100
 
@@ -172,7 +169,7 @@ struct RtAnimInterpolatorInfo
             /**< The ID of the interpolation scheme. */
     RwInt32                             interpKeyFrameSize;
             /**< Size, in bytes, of the interpolated keyframe structure. */
-    //RwInt32                             animKeyFrameSize;
+    RwInt32                             animKeyFrameSize;
             /**< Size, in bytes, of the animation keyframe structure. */
     RtAnimKeyFrameApplyCallBack         keyFrameApplyCB;
             /**< Pointer to a function that converts a keyframe to the needed
@@ -424,35 +421,234 @@ struct RtAnimInterpolator
 /* Access to array of interpolated frames occupying a block of memory
  * after the end of the RtAnimInterpolator structure.
  */
-#define rtANIMGETINTERPFRAME(anim, nodeIndex) \
-                            ( (void *)( ( (RwUInt8 *)&(anim[1]) + ((nodeIndex) *anim->currentInterpKeyFrameSize) ) ) )
+#define rtANIMGETINTERPFRAME( anim, nodeIndex )                              \
+        ( (void *)( ( (RwUInt8 *)&(anim[1]) +                                  \
+                      ((nodeIndex) *                                           \
+                       anim->currentInterpKeyFrameSize) ) ) )
+
+#ifdef    __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
 
 
-void RtAnimAnimationFreeListCreateParams(RwInt32 blockSize, RwInt32 numBlocksToPrealloc); // 0x7CCC80
-RwBool RtAnimInitialize(); // 0x7CCCA0
-RwBool RtAnimRegisterInterpolationScheme(RtAnimInterpolatorInfo* interpolatorInfo); // 0x7CCD40
-RtAnimInterpolatorInfo* RtAnimGetInterpolatorInfo(RwInt32 typeID); // 0x7CCDE0
-RtAnimAnimation* RtAnimAnimationCreate(RwInt32 typeID, RwInt32 numFrames, RwInt32 flags, RwReal duration); // 0x7CCE40
-RwBool RtAnimAnimationDestroy(RtAnimAnimation* animation); // 0x7CCF10
-RtAnimAnimation* RtAnimAnimationRead(const RwChar* filename); // 0x7CCF30
-RwBool RtAnimAnimationWrite(const RtAnimAnimation* animation, const RwChar* filename); // 0x7CD160
-RtAnimAnimation* RtAnimAnimationStreamRead(RwStream* stream); // 0x7CD220
-RwBool RtAnimAnimationStreamWrite(const RtAnimAnimation* animation, RwStream* stream); // 0x7CD410
-RwInt32 RtAnimAnimationStreamGetSize(const RtAnimAnimation* animation); // 0x7CD4D0
-RwUInt32 RtAnimAnimationGetNumNodes(const RtAnimAnimation* animation); // 0x7CD4F0
-RtAnimInterpolator* RtAnimInterpolatorCreate(RwInt32 numNodes, RwInt32 maxInterpKeyFrameSize); // 0x7CD520
-void RtAnimInterpolatorDestroy(RtAnimInterpolator* anim); // 0x7CD590
-RwBool RtAnimInterpolatorSetCurrentAnim(RtAnimInterpolator* animI, RtAnimAnimation* anim); // 0x7CD5A0
-RwBool RtAnimInterpolatorSetKeyFrameCallBacks(RtAnimInterpolator* anim, RwInt32 keyFrameTypeID); // 0x7CD660
-void RtAnimInterpolatorSetAnimLoopCallBack(RtAnimInterpolator* anim, RtAnimCallBack callBack, void* data); // 0x7CD6F0
-void RtAnimInterpolatorSetAnimCallBack(RtAnimInterpolator* anim, RtAnimCallBack callBack, RwReal time, void* data); // 0x7CD710
-RwBool RtAnimInterpolatorCopy(RtAnimInterpolator* outAnim, RtAnimInterpolator* inAnim); // 0x7CD730
-RwBool RtAnimInterpolatorSubAnimTime(RtAnimInterpolator* anim, RwReal time); // 0x7CD760
-RwBool RtAnimInterpolatorAddAnimTime(RtAnimInterpolator* anim, RwReal time); // 0x7CD8D0
-RwBool RtAnimInterpolatorSetCurrentTime(RtAnimInterpolator* anim, RwReal time); // 0x7CDAB0
-RwBool RtAnimAnimationMakeDelta(RtAnimAnimation* animation, RwInt32 numNodes, RwReal time); // 0x7CDB00
-RwBool RtAnimInterpolatorBlend(RtAnimInterpolator* outAnim, RtAnimInterpolator* inAnim1, RtAnimInterpolator* inAnim2, RwReal alpha); // 0x7CDBF0
-RwBool RtAnimInterpolatorAddTogether(RtAnimInterpolator* outAnim, RtAnimInterpolator* inAnim1, RtAnimInterpolator* inAnim2); // 0x7CDC50
-RtAnimInterpolator* RtAnimInterpolatorCreateSubInterpolator(RtAnimInterpolator* parentAnim, RwInt32 startNode, RwInt32 numNodes, RwInt32 maxInterpKeyFrameSize); // 0x7CDCB0
-RwBool RtAnimInterpolatorBlendSubInterpolator(RtAnimInterpolator* outAnim, RtAnimInterpolator* inAnim1, RtAnimInterpolator* inAnim2, RwReal alpha); // 0x7CDCF0
-RwBool RtAnimInterpolatorAddSubInterpolator(RtAnimInterpolator* outAnim, RtAnimInterpolator* mainAnim, RtAnimInterpolator* subAnim); // 0x7CDEF0
+/* Engine functions */
+extern void
+RtAnimAnimationFreeListCreateParams( RwInt32 blockSize, RwInt32 numBlocksToPrealloc );
+
+extern RwBool
+RtAnimInitialize(void);
+
+extern RwBool
+RtAnimRegisterInterpolationScheme(RtAnimInterpolatorInfo *interpolatorInfo);
+
+extern RtAnimInterpolatorInfo *
+RtAnimGetInterpolatorInfo(RwInt32 typeID);
+
+/* RtAnimAnimation */
+extern RtAnimAnimation  *
+RtAnimAnimationCreate(RwInt32 typeID,
+                       RwInt32 numFrames,
+                       RwInt32 flags,
+                       RwReal duration);
+
+extern RwBool
+RtAnimAnimationDestroy(RtAnimAnimation *animation);
+
+extern RtAnimAnimation  *
+RtAnimAnimationRead(const RwChar * filename);
+
+extern              RwBool
+RtAnimAnimationWrite(const RtAnimAnimation *animation,
+                      const RwChar * filename);
+
+extern RtAnimAnimation  *
+RtAnimAnimationStreamRead(RwStream *stream);
+
+extern RwBool
+RtAnimAnimationStreamWrite(const RtAnimAnimation *animation,
+                            RwStream *stream);
+
+extern RwInt32
+RtAnimAnimationStreamGetSize(const RtAnimAnimation *animation);
+
+extern RwUInt32
+RtAnimAnimationGetNumNodes(const RtAnimAnimation *animation);
+
+#ifdef RWDEBUG
+
+extern RwInt32
+RtAnimAnimationGetTypeID(RtAnimAnimation *animation);
+
+#else  /* RWDEBUG */
+
+#define RtAnimAnimationGetTypeID(animation)  \
+    (animation->interpInfo->typeID)
+
+#endif /* RWDEBUG */
+
+/* RtAnimInterpolator */
+extern RtAnimInterpolator *
+RtAnimInterpolatorCreate(RwInt32 numNodes,
+                                RwInt32 maxInterpKeyFrameSize);
+
+extern void
+RtAnimInterpolatorDestroy(RtAnimInterpolator *anim);
+
+extern RwBool
+RtAnimInterpolatorSetCurrentAnim(RtAnimInterpolator *animI,
+                               RtAnimAnimation *anim);
+
+
+#ifdef RWDEBUG
+
+extern RtAnimAnimation *
+RtAnimInterpolatorGetCurrentAnim(RtAnimInterpolator *animI);
+
+#else  /* RWDEBUG */
+
+#define RtAnimInterpolatorGetCurrentAnim(animI)  \
+    ((animI)->pCurrentAnim)
+
+#endif /* RWDEBUG */
+
+
+extern RwBool
+RtAnimInterpolatorSetKeyFrameCallBacks(RtAnimInterpolator *anim,
+                                     RwInt32 keyFrameTypeID);
+
+
+extern void
+RtAnimInterpolatorSetAnimLoopCallBack(RtAnimInterpolator *anim,
+                                    RtAnimCallBack callBack,
+                                    void *data );
+
+extern void
+RtAnimInterpolatorSetAnimCallBack(RtAnimInterpolator *anim,
+                                RtAnimCallBack callBack,
+                                RwReal time,
+                                void *data );
+
+extern RwBool
+RtAnimInterpolatorCopy(RtAnimInterpolator *outAnim,
+                              RtAnimInterpolator *inAnim);
+
+extern RwBool
+RtAnimInterpolatorSubAnimTime(RtAnimInterpolator *anim,
+                            RwReal time);
+
+extern RwBool
+RtAnimInterpolatorAddAnimTime(RtAnimInterpolator *anim,
+                            RwReal time);
+
+extern RwBool
+RtAnimInterpolatorSetCurrentTime(RtAnimInterpolator *anim,
+                                   RwReal time);
+
+extern RwBool
+RtAnimAnimationMakeDelta(RtAnimAnimation *animation,
+                          RwInt32 numNodes,
+                          RwReal time);
+
+
+extern RwBool
+RtAnimInterpolatorBlend(RtAnimInterpolator *outAnim,
+                                RtAnimInterpolator *inAnim1,
+                                RtAnimInterpolator *inAnim2,
+                                RwReal alpha);
+
+extern RwBool
+RtAnimInterpolatorAddTogether(RtAnimInterpolator *outAnim,
+                                        RtAnimInterpolator *inAnim1,
+                                        RtAnimInterpolator *inAnim2);
+
+#define RtAnimKeyFrameApplyMacro(anim, out, in)                                \
+MACRO_START                                                                    \
+{                                                                              \
+    (anim)->keyFrameApplyCB((out), (in));                                      \
+}                                                                              \
+MACRO_STOP
+
+
+#define RtAnimKeyFrameInterpolateMacro(anim, out, in1, in2, time)              \
+MACRO_START                                                                    \
+{                                                                              \
+    (anim)->keyFrameInterpolateCB((out), (in1), (in2), (time), (anim->pCurrentAnim->customData));  \
+}                                                                              \
+MACRO_STOP
+
+#define RtAnimKeyFrameBlendMacro(anim, out, in1, in2, fAlpha)                  \
+MACRO_START                                                                    \
+{                                                                              \
+    (anim)->keyFrameBlendCB((out), (in1), (in2), (fAlpha));                    \
+}                                                                              \
+MACRO_STOP
+
+#define RtAnimKeyFrameAddTogetherMacro(anim, out, in1, in2)                    \
+MACRO_START                                                                    \
+{                                                                              \
+    (anim)->keyFrameAddCB((out), (in1), (in2));                                \
+}                                                                              \
+MACRO_STOP
+
+
+
+#ifdef RWDEBUG
+extern void
+RtAnimKeyFrameApply(RtAnimInterpolator *animation,
+                     void *result, void *iFrame);
+
+extern void
+RtAnimKeyFrameInterpolate(RtAnimInterpolator *animation,
+                        void *out, void *in1,
+                        void *in2, RwReal time);
+
+extern void
+RtAnimKeyFrameBlend(RtAnimInterpolator *animation,
+                  void *out,
+                  void *in1,
+                  void *in2,
+                  RwReal alpha);
+
+extern void
+RtAnimKeyFrameAddTogether(RtAnimInterpolator *animation,
+                        void *out, void *in1, void *in2);
+
+#else /* RWDEBUG */
+#define RtAnimKeyFrameApply(animation, out, in) \
+        RtAnimKeyFrameApplyMacro(animation, out, in)
+
+#define RtAnimKeyFrameInterpolate(animation, out, in1, in2, time) \
+        RtAnimKeyFrameInterpolateMacro(animation, out, in1, in2, time)
+
+#define RtAnimKeyFrameBlend(animation, out, in1, in2, alpha)    \
+        RtAnimKeyFrameBlendMacro(animation, out, in1, in2, alpha)
+
+#define RtAnimKeyFrameAddTogether(animation, out, in1, in2)      \
+        RtAnimKeyFrameAddTogetherMacro(animation, out, in1, in2)
+
+#endif /* RWDEBUG */
+
+extern RtAnimInterpolator *
+RtAnimInterpolatorCreateSubInterpolator(
+                                        RtAnimInterpolator *parentAnim,
+                                        RwInt32 startNode,
+                                        RwInt32 numNodes,
+                                        RwInt32 maxInterpKeyFrameSize);
+
+extern RwBool
+RtAnimInterpolatorBlendSubInterpolator(RtAnimInterpolator *outAnim,
+                                            RtAnimInterpolator *inAnim1,
+                                            RtAnimInterpolator *inAnim2,
+                                            RwReal alpha);
+
+extern RwBool
+RtAnimInterpolatorAddSubInterpolator(RtAnimInterpolator *outAnim,
+                                RtAnimInterpolator *mainAnim,
+                                RtAnimInterpolator *subAnim);
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+#endif /* RTANIM_H */

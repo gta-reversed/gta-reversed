@@ -5,7 +5,7 @@
 
 class CVehicle;
 
-class NOTSA_EXPORT_VTABLE CTaskComplexHitPedWithCar : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexHitPedWithCar final : public CTaskComplex {
 public:
     static constexpr auto Type = TASK_COMPLEX_HIT_PED_WITH_CAR;
 

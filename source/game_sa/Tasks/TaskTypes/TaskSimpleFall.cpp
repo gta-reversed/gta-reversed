@@ -161,15 +161,15 @@ bool CTaskSimpleFall::StartAnim(CPed* ped)
         {
             m_pAnim->Start(0.0F);
             m_pAnim->SetBlend(0.0F, 8.0F);
-            m_pAnim->m_Flags |= ANIMATION_FREEZE_LAST_FRAME;
-            m_pAnim->m_Flags &= ~ANIMATION_UNLOCK_LAST_FRAME;
+            m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
+            m_pAnim->m_Flags &= ~ANIMATION_IS_FINISH_AUTO_REMOVE;
             m_pAnim->SetFinishCallback(CTaskSimpleFall::FinishFallAnimCB, this);
         }
         else
         {
             m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_nAnimGroup, m_nAnimId, 8.0F);
-            m_pAnim->m_Flags |= ANIMATION_FREEZE_LAST_FRAME;
-            m_pAnim->m_Flags &= ~ANIMATION_UNLOCK_LAST_FRAME;
+            m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
+            m_pAnim->m_Flags &= ~ANIMATION_IS_FINISH_AUTO_REMOVE;
             m_pAnim->SetFinishCallback(CTaskSimpleFall::FinishFallAnimCB, this);
             if (m_nAnimId == ANIM_ID_BIKE_FALLR)
                 m_pAnim->SetCurrentTime(0.4F);
@@ -188,7 +188,7 @@ void CTaskSimpleFall::ProcessFall(CPed* ped)
         )
     {
         CAnimBlendAssociation* anim;
-        auto pFirstAnim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_PARTIAL);
+        auto pFirstAnim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_PARTIAL);
 
         if (pFirstAnim && (pFirstAnim->m_AnimId == ANIM_ID_FALL_BACK || pFirstAnim->m_AnimId == ANIM_ID_FALL_FRONT))
             anim = pFirstAnim;
@@ -230,8 +230,8 @@ void CTaskSimpleFall::ProcessFall(CPed* ped)
         }
         else
         {
-            auto firstAnim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_PARTIAL);
-            if (firstAnim && !(firstAnim->m_Flags & ANIMATION_STARTED))
+            auto firstAnim = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_PARTIAL);
+            if (firstAnim && !(firstAnim->m_Flags & ANIMATION_IS_PLAYING))
                 ped->bKnockedUpIntoAir = false;
         }
     }

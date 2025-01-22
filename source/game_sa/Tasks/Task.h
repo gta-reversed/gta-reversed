@@ -86,6 +86,9 @@ public:
     //! @brief Check if this task is any of the given types
     template<eTaskType... Types>
     static bool IsA(CTask* task) {
+        if (!task) {
+            return false;
+        }
         const auto ttype = task->GetTaskType();
         return ((ttype == Types) || ...);
     }

@@ -6,7 +6,7 @@
 template<typename T, float CompressValue>
 struct FixedQuat {
     constexpr FixedQuat() = default;
-    constexpr FixedQuat(CQuaternion q) : x(q.x), y(q.y), z(q.z) {}
+    constexpr FixedQuat(CQuaternion q) : x(q.x), y(q.y), z(q.z), w(q.w) {}
     constexpr FixedQuat(T X, T Y, T Z, T W) : x(X), y(Y), z(Z), w(W) {}
 
     constexpr operator CQuaternion() const { return CQuaternion{ x, y, z, w }; }

@@ -40,7 +40,7 @@ void DarkelDebugModule::RenderWindow() {
         "bHeadShotRequired             = %d\n"
         "bStandardSoundAndMessages     = %d\n"
         "bProperKillFrenzy             = %d",
-        CDarkel::pStartMessage ? CDarkel::pStartMessage : "<nullptr>", CDarkel::AmmoInterruptedWeapon, WEAPON_TYPE_STRING[CDarkel::InterruptedWeaponType],
+        CDarkel::pStartMessage ? GxtCharToUTF8(CDarkel::pStartMessage) : "<nullptr>", CDarkel::AmmoInterruptedWeapon, WEAPON_TYPE_STRING[CDarkel::InterruptedWeaponType],
         WEAPON_TYPE_STRING[CDarkel::InterruptedWeaponTypeSelected], CDarkel::TimeOfFrenzyStart, CDarkel::PreviousTime, CDarkel::TimeLimit, CDarkel::KillsNeeded,
         CDarkel::ModelToKill[0], CDarkel::ModelToKill[1], CDarkel::ModelToKill[2], CDarkel::ModelToKill[3], WEAPON_TYPE_STRING[CDarkel::WeaponType], CDarkel::Status,
         CDarkel::bHeadShotRequired, CDarkel::bStandardSoundAndMessages, CDarkel::bProperKillFrenzy

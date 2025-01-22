@@ -213,11 +213,14 @@ CTaskAllocator* CGroupEventHandler::ComputeResponsePlayerCommand(const CEventPla
     case ePlayerGroupCommand::PLAYER_GROUP_COMMAND_GATHER:
         return ComputeResponseGather(static_cast<const CEventPlayerCommandToGroupGather&>(e), pg, originator);
     case ePlayerGroupCommand::PLAYER_GROUP_COMMAND_ATTACK:
-        return new CTaskAllocatorPlayerCommandAttack{
-            e.m_target,
-            e.m_target->GetGroupId(),
-            e.m_target->m_nPedType
-        };
+        if (e.m_target) {
+            return new CTaskAllocatorPlayerCommandAttack{
+                e.m_target,
+                e.m_target->GetGroupId(),
+                e.m_target->m_nPedType
+            };
+        }
+        break;
     }
     return nullptr;
 }
@@ -419,8 +422,8 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseDraggedOutCar(const CEventDra
     if (!e.m_CarJacker) {
         return nullptr;
     }
-    assert(!e.m_CarJacker->IsPed()); // Original code just `returns nullptr` in this case, but but since `m_CarJacker` is typed as `CPed*` it *should* be at least a `CPed*`
-    switch (e.m_TaskId) {
+    assert(e.m_CarJacker->IsPed()); // Original code just `returns nullptr` in this case, but but since `m_CarJacker` is typed as `CPed*` it *should* be at least a `CPed*`
+    switch (e.m_taskId) {
     case TASK_GROUP_KILL_THREATS_BASIC:
         return e.m_CarJacker->IsPlayer() && originator && originator->GetIntelligence()->Respects(e.m_CarJacker) && !pg->m_bIsMissionGroup
             ? ComputeFleePedResponse(pg, e.m_CarJacker, originator, false)
@@ -716,12 +719,16 @@ CTaskAllocator* CGroupEventHandler::ComputeFleePedResponse(CPedGroup* pg, CPed* 
     if (!leader) {
         return nullptr;
     }
+
+    if (DistanceBetweenPoints(leader->GetPosition(), threat->GetPosition()) > 64.f) {
+        return nullptr;
+    }
     /* rand(); */
     for (auto& m : pg->GetMembership().GetMembers()) {
         pg->GetIntelligence().SetEventResponseTask(
-            threat,
+            &m,
             CTaskComplexSmartFleeEntity{
-                &m,
+                threat,
                 false,
                 60.f,
                 10'000,

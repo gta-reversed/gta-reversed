@@ -17,9 +17,9 @@ CHandObject::CHandObject(int32 handModelIndex, CPed* ped, bool bLeftHand) : CObj
     ped->UpdateRpHAnim();
 
     if (bLeftHand)
-        m_nBoneIndex = RpHAnimIDGetIndex(animHierarchy, ePedBones::BONE_L_FORE_ARM);
+        m_nBoneIndex = RpHAnimIDGetIndex(animHierarchy, eBoneTag::BONE_L_FORE_ARM);
     else
-        m_nBoneIndex = RpHAnimIDGetIndex(animHierarchy, ePedBones::BONE_R_FORE_ARM);
+        m_nBoneIndex = RpHAnimIDGetIndex(animHierarchy, eBoneTag::BONE_R_FORE_ARM);
 
     CEntity::SetModelIndex(handModelIndex);
     RpAnimBlendClumpInit(m_pRwClump);

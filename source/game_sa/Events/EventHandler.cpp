@@ -455,8 +455,8 @@ void CEventHandler::SetEventResponseTask(const CEvent& event) {
     }
 
     if (m_AttackTask) {
-        if (const auto tattack = tm->GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
-            tattack->MakeAbortable(m_Ped);
+        if (const auto tAttack = tm->GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
+            tAttack->MakeAbortable(m_Ped);
         }
         tm->SetTaskSecondary(m_AttackTask, TASK_SECONDARY_ATTACK);
     }
@@ -470,10 +470,10 @@ void CEventHandler::SetEventResponseTask(const CEvent& event) {
     }
 
     if (event.HasEditableResponse()) {
-        const auto eEditable = &static_cast<const CEventEditableResponse&>(event);
+        const auto eResponse = &static_cast<const CEventEditableResponse&>(event);
         if (const auto tfacial = tm->GetTaskSecondaryFacial()) {
-            if (eEditable->GetFacialExpressionType() != eFacialExpression::NONE) {
-                tfacial->SetRequest(eEditable->GetFacialExpressionType(), 10'000);
+            if (eResponse->GetFacialExpressionType() != eFacialExpression::NONE) {
+                tfacial->SetRequest(eResponse->GetFacialExpressionType(), 10'000);
             }
         }
     }
@@ -551,7 +551,13 @@ bool CEventHandler::IsTemporaryEvent(const CEvent& event) {
 
 // 0x4BC3E0
 bool CEventHandler::IsKillTaskAppropriate(CPed* ped1, CPed* ped2, const CEvent& event) {
-    return !ped1->IsCreatedByMission() && (!ped1->GetActiveWeapon().IsTypeMelee() || ped2->GetActiveWeapon().IsTypeMelee());
+    if (ped1->IsCreatedByMission()) {
+        return true;
+    }
+    if (!ped1->GetActiveWeapon().IsTypeMelee() || ped2->GetActiveWeapon().IsTypeMelee()) {
+        return true;
+    }
+    return false;
 }
 
 // 0x4BBF50
@@ -1059,7 +1065,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
 
             // Otherwise
             if (!e->m_bFallDown && !notsa::contains({ ANIM_ID_NO_ANIMATION_SET, ANIM_ID_DOOR_LHINGE_O }, e->m_nAnimID)) {
-                if (CAnimManager::GetAnimAssociation(e->m_nAnimGroup, e->m_nAnimID)->m_Flags & ANIMATION_ADD_TO_BLEND) { // 0x4C04B7
+                if (CAnimManager::GetAnimAssociation(e->m_nAnimGroup, e->m_nAnimID)->m_Flags & ANIMATION_DONT_ADD_TO_PARTIAL_BLEND) { // 0x4C04B7
                     if (!e->GetAnimAdded()) {
                         if (!notsa::contains({ANIM_ID_SHOT_PARTIAL, ANIM_ID_SHOT_LEFTP, ANIM_ID_SHOT_PARTIAL_B, ANIM_ID_SHOT_RIGHTP}, e->m_nAnimID)) {
                             const auto a = CAnimManager::BlendAnimation(m_Ped->m_pRwClump, e->m_nAnimGroup, e->m_nAnimID, e->m_fAnimBlend);
@@ -1229,7 +1235,7 @@ void CEventHandler::ComputeDraggedOutCarResponse(CEventDraggedOutCar* e, CTask* 
         }
 
         const auto CreateFinalSeq = [&](CTask* response) -> CTask* {
-            const auto leaveCarTask = e->m_Vehicle->IsDriver(m_Ped) || e->m_Vehicle->GetPassengers()[0] == m_Ped // 0x4BCCF2
+            const auto leaveCarTask = e->m_Vehicle->IsDriver(m_Ped) || e->m_Vehicle->m_apPassengers[0] == m_Ped // 0x4BCCF2
                 ? new CTaskComplexLeaveCar{ e->m_Vehicle, 0, 0, false, true }
                 : nullptr;
 
@@ -1261,7 +1267,7 @@ void CEventHandler::ComputeDraggedOutCarResponse(CEventDraggedOutCar* e, CTask* 
             }
 
             // Talk a little
-            m_Ped->Say(120);
+            m_Ped->Say(CTX_GLOBAL_JACKED_ON_STREET);
 
             // Try stealing the car back
             if (e->m_IsDriverSeat) {
@@ -1841,7 +1847,7 @@ void CEventHandler::ComputePedToFleeResponse(CEventPedToFlee* e, CTask* tactive,
         if (!e->m_ped) {
             return nullptr;
         }
-        m_Ped->Say(69);
+        m_Ped->Say(CTX_GLOBAL_CRIMINAL_PLEAD);
         return new CTaskComplexSmartFleeEntity{e->m_ped, true, 100.f, -1};
     }();
 }
@@ -1877,7 +1883,7 @@ void CEventHandler::ComputePersonalityResponseToDamage(CEventDamage* e, CPed* sr
         case TASK_COMPLEX_FLEE_ANY_MEANS: // 0x4BFC28
             return new CTaskComplexFleeAnyMeans{src, true, 60.f};
         case TASK_COMPLEX_SMART_FLEE_ENTITY: // 0x4BFC58
-            m_Ped->Say(178);
+            m_Ped->Say(CTX_GLOBAL_RUN_FROM_FIGHT);
             [[fallthrough]];
         case TASK_COMPLEX_FLEE_ENTITY: { // 0x4BFD1B
             if (m_Ped->bWantedByPolice && src->IsCop()) {
@@ -1931,7 +1937,7 @@ void CEventHandler::ComputePlayerCollisionWithPedResponse(CEventPlayerCollisionW
         }
 
         if (e->m_victim->GetTaskManager().GetActiveTaskAs<CTaskComplexFollowLeaderInFormation>()) { // 0x4B8DAE - Moved here to be able to early out
-            return {nullptr, new CTaskSimpleSay{28}};
+            return {nullptr, new CTaskSimpleSay{CTX_GLOBAL_BUMP}};
         }
 
         const auto victimToPlayer             = (e->m_victim->GetPosition() - plyr->GetPosition());
@@ -1962,7 +1968,7 @@ void CEventHandler::ComputePlayerCollisionWithPedResponse(CEventPlayerCollisionW
                         plyr->AnnoyPlayerPed(false);
                     }
                 }
-                return {nullptr, new CTaskSimpleSay{28}}; // Just say something, and move on
+                return {nullptr, new CTaskSimpleSay{CTX_GLOBAL_BUMP}}; // Just say something, and move on
             }
         } else if (!notsa::contains({PEDMOVE_RUN, PEDMOVE_SPRINT}, e->GetMoveState()) || !notsa::contains({PEDMOVE_WALK, PEDMOVE_RUN, PEDMOVE_SPRINT}, e->GetVictimMoveState())) { // 0x4B8EDC - One of the peds was walking and the othe was running/sprinting
             if (e->m_movestate == PEDMOVE_STILL && notsa::contains({ PEDMOVE_WALK, PEDMOVE_RUN, PEDMOVE_SPRINT }, e->GetVictimMoveState()) && isCollisionBehindVictim) {
@@ -1971,18 +1977,18 @@ void CEventHandler::ComputePlayerCollisionWithPedResponse(CEventPlayerCollisionW
                     e->m_victimMoveState != PEDMOVE_WALK
                         ? new CTaskComplexHitResponse{(eDirection)CPedGeometryAnalyser::ComputePedHitSide(*e->m_victim, *plyr)}
                         : nullptr,
-                    new CTaskSimpleSay{28}
+                    new CTaskSimpleSay{CTX_GLOBAL_BUMP}
                 };
             } else if (notsa::contains({PEDMOVE_RUN, PEDMOVE_SPRINT}, e->GetMoveState())) { // 0x4B8FBF
                 if (notsa::contains({PEDMOVE_NONE, PEDMOVE_STILL}, e->GetVictimMoveState()) && isCollisionInFrontOfPlayer && e->GetMoveState() == PEDMOVE_SPRINT) { // 0x4B8FCD
                     DoLookAt(plyr, 2'000);
-                    return {nullptr, new CTaskSimpleSay{28}};
+                    return {nullptr, new CTaskSimpleSay{CTX_GLOBAL_BUMP}};
                 }
             }
         } else if (!isCollisionInFrontOfPlayer && isCollisionBehindVictim || !isCollisionBehindVictim) { // 0x4B9057 and 0x4B905F
             DoLookAt(plyr, 2'000);
             plyr->AnnoyPlayerPed(false);
-            return {nullptr, new CTaskSimpleSay{28}};
+            return {nullptr, new CTaskSimpleSay{CTX_GLOBAL_BUMP}};
         } else if (e->m_victimMoveState != PEDMOVE_WALK) { // 0x4B9068
             const auto plyrHitSide = CPedGeometryAnalyser::ComputePedHitSide(*e->m_victim, *plyr);
             plyr->AnnoyPlayerPed(false);
@@ -1995,7 +2001,7 @@ void CEventHandler::ComputePlayerCollisionWithPedResponse(CEventPlayerCollisionW
                     e->m_movestate == PEDMOVE_SPRINT
                         ? new CTaskComplexHitResponse{(eDirection)plyrHitSide}
                         : nullptr,
-                    new CTaskSimpleSay{28}
+                    new CTaskSimpleSay{CTX_GLOBAL_BUMP}
                 };
             }
             return { // 0x4B90DF
@@ -2134,7 +2140,7 @@ void CEventHandler::ComputeReviveResponse(CEventRevived* e, CTask* tactive, CTas
         
         return {
             new CTaskComplexGetUpAndStandStill{},
-            new CTaskSimpleSay{179}
+            new CTaskSimpleSay{CTX_GLOBAL_SAVED}
         };
     }();
 }
@@ -2397,10 +2403,13 @@ void CEventHandler::ComputeVehicleCollisionResponse(CEventVehicleCollision* e, C
         if (!e->m_vehicle) {
             return nullptr;
         }
+
         m_Ped->bPushedAlongByCar = false;
+
         if (e->m_evadeType == VEHICLE_EVADE_BY_HITSIDE) {
             return new CTaskComplexEvasiveStep{e->m_vehicle, CTaskComplexHitPedWithCar::ComputeEvasiveStepMoveDir(m_Ped, e->m_vehicle)}; // 0x4BD74A
         }
+
         const auto IncrementAngerIfPlayerIsDriver = [&]() {
             if (const auto d = e->m_vehicle->m_pDriver) {
                 if (d->IsPlayer()) {
@@ -2408,6 +2417,7 @@ void CEventHandler::ComputeVehicleCollisionResponse(CEventVehicleCollision* e, C
                 }
             }
         };
+
         const auto eVehVelSq = e->m_vehicle->GetMoveSpeed().SquaredMagnitude();
         if (eVehVelSq >= sq(0.5f)) { // 0x4BD754
             if (m_Ped->m_pEntityIgnoredCollision != e->m_vehicle) { // Moved up here from 0x4BD861
@@ -2426,6 +2436,7 @@ void CEventHandler::ComputeVehicleCollisionResponse(CEventVehicleCollision* e, C
             IncrementAngerIfPlayerIsDriver();
             return new CTaskComplexHitPedWithCar{ e->m_vehicle, eDmgIntensity };
         }
+
         if ((!m_Ped->IsPlayer() || m_Ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_PRIMARY)) && tsimplest && CTask::IsGoToTask(tsimplest)) {
             if (e->m_vehicle == m_Ped->m_standingOnEntity) {
                 if (std::abs(m_Ped->m_fCurrentRotation - m_Ped->m_fCurrentRotation) < 0.01f && CPedGeometryAnalyser::CanPedJumpObstacle(*m_Ped, *e->m_vehicle)) {
@@ -2442,6 +2453,7 @@ void CEventHandler::ComputeVehicleCollisionResponse(CEventVehicleCollision* e, C
                 e->m_DirectionToWalkRoundCar
             };   
         }
+
         if (m_Ped->IsPlayer() && !m_Ped->bIsInTheAir) { // 0x4BD9A3   
             if (m_Ped->m_pPlayerData->m_fMoveBlendRatio != 0.f || !e->m_vehicle->m_pDriver) { // 0x4BDAD2
                 g_ikChainMan.LookAt(
@@ -2825,7 +2837,7 @@ void CEventHandler::ComputeVehicleToStealResponse(CEventVehicleToSteal* e, CTask
 // 0x4BAE30
 void CEventHandler::ComputeWaterCannonResponse(CEventHitByWaterCannon* e, CTask* tactive, CTask* tsimplest) {
     m_EventResponseTask = [&]() -> CTask* {
-        m_Ped->Say(344);
+        m_Ped->Say(CTX_GLOBAL_PAIN_HIGH);
         m_Ped->ApplyMoveForce({ 0.f, 0.f, CTimer::GetTimeStep() * 2.f });
         m_Ped->SetMoveSpeedXY((CVector2D{e->m_moveSpeed} * 0.6f + CVector2D{m_Ped->GetMoveSpeed()}) / 2.f);
         if (const auto speed = m_Ped->GetMoveSpeed().Magnitude2D(); speed >= 0.2f) {

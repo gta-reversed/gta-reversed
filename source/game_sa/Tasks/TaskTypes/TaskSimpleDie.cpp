@@ -53,12 +53,12 @@ void CTaskSimpleDie::StartAnim(CPed* ped) {
         m_animAssociation = CAnimManager::BlendAnimation(ped->m_pRwClump, m_animGroupId, m_animId, m_blendDelta);
 
     m_animAssociation->SetFinishCallback(FinishAnimDieCB, this);
-    m_animAssociation->m_Flags &=   ANIMATION_TRANSLATE_X | ANIMATION_TRANSLATE_Y
-                                   | ANIMATION_MOVEMENT
-                                   | ANIMATION_PARTIAL
-                                   | ANIMATION_FREEZE_LAST_FRAME
-                                   | ANIMATION_LOOPED
-                                   | ANIMATION_STARTED;
+    m_animAssociation->m_Flags &=   ANIMATION_CAN_EXTRACT_X_VELOCITY | ANIMATION_CAN_EXTRACT_VELOCITY
+                                   | ANIMATION_IS_SYNCRONISED
+                                   | ANIMATION_IS_PARTIAL
+                                   | ANIMATION_IS_BLEND_AUTO_REMOVE
+                                   | ANIMATION_IS_LOOPED
+                                   | ANIMATION_IS_PLAYING;
 
     if (m_animSpeed > 0.0f)
         m_animAssociation->m_Speed = m_animSpeed;

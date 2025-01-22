@@ -48,7 +48,7 @@ int32 CEventScriptCommand::GetEventPriority() const
     const int32 taskId = m_task->GetTaskType();
     if (taskId == TASK_SIMPLE_NAMED_ANIM) {
         CTaskSimpleRunAnim* pTaskRunAnim = static_cast<CTaskSimpleRunAnim*>(m_task);
-        if (pTaskRunAnim->m_nFlags & ANIMATION_LOOPED)
+        if (pTaskRunAnim->m_nFlags & ANIMATION_IS_LOOPED)
             return 71;
     }
     if (taskId == TASK_SIMPLE_DIE || taskId == TASK_SIMPLE_SWIM || taskId == TASK_COMPLEX_USE_MOBILE_PHONE)
