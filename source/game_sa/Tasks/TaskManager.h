@@ -10,6 +10,7 @@
 #include <initializer_list>
 #include "Task.h"
 #include <algorithm>
+#include <extensions/utility.hpp>
 
 enum ePrimaryTasks // array indices
 {

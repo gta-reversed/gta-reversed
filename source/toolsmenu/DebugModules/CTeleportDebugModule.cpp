@@ -159,7 +159,7 @@ void TeleportDebugModule::RenderSavedPositions() {
     EndTable();
 
     // Selected item deletion
-    if (GetIO().KeysDown[VK_DELETE]) {
+    if (ImGui::IsKeyChordPressed(ImGuiKey_Delete)) {
         const auto [b, e] = rng::remove_if(visibleItems, [](auto& l) { return l.IsSelected; });
         m_SavedLocations.erase(b.base(), e.base());
     }

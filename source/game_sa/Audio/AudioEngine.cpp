@@ -439,10 +439,10 @@ void CAudioEngine::PlayPreloadedCutsceneTrack() {
 }
 
 // 0x507080
-void CAudioEngine::StopCutsceneTrack(bool a2) {
+void CAudioEngine::StopCutsceneTrack(bool bWaitForFinish) {
     AECutsceneTrackManager.StopCutsceneTrack();
 
-    if (!a2) {
+    if (!bWaitForFinish) {
         if (!m_bPlayingMissionCompleteTrack)
             return;
 

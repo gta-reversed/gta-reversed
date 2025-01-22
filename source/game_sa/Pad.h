@@ -50,11 +50,12 @@ public:
             uint16 unk2 : 1;
             uint16 bPlayerAwaitsInGarage : 1;
             uint16 bPlayerOnInteriorTransition : 1;
-            uint16 unk3 : 1;                        // 0x10 unused
+            uint16 unk3 : 1; // 0x10 unused
             uint16 bPlayerSafe : 1;
-            uint16 bPlayerTalksOnPhone : 1;         // bPlayerSafeForPhoneCall?
+            uint16 bPlayerTalksOnPhone : 1; // bPlayerSafeForPhoneCall?
             uint16 bPlayerSafeForCutscene : 1;
-            uint16 bPlayerSkipsToDestination : 1;   // bPlayerSafeForDestination?
+
+            uint16 bPlayerSkipsToDestination : 1; // bPlayerSafeForDestination?
         };
         uint16 DisablePlayerControls;
     };

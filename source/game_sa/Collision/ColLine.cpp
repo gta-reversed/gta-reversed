@@ -29,6 +29,6 @@ float CColLine::DistTo(CVector pt) const {
 
 // NOTSA
 void CColLine::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
-    const auto colorRGBA = color.ToInt();
-    CLines::RenderLineNoClipping(transform.TransformPoint(m_vecStart), transform.TransformPoint(m_vecEnd), colorRGBA, colorRGBA);
+    const auto colorARGB = color.ToIntRGBA();
+    CLines::RenderLineNoClipping(transform.TransformPoint(m_vecStart), transform.TransformPoint(m_vecEnd), colorARGB, colorARGB);
 }

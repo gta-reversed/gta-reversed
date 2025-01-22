@@ -248,6 +248,32 @@ void CAEWeaponAudioEntity::WeaponFire(eWeaponType weaponType, CPhysical* parent,
     case WEAPON_NIGHTVISION:
     case WEAPON_INFRARED:
         return PlayGoggleSound(SND_GENRL_WEAPONS_NIGHT_VISION, audioEvent);
+    case WEAPON_BRASSKNUCKLE:
+    case WEAPON_GOLFCLUB:
+    case WEAPON_NIGHTSTICK:
+    case WEAPON_KNIFE:
+    case WEAPON_BASEBALLBAT:
+    case WEAPON_SHOVEL:
+    case WEAPON_POOL_CUE:
+    case WEAPON_KATANA:
+    case WEAPON_CHAINSAW:
+    case WEAPON_DILDO1:
+    case WEAPON_DILDO2:
+    case WEAPON_VIBE1:
+    case WEAPON_VIBE2:
+    case WEAPON_FLOWERS:
+    case WEAPON_CANE:
+    case WEAPON_GRENADE:
+    case WEAPON_TEARGAS:
+    case WEAPON_MOLOTOV:
+    case WEAPON_ROCKET:
+    case WEAPON_ROCKET_HS:
+    case WEAPON_FREEFALL_BOMB:
+    case WEAPON_RLAUNCHER:
+    case WEAPON_RLAUNCHER_HS:
+    case WEAPON_REMOTE_SATCHEL_CHARGE:
+    case WEAPON_PARACHUTE:
+        return;
     default:
         NOTSA_UNREACHABLE();
     }

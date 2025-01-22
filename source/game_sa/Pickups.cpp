@@ -32,7 +32,10 @@ void CPickups::InjectHooks() {
     RH_ScopedInstall(DoMoneyEffects, 0x454E80);
     RH_ScopedInstall(DoPickUpEffects, 0x455720, { .reversed = false });
     RH_ScopedInstall(FindPickUpForThisObject, 0x4551C0);
-    RH_ScopedInstall(GenerateNewOne, 0x456F20, { .reversed = false });
+
+    // Cannot be hooked at all for now due to ABI fuckery, the return value is 32 bit, but causes the function to assume the calling convention of of T* Function(T*, ...)
+    //RH_ScopedInstall(GenerateNewOne, 0x456F20, { .reversed = false });
+
     RH_ScopedInstall(GenerateNewOne_WeaponType, 0x457380);
     RH_ScopedInstall(GetActualPickupIndex, 0x4552A0);
     RH_ScopedInstall(GetNewUniquePickupIndex, 0x456A30);
@@ -109,8 +112,8 @@ void CPickups::CreateSomeMoney(CVector coors, int32 amount) {
 
     for (auto i = 0; i < wads; i++) {
         bool result;
-        coors.x += std::sinf((float)(uint8)rand() * 0.024543693f) * 1.5f;
-        coors.y += std::cosf((float)(uint8)rand() * 0.024543693f) * 1.5f;
+        coors.x += std::sinf(CGeneral::GetRandomNumberInRange(0.f, TWO_PI)) * 1.5f;
+        coors.y += std::cosf(CGeneral::GetRandomNumberInRange(0.f, TWO_PI)) * 1.5f;
         coors.z = CWorld::FindGroundZFor3DCoord(coors, &result, nullptr) + 0.5f;
 
         if (result) {
@@ -259,10 +262,10 @@ CPickup* CPickups::FindPickUpForThisObject(CObject* object) {
 }
 
 // returns pickup handle
-// 0x456F20
+// g
 tPickupReference CPickups::GenerateNewOne(CVector coors, uint32 modelId, ePickupType pickupType, uint32 ammo, uint32 moneyPerDay, bool isEmpty, char* message) {
-    NOTSA_UNREACHABLE("For some reason the arguments are shifted by a stack slot to the right, not sure why... This function can't be hooked and must be implemented");
-    //return plugin::CallAndReturn<tPickupReference, 0x456F20, CVector, uint32, ePickupType, uint32, uint32, bool, char*>(coors, modelId, pickupType, ammo, moneyPerDay, isEmpty, message);
+    auto retVal = plugin::CallAndReturn<int32, 0x456F20, CVector, uint32, ePickupType, uint32, uint32, bool, char*>(coors, modelId, pickupType, ammo, moneyPerDay, isEmpty, message);
+    return tPickupReference(retVal);
 }
 
 /*!
@@ -724,30 +727,30 @@ eWeaponType CPickups::WeaponForModel(int32 modelId) {
 // 0x5D35A0
 void CPickups::Load() {
     for (auto& pickup : aPickUps) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&pickup, sizeof(CPickup));
+        CGenericGameStorage::LoadDataFromWorkBuffer(pickup);
         if (pickup.m_nPickupType != PICKUP_NONE && pickup.m_pObject) {
             pickup.m_pObject = nullptr;
             pickup.m_nFlags.bVisible = false;
         }
     }
     NumMessages = 0u;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CPickups::CollectedPickUpIndex, sizeof(uint16));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CPickups::DisplayHelpMessage, sizeof(uint8));
+    CGenericGameStorage::LoadDataFromWorkBuffer(CPickups::CollectedPickUpIndex);
+    CGenericGameStorage::LoadDataFromWorkBuffer(CPickups::DisplayHelpMessage);
 
     for (auto& collected : aPickUpsCollected) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&collected, sizeof(int32));
+        CGenericGameStorage::LoadDataFromWorkBuffer(collected);
     }
 }
 // 0x5D3540
 void CPickups::Save() {
     for (auto& pickup : aPickUps) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&pickup, sizeof(CPickup));
+        CGenericGameStorage::SaveDataToWorkBuffer(pickup);
     }
-    CGenericGameStorage::SaveDataToWorkBuffer(&CPickups::CollectedPickUpIndex, sizeof(uint16));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CPickups::DisplayHelpMessage, sizeof(uint8));
+    CGenericGameStorage::SaveDataToWorkBuffer(CPickups::CollectedPickUpIndex);
+    CGenericGameStorage::SaveDataToWorkBuffer(CPickups::DisplayHelpMessage);
 
     for (auto& collected : aPickUpsCollected) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&collected, sizeof(int32));
+        CGenericGameStorage::SaveDataToWorkBuffer(collected);
     }
 }
 

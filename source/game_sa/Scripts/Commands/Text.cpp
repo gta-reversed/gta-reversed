@@ -68,6 +68,8 @@ void DisplayText(CVector2D pos, const char* gxtKey) {
 }
 
 void notsa::script::commands::text::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Text");
+
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_SMALL_PRINTS, ClearSmallPrints);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_HELP, ClearHelp);
     REGISTER_COMMAND_HANDLER(COMMAND_FLASH_HUD_OBJECT, FlashHudObject);

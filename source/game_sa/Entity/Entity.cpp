@@ -1434,10 +1434,9 @@ void CEntity::ModifyMatrixForTreeInWind()
 
     float fWindOffset;
     if (CWeather::Wind >= 0.5F) {
-        // TODO: This is all wrong. Missing casts, etc (they are important to wrap the number)
-        auto uiOffset1 = (((m_nRandomSeed + CTimer::GetTimeInMS() * 8) & 0xFFFF) / 4096) & 0xF;
-        auto uiOffset2 = (uiOffset1 + 1) & 0xF;
-        auto fContrib = static_cast<float>(((m_nRandomSeed + CTimer::GetTimeInMS() * 8) & 0xFFF)) / 4096.0F;
+        auto uiOffset1 = (((m_nRandomSeed + CTimer::GetTimeInMS() * 8) & 0xFFFF) / 4096) % 16;
+        auto uiOffset2 = (uiOffset1 + 1) % 16;
+        auto fContrib = static_cast<float>(((m_nRandomSeed + CTimer::GetTimeInMS() * 8) % 4096)) / 4096.0F;
 
         fWindOffset = (1.0F - fContrib) * CWeather::saTreeWindOffsets[uiOffset1];
         fWindOffset += 1.0F + fContrib * CWeather::saTreeWindOffsets[uiOffset2];
@@ -1448,7 +1447,8 @@ void CEntity::ModifyMatrixForTreeInWind()
     else {
         auto uiTimeOffset = (reinterpret_cast<uint32>(this) + CTimer::GetTimeInMS()) & 0xFFF;
 
-        fWindOffset = sin(uiTimeOffset * 0.0015332032F) * 0.005F;
+        constexpr float scalingFactor = 6.28f / 4096.f;
+        fWindOffset = sin(uiTimeOffset * scalingFactor) * 0.005F;
         if (CWeather::Wind >= 0.2F)
             fWindOffset *= 1.6F;
     }

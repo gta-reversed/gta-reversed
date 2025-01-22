@@ -193,7 +193,7 @@ void CClumpModelInfo::SetClump(RpClump* clump)
             auto geometry = RpAtomicGetGeometry(firstAtomic);
             auto skin = RpSkinGeometryGetSkin(geometry);
             for (int32 i = 0; i < RpGeometryGetNumVertices(geometry); ++i) {
-                auto& weight = RpSkinGetVertexBoneWeights(skin)[i]; // todoL: originally RpSkinGetVertexBoneWeights returns const obj*
+                auto& weight = const_cast<RwMatrixWeights*>(RpSkinGetVertexBoneWeights(skin))[i]; // Average R* dev from 2003
                 auto fRecip = 1.0F / (weight.w0 + weight.w1 + weight.w2 + weight.w3);
                 weight.w0 *= fRecip;
                 weight.w1 *= fRecip;

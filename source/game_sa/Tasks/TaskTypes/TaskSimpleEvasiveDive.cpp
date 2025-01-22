@@ -58,7 +58,7 @@ void CTaskSimpleEvasiveDive::StartAnim(CPed* ped) {
         if (m_EvadeVeh->m_pDriver && m_EvadeVeh->m_pDriver->IsPlayer()) {
             const auto wanted = FindPlayerWanted();
             wanted->RegisterCrime_Immediately(CRIME_VEHICLE_DAMAGE, ped->GetPosition(), ped, 0);
-            wanted->RegisterCrime_Immediately(CRIME_TYPE_9, ped->GetPosition(), ped, 0);
+            wanted->RegisterCrime_Immediately(CRIME_SPEEDING, ped->GetPosition(), ped, 0);
         }
     }
 }

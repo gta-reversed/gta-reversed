@@ -37,6 +37,8 @@ auto Cos(float deg) {
 }
 
 void notsa::script::commands::math::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Math");
+
     REGISTER_COMMAND_HANDLER(COMMAND_GET_DISTANCE_BETWEEN_COORDS_2D, GetDistanceBetweenCoords2d);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_DISTANCE_BETWEEN_COORDS_3D, GetDistanceBetweenCoords3d);
     REGISTER_COMMAND_HANDLER(COMMAND_GENERATE_RANDOM_INT, GenerateRandomInt);

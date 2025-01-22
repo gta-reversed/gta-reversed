@@ -10,7 +10,7 @@ struct RwRGBA;
 
 class CRGBA {
 public:
-    uint8 r{}, g{}, b{}, a{};
+    uint8 r{}, g{}, b{}, a{}; // msb(a) -> lsb(r)
 
 public:
     constexpr CRGBA() = default;

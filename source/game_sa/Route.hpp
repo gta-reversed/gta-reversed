@@ -44,7 +44,7 @@ public:
     auto GetSize() const { return m_NumEntries; }
 
     //! Resize to the given size
-    void ResizeTo(uint32 s) { assert(s < m_Entries.size()); m_NumEntries = s; }
+    void ResizeTo(uint32 s) { assert(s <= m_Entries.size()); m_NumEntries = s; }
 
     T& operator[](size_t idx)       { return GetAll()[idx]; }
     T  operator[](size_t idx) const { return GetAll()[idx]; }

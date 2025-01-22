@@ -39,19 +39,15 @@ void CSetPieces::Init() {
 
 // 0x5D3CA0
 bool CSetPieces::Load() {
-    LoadDataFromWorkBuffer(NumSetPieces);
-    LoadDataFromWorkBuffer(aSetPieces);
-
-    for (auto& sp : aSetPieces) {
-        volatile CRect _{ sp.m_AreaRect };
-    }
+    CGenericGameStorage::LoadDataFromWorkBuffer(NumSetPieces);
+    CGenericGameStorage::LoadDataFromWorkBuffer(aSetPieces);
     return true;
 }
 
 // 0x5D3C70
 bool CSetPieces::Save() {
-    SaveDataToWorkBuffer(NumSetPieces);
-    SaveDataToWorkBuffer(aSetPieces);
+    CGenericGameStorage::SaveDataToWorkBuffer(NumSetPieces);
+    CGenericGameStorage::SaveDataToWorkBuffer(aSetPieces);
     return true;
 }
 

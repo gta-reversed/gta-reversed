@@ -24,4 +24,14 @@ public:
             endColor.r, endColor.g, endColor.b, endColor.a
         );
     }
+
+    static void RenderLineCircleNoClipping(const CVector& centerPoint, float radius, uint32 numLines, uint32 color) {
+        assert(numLines > 0);
+        auto angleDiff = TWO_PI / numLines;
+        for (float angle = 0; angle <= TWO_PI; angle += angleDiff) { //You are using radians so you will have to increase by a very small amount
+            auto vecStart = centerPoint + CVector{ radius * cos(angle), radius * sin(angle), 0.f };
+            auto vecEnd   = centerPoint + CVector{ radius * cos(angle + angleDiff), radius * sin(angle + angleDiff), 0.f };
+            RenderLineNoClipping(vecStart, vecEnd, color, color);
+        }
+    }
 };

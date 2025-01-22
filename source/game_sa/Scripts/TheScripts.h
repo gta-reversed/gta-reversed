@@ -334,7 +334,7 @@ enum {
 
 enum class ScriptSavedObjectType : uint32 {
     NONE = 0,
-    NOP = 1, // ?
+    INVISIBLE = 1, // ?
     BUILDING = 2,
     OBJECT = 3,
     DUMMY = 4,
@@ -488,7 +488,7 @@ public:
     static void AddToWaitingForScriptBrainArray(CEntity* entity, int16 arg2);
 
     static void AttachSearchlightToSearchlightObject(int32 searchLightId, CObject* tower, CObject* housing, CObject* bulb, CVector offset);
-    static bool CheckStreamedScriptVersion(RwStream* stream, char* arg2);
+    static bool CheckStreamedScriptVersion(RwStream* stream, const char* filename);
     static void CleanUpThisObject(CObject* obj);
     static void CleanUpThisPed(CPed* ped);
     static void CleanUpThisVehicle(CVehicle* vehicle);

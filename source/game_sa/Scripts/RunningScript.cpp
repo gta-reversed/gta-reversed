@@ -33,6 +33,9 @@ static notsa::log_ptr logger;
 //! Holds all custom command handlers (or null for commands with no custom handler)
 static inline std::array<notsa::script::CommandHandlerFunction, (size_t)(COMMAND_HIGHEST_ID_TO_HOOK) + 1> s_CustomCommandHandlerTable{};
 
+std::array<std::array<char, COMMANDS_CHAR_BUFFER_SIZE>, COMMANDS_CHAR_BUFFERS_COUNT> CRunningScript::ScriptArgCharBuffers        = {};
+uint8                                                                                CRunningScript::ScriptArgCharNextFreeBuffer = 0;
+
 void CRunningScript::InjectHooks() {
     logger = NOTSA_MAKE_LOGGER("script");
 
@@ -128,19 +131,6 @@ void CRunningScript::InjectCustomCommandHooks() {
     cleo::extensions::fs::RegisterHandlers();
     cleo::extensions::imgui::RegisterHandlers();
     cleo::extensions::intoperations::RegisterHandlers();
-#endif
-
-    // To enable use premake: `./premake5.exe vs2022 --allow-script-cmd-hooks`
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
-    // After injecting all hooks, we can create their reversible hook
-    for (auto&& [idx, cmd] : notsa::enumerate(s_CustomCommandHandlerTable)) {
-        const auto id = (eScriptCommands)(idx);
-
-        ReversibleHooks::AddItemToCategory(
-            "Scripts/Commands",
-            std::make_shared<ReversibleHooks::ReversibleHook::ScriptCommand>(id)
-        );
-    }
 #endif
 
 #ifdef DUMP_CUSTOM_COMMAND_HANDLERS_TO_FILE
@@ -480,7 +470,7 @@ void CRunningScript::ScriptTaskPickUpObject(int32 commandId) {
 void CRunningScript::SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, bool offset) {
     CWorld::PutToGroundIfTooLow(posn);
 
-    CVehicle* vehicle = ped.bInVehicle ? ped.m_pVehicle : nullptr;
+    CVehicle* vehicle = ped.GetVehicleIfInOne();
     if (vehicle) {
         posn.z += vehicle->GetDistanceFromCentreOfMassToBaseOfModel();
         vehicle->Teleport(posn, false);
@@ -499,10 +489,9 @@ void CRunningScript::SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, 
 
 // 0x463CA0
 tScriptParam* CRunningScript::GetPointerToLocalVariable(int32 varIndex) {
-    if (m_bIsMission)
-        return reinterpret_cast<tScriptParam*>(&CTheScripts::LocalVariablesForCurrentMission[varIndex]);
-    else
-        return reinterpret_cast<tScriptParam*>(&m_aLocalVars[varIndex]);
+    return m_bIsMission
+        ? reinterpret_cast<tScriptParam*>(&CTheScripts::LocalVariablesForCurrentMission[varIndex])
+        : reinterpret_cast<tScriptParam*>(&m_aLocalVars[varIndex]);
 }
 
 /*!
@@ -722,7 +711,8 @@ void CRunningScript::StoreParameters(int16 count) {
         }
         case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY:
             ReadArrayInformation(true, &arrVarOffset, &arrElemIdx);
-            *reinterpret_cast<int32*>(&CTheScripts::ScriptSpace[arrVarOffset + 4 * arrElemIdx]) = ScriptParams[i].iParam;
+            GetPointerToGlobalArrayElement(arrVarOffset, arrElemIdx, 1)->iParam = ScriptParams[i].iParam;
+            //*reinterpret_cast<int32*>(&CTheScripts::ScriptSpace[arrVarOffset + 4 * arrElemIdx]) = ScriptParams[i].iParam;
             break;
         case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY:
             ReadArrayInformation(true, &arrVarOffset, &arrElemIdx);
@@ -735,17 +725,17 @@ void CRunningScript::StoreParameters(int16 count) {
 // Reads array var base offset and element index from index variable.
 // 0x463CF0
 void CRunningScript::ReadArrayInformation(int32 updateIP, uint16* outArrayBase, int32* outArrayIndex) {
-    auto* ip = m_IP;
+    auto ipPtr     = reinterpret_cast<uint16*>(m_IP);
+    *outArrayBase  = static_cast<uint16>(ipPtr[0]);
+    auto arrIndex  = ipPtr[1];
+    auto checkValue = (int16)ipPtr[2];
 
-    *outArrayBase = CTheScripts::Read2BytesFromScript(ip);
-
-    const auto varIdx = CTheScripts::Read2BytesFromScript(ip);
-    *outArrayIndex = CTheScripts::Read2BytesFromScript(ip) < 0 // Check MSB
-        ? GetPointerToGlobalVariable(varIdx)->iParam
-        : GetPointerToLocalVariable(varIdx)->iParam;
+    *outArrayIndex = checkValue < 0
+        ? GetPointerToGlobalVariable(arrIndex)->iParam
+        : GetPointerToLocalVariable(arrIndex)->iParam;
 
     if (updateIP) {
-        m_IP = ip;
+        m_IP = reinterpret_cast<uint8*>(&ipPtr[3]);
     }
 }
 

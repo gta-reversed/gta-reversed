@@ -60,8 +60,8 @@ void AttachMissionAudioToCar(uint32 slotId, CVehicle& veh) {
     AudioEngine.AttachMissionAudioToPhysical(slotId - 1, &veh);
 }
 
-void ReportMissionAudioEventAtChar(CPlayerPed& player, int32 eventId) {
-    AudioEngine.ReportMissionAudioEvent(eventId, &player);
+void ReportMissionAudioEventAtChar(CPed& ped, int32 eventId) {
+    AudioEngine.ReportMissionAudioEvent(eventId, &ped);
 }
 
 void ReportMissionAudioEventAtCar(CVehicle& vehicle, int eventId) {
@@ -104,6 +104,8 @@ void SetUpConversationNodeWithScriptedSpeech(
 }
 
 void notsa::script::commands::script::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Script");
+
     REGISTER_COMMAND_HANDLER(COMMAND_TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME, TerminateAllScriptsWithThisName);
     REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_ALL_SCRIPT_FIRES, RemoveAllScriptFires);
     REGISTER_COMMAND_HANDLER(COMMAND_LOAD_SCENE, LoadScene);
