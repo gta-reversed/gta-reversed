@@ -2,28 +2,30 @@
 
 #include "Maths.h"
 
+// We're going to generate the lookup table here instead of using the one from the game
+// Original table is located at 0xBB3E00 (NOT `0xBB3DFC`) and is of size 256 (so don't change the size below)
 constexpr size_t SIN_LUT_SIZE = 256;
-auto& ms_SinTable = StaticRef<std::array<float, SIN_LUT_SIZE>>(0xBB3E00); // This is the correct address, not `0xBB3DFC`
-
-constexpr auto RadToSinTableIndex(float rad) {
-    assert(rad >= 0.f);
-    return (uint32)(rad * ((float)(SIN_LUT_SIZE) / TWO_PI)) % SIN_LUT_SIZE;
-}
+constexpr float  SIN_LUT_STEP = TWO_PI / (float)(SIN_LUT_SIZE);
+const auto SIN_LUT = StaticRef<std::array<float, SIN_LUT_SIZE>>(0xBB3E00) = []() {
+    std::array<float, SIN_LUT_SIZE> lut{};
+    for (size_t i = 0; i < SIN_LUT_SIZE; ++i) {
+        lut[i] = std::sin((float)(i) * SIN_LUT_STEP);
+    }
+    return lut;
+}();
 
 float CMaths::GetSinFast(float rad) {
-    return ms_SinTable[RadToSinTableIndex(rad)];
+    return SIN_LUT[(uint32)(rad / SIN_LUT_STEP) % SIN_LUT_SIZE];
 }
 
 float CMaths::GetCosFast(float rad) {
-    return ms_SinTable[RadToSinTableIndex(rad + (PI / 2.f))]; // cos(x) == sin(x + PI/2)
+    return GetSinFast(rad + PI / 2.f); // cos(x) == sin(x + PI/2)
 }
 
 void CMaths::InitMathsTables() {
     ZoneScoped;
 
-    for (size_t i = 0; i < SIN_LUT_SIZE; ++i) {
-        ms_SinTable[i] = std::sin((float)(i) * ((2.f * PI) / SIN_LUT_SIZE));
-    }
+    /* No-op because the LUT is already initialized statically (originally it was initialized here) */
 }
 
 void CMaths::InjectHooks() {
