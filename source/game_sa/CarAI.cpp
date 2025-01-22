@@ -584,7 +584,7 @@ void CCarAI::TellOccupantsToLeaveCar(CVehicle* vehicle) {
 
         CTaskComplexCopInCar* task = ped->GetTaskManager().Find<CTaskComplexCopInCar>(false);
         if (task) {
-            task->m_flag0x2 = 1;
+            task->m_flag0x2 = true;
         } else {
             ped->GetTaskManager().SetTask(new CTaskComplexLeaveCar{ vehicle, TARGET_DOOR_FRONT_LEFT, 0, true, false }, TASK_PRIMARY_PRIMARY, false);
         }
