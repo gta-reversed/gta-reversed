@@ -29,19 +29,21 @@ float CCrime::FindImmediateDetectionRange(eCrimeType CrimeType) {
 // 0x532010
 void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommitedby) {
     
-    if (crimeType == CRIME_NONE || !pCommitedby || !pCommitedby->IsPlayer()) {
+    if (crimeType == CRIME_NONE // Moved here from 0x5320FC
+        || !pCommitedby || !pCommitedby.IsPlayer()) { // 0x532021
         return;
     }
 
+    // TODO: repair that.
     const bool isPedCriminal = pVictim && pVictim->IsPed() && CPedType::PoliceDontCareAboutCrimesAgainstPedType(pVictim->AsPed()->m_nPedType);
     if (crimeType == CRIME_DAMAGED_PED
         && pVictim
         && pVictim->IsPed()
         && IsPedPointerValid(pVictim->AsPed())
         && !pCommitedby->AsPlayer()->GetWantedLevel()
-        && pVictim->AsPed()->bBeingChasedByPolice
+        && pVictim->AsPed()->bBeingChasedByPolice // Vanilla bug here
     ) {
-        if (!pVictim->AsPed()->IsStateDying()) {
+        if (!pVictim->AsPed()->IsStateDying()) { // Vanilla or here
             if (const auto text = TheText.Get("GOODBOY")) { // Good Citizen Bonus! +$50
                 CMessages::AddBigMessage(text, 5'000, eMessageStyle::STYLE_MIDDLE);
             }
