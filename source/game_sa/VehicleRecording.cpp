@@ -280,7 +280,7 @@ void CVehicleRecording::RenderLineSegment(int32& numVertices) {
             aTempBufferIndices[2 * i] = i;
             aTempBufferIndices[2 * i + 1] = i + 1;
         }
-        if (RwIm3DTransform(aTempBufferVertices, numVertices, nullptr, 0)) {
+        if (RwIm3DTransform(TempBufferVertices.m_3d, numVertices, nullptr, 0)) {
             RwIm3DRenderIndexedPrimitive(rwPRIMTYPELINELIST, aTempBufferIndices, (numVertices - 1) * 2);
             RwIm3DEnd();
         }

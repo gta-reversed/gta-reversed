@@ -140,6 +140,11 @@ public:
     void DeleteCollisionModel();
     // index is a number of effect (max number is (m_n2dfxCount - 1))
     C2dEffect* Get2dEffect(int32 index);
+    auto Get2dEffects() {
+        return rng::views::iota(m_n2dfxCount) | rng::views::transform([this](size_t i) {
+            return Get2dEffect((int32)i);
+        });
+    }
     void Add2dEffect(C2dEffect* effect);
 
     // Those further ones are completely inlined in final version, not present at all in android version;

@@ -52,7 +52,7 @@ CTaskSimpleInAir::~CTaskSimpleInAir()
 // 0x680600
 bool CTaskSimpleInAir::ProcessPed(CPed* ped)
 {
-    CColPoint colPoint{}; // default initialization is NOTSA
+    CColPoint colPoint{};
     CEntity* colEntity;
 
     CVector originalPosn = ped->m_matrix->GetPosition();
@@ -61,14 +61,12 @@ bool CTaskSimpleInAir::ProcessPed(CPed* ped)
     if (m_timer.IsOutOfTime()
         && ped->m_nPedState != PEDSTATE_ABSEIL_FROM_HELI
         && ped->m_vecMoveSpeed.z * 50.0F <= -20.0F
-        )
-    {
-        ped->Say(ped->IsPlayer() ? 358 : 346, 0, 1.0F, false, false, false);
+    ) {
+        ped->Say(ped->IsPlayer() ? CTX_GLOBAL_PAIN_CJ_HIGH_FALL : CTX_GLOBAL_PAIN_ON_FIRE);
         m_timer.m_bStarted = false;
     }
 
-    if (!m_pAnim)
-    {
+    if (!m_pAnim) {
         ped->bIsInTheAir = true;
         if (m_bUsingJumpGlide)
         {

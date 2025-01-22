@@ -25,38 +25,36 @@ void CAEAudioChannel::InjectHooks() {
 
 // 0x4D7890
 CAEAudioChannel::CAEAudioChannel(IDirectSound* directSound, uint16 channelId, uint32 samplesPerSec, uint16 bitsPerSample) {
-    m_pDirectSound        = directSound;
-    m_nChannelId          = channelId;
-    m_nFlags              = 0;
-    m_nBufferStatus       = 0;
-    m_nFrequency          = samplesPerSec;
-    m_nOriginalFrequency  = samplesPerSec;
-    m_fVolume             = -100.0f;
-    m_pDirectSoundBuffer  = nullptr;
-    m_pDirectSound3DBuffer= nullptr;
-    m_bNoScalingFactor    = false;
-    m_bLooped             = false;
-    field_45              = 0;
-    m_WaveFormat.wFormatTag = WAVE_FORMAT_PCM;
-    m_WaveFormat.nChannels = 1;
-    m_WaveFormat.nSamplesPerSec = samplesPerSec;
+    m_pDirectSound               = directSound;
+    m_nChannelId                 = channelId;
+    m_nFlags                     = 0;
+    m_nBufferStatus              = 0;
+    m_nFrequency                 = samplesPerSec;
+    m_nOriginalFrequency         = samplesPerSec;
+    m_fVolume                    = -100.0f;
+    m_pDirectSoundBuffer         = nullptr;
+    m_pDirectSound3DBuffer       = nullptr;
+    m_bPaused                    = false;
+    m_bLooped                    = false;
+    m_bShouldStop                = false;
+    m_WaveFormat.wFormatTag      = WAVE_FORMAT_PCM;
+    m_WaveFormat.nChannels       = 1;
+    m_WaveFormat.nSamplesPerSec  = samplesPerSec;
     m_WaveFormat.nAvgBytesPerSec = samplesPerSec * (bitsPerSample / 8);
-    m_WaveFormat.nBlockAlign = 2;
-    m_WaveFormat.wBitsPerSample = bitsPerSample;
-    m_WaveFormat.cbSize = 0;
+    m_WaveFormat.nBlockAlign     = 2;
+    m_WaveFormat.wBitsPerSample  = bitsPerSample;
+    m_WaveFormat.cbSize          = 0;
 }
 
 // 0x4D7910
 CAEAudioChannel::~CAEAudioChannel() {
     if (m_pDirectSoundBuffer) {
         --g_numSoundChannelsUsed;
-        m_pDirectSoundBuffer->Release();
-        m_pDirectSoundBuffer = nullptr;
+        std::exchange(m_pDirectSoundBuffer, nullptr)->Release();
     }
 
     if (m_pDirectSound3DBuffer) {
-        m_pDirectSound3DBuffer->Release();
-        m_pDirectSound3DBuffer = nullptr;
+        std::exchange(m_pDirectSound3DBuffer, nullptr)->Release();
     }
 }
 
@@ -64,21 +62,21 @@ CAEAudioChannel::~CAEAudioChannel() {
 void CAEAudioChannel::SetFrequencyScalingFactor(float factor) {
     if (factor == 0.0F) {
         if (m_pDirectSoundBuffer &&
-            !m_bNoScalingFactor &&
+            !m_bPaused &&
             IsBufferPlaying() &&
             !AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, -100.0F, -1, true)
         ) {
             m_pDirectSoundBuffer->Stop();
         }
 
-        m_bNoScalingFactor = true;
+        m_bPaused = true;
         return;
     }
 
     const auto newFreq = static_cast<uint32>(float(m_nOriginalFrequency) * factor);
     SetFrequency(newFreq);
 
-    if (m_bNoScalingFactor) {
+    if (m_bPaused) {
         if (m_pDirectSoundBuffer) {
             const auto curPos = GetCurrentPlaybackPosition();
             if (curPos != 0) {
@@ -92,7 +90,7 @@ void CAEAudioChannel::SetFrequencyScalingFactor(float factor) {
                 m_pDirectSoundBuffer->SetVolume(volume);
             }
         }
-        m_bNoScalingFactor = false;
+        m_bPaused = false;
     }
 }
 

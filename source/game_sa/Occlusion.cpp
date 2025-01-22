@@ -154,7 +154,7 @@ bool COcclusion::IsPositionOccluded(CVector vecPos, float fRadius)
 
     CVector outPos;
     float screenX, screenY;
-    if (!CalcScreenCoors(vecPos, &outPos, &screenX, &screenY))
+    if (!CalcScreenCoors(vecPos, outPos, screenX, screenY))
         return false;
 
     const auto fLongEdge = std::max(screenX, screenY);

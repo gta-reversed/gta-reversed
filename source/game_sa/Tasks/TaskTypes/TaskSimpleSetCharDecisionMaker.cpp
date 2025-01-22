@@ -20,8 +20,8 @@ CTaskSimpleSetCharDecisionMaker::CTaskSimpleSetCharDecisionMaker(uint32 decision
 {
 }
 
-CTaskSimpleSetCharDecisionMaker::CTaskSimpleSetCharDecisionMaker(const CTaskSimpleSetCharDecisionMaker&) :
-    CTaskSimpleSetCharDecisionMaker{m_decisionMaker}
+CTaskSimpleSetCharDecisionMaker::CTaskSimpleSetCharDecisionMaker(const CTaskSimpleSetCharDecisionMaker& o) :
+    CTaskSimpleSetCharDecisionMaker{o.m_decisionMaker}
 {
 }
 

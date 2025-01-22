@@ -227,3 +227,23 @@ project "tracy"
         "TRACY_ON_DEMAND",
         --"TRACY_NO_CODE_TRANSFER" -- Uncomment if you want callstacks to be working
     }
+
+project "json"
+    language "C++"
+    kind "None"
+    targetname "json"
+    warnings "Off"
+
+    vpaths {
+        ["Headers/*"] = {"json/include/**.hpp",},
+        ["Sources/*"] = {"json/include/**.c*",},
+        ["*"] = {"premake5.lua", "CMakeLists.txt"}
+    }
+
+    files {
+        "json/include/*.*",
+    }
+
+    includedirs { 
+        "json/include",
+    }

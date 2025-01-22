@@ -25,7 +25,7 @@ with open(hooks_csv_path, "r", encoding='utf8') as hooksf:
     for r in csv.DictReader(hooksf):
         klass_info.setdefault(r['class'], RevKlassInfo(0, 0)).process_row(r)
 
-with open(output_md, "w", encoding="utf8") as outf:
+with open(output_md, "w", encoding="utf8", newline='\n') as outf:
     outf.write("# Reversed Classes\n")
 
     partially  = []

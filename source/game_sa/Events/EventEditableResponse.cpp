@@ -114,8 +114,9 @@ void CEventEditableResponse::InformRespectedFriends(CPed* ped) {
             auto clonedEvent = static_cast<CEventEditableResponse*>(Clone());
             clonedEvent->m_taskId = TASK_NONE;
             clonedEvent->m_bAddToEventGroup = false;
-            if (!CInformFriendsEventQueue::Add(entity, clonedEvent))
+            if (!CInformFriendsEventQueue::Add(entityPed, clonedEvent)) {
                 delete clonedEvent;
+            }
         }
     }
 }

@@ -50,23 +50,33 @@ void UIRenderer::PreRenderUpdate() {
     ZoneScoped;
 
     m_ImIO->DeltaTime   = CTimer::GetTimeStepInSeconds();
-    m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT); // Update display size, in case of window resize after imgui was already initialized
+    m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT); // Update display size, in case of window resize after ImGui was already initialized
 
     m_DebugModules.PreRenderUpdate();
     DebugCode();
     ReversibleHooks::CheckAll();
 
-    // A delay of a frame has to be added, otherwise the release of F7 wont be processed
-    // and the menu will close
+    // A delay of a frame has to be added, otherwise
+    // the release of F7 wont be processed and the menu will close
     const auto Shortcut = [](ImGuiKeyChord chord) {
-        return ImGui::Shortcut(chord, ImGuiKeyOwner_Any, ImGuiInputFlags_RouteAlways);
+        return ImGui::IsKeyChordPressed(chord, ImGuiInputFlags_RouteAlways);
     };
     if (Shortcut(ImGuiKey_F7) || Shortcut(ImGuiKey_M | ImGuiMod_Ctrl)) {
-        m_InputActive                         = !m_InputActive;
-        m_ImIO->MouseDrawCursor               = m_InputActive;
-        m_ImIO->NavActive                     = m_InputActive;
-        CPad::GetPad()->DisablePlayerControls = m_InputActive;
-        CPad::GetPad()->Clear(m_InputActive, true);
+        const auto pad = CPad::GetPad(0);
+
+        m_InputActive = !m_InputActive;
+
+        if (m_InputActive) { // Clear controller states
+            pad->OldMouseControllerState
+                = pad->NewMouseControllerState
+                = CMouseControllerState{};
+        } else {
+            SetFocus(PSGLOBAL(window)); // Re-focus GTA main window
+        }
+        pad->Clear(false, true);
+
+        m_ImIO->MouseDrawCursor = m_InputActive;
+        m_ImIO->NavActive       = m_InputActive;
     }
 }
 
@@ -185,7 +195,7 @@ void UIRenderer::DebugCode() {
         }
     }
     if (pad->IsStandardKeyJustPressed('6')) {
-        CMessages::AddBigMessage("PRESS ~k~~PED_ANSWER_PHONE~ TO FUCK"_gxt, 1000, eMessageStyle::STYLE_BOTTOM_RIGHT);
+        FindPlayerPed()->Say(CTX_GLOBAL_JACKED_CAR);
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {

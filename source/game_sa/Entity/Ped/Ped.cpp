@@ -79,7 +79,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(ClearLook, 0x5E3FF0);
     RH_ScopedInstall(TurnBody, 0x5E4000);
     RH_ScopedInstall(IsPointerValid, 0x5E4220);
-    RH_ScopedOverloadedInstall(GetBonePosition, "", 0x5E4280, void(CPed::*)(RwV3d&, eBoneTag, bool));
+    RH_ScopedOverloadedInstall(GetBonePosition, "Original", 0x5E4280, void(CPed::*)(CVector*, eBoneTag, bool));
     RH_ScopedInstall(PutOnGoggles, 0x5E3AE0);
     RH_ScopedInstall(ReplaceWeaponWhenExitingVehicle, 0x5E6490);
     RH_ScopedInstall(KillPedWithCar, 0x5F0360, { .reversed = false });
@@ -298,7 +298,7 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
 
     field_758 = 0;
     m_fRemovalDistMultiplier = 1.0f;
-    m_nSpecialModelIndex = -1;
+    m_StreamedScriptBrainToLoad = -1;
 
     CPopulation::UpdatePedCount(this, 0);
 
@@ -318,10 +318,10 @@ CPed::~CPed() {
 
     // Remove script brain
     if (bWaitingForScriptBrainToLoad) {
-        CStreaming::SetMissionDoesntRequireModel(SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_nSpecialModelIndex].m_nIMGindex));
+        CStreaming::SetMissionDoesntRequireModel(SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_StreamedScriptBrainToLoad].m_StreamedScriptIndex));
         bWaitingForScriptBrainToLoad = false;
-        CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_nSpecialModelIndex);
-        m_nSpecialModelIndex = -1;
+        CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_StreamedScriptBrainToLoad);
+        m_StreamedScriptBrainToLoad = -1;
     }
 
     CWorld::Remove(this);
@@ -490,14 +490,15 @@ void CPed::SetMoveAnim() {
 * @addr 0x5D4640
  */
 bool CPed::Load() {
+    auto size = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
+
+    // TODO: Can't do `auto save = CGenericGameStorage::LoadDataFromWorkBuffer<CPedSaveStructure>()` dure to deleted copy constructor in CWanted which is used somehow inside.
+    // Would be nice if someone with more knowledge of templates and shit can fix that
     CPedSaveStructure save;
-    uint32 size{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&save, sizeof(save));
-
+    CGenericGameStorage::LoadDataFromWorkBuffer(save);
     assert(size == sizeof(save));
-    save.Extract(this);
 
+    save.Extract(this);
     return true;
 }
 
@@ -508,9 +509,8 @@ bool CPed::Save() {
     CPedSaveStructure save;
     save.Construct(this);
 
-    uint32 size{ sizeof(save) };
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::SaveDataToWorkBuffer(&save, sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(save);
 
     return true;
 }
@@ -649,7 +649,7 @@ void CPed::CreateDeadPedWeaponPickups() {
         // No. of ammo the pickups will contain
         const auto pickupAmmo{ std::min(wep.m_TotalAmmo, (uint32)AmmoForWeapon_OnStreet[(size_t)wep.m_Type] * 2) };
 
-        if (CPickups::TryToMerge_WeaponType(
+        if (!CPickups::TryToMerge_WeaponType(
             pickupPos,
             wep.m_Type,
             ePickupType::PICKUP_ONCE_TIMEOUT,
@@ -1120,21 +1120,24 @@ bool CPed::DoWeHaveWeaponAvailable(eWeaponType weaponType) {
 * @addr 0x5DF340
 * @brief Do gun flash by resetting it's alpha to max
 */
-void CPed::DoGunFlash(int32 lifetime, bool bRightHand) {
+bool CPed::DoGunFlash(int32 duration, bool isLeftHand) {
     if (!m_pGunflashObject || !m_pWeaponObject) {
-        return;
+        return false;
     }
 
     // Really elegant.. ;D
-    if (bRightHand) {
+    if (isLeftHand) {
         m_nWeaponGunflashAlphaMP2     = m_sGunFlashBlendStart;
-        m_nWeaponGunFlashAlphaProgMP2 = (uint16)m_sGunFlashBlendStart / lifetime;
+        m_nWeaponGunFlashAlphaProgMP2 = (uint16)m_sGunFlashBlendStart / duration;
     } else {
         m_nWeaponGunflashAlphaMP1     = m_sGunFlashBlendStart;
-        m_nWeaponGunFlashAlphaProgMP1 = (uint16)m_sGunFlashBlendStart / lifetime;
+        m_nWeaponGunFlashAlphaProgMP1 = (uint16)m_sGunFlashBlendStart / duration;
     }
+
     const auto angle = CGeneral::GetRandomNumberInRange(-360.0f, 360.0f);
     RwMatrixRotate(RwFrameGetMatrix(m_pGunflashObject), &CPedIK::XaxisIK, angle, rwCOMBINEPRECONCAT);
+
+    return true;
 }
 
 /*!
@@ -1197,44 +1200,36 @@ float CPed::GetBikeRidingSkill() const {
 * @brief Deal with shoulder bone (clavicle) rotation based on arm and breast rotation
 */
 void CPed::ShoulderBoneRotation(RpClump* clump) {
-    // Note: Didn't use `GetBoneMatrix` here, because it would be slower
-    // (Because it would call `GetAnimHierarchyFromClump` multiple times)
-    auto GetMatrixOf = [hier = GetAnimHierarchyFromClump(clump)](eBoneTag bone) mutable -> RwMatrix& {
-        return (RpHAnimHierarchyGetMatrixArray(hier))[RpHAnimIDGetIndex(hier, (size_t)bone)];
+    const auto GetMatrixOf = [hier = GetAnimHierarchyFromClump(clump)](eBoneTag bone) {
+        return RpHAnimHierarchyGetNodeMatrix(hier, bone);
     };
-
-    constexpr struct { eBoneTag breast, upperArm, clavicle; } bones[]{
-        {eBoneTag::BONE_L_BREAST, eBoneTag::BONE_L_UPPER_ARM, eBoneTag::BONE_L_CLAVICLE},
-        {eBoneTag::BONE_R_BREAST, eBoneTag::BONE_R_UPPER_ARM, eBoneTag::BONE_R_CLAVICLE},
-    };
-
-    // Update left, and right sides
-    for (auto [breast, upperArm, clavicle] : bones) {
-        auto& breastRwMat = GetMatrixOf(breast);
+    const auto DoUpdate = [&](eBoneTag breast, eBoneTag upperArm, eBoneTag clavicle) {
+        auto* const breastRwMat = GetMatrixOf(breast);
 
         // Make the breast's matrix same as the upper arm's
-        breastRwMat = GetMatrixOf(upperArm);
+        RwMatrixCopy(breastRwMat, GetMatrixOf(upperArm));
 
-        CMatrix breastMat{ &breastRwMat };
-        CMatrix clavicleMat{ &GetMatrixOf(clavicle) };
+        CMatrix breastMat{ breastRwMat };
+        CMatrix clavicleMat{ GetMatrixOf(clavicle) };
 
         // Calculate breast to clavicle transformation matrix (and store it in breastMat)
         breastMat = Invert(clavicleMat) * breastMat;
 
         // Half it's X rotation
-
-        float x, y, z;
-        breastMat.ConvertToEulerAngles(&x, &y, &z, ORDER_ZYX | SWAP_XZ);
+        float rx, ry, rz;
+        breastMat.ConvertToEulerAngles(&rx, &ry, &rz, ORDER_ZYX | SWAP_XZ);
         // Originally there is an `if` check of a static bool value, which is always true.
-        x /= 2.f;
-        breastMat.ConvertFromEulerAngles(x, y, z, ORDER_ZYX | SWAP_XZ);
+        rx /= 2.f;
+        breastMat.ConvertFromEulerAngles(rx, ry, rz, ORDER_ZYX | SWAP_XZ);
 
         // Transform it back into it's own space
         breastMat = clavicleMat * breastMat;
 
         // Finally, update it's RW associated matrix
         breastMat.UpdateRW();
-    }
+    };
+    DoUpdate(eBoneTag::BONE_L_BREAST, eBoneTag::BONE_L_UPPER_ARM, eBoneTag::BONE_L_CLAVICLE);
+    DoUpdate(eBoneTag::BONE_R_BREAST, eBoneTag::BONE_R_UPPER_ARM, eBoneTag::BONE_R_CLAVICLE);
 }
 
 /*!
@@ -1359,29 +1354,6 @@ void CPed::UpdateStatEnteringVehicle()
 void CPed::UpdateStatLeavingVehicle()
 {
     // NOP
-}
-
-/*!
-* @addr 0x5E01C0
-* @brief Transform \r inOffsetOutPosn into the given \a bone's space
-*
-* @param [in,out] inOffsetOutPosn The position to be transformed in-place.
-* @param          updateSkinBones If `UpdateRpHAnim` should be called
-*/
-void CPed::GetTransformedBonePosition(RwV3d& inOffsetOutPosn, eBoneTag bone, bool updateSkinBones) {
-    // Pretty much the same as GetBonePosition..
-    if (updateSkinBones) {
-        if (!bCalledPreRender) {
-            UpdateRpHAnim();
-            bCalledPreRender = true;
-        }
-    } else if (!bCalledPreRender) { // Return static local bone position instead
-        inOffsetOutPosn = m_matrix->TransformPoint(GetPedBoneStdPosition(bone));
-        return;
-    }
-
-    // Return actual position
-    RwV3dTransformPoints(&inOffsetOutPosn, &inOffsetOutPosn, 1, &GetBoneMatrix(bone));
 }
 
 /*!
@@ -2038,18 +2010,49 @@ bool CPed::IsPointerValid() {
 * @brief Retrieve object-space position of the given \a bone.
 * @param updateSkinBones if not already called `UpdateRpHAnim` will be called. If this param is not set, and the latter function wasn't yet called a default position will be returned.
 */
-void CPed::GetBonePosition(RwV3d& outPosition, eBoneTag bone, bool updateSkinBones) {
+CVector CPed::GetBonePosition(eBoneTag bone, bool updateSkinBones) {
+    if (!bCalledPreRender) {
+        if (!updateSkinBones) {
+            return m_matrix->TransformPoint(GetPedBoneStdPosition(bone));
+        }
+        UpdateRpHAnim();
+        bCalledPreRender = true;
+    }
+    if (const auto* const m = GetBoneMatrix(bone)) {
+        return *RwMatrixGetPos(m);
+    }
+    return GetPosition();
+}
+
+/*
+* @addr 0x5E4280
+* @brief Added for compatiblity reasons for hooking - use the version returning CVector where possible in code.
+*/
+void CPed::GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones) {
+    *outVec = CPed::GetBonePosition(bone, updateSkinBones);
+}
+
+/*!
+* @addr 0x5E01C0
+* @brief Transform \r inOutPos into the given \a bone's space
+*
+* @param [in,out] inOutPos The position to be transformed in-place.
+* @param          updateSkinBones If `UpdateRpHAnim` should be called
+*/
+void CPed::GetTransformedBonePosition(RwV3d& inOutPos, eBoneTag bone, bool updateSkinBones) { // todo: fix this too!!!
+    // Pretty much the same as GetBonePosition..
     if (updateSkinBones) {
         if (!bCalledPreRender) {
             UpdateRpHAnim();
             bCalledPreRender = true;
         }
     } else if (!bCalledPreRender) { // Return static local bone position instead
-        outPosition = m_matrix->TransformPoint(GetPedBoneStdPosition(bone));
+        inOutPos = m_matrix->TransformPoint(GetPedBoneStdPosition(bone));
         return;
     }
-    RwV3dAssign(&outPosition, RwMatrixGetPos(&GetBoneMatrix(bone)));
-    assert(!std::isnan(outPosition.x)); // TODO: Sometimes this shit becomes nan, let's investigate
+
+    // Return actual position
+    RwV3dTransformPoints(&inOutPos, &inOutPos, 1, GetBoneMatrix(bone));
 }
 
 /*!
@@ -2418,14 +2421,13 @@ void CPed::AddWeaponModel(int32 modelIndex) {
 
    m_nWeaponModelId = modelIndex;
 
-   // If player and model is molotov create FX for it.
+   // Create FX for molotovs
    if (IsPlayer()) {
        if (   activeWep.m_Type == WEAPON_MOLOTOV
            && modelIndex == eModelID::MODEL_MOLOTOV
            && !activeWep.m_FxSystem
         ) {
-           CVector pos{ 0.f, 0.f, 0.f };
-           activeWep.m_FxSystem = g_fxMan.CreateFxSystem("molotov_flame", &pos, &GetBoneMatrix(eBoneTag::BONE_R_HAND), false);
+           activeWep.m_FxSystem = g_fxMan.CreateFxSystem("molotov_flame", CVector{ 0.f, 0.f, 0.f }, GetBoneMatrix(eBoneTag::BONE_R_HAND), false);
            if (const auto fx = activeWep.m_FxSystem) {
                fx->SetLocalParticles(true);
                fx->CopyParentMatrix();
@@ -3124,27 +3126,25 @@ void CPed::EnablePedSpeechForScriptSpeech() {
 /*!
 * @addr 0x5EFFA0
 */
-bool CPed::CanPedHoldConversation() {
+bool CPed::CanPedHoldConversation() const {
     return m_pedSpeech.CanPedHoldConversation();
 }
 
 /*!
 * @addr 0x5EFFB0
 */
-void CPed::SayScript(int32 arg0, uint8 arg1, uint8 arg2, uint8 arg3) {
-    m_pedSpeech.AddScriptSayEvent(eAudioEvents::AE_SCRIPT_SPEECH_PED, arg0, arg1, arg2, arg3);
+void CPed::SayScript(eAudioEvents scriptID, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    m_pedSpeech.AddScriptSayEvent(AE_SCRIPT_SPEECH_PED, scriptID, overrideSilence, isForceAudible, isFrontEnd);
 }
 
 /*!
 * @addr 0x5EFFE0
 * @returns Played soundID - TODO: I'm not sure about this..
 */
-int16 CPed::Say(uint16 phraseId, uint32 offset, float arg2, uint8 arg3, uint8 arg4, uint8 arg5) {
-    if (phraseId) {
-        return m_pedSpeech.AddSayEvent(eAudioEvents::AE_SPEECH_PED, phraseId, offset, arg2, arg3, arg4, arg5);
-    } else {
-        return -1;
-    }
+int16 CPed::Say(eGlobalSpeechContext gCtx, uint32 startTimeDelay, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    return gCtx != CTX_GLOBAL_NO_SPEECH
+        ? m_pedSpeech.AddSayEvent(AE_SPEECH_PED, gCtx, startTimeDelay, probability, overrideSilence, isForceAudible, isFrontEnd)
+        : -1;
 }
 
 /*!
@@ -3197,7 +3197,7 @@ uint8 CPed::DoesLOSBulletHitPed(CColPoint& colPoint) {
     RwV3d headPos{};
 
     // TODO: Doesn't this just return the position of the matrix? Eg.: `BoneMatrix.pos` ?
-    RwV3dTransformPoint(&headPos, &zero, &GetBoneMatrix((eBoneTag)m_apBones[ePedNode::PED_NODE_HEAD]->BoneTag));
+    RwV3dTransformPoint(&headPos, &zero, GetBoneMatrix((eBoneTag)m_apBones[ePedNode::PED_NODE_HEAD]->BoneTag));
 
     if (m_nPedState == PEDSTATE_FALL || colPoint.m_vecPoint.z < headPos.z) { // Ped falling, adjust
         return 1;
@@ -3242,7 +3242,7 @@ bool CPed::IsPedHeadAbovePos(float zPos) {
     RwV3d headPos{};
 
     // TODO: Doesn't this just return the position of the matrix? Eg.: `BoneMatrix.pos` ?
-    RwV3dTransformPoint(&headPos, &zero, &GetBoneMatrix((eBoneTag)m_apBones[ePedNode::PED_NODE_HEAD]->BoneTag));
+    RwV3dTransformPoint(&headPos, &zero, GetBoneMatrix((eBoneTag)m_apBones[ePedNode::PED_NODE_HEAD]->BoneTag));
 
     return zPos + GetPosition().z < headPos.z;
 }
@@ -3299,7 +3299,9 @@ bool CPed::IsInVehicleThatHasADriver() {
 * @notsa
 */
 int32 CPed::GetGroupId() {
-    return GetGroup() ? GetGroup()->GetId() : -1;
+    return GetGroup()
+        ? GetGroup()->GetId()
+        : -1;
 }
 
 /*!
@@ -3312,11 +3314,13 @@ bool CPed::IsFollowerOfGroup(const CPedGroup& group) const {
 
 /*!
 * @notsa
-* @returns Bone transformation matrix in object space. To transform to world space ped's matrix must be used as well.
+* @returns Bone transformation matrix into object space. To transform to world space ped's matrix must be used as well.
 */
-RwMatrix& CPed::GetBoneMatrix(eBoneTag bone) const {
-    const auto h = GetAnimHierarchyFromClump(m_pRwClump);
-    return RpHAnimHierarchyGetMatrixArray(h)[RpHAnimIDGetIndex(h, (size_t)bone)];
+RwMatrix* CPed::GetBoneMatrix(eBoneTag bone) const {
+    if (const auto h = GetAnimHierarchyFromClump(m_pRwClump)) {
+        return RpHAnimHierarchyGetNodeMatrix(h, bone);
+    }
+    return nullptr;
 }
 
 /*!
@@ -3515,14 +3519,14 @@ void CPed::Render() {
     // 0x5E787C
     // Render goggles object
     if (m_pGogglesObject) {
-        auto& headMat = GetBoneMatrix(eBoneTag::BONE_HEAD);
+        const auto* const headMat = GetBoneMatrix(eBoneTag::BONE_HEAD);
 
         // Update goggle's matrix with head's
-        *RwFrameGetMatrix(RpClumpGetFrame(m_pGogglesObject)) = headMat; // TODO: Is there a better way to do this?
+        *RwFrameGetMatrix(RpClumpGetFrame(m_pGogglesObject)) = *headMat; // TODO: Is there a better way to do this?
 
         // Calculate it's new position
-        RwV3d pos{0.f, 0.084f, 0.f};                   // Offset
-        RwV3dTransformPoints(&pos, &pos, 1, &headMat); // Transform offset into the head's space
+        RwV3d pos{0.f, 0.084f, 0.f};                  // Offset
+        RwV3dTransformPoints(&pos, &pos, 1, headMat); // Transform offset into the head's space
 
         RwV3dAssign(RwMatrixGetPos(RwFrameGetMatrix(RpClumpGetFrame(m_pGogglesObject))), &pos);
         RwFrameUpdateObjects(RpClumpGetFrame(m_pGogglesObject)); // After changing the position it has to be updated
@@ -3649,12 +3653,6 @@ bool CPed::IsInVehicleAsPassenger() const noexcept {
     return bInVehicle && m_pVehicle && m_pVehicle->m_pDriver != this;
 }
 
-CVector CPed::GetBonePosition(eBoneTag boneId, bool updateSkinBones) {
-    CVector pos;
-    GetBonePosition(pos, boneId, updateSkinBones);
-    return pos;
-}
-
 bool CPed::IsJoggingOrFaster() const {
     switch (m_nMoveState) {
     case PEDMOVE_JOG:
@@ -3686,25 +3684,25 @@ bool CPed::IsPedStandingInPlace() const {
 }
 
 // 0x6497A0
-bool SayJacked(CPed* jacked, CVehicle* vehicle, uint32 offset) {
+bool SayJacked(CPed* jacked, CVehicle* vehicle, uint32 timeDelay) {
     if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio())
-        return jacked->Say(119u, offset) != -1;
+        return jacked->Say(CTX_GLOBAL_JACKED_GENERIC, timeDelay) != -1;
     else
-        return jacked->Say(118u, offset) != -1;
+        return jacked->Say(CTX_GLOBAL_JACKED_CAR, timeDelay) != -1;
 }
 
 // 0x6497F0
-bool SayJacking(CPed* jacker, CPed* jacked, CVehicle* vehicle, uint32 offset) {
+bool SayJacking(CPed* jacker, CPed* jacked, CVehicle* vehicle, uint32 timeDelay) {
     if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio() == 1)
-        return jacker->Say(121u, offset) != -1;
+        return jacker->Say(CTX_GLOBAL_JACKING_BIKE, timeDelay) != -1;
 
     if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio())
-        return jacker->Say(124u, offset) != -1;
+        return jacker->Say(CTX_GLOBAL_JACKING_GENERIC, timeDelay) != -1;
 
-    if (jacked->m_pedSpeech.IsPedFemaleForAudio())
-        return jacker->Say(122u, offset) != -1;
+    if (jacked->GetSpeechAE().IsPedFemaleForAudio())
+        return jacker->Say(CTX_GLOBAL_JACKING_CAR_FEM, timeDelay) != -1;
 
-    return jacker->Say(123u, offset) != -1;
+    return jacker->Say(CTX_GLOBAL_JACKING_CAR_MALE, timeDelay) != -1;
 }
 
 // NOTSA

@@ -7,7 +7,9 @@
 #pragma once
 
 #include <RenderWare.h>
-
+#include <Vector.h>
+#include <Vector2D.h>
+#include <Cam.h>
 #include "QueuedMode.h"
 #include "CamPathSplines.h"
 #include "eCamMode.h"
@@ -383,7 +385,7 @@ public:
     void Restore();
     void RestoreCameraAfterMirror();
     void RestoreWithJumpCut();
-    void RenderMotionBlur();
+    void RenderMotionBlur() const;
     void ResetDuckingSystem(CPed *ped);
 
     void SetCamCutSceneOffSet(const CVector& offset);
@@ -466,9 +468,9 @@ public:
     void Enable1rstPersonWeaponsCamera();
 
     void Fade(float duration, eFadeFlag direction);
-    void Find3rdPersonCamTargetVector(float range, CVector source, CVector* pCamera, CVector* pPoint);
-    float Find3rdPersonQuickAimPitch();
-    float FindCamFOV();
+    void Find3rdPersonCamTargetVector(float range, CVector vecGunMuzzle, CVector& outSource, CVector& outTarget);
+    float Find3rdPersonQuickAimPitch() const;
+    float FindCamFOV() const;
     void FinishCutscene();
 
     bool GetArrPosForVehicleType(eVehicleType type, int32& arrPos);
@@ -476,13 +478,13 @@ public:
     [[nodiscard]] bool GetFading() const;
     [[nodiscard]] int32 GetFadingDirection() const;
     CVector* GetGameCamPosition();
-    int32 GetLookDirection();
-    bool GetLookingForwardFirstPerson();
-    bool GetLookingLRBFirstPerson();
+    int32 GetLookDirection() const;
+    bool GetLookingForwardFirstPerson() const;
+    bool GetLookingLRBFirstPerson() const;
     [[nodiscard]] float GetPositionAlongSpline() const;
     float GetRoughDistanceToGround();
     [[nodiscard]] enum eNameState GetScreenFadeStatus() const;
-    void GetScreenRect(CRect* rect);
+    void GetScreenRect(CRect* rect) const;
     [[nodiscard]] bool Get_Just_Switched_Status() const;
 
     void HandleCameraMotionForDucking(CPed* ped, CVector* source, CVector* targPosn, bool arg5);

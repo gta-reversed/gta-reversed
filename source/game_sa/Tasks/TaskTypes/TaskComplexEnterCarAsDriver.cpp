@@ -16,7 +16,7 @@ CTaskComplexEnterCarAsDriver::CTaskComplexEnterCarAsDriver(CVehicle* targetVehic
 
 // For 0x643780
 CTaskComplexEnterCarAsDriver::CTaskComplexEnterCarAsDriver(const CTaskComplexEnterCarAsDriver& o) :
-    CTaskComplexEnterCarAsDriver{ m_Car }
+    CTaskComplexEnterCarAsDriver{ o.m_Car }
 {
     m_MoveState = o.m_MoveState;
 }

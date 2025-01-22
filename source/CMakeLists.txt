@@ -30,7 +30,7 @@ function(supress_deps_warnings targets)
         )
     endforeach()
 endfunction()
-supress_deps_warnings(ogg imgui vorbisfile spdlog)
+supress_deps_warnings(ogg imgui vorbisfile spdlog nlohmann_json)
 
 set_target_properties(${RE_PROJECT_LIB_NAME}
     PROPERTIES
@@ -59,6 +59,8 @@ if (${RE_PROJECT}_WITH_SANITIZERS)
     # add_sanitizers(${RE_PROJECT_LIB_NAME})
 endif()
 
+target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS" "/SAFESEH")
+
 target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     ogg
     vorbisfile
@@ -71,6 +73,7 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     strmiids
     dsound
     d3d9
+    nlohmann_json
 )
 
 if(WIN32) 

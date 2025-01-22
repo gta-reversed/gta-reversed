@@ -63,24 +63,23 @@ Fx_c* Fx_c::Destructor() { this->Fx_c::~Fx_c(); return this; }
 
 // 0x49E660
 void Fx_c::InitStaticSystems() {
-    CVector point;
-    m_Blood          = g_fxMan.CreateFxSystem("prt_blood",            &point, nullptr, true);
-    m_BoatSplash     = g_fxMan.CreateFxSystem("prt_boatsplash",       &point, nullptr, true);
-    m_Bubble         = g_fxMan.CreateFxSystem("prt_bubble",           &point, nullptr, true);
-    m_Cardebris      = g_fxMan.CreateFxSystem("prt_cardebris",        &point, nullptr, true);
-    m_CollisionSmoke = g_fxMan.CreateFxSystem("prt_collisionsmoke",   &point, nullptr, true);
-    m_GunShell       = g_fxMan.CreateFxSystem("prt_gunshell",         &point, nullptr, true);
-    m_Sand           = g_fxMan.CreateFxSystem("prt_sand",             &point, nullptr, true);
-    m_Sand2          = g_fxMan.CreateFxSystem("prt_sand2",            &point, nullptr, true);
-    m_SmokeHuge      = g_fxMan.CreateFxSystem("prt_smoke_huge",       &point, nullptr, true);
-    m_SmokeII3expand = g_fxMan.CreateFxSystem("prt_smokeII_3_expand", &point, nullptr, true);
-    m_Spark          = g_fxMan.CreateFxSystem("prt_spark",            &point, nullptr, true);
-    m_Spark2         = g_fxMan.CreateFxSystem("prt_spark_2",          &point, nullptr, true);
-    m_Splash         = g_fxMan.CreateFxSystem("prt_splash",           &point, nullptr, true);
-    m_Wake           = g_fxMan.CreateFxSystem("prt_wake",             &point, nullptr, true);
-    m_WaterSplash    = g_fxMan.CreateFxSystem("prt_watersplash",      &point, nullptr, true);
-    m_WheelDirt      = g_fxMan.CreateFxSystem("prt_wheeldirt",        &point, nullptr, true);
-    m_Glass          = g_fxMan.CreateFxSystem("prt_glass",            &point, nullptr, true);
+    m_Blood          = g_fxMan.CreateFxSystem("prt_blood",            CVector{}, nullptr, true);
+    m_BoatSplash     = g_fxMan.CreateFxSystem("prt_boatsplash",       CVector{}, nullptr, true);
+    m_Bubble         = g_fxMan.CreateFxSystem("prt_bubble",           CVector{}, nullptr, true);
+    m_Cardebris      = g_fxMan.CreateFxSystem("prt_cardebris",        CVector{}, nullptr, true);
+    m_CollisionSmoke = g_fxMan.CreateFxSystem("prt_collisionsmoke",   CVector{}, nullptr, true);
+    m_GunShell       = g_fxMan.CreateFxSystem("prt_gunshell",         CVector{}, nullptr, true);
+    m_Sand           = g_fxMan.CreateFxSystem("prt_sand",             CVector{}, nullptr, true);
+    m_Sand2          = g_fxMan.CreateFxSystem("prt_sand2",            CVector{}, nullptr, true);
+    m_SmokeHuge      = g_fxMan.CreateFxSystem("prt_smoke_huge",       CVector{}, nullptr, true);
+    m_SmokeII3expand = g_fxMan.CreateFxSystem("prt_smokeII_3_expand", CVector{}, nullptr, true);
+    m_Spark          = g_fxMan.CreateFxSystem("prt_spark",            CVector{}, nullptr, true);
+    m_Spark2         = g_fxMan.CreateFxSystem("prt_spark_2",          CVector{}, nullptr, true);
+    m_Splash         = g_fxMan.CreateFxSystem("prt_splash",           CVector{}, nullptr, true);
+    m_Wake           = g_fxMan.CreateFxSystem("prt_wake",             CVector{}, nullptr, true);
+    m_WaterSplash    = g_fxMan.CreateFxSystem("prt_watersplash",      CVector{}, nullptr, true);
+    m_WheelDirt      = g_fxMan.CreateFxSystem("prt_wheeldirt",        CVector{}, nullptr, true);
+    m_Glass          = g_fxMan.CreateFxSystem("prt_glass",            CVector{}, nullptr, true);
 }
 
 // 0x49E850
@@ -145,7 +144,7 @@ void Fx_c::Reset() {
 }
 
 // 0x4A11E0
-void Fx_c::CreateEntityFx(CEntity* entity, const char* fxName, CVector* pos, RwMatrix* transform) {
+void Fx_c::CreateEntityFx(CEntity* entity, const char* fxName, const CVector& pos, RwMatrix* transform) {
     // ((void(__thiscall*)(Fx_c*, CEntity*, char*, RwV3d*, RwMatrix*))0x4A11E0)(this, entity, fxName, pos transform);
 
     auto* particle = g_fxMan.CreateFxSystem(fxName, pos, transform, true);
@@ -325,7 +324,7 @@ void RenderBegin(RwRaster* newRaster, RwMatrix* transform, uint32 transformRende
     g_fx.m_nVerticesCount2 = 0;
     g_fx.m_pRasterToRender = newRaster;
     g_fx.m_nTransformRenderFlags = transformRenderFlags;
-    g_fx.m_pVerts = aTempBufferVertices;
+    g_fx.m_pVerts = TempBufferVertices.m_3d;
 
     // And maybe update raster on RW if the same isnt already set...
     RwRaster* currRaster{};
@@ -391,7 +390,7 @@ void RenderAddTri(CVector pos1, CVector pos2, CVector pos3, RwTexCoords coord1, 
     g_fx.m_nVerticesCount2 += 3;
     g_fx.m_nVerticesCount++;
 
-    if (g_fx.m_nVerticesCount2 >= TOTAL_TEMP_BUFFER_VERTICES - 3 || g_fx.m_nVerticesCount >= TOTAL_TEMP_BUFFER_INDICES - 1) {
+    if (g_fx.m_nVerticesCount2 >= TOTAL_TEMP_BUFFER_3DVERTICES - 3 || g_fx.m_nVerticesCount >= TOTAL_TEMP_BUFFER_INDICES - 1) {
         RenderEnd(); // Render vertices to free up vertex buffer
     }
 }
@@ -401,12 +400,12 @@ void RenderEnd() {
     if (!g_fx.m_nVerticesCount)
         return;
 
-    if (RwIm3DTransform(aTempBufferVertices, 3 * g_fx.m_nVerticesCount, g_fx.m_pTransformLTM, g_fx.m_nTransformRenderFlags)) {
+    if (RwIm3DTransform(TempBufferVertices.m_3d, 3 * g_fx.m_nVerticesCount, g_fx.m_pTransformLTM, g_fx.m_nTransformRenderFlags)) {
         RwIm3DRenderPrimitive(rwPRIMTYPETRILIST);
         RwIm3DEnd();
     }
 
-    g_fx.m_pVerts = aTempBufferVertices;
+    g_fx.m_pVerts = TempBufferVertices.m_3d;
     g_fx.m_nVerticesCount2 = 0;
     g_fx.m_nVerticesCount = 0;
 }

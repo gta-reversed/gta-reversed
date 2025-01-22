@@ -168,6 +168,13 @@ void IKChainManager_c::AbortLookAt(CPed* ped, uint32 blendOutTime) {
     }
 }
 
+// notsa
+void IKChainManager_c::AbortLookAtIfLooking(CPed* ped, uint32 blendOutTime) {
+    if (IsLooking(ped)) {
+        AbortLookAt(ped, blendOutTime);
+    }
+}
+
 // 0x6188B0
 bool IKChainManager_c::CanAcceptLookAt(CPed* ped) {
     if (!CanAccept(ped, 20.f)) {
@@ -255,6 +262,13 @@ void __stdcall IKChainManager_c::AbortPointArm(eIKArm arm, CPed* ped, int32 blen
     const auto mgr = GetPedIKManagerTask(ped);
     if (const auto lookAt = static_cast<CTaskSimpleIKChain*>(mgr->GetTaskAtSlot(IKArmToIKSlot(arm)))) {
         lookAt->BlendOut(blendOutTime);
+    }
+}
+
+// notsa
+void IKChainManager_c::AbortPointArmIfPointing(eIKArm arm, CPed* ped, int32 blendOutTime) {
+    if (IsArmPointing(arm, ped)) {
+        AbortPointArm(arm, ped, blendOutTime);
     }
 }
 

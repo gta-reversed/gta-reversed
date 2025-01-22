@@ -11,6 +11,9 @@
 #include <Base.h>
 
 class CVector;
+class CVector2D;
+
+constexpr CVector2D operator-(const CVector2D& vecOne, const CVector2D& vecTwo);
 
 class CVector2D : public RwV2d {
 public:
@@ -47,7 +50,7 @@ public:
         return cpy;
     }
 
-    [[nodiscard]] constexpr float ComponentwiseSum() const {
+    [[nodiscard]] constexpr float CWSum() const { // Component-wise
         return x + y;
     }
 
@@ -178,6 +181,26 @@ public:
     }
 
     bool EqualTo(CVector2D o, float epsilon);
+
+    /*!
+     * @brief Prefer this over (a - b).Magnitude()
+     * @param a Point A
+     * @param b Point B
+     * @return 2D Distance between 2 points
+    */
+    static inline float Dist(CVector2D a, CVector2D b) {
+        return (a - b).Magnitude();
+    }
+
+    /*!
+    * @brief Prefer this over (a - b).SquaredMagnitude()
+    * @param a Point A
+    * @param b Point B
+    * @return 2D Squared distance between 2 points
+    */
+    static inline float DistSqr(CVector2D a, CVector2D b) {
+        return (a - b).SquaredMagnitude();
+    }
 };
 
 /// Negate all components of the vector

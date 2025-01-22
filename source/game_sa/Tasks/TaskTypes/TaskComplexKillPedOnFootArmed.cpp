@@ -345,7 +345,7 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
             return CreateSubTask(TASK_SIMPLE_GUN_CTRL, ped);
         } else {
             if (ped->GetGroup()) {
-                ped->Say(65);
+                ped->Say(CTX_GLOBAL_COVER_ME);
             }
         }
         break;
@@ -369,7 +369,7 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
         }
 
         if (ped->GetGroup()) {
-            ped->Say(207);
+            ped->Say(CTX_GLOBAL_SURROUNDED);
         }
 
         //> 0x62CF88

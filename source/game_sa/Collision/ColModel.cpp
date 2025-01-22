@@ -26,11 +26,11 @@ void CColModel::InjectHooks() {
 }
 
 CColModel::CColModel() : m_boundBox() {
-    m_nColSlot = 0;
-    m_pColData = nullptr;
-    m_bHasCollisionVolumes = false;
+    m_nColSlot              = 0;
+    m_pColData              = nullptr;
+    m_bHasCollisionVolumes  = false;
     m_bIsSingleColDataAlloc = false;
-    m_bIsActive = true;
+    m_bIsActive             = true;
 }
 
 CColModel::~CColModel() {

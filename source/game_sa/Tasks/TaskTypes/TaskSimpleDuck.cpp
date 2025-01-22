@@ -250,6 +250,11 @@ void CTaskSimpleDuck::ForceStopMove() {
     m_MoveCmd.y = 0.f;
 }
 
+// 0x61C420
+bool CTaskSimpleDuck::StopFireGun() const {
+    return m_MoveCmd.x != 0.f || !m_DuckAnim || m_DuckAnim->GetBlendAmount() < 1.f || m_bIsAborting || m_ShotWhizzingCounter > 0;
+}
+
 // 0x692530
 void CTaskSimpleDuck::SetDuckTimer(uint16 time) {
     if (m_DuckControlType != DUCK_SCRIPT_CONTROLLED) {

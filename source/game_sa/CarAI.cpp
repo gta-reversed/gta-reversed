@@ -222,7 +222,7 @@ eCarMission CCarAI::FindPoliceCarMissionForWantedLevel() {
 
 // 0x41CAA0
 int32 CCarAI::FindPoliceCarSpeedForWantedLevel(CVehicle* vehicle) {
-    const auto& maxVelocity = vehicle->m_pHandlingData->m_transmissionData.m_fMaxVelocity;
+    const auto& maxVelocity = vehicle->m_pHandlingData->m_transmissionData.m_MaxFlatVelocity;
     switch (FindPlayerWanted()->m_nWantedLevel) {
     case 0:  return CGeneral::GetRandomNumberInRange<int32>(12, 16);
     case 1:  return 25;

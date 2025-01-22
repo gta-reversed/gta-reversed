@@ -225,19 +225,14 @@ do                                                      \
 }                                                       \
 while(0);
 
-//{@ 20050511 DDonSS : 占쌨쇽옙占쏙옙 占쏙옙占?占쏙옙占쏙옙占쌀쇽옙 占쌍듸옙占쏙옙 占쏙옙占쏙옙
-#define RWMESSAGE(args)                             \
-do                                                  \
-{                                                   \
-    if ( RWSRCGLOBAL( debugMessage ) )              \
-    {                                               \
-        RwDebugSendMessage(rwDEBUGMESSAGE,          \
-                             __dbFunctionName,      \
-                           _rwdbsprintf args);      \
-    }                                               \
-}                                                   \
+#define RWMESSAGE(args)                         \
+do                                              \
+{                                               \
+    RwDebugSendMessage(rwDEBUGMESSAGE,          \
+                         __dbFunctionName,      \
+                       _rwdbsprintf args);      \
+}                                               \
 while (0)
-//}@ DDonSS
 
 #define RWASSERT(condition)                             \
 do                                                      \

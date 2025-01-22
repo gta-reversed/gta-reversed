@@ -31,11 +31,12 @@ void CPhysical::InjectHooks()
 
     RH_ScopedInstall(Constructor, 0x542260);
     RH_ScopedInstall(Destructor, 0x542450);
+
     RH_ScopedInstall(RemoveAndAdd, 0x542560);
     RH_ScopedInstall(ApplyTurnForce, 0x542A50);
     RH_ScopedInstall(ApplyForce, 0x542B50);
     RH_ScopedInstall(GetSpeed, 0x542CE0);
-    RH_ScopedInstall(ApplyMoveSpeed, 0x542DD0, { .reversed = false }); // Go to the function definition and see why this is commented
+    RH_ScopedInstall(ApplyMoveSpeed, 0x542DD0);
     RH_ScopedInstall(ApplyTurnSpeed, 0x542E20);
     RH_ScopedOverloadedInstall(ApplyMoveForce, "vec", 0x5429F0, void(CPhysical::*)(CVector force));
     RH_ScopedInstall(SetDamagedPieceRecord, 0x5428C0);
@@ -799,15 +800,6 @@ CVector CPhysical::GetSpeed(CVector point)
     return speed;
 }
 
-/*
-    The code for this function is fine, but it will crash if we hook it. This function should be
-    only hooked after reversing all references to this function:
-    CPhysical::ApplySpeed (done)
-    CWorld::Process (done)
-    CAutoMobile::ProcessControlCollisionCheck
-    CBike::ProcessControlCollisionCheck
-    CTrain::ProcessControl (Done)
-*/
 void CPhysical::ApplyMoveSpeed()
 {
     if (physicalFlags.bDontApplySpeed || physicalFlags.bDisableMoveForce)
@@ -2497,7 +2489,7 @@ void CPhysical::ApplySpeed()
                 ApplyFriction(10.0f * fAbsoluteMoveSpeed, colPoint);
                 if (IsObject())
                 {
-                    AudioEngine.ReportMissionAudioEvent(AE_CAS4_FE, object);
+                    AudioEngine.ReportMissionAudioEvent(AE_SCRIPT_POOL_HIT_CUSHION, object);
                     object->m_nLastWeaponDamage = 4 * (object->m_nLastWeaponDamage == 0xFF) + WEAPON_RUNOVERBYCAR;
                 }
             }

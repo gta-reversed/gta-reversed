@@ -114,7 +114,7 @@ bool CTaskSimplePlayerOnFoot::ProcessPed(CPed* ped) {
             PlayerControlDucked(player);
         } else if (!intelligence->GetTaskFighting() || bPedMoving) {
             CTaskSimpleUseGun* simpleTaskUseGun = intelligence->GetTaskUseGun();
-            if (simpleTaskUseGun && simpleTaskUseGun->m_pWeaponInfo && !simpleTaskUseGun->m_pWeaponInfo->flags.bAimWithArm) {
+            if (simpleTaskUseGun && simpleTaskUseGun->m_WeaponInfo && !simpleTaskUseGun->m_WeaponInfo->flags.bAimWithArm) {
                 PlayerControlZeldaWeapon(player);
             } else {
                 PlayerControlZelda(player, false);
@@ -277,8 +277,8 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                 if (eventDamage.AffectsPed(targetEntity)) {
                     damageCalculator.ComputeDamageResponse(targetEntity, eventDamage.m_damageResponse, false);
                     targetEntity->GetEventGroup().Add(&eventDamage, false);
-                    CCrime::ReportCrime(eCrimeType::CRIME_SEALTH_KILL_PED_WITH_KNIFE, targetEntity, player);
-                    player->m_weaponAudio.AddAudioEvent(AE_WEAPON_STEALTH_KILL);
+                    CCrime::ReportCrime(eCrimeType::CRIME_STAB_PED, targetEntity, player);
+                    player->GetWeaponAE().AddAudioEvent(AE_WEAPON_STEALTH_KILL);
                 }
                 player->ClearWeaponTarget();
             } else {
@@ -507,7 +507,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                 }
                 if (player->m_pTargetedObject || playerData->m_bFreeAiming) {
                     CTaskSimpleUseGun* taskUseGun = intelligence->GetTaskUseGun();
-                    taskUseGun->SkipAim(player);
+                    taskUseGun->AbortIK(player);
                 }
             }
             if (player->m_pTargetedObject) {
@@ -584,7 +584,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                         CTask* activePrimaryTask = intelligence->GetActivePrimaryTask();
                         if (!activePrimaryTask || activePrimaryTask->GetTaskType() != TASK_COMPLEX_REACT_TO_GUN_AIMED_AT) {
                             if (activeWeapon->m_Type != WEAPON_PISTOL_SILENCED) {
-                                player->Say(176);
+                                player->Say(CTX_GLOBAL_PULL_GUN);
                             }
                             CPedGroup* pedGroup = CPedGroups::GetPedsGroup(targetedEntity);
                             if (pedGroup) {
@@ -622,7 +622,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
             TheCamera.SetNewPlayerWeaponMode(MODE_AIMWEAPON, 0, 0);
 
             if (player->m_pTargetedObject) {
-                TheCamera.UpdateAimingCoors(&player->m_pTargetedObject->GetPosition());
+                TheCamera.UpdateAimingCoors(player->m_pTargetedObject->GetPosition());
             } else {
                 CMatrix* playerMatrix = player->m_matrix;
                 firingPoint = playerMatrix->GetForward();
@@ -632,7 +632,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                 firingPoint.z = (std::sin(player->m_pPlayerData->m_fLookPitch) + firingPoint.z) * 5.0f;
 
                 firingPoint += player->GetPosition();
-                TheCamera.UpdateAimingCoors(&firingPoint);
+                TheCamera.UpdateAimingCoors(firingPoint);
             }
 
             if (taskManager->GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
@@ -752,7 +752,7 @@ void CTaskSimplePlayerOnFoot::PlayIdleAnimations(CPlayerPed* player) {
             gLastTouchTimeDelta = touchTimeDelta;
             gLastRandomNumberForIdleAnimationID = randomNumber;
             if (CStats::GetStatValue(STAT_MANAGEMENT_ISSUES_MISSION_ACCOMPLISHED) != 0.0f && CTimer::GetTimeInMS() > 1200000) {
-                player->Say(336, 0, 0.2f, 0, 0, 0);
+                player->Say(CTX_GLOBAL_SINGING, 0, 0.2f, 0, 0, 0);
             }
         }
     }
@@ -776,7 +776,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlZeldaWeapon(CPlayerPed* player) {
     CPad* pad = player->GetPadFromPlayer();
     float pedWalkUpDown = moveSpeed.y;
     float pedWalkLeftRight = moveSpeed.x;
-    if (!taskUseGun->m_pWeaponInfo->flags.b1stPerson || CGameLogic::IsPlayerUse2PlayerControls(player)) {
+    if (!taskUseGun->m_WeaponInfo->flags.b1stPerson || CGameLogic::IsPlayerUse2PlayerControls(player)) {
         pedWalkUpDown = pad->GetPedWalkUpDown();
         pedWalkLeftRight = pad->GetPedWalkLeftRight();
     } else if (TheCamera.Using1stPersonWeaponMode()) {
@@ -860,7 +860,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlDucked(CPlayerPed* player) {
     if (pad->DuckJustDown() || pad->GetSprint() || pad->JumpJustDown() || pad->ExitVehicleJustDown() || !CTaskSimpleDuck::CanPedDuck(player)) {
         player->GetIntelligence()->ClearTaskDuckSecondary();
         auto useGunTask = player->GetIntelligence()->GetTaskUseGun();
-        if (!useGunTask || useGunTask->m_pWeaponInfo->flags.bAimWithArm) {
+        if (!useGunTask || useGunTask->m_WeaponInfo->flags.bAimWithArm) {
             auto pedMoveState = PEDMOVE_NONE;
             if (pad->GetSprint()) {
                 if (pedMoveBlendRatio <= 0.5f) {

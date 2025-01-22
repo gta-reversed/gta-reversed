@@ -80,10 +80,10 @@ CTask* CTaskComplexStealCar::CreateNextSubTask(CPed* ped) {
         case TASK_COMPLEX_ENTER_CAR_AS_DRIVER: {
             if (ped->IsInVehicle()) {
                 if (ped->m_nPedType == PED_TYPE_CRIMINAL) {
-                    ped->Say(146);
+                    ped->Say(CTX_GLOBAL_MUGGING);
                 }
                 if (m_originalriver && !m_originalriver->IsPlayer()) {
-                    m_originalriver->Say(145);
+                    m_originalriver->Say(CTX_GLOBAL_MUGGED);
                 }
                 return TASK_SIMPLE_SET_PED_AS_AUTO_DRIVER;
             }

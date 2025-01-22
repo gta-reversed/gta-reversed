@@ -178,6 +178,11 @@ public:
     bool IsVisible();
     float GetDistanceFromCentreOfMassToBaseOfModel();
     void CleanUpOldReference(CEntity** entity); // See helper SafeCleanUpOldReference
+
+    /*!
+     * @addr 0x571A40
+     * @brief Clear (set to null) references to `this`
+    */
     void ResolveReferences();
     void PruneReferences();
     void RegisterReference(CEntity** entity);
