@@ -28,15 +28,13 @@ float CCrime::FindImmediateDetectionRange(eCrimeType CrimeType) {
 
 // 0x532010
 void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommitedby) {
-    if (crimeType == CRIME_NONE) { // Moved here from 0x5320FC
-        return;
-    }
-    if (!pCommitedby || !pCommitedby->IsPlayer()) {
+    
+    if (crimeType == CRIME_NONE || !pCommitedby || !pCommitedby->IsPlayer()) {
         return;
     }
 
     const bool isPedCriminal = pVictim && pVictim->IsPed() && CPedType::PoliceDontCareAboutCrimesAgainstPedType(pVictim->AsPed()->m_nPedType);
-    if (   crimeType == CRIME_DAMAGED_PED
+    if (crimeType == CRIME_DAMAGED_PED
         && pVictim
         && pVictim->IsPed()
         && IsPedPointerValid(pVictim->AsPed())
@@ -62,10 +60,8 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
     const auto plyrWanted = plyrPed->m_pPlayerData->m_pWanted;
     if (pVictim && plyrWanted->m_fMultiplier >= 0.0) {
         const auto& comittedByPos = pCommitedby->GetPosition();
-        if (CLocalisation::GermanGame() && (
-               CWanted::WorkOutPolicePresence(comittedByPos, FindImmediateDetectionRange(crimeType))
-            || notsa::contains({CRIME_DAMAGE_CAR, CRIME_DAMAGE_COP_CAR, CRIME_SET_PED_ON_FIRE, CRIME_SET_COP_PED_ON_FIRE}, crimeType)
-        )) {
+        if ((CLocalisation::GermanGame() && notsa::contains({CRIME_DAMAGE_CAR, CRIME_DAMAGE_COP_CAR, CRIME_SET_PED_ON_FIRE, CRIME_SET_COP_PED_ON_FIRE}, crimeType))
+            || CWanted::WorkOutPolicePresence(comittedByPos, FindImmediateDetectionRange(crimeType))) {
             plyrWanted->RegisterCrime_Immediately(crimeType, comittedByPos, pVictim->AsPed(), isPedCriminal);
             plyrWanted->SetWantedLevelNoDrop(WANTED_LEVEL_1); // We will never know if this is a bug or not.
         } else {
