@@ -1811,9 +1811,12 @@ void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCa
         case MODE_SYPHON_CRIM_IN_FRONT:
         case MODE_SYPHON:
         case MODE_SPECIAL_FIXED_FOR_SYPHON:
-            break; // negative case
+            currentCamera.m_fFractionInterToStopMoving = 0.1f;
+            currentCamera.m_fFractionInterToStopCatchUp = 0.9f;
+            currentCamera.m_nTransitionDuration = 350;
+            isAimWeaponTransition = true;
+            return;
         default:
-            currentCamera.m_nTransitionDuration = 1350;
             return;
         }
     }
@@ -1823,17 +1826,14 @@ void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCa
     case MODE_FOLLOWPED:
     case MODE_SYPHON:
     case MODE_AIMWEAPON:
-        break;
-    default: // negative case
-        currentCamera.m_nTransitionDuration = 1350;
+        currentCamera.m_fFractionInterToStopMoving = 0.1f;
+        currentCamera.m_fFractionInterToStopCatchUp = 0.9f;
+        currentCamera.m_nTransitionDuration = 350;
+        isAimWeaponTransition = true;
+        return;
+    default:
         return;
     }
-
-    currentCamera.m_fFractionInterToStopMoving = 0.1f;
-    currentCamera.m_fFractionInterToStopCatchUp = 0.9f;
-    currentCamera.m_nTransitionDuration = 350;
-    isAimWeaponTransition = true;
-    return;
 }
 
 // 0x515200
@@ -1956,9 +1956,6 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         activeCamera->m_nMode = targetCamMode;
         activeCamera->m_fHorizontalAngle = horizontalAngle;
     }
-
-    // Set up transition parameters
-    currentCamera->m_nTransitionDuration = 1350;
 
     // NOTSA: Replaced vanilla checks with a switch-case for optimal performance and readability
     bool isAimWeaponTransition = false;
