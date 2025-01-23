@@ -145,7 +145,7 @@ public:
     auto FindClosestFollowerToLeader() -> FindClosestMemberResult;
 
     //! @notsa
-    CPed* GetAMember();
+    CPed* GetFirstAvailableMember();
 
     static eModelID GetObjectForPedToHold();
 private:
