@@ -1,9 +1,13 @@
 name: Build
 
 env:
+    # Compile in parallel where possible.
     CL: /MP
+
+    # Path to the CMake build directory.
     build: '${{ github.workspace }}/build'
 
+# Triggers the workflow on push or pull request events for all branches.
 on: [ push, pull_request ]
 
 permissions:
@@ -12,8 +16,8 @@ permissions:
 jobs:
     build:
         permissions:
-            contents: read
-            security-events: write
+            contents: read # for actions/checkout to fetch code
+            security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
 
         runs-on: ${{ matrix.os }}
 
@@ -25,49 +29,40 @@ jobs:
                 conf: [ Debug, Release ]
 
         steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-                  submodules: true
-              
-            - name: Initialize submodules
-              run: |
-                git submodule update --init --recursive --remote
+            -   name: Checkout
+                uses: actions/checkout@v4
+                with:
+                    fetch-depth: 1
+                    submodules: recursive
 
-            - name: Install CodeQL
-              uses: github/codeql-action/init@v3
-              with:
-                languages: cpp
+            -   name: Configure ${{ matrix.arch }}
+                shell: cmd
+                run: cmake -B ${{ env.build }} -H. -A Win32 # ${{ matrix.arch }}
 
-            - name: Configure ${{ matrix.arch }}
-              shell: cmd
-              run: cmake -B ${{ env.build }} -H. -A Win32
+            -   name: Build ${{ matrix.conf }}
+                shell: cmd
+                run: cmake --build build --config ${{ matrix.conf }}
 
-            - name: Build ${{ matrix.conf }}
-              shell: cmd
-              run: cmake --build build --config ${{ matrix.conf }}
+            -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
+                uses: actions/upload-artifact@v4
+                with:
+                    name: gta_reversed-${{ matrix.conf }}
+                    path: bin/${{ matrix.conf }}
 
-            - name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
-              uses: actions/upload-artifact@v4
-              with:
-                  name: gta_reversed-${{ matrix.conf }}
-                  path: bin/${{ matrix.conf }}
+            -   name: Initialize MSVC Code Analysis
+                uses: microsoft/msvc-code-analysis-action@v0.1.1
+                # Provide a unique ID to access the sarif output path
+                id: run-analysis
+                with:
+                    cmakeBuildDirectory: ${{ env.build }}
+                    # Ruleset file that will determine what checks will be run
+                    ruleset: NativeRecommendedRules.ruleset
+                    buildConfiguration: ${{ matrix.conf }}
+                    # Exclude external libraries from analysis
+                    ignoredPaths: ${{ github.workspace }}/libs
 
-            - name: CodeQL Analysis
-              id: run-analysis
-              shell: bash
-              run: |
-                  "${{ github.workspace }}/codeql/codeql" database create codeql-db --language=cpp --source-root .
-                  # Rebuild within the CodeQL database
-                  cmake -B ${{ env.build }} -H. -A Win32
-                  cmake --build build --config ${{ matrix.conf }}
-                  codeql database finalize codeql-db
-                  # Analyze and produce SARIF
-                  "${{ github.workspace }}/codeql/codeql" database analyze codeql-db --format=sarif-latest --output=analysis.sarif
-                  echo "sarif=analysis.sarif" >> $GITHUB_OUTPUT
-
-            - name: Upload SARIF to GitHub
-              uses: github/codeql-action/upload-sarif@v3
-              with:
-                  sarif_file: ${{ steps.run-analysis.outputs.sarif }}
+                # Upload SARIF file to GitHub Code Scanning Alerts
+            -   name: Upload SARIF to GitHub
+                uses: github/codeql-action/upload-sarif@v3
+                with:
+                    sarif_file: ${{ steps.run-analysis.outputs.sarif }}
