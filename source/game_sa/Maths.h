@@ -1,11 +1,8 @@
 #pragma once
-
-constexpr float RadToSinTableIndex = 256.0f / TWO_PI;
+#include <common.h>
 
 class CMaths {
 public:
-    static float (&ms_SinTable)[256];
-
     static void InjectHooks();
     static void InitMathsTables();
 
@@ -14,5 +11,4 @@ public:
 
     // Originally named `CosTabel` with argument named `Arg`, same story as above
     static float GetCosFast(float rad);
-
 };
