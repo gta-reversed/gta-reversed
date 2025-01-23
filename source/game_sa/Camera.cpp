@@ -1790,7 +1790,7 @@ void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCa
     case MODE_M16_1STPERSON_RUNABOUT:
     case MODE_FIGHT_CAM_RUNABOUT:
     case MODE_CAMERA:
-        if (targetCamMode == MODE_CAM_ON_A_STRING || targetCamMode == MODE_BEHINDBOAT && (!currentCamera.m_bPlayerWasOnBike || targetCamMode != MODE_FOLLOWPED)) {
+        if ((targetCamMode == MODE_CAM_ON_A_STRING || targetCamMode == MODE_BEHINDBOAT) && !currentCamera.m_bPlayerWasOnBike) {
             currentCamera.m_fFractionInterToStopMoving = 0.0;
             currentCamera.m_fFractionInterToStopCatchUp = 1.0;
             currentCamera.m_nTransitionDuration = 1;
@@ -1802,7 +1802,7 @@ void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCa
     if (!currentCamera.m_bPlayerWasOnBike || targetCamMode != MODE_FOLLOWPED) {
         switch (targetCamMode) {
         case MODE_AIMWEAPON:
-            currentCamera.m_fFractionInterToStopMoving = 0.0f; // ? 0.0 dword_B70044
+            currentCamera.m_fFractionInterToStopMoving = 0.0f;  // ? 0.0 dword_B70044
             currentCamera.m_fFractionInterToStopCatchUp = 1.0f; // dword_8CCCC0
             currentCamera.m_nTransitionDuration = 400;          // dword_8CCCBC
             isAimWeaponTransition = true;
@@ -1817,6 +1817,7 @@ void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCa
             return;
         }
     }
+
     switch (previousCamMode) {
     case MODE_SYPHON_CRIM_IN_FRONT:
     case MODE_FOLLOWPED:
@@ -1827,6 +1828,7 @@ void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCa
         currentCamera.m_nTransitionDuration = 1350;
         return;
     }
+
     currentCamera.m_fFractionInterToStopMoving = 0.1f;
     currentCamera.m_fFractionInterToStopCatchUp = 0.9f;
     currentCamera.m_nTransitionDuration = 350;
