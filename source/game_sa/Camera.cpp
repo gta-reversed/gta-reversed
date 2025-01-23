@@ -1819,8 +1819,6 @@ void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCa
             currentCamera.m_nTransitionDuration = 350;
             isAimWeaponTransition = true;
             return;
-        default:
-            return;
         }
     }
 
@@ -1834,8 +1832,6 @@ void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCa
         currentCamera.m_fFractionInterToStopCatchUp = 0.9f;
         currentCamera.m_nTransitionDuration = 350;
         isAimWeaponTransition = true;
-        return;
-    default:
         return;
     }
 }
