@@ -110,8 +110,9 @@ constexpr float PI_6           = PI / 6.0f;         // π / 6
 constexpr float SQRT_2         = 1.41421f;          // √2
 constexpr float SQRT_3         = 1.73205f;          // √3
 constexpr float TWO_PI         = 6.28318f;          // τ (TAU)
+constexpr float DEG_TO_RAD     = 0.01745329252f;    // π / 180
 
-constexpr float COS_45 = SQRT_2 / 2.f; // cos(45deg)
+constexpr float COS_45         = SQRT_2 / 2.f;      // cos(45°)
 
 template<typename T>
 NOTSA_FORCEINLINE constexpr T sq(T x) { return x * x; }
@@ -238,6 +239,11 @@ inline constexpr uint32 MakeFourCC(const char fourcc[4]) {
            fourcc[1] << 8 |
            fourcc[2] << 16 |
            fourcc[3] << 24;
+}
+
+// NOTSA: 
+inline constexpr float degToRad(float degrees) {
+    return degrees * DEG_TO_RAD;
 }
 
 char* MakeUpperCase(char *dest, const char *src);
