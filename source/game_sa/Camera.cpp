@@ -1861,8 +1861,8 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     case MODE_HELICANNON_1STPERSON:
     case MODE_CAMERA:
     case MODE_1STPERSON_RUNABOUT:
-        if (currentCamera->m_pTargetEntity->IsPed()) {
-            CPed* ped = static_cast<CPed*>(currentCamera->m_pTargetEntity);
+        if (currentCamera->m_pTargetEntity && currentCamera->m_pTargetEntity->IsPed()) {
+            CPed* ped = currentCamera->m_pTargetEntity->AsPed();
             float targetRotation = CGeneral::GetATanOfXY(activeCamera->m_vecFront.x, activeCamera->m_vecFront.y) - HALF_PI;
             ped->m_fCurrentRotation = targetRotation;
             ped->m_fAimingRotation = targetRotation;
