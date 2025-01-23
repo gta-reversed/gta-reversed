@@ -32,7 +32,7 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
         return;
     }
 
-    if (!pCommitedby || !pCommitedby->IsPlayer()) { // Moved here from 0x532021
+    if (!pCommitedby || !pCommitedby->IsPlayer()) {
         return;
     }
 
