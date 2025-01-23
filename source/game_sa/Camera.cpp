@@ -1737,36 +1737,41 @@ void CCamera::StartTransitionWhenNotFinishedInter(eCamMode currentCamMode) {
 void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCamMode, bool &isAimWeaponTransition) {
     isAimWeaponTransition = false;
     currentCamera.m_nTransitionDuration = 1350;
-    if (targetCamMode == MODE_SYPHON) {
-        if (previousCamMode == MODE_SYPHON_CRIM_IN_FRONT) {
-            currentCamera.m_nTransitionDuration = 1800;
-            return;
-        }
-    } else if (targetCamMode == MODE_CAM_ON_A_STRING) {
-        switch (previousCamMode) {
-        case MODE_SYPHON_CRIM_IN_FRONT:
-        case MODE_FOLLOWPED:
-        case MODE_SYPHON:
-        case MODE_SPECIAL_FIXED_FOR_SYPHON:
-        case MODE_AIMWEAPON:
+
+    switch (previousCamMode) {
+    case MODE_FOLLOWPED:
+    case MODE_SYPHON:
+    case MODE_SPECIAL_FIXED_FOR_SYPHON:
+    case MODE_AIMWEAPON:
+        if (targetCamMode == MODE_SYPHON) {
             currentCamera.m_fFractionInterToStopMoving = 0.1f;
             currentCamera.m_fFractionInterToStopCatchUp = 0.9f;
             currentCamera.m_nTransitionDuration = 750;
             return;
         }
-    }
-
-    if (previousCamMode == MODE_SPECIAL_FIXED_FOR_SYPHON) {
+        break;
+    case MODE_SYPHON_CRIM_IN_FRONT:
+        if (targetCamMode == MODE_SYPHON) {
+            currentCamera.m_nTransitionDuration = 1800;
+            return;
+        } else if (targetCamMode == MODE_CAM_ON_A_STRING) {
+            currentCamera.m_fFractionInterToStopMoving = 0.1f;
+            currentCamera.m_fFractionInterToStopCatchUp = 0.9f;
+            currentCamera.m_nTransitionDuration = 750;
+            return;
+        }
+        break;
+    case MODE_SPECIAL_FIXED_FOR_SYPHON:
         currentCamera.m_fFractionInterToStopMoving = 0.2f;  // dword_8CCCCC
         currentCamera.m_fFractionInterToStopCatchUp = 0.8f; // dword_8CCCC8
         currentCamera.m_nTransitionDuration = 1000;         // dword_8CCCC4
         return;
-    }
-    if (previousCamMode == MODE_FIXED) {
+    case MODE_FIXED:
         currentCamera.m_fFractionInterToStopMoving = 0.05f;
         currentCamera.m_fFractionInterToStopCatchUp = 0.95f;
         return;
     }
+
     if (currentCamera.m_bPlayerWasOnBike && targetCamMode == MODE_FOLLOWPED) {
         if (previousCamMode == MODE_CAM_ON_A_STRING) {
             currentCamera.m_nTransitionDuration = 800;
@@ -1775,7 +1780,7 @@ void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCa
             return;
         }
     } else {
-        // Warning: Not combinable with switch-case
+        // Warning: Please do not combine with the switch case below, the logic will not be the same.
         if (targetCamMode == MODE_CAM_ON_A_STRING || targetCamMode == MODE_BEHINDBOAT) {
             switch (previousCamMode) {
             case MODE_SNIPER_RUNABOUT:
