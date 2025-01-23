@@ -30,7 +30,7 @@ jobs:
 
         steps:
             -   name: Checkout
-                uses: actions/checkout@v3
+                uses: actions/checkout@v4
                 with:
                     fetch-depth: 1
                     submodules: recursive
@@ -44,7 +44,7 @@ jobs:
                 run: cmake --build build --config ${{ matrix.conf }}
 
             -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
-                uses: actions/upload-artifact@v3
+                uses: actions/upload-artifact@v4
                 with:
                     name: gta_reversed-${{ matrix.conf }}
                     path: bin/${{ matrix.conf }}
