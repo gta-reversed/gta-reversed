@@ -146,7 +146,7 @@ static bool IsPointInSphere(const CVector& point, const CVector& center, float r
 // Converts degrees to radians
 // keywords: 0.017453292 flt_8595EC
 constexpr float DegreesToRadians(float angleInDegrees) {
-    return angleInDegrees * PI / 180.0F;
+    return angleInDegrees * DEG_TO_RAD;
 }
 
 //! @notsa
@@ -239,11 +239,6 @@ inline constexpr uint32 MakeFourCC(const char fourcc[4]) {
            fourcc[1] << 8 |
            fourcc[2] << 16 |
            fourcc[3] << 24;
-}
-
-// NOTSA: 
-inline constexpr float degToRad(float degrees) {
-    return degrees * DEG_TO_RAD;
 }
 
 char* MakeUpperCase(char *dest, const char *src);

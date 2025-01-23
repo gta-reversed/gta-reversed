@@ -1909,7 +1909,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         }
         currentCamera->m_bUseTransitionBeta = true;
 
-        currentCam->m_fTransitionBeta = CGeneral::GetATanOfXY(currentCam->m_vecFront.x, currentCam->m_vecFront.y) + degToRad(55.0f) + PI;
+        currentCam->m_fTransitionBeta = CGeneral::GetATanOfXY(currentCam->m_vecFront.x, currentCam->m_vecFront.y) + DegreesToRadians(55.0f) + PI;
         break;
     }
     case MODE_SNIPER:
@@ -1939,7 +1939,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         }
         break;
     case MODE_PED_DEAD_BABY:
-        activeCamera->m_fVerticalAngle = degToRad(15.0f);
+        activeCamera->m_fVerticalAngle = DegreesToRadians(15.0f);
         break;
     }
 
@@ -1974,8 +1974,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         currentCamera->m_vecStartingUpForInterPol = currentCamera->m_vecUpDuringInter;
         currentCamera->m_fStartingAlphaForInterPol = currentCamera->m_fAlphaDuringInterPol;
         currentCamera->m_fStartingBetaForInterPol = currentCamera->m_fBetaDuringInterPol;
-    }
-    else {
+    } else {
         currentCamera->m_vecStartingSourceForInterPol = activeCamera->m_vecSource;
         currentCamera->m_vecStartingTargetForInterPol = activeCamera->m_vecTargetCoorsForFudgeInter;
         currentCamera->m_vecStartingUpForInterPol = activeCamera->m_vecUp;
