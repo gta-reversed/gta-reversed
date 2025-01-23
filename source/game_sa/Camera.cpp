@@ -1735,9 +1735,11 @@ void CCamera::StartTransitionWhenNotFinishedInter(eCamMode currentCamMode) {
 
 // NOTSA: Please dont touch this function
 void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCamMode, bool &isAimWeaponTransition) {
+    // Set default values
+    // NOTE: Dont put StopMoving and StopCatchUp here. It will be set in StartTransition
     isAimWeaponTransition = false;
     currentCamera.m_nTransitionDuration = 1350;
- 
+
     switch (previousCamMode) {
     case MODE_SPECIAL_FIXED_FOR_SYPHON:
         if (targetCamMode == MODE_CAM_ON_A_STRING) {
@@ -1799,6 +1801,7 @@ void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCa
         break;
     }
 
+    // Handle special cases
     if (!currentCamera.m_bPlayerWasOnBike || targetCamMode != MODE_FOLLOWPED) {
         switch (targetCamMode) {
         case MODE_AIMWEAPON:
@@ -1821,6 +1824,7 @@ void ProcessTransition(CCamera &currentCamera, int targetCamMode, int previousCa
         }
     }
 
+    // Handle special cases
     switch (previousCamMode) {
     case MODE_SYPHON_CRIM_IN_FRONT:
     case MODE_FOLLOWPED:
