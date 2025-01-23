@@ -30,10 +30,16 @@ jobs:
 
         steps:
             -   name: Checkout
-                uses: actions/checkout@v3
+                uses: actions/checkout@v4
                 with:
                     fetch-depth: 1
                     submodules: recursive
+
+            -   name: Initialize CodeQL
+                uses: github/codeql-action/init@v4
+                with:
+                    languages: cpp
+                    queries: security-and-quality
 
             -   name: Configure ${{ matrix.arch }}
                 shell: cmd
@@ -43,26 +49,15 @@ jobs:
                 shell: cmd
                 run: cmake --build build --config ${{ matrix.conf }}
 
+            -   name: Perform CodeQL Analysis
+                uses: github/codeql-action/analyze@v4
+                with:
+                    category: "/language:cpp"
+                    upload: true
+                    wait-for-processing: true
+
             -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
-                uses: actions/upload-artifact@v3
+                uses: actions/upload-artifact@v4
                 with:
                     name: gta_reversed-${{ matrix.conf }}
                     path: bin/${{ matrix.conf }}
-
-            -   name: Initialize MSVC Code Analysis
-                uses: microsoft/msvc-code-analysis-action@v0.1.1
-                # Provide a unique ID to access the sarif output path
-                id: run-analysis
-                with:
-                    cmakeBuildDirectory: ${{ env.build }}
-                    # Ruleset file that will determine what checks will be run
-                    ruleset: NativeRecommendedRules.ruleset
-                    buildConfiguration: ${{ matrix.conf }}
-                    # Exclude external libraries from analysis
-                    ignoredPaths: ${{ github.workspace }}/libs
-
-                # Upload SARIF file to GitHub Code Scanning Alerts
-            -   name: Upload SARIF to GitHub
-                uses: github/codeql-action/upload-sarif@v3
-                with:
-                    sarif_file: ${{ steps.run-analysis.outputs.sarif }}
