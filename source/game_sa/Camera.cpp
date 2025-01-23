@@ -2007,8 +2007,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         currentCamera->m_fFractionInterToStopMovingTarget = 0.0f;
         currentCamera->m_fFractionInterToStopCatchUpTarget = 1.0f;
         currentCamera->m_nTransitionDurationTargetCoors = isAimWeaponTransition ? 350 : 600;
-    }
-    else {
+    } else {
         if (currentCamera->m_bScriptParametersSetForInterp) {
             currentCamera->m_fFractionInterToStopMoving = currentCamera->m_fScriptPercentageInterToStopMoving;
             currentCamera->m_fFractionInterToStopCatchUp = currentCamera->m_fScriptPercentageInterToCatchUp;
