@@ -1864,7 +1864,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         if (currentCamera->m_pTargetEntity->IsPed()) {
             CPed* ped = static_cast<CPed*>(currentCamera->m_pTargetEntity);
             float targetRotation = CGeneral::GetATanOfXY(activeCamera->m_vecFront.x, activeCamera->m_vecFront.y) - HALF_PI;
-            ped->SetHeading(targetRotation);
+            ped->m_fCurrentRotation = targetRotation;
             ped->m_fAimingRotation = targetRotation;
         }
         break;
@@ -1873,11 +1873,8 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     // Copy fixed mode vectors and settings
     activeCamera->m_vecCamFixedModeVector = currentCamera->m_vecFixedModeVector;
 
-    if (activeCamera->m_pCamTargetEntity) {
-        CEntity::SafeCleanUpRef(activeCamera->m_pCamTargetEntity);
-    }
-    activeCamera->m_pCamTargetEntity = currentCamera->m_pTargetEntity;
-    CEntity::SafeRegisterRef(activeCamera->m_pCamTargetEntity);
+    // Set up camera target entity
+    CEntity::ChangeEntityReference(activeCamera->m_pCamTargetEntity, currentCamera->m_pTargetEntity);
 
     activeCamera->m_vecCamFixedModeSource = currentCamera->m_vecFixedModeSource;
     activeCamera->m_vecCamFixedModeUpOffSet = currentCamera->m_vecFixedModeUpOffSet;
@@ -1989,12 +1986,9 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     activeCamera->m_vecCamFixedModeUpOffSet = currentCamera->m_vecFixedModeUpOffSet;
     activeCamera->m_nMode = targetCamMode;
 
-    if (activeCamera->m_pCamTargetEntity) {
-        CEntity::SafeCleanUpRef(activeCamera->m_pCamTargetEntity);
-    }
-    activeCamera->m_pCamTargetEntity = currentCamera->m_pTargetEntity;
-    CEntity::SafeRegisterRef(activeCamera->m_pCamTargetEntity);
-
+    // Set up camera target entity
+    CEntity::ChangeEntityReference(activeCamera->m_pCamTargetEntity, currentCamera->m_pTargetEntity);
+    
     currentCamera->m_bTransitionState = true; 
     currentCamera->m_nTimeTransitionStart = CTimer::GetTimeInMS();
     currentCamera->m_bTransitionJUSTStarted = true;
