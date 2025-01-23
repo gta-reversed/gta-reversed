@@ -40,7 +40,6 @@ jobs:
                 with:
                     languages: cpp
                     queries: security-and-quality
-
             -   name: Configure ${{ matrix.arch }}
                 shell: cmd
                 run: cmake -B ${{ env.build }} -H. -A Win32 # ${{ matrix.arch }}
@@ -49,6 +48,12 @@ jobs:
                 shell: cmd
                 run: cmake --build build --config ${{ matrix.conf }}
 
+            -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
+                uses: actions/upload-artifact@v4
+                with:
+                    name: gta_reversed-${{ matrix.conf }}
+                    path: bin/${{ matrix.conf }}
+
             -   name: Perform CodeQL Analysis
                 uses: github/codeql-action/analyze@v3
                 with:
@@ -56,8 +61,9 @@ jobs:
                     upload: true
                     wait-for-processing: true
 
-            -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
-                uses: actions/upload-artifact@v4
+            -   name: Subir resultados SARIF
+                uses: ./.github/actions/upload-sarif
                 with:
-                    name: gta_reversed-${{ matrix.conf }}
-                    path: bin/${{ matrix.conf }}
+                    sarif_file: '../results'
+                    category: 'cpp'
+                    wait-for-processing: true
