@@ -1,13 +1,9 @@
 name: Build
 
 env:
-    # Compile in parallel where possible.
     CL: /MP
-
-    # Path to the CMake build directory.
     build: '${{ github.workspace }}/build'
 
-# Triggers the workflow on push or pull request events for all branches.
 on: [ push, pull_request ]
 
 permissions:
@@ -16,8 +12,8 @@ permissions:
 jobs:
     build:
         permissions:
-            contents: read # for actions/checkout to fetch code
-            security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+            contents: read
+            security-events: write
 
         runs-on: ${{ matrix.os }}
 
@@ -29,41 +25,49 @@ jobs:
                 conf: [ Debug, Release ]
 
         steps:
-            -   name: Checkout
-                uses: actions/checkout@v4
-                with:
-                    fetch-depth: 1
-                    submodules: recursive
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  submodules: true
+              
+            - name: Initialize submodules
+              run: |
+                git submodule update --init --recursive --remote
 
-            -   name: Initialize CodeQL
-                uses: github/codeql-action/init@v3
-                with:
-                    languages: cpp
-                    queries: security-and-quality
-            -   name: Configure ${{ matrix.arch }}
-                shell: cmd
-                run: cmake -B ${{ env.build }} -H. -A Win32 # ${{ matrix.arch }}
+            - name: Install CodeQL
+              uses: github/codeql-action/init@v3
+              with:
+                languages: cpp
 
-            -   name: Build ${{ matrix.conf }}
-                shell: cmd
-                run: cmake --build build --config ${{ matrix.conf }}
+            - name: Configure ${{ matrix.arch }}
+              shell: cmd
+              run: cmake -B ${{ env.build }} -H. -A Win32
 
-            -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
-                uses: actions/upload-artifact@v4
-                with:
-                    name: gta_reversed-${{ matrix.conf }}
-                    path: bin/${{ matrix.conf }}
+            - name: Build ${{ matrix.conf }}
+              shell: cmd
+              run: cmake --build build --config ${{ matrix.conf }}
 
-            -   name: Perform CodeQL Analysis
-                uses: github/codeql-action/analyze@v3
-                with:
-                    category: "/language:cpp"
-                    upload: true
-                    wait-for-processing: true
+            - name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
+              uses: actions/upload-artifact@v4
+              with:
+                  name: gta_reversed-${{ matrix.conf }}
+                  path: bin/${{ matrix.conf }}
 
-            -   name: Subir resultados SARIF
-                uses: ./.github/actions/upload-sarif
-                with:
-                    sarif_file: '../results'
-                    category: 'cpp'
-                    wait-for-processing: true
+            - name: CodeQL Analysis
+              id: run-analysis
+              shell: bash
+              run: |
+                  "${{ github.workspace }}/codeql/codeql" database create codeql-db --language=cpp --source-root .
+                  # Rebuild within the CodeQL database
+                  cmake -B ${{ env.build }} -H. -A Win32
+                  cmake --build build --config ${{ matrix.conf }}
+                  codeql database finalize codeql-db
+                  # Analyze and produce SARIF
+                  "${{ github.workspace }}/codeql/codeql" database analyze codeql-db --format=sarif-latest --output=analysis.sarif
+                  echo "sarif=analysis.sarif" >> $GITHUB_OUTPUT
+
+            - name: Upload SARIF to GitHub
+              uses: github/codeql-action/upload-sarif@v3
+              with:
+                  sarif_file: ${{ steps.run-analysis.outputs.sarif }}
