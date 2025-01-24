@@ -219,8 +219,8 @@ VALIDATE_SIZE(tEffectInterior, 0x34 - 0x10);
 
 //! NOTASA base class (otherwise SA)
 struct C2dEffectBase {
-    CVector       m_pos;
-    e2dEffectType m_type;
+    CVector       m_Pos;
+    e2dEffectType m_Type;
 };
 VALIDATE_SIZE(C2dEffectBase, 0x10);
 

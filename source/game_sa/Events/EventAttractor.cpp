@@ -56,7 +56,7 @@ bool CEventAttractor::AffectsPed(CPed* ped) {
                     return true;
                 if (!g_ikChainMan.IsLooking(ped)) {
                     uint32 time = CGeneral::GetRandomNumberInRange(2000, 4000);
-                    CVector point = m_entity->GetMatrix().TransformPoint(m_2dEffect->m_pos);
+                    CVector point = m_entity->GetMatrix().TransformPoint(m_2dEffect->m_Pos);
                     g_ikChainMan.LookAt("CEventAttractor", ped, 0, time, BONE_UNKNOWN, &point, false, 0.25f, 500, 3, false);
                 }
             }     

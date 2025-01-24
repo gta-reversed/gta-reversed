@@ -140,7 +140,7 @@ void TwoDEffectsDebugModule::UpdateEntitiesAndEffectsInRange() {
         const auto* const mi = e->GetModelInfo();
         for (size_t fxN = 0; fxN < mi->m_n2dfxCount; fxN++) {
             auto* const fx    = mi->Get2dEffect(fxN);
-            const auto  fxPos = e->GetMatrix().TransformPoint(fx->m_pos);
+            const auto  fxPos = e->GetMatrix().TransformPoint(fx->m_Pos);
             const auto  hash  = ImHashData(&fx, sizeof(&fx), ImHashData(&e, sizeof(&e)));
             const auto& entry = m_FxInRange.emplace_back(
                 e,
@@ -191,7 +191,7 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
             switch (spec->ColumnIndex) {
             case 0: o = a.TblIdx <=> b.TblIdx;             break; // #
             case 1:                                        break; // Color (not sortable)
-            case 2: o = a.Fx->m_type <=> b.Fx->m_type;     break; // Type
+            case 2: o = a.Fx->m_Type <=> b.Fx->m_Type;     break; // Type
             case 3: o = a.DistToPlayer <=> b.DistToPlayer; break; // Distance
             case 4: o = a.Entity <=> b.Entity;             break; // Entity
             }
@@ -225,11 +225,11 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
 
         // Color (For type)
         ig::TableNextColumn();
-        ig::TableSetBgColor(ImGuiTableBgTarget_CellBg, s_ColorBy2DEffectType[v.Fx->m_type].ToIntABGR());
+        ig::TableSetBgColor(ImGuiTableBgTarget_CellBg, s_ColorBy2DEffectType[v.Fx->m_Type].ToIntABGR());
 
         // Type
         ig::TableNextColumn();
-        ig::TextUnformatted(s_2DEffectTypeNames[v.Fx->m_type]);
+        ig::TextUnformatted(s_2DEffectTypeNames[v.Fx->m_Type]);
 
         // Distance
         ig::TableNextColumn();
@@ -249,7 +249,7 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
 void TwoDEffectsDebugModule::RenderSelectedEffectDetails() {
     const auto& selFx = *m_SelectedFx;
 
-    ig::Text("%-15s %s", "Type:", s_2DEffectTypeNames[selFx.Fx->m_type]);
+    ig::Text("%-15s %s", "Type:", s_2DEffectTypeNames[selFx.Fx->m_Type]);
     ig::Text("%-15s %.3f", "Distance:", selFx.DistToPlayer);
     if (auto* const attr = C2dEffect::DynCast<C2dEffectPedAttractor>(selFx.Fx)) {
         ig::Text("%-15s %s", "Attractor Type:", s_PedAttractorTypeNames[attr->m_nAttractorType]);
@@ -287,7 +287,7 @@ void TwoDEffectsDebugModule::RenderEffectBB(const InRange2DFx& fx) {
     }.DrawWireFrame(
         fx.Hash == m_SelectedFxHash
             ? CRGBA{0x0, 0xFF, 0x0, 0xFF}
-            : s_ColorBy2DEffectType[fx.Fx->m_type]
+            : s_ColorBy2DEffectType[fx.Fx->m_Type]
     );
 }
 

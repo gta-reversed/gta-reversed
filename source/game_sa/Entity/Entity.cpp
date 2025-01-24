@@ -897,7 +897,7 @@ bool CEntity::HasPreRenderEffects()
             return false;
 
         for (int32 i = 0; i < mi->m_n2dfxCount; ++i) {
-            if (mi->Get2dEffect(i)->m_type == e2dEffectType::EFFECT_LIGHT)
+            if (mi->Get2dEffect(i)->m_Type == e2dEffectType::EFFECT_LIGHT)
                 return true;
         }
 
@@ -1040,8 +1040,8 @@ CVector* CEntity::FindTriggerPointCoors(CVector* outVec, int32 triggerIndex)
     auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
-        if (effect->m_type == e2dEffectType::EFFECT_TRIGGER_POINT && effect->slotMachineIndex.m_nId == triggerIndex) {
-            *outVec = GetMatrix().TransformPoint(effect->m_pos);
+        if (effect->m_Type == e2dEffectType::EFFECT_TRIGGER_POINT && effect->slotMachineIndex.m_nId == triggerIndex) {
+            *outVec = GetMatrix().TransformPoint(effect->m_Pos);
             return outVec;
         }
     }
@@ -1067,7 +1067,7 @@ C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot)
     size_t iFoundCount = 0;
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
-        if (effect->m_type != effectType)
+        if (effect->m_Type != effectType)
             continue;
 
         if (bCheckForEmptySlot && !GetPedAttractorManager()->HasEmptySlot(C2dEffect::Cast<C2dEffectPedAttractor>(effect), this))
@@ -1117,13 +1117,13 @@ void CEntity::CreateEffects()
 
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
-        switch (effect->m_type) {
+        switch (effect->m_Type) {
         case e2dEffectType::EFFECT_LIGHT: {
             m_bHasPreRenderEffects = true;
             break;
         }
         case e2dEffectType::EFFECT_PARTICLE: {
-            g_fx.CreateEntityFx(this, effect->particle.m_szName, effect->m_pos, GetModellingMatrix());
+            g_fx.CreateEntityFx(this, effect->particle.m_szName, effect->m_Pos, GetModellingMatrix());
             break;
         }
         case e2dEffectType::EFFECT_ATTRACTOR: {
@@ -1132,8 +1132,8 @@ void CEntity::CreateEffects()
             break;
         }
         case e2dEffectType::EFFECT_ENEX: {
-            auto vecExit = effect->m_pos + effect->enEx.m_vecExitPosn;
-            auto vecWorldEffect = TransformFromObjectSpace(effect->m_pos);
+            auto vecExit = effect->m_Pos + effect->enEx.m_vecExitPosn;
+            auto vecWorldEffect = TransformFromObjectSpace(effect->m_Pos);
             auto vecWorldExit = TransformFromObjectSpace(vecExit);
 
             if (effect->enEx.bTimedEffect) {
@@ -1198,13 +1198,13 @@ void CEntity::CreateEffects()
             RwFrameRotate(frame, &axis2, effect->roadsign.m_vecRotation.z, RwOpCombineType::rwCOMBINEREPLACE);
             RwFrameRotate(frame, &axis0, effect->roadsign.m_vecRotation.x, RwOpCombineType::rwCOMBINEPOSTCONCAT);
             RwFrameRotate(frame, &axis1, effect->roadsign.m_vecRotation.y, RwOpCombineType::rwCOMBINEPOSTCONCAT);
-            RwFrameTranslate(frame, &effect->m_pos, RwOpCombineType::rwCOMBINEPOSTCONCAT);
+            RwFrameTranslate(frame, &effect->m_Pos, RwOpCombineType::rwCOMBINEPOSTCONCAT);
             RwFrameUpdateObjects(frame);
             effect->roadsign.m_pAtomic = signAtomic;
             break;
         }
         case e2dEffectType::EFFECT_ESCALATOR: {
-            auto vecStart = TransformFromObjectSpace(effect->m_pos);
+            auto vecStart = TransformFromObjectSpace(effect->m_Pos);
             auto vecBottom = TransformFromObjectSpace(effect->escalator.m_vecBottom);
             auto vecTop = TransformFromObjectSpace(effect->escalator.m_vecTop);
             auto vecEnd = TransformFromObjectSpace(effect->escalator.m_vecEnd);
@@ -1226,7 +1226,7 @@ void CEntity::DestroyEffects()
 
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
-        switch (effect->m_type) {
+        switch (effect->m_Type) {
         case e2dEffectType::EFFECT_ATTRACTOR: {
             if (effect->pedAttractor.m_nAttractorType == ePedAttractorType::PED_ATTRACTOR_TRIGGER_SCRIPT)
                 CTheScripts::ScriptsForBrains.MarkAttractorScriptBrainWithThisNameAsNoLongerNeeded(effect->pedAttractor.m_szScriptName);
@@ -1242,7 +1242,7 @@ void CEntity::DestroyEffects()
             break;
         }
         case e2dEffectType::EFFECT_ENEX: {
-            auto vecWorld = TransformFromObjectSpace(effect->m_pos);
+            auto vecWorld = TransformFromObjectSpace(effect->m_Pos);
             auto iNearestEnex = CEntryExitManager::FindNearestEntryExit(vecWorld, 1.5F, -1);
             if (iNearestEnex != -1) {
                 auto enex = CEntryExitManager::mp_poolEntryExits->GetAt(iNearestEnex);
@@ -1344,7 +1344,7 @@ void CEntity::RenderEffects()
 
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
-        if (effect->m_type != e2dEffectType::EFFECT_ROADSIGN)
+        if (effect->m_Type != e2dEffectType::EFFECT_ROADSIGN)
             continue;
 
         CCustomRoadsignMgr::RenderRoadsignAtomic(effect->roadsign.m_pAtomic, TheCamera.GetPosition());
@@ -1838,8 +1838,8 @@ void CEntity::ProcessLightsForEntity()
         auto fIntensity = 1.0F;
         auto uiRand = m_nRandomSeed ^ CCoronas::ms_aEntityLightsOffsets[iFxInd & 0x7];
 
-        if (effect->m_type == e2dEffectType::EFFECT_SUN_GLARE && CWeather::SunGlare >= 0.0F) {
-            auto vecEffPos = TransformFromObjectSpace(effect->m_pos);
+        if (effect->m_Type == e2dEffectType::EFFECT_SUN_GLARE && CWeather::SunGlare >= 0.0F) {
+            auto vecEffPos = TransformFromObjectSpace(effect->m_Pos);
 
             auto vecDir = vecEffPos - GetPosition();
             vecDir.Normalise();
@@ -1889,10 +1889,10 @@ void CEntity::ProcessLightsForEntity()
             continue;
         }
 
-        if (effect->m_type != e2dEffectType::EFFECT_LIGHT)
+        if (effect->m_Type != e2dEffectType::EFFECT_LIGHT)
             continue;
 
-        auto vecEffPos = TransformFromObjectSpace(effect->m_pos);
+        auto vecEffPos = TransformFromObjectSpace(effect->m_Pos);
         auto bDoColorLight = false;
         auto bDoNoColorLight = false;
         auto bCoronaVisible = false;

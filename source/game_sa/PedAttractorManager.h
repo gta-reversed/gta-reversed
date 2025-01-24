@@ -171,7 +171,7 @@ public:
 
     // 0x5E96C0
     static CVector ComputeEffectPos(const C2dEffectPedAttractor* fx, const CMatrix& mat) {
-        return mat.TransformPoint(fx->m_pos);
+        return mat.TransformPoint(fx->m_Pos);
     }
 
     // 0x5E96E0
