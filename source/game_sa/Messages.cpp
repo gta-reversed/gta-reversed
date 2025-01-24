@@ -367,35 +367,22 @@ void CMessages::ClearAllMessagesDisplayedByGame(bool unk) {
 // Returns length of a string
 // 0x69DB50
 uint32 CMessages::GetStringLength(const GxtChar* string) {
-    return strlen(AsciiFromGxtChar(string));
+    return std::strlen(AsciiFromGxtChar(string));
 }
 
 // Copies string src to dest
 // 0x69DB70
 void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
-    uint16 i = 0;
-
     if (src) {
-        if (len > 1) {
-            do {
-                char c = src[i];
-                if (!c)
-                    break;
-                dest[i] = c;
-                i++;
-            } while (i < len - 1);
-        }
+        std::strncpy(const_cast<char*>(AsciiFromGxtChar(dest)), AsciiFromGxtChar(src), len - 1);
+        dest[len - 1] = 0;
     }
     else {
-        if (len > 1) {
-            do {
-                dest[i] = 0;
-                i++;
-            } while (i < len - 1);
+        // Handling of NULL
+        if (len > 0) {
+            dest[0] = 0;
         }
     }
-
-    dest[i] = 0;
 }
 
 /*!
@@ -403,7 +390,7 @@ void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
 * @addr 0x69DBD0
 */
 bool CMessages::StringCompare(const GxtChar* str1, const GxtChar* str2, uint16 len) {
-    return strncmp(AsciiFromGxtChar(str1), AsciiFromGxtChar(str2), len) == 0;
+    return std::strncmp(AsciiFromGxtChar(str1), AsciiFromGxtChar(str2), len) == 0;
 }
 
 // 0x69DC50
