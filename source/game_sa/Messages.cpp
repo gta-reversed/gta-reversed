@@ -529,71 +529,45 @@ void CMessages::InsertPlayerControlKeysInString(GxtChar* string) {
 // Processing messages. This is called from CWorld::Process
 // 0x69EE60
 void CMessages::Process() {
+    const auto ProcessMessagesArray = [](auto&& msgs) {
+        auto& f = msgs.front();
+        if (!f.IsValid()) { // Not even valid (Neither are the ones after it)
+            return;
+        }
+        if (CTimer::GetTimeInMS() <= f.GetTimeToDisappearAtMS()) { // Still visible
+            return;
+        }
+        std::destroy_at(&f); // First one disappeared, so we can delete it
+        std::shift_right(msgs.begin(), msgs.end(), 1);
+        std::destroy_at(&msgs.back()); // Last is def. unused now
+        if (f.IsValid()) { // front is now another object (because of the shift)
+            f.CreatedAtMS = CTimer::GetTimeInMS();
+        }
+    };
+
     // Process big messages
-    for (auto& bigMsg : BIGMessages) {
-        auto& msg = bigMsg.Stack[0];
-        if (!msg.IsValid()) {
-            continue;
-        }
+    for (auto& omgVeryBig : BIGMessages) {
+        ProcessMessagesArray(omgVeryBig.Stack);
+	}
 
-        if (CTimer::GetTimeInMS() > msg.GetTimeToDisappearAtMS()) {
-            msg.~tMessage();
-
-            // Shift remaining messages with bounds checking
-            size_t i = 0;
-            while (i < bigMsg.Stack.size() - 1) {
-                if (!bigMsg.Stack[i + 1].IsValid()) {
-                    break;
-                }
-                bigMsg.Stack[i] = std::move(bigMsg.Stack[i + 1]);
-                i++;
-            }
-
-            // Clear last message - always keep element 0 initialized
-            bigMsg.Stack[i] = {};
-            bigMsg.Stack[0].CreatedAtMS = CTimer::GetTimeInMS(); // Update time for first message
-        }
-    }
-
-    // Process brief messages
-    if (auto& msg = BriefMessages[0]; msg.IsValid()) {
-        if (CTimer::GetTimeInMS() > msg.GetTimeToDisappearAtMS()) {
-            msg.~tMessage();
-
-            // Shift remaining messages with bounds checking 
-            size_t i = 0;
-            while (i < BriefMessages.size() - 1) {
-                if (!BriefMessages[i + 1].IsValid()) {
-                    break;
-                }
-                BriefMessages[i] = std::move(BriefMessages[i + 1]);
-                i++;
-            }
-
-            // Clear last message - always keep element 0 
-            BriefMessages[i] = {};
-            BriefMessages[0].CreatedAtMS = CTimer::GetTimeInMS();
-
-            // Add to previous brief if needed
-            if (BriefMessages[0].IsValid() && BriefMessages[0].PreviousBrief) {
-                AddToPreviousBriefArray(
-                    BriefMessages[0].Text,
-                    BriefMessages[0].NumbersToInsert[0],
-                    BriefMessages[0].NumbersToInsert[1], 
-                    BriefMessages[0].NumbersToInsert[2],
-                    BriefMessages[0].NumbersToInsert[3],
-                    BriefMessages[0].NumbersToInsert[4],
-                    BriefMessages[0].NumbersToInsert[5],
-                    BriefMessages[0].StringToInsert
-                );
-            }
-        }
+    // Process briefs
+    ProcessMessagesArray(BriefMessages);
+    if (const auto f = BriefMessages.front(); f.IsValid()) {
+		AddToPreviousBriefArray(
+            f.Text,
+            f.NumbersToInsert[0],
+            f.NumbersToInsert[1],
+            f.NumbersToInsert[2],
+            f.NumbersToInsert[3],
+            f.NumbersToInsert[4],
+            f.NumbersToInsert[5],
+            f.StringToInsert
+        );
     }
 }
 
 // Displays messages
-// 0x69EFC0 
-
+// 0x69EFC0
 void CMessages::Display(bool bNotFading) {
     GxtChar buff[MSG_BUF_SZ];
 
