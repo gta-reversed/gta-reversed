@@ -3,7 +3,7 @@
 #include "CTeleportDebugModule.h"
 #include "Lines.h"
 
-namespace I = ImGui;
+namespace ig = ImGui;
 
 namespace {
 static constexpr const char* s_2DEffectTypeNames[]{
@@ -19,7 +19,6 @@ static constexpr const char* s_2DEffectTypeNames[]{
     "COVER_POINT (9)",   
     "ESCALATOR (10)",     
 };
-
 
 static constexpr const char* s_PedAttractorTypeNames[]{
     "ATM (0)",
@@ -68,36 +67,36 @@ void TwoDEffectsDebugModule::RenderWindow() {
     if (!m_IsOpen) {
         return;
     }
-    if (I::BeginChild("Settings", { 0.f, 100.f }, ImGuiChildFlags_Border)) {
-        I::Checkbox("Bounding Boxes for all", &m_AllBBsEnabled);
-        I::DragFloat("Range", &m_Range, 1.f, 10.f, 500.f, "%.2f");
-        I::DragInt("Max Entities", &m_MaxEntities, 1.f, 10, SHRT_MAX); // SHRT_MAX because value is casted to int16 later
+    if (ig::BeginChild("Settings", { 0.f, 100.f }, ImGuiChildFlags_Border)) {
+        ig::Checkbox("Bounding Boxes for all", &m_AllBBsEnabled);
+        ig::DragFloat("Range", &m_Range, 1.f, 10.f, 500.f, "%.2f");
+        ig::DragInt("Max Entities", &m_MaxEntities, 1.f, 10, SHRT_MAX); // SHRT_MAX because value is casted to int16 later
     }
-    I::EndChild();
+    ig::EndChild();
 
     UpdateEntitiesAndEffectsInRange();
 
-    if (I::BeginChild("NearbyEffectsTable", {300.f, 0.f}, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX)) {
+    if (ig::BeginChild("NearbyEffectsTable", {300.f, 0.f}, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX)) {
         RenderNearbyEffectsTable();
     }
-    I::EndChild();
+    ig::EndChild();
 
-    I::SameLine();
+    ig::SameLine();
 
-    if (I::BeginChild("EntityDetails", {300.f, 0.f}, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX)) {
+    if (ig::BeginChild("EntityDetails", {300.f, 0.f}, ImGuiChildFlags_Border | ImGuiChildFlags_ResizeX)) {
         if (m_SelectedFx) {
             RenderSelectedEffectDetails();
         }
     }
-    I::EndChild();
+    ig::EndChild();
 }
 
 void TwoDEffectsDebugModule::RenderMenuEntry() {
     notsa::ui::DoNestedMenuIL({ "Extra" }, [&] {
-        I::MenuItem("2D Effects", nullptr, &m_IsOpen);
+        ig::MenuItem("2D Effects", nullptr, &m_IsOpen);
     });
     notsa::ui::DoNestedMenuIL({ "Visualization", "2D Effects"}, [&] {
-        I::Checkbox("Bounding Boxes", &m_AllBBsEnabled);
+        ig::Checkbox("Bounding Boxes", &m_AllBBsEnabled);
     });
 }
 
@@ -116,7 +115,7 @@ void TwoDEffectsDebugModule::Render3D() {
 
 void TwoDEffectsDebugModule::UpdateEntitiesAndEffectsInRange() {
     m_EntitiesInRange.clear();
-    m_EntitiesInRange.resize((size_t)m_MaxEntities);
+    m_EntitiesInRange.resize((size_t)(m_MaxEntities));
     int16 num = 0;
     CWorld::FindObjectsInRange(
         FindPlayerCoors(),
@@ -131,7 +130,7 @@ void TwoDEffectsDebugModule::UpdateEntitiesAndEffectsInRange() {
         true,
         false
     );
-    m_EntitiesInRange.resize((size_t)num);
+    m_EntitiesInRange.resize((size_t)(num));
 
     m_SelectedFx = std::nullopt;
     m_FxInRange.clear();
@@ -162,7 +161,7 @@ void TwoDEffectsDebugModule::UpdateEntitiesAndEffectsInRange() {
 }
 
 void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
-    if (!I::BeginTable(
+    if (!ig::BeginTable(
         "2DEffects",
         5,
         ImGuiTableFlags_Sortable
@@ -176,15 +175,15 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
         return;
     }
 
-    I::TableSetupColumn("#", ImGuiTableColumnFlags_NoResize, 20.f);
-    I::TableSetupColumn("Color", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_NoSort, 10.f);
-    I::TableSetupColumn("Type", ImGuiTableColumnFlags_NoResize, 120.f);
-    I::TableSetupColumn("Distance", ImGuiTableColumnFlags_NoResize, 90.f);
-    I::TableSetupColumn("Entity", ImGuiTableColumnFlags_NoResize, 80.f);
-    I::TableHeadersRow();
+    ig::TableSetupColumn("#", ImGuiTableColumnFlags_NoResize, 20.f);
+    ig::TableSetupColumn("Color", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_NoSort, 10.f);
+    ig::TableSetupColumn("Type", ImGuiTableColumnFlags_NoResize, 120.f);
+    ig::TableSetupColumn("Distance", ImGuiTableColumnFlags_NoResize, 90.f);
+    ig::TableSetupColumn("Entity", ImGuiTableColumnFlags_NoResize, 80.f);
+    ig::TableHeadersRow();
 
     // Sort data for displaying
-    const auto specs = I::TableGetSortSpecs();
+    const auto specs = ig::TableGetSortSpecs();
     rng::sort(m_FxInRange, [&](const InRange2DFx& a, const InRange2DFx& b) {
         for (auto i = 0; i < specs->SpecsCount; i++) {
             const auto spec = &specs->Specs[i];
@@ -207,66 +206,66 @@ void TwoDEffectsDebugModule::RenderNearbyEffectsTable() {
 
     // Render data now
     for (const auto& v : m_FxInRange) {
-        I::PushID(v.Hash);
-        I::BeginGroup();
+        ig::PushID(v.Hash);
+        ig::BeginGroup();
 
         // # + Selector
-        if (!I::TableNextColumn()) {
+        if (!ig::TableNextColumn()) {
             break;
         }
-        I::Text("%u", v.TblIdx);
-        I::SameLine();
-        if (I::Selectable("##s", m_SelectedFxHash && v.Hash == m_SelectedFxHash, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
+        ig::Text("%u", v.TblIdx);
+        ig::SameLine();
+        if (ig::Selectable("##s", m_SelectedFxHash && v.Hash == m_SelectedFxHash, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
             m_SelectedFx     = v;
             m_SelectedFxHash = v.Hash;
-            if (I::IsMouseDoubleClicked(0)) {
+            if (ig::IsMouseDoubleClicked(0)) {
                 TeleportDebugModule::TeleportTo(v.FxPos, v.Entity->m_nAreaCode);
             }
         }
 
         // Color (For type)
-        I::TableNextColumn();
-        I::TableSetBgColor(ImGuiTableBgTarget_CellBg, s_ColorBy2DEffectType[v.Fx->m_type].ToIntABGR());
+        ig::TableNextColumn();
+        ig::TableSetBgColor(ImGuiTableBgTarget_CellBg, s_ColorBy2DEffectType[v.Fx->m_type].ToIntABGR());
 
         // Type
-        I::TableNextColumn();
-        I::TextUnformatted(s_2DEffectTypeNames[v.Fx->m_type]);
+        ig::TableNextColumn();
+        ig::TextUnformatted(s_2DEffectTypeNames[v.Fx->m_type]);
 
         // Distance
-        I::TableNextColumn();
-        I::Text("%.3f", v.DistToPlayer);
+        ig::TableNextColumn();
+        ig::Text("%.3f", v.DistToPlayer);
 
         // Entity
-        I::TableNextColumn();
-        I::Text("%p", v.Entity);
+        ig::TableNextColumn();
+        ig::Text("%p", v.Entity);
 
-        I::EndGroup();
-        I::PopID();
+        ig::EndGroup();
+        ig::PopID();
     }
 
-    I::EndTable();
+    ig::EndTable();
 }
 
 void TwoDEffectsDebugModule::RenderSelectedEffectDetails() {
     const auto& selFx = *m_SelectedFx;
 
-    I::Text("%-15s %s", "Type:", s_2DEffectTypeNames[selFx.Fx->m_type]);
-    I::Text("%-15s %.3f", "Distance:", selFx.DistToPlayer);
+    ig::Text("%-15s %s", "Type:", s_2DEffectTypeNames[selFx.Fx->m_type]);
+    ig::Text("%-15s %.3f", "Distance:", selFx.DistToPlayer);
     if (auto* const attr = C2dEffect::DynCast<C2dEffectPedAttractor>(selFx.Fx)) {
-        I::Text("%-15s %s", "Attractor Type:", s_PedAttractorTypeNames[attr->m_nAttractorType]);
-        I::Text("%-15s %s", "Script Name:", attr->m_szScriptName);
-        I::Text("%-15s 0x%X", "Flags:", (uint32)attr->m_nFlags);
+        ig::Text("%-15s %s", "Attractor Type:", s_PedAttractorTypeNames[attr->m_nAttractorType]);
+        ig::Text("%-15s %s", "Script Name:", attr->m_szScriptName);
+        ig::Text("%-15s 0x%X", "Flags:", (uint32)attr->m_nFlags);
 
         const auto RenderTextForDir = [](const char* label, CVector dir, auto dirID) {
-            I::PushStyleColor(ImGuiCol_Text, s_ColorForAttractorDirections[dirID].ToIntABGR());
-            I::Text("%-15s {%2.f, %2.f, %2.f}", label, dir.x, dir.y, dir.z);
-            I::PopStyleColor();
+            ig::PushStyleColor(ImGuiCol_Text, s_ColorForAttractorDirections[dirID].ToIntABGR());
+            ig::Text("%-15s {%2.f, %2.f, %2.f}", label, dir.x, dir.y, dir.z);
+            ig::PopStyleColor();
         };
         RenderTextForDir("Queue Dir:", CPedAttractorManager::ComputeEffectQueueDir(attr, selFx.Entity->GetMatrix()), AQUEUE_DIR);
         RenderTextForDir("Use Dir:", CPedAttractorManager::ComputeEffectUseDir(attr, selFx.Entity->GetMatrix()), AUSE_DIR);
         RenderTextForDir("Forward Dir:", CPedAttractorManager::ComputeEffectForwardDir(attr, selFx.Entity->GetMatrix()), AFWD_DIR);
 
-        if (I::Button("Use")) {
+        if (ig::Button("Use")) {
             CStreaming::RequestModel(eModelID::MODEL_WFYSEX, STREAMING_PRIORITY_REQUEST);
             CStreaming::LoadAllRequestedModels(true);
             CPopulation::AddPedAtAttractor(
