@@ -11,7 +11,7 @@ void CMessages::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(GetStringLength, 0x69DB50);
-    RH_ScopedInstall(StringCopy, 0x69DB70, { .reversed = false });
+    RH_ScopedInstall(StringCopy, 0x69DB70);
     RH_ScopedInstall(StringCompare, 0x69DBD0);
     RH_ScopedInstall(CutString, 0x69DC50);
     RH_ScopedInstall(ClearMessages, 0x69DCD0);
@@ -367,22 +367,43 @@ void CMessages::ClearAllMessagesDisplayedByGame(bool unk) {
 // Returns length of a string
 // 0x69DB50
 uint32 CMessages::GetStringLength(const GxtChar* string) {
-    return strlen(AsciiFromGxtChar(string));
+    if (!string) {
+        return 0;
+    }
+    std::string_view sv{ AsciiFromGxtChar(string) };
+    return static_cast<uint32>(sv.size());
 }
 
-// Copies string src to dest
+// Copies string src into dest with a modern approach
 // 0x69DB70
 void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
-    //strncpy(dest, src, len); - TODO: Can't use this cause it's unsafe
-    plugin::Call<0x69DB70, const GxtChar*, const GxtChar*, uint16>(dest, src, len);
+    if (!dest || len == 0) {
+        return;
+    }
+    if (!src) {
+        dest[0] = '\0';
+        return;
+    }
+
+    std::string_view s{ AsciiFromGxtChar(src) };
+    const size_t copyLen = std::min(s.size(), static_cast<size_t>(len - 1));
+    std::copy_n(s.begin(), copyLen, reinterpret_cast<char*>(dest));
+    dest[copyLen] = '\0';
 }
 
-/*!
-* Check if 2 string are equal
-* @addr 0x69DBD0
-*/
+// Checks if 2 strings are equal for up to len
+// 0x69DBD0
 bool CMessages::StringCompare(const GxtChar* str1, const GxtChar* str2, uint16 len) {
-    return strncmp(AsciiFromGxtChar(str1), AsciiFromGxtChar(str2), len) == 0;
+    if (!str1 || !str2 || len == 0) {
+        return false;
+    }
+    std::string_view s1{ AsciiFromGxtChar(str1) };
+    std::string_view s2{ AsciiFromGxtChar(str2) };
+
+    if (s1.size() < len || s2.size() < len) {
+        return false;
+    }
+    return s1.compare(0, len, s2, 0, len) == 0;
 }
 
 // 0x69DC50
@@ -531,19 +552,19 @@ void CMessages::Process() {
         if (CTimer::GetTimeInMS() > msg.GetTimeToDisappearAtMS()) {
             msg.~tMessage();
 
-            // Shift remaining messages
+            // Shift remaining messages with bounds checking
             size_t i = 0;
-            do {
+            while (i < bigMsg.Stack.size() - 1) {
                 if (!bigMsg.Stack[i + 1].IsValid()) {
                     break;
                 }
                 bigMsg.Stack[i] = std::move(bigMsg.Stack[i + 1]);
                 i++;
-            } while (i < bigMsg.Stack.size() - 1);
+            }
 
-            // Clear last message and update time
+            // Clear last message - always keep element 0 initialized
             bigMsg.Stack[i] = {};
-            bigMsg.Stack[0].CreatedAtMS = CTimer::GetTimeInMS();
+            bigMsg.Stack[0].CreatedAtMS = CTimer::GetTimeInMS(); // Update time for first message
         }
     }
 
@@ -552,20 +573,18 @@ void CMessages::Process() {
         if (CTimer::GetTimeInMS() > msg.GetTimeToDisappearAtMS()) {
             msg.~tMessage();
 
-            // Shift remaining messages
+            // Shift remaining messages with bounds checking 
             size_t i = 0;
-            do {
+            while (i < BriefMessages.size() - 1) {
                 if (!BriefMessages[i + 1].IsValid()) {
                     break;
                 }
-                BriefMessages[i] = std::move(BriefMessages[i + 1]); 
+                BriefMessages[i] = std::move(BriefMessages[i + 1]);
                 i++;
-            } while (i < BriefMessages.size() - 1);
+            }
 
-            // Clear last message
+            // Clear last message - always keep element 0 
             BriefMessages[i] = {};
-            
-            // Update time of first message
             BriefMessages[0].CreatedAtMS = CTimer::GetTimeInMS();
 
             // Add to previous brief if needed
