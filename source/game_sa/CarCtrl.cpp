@@ -67,6 +67,7 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(ScriptGenerateOneEmergencyServicesCar, 0x42FBC0);
     RH_ScopedInstall(SlowCarDownForObject, 0x426220);
     RH_ScopedInstall(SlowCarOnRailsDownForTrafficAndLights, 0x434790);
+    RH_ScopedInstall(GenerateRandomCars, 0x4341C0);
 }
 
 // 0x4212E0
