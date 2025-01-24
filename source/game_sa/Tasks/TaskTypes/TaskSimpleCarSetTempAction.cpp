@@ -15,16 +15,16 @@ void CTaskSimpleCarSetTempAction::InjectHooks() {
 }
 
 // 0x63D6F0
-CTaskSimpleCarSetTempAction::CTaskSimpleCarSetTempAction(CVehicle* veh, uint32 action, uint32 timeMs) :
+CTaskSimpleCarSetTempAction::CTaskSimpleCarSetTempAction(CVehicle* veh, eAutoPilotTempAction action, uint32 timeMs) :
     CTaskSimpleCarDrive{veh},
-    m_action{action},
-    m_durationMs{timeMs}
+    m_TempAct{action},
+    m_DurMs{timeMs}
 {
 }
 
 // NOTSA
 CTaskSimpleCarSetTempAction::CTaskSimpleCarSetTempAction(const CTaskSimpleCarSetTempAction& o) :
-    CTaskSimpleCarSetTempAction{ o.m_pVehicle, o.m_action, o.m_durationMs }
+    CTaskSimpleCarSetTempAction{ o.m_pVehicle, o.m_TempAct, o.m_DurMs }
 {
 }
 
@@ -32,7 +32,7 @@ CTaskSimpleCarSetTempAction::CTaskSimpleCarSetTempAction(const CTaskSimpleCarSet
 bool CTaskSimpleCarSetTempAction::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     if (CTaskSimpleCarDrive::MakeAbortable(ped, priority, event)) {
         if (m_pVehicle) {
-            m_pVehicle->m_autoPilot.ClearTempAction();
+            m_pVehicle->m_autoPilot.ClearTempAct();
         }
         return true;
     }
@@ -41,6 +41,8 @@ bool CTaskSimpleCarSetTempAction::MakeAbortable(CPed* ped, eAbortPriority priori
 
 // 0x645370
 bool CTaskSimpleCarSetTempAction::ProcessPed(CPed* ped) {
+    const auto ap = &m_pVehicle->m_autoPilot;
+
     if (!m_pVehicle) {
         m_pVehicle = ped->m_pVehicle;
         CEntity::SafeRegisterRef(m_pVehicle);
@@ -48,18 +50,18 @@ bool CTaskSimpleCarSetTempAction::ProcessPed(CPed* ped) {
 
     if (CTaskSimpleCarDrive::ProcessPed(ped)) {
         if (m_pVehicle) {
-            m_pVehicle->m_autoPilot.SetTempAction(0, 0);
+            ap->SetTempAction(TEMPACT_NONE, 0);
             return true;
         }
     }
 
     if (m_pVehicle) {
-        if (m_action != 0) {
-            m_pVehicle->m_autoPilot.SetTempAction(m_action, m_durationMs);
-            m_action = 0;
+        if (m_TempAct != TEMPACT_NONE) {
+            ap->SetTempAction(m_TempAct, m_DurMs);
+            m_TempAct = TEMPACT_NONE;
             return false;
         }
-        if (m_pVehicle && m_pVehicle->m_autoPilot.m_nTempAction == 0) { // TODO: Inlined? Double null check of `m_pVehicle`
+        if (ap->m_nTempAction == TEMPACT_NONE) {
             return true;
         }
     }

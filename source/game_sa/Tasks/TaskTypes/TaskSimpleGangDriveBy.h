@@ -12,19 +12,20 @@ class CEntity;
 class CWeaponInfo;
 
 enum class eDrivebyStyle : int8 {
-    FIXED_LHS,
-    FIXED_RHS,
+    FIXED_LHS      = 0,
+    FIXED_RHS      = 1,
 
-    START_FROM_LHS,
-    START_FROM_RHS,
+    START_FROM_LHS = 2,
+    START_FROM_RHS = 3,
 
-    AI_SIDE,
+    AI_SIDE        = 4,
 
-    FIXED_FWD,
-    FIXED_BAK,
-
-    AI_FWD_BAK,
-    AI_ALL_DIRN,
+    FIXED_FWD      = 5,
+    FIXED_BAK      = 6,
+    
+    AI_FWD_BAK     = 7,
+    
+    AI_ALL_DIRN    = 8,
 };
 
 class NOTSA_EXPORT_VTABLE CTaskSimpleGangDriveBy : public CTaskSimple {

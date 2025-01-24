@@ -93,7 +93,7 @@ public:
     static bool IsThisVehicleInteresting(CVehicle* vehicle);
     static void JoinCarWithRoadAccordingToMission(CVehicle* vehicle);
     static void JoinCarWithRoadSystem(CVehicle* vehicle);
-    static bool JoinCarWithRoadSystemGotoCoors(CVehicle* vehicle, const CVector& posn, bool unused, bool bIsBoat);
+    static bool JoinCarWithRoadSystemGotoCoors(CVehicle* vehicle, const CVector& posn, bool unused = true, bool bIsBoat = false);
     static bool PickNextNodeAccordingStrategy(CVehicle* vehicle);
     static void PickNextNodeRandomly(CVehicle* vehicle);
     static bool PickNextNodeToChaseCar(CVehicle* vehicle, float destX, float destY, float destZ);
@@ -156,4 +156,5 @@ public:
     static void WeaveThroughCarsSectorList(CPtrList& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9);
     static void WeaveThroughObjectsSectorList(CPtrList& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float* arg8);
     static void WeaveThroughPedsSectorList(CPtrList& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9);
+    static float FindMaxSteerAngle(CVehicle* veh);
 };

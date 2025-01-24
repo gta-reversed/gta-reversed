@@ -35,7 +35,8 @@ CTaskSimpleSetPedAsAutoDriver::~CTaskSimpleSetPedAsAutoDriver() {
 bool CTaskSimpleSetPedAsAutoDriver::ProcessPed(CPed* ped) {
     CCarCtrl::JoinCarWithRoadSystem(m_veh);
     m_veh->m_nStatus = STATUS_PHYSICS;
-    m_veh->m_autoPilot.SetCarMission(MISSION_CRUISE, 10);
+    m_veh->m_autoPilot.SetCarMission(MISSION_CRUISE);
+    m_veh->m_autoPilot.SetCruiseSpeed(10);
     m_veh->vehicleFlags.bEngineOn = m_veh->vehicleFlags.bEngineBroken != 0;
     return true;
 }

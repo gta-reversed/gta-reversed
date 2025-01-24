@@ -664,7 +664,7 @@ CTask* CTaskComplexEnterCar::CreateSubTask(eTaskType taskType, CPed* ped) {
 
         if (m_Car && m_CruiseSpeed >= 0.f) {
             if (ped->IsPlayer() ? !ped->bInVehicle && m_Car->m_pDriver && m_bQuitAfterOpeningDoor : ped->bInVehicle) {  // 0x63E7A4 - NOTE/BUG: Why is it checking `!bInVehicle` for the player? Typo?
-                m_Car->m_autoPilot.m_nCruiseSpeed = (uint32)m_CruiseSpeed;
+                m_Car->m_autoPilot.SetCruiseSpeed((uint32)m_CruiseSpeed);
             }
         }
 
@@ -772,7 +772,7 @@ void CTaskComplexEnterCar::PrepareVehicleForPedEnter(CPed* ped) {
         m_CruiseSpeed = (float)carCruiseSpeed;
     }
     if (!ped->IsPlayer() || !CCarEnterExit::CarHasDoorToOpen(m_Car, (eDoors)m_TargetDoor) || CCarEnterExit::CarHasOpenableDoor(m_Car, m_TargetDoor, ped)) {
-        m_Car->m_autoPilot.m_nCruiseSpeed = 0;
+        m_Car->m_autoPilot.SetCruiseSpeed(0);
     }
 }
 

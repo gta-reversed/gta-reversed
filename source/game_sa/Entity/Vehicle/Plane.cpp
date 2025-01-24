@@ -264,7 +264,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
             CExplosion::AddExplosion(this, damager, EXPLOSION_AIRCRAFT, GetPosition(), 0, 1, -1.0f, 0);
         }
     } else {
-        m_autoPilot.m_nCarMission = MISSION_CRASH_PLANE_AND_BURN;
+        m_autoPilot.SetCarMission(MISSION_CRASH_PLANE_AND_BURN);
         m_fHealth = 0.0f;
     }
 }

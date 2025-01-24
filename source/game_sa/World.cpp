@@ -495,15 +495,14 @@ void CWorld::CallOffChaseForAreaSectorListPeds(CPtrList& ptrList, float x1, floa
         case eCarMission::MISSION_RAMPLAYER_CLOSE:
         case eCarMission::MISSION_BLOCKPLAYER_FARAWAY:
         case eCarMission::MISSION_BLOCKPLAYER_CLOSE:
-        case eCarMission::MISSION_3D:
-        case eCarMission::MISSION_3C:
+        case eCarMission::MISSION_DO_DRIVEBY_FARAWAY:
+        case eCarMission::MISSION_DO_DRIVEBY_CLOSE:
             break;
         default:
             continue;
         }
 
-        veh->m_autoPilot.m_nTempAction = 1;
-        veh->m_autoPilot.m_nTempActionTime = CTimer::GetTimeInMS() + 2000;
+        veh->m_autoPilot.SetTempAction(TEMPACT_WAIT, 2'000);
 
         if (const auto colData = veh->GetColModel()->m_pColData; colData->m_nNumSpheres) {
             for (auto i = 0; i < colData->m_nNumSpheres; i++) {

@@ -63,7 +63,7 @@ CTaskComplexKillCriminal::~CTaskComplexKillCriminal() {
                 const auto ap = &v->m_autoPilot;
                 ap->SetCarMission(MISSION_CRUISE);
                 ap->SetDrivingStyle(DRIVING_STYLE_AVOID_CARS);
-                ap->SetCruisingSpeed(10);
+                ap->SetCruiseSpeed(10);
                 if (v->GetStatus() != STATUS_SIMPLE) {
                     CCarCtrl::JoinCarWithRoadSystem(v);
                 }

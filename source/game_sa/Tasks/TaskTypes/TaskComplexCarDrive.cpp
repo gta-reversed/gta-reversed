@@ -42,13 +42,13 @@ CTaskComplexCarDrive::CTaskComplexCarDrive(CVehicle* vehicle, float speed, eMode
     m_CruiseSpeed{speed},
     m_DesiredCarModel{carModelIndexToCreate},
     m_Veh{vehicle},
-    m_CarDrivingStyle{static_cast<uint32>(carDrivingStyle)}
+    m_CarDrivingStyle{carDrivingStyle}
 {
     CEntity::SafeRegisterRef(m_Veh);
 }
 
 CTaskComplexCarDrive::CTaskComplexCarDrive(const CTaskComplexCarDrive& o) :
-    CTaskComplexCarDrive{ m_Veh, m_CruiseSpeed, m_DesiredCarModel, static_cast<eCarDrivingStyle>(m_CarDrivingStyle) }
+    CTaskComplexCarDrive{ m_Veh, m_CruiseSpeed, m_DesiredCarModel, m_CarDrivingStyle }
 {
     m_bAsDriver = o.m_bAsDriver;
 }
@@ -57,7 +57,7 @@ CTaskComplexCarDrive::CTaskComplexCarDrive(const CTaskComplexCarDrive& o) :
 CTaskComplexCarDrive::~CTaskComplexCarDrive() {
     if (m_Veh) {
         if (m_bIsCarSetUp) {
-            m_Veh->m_autoPilot.m_nCarDrivingStyle = static_cast<eCarDrivingStyle>(m_OriginalDrivingStyle);
+            m_Veh->m_autoPilot.m_nCarDrivingStyle = m_OriginalDrivingStyle;
             m_Veh->m_autoPilot.m_nCarMission      = static_cast<eCarMission>(m_OriginalMission);
             m_Veh->m_autoPilot.m_nCruiseSpeed     = m_OriginalSpeed;
         }
