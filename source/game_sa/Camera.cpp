@@ -1852,7 +1852,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
 
     // NOTSA: Replaced vanilla checks with a switch-case for optimal performance and readability
     bool isAimWeaponTransition = false;
-    auto ProcessTransition = [&]() {
+    const auto ProcessTransition = [&]() {
         // Set default values
 
         this->m_nTransitionDuration = 1350;
