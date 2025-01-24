@@ -565,7 +565,7 @@ void CPlayerPed::TellGroupToStartFollowingPlayer(bool arg0, bool arg1, bool arg2
         playerCmdEvent.ComputeResponseTaskType(&group);
         if (playerCmdEvent.WillRespond()) {
             auto gatherCmdEvent = new CEventPlayerCommandToGroup(ePlayerGroupCommand::PLAYER_GROUP_COMMAND_GATHER);
-            gatherCmdEvent->m_taskId = playerCmdEvent.m_taskId;
+            gatherCmdEvent->m_TaskId = playerCmdEvent.m_TaskId;
 
             CEventGroupEvent groupEvent(this, gatherCmdEvent);
             groupIntel.AddEvent(&groupEvent);
