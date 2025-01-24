@@ -76,7 +76,7 @@ bool CTaskComplexDestroyCarMelee::MakeAbortable(CPed* ped, eAbortPriority priori
         return m_pSubTask->MakeAbortable(ped);
     }
     case ABORT_PRIORITY_LEISURE: {
-        m_bNeedsToCreateFirstSubTask = true;
+        m_AbortAtLeisure = true;
         return false;
     }
     default:
@@ -86,7 +86,7 @@ bool CTaskComplexDestroyCarMelee::MakeAbortable(CPed* ped, eAbortPriority priori
 
 // 0x62DC20
 CTask* CTaskComplexDestroyCarMelee::CreateNextSubTask(CPed* ped) {
-    if (m_bNeedsToCreateFirstSubTask) {
+    if (m_AbortAtLeisure) {
         return nullptr;
     }
     return CreateSubTask([this, ped] {
@@ -94,7 +94,7 @@ CTask* CTaskComplexDestroyCarMelee::CreateNextSubTask(CPed* ped) {
         case TASK_SIMPLE_PAUSE:
         case TASK_SIMPLE_FIGHT_CTRL: {
             if (ped->bStayInSamePlace) { // Inverted
-                return m_nTimeMs != -1 && CTimer::GetTimeInMS() - m_nTimeMs > 3000
+                return m_PauseTimer != -1 && CTimer::GetTimeInMS() - m_PauseTimer > 3000
                     ? TASK_FINISHED
                     : TASK_SIMPLE_PAUSE;
             }
@@ -103,7 +103,7 @@ CTask* CTaskComplexDestroyCarMelee::CreateNextSubTask(CPed* ped) {
         }
         case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: { // 0x62DC70
             CalculateSearchPositionAndRanges(ped);
-            return IsPointInSphere(ped->GetPosition(), m_VehToDestroy->GetPosition(), m_MaxTargetFightDist)
+            return IsPointInSphere(ped->GetPosition(), m_VehToDestroy->GetPosition(), m_MaxAtkRange)
                 ? TASK_SIMPLE_FIGHT_CTRL
                 : ped->bStayInSamePlace
                     ? TASK_SIMPLE_PAUSE
@@ -120,7 +120,7 @@ CTask* CTaskComplexDestroyCarMelee::CreateNextSubTask(CPed* ped) {
 
 // 0x62DB20
 CTask* CTaskComplexDestroyCarMelee::CreateFirstSubTask(CPed* ped) {
-    byteD = false;
+    m_HasNewTarget = false;
 
     // CWeaponInfo::GetWeaponInfo(ped->GetActiveWeapon().m_nType); // unused
 
@@ -128,17 +128,17 @@ CTask* CTaskComplexDestroyCarMelee::CreateFirstSubTask(CPed* ped) {
 
     const auto& pedPos = ped->GetPosition();
 
-    if (IsPointInSphere(pedPos, m_VehToDestroy->GetPosition(), m_MaxFightCtrlRadius)) {
+    if (IsPointInSphere(pedPos, m_VehToDestroy->GetPosition(), m_MaxArriveRange)) {
         return CreateSubTask(ped->bStayInSamePlace ? TASK_SIMPLE_PAUSE : TASK_COMPLEX_SEEK_ENTITY, ped);
     }
 
-    ped->m_fAimingRotation = CGeneral::GetRadianAngleBetweenPoints(m_VehiclePos, pedPos);
+    ped->m_fAimingRotation = CGeneral::GetRadianAngleBetweenPoints(m_VehPos, pedPos);
     return CreateSubTask(TASK_SIMPLE_FIGHT_CTRL, ped);
 }
 
 // 0x62DDB0
 CTask* CTaskComplexDestroyCarMelee::ControlSubTask(CPed* ped) {
-    if (byteD) {
+    if (m_HasNewTarget) {
         return CreateFirstSubTask(ped);
     }
 
@@ -149,18 +149,18 @@ CTask* CTaskComplexDestroyCarMelee::ControlSubTask(CPed* ped) {
     case TASK_COMPLEX_SEEK_ENTITY:
     case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: { // 0x62DEAB
         CalculateSearchPositionAndRanges(ped);
-        return IsPointInSphere(ped->GetPosition(), m_VehToDestroy->GetPosition(), m_MaxTargetFightDist)
+        return IsPointInSphere(ped->GetPosition(), m_VehToDestroy->GetPosition(), m_MaxAtkRange)
             ? CreateSubTask(TASK_SIMPLE_FIGHT_CTRL, ped)
             : m_pSubTask;
     }
     case TASK_SIMPLE_FIGHT_CTRL: { // 0x62DE1A
         CalculateSearchPositionAndRanges(ped);
-        if (!IsPointInSphere(ped->GetPosition(), m_VehToDestroy->GetPosition(), m_MaxTargetFightDist + 0.6f)) {
+        if (!IsPointInSphere(ped->GetPosition(), m_VehToDestroy->GetPosition(), m_MaxAtkRange + 0.6f)) {
             return CreateSubTask(TASK_COMPLEX_SEEK_ENTITY, ped);
         }
         const auto tFightCtrl = CTask::Cast<CTaskSimpleFightingControl>(m_pSubTask);
-        tFightCtrl->m_angleRad = m_PedVehicleAngleRad;
-        tFightCtrl->m_maxAttackRange = m_MaxTargetFightDist;
+        tFightCtrl->m_angleRad = m_MaxAtkAngleRad;
+        tFightCtrl->m_maxAttackRange = m_MaxAtkRange;
         return m_pSubTask;
     }
     default:
@@ -170,17 +170,17 @@ CTask* CTaskComplexDestroyCarMelee::ControlSubTask(CPed* ped) {
 
 // 0x6289F0
 void CTaskComplexDestroyCarMelee::CalculateSearchPositionAndRanges(CPed* ped) {
-    m_MaxTargetFightDist
-        = m_MaxFightCtrlRadius
+    m_MaxAtkRange
+        = m_MaxArriveRange
         = m_VehToDestroy->GetModelInfo()->GetColModel()->GetBoundRadius() + 0.35f;
-    m_PedVehicleAngleRad = (m_VehToDestroy->GetPosition2D() - ped->GetPosition2D()).Heading(); // veh - ped, because heading uses atan(-x, y), 180deg offset
+    m_MaxAtkAngleRad = (m_VehToDestroy->GetPosition2D() - ped->GetPosition2D()).Heading(); // veh - ped, because heading uses atan(-x, y), 180deg offset
 }
 
 // 0x628A70
 CTask* CTaskComplexDestroyCarMelee::CreateSubTask(eTaskType taskType, CPed* ped) {
     switch (taskType) {
     case TASK_COMPLEX_SEEK_ENTITY: { // 0x628B89
-        m_nTimeMs = -1;
+        m_PauseTimer = -1;
         return new CTaskComplexSeekEntity{
             m_VehToDestroy,
             50'000,
@@ -194,30 +194,30 @@ CTask* CTaskComplexDestroyCarMelee::CreateSubTask(eTaskType taskType, CPed* ped)
     }
     case TASK_SIMPLE_PAUSE: { // 0x628A9A
         CTaskSimpleStandStill{}.ProcessPed(ped);
-        if (m_nTimeMs == -1) {
-            m_nTimeMs = CTimer::GetTimeInMS();
+        if (m_PauseTimer == -1) {
+            m_PauseTimer = CTimer::GetTimeInMS();
         }
         return new CTaskSimplePause{ 100 };
     }
     case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: { // 0x628AB4
-        m_nTimeMs = -1;
+        m_PauseTimer = -1;
         return new CTaskComplexGoToPointAndStandStill{
             PEDMOVE_RUN,
-            m_VehiclePos,
+            m_VehPos,
             0.25f,
             0.5f
         };
     }
     case TASK_SIMPLE_FIGHT_CTRL: { // 0x628B1D
-        m_nTimeMs = -1;
+        m_PauseTimer = -1;
         return new CTaskSimpleFightingControl{
             m_VehToDestroy,
-            m_PedVehicleAngleRad,
-            m_MaxTargetFightDist
+            m_MaxAtkAngleRad,
+            m_MaxAtkRange
         };
     }
     case TASK_FINISHED: { // 0x628BF6
-        m_nTimeMs = -1;
+        m_PauseTimer = -1;
         return nullptr;
     }
     default:
