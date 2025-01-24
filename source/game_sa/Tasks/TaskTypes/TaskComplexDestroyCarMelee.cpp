@@ -1,6 +1,9 @@
 #include "StdInc.h"
 
 #include "TaskComplexDestroyCarMelee.h"
+#include "./SeekEntity/TaskComplexSeekEntity.h"
+#include "./TaskSimplePause.h"
+#include "./TaskSimpleFightingControl.h"
 
 void CTaskComplexDestroyCarMelee::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexDestroyCarMelee, 0x86d994, 11);
@@ -9,7 +12,7 @@ void CTaskComplexDestroyCarMelee::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x621D10);
     RH_ScopedInstall(Destructor, 0x621DA0);
 
-    RH_ScopedInstall(CreateSubTask, 0x628A70, { .reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x628A70);
     RH_ScopedInstall(CalculateSearchPositionAndRanges, 0x6289F0);
 
     RH_ScopedVMTInstall(Clone, 0x6235A0);
@@ -55,11 +58,7 @@ bool CTaskComplexDestroyCarMelee::MakeAbortable(CPed* ped, eAbortPriority priori
                     break;
                 }
 
-                // Check if the vehicle's velocity is pointing at the ped
-                if (DotProduct(
-                        ped->GetPosition() - m_VehToDestroy->GetPosition(),
-                        Normalized(m_VehToDestroy->m_vecMoveSpeed) // TODO: I don't think this needs to be normalized either, since we're only checking the direction
-                ) > 0.f) {
+                if ((ped->GetPosition() - m_VehToDestroy->GetPosition()).Dot(m_VehToDestroy->m_vecMoveSpeed) > 0.f) {
                     return false;
                 }
 
@@ -77,7 +76,7 @@ bool CTaskComplexDestroyCarMelee::MakeAbortable(CPed* ped, eAbortPriority priori
         return m_pSubTask->MakeAbortable(ped);
     }
     case ABORT_PRIORITY_LEISURE: {
-        m_bNeedsToCreatefirstSubTask = true;
+        m_bNeedsToCreateFirstSubTask = true;
         return false;
     }
     default:
@@ -87,33 +86,36 @@ bool CTaskComplexDestroyCarMelee::MakeAbortable(CPed* ped, eAbortPriority priori
 
 // 0x62DC20
 CTask* CTaskComplexDestroyCarMelee::CreateNextSubTask(CPed* ped) {
-    if (m_bNeedsToCreatefirstSubTask) {
+    if (m_bNeedsToCreateFirstSubTask) {
         return nullptr;
     }
-
-    switch (m_pSubTask->GetTaskType()) {
-    case TASK_SIMPLE_PAUSE:
-    case TASK_SIMPLE_FIGHT_CTRL: {
-        if (ped->bStayInSamePlace) { // Inverted
-            const auto finished = m_nTimeMs != -1 && CTimer::GetTimeInMS() - m_nTimeMs > 3000;
-            return CreateSubTask(finished ? TASK_FINISHED : TASK_SIMPLE_PAUSE, ped);
+    return CreateSubTask([this, ped] {
+        switch (m_pSubTask->GetTaskType()) {
+        case TASK_SIMPLE_PAUSE:
+        case TASK_SIMPLE_FIGHT_CTRL: {
+            if (ped->bStayInSamePlace) { // Inverted
+                return m_nTimeMs != -1 && CTimer::GetTimeInMS() - m_nTimeMs > 3000
+                    ? TASK_FINISHED
+                    : TASK_SIMPLE_PAUSE;
+            }
+            CalculateSearchPositionAndRanges(ped);
+            return TASK_COMPLEX_SEEK_ENTITY;
         }
-        CalculateSearchPositionAndRanges(ped);
-        return CreateSubTask(TASK_COMPLEX_SEEK_ENTITY, ped);
-    }
-    case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: {
-        CalculateSearchPositionAndRanges(ped);
-        if (IsPointInSphere(ped->GetPosition(), m_VehToDestroy->GetPosition(), m_MaxTargetFightDist)) {
-            return CreateSubTask(TASK_SIMPLE_FIGHT_CTRL, ped);
+        case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: { // 0x62DC70
+            CalculateSearchPositionAndRanges(ped);
+            return IsPointInSphere(ped->GetPosition(), m_VehToDestroy->GetPosition(), m_MaxTargetFightDist)
+                ? TASK_SIMPLE_FIGHT_CTRL
+                : ped->bStayInSamePlace
+                    ? TASK_SIMPLE_PAUSE
+                    : TASK_COMPLEX_SEEK_ENTITY;
         }
-        return CreateSubTask(ped->bStayInSamePlace ? TASK_SIMPLE_PAUSE : TASK_COMPLEX_SEEK_ENTITY, ped);
-    }
-    case TASK_COMPLEX_SEEK_ENTITY: {
-        return CreateSubTask(TASK_SIMPLE_FIGHT_CTRL, ped);
-    }
-    default:
-        return nullptr;
-    }
+        case TASK_COMPLEX_SEEK_ENTITY: { // 0x62DD11
+            return TASK_SIMPLE_FIGHT_CTRL;
+        }
+        default:
+            NOTSA_UNREACHABLE();
+        }
+    }(), ped);
 }
 
 // 0x62DB20
@@ -145,20 +147,22 @@ CTask* CTaskComplexDestroyCarMelee::ControlSubTask(CPed* ped) {
 
     switch (m_pSubTask->GetTaskType()) {
     case TASK_COMPLEX_SEEK_ENTITY:
-    case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: {
+    case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: { // 0x62DEAB
         CalculateSearchPositionAndRanges(ped);
-        if (DistanceBetweenPoints(ped->GetPosition(), m_VehToDestroy->GetPosition()) > sq(m_MaxTargetFightDist)) {
-            return CreateSubTask(TASK_SIMPLE_FIGHT_CTRL, ped);
-        }
-        return m_pSubTask;
+        return IsPointInSphere(ped->GetPosition(), m_VehToDestroy->GetPosition(), m_MaxTargetFightDist)
+            ? CreateSubTask(TASK_SIMPLE_FIGHT_CTRL, ped)
+            : m_pSubTask;
     }
-    case TASK_SIMPLE_FIGHT_CTRL:
+    case TASK_SIMPLE_FIGHT_CTRL: { // 0x62DE1A
         CalculateSearchPositionAndRanges(ped);
-        if (DistanceBetweenPoints(ped->GetPosition(), m_VehToDestroy->GetPosition()) > m_MaxTargetFightDist + 0.6f) {
+        if (!IsPointInSphere(ped->GetPosition(), m_VehToDestroy->GetPosition(), m_MaxTargetFightDist + 0.6f)) {
             return CreateSubTask(TASK_COMPLEX_SEEK_ENTITY, ped);
         }
-        // todo:
+        const auto tFightCtrl = CTask::Cast<CTaskSimpleFightingControl>(m_pSubTask);
+        tFightCtrl->m_angleRad = m_PedVehicleAngleRad;
+        tFightCtrl->m_maxAttackRange = m_MaxTargetFightDist;
         return m_pSubTask;
+    }
     default:
         return nullptr;
     }
@@ -166,12 +170,57 @@ CTask* CTaskComplexDestroyCarMelee::ControlSubTask(CPed* ped) {
 
 // 0x6289F0
 void CTaskComplexDestroyCarMelee::CalculateSearchPositionAndRanges(CPed* ped) {
-    m_MaxTargetFightDist = m_MaxFightCtrlRadius = m_VehToDestroy->GetModelInfo()->GetColModel()->GetBoundRadius() + 0.35f;
-    m_PedVehicleAngleRad = (m_VehToDestroy->GetPosition() - ped->GetPosition()).Heading();
+    m_MaxTargetFightDist
+        = m_MaxFightCtrlRadius
+        = m_VehToDestroy->GetModelInfo()->GetColModel()->GetBoundRadius() + 0.35f;
+    m_PedVehicleAngleRad = (m_VehToDestroy->GetPosition2D() - ped->GetPosition2D()).Heading(); // veh - ped, because heading uses atan(-x, y), 180deg offset
 }
 
 // 0x628A70
 CTask* CTaskComplexDestroyCarMelee::CreateSubTask(eTaskType taskType, CPed* ped) {
-    // Missing stub for `CTaskComplexSeekEntity`
-    return plugin::CallMethodAndReturn<CTask*, 0x628A70, CTaskComplexDestroyCarMelee*, eTaskType, CPed*>(this, taskType, ped);
+    switch (taskType) {
+    case TASK_COMPLEX_SEEK_ENTITY: { // 0x628B89
+        m_nTimeMs = -1;
+        return new CTaskComplexSeekEntity{
+            m_VehToDestroy,
+            50'000,
+            1'000,
+            1.f,
+            2.f,
+            2.f,
+            true,
+            true
+        };
+    }
+    case TASK_SIMPLE_PAUSE: { // 0x628A9A
+        CTaskSimpleStandStill{}.ProcessPed(ped);
+        if (m_nTimeMs == -1) {
+            m_nTimeMs = CTimer::GetTimeInMS();
+        }
+        return new CTaskSimplePause{ 100 };
+    }
+    case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: { // 0x628AB4
+        m_nTimeMs = -1;
+        return new CTaskComplexGoToPointAndStandStill{
+            PEDMOVE_RUN,
+            m_VehiclePos,
+            0.25f,
+            0.5f
+        };
+    }
+    case TASK_SIMPLE_FIGHT_CTRL: { // 0x628B1D
+        m_nTimeMs = -1;
+        return new CTaskSimpleFightingControl{
+            m_VehToDestroy,
+            m_PedVehicleAngleRad,
+            m_MaxTargetFightDist
+        };
+    }
+    case TASK_FINISHED: { // 0x628BF6
+        m_nTimeMs = -1;
+        return nullptr;
+    }
+    default:
+        NOTSA_UNREACHABLE();
+    }
 }

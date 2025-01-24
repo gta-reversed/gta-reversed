@@ -8,7 +8,7 @@ class CVehicle;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexDestroyCarMelee : public CTaskComplex {
 public:
-    bool      m_bNeedsToCreatefirstSubTask{};
+    bool      m_bNeedsToCreateFirstSubTask{};
     bool      byteD{};
     CVehicle* m_VehToDestroy{};
     CVector   m_VehiclePos{};
