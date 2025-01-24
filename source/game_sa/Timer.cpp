@@ -42,6 +42,8 @@ uint32& CTimer::m_snPPPreviousTimeInMilliseconds = *(uint32*)0xB7CB70;
 uint32& CTimer::m_snPPreviousTimeInMilliseconds = *(uint32*)0xB7CB74;
 uint32& CTimer::m_snPreviousTimeInMilliseconds = *(uint32*)0xB7CB78;
 
+// NOTSA section
+uint32 CTimer::m_LogicalFramesPassed;
 
 void CTimer::InjectHooks()
 {
@@ -97,6 +99,9 @@ void CTimer::Initialise()
     ms_fSlowMotionScale = -1.0f; // unused
     ms_fTimeStep = 1.0f;
     ms_fOldTimeStep = 1.0f;
+
+    // NOTSA section
+    m_LogicalFramesPassed = 0;
 
     TimerFunction_t timerFunc;
     auto frequency = GetOSWPerformanceFrequency();
@@ -247,12 +252,25 @@ void CTimer::Update() {
     m_snPPPreviousTimeInMilliseconds = m_snPPreviousTimeInMilliseconds;
     m_snPPreviousTimeInMilliseconds = m_snPreviousTimeInMilliseconds;
     m_snPreviousTimeInMilliseconds = m_snTimeInMilliseconds;
-
     m_snPreviousTimeInMillisecondsNonClipped = m_snTimeInMillisecondsNonClipped;
 
     const uint64 nRenderTimeBefore = m_snRenderStartTime;
     m_snRenderStartTime = ms_fnTimerFunction();
     auto fTimeDelta = float(m_snRenderStartTime - nRenderTimeBefore);
+    
+    double dblTimeDelta = static_cast<double>(fTimeDelta) / static_cast<double>(m_snTimerDivider);
+    
+    // NOTSA: Count frames as if we're running at 30 fps
+    static double frameTimeLogical = 0.0;
+
+    m_LogicalFramesPassed = 0;
+    frameTimeLogical += dblTimeDelta;
+    while(frameTimeLogical >= 1000.0 / 30.0) {
+        frameTimeLogical -= 1000.0 / 30.0;
+        m_LogicalFramesPassed++;
+    }
+    m_FrameCounter += m_LogicalFramesPassed;
+
     if (!GetIsPaused())
         fTimeDelta *= ms_fTimeScale;
 
@@ -261,5 +279,5 @@ void CTimer::Update() {
         fTimeDelta = 0.0f;
 
     UpdateVariables(fTimeDelta);
-    m_FrameCounter++;
+    // m_FrameCounter++;
 }

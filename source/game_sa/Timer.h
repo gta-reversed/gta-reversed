@@ -52,6 +52,9 @@ public:
     static uint32& m_snPPreviousTimeInMilliseconds;
     static uint32& m_snPreviousTimeInMilliseconds;
 
+    // NOTSA section
+	static uint32 m_LogicalFramesPassed;
+
 public:
     static void InjectHooks();
 
@@ -109,10 +112,14 @@ public:
     static bool GetIsCodePaused() { return m_CodePause; }
     static void SetCodePause(bool pause) { m_CodePause = pause; }
 
-    // NOTSA section
-
+    // NOTSA: section
     static bool HasTimePointPassed(uint32 timeMs) { return GetTimeInMS() >= timeMs; }
     static bool IsTimeInRange(uint32 fromMs, uint32 toMs) { return HasTimePointPassed(fromMs) && !HasTimePointPassed(toMs); }
+
+	static float GetDefaultTimeStep(void) { return 50.0f / 30.0f; }
+	static float GetTimeStepFix(void) { return GetTimeStep() / GetDefaultTimeStep(); }
+	static uint32 GetLogicalFramesPassed(void) { return m_LogicalFramesPassed; }
+
 };
 
 uint64 GetMillisecondTime();

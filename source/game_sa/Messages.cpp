@@ -521,77 +521,103 @@ void CMessages::InsertPlayerControlKeysInString(GxtChar* string) {
 // Processing messages. This is called from CWorld::Process
 // 0x69EE60
 void CMessages::Process() {
-    const auto ProcessMessagesArray = [](auto&& msgs) {
-        auto& f = msgs.front();
-        if (!f.IsValid()) { // Not even valid (Neither are the ones after it)
-            return;
-        }
-        if (CTimer::GetTimeInMS() <= f.GetTimeToDisappearAtMS()) { // Still visible
-            return;
-        }
-        std::destroy_at(&f); // First one disappeared, so we can delete it
-        std::shift_right(msgs.begin(), msgs.end(), 1);
-        std::destroy_at(&msgs.back()); // Last is def. unused now
-        if (f.IsValid()) { // front is now another object (because of the shift)
-            f.CreatedAtMS = CTimer::GetTimeInMS();
-        }
-    };
-
     // Process big messages
-    for (auto& omgVeryBig : BIGMessages) {
-        ProcessMessagesArray(omgVeryBig.Stack);
-	}
+    for (auto& bigMsg : BIGMessages) {
+        auto& msg = bigMsg.Stack[0];
+        if (!msg.IsValid()) {
+            continue;
+        }
 
-    // Process briefs
-    ProcessMessagesArray(BriefMessages);
-    if (const auto f = BriefMessages.front(); f.IsValid()) {
-		AddToPreviousBriefArray(
-            f.Text,
-            f.NumbersToInsert[0],
-            f.NumbersToInsert[1],
-            f.NumbersToInsert[2],
-            f.NumbersToInsert[3],
-            f.NumbersToInsert[4],
-            f.NumbersToInsert[5],
-            f.StringToInsert
-        );
+        if (CTimer::GetTimeInMS() > msg.GetTimeToDisappearAtMS()) {
+            msg.~tMessage();
+
+            // Shift remaining messages
+            size_t i = 0;
+            do {
+                if (!bigMsg.Stack[i + 1].IsValid()) {
+                    break;
+                }
+                bigMsg.Stack[i] = std::move(bigMsg.Stack[i + 1]);
+                i++;
+            } while (i < bigMsg.Stack.size() - 1);
+
+            // Clear last message and update time
+            bigMsg.Stack[i] = {};
+            bigMsg.Stack[0].CreatedAtMS = CTimer::GetTimeInMS();
+        }
+    }
+
+    // Process brief messages
+    if (auto& msg = BriefMessages[0]; msg.IsValid()) {
+        if (CTimer::GetTimeInMS() > msg.GetTimeToDisappearAtMS()) {
+            msg.~tMessage();
+
+            // Shift remaining messages
+            size_t i = 0;
+            do {
+                if (!BriefMessages[i + 1].IsValid()) {
+                    break;
+                }
+                BriefMessages[i] = std::move(BriefMessages[i + 1]); 
+                i++;
+            } while (i < BriefMessages.size() - 1);
+
+            // Clear last message
+            BriefMessages[i] = {};
+            
+            // Update time of first message
+            BriefMessages[0].CreatedAtMS = CTimer::GetTimeInMS();
+
+            // Add to previous brief if needed
+            if (BriefMessages[0].IsValid() && BriefMessages[0].PreviousBrief) {
+                AddToPreviousBriefArray(
+                    BriefMessages[0].Text,
+                    BriefMessages[0].NumbersToInsert[0],
+                    BriefMessages[0].NumbersToInsert[1], 
+                    BriefMessages[0].NumbersToInsert[2],
+                    BriefMessages[0].NumbersToInsert[3],
+                    BriefMessages[0].NumbersToInsert[4],
+                    BriefMessages[0].NumbersToInsert[5],
+                    BriefMessages[0].StringToInsert
+                );
+            }
+        }
     }
 }
 
 // Displays messages
-// 0x69EFC0
-void CMessages::Display(bool bNotFading) {
-    ZoneScoped;
+// 0x69EFC0 
 
-    GxtChar msgText[MSG_BUF_SZ];
-    const auto PreProcessMsgText = [&](tMessage msg) {
-        InsertNumberInString(
-            msg.Text,
-            msg.NumbersToInsert[0],
-            msg.NumbersToInsert[1],
-            msg.NumbersToInsert[2],
-            msg.NumbersToInsert[3],
-            msg.NumbersToInsert[4],
-            msg.NumbersToInsert[5],
-            msgText
-        );
-        InsertStringInString(msgText, msg.StringToInsert);
-        InsertPlayerControlKeysInString(msgText);
-    };
+void CMessages::Display(bool bNotFading) {
+    GxtChar buff[MSG_BUF_SZ];
 
     if (bNotFading) {
-        for (auto&& [style, omgVeryBig] : notsa::enumerate(BIGMessages)) {
-            const auto& msg = omgVeryBig.Stack.front();
-            if (!msg.IsValid()) {
-                continue;
-            }
-            PreProcessMsgText(msg);
-            CHud::SetBigMessage(msgText, (eMessageStyle)style);
+        // Display big messages
+        for (eMessageStyle i = STYLE_MIDDLE; i < NUM_MESSAGE_STYLES; i = (eMessageStyle)(i + 1)) {
+            const auto& msg = BIGMessages[i].Stack[0];
+            
+            // Process text 
+            InsertNumberInString(msg.Text, msg.NumbersToInsert[0], msg.NumbersToInsert[1], msg.NumbersToInsert[2],
+                               msg.NumbersToInsert[3], msg.NumbersToInsert[4], msg.NumbersToInsert[5], buff);
+            InsertStringInString(buff, msg.StringToInsert);
+            InsertPlayerControlKeysInString(buff);
+
+            // Display
+            CHud::SetBigMessage(buff, i);
         }
     }
 
+    // Display brief message if needed
     if (bNotFading == CTheScripts::bDrawSubtitlesBeforeFade) {
-        PreProcessMsgText(BriefMessages[0]);
-        CHud::SetMessage(msgText);
+        const auto& msg = BriefMessages[0];
+        
+        // Process text
+        InsertNumberInString(msg.Text, msg.NumbersToInsert[0], msg.NumbersToInsert[1], msg.NumbersToInsert[2],
+                           msg.NumbersToInsert[3], msg.NumbersToInsert[4], msg.NumbersToInsert[5], buff);
+        InsertStringInString(buff, msg.StringToInsert);
+        InsertPlayerControlKeysInString(buff);
+
+        // Display
+        CHud::SetMessage(buff);
     }
 }
