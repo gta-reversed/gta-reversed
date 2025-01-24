@@ -1758,10 +1758,9 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     case MODE_CAMERA:
     case MODE_1STPERSON_RUNABOUT:
         if (this->m_pTargetEntity && this->m_pTargetEntity->IsPed()) {
-            CPed* ped = this->m_pTargetEntity->AsPed();
             float targetRotation = CGeneral::GetATanOfXY(activeCamera->m_vecFront.x, activeCamera->m_vecFront.y) - HALF_PI;
-            ped->m_fCurrentRotation = targetRotation;
-            ped->m_fAimingRotation = targetRotation;
+            ((CPed *)this->m_pTargetEntity)->m_fCurrentRotation = targetRotation;
+            ((CPed *)this->m_pTargetEntity)->m_fAimingRotation = targetRotation;
         }
         break;
     }
