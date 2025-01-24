@@ -367,43 +367,43 @@ void CMessages::ClearAllMessagesDisplayedByGame(bool unk) {
 // Returns length of a string
 // 0x69DB50
 uint32 CMessages::GetStringLength(const GxtChar* string) {
-    if (!string) {
-        return 0;
-    }
-    std::string_view sv{ AsciiFromGxtChar(string) };
-    return static_cast<uint32>(sv.size());
+    return strlen(AsciiFromGxtChar(string));
 }
 
-// Copies string src into dest with a modern approach
+// Copies string src to dest
 // 0x69DB70
 void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
-    if (!dest || len == 0) {
-        return;
+    uint16 i = 0;
+
+    if (src) {
+        if (len > 1) {
+            do {
+                char c = src[i];
+                if (!c)
+                    break;
+                dest[i] = c;
+                i++;
+            } while (i < len - 1);
+        }
     }
-    if (!src) {
-        dest[0] = '\0';
-        return;
+    else {
+        if (len > 1) {
+            do {
+                dest[i] = 0;
+                i++;
+            } while (i < len - 1);
+        }
     }
 
-    std::string_view s{ AsciiFromGxtChar(src) };
-    const size_t copyLen = std::min(s.size(), static_cast<size_t>(len - 1));
-    std::copy_n(s.begin(), copyLen, reinterpret_cast<char*>(dest));
-    dest[copyLen] = '\0';
+    dest[i] = 0;
 }
 
-// Checks if 2 strings are equal for up to len
-// 0x69DBD0
+/*!
+* Check if 2 string are equal
+* @addr 0x69DBD0
+*/
 bool CMessages::StringCompare(const GxtChar* str1, const GxtChar* str2, uint16 len) {
-    if (!str1 || !str2 || len == 0) {
-        return false;
-    }
-    std::string_view s1{ AsciiFromGxtChar(str1) };
-    std::string_view s2{ AsciiFromGxtChar(str2) };
-
-    if (s1.size() < len || s2.size() < len) {
-        return false;
-    }
-    return s1.compare(0, len, s2, 0, len) == 0;
+    return strncmp(AsciiFromGxtChar(str1), AsciiFromGxtChar(str2), len) == 0;
 }
 
 // 0x69DC50
