@@ -525,6 +525,7 @@ public:
     bool AddPassenger(CPed* passenger, uint8 seatNumber);
     void RemovePassenger(CPed* passenger);
     void SetDriver(CPed* driver);
+    CPed* GetDriver() const { return m_pDriver; }
     void RemoveDriver(bool arg0);
     CPed* SetUpDriver(int32 pedType, bool arg1, bool arg2);
     CPed* SetupPassenger(int32 seatNumber, int32 pedType, bool arg2, bool arg3);
