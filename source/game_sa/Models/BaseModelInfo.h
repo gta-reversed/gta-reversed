@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include <Base.h>
 #include "RenderWare.h"
 #include "ColModel.h"
 #include "KeyGen.h"
@@ -121,7 +122,7 @@ public:
     virtual void Init();
     virtual void Shutdown();
     virtual void DeleteRwObject() = 0;
-    virtual uint32 GetRwModelType() = 0;
+    virtual uint32 GetRwModelType() const = 0;
     virtual RwObject* CreateInstance() = 0;                 // todo: check order
     virtual RwObject* CreateInstance(RwMatrix* matrix) = 0; // todo: check order
     virtual void SetAnimFile(const char* filename);
@@ -139,7 +140,7 @@ public:
     void Init2dEffects();
     void DeleteCollisionModel();
     // index is a number of effect (max number is (m_n2dfxCount - 1))
-    C2dEffect* Get2dEffect(int32 index);
+    C2dEffect* Get2dEffect(int32 index) const; // todo: change ret type to `C2dEffectBase*`
     auto Get2dEffects() {
         return rng::views::iota(m_n2dfxCount) | rng::views::transform([this](size_t i) {
             return Get2dEffect((int32)i);

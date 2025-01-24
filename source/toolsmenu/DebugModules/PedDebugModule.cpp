@@ -51,14 +51,14 @@ void VisualiseTask<CTaskComplexWander>(CTaskComplexWander& task, CPed& ped) {
     if (task.m_LastNode && task.m_LastNode.IsValid()) {
         CPathNode& lastPathNode = ThePaths.m_pPathNodes[task.m_LastNode.m_wAreaId][task.m_LastNode.m_wNodeId];
         auto       nodePos      = lastPathNode.GetPosition();
-        auto       color        = CRGBA(0, 255, 0, 255).ToIntRGBA();
+        auto       color        = CRGBA(0, 255, 0, 255).ToIntARGB();
         CLines::RenderLineNoClipping(nodePos + CVector{ 0.f, 0.f, 0.5f }, nodePos - CVector{ 0.f, 0.f, 0.5f }, color, color);
     }
 
     if (task.m_NextNode && task.m_NextNode.IsValid()) {
         CPathNode& nextPathNode = ThePaths.m_pPathNodes[task.m_NextNode.m_wAreaId][task.m_NextNode.m_wNodeId];
         auto       nodePos      = nextPathNode.GetPosition();
-        auto       color        = CRGBA(0, 0, 255, 255).ToIntRGBA();
+        auto       color        = CRGBA(0, 0, 255, 255).ToIntARGB();
         CLines::RenderLineNoClipping(nodePos + CVector{ 0.f, 0.f, 0.5f }, nodePos - CVector{ 0.f, 0.f, 0.5f }, color, color);
     }
 
@@ -67,8 +67,8 @@ void VisualiseTask<CTaskComplexWander>(CTaskComplexWander& task, CPed& ped) {
         auto       lastNodePos  = lastPathNode.GetPosition() + CVector{ 0.f, 0.f, 0.4f };
         CPathNode& nextPathNode = ThePaths.m_pPathNodes[task.m_NextNode.m_wAreaId][task.m_NextNode.m_wNodeId];
         auto       nextNodePos  = nextPathNode.GetPosition() + CVector{ 0.f, 0.f, 0.4f };
-        auto       startColor   = CRGBA(0, 255, 0, 255).ToIntRGBA();
-        auto       endColor     = CRGBA(0, 0, 255, 255).ToIntRGBA();
+        auto       startColor   = CRGBA(0, 255, 0, 255).ToIntARGB();
+        auto       endColor     = CRGBA(0, 0, 255, 255).ToIntARGB();
         CLines::RenderLineNoClipping(lastNodePos, nextNodePos, startColor, endColor);
     }
 
@@ -77,9 +77,9 @@ void VisualiseTask<CTaskComplexWander>(CTaskComplexWander& task, CPed& ped) {
 
 template<>
 void VisualiseTask<CTaskSimpleGoToPoint>(CTaskSimpleGoToPoint& task, CPed& ped) {
-    auto pedPosColor = CRGBA(255, 0, 0, 255).ToIntRGBA();
-    auto targetRadiusColor = CRGBA(128, 0, 0, 255).ToIntRGBA();
-    auto pedHelperLineColor = CRGBA(255, 0, 255, 255).ToIntRGBA();
+    auto pedPosColor = CRGBA(255, 0, 0, 255).ToIntARGB();
+    auto targetRadiusColor = CRGBA(128, 0, 0, 255).ToIntARGB();
+    auto pedHelperLineColor = CRGBA(255, 0, 255, 255).ToIntARGB();
     CLines::RenderLineNoClipping(ped.GetPosition(), task.m_vecLastPedPos + CVector{ 0.f, 0.f, 0.5f }, pedHelperLineColor, pedHelperLineColor);
     CLines::RenderLineNoClipping(task.m_vecLastPedPos + CVector{ 0.f, 0.f, 0.5f }, task.m_vecLastPedPos - CVector{ 0.f, 0.f, 0.5f }, pedPosColor, pedPosColor);
     CLines::RenderLineCircleNoClipping(task.m_vecTargetPoint + CVector{0.f, 0.f, 0.5f}, task.m_fRadius, 10, targetRadiusColor);
@@ -125,7 +125,7 @@ void VisualiseTask<CTaskComplexFollowNodeRoute>(CTaskComplexFollowNodeRoute& tas
             auto nextColor  = (i + 1) == task.m_CurrPtIdx ? CRGBA(22, 181, 59, 255) : CRGBA(84, 150, 255 - (colorStep * (i + 1)), 255);
             auto curPos    = task.m_PtRoute->m_Entries[i] + CVector{ 0.f, 0.f, 0.25f };
             auto nextPos    = task.m_PtRoute->m_Entries[i + 1] + CVector{ 0.f, 0.f, 0.25f };
-            CLines::RenderLineNoClipping(curPos, nextPos, color.ToIntRGBA(), nextColor.ToIntRGBA());
+            CLines::RenderLineNoClipping(curPos, nextPos, color.ToIntARGB(), nextColor.ToIntARGB());
         }
     }
     

@@ -10,7 +10,7 @@ void CTaskComplexUseEffectSprinting::InjectHooks() {
 }
 
 // 0x636780
-CTaskComplexUseEffectSprinting::CTaskComplexUseEffectSprinting(C2dEffectBase* fx, CEntity* e) :
+CTaskComplexUseEffectSprinting::CTaskComplexUseEffectSprinting(C2dEffectPedAttractor* fx, CEntity* e) :
     CTaskComplexUseEffect{ fx, e }
 {
     m_MoveState = PEDMOVE_RUN;

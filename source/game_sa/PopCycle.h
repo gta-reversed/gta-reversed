@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include <Base.h>
 #include "ZoneInfo.h"
 #include "ePedRace.h"
 

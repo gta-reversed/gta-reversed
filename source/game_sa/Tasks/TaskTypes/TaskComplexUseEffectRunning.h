@@ -8,7 +8,7 @@ public:
 
     static void InjectHooks();
 
-    CTaskComplexUseEffectRunning(C2dEffectBase* fx, CEntity* e);
+    CTaskComplexUseEffectRunning(C2dEffectPedAttractor* fx, CEntity* e);
     CTaskComplexUseEffectRunning(const CTaskComplexUseEffectRunning&);
     ~CTaskComplexUseEffectRunning() override = default;
 

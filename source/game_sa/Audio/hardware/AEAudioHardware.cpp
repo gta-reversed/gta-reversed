@@ -245,24 +245,28 @@ void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, uint16 sound
 
 // 0x5B9340
 int16 CAEAudioHardware::AllocateChannels(uint16 numChannels) {
-    if (!numChannels || numChannels > m_nNumAvailableChannels)
+    if (!numChannels || numChannels > m_nNumAvailableChannels) {
         return -1;
+    }
 
-    auto slot = 0;
-    while (m_anNumChannelsInSlot[slot] && slot < MAX_NUM_AUDIO_CHANNELS)
+    size_t slot = 0;
+    while (slot < MAX_NUM_AUDIO_CHANNELS && m_anNumChannelsInSlot[slot]) {
         slot += m_anNumChannelsInSlot[slot];
+    }
 
-    if (slot >= MAX_NUM_AUDIO_CHANNELS)
+    if (slot >= MAX_NUM_AUDIO_CHANNELS) {
         return -1;
+    }
 
     m_anNumChannelsInSlot[slot] = numChannels;
-    m_nNumAvailableChannels -= numChannels;
-    return slot;
+    m_nNumAvailableChannels    -= numChannels;
+
+    return (int16)slot;
 }
 
 // 0x4D94A0
 void CAEAudioHardware::SetBassSetting(int8 nBassSet, float fBassEqGain) {
-    m_nBassSet = nBassSet;
+    m_nBassSet    = nBassSet;
     m_fBassEqGain = fBassEqGain;
     m_pStreamingChannel->SetBassEQ(nBassSet, fBassEqGain);
 }
@@ -450,50 +454,51 @@ void CAEAudioHardware::GetBeatInfo(tBeatInfo* beatInfo) {
         return;
     }
 
-    const auto tId       = m_pStreamThread.GetActiveTrackID();
-    const auto tInfo     = std::unique_ptr<tTrackInfo>{m_pMP3TrackLoader->GetTrackInfo(tId)};
-    const auto tPlayTime = m_pStreamThread.GetTrackPlayTime();
+    const auto trkId       = m_pStreamThread.GetActiveTrackID();
+    const auto trkInfo     = std::unique_ptr<tTrackInfo>{ m_pMP3TrackLoader->GetTrackInfo(trkId) };
+    const auto trkPlayTime = m_pStreamThread.GetTrackPlayTime();
 
+    // Index of the first beat in the given time window
     size_t i = 0;
 
-    if (tPlayTime < 0 || tInfo->m_aBeats[0].m_nTime < 0) {
-        if (tPlayTime != -7) {
+    if (trkPlayTime < 0 || trkInfo->m_aBeats[0].m_nTime < 0) {
+        if (trkPlayTime != -7) {
             bi->IsBeatInfoPresent = false;
             rng::fill(bi->BeatWindow, tTrackInfo::tBeat{});
         }
     } else {
         const auto beatTimeWindowBegin = bi->BeatNumber
-            ? std::max(0u, (uint32)tPlayTime - 50u)
-            : (uint32)tPlayTime;
+            ? std::max(0u, (uint32)trkPlayTime - 50u)
+            : (uint32)trkPlayTime;
 
-        bi->IsBeatInfoPresent  = true;
+        bi->IsBeatInfoPresent = true;
         bi->BeatTypeThisFrame = 0;
         bi->BeatNumber        = -1;
         rng::fill(bi->BeatWindow, tTrackInfo::tBeat{});
 
         //> 0x4D904C - Find first beat in the given time window
-        for (; tInfo->m_aBeats[i].m_nKey && tInfo->m_aBeats[i].m_nTime < beatTimeWindowBegin; i++);
+        for (; trkInfo->m_aBeats[i].m_nKey && trkInfo->m_aBeats[i].m_nTime < beatTimeWindowBegin; i++);
     }
 
     // 0x4D9346 and 0x4D9088 combined - Copy beats at the beginning of the time window
     for (auto k = 0u; k < std::min(10u, i); k++) {
         auto& beat    = bi->BeatWindow[10 - i];
-        beat          = tInfo->m_aBeats[i - k - 1];
-        beat.m_nTime -= tPlayTime;
+        beat          = trkInfo->m_aBeats[i - k - 1];
+        beat.m_nTime -= trkPlayTime;
     }
 
-    if (tInfo->m_aBeats[i].m_nKey != 0) {
+    if (trkInfo->m_aBeats[i].m_nKey != 0) {
         // 0x4D9078
         if (i != bi->BeatNumber && i > 0) {
-            bi->BeatTypeThisFrame = tInfo->m_aBeats[i - 1].m_nKey;
+            bi->BeatTypeThisFrame = trkInfo->m_aBeats[i - 1].m_nKey;
         }
 
         // 0x4D91A9
-        for (auto k = 0u; k < std::min(std::size(tInfo->m_aBeats) - i, 10u); k++) { // Copy beats towards the end
+        for (auto k = 0u; k < std::min(std::size(trkInfo->m_aBeats) - i, 10u); k++) { // Copy beats towards the end
             auto& beat = bi->BeatWindow[10 + i];
             if (beat.m_nKey) {
-                beat         =  tInfo->m_aBeats[i + k];
-                beat.m_nTime -= tPlayTime;
+                beat         =  trkInfo->m_aBeats[i + k];
+                beat.m_nTime -= trkPlayTime;
             }
         }
     }

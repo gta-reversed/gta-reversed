@@ -63,7 +63,7 @@ void CBox::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
     workVec = m_vecMax;
     CVector v8 = transform.TransformPoint(workVec);
 
-    const auto colorARGB = color.ToIntRGBA();
+    const auto colorARGB = color.ToIntARGB();
     CLines::RenderLineNoClipping(v1, v2, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(v1, v3, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(v1, v4, colorARGB, colorARGB);

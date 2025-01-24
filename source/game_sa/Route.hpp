@@ -1,5 +1,8 @@
 #pragma once
 
+#include <array>
+#include <Base.h>
+
 namespace notsa {
 // Implementation of CPointRoute and CNodeRoute [As they basically do the same shit]
 // TODO/NOTE: This shit is mostly just a simplified fixed vector implementation :D

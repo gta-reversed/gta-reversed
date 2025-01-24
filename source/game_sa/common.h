@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include <Base.h>
 #include <string>
 #include <initializer_list>
 #include <RenderWare.h>

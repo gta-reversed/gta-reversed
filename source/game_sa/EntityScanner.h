@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include <Base.h>
 #include "RepeatSector.h"
 #include <extensions/utility.hpp>
 

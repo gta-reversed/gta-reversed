@@ -120,7 +120,7 @@ bool InteriorManager_c::Update() {
             i->m_areaCode   = ifx.Entity->m_nAreaCode;
             i->m_pGroup     = grp;
 
-            i->Init(ifx.Effects[k]->m_pos);
+            i->Init(ifx.Effects[k]->m_Pos);
             grp->AddInterior(i);
 
             hasAddedAnyInteriors = true;
@@ -159,7 +159,7 @@ void InteriorManager_c::PruneVisibleEffects(InteriorEffectInfo_t* pIntFxInfos, s
             const auto fx = intFxInfo.Effects[k];
             intFxInfo.DistSq = std::min(
                 intFxInfo.DistSq,
-                CVector2D::DistSqr(intFxInfo.Entity->GetMatrix().TransformPoint(fx->m_pos), TheCamera.GetPosition2D())
+                CVector2D::DistSqr(intFxInfo.Entity->GetMatrix().TransformPoint(fx->m_Pos), TheCamera.GetPosition2D())
             );
         }
     }
