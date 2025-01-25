@@ -58,8 +58,8 @@ public:
     bool ReportFinishedTask(const CPed* ped, const CTask* task, PedTaskPairs& taskpair);
     bool ReportFinishedTask(const CPed* ped, const CTask* task);
     void SetDefaultTask(CPed* ped, const CTask* task);
-    void SetDefaultTaskAllocator(CPedGroupDefaultTaskAllocator const* PedGroupDefaultTaskAllocator);
-    void SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllocatorType nPedGroupTaskAllocator);
+    void SetDefaultTaskAllocator(const CPedGroupDefaultTaskAllocator& ta);
+    void SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllocatorType taType);
 
     /*!
     * @addr 0x5F8510
@@ -102,17 +102,17 @@ private: // Wrappers for hooks
     }
 
 private:
-    CPedGroup*                     m_pPedGroup{};
-    CEventGroupEvent*              m_pOldEventGroupEvent{};
-    CEventGroupEvent*              m_pEventGroupEvent{};
-    PedTaskPairs                   m_PedTaskPairs{};
-    PedTaskPairs                   m_SecondaryPedTaskPairs{};
-    PedTaskPairs                   m_ScriptCommandPedTaskPairs{};
-    PedTaskPairs                   m_DefaultPedTaskPairs{};
-    CPedGroupDefaultTaskAllocator* m_DefaultTaskAllocator{};
-    CTaskAllocator*                m_PrimaryTaskAllocator{};
-    CTaskAllocator*                m_EventResponseTaskAllocator{};
-    int32                          m_DecisionMakerType{-1};
-    int32                          m_TaskSeqId{-1}; // Used in CTaskSequences::ms_taskSequence
+    CPedGroup*                           m_pPedGroup{};
+    CEventGroupEvent*                    m_pOldEventGroupEvent{};
+    CEventGroupEvent*                    m_pEventGroupEvent{};
+    PedTaskPairs                         m_PedTaskPairs{};
+    PedTaskPairs                         m_SecondaryPedTaskPairs{};
+    PedTaskPairs                         m_ScriptCommandPedTaskPairs{};
+    PedTaskPairs                         m_DefaultPedTaskPairs{};
+    const CPedGroupDefaultTaskAllocator* m_DefaultTaskAllocator{};
+    CTaskAllocator*                      m_PrimaryTaskAllocator{};
+    CTaskAllocator*                      m_EventResponseTaskAllocator{};
+    int32                                m_DecisionMakerType{ -1 };
+    int32                                m_TaskSeqId{ -1 }; // Used in CTaskSequences::ms_taskSequence
 };
 VALIDATE_SIZE(CPedGroupIntelligence, 0x2A0);

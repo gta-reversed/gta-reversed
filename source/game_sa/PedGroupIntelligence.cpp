@@ -1,6 +1,8 @@
 #include "StdInc.h"
 
 #include "PedGroupIntelligence.h"
+#include "Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocator.h"
+#include "Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocators.h"
 
 void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedClass(CPedGroupIntelligence);
@@ -15,8 +17,8 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(SetTask, 0x5F7540);
     RH_ScopedInstall(Flush, 0x5F7350);
     RH_ScopedOverloadedInstall(AddEvent, "", 0x5F7470, bool(CPedGroupIntelligence::*)(CEvent*));
-    RH_ScopedInstall(SetDefaultTaskAllocatorType, 0x5FBB70, { .reversed = false });
-    RH_ScopedInstall(SetDefaultTaskAllocator, 0x5FB280, { .reversed = false });
+    RH_ScopedInstall(SetDefaultTaskAllocatorType, 0x5FBB70);
+    RH_ScopedInstall(SetDefaultTaskAllocator, 0x5FB280);
     RH_ScopedInstall(ComputeDefaultTasks, 0x5F88D0, { .reversed = false });
     RH_ScopedInstall(ProcessIgnorePlayerGroup, 0x5F87A0, { .reversed = false });
     RH_ScopedInstall(ReportAllBarScriptTasksFinished, 0x5F8780, { .reversed = false });
@@ -155,11 +157,6 @@ void CPedGroupIntelligence::SetPrimaryTaskAllocator(CTaskAllocator* taskAllocato
     plugin::CallMethod<0x5F7410, CPedGroupIntelligence*, CTaskAllocator*>(this, taskAllocator);
 }
 
-// 0x5FBB70
-void CPedGroupIntelligence::SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllocatorType nPedGroupTaskAllocator) {
-    plugin::CallMethod<0x5FBB70, CPedGroupIntelligence*, ePedGroupDefaultTaskAllocatorType>(this, nPedGroupTaskAllocator);
-}
-
 // 0x5F8510
 void CPedGroupIntelligence::SetEventResponseTask(CPed* ped, bool hasMainTask, const CTask& mainTask, bool hasSecondaryTask, const CTask& secondaryTask, int32 slot) {
     if (hasMainTask) {
@@ -228,8 +225,17 @@ void CPedGroupIntelligence::FlushTasks(PedTaskPairs& taskPairs, CPed* ped) {
 }
 
 // 0x5FB280
-void CPedGroupIntelligence::SetDefaultTaskAllocator(CPedGroupDefaultTaskAllocator const* a2) {
-    return plugin::CallMethod<0x5FB280, CPedGroupIntelligence*, CPedGroupDefaultTaskAllocator const*>(this, a2);
+void CPedGroupIntelligence::SetDefaultTaskAllocator(const CPedGroupDefaultTaskAllocator& ta) {
+    m_DefaultTaskAllocator = &ta;
+    for (auto& tp : m_DefaultPedTaskPairs) {
+        delete std::exchange(tp.m_Ped, nullptr);
+    }
+    m_DefaultTaskAllocator->AllocateDefaultTasks(m_pPedGroup, nullptr);
+}
+
+// 0x5FBB70
+void CPedGroupIntelligence::SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllocatorType taType) {
+    SetDefaultTaskAllocator(CPedGroupDefaultTaskAllocators::Get(taType));
 }
 
 // 0x5F88D0
