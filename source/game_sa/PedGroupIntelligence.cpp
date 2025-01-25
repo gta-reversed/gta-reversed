@@ -8,12 +8,11 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedClass(CPedGroupIntelligence);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Constructor, 0x5F7250, { .reversed = false });
+    RH_ScopedInstall(Constructor, 0x5F7250);
 
     RH_ScopedGlobalInstall(FlushTasks, 0x5F79C0);
     RH_ScopedOverloadedInstall(ReportFinishedTask, "Wrapper", 0x5F86F0, bool(CPedGroupIntelligence::*)(const CPed*, const CTask*));
     RH_ScopedOverloadedInstall(ReportFinishedTask, "Impl", 0x5F86F0, bool(CPedGroupIntelligence::*)(const CPed*, const CTask*, PedTaskPairs& taskPairs));
-
     RH_ScopedInstall(SetTask, 0x5F7540);
     RH_ScopedInstall(Flush, 0x5F7350);
     RH_ScopedOverloadedInstall(AddEvent, "", 0x5F7470, bool(CPedGroupIntelligence::*)(CEvent*));
