@@ -28,7 +28,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(GetTaskSecondary, 0x5F8620, { .reversed = false });
     RH_ScopedInstall(GetTaskMain, 0x5F85A0);
     RH_ScopedInstall(SetScriptCommandTask, 0x5F8560, { .reversed = false });
-    RH_ScopedInstall(IsCurrentEventValid, 0x5F77A0, { .reversed = false });
+    RH_ScopedInstall(IsCurrentEventValid, 0x5F77A0);
     RH_ScopedInstall(IsGroupResponding, 0x5F7760, { .reversed = false });
     //RH_ScopedInstall(SetEventResponseTask, 0x5F8510); // Register allocation is weird, better not to hook it at all
     RH_ScopedInstall(SetEventResponseTaskAllocator, 0x5F7440, { .reversed = false });
@@ -291,7 +291,19 @@ void CPedGroupIntelligence::ReportAllTasksFinished(PedTaskPairs& taskPairs) {
 
 // 0x5F77A0
 bool CPedGroupIntelligence::IsCurrentEventValid() {
-    return plugin::CallMethodAndReturn<bool, 0x5F77A0, CPedGroupIntelligence*>(this);
+    if (m_pOldEventGroupEvent) {
+        const auto event = &m_pOldEventGroupEvent->GetEvent();
+        if (event->GetEventType() == EVENT_PLAYER_COMMAND_TO_GROUP) {
+            if (const auto src = event->GetSourceEntity()) {
+                if (src->IsPed()) {
+                    if (m_pPedGroup->GetMembership().IsMember(src->AsPed())) {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return true;
 }
 
 // 0x5F7760
