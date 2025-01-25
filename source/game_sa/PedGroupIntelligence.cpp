@@ -35,7 +35,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(SetPrimaryTaskAllocator, 0x5F7410, { .reversed = false });
     RH_ScopedInstall(SetGroupDecisionMakerType, 0x5F7340);
     RH_ScopedInstall(ComputeEventResponseTasks, 0x5FC440);
-    RH_ScopedInstall(Process, 0x5FC4A0, { .reversed = false });
+    RH_ScopedInstall(Process, 0x5FC4A0);
     RH_ScopedInstall(ReportAllTasksFinished, 0x5F7730);
 
 }
@@ -60,10 +60,10 @@ void CPedGroupIntelligence::Flush() {
     rng::for_each(m_ScriptCommandPedTaskPairs, &CPedTaskPair::Flush);
     rng::for_each(m_DefaultPedTaskPairs, &CPedTaskPair::Flush);
 
-    if (m_pEventGroupEvent != m_pOldEventGroupEvent) {
-        delete std::exchange(m_pEventGroupEvent, nullptr);
+    if (m_HighestPriorityEvent != m_CurrentEvent) {
+        delete std::exchange(m_HighestPriorityEvent, nullptr);
     }
-    delete std::exchange(m_pOldEventGroupEvent, nullptr);
+    delete std::exchange(m_CurrentEvent, nullptr);
 
     delete std::exchange(m_PrimaryTaskAllocator, nullptr);
     delete std::exchange(m_EventResponseTaskAllocator, nullptr);
@@ -93,8 +93,8 @@ bool CPedGroupIntelligence::AddEvent(CEvent* event) {
             return false;
         }
     }
-    if (!m_pEventGroupEvent || m_pEventGroupEvent->BaseEventTakesPriorityOverBaseEvent(*eGrpEvent)) {
-        delete std::exchange(m_pEventGroupEvent, static_cast<CEventGroupEvent*>(eGrpEvent->Clone()));
+    if (!m_HighestPriorityEvent || eGrpEvent->BaseEventTakesPriorityOverBaseEvent(*m_HighestPriorityEvent)) {
+        delete std::exchange(m_HighestPriorityEvent, static_cast<CEventGroupEvent*>(eGrpEvent->Clone()));
     }
     return true;
 }
@@ -148,8 +148,75 @@ eSecondaryTask CPedGroupIntelligence::GetTaskSecondarySlot(CPed* ped) {
     return plugin::CallMethodAndReturn<eSecondaryTask, 0x5F8650>(this, ped);
 }
 
+// 0x5FC4A0
 void CPedGroupIntelligence::Process() {
-    plugin::CallMethod<0x5FC4A0>(this);
+    ProcessIgnorePlayerGroup();
+
+    if (m_CurrentEvent && !m_PrimaryTaskAllocator) {
+        if (!IsGroupResponding() || !IsCurrentEventValid()) {
+            delete std::exchange(m_CurrentEvent, nullptr);
+            delete std::exchange(m_EventResponseTaskAllocator, nullptr);
+        }
+    }
+
+    bool hasMemberListChanged{};
+    for (auto&& [i, ped] : notsa::enumerate(m_pPedGroup->GetMembership().GetMembers())) {
+        if (m_PedTaskPairs[i].m_Ped == &ped) {
+            continue;
+        }
+        m_PedTaskPairs[i].m_Ped          = &ped;
+        m_SecondaryPedTaskPairs[i].m_Ped = &ped;
+        m_DefaultPedTaskPairs[i].m_Ped   = &ped;
+        hasMemberListChanged             = true;
+    }
+    if (hasMemberListChanged) {
+        if (m_PrimaryTaskAllocator) { // 0x5FC616
+            m_PrimaryTaskAllocator->AllocateTasks(this);
+        } else { // 0x5FC620
+            ComputeDefaultTasks(nullptr);
+            ComputeScriptCommandTasks();
+            if (m_CurrentEvent) { // 0x5FC659
+                if (m_EventResponseTaskAllocator) { // 0x5FC65E
+                    FlushTasks(m_PedTaskPairs, nullptr);
+                    m_EventResponseTaskAllocator->AllocateTasks(this);
+                } else {
+                    m_EventResponseTaskAllocator = ComputeEventResponseTasks();
+                }
+            }
+        }
+    }
+
+    CEvent* eventToAdd{};
+    if (m_HighestPriorityEvent) { // 0x5FC6A2
+        if (InterruptCurrentWithHighestPriorityEvent()) {
+            delete std::exchange(m_CurrentEvent, std::exchange(m_HighestPriorityEvent, nullptr)); // Delete current, replace with highest priority one
+            delete std::exchange(m_EventResponseTaskAllocator, ComputeEventResponseTasks());
+        } else if ( // 0x5FC6F6
+               m_HighestPriorityEvent->GetEvent().GetEventType() == m_CurrentEvent->GetEvent().GetEventType()
+            && m_HighestPriorityEvent->GetEvent().CanBeInterruptedBySameEvent()
+        ) {
+            eventToAdd = m_HighestPriorityEvent->Clone();
+        }
+    }
+
+    if (m_PrimaryTaskAllocator && !m_PrimaryTaskAllocator->ProcessGroup(this)) { // 0x5FC770
+        delete std::exchange(m_PrimaryTaskAllocator, nullptr);
+    }
+
+    if (m_HighestPriorityEvent && m_CurrentEvent != m_HighestPriorityEvent) { // 0x5FC792
+        delete std::exchange(m_HighestPriorityEvent, nullptr);
+    }
+
+    if (!m_PrimaryTaskAllocator && m_CurrentEvent) { // 0x5FC7A7
+        if (m_EventResponseTaskAllocator) {
+            m_PrimaryTaskAllocator = m_EventResponseTaskAllocator->ProcessGroup(this);
+        }
+    }
+
+    if (eventToAdd) { // 0x5FC7C6
+        AddEvent(eventToAdd);
+    }
+    delete eventToAdd;
 }
 
 // 0x5F7410
@@ -214,6 +281,21 @@ void CPedGroupIntelligence::SetTask(CPed* ped, const CTask& task, PedTaskPairs& 
     }
 }
 
+// separated this out for readability @ 0x5FC6A2
+bool CPedGroupIntelligence::InterruptCurrentWithHighestPriorityEvent() {
+    assert(m_HighestPriorityEvent);
+
+    if (!m_CurrentEvent) {
+        return true;
+    }
+    if (m_HighestPriorityEvent->GetEvent().GetEventType() == m_CurrentEvent->GetEvent().GetEventType()) {
+        if (!m_CurrentEvent->GetEvent().CanBeInterruptedBySameEvent()) {
+            return false;
+        }
+    }
+    return m_HighestPriorityEvent->BaseEventTakesPriorityOverBaseEvent(*m_CurrentEvent);
+}
+
 // 0x5F79C0
 void CPedGroupIntelligence::FlushTasks(PedTaskPairs& taskPairs, CPed* ped) {
     for (auto& tp : taskPairs) {
@@ -249,18 +331,18 @@ void CPedGroupIntelligence::ProcessIgnorePlayerGroup() {
     if (!FindPlayerWanted()->m_bEverybodyBackOff) {
         return;
     }
-    if (m_pOldEventGroupEvent) {
-        switch (m_pOldEventGroupEvent->GetEvent().GetEventType()) {
+    if (m_CurrentEvent) {
+        switch (m_CurrentEvent->GetEvent().GetEventType()) {
         case EVENT_LEADER_ENTRY_EXIT:
         case EVENT_LEADER_ENTERED_CAR_AS_DRIVER:
             return;
         }
     }
     if (FindPlayerPed() != m_pPedGroup->GetMembership().GetLeader()) {
-        if (!m_pOldEventGroupEvent) {
+        if (!m_CurrentEvent) {
             return;
         }
-        const auto src = m_pOldEventGroupEvent->GetEvent().GetSourceEntity();
+        const auto src = m_CurrentEvent->GetEvent().GetSourceEntity();
         if (!src || !src->IsPed()) {
             return;
         }
@@ -269,7 +351,7 @@ void CPedGroupIntelligence::ProcessIgnorePlayerGroup() {
             return;
         }
     }
-    delete std::exchange(m_pOldEventGroupEvent, nullptr);
+    delete std::exchange(m_CurrentEvent, nullptr);
     delete std::exchange(m_EventResponseTaskAllocator, nullptr);
     FlushTasks(m_PedTaskPairs, nullptr);
     FlushTasks(m_SecondaryPedTaskPairs, nullptr);
@@ -291,8 +373,8 @@ void CPedGroupIntelligence::ReportAllTasksFinished(PedTaskPairs& taskPairs) {
 
 // 0x5F77A0
 bool CPedGroupIntelligence::IsCurrentEventValid() {
-    if (m_pOldEventGroupEvent) {
-        const auto event = &m_pOldEventGroupEvent->GetEvent();
+    if (m_CurrentEvent) {
+        const auto event = &m_CurrentEvent->GetEvent();
         if (event->GetEventType() == EVENT_PLAYER_COMMAND_TO_GROUP) {
             if (const auto src = event->GetSourceEntity()) {
                 if (src->IsPed()) {
@@ -329,5 +411,9 @@ void CPedGroupIntelligence::SetEventResponseTaskAllocator(CTaskAllocator* ta) {
 CTaskAllocator* CPedGroupIntelligence::ComputeEventResponseTasks() {
     FlushTasks(m_PedTaskPairs, nullptr);
     FlushTasks(m_SecondaryPedTaskPairs, nullptr);
-    CGroupEventHandler::ComputeEventResponseTasks(*m_pOldEventGroupEvent, m_pPedGroup);
+    return CGroupEventHandler::ComputeEventResponseTasks(*m_CurrentEvent, m_pPedGroup);
+}
+
+void CPedGroupIntelligence::ComputeScriptCommandTasks() {
+    plugin::CallMethod<0x5F7800>(this);
 }

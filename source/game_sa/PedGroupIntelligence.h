@@ -83,8 +83,8 @@ public:
     void SetPrimaryTaskAllocator(CTaskAllocator* ta);
     void SetScriptCommandTask(CPed* ped, const CTask& task);
 
-    auto GetOldEvent()     { return m_pOldEventGroupEvent; }
-    auto GetCurrentEvent() { return m_pEventGroupEvent; }
+    auto GetOldEvent()     { return m_CurrentEvent; }
+    auto GetCurrentEvent() { return m_HighestPriorityEvent; }
 
     template<std::derived_from<CEvent> T>
     auto AddEvent(T event) { // TODO: Remove in final
@@ -93,6 +93,11 @@ public:
 
     //! `task` shouldn't be `new`-d, but rather stack allocated!
     void SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, int32 slot = -1, bool force = false) const;
+
+    const auto& GetPedTaskPairs() const { return m_PedTaskPairs; }
+
+private:
+    bool InterruptCurrentWithHighestPriorityEvent();
 
 private: // Wrappers for hooks
     // 0x5F7250
@@ -103,8 +108,8 @@ private: // Wrappers for hooks
 
 private:
     CPedGroup*                           m_pPedGroup{};
-    CEventGroupEvent*                    m_pOldEventGroupEvent{};
-    CEventGroupEvent*                    m_pEventGroupEvent{};
+    CEventGroupEvent*                    m_CurrentEvent{};
+    CEventGroupEvent*                    m_HighestPriorityEvent{};
     PedTaskPairs                         m_PedTaskPairs{};
     PedTaskPairs                         m_SecondaryPedTaskPairs{};
     PedTaskPairs                         m_ScriptCommandPedTaskPairs{};

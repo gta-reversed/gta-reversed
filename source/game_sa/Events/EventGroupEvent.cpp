@@ -37,9 +37,6 @@ bool CEventGroupEvent::IsPriorityEvent() const {
 
 // 0x4AE100
 bool CEventGroupEvent::BaseEventTakesPriorityOverBaseEvent(const CEventGroupEvent& other) {
-    if (IsPriorityEvent())
-        return true;
-    if (other.IsPriorityEvent())
-        return false;
-    return m_event->TakesPriorityOver(*other.m_event);
+    return IsPriorityEvent()
+        || !other.IsPriorityEvent() && GetEvent().TakesPriorityOver(other.GetEvent());
 }
