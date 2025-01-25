@@ -41,20 +41,15 @@ void CTaskSimpleClimb::InjectHooks() {
     RH_ScopedInstall(TestForStandUp, 0x680570);
     RH_ScopedInstall(TestForVault, 0x6804D0);
     RH_ScopedInstall(TestForClimb, 0x6803A0);
-    RH_ScopedInstall(StartAnim, 0x67DBE0, { .reversed = false });
+    RH_ScopedInstall(StartAnim, 0x67DBE0);
     RH_ScopedInstall(StartSpeech, 0x67A320);
     RH_ScopedInstall(DeleteAnimCB, 0x67A380);
     RH_ScopedInstall(Shutdown, 0x67A250);
     RH_ScopedInstall(Constructor, 0x67A110);
     RH_ScopedInstall(GetCameraStickModifier, 0x67A5D0);
     RH_ScopedInstall(GetCameraTargetPos, 0x67A390);
-    RH_ScopedVMTInstall(ProcessPed, 0x680DC0, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x680DC0);
     RH_ScopedVMTInstall(MakeAbortable, 0x67A280);
-}
-
-CTaskSimpleClimb* CTaskSimpleClimb::Constructor(CEntity* pClimbEnt, const CVector& vecTarget, float fHeading, uint8 nSurfaceType, eClimbHeights nHeight, bool bForceClimb) {
-    this->CTaskSimpleClimb::CTaskSimpleClimb(pClimbEnt, vecTarget, fHeading, nSurfaceType, nHeight, bForceClimb);
-    return this;
 }
 
 // 0x67A110
@@ -108,154 +103,150 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
         StartSpeech(ped);
     }
 
-    float fAngle = m_fHandholdHeading;
-    CVector posn = m_vecHandholdPos;
+    float handAngle = m_fHandholdHeading;
+    CVector handPos = m_vecHandholdPos;
 
     if (m_pClimbEnt->IsPhysical()) {
-        posn = m_pClimbEnt->GetMatrix().TransformPoint(posn);
-        fAngle += m_pClimbEnt->GetHeading();
+        handPos    = m_pClimbEnt->GetMatrix().TransformPoint(handPos);
+        handAngle += m_pClimbEnt->GetHeading();
     }
 
-    bool bNewHeightForPos = false;
-    if (m_bChangePosition && m_pAnim && m_pAnim->m_BlendAmount == 1.0F) {
-        bNewHeightForPos = true;
+    const bool bNewHeightForPos = m_bChangePosition && m_pAnim && m_pAnim->m_BlendAmount == 1.0f;
+    if (bNewHeightForPos) {
         m_nHeightForPos = m_nHeightForAnim;
         m_bChangePosition = false;
     }
 
     if (m_nHeightForPos > 0) {
-        auto [offsetHorz, offsetVert] = [&]{
+        const auto offset = [&]() -> CVector2D {
             switch (m_nHeightForPos) {
             case CLIMB_GRAB:
-            case CLIMB_PULLUP:
-                return std::make_pair(ms_fHangingOffsetHorz, ms_fHangingOffsetVert);
+            case CLIMB_PULLUP:     return { ms_fHangingOffsetHorz, ms_fHangingOffsetVert };
             case CLIMB_STANDUP:
-            case CLIMB_VAULT:
-                return std::make_pair(ms_fAtEdgeOffsetHorz, ms_fAtEdgeOffsetVert);
-            case CLIMB_FINISHED:
-                return std::make_pair(ms_fStandUpOffsetHorz, ms_fStandUpOffsetVert);
-            case CLIMB_FINISHED_V:
-                return std::make_pair(ms_fVaultOffsetHorz, ms_fVaultOffsetVert);
+            case CLIMB_VAULT:      return { ms_fAtEdgeOffsetHorz, ms_fAtEdgeOffsetVert };
+            case CLIMB_FINISHED:   return { ms_fStandUpOffsetHorz, ms_fStandUpOffsetVert };
+            case CLIMB_FINISHED_V: return { ms_fVaultOffsetHorz, ms_fVaultOffsetVert };
             default:
                 NOTSA_UNREACHABLE();
             }
         }();
+        const CVector targetPt = handPos + CVector(
+            (CVector2D{ std::cos(handAngle), std::sin(handAngle) } * offset.x).GetPerpLeft(),
+            offset.y
+        );
 
-        CVector targetPoint = posn + CVector(-std::sin(fAngle) * offsetHorz, std::cos(fAngle) * offsetHorz, offsetVert);
         CVector vecClimbEntSpeed{};
-        CVector relPosn = targetPoint - ped->GetPosition();
-
+        CVector relPosn = targetPt - ped->GetPosition();
         if (!m_pClimbEnt->IsStatic() && m_pClimbEnt->IsPhysical())
-            vecClimbEntSpeed = m_pClimbEnt->AsPhysical()->GetSpeed(targetPoint - m_pClimbEnt->GetPosition());
+            vecClimbEntSpeed = m_pClimbEnt->AsPhysical()->GetSpeed(targetPt - m_pClimbEnt->GetPosition());
 
         if (bNewHeightForPos) {
-            ped->SetPosn(targetPoint);
+            ped->SetPosn(targetPt);
             ped->m_vecMoveSpeed = vecClimbEntSpeed;
-        } else {
-            if (relPosn.SquaredMagnitude() >= 0.1F) {
-                ped->bIsStanding = false;
-                relPosn *= 0.25f;
-                ped->m_vecMoveSpeed = relPosn / CTimer::GetTimeStep();
+        } else if (relPosn.SquaredMagnitude() >= 0.1F) {
+            ped->bIsStanding = false;
+            relPosn *= 0.25f;
+            ped->m_vecMoveSpeed = relPosn / CTimer::GetTimeStep();
 
-                if (ped->m_vecMoveSpeed.Magnitude() > 0.2F)
-                    ped->m_vecMoveSpeed *= 0.2f / ped->m_vecMoveSpeed.Magnitude();
+            if (ped->m_vecMoveSpeed.Magnitude() > 0.2F)
+                ped->m_vecMoveSpeed *= 0.2f / ped->m_vecMoveSpeed.Magnitude();
 
-                ped->m_vecMoveSpeed += vecClimbEntSpeed;
+            ped->m_vecMoveSpeed += vecClimbEntSpeed;
 
-                if (!(m_pAnim->m_Flags & ANIMATION_IS_PLAYING) || m_pAnim->m_AnimId == ANIM_ID_CLIMB_IDLE) {
-                    m_nGetToPosCounter += (uint16)CTimer::GetTimeStepInMS();
-                    if (m_nGetToPosCounter > 1000 || m_pAnim->m_AnimId == ANIM_ID_CLIMB_IDLE && m_nGetToPosCounter > 500) {
-                        m_bInvalidClimb = true;
-                        MakeAbortable(ped);
-                        ped->ApplyMoveForce(ped->GetForward() * (ped->m_fMass * -0.1F));
-                    }
+            if (!(m_pAnim->m_Flags & ANIMATION_IS_PLAYING) || m_pAnim->m_AnimId == ANIM_ID_CLIMB_IDLE) {
+                m_nGetToPosCounter += (uint16)CTimer::GetTimeStepInMS();
+                if (m_nGetToPosCounter > 1000 || m_pAnim->m_AnimId == ANIM_ID_CLIMB_IDLE && m_nGetToPosCounter > 500) {
+                    m_bInvalidClimb = true;
+                    MakeAbortable(ped);
+                    ped->ApplyMoveForce(ped->GetForward() * (ped->m_fMass * -0.1F));
                 }
-            } else {
-                ped->bIsStanding = false;
-                ped->m_vecMoveSpeed = relPosn / CTimer::GetTimeStep();
-                ped->m_vecMoveSpeed += vecClimbEntSpeed;
+            }
+        } else {
+            ped->bIsStanding = false;
+            ped->m_vecMoveSpeed = relPosn / CTimer::GetTimeStep();
+            ped->m_vecMoveSpeed += vecClimbEntSpeed;
 
-                if (!(m_pAnim->m_Flags & ANIMATION_IS_PLAYING) && m_nHeightForAnim == CLIMB_STANDUP) {
-                    if (TestForVault(ped, &posn, fAngle)) {
-                        m_nHeightForAnim = CLIMB_VAULT;
-                        m_bChangeAnimation = true;
-                    } else
-                        m_pAnim->m_Flags |= ANIMATION_IS_PLAYING;
+            if (!(m_pAnim->m_Flags & ANIMATION_IS_PLAYING) && m_nHeightForAnim == CLIMB_STANDUP) {
+                if (TestForVault(ped, &handPos, handAngle)) {
+                    m_nHeightForAnim = CLIMB_VAULT;
+                    m_bChangeAnimation = true;
+                } else {
+                    m_pAnim->m_Flags |= ANIMATION_IS_PLAYING;
                 }
             }
         }
     }
 
     if (bNewHeightForPos) {
-        if (m_nHeightForPos == CLIMB_FINISHED || m_nHeightForPos == CLIMB_FINISHED_V) {
-            m_bIsFinished = true;
+        if (notsa::contains({ CLIMB_FINISHED,  CLIMB_FINISHED_V }, m_nHeightForPos)) {
+            m_bIsFinished    = true;
             ped->bIsInTheAir = false;
-            ped->bIsLanding = false;
+            ped->bIsLanding  = false;
 
             if (m_nHeightForPos == CLIMB_FINISHED_V) {
                 ped->m_vecMoveSpeed = ped->GetForward() / 50.0f + CVector(0.0f, 0.0f, -0.05f);
-                ped->bIsStanding = false;
-                ped->bWasStanding = true;
+                ped->bIsStanding    = false;
+                ped->bWasStanding   = true;
             } else {
                 ped->m_vecMoveSpeed = ped->GetForward() * 0.05f + CVector(0.0f, 0.0f, -0.01f);
-                ped->bIsStanding = true;
-                ped->bWasStanding = true;
+                ped->bIsStanding    = true;
+                ped->bWasStanding   = true;
             }
 
             if (ped->IsPlayer()) {
-                CVector empty{};
-                CEventSoundQuiet event(ped, 50.0f, -1, empty);
-                GetEventGlobalGroup()->Add(&event, false);
+                GetEventGlobalGroup()->Add(CEventSoundQuiet{ ped, 50.0f, -1, CVector{} });
             }
 
-            if (m_pAnim)
-                m_pAnim->m_BlendDelta = -8.0f;
+            if (m_pAnim) {
+                m_pAnim->SetBlendDelta(-8.0f);
+            }
 
-            if (ped->m_pEntityIgnoredCollision == m_pClimbEnt)
+            if (ped->m_pEntityIgnoredCollision == m_pClimbEnt) {
                 ped->m_pEntityIgnoredCollision = nullptr;
+            }
 
             return true;
         }
     }
 
-    CPad* pad = ped->IsPlayer() ? ped->AsPlayer()->GetPadFromPlayer() : nullptr;
+    const CPad* const pad = ped->IsPlayer()
+        ? ped->AsPlayer()->GetPadFromPlayer()
+        : nullptr;
 
-    if (m_pAnim && m_pAnim->m_BlendAmount == 1.0F) {
+    if (m_pAnim && m_pAnim->GetBlendAmount() == 1.0f) {
+        const auto DoAdvanceAnimHeight = [&]() {
+            m_nHeightForAnim   = static_cast<eClimbHeights>(m_nHeightForAnim + 1);
+            m_bChangeAnimation = true;
+        };
         switch (m_pAnim->m_AnimId) {
         case ANIM_ID_CLIMB_JUMP:
             if (m_pAnim->m_BlendHier->m_fTotalTime <= m_pAnim->m_TimeStep + m_pAnim->m_CurrentTime) {
                 if (m_bForceClimb || pad && pad->GetJump()) {
-                    m_nHeightForAnim++;
-                    m_bChangeAnimation = true;
+                    DoAdvanceAnimHeight();
                 }
-
                 StartAnim(ped);
             }
             break;
         case ANIM_ID_CLIMB_IDLE:
             if (m_bForceClimb || !pad || pad->GetJump()) {
-                m_nHeightForAnim++;
-                m_bChangeAnimation = true;
+                DoAdvanceAnimHeight();
             }
             break;
         case ANIM_ID_CLIMB_PULL:
         case ANIM_ID_CLIMB_STAND:
             if (m_pAnim->m_BlendHier->m_fTotalTime == m_pAnim->m_CurrentTime) {
-                m_nHeightForAnim++;
-                m_bChangeAnimation = true;
+                DoAdvanceAnimHeight();
             }
             break;
         case ANIM_ID_CLIMB_JUMP_B:
             if (m_pAnim->m_BlendHier->m_fTotalTime <= m_pAnim->m_TimeStep + m_pAnim->m_CurrentTime) {
-                m_nHeightForAnim++;
-                m_bChangeAnimation = true;
+                DoAdvanceAnimHeight();
             }
             break;
         default:
             if (m_pAnim->m_BlendHier->m_fTotalTime == m_pAnim->m_CurrentTime)
                 if (m_bForceClimb || pad && pad->JumpJustDown()) {
-                    m_nHeightForAnim++;
-                    m_bChangeAnimation = true;
+                    DoAdvanceAnimHeight();
                 }
             break;
         }
@@ -264,16 +255,17 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
     if (pad && pad->GetExitVehicle()) {
         MakeAbortable(ped);
     } else if (m_nHeightForPos != CLIMB_STANDUP && m_nHeightForPos != CLIMB_VAULT || !m_pAnim || !(m_pAnim->m_Flags & ANIMATION_IS_PLAYING)) {
-        if (m_nHeightForAnim == CLIMB_STANDUP && m_nHeightForPos < CLIMB_STANDUP && TestForVault(ped, &posn, fAngle)) {
+        if (m_nHeightForAnim == CLIMB_STANDUP && m_nHeightForPos < CLIMB_STANDUP && TestForVault(ped, &handPos, handAngle)) {
             m_nHeightForAnim = CLIMB_VAULT;
         }
-    } else if (!TestForStandUp(ped, &posn, fAngle)) {
+    } else if (!TestForStandUp(ped, &handPos, handAngle)) {
         MakeAbortable(ped);
     }
 
-    ped->m_fAimingRotation = fAngle;
-    ped->m_fCurrentRotation = fAngle;
-    ped->SetOrientation(0.0f, 0.0f, fAngle);
+    ped->m_fAimingRotation
+        = ped->m_fCurrentRotation
+        = handAngle;
+    ped->SetOrientation(0.0f, 0.0f, handAngle);
 
     return false;
 }
