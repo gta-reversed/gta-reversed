@@ -27,7 +27,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(GetTaskSecondarySlot, 0x5F8650, { .reversed = false });
     RH_ScopedInstall(GetTaskSecondary, 0x5F8620, { .reversed = false });
     RH_ScopedInstall(GetTaskMain, 0x5F85A0);
-    RH_ScopedInstall(SetScriptCommandTask, 0x5F8560, { .reversed = false });
+    RH_ScopedInstall(SetScriptCommandTask, 0x5F8560);
     RH_ScopedInstall(IsCurrentEventValid, 0x5F77A0);
     RH_ScopedInstall(IsGroupResponding, 0x5F7760);
     //RH_ScopedInstall(SetEventResponseTask, 0x5F8510); // Register allocation is weird, better not to hook it at all
