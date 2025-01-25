@@ -24,7 +24,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(ReportAllBarScriptTasksFinished, 0x5F8780, { .reversed = false });
     RH_ScopedInstall(GetTaskDefault, 0x5F86C0, { .reversed = false });
     RH_ScopedInstall(GetTaskScriptCommand, 0x5F8690, { .reversed = false });
-    RH_ScopedInstall(GetTaskSecondarySlot, 0x5F8650, { .reversed = false });
+    RH_ScopedInstall(GetTaskSecondarySlot, 0x5F8650);
     RH_ScopedInstall(GetTaskSecondary, 0x5F8620);
     RH_ScopedInstall(GetTaskMain, 0x5F85A0);
     RH_ScopedInstall(SetScriptCommandTask, 0x5F8560);
@@ -114,19 +114,19 @@ CPedTaskPair* CPedGroupIntelligence::GetPedsTaskPair(CPed* ped, PedTaskPairs& ta
     return nullptr;   
 }
 
+// 0x5F85A0
+CTask* CPedGroupIntelligence::GetTaskMain(CPed* ped) {
+    CTask* t{};
+    (t = GetTaskScriptCommand(ped)) || (t = GetTask(ped, m_PedTaskPairs)) || (t = GetTaskDefault(ped));
+    return t;
+}
+
 // notsa (not sure)
 CTask* CPedGroupIntelligence::GetTask(CPed* ped, PedTaskPairs& taskPairs) const {
     if (const auto tp = GetPedsTaskPair(ped, taskPairs)) {
         return tp->m_Task;
     }
     return nullptr;
-}
-
-// 0x5F85A0
-CTask* CPedGroupIntelligence::GetTaskMain(CPed* ped) {
-    CTask* t{};
-    (t = GetTaskScriptCommand(ped)) || (t = GetTask(ped, m_PedTaskPairs)) || (t = GetTaskDefault(ped));
-    return t;
 }
 
 CTask* CPedGroupIntelligence::GetTaskDefault(CPed* ped) {
@@ -145,7 +145,10 @@ CTask* CPedGroupIntelligence::GetTaskSecondary(CPed* ped) {
 
 // 0x5F8650
 eSecondaryTask CPedGroupIntelligence::GetTaskSecondarySlot(CPed* ped) {
-    return plugin::CallMethodAndReturn<eSecondaryTask, 0x5F8650>(this, ped);
+    if (const auto tp = GetPedsTaskPair(ped, m_SecondaryPedTaskPairs)) {
+        return tp->m_Slot;
+    }
+    NOTSA_UNREACHABLE(); // Otherwise returned `0`, which is a valid slot...
 }
 
 // 0x5FC4A0
@@ -225,7 +228,7 @@ void CPedGroupIntelligence::SetPrimaryTaskAllocator(CTaskAllocator* ta) {
 }
 
 // 0x5F8510
-void CPedGroupIntelligence::SetEventResponseTask(CPed* ped, bool hasMainTask, const CTask& mainTask, bool hasSecondaryTask, const CTask& secondaryTask, int32 slot) {
+void CPedGroupIntelligence::SetEventResponseTask(CPed* ped, bool hasMainTask, const CTask& mainTask, bool hasSecondaryTask, const CTask& secondaryTask, eSecondaryTask slot) {
     if (hasMainTask) {
         SetTask(ped, mainTask, m_PedTaskPairs);
     }
@@ -264,7 +267,7 @@ bool CPedGroupIntelligence::ReportFinishedTask(const CPed* ped, const CTask* tas
 }
 
 // 0x5F7540
-void CPedGroupIntelligence::SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, int32 slot, bool force) const {
+void CPedGroupIntelligence::SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, eSecondaryTask slot, bool force) const {
     // Commented out as script tasks are `new`'d, and deleted after this finishes.
     //assert(!GetTaskPool()->IsObjectValid(&task)); // Shouldn't be `new`'d [Keep in mind that there might be false positives]
 

@@ -73,8 +73,8 @@ public:
         const CTask& mainTask,
         bool         hasSecondaryTask = false,
 
-        const CTask& secondaryTask = CTaskSimpleNone{},
-        int32        slot = -1
+        const CTask&   secondaryTask = CTaskSimpleNone{},
+        eSecondaryTask slot          = TASK_SECONDARY_INVALID
     );
     //! @notsa
     void SetEventResponseTask(CPed* ped, const CTask& task) { SetEventResponseTask(ped, true, task); }
@@ -92,7 +92,7 @@ public:
     }
 
     //! `task` shouldn't be `new`-d, but rather stack allocated!
-    void SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, int32 slot = -1, bool force = false) const;
+    void SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, eSecondaryTask slot = TASK_SECONDARY_INVALID, bool force = false) const;
 
     const auto& GetPedTaskPairs() const { return m_PedTaskPairs; }
 
