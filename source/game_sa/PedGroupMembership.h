@@ -95,10 +95,10 @@ public:
 
     //! Get all the present members [Returns a view of references]
     auto GetMembers(bool bIncludeLeader = true) {
-        assert(LEADER_MEM_ID == m_members.size() - 1); // the drop below requires this
-        auto takeNum = bIncludeLeader ? m_members.size() : m_members.size() - 1;
+        const auto max = m_members.size();
+        assert(LEADER_MEM_ID == max - 1); // the drop below requires this
         return m_members
-            | rng::views::take(takeNum) // Last member is the leader
+            | rng::views::take(bIncludeLeader ? max : max - 1) // Last member is the leader
             | rng::views::filter(notsa::NotIsNull{})
             | rng::views::transform([](CPed* mem) -> CPed& { return *mem; }); // Dereference
     }

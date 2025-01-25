@@ -19,12 +19,13 @@ enum eTaskAllocatorType {
 
 class NOTSA_EXPORT_VTABLE CTaskAllocator {
 public:
-    CPed*  m_Ped0;
-    int32  m_GroupId;
-    CPed*  m_Ped1;
-    uint32 m_Time;
+    /* ACHTUNG:
+    * MAKE SURE YOU VMT DEFINITION IS CORRECT!
+    * If not, the order below is the correct one, so copy that.
+    */
 
-public:
+    static void InjectHooks();
+
     CTaskAllocator() = default;
     CTaskAllocator(CPed* ped);
     virtual ~CTaskAllocator() = default;
@@ -32,10 +33,16 @@ public:
     static void* operator new(size_t size);
     static void operator delete(void* obj);
 
-    virtual void AllocateTasks(CPedGroupIntelligence* intel) = 0;
-    virtual void ProcessGroup(CPedGroupIntelligence* intel);
-    virtual bool IsFinished(CPedGroupIntelligence* intel);
-    virtual void Abort();
+    virtual void               AllocateTasks(CPedGroupIntelligence* intel) = 0;
+    virtual CTaskAllocator*    ProcessGroup(CPedGroupIntelligence* intel) { return nullptr; } // 0x69BB50
+    virtual bool               IsFinished(CPedGroupIntelligence* intel); // 0x69C3C0
+    virtual void               Abort() { /* nop */ } // 0x5F68E0
     virtual eTaskAllocatorType GetType() = 0;
+
+public:
+    CPed*  m_Ped0{};
+    int32  m_GroupId{};
+    CPed*  m_Ped1{};
+    uint32 m_Time{}; // maybe wrong (not 0)?
 };
 VALIDATE_SIZE(CTaskAllocator, 0x14);
