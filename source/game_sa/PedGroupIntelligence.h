@@ -57,7 +57,6 @@ public:
     //void ReportAllTasksFinished();
     bool ReportFinishedTask(const CPed* ped, const CTask* task, PedTaskPairs& taskpair);
     bool ReportFinishedTask(const CPed* ped, const CTask* task);
-    void SetDefaultTask(CPed* ped, const CTask* task);
     void SetDefaultTaskAllocator(const CPedGroupDefaultTaskAllocator& ta);
     void SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllocatorType taType);
 
@@ -81,10 +80,9 @@ public:
     void SetEventResponseTaskAllocator(CTaskAllocator* ta);
     void SetGroupDecisionMakerType(eDecisionMakerType t) { m_DecisionMakerType = t; }
     void SetPrimaryTaskAllocator(CTaskAllocator* ta);
-    void SetScriptCommandTask(CPed* ped, const CTask& task);
 
-    auto GetOldEvent()     { return m_CurrentEvent; }
-    auto GetCurrentEvent() { return m_HighestPriorityEvent; }
+    auto GetCurrentEvent()         { return m_CurrentEvent; }
+    auto GetHighestPriorityEvent() { return m_HighestPriorityEvent; }
 
     template<std::derived_from<CEvent> T>
     auto AddEvent(T event) { // TODO: Remove in final
@@ -93,6 +91,8 @@ public:
 
     //! `task` shouldn't be `new`-d, but rather stack allocated!
     void SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, eSecondaryTask slot = TASK_SECONDARY_INVALID, bool force = false) const;
+    void SetDefaultTask(CPed* ped, const CTask& task);
+    void SetScriptCommandTask(CPed* ped, const CTask& task);
 
     const auto& GetPedTaskPairs() const { return m_PedTaskPairs; }
 

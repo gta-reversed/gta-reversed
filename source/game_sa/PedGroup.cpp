@@ -98,7 +98,7 @@ void CPedGroup::Teleport(const CVector& pos) {
         leader->Teleport(pos, false);
     }
 
-    if (const auto oe = m_groupIntelligence.GetOldEvent(); !oe || oe->GetEventType() == EVENT_LEADER_ENTRY_EXIT) {
+    if (const auto oe = m_groupIntelligence.GetCurrentEvent(); !oe || oe->GetEventType() == EVENT_LEADER_ENTRY_EXIT) {
         return;
     }
 

@@ -36,7 +36,6 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(ComputeEventResponseTasks, 0x5FC440);
     RH_ScopedInstall(Process, 0x5FC4A0);
     RH_ScopedInstall(ReportAllTasksFinished, 0x5F7730);
-
 }
 
 // 0x5F7250
@@ -97,11 +96,6 @@ bool CPedGroupIntelligence::AddEvent(CEvent* event) {
         delete std::exchange(m_HighestPriorityEvent, static_cast<CEventGroupEvent*>(eGrpEvent->Clone()));
     }
     return true;
-}
-
-// 0x5F8560
-void CPedGroupIntelligence::SetScriptCommandTask(CPed* ped, const CTask& task) {
-    SetTask(ped, task, m_ScriptCommandPedTaskPairs);
 }
 
 // notsa
@@ -282,6 +276,16 @@ void CPedGroupIntelligence::SetTask(CPed* ped, const CTask& task, PedTaskPairs& 
         tp->m_Task = task.Clone();
         tp->m_Slot = slot;
     }
+}
+
+// 0x5F8560
+void CPedGroupIntelligence::SetScriptCommandTask(CPed* ped, const CTask& task) {
+    SetTask(ped, task, m_ScriptCommandPedTaskPairs);
+}
+
+// @unk
+void CPedGroupIntelligence::SetDefaultTask(CPed* ped, const CTask& task) {
+    SetTask(ped, task, m_DefaultPedTaskPairs);
 }
 
 // separated this out for readability @ 0x5FC6A2

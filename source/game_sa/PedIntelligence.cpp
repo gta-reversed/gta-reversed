@@ -741,7 +741,7 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
             (dislike && (pedFlag & dislike))
         );
         if (bAcquaintancesFlagSet && target->GetGroup()) {
-            const auto oe = target->GetGroup()->GetIntelligence().GetOldEvent();
+            const auto oe = target->GetGroup()->GetIntelligence().GetCurrentEvent();
             if (oe && oe->GetSourceEntity() == m_pPed && bAcquaintancesFlagSet) {
                 return false;
             }
