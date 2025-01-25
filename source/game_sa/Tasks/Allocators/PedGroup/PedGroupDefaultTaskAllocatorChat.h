@@ -10,8 +10,8 @@ class CPedGroupDefaultTaskAllocatorChat final : public CPedGroupDefaultTaskAlloc
 public:
     /* no virtual destructor */
 
-    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F8180))(pedGroup, ped); };
-    ePedGroupDefaultTaskAllocatorType __stdcall GetType() override { return ePedGroupDefaultTaskAllocatorType::CHAT; }; // 0x5F6500
+    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F8180))(pedGroup, ped); };
+    ePedGroupDefaultTaskAllocatorType __stdcall GetType() const override { return ePedGroupDefaultTaskAllocatorType::CHAT; }; // 0x5F6500
 
 public:
     static inline void InjectHooks() {

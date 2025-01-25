@@ -10,8 +10,8 @@ class CPedGroupDefaultTaskAllocatorFollowLimited final : public CPedGroupDefault
 public:
     /* no virtual destructor */
 
-    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6C70))(pedGroup, ped); };
-    ePedGroupDefaultTaskAllocatorType __stdcall GetType() override { return ePedGroupDefaultTaskAllocatorType::FOLLOW_LIMITED; }; // 0x5F64A0
+    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6C70))(pedGroup, ped); };
+    ePedGroupDefaultTaskAllocatorType __stdcall GetType() const override { return ePedGroupDefaultTaskAllocatorType::FOLLOW_LIMITED; }; // 0x5F64A0
 
 public:
     static inline void InjectHooks() {

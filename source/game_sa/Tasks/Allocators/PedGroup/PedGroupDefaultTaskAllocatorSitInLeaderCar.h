@@ -10,8 +10,8 @@ class CPedGroupDefaultTaskAllocatorSitInLeaderCar final : public CPedGroupDefaul
 public:
     /* no virtual destructor */
 
-    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6FC0))(pedGroup, ped); };
-    ePedGroupDefaultTaskAllocatorType __stdcall GetType() override { return ePedGroupDefaultTaskAllocatorType::SIT_IN_LEADER_CAR; }; // 0x5F6560
+    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6FC0))(pedGroup, ped); };
+    ePedGroupDefaultTaskAllocatorType __stdcall GetType() const override { return ePedGroupDefaultTaskAllocatorType::SIT_IN_LEADER_CAR; }; // 0x5F6560
 
 public:
     static inline void InjectHooks() {

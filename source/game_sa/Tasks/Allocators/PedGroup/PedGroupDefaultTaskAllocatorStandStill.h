@@ -10,8 +10,8 @@ class CPedGroupDefaultTaskAllocatorStandStill final : public CPedGroupDefaultTas
 public:
     /* no virtual destructor */
 
-    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6DA0))(pedGroup, ped); };
-    ePedGroupDefaultTaskAllocatorType __stdcall GetType() override { return ePedGroupDefaultTaskAllocatorType::STAND_STILL; }; // 0x5F64D0
+    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6DA0))(pedGroup, ped); };
+    ePedGroupDefaultTaskAllocatorType __stdcall GetType() const override { return ePedGroupDefaultTaskAllocatorType::STAND_STILL; }; // 0x5F64D0
 
 public:
     static inline void InjectHooks() {

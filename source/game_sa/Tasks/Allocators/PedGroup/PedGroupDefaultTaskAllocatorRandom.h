@@ -10,8 +10,8 @@ class CPedGroupDefaultTaskAllocatorRandom final : public CPedGroupDefaultTaskAll
 public:
     /* no virtual destructor */
 
-    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6E90))(pedGroup, ped); };
-    ePedGroupDefaultTaskAllocatorType __stdcall GetType() override { return ePedGroupDefaultTaskAllocatorType::RANDOM; }; // 0x5F6530
+    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6E90))(pedGroup, ped); };
+    ePedGroupDefaultTaskAllocatorType __stdcall GetType() const override { return ePedGroupDefaultTaskAllocatorType::RANDOM; }; // 0x5F6530
 
 public:
     static inline void InjectHooks() {

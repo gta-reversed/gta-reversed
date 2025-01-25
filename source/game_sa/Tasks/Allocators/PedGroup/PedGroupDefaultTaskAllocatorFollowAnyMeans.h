@@ -10,8 +10,8 @@ class CPedGroupDefaultTaskAllocatorFollowAnyMeans final : public CPedGroupDefaul
 public:
     /* no virtual destructor */
 
-    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6B40))(pedGroup, ped); };
-    ePedGroupDefaultTaskAllocatorType __stdcall GetType() override { return ePedGroupDefaultTaskAllocatorType::FOLLOW_ANY_MEANS; }; // 0x5F6470
+    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6B40))(pedGroup, ped); };
+    ePedGroupDefaultTaskAllocatorType __stdcall GetType() const override { return ePedGroupDefaultTaskAllocatorType::FOLLOW_ANY_MEANS; }; // 0x5F6470
 
 public:
     static inline void InjectHooks() {
