@@ -173,6 +173,15 @@
 #include "PPTriPlantBuffer.h"
 #include "PlantSurfPropMgr.h"
 
+// Task ped group default allocators
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorFollowAnyMeans.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorFollowLimited.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorStandStill.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorChat.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorSitInLeaderCar.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorRandom.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocators.h>
+
 // Tasks
 #include "TaskComplexSitDownThenIdleThenStandUp.h"
 #include "TaskComplexLeaveCarAsPassengerWait.h"
@@ -862,6 +871,20 @@ void InjectHooksMain() {
     Plant();
 
     const auto Tasks = []() {
+        const auto Allocators = [] {
+            const auto PedGroup = [] {
+                CPedGroupDefaultTaskAllocatorFollowAnyMeans::InjectHooks();
+                CPedGroupDefaultTaskAllocatorFollowLimited::InjectHooks();
+                CPedGroupDefaultTaskAllocatorStandStill::InjectHooks();
+                CPedGroupDefaultTaskAllocatorChat::InjectHooks();
+                CPedGroupDefaultTaskAllocatorSitInLeaderCar::InjectHooks();
+                CPedGroupDefaultTaskAllocatorRandom::InjectHooks();
+                CPedGroupDefaultTaskAllocators::InjectHooks();
+            };
+            PedGroup();
+        };
+        Allocators();
+
         const auto Interior = [] {
             CTaskInteriorBeInHouse::InjectHooks();
             CTaskInteriorBeInOffice::InjectHooks();

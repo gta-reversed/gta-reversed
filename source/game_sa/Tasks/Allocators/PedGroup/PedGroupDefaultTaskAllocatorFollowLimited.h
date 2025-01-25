@@ -1,0 +1,25 @@
+#pragma once
+
+#include <Base.h>
+#include <PluginBase.h>
+#include <ReversibleHooks.h>
+
+#include "./PedGroupDefaultTaskAllocator.h"
+
+class CPedGroupDefaultTaskAllocatorFollowLimited final : public CPedGroupDefaultTaskAllocator {
+public:
+    /* no virtual destructor */
+
+    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6C70))(pedGroup, ped); };
+    ePedGroupDefaultTaskAllocatorType __stdcall GetType() override { return ePedGroupDefaultTaskAllocatorType::FOLLOW_LIMITED; }; // 0x5F64A0
+
+public:
+    static inline void InjectHooks() {
+        RH_ScopedVirtualClass(CPedGroupDefaultTaskAllocator, 0x86C764, 2);
+        RH_ScopedCategory("Tasks/Allocators/PedGroup");
+
+        RH_ScopedVMTInstall(AllocateDefaultTasks, 0x5F6C70, { .reversed = false });
+        RH_ScopedVMTInstall(GetType, 0x5F64A0);
+    }
+};
+VALIDATE_SIZE(CPedGroupDefaultTaskAllocatorFollowLimited, sizeof(void*)); /* vtable only */

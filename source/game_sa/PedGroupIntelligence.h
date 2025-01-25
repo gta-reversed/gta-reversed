@@ -11,6 +11,7 @@
 #include "PedTaskPair.h"
 
 #include "Tasks/TaskTypes/TaskSimpleNone.h"
+#include "Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorType.h"
 
 class CPed;
 class CTask;
@@ -20,15 +21,6 @@ class CTaskAllocator;
 class CEvent;
 class CPedGroup;
 class CEventGroupEvent;
-
-enum class ePedGroupDefaultTaskAllocatorType : uint32 {
-    FOLLOW_ANY_MEANS,
-    FOLLOW_LIMITED,
-    STAND_STILL,
-    CHAT,
-    SIT_IN_LEADER_CAR,
-    RANDOM,
-};
 
 class CPedGroupIntelligence {
     using PedTaskPairs = std::array<CPedTaskPair, TOTAL_PED_GROUP_MEMBERS>;
