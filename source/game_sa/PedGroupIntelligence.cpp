@@ -25,7 +25,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(GetTaskDefault, 0x5F86C0, { .reversed = false });
     RH_ScopedInstall(GetTaskScriptCommand, 0x5F8690, { .reversed = false });
     RH_ScopedInstall(GetTaskSecondarySlot, 0x5F8650, { .reversed = false });
-    RH_ScopedInstall(GetTaskSecondary, 0x5F8620, { .reversed = false });
+    RH_ScopedInstall(GetTaskSecondary, 0x5F8620);
     RH_ScopedInstall(GetTaskMain, 0x5F85A0);
     RH_ScopedInstall(SetScriptCommandTask, 0x5F8560);
     RH_ScopedInstall(IsCurrentEventValid, 0x5F77A0);
