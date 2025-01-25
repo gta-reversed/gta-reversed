@@ -21,9 +21,9 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(SetDefaultTaskAllocator, 0x5FB280);
     RH_ScopedInstall(ComputeDefaultTasks, 0x5F88D0);
     RH_ScopedInstall(ProcessIgnorePlayerGroup, 0x5F87A0);
-    RH_ScopedInstall(ReportAllBarScriptTasksFinished, 0x5F8780, { .reversed = false });
-    RH_ScopedInstall(GetTaskDefault, 0x5F86C0, { .reversed = false });
-    RH_ScopedInstall(GetTaskScriptCommand, 0x5F8690, { .reversed = false });
+    RH_ScopedInstall(ReportAllBarScriptTasksFinished);
+    RH_ScopedInstall(GetTaskDefault, 0x5F86C0);
+    RH_ScopedInstall(GetTaskScriptCommand, 0x5F8690);
     RH_ScopedInstall(GetTaskSecondarySlot, 0x5F8650);
     RH_ScopedInstall(GetTaskSecondary, 0x5F8620);
     RH_ScopedInstall(GetTaskMain, 0x5F85A0);
