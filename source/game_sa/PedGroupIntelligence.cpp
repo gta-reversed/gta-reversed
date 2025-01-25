@@ -12,7 +12,7 @@ void CPedGroupIntelligence::InjectHooks() {
     //RH_ScopedGlobalInstall(ReportFinishedTask_, 0x5F76C0, { .reversed = false });
 
     RH_ScopedInstall(SetTask, 0x5F7540);
-    RH_ScopedInstall(Flush, 0x5F7350, { .reversed = false });
+    RH_ScopedInstall(Flush, 0x5F7350);
     RH_ScopedInstall(SetDefaultTaskAllocatorType, 0x5FBB70, { .reversed = false });
     RH_ScopedInstall(SetDefaultTaskAllocator, 0x5FB280, { .reversed = false });
     RH_ScopedInstall(ComputeDefaultTasks, 0x5F88D0, { .reversed = false });
@@ -46,14 +46,29 @@ CPedGroupIntelligence::CPedGroupIntelligence(CPedGroup* owner) : // TODO: Use `C
     plugin::CallMethod<0x5F7250, CPedGroupIntelligence*>(this);
 }
 
-// Unknown address (If any)
+// Seemingly always inlined as `Flush()`
 CPedGroupIntelligence::~CPedGroupIntelligence() {
-    Flush(); // Not sure if it does this at all, but it worked so far, so let's leave it like this for now
+    Flush();
 }
 
 // 0x5F7350
-void CPedGroupIntelligence::Flush() { // Pirulax: For some reason this is called `~CPedGroupIntelligence` in *there*...
-    plugin::CallMethod<0x5F7350, CPedGroupIntelligence*>(this);
+// NOTE(Pirulax): For some reason this is called `~CPedGroupIntelligence` in *there*, but it's actually `Flush`!
+void CPedGroupIntelligence::Flush() {
+    rng::for_each(m_PedTaskPairs, &CPedTaskPair::Flush);
+    rng::for_each(m_SecondaryPedTaskPairs, &CPedTaskPair::Flush);
+    rng::for_each(m_ScriptCommandPedTaskPairs, &CPedTaskPair::Flush);
+    rng::for_each(m_DefaultPedTaskPairs, &CPedTaskPair::Flush);
+
+    if (m_pEventGroupEvent != m_pOldEventGroupEvent) {
+        delete std::exchange(m_pEventGroupEvent, nullptr);
+    }
+    delete std::exchange(m_pOldEventGroupEvent, nullptr);
+
+    delete std::exchange(m_PrimaryTaskAllocator, nullptr);
+    delete std::exchange(m_EventResponseTaskAllocator, nullptr);
+
+    m_DecisionMakerType = -1;
+    m_TaskSeqId         = TASK_INVALID;
 }
 
 // 0x5F7470
