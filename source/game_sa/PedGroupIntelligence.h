@@ -55,7 +55,7 @@ public:
     void ReportAllBarScriptTasksFinished();
     void ReportAllTasksFinished(PedTaskPairs& taskPairs);
     //void ReportAllTasksFinished();
-    bool ReportFinishedTask(const CPed* ped, const CTask* task, CPedTaskPair* taskpair);
+    bool ReportFinishedTask(const CPed* ped, const CTask* task, PedTaskPairs& taskpair);
     bool ReportFinishedTask(const CPed* ped, const CTask* task);
     void SetDefaultTask(CPed* ped, const CTask* task);
     void SetDefaultTaskAllocator(CPedGroupDefaultTaskAllocator const* PedGroupDefaultTaskAllocator);

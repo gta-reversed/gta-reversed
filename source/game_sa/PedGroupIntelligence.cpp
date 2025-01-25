@@ -9,7 +9,8 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x5F7250, { .reversed = false });
 
     RH_ScopedGlobalInstall(FlushTasks, 0x5F79C0, { .reversed = false });
-    //RH_ScopedGlobalInstall(ReportFinishedTask_, 0x5F76C0, { .reversed = false });
+    RH_ScopedOverloadedInstall(ReportFinishedTask, "Wrapper", 0x5F86F0, bool(CPedGroupIntelligence::*)(const CPed*, const CTask*));
+    RH_ScopedOverloadedInstall(ReportFinishedTask, "Impl", 0x5F86F0, bool(CPedGroupIntelligence::*)(const CPed*, const CTask*, PedTaskPairs& taskPairs));
 
     RH_ScopedInstall(SetTask, 0x5F7540);
     RH_ScopedInstall(Flush, 0x5F7350);
@@ -19,7 +20,6 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(ComputeDefaultTasks, 0x5F88D0, { .reversed = false });
     RH_ScopedInstall(ProcessIgnorePlayerGroup, 0x5F87A0, { .reversed = false });
     RH_ScopedInstall(ReportAllBarScriptTasksFinished, 0x5F8780, { .reversed = false });
-    //RH_ScopedInstall(ReportFinishedTask, 0x5F86F0, { .reversed = false });
     RH_ScopedInstall(GetTaskDefault, 0x5F86C0, { .reversed = false });
     RH_ScopedInstall(GetTaskScriptCommand, 0x5F8690, { .reversed = false });
     RH_ScopedInstall(GetTaskSecondarySlot, 0x5F8650, { .reversed = false });
@@ -36,7 +36,6 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(Process, 0x5FC4A0, { .reversed = false });
     RH_ScopedInstall(ReportAllTasksFinished, 0x5F7730);
 
-    RH_ScopedOverloadedInstall(ReportFinishedTask, "", 0x5F86F0, bool(CPedGroupIntelligence::*)(const CPed*, const CTask*), { .reversed = false });
 }
 
 // 0x5F7250
@@ -171,9 +170,33 @@ void CPedGroupIntelligence::SetEventResponseTask(CPed* ped, bool hasMainTask, co
     }
 }
 
+// 0x5F76C0
+bool CPedGroupIntelligence::ReportFinishedTask(const CPed* ped, const CTask* task, PedTaskPairs& taskPairs) {
+    const auto tt = task->GetTaskType();
+    for (auto& tp : taskPairs) {
+        if (tp.m_Ped != ped) {
+            continue;
+        }
+        if (!tp.m_Task || tp.m_Task->GetTaskType() != tt) {
+            continue;
+        }
+        delete std::exchange(tp.m_Task, nullptr);
+        return true;
+    }
+    return false;
+}
+
 // 0x5F86F0
 bool CPedGroupIntelligence::ReportFinishedTask(const CPed* ped, const CTask* task) {
-    return plugin::CallMethodAndReturn<bool, 0x5F86F0>(this, ped, task);
+    if (ReportFinishedTask(ped, task, m_ScriptCommandPedTaskPairs)) {
+        return true;
+    }
+    if (ReportFinishedTask(ped, task, m_PedTaskPairs)) {
+        return true;
+    }
+    ReportFinishedTask(ped, task, m_SecondaryPedTaskPairs);
+    ReportFinishedTask(ped, task, m_DefaultPedTaskPairs);
+    return false; // Yes, it's `false` - Intended or not, no clue, but the return value of this function isn't used in any of the xrefs.
 }
 
 // 0x5F7540
