@@ -57,8 +57,6 @@ void CTaskAllocatorPlayerCommandAttack::AllocateTasks(CPedGroupIntelligence* int
 }
 
 // 0x69D110
-void CTaskAllocatorPlayerCommandAttack::ProcessGroup(CPedGroupIntelligence* intel) {
-    return plugin::CallMethod<0x69D110, CTaskAllocatorPlayerCommandAttack*, CPedGroupIntelligence*>(this, intel);
-    CTaskAllocatorAttack::ProcessGroup(intel);
-    // todo: delete intel or intel->vfunc();
+CTaskAllocator* CTaskAllocatorPlayerCommandAttack::ProcessGroup(CPedGroupIntelligence* intel) {
+    return plugin::CallMethodAndReturn<CTaskAllocator*, 0x69D110>(this, intel);
 }

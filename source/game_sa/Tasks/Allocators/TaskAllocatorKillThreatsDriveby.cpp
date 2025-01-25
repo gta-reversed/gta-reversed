@@ -13,8 +13,8 @@ CTaskAllocatorKillThreatsDriveby::~CTaskAllocatorKillThreatsDriveby() {
 }
 
 // 0x69CBC0
-void CTaskAllocatorKillThreatsDriveby::ProcessGroup(CPedGroupIntelligence* intel) {
-
+CTaskAllocator* CTaskAllocatorKillThreatsDriveby::ProcessGroup(CPedGroupIntelligence* intel) {
+    return plugin::CallMethodAndReturn<CTaskAllocator*, 0x69CBC0>(this, intel);
 }
 
 // 0x69CC30

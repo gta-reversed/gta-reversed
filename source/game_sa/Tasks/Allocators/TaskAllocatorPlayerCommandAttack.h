@@ -8,6 +8,6 @@ public:
     CTaskAllocatorPlayerCommandAttack(CPed* ped, int32 groupId, ePedType pedType);
 
     eTaskAllocatorType GetType() override { return TASK_ALLOCATOR_PLAYER_COMMAND_ATTACK; }; // 0x69C4C0
-    void AllocateTasks(CPedGroupIntelligence* intel) override; // 0x69C4D0
-    void ProcessGroup(CPedGroupIntelligence* intel) override; // 0x69D110
+    void               AllocateTasks(CPedGroupIntelligence* intel) override; // 0x69C4D0
+    CTaskAllocator*    ProcessGroup(CPedGroupIntelligence* intel) override; // 0x69D110
 };

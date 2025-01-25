@@ -27,6 +27,6 @@ void CTaskAllocatorAttack::AllocateTasks(CPedGroupIntelligence* intel) {
 }
 
 // 0x69D0C0
-void CTaskAllocatorAttack::ProcessGroup(CPedGroupIntelligence* intel) {
+CTaskAllocator* CTaskAllocatorAttack::ProcessGroup(CPedGroupIntelligence* intel) {
     return CTaskAllocator::ProcessGroup(intel);
 }

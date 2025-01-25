@@ -18,8 +18,8 @@ void CTaskAllocatorKillThreatsBasic::AllocateTasks(CPedGroupIntelligence* intel)
 }
 
 // 0x69C7E0
-void CTaskAllocatorKillThreatsBasic::ProcessGroup(CPedGroupIntelligence* intel) {
-    plugin::CallMethod<0x69C7E0, CTaskAllocatorKillThreatsBasic*, CPedGroupIntelligence*>(this, intel);
+CTaskAllocator* CTaskAllocatorKillThreatsBasic::ProcessGroup(CPedGroupIntelligence* intel) {
+    return plugin::CallMethodAndReturn<CTaskAllocator*, 0x69C7E0>(this, intel);
 }
 
 // 0x69C850

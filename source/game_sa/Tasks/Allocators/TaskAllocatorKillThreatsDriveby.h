@@ -15,6 +15,6 @@ public:
     ~CTaskAllocatorKillThreatsDriveby() override;
 
     eTaskAllocatorType GetType() override { return TASK_ALLOCATOR_KILL_THREATS_DRIVEBY; }; // 0x69CB50
-    void ProcessGroup(CPedGroupIntelligence* intel) override;
-    void AllocateTasks(CPedGroupIntelligence* intel) override;
+    CTaskAllocator*    ProcessGroup(CPedGroupIntelligence* intel) override;
+    void               AllocateTasks(CPedGroupIntelligence* intel) override;
 };

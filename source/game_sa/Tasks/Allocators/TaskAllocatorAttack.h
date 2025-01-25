@@ -18,7 +18,7 @@ public:
 public:
     CTaskAllocatorAttack(CPed* ped0, int, CPed* ped1);
 
-    eTaskAllocatorType GetType() override { return TASK_ALLOCATOR_ATTACK; }; // 0x69C2C0
-    void AllocateTasks(CPedGroupIntelligence* intel) override;
-    void ProcessGroup(CPedGroupIntelligence* intel) override;
+    eTaskAllocatorType GetType() override { return TASK_ALLOCATOR_ATTACK; } // 0x69C2C0
+    void               AllocateTasks(CPedGroupIntelligence* intel) override;
+    CTaskAllocator*    ProcessGroup(CPedGroupIntelligence* intel) override;
 };

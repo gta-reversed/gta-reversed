@@ -882,6 +882,8 @@ void InjectHooksMain() {
                 CPedGroupDefaultTaskAllocators::InjectHooks();
             };
             PedGroup();
+
+            CTaskAllocator::InjectHooks();
         };
         Allocators();
 
