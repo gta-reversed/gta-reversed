@@ -9,7 +9,7 @@
 #include <concepts>
 
 #include "PedTaskPair.h"
-
+#include "DecisionMakerTypes.h"
 #include "Tasks/TaskTypes/TaskSimpleNone.h"
 #include "Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorType.h"
 
@@ -79,7 +79,7 @@ public:
     //! @notsa
     void SetEventResponseTask(CPed* ped, const CTask& task) { SetEventResponseTask(ped, true, task); }
     void SetEventResponseTaskAllocator(CTaskAllocator* ta);
-    void SetGroupDecisionMakerType(int32 t);
+    void SetGroupDecisionMakerType(eDecisionMakerType t) { m_DecisionMakerType = t; }
     void SetPrimaryTaskAllocator(CTaskAllocator* ta);
     void SetScriptCommandTask(CPed* ped, const CTask& task);
 
@@ -112,7 +112,7 @@ private:
     const CPedGroupDefaultTaskAllocator* m_DefaultTaskAllocator{};
     CTaskAllocator*                      m_PrimaryTaskAllocator{};
     CTaskAllocator*                      m_EventResponseTaskAllocator{};
-    int32                                m_DecisionMakerType{ -1 };
+    eDecisionMakerType                   m_DecisionMakerType{ eDecisionMakerType::UNKNOWN };
     int32                                m_TaskSeqId{ -1 }; // Used in CTaskSequences::ms_taskSequence
 };
 VALIDATE_SIZE(CPedGroupIntelligence, 0x2A0);

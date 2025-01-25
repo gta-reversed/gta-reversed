@@ -33,7 +33,7 @@ void CPedGroupIntelligence::InjectHooks() {
     //RH_ScopedInstall(SetEventResponseTask, 0x5F8510); // Register allocation is weird, better not to hook it at all
     RH_ScopedInstall(SetEventResponseTaskAllocator, 0x5F7440, { .reversed = false });
     RH_ScopedInstall(SetPrimaryTaskAllocator, 0x5F7410, { .reversed = false });
-    RH_ScopedInstall(SetGroupDecisionMakerType, 0x5F7340, { .reversed = false });
+    RH_ScopedInstall(SetGroupDecisionMakerType, 0x5F7340);
     RH_ScopedInstall(ComputeEventResponseTasks, 0x5FC440, { .reversed = false });
     RH_ScopedInstall(Process, 0x5FC4A0, { .reversed = false });
     RH_ScopedInstall(ReportAllTasksFinished, 0x5F7730);
@@ -68,7 +68,7 @@ void CPedGroupIntelligence::Flush() {
     delete std::exchange(m_PrimaryTaskAllocator, nullptr);
     delete std::exchange(m_EventResponseTaskAllocator, nullptr);
 
-    m_DecisionMakerType = -1;
+    m_DecisionMakerType = eDecisionMakerType::UNKNOWN;
     m_TaskSeqId         = TASK_INVALID;
 }
 
@@ -316,17 +316,13 @@ bool CPedGroupIntelligence::IsGroupResponding() {
         }
         return false;
     };
-    return CheckTaskPairs(m_PedTaskPairs) || CheckTaskPairs(m_SecondaryPedTaskPairs);
+    return CheckTaskPairs(m_PedTaskPairs)
+        || CheckTaskPairs(m_SecondaryPedTaskPairs);
 }
 
 // 0x5F7440
 void CPedGroupIntelligence::SetEventResponseTaskAllocator(CTaskAllocator* ta) {
     delete std::exchange(m_EventResponseTaskAllocator, ta);
-}
-
-// 0x5F7340
-void CPedGroupIntelligence::SetGroupDecisionMakerType(int32 t) {
-    return plugin::CallMethod<0x5F7340, CPedGroupIntelligence*, int32>(this, t);
 }
 
 // 0x5FC440
