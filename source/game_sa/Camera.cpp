@@ -1744,26 +1744,27 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     this->m_fFractionInterToStopCatchUp = 0.75f;
 
     // Handle special modes for rocket launcher etc
-    switch (activeCamera->m_nMode) {
-    case MODE_SNIPER:
-    case MODE_ROCKETLAUNCHER:
-    case MODE_ROCKETLAUNCHER_HS:
-    case MODE_M16_1STPERSON:
-    case MODE_SNIPER_RUNABOUT:
-    case MODE_ROCKETLAUNCHER_RUNABOUT:
-    case MODE_ROCKETLAUNCHER_RUNABOUT_HS:
-    case MODE_M16_1STPERSON_RUNABOUT:
-    case MODE_FIGHT_CAM_RUNABOUT:
-    case MODE_HELICANNON_1STPERSON:
-    case MODE_CAMERA:
-    case MODE_1STPERSON_RUNABOUT:
-        if (this->m_pTargetEntity && this->m_pTargetEntity->IsPed()) {
-            float targetRotation                               = CGeneral::GetATanOfXY(activeCamera->m_vecFront.x, activeCamera->m_vecFront.y) - HALF_PI;
-            ((CPed*)this->m_pTargetEntity)->m_fCurrentRotation = targetRotation;
-            ((CPed*)this->m_pTargetEntity)->m_fAimingRotation  = targetRotation;
-        }
-        break;
+    if (this->m_pTargetEntity && this->m_pTargetEntity->IsPed() &&
+        notsa::contains({
+            MODE_SNIPER,
+            MODE_ROCKETLAUNCHER,
+            MODE_ROCKETLAUNCHER_HS,
+            MODE_M16_1STPERSON,
+            MODE_SNIPER_RUNABOUT,
+            MODE_ROCKETLAUNCHER_RUNABOUT,
+            MODE_ROCKETLAUNCHER_RUNABOUT_HS,
+            MODE_M16_1STPERSON_RUNABOUT,
+            MODE_FIGHT_CAM_RUNABOUT,
+            MODE_HELICANNON_1STPERSON,
+            MODE_CAMERA,
+            MODE_1STPERSON_RUNABOUT
+        }, activeCamera->m_nMode)
+    ) {
+        float targetRotation = CGeneral::GetATanOfXY(activeCamera->m_vecFront.x, activeCamera->m_vecFront.y) - HALF_PI;
+        ((CPed*)this->m_pTargetEntity)->m_fCurrentRotation = targetRotation;
+        ((CPed*)this->m_pTargetEntity)->m_fAimingRotation  = targetRotation;
     }
+
 
     // Copy fixed mode vectors and settings
     activeCamera->m_vecCamFixedModeVector = this->m_vecFixedModeVector;
