@@ -41,9 +41,10 @@ void CPedGroupIntelligence::InjectHooks() {
 
 // 0x5F7250
 CPedGroupIntelligence::CPedGroupIntelligence(CPedGroup* owner) : // TODO: Use `CPedGroup&`
-    m_pPedGroup{owner}
+    m_pPedGroup{owner},
+    m_DefaultTaskAllocator{&CPedGroupDefaultTaskAllocators::Get(ePedGroupDefaultTaskAllocatorType::STAND_STILL)}
 {
-    plugin::CallMethod<0x5F7250, CPedGroupIntelligence*>(this);
+    /* Everything else is initialized in the header */
 }
 
 // Seemingly always inlined as `Flush()`
