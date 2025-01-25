@@ -49,7 +49,7 @@ public:
     //! @notsa
     CPedTaskPair*  GetPedsTaskPair(CPed* ped, PedTaskPairs& taskPairs) const;
 
-    CTask*         GetTask(CPed* ped, PedTaskPairs& taskPairs);
+    CTask*         GetTask(CPed* ped, PedTaskPairs& taskPairs) const;
     CTask*         GetTaskMain(CPed* ped);
     CTask*         GetTaskDefault(CPed* ped);
     CTask*         GetTaskScriptCommand(CPed* ped);
@@ -89,7 +89,7 @@ public:
     void SetEventResponseTaskAllocator(CTaskAllocator* a);
     void SetGroupDecisionMakerType(int32 t);
     void SetPrimaryTaskAllocator(CTaskAllocator* taskAllocator);
-    void SetScriptCommandTask(CPed* ped, const CTask* task);
+    void SetScriptCommandTask(CPed* ped, const CTask& task);
 
     auto GetOldEvent()     { return m_pOldEventGroupEvent; }
     auto GetCurrentEvent() { return m_pEventGroupEvent; }
@@ -100,7 +100,7 @@ public:
     }
 
     //! `task` shouldn't be `new`-d, but rather stack allocated!
-    void SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, int32 slot = -1, bool force = false);
+    void SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, int32 slot = -1, bool force = false) const;
 
 private: // Wrappers for hooks
     // 0x5F7250

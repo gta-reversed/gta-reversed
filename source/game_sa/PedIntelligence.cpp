@@ -237,15 +237,11 @@ void CPedIntelligence::AddTaskEventResponseNonTemp(CTask* task, int32 unUsed) {
 
 // 0x600E20
 void CPedIntelligence::AddTaskPrimaryMaybeInGroup(CTask* task, bool bAffectsPed) {
-    CPedGroup* pegGroup = CPedGroups::GetPedsGroup(m_pPed);
-    if (m_pPed->IsPlayer() || !pegGroup)
-    {
-        CEventScriptCommand eventScriptCommand(TASK_PRIMARY_PRIMARY, task, bAffectsPed);
-        m_eventGroup.Add(&eventScriptCommand, false);
-    }
-    else
-    {
-        pegGroup->GetIntelligence().SetScriptCommandTask(m_pPed, task);
+    CPedGroup* grp = m_pPed->GetGroup();
+    if (m_pPed->IsPlayer() || !grp) {
+        m_eventGroup.Add(CEventScriptCommand{TASK_PRIMARY_PRIMARY, task, bAffectsPed});
+    } else {
+        grp->GetIntelligence().SetScriptCommandTask(m_pPed, *task);
         delete task;
     }
 }

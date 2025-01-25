@@ -13,6 +13,7 @@ void CPedGroupIntelligence::InjectHooks() {
 
     RH_ScopedInstall(SetTask, 0x5F7540);
     RH_ScopedInstall(Flush, 0x5F7350);
+    RH_ScopedOverloadedInstall(AddEvent, "", 0x5F7470, bool(CPedGroupIntelligence::*)(CEvent*));
     RH_ScopedInstall(SetDefaultTaskAllocatorType, 0x5FBB70, { .reversed = false });
     RH_ScopedInstall(SetDefaultTaskAllocator, 0x5FB280, { .reversed = false });
     RH_ScopedInstall(ComputeDefaultTasks, 0x5F88D0, { .reversed = false });
@@ -27,7 +28,6 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(SetScriptCommandTask, 0x5F8560, { .reversed = false });
     RH_ScopedInstall(IsCurrentEventValid, 0x5F77A0, { .reversed = false });
     RH_ScopedInstall(IsGroupResponding, 0x5F7760, { .reversed = false });
-    //RH_ScopedInstall(AddEvent, 0x5F7470, { .reversed = false });
     //RH_ScopedInstall(SetEventResponseTask, 0x5F8510); // Register allocation is weird, better not to hook it at all
     RH_ScopedInstall(SetEventResponseTaskAllocator, 0x5F7440, { .reversed = false });
     RH_ScopedInstall(SetPrimaryTaskAllocator, 0x5F7410, { .reversed = false });
@@ -73,12 +73,34 @@ void CPedGroupIntelligence::Flush() {
 
 // 0x5F7470
 bool CPedGroupIntelligence::AddEvent(CEvent* event) {
-    return plugin::CallMethodAndReturn<bool, 0x5F7470, CPedGroupIntelligence*, CEvent*>(this, event);
+    if (event->GetEventType() != EVENT_GROUP_EVENT) {
+        return false;
+    }
+    const auto eGrpEvent = static_cast<CEventGroupEvent*>(event);
+    if (!eGrpEvent->AffectsPedGroup(m_pPedGroup) || !eGrpEvent->GetEvent().AffectsPedGroup(m_pPedGroup)) {
+        return false;
+    }
+    if (const auto src = eGrpEvent->GetEvent().GetSourceEntity()) {
+        if (src->IsPed() && m_pPedGroup->GetMembership().IsMember(src->AsPed())) {
+            return false;
+        }
+    }
+    if (eGrpEvent->GetEvent().HasEditableResponse()) {
+        const auto eEditableResponse = static_cast<CEventEditableResponse*>(&eGrpEvent->GetEvent());
+        eEditableResponse->ComputeResponseTaskType(m_pPedGroup);
+        if (!eEditableResponse->WillRespond()) {
+            return false;
+        }
+    }
+    if (!m_pEventGroupEvent || m_pEventGroupEvent->BaseEventTakesPriorityOverBaseEvent(*eGrpEvent)) {
+        delete std::exchange(m_pEventGroupEvent, static_cast<CEventGroupEvent*>(eGrpEvent->Clone()));
+    }
+    return true;
 }
 
 // 0x5F8560
-void CPedGroupIntelligence::SetScriptCommandTask(CPed* ped, const CTask* task) {
-    plugin::CallMethod<0x5F8560, CPedGroupIntelligence*, CPed*, const CTask*>(this, ped, task);
+void CPedGroupIntelligence::SetScriptCommandTask(CPed* ped, const CTask& task) {
+    SetTask(ped, task, m_ScriptCommandPedTaskPairs);
 }
 
 // notsa
@@ -92,7 +114,7 @@ CPedTaskPair* CPedGroupIntelligence::GetPedsTaskPair(CPed* ped, PedTaskPairs& ta
 }
 
 // notsa (not sure)
-CTask* CPedGroupIntelligence::GetTask(CPed* ped, PedTaskPairs& taskPairs) {
+CTask* CPedGroupIntelligence::GetTask(CPed* ped, PedTaskPairs& taskPairs) const {
     if (const auto tp = GetPedsTaskPair(ped, taskPairs)) {
         return tp->m_Task;
     }
