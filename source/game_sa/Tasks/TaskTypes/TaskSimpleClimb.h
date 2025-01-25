@@ -32,7 +32,7 @@ public:
     ~CTaskSimpleClimb() override;
 
     eTaskType GetTaskType() const override { return Type; }
-    CTask*    Clone() const override { return new CTaskSimpleClimb(m_pClimbEnt, m_vecHandholdPos, m_fHandholdHeading, m_nSurfaceType, (eClimbHeights)m_nHeightForAnim, m_bForceClimb); }
+    CTask*    Clone() const override { return new CTaskSimpleClimb(m_ClimbEntity, m_HandholdPos, m_HandholdHeading, m_SurfaceType, (eClimbHeights)m_HeightForAnim, m_HasToForceClimb); }
     bool      ProcessPed(CPed* ped) override;
     bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
 
@@ -56,28 +56,28 @@ public:
     void GetCameraStickModifier(CEntity* entity, float& fVerticalAngle, float& fHorizontalAngle, float& a5, float& a6);
     void GetCameraTargetPos(CPed* ped, CVector& vecTarget);
 
-    auto GetHeightForPos() const { return m_nHeightForPos; }
-    auto GetIsInvalidClimb() const { return m_bInvalidClimb; }
+    auto GetHeightForPos() const { return m_HeightForPos; }
+    auto GetIsInvalidClimb() const { return m_IsInvalidClimb; }
 
 private:
     CVector                   GetClimbOffset3D(CVector2D offset, float angle) const;
     std::pair<CVector, float> GetHandholdPosAndAngle() const;
 
 private:
-    bool                   m_bIsFinished;
-    bool                   m_bChangeAnimation;
-    bool                   m_bChangePosition;
-    bool                   m_bForceClimb;
-    bool                   m_bInvalidClimb;
-    eClimbHeights          m_nHeightForAnim; // eClimbHeights
-    eClimbHeights          m_nHeightForPos;  // eClimbHeights
-    uint8                  m_nSurfaceType;
-    int8                   m_nFallAfterVault;
-    float                  m_fHandholdHeading;
-    CVector                m_vecHandholdPos;
-    CEntity*               m_pClimbEnt;
-    uint16                 m_nGetToPosCounter; // we can use u32 without any problems
-    CAnimBlendAssociation* m_pAnim;
+    bool                   m_HasFinished;
+    bool                   m_HasToChangeAnimation;
+    bool                   m_HasToChangePosition;
+    bool                   m_HasToForceClimb;
+    bool                   m_IsInvalidClimb;
+    eClimbHeights          m_HeightForAnim; // eClimbHeights
+    eClimbHeights          m_HeightForPos;  // eClimbHeights
+    eSurfaceType           m_SurfaceType;
+    int8                   m_FallAfterVault;
+    float                  m_HandholdHeading;
+    CVector                m_HandholdPos;
+    CEntity*               m_ClimbEntity;
+    uint16                 m_GetToPosCounter; // we can use u32 without any problems
+    CAnimBlendAssociation* m_Anim;
 
 public:
     static void InjectHooks();
