@@ -34,7 +34,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(SetEventResponseTaskAllocator, 0x5F7440, { .reversed = false });
     RH_ScopedInstall(SetPrimaryTaskAllocator, 0x5F7410, { .reversed = false });
     RH_ScopedInstall(SetGroupDecisionMakerType, 0x5F7340);
-    RH_ScopedInstall(ComputeEventResponseTasks, 0x5FC440, { .reversed = false });
+    RH_ScopedInstall(ComputeEventResponseTasks, 0x5FC440);
     RH_ScopedInstall(Process, 0x5FC4A0, { .reversed = false });
     RH_ScopedInstall(ReportAllTasksFinished, 0x5F7730);
 
@@ -327,5 +327,7 @@ void CPedGroupIntelligence::SetEventResponseTaskAllocator(CTaskAllocator* ta) {
 
 // 0x5FC440
 CTaskAllocator* CPedGroupIntelligence::ComputeEventResponseTasks() {
-    return plugin::CallMethodAndReturn<CTaskAllocator*, 0x5FC440, CPedGroupIntelligence*>(this);
+    FlushTasks(m_PedTaskPairs, nullptr);
+    FlushTasks(m_SecondaryPedTaskPairs, nullptr);
+    CGroupEventHandler::ComputeEventResponseTasks(*m_pOldEventGroupEvent, m_pPedGroup);
 }
