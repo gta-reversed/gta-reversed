@@ -78,9 +78,9 @@ public:
     );
     //! @notsa
     void SetEventResponseTask(CPed* ped, const CTask& task) { SetEventResponseTask(ped, true, task); }
-    void SetEventResponseTaskAllocator(CTaskAllocator* a);
+    void SetEventResponseTaskAllocator(CTaskAllocator* ta);
     void SetGroupDecisionMakerType(int32 t);
-    void SetPrimaryTaskAllocator(CTaskAllocator* taskAllocator);
+    void SetPrimaryTaskAllocator(CTaskAllocator* ta);
     void SetScriptCommandTask(CPed* ped, const CTask& task);
 
     auto GetOldEvent()     { return m_pOldEventGroupEvent; }

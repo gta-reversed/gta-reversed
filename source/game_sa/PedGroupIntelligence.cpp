@@ -320,8 +320,8 @@ bool CPedGroupIntelligence::IsGroupResponding() {
 }
 
 // 0x5F7440
-void CPedGroupIntelligence::SetEventResponseTaskAllocator(CTaskAllocator* a) {
-    return plugin::CallMethod<0x5F7440, CPedGroupIntelligence*, CTaskAllocator*>(this, a);
+void CPedGroupIntelligence::SetEventResponseTaskAllocator(CTaskAllocator* ta) {
+    delete std::exchange(m_EventResponseTaskAllocator, ta);
 }
 
 // 0x5F7340
