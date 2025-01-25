@@ -2,7 +2,7 @@
 
 #include <Base.h>
 #include <PluginBase.h>
-#include <ReversibleHooks.h>
+#include <reversiblehooks/ReversibleHooks.h>
 
 #include "./PedGroupDefaultTaskAllocator.h"
 
