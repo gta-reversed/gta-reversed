@@ -8,7 +8,7 @@ void CPedGroupIntelligence::InjectHooks() {
 
     RH_ScopedInstall(Constructor, 0x5F7250, { .reversed = false });
 
-    RH_ScopedGlobalInstall(FlushTasks, 0x5F79C0, { .reversed = false });
+    RH_ScopedGlobalInstall(FlushTasks, 0x5F79C0);
     RH_ScopedOverloadedInstall(ReportFinishedTask, "Wrapper", 0x5F86F0, bool(CPedGroupIntelligence::*)(const CPed*, const CTask*));
     RH_ScopedOverloadedInstall(ReportFinishedTask, "Impl", 0x5F86F0, bool(CPedGroupIntelligence::*)(const CPed*, const CTask*, PedTaskPairs& taskPairs));
 
@@ -219,7 +219,12 @@ void CPedGroupIntelligence::SetTask(CPed* ped, const CTask& task, PedTaskPairs& 
 
 // 0x5F79C0
 void CPedGroupIntelligence::FlushTasks(PedTaskPairs& taskPairs, CPed* ped) {
-    return plugin::Call<0x5F79C0, PedTaskPairs&, CPed*>(taskPairs, ped);
+    for (auto& tp : taskPairs) {
+        if (ped && tp.m_Ped != ped) {
+            continue;
+        }
+        delete std::exchange(tp.m_Task, nullptr);
+    }
 }
 
 // 0x5FB280
