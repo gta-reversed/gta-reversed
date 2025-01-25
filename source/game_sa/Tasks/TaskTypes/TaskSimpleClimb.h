@@ -28,7 +28,7 @@ public:
 public:
     static constexpr auto Type = TASK_SIMPLE_CLIMB;
 
-    CTaskSimpleClimb(CEntity* climbEntity, const CVector& vecTarget, float fHeading, uint8 nSurfaceType, eClimbHeights nHeight, bool bForceClimb);
+    CTaskSimpleClimb(CEntity* climbEntity, const CVector& vecTarget, float fHeading, eSurfaceType nSurfaceType, eClimbHeights nHeight, bool bForceClimb);
     ~CTaskSimpleClimb() override;
 
     eTaskType GetTaskType() const override { return Type; }
@@ -38,14 +38,14 @@ public:
 
     // 0x6803A0
     static CEntity* TestForClimb(
-        CPed*    ped,             //!< [in]  The ped that will preform the climbing
-        CVector& outClimbPos,     //!< [out] Climbing position
-        float&   outClimbHeading, //!< [out] Climbing heading
-        uint8&   outSurfaceType,  //!< [out] Surface type
-        bool     bLaunch          //!< [in]  Not sure
+        CPed*         ped,             //!< [in]  The ped that will preform the climbing
+        CVector&      outClimbPos,     //!< [out] Climbing position
+        float&        outClimbHeading, //!< [out] Climbing heading
+        eSurfaceType& outSurfaceType,  //!< [out] Surface type
+        bool          bLaunch          //!< [in]  Not sure
     );
-    static CEntity* ScanToGrabSectorList(CPtrList* sectorList, CPed* ped, CVector& climbPos, float& angle, uint8& pSurfaceType, bool flag1, bool bStandUp, bool bVault);
-    static CEntity* ScanToGrab(CPed* ped, CVector& climbPos, float& angle, uint8& pSurfaceType, bool flag1, bool bStandUp, bool bVault, CVector* pedPosition);
+    static CEntity* ScanToGrabSectorList(CPtrList* sectorList, CPed* ped, CVector& climbPos, float& angle, eSurfaceType& pSurfaceType, bool flag1, bool bStandUp, bool bVault);
+    static CEntity* ScanToGrab(CPed* ped, CVector& climbPos, float& angle, eSurfaceType& pSurfaceType, bool flag1, bool bStandUp, bool bVault, CVector* pedPosition);
     static bool CreateColModel();
     static void Shutdown();
     bool TestForStandUp(CPed* ped, const CVector& point, float fAngle);
@@ -83,7 +83,7 @@ public:
     static void InjectHooks();
 
 private:
-    CTaskSimpleClimb* Constructor(CEntity* pClimbEnt, const CVector& vecTarget, float fHeading, uint8 nSurfaceType, eClimbHeights nHeight, bool bForceClimb) {
+    CTaskSimpleClimb* Constructor(CEntity* pClimbEnt, const CVector& vecTarget, float fHeading, eSurfaceType nSurfaceType, eClimbHeights nHeight, bool bForceClimb) {
         this->CTaskSimpleClimb::CTaskSimpleClimb(pClimbEnt, vecTarget, fHeading, nSurfaceType, nHeight, bForceClimb);
         return this;
     }

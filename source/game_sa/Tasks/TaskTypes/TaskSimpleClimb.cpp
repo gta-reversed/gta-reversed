@@ -49,12 +49,12 @@ void CTaskSimpleClimb::InjectHooks() {
 }
 
 // 0x67A110
-CTaskSimpleClimb::CTaskSimpleClimb(CEntity* climbEntity, const CVector& vecTarget, float fHeading, uint8 nSurfaceType, eClimbHeights nHeight, bool bForceClimb) {
+CTaskSimpleClimb::CTaskSimpleClimb(CEntity* climbEntity, const CVector& vecTarget, float fHeading, eSurfaceType nSurfaceType, eClimbHeights nHeight, bool bForceClimb) {
     m_HasFinished      = false;
     m_HasToChangeAnimation = false;
     m_HasToChangePosition  = false;
     m_IsInvalidClimb    = false;
-    m_ClimbEnt        = climbEntity;
+    m_ClimbEntity        = climbEntity;
     m_Anim            = nullptr;
     m_HandholdPos   = vecTarget;
     m_HandholdHeading = fHeading;
@@ -64,12 +64,12 @@ CTaskSimpleClimb::CTaskSimpleClimb(CEntity* climbEntity, const CVector& vecTarge
     m_GetToPosCounter = 0;
     m_HasToForceClimb      = bForceClimb;
     m_FallAfterVault  = -1;
-    CEntity::SafeRegisterRef(m_ClimbEnt);
+    CEntity::SafeRegisterRef(m_ClimbEntity);
 }
 
 // 0x67A1D0
 CTaskSimpleClimb::~CTaskSimpleClimb() {
-    CEntity::SafeCleanUpRef(m_ClimbEnt);
+    CEntity::SafeCleanUpRef(m_ClimbEntity);
 
     if (m_Anim) {
         m_Anim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
@@ -80,19 +80,19 @@ CTaskSimpleClimb::~CTaskSimpleClimb() {
 // 0x680DC0
 bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
     if (m_HasFinished) {
-        if (ped->m_pEntityIgnoredCollision == m_ClimbEnt) {
+        if (ped->m_pEntityIgnoredCollision == m_ClimbEntity) {
             ped->m_pEntityIgnoredCollision = nullptr;
         }
         return true;
     }
 
-    if (!m_ClimbEnt || m_ClimbEnt->IsObject() && !m_ClimbEnt->IsStatic() && !m_ClimbEnt->AsPhysical()->physicalFlags.bDisableCollisionForce || m_ClimbEnt->IsVehicle() && m_ClimbEnt->AsVehicle()->IsSubTrain() && m_ClimbEnt->AsVehicle()->m_vecMoveSpeed.Magnitude() > 0.1F) {
+    if (!m_ClimbEntity || m_ClimbEntity->IsObject() && !m_ClimbEntity->IsStatic() && !m_ClimbEntity->AsPhysical()->physicalFlags.bDisableCollisionForce || m_ClimbEntity->IsVehicle() && m_ClimbEntity->AsVehicle()->IsSubTrain() && m_ClimbEntity->AsVehicle()->m_vecMoveSpeed.Magnitude() > 0.1F) {
         MakeAbortable(ped);
         return true;
     }
 
-    if (m_ClimbEnt->IsVehicle()) {
-        ped->m_pEntityIgnoredCollision = m_ClimbEnt;
+    if (m_ClimbEntity->IsVehicle()) {
+        ped->m_pEntityIgnoredCollision = m_ClimbEntity;
     }
 
     if (!m_Anim || m_HasToChangeAnimation) {
@@ -125,8 +125,8 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
 
         CVector vecClimbEntSpeed{};
         CVector delta = targetPt - ped->GetPosition();
-        if (!m_ClimbEnt->IsStatic() && m_ClimbEnt->IsPhysical()) {
-            vecClimbEntSpeed = m_ClimbEnt->AsPhysical()->GetSpeed(targetPt - m_ClimbEnt->GetPosition());
+        if (!m_ClimbEntity->IsStatic() && m_ClimbEntity->IsPhysical()) {
+            vecClimbEntSpeed = m_ClimbEntity->AsPhysical()->GetSpeed(targetPt - m_ClimbEntity->GetPosition());
         }
 
         if (bNewHeightForPos) {
@@ -191,7 +191,7 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
                 m_Anim->SetBlendDelta(-8.0f);
             }
 
-            if (ped->m_pEntityIgnoredCollision == m_ClimbEnt) {
+            if (ped->m_pEntityIgnoredCollision == m_ClimbEntity) {
                 ped->m_pEntityIgnoredCollision = nullptr;
             }
 
@@ -277,8 +277,8 @@ bool CTaskSimpleClimb::MakeAbortable(CPed* ped, eAbortPriority priority, const C
 }
 
 // 0x6803A0
-CEntity* CTaskSimpleClimb::TestForClimb(CPed* ped, CVector& outClimbPos, float& outClimbHeading, uint8& outSurfaceType, bool bLaunch) {
-    auto entity = (CEntity*)ScanToGrab(ped, outClimbPos, outClimbHeading, outSurfaceType, bLaunch, false, false, nullptr);
+CEntity* CTaskSimpleClimb::TestForClimb(CPed* ped, CVector& outClimbPos, float& outClimbHeading, eSurfaceType& outSurfaceType, bool bLaunch) {
+    auto entity = ScanToGrab(ped, outClimbPos, outClimbHeading, outSurfaceType, bLaunch, false, false, nullptr);
 
     if (entity) {
         CVector point = outClimbPos;
@@ -292,7 +292,7 @@ CEntity* CTaskSimpleClimb::TestForClimb(CPed* ped, CVector& outClimbPos, float& 
         point += CVector(-ms_fAtEdgeOffsetHorz * std::sin(angle), ms_fAtEdgeOffsetHorz * std::cos(angle), ms_fAtEdgeOffsetVert);
 
         CVector v;
-        uint8   surfaceType2;
+        eSurfaceType   surfaceType2;
         if (!ScanToGrab(ped, v, angle, surfaceType2, false, true, false, &point)) {
             return entity;
         }
@@ -303,7 +303,7 @@ CEntity* CTaskSimpleClimb::TestForClimb(CPed* ped, CVector& outClimbPos, float& 
 }
 
 // 0x67DE10
-CEntity* CTaskSimpleClimb::ScanToGrabSectorList(CPtrList* sectorList, CPed* ped, CVector& outTargetPos, float& outAngle, uint8& outSurfaceType, bool isLaunch, bool hasToTestStandup, bool hasToTestDropOtherSide) {
+CEntity* CTaskSimpleClimb::ScanToGrabSectorList(CPtrList* sectorList, CPed* ped, CVector& outTargetPos, float& outAngle, eSurfaceType& outSurfaceType, bool isLaunch, bool hasToTestStandup, bool hasToTestDropOtherSide) {
     CColModel* cm = &ms_ClimbColModel;
     if (hasToTestStandup) {
         cm = &ms_StandUpColModel;
@@ -445,7 +445,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(CPtrList* sectorList, CPed* ped,
 }
 
 // 0x67FD30
-CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& outClimbAngle, uint8& pSurfaceType, bool flag1, bool bStandUp, bool bVault, CVector* pedPosition) {
+CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& outClimbAngle, eSurfaceType& pSurfaceType, bool flag1, bool bStandUp, bool bVault, CVector* pedPosition) {
     if (!ms_ClimbColModel.m_pColData) {
         CreateColModel();
     }
@@ -551,20 +551,20 @@ void CTaskSimpleClimb::Shutdown() {
 
 // 0x680570
 bool CTaskSimpleClimb::TestForStandUp(CPed* ped, const CVector& point, float fAngle) {
-    CVector climbPos;
-    float   angle;
-    uint8   surfaceType;
-    CVector pedPos = point + GetClimbOffset3D({ms_fAtEdgeOffsetHorz, ms_fAtEdgeOffsetVert}, fAngle);
+    CVector      climbPos;
+    float        angle;
+    eSurfaceType surfaceType;
+    CVector      pedPos = point + GetClimbOffset3D({ ms_fAtEdgeOffsetHorz, ms_fAtEdgeOffsetVert }, fAngle);
     return !ScanToGrab(ped, climbPos, angle, surfaceType, false, true, false, &pedPos);
 }
 
 // 0x6804D0
 bool CTaskSimpleClimb::TestForVault(CPed* ped, const CVector& point, float fAngle) {
-    CVector climbPos;
-    float   angle;
-    uint8   surfaceType;
-    CVector pedPos = point + GetClimbOffset3D({ms_fAtEdgeOffsetHorz, ms_fAtEdgeOffsetVert}, fAngle);
-    return !m_ClimbEnt->IsVehicle()
+    CVector      climbPos;
+    float        angle;
+    eSurfaceType surfaceType;
+    CVector      pedPos = point + GetClimbOffset3D({ ms_fAtEdgeOffsetHorz, ms_fAtEdgeOffsetVert }, fAngle);
+    return !m_ClimbEntity->IsVehicle()
         && !ScanToGrab(ped, climbPos, angle, surfaceType, false, false, true, &pedPos);
 }
 
@@ -680,7 +680,7 @@ void CTaskSimpleClimb::GetCameraStickModifier(CEntity* entity, float& outAlpha, 
             outStickAlpha = std::max((outAlpha - d) * -0.05f, -0.05f);
         }
     } else if (m_Anim->m_AnimId == ANIM_ID_CLIMB_IDLE) {
-        float fHeading = m_ClimbEnt->GetHeading() - HALF_PI;
+        float fHeading = m_ClimbEntity->GetHeading() - HALF_PI;
         if (fHeading > outBeta + PI) {
             fHeading -= TWO_PI;
         } else if (fHeading < outBeta - PI) {
@@ -732,8 +732,8 @@ CVector CTaskSimpleClimb::GetClimbOffset3D(CVector2D offset2D, float angle) cons
 }
 
 std::pair<CVector, float> CTaskSimpleClimb::GetHandholdPosAndAngle() const {
-    if (m_ClimbEnt->IsPhysical()) {
-        return { m_ClimbEnt->GetMatrix().TransformPoint(m_HandholdPos), m_HandholdHeading + m_ClimbEnt->GetHeading() };
+    if (m_ClimbEntity->IsPhysical()) {
+        return { m_ClimbEntity->GetMatrix().TransformPoint(m_HandholdPos), m_HandholdHeading + m_ClimbEntity->GetHeading() };
     }
     return { m_HandholdPos, m_HandholdHeading };
 }
