@@ -123,16 +123,9 @@ CTask* CPedGroupIntelligence::GetTask(CPed* ped, PedTaskPairs& taskPairs) const 
 
 // 0x5F85A0
 CTask* CPedGroupIntelligence::GetTaskMain(CPed* ped) {
-    if (const auto t = GetTaskScriptCommand(ped)) {
-        return t;
-    }
-    if (const auto t = GetTask(ped, m_PedTaskPairs)) {
-        return t;
-    }
-    if (const auto t = GetTaskDefault(ped)) {
-        return t;
-    }
-    return nullptr;
+    CTask* t{};
+    (t = GetTaskScriptCommand(ped)) || (t = GetTask(ped, m_PedTaskPairs)) || (t = GetTaskDefault(ped));
+    return t;
 }
 
 CTask* CPedGroupIntelligence::GetTaskDefault(CPed* ped) {
@@ -184,7 +177,7 @@ bool CPedGroupIntelligence::ReportFinishedTask(const CPed* ped, const CTask* tas
 }
 
 // 0x5F7540
-void CPedGroupIntelligence::SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, int32 slot, bool force) {
+void CPedGroupIntelligence::SetTask(CPed* ped, const CTask& task, PedTaskPairs& taskPairs, int32 slot, bool force) const {
     // Commented out as script tasks are `new`'d, and deleted after this finishes.
     //assert(!GetTaskPool()->IsObjectValid(&task)); // Shouldn't be `new`'d [Keep in mind that there might be false positives]
 
@@ -192,11 +185,11 @@ void CPedGroupIntelligence::SetTask(CPed* ped, const CTask& task, PedTaskPairs& 
     if (!tp) {
         return;
     }
-    if (tp->m_Task && (force || tp->m_Task->GetTaskType() != const_cast<CTask&>(task).GetTaskType())) {
-        delete std::exchange(tp->m_Task, const_cast<CTask&>(task).Clone());
+    if (tp->m_Task && (force || tp->m_Task->GetTaskType() != task.GetTaskType())) {
+        delete std::exchange(tp->m_Task, task.Clone());
         tp->m_Slot = slot;
     } else if (!tp->m_Task) {
-        tp->m_Task = const_cast<CTask&>(task).Clone();
+        tp->m_Task = task.Clone();
         tp->m_Slot = slot;
     }
 }
