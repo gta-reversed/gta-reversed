@@ -21,28 +21,9 @@ enum eClimbHeights : int8 {
     CLIMB_FINISHED_V
 };
 
-class NOTSA_EXPORT_VTABLE CTaskSimpleClimb : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleClimb final : public CTaskSimple {
 public:
-    static CMatrix& tempMatrix;
-    static bool& tempMatrix_Initialized;
-    static CColModel& ms_ClimbColModel;
-    static CColModel& ms_StandUpColModel;
-    static CColModel& ms_VaultColModel;
-    static CColModel& ms_FindEdgeColModel;
-
-    static float ms_fHangingOffsetHorz;
-    static float ms_fHangingOffsetVert;
-
-    static float ms_fAtEdgeOffsetHorz;
-    static float ms_fAtEdgeOffsetVert;
-
-    static float ms_fStandUpOffsetHorz;
-    static float ms_fStandUpOffsetVert;
-
-    static float ms_fVaultOffsetHorz;
-    static float ms_fVaultOffsetVert;
-
-    static float ms_fMinForStretchGrab;
+    constexpr static float ms_fMinForStretchGrab = +1.40f; // 0x8D2F34
 
 public:
     static constexpr auto Type = TASK_SIMPLE_CLIMB;
@@ -63,17 +44,24 @@ public:
         uint8&   outSurfaceType,  //!< [out] Surface type
         bool     bLaunch          //!< [in]  Not sure
     );
-    static void* ScanToGrabSectorList(CPtrList* sectorList, CPed* ped, CVector& climbPos, float& angle, uint8& pSurfaceType, bool flag1, bool bStandUp, bool bVault);
+    static CEntity* ScanToGrabSectorList(CPtrList* sectorList, CPed* ped, CVector& climbPos, float& angle, uint8& pSurfaceType, bool flag1, bool bStandUp, bool bVault);
     static CEntity* ScanToGrab(CPed* ped, CVector& climbPos, float& angle, uint8& pSurfaceType, bool flag1, bool bStandUp, bool bVault, CVector* pedPosition);
     static bool CreateColModel();
     static void Shutdown();
-    bool TestForStandUp(CPed* ped, CVector* point, float fAngle);
-    bool TestForVault(CPed* ped, CVector* point, float fAngle);
+    bool TestForStandUp(CPed* ped, const CVector& point, float fAngle);
+    bool TestForVault(CPed* ped, const CVector& point, float fAngle);
     void StartAnim(CPed* ped);
-    void StartSpeech(CPed* ped);
+    void StartSpeech(CPed* ped) const;
     static void DeleteAnimCB(CAnimBlendAssociation* anim, void* data);
     void GetCameraStickModifier(CEntity* entity, float& fVerticalAngle, float& fHorizontalAngle, float& a5, float& a6);
     void GetCameraTargetPos(CPed* ped, CVector& vecTarget);
+
+    auto GetHeightForPos() const { return m_nHeightForPos; }
+    auto GetIsInvalidClimb() const { return m_bInvalidClimb; }
+
+private:
+    CVector                   GetClimbOffset3D(CVector2D offset, float angle) const;
+    std::pair<CVector, float> GetHandholdPosAndAngle() const;
 
 private:
     bool                   m_bIsFinished;
