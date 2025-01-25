@@ -20,7 +20,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(SetDefaultTaskAllocatorType, 0x5FBB70);
     RH_ScopedInstall(SetDefaultTaskAllocator, 0x5FB280);
     RH_ScopedInstall(ComputeDefaultTasks, 0x5F88D0);
-    RH_ScopedInstall(ProcessIgnorePlayerGroup, 0x5F87A0, { .reversed = false });
+    RH_ScopedInstall(ProcessIgnorePlayerGroup, 0x5F87A0);
     RH_ScopedInstall(ReportAllBarScriptTasksFinished, 0x5F8780, { .reversed = false });
     RH_ScopedInstall(GetTaskDefault, 0x5F86C0, { .reversed = false });
     RH_ScopedInstall(GetTaskScriptCommand, 0x5F8690, { .reversed = false });
@@ -246,7 +246,33 @@ void CPedGroupIntelligence::ComputeDefaultTasks(CPed* ped) {
 
 // 0x5F87A0
 void CPedGroupIntelligence::ProcessIgnorePlayerGroup() {
-    return plugin::CallMethod<0x5F87A0, CPedGroupIntelligence*>(this);
+    if (!FindPlayerWanted()->m_bEverybodyBackOff) {
+        return;
+    }
+    if (m_pOldEventGroupEvent) {
+        switch (m_pOldEventGroupEvent->GetEvent().GetEventType()) {
+        case EVENT_LEADER_ENTRY_EXIT:
+        case EVENT_LEADER_ENTERED_CAR_AS_DRIVER:
+            return;
+        }
+    }
+    if (FindPlayerPed() != m_pPedGroup->GetMembership().GetLeader()) {
+        if (!m_pOldEventGroupEvent) {
+            return;
+        }
+        const auto src = m_pOldEventGroupEvent->GetEvent().GetSourceEntity();
+        if (!src || !src->IsPed()) {
+            return;
+        }
+        const auto grp = src->AsPed()->GetGroup();
+        if (!grp || grp->GetMembership().GetLeader() != FindPlayerPed()) {
+            return;
+        }
+    }
+    delete std::exchange(m_pOldEventGroupEvent, nullptr);
+    delete std::exchange(m_EventResponseTaskAllocator, nullptr);
+    FlushTasks(m_PedTaskPairs, nullptr);
+    FlushTasks(m_SecondaryPedTaskPairs, nullptr);
 }
 
 // 0x5F8780
