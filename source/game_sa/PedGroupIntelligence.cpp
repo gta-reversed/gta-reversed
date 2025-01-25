@@ -19,7 +19,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedOverloadedInstall(AddEvent, "", 0x5F7470, bool(CPedGroupIntelligence::*)(CEvent*));
     RH_ScopedInstall(SetDefaultTaskAllocatorType, 0x5FBB70);
     RH_ScopedInstall(SetDefaultTaskAllocator, 0x5FB280);
-    RH_ScopedInstall(ComputeDefaultTasks, 0x5F88D0, { .reversed = false });
+    RH_ScopedInstall(ComputeDefaultTasks, 0x5F88D0);
     RH_ScopedInstall(ProcessIgnorePlayerGroup, 0x5F87A0, { .reversed = false });
     RH_ScopedInstall(ReportAllBarScriptTasksFinished, 0x5F8780, { .reversed = false });
     RH_ScopedInstall(GetTaskDefault, 0x5F86C0, { .reversed = false });
@@ -240,7 +240,8 @@ void CPedGroupIntelligence::SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllo
 
 // 0x5F88D0
 void CPedGroupIntelligence::ComputeDefaultTasks(CPed* ped) {
-    return plugin::CallMethod<0x5F88D0, CPedGroupIntelligence*, CPed *>(this, ped);
+    FlushTasks(m_DefaultPedTaskPairs, ped);
+    m_DefaultTaskAllocator->AllocateDefaultTasks(m_pPedGroup, ped);
 }
 
 // 0x5F87A0
