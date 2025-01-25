@@ -32,7 +32,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(IsGroupResponding, 0x5F7760);
     //RH_ScopedInstall(SetEventResponseTask, 0x5F8510); // Register allocation is weird, better not to hook it at all
     RH_ScopedInstall(SetEventResponseTaskAllocator, 0x5F7440);
-    RH_ScopedInstall(SetPrimaryTaskAllocator, 0x5F7410, { .reversed = false });
+    RH_ScopedInstall(SetPrimaryTaskAllocator, 0x5F7410);
     RH_ScopedInstall(SetGroupDecisionMakerType, 0x5F7340);
     RH_ScopedInstall(ComputeEventResponseTasks, 0x5FC440);
     RH_ScopedInstall(Process, 0x5FC4A0);
@@ -220,8 +220,8 @@ void CPedGroupIntelligence::Process() {
 }
 
 // 0x5F7410
-void CPedGroupIntelligence::SetPrimaryTaskAllocator(CTaskAllocator* taskAllocator) {
-    plugin::CallMethod<0x5F7410, CPedGroupIntelligence*, CTaskAllocator*>(this, taskAllocator);
+void CPedGroupIntelligence::SetPrimaryTaskAllocator(CTaskAllocator* ta) {
+    delete std::exchange(m_PrimaryTaskAllocator, ta);
 }
 
 // 0x5F8510
