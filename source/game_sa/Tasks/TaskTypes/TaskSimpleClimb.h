@@ -60,24 +60,24 @@ public:
     auto GetIsInvalidClimb() const { return m_IsInvalidClimb; }
 
 private:
-    CVector                   GetClimbOffset3D(CVector2D offset, float angle) const;
-    std::pair<CVector, float> GetHandholdPosAndAngle() const;
+    static CVector                   GetClimbOffset3D(CVector2D offset, float angle);
+    static std::pair<CVector, float> GetHandholdPosAndAngleForEntity(CEntity* entity, const CVector& handPos, float handAngle);
 
 private:
-    bool                   m_HasFinished;
-    bool                   m_HasToChangeAnimation;
-    bool                   m_HasToChangePosition;
-    bool                   m_HasToForceClimb;
-    bool                   m_IsInvalidClimb;
-    eClimbHeights          m_HeightForAnim; // eClimbHeights
-    eClimbHeights          m_HeightForPos;  // eClimbHeights
-    eSurfaceType           m_SurfaceType;
-    int8                   m_FallAfterVault;
-    float                  m_HandholdHeading;
-    CVector                m_HandholdPos;
-    CEntity*               m_ClimbEntity;
-    uint16                 m_GetToPosCounter; // we can use u32 without any problems
-    CAnimBlendAssociation* m_Anim;
+    bool                   m_HasFinished{};
+    bool                   m_HasToChangeAnimation{};
+    bool                   m_HasToChangePosition{};
+    bool                   m_HasToForceClimb{};
+    bool                   m_IsInvalidClimb{};
+    eClimbHeights          m_HeightForAnim{};
+    eClimbHeights          m_HeightForPos{};
+    eSurfaceType           m_SurfaceType{};
+    int8                   m_FallAfterVault{-1};
+    float                  m_HandholdHeading{};
+    CVector                m_HandholdPos{};
+    CEntity::Ref           m_ClimbEntity{};
+    uint16                 m_GetToPosCounter{}; // we can use u32 without any problems
+    CAnimBlendAssociation* m_Anim{};
 
 public:
     static void InjectHooks();

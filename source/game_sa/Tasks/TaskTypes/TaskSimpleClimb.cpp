@@ -49,31 +49,19 @@ void CTaskSimpleClimb::InjectHooks() {
 }
 
 // 0x67A110
-CTaskSimpleClimb::CTaskSimpleClimb(CEntity* climbEntity, const CVector& vecTarget, float fHeading, eSurfaceType nSurfaceType, eClimbHeights nHeight, bool bForceClimb) {
-    m_HasFinished      = false;
-    m_HasToChangeAnimation = false;
-    m_HasToChangePosition  = false;
-    m_IsInvalidClimb    = false;
-    m_ClimbEntity        = climbEntity;
-    m_Anim            = nullptr;
-    m_HandholdPos   = vecTarget;
-    m_HandholdHeading = fHeading;
-    m_SurfaceType     = nSurfaceType;
-    m_HeightForAnim   = nHeight;
-    m_HeightForPos    = CLIMB_NOT_READY;
-    m_GetToPosCounter = 0;
-    m_HasToForceClimb      = bForceClimb;
-    m_FallAfterVault  = -1;
-    CEntity::SafeRegisterRef(m_ClimbEntity);
-}
+CTaskSimpleClimb::CTaskSimpleClimb(CEntity* climbEntity, const CVector& vecTarget, float fHeading, eSurfaceType nSurfaceType, eClimbHeights nHeight, bool bForceClimb) :
+    m_ClimbEntity{ climbEntity },
+    m_HandholdPos{ vecTarget },
+    m_HandholdHeading{ fHeading },
+    m_SurfaceType{ nSurfaceType },
+    m_HeightForAnim{ nHeight },
+    m_HasToForceClimb{ bForceClimb }
+{ }
 
 // 0x67A1D0
 CTaskSimpleClimb::~CTaskSimpleClimb() {
-    CEntity::SafeCleanUpRef(m_ClimbEntity);
-
-    if (m_Anim) {
-        m_Anim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
-        m_Anim = nullptr;
+    if (const auto a = std::exchange(m_Anim, nullptr)) {
+        a->SetDefaultDeleteCallback();
     }
 }
 
@@ -100,7 +88,7 @@ bool CTaskSimpleClimb::ProcessPed(CPed* ped) {
         StartSpeech(ped);
     }
 
-    const auto [handPos, handAngle] = GetHandholdPosAndAngle();
+    const auto [handPos, handAngle] = GetHandholdPosAndAngleForEntity(m_ClimbEntity, m_HandholdPos, m_HandholdHeading);
 
     const bool bNewHeightForPos = m_HasToChangePosition && m_Anim && m_Anim->m_BlendAmount == 1.0f;
     if (bNewHeightForPos) {
@@ -278,40 +266,27 @@ bool CTaskSimpleClimb::MakeAbortable(CPed* ped, eAbortPriority priority, const C
 
 // 0x6803A0
 CEntity* CTaskSimpleClimb::TestForClimb(CPed* ped, CVector& outClimbPos, float& outClimbHeading, eSurfaceType& outSurfaceType, bool bLaunch) {
-    auto entity = ScanToGrab(ped, outClimbPos, outClimbHeading, outSurfaceType, bLaunch, false, false, nullptr);
+    if (const auto entity = ScanToGrab(ped, outClimbPos, outClimbHeading, outSurfaceType, bLaunch, false, false, nullptr)) {
+        auto [pt, angle] = GetHandholdPosAndAngleForEntity(entity, outClimbPos, outClimbHeading);
+        pt += GetClimbOffset3D({ ms_fHangingOffsetHorz, ms_fHangingOffsetVert }, angle);
 
-    if (entity) {
-        CVector point = outClimbPos;
-        float   angle = outClimbHeading;
-
-        if (entity->IsPhysical()) {
-            point = entity->GetMatrix().TransformPoint(point);
-            angle += entity->GetHeading();
-        }
-
-        point += CVector(-ms_fAtEdgeOffsetHorz * std::sin(angle), ms_fAtEdgeOffsetHorz * std::cos(angle), ms_fAtEdgeOffsetVert);
-
-        CVector v;
-        eSurfaceType   surfaceType2;
-        if (!ScanToGrab(ped, v, angle, surfaceType2, false, true, false, &point)) {
+        CVector      grabPos;
+        eSurfaceType grabSurface;
+        if (!ScanToGrab(ped, grabPos, angle, grabSurface, false, true, false, &pt)) {
             return entity;
         }
         outClimbHeading = -9999.9f;
     }
-
     return nullptr;
 }
 
 // 0x67DE10
 CEntity* CTaskSimpleClimb::ScanToGrabSectorList(CPtrList* sectorList, CPed* ped, CVector& outTargetPos, float& outAngle, eSurfaceType& outSurfaceType, bool isLaunch, bool hasToTestStandup, bool hasToTestDropOtherSide) {
-    CColModel* cm = &ms_ClimbColModel;
-    if (hasToTestStandup) {
-        cm = &ms_StandUpColModel;
-    }
-    if (hasToTestDropOtherSide) {
-        cm = &ms_VaultColModel;
-    }
-
+    const auto cm = hasToTestDropOtherSide
+        ? &ms_VaultColModel
+        : hasToTestStandup
+            ? &ms_StandUpColModel
+            : &ms_ClimbColModel;
     CEntity* collidedEntity = nullptr;
 
     for (auto node = sectorList->GetNode(); node; node = node->m_next) {
@@ -666,7 +641,7 @@ void CTaskSimpleClimb::GetCameraStickModifier(CEntity* entity, float& outAlpha, 
     }
 
     if (m_Anim->m_AnimId == ANIM_ID_CLIMB_JUMP_B) {
-        auto [pos, angle] = GetHandholdPosAndAngle();
+        auto [pos, angle] = GetHandholdPosAndAngleForEntity(m_ClimbEntity, m_HandholdPos, m_HandholdHeading);
         pos += GetClimbOffset3D({ ms_fAtEdgeOffsetHorz, ms_fAtEdgeOffsetVert }, angle);
 
         CColPoint colPoint{};
@@ -720,20 +695,20 @@ void CTaskSimpleClimb::GetCameraTargetPos(CPed* ped, CVector& outTargetPt) {
     }
 
     // Calculate final target position
-    const auto [point, angle] = GetHandholdPosAndAngle();
+    const auto [point, angle] = GetHandholdPosAndAngleForEntity(m_ClimbEntity, m_HandholdPos, m_HandholdHeading);
     outTargetPt = point + GetClimbOffset3D(offset, angle);
 }
 
-CVector CTaskSimpleClimb::GetClimbOffset3D(CVector2D offset2D, float angle) const {
+CVector CTaskSimpleClimb::GetClimbOffset3D(CVector2D offset2D, float angle) {
     return CVector{
         (CVector2D{ std::cos(angle), std::sin(angle) } * offset2D.x).GetPerpLeft(),
         offset2D.y
     };
 }
 
-std::pair<CVector, float> CTaskSimpleClimb::GetHandholdPosAndAngle() const {
-    if (m_ClimbEntity->IsPhysical()) {
-        return { m_ClimbEntity->GetMatrix().TransformPoint(m_HandholdPos), m_HandholdHeading + m_ClimbEntity->GetHeading() };
+std::pair<CVector, float> CTaskSimpleClimb::GetHandholdPosAndAngleForEntity(CEntity* entity, const CVector& handPos, float handAngle) {
+    if (entity->IsPhysical()) {
+        return { entity->GetMatrix().TransformPoint(handPos), handAngle + entity->GetHeading() };
     }
-    return { m_HandholdPos, m_HandholdHeading };
+    return { handPos, handAngle };
 }
