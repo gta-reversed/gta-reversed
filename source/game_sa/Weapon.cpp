@@ -183,7 +183,9 @@ bool CWeapon::GenerateDamageEvent(CPed* victim, CEntity* creator, eWeaponType we
         const auto floorHitAnim = CAnimManager::BlendAnimation(
             victim->m_pRwClump,
             ANIM_GROUP_DEFAULT,
-            RpAnimBlendClumpGetFirstAssociation(victim->m_pRwClump, ANIMATION_800) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT
+            RpAnimBlendClumpGetFirstAssociation(victim->m_pRwClump, ANIMATION_IS_FRONT)
+                ? ANIM_ID_FLOOR_HIT_F
+                : ANIM_ID_FLOOR_HIT
         );
         if (floorHitAnim) {
             floorHitAnim->SetFlag(ANIMATION_IS_FINISH_AUTO_REMOVE, false);

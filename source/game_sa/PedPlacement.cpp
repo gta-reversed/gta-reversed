@@ -12,30 +12,29 @@ void CPedPlacement::InjectHooks() {
     RH_ScopedClass(CPedPlacement);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(FindZCoorForPed, 0x616920);
+    //RH_ScopedInstall(FindZCoorForPed, 0x616920);
     RH_ScopedOverloadedInstall(IsPositionClearForPed, "OG",  0x616860, bool(*)(const CVector&, float, int32, CEntity**, bool, bool, bool));
     RH_ScopedOverloadedInstall(IsPositionClearOfCars, "Pos", 0x6168E0, CVehicle*(*)(const CVector*));
     RH_ScopedOverloadedInstall(IsPositionClearOfCars, "Ped", 0x616A40, CVehicle*(*)(const CPed*));
 }
 
-// 0x616920
-bool CPedPlacement::FindZCoorForPed(CVector& inoutPos) {
-    CEntity* hitEntity{};
-
-    float firstHitZ = MAP_Z_LOW_LIMIT;
-    if (CColPoint cp{}; CWorld::ProcessVerticalLine(inoutPos + CVector{ 0.f, 0.f, 0.5f }, inoutPos.z - 100.0f, cp, hitEntity, true, true, false, false, true, false, nullptr))
-        firstHitZ = cp.m_vecPoint.z;
-
-    float secondHitZ = MAP_Z_LOW_LIMIT;
-    if (CColPoint cp{}; CWorld::ProcessVerticalLine(inoutPos + CVector{ 0.1f, 0.1f, 0.5f }, inoutPos.z - 100.0f, cp, hitEntity, true, true, false, false, true, false, nullptr))
-        secondHitZ = cp.m_vecPoint.z;
-
-    const auto highestZ = std::max(firstHitZ, secondHitZ);
-    if (highestZ <= MAP_Z_LOW_LIMIT + 1.0f) // -99.0f
-        return false;
-
-    inoutPos.z = highestZ + 1.0f;
-    return true;
+// 0x616920 - Refactored
+std::pair<CVector, bool> CPedPlacement::FindZCoorForPed(CVector pos) {
+    const auto FindZ = [&](CVector offset) {
+        CEntity*  hit{};
+        CColPoint cp{};
+        return CWorld::ProcessVerticalLine(pos + offset, pos.z - 100.0f, cp, hit, true, true, false, false, true, false, nullptr)
+            ? cp.m_vecPoint.z
+            : MAP_Z_LOW_LIMIT;
+    };
+    const auto highestZ = std::max(
+        FindZ({ 0.f, 0.f, 0.5f }),
+        FindZ({ 0.1f, 0.1f, 0.5f })
+    );
+    if (highestZ >= MAP_Z_LOW_LIMIT + 1.0f) {
+        return {CVector{pos, highestZ + 1.f}, true};
+    }
+    return {pos, false};
 }
 
 // 0x616860

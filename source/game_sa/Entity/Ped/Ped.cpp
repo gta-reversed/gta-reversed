@@ -715,22 +715,22 @@ void CPed::SetMoveAnimSpeed(CAnimBlendAssociation* association) {
 * @addr 0x5DED10
 */
 void CPed::StopNonPartialAnims() {
-    for (auto assoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump); assoc; assoc = RpAnimBlendGetNextAssociation(assoc)) {
-        if ((assoc->m_Flags & ANIMATION_IS_PARTIAL) == 0) {
-            assoc->SetFlag(ANIMATION_IS_PLAYING, false);
+    RpAnimBlendClumpForEachAssociation(m_pRwClump, [](CAnimBlendAssociation* a) {
+        if (!(a->m_Flags & ANIMATION_IS_PARTIAL)) {
+            a->SetFlag(ANIMATION_IS_PLAYING, false);
         }
-    }
+    });
 }
 
 /*!
 * @addr 0x5DED50
 */
 void CPed::RestartNonPartialAnims() {
-    for (auto assoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump); assoc; assoc = RpAnimBlendGetNextAssociation(assoc)) {
-        if ((assoc->m_Flags & ANIMATION_IS_PARTIAL) == 0) {
-            assoc->SetFlag(ANIMATION_IS_PLAYING, true);
+    RpAnimBlendClumpForEachAssociation(m_pRwClump, [](CAnimBlendAssociation* a) {
+        if (!(a->m_Flags & ANIMATION_IS_PARTIAL)) {
+            a->SetFlag(ANIMATION_IS_PLAYING, true);
         }
-    }
+    });
 }
 
 /*!

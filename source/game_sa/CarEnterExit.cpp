@@ -515,8 +515,8 @@ bool CCarEnterExit::IsPlayerToQuitCarEnter(const CPed* ped, const CVehicle* vehi
 }
 
 // 0x6504C0
-bool CCarEnterExit::IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId, CVector* pos) {
-    return plugin::CallAndReturn<bool, 0x6504C0, const CVehicle*, int32, CVector*>(vehicle, doorId, pos);
+bool CCarEnterExit::IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId, const CVector* pos) {
+    return plugin::CallAndReturn<bool, 0x6504C0>(vehicle, doorId, pos);
 }
 
 // 0x64EEC0

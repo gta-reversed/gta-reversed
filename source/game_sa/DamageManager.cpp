@@ -538,6 +538,24 @@ void CDamageManager::SetDoorClosed(eDoors door) {
     }
 }
 
+/*!
+* @notsa
+* @brief Sets door closed. Shouldn't be called if door isn't present (will assert in debug).
+*/
+void CDamageManager::SetDoorClosed_Component(tComponent door) {
+    switch (GetDoorStatus_Component(door)) {
+    case eDoorStatus::DAMSTATE_OPENED:
+        SetDoorStatus_Component(door, eDoorStatus::DAMSTATE_OK);
+        break;
+    case eDoorStatus::DAMSTATE_OPENED_DAMAGED:
+        SetDoorStatus_Component(door, eDoorStatus::DAMSTATE_DAMAGED);
+        break;
+    case eDoorStatus::DAMSTATE_NOTPRESENT:
+        //assert(0 && "Door should be present @ SetDoorClosed");
+        break;
+    }
+}
+
 // 0x6C2230
 eDoorStatus CDamageManager::GetDoorStatus(eDoors nDoorIdx) const {
     switch (nDoorIdx) {
