@@ -7,7 +7,7 @@
 class CPedGroup;
 class CPed;
 
-class CPedGroupDefaultTaskAllocator {
+class NOTSA_EXPORT_VTABLE CPedGroupDefaultTaskAllocator {
 public:
     /* no virtual destructor */
 

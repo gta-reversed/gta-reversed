@@ -6,7 +6,7 @@
 
 #include "./PedGroupDefaultTaskAllocator.h"
 
-class CPedGroupDefaultTaskAllocatorRandom final : public CPedGroupDefaultTaskAllocator {
+class NOTSA_EXPORT_VTABLE CPedGroupDefaultTaskAllocatorRandom final : public CPedGroupDefaultTaskAllocator {
 public:
     /* no virtual destructor */
 
@@ -15,7 +15,7 @@ public:
 
 public:
     static inline void InjectHooks() {
-        RH_ScopedVirtualClass(CPedGroupDefaultTaskAllocator, 0x86C77C, 2);
+        RH_ScopedVirtualClass(CPedGroupDefaultTaskAllocatorRandom, 0x86C77C, 2);
         RH_ScopedCategory("Tasks/Allocators/PedGroup");
 
         RH_ScopedVMTInstall(AllocateDefaultTasks, 0x5F6E90, { .reversed = false });
