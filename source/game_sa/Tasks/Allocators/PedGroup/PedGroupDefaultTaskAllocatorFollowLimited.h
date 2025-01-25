@@ -10,8 +10,8 @@ class NOTSA_EXPORT_VTABLE CPedGroupDefaultTaskAllocatorFollowLimited final : pub
 public:
     /* no virtual destructor */
 
-    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6C70))(pedGroup, ped); };
-    ePedGroupDefaultTaskAllocatorType __stdcall GetType() const override { return ePedGroupDefaultTaskAllocatorType::FOLLOW_LIMITED; }; // 0x5F64A0
+    void                              AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override { plugin::CallMethod<0x5F6C70>(this, pedGroup, ped); };
+    ePedGroupDefaultTaskAllocatorType GetType() const override { return ePedGroupDefaultTaskAllocatorType::FOLLOW_LIMITED; }; // 0x5F64A0
 
 public:
     static inline void InjectHooks() {

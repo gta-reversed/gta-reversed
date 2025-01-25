@@ -11,7 +11,7 @@ class NOTSA_EXPORT_VTABLE CPedGroupDefaultTaskAllocator {
 public:
     /* no virtual destructor */
 
-    virtual void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const = 0;
-    virtual ePedGroupDefaultTaskAllocatorType __stdcall GetType() const = 0;
+    virtual void                              AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const = 0;
+    virtual ePedGroupDefaultTaskAllocatorType GetType() const = 0;
 };
 VALIDATE_SIZE(CPedGroupDefaultTaskAllocator, sizeof(void*)); /* vtable only */

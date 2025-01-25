@@ -10,8 +10,8 @@ class NOTSA_EXPORT_VTABLE CPedGroupDefaultTaskAllocatorSitInLeaderCar final : pu
 public:
     /* no virtual destructor */
 
-    void                              __stdcall AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override { ((void(__stdcall*)(CPedGroup*, CPed*))(0x5F6FC0))(pedGroup, ped); };
-    ePedGroupDefaultTaskAllocatorType __stdcall GetType() const override { return ePedGroupDefaultTaskAllocatorType::SIT_IN_LEADER_CAR; }; // 0x5F6560
+    void                              AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override { plugin::CallMethod<0x5F6FC0>(this, pedGroup, ped); };
+    ePedGroupDefaultTaskAllocatorType GetType() const override { return ePedGroupDefaultTaskAllocatorType::SIT_IN_LEADER_CAR; }; // 0x5F6560
 
 public:
     static inline void InjectHooks() {
