@@ -6,6 +6,35 @@ class CPed;
 class CPedGroup;
 class CDecisionMaker;
 
+enum class eDecisionMakerType : int32 {
+    UNKNOWN                 = -1,
+
+    PED_GROUPMEMBER         = 0, // 0x0
+    PED_COP                 = 1, // 0x1
+    PED_RANDOM1             = 2, // 0x2
+    PED_RANDOM2             = 3, // 0x3
+    PED_RANDOM3             = 4, // 0x4
+    PED_FIREMAN             = 5, // 0x5
+    PED_EMPTY               = 6, // 0x6
+    PED_INDOORS             = 7, // 0x7
+
+    GROUP_RANDOM_AGGRESSIVE = 8, // 0x8
+    GROUP_RANDOM_PASSIVE    = 9, // 0x9
+
+    MISSION0                = 10, // 0xA
+    MISSION1                = 11, // 0xB
+    MISSION2                = 12, // 0xC
+    MISSION3                = 13, // 0xD
+    MISSION4                = 14, // 0xE
+    MISSION5                = 15, // 0xF
+    MISSION6                = 16, // 0x10
+    MISSION7                = 17, // 0x11
+    MISSION8                = 18, // 0x12
+    MISSION9                = 19, // 0x13
+
+    COUNT                   = 20, // 0x14
+};
+
 class CDecisionMakerTypesFileLoader {
 public:
     static void InjectHooks();
