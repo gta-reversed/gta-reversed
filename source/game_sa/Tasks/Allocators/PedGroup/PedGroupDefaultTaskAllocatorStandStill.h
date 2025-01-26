@@ -5,13 +5,33 @@
 #include <reversiblehooks/ReversibleHooks.h>
 
 #include "./PedGroupDefaultTaskAllocator.h"
+#include "TaskComplexBeStill.h"
 
 class NOTSA_EXPORT_VTABLE CPedGroupDefaultTaskAllocatorStandStill final : public CPedGroupDefaultTaskAllocator {
 public:
     /* no virtual destructor */
 
-    void                              AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override { plugin::CallMethod<0x5F6DA0>(this, pedGroup, ped); };
-    ePedGroupDefaultTaskAllocatorType GetType() const override { return ePedGroupDefaultTaskAllocatorType::STAND_STILL; }; // 0x5F64D0
+    // 0x5F64D0
+    ePedGroupDefaultTaskAllocatorType GetType() const override { return ePedGroupDefaultTaskAllocatorType::STAND_STILL; };
+
+    // 0x5F6DA0
+    void AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override {
+        for (auto&& [i, tp] : notsa::enumerate(pedGroup->GetIntelligence().GetDefaultPedTaskPairs())) {
+            if (!tp.m_Ped) {
+                continue;
+            }
+            if (ped && tp.m_Ped != ped) {
+                continue;
+            }
+            assert(!tp.m_Task);
+            tp.m_Task = new CTaskComplexBeStill{}; // Skipping the unnecessary leader check because they both get the same task
+            if (notsa::IsFixBugs()) {
+                if (ped) {
+                    break; // There are no duplicate entries in the array, so we can stop now
+                }
+            }
+        }
+    };
 
 public:
     static inline void InjectHooks() {
