@@ -43,6 +43,11 @@ public:
                     0.5f
                 };
             }
+            if (notsa::IsFixBugs()) {
+                if (ped) {
+                    break; // There are no duplicate entries in the array, so we can stop now
+                }
+            }
         }
     }
 
