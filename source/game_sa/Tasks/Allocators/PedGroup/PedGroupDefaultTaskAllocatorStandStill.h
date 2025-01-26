@@ -16,7 +16,7 @@ public:
 
     // 0x5F6DA0
     void AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override {
-        for (auto&& [i, tp] : notsa::enumerate(pedGroup->GetIntelligence().GetDefaultPedTaskPairs())) {
+        for (auto& tp : pedGroup->GetIntelligence().GetDefaultPedTaskPairs()) {
             if (!tp.m_Ped) {
                 continue;
             }
@@ -38,7 +38,7 @@ public:
         RH_ScopedVirtualClass(CPedGroupDefaultTaskAllocatorStandStill, 0x86C76C, 2);
         RH_ScopedCategory("Tasks/Allocators/PedGroup");
 
-        RH_ScopedVMTInstall(AllocateDefaultTasks, 0x5F6DA0, { .reversed = false });
+        RH_ScopedVMTInstall(AllocateDefaultTasks, 0x5F6DA0);
         RH_ScopedVMTInstall(GetType, 0x5F64D0);
     }
 };
