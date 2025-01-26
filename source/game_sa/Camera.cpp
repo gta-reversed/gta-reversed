@@ -1898,20 +1898,26 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
                 return;
             }
         } else {
-            if ((targetCamMode == MODE_CAM_ON_A_STRING || targetCamMode == MODE_BEHINDBOAT)
-                && notsa::contains(camModesFp, previousCamMode)) {
-                m_fFractionInterToStopMoving  = 0.0f;
-                m_fFractionInterToStopCatchUp = 1.0f;
-                m_nTransitionDuration         = 1;
-                return;
-            }
-            if (targetCamMode == MODE_AIMWEAPON) {
+            switch (targetCamMode) {
+            case MODE_CAM_ON_A_STRING:
+            case MODE_BEHINDBOAT:
+                if notsa {
+                    ::contains(camModesFp, previousCamMode) {
+                        m_fFractionInterToStopMoving  = 0.0f;
+                        m_fFractionInterToStopCatchUp = 1.0f;
+                        m_nTransitionDuration         = 1;
+                        return;
+                    }
+                }
+                break;
+            case MODE_AIMWEAPON:
                 m_fFractionInterToStopMoving  = 0.0f; // dword_B70044 ?
                 m_fFractionInterToStopCatchUp = 1.0f; // *&dword_8CCCC0
                 m_nTransitionDuration         = 400;  // dword_8CCCBC
                 isAimWeaponTransition         = 1;
                 return;
             }
+
             if (!notsa::contains(camModesSpecialFirst, targetCamMode)) {
                 m_nTransitionDuration = 1'350;
                 return;
