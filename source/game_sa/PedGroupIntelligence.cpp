@@ -317,7 +317,7 @@ void CPedGroupIntelligence::FlushTasks(PedTaskPairs& taskPairs, CPed* ped) {
 void CPedGroupIntelligence::SetDefaultTaskAllocator(const CPedGroupDefaultTaskAllocator& ta) {
     m_DefaultTaskAllocator = &ta;
     for (auto& tp : m_DefaultPedTaskPairs) {
-        delete std::exchange(tp.m_Ped, nullptr);
+        delete std::exchange(tp.m_Task, nullptr);
     }
     m_DefaultTaskAllocator->AllocateDefaultTasks(m_pPedGroup, nullptr);
 }
