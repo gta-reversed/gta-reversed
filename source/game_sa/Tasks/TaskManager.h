@@ -78,7 +78,7 @@ public:
     * @addr 0x681810
     * @brief Similar to `FindActiveTaskByType` but only checks the given primary task's subtasks
     */
-    CTask* FindTaskByType(ePrimaryTasks taskIndex, eTaskType taskType);
+    CTask* FindTaskByType(ePrimaryTasks taskIndex, eTaskType taskType) const;
 
     /*!
     * @addr 0x681810

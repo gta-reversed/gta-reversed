@@ -182,6 +182,13 @@
 #include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorRandom.h>
 #include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocators.h>
 
+#include <Tasks/Allocators/TaskAllocatorKillThreatsBasic.h>
+#include <Tasks/Allocators/TaskAllocatorKillThreatsDriveby.h>
+#include <Tasks/Allocators/TaskAllocatorKillThreatsBasicRandomGroup.h>
+#include <Tasks/Allocators/TaskAllocatorKillOnFoot.h>
+#include <Tasks/Allocators/TaskAllocatorAttack.h>
+#include <Tasks/Allocators/TaskAllocatorPlayerCommandAttack.h>
+
 // Tasks
 #include "TaskComplexSitDownThenIdleThenStandUp.h"
 #include "TaskComplexLeaveCarAsPassengerWait.h"
@@ -885,6 +892,12 @@ void InjectHooksMain() {
             PedGroup();
 
             CTaskAllocator::InjectHooks();
+            CTaskAllocatorKillThreatsBasic::InjectHooks();
+            CTaskAllocatorKillThreatsDriveby::InjectHooks();
+            CTaskAllocatorKillThreatsBasicRandomGroup::InjectHooks();
+            CTaskAllocatorKillOnFoot::InjectHooks();
+            CTaskAllocatorAttack::InjectHooks();
+            CTaskAllocatorPlayerCommandAttack::InjectHooks();
         };
         Allocators();
 

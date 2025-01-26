@@ -1,20 +1,33 @@
 #pragma once
 
-#include "TaskAllocator.h"
+#include "TaskAllocatorKillThreatsBasic.h"
 
-class NOTSA_EXPORT_VTABLE CTaskAllocatorKillThreatsDriveby : public CTaskAllocator {
+// Originally didn't inherit from `CTaskAllocatorKillThreatsBasic`,
+// but they share a few things, so why not
+class NOTSA_EXPORT_VTABLE CTaskAllocatorKillThreatsDriveby final : public CTaskAllocatorKillThreatsBasic {
 public:
-    CEntity* m_pEntity;
-    uint32   m_nTime;
-    uint32   m_nTimeOffset;
-    int8     byte10;
-    int8     byte11;
+    static void InjectHooks();
 
-public:
-    explicit CTaskAllocatorKillThreatsDriveby(CPed* ped);
-    ~CTaskAllocatorKillThreatsDriveby() override;
+    using CTaskAllocatorKillThreatsBasic::CTaskAllocatorKillThreatsBasic;
+    ~CTaskAllocatorKillThreatsDriveby() override = default;
 
     eTaskAllocatorType GetType() override { return TASK_ALLOCATOR_KILL_THREATS_DRIVEBY; }; // 0x69CB50
-    CTaskAllocator*    ProcessGroup(CPedGroupIntelligence* intel) override;
     void               AllocateTasks(CPedGroupIntelligence* intel) override;
+
+public:
+    CPed::Ref  m_Threat{};
+    CTaskTimer m_Timer{};
+
+private: // Wrappers for hooks
+    // 0x69CAF0
+    CTaskAllocatorKillThreatsDriveby* Constructor(CPed* a) {
+        this->CTaskAllocatorKillThreatsDriveby::CTaskAllocatorKillThreatsDriveby(a);
+        return this;
+    }
+
+    // 0x69CB60
+    CTaskAllocatorKillThreatsDriveby* Destructor() {
+        this->CTaskAllocatorKillThreatsDriveby::~CTaskAllocatorKillThreatsDriveby();
+        return this;
+    }
 };

@@ -94,8 +94,11 @@ public:
     void SetDefaultTask(CPed* ped, const CTask& task);
     void SetScriptCommandTask(CPed* ped, const CTask& task);
 
-    auto&& GetPedTaskPairs(this auto&& self)        { return self.m_PedTaskPairs; }
-    auto&& GetDefaultPedTaskPairs(this auto&& self) { return self.m_DefaultPedTaskPairs; }
+    auto&& GetPedTaskPairs(this auto&& self)          { return self.m_PedTaskPairs; }
+    auto&& GetSecondaryPedTaskPairs(this auto&& self) { return self.m_SecondaryPedTaskPairs; }
+    auto&& GetDefaultPedTaskPairs(this auto&& self)   { return self.m_DefaultPedTaskPairs; }
+
+    auto&& GetPedGroup(this auto&& self) { return *self.m_pPedGroup; }
 
 private:
     bool InterruptCurrentWithHighestPriorityEvent();

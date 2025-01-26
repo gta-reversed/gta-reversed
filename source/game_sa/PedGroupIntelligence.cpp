@@ -115,7 +115,7 @@ CTask* CPedGroupIntelligence::GetTaskMain(CPed* ped) {
     return t;
 }
 
-// notsa (not sure)
+// 0x5F7660
 CTask* CPedGroupIntelligence::GetTask(CPed* ped, PedTaskPairs& taskPairs) const {
     if (const auto tp = GetPedsTaskPair(ped, taskPairs)) {
         return tp->m_Task;

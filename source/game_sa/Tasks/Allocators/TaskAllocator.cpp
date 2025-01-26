@@ -27,7 +27,3 @@ void CTaskAllocator::InjectHooks() {
     RH_ScopedVMTInstall(IsFinished, 0x69C3C0);
     RH_ScopedVMTInstall(Abort, 0x5F68E0);
 }
-
-CTaskAllocator::CTaskAllocator(CPed* ped) :
-    m_Ped0{ped}
-{ }
