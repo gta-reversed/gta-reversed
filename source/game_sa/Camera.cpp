@@ -1902,11 +1902,10 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
             case MODE_CAM_ON_A_STRING:
             case MODE_BEHINDBOAT:
                 if (notsa::contains(camModesFp, previousCamMode)) {
-                        m_fFractionInterToStopMoving  = 0.0f;
-                        m_fFractionInterToStopCatchUp = 1.0f;
-                        m_nTransitionDuration         = 1;
-                        return;
-                    }
+                    m_fFractionInterToStopMoving  = 0.0f;
+                    m_fFractionInterToStopCatchUp = 1.0f;
+                    m_nTransitionDuration         = 1;
+                    return;
                 }
                 break;
             case MODE_AIMWEAPON:
