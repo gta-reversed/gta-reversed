@@ -1807,7 +1807,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         if (targetCamMode == MODE_CAM_ON_A_STRING) {
             m_bUseTransitionBeta  = true;
             const float angle     = CGeneral::GetATanOfXY(cam.m_vecFront.x, cam.m_vecFront.y);
-            cam.m_fTransitionBeta = angle + (fabs(angle) <= PI / 2 ? 4.1015239f : 0.95993114f);
+            cam.m_fTransitionBeta = angle + (fabs(angle) <= HALF_PI ? 4.1015239f : 0.95993114f);
         }
     } break;
     case MODE_SNIPER:
