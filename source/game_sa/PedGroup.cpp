@@ -49,15 +49,15 @@ void CPedGroup::Flush() {
 bool CPedGroup::IsAnyoneUsingCar(const CVehicle* vehicle) {
     assert(vehicle);
 
-    for (auto& mem : m_groupMembership.GetMembers()) {
-        if (mem.GetVehicleIfInOne() == vehicle) {
+    for (auto* const mem : m_groupMembership.GetMembers()) {
+        if (mem->GetVehicleIfInOne() == vehicle) {
             return true;
         }
         // I did a slight change here.
         // Game originally checked both EnterAsDriver and EnterAsPassenger tasks
         // but that makes no sense, as the ped can't have both tasks at the same time (I hope)
         // So the function below returns the target vehicle of the first task found
-        if (mem.GetIntelligence()->GetEnteringVehicle() == vehicle) {
+        if (mem->GetIntelligence()->GetEnteringVehicle() == vehicle) {
             return true;
         }
     }
@@ -104,27 +104,27 @@ void CPedGroup::Teleport(const CVector& pos) {
 
     // Set *followers* out of the vehicle
     if (leader && !leader->bInVehicle) {
-        for (auto& f : GetMembership().GetFollowers()) {
-            if (!f.IsAlive() || !f.bInVehicle || f.IsCreatedByMission()) {
+        for (auto* const f : GetMembership().GetFollowers()) {
+            if (!f->IsAlive() || !f->bInVehicle || f->IsCreatedByMission()) {
                 continue;
             }
             CTaskSimpleCarSetPedOut{
-                f.m_pVehicle,
-                (eTargetDoor)CCarEnterExit::ComputeTargetDoorToExit(f.m_pVehicle, &f),
+                f->m_pVehicle,
+                (eTargetDoor)CCarEnterExit::ComputeTargetDoorToExit(f->m_pVehicle, f),
                 false
-            }.ProcessPed(&f);
+            }.ProcessPed(f);
         }
     }
 
     // Teleport *followers*
     const auto& offsets = CTaskComplexFollowLeaderInFormation::ms_offsets.Offsets;
     for (auto&& [offsetIdx, f] : notsa::enumerate(GetMembership().GetFollowers())) {
-        if (!f.IsAlive()) {
+        if (!f->IsAlive()) {
             continue;
         }
-        f.Teleport(pos + CVector{ offsets[offsetIdx] }, false);
-        f.PositionAnyPedOutOfCollision();
-        f.GetTaskManager().AbortFirstPrimaryTaskIn({ TASK_PRIMARY_PHYSICAL_RESPONSE, TASK_PRIMARY_EVENT_RESPONSE_TEMP, TASK_PRIMARY_EVENT_RESPONSE_NONTEMP }, &f);
+        f->Teleport(pos + CVector{ offsets[offsetIdx] }, false);
+        f->PositionAnyPedOutOfCollision();
+        f->GetTaskManager().AbortFirstPrimaryTaskIn({ TASK_PRIMARY_PHYSICAL_RESPONSE, TASK_PRIMARY_EVENT_RESPONSE_TEMP, TASK_PRIMARY_EVENT_RESPONSE_NONTEMP }, f);
     }
 }
 

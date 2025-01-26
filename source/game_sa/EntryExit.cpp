@@ -583,11 +583,11 @@ void CEntryExit::WarpGangWithPlayer(CPlayerPed* player) {
     const auto& offsets = CTaskComplexFollowLeaderInFormation::ms_offsets.Offsets;
 
     size_t offsetIdx = 0;
-    for (auto & mem : ms.GetMembers()) {
-        if (&mem == player) {
+    for (auto* const mem : ms.GetMembers()) {
+        if (mem == player) {
             continue;
         }
-        const auto& memPos = mem.GetPosition();
+        const auto& memPos = mem->GetPosition();
 
         // Find position to teleport member to
         // Original code tried only twice, but we'll try all offsets
@@ -604,14 +604,14 @@ void CEntryExit::WarpGangWithPlayer(CPlayerPed* player) {
         const auto memHeading = (plyrPos - memPos).Heading();
 
         // Teleport them
-        mem.Teleport(memTeleportTo, false);
-        mem.GetIntelligence()->FlushImmediately(false);
+        mem->Teleport(memTeleportTo, false);
+        mem->GetIntelligence()->FlushImmediately(false);
 
         // Make the member be heading towards the player
-        mem.m_fCurrentRotation = mem.m_fAimingRotation = memHeading;
-        mem.SetHeading(memHeading);
-        mem.m_nAreaCode = player->m_nAreaCode;
-        mem.m_pEnex = player->m_pEnex;
+        mem->m_fCurrentRotation = mem->m_fAimingRotation = memHeading;
+        mem->SetHeading(memHeading);
+        mem->m_nAreaCode = player->m_nAreaCode;
+        mem->m_pEnex = player->m_pEnex;
     }
 }
 

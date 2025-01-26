@@ -157,13 +157,13 @@ void CPedGroupIntelligence::Process() {
     }
 
     bool hasMemberListChanged{};
-    for (auto&& [i, ped] : notsa::enumerate(m_pPedGroup->GetMembership().GetMembers())) {
-        if (m_PedTaskPairs[i].m_Ped == &ped) {
+    for (auto&& [i, mem] : notsa::enumerate(m_pPedGroup->GetMembership().GetMembers())) {
+        if (m_PedTaskPairs[i].m_Ped == mem) {
             continue;
         }
-        m_PedTaskPairs[i].m_Ped          = &ped;
-        m_SecondaryPedTaskPairs[i].m_Ped = &ped;
-        m_DefaultPedTaskPairs[i].m_Ped   = &ped;
+        m_PedTaskPairs[i].m_Ped          = mem;
+        m_SecondaryPedTaskPairs[i].m_Ped = mem;
+        m_DefaultPedTaskPairs[i].m_Ped   = mem;
         hasMemberListChanged             = true;
     }
     if (hasMemberListChanged) {
