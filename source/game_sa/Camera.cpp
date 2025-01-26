@@ -1728,94 +1728,62 @@ void CCamera::SetColVarsVehicle(eVehicleType vehicleType, int32 camVehicleZoom) 
 }
 
 // 0x515BC0
-void CCamera::StartTransitionWhenNotFinishedInter(eCamMode currentCamMode) {
+void CCamera::StartTransitionWhenNotFinishedInter(eCamMode targetCamMode) {
     m_bDoingSpecialInterp = true;
-    StartTransition(currentCamMode);
+    StartTransition(targetCamMode);
 }
 
 // 0x515200
 void CCamera::StartTransition(eCamMode targetCamMode) {
-    CCam*    activeCamera    = &this->m_aCams[this->m_nActiveCam];
-    eCamMode previousCamMode = activeCamera->m_nMode;
+    CCam&          cam             = m_aCams[m_nActiveCam];
+    const eCamMode previousCamMode = cam.m_nMode;
+    cam.m_nMode                    = targetCamMode;
 
-    this->m_bItsOkToLookJustAtThePlayer = false;
-    this->m_bUseTransitionBeta          = false;
-    this->m_fFractionInterToStopMoving  = 0.25f;
-    this->m_fFractionInterToStopCatchUp = 0.75f;
+    // Default values
+    bool isAimWeaponTransition    = false;
+    m_nTransitionDuration         = 1'350;
+    m_bUseTransitionBeta          = false;
+    m_fFractionInterToStopMoving  = 0.25f;
+    m_fFractionInterToStopCatchUp = 0.75f;
 
-    // Handle special modes for rocket launcher etc
-    if (this->m_pTargetEntity && this->m_pTargetEntity->IsPed() &&
-        notsa::contains({
-            MODE_SNIPER,
-            MODE_ROCKETLAUNCHER,
-            MODE_ROCKETLAUNCHER_HS,
-            MODE_M16_1STPERSON,
-            MODE_SNIPER_RUNABOUT,
-            MODE_ROCKETLAUNCHER_RUNABOUT,
-            MODE_ROCKETLAUNCHER_RUNABOUT_HS,
-            MODE_M16_1STPERSON_RUNABOUT,
-            MODE_FIGHT_CAM_RUNABOUT,
-            MODE_HELICANNON_1STPERSON,
-            MODE_CAMERA,
-            MODE_1STPERSON_RUNABOUT
-        }, activeCamera->m_nMode)
-    ) {
-        float targetRotation = CGeneral::GetATanOfXY(activeCamera->m_vecFront.x, activeCamera->m_vecFront.y) - HALF_PI;
-        ((CPed*)this->m_pTargetEntity)->m_fCurrentRotation = targetRotation;
-        ((CPed*)this->m_pTargetEntity)->m_fAimingRotation  = targetRotation;
+    // Handle player rotation for weapon modes
+    constexpr std::array camTargetModes = {
+        MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_HELICANNON_1STPERSON, MODE_CAMERA, MODE_1STPERSON_RUNABOUT
+    };
+    if (m_pTargetEntity && m_pTargetEntity->IsPed() && (notsa::contains(camTargetModes, targetCamMode))) {
+        float targetRotation                         = CGeneral::GetATanOfXY(m_aCams[0].m_vecFront.x, m_aCams[0].m_vecFront.y) - HALF_PI;
+        ((CPed*)m_pTargetEntity)->m_fCurrentRotation = targetRotation;
+        ((CPed*)m_pTargetEntity)->m_fAimingRotation  = targetRotation;
     }
 
+    // Setup new camera
+    cam.m_vecCamFixedModeVector = m_vecFixedModeVector;
+    CEntity::ChangeEntityReference(cam.m_pCamTargetEntity, m_pTargetEntity);
 
-    // Copy fixed mode vectors and settings
-    activeCamera->m_vecCamFixedModeVector = this->m_vecFixedModeVector;
+    cam.m_vecCamFixedModeSource   = m_vecFixedModeSource;
+    cam.m_vecCamFixedModeUpOffSet = m_vecFixedModeUpOffSet;
+    cam.m_bCamLookingAtVector     = m_bLookingAtVector;
 
-    // Set up camera target entity
-    CEntity::ChangeEntityReference(activeCamera->m_pCamTargetEntity, this->m_pTargetEntity);
-
-    activeCamera->m_vecCamFixedModeSource   = this->m_vecFixedModeSource;
-    activeCamera->m_vecCamFixedModeUpOffSet = this->m_vecFixedModeUpOffSet;
-    activeCamera->m_bCamLookingAtVector     = this->m_bLookingAtVector;
-
-    // Handle special transition cases
+    // Handle specific camera mode transitions
     switch (targetCamMode) {
     case MODE_BEHINDCAR:
     case MODE_BEHINDBOAT:
-        activeCamera->m_fBetaSpeed = 0.0f;
+        cam.m_fBetaSpeed = 0.0f;
         break;
-
-    case MODE_FOLLOWPED: { // Please dont delete '{}'. It's important for the switch-case
+    case MODE_FOLLOWPED: {
         if (m_bJustCameOutOfGarage) {
-            this->m_bUseTransitionBeta = true;
-            if (activeCamera->m_vecFront.x != 0.0f || activeCamera->m_vecFront.y != 0.0f) {
-                activeCamera->m_fTransitionBeta = CGeneral::GetATanOfXY(activeCamera->m_vecFront.x, activeCamera->m_vecFront.y) + PI;
-            } else {
-                activeCamera->m_fTransitionBeta = 0.0f;
-            }
+            cam.m_fHorizontalAngle = CGeneral::GetATanOfXY(cam.m_vecFront.x, cam.m_vecFront.y) + PI;
+            cam.m_fTransitionBeta  = 0.0f;
         }
-
         if (m_bTargetJustCameOffTrain) {
-            this->m_bCamDirectlyInFront = true;
+            m_bCamDirectlyInFront = true;
         }
-
-        if (activeCamera->m_nMode != MODE_CAM_ON_A_STRING) {
-            break;
+        if (targetCamMode == MODE_CAM_ON_A_STRING) {
+            m_bUseTransitionBeta  = true;
+            const float angle     = CGeneral::GetATanOfXY(cam.m_vecFront.x, cam.m_vecFront.y);
+            cam.m_fTransitionBeta = angle + (fabs(angle) <= PI / 2 ? 4.1015239f : 0.95993114f);
         }
-
-        this->m_bUseTransitionBeta = true;
-        float angleXY              = CGeneral::GetATanOfXY(activeCamera->m_vecFront.x, activeCamera->m_vecFront.y);
-
-        // Normalize angle between -PI and PI
-        while (angleXY > PI) {
-            angleXY -= TWO_PI;
-        }
-        while (angleXY < -PI) {
-            angleXY += TWO_PI;
-        }
-
-        // Set transition angle based on current angle
-        activeCamera->m_fTransitionBeta = angleXY + (std::fabs(angleXY) <= HALF_PI ? 4.1015239f : 0.95993114f);
-        break;
-    }
+    } break;
     case MODE_SNIPER:
     case MODE_ROCKETLAUNCHER:
     case MODE_M16_1STPERSON:
@@ -1828,138 +1796,116 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     case MODE_CAMERA:
     case MODE_ROCKETLAUNCHER_HS:
     case MODE_ROCKETLAUNCHER_RUNABOUT_HS: {
-        CEntity* vehicle   = FindPlayerVehicle();
-        CMatrix* playerMat = vehicle ? &vehicle->GetMatrix() : &FindPlayerPed()->GetMatrix();
-
-        activeCamera->m_fHorizontalAngle = CGeneral::GetATanOfXY(playerMat->GetForward().x, playerMat->GetForward().y);
-        activeCamera->m_fVerticalAngle   = 0.0f;
-        break;
-    }
+        CEntity* vehicle        = FindPlayerVehicle();
+        CMatrix* playerMat      = vehicle ? &vehicle->GetMatrix() : &FindPlayerPed()->GetMatrix();
+        cam.m_fHorizontalAngle = CGeneral::GetATanOfXY(playerMat->GetForward().x, playerMat->GetForward().y);
+        cam.m_fVerticalAngle   = 0.0f;
+    } break;
     case MODE_CAM_ON_A_STRING:
-        if (this->m_bLookingAtPlayer && !this->m_bJustCameOutOfGarage) {
-            this->m_bUseTransitionBeta      = true;
-            float angle                     = CGeneral::GetATanOfXY(activeCamera->m_vecFront.y, activeCamera->m_vecFront.x);
-            activeCamera->m_fTransitionBeta = angle;
+        if (m_bLookingAtPlayer && !m_bJustCameOutOfGarage) {
+            m_bUseTransitionBeta   = true;
+            cam.m_fTransitionBeta = CGeneral::GetATanOfXY(cam.m_vecFront.y, cam.m_vecFront.x);
         }
         break;
     case MODE_PED_DEAD_BABY:
-        activeCamera->m_fVerticalAngle = DegreesToRadians(15.0f);
+        cam.m_fVerticalAngle = DegreesToRadians(15.0f);
         break;
     }
 
-    // Store horizontal angle before init
-    float horizontalAngle = activeCamera->m_fHorizontalAngle;
+    // Switch active camera
+    const float horizAngle = cam.m_fHorizontalAngle;
+    eCamMode    eCameraNow = this->m_aCams[m_nActiveCam].m_nMode;
 
-    // Init camera with stored angle
-    if (activeCamera->m_nMode == MODE_FOLLOWPED && targetCamMode == MODE_CAM_ON_A_STRING || activeCamera->m_nMode == MODE_CAM_ON_A_STRING && targetCamMode == MODE_FOLLOWPED) {
-        activeCamera->m_nMode = targetCamMode;
+    if (eCameraNow == MODE_FOLLOWPED && targetCamMode == MODE_CAM_ON_A_STRING
+        || eCameraNow == MODE_CAM_ON_A_STRING && targetCamMode == MODE_FOLLOWPED) {
+        m_aCams[m_nActiveCam].m_nMode = targetCamMode;
     } else {
-        activeCamera->Init();
-        activeCamera->m_nMode            = targetCamMode;
-        activeCamera->m_fHorizontalAngle = horizontalAngle;
+        m_aCams[m_nActiveCam].Init();
+        m_aCams[m_nActiveCam].m_nMode            = targetCamMode;
+        m_aCams[m_nActiveCam].m_fHorizontalAngle = horizAngle;
     }
 
-    bool isAimWeaponTransition  = false;
-    this->m_nTransitionDuration = 1'350;
+    constexpr std::array camModesFollowPed = {
+        MODE_FOLLOWPED, MODE_SYPHON_CRIM_IN_FRONT, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON, MODE_AIMWEAPON
+    };
 
-    if (previousCamMode == MODE_SYPHON && targetCamMode == MODE_SYPHON_CRIM_IN_FRONT) {
-        this->m_nTransitionDuration = 1'800;
-    } else if (previousCamMode == MODE_CAM_ON_A_STRING && notsa::contains({ MODE_SYPHON_CRIM_IN_FRONT, MODE_FOLLOWPED, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON, MODE_AIMWEAPON }, targetCamMode)) {
-        this->m_fFractionInterToStopMoving  = 0.1f;
-        this->m_fFractionInterToStopCatchUp = 0.89999998f;
-        this->m_nTransitionDuration         = 750;
-    } else if (targetCamMode == MODE_SPECIAL_FIXED_FOR_SYPHON) {
-        this->m_fFractionInterToStopMoving  = 0.25f;
-        this->m_fFractionInterToStopCatchUp = 0.8f;
-        this->m_nTransitionDuration         = 1'000;
-    } else if (targetCamMode == MODE_FIXED) {
-        this->m_fFractionInterToStopMoving  = 0.050000001f;
-        this->m_fFractionInterToStopCatchUp = 0.94999999f;
-    } else if (this->m_bPlayerWasOnBike
-               && previousCamMode == MODE_FOLLOWPED
-               && targetCamMode == MODE_CAM_ON_A_STRING) {
-        this->m_nTransitionDuration         = 800;
-        this->m_fFractionInterToStopMoving  = 0.02f;
-        this->m_fFractionInterToStopCatchUp = 0.98000002f;
-    } else if (notsa::contains({ MODE_CAM_ON_A_STRING, MODE_BEHINDBOAT }, previousCamMode)
-               && notsa::contains({ MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_1STPERSON_RUNABOUT, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_CAMERA }, targetCamMode)) {
-        this->m_fFractionInterToStopMoving  = 0.0f;
-        this->m_fFractionInterToStopCatchUp = 1.0f;
-        this->m_nTransitionDuration         = 1;
-    } else if (previousCamMode == MODE_AIMWEAPON) {
-        this->m_fFractionInterToStopMoving  = 0.0f;
-        this->m_fFractionInterToStopCatchUp = 1.0f;
-        this->m_nTransitionDuration         = 400;
-        isAimWeaponTransition               = true;
-    } else if (notsa::contains({ MODE_FOLLOWPED, MODE_SYPHON_CRIM_IN_FRONT, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON }, previousCamMode)) {
-        if (notsa::contains({ MODE_SYPHON_CRIM_IN_FRONT, MODE_FOLLOWPED, MODE_SYPHON, MODE_AIMWEAPON }, targetCamMode)) {
-            this->m_fFractionInterToStopMoving  = 0.1f;
-            this->m_fFractionInterToStopCatchUp = 0.89999998f;
-            this->m_nTransitionDuration         = 350;
-            isAimWeaponTransition               = true;
-        } else {
-            this->m_nTransitionDuration = 1'350;
+    constexpr std::array camModesRunabout = {
+        MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_1STPERSON_RUNABOUT, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_CAMERA
+    };
+
+    if (targetCamMode == MODE_SYPHON && previousCamMode == MODE_SYPHON_CRIM_IN_FRONT) {
+        m_nTransitionDuration = 1'800;
+    } else if (targetCamMode == MODE_CAM_ON_A_STRING && notsa::contains(camModesFollowPed, previousCamMode)) {
+        m_fFractionInterToStopMoving = 0.1f, m_fFractionInterToStopCatchUp = 0.9f, m_nTransitionDuration = 750;
+    } else if (previousCamMode == MODE_SPECIAL_FIXED_FOR_SYPHON) {
+        m_fFractionInterToStopMoving = 0.20f, m_fFractionInterToStopCatchUp = 0.8f, m_nTransitionDuration = 1'000;
+    } else if (previousCamMode == MODE_FIXED) {
+        m_fFractionInterToStopMoving = 0.05f, m_fFractionInterToStopCatchUp = 0.95f;
+    } else if (m_bPlayerWasOnBike && targetCamMode == MODE_FOLLOWPED && previousCamMode == MODE_CAM_ON_A_STRING) {
+        m_nTransitionDuration = 800, m_fFractionInterToStopMoving = 0.02f, m_fFractionInterToStopCatchUp = 0.98f;
+    } else if ((targetCamMode == MODE_CAM_ON_A_STRING || targetCamMode == MODE_BEHINDBOAT) && notsa::contains(camModesRunabout, previousCamMode)) {
+        m_fFractionInterToStopMoving = 0.0f, m_fFractionInterToStopCatchUp = 1.0f, m_nTransitionDuration = 1;
+    } else if (targetCamMode == MODE_AIMWEAPON) {
+        m_fFractionInterToStopMoving = 0.0f, m_fFractionInterToStopCatchUp = 1.0f, m_nTransitionDuration = 400, isAimWeaponTransition = true;
+    } else if (notsa::contains(camModesFollowPed, targetCamMode) && notsa::contains(camModesFollowPed, previousCamMode)) {
+        m_fFractionInterToStopMoving = 0.1f, m_fFractionInterToStopCatchUp = 0.9f, m_nTransitionDuration = 350, isAimWeaponTransition = true;
+    }
+
+    // Initialize transition state
+    m_bTransitionState       = true;
+    m_nTimeTransitionStart   = CTimer::GetTimeInMS();
+    m_bTransitionJUSTStarted = true;
+
+    // Store starting interpolation values
+    if (m_bDoingSpecialInterp) {
+        m_vecStartingSourceForInterPol = m_vecSourceDuringInter;
+        m_vecStartingTargetForInterPol = m_vecTargetDuringInter;
+        m_vecStartingUpForInterPol     = m_vecUpDuringInter;
+        m_fStartingAlphaForInterPol    = m_fAlphaDuringInterPol;
+        m_fStartingBetaForInterPol     = m_fBetaDuringInterPol;
+    } else {
+        auto& activeCam                = m_aCams[m_nActiveCam];
+        m_vecStartingSourceForInterPol = activeCam.m_vecSource;
+        m_vecStartingTargetForInterPol = activeCam.m_vecTargetCoorsForFudgeInter;
+        m_vecStartingUpForInterPol     = activeCam.m_vecUp;
+        m_fStartingAlphaForInterPol    = activeCam.m_fTrueAlpha;
+        m_fStartingBetaForInterPol     = activeCam.m_fTrueBeta;
+    }
+
+    // Update active camera parameters
+    auto& activeCam                     = m_aCams[m_nActiveCam];
+    activeCam.m_bCamLookingAtVector     = m_bLookingAtVector;
+    activeCam.m_vecCamFixedModeVector   = m_vecFixedModeVector;
+    activeCam.m_vecCamFixedModeSource   = m_vecFixedModeSource;
+    activeCam.m_vecCamFixedModeUpOffSet = m_vecFixedModeUpOffSet;
+    activeCam.m_nMode                   = targetCamMode;
+    CEntity::ChangeEntityReference(activeCam.m_pCamTargetEntity, m_pTargetEntity);
+
+    // Store starting speeds
+    m_bTransitionJUSTStarted     = true;
+    m_nTimeTransitionStart       = CTimer::GetTimeInMS();
+    m_fStartingFOVForInterPol    = activeCam.m_fFOV;
+    m_vecSourceSpeedAtStartInter = activeCam.m_vecSourceSpeedOverOneFrame;
+    m_vecTargetSpeedAtStartInter = activeCam.m_vecTargetSpeedOverOneFrame;
+    m_vecUpSpeedAtStartInter     = activeCam.m_vecUpOverOneFrame;
+    m_fAlphaSpeedAtStartInter    = activeCam.m_fAlphaSpeedOverOneFrame;
+    m_fBetaSpeedAtStartInter     = activeCam.m_fBetaSpeedOverOneFrame;
+    m_fFOVSpeedAtStartInter      = activeCam.m_fFovSpeedOverOneFrame;
+
+    // Setup final transition parameters
+    if (m_bLookingAtPlayer) {
+        m_fFractionInterToStopMovingTarget  = 0.0f;
+        m_fFractionInterToStopCatchUpTarget = 1.0f;
+        m_nTransitionDurationTargetCoors    = isAimWeaponTransition != 0 ? 350 : 600;
+    } else {
+        if (m_bScriptParametersSetForInterp) {
+            m_fFractionInterToStopMoving  = m_fScriptPercentageInterToStopMoving;
+            m_fFractionInterToStopCatchUp = m_fScriptPercentageInterToCatchUp;
+            m_nTransitionDuration         = m_nScriptTimeForInterpolation;
         }
-    }
-
-    // Start transition
-    this->m_bScriptParametersSetForInterp = this->m_bDoingSpecialInterp;
-    this->m_bTransitionState              = true;
-    this->m_nTimeTransitionStart          = CTimer::GetTimeInMS();
-    this->m_bTransitionJUSTStarted        = true;
-
-    // Store interpolation start values
-    if (this->m_bScriptParametersSetForInterp) {
-        this->m_vecStartingSourceForInterPol = this->m_vecSourceDuringInter;
-        this->m_vecStartingTargetForInterPol = this->m_vecTargetDuringInter;
-        this->m_vecStartingUpForInterPol     = this->m_vecUpDuringInter;
-        this->m_fStartingAlphaForInterPol    = this->m_fAlphaDuringInterPol;
-        this->m_fStartingBetaForInterPol     = this->m_fBetaDuringInterPol;
-    } else {
-        this->m_vecStartingSourceForInterPol = activeCamera->m_vecSource;
-        this->m_vecStartingTargetForInterPol = activeCamera->m_vecTargetCoorsForFudgeInter;
-        this->m_vecStartingUpForInterPol     = activeCamera->m_vecUp;
-        this->m_fStartingAlphaForInterPol    = activeCamera->m_fTrueAlpha;
-        this->m_fStartingBetaForInterPol     = activeCamera->m_fTrueBeta;
-    }
-
-    // Set up camera fixpoint vectors and target
-    activeCamera->m_bCamLookingAtVector     = this->m_bLookingAtVector;
-    activeCamera->m_vecCamFixedModeVector   = this->m_vecFixedModeVector;
-    activeCamera->m_vecCamFixedModeSource   = this->m_vecFixedModeSource;
-    activeCamera->m_vecCamFixedModeUpOffSet = this->m_vecFixedModeUpOffSet;
-    activeCamera->m_nMode                   = targetCamMode;
-
-    // Set up camera target entity
-    CEntity::ChangeEntityReference(activeCamera->m_pCamTargetEntity, this->m_pTargetEntity);
-
-    this->m_bTransitionState       = true;
-    this->m_nTimeTransitionStart   = CTimer::GetTimeInMS();
-    this->m_bTransitionJUSTStarted = true;
-
-    // Store speeds at start of interpolation
-    this->m_fStartingFOVForInterPol    = activeCamera->m_fFOV;
-    this->m_vecSourceSpeedAtStartInter = activeCamera->m_vecSourceSpeedOverOneFrame;
-    this->m_vecTargetSpeedAtStartInter = activeCamera->m_vecTargetSpeedOverOneFrame;
-    this->m_vecUpSpeedAtStartInter     = activeCamera->m_vecUpOverOneFrame;
-    this->m_fAlphaSpeedAtStartInter    = activeCamera->m_fAlphaSpeedOverOneFrame;
-    this->m_fBetaSpeedAtStartInter     = activeCamera->m_fBetaSpeedOverOneFrame;
-    this->m_fFOVSpeedAtStartInter      = activeCamera->m_fFovSpeedOverOneFrame;
-
-    // Handle player transition parameters
-    if (this->m_bLookingAtPlayer) {
-        this->m_fFractionInterToStopMovingTarget  = 0.0f;
-        this->m_fFractionInterToStopCatchUpTarget = 1.0f;
-        this->m_nTransitionDurationTargetCoors    = isAimWeaponTransition ? 350 : 600;
-    } else {
-        if (this->m_bScriptParametersSetForInterp) {
-            this->m_fFractionInterToStopMoving  = this->m_fScriptPercentageInterToStopMoving;
-            this->m_fFractionInterToStopCatchUp = this->m_fScriptPercentageInterToCatchUp;
-            this->m_nTransitionDuration         = this->m_nScriptTimeForInterpolation;
-        }
-        this->m_nTransitionDurationTargetCoors    = this->m_nTransitionDuration;
-        this->m_fFractionInterToStopMovingTarget  = this->m_fFractionInterToStopMoving;
-        this->m_fFractionInterToStopCatchUpTarget = this->m_fFractionInterToStopCatchUp;
+        m_nTransitionDurationTargetCoors    = m_nTransitionDuration;
+        m_fFractionInterToStopMovingTarget  = m_fFractionInterToStopMoving;
+        m_fFractionInterToStopCatchUpTarget = m_fFractionInterToStopCatchUp;
     }
 }
 
