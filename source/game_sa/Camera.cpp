@@ -1734,6 +1734,32 @@ void CCamera::StartTransitionWhenNotFinishedInter(eCamMode targetCamMode) {
 }
 
 // 0x515200
+/**
+ * @brief Initiates a camera transition to a new camera mode.
+ * 
+ * This function handles the transition between different camera modes, setting up all necessary parameters
+ * for a smooth camera movement. It manages aspects such as:
+ * - Camera rotation and positioning
+ * - Transition timing and interpolation fractions
+ * - Special handling for weapon modes
+ * - Entity references and target updates
+ * 
+ * The transition process includes:
+ * 1. Setting up default transition values
+ * 2. Handling player rotation for weapon modes
+ * 3. Setting up the new camera parameters
+ * 4. Managing specific camera mode transitions
+ * 5. Initializing transition state and interpolation values
+ * 6. Storing starting speeds and final transition parameters
+ * 
+ * @param targetCamMode The camera mode to transition to (type eCamMode)
+ * 
+ * @note This function is central to the game's camera system and affects how the camera behaves
+ * when switching between different views (e.g., from following a ped to aiming a weapon).
+ * 
+ * @see eCamMode
+ * @see CCam
+ */
 void CCamera::StartTransition(eCamMode targetCamMode) {
     CCam&          cam             = m_aCams[m_nActiveCam];
     const eCamMode previousCamMode = cam.m_nMode;
@@ -1796,14 +1822,14 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     case MODE_CAMERA:
     case MODE_ROCKETLAUNCHER_HS:
     case MODE_ROCKETLAUNCHER_RUNABOUT_HS: {
-        CEntity* vehicle        = FindPlayerVehicle();
-        CMatrix* playerMat      = vehicle ? &vehicle->GetMatrix() : &FindPlayerPed()->GetMatrix();
+        CEntity* vehicle       = FindPlayerVehicle();
+        CMatrix* playerMat     = vehicle ? &vehicle->GetMatrix() : &FindPlayerPed()->GetMatrix();
         cam.m_fHorizontalAngle = CGeneral::GetATanOfXY(playerMat->GetForward().x, playerMat->GetForward().y);
         cam.m_fVerticalAngle   = 0.0f;
     } break;
     case MODE_CAM_ON_A_STRING:
         if (m_bLookingAtPlayer && !m_bJustCameOutOfGarage) {
-            m_bUseTransitionBeta   = true;
+            m_bUseTransitionBeta  = true;
             cam.m_fTransitionBeta = CGeneral::GetATanOfXY(cam.m_vecFront.y, cam.m_vecFront.x);
         }
         break;
@@ -1825,31 +1851,81 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         m_aCams[m_nActiveCam].m_fHorizontalAngle = horizAngle;
     }
 
-    constexpr std::array camModesFollowPed = {
-        MODE_FOLLOWPED, MODE_SYPHON_CRIM_IN_FRONT, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON, MODE_AIMWEAPON
+    constexpr std::array camModesString = {
+        MODE_SYPHON_CRIM_IN_FRONT, MODE_FOLLOWPED, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON, MODE_AIMWEAPON
     };
-
-    constexpr std::array camModesRunabout = {
+    constexpr std::array camModesSpecialFirst = {
+        MODE_FOLLOWPED, MODE_SYPHON_CRIM_IN_FRONT, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON
+    };
+    constexpr std::array camModesSpecialSecond = {
+        MODE_SYPHON_CRIM_IN_FRONT, MODE_FOLLOWPED, MODE_SYPHON, MODE_AIMWEAPON
+    };
+    constexpr std::array camModesFp = {
         MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_1STPERSON_RUNABOUT, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_CAMERA
     };
 
-    if (targetCamMode == MODE_SYPHON && previousCamMode == MODE_SYPHON_CRIM_IN_FRONT) {
-        m_nTransitionDuration = 1'800;
-    } else if (targetCamMode == MODE_CAM_ON_A_STRING && notsa::contains(camModesFollowPed, previousCamMode)) {
-        m_fFractionInterToStopMoving = 0.1f, m_fFractionInterToStopCatchUp = 0.9f, m_nTransitionDuration = 750;
-    } else if (previousCamMode == MODE_SPECIAL_FIXED_FOR_SYPHON) {
-        m_fFractionInterToStopMoving = 0.20f, m_fFractionInterToStopCatchUp = 0.8f, m_nTransitionDuration = 1'000;
-    } else if (previousCamMode == MODE_FIXED) {
-        m_fFractionInterToStopMoving = 0.05f, m_fFractionInterToStopCatchUp = 0.95f;
-    } else if (m_bPlayerWasOnBike && targetCamMode == MODE_FOLLOWPED && previousCamMode == MODE_CAM_ON_A_STRING) {
-        m_nTransitionDuration = 800, m_fFractionInterToStopMoving = 0.02f, m_fFractionInterToStopCatchUp = 0.98f;
-    } else if ((targetCamMode == MODE_CAM_ON_A_STRING || targetCamMode == MODE_BEHINDBOAT) && notsa::contains(camModesRunabout, previousCamMode)) {
-        m_fFractionInterToStopMoving = 0.0f, m_fFractionInterToStopCatchUp = 1.0f, m_nTransitionDuration = 1;
-    } else if (targetCamMode == MODE_AIMWEAPON) {
-        m_fFractionInterToStopMoving = 0.0f, m_fFractionInterToStopCatchUp = 1.0f, m_nTransitionDuration = 400, isAimWeaponTransition = true;
-    } else if (notsa::contains(camModesFollowPed, targetCamMode) && notsa::contains(camModesFollowPed, previousCamMode)) {
-        m_fFractionInterToStopMoving = 0.1f, m_fFractionInterToStopCatchUp = 0.9f, m_nTransitionDuration = 350, isAimWeaponTransition = true;
-    }
+    [&]() -> const void {
+        if (targetCamMode == MODE_CAM_ON_A_STRING && notsa::contains(camModesString, previousCamMode)) {
+            m_fFractionInterToStopMoving  = 0.1f;
+            m_fFractionInterToStopCatchUp = 0.9f;
+            m_nTransitionDuration         = 750;
+            return;
+        }
+
+        switch (previousCamMode) {
+        case MODE_SYPHON_CRIM_IN_FRONT:
+            if (targetCamMode == MODE_SYPHON) {
+                m_nTransitionDuration = 1'800;
+                return;
+            }
+            break;
+        case MODE_SPECIAL_FIXED_FOR_SYPHON:
+            m_fFractionInterToStopMoving  = 0.2f;  // dword_8CCCCC
+            m_fFractionInterToStopCatchUp = 0.8f;  // *&dword_8CCCC8
+            m_nTransitionDuration         = 1'000; // dword_8CCCC4
+            return;
+        case MODE_FIXED:
+            m_fFractionInterToStopMoving  = 0.05f;
+            m_fFractionInterToStopCatchUp = 0.95f;
+            return;
+        }
+
+        if (m_bPlayerWasOnBike && targetCamMode == MODE_FOLLOWPED) {
+            if (previousCamMode == MODE_CAM_ON_A_STRING) {
+                m_nTransitionDuration         = 800;
+                m_fFractionInterToStopMoving  = 0.02f;
+                m_fFractionInterToStopCatchUp = 0.98f;
+                return;
+            }
+        } else {
+            if ((targetCamMode == MODE_CAM_ON_A_STRING || targetCamMode == MODE_BEHINDBOAT)
+                && notsa::contains(camModesFp, previousCamMode)) {
+                m_fFractionInterToStopMoving  = 0.0f;
+                m_fFractionInterToStopCatchUp = 1.0f;
+                m_nTransitionDuration         = 1;
+                return;
+            }
+            if (targetCamMode == MODE_AIMWEAPON) {
+                m_fFractionInterToStopMoving  = 0.0f; // dword_B70044 ?
+                m_fFractionInterToStopCatchUp = 1.0f; // *&dword_8CCCC0
+                m_nTransitionDuration         = 400;  // dword_8CCCBC
+                isAimWeaponTransition         = 1;
+                return;
+            }
+            if (!notsa::contains(camModesSpecialFirst, targetCamMode)) {
+                m_nTransitionDuration = 1'350;
+                return;
+            }
+        }
+        if (!notsa::contains(camModesSpecialSecond, previousCamMode)) {
+            m_nTransitionDuration = 1'350;
+            return;
+        }
+        m_fFractionInterToStopMoving  = 0.1f;
+        m_fFractionInterToStopCatchUp = 0.9f;
+        m_nTransitionDuration         = 350;
+        isAimWeaponTransition         = 1;
+    }();
 
     // Initialize transition state
     m_bTransitionState       = true;
