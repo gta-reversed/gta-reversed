@@ -1455,8 +1455,10 @@ void ShutCharUpForScriptedSpeech(CPed* ped, bool disable) {
 
 // IS_CHAR_TOUCHING_CHAR
 bool IsCharTouchingChar(CPed& ped, CPed& other) {
-    const auto GetRelevantEntity = [](CPed& _ped) -> CPhysical* {
-        return _ped.IsInVehicle() ? _ped.m_pVehicle->AsPhysical() : _ped.AsPhysical();
+    const auto GetRelevantEntity = [](CPed& p) -> CPhysical* {
+        return p.IsInVehicle()
+            ? p.m_pVehicle->AsPhysical()
+            : p.AsPhysical();
     };
     return GetRelevantEntity(ped)->GetHasCollidedWith(GetRelevantEntity(other));
 }
@@ -1472,6 +1474,11 @@ CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
         return nullptr;
     }
     return ped->m_pAttachedTo->AsVehicle();
+}
+
+// 0x46BCEA - COMMAND_CLEAR_CHAR_TASKS_IMMEDIATELY
+void ClearCharTasksImmediately(CPed& ped) {
+    ped.GetIntelligence()->FlushImmediately(true);
 }
 
 void notsa::script::commands::character::RegisterHandlers() {
@@ -1667,7 +1674,7 @@ void notsa::script::commands::character::RegisterHandlers() {
     //REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_RELATIONSHIP, SetCharRelationship);
     //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CHAR_RELATIONSHIP, ClearCharRelationship);
     //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_ALL_CHAR_RELATIONSHIPS, ClearAllCharRelationships);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CHAR_TASKS_IMMEDIATELY, ClearCharTasksImmediately);
+    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_CHAR_TASKS_IMMEDIATELY, ClearCharTasksImmediately);
     //REGISTER_COMMAND_HANDLER(COMMAND_TASK_GOTO_CHAR_AIMING, TaskGotoCharAiming);
     //REGISTER_COMMAND_HANDLER(COMMAND_TASK_KILL_CHAR_ON_FOOT_TIMED, TaskKillCharOnFootTimed);
     //REGISTER_COMMAND_HANDLER(COMMAND_IS_CHAR_IN_ANY_SEARCHLIGHT, IsCharInAnySearchlight);
