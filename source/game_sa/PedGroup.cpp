@@ -117,7 +117,7 @@ void CPedGroup::Teleport(const CVector& pos) {
     }
 
     // Teleport *followers*
-    const auto& offsets = CTaskComplexFollowLeaderInFormation::ms_offsets.offsets;
+    const auto& offsets = CTaskComplexFollowLeaderInFormation::ms_offsets.Offsets;
     for (auto&& [offsetIdx, f] : notsa::enumerate(GetMembership().GetFollowers())) {
         if (!f.IsAlive()) {
             continue;

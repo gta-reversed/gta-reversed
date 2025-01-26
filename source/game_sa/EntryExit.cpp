@@ -580,7 +580,7 @@ void CEntryExit::WarpGangWithPlayer(CPlayerPed* player) {
     }
 
     const auto& plyrPos = player->GetPosition();
-    const auto& offsets = CTaskComplexFollowLeaderInFormation::ms_offsets.offsets;
+    const auto& offsets = CTaskComplexFollowLeaderInFormation::ms_offsets.Offsets;
 
     size_t offsetIdx = 0;
     for (auto & mem : ms.GetMembers()) {
