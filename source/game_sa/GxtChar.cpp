@@ -13,9 +13,12 @@ void AsciiToGxtChar(const char* src, GxtChar* dst) {
 }
 
 // NOTSA -- Derived from GxtCharToAscii (0x69F7E0)
-// FIX_BUGS (sorta): Make caller provide size instead of creating a static buffer.
 char* GxtCharToUTF8(char* out, const GxtChar* src, size_t size, size_t offset) {
-    src += offset ? offset : 0;
+    if (!out || !src || size == 0 || offset >= size)
+        return out;
+
+    src += offset;
+    const size_t maxLen = size - offset;
 
     static const auto gxtUtf8Map = notsa::make_mapping<uint8_t /*GXT code point*/, const char8_t* /*UTF-8 char*/>({
         { 0xb1, u8"´" }, { 0xaf, u8"¿" }, { 0x80, u8"À" }, { 0x81, u8"Á" }, { 0x82, u8"Â" },
@@ -32,7 +35,7 @@ char* GxtCharToUTF8(char* out, const GxtChar* src, size_t size, size_t offset) {
     });
 
     auto out_i = 0u;
-    for (auto i = 0u; out_i < size - offset && src && src[i]; i++) {
+    for (auto i = 0u; out_i < maxLen - 1 && src[i]; i++) {
         if (const char8_t* u8ch = notsa::find_value_or(gxtUtf8Map, src[i], u8"\0"); !*u8ch) {
             if (isascii(src[i])) {
                 out[out_i++] = static_cast<char>(src[i]);
@@ -41,9 +44,10 @@ char* GxtCharToUTF8(char* out, const GxtChar* src, size_t size, size_t offset) {
             }
         } else {
             const auto utf8Size = std::strlen((const char*)u8ch);
-
-            assert(out_i + utf8Size <= size - offset);
-            std::memcpy(&out[out_i], u8ch, utf8Size + 1);
+            if (out_i + utf8Size >= maxLen) {
+                break; // Prevent buffer overflow
+            }
+            std::memcpy(&out[out_i], u8ch, utf8Size);
             out_i += utf8Size;
         }
     }

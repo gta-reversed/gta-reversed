@@ -374,8 +374,8 @@ uint32 CMessages::GetStringLength(const GxtChar* string) {
 // 0x69DB70
 void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
     if (src) {
-        std::strncpy(const_cast<char*>(AsciiFromGxtChar(dest)), AsciiFromGxtChar(src), len - 1);
-        dest[len - 1] = 0;
+        GxtCharStrcpy(dest, src);
+        dest[len - 1] = 0; // Ensure null termination at specified length
     }
     else {
         // Handling of NULL
@@ -571,33 +571,30 @@ void CMessages::Process() {
 void CMessages::Display(bool bNotFading) {
     GxtChar buff[MSG_BUF_SZ];
 
-    if (bNotFading) {
-        // Display big messages
-        for (eMessageStyle i = STYLE_MIDDLE; i < NUM_MESSAGE_STYLES; i = (eMessageStyle)(i + 1)) {
-            const auto& msg = BIGMessages[i].Stack[0];
-            
-            // Process text 
-            InsertNumberInString(msg.Text, msg.NumbersToInsert[0], msg.NumbersToInsert[1], msg.NumbersToInsert[2],
-                               msg.NumbersToInsert[3], msg.NumbersToInsert[4], msg.NumbersToInsert[5], buff);
-            InsertStringInString(buff, msg.StringToInsert);
-            InsertPlayerControlKeysInString(buff);
+    // Helper function to process text for display
+    const auto ProcessMessageText = [&buff](const tMessage& msg) {
+        InsertNumberInString(msg.Text, 
+                           msg.NumbersToInsert[0], msg.NumbersToInsert[1],
+                           msg.NumbersToInsert[2], msg.NumbersToInsert[3], 
+                           msg.NumbersToInsert[4], msg.NumbersToInsert[5], 
+                           buff);
+        InsertStringInString(buff, msg.StringToInsert);
+        InsertPlayerControlKeysInString(buff);
+    };
 
-            // Display
-            CHud::SetBigMessage(buff, i);
+    // Display big messages if not fading
+    if (bNotFading) {
+        for (eMessageStyle style = STYLE_MIDDLE; style < NUM_MESSAGE_STYLES; style = static_cast<eMessageStyle>(style + 1)) {
+            const auto& msg = BIGMessages[style].Stack[0];
+            ProcessMessageText(msg);
+            CHud::SetBigMessage(buff, style);
         }
     }
 
-    // Display brief message if needed
+    // Display brief messages based on script fading condition
     if (bNotFading == CTheScripts::bDrawSubtitlesBeforeFade) {
         const auto& msg = BriefMessages[0];
-        
-        // Process text
-        InsertNumberInString(msg.Text, msg.NumbersToInsert[0], msg.NumbersToInsert[1], msg.NumbersToInsert[2],
-                           msg.NumbersToInsert[3], msg.NumbersToInsert[4], msg.NumbersToInsert[5], buff);
-        InsertStringInString(buff, msg.StringToInsert);
-        InsertPlayerControlKeysInString(buff);
-
-        // Display
+        ProcessMessageText(msg);
         CHud::SetMessage(buff);
     }
 }
