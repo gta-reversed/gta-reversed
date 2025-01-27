@@ -237,7 +237,7 @@ public:
     template<std::predicate<int32, int32> Fn>
     static bool IterateSectors(int32 minX, int32 minY, int32 maxX, int32 maxY, Fn&& fn) {
         if (maxX >= minX && maxY >= minY) {
-            return;
+            return false;
         }
 
         for (auto y = minY; y <= maxY; ++y) {
