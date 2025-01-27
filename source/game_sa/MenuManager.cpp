@@ -19,6 +19,12 @@
 #include "platform.h"
 #include "Hud.h"
 #include "ControllerConfigManager.h"
+#include <sstream>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <ctime>
+#include <cstring>
 
 CMenuManager& FrontEndMenuManager = *(CMenuManager*)0xBA6748;
 
@@ -826,18 +832,26 @@ void CMenuManager::SaveSettings() {
 // 0x57DDE0
 void CMenuManager::SaveStatsToFile() {
     CFileMgr::SetDirMyDocuments();
-    char date[12]{};
-    _strdate_s(date, 12u);
+    
+    // ISO 8601 date format: YYYY-MM-DD
+    const auto getCurrentDate = [](char* buffer, size_t bufferSize) {
+        std::time_t now = std::time(nullptr); 
+        std::tm tm = *std::localtime(&now);
+        std::strftime(buffer, bufferSize, "%Y-%m-%d", &tm); 
+    };
+
+    char date[12];
+    getCurrentDate(date, sizeof(date));
 
     const GxtChar* lastMissionPassedKey = TheText.Get("ITBEG"); // In the beginning
     if (CStats::LastMissionPassedName[0]) {
         lastMissionPassedKey = TheText.Get(CStats::LastMissionPassedName);
     }
 
-    auto file = CFileMgr::OpenFile("stats.html", "w");
+    // Multiplataform and compatible with any U char.
+    std::ofstream file("Stats.html");
     const auto End = [&]() {
         CFileMgr::SetDir("");
-        CFileMgr::CloseFile(file); // FIX_BUGS
         m_nHelperText = FEA_STS; // STATS SAVED TO 'STATS.HTML'
         m_nHelperTextFadingAlpha = 300;
     };
@@ -853,31 +867,39 @@ void CMenuManager::SaveStatsToFile() {
         return UnicodeToUTF8(wide);
     };
 
-    // FIX_BUGS: Use UTF-8 instead of ANSI.
-    fprintf_s(file, "<meta charset=\"UTF-8\"/>\n");
+    // Use stringstream to build content
+    std::stringstream ss;
 
-    fprintf_s(file, "<title>Grand Theft Auto San Andreas Stats</title>\n");
-    fprintf_s(file, "<body bgcolor=\"#000000\" leftmargin=\"10\" topmargin=\"10\" marginwidth=\"10\" marginheight=\"10\">\n");
-    fprintf_s(file, "<table width=\"560\" align=\"center\" border=\"0\" cellpadding=\"5\" cellspacing=\"0\">\n"
-                  "<tr align=\"center\" valign=\"top\"> \n"
-                  "<td height=\"59\" colspan=\"2\" bgcolor=\"#000000\"><div align=\"center\"><font color=\"#FFFFFF\" size=\"5\" face=\"Arial, \n");
-    fprintf_s(file, "Helvetica, sans-serif\">-------------------------------------------------------------------</font><font \nsize=\"5\" face=\"Arial, Helvetica, sans-serif\"><br>\n");
-    fprintf_s(file, "<strong><font color=\"#FFFFFF\">GRAND THEFT AUTO SAN ANDREAS ");
-    fprintf_s(file, "%s</font></strong><br><font\n", ToUpperCase(GxtCharToUTF8(TheText.Get("FEH_STA"))).c_str()); // Stats
-    fprintf_s(file, "color=\"#FFFFFF\">-------------------------------------------------------------------</font></font></div></td> </tr>\n");
-    fprintf_s(file, "<tr align=\"center\" valign=\"top\" bgcolor=\"#000000\">     <td height=\"22\" colspan=\"2\">&nbsp;</td>  </tr>\n"
-                    "<tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> \n");
-    fprintf_s(file, R"(<td height="40" colspan="2"> <p><font color="#F0000C" size="2" face="Arial, Helvetica, sans-serif"><stro)");
-    fprintf_s(file, "ng><font color=\"#F0000C\" size=\"1\">%s: \n", GxtCharToUTF8(TheText.Get("FES_DAT"), 0u)); // DATE
-    fprintf_s(file, "%s</font><br>        %s: </strong>", date, GxtCharToUTF8(TheText.Get("FES_CMI"), 0u));     // LAST MISSION PASSED
-    fprintf_s(file, "%s<strong><br></strong> </font></p></td></tr>\n", ToUpperCase(GxtCharToUTF8(lastMissionPassedKey)).c_str());
-    fprintf_s(file, "<tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> <td height=\"5\" colspan=\"2\"></td> </tr> <tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> \n"
-                  "<td height=\"10\" colspan=\"2\"></td> </tr> <tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> \n");
-    fprintf_s(file, R"(<td height="20" colspan="2"><font color="#F0000C" size="2" face="Arial, Helvetica, sans-serif">)");
-    fprintf_s(file, "<strong> %s</strong>\n ", GxtCharToUTF8(TheText.Get("CRIMRA"), 0u)); // Criminal rating:
+    const auto _FEH_STA = ToUpperCase(GxtCharToUTF8(TheText.Get("FEH_STA"))); // Stats
+    const auto _FES_DAT = GxtCharToUTF8(TheText.Get("FES_DAT"), 0u); // DATE
+    const auto _FES_CMI = GxtCharToUTF8(TheText.Get("FES_CMI"), 0u); // LAST MISSION PASSED
+    const auto _ITBEG = ToUpperCase(GxtCharToUTF8(lastMissionPassedKey));
+    const auto _CRIMRA = GxtCharToUTF8(TheText.Get("CRIMRA"), 0u);
     TextCopy(gGxtString, CStats::FindCriminalRatingString());
-    fprintf_s(file, "%s (%d)</font></td>  </tr>", GxtCharToUTF8(gGxtString, 0u), CStats::FindCriminalRatingNumber());
-    fprintf_s(file, "<tr align=\"left\" valign=\"top\" bgcolor=\"#000000\"><td height=\"10\" colspan=\"2\"></td>  </tr>\n");
+    const auto _CRIMINAL_RATING = GxtCharToUTF8(gGxtString, 0u);
+
+    ss << "<meta charset=\"UTF-8\"/>\n";
+    ss << "<title>Grand Theft Auto San Andreas Stats</title>\n";
+    ss << "<body bgcolor=\"#000000\" leftmargin=\"10\" topmargin=\"10\" marginwidth=\"10\" marginheight=\"10\">\n";
+    ss << "<table width=\"560\" align=\"center\" border=\"0\" cellpadding=\"5\" cellspacing=\"0\">\n"
+       << "<tr align=\"center\" valign=\"top\"> \n"
+       << "<td height=\"59\" colspan=\"2\" bgcolor=\"#000000\"><div align=\"center\"><font color=\"#FFFFFF\" size=\"5\" face=\"Arial, \n";
+    ss << "Helvetica, sans-serif\">-------------------------------------------------------------------</font><font \nsize=\"5\" face=\"Arial, Helvetica, sans-serif\"><br>\n";
+    ss << "<strong><font color=\"#FFFFFF\">GRAND THEFT AUTO SAN ANDREAS ";
+    ss << _FEH_STA << "</font></strong><br><font\n"; // Stats
+    ss << "color=\"#FFFFFF\">-------------------------------------------------------------------</font></font></div></td> </tr>\n";
+    ss << "<tr align=\"center\" valign=\"top\" bgcolor=\"#000000\">     <td height=\"22\" colspan=\"2\">&nbsp;</td>  </tr>\n"
+       << "<tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> \n";
+    ss << R"(<td height="40" colspan="2"> <p><font color="#F0000C" size="2" face="Arial, Helvetica, sans-serif"><stro)";
+    ss << "ng><font color=\"#F0000C\" size=\"1\">" << _FES_DAT << ": \n"; // DATE
+    ss << date << "</font><br>        " << _FES_CMI << ": </strong>";     // LAST MISSION PASSED
+    ss << _ITBEG << "<strong><br></strong> </font></p></td></tr>\n";
+    ss << "<tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> <td height=\"5\" colspan=\"2\"></td> </tr> <tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> \n"
+       << "<td height=\"10\" colspan=\"2\"></td> </tr> <tr align=\"center\" valign=\"top\" bgcolor=\"#000000\"> \n";
+    ss << R"(<td height="20" colspan="2"><font color="#F0000C" size="2" face="Arial, Helvetica, sans-serif">)";
+    ss << "<strong> " << _CRIMRA << "</strong>\n "; // Criminal rating:
+    ss << _CRIMINAL_RATING << " (" << CStats::FindCriminalRatingNumber() << ")</font></td>  </tr>";
+    ss << "<tr align=\"left\" valign=\"top\" bgcolor=\"#000000\"><td height=\"10\" colspan=\"2\"></td>  </tr>\n";
 
     static constexpr const char* strToPrint[] = {
         "FES_PLA", "FES_MON", "FES_WEA", "FES_GAN",
@@ -886,11 +908,11 @@ void CMenuManager::SaveStatsToFile() {
     for (auto menuItem = 0u; menuItem < 8u; menuItem++) {
         auto numStatLines = CStats::ConstructStatLine(99'999, menuItem);
 
-        fprintf_s(file, "</font></strong></div></td> </tr> <tr align=\"left\" valign=\"top\" bgcolor=\"#000000\">  <td height=\"25\" colspan=\"2\"></td> </tr>\n"
-                      "<tr align=\"left\" valign=\"top\"><td height=\"30\" bgcolor=\"#000000\"><font color=\"#009900\" size=\"4\" face=\"Arial, Helvetica, sans-serif\"><strong>\n");
+        ss << "</font></strong></div></td> </tr> <tr align=\"left\" valign=\"top\" bgcolor=\"#000000\">  <td height=\"25\" colspan=\"2\"></td> </tr>\n"
+           << "<tr align=\"left\" valign=\"top\"><td height=\"30\" bgcolor=\"#000000\"><font color=\"#009900\" size=\"4\" face=\"Arial, Helvetica, sans-serif\"><strong>\n";
 
-        fprintf_s(file, "%s", GxtCharToUTF8(TheText.Get(strToPrint[menuItem]), 0u));
-        fprintf_s(file, "</strong></font></td> <td width=\"500\" align=\"right\" valign=\"middle\" bgcolor=\"#000000\"> <div align=\"right\"><strong><font color=\"#FF0CCC\">\n");
+        ss << GxtCharToUTF8(TheText.Get(strToPrint[menuItem]), 0u);
+        ss << "</strong></font></td> <td width=\"500\" align=\"right\" valign=\"middle\" bgcolor=\"#000000\"> <div align=\"right\"><strong><font color=\"#FF0CCC\">\n";
         if (numStatLines <= 0)
             continue;
 
@@ -899,19 +921,22 @@ void CMenuManager::SaveStatsToFile() {
 
             auto str = GxtCharToUTF8(gGxtString, 0u);
             if (*str) {
-                fprintf_s(file, "</font></strong></div></td> </tr> <tr align=\"left\" valign=\"top\" bgcolor=\"#000000\">  <td height=\"10\" colspan=\"2\"></td> </tr>\n");
+                ss << "</font></strong></div></td> </tr> <tr align=\"left\" valign=\"top\" bgcolor=\"#000000\">  <td height=\"10\" colspan=\"2\"></td> </tr>\n";
             }
 
-            fprintf_s(file, "<tr align=\"left\" valign=\"top\"><td width=\"500\" height=\"22\" bgcolor=\"#555555\"><font color=\"#FFFFFF\" size=\"2\" face=\"Arial, Helvetica, sans-serif\"><strong>\n");
-            fprintf_s(file, "%s", (*str) ? str : " ");
-            fprintf_s(file, "</strong></font></td> <td width=\"500\" align=\"right\" valign=\"middle\" bgcolor=\"#555555\"> <div align=\"right\"><strong><font color=\"#FFFFFF\">\n");
+            ss << "<tr align=\"left\" valign=\"top\"><td width=\"500\" height=\"22\" bgcolor=\"#555555\"><font color=\"#FFFFFF\" size=\"2\" face=\"Arial, Helvetica, sans-serif\"><strong>\n";
+            ss << ((*str) ? str : " ");
+            ss << "</strong></font></td> <td width=\"500\" align=\"right\" valign=\"middle\" bgcolor=\"#555555\"> <div align=\"right\"><strong><font color=\"#FFFFFF\">\n";
             auto val = GxtCharToUTF8(gGxtString2, 0u);
             auto valFormatted = (char*)val;
 
             // todo. xref: CStats::ConstructStatLine, PrintStats
             static uint16& unk = *reinterpret_cast<uint16*>(0xB794CC);
             if (unk) { // stat line formatted in percents?
-                sprintf_s(valFormatted, 5u, "%0.0f%%", std::min(atoi(val) / 10.0f, 100.0f)); // max length: "100%\0"
+                std::ostringstream oss;
+                oss << std::fixed << std::setprecision(0) << std::min(atoi(val) / 10.0f, 100.0f) << "%";
+                std::string percent = oss.str().substr(0, 4); // Limit to 4 chars + null terminator
+                std::copy_n(percent.c_str(), percent.length() + 1, valFormatted); // Copy including null terminator
             }
 
             for (auto v = valFormatted; *v; v++) {
@@ -919,8 +944,17 @@ void CMenuManager::SaveStatsToFile() {
                     *v = -70; // double vertical bar
                 }
             }
-            fprintf_s(file, "%s", valFormatted);
+            ss << valFormatted;
         }
+    }
+
+    // Write stringstream content to file
+    try {
+        file << ss.str();
+    } catch (const std::exception& e) {
+        OutputDebugStringA(e.what());
+        End();
+        return;
     }
 
     End();

@@ -1,4 +1,10 @@
 #pragma once
+#include <sstream>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <ctime>
+#include <cstring>
 
 using GxtChar = uint8_t; // 8-bit GXT character.
 
@@ -26,9 +32,28 @@ char* GxtCharToUTF8(char (&out)[N], const GxtChar* src, size_t offset = 0) {
     return GxtCharToUTF8(out, src, N, offset);
 }
 
+inline size_t CalculateUTF8BufferSize(const GxtChar* gxtStr) {
+    size_t len = 0;
+    if (gxtStr) {
+        while (gxtStr[len] != 0) len++;
+        // Modern c++ 20+: dynamic size 4 bytes max per char + null terminator
+        return len * 4 + 1 + 64;
+    }
+    return 0;
+}
+
 inline const char* GxtCharToUTF8(const GxtChar* src, size_t offset = 0) {
-    static char utf8Text[255];
-    return GxtCharToUTF8(utf8Text, src, std::size(utf8Text), offset);
+    static char* utf8Text = nullptr;
+    static size_t currentSize = 0;
+    
+    size_t requiredSize = CalculateUTF8BufferSize(src);
+    if (requiredSize > currentSize) {
+        delete[] utf8Text;
+        utf8Text = new char[requiredSize];
+        currentSize = requiredSize;
+    }
+    
+    return GxtCharToUTF8(utf8Text, src, currentSize, offset);
 };
 
 /**
