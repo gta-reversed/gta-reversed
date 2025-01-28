@@ -125,12 +125,10 @@ enum eRotationAxis : int32 {
 typedef int32 eOrdnanceType;
 
 enum eBikeWheelSpecial {
-    BIKE_WHEEL_F_STD       = 0, // both wheels on ground
-    BIKE_WHEEL_R_STD       = 1, // rear wheel on ground
-    BIKE_WHEEL_F_SLIP      = 2, // only front wheel on ground
-    BIKE_WHEEL_R_SLIP      = 3, // can't happen
-    BIKE_WHEEL_R_HBRAKE    = 4,
-    BIKE_WHEEL_R_SLIPBRAKE = 5,
+	BIKE_WHEELSPEC_0 = 0, // both wheels on ground
+	BIKE_WHEELSPEC_1 = 1, // rear wheel on ground
+	BIKE_WHEELSPEC_2 = 2, // only front wheel on ground
+	BIKE_WHEELSPEC_3 = 3, // can't happen
 };
 
 enum eFlightModel : int32 {
@@ -626,24 +624,8 @@ public:
     void SetupRender();
     void ProcessWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
                       float adhesion, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, uint16 wheelStatus);
-    // void ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
-    //                       float adhesion, float destabTraction, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, eBikeWheelSpecial special, uint16 wheelStatus);
-    void ProcessBikeWheel(
-        CVector*          vecForward,
-        CVector*          vecRight,
-        CVector*          vecSpeed,
-        CVector*          vecOffset,
-        int32             nNoOfContactWheels,
-        float             fDriveAcceleration,
-        float             fDriveDeceleration,
-        float             fAdhesiveLimit,
-        float             fSideAdhesiveMult,
-        int8              WheelNum,
-        float*            pWheelPitchIncrement,
-        tWheelState*      pWheelState,
-        eBikeWheelSpecial WheelSp,
-        uint16            nWheelDamage
-    );
+    void ProcessBikeWheel(CVector& wheelFwd, CVector& wheelRight, CVector& wheelContactSpeed, CVector& wheelContactPoint, int32 wheelsOnGround, float thrust, float brake,
+                          float adhesion, float destabTraction, int8 wheelId, float* wheelSpeed, tWheelState* wheelState, eBikeWheelSpecial special, uint16 wheelStatus);
     eCarWheel FindTyreNearestPoint(CVector2D point);
     void InflictDamage(CEntity* damager, eWeaponType weapon, float intensity, CVector coords);
     void KillPedsGettingInVehicle();
@@ -667,7 +649,7 @@ public:
     CEntity* ScanAndMarkTargetForHeatSeekingMissile(CEntity* entity);
     void FireHeatSeakingMissile(CEntity* targetEntity, eOrdnanceType ordnanceType, bool arg2);
     void PossiblyDropFreeFallBombForPlayer(eOrdnanceType ordnanceType, bool arg1);
-    void ProcessSirenAndHorn(bool canHorn);
+    void ProcessSirenAndHorn(bool arg0);
 
     bool DoHeadLightEffect(eVehicleDummy dummyId, CMatrix& vehicleMatrix, uint8 lightId, uint8 lightState);
     void DoHeadLightBeam(eVehicleDummy dummyId, CMatrix& matrix, bool arg2);
@@ -784,6 +766,7 @@ public: // NOTSA functions
     [[nodiscard]] bool HasSpaceForAPassenger() const { return m_nMaxPassengers > m_nNumPassengers + 1; }
 
 private:
+
     friend void InjectHooksMain();
     static void InjectHooks();
 

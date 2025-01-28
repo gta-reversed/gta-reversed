@@ -26,6 +26,18 @@ enum eBikeNodes {
     BIKE_NUM_NODES
 };
 
+enum {
+	BIKEWHEEL_FRONT,
+	BIKEWHEEL_REAR,
+};
+
+enum {
+	BIKESUSP_F1,
+	BIKESUSP_F2,
+	BIKESUSP_R1,
+	BIKESUSP_R2,
+};
+
 class NOTSA_EXPORT_VTABLE CBike : public CVehicle {
     static constexpr auto NUM_SUSP_LINES = 4;
 public:

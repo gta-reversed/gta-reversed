@@ -1006,13 +1006,13 @@ void CVehicle::ProcessDrivingAnims(CPed* driver, bool blend) {
     }
 
     auto fUsedAngle = std::fabs(m_fSteerAngle / 0.61F);
-    if (fUsedAngle < 0.0F) {
-        fUsedAngle = 0.0F;
-    } else if (fUsedAngle > 1.0F) {
-        fUsedAngle = 1.0F;
-    }
+    fUsedAngle = std::clamp(fUsedAngle, 0.0F, 1.0F);
 
     if (m_fSteerAngle < 0) {
+        if (lookLeftAnim) {
+            lookLeftAnim->m_BlendAmount = 0.0F;
+            lookLeftAnim->m_BlendDelta  = 0.0F;
+        }
         if (lookRightAnim) {
             lookRightAnim->m_BlendAmount = fUsedAngle;
             lookRightAnim->m_BlendDelta  = 0.0F;
@@ -3234,11 +3234,8 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
 
     if (bDriving) {
         fwd = thrust;
-        if (right < -adhesion)
-            right = -adhesion;
-        else if (right > adhesion)
-            right = adhesion;
-        }
+        right = std::clamp(right, -adhesion, adhesion);
+    }
     else if (contactSpeedFwd != 0.0f) {
         fwd = -contactSpeedFwd / wheelsOnGround;
 
@@ -3269,10 +3266,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
                 *wheelState = WHEEL_STATE_FIXED;
             }
         } else {
-            if (fwd < -brake)
-                fwd = -brake;
-            else if (fwd > brake)
-                fwd = brake;
+            fwd = std::clamp(fwd, -brake, brake);
         }
     }
 
@@ -3336,7 +3330,6 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
 }
 
 // 0x6D73B0
-/*
 void CVehicle::ProcessBikeWheel(
     CVector& wheelFwd,
     CVector& wheelRight, 
@@ -3353,16 +3346,16 @@ void CVehicle::ProcessBikeWheel(
     eBikeWheelSpecial special,
     uint16 wheelStatus)
 {
-    constexpr float RANDOM_FACTOR = 0.00003052f;
-    constexpr float WHEEL_THRESHOLD = 0.01f;
-    constexpr float BRAKE_THRESHOLD = 0.05f;
-    constexpr float SPEED_THRESHOLD = 0.005f;
-    constexpr float MIN_SPEED = 0.1f;
-    constexpr float TURN_SLOW = 0.2f;
-    constexpr float TURN_MEDIUM = 0.5f;
-    constexpr float TURN_FAST = 0.6f;
-    constexpr float MAX_TRACTION = 1.0f;
-    constexpr float NEG_MULTIPLIER = -1.0f;
+    const float RANDOM_FACTOR = 0.00003052f;
+    const float WHEEL_THRESHOLD = 0.01f;
+    const float BRAKE_THRESHOLD = 0.05f;
+    const float SPEED_THRESHOLD = 0.005f;
+    const float MIN_SPEED = 0.1f;
+    const float TURN_SLOW = 0.2f;
+    const float TURN_MEDIUM = 0.5f;
+    const float TURN_FAST = 0.6f;
+    const float MAX_TRACTION = 1.0f;
+    const float NEG_MULTIPLIER = -1.0f;
 
     float currentTurnForce = 0.0;
     currentTurnForce = brake; 
@@ -3372,31 +3365,31 @@ void CVehicle::ProcessBikeWheel(
     float contactSpeedFwd = DotProduct(wheelFwd, wheelContactSpeed);
 
     // Set driving states
-    bool bBraking   = brake != 0.0;
-    bool bDriving   = !bBraking && brake != 0.0;
-    bool bReversing = !bBraking && thrust < 0.0;
-
+    bool bBraking = (brake != 0.0f);
+    bool bDriving = false;
+    bool bReversing = false;
+    
+    if (brake == 0.0f) {
+        bDriving = (thrust != 0.0f);
+        bReversing = (thrust < 0.0f);
+    }
     // Process wheel state and calculate traction
-    static bool bWasSkidding = false;
+    bool bWasSkidding = false;
     float timeSteppedAdhesion = CTimer::GetTimeStep() * adhesion;
     
-    // if (*wheelState) {
-    //     bWasSkidding = true;
-    //     *wheelState = WHEEL_STATE_NORMAL;
-    //     timeSteppedAdhesion *= this->m_pHandlingData->m_fTractionLoss;
-    // } else {
-    //     if (bWasSkidding) {
-    //         timeSteppedAdhesion *= this->m_pHandlingData->m_fTractionLoss;
-    //     }
-    //     *wheelState = WHEEL_STATE_NORMAL;
-    // }
-
-    *wheelState = WHEEL_STATE_NORMAL;
-    timeSteppedAdhesion *= this->m_pHandlingData->m_fTractionLoss;
-    bWasSkidding = (*wheelState) ? true : false;
+    if (*wheelState) {
+        bWasSkidding = true;
+        *wheelState = WHEEL_STATE_NORMAL;
+        timeSteppedAdhesion *= this->m_pHandlingData->m_fTractionLoss;
+    } else {
+        if (bWasSkidding) {
+            timeSteppedAdhesion *= this->m_pHandlingData->m_fTractionLoss;
+        }
+        *wheelState = WHEEL_STATE_NORMAL;
+    }
 
     // Process side forces for non-regular wheels
-    if (special != eBikeWheelSpecial::BIKE_WHEEL_F_SLIP && special != eBikeWheelSpecial::BIKE_WHEEL_R_SLIP) {
+    if (special != eBikeWheelSpecial::BIKE_WHEELSPEC_2 && special != eBikeWheelSpecial::BIKE_WHEELSPEC_3) {
         float contactSpeedRight = DotProduct(wheelRight, wheelContactSpeed);
         if (contactSpeedRight != 0.0f) {
             right = -(contactSpeedRight / (float)wheelsOnGround);
@@ -3411,205 +3404,70 @@ void CVehicle::ProcessBikeWheel(
     }
 
     // Process forward forces
-    // /
-    // if (bDriving) {
-    //     fwd = thrust;
-    //     right = std::clamp(right, -timeSteppedAdhesion, timeSteppedAdhesion);
-    // } else if (contactSpeedFwd != 0.0f) {
-    //     fwd = -(contactSpeedFwd / wheelsOnGround);
-
-    //     // NOTSA: re3 fix
-	// 	fwd *= CTimer::GetTimeStep() / MAGIC_NUMBER;
-
-    //     if (!bBraking && std::fabs(m_fGasPedal) < 0.01f)
-    //     {
-    //         if ((IsBMX()) && (fwd > -BRAKE_THRESHOLD && fwd < BRAKE_THRESHOLD ))
-    //         {
-    //             currentTurnForce = gHandlingDataMgr.fWheelFriction * TURN_MEDIUM / (m_pHandlingData->m_fMass + 200.0f);
-    //         } else if ( IsBike() ) {
-    //             currentTurnForce = gHandlingDataMgr.fWheelFriction * TURN_FAST / (m_pHandlingData->m_fMass + 200.0f);
-    //         } else {
-    //             currentTurnForce = gHandlingDataMgr.fWheelFriction / m_pHandlingData->m_fMass;
-    //             if (((m_pHandlingData->m_fMass < 500.0) || (m_nModelIndex == MODEL_RCBANDIT))) 
-    //             {
-    //                 currentTurnForce *= TURN_SLOW;
-    //             }
-    //         }
-    //     }
-
-    //     // NOTSA: re3 fix
-    //     currentTurnForce *= CTimer::GetTimeStep() / MAGIC_NUMBER;
-
-    //     if (currentTurnForce > timeSteppedAdhesion) {
-    //         if (std::abs(contactSpeedFwd) > 0.005f)
-    //             *wheelState = WHEEL_STATE_FIXED;
-    //     } else {
-    //         fwd = std::clamp(fwd, -currentTurnForce, currentTurnForce);
-    //     }
-    // }/
-    float finalLateralForce = right;
     if (bDriving) {
         fwd = thrust;
-        if (right < -timeSteppedAdhesion)
-            right = -timeSteppedAdhesion;
-        else if (right > timeSteppedAdhesion)
-            right = timeSteppedAdhesion;
-    } else {
-        if (contactSpeedFwd != 0.0f) {
-            float decelerationForce = -contactSpeedFwd / static_cast<float>(wheelsOnGround);
+        right = std::clamp(right, -timeSteppedAdhesion, timeSteppedAdhesion);
+    } else if (contactSpeedFwd != 0.0f) {
+        fwd = -(contactSpeedFwd / wheelsOnGround);
 
-            // float fDriveDeceleration = brake; // Assuming 'brake' corresponds to 'fDriveDeceleration'
+        // NOTSA: re3 fix
+		fwd *= CTimer::GetTimeStep() / MAGIC_NUMBER;
 
-            if (!bBraking && std::fabs(m_fGasPedal) < 0.01f) {
-                float fMass = m_pHandlingData->m_fMass;
-                float m_fWheelFriction = gHandlingDataMgr.fWheelFriction;
-                
-                if (!IsBMX() && (decelerationForce >= 0.05f || decelerationForce <= -0.05f)) {
-                // if (!IsBMX() && (decelerationForce >= 0.05f || decelerationForce <= -0.05f || IsBike())) {
-                    if (IsBike()) {
-                        currentTurnForce = (m_fWheelFriction * 0.6f) / (fMass + 200.0f);
-                    } else if (fMass >= 500.0f && m_nModelIndex != MODEL_RCBANDIT) {
-                        currentTurnForce = m_fWheelFriction / fMass;
-                    } else {
-                        currentTurnForce = (m_fWheelFriction * 0.2f) / fMass;
-                    }
-                    
-                    if (currentTurnForce > timeSteppedAdhesion && std::abs(contactSpeedFwd) > SPEED_THRESHOLD) {
-                        *wheelState = WHEEL_STATE_FIXED;
-                    } else if (decelerationForce <= 0.0f) {
-                        if (decelerationForce < -currentTurnForce)
-                            fwd = -currentTurnForce;
-                        else if (decelerationForce > decelerationForce)
-                            fwd = decelerationForce;
-                        else
-                            fwd = decelerationForce;
-                        finalLateralForce = right;
-                    } else if (decelerationForce > currentTurnForce) {
-                        fwd = currentTurnForce;
-                        finalLateralForce = right;
-                    } else {
-                        fwd = decelerationForce;
-                        finalLateralForce = right;
-                    }
-                } else {
-                    if (!this->m_pDriver || !CPad::GetPad(0)->GetAccelerate()) {
-                        currentTurnForce = (m_fWheelFriction * 0.5f) / (fMass + 200.0f);
-                    } else {
-                        currentTurnForce = m_fWheelFriction / fMass;
-                    }
-                    
-                    if (currentTurnForce > timeSteppedAdhesion && std::abs(contactSpeedFwd) > SPEED_THRESHOLD) {
-                        *wheelState = WHEEL_STATE_FIXED;
-                    } else if (decelerationForce <= 0.0f) {
-                        if (decelerationForce < -currentTurnForce)
-                            fwd = -currentTurnForce;
-                        else if (decelerationForce > decelerationForce)
-                            fwd = decelerationForce;
-                        else
-                            fwd = decelerationForce;
-                        finalLateralForce = right;
-                    } else if (decelerationForce > currentTurnForce) {
-                        fwd = currentTurnForce;
-                        finalLateralForce = right;
-                    } else {
-                        fwd = decelerationForce;
-                        finalLateralForce = right;
-                    }
-                }
+        if (!bBraking && std::fabs(m_fGasPedal) < 0.01f)
+        {
+            // if (( m_vehicleType == eVehicleType::VEHICLE_TYPE_BMX) && (fwd > -BRAKE_THRESHOLD && fwd < BRAKE_THRESHOLD ))
+            if (( IsBMX() ) && (fwd > -BRAKE_THRESHOLD && fwd < BRAKE_THRESHOLD ))
+            {
+                currentTurnForce = gHandlingDataMgr.fWheelFriction * TURN_MEDIUM / (m_pHandlingData->m_fMass + 200.0f);
+            // } else if ( m_baseVehicleType == eVehicleType::VEHICLE_TYPE_BIKE ) {
+            } else if ( IsRealBike() ) {
+                currentTurnForce = gHandlingDataMgr.fWheelFriction * TURN_FAST / (m_pHandlingData->m_fMass + 200.0f);
             } else {
-                if (currentTurnForce > timeSteppedAdhesion && std::abs(contactSpeedFwd) > SPEED_THRESHOLD) {
-                    *wheelState = WHEEL_STATE_FIXED;
-                } else if (decelerationForce <= 0.0f) {
-                    if (decelerationForce < -currentTurnForce)
-                        fwd = -currentTurnForce;
-                    else if (decelerationForce > decelerationForce)
-                        fwd = decelerationForce;
-                    else
-                        fwd = decelerationForce;
-                    finalLateralForce = right;
-                } else if (decelerationForce > currentTurnForce) {
-                    fwd = currentTurnForce;
-                    finalLateralForce = right;
-                } else {
-                    fwd = decelerationForce;
-                    finalLateralForce = right;
+                currentTurnForce = gHandlingDataMgr.fWheelFriction / m_pHandlingData->m_fMass;
+                if (((m_pHandlingData->m_fMass < 500.0) || (m_nModelIndex == MODEL_RCBANDIT))) 
+                {
+                    currentTurnForce *= TURN_SLOW;
                 }
             }
+        }
+
+        // NOTSA: re3 fix
+        currentTurnForce *= CTimer::GetTimeStep() / MAGIC_NUMBER;
+
+        if (currentTurnForce > timeSteppedAdhesion) {
+            if (std::abs(contactSpeedFwd) > 0.005f)
+                *wheelState = WHEEL_STATE_FIXED;
         } else {
-            fwd = 0.0f;
-            finalLateralForce = right;
+            fwd = std::clamp(fwd, -currentTurnForce, currentTurnForce);
         }
     }
 
-    // // Process combined forces
-    // float speedSq = finalLateralForce * finalLateralForce + fwd * fwd;
-    // float adhesionSq = timeSteppedAdhesion * timeSteppedAdhesion;
+    // Process combined forces
+    float speedSq = right * right + fwd * fwd;
+    float adhesionSq = timeSteppedAdhesion * timeSteppedAdhesion;
 
-    // if (speedSq > adhesionSq) {
-    //     if (*wheelState != WHEEL_STATE_FIXED) {
-    //         if (bDriving && contactSpeedFwd < 0.1f)
-    //             *wheelState = WHEEL_STATE_SPINNING;
-    //         else
-    //             *wheelState = WHEEL_STATE_SKIDDING;
-    //     }
-
-    //     float tractionLoss = m_pHandlingData->m_fTractionLoss;
-    //     if (bWasSkidding)
-    //         tractionLoss = 1.0f;
-
-    //     float scale = timeSteppedAdhesion * tractionLoss / sqrt(speedSq);
-    //     fwd *= scale;
-    //     finalLateralForce *= scale;
-
-    //     if (destabTraction < 1.0f)
-    //         finalLateralForce *= destabTraction; 
-    // }/
-
-    float totalForce = (fwd * fwd) + (finalLateralForce * finalLateralForce);
-    if (totalForce <= (timeSteppedAdhesion * timeSteppedAdhesion))
-    {
-        if (destabTraction < 1.0)
-        {
-            if (!bWasSkidding)
-            {
-                destabTraction *= this->m_pHandlingData->m_fTractionLoss;
-            }
-            if (totalForce > (destabTraction * ((timeSteppedAdhesion * timeSteppedAdhesion) * destabTraction)))
-            {
-                finalLateralForce = finalLateralForce * ((timeSteppedAdhesion * destabTraction) / sqrtf(totalForce));
-            }
-        }
-    }
-    else
-    {
-        if (*wheelState != WHEEL_STATE_FIXED)
-        {
-            if (bDriving && contactSpeedFwd < 0.1)
-            {
+    if (speedSq > adhesionSq) {
+        if (*wheelState != WHEEL_STATE_FIXED) {
+            if (bDriving && contactSpeedFwd < 0.1f)
                 *wheelState = WHEEL_STATE_SPINNING;
-            }
             else
-            {
                 *wheelState = WHEEL_STATE_SKIDDING;
-            }
         }
-        float fTractionLoss = this->m_pHandlingData->m_fTractionLoss;
-        float forceRatio = timeSteppedAdhesion / sqrtf(totalForce);
+
+        float tractionLoss = m_pHandlingData->m_fTractionLoss;
         if (bWasSkidding)
-        {
-            fTractionLoss = 1.0;
-        }
-        float finalForceRatio = forceRatio * fTractionLoss;
-        finalLateralForce *= finalForceRatio;
-        fwd *= finalForceRatio;
-        if (destabTraction < 1.0)
-        {
-            finalLateralForce *= destabTraction;
-        }
+            tractionLoss = 1.0f;
+
+        float scale = timeSteppedAdhesion * tractionLoss / sqrt(speedSq);
+        fwd *= scale;
+        right *= scale;
+
+        if (destabTraction < 1.0f)
+            right *= destabTraction; 
     }
 
-    if(fwd != 0.0f || finalLateralForce != 0.0f){
-        CVector direction = fwd*wheelFwd + finalLateralForce*wheelRight;
+    if(fwd != 0.0f || right != 0.0f){
+        CVector direction = fwd*wheelFwd + right*wheelRight;
 
         float speed = direction.Magnitude();
         direction.Normalise();
@@ -3623,280 +3481,14 @@ void CVehicle::ProcessBikeWheel(
         float contactRight = DotProduct(wheelContactPoint, GetRight());
         float contactFwd = DotProduct(wheelContactPoint, GetForward());
 
-        if(wheelId != 1 || !bBraking && !bReversing)
+        if(wheelId != BIKEWHEEL_REAR || !bBraking && !bReversing)
             ApplyTurnForce((vTurnImpulse - turnRight*GetRight()) * fTweakBikeWheelTurnForce,
                 wheelContactPoint - contactRight*GetRight());
 
         ApplyTurnForce(turnRight*GetRight(), contactFwd*GetForward());
     }
 }
-*/
 
-void CVehicle::ProcessBikeWheel(
-    CVector *vecForward,
-    CVector *vecRight,
-    CVector *vecSpeed,
-    CVector *vecOffset,
-    int32 nNoOfContactWheels,
-    float fDriveAcceleration,
-    float fDriveDeceleration,
-    float fAdhesiveLimit,
-    float fSideAdhesiveMult,
-    int8 WheelNum,
-    float *pWheelPitchIncrement,
-    tWheelState *pWheelState,
-    eBikeWheelSpecial WheelSp,
-    uint16 nWheelDamage)
-{
-    float x = vecSpeed->x;
-    float y = vecSpeed->y;
-    float z = vecSpeed->z;
-    float forwardX = vecForward->x;
-    float forwardDotY = y * vecForward->y;
-    float forwardZ = vecForward->z;
-
-    bool bBraking = fDriveDeceleration != 0.0;
-    bool bDriving = !bBraking && fDriveAcceleration != 0.0;
-    bool bReversing = !bBraking && fDriveAcceleration < 0.0;
-
-    float totalForwardSpeed = forwardDotY + (x * forwardX);
-    float adhesionLimit = CTimer::ms_fTimeStep * fAdhesiveLimit;
-    static bool bAlreadySkidding  = false;
-    if (*pWheelState)
-    {
-        bAlreadySkidding = true;
-        *pWheelState = WHEEL_STATE_NORMAL;
-        adhesionLimit *= this->m_pHandlingData->m_fTractionLoss;
-    }
-    else
-    {
-        bAlreadySkidding = false;
-        *pWheelState = WHEEL_STATE_NORMAL;
-        adhesionLimit *= this->m_pHandlingData->m_fTractionLoss;
-    }
-
-    float totalSpeed = totalForwardSpeed + (z * forwardZ);
-    float lateralForce = 0.0;
-
-    if ((WheelSp | 1) != 3)
-    {
-        float rightDotY = y * vecRight->y;
-        float sideSpeed = (rightDotY + (x * vecRight->x));
-        if (sideSpeed != 0.0)
-        {
-            lateralForce = -sideSpeed / nNoOfContactWheels;
-            if (nWheelDamage == 1)
-            {
-                float clampedSpeed = std::fminf(totalSpeed, fBurstBikeSpeedMax);
-                float burstMod = fBurstBikeTyreMod;
-                int randomVal = std::rand();
-                lateralForce += clampedSpeed * -(burstMod - ((burstMod + burstMod) * (randomVal * 4.6566f)));
-            }
-        }
-    }
-
-    float finalLateralForce = lateralForce;
-    if (bDriving)
-    {
-        if (lateralForce <= 0.0)
-        {
-            finalLateralForce = (lateralForce < -adhesionLimit) ? -adhesionLimit : lateralForce;
-        }
-        else if (lateralForce > adhesionLimit)
-        {
-            finalLateralForce = adhesionLimit;
-        }
-        else
-        {
-            finalLateralForce = lateralForce;
-        }
-    }
-    else
-    {
-        if (totalSpeed == 0.0)
-        {
-            fDriveAcceleration = 0.0;
-            finalLateralForce = lateralForce;
-        }
-        else
-        {
-            float decelerationForce = -totalSpeed / nNoOfContactWheels;
-            
-            if (bBraking || std::fabs(this->m_fGasPedal) >= 0.01)
-            {
-                if (fDriveDeceleration > adhesionLimit)
-                {
-                    if (std::fabs(totalSpeed) > 0.005)
-                    {
-                        *pWheelState = WHEEL_STATE_FIXED;
-                    }
-                }
-                else if (decelerationForce <= 0.0)
-                {
-                    fDriveAcceleration = (decelerationForce < -fDriveDeceleration) ? -fDriveDeceleration : decelerationForce;
-                    finalLateralForce = lateralForce;
-                }
-                else if (decelerationForce > fDriveDeceleration)
-                {
-                    fDriveAcceleration = fDriveDeceleration;
-                    finalLateralForce = lateralForce;
-                }
-                else
-                {
-                    fDriveAcceleration = decelerationForce;
-                    finalLateralForce = lateralForce;
-                }
-            }
-            else
-            {
-                float fMass = (float)this->m_pHandlingData->m_fMass;
-                float fWheelF = (float)gHandlingDataMgr.fWheelFriction;
-                
-                if (!this->IsSubBMX() && (decelerationForce >= 0.05f || decelerationForce <= -0.05 || IsBike()))
-                {
-                    if (IsBike())
-                    {
-                        fDriveDeceleration = (fWheelF * 0.6f) / (fMass + 200.0f);
-                    }
-                    else if (fMass >= 500.0 && this->m_nModelIndex != 441)
-                    {
-                        fDriveDeceleration = fWheelF / fMass;
-                    }
-                    else
-                    {
-                        fDriveDeceleration = (fWheelF * 0.2f) / fMass;
-                    }
-                    
-                    if (fDriveDeceleration > adhesionLimit)
-                    {
-                        if (std::fabs(totalSpeed) > 0.005f)
-                        {
-                            *pWheelState = WHEEL_STATE_FIXED;
-                        }
-                    }
-                    else if (decelerationForce <= 0.0)
-                    {
-                        fDriveAcceleration = (decelerationForce < -fDriveDeceleration) ? -fDriveDeceleration : decelerationForce;
-                        finalLateralForce = lateralForce;
-                    }
-                    else if (decelerationForce > fDriveDeceleration)
-                    {
-                        fDriveAcceleration = fDriveDeceleration;
-                        finalLateralForce = lateralForce;
-                    }
-                    else
-                    {
-                        fDriveAcceleration = decelerationForce;
-                        finalLateralForce = lateralForce;
-                    }
-                }
-                else
-                {
-                    if (!this->m_pDriver || !CPad::GetPad(0)->GetAccelerate())
-                    {
-                        fDriveDeceleration = (fWheelF * 0.5f) / (fMass + 200.0f);
-                    }
-                    else
-                    {
-                        fDriveDeceleration = fWheelF / fMass;
-                    }
-                    
-                    if (fDriveDeceleration > adhesionLimit)
-                    {
-                        if (std::fabs(totalSpeed) > 0.005f)
-                        {
-                            *pWheelState = WHEEL_STATE_FIXED;
-                        }
-                    }
-                    else if (decelerationForce <= 0.0)
-                    {
-                        fDriveAcceleration = (decelerationForce < -fDriveDeceleration) ? -fDriveDeceleration : decelerationForce;
-                        finalLateralForce = lateralForce;
-                    }
-                    else if (decelerationForce > fDriveDeceleration)
-                    {
-                        fDriveAcceleration = fDriveDeceleration;
-                        finalLateralForce = lateralForce;
-                    }
-                    else
-                    {
-                        fDriveAcceleration = decelerationForce;
-                        finalLateralForce = lateralForce;
-                    }
-                }
-            }
-        }
-    }
-
-    float totalForce = (fDriveAcceleration * fDriveAcceleration) + (finalLateralForce * finalLateralForce);
-    if (totalForce <= (adhesionLimit * adhesionLimit))
-    {
-        if (fSideAdhesiveMult < 1.0)
-        {
-            if (!bAlreadySkidding)
-            {
-                fSideAdhesiveMult *= this->m_pHandlingData->m_fTractionLoss;
-            }
-            if (totalForce > (fSideAdhesiveMult * ((adhesionLimit * adhesionLimit) * fSideAdhesiveMult)))
-            {
-                finalLateralForce = finalLateralForce * ((adhesionLimit * fSideAdhesiveMult) / sqrtf(totalForce));
-            }
-        }
-    }
-    else
-    {
-        if (*pWheelState != WHEEL_STATE_FIXED)
-        {
-            if (bDriving && totalSpeed < 0.1)
-            {
-                *pWheelState = WHEEL_STATE_SPINNING;
-            }
-            else
-            {
-                *pWheelState = WHEEL_STATE_SKIDDING;
-            }
-        }
-        float fTractionLoss = this->m_pHandlingData->m_fTractionLoss;
-        float forceRatio = adhesionLimit / sqrtf(totalForce);
-        if (bAlreadySkidding)
-        {
-            fTractionLoss = 1.0;
-        }
-        float finalForceRatio = forceRatio * fTractionLoss;
-        finalLateralForce *= finalForceRatio;
-        fDriveAcceleration *= finalForceRatio;
-        if (fSideAdhesiveMult < 1.0)
-        {
-            finalLateralForce *= fSideAdhesiveMult;
-        }
-    }
-
-    if(fDriveAcceleration != 0.0f || finalLateralForce != 0.0f){
-        // CVector direction = fDriveAcceleration * vecForward + finalLateralForce * vecRight;
-        CVector direction = fDriveAcceleration * (*vecForward) + finalLateralForce * (*vecRight);
-        float speed = direction.Magnitude();
-        direction.Normalise();
-
-        float impulse = speed*m_fMass;
-        auto wheelContactPoint = *vecOffset;
-        // float turnImpulse = speed*GetMass(wheelContactPoint, direction);
-        float turnImpulse = speed*GetMass(*vecOffset, direction);
-        CVector vTurnImpulse = turnImpulse * direction;
-        ApplyMoveForce(impulse * direction);
-
-        float turnRight = DotProduct(vTurnImpulse, GetRight());
-        float contactRight = DotProduct(wheelContactPoint, GetRight());
-        float contactFwd = DotProduct(wheelContactPoint, GetForward());
-
-        if (WheelNum != 1 || !bBraking && !bReversing) {
-        //     //ApplyTurnForce((vTurnImpulse - turnRight*GetRight()) * fTweakBikeWheelTurnForce, wheelContactPoint - contactRight*GetRight());
-            ApplyTurnForce((vTurnImpulse - turnRight*GetRight()) * fTweakBikeWheelTurnForce, *vecOffset - contactRight*GetRight());
-        }
-
-         ApplyTurnForce(turnRight*GetRight(), contactFwd*GetForward());
-    }
-
-}
 // 0x6D7BC0
 eCarWheel CVehicle::FindTyreNearestPoint(CVector2D point) 
 {
@@ -3919,54 +3511,40 @@ eCarWheel CVehicle::FindTyreNearestPoint(CVector2D point)
     }
 }
 
-
 // 0x6D7C90
 void CVehicle::InflictDamage(CEntity* pInflictor, eWeaponType WeaponUsed, float damage, CVector coords) {
-    
-    CAutomobile* pThisCar = this->AsAutomobile();
-    CPed* pPedInflictor = (pInflictor && IsEntityPointerValid(pInflictor) && pInflictor->IsPed()) ? pInflictor->AsPed() : nullptr;
-    
+    CAutomobile* pThisCar      = this->AsAutomobile();
+    CPed*        pPedInflictor = (pInflictor && IsEntityPointerValid(pInflictor) && pInflictor->IsPed()) ? pInflictor->AsPed() : nullptr;
+
     bool bBeingShotAt = false;
-    if (!CanVehicleBeDamaged(pInflictor, WeaponUsed, bBeingShotAt))
+    if (!CanVehicleBeDamaged(pInflictor, WeaponUsed, bBeingShotAt)) {
         return;
+    }
 
-	if (pPedInflictor && pPedInflictor->m_nStatus == STATUS_PLAYER)
-    {
-        if (CTheScripts::pActiveScripts && CTheScripts::pActiveScripts->m_szName) {
-            if (strlen(CTheScripts::pActiveScripts->m_szName) == 6) {
-                char tempName[7];
-                strncpy(tempName, CTheScripts::pActiveScripts->m_szName, 6);
-                tempName[6] = '\0';
-
-                for (size_t i = 0; i < 6; ++i) {
-                    tempName[i] = tolower((unsigned char)tempName[i]);
-                }
-
-                if (strcmp(tempName, "strap3") == 0) {
-                    damage *= 0.25f;
-                }
-            }
+    if (pPedInflictor && pPedInflictor->m_nStatus == STATUS_PLAYER) {
+        if (CTheScripts::pActiveScripts && (strcmp(CTheScripts::pActiveScripts->m_szName, "strap3") == 0 || strcmp(CTheScripts::pActiveScripts->m_szName, "STRAP3") == 0)) {
+            damage *= 0.25f;
         }
 
-        if (CStats::GetPercentageProgress() < 100.0f)
+        if (CStats::GetPercentageProgress() < 100.0f) {
             damage *= (CStats::GetPercentageProgress() < 100.0f) ? (0.42f) : (0.95f);
+        }
     }
 
     if (damage > 10.0
         && (pInflictor == FindPlayerPed(-1) || pInflictor == FindPlayerVehicle(-1, 0))
-        && (this->m_nStatus != STATUS_WRECKED))
-    {
+        && (this->m_nStatus != STATUS_WRECKED)) {
         CPlayerInfo* playerInfo = &CWorld::Players[CWorld::PlayerInFocus];
         playerInfo->m_fCurrentChaseValue += 1.0f;
         playerInfo->m_nHavocCaused += 2;
         CStats::IncrementStat(STAT_COST_OF_PROPERTY_DAMAGED, static_cast<float>(rand() % 20 + 5));
     }
 
-	// Pop tires
+    // Pop tires
     if (pPedInflictor != nullptr) {
         if (pPedInflictor && pPedInflictor->IsPed() && (IsAutomobile() || IsBike()) && !this->vehicleFlags.bTyresDontBurst) {
             int accuracy = 0;
-            switch(WeaponUsed) {
+            switch (WeaponUsed) {
             case WEAPON_DESERT_EAGLE:
                 accuracy = 64;
                 break;
@@ -3987,15 +3565,15 @@ void CVehicle::InflictDamage(CEntity* pInflictor, eWeaponType WeaponUsed, float 
                 break;
             }
 
-            if(pPedInflictor->IsPlayer())
+            if (pPedInflictor->IsPlayer()) {
                 accuracy = 0;
-
-            if (pPedInflictor->m_pVehicle && pPedInflictor->m_pVehicle->IsBike())
-            {
-              if ( accuracy >= 2 )
-                accuracy = 1;
             }
-            else if ( this->m_nModelIndex == MODEL_COPBIKE ) // Really? PS2 Code based
+
+            if (pPedInflictor->m_pVehicle && pPedInflictor->m_pVehicle->IsBike()) {
+                if (accuracy >= 2) {
+                    accuracy = 1;
+                }
+            } else if (this->m_nModelIndex == MODEL_COPBIKE) // Really? PS2 Code based
             {
                 auto pDriver = this->m_pDriver->AsPed();
                 if (pDriver) {
@@ -4005,56 +3583,47 @@ void CVehicle::InflictDamage(CEntity* pInflictor, eWeaponType WeaponUsed, float 
                 }
             }
 
-            if (accuracy != 0)
-            {
+            if (accuracy != 0) {
                 if ((CGeneral::GetRandomNumber() & 0x7F) < accuracy) {
-                    if(IsBike())
+                    if (IsBike()) {
                         BurstTyre(FindTyreNearestPoint(coords) + CAR_PIECE_WHEEL_LF, false); // TODO: Works, but must be check if it's correct
-                    else if(GetVehicleAppearance() == eVehicleAppearance::VEHICLE_APPEARANCE_AUTOMOBILE)
+                    } else if (GetVehicleAppearance() == eVehicleAppearance::VEHICLE_APPEARANCE_AUTOMOBILE) {
                         BurstTyre(FindTyreNearestPoint(coords) + CAR_PIECE_WHEEL_LF, true); // TODO: Works, but must be check if it's correct
+                    }
                 }
             }
         }
 
         // Vehicle gas shot handling
-        if ((this->vehicleFlags.bPetrolTankIsWeakPoint != false) && bBeingShotAt)
-        {
-            if ((pInflictor->IsPed() && pPedInflictor->IsPlayer()))
-            {
-                const auto& mi = *GetVehicleModelInfo();
-                CVector exhaustPosition = mi.GetModelDummyPosition(DUMMY_GAS_CAP);
+        if ((this->vehicleFlags.bPetrolTankIsWeakPoint != false) && bBeingShotAt) {
+            if ((pInflictor->IsPed() && pPedInflictor->IsPlayer())) {
+                const auto& mi              = *GetVehicleModelInfo();
+                CVector     exhaustPosition = mi.GetModelDummyPosition(DUMMY_GAS_CAP);
                 if (!exhaustPosition.IsZero()) {
-                    CVector gasCap = m_matrix->TransformPoint(exhaustPosition);
-                    auto distance = (coords - gasCap).Magnitude();
-                    if (distance < 0.25)
+                    CVector gasCap   = m_matrix->TransformPoint(exhaustPosition);
+                    auto    distance = (coords - gasCap).Magnitude();
+                    if (distance < 0.25) {
                         damage = std::max(this->m_fHealth, 1100.0f);
+                    }
                 }
             }
         }
     }
 
     // Damage less
-    if ( (IsHeli() || IsPlane()) && (!this->vehicleFlags.bIsRCVehicle) &&
-        WeaponUsed <= WEAPON_EXPLOSION &&
-        WeaponUsed != WEAPON_GRENADE &&
-        WeaponUsed != WEAPON_ROCKET &&
-        WeaponUsed != WEAPON_ROCKET_HS )
-    {
+    if ((IsHeli() || IsPlane()) && (!this->vehicleFlags.bIsRCVehicle) && WeaponUsed <= WEAPON_EXPLOSION && WeaponUsed != WEAPON_GRENADE && WeaponUsed != WEAPON_ROCKET && WeaponUsed != WEAPON_ROCKET_HS) {
         damage *= 0.4f;
     }
 
     // Original health and damage logic continues...
-    if (this->m_fHealth > 0.0)
-    {
+    if (this->m_fHealth > 0.0) {
         pThisCar->m_nLastWeaponDamageType = WeaponUsed;
-        if (pPedInflictor)
-        {
+        if (pPedInflictor) {
             pThisCar->m_pWhoDetonatedMe = pPedInflictor;
             pInflictor->RegisterReference((CEntity**)&pThisCar->m_pWhoDetonatedMe);
         }
 
-        if (this->m_fHealth <= damage)
-        {
+        if (this->m_fHealth <= damage) {
             this->m_fHealth = 0.0;
             if (pInflictor == FindPlayerPed(-1) && !this->vehicleFlags.bIsRCVehicle) // Fixbug: bIsRCVehicle is a bool for RC vehicles too.
             {
@@ -4066,58 +3635,44 @@ void CVehicle::InflictDamage(CEntity* pInflictor, eWeaponType WeaponUsed, float 
                 }
                 CCrime::ReportCrime(eCrimen, (CEntity*)this, pPedInflictor);
             }
-            
 
-            if (WeaponUsed == WEAPON_EXPLOSION)
-            {
+            if (WeaponUsed == WEAPON_EXPLOSION) {
                 pThisCar->m_wBombTimer = (rand() & 0x7FF) + 1'000;
                 if (pPedInflictor) {
                     pThisCar->m_pWhoDetonatedMe = pPedInflictor;
                     pInflictor->RegisterReference((CEntity**)&pThisCar->m_pWhoDetonatedMe);
                 }
-            }
-            else
-            {
-                if (pPedInflictor)
+            } else {
+                if (pPedInflictor) {
                     BlowUpCar(pInflictor, false); // TODO: Works, but must be check if it's correct14
+                }
             }
-        }
-        else
-        {
+        } else {
             float oldHealth = this->m_fHealth;
             this->m_fHealth -= damage;
             auto eCarStatus = this->GetStatus();
-            if ((!eCarStatus ||
-                eCarStatus > eEntityStatus::STATUS_PLAYER_PLAYBACK_FROM_BUFFER &&
-                eCarStatus <= eEntityStatus::STATUS_PHYSICS) &&
-                pInflictor &&
-                pInflictor->IsPed())
-            {
+            if ((!eCarStatus || eCarStatus > eEntityStatus::STATUS_PLAYER_PLAYBACK_FROM_BUFFER && eCarStatus <= eEntityStatus::STATUS_PHYSICS) && pInflictor && pInflictor->IsPed()) {
                 // Tasks with peds
                 const auto AddEventVehicleDamageWeapon = [&](CPed* ped) {
                     if (ped) {
                         ped->GetEventGroup().Add(CEventVehicleDamageWeapon{
                             this,
                             pInflictor,
-                            WeaponUsed
-                        });
+                            WeaponUsed });
                     }
                 };
 
                 // Add driver if exists
-                if (this->m_pDriver)
-                {
+                if (this->m_pDriver) {
                     AddEventVehicleDamageWeapon(this->m_pDriver);
                 }
 
                 // Add passengers if exists
-                if (this->m_nMaxPassengers)
-                {
+                if (this->m_nMaxPassengers) {
                     rng::for_each(this->GetPassengers(), AddEventVehicleDamageWeapon);
                 }
             }
-            if (oldHealth >= DAMAGE_HEALTH_TO_CATCH_FIRE && this->m_fHealth < DAMAGE_HEALTH_TO_CATCH_FIRE && this->IsAutomobile())
-            {
+            if (oldHealth >= DAMAGE_HEALTH_TO_CATCH_FIRE && this->m_fHealth < DAMAGE_HEALTH_TO_CATCH_FIRE && this->IsAutomobile()) {
                 pThisCar->m_damageManager.SetEngineStatus(ENGINE_STATUS_ON_FIRE);
                 if (pPedInflictor) {
                     pThisCar->m_pWhoDetonatedMe = pPedInflictor;
@@ -4126,13 +3681,11 @@ void CVehicle::InflictDamage(CEntity* pInflictor, eWeaponType WeaponUsed, float 
             }
         }
     }
-    
+
     auto playerPed = FindPlayerPed(-1);
-    if ((vehicleFlags.bIsLawEnforcer == true) && pPedInflictor && pPedInflictor == playerPed)
-    {
+    if ((vehicleFlags.bIsLawEnforcer == true) && pPedInflictor && pPedInflictor == playerPed) {
         playerPed->SetWantedLevelNoDrop(1);
     }
-
 }
 
 // 0x6D82F0
