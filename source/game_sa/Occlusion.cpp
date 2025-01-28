@@ -37,15 +37,9 @@ void COcclusion::AddOne(float centerX, float centerY, float centerZ, float width
     auto iLength = static_cast<int32>(fabs(length));
     auto iHeight = static_cast<int32>(fabs(height));
 
-    if (!iLength)
-        numMissingDimensions++;
-    if (!iWidth)
-        numMissingDimensions++;
-    if (!iHeight)
-        numMissingDimensions++;
-
-    if (numMissingDimensions > 1)
+    if (!iLength && !iWidth && !iHeight) {
         return;
+    }
 
     // Get the angles in [0 : 360] space and convert to radians
     auto fRotX = DegreesToRadians(CGeneral::LimitAngle(rotX) + 180.0F);
