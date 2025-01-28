@@ -4,8 +4,7 @@
 #include "Occluder.h"
 #include "Occlusion.h"
 
-void COccluder::InjectHooks()
-{
+void COccluder::InjectHooks() {
     RH_ScopedClass(COccluder);
     RH_ScopedCategoryGlobal();
 
@@ -256,4 +255,10 @@ bool COccluder::NearCamera() const
     auto vecPos = CVector(m_wMidX, m_wMidY, m_wMidZ) / 4.0F;
     auto fDist = DistanceBetweenPoints(vecPos, TheCamera.GetPosition());
     return (fDist - fSize / 2.0F) < 250.0F;
+}
+
+int16 COccluder::SetNext(int16 next) {
+    const auto old = m_nNextIndex;
+    m_nNextIndex = next;
+    return old;
 }

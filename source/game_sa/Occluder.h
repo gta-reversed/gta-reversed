@@ -28,5 +28,7 @@ public:
     bool ProcessOneOccluder(CActiveOccluder* activeOccluder);
     bool ProcessLineSegment(int32 iInd1, int32 iInd2, CActiveOccluder* activeOccluder);
     bool NearCamera() const;
+    int16 SetNext(int16 next);
+    int16 GetNext() const { return m_nNextIndex; }
 };
 VALIDATE_SIZE(COccluder, 0x12);

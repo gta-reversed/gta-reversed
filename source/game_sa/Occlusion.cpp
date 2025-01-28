@@ -13,7 +13,7 @@ void COcclusion::InjectHooks()
     RH_ScopedInstall(AddOne, 0x71DCD0);
     RH_ScopedInstall(IsPositionOccluded, 0x7200B0);
     RH_ScopedInstall(OccluderHidesBehind, 0x71E080);
-    RH_ScopedInstall(ProcessBeforeRendering, 0x7201C0, { .reversed = false });
+    RH_ScopedInstall(ProcessBeforeRendering, 0x7201C0);
 }
 
 // 0x71DCA0
@@ -139,7 +139,7 @@ bool COcclusion::IsPositionOccluded(CVector vecPos, float fRadius)
     auto fScreenRadius = fRadius * fLongEdge;
     auto fScreenDepth = outPos.z - fRadius;
 
-    for (auto ind = 0; ind < NumActiveOccluders; ++ind)
+    for (size_t ind = 0; ind < NumActiveOccluders; ++ind)
     {
         auto& occluder = aActiveOccluders[ind];
         if (occluder.m_wDepth >= fScreenDepth
@@ -156,102 +156,86 @@ bool COcclusion::IsPositionOccluded(CVector vecPos, float fRadius)
 }
 
 // 0x7201C0
-void COcclusion::ProcessBeforeRendering()
-{
-    return plugin::Call<0x7201C0>();
-
-    /* see https://github.com/gta-reversed/gta-reversed-modern/pull/50#issuecomment-913173808
+void COcclusion::ProcessBeforeRendering() {
     NumActiveOccluders = 0;
-    if (!CGame::currArea) {
-        auto listCur = ListWalkThroughFA;
-        auto listPrev = ListWalkThroughFA;
-        bool skipProcessing = false;
+
+    // Update nearby and far-away lists
+    if (CGame::CanSeeOutSideFromCurrArea()) {
+        // @ 0x72021A - Update far-away list
+        const auto UpdateFarAwayList = [&]{
+            for (int32 size{}; size < 16 && ListWalkThroughFA != -1; size++) { // We do at most 16 iterations!
+                auto& occluder = aOccluders[ListWalkThroughFA]; 
+
+                // If the occluder is now near move it into the (nearby) list
+                if (occluder.NearCamera()) { // 0x72022E
+                    if (PreviousListWalkThroughFA == -1) {
+                        FarAwayList = occluder.GetNext();
+                    } else {
+                        aOccluders[PreviousListWalkThroughFA].SetNext(occluder.GetNext());
+                    }
+                    ListWalkThroughFA = occluder.SetNext(std::exchange(NearbyList, ListWalkThroughFA)); 
+                } else {
+                    PreviousListWalkThroughFA = std::exchange(ListWalkThroughFA, occluder.GetNext());
+                }
+            }
+        };
+
+        // @ 0x720307 - Update nearby list
+        const auto UpdateNearbyList = [&]{
+            for (int16 i{NearbyList}, prev{-1}; i != -1; ) {
+                auto& occluder = aOccluders[i]; 
+
+                // 0x720323 - Process this occluder
+                if (NumActiveOccluders < aActiveOccluders.size()) {
+                    if (occluder.ProcessOneOccluder(&aActiveOccluders[NumActiveOccluders])) {
+                        NumActiveOccluders++;
+                    }
+                }
+
+                // If the occluder is now far away move it into the faraway list
+                if (!occluder.NearCamera()) { // 0x72035A (inverted!)
+                    if (prev == -1) {
+                        NearbyList = occluder.GetNext();
+                    } else {
+                        aOccluders[prev].SetNext(occluder.GetNext());
+                    }
+                    i = occluder.SetNext(std::exchange(FarAwayList, i));
+                } else { // 0x7203D6
+                    prev = std::exchange(i, occluder.GetNext());
+                }
+            }
+        };
+
         if (ListWalkThroughFA == -1) {
-            listCur = FarAwayList;
-            PreviousListWalkThroughFA = ListWalkThroughFA;
-            ListWalkThroughFA = FarAwayList;
-            if (FarAwayList == -1)
-                skipProcessing = true;
-        }
-        else
-            listPrev = PreviousListWalkThroughFA;
-
-        if (!skipProcessing) {
-            for (auto i = 0; i < NUM_OCCLUDERS_PROCESSED_PER_FRAME; ++i) {
-                if (listCur == -1)
-                    break;
-
-                if (aOccluders[listCur].NearCamera()) {
-                    if (listPrev == -1)
-                        FarAwayList = aOccluders[listCur].m_nNextIndex;
-                    else
-                        aOccluders[listPrev].m_nNextIndex = aOccluders[listCur].m_nNextIndex;
-
-                    listCur = aOccluders[listCur].m_nNextIndex;
-                    aOccluders[ListWalkThroughFA].m_nNextIndex = NearbyList;
-                    NearbyList = ListWalkThroughFA;
-                }
-                else {
-                    listPrev = listCur;
-                    PreviousListWalkThroughFA = listPrev;
-                    listCur = aOccluders[listCur].m_nNextIndex;
-                }
-
-                ListWalkThroughFA = listCur;
+            PreviousListWalkThroughFA = -1;
+            ListWalkThroughFA         = FarAwayList;
+            if (FarAwayList == -1) {
+                UpdateNearbyList();
+            } else {
+                UpdateFarAwayList();
+                UpdateNearbyList();
             }
-        }
-
-        auto curInd = NearbyList;
-        auto prevInd = -1;
-        while (curInd != -1) {
-            if (NumActiveOccluders < MAX_ACTIVE_OCCLUDERS) {
-                auto bActive = aOccluders[curInd].ProcessOneOccluder(&aActiveOccluders[NumActiveOccluders]);
-                if (bActive)
-                    ++NumActiveOccluders;
-            }
-
-            if (aOccluders[curInd].NearCamera()) {
-                prevInd = curInd;
-                curInd = aOccluders[curInd].m_nNextIndex;
-            }
-            else {
-                if (prevInd == -1)
-                    NearbyList = aOccluders[curInd].m_nNextIndex;
-                else
-                    aOccluders[prevInd].m_nNextIndex = aOccluders[curInd].m_nNextIndex;
-
-                auto nextInd = aOccluders[curInd].m_nNextIndex;
-                aOccluders[curInd].m_nNextIndex = FarAwayList;
-                FarAwayList = curInd;
-                curInd = nextInd;
-            }
+        } else {
+            UpdateNearbyList();
+            UpdateFarAwayList();
         }
     }
-    else {
-        for (auto i = 0; i < NumInteriorOcculdersOnMap; ++i) {
-            if (NumActiveOccluders < MAX_ACTIVE_OCCLUDERS) {
-                auto bActive = aInteriorOccluders[i].ProcessOneOccluder(&aActiveOccluders[NumActiveOccluders]);
-                if (bActive)
-                    ++NumActiveOccluders;
-            }
-        } 
-    }
 
-    for (auto i = 0; i < NumActiveOccluders; ++i) {
-        auto* checked = &aActiveOccluders[i];
-        for (auto k = 0; k < NumActiveOccluders; ++k) {
-            if (i != k
-                && aActiveOccluders[k].m_wDepth < checked->m_wDepth
-                && OccluderHidesBehind(checked, &aActiveOccluders[k])) {
-
-                auto prev = NumActiveOccluders - 1;
-                if (i < prev)
-                    *checked = *(checked + 1);
-
-                --NumActiveOccluders;
-                k = NumActiveOccluders;
-            }
+    // 0x7203FC - Process interior occluders
+    for (size_t i{}; i < NumInteriorOcculdersOnMap; i++) {
+        if (NumActiveOccluders > aActiveOccluders.size()) {
+            break;
+        }
+        if (aInteriorOccluders[i].ProcessOneOccluder(&aActiveOccluders[NumActiveOccluders])) {
+            NumActiveOccluders++;
         }
     }
-    */
+
+    // 0x72043A - Remove occluded occluders
+    const auto [b, e] = rng::remove_if(GetActiveOccluders(), [](CActiveOccluder& o) {
+        return rng::any_of(GetActiveOccluders(), [&](CActiveOccluder& i) {
+            return &o != &i && i.m_wDepth < o.m_wDepth && OccluderHidesBehind(&o, &i);
+        });
+    });
+    NumActiveOccluders -= (size_t)(std::distance(b, e));
 }
