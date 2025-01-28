@@ -105,16 +105,19 @@ void WriteRaster(RwRaster* raster, const char* filename) {
 
 // 0x71DA00
 bool CalcScreenCoors(const CVector& in, CVector& out, float& screenX, float& screenY) {
-    const auto screen = TheCamera.GetViewMatrix().TransformPoint(in);
-    if (screen.z <= 1.0f)
+    out = TheCamera.GetViewMatrix().TransformPoint(in);
+    if (out.z <= 1.0f) {
         return false;
+    }
 
-    const float depth = 1.0f / screen.z;
+    const float recpZ = 1.0f / out.z;
 
-    out.x *= SCREEN_WIDTH * depth;
-    out.y *= SCREEN_HEIGHT * depth;
-    screenX = SCREEN_WIDTH * depth / CDraw::ms_fFOV * 70.0f;
-    screenY = SCREEN_HEIGHT * depth / CDraw::ms_fFOV * 70.0f;
+    out.x *= SCREEN_WIDTH * recpZ;
+    out.y *= SCREEN_HEIGHT * recpZ;
+
+    screenX = SCREEN_WIDTH * recpZ / CDraw::ms_fFOV * 70.0f;
+    screenY = SCREEN_HEIGHT * recpZ / CDraw::ms_fFOV * 70.0f;
+
     return true;
 }
 
