@@ -66,11 +66,11 @@ void COcclusion::AddOne(float centerX, float centerY, float centerZ, float width
     };
 
     if (isInterior) {
-        auto& occluder = aInteriorOccluders[NumInteriorOcculdersOnMap];
+        auto& occluder = InteriorOccluders[NumInteriorOcculdersOnMap];
         UpdateOccluder(occluder);
         NumInteriorOcculdersOnMap++;
     } else {
-        auto& occluder = aOccluders[NumOccludersOnMap];
+        auto& occluder = Occluders[NumOccludersOnMap];
         UpdateOccluder(occluder);
 
         if (flags)
@@ -141,7 +141,7 @@ bool COcclusion::IsPositionOccluded(CVector vecPos, float fRadius)
 
     for (size_t ind = 0; ind < NumActiveOccluders; ++ind)
     {
-        auto& occluder = aActiveOccluders[ind];
+        auto& occluder = ActiveOccluders[ind];
         if (occluder.m_wDepth >= fScreenDepth
             || !occluder.IsPointWithinOcclusionArea(outPos.x, outPos.y, fScreenRadius)
             || !occluder.IsPointBehindOccluder(vecPos, fRadius))
@@ -164,14 +164,14 @@ void COcclusion::ProcessBeforeRendering() {
         // @ 0x72021A - Update far-away list
         const auto UpdateFarAwayList = [&]{
             for (int32 size{}; size < 16 && ListWalkThroughFA != -1; size++) { // We do at most 16 iterations!
-                auto& occluder = aOccluders[ListWalkThroughFA]; 
+                auto& occluder = Occluders[ListWalkThroughFA]; 
 
                 // If the occluder is now near move it into the (nearby) list
                 if (occluder.NearCamera()) { // 0x72022E
                     if (PreviousListWalkThroughFA == -1) {
                         FarAwayList = occluder.GetNext();
                     } else {
-                        aOccluders[PreviousListWalkThroughFA].SetNext(occluder.GetNext());
+                        Occluders[PreviousListWalkThroughFA].SetNext(occluder.GetNext());
                     }
                     ListWalkThroughFA = occluder.SetNext(std::exchange(NearbyList, ListWalkThroughFA)); 
                 } else {
@@ -183,11 +183,11 @@ void COcclusion::ProcessBeforeRendering() {
         // @ 0x720307 - Update nearby list
         const auto UpdateNearbyList = [&]{
             for (int16 i{NearbyList}, prev{-1}; i != -1; ) {
-                auto& occluder = aOccluders[i]; 
+                auto& occluder = Occluders[i]; 
 
                 // 0x720323 - Process this occluder
-                if (NumActiveOccluders < aActiveOccluders.size()) {
-                    if (occluder.ProcessOneOccluder(&aActiveOccluders[NumActiveOccluders])) {
+                if (NumActiveOccluders < ActiveOccluders.size()) {
+                    if (occluder.ProcessOneOccluder(&ActiveOccluders[NumActiveOccluders])) {
                         NumActiveOccluders++;
                     }
                 }
@@ -197,7 +197,7 @@ void COcclusion::ProcessBeforeRendering() {
                     if (prev == -1) {
                         NearbyList = occluder.GetNext();
                     } else {
-                        aOccluders[prev].SetNext(occluder.GetNext());
+                        Occluders[prev].SetNext(occluder.GetNext());
                     }
                     i = occluder.SetNext(std::exchange(FarAwayList, i));
                 } else { // 0x7203D6
@@ -223,10 +223,10 @@ void COcclusion::ProcessBeforeRendering() {
 
     // 0x7203FC - Process interior occluders
     for (size_t i{}; i < NumInteriorOcculdersOnMap; i++) {
-        if (NumActiveOccluders > aActiveOccluders.size()) {
+        if (NumActiveOccluders > ActiveOccluders.size()) {
             break;
         }
-        if (aInteriorOccluders[i].ProcessOneOccluder(&aActiveOccluders[NumActiveOccluders])) {
+        if (InteriorOccluders[i].ProcessOneOccluder(&ActiveOccluders[NumActiveOccluders])) {
             NumActiveOccluders++;
         }
     }

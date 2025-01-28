@@ -2340,7 +2340,7 @@ bool CEntity::IsEntityOccluded()
         return false;
 
     for (size_t iOccInd = 0; iOccInd < COcclusion::NumActiveOccluders; ++iOccInd) {
-        auto& activeOccluder = COcclusion::aActiveOccluders[iOccInd];
+        auto& activeOccluder = COcclusion::ActiveOccluders[iOccInd];
         auto fDepth = vecScreenPos.z - fBoundRadius;
         if (static_cast<float>(activeOccluder.m_wDepth) >= fDepth)
             continue;
