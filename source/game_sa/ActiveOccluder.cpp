@@ -14,12 +14,12 @@ void CActiveOccluder::InjectHooks()
 // 0x71E580
 bool CActiveOccluder::IsPointWithinOcclusionArea(float fX, float fY, float fRadius)
 {
-    if (m_cLinesCount <= 0)
+    if (m_LinesUsed <= 0)
         return true;
 
-    for (auto i = 0; i < m_cLinesCount; ++i) {
-        auto& line = m_aLines[i];
-        if (!IsPointInsideLine(line.m_vecOrigin.x, line.m_vecOrigin.y, line.m_vecDirection.x, line.m_vecDirection.y, fX, fY, fRadius))
+    for (auto i = 0; i < m_LinesUsed; ++i) {
+        auto& line = m_Lines[i];
+        if (!IsPointInsideLine(line.Origin.x, line.Origin.y, line.Delta.x, line.Delta.y, fX, fY, fRadius))
             return false;
     }
 
@@ -29,14 +29,14 @@ bool CActiveOccluder::IsPointWithinOcclusionArea(float fX, float fY, float fRadi
 // 0x71FA40
 bool CActiveOccluder::IsPointBehindOccluder(CVector vecPos, float fRadius)
 {
-    if (m_cNumVectors <= 0)
+    if (m_NumFaces <= 0)
         return true;
 
-    for (auto i = 0; i < m_cNumVectors; ++i) {
+    for (auto i = 0; i < m_NumFaces; ++i) {
         const auto& vecCamPos = TheCamera.GetPosition();
 
-        auto fPosDotVec = DotProduct(vecPos, m_aVectors[i]) - m_afRadiuses[i];
-        auto fCamDotVec = DotProduct(vecCamPos, m_aVectors[i]) - m_afRadiuses[i];
+        auto fPosDotVec = DotProduct(vecPos, m_FaceNormals[i]) - m_FaceOffsets[i];
+        auto fCamDotVec = DotProduct(vecCamPos, m_FaceNormals[i]) - m_FaceOffsets[i];
 
         if (fCamDotVec * fPosDotVec >= 0.0F || fabs(fPosDotVec) < fRadius)
             return false;

@@ -45,7 +45,7 @@ void COcclusionDebugModule::Render3D() {
     const CRGBA white = { 255, 255, 255, 255 };
     for (auto& occl : COcclusion::GetActiveOccluders()) {
         for (auto& line : occl.GetLines()) {
-            CLines::ImmediateLine2D(line.m_vecOrigin, line.m_vecOrigin + line.m_vecDirection * line.m_fLength, white, white);
+            CLines::ImmediateLine2D(line.Origin, line.Origin + line.Delta * line.Length, white, white);
         }
     }
 }

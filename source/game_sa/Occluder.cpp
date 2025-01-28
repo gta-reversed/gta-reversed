@@ -16,7 +16,7 @@ void COccluder::InjectHooks() {
 // 0x71E5D0
 bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
 {
-    activeOccluder->m_cLinesCount = 0;
+    activeOccluder->m_LinesUsed = 0;
     auto vecPos = CVector(m_MidX, m_MidY, m_MidZ) / 4.0F;
     float temp1, temp2;
 
@@ -24,7 +24,7 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
         return false;
 
     auto fMagnitude = (CVector(m_Width, m_Length, m_Height)  / 4.0F ).Magnitude();
-    activeOccluder->m_wDepth = static_cast<uint16>(COcclusion::CenterOnScreen.z - fMagnitude);
+    activeOccluder->m_DistToCam = static_cast<uint16>(COcclusion::CenterOnScreen.z - fMagnitude);
 
     auto matRotX = CMatrix();
     auto matRotY = CMatrix();
@@ -104,16 +104,16 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
             && SCREEN_WIDTH * 0.15F <= COcclusion::MaxXInOccluder - COcclusion::MinXInOccluder
             && SCREEN_HEIGHT * 0.1F <= COcclusion::MaxYInOccluder - COcclusion::MinYInOccluder) {
 
-            activeOccluder->m_cNumVectors = 0;
+            activeOccluder->m_NumFaces = 0;
             for (auto i = 0; i < 6; ++i) {
                 if (abOnScreen[i]) {
                     auto vecNormalised = CVector(aVecArr[i]);
                     vecNormalised.Normalise();
                     auto vecScreenPos = vecPos + aVecArr[i];
 
-                    activeOccluder->m_aVectors[activeOccluder->m_cNumVectors] = vecNormalised;
-                    activeOccluder->m_afRadiuses[activeOccluder->m_cNumVectors] = DotProduct(vecScreenPos, vecNormalised);
-                    ++activeOccluder->m_cNumVectors;
+                    activeOccluder->m_FaceNormals[activeOccluder->m_NumFaces] = vecNormalised;
+                    activeOccluder->m_FaceOffsets[activeOccluder->m_NumFaces] = DotProduct(vecScreenPos, vecNormalised);
+                    ++activeOccluder->m_NumFaces;
                 }
             }
             return true;
@@ -164,9 +164,9 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
         auto vecCross = CrossProduct(vec1, vec2);
         vecCross.Normalise();
 
-        activeOccluder->m_aVectors[0] = vecCross;
-        activeOccluder->m_afRadiuses[0] = DotProduct(vecCross, vecPos);
-        activeOccluder->m_cNumVectors = 1;
+        activeOccluder->m_FaceNormals[0] = vecCross;
+        activeOccluder->m_FaceOffsets[0] = DotProduct(vecCross, vecPos);
+        activeOccluder->m_NumFaces = 1;
 
         return true;
     }
@@ -230,19 +230,19 @@ bool COccluder::ProcessLineSegment(int32 iIndFrom, int32 iIndTo, CActiveOccluder
         fYSize = -fYSize;
     }
 
-    auto& pCurLine = activeOccluder->m_aLines[activeOccluder->m_cLinesCount];
-    pCurLine.m_fLength = CVector2D(fXSize, fYSize).Magnitude();
+    auto& pCurLine = activeOccluder->m_Lines[activeOccluder->m_LinesUsed];
+    pCurLine.Length = CVector2D(fXSize, fYSize).Magnitude();
 
-    auto fRecip = 1.0F / pCurLine.m_fLength;
-    pCurLine.m_vecOrigin.Set(fFromX, fFromY);
-    pCurLine.m_vecDirection.Set(fRecip * fXSize, fRecip * fYSize);
+    auto fRecip = 1.0F / pCurLine.Length;
+    pCurLine.Origin.Set(fFromX, fFromY);
+    pCurLine.Delta.Set(fRecip * fXSize, fRecip * fYSize);
 
-    if (DoesInfiniteLineTouchScreen(fFromX, fFromY, pCurLine.m_vecDirection.x, pCurLine.m_vecDirection.y)) {
-        ++activeOccluder->m_cLinesCount;
+    if (DoesInfiniteLineTouchScreen(fFromX, fFromY, pCurLine.Delta.x, pCurLine.Delta.y)) {
+        ++activeOccluder->m_LinesUsed;
         return false;
     }
 
-    return !IsPointInsideLine(fFromX, fFromY, pCurLine.m_vecDirection.x, pCurLine.m_vecDirection.y, SCREEN_WIDTH * 0.5F, SCREEN_HEIGHT * 0.5F, 0.0F);
+    return !IsPointInsideLine(fFromX, fFromY, pCurLine.Delta.x, pCurLine.Delta.y, SCREEN_WIDTH * 0.5F, SCREEN_HEIGHT * 0.5F, 0.0F);
 }
 
 // 0x71F960

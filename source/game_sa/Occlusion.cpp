@@ -77,33 +77,33 @@ void COcclusion::AddOne(float centerX, float centerY, float centerZ, float width
 // 0x71E080
 bool COcclusion::OccluderHidesBehind(CActiveOccluder* first, CActiveOccluder* second)
 {
-    if (!first->m_cLinesCount)
-        return second->m_cLinesCount == 0;
+    if (!first->m_LinesUsed)
+        return second->m_LinesUsed == 0;
 
-    for (auto iFirstInd = 0; iFirstInd < first->m_cLinesCount; ++iFirstInd) {
-        auto& firstLine = first->m_aLines[iFirstInd];
-        for (auto iSecondInd = 0; iSecondInd < second->m_cLinesCount; ++iSecondInd) {
-            auto& secondLine = second->m_aLines[iSecondInd];
+    for (auto iFirstInd = 0; iFirstInd < first->m_LinesUsed; ++iFirstInd) {
+        auto& firstLine = first->m_Lines[iFirstInd];
+        for (auto iSecondInd = 0; iSecondInd < second->m_LinesUsed; ++iSecondInd) {
+            auto& secondLine = second->m_Lines[iSecondInd];
 
             if (!IsPointInsideLine(
-                secondLine.m_vecOrigin.x,
-                secondLine.m_vecOrigin.y,
-                secondLine.m_vecDirection.x,
-                secondLine.m_vecDirection.y,
-                firstLine.m_vecOrigin.x,
-                firstLine.m_vecOrigin.y,
+                secondLine.Origin.x,
+                secondLine.Origin.y,
+                secondLine.Delta.x,
+                secondLine.Delta.y,
+                firstLine.Origin.x,
+                firstLine.Origin.y,
                 0.0f)
             ) {
                 return false;
             }
 
             if (!IsPointInsideLine(
-                secondLine.m_vecOrigin.x,
-                secondLine.m_vecOrigin.y,
-                secondLine.m_vecDirection.x,
-                secondLine.m_vecDirection.y,
-                firstLine.m_vecOrigin.x + (firstLine.m_fLength * firstLine.m_vecDirection.x),
-                firstLine.m_vecOrigin.y + (firstLine.m_fLength * firstLine.m_vecDirection.y),
+                secondLine.Origin.x,
+                secondLine.Origin.y,
+                secondLine.Delta.x,
+                secondLine.Delta.y,
+                firstLine.Origin.x + (firstLine.Length * firstLine.Delta.x),
+                firstLine.Origin.y + (firstLine.Length * firstLine.Delta.y),
                 0.0f)
             ) {
                 return false;
@@ -132,7 +132,7 @@ bool COcclusion::IsPositionOccluded(CVector vecPos, float fRadius)
     for (size_t ind = 0; ind < NumActiveOccluders; ++ind)
     {
         auto& occluder = ActiveOccluders[ind];
-        if (occluder.m_wDepth >= fScreenDepth
+        if (occluder.m_DistToCam >= fScreenDepth
             || !occluder.IsPointWithinOcclusionArea(outPos.x, outPos.y, fScreenRadius)
             || !occluder.IsPointBehindOccluder(vecPos, fRadius))
         {
@@ -224,7 +224,7 @@ void COcclusion::ProcessBeforeRendering() {
     // 0x72043A - Remove occluded occluders
     const auto [b, e] = rng::remove_if(GetActiveOccluders(), [](CActiveOccluder& o) {
         return rng::any_of(GetActiveOccluders(), [&](CActiveOccluder& i) {
-            return &o != &i && i.m_wDepth < o.m_wDepth && OccluderHidesBehind(&o, &i);
+            return &o != &i && i.m_DistToCam < o.m_DistToCam && OccluderHidesBehind(&o, &i);
         });
     });
     NumActiveOccluders -= (size_t)(std::distance(b, e));
