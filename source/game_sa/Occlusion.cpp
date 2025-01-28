@@ -48,15 +48,15 @@ void COcclusion::AddOne(float centerX, float centerY, float centerZ, float width
     const auto fTwoPiToChar = 256.0F / TWO_PI;
 
     const auto UpdateOccluder = [&](COccluder& occluder) {
-        occluder.m_wMidX   = static_cast<int16>(centerX * 4.0F);
-        occluder.m_wMidY   = static_cast<int16>(centerY * 4.0F);
-        occluder.m_wMidZ   = static_cast<int16>(centerZ * 4.0F);
-        occluder.m_wWidth  = static_cast<int16>((float)iWidth * 4.0F);
-        occluder.m_wLength = static_cast<int16>((float)iLength * 4.0F);
-        occluder.m_wHeight = static_cast<int16>((float)iHeight * 4.0F);
-        occluder.m_cRotX   = static_cast<uint8>(fRotX * fTwoPiToChar);
-        occluder.m_cRotZ   = static_cast<uint8>(fRotZ * fTwoPiToChar);
-        occluder.m_cRotY   = static_cast<uint8>(fRotY * fTwoPiToChar);
+        occluder.m_MidX   = static_cast<int16>(centerX * 4.0F);
+        occluder.m_MidY   = static_cast<int16>(centerY * 4.0F);
+        occluder.m_MidZ   = static_cast<int16>(centerZ * 4.0F);
+        occluder.m_Width  = static_cast<int16>((float)iWidth * 4.0F);
+        occluder.m_Length = static_cast<int16>((float)iLength * 4.0F);
+        occluder.m_Height = static_cast<int16>((float)iHeight * 4.0F);
+        occluder.m_RotX   = static_cast<uint8>(fRotX * fTwoPiToChar);
+        occluder.m_RotZ   = static_cast<uint8>(fRotZ * fTwoPiToChar);
+        occluder.m_RotY   = static_cast<uint8>(fRotY * fTwoPiToChar);
     };
 
     if (isInterior) {
@@ -67,13 +67,9 @@ void COcclusion::AddOne(float centerX, float centerY, float centerZ, float width
         auto& occluder = Occluders[NumOccludersOnMap];
         UpdateOccluder(occluder);
 
-        if (flags)
-            occluder.m_bFarAway = true;
-        else
-            occluder.m_bFarAway = false;
-
-        occluder.m_nNextIndex = FarAwayList;
-        FarAwayList = NumOccludersOnMap;
+        occluder.m_DontStream   = flags != 0;
+        occluder.m_NextIndex = FarAwayList;
+        FarAwayList           = NumOccludersOnMap;
         NumOccludersOnMap++;
     }
 }

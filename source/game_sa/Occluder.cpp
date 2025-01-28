@@ -17,13 +17,13 @@ void COccluder::InjectHooks() {
 bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
 {
     activeOccluder->m_cLinesCount = 0;
-    auto vecPos = CVector(m_wMidX, m_wMidY, m_wMidZ) / 4.0F;
+    auto vecPos = CVector(m_MidX, m_MidY, m_MidZ) / 4.0F;
     float temp1, temp2;
 
     if (!CalcScreenCoors(vecPos, COcclusion::CenterOnScreen, temp1, temp2) || COcclusion::CenterOnScreen.z < -150.0F || COcclusion::CenterOnScreen.z > 300.0F)
         return false;
 
-    auto fMagnitude = (CVector(m_wWidth, m_wLength, m_wHeight)  / 4.0F ).Magnitude();
+    auto fMagnitude = (CVector(m_Width, m_Length, m_Height)  / 4.0F ).Magnitude();
     activeOccluder->m_wDepth = static_cast<uint16>(COcclusion::CenterOnScreen.z - fMagnitude);
 
     auto matRotX = CMatrix();
@@ -31,9 +31,9 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
     auto matRotZ = CMatrix();
     auto matTransform = CMatrix();
 
-    matRotX.SetRotateX(static_cast<float>(m_cRotX) * PI / 128.0F);
-    matRotY.SetRotateY(static_cast<float>(m_cRotY) * PI / 128.0F);
-    matRotZ.SetRotateZ(static_cast<float>(m_cRotZ) * PI / 128.0F);
+    matRotX.SetRotateX(static_cast<float>(m_RotX) * PI / 128.0F);
+    matRotY.SetRotateY(static_cast<float>(m_RotY) * PI / 128.0F);
+    matRotZ.SetRotateZ(static_cast<float>(m_RotZ) * PI / 128.0F);
     matTransform = (matRotY * matRotX) * matRotZ;
 
     COcclusion::MinXInOccluder = 999999.88F;
@@ -41,9 +41,9 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
     COcclusion::MaxXInOccluder = -999999.88F;
     COcclusion::MaxYInOccluder = -999999.88F;
 
-    auto fLength = static_cast<float>(m_wLength);
-    auto fWidth = static_cast<float>(m_wWidth);
-    auto fHeight = static_cast<float>(m_wHeight);
+    auto fLength = static_cast<float>(m_Length);
+    auto fWidth = static_cast<float>(m_Width);
+    auto fHeight = static_cast<float>(m_Height);
 
     if (   fLength / 4.0F != 0.0F
         && fWidth  / 4.0F != 0.0F
@@ -249,16 +249,16 @@ bool COccluder::ProcessLineSegment(int32 iIndFrom, int32 iIndTo, CActiveOccluder
 bool COccluder::NearCamera() const
 {
     auto fSize = std::max(
-        static_cast<float>(m_wLength) / 4.0F,
-        static_cast<float>(m_wWidth) / 4.0F
+        static_cast<float>(m_Length) / 4.0F,
+        static_cast<float>(m_Width) / 4.0F
     );
-    auto vecPos = CVector(m_wMidX, m_wMidY, m_wMidZ) / 4.0F;
+    auto vecPos = CVector(m_MidX, m_MidY, m_MidZ) / 4.0F;
     auto fDist = DistanceBetweenPoints(vecPos, TheCamera.GetPosition());
     return (fDist - fSize / 2.0F) < 250.0F;
 }
 
 int16 COccluder::SetNext(int16 next) {
-    const auto old = m_nNextIndex;
-    m_nNextIndex = next;
+    const auto old = m_NextIndex;
+    m_NextIndex = next;
     return old;
 }
