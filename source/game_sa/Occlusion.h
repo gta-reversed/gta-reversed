@@ -9,31 +9,31 @@
 class COcclusion {
 public:
     static constexpr int32 MAX_INTERIOR_OCCLUDERS            = 40;
-    static constexpr int32 MAX_MAP_OCCLUDERS                 = 1000;
+    static constexpr int32 MAX_MAP_OCCLUDERS                 = 1'000;
     static constexpr int32 MAX_ACTIVE_OCCLUDERS              = 28;
     static constexpr int32 NUM_OCCLUDERS_PROCESSED_PER_FRAME = 16;
 
-    static COccluder (&aInteriorOccluders)[MAX_INTERIOR_OCCLUDERS];
-    static COccluder (&aOccluders)[MAX_MAP_OCCLUDERS];
-    static CActiveOccluder (&aActiveOccluders)[MAX_ACTIVE_OCCLUDERS];
+    static inline auto&    aInteriorOccluders                = StaticRef<std::array<COccluder, MAX_INTERIOR_OCCLUDERS>>(0xC73CC8);
+    static inline auto&    aOccluders                        = StaticRef<std::array<COccluder, MAX_MAP_OCCLUDERS>>(0xC73FA0);
+    static inline auto&    aActiveOccluders                  = StaticRef<std::array<CActiveOccluder, MAX_ACTIVE_OCCLUDERS>>(0xC78610);
 
-    static int32& NumInteriorOcculdersOnMap;
-    static int32& NumOccludersOnMap;
-    static int32& NumActiveOccluders;
-    static int16& FarAwayList;
-    static int16& NearbyList;
-    static int16& ListWalkThroughFA;
-    static int16& PreviousListWalkThroughFA;
+    static inline auto&    NumInteriorOcculdersOnMap         = StaticRef<size_t>(0xC73CC4);
+    static inline auto&    NumOccludersOnMap                 = StaticRef<size_t>(0xC73F98);
+    static inline auto&    NumActiveOccluders                = StaticRef<size_t>(0xC73CC0);
+    static inline auto&    FarAwayList                       = StaticRef<int16>(0x8D5D68);
+    static inline auto&    NearbyList                        = StaticRef<int16>(0x8D5D6C);
+    static inline auto&    ListWalkThroughFA                 = StaticRef<int16>(0x8D5D70);
+    static inline auto&    PreviousListWalkThroughFA         = StaticRef<int16>(0x8D5D74);
 
-    static float& gMinXInOccluder;
-    static float& gMaxXInOccluder;
-    static float& gMinYInOccluder;
-    static float& gMaxYInOccluder;
+    static inline auto&    gMinXInOccluder                   = StaticRef<float>(0xC73CAC);
+    static inline auto&    gMaxXInOccluder                   = StaticRef<float>(0xC73CA8);
+    static inline auto&    gMinYInOccluder                   = StaticRef<float>(0xC73CA4);
+    static inline auto&    gMaxYInOccluder                   = StaticRef<float>(0xC73CA0);
 
-    static bool (&gOccluderCoorsValid)[8];
-    static CVector (&gOccluderCoors)[8];
-    static CVector (&gOccluderCoorsOnScreen)[8];
-    static CVector& gCenterOnScreen;
+    static inline auto&    gOccluderCoorsValid               = StaticRef<std::array<bool, 8>>(0xC73CB0);
+    static inline auto&    gOccluderCoors                    = StaticRef<std::array<CVector, 8>>(0xC798E0);
+    static inline auto&    gOccluderCoorsOnScreen            = StaticRef<std::array<CVector, 8>>(0xC79950);
+    static inline auto&    gCenterOnScreen                   = StaticRef<CVector>(0xC79940);
 
 public:
     static void InjectHooks();

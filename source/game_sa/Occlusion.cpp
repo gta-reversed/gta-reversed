@@ -4,28 +4,6 @@
 #include "Occluder.h"
 #include "ActiveOccluder.h"
 
-COccluder(&COcclusion::aInteriorOccluders)[MAX_INTERIOR_OCCLUDERS] = *(COccluder(*)[MAX_INTERIOR_OCCLUDERS])0xC73CC8;
-COccluder(&COcclusion::aOccluders)[MAX_MAP_OCCLUDERS] = *(COccluder(*)[MAX_MAP_OCCLUDERS])0xC73FA0;
-CActiveOccluder(&COcclusion::aActiveOccluders)[MAX_ACTIVE_OCCLUDERS] = *(CActiveOccluder(*)[MAX_ACTIVE_OCCLUDERS])0xC78610;
-
-int32& COcclusion::NumInteriorOcculdersOnMap = *(int32*)0xC73CC4;
-int32& COcclusion::NumOccludersOnMap = *(int32*)0xC73F98;
-int32& COcclusion::NumActiveOccluders = *(int32*)0xC73CC0;
-int16& COcclusion::FarAwayList = *(int16*)0x8D5D68;
-int16& COcclusion::NearbyList = *(int16*)0x8D5D6C;
-int16& COcclusion::ListWalkThroughFA = *(int16*)0x8D5D70;
-int16& COcclusion::PreviousListWalkThroughFA = *(int16*)0x8D5D74;
-
-float& COcclusion::gMinXInOccluder = *(float*)0xC73CAC;
-float& COcclusion::gMaxXInOccluder = *(float*)0xC73CA8;
-float& COcclusion::gMinYInOccluder = *(float*)0xC73CA4;
-float& COcclusion::gMaxYInOccluder = *(float*)0xC73CA0;
-
-bool(&COcclusion::gOccluderCoorsValid)[8] = *(bool(*)[8])0xC73CB0;
-CVector(&COcclusion::gOccluderCoors)[8] = *(CVector(*)[8])0xC798E0;
-CVector(&COcclusion::gOccluderCoorsOnScreen)[8] = *(CVector(*)[8])0xC79950;
-CVector& COcclusion::gCenterOnScreen = *(CVector*)0xC79940;
-
 void COcclusion::InjectHooks()
 {
     RH_ScopedClass(COcclusion);
