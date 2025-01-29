@@ -1787,22 +1787,21 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         MODE_CAMERA, MODE_1STPERSON_RUNABOUT
     };
 
-    if (m_pTargetEntity && m_pTargetEntity->IsPed() && (notsa::contains(camTargetModes, targetCamMode))) {
-        float targetRotation                         = CGeneral::GetATanOfXY(m_aCams[0].m_vecFront.x, m_aCams[0].m_vecFront.y) - HALF_PI;
-        ((CPed*)m_pTargetEntity)->m_fCurrentRotation = targetRotation;
-        ((CPed*)m_pTargetEntity)->m_fAimingRotation  = targetRotation;
-    }
+	if (m_pTargetEntity && m_pTargetEntity->IsPed() && notsa::contains(camTargetModes, activeCam.m_nMode)) {
+		float angle = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y) - HALF_PI;
+		m_pTargetEntity->AsPed()->m_fCurrentRotation = angle;
+		m_pTargetEntity->AsPed()->m_fAimingRotation = angle;
+	}
 
     // Setup new camera
     activeCam.m_vecCamFixedModeVector = m_vecFixedModeVector;
     CEntity::ChangeEntityReference(activeCam.m_pCamTargetEntity, m_pTargetEntity);
 
-    CCam* affectedCam                     = &activeCam;
-    affectedCam->m_vecCamFixedModeSource   = m_vecFixedModeSource;
-    affectedCam->m_vecCamFixedModeUpOffSet = m_vecFixedModeUpOffSet;
-    affectedCam->m_bCamLookingAtVector     = m_bLookingAtVector;
+    activeCam.m_vecCamFixedModeSource   = m_vecFixedModeSource;
+    activeCam.m_vecCamFixedModeUpOffSet = m_vecFixedModeUpOffSet;
+    activeCam.m_bCamLookingAtVector     = m_bLookingAtVector;
     if (m_bItsOkToLookJustAtThePlayer) {
-        affectedCam->m_nMode = targetCamMode;
+        activeCam.m_nMode = targetCamMode;
     }
 
     // Handle specific camera mode transitions
