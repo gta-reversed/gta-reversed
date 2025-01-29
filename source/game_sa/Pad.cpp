@@ -218,17 +218,17 @@ void CPad::UpdatePads() {
     const auto& ImIONavActive = notsa::ui::UIRenderer::GetSingleton().GetImIO()->NavActive;
 
     if (!ImIONavActive) {
-        GetPad(0)->UpdateMouse();
+        GetPad(PAD1)->UpdateMouse();
     }
 
-    ProcessPad(0);
+    ProcessPad(PAD1);
     ControlsManager.ClearSimButtonPressCheckers();
 
     if (!ImIONavActive) {
-        ControlsManager.AffectPadFromKeyBoard();
-        ControlsManager.AffectPadFromMouse();
-        GetPad(0)->Update(0);
-        GetPad(1)->Update(1);
+        ControlsManager.ProcessKeyboardInput();
+        ControlsManager.ProcessMouseInput();
+        GetPad(PAD1)->Update(PAD1);
+        GetPad(PAD2)->Update(PAD2);
     }
 
     OldKeyState = NewKeyState;
