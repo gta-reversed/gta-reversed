@@ -1768,10 +1768,6 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     // In GTA III/VC it was used for the Colt Python.
     m_bItsOkToLookJustAtThePlayer = false; 
 
-    // NOTSA Bugfix: This sets the camera to behind the cars and the player. 
-    // Highly recommended for controller mode and vehicles.
-    m_bItsOkToLookJustAtThePlayer = (!CCamera::m_bUseMouse3rdPerson || targetCamMode == MODE_CAM_ON_A_STRING);
-
     // Default values
     m_bUseTransitionBeta          = false;
     m_fFractionInterToStopMoving  = 0.25f;
