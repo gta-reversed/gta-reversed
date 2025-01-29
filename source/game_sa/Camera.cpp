@@ -1761,8 +1761,8 @@ void CCamera::StartTransitionWhenNotFinishedInter(eCamMode targetCamMode) {
  * @see CCam
  */
 void CCamera::StartTransition(eCamMode targetCamMode) {
-    CCam&          cam             = m_aCams[m_nActiveCam];
-    const eCamMode previousCamMode = cam.m_nMode;
+    CCam&          activeCam             = m_aCams[m_nActiveCam];
+    const eCamMode previousCamMode = activeCam.m_nMode;
 
     // Unused flag, not used in the game.
     // In GTA III/VC it was used for the Colt Python.
@@ -1794,10 +1794,10 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     }
 
     // Setup new camera
-    cam.m_vecCamFixedModeVector = m_vecFixedModeVector;
-    CEntity::ChangeEntityReference(cam.m_pCamTargetEntity, m_pTargetEntity);
+    activeCam.m_vecCamFixedModeVector = m_vecFixedModeVector;
+    CEntity::ChangeEntityReference(activeCam.m_pCamTargetEntity, m_pTargetEntity);
 
-    CCam* affectedCam                     = &this->m_aCams[m_nActiveCam];
+    CCam* affectedCam                     = &activeCam;
     affectedCam->m_vecCamFixedModeSource   = m_vecFixedModeSource;
     affectedCam->m_vecCamFixedModeUpOffSet = m_vecFixedModeUpOffSet;
     affectedCam->m_bCamLookingAtVector     = m_bLookingAtVector;
@@ -1809,12 +1809,12 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     switch (targetCamMode) {
     case MODE_BEHINDCAR:
     case MODE_BEHINDBOAT:
-        cam.m_fBetaSpeed = 0.0f;
+        activeCam.m_fBetaSpeed = 0.0f;
         break;
     case MODE_FOLLOWPED: {
         if (m_bJustCameOutOfGarage) {
-            cam.m_fHorizontalAngle = CGeneral::GetATanOfXY(cam.m_vecFront.x, cam.m_vecFront.y) + PI;
-            cam.m_fTransitionBeta  = 0.0f;
+            activeCam.m_fHorizontalAngle = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y) + PI;
+            activeCam.m_fTransitionBeta  = 0.0f;
         }
 
         if (m_bTargetJustCameOffTrain) {
@@ -1825,7 +1825,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
             m_bUseTransitionBeta  = true;
             auto activeCamera = GetActiveCamera();
             const float angle     = CGeneral::GetATanOfXY(activeCamera.m_vecFront.y, activeCamera.m_vecFront.x);
-            cam.m_fTransitionBeta = angle + (fabs(angle) <= HALF_PI ? 4.1015239f : 0.95993114f);
+            activeCam.m_fTransitionBeta = angle + (fabs(angle) <= HALF_PI ? 4.1015239f : 0.95993114f);
         }
         break;
     } 
@@ -1843,36 +1843,36 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     case MODE_ROCKETLAUNCHER_RUNABOUT_HS: {
         CEntity* vehicle       = FindPlayerVehicle();
         CMatrix* playerMat     = vehicle ? &vehicle->GetMatrix() : &FindPlayerPed()->GetMatrix();
-        cam.m_fHorizontalAngle = CGeneral::GetATanOfXY(playerMat->GetForward().x, playerMat->GetForward().y);
-        cam.m_fVerticalAngle   = 0.0f;
+        activeCam.m_fHorizontalAngle = CGeneral::GetATanOfXY(playerMat->GetForward().x, playerMat->GetForward().y);
+        activeCam.m_fVerticalAngle   = 0.0f;
         break;
      }
     case MODE_CAM_ON_A_STRING:
         if (m_bLookingAtPlayer && !m_bJustCameOutOfGarage) {
             m_bUseTransitionBeta  = true;
             auto activeCamera = GetActiveCamera();
-            cam.m_fTransitionBeta = CGeneral::GetATanOfXY(activeCamera.m_vecFront.y, activeCamera.m_vecFront.x);
+            activeCam.m_fTransitionBeta = CGeneral::GetATanOfXY(activeCamera.m_vecFront.y, activeCamera.m_vecFront.x);
         }
         break;
     case MODE_PED_DEAD_BABY:
-        cam.m_fVerticalAngle = DegreesToRadians(15.0f);
+        activeCam.m_fVerticalAngle = DegreesToRadians(15.0f);
         break;
     }
 
     // Switch active camera
-    const float horizAngle = cam.m_fHorizontalAngle;
-    eCamMode    eCameraNow = this->m_aCams[m_nActiveCam].m_nMode;
+    const float horizAngle = activeCam.m_fHorizontalAngle;
+    eCamMode    eCameraNow = activeCam.m_nMode;
 
     bool isAimWeaponTransition    = false;
     m_nTransitionDuration         = 1'350;
 
     if (eCameraNow == MODE_FOLLOWPED && targetCamMode == MODE_CAM_ON_A_STRING
         || eCameraNow == MODE_CAM_ON_A_STRING && targetCamMode == MODE_FOLLOWPED) {
-        m_aCams[m_nActiveCam].m_nMode = targetCamMode;
+        activeCam.m_nMode = targetCamMode;
     } else {
-        m_aCams[m_nActiveCam].Init();
-        m_aCams[m_nActiveCam].m_nMode            = targetCamMode;
-        m_aCams[m_nActiveCam].m_fHorizontalAngle = horizAngle;
+        activeCam.Init();
+        activeCam.m_nMode            = targetCamMode;
+        activeCam.m_fHorizontalAngle = horizAngle;
     }
 
     [&]() -> const void {
@@ -1955,7 +1955,6 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         m_fStartingAlphaForInterPol    = m_fAlphaDuringInterPol;
         m_fStartingBetaForInterPol     = m_fBetaDuringInterPol;
     } else {
-        auto& activeCam                = m_aCams[m_nActiveCam];
         m_vecStartingSourceForInterPol = activeCam.m_vecSource;
         m_vecStartingTargetForInterPol = activeCam.m_vecTargetCoorsForFudgeInter;
         m_vecStartingUpForInterPol     = activeCam.m_vecUp;
@@ -1964,7 +1963,6 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     }
 
     // Update active camera parameters
-    auto& activeCam                     = m_aCams[m_nActiveCam];
     activeCam.m_bCamLookingAtVector     = m_bLookingAtVector;
     activeCam.m_vecCamFixedModeVector   = m_vecFixedModeVector;
     activeCam.m_vecCamFixedModeSource   = m_vecFixedModeSource;
