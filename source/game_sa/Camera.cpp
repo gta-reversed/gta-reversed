@@ -1763,19 +1763,30 @@ void CCamera::StartTransitionWhenNotFinishedInter(eCamMode targetCamMode) {
 void CCamera::StartTransition(eCamMode targetCamMode) {
     CCam&          cam             = m_aCams[m_nActiveCam];
     const eCamMode previousCamMode = cam.m_nMode;
-    cam.m_nMode                    = targetCamMode;
+
+    // Unused flag, not used in the game.
+    // In GTA III/VC it was used for the Colt Python.
+    m_bItsOkToLookJustAtThePlayer = false; 
+
+    // NOTSA Bugfix: This sets the camera to behind the cars and the player. 
+    // Highly recommended for controller mode and vehicles.
+    m_bItsOkToLookJustAtThePlayer = (!CCamera::m_bUseMouse3rdPerson || targetCamMode == MODE_CAM_ON_A_STRING);
 
     // Default values
-    bool isAimWeaponTransition    = false;
-    m_nTransitionDuration         = 1'350;
     m_bUseTransitionBeta          = false;
     m_fFractionInterToStopMoving  = 0.25f;
     m_fFractionInterToStopCatchUp = 0.75f;
 
     // Handle player rotation for weapon modes
     constexpr std::array camTargetModes = {
-        MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_HELICANNON_1STPERSON, MODE_CAMERA, MODE_1STPERSON_RUNABOUT
+        MODE_SNIPER, MODE_ROCKETLAUNCHER,
+        MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON,
+        MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT,
+        MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_M16_1STPERSON_RUNABOUT,
+        MODE_FIGHT_CAM_RUNABOUT, MODE_HELICANNON_1STPERSON,
+        MODE_CAMERA, MODE_1STPERSON_RUNABOUT
     };
+
     if (m_pTargetEntity && m_pTargetEntity->IsPed() && (notsa::contains(camTargetModes, targetCamMode))) {
         float targetRotation                         = CGeneral::GetATanOfXY(m_aCams[0].m_vecFront.x, m_aCams[0].m_vecFront.y) - HALF_PI;
         ((CPed*)m_pTargetEntity)->m_fCurrentRotation = targetRotation;
@@ -1786,9 +1797,13 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     cam.m_vecCamFixedModeVector = m_vecFixedModeVector;
     CEntity::ChangeEntityReference(cam.m_pCamTargetEntity, m_pTargetEntity);
 
-    cam.m_vecCamFixedModeSource   = m_vecFixedModeSource;
-    cam.m_vecCamFixedModeUpOffSet = m_vecFixedModeUpOffSet;
-    cam.m_bCamLookingAtVector     = m_bLookingAtVector;
+    CCam* affectedCam                     = &this->m_aCams[m_nActiveCam];
+    affectedCam->m_vecCamFixedModeSource   = m_vecFixedModeSource;
+    affectedCam->m_vecCamFixedModeUpOffSet = m_vecFixedModeUpOffSet;
+    affectedCam->m_bCamLookingAtVector     = m_bLookingAtVector;
+    if (m_bItsOkToLookJustAtThePlayer) {
+        affectedCam->m_nMode = targetCamMode;
+    }
 
     // Handle specific camera mode transitions
     switch (targetCamMode) {
@@ -1801,15 +1816,19 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
             cam.m_fHorizontalAngle = CGeneral::GetATanOfXY(cam.m_vecFront.x, cam.m_vecFront.y) + PI;
             cam.m_fTransitionBeta  = 0.0f;
         }
+
         if (m_bTargetJustCameOffTrain) {
             m_bCamDirectlyInFront = true;
         }
-        if (targetCamMode == MODE_CAM_ON_A_STRING) {
+
+        if (previousCamMode == MODE_CAM_ON_A_STRING) {
             m_bUseTransitionBeta  = true;
-            const float angle     = CGeneral::GetATanOfXY(cam.m_vecFront.x, cam.m_vecFront.y);
+            auto activeCamera = GetActiveCamera();
+            const float angle     = CGeneral::GetATanOfXY(activeCamera.m_vecFront.y, activeCamera.m_vecFront.x);
             cam.m_fTransitionBeta = angle + (fabs(angle) <= HALF_PI ? 4.1015239f : 0.95993114f);
         }
-    } break;
+        break;
+    } 
     case MODE_SNIPER:
     case MODE_ROCKETLAUNCHER:
     case MODE_M16_1STPERSON:
@@ -1826,11 +1845,13 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         CMatrix* playerMat     = vehicle ? &vehicle->GetMatrix() : &FindPlayerPed()->GetMatrix();
         cam.m_fHorizontalAngle = CGeneral::GetATanOfXY(playerMat->GetForward().x, playerMat->GetForward().y);
         cam.m_fVerticalAngle   = 0.0f;
-    } break;
+        break;
+     }
     case MODE_CAM_ON_A_STRING:
         if (m_bLookingAtPlayer && !m_bJustCameOutOfGarage) {
             m_bUseTransitionBeta  = true;
-            cam.m_fTransitionBeta = CGeneral::GetATanOfXY(cam.m_vecFront.y, cam.m_vecFront.x);
+            auto activeCamera = GetActiveCamera();
+            cam.m_fTransitionBeta = CGeneral::GetATanOfXY(activeCamera.m_vecFront.y, activeCamera.m_vecFront.x);
         }
         break;
     case MODE_PED_DEAD_BABY:
@@ -1842,6 +1863,9 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     const float horizAngle = cam.m_fHorizontalAngle;
     eCamMode    eCameraNow = this->m_aCams[m_nActiveCam].m_nMode;
 
+    bool isAimWeaponTransition    = false;
+    m_nTransitionDuration         = 1'350;
+
     if (eCameraNow == MODE_FOLLOWPED && targetCamMode == MODE_CAM_ON_A_STRING
         || eCameraNow == MODE_CAM_ON_A_STRING && targetCamMode == MODE_FOLLOWPED) {
         m_aCams[m_nActiveCam].m_nMode = targetCamMode;
@@ -1851,21 +1875,8 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         m_aCams[m_nActiveCam].m_fHorizontalAngle = horizAngle;
     }
 
-    constexpr std::array camModesString = {
-        MODE_SYPHON_CRIM_IN_FRONT, MODE_FOLLOWPED, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON, MODE_AIMWEAPON
-    };
-    constexpr std::array camModesSpecialFirst = {
-        MODE_FOLLOWPED, MODE_SYPHON_CRIM_IN_FRONT, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON
-    };
-    constexpr std::array camModesSpecialSecond = {
-        MODE_SYPHON_CRIM_IN_FRONT, MODE_FOLLOWPED, MODE_SYPHON, MODE_AIMWEAPON
-    };
-    constexpr std::array camModesFp = {
-        MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_1STPERSON_RUNABOUT, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_CAMERA
-    };
-
     [&]() -> const void {
-        if (targetCamMode == MODE_CAM_ON_A_STRING && notsa::contains(camModesString, previousCamMode)) {
+        if (targetCamMode == MODE_CAM_ON_A_STRING && notsa::contains({MODE_SYPHON_CRIM_IN_FRONT, MODE_FOLLOWPED, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON, MODE_AIMWEAPON}, previousCamMode)) {
             m_fFractionInterToStopMoving  = 0.1f;
             m_fFractionInterToStopCatchUp = 0.9f;
             m_nTransitionDuration         = 750;
@@ -1901,7 +1912,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
             switch (targetCamMode) {
             case MODE_CAM_ON_A_STRING:
             case MODE_BEHINDBOAT:
-                if (notsa::contains(camModesFp, previousCamMode)) {
+                if (notsa::contains({ MODE_SNIPER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT, MODE_ROCKETLAUNCHER_RUNABOUT_HS, MODE_1STPERSON_RUNABOUT, MODE_M16_1STPERSON_RUNABOUT, MODE_FIGHT_CAM_RUNABOUT, MODE_CAMERA }, previousCamMode)) {
                     m_fFractionInterToStopMoving  = 0.0f;
                     m_fFractionInterToStopCatchUp = 1.0f;
                     m_nTransitionDuration         = 1;
@@ -1916,12 +1927,12 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
                 return;
             }
 
-            if (!notsa::contains(camModesSpecialFirst, targetCamMode)) {
+            if (!notsa::contains({MODE_FOLLOWPED, MODE_SYPHON_CRIM_IN_FRONT, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON}, targetCamMode)) {
                 m_nTransitionDuration = 1'350;
                 return;
             }
         }
-        if (!notsa::contains(camModesSpecialSecond, previousCamMode)) {
+        if (!notsa::contains({MODE_SYPHON_CRIM_IN_FRONT, MODE_FOLLOWPED, MODE_SYPHON, MODE_AIMWEAPON}, previousCamMode)) {
             m_nTransitionDuration = 1'350;
             return;
         }
