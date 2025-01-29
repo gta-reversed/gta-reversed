@@ -1823,8 +1823,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
 
         if (previousCamMode == MODE_CAM_ON_A_STRING) {
             m_bUseTransitionBeta  = true;
-            auto activeCamera = GetActiveCamera();
-            const float angle     = CGeneral::GetATanOfXY(activeCamera.m_vecFront.y, activeCamera.m_vecFront.x);
+            const float angle     = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y);
             activeCam.m_fTransitionBeta = angle + (fabs(angle) <= HALF_PI ? 4.1015239f : 0.95993114f);
         }
         break;
@@ -1850,8 +1849,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     case MODE_CAM_ON_A_STRING:
         if (m_bLookingAtPlayer && !m_bJustCameOutOfGarage) {
             m_bUseTransitionBeta  = true;
-            auto activeCamera = GetActiveCamera();
-            activeCam.m_fTransitionBeta = CGeneral::GetATanOfXY(activeCamera.m_vecFront.y, activeCamera.m_vecFront.x);
+            activeCam.m_fTransitionBeta = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y);
         }
         break;
     case MODE_PED_DEAD_BABY:
