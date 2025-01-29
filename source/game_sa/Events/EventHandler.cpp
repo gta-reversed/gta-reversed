@@ -879,8 +879,11 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
         if (const auto v = m_Ped->GetVehicleIfInOne()) {
             if (v->IsBike() || v->IsSubQuad()) {
                 if (!e->m_bFallDown && !e->HasKilledPed()) {
-                    assert(e->m_pSourceEntity->IsPed());
-                    ComputePersonalityResponseToDamage(e, e->m_pSourceEntity->AsPed());
+                    assert(!e->m_pSourceEntity); // Null ped -> Assert
+                    assert(!e->m_pSourceEntity->IsPed()); // Not ped -> Assert
+                    if (e->m_pSourceEntity && e->m_pSourceEntity->IsPed()) { // NOTSA: Release version
+                        ComputePersonalityResponseToDamage(e, e->m_pSourceEntity->AsPed());
+                    }
                 } else {
                     ComputeKnockOffBikeResponse(e, tactive, tsimplest); // 0x4C02DE
                 }
