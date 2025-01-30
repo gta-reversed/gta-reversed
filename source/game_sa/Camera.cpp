@@ -1784,9 +1784,10 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     };
 
 	if (m_pTargetEntity && m_pTargetEntity->IsPed() && notsa::contains(camTargetModes, activeCam.m_nMode)) {
-		float angle = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y) - HALF_PI;
-		m_pTargetEntity->AsPed()->m_fCurrentRotation = angle;
-		m_pTargetEntity->AsPed()->m_fAimingRotation = angle;
+		const float angle = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y) - HALF_PI;
+        auto* const ped = m_pTargetEntity->AsPed();
+		ped->m_fCurrentRotation = angle;
+		ped->m_fAimingRotation = angle;
 	}
 
     // Setup new camera
@@ -1812,9 +1813,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
             activeCam.m_fTransitionBeta  = 0.0f;
         }
 
-        if (m_bTargetJustCameOffTrain) {
-            m_bCamDirectlyInFront = true;
-        }
+        m_bCamDirectlyInFront |= m_bTargetJustCameOffTrain;
 
         if (previousCamMode == MODE_CAM_ON_A_STRING) {
             m_bUseTransitionBeta  = true;
