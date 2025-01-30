@@ -17,23 +17,15 @@ public:
     static inline auto&    Occluders                         = StaticRef<std::array<COccluder, MAX_MAP_OCCLUDERS>>(0xC73FA0);
     static inline auto&    ActiveOccluders                   = StaticRef<std::array<CActiveOccluder, MAX_ACTIVE_OCCLUDERS>>(0xC78610);
 
-    static inline auto&    NumInteriorOcculdersOnMap         = StaticRef<size_t>(0xC73CC4);
+    static inline auto&    NumInteriorOccludersOnMap         = StaticRef<size_t>(0xC73CC4);
     static inline auto&    NumOccludersOnMap                 = StaticRef<size_t>(0xC73F98);
     static inline auto&    NumActiveOccluders                = StaticRef<size_t>(0xC73CC0);
-    static inline auto&    FarAwayList                       = StaticRef<int16>(0x8D5D68);
+
     static inline auto&    NearbyList                        = StaticRef<int16>(0x8D5D6C);
+
+    static inline auto&    FarAwayList                       = StaticRef<int16>(0x8D5D68);
     static inline auto&    ListWalkThroughFA                 = StaticRef<int16>(0x8D5D70);
     static inline auto&    PreviousListWalkThroughFA         = StaticRef<int16>(0x8D5D74);
-
-    static inline auto&    MinXInOccluder                    = StaticRef<float>(0xC73CAC);
-    static inline auto&    MaxXInOccluder                    = StaticRef<float>(0xC73CA8);
-    static inline auto&    MinYInOccluder                    = StaticRef<float>(0xC73CA4);
-    static inline auto&    MaxYInOccluder                    = StaticRef<float>(0xC73CA0);
-
-    static inline auto&    OccluderCoorsValid                = StaticRef<std::array<bool, 8>>(0xC73CB0);
-    static inline auto&    OccluderCoors                     = StaticRef<std::array<CVector, 8>>(0xC798E0);
-    static inline auto&    OccluderCoorsOnScreen             = StaticRef<std::array<CVector, 8>>(0xC79950);
-    static inline auto&    CenterOnScreen                    = StaticRef<CVector>(0xC79940);
 
 public:
     static void InjectHooks();

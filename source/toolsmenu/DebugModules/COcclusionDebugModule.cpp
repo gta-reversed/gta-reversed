@@ -11,7 +11,7 @@ void COcclusionDebugModule::RenderWindow() {
     {
         const notsa::ui::ScopedDisable disabledScope{ true };
 
-        ImGui::InputScalar("NumInteriorOcculdersOnMap", ImGuiDataType_S32, &COcclusion::NumInteriorOcculdersOnMap);
+        ImGui::InputScalar("NumInteriorOcculdersOnMap", ImGuiDataType_S32, &COcclusion::NumInteriorOccludersOnMap);
         ImGui::InputScalar("NumOccludersOnMap", ImGuiDataType_S32, &COcclusion::NumOccludersOnMap);
         ImGui::InputScalar("NumActiveOccluders", ImGuiDataType_S32, &COcclusion::NumActiveOccluders);
 
@@ -24,10 +24,10 @@ void COcclusionDebugModule::RenderWindow() {
 
         ImGui::NewLine();
 
-        ImGui::InputScalar("MinXInOccluder", ImGuiDataType_Float, &COcclusion::MinXInOccluder);
-        ImGui::InputScalar("MaxXInOccluder", ImGuiDataType_Float, &COcclusion::MaxXInOccluder);
-        ImGui::InputScalar("MinYInOccluder", ImGuiDataType_Float, &COcclusion::MinYInOccluder);
-        ImGui::InputScalar("MaxYInOccluder", ImGuiDataType_Float, &COcclusion::MaxYInOccluder);
+        ImGui::InputScalar("MinXInOccluder", ImGuiDataType_Float, &COccluder::MinXInOccluder);
+        ImGui::InputScalar("MaxXInOccluder", ImGuiDataType_Float, &COccluder::MaxXInOccluder);
+        ImGui::InputScalar("MinYInOccluder", ImGuiDataType_Float, &COccluder::MinYInOccluder);
+        ImGui::InputScalar("MaxYInOccluder", ImGuiDataType_Float, &COccluder::MaxYInOccluder);
     }
     
     ImGui::NewLine();

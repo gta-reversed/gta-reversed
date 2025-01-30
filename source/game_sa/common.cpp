@@ -106,14 +106,14 @@ void WriteRaster(RwRaster* raster, const char* filename) {
 }
 
 // 0x71DA00
-bool CalcScreenCoors(const CVector& in, CVector& out, float& screenX, float& screenY) {
+bool CalcScreenCoors(const CVector& in, CVector& out, float& scaleX, float& scaleY) {
     if (!CalcScreenCoors(in, out)) {
         return false;
     }
 
-    const float recpZ = 1.0f / out.z;
-    screenX = SCREEN_WIDTH * recpZ / CDraw::ms_fFOV * 70.0f;
-    screenY = SCREEN_HEIGHT * recpZ / CDraw::ms_fFOV * 70.0f;
+    const float r = 1.f / out.z / CDraw::ms_fFOV * 70.0f;
+    scaleX = SCREEN_WIDTH * r;
+    scaleY = SCREEN_HEIGHT * r;
 
     return true;
 }

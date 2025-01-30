@@ -8,6 +8,17 @@ class CActiveOccluder;
 
 class COccluder {
 public:
+    static inline auto& MaxYInOccluder        = StaticRef<float>(0xC73CA0);
+    static inline auto& MinYInOccluder        = StaticRef<float>(0xC73CA4);
+    static inline auto& MaxXInOccluder        = StaticRef<float>(0xC73CA8);
+    static inline auto& MinXInOccluder        = StaticRef<float>(0xC73CAC);
+
+    static inline auto& OccluderCoorsValid    = StaticRef<std::array<bool, 8>>(0xC73CB0);
+    static inline auto& OccluderCoors         = StaticRef<std::array<CVector, 8>>(0xC798E0);
+    static inline auto& OccluderCoorsOnScreen = StaticRef<std::array<CVector, 8>>(0xC79950);
+    static inline auto& CenterOnScreen        = StaticRef<CVector>(0xC79940);
+
+public:
     static void InjectHooks();
 
     bool ProcessOneOccluder(CActiveOccluder* activeOccluder);

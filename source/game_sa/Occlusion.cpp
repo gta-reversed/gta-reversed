@@ -20,7 +20,7 @@ void COcclusion::Init() {
     ZoneScoped;
 
     NumOccludersOnMap         = 0;
-    NumInteriorOcculdersOnMap = 0;
+    NumInteriorOccludersOnMap = 0;
     FarAwayList               = -1;
     NearbyList                = -1;
     ListWalkThroughFA         = -1;
@@ -37,7 +37,7 @@ void COcclusion::AddOne(float centerX, float centerY, float centerZ, float width
     }
 
     auto* const occluder = isInterior
-        ? &InteriorOccluders[NumInteriorOcculdersOnMap++]
+        ? &InteriorOccluders[NumInteriorOccludersOnMap++]
         : &Occluders[NumOccludersOnMap++];
     occluder->m_Center  = CVector{ centerX, centerY, centerZ };
     occluder->m_Length = l;
@@ -83,33 +83,25 @@ bool COcclusion::OccluderHidesBehind(CActiveOccluder* first, CActiveOccluder* se
 }
 
 // 0x7200B0
-bool COcclusion::IsPositionOccluded(CVector vecPos, float fRadius) {
+bool COcclusion::IsPositionOccluded(CVector pos, float radius) {
     if (!NumActiveOccluders) {
         return false;
     }
 
-    CVector outPos;
-    float   screenX, screenY;
-    if (!CalcScreenCoors(vecPos, outPos, screenX, screenY)) {
+    CVector scrPos;
+    float   scaleX, scaleY;
+    if (!CalcScreenCoors(pos, scrPos, scaleX, scaleY)) {
         return false;
     }
 
-    const auto fLongEdge     = std::max(screenX, screenY);
-    auto       fScreenRadius = fRadius * fLongEdge;
-    auto       fScreenDepth  = outPos.z - fRadius;
-
-    for (size_t ind = 0; ind < NumActiveOccluders; ++ind) {
-        auto& occluder = ActiveOccluders[ind];
-        if (occluder.m_DistToCam >= fScreenDepth
-            || !occluder.IsPointWithinOcclusionArea(outPos.x, outPos.y, fScreenRadius)
-            || !occluder.IsPointBehindOccluder(vecPos, fRadius)) {
-            continue;
-        }
-
-        return true;
-    }
-
-    return false;
+    const auto longEdge     = std::max(scaleX, scaleY);
+    const auto screenRadius = radius * longEdge;
+    const auto screenDepth  = scrPos.z - radius;
+    return rng::any_of(GetActiveOccluders(), [=](auto&& o) {
+        return o.m_DistToCam <= screenDepth
+            && o.IsPointWithinOcclusionArea(scrPos.x, scrPos.y, screenRadius)
+            && o.IsPointBehindOccluder(pos, radius);
+    });
 }
 
 // 0x7201C0
@@ -179,7 +171,7 @@ void COcclusion::ProcessBeforeRendering() {
     }
 
     // 0x7203FC - Process interior occluders
-    for (size_t i{}; i < NumInteriorOcculdersOnMap; i++) {
+    for (size_t i{}; i < NumInteriorOccludersOnMap; i++) {
         if (NumActiveOccluders > ActiveOccluders.size()) {
             break;
         }
