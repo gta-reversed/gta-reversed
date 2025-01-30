@@ -21,6 +21,13 @@ void COcclusionDebugModule::RenderWindow() {
         ImGui::InputScalar("NearbyList", ImGuiDataType_S16, &COcclusion::NearbyList);
         ImGui::InputScalar("ListWalkThroughFA", ImGuiDataType_S16, &COcclusion::ListWalkThroughFA);
         ImGui::InputScalar("PreviousListWalkThroughFA", ImGuiDataType_S16, &COcclusion::PreviousListWalkThroughFA);
+
+        ImGui::NewLine();
+
+        ImGui::InputScalar("MinXInOccluder", ImGuiDataType_Float, &COcclusion::MinXInOccluder);
+        ImGui::InputScalar("MaxXInOccluder", ImGuiDataType_Float, &COcclusion::MaxXInOccluder);
+        ImGui::InputScalar("MinYInOccluder", ImGuiDataType_Float, &COcclusion::MinYInOccluder);
+        ImGui::InputScalar("MaxYInOccluder", ImGuiDataType_Float, &COcclusion::MaxYInOccluder);
     }
     
     ImGui::NewLine();
@@ -45,7 +52,7 @@ void COcclusionDebugModule::Render3D() {
     const CRGBA white = { 255, 255, 255, 255 };
     for (auto& occl : COcclusion::GetActiveOccluders()) {
         for (auto& line : occl.GetLines()) {
-            CLines::ImmediateLine2D(line.Origin, line.Origin + line.Delta * line.Length, white, white);
+            CLines::ImmediateLine2D(line.Origin, line.Origin + line.Dir * line.Length, white, white);
         }
     }
 }

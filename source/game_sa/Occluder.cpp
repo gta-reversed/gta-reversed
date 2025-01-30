@@ -14,251 +14,288 @@ void COccluder::InjectHooks() {
 }
 
 // 0x71E5D0
-bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
-{
-    activeOccluder->m_LinesUsed = 0;
-    auto vecPos = CVector(m_MidX, m_MidY, m_MidZ) / 4.0F;
-    float temp1, temp2;
+bool COccluder::ProcessOneOccluder(CActiveOccluder* out) {
+    out->m_LinesUsed = 0;
+    const auto center = CVector{m_Center};
 
-    if (!CalcScreenCoors(vecPos, COcclusion::CenterOnScreen, temp1, temp2) || COcclusion::CenterOnScreen.z < -150.0F || COcclusion::CenterOnScreen.z > 300.0F)
+    if (!CalcScreenCoors(center, COcclusion::CenterOnScreen) || COcclusion::CenterOnScreen.z < -150.0F || COcclusion::CenterOnScreen.z > 300.0F) {
         return false;
+    }
+    const auto size = CVector{m_Width, m_Length, m_Height};
 
-    auto fMagnitude = (CVector(m_Width, m_Length, m_Height)  / 4.0F ).Magnitude();
-    activeOccluder->m_DistToCam = static_cast<uint16>(COcclusion::CenterOnScreen.z - fMagnitude);
+    out->m_DistToCam = static_cast<uint16>(COcclusion::CenterOnScreen.z - size.Magnitude());
 
-    auto matRotX = CMatrix();
-    auto matRotY = CMatrix();
-    auto matRotZ = CMatrix();
-    auto matTransform = CMatrix();
+    //auto matRotX      = CMatrix();
+    //auto matRotY      = CMatrix();
+    //auto matRotZ      = CMatrix();
+    CMatrix transform{};
 
-    matRotX.SetRotateX(static_cast<float>(m_RotX) * PI / 128.0F);
-    matRotY.SetRotateY(static_cast<float>(m_RotY) * PI / 128.0F);
-    matRotZ.SetRotateZ(static_cast<float>(m_RotZ) * PI / 128.0F);
-    matTransform = (matRotY * matRotX) * matRotZ;
+    //matRotX.SetRotateX(m_Rot.x);
+    //matRotY.SetRotateY(m_Rot.y);
+    //matRotZ.SetRotateZ(m_Rot.z);
+    transform.SetRotate(m_Rot);
+    //transform.SetRotate({m_Rot.x, m_Rot.z, m_Rot.y});
+    //transform = matRotY * matRotX * matRotZ;
 
     COcclusion::MinXInOccluder = 999999.88F;
     COcclusion::MinYInOccluder = 999999.88F;
     COcclusion::MaxXInOccluder = -999999.88F;
     COcclusion::MaxYInOccluder = -999999.88F;
 
-    auto fLength = static_cast<float>(m_Length);
-    auto fWidth = static_cast<float>(m_Width);
-    auto fHeight = static_cast<float>(m_Height);
+    if (size.x != 0 && size.y != 0.f && size.z != 0.f) {
+        const auto right   = transform.TransformPoint(CVector(size.x / 2.0F, 0.0F, 0.0F));
+        const auto up      = transform.TransformPoint(CVector(0.0F, size.y / 2.0F, 0.0F));
+        const auto forward = transform.TransformPoint(CVector(0.0F, 0.0F, size.z / 2.0F));
 
-    if (   fLength / 4.0F != 0.0F
-        && fWidth  / 4.0F != 0.0F
-        && fHeight / 4.0F != 0.0F) {
-        auto vecWidth = CVector(fWidth / 8.0F, 0.0F, 0.0F);
-        auto vecTransWidth = matTransform.TransformPoint(vecWidth);
+        enum {
+            DUP,
+            DBOTTOM,
 
-        auto vecLength = CVector(0.0F, fLength / 8.0F, 0.0F);
-        auto vecTransLength = matTransform.TransformPoint(vecLength);
+            DRIGHT,
+            DLEFT,
 
-        auto vecHeight = CVector(0.0F, 0.0F, fHeight / 8.0F);
-        auto vecTransHeight = matTransform.TransformPoint(vecHeight);
-
-        CVector aVecArr[6]{
-            vecTransLength, -vecTransLength,
-            vecTransWidth, -vecTransWidth,
-            vecTransHeight, -vecTransHeight
+            DBACK,
+            DFRONT,
+        };
+        const std::array directions{
+            up, -up,
+            right, -right,
+            forward, -forward
         };
 
         // Figure out if we see the front or back of a face
-        const auto& vecCamPos = TheCamera.GetPosition();
-        bool abOnScreen[6]{
-            DotProduct((vecPos + aVecArr[0] - vecCamPos), aVecArr[0]) < 0.0F,
-            DotProduct((vecPos + aVecArr[1] - vecCamPos), aVecArr[1]) < 0.0F,
-            DotProduct((vecPos + aVecArr[2] - vecCamPos), aVecArr[2]) < 0.0F,
-            DotProduct((vecPos + aVecArr[3] - vecCamPos), aVecArr[3]) < 0.0F,
-            DotProduct((vecPos + aVecArr[4] - vecCamPos), aVecArr[4]) < 0.0F,
-            DotProduct((vecPos + aVecArr[5] - vecCamPos), aVecArr[5]) < 0.0F
+        const auto IsVertexOnScreen = [&, cam = TheCamera.GetPosition()](int32 i) {
+            return (center + directions[i] - cam).Dot(directions[i]) < 0.0F;
+        };
+        const std::array onScreen{
+            IsVertexOnScreen(DUP),
+            IsVertexOnScreen(DBOTTOM),
+
+            IsVertexOnScreen(DRIGHT),
+            IsVertexOnScreen(DLEFT),
+
+            IsVertexOnScreen(DBACK),
+            IsVertexOnScreen(DFRONT),
         };
 
-        // Calculating vertices of a box
-        COcclusion::OccluderCoors[0] = vecPos + aVecArr[0] + aVecArr[2] + aVecArr[4];
-        COcclusion::OccluderCoors[1] = vecPos + aVecArr[1] + aVecArr[2] + aVecArr[4];
-        COcclusion::OccluderCoors[2] = vecPos + aVecArr[0] + aVecArr[3] + aVecArr[4];
-        COcclusion::OccluderCoors[3] = vecPos + aVecArr[1] + aVecArr[3] + aVecArr[4];
-        COcclusion::OccluderCoors[4] = vecPos + aVecArr[0] + aVecArr[2] + aVecArr[5];
-        COcclusion::OccluderCoors[5] = vecPos + aVecArr[1] + aVecArr[2] + aVecArr[5];
-        COcclusion::OccluderCoors[6] = vecPos + aVecArr[0] + aVecArr[3] + aVecArr[5];
-        COcclusion::OccluderCoors[7] = vecPos + aVecArr[1] + aVecArr[3] + aVecArr[5];
+        COcclusion::OccluderCoors[0] = center + directions[DUP]     + directions[DRIGHT] + directions[DBACK]; // back top right
+        COcclusion::OccluderCoors[1] = center + directions[DBOTTOM] + directions[DRIGHT] + directions[DBACK]; // back bottom right
+        COcclusion::OccluderCoors[2] = center + directions[DUP]     + directions[DLEFT]  + directions[DBACK]; // back top left
+        COcclusion::OccluderCoors[3] = center + directions[DBOTTOM] + directions[DLEFT]  + directions[DBACK]; // back bottom left
+
+        COcclusion::OccluderCoors[4] = center + directions[DUP]     + directions[DRIGHT] + directions[DFRONT]; // front top right
+        COcclusion::OccluderCoors[5] = center + directions[DBOTTOM] + directions[DRIGHT] + directions[DFRONT]; // front bottom right
+        COcclusion::OccluderCoors[6] = center + directions[DUP]     + directions[DLEFT]  + directions[DFRONT]; // front top left
+        COcclusion::OccluderCoors[7] = center + directions[DBOTTOM] + directions[DLEFT]  + directions[DFRONT]; // front bottom left
 
         for (auto i = 0; i < 8; ++i) {
-            COcclusion::OccluderCoorsValid[i] = CalcScreenCoors(COcclusion::OccluderCoors[i], COcclusion::OccluderCoorsOnScreen[i], temp1, temp2);
+            COcclusion::OccluderCoorsValid[i] = CalcScreenCoors(COcclusion::OccluderCoors[i], COcclusion::OccluderCoorsOnScreen[i]);
         }
 
         // Between two differently facing sides we see an edge, so process those
-        if (   (abOnScreen[0] == abOnScreen[2] || !ProcessLineSegment(0, 4, activeOccluder))
-            && (abOnScreen[0] == abOnScreen[3] || !ProcessLineSegment(2, 6, activeOccluder))
-            && (abOnScreen[0] == abOnScreen[4] || !ProcessLineSegment(0, 2, activeOccluder))
-            && (abOnScreen[0] == abOnScreen[5] || !ProcessLineSegment(4, 6, activeOccluder))
-            && (abOnScreen[1] == abOnScreen[2] || !ProcessLineSegment(1, 5, activeOccluder))
-            && (abOnScreen[1] == abOnScreen[3] || !ProcessLineSegment(3, 7, activeOccluder))
-            && (abOnScreen[1] == abOnScreen[4] || !ProcessLineSegment(1, 3, activeOccluder))
-            && (abOnScreen[1] == abOnScreen[5] || !ProcessLineSegment(5, 7, activeOccluder))
-            && (abOnScreen[2] == abOnScreen[4] || !ProcessLineSegment(0, 1, activeOccluder))
-            && (abOnScreen[3] == abOnScreen[4] || !ProcessLineSegment(2, 3, activeOccluder))
-            && (abOnScreen[3] == abOnScreen[5] || !ProcessLineSegment(6, 7, activeOccluder))
-            && (abOnScreen[2] == abOnScreen[5] || !ProcessLineSegment(4, 5, activeOccluder))
-            && SCREEN_WIDTH * 0.15F <= COcclusion::MaxXInOccluder - COcclusion::MinXInOccluder
-            && SCREEN_HEIGHT * 0.1F <= COcclusion::MaxYInOccluder - COcclusion::MinYInOccluder) {
+        if ((onScreen[DUP] == onScreen[DRIGHT] || !ProcessLineSegment(0, 4, out))
+         && (onScreen[DUP] == onScreen[DLEFT] || !ProcessLineSegment(2, 6, out))
+         && (onScreen[DUP] == onScreen[DBACK] || !ProcessLineSegment(0, 2, out))
+         && (onScreen[DUP] == onScreen[DFRONT] || !ProcessLineSegment(4, 6, out))
+         && (onScreen[DBOTTOM] == onScreen[DRIGHT] || !ProcessLineSegment(1, 5, out))
+         && (onScreen[DBOTTOM] == onScreen[DLEFT] || !ProcessLineSegment(3, 7, out))
+         && (onScreen[DBOTTOM] == onScreen[DBACK] || !ProcessLineSegment(1, 3, out))
+         && (onScreen[DBOTTOM] == onScreen[DFRONT] || !ProcessLineSegment(5, 7, out))
+         && (onScreen[DRIGHT] == onScreen[DBACK] || !ProcessLineSegment(0, 1, out))
+         && (onScreen[DLEFT] == onScreen[DBACK] || !ProcessLineSegment(2, 3, out))
+         && (onScreen[DLEFT] == onScreen[DFRONT] || !ProcessLineSegment(6, 7, out))
+         && (onScreen[DRIGHT] == onScreen[DFRONT] || !ProcessLineSegment(4, 5, out))
+        ) {
+            if (SCREEN_WIDTH * 0.15F <= COcclusion::MaxXInOccluder - COcclusion::MinXInOccluder
+             && SCREEN_HEIGHT * 0.1F <= COcclusion::MaxYInOccluder - COcclusion::MinYInOccluder
+            ) {
+                out->m_NumFaces = 0;
+                for (auto i = 0; i < 6; ++i) {
+                    if (!onScreen[i]) {
+                        continue;
+                    }
+                    const auto& dir = directions[i].Normalized();
 
-            activeOccluder->m_NumFaces = 0;
-            for (auto i = 0; i < 6; ++i) {
-                if (abOnScreen[i]) {
-                    auto vecNormalised = CVector(aVecArr[i]);
-                    vecNormalised.Normalise();
-                    auto vecScreenPos = vecPos + aVecArr[i];
+                    out->m_FaceNormals[out->m_NumFaces] = dir; // vecNormalised
+                    out->m_FaceOffsets[out->m_NumFaces] = (center + dir).Dot(dir); // DotProduct(vecScreenPos, vecNormalised);
 
-                    activeOccluder->m_FaceNormals[activeOccluder->m_NumFaces] = vecNormalised;
-                    activeOccluder->m_FaceOffsets[activeOccluder->m_NumFaces] = DotProduct(vecScreenPos, vecNormalised);
-                    ++activeOccluder->m_NumFaces;
+                    ++out->m_NumFaces;
                 }
+                return true;
             }
-            return true;
         }
 
         return false;
     }
 
-    CVector vec1, vec2;
-    if (fLength / 4.0F == 0.0F) {
-        auto vecWidth = CVector(fWidth / 8.0F, 0.0F, 0.0F);
-        vec1 = matTransform.TransformPoint(vecWidth);
-
-        auto vecHeight = CVector(0.0F, 0.0F, fHeight / 8.0F);
-        vec2 = matTransform.TransformPoint(vecHeight);
+    CVector right, up;
+    if (size.y == 0.f) {
+        right = CVector{size.x, 0.f, 0.f   };
+        up    = CVector{0.f,   0.f, size.z };
+    } else if (size.x == 0.f) {
+        right = CVector{0.f, size.y, 0.f   };
+        up    = CVector{0.f, 0.f,   size.z };
+    } else if (size.z == 0.f) {
+        right = CVector{0.f,    size.y, 0.f};
+        up    = CVector{size.x , 0.f,   0.f};
     }
-    else if (fWidth / 4.0F == 0.0F) {
-        auto vecLength = CVector(0.0F, fLength / 8.0F, 0.0F);
-        vec1 = matTransform.TransformPoint(vecLength);
-
-        auto vecHeight = CVector(0.0F, 0.0F, fHeight / 8.0F);
-        vec2 = matTransform.TransformPoint(vecHeight);
-    }
-    else if (fHeight / 4.0F == 0.0F) {
-        auto vecLength = CVector(0.0F, fLength / 8.0F, 0.0F);
-        vec1 = matTransform.TransformPoint(vecLength);
-
-        auto vecWidth = CVector(fWidth / 8.0F, 0.0F, 0.0F);
-        vec2 = matTransform.TransformPoint(vecWidth);
-    }
-
-    COcclusion::OccluderCoors[0] = vecPos + vec1 + vec2;
-    COcclusion::OccluderCoors[1] = vecPos - vec1 + vec2;
-    COcclusion::OccluderCoors[2] = vecPos - vec1 - vec2;
-    COcclusion::OccluderCoors[3] = vecPos + vec1 - vec2;
+    right = transform.TransformPoint(right / 2.f);
+    up    = transform.TransformPoint(up / 2.f);
+    COcclusion::OccluderCoors[0] = center + right + up; // top right -- top right
+    COcclusion::OccluderCoors[1] = center - right + up; // top left -- bottom right
+    COcclusion::OccluderCoors[2] = center - right - up; // bottom left -- bottom left
+    COcclusion::OccluderCoors[3] = center + right - up; // bottom right -- top left
 
     for (auto i = 0; i < 4; ++i) {
-        COcclusion::OccluderCoorsValid[i] = CalcScreenCoors(COcclusion::OccluderCoors[i], COcclusion::OccluderCoorsOnScreen[i], temp1, temp2);
+        COcclusion::OccluderCoorsValid[i] = CalcScreenCoors(COcclusion::OccluderCoors[i], COcclusion::OccluderCoorsOnScreen[i]);
     }
 
-    if (   !ProcessLineSegment(0, 1, activeOccluder)
-        && !ProcessLineSegment(1, 2, activeOccluder)
-        && !ProcessLineSegment(2, 3, activeOccluder)
-        && !ProcessLineSegment(3, 0, activeOccluder)
-        && SCREEN_WIDTH  * 0.1F  <= COcclusion::MaxXInOccluder - COcclusion::MinXInOccluder
-        && SCREEN_HEIGHT * 0.07F <= COcclusion::MaxYInOccluder - COcclusion::MinYInOccluder){
-
-        auto vecCross = CrossProduct(vec1, vec2);
-        vecCross.Normalise();
-
-        activeOccluder->m_FaceNormals[0] = vecCross;
-        activeOccluder->m_FaceOffsets[0] = DotProduct(vecCross, vecPos);
-        activeOccluder->m_NumFaces = 1;
-
-        return true;
+    if (ProcessLineSegment(0, 1, out)
+     || ProcessLineSegment(1, 2, out)
+     || ProcessLineSegment(2, 3, out)
+     || ProcessLineSegment(3, 0, out)
+    )  {
+        return false;
     }
-
-    return false;
-}
-
-// 0x71E130
-bool COccluder::ProcessLineSegment(int32 iIndFrom, int32 iIndTo, CActiveOccluder* activeOccluder)
-{
-    if (!COcclusion::OccluderCoorsValid[iIndFrom] && !COcclusion::OccluderCoorsValid[iIndTo])
-        return true;
-
-    CVector vecScreenFrom, vecScreenTo;
-    if (COcclusion::OccluderCoorsValid[iIndFrom]) {
-        vecScreenFrom = COcclusion::OccluderCoorsOnScreen[iIndFrom];
-    }
-    else {
-        auto fFromDepth = fabs((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::OccluderCoors[iIndFrom])).z - 1.1F);
-        auto fToDepth = fabs((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::OccluderCoors[iIndTo])).z - 1.1F);
-
-        auto fProgress = fToDepth / (fFromDepth + fToDepth);
-        vecScreenFrom = (1.0F - fProgress) * COcclusion::OccluderCoors[iIndTo];
-        vecScreenTo = vecScreenFrom + fProgress * COcclusion::OccluderCoors[iIndFrom];
-
-        float fTemp1, fTemp2;
-        if (!CalcScreenCoors(vecScreenTo, vecScreenFrom, fTemp1, fTemp2))
-            return true;
-    }
-
-    if (COcclusion::OccluderCoorsValid[iIndTo]) {
-        vecScreenTo = COcclusion::OccluderCoorsOnScreen[iIndTo];
-    }
-    else {
-        auto fFromDepth = fabs((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::OccluderCoors[iIndFrom])).z - 1.1F);
-        auto fToDepth = fabs((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::OccluderCoors[iIndTo])).z - 1.1F);
-
-        auto fProgress = fToDepth / (fFromDepth + fToDepth);
-        auto vecFrom = (1.0F - fProgress) * COcclusion::OccluderCoors[iIndTo];
-        auto vecTo = vecFrom + fProgress * COcclusion::OccluderCoors[iIndFrom];
-
-        float fTemp1, fTemp2;
-        if (!CalcScreenCoors(vecTo, vecScreenTo, fTemp1, fTemp2))
-            return true;
-    }
-
-    COcclusion::MinXInOccluder = std::min({ COcclusion::MinXInOccluder, vecScreenFrom.x, vecScreenTo.x });
-    COcclusion::MaxXInOccluder = std::max({ COcclusion::MaxXInOccluder, vecScreenFrom.x, vecScreenTo.x });
-    COcclusion::MinYInOccluder = std::min({ COcclusion::MinYInOccluder, vecScreenFrom.y, vecScreenTo.y });
-    COcclusion::MaxYInOccluder = std::max({ COcclusion::MaxYInOccluder, vecScreenFrom.y, vecScreenTo.y });
-
-    auto fXSize = vecScreenTo.x - vecScreenFrom.x;
-    auto fYSize = vecScreenTo.y - vecScreenFrom.y;
-    auto fFromX = vecScreenFrom.x;
-    auto fFromY = vecScreenFrom.y;
-
-    if (!IsPointInsideLine(vecScreenFrom.x, vecScreenFrom.y, fXSize, fYSize, COcclusion::CenterOnScreen.x, COcclusion::CenterOnScreen.y, 0.0F)) {
-        fFromX = vecScreenFrom.x + fXSize;
-        fFromY = vecScreenFrom.y + fYSize;
-        fXSize = -fXSize;
-        fYSize = -fYSize;
-    }
-
-    auto& pCurLine = activeOccluder->m_Lines[activeOccluder->m_LinesUsed];
-    pCurLine.Length = CVector2D(fXSize, fYSize).Magnitude();
-
-    auto fRecip = 1.0F / pCurLine.Length;
-    pCurLine.Origin.Set(fFromX, fFromY);
-    pCurLine.Delta.Set(fRecip * fXSize, fRecip * fYSize);
-
-    if (DoesInfiniteLineTouchScreen(fFromX, fFromY, pCurLine.Delta.x, pCurLine.Delta.y)) {
-        ++activeOccluder->m_LinesUsed;
+    if (COcclusion::MaxXInOccluder - COcclusion::MinXInOccluder < SCREEN_WIDTH * 0.1F
+     || COcclusion::MaxYInOccluder - COcclusion::MinYInOccluder < SCREEN_HEIGHT * 0.07F
+    ) {
         return false;
     }
 
-    return !IsPointInsideLine(fFromX, fFromY, pCurLine.Delta.x, pCurLine.Delta.y, SCREEN_WIDTH * 0.5F, SCREEN_HEIGHT * 0.5F, 0.0F);
+    const auto normal = right.Cross(up);
+    out->m_FaceNormals[0] = normal;
+    out->m_FaceOffsets[0] = normal.Dot(center);
+    out->m_NumFaces       = 1;
+
+    return true;
+       
+
+    //if (   !ProcessLineSegment(0, 1, out)
+    //    && !ProcessLineSegment(1, 2, out)
+    //    && !ProcessLineSegment(2, 3, out)
+    //    && !ProcessLineSegment(3, 0, out)
+    //    && SCREEN_WIDTH * 0.1F <= COcclusion::MaxXInOccluder - COcclusion::MinXInOccluder
+    //    && SCREEN_HEIGHT * 0.07F <= COcclusion::MaxYInOccluder - COcclusion::MinYInOccluder
+    //    ) {
+    //    auto vecCross = CrossProduct(offsetX, offsetY);
+    //    vecCross.Normalise();
+    //
+    //    out->m_FaceNormals[0] = vecCross;
+    //    out->m_FaceOffsets[0] = DotProduct(vecCross, pos);
+    //    out->m_NumFaces       = 1;
+    //
+    //    return true;
+    //}
+    //
+    //return false;
+}
+
+
+// 0x71E130
+bool COccluder::ProcessLineSegment(int32 idxFrom, int32 idxTo, CActiveOccluder* activeOccluder) {
+    if (!COcclusion::OccluderCoorsValid[idxFrom] && !COcclusion::OccluderCoorsValid[idxTo]) {
+        return true;
+    }
+
+    const auto GetScreenCoorsOf = [=](int32 i) -> std::optional<CVector2D> {
+        if (COcclusion::OccluderCoorsValid[i]) {
+            return COcclusion::OccluderCoorsOnScreen[i];
+        }
+
+        // TODO/BUG:
+        // Something's wrong here, the code for both `else` branches is the same...
+        // Makes no sense, why would both coords be the same?
+        const auto fromDepth = std::fabsf((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::OccluderCoors[idxFrom])).z - 1.1F);
+        const auto toDepth   = std::fabsf((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::OccluderCoors[idxTo])).z - 1.1F);
+
+        const auto t    = toDepth / (fromDepth + toDepth); // NOTE: I believe this is the culprit, should perhaps be `fromDepth / (fromDepth + toDepth)` if `i == idxFrom`?
+        const auto from = (1.0F - t) * COcclusion::OccluderCoors[idxTo];
+        const auto to   = from + t * COcclusion::OccluderCoors[idxFrom];
+
+        if (CVector pos; CalcScreenCoors(to, pos)) {
+            return pos;
+        }
+        return std::nullopt;
+    };
+    const auto from = GetScreenCoorsOf(idxFrom);
+    if (!from) {
+        return true;
+    }
+    const auto to = GetScreenCoorsOf(idxTo);
+    if (!to) {
+        return true;
+    }
+    
+
+    //CVector screenFrom, screenTo;
+    //if (COcclusion::OccluderCoorsValid[idxFrom]) {
+    //    screenFrom = COcclusion::OccluderCoorsOnScreen[idxFrom];
+    //} else {
+    //    const auto fromDepth = std::fabsf((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::OccluderCoors[idxFrom])).z - 1.1F);
+    //    const auto toDepth   = std::fabsf((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::OccluderCoors[idxTo])).z - 1.1F);
+    //
+    //    const auto t    = toDepth / (fromDepth + toDepth);
+    //    const auto from = (1.0F - t) * COcclusion::OccluderCoors[idxTo];
+    //    const auto to   = from + t * COcclusion::OccluderCoors[idxFrom];
+    //
+    //    if (!CalcScreenCoors(to, screenFrom)) {
+    //        return true;
+    //    }
+    //}
+    //
+    //if (COcclusion::OccluderCoorsValid[idxTo]) {
+    //    screenTo = COcclusion::OccluderCoorsOnScreen[idxTo];
+    //} else {
+    //    const auto fromDepth = std::fabsf((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::OccluderCoors[idxFrom])).z - 1.1F);
+    //    const auto toDepth   = std::fabsf((TheCamera.m_mViewMatrix.TransformPoint(COcclusion::OccluderCoors[idxTo])).z - 1.1F);
+    //
+    //    const auto t    = toDepth / (fromDepth + toDepth);
+    //    const auto from = (1.0F - t) * COcclusion::OccluderCoors[idxTo];
+    //    const auto to   = from + t * COcclusion::OccluderCoors[idxFrom];
+    //
+    //    if (!CalcScreenCoors(to, screenTo)) {
+    //        return true;
+    //    }
+    //}
+    //
+
+    COcclusion::MinXInOccluder = std::min({ COcclusion::MinXInOccluder, from->x, to->x });
+    COcclusion::MaxXInOccluder = std::max({ COcclusion::MaxXInOccluder, from->x, to->x });
+    COcclusion::MinYInOccluder = std::min({ COcclusion::MinYInOccluder, from->y, to->y });
+    COcclusion::MaxYInOccluder = std::max({ COcclusion::MaxYInOccluder, from->y, to->y });
+
+    auto* const l = &activeOccluder->m_Lines[activeOccluder->m_LinesUsed];
+
+    // Calculate line origin and dir
+    l->Origin = *from;
+    l->Dir    = *to - *from;
+    if (!IsPointInsideLine(l->Origin, l->Dir, COcclusion::CenterOnScreen, 0.f)) {
+        l->Origin = *to;
+        l->Dir    = -l->Dir; // basically *from - *to
+    }
+    l->Dir = l->Dir.Normalized(&l->Length);
+
+    if (!DoesInfiniteLineTouchScreen(l->Origin, l->Dir)) {
+        return !IsPointInsideLine(
+            l->Origin,
+            l->Dir,
+            {SCREEN_WIDTH * 0.5f, SCREEN_HEIGHT * 0.5f},
+            0.f
+        );
+    }
+
+    ++activeOccluder->m_LinesUsed;
+    return false;
 }
 
 // 0x71F960
-bool COccluder::NearCamera() const
-{
-    auto fSize = std::max(
-        static_cast<float>(m_Length) / 4.0F,
-        static_cast<float>(m_Width) / 4.0F
-    );
-    auto vecPos = CVector(m_MidX, m_MidY, m_MidZ) / 4.0F;
-    auto fDist = DistanceBetweenPoints(vecPos, TheCamera.GetPosition());
-    return (fDist - fSize / 2.0F) < 250.0F;
+bool COccluder::NearCamera() const {
+    return CVector::Dist(m_Center, TheCamera.GetPosition()) - (std::max(m_Length, m_Width) / 2.0F) < 250.f;
 }
 
 int16 COccluder::SetNext(int16 next) {
     const auto old = m_NextIndex;
-    m_NextIndex = next;
+    m_NextIndex    = next;
     return old;
 }
