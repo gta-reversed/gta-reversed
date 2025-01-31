@@ -1783,11 +1783,10 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         MODE_CAMERA, MODE_1STPERSON_RUNABOUT
     };
 
-	if (m_pTargetEntity && m_pTargetEntity->IsPed() && notsa::contains(camTargetModes, activeCam.m_nMode)) {
+	if (m_pTargetEntity && m_pTargetEntity->IsPed() && notsa::contains(camTargetModes, previousCamMode)) {
 		const float angle = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y) - HALF_PI;
-        auto* const ped = m_pTargetEntity->AsPed();
-		ped->m_fCurrentRotation = angle;
-		ped->m_fAimingRotation = angle;
+		m_pTargetEntity->AsPed()->m_fCurrentRotation = angle;
+		m_pTargetEntity->AsPed()->m_fAimingRotation = angle;
 	}
 
     // Setup new camera
@@ -1853,13 +1852,12 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
 
     // Switch active camera
     const float horizAngle = activeCam.m_fHorizontalAngle;
-    eCamMode    eCameraNow = activeCam.m_nMode;
 
-    bool isAimWeaponTransition    = false;
+    int targetCoorsDuration       = 600; // Like android version instead bool.
     m_nTransitionDuration         = 1'350;
 
-    if (eCameraNow == MODE_FOLLOWPED && targetCamMode == MODE_CAM_ON_A_STRING
-        || eCameraNow == MODE_CAM_ON_A_STRING && targetCamMode == MODE_FOLLOWPED) {
+    if (previousCamMode == MODE_FOLLOWPED && targetCamMode == MODE_CAM_ON_A_STRING
+        || previousCamMode == MODE_CAM_ON_A_STRING && targetCamMode == MODE_FOLLOWPED) {
         activeCam.m_nMode = targetCamMode;
     } else {
         activeCam.Init();
@@ -1868,8 +1866,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     }
 
     [&]() -> const void {
-        if (targetCamMode == MODE_CAM_ON_A_STRING && notsa::contains({MODE_SYPHON_CRIM_IN_FRONT, MODE_FOLLOWPED, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON, MODE_AIMWEAPON}, previousCamMode)) {
-            m_fFractionInterToStopMoving  = 0.1f;
+        if (targetCamMode == MODE_CAM_ON_A_STRING && notsa::contains({MODE_SYPHON_CRIM_IN_FRONT, MODE_FOLLOWPED, MODE_SYPHON, MODE_SPECIAL_FIXED_FOR_SYPHON, MODE_AIMWEAPON}, previousCamMode)) {            m_fFractionInterToStopMoving  = 0.1f;
             m_fFractionInterToStopCatchUp = 0.9f;
             m_nTransitionDuration         = 750;
             return;
@@ -1915,7 +1912,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
                 m_fFractionInterToStopMoving  = 0.0f; // dword_B70044 ?
                 m_fFractionInterToStopCatchUp = 1.0f; // *&dword_8CCCC0
                 m_nTransitionDuration         = 400;  // dword_8CCCBC
-                isAimWeaponTransition         = 1;
+                targetCoorsDuration         = 350;
                 return;
             }
 
@@ -1931,7 +1928,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         m_fFractionInterToStopMoving  = 0.1f;
         m_fFractionInterToStopCatchUp = 0.9f;
         m_nTransitionDuration         = 350;
-        isAimWeaponTransition         = 1;
+        targetCoorsDuration         = 350;
     }();
 
     // Initialize transition state
@@ -1977,7 +1974,7 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     if (m_bLookingAtPlayer) {
         m_fFractionInterToStopMovingTarget  = 0.0f;
         m_fFractionInterToStopCatchUpTarget = 1.0f;
-        m_nTransitionDurationTargetCoors    = isAimWeaponTransition != 0 ? 350 : 600;
+        m_nTransitionDurationTargetCoors    = targetCoorsDuration;
     } else {
         if (m_bScriptParametersSetForInterp) {
             m_fFractionInterToStopMoving  = m_fScriptPercentageInterToStopMoving;
