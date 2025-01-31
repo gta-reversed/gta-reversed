@@ -11,7 +11,7 @@ void CMessages::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(GetStringLength, 0x69DB50);
-    RH_ScopedInstall(StringCopy, 0x69DB70, { .reversed = false });
+    RH_ScopedInstall(StringCopy, 0x69DB70);
     RH_ScopedInstall(StringCompare, 0x69DBD0);
     RH_ScopedInstall(CutString, 0x69DC50);
     RH_ScopedInstall(ClearMessages, 0x69DCD0);
@@ -367,14 +367,22 @@ void CMessages::ClearAllMessagesDisplayedByGame(bool unk) {
 // Returns length of a string
 // 0x69DB50
 uint32 CMessages::GetStringLength(const GxtChar* string) {
-    return strlen(AsciiFromGxtChar(string));
+    return std::strlen(AsciiFromGxtChar(string));
 }
 
 // Copies string src to dest
 // 0x69DB70
 void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
-    //strncpy(dest, src, len); - TODO: Can't use this cause it's unsafe
-    plugin::Call<0x69DB70, const GxtChar*, const GxtChar*, uint16>(dest, src, len);
+    if (src) {
+        GxtCharStrcpy(dest, src);
+        dest[len - 1] = 0; // Ensure null termination at specified length
+    }
+    else {
+        // Handling of NULL
+        if (len > 0) {
+            dest[0] = 0;
+        }
+    }
 }
 
 /*!
@@ -382,7 +390,7 @@ void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
 * @addr 0x69DBD0
 */
 bool CMessages::StringCompare(const GxtChar* str1, const GxtChar* str2, uint16 len) {
-    return strncmp(AsciiFromGxtChar(str1), AsciiFromGxtChar(str2), len) == 0;
+    return std::strncmp(AsciiFromGxtChar(str1), AsciiFromGxtChar(str2), len) == 0;
 }
 
 // 0x69DC50
@@ -561,37 +569,34 @@ void CMessages::Process() {
 // Displays messages
 // 0x69EFC0
 void CMessages::Display(bool bNotFading) {
-    ZoneScoped;
+    GxtChar buff[MSG_BUF_SZ];
 
-    GxtChar msgText[MSG_BUF_SZ];
-    const auto PreProcessMsgText = [&](tMessage msg) {
-        InsertNumberInString(
-            msg.Text,
-            msg.NumbersToInsert[0],
-            msg.NumbersToInsert[1],
-            msg.NumbersToInsert[2],
-            msg.NumbersToInsert[3],
-            msg.NumbersToInsert[4],
-            msg.NumbersToInsert[5],
-            msgText
-        );
-        InsertStringInString(msgText, msg.StringToInsert);
-        InsertPlayerControlKeysInString(msgText);
+    // Helper function to process text for display
+    const auto ProcessMessageText = [&buff](const tMessage& msg) {
+        InsertNumberInString(msg.Text, 
+                           msg.NumbersToInsert[0], msg.NumbersToInsert[1],
+                           msg.NumbersToInsert[2], msg.NumbersToInsert[3], 
+                           msg.NumbersToInsert[4], msg.NumbersToInsert[5], 
+                           buff);
+        InsertStringInString(buff, msg.StringToInsert);
+        InsertPlayerControlKeysInString(buff);
     };
 
+    // Display big messages if not fading
     if (bNotFading) {
-        for (auto&& [style, omgVeryBig] : notsa::enumerate(BIGMessages)) {
-            const auto& msg = omgVeryBig.Stack.front();
-            if (!msg.IsValid()) {
-                continue;
-            }
-            PreProcessMsgText(msg);
-            CHud::SetBigMessage(msgText, (eMessageStyle)style);
+        for (eMessageStyle style = STYLE_MIDDLE; style < NUM_MESSAGE_STYLES; style = static_cast<eMessageStyle>(style + 1)) {
+            const auto& msg = BIGMessages[style].Stack[0];
+            // Please dont check for IsValid here, that isnt correct, because if 
+            // the array is empty, the first element is still valid, but not initialized
+            ProcessMessageText(msg);
+            CHud::SetBigMessage(buff, style);
         }
     }
 
+    // Display brief messages based on script fading condition
     if (bNotFading == CTheScripts::bDrawSubtitlesBeforeFade) {
-        PreProcessMsgText(BriefMessages[0]);
-        CHud::SetMessage(msgText);
+        const auto& msg = BriefMessages[0];
+        ProcessMessageText(msg);
+        CHud::SetMessage(buff);
     }
 }
