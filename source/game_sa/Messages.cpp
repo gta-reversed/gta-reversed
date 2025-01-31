@@ -257,11 +257,16 @@ void CMessages::AddToPreviousBriefArray(const GxtChar* text, int32 n1, int32 n2,
 // Removes registered messages
 // 0x69DCD0
 void CMessages::ClearMessages(bool bIgnoreMissionTitle) {
-    for (auto i = BIGMessages.size(); i-- > 0;) {
-        if (bIgnoreMissionTitle || (i != STYLE_BOTTOM_RIGHT && i != STYLE_MIDDLE_SMALLER_HIGHER)) {
-            BIGMessages[i] = {};
+    // Clear all big messages except mission titles if bIgnoreMissionTitle is true
+    for (eMessageStyle style = eMessageStyle::STYLE_MIDDLE; style < eMessageStyle::NUM_MESSAGE_STYLES; style = static_cast<eMessageStyle>(style + 1)) {
+        // Skip STYLE_BOTTOM_RIGHT and STYLE_MIDDLE_SMALLER_HIGHER if ignoring mission titles
+        if (bIgnoreMissionTitle && (style == eMessageStyle::STYLE_BOTTOM_RIGHT || style == eMessageStyle::STYLE_MIDDLE_SMALLER_HIGHER)) {
+            continue;
         }
+        rng::fill(BIGMessages[style].Stack, tMessage{});
     }
+
+    // Clear brief messages
     ClearSmallMessagesOnly();
 }
 
