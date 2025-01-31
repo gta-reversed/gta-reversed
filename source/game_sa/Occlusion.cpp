@@ -98,8 +98,8 @@ bool COcclusion::IsPositionOccluded(CVector pos, float radius) {
     const auto screenRadius = radius * longEdge;
     const auto screenDepth  = scrPos.z - radius;
     return rng::any_of(GetActiveOccluders(), [=](auto&& o) {
-        return o.m_DistToCam <= screenDepth
-            && o.IsPointWithinOcclusionArea(scrPos.x, scrPos.y, screenRadius)
+        return o.GetDistToCam() <= screenDepth
+            && o.IsPointWithinOcclusionArea(scrPos, screenRadius)
             && o.IsPointBehindOccluder(pos, radius);
     });
 }

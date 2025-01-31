@@ -15,10 +15,10 @@ class CActiveOccluder {
 public:
     static void InjectHooks();
 
-    bool IsPointWithinOcclusionArea(float fX, float fY, float fRadius) const;
-    bool IsPointBehindOccluder(CVector vecPos, float fRadius) const;
+    bool IsPointWithinOcclusionArea(CVector2D pt, float radius = 0.f) const;
+    bool IsPointBehindOccluder(CVector pt, float radius = 0.f) const;
     auto GetLines() const { return std::span{ m_Lines, m_LinesUsed }; }
-
+    float GetDistToCam() const { return (float)(m_DistToCam); }
 public:
     CActiveOccluderLine m_Lines[6];
     uint16              m_DistToCam;
