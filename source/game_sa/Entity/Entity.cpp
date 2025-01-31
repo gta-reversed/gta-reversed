@@ -1677,7 +1677,7 @@ bool CEntity::IsVisible()
 }
 
 // 0x536BE0
-float CEntity::GetDistanceFromCentreOfMassToBaseOfModel()
+float CEntity::GetDistanceFromCentreOfMassToBaseOfModel() const
 {
     auto cm = GetColModel();
     return -cm->m_boundBox.m_vecMin.z;
@@ -2322,105 +2322,151 @@ void CEntity::RemoveEscalatorsForEntity()
 }
 
 // 0x71FAE0
-bool CEntity::IsEntityOccluded()
-{
-    CVector vecCenter;
-    GetBoundCentre(vecCenter);
-
-    CVector vecScreenPos;
-    float fScreenX, fScreenY;
-    if (!COcclusion::NumActiveOccluders || !CalcScreenCoors(vecCenter, vecScreenPos, fScreenX, fScreenY))
+bool CEntity::IsEntityOccluded() {
+    if (COcclusion::GetActiveOccluders().empty()) {
         return false;
+    }
 
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
-    auto fLongEdge = std::max(fScreenX, fScreenY);
-    auto fBoundRadius = mi->GetColModel()->GetBoundRadius();
-    auto fUsedRadius = fBoundRadius * fLongEdge * 0.9F;
-    if (COcclusion::NumActiveOccluders <= 0)
+    CVector center;
+    GetBoundCentre(center);
+
+    CVector centerScrPos;
+    float scaleX, scaleY;
+    if (!CalcScreenCoors(center, centerScrPos, scaleX, scaleY)) {
         return false;
+    }
+    
+    auto* const         mi = CModelInfo::GetModelInfo(m_nModelIndex);
+    const CBoundingBox& bb = mi->GetColModel()->GetBoundingBox();
 
-    for (size_t iOccInd = 0; iOccInd < COcclusion::NumActiveOccluders; ++iOccInd) {
-        auto& activeOccluder = COcclusion::ActiveOccluders[iOccInd];
-        auto fDepth = vecScreenPos.z - fBoundRadius;
-        if (static_cast<float>(activeOccluder.m_DistToCam) >= fDepth)
-            continue;
+    const auto longEdge        = std::max(scaleX, scaleY);
+    const auto boundingRadius  = mi->GetColModel()->GetBoundRadius();
+    const auto occlusionRadius = boundingRadius * longEdge * 0.9f;
 
-        if (activeOccluder.IsPointWithinOcclusionArea(vecScreenPos.x, vecScreenPos.y, fUsedRadius)) {
-            if (activeOccluder.IsPointBehindOccluder(vecCenter, fBoundRadius)) {
+    const auto GetOccluderPt = [this](CVector pt) -> std::pair<CVector, std::optional<CVector>> {
+        const auto ws = TransformFromObjectSpace(pt);
+        if (CVector scr; CalcScreenCoors(ws, scr)) {
+            return {ws, scr};
+        }
+        return {ws, std::nullopt};
+    };
+    const CVector min = bb.m_vecMin,
+                  max = bb.m_vecMax;
+    const std::array points{
+        GetOccluderPt(min),
+        GetOccluderPt(max),
+        GetOccluderPt({min.x, max.y, max.z}),
+        GetOccluderPt({max.x, min.y, min.z}),
+        GetOccluderPt({min.x, min.y, max.z}),
+        GetOccluderPt({max.x, min.y, max.z}),
+    };
+
+    return rng::any_of(COcclusion::GetActiveOccluders(), [&](const auto& o) -> bool {
+        if (o.GetDistToCam() >= centerScrPos.z - boundingRadius) { // Inside the entity?
+            return false;
+        }
+        if (o.IsPointWithinOcclusionArea(centerScrPos, occlusionRadius)) {
+            if (o.IsPointBehindOccluder(center, boundingRadius)) {
                 return true;
             }
         }
-
-        if (activeOccluder.IsPointWithinOcclusionArea(vecScreenPos.x, vecScreenPos.y, 0.0F)) {
-            auto bInView = false;
-            const auto& bounding = mi->GetColModel()->GetBoundingBox();
-            CVector vecScreen;
-
-            auto vecMin = GetMatrix().TransformPoint(bounding.m_vecMin);
-            if (!CalcScreenCoors(vecMin, vecScreen)
-                || !activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-                || !activeOccluder.IsPointBehindOccluder(vecMin, 0.0F)
-            ) {
-                bInView = true;
-            }
-
-            auto vecMax = GetMatrix().TransformPoint(bounding.m_vecMax);
-            if (bInView
-                || !CalcScreenCoors(vecMax, vecScreen)
-                || !activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-                || !activeOccluder.IsPointBehindOccluder(vecMax, 0.0F)
-            ) {
-                bInView = true;
-            }
-
-            auto vecDiag1 = GetMatrix().TransformVector(CVector(bounding.m_vecMin.x, bounding.m_vecMax.y, bounding.m_vecMax.z));
-            if (bInView
-                || !CalcScreenCoors(vecDiag1, vecScreen)
-                || !activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-                || !activeOccluder.IsPointBehindOccluder(vecDiag1, 0.0F)
-            ) {
-                bInView = true;
-            }
-
-            auto vecDiag2 = GetMatrix().TransformVector(CVector(bounding.m_vecMax.x, bounding.m_vecMin.y, bounding.m_vecMin.z));
-            if (!bInView
-                && CalcScreenCoors(vecDiag2, vecScreen)
-                && activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-                && activeOccluder.IsPointBehindOccluder(vecDiag2, 0.0F)
-            ) {
-                if (bounding.GetWidth() <= 60.0F)
-                    return true;
-
-                if (bounding.GetLength() <= 60.0F)
-                    return true;
-
-                if (bounding.GetHeight() <= 30.0F)
-                    return true;
-
-                auto vecDiag3 = GetMatrix().TransformVector(CVector(bounding.m_vecMin.x, bounding.m_vecMin.y, bounding.m_vecMax.z));
-                if (!CalcScreenCoors(vecDiag3, vecScreen)
-                    || !activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-                    || !activeOccluder.IsPointBehindOccluder(vecDiag3, 0.0F)) {
-
-                    bInView = true;
-                }
-
-                auto vecDiag4 = GetMatrix().TransformVector(CVector(bounding.m_vecMax.x, bounding.m_vecMin.y, bounding.m_vecMax.z));
-                if (!bInView
-                    && CalcScreenCoors(vecDiag4, vecScreen)
-                    && activeOccluder.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
-                    && activeOccluder.IsPointBehindOccluder(vecDiag4, 0.0F)
-                ) {
-                    return true;
-                }
-            }
+        if (!o.IsPointWithinOcclusionArea(centerScrPos)) {
+            return false;
         }
-    }
+        return rng::all_of(points, [&](const auto& pt) {
+            const auto& [ws, scr] = pt; // World-space and screen-space positions
+            if (!scr.has_value()) {
+                return false;
+            }
+            return o.IsPointWithinOcclusionArea(*scr)
+                && o.IsPointBehindOccluder(ws);
+        });
+    });
 
-    return false;
+    // Original code for those interested
+    // I did leave out a little portion, but the new code should be faster anyways
+    //for (auto& o : COcclusion::GetActiveOccluders()) {
+    //    if (o.GetDistToCam() >= scrPos.z - boundingRadius) {
+    //        continue;
+    //    }
+    //
+    //    if (o.IsPointWithinOcclusionArea(scrPos.x, scrPos.y, occlusionRadius)) {
+    //        if (o.IsPointBehindOccluder(center, boundingRadius)) {
+    //            return true;
+    //        }
+    //    }
+    //
+    //    if (!o.IsPointWithinOcclusionArea(scrPos.x, scrPos.y, 0.0F)) {
+    //        continue;
+    //    }
+    //
+    //    auto bInView = false;
+    //    CVector vecScreen;
+    //
+    //    auto vecMin = GetMatrix().TransformPoint(bb.m_vecMin);
+    //    if (!CalcScreenCoors(vecMin, vecScreen)
+    //        || !o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
+    //        || !o.IsPointBehindOccluder(vecMin, 0.0F)
+    //    ) {
+    //        bInView = true;
+    //    }
+    //
+    //    auto vecMax = GetMatrix().TransformPoint(bb.m_vecMax);
+    //    if (bInView
+    //        || !CalcScreenCoors(vecMax, vecScreen)
+    //        || !o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
+    //        || !o.IsPointBehindOccluder(vecMax, 0.0F)
+    //    ) {
+    //        bInView = true;
+    //    }
+    //
+    //    auto vecDiag1 = GetMatrix().TransformPoint(CVector(bb.m_vecMin.x, bb.m_vecMax.y, bb.m_vecMax.z));
+    //    if (bInView
+    //        || !CalcScreenCoors(vecDiag1, vecScreen)
+    //        || !o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
+    //        || !o.IsPointBehindOccluder(vecDiag1, 0.0F)
+    //    ) {
+    //        bInView = true;
+    //    }
+    //
+    //    auto vecDiag2 = GetMatrix().TransformPoint(CVector(bb.m_vecMax.x, bb.m_vecMin.y, bb.m_vecMin.z));
+    //    if (!bInView
+    //        && CalcScreenCoors(vecDiag2, vecScreen)
+    //        && o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
+    //        && o.IsPointBehindOccluder(vecDiag2, 0.0F)
+    //    ) {
+    //        if (bb.GetWidth() <= 60.0F)
+    //            return true;
+    //
+    //        if (bb.GetLength() <= 60.0F)
+    //            return true;
+    //
+    //        if (bb.GetHeight() <= 30.0F)
+    //            return true;
+    //
+    //        auto vecDiag3 = GetMatrix().TransformPoint(CVector(bb.m_vecMin.x, bb.m_vecMin.y, bb.m_vecMax.z));
+    //        if (!CalcScreenCoors(vecDiag3, vecScreen)
+    //            || !o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
+    //            || !o.IsPointBehindOccluder(vecDiag3, 0.0F)) {
+    //
+    //            bInView = true;
+    //        }
+    //
+    //        auto vecDiag4 = GetMatrix().TransformPoint(CVector(bb.m_vecMax.x, bb.m_vecMin.y, bb.m_vecMax.z));
+    //        if (!bInView
+    //            && CalcScreenCoors(vecDiag4, vecScreen)
+    //            && o.IsPointWithinOcclusionArea(vecScreen.x, vecScreen.y, 0.0F)
+    //            && o.IsPointBehindOccluder(vecDiag4, 0.0F)
+    //        ) {
+    //            return true;
+    //        }
+    //    }
+    //}
+    //
+    //return false;
 }
 
-bool CEntity::IsInCurrentAreaOrBarberShopInterior()
+bool CEntity::IsInCurrentAreaOrBarberShopInterior() const
 {
     return m_nAreaCode == CGame::currArea || m_nAreaCode == AREA_CODE_13;
 }
