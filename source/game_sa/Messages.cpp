@@ -381,8 +381,7 @@ void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
     if (src) {
         GxtCharStrcpy(dest, src);
         dest[len - 1] = 0; // Ensure null termination at specified length
-    }
-    else {
+    } else {
         // Handling of NULL
         if (len > 0) {
             dest[0] = 0;
@@ -578,11 +577,7 @@ void CMessages::Display(bool bNotFading) {
 
     // Helper function to process text for display
     const auto ProcessMessageText = [&buff](const tMessage& msg) {
-        InsertNumberInString(msg.Text, 
-                           msg.NumbersToInsert[0], msg.NumbersToInsert[1],
-                           msg.NumbersToInsert[2], msg.NumbersToInsert[3], 
-                           msg.NumbersToInsert[4], msg.NumbersToInsert[5], 
-                           buff);
+        InsertNumberInString(msg.Text, msg.NumbersToInsert[0], msg.NumbersToInsert[1], msg.NumbersToInsert[2], msg.NumbersToInsert[3], msg.NumbersToInsert[4], msg.NumbersToInsert[5], buff);
         InsertStringInString(buff, msg.StringToInsert);
         InsertPlayerControlKeysInString(buff);
     };
@@ -591,7 +586,7 @@ void CMessages::Display(bool bNotFading) {
     if (bNotFading) {
         for (eMessageStyle style = STYLE_MIDDLE; style < NUM_MESSAGE_STYLES; style = static_cast<eMessageStyle>(style + 1)) {
             const auto& msg = BIGMessages[style].Stack[0];
-            // Please dont check for IsValid here, that isnt correct, because if 
+            // Please dont check for IsValid here, that isnt correct, because if
             // the array is empty, the first element is still valid, but not initialized
             ProcessMessageText(msg);
             CHud::SetBigMessage(buff, style);
