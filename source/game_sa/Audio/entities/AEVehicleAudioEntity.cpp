@@ -26,15 +26,20 @@ bool IsSurfaceAudioEitherGravelWaterSand(eSurfaceType surface) {
 }
 
 //
-// Dummy/Idle rev constants:
+// Dummy engine constants:
 //
-constexpr auto flt_8CBBF4 = 0.15f; // 0x8CBBF4
-constexpr auto DUMMY_ENGINE_BASE_VOLUME              = -3.f;                                  // 0x8CBC00
-constexpr auto DUMMY_ENGINE_CRZ_RATIO                = 0.2f;                                  // 0x8CBBF0
-constexpr auto flt_B6B9CC                            = 0.f;                                   // 0xB6B9CC
-constexpr auto flt_B6BA24                            = flt_B6B9CC - DUMMY_ENGINE_BASE_VOLUME; // 0xB6BA24
-constexpr auto DUMMY_ENGINE_UNDERWATER_VOLUME_OFFSET = 6.f;                                   // 0x8CBC44
-constexpr auto DUMMY_ENGINE_TRAILER_VOLUME_OFFSET    = 6.f;                                   // 0x8CBC40
+constexpr auto flt_8CBBF4                               = 0.15f;                                                                // 0x8CBBF4
+constexpr auto DUMMY_ENGINE_CRZ_RATIO                   = 0.2f;                                                                 // 0x8CBBF0
+constexpr auto DUMMY_ENGINE_IDLE_VOLUME_BASE            = -3.f;                                                                 // 0x8CBC00
+constexpr auto DUMMY_ENGINE_IDLE_VOLUME_MAX_FOR_CRZ     = 0.f;                                                                  // 0xB6B9CC
+constexpr auto DUMMY_ENGINE_IDLE_VOLUME_FOR_CRZ         = DUMMY_ENGINE_IDLE_VOLUME_MAX_FOR_CRZ - DUMMY_ENGINE_IDLE_VOLUME_BASE; // 0xB6BA24
+constexpr auto DUMMY_ENGINE_VOLUME_UNDERWATER_OFFSET    = 6.f;                                                                  // 0x8CBC44
+constexpr auto DUMMY_ENGINE_VOLUME_TRAILER_OFFSET       = 6.f;                                                                  // 0x8CBC40
+constexpr auto DUMMY_ENGINE_IDLE_FREQ_MAX_FOR_CRZ       = 1.2f;                                                                 // 0x8CBBFC
+constexpr auto DUMMY_ENGINE_IDLE_FREQ_BASE              = 0.85f;                                                                // 0x8CBBF8
+constexpr auto DUMMY_ENGINE_IDLE_FREQ_FOR_CRZ           = DUMMY_ENGINE_IDLE_FREQ_MAX_FOR_CRZ - DUMMY_ENGINE_IDLE_FREQ_BASE;     // 0xB6BA20
+constexpr auto DUMMY_ENGINE_IDLE_FREQ_UNDERWATER_FACTOR = 0.7f;                                                                 // 0x8CBC48
+
 
 void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedVirtualClass(CAEVehicleAudioEntity, 0x862CEC, 1);
@@ -69,7 +74,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(IsCrzInhibitedForTime, 0x4F5050);
     RH_ScopedInstall(GetAccelAndBrake, 0x4F5080);
     RH_ScopedInstall(GetVolumeForDummyIdle, 0x4F51F0);
-    RH_ScopedInstall(GetFrequencyForDummyIdle, 0x4F5310, { .reversed = false });
+    RH_ScopedInstall(GetFrequencyForDummyIdle, 0x4F5310);
     RH_ScopedInstall(GetVolumeForDummyRev, 0x4F53D0, { .reversed = false });
     RH_ScopedInstall(GetFrequencyForDummyRev, 0x4F54F0, { .reversed = false });
     RH_ScopedInstall(CancelVehicleEngineSound, 0x4F55C0, { .reversed = false });
@@ -814,13 +819,13 @@ void CAEVehicleAudioEntity::GetAccelAndBrake(cVehicleParams& vp) const {
 // 0x4F51F0
 float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float ratio, float fadeRatio) {
     if (m_Entity->GetModelID() == MODEL_CADDY) {
-        return DUMMY_ENGINE_BASE_VOLUME - 30.0f;
+        return DUMMY_ENGINE_IDLE_VOLUME_BASE - 30.0f;
     }
 
     auto* vehicle = m_Entity->AsVehicle();
 
-    float volume = DUMMY_ENGINE_BASE_VOLUME
-                 + std::abs(DUMMY_ENGINE_BASE_VOLUME) * std::clamp(ratio / DUMMY_ENGINE_CRZ_RATIO, 0.0f, 1.0f);
+    float volume = DUMMY_ENGINE_IDLE_VOLUME_BASE
+                 + DUMMY_ENGINE_IDLE_VOLUME_FOR_CRZ * std::clamp(ratio / DUMMY_ENGINE_CRZ_RATIO, 0.0f, 1.0f);
     if (m_State == AE_STATE_DUMMY_CRZ) {
         constexpr float points[5][2] = { // 0x8CC0C4
             { 0.0000f, 1.000f},
@@ -835,66 +840,59 @@ float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float ratio, float fadeRatio)
     }
 
     if (vehicle->vehicleFlags.bIsDrowning) {
-        volume -= DUMMY_ENGINE_UNDERWATER_VOLUME_OFFSET;
+        volume -= DUMMY_ENGINE_VOLUME_UNDERWATER_OFFSET;
     }
 
     if (vehicle->m_pTrailer) {
-        volume += DUMMY_ENGINE_TRAILER_VOLUME_OFFSET;
+        volume += DUMMY_ENGINE_VOLUME_TRAILER_OFFSET;
     }
 
     return volume + m_AuSettings.EngineVolumeOffset;
 }
 
 // 0x4F5310
-float CAEVehicleAudioEntity::GetFrequencyForDummyIdle(float fGearRevProgress, float fRevProgressBaseline) {
-    return plugin::CallMethodAndReturn<float, 0x4F5310, CAEVehicleAudioEntity*, float, float>(this, fGearRevProgress, fRevProgressBaseline);
+float CAEVehicleAudioEntity::GetFrequencyForDummyIdle(float ratio, float fadeRatio) {
+    auto* vehicle = m_Entity->AsVehicle();
 
-    if (m_Entity->m_nModelIndex == MODEL_CADDY) {
+    if (vehicle->m_nModelIndex == MODEL_CADDY) {
         return 1.0f;
     }
 
-    auto*      vehicle               = m_Entity->AsVehicle();
-    const auto fGearRevToMaxProgress = std::clamp<float>(fGearRevProgress / 0.2f, 0.0f, 1.0f);
-
-    float freq = 0.35f * fGearRevToMaxProgress + 0.85f;
-    if (vehicle->vehicleFlags.bIsDrowning) {
-        freq *= 0.7f;
-    }
-
-    if (m_State == 2) {
-        static float afFreqPoints[5][2] = {
-  // 0x8CC0EC
-            {0.0000f,  1.00f},
-            { 0.3000f, 1.00f},
-            { 0.5000f, 0.85f},
-            { 0.7000f, 0.85f},
-            { 1.0001f, 0.85f},
+    float freq = DUMMY_ENGINE_IDLE_FREQ_BASE
+               + DUMMY_ENGINE_IDLE_FREQ_FOR_CRZ * std::clamp<float>(ratio / DUMMY_ENGINE_CRZ_RATIO, 0.0f, 1.0f);
+    if (m_State == AE_STATE_DUMMY_CRZ) {
+        constexpr float points[5][2] = { // 0x8CC0EC
+            { 0.0000f, 1.00f },
+            { 0.3000f, 1.00f },
+            { 0.5000f, 0.85f },
+            { 0.7000f, 0.85f },
+            { 1.0001f, 0.85f },
         };
-        freq *= CAEAudioUtility::GetPiecewiseLinear(fRevProgressBaseline, (int16)std::size(afFreqPoints), afFreqPoints);
+        freq *= CAEAudioUtility::GetPiecewiseLinearT(fadeRatio, points);
     }
+
+    if (vehicle->vehicleFlags.bIsDrowning) {
+        freq *= DUMMY_ENGINE_IDLE_FREQ_UNDERWATER_FACTOR;
+    }
+
     return freq;
 }
 
 // 0x4F53D0
 float CAEVehicleAudioEntity::GetVolumeForDummyRev(float fRatio, float fFadeRatio) {
-    return plugin::CallMethodAndReturn<float, 0x4F53D0, CAEVehicleAudioEntity*, float, float>(this, fRatio, fFadeRatio);
-
-    static float points[][2] = {
-  // 0x8CC114
-        {0.0000f,  0.000f},
-        { 0.3000f, 0.000f},
-        { 0.5000f, 0.707f},
-        { 0.7000f, 1.000f},
-        { 1.0001f, 1.000f},
-    };
-
     auto v4     = (fRatio - 0.15f) / (1.0f - 0.15f);
     auto volume = 4.5f * std::clamp(v4, 0.0f, 1.0f) + -4.5f;
 
-    if (m_State == 2) {
+    if (m_State == AE_STATE_DUMMY_CRZ) {
         if (fFadeRatio <= 0.99f) {
-            auto p = CAEAudioUtility::GetPiecewiseLinear(fFadeRatio, (int16)std::size(points), points);
-            volume += CAEAudioUtility::AudioLog10(p) * 20.0f;
+            constexpr float points[][2] = { // 0x8CC114
+                { 0.0000f, 0.000f},
+                { 0.3000f, 0.000f},
+                { 0.5000f, 0.707f},
+                { 0.7000f, 1.000f},
+                { 1.0001f, 1.000f},
+            };
+            volume += CAEAudioUtility::AudioLog10(CAEAudioUtility::GetPiecewiseLinear(fFadeRatio, (int16)std::size(points), points)) * 20.0f;
         } else {
             volume += 0.0f;
         }
@@ -904,11 +902,11 @@ float CAEVehicleAudioEntity::GetVolumeForDummyRev(float fRatio, float fFadeRatio
 
     assert(m_Entity->IsVehicle());
     if (m_Entity->AsAutomobile()->vehicleFlags.bIsDrowning) {
-        volume -= 6.0f;
+        volume -= DUMMY_ENGINE_VOLUME_UNDERWATER_OFFSET;
     }
 
     if (m_Entity->AsAutomobile()->m_pTrailer) {
-        volume += 6.0f;
+        volume += DUMMY_ENGINE_VOLUME_TRAILER_OFFSET;
     }
 
     return volume + m_AuSettings.EngineVolumeOffset;
