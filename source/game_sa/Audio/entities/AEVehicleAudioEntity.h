@@ -197,19 +197,19 @@ private:
         AE_NO_VEHICLE          = 10,
     };
 
-    enum { // Enums for `m_State` (?)
+    enum eAEState : uint8 { // Enums for `m_State` (?)
         AE_STATE_CAR_OFF              = 0,
 
         AE_STATE_DUMMY_ID             = 1, // Idle?
-        AE_STATE_DUMMY_CRZ            = 2, // Tf?
+        AE_STATE_DUMMY_CRZ            = 2, // crz = cruising?
 
-        AE_STATE_PLAYER_AC_FULL       = 3, // What the fuck is AC? Air-Conditioner?
+        AE_STATE_PLAYER_AC_FULL       = 3, // AC = Acceleration?
         AE_STATE_PLAYER_WHEEL_SPIN    = 4,
-        AE_STATE_PLAYER_CRZ           = 5,
-        AE_STATE_PLAYER_ID            = 6,
+        AE_STATE_PLAYER_CRZ           = 5, // Cruising?
+        AE_STATE_PLAYER_ID            = 6, // ???
         AE_STATE_PLAYER_REVERSE       = 7,
         AE_STATE_PLAYER_REVERSE_OFF   = 8,
-        AE_STATE_PLAYER_FAILING_TO_AC = 9, // ????
+        AE_STATE_PLAYER_FAILING_TO_AC = 9, // Failing to accelerate? 
 
         AE_CAR_ENGINE_STATE_MAX       = 10,
     };
@@ -227,7 +227,7 @@ public:
     bool                   m_IsPlayerPassenger;
     bool                   m_IsPlayerDriverAboutToExit;
     bool                   m_IsWreckedVehicle;
-    char                   m_State; // Engine state?
+    eAEState               m_State; // Engine state?
     uint8                  m_AuGear; // AudioGear
     float                  m_CrzCount; // Crz = Cruise ?
     bool                   m_IsSingleGear;
