@@ -1846,12 +1846,13 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
         break;
     }
 
-    // Switch active camera
+    // Backup horizontal angle before Init.
     const float horizAngle = activeCam.m_fHorizontalAngle;
 
     int targetCoorsDuration = 600; // Like android version instead bool.
     m_nTransitionDuration   = 1'350;
 
+    // Switch active camera
     if (previousCamMode == MODE_FOLLOWPED && targetCamMode == MODE_CAM_ON_A_STRING
         || previousCamMode == MODE_CAM_ON_A_STRING && targetCamMode == MODE_FOLLOWPED) {
         activeCam.m_nMode = targetCamMode;
@@ -1957,8 +1958,6 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     CEntity::ChangeEntityReference(activeCam.m_pCamTargetEntity, m_pTargetEntity);
 
     // Store starting speeds
-    m_bTransitionJUSTStarted     = true;
-    m_nTimeTransitionStart       = CTimer::GetTimeInMS();
     m_fStartingFOVForInterPol    = activeCam.m_fFOV;
     m_vecSourceSpeedAtStartInter = activeCam.m_vecSourceSpeedOverOneFrame;
     m_vecTargetSpeedAtStartInter = activeCam.m_vecTargetSpeedOverOneFrame;
