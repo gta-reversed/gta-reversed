@@ -1,5 +1,6 @@
 #pragma once
 
+#include <General.h>
 #include "TaskComplex.h"
 #include "TaskSimpleFacial.h"
 

@@ -25,11 +25,11 @@ void CAESmoothFadeThread::InjectHooks() {
 CAESmoothFadeThread::CAESmoothFadeThread() {
     m_threadHandle         = INVALID_HANDLE_VALUE;
     m_dwThreadId           = 0;
-    m_bThreadCreated       = false;
+    m_bInitialized       = false;
     m_bActive              = false;
-    m_wUnkn                = 0;
-    m_wUnkn2               = 0;
-    m_nLastServiceTime     = 0;
+    m_numRequests                = 0;
+    m_lastRequest               = 0;
+    m_currentTime     = 0;
     m_nNumAvailableBuffers = 0;
 }
 
@@ -37,17 +37,17 @@ void CAESmoothFadeThread::Initialise() {
     InitialiseRequestSlots();
     m_threadHandle = CreateThread(nullptr, 0, &CAESmoothFadeThread::SmoothFadeProc, this, CREATE_SUSPENDED, &m_dwThreadId);
     if (m_threadHandle == INVALID_HANDLE_VALUE || !m_threadHandle) { // NOTSA: nullptr check
-        m_bThreadCreated = false;
+        m_bInitialized = false;
     } else {
         SetThreadPriority(m_threadHandle, 0);
-        m_bThreadCreated = true;
-        m_bThreadInvalid = false;
+        m_bInitialized = true;
+        m_bSmoothFadesDisabled = false;
     }
 }
 
 void CAESmoothFadeThread::InitialiseRequestSlots() {
     for (auto& entry : m_aEntries) {
-        entry.m_nStatus = eSmoothFadeEntryStatus::STATE_INACTIVE;
+        entry.m_nStatus = eSmoothFadeEntryStatus::STATE_IDLE;
         entry.m_pSoundBuffer = nullptr;
     }
 }
@@ -66,9 +66,9 @@ void CAESmoothFadeThread::WaitForExit() {
 }
 
 void CAESmoothFadeThread::Service() {
-    m_nLastServiceTime = (uint32)CAEAudioUtility::GetCurrentTimeInMS();
+    m_currentTime = (uint32)CAEAudioUtility::GetCurrentTimeInMS();
     for (auto& entry : m_aEntries) {
-        if (entry.m_nStatus == eSmoothFadeEntryStatus::STATE_INACTIVE)
+        if (entry.m_nStatus == eSmoothFadeEntryStatus::STATE_IDLE)
             continue;
 
         if (entry.m_nStatus == eSmoothFadeEntryStatus::STATE_CANCELLED) {
@@ -77,17 +77,17 @@ void CAESmoothFadeThread::Service() {
                 entry.m_pSoundBuffer->Release();
 
             entry.m_pSoundBuffer = nullptr;
-            entry.m_nStatus = eSmoothFadeEntryStatus::STATE_INACTIVE;
+            entry.m_nStatus = eSmoothFadeEntryStatus::STATE_IDLE;
             continue;
         }
 
         if (!entry.m_pSoundBuffer)
             continue;
 
-        if (m_nLastServiceTime < entry.m_nStartTime)
+        if (m_currentTime < entry.m_nStartTime)
             continue;
 
-        const auto elapsed = m_nLastServiceTime - entry.m_nStartTime;
+        const auto elapsed = m_currentTime - entry.m_nStartTime;
         if (elapsed < entry.m_wFadeTime) {
             const auto fStep = pow(10.0F, entry.m_fVolumeDiff / 20.0F) - 1.0F;
             const auto fProgress = static_cast<float>(elapsed) / static_cast<float>(entry.m_wFadeTime);
@@ -113,12 +113,12 @@ void CAESmoothFadeThread::Service() {
             entry.m_pSoundBuffer->Release();
 
         entry.m_pSoundBuffer = nullptr;
-        entry.m_nStatus = eSmoothFadeEntryStatus::STATE_INACTIVE;
+        entry.m_nStatus = eSmoothFadeEntryStatus::STATE_IDLE;
     }
 }
 
 void CAESmoothFadeThread::CancelFade(IDirectSoundBuffer* buffer) {
-    if (m_bThreadInvalid)
+    if (m_bSmoothFadesDisabled)
         return;
 
     for (auto& entry : m_aEntries)
@@ -127,7 +127,7 @@ void CAESmoothFadeThread::CancelFade(IDirectSoundBuffer* buffer) {
 }
 
 bool CAESmoothFadeThread::RequestFade(IDirectSoundBuffer* buffer, float fTargetVolume, int16 fadeTime, bool bStopBufferAfterFade) {
-    if (!m_bThreadCreated || m_bThreadInvalid)
+    if (!m_bInitialized || m_bSmoothFadesDisabled)
         return false;
 
     uint32 status;
@@ -150,7 +150,7 @@ bool CAESmoothFadeThread::RequestFade(IDirectSoundBuffer* buffer, float fTargetV
     int32  iFreeInd = -1;
     for (uint32 i = 0; i < m_nNumAvailableBuffers; ++i) {
         auto& sound = m_aEntries[i];
-        if (sound.m_nStatus == eSmoothFadeEntryStatus::STATE_INACTIVE && !bFound) {
+        if (sound.m_nStatus == eSmoothFadeEntryStatus::STATE_IDLE && !bFound) {
             bFound = true;
             iFreeInd = i;
             continue;
@@ -162,7 +162,7 @@ bool CAESmoothFadeThread::RequestFade(IDirectSoundBuffer* buffer, float fTargetV
         if (sound.m_pSoundBuffer != buffer)
             continue;
 
-        if (fadeTime + sound.m_nStartTime - m_nLastServiceTime <= 1)
+        if (fadeTime + sound.m_nStartTime - m_currentTime <= 1)
             continue;
 
         bFound = true;
@@ -196,7 +196,7 @@ bool CAESmoothFadeThread::RequestFade(IDirectSoundBuffer* buffer, float fTargetV
     else
         sound.m_wFadeTime = fadeTime;
 
-    sound.m_nStartTime = m_nLastServiceTime;
+    sound.m_nStartTime = m_currentTime;
     sound.m_nStatus = eSmoothFadeEntryStatus::STATE_ACTIVE;
 
     return true;
@@ -204,7 +204,7 @@ bool CAESmoothFadeThread::RequestFade(IDirectSoundBuffer* buffer, float fTargetV
 
 void CAESmoothFadeThread::SetBufferVolume(IDirectSoundBuffer* buffer, float volume) {
     const auto newVolume = static_cast<LONG>(volume * 100.0F);
-    if (m_bThreadInvalid) {
+    if (m_bSmoothFadesDisabled) {
         buffer->SetVolume(newVolume);
         return;
     }

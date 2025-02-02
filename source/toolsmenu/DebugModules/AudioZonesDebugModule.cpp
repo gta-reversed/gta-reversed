@@ -13,6 +13,6 @@ void AudioZonesDebugModule::Render3D() {
     }
 
     for (auto& box : CAudioZones::GetActiveAuZoBoxes()) {
-        box.DrawWireFrame(CRGBA(255, 0, 0, 255), m_transform);
+        box.DrawWireFrame(CRGBA(255, 0, 0, 255), m_Transform);
     }
 }

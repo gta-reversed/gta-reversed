@@ -10,6 +10,13 @@
 #include "CarCtrl.h"
 #include "TrafficLights.h"
 #include "TheScripts.h"
+#include "GangWars.h"
+#include "Game.h"
+#include "General.h"
+#include "GameLogic.h"
+#include "CutsceneMgr.h"
+#include "TheCarGenerators.h"
+#include "eAreaCodes.h"
 
 uint32& CCarCtrl::NumLawEnforcerCars = *(uint32*)0x969098;
 uint32& CCarCtrl::NumParkedCars = *(uint32*)0x9690A0;
@@ -43,8 +50,8 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(Init, 0x4212E0);
     RH_ScopedInstall(ReInit, 0x4213B0);
     RH_ScopedInstall(InitSequence, 0x421740);
-    Install("CCarCtrl", "ChooseGangCarModel", 0x421A40, &CCarCtrl::ChooseGangCarModel, { .jmpCodeSize = 7 });
-    Install("CCarCtrl", "ChoosePoliceCarModel", 0x421980, &CCarCtrl::ChoosePoliceCarModel, { .jmpCodeSize = 7 });
+    RH_ScopedInstall(ChooseGangCarModel, 0x421A40, { .jmpCodeSize = 7 });
+    RH_ScopedInstall(ChoosePoliceCarModel, 0x421980, { .jmpCodeSize = 7 });
     RH_ScopedInstall(CreateCarForScript, 0x431F80);
     RH_ScopedInstall(ChooseBoatModel, 0x421970);
     RH_ScopedInstall(ChooseCarModelToLoad, 0x421900);
@@ -60,6 +67,7 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(ScriptGenerateOneEmergencyServicesCar, 0x42FBC0);
     RH_ScopedInstall(SlowCarDownForObject, 0x426220);
     RH_ScopedInstall(SlowCarOnRailsDownForTrafficAndLights, 0x434790);
+    RH_ScopedInstall(GenerateRandomCars, 0x4341C0);
 }
 
 // 0x4212E0
@@ -379,9 +387,32 @@ void CCarCtrl::GenerateOneRandomCar() {
 
 // 0x4341C0
 void CCarCtrl::GenerateRandomCars() {
-    ZoneScoped;
+    if (CCutsceneMgr::ms_running) {
+        CountDownToCarsAtStart = 2;
+        return;
+    }
+    if (CGangWars::DontCreateCivilians() || !CGame::CanSeeOutSideFromCurrArea()) {
+        return;
+    }
 
-    plugin::Call<0x4341C0>();
+    if (CGameLogic::LaRiotsActiveHere() && TimeNextMadDriverChaseCreated > 480.0f) {
+        TimeNextMadDriverChaseCreated = CGeneral::GetRandomNumberInRange(240.0f, 480.0f);
+    }
+    TimeNextMadDriverChaseCreated -= (CTimer::GetTimeStep() * 0.02f);
+
+    if (NumRandomCars < 45) {
+        if (CountDownToCarsAtStart) {
+            CountDownToCarsAtStart--;
+            for (auto i = 100; i --> 0;) {
+                GenerateOneRandomCar();
+            }
+            CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
+        } else {
+            GenerateOneRandomCar();
+            GenerateOneRandomCar();
+        }
+    }
+
 }
 
 // 0x42F3C0

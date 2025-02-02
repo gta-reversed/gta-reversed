@@ -43,7 +43,7 @@ UIRenderer::~UIRenderer() {
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext(m_ImCtx);
 
-    DEV_LOG("Good bye!");
+    //DEV_LOG("Good bye!");
 }
 
 void UIRenderer::PreRenderUpdate() {
@@ -59,7 +59,7 @@ void UIRenderer::PreRenderUpdate() {
     // A delay of a frame has to be added, otherwise
     // the release of F7 wont be processed and the menu will close
     const auto Shortcut = [](ImGuiKeyChord chord) {
-        return ImGui::Shortcut(chord, ImGuiKeyOwner_Any, ImGuiInputFlags_RouteAlways);
+        return ImGui::IsKeyChordPressed(chord, ImGuiInputFlags_RouteAlways);
     };
     if (Shortcut(ImGuiKey_F7) || Shortcut(ImGuiKey_M | ImGuiMod_Ctrl)) {
         const auto pad = CPad::GetPad(0);
@@ -195,7 +195,7 @@ void UIRenderer::DebugCode() {
         }
     }
     if (pad->IsStandardKeyJustPressed('6')) {
-        CMessages::AddBigMessage("PRESS ~k~~PED_ANSWER_PHONE~ TO FUCK"_gxt, 1000, eMessageStyle::STYLE_BOTTOM_RIGHT);
+        FindPlayerPed()->Say(CTX_GLOBAL_JACKED_CAR);
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {

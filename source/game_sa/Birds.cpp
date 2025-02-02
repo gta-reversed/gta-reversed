@@ -352,7 +352,7 @@ void CBirds::Render() {
                     auto vecWorldPos = matBirdTransform.TransformPoint(point);
 
                     auto iBufferInd = uiTempBufferVerticesStored + uiVertInd;
-                    auto vert1 = &aTempBufferVertices[iBufferInd];
+                    auto vert1 = &TempBufferVertices.m_3d[iBufferInd];
                     RwRGBA rwColor = CRGBA(color.cRed, color.cGreen, color.cBlue, cAlpha).ToRwRGBA();
                     RxObjSpace3DVertexSetPreLitColor(vert1, &rwColor);
                     RxObjSpace3DVertexSetPos(vert1, &vecWorldPos);
@@ -365,7 +365,7 @@ void CBirds::Render() {
                     color.Scale(0.8F);
                     rwColor = CRGBA(color.cRed, color.cGreen, color.cBlue, cAlpha).ToRwRGBA();
 
-                    auto vert2 = &aTempBufferVertices[iBufferInd + 8];
+                    auto vert2 = &TempBufferVertices.m_3d[iBufferInd + 8];
                     RxObjSpace3DVertexSetPreLitColor(vert2, &rwColor);
                     RxObjSpace3DVertexSetPos(vert2, &vecWorldPos);
                     RxObjSpace3DVertexSetU(vert2, faRenderCoorsU[uiVertInd]);

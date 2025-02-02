@@ -55,7 +55,7 @@ CAnimBlendAssociation* CAnimBlendAssocGroup::CopyAnimation(CAnimBlendStaticAssoc
 }
 
 // notsa
-void CAnimBlendAssocGroup::CreateAssociation(CAnimBlendStaticAssociation* assoc, CAnimBlendHierarchy* anim, CBaseModelInfo* mi, size_t i) {
+void CAnimBlendAssocGroup::CreateAssociation(CAnimBlendStaticAssociation* assoc, CAnimBlendHierarchy* anim, CBaseModelInfo* mi, size_t groupAnimId) {
     const auto clump = reinterpret_cast<RpClump*>(mi->CreateInstance());
     RpAnimBlendClumpInit(clump);
     assoc->Init(clump, anim);
@@ -66,7 +66,7 @@ void CAnimBlendAssocGroup::CreateAssociation(CAnimBlendStaticAssociation* assoc,
 #endif
     RpClumpDestroy(clump);
 
-    assoc->m_AnimId      = (AnimationId)(m_IdOffset + i);
+    assoc->m_AnimId      = (AnimationId)(m_IdOffset + groupAnimId);
     assoc->m_AnimGroupId = (AssocGroupId)(m_GroupID);
 }
 
@@ -92,56 +92,61 @@ void CAnimBlendAssocGroup::CreateAssociations(const char* blockName) {
 }
 
 // 0x4CE3B0
-void CAnimBlendAssocGroup::CreateAssociations(const char* blockName, const char* animNames, const char* modelNames, uint32 strBufLen) {
+void CAnimBlendAssocGroup::CreateAssociations(const char* blockName, const char* animNames, const char* modelNames, uint32 buffStride) {
     ZoneScoped;
 
     if (!modelNames) {
-        CreateAssociations(blockName);
-        return;
+        return CreateAssociations(blockName);
     }
 
-    const auto ablock = AllocateForBlock(blockName, -1);
+    const auto ab = AllocateForBlock(blockName, -1);
 
-    for (size_t i = 0; i < ablock->NumAnims; i++) {
-        const auto id    = (AnimationId)(ablock->FirstAnimIdx + i);
+    // We need to start from 0 in this case - some of the animations may not be found,
+    // and if we assume that all went well we end up with gaps in the ms_aAnimations table
+    m_NumAnims = 0;
+
+    for (size_t i = 0; i < ab->NumAnims; i++) {
+        const auto id    = (AnimationId)(ab->FirstAnimIdx + i);
         const auto anim  = &CAnimManager::GetAnimation(id);
-        const auto assoc = &GetAssociations()[i];
+        const auto assoc = &m_Anims[m_NumAnims]; // Can't use GetAssociations() helper method, as m_NumAnims will always be (no. of elements + 1)
 
-        // Find model name for this animation
-        // Remember that these 2 arrays (animNames, modelNames) are "paralell" (like kv pairs)
-        // So here we're basically searching for the index of the animation and then just returning the
-        // associated modelNames
-        for (size_t k = 0; k < ablock->NumAnims; k++) {
-            const auto bufOff = k * strBufLen;
-            if (CKeyGen::GetUppercaseKey(animNames + bufOff) == anim->GetHashKey()) {
-                continue;
+        const auto* animName = animNames;
+        const auto* modelName = modelNames;
 
+        // Find the anim's name and it's model's name, then initialize it
+        // Remember that these 2 arrays (animNames, modelNames) are "parallel" (like kv pairs)
+        bool found;
+        for (size_t k = 0; found = k < ab->NumAnims;k++, animName += buffStride, modelName += buffStride) {
+            if (CKeyGen::GetUppercaseKey(animName) == anim->GetHashKey()) {
+                break;
             }
-            const auto modelName = modelNames + bufOff;
-
-            CModelInfo::ms_lastPositionSearched = 0; // Why?
-            const auto mi = CModelInfo::GetModelInfo(modelName);
-            if (!mi) {
-                NOTSA_LOG_WARN("ModelInfo (\"{}\") for animation(Block={}; ID={}) not found", modelName, blockName, (int)id);
-                continue;
-            }
-
-            CreateAssociation(assoc, anim, mi, i);
-
-            NOTSA_LOG_DEBUG("Associated model (\"{}\") with animation(Block={}; ID={})", modelName, blockName, (int)id);
-
-            break;
         }
+        if (!found) {
+            NOTSA_LOG_WARN("Name of Animation(Block={}; ID={}) not found", modelName, blockName, (int)id);
+            continue;
+        }
+
+        CModelInfo::ms_lastPositionSearched = 0; // Why?
+        const auto mi = CModelInfo::GetModelInfo(modelName);
+        if (!mi) {
+            NOTSA_LOG_WARN("ModelInfo ({}) for Animation (Name={}; Block={}; ID={}) not found", modelName, animName, blockName, (int)id);
+            continue;
+        }
+
+        CreateAssociation(assoc, anim, mi, i);
+        ++m_NumAnims;
+
+        NOTSA_LOG_TRACE("Created Animation(Name={}; Block={}; ID={}) from model ({})", animName, blockName, (int)id, modelName);
     }
 
-    NOTSA_LOG_DEBUG("Created #{} associations for block ({})", m_NumAnims, blockName);
+    NOTSA_LOG_TRACE("Created #{} associations for block ({})", m_NumAnims, blockName);
 }
 
 // 0x4CE6E0
 void CAnimBlendAssocGroup::CreateAssociations(const char* blockName, RpClump* clump, const char** names, uint32 cnt) {
     ZoneScoped;
 
-    const auto ablock = AllocateForBlock(blockName, cnt);
+    AllocateForBlock(blockName, cnt);
 
     for (size_t i = 0; i < cnt; i++) {
         const auto name  = names[i];
@@ -150,6 +155,7 @@ void CAnimBlendAssocGroup::CreateAssociations(const char* blockName, RpClump* cl
         if (name[0]) { // Check is empty string
             assoc->Init(clump, CAnimManager::GetAnimation(name, m_AnimBlock));
             assoc->m_AnimId = (AnimationId)(m_IdOffset + i);
+            assert(assoc->m_AnimId < ANIM_ID_MAX);
         } else {
             assoc->m_AnimId = ANIM_ID_UNDEFINED;
         }
@@ -162,11 +168,7 @@ void CAnimBlendAssocGroup::CreateAssociations(const char* blockName, RpClump* cl
 
 // 0x4CDFF0
 void CAnimBlendAssocGroup::DestroyAssociations() {
-    if (!m_Anims) {
-        return;
-    }
-    delete m_Anims;
-    m_Anims    = nullptr;
+    delete[] std::exchange(m_Anims, nullptr);
     m_NumAnims = 0;
 }
 

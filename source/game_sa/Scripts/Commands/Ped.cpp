@@ -5,7 +5,7 @@
 #include "Ped.h"
 #include "CommandParser/Parser.hpp"
 /*!
-* Various ped commands
+* Various ped commands (TODO: Isn't this the same as Chars.cpp?)
 */
 
 void SetDeathWeaponPersist(CPed& ped, bool enable) {
@@ -25,6 +25,8 @@ void SetCharGetOutUpsideDownCar(CPed& ped, bool enable) {
 }
 
 void notsa::script::commands::ped::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Ped");
+
     REGISTER_COMMAND_HANDLER(COMMAND_SET_DEATH_WEAPONS_PERSIST, SetDeathWeaponPersist);
     REGISTER_COMMAND_HANDLER(COMMAND_IGNORE_HEIGHT_DIFFERENCE_FOLLOWING_NODES, IgnoreHeightDifferenceFollowingNodes);
     REGISTER_COMMAND_HANDLER(COMMAND_SHUT_ALL_CHARS_UP, ShutAllCharsUp);

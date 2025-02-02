@@ -4,18 +4,50 @@
 
 #include "AEAudioUtility.h"
 
-uint64& CAEAudioUtility::startTimeMs = *reinterpret_cast<uint64*>(0xb610f8);
+auto& Frequency = StaticRef<LARGE_INTEGER>(0xB610F0);
+uint64& startTimeMs = *reinterpret_cast<uint64*>(0xb610f8);
 float (&CAEAudioUtility::m_sfLogLookup)[50][2] = *reinterpret_cast<float (*)[50][2]>(0xb61100);
 
-// NOTE: Not sure about the size.
-static inline auto& gScriptBanksLookup = *reinterpret_cast<std::array<int32, 628>*>(0x8ABC70);
+// NOTE: For me all values were 0... The below values should be the correct ones:
+static constexpr std::array<eSoundBank, AE_SCRIPT_BANK_LAST - AE_SCRIPT_BANK_FIRST> gScriptBanksLookup = {
+    SND_BANK_SCRIPT_VIDEO_POKER,
+    SND_BANK_SCRIPT_SHOOTING_RANGE,
+    SND_BANK_SCRIPT_POOL_MINIGAME,
+    SND_BANK_SCRIPT_NULL,
+    SND_BANK_SCRIPT_KEYPAD,
+    SND_BANK_SCRIPT_NULL,
+    SND_BANK_SCRIPT_GOGO,
+    SND_BANK_SCRIPT_DUALITY,
+    SND_BANK_SCRIPT_NULL,
+    SND_BANK_SCRIPT_BLACK_PROJECT,
+    SND_BANK_SCRIPT_BEE,
+    SND_BANK_SCRIPT_BASKETBALL,
+    SND_BANK_SCRIPT_MEAT_BUSINESS,
+    SND_BANK_SCRIPT_ROULETTE,
+    SND_BANK_SCRIPT_BANDIT,
+    SND_BANK_SCRIPT_NULL,
+    SND_BANK_SCRIPT_NULL,
+    SND_BANK_SCRIPT_OGLOC,
+    SND_BANK_SCRIPT_CARGO_PLANE,
+    SND_BANK_SCRIPT_DA_NANG,
+    SND_BANK_SCRIPT_GYM,
+    SND_BANK_SCRIPT_OTB,
+    SND_BANK_SCRIPT_STINGER,
+    SND_BANK_SCRIPT_UNCLE_SAM,
+    SND_BANK_SCRIPT_VERTICAL_BIRD,
+    SND_BANK_SCRIPT_MECHANIC,
+    SND_BANK_SCRIPT_CAT2_BANK,
+    SND_BANK_SCRIPT_AIR_HORN,
+    SND_BANK_SCRIPT_RESTAURANT,
+    SND_BANK_SCRIPT_TEMPEST
+};
 
 void CAEAudioUtility::InjectHooks() {
     RH_ScopedClass(CAEAudioUtility);
     RH_ScopedCategory("Audio");
 
-    RH_ScopedInstall(GetRandomNumberInRange<int32>, 0x4d9c10);
-    RH_ScopedInstall(GetRandomNumberInRange<float>, 0x4d9c50);
+    RH_ScopedOverloadedInstall(GetRandomNumberInRange<int32>, "int", 0x4d9c10, int32(*)(int32, int32));
+    RH_ScopedOverloadedInstall(GetRandomNumberInRange<float>, "float", 0x4d9c50, float(*)(float, float));
     RH_ScopedInstall(ResolveProbability, 0x4d9c80);
     RH_ScopedInstall(GetPiecewiseLinear, 0x4d9d90);
     RH_ScopedInstall(AudioLog10, 0x4d9e50);
@@ -53,16 +85,23 @@ float CAEAudioUtility::GetPiecewiseLinear(float x, int16 dataCount, const float 
 
 // 0x4d9e50
 float CAEAudioUtility::AudioLog10(float p) {
-    return 0.00001f <= p ? std::log10f(p) : -5.0f;
+    return p >= 0.00001f
+        ? std::log10f(p)
+        : -5.0f;
 }
 
 // REFACTORED
 // 0x4d9e80
 uint64 CAEAudioUtility::GetCurrentTimeInMS() {
     using namespace std::chrono;
-    auto nowMs = time_point_cast<milliseconds>(high_resolution_clock::now());
-    auto value = duration_cast<milliseconds>(nowMs.time_since_epoch());
-    return static_cast<uint64>(value.count());
+    const auto nowMs = time_point_cast<milliseconds>(high_resolution_clock::now());
+    const auto value = duration_cast<milliseconds>(nowMs.time_since_epoch());
+    return static_cast<uint64>(value.count()) - startTimeMs;
+
+    //For some reason this doesn't work (original code):
+    //LARGE_INTEGER counter;
+    //QueryPerformanceCounter(&counter);
+    //return counter.QuadPart / Frequency.QuadPart * 1000 - startTimeMs;
 }
 
 // 0x4d9ef0
@@ -91,32 +130,27 @@ void CAEAudioUtility::StaticInitialise() {
         m_sfLogLookup[1][1] = log10f(v);
     }
 
+    VERIFY(QueryPerformanceFrequency(&Frequency));
     startTimeMs = GetCurrentTimeInMS();
 }
 
 // 0x4D9CC0
-bool CAEAudioUtility::GetBankAndSoundFromScriptSlotAudioEvent(int32& slot, int32& outBank, int32& outSound, int32 a4) {
-    if (slot < 1800)
+bool CAEAudioUtility::GetBankAndSoundFromScriptSlotAudioEvent(const eAudioEvents& scriptID, eSoundBankS32& outBankID, int32& outSoundID, int32 slot) {
+    if (scriptID < AE_SCRIPT_BANK_FIRST) {
         return false;
-
-    if (slot < 2000) {
-        outBank = gScriptBanksLookup[slot - 1800];
-        return true;
     }
-
-    if (slot == 0xFFFF) { // (uint16)-1
-        outBank = 291;
-
-        if (a4 > 3)
-            outSound = 0;
-        else
-            outSound = 2 * (a4 % 2);
-
-        return true;
+    if (scriptID < AE_SCRIPT_SLOT_FIRST) {
+        outBankID = gScriptBanksLookup[scriptID - AE_SCRIPT_BANK_FIRST];
+        outSoundID = -1;
+    } else if (scriptID == AE_SCRIPT_SLOT_USE_CUSTOM) {
+        outBankID  = SND_BANK_SCRIPT_NULL;
+        outSoundID = slot > 3
+            ? 0
+            : 2 * (slot % 2);
+    } else {
+        outSoundID = (scriptID - AE_SCRIPT_SLOT_FIRST) % 200;
+        outBankID  = (eSoundBank)(SND_BANK_SCRIPT_FIRST + (scriptID - AE_SCRIPT_SLOT_FIRST) / 200u); // Each sound bank contains 200 sounds
     }
-
-    outBank = static_cast<int32>(std::floor(float(slot - 2000) / 200.0f)) + 147;
-    outSound = (slot - 2000) % 200;
     return true;
 }
 

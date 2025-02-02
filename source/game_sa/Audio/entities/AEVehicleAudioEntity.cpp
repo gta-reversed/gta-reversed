@@ -1985,7 +1985,7 @@ void CAEVehicleAudioEntity::ProcessReverseGear(cVehicleParams& params) {
 
         float fReverseGearVelocityProgress = 0.0f;
         if (vehicle->m_nWheelsOnGround) {
-            fReverseGearVelocityProgress = params.Speed / params.Transmission->m_maxReverseGearVelocity;
+            fReverseGearVelocityProgress = params.Speed / params.Transmission->m_MaxReverseVelocity;
         } else {
             if (vehicle->m_wheelsOnGrounPrev) {
                 vehicle->m_fGasPedalAudio *= 0.4f;

@@ -127,10 +127,10 @@ private: // Wrappers for hooks
     }
 
 public:
-    CAnimBlock*                  m_AnimBlock{};              //< The anim block of this group
+    CAnimBlock*                  m_AnimBlock{};              ///< The anim block of this group
     CAnimBlendStaticAssociation* m_Anims{};
-    uint32                       m_NumAnims{};               //< Number of anims (in the `m_Anims` array)
-    uint32                       m_IdOffset{};               //< This group's first anim ID
-    AssocGroupId                 m_GroupID{ANIM_GROUP_NONE}; //< This group's ID
+    uint32                       m_NumAnims{};               ///< Number of anims (in the `m_Anims` array)
+    uint32                       m_IdOffset{};               ///< This group's first anim ID
+    AssocGroupId                 m_GroupID{ANIM_GROUP_NONE}; ///< This group's ID
 };
 VALIDATE_SIZE(CAnimBlendAssocGroup, 0x14);

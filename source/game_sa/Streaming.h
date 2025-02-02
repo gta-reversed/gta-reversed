@@ -12,6 +12,7 @@
 #include "RenderWare.h"
 #include "LinkList.h"
 #include "constants.h"
+#include <CdStreamInfo.h>
 
 class CPtrList;
 class CEntity;

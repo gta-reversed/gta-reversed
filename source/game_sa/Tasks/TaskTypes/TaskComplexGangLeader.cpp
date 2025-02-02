@@ -111,30 +111,22 @@ void CTaskComplexGangLeader::DoGangAbuseSpeech(CPed* talker, CPed* sayTo) {
         return;
     }
 
-    if (!talker->IsGangster() && !sayTo->IsPlayer()) { // Second check is redundant.
+    if (!sayTo->IsGangster() && !sayTo->IsPlayer()) {
         return;
     }
 
     if (const auto phrase = [&] {
         switch (sayTo->m_nPedType) {
-        case PED_TYPE_GANG1:
-            return 1;
-        case PED_TYPE_GANG2:
-        case PED_TYPE_PLAYER1:
-        case PED_TYPE_PLAYER2:
-            return 4;
-        case PED_TYPE_GANG4:
-            return 7;
-        case PED_TYPE_GANG5:
-            return 8;
-        case PED_TYPE_GANG6:
-            return 6;
-        case PED_TYPE_GANG7:
-            return 5;
-        case PED_TYPE_GANG8:
-            return 3;
-        default:
-            return 0;
+        case PED_TYPE_GANG1:   return CTX_GLOBAL_ABUSE_GANG_BALLAS;
+        case PED_TYPE_GANG2:   
+        case PED_TYPE_PLAYER1: 
+        case PED_TYPE_PLAYER2: return CTX_GLOBAL_ABUSE_GANG_FAMILIES;
+        case PED_TYPE_GANG4:   return CTX_GLOBAL_ABUSE_RIFA;
+        case PED_TYPE_GANG5:   return CTX_GLOBAL_ABUSE_DA_NANG;
+        case PED_TYPE_GANG6:   return CTX_GLOBAL_ABUSE_MAFIA;
+        case PED_TYPE_GANG7:   return CTX_GLOBAL_ABUSE_TRIAD;
+        case PED_TYPE_GANG8:   return CTX_GLOBAL_ABUSE_GANG_VLA;
+        default:               return CTX_GLOBAL_NO_SPEECH;
         }
     }()) {
         talker->Say(phrase);
@@ -236,8 +228,7 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
     if (m_exhaleTimer.IsOutOfTime()) { // 0x6624C1
         if (ped->m_pRwClump) {
             if (auto matrix = RwFrameGetMatrix(RpClumpGetFrame(ped->m_pRwClump))) {
-                CVector PoS{ 0.f, 0.1f, 0.f };
-                if (const auto fx = g_fxMan.CreateFxSystem("exhale", &PoS, matrix)) {
+                if (const auto fx = g_fxMan.CreateFxSystem("exhale", CVector{ 0.f, 0.1f, 0.f }, matrix)) {
                     fx->AttachToBone(ped, eBoneTag::BONE_HEAD);
                     fx->PlayAndKill();
                 }
@@ -345,9 +336,9 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
     }
 
     if (pedHeldEntity->m_nModelIndex == ModelIndices::MI_GANG_DRINK) { // 0x662729
-        ped->Say(23, 0, 0.2f);
+        ped->Say(CTX_GLOBAL_BOOZE_RECEIVE, 0, 0.2f);
     } else if (pedHeldEntity->m_nModelIndex == ModelIndices::MI_GANG_SMOKE) {
-        ped->Say(200, 0, 0.2f);
+        ped->Say(CTX_GLOBAL_SPLIFF_RECEIVE, 0, 0.2f);
     }
 
     // Now, pass on the entity held in hand (if not already)
@@ -373,9 +364,9 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
         if (!passObjTo->GetEntityThatThisPedIsHolding() && passObjTo->IsCurrentlyUnarmed()) {    
             // Very similar to code above, but not quite the same!
             if (pedHeldEntity->m_nModelIndex == ModelIndices::MI_GANG_DRINK) {
-                passObjTo->Say(24);
+                passObjTo->Say(CTX_GLOBAL_BOOZE_REQUEST);
             } else if (pedHeldEntity->m_nModelIndex == ModelIndices::MI_GANG_SMOKE) {
-                passObjTo->Say(201);
+                passObjTo->Say(CTX_GLOBAL_SPLIFF_REQUEST);
             }
             passObjTo->GetEventGroup().Add(CEventPassObject{ ped });
             return new CTaskComplexPassObject{ passObjTo, true };           

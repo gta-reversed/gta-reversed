@@ -44,7 +44,7 @@ public:
     void Render(RwCamera* camera, float dayNightBalance, bool bHeatHaze);
     bool FreePrtFromSystem(FxSystem_c* system);
     FxSphere_c* GetBoundingSphere() const;
-    void SetBoundingSphere(CVector* center, float radius);
+    void SetBoundingSphere(const CVector& center, float radius);
 
     // NOTSA
     [[nodiscard]] auto GetNameKey() const noexcept { return m_nNameKey; }

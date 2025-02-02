@@ -162,7 +162,7 @@ void CPedGroupMembership::Process() {
 // 0x5FB190
 void CPedGroupMembership::RemoveAllFollowers(bool bCreatedByMissionOnly) {
     for (auto&& [i, mem] : notsa::enumerate(m_members)) {
-        if (IsLeader(mem)) { // Leader isn't a follower
+        if (!mem || IsLeader(mem)) { // Leader isn't a follower
             continue;
         }
         if (bCreatedByMissionOnly && mem->IsCreatedBy(PED_MISSION)) {
@@ -246,6 +246,16 @@ auto CPedGroupMembership::FindClosestFollowerToLeader() -> FindClosestMemberResu
         return GetMemberClosestTo(leader);
     }
     return { nullptr, 0.f }; // We return 0.f here, `GetMemberClosestTo` returns FLT_MAX, but it should be ignored anyways, because the CPed* is nullptr
+}
+
+// NOTSA
+CPed* CPedGroupMembership::GetFirstAvailableMember() {
+    for (const auto m : m_members) {
+        if (m) {
+            return m;
+        }
+    }
+    return nullptr;
 }
 
 // 0x5F6950

@@ -114,7 +114,7 @@ constexpr float TWO_PI         = 6.28318f;          // τ (TAU)
 constexpr float COS_45 = SQRT_2 / 2.f; // cos(45deg)
 
 template<typename T>
-constexpr T sq(T x) { return x * x; }
+NOTSA_FORCEINLINE constexpr T sq(T x) { return x * x; }
 
 struct SpriteFileName {
     const char* name;
@@ -126,7 +126,7 @@ void InjectCommonHooks();
 void TransformPoint(RwV3d& point, const CSimpleTransform& placement, const RwV3d& vecPos);
 void TransformVectors(RwV3d* vecsOut, int32 numVectors, const CMatrix& matrix, const RwV3d* vecsin);
 void TransformVectors(RwV3d* vecsOut, int32 numVectors, const CSimpleTransform& transform, const RwV3d* vecsin);
-void TransformPoints(RwV3d* pointOut, int count, const RwMatrix& transformMatrix, RwV3d* pointIn);
+void TransformPoints(RwV3d* pointOut, int count, const CMatrix& transformMatrix, RwV3d* pointIn);
 
 // Check point is within 2D rectangle
 static bool IsPointInRect2D(const CVector2D& point, const CVector2D& min, const CVector2D& max) {
@@ -246,14 +246,14 @@ bool EndsWith(const char* str, const char* with, bool caseSensitive = true);
 RpAtomic* RemoveRefsCB(RpAtomic* atomic, void* _IGNORED_ data);
 void RemoveRefsForAtomic(RpClump* clump);
 
-bool GraphicsLowQuality();
+bool GraphicsHighQuality();
 
 /**
  * Writes given raster to PNG file using RtPNGImageWrite
  */
 void WriteRaster(RwRaster* raster, const char* filename);
-bool CalcScreenCoors(const CVector& in, CVector* out, float* screenX, float* screenY);
-bool CalcScreenCoors(const CVector& in, CVector* out);
+bool CalcScreenCoors(const CVector& in, CVector& out, float& screenX, float& screenY);
+bool CalcScreenCoors(const CVector& in, CVector& out);
 bool DoesInfiniteLineTouchScreen(float baseX, float baseY, float deltaX, float deltaY);
 bool IsPointInsideLine(float fLineBaseX, float fLineBaseY, float fDeltaX, float fDeltaY, float fTestPointX, float fTestPointY, float fRadius);
 
@@ -265,13 +265,19 @@ std::wstring UTF8ToUnicode(const std::string& str);
 std::string UnicodeToUTF8(const std::wstring& str);
 
 constexpr int32 TOTAL_TEMP_BUFFER_INDICES = 4096;
-constexpr int32 TOTAL_TEMP_BUFFER_VERTICES = 2048;
+constexpr int32 TOTAL_TEMP_BUFFER_3DVERTICES = 2048;
+constexpr int32 TOTAL_TEMP_BUFFER_2DVERTICES = 1024;
 constexpr int32 TOTAL_RADIOSITY_VERTEX_BUFFER = 1532;
 
 static inline int32 WindowsCharset = static_cast<int32>(GetACP());
 
+struct TempVertexBuffer {
+    RwIm3DVertex m_3d[TOTAL_TEMP_BUFFER_3DVERTICES]; // For Im3D rendering
+    RwIm2DVertex m_2d[TOTAL_TEMP_BUFFER_2DVERTICES]; // For Im2D rendering
+};
+
 static inline uint16& uiTempBufferIndicesStored = *(uint16*)0xC4B954;
 static inline uint16& uiTempBufferVerticesStored = *(uint16*)0xC4B950;
 static inline RxVertexIndex(&aTempBufferIndices)[TOTAL_TEMP_BUFFER_INDICES] = *(RxVertexIndex(*)[TOTAL_TEMP_BUFFER_INDICES])0xC4B958;
-static inline RxObjSpace3DVertex(&aTempBufferVertices)[TOTAL_TEMP_BUFFER_VERTICES] = *(RxObjSpace3DVertex(*)[TOTAL_TEMP_BUFFER_VERTICES])0xC4D958; // size 1024 - after this there are 2 more arrays like this, both sized 512
+static inline auto& TempBufferVertices = StaticRef<TempVertexBuffer>(0xC4D958);
 static inline RwD3D9Vertex(&aRadiosityVertexBuffer)[TOTAL_RADIOSITY_VERTEX_BUFFER] = *reinterpret_cast<RwD3D9Vertex(*)[TOTAL_RADIOSITY_VERTEX_BUFFER]>(0xC5F958);

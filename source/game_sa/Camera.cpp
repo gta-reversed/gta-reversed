@@ -122,7 +122,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(AddShakeSimple, 0x50D240);
     RH_ScopedInstall(InitialiseScriptableComponents, 0x50D2D0);
     RH_ScopedInstall(DrawBordersForWideScreen, 0x514860);
-    RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970, { .reversed = false });
+    RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970);
     RH_ScopedInstall(CalculateGroundHeight, 0x514B80);
     RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60, { .reversed = false });
     RH_ScopedInstall(CalculateDerivedValues, 0x5150E0, { .reversed = false });
@@ -364,29 +364,24 @@ void CCamera::Fade(float duration, eFadeFlag direction) {
     m_nFadeInOutFlag = direction;
     m_nFadeStartTime = CTimer::GetTimeInMS();
 
-    if (m_bIgnoreFadingStuffForMusic && direction != eFadeFlag::FADE_OUT)
+    if (m_bIgnoreFadingStuffForMusic && direction != eFadeFlag::FADE_OUT) {
         return;
+    }
+    m_bMusicFading           = true;
+    m_nMusicFadingDirection  = direction;
 
-    m_bMusicFading = true;
-    m_nMusicFadingDirection = direction;
-
-    m_fTimeToFadeMusic = std::clamp(duration * 0.3f, duration * 0.3f, duration);
-
-    switch (direction) {
-    case eFadeFlag::FADE_IN:
-        m_fTimeToWaitToFadeMusic = duration - m_fTimeToFadeMusic;
-        m_fTimeToFadeMusic       = std::max(0.0f, m_fTimeToFadeMusic - 0.1f);
-        m_nFadeTimeStartedMusic  = CTimer::GetTimeInMS();
-        break;
-    case eFadeFlag::FADE_OUT:
-        m_fTimeToWaitToFadeMusic = 0.0f;
-        m_nFadeTimeStartedMusic  = CTimer::GetTimeInMS();
-        break;
+    m_fTimeToFadeMusic       = std::min(std::max(duration * 0.3f, 0.3f), duration); //Can't use std::clamp there, duration can be bigger or smaller than 0.3f
+    m_nFadeTimeStartedMusic  = CTimer::GetTimeInMS();
+    m_fTimeToWaitToFadeMusic = direction == eFadeFlag::FADE_IN
+        ? duration - m_fTimeToFadeMusic
+        : 0.f;
+    if (direction == eFadeFlag::FADE_IN) {
+        m_fTimeToFadeMusic = std::max(m_fTimeToFadeMusic - 0.1f, 0.f);
     }
 }
 
 // 0x50AD20
-float CCamera::FindCamFOV() {
+float CCamera::FindCamFOV() const {
     return m_aCams[m_nActiveCam].m_fFOV;
 }
 
@@ -394,12 +389,12 @@ float CCamera::FindCamFOV() {
 * @addr 0x50AD40
 * @return Rotation in radians at which the gun should point at, relative to the camera's vertical angle
 */
-float CCamera::Find3rdPersonQuickAimPitch() {
+float CCamera::Find3rdPersonQuickAimPitch() const {
     const auto& cam = m_aCams[m_nActiveCam];
 
     // https://mathworld.wolfram.com/images/eps-svg/SOHCAHTOA_500.svg
     const auto adjacent = (0.5f - m_f3rdPersonCHairMultY) * 2.f;
-    const auto opposite = std::tan(RWDEG2RAD(cam.m_fFOV / 2.0f)) * adjacent;
+    const auto opposite = std::tan(DegreesToRadians(cam.m_fFOV / 2.0f)) * adjacent;
     const auto relAngle = cam.m_fVerticalAngle - std::atan(opposite / CDraw::ms_fAspectRatio);
     return -relAngle; // Flip it
 }
@@ -456,19 +451,19 @@ CVector* CCamera::GetGameCamPosition() {
 }
 
 // 0x50AE60
-bool CCamera::GetLookingLRBFirstPerson() {
+bool CCamera::GetLookingLRBFirstPerson() const {
     return m_aCams[m_nActiveCam].m_nMode == eCamMode::MODE_1STPERSON
         && m_aCams[m_nActiveCam].m_nDirectionWasLooking != LOOKING_DIRECTION_FORWARD;
 }
 
 // 0x50AED0
-bool CCamera::GetLookingForwardFirstPerson() {
+bool CCamera::GetLookingForwardFirstPerson() const {
     return m_aCams[m_nActiveCam].m_nMode == eCamMode::MODE_1STPERSON
         && m_aCams[m_nActiveCam].m_nDirectionWasLooking == LOOKING_DIRECTION_FORWARD;
 }
 
 // 0x50AE90
-int32 CCamera::GetLookDirection() {
+int32 CCamera::GetLookDirection() const {
     const auto& cam = m_aCams[m_nActiveCam];
     if (cam.m_nMode != eCamMode::MODE_CAM_ON_A_STRING &&
         cam.m_nMode != eCamMode::MODE_1STPERSON &&
@@ -554,7 +549,7 @@ void CCamera::DealWithMirrorBeforeConstructRenderList(bool bActiveMirror, CVecto
 
 /// III/VC leftover
 // 0x50B8F0
-void CCamera::RenderMotionBlur() {
+void CCamera::RenderMotionBlur() const {
     ZoneScoped;
 
     if (m_nBlurType) {
@@ -935,7 +930,7 @@ void CCamera::StoreValuesDuringInterPol(CVector* sourceDuringInter, CVector* tar
     m_vecUpDuringInter     = *upDuringInter;
     m_fFOVDuringInter      = *FOVDuringInter;
 
-    auto dist = sourceDuringInter - m_vecTargetDuringInter;
+    auto dist = *sourceDuringInter - m_vecTargetDuringInter;
     m_fBetaDuringInterPol = CGeneral::GetATanOfXY(dist.x, dist.y);
 
     float distOnGround = dist.Magnitude2D();
@@ -1060,6 +1055,7 @@ void CCamera::TakeControl(CEntity* target, eCamMode modeToGoTo, eSwitchType swit
             return;
         }
     }
+    m_nWhoIsInControlOfTheCamera = whoIsInControlOfTheCamera;
 
     const auto [newGoToMode, newTargetEntity] = [&, this]() -> std::tuple<eCamMode, CEntity*>{
         if (target) {
@@ -1085,7 +1081,7 @@ void CCamera::TakeControl(CEntity* target, eCamMode modeToGoTo, eSwitchType swit
     CEntity::ChangeEntityReference(m_pTargetEntity, newTargetEntity);
     m_nModeToGoTo = newGoToMode;
 
-    m_nMusicFadingDirection = (eFadeFlag)switchType; // TODO: Investigate, this looks sus
+    m_nTypeOfSwitch    = switchType;
     m_bLookingAtPlayer = m_bLookingAtVector = false;
     m_bStartInterScript = true;
 }
@@ -1238,7 +1234,8 @@ bool CCamera::IsSphereVisible(const CVector& origin, float radius, RwMatrix* tra
 
 // 0x420D40 - NOTE: Function has no hook
 bool CCamera::IsSphereVisible(const CVector& origin, float radius) {
-    return IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatInverse) || (m_bMirrorActive && IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatMirrorInverse));
+    return IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatInverse)
+        || (m_bMirrorActive && IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatMirrorInverse));
 }
 
 // 0x50CEB0
@@ -1527,8 +1524,38 @@ void CCamera::FinishCutscene() {
 }
 
 // 0x514970
-void CCamera::Find3rdPersonCamTargetVector(float range, CVector vecGunMuzzle, CVector& outSource, CVector& outTarget) {
-    plugin::CallMethod<0x514970, CCamera*, float, CVector, CVector*, CVector*>(this, range, vecGunMuzzle, &outSource, &outTarget);
+void CCamera::Find3rdPersonCamTargetVector(float range, CVector gunMuzzle, CVector& outSource, CVector& outTarget) {
+    const auto pActiveCam = &m_aCams[m_nActiveCam];
+    const float tanHalfFOV = std::tan(DegreesToRadians(pActiveCam->m_fFOV * 0.5f));
+    const float aspectRatio = CDraw::ms_fAspectRatio;
+    
+    // Calculate aim target direction (This will be a unit vector)
+    CVector dir = m_aCams[m_nActiveCam].m_vecFront;
+    
+    if (pActiveCam->m_nMode == eCamMode::MODE_TWOPLAYER_IN_CAR_AND_SHOOTING) {
+        pActiveCam->Get_TwoPlayer_AimVector(dir);
+    } else {
+        // Vertical offset
+        dir += pActiveCam->m_vecUp * (tanHalfFOV * ((0.5f - m_f3rdPersonCHairMultY) * 2.0f) / aspectRatio);
+
+        // Horizontal offset
+        const auto right = pActiveCam->m_vecFront.Cross(pActiveCam->m_vecUp);
+        dir += right * (tanHalfFOV * ((m_f3rdPersonCHairMultX - 0.5f) * 2.0f));
+        
+        // Handle zero magnitude case
+        if (dir.Magnitude() <= 0.0f) {
+            dir = CVector(1.0f, 0.0f, 0.0f);
+        } else {
+            dir.Normalise();
+        }
+    }
+    
+    // Calculate intersection point with muzzle
+    outSource = pActiveCam->m_vecSource;
+    outSource += (gunMuzzle - outSource).ProjectOnToNormal(dir);
+
+    // Apply final range to target 
+    outTarget = outSource + dir * range;
 }
 
 // 0x514B80
@@ -1649,16 +1676,16 @@ void CCamera::LoadPathSplines(FILE* file) {
 }
 
 // 0x50AB50
-void CCamera::GetScreenRect(CRect* rect) {
+void CCamera::GetScreenRect(CRect* rect) const {
     rect->left  = 0.0f;
     rect->right = SCREEN_WIDTH;
 
     if (m_bWideScreenOn) {
-        rect->top = (float)(RsGlobal.maximumHeight / 2)          * m_fScreenReductionPercentage / 100.f - SCREEN_SCALE_Y(22.0f);
-        rect->bottom    = SCREEN_HEIGHT - (RsGlobal.maximumHeight / 2) * m_fScreenReductionPercentage / 100.f - SCREEN_SCALE_Y(14.0f);
+        rect->top    = (float)(RsGlobal.maximumHeight / 2) * m_fScreenReductionPercentage / 100.f - SCREEN_SCALE_Y(22.0f);
+        rect->bottom = SCREEN_HEIGHT - (RsGlobal.maximumHeight / 2) * m_fScreenReductionPercentage / 100.f - SCREEN_SCALE_Y(14.0f);
     } else {
-        rect->top = 0.0f;
-        rect->bottom    = SCREEN_HEIGHT;
+        rect->top    = 0.0f;
+        rect->bottom = SCREEN_HEIGHT;
     }
 }
 

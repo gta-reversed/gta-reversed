@@ -48,7 +48,7 @@ bool CAnimBlendSequence::ConvertKeyFrames(byte* pDataBlock) {
     auto* outKF = static_cast<To*>(outFrames);
     for (auto i = m_FramesNum; i --> 0; inKF++, outKF++) {
         outKF->Rot = inKF->Rot;
-        outKF->SetDeltaTime(inKF->DeltaTime);
+        outKF->DeltaTime = inKF->DeltaTime;
         if constexpr (HasTranslation) {
             outKF->Trans = inKF->Trans;
         }

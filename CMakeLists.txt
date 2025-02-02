@@ -14,8 +14,9 @@ endif()
 project(GTASA C CXX)
 
 if (MSVC)
-    add_compile_options("/bigobj")
-    add_compile_options("/utf-8")
+    add_compile_options(/bigobj /utf-8)
+
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
 option(BUILD_DOC "Build documentation" OFF)

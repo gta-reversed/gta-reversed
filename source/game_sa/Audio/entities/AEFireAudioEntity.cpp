@@ -77,7 +77,7 @@ void CAEFireAudioEntity::PlayFireSounds(eAudioEvents audioId, CVector& posn) {
         0.0f,
         0
     );
-    sound.m_fMaxVolume = volume + 3.0f;
+    sound.m_ClientVariable = volume + 3.0f;
     sound.m_nEvent = AE_FRONTEND_SELECT;
     AESoundManager.RequestNewSound(&sound);
 }
@@ -117,10 +117,10 @@ void CAEFireAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
 
     switch (sound->m_nEvent) {
     case AE_FRONTEND_SELECT:
-        if (sound->m_fVolume >= sound->m_fMaxVolume) {
+        if (sound->m_fVolume >= sound->m_ClientVariable) {
             sound->m_nEvent = AE_FRONTEND_BACK;
         } else {
-            sound->m_fVolume = std::min(sound->m_fVolume + 2.0f, sound->m_fMaxVolume);
+            sound->m_fVolume = std::min(sound->m_fVolume + 2.0f, sound->m_ClientVariable);
         }
         break;
     case AE_FRONTEND_BACK:

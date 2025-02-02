@@ -225,7 +225,7 @@ void CAESoundManager::Service() {
     }
 
     // Play sounds that require that
-    for (auto i = 0, curSound = 0; i < m_nNumAvailableChannels; ++i, ++curSound) {
+    for (auto i = 0, curSound = 0; i < m_nNumAvailableChannels; ++i) {
         const auto uncancell = m_aChannelSoundUncancellable[i];
         if (uncancell == -1)
             continue;
@@ -298,6 +298,33 @@ CAESound* CAESoundManager::RequestNewSound(CAESound* pSound) {
         AEAudioHardware.RequestVirtualChannelSoundInfo((uint16)sidx, s->m_nSoundIdInSlot, s->m_nBankSlotId);
     }
     return s;
+}
+
+CAESound* CAESoundManager::PlaySound(tSoundPlayParams p) {
+    if (p.RegisterWithEntity) {
+        p.Flags |= SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY;
+    }
+    CAESound s;
+    s.Initialise(
+        p.BankSlotID,
+        p.SoundID,
+        p.AudioEntity,
+        p.Pos,
+        p.Volume,
+        p.RollOffFactor,
+        p.Speed,
+        p.Doppler,
+        p.FrameDelay,
+        p.Flags,
+        p.FrequencyVariance,
+        p.PlayTime
+    );
+    s.m_nEvent = p.EventID;
+    s.m_ClientVariable = p.ClientVariable;
+    if (p.Flags & SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY) {
+        s.RegisterWithPhysicalEntity(p.RegisterWithEntity);
+    }
+    return RequestNewSound(&s);
 }
 
 // 0x4EF520

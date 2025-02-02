@@ -4,10 +4,12 @@
 
 namespace notsa {
 namespace debugmodules {
-class ImGui : public DebugModule {
+class ImGuiDebugModule final : public DebugModule {
 public:
     void RenderWindow() override final;
     void RenderMenuEntry() override final;
+
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(ImGuiDebugModule, m_MetricsOpen, m_AboutOpen, m_DemoOpen);
 
 private:
     bool m_MetricsOpen{};

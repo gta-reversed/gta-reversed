@@ -417,15 +417,15 @@ float CVisibilityPlugins::GetDotProductWithCameraVector(RwMatrix* atomicMatrix, 
     float dotProduct2 = *(float*)&atomicMatrix; // really?
     CVector distance = atomicMatrix->pos - *ms_pCameraPosn;
     if (flags & (ATOMIC_IS_REAR | ATOMIC_IS_FRONT))
-        dotProduct1 = DotProduct(clumpMatrix->up, &distance);
+        dotProduct1 = distance.Dot(clumpMatrix->up);
     else if (flags & (ATOMIC_IS_RIGHT | ATOMIC_IS_LEFT))
-        dotProduct1 = DotProduct(clumpMatrix->right, &distance);
+        dotProduct1 = distance.Dot(clumpMatrix->right);
 
     if (flags & (ATOMIC_IS_REAR | ATOMIC_IS_LEFT))
         dotProduct1 = -dotProduct1;
 
     if (flags & ATOMIC_VEHCOMP_15) {
-        const float dot = DotProduct(clumpMatrix->at, &distance);
+        const float dot = distance.Dot(clumpMatrix->at);
         if (flags & (ATOMIC_IS_FRONT_DOOR | ATOMIC_IS_REAR_DOOR))
             dotProduct1 += dot * 0.25f;
         else
@@ -436,9 +436,9 @@ float CVisibilityPlugins::GetDotProductWithCameraVector(RwMatrix* atomicMatrix, 
         return dotProduct1;
 
     if (flags & ATOMIC_IS_REAR_DOOR)
-        dotProduct2 = -DotProduct(clumpMatrix->up, &distance);
+        dotProduct2 = -distance.Dot(clumpMatrix->up);
     else if (flags & ATOMIC_IS_FRONT_DOOR)
-        dotProduct2 = DotProduct(clumpMatrix->up, &distance);
+        dotProduct2 = distance.Dot(clumpMatrix->up);
 
     if (dotProduct1 < 0.0f && dotProduct2 < 0.0f)
         return dotProduct1 + dotProduct2;
@@ -619,7 +619,7 @@ RpAtomic* CVisibilityPlugins::RenderHeliRotorAlphaCB(RpAtomic* atomic) {
     RwMatrix* atomicMatrix = RwFrameGetLTM(RpAtomicGetFrame(atomic));
     RwMatrix* clumpMatrix = RwFrameGetLTM(RpClumpGetFrame(RpAtomicGetClump(atomic)));
     CVector distance = atomicMatrix->pos - *ms_pCameraPosn;
-    const float dotProduct = DotProduct(clumpMatrix->at, &distance);
+    const float dotProduct = distance.Dot(clumpMatrix->at);
     AlphaObjectInfo objectInfo{};
     objectInfo.m_atomic = atomic;
     objectInfo.m_pCallback = DefaultAtomicRenderCallback;
@@ -638,8 +638,8 @@ RpAtomic* CVisibilityPlugins::RenderHeliTailRotorAlphaCB(RpAtomic* atomic) {
     RwMatrix* atomicMatrix = RwFrameGetLTM(RpAtomicGetFrame(atomic));
     RwMatrix* clumpMatrix = RwFrameGetLTM(RpClumpGetFrame(RpAtomicGetClump(atomic)));
     CVector distance = atomicMatrix->pos - *ms_pCameraPosn;
-    const float dotProduct1 = DotProduct(clumpMatrix->right, &distance);
-    const float dotProduct2 = DotProduct(clumpMatrix->up, &distance);
+    const float dotProduct1 = distance.Dot(clumpMatrix->right);
+    const float dotProduct2 = distance.Dot(clumpMatrix->up);
     AlphaObjectInfo info{};
     info.m_atomic = atomic;
     info.m_pCallback = DefaultAtomicRenderCallback;
@@ -655,7 +655,7 @@ RpAtomic* CVisibilityPlugins::RenderObjNormalAtomic(RpAtomic* atomic) {
     RwMatrix* atomicMatrix = RwFrameGetLTM(RpAtomicGetFrame(atomic));
     CVector distance = atomicMatrix->pos - *ms_pCameraPosn;
     const float length = RwV3dLength(&distance);
-    if (DotProduct(atomicMatrix->up, &distance) < length * -0.3f && length > 8.0f)
+    if (distance.Dot(atomicMatrix->up) < length * -0.3f && length > 8.0f)
         return atomic;
     AtomicDefaultRenderCallBack(atomic);
     return atomic;

@@ -18,7 +18,7 @@ public:
     CAESound m_tempSound;
 
 private:
-    static int8*& m_pAudioEventVolumes;
+    static int8*& m_pAudioEventVolumes; // Use `GetDefaultVolume` to access!
 
 protected:
     CAEAudioEntity();

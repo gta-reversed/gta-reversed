@@ -32,7 +32,7 @@ public:
     int32 GetEventPriority() const override { return 31; }
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override;
-    CEventPotentialWalkIntoFire* CloneEditable() override { return new CEventPotentialWalkIntoFire(&m_firePos, m_fireSize, m_moveState); }
+    CEventPotentialWalkIntoFire* CloneEditable() override { return new CEventPotentialWalkIntoFire(m_firePos, m_fireSize, m_moveState); }
 
 private:
     friend void InjectHooksMain();

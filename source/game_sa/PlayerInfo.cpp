@@ -365,7 +365,7 @@ void CPlayerInfo::WorkOutEnergyFromHunger() {
         if (CClock::GetGameClockHours() == s_lastTimeHungryStateProcessed)
             return;
 
-        m_pPed->Say(337);
+        m_pPed->Say(CTX_GLOBAL_STOMACH_RUMBLE);
         pad->StartShake(400, 110u, 0);
 
         if (s_bHungryMessageShown) {
@@ -454,21 +454,18 @@ CVector CPlayerInfo::GetSpeed() const {
 
 // 0x5D3B00
 bool CPlayerInfo::Load() {
-    int32 dataSize;
-    CPlayerInfoSaveStructure data;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&dataSize, sizeof(dataSize));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(CPlayerInfoSaveStructure));
+    CGenericGameStorage::LoadDataFromWorkBuffer<int32>(); // Discarded
+    auto data = CGenericGameStorage::LoadDataFromWorkBuffer<CPlayerInfoSaveStructure>();
     data.Extract(this);
     return true;
 }
 
 // 0x5D3AC0
 bool CPlayerInfo::Save() {
-    int32 dataSize{ sizeof(CPlayerInfoSaveStructure) };
     CPlayerInfoSaveStructure data;
     data.Construct(this);
-    CGenericGameStorage::SaveDataToWorkBuffer(&dataSize, sizeof(dataSize));
-    CGenericGameStorage::SaveDataToWorkBuffer(&data, sizeof(data));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CPlayerInfoSaveStructure));
+    CGenericGameStorage::SaveDataToWorkBuffer(data);
     return true;
 }
 

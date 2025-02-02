@@ -37,7 +37,7 @@ void CLines::RenderLineWithClipping(float startX, float startY, float startZ, fl
         12, 13, 14, 15, 16, 17, 18, 19, 20, 0
     };
     LittleTest();
-    if (RwIm3DTransform(aTempBufferVertices, 2 * numVerts, nullptr, 0)) {
+    if (RwIm3DTransform(TempBufferVertices.m_3d, 2 * numVerts, nullptr, 0)) {
         RwIm3DRenderIndexedPrimitive(rwPRIMTYPELINELIST, indices, 2 * numVerts);
         RwIm3DEnd();
     }

@@ -328,7 +328,7 @@ void CAnimBlendAssociation::ReferenceAnimBlock() {
         return;
     }
     CAnimManager::AddAnimBlockRef(m_BlendHier->m_nAnimBlockId);
-    SetFlag(ANIMATION_IGNORE_ROOT_TRANSLATION, true);
+    SetFlag(ANIMATION_REFERENCE_BLOCK, true);
 }
 
 std::span<CAnimBlendNode> CAnimBlendAssociation::GetNodes() {

@@ -120,7 +120,6 @@ namespace fs = std::filesystem;
 #include "game_sa\Enums\eClothesTexturePart.h"
 #include "game_sa\Enums\eCrimeType.h"
 #include "game_sa\Enums\eDecisionMakerEvents.h"
-#include "game_sa\Enums\eEmergencyPedVoices.h"
 #include "game_sa\Enums\eEntityStatus.h"
 #include "game_sa\Enums\eEntityType.h"
 #include "game_sa\Enums\eEventType.h"
@@ -339,7 +338,6 @@ namespace fs = std::filesystem;
 #include "game_sa\Sprite2d.h"
 #include "game_sa\Stats.h"
 #include "game_sa\StencilShadowObject.h"
-#include "game_sa\StencilShadowObjects.h"
 #include "game_sa\StencilShadows.h"
 #include "game_sa\StoredCollPoly.h"
 #include "game_sa\StreamedScripts.h"
@@ -384,6 +382,7 @@ namespace fs = std::filesystem;
 #include "game_sa\Audio\AESound.h"
 #include "game_sa\Audio\AudioZones.h"
 #include "game_sa\Collision\Collision.h"
+#include "game_sa\FireManager.h"
 
 #include "game_sa\Entity\AnimatedBuilding.h"
 #include "game_sa\Entity\Building.h"

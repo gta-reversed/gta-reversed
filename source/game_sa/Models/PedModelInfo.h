@@ -8,6 +8,9 @@
 
 #include "ClumpModelInfo.h"
 #include "ColModel.h"
+#include <extensions/utility.hpp>
+#include <Audio/Enums/ePedAudioType.h>
+#include <Audio/Enums/PedSpeechVoices.h>
 
 struct tPedColNodeInfo {
     char    _pad[4];
@@ -19,19 +22,19 @@ struct tPedColNodeInfo {
 
 class NOTSA_EXPORT_VTABLE CPedModelInfo : public CClumpModelInfo {
 public:
-    AssocGroupId m_nAnimType;
-    ePedType     m_nPedType;
-    ePedStats    m_nStatType;
-    uint16       m_nCarsCanDriveMask; //< Bitset of vehicle classes ped can drive. To check if it can drive a given class check if the bit is set (eg.: & (1 << eVehicleClass))
-    uint16       m_nPedFlags;
-    CColModel*   m_pHitColModel;
-    eRadioID     m_nRadio1;
-    eRadioID     m_nRadio2;
-    uint8        m_nRace; // See `ePedRace` - TODO: Maybe we can change this? Check if `ePedRace` can be made 1 byte.
-    int16        m_nPedAudioType;
-    int16        m_nVoiceMin; // Also called voice1
-    int16        m_nVoiceMax; // Also called voice2
-    int16        m_nVoiceId;  // In `LoadPedObject` this is set to be the same as `m_nVoiceMin` (Which doesn't mean it will always be the same)
+    AssocGroupId       m_nAnimType;
+    ePedType           m_nPedType;
+    ePedStats          m_nStatType;
+    uint16             m_nCarsCanDriveMask; //< Bitset of vehicle classes ped can drive. To check if it can drive a given class check if the bit is set (eg.: & (1 << eVehicleClass))
+    uint16             m_nPedFlags;
+    CColModel*         m_pHitColModel;
+    eRadioID           m_nRadio1;
+    eRadioID           m_nRadio2;
+    uint8              m_nRace; // See `ePedRace` - TODO: Maybe we can change this? Check if `ePedRace` can be made 1 byte.
+    eAudioPedType      m_nPedAudioType;
+    ePedSpeechVoiceS16 m_nVoiceMin; // Also called voice1
+    ePedSpeechVoiceS16 m_nVoiceMax; // Also called voice2
+    ePedSpeechVoiceS16 m_nVoiceId;  // In `LoadPedObject` this is set to be the same as `m_nVoiceMin` (Which doesn't mean it will always be the same)
 
     static constexpr int32 NUM_PED_NAME_ID_ASSOC = 13;
     static constexpr int32 NUM_PED_COL_NODE_INFOS = 12;
@@ -60,6 +63,7 @@ public:
     auto GetPedType() const { return (ePedType)(m_nPedType); }
     auto GetPedStatType() const { return (ePedStats)(m_nStatType); }
     auto CanPedDriveVehicleClass(eVehicleClass cls) const { return (m_nCarsCanDriveMask & (1 << (size_t)cls)) != 0; }
+    bool IsPedTypeFemale() const noexcept { return notsa::contains({PED_TYPE_CIVFEMALE, PED_TYPE_PROSTITUTE}, GetPedType()); }
 };
 
 VALIDATE_SIZE(CPedModelInfo, 0x44);

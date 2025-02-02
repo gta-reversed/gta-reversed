@@ -12,7 +12,7 @@ class DebugModule {
 public:
     virtual ~DebugModule() = default;
 
-    //! Called once on imgui initalisation
+    //! Called once on ImGUI initialization
     virtual void OnImGuiInitialised(ImGuiContext* ctx) { /*nothing*/ }
     
     //! Called once every frame
@@ -26,7 +26,25 @@ public:
 
     //! Module's entry in the main menu should be rendered here
     virtual void RenderMenuEntry() = 0;
+
+    //! Serialize the state of this tool
+    virtual json Serialize() const { return {}; };
+
+    //! Restore state from serialization
+    virtual void Deserialize(const json&) { /*nothing*/ };
+
+    //! Get the ID of this module (Used for serialization)
+    virtual std::string_view GetID() const { return ""; }
 };
+
+//! You can use this macro for implementing the boilerplate needed for
+//! serialization support
+//! Example call: `NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(TeleportDebugModule, m_IsOpen);`
+#define NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(_cls, ...) \
+    json Serialize() const final override           { return *this; } \
+    void Deserialize(const json& j) final override  { from_json(j, *this); } \
+    std::string_view GetID() const final override   { return #_cls; }  \
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(_cls, __VA_ARGS__) \
 
 //! Class representing a debug module with a single window
 class DebugModuleSingleWindow : public DebugModule {

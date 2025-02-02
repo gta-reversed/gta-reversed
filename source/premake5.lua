@@ -1,5 +1,5 @@
-project "gta_reversed"
-    cppdialect "C++20"        
+project "gta_sa_modern"
+    cppdialect "C++latest"         -- C++23
     kind "SharedLib"
     targetname "gta_reversed"
     targetextension ".asi"
@@ -38,8 +38,13 @@ project "gta_reversed"
         "../libs/imgui/misc/cpp",
         "../libs/dxsdk",
         "../libs/spdlog/include",
-        "../libs/tracy/public"
+        "../libs/tracy/public",
+        "../libs/json/include"
     }
+
+    filter "options:script-tracing"
+        defines { "NOTSA_SCRIPT_TRACING" }
+    filter {}
     
     defines { 
         "NOMINMAX", 
@@ -51,7 +56,6 @@ project "gta_reversed"
         "TRACY_ENABLE",
         "TRACY_ON_DEMAND",
         "TRACY_CALLSTACK",
-
         "SPDLOG_USE_STD_FORMAT",
 
         "SA_SKINNED_PEDS"
@@ -72,7 +76,8 @@ project "gta_reversed"
         "strmiids.lib",
         "dsound.lib",
         "d3d9.lib",
-        "dbghelp" 
+        "dbghelp",
+        "json"
     }
 
     libdirs { 

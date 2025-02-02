@@ -25,14 +25,14 @@ CTaskComplexPartnerGreet::CTaskComplexPartnerGreet(const char* commandName, CPed
     strcpy_s(m_animBlockName, "gangs");
 }
 
-CTaskComplexPartnerGreet::CTaskComplexPartnerGreet(const CTaskComplexPartnerGreet&) :
+CTaskComplexPartnerGreet::CTaskComplexPartnerGreet(const CTaskComplexPartnerGreet& o) :
     CTaskComplexPartnerGreet{
-        m_commandName,
-        m_partner,
-        m_leadSpeaker,
-        m_distanceMultiplier,
-        m_handShakeType,
-        m_point
+        o.m_commandName,
+        o.m_partner,
+        o.m_leadSpeaker,
+        o.m_distanceMultiplier,
+        o.m_handShakeType,
+        o.m_point
     }
 {
 }

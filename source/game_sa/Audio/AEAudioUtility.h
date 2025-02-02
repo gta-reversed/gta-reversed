@@ -1,5 +1,6 @@
 #pragma once
 #include "eRadioID.h"
+#include <General.h>
 
 class CVehicle;
 
@@ -7,14 +8,19 @@ class CAEAudioUtility {
 public:
     static void      StaticInitialise();
 
-    template<typename T>
-    static inline T GetRandomNumberInRange(T min, T max) {
-        if constexpr (std::is_integral_v<T>) {
-            return CGeneral::GetRandomNumberInRange<T>(min, max + 1);
-        } else {
-            return CGeneral::GetRandomNumberInRange<T>(min, max);
-        }
+    /*!
+    * @brief This and CGeneral differs in that this function returns a number [min, max + 1], while
+    * @brief the other [min, max]. To solve this we do `max + 1`
+    */
+    template<std::integral T>
+    static T GetRandomNumberInRange(T min, T max) {
+        return CGeneral::GetRandomNumberInRange<T>(min, max + 1);
+    }
 
+    template<typename T>
+        requires std::is_floating_point_v<T>
+    static T GetRandomNumberInRange(T min, T max) {
+        return CGeneral::GetRandomNumberInRange<T>(min, max);
     }
 
     static CVehicle* FindVehicleOfPlayer();
@@ -36,7 +42,6 @@ public:
     }
 
 private:
-    static uint64& startTimeMs;
     static float (&m_sfLogLookup)[50][2];
 
 private:

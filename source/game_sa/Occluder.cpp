@@ -21,7 +21,7 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
     auto vecPos = CVector(m_wMidX, m_wMidY, m_wMidZ) / 4.0F;
     float temp1, temp2;
 
-    if (!CalcScreenCoors(vecPos, &COcclusion::gCenterOnScreen, &temp1, &temp2) || COcclusion::gCenterOnScreen.z < -150.0F || COcclusion::gCenterOnScreen.z > 300.0F)
+    if (!CalcScreenCoors(vecPos, COcclusion::gCenterOnScreen, temp1, temp2) || COcclusion::gCenterOnScreen.z < -150.0F || COcclusion::gCenterOnScreen.z > 300.0F)
         return false;
 
     auto fMagnitude = (CVector(m_wWidth, m_wLength, m_wHeight)  / 4.0F ).Magnitude();
@@ -86,7 +86,7 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
         COcclusion::gOccluderCoors[7] = vecPos + aVecArr[1] + aVecArr[3] + aVecArr[5];
 
         for (auto i = 0; i < 8; ++i) {
-            COcclusion::gOccluderCoorsValid[i] = CalcScreenCoors(COcclusion::gOccluderCoors[i], &COcclusion::gOccluderCoorsOnScreen[i], &temp1, &temp2);
+            COcclusion::gOccluderCoorsValid[i] = CalcScreenCoors(COcclusion::gOccluderCoors[i], COcclusion::gOccluderCoorsOnScreen[i], temp1, temp2);
         }
 
         // Between two differently facing sides we see an edge, so process those
@@ -152,7 +152,7 @@ bool COccluder::ProcessOneOccluder(CActiveOccluder* activeOccluder)
     COcclusion::gOccluderCoors[3] = vecPos + vec1 - vec2;
 
     for (auto i = 0; i < 4; ++i) {
-        COcclusion::gOccluderCoorsValid[i] = CalcScreenCoors(COcclusion::gOccluderCoors[i], &COcclusion::gOccluderCoorsOnScreen[i], &temp1, &temp2);
+        COcclusion::gOccluderCoorsValid[i] = CalcScreenCoors(COcclusion::gOccluderCoors[i], COcclusion::gOccluderCoorsOnScreen[i], temp1, temp2);
     }
 
     if (   !ProcessLineSegment(0, 1, activeOccluder)
@@ -194,7 +194,7 @@ bool COccluder::ProcessLineSegment(int32 iIndFrom, int32 iIndTo, CActiveOccluder
         vecScreenTo = vecScreenFrom + fProgress * COcclusion::gOccluderCoors[iIndFrom];
 
         float fTemp1, fTemp2;
-        if (!CalcScreenCoors(vecScreenTo, &vecScreenFrom, &fTemp1, &fTemp2))
+        if (!CalcScreenCoors(vecScreenTo, vecScreenFrom, fTemp1, fTemp2))
             return true;
     }
 
@@ -210,7 +210,7 @@ bool COccluder::ProcessLineSegment(int32 iIndFrom, int32 iIndTo, CActiveOccluder
         auto vecTo = vecFrom + fProgress * COcclusion::gOccluderCoors[iIndFrom];
 
         float fTemp1, fTemp2;
-        if (!CalcScreenCoors(vecTo, &vecScreenTo, &fTemp1, &fTemp2))
+        if (!CalcScreenCoors(vecTo, vecScreenTo, fTemp1, fTemp2))
             return true;
     }
 
