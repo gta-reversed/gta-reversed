@@ -55,7 +55,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(GetVehicleTypeForAudio, 0x4F4F00);
     RH_ScopedInstall(IsAccInhibited, 0x4F4F70);
     RH_ScopedInstall(IsAccInhibitedBackwards, 0x4F4FC0);
-    RH_ScopedInstall(IsAccInhibitedForLowSpeed, 0x4F4FF0, { .reversed = false });
+    RH_ScopedInstall(IsAccInhibitedForLowSpeed, 0x4F4FF0);
     RH_ScopedInstall(IsAccInhibitedForTime, 0x4F5020);
     RH_ScopedInstall(InhibitAccForTime, 0x4F5030);
     RH_ScopedInstall(InhibitCrzForTime, 0x4F5060);
@@ -743,7 +743,7 @@ int16 CAEVehicleAudioEntity::GetVehicleTypeForAudio() const {
 
 // 0x4F4F70
 bool CAEVehicleAudioEntity::IsAccInhibited(cVehicleParams& params) const {
-    return !AEAudioHardware.IsSoundBankLoaded(m_PlayerEngineBank, 40)
+    return !AEAudioHardware.IsSoundBankLoaded(m_PlayerEngineBank, SND_BANK_SLOT_PLAYER_ENGINE_P)
         || params.ThisBrake > 0.f
         || params.IsHandbrakeOn
         || IsAccInhibitedBackwards(params);
