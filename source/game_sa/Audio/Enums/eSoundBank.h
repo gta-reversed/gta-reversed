@@ -12,7 +12,9 @@ enum eSoundBank : int16 {
     SND_BANK_FEET_SAND                         = 4, // 0x4
     SND_BANK_FEET_TILE                         = 5, // 0x5
     SND_BANK_FEET_WOOD                         = 6, // 0x6
-    SND_BANK_GENRL_90S_D                       = 7, // 0x7
+
+    SND_BANK_GENRL_FIRST                       = 7, // NOTSA
+    SND_BANK_GENRL_90S_D                       = SND_BANK_GENRL_FIRST, // 0x7
     SND_BANK_GENRL_90S_P                       = 8, // 0x8
     SND_BANK_GENRL_AIPROP                      = 9, // 0x9
     SND_BANK_GENRL_AIRPORT_D                   = 10, // 0xA

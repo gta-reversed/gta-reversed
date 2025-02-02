@@ -398,7 +398,7 @@ void CAEVehicleAudioEntity::Terminate() {
 
     // 0x4FBA43
     if (m_nEngineBankSlotId != -1) {
-        const auto usedSlot = m_nEngineBankSlotId - 7;
+        const auto usedSlot = m_nEngineBankSlotId - SND_BANK_GENRL_FIRST;
         if (usedSlot >= 0 && usedSlot < NUM_DUMMY_ENGINE_SLOTS &&
             s_DummyEngineSlots[usedSlot].m_nBankId == m_nEngineDecelerateSoundBankId
         ) {
@@ -458,7 +458,7 @@ void CAEVehicleAudioEntity::DisableHelicoptor() {
 
 // 0x4F4E30
 bool CAEVehicleAudioEntity::DoesBankSlotContainThisBank(int16 bankSlot, int16 bankId) {
-    const auto usedSlot = bankSlot - 7; // magic number
+    const auto usedSlot = bankSlot - SND_BANK_GENRL_FIRST;
     if (usedSlot < 0 || usedSlot > NUM_DUMMY_ENGINE_SLOTS)
         return false;
 
@@ -490,7 +490,7 @@ int16 CAEVehicleAudioEntity::RequestBankSlot(int16 bankId) {
         auto& dummyEng = s_DummyEngineSlots[i];
         if (dummyEng.m_nBankId == bankId) {
             dummyEng.m_nUsageCount++;
-            return i + 7; // todo: magic number
+            return i + SND_BANK_GENRL_FIRST;
         }
 
         if (dummyEng.m_nUsageCount <= 0) {
@@ -513,16 +513,15 @@ int16 CAEVehicleAudioEntity::RequestBankSlot(int16 bankId) {
         break;
     }
 
-    // todo: magic number
-    AESoundManager.CancelSoundsInBankSlot(freeSlot + 7, true);
-    AEAudioHardware.LoadSoundBank(bankId, freeSlot + 7);
+    AESoundManager.CancelSoundsInBankSlot(freeSlot + SND_BANK_GENRL_FIRST, true);
+    AEAudioHardware.LoadSoundBank(bankId, freeSlot + SND_BANK_GENRL_FIRST);
     s_DummyEngineSlots[freeSlot].m_nBankId = bankId;
     s_DummyEngineSlots[freeSlot].m_nUsageCount = 1;
-    return freeSlot + 7;
+    return freeSlot + SND_BANK_GENRL_FIRST;
 }
 
 void CAEVehicleAudioEntity::StoppedUsingBankSlot(int16 bankSlot) {
-    const auto usedSlot = bankSlot - 7; // todo: magic number
+    const auto usedSlot = bankSlot - SND_BANK_GENRL_FIRST;
     if (usedSlot < 0 || usedSlot > NUM_DUMMY_ENGINE_SLOTS)
         return;
 
