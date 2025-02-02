@@ -1837,7 +1837,14 @@ void CCamera::StartTransition(eCamMode targetCamMode) {
     case MODE_CAM_ON_A_STRING: {
         if (m_bLookingAtPlayer && !m_bJustCameOutOfGarage) {
             m_bUseTransitionBeta        = true;
-            activeCam.m_fTransitionBeta = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y);
+            const float angle           = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y);
+            if (previousCamMode == MODE_FIXED) { // Ghidra
+                activeCam.m_fTransitionBeta = angle;
+                break;
+            }
+
+            // Reconstruced + android simplified
+            activeCam.m_fTransitionBeta = angle + (fabs(angle) <= HALF_PI ? 4.1015239f : 0.95993114f);
         }
         break;
     }
