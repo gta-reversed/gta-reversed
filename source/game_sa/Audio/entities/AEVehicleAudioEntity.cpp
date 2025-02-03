@@ -60,7 +60,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(GetVolumeForDummyIdle, 0x4F51F0);
     RH_ScopedInstall(GetFrequencyForDummyIdle, 0x4F5310);
     RH_ScopedInstall(GetVolumeForDummyRev, 0x4F53D0);
-    RH_ScopedInstall(GetFrequencyForDummyRev, 0x4F54F0, { .reversed = false });
+    RH_ScopedInstall(GetFrequencyForDummyRev, 0x4F54F0);
     RH_ScopedInstall(CancelVehicleEngineSound, 0x4F55C0, { .reversed = false });
     RH_ScopedInstall(UpdateVehicleEngineSound, 0x4F56D0);
     RH_ScopedInstall(JustGotInVehicleAsDriver, 0x4F5700, { .reversed = false });
