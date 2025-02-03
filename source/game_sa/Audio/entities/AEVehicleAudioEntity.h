@@ -119,7 +119,50 @@ VALIDATE_SIZE(tVehicleAudioSettings, 0x24);
 
 class CPed;
 
+namespace notsa {
+namespace debugmodules {
+    class VehicleAudioEntityDebugModule;
+};
+};
+
 class NOTSA_EXPORT_VTABLE CAEVehicleAudioEntity : public CAEAudioEntity {
+    friend notsa::debugmodules::VehicleAudioEntityDebugModule;
+
+protected:
+    // Config struct - Obviously this is notsa, but it's necessary for the debug module
+    static inline struct Config {
+        // Dummy engine constants:
+        struct {
+            float VolumeUnderwaterOffset = 6.f; // 0x8CBC44
+            float VolumeTrailerOffset    = 6.f; // 0x8CBC40
+
+            float FreqUnderwaterFactor   = 0.7f; // 0x8CBC48
+
+            // ...Idle:
+            struct {
+                float Ratio       = 0.2f; // 0x8CBBF0
+
+                float VolumeBase = -3.f; // 0x8CBC00
+                float VolumeMax  = 0.f;  // 0xB6B9CC
+
+                float FreqBase   = 0.85f; // 0x8CBBF8
+                float FreqMax    = 1.2f;  // 0x8CBBFC
+            } Idle{};
+
+            // ...Rev:
+            struct {
+                float Ratio       = 0.15f; // 0x8CBBF4
+
+                float VolumeBase = -4.5f; // 0xB6BA2C
+                float VolumeMax  = 0.f;   // 0xB6B9D0
+
+                float FreqBase   = 0.9f; // 0x8CBC0C
+                float FreqMax    = 1.5f; // 0x8CBC10
+            } Rev{};
+        } DummyEngine{};
+    } s_Config{};
+    static inline Config s_DefaultConfig{};
+
 private:
     // Indices for `EngineSound[]` (?) depending on the vehicle type:
     enum eAircraftSoundType { // For planes (aircrafts)
@@ -213,6 +256,7 @@ private:
 
         AE_CAR_ENGINE_STATE_MAX       = 10,
     };
+
 
     enum { // ????
         AE_DUMMY_CRZ = 0x0,
@@ -371,12 +415,14 @@ public:
     void EnableHelicoptor();
     void DisableHelicoptor();
 
-    float GetVolumeForDummyIdle(float fGearRevProgress, float fRevProgressBaseline);
-    float GetFrequencyForDummyIdle(float fGearRevProgress, float fRevProgressBaseline);
+    static constexpr float GetDummyRevRatioProgress(float ratio);
+    float GetVolumeForDummyIdle(float fGearRevProgress, float fRevProgressBaseline) const;
+    float GetFrequencyForDummyIdle(float fGearRevProgress, float fRevProgressBaseline) const;
     [[nodiscard]] float GetFreqForIdle(float fRatio) const;
 
-    float GetVolumeForDummyRev(float fRatio, float fFadeRatio);
-    float GetFrequencyForDummyRev(float fRatio, float fFadeRatio);
+    static constexpr float GetDummyIdleRatioProgress(float ratio);
+    float GetVolumeForDummyRev(float fRatio, float fFadeRatio) const;
+    float GetFrequencyForDummyRev(float fRatio, float fFadeRatio) const;
 
     float GetVehicleDriveWheelSkidValue(CVehicle* vehicle, int32 wheelState, float fUnk, cTransmission& transmission, float fVelocity);
     float GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, int32 wheelState, cTransmission& transmission, float velocity);
@@ -451,6 +497,7 @@ public:
                         float fVolume = 1.0f, float fSpeed = 1.0f, float fSoundDistance = 1.0f,
                         float fTimeScale = 1.0f, eSoundEnvironment individualEnvironment = SOUND_REQUEST_UPDATES, int16 playPos = 0);
 
+    auto GetVehicle() const { return m_Entity->AsVehicle(); }
 private:
     void ProcessPropStall(CPlane* plane, float& outVolume, float& outFreq);
 
