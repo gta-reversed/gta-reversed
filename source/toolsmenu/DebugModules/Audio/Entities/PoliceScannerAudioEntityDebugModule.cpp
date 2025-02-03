@@ -64,7 +64,7 @@ void PoliceScannerAudioEntityDebugModule::RenderWindow() {
 }
 
 void PoliceScannerAudioEntityDebugModule::RenderMenuEntry() {
-    notsa::ui::DoNestedMenuIL({ "Extra", "Audio", "Entites" }, [&] {
+    notsa::ui::DoNestedMenuIL({ "Extra", "Audio", "Entities" }, [&] {
         ImGui::MenuItem("Police Scanner", nullptr, &m_IsOpen);
     });
 }

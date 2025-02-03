@@ -1677,7 +1677,7 @@ bool CEntity::IsVisible()
 }
 
 // 0x536BE0
-float CEntity::GetDistanceFromCentreOfMassToBaseOfModel()
+float CEntity::GetDistanceFromCentreOfMassToBaseOfModel() const
 {
     auto cm = GetColModel();
     return -cm->m_boundBox.m_vecMin.z;

@@ -1137,11 +1137,14 @@ eModelID CPopulation::ChooseCivilianOccupationForVehicle(bool mustBeMale, CVehic
                     CHEAT_FUNHOUSE_THEME,
                     CHEAT_COUNTRY_TRAFFIC,
                 })) {
-                    if (mi->CanPedDriveVehicleClass(vehClass)) {
+                    if (!CPopCycle::PedIsAcceptableInCurrentZone(pedModelId)) {
+                        continue;
+                    }
+                    if (!mi->CanPedDriveVehicleClass(vehClass)) {
                         continue;
                     }
                 }
-                if (i == 1 || !vehicle->IsPedOfModelInside(pedModelId)) {
+                if (i != 0 || !vehicle->IsPedOfModelInside(pedModelId)) {
                     return pedModelId;
                 }
             }

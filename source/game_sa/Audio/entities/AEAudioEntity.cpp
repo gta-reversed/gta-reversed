@@ -10,7 +10,7 @@
 
 int8*& CAEAudioEntity::m_pAudioEventVolumes = *reinterpret_cast<int8**>(0xBD00F8);
 
-CAEAudioEntity::CAEAudioEntity() : m_pEntity(nullptr), m_tempSound() {}
+CAEAudioEntity::CAEAudioEntity() : m_Entity(nullptr), m_tempSound() {}
 
 // NOTSA | INLINED | REFACTORED
 bool CAEAudioEntity::StaticInitialise() {

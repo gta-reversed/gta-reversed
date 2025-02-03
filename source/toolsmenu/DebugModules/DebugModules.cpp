@@ -11,8 +11,9 @@
 #include "./Script/MissionDebugModule.h"
 #include "./Audio/CutsceneTrackManagerDebugModule.h"
 #include "./Audio/AmbienceTrackManagerDebugModule.h"
-#include "./Audio/PoliceScannerAudioEntityDebugModule.h"
 #include "./Audio/UserRadioTrackDebugModule.h"
+#include "./Audio/Entities/PoliceScannerAudioEntityDebugModule.h"
+#include "./Audio/Entities/VehicleAudioEntityDebugModule.hpp"
 #include "./CStreamingDebugModule.h"
 #include "./CPickupsDebugModule.h"
 #include "./CDarkelDebugModule.h"
@@ -41,7 +42,7 @@ DebugModules::DebugModules(ImGuiContext* ctx) :
 }
 
 DebugModules::~DebugModules() {
-    DoSerializeModules(); // NOTE/BUG: Currently practically never runs because GTA crashes before it :D
+    DoSerializeModules();
 }
 
 void DebugModules::PreRenderUpdate() {
@@ -101,6 +102,7 @@ void DebugModules::CreateModules() {
     Add<DarkelDebugModule>();
     Add<CPickupsDebugModule>();
     Add<PoliceScannerAudioEntityDebugModule>();
+    Add<notsa::debugmodules::VehicleAudioEntityDebugModule>();
     Add<AmbienceTrackManagerDebugModule>();
     Add<CutsceneTrackManagerDebugModule>();
     Add<UserRadioTrackDebugModule>();

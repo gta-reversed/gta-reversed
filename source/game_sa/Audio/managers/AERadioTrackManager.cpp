@@ -317,7 +317,7 @@ void CAERadioTrackManager::GetRadioStationNameKey(eRadioID id, char* outStr) {
 // 0x4E9800
 bool CAERadioTrackManager::IsVehicleRadioActive() {
     if (const auto opts = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio()) {
-        switch (opts->m_nRadioType) {
+        switch (opts->RadioType) {
         case RADIO_CIVILIAN:
         case RADIO_EMERGENCY:
         case RADIO_UNKNOWN:
@@ -560,12 +560,12 @@ void CAERadioTrackManager::StartRadio(tVehicleAudioSettings* settings) {
     if (CReplay::Mode == MODE_PLAYBACK)
         return;
 
-    if (settings->m_nRadioType == RADIO_EMERGENCY) {
-        StartRadio(RADIO_EMERGENCY_AA, settings->m_nBassSetting, settings->m_fBassEq, 0);
+    if (settings->RadioType == RADIO_EMERGENCY) {
+        StartRadio(RADIO_EMERGENCY_AA, settings->BassSetting, settings->BassFactor, 0);
         return;
     }
 
-    if (settings->m_nRadioType != RADIO_CIVILIAN)
+    if (settings->RadioType != RADIO_CIVILIAN)
         return;
 
     const bool needsRetune = [&] {
@@ -573,7 +573,7 @@ void CAERadioTrackManager::StartRadio(tVehicleAudioSettings* settings) {
            return false;
 
        const auto savedId = m_nSavedRadioStationId;
-       if (savedId < 0 || savedId == settings->m_nRadioID || savedId == RADIO_OFF || savedId == RADIO_EMERGENCY_AA)
+       if (savedId < 0 || savedId == settings->RadioStation || savedId == RADIO_OFF || savedId == RADIO_EMERGENCY_AA)
            return false;
 
        if (CTimer::GetTimeInMS() > m_nSavedTimeMs + 60'000)
@@ -597,9 +597,9 @@ void CAERadioTrackManager::StartRadio(tVehicleAudioSettings* settings) {
 
     if (needsRetune) {
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_START);
-        StartRadio((eRadioID)m_nSavedRadioStationId, settings->m_nBassSetting, settings->m_fBassEq, 0);
+        StartRadio((eRadioID)m_nSavedRadioStationId, settings->BassSetting, settings->BassFactor, 0);
     } else {
-        StartRadio(settings->m_nRadioID, settings->m_nBassSetting, settings->m_fBassEq, 0);
+        StartRadio(settings->RadioStation, settings->BassSetting, settings->BassFactor, 0);
     }
 }
 
@@ -805,7 +805,7 @@ void CAERadioTrackManager::CheckForPause() {
     // todo: See CAEVehicleAudioEntity::Terminate:437 m_nRadioType.
     tVehicleAudioSettings* settings = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
 
-    const bool isRadioTypeOrdinary = settings && [radioType = settings->m_nRadioType]{
+    const bool isRadioTypeOrdinary = settings && [radioType = settings->RadioType]{
         switch (radioType) {
         case RADIO_CIVILIAN:
         case RADIO_EMERGENCY:
