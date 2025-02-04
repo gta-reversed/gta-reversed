@@ -12,6 +12,8 @@
 #include "ControllerConfigManager.h"
 #include "app.h"
 #include "platform/win/Platform.h"
+#include <Xinput.h>
+#pragma comment(lib, "Xinput.lib")
 
 // mouse states
 CMouseControllerState& CPad::PCTempMouseControllerState = *(CMouseControllerState*)0xB73404;
@@ -30,6 +32,14 @@ char& CPad::padNumber = *(char*)0xB73400;
 static bool& byte_B73403 = *(bool*)0xB73403; // TODO: Find out what modifies this, as it has no value by default..
 static bool& byte_8CD782 = *(bool*)0x8CD782; // true by default, left here for documentation purposes, as it's used in multiple CPad functions
 static char& byte_B73401 = *(char*)0xB73401; // unused, unknown
+
+// Agregar estructura para manejar el estado del gamepad
+static struct GamepadInfo {
+    int playerIndex;
+    bool connected;
+    XINPUT_STATE state;
+    XINPUT_STATE prevState;
+} gamepads[XUSER_MAX_COUNT];
 
 void CPad::InjectHooks() {
     RH_ScopedClass(CPad);
@@ -121,6 +131,14 @@ void CPad::Initialise() {
     }
     padNumber = 0;
     byte_B73401 = 0;
+
+    // Inicializar gamepads
+    for (int i = 0; i < XUSER_MAX_COUNT; i++) {
+        gamepads[i].playerIndex = i;
+        gamepads[i].connected = false;
+        ZeroMemory(&gamepads[i].state, sizeof(XINPUT_STATE));
+        ZeroMemory(&gamepads[i].prevState, sizeof(XINPUT_STATE));
+    }
 }
 
 // 0x53F1E0
@@ -213,6 +231,7 @@ void CPad::Update(int32 pad) {
 
 // 0x541DD0
 void CPad::UpdatePads() {
+    // assert(false)
     ZoneScoped;
 
     const auto& ImIONavActive = notsa::ui::UIRenderer::GetSingleton().GetImIO()->NavActive;
@@ -258,68 +277,84 @@ void CPad::UpdateMouse() {
 
 // 0x746A10
 void CPad::ProcessPad(int padNum) {
-    LPDIRECTINPUTDEVICE8* pDiDevice = nullptr;
-    DIJOYSTATE2 joyState;
+    auto& pad = gamepads[padNum];
+    pad.prevState = pad.state;
+    DWORD result = XInputGetState(padNum, &pad.state);
 
-    if (padNum == 0) {
-        pDiDevice = &PSGLOBAL(diDevice1);
-    } else if (padNum == 1) {
-        pDiDevice = &PSGLOBAL(diDevice2);
-    } else {
-        return;
-    }
-    
-    if (!*pDiDevice) {
-        return;
-    }
-
-    if (FAILED((*pDiDevice)->Poll())) {
-        (*pDiDevice)->Acquire();
-        return;
-    }
-
- 
-    WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
-
-    if (ControlsManager.m_bJoyJustInitialised) {
-        ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState = joyState;
-        ControlsManager.m_bJoyJustInitialised = false;
-    } else {
-        ControlsManager.m_OldJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
-    }
-    RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padNum);
-
-    if (*pDiDevice) {
-        float padX1 = joyState.lX / 2000.0f;
-        float padX2 = joyState.lY / 2000.0f;
-        float padY1 = 0.0f;
-        float padY2 = 0.0f;
-
-        if (joyState.rgdwPOV[1] >= 0) {
-            padX1 = sin(joyState.rgdwPOV[1] / 5730.0f);
-            padY1 = cos(joyState.rgdwPOV[1] / 5730.0f) * -1.0f;
-        }
-        if (PadConfigs[padNum].rzAxisPresent && PadConfigs[padNum].zAxisPresent) {
-            padX2 = joyState.lZ / 2000.0f;
-            padY2 = joyState.lRz / 2000.0f;
+    if (result == ERROR_SUCCESS) {
+        if (!pad.connected) {
+            pad.connected = true;
+            DEV_LOG("Gamepad {} conectado", padNum);
         }
 
-        RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padNum);
-        RsPadEventHandler(RsEvent::rsPADBUTTONDOWN, &padNum);
         CPad* pPad = CPad::GetPad(padNum);
+        if (!pPad) return;
 
-        const auto UpdateJoyStickPosition = [](float pos, int16& outA, int16& outB, bool isInverted, bool isSwapped) {
-            if (fabs(pos) > 0.3f) {
-                pos = isInverted ? -pos : pos;
-                pos /= 128.f;
-                (isSwapped ? outA : outB) = (int32)pos;
-            }
+        pPad->PCTempJoyState.Clear();
+
+        // Mapear botones básicos
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_A)
+            pPad->PCTempJoyState.ButtonCross = 255;
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_B)
+            pPad->PCTempJoyState.ButtonCircle = 255;
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_X) 
+            pPad->PCTempJoyState.ButtonSquare = 255;
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_Y)
+            pPad->PCTempJoyState.ButtonTriangle = 255;
+
+        // Mapear gatillos/hombros
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)
+            pPad->PCTempJoyState.LeftShoulder1 = 255;
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
+            pPad->PCTempJoyState.RightShoulder1 = 255;
+        if (pad.state.Gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+            pPad->PCTempJoyState.LeftShoulder2 = 255;
+        if (pad.state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+            pPad->PCTempJoyState.RightShoulder2 = 255;
+
+        // Mapear D-pad
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)
+            pPad->PCTempJoyState.DPadUp = 255;
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)
+            pPad->PCTempJoyState.DPadDown = 255;
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)
+            pPad->PCTempJoyState.DPadLeft = 255;
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)
+            pPad->PCTempJoyState.DPadRight = 255;
+
+        // Start/Select
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_START)
+            pPad->PCTempJoyState.Start = 255;
+        if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
+            pPad->PCTempJoyState.Select = 255;
+
+        // Sticks análogos con deadzone
+        const float deadzone = 0.24f;
+        const auto ApplyDeadzone = [deadzone](float value) {
+            if (fabs(value) < deadzone) return 0.0f;
+            return value;
         };
 
-        UpdateJoyStickPosition(padX1, pPad->PCTempJoyState.LeftStickY, pPad->PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
-        UpdateJoyStickPosition(padY1, pPad->PCTempJoyState.LeftStickX, pPad->PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis2);
-        UpdateJoyStickPosition(padX2, pPad->PCTempJoyState.LeftStickY, pPad->PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis1);
-        UpdateJoyStickPosition(padY2, pPad->PCTempJoyState.LeftStickX, pPad->PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
+        float LX = ApplyDeadzone(pad.state.Gamepad.sThumbLX / 32768.0f);
+        float LY = ApplyDeadzone(pad.state.Gamepad.sThumbLY / 32768.0f);
+        float RX = ApplyDeadzone(pad.state.Gamepad.sThumbRX / 32768.0f);
+        float RY = ApplyDeadzone(pad.state.Gamepad.sThumbRY / 32768.0f);
+
+        // Convertir valores análogos a formato del juego (-128 a 127)
+        pPad->PCTempJoyState.LeftStickX = static_cast<int8>(LX * 128.0f);
+        pPad->PCTempJoyState.LeftStickY = static_cast<int8>(LY * 128.0f);
+        pPad->PCTempJoyState.RightStickX = static_cast<int8>(RX * 128.0f);
+        pPad->PCTempJoyState.RightStickY = static_cast<int8>(RY * 128.0f);
+
+    } else if (pad.connected) {
+        pad.connected = false;
+        DEV_LOG("Gamepad {} desconectado", padNum);
+        
+        // Limpiar estado si el gamepad se desconecta
+        CPad* pPad = CPad::GetPad(padNum);
+        if (pPad) {
+            pPad->PCTempJoyState.Clear();
+        }
     }
 }
 
@@ -486,13 +521,13 @@ void CPad::StartShake_Train(const CVector2D& point) {
 // 0x541D70
 void CPad::StopPadsShaking() {
     for (auto i = 0u; i < std::size(Pads); i++) {
-        GetPad(i)->StopShaking(i);
+        GetPad(i)->StopShaking(i); // Unused
     }
 }
 
 // 0x53FB50
 void CPad::StopShaking(int16 arg0) {
-    // NOP
+    GetPad(arg0)->ShakeDur = 0; // Unused
 }
 
 // 0x53FC50
