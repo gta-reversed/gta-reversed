@@ -296,7 +296,7 @@ public:
     int16                  m_DummyEngineBank;
     int16                  m_PlayerEngineBank;
     int16                  m_DummySlot;
-    tEngineSound           m_EngineSounds[AE_SOUND_ENGINE_MAX];
+    std::array<tEngineSound, AE_SOUND_ENGINE_MAX> m_EngineSounds;
 
     int32                  m_TimeLastServiced;
 

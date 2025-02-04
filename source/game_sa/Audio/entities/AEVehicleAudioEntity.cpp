@@ -51,7 +51,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(GetVehicleTypeForAudio, 0x4F4F00);
     RH_ScopedInstall(IsAccInhibited, 0x4F4F70);
     RH_ScopedInstall(IsAccInhibitedBackwards, 0x4F4FC0);
-    //RH_ScopedInstall(IsAccInhibitedForLowSpeed, 0x4F4FF0); // `this` is null when called from 0x4FC80B
+    //RH_ScopedInstall(IsAccInhibitedForLowSpeed, 0x4F4FF0); // `this` is null when called from 0x4FC80B (probably due to register allocation and whatnot...)
     RH_ScopedInstall(IsAccInhibitedForTime, 0x4F5020);
     RH_ScopedInstall(InhibitAccForTime, 0x4F5030);
     RH_ScopedInstall(InhibitCrzForTime, 0x4F5060);
@@ -61,7 +61,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(GetFrequencyForDummyIdle, 0x4F5310);
     RH_ScopedInstall(GetVolumeForDummyRev, 0x4F53D0);
     RH_ScopedInstall(GetFrequencyForDummyRev, 0x4F54F0);
-    RH_ScopedInstall(CancelVehicleEngineSound, 0x4F55C0, { .reversed = false });
+    RH_ScopedInstall(CancelVehicleEngineSound, 0x4F55C0);
     RH_ScopedInstall(UpdateVehicleEngineSound, 0x4F56D0);
     RH_ScopedInstall(JustGotInVehicleAsDriver, 0x4F5700, { .reversed = false });
     RH_ScopedInstall(TurnOnRadioForVehicle, 0x4F5B20);  // -
@@ -908,37 +908,30 @@ float CAEVehicleAudioEntity::GetFrequencyForDummyRev(float ratio, float fadeRati
 
 // 0x4F55C0
 void CAEVehicleAudioEntity::CancelVehicleEngineSound(size_t soundId) {
-    return plugin::CallMethod<0x4F55C0, CAEVehicleAudioEntity*, size_t>(this, soundId);
-
-    if (soundId > std::size(m_EngineSounds)) {
+    if (soundId > m_EngineSounds.size()) {
         return;
     }
 
     auto&      sound       = m_EngineSounds[soundId].Sound;
-    const auto soundLength = sound ? sound->m_nSoundLength : -1;
+    const auto soundLength = sound
+        ? sound->m_nSoundLength
+        : -1;
 
-
-    if (sound) {
-        sound->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
-        sound->StopSound();
-        sound = nullptr;
+    if (auto* s = std::exchange(sound, nullptr)) {
+        s->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
+        s->StopSound();
     }
 
-    if (soundId != AE_SOUND_PLAYER_AC) {
-        return;
-    }
+    if (soundId == AE_SOUND_PLAYER_AC) {
+        m_ACPlayPositionWhenStopped = m_ACPlayPositionThisFrame;
+        m_TimeACStopped             = CTimer::GetTimeInMS();
 
-    m_ACPlayPositionWhenStopped = m_ACPlayPositionThisFrame;
-    m_TimeACStopped = CTimer::GetTimeInMS();
+        m_ACPlayPositionThisFrame   = -1;
+        m_ACPlayPositionLastFrame   = -1;
 
-    m_ACPlayPositionThisFrame       = -1;
-    m_ACPlayPositionLastFrame = -1;
-
-    if (soundLength <= 0) {
-        m_ACPlayPercentWhenStopped = 0;
-    } else {
-        auto v7   = std::clamp(float(m_ACPlayPositionWhenStopped) / (float)soundLength, 0.0f, 1.0f);
-        m_ACPlayPercentWhenStopped = int16(v7 * 100.0f);
+        m_ACPlayPercentWhenStopped = soundLength > 0
+            ? (int16)(std::clamp((float)(m_ACPlayPositionWhenStopped) / (float)(soundLength), 0.0f, 1.0f) * 100.f)
+            : 0;
     }
 }
 
