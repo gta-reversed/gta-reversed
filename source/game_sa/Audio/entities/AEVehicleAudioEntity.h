@@ -18,18 +18,18 @@ enum tWheelState : int32;
 class CVehicle;
 class CPlane;
 
-enum eVehicleSoundType : int8 {
-    VEHICLE_SOUND_CAR              = 0x0,
-    VEHICLE_SOUND_MOTORCYCLE       = 0x1,
-    VEHICLE_SOUND_BICYCLE          = 0x2,
-    VEHICLE_SOUND_BOAT             = 0x3,
-    VEHICLE_SOUND_HELI             = 0x4,
-    VEHICLE_SOUND_PLANE            = 0x5,
-    VEHICLE_SOUND_NON_VEH          = 0x6, // SEA_PLANE
-    VEHICLE_SOUND_USED_BY_NONE_VEH = 0x7,
-    VEHICLE_SOUND_TRAIN            = 0x8,
-    VEHICLE_SOUND_TRAILER          = 0x9,
-    VEHICLE_SOUND_SPECIAL          = 0xA,
+enum eAEVehicleSoundType : int8 {
+    AE_CAR                 = 0x0, // 0
+    AE_BIKE                = 0x1, // 1
+    AE_BMX                 = 0x2, // 2
+    AE_BOAT                = 0x3, // 3
+    AE_AIRCRAFT_HELICOPTER = 0x4, // 4
+    AE_AIRCRAFT_PLANE      = 0x5, // 5
+    AE_AIRCRAFT_SEAPLANE   = 0x6, // 6
+    AE_ONE_GEAR            = 0x7, // 7
+    AE_TRAIN               = 0x8, // 8
+    AE_SPECIAL             = 0x9, // 9
+    AE_NO_VEHICLE          = 0xA, // 10
 };
 
 enum eRadioType : int8 {
@@ -91,7 +91,7 @@ public:
 VALIDATE_SIZE(tEngineSound, 0x8);
 
 struct tVehicleAudioSettings {
-    eVehicleSoundType VehicleAudioType;
+    eAEVehicleSoundType VehicleAudioType;
     int16             PlayerBank;
     int16             DummyBank;
     int8              BassSetting; // m_nStereo
@@ -107,13 +107,13 @@ struct tVehicleAudioSettings {
     float             EngineVolumeOffset;
 
 public:
-    [[nodiscard]] bool IsHeli()          const { return VehicleAudioType == eVehicleSoundType::VEHICLE_SOUND_HELI; }
-    [[nodiscard]] bool IsPlane()         const { return VehicleAudioType == eVehicleSoundType::VEHICLE_SOUND_PLANE; }
+    [[nodiscard]] bool IsHeli()          const { return VehicleAudioType == eAEVehicleSoundType::AE_AIRCRAFT_HELICOPTER; }
+    [[nodiscard]] bool IsPlane()         const { return VehicleAudioType == eAEVehicleSoundType::AE_AIRCRAFT_PLANE; }
     [[nodiscard]] bool IsFlyingVehicle() const { return IsPlane() || IsHeli(); }
-    [[nodiscard]] bool IsNonVeh()        const { return VehicleAudioType == eVehicleSoundType::VEHICLE_SOUND_NON_VEH; }
-    [[nodiscard]] bool IsCar()           const { return VehicleAudioType == eVehicleSoundType::VEHICLE_SOUND_CAR; }
-    [[nodiscard]] bool IsMotorcycle()    const { return VehicleAudioType == eVehicleSoundType::VEHICLE_SOUND_MOTORCYCLE; }
-    [[nodiscard]] bool IsBicycle()       const { return VehicleAudioType == eVehicleSoundType::VEHICLE_SOUND_BICYCLE; }
+    [[nodiscard]] bool IsNonVeh()        const { return VehicleAudioType == eAEVehicleSoundType::AE_AIRCRAFT_SEAPLANE; }
+    [[nodiscard]] bool IsCar()           const { return VehicleAudioType == eAEVehicleSoundType::AE_CAR; }
+    [[nodiscard]] bool IsMotorcycle()    const { return VehicleAudioType == eAEVehicleSoundType::AE_BIKE; }
+    [[nodiscard]] bool IsBicycle()       const { return VehicleAudioType == eAEVehicleSoundType::AE_BMX; }
 };
 VALIDATE_SIZE(tVehicleAudioSettings, 0x24);
 
@@ -226,35 +226,24 @@ private:
         AE_SOUND_BOAT_WATER_SKIM = 6,
     };
 
-    enum  { // AE Vehicle types (?)
-        AE_CAR                 = 0,
-        AE_BIKE                = 1,
-        AE_BMX                 = 2,
-        AE_BOAT                = 3,
-        AE_AIRCRAFT_HELICOPTOR = 4,
-        AE_AIRCRAFT_PLANE      = 5,
-        AE_AIRCRAFT_SEAPLANE   = 6,
-        AE_ONE_GEAR            = 7,
-        AE_TRAIN               = 8,
-        AE_SPECIAL             = 9,
-        AE_NO_VEHICLE          = 10,
-    };
+    enum class eAEState : uint8 {
+        CAR_OFF              = 0,
 
-    enum eAEState : uint8 { // Enums for `m_State` (?)
-        AE_STATE_CAR_OFF              = 0,
+        // Used for vehicles the player is *not* inside of
+        DUMMY_ID             = 1, // Idle
+        DUMMY_CRZ            = 2, // Cruising (?)
 
-        AE_STATE_DUMMY_ID             = 1, // Idle?
-        AE_STATE_DUMMY_CRZ            = 2, // crz = cruising?
+        // Used for vehicles the player is in
+        PLAYER_AC_FULL       = 3, // Acceleration (?)
+        PLAYER_WHEEL_SPIN    = 4,
+        PLAYER_CRZ           = 5, // Cruising (?)
+        PLAYER_ID            = 6, // Idle (?)
+        PLAYER_REVERSE       = 7,
+        PLAYER_REVERSE_OFF   = 8,
+        PLAYER_FAILING_TO_AC = 9, // AC = accelerate (?)
 
-        AE_STATE_PLAYER_AC_FULL       = 3, // AC = Acceleration?
-        AE_STATE_PLAYER_WHEEL_SPIN    = 4,
-        AE_STATE_PLAYER_CRZ           = 5, // Cruising?
-        AE_STATE_PLAYER_ID            = 6, // ???
-        AE_STATE_PLAYER_REVERSE       = 7,
-        AE_STATE_PLAYER_REVERSE_OFF   = 8,
-        AE_STATE_PLAYER_FAILING_TO_AC = 9, // Failing to accelerate? 
-
-        AE_CAR_ENGINE_STATE_MAX       = 10,
+        // Keep this at the bottom
+        NUM_STATES
     };
 
 
