@@ -79,7 +79,7 @@ bool CEventPedCollisionWithPed::AffectsPed(CPed* ped) {
     }
                 
     if (const auto task = ped->GetTaskManager().GetActiveTaskAs<CTaskComplexAvoidOtherPedWhileWandering>()) {
-        if (task->m_OtherPed == m_victim) {
+        if (task->GetPedToAvoid() == m_victim) {
             return false;
         }
     }
