@@ -109,7 +109,7 @@ private: // Wrappers for hooks
         return this;
     }
 
-private:
+public:
     CPedGroup*                     m_pPedGroup{};
     CEventGroupEvent*              m_pOldEventGroupEvent{};
     CEventGroupEvent*              m_pEventGroupEvent{};
