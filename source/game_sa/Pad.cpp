@@ -33,7 +33,7 @@ static bool& byte_B73403 = *(bool*)0xB73403; // TODO: Find out what modifies thi
 static bool& byte_8CD782 = *(bool*)0x8CD782; // true by default, left here for documentation purposes, as it's used in multiple CPad functions
 static char& byte_B73401 = *(char*)0xB73401; // unused, unknown
 
-// Agregar estructura para manejar el estado del gamepad
+// Add structure to handle gamepad state
 static struct GamepadInfo {
     int playerIndex;
     bool connected;
@@ -132,7 +132,7 @@ void CPad::Initialise() {
     padNumber = 0;
     byte_B73401 = 0;
 
-    // Inicializar gamepads
+    // Initialize gamepads
     for (int i = 0; i < XUSER_MAX_COUNT; i++) {
         gamepads[i].playerIndex = i;
         gamepads[i].connected = false;
@@ -276,6 +276,7 @@ void CPad::UpdateMouse() {
 }
 
 // 0x746A10
+
 void CPad::ProcessPad(int padNum) {
     auto& pad = gamepads[padNum];
     pad.prevState = pad.state;
@@ -284,15 +285,22 @@ void CPad::ProcessPad(int padNum) {
     if (result == ERROR_SUCCESS) {
         if (!pad.connected) {
             pad.connected = true;
-            DEV_LOG("Gamepad {} conectado", padNum);
+            DEV_LOG("Gamepad {} connected", padNum);
         }
 
         CPad* pPad = CPad::GetPad(padNum);
-        if (!pPad) return;
 
-        pPad->PCTempJoyState.Clear();
+        if (!pPad) {
+            return;
+        }
 
-        // Mapear botones básicos
+        unsigned short intensity = (pPad->ShakeDur > 0) ? (pPad->ShakeFreq * 257) : 0;
+        XINPUT_VIBRATION vibration = { intensity, intensity };
+        XInputSetState(padNum, &vibration);
+
+        // pPad->PCTempJoyState.Clear();
+
+        // Map basic buttons
         if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_A)
             pPad->PCTempJoyState.ButtonCross = 255;
         if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_B)
@@ -302,7 +310,7 @@ void CPad::ProcessPad(int padNum) {
         if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_Y)
             pPad->PCTempJoyState.ButtonTriangle = 255;
 
-        // Mapear gatillos/hombros
+        // Map triggers/shoulders
         if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)
             pPad->PCTempJoyState.LeftShoulder1 = 255;
         if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
@@ -312,7 +320,7 @@ void CPad::ProcessPad(int padNum) {
         if (pad.state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
             pPad->PCTempJoyState.RightShoulder2 = 255;
 
-        // Mapear D-pad
+        // Map D-pad
         if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)
             pPad->PCTempJoyState.DPadUp = 255;
         if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)
@@ -328,7 +336,7 @@ void CPad::ProcessPad(int padNum) {
         if (pad.state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
             pPad->PCTempJoyState.Select = 255;
 
-        // Sticks análogos con deadzone
+        // Analog sticks with deadzone
         const float deadzone = 0.24f;
         const auto ApplyDeadzone = [deadzone](float value) {
             if (fabs(value) < deadzone) return 0.0f;
@@ -340,7 +348,7 @@ void CPad::ProcessPad(int padNum) {
         float RX = ApplyDeadzone(pad.state.Gamepad.sThumbRX / 32768.0f);
         float RY = ApplyDeadzone(pad.state.Gamepad.sThumbRY / 32768.0f);
 
-        // Convertir valores análogos a formato del juego (-128 a 127)
+        // Convert analog values to game format (-128 to 127)
         pPad->PCTempJoyState.LeftStickX = static_cast<int8>(LX * 128.0f);
         pPad->PCTempJoyState.LeftStickY = static_cast<int8>(LY * 128.0f);
         pPad->PCTempJoyState.RightStickX = static_cast<int8>(RX * 128.0f);
@@ -348,9 +356,12 @@ void CPad::ProcessPad(int padNum) {
 
     } else if (pad.connected) {
         pad.connected = false;
-        DEV_LOG("Gamepad {} desconectado", padNum);
+        DEV_LOG("Gamepad {} disconnected", padNum);
         
-        // Limpiar estado si el gamepad se desconecta
+        // Ensure vibration stops when disconnecting
+        XINPUT_VIBRATION vibration = {0};
+        XInputSetState(padNum, &vibration);
+
         CPad* pPad = CPad::GetPad(padNum);
         if (pPad) {
             pPad->PCTempJoyState.Clear();
