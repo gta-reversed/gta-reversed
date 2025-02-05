@@ -334,8 +334,8 @@ public:
     static int16&                  s_NextDummyEngineSlot;
     static tVehicleAudioSettings*& s_pVehicleAudioSettingsForRadio;
 
-    static constexpr int32 NUM_DUMMY_ENGINE_SLOTS = AE_CAR_ENGINE_STATE_MAX;
-    static tDummyEngineSlot (&s_DummyEngineSlots)[AE_CAR_ENGINE_STATE_MAX];
+    static constexpr int32 NUM_DUMMY_ENGINE_SLOTS = (int32)(eAEState::NUM_STATES);
+    static tDummyEngineSlot (&s_DummyEngineSlots)[NUM_DUMMY_ENGINE_SLOTS];
 
 public:
     CAEVehicleAudioEntity();
