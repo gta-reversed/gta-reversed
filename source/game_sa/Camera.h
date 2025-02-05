@@ -416,8 +416,8 @@ public:
 
     void StartCooperativeCamMode();
     void StopCooperativeCamMode();
-    void StartTransition(eCamMode targetCamMode);
-    void StartTransitionWhenNotFinishedInter(eCamMode targetCamMode);
+    void StartTransition(eCamMode newCamMode);
+    void StartTransitionWhenNotFinishedInter(eCamMode newCamMode);
 
     void StoreValuesDuringInterPol(CVector *sourceDuringInter, CVector *targetDuringInter, CVector *upDuringInter, float *FOVDuringInter);
 
