@@ -67,12 +67,15 @@ bool CAEAudioUtility::ResolveProbability(float p) {
 
 // 0x4d9d90
 float CAEAudioUtility::GetPiecewiseLinear(float x, int16 dataCount, const float (*data)[2]) {
-    if (x >= data[dataCount - 1][0])
+    assert(dataCount >= 1);
+    if (x >= data[dataCount - 1][0]) {
         return data[dataCount - 1][1];
-
-    if (x <= data[0][0])
+    }
+    if (x <= data[0][0]) {
         return data[0][1];
+    }
 
+    assert(dataCount >= 2);
     int32 i = 0;
     for (; i < dataCount; i++) {
         if (data[i][0] >= x)
