@@ -68,7 +68,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(TurnOffRadioForVehicle, 0x4F5B60); // -
     RH_ScopedInstall(PlayerAboutToExitVehicleAsDriver, 0x4F5BA0);
     RH_ScopedInstall(CopHeli, 0x4F5C40);
-    RH_ScopedInstall(GetFreqForIdle, 0x4F5C60, { .reversed = false });
+    RH_ScopedInstall(GetFreqForIdle, 0x4F5C60);
     RH_ScopedInstall(GetBaseVolumeForBicycleTyre, 0x4F60B0);
     RH_ScopedInstall(GetVolForPlayerEngineSound, 0x4F5D00, { .reversed = false });
     RH_ScopedInstall(JustFinishedAccelerationLoop, 0x4F5E50);
@@ -1110,27 +1110,25 @@ bool CAEVehicleAudioEntity::CopHeli() {
 }
 
 // 0x4F5C60
-float CAEVehicleAudioEntity::GetFreqForIdle(float fRatio) const {
-    static float points[][2] = {
-        {0.0000f,  0.00f},
-        { 0.0750f, 0.70f},
-        { 0.1500f, 1.10f},
-        { 0.2500f, 1.25f},
-        { 1.0001f, 1.70f},
-    };
-    return CAEAudioUtility::GetPiecewiseLinear(fRatio, (int16)std::size(points), points);
+float CAEVehicleAudioEntity::GetFreqForIdle(float ratio) const {
+    return CGeneral::GetPiecewiseLinear({ // 0x8CC164:
+        { 0.000f, 0.000f },
+        { 0.075f, 0.700f },
+        { 0.150f, 1.100f },
+        { 0.250f, 1.250f },
+        { 1.000f, 1.700f },
+    }, ratio);
 }
 
 // 0x4F60B0
-float CAEVehicleAudioEntity::GetBaseVolumeForBicycleTyre(float fGearVelocityProgress) const {
-    static float points[][2] = {
-        {0.0000f,  0.00f},
-        { 0.1000f, 0.30f},
-        { 0.2000f, 0.45f},
-        { 0.5000f, 0.85f},
-        { 1.0001f, 1.00f},
-    };
-    return CAEAudioUtility::GetPiecewiseLinear(fGearVelocityProgress, (int16)std::size(points), points);
+float CAEVehicleAudioEntity::GetBaseVolumeForBicycleTyre(float ratio) const {
+    return CGeneral::GetPiecewiseLinear({ // 0x8CC18C:
+        { 0.00f, 0.00f },
+        { 0.10f, 0.30f },
+        { 0.20f, 0.45f },
+        { 0.50f, 0.85f },
+        { 1.00f, 1.00f },
+    }, ratio);
 }
 
 // 0x4F5D00
