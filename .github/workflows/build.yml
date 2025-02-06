@@ -35,13 +35,17 @@ jobs:
                     fetch-depth: 1
                     submodules: recursive
 
+            -   name: Setup Conan for ${{ matrix.arch }}
+                shell: cmd
+                run: conan install . --build missing -s build_type=${{ matrix.conf }} --profile conanprofile.txt # ${{ matrix.arch }}
+
             -   name: Configure ${{ matrix.arch }}
                 shell: cmd
-                run: cmake -B ${{ env.build }} -H. -A Win32 # ${{ matrix.arch }}
+                run: cmake --preset conan-default
 
             -   name: Build ${{ matrix.conf }}
                 shell: cmd
-                run: cmake --build build --config ${{ matrix.conf }}
+                run: cmake --build build
 
             -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
                 uses: actions/upload-artifact@v4
