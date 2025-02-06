@@ -53,3 +53,6 @@ perf.data*
 
 # Code Analyzers
 /.PVS-Studio
+
+# Conan files
+ConanPresets.json
