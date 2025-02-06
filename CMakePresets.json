@@ -1,10 +1,11 @@
 {
-    "version": 3,
+    "version": 4,
     "cmakeMinimumRequired": {
         "major": 3,
-        "minor": 20,
+        "minor": 23,
         "patch": 0
     },
+    "include": ["./ConanPresets.json"],
     "configurePresets": [
         {
             "name": "generator:ninja-x86",
@@ -20,7 +21,8 @@
             "toolset": {
                 "value": "host=x86",
                 "strategy": "external"
-            }
+            },
+            "inherits": "conan-default"
         },
         {
             "name": "generator:msbuild-x86",
@@ -32,7 +34,8 @@
             "architecture": {
                 "value": "Win32",
                 "strategy": "set"
-            }
+            },
+            "inherits": "conan-default"
         },
 
         {
