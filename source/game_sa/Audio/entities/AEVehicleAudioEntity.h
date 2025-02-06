@@ -447,7 +447,7 @@ public:
     void ProcessAircraft(cVehicleParams& params);
     void ProcessPlayerBicycle(cVehicleParams& params);
     void ProcessDummyBicycle(cVehicleParams& params);
-    void ProcessDummyStateTransition(int16 newState, float fRatio, cVehicleParams& params);
+    void ProcessDummyStateTransition(eAEState newState, float fRatio, cVehicleParams& params);
     void ProcessDummyVehicleEngine(cVehicleParams& params);
     void ProcessPlayerVehicleEngine(cVehicleParams& params);
     void ProcessVehicleSirenAlarmHorn(cVehicleParams& params);

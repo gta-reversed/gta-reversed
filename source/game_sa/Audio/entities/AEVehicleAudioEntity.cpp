@@ -6,7 +6,7 @@
 #include "AEAudioUtility.h"
 #include "AESoundManager.h"
 #include "AEAudioUtility.h"
-#include "eSoundBankSlot.h"
+#include <Enums/eSoundBankSlot.h>
 
 CPed*&                  CAEVehicleAudioEntity::s_pPlayerAttachedForRadio                     = *(CPed**)0xB6B98C;
 CPed*&                  CAEVehicleAudioEntity::s_pPlayerDriver                               = *(CPed**)0xB6B990;
@@ -1734,7 +1734,7 @@ void CAEVehicleAudioEntity::JustGotOutOfVehicleAsDriver() {
                 CancelVehicleEngineSound(i);
             }
             if (m_State != eAEState::CAR_OFF) {
-                m_State = AE_CAR_ENGINE_STATE_MAX;
+                m_State = eAEState::NUM_STATES; // ???
             }
         }
         PlayReverseSound(-1);
@@ -2291,10 +2291,9 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(cVehicleParams& params) {
 }
 
 // 0x4FCA10
-void CAEVehicleAudioEntity::ProcessDummyStateTransition(int16 newState, float fRatio, cVehicleParams& params) {
-    plugin::CallMethod<0x4FCA10, CAEVehicleAudioEntity*, int16, float, cVehicleParams&>(this, newState, fRatio, params);
+void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float fRatio, cVehicleParams& params) {
+    plugin::CallMethod<0x4FCA10, CAEVehicleAudioEntity*, eAEState, float, cVehicleParams&>(this, newState, fRatio, params);
 }
-
 
 // 0x4FDFD0
 void CAEVehicleAudioEntity::ProcessAIProp(cVehicleParams& params) {
@@ -2419,14 +2418,14 @@ void CAEVehicleAudioEntity::ProcessDummyVehicleEngine(cVehicleParams& vp) {
             bool isIdling;
             switch (m_State) {
             case eAEState::CAR_OFF:
-            case eAEState::DUMMY_ID:       isIdling = gearVelocityProgress < s_Config.DummyEngine.Idle.Ratio;                            break;
-            case AE_CAR_ENGINE_STATE_MAX: NOTSA_UNREACHABLE(); // This one was originally handled as part of the above, but it doesn't make any sense....
-            case eAEState::DUMMY_CRZ:      isIdling = gearVelocityProgress < s_Config.DummyEngine.Rev.Ratio;                            break;
-            default:                      ProcessDummyStateTransition(eAEState::CAR_OFF, gearVelocityProgress, vp); return;
+            case eAEState::DUMMY_ID:   isIdling = gearVelocityProgress < s_Config.DummyEngine.Idle.Ratio;                            break;
+            case eAEState::NUM_STATES: NOTSA_UNREACHABLE(); // This one was originally handled as part of the above, but it doesn't make any sense....
+            case eAEState::DUMMY_CRZ:  isIdling = gearVelocityProgress < s_Config.DummyEngine.Rev.Ratio;                            break;
+            default:                   ProcessDummyStateTransition(eAEState::CAR_OFF, gearVelocityProgress, vp); return;
             }
             ProcessDummyStateTransition(isIdling ? eAEState::DUMMY_ID : eAEState::DUMMY_CRZ, gearVelocityProgress, vp);
         } else {
-            ProcessDummyStateTransition(0, 0.f, vp);
+            ProcessDummyStateTransition(eAEState::CAR_OFF, 0.f, vp);
         }
     } else { // 0x5014D9
         const auto ds = m_DummySlot - 7;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../DebugModule.h"
+#include <DebugModules/DebugModule.h>
 
 class PoliceScannerAudioEntityDebugModule final : public DebugModule {
 public:
