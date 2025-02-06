@@ -1,5 +1,8 @@
+import os
+
 from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
+from conan.tools.files import copy
 
 class saRecipe(ConanFile):
     name = "gta-reversed"
@@ -26,6 +29,14 @@ class saRecipe(ConanFile):
         tc = CMakeToolchain(self)
         tc.user_presets_path = 'ConanPresets.json'
         tc.generate()
+
+        copy(self, "*win32*", os.path.join(self.dependencies["imgui"].package_folder,
+            "res", "bindings"), os.path.join(self.source_folder, "source", "app"))
+        copy(self, "*dx9*", os.path.join(self.dependencies["imgui"].package_folder,
+            "res", "bindings"), os.path.join(self.source_folder, "source", "app"))
+        
+        copy(self, "imgui_stdlib.h", os.path.join(self.dependencies["imgui"].package_folder,
+            "res", "misc", "cpp"), os.path.join(self.source_folder, "source", "app"))
     
     def build(self):
         cmake = CMake(self)

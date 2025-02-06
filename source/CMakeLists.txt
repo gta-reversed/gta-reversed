@@ -64,7 +64,7 @@ target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS" "/SAFESE
 target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     Ogg::ogg
     vorbis::vorbis
-    imgui
+    imgui::imgui
     spdlog::spdlog
     Tracy::TracyClient
     ddraw
