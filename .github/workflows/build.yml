@@ -58,7 +58,7 @@ jobs:
 
             -   name: Build ${{ matrix.conf }}-${{ matrix.arch }}
                 shell: cmd
-                run: cmake --build build
+                run: cmake --build build --config ${{ matrix.conf }}
 
             -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
                 uses: actions/upload-artifact@v4
