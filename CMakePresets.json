@@ -45,7 +45,8 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "NOTSA_DEBUG": "1"
             },
-            "binaryDir": "${sourceDir}/bin/debug"
+            "binaryDir": "${sourceDir}/bin/debug",
+            "inherits": "conan-debug"
         },
         {
             "name": "build:release-with-symbols",
@@ -53,7 +54,8 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo"
             },
-            "binaryDir": "${sourceDir}/bin/release"
+            "binaryDir": "${sourceDir}/bin/release",
+            "inherits": "conan-release"
         },
         {
             "name": "build:release-no-symbols",
@@ -61,7 +63,8 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             },
-            "binaryDir": "${sourceDir}/bin/release"
+            "binaryDir": "${sourceDir}/bin/release",
+            "inherits": "conan-release"
         },
 
         {
@@ -92,6 +95,7 @@
                 "compiler:msvc-cl",
                 "build:debug",
                 "use-tracy"
+                
             ]
         },
         {

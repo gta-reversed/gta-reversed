@@ -1,6 +1,6 @@
 [settings]
 arch=x86
-build_type=Release
+build_type=Debug
 compiler=msvc
 compiler.cppstd=23
 compiler.runtime=dynamic

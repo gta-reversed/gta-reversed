@@ -47,6 +47,7 @@ find_package(Ogg REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Tracy REQUIRED)
 find_package(Vorbis REQUIRED)
+find_package(imgui REQUIRED)
 
 add_subdirectory(source)
 
