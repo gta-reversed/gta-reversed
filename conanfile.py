@@ -27,7 +27,6 @@ class saRecipe(ConanFile):
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
-        tc.user_presets_path = 'ConanPresets.json'
         tc.generate()
 
         copy(self, "*win32*", os.path.join(self.dependencies["imgui"].package_folder,
