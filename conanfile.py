@@ -1,0 +1,37 @@
+from conan import ConanFile
+from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
+
+class saRecipe(ConanFile):
+    name = "gta-reversed"
+    version = "0.0"
+
+    settings = "os", "compiler", "build_type", "arch"
+    exports_sources = "CMakeLists.txt", "source/*"
+
+    requires = [
+        "ogg/1.3.5",
+        "nlohmann_json/3.11.3",
+        "spdlog/1.15.0",
+        "tracy/cci.20220130",
+        "vorbis/1.3.7",
+        "imgui/cci.20230105+1.89.2.docking"
+    ]
+
+    def layout(self):
+        cmake_layout(self)
+    
+    def generate(self):
+        deps = CMakeDeps(self)
+        deps.generate()
+        tc = CMakeToolchain(self)
+        tc.user_presets_path = 'ConanPresets.json'
+        tc.generate()
+    
+    def build(self):
+        cmake = CMake(self)
+        cmake.configure()
+        cmake.build()
+    
+    def package(self):
+        cmake = CMake(self)
+        cmake.install()
