@@ -391,4 +391,9 @@ F wrap(F x, F min, F max) {
     }
     return (x < 0 ? max : min) + std::fmod(x, max - min);
 }
+
+//! Range of a specific type
+//! See: https://stackoverflow.com/a/64228354/15363969
+template <typename R, typename T>
+concept range_of = rng::range<R> && std::same_as<rng::range_value_t<R>, T>;
 };
