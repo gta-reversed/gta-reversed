@@ -63,7 +63,7 @@ float CVector::Magnitude2D() const
 // Normalises a vector
 void CVector::Normalise()
 {
-    NormaliseAndMag();
+    (void)NormaliseAndMag();
 }
 
 // Normalises a vector and returns length
@@ -82,12 +82,6 @@ float CVector::NormaliseAndMag()
     z *= fRecip;
 
     return 1.0F / fRecip;
-}
-
-auto CVector::Normalized() const -> CVector {
-    CVector cpy = *this;
-    cpy.Normalise();
-    return cpy;
 }
 
 auto CVector::Dot(const CVector& o) const -> float{
