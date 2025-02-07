@@ -1761,8 +1761,8 @@ void CCamera::StartTransitionWhenNotFinishedInter(eCamMode newCamMode) {
  * @see CCam
  */
 void CCamera::StartTransition(eCamMode newCamMode) {
-    CCam&          activeCam       = m_aCams[m_nActiveCam];
-    const eCamMode activeCamMode = activeCam.m_nMode;
+    CCam& activeCam             = m_aCams[m_nActiveCam];
+    const auto activeCamMode    = activeCam.m_nMode;
 
     // Unused flag, not used in the game.
     // In GTA III/VC it was used for the Colt Python.
@@ -1808,7 +1808,7 @@ void CCamera::StartTransition(eCamMode newCamMode) {
         if (activeCamMode == MODE_CAM_ON_A_STRING) {
             m_bUseTransitionBeta        = true;
             const float angle           = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y);
-            activeCam.m_fTransitionBeta = angle + (fabs(angle) <= HALF_PI ? 4.1015239f : 0.95993114f);
+            activeCam.m_fTransitionBeta = angle + (fabs(angle) <= HALF_PI ? DegreesToRadians(235.0f) : DegreesToRadians(55.0f));
         }
         break;
     }
@@ -1840,7 +1840,7 @@ void CCamera::StartTransition(eCamMode newCamMode) {
             }
 
             // Reconstruced + android simplified
-            activeCam.m_fTransitionBeta = angle + (fabs(angle) <= HALF_PI ? 4.1015239f : 0.95993114f);
+            activeCam.m_fTransitionBeta = angle + (fabs(angle) <= HALF_PI ? DegreesToRadians(235.0f) : DegreesToRadians(55.0f));
         }
         break;
     }
