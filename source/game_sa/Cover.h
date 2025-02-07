@@ -38,7 +38,7 @@ public:
     static CCoverPoint* FindAndReserveCoverPoint(CPed* ped, const CVector& position, bool a3);
     static bool FindCoordinatesCoverPoint(CCoverPoint* point, CPed* ped, const CVector& position, CVector& outCoordinates);
     static void FindCoverPointsForThisBuilding(CBuilding* building);
-    static uint8 FindDirFromVector(float x, float y);
+    static uint8 FindDirFromVector(CVector dir);
     static CVector FindVectorFromDir(uint8 direction);
     static CVector FindVectorFromFirstToMissingVertex(CColTriangle* triangle, int32* a3, CVector* vertPositions);
 };
