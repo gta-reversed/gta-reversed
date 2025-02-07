@@ -3,6 +3,6 @@ arch=x86
 build_type=Debug
 compiler=msvc
 compiler.cppstd=23
-compiler.runtime=dynamic
+compiler.runtime=static
 compiler.version=194
 os=Windows
