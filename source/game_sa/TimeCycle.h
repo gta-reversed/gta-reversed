@@ -161,6 +161,8 @@ public:
 public: // NOTSA
     static CRGBA GetCurrentSkyBottomColor()         { return m_CurrentColours.GetSkyBottom(); }
 
+    static auto GetPostFxColors() { return std::make_pair(m_CurrentColours.GetPostFx1(), m_CurrentColours.GetPostFx2()); }
+
     static float SumOfCurrentRGB1() { return m_fCurrentRGB1Blue + m_fCurrentRGB1Green + m_fCurrentRGB1Red; }
     static float SumOfCurrentRGB2() { return m_fCurrentRGB2Blue + m_fCurrentRGB2Green + m_fCurrentRGB2Red; }
 
