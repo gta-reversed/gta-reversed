@@ -45,8 +45,8 @@ public:
     uint8 m_nPieceTypeB;            // 0x24
     tColLighting m_nLightingB;      // 0x25
 
-    char _align0x26[2];             // 0x26
-                            
+    uint8 pad1;                     // 0x26
+    uint8 pad2;                     // 0x27
     float m_fDepth;                 // 0x28
 
 public:
