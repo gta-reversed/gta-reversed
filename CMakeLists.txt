@@ -41,7 +41,6 @@ set(CMAKE_INSTALL_BINDIR .)
 set(CMAKE_INSTALL_LIBDIR ${RE_PROJECT_LIB_NAME}/lib)
 set(CMAKE_INSTALL_INCLUDEDIR ${RE_PROJECT_LIB_NAME}/include)
 
-# add_subdirectory(libs/ EXCLUDE_FROM_ALL SYSTEM)
 find_package(nlohmann_json REQUIRED)
 find_package(Ogg REQUIRED)
 find_package(spdlog REQUIRED)
