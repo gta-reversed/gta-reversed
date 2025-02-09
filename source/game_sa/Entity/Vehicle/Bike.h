@@ -77,16 +77,16 @@ public:
     uint8 m_nFixLeftHand;
     uint8 m_nFixRightHand;
     uint8 m_nTestPedCollision;
-    float m_fPrevSpeed;
+    float m_PrevSpeed;
     float m_BlowUpTimer;
     CPhysical* m_aGroundPhysicalPtrs[4];
     CVector m_aGroundOffsets[4];
     CEntity* m_Damager; // Entity That Set Us On Fire
     uint8 m_nNoOfContactWheels;
-    uint8 m_nDriveWheelsOnGround;
-    uint8 m_nDriveWheelsOnGroundLastFrame;
-    float m_fGasPedalAudioRevs;
-    tWheelState m_aWheelState[2];
+    uint8 m_NumDriveWheelsOnGround;
+    uint8 m_NumDriveWheelsOnGroundLastFrame;
+    float m_GasPedalAudioRevs;
+    tWheelState m_WheelStates[2];
 
     static constexpr auto Type = VEHICLE_TYPE_BIKE;
 
@@ -162,4 +162,4 @@ public: // NOTSA
     CBike* Destructor() {this->CBike::~CBike(); return this; }
                                                                                     };
 VALIDATE_SIZE(CBike, 0x814);
-VALIDATE_OFFSET(CBike, m_fGasPedalAudioRevs, 0x808);
+VALIDATE_OFFSET(CBike, m_GasPedalAudioRevs, 0x808);

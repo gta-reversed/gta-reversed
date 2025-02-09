@@ -178,7 +178,7 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     }
 
     field_804 = 20.0f;
-    m_fGasPedalAudio = 0.0f;
+    m_GasPedalAudioRevs = 0.0f;
     m_fIntertiaValue1 = 0.0f;
     m_fIntertiaValue2 = 0.0f;
 
@@ -351,11 +351,11 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     m_nBusDoorTimerEnd        = 0;
     m_nBusDoorTimerStart      = 0;
     m_fSteerAngle             = 0.0f;
-    m_fGasPedal               = 0.0f;
-    m_fBreakPedal             = 0.0f;
+    m_GasPedal               = 0.0f;
+    m_BrakePedal             = 0.0f;
     m_pExplosionVictim        = nullptr;
-    m_fGasPedalAudio          = 0.0f;
-    m_fMoveDirection          = 0.0f;
+    m_GasPedalAudioRevs          = 0.0f;
+    m_PrevSpeed          = 0.0f;
     m_wMiscComponentAngle     = 0;
     m_wMiscComponentAnglePrev = 0;
 
@@ -364,8 +364,8 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     rng::fill(m_fWheelsSuspensionCompressionPrev, 1.f);
 
     m_nNumContactWheels     = 0;
-    m_nWheelsOnGround       = 0;
-    m_wheelsOnGrounPrev     = 0;
+    m_NumDriveWheelsOnGround       = 0;
+    m_NumDriveWheelsOnGroundLastFrame     = 0;
     m_fFrontHeightAboveRoad = 0.0f;
     m_fRearHeightAboveRoad  = 0.0f;
     m_fCarTraction          = 1.0f;
@@ -717,8 +717,8 @@ void CAutomobile::ProcessControl()
         float speedForward = DotProduct(m_vecMoveSpeed, GetForward());
 
         if (vehicleFlags.bAudioChangingGear
-            && m_fGasPedal > 0.4f
-            && m_fBreakPedal < 0.1f
+            && m_GasPedal > 0.4f
+            && m_BrakePedal < 0.1f
             && speedForward  > 0.15f
             && this == FindPlayerVehicle()
             && CCamera::GetActiveCamera().m_nMode != MODE_1STPERSON)
@@ -744,11 +744,11 @@ void CAutomobile::ProcessControl()
             }
         }
 
-        float brake = m_pHandlingData->m_fBrakeDeceleration * m_fBreakPedal * CTimer::GetTimeStep();
+        float brake = m_pHandlingData->m_fBrakeDeceleration * m_BrakePedal * CTimer::GetTimeStep();
 
-        m_wheelsOnGrounPrev = m_nWheelsOnGround;
+        m_NumDriveWheelsOnGroundLastFrame = m_NumDriveWheelsOnGround;
         m_nNumContactWheels = 0;
-        m_nWheelsOnGround = 0;
+        m_NumDriveWheelsOnGround = 0;
 
         for (int32 i = 0; i < 4; i++) {
             if (m_fWheelsSuspensionCompression[i] >= 1.0f) {
@@ -765,17 +765,17 @@ void CAutomobile::ProcessControl()
             switch (m_pHandlingData->GetTransmission().m_nDriveType)
             {
             case '4':
-                m_nWheelsOnGround++;
+                m_NumDriveWheelsOnGround++;
                 break;
             case 'F':
                 if (i == CAR_WHEEL_FRONT_LEFT || i == CAR_WHEEL_FRONT_RIGHT) {
-                    m_nWheelsOnGround++;
+                    m_NumDriveWheelsOnGround++;
                     break;
                 }
                 break;
             case 'R':
                 if (i == CAR_WHEEL_REAR_LEFT || i == CAR_WHEEL_REAR_RIGHT) {
-                    m_nWheelsOnGround++;
+                    m_NumDriveWheelsOnGround++;
                     break;
                 }
             }
@@ -790,13 +790,13 @@ void CAutomobile::ProcessControl()
         float acceleration = 0.0f;
         if (vehicleFlags.bEngineOn && !m_pHandlingData->m_bIsPlane && !m_pHandlingData->m_bIsHeli) {
             acceleration = m_pHandlingData->GetTransmission().CalculateDriveAcceleration(
-                m_fGasPedal,
+                m_GasPedal,
                 m_nCurrentGear,
                 m_fGearChangeCount,
                 speedForward,
                 &m_fIntertiaValue1,
                 &m_fIntertiaValue2,
-                m_nWheelsOnGround,
+                m_NumDriveWheelsOnGround,
                 cheatType
             );
             acceleration /= m_fVelocityFrequency;
@@ -949,13 +949,13 @@ void CAutomobile::ProcessControl()
         uint32 handlingId = m_pHandlingData->m_nVehicleId;
         cTransmission& transmission = gHandlingDataMgr.GetVehiclePointer(handlingId)->GetTransmission();
         if (m_aWheelTimer[i] <= 0.0f
-            && (m_fGasPedal > 0.5f || m_fGasPedal < -0.5f)
+            && (m_GasPedal > 0.5f || m_GasPedal < -0.5f)
             && ((i == CAR_WHEEL_FRONT_LEFT || i == CAR_WHEEL_FRONT_RIGHT) && transmission.m_nDriveType != 'R'
                 || (i == CAR_WHEEL_REAR_LEFT || i == CAR_WHEEL_REAR_RIGHT) && transmission.m_nDriveType != 'F'))
         {
             wheelSpinRate += CVehicle::WHEELSPIN_INAIR_TARGET_RATE;
         }
-        else if (m_aWheelState[i] == WHEEL_STATE_SPINNING) {
+        else if (m_WheelStates[i] == WHEEL_STATE_SPINNING) {
             wheelSpinRate += CVehicle::WHEELSPIN_TARGET_RATE;
         }
 
@@ -1074,7 +1074,7 @@ void CAutomobile::ProcessControl()
         ResetFrictionTurnSpeed();
     }
     else if (!skipPhysics
-        && (m_fGasPedal == 0.0f || m_nStatus == STATUS_WRECKED)
+        && (m_GasPedal == 0.0f || m_nStatus == STATUS_WRECKED)
         && std::fabs(m_vecMoveSpeed.x) < 0.0045f
         && std::fabs(m_vecMoveSpeed.y) < 0.0045f
         && std::fabs(m_vecMoveSpeed.z) < 0.0045f)
@@ -1264,8 +1264,8 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         CPhysical::ProcessControl();
         CCarCtrl::UpdateCarOnRails(this);
         m_nNumContactWheels = 4;
-        m_wheelsOnGrounPrev = m_nWheelsOnGround;
-        m_nWheelsOnGround = 4;
+        m_NumDriveWheelsOnGroundLastFrame = m_NumDriveWheelsOnGround;
+        m_NumDriveWheelsOnGround = 4;
         float speed = m_autoPilot.m_speed / 50.0f;
         m_pHandlingData->GetTransmission().CalculateGearForSimpleCar(speed, m_nCurrentGear);
         float wheelRot = CVehicle::ProcessWheelRotation(WHEEL_STATE_NORMAL, GetForward(), m_vecMoveSpeed, 0.35f);
@@ -1286,8 +1286,8 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         CCarCtrl::ReconsiderRoute(this);
         PlayHornIfNecessary();
         if (vehicleFlags.bIsBeingCarJacked) {
-            m_fGasPedal = 0.0f;
-            m_fBreakPedal = 1.0f;
+            m_GasPedal = 0.0f;
+            m_BrakePedal = 1.0f;
             vehicleFlags.bIsHandbrakeOn = true;
         }
         if (!IsAnyWheelTouchingSand())
@@ -1310,18 +1310,18 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         }
 
         if (IsSubHeli() || IsSubPlane() && m_vecMoveSpeed.SquaredMagnitude() < 0.1f)
-            m_fBreakPedal = 1.0f;
+            m_BrakePedal = 1.0f;
 
         if (vehicleFlags.bRestingOnPhysical)
-            m_fBreakPedal = 0.5f;
+            m_BrakePedal = 0.5f;
         else if (m_vecMoveSpeed.SquaredMagnitude() < 0.01f)
-            m_fBreakPedal = 0.2f;
+            m_BrakePedal = 0.2f;
         else
-            m_fBreakPedal = 0.0f;
+            m_BrakePedal = 0.0f;
 
         vehicleFlags.bIsHandbrakeOn = false;
         m_fSteerAngle = 0.0f;
-        m_fGasPedal = 0.0f;
+        m_GasPedal = 0.0f;
 
         if (CanUpdateHornCounter())
             m_nHornCounter = 0;
@@ -1330,14 +1330,14 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
             return false;
 
         vehicleFlags.bIsHandbrakeOn = true;
-        m_fGasPedal = 0.0f;
-        m_fBreakPedal = 1.0f;
+        m_GasPedal = 0.0f;
+        m_BrakePedal = 1.0f;
         return false;
     case STATUS_WRECKED:
-        m_fBreakPedal = 0.05f;
+        m_BrakePedal = 0.05f;
         vehicleFlags.bIsHandbrakeOn = true;
         m_fSteerAngle = 0.0f;
-        m_fGasPedal = 0.0f;
+        m_GasPedal = 0.0f;
         if (!CanUpdateHornCounter())
             return false;
         m_nHornCounter = 0;
@@ -1364,27 +1364,27 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
             && m_pDriver->IsPlayer()
             && (m_pDriver->m_nPedState == PEDSTATE_ARRESTED || m_pDriver->GetTaskManager().HasAnyOf<TASK_COMPLEX_CAR_SLOW_BE_DRAGGED_OUT, TASK_COMPLEX_CAR_QUICK_BE_DRAGGED_OUT, TASK_SIMPLE_CAR_WAIT_TO_SLOW_DOWN>()))
         {
-            m_fBreakPedal = 1.0f;
-            m_fGasPedal = 0.0f;
+            m_BrakePedal = 1.0f;
+            m_GasPedal = 0.0f;
             vehicleFlags.bIsHandbrakeOn = true;
         }
         else
         {
-            m_fBreakPedal = 0.0f;
+            m_BrakePedal = 0.0f;
             vehicleFlags.bIsHandbrakeOn = false;
         }
 
         m_fSteerAngle = 0.0f;
-        m_fGasPedal = 0.0f;
+        m_GasPedal = 0.0f;
         if (!CanUpdateHornCounter())
             return false;
         m_nHornCounter = 0;
         return false;
     case STATUS_IS_TOWED:
         vehicleFlags.bIsHandbrakeOn = false;
-        m_fBreakPedal = 0.0f;
+        m_BrakePedal = 0.0f;
         m_fSteerAngle = 0.0f;
-        m_fGasPedal = 0.0f;
+        m_GasPedal = 0.0f;
         if (!m_pTractor)
             BreakTowLink();
         return false;
@@ -1504,7 +1504,7 @@ void CAutomobile::ResetSuspension()
         m_fWheelsSuspensionCompression[i] = 1.0f;
         m_aWheelTimer[i] = 0.0f;
         m_wheelRotation[i] = 0.0f;
-        m_aWheelState[i] = WHEEL_STATE_NORMAL;
+        m_WheelStates[i] = WHEEL_STATE_NORMAL;
     }
 }
 
@@ -2022,7 +2022,7 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
     m_fRawSteerAngle = std::clamp(m_fRawSteerAngle, -1.f, 1.f);
 
     //> Calculate gas/brake pedal values
-    std::tie(m_fGasPedal, m_fBreakPedal) = [&, this]() -> std::pair<float, float> {
+    std::tie(m_GasPedal, m_BrakePedal) = [&, this]() -> std::pair<float, float> {
         if (automaticallyHandBrake) { // 0x6ADA8D
             return { 0.f, 1.f };
         }
@@ -2067,7 +2067,7 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
             }
         }
 
-        if (gasPedalInput >= 0.f && (m_fGasPedal <= 0.5f || fwdvel <= -0.15f)) { // 0x6ADBD9 - Simplified 
+        if (gasPedalInput >= 0.f && (m_GasPedal <= 0.5f || fwdvel <= -0.15f)) { // 0x6ADBD9 - Simplified 
             return { 0.f, gasPedalInput }; // Apply braking
         }
 
@@ -2075,13 +2075,13 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
     }();
 
     //> 0x6ADC18 and 0x6ADC64 - Check if we can go towards that direction
-    if (m_fGasPedal != 0.f && plyrdriver) {
+    if (m_GasPedal != 0.f && plyrdriver) {
         if (!CGameLogic::IsPlayerAllowedToGoInThisDirection(
             plyrdriver,
-            m_fGasPedal > 0.f ? GetForward() : -GetForward(),
+            m_GasPedal > 0.f ? GetForward() : -GetForward(),
             0.f
         )) {
-            m_fGasPedal = 0.f;
+            m_GasPedal = 0.f;
         }
     }
 
@@ -2124,8 +2124,8 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
     if (const auto pad0 = CPad::GetPad(0); (pad0->DisablePlayerControls && CGameLogic::SkipState != 2) || pad0->bApplyBrakes) {
         vehicleFlags.bIsHandbrakeOn = true;
 
-        m_fGasPedal = 0.f;
-        m_fBreakPedal = 1.f;
+        m_GasPedal = 0.f;
+        m_BrakePedal = 1.f;
         FindPlayerPed()->KeepAreaAroundPlayerClear();
         if (const auto speedsq = GetMoveSpeed().SquaredMagnitude(); speedsq >= sq(0.28f)) {
             GetMoveSpeed() *= 0.28f / std::sqrt(speedsq);
@@ -2136,8 +2136,8 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
     if (vehicleFlags.bEngineBroken) {
         vehicleFlags.bIsHandbrakeOn = false;
 
-        m_fBreakPedal = 0.05f;
-        m_fGasPedal = 0.f;
+        m_BrakePedal = 0.05f;
+        m_GasPedal = 0.f;
     }
 }
 
@@ -3568,8 +3568,8 @@ void CAutomobile::HydraulicControl() {
     }
 
     bool setPrevRatio = false;
-    if (m_wMiscComponentAngle >= 20 || m_fMoveDirection <= 0.02f || m_fGasPedal == 0.0f) {
-        if (m_wMiscComponentAngle && m_wMiscComponentAngle < 61 && m_fMoveDirection < 0.01f) {
+    if (m_wMiscComponentAngle >= 20 || m_PrevSpeed <= 0.02f || m_GasPedal == 0.0f) {
+        if (m_wMiscComponentAngle && m_wMiscComponentAngle < 61 && m_PrevSpeed < 0.01f) {
             m_wMiscComponentAngle--;
             if (m_wMiscComponentAngle == 1)
                 m_vehicleAudio.AddAudioEvent(AE_SUSPENSION_OFF, 0.0f);
@@ -4158,7 +4158,7 @@ void CAutomobile::CustomCarPlate_AfterRenderingStop(CVehicleModelInfo* model) {
  * @addr 0x6A2F70
  */
 bool CAutomobile::GetAllWheelsOffGround() const {
-    return m_nWheelsOnGround == 0;
+    return m_NumDriveWheelsOnGround == 0;
 }
 
 // 0x6A2F80
@@ -4416,7 +4416,7 @@ void CAutomobile::NitrousControl(int8 boost) {
     }
 
     if (m_fTireTemperature >= 0.f) {
-        const auto a = std::max(0.25f, 1.f - m_fGasPedal);
+        const auto a = std::max(0.25f, 1.f - m_GasPedal);
         const auto b = a * (CTimer::GetTimeStep() / 100.f) + m_fTireTemperature;
         m_fTireTemperature = std::min(1.0f, b);
         const auto power = (1.0f - m_fTireTemperature) / 2.f;
@@ -4434,9 +4434,9 @@ void CAutomobile::NitrousControl(int8 boost) {
         }
     }
     DoNitroEffect(
-        m_fGasPedal <= 0.0f
+        m_GasPedal <= 0.0f
             ? 0.5f
-            : std::abs(m_fGasPedal) / 2.0f + 0.5f
+            : std::abs(m_GasPedal) / 2.0f + 0.5f
     );
 }
 
@@ -4685,7 +4685,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                         adhesion *= 1.15f;
                 }
             }
-            tWheelState wheelState = m_aWheelState[leftWheel];
+            tWheelState wheelState = m_WheelStates[leftWheel];
             if (m_damageManager.GetWheelStatus(leftWheel) == WHEEL_STATUS_BURST) {
                 CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNumContactWheels,
                     thrust,
@@ -4700,10 +4700,10 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                     adhesion * tractionBias,
                     leftWheel, &m_fWheelBurnoutSpeed[leftWheel], &wheelState, WHEEL_STATUS_OK);
             }
-            if (driveWheels && m_fGasPedal < 0.0f && wheelState == WHEEL_STATE_SPINNING)
-                m_aWheelState[leftWheel] = WHEEL_STATE_NORMAL;
+            if (driveWheels && m_GasPedal < 0.0f && wheelState == WHEEL_STATE_SPINNING)
+                m_WheelStates[leftWheel] = WHEEL_STATE_NORMAL;
             else
-                m_aWheelState[leftWheel] = wheelState;
+                m_WheelStates[leftWheel] = wheelState;
         }
 
         if (m_aWheelTimer[rightWheel] > 0.0f) {
@@ -4735,7 +4735,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                         adhesion *= 1.15f;
                 }
             }
-            tWheelState wheelState = m_aWheelState[rightWheel];
+            tWheelState wheelState = m_WheelStates[rightWheel];
             if (m_damageManager.GetWheelStatus(rightWheel) == WHEEL_STATUS_BURST) {
                 CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNumContactWheels,
                     thrust,
@@ -4752,17 +4752,17 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                     rightWheel, &m_fWheelBurnoutSpeed[rightWheel], &wheelState, WHEEL_STATUS_OK
                );
             }
-            if (driveWheels && m_fGasPedal < 0.0f && wheelState == WHEEL_STATE_SPINNING)
-                m_aWheelState[rightWheel] = WHEEL_STATE_NORMAL;
+            if (driveWheels && m_GasPedal < 0.0f && wheelState == WHEEL_STATE_SPINNING)
+                m_WheelStates[rightWheel] = WHEEL_STATE_NORMAL;
             else
-                m_aWheelState[rightWheel] = wheelState;
+                m_WheelStates[rightWheel] = wheelState;
         }
     }
 
     if (!bFront && !handlingFlags.bNosInst) {
         if (m_bDoingBurnout && driveWheels &&
-            (m_aWheelState[CAR_WHEEL_REAR_LEFT] == WHEEL_STATE_SPINNING ||
-            m_aWheelState[CAR_WHEEL_REAR_RIGHT] == WHEEL_STATE_SPINNING))
+            (m_WheelStates[CAR_WHEEL_REAR_LEFT] == WHEEL_STATE_SPINNING ||
+            m_WheelStates[CAR_WHEEL_REAR_RIGHT] == WHEEL_STATE_SPINNING))
         {
             m_fTireTemperature += CTimer::GetTimeStep() / 1000.0f;
             m_fTireTemperature = std::min(m_fTireTemperature, 3.0f);

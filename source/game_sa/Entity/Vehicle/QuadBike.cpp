@@ -131,8 +131,8 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
             m_pDriver->GetTaskManager().HasAnyOf<TASK_SIMPLE_CAR_WAIT_TO_SLOW_DOWN, TASK_COMPLEX_CAR_SLOW_BE_DRAGGED_OUT, TASK_COMPLEX_CAR_QUICK_BE_DRAGGED_OUT>()
         ) {
             vehicleFlags.bIsHandbrakeOn = true;
-            m_fBreakPedal = 1.0f;
-            m_fGasPedal = 0.0f;
+            m_BrakePedal = 1.0f;
+            m_GasPedal = 0.0f;
         } else {
             ProcessControlInputs((uint8)m_pDriver->m_nPedType);
             CPad* pad = m_pDriver->AsPlayer()->GetPadFromPlayer();
@@ -144,7 +144,7 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
                 if (m_sRideAnimData.dword10 > 0.0f) {
                     if (fLeanDirection > -m_pHandling->m_fLeanFwdCOM) {
                         if (m_nNumContactWheels) {
-                            if (m_fBreakPedal > 0.0f) {
+                            if (m_BrakePedal > 0.0f) {
                                 fTurnForcePerTimeStep =
                                     m_pHandling->m_fLeanFwdForce * m_fTurnMass * m_sRideAnimData.dword10 * std::min(0.1f, m_vecMoveSpeed.Magnitude());
                             }
@@ -158,7 +158,7 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
             } else {
                 // Lean back
                 if (m_nNumContactWheels) {
-                    if (m_fBreakPedal == 0.0f && !vehicleFlags.bIsHandbrakeOn) {
+                    if (m_BrakePedal == 0.0f && !vehicleFlags.bIsHandbrakeOn) {
                         fTurnForcePerTimeStep =
                             m_pHandling->m_fLeanBakForce * m_fTurnMass * m_sRideAnimData.dword10 * std::min(0.1f, m_vecMoveSpeed.Magnitude());
                     }

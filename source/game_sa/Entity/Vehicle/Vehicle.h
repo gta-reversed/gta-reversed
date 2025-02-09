@@ -334,8 +334,8 @@ public:
     CFire*            m_pFire;
     float             m_fSteerAngle;
     float             m_f2ndSteerAngle; // used for steering 2nd set of wheels or elevators etc..
-    float             m_fGasPedal;
-    float             m_fBreakPedal;
+    float             m_GasPedal;
+    float             m_BrakePedal;
     eVehicleCreatedBy m_nCreatedBy;
     int16             m_nExtendedRemovalRange;        // when game wants to delete a vehicle, it gets min(m_wExtendedRemovalRange, 170.0)
     uint8             m_nBombOnBoard : 3;             // 0 = None

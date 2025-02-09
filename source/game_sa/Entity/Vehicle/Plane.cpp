@@ -432,10 +432,10 @@ void CPlane::ProcessControl() {
 
     CVehicle::ProcessWeapons();
     if (m_nModelIndex == MODEL_VORTEX) {
-        m_aWheelState[0] = WHEEL_STATE_NORMAL;
-        m_aWheelState[1] = WHEEL_STATE_NORMAL;
-        m_aWheelState[2] = WHEEL_STATE_NORMAL;
-        m_aWheelState[3] = WHEEL_STATE_NORMAL;
+        m_WheelStates[0] = WHEEL_STATE_NORMAL;
+        m_WheelStates[1] = WHEEL_STATE_NORMAL;
+        m_WheelStates[2] = WHEEL_STATE_NORMAL;
+        m_WheelStates[3] = WHEEL_STATE_NORMAL;
     }
 
     if (m_pSmokeParticle) {

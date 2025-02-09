@@ -140,7 +140,7 @@ protected:
 
             // ...Idle:
             struct {
-                float Ratio       = 0.2f; // 0x8CBBF0
+                float Ratio      = 0.2f; // 0x8CBBF0
 
                 float VolumeBase = -3.f; // 0x8CBC00
                 float VolumeMax  = 0.f;  // 0xB6B9CC
@@ -151,7 +151,7 @@ protected:
 
             // ...Rev:
             struct {
-                float Ratio       = 0.15f; // 0x8CBBF4
+                float Ratio      = 0.15f; // 0x8CBBF4
 
                 float VolumeBase = -4.5f; // 0xB6BA2C
                 float VolumeMax  = 0.f;   // 0xB6B9D0
@@ -160,10 +160,34 @@ protected:
                 float FreqMax    = 1.5f; // 0x8CBC10
             } Rev{};
         } DummyEngine{};
+
+        struct {
+            float AccelWheelSpinThreshold{ 150.f / 255.f }; // 0x8CBC54
+            float SpeedOffsetCrz{ 0.001f };                 // 0x8CBD34
+            float SpeedOffsetAc{ 0.0015f };                 // 0x8CBD30
+            float ZMoveSpeedThreshold{ 0.2f };              // 0x8CBD38
+            int32 MaxAuGear{ 5 };                           // 0xdeadbeef
+            int32 MaxCrzCnt{ 150 };                         // 0x8CBC8C
+            float NitroFactor{ 3.f };                       // 0x8CBC4C
+            float SingleGearVolume{ -2.f };                 // 0xB6BA3C
+
+            struct {
+                float VolMin{ -4.f }, VolMax{}; // 0x8CBCA8, 0xB6B9DC
+            } ST1;
+            struct {
+                float VolMin{ -3.5f }, VolMax{ -1.5f }; // 0x8CBC78, 0x8CBC7C
+            } ST2;
+            struct {
+                float VolMin{ 0.f }, VolMax{ 2.f }; // 0xB6B9D8, 0x8CBC88
+            } ST3;
+            struct {
+                float VolMin{ -2.f }, VolMax{ 0.f }; // 0x8CBC68, 0xB6B9D4
+            } ST4;
+        } PlayerEngine;
     } s_Config{};
     static inline Config s_DefaultConfig{};
 
-private:
+public:
     // Indices for `EngineSound[]` (?) depending on the vehicle type:
     enum eAircraftSoundType { // For planes (aircrafts)
         AE_SOUND_AIRCRAFT_DISTANT     = 1,
@@ -175,7 +199,9 @@ private:
         AE_SOUND_AIRCRAFT_JET_DISTANT = 7,
     };
 
-    enum { // For automobiles
+    using eVehicleEngineSoundType = int16;
+
+    enum eCarEngineSoundType : eVehicleEngineSoundType { // For automobiles
         AE_SOUND_ENGINE_OFF     = 0,
 
         AE_SOUND_CAR_REV        = 1,
@@ -198,26 +224,26 @@ private:
         AE_SOUND_ENGINE_MAX     = 12,
     };
 
-    enum { // For trains
+    enum : eVehicleEngineSoundType { // For trains
         AE_SOUND_TRAIN_ENGINE  = 1,
         AE_SOUND_TRAIN_TRACK   = 2,
         AE_SOUND_TRAIN_DISTANT = 3,
     };
 
-    enum { // For heli
+    enum : eVehicleEngineSoundType { // For heli
         AE_PLAYER_HELI_FRONT = 0,
         AE_PLAYER_HELI_REAR  = 1,
         AE_PLAYER_HELI_START = 2,
         AE_PLAYER_HELI_TAIL  = 3,
     };
 
-    enum { // For bicycle
+    enum : eVehicleEngineSoundType { // For bicycle
         AE_SOUND_BICYCLE_TYRE        = 1,
         AE_SOUND_BICYCLE_SPROCKET_1  = 2,
         AE_SOUND_BICYCLE_CHAIN_CLANG = 3,
     };
 
-    enum { // For boat
+    enum : eVehicleEngineSoundType { // For boat
         AE_SOUND_BOAT_IDLE       = 1,
         AE_SOUND_BOAT_ENGINE     = 2,
         AE_SOUND_BOAT_DISTANT    = 3,
@@ -245,7 +271,6 @@ private:
         // Keep this at the bottom
         NUM_STATES
     };
-
 
     enum { // ????
         AE_DUMMY_CRZ = 0x0,
@@ -388,8 +413,8 @@ public:
 
     void StartVehicleEngineSound(int16, float, float);
     void CancelVehicleEngineSound(size_t engineSoundStateId);
-    void CancelAllVehicleEngineSounds(); // notsa
-    void RequestNewPlayerCarEngineSound(int16 vehicleSoundId, float speed, float changeSound);
+    void CancelAllVehicleEngineSounds(std::optional<size_t> except = std::nullopt); // notsa
+    void RequestNewPlayerCarEngineSound(int16 vehicleSoundId, float speed = 1.f, float changeSound = -100.f);
     float GetFreqForPlayerEngineSound(cVehicleParams& params, int16 engineState_QuestionMark);
     float GetVolForPlayerEngineSound(cVehicleParams& params, int16 gear);
 
@@ -398,6 +423,9 @@ public:
     void UpdateBoatSound(int16 engineState, int16 bankSlotId, int16 sfxId, float speed, float volume);
     void UpdateTrainSound(int16 engineState, int16 bankSlotId, int16 sfxId, float speed, float volume);
     void UpdateGenericVehicleSound(int16 soundId, int16 bankSlotId, int16 bankId, int16 sfxId, float speed, float volume, float distance);
+
+    bool HasVehicleEngineSound(eVehicleEngineSoundType st) const noexcept;
+    void UpdateOrRequestVehicleEngineSound(eVehicleEngineSoundType st, float freq, float volume);
 
     static void EnableHelicoptors();
     static void DisableHelicoptors();
@@ -506,3 +534,71 @@ extern tVehicleAudioSettings const (&gVehicleAudioSettings)[NUM_VEH_AUDIO_SETTIN
 // OG debug stuff
 static bool& s_bVehicleDriveWheelSkidEnabled = *(bool*)0x8CBD80; // true
 static bool& s_bVehicleNonDriveWheelSkidValueEnabled = *(bool*)0x8CBD81; // true
+
+inline std::string_view EnumToString(CAEVehicleAudioEntity::eAEState s) {
+    using enum CAEVehicleAudioEntity::eAEState;
+    using namespace std::string_view_literals;
+    switch (s) {
+    case CAR_OFF:               return "CAR_OFF"sv;
+    case DUMMY_ID:              return "DUMMY_ID"sv;
+    case DUMMY_CRZ:             return "DUMMY_CRZ"sv;
+    case PLAYER_AC_FULL:        return "PLAYER_AC_FULL"sv;
+    case PLAYER_WHEEL_SPIN:     return "PLAYER_WHEEL_SPIN"sv;
+    case PLAYER_CRZ:            return "PLAYER_CRZ"sv;
+    case PLAYER_ID:             return "PLAYER_ID"sv;
+    case PLAYER_REVERSE:        return "PLAYER_REVERSE"sv;
+    case PLAYER_REVERSE_OFF:    return "PLAYER_REVERSE_OFF"sv;
+    case PLAYER_FAILING_TO_AC:  return "PLAYER_FAILING_TO_AC"sv;
+    default:                    return "<invalid>";
+    }
+}
+
+inline std::string_view EnumToString(CAEVehicleAudioEntity::eCarEngineSoundType st) {
+    using namespace std::string_view_literals;
+    switch (st) {
+    case CAEVehicleAudioEntity::AE_SOUND_ENGINE_OFF:    return "ENGINE_OFF"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_CAR_REV:       return "CAR_REV"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_CAR_ID:        return "CAR_ID"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_CRZ:    return "PLAYER_CRZ"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_AC:     return "PLAYER_AC"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_OFF:    return "PLAYER_OFF"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_REVERSE:return "PLAYER_REVERSE"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_NITRO1:        return "NITRO1"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_NITRO2:        return "NITRO2"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_STEAM:         return "STEAM"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_FUCKED:        return "FUCKED"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_MOVING_PARTS:  return "MOVING_PARTS"sv;
+    case CAEVehicleAudioEntity::AE_SOUND_ENGINE_MAX:    return "ENGINE_MAX"sv;
+    default:                                            return "<invalid>";
+    }
+}
+
+inline std::string_view EnumToString(eRadioType rt) {
+    using namespace std::string_view_literals;
+    switch (rt) {
+    case RADIO_CIVILIAN:  return "CIVILIAN"sv;
+    case RADIO_SPECIAL:   return "SPECIAL"sv;
+    case RADIO_UNKNOWN:   return "UNKNOWN"sv;
+    case RADIO_EMERGENCY: return "EMERGENCY"sv;
+    case RADIO_DISABLED:  return "DISABLED"sv;
+    default:              return "<invalid>";
+    }
+}
+
+inline std::string_view EnumToString(eAEVehicleSoundType v) {
+    using namespace std::string_view_literals;
+    switch (v) {
+    case AE_CAR:                    return "CAR"sv;
+    case AE_BIKE:                   return "BIKE"sv;
+    case AE_BMX:                    return "BMX"sv;
+    case AE_BOAT:                   return "BOAT"sv;
+    case AE_AIRCRAFT_HELICOPTER:    return "AIRCRAFT_HELICOPTER"sv;
+    case AE_AIRCRAFT_PLANE:         return "AIRCRAFT_PLANE"sv;
+    case AE_AIRCRAFT_SEAPLANE:      return "AIRCRAFT_SEAPLANE"sv;
+    case AE_ONE_GEAR:               return "ONE_GEAR"sv;
+    case AE_TRAIN:                  return "TRAIN"sv;
+    case AE_SPECIAL:                return "SPECIAL"sv;
+    case AE_NO_VEHICLE:             return "NO_VEHICLE"sv;
+    default:                        return "<invalid>";
+    }
+}

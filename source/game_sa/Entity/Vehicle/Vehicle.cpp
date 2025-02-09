@@ -978,7 +978,7 @@ void CVehicle::ProcessDrivingAnims(CPed* driver, bool blend) {
     if (!driveByAnim) driveByAnim = RpAnimBlendClumpGetAssociation(driver->m_pRwClump, ANIM_ID_DRIVEBYL_R);
 
     if (!vehicleFlags.bLowVehicle
-        && m_fGasPedal < 0.0F
+        && m_GasPedal < 0.0F
         && !driveByAnim
         && GetVehicleAppearance() != VEHICLE_APPEARANCE_HELI
         && GetVehicleAppearance() != VEHICLE_APPEARANCE_PLANE
@@ -3205,7 +3205,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
         adhesion *= m_pHandlingData->m_fTractionLoss;
         if (*wheelState == WHEEL_STATE_SPINNING) {
             if (m_nStatus == STATUS_PLAYER || m_nStatus == STATUS_REMOTE_CONTROLLED)
-                adhesion *= (1.0f - fabs(m_fGasPedal) * WS_ALREADY_SPINNING_LOSS);
+                adhesion *= (1.0f - fabs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
         }
     }
 
@@ -3225,7 +3225,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
     }
     else if (contactSpeedFwd != 0.0f) {
         fwd = -contactSpeedFwd / wheelsOnGround;
-        if (!bBraking && std::fabs(m_fGasPedal) < 0.01f) {
+        if (!bBraking && std::fabs(m_GasPedal) < 0.01f) {
             if (IsBike())
                 brake = gHandlingDataMgr.fWheelFriction * 0.6f / (m_pHandlingData->m_fMass + 200.0f);
             else if (IsSubPlane())
@@ -3265,7 +3265,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
             tractionLoss = 1.0f;
         } else if (*wheelState == WHEEL_STATE_SPINNING) {
             if (m_nStatus == STATUS_PLAYER || m_nStatus == STATUS_REMOTE_CONTROLLED) {
-                tractionLoss = tractionLoss * (1.0f - std::fabs(m_fGasPedal) * WS_ALREADY_SPINNING_LOSS);
+                tractionLoss = tractionLoss * (1.0f - std::fabs(m_GasPedal) * WS_ALREADY_SPINNING_LOSS);
             }
         }
         float l = sqrt(speedSq);
@@ -3720,11 +3720,11 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
     if (!bPostCollision && bOnWater && GetUp().z > 0.0F) {
         auto fMoveForce = m_vecMoveSpeed.SquaredMagnitude() * boatHandling->m_fAqPlaneForce * CTimer::GetTimeStep() * vecBuoyancyForce.z * 0.5F;
         if (m_nModelIndex == MODEL_SKIMMER)
-            fMoveForce *= (m_fGasPedal + 1.0F);
-        else if (m_fGasPedal <= 0.05F)
+            fMoveForce *= (m_GasPedal + 1.0F);
+        else if (m_GasPedal <= 0.05F)
             fMoveForce = 0.0F;
         else
-            fMoveForce *= m_fGasPedal;
+            fMoveForce *= m_GasPedal;
 
         auto fMaxMoveForce = CTimer::GetTimeStep() * boatHandling->m_fAqPlaneLimit * m_fMass / 125.0F;
         fMoveForce = std::min(fMoveForce, fMaxMoveForce);
@@ -3745,11 +3745,11 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
     // 0x6DC3AF
     if (GetUp().z > -0.6F) {
         float fMoveSpeed = 1.0F;
-        if (std::fabs(m_fGasPedal) <= 0.05F) {
+        if (std::fabs(m_GasPedal) <= 0.05F) {
             fMoveSpeed = m_vecMoveSpeed.Magnitude2D();
         }
 
-        if (std::fabs(m_fGasPedal) > 0.05F || fMoveSpeed > 0.01F) {
+        if (std::fabs(m_GasPedal) > 0.05F || fMoveSpeed > 0.01F) {
             if (IsSubBoat() && bOnWater && fMoveSpeed > 0.05F) {
                 //GetColModel(); Unused call
                 AsBoat()->AddWakePoint(GetPosition());
@@ -3788,7 +3788,7 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
                     AsBoat()->m_nBoatFlags.bMovingOnWater = true;
 
                 bool bIsSlowingDown = false;
-                auto fGasState = std::fabs(m_fGasPedal);
+                auto fGasState = std::fabs(m_GasPedal);
                 if (fGasState < 0.01F || m_nModelIndex == MODEL_SKIMMER) {
                     bIsSlowingDown = true;
                 }
@@ -3799,13 +3799,13 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
                     auto fSteerAngle = std::fabs(m_fSteerAngle);
                     CVector vecSteer(-fSteerAngleSin, fSteerAngleCos, -fSteerAngle);
                     CVector vecSteerMoveForce = GetMatrix().TransformVector(vecSteer);
-                    vecSteerMoveForce *= fThrustDepth * m_fGasPedal * 40.0F * m_pHandlingData->m_transmissionData.m_EngineAcceleration * m_fMass;
+                    vecSteerMoveForce *= fThrustDepth * m_GasPedal * 40.0F * m_pHandlingData->m_transmissionData.m_EngineAcceleration * m_fMass;
 
                     if (vecSteerMoveForce.z > 0.2F)
                         vecSteerMoveForce.z = sq(1.2F - vecSteerMoveForce.z) + 0.2F;
 
                     if (bPostCollision) {
-                        if (m_fGasPedal < 0.0F)
+                        if (m_GasPedal < 0.0F)
                             vecSteerMoveForce *= CVector(5.0F, 5.0F, 1.0F);
 
                         vecSteerMoveForce.z = std::max(0.0F, vecSteerMoveForce.z);
@@ -3843,8 +3843,8 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
                             fTractionLoss *= 5.0F;
                     }
 
-                    if (m_fGasPedal < 0.0f && fTractionLoss > 0.0f ||
-                        m_fGasPedal > 0.0f && fTractionLoss < 0.0f
+                    if (m_GasPedal < 0.0f && fTractionLoss > 0.0f ||
+                        m_GasPedal > 0.0f && fTractionLoss < 0.0f
                     ) {
                         fTractionLoss *= -1.0F;
                     }
@@ -4138,7 +4138,7 @@ void CVehicle::AddExhaustParticles() {
         }
     }
 
-    if (CGeneral::GetRandomNumberInRange(1.0f, 3.0f) * (m_fGasPedal + 1.1f) <= 2.5f)
+    if (CGeneral::GetRandomNumberInRange(1.0f, 3.0f) * (m_GasPedal + 1.1f) <= 2.5f)
         return;
 
     float fMoveSpeed = m_vecMoveSpeed.Magnitude() * 0.5f;
@@ -4167,7 +4167,7 @@ void CVehicle::AddExhaustParticles() {
             secondExhaustFxSystem->AddParticle(&secondExhaustPos, &vecParticleVelocity, 0.0f, &fxPrt, -1.0f, m_fContactSurfaceBrightness, 0.6f, 0);
         }
 
-        if (m_fGasPedal > 0.5f && m_nCurrentGear < 3) {
+        if (m_GasPedal > 0.5f && m_nCurrentGear < 3) {
             if (CGeneral::GetRandomNumber() % 2) {
                 FxSystem_c* secondaryExhaustFxSystem = g_fx.m_SmokeII3expand;
                 if (bFirstExhaustSubmergedInWater) {

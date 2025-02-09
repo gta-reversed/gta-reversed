@@ -49,18 +49,17 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
 
     const auto FormattedText = []<typename... Args>(std::string_view fmt, Args&&... args) {
         char buf[1024];
-        *std::vformat_to(buf, fmt, std::make_format_args(args)...) = 0;
+        *std::vformat_to(buf, fmt, std::make_format_args(args...)) = 0;
         ImGui::Text(buf);
     };
 
+    FormattedText("State: {}", EnumToString((AE::eAEState)(ae->m_State)));
     FormattedText("DoCountStalls: {}", ae->m_DoCountStalls);
-    //FormattedText("AuSettings: {}", ae->m_AuSettings);
     FormattedText("IsInitialized: {}", ae->m_IsInitialized);
     FormattedText("IsPlayerDriver: {}", ae->m_IsPlayerDriver);
     FormattedText("IsPlayerPassenger: {}", ae->m_IsPlayerPassenger);
     FormattedText("IsPlayerDriverAboutToExit: {}", ae->m_IsPlayerDriverAboutToExit);
     FormattedText("IsWreckedVehicle: {}", ae->m_IsWreckedVehicle);
-    FormattedText("State: {}", (int32)ae->m_State);
     FormattedText("AuGear: {}", ae->m_AuGear);
     FormattedText("CrzCount: {}", ae->m_CrzCount);
     FormattedText("IsSingleGear: {}", ae->m_IsSingleGear);
@@ -81,8 +80,39 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
     FormattedText("DummyEngineBank: {}", ae->m_DummyEngineBank);
     FormattedText("PlayerEngineBank: {}", ae->m_PlayerEngineBank);
     FormattedText("DummySlot: {}", ae->m_DummySlot);
-    //FormattedText("EngineSounds: {}", ae->m_EngineSounds);
+    if (auto* const as = &ae->m_AuSettings; ImGui::TreeNode("AuSettings")) {
+        FormattedText("VehicleAudioType: {}", EnumToString(as->VehicleAudioType));
+        FormattedText("PlayerBank: {}", as->PlayerBank);
+        FormattedText("DummyBank: {}", as->DummyBank);
+        FormattedText("BassSetting: {}", as->BassSetting);
+        FormattedText("BassFactor: {}", as->BassFactor);
+        FormattedText("EnginePitch: {}", as->EnginePitch);
+        FormattedText("HornType: {}", as->HornType);
+        FormattedText("HornPitch: {}", as->HornPitch);
+        FormattedText("DoorType: {}", as->DoorType);
+        FormattedText("EngineUpgrade: {}", as->EngineUpgrade);
+        FormattedText("RadioStation: {}", EnumToString(as->RadioStation));
+        FormattedText("RadioType: {}", EnumToString(as->RadioType));
+        FormattedText("VehicleAudioTypeForName: {}", as->VehicleAudioTypeForName);
+        FormattedText("EngineVolumeOffset: {}", as->EngineVolumeOffset);
+
+        ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("EngineSounds")) {
+        const auto SoundTypeToString = [ae](AE::eVehicleEngineSoundType st) {
+            using namespace std::string_view_literals;
+            if (ae->m_AuSettings.VehicleAudioType == AE_CAR) {
+                return EnumToString((AE::eCarEngineSoundType)(st));
+            }
+            return "<invalid vehicle audio type>"sv;
+        };
+        for (auto&& [i, s] : notsa::enumerate(ae->m_EngineSounds)) {
+            FormattedText("[{:<30}]: {}", SoundTypeToString((AE::eVehicleEngineSoundType)(i)), s.Sound ? "Active" : "");
+        }
+        ImGui::TreePop();
+    }
     FormattedText("TimeLastServiced: {}", ae->m_TimeLastServiced);
+
     FormattedText("ACPlayPositionThisFrame: {}", ae->m_ACPlayPositionThisFrame);
     FormattedText("ACPlayPositionLastFrame: {}", ae->m_ACPlayPositionLastFrame);
     FormattedText("FramesAgoACLooped: {}", ae->m_FramesAgoACLooped);
@@ -118,8 +148,6 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
     FormattedText("FadeOut: {}", ae->m_FadeOut);
     FormattedText("bNitroOnLastFrame: {}", ae->m_bNitroOnLastFrame);
     FormattedText("CurrentNitroRatio: {}", ae->m_CurrentNitroRatio);
-
-    ImGui::Text("State");
 }
 
 void VehicleAudioEntityDebugModule::RenderGlobalVars() {
@@ -164,6 +192,40 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
             ImGui::SliderFloat("FreqBase", &cfg->DummyEngine.Rev.FreqBase, -100, 100.f);
             ImGui::SliderFloat("FreqMax", &cfg->DummyEngine.Rev.FreqMax, -100, 100.f);
 
+            ImGui::TreePop();
+        }
+
+        ImGui::TreePop();
+    }
+
+    if (auto* const pe = &cfg->PlayerEngine; ImGui::TreeNode("Player Engine")) {
+        ImGui::DragFloat("AccelWheelSpinThreshold", &pe->AccelWheelSpinThreshold, 0.005f, 0.f, 1.f);
+        ImGui::DragFloat("SpeedOffsetCrz", &pe->SpeedOffsetCrz, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("SpeedOffsetAc", &pe->SpeedOffsetAc, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("ZMoveSpeedThreshold", &pe->ZMoveSpeedThreshold, 1.f, -100.f, 100.f);
+        ImGui::DragInt("MaxAuGear", &pe->MaxAuGear, 1.f, -100, 100);
+        ImGui::DragInt("MaxCrzCnt", &pe->MaxCrzCnt, 1.f, -100, 100);
+        ImGui::DragFloat("NitroFactor", &pe->NitroFactor, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("SingleGearVolume", &pe->SingleGearVolume, 1.f, -100.f, 100.f);
+
+        if (ImGui::TreeNode("ST1")) {
+            ImGui::DragFloat("VolMin", &pe->ST1.VolMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMax", &pe->ST1.VolMax, 1.f, -100.f, 100.f);
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("ST2")) {
+            ImGui::DragFloat("VolMin", &pe->ST2.VolMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMax", &pe->ST2.VolMax, 1.f, -100.f, 100.f);
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("ST3")) {
+            ImGui::DragFloat("VolMin", &pe->ST3.VolMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMax", &pe->ST3.VolMax, 1.f, -100.f, 100.f);
+            ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("ST4")) {
+            ImGui::DragFloat("VolMin", &pe->ST4.VolMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMax", &pe->ST4.VolMax, 1.f, -100.f, 100.f);
             ImGui::TreePop();
         }
 

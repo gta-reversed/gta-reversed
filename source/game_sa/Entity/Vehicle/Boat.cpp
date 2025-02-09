@@ -84,8 +84,8 @@ CBoat::CBoat(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     m_nBoatFlags.bOnWater = true;
 
     m_fSteerAngle = 0.0f;
-    m_fGasPedal = 0.0f;
-    m_fBreakPedal = 0.0f;
+    m_GasPedal = 0.0f;
+    m_BrakePedal = 0.0f;
     m_fRawSteerAngle = 0.0f;
     field_63C = 0;
     m_fLastWaterImmersionDepth = 7.0F;
@@ -525,8 +525,8 @@ void CBoat::ProcessControl() {
         m_nBoatFlags.bMovingOnWater = true;
 
         m_fSteerAngle = 0.0F;
-        m_fBreakPedal = 0.5F;
-        m_fGasPedal = 0.0F;
+        m_BrakePedal = 0.5F;
+        m_GasPedal = 0.0F;
 
         auto fDist = (GetPosition() - FindPlayerCentreOfWorld_NoSniperShift(0)).Magnitude();
         if (fDist > 150.0F) {
@@ -542,16 +542,16 @@ void CBoat::ProcessControl() {
         auto fROCPropSpeed = CPlane::PLANE_ROC_PROP_SPEED;
         if (m_nModelIndex == MODEL_SKIMMER)
             fSTDPropSpeed = CPlane::PLANE_STD_PROP_SPEED;
-        else if (m_fGasPedal != 0.0F)
+        else if (m_GasPedal != 0.0F)
             fROCPropSpeed *= 5.0F;
 
-        if (m_fGasPedal == 0.0F)
+        if (m_GasPedal == 0.0F)
             m_fPropSpeed += (fSTDPropSpeed - m_fPropSpeed) * CTimer::GetTimeStep() * fROCPropSpeed;
-        else if (m_fGasPedal < 0.0F) {
-            fSTDPropSpeed = (CPlane::PLANE_STD_PROP_SPEED - 0.05F) * m_fGasPedal + CPlane::PLANE_STD_PROP_SPEED;
+        else if (m_GasPedal < 0.0F) {
+            fSTDPropSpeed = (CPlane::PLANE_STD_PROP_SPEED - 0.05F) * m_GasPedal + CPlane::PLANE_STD_PROP_SPEED;
             m_fPropSpeed += (fSTDPropSpeed - m_fPropSpeed) * CTimer::GetTimeStep() * fROCPropSpeed;
         } else {
-            fSTDPropSpeed = (CPlane::PLANE_MAX_PROP_SPEED - CPlane::PLANE_STD_PROP_SPEED) * m_fGasPedal + CPlane::PLANE_STD_PROP_SPEED;
+            fSTDPropSpeed = (CPlane::PLANE_MAX_PROP_SPEED - CPlane::PLANE_STD_PROP_SPEED) * m_GasPedal + CPlane::PLANE_STD_PROP_SPEED;
             m_fPropSpeed += (fSTDPropSpeed - m_fPropSpeed) * CTimer::GetTimeStep() * fROCPropSpeed;
         }
     } else if (m_fPropSpeed > 0.0F) {
@@ -912,16 +912,16 @@ void CBoat::ProcessControlInputs(uint8 ucPadNum) {
         m_nPadNumber = 3;
 
     auto pad = CPad::GetPad(ucPadNum);
-    float fBrakePower = (static_cast<float>(pad->GetBrake()) * (1.0F / 255.0F) - m_fBreakPedal) * 0.1F + m_fBreakPedal;
+    float fBrakePower = (static_cast<float>(pad->GetBrake()) * (1.0F / 255.0F) - m_BrakePedal) * 0.1F + m_BrakePedal;
     fBrakePower = std::clamp(fBrakePower, 0.0F, 1.0F);
-    m_fBreakPedal = fBrakePower;
+    m_BrakePedal = fBrakePower;
 
     auto fGasPower = fBrakePower * -0.3F;
     if (fBrakePower < 0.05F) {
-        m_fBreakPedal = 0.0F;
+        m_BrakePedal = 0.0F;
         fGasPower = static_cast<float>(pad->GetAccelerate()) * (1.0F / 255.0F);
     }
-    m_fGasPedal = fGasPower;
+    m_GasPedal = fGasPower;
 
     // Mouse steering
     // TODO: Try copy paste code from `CAutomobile::ProcessControlInputs` for this...

@@ -97,14 +97,14 @@ CBike::CBike(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     m_fElasticity = 0.05f;
     m_fBuoyancyConstant = m_pHandlingData->m_fBuoyancyConstant;
     m_fSteerAngle = 0.0f;
-    m_fGasPedal = 0.0f;
-    m_fBreakPedal = 0.0f;
+    m_GasPedal = 0.0f;
+    m_BrakePedal = 0.0f;
     m_Damager = nullptr;
     m_pWhoInstalledBombOnMe = nullptr;
-    m_fGasPedalAudioRevs = 0.0f;
+    m_GasPedalAudioRevs = 0.0f;
     m_fTyreTemp = 1.0f;
     m_fBrakingSlide = 0.0f;
-    m_fPrevSpeed = 0.0f;
+    m_PrevSpeed = 0.0f;
 
     for (auto i = 0; i < 2; ++i) {
         m_nWheelStatus[i] = 0;
@@ -115,7 +115,7 @@ CBike::CBike(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
         m_aWheelAngularVelocity[i] = 0.0f;
         m_aWheelSuspensionHeights[i] = 0.0f;
         m_aWheelOrigHeights[i] = 0.0f;
-        m_aWheelState[i] = WHEEL_STATE_NORMAL;
+        m_WheelStates[i] = WHEEL_STATE_NORMAL;
     }
 
     for (auto i = 0; i < 4; ++i) {
@@ -130,8 +130,8 @@ CBike::CBike(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     }
 
     m_nNoOfContactWheels = 0;
-    m_nDriveWheelsOnGround = 0;
-    m_nDriveWheelsOnGroundLastFrame = 0;
+    m_NumDriveWheelsOnGround = 0;
+    m_NumDriveWheelsOnGroundLastFrame = 0;
     m_fHeightAboveRoad = 0.0f;
     m_fExtraTractionMult = 1.0f;
 
