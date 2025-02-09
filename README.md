@@ -21,13 +21,13 @@ Since this project is done as a hobby, and worked on at irregular intervals, the
 * [CMake](https://cmake.org/download/)
 
 #### 1. Install Python, and Conan
-* Install [Python](https://www.python.org/downloads/) [When installing make sure to tick the "Add to PATH" checkbox!]
-* Install Conan using `pip install conan` [You might neped to reload the console if you've freshly installed Python!]
+* Install the [latest Python](https://www.python.org/downloads/) [When installing make sure to tick the "Add to PATH" checkbox!]
+* Install Conan using `pip install conan` [You might need to reload the console if you've freshly installed Python.]
 
 #### 2. Setting up VS
-* 0) Run: `conan-install.sh Debug` (Or any of `Debug`, `Release`, `RelWithDebInfo`)
-* 1) Open the folder with VS
-* 2) Select `conan-debug (conan-default-conan-debug)` or `conan-release (conan-default-conan-release)` (Depending on what you've spcified in the command above), other builds will result in CMake errors [TODO: Fix this somehow... We aren't proeficient with Conan/CMake sadly]
+1) Run: `conan-install.sh Debug` (Or any of `Debug`, `Release`, `RelWithDebInfo`)
+2) Open the folder with VS and select `conan-debug (conan-default-conan-debug)` or `conan-release (conan-default-conan-release)` (Depending on what you've spcified in the command above) [TODO: Fix this somehow... We aren't proeficient with Conan/CMake sadly]
+3) Alternatively you can type `cmake --preset conan-debug/release` and build with `cmake --build build` in CLI.
 
 ### 3. Set up the game and ASI
 0. GTA SA ***Compact exe***: Our code requires you to use this exe, otherwise you will experience random crashes. You must own the original game and assets for this to work.
@@ -41,12 +41,12 @@ Alternatively, you can install them by yourself:
     You can download them in a single [archive](https://github.com/gta-reversed/gta-reversed-modern/blob/master/contrib/plugins.zip).
 
 ### Debugging
-To run the game with the Modern plugin, you just need to run the "Local Windows Debugger" in Visual Studio.
+To debug the game, run the game with the ASI loaded then attach to the process with debugger of your choice.
+
+We recommend VS users to install the [ReAttach plugin](https://marketplace.visualstudio.com/items?itemName=ErlandR.ReAttach) to make their life easier.
 
 ### Other plugins
 Using other (than the ones we've tested) plugins is strongly discouraged and we provide __**no support**__.
-
-In case that doesn't suit your needs, use the [ReAttach plugin](https://marketplace.visualstudio.com/items?itemName=ErlandR.ReAttach) to make your life easier.
 
 ## Contributing
 
