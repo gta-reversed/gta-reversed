@@ -131,12 +131,12 @@ class NOTSA_EXPORT_VTABLE CAEVehicleAudioEntity : public CAEAudioEntity {
 protected:
     // Config struct - Obviously this is notsa, but it's necessary for the debug module
     static inline struct Config {
+        float FreqUnderwaterFactor   = 0.7f; // 0x8CBC48
+
         // Dummy engine constants:
         struct {
             float VolumeUnderwaterOffset = 6.f; // 0x8CBC44
             float VolumeTrailerOffset    = 6.f; // 0x8CBC40
-
-            float FreqUnderwaterFactor   = 0.7f; // 0x8CBC48
 
             // ...Idle:
             struct {
@@ -168,21 +168,45 @@ protected:
             float ZMoveSpeedThreshold{ 0.2f };              // 0x8CBD38
             int32 MaxAuGear{ 5 };                           // 0xdeadbeef
             int32 MaxCrzCnt{ 150 };                         // 0x8CBC8C
-            float NitroFactor{ 3.f };                       // 0x8CBC4C
             float SingleGearVolume{ -2.f };                 // 0xB6BA3C
 
+            float VolNitroFactor{ 3.f }; // 0x8CBC4C
+
+            float FrqNitroFactor{ 0.12f };                                       // 0x8CBC50
+            float FrqWheelSpinFactor{ 0.25f };                                   // 0x8CBCB8
+            float FrqBikeLeanFactor{ 0.12f };                                    // 0x8CBD6C
+            float FrqPlayerBikeBoostOffset{ 0.1f };                              // 0x8CBD70
+            float FrqZMoveSpeedLimitMin{ -0.2f }, FrqZMoveSpeedLimitMax{ 0.2f }; // 0x8CBD44, 0x8CBD40
+            float FrqZMoveSpeedFactor{ 0.15f };                                  // 0x8CBD3C
+
             struct {
-                float VolMin{ -4.f }, VolMax{}; // 0x8CBCA8, 0xB6B9DC
+                float FrqWheelSpinFactor{ 0.2f }; // 0x8CBCAC
+                float FrqOffset{ 1.f };
+                float FrqMin{ 0.2f }, FrqMax{ 0.4f }; // 0x8CBCB0, 0x8CBCB4
+                float VolMin{ -4.f }, VolMax{ 0.f };  // 0x8CBCA8, 0xB6B9DC
             } ST1;
+
             struct {
+                float FrqMin{ 0.85f }, FrqMax{ 1.5f };  // 0x8CBC70, 0x8CBC74
                 float VolMin{ -3.5f }, VolMax{ -1.5f }; // 0x8CBC78, 0x8CBC7C
             } ST2;
+
             struct {
-                float VolMin{ 0.f }, VolMax{ 2.f }; // 0xB6B9D8, 0x8CBC88
+                float FrqSingleGear{ 1.f };              // 0xB6BA58
+                float FrqMin{ 0.925f }, FrqMax{ 1.25f }; // 0x8CBC80, 0x8CBC84
+                float VolMin{ 0.f }, VolMax{ 2.f };      // 0xB6B9D8, 0x8CBC88
             } ST3;
+
             struct {
-                float VolMin{ -2.f }, VolMax{ 0.f }; // 0x8CBC68, 0xB6B9D4
+                float FrqSingleGear{ 1.f };                                            // 0x8CBC6C
+                float FrqMultiGearOffset{ 1.f };                                       // 0x8CBC60
+                float FrqPerGearFactor[6]{ 0.4f, 0.22f, 0.13f, 0.075f, 0.f, -0.075f }; // 0x8CC1C0
+                float VolMin{ -2.f }, VolMax{ 0.f };                                   // 0x8CBC68, 0xB6B9D4
             } ST4;
+
+            struct {
+                float FrqMin{ 0.75f }, FrqMax{ 1.25f }; // 0x8CBC94, 0x8CBC98
+            } ST5;
         } PlayerEngine;
     } s_Config{};
     static inline Config s_DefaultConfig{};
@@ -415,7 +439,7 @@ public:
     void CancelVehicleEngineSound(size_t engineSoundStateId);
     void CancelAllVehicleEngineSounds(std::optional<size_t> except = std::nullopt); // notsa
     void RequestNewPlayerCarEngineSound(int16 vehicleSoundId, float speed = 1.f, float changeSound = -100.f);
-    float GetFreqForPlayerEngineSound(cVehicleParams& params, int16 engineState_QuestionMark);
+    float GetFreqForPlayerEngineSound(cVehicleParams& params, int16 engineState_QuestionMark) const;
     float GetVolForPlayerEngineSound(cVehicleParams& params, int16 gear);
 
     void UpdateVehicleEngineSound(int16, float, float);

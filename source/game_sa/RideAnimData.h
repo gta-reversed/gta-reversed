@@ -8,16 +8,16 @@
 
 class CRideAnimData {
 public:
-    AssocGroupId m_nAnimGroup{};
-    float        m_fSteerAngle{};
-    float        m_fAnimLean{};
-    int32        dwordC{};
-    float        dword10{};
-    float        m_fHandlebarsAngle{};
-    float        m_fAnimPercentageState{};
+    AssocGroupId AnimGroup{};
+    float        BarSteerAngle{};
+    float        LeanAngle{};
+    float        DesiredLeanAngle{};
+    float        LeanFwd{};
+    float        AnimLeanLeft{};
+    float        AnimLeanFwd{};
 
 public:
     CRideAnimData() = default; // 0x6D0B10
-    CRideAnimData(AssocGroupId animGroup) : m_nAnimGroup(animGroup) {} // NOTSA
+    CRideAnimData(AssocGroupId animGroup) : AnimGroup(animGroup) {} // NOTSA
 };
 VALIDATE_SIZE(CRideAnimData, 0x1C);

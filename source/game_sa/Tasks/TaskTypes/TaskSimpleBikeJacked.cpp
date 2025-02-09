@@ -112,7 +112,7 @@ bool CTaskSimpleBikeJacked::ProcessPed(CPed* ped) {
             }()
         ) {
             // Play animation and some sound effect
-            m_firstAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_vehicle->GetRideAnimData()->m_nAnimGroup, ANIM_ID_BIKE_HIT);
+            m_firstAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_vehicle->GetRideAnimData()->AnimGroup, ANIM_ID_BIKE_HIT);
             m_firstAnim->SetFinishCallback(FinishAnimBikeHitCB, this);
             ped->GetAE().AddAudioEvent(AE_PED_JACKED_BIKE);
         }

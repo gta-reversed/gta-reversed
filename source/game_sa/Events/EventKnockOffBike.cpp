@@ -280,7 +280,7 @@ bool CEventKnockOffBike::SetPedSafePosition(CPed* ped)
 {
     if (m_vehicle->IsBike()) {
         CBike* bike = m_vehicle->AsBike();
-        bike->m_RideAnimData.m_fAnimLean = 0.0f;
+        bike->m_RideAnimData.LeanAngle = 0.0f;
         bike->m_bLeanMatrixCalculated = false;
         ped->SetPedPositionInCar();
     }

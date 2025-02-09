@@ -75,7 +75,6 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(StopGenericEngineSound, 0x4F6320);
     RH_ScopedInstall(RequestNewPlayerCarEngineSound, 0x4F7A50, { .reversed = false });
     RH_ScopedInstall(StartVehicleEngineSound, 0x4F7F20, { .reversed = false });
-    RH_ScopedInstall(GetFreqForPlayerEngineSound, 0x4F8070, { .reversed = false });
     RH_ScopedInstall(PlaySkidSound, 0x4F8360, { .reversed = false });
     RH_ScopedInstall(PlayRoadNoiseSound, 0x4F84D0, { .reversed = false });
     RH_ScopedInstall(PlayFlatTyreSound, 0x4F8650, { .reversed = false });
@@ -136,12 +135,14 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(IsAccInhibitedForLowSpeed, 0x4F4FF0); // `this` is null when called from 0x4FC80B (probably due to register allocation and whatnot...)
     RH_ScopedInstall(IsAccInhibitedForTime, 0x4F5020);
     RH_ScopedInstall(GetVolForPlayerEngineSound, 0x4F5D00);
+    RH_ScopedInstall(GetFreqForPlayerEngineSound, 0x4F8070);
 
     RH_ScopedOverloadedInstall(AddAudioEvent, "0", 0x4F6420, void(CAEVehicleAudioEntity::*)(eAudioEvents, float), { .reversed = false });
     RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CVehicle*), { .reversed = false });
 }
 
 // 0x4F63E0
+
 CAEVehicleAudioEntity::CAEVehicleAudioEntity() :
     CAEAudioEntity(),
     m_SkidSound() {
@@ -843,7 +844,7 @@ float CAEVehicleAudioEntity::GetFrequencyForDummyIdle(float ratio, float fadeRat
         freq *= CAEAudioUtility::GetPiecewiseLinearT(fadeRatio, points);
     }
     if (GetVehicle()->vehicleFlags.bIsDrowning) {
-        freq *= s_Config.DummyEngine.FreqUnderwaterFactor;
+        freq *= s_Config.FreqUnderwaterFactor;
     }
     return freq;
 }
@@ -893,7 +894,7 @@ float CAEVehicleAudioEntity::GetFrequencyForDummyRev(float ratio, float fadeRati
         freq *= CAEAudioUtility::GetPiecewiseLinearT(fadeRatio, points);
     }
     if (GetVehicle()->vehicleFlags.bIsDrowning) {
-        freq *= s_Config.DummyEngine.FreqUnderwaterFactor;
+        freq *= s_Config.FreqUnderwaterFactor;
     }
     return freq;
 }
@@ -1164,7 +1165,7 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(cVehicleParams& vp, int1
         volume += s_Config.DummyEngine.VolumeTrailerOffset;
     }
     if (m_bNitroOnLastFrame && m_CurrentNitroRatio <= 1.0f && m_CurrentNitroRatio >= 0.0f) {
-        volume += cfg.NitroFactor * m_CurrentNitroRatio;
+        volume += cfg.VolNitroFactor * m_CurrentNitroRatio;
     }
     return volume + m_AuSettings.EngineVolumeOffset;
 }
@@ -1310,8 +1311,85 @@ void CAEVehicleAudioEntity::StartVehicleEngineSound(int16 engineState, float eng
 }
 
 // 0x4F8070
-float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(cVehicleParams& params, int16 engineStateMAYBE) {
-    return plugin::CallMethodAndReturn<float, 0x4F8070, CAEVehicleAudioEntity*, cVehicleParams&, int32>(this, params, engineStateMAYBE);
+float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(cVehicleParams& vp, eVehicleEngineSoundType st) const {
+    auto* const cfg = &s_Config.PlayerEngine;
+
+    float f;
+    if (st == AE_SOUND_CAR_ID && vp.Vehicle->GetModelID() == MODEL_CADDY) { // Moved out here to simplify logic...
+        f = 0.f;
+    } else {
+        // 0x4F80A6 - Calculate z move speed factor
+        auto zf = vp.ZOverSpeed <= 0.f
+            ? +(std::max(cfg->FrqZMoveSpeedLimitMin, vp.ZOverSpeed) / cfg->FrqZMoveSpeedLimitMin)
+            : -(std::min(cfg->FrqZMoveSpeedLimitMax, vp.ZOverSpeed) / cfg->FrqZMoveSpeedLimitMax);
+        zf *= cfg->FrqZMoveSpeedFactor;
+        if (vp.Speed < -0.001f) {
+            zf = -zf;
+        }
+
+        // 0x4F8111 - Calculate gear factor
+        float gf = std::min(1.f, vp.AbsSpeed / vp.Transmission->m_aGears[1].ChangeUpVelocity);
+
+        // 0x4F8131 - Calculate bike factor
+        float bf = 0.f;
+        if (m_AuSettings.VehicleAudioType == AE_BIKE) {
+            auto* const bike = vp.Vehicle->AsBike();
+
+            bf = std::sin(bike->GetRideAnimData()->LeanAngle) * cfg->FrqBikeLeanFactor;
+            if (bike->bikeFlags.bPlayerBoost) {
+                bf += cfg->FrqPlayerBikeBoostOffset;
+            }
+            bf *= gf;
+        }
+
+        // 0x4F81AB - Calculate frequency with some additional factors for the sound type
+        switch (st) {
+        case AE_SOUND_CAR_REV: { // 0x4F81BB
+            f = vp.WheelSpin <= 5.f
+                ? cfg->ST1.FrqOffset + vp.WheelSpin / 5.f * cfg->ST1.FrqWheelSpinFactor
+                : cfg->ST1.FrqOffset + lerp(cfg->ST1.FrqMin, cfg->ST1.FrqMax, invLerp(5.f, 10.f, vp.WheelSpin));
+            break;
+        }
+        case AE_SOUND_CAR_ID: { // 0x4F8235
+            f = lerp(cfg->ST2.FrqMin, cfg->ST2.FrqMax, GetFreqForIdle(vp.SpeedRatio));
+            break;
+        }
+        case AE_SOUND_PLAYER_CRZ: { // 0x4F826D
+            f  = vp.WheelSpin / 5.f * cfg->FrqWheelSpinFactor; 
+            f += (cfg->ST3.FrqMax - cfg->ST3.FrqMin) * m_CrzCount / (float)(cfg->MaxCrzCnt); // NB: Not sure if this was intended to be a lerp or not...
+            f += m_IsSingleGear
+                ? cfg->ST3.FrqSingleGear
+                : cfg->ST3.FrqMin;
+            break;
+        }
+        case AE_SOUND_PLAYER_AC: { // 0x4F8281
+            f  = vp.WheelSpin / 5.f * cfg->FrqWheelSpinFactor;
+            f += m_IsSingleGear
+                ? cfg->ST4.FrqSingleGear
+                : cfg->ST4.FrqPerGearFactor[m_AuGear] + cfg->ST4.FrqMultiGearOffset;
+            break;
+        }
+        case AE_SOUND_PLAYER_OFF: { // 0x4F82C1
+            f = lerp(cfg->ST5.FrqMin, cfg->ST5.FrqMax, vp.SpeedRatio);
+            break;
+        }
+        default:
+            NOTSA_UNREACHABLE();
+        }
+        f *= ((gf * zf) + 1.f) * (bf + 1.f);
+    }
+
+    if (vp.Vehicle->m_bUnderwater) {
+        f *= s_Config.FreqUnderwaterFactor;
+    }
+
+    if (m_bNitroOnLastFrame && 0.f <= m_CurrentNitroRatio && m_CurrentNitroRatio <= 1.f) {
+        f *= cfg->FrqNitroFactor * m_CurrentNitroRatio + 1.f;
+    }
+
+    NOTSA_LOG_DEBUG("f is {}", f);
+
+    return f;
 }
 
 // 0x4F8360

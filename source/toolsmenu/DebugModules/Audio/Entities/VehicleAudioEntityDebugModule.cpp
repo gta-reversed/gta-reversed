@@ -153,6 +153,12 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
 void VehicleAudioEntityDebugModule::RenderGlobalVars() {
     auto* const cfg = &AE::s_Config;
 
+    if (ImGui::Button("Reset")) {
+        *cfg = AE::s_DefaultConfig;
+    }
+
+    ImGui::SliderFloat("FreqUnderwaterFactor", &cfg->FreqUnderwaterFactor, -100, 100.f);
+
     if (ImGui::TreeNode("Dummy Engine")) {
         if (ImGui::Button("Reset")) {
             cfg->DummyEngine = AE::s_DefaultConfig.DummyEngine;
@@ -160,8 +166,6 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
 
         ImGui::SliderFloat("VolumeUnderwaterOffset", &cfg->DummyEngine.VolumeUnderwaterOffset, -100.f, 100.f);
         ImGui::SliderFloat("VolumeTrailerOffset", &cfg->DummyEngine.VolumeTrailerOffset, -100.f, 100.f);
-
-        ImGui::SliderFloat("FreqUnderwaterFactor", &cfg->DummyEngine.FreqUnderwaterFactor, -100, 100.f);
 
         if (ImGui::TreeNode("Idle")) {
             if (ImGui::Button("Reset")) {
@@ -205,30 +209,48 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
         ImGui::DragFloat("ZMoveSpeedThreshold", &pe->ZMoveSpeedThreshold, 1.f, -100.f, 100.f);
         ImGui::DragInt("MaxAuGear", &pe->MaxAuGear, 1.f, -100, 100);
         ImGui::DragInt("MaxCrzCnt", &pe->MaxCrzCnt, 1.f, -100, 100);
-        ImGui::DragFloat("NitroFactor", &pe->NitroFactor, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("NitroFactor", &pe->VolNitroFactor, 1.f, -100.f, 100.f);
         ImGui::DragFloat("SingleGearVolume", &pe->SingleGearVolume, 1.f, -100.f, 100.f);
 
         if (ImGui::TreeNode("ST1")) {
+            ImGui::DragFloat("FrqWheelSpinFactor", &pe->ST1.FrqWheelSpinFactor, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqOffset", &pe->ST1.FrqOffset, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMin", &pe->ST1.FrqMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMax", &pe->ST1.FrqMax, 1.f, -100.f, 100.f);
             ImGui::DragFloat("VolMin", &pe->ST1.VolMin, 1.f, -100.f, 100.f);
             ImGui::DragFloat("VolMax", &pe->ST1.VolMax, 1.f, -100.f, 100.f);
             ImGui::TreePop();
         }
         if (ImGui::TreeNode("ST2")) {
+            ImGui::DragFloat("FrqMin", &pe->ST2.FrqMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMax", &pe->ST2.FrqMax, 1.f, -100.f, 100.f);
             ImGui::DragFloat("VolMin", &pe->ST2.VolMin, 1.f, -100.f, 100.f);
             ImGui::DragFloat("VolMax", &pe->ST2.VolMax, 1.f, -100.f, 100.f);
             ImGui::TreePop();
         }
         if (ImGui::TreeNode("ST3")) {
+            ImGui::DragFloat("FrqSingleGear", &pe->ST3.FrqSingleGear, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMin", &pe->ST3.FrqMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMax", &pe->ST3.FrqMax, 1.f, -100.f, 100.f);
             ImGui::DragFloat("VolMin", &pe->ST3.VolMin, 1.f, -100.f, 100.f);
             ImGui::DragFloat("VolMax", &pe->ST3.VolMax, 1.f, -100.f, 100.f);
             ImGui::TreePop();
         }
         if (ImGui::TreeNode("ST4")) {
+            if (ImGui::TreeNode("FrqPerGearFactor")) {
+                for (auto&& [i, gf] : notsa::enumerate(pe->ST4.FrqPerGearFactor)) {
+                    char buf[1024];
+                    *std::format_to(buf, "Gear {}", i) = 0;
+                    ImGui::DragFloat(buf, &gf, 1.f, -100.f, 100.f);
+                }
+                ImGui::TreePop();
+            }
+            ImGui::DragFloat("FrqSingleGear", &pe->ST4.FrqSingleGear, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMultiGearOffset", &pe->ST4.FrqMultiGearOffset, 1.f, -100.f, 100.f);
             ImGui::DragFloat("VolMin", &pe->ST4.VolMin, 1.f, -100.f, 100.f);
             ImGui::DragFloat("VolMax", &pe->ST4.VolMax, 1.f, -100.f, 100.f);
             ImGui::TreePop();
         }
-
         ImGui::TreePop();
     }
 }

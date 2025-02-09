@@ -105,7 +105,7 @@ void CQuadBike::PreRender() {
 
     if (m_aCarNodes[QUAD_HANDLEBARS]) {
         mat.Attach(RwFrameGetMatrix(m_aCarNodes[QUAD_HANDLEBARS]), false);
-        mat.SetRotateZOnly(QUAD_HBSTEER_ANIM_MULT * m_sRideAnimData.m_fHandlebarsAngle);
+        mat.SetRotateZOnly(QUAD_HBSTEER_ANIM_MULT * m_sRideAnimData.AnimLeanLeft);
         mat.UpdateRW();
     }
 }
@@ -139,17 +139,17 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
 
             float fTurnForcePerTimeStep = 0.0f;
             const float fLeanDirection = DotProduct(m_vecTurnSpeed, m_matrix->GetRight());
-            if (m_sRideAnimData.dword10 >= 0.0f || fLeanDirection >= m_pHandling->m_fLeanBakCOM) {
+            if (m_sRideAnimData.LeanFwd >= 0.0f || fLeanDirection >= m_pHandling->m_fLeanBakCOM) {
                 // Lean forward
-                if (m_sRideAnimData.dword10 > 0.0f) {
+                if (m_sRideAnimData.LeanFwd > 0.0f) {
                     if (fLeanDirection > -m_pHandling->m_fLeanFwdCOM) {
                         if (m_nNumContactWheels) {
                             if (m_BrakePedal > 0.0f) {
                                 fTurnForcePerTimeStep =
-                                    m_pHandling->m_fLeanFwdForce * m_fTurnMass * m_sRideAnimData.dword10 * std::min(0.1f, m_vecMoveSpeed.Magnitude());
+                                    m_pHandling->m_fLeanFwdForce * m_fTurnMass * m_sRideAnimData.LeanFwd * std::min(0.1f, m_vecMoveSpeed.Magnitude());
                             }
                         } else {
-                            fTurnForcePerTimeStep = m_fTurnMass * m_sRideAnimData.dword10 * 0.0015f;
+                            fTurnForcePerTimeStep = m_fTurnMass * m_sRideAnimData.LeanFwd * 0.0015f;
                         }
                         const float fTurnForce = -CTimer::GetTimeStep() * fTurnForcePerTimeStep;
                         ApplyTurnForce(m_matrix->GetUp() * fTurnForce, m_vecCentreOfMass + m_matrix->GetForward());
@@ -160,10 +160,10 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
                 if (m_nNumContactWheels) {
                     if (m_BrakePedal == 0.0f && !vehicleFlags.bIsHandbrakeOn) {
                         fTurnForcePerTimeStep =
-                            m_pHandling->m_fLeanBakForce * m_fTurnMass * m_sRideAnimData.dword10 * std::min(0.1f, m_vecMoveSpeed.Magnitude());
+                            m_pHandling->m_fLeanBakForce * m_fTurnMass * m_sRideAnimData.LeanFwd * std::min(0.1f, m_vecMoveSpeed.Magnitude());
                     }
                 } else {
-                    fTurnForcePerTimeStep = m_fTurnMass * m_sRideAnimData.dword10 * 0.0015f;
+                    fTurnForcePerTimeStep = m_fTurnMass * m_sRideAnimData.LeanFwd * 0.0015f;
                 }
                 const float fTurnForce = -CTimer::GetTimeStep() * fTurnForcePerTimeStep;
                 ApplyTurnForce(m_matrix->GetUp() * fTurnForce, m_vecCentreOfMass + m_matrix->GetForward());
@@ -193,7 +193,7 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
                 }
             }
             const float fValue = std::pow(m_pHandling->m_fDesLean, CTimer::GetTimeStep()); // TODO: Name this variable properly
-            m_sRideAnimData.m_fAnimLean = fValue * m_sRideAnimData.m_fAnimLean - m_pHandling->m_fFullAnimLean * m_fSteerAngle / DegreesToRadians(m_pHandlingData->m_fSteeringLock) * (1.0f - fValue);
+            m_sRideAnimData.LeanAngle = fValue * m_sRideAnimData.LeanAngle - m_pHandling->m_fFullAnimLean * m_fSteerAngle / DegreesToRadians(m_pHandlingData->m_fSteeringLock) * (1.0f - fValue);
 
             DoDriveByShootings();
 
@@ -254,28 +254,28 @@ void CQuadBike::ProcessControlInputs(uint8 playerNum) {
 
     CPad* pad = CPad::GetPad(playerNum);
     if (!CCamera::m_bUseMouse3rdPerson || !m_bEnableMouseSteering) {
-        m_sRideAnimData.dword10 += (float(-pad->GetSteeringUpDown()) / 128.0f - m_sRideAnimData.dword10) * CTimer::GetTimeStep() / 5.0f;
+        m_sRideAnimData.LeanFwd += (float(-pad->GetSteeringUpDown()) / 128.0f - m_sRideAnimData.LeanFwd) * CTimer::GetTimeStep() / 5.0f;
     } else {
         if (CPad::NewMouseControllerState.X == 0.0f && CPad::NewMouseControllerState.Y == 0.0f && // todo: Use CPad::? func
             (std::fabs(m_fRawSteerAngle) <= 0.0f || m_nLastControlInput != eControllerType::CONTROLLER_MOUSE || pad->IsSteeringInAnyDirection())
         ) {
             if (pad->GetSteeringUpDown() || m_nLastControlInput != eControllerType::CONTROLLER_MOUSE) {
                 m_nLastControlInput = eControllerType::CONTROLLER_KEYBOARD1;
-                m_sRideAnimData.dword10 += (float(-pad->GetSteeringUpDown()) / 128.0f - m_sRideAnimData.dword10) * CTimer::GetTimeStep() / 5.0f;
+                m_sRideAnimData.LeanFwd += (float(-pad->GetSteeringUpDown()) / 128.0f - m_sRideAnimData.LeanFwd) * CTimer::GetTimeStep() / 5.0f;
             }
         } else {
             m_nLastControlInput = eControllerType::CONTROLLER_MOUSE;
             if (!pad->NewState.m_bVehicleMouseLook) {
-                m_sRideAnimData.dword10 += CPad::NewMouseControllerState.Y * -0.035f;
+                m_sRideAnimData.LeanFwd += CPad::NewMouseControllerState.Y * -0.035f;
             }
-            if (pad->NewState.m_bVehicleMouseLook || std::fabs(m_sRideAnimData.dword10) < 0.35f) {
-                m_sRideAnimData.dword10 *= std::pow(0.98f, CTimer::GetTimeStep());
+            if (pad->NewState.m_bVehicleMouseLook || std::fabs(m_sRideAnimData.LeanFwd) < 0.35f) {
+                m_sRideAnimData.LeanFwd *= std::pow(0.98f, CTimer::GetTimeStep());
             }
         }
     }
-    m_sRideAnimData.dword10 = std::clamp(m_sRideAnimData.dword10, -1.0f, 1.0f);
+    m_sRideAnimData.LeanFwd = std::clamp(m_sRideAnimData.LeanFwd, -1.0f, 1.0f);
     if (pad->DisablePlayerControls) {
-        m_sRideAnimData.dword10 = 0.0f;
+        m_sRideAnimData.LeanFwd = 0.0f;
     }
 }
 

@@ -85,8 +85,8 @@ tReplayBikeBlock tReplayBikeBlock::MakeBikeUpdateData(CBike* bike, int32 poolIdx
     *ret.As<tReplayVehicleBlock>() = tReplayVehicleBlock::MakeVehicleUpdateData(bike->AsVehicle(), poolIdx);
 
     ret.type = REPLAY_PACKET_BIKE;
-    ret.animLean = (uint8)(bike->GetRideAnimData()->m_fAnimLean * 50.0f);
-    ret.steerAngle = (uint8)(bike->GetRideAnimData()->m_fSteerAngle * 50.0f);
+    ret.animLean = (uint8)(bike->GetRideAnimData()->LeanAngle * 50.0f);
+    ret.steerAngle = (uint8)(bike->GetRideAnimData()->BarSteerAngle * 50.0f);
     return ret;
 }
 
@@ -187,8 +187,8 @@ void tReplayVehicleBlock::ExtractVehicleUpdateData(CVehicle* vehicle, float inte
 void tReplayBikeBlock::ExtractBikeUpdateData(CBike* bike, float interpolation) {
     As<tReplayVehicleBlock>()->ExtractVehicleUpdateData(bike->AsVehicle(), interpolation);
 
-    bike->GetRideAnimData()->m_fSteerAngle = (float)steerAngle / 50.0f;
-    bike->GetRideAnimData()->m_fAnimLean   = (float)animLean / 50.0f;
+    bike->GetRideAnimData()->BarSteerAngle = (float)steerAngle / 50.0f;
+    bike->GetRideAnimData()->LeanAngle   = (float)animLean / 50.0f;
     bike->m_bLeanMatrixCalculated = false;
     bike->CalculateLeanMatrix();
 }

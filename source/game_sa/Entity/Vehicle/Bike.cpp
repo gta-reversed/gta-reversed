@@ -63,9 +63,9 @@ CBike::CBike(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     auto mi = CModelInfo::GetModelInfo(modelIndex)->AsVehicleModelInfoPtr();
     if (mi->m_nVehicleType == VEHICLE_TYPE_BIKE) {
         const auto& animationStyle = CAnimManager::GetAnimBlocks()[mi->GetAnimFileIndex()].GroupId;
-        m_RideAnimData.m_nAnimGroup = animationStyle;
+        m_RideAnimData.AnimGroup = animationStyle;
         if (animationStyle < ANIM_GROUP_BIKES || animationStyle > ANIM_GROUP_WAYFARER) {
-            m_RideAnimData.m_nAnimGroup = ANIM_GROUP_BIKES;
+            m_RideAnimData.AnimGroup = ANIM_GROUP_BIKES;
         }
     }
 
@@ -463,12 +463,12 @@ void CBike::CalculateLeanMatrix() {
         return;
 
     CMatrix mat;
-    mat.SetRotateX(fabs(m_RideAnimData.m_fAnimLean) * -0.05f);
-    mat.RotateY(m_RideAnimData.m_fAnimLean);
+    mat.SetRotateX(fabs(m_RideAnimData.LeanAngle) * -0.05f);
+    mat.RotateY(m_RideAnimData.LeanAngle);
     m_mLeanMatrix = GetMatrix();
     m_mLeanMatrix = m_mLeanMatrix * mat;
     // place wheel back on ground
-    m_mLeanMatrix.GetPosition() += GetUp() * (1.0f - cos(m_RideAnimData.m_fAnimLean)) * GetColModel()->GetBoundingBox().m_vecMin.z;
+    m_mLeanMatrix.GetPosition() += GetUp() * (1.0f - cos(m_RideAnimData.LeanAngle)) * GetColModel()->GetBoundingBox().m_vecMin.z;
     m_bLeanMatrixCalculated = true;
 }
 
