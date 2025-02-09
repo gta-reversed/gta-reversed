@@ -35,11 +35,28 @@ jobs:
                     fetch-depth: 1
                     submodules: recursive
 
-            -   name: Configure ${{ matrix.arch }}
-                shell: cmd
-                run: cmake -B ${{ env.build }} -H. -A Win32 # ${{ matrix.arch }}
+            -   name: Setup Python
+                uses: actions/setup-python@v4
+                with:
+                    python-version: '3.x'
 
-            -   name: Build ${{ matrix.conf }}
+            -   name: Install Conan via Python
+                shell: cmd
+                run: |
+                    python -m pip install --upgrade pip
+                    python -m pip install conan
+
+            -   name: Setup Conan for ${{ matrix.conf }}-${{ matrix.arch }}
+                shell: cmd
+                run: |
+                    conan profile detect
+                    conan install . --build missing -s build_type=${{ matrix.conf }} --profile conanprofile.txt
+
+            -   name: Configure ${{ matrix.conf }}-${{ matrix.arch }}
+                shell: cmd
+                run: cmake --preset conan-default
+
+            -   name: Build ${{ matrix.conf }}-${{ matrix.arch }}
                 shell: cmd
                 run: cmake --build build --config ${{ matrix.conf }}
 
