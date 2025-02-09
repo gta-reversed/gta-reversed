@@ -126,7 +126,6 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessAircraft, 0x501C50);
     RH_ScopedInstall(ProcessVehicle, 0x501E10, { .reversed = false }); // Can't hook, triggers run-time stack check cookie
     RH_ScopedInstall(ProcessSpecialVehicle, 0x501AB0);
-    RH_ScopedInstall(Service, 0x502280, { .reversed = false });
 
     // These should be enabled/disabled together, otherwise game shits itself:
     RH_ScopedInstall(ProcessPlayerVehicleEngine, 0x4FBB10);
@@ -136,6 +135,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(IsAccInhibitedForTime, 0x4F5020);
     RH_ScopedInstall(GetVolForPlayerEngineSound, 0x4F5D00);
     RH_ScopedInstall(GetFreqForPlayerEngineSound, 0x4F8070);
+    RH_ScopedInstall(Service, 0x502280); // Shits itself if `ProcessPlayerVehicleEngine` is unhooked (Stack cookie gets corrupted)
 
     RH_ScopedOverloadedInstall(AddAudioEvent, "0", 0x4F6420, void(CAEVehicleAudioEntity::*)(eAudioEvents, float), { .reversed = false });
     RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CVehicle*), { .reversed = false });
@@ -2535,6 +2535,7 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(cVehicleParams& vp) {
             || IsAccInhibitedForLowSpeed(vp)
             || vp.ThisAccel <= s_Config.PlayerEngine.AccelWheelSpinThreshold
         ) { // 0x4FC558 - NB: Same function (in the cond) called twice?
+            CancelVehicleEngineSound(AE_SOUND_PLAYER_AC);
             RequestEngineSound(AE_SOUND_PLAYER_OFF);
             RequestEngineSound(AE_SOUND_CAR_ID);
             m_State = eAEState::PLAYER_ID;
