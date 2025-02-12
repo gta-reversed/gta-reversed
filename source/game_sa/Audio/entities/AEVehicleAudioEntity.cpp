@@ -94,7 +94,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(JustWreckedVehicle, 0x4FD0B0, { .reversed = false });
     RH_ScopedInstall(ProcessPlayerProp, 0x4FD290);
     RH_ScopedInstall(ProcessDummyProp, 0x4FD8F0);
-    RH_ScopedInstall(ProcessAIProp, 0x4FDFD0, { .reversed = false });
+    RH_ScopedInstall(ProcessAIProp, 0x4FDFD0);
     RH_ScopedInstall(ProcessPlayerHeli, 0x4FE420, { .reversed = false });
     RH_ScopedInstall(ProcessDummyHeli, 0x4FE940, { .reversed = false });
     RH_ScopedInstall(ProcessAIHeli, 0x4FEE20, { .reversed = false });
@@ -2729,9 +2729,71 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
     plugin::CallMethod<0x4FCA10, CAEVehicleAudioEntity*, eAEState, float, cVehicleParams&>(this, newState, fRatio, params);
 }
 
-// 0x4FDFD0
-void CAEVehicleAudioEntity::ProcessAIProp(cVehicleParams& params) {
-    plugin::CallMethod<0x4FDFD0, CAEVehicleAudioEntity*, cVehicleParams&>(this, params);
+// 0x4FDFD0 - Process AI propeller sound
+void CAEVehicleAudioEntity::ProcessAIProp(cVehicleParams& vp) {
+    auto* const plane = vp.Vehicle->AsPlane();
+
+    if (m_DummyEngineBank == SND_BANK_UNK) { // 0x4FE008
+        return;
+    }
+    if (m_DummySlot == SND_BANK_SLOT_UNK) { // 0x4FE00E
+        if ((m_DummySlot = RequestBankSlot(m_DummyEngineBank)) == -1) {
+            return;
+        }
+    }
+    if (!AEAudioHardware.IsSoundBankLoaded(m_DummyEngineBank, m_DummySlot)) { // 0x4FE0CA
+        if (!DoesBankSlotContainThisBank(m_DummySlot, m_DummyEngineBank)) {
+            m_DummySlot = RequestBankSlot(m_DummyEngineBank);
+            m_State     = eAEState::CAR_OFF;
+        }
+        return;
+    }
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN)) { // 0x4FE0CA
+        return;
+    }
+    if (!vp.Vehicle->vehicleFlags.bEngineOn && vp.Vehicle->m_autoPilot.m_vehicleRecordingId == -1) { // 0x4FE0F2
+        CancelAllVehicleEngineSounds();
+        return;
+    }
+
+    // 0x4FE129
+    const auto propSpeed = plane->m_autoPilot.m_vehicleRecordingId == -1
+        ? lerp(0.7f, 1.f, std::clamp(std::max(vp.Vehicle->m_BrakePedal, vp.Vehicle->m_GasPedal), 0.f, 1.f))
+        : plane->m_fPropSpeed / 0.34f;
+    const auto propVolume = CGeneral::GetPiecewiseLinear({
+        { 0.00f, 0.0f },
+        { 0.15f, 0.3f },
+        { 1.00f, 1.0f }
+    }, std::clamp(propSpeed, 0.f, 1.f));
+
+    // 0x4FE25A
+    const auto propFreq = std::abs(plane->GetMatrix().GetRight().z) * 0.1f - plane->GetMatrix().GetForward().z * 0.15f + 1.f;
+    m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
+        ? propFreq
+        : notsa::step_to(m_CurrentRotorFrequency, propFreq, notsa::IsFixBugs() ? std::pow(1.f / 187.5f, CTimer::GetTimeStep()) : 1.f / 187.5f);
+
+    // 0x4FE2EF
+    const auto planeToCamDistSq = CVector::DistSqr(TheCamera.GetPosition(), plane->GetPosition());
+    const auto distantVolume = planeToCamDistSq <= 48.f
+        ? -100.f
+        : planeToCamDistSq <= 128.f
+            ? CAEAudioUtility::AudioLog10(propVolume + invLerp(48.f, 128.f, std::sqrtf(planeToCamDistSq))) * 20.f + 8.f // Simplified 2 logs to 1 - NB: The `invLerp` part I feel like should be substracted (The closer the plane is, the less volume the distant sound should have)
+            : CAEAudioUtility::AudioLog10(propVolume) * 20.f + 8.f;
+
+    // 0x4FE3CF
+    PlayAircraftSound(
+        AE_SOUND_AIRCRAFT_FRONT,
+        m_DummySlot,
+        1,
+        CAEAudioUtility::AudioLog10(propVolume) * 20.f + 8.f,
+        propFreq
+    );
+    PlayAircraftSound(
+        AE_SOUND_AIRCRAFT_DISTANT,
+        m_DummySlot,
+        0,
+        distantVolume
+    );
 }
 
 // 0x4FE420
