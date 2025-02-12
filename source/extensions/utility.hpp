@@ -392,6 +392,17 @@ F wrap(F x, F min, F max) {
     return (x < 0 ? max : min) + std::fmod(x, max - min);
 }
 
+// Step `x` towards `to` in steps of `step`
+template<std::floating_point F>
+F step_to(F x, F to, F step) {
+    return x < to
+        ? std::max<F>(to, x + step)
+        : x > to
+            ? std::min<F>(to, x - step)
+            : to;
+
+}
+
 //! Range of a specific type
 //! See: https://stackoverflow.com/a/64228354/15363969
 template <typename R, typename T>
