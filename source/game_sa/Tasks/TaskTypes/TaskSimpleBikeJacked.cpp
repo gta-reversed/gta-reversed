@@ -103,8 +103,7 @@ bool CTaskSimpleBikeJacked::ProcessPed(CPed* ped) {
                         if (!SayJacking(m_jacker, ped, m_vehicle)) {
                             SayJacked(ped, m_vehicle);
                         }
-                    }
-                    else if (!SayJacked(ped, m_vehicle)) {
+                    } else if (!SayJacked(ped, m_vehicle)) {
                         SayJacking(m_jacker, ped, m_vehicle);
                     }
                 }

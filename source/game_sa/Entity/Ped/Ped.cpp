@@ -3685,36 +3685,39 @@ bool CPed::IsPedStandingInPlace() const {
 
 // 0x6497A0
 bool SayJacked(CPed* jacked, CVehicle* vehicle, uint32 timeDelay) {
-    if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio())
-        return jacked->Say(CTX_GLOBAL_JACKED_GENERIC, timeDelay) != -1;
-    else
+    switch (vehicle->m_vehicleAudio.GetVehicleTypeForAudio()) {
+    case eAEVehicleAudioType::CAR:
         return jacked->Say(CTX_GLOBAL_JACKED_CAR, timeDelay) != -1;
+    case eAEVehicleAudioType::BIKE:
+    case eAEVehicleAudioType::GENERIC:
+        return jacked->Say(CTX_GLOBAL_JACKED_GENERIC, timeDelay) != -1;
+    default:
+        NOTSA_UNREACHABLE();
+    }
 }
 
 // 0x6497F0
 bool SayJacking(CPed* jacker, CPed* jacked, CVehicle* vehicle, uint32 timeDelay) {
-    if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio() == 1)
+    switch (vehicle->m_vehicleAudio.GetVehicleTypeForAudio()) {
+    case eAEVehicleAudioType::BIKE:
         return jacker->Say(CTX_GLOBAL_JACKING_BIKE, timeDelay) != -1;
-
-    if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio())
+    case eAEVehicleAudioType::CAR:
+        return jacked->GetSpeechAE().IsPedFemaleForAudio()
+            ? jacker->Say(CTX_GLOBAL_JACKING_CAR_FEM, timeDelay) != -1
+            : jacker->Say(CTX_GLOBAL_JACKING_CAR_MALE, timeDelay) != -1;
+    case eAEVehicleAudioType::GENERIC:
         return jacker->Say(CTX_GLOBAL_JACKING_GENERIC, timeDelay) != -1;
-
-    if (jacked->GetSpeechAE().IsPedFemaleForAudio())
-        return jacker->Say(CTX_GLOBAL_JACKING_CAR_FEM, timeDelay) != -1;
-
-    return jacker->Say(CTX_GLOBAL_JACKING_CAR_MALE, timeDelay) != -1;
+    default:
+        NOTSA_UNREACHABLE();
+    }
 }
 
 // NOTSA
 int32 CPed::GetPadNumber() const {
     switch (m_nPedType) {
-    case PED_TYPE_PLAYER1:
-        return 0;
-    case PED_TYPE_PLAYER2:
-        return 1;
-    default:
-        assert(true && "Inappropriate usage of GetPadNumber");
-        return 0;
+    case PED_TYPE_PLAYER1: return 0;
+    case PED_TYPE_PLAYER2: return 1;
+    default:               NOTSA_UNREACHABLE();
     }
 }
 

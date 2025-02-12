@@ -2202,7 +2202,7 @@ bool CVehicle::SetVehicleUpgradeFlags(int32 upgradeModelIndex, int32 modId, int3
         return GetModelInfo()->AsVehicleModelInfoPtr()->m_pVehicleStruct->m_aUpgrades[15].m_nParentComponentId < 0;
     }
     case 17: {
-        if (m_vehicleAudio.m_AuSettings.RadioType != RADIO_CIVILIAN || vehicleFlags.bUpgradedStereo) {
+        if (m_vehicleAudio.m_AuSettings.RadioType != AE_RT_CIVILIAN || vehicleFlags.bUpgradedStereo) {
             resultModelIndex = upgradeModelIndex;
             return true;
         }
@@ -2239,7 +2239,7 @@ bool CVehicle::ClearVehicleUpgradeFlags(int32 arg0, int32 modId) {
 
     switch (modId) {
     case 17: { // 0x6D3270
-        if (m_vehicleAudio.m_AuSettings.RadioType != RADIO_CIVILIAN && vehicleFlags.bUpgradedStereo) {
+        if (m_vehicleAudio.m_AuSettings.RadioType != AE_RT_CIVILIAN && vehicleFlags.bUpgradedStereo) {
             auto& bassSetting = m_vehicleAudio.m_AuSettings.BassSetting;
             switch (bassSetting) {
             case 1: {

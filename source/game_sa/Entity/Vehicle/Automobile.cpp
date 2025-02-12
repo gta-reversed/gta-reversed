@@ -3192,15 +3192,10 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
                             // Make our driver say something reacting to the collision..
                             if (&damagedVeh != FindPlayerVehicle() || damagedVeh.IsMissionVehicle()) {
                                 switch (m_vehicleAudio.GetVehicleTypeForAudio()) {
-                                case 1:
-                                    m_pDriver->Say(CTX_GLOBAL_CRASH_BIKE);
-                                    break;
-                                case 0:
-                                    m_pDriver->Say(CTX_GLOBAL_CRASH_CAR);
-                                    break;
-                                default:
-                                    m_pDriver->Say(CTX_GLOBAL_CRASH_GENERIC);
-                                    break;
+                                case eAEVehicleAudioType::BIKE:     m_pDriver->Say(CTX_GLOBAL_CRASH_BIKE);    break;
+                                case eAEVehicleAudioType::CAR:      m_pDriver->Say(CTX_GLOBAL_CRASH_CAR);     break;
+                                case eAEVehicleAudioType::GENERIC:  m_pDriver->Say(CTX_GLOBAL_CRASH_GENERIC); break;
+                                default:                            NOTSA_UNREACHABLE();
                                 }
                             }
                         }

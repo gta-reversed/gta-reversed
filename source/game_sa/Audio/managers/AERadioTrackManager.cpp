@@ -318,9 +318,9 @@ void CAERadioTrackManager::GetRadioStationNameKey(eRadioID id, char* outStr) {
 bool CAERadioTrackManager::IsVehicleRadioActive() {
     if (const auto opts = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio()) {
         switch (opts->RadioType) {
-        case RADIO_CIVILIAN:
-        case RADIO_EMERGENCY:
-        case RADIO_UNKNOWN:
+        case AE_RT_CIVILIAN:
+        case AE_RT_EMERGENCY:
+        case AE_RT_UNKNOWN:
             return true;
         default:
             break;
@@ -560,12 +560,12 @@ void CAERadioTrackManager::StartRadio(tVehicleAudioSettings* settings) {
     if (CReplay::Mode == MODE_PLAYBACK)
         return;
 
-    if (settings->RadioType == RADIO_EMERGENCY) {
+    if (settings->RadioType == AE_RT_EMERGENCY) {
         StartRadio(RADIO_EMERGENCY_AA, settings->BassSetting, settings->BassFactor, 0);
         return;
     }
 
-    if (settings->RadioType != RADIO_CIVILIAN)
+    if (settings->RadioType != AE_RT_CIVILIAN)
         return;
 
     const bool needsRetune = [&] {
@@ -798,25 +798,14 @@ void CAERadioTrackManager::CheckForPause() {
     if (CTimer::GetIsPaused()) {
         m_bPauseMode = true;
         AEAudioHardware.SetChannelFrequencyScalingFactor(m_HwClientHandle, 0, m_bEnabledInPauseMode ? 1.0f : 0.0f);
-
-        return;
-    }
-
-    // todo: See CAEVehicleAudioEntity::Terminate:437 m_nRadioType.
-    tVehicleAudioSettings* settings = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
-
-    const bool isRadioTypeOrdinary = settings && [radioType = settings->RadioType]{
-        switch (radioType) {
-        case RADIO_CIVILIAN:
-        case RADIO_EMERGENCY:
-        case RADIO_UNKNOWN:
-            return true;
-        default:
-            return false;
-        }
-    }();
-
-    if (isRadioTypeOrdinary || CAudioEngine::IsAmbienceRadioActive()) {
+    } else if (
+           notsa::contains({
+               AE_RT_CIVILIAN,
+               AE_RT_EMERGENCY,
+               AE_RT_UNKNOWN
+           }, CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio()->RadioType)
+        || CAudioEngine::IsAmbienceRadioActive()
+    ) {
         m_bPauseMode = false;
         AEAudioHardware.SetChannelFrequencyScalingFactor(m_HwClientHandle, 0, 1.0f);
     } else {

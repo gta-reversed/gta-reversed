@@ -93,7 +93,7 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
         FormattedText("EngineUpgrade: {}", as->EngineUpgrade);
         FormattedText("RadioStation: {}", EnumToString(as->RadioStation));
         FormattedText("RadioType: {}", EnumToString(as->RadioType));
-        FormattedText("VehicleAudioTypeForName: {}", as->VehicleAudioTypeForName);
+        FormattedText("VehicleAudioTypeForName: {}", (int32)(as->VehicleAudioTypeForName));
         FormattedText("EngineVolumeOffset: {}", as->EngineVolumeOffset);
 
         ImGui::TreePop();
