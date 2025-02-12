@@ -4,34 +4,36 @@
 #include <cstdint>
 
 namespace notsa {
-//! Store enums (of type `Enum`) in a given integral type.
-//! Useful in cases where the class originally used a width
-//! different to the enums underlaying type.
-//! WEnum just sounded like a cool name... Venom.. WEnum, idk
+/*!
+* Store enums (of type `Enum`) in a given integral type.
+* Useful in cases where the class originally used a width
+* different to the enums underlaying type.
+* WEnum just sounded like a cool name... Venom.. WEnum, idk 
+*/
 template<typename Enum, typename StoreAs>
     requires(std::is_integral_v<StoreAs>)
 struct WEnum {
     StoreAs m_Value;
 
     //! Implicitly convert from the enum value
-    WEnum(Enum e = {}) : m_Value{static_cast<StoreAs>(e)} { }
+    constexpr WEnum(Enum e = {}) noexcept : m_Value{static_cast<StoreAs>(e)} { }
 
     //! Implicitly convert from another WEnum for the same enum
     template<typename Y>
-    WEnum(WEnum<Enum, Y> other) : WEnum{static_cast<Enum>(other)} { }
+    constexpr WEnum(WEnum<Enum, Y> other) noexcept : WEnum{static_cast<Enum>(other)} { }
 
     //! Implicitly convert back to the underlaying `Enum` type
-    operator Enum() const { return static_cast<Enum>(m_Value); }
+    constexpr operator Enum() const noexcept { return static_cast<Enum>(m_Value); }
 
     //! Implicitly cast to underlaying type ref, pointer
-    explicit operator StoreAs*() { return &m_Value; }
-    explicit operator StoreAs&() { return m_Value; }
+    constexpr explicit operator StoreAs*() noexcept { return &m_Value; }
+    constexpr explicit operator StoreAs&() noexcept { return m_Value; }
 
     //! Use this in cases you want to cast to an int (for cout or something)
-    Enum get() const { return static_cast<Enum>(m_Value); }
+    constexpr Enum get() const noexcept { return static_cast<Enum>(m_Value); }
 
     //! Get the underlaying value
-    StoreAs get_underlying() const { return m_Value; }
+    constexpr StoreAs get_underlying() const noexcept { return m_Value; }
 };
 
 template<typename E>
