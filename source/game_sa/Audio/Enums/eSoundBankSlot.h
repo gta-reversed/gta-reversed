@@ -11,7 +11,9 @@ enum eSoundBankSlot : int32 {
     SND_BANK_SLOT_EXPLOSIONS          = 4, // 0x4
     SND_BANK_SLOT_WEAPON_GEN          = 5, // 0x5
     SND_BANK_SLOT_WEATHER             = 6, // 0x6
-    SND_BANK_SLOT_DUMMY_ENGINE_0      = 7, // 0x7
+
+    SND_BANK_SLOT_DUMMY_FIRST         = 7,
+    SND_BANK_SLOT_DUMMY_ENGINE_0      = SND_BANK_SLOT_DUMMY_FIRST,
     SND_BANK_SLOT_DUMMY_ENGINE_1      = 8, // 0x8
     SND_BANK_SLOT_DUMMY_ENGINE_2      = 9, // 0x9
     SND_BANK_SLOT_DUMMY_ENGINE_3      = 10, // 0xA
@@ -21,6 +23,8 @@ enum eSoundBankSlot : int32 {
     SND_BANK_SLOT_DUMMY_ENGINE_7      = 14, // 0xE
     SND_BANK_SLOT_DUMMY_ENGINE_8      = 15, // 0xF
     SND_BANK_SLOT_DUMMY_ENGINE_9      = 16, // 0x10
+    SND_BANK_SLOT_DUMMY_LAST          = SND_BANK_SLOT_DUMMY_ENGINE_9,
+
     SND_BANK_SLOT_HORN_AND_SIREN      = 17, // 0x11
     SND_BANK_SLOT_COP_HELI            = 18, // 0x12
     SND_BANK_SLOT_VEHICLE_GEN         = 19, // 0x13

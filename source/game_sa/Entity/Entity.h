@@ -176,7 +176,7 @@ public:
     void CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4);
     void UpdateAnim();
     bool IsVisible();
-    float GetDistanceFromCentreOfMassToBaseOfModel();
+    float GetDistanceFromCentreOfMassToBaseOfModel() const;
     void CleanUpOldReference(CEntity** entity); // See helper SafeCleanUpOldReference
 
     /*!

@@ -26,3 +26,25 @@ enum eRadioID : int8 {
     RADIO_OFF,
     RADIO_COUNT,
 };
+
+inline std::string_view EnumToString(eRadioID v) {
+    using namespace std::string_view_literals;
+    switch (v) {
+    case RADIO_INVALID: return "INVALID"sv;
+    case RADIO_EMERGENCY_AA: return "EMERGENCY_AA"sv;
+    case RADIO_CLASSIC_HIP_HOP: return "CLASSIC_HIP_HOP"sv;
+    case RADIO_COUNTRY: return "COUNTRY"sv;
+    case RADIO_CLASSIC_ROCK: return "CLASSIC_ROCK"sv;
+    case RADIO_DISCO_FUNK: return "DISCO_FUNK"sv;
+    case RADIO_HOUSE_CLASSICS: return "HOUSE_CLASSICS"sv;
+    case RADIO_MODERN_HIP_HOP: return "MODERN_HIP_HOP"sv;
+    case RADIO_MODERN_ROCK: return "MODERN_ROCK"sv;
+    case RADIO_NEW_JACK_SWING: return "NEW_JACK_SWING"sv;
+    case RADIO_REGGAE: return "REGGAE"sv;
+    case RADIO_RARE_GROOVE: return "RARE_GROOVE"sv;
+    case RADIO_TALK: return "TALK"sv;
+    case RADIO_USER_TRACKS: return "USER_TRACKS"sv;
+    case RADIO_OFF: return "OFF"sv;
+    default: return "<invalid>"sv;
+    }
+}

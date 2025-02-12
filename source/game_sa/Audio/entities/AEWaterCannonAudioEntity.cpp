@@ -16,7 +16,7 @@ CAEWaterCannonAudioEntity::~CAEWaterCannonAudioEntity() {
 
 // 0x503060
 void CAEWaterCannonAudioEntity::Initialise(CWaterCannon* waterCannon) {
-    m_pEntity = reinterpret_cast<CEntity*>(waterCannon); // bruh
+    m_Entity = reinterpret_cast<CEntity*>(waterCannon); // bruh
     ClearSplashInfo();
     m_bInitialized = true;
 }
@@ -109,7 +109,7 @@ void CAEWaterCannonAudioEntity::Service() {
         return;
 
     bool enabled = false;
-    auto* cannon = reinterpret_cast<CWaterCannon*>(m_pEntity);
+    auto* cannon = reinterpret_cast<CWaterCannon*>(m_Entity);
     if (cannon->m_abUsed[cannon->m_nSectionsCount]) {
         if (cannon->m_nId) {
             enabled = true;

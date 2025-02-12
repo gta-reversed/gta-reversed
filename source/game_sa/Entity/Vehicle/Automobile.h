@@ -90,7 +90,7 @@ public:
     float m_fTireTemperature;
     float m_fAircraftGoToHeading;
     float m_fRotationBalance; // Controls destroyed helicopter rotation
-    float m_fMoveDirection;
+    float m_PrevSpeed;
     CVector m_moveForce;
     CVector m_turnForce;
     std::array<float, 6> DoorRotation; // Inited in ctor with random values, but seemingly unused.
@@ -110,11 +110,11 @@ public:
     float m_fForcedOrientation;
     std::array<float, 2> m_fUpDownLightAngle;
     uint8 m_nNumContactWheels;
-    uint8 m_nWheelsOnGround;
-    uint8 m_wheelsOnGrounPrev;
-    float m_fGasPedalAudio; // [0; 1] adjusts the speed of playback of the skiding sound
+    uint8 m_NumDriveWheelsOnGround;
+    uint8 m_NumDriveWheelsOnGroundLastFrame;
+    float m_GasPedalAudioRevs; // [0; 1] adjusts the speed of playback of the skiding sound
 
-    std::array<tWheelState, 4> m_aWheelState;
+    std::array<tWheelState, 4> m_WheelStates;
     std::array<FxSystem_c*, 2> m_exhaustNitroFxSystem;
 
     uint8 m_harvesterParticleCounter;
@@ -405,7 +405,7 @@ VALIDATE_OFFSET(CAutomobile, m_wheelColPoint, 0x724);
 VALIDATE_OFFSET(CAutomobile, autoFlags, 0x868);
 VALIDATE_OFFSET(CAutomobile, m_bDoingBurnout, 0x86A);
 VALIDATE_OFFSET(CAutomobile, m_wMiscComponentAngle, 0x86C);
-VALIDATE_OFFSET(CAutomobile, m_fGasPedalAudio, 0x964);
+VALIDATE_OFFSET(CAutomobile, m_GasPedalAudioRevs, 0x964);
 
 // Disable matfx (material effects) for material (callback), "data" parameter is unused
 RpMaterial *DisableMatFx(RpMaterial* material, void* data);
