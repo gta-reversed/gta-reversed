@@ -377,14 +377,12 @@ public:
     float                  m_CurrentNitroRatio;
 
 public:
-    static CPed*&                  s_pPlayerAttachedForRadio;
-    static CPed*&                  s_pPlayerDriver;
-    static bool&                   s_HelicoptorsDisabled;
-    static int16&                  s_NextDummyEngineSlot;
-    static tVehicleAudioSettings*& s_pVehicleAudioSettingsForRadio;
-
-    static constexpr int32 NUM_DUMMY_ENGINE_SLOTS = (int32)(eAEState::NUM_STATES);
-    static tDummyEngineSlot (&s_DummyEngineSlots)[NUM_DUMMY_ENGINE_SLOTS];
+    static inline auto& s_pPlayerAttachedForRadio       = StaticRef<CPed*>(0xB6B98C);
+    static inline auto& s_pPlayerDriver                 = StaticRef<CPed*>(0xB6B990);
+    static inline auto& s_HelicoptorsDisabled           = StaticRef<bool>(0xB6B994);
+    static inline auto& s_NextDummyEngineSlot           = StaticRef<int16>(0xB6B998);
+    static inline auto& s_pVehicleAudioSettingsForRadio = StaticRef<tVehicleAudioSettings*>(0xB6B99);
+    static inline auto& s_DummyEngineSlots              = StaticRef<std::array<tDummyEngineSlot, SND_BANK_SLOT_DUMMY_LAST - SND_BANK_SLOT_DUMMY_FIRST>>(0xB6B9A0);
 
 public:
     CAEVehicleAudioEntity();

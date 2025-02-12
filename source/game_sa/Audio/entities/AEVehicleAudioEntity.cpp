@@ -8,15 +8,6 @@
 #include "AEAudioUtility.h"
 #include <Enums/eSoundBankSlot.h>
 
-CPed*&                  CAEVehicleAudioEntity::s_pPlayerAttachedForRadio                     = *(CPed**)0xB6B98C;
-CPed*&                  CAEVehicleAudioEntity::s_pPlayerDriver                               = *(CPed**)0xB6B990;
-bool&                   CAEVehicleAudioEntity::s_HelicoptorsDisabled                         = *(bool*)0xB6B994;
-int16&                  CAEVehicleAudioEntity::s_NextDummyEngineSlot                         = *(int16*)0xB6B998;
-tVehicleAudioSettings*& CAEVehicleAudioEntity::s_pVehicleAudioSettingsForRadio               = *reinterpret_cast<tVehicleAudioSettings**>(0xB6B99C);
-tDummyEngineSlot        (&CAEVehicleAudioEntity::s_DummyEngineSlots)[NUM_DUMMY_ENGINE_SLOTS] = *reinterpret_cast<tDummyEngineSlot (*)[NUM_DUMMY_ENGINE_SLOTS]>(0xB6B9A0);
-
-const tVehicleAudioSettings (&gVehicleAudioSettings)[NUM_VEH_AUDIO_SETTINGS] = *reinterpret_cast<const tVehicleAudioSettings (*)[232]>(0x860AF0);
-
 bool IsSurfaceAudioGrass(eSurfaceType surface) {
     return g_surfaceInfos.IsAudioGrass(surface) || g_surfaceInfos.IsAudioLongGrass(surface);
 }
