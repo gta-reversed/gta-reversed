@@ -160,7 +160,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     m_State                     = eAEState::CAR_OFF;
     m_AuGear                    = 0;
     m_CrzCount                  = 0;
-    m_DummySlot                 = -1;
+    m_DummySlot                 = SND_BANK_SLOT_UNK;
     m_RainDropCounter           = 0;
     m_DoCountStalls             = 0;
     m_StalledCount              = 0;
@@ -232,7 +232,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
             return;
         }
 
-        if (m_AuSettings.DummyBank != -1 && m_AuSettings.DummyBank != 129) {
+        if (m_AuSettings.DummyBank != SND_BANK_UNK && m_AuSettings.DummyBank != SND_BANK_GENRL_TEMP_D) {
             m_DummySlot = RequestBankSlot(m_AuSettings.DummyBank);
         }
 
@@ -252,7 +252,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
         }
 
         m_DummyEngineBank = m_AuSettings.DummyBank;
-        if (m_DummyEngineBank != -1) {
+        if (m_DummyEngineBank != SND_BANK_UNK) {
             m_DummySlot = RequestBankSlot(m_AuSettings.DummyBank);
         }
 
@@ -267,7 +267,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
             return;
         }
 
-        if (m_AuSettings.DummyBank != -1 && m_AuSettings.DummyBank != 129) {
+        if (m_AuSettings.DummyBank != SND_BANK_UNK && m_AuSettings.DummyBank != 129) {
             m_DummySlot = RequestBankSlot(m_AuSettings.DummyBank);
         }
 
@@ -289,7 +289,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
             return;
         }
 
-        if (m_AuSettings.DummyBank != -1) {
+        if (m_AuSettings.DummyBank != SND_BANK_UNK) {
             m_DummySlot = RequestBankSlot(m_AuSettings.DummyBank);
         }
 
@@ -304,7 +304,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
         }
 
         m_DummyEngineBank = m_AuSettings.DummyBank;
-        if (m_DummyEngineBank != -1) {
+        if (m_DummyEngineBank != SND_BANK_UNK) {
             m_DummySlot = RequestBankSlot(m_AuSettings.DummyBank);
         }
 
@@ -315,13 +315,11 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
 
 // 0x5B99F0
 void CAEVehicleAudioEntity::StaticInitialise() {
-    for (auto& slot : s_DummyEngineSlots) {
-        slot.Reset();
-    }
+    rng::fill(s_DummyEngineSlots, tDummyEngineSlot{});
 
-    AEAudioHardware.LoadSoundBank(138, 19);
-    AEAudioHardware.LoadSoundBank(13, 18);
-    AEAudioHardware.LoadSoundBank(74, 17);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_APACHE_D, SND_BANK_SLOT_COP_HELI);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_HORN, SND_BANK_SLOT_HORN_AND_SIREN);
 
     s_pVehicleAudioSettingsForRadio = nullptr;
     s_pPlayerAttachedForRadio       = nullptr;
@@ -336,87 +334,57 @@ void CAEVehicleAudioEntity::Terminate() {
         return;
     }
 
-    for (auto& sound : m_EngineSounds) {
-        if (sound.Sound) {
-            sound.Sound->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
-            sound.Sound->StopSound();
-            sound.Sound = nullptr;
-        }
-    }
-
     PlaySkidSound(-1);
     PlayTrainBrakeSound(-1);
 
-    if (m_SurfaceSound) {
-        m_SurfaceSound->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
-        m_SurfaceSound->StopSound();
-        m_SurfaceSound = nullptr;
-        m_SurfaceSoundType = -1;
-    }
+    const auto GracefullyStopSound = [&](auto*& sound) {
+        if (auto* const s = std::exchange(sound, nullptr)) {
+            s->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
+            s->StopSound();
+        }
+    };
+    rng::for_each(m_EngineSounds, GracefullyStopSound, &tEngineSound::Sound);
 
-    if (m_RoadNoiseSound) {
-        m_RoadNoiseSound->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
-        m_RoadNoiseSound->StopSound();
-        m_RoadNoiseSound      = nullptr;
-        m_RoadNoiseSoundType = -1;
-    }
+    GracefullyStopSound(m_SurfaceSound);
+    m_SurfaceSoundType = -1;
 
-    if (m_FlatTireSound) {
-        m_FlatTireSound->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
-        m_FlatTireSound->StopSound();
-        m_FlatTireSound      = nullptr;
-        m_FlatTireSoundType = -1;
-    }
+    GracefullyStopSound(m_RoadNoiseSound);
+    m_RoadNoiseSoundType = -1;
 
-    if (m_ReverseGearSound) {
-        m_ReverseGearSound->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
-        m_ReverseGearSound->StopSound();
-        m_ReverseGearSound      = nullptr;
-        m_ReverseGearSoundType = -1;
-    }
+    GracefullyStopSound(m_FlatTireSound);
+    m_FlatTireSoundType = -1;
 
-    if (m_HornSound) {
-        m_HornSound->StopSoundAndForget();
-        m_HornSound = nullptr;
-    }
+    GracefullyStopSound(m_ReverseGearSound);
+    m_ReverseGearSoundType = -1;
 
-    if (m_SirenSound) {
-        m_SirenSound->StopSoundAndForget();
-        m_SirenSound = nullptr;
-    }
-
-    if (m_FastSirenSound) {
-        m_FastSirenSound->StopSoundAndForget();
-        m_FastSirenSound = nullptr;
-    }
+    const auto StopAndForgetSound = [](auto*& sound) {
+        if (auto* const s = std::exchange(sound, nullptr)) {
+            s->StopSoundAndForget();
+        }
+    };
+    StopAndForgetSound(m_HornSound);
+    StopAndForgetSound(m_SirenSound);
+    StopAndForgetSound(m_FastSirenSound);
 
     if (m_IsPlayerDriver) {
         TurnOffRadioForVehicle();
     }
 
     // 0x4FBA43
-    if (m_DummySlot != -1) {
-        const auto usedSlot = m_DummySlot - 7;
-        if (usedSlot >= 0 && usedSlot < NUM_DUMMY_ENGINE_SLOTS && s_DummyEngineSlots[usedSlot].BankID == m_DummyEngineBank) {
-            s_DummyEngineSlots[usedSlot].RefCnt = std::max<int16>(0, s_DummyEngineSlots[usedSlot].RefCnt - 1);
-        }
-        m_DummySlot = -1;
+    if (const auto s = std::exchange(m_DummySlot, SND_BANK_SLOT_UNK); s != SND_BANK_SLOT_UNK) {
+        StoppedUsingBankSlot(s);
     }
 
-    m_DummyEngineBank = -1;
-    m_PlayerEngineBank = -1;
-    m_Entity                      = nullptr;
-    m_State                 = eAEState::CAR_OFF;
+    m_DummyEngineBank  = SND_BANK_UNK;
+    m_PlayerEngineBank = SND_BANK_UNK;
+    m_Entity           = nullptr;
+    m_State            = eAEState::CAR_OFF;
 
     if (m_IsPlayerDriver) {
         m_IsPlayerDriver = false;
-        s_pPlayerDriver = nullptr;
+        s_pPlayerDriver  = nullptr;
     } else if (m_IsPlayerPassenger) {
         m_IsPlayerPassenger = false;
-    } else {
-        m_IsPlayerDriverAboutToExit = false;
-        m_IsInitialized            = false;
-        return;
     }
 
     // OG | Replaced by TurnOffRadioForVehicle
@@ -453,82 +421,70 @@ void CAEVehicleAudioEntity::DisableHelicoptor() {
 }
 
 // 0x4F4E30
-bool CAEVehicleAudioEntity::DoesBankSlotContainThisBank(int16 bankSlot, int16 bankId) {
-    const auto usedSlot = bankSlot - 7; // magic number
-    if (usedSlot < 0 || usedSlot > NUM_DUMMY_ENGINE_SLOTS) {
-        return false;
-    }
-
-    return s_DummyEngineSlots[usedSlot].BankID == bankId;
+bool CAEVehicleAudioEntity::DoesBankSlotContainThisBank(eSoundBankSlot bankSlot, eSoundBank bankId) {
+    auto* const s = GetDummyEngineSlot(bankSlot);
+    return s && s->BankID == bankId;
 }
 
 // 0x4F4E60
-int16 CAEVehicleAudioEntity::DemandBankSlot(int16 bankId) {
-    const auto requestResult = RequestBankSlot(bankId);
-    if (requestResult != -1) {
-        return requestResult;
+eSoundBankSlot CAEVehicleAudioEntity::DemandBankSlot(eSoundBank bankId) {
+    // Try asking nicely first, maybe there's a slot we can use
+    if (const auto s = RequestBankSlot(bankId); s != SND_BANK_SLOT_UNK) {
+        return s;
     }
 
-    auto slotToFree = 0;
-    for (auto i = 1; i < NUM_DUMMY_ENGINE_SLOTS; ++i) {
-        if (s_DummyEngineSlots[i].RefCnt < s_DummyEngineSlots[0].RefCnt) {
-            slotToFree = i;
-            break;
-        }
-    }
+    // Otherwise free up the least used slot
+    const auto slot = rng::min_element(s_DummyEngineSlots, std::less<>{}, &tDummyEngineSlot::RefCnt);
+    slot->RefCnt = 0;
 
-    s_DummyEngineSlots[slotToFree].RefCnt = 0;
+    // Now this should always return a valid slot
     return RequestBankSlot(bankId);
 }
 
 // 0x4F4D10
-int16 CAEVehicleAudioEntity::RequestBankSlot(int16 bankId) {
-    int16 freeSlot = -1;
-    for (int16 i = 0; i < NUM_DUMMY_ENGINE_SLOTS; ++i) {
-        auto& dummyEng = s_DummyEngineSlots[i];
-        if (dummyEng.BankID == bankId) {
-            dummyEng.RefCnt++;
-            return i + 7; // todo: magic number
-        }
+eSoundBankSlot CAEVehicleAudioEntity::RequestBankSlot(eSoundBank bankId) {
+    const auto SlotToBankSlot = [&](auto& slot) {
+        return (eSoundBankSlot)(SND_BANK_SLOT_DUMMY_FIRST + std::distance(std::begin(s_DummyEngineSlots), slot));
+    };
 
-        if (dummyEng.RefCnt <= 0) {
-            freeSlot = i;
-        }
+    // Check if there's a slot with this bank already
+    const auto usedSlot = rng::find_if(s_DummyEngineSlots, [&](auto&& s) {
+        return s.BankID == bankId;
+    });
+    if (usedSlot != std::end(s_DummyEngineSlots)) {
+        usedSlot->RefCnt++;
+        return SlotToBankSlot(usedSlot);
     }
 
-    if (freeSlot == -1) {
-        return -1;
+    // If not, find a free slot (if any) and initialize it (NB: I left out the logic for `s_NextDummyEngineSlot`, it's really not necessary...)
+    const auto slot = rng::find_if(s_DummyEngineSlots, [&](auto&& s) {
+        return s.RefCnt < 1;
+    });
+    if (slot == std::end(s_DummyEngineSlots)) {
+        return SND_BANK_SLOT_UNK; // No free slots
     }
 
-    for (auto i = 0; i < NUM_DUMMY_ENGINE_SLOTS; ++i) {
-        const auto slot     = (s_NextDummyEngineSlot + i) % NUM_DUMMY_ENGINE_SLOTS;
-        auto&      dummyEng = s_DummyEngineSlots[slot];
-        if (dummyEng.RefCnt > 0) {
-            continue;
-        }
+    // Initialize the slot
+    AESoundManager.CancelSoundsInBankSlot(SlotToBankSlot(slot), true);
+    AEAudioHardware.LoadSoundBank(bankId, SlotToBankSlot(slot));
+    slot->BankID = bankId;
+    slot->RefCnt = 1;
 
-        freeSlot = slot;
-        ++dummyEng.RefCnt;
-        s_NextDummyEngineSlot = (freeSlot + 1) % NUM_DUMMY_ENGINE_SLOTS;
-        break;
-    }
-
-    // todo: magic number
-    AESoundManager.CancelSoundsInBankSlot(freeSlot + 7, true);
-    AEAudioHardware.LoadSoundBank(bankId, freeSlot + 7);
-    s_DummyEngineSlots[freeSlot].BankID     = bankId;
-    s_DummyEngineSlots[freeSlot].RefCnt = 1;
-    return freeSlot + 7;
+    // Return the bank slot id
+    return SlotToBankSlot(slot);
 }
 
-void CAEVehicleAudioEntity::StoppedUsingBankSlot(int16 bankSlot) {
-    const auto usedSlot = bankSlot - 7; // todo: magic number
-    if (usedSlot < 0 || usedSlot > NUM_DUMMY_ENGINE_SLOTS) {
-        return;
+void CAEVehicleAudioEntity::StoppedUsingBankSlot(eSoundBankSlot bankSlot) {
+    if (auto* const s = GetDummyEngineSlot(bankSlot)) {
+        s->RefCnt = std::max(s->RefCnt - 1, 0);
     }
+}
 
-    auto& dummyEng         = s_DummyEngineSlots[usedSlot];
-    dummyEng.RefCnt = std::max<int16>(0, dummyEng.RefCnt - 1);
+tDummyEngineSlot* CAEVehicleAudioEntity::GetDummyEngineSlot(eSoundBankSlot bankSlot) {
+    const auto s = bankSlot - SND_BANK_SLOT_DUMMY_FIRST;
+    return s >= 0 && s < (int32)(s_DummyEngineSlots.size())
+        ? &s_DummyEngineSlots[s]
+        : nullptr;
 }
 
 // 0x4F5C10
@@ -963,17 +919,17 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
 
         MaybeCancelPlayerEngineSounds();
 
-        if (m_DummyEngineBank == -1 || m_PlayerEngineBank == -1) {
+        if (m_DummyEngineBank == SND_BANK_UNK || m_PlayerEngineBank == SND_BANK_UNK) {
             return;
         }
 
-        if (m_DummySlot == -1) {
+        if (m_DummySlot == SND_BANK_SLOT_UNK) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
         }
 
         EnsurePlayerEngineSoundBankIsLoaded();
 
-        if (m_State != eAEState::DUMMY_ID || m_DummySlot == -1) {
+        if (m_State != eAEState::DUMMY_ID || m_DummySlot == SND_BANK_SLOT_UNK) {
             CancelAllVehicleEngineSounds();
             m_State = eAEState::CAR_OFF;
         } else {
@@ -988,14 +944,14 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
     case AE_AIRCRAFT_SEAPLANE: { // 0x4F5957
         CancelAllVehicleEngineSounds();
 
-        if (m_PlayerEngineBank != -1) {
+        if (m_PlayerEngineBank != SND_BANK_UNK) {
             if (!AEAudioHardware.IsSoundBankLoaded(m_PlayerEngineBank, SND_BANK_SLOT_PLAYER_ENGINE_P)) {
                 MaybeCancelPlayerEngineSounds();
                 AEAudioHardware.LoadSoundBank(m_PlayerEngineBank, SND_BANK_SLOT_PLAYER_ENGINE_P);
             }
         }
 
-        if (m_DummyEngineBank != -1 && m_DummySlot == -1) {
+        if (m_DummyEngineBank != SND_BANK_UNK && m_DummySlot == SND_BANK_SLOT_UNK) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
         }
 
@@ -1010,7 +966,7 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
         MaybeCancelPlayerEngineSounds();
         CancelAllVehicleEngineSounds();
 
-        if (m_DummySlot == -1) {
+        if (m_DummySlot == SND_BANK_SLOT_UNK) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
         }
 
@@ -1021,7 +977,7 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
     case AE_BOAT: { // 0x4F57FF
         m_EventVolume = CAEAudioEntity::GetDefaultVolume(AE_GENERAL_VEHICLE_SOUND);
 
-        if (m_DummySlot == -1) {
+        if (m_DummySlot == SND_BANK_SLOT_UNK) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
         }
         break;
@@ -1031,7 +987,7 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
 
         MaybeCancelPlayerEngineSounds();
 
-        if (m_DummySlot == -1) {
+        if (m_DummySlot == SND_BANK_SLOT_UNK) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
         }
 
@@ -1045,7 +1001,7 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
         MaybeCancelPlayerEngineSounds();
         CancelAllVehicleEngineSounds();
 
-        if (m_DummyEngineBank != -1 && m_DummySlot == -1) {
+        if (m_DummyEngineBank != SND_BANK_UNK && m_DummySlot == SND_BANK_SLOT_UNK) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
 
             EnsurePlayerEngineSoundBankIsLoaded();
@@ -1493,7 +1449,7 @@ void CAEVehicleAudioEntity::UpdateBoatSound(int16 soundType, int16 bankSlotId, i
     return plugin::CallMethod<0x4F9E90, CAEVehicleAudioEntity*, int16, int16, int16, float, float>(this, soundType, bankSlotId, sfxId, speed, volume);
 
     if (m_AuSettings.VehicleAudioType != AE_AIRCRAFT_SEAPLANE) {
-        if (soundType != 6 && m_DummySlot == -1) {
+        if (soundType != 6 && m_DummySlot == SND_BANK_SLOT_UNK) {
             return;
         }
     }
@@ -1535,7 +1491,7 @@ void CAEVehicleAudioEntity::UpdateBoatSound(int16 soundType, int16 bankSlotId, i
 void CAEVehicleAudioEntity::UpdateTrainSound(int16 soundType, int16 bankSlotId, int16 sfxId, float speed, float volume) {
     return plugin::CallMethod<0x4FA1C0, CAEVehicleAudioEntity*, int16, int16, int16, float, float>(this, soundType, bankSlotId, sfxId, speed, volume);
 
-    if (m_DummySlot == -1) {
+    if (m_DummySlot == SND_BANK_SLOT_UNK) {
         return;
     }
 
@@ -1596,12 +1552,12 @@ void CAEVehicleAudioEntity::PlayAircraftSound(eAircraftSoundType soundType, int1
         m_EngineSounds[soundType].Sound = AESoundManager.RequestNewSound(&s);
     };
     switch (soundType) {
-    case AE_SOUND_AIRCRAFT_DISTANT:     DoPlaySound(6.0f);                                 break;
+    case AE_SOUND_AIRCRAFT_DISTANT:     DoPlaySound(6.0f);                                                 break;
     case AE_SOUND_AIRCRAFT_FRONT:                                                          
-    case AE_SOUND_AIRCRAFT_REAR:        DoPlaySound(4.0f);                                 break;
-    case AE_SOUND_AIRCRAFT_NEAR:        DoPlaySound(1.0f, 0.4f);                           break;
-    case AE_SOUND_AIRCRAFT_THRUST:      DoPlaySound(4.5f);                                 break;
-    case AE_SOUND_AIRCRAFT_JET_DISTANT: DoPlaySound(50.0f, 1.f, CVector{ 0.f, 1.f, 0.f }); break;
+    case AE_SOUND_AIRCRAFT_REAR:        DoPlaySound(4.0f);                                                 break;
+    case AE_SOUND_AIRCRAFT_NEAR:        DoPlaySound(1.0f, 0.4f);                                   break;
+    case AE_SOUND_AIRCRAFT_THRUST:      DoPlaySound(4.5f);                                                 break;
+    case AE_SOUND_AIRCRAFT_JET_DISTANT: DoPlaySound(50.0f, 1.f, CVector{ 0.f, 1.f, 0.f });     break;
     default:                            NOTSA_UNREACHABLE();
     }
 }
@@ -1610,7 +1566,7 @@ void CAEVehicleAudioEntity::PlayAircraftSound(eAircraftSoundType soundType, int1
 void CAEVehicleAudioEntity::PlayBicycleSound(int16 engineState, int16 bankSlotId, int16 sfxId, float volume, float speed) {
     return plugin::CallMethod<0x4F9710, CAEVehicleAudioEntity*, int16, int16, int16, float, float>(this, engineState, bankSlotId, sfxId, volume, speed);
 
-    if (m_DummySlot == -1) {
+    if (m_DummySlot == SND_BANK_SLOT_UNK) {
         return;
     }
 
@@ -2390,7 +2346,7 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(cVehicleParams& vp) {
         vp.WheelState                      = a->m_WheelStates.data();
         vp.PrevSpeed                       = a->m_PrevSpeed;
     } else {
-        return;
+        NOTSA_UNREACHABLE();
     }
 
     if (m_IsSingleGear) { // 0x4FBCEA
@@ -2882,7 +2838,7 @@ void CAEVehicleAudioEntity::ProcessDummyGolfCart(cVehicleParams& params) {
 void CAEVehicleAudioEntity::ProcessDummyVehicleEngine(cVehicleParams& vp) {
     auto* const veh = vp.Vehicle;
 
-    if (m_DummySlot == -1) {
+    if (m_DummySlot == SND_BANK_SLOT_UNK) {
         if ((m_DummySlot = RequestBankSlot(m_DummyEngineBank)) == -1) {
             return;
         }
@@ -2896,21 +2852,18 @@ void CAEVehicleAudioEntity::ProcessDummyVehicleEngine(cVehicleParams& vp) {
             bool isIdling;
             switch (m_State) {
             case eAEState::CAR_OFF:
-            case eAEState::DUMMY_ID:   isIdling = gearVelocityProgress < s_Config.DummyEngine.Idle.Ratio;                            break;
+            case eAEState::DUMMY_ID:   isIdling = gearVelocityProgress < s_Config.DummyEngine.Idle.Ratio;                              break;
             case eAEState::NUM_STATES: NOTSA_UNREACHABLE(); // This one was originally handled as part of the above, but it doesn't make any sense....
-            case eAEState::DUMMY_CRZ:  isIdling = gearVelocityProgress < s_Config.DummyEngine.Rev.Ratio;                            break;
+            case eAEState::DUMMY_CRZ:  isIdling = gearVelocityProgress < s_Config.DummyEngine.Rev.Ratio;                               break;
             default:                   ProcessDummyStateTransition(eAEState::CAR_OFF, gearVelocityProgress, vp); return;
             }
             ProcessDummyStateTransition(isIdling ? eAEState::DUMMY_ID : eAEState::DUMMY_CRZ, gearVelocityProgress, vp);
         } else {
             ProcessDummyStateTransition(eAEState::CAR_OFF, 0.f, vp);
         }
-    } else { // 0x5014D9
-        const auto ds = m_DummySlot - 7;
-        if (ds > 9 || s_DummyEngineSlots[ds].BankID != m_DummyEngineBank) {
-            m_DummySlot = RequestBankSlot(m_DummyEngineBank);
-            m_State     = eAEState::CAR_OFF;
-        }
+    } else if (!DoesBankSlotContainThisBank(m_DummySlot, m_DummyEngineBank)) { // 0x5014D9
+        m_DummySlot = RequestBankSlot(m_DummyEngineBank);
+        m_State     = eAEState::CAR_OFF;
     }
 }
 
@@ -2955,7 +2908,8 @@ void CAEVehicleAudioEntity::ProcessPropStall(CPlane* plane, float& outVolume, fl
             float FastStallProbability;
             struct {
                 uint32 Min, Max;
-            } Intervals[2];
+            } Intervals[2]; // 0 = slow stall, 1 = fast stall 
+
             auto GetRandomStallTime() const {
                 const auto& i = Intervals[CAEAudioUtility::ResolveProbability(FastStallProbability)];
                 return CAEAudioUtility::GetRandomNumberInRange(i.Min, i.Max);

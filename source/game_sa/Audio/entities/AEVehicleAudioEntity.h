@@ -13,6 +13,9 @@
 #include "eAudioEvents.h"
 #include "eRadioID.h"
 #include "eVehicleType.h"
+#include "eSoundBank.h"
+#include "eSoundBankSlot.h"
+
 enum tWheelState : int32;
 
 class CVehicle;
@@ -41,13 +44,8 @@ enum eRadioType : int8 {
 };
 
 struct tDummyEngineSlot {
-    int16 BankID;
-    int16 RefCnt;
-
-    void Reset() {
-        BankID = -1;
-        RefCnt = 0;
-    }
+    int16 BankID{ SND_BANK_UNK };
+    int16 RefCnt{ 0 };
 };
 VALIDATE_SIZE(tDummyEngineSlot, 0x4);
 
@@ -92,19 +90,19 @@ VALIDATE_SIZE(tEngineSound, 0x8);
 
 struct tVehicleAudioSettings {
     eAEVehicleSoundType VehicleAudioType;
-    int16             PlayerBank;
-    int16             DummyBank;
-    int8              BassSetting; // m_nStereo
-    float             BassFactor; // m_fBassFactor
-    float             EnginePitch;
-    int8              HornType; // sfx id
-    float             HornPitch;
-    char              DoorType;
-    char              EngineUpgrade;
-    eRadioID          RadioStation;
-    eRadioType        RadioType;
-    int8              VehicleAudioTypeForName;
-    float             EngineVolumeOffset;
+    eSoundBankS16       PlayerBank;
+    eSoundBankS16       DummyBank;
+    int8                BassSetting; // m_nStereo
+    float               BassFactor;  // m_fBassFactor
+    float               EnginePitch;
+    int8                HornType; // sfx id
+    float               HornPitch;
+    char                DoorType;
+    char                EngineUpgrade;
+    eRadioID            RadioStation;
+    eRadioType          RadioType;
+    int8                VehicleAudioTypeForName;
+    float               EngineVolumeOffset;
 
 public:
     [[nodiscard]] bool IsHeli()          const { return VehicleAudioType == eAEVehicleSoundType::AE_AIRCRAFT_HELICOPTER; }
@@ -309,9 +307,9 @@ public:
     bool                   m_IsPlayerPassenger;
     bool                   m_IsPlayerDriverAboutToExit;
     bool                   m_IsWreckedVehicle;
-    eAEState               m_State; // Engine state?
-    uint8                  m_AuGear; // AudioGear
-    float                  m_CrzCount; // Crz = Cruise ?
+    eAEState               m_State;    //!< Self explainatory
+    uint8                  m_AuGear;   //!< Still not sure
+    float                  m_CrzCount; //!< Max value is defined in the config (`MaxCrzCount`) - Used when in the last gear and the engine is maxed out
     bool                   m_IsSingleGear;
     int16                  m_RainDropCounter;
     int16                  m_StalledCount;
@@ -331,9 +329,9 @@ public:
 
     float                  m_EventVolume;
 
-    int16                  m_DummyEngineBank;
-    int16                  m_PlayerEngineBank;
-    int16                  m_DummySlot;
+    eSoundBankS16          m_DummyEngineBank;
+    eSoundBankS16          m_PlayerEngineBank;
+    eSoundBankSlotS16      m_DummySlot;
     std::array<tEngineSound, AE_SOUND_ENGINE_MAX> m_EngineSounds;
 
     int32                  m_TimeLastServiced;
@@ -395,11 +393,13 @@ public:
 
     void Terminate();
 
+    static bool DoesBankSlotContainThisBank(eSoundBankSlot bankSlot, eSoundBank bankId);
+    static eSoundBankSlot DemandBankSlot(eSoundBank bankId);
+    static eSoundBankSlot RequestBankSlot(eSoundBank bankId);
+    static void StoppedUsingBankSlot(eSoundBankSlot bankSlot);
+    static tDummyEngineSlot* GetDummyEngineSlot(eSoundBankSlot bankSlot);
+
     static tVehicleAudioSettings* StaticGetPlayerVehicleAudioSettingsForRadio();
-    static bool DoesBankSlotContainThisBank(int16 bankSlot, int16 bankId);
-    static int16 DemandBankSlot(int16 bankId);
-    static int16 RequestBankSlot(int16 bankId);
-    static void StoppedUsingBankSlot(int16 bankSlot);
     static tVehicleAudioSettings GetVehicleAudioSettings(int16 vehId);
 
     void AddAudioEvent(eAudioEvents event, float fVolume);

@@ -77,13 +77,13 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
     FormattedText("TimeBeforeAllowAccelerate: {}", ae->m_TimeBeforeAllowAccelerate);
     FormattedText("TimeBeforeAllowCruise: {}", ae->m_TimeBeforeAllowCruise);
     FormattedText("EventVolume: {}", ae->m_EventVolume);
-    FormattedText("DummyEngineBank: {}", ae->m_DummyEngineBank);
-    FormattedText("PlayerEngineBank: {}", ae->m_PlayerEngineBank);
-    FormattedText("DummySlot: {}", ae->m_DummySlot);
+    FormattedText("DummyEngineBank: {}", (int32)(ae->m_DummyEngineBank));
+    FormattedText("PlayerEngineBank: {}", (int32)(ae->m_PlayerEngineBank));
+    FormattedText("DummySlot: {}", (int32)(ae->m_DummySlot));
     if (auto* const as = &ae->m_AuSettings; ImGui::TreeNode("AuSettings")) {
         FormattedText("VehicleAudioType: {}", EnumToString(as->VehicleAudioType));
-        FormattedText("PlayerBank: {}", as->PlayerBank);
-        FormattedText("DummyBank: {}", as->DummyBank);
+        FormattedText("PlayerBank: {}", (int32)(as->PlayerBank));
+        FormattedText("DummyBank: {}", (int32)(as->DummyBank));
         FormattedText("BassSetting: {}", as->BassSetting);
         FormattedText("BassFactor: {}", as->BassFactor);
         FormattedText("EnginePitch: {}", as->EnginePitch);
