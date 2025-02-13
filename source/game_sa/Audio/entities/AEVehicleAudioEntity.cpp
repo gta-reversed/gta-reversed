@@ -111,7 +111,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessDummyRCCar, 0x500DC0, { .reversed = false });
     RH_ScopedInstall(ProcessDummyHovercraft, 0x500F50, { .reversed = false });
     RH_ScopedInstall(ProcessDummyGolfCart, 0x501270);
-    RH_ScopedInstall(ProcessDummyVehicleEngine, 0x501480, { .reversed = false });
+    RH_ScopedInstall(ProcessDummyVehicleEngine, 0x501480);
     RH_ScopedInstall(ProcessPlayerJet, 0x501650);
     RH_ScopedInstall(ProcessDummyJet, 0x501960);
     RH_ScopedInstall(ProcessAircraft, 0x501C50);
