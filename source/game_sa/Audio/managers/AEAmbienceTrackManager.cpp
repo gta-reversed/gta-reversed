@@ -317,9 +317,9 @@ void CAEAmbienceTrackManager::UpdateAmbienceTrackAndVolume() {
         } else if (m_RequestedSettings.TrackID != 174) { // 0x4D73AE
             FadeOutAndStop();
         } else { // 0x4D73E7
-            m_Volume = stepto(m_Volume, volume, 1.f);
+            m_Volume = notsa::step_to(m_Volume, volume, 1.f);
         }
-        m_FreqFactor = stepto(m_FreqFactor, CWeather::UnderWaterness < 0.5f ? 1.f : 0.0625f, 0.25f);   
+        m_FreqFactor = notsa::step_to(m_FreqFactor, CWeather::UnderWaterness < 0.5f ? 1.f : 0.0625f, 0.25f);   
     } else if (specialTrackId != m_SpecialMissionAmbienceTrackID) { // 0x4D7250
         if (m_AmbienceStatus == 8) {
             m_RequestedSettings.TrackID = specialTrackId;

@@ -43,6 +43,15 @@ protected: // Config:
         float FreqUnderwaterFactor   = 0.7f; // 0x8CBC48
         tComponent HeliAudioComponent = COMPONENT_WING_RR; //!< 0x8CBD4C - Where audio is placed for helis
 
+        struct {
+            float StepDown{0.07f}, StepUp{0.09f}; // 0x8CBC28, 0x8CBC24
+        } GasPedal;
+
+        struct {
+            float VolOffset{-9.f}; // 0x8CBD1C
+            float FrqGearVelocityFactor{0.4f}; // 0x8CBD18
+        } FlatTyre;
+
         // Dummy engine constants:
         struct {
             float VolumeUnderwaterOffset = 6.f; // 0x8CBC44
@@ -78,15 +87,18 @@ protected: // Config:
         } DummyEngine{};
 
         struct {
-            float AccelWheelSpinThreshold{ 150.f / 255.f }; // 0x8CBC54
-            float SpeedOffsetCrz{ 0.001f };                 // 0x8CBD34
-            float SpeedOffsetAc{ 0.0015f };                 // 0x8CBD30
-            float ZMoveSpeedThreshold{ 0.2f };              // 0x8CBD38
-            int32 MaxAuGear{ 5 };                           // 0xdeadbeef
-            int32 MaxCrzCnt{ 150 };                         // 0x8CBC8C
-            float SingleGearVolume{ -2.f };                 // 0xB6BA3C
-            float AccInhibitForLowSpeedLimit{ 0.1f }; // 0x8CBCD0
+            int32 ACRepeatFrameCnt{ 10 };                // 0x8CBCC0
+            int32 ACRepeatTimeMs{ 120 };                 // 8CBCBC
+            float ACWheelSpinThreshold{ 150.f / 255.f }; // 0x8CBC54
+            float ACSpeedOffset{ 0.0015f };              // 0x8CBD30
+            float ACInhibitForLowSpeedLimit{ 0.1f };    // 0x8CBCD0
 
+            float CrzSpeedOffset{ 0.001f };              // 0x8CBD34
+            int32 CrzMaxCnt{ 150 };                      // 0x8CBC8C
+
+            float ZMoveSpeedThreshold{ 0.2f };           // 0x8CBD38
+            int32 MaxAuGear{ 5 };                        // 0xdeadbeef
+            float SingleGearVolume{ -2.f };              // 0xB6BA3C
             float VolNitroFactor{ 3.f }; // 0x8CBC4C
 
             float FrqNitroFactor{ 0.12f };                                       // 0x8CBC50
@@ -426,6 +438,7 @@ private:
     void ProcessPropStall(CPlane* plane, float& outVolume, float& outFreq);
     bool EnsureHasDummySlot() noexcept;
     bool EnsureSoundBankIsLoaded(bool isDummy = true);
+    auto GetEngineSound(eVehicleEngineSoundType st) const noexcept { return m_EngineSounds[st].Sound; }
 
 public:
     int16                  m_DoCountStalls;

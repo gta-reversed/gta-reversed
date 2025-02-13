@@ -203,15 +203,15 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
     }
 
     if (auto* const pe = &cfg->PlayerEngine; ImGui::TreeNode("Player Engine")) {
-        ImGui::DragFloat("AccelWheelSpinThreshold", &pe->AccelWheelSpinThreshold, 0.005f, 0.f, 1.f);
-        ImGui::DragFloat("SpeedOffsetCrz", &pe->SpeedOffsetCrz, 1.f, -100.f, 100.f);
-        ImGui::DragFloat("SpeedOffsetAc", &pe->SpeedOffsetAc, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("AccelWheelSpinThreshold", &pe->ACWheelSpinThreshold, 0.005f, 0.f, 1.f);
+        ImGui::DragFloat("SpeedOffsetCrz", &pe->CrzSpeedOffset, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("SpeedOffsetAc", &pe->ACSpeedOffset, 1.f, -100.f, 100.f);
         ImGui::DragFloat("ZMoveSpeedThreshold", &pe->ZMoveSpeedThreshold, 1.f, -100.f, 100.f);
         ImGui::DragInt("MaxAuGear", &pe->MaxAuGear, 1.f, -100, 100);
-        ImGui::DragInt("MaxCrzCnt", &pe->MaxCrzCnt, 1.f, -100, 100);
+        ImGui::DragInt("MaxCrzCnt", &pe->CrzMaxCnt, 1.f, -100, 100);
         ImGui::DragFloat("NitroFactor", &pe->VolNitroFactor, 1.f, -100.f, 100.f);
         ImGui::DragFloat("SingleGearVolume", &pe->SingleGearVolume, 1.f, -100.f, 100.f);
-        ImGui::DragFloat("AccInhibitForLowSpeedLimit", &pe->AccInhibitForLowSpeedLimit, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("AccInhibitForLowSpeedLimit", &pe->ACInhibitForLowSpeedLimit, 1.f, -100.f, 100.f);
         ImGui::DragFloat("VolNitroFactor", &pe->VolNitroFactor, 1.f, -100.f, 100.f);
         ImGui::DragFloat("FrqNitroFactor", &pe->FrqNitroFactor, 1.f, -100.f, 100.f);
         ImGui::DragFloat("FrqWheelSpinFactor", &pe->FrqWheelSpinFactor, 1.f, -100.f, 100.f);
