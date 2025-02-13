@@ -211,6 +211,15 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
         ImGui::DragInt("MaxCrzCnt", &pe->MaxCrzCnt, 1.f, -100, 100);
         ImGui::DragFloat("NitroFactor", &pe->VolNitroFactor, 1.f, -100.f, 100.f);
         ImGui::DragFloat("SingleGearVolume", &pe->SingleGearVolume, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("AccInhibitForLowSpeedLimit", &pe->AccInhibitForLowSpeedLimit, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("VolNitroFactor", &pe->VolNitroFactor, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("FrqNitroFactor", &pe->FrqNitroFactor, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("FrqWheelSpinFactor", &pe->FrqWheelSpinFactor, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("FrqBikeLeanFactor", &pe->FrqBikeLeanFactor, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("FrqPlayerBikeBoostOffset", &pe->FrqPlayerBikeBoostOffset, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("FrqZMoveSpeedLimitMin", &pe->FrqZMoveSpeedLimitMin, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("FrqZMoveSpeedLimitMax", &pe->FrqZMoveSpeedLimitMax, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("FrqZMoveSpeedFactor", &pe->FrqZMoveSpeedFactor, 1.f, -100.f, 100.f);
 
         if (ImGui::TreeNode("ST1")) {
             ImGui::DragFloat("FrqWheelSpinFactor", &pe->ST1.FrqWheelSpinFactor, 1.f, -100.f, 100.f);

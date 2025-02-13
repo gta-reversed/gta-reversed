@@ -7,6 +7,7 @@
 #include "AESoundManager.h"
 #include "AEAudioUtility.h"
 #include <Enums/eSoundBankSlot.h>
+#include <DamageManager.h> // tComponent
 
 bool IsSurfaceAudioGrass(eSurfaceType surface) {
     return g_surfaceInfos.IsAudioGrass(surface) || g_surfaceInfos.IsAudioLongGrass(surface);
@@ -14,6 +15,13 @@ bool IsSurfaceAudioGrass(eSurfaceType surface) {
 
 bool IsSurfaceAudioEitherGravelWaterSand(eSurfaceType surface) {
     return g_surfaceInfos.IsAudioGravel(surface) || g_surfaceInfos.IsAudioSand(surface) || g_surfaceInfos.IsAudioWater(surface);
+}
+
+void GracefullyStopSound(CAESound*& sound) {
+    if (auto* const s = std::exchange(sound, nullptr)) {
+        s->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
+        s->StopSound();
+    }
 }
 
 void CAEVehicleAudioEntity::InjectHooks() {
@@ -195,7 +203,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     m_MovingPartSmoothedSpeed     = 0.0f;
     m_FadeIn                      = 1.0f;
     m_FadeOut                     = 0.0f;
-    m_AuSettings                  = GetVehicleAudioSettings(entity->m_nModelIndex);
+    m_AuSettings                  = GetVehicleAudioSettings(entity->m_nModelIndex - MODEL_VEHICLE_FIRST);
     m_HasSiren                    = entity->AsVehicle()->UsesSiren();
 
     for (uint32 i = 0; auto& sound : m_EngineSounds) {
@@ -333,12 +341,6 @@ void CAEVehicleAudioEntity::Terminate() {
     PlaySkidSound(-1);
     PlayTrainBrakeSound(-1);
 
-    const auto GracefullyStopSound = [&](auto*& sound) {
-        if (auto* const s = std::exchange(sound, nullptr)) {
-            s->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
-            s->StopSound();
-        }
-    };
     rng::for_each(m_EngineSounds, GracefullyStopSound, &tEngineSound::Sound);
 
     GracefullyStopSound(m_SurfaceSound);
@@ -495,12 +497,9 @@ void CAEVehicleAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
     }
 
     if (sound->m_nEvent == AE_BONNET_FLUBBER_FLUBBER) {
-        if (!sound->m_pPhysicalEntity) {
-            return;
+        if (sound->m_pPhysicalEntity) {
+            sound->m_fVolume = GetDefaultVolume(AE_BONNET_FLUBBER_FLUBBER) + GetFlyingMetalVolume(sound->m_pPhysicalEntity->AsPhysical());
         }
-
-        const auto fBaseVolume = GetDefaultVolume(AE_BONNET_FLUBBER_FLUBBER);
-        sound->m_fVolume       = fBaseVolume + GetFlyingMetalVolume(sound->m_pPhysicalEntity->AsPhysical());
         return;
     }
 
@@ -530,25 +529,17 @@ void CAEVehicleAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
             m_SirenSound = nullptr;
         } else if (sound == m_FastSirenSound) {
             m_FastSirenSound = nullptr;
-        } else {
-            for (auto& engSound : m_EngineSounds) {
-                if (engSound.Sound == sound) {
-                    engSound.Sound = nullptr;
-                    break;
-                }
-            }
+        } else if (const auto it = rng::find(m_EngineSounds, sound, &tEngineSound::Sound); it != m_EngineSounds.end()) {
+            it->Sound = nullptr;
         }
+    } else if (m_AuSettings.IsAircraftEngineSound() && m_EngineSounds[AE_SOUND_AIRCRAFT_NEAR].Sound) {
+        sound->SetPosition(GetAircraftNearPosition());
     } else {
-        if ((m_AuSettings.IsFlyingVehicle() || m_AuSettings.IsNonVeh()) && m_EngineSounds[3].Sound) {
-            sound->SetPosition(GetAircraftNearPosition());
-        } else {
-            sound->SetPosition(m_Entity->GetPosition());
-        }
+        sound->SetPosition(m_Entity->GetPosition());
     }
 
-    if ((m_AuSettings.IsCar() || m_AuSettings.IsMotorcycle()) && sound == m_EngineSounds[4].Sound) {
-        m_ACPlayPositionLastFrame = m_ACPlayPositionThisFrame;
-        m_ACPlayPositionThisFrame       = curPlayPos;
+    if (m_AuSettings.IsCarEngineSound() && sound == m_EngineSounds[AE_SOUND_PLAYER_AC].Sound) {
+        m_ACPlayPositionLastFrame = std::exchange(m_ACPlayPositionThisFrame, curPlayPos);
     }
 }
 
@@ -613,11 +604,9 @@ void CAEVehicleAudioEntity::StaticService() {
 
 // 0x4F96A0
 CVector CAEVehicleAudioEntity::GetAircraftNearPosition() {
-    static const int16 snHeliAudioComponent = tComponent::COMPONENT_WING_RR;
-
     if (m_AuSettings.IsHeli()) {
         CVector pos;
-        m_Entity->AsVehicle()->GetComponentWorldPosition(snHeliAudioComponent, pos);
+        m_Entity->AsVehicle()->GetComponentWorldPosition(s_Config.HeliAudioComponent, pos);
         return pos;
     } else {
         return m_Entity->GetPosition();
@@ -626,17 +615,10 @@ CVector CAEVehicleAudioEntity::GetAircraftNearPosition() {
 
 // 0x4F6150
 float CAEVehicleAudioEntity::GetFlyingMetalVolume(CPhysical* physical) {
-    const auto speed = physical->m_vecTurnSpeed.SquaredMagnitude();
-    if (speed >= 0.5625F) {
-        return CAEAudioUtility::AudioLog10(1.0F) * 10.0F;
-    }
-
-    const auto fVol = speed / 0.5625F;
-    if (fVol < 1.0e-10F) {
-        return -100.0F;
-    }
-
-    return CAEAudioUtility::AudioLog10(fVol) * 10.0F;
+    const auto volume = std::min(physical->m_vecTurnSpeed.SquaredMagnitude(), sq(0.75f)) / sq(0.75f);
+    return volume >= 1.0e-10f
+        ? CAEAudioUtility::AudioLog10(volume) * 10.f
+        : -100.f;
 }
 
 // 0x4FA630
@@ -689,7 +671,7 @@ bool CAEVehicleAudioEntity::IsAccInhibitedBackwards(tVehicleParams& vp) const {
 
 // 0x4F4FF0
 bool CAEVehicleAudioEntity::IsAccInhibitedForLowSpeed(tVehicleParams& vp) const {
-    return !m_IsSingleGear && vp.Speed < 0.1f; // 0.1f is static
+    return !m_IsSingleGear && vp.Speed < s_Config.PlayerEngine.AccInhibitForLowSpeedLimit;
 }
 
 // 0x4F5020
@@ -1230,11 +1212,7 @@ void CAEVehicleAudioEntity::GetSirenState(bool& bSirenOrAlarm, bool& bHorn, tVeh
 
 // 0x4F6320
 void CAEVehicleAudioEntity::StopGenericEngineSound(int16 index) {
-    if (CAESound*& sound = m_EngineSounds[index].Sound) {
-        sound->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
-        sound->StopSound();
-        sound = nullptr;
-    }
+    GracefullyStopSound(m_EngineSounds[index].Sound);
 }
 
 // 0x4F7A50
@@ -3013,10 +2991,30 @@ void CAEVehicleAudioEntity::ProcessPropStall(CPlane* plane, float& outVolume, fl
     }
 }
 
+bool CAEVehicleAudioEntity::EnsureHasDummySlot() noexcept {
+    if (m_DummySlot == -1) {
+        m_DummySlot = RequestBankSlot(m_DummyEngineBank);
+    }
+    return m_DummySlot != -1;
+}
+
+bool CAEVehicleAudioEntity::EnsureSoundBankIsLoaded(bool isDummy) {
+    const auto bank = isDummy ? m_DummyEngineBank : m_PlayerEngineBank;
+    const auto slot = isDummy ? m_DummySlot.get() : SND_BANK_SLOT_PLAYER_ENGINE_P;
+    if (!AEAudioHardware.IsSoundBankLoaded(bank, slot)) {
+        if (!DoesBankSlotContainThisBank(slot, bank)) {
+            m_DummySlot = RequestBankSlot(bank);
+            m_State     = eAEState::CAR_OFF;
+        }
+        return false;
+    }
+    return true;
+}
+
 // Based on `ProcessDummyProp`. Implementation for both `ProcessDummyProp` and `ProcessPlayerProp`
 // Process aircraft engine (propeller) sounds
 void CAEVehicleAudioEntity::ProcessProp(tVehicleParams& vp, bool isDummy) {
-    if (!AEAudioHardware.IsSoundBankLoaded(138, 19) || !AEAudioHardware.IsSoundBankLoaded(m_PlayerEngineBank, 40)) {
+    if (!AEAudioHardware.IsSoundBankLoaded(138, 19) || !AEAudioHardware.IsSoundBankLoaded(m_PlayerEngineBank, SND_BANK_SLOT_PLAYER_ENGINE_P)) {
         return;
     }
 

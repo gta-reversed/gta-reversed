@@ -23,13 +23,15 @@ struct tVehicleAudioSettings {
     float                      EngineVolumeOffset{}; //!< Engine's base volume
 
 public:
-    [[nodiscard]] bool IsHeli()          const { return VehicleAudioType == eAEVehicleSoundType::AE_AIRCRAFT_HELICOPTER; }
-    [[nodiscard]] bool IsPlane()         const { return VehicleAudioType == eAEVehicleSoundType::AE_AIRCRAFT_PLANE; }
-    [[nodiscard]] bool IsFlyingVehicle() const { return IsPlane() || IsHeli(); }
-    [[nodiscard]] bool IsNonVeh()        const { return VehicleAudioType == eAEVehicleSoundType::AE_AIRCRAFT_SEAPLANE; }
-    [[nodiscard]] bool IsCar()           const { return VehicleAudioType == eAEVehicleSoundType::AE_CAR; }
-    [[nodiscard]] bool IsMotorcycle()    const { return VehicleAudioType == eAEVehicleSoundType::AE_BIKE; }
-    [[nodiscard]] bool IsBicycle()       const { return VehicleAudioType == eAEVehicleSoundType::AE_BMX; }
+    [[nodiscard]] bool IsHeli()                const { return VehicleAudioType == eAEVehicleSoundType::AE_AIRCRAFT_HELICOPTER; }
+    [[nodiscard]] bool IsPlane()               const { return VehicleAudioType == eAEVehicleSoundType::AE_AIRCRAFT_PLANE; }
+    [[nodiscard]] bool IsFlyingVehicle()       const { return IsPlane() || IsHeli(); }
+    [[nodiscard]] bool IsSeaplane()            const { return VehicleAudioType == eAEVehicleSoundType::AE_AIRCRAFT_SEAPLANE; }
+    [[nodiscard]] bool IsAircraftEngineSound() const { return notsa::contains({AE_AIRCRAFT_HELICOPTER, AE_AIRCRAFT_PLANE, AE_AIRCRAFT_SEAPLANE}, VehicleAudioType); }
+    [[nodiscard]] bool IsCar()                 const { return VehicleAudioType == eAEVehicleSoundType::AE_CAR; }
+    [[nodiscard]] bool IsMotorcycle()          const { return VehicleAudioType == eAEVehicleSoundType::AE_BIKE; }
+    [[nodiscard]] bool IsCarEngineSound()      const { return notsa::contains({eAEVehicleSoundType::AE_BIKE, eAEVehicleSoundType::AE_CAR}, VehicleAudioType); }
+    [[nodiscard]] bool IsBicycle()             const { return VehicleAudioType == eAEVehicleSoundType::AE_BMX; }
 };
 VALIDATE_SIZE(tVehicleAudioSettings, 0x24);
 
@@ -3519,6 +3521,6 @@ inline std::array<tVehicleAudioSettings, 232> VehicleAudioSettings{{
     }
 }};
 
-tVehicleAudioSettings& GetVehicleAudioSettings(eModelID model) {
+inline tVehicleAudioSettings& GetVehicleAudioSettings(eModelID model) {
     return VehicleAudioSettings[model - (+MODEL_VEHICLE_FIRST)];
 }

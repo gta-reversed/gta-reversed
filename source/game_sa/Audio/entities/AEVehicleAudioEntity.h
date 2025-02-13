@@ -20,6 +20,7 @@
 #include <Audio/Enums/eAEVehicleAudioType.h>
 #include <Audio/Enums/eAERadioType.h>
 #include "./AEVehicleAudioEntity.VehicleAudioSettings.h"
+#include <DamageManager.h> // tComponent
 
 enum tWheelState : int32;
 
@@ -40,6 +41,7 @@ protected: // Config:
     // Config struct - Obviously this is notsa, but it's necessary for the debug module
     static inline struct Config {
         float FreqUnderwaterFactor   = 0.7f; // 0x8CBC48
+        tComponent HeliAudioComponent = COMPONENT_WING_RR; //!< 0x8CBD4C - Where audio is placed for helis
 
         // Dummy engine constants:
         struct {
@@ -67,6 +69,12 @@ protected: // Config:
                 float FreqBase   = 0.9f; // 0x8CBC0C
                 float FreqMax    = 1.5f; // 0x8CBC10
             } Rev{};
+
+            // Golf Cart
+            struct {
+                float FrqMin{ 0.85f }, FrqMax{ 1.2f }; // 0x8CBFD0, 0x8CBFD4
+                float VolOffset{ -3.f };                 // 0x8CBFCC
+            } GolfCart;
         } DummyEngine{};
 
         struct {
@@ -77,6 +85,7 @@ protected: // Config:
             int32 MaxAuGear{ 5 };                           // 0xdeadbeef
             int32 MaxCrzCnt{ 150 };                         // 0x8CBC8C
             float SingleGearVolume{ -2.f };                 // 0xB6BA3C
+            float AccInhibitForLowSpeedLimit{ 0.1f }; // 0x8CBCD0
 
             float VolNitroFactor{ 3.f }; // 0x8CBC4C
 
@@ -184,6 +193,11 @@ public: // Enums:
         AE_SOUND_BOAT_WATER_SKIM = 6,
     };
 
+    enum : eVehicleEngineSoundType{ // For all other dummies
+        AE_DUMMY_CRZ = 0x0,
+        AE_DUMMY_ID = 0x1,
+    };
+
     enum class eAEState : uint8 {
         CAR_OFF              = 0,
 
@@ -202,11 +216,6 @@ public: // Enums:
 
         // Keep this at the bottom
         NUM_STATES
-    };
-
-    enum { // ????
-        AE_DUMMY_CRZ = 0x0,
-        AE_DUMMY_ID = 0x1,
     };
 
 public: // Structs:
@@ -254,7 +263,7 @@ public:
     static inline auto& s_pPlayerDriver                 = StaticRef<CPed*>(0xB6B990);
     static inline auto& s_HelicoptorsDisabled           = StaticRef<bool>(0xB6B994);
     static inline auto& s_NextDummyEngineSlot           = StaticRef<int16>(0xB6B998);
-    static inline auto& s_pVehicleAudioSettingsForRadio = StaticRef<tVehicleAudioSettings*>(0xB6B99);
+    static inline auto& s_pVehicleAudioSettingsForRadio = StaticRef<tVehicleAudioSettings*>(0xB6B98C);
     static inline auto& s_DummyEngineSlots              = StaticRef<std::array<tDummyEngineSlot, SND_BANK_SLOT_DUMMY_LAST - SND_BANK_SLOT_DUMMY_FIRST>>(0xB6B9A0);
 
 public:
@@ -412,8 +421,11 @@ public:
                         float fTimeScale = 1.0f, eSoundEnvironment individualEnvironment = SOUND_REQUEST_UPDATES, int16 playPos = 0);
 
     auto GetVehicle() const { return m_Entity->AsVehicle(); }
+
 private:
     void ProcessPropStall(CPlane* plane, float& outVolume, float& outFreq);
+    bool EnsureHasDummySlot() noexcept;
+    bool EnsureSoundBankIsLoaded(bool isDummy = true);
 
 public:
     int16                  m_DoCountStalls;
