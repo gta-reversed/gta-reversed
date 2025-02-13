@@ -110,7 +110,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessPlayerCombine, 0x500CE0, { .reversed = false });
     RH_ScopedInstall(ProcessDummyRCCar, 0x500DC0, { .reversed = false });
     RH_ScopedInstall(ProcessDummyHovercraft, 0x500F50, { .reversed = false });
-    RH_ScopedInstall(ProcessDummyGolfCart, 0x501270, { .reversed = false });
+    RH_ScopedInstall(ProcessDummyGolfCart, 0x501270);
     RH_ScopedInstall(ProcessDummyVehicleEngine, 0x501480, { .reversed = false });
     RH_ScopedInstall(ProcessPlayerJet, 0x501650);
     RH_ScopedInstall(ProcessDummyJet, 0x501960);
@@ -2882,8 +2882,41 @@ void CAEVehicleAudioEntity::ProcessDummyHovercraft(tVehicleParams& params) {
 }
 
 // 0x501270
-void CAEVehicleAudioEntity::ProcessDummyGolfCart(tVehicleParams& params) {
-    plugin::CallMethod<0x501270, CAEVehicleAudioEntity*, tVehicleParams&>(this, params);
+void CAEVehicleAudioEntity::ProcessDummyGolfCart(tVehicleParams& vp) {
+    auto* const cfg = &s_Config.DummyEngine.GolfCart;
+
+    if (!EnsureHasDummySlot()) {
+        return;
+    }
+    if (!EnsureSoundBankIsLoaded()) {
+        return;
+    }
+    if (!vp.Vehicle->vehicleFlags.bEngineOn || m_IsWreckedVehicle) {
+        CancelAllVehicleEngineSounds();
+        return;
+    }
+    const auto t = vp.Transmission && vp.Vehicle->GetStatus() != STATUS_ABANDONED
+        ? std::clamp(std::abs(vp.Speed / vp.Transmission->m_MaxVelocity), 0.f, 1.f)
+        : 0.f;
+    if (t >= 0.05f) {
+        const auto volume = CGeneral::GetPiecewiseLinear({
+            { 0.00f, 0.00f },
+            { 0.05f, 0.00f },
+            { 0.10f, 0.50f },
+            { 1.00f, 1.00f }
+        }, t);
+        UpdateGenericVehicleSound(
+            AE_DUMMY_ID,
+            m_DummySlot,
+            m_DummyEngineBank,
+            0,
+            lerp(cfg->FrqMin, cfg->FrqMax, t),
+            CAEAudioUtility::AudioLog10(volume) * 20.f + cfg->VolOffset,
+            2.f
+        );
+    } else {
+        StopGenericEngineSound(AE_DUMMY_ID);
+    }
 }
 
 // 0x501480
