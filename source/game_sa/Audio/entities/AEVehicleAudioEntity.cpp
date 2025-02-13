@@ -9,6 +9,19 @@
 #include <Enums/eSoundBankSlot.h>
 #include <DamageManager.h> // tComponent
 
+constexpr size_t NUM_HORN_PATTERNS = 8;
+constexpr size_t HORN_PATTERN_SIZE = 44;
+constexpr notsa::mdarray<bool, NUM_HORN_PATTERNS, HORN_PATTERN_SIZE> HornPattern = {{ // 0x862B9C
+    { false, false, true, true, true, false, false, false, false, true, true, true, true, false, false, false, false, true, true, true, true, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, false, false },
+    { false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, true, true, true, true, true, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, false },
+    { false, false, true, true, true, true, true, false, false, false, false, true, true, true, true, false, false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, true, true, true, true, true, false, false },
+    { false, false, true, true, true, true, false, false, false, false, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false },
+    { false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, true, true, false, false, false, false, true, true, true, false, false, false, false, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false },
+    { false, false, true, true, true, true, false, false, false, false, true, true, true, true, true, false, false, false, false, true, true, true, false, false, false, false, true, true, true, false, false, false, false, false, true, true, true, true, true, true, true, true, false, false },
+    { false, false, true, true, true, true, false, false, false, false, true, true, true, true, true, false, false, false, false, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, false, false },
+    { true, true, true, true, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, false, true, true, true, true, true, false, true, true, true, true, true, true, true, true, false, false, false, false }
+}};
+
 bool IsSurfaceAudioGrass(eSurfaceType surface) {
     return g_surfaceInfos.IsAudioGrass(surface) || g_surfaceInfos.IsAudioLongGrass(surface);
 }
@@ -69,8 +82,8 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(UpdateGasPedalAudio, 0x4F5EB0, { .reversed = false }); // Done - Crash in ProcessVehicle()
     RH_ScopedInstall(GetVehicleDriveWheelSkidValue, 0x4F5F30);
     RH_ScopedInstall(GetVehicleNonDriveWheelSkidValue, 0x4F6000);
-    RH_ScopedInstall(GetHornState, 0x4F61E0, { .reversed = false });
-    RH_ScopedInstall(GetSirenState, 0x4F62A0, { .reversed = false });
+    RH_ScopedOverloadedInstall(GetHornState, "", 0x4F61E0, void(CAEVehicleAudioEntity::*)(bool*, tVehicleParams&) const);
+    RH_ScopedInstall(GetSirenState, 0x4F62A0);
     RH_ScopedInstall(StopGenericEngineSound, 0x4F6320);
     RH_ScopedInstall(RequestNewPlayerCarEngineSound, 0x4F7A50, { .reversed = false });
     RH_ScopedInstall(StartVehicleEngineSound, 0x4F7F20, { .reversed = false });
@@ -111,7 +124,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessGenericJet, 0x4FF900, { .reversed = false });
     RH_ScopedInstall(ProcessDummyBicycle, 0x4FFDC0, { .reversed = false });
     RH_ScopedInstall(ProcessPlayerBicycle, 0x500040, { .reversed = false });
-    RH_ScopedInstall(ProcessVehicleSirenAlarmHorn, 0x5002C0, { .reversed = false });
+    RH_ScopedInstall(ProcessVehicleSirenAlarmHorn, 0x5002C0);
     RH_ScopedInstall(ProcessBoatEngine, 0x5003A0, { .reversed = false });
     RH_ScopedInstall(ProcessDummyTrainEngine, 0x500710, { .reversed = false });
     RH_ScopedInstall(ProcessPlayerTrainBrakes, 0x500AB0, { .reversed = false });
@@ -1178,36 +1191,38 @@ float CAEVehicleAudioEntity::GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle,
 }
 
 // 0x4F61E0
-void CAEVehicleAudioEntity::GetHornState(bool* out, tVehicleParams& params) {
-    plugin::CallMethod<0x4F61E0, CAEVehicleAudioEntity*, bool*, tVehicleParams&>(this, out, params);
+void CAEVehicleAudioEntity::GetHornState(bool* out, tVehicleParams& params) const noexcept {
+    *out = GetHornState(params);
+}
+
+// 0x4F61E0
+bool CAEVehicleAudioEntity::GetHornState(tVehicleParams& vp) const noexcept {
+    if (m_IsWreckedVehicle) {
+        return false;
+    }
+    if (vp.Vehicle->m_nAlarmState && vp.Vehicle->m_nAlarmState != -1 && vp.Vehicle->GetStatus() != STATUS_WRECKED) {
+        return false;
+    }
+    if (!vp.Vehicle->m_HornCounter) {
+        return false;
+    }
+    if (vp.Vehicle->GetStatus() == STATUS_PLAYER) {
+        return true;
+    }
+    vp.Vehicle->m_HornCounter = std::min(HORN_PATTERN_SIZE, vp.Vehicle->m_HornCounter);
+    if (vp.Vehicle->m_HornCounter == HORN_PATTERN_SIZE) {
+        vp.Vehicle->m_HornPattern = (int8)(CGeneral::GetRandomNumberInRange(0u, NUM_HORN_PATTERNS));
+    }
+    return HornPattern[vp.Vehicle->m_HornPattern][HORN_PATTERN_SIZE - vp.Vehicle->m_HornCounter];
 }
 
 // 0x4F62A0
-void CAEVehicleAudioEntity::GetSirenState(bool& bSirenOrAlarm, bool& bHorn, tVehicleParams& params) {
-    return plugin::CallMethod<0x4F62A0, CAEVehicleAudioEntity*, bool&, bool&, tVehicleParams&>(this, bSirenOrAlarm, bHorn, params);
-
-    if (m_IsWreckedVehicle || !m_HasSiren) {
+void CAEVehicleAudioEntity::GetSirenState(bool& bSirenOrAlarm, bool& bHorn, tVehicleParams& vp) const {
+    if (m_IsWreckedVehicle || !m_HasSiren || !vp.Vehicle->vehicleFlags.bSirenOrAlarm) {
         bSirenOrAlarm = false;
-        return;
+    } else if (bSirenOrAlarm = (vp.Vehicle->GetStatus() != STATUS_ABANDONED)) {
+        bHorn = vp.Vehicle->m_HornCounter && vp.Vehicle->m_nModelIndex != MODEL_MRWHOOP;
     }
-
-    CVehicle* vehicle = params.Vehicle;
-    if (vehicle->vehicleFlags.bSirenOrAlarm == 0u) {
-        bSirenOrAlarm = false;
-        return;
-    }
-
-    bSirenOrAlarm = true;
-    if (vehicle->m_nStatus == STATUS_ABANDONED) {
-        bSirenOrAlarm = false;
-        return;
-    }
-
-    if (vehicle->m_nHornCounter && vehicle->m_nModelIndex != MODEL_MRWHOOP) {
-        bHorn = true;
-        return;
-    }
-    bHorn = false;
 }
 
 // 0x4F6320
@@ -2841,28 +2856,25 @@ void CAEVehicleAudioEntity::ProcessPlayerBicycle(tVehicleParams& params) {
 }
 
 // 0x5002C0
-void CAEVehicleAudioEntity::ProcessVehicleSirenAlarmHorn(tVehicleParams& params) {
-    return plugin::CallMethod<0x5002C0, CAEVehicleAudioEntity*, tVehicleParams&>(this, params);
+void CAEVehicleAudioEntity::ProcessVehicleSirenAlarmHorn(tVehicleParams& vp) {
+    bool horn = false, sirenOrAlarm = false;
+    GetSirenState(sirenOrAlarm, horn, vp);
 
-    bool bHorn = false, bSirenOrAlarm = false;
-    GetSirenState(bSirenOrAlarm, bHorn, params);
-
-    if (!bSirenOrAlarm) {
-        CVehicle* vehicle = params.Vehicle;
-        if (vehicle->m_nAlarmState == 0 || vehicle->m_nAlarmState == -1 || vehicle->m_nStatus == STATUS_WRECKED) {
-            GetHornState(&bHorn, params);
+    if (!sirenOrAlarm) {
+        if (!vp.Vehicle->m_nAlarmState || vp.Vehicle->m_nAlarmState == -1 || vp.Vehicle->GetStatus() == STATUS_WRECKED) {
+            GetHornState(&horn, vp);
         } else {
             const auto time = CTimer::GetTimeInMS();
-            if (time > vehicle->m_nHornCounter) {
-                vehicle->m_nHornCounter = time + 750;
+            if (time > vp.Vehicle->m_HornCounter) {
+                vp.Vehicle->m_HornCounter = time + 750;
             }
-            m_IsHornOn = vehicle->m_nHornCounter < time + 750 / 2;
+            m_IsHornOn = vp.Vehicle->m_HornCounter < time + 750 / 2;
         }
     }
 
-    PlayHornOrSiren(m_IsHornOn, bSirenOrAlarm, bHorn, params);
-    m_IsSirenOn = bSirenOrAlarm;
-    m_IsFastSirenOn         = bHorn;
+    PlayHornOrSiren(m_IsHornOn, sirenOrAlarm, horn, vp);
+    m_IsSirenOn     = sirenOrAlarm;
+    m_IsFastSirenOn = horn;
 }
 
 // 0x5003A0

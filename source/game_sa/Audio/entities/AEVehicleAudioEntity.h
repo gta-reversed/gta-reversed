@@ -335,7 +335,7 @@ public:
     void JustWreckedVehicle();
     CVector GetAircraftNearPosition();
     float GetFlyingMetalVolume(CPhysical* physical);
-    void GetSirenState(bool& bSirenOrAlarm, bool& bHorn, tVehicleParams& params);
+    void GetSirenState(bool& bSirenOrAlarm, bool& bHorn, tVehicleParams& params) const;
     void PlayTrainBrakeSound(int16 soundType, float speed = 1.0f, float volume = -100.0f);
     void JustGotOutOfVehicleAsDriver();
 
@@ -373,7 +373,8 @@ public:
     float GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, int32 wheelState, cTransmission& transmission, float velocity) const noexcept;
 
     [[nodiscard]] float GetBaseVolumeForBicycleTyre(float fGearVelocityProgress) const;
-    void GetHornState(bool* out, tVehicleParams& params);
+    void GetHornState(bool* out, tVehicleParams& params) const noexcept;
+    bool GetHornState(tVehicleParams& params) const noexcept;
     void GetAccelAndBrake(tVehicleParams& vp) const;
 
     void PlayAircraftSound(eAircraftSoundType engineState, int16 bankSlotId, int16 sfxId, float volume = -100.0f, float speed = 1.0f);
