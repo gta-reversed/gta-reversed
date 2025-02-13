@@ -8,20 +8,20 @@
 #include "StdInc.h"
 #include "AEAudioEntity.h"
 
-int8*& CAEAudioEntity::m_pAudioEventVolumes = *reinterpret_cast<int8**>(0xBD00F8);
+constexpr auto EVENT_VOLUMES_BUFFER_SIZE = 45401;
 
-CAEAudioEntity::CAEAudioEntity() : m_Entity(nullptr), m_tempSound() {}
+auto& m_pAudioEventVolumes = StaticRef<int8*>(0xBD00F8); // Use `GetDefaultVolume` to access!
 
 // NOTSA | INLINED | REFACTORED
 bool CAEAudioEntity::StaticInitialise() {
-    m_pAudioEventVolumes = new int8[45401];
+    m_pAudioEventVolumes = new int8[EVENT_VOLUMES_BUFFER_SIZE];
     auto file = CFileMgr::OpenFile("AUDIO\\CONFIG\\EVENTVOL.DAT", "r");
     if (!file) {
         NOTSA_LOG_WARN("[AudioEngine] Failed to open EVENTVOL.DAT");
         CFileMgr::CloseFile(file);
         return false;
     }
-    if (CFileMgr::Read(file, m_pAudioEventVolumes, 45401) != 45401) {
+    if (CFileMgr::Read(file, m_pAudioEventVolumes, EVENT_VOLUMES_BUFFER_SIZE) != EVENT_VOLUMES_BUFFER_SIZE) {
         NOTSA_LOG_WARN("[AudioEngine] Failed to read EVENTVOL.DAT");
         CFileMgr::CloseFile(file);
         return false;
@@ -32,6 +32,9 @@ bool CAEAudioEntity::StaticInitialise() {
 
 // NOTSA | INLINED | REFACTORED
 void CAEAudioEntity::Shutdown() {
-    delete[] m_pAudioEventVolumes;
-    m_pAudioEventVolumes = nullptr;
+    delete[] std::exchange(m_pAudioEventVolumes, nullptr);
+}
+
+float CAEAudioEntity::GetDefaultVolume(eAudioEvents event) {
+    return static_cast<float>(m_pAudioEventVolumes[event]);
 }

@@ -14,14 +14,11 @@ class CEntity;
 
 class NOTSA_EXPORT_VTABLE CAEAudioEntity {
 public:
-    CEntity* m_Entity;
-    CAESound m_tempSound;
-
-private:
-    static int8*& m_pAudioEventVolumes; // Use `GetDefaultVolume` to access!
+    CEntity* m_Entity{};
+    CAESound m_tempSound{};
 
 protected:
-    CAEAudioEntity();
+    CAEAudioEntity() = default;
     ~CAEAudioEntity() = default;
 
 public:
@@ -29,7 +26,7 @@ public:
 
     static bool StaticInitialise();
     static void Shutdown();
-    static float GetDefaultVolume(eAudioEvents event) { return static_cast<float>(m_pAudioEventVolumes[event]); }
+    static float GetDefaultVolume(eAudioEvents event);
 };
 
 VALIDATE_SIZE(CAEAudioEntity, 0x7C);
