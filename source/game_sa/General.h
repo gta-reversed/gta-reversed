@@ -172,14 +172,14 @@ namespace CGeneral { // More like `Math` (Or `Meth`, given how bad the code is, 
             return std::begin(r)->y;
         }
 
-        // Out of range on the end?
-        if (x >= std::end(r)->x) {
-            return std::end(r)->y;
+        // Out of range in the beginning?
+        if (const auto b = std::begin(r); x <= b->x) {
+            return b->y;
         }
 
-        // Out of range in the beginning?
-        if (x <= std::begin(r)->x) {
-            return std::begin(r)->y;
+        // Out of range on the end?
+        if (const auto l = std::prev(std::end(r)); x >= l->x) {
+            return l->y;
         }
 
         // Find high point
