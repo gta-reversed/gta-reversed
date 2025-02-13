@@ -159,7 +159,16 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
 
     ImGui::SliderFloat("FreqUnderwaterFactor", &cfg->FreqUnderwaterFactor, -100, 100.f);
 
-    if (ImGui::TreeNode("Dummy Engine")) {
+    if (auto* const dws = &cfg->DriveWheelSkid; ImGui::TreeNode("DriveWheelSkid")) {
+        ImGui::Checkbox("Enabled", &dws->Enabled);
+        ImGui::DragFloat("SpinningFactor", &dws->SpinningFactor, 0.005f, 0.f, 1.f);
+        ImGui::DragFloat("SkiddingFactor", &dws->SkiddingFactor, 0.005f, 0.f, 1.f);
+        ImGui::DragFloat("StationaryFactor", &dws->StationaryFactor, 0.005f, 0.f, 1.f);
+
+        ImGui::TreePop();
+    }
+
+    if (auto* const de = &cfg->DummyEngine; ImGui::TreeNode("Dummy Engine")) {
         if (ImGui::Button("Reset")) {
             cfg->DummyEngine = AE::s_DefaultConfig.DummyEngine;
         }
@@ -169,32 +178,40 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
 
         if (ImGui::TreeNode("Idle")) {
             if (ImGui::Button("Reset")) {
-                cfg->DummyEngine.Idle = AE::s_DefaultConfig.DummyEngine.Idle;
+                de->Idle = AE::s_DefaultConfig.DummyEngine.Idle;
             }
 
-            ImGui::SliderFloat("Ratio", &cfg->DummyEngine.Idle.Ratio, -1.f, 1.f);
+            ImGui::SliderFloat("Ratio", &de->Idle.Ratio, -1.f, 1.f);
 
-            ImGui::SliderFloat("VolumeBase", &cfg->DummyEngine.Idle.VolumeBase, -100.f, 100.f);
-            ImGui::SliderFloat("VolumeMax", &cfg->DummyEngine.Idle.VolumeMax, -100.f, 100.f);
+            ImGui::SliderFloat("VolumeBase", &de->Idle.VolumeBase, -100.f, 100.f);
+            ImGui::SliderFloat("VolumeMax", &de->Idle.VolumeMax, -100.f, 100.f);
 
-            ImGui::SliderFloat("FreqBase", &cfg->DummyEngine.Idle.FreqBase, -100, 100.f);
-            ImGui::SliderFloat("FreqMax", &cfg->DummyEngine.Idle.FreqMax, -100, 100.f);
+            ImGui::SliderFloat("FreqBase", &de->Idle.FreqBase, -100, 100.f);
+            ImGui::SliderFloat("FreqMax", &de->Idle.FreqMax, -100, 100.f);
 
             ImGui::TreePop();
         }
 
         if (ImGui::TreeNode("Rev")) {
             if (ImGui::Button("Reset")) {
-                cfg->DummyEngine.Rev = AE::s_DefaultConfig.DummyEngine.Rev;
+                de->Rev = AE::s_DefaultConfig.DummyEngine.Rev;
             }
 
-            ImGui::SliderFloat("Ratio", &cfg->DummyEngine.Rev.Ratio, -1.f, 1.f);
+            ImGui::SliderFloat("Ratio", &de->Rev.Ratio, -1.f, 1.f);
 
-            ImGui::SliderFloat("VolumeBase", &cfg->DummyEngine.Rev.VolumeBase, -100.f, 100.f);
-            ImGui::SliderFloat("VolumeMax", &cfg->DummyEngine.Rev.VolumeMax, -100.f, 100.f);
+            ImGui::SliderFloat("VolumeBase", &de->Rev.VolumeBase, -100.f, 100.f);
+            ImGui::SliderFloat("VolumeMax", &de->Rev.VolumeMax, -100.f, 100.f);
 
-            ImGui::SliderFloat("FreqBase", &cfg->DummyEngine.Rev.FreqBase, -100, 100.f);
-            ImGui::SliderFloat("FreqMax", &cfg->DummyEngine.Rev.FreqMax, -100, 100.f);
+            ImGui::SliderFloat("FreqBase", &de->Rev.FreqBase, -100, 100.f);
+            ImGui::SliderFloat("FreqMax", &de->Rev.FreqMax, -100, 100.f);
+
+            ImGui::TreePop();
+        }
+
+        if (ImGui::TreeNode("GolfCart")) {
+            ImGui::DragFloat("FrqMin", &de->GolfCart.FrqMin, 0.005f, 0.f, 1.f);
+            ImGui::DragFloat("FrqMax", &de->GolfCart.FrqMax, 0.005f, 0.f, 1.f);
+            ImGui::DragFloat("VolOffset", &de->GolfCart.VolOffset, 0.005f, 0.f, 1.f);
 
             ImGui::TreePop();
         }
@@ -203,16 +220,17 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
     }
 
     if (auto* const pe = &cfg->PlayerEngine; ImGui::TreeNode("Player Engine")) {
-        ImGui::DragFloat("AccelWheelSpinThreshold", &pe->ACWheelSpinThreshold, 0.005f, 0.f, 1.f);
-        ImGui::DragFloat("SpeedOffsetCrz", &pe->CrzSpeedOffset, 1.f, -100.f, 100.f);
-        ImGui::DragFloat("SpeedOffsetAc", &pe->ACSpeedOffset, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("ACWheelSpinThreshold", &pe->ACWheelSpinThreshold, 0.005f, 0.f, 1.f);
+        ImGui::DragFloat("ACInhibitForLowSpeedLimit", &pe->ACInhibitForLowSpeedLimit, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("ACSpeedOffset", &pe->ACSpeedOffset, 1.f, -100.f, 100.f);
+        ImGui::DragFloat("CrzSpeedOffset", &pe->CrzSpeedOffset, 1.f, -100.f, 100.f);
+        ImGui::DragInt("CrzMaxCnt", &pe->CrzMaxCnt, 1.f, -100, 100);
         ImGui::DragFloat("ZMoveSpeedThreshold", &pe->ZMoveSpeedThreshold, 1.f, -100.f, 100.f);
         ImGui::DragInt("MaxAuGear", &pe->MaxAuGear, 1.f, -100, 100);
-        ImGui::DragInt("MaxCrzCnt", &pe->CrzMaxCnt, 1.f, -100, 100);
         ImGui::DragFloat("NitroFactor", &pe->VolNitroFactor, 1.f, -100.f, 100.f);
         ImGui::DragFloat("SingleGearVolume", &pe->SingleGearVolume, 1.f, -100.f, 100.f);
-        ImGui::DragFloat("AccInhibitForLowSpeedLimit", &pe->ACInhibitForLowSpeedLimit, 1.f, -100.f, 100.f);
         ImGui::DragFloat("VolNitroFactor", &pe->VolNitroFactor, 1.f, -100.f, 100.f);
+
         ImGui::DragFloat("FrqNitroFactor", &pe->FrqNitroFactor, 1.f, -100.f, 100.f);
         ImGui::DragFloat("FrqWheelSpinFactor", &pe->FrqWheelSpinFactor, 1.f, -100.f, 100.f);
         ImGui::DragFloat("FrqBikeLeanFactor", &pe->FrqBikeLeanFactor, 1.f, -100.f, 100.f);

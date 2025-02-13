@@ -66,8 +66,8 @@ void CAEVehicleAudioEntity::InjectHooks() {
     //RH_ScopedInstall(GetFreqForIdle, 0x4F5C60); // Hook -> Crash (Probably due to compiler optimizations)
     RH_ScopedInstall(GetBaseVolumeForBicycleTyre, 0x4F60B0);
     RH_ScopedInstall(JustFinishedAccelerationLoop, 0x4F5E50);
-    RH_ScopedInstall(UpdateGasPedalAudio, 0x4F5EB0, { .reversed = false }); // Crash in ProcessVehicle()
-    RH_ScopedInstall(GetVehicleDriveWheelSkidValue, 0x4F5F30, { .reversed = false });
+    RH_ScopedInstall(UpdateGasPedalAudio, 0x4F5EB0, { .reversed = false }); // Done - Crash in ProcessVehicle()
+    RH_ScopedInstall(GetVehicleDriveWheelSkidValue, 0x4F5F30);
     RH_ScopedInstall(GetVehicleNonDriveWheelSkidValue, 0x4F6000, { .reversed = false });
     RH_ScopedInstall(GetHornState, 0x4F61E0, { .reversed = false });
     RH_ScopedInstall(GetSirenState, 0x4F62A0, { .reversed = false });
@@ -79,7 +79,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(PlayFlatTyreSound, 0x4F8650, { .reversed = false });
     RH_ScopedInstall(PlayReverseSound, 0x4F87D0, { .reversed = false });
     RH_ScopedInstall(ProcessVehicleFlatTyre, 0x4F8940);
-    RH_ScopedInstall(ProcessVehicleRoadNoise, 0x4F8B00, { .reversed = false });
+    RH_ScopedInstall(ProcessVehicleRoadNoise, 0x4F8B00, { .reversed = false }); // Done
     RH_ScopedInstall(ProcessReverseGear, 0x4F8DF0, { .reversed = false });
     RH_ScopedInstall(ProcessVehicleSkidding, 0x4F8F10, { .reversed = false });
     RH_ScopedInstall(ProcessRainOnVehicle, 0x4F92C0);
@@ -1121,33 +1121,30 @@ void CAEVehicleAudioEntity::UpdateGasPedalAudio(CVehicle* vehicle, int32 vehicle
 }
 
 // 0x4F5F30
-float CAEVehicleAudioEntity::GetVehicleDriveWheelSkidValue(CVehicle* vehicle, int32 wheelState, float fSomeGasPedalAudioStuff, cTransmission& transmission, float fVelocity) {
-    return plugin::CallMethodAndReturn<float, 0x4F5F30, CAEVehicleAudioEntity*, CVehicle*, int32, float, cTransmission&, float>(this, vehicle, wheelState, fSomeGasPedalAudioStuff, transmission, fVelocity);
+float CAEVehicleAudioEntity::GetVehicleDriveWheelSkidValue(CVehicle* veh, tWheelState wheelState, float gasPedalAudioRevs, cTransmission& tr, float speed) {
+    const auto* const cfg = &s_Config.DriveWheelSkid;
 
-    if (!s_bVehicleDriveWheelSkidEnabled) {
+    if (!cfg->Enabled) {
         return 0.0f;
     }
 
     switch (wheelState) {
-    case WHEEL_STATE_SPINNING: {
-        if (fSomeGasPedalAudioStuff > 0.4f) {
-            return (fSomeGasPedalAudioStuff - 0.4f) * 1.66f * 0.75f;
-        }
-        break;
-    }
-    case WHEEL_STATE_SKIDDING: {
-        return std::min(1.0f, std::fabs(fVelocity)) * 0.75f;
-    }
+    case WHEEL_STATE_NORMAL:
+        return 0.f;
+    case WHEEL_STATE_SPINNING:
+        return gasPedalAudioRevs > 0.4f
+            ? invLerp(0.4f, 1.f, gasPedalAudioRevs) * 0.75f * cfg->SpinningFactor
+            : 0.f;
+    case WHEEL_STATE_SKIDDING:
+        return std::min(1.0f, std::fabs(speed)) * 0.75f * cfg->SkiddingFactor;
     case WHEEL_STATE_FIXED: {
-        const float velocity = std::fabs(fVelocity);
-        if (velocity > 0.04f) {
-            return std::min(velocity * 5.0f, 1.0f) * 1.2f;
-        }
-        return 0.0f;
+        const auto s = std::fabs(speed);
+        return s >= 0.04f
+            ? std::min(s * 5.0f, 1.0f) * cfg->StationaryFactor
+            : 0.f;
     }
-    default:
-        return 0.0f;
     }
+    NOTSA_UNREACHABLE();
 }
 
 // 0x4F6000
@@ -2128,8 +2125,6 @@ void CAEVehicleAudioEntity::ProcessBoatMovingOverWater(tVehicleParams& params) {
 
     auto* boat = params.Vehicle->AsBoat();
 
-    // Originally there was a multiply by 1.33, that's the recp. of 0.75f, which makes sense
-    // because the abs. velocity is clamped to 0.75f
     const float fVelocityProgress = std::min(0.75f, std::fabs(params.Speed)) / 0.75f;
 
     float fVolume = -100.0f;
