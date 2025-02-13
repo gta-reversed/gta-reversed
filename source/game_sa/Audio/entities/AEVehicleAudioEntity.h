@@ -57,6 +57,11 @@ protected: // Config:
             float SpinningFactor{1.f}, SkiddingFactor{1.f}, StationaryFactor{1.2f}; // 0x8CBD88, 0x8CBD84, 0x8CBD8C
         } DriveWheelSkid;
 
+        struct {
+            bool Enabled{true}; // 0x8CBD81
+            float SkiddingFactor{1.f}, StationaryFactor{1.2f}; // 0x8CBD84, 0x8CBD8C
+        } NonDriveWheelSkid;
+
         // Dummy engine constants:
         struct {
             float VolumeUnderwaterOffset = 6.f; // 0x8CBC44
@@ -364,8 +369,8 @@ public:
     float GetVolumeForDummyRev(float fRatio, float fFadeRatio) const;
     float GetFrequencyForDummyRev(float fRatio, float fFadeRatio) const;
 
-    float GetVehicleDriveWheelSkidValue(CVehicle* vehicle, tWheelState wheelState, float fUnk, cTransmission& transmission, float fVelocity);
-    float GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, int32 wheelState, cTransmission& transmission, float velocity);
+    float GetVehicleDriveWheelSkidValue(CVehicle* vehicle, tWheelState wheelState, float fUnk, cTransmission& transmission, float fVelocity) const noexcept;
+    float GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, int32 wheelState, cTransmission& transmission, float velocity) const noexcept;
 
     [[nodiscard]] float GetBaseVolumeForBicycleTyre(float fGearVelocityProgress) const;
     void GetHornState(bool* out, tVehicleParams& params);
@@ -528,9 +533,6 @@ private:
     CAEVehicleAudioEntity* Destructor() { this->CAEVehicleAudioEntity::~CAEVehicleAudioEntity(); return this; }
 };
 VALIDATE_SIZE(CAEVehicleAudioEntity, 0x24C);
-
-// OG debug stuff
-static bool& s_bVehicleNonDriveWheelSkidValueEnabled = *(bool*)0x8CBD81; // true
 
 inline std::string_view EnumToString(CAEVehicleAudioEntity::eAEState s) {
     using enum CAEVehicleAudioEntity::eAEState;

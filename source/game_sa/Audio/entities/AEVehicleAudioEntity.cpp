@@ -68,7 +68,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(JustFinishedAccelerationLoop, 0x4F5E50);
     RH_ScopedInstall(UpdateGasPedalAudio, 0x4F5EB0, { .reversed = false }); // Done - Crash in ProcessVehicle()
     RH_ScopedInstall(GetVehicleDriveWheelSkidValue, 0x4F5F30);
-    RH_ScopedInstall(GetVehicleNonDriveWheelSkidValue, 0x4F6000, { .reversed = false });
+    RH_ScopedInstall(GetVehicleNonDriveWheelSkidValue, 0x4F6000);
     RH_ScopedInstall(GetHornState, 0x4F61E0, { .reversed = false });
     RH_ScopedInstall(GetSirenState, 0x4F62A0, { .reversed = false });
     RH_ScopedInstall(StopGenericEngineSound, 0x4F6320);
@@ -1121,7 +1121,7 @@ void CAEVehicleAudioEntity::UpdateGasPedalAudio(CVehicle* vehicle, int32 vehicle
 }
 
 // 0x4F5F30
-float CAEVehicleAudioEntity::GetVehicleDriveWheelSkidValue(CVehicle* veh, tWheelState wheelState, float gasPedalAudioRevs, cTransmission& tr, float speed) {
+float CAEVehicleAudioEntity::GetVehicleDriveWheelSkidValue(CVehicle* veh, tWheelState wheelState, float gasPedalAudioRevs, cTransmission& tr, float speed) const noexcept {
     const auto* const cfg = &s_Config.DriveWheelSkid;
 
     if (!cfg->Enabled) {
@@ -1148,25 +1148,33 @@ float CAEVehicleAudioEntity::GetVehicleDriveWheelSkidValue(CVehicle* veh, tWheel
 }
 
 // 0x4F6000
-float CAEVehicleAudioEntity::GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, int32 wheelState, cTransmission& transmission, float velocity) {
-    return plugin::CallMethodAndReturn<float, 0x4F6000, CAEVehicleAudioEntity*, CVehicle*, int32, cTransmission&, float>(this, vehicle, wheelState, transmission, velocity);
+float CAEVehicleAudioEntity::GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, int32 wheelState, cTransmission& transmission, float velocity) const noexcept {
+    const auto* const cfg = &s_Config.NonDriveWheelSkid;
 
-    if (!s_bVehicleNonDriveWheelSkidValueEnabled) {
+    if (!cfg->Enabled) {
         return 0.0f;
     }
 
     switch (wheelState) {
+    case WHEEL_STATE_NORMAL:
+    case WHEEL_STATE_SPINNING:
+        return 0.0f;
     case WHEEL_STATE_SKIDDING: {
-        const float vel = std::min(1.0f, std::fabs(velocity)); // at most 1.0f
-        return m_AuSettings.IsBicycle() ? vel * 0.75f * 0.2f : vel * 0.75f;
+        auto s = std::min(1.0f, std::fabs(velocity)) * 0.75f;
+        if (m_AuSettings.IsBMX()) {
+            s *= 0.2f;
+        }
+        return s * cfg->SkiddingFactor;
     }
     case WHEEL_STATE_FIXED: {
-        const float vel = std::fabs(velocity);
-        return vel > 0.04f ? std::min(vel * 5.0f, 1.0f) * 1.2f : 0.0f;
+        auto s = std::abs(velocity);
+        if (s >= 0.04f) {
+            s = std::min(s * 5.0f, 1.0f);
+        }
+        return s * cfg->StationaryFactor;
     }
-    default:
-        return 0.0f;
     }
+    NOTSA_UNREACHABLE();
 }
 
 // 0x4F61E0
