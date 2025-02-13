@@ -188,14 +188,6 @@ constexpr float RadiansToDegrees(float angleInRadians) {
     return angleInRadians * 180.0F / PI;
 }
 
-//! Step towards a certain number
-template<typename T>
-T stepto(const T& from, const T& to, float step) {
-    return to <= from
-        ? std::min(from + step, to)
-        : std::max(from - step, to);
-}
-
 template<typename T>
 T lerp(const T& from, const T& to, float t) {
     // Same as `from + (to - from) * t` (Or `from + t * (to - from)`
