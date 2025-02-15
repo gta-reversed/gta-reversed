@@ -3278,7 +3278,7 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
         : vehicle->m_autoPilot.m_speed / 50.0f;
 
     switch (m_AuSettings.VehicleAudioType) {
-    case AE_CAR:
+    case AE_CAR: {
         UpdateGasPedalAudio(vehicle, vehicle->m_nVehicleType);
 
         if (m_IsWreckedVehicle) {
@@ -3322,7 +3322,7 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
 
         vehicle->AsAutomobile()->m_PrevSpeed = vp.Speed;
         break;
-
+    }
     case AE_BIKE: {
         if (m_IsWreckedVehicle) {
             break;
