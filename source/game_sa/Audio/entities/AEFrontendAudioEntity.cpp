@@ -8,22 +8,18 @@
 #include "AEAudioUtility.h"
 #include "AESound.h"
 
-#include "config/eAudioBank.h"
-#include "config/eSFX.h"
-#include "config/eAudioSlot.h"
-
 // 0x5B9AB0
 void CAEFrontendAudioEntity::Initialise() {
     m_bAmplifierWakeUp = false;
     m_pAmplifierWakeUp = nullptr;
 
-    AEAudioHardware.LoadSoundBank(BANK_FRONTEND, SLOT_FRONTEND);
-    AEAudioHardware.LoadSoundBank(BANK_EXTRAS, SLOT_EXTRAS);
-    AEAudioHardware.LoadSoundBank(BANK_WEAPON_BULLET_SWISH, SLOT_WEAPON_BULLET_SWISH);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_BULLET_PASS_1, SND_BANK_SLOT_BULLET_PASS);
 
     m_nbLoadingTuneSeed = CAEAudioUtility::GetRandomNumberInRange(0, 3);
-    AEAudioHardware.LoadSound(BANK_LOADING_TUNE, 2 * m_nbLoadingTuneSeed + 0, SLOT_LOADING_TUNE_LEFT);
-    AEAudioHardware.LoadSound(BANK_LOADING_TUNE, 2 * m_nbLoadingTuneSeed + 1, SLOT_LOADING_TUNE_RIGHT);
+    AEAudioHardware.LoadSound(SND_BANK_GENRL_LOADING, 2 * m_nbLoadingTuneSeed + 0, SND_BANK_SLOT_COLLISIONS);
+    AEAudioHardware.LoadSound(SND_BANK_GENRL_LOADING, 2 * m_nbLoadingTuneSeed + 1, SND_BANK_SLOT_WEAPON_GEN);
 }
 
 // 0x4DD440
@@ -467,8 +463,8 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
         }
         return;
     case AE_FRONTEND_LOADING_TUNE_START:
-        if (   AEAudioHardware.IsSoundLoaded(BANK_LOADING_TUNE, 2 * m_nbLoadingTuneSeed, 2)
-            && AEAudioHardware.IsSoundLoaded(BANK_LOADING_TUNE, 2 * m_nbLoadingTuneSeed + 1, 5)
+        if (   AEAudioHardware.IsSoundLoaded(SND_BANK_GENRL_LOADING, 2 * m_nbLoadingTuneSeed, SND_BANK_SLOT_COLLISIONS)
+            && AEAudioHardware.IsSoundLoaded(SND_BANK_GENRL_LOADING, 2 * m_nbLoadingTuneSeed + 1, SND_BANK_SLOT_WEAPON_GEN)
             && !AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_FRONTEND_LOADING_TUNE_START, this)
         ) {
             sound.Initialise(2, 2 * m_nbLoadingTuneSeed, this, XVECM, volume);

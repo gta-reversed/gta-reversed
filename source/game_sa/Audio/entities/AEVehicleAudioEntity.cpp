@@ -9,9 +9,9 @@
 #include <Enums/eSoundBankSlot.h>
 #include <DamageManager.h> // tComponent
 
-constexpr size_t NUM_HORN_PATTERNS = 8;
+constexpr size_t HORN_NUM_PATTERNS = 8;
 constexpr size_t HORN_PATTERN_SIZE = 44;
-constexpr notsa::mdarray<bool, NUM_HORN_PATTERNS, HORN_PATTERN_SIZE> HornPattern = {{ // 0x862B9C
+constexpr notsa::mdarray<bool, HORN_NUM_PATTERNS, HORN_PATTERN_SIZE> HornPattern = {{ // 0x862B9C
     { false, false, true, true, true, false, false, false, false, true, true, true, true, false, false, false, false, true, true, true, true, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, false, false },
     { false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, true, true, true, true, true, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, false },
     { false, false, true, true, true, true, true, false, false, false, false, true, true, true, true, false, false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, true, true, true, true, true, false, false },
@@ -26,7 +26,7 @@ bool IsSurfaceAudioGrass(eSurfaceType surface) {
     return g_surfaceInfos.IsAudioGrass(surface) || g_surfaceInfos.IsAudioLongGrass(surface);
 }
 
-bool IsSurfaceAudioEitherGravelWaterSand(eSurfaceType surface) {
+bool IsSurfaceWet(eSurfaceType surface) {
     return g_surfaceInfos.IsAudioGravel(surface) || g_surfaceInfos.IsAudioSand(surface) || g_surfaceInfos.IsAudioWater(surface);
 }
 
@@ -34,6 +34,12 @@ void GracefullyStopSound(CAESound*& sound) {
     if (auto* const s = std::exchange(sound, nullptr)) {
         s->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
         s->StopSound();
+    }
+}
+
+void StopAndForgetSound(CAESound*& sound) {
+    if (auto* const s = std::exchange(sound, nullptr)) {
+        s->StopSoundAndForget();
     }
 }
 
@@ -76,43 +82,55 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(TurnOffRadioForVehicle, 0x4F5B60); // -
     RH_ScopedInstall(PlayerAboutToExitVehicleAsDriver, 0x4F5BA0);
     RH_ScopedInstall(CopHeli, 0x4F5C40);
-    //RH_ScopedInstall(GetFreqForIdle, 0x4F5C60); // Hook -> Crash (Probably due to compiler optimizations)
+    RH_ScopedInstall(GetFreqForIdle, 0x4F5C60); // Done - Hook -> Crash (Probably due to compiler optimizations)
     RH_ScopedInstall(GetBaseVolumeForBicycleTyre, 0x4F60B0);
     RH_ScopedInstall(JustFinishedAccelerationLoop, 0x4F5E50);
-    RH_ScopedInstall(UpdateGasPedalAudio, 0x4F5EB0, { .reversed = false }); // Done - Crash in ProcessVehicle()
+    RH_ScopedInstall(UpdateGasPedalAudio, 0x4F5EB0); // Done - Hook -> Crash in ProcessVehicle()
+
+    // Skidding
     RH_ScopedInstall(GetVehicleDriveWheelSkidValue, 0x4F5F30);
     RH_ScopedInstall(GetVehicleNonDriveWheelSkidValue, 0x4F6000);
-    RH_ScopedOverloadedInstall(GetHornState, "", 0x4F61E0, void(CAEVehicleAudioEntity::*)(bool*, tVehicleParams&) const);
-    RH_ScopedInstall(GetSirenState, 0x4F62A0);
+    RH_ScopedInstall(PlaySkidSound, 0x4F8360);
+    RH_ScopedInstall(ProcessVehicleSkidding, 0x4F8F10);
+
+    // Horn
+    RH_ScopedOverloadedInstall(GetHornState, "", 0x4F61E0, void(CAEVehicleAudioEntity::*)(bool*, tVehicleParams&) const, { .reversed = false }); // Done
+    RH_ScopedInstall(GetSirenState, 0x4F62A0, { .reversed = false });  // Done
+    RH_ScopedInstall(PlayHornOrSiren, 0x4F99D0);
+    RH_ScopedInstall(ProcessVehicleSirenAlarmHorn, 0x5002C0);
+
+    // Update[*]Sound
+    RH_ScopedInstall(UpdateBoatSound, 0x4F9E90, { .reversed = false });
+    RH_ScopedInstall(UpdateTrainSound, 0x4FA1C0, { .reversed = false });
+    RH_ScopedInstall(UpdateGenericVehicleSound, 0x4FAD40, { .reversed = false });
+
+    // Generic Engine Sound
     RH_ScopedInstall(StopGenericEngineSound, 0x4F6320);
-    RH_ScopedInstall(RequestNewPlayerCarEngineSound, 0x4F7A50, { .reversed = false });
     RH_ScopedInstall(StartVehicleEngineSound, 0x4F7F20, { .reversed = false });
-    RH_ScopedInstall(PlaySkidSound, 0x4F8360, { .reversed = false });
+    RH_ScopedInstall(RequestNewPlayerCarEngineSound, 0x4F7A50, { .reversed = false });
+
     RH_ScopedInstall(PlayRoadNoiseSound, 0x4F84D0, { .reversed = false });
     RH_ScopedInstall(PlayFlatTyreSound, 0x4F8650, { .reversed = false });
     RH_ScopedInstall(PlayReverseSound, 0x4F87D0, { .reversed = false });
+    RH_ScopedInstall(PlayAircraftSound, 0x4F93C0, { .reversed = false });
+    RH_ScopedInstall(PlayBicycleSound, 0x4F9710, { .reversed = false });
+    RH_ScopedInstall(PlayTrainBrakeSound, 0x4FA630, { .reversed = false });
+
+    RH_ScopedInstall(JustGotOutOfVehicleAsDriver, 0x4FCF40, { .reversed = false });
+    RH_ScopedInstall(JustWreckedVehicle, 0x4FD0B0, { .reversed = false });
+
     RH_ScopedInstall(ProcessVehicleFlatTyre, 0x4F8940);
     RH_ScopedInstall(ProcessVehicleRoadNoise, 0x4F8B00, { .reversed = false }); // Done
     RH_ScopedInstall(ProcessReverseGear, 0x4F8DF0, { .reversed = false });
-    RH_ScopedInstall(ProcessVehicleSkidding, 0x4F8F10, { .reversed = false });
     RH_ScopedInstall(ProcessRainOnVehicle, 0x4F92C0);
-    RH_ScopedInstall(PlayAircraftSound, 0x4F93C0, { .reversed = false });
-    RH_ScopedInstall(PlayBicycleSound, 0x4F9710, { .reversed = false });
-    RH_ScopedInstall(PlayHornOrSiren, 0x4F99D0, { .reversed = false });
-    RH_ScopedInstall(UpdateBoatSound, 0x4F9E90, { .reversed = false });
     RH_ScopedInstall(ProcessBoatMovingOverWater, 0x4FA0C0, { .reversed = false });
-    RH_ScopedInstall(UpdateTrainSound, 0x4FA1C0, { .reversed = false });
     RH_ScopedInstall(ProcessTrainTrackSound, 0x4FA3F0, { .reversed = false });
-    RH_ScopedInstall(PlayTrainBrakeSound, 0x4FA630, { .reversed = false });
     RH_ScopedInstall(ProcessDummyRCPlane, 0x4FA7C0, { .reversed = false });
     RH_ScopedInstall(ProcessDummyRCHeli, 0x4FAA80, { .reversed = false });
-    RH_ScopedInstall(UpdateGenericVehicleSound, 0x4FAD40, { .reversed = false }); // PlaySound?
     RH_ScopedInstall(ProcessEngineDamage, 0x4FAE20, { .reversed = false });
     RH_ScopedInstall(ProcessNitro, 0x4FB070, { .reversed = false });
     RH_ScopedInstall(ProcessMovingParts, 0x4FB260, { .reversed = false });
     RH_ScopedInstall(ProcessDummyStateTransition, 0x4FCA10, { .reversed = false });
-    RH_ScopedInstall(JustGotOutOfVehicleAsDriver, 0x4FCF40, { .reversed = false });
-    RH_ScopedInstall(JustWreckedVehicle, 0x4FD0B0, { .reversed = false });
     RH_ScopedInstall(ProcessPlayerProp, 0x4FD290);
     RH_ScopedInstall(ProcessDummyProp, 0x4FD8F0);
     RH_ScopedInstall(ProcessAIProp, 0x4FDFD0);
@@ -124,7 +142,6 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessGenericJet, 0x4FF900, { .reversed = false });
     RH_ScopedInstall(ProcessDummyBicycle, 0x4FFDC0, { .reversed = false });
     RH_ScopedInstall(ProcessPlayerBicycle, 0x500040, { .reversed = false });
-    RH_ScopedInstall(ProcessVehicleSirenAlarmHorn, 0x5002C0);
     RH_ScopedInstall(ProcessBoatEngine, 0x5003A0, { .reversed = false });
     RH_ScopedInstall(ProcessDummyTrainEngine, 0x500710, { .reversed = false });
     RH_ScopedInstall(ProcessPlayerTrainBrakes, 0x500AB0, { .reversed = false });
@@ -136,7 +153,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessPlayerJet, 0x501650);
     RH_ScopedInstall(ProcessDummyJet, 0x501960);
     RH_ScopedInstall(ProcessAircraft, 0x501C50);
-    RH_ScopedInstall(ProcessVehicle, 0x501E10, { .reversed = false }); // Can't hook, triggers run-time stack check cookie
+    RH_ScopedInstall(ProcessVehicle, 0x501E10); // Can't hook, triggers run-time stack check cookie
     RH_ScopedInstall(ProcessSpecialVehicle, 0x501AB0);
 
     // These should be enabled/disabled together, otherwise game shits itself:
@@ -181,7 +198,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     m_State                       = eAEState::CAR_OFF;
     m_AuGear                      = 0;
     m_CrzCount                    = 0;
-    m_DummySlot                   = SND_BANK_SLOT_UNK;
+    m_DummySlot                   = SND_BANK_SLOT_NONE;
     m_RainDropCounter             = 0;
     m_DoCountStalls               = 0;
     m_StalledCount                = 0;
@@ -260,7 +277,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     case AE_BMX:
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
 
-        if (m_AuSettings.IsMotorcycle()) {
+        if (m_AuSettings.IsBike()) {
             m_EventVolume = m_EventVolume - 1.5F;
         }
 
@@ -368,11 +385,6 @@ void CAEVehicleAudioEntity::Terminate() {
     GracefullyStopSound(m_ReverseGearSound);
     m_ReverseGearSoundType = -1;
 
-    const auto StopAndForgetSound = [](auto*& sound) {
-        if (auto* const s = std::exchange(sound, nullptr)) {
-            s->StopSoundAndForget();
-        }
-    };
     StopAndForgetSound(m_HornSound);
     StopAndForgetSound(m_SirenSound);
     StopAndForgetSound(m_FastSirenSound);
@@ -382,7 +394,7 @@ void CAEVehicleAudioEntity::Terminate() {
     }
 
     // 0x4FBA43
-    if (const auto s = std::exchange(m_DummySlot, SND_BANK_SLOT_UNK); s != SND_BANK_SLOT_UNK) {
+    if (const auto s = std::exchange(m_DummySlot, SND_BANK_SLOT_NONE); s != SND_BANK_SLOT_NONE) {
         StoppedUsingBankSlot(s);
     }
 
@@ -440,7 +452,7 @@ bool CAEVehicleAudioEntity::DoesBankSlotContainThisBank(eSoundBankSlot bankSlot,
 // 0x4F4E60
 eSoundBankSlot CAEVehicleAudioEntity::DemandBankSlot(eSoundBank bankId) {
     // Try asking nicely first, maybe there's a slot we can use
-    if (const auto s = RequestBankSlot(bankId); s != SND_BANK_SLOT_UNK) {
+    if (const auto s = RequestBankSlot(bankId); s != SND_BANK_SLOT_NONE) {
         return s;
     }
 
@@ -472,7 +484,7 @@ eSoundBankSlot CAEVehicleAudioEntity::RequestBankSlot(eSoundBank bankId) {
         return s.RefCnt < 1;
     });
     if (slot == std::end(s_DummyEngineSlots)) {
-        return SND_BANK_SLOT_UNK; // No free slots
+        return SND_BANK_SLOT_NONE; // No free slots
     }
 
     // Initialize the slot
@@ -621,9 +633,8 @@ CVector CAEVehicleAudioEntity::GetAircraftNearPosition() {
         CVector pos;
         m_Entity->AsVehicle()->GetComponentWorldPosition(s_Config.HeliAudioComponent, pos);
         return pos;
-    } else {
-        return m_Entity->GetPosition();
     }
+    return m_Entity->GetPosition();
 }
 
 // 0x4F6150
@@ -910,13 +921,13 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
             return;
         }
 
-        if (m_DummySlot == SND_BANK_SLOT_UNK) {
+        if (m_DummySlot == SND_BANK_SLOT_NONE) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
         }
 
         EnsurePlayerEngineSoundBankIsLoaded();
 
-        if (m_State != eAEState::DUMMY_ID || m_DummySlot == SND_BANK_SLOT_UNK) {
+        if (m_State != eAEState::DUMMY_ID || m_DummySlot == SND_BANK_SLOT_NONE) {
             CancelAllVehicleEngineSounds();
             m_State = eAEState::CAR_OFF;
         } else {
@@ -938,7 +949,7 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
             }
         }
 
-        if (m_DummyEngineBank != SND_BANK_UNK && m_DummySlot == SND_BANK_SLOT_UNK) {
+        if (m_DummyEngineBank != SND_BANK_UNK && m_DummySlot == SND_BANK_SLOT_NONE) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
         }
 
@@ -953,7 +964,7 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
         MaybeCancelPlayerEngineSounds();
         CancelAllVehicleEngineSounds();
 
-        if (m_DummySlot == SND_BANK_SLOT_UNK) {
+        if (m_DummySlot == SND_BANK_SLOT_NONE) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
         }
 
@@ -964,7 +975,7 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
     case AE_BOAT: { // 0x4F57FF
         m_EventVolume = CAEAudioEntity::GetDefaultVolume(AE_GENERAL_VEHICLE_SOUND);
 
-        if (m_DummySlot == SND_BANK_SLOT_UNK) {
+        if (m_DummySlot == SND_BANK_SLOT_NONE) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
         }
         break;
@@ -974,7 +985,7 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
 
         MaybeCancelPlayerEngineSounds();
 
-        if (m_DummySlot == SND_BANK_SLOT_UNK) {
+        if (m_DummySlot == SND_BANK_SLOT_NONE) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
         }
 
@@ -988,7 +999,7 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
         MaybeCancelPlayerEngineSounds();
         CancelAllVehicleEngineSounds();
 
-        if (m_DummyEngineBank != SND_BANK_UNK && m_DummySlot == SND_BANK_SLOT_UNK) {
+        if (m_DummyEngineBank != SND_BANK_UNK && m_DummySlot == SND_BANK_SLOT_NONE) {
             m_DummySlot = DemandBankSlot(m_DummyEngineBank);
 
             EnsurePlayerEngineSoundBankIsLoaded();
@@ -1161,7 +1172,7 @@ float CAEVehicleAudioEntity::GetVehicleDriveWheelSkidValue(CVehicle* veh, tWheel
 }
 
 // 0x4F6000
-float CAEVehicleAudioEntity::GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, int32 wheelState, cTransmission& transmission, float velocity) const noexcept {
+float CAEVehicleAudioEntity::GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, tWheelState wheelState, cTransmission& transmission, float velocity) const noexcept {
     const auto* const cfg = &s_Config.NonDriveWheelSkid;
 
     if (!cfg->Enabled) {
@@ -1195,7 +1206,7 @@ void CAEVehicleAudioEntity::GetHornState(bool* out, tVehicleParams& params) cons
     *out = GetHornState(params);
 }
 
-// 0x4F61E0
+// Code for 0x4F61E0 (But return value directly instead of taking it as an arg...Ö
 bool CAEVehicleAudioEntity::GetHornState(tVehicleParams& vp) const noexcept {
     if (m_IsWreckedVehicle) {
         return false;
@@ -1211,17 +1222,17 @@ bool CAEVehicleAudioEntity::GetHornState(tVehicleParams& vp) const noexcept {
     }
     vp.Vehicle->m_HornCounter = std::min(HORN_PATTERN_SIZE, vp.Vehicle->m_HornCounter);
     if (vp.Vehicle->m_HornCounter == HORN_PATTERN_SIZE) {
-        vp.Vehicle->m_HornPattern = (int8)(CGeneral::GetRandomNumberInRange(0u, NUM_HORN_PATTERNS));
+        vp.Vehicle->m_HornPattern = (int8)(CGeneral::GetRandomNumberInRange(0u, HORN_NUM_PATTERNS));
     }
     return HornPattern[vp.Vehicle->m_HornPattern][HORN_PATTERN_SIZE - vp.Vehicle->m_HornCounter];
 }
 
 // 0x4F62A0
-void CAEVehicleAudioEntity::GetSirenState(bool& bSirenOrAlarm, bool& bHorn, tVehicleParams& vp) const {
+void CAEVehicleAudioEntity::GetSirenState(bool& isSirenOn, bool& isFastSirenOn, tVehicleParams& vp) const {
     if (m_IsWreckedVehicle || !m_HasSiren || !vp.Vehicle->vehicleFlags.bSirenOrAlarm) {
-        bSirenOrAlarm = false;
-    } else if (bSirenOrAlarm = (vp.Vehicle->GetStatus() != STATUS_ABANDONED)) {
-        bHorn = vp.Vehicle->m_HornCounter && vp.Vehicle->m_nModelIndex != MODEL_MRWHOOP;
+        isSirenOn = false;
+    } else if (isSirenOn = (vp.Vehicle->GetStatus() != STATUS_ABANDONED)) {
+        isFastSirenOn = vp.Vehicle->m_HornCounter && vp.Vehicle->m_nModelIndex != MODEL_MRWHOOP;
     }
 }
 
@@ -1317,27 +1328,35 @@ float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVe
         f *= cfg->FrqNitroFactor * m_CurrentNitroRatio + 1.f;
     }
 
-    NOTSA_LOG_DEBUG("f is {}", f);
-
     return f;
 }
 
 // 0x4F8360
 void CAEVehicleAudioEntity::PlaySkidSound(int16 newSkidSoundType, float speed, float volume) {
-    const float vol = m_EventVolume + volume;
+    volume += m_EventVolume;
+
     if (m_SurfaceSoundType == newSkidSoundType) {
         if (m_SurfaceSoundType != -1) {
-            m_SkidSound.UpdateTwinLoopSound(m_Entity->GetPosition(), vol, speed);
+            m_SkidSound.UpdateTwinLoopSound(m_Entity->GetPosition(), volume, speed);
         }
     } else {
-        if (m_SkidSound.m_bIsInitialised) {
+        if (m_SkidSound.IsInUse()) {
             m_SkidSound.StopSoundAndForget();
         }
-        m_SurfaceSoundType = newSkidSoundType;
-        if (newSkidSoundType != -1) {
-            m_SkidSound.Initialise(19, newSkidSoundType, newSkidSoundType + 1, this, 200, 1'000, -1, -1);
-            const auto& posn = m_Entity->GetPosition();
-            m_SkidSound.PlayTwinLoopSound(posn, vol, speed, 2.5f, 1.0f, SOUND_DEFAULT);
+        if ((m_SurfaceSoundType = newSkidSoundType) != -1) {
+            m_SkidSound.Initialise(
+                SND_BANK_SLOT_VEHICLE_GEN,
+                newSkidSoundType,
+                newSkidSoundType + 1,
+                this,
+                200, 1'000
+            );
+            m_SkidSound.PlayTwinLoopSound(
+                m_Entity->GetPosition(),
+                volume,
+                speed,
+                2.5f
+            );
         }
     }
 }
@@ -1432,7 +1451,7 @@ void CAEVehicleAudioEntity::UpdateBoatSound(int16 soundType, int16 bankSlotId, i
     return plugin::CallMethod<0x4F9E90, CAEVehicleAudioEntity*, int16, int16, int16, float, float>(this, soundType, bankSlotId, sfxId, speed, volume);
 
     if (m_AuSettings.VehicleAudioType != AE_AIRCRAFT_SEAPLANE) {
-        if (soundType != 6 && m_DummySlot == SND_BANK_SLOT_UNK) {
+        if (soundType != 6 && m_DummySlot == SND_BANK_SLOT_NONE) {
             return;
         }
     }
@@ -1474,7 +1493,7 @@ void CAEVehicleAudioEntity::UpdateBoatSound(int16 soundType, int16 bankSlotId, i
 void CAEVehicleAudioEntity::UpdateTrainSound(int16 soundType, int16 bankSlotId, int16 sfxId, float speed, float volume) {
     return plugin::CallMethod<0x4FA1C0, CAEVehicleAudioEntity*, int16, int16, int16, float, float>(this, soundType, bankSlotId, sfxId, speed, volume);
 
-    if (m_DummySlot == SND_BANK_SLOT_UNK) {
+    if (m_DummySlot == SND_BANK_SLOT_NONE) {
         return;
     }
 
@@ -1549,7 +1568,7 @@ void CAEVehicleAudioEntity::PlayAircraftSound(eAircraftSoundType soundType, int1
 void CAEVehicleAudioEntity::PlayBicycleSound(int16 engineState, int16 bankSlotId, int16 sfxId, float volume, float speed) {
     return plugin::CallMethod<0x4F9710, CAEVehicleAudioEntity*, int16, int16, int16, float, float>(this, engineState, bankSlotId, sfxId, volume, speed);
 
-    if (m_DummySlot == SND_BANK_SLOT_UNK) {
+    if (m_DummySlot == SND_BANK_SLOT_NONE) {
         return;
     }
 
@@ -1564,12 +1583,11 @@ void CAEVehicleAudioEntity::PlayBicycleSound(int16 engineState, int16 bankSlotId
         static constexpr struct { // 0x8CC1D8
             int16 sfxId, playPos;
         } RandomArray[] = {
-            {5,  38},
-            { 7, 25},
-            { 8, 25},
-            { 9, 50}
+            {5, 38},
+            {7, 25},
+            {8, 25},
+            {9, 50}
         };
-
         const auto& toPlay = CGeneral::RandomChoice(RandomArray);
         PlayGenericEngineSound(
             engineState,
@@ -1579,7 +1597,7 @@ void CAEVehicleAudioEntity::PlayBicycleSound(int16 engineState, int16 bankSlotId
             1.0f,
             1.0f,
             1.0f,
-            eSoundEnvironment(SOUND_REQUEST_UPDATES | SOUND_START_PERCENTAGE),
+            (eSoundEnvironment)(SOUND_REQUEST_UPDATES | SOUND_START_PERCENTAGE),
             toPlay.playPos
         );
 
@@ -1607,93 +1625,97 @@ void CAEVehicleAudioEntity::PlayBicycleSound(int16 engineState, int16 bankSlotId
 }
 
 // 0x4F99D0
-void CAEVehicleAudioEntity::PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenOrAlarm, bool bPlayHorn, tVehicleParams& params) {
-    return plugin::CallMethod<0x4F99D0, CAEVehicleAudioEntity*, bool, bool, bool, tVehicleParams&>(this, bPlayHornTone, bPlaySirenOrAlarm, bPlayHorn, params);
-
-    const auto nHornToneSoundInBank = m_AuSettings.HornType;
-    const auto DoTryStopHornSound   = [&] {
-        if (m_HornSound) {
-            m_HornSound->StopSoundAndForget();
-            m_HornSound = nullptr;
-        }
-    };
-
-    if (!m_IsHornOn && bPlayHornTone) {
-        const bool bBanksLoaded    = AEAudioHardware.IsSoundBankLoaded(74u, SLOT_HORNS_AND_SIRENS) && AEAudioHardware.IsSoundBankLoaded(138u, 19);
-        const auto DoPlayHornSound = [&](float fSpeed) {
-            const auto& posn = m_Entity->GetPosition();
-            m_tempSound.Initialise(SLOT_HORNS_AND_SIRENS, nHornToneSoundInBank, this, posn, m_HornVolume, 2.5f, fSpeed, 0.17f, false, SOUND_REQUEST_UPDATES);
-            m_HornSound = AESoundManager.RequestNewSound(&m_tempSound);
-            return true;
+void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool isFastSirenOn, tVehicleParams& vp) {
+    //
+    // Play/stop horn sound
+    //
+    if (isHornOn && !m_IsHornOn) {
+        const auto PlayHornSound = [&](float speed) {
+            m_HornSound = AESoundManager.PlaySound({
+                .BankSlot    = SND_BANK_SLOT_HORN_AND_SIREN,
+                .SoundID       = (eSoundID)(m_AuSettings.HornType),
+                .AudioEntity   = this,
+                .Pos           = m_Entity->GetPosition(),
+                .Volume        = m_HornVolume,
+                .RollOffFactor = 2.5f,
+                .Speed         = speed,
+                .Doppler       = s_Config.Horn.Doppler,
+                .Flags         = SOUND_REQUEST_UPDATES,
+            });
         };
-
-        if (!nHornToneSoundInBank) {
-            DoTryStopHornSound();
-            m_HornVolume = GetDefaultVolume(AE_BIKE_BELL);
-            if (!bBanksLoaded) {
-                return;
-            }
-            DoPlayHornSound(1.0f);
-        } else {
-            if (m_HornSound) {
-                return;
-            }
-
-            if (nHornToneSoundInBank <= 0 || nHornToneSoundInBank > 9) {
-                return;
-            }
-
+        const auto areSoundsLoaded = AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_HORN, SND_BANK_SLOT_HORN_AND_SIREN)
+                                  && AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN);
+        if (m_AuSettings.HornType >= eAEVehicleHornType::CAR_FIRST && m_AuSettings.HornType <= eAEVehicleHornType::CAR_LAST) { // 0x4F9B7C
             m_HornVolume = m_AuSettings.EngineVolumeOffset + GetDefaultVolume(AE_CAR_HORN);
-            if (!bBanksLoaded) {
+            if (areSoundsLoaded) { // 0x4F9BA3
                 return;
             }
-
-            DoPlayHornSound(m_AuSettings.HornPitch);
+            if (m_HornSound) { // 0x4F9BC5
+                return;
+            }
+            PlayHornSound(m_AuSettings.HornPitch); // 0x4F9C23
+        } else if (m_AuSettings.HornType == eAEVehicleHornType::BIKE) { // 0x4F9A22
+            StopAndForgetSound(m_HornSound);
+            m_HornVolume = GetDefaultVolume(AE_BIKE_BELL);
+            if (!areSoundsLoaded) { // 0x4F9A71
+                return;
+            }
+            PlayHornSound(1.f); // 0x4F9AD0
+        } else {
+            return;
         }
     } else {
-        if (nHornToneSoundInBank == 0) {
-            m_HornVolume = std::max(m_HornVolume - 1.5f, -100.0f);
+        if (m_AuSettings.HornType != eAEVehicleHornType::BIKE) { 
+            StopAndForgetSound(m_HornSound); // 0x4F9C46
+        } else { // 0x4F9B08
+            m_HornVolume = std::max(m_HornVolume - s_Config.Horn.BikeBellFadeOut, -100.0f);
             if (m_HornVolume <= -100.0f) {
-                DoTryStopHornSound();
+                StopAndForgetSound(m_HornSound);
             } else if (m_HornSound) {
-                m_HornSound->m_fVolume = m_HornVolume; // Just modify speed
+                m_HornSound->SetVolume(m_HornVolume);
             }
         }
     }
 
-    if (bPlaySirenOrAlarm && !bPlayHorn) {
-        if (!m_IsSirenOn || m_IsFastSirenOn) {
-            // there was no siren last frame OR
-            // horn was playing and siren should've been playing, but couldn't have been
-            // because the horn was playing (and not it isn't)
-
-            if (m_SirenSound || !AEAudioHardware.IsSoundBankLoaded(74u, SLOT_HORNS_AND_SIRENS)) {
-                return;
-            }
-
-            const bool bIsWhoopieModel = params.Vehicle->m_nModelIndex == MODEL_MRWHOOP;
-            if (bIsWhoopieModel) {
-                if (!AEAudioHardware.IsSoundBankLoaded(79u, 40)) {
-                    return;
+    //
+    // Play/stop siren sound(s)
+    //
+    const auto PlaySirenSound = [&](eSoundBankSlot slot, eSoundID sid) {
+        return AESoundManager.PlaySound({
+            .BankSlot    = slot,
+            .SoundID       = sid,
+            .AudioEntity   = this,
+            .Pos           = m_Entity->GetPosition(),
+            .Volume        = GetDefaultVolume(AE_SIREN),
+            .RollOffFactor = 3.f,
+            .Doppler       = s_Config.Siren.Doppler,
+            .Flags         = SOUND_REQUEST_UPDATES,
+        });
+    };
+    const auto wasSirenOn   = m_IsSirenOn && !m_IsFastSirenOn;
+    const auto isSirenNowOn = isSirenOn && !isFastSirenOn;
+    if (wasSirenOn) {
+        StopAndForgetSound(m_SirenSound); // 0x4F9DA4
+    }
+    if (!isSirenOn || wasSirenOn) { // 0x4F9C85 + 0x4F9C8D
+        if (isFastSirenOn) { // 0x4F9DB9
+            if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_HORN, SND_BANK_SLOT_HORN_AND_SIREN)) {
+                if (!m_IsFastSirenOn && !m_FastSirenSound) {
+                    m_FastSirenSound = PlaySirenSound(SND_BANK_SLOT_HORN_AND_SIREN, SND_GENRL_HORN_SIREN_SHORT); // 0x4F9E2E
                 }
             }
-
-            m_SirenSound = PlaySound(bIsWhoopieModel ? 40 : SLOT_HORNS_AND_SIRENS, bIsWhoopieModel ? 3 : 10, GetDefaultVolume(AE_SIREN), 1.0f, 3.0f, 0.25f);
+        } else if (m_IsFastSirenOn) { // 0x4F9E6F
+            StopAndForgetSound(m_FastSirenSound);
         }
-    } else if (m_IsSirenOn && !m_IsFastSirenOn && m_SirenSound) {
-        m_SirenSound->StopSoundAndForget();
-        m_SirenSound = nullptr;
-    }
-
-    if (bPlayHorn) {
-        if (!m_IsFastSirenOn && !m_FastSirenSound && AEAudioHardware.IsSoundBankLoaded(74u, SLOT_HORNS_AND_SIRENS)) {
-            m_FastSirenSound = PlaySound(SLOT_HORNS_AND_SIRENS, 11, GetDefaultVolume(AE_SIREN), 1.0f, 3.0f, 0.25f);
+    } else if (!m_IsSirenOn && AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_HORN, SND_BANK_SLOT_HORN_AND_SIREN)) { // 0x4F9C9C
+        const auto isMrWhoop = vp.Vehicle->GetModelID() == MODEL_MRWHOOP;
+        if (isMrWhoop && !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_ICEVAN_P, SND_BANK_SLOT_PLAYER_ENGINE_P)) { // 0x4F9CCD
+            return;
         }
-    } else if (m_IsFastSirenOn) {
-        if (m_FastSirenSound) {
-            m_FastSirenSound->StopSoundAndForget();
-            m_FastSirenSound = nullptr;
-        }
+        m_SirenSound = PlaySirenSound(
+            isMrWhoop ? SND_BANK_SLOT_PLAYER_ENGINE_P : SND_BANK_SLOT_HORN_AND_SIREN,
+            isMrWhoop ? SND_GENRL_HORN_HORNBMW328 : SND_GENRL_HORN_SIREN_LONG
+        );
     }
 }
 
@@ -1706,20 +1728,13 @@ void CAEVehicleAudioEntity::JustGotOutOfVehicleAsDriver() {
     case AE_CAR:
     case AE_BIKE: {
         m_EventVolume = GetDefaultVolume(AE_GENERAL_VEHICLE_SOUND) - 1.5f;
-        m_FadeIn                    = 1.0f;
-        m_FadeOut                    = 1.0f;
-
+        m_FadeIn      = 1.0f;
+        m_FadeOut     = 1.0f;
         if (m_State == eAEState::PLAYER_ID) {
-            for (auto i = 0u; i < std::size(m_EngineSounds); i++) {
-                if (i != 2) {
-                    CancelVehicleEngineSound(i);
-                }
-            }
+            CancelAllVehicleEngineSounds(AE_SOUND_CAR_ID);
             m_State = eAEState::DUMMY_ID;
         } else {
-            for (auto i = 0u; i < std::size(m_EngineSounds); i++) {
-                CancelVehicleEngineSound(i);
-            }
+            CancelAllVehicleEngineSounds();
             if (m_State != eAEState::CAR_OFF) {
                 m_State = eAEState::NUM_STATES; // ???
             }
@@ -1735,17 +1750,15 @@ void CAEVehicleAudioEntity::JustGotOutOfVehicleAsDriver() {
         break;
     }
     case AE_SPECIAL: {
-        m_EventVolume = GetDefaultVolume(AE_GENERAL_VEHICLE_SOUND) - 1.5f;
-        s_pPlayerDriver              = nullptr;
+        m_EventVolume   = GetDefaultVolume(AE_GENERAL_VEHICLE_SOUND) - 1.5f;
+        s_pPlayerDriver = nullptr;
         break;
     }
     case AE_AIRCRAFT_PLANE:
     case AE_AIRCRAFT_HELICOPTER:
     case AE_AIRCRAFT_SEAPLANE: {
-        for (auto i = 0u; i < std::size(m_EngineSounds); i++) {
-            CancelVehicleEngineSound(i);
-        }
-        m_CurrentRotorFrequency           = -1.0f;
+        CancelAllVehicleEngineSounds();
+        m_CurrentRotorFrequency    = -1.0f;
         m_CurrentDummyEngineVolume = -100.0f;
         break;
     }
@@ -1784,19 +1797,20 @@ void CAEVehicleAudioEntity::JustWreckedVehicle() {
 
     PlaySkidSound(-1);
 
+    // note: the same shit is done in 
     // todo: do better
     // Originally copied and pasted code, but this is way more readable
     struct {
         CAESound** ppSound;
         int16*     pnSoundType;
     } SoundsToStop[] = {
-        {&m_SurfaceSound,    &m_SurfaceSoundType       },
-        { &m_RoadNoiseSound,   &m_RoadNoiseSoundType  },
-        { &m_FlatTireSound,    &m_FlatTireSoundType   },
-        { &m_ReverseGearSound, &m_ReverseGearSoundType},
-        { &m_HornSound,     nullptr                 },
+        { &m_SurfaceSound,     &m_SurfaceSoundType     },
+        { &m_RoadNoiseSound,   &m_RoadNoiseSoundType   },
+        { &m_FlatTireSound,    &m_FlatTireSoundType    },
+        { &m_ReverseGearSound, &m_ReverseGearSoundType },
+        { &m_HornSound,        nullptr                 },
         { &m_SirenSound,       nullptr                 },
-        { &m_FastSirenSound, nullptr                 }
+        { &m_FastSirenSound,   nullptr                 }
     };
 
     // Stop sounds, and reset member variables (that's why we use float pointers)
@@ -1853,7 +1867,7 @@ void CAEVehicleAudioEntity::ProcessVehicleFlatTyre(tVehicleParams& vp) {
         }
         case AE_CAR: {
             for (int32 i = 0; i < MAX_CARWHEELS; i++) {
-                if (vp.Vehicle->AsAutomobile()->m_aWheelTimer[i] <= 0.f) {
+                if (vp.Vehicle->AsAutomobile()->m_WheelCounts[i] <= 0.f) {
                     continue;
                 }
                 if (vp.Vehicle->AsAutomobile()->GetDamageManager().GetWheelStatus((eCarWheel)(i)) != WHEEL_STATE_SPINNING) {
@@ -1866,7 +1880,7 @@ void CAEVehicleAudioEntity::ProcessVehicleFlatTyre(tVehicleParams& vp) {
         case AE_BIKE:
         case AE_BMX: {
             for (int32 i = 0; i < 2; i++) {
-                if (vp.Vehicle->AsBike()->m_aWheelCounts[i] <= 0.f) {
+                if (vp.Vehicle->AsBike()->m_WheelCounts[i] <= 0.f) {
                     continue;
                 }
                 if (vp.Vehicle->AsBike()->m_nWheelStatus[i] != WHEEL_STATE_SPINNING) {
@@ -1953,7 +1967,7 @@ void CAEVehicleAudioEntity::ProcessVehicleRoadNoise(tVehicleParams& params) {
         fSpeed *= 1.3f;
         fVolumeBase += 0.0f; // 0xB6B9E4
         nRoadNoiseSound = 21;
-    } else if (IsSurfaceAudioEitherGravelWaterSand(vehicle->m_nContactSurface)) {
+    } else if (IsSurfaceWet(vehicle->m_nContactSurface)) {
         fVolumeBase += 4.5f;
         nRoadNoiseSound = 22;
     }
@@ -2004,123 +2018,113 @@ void CAEVehicleAudioEntity::ProcessReverseGear(tVehicleParams& params) {
 
 // 0x4F8F10
 void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& params) {
-    return plugin::CallMethod<0x4F8F10, CAEVehicleAudioEntity*, tVehicleParams&>(this, params);
+    float  sumWheelSkid{ 0.f };
+    uint32 numWheels{ 0 };
 
-    tWheelState* wheelStates  = nullptr;
-    float*       aWheelTimers = nullptr;
+    const auto CalculateWheelSkid = [&](
+        uint32 numContactWheels,
+        float  gasPedalAudioRevs,
+        bool   areRearWheelsNotSkidding,
+        auto&& wheelStates,
+        auto&& wheelCounts
+    ) {
+        numWheels = std::size(wheelStates);
+        
+        if (!numContactWheels) {
+            return;
+        }
+        for (auto&& [i, wstate] : notsa::enumerate(wheelStates)) {
+            const auto isFrontWheel = i == CAR_WHEEL_FRONT_LEFT
+                                   || i == CAR_WHEEL_FRONT_RIGHT;
 
-    bool  bAreRearWheelsNotSkidding = false;
-    float fUnk                      = 0.0f;
-    auto  nWheels                   = 0;
+            if (wstate == WHEEL_STATE_NORMAL) {
+                continue;
+            }
+            if (wheelCounts[i] <= 0.0f) {
+                continue;
+            }
+            if (areRearWheelsNotSkidding && isFrontWheel && wstate == WHEEL_STATE_SKIDDING) {
+                continue;
+            }
 
+            const auto dt = params.Transmission->m_nDriveType;
+            sumWheelSkid += dt == '4' || dt == 'F' && isFrontWheel || dt == 'R' && !isFrontWheel
+                ? GetVehicleDriveWheelSkidValue(params.Vehicle, wstate, gasPedalAudioRevs, *params.Transmission, params.Speed)
+                : GetVehicleNonDriveWheelSkidValue(params.Vehicle, wstate, *params.Transmission, params.Speed);
+        }
+    };
     switch (params.BaseVehicleType) {
     case VEHICLE_TYPE_AUTOMOBILE: {
-        nWheels = 4;
-
-        auto vehicle = params.Vehicle->AsAutomobile();
-        fUnk         = vehicle->m_GasPedalAudioRevs;
-
-        bAreRearWheelsNotSkidding = vehicle->m_WheelStates[CAR_WHEEL_REAR_LEFT] != WHEEL_STATE_SKIDDING && vehicle->m_WheelStates[CAR_WHEEL_REAR_RIGHT] != WHEEL_STATE_SKIDDING;
-        // todo: aWheelTimers = vehicle->m_anWheelTimer;
-        // todo: wheelStates = vehicle->m_anWheelState;
+        auto* const a = params.Vehicle->AsAutomobile();
+        CalculateWheelSkid(
+            a->GetNumContactWheels(),
+            a->m_GasPedalAudioRevs,
+            a->m_WheelStates[CAR_WHEEL_REAR_LEFT] != WHEEL_STATE_SKIDDING && a->m_WheelStates[CAR_WHEEL_REAR_RIGHT] != WHEEL_STATE_SKIDDING,
+            a->m_WheelStates,
+            a->m_WheelCounts
+        );
         break;
     }
     case VEHICLE_TYPE_BIKE: {
-        nWheels = 2;
-
-        auto* bike                = params.Vehicle->AsBike();
-        fUnk                      = bike->m_GasPedalAudioRevs;
-        bAreRearWheelsNotSkidding = bike->m_WheelStates[1] != WHEEL_STATE_SKIDDING;
-        wheelStates               = bike->m_WheelStates;
-        // todo: aWheelTimers = bike->m_wheelCollisionState;
+        auto* const b = params.Vehicle->AsBike();
+        CalculateWheelSkid(
+            b->GetNumContactWheels(),
+            b->m_GasPedalAudioRevs,
+            b->m_WheelStates[1] != WHEEL_STATE_SKIDDING,
+            b->m_WheelStates,
+            b->m_WheelCounts
+        );
         break;
     }
     default:
-        return;
-    }
-
-    // Calculate skid values sum of all wheels
-    float fTotalSkidValue = 0.0f;
-    for (auto i = 0; i < nWheels; i++) {
-        const bool        bIsFrontWheel  = i == CAR_WHEEL_FRONT_LEFT || i == CAR_WHEEL_FRONT_RIGHT;
-        const tWheelState thisWheelState = wheelStates[i];
-
-        if (thisWheelState == WHEEL_STATE_NORMAL) {
-            continue;
-        }
-        if (aWheelTimers[i] == 0.0f) {
-            continue;
-        }
-        if (bAreRearWheelsNotSkidding && bIsFrontWheel && thisWheelState == WHEEL_STATE_SKIDDING) {
-            continue;
-        }
-
-        const auto dt = params.Transmission->m_nDriveType;
-        if (dt == '4' || dt == 'F' && bIsFrontWheel || dt == 'R' && !bIsFrontWheel) {
-            fTotalSkidValue += GetVehicleDriveWheelSkidValue(params.Vehicle, thisWheelState, fUnk, *params.Transmission, params.Speed);
-        } else {
-            fTotalSkidValue += GetVehicleNonDriveWheelSkidValue(params.Vehicle, thisWheelState, *params.Transmission, params.Speed);
-        }
+        NOTSA_UNREACHABLE();
     }
 
     const auto StopSkidSound = [&] {
-        PlaySkidSound(-1, 0.0f, 0.0f);
+        PlaySkidSound(-1, 1.0f, -100.f);
     };
-    if (fTotalSkidValue <= 0.0f) {
+    if (CTimer::GetTimeStep() == 0.f || sumWheelSkid <= 0.f) {
         StopSkidSound();
         return;
     }
 
-    int16 soundId     = -1;
-    float fBaseVolume = 0.0f, fSpeed = 1.0f;
-
-    if (m_AuSettings.VehicleAudioType == AE_BMX) {
-        soundId     = 0;
-        fBaseVolume = -12.0f;
-        fSpeed      = 0.9f + fTotalSkidValue * 0.25f;
-    } else {
-        if (IsSurfaceAudioGrass(params.Vehicle->m_nContactSurface)) {
-            soundId     = 6;
-            fBaseVolume = -12.0f;
-            fSpeed      = 0.2f * fTotalSkidValue + 0.9f;
-        } else if (IsSurfaceAudioEitherGravelWaterSand(params.Vehicle->m_nContactSurface)) {
-            soundId     = 8;
-            fBaseVolume = -9.0f;
-            fSpeed      = 0.2f * fTotalSkidValue + 0.9f;
-        } else {
-            soundId = 24;
-            fSpeed  = 0.125f * fTotalSkidValue + 0.8f;
-
-            if (m_AuSettings.IsMotorcycle()) {
-                fSpeed *= 1.2f;
+    const auto DoPlaySkidSound = [&](eSoundID sfx, float speed, float volume) {
+        const float skidPerWheel = sumWheelSkid / (float)(numWheels);
+        if (skidPerWheel > 0.00001f) {
+            volume += CAEAudioUtility::AudioLog10(skidPerWheel) * 20.0f + s_Config.Skid.VolBase;
+            if (volume >= -100.0f) {
+                return PlaySkidSound(sfx, speed, volume);
             }
         }
-
-        switch (m_AuSettings.VehicleAudioType) {
-        case AE_AIRCRAFT_PLANE:
-        case AE_AIRCRAFT_HELICOPTER: {
-            fBaseVolume += 12.0f;
-            break;
-        }
-        }
-    }
-
-    const float fAvgSkidValPerWheel = fTotalSkidValue / (float)nWheels;
-    if (fAvgSkidValPerWheel > 0.00001f) {
-        const float fVolume = 0.0f + fBaseVolume + CAEAudioUtility::AudioLog10(fAvgSkidValPerWheel) * 20.0f;
-        if (fVolume >= -100.0f) {
-            PlaySkidSound(soundId, fSpeed, fVolume);
-        } else {
-            StopSkidSound();
-        }
-    } else {
         StopSkidSound();
+    };
+    if (m_AuSettings.VehicleAudioType == AE_BMX) { // 0x4F90D3
+        auto* const cfg = &s_Config.Skid.BMX;
+        DoPlaySkidSound(0, cfg->VolBase, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid);
+    } else {
+        float vol = m_AuSettings.IsPlaneOrHeli()
+            ? s_Config.Skid.VolOffsetForPlaneOrHeli
+            : 0.f;
+        if (IsSurfaceAudioGrass(params.Vehicle->m_nContactSurface)) {
+            auto* const cfg = &s_Config.Skid.GrassSurface;
+            DoPlaySkidSound(6, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid, cfg->VolBase + vol);
+        } else if (IsSurfaceWet(params.Vehicle->m_nContactSurface)) {
+            auto* const cfg = &s_Config.Skid.WetSurface;
+            DoPlaySkidSound(8, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid, cfg->VolBase + vol);
+        } else {
+            auto* const cfg = &s_Config.Skid.StdSurface;
+            vol += cfg->VolBase;
+            if (m_AuSettings.IsBike()) {
+                vol *= cfg->FrqFactorForBikes;
+            }
+            DoPlaySkidSound(24, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid, vol);
+        }
     }
 }
 
 // 0x4F92C0
 void CAEVehicleAudioEntity::ProcessRainOnVehicle(tVehicleParams& params) {
-    if (!AEAudioHardware.IsSoundBankLoaded(BANK_RAIN_SOUNDS, SLOT_RAIN_ON_VEHICLE)) {
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_RAIN, SND_BANK_SLOT_WEATHER)) {
         return;
     }
 
@@ -2136,7 +2140,7 @@ void CAEVehicleAudioEntity::ProcessRainOnVehicle(tVehicleParams& params) {
 
     const auto sfxId  = (int16)CAEAudioUtility::GetRandomNumberInRange(12, 15);
     const auto volume = 0.0f + CAEWeatherAudioEntity::m_sfRainVolume;
-    m_tempSound.Initialise(SLOT_RAIN_ON_VEHICLE, sfxId, this, m_Entity->GetPosition(), volume);
+    m_tempSound.Initialise(SND_BANK_SLOT_WEATHER, sfxId, this, m_Entity->GetPosition(), volume);
     m_tempSound.m_fSpeedVariability = 0.1f;
     m_tempSound.m_nEvent            = AE_RAIN_COLLISION;
     AESoundManager.RequestNewSound(&m_tempSound);
@@ -2755,7 +2759,7 @@ void CAEVehicleAudioEntity::ProcessAIProp(tVehicleParams& vp) {
     if (m_DummyEngineBank == SND_BANK_UNK) { // 0x4FE008
         return;
     }
-    if (m_DummySlot == SND_BANK_SLOT_UNK) { // 0x4FE00E
+    if (m_DummySlot == SND_BANK_SLOT_NONE) { // 0x4FE00E
         if ((m_DummySlot = RequestBankSlot(m_DummyEngineBank)) == -1) {
             return;
         }
@@ -2857,24 +2861,30 @@ void CAEVehicleAudioEntity::ProcessPlayerBicycle(tVehicleParams& params) {
 
 // 0x5002C0
 void CAEVehicleAudioEntity::ProcessVehicleSirenAlarmHorn(tVehicleParams& vp) {
-    bool horn = false, sirenOrAlarm = false;
-    GetSirenState(sirenOrAlarm, horn, vp);
+    // Figure out sirens state
+    bool isFastSirenOn = false,
+         isSirenOn     = false;
+    GetSirenState(isSirenOn, isFastSirenOn, vp);
 
-    if (!sirenOrAlarm) {
+    // If no siren, possibly use horn
+    bool isHornOn = false;
+    if (!isSirenOn) {
         if (!vp.Vehicle->m_nAlarmState || vp.Vehicle->m_nAlarmState == -1 || vp.Vehicle->GetStatus() == STATUS_WRECKED) {
-            GetHornState(&horn, vp);
+            GetHornState(&isHornOn, vp);
         } else {
             const auto time = CTimer::GetTimeInMS();
             if (time > vp.Vehicle->m_HornCounter) {
                 vp.Vehicle->m_HornCounter = time + 750;
             }
-            m_IsHornOn = vp.Vehicle->m_HornCounter < time + 750 / 2;
+            isHornOn = vp.Vehicle->m_HornCounter < time + 750 / 2;
         }
     }
 
-    PlayHornOrSiren(m_IsHornOn, sirenOrAlarm, horn, vp);
-    m_IsSirenOn     = sirenOrAlarm;
-    m_IsFastSirenOn = horn;
+    // Play sounds now
+    PlayHornOrSiren(isHornOn, isSirenOn, isFastSirenOn, vp);
+    m_IsSirenOn     = isSirenOn;
+    m_IsFastSirenOn = isFastSirenOn;
+    m_IsHornOn      = isHornOn;
 }
 
 // 0x5003A0
@@ -3497,27 +3507,27 @@ bool CAEVehicleAudioEntity::PlayGenericEngineSound(
 // NOTSA
 CAESound* CAEVehicleAudioEntity::PlaySound(
     int16             bankSlotId,
-    int16             sfxId,
+    int16             soundID,
     float             fVolume,
-    float             fSpeed,
-    float             fSoundDistance,
-    float             fTimeScale,
-    eSoundEnvironment individualEnvironment,
-    int16             playPos
+    float             speed,
+    float             rollOffFactor,
+    float             doppler,
+    eSoundEnvironment flags,
+    int16             playTime
 ) {
     m_tempSound.Initialise(
         bankSlotId,
-        sfxId,
+        soundID,
         this,
         m_Entity->GetPosition(),
         fVolume,
-        fSoundDistance,
-        fSpeed,
-        fTimeScale,
-        false,
-        individualEnvironment,
+        rollOffFactor,
+        speed,
+        doppler,
+        0,
+        flags,
         0.0f,
-        playPos
+        playTime
     );
     return AESoundManager.RequestNewSound(&m_tempSound);
 }

@@ -173,19 +173,19 @@ void CAudioEngine::InitialisePostLoading() {
     m_GlobalWeaponAE = new CAEGlobalWeaponAudioEntity();
     m_GlobalWeaponAE->Initialise();
 
-    while ( !AEAudioHardware.IsSoundBankLoaded(39, SLOT_LOADING_TUNE_LEFT)
-           || !AEAudioHardware.IsSoundBankLoaded(27, 3)
-           || !AEAudioHardware.IsSoundBankLoaded(138, 19)
-           || !AEAudioHardware.IsSoundBankLoaded(0, 41)
-           || !AEAudioHardware.IsSoundBankLoaded(BANK_EXTRAS, SLOT_EXTRAS)
-           || !AEAudioHardware.IsSoundBankLoaded(52, 4)
-           || !AEAudioHardware.IsSoundBankLoaded(143, SLOT_LOADING_TUNE_RIGHT)
-           || !AEAudioHardware.IsSoundBankLoaded(51, 31)
-           || !AEAudioHardware.IsSoundBankLoaded(105, 6)
-           || !AEAudioHardware.IsSoundBankLoaded(74, 17)
-           || !AEAudioHardware.IsSoundBankLoaded(128, 32)
-           || !AEAudioHardware.IsSoundBankLoaded(13, 18)
-   ) {
+    while (   !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_BULLET_HITS, SND_BANK_SLOT_BULLET_HITS)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_FEET_GENERIC, SND_BANK_SLOT_FOOTSTEPS_GENERIC)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_EXPLOSIONS, SND_BANK_SLOT_EXPLOSIONS)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_DOORS, SND_BANK_SLOT_DOORS)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_RAIN, SND_BANK_SLOT_WEATHER)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_HORN, SND_BANK_SLOT_HORN_AND_SIREN)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_SWIMMING, SND_BANK_SLOT_SWIMMING)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_APACHE_D, SND_BANK_SLOT_COP_HELI)
+    ) {
         AEAudioHardware.Service();
     }
 }

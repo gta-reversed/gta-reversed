@@ -35,8 +35,8 @@ void CAECollisionAudioEntity::Initialise() {
 
 // 0x4DA050
 void CAECollisionAudioEntity::InitialisePostLoading() {
-    AEAudioHardware.LoadSoundBank(39, SLOT_LOADING_TUNE_LEFT);
-    AEAudioHardware.LoadSoundBank(27, 3);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_BULLET_HITS, SND_BANK_SLOT_BULLET_HITS);
 }
 
 // 0x4DA320
