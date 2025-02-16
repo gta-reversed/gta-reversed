@@ -1807,17 +1807,15 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
         } else {
             return;
         }
-    } else if (!isHornOn && m_IsHornOn) {
-        if (m_AuSettings.HornType != eAEVehicleHornType::BIKE) { 
-            StopAndForgetSound(m_HornSound); // 0x4F9C46
-        } else { // 0x4F9B08
-            m_HornVolume = std::max(m_HornVolume - s_Config.Horn.BikeBellFadeOut, -100.0f);
-            if (m_HornVolume <= -100.0f) {
-                StopAndForgetSound(m_HornSound);
-            } else if (m_HornSound) {
-                m_HornSound->SetVolume(m_HornVolume);
-            }
+    } else if (m_AuSettings.HornType == eAEVehicleHornType::BIKE) { 
+        m_HornVolume = std::max(m_HornVolume - std::pow(s_Config.Horn.BikeBellFadeOut, CTimer::GetTimeStep()), -100.0f); // NB: Framerate bugfix with `std::pow`
+        if (m_HornVolume <= -100.0f) {
+            StopAndForgetSound(m_HornSound);
+        } else if (m_HornSound) {
+            m_HornSound->SetVolume(m_HornVolume);
         }
+    } else if (!isHornOn && m_IsHornOn) { // 0x4F9B08
+        StopAndForgetSound(m_HornSound); // 0x4F9C46
     }
 
     //
