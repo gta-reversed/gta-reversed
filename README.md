@@ -21,13 +21,14 @@ Since this project is done as a hobby, and worked on at irregular intervals, the
 * [CMake](https://cmake.org/download/)
 
 #### 1. Install Python, and Conan
-* Install [Python](https://www.python.org/downloads/) [When installing make sure to tick the "Add to PATH" checkbox!]
-* Install Conan using `pip install conan` [You might neped to reload the console if you've freshly installed Python!]
+* Install the [latest Python](https://www.python.org/downloads/) [When installing make sure to tick the "Add to PATH" checkbox!]
+* Install Conan using `pip install conan` [You might need to reload the console if you've freshly installed Python.]
 
 #### 2. Setting up VS
 0) Run: `install.sh Debug` (Or any of `Debug`, `Release`, `RelWithDebInfo`)
 1) Open the folder with VS
 2) Select `conan-debug (conan-default-conan-debug)` or `conan-release (conan-default-conan-release)` (Depending on what you've spcified in the command above), other builds will result in CMake errors [TODO: Fix this somehow... We aren't proeficient with Conan/CMake sadly]
+3) Alternatively you can type `cmake --preset conan-debug/release` and build with `cmake --build build` in CLI.
 
 ### 3. Set up the game and ASI
 0. GTA SA ***Compact exe***: Our code requires you to use this exe, otherwise you will experience random crashes. You must own the original game and assets for this to work.
