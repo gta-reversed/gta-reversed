@@ -356,12 +356,12 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
         auto flags1 = eSoundEnvironment(flags0 | SOUND_UNPAUSABLE);
         if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
             if (CTimer::GetIsPaused()) {
-                if (!m_objRetunePaused.m_bIsInitialised) {
-                    m_objRetunePaused.Initialise(0, 2, 1, this, 200, 650, -1, -1);
+                if (!m_objRetunePaused.IsInUse()) {
+                    m_objRetunePaused.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 2, 1, this, 200, 650, -1, -1);
                     m_objRetunePaused.PlayTwinLoopSound(YVECP, volume, 1.0f, 1.0f, 1.0f, flags1);
                 }
-            } else if (!m_objRetune.m_bIsInitialised) {
-                m_objRetune.Initialise(0, 2, 1, this, 200, 650, -1, -1);
+            } else if (!m_objRetune.IsInUse()) {
+                m_objRetune.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 2, 1, this, 200, 650, -1, -1);
                 m_objRetune.PlayTwinLoopSound(YVECP, volume, 1.0f, 1.0f, 1.0f, flags0);
             }
         }
@@ -369,31 +369,28 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
     }
     case AE_FRONTEND_RADIO_RETUNE_STOP:
         if (CTimer::GetIsPaused()) {
-            if (m_objRetunePaused.m_bIsInitialised) {
+            if (m_objRetunePaused.IsInUse()) {
                 m_objRetunePaused.StopSoundAndForget();
             }
-            return;
-        }
-
-        if (m_objRetune.m_bIsInitialised) {
+        } else if (m_objRetune.IsInUse()) {
             m_objRetune.StopSoundAndForget();
         }
         return;
     case AE_FRONTEND_RADIO_RETUNE_STOP_PAUSED:
-        if (m_objRetunePaused.m_bIsInitialised) {
+        if (m_objRetunePaused.IsInUse()) {
             m_objRetunePaused.StopSoundAndForget();
         }
         return;
     case AE_FRONTEND_RADIO_CLICK_ON:
         if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
-            sound.Initialise(0, 23, this, YVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 23, this, YVECP, volume);
             sound.m_nEnvironmentFlags = SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_RADIO_CLICK_OFF:
         if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
-            sound.Initialise(0, 23, this, YVECP, volume, 1.0f, 0.8909f);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 23, this, YVECP, volume, 1.0f, 0.8909f);
             sound.m_nEnvironmentFlags = SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;;
             AESoundManager.RequestNewSound(&sound);
         }
@@ -506,10 +503,9 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
 
 // 0x4DD480
 bool CAEFrontendAudioEntity::IsRadioTuneSoundActive() {
-    if (CTimer::GetIsPaused())
-        return m_objRetunePaused.m_bIsInitialised;
-    else
-        return m_objRetune.m_bIsInitialised;
+    return CTimer::GetIsPaused()
+        ? m_objRetunePaused.IsInUse()
+        : m_objRetune.IsInUse();
 }
 
 // 0x4DD470

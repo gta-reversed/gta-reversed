@@ -73,7 +73,7 @@ void CAEPedAudioEntity::Terminate() {
     m_pPed   = nullptr;
     StopJetPackSound();
     AESoundManager.CancelSoundsOwnedByAudioEntity(this, true);
-    if (m_sTwinLoopSoundEntity.m_bIsInitialised) {
+    if (m_sTwinLoopSoundEntity.IsInUse()) {
         m_sTwinLoopSoundEntity.StopSoundAndForget();
     }
 }
@@ -463,10 +463,10 @@ void CAEPedAudioEntity::HandleSwimWake(eAudioEvents event) {
 
 // 0x4E2A90
 void CAEPedAudioEntity::PlayShirtFlap(float volume, float speed) {
-    if (m_sTwinLoopSoundEntity.m_bIsInitialised) {
+    if (m_sTwinLoopSoundEntity.IsInUse()) {
         m_sTwinLoopSoundEntity.UpdateTwinLoopSound(m_pPed->GetPosition(), volume, speed);
     } else {
-        m_sTwinLoopSoundEntity.Initialise(5, 19, 20, this, 200, 1000, -1, -1);
+        m_sTwinLoopSoundEntity.Initialise(SND_BANK_SLOT_WEAPON_GEN, 19, 20, this, 200, 1000, -1, -1);
         m_sTwinLoopSoundEntity.PlayTwinLoopSound(m_pPed->GetPosition(), volume, speed, 2.0f, 1.0f, SOUND_DEFAULT);
     }
 }

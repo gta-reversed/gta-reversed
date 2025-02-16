@@ -7,62 +7,82 @@
 #pragma once
 
 /* This class is used to control 2 sounds as one. There are 2 sounds
-   created with PlayTwinLoopSound(), and one of them is playing when second
-   is simply muted. When time m_nTimeToSwapSounds is reached, these sounds
+   created with `PlayTwinLoopSound()`, and one of them is playing when second
+   is simply muted. When time m_TimeToSwapSoundsMs is reached, these sounds
    are switched: second starts playing, first begins being muted.
-   The time m_nTimeToSwapSounds is calculated as:
-   CAEAudioUtility::GetRandomNumberInRange(m_nPlayTimeMin, m_nPlayTimeMax);
+   The time m_TimeToSwapSoundsMs is calculated as:
+   `CAEAudioUtility::GetRandomNumberInRange(m_SwapTimeMin, m_SwapTimeMax)`
    Notice these sounds must be situated in same bank slot.
-   m_pBaseAudio is a pointer to audio which created twin sound. For example,
+   `m_AudioEntity` is a pointer to audio which created twin sound. For example,
    this could be CAEVehicleAudioEntity for playing skid sounds.              */
 
 #include "AEAudioEntity.h"
 
-class NOTSA_EXPORT_VTABLE CAETwinLoopSoundEntity : public CAEAudioEntity {
-public:
-    int16           m_nBankSlotId;
-    int16           m_nSoundId1;
-    int16           m_nSoundId2;
-    CAEAudioEntity* m_pBaseAudio;
-    int16           m_bIsInitialised;
-    int16           unused_field_8A;
-    int16           unused_field_8C;
-    uint16          m_nPlayTimeMin;
-    uint16          m_nPlayTimeMax;
-    uint32          m_nTimeToSwapSounds;
-    bool            m_bPlayingFirstSound;
-    int16           m_nSoundPlayStart1; // 0 - 99 percentage
-    int16           m_nSoundPlayStart2; // 0 - 99 percentage
-    CAESound*       m_pSound1;
-    CAESound*       m_pSound2;
+#include <Enums/SoundIDs.h>
+#include <Enums/eSoundBankSlot.h>
 
+class NOTSA_EXPORT_VTABLE CAETwinLoopSoundEntity : public CAEAudioEntity {
+    static constexpr uint32 NUM_SOUNDS = 2;
 public:
-    CAETwinLoopSoundEntity();
-    CAETwinLoopSoundEntity(int16 bank, int16 soundType1, int16 soundType2, CAEAudioEntity* audio, uint16 minTime, uint16 maxTime, int16 sfxPlayStart1, int16 sfxPlayStart2);
+    CAETwinLoopSoundEntity() = default;
+    CAETwinLoopSoundEntity(
+        eSoundBankSlot  bank,
+        eSoundID        soundA,
+        eSoundID        soundB,
+        CAEAudioEntity* parent,
+        uint16          swapTimeMin,
+        uint16          swapTimeMax,
+        int16           playPercentageA,
+        int16           playPercentageB
+    );
 
     ~CAETwinLoopSoundEntity();
 
-    void Initialise(int16 bank, int16 sfx1, int16 sfx2, CAEAudioEntity* audio, uint16 minTime, uint16 maxTime, int16 sfxPlayStart1, int16 sfxPlayStart2);
+    void Initialise(
+        eSoundBankSlot  bank,
+        eSoundID        soundA,
+        eSoundID        soundB,
+        CAEAudioEntity* parent,
+        uint16          swapTimeMin,
+        uint16          swapTimeMax,
+        int16           playPercentageA = -1,
+        int16           playPercentageB = -1
+    );
 
     void UpdateParameters(CAESound* sound, int16 curPlayPos) override;
 
-    void UpdateTwinLoopSound(CVector posn, float volume, float speed);
+    void UpdateTwinLoopSound(CVector pos, float volume, float speed);
     void SwapSounds();
     void StopSound();
     void StopSoundAndForget();
 
-    float GetEmittedVolume();
-    void  SetEmittedVolume(float volume);
+    float GetEmittedVolume() const;
+    void  SetEmittedVolume(float volume) const;
 
-    bool IsTwinLoopPlaying();
-    bool DoSoundsSwitchThisFrame();
+    bool IsTwinLoopPlaying() const;
+    bool DoSoundsSwitchThisFrame() const;
 
-    void PlayTwinLoopSound(CVector posn, float volume, float speed, float maxDistance, float timeScale, eSoundEnvironment flags);
+    void PlayTwinLoopSound(CVector pos, float volume, float speed, float rollOffFactor, float doppler = 1.f, eSoundEnvironment flags = SOUND_DEFAULT);
+
+    bool IsInUse() const noexcept { return m_IsInUse; }
+private:
+    void ReCalculateSwapTime();
 
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
+private:
+    eSoundBankSlotS16 m_BankSlot{};
+    eSoundID          m_SoundIDs[NUM_SOUNDS]{};
+    CAEAudioEntity*   m_AudioEntity{};
+    int16             m_IsInUse{};
+    int16             m_SoundsLengths[NUM_SOUNDS]{};
+    uint16            m_SwapTimeMin{};
+    uint16            m_SwapTimeMax{};
+    uint32            m_TimeToSwapSoundsMs{};
+    bool              m_IsPlayingFirstSound{};
+    int16             m_SoundPlayPercentages[NUM_SOUNDS]{}; // 0 - 99%
+    CAESound*         m_Sounds[NUM_SOUNDS]{};
 };
-
 VALIDATE_SIZE(CAETwinLoopSoundEntity, 0xA8);

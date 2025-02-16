@@ -24,11 +24,13 @@ void CAEWeatherAudioEntity::StaticInitialise() {
 void CAEWeatherAudioEntity::StaticReset() {
     m_sfRainVolume = -100.0f;
 
-    if (gTwinLoopSoundEntityFirst.m_bIsInitialised)
+    if (gTwinLoopSoundEntityFirst.IsInUse()) {
         gTwinLoopSoundEntityFirst.StopSoundAndForget();
+    }
 
-    if (gTwinLoopSoundEntitySecond.m_bIsInitialised)
+    if (gTwinLoopSoundEntitySecond.IsInUse()) {
         gTwinLoopSoundEntitySecond.StopSoundAndForget();
+    }
 }
 
 // 0x506800, see discord gists channel

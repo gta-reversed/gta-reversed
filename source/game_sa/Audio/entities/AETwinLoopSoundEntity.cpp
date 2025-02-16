@@ -3,174 +3,179 @@
 #include "AEAudioUtility.h"
 #include "AESoundManager.h"
 
-// 0x4F63B0
-CAETwinLoopSoundEntity::CAETwinLoopSoundEntity() : CAEAudioEntity() {
-    m_bIsInitialised = 0;
-    m_pSound1 = nullptr;
-    m_pSound2 = nullptr;
-}
-
 // 0x4F2AE0
-CAETwinLoopSoundEntity::CAETwinLoopSoundEntity(int16 bankSlotId, int16 soundType1, int16 soundType2, CAEAudioEntity* audio, uint16 minTime, uint16 maxTime, int16 sfxPlayStart1, int16 sfxPlayStart2) : CAEAudioEntity() {
-    Initialise(bankSlotId, soundType1, soundType2, audio, minTime, maxTime, sfxPlayStart1, sfxPlayStart2);
+CAETwinLoopSoundEntity::CAETwinLoopSoundEntity(
+    eSoundBankSlot  bankSlot,
+    eSoundID        soundA,
+    eSoundID        soundB,
+    CAEAudioEntity* parent,
+    uint16          swapTimeMin,
+    uint16          swapTimeMax,
+    int16           playPercentageA,
+    int16           playPercentageB
+) :
+    m_IsPlayingFirstSound{ true },
+    m_IsInUse{ true },
+    m_SwapTimeMin{ swapTimeMin },
+    m_SwapTimeMax{ swapTimeMax },
+    m_BankSlot{ bankSlot },
+    m_AudioEntity{ parent },
+    m_SoundIDs{ soundA, soundB },
+    m_SoundPlayPercentages{ playPercentageA, playPercentageB }
+{
+    rng::fill(m_SoundsLengths, -1);
 }
 
 // 0x4F2B80
 CAETwinLoopSoundEntity::~CAETwinLoopSoundEntity() {
-    if (!m_bIsInitialised)
-        return;
-
-    StopSoundAndForget();
-
-    m_bIsInitialised = 0;
+    if (m_IsInUse) {
+        StopSoundAndForget();
+    }
+    m_IsInUse = false;
 }
 
 // 0x4F28A0
-void CAETwinLoopSoundEntity::Initialise(int16 bankSlotId, int16 sfx1, int16 sfx2, CAEAudioEntity* audio, uint16 minTime, uint16 maxTime, int16 sfxPlayStart1, int16 sfxPlayStart2) {
-    m_nBankSlotId        = bankSlotId;
-    m_nSoundId1          = sfx1;
-    m_nSoundId2          = sfx2;
-    m_pBaseAudio         = audio;
-    m_nPlayTimeMin       = minTime;
-    m_nPlayTimeMax       = maxTime;
-    m_nSoundPlayStart1   = sfxPlayStart1;
-    m_nSoundPlayStart2   = sfxPlayStart2;
-    unused_field_8A      = -1;
-    unused_field_8C      = -1;
-    m_pSound1            = nullptr;
-    m_pSound2            = nullptr;
-    m_bPlayingFirstSound = true;
-    m_bIsInitialised     = 1;
+void CAETwinLoopSoundEntity::Initialise(
+    eSoundBankSlot  bank,
+    eSoundID        soundA,
+    eSoundID        soundB,
+    CAEAudioEntity* parent,
+    uint16          swapTimeMin,
+    uint16          swapTimeMax,
+    int16           playPercentageA,
+    int16           playPercentageB
+) {
+    assert(!m_IsInUse);
+
+    *this = CAETwinLoopSoundEntity{
+        bank,
+        soundA,
+        soundB,
+        parent,
+        swapTimeMin,
+        swapTimeMax,
+        playPercentageA,
+        playPercentageB,
+    };
 }
 
 // 0x4F29A0
-void CAETwinLoopSoundEntity::UpdateTwinLoopSound(CVector posn, float volume, float speed) {
-    if (m_pSound1) {
-        m_pSound1->SetPosition(posn);
-        if (m_bPlayingFirstSound)
-            m_pSound1->m_fVolume = volume;
-
-        m_pSound1->m_fSpeed = speed;
-    }
-
-    if (m_pSound2) {
-        m_pSound2->SetPosition(posn);
-        if (!m_bPlayingFirstSound)
-            m_pSound2->m_fVolume = volume;
-
-        m_pSound2->m_fSpeed = speed;
+void CAETwinLoopSoundEntity::UpdateTwinLoopSound(CVector pos, float volume, float speed) {
+    for (auto&& [i, sound] : notsa::enumerate(m_Sounds)) {
+        sound->SetPosition(pos);
+        if (i == (m_IsPlayingFirstSound ? 0 : 1)) {
+            sound->SetVolume(volume);
+        }
+        sound->SetSpeed(speed);
     }
 }
 
 // 0x4F2E90
 void CAETwinLoopSoundEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     if (curPlayPos == -1) {
-        if (sound == m_pSound1)
-            m_pSound1 = nullptr;
-
-        if (sound == m_pSound2)
-            m_pSound2 = nullptr;
+        for (auto*& s : m_Sounds) {
+            if (s == sound) {
+                s = nullptr;
+            }
+        }
     }
-
-    if (sound == m_pSound1 && CTimer::GetTimeInMSPauseMode() > m_nTimeToSwapSounds)
-        SwapSounds();
+    if (DoSoundsSwitchThisFrame()) {
+        if (sound == m_Sounds[0]) {
+            SwapSounds();
+        }
+    }
 }
 
 // 0x4F2C10
 void CAETwinLoopSoundEntity::SwapSounds() {
-    if (m_pSound1 && m_pSound2) {
-        if (m_bPlayingFirstSound) {
-            m_pSound2->m_fVolume = m_pSound1->m_fVolume;
-            m_pSound1->m_fVolume = -100.0f;
-            m_bPlayingFirstSound = false;
-        } else {
-            m_pSound1->m_fVolume = m_pSound2->m_fVolume;
-            m_pSound2->m_fVolume = -100.0f;
-            m_bPlayingFirstSound = true;
-        }
-        m_nTimeToSwapSounds = CTimer::GetTimeInMSPauseMode() + CAEAudioUtility::GetRandomNumberInRange(m_nPlayTimeMin, m_nPlayTimeMax);
+    auto* curr = m_Sounds[m_IsPlayingFirstSound ? 0 : 1];
+    auto* next = m_Sounds[m_IsPlayingFirstSound ? 1 : 0];
+    if (!curr || !next) {
+        return;
     }
+    next->m_fVolume = std::exchange(curr->m_fVolume, -100.f);
+    m_IsPlayingFirstSound = !m_IsPlayingFirstSound;
+    ReCalculateSwapTime();
 }
 
-// unused
 // 0x4F2930
 void CAETwinLoopSoundEntity::StopSound() {
-    if (m_pSound1)
-        m_pSound1->StopSound();
-
-    if (m_pSound2)
-        m_pSound2->StopSound();
+    for (auto&& s : m_Sounds) {
+        if (s) {
+            s->StopSound();
+        }
+    }
 }
 
 // 0x4F2960
 void CAETwinLoopSoundEntity::StopSoundAndForget() {
-    if (m_pSound1) {
-        m_pSound1->StopSoundAndForget();
-        m_pSound1 = nullptr;
+    for (auto&& sound : m_Sounds) {
+        if (auto* const s = std::exchange(sound, nullptr)) {
+            s->StopSoundAndForget();
+        }
     }
-
-    if (m_pSound2) {
-        m_pSound2->StopSoundAndForget();
-        m_pSound2 = nullptr;
-    }
-
-    m_bIsInitialised = 0;
+    m_IsInUse = false;
 }
 
 // unused
 // 0x4F2A80
-float CAETwinLoopSoundEntity::GetEmittedVolume() {
-    if (m_pSound1 && m_bPlayingFirstSound) {
-        return m_pSound1->m_fVolume;
-    } else if (m_pSound2 != nullptr && !m_bPlayingFirstSound) {
-        return m_pSound2->m_fVolume;
-    } else
-        return -100.0f;
+float CAETwinLoopSoundEntity::GetEmittedVolume() const {
+    auto* const s = m_Sounds[m_IsPlayingFirstSound ? 0 : 1];
+    return s
+        ? s->GetVolume()
+        : -100.f;
 }
 
 // unused
 // 0x4F2A40
-void CAETwinLoopSoundEntity::SetEmittedVolume(float volume) {
-    if (m_pSound1 && m_bPlayingFirstSound)
-        m_pSound1->m_fVolume = volume;
-
-    if (m_pSound2 && !m_bPlayingFirstSound)
-        m_pSound2->m_fVolume = volume;
+void CAETwinLoopSoundEntity::SetEmittedVolume(float volume) const {
+    auto* const s = m_Sounds[m_IsPlayingFirstSound ? 0 : 1];
+    s->SetVolume(volume);
 }
 
 // unused
 // 0x4F2AC0
-bool CAETwinLoopSoundEntity::IsTwinLoopPlaying() {
-    return m_pSound1 || m_pSound2;
+bool CAETwinLoopSoundEntity::IsTwinLoopPlaying() const {
+    return rng::any_of(m_Sounds, notsa::NotIsNull{});
 }
 
 // 0x4F2CA0
-bool CAETwinLoopSoundEntity::DoSoundsSwitchThisFrame() {
-    return CTimer::GetTimeInMSPauseMode() > m_nTimeToSwapSounds;
+bool CAETwinLoopSoundEntity::DoSoundsSwitchThisFrame() const {
+    return CTimer::GetTimeInMSPauseMode() > m_TimeToSwapSoundsMs;
 }
 
 // 0x4F2CB0
-void CAETwinLoopSoundEntity::PlayTwinLoopSound(CVector posn, float volume, float speed, float maxDistance, float timeScale, eSoundEnvironment flags) {
-    if (m_pSound1)
-        m_pSound1->StopSoundAndForget();
+void CAETwinLoopSoundEntity::PlayTwinLoopSound(CVector pos, float volume, float speed, float rollOffFactor, float doppler, eSoundEnvironment flags) {
+    assert(m_IsInUse && "Must initialize sound first using `Initialise()`");
 
-    if (m_pSound2)
-        m_pSound2->StopSoundAndForget();
+    StopSoundAndForget();
+    for (int32 i = 0; i < NUM_SOUNDS; i++) {
+        assert(!m_Sounds[i]);
+        m_Sounds[i] = AESoundManager.PlaySound({
+            .BankSlot      = m_BankSlot,
+            .SoundID       = m_SoundIDs[i],
+            .AudioEntity   = this,
+            .Pos           = pos,
+            .Volume        = i == 0 ? volume : -100.f,
+            .RollOffFactor = rollOffFactor,
+            .Speed         = speed,
+            .Doppler       = doppler,
+            .Flags         = (eSoundEnvironment)(flags | SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES),
+            .PlayTime      = m_SoundPlayPercentages[i] != -1
+                ? m_SoundPlayPercentages[i]
+                : CAEAudioUtility::GetRandomNumberInRange<int16>(0, 99),
+        });
+    }
+    m_IsInUse             = true;
+    m_IsPlayingFirstSound = true;
+    ReCalculateSwapTime();
+}
 
-    auto envFlags = static_cast<eSoundEnvironment>(flags | SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES);
+void CAETwinLoopSoundEntity::ReCalculateSwapTime() {
+    m_TimeToSwapSoundsMs = CTimer::GetTimeInMSPauseMode() + CAEAudioUtility::GetRandomNumberInRange(m_SwapTimeMin, m_SwapTimeMax);
+}
 
-    CAESound sound;
-    sound.Initialise(m_nBankSlotId, m_nSoundId1, this, posn, volume, maxDistance, speed, timeScale, 0, envFlags, 0.0f, 0);
-    sound.m_nCurrentPlayPosition = m_nSoundPlayStart1 == -1 ? CAEAudioUtility::GetRandomNumberInRange(0, 99) : m_nSoundPlayStart1;
-    m_pSound1 = AESoundManager.RequestNewSound(&sound);
-
-    sound.Initialise(m_nBankSlotId, m_nSoundId2, this, posn, -100.0f, maxDistance, speed, timeScale, 0, envFlags, 0.0f, 0);
-    sound.m_nCurrentPlayPosition = m_nSoundPlayStart2 == -1 ? CAEAudioUtility::GetRandomNumberInRange(0, 99) : m_nSoundPlayStart2;
-    m_pSound2 = AESoundManager.RequestNewSound(&sound);
-
-    m_nTimeToSwapSounds = CTimer::GetTimeInMSPauseMode() + CAEAudioUtility::GetRandomNumberInRange(m_nPlayTimeMin, m_nPlayTimeMax);
-    m_bPlayingFirstSound = true;
-}void CAETwinLoopSoundEntity::InjectHooks() {
+void CAETwinLoopSoundEntity::InjectHooks() {
     RH_ScopedVirtualClass(CAETwinLoopSoundEntity, 0x85F438, 1);
     RH_ScopedCategory("Audio/Entities");
 

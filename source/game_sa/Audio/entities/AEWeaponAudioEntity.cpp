@@ -504,9 +504,9 @@ void CAEWeaponAudioEntity::ReportStealthKill(eWeaponType type, CPhysical* entity
         return;
     }
 
-    const auto PlayStealthKillSound = [&](int16 bankSlotID, tSoundID soundID, float volumeOffsetdB, int32 eventID) {
+    const auto PlayStealthKillSound = [&](eSoundBankSlot bankSlotID, tSoundID soundID, float volumeOffsetdB, int32 eventID) {
         AESoundManager.PlaySound({
-            .BankSlotID         = bankSlotID,
+            .BankSlot           = bankSlotID,
             .SoundID            = soundID,
             .AudioEntity        = this,
             .Pos                = entity->GetPosition(),
@@ -525,7 +525,7 @@ void CAEWeaponAudioEntity::ReportStealthKill(eWeaponType type, CPhysical* entity
         }
         return;
     }
-    PlayStealthKillSound(5, 81, -6.f, AE_WEAPON_SOUND_CAT_STEALTH_KNIFE_IN);
+    PlayStealthKillSound(SND_BANK_SLOT_WEAPON_GEN, 81, -6.f, AE_WEAPON_SOUND_CAT_STEALTH_KNIFE_IN);
 
     if (!AEAudioHardware.IsSoundBankLoaded(39, 2)) {
         if (!AudioEngine.IsLoadingTuneActive()) {
@@ -533,7 +533,7 @@ void CAEWeaponAudioEntity::ReportStealthKill(eWeaponType type, CPhysical* entity
         }
         return;
     }
-    PlayStealthKillSound(2, 471, 0.f, AE_WEAPON_SOUND_CAT_STEALTH_KNIFE_OUT);
+    PlayStealthKillSound(SND_BANK_SLOT_COLLISIONS, 471, 0.f, AE_WEAPON_SOUND_CAT_STEALTH_KNIFE_OUT);
 }
 
 // 0x503910
@@ -616,7 +616,7 @@ void CAEWeaponAudioEntity::PlayWeaponLoopSound(CPhysical* entity, int16 sfxId, e
         return;
     }
     AESoundManager.PlaySound({
-        .BankSlotID         = 5,
+        .BankSlot         = SND_BANK_SLOT_WEAPON_GEN,
         .SoundID            = sfxId,
         .AudioEntity        = this,
         .Pos                = entity->GetPosition(),
@@ -692,14 +692,14 @@ void CAEWeaponAudioEntity::PlayMiniGunFireSounds(CPhysical* entity, eAudioEvents
     }
     case AE_WEAPON_FIRE_MINIGUN_NO_AMMO: { // 0x5048FC - Minigun is just spinning
         if (!m_IsMiniGunSpinActive) {
-            if (!AEAudioHardware.IsSoundBankLoaded(143, 5)) { // SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN
+            if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN)) { // SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN
                 if (!AudioEngine.IsLoadingTuneActive()) {
-                    AEAudioHardware.LoadSoundBank(143, 5);
+                    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN);
                 }
                 break;
             }
             AESoundManager.PlaySound({
-                .BankSlotID         = 5,
+                .BankSlot           = SND_BANK_SLOT_WEAPON_GEN,
                 .SoundID            = 14,
                 .AudioEntity        = this,
                 .Pos                = entity->GetPosition(),
@@ -798,7 +798,7 @@ void CAEWeaponAudioEntity::PlayFlameThrowerIdleGasLoop(CPhysical* entity) {
         return;
     }
     m_FlameThrowerIdleGasLoopSound = AESoundManager.PlaySound({
-        .BankSlotID         = 5,
+        .BankSlot         = SND_BANK_SLOT_WEAPON_GEN,
         .SoundID            = 10,
         .AudioEntity        = this,
         .Pos                = entity->GetPosition(),
@@ -818,10 +818,10 @@ void CAEWeaponAudioEntity::StopFlameThrowerIdleGasLoop() {
 
 // 0x504AA0
 void CAEWeaponAudioEntity::PlayChainsawStopSound(CPhysical* entity) {
-    if (entity && AEAudioHardware.IsSoundBankLoaded(36, 40)) {
+    if (entity && AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_CHAINSAW_P, SND_BANK_SLOT_PLAYER_ENGINE_P)) {
         if (m_ChainsawState != eChainsawState::STOPPING) {
             AESoundManager.PlaySound({
-                .BankSlotID         = 40,
+                .BankSlot           = SND_BANK_SLOT_PLAYER_ENGINE_P,
                 .SoundID            = 2,
                 .AudioEntity        = this,
                 .Pos                = entity->GetPosition(),
@@ -840,14 +840,14 @@ void CAEWeaponAudioEntity::PlayChainsawStopSound(CPhysical* entity) {
 
 // 0x5046F0
 void CAEWeaponAudioEntity::PlayCameraSound(CPhysical* entity, eAudioEvents event, float audability) {
-    if (!AEAudioHardware.IsSoundBankLoaded(143, 5)) {
+    if (!AEAudioHardware.IsSoundBankLoaded(143, SND_BANK_SLOT_WEAPON_GEN)) {
         if (!AudioEngine.IsLoadingTuneActive()) {
-            AEAudioHardware.LoadSoundBank(143, 5);
+            AEAudioHardware.LoadSoundBank(143, SND_BANK_SLOT_WEAPON_GEN);
         }
         return;
     }
     AESoundManager.PlaySound({
-        .BankSlotID         = 5,
+        .BankSlot           = SND_BANK_SLOT_WEAPON_GEN,
         .SoundID            = 45,
         .AudioEntity        = this,
         .Pos                = entity->GetPosition(),

@@ -19,19 +19,20 @@ CAEGlobalWeaponAudioEntity::~CAEGlobalWeaponAudioEntity() {
 
 // 0x4DEF90
 void CAEGlobalWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
-    if (curPlayPos != -1)
+    if (curPlayPos != -1) {
         return;
+    }
 
     if (sound == pFogHorn) {
         pFogHorn = nullptr;
-        return;
-    }
-
-    for (auto& waterfall : pWaterfall) {
-        if (sound == waterfall) {
-            waterfall = nullptr;
+    } else {
+        for (auto& waterfall : pWaterfall) {
+            if (sound == waterfall) {
+                waterfall = nullptr;
+            }
         }
     }
+
 }
 
 // 0x4DFAA0
@@ -63,9 +64,9 @@ void CAEGlobalWeaponAudioEntity::ProjectileFire(eWeaponType weaponType, CPhysica
     constexpr float gfRocketFrequencyVariations[] = { 1.08f, 1.0f, 0.92f, 3.3f };// 0x8AE5AC
     m_FrequencyVariation = (m_FrequencyVariation + 1) % (std::size(gfRocketFrequencyVariations) - 1);
 
-    const auto PlayRocketSound = [&](int16 bankSlotID, tSoundID soundID, float speedMult, float volumeOffsetdB) {
+    const auto PlayRocketSound = [&](eSoundBankSlot bankSlotID, eSoundID soundID, float speedMult, float volumeOffsetdB) {
         AESoundManager.PlaySound({
-            .BankSlotID = bankSlotID,
+            .BankSlot = bankSlotID,
             .SoundID = soundID,
             .AudioEntity = this,
             .Pos = physical->GetPosition(),
@@ -75,22 +76,22 @@ void CAEGlobalWeaponAudioEntity::ProjectileFire(eWeaponType weaponType, CPhysica
             .Flags = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY,
             .FrequencyVariance = 0.02f,
             .RegisterWithEntity = physical
-            });
-        };
+        });
+    };
 
-    if (!AEAudioHardware.IsSoundBankLoaded(143, 5)) {
+    if (!AEAudioHardware.IsSoundBankLoaded(143, SND_BANK_SLOT_WEAPON_GEN)) {
         if (!AudioEngine.IsLoadingTuneActive()) {
-            AEAudioHardware.LoadSoundBank(143, 5);
+            AEAudioHardware.LoadSoundBank(143, SND_BANK_SLOT_WEAPON_GEN);
         }
         return;
     }
-    PlayRocketSound(5, 68, 1.f, -8.f);
+    PlayRocketSound(SND_BANK_SLOT_WEAPON_GEN, SND_GENRL_WEAPONS_ROCKET_LAUNCH, 1.f, -8.f);
 
-    if (!AEAudioHardware.IsSoundBankLoaded(138, 19)) {
-        AEAudioHardware.LoadSoundBank(138, 19);
+    if (!AEAudioHardware.IsSoundBankLoaded(138, SND_BANK_SLOT_VEHICLE_GEN)) {
+        AEAudioHardware.LoadSoundBank(138, SND_BANK_SLOT_VEHICLE_GEN);
         return;
     }
-    PlayRocketSound(19, 26, 1.25f, 0.f);
+    PlayRocketSound(SND_BANK_SLOT_VEHICLE_GEN, SND_GENRL_WEAPONS_SNIPER_SHOT_L, 1.25f, 0.f);
 }
 
 // 0x4DF210
@@ -144,7 +145,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
             break;
         }
         case WEATHER_REGION_LV: { // 0x4DF580
-            if (!AEAudioHardware.IsSoundBankLoaded(39u, 2)) {
+            if (!AEAudioHardware.IsSoundBankLoaded(39u, SND_BANK_SLOT_COLLISIONS)) {
                 return;
             }
             if (!rng::all_of(pWaterfall, notsa::IsNull{})) {
@@ -155,7 +156,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
             }
             const auto PlayWaterfallSound = [&](int32 i, float speed) {
                 pWaterfall[i] = AESoundManager.PlaySound({
-                    .BankSlotID    = 2,
+                    .BankSlot    = SND_BANK_SLOT_COLLISIONS,
                     .SoundID       = 3,
                     .AudioEntity   = this,
                     .Pos           = s_WaterfallPositions[i],
@@ -193,7 +194,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
             }
 
             pFogHorn = AESoundManager.PlaySound({
-                .BankSlotID    = 17,
+                .BankSlot    = SND_BANK_SLOT_HORN_AND_SIREN,
                 .SoundID       = 13,
                 .AudioEntity   = this,
                 .Pos           = s_FogHornPositions[0],
@@ -243,7 +244,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
             }
             s_State = s_State == eState::FOGHORN_0
                 ? eState::STATE_3   // FOGHORN_0 -> S3
-                : eState::INITIAL;  // FOGHORN_1 -> S0
+                : eState::INITIAL;  // FOGHORN_1 -> INITIAL
         } else if (CTimer::GetTimeInMS() > s_LastTime + FOGHORN_FADE_OUT_DELAY) { // BUG: Since `FOGHORN_TTL` and `FOGHORN_FADE_OUT_DELAY` are both 5000 the `if` here will never be true.
             if (pFogHorn) {
                 pFogHorn->m_fVolume -= 3.3f;
@@ -260,7 +261,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
         }
         if (!pFogHorn) {
             pFogHorn = AESoundManager.PlaySound({
-                .BankSlotID    = 17,
+                .BankSlot    = SND_BANK_SLOT_HORN_AND_SIREN,
                 .SoundID       = 13,
                 .AudioEntity   = this,
                 .Pos           = s_FogHornPositions[1],
