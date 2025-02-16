@@ -19,17 +19,18 @@ class saRecipe(ConanFile):
         "vorbis/1.3.7",
         "imgui/1.91.5-docking"
     ]
+    generators = [
+        "CMakeDeps",
+        "CMakeToolchain",
+
+        "MSBuildDeps",
+        "MSBuildToolchain",
+    ]
 
     def layout(self):
         cmake_layout(self)
     
-    def generate(self):
-        deps = CMakeDeps(self)
-        deps.generate()
-        tc = CMakeToolchain(self)
-        tc.user_presets_path = 'ConanPresets.json'
-        tc.generate()
-
+    def imports(self):
         copy(self, "*win32*", os.path.join(self.dependencies["imgui"].package_folder,
             "res", "bindings"), os.path.join(self.source_folder, "source", "app"))
         copy(self, "*dx9*", os.path.join(self.dependencies["imgui"].package_folder,
