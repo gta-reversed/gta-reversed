@@ -42,6 +42,8 @@ protected: // Config:
     static inline struct Config {
         float FreqUnderwaterFactor   = 0.7f; // 0x8CBC48
         tComponent HeliAudioComponent = COMPONENT_WING_RR; //!< 0x8CBD4C - Where audio is placed for helis
+        float IdRollOffFactor{2.f}; // 0x8CBC2C
+        float RevRollOffFactor{2.f}; // 0x8CBC30
 
         struct {
             float StepDown{0.07f}, StepUp{0.09f}; // 0x8CBC28, 0x8CBC24
@@ -114,7 +116,7 @@ protected: // Config:
 
                 float FreqBase   = 0.85f; // 0x8CBBF8
                 float FreqMax    = 1.2f;  // 0x8CBBFC
-            } Idle{};
+            } ID{};
 
             // ...Rev:
             struct {
@@ -135,12 +137,6 @@ protected: // Config:
         } DummyEngine{};
 
         struct {
-            int32 ACRepeatFrameCnt{ 10 };                // 0x8CBCC0
-            int32 ACRepeatTimeMs{ 120 };                 // 8CBCBC
-            float ACWheelSpinThreshold{ 150.f / 255.f }; // 0x8CBC54
-            float ACSpeedOffset{ 0.0015f };              // 0x8CBD30
-            float ACInhibitForLowSpeedLimit{ 0.1f };    // 0x8CBCD0
-
             float CrzSpeedOffset{ 0.001f };              // 0x8CBD34
             int32 CrzMaxCnt{ 150 };                      // 0x8CBC8C
 
@@ -161,29 +157,39 @@ protected: // Config:
                 float FrqOffset{ 1.f };
                 float FrqMin{ 0.2f }, FrqMax{ 0.4f }; // 0x8CBCB0, 0x8CBCB4
                 float VolMin{ -4.f }, VolMax{ 0.f };  // 0x8CBCA8, 0xB6B9DC
-            } ST1;
+            } Rev; // CAR_REV   
 
             struct {
                 float FrqMin{ 0.85f }, FrqMax{ 1.5f };  // 0x8CBC70, 0x8CBC74
                 float VolMin{ -3.5f }, VolMax{ -1.5f }; // 0x8CBC78, 0x8CBC7C
-            } ST2;
+            } ID; // CAR_ID    
 
             struct {
                 float FrqSingleGear{ 1.f };              // 0xB6BA58
                 float FrqMin{ 0.925f }, FrqMax{ 1.25f }; // 0x8CBC80, 0x8CBC84
                 float VolMin{ 0.f }, VolMax{ 2.f };      // 0xB6B9D8, 0x8CBC88
-            } ST3;
+                float RollOffFactor{ 2.f }; // 0x8CBC38 
+            } Crz;                          // PLAYER_CRZ
 
             struct {
                 float FrqSingleGear{ 1.f };                                            // 0x8CBC6C
                 float FrqMultiGearOffset{ 1.f };                                       // 0x8CBC60
                 float FrqPerGearFactor[6]{ 0.4f, 0.22f, 0.13f, 0.075f, 0.f, -0.075f }; // 0x8CC1C0
                 float VolMin{ -2.f }, VolMax{ 0.f };                                   // 0x8CBC68, 0xB6B9D4
-            } ST4;
+                float RollOffFactor{ 2.f };                                            // 0x8CBC34
+                uint32 SoundLength{ 1000 };                                           // 0x8CBCCC
+                float LoopMaxPlayTimePercentage{ 80.f };                               // 0x8CBCC8
+                int32 LoopInterval{ 120 };                                             // 0x8CBCBC
+                int32 LoopFrameCnt{ 10 };                                              // 0x8CBCC0
+                float WheelSpinThreshold{ 150.f / 255.f };                             // 0x8CBC54
+                float SpeedOffset{ 0.0015f };                                          // 0x8CBD30
+                float InhibitForLowSpeedLimit{ 0.1f };                                 // 0x8CBCD0
+            } AC; // PLAYER_AC
 
             struct {
                 float FrqMin{ 0.75f }, FrqMax{ 1.25f }; // 0x8CBC94, 0x8CBC98
-            } ST5;
+                float RollOffFactor{ 2.f };             // 0x8CBC3C
+            } Off; // PLAYER_OFF
         } PlayerEngine;
     } s_Config{};
     static inline Config s_DefaultConfig{};
@@ -205,12 +211,12 @@ public: // Enums:
     enum eCarEngineSoundType : eVehicleEngineSoundType { // For automobiles
         AE_SOUND_ENGINE_OFF     = 0,
 
-        AE_SOUND_CAR_REV        = 1,
-        AE_SOUND_CAR_ID         = 2,
-
+        AE_SOUND_CAR_REV        = 1, // For Dummy/Player
+        AE_SOUND_CAR_ID         = 2, // For Dummy/Player
         AE_SOUND_PLAYER_CRZ     = 3,
         AE_SOUND_PLAYER_AC      = 4,
         AE_SOUND_PLAYER_OFF     = 5,
+
         AE_SOUND_PLAYER_REVERSE = 6,
 
         AE_SOUND_NITRO1         = 7,
@@ -377,21 +383,24 @@ public:
     void PlayTrainBrakeSound(int16 soundType, float speed = 1.0f, float volume = -100.0f);
     void JustGotOutOfVehicleAsDriver();
 
-    void StartVehicleEngineSound(int16, float, float);
-    void CancelVehicleEngineSound(size_t engineSoundStateId);
-    void CancelAllVehicleEngineSounds(std::optional<size_t> except = std::nullopt); // notsa
-    void RequestNewPlayerCarEngineSound(int16 vehicleSoundId, float speed = 1.f, float changeSound = -100.f);
-    float GetFreqForPlayerEngineSound(tVehicleParams& params, int16 engineState_QuestionMark) const;
-    float GetVolForPlayerEngineSound(tVehicleParams& params, int16 gear);
+    void  StartVehicleEngineSound(eVehicleEngineSoundType st, float speed, float volume);
+    void  CancelVehicleEngineSound(size_t engineSoundStateId);
+    void  CancelAllVehicleEngineSounds(std::optional<size_t> except = std::nullopt); // notsa
+    void  RequestNewPlayerCarEngineSound(eVehicleEngineSoundType st, float speed = 1.f, float volume = -100.f);
+    float GetFreqForPlayerEngineSound(tVehicleParams& params, eVehicleEngineSoundType st) const;
+    float GetVolForPlayerEngineSound(tVehicleParams& params, eVehicleEngineSoundType st);
+    void  UpdateVehicleEngineSound(int16, float, float);
+    bool  HasVehicleEngineSound(eVehicleEngineSoundType st) const noexcept;
+    void  UpdateOrRequestVehicleEngineSound(eVehicleEngineSoundType st, float freq, float volume);
+    void  StopGenericEngineSound(int16 index);
+    bool  UpdateGenericEngineSound(int16 index, float fVolume = 1.0f, float fSpeed = 1.0f);
+    bool  PlayGenericEngineSound(int16 index, int16 bank, int16 slotInBank, float fVolume = 1.0f, float fSpeed = 1.0f, float fSoundDistance = 1.0f, float fTimeScale = 1.0f, eSoundEnvironment individualEnvironment = SOUND_REQUEST_UPDATES, int16 playPos = 0);
 
-    void UpdateVehicleEngineSound(int16, float, float);
     void UpdateGasPedalAudio(CVehicle* vehicle, int32 vehType);
     void UpdateBoatSound(int16 engineState, int16 bankSlotId, int16 sfxId, float speed, float volume);
     void UpdateTrainSound(int16 engineState, int16 bankSlotId, int16 sfxId, float speed, float volume);
     void UpdateGenericVehicleSound(int16 soundId, int16 bankSlotId, int16 bankId, int16 sfxId, float speed, float volume, float distance);
 
-    bool HasVehicleEngineSound(eVehicleEngineSoundType st) const noexcept;
-    void UpdateOrRequestVehicleEngineSound(eVehicleEngineSoundType st, float freq, float volume);
 
     static void EnableHelicoptors();
     static void DisableHelicoptors();
@@ -469,13 +478,6 @@ public:
     void ProcessVehicle(CPhysical* vehicle);
     void ProcessSpecialVehicle(tVehicleParams& params);
 
-    // Seems to be inlined, so whenever you see something similar, replace it with a call
-    void StopGenericEngineSound(int16 index);
-
-    bool UpdateGenericEngineSound(int16 index, float fVolume = 1.0f, float fSpeed = 1.0f);
-    bool PlayGenericEngineSound(int16 index, int16 bank, int16 slotInBank,
-                                float fVolume = 1.0f, float fSpeed = 1.0f, float fSoundDistance = 1.0f,
-                                float fTimeScale = 1.0f, eSoundEnvironment individualEnvironment = SOUND_REQUEST_UPDATES, int16 playPos = 0);
 #undef PlaySound
     CAESound* PlaySound(int16 bank, int16 slotInBank,
                         float fVolume = 1.0f, float fSpeed = 1.0f, float fSoundDistance = 1.0f,

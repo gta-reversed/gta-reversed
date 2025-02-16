@@ -5,6 +5,8 @@
 // TODO: Make this an enum class
 enum eSoundBank : int16 {
     SND_BANK_UNK                               = -1,
+
+    /* Feet */
     SND_BANK_FEET_GENERIC                      = 0, // 0x0
     SND_BANK_FEET_GRASS                        = 1, // 0x1
     SND_BANK_FEET_GRAVEL                       = 2, // 0x2
@@ -12,6 +14,8 @@ enum eSoundBank : int16 {
     SND_BANK_FEET_SAND                         = 4, // 0x4
     SND_BANK_FEET_TILE                         = 5, // 0x5
     SND_BANK_FEET_WOOD                         = 6, // 0x6
+
+    /* Vehicles and stuff */
     SND_BANK_GENRL_90S_D                       = 7, // 0x7
     SND_BANK_GENRL_90S_P                       = 8, // 0x8
     SND_BANK_GENRL_AIPROP                      = 9, // 0x9
@@ -153,6 +157,7 @@ enum eSoundBank : int16 {
     SND_BANK_PAIN_A_FEMALE                     = 145, // 0x91
     SND_BANK_PAIN_A_MALE                       = 146, // 0x92
 
+    /* Script */
     SND_BANK_SCRIPT_FIRST                      = 147, // NOTSA
     SND_BANK_SCRIPT_SCANNER_AREAS              = SND_BANK_SCRIPT_FIRST, // 0x93
     SND_BANK_SCRIPT_SCANNER_COLOURS            = 148, // 0x94
@@ -372,6 +377,8 @@ enum eSoundBank : int16 {
     SND_BANK_SCRIPT_ZER3                       = 362, // 0x16A
     SND_BANK_SCRIPT_ZER4                       = 363, // 0x16B
     SND_BANK_SCRIPT_ZEROING_IN                 = 364, // 0x16C
+
+    /* Ped speech */
     SND_BANK_SPC_EA_ARMY1                      = 365, // 0x16D
     SND_BANK_SPC_EA_ARMY2                      = 366, // 0x16E
     SND_BANK_SPC_EA_ARMY3                      = 367, // 0x16F
@@ -717,6 +724,7 @@ enum eSoundBank : int16 {
     SND_BANK_SPC_PA_WG2                        = 707, // 0x2C3
     SND_BANK_SPC_PA_WR                         = 708, // 0x2C4
     SND_BANK_SPC_PA_WR2                        = 709, // 0x2C5
+
     NUM_SND_BANKS                              = 710, // 0x2C6
 };
 NOTSA_WENUM_DEFS_FOR(eSoundBank);

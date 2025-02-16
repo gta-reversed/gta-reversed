@@ -152,6 +152,8 @@ public:
     void SetVolume(float v) noexcept { m_fVolume = v; }
     auto GetVolume() const noexcept  { return m_fVolume; }
 
+    auto GetSoundLength() const noexcept { return m_nSoundLength; }
+
 public:
     bool IsUsed() const { return m_nIsUsed; }
     bool WasServiced() const { return m_bWasServiced; }

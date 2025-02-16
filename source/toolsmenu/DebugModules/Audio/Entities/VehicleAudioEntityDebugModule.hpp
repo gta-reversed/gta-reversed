@@ -16,6 +16,8 @@ private:
     void RenderMemberVars();
     void RenderGlobalVars();
 
+    CVehicle* FindTargetVehicle() const noexcept;
+
 private:
     bool          m_IsOpen{};
     CVehicle::Ref m_Veh{};

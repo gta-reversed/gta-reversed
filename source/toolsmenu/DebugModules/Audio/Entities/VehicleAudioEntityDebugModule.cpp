@@ -30,13 +30,7 @@ void VehicleAudioEntityDebugModule::RenderMenuEntry() {
 }
 
 void VehicleAudioEntityDebugModule::Update() {
-    if (auto* const veh = FindPlayerVehicle()) {
-        m_Veh = veh;
-    } else if (auto* const plyr = FindPlayerPed()) {
-        if (auto* const closest = plyr->GetIntelligence()->GetVehicleScanner().GetClosestVehicleInRange()) {
-            m_Veh = closest;
-        }
-    }
+    m_Veh = FindTargetVehicle();
 }
 
 void VehicleAudioEntityDebugModule::RenderMemberVars() {
@@ -178,16 +172,16 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
 
         if (ImGui::TreeNode("Idle")) {
             if (ImGui::Button("Reset")) {
-                de->Idle = AE::s_DefaultConfig.DummyEngine.Idle;
+                de->ID = AE::s_DefaultConfig.DummyEngine.ID;
             }
 
-            ImGui::SliderFloat("Ratio", &de->Idle.Ratio, -1.f, 1.f);
+            ImGui::SliderFloat("Ratio", &de->ID.Ratio, -1.f, 1.f);
 
-            ImGui::SliderFloat("VolumeBase", &de->Idle.VolumeBase, -100.f, 100.f);
-            ImGui::SliderFloat("VolumeMax", &de->Idle.VolumeMax, -100.f, 100.f);
+            ImGui::SliderFloat("VolumeBase", &de->ID.VolumeBase, -100.f, 100.f);
+            ImGui::SliderFloat("VolumeMax", &de->ID.VolumeMax, -100.f, 100.f);
 
-            ImGui::SliderFloat("FreqBase", &de->Idle.FreqBase, -100, 100.f);
-            ImGui::SliderFloat("FreqMax", &de->Idle.FreqMax, -100, 100.f);
+            ImGui::SliderFloat("FreqBase", &de->ID.FreqBase, -100, 100.f);
+            ImGui::SliderFloat("FreqMax", &de->ID.FreqMax, -100, 100.f);
 
             ImGui::TreePop();
         }
@@ -220,9 +214,6 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
     }
 
     if (auto* const pe = &cfg->PlayerEngine; ImGui::TreeNode("Player Engine")) {
-        ImGui::DragFloat("ACWheelSpinThreshold", &pe->ACWheelSpinThreshold, 0.005f, 0.f, 1.f);
-        ImGui::DragFloat("ACInhibitForLowSpeedLimit", &pe->ACInhibitForLowSpeedLimit, 1.f, -100.f, 100.f);
-        ImGui::DragFloat("ACSpeedOffset", &pe->ACSpeedOffset, 1.f, -100.f, 100.f);
         ImGui::DragFloat("CrzSpeedOffset", &pe->CrzSpeedOffset, 1.f, -100.f, 100.f);
         ImGui::DragInt("CrzMaxCnt", &pe->CrzMaxCnt, 1.f, -100, 100);
         ImGui::DragFloat("ZMoveSpeedThreshold", &pe->ZMoveSpeedThreshold, 1.f, -100.f, 100.f);
@@ -239,47 +230,64 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
         ImGui::DragFloat("FrqZMoveSpeedLimitMax", &pe->FrqZMoveSpeedLimitMax, 1.f, -100.f, 100.f);
         ImGui::DragFloat("FrqZMoveSpeedFactor", &pe->FrqZMoveSpeedFactor, 1.f, -100.f, 100.f);
 
-        if (ImGui::TreeNode("ST1")) {
-            ImGui::DragFloat("FrqWheelSpinFactor", &pe->ST1.FrqWheelSpinFactor, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("FrqOffset", &pe->ST1.FrqOffset, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("FrqMin", &pe->ST1.FrqMin, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("FrqMax", &pe->ST1.FrqMax, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("VolMin", &pe->ST1.VolMin, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("VolMax", &pe->ST1.VolMax, 1.f, -100.f, 100.f);
+        if (ImGui::TreeNode("Rev")) {
+            ImGui::DragFloat("FrqWheelSpinFactor", &pe->Rev.FrqWheelSpinFactor, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqOffset", &pe->Rev.FrqOffset, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMin", &pe->Rev.FrqMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMax", &pe->Rev.FrqMax, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMin", &pe->Rev.VolMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMax", &pe->Rev.VolMax, 1.f, -100.f, 100.f);
             ImGui::TreePop();
         }
-        if (ImGui::TreeNode("ST2")) {
-            ImGui::DragFloat("FrqMin", &pe->ST2.FrqMin, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("FrqMax", &pe->ST2.FrqMax, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("VolMin", &pe->ST2.VolMin, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("VolMax", &pe->ST2.VolMax, 1.f, -100.f, 100.f);
+        if (ImGui::TreeNode("ID")) {
+            ImGui::DragFloat("FrqMin", &pe->ID.FrqMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMax", &pe->ID.FrqMax, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMin", &pe->ID.VolMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMax", &pe->ID.VolMax, 1.f, -100.f, 100.f);
             ImGui::TreePop();
         }
-        if (ImGui::TreeNode("ST3")) {
-            ImGui::DragFloat("FrqSingleGear", &pe->ST3.FrqSingleGear, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("FrqMin", &pe->ST3.FrqMin, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("FrqMax", &pe->ST3.FrqMax, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("VolMin", &pe->ST3.VolMin, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("VolMax", &pe->ST3.VolMax, 1.f, -100.f, 100.f);
+        if (ImGui::TreeNode("Crz")) {
+            ImGui::DragFloat("FrqSingleGear", &pe->Crz.FrqSingleGear, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMin", &pe->Crz.FrqMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMax", &pe->Crz.FrqMax, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMin", &pe->Crz.VolMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMax", &pe->Crz.VolMax, 1.f, -100.f, 100.f);
             ImGui::TreePop();
         }
-        if (ImGui::TreeNode("ST4")) {
+        if (ImGui::TreeNode("AC")) {
             if (ImGui::TreeNode("FrqPerGearFactor")) {
-                for (auto&& [i, gf] : notsa::enumerate(pe->ST4.FrqPerGearFactor)) {
+                for (auto&& [i, gf] : notsa::enumerate(pe->AC.FrqPerGearFactor)) {
                     char buf[1024];
                     *std::format_to(buf, "Gear {}", i) = 0;
                     ImGui::DragFloat(buf, &gf, 1.f, -100.f, 100.f);
                 }
                 ImGui::TreePop();
             }
-            ImGui::DragFloat("FrqSingleGear", &pe->ST4.FrqSingleGear, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("FrqMultiGearOffset", &pe->ST4.FrqMultiGearOffset, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("VolMin", &pe->ST4.VolMin, 1.f, -100.f, 100.f);
-            ImGui::DragFloat("VolMax", &pe->ST4.VolMax, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqSingleGear", &pe->AC.FrqSingleGear, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("FrqMultiGearOffset", &pe->AC.FrqMultiGearOffset, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMin", &pe->AC.VolMin, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("VolMax", &pe->AC.VolMax, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("WheelSpinThreshold", &pe->AC.WheelSpinThreshold, 0.005f, 0.f, 1.f);
+            ImGui::DragFloat("InhibitForLowSpeedLimit", &pe->AC.InhibitForLowSpeedLimit, 1.f, -100.f, 100.f);
+            ImGui::DragFloat("SpeedOffset", &pe->AC.SpeedOffset, 1.f, -100.f, 100.f);
             ImGui::TreePop();
         }
         ImGui::TreePop();
     }
+}
+CVehicle* VehicleAudioEntityDebugModule::FindTargetVehicle() const noexcept {
+    if (auto* const veh = FindPlayerVehicle()) {
+        return veh;
+    }
+    if (auto* const plyr = FindPlayerPed()) {
+        if (auto* const on = plyr->m_pContactEntity; on && on->IsVehicle()) {
+            return on->AsVehicle();
+        }
+        if (auto* const closest = plyr->GetIntelligence()->GetVehicleScanner().GetClosestVehicleInRange()) {
+            return closest;
+        }
+    }
+    return m_Veh; // Unchanged
 }
 }; // namespace debugmodules
 }; // namespace notsa
