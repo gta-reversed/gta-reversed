@@ -891,32 +891,29 @@ void CShadows::RenderStoredShadows() {
                 continue;
             }
 
-            // Clear the buffer as this is a new render pass (separate from the other)
             RenderBuffer::ClearRenderBuffer();
 
-            // The smaller this value the detailed the shadows, but also (exponentially?) slower
-            // This value basically represents the side of a square that is projected onto the 
             const auto STEP_SIZE = 2;
-
             const auto shdwSideMagSq = oshdw.m_Side.SquaredMagnitude();
             const auto shdwFrontMagSq = oshdw.m_Front.SquaredMagnitude();
 
             const auto oshdwRect = GetShadowRect(oshdw);
+            
+            // Calculate grid boundaries
+            const int32 startX = (int32)(std::floor(oshdwRect.left / (float)STEP_SIZE));
+            const int32 startY = (int32)(std::floor(oshdwRect.top / (float)STEP_SIZE)); 
+            const int32 endX = (int32)(std::ceil(oshdwRect.right / (float)STEP_SIZE));
+            const int32 endY = (int32)(std::ceil(oshdwRect.bottom / (float)STEP_SIZE));
 
-            // Iterate shadow sectors (Using `CWorld::IterateSectors` for convenience)
-            CWorld::IterateSectors(
-                (int32)(std::floor(oshdwRect.left / (float)STEP_SIZE)),
-                (int32)(std::floor(oshdwRect.top / (float)STEP_SIZE)),
-                (int32)(std::ceil(oshdwRect.right / (float)STEP_SIZE)),
-                (int32)(std::ceil(oshdwRect.bottom / (float)STEP_SIZE)),
-                [&](int32 ox, int32 oy) {
-                    // 0x70B000 - 0x70B0DA: Start storing 
+            // Iterate directly using nested loops
+            for(int32 oy = startY; oy <= endY; oy++) {
+                for(int32 ox = startX; ox <= endX; ox++) {
                     RwIm3DVertex* vtxIt{};
                     RwImVertexIndex* vtxIdxIt{};
                     RenderBuffer::StartStoring(6, 4, vtxIdxIt, vtxIt);
 
-                    // Function to process 1 vertex (out of the 4)
-                    const auto ProcessOneVertex = [&] (int32 x, int32 y) {
+                    // Process vertices
+                    const auto ProcessOneVertex = [&](int32 x, int32 y) {
                         // The x, y passed in are sector coords, so make them into world coords
                         x *= STEP_SIZE;
                         y *= STEP_SIZE;
@@ -945,23 +942,19 @@ void CShadows::RenderStoredShadows() {
                     };
 
                     // Process 4 vertices of this square
-                    ProcessOneVertex(ox,     oy    ); // top left
-                    ProcessOneVertex(ox + 1, oy    ); // top right
-                    ProcessOneVertex(ox,     oy + 1); // bottom left
-                    ProcessOneVertex(ox + 1, oy + 1); // bottom right
+                    ProcessOneVertex(ox, oy);        // top left 
+                    ProcessOneVertex(ox + 1, oy);    // top right
+                    ProcessOneVertex(ox, oy + 1);    // bottom left
+                    ProcessOneVertex(ox + 1, oy + 1);// bottom right
 
-                    // Copy vertices into index buffer
+                    // Copy vertices into index buffer  
                     rng::copy(std::to_array({ 0, 1, 2, 1, 3, 2 }), vtxIdxIt);
 
-                    // And we're done with this one... onto the next!
                     RenderBuffer::StopStoring();
-
-                    // Continue iteration...
-                    return true;
                 }
-            );
+            }
 
-            // Render it all
+            // Render the buffer
             RenderBuffer::RenderStuffInBuffer();
         }
     }

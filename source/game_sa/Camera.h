@@ -314,7 +314,7 @@ public:
     bool            m_bBlockZoom{};
     bool            m_bCameraPersistPosition{};
     bool            m_bCameraPersistTrack{};
-    bool            m_bCinemaCamera{};
+    bool            m_bForceCinemaCam{};
     CamTweak        m_aCamTweak[5]{};
     bool            m_bCameraVehicleTweaksInitialized{};
     float           m_fCurrentTweakDistance{};
@@ -355,7 +355,7 @@ public:
 
     bool IsTargetingActive();
     bool IsExtraEntityToIgnore(CEntity *entity);
-    bool IsItTimeForNewCamera(int32 camSequence, int32 startTime); // IsItTimeForNewcam
+    bool IsItTimeForNewCamera(int32 camSequence, int32 startTime); // IsItTimeForNewcam - For some reason the function name is not correct for compiler
     bool IsSphereVisible(const CVector& origin, float radius, RwMatrix* transformMatrix);
     bool IsSphereVisible(const CVector& origin, float radius);
     bool IsSphereVisible(const CSphere& sphere) { return IsSphereVisible(sphere.m_vecCenter, sphere.m_fRadius); }
@@ -374,6 +374,7 @@ public:
     void ProcessVectorMoveLinear(float ratio);
     void ProcessVectorTrackLinear();
     void ProcessVectorTrackLinear(float ratio);
+    bool CameraObscuredByWaterLevel();
     void ProcessObbeCinemaCameraBoat();
     void ProcessObbeCinemaCameraCar();
     void ProcessObbeCinemaCameraHeli();
@@ -416,8 +417,8 @@ public:
 
     void StartCooperativeCamMode();
     void StopCooperativeCamMode();
-    void StartTransition(eCamMode currentCamMode);
-    void StartTransitionWhenNotFinishedInter(eCamMode currentCamMode);
+    void StartTransition(eCamMode targetCamMode);
+    void StartTransitionWhenNotFinishedInter(eCamMode targetCamMode);
 
     void StoreValuesDuringInterPol(CVector *sourceDuringInter, CVector *targetDuringInter, CVector *upDuringInter, float *FOVDuringInter);
 

@@ -41,6 +41,9 @@ void CControllerConfigManager::InjectHooks() {
     RH_ScopedInstall(AffectPadFromKeyBoard, 0x531140, { .reversed = false });
     RH_ScopedInstall(AffectPadFromMouse, 0x5314A0, { .reversed = false });
     RH_ScopedInstall(DeleteMatchingActionInitiators, 0x531C90, { .reversed = false });
+    RH_ScopedInstall(SetControllerKeyAssociatedWithAction, 0x530490);
+    RH_ScopedInstall(GetControllerKeyAssociatedWithAction, 0x52F4F0);
+    RH_ScopedInstall(ResetSettingOrder, 0x52F5F0);
 }
 
 // 0x531EE0
@@ -352,6 +355,51 @@ void CControllerConfigManager::AffectPadFromMouse() {
 // 0x531C90
 void CControllerConfigManager::DeleteMatchingActionInitiators(eControllerAction Action, int32 KeyToBeChecked, eControllerType ControllerTypeToBeChecked) {
     plugin::CallMethod<0x531C90, CControllerConfigManager*, eControllerAction, int32, eControllerType>(this, Action, KeyToBeChecked, ControllerTypeToBeChecked);
+}
+
+// 0x52F5F0
+void CControllerConfigManager::ResetSettingOrder(eControllerAction event) {
+    for (int32 priority = 1; priority < 5; ++priority) {
+        bool foundPriority = false;
+        int32 result = -1;
+        for (int32 keyIndex = 0; keyIndex < 4; ++keyIndex) {
+            if (m_Actions[event].Keys[keyIndex].Priority == static_cast<int32>(priority)) {
+                foundPriority = true;
+                break;
+            }
+            if (static_cast<int32>(m_Actions[event].Keys[keyIndex].Priority) > priority && m_Actions[event].Keys[keyIndex].Priority != 0) {
+                if (result == -1 || m_Actions[event].Keys[keyIndex].Priority < m_Actions[event].Keys[result].Priority) {
+                    result = keyIndex;
+                }
+            }
+        }
+        if (!foundPriority && result != -1) {
+            m_Actions[event].Keys[result].Priority = static_cast<int32>(priority);
+        }
+    }
+}
+
+// 0x530490
+void CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerAction action, int32 key, eControllerType type) {
+    ResetSettingOrder(action);
+
+    // Count how many keys are already assigned (not equal to 1056)
+    int priorityCount = 0;
+    for (int i = 0; i < 4; i++) {
+        if (m_Actions[action].Keys[i].KeyCode != 1056) {
+            priorityCount++;
+        }
+    }
+
+    // Set the new key and its priority
+    auto& actionKey = m_Actions[action].Keys[type];
+    actionKey.KeyCode = key;
+    actionKey.Priority = priorityCount + 1;
+}
+
+// 0x52F4F0
+RsKeyCodes CControllerConfigManager::GetControllerKeyAssociatedWithAction(eControllerAction event, eControllerType type) {
+    return (RsKeyCodes)m_Actions[event].Keys[type].KeyCode;
 }
 
 // 0x5303D0

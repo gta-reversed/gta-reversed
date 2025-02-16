@@ -257,14 +257,14 @@ void CQuadBike::ProcessControlInputs(uint8 playerNum) {
         m_sRideAnimData.dword10 += (float(-pad->GetSteeringUpDown()) / 128.0f - m_sRideAnimData.dword10) * CTimer::GetTimeStep() / 5.0f;
     } else {
         if (CPad::NewMouseControllerState.X == 0.0f && CPad::NewMouseControllerState.Y == 0.0f && // todo: Use CPad::? func
-            (std::fabs(m_fRawSteerAngle) <= 0.0f || m_nLastControlInput != eControllerType::CONTROLLER_MOUSE || pad->IsSteeringInAnyDirection())
+            (std::fabs(m_fRawSteerAngle) <= 0.0f || m_nLastControlInput != eControllerType::MOUSE || pad->IsSteeringInAnyDirection())
         ) {
-            if (pad->GetSteeringUpDown() || m_nLastControlInput != eControllerType::CONTROLLER_MOUSE) {
-                m_nLastControlInput = eControllerType::CONTROLLER_KEYBOARD1;
+            if (pad->GetSteeringUpDown() || m_nLastControlInput != eControllerType::MOUSE) {
+                m_nLastControlInput = eControllerType::KEYBOARD;
                 m_sRideAnimData.dword10 += (float(-pad->GetSteeringUpDown()) / 128.0f - m_sRideAnimData.dword10) * CTimer::GetTimeStep() / 5.0f;
             }
         } else {
-            m_nLastControlInput = eControllerType::CONTROLLER_MOUSE;
+            m_nLastControlInput = eControllerType::MOUSE;
             if (!pad->NewState.m_bVehicleMouseLook) {
                 m_sRideAnimData.dword10 += CPad::NewMouseControllerState.Y * -0.035f;
             }

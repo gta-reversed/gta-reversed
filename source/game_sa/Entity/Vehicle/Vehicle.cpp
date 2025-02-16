@@ -223,7 +223,7 @@ void CVehicle::InjectHooks() {
     // RH_ScopedInstall(DoTailLightEffect, 0x6E1780);
     // RH_ScopedInstall(DoVehicleLights, 0x6E1A60);
     RH_ScopedInstall(FillVehicleWithPeds, 0x6E2900);
-    RH_ScopedInstall(DoBladeCollision, 0x6E2E50);
+    RH_ScopedInstall(DoBladeCollision, 0x6E2E50, {.reversed = false});
     // RH_ScopedInstall(AddVehicleUpgrade, 0x6E3290);
     RH_ScopedInstall(SetupUpgradesAfterLoad, 0x6E3400);
     // RH_ScopedInstall(GetPlaneWeaponFiringStatus, 0x6E3440);
@@ -3449,10 +3449,13 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
 // 0x6DAF00
 // always returns `false`, and `rotorType` is always `-3`
 bool CVehicle::BladeColSectorList(CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult) {
+    /*
+    ((void (__thiscall *)(CVehicle*, CPtrList&, CColModel&, CMatrix&, short, float))0x6DAF00)(this, ptrList, colModel, matrix, rotorType, damageMult);
     if (ptrList.IsEmpty()) {
         return false;
     }
-
+    */
+    
     // Returns UP vector and thickness vector (in which only 1 component is set and that is the thickness)
     const auto GetRotorDirUpAndThickness = [this, rotorType, &matrix]() -> std::pair<CVector, CVector> {
         // Seems like `rotorType` is just one of the 6 possible directions:
@@ -4448,6 +4451,9 @@ void CVehicle::FillVehicleWithPeds(bool setClothesToAfro) {
 
 // 0x6E2E50
 bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, float radius, float damageMult) {
+	((void (__thiscall *)(CVehicle*, CVector, CMatrix&, short, float, float))0x6E2E50)(this, pos, matrix, rotorType, radius, damageMult);
+    return false;
+    /*
     CVector bbMin(pos - CVector(radius, radius, radius));
     CVector bbMax(pos + CVector(radius, radius, radius));
 
@@ -4484,7 +4490,7 @@ bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, f
     m_aTestBladeColData.m_nNumSpheres = 0;
     m_aTestBladeCol.m_pColData = nullptr;
 
-    return collided;
+    return collided;*/
 }
 
 // 0x6E3290

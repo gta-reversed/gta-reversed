@@ -6,6 +6,7 @@
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleDuck.h"
 #include "Hud.h"
+#include "eMovieCam.h"
 
 float& CCamera::m_f3rdPersonCHairMultY = *reinterpret_cast<float*>(0xB6EC10); ///< Where the player will be on the screen in relative coords when quick aiming
 float& CCamera::m_f3rdPersonCHairMultX = *reinterpret_cast<float*>(0xB6EC14);
@@ -39,7 +40,6 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(GetPositionAlongSpline, 0x50AF80);
     RH_ScopedInstall(GetRoughDistanceToGround, 0x516B00);
     RH_ScopedInstall(InitialiseCameraForDebugMode, 0x50AF90);
-    RH_ScopedInstall(ProcessObbeCinemaCameraPed, 0x50B880);
     RH_ScopedInstall(ProcessWideScreenOn, 0x50B890);
     RH_ScopedInstall(RenderMotionBlur, 0x50B8F0);
     RH_ScopedInstall(SetCameraDirectlyBehindForFollowPed_CamOnAString, 0x50BD40);
@@ -70,7 +70,13 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(GetFadingDirection, 0x50ADF0);
     RH_ScopedInstall(Get_Just_Switched_Status, 0x50AE10);
     RH_ScopedInstall(GetGameCamPosition, 0x50AE50);
-
+    RH_ScopedInstall(CameraObscuredByWaterLevel, 0x50B830);
+    RH_ScopedInstall(ProcessObbeCinemaCameraBoat, 0x526E20);
+    RH_ScopedInstall(ProcessObbeCinemaCameraCar, 0x5267C0);
+    RH_ScopedInstall(ProcessObbeCinemaCameraHeli, 0x526AE0);
+    RH_ScopedInstall(ProcessObbeCinemaCameraPed, 0x50B880);
+    RH_ScopedInstall(ProcessObbeCinemaCameraPlane, 0x526C80);
+    RH_ScopedInstall(ProcessObbeCinemaCameraTrain, 0x526950);
     RH_ScopedInstall(Constructor, 0x51A450);
     RH_ScopedInstall(InitCameraVehicleTweaks, 0x50A3B0);
     RH_ScopedInstall(ApplyVehicleCameraTweaks, 0x50A480);
@@ -112,6 +118,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(CameraPedModeSpecialCases, 0x50CD80);
     RH_ScopedInstall(CameraPedAimModeSpecialCases, 0x50CDA0);
     RH_ScopedInstall(CameraVehicleModeSpecialCases, 0x50CDE0);
+    // RH_ScopedInstall(IsItTimeForNewCamera, 0x51D770);
     RH_ScopedInstall(IsExtraEntityToIgnore, 0x50CE80);
     RH_ScopedInstall(ConsiderPedAsDucking, 0x50CEB0);
     RH_ScopedInstall(ResetDuckingSystem, 0x50CEF0);
@@ -1050,7 +1057,7 @@ void CCamera::UpdateTargetEntity() {
 
 // 0x50C7C0
 void CCamera::TakeControl(CEntity* target, eCamMode modeToGoTo, eSwitchType switchType, int32 whoIsInControlOfTheCamera) {
-    if (!m_bCinemaCamera) {
+    if (!m_bForceCinemaCam) {
         if (whoIsInControlOfTheCamera == 2 && m_nWhoIsInControlOfTheCamera == 1) {
             return;
         }
@@ -1401,22 +1408,6 @@ void CCamera::ProcessMusicFade() {
     }
 }
 
-// unused, empty
-// 0x50B880
-void CCamera::ProcessObbeCinemaCameraPed() {
-    // NOP
-}
-
-//
-void CCamera::ProcessObbeCinemaCameraPlane() {
-    assert(0);
-}
-
-//
-void CCamera::ProcessObbeCinemaCameraTrain() {
-    assert(0);
-}
-
 // 0x50B890
 void CCamera::ProcessWideScreenOn() {
     if (m_bWantsToSwitchWidescreenOff) {
@@ -1442,19 +1433,205 @@ void CCamera::ProcessVectorTrackLinear(float ratio) {
     plugin::CallMethod<0x50D350, CCamera*, float>(this, ratio);
 }
 
-//
-void CCamera::ProcessObbeCinemaCameraBoat() {
-    assert(0);
+// 0x51D770
+bool CCamera::IsItTimeForNewCamera(int32 camSequence, int32 startTime) {
+    return plugin::CallMethodAndReturn<bool, 0x51D770, CCamera*, int32, int32>(this, camSequence, startTime);
 }
 
-//
-void CCamera::ProcessObbeCinemaCameraCar() {
-    assert(0);
+// 0x50B830
+// BUG: The camera may fail if it falls too deep.
+bool CCamera::CameraObscuredByWaterLevel() {
+    CVector *m_vecSource;
+    float pLevel;
+
+    m_vecSource = &TheCamera.m_aCams[TheCamera.m_nActiveCam].m_vecSource;
+    return CWaterLevel::GetWaterLevel(m_vecSource->x, m_vecSource->y, m_vecSource->z, pLevel, true, nullptr) &&
+           pLevel >= m_vecSource->z;
 }
 
-//
+int8_t gCinematicModeSwitchDir = *(int8_t*)0x8CC471; // ?
+bool bSwitchedToObbeCam = *(char*)0xB6EC34; // false
+
+// unused, empty
+// 0x50B880
+void CCamera::ProcessObbeCinemaCameraPed() {
+    /* NOP *
+    // From GTA VC
+    static int32        OldMode             = -1;
+    static int32        TimeForNext         = 0;
+    constexpr int32     allCinemaCams       = 5;
+    constexpr eMovieCam SequenceOfPedsCams[allCinemaCams] = { MOVIECAM9, MOVIECAM10, MOVIECAM11, MOVIECAM12, MOVIECAM13 };
+    if (!bDidWeProcessAnyCinemaCam) {
+        OldMode = -1, bSwitchedToObbeCam = true;
+        if (gbCineyCamMessageDisplayed > 0 && !m_bForceCinemaCam) {
+            --gbCineyCamMessageDisplayed;
+            CHud::SetHelpMessage(TheText.Get("CINCAM"), true);
+        }
+    } else if (CCamera::IsItTimeForNewCamera(SequenceOfPedsCams[OldMode], TimeForNext)) {
+        // Rotate camera modes until one starts.
+        for (int newMode = 0; newMode <= allCinemaCams - 1; ++newMode) {
+            // Please, dont use clamp here, that dont support negative values.
+            OldMode = (OldMode + gCinematicModeSwitchDir + allCinemaCams) % allCinemaCams;
+            if (CCamera::TryToStartNewCamMode(SequenceOfPedsCams[OldMode])) {
+                break;
+            }
+        }
+        TimeForNext = CTimer::GetTimeInMS();
+    }
+    m_nModeObbeCamIsInForCar  = OldMode;
+    bDidWeProcessAnyCinemaCam = true;
+    */
+}
+
+// 0x526C80
+void CCamera::ProcessObbeCinemaCameraPlane() {
+    static int32        OldMode             = -1;
+    static int32        TimeForNext         = 0;
+    constexpr int32     allCinemaCams       = 6;
+    constexpr eMovieCam SequenceOfHeliCams[allCinemaCams] = { MOVIECAMPLANE1, MOVIECAMPLANE2, MOVIECAM20, MOVIECAM22, MOVIECAMPLANE3, MOVIECAM23 };
+    if (!bDidWeProcessAnyCinemaCam) {
+        OldMode = -1, bSwitchedToObbeCam = true;
+        if (gbCineyCamMessageDisplayed > 0 && !m_bForceCinemaCam) {
+            --gbCineyCamMessageDisplayed;
+            CHud::SetHelpMessage(TheText.Get("CINCAM"), true);
+        }
+    } else if (CCamera::IsItTimeForNewCamera(SequenceOfHeliCams[OldMode], TimeForNext) || CameraObscuredByWaterLevel()) { // Inverted condition
+        // Rotate camera modes until one starts.
+        for (int newMode = 0; newMode <= allCinemaCams - 1; ++newMode) {
+            OldMode = (OldMode + gCinematicModeSwitchDir + allCinemaCams) % allCinemaCams;
+            if (CCamera::TryToStartNewCamMode(SequenceOfHeliCams[OldMode])) {
+                break;
+            } else if (newMode == allCinemaCams - 1) {
+                if ((m_aCams[m_nActiveCam].m_nMode != MODE_CAM_ON_A_STRING)) {
+                    // Gives control to the player if no cinematic camera is available.
+                    OldMode = allCinemaCams - 1, CCamera::TryToStartNewCamMode(CAM_ON_A_STRING_LAST_RESORT);
+                }
+            }
+        }
+        TimeForNext = CTimer::GetTimeInMS();
+    }
+    m_nModeObbeCamIsInForCar  = OldMode;
+    bDidWeProcessAnyCinemaCam = true;
+}
+
+// 0x526950
+void CCamera::ProcessObbeCinemaCameraTrain() {
+    static int32        OldMode             = -1;
+    static int32        TimeForNext         = 0;
+    constexpr int32     allCinemaCams       = 6;
+    constexpr eMovieCam SequenceOfTrainCams[allCinemaCams] = { MOVIECAM20, MOVIECAM22, MOVIECAM2, MOVIECAM21, MOVIECAM3, MOVIECAM0 };
+    if (!bDidWeProcessAnyCinemaCam) {
+        OldMode = -1, bSwitchedToObbeCam = true;
+        if (gbCineyCamMessageDisplayed > 0 && !m_bForceCinemaCam) {
+            --gbCineyCamMessageDisplayed;
+            CHud::SetHelpMessage(TheText.Get("CINCAM"), true);
+        }
+    } else if (CCamera::IsItTimeForNewCamera(SequenceOfTrainCams[OldMode], TimeForNext)) { // Inverted condition
+        // Rotate camera modes until one starts.
+        for (int newMode = 0; newMode <= allCinemaCams - 1; ++newMode) {
+            OldMode = (OldMode + gCinematicModeSwitchDir + allCinemaCams) % allCinemaCams;
+            if (CCamera::TryToStartNewCamMode(SequenceOfTrainCams[OldMode])) {
+                break;
+            } else if (newMode == allCinemaCams - 1) {
+                OldMode = allCinemaCams - 1, CCamera::TryToStartNewCamMode(MOVIECAM0); // 0x8CC870
+            }
+        }
+        TimeForNext = CTimer::GetTimeInMS();
+    }
+    m_nModeObbeCamIsInForCar  = OldMode;
+    bDidWeProcessAnyCinemaCam = true;
+}
+
+// 0x526AE0
 void CCamera::ProcessObbeCinemaCameraHeli() {
-    assert(0);
+    static int32        OldMode             = MOVIECAM14;
+    static int32        TimeForNext         = 0;
+    constexpr int32     allCinemaCams       = 7;
+    constexpr eMovieCam SequenceOfHeliCams[allCinemaCams] = { MOVIECAMPLANE1, MOVIECAMPLANE2, MOVIECAM23, MOVIECAM20, MOVIECAM22, MOVIECAMPLANE3, MOVIECAM23 };
+    if (!bDidWeProcessAnyCinemaCam) {
+        OldMode = -1, bSwitchedToObbeCam = true;
+        if (gbCineyCamMessageDisplayed > 0 && !m_bForceCinemaCam) {
+            --gbCineyCamMessageDisplayed;
+            CHud::SetHelpMessage(TheText.Get("CINCAM"), true);
+        }
+    } else if (CCamera::IsItTimeForNewCamera(SequenceOfHeliCams[OldMode], TimeForNext) || CameraObscuredByWaterLevel()) { // Inverted condition
+        // Rotate camera modes until one starts.
+        for (int newMode = 0; newMode <= allCinemaCams - 1; ++newMode) {
+            OldMode = (OldMode + gCinematicModeSwitchDir + allCinemaCams) % allCinemaCams;
+            if (CCamera::TryToStartNewCamMode(SequenceOfHeliCams[OldMode])) {
+                break;
+            } else if (newMode == allCinemaCams - 1) {
+                if ((m_aCams[m_nActiveCam].m_nMode != MODE_CAM_ON_A_STRING)) {
+                    // Gives control to the player if no cinematic camera is available.
+                    // We don't need extra arrays, this is just not correct, it will skip a number. Let it flow.
+                    OldMode = allCinemaCams - 1, CCamera::TryToStartNewCamMode(CAM_ON_A_STRING_LAST_RESORT);
+                }
+            }
+        }
+        TimeForNext = CTimer::GetTimeInMS();
+    }
+    m_nModeObbeCamIsInForCar  = OldMode;
+    bDidWeProcessAnyCinemaCam = true;
+}
+
+// 0x5267C0
+void CCamera::ProcessObbeCinemaCameraCar() {
+    static int32        OldMode             = -1;
+    static int32        TimeForNext         = 0;
+    constexpr int32     allCinemaCams       = 11;
+    constexpr eMovieCam SequenceOfCarCams[allCinemaCams] = { MOVIECAM20, MOVIECAM22, MOVIECAM7, MOVIECAM3, MOVIECAM22, MOVIECAM1, MOVIECAM21, MOVIECAM8, MOVIECAM2, MOVIECAM22, MOVIECAM5 };
+    if (!bDidWeProcessAnyCinemaCam) {
+        OldMode = -1, bSwitchedToObbeCam = true;
+        if (gbCineyCamMessageDisplayed > 0 && !m_bForceCinemaCam) {
+            --gbCineyCamMessageDisplayed;
+            CHud::SetHelpMessage(TheText.Get("CINCAM"), true);
+        }
+    } else if (CCamera::IsItTimeForNewCamera(SequenceOfCarCams[OldMode], TimeForNext)) { // Inverted condition
+        // Rotate camera modes until one starts.
+        for (int newMode = 0; newMode <= allCinemaCams - 1; ++newMode) {
+            OldMode = (OldMode + gCinematicModeSwitchDir + allCinemaCams) % allCinemaCams;
+            if (CCamera::TryToStartNewCamMode(SequenceOfCarCams[OldMode])) {
+                break;
+            } else if (newMode == allCinemaCams - 1) {
+                // Set first person view if no cinematic camera is available.
+                OldMode = allCinemaCams - 1, CCamera::TryToStartNewCamMode(MOVIECAM6); // 0x8CC854
+            }
+        }
+        TimeForNext = CTimer::GetTimeInMS();
+    }
+    m_nModeObbeCamIsInForCar  = OldMode;
+    bDidWeProcessAnyCinemaCam = true;
+}
+
+// 0x526E20
+void CCamera::ProcessObbeCinemaCameraBoat() {
+    static int32        OldMode             = MOVIECAM14;
+    static int32        TimeForNext         = 0;
+    constexpr int32     allCinemaCams       = 3;
+    constexpr eMovieCam SequenceOfBoatCams[allCinemaCams] = { MOVIECAM20, MOVIECAM3, MOVIECAM18 };
+    if (!bDidWeProcessAnyCinemaCam) {
+        OldMode = -1, bSwitchedToObbeCam = true;
+        if (gbCineyCamMessageDisplayed > 0 && !m_bForceCinemaCam) {
+            --gbCineyCamMessageDisplayed;
+            CHud::SetHelpMessage(TheText.Get("CINCAM"), true);
+        }
+    } else if (CCamera::IsItTimeForNewCamera(SequenceOfBoatCams[OldMode], TimeForNext)) { // Inverted condition
+        // Rotate camera modes until one starts.
+        for (int newMode = 0; newMode <= allCinemaCams - 1; ++newMode) {
+            OldMode = (OldMode + gCinematicModeSwitchDir + allCinemaCams) % allCinemaCams;
+            if (CCamera::TryToStartNewCamMode(SequenceOfBoatCams[OldMode])) {
+                break;
+            } else if (newMode == allCinemaCams - 1) {
+                if ((m_aCams[m_nActiveCam].m_nMode != MODE_CAM_ON_A_STRING)) {
+                    // Gives control to the player if no cinematic camera is available.
+                    OldMode = allCinemaCams - 1, CCamera::TryToStartNewCamMode(CAM_ON_A_STRING_LAST_RESORT);
+                }
+            }
+        }
+        TimeForNext = CTimer::GetTimeInMS();
+    }
+    m_nModeObbeCamIsInForCar  = OldMode;
+    bDidWeProcessAnyCinemaCam = true;
 }
 
 // 0x50D430

@@ -8,6 +8,18 @@
 
 #include "Automobile.h"
 
+constexpr float HELI_ROTOR_DOTPROD_LIMIT = 0.5f;
+
+enum
+{
+	ROTOR_TOP = -3,
+	ROTOR_FRONT = -2,
+	ROTOR_RIGHT = -1,
+	ROTOR_LEFT = 1,
+	ROTOR_BACK = 2,
+	ROTOR_BOTTOM = 3,
+};
+
 enum eHeliNodes {
     HELI_NODE_NONE     = 0,
     HELI_CHASSIS       = 1,

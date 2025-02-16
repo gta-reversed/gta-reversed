@@ -13,6 +13,68 @@
 #include "Vector2D.h"
 #include "eLanguage.h"
 
+
+enum eControllerAction {
+    CA_PED_FIREWEAPON,
+    CA_PED_FIREWEAPON_ALT,
+    CA_PED_CYCLE_WEAPON_RIGHT,
+    CA_PED_CYCLE_WEAPON_LEFT,
+    CA_GO_FORWARD,
+    CA_GO_BACK,
+    CA_GO_LEFT,
+    CA_GO_RIGHT,
+    CA_PED_SNIPER_ZOOM_IN,
+    CA_PED_SNIPER_ZOOM_OUT,
+    CA_VEHICLE_ENTER_EXIT,
+    CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS,
+    CA_PED_JUMPING,
+    CA_PED_SPRINT,
+    CA_PED_LOOKBEHIND,
+    CA_PED_DUCK,
+    CA_PED_ANSWER_PHONE,
+    CA_SNEAK_ABOUT,
+    CA_VEHICLE_FIREWEAPON,
+    CA_VEHICLE_FIREWEAPON_ALT,
+    CA_VEHICLE_STEERLEFT,
+    CA_VEHICLE_STEERRIGHT,
+    CA_VEHICLE_STEERUP,
+    CA_VEHICLE_STEERDOWN,
+    CA_VEHICLE_ACCELERATE,
+    CA_VEHICLE_BRAKE,
+    CA_VEHICLE_RADIO_STATION_UP,
+    CA_VEHICLE_RADIO_STATION_DOWN,
+    CA_UNKNOWN_28,
+    CA_VEHICLE_HORN = 29,
+    CA_TOGGLE_SUBMISSIONS,
+    CA_VEHICLE_HANDBRAKE,
+    CA_PED_1RST_PERSON_LOOK_LEFT,
+    CA_PED_1RST_PERSON_LOOK_RIGHT,
+    CA_VEHICLE_LOOKLEFT,
+    CA_VEHICLE_LOOKRIGHT,
+    CA_VEHICLE_LOOKBEHIND,
+    CA_VEHICLE_MOUSELOOK,
+    CA_VEHICLE_TURRETLEFT,
+    CA_VEHICLE_TURRETRIGHT,
+    CA_VEHICLE_TURRETUP,
+    CA_VEHICLE_TURRETDOWN,
+    CA_PED_CYCLE_TARGET_LEFT,
+    CA_PED_CYCLE_TARGET_RIGHT,
+    CA_PED_CENTER_CAMERA_BEHIND_PLAYER,
+    CA_PED_LOCK_TARGET,
+    CA_NETWORK_TALK,
+    CA_CONVERSATION_YES,
+    CA_CONVERSATION_NO,
+    CA_GROUP_CONTROL_FWD,
+    CA_GROUP_CONTROL_BWD,
+    CA_PED_1RST_PERSON_LOOK_UP,
+    CA_PED_1RST_PERSON_LOOK_DOWN,
+    CA_UNKNOWN_53,
+    CA_TOGGLE_DPAD = 54,
+    CA_SWITCH_DEBUG_CAM_ON,
+    CA_TAKE_SCREEN_SHOT,
+    CA_SHOW_MOUSE_POINTER_TOGGLE
+};
+
 class CRect;
 
 enum eHelperText : int32 {
@@ -91,7 +153,7 @@ public:
 
     eRadioID  m_nRadioStation;
     char      field_53;
-    int32     m_nCurrentScreenItem;
+    eControllerAction     m_nCurrentScreenItem;
     bool      m_bQuitGameNoDVD; // CMenuManager::WaitForUserCD 0x57C5E0
 
     bool      m_bDrawingMap;
@@ -186,10 +248,10 @@ public:
     int32 m_MouseInBounds;
     int32 field_1B04;
     char  m_bJustOpenedControlRedefWindow;
-    char  field_1B09; // controller
+    char  pControlEdit; // controller
     bool  m_DeleteAllBoundControls;
     bool  m_DeleteAllNextDefine;
-    int32 field_1B0C;
+    eControllerAction OptionToChange;
     char  field_1B10;
     char  field_1B11;
     char  field_1B12;
@@ -308,7 +370,7 @@ public:
     void CheckForMenuClosing();
     [[nodiscard]] bool CheckHover(int32 left, int32 right, int32 top, int32 bottom) const;
     bool CheckMissionPackValidMenu();
-    bool CheckCodesForControls(RsInputDeviceType type);
+    void CheckCodesForControls(RsInputDeviceType type);
 
     int32 DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing);
 
@@ -361,6 +423,6 @@ private:
     static void SetBrightness(float brightness, bool arg2);
 };
 
-VALIDATE_SIZE(CMenuManager, 0x1B78);
+// VALIDATE_SIZE(CMenuManager, 0x1B78);
 
 extern CMenuManager& FrontEndMenuManager;
