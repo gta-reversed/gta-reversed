@@ -110,8 +110,9 @@ constexpr float PI_6           = PI / 6.0f;         // π / 6
 constexpr float SQRT_2         = 1.41421f;          // √2
 constexpr float SQRT_3         = 1.73205f;          // √3
 constexpr float TWO_PI         = 6.28318f;          // τ (TAU)
+constexpr float DEG_TO_RAD     = 0.01745329252f;    // π / 180
 
-constexpr float COS_45 = SQRT_2 / 2.f; // cos(45deg)
+constexpr float COS_45         = SQRT_2 / 2.f;      // cos(45°)
 
 template<typename T>
 NOTSA_FORCEINLINE constexpr T sq(T x) { return x * x; }
@@ -145,7 +146,7 @@ static bool IsPointInSphere(const CVector& point, const CVector& center, float r
 // Converts degrees to radians
 // keywords: 0.017453292 flt_8595EC
 constexpr float DegreesToRadians(float angleInDegrees) {
-    return angleInDegrees * PI / 180.0F;
+    return angleInDegrees * DEG_TO_RAD;
 }
 
 //! @notsa
