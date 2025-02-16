@@ -128,6 +128,7 @@ public:
     void LoadSoundBank(uint16 bankId, int16 bankSlotId);
     bool IsSoundBankLoaded(uint16 bankId, int16 bankSlotId);
     int8 GetSoundBankLoadingStatus(uint16 bankId, int16 bankSlotId);
+    bool EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot slot, bool checkLoadingTune = false);
 
     bool LoadSound(uint16 bank, uint16 sound, int16 slot);
     bool IsSoundLoaded(uint16, uint16, int16);
