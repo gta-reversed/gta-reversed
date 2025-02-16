@@ -42,8 +42,12 @@ protected: // Config:
     static inline struct Config {
         float FreqUnderwaterFactor   = 0.7f; // 0x8CBC48
         tComponent HeliAudioComponent = COMPONENT_WING_RR; //!< 0x8CBD4C - Where audio is placed for helis
-        float IdRollOffFactor{2.f}; // 0x8CBC2C
-        float RevRollOffFactor{2.f}; // 0x8CBC30
+
+        float IdRollOffFactor{ 2.f };               // 0x8CBC2C
+        float RevRollOffFactor{ 2.f };              // 0x8CBC30
+        float RoadNoiseSoundRollOffFactor{ 3.f };   // 0x8CBD14
+        float FlatTireSoundRollOffFactor{ 3.f };    // 0x8CBD20
+        float ReverseGearSoundRollOffFactor{ 1.f }; // 0xNONE
 
         struct {
             float StepDown{0.07f}, StepUp{0.09f}; // 0x8CBC28, 0x8CBC24
@@ -390,7 +394,6 @@ public:
     float GetFreqForPlayerEngineSound(tVehicleParams& params, eVehicleEngineSoundType st) const;
     float GetVolForPlayerEngineSound(tVehicleParams& params, eVehicleEngineSoundType st);
     void  UpdateVehicleEngineSound(int16, float, float);
-    bool  HasVehicleEngineSound(eVehicleEngineSoundType st) const noexcept;
     void  UpdateOrRequestVehicleEngineSound(eVehicleEngineSoundType st, float freq, float volume);
     void  StopGenericEngineSound(int16 index);
     bool  UpdateGenericEngineSound(int16 index, float fVolume = 1.0f, float fSpeed = 1.0f);
@@ -399,7 +402,7 @@ public:
     void UpdateGasPedalAudio(CVehicle* vehicle, int32 vehType);
     void UpdateBoatSound(int16 engineState, int16 bankSlotId, int16 sfxId, float speed, float volume);
     void UpdateTrainSound(int16 engineState, int16 bankSlotId, int16 sfxId, float speed, float volume);
-    void UpdateGenericVehicleSound(int16 soundId, int16 bankSlotId, int16 bankId, int16 sfxId, float speed, float volume, float distance);
+    void UpdateGenericVehicleSound(eVehicleEngineSoundType st, eSoundBankSlot bankSlot, eSoundBank bank, eSoundID sfx, float speed, float volume, float rollOff);
 
 
     static void EnableHelicoptors();
@@ -425,9 +428,9 @@ public:
     void GetAccelAndBrake(tVehicleParams& vp) const;
 
     void PlayAircraftSound(eAircraftSoundType engineState, int16 bankSlotId, int16 sfxId, float volume = -100.0f, float speed = 1.0f);
-    void PlayRoadNoiseSound(int16 newRoadNoiseSoundType, float speed = 1.0f, float volume = -100.0f);
-    void PlayFlatTyreSound(int16 soundType, float speed = 1.0f, float volume = -100.0f);
-    void PlayReverseSound(int16 soundType, float speed = 1.0f, float volume = -100.0f);
+    void PlayRoadNoiseSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
+    void PlayFlatTyreSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
+    void PlayReverseSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
     void PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenOrAlarm, bool bPlayHorn, tVehicleParams& params);
     void PlayBicycleSound(int16 engineState, int16 bankSlotId, int16 sfxId, float volume = -100.0f, float speed = 1.0f);
 
@@ -535,19 +538,19 @@ public:
     uint32                 m_TimeACStopped;
     int16                  m_ACPlayPositionWhenStopped;
 
-    int16                  m_SurfaceSoundType;
+    eSoundID               m_SurfaceSoundType;
     CAESound*              m_SurfaceSound;
 
-    int16                  m_RoadNoiseSoundType;
+    eSoundID               m_RoadNoiseSoundType;
     CAESound*              m_RoadNoiseSound;
 
-    int16                  m_FlatTireSoundType;
+    eSoundID               m_FlatTireSoundType;
     CAESound*              m_FlatTireSound;
 
-    int16                  m_ReverseGearSoundType;
+    eSoundID               m_ReverseGearSoundType;
     CAESound*              m_ReverseGearSound;
 
-    int16                  m_HornSoundType;
+    eSoundID               m_HornSoundType;
     CAESound*              m_HornSound;
     CAESound*              m_SirenSound;
     CAESound*              m_FastSirenSound;

@@ -111,10 +111,9 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(UpdateVehicleEngineSound, 0x4F56D0);
     RH_ScopedInstall(StopGenericEngineSound, 0x4F6320);
 
-
-    RH_ScopedInstall(PlayRoadNoiseSound, 0x4F84D0, { .reversed = false });
-    RH_ScopedInstall(PlayFlatTyreSound, 0x4F8650, { .reversed = false });
-    RH_ScopedInstall(PlayReverseSound, 0x4F87D0, { .reversed = false });
+    RH_ScopedInstall(PlayRoadNoiseSound, 0x4F84D0);
+    RH_ScopedInstall(PlayFlatTyreSound, 0x4F8650);
+    RH_ScopedInstall(PlayReverseSound, 0x4F87D0);
     RH_ScopedInstall(PlayAircraftSound, 0x4F93C0, { .reversed = false });
     RH_ScopedInstall(PlayBicycleSound, 0x4F9710, { .reversed = false });
     RH_ScopedInstall(PlayTrainBrakeSound, 0x4FA630, { .reversed = false });
@@ -1504,89 +1503,77 @@ void CAEVehicleAudioEntity::PlaySkidSound(int16 newSkidSoundType, float speed, f
     }
 }
 
-// 0x4F84D0
-void CAEVehicleAudioEntity::PlayRoadNoiseSound(int16 newRoadNoiseSoundType, float speed, float volumeDelta) {
-    return plugin::CallMethod<0x4F84D0, CAEVehicleAudioEntity*, int16, float, float>(this, newRoadNoiseSoundType, speed, volumeDelta);
-
-    const float volume = m_EventVolume + volumeDelta;
-    if (m_RoadNoiseSoundType != newRoadNoiseSoundType) {
-        if (m_RoadNoiseSound) {
-            m_RoadNoiseSound->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
-            m_RoadNoiseSound->StopSound();
-            m_RoadNoiseSound = nullptr;
+// @notsa
+void PlayGenericSound(
+    CAEVehicleAudioEntity* self,
+    CAESound*&             s,
+    eSoundBankSlot         slot,
+    eSoundID&              currSfx,
+    eSoundID               newSfx,
+    float                  speed,
+    float                  volume,
+    float                  rollOff
+) {
+    if (currSfx != newSfx) { // Sound type changing...
+        GracefullyStopSound(s);
+        if ((currSfx = newSfx) != -1) {
+            s = AESoundManager.PlaySound({
+                .BankSlot      = slot,
+                .SoundID       = newSfx,
+                .AudioEntity   = self,
+                .Pos           = self->GetVehicle()->GetPosition(),
+                .Volume        = volume,
+                .RollOffFactor = rollOff,
+                .Speed         = speed,
+                .Flags         = SOUND_REQUEST_UPDATES,
+            });
         }
-
-        // Create new sound
-        m_RoadNoiseSoundType = newRoadNoiseSoundType;
-        if (newRoadNoiseSoundType != -1) {
-            const auto& pos = m_Entity->GetPosition();
-            CAESound    sound;
-            sound.Initialise(19, newRoadNoiseSoundType, this, pos, volume);
-            sound.m_fSpeed         = speed;
-            sound.m_fSoundDistance = 3.0f;
-            m_RoadNoiseSound       = AESoundManager.RequestNewSound(&sound);
-        }
-    } else if (m_RoadNoiseSoundType != -1 && m_RoadNoiseSound) {
-        // Same sound type already initialised, just set speed and volume
-        m_RoadNoiseSound->m_fSpeed  = speed;
-        m_RoadNoiseSound->m_fVolume = volume;
+    } else if (s && currSfx != -1) { // Same sound type, update existing...
+        s->SetSpeed(speed);
+        s->SetVolume(volume);
     }
+}
+
+// 0x4F84D0
+void CAEVehicleAudioEntity::PlayRoadNoiseSound(eSoundID sfx, float speed, float volume) {
+    PlayGenericSound(
+        this,
+        m_RoadNoiseSound,
+        SND_BANK_SLOT_VEHICLE_GEN,
+        m_RoadNoiseSoundType,
+        sfx,
+        speed,
+        m_EventVolume + volume,
+        s_Config.RoadNoiseSoundRollOffFactor
+    );
 }
 
 // 0x4F8650
-void CAEVehicleAudioEntity::PlayFlatTyreSound(int16 newFlatTyreSoundType, float speed, float volumeDelta) {
-    return plugin::CallMethod<0x4F8650, CAEVehicleAudioEntity*, int16, float, float>(this, newFlatTyreSoundType, speed, volumeDelta);
-
-    const float volume = m_EventVolume + volumeDelta;
-    if (m_FlatTireSoundType != newFlatTyreSoundType) {
-        if (m_FlatTireSound) {
-            m_FlatTireSound->SetIndividualEnvironment(4, false);
-            m_FlatTireSound->StopSound();
-            m_FlatTireSound = nullptr;
-        }
-
-        // Create new sound
-        m_FlatTireSoundType = newFlatTyreSoundType;
-        if (newFlatTyreSoundType != -1) {
-            const auto& pos = m_Entity->GetPosition();
-            CAESound    sound;
-            sound.Initialise(19, newFlatTyreSoundType, this, pos, volume);
-            sound.m_fSpeed         = speed;
-            sound.m_fSoundDistance = 2.0f;
-            m_FlatTireSound        = AESoundManager.RequestNewSound(&sound);
-        }
-    } else if (m_FlatTireSoundType != -1 && m_FlatTireSound) {
-        // Same sound type already initialised, just set speed and volume
-        m_FlatTireSound->m_fSpeed  = speed;
-        m_FlatTireSound->m_fVolume = volume;
-    }
+void CAEVehicleAudioEntity::PlayFlatTyreSound(eSoundID sfx, float speed, float volume) {
+    PlayGenericSound(
+        this,
+        m_FlatTireSound,
+        SND_BANK_SLOT_VEHICLE_GEN,
+        m_FlatTireSoundType,
+        sfx,
+        speed,
+        m_EventVolume + volume,
+        s_Config.FlatTireSoundRollOffFactor
+    );
 }
 
 // 0x4F87D0
-void CAEVehicleAudioEntity::PlayReverseSound(int16 newReverseGearSoundType, float speed, float volumeDelta) {
-    return plugin::CallMethod<0x4F87D0, CAEVehicleAudioEntity*, int16, float, float>(this, newReverseGearSoundType, speed, volumeDelta);
-
-    const float volume = m_EventVolume + volumeDelta;
-    if (m_ReverseGearSoundType != newReverseGearSoundType) {
-        if (m_ReverseGearSound) {
-            m_ReverseGearSound->SetIndividualEnvironment(4, false);
-            m_ReverseGearSound->StopSound();
-            m_ReverseGearSound = nullptr;
-        }
-
-        // Create new sound
-        m_ReverseGearSoundType = newReverseGearSoundType;
-        if (newReverseGearSoundType != -1) {
-            CAESound sound;
-            sound.Initialise(19, newReverseGearSoundType, this, m_Entity->GetPosition(), volume);
-            sound.m_fSpeed     = speed;
-            m_ReverseGearSound = AESoundManager.RequestNewSound(&sound);
-        }
-    } else if (m_ReverseGearSoundType != -1 && m_ReverseGearSound) {
-        // Same sound type already initialised, just set speed and volume
-        m_ReverseGearSound->m_fSpeed  = speed;
-        m_ReverseGearSound->m_fVolume = volume;
-    }
+void CAEVehicleAudioEntity::PlayReverseSound(eSoundID sfx, float speed, float volume) {
+    PlayGenericSound(
+        this,
+        m_ReverseGearSound,
+        SND_BANK_SLOT_VEHICLE_GEN,
+        m_ReverseGearSoundType,
+        sfx,
+        speed,
+        m_EventVolume + volume,
+        s_Config.ReverseGearSoundRollOffFactor
+    );
 }
 
 // 0x4F9E90
@@ -2132,7 +2119,7 @@ void CAEVehicleAudioEntity::ProcessVehicleRoadNoise(tVehicleParams& params) {
     PlayRoadNoiseSound(nRoadNoiseSound, fSpeed, fVolume);
 }
 
-// 0x4F8DF0
+// 0x4F8DF0 - Called only if `AE_CAR` and the player is the driver
 void CAEVehicleAudioEntity::ProcessReverseGear(tVehicleParams& params) {
     return plugin::CallMethod<0x4F8DF0, CAEVehicleAudioEntity*, tVehicleParams&>(this, params);
 
@@ -2484,7 +2471,7 @@ void CAEVehicleAudioEntity::ProcessMovingParts(tVehicleParams& params) {
             sound = nullptr;
         }
     } else {
-        UpdateGenericVehicleSound(11, bankSlot, bank, sfxId, fSpeed, fVolume, 1.5f);
+        UpdateGenericVehicleSound(11, (eSoundBankSlot)bankSlot, (eSoundBank)bank, sfxId, fSpeed, fVolume, 1.5f);
     }
 }
 
