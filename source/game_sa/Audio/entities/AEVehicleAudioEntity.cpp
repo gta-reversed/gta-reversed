@@ -94,8 +94,8 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessVehicleSkidding, 0x4F8F10);
 
     // Horn
-    RH_ScopedOverloadedInstall(GetHornState, "", 0x4F61E0, void(CAEVehicleAudioEntity::*)(bool*, tVehicleParams&) const, { .reversed = false }); // Done
-    RH_ScopedInstall(GetSirenState, 0x4F62A0, { .reversed = false });  // Done
+    RH_ScopedOverloadedInstall(GetHornState, "", 0x4F61E0, void(CAEVehicleAudioEntity::*)(bool*, tVehicleParams&) const); // Done
+    RH_ScopedInstall(GetSirenState, 0x4F62A0);  // Done
     RH_ScopedInstall(PlayHornOrSiren, 0x4F99D0);
     RH_ScopedInstall(ProcessVehicleSirenAlarmHorn, 0x5002C0);
 
@@ -1229,6 +1229,17 @@ bool CAEVehicleAudioEntity::GetHornState(tVehicleParams& vp) const noexcept {
 
 // 0x4F62A0
 void CAEVehicleAudioEntity::GetSirenState(bool& isSirenOn, bool& isFastSirenOn, tVehicleParams& vp) const {
+#ifdef NOTSA_DEBUG
+    if (CPad::GetPad()->IsCtrlPressed()) {
+        if (CPad::GetPad()->IsStandardKeyJustDown('J')) {
+            isSirenOn = true;
+        }
+        if (CPad::GetPad()->IsStandardKeyJustDown('K')) {
+            isFastSirenOn = true;
+        }
+        return;
+    }
+#endif
     if (m_IsWreckedVehicle || !m_HasSiren || !vp.Vehicle->vehicleFlags.bSirenOrAlarm) {
         isSirenOn = false;
     } else if (isSirenOn = (vp.Vehicle->GetStatus() != STATUS_ABANDONED)) {
@@ -1644,10 +1655,10 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
             });
         };
         const auto areSoundsLoaded = AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_HORN, SND_BANK_SLOT_HORN_AND_SIREN)
-                                  && AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN);
+                                  || AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN);
         if (m_AuSettings.HornType >= eAEVehicleHornType::CAR_FIRST && m_AuSettings.HornType <= eAEVehicleHornType::CAR_LAST) { // 0x4F9B7C
             m_HornVolume = m_AuSettings.EngineVolumeOffset + GetDefaultVolume(AE_CAR_HORN);
-            if (areSoundsLoaded) { // 0x4F9BA3
+            if (!areSoundsLoaded) { // 0x4F9BA3
                 return;
             }
             if (m_HornSound) { // 0x4F9BC5
@@ -1664,7 +1675,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
         } else {
             return;
         }
-    } else {
+    } else if (!isHornOn && m_IsHornOn) {
         if (m_AuSettings.HornType != eAEVehicleHornType::BIKE) { 
             StopAndForgetSound(m_HornSound); // 0x4F9C46
         } else { // 0x4F9B08
@@ -1678,7 +1689,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
     }
 
     //
-    // Play/stop siren sound(s)
+    // Play/stop siren sound
     //
     const auto PlaySirenSound = [&](eSoundBankSlot slot, eSoundID sid) {
         return AESoundManager.PlaySound({
@@ -1692,11 +1703,46 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
             .Flags         = SOUND_REQUEST_UPDATES,
         });
     };
-    const auto wasSirenOn   = m_IsSirenOn && !m_IsFastSirenOn;
-    const auto isSirenNowOn = isSirenOn && !isFastSirenOn;
+
+    const auto areHornSoundsLoaded = AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_HORN, SND_BANK_SLOT_HORN_AND_SIREN);
+
+    // Check if fast siren needs playing now
+    if (isFastSirenOn) {
+        if (!m_IsFastSirenOn && !m_FastSirenSound) {
+            if (areHornSoundsLoaded) {
+                m_FastSirenSound = PlaySirenSound(SND_BANK_SLOT_HORN_AND_SIREN, SND_GENRL_HORN_SIREN_SHORT); // 0x4F9E2E
+            }
+        }
+    } else {
+        StopAndForgetSound(m_FastSirenSound);
+    }
+
+    // Check if standard siren needs to be played - Fast siren has a precedence!
+    if (isSirenOn && !isFastSirenOn) {
+        if ((!m_IsSirenOn || m_IsFastSirenOn) && !m_SirenSound) {
+            if (areHornSoundsLoaded) {
+                const auto isMrWhoop = vp.Vehicle->GetModelID() == MODEL_MRWHOOP;
+                if (isMrWhoop && !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_ICEVAN_P, SND_BANK_SLOT_PLAYER_ENGINE_P)) { // 0x4F9CCD
+                    return;
+                }
+                m_SirenSound = PlaySirenSound(
+                    isMrWhoop ? SND_BANK_SLOT_PLAYER_ENGINE_P : SND_BANK_SLOT_HORN_AND_SIREN,
+                    isMrWhoop ? SND_GENRL_HORN_HORNBMW328 : SND_GENRL_HORN_SIREN_LONG
+                );
+            }
+        }
+    } else {
+        StopAndForgetSound(m_SirenSound);
+    }
+
+    /*
+    const auto wasSirenOn = isSirenOn && !isFastSirenOn;
+    const auto isSirenStillOn = m_IsSirenOn && !m_IsFastSirenOn;
     if (wasSirenOn) {
         StopAndForgetSound(m_SirenSound); // 0x4F9DA4
     }
+
+
     if (!isSirenOn || wasSirenOn) { // 0x4F9C85 + 0x4F9C8D
         if (isFastSirenOn) { // 0x4F9DB9
             if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_HORN, SND_BANK_SLOT_HORN_AND_SIREN)) {
@@ -1717,6 +1763,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
             isMrWhoop ? SND_GENRL_HORN_HORNBMW328 : SND_GENRL_HORN_SIREN_LONG
         );
     }
+    */
 }
 
 // 0x4FCF40

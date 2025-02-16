@@ -54,7 +54,7 @@ public:
     int32           m_nPrevTimeUpdate;
     float           m_fCurrCamDist;
     float           m_fPrevCamDist;
-    float           m_fTimeScale;
+    float           m_Doppler; // AKA TimeScale
     uint8           m_nIgnoredServiceCycles; // Seemingly never used, but CAESoundManager::Service still checks for that
     char            field_55;
     union {
@@ -145,6 +145,12 @@ public:
     void  CalculateVolume();
     void  UpdateParameters(int16 curPlayPos);
     void  SoundHasFinished();
+
+    void SetSpeed(float s) noexcept { m_fSpeed = s; }
+    auto GetSpeed() const noexcept  { return m_fSpeed; }
+
+    void SetVolume(float v) noexcept { m_fVolume = v; }
+    auto GetVolume() const noexcept  { return m_fVolume; }
 
 public:
     bool IsUsed() const { return m_nIsUsed; }

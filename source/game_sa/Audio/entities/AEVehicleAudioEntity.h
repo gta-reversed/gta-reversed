@@ -53,6 +53,35 @@ protected: // Config:
         } FlatTyre;
 
         struct {
+            // For BMX only:
+            struct {
+                float VolBase{ -12.f };                             // 0x8CBCF8
+                float FrqBase{ 0.9f }, FrqWheelSkidFactor{ 0.25f }; // 0x8CBCEC, 0x8CBCF0
+            } BMX;
+
+            // These don't apply to BMX:
+            struct {
+                float VolBase{ -12.f };                            // 0xNONE
+                float FrqBase{ 0.9f }, FrqWheelSkidFactor{ 0.2f }; // 0x8CBCDC, 0x8CBCE0
+            } GrassSurface;
+
+            struct {
+                float VolBase{ -9.f };                             // 0xNONE
+                float FrqBase{ 0.9f }, FrqWheelSkidFactor{ 0.2f }; // 0x8CBCD4, 0x8CBCD8
+            } WetSurface;
+
+            struct {
+                float FrqFactorForBikes{ 1.2f };                     // 0xNONE
+                float VolBase{ 0.f };                                // 0xNONE
+                float FrqBase{ 0.8f }, FrqWheelSkidFactor{ 0.125f }; // 0x8CBCE4, 0x8CBCE8
+            } StdSurface;
+
+            // Common values
+            float VolBase{ 0.f };     // 0xB6B9E0
+            float VolOffsetForPlaneOrHeli{ 12.f }; // 0x8CBCF4
+        } Skid;
+
+        struct {
             bool Enabled{true}; // 0x8CBD80
             float SpinningFactor{1.f}, SkiddingFactor{1.f}, StationaryFactor{1.2f}; // 0x8CBD88, 0x8CBD84, 0x8CBD8C
         } DriveWheelSkid;
@@ -61,6 +90,15 @@ protected: // Config:
             bool Enabled{true}; // 0x8CBD81
             float SkiddingFactor{1.f}, StationaryFactor{1.2f}; // 0x8CBD84, 0x8CBD8C
         } NonDriveWheelSkid;
+
+        struct {
+            float Doppler{0.17f}; // 0x8CBEC4
+            float BikeBellFadeOut{1.5f}; // 0x8CBECC
+        } Horn;
+
+        struct {
+            float Doppler{0.25f}; // 0x8CBEC8
+        } Siren;
 
         // Dummy engine constants:
         struct {
@@ -347,7 +385,7 @@ public:
     float GetVolForPlayerEngineSound(tVehicleParams& params, int16 gear);
 
     void UpdateVehicleEngineSound(int16, float, float);
-    static void UpdateGasPedalAudio(CVehicle* vehicle, int32 vehType);
+    void UpdateGasPedalAudio(CVehicle* vehicle, int32 vehType);
     void UpdateBoatSound(int16 engineState, int16 bankSlotId, int16 sfxId, float speed, float volume);
     void UpdateTrainSound(int16 engineState, int16 bankSlotId, int16 sfxId, float speed, float volume);
     void UpdateGenericVehicleSound(int16 soundId, int16 bankSlotId, int16 bankId, int16 sfxId, float speed, float volume, float distance);
@@ -370,7 +408,7 @@ public:
     float GetFrequencyForDummyRev(float fRatio, float fFadeRatio) const;
 
     float GetVehicleDriveWheelSkidValue(CVehicle* vehicle, tWheelState wheelState, float fUnk, cTransmission& transmission, float fVelocity) const noexcept;
-    float GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, int32 wheelState, cTransmission& transmission, float velocity) const noexcept;
+    float GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, tWheelState wheelState, cTransmission& transmission, float velocity) const noexcept;
 
     [[nodiscard]] float GetBaseVolumeForBicycleTyre(float fGearVelocityProgress) const;
     void GetHornState(bool* out, tVehicleParams& params) const noexcept;

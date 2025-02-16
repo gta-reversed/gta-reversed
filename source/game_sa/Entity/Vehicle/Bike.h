@@ -54,7 +54,7 @@ public:
     CColPoint m_aWheelColPoints[NUM_SUSP_LINES];
     float m_aWheelRatios[NUM_SUSP_LINES];
     float m_aRatioHistory[NUM_SUSP_LINES];
-    float m_aWheelCounts[NUM_SUSP_LINES];
+    float m_WheelCounts[NUM_SUSP_LINES];
     float m_fBrakeCount;
     eSkidmarkType m_aWheelSkidmarkType[2];
     bool m_bWheelBloody[2];

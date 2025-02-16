@@ -222,7 +222,7 @@ void CQuadBike::ProcessControl() {
             v5 = vecQuadResistance.x - std::min(0.07f, fabs(m_pHandling->m_fWheelieAng - m_matrix->GetForward().z) * 0.25f);
         }
     } else {
-        if (m_aWheelTimer[CAR_WHEEL_REAR_LEFT] == 1.0f && m_aWheelTimer[CAR_WHEEL_REAR_RIGHT] == 1.0f) {
+        if (m_WheelCounts[CAR_WHEEL_REAR_LEFT] == 1.0f && m_WheelCounts[CAR_WHEEL_REAR_RIGHT] == 1.0f) {
             if (m_matrix->GetForward().z < 0.0f) {
                 v5 = vecQuadResistance.x * (0.9f + std::min(0.1f, fabs(m_pHandling->m_fStoppieAng - m_matrix->GetForward().z) * 0.3f));
             }

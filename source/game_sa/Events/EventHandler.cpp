@@ -2755,7 +2755,7 @@ void CEventHandler::ComputeVehiclePotentialCollisionResponse(CEventPotentialGetR
                     return { new CTaskSimpleHandsUp{ 3000 }, nullptr }; // 0x4C117B
                 }
             } else {
-                if (rndChance > chanceForHornNeeded && !e->m_Vehicle->m_nHornCounter) {
+                if (rndChance > chanceForHornNeeded && !e->m_Vehicle->m_HornCounter) {
                     return {};
                 }
                 if (rndChance > chanceToEvadeBack) {
@@ -2765,7 +2765,7 @@ void CEventHandler::ComputeVehiclePotentialCollisionResponse(CEventPotentialGetR
             return { new CTaskComplexEvasiveDiveAndGetUp{ e->m_Vehicle, 0, dirToAvoidVehicle, true }, nullptr }; // 0x4C11BA
         } else if (e->m_Vehicle->GetStatus() == STATUS_PLAYER && m_Ped->IsCreatedBy(PED_GAME)) {
             const auto currPedEvent = m_Ped->GetIntelligence()->GetEventHandler().GetHistory().GetCurrentEvent();
-            if (e->m_Vehicle->m_nHornCounter && (!currPedEvent || currPedEvent->GetEventType() != EVENT_POTENTIAL_GET_RUN_OVER)) { // 0x4C12A0
+            if (e->m_Vehicle->m_HornCounter && (!currPedEvent || currPedEvent->GetEventType() != EVENT_POTENTIAL_GET_RUN_OVER)) { // 0x4C12A0
                 const auto rndNum = CGeneral::GetRandomNumberInRange(0, 1000);
                 if (rndNum < 25 && !m_Ped->IsCop()) { // 0x4C12C0
                     return { new CTaskComplexFleeEntity{ e->m_Vehicle, false, 60.f, CGeneral::GetRandomNumberInRange(750, 1250)}, nullptr };

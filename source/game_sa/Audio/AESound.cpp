@@ -57,7 +57,7 @@ CAESound::CAESound(CAESound& sound) {
     m_nPrevTimeUpdate = sound.m_nPrevTimeUpdate;
     m_fCurrCamDist = sound.m_fCurrCamDist;
     m_fPrevCamDist = sound.m_fPrevCamDist;
-    m_fTimeScale = sound.m_fTimeScale;
+    m_Doppler = sound.m_Doppler;
     m_nIgnoredServiceCycles = sound.m_nIgnoredServiceCycles;
     m_nEnvironmentFlags = sound.m_nEnvironmentFlags;
     m_nIsUsed = sound.m_nIsUsed;
@@ -94,7 +94,7 @@ CAESound::CAESound(int16 bankSlotId, int16 sfxId, CAEAudioEntity* baseAudio, CVe
     m_fVolume = volume;
     m_fSoundDistance = fDistance;
     m_fSpeed = speed;
-    m_fTimeScale = timeScale;
+    m_Doppler = timeScale;
     m_nIgnoredServiceCycles = ignoredServiceCycles;
     m_nEnvironmentFlags = environmentFlags;
     m_nHasStarted = 0;
@@ -133,7 +133,7 @@ CAESound& CAESound::operator=(const CAESound& sound) {
     m_nPrevTimeUpdate       = sound.m_nPrevTimeUpdate;
     m_fCurrCamDist          = sound.m_fCurrCamDist;
     m_fPrevCamDist          = sound.m_fPrevCamDist;
-    m_fTimeScale            = sound.m_fTimeScale;
+    m_Doppler            = sound.m_Doppler;
     m_nIgnoredServiceCycles = sound.m_nIgnoredServiceCycles;
     m_nEnvironmentFlags     = sound.m_nEnvironmentFlags;
     m_nIsUsed               = sound.m_nIsUsed;
@@ -228,7 +228,7 @@ void CAESound::UpdateFrequency() {
 float CAESound::GetRelativePlaybackFrequencyWithDoppler() const {
     return GetFrontEnd()
         ? m_fFrequency
-        : m_fFrequency * CAEAudioEnvironment::GetDopplerRelativeFrequency(m_fPrevCamDist, m_fCurrCamDist, m_nPrevTimeUpdate, m_nCurrTimeUpdate, m_fTimeScale);
+        : m_fFrequency * CAEAudioEnvironment::GetDopplerRelativeFrequency(m_fPrevCamDist, m_fCurrCamDist, m_nPrevTimeUpdate, m_nCurrTimeUpdate, m_Doppler);
 }
 
 // 0x4EF440
@@ -312,6 +312,8 @@ void CAESound::Initialise(
     int16 bankSlotId, int16 soundID, CAEAudioEntity* audioEntity, CVector pos, float volume, float rollOffFactor, float relativeFrequency, float doppler,
                           uint8 frameDelay, uint32 flags, float frequencyVariance, int16 playTime)
 {
+    assert((!(flags & SOUND_REQUEST_UPDATES) || audioEntity) && "SOUND_REQUEST_UPDATES flag requires `audioEntity` to be set!");
+
     UnregisterWithPhysicalEntity();
 
     m_nSoundIdInSlot        = soundID;
@@ -328,7 +330,7 @@ void CAESound::Initialise(
 
     SetPosition(pos);
 
-    m_fTimeScale            = doppler;
+    m_Doppler               = doppler;
     m_nSoundLength          = -1;
     m_nHasStarted           = 0;
     m_nPlayingState         = eSoundState::SOUND_ACTIVE;

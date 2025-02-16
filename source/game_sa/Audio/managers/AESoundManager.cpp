@@ -306,7 +306,7 @@ CAESound* CAESoundManager::PlaySound(tSoundPlayParams p) {
     }
     CAESound s;
     s.Initialise(
-        p.BankSlotID,
+        p.BankSlot,
         p.SoundID,
         p.AudioEntity,
         p.Pos,

@@ -317,8 +317,8 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     m_nGunFiringTime = 0;
     m_nCopsInCarTimer = 0;
     m_nUsedForCover = 0;
-    m_nHornCounter = 0;
-    m_nRandomIdRelatedToSiren = 0;
+    m_HornCounter = 0;
+    m_HornPattern = 0;
     m_nCarHornTimer = 0;
     field_4EC = 0;
     m_pTractor = nullptr;
@@ -1734,7 +1734,7 @@ void CVehicle::ProcessCarAlarm() {
         m_nAlarmState = ts;
     } else {
         m_nAlarmState = 0;
-        m_nHornCounter = 0;
+        m_HornCounter = 0;
     }
 }
 

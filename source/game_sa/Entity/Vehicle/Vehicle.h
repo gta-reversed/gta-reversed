@@ -383,8 +383,8 @@ public:
     char            field_511;             // initialised, but not used?
     char            field_512;             // initialised, but not used?
     eCarWeapon      m_nVehicleWeaponInUse;
-    uint32          m_nHornCounter;
-    int8            m_nRandomIdRelatedToSiren;
+    uint32          m_HornCounter;
+    int8            m_HornPattern;
     char            m_nCarHornTimer; // car horn related
     eComedyControlState m_comedyControlState;
     char            m_nHasslePosId;

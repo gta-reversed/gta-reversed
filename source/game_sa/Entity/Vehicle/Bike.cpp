@@ -122,7 +122,7 @@ CBike::CBike(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
         m_aWheelColPoints[i] = {};
         m_aWheelRatios[i] = 1.0f;
         m_aRatioHistory[i] = 0.0f;
-        m_aWheelCounts[i] = 0.0f;
+        m_WheelCounts[i] = 0.0f;
         m_fSuspensionLength[i] = 0.0f;
         m_fLineLength[i] = 0.0f;
         m_aGroundPhysicalPtrs[i] = nullptr;
@@ -188,8 +188,8 @@ void CBike::SetRemoveAnimFlags(CPed* ped) {
 
 // 0x6B5F90
 void CBike::ReduceHornCounter() {
-    if (m_nHornCounter)
-        m_nHornCounter -= 1;
+    if (m_HornCounter)
+        m_HornCounter -= 1;
 }
 
 // 0x6B5FB0

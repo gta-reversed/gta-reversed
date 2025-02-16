@@ -87,7 +87,7 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
         FormattedText("BassSetting: {}", as->BassSetting);
         FormattedText("BassFactor: {}", as->BassFactor);
         FormattedText("EnginePitch: {}", as->EnginePitch);
-        FormattedText("HornType: {}", as->HornType);
+        FormattedText("HornType: {}", (int32)(as->HornType));
         FormattedText("HornPitch: {}", as->HornPitch);
         FormattedText("DoorType: {}", as->DoorType);
         FormattedText("EngineUpgrade: {}", as->EngineUpgrade);

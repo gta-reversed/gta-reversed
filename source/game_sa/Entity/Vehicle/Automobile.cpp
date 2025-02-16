@@ -752,12 +752,12 @@ void CAutomobile::ProcessControl()
 
         for (int32 i = 0; i < 4; i++) {
             if (m_fWheelsSuspensionCompression[i] >= 1.0f) {
-                m_aWheelTimer[i] = std::max(m_aWheelTimer[i] - CTimer::GetTimeStep(), 0.0f);
-                if (m_aWheelTimer[i] <= 0.0f)
+                m_WheelCounts[i] = std::max(m_WheelCounts[i] - CTimer::GetTimeStep(), 0.0f);
+                if (m_WheelCounts[i] <= 0.0f)
                     continue;
             }
             else {
-                m_aWheelTimer[i] = 4.0f;
+                m_WheelCounts[i] = 4.0f;
             }
 
             m_nNumContactWheels++;
@@ -820,7 +820,7 @@ void CAutomobile::ProcessControl()
         }
 
         float steerAngle = 1.0f; // todo: Repeated branch in conditional chain
-        if (speedForward <= 0.01f || m_aWheelTimer[CAR_WHEEL_FRONT_LEFT] <= 0.0f && m_aWheelTimer[CAR_WHEEL_REAR_LEFT] <= 0.0f)
+        if (speedForward <= 0.01f || m_WheelCounts[CAR_WHEEL_FRONT_LEFT] <= 0.0f && m_WheelCounts[CAR_WHEEL_REAR_LEFT] <= 0.0f)
             steerAngle = 1.0f;
         else if (m_nStatus != STATUS_PLAYER)
             steerAngle = 1.0f;
@@ -948,7 +948,7 @@ void CAutomobile::ProcessControl()
         }
         uint32 handlingId = m_pHandlingData->m_nVehicleId;
         cTransmission& transmission = gHandlingDataMgr.GetVehiclePointer(handlingId)->GetTransmission();
-        if (m_aWheelTimer[i] <= 0.0f
+        if (m_WheelCounts[i] <= 0.0f
             && (m_GasPedal > 0.5f || m_GasPedal < -0.5f)
             && ((i == CAR_WHEEL_FRONT_LEFT || i == CAR_WHEEL_FRONT_RIGHT) && transmission.m_nDriveType != 'R'
                 || (i == CAR_WHEEL_REAR_LEFT || i == CAR_WHEEL_REAR_RIGHT) && transmission.m_nDriveType != 'F'))
@@ -1324,7 +1324,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         m_GasPedal = 0.0f;
 
         if (CanUpdateHornCounter())
-            m_nHornCounter = 0;
+            m_HornCounter = 0;
 
         if (!vehicleFlags.bIsBeingCarJacked)
             return false;
@@ -1340,7 +1340,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         m_GasPedal = 0.0f;
         if (!CanUpdateHornCounter())
             return false;
-        m_nHornCounter = 0;
+        m_HornCounter = 0;
         return false;
     case STATUS_REMOTE_CONTROLLED:
         if (CPad::GetPad()->CarGunJustDown() && !CVehicle::bDisableRemoteDetonation) {
@@ -1378,7 +1378,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         m_GasPedal = 0.0f;
         if (!CanUpdateHornCounter())
             return false;
-        m_nHornCounter = 0;
+        m_HornCounter = 0;
         return false;
     case STATUS_IS_TOWED:
         vehicleFlags.bIsHandbrakeOn = false;
@@ -1502,7 +1502,7 @@ void CAutomobile::ResetSuspension()
 {
     for (int32 i = 0; i < 4; i++) {
         m_fWheelsSuspensionCompression[i] = 1.0f;
-        m_aWheelTimer[i] = 0.0f;
+        m_WheelCounts[i] = 0.0f;
         m_wheelRotation[i] = 0.0f;
         m_WheelStates[i] = WHEEL_STATE_NORMAL;
     }
@@ -2818,7 +2818,7 @@ void CAutomobile::DoBurstAndSoftGroundRatios()
 // 0x6A3770
 void CAutomobile::PlayCarHorn()
 {
-    if (m_nAlarmState && m_nAlarmState != -1 && m_nStatus != STATUS_WRECKED || m_nHornCounter) {
+    if (m_nAlarmState && m_nAlarmState != -1 && m_nStatus != STATUS_WRECKED || m_HornCounter) {
         return;
     }
 
@@ -2834,7 +2834,7 @@ void CAutomobile::PlayCarHorn()
                 m_pDriver->Say(CTX_GLOBAL_BLOCKED);
             }
         }
-        m_nHornCounter = 45;
+        m_HornCounter = 45;
     } else {
         if (m_pDriver) {
             m_pDriver->Say(CTX_GLOBAL_BLOCKED);
@@ -4122,8 +4122,8 @@ RpMaterial* DisableMatFx(RpMaterial* material, void* data) {
 
 // 0x6A29A0
 void CAutomobile::ReduceHornCounter() {
-    if (m_nHornCounter) {
-        m_nHornCounter--;
+    if (m_HornCounter) {
+        m_HornCounter--;
     }
 }
 
@@ -4622,7 +4622,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
         }
     }
 
-    if (m_aWheelTimer[leftWheel] > 0.0f || m_aWheelTimer[rightWheel] > 0.0f) {
+    if (m_WheelCounts[leftWheel] > 0.0f || m_WheelCounts[rightWheel] > 0.0f) {
         // TOOD: Refactor
         float sinSteerAngle = 0.0f;
         float cosSteerAngle = 0.0f;
@@ -4650,7 +4650,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
 
         CVector wheelFwd{};
         CVector wheelRight{};
-        if (m_aWheelTimer[leftWheel] > 0.0f) {
+        if (m_WheelCounts[leftWheel] > 0.0f) {
             float thrust = driveWheels ? acceleration : 0.0f;
 
             wheelFwd = GetForward();
@@ -4701,7 +4701,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                 m_WheelStates[leftWheel] = wheelState;
         }
 
-        if (m_aWheelTimer[rightWheel] > 0.0f) {
+        if (m_WheelCounts[rightWheel] > 0.0f) {
             float thrust = driveWheels ? acceleration : 0.0f;
             wheelFwd = GetForward();
             wheelFwd -= DotProduct(wheelFwd, m_wheelColPoint[rightWheel].m_vecNormal) * m_wheelColPoint[rightWheel].m_vecNormal;
@@ -4771,7 +4771,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
         return;
     }
 
-    if (m_aWheelTimer[leftWheel] <= 0.0f) {
+    if (m_WheelCounts[leftWheel] <= 0.0f) {
         if (driveWheels && acceleration != 0.0f) {
             if (acceleration > 0.0f) {
                 if (m_wheelSpeed[leftWheel] < 1.0f) {
@@ -4788,7 +4788,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
         m_wheelRotation[leftWheel] += CTimer::GetTimeStep() * m_wheelSpeed[leftWheel];
     }
 
-    if (m_aWheelTimer[rightWheel] <= 0.0f) {
+    if (m_WheelCounts[rightWheel] <= 0.0f) {
         if (driveWheels && acceleration != 0.0f) {
             if (acceleration > 0.0f) {
                 if (m_wheelSpeed[rightWheel] < 1.0f) {
