@@ -3331,8 +3331,8 @@ void CAEVehicleAudioEntity::ProcessVehicle(CPhysical* physical) {
         ? &vehicle->m_pHandlingData->m_transmissionData
         : nullptr;
     vp.Speed                 = isStatusSimple
-        ? DotProduct(physical->m_vecMoveSpeed, physical->m_matrix->GetForward())
-        : vehicle->m_autoPilot.m_speed / 50.0f;
+        ? vehicle->m_autoPilot.m_speed / 50.0f
+        : DotProduct(physical->m_vecMoveSpeed, physical->m_matrix->GetForward());
 
     switch (m_AuSettings.VehicleAudioType) {
     case AE_CAR: {
