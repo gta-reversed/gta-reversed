@@ -100,7 +100,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     // Update[*]Sound
     RH_ScopedInstall(UpdateBoatSound, 0x4F9E90, { .reversed = false });
     RH_ScopedInstall(UpdateTrainSound, 0x4FA1C0, { .reversed = false });
-    RH_ScopedInstall(UpdateGenericVehicleSound, 0x4FAD40, { .reversed = false });
+    RH_ScopedInstall(UpdateGenericVehicleSound, 0x4FAD40);
 
     // Engine Sound
     RH_ScopedInstall(StartVehicleEngineSound, 0x4F7F20);
@@ -1976,21 +1976,24 @@ void CAEVehicleAudioEntity::JustWreckedVehicle() {
 }
 
 // 0x4FAD40
-void CAEVehicleAudioEntity::UpdateGenericVehicleSound(int16 engineStateSoundIndex, int16 bankSlotId, int16 gameBank, int16 sfxId, float speed, float volume, float distance) {
-    return plugin::CallMethod<0x4FAD40, CAEVehicleAudioEntity*, int16, int16, int16, int16, float, float, float>(this, engineStateSoundIndex, bankSlotId, gameBank, sfxId, speed, volume, distance);
+void CAEVehicleAudioEntity::UpdateGenericVehicleSound(eVehicleEngineSoundType st, eSoundBankSlot bankSlot, eSoundBank bank, eSoundID sfx, float speed, float volume, float rollOff) {
+    volume += m_EventVolume;
 
-    const float finalVolume = m_EventVolume + volume;
-    if (CAESound* sound = m_EngineSounds[engineStateSoundIndex].Sound) {
-        sound->m_fSpeed  = speed;
-        sound->m_fVolume = finalVolume;
-    } else if (AEAudioHardware.IsSoundBankLoaded(gameBank, bankSlotId)) {
-        m_EngineSounds[engineStateSoundIndex].Sound = PlaySound(bankSlotId, sfxId, finalVolume, speed);
+    if (auto& s = m_EngineSounds[st].Sound) {
+        s->SetVolume(volume);
+        s->SetSpeed(speed);
+    } else if (AEAudioHardware.IsSoundBankLoaded(bankSlot, sfx)) {
+        s = AESoundManager.PlaySound({
+            .BankSlot      = bankSlot,
+            .SoundID       = sfx,
+            .AudioEntity   = this,
+            .Pos           = m_Entity->GetPosition(),
+            .Volume        = volume,
+            .RollOffFactor = rollOff,
+            .Speed         = speed,
+            .Flags         = SOUND_REQUEST_UPDATES,
+        });
     }
-}
-
-// @notsa
-bool CAEVehicleAudioEntity::HasVehicleEngineSound(eVehicleEngineSoundType st) const noexcept {
-    return m_EngineSounds[st].Sound != nullptr;
 }
 
 // @notsa
@@ -2547,7 +2550,7 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
     };
 
     const auto UpdateOrRequestEngineSound = [&](int16 st) {
-        if (HasVehicleEngineSound(st)) {
+        if (GetEngineSound(st)) {
             UpdateEngineSound(st);
         } else {
             RequestEngineSound(st);
