@@ -115,7 +115,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(PlayFlatTyreSound, 0x4F8650);
     RH_ScopedInstall(PlayReverseSound, 0x4F87D0);
     RH_ScopedInstall(PlayAircraftSound, 0x4F93C0);
-    RH_ScopedInstall(PlayBicycleSound, 0x4F9710, { .reversed = false });
+    RH_ScopedInstall(PlayBicycleSound, 0x4F9710);
     RH_ScopedInstall(PlayTrainBrakeSound, 0x4FA630, { .reversed = false });
 
     RH_ScopedInstall(JustGotOutOfVehicleAsDriver, 0x4FCF40, { .reversed = false });
@@ -1691,62 +1691,66 @@ void CAEVehicleAudioEntity::PlayAircraftSound(eAircraftSoundType st, eSoundBankS
 }
 
 // 0x4F9710
-void CAEVehicleAudioEntity::PlayBicycleSound(int16 engineState, int16 bankSlotId, int16 sfxId, float volume, float speed) {
-    return plugin::CallMethod<0x4F9710, CAEVehicleAudioEntity*, int16, int16, int16, float, float>(this, engineState, bankSlotId, sfxId, volume, speed);
-
+void CAEVehicleAudioEntity::PlayBicycleSound(eBicycleSoundType st, eSoundBankSlot slot, eSoundID sfx, float volume, float speed) {
     if (m_DummySlot == SND_BANK_SLOT_NONE) {
         return;
     }
 
-    if (engineState == 3) {
-        if (m_EngineSounds[3].Sound) {
-            return;
-        }
-        if (!AEAudioHardware.IsSoundBankLoaded(39, 2)) {
-            return;
-        }
+    const auto DoPlaySound = [&](eSoundID sfx, float rollOff, uint32 flags = 0, int16 playTime = 0) {
+        m_EngineSounds[st].Sound = AESoundManager.PlaySound({
+            .BankSlot      = slot,
+            .SoundID       = sfx,
+            .AudioEntity   = this,
+            .Pos           = m_Entity->GetPosition(),
+            .Volume        = volume,
+            .RollOffFactor = rollOff,
+            .Speed         = speed,
+            .Flags         = flags | SOUND_REQUEST_UPDATES,
+            .PlayTime      = playTime,
+        });
+    };
 
+    if (st != AE_SOUND_BICYCLE_CHAIN_CLANG) {
+        if (UpdateGenericEngineSound(st, volume, speed)) {
+            return;
+        }
+    }
+
+    switch (st) {
+    case AE_SOUND_BICYCLE_CHAIN_CLANG: {
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)) {
+            return;
+        }
+        if (GetEngineSound(AE_SOUND_BICYCLE_CHAIN_CLANG)) {
+            return;
+        }
         static constexpr struct { // 0x8CC1D8
-            int16 sfxId, playPos;
+            eSoundID SfxID;
+            int16    PlayPercentage;
         } RandomArray[] = {
             {5, 38},
             {7, 25},
             {8, 25},
             {9, 50}
         };
-        const auto& toPlay = CGeneral::RandomChoice(RandomArray);
-        PlayGenericEngineSound(
-            engineState,
-            2,
-            toPlay.sfxId,
-            1.0f,
-            1.0f,
-            1.0f,
-            1.0f,
-            (eSoundEnvironment)(SOUND_REQUEST_UPDATES | SOUND_START_PERCENTAGE),
-            toPlay.playPos
-        );
-
-        return;
+        const auto* const choice = &CGeneral::RandomChoice(RandomArray);
+        DoPlaySound(choice->SfxID, 1.f, SOUND_START_PERCENTAGE, choice->PlayPercentage);
+        break;
     }
-
-    if (UpdateGenericEngineSound(engineState, volume, speed)) {
-        return;
-    }
-
-    switch (engineState) {
-    case 1: {
+    case AE_SOUND_BICYCLE_TYRE: {
         if (AEAudioHardware.IsSoundBankLoaded(m_DummyEngineBank, m_DummySlot)) {
-            PlayGenericEngineSound(engineState, bankSlotId, sfxId, volume, speed, 2.5f);
+            DoPlaySound(sfx, 2.5f);
         }
         break;
     }
-    case 2: {
-        if (AEAudioHardware.IsSoundBankLoaded(m_PlayerEngineBank, 40)) {
-            PlayGenericEngineSound(engineState, bankSlotId, sfxId, volume, speed, 1.5f);
+    case AE_SOUND_BICYCLE_SPROCKET_1: {
+        if (AEAudioHardware.IsSoundBankLoaded(m_PlayerEngineBank, SND_BANK_SLOT_PLAYER_ENGINE_P)) {
+            DoPlaySound(sfx, 1.5f);
         }
         break;
     }
+    default:
+        NOTSA_UNREACHABLE();
     }
 }
 

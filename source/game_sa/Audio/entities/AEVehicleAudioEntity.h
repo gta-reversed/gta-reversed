@@ -248,7 +248,7 @@ public: // Enums:
         AE_PLAYER_HELI_TAIL  = 3,
     };
 
-    enum : eVehicleEngineSoundType { // For bicycle
+    enum eBicycleSoundType : eVehicleEngineSoundType { // For bicycle
         AE_SOUND_BICYCLE_TYRE        = 1,
         AE_SOUND_BICYCLE_SPROCKET_1  = 2,
         AE_SOUND_BICYCLE_CHAIN_CLANG = 3,
@@ -427,12 +427,12 @@ public:
     bool GetHornState(tVehicleParams& params) const noexcept;
     void GetAccelAndBrake(tVehicleParams& vp) const;
 
-    void PlayAircraftSound(eAircraftSoundType engineState, eSoundBankSlot slot, eSoundID sfx, float volume = -100.0f, float speed = 1.0f);
+    void PlayAircraftSound(eAircraftSoundType es, eSoundBankSlot slot, eSoundID sfx, float volume = -100.0f, float speed = 1.0f);
     void PlayRoadNoiseSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
     void PlayFlatTyreSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
     void PlayReverseSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
     void PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenOrAlarm, bool bPlayHorn, tVehicleParams& params);
-    void PlayBicycleSound(int16 engineState, int16 bankSlotId, int16 sfxId, float volume = -100.0f, float speed = 1.0f);
+    void PlayBicycleSound(eBicycleSoundType es, eSoundBankSlot slot, eSoundID sfx, float volume = -100.0f, float speed = 1.0f);
 
     void ProcessVehicleFlatTyre(tVehicleParams& params);
     void ProcessVehicleRoadNoise(tVehicleParams& params);
