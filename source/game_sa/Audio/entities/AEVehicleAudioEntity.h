@@ -495,6 +495,7 @@ private:
     bool EnsureHasDummySlot() noexcept;
     bool EnsureSoundBankIsLoaded(bool isDummy = true);
     auto GetEngineSound(eVehicleEngineSoundType st) const noexcept { return m_EngineSounds[st].Sound; }
+    void StopNonEngineSounds() noexcept;
 
 public:
     int16                  m_DoCountStalls;

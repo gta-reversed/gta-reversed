@@ -119,7 +119,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(PlayTrainBrakeSound, 0x4FA630, { .reversed = false });
 
     RH_ScopedInstall(JustGotOutOfVehicleAsDriver, 0x4FCF40);
-    RH_ScopedInstall(JustWreckedVehicle, 0x4FD0B0, { .reversed = false });
+    RH_ScopedInstall(JustWreckedVehicle, 0x4FD0B0);
 
     RH_ScopedInstall(ProcessVehicleFlatTyre, 0x4F8940);
     RH_ScopedInstall(ProcessVehicleRoadNoise, 0x4F8B00, { .reversed = false }); // Done
@@ -372,26 +372,10 @@ void CAEVehicleAudioEntity::Terminate() {
         return;
     }
 
-    PlaySkidSound(-1);
+    // Stop sounds
     PlayTrainBrakeSound(-1);
-
     rng::for_each(m_EngineSounds, GracefullyStopSound, &tEngineSound::Sound);
-
-    GracefullyStopSound(m_SurfaceSound);
-    m_SurfaceSoundType = -1;
-
-    GracefullyStopSound(m_RoadNoiseSound);
-    m_RoadNoiseSoundType = -1;
-
-    GracefullyStopSound(m_FlatTireSound);
-    m_FlatTireSoundType = -1;
-
-    GracefullyStopSound(m_ReverseGearSound);
-    m_ReverseGearSoundType = -1;
-
-    StopAndForgetSound(m_HornSound);
-    StopAndForgetSound(m_SirenSound);
-    StopAndForgetSound(m_FastSirenSound);
+    StopNonEngineSounds();
 
     if (m_IsPlayerDriver) {
         TurnOffRadioForVehicle();
@@ -1164,7 +1148,6 @@ void CAEVehicleAudioEntity::TurnOnRadioForVehicle() {
     s_pVehicleAudioSettingsForRadio = &m_AuSettings;
     switch (m_AuSettings.RadioType) {
     case AE_RT_CIVILIAN:
-    case AE_RT_SPECIAL:
     case AE_RT_UNKNOWN:
     case AE_RT_EMERGENCY:
         AudioEngine.StartRadio(&m_AuSettings);
@@ -1175,7 +1158,6 @@ void CAEVehicleAudioEntity::TurnOnRadioForVehicle() {
 void CAEVehicleAudioEntity::TurnOffRadioForVehicle() {
     switch (m_AuSettings.RadioType) {
     case AE_RT_CIVILIAN:
-    case AE_RT_SPECIAL:
     case AE_RT_UNKNOWN:
     case AE_RT_EMERGENCY:
         AudioEngine.StopRadio(&m_AuSettings, false);
@@ -1903,13 +1885,9 @@ void CAEVehicleAudioEntity::JustGotOutOfVehicleAsDriver() {
 
 // 0x4FD0B0
 void CAEVehicleAudioEntity::JustWreckedVehicle() {
-    return plugin::CallMethod<0x4FD0B0, CAEVehicleAudioEntity*>(this);
-
     if (m_IsPlayerDriver) {
-        // FIX_BUGS? Should be only for RADIO_CIVILIAN, RADIO_UNKNOWN, RADIO_EMERGENCY
         TurnOffRadioForVehicle();
     }
-
     switch (m_AuSettings.VehicleAudioType) {
     case AE_CAR:
     case AE_BIKE:
@@ -1920,42 +1898,10 @@ void CAEVehicleAudioEntity::JustWreckedVehicle() {
     case AE_AIRCRAFT_SEAPLANE:
     case AE_TRAIN:
     case AE_SPECIAL: {
-        for (auto i = 0u; i < std::size(m_EngineSounds); i++) {
-            CancelVehicleEngineSound(i);
-        }
-        break;
+        CancelAllVehicleEngineSounds();
     }
     }
-
-    PlaySkidSound(-1);
-
-    // note: the same shit is done in 
-    // todo: do better
-    // Originally copied and pasted code, but this is way more readable
-    struct {
-        CAESound** ppSound;
-        int16*     pnSoundType;
-    } SoundsToStop[] = {
-        { &m_SurfaceSound,     &m_SurfaceSoundType     },
-        { &m_RoadNoiseSound,   &m_RoadNoiseSoundType   },
-        { &m_FlatTireSound,    &m_FlatTireSoundType    },
-        { &m_ReverseGearSound, &m_ReverseGearSoundType },
-        { &m_HornSound,        nullptr                 },
-        { &m_SirenSound,       nullptr                 },
-        { &m_FastSirenSound,   nullptr                 }
-    };
-
-    // Stop sounds, and reset member variables (that's why we use float pointers)
-    for (const auto& sounds : SoundsToStop) {
-        if (CAESound*& sound = *sounds.ppSound) {
-            sound->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
-            sound->StopSound();
-            sound = nullptr;
-            if (*sounds.pnSoundType) {
-                *sounds.pnSoundType = -1;
-            }
-        }
-    }
+    StopNonEngineSounds();
 }
 
 // 0x4FAD40
@@ -3192,6 +3138,26 @@ bool CAEVehicleAudioEntity::EnsureSoundBankIsLoaded(bool isDummy) {
         m_State     = eAEState::CAR_OFF;
     }
     return false;
+}
+
+void CAEVehicleAudioEntity::StopNonEngineSounds() noexcept {
+    PlaySkidSound(-1);
+
+    GracefullyStopSound(m_SurfaceSound);
+    m_SurfaceSoundType = -1;
+
+    GracefullyStopSound(m_RoadNoiseSound);
+    m_RoadNoiseSoundType = -1;
+
+    GracefullyStopSound(m_FlatTireSound);
+    m_FlatTireSoundType = -1;
+
+    GracefullyStopSound(m_ReverseGearSound);
+    m_ReverseGearSoundType = -1;
+
+    StopAndForgetSound(m_HornSound);
+    StopAndForgetSound(m_SirenSound);
+    StopAndForgetSound(m_FastSirenSound);
 }
 
 // Based on `ProcessDummyProp`. Implementation for both `ProcessDummyProp` and `ProcessPlayerProp`
