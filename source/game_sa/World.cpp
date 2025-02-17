@@ -88,7 +88,7 @@ void CWorld::InjectHooks() {
     RH_ScopedInstall(FindObjectsIntersectingCube, 0x568DD0);
     RH_ScopedInstall(FindObjectsKindaColliding, 0x568B80); // bad
     RH_ScopedInstall(FindObjectsOfTypeInRangeSectorList, 0x5635C0);
-    RH_ScopedInstall(FindObjectsInRangeSectorList, 0x563500);
+    RH_ScopedInstall(FindObjectsInRangeSectorList, 0x563500, { .reversed = false });
     RH_ScopedInstall(FindPlayerSlotWithVehiclePointer, 0x563FD0);
     RH_ScopedInstall(FindNearestObjectOfTypeSectorList, 0x565450);
     RH_ScopedInstall(FindMissionEntitiesIntersectingCubeSectorList, 0x565300);
@@ -3037,13 +3037,12 @@ uint16 GetCurrentScanCode() {
 CSector* GetSector(int32 x, int32 y) {
     const auto x1 = std::clamp<int32>(x, 0, MAX_SECTORS_X - 1);
     const auto y1 = std::clamp<int32>(y, 0, MAX_SECTORS_Y - 1);
-    static_assert(MAX_SECTORS_X == MAX_SECTORS_Y);
-    return &CWorld::ms_aSectors[MAX_SECTORS_Y * y1 + x1];
+    return &CWorld::ms_aSectors[y1][x1];
 }
 
 // 0x4072A0
 CRepeatSector* GetRepeatSector(int32 x, int32 y) {
-    return &CWorld::ms_aRepeatSectors[y & (MAX_REPEAT_SECTORS_Y - 1)][x & (MAX_REPEAT_SECTORS_X - 1)];
+    return &CWorld::ms_aRepeatSectors[y % MAX_REPEAT_SECTORS_Y][x % MAX_REPEAT_SECTORS_X];
 }
 
 // 0x4072C0
