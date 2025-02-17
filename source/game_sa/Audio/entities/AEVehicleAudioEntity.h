@@ -427,7 +427,7 @@ public:
     bool GetHornState(tVehicleParams& params) const noexcept;
     void GetAccelAndBrake(tVehicleParams& vp) const;
 
-    void PlayAircraftSound(eAircraftSoundType engineState, int16 bankSlotId, int16 sfxId, float volume = -100.0f, float speed = 1.0f);
+    void PlayAircraftSound(eAircraftSoundType engineState, eSoundBankSlot slot, eSoundID sfx, float volume = -100.0f, float speed = 1.0f);
     void PlayRoadNoiseSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
     void PlayFlatTyreSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
     void PlayReverseSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);

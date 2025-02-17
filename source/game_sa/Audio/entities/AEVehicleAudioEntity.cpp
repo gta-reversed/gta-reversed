@@ -114,7 +114,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(PlayRoadNoiseSound, 0x4F84D0);
     RH_ScopedInstall(PlayFlatTyreSound, 0x4F8650);
     RH_ScopedInstall(PlayReverseSound, 0x4F87D0);
-    RH_ScopedInstall(PlayAircraftSound, 0x4F93C0, { .reversed = false });
+    RH_ScopedInstall(PlayAircraftSound, 0x4F93C0);
     RH_ScopedInstall(PlayBicycleSound, 0x4F9710, { .reversed = false });
     RH_ScopedInstall(PlayTrainBrakeSound, 0x4FA630, { .reversed = false });
 
@@ -1662,34 +1662,30 @@ void CAEVehicleAudioEntity::UpdateTrainSound(int16 soundType, int16 bankSlotId, 
 }
 
 // 0x4F93C0
-void CAEVehicleAudioEntity::PlayAircraftSound(eAircraftSoundType soundType, int16 bankSlotId, int16 soundId, float volume, float frequency) {
-    if (UpdateGenericEngineSound(soundType, volume, frequency)) {
+void CAEVehicleAudioEntity::PlayAircraftSound(eAircraftSoundType st, eSoundBankSlot slot, eSoundID sfx, float volume, float speed) {
+    if (UpdateGenericEngineSound(st, volume, speed)) {
         return;
     }
-
-    const auto DoPlaySound = [&](float soundDist, float timeScale = 1.0f, std::optional<CVector> pos = std::nullopt) {
-        CAESound s;
-        s.Initialise(
-            bankSlotId,
-            soundId,
-            this,
-            pos.value_or(m_Entity->GetPosition()),
-            volume,
-            soundDist,
-            frequency,
-            timeScale,
-            0,
-            SOUND_REQUEST_UPDATES
-        );
-        m_EngineSounds[soundType].Sound = AESoundManager.RequestNewSound(&s);
+    const auto DoPlaySound = [&](float rollOff, float doppler = 1.0f, std::optional<CVector> pos = std::nullopt) {
+        m_EngineSounds[st].Sound = AESoundManager.PlaySound({
+            .BankSlot = slot,
+            .SoundID = sfx,
+            .AudioEntity = this,
+            .Pos = pos.value_or(m_Entity->GetPosition()),
+            .Volume = volume,
+            .RollOffFactor = rollOff,
+            .Speed = speed,
+            .Doppler = doppler,
+            .Flags = SOUND_REQUEST_UPDATES
+        });
     };
-    switch (soundType) {
-    case AE_SOUND_AIRCRAFT_DISTANT:     DoPlaySound(6.0f);                                                 break;
+    switch (st) {
+    case AE_SOUND_AIRCRAFT_DISTANT:     DoPlaySound(6.0f);                                 break;
     case AE_SOUND_AIRCRAFT_FRONT:                                                          
-    case AE_SOUND_AIRCRAFT_REAR:        DoPlaySound(4.0f);                                                 break;
-    case AE_SOUND_AIRCRAFT_NEAR:        DoPlaySound(1.0f, 0.4f);                                   break;
-    case AE_SOUND_AIRCRAFT_THRUST:      DoPlaySound(4.5f);                                                 break;
-    case AE_SOUND_AIRCRAFT_JET_DISTANT: DoPlaySound(50.0f, 1.f, CVector{ 0.f, 1.f, 0.f });     break;
+    case AE_SOUND_AIRCRAFT_REAR:        DoPlaySound(4.0f);                                 break;
+    case AE_SOUND_AIRCRAFT_NEAR:        DoPlaySound(1.0f, 0.4f);                           break;
+    case AE_SOUND_AIRCRAFT_THRUST:      DoPlaySound(4.5f);                                 break;
+    case AE_SOUND_AIRCRAFT_JET_DISTANT: DoPlaySound(50.0f, 1.f, CVector{ 0.f, 1.f, 0.f }); break;
     default:                            NOTSA_UNREACHABLE();
     }
 }
