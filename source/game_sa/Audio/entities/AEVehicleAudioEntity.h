@@ -49,6 +49,8 @@ protected: // Config:
         float FlatTireSoundRollOffFactor{ 3.f };    // 0x8CBD20
         float ReverseGearSoundRollOffFactor{ 1.f }; // 0xNONE
 
+        float VolOffsetOnGround{1.5f}; // 0x8CBD50
+
         struct {
             float StepDown{0.07f}, StepUp{0.09f}; // 0x8CBC28, 0x8CBC24
         } GasPedal;

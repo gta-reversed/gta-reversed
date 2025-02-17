@@ -118,7 +118,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(PlayBicycleSound, 0x4F9710);
     RH_ScopedInstall(PlayTrainBrakeSound, 0x4FA630, { .reversed = false });
 
-    RH_ScopedInstall(JustGotOutOfVehicleAsDriver, 0x4FCF40, { .reversed = false });
+    RH_ScopedInstall(JustGotOutOfVehicleAsDriver, 0x4FCF40);
     RH_ScopedInstall(JustWreckedVehicle, 0x4FD0B0, { .reversed = false });
 
     RH_ScopedInstall(ProcessVehicleFlatTyre, 0x4F8940);
@@ -264,9 +264,9 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
 
     switch (m_AuSettings.VehicleAudioType) {
     case AE_CAR:
-        m_EventVolume -= 1.5F;
+        m_EventVolume -= s_Config.VolOffsetOnGround;
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
-        m_DummyEngineBank = m_AuSettings.DummyBank;
+        m_DummyEngineBank  = m_AuSettings.DummyBank;
         if (m_IsInitialized) {
             return;
         }
@@ -282,7 +282,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
 
         if (m_AuSettings.IsBike()) {
-            m_EventVolume = m_EventVolume - 1.5F;
+            m_EventVolume = m_EventVolume - s_Config.VolOffsetOnGround;
         }
 
         if (m_IsInitialized) {
@@ -300,7 +300,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     case AE_BOAT:
     case AE_TRAIN:
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
-        m_DummyEngineBank = m_AuSettings.DummyBank;
+        m_DummyEngineBank  = m_AuSettings.DummyBank;
         if (m_IsInitialized) {
             return;
         }
@@ -314,14 +314,14 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
 
     case AE_AIRCRAFT_HELICOPTER:
     case AE_AIRCRAFT_SEAPLANE:
-        m_DummyEngineBank = m_AuSettings.DummyBank;
+        m_DummyEngineBank  = m_AuSettings.DummyBank;
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
 
-        m_IsInitialized = true;
+        m_IsInitialized    = true;
         return;
 
     case AE_AIRCRAFT_PLANE:
-        m_DummyEngineBank = m_AuSettings.DummyBank;
+        m_DummyEngineBank  = m_AuSettings.DummyBank;
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
         if (m_IsInitialized) {
             return;
@@ -336,7 +336,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
 
     case AE_SPECIAL:
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
-        m_EventVolume   = m_EventVolume - 1.5F;
+        m_EventVolume      = m_EventVolume - 1.5F;
         if (m_IsInitialized) {
             return;
         }
@@ -1855,13 +1855,13 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
 
 // 0x4FCF40
 void CAEVehicleAudioEntity::JustGotOutOfVehicleAsDriver() {
-    return plugin::CallMethod<0x4FCF40, CAEVehicleAudioEntity*>(this);
-
     m_IsPlayerDriverAboutToExit = false;
+    s_pPlayerDriver             = nullptr;
+
     switch (m_AuSettings.VehicleAudioType) {
     case AE_CAR:
-    case AE_BIKE: {
-        m_EventVolume = GetDefaultVolume(AE_GENERAL_VEHICLE_SOUND) - 1.5f;
+    case AE_BIKE: { // 0x4FD004
+        m_EventVolume = GetDefaultVolume(AE_GENERAL_VEHICLE_SOUND) - s_Config.VolOffsetOnGround;
         m_FadeIn      = 1.0f;
         m_FadeOut     = 1.0f;
         if (m_State == eAEState::PLAYER_ID) {
@@ -1874,32 +1874,30 @@ void CAEVehicleAudioEntity::JustGotOutOfVehicleAsDriver() {
             }
         }
         PlayReverseSound(-1);
-        m_AuGear = 0;
-        s_pPlayerDriver     = nullptr;
+        m_AuGear        = 0;
         break;
     }
-    case AE_TRAIN: {
+    case AE_TRAIN: { // 0x4FCF78
         PlayTrainBrakeSound(-1);
-        s_pPlayerDriver = nullptr;
         break;
     }
-    case AE_SPECIAL: {
-        m_EventVolume   = GetDefaultVolume(AE_GENERAL_VEHICLE_SOUND) - 1.5f;
-        s_pPlayerDriver = nullptr;
+    case AE_SPECIAL: { // 0x4FCF98
+        m_EventVolume = GetDefaultVolume(AE_GENERAL_VEHICLE_SOUND) - s_Config.VolOffsetOnGround;
         break;
     }
     case AE_AIRCRAFT_PLANE:
     case AE_AIRCRAFT_HELICOPTER:
-    case AE_AIRCRAFT_SEAPLANE: {
+    case AE_AIRCRAFT_SEAPLANE: { // 0x4FCFC8
         CancelAllVehicleEngineSounds();
         m_CurrentRotorFrequency    = -1.0f;
         m_CurrentDummyEngineVolume = -100.0f;
         break;
     }
-    case AE_BMX: {
-        s_pPlayerDriver = nullptr;
+    case AE_BMX: { // 0x4FD099
         break;
     }
+    default:
+        NOTSA_UNREACHABLE();
     }
 }
 
