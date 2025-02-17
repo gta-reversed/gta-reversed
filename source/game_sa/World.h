@@ -55,7 +55,7 @@ public:
     static uint16& ms_nCurrentScanCode;
     static inline CPlayerInfo(&Players)[MAX_PLAYERS] = *(CPlayerInfo(*)[MAX_PLAYERS])0xB7CD98;
     // Use GetSector() to access this array
-    static inline CSector(&ms_aSectors)[MAX_SECTORS_Y][MAX_SECTORS_X] = *(CSector(*)[MAX_SECTORS_Y][MAX_SECTORS_X])0xB7D0B8;
+    static inline CSector(&ms_aSectors)[MAX_SECTORS_Y * MAX_SECTORS_X] = *(CSector(*)[MAX_SECTORS_Y * MAX_SECTORS_X])0xB7D0B8;
     // Use GetRepeatSector() to access this array
     static inline CRepeatSector(&ms_aRepeatSectors)[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X] = *(CRepeatSector(*)[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X])0xB992B8;
     // Use GetLodPtrList() to access this array

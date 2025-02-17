@@ -3037,12 +3037,13 @@ uint16 GetCurrentScanCode() {
 CSector* GetSector(int32 x, int32 y) {
     const auto x1 = std::clamp<int32>(x, 0, MAX_SECTORS_X - 1);
     const auto y1 = std::clamp<int32>(y, 0, MAX_SECTORS_Y - 1);
-    return &CWorld::ms_aSectors[y1][x1];
+    static_assert(MAX_SECTORS_X == MAX_SECTORS_Y);
+    return &CWorld::ms_aSectors[MAX_SECTORS_Y * y1 + x1];
 }
 
 // 0x4072A0
 CRepeatSector* GetRepeatSector(int32 x, int32 y) {
-    return &CWorld::ms_aRepeatSectors[y % MAX_REPEAT_SECTORS_Y][x % MAX_REPEAT_SECTORS_X];
+    return &CWorld::ms_aRepeatSectors[y & (MAX_REPEAT_SECTORS_Y - 1)][x & (MAX_REPEAT_SECTORS_X - 1)];
 }
 
 // 0x4072C0
