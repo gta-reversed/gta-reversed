@@ -1567,45 +1567,52 @@ void CAEVehicleAudioEntity::PlayReverseSound(eSoundID sfx, float speed, float vo
 }
 
 // 0x4F9E90
-void CAEVehicleAudioEntity::UpdateBoatSound(int16 soundType, int16 bankSlotId, int16 sfxId, float speed, float volume) {
-    return plugin::CallMethod<0x4F9E90, CAEVehicleAudioEntity*, int16, int16, int16, float, float>(this, soundType, bankSlotId, sfxId, speed, volume);
+void CAEVehicleAudioEntity::UpdateBoatSound(eBoatEngineSoundType st, eSoundBankSlot slot, eSoundID sfx, float speed, float volume) {
+    const auto* const cfg = &s_Config.BoatSounds;
 
-    if (m_AuSettings.VehicleAudioType != AE_AIRCRAFT_SEAPLANE) {
-        if (soundType != 6 && m_DummySlot == SND_BANK_SLOT_NONE) {
-            return;
-        }
-    }
+    volume += m_EventVolume;
 
-    const float fVolume = m_EventVolume + volume;
-    if (UpdateGenericEngineSound(soundType, fVolume, speed)) {
+    if (m_AuSettings.VehicleAudioType != AE_AIRCRAFT_SEAPLANE && st != AE_SOUND_BOAT_WATER_SKIM && m_DummySlot == SND_BANK_SLOT_NONE) {
         return;
     }
 
-    const auto DoPlaySound = [&](float fSoundDistance) {
-        PlayGenericEngineSound(soundType, bankSlotId, sfxId, fVolume, speed, fSoundDistance);
-    };
+    if (UpdateGenericEngineSound(st, volume, speed)) { // Try updating existing sound
+        return;
+    }
 
-    switch (soundType) {
-    case 2: {
+    const auto DoPlaySound = [&](float rollOff) {
+        m_EngineSounds[st].Sound = AESoundManager.PlaySound({
+            .BankSlot      = slot,
+            .SoundID       = sfx,
+            .AudioEntity   = this,
+            .Pos           = m_Entity->GetPosition(),
+            .Volume        = volume,
+            .RollOffFactor = rollOff,
+            .Speed         = speed,
+            .Flags         = SOUND_REQUEST_UPDATES
+        });
+    };
+    switch (st) {
+    case AE_SOUND_BOAT_ENGINE: {
         if (AEAudioHardware.IsSoundBankLoaded(m_DummyEngineBank, m_DummySlot)) {
-            DoPlaySound(3.5f);
+            DoPlaySound(cfg->EngineSoundRollOff);
         }
         break;
     }
-    case 3: {
-        if (AEAudioHardware.IsSoundBankLoaded(138u, 19)) {
-            DoPlaySound(5.0f);
+    case AE_SOUND_BOAT_DISTANT: {
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN)) {
+            DoPlaySound(cfg->DistantSoundRollOff);
         }
         break;
     }
-    case 6: {
-        if (AEAudioHardware.IsSoundBankLoaded(39u, 2)) {
-            DoPlaySound(5.0f);
+    case AE_SOUND_BOAT_WATER_SKIM: {
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)) {
+            DoPlaySound(cfg->WaterSkimSoundRollOff);
         }
         break;
     }
     default:
-        break;
+        NOTSA_UNREACHABLE();
     }
 }
 
@@ -3564,8 +3571,7 @@ bool CAEVehicleAudioEntity::PlayGenericEngineSound(
     int16             playPos
 ) {
     if (m_EngineSounds[index].Sound) {
-        // Early out if sound already being played. For safety.
-        return false;
+        return false; // Early out if sound already being played. For safety.
     }
 
     m_EngineSounds[index].Sound = PlaySound(bankSlotId, sfxId, fVolume, fSpeed, fSoundDistance, fTimeScale, individualEnvironment, playPos);

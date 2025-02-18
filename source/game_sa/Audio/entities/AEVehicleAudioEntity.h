@@ -148,7 +148,12 @@ protected: // Config:
             float FrqUnderwaterFactor{ 0.185f }; //	0x8CBEEC
         } BoatMovingOverWater;
 
-        // Dummy engine constants:
+        struct {
+            float EngineSoundRollOff{ 3.5f };    // 0x8CBEE0
+            float DistantSoundRollOff{ 5.f };    // 0x8CBEE4
+            float WaterSkimSoundRollOff{ 2.5f }; // 0x8CBEE8
+        } BoatSounds;
+
         struct {
             float VolumeUnderwaterOffset = 6.f; // 0x8CBC44
             float VolumeTrailerOffset    = 6.f; // 0x8CBC40
@@ -442,7 +447,7 @@ public:
     bool  PlayGenericEngineSound(int16 index, int16 bank, int16 slotInBank, float fVolume = 1.0f, float fSpeed = 1.0f, float fSoundDistance = 1.0f, float fTimeScale = 1.0f, eSoundEnvironment individualEnvironment = SOUND_REQUEST_UPDATES, int16 playPos = 0);
 
     void UpdateGasPedalAudio(CVehicle* vehicle, int32 vehType);
-    void UpdateBoatSound(int16 engineState, int16 bankSlotId, int16 sfxId, float speed, float volume);
+    void UpdateBoatSound(eBoatEngineSoundType st, eSoundBankSlot bslot, eSoundID sfx, float speed, float volume);
     void UpdateTrainSound(int16 engineState, int16 bankSlotId, int16 sfxId, float speed, float volume);
     void UpdateGenericVehicleSound(eVehicleEngineSoundType st, eSoundBankSlot bankSlot, eSoundBank bank, eSoundID sfx, float speed, float volume, float rollOff);
 
