@@ -21,7 +21,6 @@ void CControllerConfigManager::InjectHooks() {
     RH_ScopedInstall(UpdateJoy_ButtonDown, 0x530F42);
     RH_ScopedInstall(UpdateJoy_ButtonUp, 0x531070);
     RH_ScopedInstall(StoreJoyButtonStates, 0x52F510);
-    RH_ScopedInstall(AffectControllerStateOn_ButtonDown_DebugStuff, 0x52DC10, { .reversed = false });
     RH_ScopedInstall(UpdateJoyInConfigMenus_ButtonUp, 0x52DC20, { .reversed = false });
     RH_ScopedInstall(AffectControllerStateOn_ButtonUp_DebugStuff, 0x52DD80, { .reversed = false });
     RH_ScopedInstall(ClearSimButtonPressCheckers, 0x52DD90, { .reversed = false });
@@ -39,11 +38,20 @@ void CControllerConfigManager::InjectHooks() {
     RH_ScopedInstall(ClearSettingsAssociatedWithAction, 0x52FD70, { .reversed = false });
     RH_ScopedInstall(MakeControllerActionsBlank, 0x530500, { .reversed = false });
     RH_ScopedInstall(AffectPadFromKeyBoard, 0x531140, { .reversed = false });
-    RH_ScopedInstall(AffectPadFromMouse, 0x5314A0, { .reversed = false });
+    RH_ScopedInstall(AffectPadFromMouse, 0x5314A0);
     RH_ScopedInstall(DeleteMatchingActionInitiators, 0x531C90, { .reversed = false });
     RH_ScopedInstall(SetControllerKeyAssociatedWithAction, 0x530490);
     RH_ScopedInstall(GetControllerKeyAssociatedWithAction, 0x52F4F0);
     RH_ScopedInstall(ResetSettingOrder, 0x52F5F0);
+
+    RH_ScopedInstall(AffectControllerStateOn_ButtonDown, 0x530ED0, { .reversed = false });
+    RH_ScopedInstall(AffectControllerStateOn_ButtonDown_Driving, 0x52F7B0, { .reversed = false });
+    RH_ScopedInstall(AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly, 0x52FD20, { .reversed = false });
+    RH_ScopedInstall(AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly, 0x52FAB0, { .reversed = false });
+    RH_ScopedInstall(AffectControllerStateOn_ButtonDown_FirstPersonOnly, 0x52F9E0, { .reversed = false });
+    RH_ScopedInstall(AffectControllerStateOn_ButtonDown_ThirdPersonOnly, 0x52FA20, { .reversed = false });
+    RH_ScopedInstall(AffectControllerStateOn_ButtonDown_AllStates, 0x52FCA0, { .reversed = false });
+    RH_ScopedInstall(AffectControllerStateOn_ButtonDown_DebugStuff, 0x52DC10, { .reversed = false });
 }
 
 // 0x531EE0
@@ -183,12 +191,6 @@ void CControllerConfigManager::UpdateJoy_ButtonDown(ePadButton button, int32 unk
     plugin::CallMethod<0x530F42>(this, button, unk);
 }
 
-// unused
-// 0x52DC10
-void CControllerConfigManager::AffectControllerStateOn_ButtonDown_DebugStuff(int32, eControllerType) {
-    // NOP
-}
-
 // 0x52DC20
 void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(ePadButton button, int32 padNumber) {
     plugin::CallMethod<0x52DC20, CControllerConfigManager*, ePadButton, int32>(this, button, padNumber);
@@ -276,7 +278,7 @@ eActionType CControllerConfigManager::GetActionType(eControllerAction action) {
         case CA_PED_LOOKBEHIND:
         case CA_PED_DUCK:
         case CA_PED_ANSWER_PHONE:
-        case CA_SNEAK_ABOUT:
+        case CA_PED_WALK:
         case CA_PED_CYCLE_TARGET_LEFT:
         case CA_PED_CYCLE_TARGET_RIGHT:
         case CA_PED_CENTER_CAMERA_BEHIND_PLAYER:
@@ -296,15 +298,15 @@ eActionType CControllerConfigManager::GetActionType(eControllerAction action) {
             return ACTION_4;
         case CA_VEHICLE_FIREWEAPON:
         case CA_VEHICLE_FIREWEAPON_ALT:
-        case CA_VEHICLE_STEERLEFT:
-        case CA_VEHICLE_STEERRIGHT:
-        case CA_VEHICLE_STEERUP:
-        case CA_VEHICLE_STEERDOWN:
+        case CA_VEHICLE_STEER_LEFT:
+        case CA_VEHICLE_STEER_RIGHT:
+        case CA_VEHICLE_STEER_UP:
+        case CA_VEHICLE_STEER_DOWN:
         case CA_VEHICLE_ACCELERATE:
         case CA_VEHICLE_BRAKE:
         case CA_VEHICLE_RADIO_STATION_UP:
         case CA_VEHICLE_RADIO_STATION_DOWN:
-        case CA_UNKNOWN_28:
+        case CA_VEHICLE_RADIO_TRACK_SKIP:
         case CA_VEHICLE_HORN:
         case CA_TOGGLE_SUBMISSIONS:
         case CA_VEHICLE_HANDBRAKE:
@@ -347,9 +349,113 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
     plugin::CallMethod<0x531140, CControllerConfigManager*>(this);
 }
 
+// 0x530ED0
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown(int32 ButtonPress, eControllerType ControllerType) {
+    plugin::CallMethod<0x530ED0, CControllerConfigManager*, int32, eControllerType>(this, ButtonPress, ControllerType);
+}
+
+// 0x52F7B0
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_Driving(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate) {
+    plugin::CallMethod<0x52F7B0, CControllerConfigManager*, int32, eControllerType, CControllerState*>(this, ButtonPress, ControllerType, ControllerToUpdate);
+}
+
+// 0x52FD20
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate) {
+    plugin::CallMethod<0x52FD20, CControllerConfigManager*, int32, eControllerType, CControllerState*>(this, ButtonPress, ControllerType, ControllerToUpdate);
+}
+
+// 0x52FAB0
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate) {
+    plugin::CallMethod<0x52FAB0, CControllerConfigManager*, int32, eControllerType, CControllerState*>(this, ButtonPress, ControllerType, ControllerToUpdate);
+}
+
+// 0x52F9E0
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate) {
+    plugin::CallMethod<0x52F9E0, CControllerConfigManager*, int32, eControllerType, CControllerState*>(this, ButtonPress, ControllerType, ControllerToUpdate);
+}
+
+// 0x52FA20
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate) {
+    plugin::CallMethod<0x52FA20, CControllerConfigManager*, int32, eControllerType, CControllerState*>(this, ButtonPress, ControllerType, ControllerToUpdate);
+}
+
+// 0x52FCA0
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_AllStates(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate) {
+    plugin::CallMethod<0x52FCA0, CControllerConfigManager*, int32, eControllerType, CControllerState*>(this, ButtonPress, ControllerType, ControllerToUpdate);
+}
+
+// 0x52DC10
+// NOP
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_DebugStuff(int32 ButtonPress, eControllerType ControllerType) {
+    plugin::CallMethod<0x52DC10, CControllerConfigManager*, int32, eControllerType>(this, ButtonPress, ControllerType);
+}
+
 // 0x5314A0
 void CControllerConfigManager::AffectPadFromMouse() {
-    plugin::CallMethod<0x5314A0, CControllerConfigManager*>(this);
+    bool isNonMenuPad = false;
+    if (CPad::padNumber == 0) {
+        isNonMenuPad = !FrontEndMenuManager.m_bMenuActive;
+    }
+
+    // Iterate through all actions using a range-based for loop with index
+    for (auto& action : m_Actions) {
+        auto& keyCode = action.Keys[MOUSE].KeyCode;
+        
+        if (GetIsMouseButtonDown((RsKeyCodes)keyCode)) {
+            if (isNonMenuPad && keyCode) {
+                CPad* pad = CPad::GetPad(0);
+                bool isVehicleControl = false;
+                bool isFirstPersonCamera = false;
+
+                // Check if player is in vehicle 
+                if (CEntity* vehicle = FindPlayerVehicle(-1, 0)) {
+                    CPlayerPed* playerPed = FindPlayerPed(-1);
+                    if (playerPed && playerPed->m_nPedState == PEDSTATE_DRIVING) {
+                        isVehicleControl = (pad->DisablePlayerControls == 0);
+                    }
+                }
+
+                // Check camera mode
+                isFirstPersonCamera |= notsa::contains({ MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_CAMERA }, TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode);
+
+                auto* mousePad = &CPad::GetPad(0)->PCTempMouseState;
+                
+                if (pad) {
+                    if (isVehicleControl) {
+                        AffectControllerStateOn_ButtonDown_Driving(keyCode, eControllerType::MOUSE, mousePad);
+                    } else {
+                        AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(keyCode, eControllerType::MOUSE, mousePad);
+
+                        if (isFirstPersonCamera) {
+                            AffectControllerStateOn_ButtonDown_FirstPersonOnly(keyCode, eControllerType::MOUSE, mousePad);
+                        } else {
+                            AffectControllerStateOn_ButtonDown_ThirdPersonOnly(keyCode, eControllerType::MOUSE, mousePad);
+                        }
+                    }
+
+                    // Check for triangle button action
+                    if (keyCode == eControllerAction::CA_VEHICLE_ENTER_EXIT) {
+                        mousePad->ButtonTriangle = 255;
+                    }
+
+                    AffectControllerStateOn_ButtonDown_AllStates(keyCode, eControllerType::MOUSE, mousePad);
+                }
+            }
+        }
+
+        if (GetIsMouseButtonUp((RsKeyCodes)keyCode)) {
+            CControllerState* mouseState = &CPad::GetPad(0)->PCTempMouseState;
+            
+            if (keyCode && CPad::GetPad(0) && !FrontEndMenuManager.m_bMenuActive) {
+                if (keyCode == eControllerAction::CA_NETWORK_TALK) {
+                    mouseState->m_bChatIndicated = false;
+                }
+                if (keyCode == eControllerAction::CA_VEHICLE_MOUSELOOK) {
+                    mouseState->m_bVehicleMouseLook = false;
+                }
+            }
+        }
+    }
 }
 
 // 0x531C90
