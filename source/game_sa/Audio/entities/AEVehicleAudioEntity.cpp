@@ -131,7 +131,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
 
     RH_ScopedInstall(ProcessVehicleFlatTyre, 0x4F8940);
     RH_ScopedInstall(ProcessVehicleRoadNoise, 0x4F8B00); // Done
-    RH_ScopedInstall(ProcessReverseGear, 0x4F8DF0, { .reversed = false });
+    RH_ScopedInstall(ProcessReverseGear, 0x4F8DF0);
     RH_ScopedInstall(ProcessRainOnVehicle, 0x4F92C0);
     RH_ScopedInstall(ProcessBoatMovingOverWater, 0x4FA0C0, { .reversed = false });
     RH_ScopedInstall(ProcessTrainTrackSound, 0x4FA3F0, { .reversed = false });
@@ -2046,36 +2046,26 @@ void CAEVehicleAudioEntity::ProcessVehicleRoadNoise(tVehicleParams& vp) {
 }
 
 // 0x4F8DF0 - Called only if `AE_CAR` and the player is the driver
-void CAEVehicleAudioEntity::ProcessReverseGear(tVehicleParams& params) {
-    return plugin::CallMethod<0x4F8DF0, CAEVehicleAudioEntity*, tVehicleParams&>(this, params);
+void CAEVehicleAudioEntity::ProcessReverseGear(tVehicleParams& vp) {
+    auto* const a = vp.Vehicle->AsAutomobile();
+    const auto* cfg = &s_Config.ReverseGear;
 
-    static constexpr float BASE_SPEED  = +0.75f; // 0x8CBD24
-    static constexpr float SPEED_MULT  = +0.20f; // 0x8CBD28
-    static constexpr float BASE_VOLUME = -6.00f; // 0x8CBD28
-
-    const auto vehicle = params.Vehicle->AsAutomobile();
-    if (vehicle->vehicleFlags.bEngineOn && (vehicle->m_GasPedal < 0.0f || !vehicle->m_nCurrentGear)) { // Check if we are reversing
-
-        float fReverseGearVelocityProgress = 0.0f;
-        if (vehicle->m_NumDriveWheelsOnGround) {
-            fReverseGearVelocityProgress = params.Speed / params.Transmission->m_MaxReverseVelocity;
-        } else {
-            if (vehicle->m_NumDriveWheelsOnGroundLastFrame) {
-                vehicle->m_GasPedalAudioRevs *= 0.4f;
-            }
-            fReverseGearVelocityProgress = vehicle->m_GasPedalAudioRevs;
+    if (a->vehicleFlags.bEngineOn && (a->m_GasPedal < 0.0f || a->m_nCurrentGear == 0)) { // Are we reversing?
+        if (!a->m_NumDriveWheelsOnGround && a->m_NumDriveWheelsOnGroundLastFrame) {
+            a->m_GasPedalAudioRevs *= 0.4f;
         }
-        fReverseGearVelocityProgress = std::fabs(fReverseGearVelocityProgress);
-
+        const auto revs = a->m_NumDriveWheelsOnGround
+            ? vp.Speed / vp.Transmission->m_MaxReverseVelocity
+            : a->m_GasPedalAudioRevs;
         PlayReverseSound(
-            vehicle->m_GasPedal >= 0.0f ? 20 : 19,                 // soundType
-            BASE_SPEED + fReverseGearVelocityProgress * SPEED_MULT, // speed
-            fReverseGearVelocityProgress > 0.0f                     // volume
-                ? BASE_VOLUME + CAEAudioUtility::AudioLog10(fReverseGearVelocityProgress) * 20.0f
+            a->m_GasPedal >= 0.0f ? 20 : 19,
+            cfg->FrqBase + std::abs(revs) * cfg->FrqRevsFactor,
+            std::abs(revs) > 0.0f
+                ? cfg->VolBase + CAEAudioUtility::AudioLog10(std::abs(revs)) * 20.0f
                 : -100.0f
         );
     } else { // Cancel sound otherwise
-        PlayReverseSound(-1, 0.0f, 0.0f);
+        PlayReverseSound(-1, 1.0f, -100.0f);
     }
 }
 

@@ -128,6 +128,12 @@ protected: // Config:
             float Doppler{0.25f}; // 0x8CBEC8
         } Siren;
 
+        struct {
+            float FrqBase{ 0.75f }, FrqRevsFactor{ 0.2f }; // 0x8CBD24, 0x8CBD28
+            float VolBase{ -6.f };                         // 0x8CBD2C
+        } ReverseGear;
+
+
         // Dummy engine constants:
         struct {
             float VolumeUnderwaterOffset = 6.f; // 0x8CBC44
