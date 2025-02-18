@@ -15,64 +15,66 @@
 
 
 enum eControllerAction {
-    CA_PED_FIREWEAPON,
-    CA_PED_FIREWEAPON_ALT,
-    CA_PED_CYCLE_WEAPON_RIGHT,
-    CA_PED_CYCLE_WEAPON_LEFT,
-    CA_GO_FORWARD,
-    CA_GO_BACK,
-    CA_GO_LEFT,
-    CA_GO_RIGHT,
-    CA_PED_SNIPER_ZOOM_IN,
-    CA_PED_SNIPER_ZOOM_OUT,
-    CA_VEHICLE_ENTER_EXIT,
-    CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS,
-    CA_PED_JUMPING,
-    CA_PED_SPRINT,
-    CA_PED_LOOKBEHIND,
-    CA_PED_DUCK,
-    CA_PED_ANSWER_PHONE,
-    CA_SNEAK_ABOUT,
-    CA_VEHICLE_FIREWEAPON,
-    CA_VEHICLE_FIREWEAPON_ALT,
-    CA_VEHICLE_STEERLEFT,
-    CA_VEHICLE_STEERRIGHT,
-    CA_VEHICLE_STEERUP,
-    CA_VEHICLE_STEERDOWN,
-    CA_VEHICLE_ACCELERATE,
-    CA_VEHICLE_BRAKE,
-    CA_VEHICLE_RADIO_STATION_UP,
-    CA_VEHICLE_RADIO_STATION_DOWN,
-    CA_UNKNOWN_28,
-    CA_VEHICLE_HORN = 29,
-    CA_TOGGLE_SUBMISSIONS,
-    CA_VEHICLE_HANDBRAKE,
-    CA_PED_1RST_PERSON_LOOK_LEFT,
-    CA_PED_1RST_PERSON_LOOK_RIGHT,
-    CA_VEHICLE_LOOKLEFT,
-    CA_VEHICLE_LOOKRIGHT,
-    CA_VEHICLE_LOOKBEHIND,
-    CA_VEHICLE_MOUSELOOK,
-    CA_VEHICLE_TURRETLEFT,
-    CA_VEHICLE_TURRETRIGHT,
-    CA_VEHICLE_TURRETUP,
-    CA_VEHICLE_TURRETDOWN,
-    CA_PED_CYCLE_TARGET_LEFT,
-    CA_PED_CYCLE_TARGET_RIGHT,
-    CA_PED_CENTER_CAMERA_BEHIND_PLAYER,
-    CA_PED_LOCK_TARGET,
-    CA_NETWORK_TALK,
-    CA_CONVERSATION_YES,
-    CA_CONVERSATION_NO,
-    CA_GROUP_CONTROL_FWD,
-    CA_GROUP_CONTROL_BWD,
-    CA_PED_1RST_PERSON_LOOK_UP,
-    CA_PED_1RST_PERSON_LOOK_DOWN,
-    CA_UNKNOWN_53,
-    CA_TOGGLE_DPAD = 54,
-    CA_SWITCH_DEBUG_CAM_ON,
-    CA_TAKE_SCREEN_SHOT,
-    CA_SHOW_MOUSE_POINTER_TOGGLE
+    CA_PED_FIREWEAPON = 0,                          // 0x0
+    CA_PED_FIREWEAPON_ALT = 1,                      // 0x1
+    CA_PED_CYCLE_WEAPON_RIGHT = 2,                  // 0x2
+    CA_PED_CYCLE_WEAPON_LEFT = 3,                   // 0x3
+    CA_GO_FORWARD = 4,                              // 0x4
+    CA_GO_BACK = 5,                                 // 0x5
+    CA_GO_LEFT = 6,                                 // 0x6
+    CA_GO_RIGHT = 7,                                // 0x7
+    CA_PED_SNIPER_ZOOM_IN = 8,                      // 0x8
+    CA_PED_SNIPER_ZOOM_OUT = 9,                     // 0x9
+    CA_VEHICLE_ENTER_EXIT = 10,                     // 0xA
+    CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS = 11,      // 0xB
+    CA_PED_JUMPING = 12,                            // 0xC
+    CA_PED_SPRINT = 13,                             // 0xD
+    CA_PED_LOOKBEHIND = 14,                         // 0xE
+    CA_PED_DUCK = 15,                               // 0xF
+    CA_PED_ANSWER_PHONE = 16,                       // 0x10
+    CA_PED_WALK = 17,                               // 0x11
+    CA_VEHICLE_FIREWEAPON = 18,                     // 0x12
+    CA_VEHICLE_FIREWEAPON_ALT = 19,                 // 0x13
+    CA_VEHICLE_STEER_LEFT = 20,                     // 0x14
+    CA_VEHICLE_STEER_RIGHT = 21,                    // 0x15
+    CA_VEHICLE_STEER_UP = 22,                       // 0x16
+    CA_VEHICLE_STEER_DOWN = 23,                     // 0x17
+    CA_VEHICLE_ACCELERATE = 24,                     // 0x18
+    CA_VEHICLE_BRAKE = 25,                          // 0x19
+    CA_VEHICLE_RADIO_STATION_UP = 26,               // 0x1A
+    CA_VEHICLE_RADIO_STATION_DOWN = 27,             // 0x1B
+    CA_VEHICLE_RADIO_TRACK_SKIP = 28,               // 0x1C
+    CA_VEHICLE_HORN = 29,                           // 0x1D
+    CA_TOGGLE_SUBMISSIONS = 30,                     // 0x1E
+    CA_VEHICLE_HANDBRAKE = 31,                      // 0x1F
+    CA_PED_1RST_PERSON_LOOK_LEFT = 32,              // 0x20
+    CA_PED_1RST_PERSON_LOOK_RIGHT = 33,             // 0x21
+    CA_VEHICLE_LOOKLEFT = 34,                       // 0x22
+    CA_VEHICLE_LOOKRIGHT = 35,                      // 0x23
+    CA_VEHICLE_LOOKBEHIND = 36,                     // 0x24
+    CA_VEHICLE_MOUSELOOK = 37,                      // 0x25
+    CA_VEHICLE_TURRETLEFT = 38,                     // 0x26
+    CA_VEHICLE_TURRETRIGHT = 39,                    // 0x27
+    CA_VEHICLE_TURRETUP = 40,                       // 0x28
+    CA_VEHICLE_TURRETDOWN = 41,                     // 0x29
+    CA_PED_CYCLE_TARGET_LEFT = 42,                  // 0x2A
+    CA_PED_CYCLE_TARGET_RIGHT = 43,                 // 0x2B
+    CA_PED_CENTER_CAMERA_BEHIND_PLAYER = 44,        // 0x2C
+    CA_PED_LOCK_TARGET = 45,                        // 0x2D
+    CA_NETWORK_TALK = 46,                           // 0x2E
+    CA_CONVERSATION_YES = 47,                       // 0x2F
+    CA_CONVERSATION_NO = 48,                        // 0x30
+    CA_GROUP_CONTROL_FWD = 49,                      // 0x31
+    CA_GROUP_CONTROL_BWD = 50,                      // 0x32
+    CA_PED_1RST_PERSON_LOOK_UP = 51,                // 0x33
+    CA_PED_1RST_PERSON_LOOK_DOWN = 52,              // 0x34
+    CA_NUM_OF_1STPERSON_ACTIONS = 53,               // 0x35
+    CA_TOGGLE_DPAD = 54,                            // 0x36
+    CA_SWITCH_DEBUG_CAM_ON = 55,                    // 0x37
+    CA_TAKE_SCREEN_SHOT = 56,                       // 0x38
+    CA_SHOW_MOUSE_POINTER_TOGGLE = 57,              // 0x39
+    CA_SWITCH_CAM_DEBUG_MENU = 58,                  // 0x3A
+    CA_NUM_OF_CONTROLLER_ACTIONS                    // 59
 };
 
 class CRect;

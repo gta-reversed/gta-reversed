@@ -94,7 +94,6 @@ public:
     void StoreMouseButtonState(eMouseButtons button, bool state);
     void UpdateJoyInConfigMenus_ButtonDown(ePadButton button, int32 padNumber);
     void UpdateJoy_ButtonDown(ePadButton button, int32 unk);
-    void AffectControllerStateOn_ButtonDown_DebugStuff(int32, eControllerType);
     void UpdateJoyInConfigMenus_ButtonUp(ePadButton button, int32 padNumber);
     void UpdateJoy_ButtonUp(ePadButton button, int32 unk);
     void AffectControllerStateOn_ButtonUp_DebugStuff(int32, eControllerType);
@@ -124,7 +123,17 @@ public:
     RsKeyCodes GetControllerKeyAssociatedWithAction(eControllerAction event, eControllerType type);
 
     void GetDefinedKeyByGxtName(uint16 actionId, char* buf, uint16 bufsz);
-    
+
+    // Button down state handlers
+    void AffectControllerStateOn_ButtonDown(int32 ButtonPress, eControllerType ControllerType);
+    void AffectControllerStateOn_ButtonDown_Driving(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_FirstPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_ThirdPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_AllStates(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_DebugStuff(int32 ButtonPress, eControllerType ControllerType);
+
     // NOTSA
     uint16 GetActionIDByName(std::string_view name);
 };
