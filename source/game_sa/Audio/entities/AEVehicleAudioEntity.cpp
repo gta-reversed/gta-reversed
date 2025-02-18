@@ -2174,26 +2174,27 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& vp) {
 
 // 0x4F92C0
 void CAEVehicleAudioEntity::ProcessRainOnVehicle(tVehicleParams& params) {
+    const auto* const cfg = &s_Config.RainOnVehicle;
+
     if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_RAIN, SND_BANK_SLOT_WEATHER)) {
         return;
     }
-
     if (CAEWeatherAudioEntity::m_sfRainVolume <= -100.0f) {
         return;
     }
-
     if (++m_RainDropCounter < 3) {
         return;
     }
-
     m_RainDropCounter = 0;
-
-    const auto sfxId  = (int16)CAEAudioUtility::GetRandomNumberInRange(12, 15);
-    const auto volume = 0.0f + CAEWeatherAudioEntity::m_sfRainVolume;
-    m_tempSound.Initialise(SND_BANK_SLOT_WEATHER, sfxId, this, m_Entity->GetPosition(), volume);
-    m_tempSound.m_fSpeedVariability = 0.1f;
-    m_tempSound.m_nEvent            = AE_RAIN_COLLISION;
-    AESoundManager.RequestNewSound(&m_tempSound);
+    AESoundManager.PlaySound({
+        .BankSlot          = SND_BANK_SLOT_WEATHER,
+        .SoundID           = (eSoundID)(CAEAudioUtility::GetRandomNumberInRange(12, 15)),
+        .AudioEntity       = this,
+        .Pos               = m_Entity->GetPosition(),
+        .Volume            = cfg->VolBase + CAEWeatherAudioEntity::m_sfRainVolume,
+        .FrequencyVariance = 0.1f,
+        .EventID           = AE_RAIN_COLLISION
+    });
 }
 
 // 0x4FA0C0

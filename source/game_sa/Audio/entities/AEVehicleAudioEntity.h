@@ -109,12 +109,12 @@ protected: // Config:
             } StdSurface;
         } Skid;
 
-        struct {
+        struct { // TODO: Move into `Skid`
             bool Enabled{true}; // 0x8CBD80
             float SpinningFactor{1.f}, SkiddingFactor{1.f}, StationaryFactor{1.2f}; // 0x8CBD88, 0x8CBD84, 0x8CBD8C
         } DriveWheelSkid;
 
-        struct {
+        struct { // TODO: Move into `Skid`
             bool Enabled{true}; // 0x8CBD81
             float SkiddingFactor{1.f}, StationaryFactor{1.2f}; // 0x8CBD84, 0x8CBD8C
         } NonDriveWheelSkid;
@@ -133,6 +133,10 @@ protected: // Config:
             float VolBase{ -6.f };                         // 0x8CBD2C
         } ReverseGear;
 
+        struct {
+            uint16 FramesPerDrop{ 3 }; // 0x8CBD94
+            float  VolBase{ 0.f };     // 0xB6B9EC
+        } RainOnVehicle;
 
         // Dummy engine constants:
         struct {
