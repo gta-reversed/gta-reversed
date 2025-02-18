@@ -43,6 +43,14 @@ void StopAndForgetSound(CAESound*& sound) {
     }
 }
 
+std::optional<uint32> GetNumOfContactWheels(CAEVehicleAudioEntity::tVehicleParams& vp) {
+    switch (vp.BaseVehicleType) {
+    case VEHICLE_TYPE_AUTOMOBILE: return vp.Vehicle->AsAutomobile()->GetNumContactWheels();
+    case VEHICLE_TYPE_BIKE:       return vp.Vehicle->AsBike()->GetNumContactWheels();
+    default:                      return std::nullopt;
+    }
+}
+
 void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedVirtualClass(CAEVehicleAudioEntity, 0x862CEC, 1);
     RH_ScopedCategory("Audio/Entities");
@@ -122,7 +130,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(JustWreckedVehicle, 0x4FD0B0);
 
     RH_ScopedInstall(ProcessVehicleFlatTyre, 0x4F8940);
-    RH_ScopedInstall(ProcessVehicleRoadNoise, 0x4F8B00, { .reversed = false }); // Done
+    RH_ScopedInstall(ProcessVehicleRoadNoise, 0x4F8B00); // Done
     RH_ScopedInstall(ProcessReverseGear, 0x4F8DF0, { .reversed = false });
     RH_ScopedInstall(ProcessRainOnVehicle, 0x4F92C0);
     RH_ScopedInstall(ProcessBoatMovingOverWater, 0x4FA0C0, { .reversed = false });
@@ -1990,77 +1998,51 @@ void CAEVehicleAudioEntity::ProcessVehicleFlatTyre(tVehicleParams& vp) {
 }
 
 // 0x4F8B00
-void CAEVehicleAudioEntity::ProcessVehicleRoadNoise(tVehicleParams& params) {
-    return plugin::CallMethod<0x4F8B00, CAEVehicleAudioEntity*, tVehicleParams&>(this, params);
+void CAEVehicleAudioEntity::ProcessVehicleRoadNoise(tVehicleParams& vp) {
+    const auto* const cfg = &s_Config.RoadNoise;
 
-    CVehicle* vehicle = params.Vehicle;
-
-    const auto CancelRoadNoise = [=] {
-        PlayRoadNoiseSound(-1, 0.0f, 0.0f);
-    };
-
-    // Check if any wheels touch the ground. (Perhaps params.m_nWheelsOnGround could be used?)
-    const auto GetNumContactWheels = [=]() -> uint8 {
-        switch (params.BaseVehicleType) {
-        case VEHICLE_TYPE_AUTOMOBILE: return vehicle->AsAutomobile()->m_nNumContactWheels;
-        case VEHICLE_TYPE_BIKE: return vehicle->AsBike()->m_nNoOfContactWheels;
-        default: return 4;
-        }
-    };
-
-    switch (vehicle->m_nModelIndex) {
+    // 0x4F8B47
+    bool cancel = false;
+    switch (vp.Vehicle->m_nModelIndex) {
     case MODEL_ARTICT1:
     case MODEL_ARTICT2:
     case MODEL_PETROTR:
-    case MODEL_ARTICT3:
-        if (!GetNumContactWheels()) {
-            CancelRoadNoise();
-        }
-        break;
-    default: {
-        if (!params.Transmission) {
-            CancelRoadNoise();
-            return;
-        }
-    }
+    case MODEL_ARTICT3: cancel |= !GetNumOfContactWheels(vp).value_or(4); break;
+    default:            cancel |= !vp.Transmission;                       break;
     }
 
-    const float velocity = std::fabs(params.Speed);
-    if (velocity <= 0.0f) {
-        CancelRoadNoise();
+    // 0x4F8B88
+    const float absSpeed = std::fabs(vp.Speed);
+    if (cancel || absSpeed <= 0.0f) {
+        PlayRoadNoiseSound(-1);
         return;
     }
 
-    float fSpeed = 1.0f;
-    {
-        const auto& camPos = TheCamera.GetPosition();
-        const auto& vehPos = m_Entity->GetPosition();
+    // Play sound now
+    const auto PlaySound = [&](eSoundID sfx, float speed, float volume) {
+        // 0x4F8BFA (Notice the multiplication!)
+        speed *= 0.75f + std::max(1.0f, (TheCamera.GetPosition() - m_Entity->GetPosition()).Magnitude() / cfg->FadeOutDistance) / 2.0f;
 
-        const float someDistance     = 72.0f; // 0x8CBD10
-        const float distanceProgress = (vehPos - camPos).Magnitude() / someDistance;
+        // 0x4F8CF8
+        if (const auto v = std::min(1.0f, 2.0f * absSpeed); v > 0.0008f) {
+            volume += cfg->VolBase + CAEAudioUtility::AudioLog10(v) * 20.f;
+        } else {
+            volume = -100.f;
+        }
 
-        fSpeed = 0.75f + std::max(1.0f, distanceProgress) / 2.0f;
+        // 0x4F8D35
+        PlayRoadNoiseSound(sfx, speed, volume);
+    };
+    if (IsSurfaceAudioGrass(vp.Vehicle->m_nContactSurface)) { // 0x4F8C34
+        const auto* const c = &cfg->GrassSurface;
+        PlaySound(21, c->FrqFactor, c->VolOffset);
+    } else if (IsSurfaceWet(vp.Vehicle->m_nContactSurface)) { // 0x4F8C6A
+        const auto* const c = &cfg->WetSurface;
+        PlaySound(22, c->FrqFactor, c->VolOffset);
+    } else {
+        const auto* const c = &cfg->StdSurface;
+        PlaySound(21, c->FrqFactor, c->VolOffset);
     }
-
-    int16 nRoadNoiseSound = -1;
-    float fVolumeBase     = -12.0f;
-    if (IsSurfaceAudioGrass(vehicle->m_nContactSurface)) {
-        fSpeed *= 1.3f;
-        fVolumeBase += 0.0f; // 0xB6B9E4
-        nRoadNoiseSound = 21;
-    } else if (IsSurfaceWet(vehicle->m_nContactSurface)) {
-        fVolumeBase += 4.5f;
-        nRoadNoiseSound = 22;
-    }
-
-    const float logarithmicVolume = std::min(1.0f, 2.0f * velocity);
-    float       fVolume           = -100.0f;
-    if (logarithmicVolume > 0.0008f) {
-        fVolume = fVolumeBase + CAEAudioUtility::AudioLog10(logarithmicVolume) * 20.0f;
-    }
-
-    // Playing sound with -100.0f volume, in case logarithmicVolume <= 0.0008f, doesn't make much sense..
-    PlayRoadNoiseSound(nRoadNoiseSound, fSpeed, fVolume);
 }
 
 // 0x4F8DF0 - Called only if `AE_CAR` and the player is the driver
@@ -2098,12 +2080,11 @@ void CAEVehicleAudioEntity::ProcessReverseGear(tVehicleParams& params) {
 }
 
 // 0x4F8F10
-void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& params) {
+void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& vp) {
     float  sumWheelSkid{ 0.f };
     uint32 numWheels{ 0 };
 
     const auto CalculateWheelSkid = [&](
-        uint32 numContactWheels,
         float  gasPedalAudioRevs,
         bool   areRearWheelsNotSkidding,
         auto&& wheelStates,
@@ -2111,7 +2092,7 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& params) {
     ) {
         numWheels = std::size(wheelStates);
         
-        if (!numContactWheels) {
+        if (!*GetNumOfContactWheels(vp)) {
             return;
         }
         for (auto&& [i, wstate] : notsa::enumerate(wheelStates)) {
@@ -2128,17 +2109,16 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& params) {
                 continue;
             }
 
-            const auto dt = params.Transmission->m_nDriveType;
+            const auto dt = vp.Transmission->m_nDriveType;
             sumWheelSkid += dt == '4' || dt == 'F' && isFrontWheel || dt == 'R' && !isFrontWheel
-                ? GetVehicleDriveWheelSkidValue(params.Vehicle, wstate, gasPedalAudioRevs, *params.Transmission, params.Speed)
-                : GetVehicleNonDriveWheelSkidValue(params.Vehicle, wstate, *params.Transmission, params.Speed);
+                ? GetVehicleDriveWheelSkidValue(vp.Vehicle, wstate, gasPedalAudioRevs, *vp.Transmission, vp.Speed)
+                : GetVehicleNonDriveWheelSkidValue(vp.Vehicle, wstate, *vp.Transmission, vp.Speed);
         }
     };
-    switch (params.BaseVehicleType) {
+    switch (vp.BaseVehicleType) {
     case VEHICLE_TYPE_AUTOMOBILE: {
-        auto* const a = params.Vehicle->AsAutomobile();
+        auto* const a = vp.Vehicle->AsAutomobile();
         CalculateWheelSkid(
-            a->GetNumContactWheels(),
             a->m_GasPedalAudioRevs,
             a->m_WheelStates[CAR_WHEEL_REAR_LEFT] != WHEEL_STATE_SKIDDING && a->m_WheelStates[CAR_WHEEL_REAR_RIGHT] != WHEEL_STATE_SKIDDING,
             a->m_WheelStates,
@@ -2147,9 +2127,8 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& params) {
         break;
     }
     case VEHICLE_TYPE_BIKE: {
-        auto* const b = params.Vehicle->AsBike();
+        auto* const b = vp.Vehicle->AsBike();
         CalculateWheelSkid(
-            b->GetNumContactWheels(),
             b->m_GasPedalAudioRevs,
             b->m_WheelStates[1] != WHEEL_STATE_SKIDDING,
             b->m_WheelStates,
@@ -2186,10 +2165,10 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& params) {
         float vol = m_AuSettings.IsPlaneOrHeli()
             ? s_Config.Skid.VolOffsetForPlaneOrHeli
             : 0.f;
-        if (IsSurfaceAudioGrass(params.Vehicle->m_nContactSurface)) {
+        if (IsSurfaceAudioGrass(vp.Vehicle->m_nContactSurface)) {
             auto* const cfg = &s_Config.Skid.GrassSurface;
             DoPlaySkidSound(6, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid, cfg->VolBase + vol);
-        } else if (IsSurfaceWet(params.Vehicle->m_nContactSurface)) {
+        } else if (IsSurfaceWet(vp.Vehicle->m_nContactSurface)) {
             auto* const cfg = &s_Config.Skid.WetSurface;
             DoPlaySkidSound(8, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid, cfg->VolBase + vol);
         } else {

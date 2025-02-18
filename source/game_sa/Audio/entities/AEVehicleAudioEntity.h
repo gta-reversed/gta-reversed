@@ -61,6 +61,30 @@ protected: // Config:
         } FlatTyre;
 
         struct {
+            float VolBase{-12.f}; // 0x8CBD00
+            float FadeOutDistance{72.f}; // 0x8CBD10 - Distance vehicle <-> cam
+
+            struct {
+                float FrqFactor{1.3f}; // 0x8CBD04
+                float VolOffset{0.0f}; // 0xB6B9E4
+            } GrassSurface;
+
+            struct {
+                float FrqFactor{1.0f}; // 0x8CBD0C
+                float VolOffset{4.5f}; // 0x8CBD08
+            } WetSurface;
+
+            struct {
+                float FrqFactor{1.f}; // 0xNONE
+                float VolOffset{0.f}; // 0xNONE
+            } StdSurface;
+        } RoadNoise;
+
+        struct {
+            // Common values:
+            float VolBase{ 0.f };                  // 0xB6B9E0
+            float VolOffsetForPlaneOrHeli{ 12.f }; // 0x8CBCF4
+
             // For BMX only:
             struct {
                 float VolBase{ -12.f };                             // 0x8CBCF8
@@ -83,10 +107,6 @@ protected: // Config:
                 float VolBase{ 0.f };                                // 0xNONE
                 float FrqBase{ 0.8f }, FrqWheelSkidFactor{ 0.125f }; // 0x8CBCE4, 0x8CBCE8
             } StdSurface;
-
-            // Common values
-            float VolBase{ 0.f };     // 0xB6B9E0
-            float VolOffsetForPlaneOrHeli{ 12.f }; // 0x8CBCF4
         } Skid;
 
         struct {
