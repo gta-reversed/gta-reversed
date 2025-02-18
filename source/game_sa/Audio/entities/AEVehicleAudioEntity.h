@@ -138,6 +138,16 @@ protected: // Config:
             float  VolBase{ 0.f };     // 0xB6B9EC
         } RainOnVehicle;
 
+        struct {
+            float VolBaseOfSeaplane{ 12.f };     //	0x8CBEDC
+            float VolBase{ 3.f };                //	0x8CBED8
+            float VolUnderwaterOffset{ 6.f };    //	0x8CBEF0
+
+            float FrqBase{ 0.8f };               // 0xNONE
+            float FrqSpeedFactor{ 0.2f };        // 0xNONE
+            float FrqUnderwaterFactor{ 0.185f }; //	0x8CBEEC
+        } BoatMovingOverWater;
+
         // Dummy engine constants:
         struct {
             float VolumeUnderwaterOffset = 6.f; // 0x8CBC44
@@ -267,13 +277,13 @@ public: // Enums:
         AE_SOUND_ENGINE_MAX     = 12,
     };
 
-    enum : eVehicleEngineSoundType { // For trains
+    enum eTrainEngineSoundType : eVehicleEngineSoundType { // For trains
         AE_SOUND_TRAIN_ENGINE  = 1,
         AE_SOUND_TRAIN_TRACK   = 2,
         AE_SOUND_TRAIN_DISTANT = 3,
     };
 
-    enum : eVehicleEngineSoundType { // For heli
+    enum ePlayerHeliSoundType : eVehicleEngineSoundType { // For heli
         AE_PLAYER_HELI_FRONT = 0,
         AE_PLAYER_HELI_REAR  = 1,
         AE_PLAYER_HELI_START = 2,
@@ -286,7 +296,7 @@ public: // Enums:
         AE_SOUND_BICYCLE_CHAIN_CLANG = 3,
     };
 
-    enum : eVehicleEngineSoundType { // For boat
+    enum eBoatEngineSoundType : eVehicleEngineSoundType { // For boat
         AE_SOUND_BOAT_IDLE       = 1,
         AE_SOUND_BOAT_ENGINE     = 2,
         AE_SOUND_BOAT_DISTANT    = 3,
@@ -295,7 +305,7 @@ public: // Enums:
         AE_SOUND_BOAT_WATER_SKIM = 6,
     };
 
-    enum : eVehicleEngineSoundType{ // For all other dummies
+    enum eDummyEngineSoundType : eVehicleEngineSoundType{ // For all other dummies
         AE_DUMMY_CRZ = 0x0,
         AE_DUMMY_ID = 0x1,
     };

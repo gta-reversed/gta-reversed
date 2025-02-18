@@ -133,7 +133,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessVehicleRoadNoise, 0x4F8B00); // Done
     RH_ScopedInstall(ProcessReverseGear, 0x4F8DF0);
     RH_ScopedInstall(ProcessRainOnVehicle, 0x4F92C0);
-    RH_ScopedInstall(ProcessBoatMovingOverWater, 0x4FA0C0, { .reversed = false });
+    RH_ScopedInstall(ProcessBoatMovingOverWater, 0x4FA0C0);
     RH_ScopedInstall(ProcessTrainTrackSound, 0x4FA3F0, { .reversed = false });
     RH_ScopedInstall(ProcessDummyRCPlane, 0x4FA7C0, { .reversed = false });
     RH_ScopedInstall(ProcessDummyRCHeli, 0x4FAA80, { .reversed = false });
@@ -2198,26 +2198,23 @@ void CAEVehicleAudioEntity::ProcessRainOnVehicle(tVehicleParams& params) {
 }
 
 // 0x4FA0C0
-void CAEVehicleAudioEntity::ProcessBoatMovingOverWater(tVehicleParams& params) {
-    return plugin::CallMethod<0x4FA0C0, CAEVehicleAudioEntity*, tVehicleParams&>(this, params);
+void CAEVehicleAudioEntity::ProcessBoatMovingOverWater(tVehicleParams& vp) {
+    const auto* const cfg = &s_Config.BoatMovingOverWater;
+    const auto* const boat = vp.Vehicle->AsBoat();
 
-    auto* boat = params.Vehicle->AsBoat();
+    const auto sf = std::max(0.75f, std::abs(vp.Speed)) / 0.75f;
 
-    const float fVelocityProgress = std::min(0.75f, std::fabs(params.Speed)) / 0.75f;
+    auto volume = boat->m_nBoatFlags.bOnWater && sf >= 0.00001f
+        ? (m_AuSettings.IsSeaplane() ? cfg->VolBaseOfSeaplane : cfg->VolBase) + CAEAudioUtility::AudioLog10(sf) * 20.f
+        : -100.f;
+    auto speed = cfg->FrqBase + cfg->FrqSpeedFactor * sf;
 
-    float fVolume = -100.0f;
-    if (boat->m_nBoatFlags.bOnWater && fVelocityProgress >= 0.00001f) {
-        fVolume = CAEAudioUtility::AudioLog10(fVelocityProgress) * 20.0f;
-        fVolume += (m_AuSettings.VehicleAudioType == AE_AIRCRAFT_SEAPLANE) ? 12.0f : 3.0f;
+    if (boat->m_nBoatFlags.bOnWater && sf >= 0.00001f) {
+        volume += cfg->VolUnderwaterOffset;
+        speed  *= cfg->FrqUnderwaterFactor;
     }
 
-    float fSpeed = 0.8f + fVelocityProgress * 0.2f;
-    if (CWeather::UnderWaterness >= 0.5f) {
-        fSpeed *= 0.185f;
-        fVolume += 6.0f;
-    }
-
-    UpdateBoatSound(6, 2, 3, fSpeed, fVolume);
+    UpdateBoatSound(AE_SOUND_BOAT_WATER_SKIM, SND_BANK_SLOT_COLLISIONS, 3, speed, volume);
 }
 
 // 0x4FA3F0
