@@ -233,8 +233,8 @@ void CControllerConfigManager::StoreMouseButtonState(eMouseButtons button, bool 
     }
 }
 
-// 0x52EF30
-bool CControllerConfigManager::GetIsMouseButtonDown(RsKeyCodes key) {
+// 0x52F020
+bool CControllerConfigManager::GetIsMouseButtonUp(RsKeyCodes key) {
     switch (key) {
     case MOUSE_BUTTON_LEFT:
         return !CPad::GetPad(0)->NewMouseControllerState.m_bLeftButton;
@@ -254,9 +254,9 @@ bool CControllerConfigManager::GetIsMouseButtonDown(RsKeyCodes key) {
         return false;
     }
 }
- 
-// 0x52F020
-bool CControllerConfigManager::GetIsMouseButtonUp(RsKeyCodes key) {
+
+// 0x52EF30
+bool CControllerConfigManager::GetIsMouseButtonDown(RsKeyCodes key) {
     switch (key) {
     case MOUSE_BUTTON_LEFT:
         return CPad::GetPad(0)->NewMouseControllerState.m_bLeftButton;
