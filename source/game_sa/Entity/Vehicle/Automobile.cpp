@@ -1459,8 +1459,8 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
     float steerLeftRight = (float)pad->GetSteeringLeftRight() / 128.0f;
     float steerUpDown    = (float)pad->GetSteeringUpDown() / 128.0f;
     if (CCamera::m_bUseMouse3rdPerson && std::fabs(steerLeftRight) < 0.05f && std::fabs(steerUpDown) < 0.05f) {
-        steerLeftRight = std::clamp<float>(CPad::NewMouseControllerState.X / 50.0f, -1.5f, 1.5f);
-        steerUpDown    = std::clamp<float>(CPad::NewMouseControllerState.Y / 50.0f, -1.5f, 1.5f);
+        steerLeftRight = std::clamp<float>(CPad::NewMouseControllerState.m_AmountMoved.x / 50.0f, -1.5f, 1.5f);
+        steerUpDown    = std::clamp<float>(CPad::NewMouseControllerState.m_AmountMoved.y / 50.0f, -1.5f, 1.5f);
     }
 
     // 0x6B4F69
@@ -2001,13 +2001,13 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
             return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), KEYBOARD };
         }
 
-        if (CPad::NewMouseControllerState.X == 0.f && (m_nLastControlInput != MOUSE || plyrpad->GetSteeringLeftRight() != 0)) { // Simplified `if` here
+        if (CPad::NewMouseControllerState.m_AmountMoved.x == 0.f && (m_nLastControlInput != MOUSE || plyrpad->GetSteeringLeftRight() != 0)) { // Simplified `if` here
             return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), KEYBOARD };
         }
 
-        if (CPad::NewMouseControllerState.X != 0.f || m_fRawSteerAngle != 0.f) {
+        if (CPad::NewMouseControllerState.m_AmountMoved.x != 0.f || m_fRawSteerAngle != 0.f) {
             if (!plyrpad->NewState.m_bVehicleMouseLook) {
-                return { m_fRawSteerAngle - CPad::NewMouseControllerState.X * 0.0035f, MOUSE };
+                return { m_fRawSteerAngle - CPad::NewMouseControllerState.m_AmountMoved.x * 0.0035f, MOUSE };
             }
 
             if (plyrpad->NewState.m_bVehicleMouseLook || std::abs(m_fRawSteerAngle) <= 0.7f) { // Slowly steer back to 0

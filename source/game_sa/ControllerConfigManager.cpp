@@ -28,9 +28,9 @@ void CControllerConfigManager::InjectHooks() {
     RH_ScopedInstall(GetJoyButtonJustDown, 0x52D1E0, { .reversed = false });
     RH_ScopedInstall(GetIsKeyboardKeyDown, 0x52DDB0, { .reversed = false });
     RH_ScopedInstall(GetIsKeyboardKeyJustDown, 0x52E450, { .reversed = false });
-    RH_ScopedInstall(GetIsMouseButtonDown, 0x52EF30, { .reversed = false });
-    RH_ScopedInstall(GetIsMouseButtonUp, 0x52F020, { .reversed = false });
-    RH_ScopedInstall(GetIsMouseButtonJustUp, 0x52F110, { .reversed = false });
+    RH_ScopedInstall(GetIsMouseButtonDown, 0x52EF30);
+    RH_ScopedInstall(GetIsMouseButtonUp, 0x52F020);
+    RH_ScopedInstall(GetIsMouseButtonJustUp, 0x52F110);
     RH_ScopedInstall(GetIsKeyBlank, 0x52F2A0, { .reversed = false });
     RH_ScopedInstall(GetActionType, 0x52F2F0, { .reversed = false });
     RH_ScopedInstall(GetControllerSettingTextMouse, 0x52F390, { .reversed = false });
@@ -110,23 +110,23 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
 
 // 0x52F6F0
 void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller) {
-    if (state.lmb) {
+    if (state.m_bLeftButton) {
         MouseFoundInitSet = true;
         SetMouseButtonAssociatedWithAction(CA_PED_FIREWEAPON,             rsMOUSE_LEFT_BUTTON);
         SetMouseButtonAssociatedWithAction(CA_VEHICLE_FIREWEAPON,         rsMOUSE_LEFT_BUTTON);
     }
 
-    if (state.rmb) {
+    if (state.m_bRightButton) {
         SetMouseButtonAssociatedWithAction(CA_PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON);
         SetMouseButtonAssociatedWithAction(CA_VEHICLE_MOUSELOOK,          rsMOUSE_RIGHT_BUTTON);
     }
 
-    if (state.mmb) {
+    if (state.m_bMiddleButton) {
         SetMouseButtonAssociatedWithAction(CA_VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON);
         SetMouseButtonAssociatedWithAction(CA_PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON);
     }
 
-    if (state.wheelUp || state.wheelDown) {
+    if (state.m_bWheelMovedUp || state.m_bWheelMovedDown) {
         SetMouseButtonAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON);
         SetMouseButtonAssociatedWithAction(CA_PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON);
         SetMouseButtonAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON);
@@ -149,36 +149,6 @@ void CControllerConfigManager::ReinitControls() {
 // 0x52F590
 void CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAction action, RsKeyCodes button) {
     plugin::CallMethod<0x52F590, CControllerConfigManager*, eControllerAction, RsKeyCodes>(this, action, button);
-}
-
-// unused
-// 0x52DA30
-void CControllerConfigManager::StoreMouseButtonState(eMouseButtons button, bool state) {
-    switch (button) {
-        case MOUSE_BUTTON_LEFT:
-            CPad::PCTempMouseControllerState.lmb = state;
-            break;
-        case MOUSE_BUTTON_MIDDLE:
-            CPad::PCTempMouseControllerState.mmb = state;
-            break;
-        case MOUSE_BUTTON_RIGHT:
-            CPad::PCTempMouseControllerState.rmb = state;
-            break;
-        case MOUSE_BUTTON_WHEEL_UP:
-            CPad::PCTempMouseControllerState.wheelUp = state;
-            break;
-        case MOUSE_BUTTON_WHEEL_DOWN:
-            CPad::PCTempMouseControllerState.wheelDown = state;
-            break;
-        case MOUSE_BUTTON_WHEEL_XBUTTON1:
-            CPad::PCTempMouseControllerState.bmx1 = state;
-            break;
-        case MOUSE_BUTTON_WHEEL_XBUTTON2:
-            CPad::PCTempMouseControllerState.bmx2 = state;
-            break;
-        case MOUSE_BUTTON_NONE:
-            break;
-    }
 }
 
 // 0x52DAB0
@@ -233,19 +203,100 @@ bool CControllerConfigManager::GetIsKeyboardKeyJustDown(RsKeyCodes key) {
     return plugin::CallMethodAndReturn<bool, 0x52E450, CControllerConfigManager*, RsKeyCodes>(this, key);
 }
 
+// unused
+// 0x52DA30
+void CControllerConfigManager::StoreMouseButtonState(eMouseButtons button, bool state) {
+    switch (button) {
+    case MOUSE_BUTTON_LEFT:
+        CPad::PCTempMouseControllerState.m_bLeftButton = state;
+        break;
+    case MOUSE_BUTTON_MIDDLE:
+        CPad::PCTempMouseControllerState.m_bMiddleButton = state;
+        break;
+    case MOUSE_BUTTON_RIGHT:
+        CPad::PCTempMouseControllerState.m_bRightButton = state;
+        break;
+    case MOUSE_BUTTON_WHEEL_UP:
+        CPad::PCTempMouseControllerState.m_bWheelMovedUp = state;
+        break;
+    case MOUSE_BUTTON_WHEEL_DOWN:
+        CPad::PCTempMouseControllerState.m_bWheelMovedDown = state;
+        break;
+    case MOUSE_BUTTON_WHEEL_XBUTTON1:
+        CPad::PCTempMouseControllerState.m_bMsFirstXButton = state;
+        break;
+    case MOUSE_BUTTON_WHEEL_XBUTTON2:
+        CPad::PCTempMouseControllerState.m_bMsSecondXButton = state;
+        break;
+    default: // ex: case MOUSE_BUTTON_NONE:
+        break;
+    }
+}
+
 // 0x52EF30
 bool CControllerConfigManager::GetIsMouseButtonDown(RsKeyCodes key) {
-    return plugin::CallMethodAndReturn<bool, 0x52EF30, CControllerConfigManager*, RsKeyCodes>(this, key);
+    switch (key) {
+    case MOUSE_BUTTON_LEFT:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bLeftButton;
+    case MOUSE_BUTTON_MIDDLE:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bMiddleButton;
+    case MOUSE_BUTTON_RIGHT:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bRightButton;
+    case MOUSE_BUTTON_WHEEL_UP:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bWheelMovedUp;
+    case MOUSE_BUTTON_WHEEL_DOWN:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bWheelMovedDown;
+    case MOUSE_BUTTON_WHEEL_XBUTTON1:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bMsFirstXButton;
+    case MOUSE_BUTTON_WHEEL_XBUTTON2:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bMsSecondXButton;
+    default:
+        return false;
+    }
 }
  
 // 0x52F020
 bool CControllerConfigManager::GetIsMouseButtonUp(RsKeyCodes key) {
-    return plugin::CallMethodAndReturn<bool, 0x52F020, CControllerConfigManager*, RsKeyCodes>(this, key);
+    switch (key) {
+    case MOUSE_BUTTON_LEFT:
+        return CPad::GetPad(0)->NewMouseControllerState.m_bLeftButton;
+    case MOUSE_BUTTON_MIDDLE:
+        return CPad::GetPad(0)->NewMouseControllerState.m_bMiddleButton;
+    case MOUSE_BUTTON_RIGHT:
+        return CPad::GetPad(0)->NewMouseControllerState.m_bRightButton;
+    case MOUSE_BUTTON_WHEEL_UP:
+        return CPad::GetPad(0)->NewMouseControllerState.m_bWheelMovedUp;
+    case MOUSE_BUTTON_WHEEL_DOWN:
+        return CPad::GetPad(0)->NewMouseControllerState.m_bWheelMovedDown;
+    case MOUSE_BUTTON_WHEEL_XBUTTON1:
+        return CPad::GetPad(0)->NewMouseControllerState.m_bMsFirstXButton;
+    case MOUSE_BUTTON_WHEEL_XBUTTON2:
+        return CPad::GetPad(0)->NewMouseControllerState.m_bMsSecondXButton;
+    default:
+        return false;
+    }
 }
 
 // 0x52F110
 bool CControllerConfigManager::GetIsMouseButtonJustUp(RsKeyCodes key) {
-    return plugin::CallMethodAndReturn<bool, 0x52F110, CControllerConfigManager*, RsKeyCodes>(this, key);
+    switch (key) {
+    case MOUSE_BUTTON_LEFT:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bLeftButton && CPad::GetPad(0)->OldMouseControllerState.m_bLeftButton;
+    case MOUSE_BUTTON_MIDDLE:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bMiddleButton && CPad::GetPad(0)->OldMouseControllerState.m_bMiddleButton;
+    case MOUSE_BUTTON_RIGHT:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bRightButton && CPad::GetPad(0)->OldMouseControllerState.m_bRightButton;
+    case MOUSE_BUTTON_WHEEL_UP:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bWheelMovedUp && CPad::GetPad(0)->OldMouseControllerState.m_bWheelMovedUp;
+    case MOUSE_BUTTON_WHEEL_DOWN:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bWheelMovedDown && CPad::GetPad(0)->OldMouseControllerState.m_bWheelMovedDown;
+    case MOUSE_BUTTON_WHEEL_XBUTTON1:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bMsFirstXButton && CPad::GetPad(0)->OldMouseControllerState.m_bMsFirstXButton;
+    case MOUSE_BUTTON_WHEEL_XBUTTON2:
+        return !CPad::GetPad(0)->NewMouseControllerState.m_bMsSecondXButton && CPad::GetPad(0)->OldMouseControllerState.m_bMsSecondXButton;
+    default:
+        return false;
+    }
 }
 
 // unused

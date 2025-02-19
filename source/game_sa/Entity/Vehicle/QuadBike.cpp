@@ -172,7 +172,7 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
             if (IsAnyWheelNotMakingContactWithGround() && pad) {
                 float steeringLeftRightProgress = (float)pad->GetSteeringLeftRight() / 128.0f;
                 if (CCamera::m_bUseMouse3rdPerson && fabs(steeringLeftRightProgress) < 0.05f) {
-                    steeringLeftRightProgress = std::clamp(CPad::NewMouseControllerState.X / 100.0f, -1.5f, 1.5f);
+                    steeringLeftRightProgress = std::clamp(CPad::NewMouseControllerState.m_AmountMoved.x / 100.0f, -1.5f, 1.5f);
                 }
                 if (vehicleFlags.bIsHandbrakeOn) {
                     const float fTurnSpeed_Dot_MatUp = DotProduct(m_vecTurnSpeed, m_matrix->GetUp());
@@ -256,7 +256,7 @@ void CQuadBike::ProcessControlInputs(uint8 playerNum) {
     if (!CCamera::m_bUseMouse3rdPerson || !m_bEnableMouseSteering) {
         m_sRideAnimData.dword10 += (float(-pad->GetSteeringUpDown()) / 128.0f - m_sRideAnimData.dword10) * CTimer::GetTimeStep() / 5.0f;
     } else {
-        if (CPad::NewMouseControllerState.X == 0.0f && CPad::NewMouseControllerState.Y == 0.0f && // todo: Use CPad::? func
+        if (CPad::NewMouseControllerState.m_AmountMoved.x == 0.0f && CPad::NewMouseControllerState.m_AmountMoved.y == 0.0f && // todo: Use CPad::? func
             (std::fabs(m_fRawSteerAngle) <= 0.0f || m_nLastControlInput != eControllerType::MOUSE || pad->IsSteeringInAnyDirection())
         ) {
             if (pad->GetSteeringUpDown() || m_nLastControlInput != eControllerType::MOUSE) {
@@ -266,7 +266,7 @@ void CQuadBike::ProcessControlInputs(uint8 playerNum) {
         } else {
             m_nLastControlInput = eControllerType::MOUSE;
             if (!pad->NewState.m_bVehicleMouseLook) {
-                m_sRideAnimData.dword10 += CPad::NewMouseControllerState.Y * -0.035f;
+                m_sRideAnimData.dword10 += CPad::NewMouseControllerState.m_AmountMoved.y * -0.035f;
             }
             if (pad->NewState.m_bVehicleMouseLook || std::fabs(m_sRideAnimData.dword10) < 0.35f) {
                 m_sRideAnimData.dword10 *= std::pow(0.98f, CTimer::GetTimeStep());
