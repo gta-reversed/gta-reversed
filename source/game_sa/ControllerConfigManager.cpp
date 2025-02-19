@@ -108,31 +108,40 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
     plugin::CallMethod<0x530640, CControllerConfigManager*>(this);
 }
 
+// 0x52F590
+void CControllerConfigManager::SetMouseButtonAssociatedWithAction(const eControllerAction& action, eMouseButtons button) {
+    int32 priorityCount = 0;
+    for (int i = 0; i < 4; i++) {
+        if (m_Actions[action].Keys[i].KeyCode != rsNULL) {
+            priorityCount++;
+        }
+    }
+    m_Actions[action].Keys[(int)eControllerType::MOUSE].KeyCode = (RsKeyCodes)button;
+    m_Actions[action].Keys[(int)eControllerType::MOUSE].Priority = priorityCount + 1;
+}
+
 // 0x52F6F0
-void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller) {
-    if (state.m_bLeftButton) {
+void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& MouseSetUp, bool bMouseControls) {
+    if (MouseSetUp.m_bLeftButton) {
         MouseFoundInitSet = true;
-        SetMouseButtonAssociatedWithAction(CA_PED_FIREWEAPON,             rsMOUSE_LEFT_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_VEHICLE_FIREWEAPON,         rsMOUSE_LEFT_BUTTON);
+        SetMouseButtonAssociatedWithAction(CA_PED_FIREWEAPON, MOUSE_BUTTON_LEFT);
+        SetMouseButtonAssociatedWithAction(CA_VEHICLE_FIREWEAPON, MOUSE_BUTTON_LEFT);
     }
-
-    if (state.m_bRightButton) {
-        SetMouseButtonAssociatedWithAction(CA_PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_VEHICLE_MOUSELOOK,          rsMOUSE_RIGHT_BUTTON);
+    if (MouseSetUp.m_bRightButton) {
+        SetMouseButtonAssociatedWithAction(CA_PED_LOCK_TARGET, MOUSE_BUTTON_RIGHT);
+        SetMouseButtonAssociatedWithAction(CA_VEHICLE_MOUSELOOK, MOUSE_BUTTON_RIGHT);
     }
-
-    if (state.m_bMiddleButton) {
-        SetMouseButtonAssociatedWithAction(CA_VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON);
+    if (MouseSetUp.m_bMiddleButton) {
+        SetMouseButtonAssociatedWithAction(CA_VEHICLE_LOOKBEHIND, MOUSE_BUTTON_MIDDLE);
+        SetMouseButtonAssociatedWithAction(CA_PED_LOOKBEHIND, MOUSE_BUTTON_MIDDLE);
     }
-
-    if (state.m_bWheelMovedUp || state.m_bWheelMovedDown) {
-        SetMouseButtonAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_VEHICLE_RADIO_STATION_DOWN, rsMOUSE_WHEEL_DOWN_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_PED_SNIPER_ZOOM_IN,         rsMOUSE_WHEEL_UP_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON);
+    if (MouseSetUp.m_bWheelMovedUp || MouseSetUp.m_bWheelMovedDown) {
+        SetMouseButtonAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT, MOUSE_BUTTON_WHEEL_UP);
+        SetMouseButtonAssociatedWithAction(CA_PED_CYCLE_WEAPON_RIGHT, MOUSE_BUTTON_WHEEL_DOWN);
+        SetMouseButtonAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP, MOUSE_BUTTON_WHEEL_UP);
+        SetMouseButtonAssociatedWithAction(CA_VEHICLE_RADIO_STATION_DOWN, MOUSE_BUTTON_WHEEL_DOWN);
+        SetMouseButtonAssociatedWithAction(CA_PED_SNIPER_ZOOM_IN, MOUSE_BUTTON_WHEEL_UP);
+        SetMouseButtonAssociatedWithAction(CA_PED_SNIPER_ZOOM_OUT, MOUSE_BUTTON_WHEEL_DOWN);
     }
 }
 
@@ -144,11 +153,6 @@ void CControllerConfigManager::InitialiseControllerActionNameArray() {
 // 0x531F20
 void CControllerConfigManager::ReinitControls() {
     plugin::CallMethod<0x531F20, CControllerConfigManager*>(this);
-}
-
-// 0x52F590
-void CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAction action, RsKeyCodes button) {
-    plugin::CallMethod<0x52F590, CControllerConfigManager*, eControllerAction, RsKeyCodes>(this, action, button);
 }
 
 // 0x52DAB0
@@ -549,7 +553,7 @@ void CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerA
     }
 
     // Set the new key and its priority
-    auto& actionKey = m_Actions[action].Keys[type];
+    auto& actionKey = m_Actions[action].Keys[(int)type];
     actionKey.KeyCode = key;
     actionKey.Priority = priorityCount + 1;
 }

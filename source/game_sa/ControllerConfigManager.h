@@ -89,7 +89,7 @@ public:
     void InitialiseControllerActionNameArray();
     void ReinitControls();
 
-    void SetMouseButtonAssociatedWithAction(eControllerAction action, RsKeyCodes button);
+    void SetMouseButtonAssociatedWithAction(const eControllerAction& action, eMouseButtons button);
 
     void StoreMouseButtonState(eMouseButtons button, bool state);
     void UpdateJoyInConfigMenus_ButtonDown(ePadButton button, int32 padNumber);
