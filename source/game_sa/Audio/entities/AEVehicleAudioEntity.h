@@ -139,6 +139,24 @@ protected: // Config:
         } RainOnVehicle;
 
         struct {
+            float StepDown{0.085f}, StepUp{0.075f}; // 0x8CC044, 0x8CC040
+
+            // There are 2 sounds (NITRO1, NITRO2)
+            struct {
+                float FrqMin, FrqMax;
+                float VolMin, VolMax;
+            } Sounds[2]{
+                {
+                    0.75f, 0.84f, // 0x8CC028, 0x8CC02C
+                    -6.f,  2.f    // 0x8CC020, 0x8CC024
+                }, {
+                    0.8f, 1.f,    // 0x8CC038, 0x8CC03C
+                    -36.f, -9.f   // 0x8CC030, 0x8CC034
+                }
+            };
+        } Nitro;
+
+        struct {
             float VolBaseOfSeaplane{ 12.f };     //	0x8CBEDC
             float VolBase{ 3.f };                //	0x8CBED8
             float VolUnderwaterOffset{ 6.f };    //	0x8CBEF0
@@ -153,6 +171,16 @@ protected: // Config:
             float DistantSoundRollOff{ 5.f };    // 0x8CBEE4
             float WaterSkimSoundRollOff{ 2.5f }; // 0x8CBEE8
         } BoatSounds;
+
+        struct {
+            float FrqEngineRollFactor{ 0.1f };    // 0x8CBED4
+            float FrqEngineBase{ 0.6f };          // 0xNONE
+            float FrqEngineOnWaterFactor{ 0.4f }; // 0xNONE
+            float FrqEngineInAirFactor{ 0.7f };   // 0xB6BA74
+
+            float VolBase{ -3.f }; // 0xNONE
+            float VolEngineSpeedFactor{3.f}; // 0xNONE
+        } Boat;
 
         struct {
             float VolumeUnderwaterOffset = 6.f; // 0x8CBC44
@@ -403,7 +431,7 @@ public:
     static tVehicleAudioSettings* StaticGetPlayerVehicleAudioSettingsForRadio();
     static tVehicleAudioSettings GetVehicleAudioSettings(int16 vehId);
 
-    void AddAudioEvent(eAudioEvents event, float fVolume);
+    void AddAudioEvent(eAudioEvents event, float p1 = 0.f);
     void AddAudioEvent(eAudioEvents event, CVehicle* vehicle);
 
     void Service();

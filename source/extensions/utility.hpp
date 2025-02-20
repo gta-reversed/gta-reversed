@@ -394,18 +394,21 @@ F wrap(F x, F min, F max) {
 
 // Step `x` towards `to` in steps
 template<std::floating_point F>
-F step_to(F x, F to, F stepUp, F stepDown) {
+F step_to(F x, F to, F stepUp, F stepDown, bool useTimeStep = false) {
+    assert(stepDown > 0.f);
+    assert(stepUp > 0.f);
+
     if (x == to) {
         return to;
     }
     return x < to
-        ? std::max<F>(to, x + stepUp)
-        : std::min<F>(to, x - stepDown);
+        ? std::min<F>(to, x + useTimeStep ? std::pow(stepUp, CTimer::GetTimeStep()) : stepUp)
+        : std::max<F>(to, x - useTimeStep ? std::pow(stepDown, CTimer::GetTimeStep()) : stepDown);
 }
 
 // Step `x` towards `to` in steps
 template<std::floating_point F>
-F step_to(F x, F to, F step) {
+F step_to(F x, F to, F step, bool useTimeStep = false) {
     return step_to<F>(x, to, step, step);
 }
 

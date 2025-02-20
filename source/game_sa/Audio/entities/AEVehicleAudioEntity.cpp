@@ -433,8 +433,8 @@ void CAEVehicleAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
 }
 
 // 0x4F6420
-void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float fVolume) {
-    plugin::CallMethod<0x4F6420, CAEVehicleAudioEntity*, eAudioEvents, float>(this, event, fVolume);
+void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
+    plugin::CallMethod<0x4F6420, CAEVehicleAudioEntity*, eAudioEvents, float>(this, event, p1);
 }
 
 // 0x4F7580
@@ -1145,7 +1145,7 @@ void CAEVehicleAudioEntity::UpdateGasPedalAudio(CVehicle* vehicle, int32 vehicle
     float& value = vehicleType == VEHICLE_TYPE_BIKE
         ? vehicle->AsBike()->m_GasPedalAudioRevs
         : vehicle->AsAutomobile()->m_GasPedalAudioRevs;
-    value = notsa::step_to(value, current, cfg->StepUp, cfg->StepDown);
+    value = notsa::step_to(value, current, cfg->StepUp, cfg->StepDown, notsa::IsFixBugs());
 }
 
 // 0x4F5F30
@@ -1758,10 +1758,11 @@ void CAEVehicleAudioEntity::JustGotOutOfVehicleAsDriver() {
         m_CurrentDummyEngineVolume = -100.0f;
         break;
     }
-    case AE_BMX: { // 0x4FD099
+    case AE_BMX:
+    case AE_BOAT:
+    case AE_ONE_GEAR: {
         break;
-    }
-    default:
+    }    default:
         NOTSA_UNREACHABLE();
     }
 }
@@ -2077,14 +2078,14 @@ void CAEVehicleAudioEntity::ProcessBoatMovingOverWater(tVehicleParams& vp) {
     const auto* const cfg = &s_Config.BoatMovingOverWater;
     const auto* const boat = vp.Vehicle->AsBoat();
 
-    const auto sf = std::max(0.75f, std::abs(vp.Speed)) / 0.75f;
+    const auto sf = std::min(0.75f, std::abs(vp.Speed)) / 0.75f;
 
     auto volume = boat->m_nBoatFlags.bOnWater && sf >= 0.00001f
         ? (m_AuSettings.IsSeaplane() ? cfg->VolBaseOfSeaplane : cfg->VolBase) + CAEAudioUtility::AudioLog10(sf) * 20.f
         : -100.f;
     auto speed = cfg->FrqBase + cfg->FrqSpeedFactor * sf;
 
-    if (boat->m_nBoatFlags.bOnWater && sf >= 0.00001f) {
+    if (CWeather::UnderWaterness >= 0.5f) {
         volume += cfg->VolUnderwaterOffset;
         speed  *= cfg->FrqUnderwaterFactor;
     }
@@ -2143,8 +2144,50 @@ void CAEVehicleAudioEntity::ProcessEngineDamage(tVehicleParams& params) {
 }
 
 // 0x4FB070
-void CAEVehicleAudioEntity::ProcessNitro(tVehicleParams& params) {
-    plugin::CallMethod<0x4FB070, CAEVehicleAudioEntity*, tVehicleParams&>(this, params);
+void CAEVehicleAudioEntity::ProcessNitro(tVehicleParams& vp) {
+    const auto* const cfg = &s_Config.Nitro;
+    const auto* const a   = vp.Vehicle->AsAutomobile();
+
+    if (a->handlingFlags.bNosInst && a->m_fTireTemperature < 0.f && a->vehicleFlags.bEngineOn && !a->vehicleFlags.bIsDrowning) {
+        if (!m_bNitroOnLastFrame) {
+            AddAudioEvent(AE_NITRO_IGNITION, 0.f);
+        }
+
+        const auto nitro = (float)(vp.ThisAccel);
+        m_CurrentNitroRatio = m_CurrentNitroRatio >= 0.f
+            ? notsa::step_to(m_CurrentNitroRatio, nitro, cfg->StepUp, cfg->StepDown, notsa::IsFixBugs())
+            : nitro;
+
+        const auto* const s1 = &cfg->Sounds[0];
+        UpdateGenericVehicleSound(
+            AE_SOUND_NITRO1,
+            SND_BANK_SLOT_WEAPON_GEN,
+            SND_BANK_GENRL_WEAPONS,
+            SND_GENRL_WEAPONS_GAS_LOOP,
+            lerp(s1->FrqMin, s1->FrqMax, nitro),
+            lerp(s1->VolMin, s1->VolMax, nitro),
+            3.f
+        );
+        
+        const auto* const s2 = &cfg->Sounds[1];
+        UpdateGenericVehicleSound(
+            AE_SOUND_NITRO2,
+            SND_BANK_SLOT_VEHICLE_GEN,
+            SND_BANK_GENRL_VEHICLE_GEN,
+            26,
+            lerp(s2->FrqMin, s2->FrqMax, nitro),
+            lerp(s2->VolMin, s2->VolMax, nitro),
+            3.f
+        );
+
+        m_bNitroOnLastFrame = true;
+    } else if (m_bNitroOnLastFrame) { // 0x4FB1E5
+        StopGenericEngineSound(AE_SOUND_NITRO1);
+        StopGenericEngineSound(AE_SOUND_NITRO2);
+
+        m_bNitroOnLastFrame = false;
+        m_CurrentNitroRatio = -1.f;
+    }
 }
 
 // 0x4FB260
@@ -2716,7 +2759,7 @@ void CAEVehicleAudioEntity::ProcessAIProp(tVehicleParams& vp) {
     const auto propFreq = std::abs(plane->GetMatrix().GetRight().z) * 0.1f - plane->GetMatrix().GetForward().z * 0.15f + 1.f;
     m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
         ? propFreq
-        : notsa::step_to(m_CurrentRotorFrequency, propFreq, notsa::IsFixBugs() ? std::pow(1.f / 187.5f, CTimer::GetTimeStep()) : 1.f / 187.5f);
+        : notsa::step_to(m_CurrentRotorFrequency, propFreq, 1.f / 187.5f, notsa::IsFixBugs());
 
     // 0x4FE2EF
     const auto planeToCamDistSq = CVector::DistSqr(TheCamera.GetPosition(), plane->GetPosition());
@@ -2811,8 +2854,62 @@ void CAEVehicleAudioEntity::ProcessVehicleSirenAlarmHorn(tVehicleParams& vp) {
 }
 
 // 0x5003A0
-void CAEVehicleAudioEntity::ProcessBoatEngine(tVehicleParams& params) {
-    plugin::CallMethod<0x5003A0, CAEVehicleAudioEntity*, tVehicleParams&>(this, params);
+void CAEVehicleAudioEntity::ProcessBoatEngine(tVehicleParams& vp) {
+    const auto* const boat = vp.Vehicle->AsBoat();
+    const auto* const cfg  = &s_Config.Boat;
+
+
+    if (!EnsureHasDummySlot()) {
+        return;
+    }
+    if (!EnsureSoundBankIsLoaded(true)) {
+        return;
+    }
+
+    // 0x500451 - Engine off/got wrecked?
+    if (!boat->vehicleFlags.bEngineOn || m_IsWreckedVehicle) {
+        StopGenericEngineSound(AE_SOUND_BOAT_ENGINE);
+        StopGenericEngineSound(AE_SOUND_BOAT_DISTANT);
+        return;
+    }
+
+    if (s_pPlayerDriver && m_IsPlayerDriver) {
+        GetAccelAndBrake(vp);
+    }
+
+    // Engine speed factor
+    const auto es = std::clamp(boat->m_fPropSpeed * 3.f, 0.f, 1.f);
+
+    // 0x5004C7 - Calculate speed
+    {
+        const auto roll  = std::min(1.f, 1.f - boat->GetUp().Dot(CVector::ZAxisVector()));
+        const auto speed = cfg->FrqEngineBase
+            + roll * cfg->FrqEngineRollFactor
+            + es * (boat->m_nBoatFlags.bOnWater ? cfg->FrqEngineOnWaterFactor : cfg->FrqEngineInAirFactor);
+        m_CurrentDummyEngineFrequency = m_CurrentDummyEngineFrequency >= 0.f
+            ? notsa::step_to(m_CurrentDummyEngineFrequency, speed, 0.02f, notsa::IsFixBugs())
+            : speed;
+        NOTSA_LOG_DEBUG("m_CurrentDummyEngineFrequency: {}", m_CurrentDummyEngineFrequency);
+    }
+
+    // 0x5005E0 - Calculate volume
+    {
+        const auto volume = cfg->VolBase
+            + es * cfg->VolEngineSpeedFactor;
+        m_CurrentDummyEngineVolume = m_CurrentDummyEngineVolume >= 0.f
+            ? notsa::step_to(m_CurrentDummyEngineVolume, volume, 3.f, notsa::IsFixBugs())
+            : volume;
+        //NOTSA_LOG_DEBUG("m_CurrentDummyEngineVolume: {}", m_CurrentDummyEngineVolume);
+    }
+
+    // 0x500632 - Update sound
+    if (CWeather::UnderWaterness < 0.5f) {
+        UpdateBoatSound(AE_SOUND_BOAT_ENGINE, m_DummySlot, 0, m_CurrentDummyEngineFrequency, m_CurrentDummyEngineVolume);
+        UpdateBoatSound(AE_SOUND_BOAT_DISTANT, SND_BANK_SLOT_VEHICLE_GEN, 28, 1.f, -100.f);
+    } else {
+        UpdateBoatSound(AE_SOUND_BOAT_ENGINE, m_DummySlot, 0, 1.f, -100.f);
+        UpdateBoatSound(AE_SOUND_BOAT_DISTANT, SND_BANK_SLOT_VEHICLE_GEN, 28, m_CurrentDummyEngineFrequency, m_CurrentDummyEngineVolume + 6.f);
+    }
 }
 
 // 0x500710
@@ -3571,7 +3668,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
 
     // Boat
     RH_ScopedInstall(ProcessBoatMovingOverWater, 0x4FA0C0);
-    RH_ScopedInstall(ProcessBoatEngine, 0x5003A0, { .reversed = false });
+    RH_ScopedInstall(ProcessBoatEngine, 0x5003A0);
     RH_ScopedInstall(UpdateBoatSound, 0x4F9E90);
 
     // Train
@@ -3594,7 +3691,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessDummyRCPlane, 0x4FA7C0, { .reversed = false });
     RH_ScopedInstall(ProcessDummyRCHeli, 0x4FAA80, { .reversed = false });
     RH_ScopedInstall(ProcessEngineDamage, 0x4FAE20, { .reversed = false });
-    RH_ScopedInstall(ProcessNitro, 0x4FB070, { .reversed = false });
+    RH_ScopedInstall(ProcessNitro, 0x4FB070);
     RH_ScopedInstall(ProcessMovingParts, 0x4FB260, { .reversed = false });
     RH_ScopedInstall(ProcessDummyStateTransition, 0x4FCA10, { .reversed = false });
     RH_ScopedInstall(ProcessPlayerProp, 0x4FD290);
