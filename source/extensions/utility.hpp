@@ -403,14 +403,14 @@ F step_to(F x, F to, F stepUp, F stepDown, bool useTimeStep = false) {
         return to;
     }
     return x < to
-        ? std::min<F>(to, x + useTimeStep ? std::pow(stepUp, CTimer::GetTimeStep()) : stepUp)
-        : std::max<F>(to, x - useTimeStep ? std::pow(stepDown, CTimer::GetTimeStep()) : stepDown);
+        ? std::min<F>(to, x + (useTimeStep ? std::pow(stepUp, CTimer::GetTimeStep()) : stepUp))
+        : std::max<F>(to, x - (useTimeStep ? std::pow(stepDown, CTimer::GetTimeStep()) : stepDown));
 }
 
 // Step `x` towards `to` in steps
 template<std::floating_point F>
 F step_to(F x, F to, F step, bool useTimeStep = false) {
-    return step_to<F>(x, to, step, step);
+    return step_to<F>(x, to, step, step, useTimeStep);
 }
 
 //! Range of a specific type
