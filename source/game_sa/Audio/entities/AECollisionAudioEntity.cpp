@@ -160,7 +160,7 @@ void CAECollisionAudioEntity::PlayBulletHitCollisionSound(eSurfaceType surface, 
 
     if (iRand >= 0) {
         CAESound sound;
-        sound.Initialise(3, iRand, this, posn, volume, maxDistance, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.02f, 0);
+        sound.Initialise(SND_BANK_SLOT_BULLET_HITS, iRand, this, posn, volume, maxDistance, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.02f, 0);
         AESoundManager.RequestNewSound(&sound);
         m_nLastBulletHitSoundID = iRand;
     }
@@ -194,7 +194,7 @@ void CAECollisionAudioEntity::ReportGlassCollisionEvent(eAudioEvents glassSoundT
         return;
 
     m_tempSound.Initialise(
-        2,
+        SND_BANK_SLOT_COLLISIONS,
         sfxId,
         this,
         posn,
@@ -213,15 +213,12 @@ void CAECollisionAudioEntity::ReportGlassCollisionEvent(eAudioEvents glassSoundT
 
 // 0x4DA190
 void CAECollisionAudioEntity::ReportWaterSplash(CVector posn, float volume) {
-    if (!AEAudioHardware.IsSoundBankLoaded(39, 2)) {
-        if (!AudioEngine.IsLoadingTuneActive())
-            AEAudioHardware.LoadSoundBank(39, 2);
-
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS, true)) {
         return;
     }
 
     m_tempSound.Initialise(
-        2,
+        SND_BANK_SLOT_COLLISIONS,
         67,
         this,
         posn,
@@ -236,7 +233,7 @@ void CAECollisionAudioEntity::ReportWaterSplash(CVector posn, float volume) {
     AESoundManager.RequestNewSound(&m_tempSound);
 
     m_tempSound.Initialise(
-        2,
+        SND_BANK_SLOT_COLLISIONS,
         66,
         this,
         posn,
@@ -268,10 +265,10 @@ void CAECollisionAudioEntity::ReportCollision(CEntity* entity1, CEntity* entity2
 
 // 0x4DBDF0
 void CAECollisionAudioEntity::ReportBulletHit(CEntity* entity, eSurfaceType surface, const CVector& posn, float angleWithColPointNorm) {
-    if (AEAudioHardware.IsSoundBankLoaded(27, 3)) {
+    if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_BULLET_HITS, SND_BANK_SLOT_BULLET_HITS)) {
         if (entity && entity->IsVehicle()) {
             surface = entity->AsVehicle()->IsSubBMX()
-                ? eSurfaceType(188) // todo: C* Surface
+                ? (eSurfaceType)(188) // todo: C* Surface
                 : SURFACE_CAR; 
         }
         PlayBulletHitCollisionSound(surface, posn, angleWithColPointNorm);

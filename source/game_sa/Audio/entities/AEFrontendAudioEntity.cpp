@@ -27,7 +27,7 @@ void CAEFrontendAudioEntity::Reset() {
     m_nLastFrameGeneral_or_nFrameCount = 0;
     m_nLastFrameMissionComplete        = 0;
     m_nLastFrameBulletPass             = 0;
-    m_nNumBulletSounds                 = 0;
+    m_BulletPassCount                 = 0;
     m_f7E                              = -1;
     AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_FRONTEND_SCANNER_NOISE_START, this);
 }
@@ -42,76 +42,83 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
     CVector XVECM = { -1.0f, 0.0f, 0.0f };
     CVector YVECP = { +0.0f, 1.0f, 0.0f };
 
+    const auto IncrementBulletHitsBank = [&]() {
+        m_BulletPassBank = (eSoundBank)(m_BulletPassBank + 1);
+        if (m_BulletPassBank > SND_BANK_GENRL_BULLET_PASS_LAST) {
+            m_BulletPassBank = SND_BANK_GENRL_BULLET_PASS_FIRST;
+        }
+    };
+
     float volume = GetDefaultVolume(event) + fVolumeBoost;
     switch (event) {
     case AE_FRONTEND_START:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
-            sound.Initialise(0, 25, this, XVECM, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 25, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(0, 26, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 26, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_SELECT:
-        if (AEAudioHardware.IsSoundBankLoaded(60u, 1)) {
-            sound.Initialise(1, 6, this, XVECM, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 6, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(1, 7, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 7, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_BACK:
-        if (AEAudioHardware.IsSoundBankLoaded(60u, 1)) {
-            sound.Initialise(1, 0, this, XVECM, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 0, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(1, 1, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 1, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_HIGHLIGHT:
-        if (AEAudioHardware.IsSoundBankLoaded(60u, 1)) {
-            sound.Initialise(1, 4, this, XVECM, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 4, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(1, 5, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 5, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_ERROR:
-        if (AEAudioHardware.IsSoundBankLoaded(60u, 1)) {
-            sound.Initialise(1, 2, this, XVECM, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 2, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(1, 3, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 3, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_NOISE_TEST:
-        if (AEAudioHardware.IsSoundBankLoaded(60u, 1)) {
-            sound.Initialise(1, 8, this, YVECP, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 8, this, YVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;;
             AESoundManager.RequestNewSound(&sound);
@@ -122,14 +129,14 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
     case AE_FRONTEND_CAR_FIT_BOMB_BOOBY_TRAPPED:
     case AE_FRONTEND_CAR_FIT_BOMB_REMOTE_CONTROLLED:
     case AE_FRONTEND_PURCHASE_WEAPON:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0) && CTimer::GetFrameCounter() >= m_nLastFrameGeneral_or_nFrameCount + 5) {
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME) && CTimer::GetFrameCounter() >= m_nLastFrameGeneral_or_nFrameCount + 5) {
             m_nLastFrameGeneral_or_nFrameCount = CTimer::GetFrameCounter();
-            sound.Initialise(0, 27, this, XVECM, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 27, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(0, 28, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 28, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
@@ -139,14 +146,14 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
     case AE_FRONTEND_PICKUP_HEALTH:
     case AE_FRONTEND_PICKUP_ADRENALINE:
     case AE_FRONTEND_PICKUP_BODY_ARMOUR:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0) && CTimer::GetFrameCounter() >= m_nLastFrameGeneral_or_nFrameCount + 5) {
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME) && CTimer::GetFrameCounter() >= m_nLastFrameGeneral_or_nFrameCount + 5) {
             m_nLastFrameGeneral_or_nFrameCount = CTimer::GetFrameCounter();
-            sound.Initialise(0, 16, this, XVECM, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 16, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(0, 17, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 17, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
@@ -154,13 +161,13 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
         return;
     case AE_FRONTEND_PICKUP_INFO:
     case AE_FRONTEND_DISPLAY_INFO:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
-            sound.Initialise(0, 14, this, XVECM, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 14, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(0, 15, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 15, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
@@ -169,14 +176,14 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
     case AE_FRONTEND_PICKUP_DRUGS:
     case AE_FRONTEND_PICKUP_COLLECTABLE1:
     case AE_FRONTEND_PART_MISSION_COMPLETE:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0) && CTimer::GetFrameCounter() >= m_nLastFrameMissionComplete + 5) {
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME) && CTimer::GetFrameCounter() >= m_nLastFrameMissionComplete + 5) {
             m_nLastFrameMissionComplete = CTimer::GetFrameCounter();
-            sound.Initialise(0, 18, this, XVECM, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 18, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(0, 19, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 19, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
@@ -185,20 +192,20 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
     case AE_FRONTEND_CAR_NO_CASH:
     case AE_FRONTEND_CAR_IS_HOT:
     case AE_FRONTEND_CAR_ALREADY_RIGGED:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0) && CTimer::GetFrameCounter() >= m_nLastFrameGeneral_or_nFrameCount + 5) {
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME) && CTimer::GetFrameCounter() >= m_nLastFrameGeneral_or_nFrameCount + 5) {
             m_nLastFrameGeneral_or_nFrameCount = CTimer::GetFrameCounter();
-            sound.Initialise(0, 27, this, XVECM, volume, 1.0f, 0.841f);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 27, this, XVECM, volume, 1.0f, 0.841f);
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(0, 28, this, XVECP, volume, 1.0f, 0.841f);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 28, this, XVECP, volume, 1.0f, 0.841f);
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_CAR_RESPRAY:
     {
-        if (!AEAudioHardware.IsSoundBankLoaded(143u, 5))
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN))
             return;
 
         float speed0, speed1;
@@ -209,12 +216,12 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
             speed0 = 1.0f;
             speed1 = 1.1892101f;
         }
-        sound.Initialise(5, 28, this, XVECM, volume, 1.0f, speed0);
+        sound.Initialise(SND_BANK_SLOT_WEAPON_GEN, 28, this, XVECM, volume, 1.0f, speed0);
         sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
         sound.m_nEvent = AE_FRONTEND_CAR_RESPRAY;
         AESoundManager.RequestNewSound(&sound);
 
-        sound.Initialise(5, 28, this, XVECP, volume, 1.0f, speed1);
+        sound.Initialise(SND_BANK_SLOT_WEAPON_GEN, 28, this, XVECP, volume, 1.0f, speed1);
         sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
         sound.m_nEvent = AE_FRONTEND_CAR_RESPRAY;
         AESoundManager.RequestNewSound(&sound);
@@ -222,103 +229,95 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
         return;
     }
     case AE_FRONTEND_BULLET_PASS_LEFT_REAR:
-        if (!AEAudioHardware.IsSoundBankLoaded(m_nBankId, 42) || CTimer::GetFrameCounter() < m_nLastFrameBulletPass + 5)
+        if (!AEAudioHardware.IsSoundBankLoaded(m_BulletPassBank, SND_BANK_SLOT_BULLET_PASS) || CTimer::GetFrameCounter() < m_nLastFrameBulletPass + 5)
             return;
 
         // inlined
-        if (m_nNumBulletSounds > 10) {
-            if (!AESoundManager.AreSoundsPlayingInBankSlot(42)) {
-                if (++m_nBankId > 31) {
-                    m_nBankId = 28;
-                }
-                AEAudioHardware.LoadSoundBank(m_nBankId, 42);
-                m_nNumBulletSounds = 0;
+        if (m_BulletPassCount > 10) {
+            if (!AESoundManager.AreSoundsPlayingInBankSlot(SND_BANK_SLOT_BULLET_PASS)) {
+                IncrementBulletHitsBank();
+                AEAudioHardware.LoadSoundBank(m_BulletPassBank, SND_BANK_SLOT_BULLET_PASS);
+                m_BulletPassCount = 0;
             }
             return;
         }
 
         m_nLastFrameBulletPass = CTimer::GetFrameCounter();
-        sound.Initialise(42, CAEAudioUtility::GetRandomNumberInRange(0, 2), this, { -0.1f, -1.0f, 0.0f }, volume);
+        sound.Initialise(SND_BANK_SLOT_BULLET_PASS, CAEAudioUtility::GetRandomNumberInRange(0, 2), this, { -0.1f, -1.0f, 0.0f }, volume);
         sound.m_nEvent = AE_FRONTEND_BULLET_PASS_LEFT_REAR;
         sound.m_fSpeedVariability = 0.03125f;
         sound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
         AESoundManager.RequestNewSound(&sound);
-        ++m_nNumBulletSounds;
+        ++m_BulletPassCount;
         return;
     case AE_FRONTEND_BULLET_PASS_LEFT_FRONT:
-        if (!AEAudioHardware.IsSoundBankLoaded(m_nBankId, 42) || CTimer::GetFrameCounter() < m_nLastFrameBulletPass + 5)
+        if (!AEAudioHardware.IsSoundBankLoaded(m_BulletPassBank, SND_BANK_SLOT_BULLET_PASS) || CTimer::GetFrameCounter() < m_nLastFrameBulletPass + 5)
             return;
 
         // inlined
-        if (m_nNumBulletSounds > 10) {
-            if (!AESoundManager.AreSoundsPlayingInBankSlot(42)) {
-                if (++m_nBankId > 31) {
-                    m_nBankId = 28;
-                }
-                AEAudioHardware.LoadSoundBank(m_nBankId, 42);
-                m_nNumBulletSounds = 0;
+        if (m_BulletPassCount > 10) {
+            if (!AESoundManager.AreSoundsPlayingInBankSlot(SND_BANK_SLOT_BULLET_PASS)) {
+                IncrementBulletHitsBank();
+                AEAudioHardware.LoadSoundBank(m_BulletPassBank, SND_BANK_SLOT_BULLET_PASS);
+                m_BulletPassCount = 0;
             }
             return;
         }
 
         m_nLastFrameBulletPass = CTimer::GetFrameCounter();
 
-        sound.Initialise(42, CAEAudioUtility::GetRandomNumberInRange(0, 2), this, { -0.1f, +1.0f, 0.0f }, volume);
+        sound.Initialise(SND_BANK_SLOT_BULLET_PASS, CAEAudioUtility::GetRandomNumberInRange(0, 2), this, { -0.1f, +1.0f, 0.0f }, volume);
         sound.m_nEvent = AE_FRONTEND_BULLET_PASS_LEFT_FRONT;
         sound.m_fSpeedVariability = 0.03125f;
         sound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
         AESoundManager.RequestNewSound(&sound);
-        ++m_nNumBulletSounds;
+        ++m_BulletPassCount;
         return;
     case AE_FRONTEND_BULLET_PASS_RIGHT_REAR:
-        if (!AEAudioHardware.IsSoundBankLoaded(m_nBankId, 42) || CTimer::GetFrameCounter() < m_nLastFrameBulletPass + 5)
+        if (!AEAudioHardware.IsSoundBankLoaded(m_BulletPassBank, SND_BANK_SLOT_BULLET_PASS) || CTimer::GetFrameCounter() < m_nLastFrameBulletPass + 5)
             return;
 
-        if (m_nNumBulletSounds <= 10) {
+        if (m_BulletPassCount <= 10) {
             m_nLastFrameBulletPass = CTimer::GetFrameCounter();
-            sound.Initialise(42, CAEAudioUtility::GetRandomNumberInRange(0, 2), this, { 0.1f, -1.0f, 0.0f }, volume);
+            sound.Initialise(SND_BANK_SLOT_BULLET_PASS, CAEAudioUtility::GetRandomNumberInRange(0, 2), this, { 0.1f, -1.0f, 0.0f }, volume);
             sound.m_nEvent = AE_FRONTEND_BULLET_PASS_RIGHT_REAR;
             sound.m_fSpeedVariability = 0.03125f;
             sound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
-            ++m_nNumBulletSounds;
+            ++m_BulletPassCount;
             return;
         }
 
-        if (!AESoundManager.AreSoundsPlayingInBankSlot(42)) {
+        if (!AESoundManager.AreSoundsPlayingInBankSlot(SND_BANK_SLOT_BULLET_PASS)) {
             // inlined
-            if (++m_nBankId > 31) {
-                m_nBankId = 28;
-            }
-            AEAudioHardware.LoadSoundBank(m_nBankId, 42);
-            m_nNumBulletSounds = 0;
+            IncrementBulletHitsBank();
+            AEAudioHardware.LoadSoundBank(m_BulletPassBank, SND_BANK_SLOT_BULLET_PASS);
+            m_BulletPassCount = 0;
         }
         return;
     case AE_FRONTEND_BULLET_PASS_RIGHT_FRONT:
-        if (AEAudioHardware.IsSoundBankLoaded(m_nBankId, 42) && CTimer::GetFrameCounter() >= m_nLastFrameBulletPass + 5) {
-            if (m_nNumBulletSounds <= 10) {
+        if (AEAudioHardware.IsSoundBankLoaded(m_BulletPassBank, SND_BANK_SLOT_BULLET_PASS) && CTimer::GetFrameCounter() >= m_nLastFrameBulletPass + 5) {
+            if (m_BulletPassCount <= 10) {
                 m_nLastFrameBulletPass = CTimer::GetFrameCounter();
-                sound.Initialise(42, CAEAudioUtility::GetRandomNumberInRange(0, 2), this, { 0.1f, +1.0f, 0.0f }, volume);
+                sound.Initialise(SND_BANK_SLOT_BULLET_PASS, CAEAudioUtility::GetRandomNumberInRange(0, 2), this, { 0.1f, +1.0f, 0.0f }, volume);
                 sound.m_nEvent = AE_FRONTEND_BULLET_PASS_RIGHT_FRONT;
                 sound.m_fSpeedVariability = 0.03125f;
                 sound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
                 AESoundManager.RequestNewSound(&sound);
-                ++m_nNumBulletSounds;
+                ++m_BulletPassCount;
             } else {
-                if (!AESoundManager.AreSoundsPlayingInBankSlot(42)) {
+                if (!AESoundManager.AreSoundsPlayingInBankSlot(SND_BANK_SLOT_BULLET_PASS)) {
                     // inlined
-                    if (++m_nBankId > 31) {
-                        m_nBankId = 28;
-                    }
-                    AEAudioHardware.LoadSoundBank(m_nBankId, 42);
-                    m_nNumBulletSounds = 0;
+                    IncrementBulletHitsBank();
+                    AEAudioHardware.LoadSoundBank(m_BulletPassBank, SND_BANK_SLOT_BULLET_PASS);
+                    m_BulletPassCount = 0;
                 }
             }
         }
         return;
     case AE_FRONTEND_WAKEUP_AMPLIFIER:
-        if (!m_bAmplifierWakeUp && AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
-            sound.Initialise(0, 8, this, YVECP, volume);
+        if (!m_bAmplifierWakeUp && AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 8, this, YVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             m_pAmplifierWakeUp = AESoundManager.RequestNewSound(&sound);
@@ -331,14 +330,14 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
             return;
         }
 
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
-            sound.Initialise(0, 4, this, XVECM, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 4, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             sound.m_nEvent = AE_FRONTEND_TIMER_COUNT;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(0, 5, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 5, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             sound.m_nEvent = AE_FRONTEND_TIMER_COUNT;
@@ -350,7 +349,7 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
     {
         auto flags0 = eSoundEnvironment(SOUND_UNDUCKABLE | SOUND_MUSIC_MASTERED | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END);
         auto flags1 = eSoundEnvironment(flags0 | SOUND_UNPAUSABLE);
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
             if (CTimer::GetIsPaused()) {
                 if (!m_objRetunePaused.IsInUse()) {
                     m_objRetunePaused.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 2, 1, this, 200, 650, -1, -1);
@@ -378,72 +377,72 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
         }
         return;
     case AE_FRONTEND_RADIO_CLICK_ON:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
             sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 23, this, YVECP, volume);
             sound.m_nEnvironmentFlags = SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_RADIO_CLICK_OFF:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
             sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 23, this, YVECP, volume, 1.0f, 0.8909f);
             sound.m_nEnvironmentFlags = SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_FIRE_FAIL_SNIPERRIFFLE:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
-            sound.Initialise(0, 10, this, YVECP, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 10, this, YVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FRONT_END | SOUND_UNCANCELLABLE;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_FIRE_FAIL_ROCKET:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
-            sound.Initialise(0, 11, this, YVECP, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 11, this, YVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FRONT_END | SOUND_UNCANCELLABLE;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_RACE_321:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
-            sound.Initialise(0, 6, this, XVECM, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 6, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(0, 7, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 7, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_RACE_GO:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
-            sound.Initialise(0, 12, this, XVECM, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 12, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(0, 13, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 13, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_BUY_CAR_MOD:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0)) {
-            sound.Initialise(0, 9, this, YVECP, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 9, this, YVECP, volume);
             sound.m_nEnvironmentFlags = SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;;
             sound.m_fSpeedVariability = 0.0588f;
             AESoundManager.RequestNewSound(&sound);
         }
         return;
     case AE_FRONTEND_SCANNER_NOISE_START:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0) && !AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_FRONTEND_SCANNER_NOISE_START, this)) {
-            sound.Initialise(0, 3, this, YVECP, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME) && !AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_FRONTEND_SCANNER_NOISE_START, this)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 3, this, YVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_UNDUCKABLE | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             sound.m_nEvent = AE_FRONTEND_SCANNER_NOISE_START;
@@ -454,8 +453,8 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
         AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(47, this);
         return;
     case AE_FRONTEND_SCANNER_CLICK:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0) && !AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_FRONTEND_SCANNER_CLICK, this)) {
-            sound.Initialise(0, 24, this, YVECP, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME) && !AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_FRONTEND_SCANNER_CLICK, this)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 24, this, YVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_UNDUCKABLE | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             sound.m_nEvent = AE_FRONTEND_SCANNER_CLICK;
@@ -467,13 +466,13 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
             && AEAudioHardware.IsSoundLoaded(SND_BANK_GENRL_LOADING, 2 * m_nbLoadingTuneSeed + 1, SND_BANK_SLOT_WEAPON_GEN)
             && !AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_FRONTEND_LOADING_TUNE_START, this)
         ) {
-            sound.Initialise(2, 2 * m_nbLoadingTuneSeed, this, XVECM, volume);
+            sound.Initialise(SND_BANK_SLOT_WEAPON_GEN, 2 * m_nbLoadingTuneSeed, this, XVECM, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             sound.m_nEvent = AE_FRONTEND_LOADING_TUNE_START;
             AESoundManager.RequestNewSound(&sound);
 
-            sound.Initialise(5, 2 * m_nbLoadingTuneSeed + 1, this, XVECP, volume);
+            sound.Initialise(SND_BANK_SLOT_WEAPON_GEN, 2 * m_nbLoadingTuneSeed + 1, this, XVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_FORCED_FRONT | SOUND_UNDUCKABLE | SOUND_UNPAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_UNCANCELLABLE | SOUND_FRONT_END;
             sound.m_nEvent = AE_FRONTEND_LOADING_TUNE_START;
@@ -484,8 +483,8 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
         AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(50, this);
         return;
     case AE_MISSILE_LOCK:
-        if (AEAudioHardware.IsSoundBankLoaded(59u, 0) && !AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_MISSILE_LOCK, this)) {
-            sound.Initialise(0, 13, this, YVECP, volume);
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME) && !AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_MISSILE_LOCK, this)) {
+            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 13, this, YVECP, volume);
             sound.m_fSpeed = fSpeed;
             sound.m_nEnvironmentFlags = SOUND_UNDUCKABLE | SOUND_FRONT_END;
             sound.m_nEvent = AE_MISSILE_LOCK;

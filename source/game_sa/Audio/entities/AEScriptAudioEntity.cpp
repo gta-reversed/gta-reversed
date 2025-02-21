@@ -82,9 +82,10 @@ void CAEScriptAudioEntity::PlayMissionBankSound(uint8 sampleId, CVector& posn, C
 
 // event eAudioEvents
 // 0x4EC550
-void CAEScriptAudioEntity::PlayResidentSoundEvent(int16 bankSlotId, int16 bankId, int16 sfxId, uint16 event, CVector& posn, CPhysical* physical, float vol, float speed, int16 playPosn, float maxDistance) {
-    if (!AEAudioHardware.IsSoundBankLoaded(bankId, bankSlotId))
+void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBank bank, eSoundID sfx, eAudioEvents event, CVector& posn, CPhysical* physical, float vol, float speed, int16 playPosn, float maxDistance) {
+    if (!AEAudioHardware.IsSoundBankLoaded(bank, slot)) {
         return;
+    }
 
     bool bFrontend = false;
     const auto volume = GetDefaultVolume(static_cast<eAudioEvents>(event)) + vol;
@@ -99,7 +100,7 @@ void CAEScriptAudioEntity::PlayResidentSoundEvent(int16 bankSlotId, int16 bankId
         }
     }();
 
-    m_tempSound.Initialise(bankSlotId, sfxId, this, pos, volume, maxDistance, speed, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
+    m_tempSound.Initialise(slot, sfx, this, pos, volume, maxDistance, speed, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
     m_tempSound.m_nCurrentPlayPosition = playPosn;
     m_tempSound.m_nEnvironmentFlags = SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE;
     m_tempSound.SetIndividualEnvironment(SOUND_FRONT_END, bFrontend);
@@ -772,7 +773,7 @@ void CAEScriptAudioEntity::Service() {
     if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_SCRIPT_CRANE_ENTER, this) != 0)
         return;
 
-    PlayResidentSoundEvent(40, 44, 0, AE_SCRIPT_CRANE_ENTER, posn, m_Physical, 0.0f, 1.0f, 0, 2.5f);
+    PlayResidentSoundEvent(SND_BANK_SLOT_PLAYER_ENGINE_P, SND_BANK_GENRL_CRANE_P, 0, AE_SCRIPT_CRANE_ENTER, posn, m_Physical, 0.0f, 1.0f, 0, 2.5f);
 }
 
 void CAEScriptAudioEntity::InjectHooks() {

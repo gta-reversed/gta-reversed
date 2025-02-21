@@ -246,7 +246,7 @@ void CAESoundManager::Service() {
         CAEAudioHardwarePlayFlags flags{};
         flags.CopyFromAESound(sound);
 
-        AEAudioHardware.PlaySound(m_nChannel, curSound, sound.m_nSoundIdInSlot, sound.m_nBankSlotId, sound.m_nCurrentPlayPosition, flags.m_nFlags, sound.m_fSpeed);
+        AEAudioHardware.PlaySound(m_nChannel, curSound, sound.m_SoundID, sound.m_BankSlot, sound.m_nCurrentPlayPosition, flags.m_nFlags, sound.m_fSpeed);
         AEAudioHardware.SetChannelVolume(m_nChannel, curSound, sound.m_fFinalVolume, 0);
 
         AEAudioHardware.SetChannelPosition(m_nChannel, curSound, sound.GetRelativePosition(), 0);
@@ -295,7 +295,7 @@ CAESound* CAESoundManager::RequestNewSound(CAESound* pSound) {
         *s = *pSound;
         pSound->UnregisterWithPhysicalEntity();
         s->NewVPSLentry();
-        AEAudioHardware.RequestVirtualChannelSoundInfo((uint16)sidx, s->m_nSoundIdInSlot, s->m_nBankSlotId);
+        AEAudioHardware.RequestVirtualChannelSoundInfo((uint16)sidx, s->m_SoundID, s->m_BankSlot);
     }
     return s;
 }
@@ -331,7 +331,7 @@ CAESound* CAESoundManager::PlaySound(tSoundPlayParams p) {
 int16 CAESoundManager::AreSoundsPlayingInBankSlot(int16 bankSlot) {
     auto nPlaying = eSoundPlayingStatus::SOUND_NOT_PLAYING;
     for (CAESound& sound : m_aSounds) {
-        if (!sound.IsUsed() || sound.m_nBankSlotId != bankSlot) {
+        if (!sound.IsUsed() || sound.m_BankSlot != bankSlot) {
             continue; 
         }
         if (sound.m_nHasStarted) {
@@ -397,7 +397,7 @@ void CAESoundManager::CancelSoundsOfThisEventPlayingForThisEntityAndPhysical(int
 // 0x4EFC60
 void CAESoundManager::CancelSoundsInBankSlot(int16 bankSlot, bool bFullStop) {
     for (CAESound& sound : m_aSounds) {
-        if (!sound.IsUsed() || sound.m_nBankSlotId != bankSlot) {
+        if (!sound.IsUsed() || sound.m_BankSlot != bankSlot) {
             continue;
         }
         if (bFullStop) {

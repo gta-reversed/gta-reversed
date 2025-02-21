@@ -7,6 +7,8 @@
 #pragma once
 
 #include "Vector.h"
+#include "Enums/eSoundBankSlot.h"
+#include "Enums/SoundIDs.h"
 
 class CAEAudioEntity;
 class CEntity;
@@ -37,8 +39,8 @@ enum eSoundState : int16 {
 
 class CAESound {
 public:
-    int16           m_nBankSlotId;
-    int16           m_nSoundIdInSlot;
+    eSoundBankSlot  m_BankSlot;
+    eSoundID        m_SoundID;
     CAEAudioEntity* m_pBaseAudio;
     CEntity*        m_pPhysicalEntity;
     int32           m_nEvent; // Not necessarily `eAudioEvents`, for ex. see `CAEWeaponAudioEntity`
@@ -95,14 +97,14 @@ public:
 
     CAESound() { m_pPhysicalEntity = nullptr; }
     CAESound(CAESound& sound);
-    CAESound(int16 bankSlotId, int16 sfxId, CAEAudioEntity* baseAudio, CVector posn, float volume, float fDistance, float speed, float timeScale, uint8 ignoredServiceCycles, eSoundEnvironment environmentFlags, float speedVariability);
+    CAESound(eSoundBankSlot bankSlotId, eSoundID sfxId, CAEAudioEntity* baseAudio, CVector posn, float volume, float fDistance, float speed, float timeScale, uint8 ignoredServiceCycles, eSoundEnvironment environmentFlags, float speedVariability);
     ~CAESound();
 
     CAESound& operator=(const CAESound& sound);
 
     void Initialise(
-        int16           bankSlotId,
-        int16           soundID,
+        eSoundBankSlot  bankSlotId,
+        eSoundID        soundID,
         CAEAudioEntity* audioEntity,
         CVector         pos,
         float           volume,

@@ -10,7 +10,7 @@
 * But then you could load any other bank into that slot,
 * and the sounds played would now be different.
 */
-enum eSoundBankSlot : int32 {
+enum eSoundBankSlot : int16 {
     SND_BANK_SLOT_NONE                = -1,
     SND_BANK_SLOT_FRONTEND_GAME       = 0, // 0x0
     SND_BANK_SLOT_FRONTEND_MENU       = 1, // 0x1
@@ -21,18 +21,18 @@ enum eSoundBankSlot : int32 {
     SND_BANK_SLOT_WEATHER             = 6, // 0x6
 
     /* Dummy vehicles */
-    SND_BANK_SLOT_DUMMY_FIRST         = 7,
-    SND_BANK_SLOT_DUMMY_ENGINE_0      = SND_BANK_SLOT_DUMMY_FIRST,
-    SND_BANK_SLOT_DUMMY_ENGINE_1      = 8, // 0x8
-    SND_BANK_SLOT_DUMMY_ENGINE_2      = 9, // 0x9
-    SND_BANK_SLOT_DUMMY_ENGINE_3      = 10, // 0xA
-    SND_BANK_SLOT_DUMMY_ENGINE_4      = 11, // 0xB
-    SND_BANK_SLOT_DUMMY_ENGINE_5      = 12, // 0xC
-    SND_BANK_SLOT_DUMMY_ENGINE_6      = 13, // 0xD
-    SND_BANK_SLOT_DUMMY_ENGINE_7      = 14, // 0xE
-    SND_BANK_SLOT_DUMMY_ENGINE_8      = 15, // 0xF
-    SND_BANK_SLOT_DUMMY_ENGINE_9      = 16, // 0x10
-    SND_BANK_SLOT_DUMMY_LAST          = SND_BANK_SLOT_DUMMY_ENGINE_9,
+    SND_BANK_SLOT_DUMMY_FIRST = 7,
+    SND_BANK_SLOT_DUMMY_ENGINE_0 = SND_BANK_SLOT_DUMMY_FIRST,
+    SND_BANK_SLOT_DUMMY_ENGINE_1, // 8 - 0x8
+    SND_BANK_SLOT_DUMMY_ENGINE_2, // 9 - 0x9
+    SND_BANK_SLOT_DUMMY_ENGINE_3, // 10 - 0xA
+    SND_BANK_SLOT_DUMMY_ENGINE_4, // 11 - 0xB
+    SND_BANK_SLOT_DUMMY_ENGINE_5, // 12 - 0xC
+    SND_BANK_SLOT_DUMMY_ENGINE_6, // 13 - 0xD
+    SND_BANK_SLOT_DUMMY_ENGINE_7, // 14 - 0xE
+    SND_BANK_SLOT_DUMMY_ENGINE_8, // 15 - 0xF
+    SND_BANK_SLOT_DUMMY_ENGINE_9, // 16 - 0x10
+    SND_BANK_SLOT_DUMMY_END,
 
     /* Other vehicle related */
     SND_BANK_SLOT_HORN_AND_SIREN      = 17, // 0x11
@@ -40,12 +40,14 @@ enum eSoundBankSlot : int32 {
     SND_BANK_SLOT_VEHICLE_GEN         = 19, // 0x13
 
     /* Ped speech */
-    SND_BANK_SLOT_SPEECH1             = 20, // 0x14
-    SND_BANK_SLOT_SPEECH2             = 21, // 0x15
-    SND_BANK_SLOT_SPEECH3             = 22, // 0x16
-    SND_BANK_SLOT_SPEECH4             = 23, // 0x17
-    SND_BANK_SLOT_SPEECH5             = 24, // 0x18
-    SND_BANK_SLOT_SPEECH6             = 25, // 0x19
+    SND_BANK_SLOT_SPEECH_FIRST = 20,
+    SND_BANK_SLOT_SPEECH1      = SND_BANK_SLOT_SPEECH_FIRST, // 20 - 0x14
+    SND_BANK_SLOT_SPEECH2,                                   // 21 - 0x15
+    SND_BANK_SLOT_SPEECH3,                                   // 22 - 0x16
+    SND_BANK_SLOT_SPEECH4,                                   // 23 - 0x17
+    SND_BANK_SLOT_SPEECH5,                                   // 24 - 0x18
+    SND_BANK_SLOT_SPEECH6,                                   // 25 - 0x19
+    SND_BANK_SLOT_SPEECH_END,
 
     /* Missions */
     SND_BANK_SLOT_MISSION1            = 26, // 0x1A
@@ -58,11 +60,13 @@ enum eSoundBankSlot : int32 {
     SND_BANK_SLOT_SWIMMING            = 32, // 0x20
 
     /* Scanners */
-    SND_BANK_SLOT_SCANNER_INSTRUCTION = 33, // 0x21
-    SND_BANK_SLOT_SCANNER_NUMBER      = 34, // 0x22
-    SND_BANK_SLOT_SCANNER_DIRECTION1  = 35, // 0x23
-    SND_BANK_SLOT_SCANNER_DIRECTION2  = 36, // 0x24
-    SND_BANK_SLOT_SCANNER_AREA        = 37, // 0x25
+    SND_BANK_SLOT_SCANNER_FIRST       = 33,
+    SND_BANK_SLOT_SCANNER_INSTRUCTION = SND_BANK_SLOT_SCANNER_FIRST, // 33 - 0x21
+    SND_BANK_SLOT_SCANNER_NUMBER,                                    // 34 - 0x22
+    SND_BANK_SLOT_SCANNER_DIRECTION1,                                // 35 - 0x23
+    SND_BANK_SLOT_SCANNER_DIRECTION2,                                // 36 - 0x24
+    SND_BANK_SLOT_SCANNER_AREA,                                      // 37 - 0x25
+    SND_BANK_SLOT_SCANNER_END,
 
     /* Misc stuff */
     SND_BANK_SLOT_TEST1               = 38, // 0x26

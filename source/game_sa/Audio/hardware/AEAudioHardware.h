@@ -80,13 +80,13 @@ public:
 
     float                   field_428{};
     float                   field_42C{};
-    union { // TODO: Get rid of the union, and use `m_VirtualChannelSettings` directly
-        tVirtualChannelSettings m_VirtualChannelSettings{};
-        struct {
-            int16 m_aBankSlotIds[MAX_NUM_SOUNDS];
-            int16 m_aSoundIdsInSlots[MAX_NUM_SOUNDS];
-        };
-    };
+    tVirtualChannelSettings m_VirtualChannelSettings{};
+    //union { // TODO: Get rid of the union, and use `m_VirtualChannelSettings` directly
+    //    struct {
+    //        int16 m_aBankSlotIds[MAX_NUM_SOUNDS];
+    //        int16 m_aSoundIdsInSlots[MAX_NUM_SOUNDS];
+    //    };
+    //};
     int16                   m_VirtualChannelLoopTimes[MAX_NUM_SOUNDS]{};
     int16                   m_VirtualChannelSoundLengths[MAX_NUM_SOUNDS]{};
 
@@ -114,7 +114,6 @@ public:
     ~CAEAudioHardware() = default;
 
     bool Initialise();
-    void InitOpenALListener();
     bool InitDirectSoundListener(uint32 numChannels, uint32 samplesPerSec, uint32 bitsPerSample);
     void Terminate();
 
@@ -125,28 +124,28 @@ public:
     void GetChannelPlayTimes(int16 channel, int16* playTimes);
     void SetChannelVolume(int16 channel, uint16 channelId, float volume, uint8 unused);
 
-    void LoadSoundBank(uint16 bankId, int16 bankSlotId);
-    bool IsSoundBankLoaded(uint16 bankId, int16 bankSlotId);
-    int8 GetSoundBankLoadingStatus(uint16 bankId, int16 bankSlotId);
+    void LoadSoundBank(eSoundBank bank, eSoundBankSlot slot);
+    bool IsSoundBankLoaded(eSoundBank bank, eSoundBankSlot slot);
+    int8 GetSoundBankLoadingStatus(eSoundBank bank, eSoundBankSlot slot);
     bool EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot slot, bool checkLoadingTune = false);
 
-    bool LoadSound(uint16 bank, uint16 sound, int16 slot);
-    bool IsSoundLoaded(uint16, uint16, int16);
-    bool GetSoundLoadingStatus(uint16 bankId, uint16 sfxId, int16 bankSlot);
+    bool LoadSound(eSoundBank bank, eSoundID sfx, eSoundBankSlot slot);
+    bool IsSoundLoaded(eSoundBank bank, eSoundID sfx, eSoundBankSlot slot);
+    bool GetSoundLoadingStatus(eSoundBank bank, eSoundID sfx, eSoundBankSlot slot);
 
-    void StopSound(int16 channel, uint16 channelSlot);
-    void SetChannelPosition(int16 slotId, uint16 channelSlot, const CVector& vecPos, uint8 unused);
+    void StopSound(int16 channel, uint16 channelSlot) const;
+    void SetChannelPosition(int16 slotId, uint16 channelSlot, const CVector& vecPos, uint8 unused) const;
     void SetChannelFrequencyScalingFactor(int16 channel, uint16 channelSlot, float freqFactor);
     void RescaleChannelVolumes();
     void UpdateReverbEnvironment();
-    float GetSoundHeadroom(uint16 soundId, int16 bankSlotId);
+    float GetSoundHeadroom(eSoundID sfx, eSoundBankSlot slot);
 
     void EnableEffectsLoading();
     void DisableEffectsLoading();
 
-    void RequestVirtualChannelSoundInfo(uint16 soundIndex, uint16 soundIdInSlot, uint16 bankSlotId);
-    void GetVirtualChannelSoundLengths(int16* outArr);
-    void GetVirtualChannelSoundLoopStartTimes(int16* outArr);
+    void RequestVirtualChannelSoundInfo(uint16 vch, eSoundID sfx, eSoundBankSlot slot);
+    void GetVirtualChannelSoundLengths(int16* outArr) const;
+    void GetVirtualChannelSoundLoopStartTimes(int16* outArr) const;
 
     void PlayTrack(uint32 trackID, int nextTrackID, uint32 startOffsetMs, uint8 trackFlags, bool bUserTrack, bool bUserNextTrack);
     void StartTrackPlayback() const;

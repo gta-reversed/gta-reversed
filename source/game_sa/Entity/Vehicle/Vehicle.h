@@ -658,6 +658,9 @@ public:
 
     auto GetPassengerIndex(const CPed* ped) const -> std::optional<size_t>;
 
+
+    auto GetHealth() const noexcept { return m_fHealth; }
+
     static void Shutdown();
     static void SetComponentAtomicAlpha(RpAtomic* atomic, int32 alpha);
 

@@ -17,7 +17,7 @@ CAEWeatherAudioEntity::CAEWeatherAudioEntity() : CAEAudioEntity() {
 
 // 0x5B9A70
 void CAEWeatherAudioEntity::StaticInitialise() {
-    AEAudioHardware.LoadSoundBank(105, 6);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_RAIN, SND_BANK_SLOT_WEATHER);
 }
 
 // 0x5052B0

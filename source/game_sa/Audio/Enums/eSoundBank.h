@@ -37,10 +37,14 @@ enum eSoundBank : int16 {
     SND_BANK_GENRL_BUICK_D                     = 25, // 0x19
     SND_BANK_GENRL_BUICK_P                     = 26, // 0x1A
     SND_BANK_GENRL_BULLET_HITS                 = 27, // 0x1B
-    SND_BANK_GENRL_BULLET_PASS_1               = 28, // 0x1C
+
+    SND_BANK_GENRL_BULLET_PASS_FIRST           = 28,
+    SND_BANK_GENRL_BULLET_PASS_1               = SND_BANK_GENRL_BULLET_PASS_FIRST,  // 0x1C
     SND_BANK_GENRL_BULLET_PASS_2               = 29, // 0x1D
     SND_BANK_GENRL_BULLET_PASS_3               = 30, // 0x1E
     SND_BANK_GENRL_BULLET_PASS_4               = 31, // 0x1F
+    SND_BANK_GENRL_BULLET_PASS_LAST            = SND_BANK_GENRL_BULLET_PASS_4,
+
     SND_BANK_GENRL_BUS_D                       = 32, // 0x20
     SND_BANK_GENRL_BUS_P                       = 33, // 0x21
     SND_BANK_GENRL_CADILLAC_D                  = 34, // 0x22

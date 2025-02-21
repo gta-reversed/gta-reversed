@@ -41,8 +41,8 @@ void CAESound::InjectHooks() {
 }
 
 CAESound::CAESound(CAESound& sound) {
-    m_nBankSlotId = sound.m_nBankSlotId;
-    m_nSoundIdInSlot = sound.m_nSoundIdInSlot;
+    m_BankSlot = sound.m_BankSlot;
+    m_SoundID = sound.m_SoundID;
     m_pBaseAudio = sound.m_pBaseAudio;
     m_nEvent = sound.m_nEvent;
     m_ClientVariable = sound.m_ClientVariable;
@@ -78,10 +78,10 @@ CAESound::CAESound(CAESound& sound) {
     NANCHECK()
 }
 
-CAESound::CAESound(int16 bankSlotId, int16 sfxId, CAEAudioEntity* baseAudio, CVector posn, float volume, float fDistance, float speed, float timeScale,
+CAESound::CAESound(eSoundBankSlot bankSlotId, eSoundID sfxId, CAEAudioEntity* baseAudio, CVector posn, float volume, float fDistance, float speed, float timeScale,
                    uint8 ignoredServiceCycles, eSoundEnvironment environmentFlags, float speedVariability) {
-    m_nBankSlotId = bankSlotId;
-    m_nSoundIdInSlot = sfxId;
+    m_BankSlot = bankSlotId;
+    m_SoundID = sfxId;
     m_pBaseAudio = baseAudio;
     m_vecPrevPosn = CVector(0.0f, 0.0f, 0.0f);
     m_pPhysicalEntity = nullptr;
@@ -117,8 +117,8 @@ CAESound& CAESound::operator=(const CAESound& sound) {
         return *this;
 
     CAESound::UnregisterWithPhysicalEntity();
-    m_nBankSlotId           = sound.m_nBankSlotId;
-    m_nSoundIdInSlot        = sound.m_nSoundIdInSlot;
+    m_BankSlot           = sound.m_BankSlot;
+    m_SoundID        = sound.m_SoundID;
     m_pBaseAudio            = sound.m_pBaseAudio;
     m_nEvent                = sound.m_nEvent;
     m_ClientVariable            = sound.m_ClientVariable;
@@ -244,7 +244,7 @@ void CAESound::NewVPSLentry() {
     m_nPlayingState = eSoundState::SOUND_ACTIVE;
     m_bWasServiced = 0;
     m_nIsUsed = 1;
-    m_fSoundHeadRoom = AEAudioHardware.GetSoundHeadroom(m_nSoundIdInSlot, m_nBankSlotId);
+    m_fSoundHeadRoom = AEAudioHardware.GetSoundHeadroom(m_SoundID, m_BankSlot);
     CalculateFrequency();
 }
 
@@ -309,15 +309,15 @@ void CAESound::CalculateVolume() {
 
 // 0x4EFE50
 void CAESound::Initialise(
-    int16 bankSlotId, int16 soundID, CAEAudioEntity* audioEntity, CVector pos, float volume, float rollOffFactor, float relativeFrequency, float doppler,
+    eSoundBankSlot bankSlotId, eSoundID soundID, CAEAudioEntity* audioEntity, CVector pos, float volume, float rollOffFactor, float relativeFrequency, float doppler,
                           uint8 frameDelay, uint32 flags, float frequencyVariance, int16 playTime)
 {
     assert((!(flags & SOUND_REQUEST_UPDATES) || audioEntity) && "SOUND_REQUEST_UPDATES flag requires `audioEntity` to be set!");
 
     UnregisterWithPhysicalEntity();
 
-    m_nSoundIdInSlot        = soundID;
-    m_nBankSlotId           = bankSlotId;
+    m_SoundID        = soundID;
+    m_BankSlot           = bankSlotId;
     m_pBaseAudio            = audioEntity;
     m_fVolume               = volume;
     m_fSoundDistance        = rollOffFactor;

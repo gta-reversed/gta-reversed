@@ -225,8 +225,10 @@ void CAEPedSpeechAudioEntity::Service() { // static
     s_bForceAudible = false;
     for (auto&& [i, speech] : notsa::enumerate(s_PedSpeechSlots)) {
         // Waiting for sound to load, and has loaded?
-        if (speech.Status == CAEPedSpeechSlot::eStatus::LOADING && AEAudioHardware.IsSoundLoaded(speech.SoundBankID, speech.SoundID, SND_BANK_SLOT_SPEECH1 + i)) {
-            speech.Status = CAEPedSpeechSlot::eStatus::WAITING;
+        if (speech.Status == CAEPedSpeechSlot::eStatus::LOADING) {
+            if (AEAudioHardware.IsSoundLoaded(speech.SoundBankID, speech.SoundID, (eSoundBankSlot)(SND_BANK_SLOT_SPEECH1 + i))) {
+                speech.Status = CAEPedSpeechSlot::eStatus::WAITING;
+            }
         }
 
         // Sound is now loaded, waiting to be played
@@ -742,7 +744,7 @@ void CAEPedSpeechAudioEntity::LoadAndPlaySpeech(uint32 playbackTimeOffsetMS) {
         return;
     }
 
-    VERIFY(AEAudioHardware.LoadSound(m_BankID, m_SoundID, SND_BANK_SLOT_SPEECH1 + m_PedSpeechSlotID));
+    VERIFY(AEAudioHardware.LoadSound(m_BankID, m_SoundID, (eSoundBankSlot)(SND_BANK_SLOT_SPEECH1 + m_PedSpeechSlotID)));
     *speech = CAEPedSpeechSlot{
         .Status            = CAEPedSpeechSlot::eStatus::LOADING,
         .AudioEntity       = this,
@@ -1428,7 +1430,7 @@ void CAEPedSpeechAudioEntity::I_PlayLoadedSound(CEntity* attachTo) {
         }
         CAESound s;
         s.Initialise(
-            SND_BANK_SLOT_SPEECH1 + m_PedSpeechSlotID,
+            (eSoundBankSlot)(SND_BANK_SLOT_SPEECH_FIRST + m_PedSpeechSlotID),
             m_SoundID,
             this,
             pos,

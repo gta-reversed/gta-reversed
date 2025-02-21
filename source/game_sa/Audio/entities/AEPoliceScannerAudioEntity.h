@@ -3,33 +3,20 @@
 #include "AEAudioEntity.h"
 
 struct tScannerSlot {
-    int16 bankId;
-    int16 sfxId;
+    eSoundBank Bank{SND_BANK_UNK};
+    eSoundID   SoundID{-1};
 
     tScannerSlot() {
         Clear();
     }
 
     void Clear() {
-        bankId = -1;
-        sfxId  = -1;
+        *this = tScannerSlot{};
     }
 
     // bad name?
-    [[nodiscard]] bool IsNotInitialized() const {
-        return bankId < 0 || sfxId < 0;
-    }
-
-    tScannerSlot& operator=(int16 value) {
-        bankId = value;
-        sfxId = value;
-        return *this;
-    }
-
-    tScannerSlot& operator=(const tScannerSlot& right) {
-        bankId = right.bankId;
-        sfxId = right.sfxId;
-        return *this;
+    [[nodiscard]] bool IsInUse() const {
+        return Bank < 0 || SoundID < 0;
     }
 };
 

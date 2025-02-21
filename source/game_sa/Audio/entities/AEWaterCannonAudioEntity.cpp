@@ -67,7 +67,7 @@ void CAEWaterCannonAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayP
 }
 
 // 0x502F80
-void CAEWaterCannonAudioEntity::UpdateGenericWaterCannonSound(bool splashInfoEnabled, int16 id, int16 bankSlotId, int16 sfxId, float speed, float volume, CVector posn, float soundDistance) {
+void CAEWaterCannonAudioEntity::UpdateGenericWaterCannonSound(bool splashInfoEnabled, int16 id, eSoundBankSlot bankSlotId, int16 sfxId, float speed, float volume, CVector posn, float soundDistance) {
     auto& sound = m_Sounds[id];
     if (splashInfoEnabled) {
         if (sound) {
@@ -105,7 +105,7 @@ void CAEWaterCannonAudioEntity::Service() {
 
     if (!m_bInitialized)
         return;
-    if (!AEAudioHardware.IsSoundBankLoaded(59, 0) || !AEAudioHardware.IsSoundBankLoaded(39, 2))
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME) || !AEAudioHardware.IsSoundBankLoaded( SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS))
         return;
 
     bool enabled = false;
@@ -117,10 +117,10 @@ void CAEWaterCannonAudioEntity::Service() {
     }
 
     const auto& sectionLastPoint = cannon->m_sectionPoint[cannon->m_nSectionsCount];
-    UpdateGenericWaterCannonSound(enabled,              0, 0, 0, speed0, volume0, sectionLastPoint, 2.0f);
-    UpdateGenericWaterCannonSound(enabled,              1, 2, 3, speed1, volume1, sectionLastPoint, 2.0f);
-    UpdateGenericWaterCannonSound(m_bSplashInfoEnabled, 2, 2, 3, speed2, volume2, m_vecPosn,        2.0f);
-    UpdateGenericWaterCannonSound(m_bSplashInfoEnabled, 3, 2, 3, speed3, volume3, m_vecPosn,        2.0f);
+    UpdateGenericWaterCannonSound(enabled,              0, SND_BANK_SLOT_FRONTEND_GAME, 0, speed0, volume0, sectionLastPoint, 2.0f);
+    UpdateGenericWaterCannonSound(enabled,              1, SND_BANK_SLOT_COLLISIONS,    3, speed1, volume1, sectionLastPoint, 2.0f);
+    UpdateGenericWaterCannonSound(m_bSplashInfoEnabled, 2, SND_BANK_SLOT_COLLISIONS,    3, speed2, volume2, m_vecPosn,        2.0f);
+    UpdateGenericWaterCannonSound(m_bSplashInfoEnabled, 3, SND_BANK_SLOT_COLLISIONS,    3, speed3, volume3, m_vecPosn,        2.0f);
 }
 
 void CAEWaterCannonAudioEntity::InjectHooks() {

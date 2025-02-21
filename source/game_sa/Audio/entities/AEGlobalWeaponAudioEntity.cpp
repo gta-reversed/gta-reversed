@@ -79,16 +79,12 @@ void CAEGlobalWeaponAudioEntity::ProjectileFire(eWeaponType weaponType, CPhysica
         });
     };
 
-    if (!AEAudioHardware.IsSoundBankLoaded(143, SND_BANK_SLOT_WEAPON_GEN)) {
-        if (!AudioEngine.IsLoadingTuneActive()) {
-            AEAudioHardware.LoadSoundBank(143, SND_BANK_SLOT_WEAPON_GEN);
-        }
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN, true)) {
         return;
     }
     PlayRocketSound(SND_BANK_SLOT_WEAPON_GEN, SND_GENRL_WEAPONS_ROCKET_LAUNCH, 1.f, -8.f);
 
-    if (!AEAudioHardware.IsSoundBankLoaded(138, SND_BANK_SLOT_VEHICLE_GEN)) {
-        AEAudioHardware.LoadSoundBank(138, SND_BANK_SLOT_VEHICLE_GEN);
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN)) {
         return;
     }
     PlayRocketSound(SND_BANK_SLOT_VEHICLE_GEN, SND_GENRL_WEAPONS_SNIPER_SHOT_L, 1.25f, 0.f);
@@ -145,7 +141,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
             break;
         }
         case WEATHER_REGION_LV: { // 0x4DF580
-            if (!AEAudioHardware.IsSoundBankLoaded(39u, SND_BANK_SLOT_COLLISIONS)) {
+            if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)) {
                 return;
             }
             if (!rng::all_of(pWaterfall, notsa::IsNull{})) {
@@ -256,12 +252,12 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
         if (s_LastTime + 6500 < CTimer::GetTimeInMS()) {
             return;
         }
-        if (!AEAudioHardware.IsSoundBankLoaded(59, 0)) { // BUG: Pretty sure the `bankSlotId` param should be 17 here
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) { // NB (Bug?): Why check this sound bank, when it's not even used below?
             return;
         }
         if (!pFogHorn) {
             pFogHorn = AESoundManager.PlaySound({
-                .BankSlot    = SND_BANK_SLOT_HORN_AND_SIREN,
+                .BankSlot      = SND_BANK_SLOT_HORN_AND_SIREN,
                 .SoundID       = 13,
                 .AudioEntity   = this,
                 .Pos           = s_FogHornPositions[1],

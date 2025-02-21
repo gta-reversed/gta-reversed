@@ -62,6 +62,9 @@ void CAETwinLoopSoundEntity::Initialise(
 // 0x4F29A0
 void CAETwinLoopSoundEntity::UpdateTwinLoopSound(CVector pos, float volume, float speed) {
     for (auto&& [i, sound] : notsa::enumerate(m_Sounds)) {
+        if (!sound) {
+            continue;
+        }
         sound->SetPosition(pos);
         if (i == (m_IsPlayingFirstSound ? 0 : 1)) {
             sound->SetVolume(volume);

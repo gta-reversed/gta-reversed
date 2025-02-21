@@ -63,8 +63,8 @@ void CAEPedAudioEntity::Initialise(CPed* ped) {
 
 // 0x5B98A0
 void CAEPedAudioEntity::StaticInitialise() {
-    AEAudioHardware.LoadSoundBank(0, 41);
-    AEAudioHardware.LoadSoundBank(128, 32);
+    AEAudioHardware.LoadSoundBank(SND_BANK_FEET_GENERIC, SND_BANK_SLOT_FOOTSTEPS_GENERIC);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_SWIMMING, SND_BANK_SLOT_SWIMMING);
 }
 
 // 0x4E1360
@@ -127,12 +127,12 @@ void CAEPedAudioEntity::AddAudioEvent(eAudioEvents event, float volume, float sp
         HandleSwimWake(event);
         break;
     case AE_PED_CRUNCH: {
-        if (!AEAudioHardware.IsSoundBankLoaded(39u, 2) || AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_PED_CRUNCH, this))
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS) || AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_PED_CRUNCH, this))
             break;
 
         const auto vol = GetDefaultVolume(AE_PED_CRUNCH) + volume;
         CAESound sound;
-        sound.Initialise(2, 29, this, ped->GetPosition(), vol, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
+        sound.Initialise(SND_BANK_SLOT_COLLISIONS, 29, this, ped->GetPosition(), vol, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
         sound.m_fSpeed = speed;
         sound.m_fSpeedVariability = 0.06f;
         sound.m_fSoundDistance = 1.5f;
@@ -143,7 +143,7 @@ void CAEPedAudioEntity::AddAudioEvent(eAudioEvents event, float volume, float sp
             break;
 
         auto RandomNumberInRange = CAEAudioUtility::GetRandomNumberInRange(47, 49);
-        sound.Initialise(2, RandomNumberInRange, this, ped->GetPosition(), vol, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
+        sound.Initialise(SND_BANK_SLOT_COLLISIONS, RandomNumberInRange, this, ped->GetPosition(), vol, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
         sound.m_fSpeed = speed;
         sound.m_fSpeedVariability = 0.06f;
         sound.m_fSoundDistance = 1.5f;
@@ -171,17 +171,17 @@ void CAEPedAudioEntity::TurnOnJetPack() {
 
     m_bJetPackPlaying = true;
 
-    m_tempSound.Initialise(19, 26, this, m_pPed->GetPosition(), -100.0f, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
+    m_tempSound.Initialise(SND_BANK_SLOT_VEHICLE_GEN, 26, this, m_pPed->GetPosition(), -100.0f, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
     m_tempSound.m_fSpeed = 1.0f;
     m_tempSound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES;
     m_JetPackSound0 = AESoundManager.RequestNewSound(&m_tempSound);
 
-    m_tempSound.Initialise(5, 10, this, m_pPed->GetPosition(), -100.0f, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
+    m_tempSound.Initialise(SND_BANK_SLOT_WEAPON_GEN, 10, this, m_pPed->GetPosition(), -100.0f, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
     m_tempSound.m_fSpeed = 1.0f;
     m_tempSound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES;
     m_JetPackSound1 = AESoundManager.RequestNewSound(&m_tempSound);
 
-    m_tempSound.Initialise(0, 0, this, m_pPed->GetPosition(), -100.0f, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
+    m_tempSound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 0, this, m_pPed->GetPosition(), -100.0f, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
     m_tempSound.m_fSpeed = 1.0f;
     m_tempSound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES;
     m_JetPackSound2 = AESoundManager.RequestNewSound(&m_tempSound);
@@ -352,8 +352,7 @@ void CAEPedAudioEntity::HandleSkateEvent(eAudioEvents event, float volume, float
     if (m_pPed->bIsInTheAir)
         return;
 
-    if (!AEAudioHardware.IsSoundBankLoaded(0, 41)) {
-        AEAudioHardware.LoadSoundBank(0, 41);
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_FEET_GENERIC, SND_BANK_SLOT_FOOTSTEPS_GENERIC)) {
         return;
     }
 
@@ -363,7 +362,7 @@ void CAEPedAudioEntity::HandleSkateEvent(eAudioEvents event, float volume, float
         + volume
     );
     const auto sfxId = (event != AE_PED_SKATE_LEFT) + 7; // what?
-    m_tempSound.Initialise(41, sfxId, this, m_pPed->GetPosition(), vol, 1.0f, speed, 1.0f, 0, SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY, 0.0588f, 0);
+    m_tempSound.Initialise(SND_BANK_SLOT_FOOTSTEPS_GENERIC, sfxId, this, m_pPed->GetPosition(), vol, 1.0f, speed, 1.0f, 0, SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY, 0.0588f, 0);
     m_tempSound.RegisterWithPhysicalEntity(m_pPed);
     AESoundManager.RequestNewSound(&m_tempSound);
 }
@@ -373,29 +372,27 @@ void CAEPedAudioEntity::HandleLandingEvent(eAudioEvents event) {
     if (m_pPed->bIsInTheAir)
         return;
 
-    int16 bankSlotId;
+    eSoundBankSlot bankSlotId;
     int16 sfxId;
     int16 playPosn;
     auto volume = GetDefaultVolume(event);
     if (g_surfaceInfos.IsAudioWater(m_pPed->m_nContactSurface)) {
-        if (!AEAudioHardware.IsSoundBankLoaded(128u, 32)) {
-            AEAudioHardware.LoadSoundBank(128, 32);
+        if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_SWIMMING, SND_BANK_SLOT_SWIMMING)) {
             return;
         }
 
-        bankSlotId = 32;
+        bankSlotId = SND_BANK_SLOT_SWIMMING;
         sfxId = CAEAudioUtility::GetRandomNumberInRange(0, 4);
         playPosn = 50;
         if (volume <= 0.0f) {
             volume = 0.0f;
         }
     } else {
-        if (!AEAudioHardware.IsSoundBankLoaded(0, 41)) {
-            AEAudioHardware.LoadSoundBank(0, 41);
+        if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_FEET_GENERIC, SND_BANK_SLOT_FOOTSTEPS_GENERIC)) {
             return;
         }
 
-        bankSlotId = 41;
+        bankSlotId = SND_BANK_SLOT_FOOTSTEPS_GENERIC;
         sfxId = event != 58 ? 0 : 6;
         playPosn = 0;
     }
@@ -423,14 +420,13 @@ void CAEPedAudioEntity::HandlePedJacked(eAudioEvents event) {
 
 // 0x4E26A0
 void CAEPedAudioEntity::HandleSwimSplash(eAudioEvents event) {
-    if (!AEAudioHardware.IsSoundBankLoaded(128, 32)) {
-        AEAudioHardware.LoadSoundBank(128, 32);
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_SWIMMING, SND_BANK_SLOT_SWIMMING)) {
         return;
     }
 
     const auto volume = GetDefaultVolume(event);
     m_nSfxId = std::max(0, m_nSfxId + 1);
-    m_tempSound.Initialise(32, m_nSfxId, this, m_pPed->GetPosition(), volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
+    m_tempSound.Initialise(SND_BANK_SLOT_SWIMMING, m_nSfxId, this, m_pPed->GetPosition(), volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
     m_tempSound.m_fSpeedVariability = 0.0588f;
     m_tempSound.SetIndividualEnvironment(SOUND_PLAY_PHYSICALLY | SOUND_START_PERCENTAGE | SOUND_UNDUCKABLE, true);
     m_tempSound.RegisterWithPhysicalEntity(m_pPed);
@@ -444,9 +440,9 @@ void CAEPedAudioEntity::HandleSwimWake(eAudioEvents event) {
         return;
     }
 
-    if (AEAudioHardware.IsSoundBankLoaded(39u, 2)) {
+    if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)) {
         auto volume = GetDefaultVolume(event) - 20.0f;
-        m_tempSound.Initialise(2, 3, this, m_pPed->GetPosition(), volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
+        m_tempSound.Initialise(SND_BANK_SLOT_COLLISIONS, 3, this, m_pPed->GetPosition(), volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
         m_tempSound.m_fSpeed = 0.75f;
         m_tempSound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES | SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY;
         m_tempSound.m_nEvent = event;
@@ -457,7 +453,7 @@ void CAEPedAudioEntity::HandleSwimWake(eAudioEvents event) {
     }
 
     if (!AudioEngine.IsLoadingTuneActive()) {
-        AEAudioHardware.LoadSoundBank(39, 2);
+        AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS);
     }
 }
 

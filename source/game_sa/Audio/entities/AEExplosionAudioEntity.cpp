@@ -14,16 +14,16 @@ CAEExplosionAudioEntity::CAEExplosionAudioEntity() {
 }
 
 void CAEExplosionAudioEntity::StaticInitialise() {
-    AEAudioHardware.LoadSoundBank(52, 4);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_EXPLOSIONS, SND_BANK_SLOT_EXPLOSIONS);
 }
 
 // 0x4DCBE0
 void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& posn, float volume) {
-    if (audioEvent != AE_EXPLOSION)
+    if (audioEvent != AE_EXPLOSION) {
         return;
+    }
 
-    if (!AEAudioHardware.IsSoundBankLoaded(52, 4)) {
-        AEAudioHardware.LoadSoundBank(52, 4);
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_EXPLOSIONS, SND_BANK_SLOT_EXPLOSIONS)) {
         return;
     }
 
@@ -32,13 +32,13 @@ void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& po
 
     CAESound sound;
 
-    sound.Initialise(4, 4, this, posn, vol0, 2.0f, gfExplosionFrequencyVariations[m_Speed], 1.0f, 0, SOUND_REQUEST_UPDATES, 0.06f, 0);
+    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 4, this, posn, vol0, 2.0f, gfExplosionFrequencyVariations[m_Speed], 1.0f, 0, SOUND_REQUEST_UPDATES, 0.06f, 0);
     AESoundManager.RequestNewSound(&sound);
 
-    sound.Initialise(4, 3, this, posn, vol0, 4.0f, gfExplosionFrequencyVariations[m_Speed], 1.0f, 0, SOUND_REQUEST_UPDATES, 0.06f, 0);
+    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 3, this, posn, vol0, 4.0f, gfExplosionFrequencyVariations[m_Speed], 1.0f, 0, SOUND_REQUEST_UPDATES, 0.06f, 0);
     AESoundManager.RequestNewSound(&sound);
 
-    sound.Initialise(4, 2, this, posn, vol0, 7.5f, gfExplosionFrequencyVariations[m_Speed], 1.0f, 0, SOUND_REQUEST_UPDATES, 0.06f, 0);
+    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 2, this, posn, vol0, 7.5f, gfExplosionFrequencyVariations[m_Speed], 1.0f, 0, SOUND_REQUEST_UPDATES, 0.06f, 0);
     AESoundManager.RequestNewSound(&sound);
 
     float speed_a, speed_b;
@@ -53,10 +53,10 @@ void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& po
     auto vol1 = CAEAudioEnvironment::GetDistanceAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(posn).Magnitude() / 12.0f) + vol0 - 3.0f;
     auto flags = static_cast<eSoundEnvironment>(SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_REQUEST_UPDATES | SOUND_FRONT_END);
 
-    sound.Initialise(4, 1, this, { -1.0f, 0.0f, 0.0f }, vol1, 12.0f, speed_a, 1.0f, 0, flags, 0.0f, 0);
+    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 1, this, { -1.0f, 0.0f, 0.0f }, vol1, 12.0f, speed_a, 1.0f, 0, flags, 0.0f, 0);
     AESoundManager.RequestNewSound(&sound);
 
-    sound.Initialise(4, 1, this, { 1.0f, 0.0f, 0.0f }, vol1, 12.0f, speed_b, 1.0f, 0, flags, 0.0f, 0);
+    sound.Initialise(SND_BANK_SLOT_EXPLOSIONS, 1, this, { 1.0f, 0.0f, 0.0f }, vol1, 12.0f, speed_b, 1.0f, 0, flags, 0.0f, 0);
     AESoundManager.RequestNewSound(&sound);
 }
 
