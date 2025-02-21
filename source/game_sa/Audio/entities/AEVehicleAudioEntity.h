@@ -157,6 +157,82 @@ protected: // Config:
         } Nitro;
 
         struct {
+            struct {
+                float FrqMin{ 0.9f }, FrqMax{ 1.1f };   // 0x8CC000, 0x8CC004
+                float VolMin{ -24.f }, VolMax{ -21.f }; // 0x8CBFF8, w0x8CBFFC
+                float RollOff{ 1.f };                   // 0x8CC008
+            } SteamSound;
+
+            struct {
+                float FrqMin{ 0.9f }, FrqMax{ 1.2f };   // 0x8CC014, 0x8CC018
+                float VolMin{ -24.f }, VolMax{ -18.f }; // 0x8CC00C, 0x8CC010
+                float RollOff{ 2.5f };                  // 0x8CC01C
+            } FuckedSound;
+        } EngineDamage;
+
+        struct {
+            float StepDown{0.2f}, StepUp{0.2f}; // 0x8CC04C, 0x8CC048
+            float AngleDeltaFactor{30.f}; // 8CC050
+
+            struct Props {
+                std::optional<eSoundBankSlot> Slot{}; // `m_DummySlot` is used if nullopt
+                eSoundBank     Bank{};
+                eSoundID       Sfx{};
+                struct { // Either of these 2 is used based on the delta of the part angle, see `ProcessMovingParts`
+                    float Frq{};
+                    float Vol{};
+                } SoundParamsByPartDir[2]{};
+            };
+            std::unordered_map<eModelID, Props> PropsByModel{
+                {MODEL_DUMPER, Props{
+                    .Slot = SND_BANK_SLOT_VEHICLE_GEN,
+                    .Bank = SND_BANK_GENRL_VEHICLE_GEN,
+                    .Sfx = 15,
+                    .SoundParamsByPartDir = {
+                        {0.9f, 14.f}, // 0x8CC090, 0x8CC088
+                        {1.1f, 20.f}, // 0x8CC08C, 0x8CC084
+                    }
+                }},
+                {MODEL_PACKER, Props{
+                    .Slot = SND_BANK_SLOT_VEHICLE_GEN,
+                    .Bank = SND_BANK_GENRL_VEHICLE_GEN,
+                    .Sfx = 15,
+                    .SoundParamsByPartDir = {
+                        {0.8f, 3.f}, // 0x8CC070, 0x8CC068,
+                        {1.f, 9.f},  // 0x8CC06C, 0x8CC064
+                    }
+                }},
+                {MODEL_DOZER, Props{
+                    .Slot = SND_BANK_SLOT_VEHICLE_GEN,
+                    .Bank = SND_BANK_GENRL_VEHICLE_GEN,
+                    .Sfx = 15,
+                    .SoundParamsByPartDir = {
+                        {0.9f, 2.f}, // 0x8CC080, 0x8CC078
+                        {1.1f, 6.f}, // 0x8CC07C, 0x8CC074
+                    }
+                }},
+                {MODEL_FORKLIFT, Props{
+                    .Slot = std::nullopt,
+                    .Bank = SND_BANK_GENRL_FORKLIFT_D,
+                    .Sfx = 2,
+                    .SoundParamsByPartDir = {
+                        {0.8f, -18.f}, // 0x8CC060, 0x8CC058
+                        {1.f, -6.f}    // 0x8CC05C, 0x8CC054,
+                    }
+                }},
+                {MODEL_ANDROM, Props{
+                    .Slot = SND_BANK_SLOT_VEHICLE_GEN,
+                    .Bank = SND_BANK_GENRL_VEHICLE_GEN,
+                    .Sfx = 15,
+                    .SoundParamsByPartDir = {
+                        {0.8f, 21.f}, // 0x8CC0A0, 0x8CC098
+                        {1.f, 24.f},  // 0x8CC09C, 0x8CC094
+                    }
+                }}
+            };
+        } MovingParts;
+
+        struct {
             float VolBaseOfSeaplane{ 12.f };     //	0x8CBEDC
             float VolBase{ 3.f };                //	0x8CBED8
             float VolUnderwaterOffset{ 6.f };    //	0x8CBEF0
@@ -409,7 +485,7 @@ public:
     static inline auto& s_HelicoptorsDisabled           = StaticRef<bool>(0xB6B994);
     static inline auto& s_NextDummyEngineSlot           = StaticRef<int16>(0xB6B998);
     static inline auto& s_pVehicleAudioSettingsForRadio = StaticRef<tVehicleAudioSettings*>(0xB6B98C);
-    static inline auto& s_DummyEngineSlots              = StaticRef<std::array<tDummyEngineSlot, SND_BANK_SLOT_DUMMY_LAST - SND_BANK_SLOT_DUMMY_FIRST>>(0xB6B9A0);
+    static inline auto& s_DummyEngineSlots              = StaticRef<std::array<tDummyEngineSlot, SND_BANK_SLOT_DUMMY_END - SND_BANK_SLOT_DUMMY_FIRST>>(0xB6B9A0);
 
 public:
     CAEVehicleAudioEntity();
@@ -472,11 +548,10 @@ public:
     void  UpdateOrRequestVehicleEngineSound(eVehicleEngineSoundType st, float freq, float volume);
     void  StopGenericEngineSound(int16 index);
     bool  UpdateGenericEngineSound(int16 index, float fVolume = 1.0f, float fSpeed = 1.0f);
-    bool  PlayGenericEngineSound(int16 index, int16 bank, int16 slotInBank, float fVolume = 1.0f, float fSpeed = 1.0f, float fSoundDistance = 1.0f, float fTimeScale = 1.0f, eSoundEnvironment individualEnvironment = SOUND_REQUEST_UPDATES, int16 playPos = 0);
 
     void UpdateGasPedalAudio(CVehicle* vehicle, int32 vehType);
     void UpdateBoatSound(eBoatEngineSoundType st, eSoundBankSlot bslot, eSoundID sfx, float speed, float volume);
-    void UpdateTrainSound(int16 engineState, int16 bankSlotId, int16 sfxId, float speed, float volume);
+    void UpdateTrainSound(int16 engineState, eSoundBankSlot bankSlotId, eSoundID sfxId, float speed, float volume);
     void UpdateGenericVehicleSound(eVehicleEngineSoundType st, eSoundBankSlot bankSlot, eSoundBank bank, eSoundID sfx, float speed, float volume, float rollOff);
 
 
@@ -557,7 +632,7 @@ public:
     void ProcessSpecialVehicle(tVehicleParams& params);
 
 #undef PlaySound
-    CAESound* PlaySound(int16 bank, int16 slotInBank,
+    CAESound* PlaySound(eSoundBankSlot bankSlot, eSoundID sound,
                         float fVolume = 1.0f, float fSpeed = 1.0f, float fSoundDistance = 1.0f,
                         float fTimeScale = 1.0f, eSoundEnvironment individualEnvironment = SOUND_REQUEST_UPDATES, int16 playPos = 0);
 
@@ -566,7 +641,7 @@ public:
 private:
     void ProcessPropStall(CPlane* plane, float& outVolume, float& outFreq);
     bool EnsureHasDummySlot() noexcept;
-    bool EnsureSoundBankIsLoaded(bool isDummy = true);
+    bool EnsureSoundBankIsLoaded(bool isDummy);
     auto GetEngineSound(eVehicleEngineSoundType st) const noexcept { return m_EngineSounds[st].Sound; }
     void StopNonEngineSounds() noexcept;
 
