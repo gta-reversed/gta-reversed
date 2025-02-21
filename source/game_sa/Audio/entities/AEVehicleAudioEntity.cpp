@@ -2245,21 +2245,19 @@ void CAEVehicleAudioEntity::ProcessMovingParts(tVehicleParams& vp) {
     default:
         return;
     }
-
+    
     const auto delta = (float)(a->m_wMiscComponentAngle - a->m_wMiscComponentAnglePrev) / cfg->AngleDeltaFactor;
-    const auto speed = std::clamp<float>(std::fabs(delta), 0.0f, 1.0f);
-    m_MovingPartSmoothedSpeed = notsa::step_to(m_MovingPartSmoothedSpeed, speed, cfg->StepUp, cfg->StepDown, true);
+    m_MovingPartSmoothedSpeed = notsa::step_to(
+        m_MovingPartSmoothedSpeed,
+        std::clamp<float>(std::fabs(delta), 0.0f, 1.0f),
+        cfg->StepUp, cfg->StepDown,
+        true
+    );
 
     const auto* const props   = &cfg->PropsByModel.at(vp.Vehicle->GetModelID());
     const auto        slot    = props->Slot.value_or(m_DummySlot);
-
-    if (notsa::IsFixBugs()) {
-        if (!AEAudioHardware.EnsureSoundBankIsLoaded(props->Bank, slot)) {
-            return;
-        }
-    }
-
     const auto* const params = &props->SoundParamsByPartDir[delta <= 0.f ? 0 : 1];
+
     const auto volume = params->Vol + CAEAudioUtility::AudioLog10(m_MovingPartSmoothedSpeed) * 20.0f;
     if (volume <= -100.0f) {
         StopGenericEngineSound(AE_SOUND_MOVING_PARTS);
