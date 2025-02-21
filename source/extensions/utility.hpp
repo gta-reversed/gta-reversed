@@ -5,6 +5,7 @@
 #include <Vector.h>
 #include <unordered_map>
 #include "Base.h"
+#include <game_sa/Timer.h>
 
 namespace notsa {
 //template<typename TChar, size_t N>
