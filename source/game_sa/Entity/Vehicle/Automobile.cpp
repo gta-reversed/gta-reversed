@@ -3749,30 +3749,36 @@ bool CAutomobile::UpdateMovingCollision(float angle) {
             return false;
 
         pad = driver->GetPadFromPlayer();
-    }
-    else if (!IsCreatedBy(MISSION_VEHICLE) || angle < 0.0f
-        || !ModelIndices::HasMiscComponent(m_nModelIndex) && !ModelIndices::IsFireTruckLadder(m_nModelIndex))
-    {
-        return false;
+    } else {
+        if (   !IsCreatedBy(MISSION_VEHICLE)
+            || angle < 0.0f
+            || !ModelIndices::HasMiscComponent(m_nModelIndex) && !ModelIndices::IsFireTruckLadder(m_nModelIndex)
+        ) {
+            return false;
+        }
     }
 
-    if (!ModelIndices::IsCementTruck(m_nModelIndex) && !ModelIndices::IsFireTruckLadder(m_nModelIndex)) {
-        CColModel* colModel = GetVehicleModelInfo()->GetColModel();
-        CCollisionData* colData = colModel->m_pColData;
+    if (!ModelIndices::IsCementTruck(m_nModelIndex) && !ModelIndices::IsFireTruckLadder(m_nModelIndex)) { // Inverted(!)
+        CColModel* cm = GetVehicleModelInfo()->GetColModel();
+        CCollisionData* cd = cm->m_pColData;
         if (!GetSpecialColModel()) {
             return false;
         }
+
         CColModel& specialColModel = m_aSpecialColModel[m_vehicleSpecialColIndex];
         CCollisionData* specialColData = specialColModel.m_pColData;
+
         m_wMiscComponentAnglePrev = m_wMiscComponentAngle;
+
         if (angle < 0.0f) {
-            if (!pad || std::fabs((float)pad->GetCarGunUpDown()) <= 10.0f)
+            if (!pad || std::abs(pad->GetCarGunUpDown()) <= 10) {
                 return false;
+            }
         }
+
         if (angle >= 0.0f) {
             m_wMiscComponentAngle = static_cast<uint16>(angle * DEFAULT_COLLISION_EXTENDLIMIT);
-        }
-        else {
+        } else {
             float colAngleMult = 10.0f;
             if (ModelIndices::IsForklift(m_nModelIndex) ) {
                 if ((float)pad->GetCarGunUpDown() >= 0.0f)
@@ -3824,9 +3830,9 @@ bool CAutomobile::UpdateMovingCollision(float angle) {
         for (uint16 triIndx = 0; triIndx < specialColData->m_nNumTriangles; triIndx++) {
             CColTriangle& specialColTriangle = specialColData->m_pTriangles[triIndx];
             if (specialColTriangle.m_nMaterial == SURFACE_CAR_MOVINGCOMPONENT) {
-                const CColTriangle& colTriangle = colData->m_pTriangles[triIndx];
+                const CColTriangle& colTriangle = cd->m_pTriangles[triIndx];
                 for (int32 i = 0; i < 3; i++) {
-                    CVector vertexPos = UncompressVector(colData->m_pVertices[colTriangle.m_vertIndices[i]]);
+                    CVector vertexPos = UncompressVector(cd->m_pVertices[colTriangle.m_vertIndices[i]]);
                     CVector distance  = vertexPos - componentPos;
                     vertexPos = rotMatrix.TransformPoint(distance) + componentPos;
                     specialColData->m_pVertices[specialColTriangle.m_vertIndices[i]] = CompressVector(vertexPos);
@@ -3848,7 +3854,7 @@ bool CAutomobile::UpdateMovingCollision(float angle) {
         for (uint16 i = 0; i < specialColData->m_nNumSpheres; i++) {
             CColSphere& specialColSphere = specialColData->m_pSpheres[i];
             if (specialColSphere.m_Surface.m_nMaterial == SURFACE_CAR_MOVINGCOMPONENT) {
-                CColSphere& colSphere = colData->m_pSpheres[i];
+                CColSphere& colSphere = cd->m_pSpheres[i];
                 CVector distance = colSphere.m_vecCenter - componentPos;
                 specialColSphere.m_vecCenter = (rotMatrix.TransformPoint(distance)) + componentPos;
                 const float newMaxZ = specialColSphere.m_fRadius + specialColSphere.m_vecCenter.z;
@@ -3859,23 +3865,23 @@ bool CAutomobile::UpdateMovingCollision(float angle) {
                     minZ = newMinZ;
             }
         }
-        if (colModel->GetBoundingBox().m_vecMax.z < maxZ)
+        if (cm->GetBoundingBox().m_vecMax.z < maxZ)
             specialColModel.GetBoundingBox().m_vecMax.z = maxZ;
-        if (colModel->GetBoundingBox().m_vecMin.z > minZ)
+        if (cm->GetBoundingBox().m_vecMin.z > minZ)
             specialColModel.GetBoundingBox().m_vecMin.z = minZ;
         return true;
     }
 
     m_wMiscComponentAnglePrev = m_wMiscComponentAngle;
-    if (angle >= 0.0f) {
-        m_wMiscComponentAngle = static_cast<uint16>(angle * DEFAULT_COLLISION_EXTENDLIMIT);
+    if (angle >= 0.0f) { // Inverted
+        m_wMiscComponentAngle = static_cast<uint16>(angle * DEFAULT_COLLISION_EXTENDLIMIT); // 0x6A1DA6
         return false;
     }
 
     if (!pad)
         return false;
 
-    if ((float)pad->GetCarGunUpDown() < -10.0f) {
+    if (pad->GetCarGunUpDown() < -10) {
         m_wMiscComponentAngle -= static_cast<uint16>(2 * ((float)pad->GetCarGunUpDown() / 128.0f) * 10.0f * CTimer::GetTimeStep());
         m_wMiscComponentAngle = std::min(m_wMiscComponentAngle, DEFAULT_COLLISION_EXTENDLIMIT);
         return false;

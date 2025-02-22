@@ -393,7 +393,13 @@ F wrap(F x, F min, F max) {
     return (x < 0 ? max : min) + std::fmod(x, max - min);
 }
 
-// Step `x` towards `to` in steps
+/*!
+* @brief Step `x` towards `to` in steps
+* @brief This function is useful for interpolating changing values
+* @arg stepUp The step size when `x` is less than `to`
+* @arg stepDown The step size when `x` is greater than `to`
+* @arg useTimeStep Whether to use timestep for calculating the correct step size (Avoids FPS related issues somewhat)
+*********/
 template<std::floating_point F>
 F step_to(F x, F to, F stepUp, F stepDown, bool useTimeStep = false) {
     assert(stepDown > 0.f);
