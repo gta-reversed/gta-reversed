@@ -34,6 +34,17 @@ struct WEnum {
 
     //! Get the underlaying value
     constexpr StoreAs get_underlying() const noexcept { return m_Value; }
+// std::format support for `WEnum`
+template<typename Enum, typename StoreAs>
+struct std::formatter<WEnum<Enum, StoreAs>> : std::formatter<std::string> {
+    auto format(auto e, format_context& ctx) const {
+        if constexpr (requires { EnumToString(e.get()); }) {
+            if (const auto name = EnumToString(e.get())) {
+                return formatter<string>::format(*name, ctx);
+            }
+        }
+        return formatter<string>::format(std::format("{} ({})", typeid(Enum).name(), e.get_underlying()), ctx);
+    }
 };
 
 template<typename E>
