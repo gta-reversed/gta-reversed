@@ -14,6 +14,7 @@
 #include "./Audio/UserRadioTrackDebugModule.h"
 #include "./Audio/Entities/PoliceScannerAudioEntityDebugModule.h"
 #include "./Audio/Entities/VehicleAudioEntityDebugModule.hpp"
+#include "./Audio/AudioDebugModule.hpp"
 #include "./CStreamingDebugModule.h"
 #include "./CPickupsDebugModule.h"
 #include "./CDarkelDebugModule.h"
@@ -103,6 +104,7 @@ void DebugModules::CreateModules() {
     Add<CPickupsDebugModule>();
     Add<PoliceScannerAudioEntityDebugModule>();
     Add<notsa::debugmodules::VehicleAudioEntityDebugModule>();
+    Add<notsa::debugmodules::AudioDebugModule>();
     Add<AmbienceTrackManagerDebugModule>();
     Add<CutsceneTrackManagerDebugModule>();
     Add<UserRadioTrackDebugModule>();

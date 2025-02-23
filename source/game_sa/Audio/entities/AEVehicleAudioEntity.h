@@ -551,7 +551,7 @@ public:
 
     void UpdateGasPedalAudio(CVehicle* vehicle, int32 vehType);
     void UpdateBoatSound(eBoatEngineSoundType st, eSoundBankSlot bslot, eSoundID sfx, float speed, float volume);
-    void UpdateTrainSound(int16 engineState, eSoundBankSlot bankSlotId, eSoundID sfxId, float speed, float volume);
+    void UpdateTrainSound(eTrainEngineSoundType st, eSoundBankSlot slot, eSoundID sfx, float speed, float volume);
     void UpdateGenericVehicleSound(eVehicleEngineSoundType st, eSoundBankSlot bankSlot, eSoundBank bank, eSoundID sfx, float speed, float volume, float rollOff);
 
 
@@ -729,70 +729,66 @@ private:
 };
 VALIDATE_SIZE(CAEVehicleAudioEntity, 0x24C);
 
-inline std::string_view EnumToString(CAEVehicleAudioEntity::eAEState s) {
+inline std::optional<const char*> EnumToString(CAEVehicleAudioEntity::eAEState s) {
     using enum CAEVehicleAudioEntity::eAEState;
-    using namespace std::string_view_literals;
     switch (s) {
-    case CAR_OFF:               return "CAR_OFF"sv;
-    case DUMMY_ID:              return "DUMMY_ID"sv;
-    case DUMMY_CRZ:             return "DUMMY_CRZ"sv;
-    case PLAYER_AC_FULL:        return "PLAYER_AC_FULL"sv;
-    case PLAYER_WHEEL_SPIN:     return "PLAYER_WHEEL_SPIN"sv;
-    case PLAYER_CRZ:            return "PLAYER_CRZ"sv;
-    case PLAYER_ID:             return "PLAYER_ID"sv;
-    case PLAYER_REVERSE:        return "PLAYER_REVERSE"sv;
-    case PLAYER_REVERSE_OFF:    return "PLAYER_REVERSE_OFF"sv;
-    case PLAYER_FAILING_TO_AC:  return "PLAYER_FAILING_TO_AC"sv;
-    default:                    return "<invalid>";
+    case CAR_OFF:               return "CAR_OFF";
+    case DUMMY_ID:              return "DUMMY_ID";
+    case DUMMY_CRZ:             return "DUMMY_CRZ";
+    case PLAYER_AC_FULL:        return "PLAYER_AC_FULL";
+    case PLAYER_WHEEL_SPIN:     return "PLAYER_WHEEL_SPIN";
+    case PLAYER_CRZ:            return "PLAYER_CRZ";
+    case PLAYER_ID:             return "PLAYER_ID";
+    case PLAYER_REVERSE:        return "PLAYER_REVERSE";
+    case PLAYER_REVERSE_OFF:    return "PLAYER_REVERSE_OFF";
+    case PLAYER_FAILING_TO_AC:  return "PLAYER_FAILING_TO_AC";
+    default:                    return std::nullopt;
     }
 }
 
-inline std::string_view EnumToString(CAEVehicleAudioEntity::eCarEngineSoundType st) {
-    using namespace std::string_view_literals;
+inline std::optional<const char*> EnumToString(CAEVehicleAudioEntity::eCarEngineSoundType st) {
     switch (st) {
-    case CAEVehicleAudioEntity::AE_SOUND_ENGINE_OFF:    return "ENGINE_OFF"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_CAR_REV:       return "CAR_REV"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_CAR_ID:        return "CAR_ID"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_CRZ:    return "PLAYER_CRZ"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_AC:     return "PLAYER_AC"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_OFF:    return "PLAYER_OFF"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_REVERSE:return "PLAYER_REVERSE"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_NITRO1:        return "NITRO1"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_NITRO2:        return "NITRO2"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_STEAM:         return "STEAM"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_FUCKED:        return "FUCKED"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_MOVING_PARTS:  return "MOVING_PARTS"sv;
-    case CAEVehicleAudioEntity::AE_SOUND_ENGINE_MAX:    return "ENGINE_MAX"sv;
-    default:                                            return "<invalid>";
+    case CAEVehicleAudioEntity::AE_SOUND_ENGINE_OFF:    return "ENGINE_OFF";
+    case CAEVehicleAudioEntity::AE_SOUND_CAR_REV:       return "CAR_REV";
+    case CAEVehicleAudioEntity::AE_SOUND_CAR_ID:        return "CAR_ID";
+    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_CRZ:    return "PLAYER_CRZ";
+    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_AC:     return "PLAYER_AC";
+    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_OFF:    return "PLAYER_OFF";
+    case CAEVehicleAudioEntity::AE_SOUND_PLAYER_REVERSE:return "PLAYER_REVERSE";
+    case CAEVehicleAudioEntity::AE_SOUND_NITRO1:        return "NITRO1";
+    case CAEVehicleAudioEntity::AE_SOUND_NITRO2:        return "NITRO2";
+    case CAEVehicleAudioEntity::AE_SOUND_STEAM:         return "STEAM";
+    case CAEVehicleAudioEntity::AE_SOUND_FUCKED:        return "FUCKED";
+    case CAEVehicleAudioEntity::AE_SOUND_MOVING_PARTS:  return "MOVING_PARTS";
+    case CAEVehicleAudioEntity::AE_SOUND_ENGINE_MAX:    return "ENGINE_MAX";
+    default:                                            return std::nullopt;
     }
 }
 
-inline std::string_view EnumToString(eAERadioType rt) {
-    using namespace std::string_view_literals;
+inline std::optional<const char*> EnumToString(eAERadioType rt) {
     switch (rt) {
-    case eAERadioType::AE_RT_CIVILIAN:  return "CIVILIAN"sv;
-    case eAERadioType::AE_RT_SPECIAL:   return "SPECIAL"sv;
-    case eAERadioType::AE_RT_UNKNOWN:   return "UNKNOWN"sv;
-    case eAERadioType::AE_RT_EMERGENCY: return "EMERGENCY"sv;
-    case eAERadioType::AE_RT_DISABLED:  return "DISABLED"sv;
-    default:                            return "<invalid>";
+    case eAERadioType::AE_RT_CIVILIAN:  return "CIVILIAN";
+    case eAERadioType::AE_RT_SPECIAL:   return "SPECIAL";
+    case eAERadioType::AE_RT_UNKNOWN:   return "UNKNOWN";
+    case eAERadioType::AE_RT_EMERGENCY: return "EMERGENCY";
+    case eAERadioType::AE_RT_DISABLED:  return "DISABLED";
+    default:                            return std::nullopt;
     }
 }
 
-inline std::string_view EnumToString(eAEVehicleSoundType v) {
-    using namespace std::string_view_literals;
+inline std::optional<const char*> EnumToString(eAEVehicleSoundType v) {
     switch (v) {
-    case AE_CAR:                    return "CAR"sv;
-    case AE_BIKE:                   return "BIKE"sv;
-    case AE_BMX:                    return "BMX"sv;
-    case AE_BOAT:                   return "BOAT"sv;
-    case AE_AIRCRAFT_HELICOPTER:    return "AIRCRAFT_HELICOPTER"sv;
-    case AE_AIRCRAFT_PLANE:         return "AIRCRAFT_PLANE"sv;
-    case AE_AIRCRAFT_SEAPLANE:      return "AIRCRAFT_SEAPLANE"sv;
-    case AE_ONE_GEAR:               return "ONE_GEAR"sv;
-    case AE_TRAIN:                  return "TRAIN"sv;
-    case AE_SPECIAL:                return "SPECIAL"sv;
-    case AE_NO_VEHICLE:             return "NO_VEHICLE"sv;
-    default:                        return "<invalid>";
+    case AE_CAR:                    return "CAR";
+    case AE_BIKE:                   return "BIKE";
+    case AE_BMX:                    return "BMX";
+    case AE_BOAT:                   return "BOAT";
+    case AE_AIRCRAFT_HELICOPTER:    return "AIRCRAFT_HELICOPTER";
+    case AE_AIRCRAFT_PLANE:         return "AIRCRAFT_PLANE";
+    case AE_AIRCRAFT_SEAPLANE:      return "AIRCRAFT_SEAPLANE";
+    case AE_ONE_GEAR:               return "ONE_GEAR";
+    case AE_TRAIN:                  return "TRAIN";
+    case AE_SPECIAL:                return "SPECIAL";
+    case AE_NO_VEHICLE:             return "NO_VEHICLE";
+    default:                        return std::nullopt;
     }
 }

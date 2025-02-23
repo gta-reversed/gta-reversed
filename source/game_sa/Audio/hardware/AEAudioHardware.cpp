@@ -657,3 +657,7 @@ void CAEAudioHardware::Service() {
     );
     m_pMP3BankLoader->Service();
 }
+
+const CAEBankSlot* CAEAudioHardware::GetBankSlot(eSoundBankSlot slot) const {
+    return m_pMP3BankLoader->GetBankSlot(slot);
+}

@@ -12,7 +12,7 @@ void CAEMP3BankLoader::InjectHooks() {
 
     RH_ScopedInstall(Constructor, 0x4DFB10);
     RH_ScopedInstall(Initialise, 0x4E08F0);
-    RH_ScopedInstall(GetBankSlot, 0x4DFDE0);
+    RH_ScopedInstall(GetBankSlotBuffer, 0x4DFDE0);
     RH_ScopedInstall(GetSoundHeadroom, 0x4E01E0);
     RH_ScopedInstall(IsSoundBankLoaded, 0x4E0220);
     RH_ScopedInstall(GetSoundBankLoadingStatus, 0x4E0250);
@@ -46,25 +46,25 @@ bool CAEMP3BankLoader::Initialise() {
 }
 
 // 0x4DFDE0, inlined
-uint8* CAEMP3BankLoader::GetBankSlot(uint16 bankSlot, uint32& outLength) {
+uint8* CAEMP3BankLoader::GetBankSlotBuffer(uint16 bankSlot, uint32& outLength) {
     if (!m_bInitialised || bankSlot >= m_nBankSlotCount)
         return nullptr;
 
-    outLength = m_paBankSlots[bankSlot].m_nSize;
-    return &m_pBuffer[m_paBankSlots[bankSlot].m_nOffset];
+    outLength = m_paBankSlots[bankSlot].NumBytes;
+    return &m_pBuffer[m_paBankSlots[bankSlot].Offset];
 }
 
 // 0x4E01E0
 float CAEMP3BankLoader::GetSoundHeadroom(uint16 soundId, int16 bankSlot) {
     return m_bInitialised
-        ? (float)m_paBankSlots[bankSlot].m_aSlotItems[soundId].m_usSoundHeadroom / 100.0f
+        ? (float)m_paBankSlots[bankSlot].Sounds[soundId].Headroom / 100.0f
         : 0.f;
 }
 
 // 0x4E0220
 bool CAEMP3BankLoader::IsSoundBankLoaded(uint16 bankId, int16 bankSlot) {
     assert(bankSlot < m_nBankSlotCount);
-    return m_bInitialised && m_paBankSlots[bankSlot].m_nBankId == bankId;
+    return m_bInitialised && m_paBankSlots[bankSlot].Bank == bankId;
 }
 
 // 0x4E0250
@@ -74,31 +74,31 @@ bool CAEMP3BankLoader::GetSoundBankLoadingStatus(uint16 bankId, int16 bankSlot) 
 
 // 0x4E0280
 uint8* CAEMP3BankLoader::GetSoundBuffer(uint16 soundId, int16 bankSlot, uint32& outSize, uint16& outSampleRate) {
-    if (!m_bInitialised || m_paBankSlots[bankSlot].m_nBankId == (uint16)-1)
+    if (!m_bInitialised || m_paBankSlots[bankSlot].Bank == (uint16)-1)
         return nullptr;
 
     auto& bank = m_paBankSlots[bankSlot];
 
-    if (!bank.IsSingleSound() && soundId >= bank.m_nSoundCount)
+    if (!bank.IsSingleSound() && soundId >= bank.NumSounds)
         return nullptr;
 
     if (bank.IsSingleSound() && m_aBankSlotSound[bankSlot] != soundId)
         return nullptr;
 
     uint32 bankBufferSize{};
-    auto* bankInBuffer = GetBankSlot(bankSlot, bankBufferSize);
+    auto* bankInBuffer = GetBankSlotBuffer(bankSlot, bankBufferSize);
 
-    if (soundId < NUM_BANK_SLOT_ITEMS && bank.IsSingleSound() || soundId < bank.m_nSoundCount - 1) {
+    if (soundId < NUM_BANK_SLOT_ITEMS && bank.IsSingleSound() || soundId < bank.NumSounds - 1) {
         assert(soundId < NUM_BANK_SLOT_ITEMS);
-        outSize = bank.m_aSlotItems[(soundId + 1) % NUM_BANK_SLOT_ITEMS].m_nOffset - bank.m_aSlotItems[soundId].m_nOffset;
+        outSize = bank.Sounds[(soundId + 1) % NUM_BANK_SLOT_ITEMS].BankOffset - bank.Sounds[soundId].BankOffset;
     } else {
         assert(soundId < NUM_BANK_SLOT_ITEMS);
-        outSize = m_paBankLookups[bank.m_nBankId].m_nSize - bank.m_aSlotItems[soundId].m_nOffset;
+        outSize = m_paBankLookups[bank.Bank].NumBytes - bank.Sounds[soundId].BankOffset;
     }
     assert(soundId < NUM_BANK_SLOT_ITEMS);
-    outSampleRate = bank.m_aSlotItems[soundId].m_usSampleRate;
+    outSampleRate = bank.Sounds[soundId].Frequency;
 
-    return &bankInBuffer[bank.m_aSlotItems[soundId].m_nOffset];
+    return &bankInBuffer[bank.Sounds[soundId].BankOffset];
 }
 
 // 0x4E0380
@@ -109,14 +109,14 @@ int32 CAEMP3BankLoader::GetLoopOffset(uint16 soundId, int16 bankSlot) {
     assert(bankSlot < m_nBankSlotCount);
     auto& bank = m_paBankSlots[bankSlot];
 
-    assert(bank.IsSingleSound() && m_aBankSlotSound[bankSlot] == soundId || soundId < bank.m_nSoundCount);
-    return bank.m_aSlotItems[soundId].m_nLoopOffset;
+    assert(bank.IsSingleSound() && m_aBankSlotSound[bankSlot] == soundId || soundId < bank.NumSounds);
+    return bank.Sounds[soundId].LoopStartOffset;
 }
 
 // 0x4E03B0
 bool CAEMP3BankLoader::IsSoundLoaded(uint16 bankId, uint16 soundId, int16 bankSlot) {
     return m_bInitialised
-        && m_paBankSlots[bankSlot].m_nBankId == bankId
+        && m_paBankSlots[bankSlot].Bank == bankId
         && m_aBankSlotSound[bankSlot] == soundId;
 }
 
@@ -132,21 +132,21 @@ void CAEMP3BankLoader::UpdateVirtualChannels(tVirtualChannelSettings* settings, 
         const auto soundId = settings->SoundIDs[i];
         const auto& bankSlot = m_paBankSlots[slotId];
 
-        if (slotId < 0 || soundId < 0 || bankSlot.m_nBankId == -1 || (soundId >= bankSlot.m_nSoundCount && bankSlot.m_nSoundCount >= 0)) {
+        if (slotId < 0 || soundId < 0 || bankSlot.Bank == -1 || (soundId >= bankSlot.NumSounds && bankSlot.NumSounds >= 0)) {
             lengths[i] = -1;
             loopStartTimes[i] = -1;
         } else {
             lengths[i] = CAEAudioUtility::ConvertFromBytesToMS(
                 bankSlot.CalculateSizeOfSlotItem(soundId),
-                bankSlot.m_aSlotItems[soundId].m_usSampleRate,
+                bankSlot.Sounds[soundId].Frequency,
                 1u
             );
 
             loopStartTimes[i] = [&]() -> int32 {
-                if (const auto loopOffset = bankSlot.m_aSlotItems[soundId].m_nLoopOffset; loopOffset != -1) {
+                if (const auto loopOffset = bankSlot.Sounds[soundId].LoopStartOffset; loopOffset != -1) {
                     return CAEAudioUtility::ConvertFromBytesToMS(
                         2 * loopOffset, // ??
-                        bankSlot.m_aSlotItems[soundId].m_usSampleRate,
+                        bankSlot.Sounds[soundId].Frequency,
                         1u
                     );
                 } else {
@@ -184,6 +184,8 @@ void CAEMP3BankLoader::LoadSoundBank(uint16 bankId, int16 bankSlot) {
 
     m_iRequestCount++;
     m_iNextRequest = (m_iNextRequest + 1) % std::size(m_aRequests);
+
+    NOTSA_LOG_TRACE("Loading bank ({}) into slot ({})", bankId, bankSlot);
 }
 
 // 0x4E07A0
@@ -209,9 +211,9 @@ bool CAEMP3BankLoader::LoadSound(uint16 bankId, uint16 soundId, int16 bankSlot) 
     nextRequest.m_nBankSlotId = bankSlot;
     nextRequest.m_nNumSounds = soundId;
     nextRequest.m_pBankSlotInfo = &m_paBankSlots[bankSlot];
-    nextRequest.m_nPakFileNumber = bankLookup->m_nPakFileNumber;
-    nextRequest.m_nBankOffset = bankLookup->m_nOffset;
-    nextRequest.m_nBankSize = bankLookup->m_nSize;
+    nextRequest.m_nPakFileNumber = bankLookup->PakFile;
+    nextRequest.m_nBankOffset = bankLookup->FileOffset;
+    nextRequest.m_nBankSize = bankLookup->NumBytes;
     nextRequest.m_nStatus = eSoundRequestStatus::JUST_LOADED;
 
     m_iRequestCount++;
@@ -251,17 +253,17 @@ void CAEMP3BankLoader::Service() {
 
             if (req.IsSingleSound()) {
                 memcpy(
-                    &m_pBuffer[req.m_pBankSlotInfo->m_nOffset],
+                    &m_pBuffer[req.m_pBankSlotInfo->Offset],
                     &req.m_pStreamOffset->m_aBankData,
                     req.m_nBankSize
                 );
                 memcpy(
-                    &m_paBankSlots[req.m_nBankSlotId].m_aSlotItems,
+                    &m_paBankSlots[req.m_nBankSlotId].Sounds,
                     &req.m_pStreamOffset->m_aSlotItems,
-                    sizeof(m_paBankSlots[req.m_nBankSlotId].m_aSlotItems)
+                    sizeof(m_paBankSlots[req.m_nBankSlotId].Sounds)
                 );
-                m_paBankSlots[req.m_nBankSlotId].m_nBankId = req.m_nBankId;
-                m_paBankSlots[req.m_nBankSlotId].m_nSoundCount = req.m_pStreamOffset->m_nSoundCount;
+                m_paBankSlots[req.m_nBankSlotId].Bank = req.m_nBankId;
+                m_paBankSlots[req.m_nBankSlotId].NumSounds = req.m_pStreamOffset->m_nSoundCount;
                 m_aBankSlotSound[req.m_nBankSlotId] = -1;
 
                 CMemoryMgr::Free(req.m_pStreamBuffer);
@@ -272,24 +274,24 @@ void CAEMP3BankLoader::Service() {
                 m_iRequestCount--;
             } else {
                 memcpy(
-                    m_paBankSlots[req.m_nBankSlotId].m_aSlotItems,
+                    m_paBankSlots[req.m_nBankSlotId].Sounds,
                     &req.m_pStreamOffset->m_aSlotItems,
-                    sizeof(m_paBankSlots[req.m_nBankSlotId].m_aSlotItems)
+                    sizeof(m_paBankSlots[req.m_nBankSlotId].Sounds)
                 );
-                m_paBankSlots[req.m_nBankSlotId].m_nBankId = -1;
-                m_paBankSlots[req.m_nBankSlotId].m_nSoundCount = -1; // ?
+                m_paBankSlots[req.m_nBankSlotId].Bank = -1;
+                m_paBankSlots[req.m_nBankSlotId].NumSounds = -1; // ?
                 m_aBankSlotSound[req.m_nBankSlotId] = -1;
 
                 const auto nextItemOffset = [&] {
                     if (req.m_nNumSounds >= req.m_pStreamOffset->m_nSoundCount - 1) {
                         // No next item?
-                        return m_paBankLookups[req.m_nBankId].m_nSize;
+                        return m_paBankLookups[req.m_nBankId].NumBytes;
                     } else {
-                        return req.m_pStreamOffset->m_aSlotItems[req.m_nNumSounds + 1].m_nOffset;
+                        return req.m_pStreamOffset->m_aSlotItems[req.m_nNumSounds + 1].BankOffset;
                     }
                 }();
-                req.m_nBankSize = nextItemOffset - req.m_pStreamOffset->m_aSlotItems[req.m_nNumSounds].m_nOffset;
-                req.m_nBankOffset += req.m_pStreamOffset->m_aSlotItems[req.m_nNumSounds].m_nOffset + sizeof(CdAudioStream);
+                req.m_nBankSize = nextItemOffset - req.m_pStreamOffset->m_aSlotItems[req.m_nNumSounds].BankOffset;
+                req.m_nBankOffset += req.m_pStreamOffset->m_aSlotItems[req.m_nNumSounds].BankOffset + sizeof(CdAudioStream);
 
                 const auto bankOffsetInSectors = req.m_nBankOffset / STREAMING_SECTOR_SIZE;
 
@@ -314,15 +316,15 @@ void CAEMP3BankLoader::Service() {
                 continue;
 
             memcpy(
-                &m_pBuffer[req.m_pBankSlotInfo[0].m_nOffset],
+                &m_pBuffer[req.m_pBankSlotInfo[0].Offset],
                 req.m_pStreamOffset,
                 req.m_nBankSize
             );
 
             auto& slot = m_paBankSlots[req.m_nBankSlotId];
-            slot.m_nBankId = req.m_nBankId;
-            slot.m_aSlotItems[req.m_nNumSounds].m_nOffset = 0;
-            slot.m_aSlotItems[(req.m_nNumSounds + 1) % std::size(slot.m_aSlotItems)].m_nOffset = req.m_nBankSize;
+            slot.Bank = req.m_nBankId;
+            slot.Sounds[req.m_nNumSounds].BankOffset = 0;
+            slot.Sounds[(req.m_nNumSounds + 1) % std::size(slot.Sounds)].BankOffset = req.m_nBankSize;
             m_aBankSlotSound[req.m_nBankSlotId] = req.m_nNumSounds;
 
             CMemoryMgr::Free(req.m_pStreamBuffer);
@@ -341,4 +343,8 @@ void CAEMP3BankLoader::Service() {
             break;
         }
     }
+}
+
+const CAEBankSlot* CAEMP3BankLoader::GetBankSlot(eSoundBankSlot slot) const {
+    return &m_paBankSlots[slot];
 }

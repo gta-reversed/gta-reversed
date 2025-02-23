@@ -8,52 +8,47 @@ enum class eSoundRequestStatus : uint32 {
 };
 
 struct CAEBankLookupItem {
-    uint8 m_nPakFileNumber;
-    uint32 m_nOffset;
-    uint32 m_nSize;
+    uint8 PakFile;
+    uint32 FileOffset;
+    uint32 NumBytes;
 };
 VALIDATE_SIZE(CAEBankLookupItem, 0xC);
 
 struct CAEBankSlotItem {
-    uint32 m_nOffset;
-    uint32 m_nLoopOffset;
-    uint16 m_usSampleRate;
-    int16  m_usSoundHeadroom;
+    uint32 BankOffset;
+    uint32 LoopStartOffset;
+    uint16 Frequency; // Or sample rate?
+    int16  Headroom;
 };
 VALIDATE_SIZE(CAEBankSlotItem, 0xC);
 
 constexpr auto NUM_BANK_SLOT_ITEMS = 400u;
 
 struct CAEBankSlot {
-    uint32 m_nOffset;
-    uint32 m_nSize;
-    uint32 field_8;
-    uint32 field_C;
-    int16 m_nBankId;
-    int16 m_nSoundCount; // -1: Single sound.
-    CAEBankSlotItem m_aSlotItems[NUM_BANK_SLOT_ITEMS];
+    uint32          Offset{};
+    uint32          NumBytes{};
+    uint32          Unk1{};
+    uint32          Unk2{};
+    int16           Bank{};
+    int16           NumSounds{}; // -1: Single sound.
+    CAEBankSlotItem Sounds[NUM_BANK_SLOT_ITEMS];
 
-    bool IsSingleSound() const { return m_nSoundCount == -1; }
+    bool IsSingleSound() const { return NumSounds == -1; }
 
     // Calculate size of the slot item by <next item's offset> - <item's offset>
     size_t CalculateSizeOfSlotItem(size_t index) const {
-        assert(m_nSoundCount == -1 || index < (size_t)m_nSoundCount);
-        const auto nextOffset = [&] {
-            if (index == m_nSoundCount - 1) {
-                return m_nSize;
-            } else {
-                return m_aSlotItems[index + 1].m_nOffset;
-            }
-        }();
-
-        return nextOffset - m_aSlotItems[index].m_nOffset;
+        assert(NumSounds == -1 || index < (size_t)NumSounds);
+        const auto next = IsSingleSound()
+            ? NumBytes
+            : Sounds[index + 1].BankOffset;
+        return next - Sounds[index].BankOffset;
     }
 };
 VALIDATE_SIZE(CAEBankSlot, 0x12D4);
 
 struct tPakLookup {
-    char m_szName[12];
-    uint32 field_0C[10];
+    char   BaseFilename[12]{};
+    uint32 FileCopyLSNs[10]{};
 };
 VALIDATE_SIZE(tPakLookup, 0x34);
 
@@ -88,7 +83,7 @@ public:
     CAESoundRequest(int16 bankId, int16 bankSlot, int16 numSounds, CAEBankSlot& slot,
                     CAEBankLookupItem* lookup, eSoundRequestStatus status)
         : m_nBankId(bankId), m_nBankSlotId(bankSlot), m_nNumSounds(numSounds), m_pBankSlotInfo(&slot)
-        , m_nPakFileNumber(lookup->m_nPakFileNumber), m_nBankOffset(lookup->m_nOffset), m_nBankSize(lookup->m_nSize)
+        , m_nPakFileNumber(lookup->PakFile), m_nBankOffset(lookup->FileOffset), m_nBankSize(lookup->NumBytes)
         , m_nStatus(status)
     {}
 

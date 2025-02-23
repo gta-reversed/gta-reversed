@@ -116,8 +116,8 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     m_AuSettings                  = GetVehicleAudioSettings(entity->m_nModelIndex - MODEL_VEHICLE_FIRST);
     m_HasSiren                    = entity->AsVehicle()->UsesSiren();
 
-    for (uint32 i = 0; auto& sound : m_EngineSounds) {
-        sound = { .EngineSoundType = i++ };
+    for (uint32 i = 0; auto& es : m_EngineSounds) {
+        es = { .EngineSoundType = i++ };
     }
 
     if (m_AuSettings.RadioType == eAERadioType::AE_RT_UNKNOWN) {
@@ -125,7 +125,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     }
 
     m_EventVolume = GetDefaultVolume(AE_GENERAL_VEHICLE_SOUND);
-    m_IsSingleGear = notsa::contains({
+    m_IsSingleGear = notsa::contains({ // TODO: Add handling flag for this
         MODEL_PIZZABOY,
         MODEL_CADDY,
         MODEL_FAGGIO,
@@ -139,7 +139,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     }, entity->GetModelID());
 
     switch (m_AuSettings.VehicleAudioType) {
-    case AE_CAR:
+    case AE_CAR: {
         m_EventVolume -= s_Config.VolOffsetOnGround;
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
         m_DummyEngineBank  = m_AuSettings.DummyBank;
@@ -147,14 +147,15 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
             return;
         }
 
-        if (m_AuSettings.DummyBank != SND_BANK_UNK && m_AuSettings.DummyBank != SND_BANK_GENRL_TEMP_D) {
+        if (!notsa::contains<eSoundBank>({ SND_BANK_UNK, SND_BANK_GENRL_TEMP_D }, m_AuSettings.DummyBank)) {
             m_DummySlot = RequestBankSlot(m_AuSettings.DummyBank);
         }
 
         m_IsInitialized = true;
         return;
+    }
     case AE_BIKE:
-    case AE_BMX:
+    case AE_BMX: {
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
 
         if (m_AuSettings.IsBike()) {
@@ -172,31 +173,31 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
 
         m_IsInitialized = true;
         return;
-
+    }
     case AE_BOAT:
-    case AE_TRAIN:
+    case AE_TRAIN: {
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
         m_DummyEngineBank  = m_AuSettings.DummyBank;
         if (m_IsInitialized) {
             return;
         }
 
-        if (m_AuSettings.DummyBank != SND_BANK_UNK && m_AuSettings.DummyBank != 129) {
+        if (!notsa::contains<eSoundBank>({ SND_BANK_UNK, SND_BANK_GENRL_TEMP_D }, m_AuSettings.DummyBank)) {
             m_DummySlot = RequestBankSlot(m_AuSettings.DummyBank);
         }
 
         m_IsInitialized = true;
         return;
-
+    }
     case AE_AIRCRAFT_HELICOPTER:
-    case AE_AIRCRAFT_SEAPLANE:
+    case AE_AIRCRAFT_SEAPLANE: {
         m_DummyEngineBank  = m_AuSettings.DummyBank;
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
 
         m_IsInitialized    = true;
         return;
-
-    case AE_AIRCRAFT_PLANE:
+    }
+    case AE_AIRCRAFT_PLANE: {
         m_DummyEngineBank  = m_AuSettings.DummyBank;
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
         if (m_IsInitialized) {
@@ -209,8 +210,8 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
 
         m_IsInitialized = true;
         return;
-
-    case AE_SPECIAL:
+    }
+    case AE_SPECIAL: {
         m_PlayerEngineBank = m_AuSettings.PlayerBank;
         m_EventVolume      = m_EventVolume - 1.5F;
         if (m_IsInitialized) {
@@ -224,6 +225,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
 
         m_IsInitialized = true;
         return;
+    }
     }
 }
 
@@ -421,7 +423,7 @@ void CAEVehicleAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
         } else if (const auto it = rng::find(m_EngineSounds, sound, &tEngineSound::Sound); it != m_EngineSounds.end()) {
             it->Sound = nullptr;
         }
-    } else if (m_AuSettings.IsAircraftEngineSound() && m_EngineSounds[AE_SOUND_AIRCRAFT_NEAR].Sound) {
+    } else if (m_AuSettings.IsAircraftEngineSound() && GetEngineSound(AE_SOUND_AIRCRAFT_NEAR)) {
         sound->SetPosition(GetAircraftNearPosition());
     } else {
         sound->SetPosition(m_Entity->GetPosition());
@@ -1485,42 +1487,40 @@ void CAEVehicleAudioEntity::UpdateBoatSound(eBoatEngineSoundType st, eSoundBankS
 }
 
 // 0x4FA1C0
-void CAEVehicleAudioEntity::UpdateTrainSound(int16 soundType, eSoundBankSlot bankSlot, eSoundID sfxId, float speed, float volume) {
-    return plugin::CallMethod<0x4FA1C0, CAEVehicleAudioEntity*, int16, int16, int16, float, float>(this, soundType, bankSlot, sfxId, speed, volume);
-
+void CAEVehicleAudioEntity::UpdateTrainSound(eTrainEngineSoundType st, eSoundBankSlot slot, eSoundID sfx, float speed, float volume) {
     if (m_DummySlot == SND_BANK_SLOT_NONE) {
         return;
     }
 
     const float fVolume = m_EventVolume + volume;
 
-    if (UpdateGenericEngineSound(soundType, fVolume, speed)) {
+    if (UpdateGenericEngineSound(st, fVolume, speed)) {
         return;
     }
 
     const auto DoPlaySound = [&](float fSoundDistance) {
-        m_EngineSounds[soundType].Sound = PlaySound(bankSlot, sfxId, fVolume, speed, fSoundDistance, 1.f, SOUND_REQUEST_UPDATES, 0);
+        m_EngineSounds[st].Sound = PlaySound(slot, sfx, fVolume, speed, fSoundDistance, 1.f, SOUND_REQUEST_UPDATES, 0);
     };
 
-    switch (soundType) {
-    case 1: {
+    switch (st) {
+    case AE_SOUND_TRAIN_ENGINE: {
         if (AEAudioHardware.IsSoundBankLoaded(m_DummyEngineBank, m_DummySlot)) {
             DoPlaySound(m_DummyEngineBank == 133 ? 4.0f : 4.5f);
         }
         break;
     }
-    case 2: {
+    case AE_SOUND_TRAIN_TRACK: {
         if (AEAudioHardware.IsSoundBankLoaded(m_DummyEngineBank, m_DummySlot)) {
             DoPlaySound(m_DummyEngineBank == 133 ? 5.0f : 4.5f);
         }
         break;
     }
-    case 3: {
+    case AE_SOUND_TRAIN_DISTANT: {
         DoPlaySound(4.5f);
         break;
     }
     default:
-        break;
+        NOTSA_UNREACHABLE();
     }
 }
 
@@ -3613,7 +3613,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(UpdateBoatSound, 0x4F9E90);
 
     // Train
-    RH_ScopedInstall(UpdateTrainSound, 0x4FA1C0, { .reversed = false });
+    RH_ScopedInstall(UpdateTrainSound, 0x4FA1C0);
     RH_ScopedInstall(ProcessTrainTrackSound, 0x4FA3F0, { .reversed = false });
     RH_ScopedInstall(ProcessDummyTrainEngine, 0x500710, { .reversed = false });
     RH_ScopedInstall(ProcessPlayerTrainBrakes, 0x500AB0, { .reversed = false });

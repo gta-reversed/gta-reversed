@@ -189,6 +189,9 @@ public:
 
     void Service();
 
+    // notsa
+    const CAEBankSlot* GetBankSlot(eSoundBankSlot slot) const;
+
 private:
     auto GetChannels() const { return std::span{m_aChannels, m_nNumChannels}; }
 

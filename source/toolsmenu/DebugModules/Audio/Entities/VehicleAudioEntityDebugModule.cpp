@@ -47,7 +47,7 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
         ImGui::Text(buf);
     };
 
-    FormattedText("State: {}", EnumToString((AE::eAEState)(ae->m_State)));
+    FormattedText("State: {}", (AE::eAEState)(ae->m_State));
     FormattedText("DoCountStalls: {}", ae->m_DoCountStalls);
     FormattedText("IsInitialized: {}", ae->m_IsInitialized);
     FormattedText("IsPlayerDriver: {}", ae->m_IsPlayerDriver);
@@ -75,7 +75,7 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
     FormattedText("PlayerEngineBank: {}", (int32)(ae->m_PlayerEngineBank));
     FormattedText("DummySlot: {}", (int32)(ae->m_DummySlot));
     if (auto* const as = &ae->m_AuSettings; ImGui::TreeNode("AuSettings")) {
-        FormattedText("VehicleAudioType: {}", EnumToString(as->VehicleAudioType));
+        FormattedText("VehicleAudioType: {}", as->VehicleAudioType);
         FormattedText("PlayerBank: {}", (int32)(as->PlayerBank));
         FormattedText("DummyBank: {}", (int32)(as->DummyBank));
         FormattedText("BassSetting: {}", as->BassSetting);
@@ -85,23 +85,22 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
         FormattedText("HornPitch: {}", as->HornPitch);
         FormattedText("DoorType: {}", as->DoorType);
         FormattedText("EngineUpgrade: {}", as->EngineUpgrade);
-        FormattedText("RadioStation: {}", EnumToString(as->RadioStation));
-        FormattedText("RadioType: {}", EnumToString(as->RadioType));
+        FormattedText("RadioStation: {}", as->RadioStation);
+        FormattedText("RadioType: {}", as->RadioType);
         FormattedText("VehicleAudioTypeForName: {}", (int32)(as->VehicleAudioTypeForName));
         FormattedText("EngineVolumeOffset: {}", as->EngineVolumeOffset);
 
         ImGui::TreePop();
     }
     if (ImGui::TreeNode("EngineSounds")) {
-        const auto SoundTypeToString = [ae](AE::eVehicleEngineSoundType st) {
-            using namespace std::string_view_literals;
+        const auto SoundTypeToString = [ae](AE::eVehicleEngineSoundType st) -> std::optional<const char*> {
             if (ae->m_AuSettings.VehicleAudioType == AE_CAR) {
                 return EnumToString((AE::eCarEngineSoundType)(st));
             }
-            return "<invalid vehicle audio type>"sv;
+            return std::nullopt;
         };
         for (auto&& [i, s] : notsa::enumerate(ae->m_EngineSounds)) {
-            FormattedText("[{:<30}]: {}", SoundTypeToString((AE::eVehicleEngineSoundType)(i)), s.Sound ? "Active" : "");
+            FormattedText("[{:<30}]: {}", SoundTypeToString((AE::eVehicleEngineSoundType)(i)).value_or("<unknown>"), s.Sound ? "Active" : "");
         }
         ImGui::TreePop();
     }
