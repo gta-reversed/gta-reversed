@@ -259,6 +259,61 @@ protected: // Config:
         } Boat;
 
         struct {
+             struct TheProps {
+                 float EngineSoundRollOff;
+                 float TrackSoundRollOff;
+                 float DistantSoundRollOff;
+
+                 struct {
+                     float VolBase;
+                     float FrqMin, FrqMax;
+                 } TrackSound;
+
+                 struct {
+                     float VolBase;
+                     float VolPlayerAcFactor{3.f}; // 0x8CBF10
+                     float FrqMin, FrqMax;
+                     float FrqSlopeFactor;
+                 } EngineSound;
+
+                 struct {
+                     float VolBase{9.0f}; // 0x8CBF3C
+                     float FrqMin{0.68f}, FrqMax{1.f}; // 0x8CBF44, 0x8CBF48
+                 };
+             };         
+             TheProps Tram{
+                .EngineSoundRollOff  = 4.f, // 0x8CBF18
+                .TrackSoundRollOff   = 5.f, // 0x8CBF1C
+                .DistantSoundRollOff = 4.5f, // 0x8CBEF4
+
+                .TrackSound = {
+                    .VolBase = 10.f,                  // 0x8CBF38
+                    .FrqMin  = 0.8f, .FrqMax  = 1.2f, // 0x8CBF2C, 0x8CBF28
+                },
+                .EngineSound = {
+                    .VolBase        = 11.f,                 // 0x8CBF30
+                    .FrqMin         = 0.9f, .FrqMax = 1.1f, // 0x8CBF24, 0x8CBF20
+                    .FrqSlopeFactor = -0.35f,               // 0x8CBF50
+                }
+            };
+            TheProps Generic{
+                .EngineSoundRollOff  = 4.5f, // 0x8CBEFC
+                .TrackSoundRollOff   = 4.5f, // 8CBF00
+                .DistantSoundRollOff = 4.5f, // 0x8CBEF4
+
+                .TrackSound = {
+                    .VolBase = 6.f,                   // 0x8CBF14
+                    .FrqMin  = 0.8f, .FrqMax  = 1.2f, // 0x8CBF08, 0x8CBF04
+                },
+                .EngineSound = {
+                    .VolBase        = 0.f,                   // 0xB6BA00
+                    .FrqMin         = 0.8f, .FrqMax  = 1.2f, // 0x8CBF08, 0x8CBF04
+                    .FrqSlopeFactor = -0.6f,                 // 0x8CBF4C
+                }
+             };
+         } Train;
+
+        struct {
             float VolumeUnderwaterOffset = 6.f; // 0x8CBC44
             float VolumeTrailerOffset    = 6.f; // 0x8CBC40
 
@@ -641,9 +696,10 @@ public:
 private:
     void ProcessPropStall(CPlane* plane, float& outVolume, float& outFreq);
     bool EnsureHasDummySlot() noexcept;
-    bool EnsureSoundBankIsLoaded(bool isDummy);
+    bool EnsureSoundBankIsLoaded(bool isDummy, bool turnOffIfNotLoaded = true);
     auto GetEngineSound(eVehicleEngineSoundType st) const noexcept { return m_EngineSounds[st].Sound; }
     void StopNonEngineSounds() noexcept;
+    void GenericPlaySurfaceSound(eSoundID sfx, float speed, float volume, float rollOff) noexcept;
 
 public:
     int16                  m_DoCountStalls;
@@ -689,8 +745,8 @@ public:
     uint32                 m_TimeACStopped;
     int16                  m_ACPlayPositionWhenStopped;
 
-    eSoundID               m_SurfaceSoundType;
-    CAESound*              m_SurfaceSound;
+    eSoundID               m_SurfaceSoundType; //!< Used for `m_SkidSound` (Not `m_SurfaceSound`!)
+    CAESound*              m_SurfaceSound; //!< Not actually used, instead `m_SkidSound` is used
 
     eSoundID               m_RoadNoiseSoundType;
     CAESound*              m_RoadNoiseSound;
