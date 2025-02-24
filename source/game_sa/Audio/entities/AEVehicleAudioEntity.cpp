@@ -2141,8 +2141,65 @@ void CAEVehicleAudioEntity::ProcessPlayerTrainEngine(tVehicleParams& params) {
 }
 
 // 0x4FA7C0
-void CAEVehicleAudioEntity::ProcessDummyRCPlane(tVehicleParams& params) {
-    plugin::CallMethod<0x4FA7C0, CAEVehicleAudioEntity*, tVehicleParams&>(this, params);
+void CAEVehicleAudioEntity::ProcessDummyRCPlane(tVehicleParams& vp) {
+    const auto* const cfg = &s_Config.DummyRCPlane;
+    const auto* const plane = vp.Vehicle->AsPlane();
+
+    if (!EnsureHasDummySlot() || !EnsureSoundBankIsLoaded(true)) {
+        return;
+    }
+
+    if (m_IsWreckedVehicle) { // 0x4FA877
+        CancelAllVehicleEngineSounds();
+        return;
+    }
+
+    // 0x4FA8A2 - Propeller speed factor
+    auto psf = plane->m_fPropSpeed / 0.34f;
+    psf = psf > 0.2f
+        ? lerp(0.f, 1.25f, psf - 0.2f)
+        : std::max(0.2f, psf);
+
+    // 0x4FA8B9 - Calculate accel/brake
+    if (s_pPlayerDriver && m_IsPlayerDriver) {
+        GetAccelAndBrake(vp);
+    } else {
+        vp.ThisAccel = 0.f;
+        vp.ThisBrake = 0.f;
+    }
+
+    // Calculate rotor freq
+    {
+        // 0x4FA8DB - Acceleration factor
+        const auto af = vp.ThisBrake > 0
+            ? -0.05f
+            : vp.ThisAccel > 0
+                ? 0.1f
+                : 0.f;
+
+        // 0x4FA914 - Calculate tilt (As cos(x))
+        const auto tiltBwd   = plane->GetForward().Dot(CVector::ZAxisVector()) * -1.f;
+        const auto tiltRight = std::abs(plane->GetRight().Dot(CVector::ZAxisVector()));
+
+        // 0x4FA9C3
+        const auto rotorFrq = 1.f
+            + tiltRight * 0.1f
+            + tiltBwd * 0.15f
+            + af;
+
+        // 0x4FA9EE
+        m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
+            ? rotorFrq
+            : notsa::step_to(m_CurrentRotorFrequency, rotorFrq, cfg->RotorFreqStepUp, cfg->RotorFreqStepDown, notsa::IsFixBugs());
+    }
+
+    PlayAircraftSound(
+        AE_SOUND_AIRCRAFT_FRONT,
+        m_DummySlot,
+        0,
+        cfg->RotorVolBase + CAEAudioUtility::AudioLog10(psf) * 20.f,
+        m_CurrentRotorFrequency
+    );
 }
 
 // Android
@@ -2754,7 +2811,8 @@ void CAEVehicleAudioEntity::ProcessAIProp(tVehicleParams& vp) {
     }, std::clamp(propSpeed, 0.f, 1.f));
 
     // 0x4FE25A
-    const auto propFreq = std::abs(plane->GetMatrix().GetRight().z) * 0.1f - plane->GetMatrix().GetForward().z * 0.15f + 1.f;
+    const auto propFreq = std::abs(plane->GetMatrix().GetRight().z) * 0.1f
+        - plane->GetMatrix().GetForward().z * 0.15f + 1.f;
     m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
         ? propFreq
         : notsa::step_to(m_CurrentRotorFrequency, propFreq, 1.f / 187.5f, notsa::IsFixBugs());

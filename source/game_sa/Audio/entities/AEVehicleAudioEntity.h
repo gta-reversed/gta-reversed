@@ -259,6 +259,11 @@ protected: // Config:
         } Boat;
 
         struct {
+            float RotorFreqStepUp{1.f / 187.5f}, RotorFreqStepDown{1.f / 187.5f}; // 0xNONE
+            float RotorVolBase{0.f}; // 0xB6BA04
+        } DummyRCPlane;
+
+        struct {
              struct TheProps {
                  float EngineSoundRollOff;
                  float TrackSoundRollOff;
