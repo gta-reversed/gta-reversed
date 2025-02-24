@@ -441,7 +441,29 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
 
 // 0x4F7580
 void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, CVehicle* vehicle) {
-    plugin::CallMethod<0x4F7580, CAEVehicleAudioEntity*, eAudioEvents, CVehicle*>(this, event, vehicle);
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN)) {
+        return;
+    }
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)) {
+        return;
+    }
+    if (event != AE_BONNET_FLUBBER_FLUBBER) {
+        return;
+    }
+    if (!vehicle) {
+        return;
+    }
+    AESoundManager.PlaySound({
+        .BankSlot           = SND_BANK_SLOT_VEHICLE_GEN,
+        .SoundID            = SND_GENRL_VEHICLE_GEN_HOOD_FLY,
+        .AudioEntity        = this,
+        .Pos                = vehicle->GetPosition(),
+        .Volume             = GetDefaultVolume(AE_BONNET_FLUBBER_FLUBBER) + GetFlyingMetalVolume(vehicle),
+        .RollOffFactor      = 0.85f,
+        .Flags              = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY | SOUND_REQUEST_UPDATES,
+        .RegisterWithEntity = vehicle,
+        .EventID            = AE_BONNET_FLUBBER_FLUBBER
+    });
 }
 
 // 0x502280
@@ -4043,7 +4065,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
 
 
     RH_ScopedOverloadedInstall(AddAudioEvent, "0", 0x4F6420, void(CAEVehicleAudioEntity::*)(eAudioEvents, float), { .reversed = false });
-    RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CVehicle*), { .reversed = false });
+    RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CVehicle*));
 
     /* Footnotes:
     * [1] - Dont hook unless `ProcessPlayerVehicleEngine` is hooked
