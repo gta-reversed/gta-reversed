@@ -264,6 +264,15 @@ protected: // Config:
         } DummyRCPlane;
 
         struct {
+            float RotorFreqStepUp{1.f / 187.5f}, RotorFreqStepDown{1.f / 187.5f}; // 0xNONE
+            float TiltDownStep{ 0.07f };     // 0x8CBF6C
+            float VolBase{ -6.0f };          // 0x8CBF68
+            float FrqTiltDownFactor{ 0.2f }; // 0xNONE
+            float FrqBase{ 0.8f };           // 0xNONE
+            float FrqSpeedFactor{ 0.2f };    // 0xNONE
+        } DummyRCHeli;
+
+        struct {
              struct TheProps {
                  float EngineSoundRollOff;
                  float TrackSoundRollOff;
@@ -705,6 +714,7 @@ private:
     auto GetEngineSound(eVehicleEngineSoundType st) const noexcept { return m_EngineSounds[st].Sound; }
     void StopNonEngineSounds() noexcept;
     void GenericPlaySurfaceSound(eSoundID sfx, float speed, float volume, float rollOff) noexcept;
+    void UpdateDummyRCAcAndBrake(tVehicleParams& vp);
 
 public:
     int16                  m_DoCountStalls;

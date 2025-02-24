@@ -2140,6 +2140,32 @@ void CAEVehicleAudioEntity::ProcessPlayerTrainEngine(tVehicleParams& params) {
     // NOP
 }
 
+// notsa
+void CAEVehicleAudioEntity::UpdateDummyRCAcAndBrake(tVehicleParams& vp) {
+    if (s_pPlayerDriver && m_IsPlayerDriver) {
+        GetAccelAndBrake(vp);
+    } else {
+        vp.ThisAccel = 0.f;
+        vp.ThisBrake = 0.f;
+    }
+}
+
+// notsa
+auto GetDummyRCAcceleration(CAEVehicleAudioEntity::tVehicleParams& vp) {
+    return vp.ThisBrake > 0
+            ? -0.05f
+            : vp.ThisAccel > 0
+                ? 0.1f
+                : 0.f;
+}
+
+// notsa
+auto GetDummyRCRotorSpeedFactor(float s) {
+    return s > 0.2f
+        ? lerp(0.f, 1.25f, s - 0.2f)
+        : std::max(0.2f, s);
+}
+
 // 0x4FA7C0
 void CAEVehicleAudioEntity::ProcessDummyRCPlane(tVehicleParams& vp) {
     const auto* const cfg = &s_Config.DummyRCPlane;
@@ -2155,28 +2181,13 @@ void CAEVehicleAudioEntity::ProcessDummyRCPlane(tVehicleParams& vp) {
     }
 
     // 0x4FA8A2 - Propeller speed factor
-    auto psf = plane->m_fPropSpeed / 0.34f;
-    psf = psf > 0.2f
-        ? lerp(0.f, 1.25f, psf - 0.2f)
-        : std::max(0.2f, psf);
+    const auto sf = GetDummyRCRotorSpeedFactor(plane->m_fPropSpeed / 0.34f);
 
     // 0x4FA8B9 - Calculate accel/brake
-    if (s_pPlayerDriver && m_IsPlayerDriver) {
-        GetAccelAndBrake(vp);
-    } else {
-        vp.ThisAccel = 0.f;
-        vp.ThisBrake = 0.f;
-    }
+    UpdateDummyRCAcAndBrake(vp);
 
     // Calculate rotor freq
     {
-        // 0x4FA8DB - Acceleration factor
-        const auto af = vp.ThisBrake > 0
-            ? -0.05f
-            : vp.ThisAccel > 0
-                ? 0.1f
-                : 0.f;
-
         // 0x4FA914 - Calculate tilt (As cos(x))
         const auto tiltBwd   = plane->GetForward().Dot(CVector::ZAxisVector()) * -1.f;
         const auto tiltRight = std::abs(plane->GetRight().Dot(CVector::ZAxisVector()));
@@ -2185,7 +2196,7 @@ void CAEVehicleAudioEntity::ProcessDummyRCPlane(tVehicleParams& vp) {
         const auto rotorFrq = 1.f
             + tiltRight * 0.1f
             + tiltBwd * 0.15f
-            + af;
+            + GetDummyRCAcceleration(vp);
 
         // 0x4FA9EE
         m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
@@ -2197,7 +2208,7 @@ void CAEVehicleAudioEntity::ProcessDummyRCPlane(tVehicleParams& vp) {
         AE_SOUND_AIRCRAFT_FRONT,
         m_DummySlot,
         0,
-        cfg->RotorVolBase + CAEAudioUtility::AudioLog10(psf) * 20.f,
+        cfg->RotorVolBase + CAEAudioUtility::AudioLog10(sf) * 20.f,
         m_CurrentRotorFrequency
     );
 }
@@ -2208,8 +2219,44 @@ void CAEVehicleAudioEntity::ProcessPlayerRCPlane(tVehicleParams& params) {
 }
 
 // 0x4FAA80
-void CAEVehicleAudioEntity::ProcessDummyRCHeli(tVehicleParams& params) {
-    plugin::CallMethod<0x4FAA80, CAEVehicleAudioEntity*, tVehicleParams&>(this, params);
+void CAEVehicleAudioEntity::ProcessDummyRCHeli(tVehicleParams& vp) {
+    const auto* const cfg = &s_Config.DummyRCHeli;
+    const auto* const heli = vp.Vehicle->AsHeli();
+
+    if (!EnsureHasDummySlot() || !EnsureSoundBankIsLoaded(true)) {
+        return;
+    }
+
+    if (m_IsWreckedVehicle) { // 0x4FAB37
+        CancelAllVehicleEngineSounds();
+        return;
+    }
+
+    // 0x4FAB79 - Calculate accel/brake
+    UpdateDummyRCAcAndBrake(vp);
+
+    // 0x4FABA0 - Calculate speed factor
+    const auto sf = GetDummyRCRotorSpeedFactor(heli->m_wheelSpeed[1] / 0.22f);
+
+    // 0x4FABFF - Update rotor frequency
+    {
+        const auto rotorFrq = cfg->FrqBase
+            + sf * cfg->FrqSpeedFactor
+            + std::min(1.f, (1.f - heli->GetUp().Dot(CVector::ZAxisVector())) * 0.5f / cfg->TiltDownStep) * cfg->FrqTiltDownFactor
+            + GetDummyRCAcceleration(vp);
+        m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
+            ? rotorFrq
+            : notsa::step_to(m_CurrentRotorFrequency, rotorFrq, cfg->RotorFreqStepUp, cfg->RotorFreqStepDown, notsa::IsFixBugs());
+    }
+
+    // 0x4FAD2A - Play sound
+    PlayAircraftSound(
+        AE_SOUND_AIRCRAFT_FRONT,
+        m_DummySlot,
+        0,
+        cfg->VolBase + CAEAudioUtility::AudioLog10(sf) * 20.f,
+        m_CurrentRotorFrequency
+    );
 }
 
 // Android
@@ -3815,8 +3862,8 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessVehicleRoadNoise, 0x4F8B00); // Done
     RH_ScopedInstall(ProcessReverseGear, 0x4F8DF0);
     RH_ScopedInstall(ProcessRainOnVehicle, 0x4F92C0);
-    RH_ScopedInstall(ProcessDummyRCPlane, 0x4FA7C0, { .reversed = false });
-    RH_ScopedInstall(ProcessDummyRCHeli, 0x4FAA80, { .reversed = false });
+    RH_ScopedInstall(ProcessDummyRCPlane, 0x4FA7C0);
+    RH_ScopedInstall(ProcessDummyRCHeli, 0x4FAA80);
     RH_ScopedInstall(ProcessEngineDamage, 0x4FAE20);
     RH_ScopedInstall(ProcessNitro, 0x4FB070);
     RH_ScopedInstall(ProcessMovingParts, 0x4FB260);
