@@ -273,6 +273,17 @@ protected: // Config:
         } DummyRCHeli;
 
         struct {
+            struct {
+                struct {
+                    float FadeInStep{0.1f}, FadeOutStep{0.1f}; // 0x8CBBE4, 0x8CBBE8
+                } FromIdleToIdle;
+                struct {
+                    float FadeInStep{ 0.05f }, FadeOutStep{ 0.05f }; // 0x8CBBEC, 0x8CBBE0
+                } FromCrzToCrz;
+            } Transitions;
+        } DummyCar;
+
+        struct {
              struct TheProps {
                  float EngineSoundRollOff;
                  float TrackSoundRollOff;
@@ -492,17 +503,17 @@ public: // Enums:
         CAR_OFF              = 0,
 
         // Used for vehicles the player is *not* inside of
-        DUMMY_ID             = 1, // Idle
+        DUMMY_ID             = 1,
         DUMMY_CRZ            = 2, // Cruising (?)
 
         // Used for vehicles the player is in
-        PLAYER_AC_FULL       = 3, // Acceleration (?)
+        PLAYER_AC_FULL       = 3,
         PLAYER_WHEEL_SPIN    = 4,
         PLAYER_CRZ           = 5, // Cruising (?)
-        PLAYER_ID            = 6, // Idle (?)
+        PLAYER_ID            = 6,
         PLAYER_REVERSE       = 7,
         PLAYER_REVERSE_OFF   = 8,
-        PLAYER_FAILING_TO_AC = 9, // AC = accelerate (?)
+        PLAYER_FAILING_TO_AC = 9, 
 
         // Keep this at the bottom
         NUM_STATES

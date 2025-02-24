@@ -2825,8 +2825,156 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
 }
 
 // 0x4FCA10
-void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float fRatio, tVehicleParams& params) {
-    plugin::CallMethod<0x4FCA10, CAEVehicleAudioEntity*, eAEState, float, tVehicleParams&>(this, newState, fRatio, params);
+void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float ratio, tVehicleParams& vp) {
+    switch (const auto oldState = std::exchange(m_State, newState)) {
+    case eAEState::DUMMY_ID: {
+        switch (newState) {
+        case eAEState::DUMMY_ID: { // 0x4FCA37
+            const auto* const cfg = &s_Config.DummyCar.Transitions.FromIdleToIdle;
+
+            // 0x4FCA49
+            m_FadeIn = notsa::step_to(m_FadeIn, 1.f, cfg->FadeInStep, notsa::IsFixBugs());
+            UpdateGenericEngineSound(
+                AE_SOUND_CAR_ID,
+                GetVolumeForDummyIdle(ratio, m_FadeIn),
+                GetFrequencyForDummyIdle(ratio, m_FadeIn)
+            );
+
+            // 0x4FCAC0
+            m_FadeOut = notsa::step_to(m_FadeOut, 1.f, cfg->FadeOutStep, notsa::IsFixBugs());
+            if (m_FadeOut < 0.99f) {
+                UpdateGenericEngineSound(
+                    AE_SOUND_CAR_REV,
+                    GetVolumeForDummyRev(ratio, m_FadeOut),
+                    GetFrequencyForDummyRev(ratio, m_FadeOut)
+                );
+            } else {
+                StopGenericEngineSound(AE_SOUND_CAR_REV);
+            }
+
+            break;
+        }
+        case eAEState::CAR_OFF: { // 0x4FCBDF
+            StopGenericEngineSound(AE_SOUND_CAR_ID);
+            StopGenericEngineSound(AE_SOUND_CAR_REV);
+            break;
+        }
+        case eAEState::DUMMY_CRZ: { // 0x4FCB56
+            m_FadeOut = 0.f;
+            UpdateGenericEngineSound(
+                AE_SOUND_CAR_ID,
+                GetVolumeForDummyIdle(ratio, 0.f),
+                GetFrequencyForDummyIdle(ratio, m_FadeOut)
+            );
+
+            m_FadeIn = 0.f;
+            StartVehicleEngineSound(
+                AE_SOUND_CAR_REV,
+                GetVolumeForDummyRev(ratio, 0.f),
+                GetFrequencyForDummyRev(ratio, m_FadeIn)
+            );
+            break;
+        }
+        default:
+            NOTSA_UNREACHABLE("Invalid new state ({})", newState);
+        }
+        break;
+    }
+    case eAEState::DUMMY_CRZ: { // 0x4FCC46
+        switch (newState) {
+        case eAEState::DUMMY_ID: { // 0x4FCC56
+            m_FadeOut = 0.f;
+            UpdateGenericEngineSound(
+                AE_SOUND_CAR_REV,
+                GetVolumeForDummyIdle(ratio, 0.f),
+                GetFrequencyForDummyIdle(ratio, m_FadeOut)
+            );
+
+            m_FadeIn = 0.f;
+            StartVehicleEngineSound(
+                AE_SOUND_CAR_ID,
+                GetVolumeForDummyRev(ratio, 0.f),
+                GetFrequencyForDummyRev(ratio, m_FadeIn)
+            );
+            break;
+        }
+        case eAEState::DUMMY_CRZ: { // 0x4FCCE9
+            const auto* const cfg = &s_Config.DummyCar.Transitions.FromCrzToCrz;
+
+            // 0x4FCCE9
+            m_FadeIn = notsa::step_to(m_FadeIn, 1.f, cfg->FadeInStep, notsa::IsFixBugs());
+            UpdateGenericEngineSound(
+                AE_SOUND_CAR_REV,
+                GetVolumeForDummyIdle(ratio, m_FadeIn),
+                GetFrequencyForDummyIdle(ratio, m_FadeIn)
+            );
+
+            // 0x4FCD7C
+            m_FadeOut = notsa::step_to(m_FadeOut, 1.f, cfg->FadeOutStep, notsa::IsFixBugs());
+            if (m_FadeOut >= 0.99f) {
+                StopGenericEngineSound(AE_SOUND_CAR_ID);
+            } else {
+                if (m_FadeOut > 0.65f && m_FadeOut < 0.75f) { // 0x4FCD94
+                    vp.Vehicle->vehicleFlags.bAudioChangingGear = true;
+                }
+                UpdateGenericEngineSound(
+                    AE_SOUND_CAR_ID,
+                    GetVolumeForDummyRev(ratio, m_FadeOut),
+                    GetFrequencyForDummyRev(ratio, m_FadeOut)
+                );
+            }
+
+            break;
+        }
+        case eAEState::CAR_OFF: { // 0x4FCDFC
+            CancelVehicleEngineSound(AE_SOUND_CAR_REV);
+            break;
+        }
+        default:
+            NOTSA_UNREACHABLE("Invalid new state ({})", newState);
+        }
+        break;
+    }
+    case eAEState::CAR_OFF:
+    case eAEState::NUM_STATES: { // 0x4FCE5A
+        switch (newState) {
+        case eAEState::DUMMY_ID: { // 0x4FCE6D
+            if (oldState == eAEState::CAR_OFF) {
+                AddAudioEvent(AE_START_ENGINE, 0.f);
+            }
+            m_FadeOut = 1.f;
+            m_FadeIn = 1.f;
+            StartVehicleEngineSound(
+                AE_SOUND_CAR_ID,
+                GetVolumeForDummyIdle(ratio, 1.f),
+                GetFrequencyForDummyIdle(ratio, 1.f)
+            );
+            break;
+        }
+        case eAEState::DUMMY_CRZ: { // 0x4FCED0
+            if (oldState == eAEState::CAR_OFF) {
+                AddAudioEvent(AE_START_ENGINE, 0.f);
+            }
+            m_FadeOut = 1.f;
+            m_FadeIn = 1.f;
+            StartVehicleEngineSound(
+                AE_SOUND_CAR_REV,
+                GetVolumeForDummyRev(ratio, 1.f),
+                GetFrequencyForDummyRev(ratio, 1.f)
+            );
+            break;
+        }
+        case eAEState::CAR_OFF: { // 0x4FCEC8
+            break;
+        }
+        default:
+            NOTSA_UNREACHABLE("Invalid new state ({})", newState);
+        }
+        break;
+    }
+    default:
+        NOTSA_UNREACHABLE("Invalid old state ({})", oldState);
+    }
 }
 
 // 0x4FDFD0 - Process AI propeller sound
@@ -3173,18 +3321,18 @@ void CAEVehicleAudioEntity::ProcessDummyVehicleEngine(tVehicleParams& vp) {
         return;
     }
     if (vp.Vehicle->vehicleFlags.bEngineOn) {
-        const auto gearVelocityProgress = vp.Vehicle->GetStatus() != STATUS_ABANDONED && vp.Transmission
+        const auto ratio = vp.Vehicle->GetStatus() != STATUS_ABANDONED && vp.Transmission
             ? std::clamp(std::abs(vp.Speed / vp.Transmission->m_MaxVelocity), 0.f, 1.f)
             : 0.f;
         bool isIdling;
         switch (m_State) {
         case eAEState::CAR_OFF:
-        case eAEState::DUMMY_ID:   isIdling = gearVelocityProgress < s_Config.DummyEngine.ID.Ratio;                              break;
+        case eAEState::DUMMY_ID:   isIdling = ratio < s_Config.DummyEngine.ID.Ratio;          break;
         case eAEState::NUM_STATES: NOTSA_UNREACHABLE(); // This one was originally handled as part of the above, but it doesn't make any sense....
-        case eAEState::DUMMY_CRZ:  isIdling = gearVelocityProgress < s_Config.DummyEngine.Rev.Ratio;                               break;
-        default:                   ProcessDummyStateTransition(eAEState::CAR_OFF, gearVelocityProgress, vp); return;
+        case eAEState::DUMMY_CRZ:  isIdling = ratio < s_Config.DummyEngine.Rev.Ratio;         break;
+        default:                   ProcessDummyStateTransition(eAEState::CAR_OFF, ratio, vp); return;
         }
-        ProcessDummyStateTransition(isIdling ? eAEState::DUMMY_ID : eAEState::DUMMY_CRZ, gearVelocityProgress, vp);
+        ProcessDummyStateTransition(isIdling ? eAEState::DUMMY_ID : eAEState::DUMMY_CRZ, ratio, vp);
     } else {
         ProcessDummyStateTransition(eAEState::CAR_OFF, 0.f, vp);
     }
@@ -3194,7 +3342,7 @@ void CAEVehicleAudioEntity::ProcessDummyVehicleEngine(tVehicleParams& vp) {
 float CalculatePlaneEngineSpeed(CPlane* plane, float gas, float brake) {
     return plane->m_autoPilot.m_vehicleRecordingId >= 0
         ? 0.7f + 0.3f * std::clamp(std::max(gas, brake), 0.f, 1.f)
-        : plane->m_fPropSpeed / 0.34f; // * 2.941 ???
+        : plane->m_fPropSpeed / 0.34f;
 }
 
 // notsa - copy-paste elimination (Used in ProcessPlayerProp, ProcessDummyProp, ProcessPlayerJet)
@@ -3867,7 +4015,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessEngineDamage, 0x4FAE20);
     RH_ScopedInstall(ProcessNitro, 0x4FB070);
     RH_ScopedInstall(ProcessMovingParts, 0x4FB260);
-    RH_ScopedInstall(ProcessDummyStateTransition, 0x4FCA10, { .reversed = false });
+    RH_ScopedInstall(ProcessDummyStateTransition, 0x4FCA10);
     RH_ScopedInstall(ProcessPlayerProp, 0x4FD290);
     RH_ScopedInstall(ProcessDummyProp, 0x4FD8F0);
     RH_ScopedInstall(ProcessAIProp, 0x4FDFD0);
