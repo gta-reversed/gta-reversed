@@ -55,7 +55,7 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(AddAdvertIndexToHistory, 0x4E9760);
     RH_ScopedInstall(AddIdentIndexToHistory, 0x4E9720);
     RH_ScopedInstall(AddMusicTrackIndexToHistory, 0x4E96C0);
-    RH_ScopedOverloadedInstall(StartRadio, "manual", 0x4EB3C0, void (CAERadioTrackManager::*)(eRadioID, int8, float, uint8));
+    RH_ScopedOverloadedInstall(StartRadio, "manual", 0x4EB3C0, void (CAERadioTrackManager::*)(eRadioID, eBassSetting, float, bool));
     RH_ScopedOverloadedInstall(StartRadio, "with-settings", 0x4EB550, void (CAERadioTrackManager::*)(tVehicleAudioSettings*));
     RH_ScopedInstall(CheckForStationRetuneDuringPause, 0x4EB890);
     RH_ScopedInstall(TrackRadioStation, 0x4EAC30, { .reversed = false });
@@ -117,7 +117,7 @@ bool CAERadioTrackManager::Initialise(int32 channelId) {
 
 // 0x4E8330
 void CAERadioTrackManager::InitialiseRadioStationID(eRadioID id) {
-    m_RequestedSettings.m_nCurrentRadioStation = m_ActiveSettings.m_nCurrentRadioStation = id;
+    m_RequestedSettings.StationID = m_ActiveSettings.StationID = id;
 }
 
 // 0x4E7F80
@@ -195,7 +195,7 @@ int32* CAERadioTrackManager::GetRadioStationListenTimes() {
 
 // 0x4E83F0
 eRadioID CAERadioTrackManager::GetCurrentRadioStationID() const {
-    return m_RequestedSettings.m_nCurrentRadioStation == RADIO_INVALID ? RADIO_OFF : m_RequestedSettings.m_nCurrentRadioStation;
+    return m_RequestedSettings.StationID == RADIO_INVALID ? RADIO_OFF : m_RequestedSettings.StationID;
 }
 
 // 0x4E82E0
@@ -204,22 +204,22 @@ void CAERadioTrackManager::SetRadioAutoRetuneOnOff(bool enable) {
 }
 
 // 0x4E82F0
-void CAERadioTrackManager::SetBassSetting(int8 nBassSet, float fBassGrain) {
-    m_RequestedSettings.m_fBassGain = m_ActiveSettings.m_fBassGain = fBassGrain;
-    m_RequestedSettings.m_nBassSet = m_ActiveSettings.m_nBassSet = nBassSet;
-    AEAudioHardware.SetBassSetting(m_bBassEnhance ? nBassSet : 0, fBassGrain);
+void CAERadioTrackManager::SetBassSetting(eBassSetting bassSetting, float bassGrain) {
+    m_RequestedSettings.BassGain = m_ActiveSettings.BassGain = bassGrain;
+    m_RequestedSettings.BassSetting = m_ActiveSettings.BassSetting = bassSetting;
+    AEAudioHardware.SetBassSetting(m_bBassEnhance ? bassSetting : eBassSetting::NORMAL, bassGrain);
 }
 
 // 0x4E9DB0
 void CAERadioTrackManager::SetBassEnhanceOnOff(bool enable) {
     m_bBassEnhance = enable;
     if (m_nMode == eRadioTrackMode::RADIO_PLAYING) {
-        m_RequestedSettings.m_nBassSet = m_ActiveSettings.m_nBassSet;
-        m_RequestedSettings.m_fBassGain = m_ActiveSettings.m_fBassGain;
+        m_RequestedSettings.BassSetting = m_ActiveSettings.BassSetting;
+        m_RequestedSettings.BassGain = m_ActiveSettings.BassGain;
         if (enable) {
-            AEAudioHardware.SetBassSetting(m_ActiveSettings.m_nBassSet, m_ActiveSettings.m_fBassGain);
+            AEAudioHardware.SetBassSetting(m_ActiveSettings.BassSetting, m_ActiveSettings.BassGain);
         } else {
-            AEAudioHardware.SetBassSetting(0, m_ActiveSettings.m_fBassGain);
+            AEAudioHardware.SetBassSetting(eBassSetting::NORMAL, m_ActiveSettings.BassGain);
         }
     }
 }
@@ -262,7 +262,7 @@ void CAERadioTrackManager::DisplayRadioStationName() {
     }
 
     if (CTimer::GetTimeInMS() < m_nTimeToDisplayRadioName) {
-        int station = m_nStationsListed + m_RequestedSettings.m_nCurrentRadioStation;
+        int station = m_nStationsListed + m_RequestedSettings.StationID;
         if (station) {
             if (station >= RADIO_COUNT) {
                 station -= RADIO_COUNT - 1;
@@ -443,26 +443,26 @@ void CAERadioTrackManager::CheckForStationRetune() {
 
 // 0x4EB890
 void CAERadioTrackManager::CheckForStationRetuneDuringPause() {
-    if (m_ActiveSettings.m_nCurrentRadioStation == RADIO_EMERGENCY_AA && IsRadioOn() || m_iRadioStationMenuRequest <= RADIO_INVALID)
+    if (m_ActiveSettings.StationID == RADIO_EMERGENCY_AA && IsRadioOn() || m_iRadioStationMenuRequest <= RADIO_INVALID)
         return;
 
     if (m_iRadioStationMenuRequest != RADIO_OFF) {
-        if (m_ActiveSettings.m_nCurrentRadioStation == RADIO_OFF) {
+        if (m_ActiveSettings.StationID == RADIO_OFF) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_ON);
-            m_ActiveSettings.m_nCurrentRadioStation = RADIO_INVALID;
+            m_ActiveSettings.StationID = RADIO_INVALID;
         } else {
             AudioEngine.StopRadio(nullptr, true);
         }
 
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_START);
         if (CTimer::GetTimeInMSPauseMode() > m_nRetuneStartedTime + 700u) {
-            StartRadio((eRadioID)m_iRadioStationMenuRequest, m_ActiveSettings.m_nBassSet, m_ActiveSettings.m_fBassGain, 0);
+            StartRadio((eRadioID)m_iRadioStationMenuRequest, m_ActiveSettings.BassSetting, m_ActiveSettings.BassGain, 0);
             m_iRadioStationMenuRequest = RADIO_INVALID;
         }
     } else {
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_CLICK_OFF);
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
-        StartRadio(RADIO_OFF, m_ActiveSettings.m_nBassSet, m_ActiveSettings.m_fBassGain, 0);
+        StartRadio(RADIO_OFF, m_ActiveSettings.BassSetting, m_ActiveSettings.BassGain, 0);
         m_iRadioStationMenuRequest = RADIO_INVALID;
     }
 }
@@ -533,8 +533,8 @@ void CAERadioTrackManager::UpdateRadioVolumes() {
             volume = volume - 20.0f;
     }
 
-    if (m_bBassEnhance && m_ActiveSettings.m_nBassSet) {
-        switch (m_ActiveSettings.m_nBassSet) {
+    if (m_bBassEnhance && m_ActiveSettings.m_BassSetting) {
+        switch (m_ActiveSettings.m_BassSetting) {
         case 1:
             volume -= 2.0f;
             break;
@@ -604,14 +604,13 @@ void CAERadioTrackManager::StartRadio(tVehicleAudioSettings* settings) {
 }
 
 // 0x4EB3C0
-void CAERadioTrackManager::StartRadio(eRadioID id, int8 bassValue, float bassGain, uint8 a5) {
-    // plugin::CallMethod<0x4EB3C0, CAERadioTrackManager*, int8, int8, float, uint8>(this, id, bassValue, bassGain, a5);
+void CAERadioTrackManager::StartRadio(eRadioID id, eBassSetting bassSetting, float bassGain, bool skipTrack) {
     id = std::min(id, RADIO_OFF);
 
     if (CTimer::GetIsPaused()) {
         m_bEnabledInPauseMode = true;
 
-        if (IsRadioOn() && id == m_ActiveSettings.m_nCurrentRadioStation) {
+        if (IsRadioOn() && id == m_ActiveSettings.StationID) {
             m_aRadioState[id].m_iTimeInPauseModeInMs = CTimer::GetTimeInMSPauseMode();
             return;
         }
@@ -625,33 +624,30 @@ void CAERadioTrackManager::StartRadio(eRadioID id, int8 bassValue, float bassGai
         AudioEngine.StopAmbienceTrack(false);
     }
 
-    m_RequestedSettings.m_nCurrentRadioStation = id;
-    m_RequestedSettings.m_nBassSet = bassValue;
-    m_RequestedSettings.m_fBassGain = bassGain;
-
+    auto* const rs = &m_RequestedSettings;
+    rs->StationID = id;
+    rs->BassSetting             = bassSetting;
+    rs->BassGain            = bassGain;
     if (id == RADIO_OFF) {
-        m_RequestedSettings.Reset();
-    } else if (m_aRadioState[id].m_iTimeInMs < 0 || !TrackRadioStation(id, a5)) {
-        ChooseTracksForStation(m_RequestedSettings.m_nCurrentRadioStation);
-        m_RequestedSettings.m_iTrackPlayTime = CAEAudioUtility::GetRandomNumberInRange(0, 300'000);
+        rs->Reset();
+    } else if (m_aRadioState[id].m_iTimeInMs < 0 || !TrackRadioStation(id, skipTrack)) {
+        ChooseTracksForStation(rs->StationID);
+        rs->PlayTime = CAEAudioUtility::GetRandomNumberInRange(0, 300'000);
     }
-
-    m_bInitialised = true;
     switch (m_nMode) {
     case eRadioTrackMode::RADIO_STARTING:
     case eRadioTrackMode::RADIO_WAITING_TO_PLAY:
     case eRadioTrackMode::RADIO_PLAYING:
         m_nMode = eRadioTrackMode::RADIO_STOPPING;
-        break;
-    default:
-        break;
     }
-    m_aRadioState[m_RequestedSettings.m_nCurrentRadioStation].m_iTimeInPauseModeInMs = -1;
+    m_aRadioState[rs->StationID].m_iTimeInPauseModeInMs = -1;
+
+    m_bInitialised = true;
 }
 
 // 0x4EAC30
-bool CAERadioTrackManager::TrackRadioStation(eRadioID id, uint8 a2) {
-    return plugin::CallMethodAndReturn<bool, 0x4EAC30, CAERadioTrackManager*, int8, uint8>(this, id, a2);
+bool CAERadioTrackManager::TrackRadioStation(eRadioID id, bool skipTrack) {
+    return plugin::CallMethodAndReturn<bool, 0x4EAC30, CAERadioTrackManager*, int8, uint8>(this, id, skipTrack);
 }
 
 // 0x4EA670
@@ -736,7 +732,7 @@ void CAERadioTrackManager::ChooseTracksForStation(eRadioID id) {
     }
 
     QueueUpTracksForStation(id, &trackCount, TYPE_OUTRO, m_RequestedSettings);
-    AddMusicTrackIndexToHistory(id, m_RequestedSettings.m_aTrackIndexes[trackCount - 1]);
+    AddMusicTrackIndexToHistory(id, m_RequestedSettings.TrackIndices[trackCount - 1]);
 
     if (id == RADIO_EMERGENCY_AA) {
         QueueUpTracksForStation(id, &trackCount, TYPE_DJ_BANTER, m_RequestedSettings);

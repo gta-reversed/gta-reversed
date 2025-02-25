@@ -6,33 +6,38 @@
 #include "AEAudioUtility.h"
 
 //! Stereo channel FX Param EQ presets [0x8CBA70]
-static inline DSFXParamEq s_FXParamEqPresets[3][2]{
-    {{ 0.0f, 0.0f,  0.0f }, { 0.f,   0.0f,  0.0f }}, // Preset 1
-    {{ 80.f, 30.f,  4.0f }, { 180.f, 30.f,  1.5f }}, // Preset 2
-    {{ 80.f, 36.f, -15.f }, { 80.f,  36.f, -15.f }}, // Preset 3
+static inline DSFXParamEq s_FXParamEqPresets[(+eBassSetting::NUM)][2]{
+    {{ 0.0f, 0.0f,  0.0f }, { 0.f,   0.0f,  0.0f }}, // Preset NORMAL [Unused]
+    {{ 80.f, 30.f,  4.0f }, { 180.f, 30.f,  1.5f }}, // Preset BOOST
+    {{ 80.f, 36.f, -15.f }, { 80.f,  36.f, -15.f }}, // Preset CUT
 };
 
 // 0x4F2200
 CAEStreamingChannel::~CAEStreamingChannel() {
     DirectSoundBufferFadeToSilence();
 
-    m_nState = StreamingChannelState::Stopping;
+    m_nState              = StreamingChannelState::Stopping;
     m_lStoppingFrameCount = 0;
 
-    if (m_pDirectSoundBuffer8)
+    if (m_pDirectSoundBuffer8) {
         m_pDirectSoundBuffer8->SetFX(0, nullptr, nullptr);
+    }
 
-    if (m_pSilenceBuffer)
+    if (m_pSilenceBuffer) {
         std::exchange(m_pSilenceBuffer, nullptr)->Release();
+    }
 
-    if (m_pDirectSoundBuffer)
+    if (m_pDirectSoundBuffer) {
         std::exchange(m_pDirectSoundBuffer, nullptr)->Release();
+    }
 
-    if (m_pStreamingDecoder)
+    if (m_pStreamingDecoder) {
         delete std::exchange(m_pStreamingDecoder, nullptr);
+    }
 
-    if (m_pNextStreamingDecoder)
+    if (m_pNextStreamingDecoder) {
         delete std::exchange(m_pNextStreamingDecoder, nullptr);
+    }
 }
 
 // 0x4F22F0
@@ -107,10 +112,11 @@ void CAEStreamingChannel::SetReady() {
 }
 
 // 0x4F1F30
-void CAEStreamingChannel::SetBassEQ(uint8 mode, float gain) {
-    if (mode == 0) {
-        if (m_bEQEnabled)
+void CAEStreamingChannel::SetBassEQ(eBassSetting mode, float gain) {
+    if (mode == eBassSetting::NORMAL) {
+        if (m_bEQEnabled) {
             RemoveFX();
+        }
         return;
     }
 
@@ -118,18 +124,18 @@ void CAEStreamingChannel::SetBassEQ(uint8 mode, float gain) {
         return;
     }
 
-    for (auto i = 0; i < 2; i++) {
+    for (auto ch = 0; ch < 2; ch++) {
         IDirectSoundFXParamEq* fxEqParam;
         if (FAILED(m_pDirectSoundBuffer8->GetObjectInPath(
             GUID_All_Objects,
-            i,
+            ch,
             IID_IDirectSoundFXParamEq,
             reinterpret_cast<LPVOID*>(&fxEqParam)
         ))) {
             continue;
         }
 
-        DSFXParamEq savedFxExParam{ s_FXParamEqPresets[mode][i] };
+        DSFXParamEq savedFxExParam{ s_FXParamEqPresets[(+mode)][ch] };
         savedFxExParam.fGain *= gain;
         VERIFY(SUCCEEDED(fxEqParam->SetAllParameters(&savedFxExParam)));
         fxEqParam->Release();

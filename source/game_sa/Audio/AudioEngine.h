@@ -90,11 +90,11 @@ public:
 
     void InitialiseRadioStationID(eRadioID id);
     void StartRadio(tVehicleAudioSettings* settings);
-    void StartRadio(eRadioID id, int8 bassValue);
+    void StartRadio(eRadioID id, eBassSetting bassSetting);
     void StopRadio(tVehicleAudioSettings* settings, bool bDuringPause);
     void SetRadioAutoRetuneOnOff(bool);
     void SetBassEnhanceOnOff(bool enable);
-    void SetRadioBassSetting(int8);
+    void SetRadioBassSetting(eBassSetting bassSetting);
     bool HasRadioRetuneJustStarted();
     const GxtChar* GetRadioStationName(eRadioID id);
     void GetRadioStationNameKey(eRadioID id, char* outStr);

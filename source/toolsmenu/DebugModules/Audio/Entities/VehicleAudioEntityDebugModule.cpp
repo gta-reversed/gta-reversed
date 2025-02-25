@@ -71,17 +71,17 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
     FormattedText("TimeBeforeAllowAccelerate: {}", ae->m_TimeBeforeAllowAccelerate);
     FormattedText("TimeBeforeAllowCruise: {}", ae->m_TimeBeforeAllowCruise);
     FormattedText("EventVolume: {}", ae->m_EventVolume);
-    FormattedText("DummyEngineBank: {}", (int32)(ae->m_DummyEngineBank));
-    FormattedText("PlayerEngineBank: {}", (int32)(ae->m_PlayerEngineBank));
-    FormattedText("DummySlot: {}", (int32)(ae->m_DummySlot));
+    FormattedText("DummyEngineBank: {}", ae->m_DummyEngineBank);
+    FormattedText("PlayerEngineBank: {}", ae->m_PlayerEngineBank);
+    FormattedText("DummySlot: {}", ae->m_DummySlot);
     if (auto* const as = &ae->m_AuSettings; ImGui::TreeNode("AuSettings")) {
         FormattedText("VehicleAudioType: {}", as->VehicleAudioType);
-        FormattedText("PlayerBank: {}", (int32)(as->PlayerBank));
-        FormattedText("DummyBank: {}", (int32)(as->DummyBank));
+        FormattedText("PlayerBank: {}", as->PlayerBank);
+        FormattedText("DummyBank: {}", as->DummyBank);
         FormattedText("BassSetting: {}", as->BassSetting);
         FormattedText("BassFactor: {}", as->BassFactor);
         FormattedText("EnginePitch: {}", as->EnginePitch);
-        FormattedText("HornType: {}", (int32)(as->HornType));
+        FormattedText("HornType: {}", as->HornType);
         FormattedText("HornPitch: {}", as->HornPitch);
         FormattedText("DoorType: {}", as->DoorType);
         FormattedText("EngineUpgrade: {}", as->EngineUpgrade);

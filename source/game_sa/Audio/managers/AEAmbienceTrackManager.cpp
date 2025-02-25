@@ -256,7 +256,7 @@ void CAEAmbienceTrackManager::UpdateAmbienceTrackAndVolume() {
                 AudioEngine.StopRadio(nullptr, false);
             }
         } else {
-            AudioEngine.StartRadio(m_AmbienceRadioStation, 2);
+            AudioEngine.StartRadio(m_AmbienceRadioStation, eBassSetting::CUT);
         }
     } else if (prevAmbienceRadioStation != RADIO_INVALID) { //>0x4D71E5 - Radio was running previously, but isn't anymore, so stop it
         if (AudioEngine.IsRadioOn()) {
@@ -286,7 +286,7 @@ void CAEAmbienceTrackManager::UpdateAmbienceTrackAndVolume() {
                         } else {
                             StopAmbienceTrack();
                             if (m_LastAmbienceOverrodeRadio || AudioEngine.IsVehicleRadioActive()) {
-                                AudioEngine.StartRadio(AudioEngine.GetCurrentRadioStationID(), 0);
+                                AudioEngine.StartRadio(AudioEngine.GetCurrentRadioStationID(), eBassSetting::NORMAL);
                             }
                             m_FreqFactor = 1.f;
                         }

@@ -20,48 +20,47 @@ enum {
 struct tRadioSettings {
     static constexpr size_t NUM_TRACKS = 5u;
 
-    std::array<int32, NUM_TRACKS> m_aTrackQueue{-1};
-    int32 m_iCurrentTrackID{-1};
-    int32 m_iPrevTrackID{-1};
-    int32 m_iTrackPlayTime{0};
-    int32 m_iTrackLengthMs{0};
-    int8 m_nTrackFlags{2}; // TODO: enum
-    eRadioID m_nCurrentRadioStation{RADIO_OFF}; // NOTSA init value.
-    int8  m_nBassSet{0};
-    float m_fBassGain{}; // unk. init
-    std::array<int8, NUM_TRACKS> m_aTrackTypes{TYPE_NONE};
-    int8  m_iCurrentTrackType{TYPE_NONE};
-    int8  m_iPrevTrackType{TYPE_NONE};
-    std::array<int8, NUM_TRACKS> m_aTrackIndexes{-1};
-    int8  m_iCurrentTrackIndex{-1};
-    int8  m_iPrevTrackIndex{-1};
-
-    tRadioSettings(eRadioID currentStation = RADIO_OFF)
-        : m_nCurrentRadioStation(currentStation)
-    {}
+    tRadioSettings(eRadioID currentStation = RADIO_OFF) :
+        StationID(currentStation)
+    {
+        rng::fill(TrackQueue, -1);
+        rng::fill(TrackTypes, TYPE_NONE);
+        rng::fill(TrackIndices, -1);
+    }
 
     void Reset() {
-        for (auto i = 0u; i < std::size(m_aTrackQueue); i++) {
-            m_aTrackQueue[i]   = -1;
-            m_aTrackTypes[i]   = TYPE_NONE;
-            m_aTrackIndexes[i] = -1;
-        }
+        *this = {};
     }
 
     void SwitchToNextTrack() {
-        m_iPrevTrackID = m_aTrackQueue.front();
-        m_iPrevTrackType = m_aTrackTypes.front();
-        m_iPrevTrackIndex = m_aTrackIndexes.front();
+        PrevTrackID   = TrackQueue.front();
+        PrevTrackType = TrackTypes.front();
+        PrevTrackIdx  = TrackIndices.front();
 
         const auto Rotate = [](auto& arr, auto invalidValue) {
             std::copy(arr.begin() + 1, arr.end(), arr.begin());
             arr.back() = invalidValue;
         };
-
-        Rotate(m_aTrackQueue,   -1);
-        Rotate(m_aTrackTypes,   TYPE_NONE);
-        Rotate(m_aTrackIndexes, -1);
+        Rotate(TrackQueue,   -1);
+        Rotate(TrackTypes,   TYPE_NONE);
+        Rotate(TrackIndices, -1);
     }
+
+    std::array<int32, NUM_TRACKS> TrackQueue{ -1 };
+    int32                         CurrTrackID{ -1 };
+    int32                         PrevTrackID{ -1 };
+    int32                         PlayTime{ 0 };
+    int32                         TrackLengthMs{ 0 };
+    int8                          TrackFlags{ 2 };        // TODO: enum
+    eRadioID                      StationID{ RADIO_OFF }; // NOTSA init value.
+    eBassSetting                  BassSetting{ eBassSetting::NORMAL };
+    float                         BassGain{}; // unk. init
+    std::array<int8, NUM_TRACKS>  TrackTypes{ TYPE_NONE };
+    int8                          CurrTrackType{ TYPE_NONE };
+    int8                          PrevTrackType{ TYPE_NONE };
+    std::array<int8, NUM_TRACKS>  TrackIndices{ -1 };
+    int8                          CurrTrackIdx{ -1 }; //!< Index into `TrackIndices`
+    int8                          PrevTrackIdx{ -1 }; //!< Index into `TrackIndices`
 };
 VALIDATE_SIZE(tRadioSettings, 0x3C);
 
@@ -220,7 +219,7 @@ public:
     int32* GetRadioStationListenTimes();
     void   SetRadioAutoRetuneOnOff(bool enable);
     void   SetBassEnhanceOnOff(bool enable);
-    void   SetBassSetting(int8 nBassSet, float fBassGrain);
+    void   SetBassSetting(eBassSetting bassSetting, float bassGrain);
     void   RetuneRadio(eRadioID radioId);
 
     void  DisplayRadioStationName();
@@ -231,7 +230,7 @@ public:
     void StartTrackPlayback();
     void UpdateRadioVolumes();
     void PlayRadioAnnouncement(uint32);
-    void StartRadio(eRadioID id, int8 bassValue, float bassGain, uint8 a5);
+    void StartRadio(eRadioID id, eBassSetting bassSetting, float bassGain, bool skipTrack);
     void StartRadio(tVehicleAudioSettings* settings);
     void StopRadio(tVehicleAudioSettings* settings, bool bDuringPause);
 
@@ -261,7 +260,7 @@ protected:
     void CheckForPause();
 
     bool QueueUpTracksForStation(eRadioID id, int8* iTrackCount, int8 radioState, tRadioSettings& settings);
-    bool TrackRadioStation(eRadioID id, uint8 a2);
+    bool TrackRadioStation(eRadioID id, bool skipTrack);
 };
 VALIDATE_SIZE(CAERadioTrackManager, 0x370);
 

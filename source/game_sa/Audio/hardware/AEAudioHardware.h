@@ -90,8 +90,8 @@ public:
     int16                   m_VirtualChannelLoopTimes[MAX_NUM_SOUNDS]{};
     int16                   m_VirtualChannelSoundLengths[MAX_NUM_SOUNDS]{};
 
-    uint8                   m_nBassSet{};
-    float                   m_fBassEqGain{};
+    eBassSetting            m_BassSetting{};
+    float                   m_BassGain{};
     CAEMP3BankLoader*       m_pMP3BankLoader{};
     CAEMP3TrackLoader*      m_pMP3TrackLoader{};
     IDirectSound8*          m_pDSDevice{};
@@ -158,7 +158,7 @@ public:
     void GetBeatInfo(tBeatInfo* beatInfo);
     void GetActualNumberOfHardwareChannels();
 
-    void SetBassSetting(int8 nBassSet, float fBassEqGain);
+    void SetBassSetting(eBassSetting bassSetting, float bassGain);
     void EnableBassEq();
     void DisableBassEq();
 

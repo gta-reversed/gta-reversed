@@ -472,12 +472,14 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
                 .FrequencyVariance = 0.02f,
             });
         };
+        using enum eAEVehicleDoorType;
         switch (m_AuSettings.DoorType) {
-        case 0:  PlaySound(SND_GENRL_VEHICLE_GEN_OPLIGHT); break;
-        case 1:  PlaySound(SND_GENRL_VEHICLE_GEN_OPOLD);   break;
-        case 3:  PlaySound(SND_GENRL_VEHICLE_GEN_OTRUCK);  break;
-        case 4:  PlaySound(SND_GENRL_VEHICLE_GEN_OPVAN);   break;
-        default: PlaySound(SND_GENRL_VEHICLE_GEN_OPNEW);   break;
+        case LIGHT: PlaySound(SND_GENRL_VEHICLE_GEN_OPLIGHT); break;
+        case OLD:   PlaySound(SND_GENRL_VEHICLE_GEN_OPOLD);   break;
+        case TRUCK: PlaySound(SND_GENRL_VEHICLE_GEN_OTRUCK);  break;
+        case VAN:   PlaySound(SND_GENRL_VEHICLE_GEN_OPVAN);   break;
+        case UNSET:
+        case NEW:   PlaySound(SND_GENRL_VEHICLE_GEN_OPNEW);   break;
         }
         break;
     }
@@ -497,12 +499,14 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
                 .FrequencyVariance = 0.02f,
             });
         };
+        using enum eAEVehicleDoorType;
         switch (m_AuSettings.DoorType) {
-        case 0:  PlaySound(SND_GENRL_VEHICLE_GEN_CLLIGHT); break;
-        case 1:  PlaySound(SND_GENRL_VEHICLE_GEN_CLOLD);   break;
-        case 3:  PlaySound(SND_GENRL_VEHICLE_GEN_CTRUCK);  break;
-        case 4:  PlaySound(SND_GENRL_VEHICLE_GEN_CLVAN);   break;
-        default: PlaySound(SND_GENRL_VEHICLE_GEN_CLNEW);   break;
+        case LIGHT: PlaySound(SND_GENRL_VEHICLE_GEN_CLLIGHT); break;
+        case OLD:   PlaySound(SND_GENRL_VEHICLE_GEN_CLOLD);   break;
+        case TRUCK: PlaySound(SND_GENRL_VEHICLE_GEN_CTRUCK);  break;
+        case VAN:   PlaySound(SND_GENRL_VEHICLE_GEN_CLVAN);   break;
+        case UNSET: 
+        case NEW:   PlaySound(SND_GENRL_VEHICLE_GEN_CLNEW);   break;
         }
         break;
     }

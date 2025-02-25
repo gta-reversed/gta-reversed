@@ -2164,7 +2164,7 @@ void CVehicle::ClearWindowOpenFlag(uint8 doorId) {
 // 0x6D30E0
 bool CVehicle::SetVehicleUpgradeFlags(int32 upgradeModelIndex, int32 modId, int32& resultModelIndex) {
     // At the one and only place this function is called from
-    // componentIndex == CModelInfo::GetModelInfo(upgradeModelIndex)->AsVehicleModelInfo().nCarmodId
+    // componentIndex == CModelInfo::GetModelInfo(upgradeModelIndex)->AsVehicleModelInfo().CarMod
     // Now, I'm not sure what value it has, so..
 
     switch (modId) {
@@ -2207,21 +2207,13 @@ bool CVehicle::SetVehicleUpgradeFlags(int32 upgradeModelIndex, int32 modId, int3
             return true;
         }
 
-        auto& bassSetting = m_vehicleAudio.m_AuSettings.BassSetting;
-        switch (bassSetting) {
-        case 1:
-            return true;
-        case 2: {
-            bassSetting = 0;
-            break;
+        auto& bs = m_vehicleAudio.m_AuSettings.BassSetting;
+        switch (bs) {
+        case eBassSetting::CUT:    bs = eBassSetting::NORMAL; break;
+        case eBassSetting::NORMAL: bs = eBassSetting::BOOST;  break;
+        case eBassSetting::BOOST:  return true;
         }
-        case 0: {
-            bassSetting = 1;
-            break;
-        }
-        }
-
-        AudioEngine.SetRadioBassSetting(bassSetting);
+        AudioEngine.SetRadioBassSetting(bs);
 
         vehicleFlags.bUpgradedStereo = true;
 
@@ -2240,18 +2232,12 @@ bool CVehicle::ClearVehicleUpgradeFlags(int32 arg0, int32 modId) {
     switch (modId) {
     case 17: { // 0x6D3270
         if (m_vehicleAudio.m_AuSettings.RadioType != AE_RT_CIVILIAN && vehicleFlags.bUpgradedStereo) {
-            auto& bassSetting = m_vehicleAudio.m_AuSettings.BassSetting;
-            switch (bassSetting) {
-            case 1: {
-                bassSetting = 0;
-                break;
+            auto& bs = m_vehicleAudio.m_AuSettings.BassSetting;
+            switch (bs) {
+            case eBassSetting::BOOST:  bs = eBassSetting::NORMAL; break;
+            case eBassSetting::NORMAL: bs = eBassSetting::CUT;    break;
             }
-            case 0: {
-                bassSetting = 2;
-                break;
-            }
-            }
-            AudioEngine.SetRadioBassSetting(bassSetting);
+            AudioEngine.SetRadioBassSetting(bs);
             vehicleFlags.bUpgradedStereo = false;
         }
         return true;

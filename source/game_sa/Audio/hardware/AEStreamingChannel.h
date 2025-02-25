@@ -64,7 +64,7 @@ public:
     int32  GetPlayingTrackID();
     void   SetNextStream(CAEStreamingDecoder* decoder);
     uint32 FillBuffer(void* buffer, uint32 size);
-    void   SetBassEQ(uint8 mode, float gain);
+    void   SetBassEQ(eBassSetting mode, float gain);
     void   SetReady();
     void   Stop(bool bUpdateState);
     void   PrepareStream(CAEStreamingDecoder* stream, int8 arg2, uint32 audioBytes);

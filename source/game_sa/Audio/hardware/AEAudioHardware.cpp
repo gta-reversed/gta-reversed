@@ -261,10 +261,10 @@ int16 CAEAudioHardware::AllocateChannels(uint16 numChannels) {
 }
 
 // 0x4D94A0
-void CAEAudioHardware::SetBassSetting(int8 nBassSet, float fBassEqGain) {
-    m_nBassSet = nBassSet;
-    m_fBassEqGain = fBassEqGain;
-    m_pStreamingChannel->SetBassEQ(nBassSet, fBassEqGain);
+void CAEAudioHardware::SetBassSetting(eBassSetting bassSetting, float bassGain) {
+    m_BassSetting = bassSetting;
+    m_BassGain    = bassGain;
+    m_pStreamingChannel->SetBassEQ(bassSetting, bassGain);
 }
 
 // 0x4D8810
@@ -514,12 +514,12 @@ void CAEAudioHardware::GetBeatInfo(tBeatInfo* beatInfo) {
 
 // 0x4D94E0
 void CAEAudioHardware::EnableBassEq() {
-    m_pStreamingChannel->SetBassEQ(m_nBassSet, m_fBassEqGain);
+    m_pStreamingChannel->SetBassEQ(m_BassSetting, m_BassGain);
 }
 
 // 0x4D94D0
 void CAEAudioHardware::DisableBassEq() {
-    m_pStreamingChannel->SetBassEQ(0, 0.f);
+    m_pStreamingChannel->SetBassEQ(eBassSetting::NORMAL, 0.f);
 }
 
 // 0x4D9500

@@ -469,7 +469,7 @@ void CMenuManager::SwitchToNewScreen(eMenuScreen screen) {
     }
 
     if (m_nCurrentScreen == SCREEN_AUDIO_SETTINGS) {
-        AudioEngine.StartRadio(m_nRadioStation, 0);
+        AudioEngine.StartRadio(m_nRadioStation, eBassSetting::NORMAL);
     }
 
     if (m_bMainMenuSwitch) {

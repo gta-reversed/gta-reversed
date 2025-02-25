@@ -818,19 +818,21 @@ VALIDATE_SIZE(CAEVehicleAudioEntity, 0x24C);
 
 inline std::optional<const char*> EnumToString(CAEVehicleAudioEntity::eAEState s) {
     using enum CAEVehicleAudioEntity::eAEState;
+#define ENUM_CASE(_e) case _e: return #_e
     switch (s) {
-    case CAR_OFF:               return "CAR_OFF";
-    case DUMMY_ID:              return "DUMMY_ID";
-    case DUMMY_CRZ:             return "DUMMY_CRZ";
-    case PLAYER_AC_FULL:        return "PLAYER_AC_FULL";
-    case PLAYER_WHEEL_SPIN:     return "PLAYER_WHEEL_SPIN";
-    case PLAYER_CRZ:            return "PLAYER_CRZ";
-    case PLAYER_ID:             return "PLAYER_ID";
-    case PLAYER_REVERSE:        return "PLAYER_REVERSE";
-    case PLAYER_REVERSE_OFF:    return "PLAYER_REVERSE_OFF";
-    case PLAYER_FAILING_TO_AC:  return "PLAYER_FAILING_TO_AC";
-    default:                    return std::nullopt;
+    ENUM_CASE(CAR_OFF);
+    ENUM_CASE(DUMMY_ID);
+    ENUM_CASE(DUMMY_CRZ);
+    ENUM_CASE(PLAYER_AC_FULL);
+    ENUM_CASE(PLAYER_WHEEL_SPIN);
+    ENUM_CASE(PLAYER_CRZ);
+    ENUM_CASE(PLAYER_ID);
+    ENUM_CASE(PLAYER_REVERSE);
+    ENUM_CASE(PLAYER_REVERSE_OFF);
+    ENUM_CASE(PLAYER_FAILING_TO_AC);
     }
+    return std::nullopt;
+#undef ENUM_CASE
 }
 
 inline std::optional<const char*> EnumToString(CAEVehicleAudioEntity::eCarEngineSoundType st) {

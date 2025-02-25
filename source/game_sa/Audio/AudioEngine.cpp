@@ -32,7 +32,7 @@ void CAudioEngine::InjectHooks() {
     RH_ScopedInstall(PauseBeatTrack, 0x507200);
     RH_ScopedInstall(RetuneRadio, 0x507E10);
     RH_ScopedOverloadedInstall(StartRadio, "", 0x507DF0, void (CAudioEngine::*)(tVehicleAudioSettings*));
-    RH_ScopedOverloadedInstall(StartRadio, "1", 0x507DC0, void (CAudioEngine::*)(eRadioID, int8));
+    RH_ScopedOverloadedInstall(StartRadio, "1", 0x507DC0, void (CAudioEngine::*)(eRadioID, eBassSetting));
     RH_ScopedInstall(ServiceLoadingTune, 0x5078A0);
     RH_ScopedInstall(ResumeAllSounds, 0x507440);
     RH_ScopedInstall(PauseAllSounds, 0x507430);
@@ -465,8 +465,9 @@ void CAudioEngine::StopCutsceneTrack(bool bWaitForFinish) {
         m_bPlayingMissionCompleteTrack = false;
         return;
     }
-    if (AERadioTrackManager.IsVehicleRadioActive())
-        AERadioTrackManager.StartRadio(m_nCurrentRadioStationId, 0, 0, 0);
+    if (AERadioTrackManager.IsVehicleRadioActive()) {
+        AERadioTrackManager.StartRadio(m_nCurrentRadioStationId, eBassSetting::NORMAL, 0.f, false);
+    }
     m_nCurrentRadioStationId = RADIO_INVALID;
     m_bPlayingMissionCompleteTrack = false;
 }
@@ -745,9 +746,10 @@ int8 CAudioEngine::GetBeatTrackStatus() {
 }
 
 // 0x507DC0
-void CAudioEngine::StartRadio(eRadioID id, int8 bassValue) {
-    if (!GetBeatTrackStatus())
-        AERadioTrackManager.StartRadio(id, bassValue, 0, 0);
+void CAudioEngine::StartRadio(eRadioID id, eBassSetting bassSetting) {
+    if (!GetBeatTrackStatus()) {
+        AERadioTrackManager.StartRadio(id, bassSetting, 0.f, false);
+    }
 }
 
 // 0x507DF0
@@ -767,8 +769,8 @@ void CAudioEngine::SetBassEnhanceOnOff(bool enable) {
 }
 
 // 0x506FA0
-void CAudioEngine::SetRadioBassSetting(int8 nBassSet) {
-    AERadioTrackManager.SetBassSetting(nBassSet, 1.0f);
+void CAudioEngine::SetRadioBassSetting(eBassSetting bassSetting) {
+    AERadioTrackManager.SetBassSetting(bassSetting, 1.0f);
 }
 
 // 0x506FC0
