@@ -231,7 +231,7 @@ public:
     void UpdateRadioVolumes();
     void PlayRadioAnnouncement(uint32);
     void StartRadio(eRadioID id, eBassSetting bassSetting, float bassGain, bool skipTrack);
-    void StartRadio(tVehicleAudioSettings* settings);
+    void StartRadio(const tVehicleAudioSettings& settings);
     void StopRadio(tVehicleAudioSettings* settings, bool bDuringPause);
 
     void Service(int32 playTime);

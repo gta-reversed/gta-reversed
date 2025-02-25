@@ -260,7 +260,7 @@ void CAEAmbienceTrackManager::UpdateAmbienceTrackAndVolume() {
         }
     } else if (prevAmbienceRadioStation != RADIO_INVALID) { //>0x4D71E5 - Radio was running previously, but isn't anymore, so stop it
         if (AudioEngine.IsRadioOn()) {
-            AudioEngine.StopRadio(0, 0);
+            AudioEngine.StopRadio(nullptr, false);
         }
     } else if (AudioEngine.IsRadioOn()) { // 0x4D720A
         if (m_OverrideRadio) {

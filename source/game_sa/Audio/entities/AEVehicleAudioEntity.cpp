@@ -284,7 +284,7 @@ void CAEVehicleAudioEntity::Terminate() {
     m_IsInitialized            = false;
 }
 
-// 0x4F4ED0
+// 0x4F4ED0 - May return nullptr
 tVehicleAudioSettings* CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio() {
     return s_pVehicleAudioSettingsForRadio;
 }
@@ -937,7 +937,7 @@ void CAEVehicleAudioEntity::StaticService() {
 }
 
 // 0x4F96A0
-CVector CAEVehicleAudioEntity::GetAircraftNearPosition() {
+CVector CAEVehicleAudioEntity::GetAircraftNearPosition() const noexcept {
     if (m_AuSettings.IsHeli()) {
         CVector pos;
         m_Entity->AsVehicle()->GetComponentWorldPosition(s_Config.HeliAudioComponent, pos);
@@ -947,7 +947,7 @@ CVector CAEVehicleAudioEntity::GetAircraftNearPosition() {
 }
 
 // 0x4F6150
-float CAEVehicleAudioEntity::GetFlyingMetalVolume(CPhysical* physical) {
+float CAEVehicleAudioEntity::GetFlyingMetalVolume(CPhysical* physical) const noexcept {
     const auto volume = std::min(physical->m_vecTurnSpeed.SquaredMagnitude(), sq(0.75f)) / sq(0.75f);
     return volume >= 1.0e-10f
         ? CAEAudioUtility::AudioLog10(volume) * 10.f
@@ -955,7 +955,7 @@ float CAEVehicleAudioEntity::GetFlyingMetalVolume(CPhysical* physical) {
 }
 
 // 0x4F4F00
-eAEVehicleAudioType CAEVehicleAudioEntity::GetVehicleTypeForAudio() const {
+eAEVehicleAudioType CAEVehicleAudioEntity::GetVehicleTypeForAudio() const noexcept {
     if (!m_IsInitialized || !m_Entity) {
         return eAEVehicleAudioType::GENERIC;
     }
@@ -983,7 +983,7 @@ eAEVehicleAudioType CAEVehicleAudioEntity::GetVehicleTypeForAudio() const {
 }
 
 // 0x4F4F70
-bool CAEVehicleAudioEntity::IsAccInhibited(tVehicleParams& vp) const {
+bool CAEVehicleAudioEntity::IsAccInhibited(tVehicleParams& vp) const noexcept {
     return !AEAudioHardware.IsSoundBankLoaded(m_PlayerEngineBank, SND_BANK_SLOT_PLAYER_ENGINE_P)
         || vp.ThisBrake > 0.f
         || vp.IsHandbrakeOn
@@ -992,18 +992,18 @@ bool CAEVehicleAudioEntity::IsAccInhibited(tVehicleParams& vp) const {
 
 // inlined?
 // 0x4F4FC0
-bool CAEVehicleAudioEntity::IsAccInhibitedBackwards(tVehicleParams& vp) const {
+bool CAEVehicleAudioEntity::IsAccInhibitedBackwards(tVehicleParams& vp) const noexcept {
     return vp.WheelSpin > 5.0f
         || !vp.NumDriveWheelsOnGround;
 }
 
 // 0x4F4FF0
-bool CAEVehicleAudioEntity::IsAccInhibitedForLowSpeed(tVehicleParams& vp) const {
+bool CAEVehicleAudioEntity::IsAccInhibitedForLowSpeed(tVehicleParams& vp) const noexcept {
     return !m_IsSingleGear && vp.Speed < s_Config.PlayerEngine.AC.InhibitForLowSpeedLimit;
 }
 
 // 0x4F5020
-bool CAEVehicleAudioEntity::IsAccInhibitedForTime() const {
+bool CAEVehicleAudioEntity::IsAccInhibitedForTime() const noexcept {
     return m_TimeBeforeAllowAccelerate < CTimer::GetTimeInMS();
 }
 
@@ -1018,12 +1018,12 @@ void CAEVehicleAudioEntity::InhibitCrzForTime(uint32 time) {
 }
 
 // 0x4F5050
-bool CAEVehicleAudioEntity::IsCrzInhibitedForTime() const {
+bool CAEVehicleAudioEntity::IsCrzInhibitedForTime() const noexcept {
     return m_TimeBeforeAllowCruise < CTimer::GetTimeInMS();
 }
 
 // 0x4F5080
-void CAEVehicleAudioEntity::GetAccelAndBrake(tVehicleParams& vp) const {
+void CAEVehicleAudioEntity::GetAccelAndBrake(tVehicleParams& vp) const noexcept {
     if (CReplay::Mode == MODE_PLAYBACK) {
         vp.ThisAccel = std::clamp(vp.Vehicle->m_GasPedal, 0.0f, 1.0f);
         vp.ThisBrake = std::clamp(vp.Vehicle->m_BrakePedal, 0.0f, 1.0f);
@@ -1048,7 +1048,7 @@ constexpr float CAEVehicleAudioEntity::GetDummyIdleRatioProgress(float ratio) {
 }
 
 // 0x4F51F0
-float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float ratio, float fadeRatio) const {
+float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float ratio, float fadeRatio) const noexcept {
     if (GetVehicle()->GetModelID() == MODEL_CADDY) {
         return s_Config.DummyEngine.ID.VolumeBase - 30.0f;
     }
@@ -1076,7 +1076,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float ratio, float fadeRatio)
 }
 
 // 0x4F5310
-float CAEVehicleAudioEntity::GetFrequencyForDummyIdle(float ratio, float fadeRatio) const {
+float CAEVehicleAudioEntity::GetFrequencyForDummyIdle(float ratio, float fadeRatio) const noexcept {
     if (GetVehicle()->m_nModelIndex == MODEL_CADDY) {
         return 1.0f;
     }
@@ -1466,7 +1466,7 @@ void CAEVehicleAudioEntity::TurnOnRadioForVehicle() {
     case AE_RT_CIVILIAN:
     case AE_RT_UNKNOWN:
     case AE_RT_EMERGENCY:
-        AudioEngine.StartRadio(&m_AuSettings);
+        AudioEngine.StartRadio(m_AuSettings);
     }
 }
 
@@ -1492,13 +1492,13 @@ void CAEVehicleAudioEntity::PlayerAboutToExitVehicleAsDriver() {
 }
 
 // 0x4F5C40
-bool CAEVehicleAudioEntity::CopHeli() {
+bool CAEVehicleAudioEntity::CopHeli() const noexcept {
     const auto modelIndex = m_Entity->m_nModelIndex;
     return modelIndex == MODEL_MAVERICK || modelIndex == MODEL_VCNMAV;
 }
 
 // 0x4F5C60
-float CAEVehicleAudioEntity::GetFreqForIdle(float ratio) const {
+float CAEVehicleAudioEntity::GetFreqForIdle(float ratio) const noexcept {
     return CGeneral::GetPiecewiseLinear({ // 0x8CC164:
         { 0.000f, 0.000f },
         { 0.075f, 0.700f },
@@ -1509,7 +1509,7 @@ float CAEVehicleAudioEntity::GetFreqForIdle(float ratio) const {
 }
 
 // 0x4F60B0
-float CAEVehicleAudioEntity::GetBaseVolumeForBicycleTyre(float ratio) const {
+float CAEVehicleAudioEntity::GetBaseVolumeForBicycleTyre(float ratio) const noexcept {
     return CGeneral::GetPiecewiseLinear({ // 0x8CC18C:
         { 0.00f, 0.00f },
         { 0.10f, 0.30f },
@@ -1520,7 +1520,7 @@ float CAEVehicleAudioEntity::GetBaseVolumeForBicycleTyre(float ratio) const {
 }
 
 // 0x4F5D00
-float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(tVehicleParams& vp, eVehicleEngineSoundType st) {
+float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(tVehicleParams& vp, eVehicleEngineSoundType st) const noexcept {
     const auto& cfg = s_Config.PlayerEngine;
 
     float volume = [&]{
@@ -1590,7 +1590,7 @@ void CAEVehicleAudioEntity::UpdateGasPedalAudio(CVehicle* vehicle, int32 vehicle
 
 // 0x4F5F30
 float CAEVehicleAudioEntity::GetVehicleDriveWheelSkidValue(CVehicle* veh, tWheelState wheelState, float gasPedalAudioRevs, cTransmission& tr, float speed) const noexcept {
-    const auto* const cfg = &s_Config.DriveWheelSkid;
+    const auto* const cfg = &s_Config.Skid.DriveWheelSkid;
 
     if (!cfg->Enabled) {
         return 0.0f;
@@ -1616,8 +1616,8 @@ float CAEVehicleAudioEntity::GetVehicleDriveWheelSkidValue(CVehicle* veh, tWheel
 }
 
 // 0x4F6000
-float CAEVehicleAudioEntity::GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, tWheelState wheelState, cTransmission& transmission, float velocity) const noexcept {
-    const auto* const cfg = &s_Config.NonDriveWheelSkid;
+float CAEVehicleAudioEntity::GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, tWheelState wheelState, cTransmission&, float velocity) const noexcept {
+    const auto* const cfg = &s_Config.Skid.NonDriveWheelSkid;
 
     if (!cfg->Enabled) {
         return 0.0f;
@@ -1672,7 +1672,7 @@ bool CAEVehicleAudioEntity::GetHornState(tVehicleParams& vp) const noexcept {
 }
 
 // 0x4F62A0
-void CAEVehicleAudioEntity::GetSirenState(bool& isSirenOn, bool& isFastSirenOn, tVehicleParams& vp) const {
+void CAEVehicleAudioEntity::GetSirenState(bool& isSirenOn, bool& isFastSirenOn, tVehicleParams& vp) const noexcept {
 #ifdef NOTSA_DEBUG
     if (CPad::GetPad()->IsCtrlPressed()) {
         if (CPad::GetPad()->IsStandardKeyJustDown('J')) {
@@ -1692,7 +1692,7 @@ void CAEVehicleAudioEntity::GetSirenState(bool& isSirenOn, bool& isFastSirenOn, 
 }
 
 // 0x4F8070
-float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVehicleEngineSoundType st) const {
+float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVehicleEngineSoundType st) const noexcept {
     auto* const cfg = &s_Config.PlayerEngine;
 
     float f;
@@ -1803,13 +1803,13 @@ void CAEVehicleAudioEntity::GenericPlaySurfaceSound(eSoundID newSfx, float speed
 }
 
 // 0x4F8360
-void CAEVehicleAudioEntity::PlaySkidSound(int16 newSkidSoundType, float speed, float volume) {
+void CAEVehicleAudioEntity::PlaySkidSound(eSoundID newSkidSoundType, float speed, float volume) {
     GenericPlaySurfaceSound(newSkidSoundType, speed, volume, 2.5f);
 }
 
 
 // 0x4FA630
-void CAEVehicleAudioEntity::PlayTrainBrakeSound(int16 soundType, float speed, float volume) {
+void CAEVehicleAudioEntity::PlayTrainBrakeSound(eSoundID soundType, float speed, float volume) {
     if (m_PlayerEngineBank != SND_BANK_UNK) {
         if (!AEAudioHardware.IsSoundBankLoaded(m_PlayerEngineBank, SND_BANK_SLOT_PLAYER_ENGINE_P)) {
             return;
@@ -1894,7 +1894,7 @@ void CAEVehicleAudioEntity::PlayReverseSound(eSoundID sfx, float speed, float vo
 
 // 0x4F9E90
 void CAEVehicleAudioEntity::UpdateBoatSound(eBoatEngineSoundType st, eSoundBankSlot slot, eSoundID sfx, float speed, float volume) {
-    const auto* const cfg = &s_Config.BoatSounds;
+    const auto* const cfg = &s_Config.Boat;
 
     volume += m_EventVolume;
 
@@ -2082,7 +2082,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
     if (isHornOn && !m_IsHornOn) {
         const auto PlayHornSound = [&](float speed) {
             m_HornSound = AESoundManager.PlaySound({
-                .BankSlot    = SND_BANK_SLOT_HORN_AND_SIREN,
+                .BankSlot      = SND_BANK_SLOT_HORN_AND_SIREN,
                 .SoundID       = (eSoundID)(m_AuSettings.HornType),
                 .AudioEntity   = this,
                 .Pos           = m_Entity->GetPosition(),
@@ -2483,24 +2483,24 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& vp) {
     };
     if (m_AuSettings.VehicleAudioType == AE_BMX) { // 0x4F90D3
         auto* const cfg = &s_Config.Skid.BMX;
-        DoPlaySkidSound(0, cfg->VolBase, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid);
+        DoPlaySkidSound(SND_GENRL_VEHICLE_GEN_BIKE_SKID_A, cfg->VolBase, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid);
     } else {
         float vol = m_AuSettings.IsPlaneOrHeli()
             ? s_Config.Skid.VolOffsetForPlaneOrHeli
             : 0.f;
-        if (IsSurfaceAudioGrass(vp.Vehicle->m_nContactSurface)) {
-            auto* const cfg = &s_Config.Skid.GrassSurface;
-            DoPlaySkidSound(6, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid, cfg->VolBase + vol);
-        } else if (IsSurfaceWet(vp.Vehicle->m_nContactSurface)) {
-            auto* const cfg = &s_Config.Skid.WetSurface;
-            DoPlaySkidSound(8, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid, cfg->VolBase + vol);
-        } else {
-            auto* const cfg = &s_Config.Skid.StdSurface;
+        if (IsSurfaceAudioGrass(vp.Vehicle->m_nContactSurface)) { // 0x4F9114
+            auto* const cfg = &s_Config.Skid.Generic.GrassSurface;
+            DoPlaySkidSound(SND_GENRL_VEHICLE_GEN_GRASS_SKID_A, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid, cfg->VolBase + vol);
+        } else if (IsSurfaceWet(vp.Vehicle->m_nContactSurface)) { // 0x4F914E
+            auto* const cfg = &s_Config.Skid.Generic.WetSurface;
+            DoPlaySkidSound(SND_GENRL_VEHICLE_GEN_GRAVEL_SKID_A, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid, cfg->VolBase + vol);
+        } else { // 0x4F919B
+            auto* const cfg = &s_Config.Skid.Generic.StdSurface;
             vol += cfg->VolBase;
             if (m_AuSettings.IsBike()) {
                 vol *= cfg->FrqFactorForBikes;
             }
-            DoPlaySkidSound(24, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid, vol);
+            DoPlaySkidSound(SND_GENRL_VEHICLE_GEN_TARSKIDTWIN1, cfg->FrqBase + cfg->FrqWheelSkidFactor * sumWheelSkid, vol);
         }
     }
 }
@@ -2532,7 +2532,7 @@ void CAEVehicleAudioEntity::ProcessRainOnVehicle(tVehicleParams& params) {
 
 // 0x4FA0C0
 void CAEVehicleAudioEntity::ProcessBoatMovingOverWater(tVehicleParams& vp) {
-    const auto* const cfg = &s_Config.BoatMovingOverWater;
+    const auto* const cfg = &s_Config.Boat.MovingOverWaterSound;
     const auto* const boat = vp.Vehicle->AsBoat();
 
     const auto sf = std::min(0.75f, std::abs(vp.Speed)) / 0.75f;

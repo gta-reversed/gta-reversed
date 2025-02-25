@@ -37,31 +37,31 @@ namespace debugmodules {
 };
 };
 
-class NOTSA_EXPORT_VTABLE CAEVehicleAudioEntity : public CAEAudioEntity {
+class NOTSA_EXPORT_VTABLE CAEVehicleAudioEntity final : public CAEAudioEntity {
     friend notsa::debugmodules::VehicleAudioEntityDebugModule;
 
 protected: // Config:
     // Config struct - Obviously this is notsa, but it's necessary for the debug module
     static inline struct Config {
-        float FreqUnderwaterFactor   = 0.7f; // 0x8CBC48
-        tComponent HeliAudioComponent = COMPONENT_WING_RR; //!< 0x8CBD4C - Where audio is placed for helis
+        float      FreqUnderwaterFactor = 0.7f;              // 0x8CBC48
+        tComponent HeliAudioComponent   = COMPONENT_WING_RR; //!< 0x8CBD4C - Where audio is placed for helis
 
-        float IdRollOffFactor{ 2.f };               // 0x8CBC2C
-        float RevRollOffFactor{ 2.f };              // 0x8CBC30
-        float RoadNoiseSoundRollOffFactor{ 3.f };   // 0x8CBD14
-        float FlatTireSoundRollOffFactor{ 3.f };    // 0x8CBD20
-        float ReverseGearSoundRollOffFactor{ 1.f }; // 0xNONE
+        float IdRollOffFactor               = 2.f; // 0x8CBC2C
+        float RevRollOffFactor              = 2.f; // 0x8CBC30
+        float RoadNoiseSoundRollOffFactor   = 3.f; // 0x8CBD14
+        float FlatTireSoundRollOffFactor    = 3.f; // 0x8CBD20
+        float ReverseGearSoundRollOffFactor = 1.f; // 0xNONE
 
-        float VolOffsetOnGround{1.5f}; // 0x8CBD50
+        float VolOffsetOnGround             = 1.5f; // 0x8CBD50
 
         struct {
             float StepDown{0.07f}, StepUp{0.09f}; // 0x8CBC28, 0x8CBC24
-        } GasPedal;
+        } GasPedal{};
 
         struct {
             float VolOffset{-9.f}; // 0x8CBD1C
             float FrqGearVelocityFactor{0.4f}; // 0x8CBD18
-        } FlatTyre;
+        } FlatTyre{};
 
         struct {
             float VolBase{-12.f}; // 0x8CBD00
@@ -81,7 +81,7 @@ protected: // Config:
                 float FrqFactor{1.f}; // 0xNONE
                 float VolOffset{0.f}; // 0xNONE
             } StdSurface;
-        } RoadNoise;
+        } RoadNoise{};
 
         struct {
             // Common values:
@@ -96,50 +96,54 @@ protected: // Config:
 
             // These don't apply to BMX:
             struct {
-                float VolBase{ -12.f };                            // 0xNONE
-                float FrqBase{ 0.9f }, FrqWheelSkidFactor{ 0.2f }; // 0x8CBCDC, 0x8CBCE0
-            } GrassSurface;
+                struct {
+                    float VolBase{ -12.f };                            // 0xNONE
+                    float FrqBase{ 0.9f }, FrqWheelSkidFactor{ 0.2f }; // 0x8CBCDC, 0x8CBCE0
+                } GrassSurface;
 
+                struct {
+                    float VolBase{ -9.f };                             // 0xNONE
+                    float FrqBase{ 0.9f }, FrqWheelSkidFactor{ 0.2f }; // 0x8CBCD4, 0x8CBCD8
+                } WetSurface;
+
+                struct {
+                    float FrqFactorForBikes{ 1.2f };                     // 0xNONE
+                    float VolBase{ 0.f };                                // 0xNONE
+                    float FrqBase{ 0.8f }, FrqWheelSkidFactor{ 0.125f }; // 0x8CBCE4, 0x8CBCE8
+                } StdSurface;
+            } Generic;
+
+            //! Values for calculating drive wheel skid
             struct {
-                float VolBase{ -9.f };                             // 0xNONE
-                float FrqBase{ 0.9f }, FrqWheelSkidFactor{ 0.2f }; // 0x8CBCD4, 0x8CBCD8
-            } WetSurface;
+                bool Enabled{true}; // 0x8CBD80
+                float SpinningFactor{1.f}, SkiddingFactor{1.f}, StationaryFactor{1.2f}; // 0x8CBD88, 0x8CBD84, 0x8CBD8C
+            } DriveWheelSkid;
 
+            //! Values for calculating non-drive wheel skid
             struct {
-                float FrqFactorForBikes{ 1.2f };                     // 0xNONE
-                float VolBase{ 0.f };                                // 0xNONE
-                float FrqBase{ 0.8f }, FrqWheelSkidFactor{ 0.125f }; // 0x8CBCE4, 0x8CBCE8
-            } StdSurface;
-        } Skid;
-
-        struct { // TODO: Move into `Skid`
-            bool Enabled{true}; // 0x8CBD80
-            float SpinningFactor{1.f}, SkiddingFactor{1.f}, StationaryFactor{1.2f}; // 0x8CBD88, 0x8CBD84, 0x8CBD8C
-        } DriveWheelSkid;
-
-        struct { // TODO: Move into `Skid`
-            bool Enabled{true}; // 0x8CBD81
-            float SkiddingFactor{1.f}, StationaryFactor{1.2f}; // 0x8CBD84, 0x8CBD8C
-        } NonDriveWheelSkid;
+                bool Enabled{true}; // 0x8CBD81
+                float SkiddingFactor{1.f}, StationaryFactor{1.2f}; // 0x8CBD84, 0x8CBD8C
+            } NonDriveWheelSkid;
+        } Skid{};
 
         struct {
             float Doppler{0.17f}; // 0x8CBEC4
             float BikeBellFadeOut{1.5f}; // 0x8CBECC
-        } Horn;
+        } Horn{};
 
         struct {
             float Doppler{0.25f}; // 0x8CBEC8
-        } Siren;
+        } Siren{};
 
         struct {
             float FrqBase{ 0.75f }, FrqRevsFactor{ 0.2f }; // 0x8CBD24, 0x8CBD28
             float VolBase{ -6.f };                         // 0x8CBD2C
-        } ReverseGear;
+        } ReverseGear{};
 
         struct {
             uint16 FramesPerDrop{ 3 }; // 0x8CBD94
             float  VolBase{ 0.f };     // 0xB6B9EC
-        } RainOnVehicle;
+        } RainOnVehicle{};
 
         struct {
             float StepDown{0.085f}, StepUp{0.075f}; // 0x8CC044, 0x8CC040
@@ -157,7 +161,7 @@ protected: // Config:
                     -36.f, -9.f   // 0x8CC030, 0x8CC034
                 }
             };
-        } Nitro;
+        } Nitro{};
 
         struct {
             struct {
@@ -171,7 +175,7 @@ protected: // Config:
                 float VolMin{ -24.f }, VolMax{ -18.f }; // 0x8CC00C, 0x8CC010
                 float RollOff{ 2.5f };                  // 0x8CC01C
             } FuckedSound;
-        } EngineDamage;
+        } EngineDamage{};
 
         struct {
             float StepDown{0.2f}, StepUp{0.2f}; // 0x8CC04C, 0x8CC048
@@ -233,25 +237,13 @@ protected: // Config:
                     }
                 }}
             };
-        } MovingParts;
-
-        struct {
-            float VolBaseOfSeaplane{ 12.f };     //	0x8CBEDC
-            float VolBase{ 3.f };                //	0x8CBED8
-            float VolUnderwaterOffset{ 6.f };    //	0x8CBEF0
-
-            float FrqBase{ 0.8f };               // 0xNONE
-            float FrqSpeedFactor{ 0.2f };        // 0xNONE
-            float FrqUnderwaterFactor{ 0.185f }; //	0x8CBEEC
-        } BoatMovingOverWater;
+        } MovingParts{};
 
         struct {
             float EngineSoundRollOff{ 3.5f };    // 0x8CBEE0
             float DistantSoundRollOff{ 5.f };    // 0x8CBEE4
             float WaterSkimSoundRollOff{ 2.5f }; // 0x8CBEE8
-        } BoatSounds;
 
-        struct {
             float FrqEngineRollFactor{ 0.1f };    // 0x8CBED4
             float FrqEngineBase{ 0.6f };          // 0xNONE
             float FrqEngineOnWaterFactor{ 0.4f }; // 0xNONE
@@ -264,12 +256,77 @@ protected: // Config:
                 int32 WaitTime{ 1'500 };                // 0x8CBD7C
                 float VolMin{ 450.f }, VolMax{ 800.f }; // 0x8CBD74, 0x8CBD78
             } WaveHit;
-        } Boat;
+
+            struct {
+                float VolBaseOfSeaplane{ 12.f };     //	0x8CBEDC
+                float VolBase{ 3.f };                //	0x8CBED8
+                float VolUnderwaterOffset{ 6.f };    //	0x8CBEF0
+
+                float FrqBase{ 0.8f };               // 0xNONE
+                float FrqSpeedFactor{ 0.2f };        // 0xNONE
+                float FrqUnderwaterFactor{ 0.185f }; //	0x8CBEEC
+            } MovingOverWaterSound;
+        } Boat{};
+
+        struct {
+            struct TheProps {
+                float EngineSoundRollOff;
+                float TrackSoundRollOff;
+                float DistantSoundRollOff;
+
+                struct {
+                    float VolBase;
+                    float FrqMin, FrqMax;
+                } TrackSound;
+
+                struct {
+                    float VolBase;
+                    float VolPlayerAcFactor{3.f}; // 0x8CBF10
+                    float FrqMin, FrqMax;
+                    float FrqSlopeFactor;
+                } EngineSound;
+
+                struct {
+                    float VolBase{9.0f}; // 0x8CBF3C
+                    float FrqMin{0.68f}, FrqMax{1.f}; // 0x8CBF44, 0x8CBF48
+                };
+            };         
+            TheProps Tram{
+                .EngineSoundRollOff  = 4.f, // 0x8CBF18
+                .TrackSoundRollOff   = 5.f, // 0x8CBF1C
+                .DistantSoundRollOff = 4.5f, // 0x8CBEF4
+
+                .TrackSound = {
+                    .VolBase = 10.f,                  // 0x8CBF38
+                    .FrqMin  = 0.8f, .FrqMax  = 1.2f, // 0x8CBF2C, 0x8CBF28
+            },
+            .EngineSound = {
+                    .VolBase        = 11.f,                 // 0x8CBF30
+                    .FrqMin         = 0.9f, .FrqMax = 1.1f, // 0x8CBF24, 0x8CBF20
+                    .FrqSlopeFactor = -0.35f,               // 0x8CBF50
+            }
+            };
+            TheProps Generic{
+                .EngineSoundRollOff  = 4.5f, // 0x8CBEFC
+                .TrackSoundRollOff   = 4.5f, // 8CBF00
+                .DistantSoundRollOff = 4.5f, // 0x8CBEF4
+
+                .TrackSound = {
+                    .VolBase = 6.f,                   // 0x8CBF14
+                    .FrqMin  = 0.8f, .FrqMax  = 1.2f, // 0x8CBF08, 0x8CBF04
+            },
+            .EngineSound = {
+                    .VolBase        = 0.f,                   // 0xB6BA00
+                    .FrqMin         = 0.8f, .FrqMax  = 1.2f, // 0x8CBF08, 0x8CBF04
+                    .FrqSlopeFactor = -0.6f,                 // 0x8CBF4C
+            }
+            };
+        } Train{};
 
         struct {
             float RotorFreqStepUp{1.f / 187.5f}, RotorFreqStepDown{1.f / 187.5f}; // 0xNONE
             float RotorVolBase{0.f}; // 0xB6BA04
-        } DummyRCPlane;
+        } DummyRCPlane{};
 
         struct {
             float RotorFreqStepUp{1.f / 187.5f}, RotorFreqStepDown{1.f / 187.5f}; // 0xNONE
@@ -278,7 +335,7 @@ protected: // Config:
             float FrqTiltDownFactor{ 0.2f }; // 0xNONE
             float FrqBase{ 0.8f };           // 0xNONE
             float FrqSpeedFactor{ 0.2f };    // 0xNONE
-        } DummyRCHeli;
+        } DummyRCHeli{};
 
         struct {
             struct {
@@ -289,62 +346,7 @@ protected: // Config:
                     float FadeInStep{ 0.05f }, FadeOutStep{ 0.05f }; // 0x8CBBEC, 0x8CBBE0
                 } FromCrzToCrz;
             } Transitions;
-        } DummyCar;
-
-        struct {
-             struct TheProps {
-                 float EngineSoundRollOff;
-                 float TrackSoundRollOff;
-                 float DistantSoundRollOff;
-
-                 struct {
-                     float VolBase;
-                     float FrqMin, FrqMax;
-                 } TrackSound;
-
-                 struct {
-                     float VolBase;
-                     float VolPlayerAcFactor{3.f}; // 0x8CBF10
-                     float FrqMin, FrqMax;
-                     float FrqSlopeFactor;
-                 } EngineSound;
-
-                 struct {
-                     float VolBase{9.0f}; // 0x8CBF3C
-                     float FrqMin{0.68f}, FrqMax{1.f}; // 0x8CBF44, 0x8CBF48
-                 };
-             };         
-             TheProps Tram{
-                .EngineSoundRollOff  = 4.f, // 0x8CBF18
-                .TrackSoundRollOff   = 5.f, // 0x8CBF1C
-                .DistantSoundRollOff = 4.5f, // 0x8CBEF4
-
-                .TrackSound = {
-                    .VolBase = 10.f,                  // 0x8CBF38
-                    .FrqMin  = 0.8f, .FrqMax  = 1.2f, // 0x8CBF2C, 0x8CBF28
-                },
-                .EngineSound = {
-                    .VolBase        = 11.f,                 // 0x8CBF30
-                    .FrqMin         = 0.9f, .FrqMax = 1.1f, // 0x8CBF24, 0x8CBF20
-                    .FrqSlopeFactor = -0.35f,               // 0x8CBF50
-                }
-            };
-            TheProps Generic{
-                .EngineSoundRollOff  = 4.5f, // 0x8CBEFC
-                .TrackSoundRollOff   = 4.5f, // 8CBF00
-                .DistantSoundRollOff = 4.5f, // 0x8CBEF4
-
-                .TrackSound = {
-                    .VolBase = 6.f,                   // 0x8CBF14
-                    .FrqMin  = 0.8f, .FrqMax  = 1.2f, // 0x8CBF08, 0x8CBF04
-                },
-                .EngineSound = {
-                    .VolBase        = 0.f,                   // 0xB6BA00
-                    .FrqMin         = 0.8f, .FrqMax  = 1.2f, // 0x8CBF08, 0x8CBF04
-                    .FrqSlopeFactor = -0.6f,                 // 0x8CBF4C
-                }
-             };
-         } Train;
+        } DummyCar{};
 
         struct {
             float VolumeUnderwaterOffset = 6.f; // 0x8CBC44
@@ -433,7 +435,7 @@ protected: // Config:
                 float FrqMin{ 0.75f }, FrqMax{ 1.25f }; // 0x8CBC94, 0x8CBC98
                 float RollOffFactor{ 2.f };             // 0x8CBC3C
             } Off; // PLAYER_OFF
-        } PlayerEngine;
+        } PlayerEngine{};
     } s_Config{};
     static inline Config s_DefaultConfig{};
 
@@ -602,37 +604,37 @@ public:
     void Service();
     static void StaticService();
 
-    eAEVehicleAudioType GetVehicleTypeForAudio() const;
+    eAEVehicleAudioType GetVehicleTypeForAudio() const noexcept;
+    bool                JustFinishedAccelerationLoop();
+    void                JustWreckedVehicle();
+    bool                CopHeli() const noexcept;
+    CVector             GetAircraftNearPosition() const noexcept;
+    float               GetFlyingMetalVolume(CPhysical* physical) const noexcept;
+    float               GetBaseVolumeForBicycleTyre(float ratio) const noexcept;
+    void                GetAccelAndBrake(tVehicleParams& vp) const noexcept;
 
     void InhibitAccForTime(uint32 time);
-    bool IsAccInhibited(tVehicleParams& params) const;
-    bool IsAccInhibitedBackwards(tVehicleParams& params) const;
-    bool IsAccInhibitedForLowSpeed(tVehicleParams& params) const;
-    [[nodiscard]] bool IsAccInhibitedForTime() const;
+    bool IsAccInhibited(tVehicleParams& vp) const noexcept;
+    bool IsAccInhibitedBackwards(tVehicleParams& vp) const noexcept;
+    bool IsAccInhibitedForLowSpeed(tVehicleParams& vp) const noexcept;
+    bool IsAccInhibitedForTime() const noexcept;
 
     void InhibitCrzForTime(uint32 time);
-    [[nodiscard]] bool IsCrzInhibitedForTime() const;
+    bool IsCrzInhibitedForTime() const noexcept;
 
-    void JustGotInVehicleAsDriver();
     void TurnOnRadioForVehicle();
     void TurnOffRadioForVehicle();
-    void PlayerAboutToExitVehicleAsDriver();
-    bool CopHeli();
-    bool JustFinishedAccelerationLoop();
-    void PlaySkidSound(int16 soundType, float speed = 1.0f, float volume = -100.0f);
-    void JustWreckedVehicle();
-    CVector GetAircraftNearPosition();
-    float GetFlyingMetalVolume(CPhysical* physical);
-    void GetSirenState(bool& bSirenOrAlarm, bool& bHorn, tVehicleParams& params) const;
-    void PlayTrainBrakeSound(int16 soundType, float speed = 1.0f, float volume = -100.0f);
+
+    void JustGotInVehicleAsDriver();
     void JustGotOutOfVehicleAsDriver();
+    void PlayerAboutToExitVehicleAsDriver();
 
     void  StartVehicleEngineSound(eVehicleEngineSoundType st, float speed, float volume);
     void  CancelVehicleEngineSound(size_t engineSoundStateId);
     void  CancelAllVehicleEngineSounds(std::optional<size_t> except = std::nullopt); // notsa
     void  RequestNewPlayerCarEngineSound(eVehicleEngineSoundType st, float speed = 1.f, float volume = -100.f);
-    float GetFreqForPlayerEngineSound(tVehicleParams& params, eVehicleEngineSoundType st) const;
-    float GetVolForPlayerEngineSound(tVehicleParams& params, eVehicleEngineSoundType st);
+    float GetFreqForPlayerEngineSound(tVehicleParams& vp, eVehicleEngineSoundType st) const noexcept;
+    float GetVolForPlayerEngineSound(tVehicleParams& vp, eVehicleEngineSoundType st) const noexcept;
     void  UpdateVehicleEngineSound(int16, float, float);
     void  UpdateOrRequestVehicleEngineSound(eVehicleEngineSoundType st, float freq, float volume);
     void  StopGenericEngineSound(int16 index);
@@ -643,82 +645,82 @@ public:
     void UpdateTrainSound(eTrainEngineSoundType st, eSoundBankSlot slot, eSoundID sfx, float speed, float volume);
     void UpdateGenericVehicleSound(eVehicleEngineSoundType st, eSoundBankSlot bankSlot, eSoundBank bank, eSoundID sfx, float speed, float volume, float rollOff);
 
-
     static void EnableHelicoptors();
     static void DisableHelicoptors();
     void EnableHelicoptor();
     void DisableHelicoptor();
 
-    static constexpr float GetDummyRevRatioProgress(float ratio);
-    float GetVolumeForDummyIdle(float fGearRevProgress, float fRevProgressBaseline) const;
-    float GetFrequencyForDummyIdle(float fGearRevProgress, float fRevProgressBaseline) const;
-    [[nodiscard]] float GetFreqForIdle(float fRatio) const;
-
+    float GetVolumeForDummyIdle(float ratio, float fadeRatio) const noexcept;
+    float GetFrequencyForDummyIdle(float ratio, float fadeRatio) const noexcept;
+    float GetFreqForIdle(float fRatio) const noexcept;
     static constexpr float GetDummyIdleRatioProgress(float ratio);
-    float GetVolumeForDummyRev(float fRatio, float fFadeRatio) const;
-    float GetFrequencyForDummyRev(float fRatio, float fFadeRatio) const;
 
-    float GetVehicleDriveWheelSkidValue(CVehicle* vehicle, tWheelState wheelState, float fUnk, cTransmission& transmission, float fVelocity) const noexcept;
-    float GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, tWheelState wheelState, cTransmission& transmission, float velocity) const noexcept;
+    static constexpr float GetDummyRevRatioProgress(float ratio);
+    float GetVolumeForDummyRev(float ratio, float fadeRatio) const;
+    float GetFrequencyForDummyRev(float ratio, float fadeRatio) const;
 
-    [[nodiscard]] float GetBaseVolumeForBicycleTyre(float fGearVelocityProgress) const;
-    void GetHornState(bool* out, tVehicleParams& params) const noexcept;
-    bool GetHornState(tVehicleParams& params) const noexcept;
-    void GetAccelAndBrake(tVehicleParams& vp) const;
+    float GetVehicleDriveWheelSkidValue(CVehicle* veh, tWheelState wheelState, float gasPedalAudioRevs, cTransmission& tr, float speed) const noexcept;
+    float GetVehicleNonDriveWheelSkidValue(CVehicle* vehicle, tWheelState wheelState, cTransmission&, float velocity) const noexcept;
+
+    void GetHornState(bool* out, tVehicleParams& vp) const noexcept;
+    bool GetHornState(tVehicleParams& vp) const noexcept;
+    void GetSirenState(bool& bSirenOrAlarm, bool& bHorn, tVehicleParams& vp) const noexcept;
 
     void PlayAircraftSound(eAircraftSoundType es, eSoundBankSlot slot, eSoundID sfx, float volume = -100.0f, float speed = 1.0f);
     void PlayRoadNoiseSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
     void PlayFlatTyreSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
     void PlayReverseSound(eSoundID sfx, float speed = 1.0f, float volume = -100.0f);
-    void PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenOrAlarm, bool bPlayHorn, tVehicleParams& params);
+    void PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenOrAlarm, bool bPlayHorn, tVehicleParams& vp);
     void PlayBicycleSound(eBicycleSoundType es, eSoundBankSlot slot, eSoundID sfx, float volume = -100.0f, float speed = 1.0f);
+    void PlaySkidSound(eSoundID soundType, float speed = 1.0f, float volume = -100.0f);
+    void PlayTrainBrakeSound(eSoundID soundType, float speed = 1.0f, float volume = -100.0f);
 
-    void ProcessVehicleFlatTyre(tVehicleParams& params);
-    void ProcessVehicleRoadNoise(tVehicleParams& params);
-    void ProcessReverseGear(tVehicleParams& params);
-    void ProcessVehicleSkidding(tVehicleParams& params);
-    void ProcessRainOnVehicle(tVehicleParams& params);
-    void ProcessGenericJet(bool bEngineOn, tVehicleParams& params, float fEngineSpeed, float fAccelRatio, float fBrakeRatio, float fStalledVolume, float fStalledFrequency);
-    void ProcessDummyJet(tVehicleParams& params);
-    void ProcessPlayerJet(tVehicleParams& params);
-    void ProcessDummySeaPlane(tVehicleParams& params);
-    void ProcessPlayerSeaPlane(tVehicleParams& params);
-    void ProcessAIHeli(tVehicleParams& params);
-    void ProcessDummyHeli(tVehicleParams& params);
-    void ProcessPlayerHeli(tVehicleParams& params);
-    void ProcessAIProp(tVehicleParams& params);
+    void ProcessVehicleFlatTyre(tVehicleParams& vp);
+    void ProcessVehicleRoadNoise(tVehicleParams& vp);
+    void ProcessReverseGear(tVehicleParams& vp);
+    void ProcessVehicleSkidding(tVehicleParams& vp);
+    void ProcessRainOnVehicle(tVehicleParams& vp);
+    void ProcessGenericJet(bool bEngineOn, tVehicleParams& vp, float fEngineSpeed, float fAccelRatio, float fBrakeRatio, float fStalledVolume, float fStalledFrequency);
+    void ProcessDummyJet(tVehicleParams& vp);
+    void ProcessPlayerJet(tVehicleParams& vp);
+    void ProcessDummySeaPlane(tVehicleParams& vp);
+    void ProcessPlayerSeaPlane(tVehicleParams& vp);
+    void ProcessAIHeli(tVehicleParams& vp);
+    void ProcessDummyHeli(tVehicleParams& vp);
+    void ProcessPlayerHeli(tVehicleParams& vp);
+    void ProcessAIProp(tVehicleParams& vp);
     void ProcessProp(tVehicleParams& vp, bool isProp); // notsa
-    void ProcessDummyProp(tVehicleParams& params);
-    void ProcessPlayerProp(tVehicleParams& params);
-    void ProcessAircraft(tVehicleParams& params);
-    void ProcessPlayerBicycle(tVehicleParams& params);
-    void ProcessDummyBicycle(tVehicleParams& params);
-    void ProcessDummyStateTransition(eAEState newState, float fRatio, tVehicleParams& params);
-    void ProcessDummyVehicleEngine(tVehicleParams& params);
-    void ProcessPlayerVehicleEngine(tVehicleParams& params);
-    void ProcessVehicleSirenAlarmHorn(tVehicleParams& params);
-    void ProcessBoatEngine(tVehicleParams& params);
-    void ProcessBoatMovingOverWater(tVehicleParams& params);
-    void ProcessDummyTrainEngine(tVehicleParams& params);
-    void ProcessTrainTrackSound(tVehicleParams& params);
-    void ProcessPlayerTrainEngine(tVehicleParams& params);
-    void ProcessPlayerTrainBrakes(tVehicleParams& params);
-    void ProcessDummyRCPlane(tVehicleParams& params);
-    void ProcessPlayerRCPlane(tVehicleParams& params);
-    void ProcessDummyRCHeli(tVehicleParams& params);
-    void ProcessPlayerRCHeli(tVehicleParams& params);
-    void ProcessPlayerRCCar(tVehicleParams& params);
-    void ProcessPlayerHovercraft(tVehicleParams& params);
-    void ProcessPlayerGolfCart(tVehicleParams& params);
-    void ProcessDummyGolfCart(tVehicleParams& params);
-    void ProcessDummyHovercraft(tVehicleParams& params);
-    void ProcessDummyRCCar(tVehicleParams& params);
-    void ProcessPlayerCombine(tVehicleParams& params);
-    void ProcessEngineDamage(tVehicleParams& params);
-    void ProcessNitro(tVehicleParams& params);
-    void ProcessMovingParts(tVehicleParams& params);
+    void ProcessDummyProp(tVehicleParams& vp);
+    void ProcessPlayerProp(tVehicleParams& vp);
+    void ProcessAircraft(tVehicleParams& vp);
+    void ProcessPlayerBicycle(tVehicleParams& vp);
+    void ProcessDummyBicycle(tVehicleParams& vp);
+    void ProcessDummyStateTransition(eAEState newState, float fRatio, tVehicleParams& vp);
+    void ProcessDummyVehicleEngine(tVehicleParams& vp);
+    void ProcessPlayerVehicleEngine(tVehicleParams& vp);
+    void ProcessVehicleSirenAlarmHorn(tVehicleParams& vp);
+    void ProcessBoatEngine(tVehicleParams& vp);
+    void ProcessBoatMovingOverWater(tVehicleParams& vp);
+    void ProcessDummyTrainEngine(tVehicleParams& vp);
+    void ProcessTrainTrackSound(tVehicleParams& vp);
+    void ProcessPlayerTrainEngine(tVehicleParams& vp);
+    void ProcessPlayerTrainBrakes(tVehicleParams& vp);
+    void ProcessDummyRCPlane(tVehicleParams& vp);
+    void ProcessPlayerRCPlane(tVehicleParams& vp);
+    void ProcessDummyRCHeli(tVehicleParams& vp);
+    void ProcessPlayerRCHeli(tVehicleParams& vp);
+    void ProcessPlayerRCCar(tVehicleParams& vp);
+    void ProcessPlayerHovercraft(tVehicleParams& vp);
+    void ProcessPlayerGolfCart(tVehicleParams& vp);
+    void ProcessDummyGolfCart(tVehicleParams& vp);
+    void ProcessDummyHovercraft(tVehicleParams& vp);
+    void ProcessDummyRCCar(tVehicleParams& vp);
+    void ProcessPlayerCombine(tVehicleParams& vp);
+    void ProcessEngineDamage(tVehicleParams& vp);
+    void ProcessNitro(tVehicleParams& vp);
+    void ProcessMovingParts(tVehicleParams& vp);
     void ProcessVehicle(CPhysical* vehicle);
-    void ProcessSpecialVehicle(tVehicleParams& params);
+    void ProcessSpecialVehicle(tVehicleParams& vp);
 
     auto GetVehicle() const { return m_Entity->AsVehicle(); }
 

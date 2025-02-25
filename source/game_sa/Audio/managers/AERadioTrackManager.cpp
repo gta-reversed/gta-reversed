@@ -56,7 +56,7 @@ void CAERadioTrackManager::InjectHooks() {
     RH_ScopedInstall(AddIdentIndexToHistory, 0x4E9720);
     RH_ScopedInstall(AddMusicTrackIndexToHistory, 0x4E96C0);
     RH_ScopedOverloadedInstall(StartRadio, "manual", 0x4EB3C0, void (CAERadioTrackManager::*)(eRadioID, eBassSetting, float, bool));
-    RH_ScopedOverloadedInstall(StartRadio, "with-settings", 0x4EB550, void (CAERadioTrackManager::*)(tVehicleAudioSettings*));
+    RH_ScopedOverloadedInstall(StartRadio, "with-settings", 0x4EB550, void (CAERadioTrackManager::*)(const tVehicleAudioSettings&));
     RH_ScopedInstall(CheckForStationRetuneDuringPause, 0x4EB890);
     RH_ScopedInstall(TrackRadioStation, 0x4EAC30, { .reversed = false });
     RH_ScopedInstall(ChooseTracksForStation, 0x4EB180);
@@ -554,18 +554,18 @@ void CAERadioTrackManager::PlayRadioAnnouncement(uint32) {
 }
 
 // 0x4EB550
-void CAERadioTrackManager::StartRadio(tVehicleAudioSettings* settings) {
+void CAERadioTrackManager::StartRadio(const tVehicleAudioSettings& settings) {
     // plugin::CallMethod<0x4EB550, CAERadioTrackManager*, tVehicleAudioSettings*>(this, settings);
 
     if (CReplay::Mode == MODE_PLAYBACK)
         return;
 
-    if (settings->RadioType == AE_RT_EMERGENCY) {
-        StartRadio(RADIO_EMERGENCY_AA, settings->BassSetting, settings->BassFactor, 0);
+    if (settings.RadioType == AE_RT_EMERGENCY) {
+        StartRadio(RADIO_EMERGENCY_AA, settings.BassSetting, settings.BassFactor, 0);
         return;
     }
 
-    if (settings->RadioType != AE_RT_CIVILIAN)
+    if (settings.RadioType != AE_RT_CIVILIAN)
         return;
 
     const bool needsRetune = [&] {
@@ -573,7 +573,7 @@ void CAERadioTrackManager::StartRadio(tVehicleAudioSettings* settings) {
            return false;
 
        const auto savedId = m_nSavedRadioStationId;
-       if (savedId < 0 || savedId == settings->RadioStation || savedId == RADIO_OFF || savedId == RADIO_EMERGENCY_AA)
+       if (savedId < 0 || savedId == settings.RadioStation || savedId == RADIO_OFF || savedId == RADIO_EMERGENCY_AA)
            return false;
 
        if (CTimer::GetTimeInMS() > m_nSavedTimeMs + 60'000)
@@ -597,9 +597,9 @@ void CAERadioTrackManager::StartRadio(tVehicleAudioSettings* settings) {
 
     if (needsRetune) {
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RADIO_RETUNE_START);
-        StartRadio((eRadioID)m_nSavedRadioStationId, settings->BassSetting, settings->BassFactor, 0);
+        StartRadio((eRadioID)m_nSavedRadioStationId, settings.BassSetting, settings.BassFactor, 0);
     } else {
-        StartRadio(settings->RadioStation, settings->BassSetting, settings->BassFactor, 0);
+        StartRadio(settings.RadioStation, settings.BassSetting, settings.BassFactor, 0);
     }
 }
 

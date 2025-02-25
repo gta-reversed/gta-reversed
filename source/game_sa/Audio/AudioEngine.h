@@ -89,7 +89,7 @@ public:
     void ReportFrontendAudioEvent(eAudioEvents eventId, float volumeChange = 0.0f, float speed = 1.0f);
 
     void InitialiseRadioStationID(eRadioID id);
-    void StartRadio(tVehicleAudioSettings* settings);
+    void StartRadio(const tVehicleAudioSettings& settings);
     void StartRadio(eRadioID id, eBassSetting bassSetting);
     void StopRadio(tVehicleAudioSettings* settings, bool bDuringPause);
     void SetRadioAutoRetuneOnOff(bool);
