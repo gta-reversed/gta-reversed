@@ -62,10 +62,10 @@ endif()
 target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS" "/SAFESEH")
 
 target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
-    ogg
-    vorbisfile
-    imgui
-    spdlog
+    Ogg::ogg
+    vorbis::vorbis
+    imgui::imgui
+    spdlog::spdlog
     Tracy::TracyClient
     ddraw
     Winmm
@@ -73,7 +73,7 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     strmiids
     dsound
     d3d9
-    nlohmann_json
+    nlohmann_json::nlohmann_json
 )
 
 if(WIN32) 

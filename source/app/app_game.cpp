@@ -1,6 +1,6 @@
 #include "StdInc.h"
 
-#include <tracy/Tracy.hpp>
+#include <Tracy.hpp>
 
 #include "app_game.h"
 #include "LoadingScreen.h"
