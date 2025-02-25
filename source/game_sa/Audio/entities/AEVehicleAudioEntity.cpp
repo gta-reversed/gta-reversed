@@ -4484,7 +4484,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(Service, 0x502280, { .locked = true }); // -||-
 
 
-    RH_ScopedOverloadedInstall(AddAudioEvent, "0", 0x4F6420, void(CAEVehicleAudioEntity::*)(eAudioEvents, float), { .reversed = false });
+    RH_ScopedOverloadedInstall(AddAudioEvent, "0", 0x4F6420, void(CAEVehicleAudioEntity::*)(eAudioEvents, float));
     RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CVehicle*));
 
     /* Footnotes:
