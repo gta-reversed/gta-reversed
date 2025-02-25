@@ -345,7 +345,8 @@ eSoundBankSlot CAEVehicleAudioEntity::RequestBankSlot(eSoundBank bankId) {
         return SlotToBankSlot(usedSlot);
     }
 
-    // If not, find a free slot (if any) and initialize it (NB: I left out the logic for `s_NextDummyEngineSlot`, it's really not necessary...)
+    // If not, find a free slot (if any) and initialize it
+    // (NB: I left out the logic for `s_NextDummyEngineSlot`, it's really not necessary...)
     const auto slot = rng::find_if(s_DummyEngineSlots, [&](auto&& s) {
         return s.RefCnt < 1;
     });
@@ -1953,20 +1954,28 @@ void CAEVehicleAudioEntity::UpdateTrainSound(eTrainEngineSoundType st, eSoundBan
         return;
     }
 
-    const auto DoPlaySound = [&](float rollOff, bool checkIsBankLoaded) {
+    const auto PlaySound = [&](float rollOff, bool checkIsBankLoaded) {
         if (checkIsBankLoaded && !AEAudioHardware.IsSoundBankLoaded(m_DummyEngineBank, m_DummySlot)) {
             return;
         }
-        m_EngineSounds[st].Sound = PlaySound(slot, sfx, volume, speed, rollOff, 1.f, SOUND_REQUEST_UPDATES, 0);
-
+        m_EngineSounds[st].Sound = AESoundManager.PlaySound({
+            .BankSlot      = slot,
+            .SoundID       = sfx,
+            .AudioEntity   = this,
+            .Pos           = m_Entity->GetPosition(),
+            .Volume        = volume,
+            .RollOffFactor = rollOff,
+            .Speed         = speed,
+            .Flags         = SOUND_REQUEST_UPDATES
+        });
     };
     const auto* const cfg = m_DummyEngineBank == SND_BANK_GENRL_TRAM_D
         ? &s_Config.Train.Tram
         : &s_Config.Train.Generic;
     switch (st) {
-    case AE_SOUND_TRAIN_ENGINE:  DoPlaySound(cfg->EngineSoundRollOff, true);   break; // 0x4FA31F
-    case AE_SOUND_TRAIN_TRACK:   DoPlaySound(cfg->TrackSoundRollOff, true);    break; // 0x4FA280
-    case AE_SOUND_TRAIN_DISTANT: DoPlaySound(cfg->DistantSoundRollOff, false); break; // 0x4FA20B 
+    case AE_SOUND_TRAIN_ENGINE:  PlaySound(cfg->EngineSoundRollOff, true);   break; // 0x4FA31F
+    case AE_SOUND_TRAIN_TRACK:   PlaySound(cfg->TrackSoundRollOff, true);    break; // 0x4FA280
+    case AE_SOUND_TRAIN_DISTANT: PlaySound(cfg->DistantSoundRollOff, false); break; // 0x4FA20B 
     default:
         NOTSA_UNREACHABLE();
     }
@@ -3603,7 +3612,7 @@ void CAEVehicleAudioEntity::ProcessBoatEngine(tVehicleParams& vp) {
     }
 }
 
-// 0x500710
+// notsa
 auto GetTrainSpeed(const CTrain* train) {
     auto trspeed = train->trainFlags.bNotOnARailRoad
         ? 0.f
@@ -3614,12 +3623,14 @@ auto GetTrainSpeed(const CTrain* train) {
     return trspeed;
 }
 
+// notsa
 auto GetTrainSpeedFactor(const CTrain* train, float trspeed) {
     return train->trainFlags.bNotOnARailRoad
         ? 0.f
         : std::clamp(std::abs(trspeed), 0.f, 1.f);
 }
 
+// notsa
 auto GetTrainPlayerAcFactor(const CTrain* train, float trspeed) {
     const auto* const p = CPad::GetPad();
     const auto ac = std::abs(trspeed) >= 0.001f
@@ -3630,6 +3641,7 @@ auto GetTrainPlayerAcFactor(const CTrain* train, float trspeed) {
     return (float)(ac) / 255.f;
 }
 
+// 0x500710
 void CAEVehicleAudioEntity::ProcessDummyTrainEngine(tVehicleParams& vp) {
     const auto* const train = vp.Vehicle->AsTrain();
     const auto isTram = m_DummyEngineBank == SND_BANK_GENRL_TRAM_D;
@@ -3848,6 +3860,7 @@ bool CAEVehicleAudioEntity::EnsureHasDummySlot() noexcept {
     return m_DummySlot != -1;
 }
 
+// notsa
 bool CAEVehicleAudioEntity::EnsureSoundBankIsLoaded(bool isDummy, bool turnOffIfNotLoaded) {
     const auto bank = isDummy ? m_DummyEngineBank : m_PlayerEngineBank;
     const auto slot = isDummy ? m_DummySlot.get() : SND_BANK_SLOT_PLAYER_ENGINE_P;
@@ -3863,6 +3876,7 @@ bool CAEVehicleAudioEntity::EnsureSoundBankIsLoaded(bool isDummy, bool turnOffIf
     return false;
 }
 
+// notsa
 void CAEVehicleAudioEntity::StopNonEngineSounds() noexcept {
     PlaySkidSound(-1);
 
@@ -4307,34 +4321,6 @@ bool CAEVehicleAudioEntity::UpdateGenericEngineSound(int16 index, float fVolume,
     return false;
 }
 
-// NOTSA
-CAESound* CAEVehicleAudioEntity::PlaySound(
-    eSoundBankSlot    bankSlot,
-    eSoundID          sound,
-    float             fVolume,
-    float             speed,
-    float             rollOffFactor,
-    float             doppler,
-    eSoundEnvironment flags,
-    int16             playTime
-) {
-    m_tempSound.Initialise(
-        bankSlot,
-        sound,
-        this,
-        m_Entity->GetPosition(),
-        fVolume,
-        rollOffFactor,
-        speed,
-        doppler,
-        0,
-        flags,
-        0.0f,
-        playTime
-    );
-    return AESoundManager.RequestNewSound(&m_tempSound);
-}
-
 void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedVirtualClass(CAEVehicleAudioEntity, 0x862CEC, 1);
     RH_ScopedCategory("Audio/Entities");
@@ -4449,7 +4435,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
 
     // Other..
     RH_ScopedInstall(ProcessVehicleFlatTyre, 0x4F8940);
-    RH_ScopedInstall(ProcessVehicleRoadNoise, 0x4F8B00); // Done
+    RH_ScopedInstall(ProcessVehicleRoadNoise, 0x4F8B00);
     RH_ScopedInstall(ProcessReverseGear, 0x4F8DF0);
     RH_ScopedInstall(ProcessRainOnVehicle, 0x4F92C0);
     RH_ScopedInstall(ProcessDummyRCPlane, 0x4FA7C0);
@@ -4479,7 +4465,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessSpecialVehicle, 0x501AB0);
 
     // Keep these hooked at all times:
-    RH_ScopedInstall(ProcessPlayerVehicleEngine, 0x4FBB10, { .locked = true }); // Unooking this causes random crashes...
+    RH_ScopedInstall(ProcessPlayerVehicleEngine, 0x4FBB10, { .locked = true }); // Un-hooking this causes random crashes...
     RH_ScopedInstall(ProcessVehicle, 0x501E10, { .locked = true }); // -||-
     RH_ScopedInstall(Service, 0x502280, { .locked = true }); // -||-
 

@@ -6,21 +6,24 @@
 */
 #pragma once
 
+#include <extensions/FixedFloat.hpp>
+
 #include "AEAudioEntity.h"
 #include "cTransmission.h"
 #include "AETwinLoopSoundEntity.h"
-#include <extensions/FixedFloat.hpp>
-#include "eAudioEvents.h"
 #include "eRadioID.h"
 #include "eVehicleType.h"
-#include "eSoundBank.h"
-#include "eSoundBankSlot.h"
+#include "eAudioEvents.h"
+#include <DamageManager.h> // tComponent
+
+#include <Audio/Enums/eSoundBank.h>
+#include <Audio/Enums/eSoundBankSlot.h>
 #include <Audio/Enums/eAEVehicleSoundType.h>
 #include <Audio/Enums/eAEVehicleAudioTypeForName.h>
 #include <Audio/Enums/eAEVehicleAudioType.h>
 #include <Audio/Enums/eAERadioType.h>
+
 #include "./AEVehicleAudioEntity.VehicleAudioSettings.h"
-#include <DamageManager.h> // tComponent
 
 enum tWheelState : int32;
 
@@ -435,8 +438,12 @@ protected: // Config:
     static inline Config s_DefaultConfig{};
 
 public: // Enums:
-    // Indices for `EngineSound[]` (?) depending on the vehicle type:
-    enum eAircraftSoundType { // For planes (aircrafts)
+    //
+    // Indices for `EngineSound[]` depending on the vehicle type:
+    //
+    using eVehicleEngineSoundType = int16;
+
+    enum eAircraftSoundType : eVehicleEngineSoundType { // For planes (aircrafts)
         AE_SOUND_AIRCRAFT_DISTANT     = 1,
         AE_SOUND_AIRCRAFT_FRONT       = 2,
         AE_SOUND_AIRCRAFT_NEAR        = 3,
@@ -446,26 +453,22 @@ public: // Enums:
         AE_SOUND_AIRCRAFT_JET_DISTANT = 7,
     };
 
-    using eVehicleEngineSoundType = int16;
-
     enum eCarEngineSoundType : eVehicleEngineSoundType { // For automobiles
         AE_SOUND_ENGINE_OFF     = 0,
 
         AE_SOUND_CAR_REV        = 1, // For Dummy/Player
         AE_SOUND_CAR_ID         = 2, // For Dummy/Player
+
         AE_SOUND_PLAYER_CRZ     = 3,
         AE_SOUND_PLAYER_AC      = 4,
         AE_SOUND_PLAYER_OFF     = 5,
-
         AE_SOUND_PLAYER_REVERSE = 6,
 
         AE_SOUND_NITRO1         = 7,
         AE_SOUND_NITRO2         = 8,
 
         AE_SOUND_STEAM          = 9,
-
         AE_SOUND_FUCKED         = 10,
-
         AE_SOUND_MOVING_PARTS   = 11,
 
         AE_SOUND_ENGINE_MAX     = 12,
@@ -504,6 +507,7 @@ public: // Enums:
         AE_DUMMY_ID = 0x1,
     };
 
+    //! Current state of the audio entity
     enum class eAEState : uint8 {
         CAR_OFF              = 0,
 
@@ -521,7 +525,7 @@ public: // Enums:
         PLAYER_FAILING_TO_AC = 9, 
 
         // Keep this at the bottom
-        NUM_STATES
+        NUM_STATES // NB: Seems like this was used for something else other than the number of states, perhaps it was aliased?
     };
 
 public: // Structs:
@@ -715,11 +719,6 @@ public:
     void ProcessMovingParts(tVehicleParams& params);
     void ProcessVehicle(CPhysical* vehicle);
     void ProcessSpecialVehicle(tVehicleParams& params);
-
-#undef PlaySound
-    CAESound* PlaySound(eSoundBankSlot bankSlot, eSoundID sound,
-                        float fVolume = 1.0f, float fSpeed = 1.0f, float fSoundDistance = 1.0f,
-                        float fTimeScale = 1.0f, eSoundEnvironment individualEnvironment = SOUND_REQUEST_UPDATES, int16 playPos = 0);
 
     auto GetVehicle() const { return m_Entity->AsVehicle(); }
 
