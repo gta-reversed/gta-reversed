@@ -256,6 +256,11 @@ protected: // Config:
 
             float VolBase{ -3.f }; // 0xNONE
             float VolEngineSpeedFactor{3.f}; // 0xNONE
+
+            struct {
+                int32 WaitTime{ 1'500 };                // 0x8CBD7C
+                float VolMin{ 450.f }, VolMax{ 800.f }; // 0x8CBD74, 0x8CBD78
+            } WaveHit;
         } Boat;
 
         struct {

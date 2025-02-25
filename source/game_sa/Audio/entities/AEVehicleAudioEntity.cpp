@@ -436,7 +436,423 @@ void CAEVehicleAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
 
 // 0x4F6420
 void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
-    plugin::CallMethod<0x4F6420, CAEVehicleAudioEntity*, eAudioEvents, float>(this, event, p1);
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN)) {
+        return;
+    }
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)) {
+        return;
+    }
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_BULLET_HITS, SND_BANK_SLOT_BULLET_HITS)) {
+        return;
+    }
+
+    const auto GetPedEventVolume = [this](eAudioEvents ae) {
+        float vol = GetDefaultVolume(ae);
+        switch (m_AuSettings.VehicleAudioType) {
+        case AE_BIKE: vol -= 3.f; break;
+        case AE_BMX:  vol -= 6.f; break;
+        }
+        return vol;
+    };
+
+    switch (event) {
+    case AE_CAR_BONNET_OPEN:
+    case AE_CAR_BOOT_OPEN:
+    case AE_CAR_FRONT_LEFT_DOOR_OPEN:
+    case AE_CAR_FRONT_RIGHT_DOOR_OPEN:
+    case AE_CAR_REAR_LEFT_DOOR_OPEN:
+    case AE_CAR_REAR_RIGHT_DOOR_OPEN: { // 0x4F64B3
+        const auto PlaySound = [&](eSoundID sfx) {
+            AESoundManager.PlaySound({
+                .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+                .SoundID           = sfx,
+                .AudioEntity       = this,
+                .Pos               = GetVehicle()->GetPosition(),
+                .Volume            = GetDefaultVolume(AE_CAR_BONNET_OPEN),
+                .FrequencyVariance = 0.02f,
+            });
+        };
+        switch (m_AuSettings.DoorType) {
+        case 0:  PlaySound(SND_GENRL_VEHICLE_GEN_OPLIGHT); break;
+        case 1:  PlaySound(SND_GENRL_VEHICLE_GEN_OPOLD);   break;
+        case 3:  PlaySound(SND_GENRL_VEHICLE_GEN_OTRUCK);  break;
+        case 4:  PlaySound(SND_GENRL_VEHICLE_GEN_OPVAN);   break;
+        default: PlaySound(SND_GENRL_VEHICLE_GEN_OPNEW);   break;
+        }
+        break;
+    }
+    case AE_CAR_BONNET_CLOSE:
+    case AE_CAR_BOOT_CLOSE:
+    case AE_CAR_FRONT_LEFT_DOOR_CLOSE:
+    case AE_CAR_FRONT_RIGHT_DOOR_CLOSE:
+    case AE_CAR_REAR_LEFT_DOOR_CLOSE:
+    case AE_CAR_REAR_RIGHT_DOOR_CLOSE: { // 0x4F654D
+        const auto PlaySound = [&](eSoundID sfx) {
+            AESoundManager.PlaySound({
+                .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+                .SoundID           = sfx,
+                .AudioEntity       = this,
+                .Pos               = GetVehicle()->GetPosition(),
+                .Volume            = GetDefaultVolume(AE_CAR_BONNET_CLOSE),
+                .FrequencyVariance = 0.02f,
+            });
+        };
+        switch (m_AuSettings.DoorType) {
+        case 0:  PlaySound(SND_GENRL_VEHICLE_GEN_CLLIGHT); break;
+        case 1:  PlaySound(SND_GENRL_VEHICLE_GEN_CLOLD);   break;
+        case 3:  PlaySound(SND_GENRL_VEHICLE_GEN_CTRUCK);  break;
+        case 4:  PlaySound(SND_GENRL_VEHICLE_GEN_CLVAN);   break;
+        default: PlaySound(SND_GENRL_VEHICLE_GEN_CLNEW);   break;
+        }
+        break;
+    }
+    case AE_TYRE_BURST: { // 0x4F65BD
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_BULLET_HITS,
+            .SoundID           = SND_GENRL_BULLET_HITS_BLOWOUT,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetDefaultVolume(AE_TYRE_BURST),
+        });
+        break;
+    }
+    case AE_WINDSCREEN_SHATTER: { // 0x4F6608
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .SoundID           = SND_GENRL_COLLISIONS_WINDSCREEN,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetDefaultVolume(AE_WINDSCREEN_SHATTER),
+        });
+        break;
+    }
+    case AE_LIGHT_SMASH: { // 0x4F64AC
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .SoundID           = SND_GENRL_COLLISIONS_HEADLIGHT,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetDefaultVolume(AE_LIGHT_SMASH),
+        });
+        break;
+    }
+    case AE_BOAT_HIT_WAVE: { // 0x4F66D8
+        const auto* const cfg = &s_Config.Boat.WaveHit;
+
+        if (CTimer::GetTimeInMS() < m_TimeSplashLastTriggered + cfg->WaitTime) {
+            break;
+        }
+        if (p1 < cfg->VolMin) {
+            break;
+        }
+        const auto vol = std::clamp(p1 / cfg->VolMax, 0.f, 1.f);
+        if (vol <= 0.00001f) {
+            break;
+        }
+        if (CWeather::UnderWaterness >= 0.5f) {
+            break;
+        }
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .SoundID           = SND_GENRL_COLLISIONS_SPLASH_END,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = vol,
+        });
+        break;
+    }
+    case AE_TRAIN_CLACK: { // 0x4F680B
+        if (m_DummySlot != -1) {
+            if (!AEAudioHardware.IsSoundBankLoaded(m_DummyEngineBank, m_DummySlot)) {
+                break;
+            }
+        }
+        AESoundManager.PlaySound({
+            .BankSlot          = m_DummySlot,
+            .SoundID           = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(SND_GENRL_TRAIN_D_TRACK_JOIN_3, SND_GENRL_TRAIN_D_TRACK_JOIN_5),
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetDefaultVolume(AE_TRAIN_CLACK),
+            .RollOffFactor     = 2.f,
+            .FrequencyVariance = 0.1f,
+        });
+        break;
+    }
+    case AE_NITRO_IGNITION: { // 0x4F6D8B
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN)) {
+            break;
+        }
+        if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_NITRO_IGNITION, this)) {
+            break;
+        }
+        AESoundManager.PlaySound({
+            .BankSlot           = SND_BANK_SLOT_WEAPON_GEN,
+            .SoundID            = SND_GENRL_WEAPONS_TRIGGER,
+            .AudioEntity        = this,
+            .Pos                = GetVehicle()->GetPosition(),
+            .Volume             = GetDefaultVolume(AE_NITRO_IGNITION),
+            .RollOffFactor      = 2.f,
+            .Speed              = 0.89f,
+            .FrequencyVariance  = 0.03f,
+            .RegisterWithEntity = GetVehicle(),
+            .EventID            = AE_NITRO_IGNITION
+        });
+        break;
+    }
+    case AE_START_ENGINE: { // AE_START_ENGINE
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .SoundID           = SND_GENRL_VEHICLE_GEN_GENERIC_START,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetDefaultVolume(AE_START_ENGINE),
+            .RollOffFactor     = 2.f,
+            .FrequencyVariance = 0.05f,
+            .EventID           = AE_START_ENGINE
+        });
+        break;
+    }
+    case AE_SUSPENSION_HYDRAULIC: { // 0x4F70CE
+        if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_SUSPENSION_HYDRAULIC, this)) {
+            break;
+        }
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .SoundID           = SND_GENRL_VEHICLE_GEN_HYDRAULIC_SUSPENSION,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetDefaultVolume(AE_SUSPENSION_HYDRAULIC) - 6.f,
+            .RollOffFactor     = 2.f,
+            .FrequencyVariance = 0.05f,
+            .EventID           = AE_SUSPENSION_HYDRAULIC
+        });
+        break;
+    }
+    case AE_SUSPENSION_BOUNCE: { // 0x4F6EE7
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .SoundID           = SND_GENRL_VEHICLE_GEN_BOUNCE_SUSPENSION,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetDefaultVolume(AE_SUSPENSION_BOUNCE) - 3.f,
+            .RollOffFactor     = 2.f,
+            .FrequencyVariance = 0.05f,
+            .EventID           = AE_SUSPENSION_BOUNCE
+        });
+        break;
+    }
+    case AE_SUSPENSION_TRIGGER: { // 0x4F6F88
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .SoundID           = SND_GENRL_VEHICLE_GEN_TRIGGER_SUSPENSION,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetDefaultVolume(AE_SUSPENSION_TRIGGER) + 0.f,
+            .RollOffFactor     = 2.f,
+            .Flags             = SOUND_START_PERCENTAGE,
+            .FrequencyVariance = 0.05f,
+            .PlayTime          = 0,
+            .EventID           = AE_SUSPENSION_TRIGGER,
+        });
+        break;
+    }
+    case AE_SUSPENSION_ON: { // 0x4F7035
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .SoundID           = SND_GENRL_VEHICLE_GEN_TRIGGER_SUSPENSION,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetDefaultVolume(AE_SUSPENSION_ON) + 0.f,
+            .RollOffFactor     = 2.f,
+            .Flags             = SOUND_START_PERCENTAGE,
+            .FrequencyVariance = 0.05f,
+            .PlayTime          = 0,
+            .EventID           = AE_SUSPENSION_ON,
+        });
+        break;
+    }
+    case AE_SUSPENSION_OFF: { // 0x4F7183
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .SoundID           = SND_GENRL_VEHICLE_GEN_HYDRAULIC_SUSPENSION,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetDefaultVolume(AE_SUSPENSION_OFF) + 0.f,
+            .RollOffFactor     = 2.f,
+            .Flags             = SOUND_START_PERCENTAGE,
+            .FrequencyVariance = 0.05f,
+            .PlayTime          = 0,
+            .EventID           = AE_SUSPENSION_OFF,
+        });
+        break;
+    }
+    case AE_TRAILER_ATTACH: { // 0x4F72CF
+        if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_TRAILER_ATTACH, this)) {
+            break;
+        }
+        if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_TRAILER_DETACH, this)) {
+            break;
+        }
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN)) {
+            break;
+        }
+        AESoundManager.PlaySound({
+            .BankSlot           = SND_BANK_SLOT_WEAPON_GEN,
+            .SoundID            = SND_GENRL_WEAPONS_SAWNOFF_B,
+            .AudioEntity        = this,
+            .Pos                = GetVehicle()->GetPosition(),
+            .Volume             = GetDefaultVolume(AE_TRAILER_ATTACH),
+            .RollOffFactor      = 2.f,
+            .Speed              = 0.56f,
+            .FrequencyVariance  = 0.05f,
+            .RegisterWithEntity = GetVehicle(),
+            .EventID            = AE_TRAILER_ATTACH,
+        });
+        break;
+    }
+    case AE_TRAILER_DETACH: { // 0x4F64AC
+        if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_TRAILER_ATTACH, this)) {
+            break;
+        }
+        if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_TRAILER_DETACH, this)) {
+            break;
+        }
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN)) {
+            break;
+        }
+        AESoundManager.PlaySound({
+            .BankSlot           = SND_BANK_SLOT_WEAPON_GEN,
+            .SoundID            = SND_GENRL_WEAPONS_SAWNOFF_B,
+            .AudioEntity        = this,
+            .Pos                = GetVehicle()->GetPosition(),
+            .Volume             = GetDefaultVolume(AE_TRAILER_DETACH),
+            .RollOffFactor      = 2.f,
+            .Speed              = 0.5f,
+            .FrequencyVariance  = 0.05f,
+            .RegisterWithEntity = GetVehicle(),
+            .EventID            = AE_TRAILER_DETACH,
+        });
+        break;
+    }
+    case AE_BODY_HARVEST: { // 0x4F7224
+        if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_BODY_HARVEST, this)) {
+            break;
+        }
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_HARVESTER_P, SND_BANK_SLOT_PLAYER_ENGINE_P)) {
+            break;
+        }
+        AESoundManager.PlaySound({
+            .BankSlot           = SND_BANK_SLOT_PLAYER_ENGINE_P,
+            .SoundID            = 4,
+            .AudioEntity        = this,
+            .Pos                = GetVehicle()->GetPosition(),
+            .Volume             = GetDefaultVolume(AE_BODY_HARVEST),
+            .RollOffFactor      = 2.f,
+            .FrequencyVariance  = 0.05f,
+            .RegisterWithEntity = GetVehicle(),
+            .EventID            = AE_BODY_HARVEST,
+        });
+        break;
+    }
+    case AE_PED_CRUNCH: { // 0x4F68E4
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)) {
+            break;
+        }
+        const auto PlaySound = [&](float frq, int16 playTime) {
+            AESoundManager.PlaySound({
+                .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+                .SoundID           = SND_GENRL_COLLISIONS_COLCARPED,
+                .AudioEntity       = this,
+                .Pos               = GetVehicle()->GetPosition(),
+                .Volume            = GetPedEventVolume(AE_PED_CRUNCH),
+                .RollOffFactor     = 1.5f,
+                .Speed             = frq,
+                .Flags             = SOUND_START_PERCENTAGE,
+                .FrequencyVariance = 0.06f,
+                .PlayTime          = playTime,
+                .EventID           = AE_PED_CRUNCH
+            });
+        };
+        if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_PED_CRUNCH, this)) {
+            PlaySound(0.8f, 40);
+        } else {
+            PlaySound(0.94f, 0);
+        }
+        break;
+    }
+    case AE_PED_DRIVE_OVER: { // 0x4F6B3A
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)) {
+            break;
+        }
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .SoundID           = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(SND_GENRL_COLLISIONS_GORE_SPLAT1, SND_GENRL_COLLISIONS_GORE_SPLAT3),
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetPedEventVolume(AE_PED_DRIVE_OVER),
+            .RollOffFactor     = 1.5f,
+            .FrequencyVariance = 0.06f,
+            .EventID           = notsa::IsFixBugs() ? AE_PED_DRIVE_OVER : AE_PED_KNOCK_DOWN
+        });
+        break;
+    }
+    case AE_PED_KNOCK_DOWN: { // 0x4F69CB
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)) {
+            break;
+        }
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .SoundID           = SND_GENRL_COLLISIONS_COLSOLIDWOOD,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetPedEventVolume(AE_PED_KNOCK_DOWN),
+            .RollOffFactor     = 1.5f,
+            .FrequencyVariance = 0.06f,
+            .EventID           = AE_PED_KNOCK_DOWN
+        });
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .SoundID           = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(SND_GENRL_COLLISIONS_COLCAR01, SND_GENRL_COLLISIONS_COLCAR12),
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetPedEventVolume(AE_PED_KNOCK_DOWN),
+            .RollOffFactor     = 1.5f,
+            .Flags             = SOUND_START_PERCENTAGE,
+            .FrequencyVariance = 0.06f,
+            .PlayTime          = 55,
+            .EventID           = AE_PED_KNOCK_DOWN
+        });
+        break;
+    }
+    case AE_PED_BOUNCE: { // 0x4F6C29
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)) {
+            break;
+        }
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .SoundID           = SND_GENRL_COLLISIONS_COLGRASS,
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetPedEventVolume(AE_PED_BOUNCE),
+            .RollOffFactor     = 1.5f,
+            .FrequencyVariance = 0.06f,
+            .EventID           = AE_PED_BOUNCE
+        });
+        AESoundManager.PlaySound({
+            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .SoundID           = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(SND_GENRL_COLLISIONS_COLCAR01, SND_GENRL_COLLISIONS_COLCAR12),
+            .AudioEntity       = this,
+            .Pos               = GetVehicle()->GetPosition(),
+            .Volume            = GetPedEventVolume(AE_PED_BOUNCE),
+            .RollOffFactor     = 1.5f,
+            .Flags             = SOUND_START_PERCENTAGE,
+            .FrequencyVariance = 0.06f,
+            .PlayTime          = 25,
+            .EventID           = AE_PED_BOUNCE
+        });
+        break;
+    }
+    }
 }
 
 // 0x4F7580
