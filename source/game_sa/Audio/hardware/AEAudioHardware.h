@@ -27,19 +27,19 @@ union CAEAudioHardwarePlayFlags {
         uint16 m_bIsSmoothDucking : 1;
 
         uint16 m_bIsForcedFront : 1;
-        uint16 m_CanBePaused : 1;
+        uint16 m_IsPausable : 1;
     };
 
     void CopyFromAESound(const CAESound& sound) {
-        m_bIsFrontend        = sound.GetFrontEnd();
-        m_bIsUncompressable  = sound.GetUncompressable();
-        m_bIsUnduckable      = sound.GetUnduckable();
-        m_bIsStartPercentage = sound.GetStartPercentage();
-        m_bIsMusicMastered   = sound.GetMusicMastered();
+        m_bIsFrontend        = sound.IsFrontEnd();
+        m_bIsUncompressable  = sound.IsCompressable();
+        m_bIsUnduckable      = sound.IsDuckablle();
+        m_bIsStartPercentage = sound.GetIsStartPercentage();
+        m_bIsMusicMastered   = sound.IsMusicMastered();
         m_bIsRolledOff       = sound.GetRolledOff();
         m_bIsSmoothDucking   = sound.GetSmoothDucking();
-        m_bIsForcedFront     = sound.GetForcedFront();
-        m_CanBePaused        = m_bIsFrontend ? sound.GetUnpausable() : false;
+        m_bIsForcedFront     = sound.IsForcedFront();
+        m_IsPausable         = m_bIsFrontend && sound.IsPausable();
     }
 };
 

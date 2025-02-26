@@ -45,7 +45,7 @@ public:
 
     struct tSoundPlayParams {
         eSoundBankSlot  BankSlot;               //!< The slot to play the sound from (From the currently loaded bank) (?)
-        tSoundID        SoundID;                  //!< The sound ID to play (From the specified bank slot)
+        eSoundID        SoundID;                  //!< The sound ID to play (From the specified bank slot)
         CAEAudioEntity* AudioEntity;              //!< The audio entity that requested this sound
         CVector         Pos;                      //!< The position
         float           Volume;                   //!< The volume (in dB)
@@ -81,7 +81,7 @@ private:
 
 public:
     bool IsPaused() const { return CTimer::GetIsPaused() || m_bManuallyPaused; }
-    bool IsSoundPaused(const CAESound& sound) const { return CAESoundManager::IsPaused() && !sound.GetUnpausable(); }
+    bool IsSoundPaused(const CAESound& sound) const { return CAESoundManager::IsPaused() && !sound.IsPausable(); }
 };
 VALIDATE_SIZE(CAESoundManager, 0x8CBC);
 

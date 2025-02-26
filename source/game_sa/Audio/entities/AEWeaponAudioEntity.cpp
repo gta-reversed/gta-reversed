@@ -289,7 +289,7 @@ void CAEWeaponAudioEntity::WeaponReload(eWeaponType type, CPhysical* entity, eAu
         return;
     }
 
-    const auto PlaySound = [&](tSoundID soundID, float volumeOffsetdB = 0.f) {
+    const auto PlaySound = [&](eSoundID soundID, float volumeOffsetdB = 0.f) {
         CAESound s;
         s.Initialise(
             SND_BANK_SLOT_WEAPON_GEN,
@@ -499,7 +499,7 @@ void CAEWeaponAudioEntity::ReportStealthKill(eWeaponType type, CPhysical* entity
         return;
     }
 
-    const auto PlayStealthKillSound = [&](eSoundBankSlot bankSlotID, tSoundID soundID, float volumeOffsetdB, int32 eventID) {
+    const auto PlayStealthKillSound = [&](eSoundBankSlot bankSlotID, eSoundID soundID, float volumeOffsetdB, int32 eventID) {
         AESoundManager.PlaySound({
             .BankSlot           = bankSlotID,
             .SoundID            = soundID,
@@ -826,7 +826,7 @@ void CAEWeaponAudioEntity::PlayCameraSound(CPhysical* entity, eAudioEvents event
         .Pos                = entity->GetPosition(),
         .Volume             = GetDefaultVolume(event),
         .RollOffFactor      = 2.f / 3.f,
-        .Flags              = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY | SOUND_UNPAUSABLE, // NOTE/BUG: `UNPAUSABLE` typo?
+        .Flags              = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY | SOUND_IS_PAUSABLE, // NOTE/BUG: `UNPAUSABLE` typo?
         .RegisterWithEntity = entity,
         .EventID            = AE_WEAPON_SOUND_CAT_CHAINSAW_STOP
     });

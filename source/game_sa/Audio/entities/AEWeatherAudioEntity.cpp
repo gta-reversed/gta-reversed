@@ -24,11 +24,11 @@ void CAEWeatherAudioEntity::StaticInitialise() {
 void CAEWeatherAudioEntity::StaticReset() {
     m_sfRainVolume = -100.0f;
 
-    if (gTwinLoopSoundEntityFirst.IsInUse()) {
+    if (gTwinLoopSoundEntityFirst.IsActive()) {
         gTwinLoopSoundEntityFirst.StopSoundAndForget();
     }
 
-    if (gTwinLoopSoundEntitySecond.IsInUse()) {
+    if (gTwinLoopSoundEntitySecond.IsActive()) {
         gTwinLoopSoundEntitySecond.StopSoundAndForget();
     }
 }

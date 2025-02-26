@@ -116,7 +116,7 @@ void CAESoundManager::Service() {
 
     // Initialize sounds that are using percentage specified start positions 0x4F011C
     for (auto&& [i, sound] : notsa::enumerate(m_aSounds)) {
-        if (!sound.IsActive() || !sound.WasServiced() || !sound.GetStartPercentage())
+        if (!sound.IsActive() || !sound.WasServiced() || !sound.GetIsStartPercentage())
             continue;
 
         sound.SetIndividualEnvironment(eSoundEnvironment::SOUND_START_PERCENTAGE, false);
@@ -130,13 +130,15 @@ void CAESoundManager::Service() {
     // Stop sounds that turned inactive
     for (auto i = 0; i < m_nNumAvailableChannels; ++i) {
         const auto channelSound = m_aChannelSoundTable[i];
-        if (channelSound == -1)
+        if (channelSound == -1) {
             continue;
+        }
 
-        auto& sound = m_aSounds[channelSound];
+        auto& sound      = m_aSounds[channelSound];
         sound.m_PlayTime = m_aChannelSoundPlayTimes[i];
-        if (sound.m_HasRequestedStopped != eSoundState::SOUND_ACTIVE)
+        if (sound.m_HasRequestedStopped) {
             AEAudioHardware.StopSound(m_nChannel, i);
+        }
     }
 
     // Update sounds playtime
@@ -173,7 +175,7 @@ void CAESoundManager::Service() {
     auto numUncancellableSoundsThisFrame = 0;
     for (auto i = 0; i < m_nNumAvailableChannels; ++i) {
         const auto channelSound = m_aChannelSoundTable[i];
-        if (channelSound == -1 || !m_aSounds[channelSound].GetUncancellable())
+        if (channelSound == -1 || !m_aSounds[channelSound].IsCancellable())
             continue;
 
         m_aChannelSoundUncancellable[numUncancellableSoundsThisFrame] = channelSound;
@@ -182,7 +184,7 @@ void CAESoundManager::Service() {
 
     // Mark some more songs as uncancellable under specific conditions
     for (auto&& [i, sound] : notsa::enumerate(m_aSounds)) {
-        if (!sound.IsActive() || (sound.m_IsPhysicallyPlaying && sound.GetUncancellable()) || sound.m_FrameDelay)
+        if (!sound.IsActive() || (sound.m_IsPhysicallyPlaying && sound.IsCancellable()) || sound.m_FrameDelay)
             continue;
 
         int32 iCurUncancell;

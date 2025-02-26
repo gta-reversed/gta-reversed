@@ -38,17 +38,17 @@ void CAESound::InjectHooks() {
 }
 
 CAESound::CAESound(
-    eSoundBankSlot    bankSlot,
-    eSoundID          sfxId,
-    CAEAudioEntity*   audioEntity,
-    CVector           pos,
-    float             volume,
-    float             rollOff,
-    float             speed,
-    float             doppler,
-    uint8             frameDelay,
-    eSoundEnvironment flags,
-    float             speedVariance
+    eSoundBankSlot  bankSlot,
+    eSoundID        sfxId,
+    CAEAudioEntity* audioEntity,
+    CVector         pos,
+    float           volume,
+    float           rollOff,
+    float           speed,
+    float           doppler,
+    uint8           frameDelay,
+    uint16          flags,
+    float           speedVariance
 ) :
     m_BankSlot{ bankSlot },
     m_SoundID{ sfxId },
@@ -81,7 +81,7 @@ void CAESound::Initialise(
     float           speed,
     float           doppler,
     uint8           frameDelay,
-    uint32          flags,
+    uint16          flags,
     float           speedVariance,
     int16           playTime
 ) {
@@ -159,7 +159,7 @@ CVector CAESound::GetRelativePosition() const {
 
 // 0x4EF350 - Matches the original calling convention, to be used by reversible hooks, use the version returning CVector instead in our code
 void CAESound::GetRelativePosition(CVector* outVec) const {
-    *outVec = GetFrontEnd() ? m_CurrPos : CAEAudioEnvironment::GetPositionRelativeToCamera(m_CurrPos);
+    *outVec = IsFrontEnd() ? m_CurrPos : CAEAudioEnvironment::GetPositionRelativeToCamera(m_CurrPos);
 }
 
 // 0x4EF390
@@ -178,14 +178,14 @@ void CAESound::UpdateFrequency() {
 
 // 0x4EF400
 float CAESound::GetRelativePlaybackFrequencyWithDoppler() const {
-    return GetFrontEnd()
+    return IsFrontEnd()
         ? m_ListenerSpeed
         : m_ListenerSpeed * CAEAudioEnvironment::GetDopplerRelativeFrequency(m_PrevCamDist, m_CurrCamDist, m_PrevTimeUpdateMs, m_CurrTimeUpdateMs, m_Doppler);
 }
 
 // 0x4EF440
 float CAESound::GetSlowMoFrequencyScalingFactor() const {
-    return GetUnpausable() || !CTimer::GetIsSlowMotionActive() || CCamera::GetActiveCamera().m_nMode == eCamMode::MODE_CAMERA
+    return IsPausable() || !CTimer::GetIsSlowMotionActive() || CCamera::GetActiveCamera().m_nMode == eCamMode::MODE_CAMERA
         ? 1.f
         : fSlowMoFrequencyScalingFactor;
 }
@@ -235,7 +235,7 @@ void CAESound::SetPosition(CVector pos) {
 
 // 0x4EFA10
 void CAESound::CalculateVolume() {
-    if (!GetFrontEnd()) {
+    if (!IsFrontEnd()) {
         m_ListenerVolume = CAEAudioEnvironment::GetDirectionalMikeAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(m_CurrPos))
             + CAEAudioEnvironment::GetDistanceAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(m_CurrPos).Magnitude() / m_RollOffFactor);
     }
@@ -244,17 +244,20 @@ void CAESound::CalculateVolume() {
 
 // 0x4EFF50
 void CAESound::UpdateParameters(int16 curPlayPos) {
-    if (GetLifespanTiedToPhysicalEntity()) {
-        if (!m_PhysicalEntity)
-            m_HasRequestedStopped = eSoundState::SOUND_STOPPED;
-        else
+    if (IsLifespanTiedToPhysicalEntity()) {
+        if (m_PhysicalEntity) {
             SetPosition(m_PhysicalEntity->GetPosition());
+        } else {
+            m_HasRequestedStopped = true;
+        }
     }
-
-    if (GetRequestUpdates() && m_AudioEntity) {
-        m_AudioEntity->UpdateParameters(this, curPlayPos);
-        if (m_SpeedVariance == 0.0F)
-            m_ListenerSpeed = m_Speed;
+    if (GetRequestUpdates()) {
+        if (m_AudioEntity) { // NB: References are clearable, so must check!
+            m_AudioEntity->UpdateParameters(this, curPlayPos);
+            if (m_SpeedVariance == 0.0F) {
+                m_ListenerSpeed = m_Speed;
+            }
+        }
     }
 }
 
@@ -262,7 +265,7 @@ void CAESound::UpdateParameters(int16 curPlayPos) {
 void CAESound::SoundHasFinished() {
     UpdateParameters(-1);
     UnregisterWithPhysicalEntity();
-    m_IsInUse = 0;
-    m_IsPhysicallyPlaying = 0;
-    m_PlayTime = 0;
+    m_IsInUse             = false;
+    m_IsPhysicallyPlaying = false;
+    m_PlayTime            = 0;
 }

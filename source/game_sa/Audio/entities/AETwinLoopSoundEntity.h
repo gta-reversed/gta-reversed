@@ -64,7 +64,7 @@ public:
 
     void PlayTwinLoopSound(CVector pos, float volume, float speed, float rollOffFactor, float doppler = 1.f, eSoundEnvironment flags = SOUND_DEFAULT);
 
-    bool IsInUse() const noexcept { return m_IsInUse; }
+    bool IsActive() const noexcept { return m_IsInUse; }
 private:
     void ReCalculateSwapTime();
 

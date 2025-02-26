@@ -1451,14 +1451,14 @@ void CAEPedSpeechAudioEntity::I_PlayLoadedSound(CEntity* attachTo) {
     if (m_IsFrontend) {
         RequestSound(
             {0.f, 1.f, 0.f},
-            SOUND_UNCOMPRESSABLE | SOUND_UNDUCKABLE | SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE | SOUND_FRONT_END,
+            SOUND_IS_COMPRESSABLE | SOUND_IS_DUCKABLE | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | SOUND_FRONT_END,
             3.f,
             1.f
         );
     } else {
         RequestSound(
             attachTo->GetPosition(),
-            SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE,
+            SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE,
             IsPedless ? 12.f : m_EventVolume,
             IsPedless ? 3.5f : CAEVehicleAudioEntity::s_pVehicleAudioSettingsForRadio ? 3.f : 2.f
         );

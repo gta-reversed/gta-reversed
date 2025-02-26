@@ -1780,7 +1780,7 @@ void CAEVehicleAudioEntity::GenericPlaySurfaceSound(eSoundID newSfx, float speed
             m_SkidSound.UpdateTwinLoopSound(m_Entity->GetPosition(), volume, speed);
         }
     } else {
-        if (m_SkidSound.IsInUse()) {
+        if (m_SkidSound.IsActive()) {
             m_SkidSound.StopSoundAndForget();
         }
         if ((m_SurfaceSoundType = newSfx) != -1) {

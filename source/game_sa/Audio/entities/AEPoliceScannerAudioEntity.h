@@ -15,7 +15,7 @@ struct tScannerSlot {
     }
 
     // bad name?
-    [[nodiscard]] bool IsInUse() const {
+    [[nodiscard]] bool IsActive() const {
         return Bank < 0 || SoundID < 0;
     }
 };
