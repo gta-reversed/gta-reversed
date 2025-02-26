@@ -243,7 +243,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
                 : eState::INITIAL;  // FOGHORN_1 -> INITIAL
         } else if (CTimer::GetTimeInMS() > s_LastTime + FOGHORN_FADE_OUT_DELAY) { // BUG: Since `FOGHORN_TTL` and `FOGHORN_FADE_OUT_DELAY` are both 5000 the `if` here will never be true.
             if (pFogHorn) {
-                pFogHorn->m_fVolume -= 3.3f;
+                pFogHorn->m_Volume -= 3.3f;
             }
         }
         break;

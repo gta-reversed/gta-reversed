@@ -43,52 +43,50 @@ public:
     eSoundID        m_SoundID;
     CAEAudioEntity* m_pBaseAudio;
     CEntity*        m_pPhysicalEntity;
-    int32           m_nEvent; // Not necessarily `eAudioEvents`, for ex. see `CAEWeaponAudioEntity`
+    int32           m_Event; // Not necessarily `eAudioEvents`, for ex. see `CAEWeaponAudioEntity`
     float           m_ClientVariable;
-    float           m_fVolume;
-    float           m_fSoundDistance;
-    float           m_fSpeed;
-    float           m_fSpeedVariability;
-    CVector         m_vecCurrPosn;
-    CVector         m_vecPrevPosn;
-    int32           m_nLastFrameUpdate;
-    int32           m_nCurrTimeUpdate;
-    int32           m_nPrevTimeUpdate;
-    float           m_fCurrCamDist;
-    float           m_fPrevCamDist;
+    float           m_Volume;
+    float           m_RollOffFactor;
+    float           m_Speed;
+    float           m_SpeedVariance;
+    CVector         m_CurrPos;
+    CVector         m_PrevPos;
+    int32           m_LastFrameUpdateMs;
+    int32           m_CurrTimeUpdateMs;
+    int32           m_PrevTimeUpdateMs;
+    float           m_CurrCamDist;
+    float           m_PrevCamDist;
     float           m_Doppler; // AKA TimeScale
-    uint8           m_nIgnoredServiceCycles; // Seemingly never used, but CAESoundManager::Service still checks for that
-    char            field_55;
+    uint8           m_FrameDelay; // Seemingly never used, but CAESoundManager::Service still checks for that
+    char            __pad;
     union {
         uint16 m_nEnvironmentFlags;
         struct {
-            uint16 m_bFrontEnd : 1;
-            uint16 m_bUncancellable : 1;
-            uint16 m_bRequestUpdates : 1;
-            uint16 m_bPlayPhysically : 1;
-            uint16 m_bUnpausable : 1;
-            uint16 m_bStartPercentage : 1;
-            uint16 m_bMusicMastered : 1;
-            uint16 m_bLifespanTiedToPhysicalEntity : 1;
+            uint16 m_IsFrontEnd : 1;
+            uint16 m_CanBeCancelled : 1;
+            uint16 m_RequestUpdates : 1;
+            uint16 m_PlayPhysically : 1;
+            uint16 m_CanBePaused : 1;
+            uint16 m_PlayTimeIsPercentage : 1;
+            uint16 m_IsMusicMastered : 1;
+            uint16 m_IsLifespanTiedToPhysicalEntity : 1;
 
-            uint16 m_bUnduckable : 1;
-            uint16 m_bUncompressable : 1;
-            uint16 m_bRolledOff : 1;
-            uint16 m_bSmoothDucking : 1;
-            uint16 m_bForcedFront : 1;
+            uint16 m_CanBeDucked : 1;
+            uint16 m_CanBeCompressed : 1;
+            uint16 m_IsRolledOff : 1;
+            uint16 m_HasSmoothDucking : 1;
+            uint16 m_IsForcedFront : 1;
         };
     };
-    uint16 m_nIsUsed;
-    int16  m_bWasServiced;
-    int16  m_nCurrentPlayPosition;
-    int16  m_nHasStarted;
-    float  m_fFinalVolume;
-    float  m_fFrequency;
-    int16  m_nPlayingState; // see eSoundState
-    char   field_6A[2];
-    float  m_fSoundHeadRoom;
-    int16  m_nSoundLength;
-    int16  field_72;
+    uint16 m_IsInUse;
+    int16  m_IsAudioHardwareAware;
+    int16  m_PlayTime;
+    int16  m_IsPhysicallyPlaying;
+    float  m_ListenerVolume;
+    float  m_ListenerSpeed;
+    int16  m_HasRequestedStopped; // see eSoundState
+    float  m_Headroom;
+    int16  m_Length;
 
     static constexpr float fSlowMoFrequencyScalingFactor = 0.5F;
 
@@ -108,30 +106,17 @@ public:
         CAEAudioEntity* audioEntity,
         CVector         pos,
         float           volume,
-        float           rollOffFactor = 1.f,
+        float           rollOffFactor     = 1.f,
         float           relativeFrequency = 1.f, // Speed
-        float           doppler = 1.f,
-        uint8           frameDelay = 0,
-        uint32          flags = 0,
+        float           doppler           = 1.f,
+        uint8           frameDelay        = 0,
+        uint32          flags             = 0,
         float           frequencyVariance = 0.f,
-        int16           playTime = 0
+        int16           playTime          = 0
     );
 
     void  UnregisterWithPhysicalEntity();
     void  StopSound();
-    bool  GetUncancellable() const { return m_bUncancellable; }
-    bool  GetFrontEnd() const { return m_bFrontEnd; }
-    bool  GetRequestUpdates() const { return m_bRequestUpdates; }
-    bool  GetUnpausable() const { return m_bUnpausable; }
-    bool  GetPlayPhysically() const { return m_bPlayPhysically; };
-    bool  GetStartPercentage() const { return m_bStartPercentage; }
-    bool  GetMusicMastered() const { return m_bMusicMastered; }
-    bool  GetLifespanTiedToPhysicalEntity() const { return m_bLifespanTiedToPhysicalEntity; }
-    bool  GetUnduckable() const { return m_bUnduckable; }
-    bool  GetUncompressable() const { return m_bUncompressable; }
-    bool  GetRolledOff() const { return m_bRolledOff; }
-    bool  GetSmoothDucking() const { return m_bSmoothDucking; }
-    bool  GetForcedFront() const { return m_bForcedFront; }
     void  SetIndividualEnvironment(uint16 envFlag, uint16 bEnabled); // pass eSoundEnvironment as envFlag
     void  UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 playProgress);
     CVector GetRelativePosition() const;
@@ -140,7 +125,7 @@ public:
     void  UpdateFrequency();
     float GetRelativePlaybackFrequencyWithDoppler() const;
     float GetSlowMoFrequencyScalingFactor() const;
-    void  NewVPSLentry();
+    void  NewVPSLEntry();
     void  RegisterWithPhysicalEntity(CEntity* entity);
     void  StopSoundAndForget();
     void  SetPosition(CVector vecPos);
@@ -148,17 +133,29 @@ public:
     void  UpdateParameters(int16 curPlayPos);
     void  SoundHasFinished();
 
-    void SetSpeed(float s) noexcept { m_fSpeed = s; }
-    auto GetSpeed() const noexcept  { return m_fSpeed; }
+    void SetSpeed(float s) noexcept { m_Speed = s; }
+    auto GetSpeed() const noexcept  { return m_Speed; }
 
-    void SetVolume(float v) noexcept { m_fVolume = v; }
-    auto GetVolume() const noexcept  { return m_fVolume; }
+    void SetVolume(float v) noexcept { m_Volume = v; }
+    auto GetVolume() const noexcept  { return m_Volume; }
 
-    auto GetSoundLength() const noexcept { return m_nSoundLength; }
+    auto GetSoundLength() const noexcept { return m_Length; }
 
-public:
-    bool IsUsed() const { return m_nIsUsed; }
-    bool WasServiced() const { return m_bWasServiced; }
+    bool GetUncancellable() const { return m_CanBeCancelled; }
+    bool GetFrontEnd() const { return m_IsFrontEnd; }
+    bool GetRequestUpdates() const { return m_RequestUpdates; }
+    bool GetUnpausable() const { return m_CanBePaused; }
+    bool GetPlayPhysically() const { return m_PlayPhysically; };
+    bool GetStartPercentage() const { return m_PlayTimeIsPercentage; }
+    bool GetMusicMastered() const { return m_IsMusicMastered; }
+    bool GetLifespanTiedToPhysicalEntity() const { return m_IsLifespanTiedToPhysicalEntity; }
+    bool GetUnduckable() const { return m_CanBeDucked; }
+    bool GetUncompressable() const { return m_CanBeCompressed; }
+    bool GetRolledOff() const { return m_IsRolledOff; }
+    bool GetSmoothDucking() const { return m_HasSmoothDucking; }
+    bool GetForcedFront() const { return m_IsForcedFront; }
+    bool IsActive() const { return m_IsInUse; }
+    bool WasServiced() const { return m_IsAudioHardwareAware; }
 
 };
 VALIDATE_SIZE(CAESound, 0x74);

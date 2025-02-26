@@ -98,7 +98,7 @@ void CAEDoorAudioEntity::PlayDoorSound(int16 sfxId, eAudioEvents event, CVector&
         CAESound    sound;
         sound.Initialise(SND_BANK_SLOT_DOORS, sfxId, this, position, volume, 2.0f, speed, 1.0f, 0, SOUND_REQUEST_UPDATES, 0.0f, 0);
         sound.SetIndividualEnvironment(SOUND_FRONT_END, enabled);
-        sound.m_nEvent = event;
+        sound.m_Event = event;
         AESoundManager.RequestNewSound(&sound);
     } else {
         StaticInitialise();
@@ -136,21 +136,21 @@ void CAEDoorAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
         return sound->StopSoundAndForget();
 #else
     eAudioEvents event;
-    if (sound->m_nEvent == AE_GARAGE_DOOR_OPENING) {
+    if (sound->m_Event == AE_GARAGE_DOOR_OPENING) {
         event = AE_GARAGE_DOOR_OPENED;
         if (CTimer::GetTimeInMS() > (m_nTime + 10000)) {
             auto playing = (!AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_GARAGE_DOOR_OPENED, this) &&
                             AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_GARAGE_DOOR_OPENING, this));
             if (playing) {
                 AESoundManager.CancelSoundsOwnedByAudioEntity(this, 1);
-                PlayDoorSound(2, AE_GARAGE_DOOR_OPENED, sound->m_vecCurrPosn, 0.0f, 1.0f);
+                PlayDoorSound(2, AE_GARAGE_DOOR_OPENED, sound->m_CurrPos, 0.0f, 1.0f);
             }
             m_nTime = CTimer::GetTimeInMS();
             sound->StopSoundAndForget();
             return;
         }
     } else {
-        if (sound->m_nEvent != AE_GARAGE_DOOR_CLOSING)
+        if (sound->m_Event != AE_GARAGE_DOOR_CLOSING)
             return;
 
         event = AE_GARAGE_DOOR_CLOSED;
@@ -159,7 +159,7 @@ void CAEDoorAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
                             AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_GARAGE_DOOR_CLOSING, this));
             if (playing) {
                 AESoundManager.CancelSoundsOwnedByAudioEntity(this, 1);
-                PlayDoorSound(2, AE_GARAGE_DOOR_CLOSED, sound->m_vecCurrPosn, 0.0f, 0.79f);
+                PlayDoorSound(2, AE_GARAGE_DOOR_CLOSED, sound->m_CurrPos, 0.0f, 0.79f);
             }
             m_nTime = CTimer::GetTimeInMS();
             sound->StopSoundAndForget();

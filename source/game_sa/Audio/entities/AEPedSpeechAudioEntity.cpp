@@ -1397,7 +1397,7 @@ void CAEPedSpeechAudioEntity::I_UpdateParameters(CAESound* sound, int16 playTime
     } else { // Update sound
         speech->Status = CAEPedSpeechSlot::eStatus::PLAYING;
         if constexpr (IsPedless) {
-            if (!m_IsFrontend || sound->m_nEvent == AE_SPEECH_PED) {
+            if (!m_IsFrontend || sound->m_Event == AE_SPEECH_PED) {
                 sound->SetPosition(m_Entity->GetPosition());
             }
         } else {

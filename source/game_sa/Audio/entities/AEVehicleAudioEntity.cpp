@@ -388,14 +388,14 @@ void CAEVehicleAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
         return;
     }
 
-    if (sound->m_nEvent == AE_BONNET_FLUBBER_FLUBBER) {
+    if (sound->m_Event == AE_BONNET_FLUBBER_FLUBBER) {
         if (sound->m_pPhysicalEntity) {
-            sound->m_fVolume = GetDefaultVolume(AE_BONNET_FLUBBER_FLUBBER) + GetFlyingMetalVolume(sound->m_pPhysicalEntity->AsPhysical());
+            sound->m_Volume = GetDefaultVolume(AE_BONNET_FLUBBER_FLUBBER) + GetFlyingMetalVolume(sound->m_pPhysicalEntity->AsPhysical());
         }
         return;
     }
 
-    if (sound->m_nEvent == AE_BOAT_HIT_WAVE) {
+    if (sound->m_Event == AE_BOAT_HIT_WAVE) {
         if (curPlayPos == -1) {
             return;
         }
@@ -558,11 +558,11 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             break;
         }
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
-            .SoundID           = SND_GENRL_COLLISIONS_SPLASH_END,
-            .AudioEntity       = this,
-            .Pos               = GetVehicle()->GetPosition(),
-            .Volume            = vol,
+            .BankSlot    = SND_BANK_SLOT_COLLISIONS,
+            .SoundID     = SND_GENRL_COLLISIONS_SPLASH_END,
+            .AudioEntity = this,
+            .Pos         = GetVehicle()->GetPosition(),
+            .Volume      = vol,
         });
         break;
     }
@@ -1183,8 +1183,8 @@ void CAEVehicleAudioEntity::CancelAllVehicleEngineSounds(std::optional<size_t> e
 // 0x4F56D0
 void CAEVehicleAudioEntity::UpdateVehicleEngineSound(int16 engineState, float speed, float volume) {
     if (CAESound* sound = m_EngineSounds[engineState].Sound) {
-        sound->m_fVolume = m_EventVolume + volume;
-        sound->m_fSpeed  = speed;
+        sound->m_Volume = m_EventVolume + volume;
+        sound->m_Speed  = speed;
     }
 }
 
@@ -1569,7 +1569,7 @@ bool CAEVehicleAudioEntity::JustFinishedAccelerationLoop() {
         return false;
     }
     if (const auto* const sound = GetEngineSound(AE_SOUND_PLAYER_AC)) {
-        if (m_ACPlayPositionThisFrame + cfg->LoopInterval > sound->m_nSoundLength) {
+        if (m_ACPlayPositionThisFrame + cfg->LoopInterval > sound->m_Length) {
             m_FramesAgoACLooped = 0;
             return true;
         }
@@ -4314,8 +4314,8 @@ void CAEVehicleAudioEntity::ProcessSpecialVehicle(tVehicleParams& params) {
 // NOTSA, Custom (Most likely originally existed, but got inlined
 bool CAEVehicleAudioEntity::UpdateGenericEngineSound(int16 index, float fVolume, float fSpeed) {
     if (CAESound* sound = m_EngineSounds[index].Sound) {
-        sound->m_fSpeed  = fSpeed;
-        sound->m_fVolume = fVolume;
+        sound->m_Speed  = fSpeed;
+        sound->m_Volume = fVolume;
         return true;
     }
     return false;

@@ -27,7 +27,7 @@ union CAEAudioHardwarePlayFlags {
         uint16 m_bIsSmoothDucking : 1;
 
         uint16 m_bIsForcedFront : 1;
-        uint16 m_bUnpausable : 1;
+        uint16 m_CanBePaused : 1;
     };
 
     void CopyFromAESound(const CAESound& sound) {
@@ -39,7 +39,7 @@ union CAEAudioHardwarePlayFlags {
         m_bIsRolledOff       = sound.GetRolledOff();
         m_bIsSmoothDucking   = sound.GetSmoothDucking();
         m_bIsForcedFront     = sound.GetForcedFront();
-        m_bUnpausable        = m_bIsFrontend ? sound.GetUnpausable() : false;
+        m_CanBePaused        = m_bIsFrontend ? sound.GetUnpausable() : false;
     }
 };
 

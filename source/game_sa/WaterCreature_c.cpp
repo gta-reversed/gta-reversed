@@ -143,12 +143,12 @@ void WaterCreature_c::Update(float fTimeStep)
         }
 
         const auto& vecPos = m_pObject->GetPosition();
-        if (pInfo.m_fSpeed > 0.0F)
+        if (pInfo.m_Speed > 0.0F)
         {
             const auto fRand = CGeneral::GetRandomNumberInRange(0.0F, 100.0F);
             if (fRand < 10.0F || bMove || m_bChangedDir)
             {
-                const auto vecTargetPos = vecPos + m_pObject->GetForwardVector() * pInfo.m_fSpeed;
+                const auto vecTargetPos = vecPos + m_pObject->GetForwardVector() * pInfo.m_Speed;
                 CColPoint colPoint;
                 CEntity* entity;
                 if (CWorld::ProcessLineOfSight(vecPos, vecTargetPos, colPoint, entity, true, false, false, false, false, false, false, false)) {

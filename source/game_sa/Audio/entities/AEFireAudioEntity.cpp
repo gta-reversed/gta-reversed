@@ -77,7 +77,7 @@ void CAEFireAudioEntity::PlayFireSounds(eAudioEvents audioId, CVector& posn) {
         0
     );
     sound.m_ClientVariable = volume + 3.0f;
-    sound.m_nEvent = AE_FRONTEND_SELECT;
+    sound.m_Event = AE_FRONTEND_SELECT;
     AESoundManager.RequestNewSound(&sound);
 }
 
@@ -85,13 +85,13 @@ void CAEFireAudioEntity::PlayFireSounds(eAudioEvents audioId, CVector& posn) {
 void CAEFireAudioEntity::PlayWaterSounds(eAudioEvents audioId, CVector& posn) {
     CAESound sound;
     sound.Initialise(SND_BANK_SLOT_COLLISIONS, 3, this, posn, GetDefaultVolume(audioId), 2.0f, 0.75f, 0.6f, 0, SOUND_REQUEST_UPDATES, 0.0f, 0);
-    sound.m_nEvent = AE_FRONTEND_HIGHLIGHT;
-    sound.m_fSpeedVariability = 0.06f;
+    sound.m_Event = AE_FRONTEND_HIGHLIGHT;
+    sound.m_SpeedVariance = 0.06f;
     m_SoundLeft = AESoundManager.RequestNewSound(&sound);
 
     sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 0, this, posn, GetDefaultVolume(audioId) + 20.0f, 2.0f, 1.78f, 0.6f, 0, SOUND_REQUEST_UPDATES, 0.0f, 0);
-    sound.m_fSpeedVariability = 0.06f;
-    sound.m_nEvent = AE_FRONTEND_ERROR;
+    sound.m_SpeedVariance = 0.06f;
+    sound.m_Event = AE_FRONTEND_ERROR;
     m_SoundRight = AESoundManager.RequestNewSound(&sound);
 }
 
@@ -114,29 +114,29 @@ void CAEFireAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
         sound->SetPosition(matrix.pos);
     }
 
-    switch (sound->m_nEvent) {
+    switch (sound->m_Event) {
     case AE_FRONTEND_SELECT:
-        if (sound->m_fVolume >= sound->m_ClientVariable) {
-            sound->m_nEvent = AE_FRONTEND_BACK;
+        if (sound->m_Volume >= sound->m_ClientVariable) {
+            sound->m_Event = AE_FRONTEND_BACK;
         } else {
-            sound->m_fVolume = std::min(sound->m_fVolume + 2.0f, sound->m_ClientVariable);
+            sound->m_Volume = std::min(sound->m_Volume + 2.0f, sound->m_ClientVariable);
         }
         break;
     case AE_FRONTEND_BACK:
-        if (sound->m_fVolume <= -30.0f)
+        if (sound->m_Volume <= -30.0f)
             sound->StopSoundAndForget();
         else
-            sound->m_fVolume -= 0.75f;
+            sound->m_Volume -= 0.75f;
         break;
     case AE_FRONTEND_ERROR:
         if (m_FxSystem && m_FxSystem->GetPlayStatus() == eFxSystemPlayStatus::FX_STOPPED) {
-            sound->m_fVolume = -100.0f;
+            sound->m_Volume = -100.0f;
         }
         break;
     case AE_FRONTEND_HIGHLIGHT:
         if (m_FxSystem && m_FxSystem->GetPlayStatus() == eFxSystemPlayStatus::FX_STOPPED) {
-            if (sound->m_fVolume > -100.0f) {
-                sound->m_fVolume -= 1.0f;
+            if (sound->m_Volume > -100.0f) {
+                sound->m_Volume -= 1.0f;
             }
         }
         break;

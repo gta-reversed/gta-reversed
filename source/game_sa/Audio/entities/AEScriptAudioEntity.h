@@ -37,8 +37,8 @@ public:
     uint8                   field_7E;
     uint8                   field_7F;
     uint32                  m_nLastTimeHornPlayed;
-    float                   m_fVolume;
-    float                   m_fSpeed;
+    float                   m_Volume;
+    float                   m_Speed;
     float                   field_8C;
     CAudioLink              wavLinks[MISSION_AUDIO_COUNT];
     CPhysical*              m_Physical;

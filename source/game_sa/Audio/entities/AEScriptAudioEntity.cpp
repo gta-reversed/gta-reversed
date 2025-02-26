@@ -11,8 +11,8 @@ CAEScriptAudioEntity::CAEScriptAudioEntity() : CAEAudioEntity() {
     m_nLastTimeHornPlayed = 0;
     field_7E = 0;
     field_7C = 0;
-    m_fVolume = 0.0f;
-    m_fSpeed = 1.0f;
+    m_Volume = 0.0f;
+    m_Speed = 1.0f;
     field_7D = 0;
     field_8C = 0.0f;
 }
@@ -101,14 +101,14 @@ void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBan
     }();
 
     m_tempSound.Initialise(slot, sfx, this, pos, volume, maxDistance, speed, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
-    m_tempSound.m_nCurrentPlayPosition = playPosn;
+    m_tempSound.m_PlayTime = playPosn;
     m_tempSound.m_nEnvironmentFlags = SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES | SOUND_UNCANCELLABLE;
     m_tempSound.SetIndividualEnvironment(SOUND_FRONT_END, bFrontend);
     if (physical) {
         m_tempSound.SetIndividualEnvironment(SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY, true);
         m_tempSound.RegisterWithPhysicalEntity(physical);
     }
-    m_tempSound.m_nEvent = static_cast<eAudioEvents>(event);
+    m_tempSound.m_Event = static_cast<eAudioEvents>(event);
     AESoundManager.RequestNewSound(&m_tempSound);
 }
 
@@ -739,8 +739,8 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
         if (!AESoundManager.AreSoundsOfThisEventPlayingForThisEntityAndPhysical(eventId, this, physical)) {
             PlayResidentSoundEvent(40, 44, 1, eventId, posn, physical, volume, speed, 0, 2.5f);
         }
-        m_fSpeed = speed;
-        m_fVolume = GetDefaultVolume(AE_CRANE_WINCH_MOVE) + volume;
+        m_Speed = speed;
+        m_Volume = GetDefaultVolume(AE_CRANE_WINCH_MOVE) + volume;
         m_nLastTimeHornPlayed = CTimer::GetTimeInMS();
         break;
     default:

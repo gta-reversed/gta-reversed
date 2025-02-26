@@ -206,8 +206,8 @@ void CAECollisionAudioEntity::ReportGlassCollisionEvent(eAudioEvents glassSoundT
     if (time) {
         auto& snd = m_tempSound;
         snd.m_ClientVariable = (float)(time + CTimer::GetTimeInMS());
-        snd.m_nEvent = glassSoundType;
-        snd.m_bRequestUpdates = true;
+        snd.m_Event = glassSoundType;
+        snd.m_RequestUpdates = true;
     }
 }
 
@@ -229,7 +229,7 @@ void CAECollisionAudioEntity::ReportWaterSplash(CVector posn, float volume) {
         0u,
         SOUND_REQUEST_UPDATES
     );
-    m_tempSound.m_nEvent = AE_FRONTEND_SELECT;
+    m_tempSound.m_Event = AE_FRONTEND_SELECT;
     AESoundManager.RequestNewSound(&m_tempSound);
 
     m_tempSound.Initialise(
@@ -244,7 +244,7 @@ void CAECollisionAudioEntity::ReportWaterSplash(CVector posn, float volume) {
         0u,
         SOUND_REQUEST_UPDATES
     );
-    m_tempSound.m_nEvent = AE_FRONTEND_BACK;
+    m_tempSound.m_Event = AE_FRONTEND_BACK;
     m_tempSound.m_ClientVariable = static_cast<float>(CTimer::GetTimeInMS() + 166);
 }
 

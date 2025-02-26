@@ -149,7 +149,7 @@ void CClouds::MovingFog_Create(CVector* posn) {
     ms_mf.m_fSize[slotId] = CGeneral::GetRandomNumberInRange(4.0f, 10.0f);
     ms_mf.m_fIntensity[slotId] = 1.0f;
     ms_mf.m_fMaxIntensity[slotId] = CGeneral::GetRandomNumberInRange(8.0f, 20.0f);
-    ms_mf.m_fSpeed[slotId] = CGeneral::GetRandomNumberInRange(0.5f, 1.2f);
+    ms_mf.m_Speed[slotId] = CGeneral::GetRandomNumberInRange(0.5f, 1.2f);
     ms_mf.m_bFogSlots[slotId] = true;
 }
 
@@ -174,8 +174,8 @@ void CClouds::MovingFog_Update() {
         CVector& fogPosn = ms_mf.m_vecPosn[i];
         CVector  offset  = fogPosn - camPos;
 
-        fogPosn.x += MovingFog_GetWind().x * ms_mf.m_fSpeed[i];
-        fogPosn.y += MovingFog_GetWind().y * ms_mf.m_fSpeed[i];
+        fogPosn.x += MovingFog_GetWind().x * ms_mf.m_Speed[i];
+        fogPosn.y += MovingFog_GetWind().y * ms_mf.m_Speed[i];
 
         if (offset.Magnitude() <= 60.f)
         {

@@ -96,7 +96,7 @@ void CAETwinLoopSoundEntity::SwapSounds() {
     if (!curr || !next) {
         return;
     }
-    next->m_fVolume = std::exchange(curr->m_fVolume, -100.f);
+    next->m_Volume = std::exchange(curr->m_Volume, -100.f);
     m_IsPlayingFirstSound = !m_IsPlayingFirstSound;
     ReCalculateSwapTime();
 }

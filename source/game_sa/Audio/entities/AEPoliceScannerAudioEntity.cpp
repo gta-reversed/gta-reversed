@@ -198,7 +198,7 @@ void CAEPoliceScannerAudioEntity::PlayLoadedDialogue() {
         sound.Initialise((eSoundBankSlot)(SND_BANK_SLOT_SCANNER_FIRST + i), s_pCurrentSlots[i].SoundID, this, { 0.0, 1.0f, 0.0f }, volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
         sound.m_ClientVariable = (float)i;
         sound.m_nEnvironmentFlags = SOUND_FRONT_END | SOUND_UNCANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_UNDUCKABLE;
-        sound.m_nEvent = AE_CRIME_COMMITTED;
+        sound.m_Event = AE_CRIME_COMMITTED;
 
         s_pSound = AESoundManager.RequestNewSound(&sound);
         if (s_pSound) {
@@ -268,11 +268,11 @@ void CAEPoliceScannerAudioEntity::UpdateParameters(CAESound* sound, int16 curPla
     }
 
     if (s_bStoppingScanner) {
-        sound->m_fVolume = sound->m_fVolume - 6.0f; // todo: *(float*)&gSpeechContextLookup[366][4]
+        sound->m_Volume = sound->m_Volume - 6.0f; // todo: *(float*)&gSpeechContextLookup[366][4]
         return;
     }
 
-    if (sound->m_nSoundLength > 0 && curPlayPos > sound->m_nSoundLength - 40 && sound->m_BankSlot != 37) { // todo: -40 should be replaced with by gSpeechContextLookup[366][2]
+    if (sound->m_Length > 0 && curPlayPos > sound->m_Length - 40 && sound->m_BankSlot != 37) { // todo: -40 should be replaced with by gSpeechContextLookup[366][2]
         sound->SetIndividualEnvironment(eSoundEnvironment::SOUND_REQUEST_UPDATES, false);
         s_pSound = nullptr;
         PlayLoadedDialogue();

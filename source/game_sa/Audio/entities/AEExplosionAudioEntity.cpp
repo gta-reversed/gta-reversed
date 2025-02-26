@@ -63,8 +63,8 @@ void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& po
 // 0x4DCB90
 void CAEExplosionAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     if (curPlayPos > 0) {
-        if (sound->m_fVolume > 0.0f) {
-            sound->m_fVolume = std::max(sound->m_fVolume - 1.0f, 0.0f);
+        if (sound->m_Volume > 0.0f) {
+            sound->m_Volume = std::max(sound->m_Volume - 1.0f, 0.0f);
         }
     }
 }
