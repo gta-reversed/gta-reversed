@@ -79,7 +79,7 @@ void CAEWaterCannonAudioEntity::UpdateGenericWaterCannonSound(bool splashInfoEna
             m_tempSound.m_Volume = volume;
             m_tempSound.m_RollOffFactor = soundDistance;
             m_tempSound.m_Speed = speed;
-            m_tempSound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES;
+            m_tempSound.m_Flags = SOUND_REQUEST_UPDATES;
             sound = AESoundManager.RequestNewSound(&m_tempSound);
         }
 

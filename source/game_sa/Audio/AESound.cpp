@@ -13,9 +13,6 @@
 #include "AEAudioHardware.h"
 #include "AEAudioUtility.h"
 
-//TODO: Remove once the cause of occasional nan here is found
-#define NANCHECK() if (isnan(m_CurrPos.x)) { assert(false); }
-
 void CAESound::InjectHooks() {
     RH_ScopedClass(CAESound);
     RH_ScopedCategory("Audio");
@@ -40,150 +37,105 @@ void CAESound::InjectHooks() {
     RH_ScopedInstall(SoundHasFinished, 0x4EFFD0);
 }
 
-CAESound::CAESound(CAESound& sound) {
-    m_BankSlot = sound.m_BankSlot;
-    m_SoundID = sound.m_SoundID;
-    m_pBaseAudio = sound.m_pBaseAudio;
-    m_Event = sound.m_Event;
-    m_ClientVariable = sound.m_ClientVariable;
-    m_Volume = sound.m_Volume;
-    m_RollOffFactor = sound.m_RollOffFactor;
-    m_Speed = sound.m_Speed;
-    m_SpeedVariance = sound.m_SpeedVariance;
-    m_CurrPos = sound.m_CurrPos;
-    m_PrevPos = sound.m_PrevPos;
-    m_LastFrameUpdateMs = sound.m_LastFrameUpdateMs;
-    m_CurrTimeUpdateMs = sound.m_CurrTimeUpdateMs;
-    m_PrevTimeUpdateMs = sound.m_PrevTimeUpdateMs;
-    m_CurrCamDist = sound.m_CurrCamDist;
-    m_PrevCamDist = sound.m_PrevCamDist;
-    m_Doppler = sound.m_Doppler;
-    m_FrameDelay = sound.m_FrameDelay;
-    m_nEnvironmentFlags = sound.m_nEnvironmentFlags;
-    m_IsInUse = sound.m_IsInUse;
-    m_PlayTime = sound.m_PlayTime;
-    m_IsPhysicallyPlaying = sound.m_IsPhysicallyPlaying;
-    m_ListenerVolume = sound.m_ListenerVolume;
-    m_ListenerSpeed = sound.m_ListenerSpeed;
-    m_HasRequestedStopped = sound.m_HasRequestedStopped;
-    m_Headroom = sound.m_Headroom;
-    m_Length = sound.m_Length;
-    m_pPhysicalEntity = nullptr;
+CAESound::CAESound(
+    eSoundBankSlot    bankSlot,
+    eSoundID          sfxId,
+    CAEAudioEntity*   audioEntity,
+    CVector           pos,
+    float             volume,
+    float             rollOff,
+    float             speed,
+    float             doppler,
+    uint8             frameDelay,
+    eSoundEnvironment flags,
+    float             speedVariance
+) :
+    m_BankSlot{ bankSlot },
+    m_SoundID{ sfxId },
+    m_AudioEntity{ audioEntity },
+    m_Volume{ volume },
+    m_RollOffFactor{ rollOff },
+    m_Speed{ speed },
+    m_Doppler{ doppler },
+    m_FrameDelay{ frameDelay },
+    m_Flags{ flags },
+    m_SpeedVariance{ speedVariance }
+{
+    assert((!(flags & SOUND_REQUEST_UPDATES) || audioEntity) && "SOUND_REQUEST_UPDATES flag requires `audioEntity` to be set!");
 
-    if (sound.m_pPhysicalEntity) {
-        m_pPhysicalEntity = sound.m_pPhysicalEntity;
-        m_pPhysicalEntity->RegisterReference(&m_pPhysicalEntity);
-    }
-
-    NANCHECK()
-}
-
-CAESound::CAESound(eSoundBankSlot bankSlotId, eSoundID sfxId, CAEAudioEntity* baseAudio, CVector posn, float volume, float fDistance, float speed, float timeScale,
-                   uint8 ignoredServiceCycles, eSoundEnvironment environmentFlags, float speedVariability) {
-    m_BankSlot = bankSlotId;
-    m_SoundID = sfxId;
-    m_pBaseAudio = baseAudio;
-    m_PrevPos = CVector(0.0f, 0.0f, 0.0f);
-    m_pPhysicalEntity = nullptr;
-    m_ClientVariable = -1.0F;
-    m_Event = AE_UNDEFINED;
-    m_LastFrameUpdateMs = 0;
-
-    SetPosition(posn);
-
-    m_Volume = volume;
-    m_RollOffFactor = fDistance;
-    m_Speed = speed;
-    m_Doppler = timeScale;
-    m_FrameDelay = ignoredServiceCycles;
-    m_nEnvironmentFlags = environmentFlags;
-    m_IsPhysicallyPlaying = 0;
-    m_PlayTime = 0;
-    m_Headroom = 0.0F;
-    m_SpeedVariance = speedVariability;
-    m_IsInUse = 1;
-    m_ListenerVolume = -100.0F;
-    m_ListenerSpeed = 1.0F;
-    m_Length = -1;
+    SetPosition(pos);
 }
 
 CAESound::~CAESound() {
     UnregisterWithPhysicalEntity();
 }
 
-// 0x4EF680
-CAESound& CAESound::operator=(const CAESound& sound) {
-    if (this == &sound)
-        return *this;
-
-    CAESound::UnregisterWithPhysicalEntity();
-    m_BankSlot           = sound.m_BankSlot;
-    m_SoundID        = sound.m_SoundID;
-    m_pBaseAudio            = sound.m_pBaseAudio;
-    m_Event                = sound.m_Event;
-    m_ClientVariable            = sound.m_ClientVariable;
-    m_Volume               = sound.m_Volume;
-    m_RollOffFactor        = sound.m_RollOffFactor;
-    m_Speed                = sound.m_Speed;
-    m_SpeedVariance     = sound.m_SpeedVariance;
-    m_CurrPos           = sound.m_CurrPos;
-    m_PrevPos           = sound.m_PrevPos;
-    m_LastFrameUpdateMs      = sound.m_LastFrameUpdateMs;
-    m_CurrTimeUpdateMs       = sound.m_CurrTimeUpdateMs;
-    m_PrevTimeUpdateMs       = sound.m_PrevTimeUpdateMs;
-    m_CurrCamDist          = sound.m_CurrCamDist;
-    m_PrevCamDist          = sound.m_PrevCamDist;
-    m_Doppler            = sound.m_Doppler;
-    m_FrameDelay = sound.m_FrameDelay;
-    m_nEnvironmentFlags     = sound.m_nEnvironmentFlags;
-    m_IsInUse               = sound.m_IsInUse;
-    m_PlayTime  = sound.m_PlayTime;
-    m_IsPhysicallyPlaying           = sound.m_IsPhysicallyPlaying;
-    m_ListenerVolume          = sound.m_ListenerVolume;
-    m_ListenerSpeed            = sound.m_ListenerSpeed;
-    m_HasRequestedStopped         = sound.m_HasRequestedStopped;
-    m_Headroom        = sound.m_Headroom;
-    m_Length          = sound.m_Length;
-    m_pPhysicalEntity       = nullptr;
-    RegisterWithPhysicalEntity(sound.m_pPhysicalEntity);
-
-    NANCHECK()
-    return *this;
+// 0x4EFE50
+void CAESound::Initialise(
+    eSoundBankSlot  bankSlot,
+    eSoundID        sfxId,
+    CAEAudioEntity* audioEntity,
+    CVector         pos,
+    float           volume,
+    float           rollOff,
+    float           speed,
+    float           doppler,
+    uint8           frameDelay,
+    uint32          flags,
+    float           speedVariance,
+    int16           playTime
+) {
+    *this = CAESound{
+        bankSlot,
+        sfxId,
+        audioEntity,
+        pos,
+        volume,
+        rollOff,
+        speed,
+        doppler,
+        frameDelay,
+        (eSoundEnvironment)(flags),
+        speedVariance,
+    };
+    m_PlayTime = playTime;
 }
 
 // 0x4EF1A0
 void CAESound::UnregisterWithPhysicalEntity() {
-    CEntity::ClearReference(m_pPhysicalEntity);
+    m_PhysicalEntity = nullptr;
 }
 
 // 0x4EF1C0
 void CAESound::StopSound() {
-    m_HasRequestedStopped = eSoundState::SOUND_STOPPED;
+    m_HasRequestedStopped = true;
     UnregisterWithPhysicalEntity();
 }
 
 // 0x4EF2B0
 void CAESound::SetIndividualEnvironment(uint16 envFlag, uint16 bEnabled) {
     if (bEnabled)
-        m_nEnvironmentFlags |= envFlag;
+        m_Flags |= envFlag;
     else
-        m_nEnvironmentFlags &= ~envFlag;
+        m_Flags &= ~envFlag;
 }
 
 // 0x4EF2E0
 void CAESound::UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 playProgress) {
     m_Length = soundLength;
-    if (m_IsPhysicallyPlaying)
+    if (m_IsPhysicallyPlaying) {
         return;
+    }
 
-    if (m_HasRequestedStopped != eSoundState::SOUND_ACTIVE) {
+    if (m_HasRequestedStopped) {
         m_PlayTime = -1;
         return;
     }
 
     m_PlayTime += static_cast<int16>(static_cast<float>(playProgress) * m_ListenerSpeed);
-    if (m_PlayTime < soundLength)
+    if (m_PlayTime < soundLength) {
         return;
+    }
 
     if (loopStartTime == -1) {
         m_PlayTime = -1;
@@ -212,14 +164,14 @@ void CAESound::GetRelativePosition(CVector* outVec) const {
 
 // 0x4EF390
 void CAESound::CalculateFrequency() {
-    m_ListenerSpeed = m_SpeedVariance <= 0.0F || m_SpeedVariance >= m_Speed
+    m_ListenerSpeed = m_SpeedVariance <= 0.f || m_SpeedVariance >= m_Speed
         ? m_Speed
         : m_Speed + CAEAudioUtility::GetRandomNumberInRange(-m_SpeedVariance, m_SpeedVariance);
 }
 
 // 0x4EF3E0
 void CAESound::UpdateFrequency() {
-    if (m_SpeedVariance == 0.0F) {
+    if (m_SpeedVariance == 0.f) {
         m_ListenerSpeed = m_Speed;
     }
 }
@@ -240,11 +192,11 @@ float CAESound::GetSlowMoFrequencyScalingFactor() const {
 
 // 0x4EF7A0
 void CAESound::NewVPSLEntry() {
-    m_IsPhysicallyPlaying = 0;
-    m_HasRequestedStopped = eSoundState::SOUND_ACTIVE;
-    m_IsAudioHardwareAware = 0;
-    m_IsInUse = 1;
-    m_Headroom = AEAudioHardware.GetSoundHeadroom(m_SoundID, m_BankSlot);
+    m_IsPhysicallyPlaying  = true;
+    m_HasRequestedStopped  = false;
+    m_IsAudioHardwareAware = false;
+    m_IsInUse              = true;
+    m_Headroom             = AEAudioHardware.GetSoundHeadroom(m_SoundID, m_BankSlot);
     CalculateFrequency();
 }
 
@@ -252,47 +204,33 @@ void CAESound::NewVPSLEntry() {
 void CAESound::RegisterWithPhysicalEntity(CEntity* entity) {
     CAESound::UnregisterWithPhysicalEntity();
     if (entity) {
-        m_pPhysicalEntity = entity;
-        entity->RegisterReference(&m_pPhysicalEntity);
+        m_PhysicalEntity = entity;
     }
 }
 
 // 0x4EF850
 void CAESound::StopSoundAndForget() {
     m_RequestUpdates = false;
-    m_pBaseAudio = nullptr;
+    m_AudioEntity    = nullptr;
     StopSound();
 }
 
 // 0x4EF880
 void CAESound::SetPosition(CVector pos) {
-    if (!m_LastFrameUpdateMs) {
-        m_PrevPos = pos;
-        m_CurrPos = pos;
-
-        auto const fCamDist = DistanceBetweenPoints(pos, TheCamera.GetPosition());
-        m_CurrCamDist = fCamDist;
-        m_PrevCamDist = fCamDist;
-
-        m_LastFrameUpdateMs = CTimer::GetFrameCounter();
-        m_CurrTimeUpdateMs = CTimer::GetTimeInMS();
-        m_PrevTimeUpdateMs = CTimer::GetTimeInMS();
-    } else if (m_LastFrameUpdateMs == CTimer::GetFrameCounter()) {
-        m_CurrPos = pos;
-        m_CurrCamDist = DistanceBetweenPoints(pos, TheCamera.GetPosition());
-        m_CurrTimeUpdateMs = CTimer::GetTimeInMS();
-    } else {
-        m_PrevPos = m_CurrPos;
-        m_PrevCamDist = m_CurrCamDist;
-        m_PrevTimeUpdateMs = m_CurrTimeUpdateMs;
-
-        m_CurrPos = pos;
-        m_CurrCamDist = DistanceBetweenPoints(pos, TheCamera.GetPosition());
-        m_CurrTimeUpdateMs = CTimer::GetTimeInMS();
-        m_LastFrameUpdateMs = CTimer::GetFrameCounter();
+    const auto dist = DistanceBetweenPoints(pos, TheCamera.GetPosition());
+    if (!m_LastFrameUpdatedAt) { // 0x4EF898
+        m_PrevCamDist       = dist;
+        m_PrevPos           = pos;
+        m_PrevTimeUpdateMs  = CTimer::GetTimeInMS();
+    } else if (m_LastFrameUpdatedAt != CTimer::GetFrameCounter()) {
+        m_PrevPos           = m_CurrPos;
+        m_PrevCamDist       = m_CurrCamDist;
+        m_PrevTimeUpdateMs  = m_CurrTimeUpdateMs;
     }
-
-    NANCHECK()
+    m_LastFrameUpdatedAt = CTimer::GetFrameCounter();
+    m_CurrCamDist        = dist;
+    m_CurrPos            = pos;
+    m_CurrTimeUpdateMs   = CTimer::GetTimeInMS();
 }
 
 // 0x4EFA10
@@ -304,63 +242,17 @@ void CAESound::CalculateVolume() {
     m_ListenerVolume += m_Volume - m_Headroom;
 }
 
-// 0x4EFE50
-void CAESound::Initialise(
-    eSoundBankSlot  bankSlotId,
-    eSoundID        soundID,
-    CAEAudioEntity* audioEntity,
-    CVector         pos,
-    float           volume,
-    float           rollOff,
-    float           speed,
-    float           doppler,
-    uint8           frameDelay,
-    uint32          flags,
-    float           frequencyVariance,
-    int16           playTime
-) {
-    assert((!(flags & SOUND_REQUEST_UPDATES) || audioEntity) && "SOUND_REQUEST_UPDATES flag requires `audioEntity` to be set!");
-
-    UnregisterWithPhysicalEntity();
-
-    m_SoundID        = soundID;
-    m_BankSlot           = bankSlotId;
-    m_pBaseAudio            = audioEntity;
-    m_Volume               = volume;
-    m_RollOffFactor        = rollOff;
-    m_Speed                = speed;
-    m_SpeedVariance     = frequencyVariance;
-    m_PrevPos           .Set(0.0F, 0.0F, 0.0F);
-    m_Event                = AE_UNDEFINED;
-    m_ClientVariable            = -1.0F;
-    m_LastFrameUpdateMs      = 0;
-
-    SetPosition(pos);
-
-    m_Doppler               = doppler;
-    m_Length          = -1;
-    m_IsPhysicallyPlaying           = 0;
-    m_HasRequestedStopped         = eSoundState::SOUND_ACTIVE;
-    m_Headroom        = 0.0F;
-    m_FrameDelay = frameDelay;
-    m_nEnvironmentFlags     = flags;
-    m_IsInUse               = 1;
-    m_PlayTime  = playTime;
-    m_ListenerVolume          = -100.0F;
-    m_ListenerSpeed            = 1.0F;
-}
-
 // 0x4EFF50
 void CAESound::UpdateParameters(int16 curPlayPos) {
     if (GetLifespanTiedToPhysicalEntity()) {
-        if (!m_pPhysicalEntity)
+        if (!m_PhysicalEntity)
             m_HasRequestedStopped = eSoundState::SOUND_STOPPED;
         else
-            SetPosition(m_pPhysicalEntity->GetPosition());
+            SetPosition(m_PhysicalEntity->GetPosition());
     }
 
-    if (GetRequestUpdates() && m_pBaseAudio) {
-        m_pBaseAudio->UpdateParameters(this, curPlayPos);
+    if (GetRequestUpdates() && m_AudioEntity) {
+        m_AudioEntity->UpdateParameters(this, curPlayPos);
         if (m_SpeedVariance == 0.0F)
             m_ListenerSpeed = m_Speed;
     }

@@ -173,17 +173,17 @@ void CAEPedAudioEntity::TurnOnJetPack() {
 
     m_tempSound.Initialise(SND_BANK_SLOT_VEHICLE_GEN, 26, this, m_pPed->GetPosition(), -100.0f, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
     m_tempSound.m_Speed = 1.0f;
-    m_tempSound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES;
+    m_tempSound.m_Flags = SOUND_REQUEST_UPDATES;
     m_JetPackSound0 = AESoundManager.RequestNewSound(&m_tempSound);
 
     m_tempSound.Initialise(SND_BANK_SLOT_WEAPON_GEN, 10, this, m_pPed->GetPosition(), -100.0f, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
     m_tempSound.m_Speed = 1.0f;
-    m_tempSound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES;
+    m_tempSound.m_Flags = SOUND_REQUEST_UPDATES;
     m_JetPackSound1 = AESoundManager.RequestNewSound(&m_tempSound);
 
     m_tempSound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 0, this, m_pPed->GetPosition(), -100.0f, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
     m_tempSound.m_Speed = 1.0f;
-    m_tempSound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES;
+    m_tempSound.m_Flags = SOUND_REQUEST_UPDATES;
     m_JetPackSound2 = AESoundManager.RequestNewSound(&m_tempSound);
 }
 
@@ -444,7 +444,7 @@ void CAEPedAudioEntity::HandleSwimWake(eAudioEvents event) {
         auto volume = GetDefaultVolume(event) - 20.0f;
         m_tempSound.Initialise(SND_BANK_SLOT_COLLISIONS, 3, this, m_pPed->GetPosition(), volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
         m_tempSound.m_Speed = 0.75f;
-        m_tempSound.m_nEnvironmentFlags = SOUND_REQUEST_UPDATES | SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY;
+        m_tempSound.m_Flags = SOUND_REQUEST_UPDATES | SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY;
         m_tempSound.m_Event = event;
         m_tempSound.RegisterWithPhysicalEntity(m_pPed);
         AESoundManager.RequestNewSound(&m_tempSound);

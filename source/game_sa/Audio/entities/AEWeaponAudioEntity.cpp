@@ -711,7 +711,7 @@ void CAEWeaponAudioEntity::PlayGoggleSound(int16 sfxId, eAudioEvents event) {
     const auto PlaySound = [&](float offsetX, float speed) {
         CAESound s;
         s.Initialise(SND_BANK_SLOT_WEAPON_GEN, sfxId, this, { offsetX, 0.0f, 0.0f }, GetDefaultVolume(event) - 9.f, 1.0f, speed, 1.0f, 0, SOUND_DEFAULT);
-        s.m_nEnvironmentFlags = SOUND_FRONT_END | SOUND_FORCED_FRONT;
+        s.m_Flags = SOUND_FRONT_END | SOUND_FORCED_FRONT;
         AESoundManager.RequestNewSound(&s);
     };
     const auto r = CAEAudioUtility::ResolveProbability(0.5f);
@@ -877,7 +877,7 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     }
     case AE_WEAPON_SOUND_CAT_MINIGUN_SPIN: { // 0x504CBC
         if (m_LastMiniGunFireTimeMs + 300 < CTimer::GetTimeInMS()) {
-            PlayMiniGunStopSound(sound->m_pPhysicalEntity->AsPhysical());
+            PlayMiniGunStopSound(sound->m_PhysicalEntity->AsPhysical());
         }
         switch (m_MiniGunState) {
         case eMiniGunState::STOPPING:
@@ -890,7 +890,7 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     }
     case AE_WEAPON_SOUND_CAT_MINIGUN_FIRE: { // 0x504CFB
         if (m_LastMiniGunFireTimeMs + 300 < CTimer::GetTimeInMS()) {
-            PlayMiniGunStopSound(sound->m_pPhysicalEntity->AsPhysical());
+            PlayMiniGunStopSound(sound->m_PhysicalEntity->AsPhysical());
         }
         if (m_MiniGunState != eMiniGunState::FIRING) {
             sound->StopSoundAndForget();
@@ -931,7 +931,7 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
         case eChainsawState::ACTIVE: { // 0x504E0E
             sound->m_Speed = std::min(1.f, sound->m_Speed + 0.03f); // TODO: Use TimeStep
             if (m_LastChainsawEventTimeMs + 300 < CTimer::GetTimeInMS()) {
-                PlayChainsawStopSound(sound->m_pPhysicalEntity->AsPhysical());
+                PlayChainsawStopSound(sound->m_PhysicalEntity->AsPhysical());
             }
             break;
         }

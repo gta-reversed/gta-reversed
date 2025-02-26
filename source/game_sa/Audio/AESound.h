@@ -39,28 +39,28 @@ enum eSoundState : int16 {
 
 class CAESound {
 public:
-    eSoundBankSlot  m_BankSlot;
-    eSoundID        m_SoundID;
-    CAEAudioEntity* m_pBaseAudio;
-    CEntity*        m_pPhysicalEntity;
-    int32           m_Event; // Not necessarily `eAudioEvents`, for ex. see `CAEWeaponAudioEntity`
-    float           m_ClientVariable;
-    float           m_Volume;
-    float           m_RollOffFactor;
-    float           m_Speed;
-    float           m_SpeedVariance;
-    CVector         m_CurrPos;
-    CVector         m_PrevPos;
-    int32           m_LastFrameUpdateMs;
-    int32           m_CurrTimeUpdateMs;
-    int32           m_PrevTimeUpdateMs;
-    float           m_CurrCamDist;
-    float           m_PrevCamDist;
-    float           m_Doppler; // AKA TimeScale
-    uint8           m_FrameDelay; // Seemingly never used, but CAESoundManager::Service still checks for that
+    eSoundBankSlot  m_BankSlot{};           //!< Slot to use for the sound
+    eSoundID        m_SoundID{};            //!< Sound ID in the bank that's loaded into the slot
+    CAEAudioEntity* m_AudioEntity{};        //!< The entity that's playing this sound
+    CEntity::Ref    m_PhysicalEntity{};     //!< If set, the sound is tied to this entity
+    int32           m_Event{AE_UNDEFINED};              //!< Not necessarily `eAudioEvents`, for ex. see `CAEWeaponAudioEntity`
+    float           m_ClientVariable{-1.f};     //!< Custom variable set when playing the sound (Can be anything, not just a float)
+    float           m_Volume{};             //!< Volume of the sound (Used to calculate the final volume, `ListenerVolume`)
+    float           m_RollOffFactor{};      //!< Roll-off factor
+    float           m_Speed{};              //!< Speed of the sound (Used to calculate the final frequency, `ListenerSpeed`)
+    float           m_SpeedVariance{};      //!< Speed variability
+    CVector         m_CurrPos{};            //!< Current position of the sound
+    CVector         m_PrevPos{};            //!< Previous position of the sound the last time it was updated
+    int32           m_LastFrameUpdatedAt{}; //!< Frame count when the sound was last updated (`CTimer::GetFrameCounter()`)
+    int32           m_CurrTimeUpdateMs{};   //!< Time in milliseconds when the sound was updated (`CTimer::GetTimeInMS()`)
+    int32           m_PrevTimeUpdateMs{};   //!< Time in milliseconds when the sound was last updated (`CTimer::GetTimeInMS()`)
+    float           m_CurrCamDist{};        //!< Distance to the camera
+    float           m_PrevCamDist{};        //!< Distance to the camera the last time the sound was updated
+    float           m_Doppler{};            //!< Doppler effect
+    uint8           m_FrameDelay{};         //!< Seemingly never used, but CAESoundManager::Service still checks for that
     char            __pad;
     union {
-        uint16 m_nEnvironmentFlags;
+        uint16 m_Flags{};
         struct {
             uint16 m_IsFrontEnd : 1;
             uint16 m_CanBeCancelled : 1;
@@ -78,41 +78,38 @@ public:
             uint16 m_IsForcedFront : 1;
         };
     };
-    uint16 m_IsInUse;
-    int16  m_IsAudioHardwareAware;
-    int16  m_PlayTime;
-    int16  m_IsPhysicallyPlaying;
-    float  m_ListenerVolume;
-    float  m_ListenerSpeed;
-    int16  m_HasRequestedStopped; // see eSoundState
-    float  m_Headroom;
-    int16  m_Length;
+    uint16 m_IsInUse{true};
+    int16  m_IsAudioHardwareAware{};
+    int16  m_PlayTime{};
+    int16  m_IsPhysicallyPlaying{};
+    float  m_ListenerVolume{-100.f};
+    float  m_ListenerSpeed{1.f};
+    int16  m_HasRequestedStopped{};
+    float  m_Headroom{};
+    int16  m_Length{-1};
 
     static constexpr float fSlowMoFrequencyScalingFactor = 0.5F;
 
 public:
     static void InjectHooks();
 
-    CAESound() { m_pPhysicalEntity = nullptr; }
-    CAESound(CAESound& sound);
+    CAESound() { m_PhysicalEntity = nullptr; }
     CAESound(eSoundBankSlot bankSlotId, eSoundID sfxId, CAEAudioEntity* baseAudio, CVector posn, float volume, float fDistance, float speed, float timeScale, uint8 ignoredServiceCycles, eSoundEnvironment environmentFlags, float speedVariability);
     ~CAESound();
 
-    CAESound& operator=(const CAESound& sound);
-
     void Initialise(
-        eSoundBankSlot  bankSlotId,
-        eSoundID        soundID,
+        eSoundBankSlot  bankSlot,
+        eSoundID        sfxId,
         CAEAudioEntity* audioEntity,
         CVector         pos,
         float           volume,
-        float           rollOffFactor     = 1.f,
-        float           relativeFrequency = 1.f, // Speed
-        float           doppler           = 1.f,
-        uint8           frameDelay        = 0,
-        uint32          flags             = 0,
-        float           frequencyVariance = 0.f,
-        int16           playTime          = 0
+        float           rollOff       = 1.f,
+        float           speed         = 1.f,
+        float           doppler       = 1.f,
+        uint8           frameDelay    = 0,
+        uint32          flags         = 0,
+        float           speedVariance = 0.f,
+        int16           playTime      = 0
     );
 
     void  UnregisterWithPhysicalEntity();

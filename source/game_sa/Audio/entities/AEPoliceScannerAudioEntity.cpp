@@ -197,7 +197,7 @@ void CAEPoliceScannerAudioEntity::PlayLoadedDialogue() {
         CAESound sound;
         sound.Initialise((eSoundBankSlot)(SND_BANK_SLOT_SCANNER_FIRST + i), s_pCurrentSlots[i].SoundID, this, { 0.0, 1.0f, 0.0f }, volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
         sound.m_ClientVariable = (float)i;
-        sound.m_nEnvironmentFlags = SOUND_FRONT_END | SOUND_UNCANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_UNDUCKABLE;
+        sound.m_Flags = SOUND_FRONT_END | SOUND_UNCANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_UNDUCKABLE;
         sound.m_Event = AE_CRIME_COMMITTED;
 
         s_pSound = AESoundManager.RequestNewSound(&sound);

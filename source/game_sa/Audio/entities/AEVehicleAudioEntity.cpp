@@ -389,8 +389,8 @@ void CAEVehicleAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
     }
 
     if (sound->m_Event == AE_BONNET_FLUBBER_FLUBBER) {
-        if (sound->m_pPhysicalEntity) {
-            sound->m_Volume = GetDefaultVolume(AE_BONNET_FLUBBER_FLUBBER) + GetFlyingMetalVolume(sound->m_pPhysicalEntity->AsPhysical());
+        if (sound->m_PhysicalEntity) {
+            sound->m_Volume = GetDefaultVolume(AE_BONNET_FLUBBER_FLUBBER) + GetFlyingMetalVolume(sound->m_PhysicalEntity->AsPhysical());
         }
         return;
     }
