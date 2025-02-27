@@ -97,7 +97,7 @@ void CAEDoorAudioEntity::PlayDoorSound(int16 sfxId, eAudioEvents event, CVector&
         const float volume = eventVolume + volumeDelta;
         CAESound    sound;
         sound.Initialise(SND_BANK_SLOT_DOORS, sfxId, this, position, volume, 2.0f, speed, 1.0f, 0, SOUND_REQUEST_UPDATES, 0.0f, 0);
-        sound.SetIndividualEnvironment(SOUND_FRONT_END, enabled);
+        sound.SetFlags(SOUND_FRONT_END, enabled);
         sound.m_Event = event;
         AESoundManager.RequestNewSound(&sound);
     } else {

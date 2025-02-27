@@ -428,7 +428,7 @@ void CAEPedAudioEntity::HandleSwimSplash(eAudioEvents event) {
     m_nSfxId = std::max(0, m_nSfxId + 1);
     m_tempSound.Initialise(SND_BANK_SLOT_SWIMMING, m_nSfxId, this, m_pPed->GetPosition(), volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
     m_tempSound.m_SpeedVariance = 0.0588f;
-    m_tempSound.SetIndividualEnvironment(SOUND_PLAY_PHYSICALLY | SOUND_START_PERCENTAGE | SOUND_IS_DUCKABLE, true);
+    m_tempSound.SetFlags(SOUND_PLAY_PHYSICALLY | SOUND_START_PERCENTAGE | SOUND_IS_DUCKABLE, true);
     m_tempSound.RegisterWithPhysicalEntity(m_pPed);
     AESoundManager.RequestNewSound(&m_tempSound);
 }

@@ -77,6 +77,8 @@ void AudioDebugModule::DrawBankSlots() {
         ImGui::Text("Offset: %i", (int32)(info->Offset));
         ImGui::Text("NumBytes: %i", (int32)(info->NumBytes));
         ImGui::Text("NumSounds: %i", (int32)(info->NumSounds));
+
+        ImGui::TreePop();
     }
 
     if (!info->IsSingleSound()) {

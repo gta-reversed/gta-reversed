@@ -114,17 +114,18 @@ void CAESoundManager::Service() {
     AEAudioHardware.GetVirtualChannelSoundLengths(m_aSoundLengths);
     AEAudioHardware.GetVirtualChannelSoundLoopStartTimes(m_aSoundLoopStartTimes);
 
-    // Initialize sounds that are using percentage specified start positions 0x4F011C
+    // 0x4F011C - Initialize sounds that are using percentage specified start positions
     for (auto&& [i, sound] : notsa::enumerate(m_aSounds)) {
-        if (!sound.IsActive() || !sound.WasServiced() || !sound.GetIsStartPercentage())
+        if (!sound.IsActive() || !sound.IsAudioHardwareAware()) {
             continue;
-
-        sound.SetIndividualEnvironment(eSoundEnvironment::SOUND_START_PERCENTAGE, false);
-        if (sound.m_IsPhysicallyPlaying)
+        }
+        if (!sound.GetIsStartPercentage()) {
             continue;
-
-        //sound.m_PlayTime *= uint16(static_cast<float>(m_aSoundLengths[i]) / 100.0F);
-        sound.m_PlayTime = static_cast<uint16>((float)(sound.m_PlayTime * m_aSoundLengths[i]) / 100.0f);
+        }
+        sound.SetFlags(SOUND_START_PERCENTAGE, false);
+        if (sound.IsPhysicallyPlaying()) {
+            sound.m_PlayTime *= m_aSoundLengths[i] / 100; // NB: Using int math only (Instead of mixing it with float)
+        }
     }
 
     // Stop sounds that turned inactive
@@ -143,7 +144,7 @@ void CAESoundManager::Service() {
 
     // Update sounds playtime
     for (auto&& [i, sound] : notsa::enumerate(m_aSounds)) {
-        if (!sound.IsActive() || !sound.WasServiced() || sound.m_FrameDelay)
+        if (!sound.IsActive() || !sound.IsAudioHardwareAware() || sound.m_FrameDelay)
             continue;
 
         auto usedProgress = CAESoundManager::IsSoundPaused(sound) ? 0 : timeSinceLastUpdate;
@@ -157,7 +158,7 @@ void CAESoundManager::Service() {
 
     // Mark songs that ended as finished
     for (CAESound& sound : m_aSounds) {
-        if (!sound.IsActive() || !sound.WasServiced() || sound.m_PlayTime != -1)
+        if (!sound.IsActive() || !sound.IsAudioHardwareAware() || sound.m_PlayTime != -1)
             continue;
 
         sound.SoundHasFinished();

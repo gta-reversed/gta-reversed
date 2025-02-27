@@ -273,7 +273,7 @@ void CAEPoliceScannerAudioEntity::UpdateParameters(CAESound* sound, int16 curPla
     }
 
     if (sound->m_Length > 0 && curPlayPos > sound->m_Length - 40 && sound->m_BankSlot != 37) { // todo: -40 should be replaced with by gSpeechContextLookup[366][2]
-        sound->SetIndividualEnvironment(eSoundEnvironment::SOUND_REQUEST_UPDATES, false);
+        sound->SetFlags(eSoundEnvironment::SOUND_REQUEST_UPDATES, false);
         s_pSound = nullptr;
         PlayLoadedDialogue();
         return;

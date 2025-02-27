@@ -20,7 +20,7 @@ void CAESound::InjectHooks() {
     RH_ScopedInstall(operator=, 0x4EF680);
     RH_ScopedInstall(UnregisterWithPhysicalEntity, 0x4EF1A0);
     RH_ScopedInstall(StopSound, 0x4EF1C0);
-    RH_ScopedInstall(SetIndividualEnvironment, 0x4EF2B0);
+    RH_ScopedInstall(SetFlags, 0x4EF2B0);
     RH_ScopedInstall(UpdatePlayTime, 0x4EF2E0);
     RH_ScopedOverloadedInstall(GetRelativePosition, "orginal", 0x4EF350, void(CAESound::*)(CVector*) const);
     RH_ScopedInstall(CalculateFrequency, 0x4EF390);
@@ -113,7 +113,7 @@ void CAESound::StopSound() {
 }
 
 // 0x4EF2B0
-void CAESound::SetIndividualEnvironment(uint16 envFlag, uint16 bEnabled) {
+void CAESound::SetFlags(uint16 envFlag, uint16 bEnabled) {
     if (bEnabled)
         m_Flags |= envFlag;
     else

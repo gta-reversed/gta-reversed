@@ -32,7 +32,7 @@ bool IsSurfaceWet(eSurfaceType surface) {
 
 void GracefullyStopSound(CAESound*& sound) {
     if (auto* const s = std::exchange(sound, nullptr)) {
-        s->SetIndividualEnvironment(SOUND_REQUEST_UPDATES, false);
+        s->SetFlags(SOUND_REQUEST_UPDATES, false);
         s->StopSound();
     }
 }
