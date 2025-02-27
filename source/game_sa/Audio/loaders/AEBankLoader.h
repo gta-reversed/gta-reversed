@@ -74,8 +74,8 @@ public:
     CAEBankSlot* m_pBankSlotInfo{};
     uint32 m_nBankOffset{};
     uint32 m_nBankSize{};
-    CdAudioStream* m_pStreamOffset{};
-    CdAudioStream* m_pStreamBuffer{};
+    CdAudioStream* m_pStreamOffset{}; //!< Pointer into buffer
+    CdAudioStream* m_pStreamBuffer{}; //!< Buffer (Allocated using `CMemoryMgr::Malloc`)
     eSoundRequestStatus m_nStatus{eSoundRequestStatus::UNK_0};
     int16 m_nBankId{-1};
     int16 m_nBankSlotId{-1};
