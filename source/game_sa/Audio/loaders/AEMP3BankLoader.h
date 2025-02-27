@@ -29,19 +29,21 @@ public:
     bool GetSoundLoadingStatus(uint16 bankId, uint16 soundId, int16 bankSlot);
     void UpdateVirtualChannels(tVirtualChannelSettings* settings, int16* lengths, int16* loopStartTimes);
     void LoadSoundBank(uint16 bankId, int16 bankSlot);
-    bool LoadSound(uint16 bankId, uint16 soundId, int16 bankSlot);
+    void LoadSound(uint16 bankId, uint16 soundId, int16 bankSlot);
     void Service();
 
     // NOTSA
     bool DoesRequestExist(uint16 bankId, int16 bankSlot, std::optional<int16> numSounds = {}) {
-        for (auto& request : m_aRequests) {
-            if (request.m_nBankId == bankId && request.m_nBankSlotId == bankSlot) {
-                if (!numSounds.has_value() || request.m_nNumSounds == *numSounds)
+        for (auto& request : m_Requests) {
+            if (request.Bank == bankId && request.Slot == bankSlot) {
+                if (!numSounds.has_value() || request.SoundID == *numSounds)
                     return true;
             }
         }
         return false;
     }
+private:
+    void AddRequest(eSoundBank bank, eSoundBankSlot slot, std::optional<eSoundID> sound);
 
 private:
     // NOTSA

@@ -3823,7 +3823,7 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
                     }
 
                     //This code does nothing
-                    /*if (m_fGasPedal > 0.0F && m_nStatus == eEntityStatus::STATUS_PLAYER) {
+                    /*if (m_fGasPedal > 0.0F && Status == eEntityStatus::STATUS_PLAYER) {
                         const auto& vecBoundMin = GetColModel()->m_boundBox.m_vecMin;
                         CVector vecUnkn = CVector(0.0F, vecBoundingMin.y, 0.0F);
                         CVector vecUnknTransformed;

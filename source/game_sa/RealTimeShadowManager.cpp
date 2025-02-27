@@ -124,7 +124,7 @@ CRealTimeShadow& CRealTimeShadowManager::GetRealTimeShadow(CPhysical* physical) 
     return plugin::CallMethodAndReturn<CRealTimeShadow&, 0x706970, CRealTimeShadowManager*, CPhysical*>(this, physical);
     /*
     * Unfinished
-    if (m_bInitialised) {
+    if (m_IsInitialised) {
         return;
     }
 

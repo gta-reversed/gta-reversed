@@ -1,128 +1,114 @@
 #pragma once
 
 enum class eSoundRequestStatus : uint32 {
-    UNK_0,
-    JUST_LOADED,
-    ALREADY_LOADED,
-    UNK_3
+    INACTIVE,
+    REQUESTED,
+    PENDING_READ,
+    PENDING_LOAD_ONE_SOUND
 };
 
 struct CAEBankLookupItem {
-    uint8 m_nPakFileNumber;
-    uint32 m_nOffset;
-    uint32 m_nSize;
+    uint8  PakFileNo;
+    uint32 FileOffset; //!< Offset (#Sectors)
+    uint32 NumBytes;
 };
+
 VALIDATE_SIZE(CAEBankLookupItem, 0xC);
 
 struct CAEBankSlotItem {
-    uint32 m_nOffset;
-    uint32 m_nLoopOffset;
-    uint16 m_usSampleRate;
-    int16  m_usSoundHeadroom;
+    uint32 BankOffset; // Bytes?
+    uint32 LoopStartOffset; // Bytes?
+    uint16 SampleFrequency;
+    int16  Headroom;
 };
 VALIDATE_SIZE(CAEBankSlotItem, 0xC);
 
-constexpr auto NUM_BANK_SLOT_ITEMS = 400u;
+constexpr auto AE_BANK_MAX_NUM_SOUNDS = 400;
+using AEBankSlotItems = std::array<CAEBankSlotItem, AE_BANK_MAX_NUM_SOUNDS>;
 
 struct CAEBankSlot {
-    uint32 m_nOffset;
-    uint32 m_nSize;
-    uint32 field_8;
-    uint32 field_C;
-    int16 m_nBankId;
-    int16 m_nSoundCount; // -1: Single sound.
-    CAEBankSlotItem m_aSlotItems[NUM_BANK_SLOT_ITEMS];
+    uint32          Offset;
+    uint32          NumBytes;
+    uint32          Unused1;
+    uint32          Unused2;
+    eSoundBank      Bank;
+    int16           NumSounds; //!< Number of sounds in this bank [`-1` if only 1 sound]
+    AEBankSlotItems Sounds;
 
-    bool IsSingleSound() const { return m_nSoundCount == -1; }
+    bool IsSingleSound() const { return NumSounds == -1; }
 
     // Calculate size of the slot item by <next item's offset> - <item's offset>
     size_t CalculateSizeOfSlotItem(size_t index) const {
-        assert(m_nSoundCount == -1 || index < (size_t)m_nSoundCount);
-        const auto nextOffset = [&] {
-            if (index == m_nSoundCount - 1) {
-                return m_nSize;
-            } else {
-                return m_aSlotItems[index + 1].m_nOffset;
-            }
-        }();
-
-        return nextOffset - m_aSlotItems[index].m_nOffset;
+        assert(NumSounds == -1 || index < (size_t)NumSounds);
+        const auto next = IsSingleSound()
+            ? NumBytes
+            : Sounds[index + 1].BankOffset;
+        return next - Sounds[index].BankOffset;
     }
 };
 VALIDATE_SIZE(CAEBankSlot, 0x12D4);
 
 struct tPakLookup {
-    char m_szName[12];
-    uint32 field_0C[10];
+    char   BaseFilename[12];
+    uint32 FileCopyLSNs[10];
 };
 VALIDATE_SIZE(tPakLookup, 0x34);
 
 // NOTSA
 #pragma warning(push)
 #pragma warning(disable : 4200) // nonstandard extension used: zero-sized array in struct/union
-struct CdAudioStream {
-    int16 m_nSoundCount;
-    int16 __pad;
-    CAEBankSlotItem m_aSlotItems[400];
-    uint8 m_aBankData[]; // uint16 samples?
+struct AEAudioStream {
+    int16           NumSounds; // maybe i32?
+    int16           __pad;
+    AEBankSlotItems Sounds;
+    uint8           BankData[]; // uint16 samples?
 };
 #pragma warning(pop)
-VALIDATE_SIZE(CdAudioStream, 0x12C4 /* + samples*/);
+VALIDATE_SIZE(AEAudioStream, 0x12C4 /* + samples*/);
 
 class CAESoundRequest {
 public:
-    CAEBankSlot* m_pBankSlotInfo{};
-    uint32 m_nBankOffset{};
-    uint32 m_nBankSize{};
-    CdAudioStream* m_pStreamOffset{}; //!< Pointer into buffer
-    CdAudioStream* m_pStreamBuffer{}; //!< Buffer (Allocated using `CMemoryMgr::Malloc`)
-    eSoundRequestStatus m_nStatus{eSoundRequestStatus::UNK_0};
-    int16 m_nBankId{-1};
-    int16 m_nBankSlotId{-1};
-    int16 m_nNumSounds{-1};
-    uint8 m_nPakFileNumber{};
+    CAEBankSlot*        SlotInfo{};                              //!< Slot's info (Same as `&m_BankSlots[Slot]`)
+    uint32              BankOffset{};                            //!< Offset (#Sectors) (From lookup)
+    uint32              BankNumBytes{};                          //!< Size of bank [bytes] (From lookup)
+    AEAudioStream*      StreamDataPtr{};                         //!< Sector aligned pointer into the buffer
+    void*               StreamBufPtr{};                          //!< Buffer (Allocated using `CMemoryMgr::Malloc`)
+    eSoundRequestStatus Status{ eSoundRequestStatus::INACTIVE }; //!< Current load status
+    eSoundBank          Bank{ -1 };                              //!< Bank to load
+    eSoundBankSlot      Slot{ -1 };                              //!< Slot to load the bank into
+    int16               SoundID{ -1 };                           //!< Requested sound in the bank. If `-1` the whole bank should be loaded
+    uint8               PakFileNo{};                             //!< PakFileNo (From lookup)
 
 public:
-    CAESoundRequest() = default;
-
-    CAESoundRequest(int16 bankId, int16 bankSlot, int16 numSounds, CAEBankSlot& slot,
-                    CAEBankLookupItem* lookup, eSoundRequestStatus status)
-        : m_nBankId(bankId), m_nBankSlotId(bankSlot), m_nNumSounds(numSounds), m_pBankSlotInfo(&slot)
-        , m_nPakFileNumber(lookup->m_nPakFileNumber), m_nBankOffset(lookup->m_nOffset), m_nBankSize(lookup->m_nSize)
-        , m_nStatus(status)
-    {}
-
     void Reset() {
-        m_nBankId = m_nBankSlotId = m_nNumSounds = -1;
-        m_pBankSlotInfo = nullptr;
-        m_nStatus = eSoundRequestStatus::UNK_0;
-    }
-
-    bool IsSingleSound() const {
-        return m_nNumSounds == -1;
+        Bank = SND_BANK_UNK;
+        Slot = SND_BANK_SLOT_UNK;
+        SoundID = -1;
+        SlotInfo = nullptr;
+        Status = eSoundRequestStatus::INACTIVE;
     }
 };
 VALIDATE_SIZE(CAESoundRequest, 0x20);
 
 class CAEBankLoader {
 public:
-    CAEBankSlot* m_paBankSlots;
-    CAEBankLookupItem* m_paBankLookups;
-    tPakLookup* m_paPakLookups;
-    uint16 m_nBankSlotCount;
-    uint16 m_nBankLookupCount;
-    int16 m_nPakLookupCount;
-    uint16 __pad;
-    bool m_bInitialised;
-    uint32 m_nBufferSize;
-    uint8* m_pBuffer;
-    int32* m_paStreamHandles;
-    CAESoundRequest m_aRequests[50];
-    uint16 field_664;
-    uint16 m_iRequestCount;
-    uint16 m_iNextRequest;
-    uint16 m_iStreamingChannel;
-    uint16 m_aBankSlotSound[60];
+    CAEBankSlot*       m_BankSlots;
+    CAEBankLookupItem* m_BankLkups;
+    tPakLookup*        m_PakLkups;
+    uint16             m_BankSlotCnt;
+    uint16             m_BankLkupCnt;
+    int16              m_PakLkupCount;
+    uint16             __pad1;
+    bool               m_IsInitialised;
+    uint32             m_BufferSize;
+    uint8*             m_Buffer;
+    int32*             m_StreamHandles;
+    CAESoundRequest    m_Requests[50];
+    uint16             m_NextPendingRequestIdx;
+    uint16             m_RequestCnt;
+    uint16             m_NextRequestIdx;
+    uint16             m_StreamingChannel;
+    uint16             m_BankSlotSound[60];
 
 public:
     static void InjectHooks();
