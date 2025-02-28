@@ -104,11 +104,11 @@ public:
     uint8*             m_Buffer;
     int32*             m_StreamHandles;
     CAESoundRequest    m_Requests[50];
-    uint16             m_NextPendingRequestIdx;
+    uint16             m_NextOneSoundReqIdx;
     uint16             m_RequestCnt;
     uint16             m_NextRequestIdx;
     uint16             m_StreamingChannel;
-    uint16             m_BankSlotSound[60];
+    uint16             m_BankSlotSound[60]; //!< Sound ID if a bank is used for a single sound only, otherwise (when a whole bank is loaded) `-1`
 
 public:
     static void InjectHooks();
