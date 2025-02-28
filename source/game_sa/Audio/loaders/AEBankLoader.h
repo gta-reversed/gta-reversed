@@ -16,8 +16,8 @@ struct CAEBankLookupItem {
 VALIDATE_SIZE(CAEBankLookupItem, 0xC);
 
 struct CAEBankSlotItem {
-    uint32 BankOffset; // Bytes?
-    uint32 LoopStartOffset; // Bytes?
+    uint32 BankOffsetBytes; // Bytes
+    uint32 LoopStartOffset; // Bytes
     uint16 SampleFrequency;
     int16  Headroom;
 };
@@ -42,8 +42,8 @@ struct CAEBankSlot {
         assert(NumSounds == -1 || index < (size_t)NumSounds);
         const auto next = IsSingleSound()
             ? NumBytes
-            : Sounds[index + 1].BankOffset;
-        return next - Sounds[index].BankOffset;
+            : Sounds[index + 1].BankOffsetBytes;
+        return next - Sounds[index].BankOffsetBytes;
     }
 };
 VALIDATE_SIZE(CAEBankSlot, 0x12D4);
@@ -69,7 +69,7 @@ VALIDATE_SIZE(AEAudioStream, 0x12C4 /* + samples*/);
 class CAESoundRequest {
 public:
     CAEBankSlot*        SlotInfo{};                              //!< Slot's info (Same as `&m_BankSlots[Slot]`)
-    uint32              BankOffset{};                            //!< Offset (#Sectors) (From lookup)
+    uint32              BankOffsetBytes{};                            //!< Offset (#Sectors) (From lookup)
     uint32              BankNumBytes{};                          //!< Size of bank [bytes] (From lookup)
     AEAudioStream*      StreamDataPtr{};                         //!< Sector aligned pointer into the buffer
     void*               StreamBufPtr{};                          //!< Buffer (Allocated using `CMemoryMgr::Malloc`)
