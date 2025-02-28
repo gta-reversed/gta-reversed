@@ -78,15 +78,6 @@ public:
     eSoundBankSlot      Slot{ -1 };                              //!< Slot to load the bank into
     int16               SoundID{ -1 };                           //!< Requested sound in the bank. If `-1` the whole bank should be loaded
     uint8               PakFileNo{};                             //!< PakFileNo (From lookup)
-
-public:
-    void Reset() {
-        Bank = SND_BANK_UNK;
-        Slot = SND_BANK_SLOT_UNK;
-        SoundID = -1;
-        SlotInfo = nullptr;
-        Status = eSoundRequestStatus::INACTIVE;
-    }
 };
 VALIDATE_SIZE(CAESoundRequest, 0x20);
 

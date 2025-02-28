@@ -25,7 +25,7 @@ public:
     bool GetSoundBankLoadingStatus(uint16 bankId, int16 bankSlot);
     uint8* GetSoundBuffer(uint16 soundId, int16 bankSlot, uint32& outIndex, uint16& outSampleRate);
     int32 GetLoopOffset(uint16 soundId, int16 bankSlot);
-    bool IsSoundLoaded(uint16 bankId, uint16 soundId, int16 bankSlot);
+    bool IsSoundLoaded(uint16 bankId, uint16 soundId, int16 bankSlot) const;
     bool GetSoundLoadingStatus(uint16 bankId, uint16 soundId, int16 bankSlot);
     void UpdateVirtualChannels(tVirtualChannelSettings* settings, int16* lengths, int16* loopStartTimes);
     void LoadSoundBank(uint16 bankId, int16 bankSlot);
@@ -42,6 +42,8 @@ public:
         }
         return false;
     }
+
+    CAEBankSlot& GetBankSlot(eSoundBankSlot slot) const;
 private:
     void AddRequest(eSoundBank bank, eSoundBankSlot slot, std::optional<eSoundID> sound);
 
