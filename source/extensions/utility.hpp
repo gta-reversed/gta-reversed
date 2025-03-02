@@ -393,6 +393,12 @@ F wrap(F x, F min, F max) {
     return (x < 0 ? max : min) + std::fmod(x, max - min);
 }
 
+template<std::floating_point F>
+F step_up_to(F x, F to, F step, bool useTimeStep = false) {
+    return std::min<F>(to, x + (useTimeStep ? std::pow(step, CTimer::GetTimeStep()) : step));
+}
+
+
 /*!
 * @brief Step `x` towards `to` in steps
 * @brief This function is useful for interpolating changing values
