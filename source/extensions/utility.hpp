@@ -419,8 +419,8 @@ F step_to(F x, F to, F stepUp, F stepDown, bool useTimeStep = false) {
         return to;
     }
     return x < to
-        ? std::min<F>(to, x + (useTimeStep ? std::pow(stepUp, CTimer::GetTimeStep()) : stepUp))
-        : std::max<F>(to, x - (useTimeStep ? std::pow(stepDown, CTimer::GetTimeStep()) : stepDown));
+        ? step_up_to<F>(x, to, stepUp, useTimeStep)
+        : step_down_to<F>(x, to, stepUp, useTimeStep);
 }
 
 // Step `x` towards `to` in steps

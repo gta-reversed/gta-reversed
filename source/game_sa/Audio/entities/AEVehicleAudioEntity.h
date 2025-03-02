@@ -630,15 +630,14 @@ public:
     void PlayerAboutToExitVehicleAsDriver();
 
     void  StartVehicleEngineSound(eVehicleEngineSoundType st, float speed, float volume);
-    void  CancelVehicleEngineSound(size_t engineSoundStateId);
-    void  CancelAllVehicleEngineSounds(std::optional<size_t> except = std::nullopt); // notsa
+    void  CancelVehicleEngineSound(eVehicleEngineSoundType st);
+    void  CancelAllVehicleEngineSounds(std::optional<eVehicleEngineSoundType> except = std::nullopt); // notsa
     void  RequestNewPlayerCarEngineSound(eVehicleEngineSoundType st, float speed = 1.f, float volume = -100.f);
     float GetFreqForPlayerEngineSound(tVehicleParams& vp, eVehicleEngineSoundType st) const noexcept;
     float GetVolForPlayerEngineSound(tVehicleParams& vp, eVehicleEngineSoundType st) const noexcept;
-    void  UpdateVehicleEngineSound(int16, float, float);
     void  UpdateOrRequestVehicleEngineSound(eVehicleEngineSoundType st, float freq, float volume);
-    void  StopGenericEngineSound(int16 index);
-    bool  UpdateGenericEngineSound(int16 index, float fVolume = 1.0f, float fSpeed = 1.0f);
+    void  StopGenericEngineSound(eVehicleEngineSoundType st);
+    bool  UpdateVehicleEngineSound(eVehicleEngineSoundType st, float speed, float volume);
 
     void UpdateGasPedalAudio(CVehicle* vehicle, int32 vehType);
     void UpdateBoatSound(eBoatEngineSoundType st, eSoundBankSlot bslot, eSoundID sfx, float speed, float volume);
@@ -730,7 +729,7 @@ private:
     bool EnsureSoundBankIsLoaded(bool isDummy, bool turnOffIfNotLoaded = true);
     auto GetEngineSound(eVehicleEngineSoundType st) const noexcept { return m_EngineSounds[st].Sound; }
     void StopNonEngineSounds() noexcept;
-    void GenericPlaySurfaceSound(eSoundID sfx, float speed, float volume, float rollOff) noexcept;
+    void GenericPlaySurfaceSound(eSoundBankSlot slot, eSoundID newSoundType, float speed, float volume, float rollOff) noexcept;
     void UpdateDummyRCAcAndBrake(tVehicleParams& vp);
 
 public:

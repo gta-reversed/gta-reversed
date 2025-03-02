@@ -27,7 +27,7 @@ void CAEFrontendAudioEntity::Reset() {
     m_nLastFrameGeneral_or_nFrameCount = 0;
     m_nLastFrameMissionComplete        = 0;
     m_nLastFrameBulletPass             = 0;
-    m_BulletPassCount                 = 0;
+    m_BulletPassCount                  = 0;
     m_f7E                              = -1;
     AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_FRONTEND_SCANNER_NOISE_START, this);
 }

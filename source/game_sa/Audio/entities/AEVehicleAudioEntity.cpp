@@ -1148,17 +1148,17 @@ float CAEVehicleAudioEntity::GetFrequencyForDummyRev(float ratio, float fadeRati
 }
 
 // 0x4F55C0
-void CAEVehicleAudioEntity::CancelVehicleEngineSound(size_t soundId) {
-    if (soundId > AE_SOUND_ENGINE_MAX) {
+void CAEVehicleAudioEntity::CancelVehicleEngineSound(eVehicleEngineSoundType st) {
+    if (st > AE_SOUND_ENGINE_MAX) {
         return;
     }
 
-    auto&      sound       = m_EngineSounds[soundId].Sound;
+    auto&      sound       = m_EngineSounds[st].Sound;
     const auto soundLength = sound ? sound->GetSoundLength() : -1;
 
     GracefullyStopSound(sound);
 
-    if (soundId == AE_SOUND_PLAYER_AC) {
+    if (st == AE_SOUND_PLAYER_AC) {
         m_ACPlayPositionWhenStopped = m_ACPlayPositionThisFrame;
         m_TimeACStopped             = CTimer::GetTimeInMS();
 
@@ -1172,26 +1172,29 @@ void CAEVehicleAudioEntity::CancelVehicleEngineSound(size_t soundId) {
 }
 
 // notsa
-void CAEVehicleAudioEntity::CancelAllVehicleEngineSounds(std::optional<size_t> except) {
-    for (size_t i{}; i < std::size(m_EngineSounds); i++) {
+void CAEVehicleAudioEntity::CancelAllVehicleEngineSounds(std::optional<eVehicleEngineSoundType> except) {
+    for (int32 i{}; i < (int32)(std::size(m_EngineSounds)); i++) {
         if (!except.has_value() || *except == i) {
-            CancelVehicleEngineSound(i);
+            CancelVehicleEngineSound((eVehicleEngineSoundType)(i));
         }
     }
 }
 
 // 0x4F56D0
-void CAEVehicleAudioEntity::UpdateVehicleEngineSound(int16 engineState, float speed, float volume) {
-    if (CAESound* sound = m_EngineSounds[engineState].Sound) {
-        sound->m_Volume = m_EventVolume + volume;
+// NB: Our function returns whenever the sound was updated, original doesn't, (!) so this function IS NOT hooked!
+bool CAEVehicleAudioEntity::UpdateVehicleEngineSound(eVehicleEngineSoundType st, float speed, float volume) {
+    if (CAESound* const sound = m_EngineSounds[st].Sound) {
         sound->m_Speed  = speed;
+        sound->m_Volume = m_EventVolume + volume;
+        return true;
     }
+    return false;
 }
 
 
 // 0x4F6320
-void CAEVehicleAudioEntity::StopGenericEngineSound(int16 index) {
-    GracefullyStopSound(m_EngineSounds[index].Sound);
+void CAEVehicleAudioEntity::StopGenericEngineSound(eVehicleEngineSoundType st) {
+    GracefullyStopSound(m_EngineSounds[st].Sound);
 }
 
 // 0x4F7A50
@@ -1771,11 +1774,11 @@ float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVe
     return f;
 }
 
-// notsa
-void CAEVehicleAudioEntity::GenericPlaySurfaceSound(eSoundID newSfx, float speed, float volume, float rollOff) noexcept {
+// Code for `0x4F8360` and `0x4FA630`
+void CAEVehicleAudioEntity::GenericPlaySurfaceSound(eSoundBankSlot slot, eSoundID newSoundType, float speed, float volume, float rollOff) noexcept {
     volume += m_EventVolume;
 
-    if (m_SurfaceSoundType == newSfx) {
+    if (m_SurfaceSoundType == newSoundType) {
         if (m_SurfaceSoundType != -1) {
             m_SkidSound.UpdateTwinLoopSound(m_Entity->GetPosition(), volume, speed);
         }
@@ -1783,11 +1786,11 @@ void CAEVehicleAudioEntity::GenericPlaySurfaceSound(eSoundID newSfx, float speed
         if (m_SkidSound.IsActive()) {
             m_SkidSound.StopSoundAndForget();
         }
-        if ((m_SurfaceSoundType = newSfx) != -1) {
+        if ((m_SurfaceSoundType = newSoundType) != -1) {
             m_SkidSound.Initialise(
-                SND_BANK_SLOT_VEHICLE_GEN,
-                newSfx,
-                newSfx + 1,
+                slot,
+                newSoundType,
+                newSoundType + 1,
                 this,
                 200,
                 1'000
@@ -1804,9 +1807,8 @@ void CAEVehicleAudioEntity::GenericPlaySurfaceSound(eSoundID newSfx, float speed
 
 // 0x4F8360
 void CAEVehicleAudioEntity::PlaySkidSound(eSoundID newSkidSoundType, float speed, float volume) {
-    GenericPlaySurfaceSound(newSkidSoundType, speed, volume, 2.5f);
+    GenericPlaySurfaceSound(SND_BANK_SLOT_VEHICLE_GEN, newSkidSoundType, speed, volume, 2.5f);
 }
-
 
 // 0x4FA630
 void CAEVehicleAudioEntity::PlayTrainBrakeSound(eSoundID soundType, float speed, float volume) {
@@ -1815,9 +1817,8 @@ void CAEVehicleAudioEntity::PlayTrainBrakeSound(eSoundID soundType, float speed,
             return;
         }
     }
-    GenericPlaySurfaceSound(soundType, speed, volume, 3.5f);
+    GenericPlaySurfaceSound(SND_BANK_SLOT_PLAYER_ENGINE_P, soundType, speed, volume, 3.5f);
 }
-
 
 // @notsa
 void PlayGenericSound(
@@ -1902,7 +1903,7 @@ void CAEVehicleAudioEntity::UpdateBoatSound(eBoatEngineSoundType st, eSoundBankS
         return;
     }
 
-    if (UpdateGenericEngineSound(st, volume, speed)) { // Try updating existing sound
+    if (UpdateVehicleEngineSound(st, speed, volume)) { // Try updating existing sound
         return;
     }
 
@@ -1950,7 +1951,7 @@ void CAEVehicleAudioEntity::UpdateTrainSound(eTrainEngineSoundType st, eSoundBan
         return;
     }
 
-    if (UpdateGenericEngineSound(st, volume, speed)) {
+    if (UpdateVehicleEngineSound(st, speed, volume)) {
         return;
     }
 
@@ -1983,7 +1984,7 @@ void CAEVehicleAudioEntity::UpdateTrainSound(eTrainEngineSoundType st, eSoundBan
 
 // 0x4F93C0
 void CAEVehicleAudioEntity::PlayAircraftSound(eAircraftSoundType st, eSoundBankSlot slot, eSoundID sfx, float volume, float speed) {
-    if (UpdateGenericEngineSound(st, volume, speed)) {
+    if (UpdateVehicleEngineSound(st, speed, volume)) {
         return;
     }
     const auto DoPlaySound = [&](float rollOff, float doppler = 1.0f, std::optional<CVector> pos = std::nullopt) {
@@ -2031,7 +2032,7 @@ void CAEVehicleAudioEntity::PlayBicycleSound(eBicycleSoundType st, eSoundBankSlo
     };
 
     if (st != AE_SOUND_BICYCLE_CHAIN_CLANG) {
-        if (UpdateGenericEngineSound(st, volume, speed)) {
+        if (UpdateVehicleEngineSound(st, speed, volume)) {
             return;
         }
     }
@@ -2560,7 +2561,7 @@ void CAEVehicleAudioEntity::ProcessTrainTrackSound(tVehicleParams& vp) {
     }
 
     const auto sf = std::abs(train->m_fTrainSpeed); // Speed factor
-    if (train->trainFlags.bNotOnARailRoad || train->m_fTrainSpeed <= 0.f || sf < 0.00001f) {
+    if (train->trainFlags.bNotOnARailRoad || sf < 0.00001f) {
         UpdateTrainSound(AE_SOUND_TRAIN_TRACK, m_DummySlot, 2, 0.f, -100.f); // Stop sound
         return;
     }
@@ -2572,7 +2573,7 @@ void CAEVehicleAudioEntity::ProcessTrainTrackSound(tVehicleParams& vp) {
 
     // Count number of carriages
     size_t n{};
-    for (auto it = train; it; it->m_pPrevCarriage) {
+    for (auto it = train; it; it = it->m_pPrevCarriage) {
         n++;
     }
 
@@ -2580,8 +2581,8 @@ void CAEVehicleAudioEntity::ProcessTrainTrackSound(tVehicleParams& vp) {
     UpdateTrainSound(
         AE_SOUND_TRAIN_TRACK,
         m_DummySlot,
-        2,
-        lerp(cfg->FrqMin, cfg->FrqMin, sf) * TrainCarriagesNoise[n % std::size(TrainCarriagesNoise)],
+        SND_GENRL_TRAIN_D_TRAIN_TRACK,
+        lerp(cfg->FrqMin, cfg->FrqMax, sf) * TrainCarriagesNoise[n % std::size(TrainCarriagesNoise)],
         cfg->VolBase + CAEAudioUtility::AudioLog10(sf) * 20.f
     ); 
 }
@@ -3277,6 +3278,8 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
 
 // 0x4FCA10
 void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float ratio, tVehicleParams& vp) {
+    m_TimeLastServiced = CTimer::GetTimeInMS();
+
     switch (const auto oldState = std::exchange(m_State, newState)) {
     case eAEState::DUMMY_ID: {
         switch (newState) {
@@ -3284,20 +3287,20 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             const auto* const cfg = &s_Config.DummyCar.Transitions.FromIdleToIdle;
 
             // 0x4FCA49
-            m_FadeIn = notsa::step_to(m_FadeIn, 1.f, cfg->FadeInStep, notsa::IsFixBugs());
-            UpdateGenericEngineSound(
+            m_FadeIn = notsa::step_up_to(m_FadeIn, 1.f, cfg->FadeInStep, notsa::IsFixBugs());
+            UpdateVehicleEngineSound(
                 AE_SOUND_CAR_ID,
-                GetVolumeForDummyIdle(ratio, m_FadeIn),
-                GetFrequencyForDummyIdle(ratio, m_FadeIn)
+                GetFrequencyForDummyIdle(ratio, m_FadeIn),
+                GetVolumeForDummyIdle(ratio, m_FadeIn)
             );
 
             // 0x4FCAC0
-            m_FadeOut = notsa::step_to(m_FadeOut, 1.f, cfg->FadeOutStep, notsa::IsFixBugs());
+            m_FadeOut = notsa::step_up_to(m_FadeOut, 1.f, cfg->FadeOutStep, notsa::IsFixBugs());
             if (m_FadeOut < 0.99f) {
-                UpdateGenericEngineSound(
+                UpdateVehicleEngineSound(
                     AE_SOUND_CAR_REV,
-                    GetVolumeForDummyRev(ratio, m_FadeOut),
-                    GetFrequencyForDummyRev(ratio, m_FadeOut)
+                    GetFrequencyForDummyRev(ratio, m_FadeOut),
+                    GetVolumeForDummyRev(ratio, m_FadeOut)
                 );
             } else {
                 StopGenericEngineSound(AE_SOUND_CAR_REV);
@@ -3312,17 +3315,17 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
         }
         case eAEState::DUMMY_CRZ: { // 0x4FCB56
             m_FadeOut = 0.f;
-            UpdateGenericEngineSound(
+            UpdateVehicleEngineSound(
                 AE_SOUND_CAR_ID,
-                GetVolumeForDummyIdle(ratio, 0.f),
-                GetFrequencyForDummyIdle(ratio, m_FadeOut)
+                GetFrequencyForDummyIdle(ratio, m_FadeOut),
+                GetVolumeForDummyIdle(ratio, 0.f)
             );
 
             m_FadeIn = 0.f;
-            StartVehicleEngineSound(
+            UpdateVehicleEngineSound(
                 AE_SOUND_CAR_REV,
-                GetVolumeForDummyRev(ratio, 0.f),
-                GetFrequencyForDummyRev(ratio, m_FadeIn)
+                GetFrequencyForDummyRev(ratio, m_FadeIn),
+                GetVolumeForDummyRev(ratio, 0.f)
             );
             break;
         }
@@ -3335,17 +3338,17 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
         switch (newState) {
         case eAEState::DUMMY_ID: { // 0x4FCC56
             m_FadeOut = 0.f;
-            UpdateGenericEngineSound(
+            UpdateVehicleEngineSound(
                 AE_SOUND_CAR_REV,
-                GetVolumeForDummyIdle(ratio, 0.f),
-                GetFrequencyForDummyIdle(ratio, m_FadeOut)
+                GetFrequencyForDummyRev(ratio, m_FadeIn),
+                GetVolumeForDummyRev(ratio, 0.f)
             );
 
             m_FadeIn = 0.f;
-            StartVehicleEngineSound(
+            UpdateVehicleEngineSound(
                 AE_SOUND_CAR_ID,
-                GetVolumeForDummyRev(ratio, 0.f),
-                GetFrequencyForDummyRev(ratio, m_FadeIn)
+                GetFrequencyForDummyIdle(ratio, m_FadeOut),
+                GetVolumeForDummyIdle(ratio, 0.f)
             );
             break;
         }
@@ -3353,32 +3356,33 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             const auto* const cfg = &s_Config.DummyCar.Transitions.FromCrzToCrz;
 
             // 0x4FCCE9
-            m_FadeIn = notsa::step_to(m_FadeIn, 1.f, cfg->FadeInStep, notsa::IsFixBugs());
-            UpdateGenericEngineSound(
+            m_FadeIn = notsa::step_up_to(m_FadeIn, 1.f, cfg->FadeInStep, notsa::IsFixBugs());
+            UpdateVehicleEngineSound(
                 AE_SOUND_CAR_REV,
-                GetVolumeForDummyIdle(ratio, m_FadeIn),
-                GetFrequencyForDummyIdle(ratio, m_FadeIn)
+                GetFrequencyForDummyRev(ratio, m_FadeIn),
+                GetVolumeForDummyRev(ratio, m_FadeIn)
             );
-
+             
             // 0x4FCD7C
-            m_FadeOut = notsa::step_to(m_FadeOut, 1.f, cfg->FadeOutStep, notsa::IsFixBugs());
-            if (m_FadeOut >= 0.99f) {
-                StopGenericEngineSound(AE_SOUND_CAR_ID);
-            } else {
-                if (m_FadeOut > 0.65f && m_FadeOut < 0.75f) { // 0x4FCD94
+            m_FadeOut = notsa::step_up_to(m_FadeOut, 1.f, cfg->FadeOutStep, notsa::IsFixBugs());
+            if (m_FadeOut < 0.99f) {
+                if (0.65f < m_FadeOut && m_FadeOut < 0.75f) { // 0x4FCD94
                     vp.Vehicle->vehicleFlags.bAudioChangingGear = true;
                 }
-                UpdateGenericEngineSound(
+                UpdateVehicleEngineSound(
                     AE_SOUND_CAR_ID,
-                    GetVolumeForDummyRev(ratio, m_FadeOut),
-                    GetFrequencyForDummyRev(ratio, m_FadeOut)
+                    GetFrequencyForDummyIdle(ratio, m_FadeOut),
+                    GetVolumeForDummyIdle(ratio, m_FadeOut)
                 );
+            } else {
+                StopGenericEngineSound(AE_SOUND_CAR_ID);
             }
 
             break;
         }
         case eAEState::CAR_OFF: { // 0x4FCDFC
             CancelVehicleEngineSound(AE_SOUND_CAR_REV);
+            CancelVehicleEngineSound(AE_SOUND_CAR_ID);
             break;
         }
         default:
@@ -3397,8 +3401,8 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             m_FadeIn = 1.f;
             StartVehicleEngineSound(
                 AE_SOUND_CAR_ID,
-                GetVolumeForDummyIdle(ratio, 1.f),
-                GetFrequencyForDummyIdle(ratio, 1.f)
+                GetFrequencyForDummyIdle(ratio, 1.f),
+                GetVolumeForDummyIdle(ratio, 1.f)
             );
             break;
         }
@@ -3410,8 +3414,8 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             m_FadeIn = 1.f;
             StartVehicleEngineSound(
                 AE_SOUND_CAR_REV,
-                GetVolumeForDummyRev(ratio, 1.f),
-                GetFrequencyForDummyRev(ratio, 1.f)
+                GetFrequencyForDummyRev(ratio, 1.f),
+                GetVolumeForDummyRev(ratio, 1.f)
             );
             break;
         }
@@ -4311,16 +4315,6 @@ void CAEVehicleAudioEntity::ProcessSpecialVehicle(tVehicleParams& params) {
     }
 }
 
-// NOTSA, Custom (Most likely originally existed, but got inlined
-bool CAEVehicleAudioEntity::UpdateGenericEngineSound(int16 index, float fVolume, float fSpeed) {
-    if (CAESound* sound = m_EngineSounds[index].Sound) {
-        sound->m_Speed  = fSpeed;
-        sound->m_Volume = fVolume;
-        return true;
-    }
-    return false;
-}
-
 void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedVirtualClass(CAEVehicleAudioEntity, 0x862CEC, 1);
     RH_ScopedCategory("Audio/Entities");
@@ -4404,7 +4398,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(RequestNewPlayerCarEngineSound, 0x4F7A50);
     RH_ScopedInstall(GetFreqForPlayerEngineSound, 0x4F8070); // [1]
     RH_ScopedInstall(GetVolForPlayerEngineSound, 0x4F5D00); // [1]
-    RH_ScopedInstall(UpdateVehicleEngineSound, 0x4F56D0);
+    //RH_ScopedInstall(UpdateVehicleEngineSound, 0x4F56D0); // Don't hook because original function doesn't return a bool, ours does
     RH_ScopedInstall(StopGenericEngineSound, 0x4F6320);
 
     // Car + bike
