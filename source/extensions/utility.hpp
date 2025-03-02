@@ -398,6 +398,10 @@ F step_up_to(F x, F to, F step, bool useTimeStep = false) {
     return std::min<F>(to, x + (useTimeStep ? std::pow(step, CTimer::GetTimeStep()) : step));
 }
 
+template<std::floating_point F>
+F step_down_to(F x, F to, F step, bool useTimeStep = false) {
+    return std::max<F>(to, x - (useTimeStep ? std::pow(step, CTimer::GetTimeStep()) : step));
+}
 
 /*!
 * @brief Step `x` towards `to` in steps
