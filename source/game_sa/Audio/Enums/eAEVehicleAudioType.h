@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Base.h>
-#include <WEnum.hpp>
+#include <extensions/WEnum.hpp>
 
 enum class eAEVehicleAudioType : int16 {
     CAR     = 0, // 0x0
