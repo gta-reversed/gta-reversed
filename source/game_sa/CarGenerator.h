@@ -79,6 +79,8 @@ public:
     void SwitchOn();
 
     static uint32 CalcNextGen();
+
+    static CVehicle* CreateVehicle(eModelID model, eVehicleCreatedBy createdBy);
 };
 
 VALIDATE_SIZE(CCarGenerator, 0x20);
