@@ -65,9 +65,6 @@ float& DIFF_SPRING_MULT_Y = *(float*)0x8D35BC;           // 0.05f
 float& DIFF_SPRING_MULT_Z = *(float*)0x8D35C0;           // 0.1f
 float& DIFF_SPRING_COMPRESS_MULT = *(float*)0x8D35C4;    // 2.0f
 CVector (&VehicleGunOffset)[14] = *(CVector(*)[14])0x8D35D4; // maybe [12]
-CColModel &m_aTestBladeCol = *(CColModel*)0xC1CD38;
-CCollisionData &m_aTestBladeColData = *(CCollisionData*)0xC1CD38;
-CColSphere &m_aTestBladeColSphere = *(CColSphere*)0xC1CD98;
 
 void CVehicle::InjectHooks() {
     RH_ScopedVirtualClass(CVehicle, 0x871e80, 66);
@@ -3448,7 +3445,7 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
 
 // 0x6DAF00
 // always returns `false`, and `rotorType` is always `-3`
-bool CVehicle::BladeColSectorList(CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult) {
+bool CVehicle::BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult) {
     if (ptrList.IsEmpty()) {
         return false;
     }
@@ -4491,41 +4488,50 @@ void CVehicle::FillVehicleWithPeds(bool setClothesToAfro) {
 
 // 0x6E2E50
 bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, float radius, float damageMult) {
-    CVector bbMin(pos - CVector(radius, radius, radius));
-    CVector bbMax(pos + CVector(radius, radius, radius));
+    static auto& s_TestBladeCol       = StaticRef<CColModel>(0xC1CD38);
+    static auto& s_TestBladeColData   = StaticRef<CCollisionData>(0xC1CD68);
+    static auto& s_TestBladeColSphere = StaticRef<CColSphere>(0xC1CD98);
 
-    const auto axis = abs(rotorType) - 1;
-    assert(axis >= 0 && axis < 3);
-    bbMin[axis] = pos[axis] - ROTOR_SEMI_THICKNESS;
-    bbMax[axis] = pos[axis] + ROTOR_SEMI_THICKNESS;
+    // Set-up collision model for the blade
+    {
+        CVector bbMin(pos - CVector(radius, radius, radius));
+        CVector bbMax(pos + CVector(radius, radius, radius));
 
-    m_aTestBladeCol.m_boundBox.Set(bbMin, bbMax);
-    m_aTestBladeCol.m_boundSphere.Set(radius, pos);
-    m_aTestBladeCol.m_pColData = &m_aTestBladeColData;
-    m_aTestBladeColSphere.Set(radius, pos, SURFACE_DEFAULT, 0, tColLighting(0xFF));
-    m_aTestBladeColData.m_nNumSpheres = 1;
+        const auto axis = abs(rotorType) - 1;
+        assert(axis >= 0 && axis < 3);
+        bbMin[axis] = pos[axis] - ROTOR_SEMI_THICKNESS;
+        bbMax[axis] = pos[axis] + ROTOR_SEMI_THICKNESS;
 
-    const auto posWS = m_matrix->TransformPoint(pos);
+        s_TestBladeCol.m_boundBox.Set(bbMin, bbMax);
+        s_TestBladeCol.m_boundSphere.Set(radius, pos);
+        s_TestBladeCol.m_pColData = &s_TestBladeColData;
+
+        s_TestBladeColSphere.Set(radius, pos, SURFACE_DEFAULT);
+
+        s_TestBladeColData.m_pSpheres = &s_TestBladeColSphere;
+        s_TestBladeColData.m_nNumSpheres = 1;
+    }
+
     bool collided = false;
 
     CWorld::IncrementCurrentScanCode();
-    CWorld::IterateSectorsOverlappedByRect(CRect{ posWS, radius }, [&](int32 x, int32 y) {
-        const auto ProcessSector = [&](CPtrList& list, float damage) {
-            return BladeColSectorList(list, m_aTestBladeCol, matrix, rotorType, damage);
+    CWorld::IterateSectorsOverlappedByRect(CRect{ m_matrix->TransformPoint(pos), radius }, [&](int32 x, int32 y) {
+        const auto ProcessSector = [&](const CPtrList& list, float damage) {
+            return BladeColSectorList(list, s_TestBladeCol, matrix, rotorType, damage);
         };
 
-        auto sector = GetSector(x, y);
-        auto repeatSector = GetRepeatSector(x, y);
+        const auto* const s = GetSector(x, y);
+        const auto* const rs = GetRepeatSector(x, y);
 
-        collided |= ProcessSector(sector->m_buildings, damageMult);
-        collided |= ProcessSector(repeatSector->GetList(REPEATSECTOR_VEHICLES), damageMult);
-        collided |= ProcessSector(repeatSector->GetList(REPEATSECTOR_PEDS), 0.0);
-        collided |= ProcessSector(repeatSector->GetList(REPEATSECTOR_OBJECTS), damageMult);
+        collided |= ProcessSector(s->m_buildings, damageMult);
+        collided |= ProcessSector(rs->GetList(REPEATSECTOR_VEHICLES), damageMult);
+        collided |= ProcessSector(rs->GetList(REPEATSECTOR_PEDS), 0.0);
+        collided |= ProcessSector(rs->GetList(REPEATSECTOR_OBJECTS), damageMult);
         return 1;
     });
 
-    m_aTestBladeColData.m_nNumSpheres = 0;
-    m_aTestBladeCol.m_pColData = nullptr;
+    s_TestBladeColData.m_nNumSpheres = 0;
+    s_TestBladeCol.m_pColData = nullptr;
 
     return collided;
 }
