@@ -5,7 +5,7 @@
 #include <Audio/Enums/eAEVehicleAudioTypeForName.h>
 #include <Audio/Enums/eAEVehicleAudioType.h>
 #include <Audio/Enums/eAERadioType.h>
-#include <SoundIDs.h>
+#include <Audio/Enums/SoundIDs.h>
 #include <Audio/Enums/eBassSetting.h>
 #include <Audio/Enums/eAEVehicleDoorType.h>
 #include <Audio/Enums/eAEVehicleHornType.h>
