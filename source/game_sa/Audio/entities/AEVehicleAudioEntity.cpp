@@ -3107,7 +3107,7 @@ void CAEVehicleAudioEntity::UpdateDummyRCAcAndBrake(tVehicleParams& vp) {
 // notsa
 auto GetAircraftDistantSoundVolume(const CPhysical* v, float baseVol) {
     const auto distSq = CVector::DistSqr(TheCamera.GetPosition(), v->GetPosition());
-    if (distSq <= 48.f) {
+    if (distSq <= sq(48.f)) {
         return -100.f;
     }
     auto vol = baseVol;
@@ -3117,9 +3117,9 @@ auto GetAircraftDistantSoundVolume(const CPhysical* v, float baseVol) {
     return CAEAudioUtility::AudioLog10(vol) * 20.f + 8.f;
 }
 
-// notsa
+// notsa - See 0x4FE5E5
 auto GetAircraftCameraPoVFactor(const CPhysical* p) {
-    return ((p->GetPosition() - TheCamera.GetPosition()).Normalized().Dot(TheCamera.GetForward()) + 1.f) * 0.5f;
+    return ((p->GetPosition() - TheCamera.GetPosition()).Normalized().Dot(p->GetForward()) + 1.f) * 0.5f;
 }
 
 // notsa
@@ -3332,7 +3332,7 @@ void CAEVehicleAudioEntity::ProcessDummyOrPlayerProp(tVehicleParams& vp, bool is
             + plane->GetForward().Dot(CVector::ZAxisVector()) * -1.f * 0.15f // Backward tilt
             + GetAircraftAcceleration(vp) // <- 0x4FDB81
             + 1.f
-            ) * propStalledFreq;
+        ) * propStalledFreq;
 
         // 0x4FDEB7
         m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
@@ -3444,11 +3444,11 @@ void CAEVehicleAudioEntity::ProcessPropOrJetStall(const CPlane* plane, float& ou
 
 #pragma region Heli
 auto GetHeliRotorSpeed(const CHeli* h) {
-    return h->m_wheelSpeed[1] / 0.22f;
+    return h->m_fHeliRotorSpeed / 0.22f;
 }
 
 // notsa
-auto GetHeliRotorSpeedFactor(float rotorSpeed) {
+auto GetVolumeFactorForHeliRotor(float rotorSpeed) {
     return CGeneral::GetPiecewiseLinear({ // 0x8CBE40
         { 0.00f, 0.00f },
         { 0.15f, 0.00f },
@@ -3459,24 +3459,29 @@ auto GetHeliRotorSpeedFactor(float rotorSpeed) {
 }
 
 // notsa
-auto GetVolumeForHeliRotor(float rotorSpeed) {
+auto GetHeliRotorFreqFactor(float rotorSpeed) {
     return CGeneral::GetPiecewiseLinear({ // 0x8CBE18
         { 0.00f, 0.00f },
         { 0.15f, 0.00f },
         { 0.38f, 0.60f },
         { 0.63f, 1.00f },
         { 1.00f, 1.00f },
-        }, rotorSpeed);
+    }, rotorSpeed);
 }
 
 // notsa
-void CAEVehicleAudioEntity::UpdateHeliRotorFrequency(const CHeli* heli, float rotorSpeed, bool isPlayerDriven) {
+auto GetHeliForwardTilt(const CHeli* h) {
+    return (1.f - h->GetUp().Dot(CVector::ZAxisVector())) * 0.5f;
+}
+
+// notsa
+void CAEVehicleAudioEntity::UpdateHeliRotorFrequency(const CHeli* heli, float rotorSpeed, float acceleration, bool isDummy) {
     const auto* const cfg = &s_Config.Heli;
 
-    auto rotorFreq = ((1.f - heli->GetUp().Dot(CVector::ZAxisVector())) * 0.5f * 0.2f + 1.f) // Forward tilt
-                   * GetHeliRotorSpeedFactor(rotorSpeed); // Factor for rotor rotation speed
-    if (isPlayerDriven) {
-        rotorFreq *= rotorSpeed + 1.f;
+    auto rotorFreq = (GetHeliForwardTilt(heli) * 0.2f + 1.f) // Forward tilt
+                   * GetHeliRotorFreqFactor(rotorSpeed); // Factor for rotor rotation speed
+    if (!isDummy) {
+        rotorFreq *= acceleration + 1.f;
     }
     if (heli->GetHealth() < 390.f) {
         const auto* const var = &cfg->RotorFreqVariance;
@@ -3506,13 +3511,13 @@ void CAEVehicleAudioEntity::ProcessAIHeli(tVehicleParams& vp) {
     const auto rotorSpeed = std::clamp(GetHeliRotorSpeed(heli), 0.f, 1.f);
 
     // 0x4FF067 - Calculate and update rotor frequency
-    UpdateHeliRotorFrequency(heli, rotorSpeed, true);
+    UpdateHeliRotorFrequency(heli, rotorSpeed, 1.f, true);
 
     // 0x4FEFD1 (Moved down here)
     const auto camPoVFactor = GetAircraftCameraPoVFactor(heli);
 
     // 0x4FE50D (Moved here)
-    const auto rotorSpeedFactor = GetHeliRotorSpeedFactor(rotorSpeed);
+    const auto rotorVolFactor = GetVolumeFactorForHeliRotor(rotorSpeed);
 
     if (CWeather::UnderWaterness >= 0.5f) {
         CancelAllVehicleEngineSounds(AE_SOUND_AIRCRAFT_DISTANT);
@@ -3520,7 +3525,7 @@ void CAEVehicleAudioEntity::ProcessAIHeli(tVehicleParams& vp) {
             AE_SOUND_AIRCRAFT_DISTANT,
             SND_BANK_SLOT_VEHICLE_GEN,
             3,
-            CAEAudioUtility::AudioLog10(rotorSpeedFactor) * 20.f + 8.f,
+            CAEAudioUtility::AudioLog10(rotorVolFactor) * 20.f + 8.f,
             1.f
         );
     } else if (m_PlayerEngineBank != SND_BANK_GENRL_APACHE) {
@@ -3528,28 +3533,28 @@ void CAEVehicleAudioEntity::ProcessAIHeli(tVehicleParams& vp) {
             AE_SOUND_AIRCRAFT_FRONT,
             SND_BANK_SLOT_VEHICLE_GEN,
             5,
-            CAEAudioUtility::AudioLog10((1.f - camPoVFactor) * rotorSpeedFactor) * 20.f + 8.f, // <- 0x4FEFFD
+            CAEAudioUtility::AudioLog10((1.f - camPoVFactor) * rotorVolFactor) * 20.f + 8.f, // <- 0x4FEFFD
             m_CurrentRotorFrequency
         );
         PlayAircraftSound(
             AE_SOUND_AIRCRAFT_REAR,
             SND_BANK_SLOT_VEHICLE_GEN,
             18,
-            CAEAudioUtility::AudioLog10((camPoVFactor * 0.5f + 0.5f) * rotorSpeedFactor) * 20.f + 8.f, // <- 0x4FF034
+            CAEAudioUtility::AudioLog10((camPoVFactor * 0.5f + 0.5f) * rotorVolFactor) * 20.f + 8.f, // <- 0x4FF034
             m_CurrentRotorFrequency
         );
         PlayAircraftSound(
             AE_SOUND_AIRCRAFT_NEAR,
             SND_BANK_SLOT_VEHICLE_GEN,
             23,
-            CAEAudioUtility::AudioLog10(rotorSpeedFactor) * 20.f + 2.f, // <- 0x4FF04C
+            CAEAudioUtility::AudioLog10(rotorVolFactor) * 20.f + 2.f, // <- 0x4FF04C
             1.f
         );
         PlayAircraftSound(
             AE_SOUND_AIRCRAFT_DISTANT,
             SND_BANK_SLOT_VEHICLE_GEN,
             3,
-            GetAircraftDistantSoundVolume(heli, rotorSpeedFactor),
+            GetAircraftDistantSoundVolume(heli, rotorVolFactor),
             1.f
         );
     } else {
@@ -3557,14 +3562,14 @@ void CAEVehicleAudioEntity::ProcessAIHeli(tVehicleParams& vp) {
             AE_SOUND_AIRCRAFT_FRONT,
             SND_BANK_SLOT_COP_HELI,
             1,
-            cfg->CopHeliVolOffset + CAEAudioUtility::AudioLog10(rotorSpeedFactor) * 20.f + 8.f,
+            cfg->CopHeliVolOffset + CAEAudioUtility::AudioLog10(rotorVolFactor) * 20.f + 8.f,
             m_CurrentRotorFrequency
         );
         PlayAircraftSound(
             AE_SOUND_AIRCRAFT_DISTANT,
             SND_BANK_SLOT_COP_HELI,
             0,
-            cfg->CopHeliVolOffset + GetAircraftDistantSoundVolume(heli, rotorSpeedFactor),
+            cfg->CopHeliVolOffset + GetAircraftDistantSoundVolume(heli, rotorVolFactor),
             1.f
         );
     }
@@ -3572,6 +3577,7 @@ void CAEVehicleAudioEntity::ProcessAIHeli(tVehicleParams& vp) {
 
 // notsa
 // Used for `ProcessPlayerHeli` and `ProcessDummyHeli`
+// References code from `ProcessPlayerHeli`
 void CAEVehicleAudioEntity::ProcessDummyOrPlayerHeli(tVehicleParams& vp, bool isDummy) {
     const auto* const heli = vp.Vehicle->AsHeli();
     const auto* const cfg = &s_Config.Heli;
@@ -3584,26 +3590,26 @@ void CAEVehicleAudioEntity::ProcessDummyOrPlayerHeli(tVehicleParams& vp, bool is
     }
 
     // 0x4FE4B4
-    const auto rotorSpeed = std::clamp(GetHeliRotorSpeed(heli), 0.f, 1.f);
+    const auto rotorSpeed = std::clamp(GetHeliRotorSpeed(heli), 0.f, 1.f); // <- Maybe piecewise is wrong?
 
     // 0x4FE528
     GetAccelAndBrake(vp);
 
     // 0x4FE6CA - Calculate and update rotor frequency
-    UpdateHeliRotorFrequency(heli, rotorSpeed, true);
+    UpdateHeliRotorFrequency(heli, rotorSpeed, isDummy ? 1.f : GetAircraftAcceleration(vp), isDummy);
 
     // 0x4FE5E5 (Moved down here)
     const auto camPoVFactor = GetAircraftCameraPoVFactor(heli);
 
     // 0x4FE50D (Moved here)
-    const auto rotorSpeedFactor = GetHeliRotorSpeedFactor(rotorSpeed);
+    const auto rotorVolFactor = GetVolumeFactorForHeliRotor(rotorSpeed);
 
     // 0x4FE8C5
     PlayAircraftSound(
         AE_SOUND_AIRCRAFT_FRONT,
         SND_BANK_SLOT_PLAYER_ENGINE_P,
         0,
-        CAEAudioUtility::AudioLog10((1.f - s_Config.RotorVolTiltFactor * camPoVFactor) * rotorSpeedFactor) * 20.f + 8.f, // <- 0x4FE643
+        CAEAudioUtility::AudioLog10((1.f - s_Config.RotorVolTiltFactor * camPoVFactor) * rotorVolFactor) * 20.f + 8.f, // <- 0x4FE643
         m_CurrentRotorFrequency
     );
 
@@ -3612,7 +3618,7 @@ void CAEVehicleAudioEntity::ProcessDummyOrPlayerHeli(tVehicleParams& vp, bool is
         AE_SOUND_AIRCRAFT_REAR,
         SND_BANK_SLOT_PLAYER_ENGINE_P,
         1,
-        CAEAudioUtility::AudioLog10((camPoVFactor * 0.5f + 0.5f) * rotorSpeedFactor) * 20.f + 8.f, // <- 0x4FE68B
+        CAEAudioUtility::AudioLog10((camPoVFactor * 0.5f + 0.5f) * rotorVolFactor) * 20.f + 8.f, // <- 0x4FE68B
         m_CurrentRotorFrequency
     );
 
@@ -3621,7 +3627,7 @@ void CAEVehicleAudioEntity::ProcessDummyOrPlayerHeli(tVehicleParams& vp, bool is
         AE_SOUND_AIRCRAFT_NEAR,
         SND_BANK_SLOT_PLAYER_ENGINE_P,
         3,
-        CAEAudioUtility::AudioLog10(rotorSpeedFactor) * 20.f + 2.f, // <- 0x4FE6A6
+        CAEAudioUtility::AudioLog10(rotorVolFactor) * 20.f + 2.f, // <- 0x4FE6A6
         1.f
     );
 
@@ -3630,7 +3636,7 @@ void CAEVehicleAudioEntity::ProcessDummyOrPlayerHeli(tVehicleParams& vp, bool is
         AE_SOUND_AIRCRAFT_DISTANT,
         SND_BANK_SLOT_VEHICLE_GEN,
         SND_GENRL_VEHICLE_GEN_DISTANT,
-        GetAircraftDistantSoundVolume(heli, rotorSpeedFactor), // <- [0x4FE840 - 0x4FE840]
+        GetAircraftDistantSoundVolume(heli, rotorVolFactor), // <- [0x4FE840 - 0x4FE840]
         1.f
     );
 }
@@ -4711,7 +4717,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessDummyRCPlane, 0x4FA7C0);
     RH_ScopedInstall(ProcessDummyRCHeli, 0x4FAA80);
     RH_ScopedInstall(ProcessEngineDamage, 0x4FAE20);
-    RH_ScopedInstall(ProcessNitro, 0x4FB070);
+    RH_ScopedInstall(ProcessNitro, 0x4FB070); 
     RH_ScopedInstall(ProcessMovingParts, 0x4FB260);
     RH_ScopedInstall(ProcessDummyStateTransition, 0x4FCA10);
 

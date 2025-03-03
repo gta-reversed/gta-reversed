@@ -707,7 +707,7 @@ public:
     void ProcessPlayerSeaPlane(tVehicleParams& vp);
     void ProcessAIHeli(tVehicleParams& vp);
     void ProcessDummyHeli(tVehicleParams& vp);
-    void UpdateHeliRotorFrequency(const CHeli* heli, float rotorSpeed, bool isPlayerDriven);
+    void UpdateHeliRotorFrequency(const CHeli* heli, float rotorSpeed, float acceleration, bool isDummy);
     void ProcessDummyOrPlayerHeli(tVehicleParams& vp, bool isDummy);
     void ProcessPlayerHeli(tVehicleParams& vp);
     void ProcessAIProp(tVehicleParams& vp);
@@ -856,6 +856,20 @@ inline std::optional<const char*> EnumToString(CAEVehicleAudioEntity::eAEState s
     }
     return std::nullopt;
 #undef ENUM_CASE
+}
+
+inline std::optional<const char*> EnumToString(CAEVehicleAudioEntity::eAircraftSoundType s) {
+    using E = CAEVehicleAudioEntity::eAircraftSoundType;
+    switch (s) {
+    case E::AE_SOUND_AIRCRAFT_DISTANT:     return "AIRCRAFT_DISTANT";
+    case E::AE_SOUND_AIRCRAFT_FRONT:       return "AIRCRAFT_FRONT";
+    case E::AE_SOUND_AIRCRAFT_NEAR:        return "AIRCRAFT_NEAR";
+    case E::AE_SOUND_AIRCRAFT_REAR:        return "AIRCRAFT_REAR";
+    case E::AE_SOUND_AIRCRAFT_THRUST:      return "AIRCRAFT_THRUST";
+    case E::AE_SOUND_PLANE_WATER_SKIM:     return "PLANE_WATER_SKIM";
+    case E::AE_SOUND_AIRCRAFT_JET_DISTANT: return "AIRCRAFT_JET_DISTANT";
+    }
+    return std::nullopt;
 }
 
 inline std::optional<const char*> EnumToString(CAEVehicleAudioEntity::eCarEngineSoundType st) {

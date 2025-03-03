@@ -90,11 +90,15 @@ void AudioDebugModule::DrawBankSlots() {
             d->SoundToPlayID = std::clamp(d->SoundToPlayID, 0, info->NumSounds - 1);
         }
 
-        ImGui::SameLine();
-        if (ImGui::Button("Play Sound")) {
+        const auto StopCurrentSoundIfAny = [&] {
             if (auto* const s = std::exchange(d->PlayedSound, nullptr)) {
                 s->StopSoundAndForget();
             }
+        };
+
+        ImGui::SameLine();
+        if (ImGui::Button("Play Sound")) {
+            StopCurrentSoundIfAny();
             d->PlayedSound = AESoundManager.PlaySound({
                 .BankSlot    = d->SelectedSlot,
                 .SoundID     = (eSoundID)(d->SoundToPlayID),
@@ -102,6 +106,11 @@ void AudioDebugModule::DrawBankSlots() {
                 .Pos         = TheCamera.GetPosition(),
                 .Volume      = 20.f
             });
+        }
+
+        ImGui::SameLine();
+        if (notsa::ui::ScopedDisable disable{ !d->PlayedSound }; ImGui::Button("Stop Sound")) {
+            StopCurrentSoundIfAny();
         }
     }
 }

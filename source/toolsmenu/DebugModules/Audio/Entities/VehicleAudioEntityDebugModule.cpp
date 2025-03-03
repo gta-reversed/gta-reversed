@@ -94,13 +94,28 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
     }
     if (ImGui::TreeNode("EngineSounds")) {
         const auto SoundTypeToString = [ae](AE::eVehicleEngineSoundType st) -> std::optional<const char*> {
-            if (ae->m_AuSettings.VehicleAudioType == AE_CAR) {
+            switch (ae->m_AuSettings.VehicleAudioType) {
+            case AE_CAR:
                 return EnumToString((AE::eCarEngineSoundType)(st));
+            case AE_AIRCRAFT_HELICOPTER:
+            case AE_AIRCRAFT_PLANE:
+            case AE_AIRCRAFT_SEAPLANE:
+                return EnumToString((AE::eAircraftSoundType)(st));
             }
             return std::nullopt;
         };
-        for (auto&& [i, s] : notsa::enumerate(ae->m_EngineSounds)) {
-            FormattedText("[{:<30}]: {}", SoundTypeToString((AE::eVehicleEngineSoundType)(i)).value_or("<unknown>"), s.Sound ? "Active" : "");
+        for (auto&& [i, es] : notsa::enumerate(ae->m_EngineSounds)) {
+            const auto st = SoundTypeToString((AE::eVehicleEngineSoundType)(i)).value_or("<unknown>");
+            if (const auto* const s = es.Sound) {
+                FormattedText(
+                    "[{:<30}]: V: {:<5.2f}, F: {:<5.2f}",
+                    st,
+                    s->GetVolume(),
+                    s->GetSpeed()
+                );
+            } else {
+                FormattedText("[{:<30}]: -", st);
+            }
         }
         ImGui::TreePop();
     }
