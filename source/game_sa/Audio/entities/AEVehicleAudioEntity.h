@@ -30,6 +30,7 @@ enum tWheelState : int32;
 class CVehicle;
 class CPlane;
 class CPed;
+class CHeli;
 
 namespace notsa {
 namespace debugmodules {
@@ -53,6 +54,8 @@ protected: // Config:
         float ReverseGearSoundRollOffFactor = 1.f; // 0xNONE
 
         float VolOffsetOnGround             = 1.5f; // 0x8CBD50
+
+        float RotorVolTiltFactor{ 0.67f }; // 0x8CBD98
 
         struct {
             float StepDown{0.07f}, StepUp{0.09f}; // 0x8CBC28, 0x8CBC24
@@ -322,6 +325,24 @@ protected: // Config:
             }
             };
         } Train{};
+
+        struct {
+            struct {
+                float Min{ -0.1f }, Max{ 0.1f }; // 0x8CBDFC (Originally 1 variable)
+                float Offset{ 0.75f };           // 0x8CBDF8
+            } RotorFreqVariance;
+            struct Stepping {
+                float StepUp, StepDown;
+            };
+            Stepping RotorFreqStepLoSpeed{
+                .StepUp = 0.03f, .StepDown = 0.03f
+            };
+            Stepping RotorFreqStepHiSpeed {
+                .StepUp = 0.005f, .StepDown = 0.005f
+            };
+
+            float CopHeliVolOffset{ 6.f }; // 0x8CBDA0 
+        } Heli;
 
         struct {
             float RotorFreqStepUp{1.f / 187.5f}, RotorFreqStepDown{1.f / 187.5f}; // 0xNONE
@@ -686,9 +707,11 @@ public:
     void ProcessPlayerSeaPlane(tVehicleParams& vp);
     void ProcessAIHeli(tVehicleParams& vp);
     void ProcessDummyHeli(tVehicleParams& vp);
+    void UpdateHeliRotorFrequency(const CHeli* heli, float rotorSpeed, bool isPlayerDriven);
+    void ProcessDummyOrPlayerHeli(tVehicleParams& vp, bool isDummy);
     void ProcessPlayerHeli(tVehicleParams& vp);
     void ProcessAIProp(tVehicleParams& vp);
-    void ProcessProp(tVehicleParams& vp, bool isProp); // notsa
+    void ProcessDummyOrPlayerProp(tVehicleParams& vp, bool isProp); // notsa
     void ProcessDummyProp(tVehicleParams& vp);
     void ProcessPlayerProp(tVehicleParams& vp);
     void ProcessAircraft(tVehicleParams& vp);
@@ -709,10 +732,10 @@ public:
     void ProcessDummyRCHeli(tVehicleParams& vp);
     void ProcessPlayerRCHeli(tVehicleParams& vp);
     void ProcessPlayerRCCar(tVehicleParams& vp);
+    void ProcessDummyHovercraft(tVehicleParams& vp);
     void ProcessPlayerHovercraft(tVehicleParams& vp);
     void ProcessPlayerGolfCart(tVehicleParams& vp);
     void ProcessDummyGolfCart(tVehicleParams& vp);
-    void ProcessDummyHovercraft(tVehicleParams& vp);
     void ProcessDummyRCCar(tVehicleParams& vp);
     void ProcessPlayerCombine(tVehicleParams& vp);
     void ProcessEngineDamage(tVehicleParams& vp);
@@ -724,7 +747,7 @@ public:
     auto GetVehicle() const { return m_Entity->AsVehicle(); }
 
 private:
-    void ProcessPropStall(CPlane* plane, float& outVolume, float& outFreq);
+    void ProcessPropOrJetStall(const CPlane* plane, float& outVolume, float& outFreq);
     bool EnsureHasDummySlot() noexcept;
     bool EnsureSoundBankIsLoaded(bool isDummy, bool turnOffIfNotLoaded = true);
     auto GetEngineSound(eVehicleEngineSoundType st) const noexcept { return m_EngineSounds[st].Sound; }

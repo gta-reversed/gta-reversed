@@ -47,22 +47,28 @@ float CAEAudioEnvironment::GetDistanceAttenuation(float dist) {
 // 0x4D7F60
 float CAEAudioEnvironment::GetDirectionalMikeAttenuation(const CVector& soundDir) {
     // https://en.wikipedia.org/wiki/Cutoff_frequency
-    static constexpr float fCutoffFrequency = 0.70710678118F; // sqrt(0.5F);
-    static constexpr float fAttenuationMult = -6.0F;
+    static constexpr float CUT_OFF_FREQ = 0.70710678118F; // sqrt(0.5F);
+    static constexpr float ATTENUATION_FACTOR = -6.0F;
 
-    CVector vecDir = soundDir;
-    vecDir.Normalise();
+    // BUG? Seems weird that it uses just single axis,
+    // seems like it should be normalized dot product
+    // with for example Camera direction,
+    // to work the same way regardless of direction
+    const auto freq = soundDir.Dot({ 0.f, 1.f, 0.f });
 
-    // BUG? Seems weird that it uses just single axis, seems like it should be normalized Dot product with for example Camera direction, to work the same way regardless of
-    // direction
-    const auto freq = vecDir.y; // (vecDir.x + vecDir.z) * 0.0F + vecDir.y
-    if (fCutoffFrequency == -1.0F || freq >= fCutoffFrequency)
+    if (CUT_OFF_FREQ == -1.0F) {
         return 0.0F;
+    }
 
-    if (freq <= -fCutoffFrequency)
-        return fAttenuationMult;
+    if (freq >= CUT_OFF_FREQ) {
+        return 0.f;
+    }
 
-    return (1.0F - invLerp(-fCutoffFrequency, fCutoffFrequency, freq)) * fAttenuationMult;
+    if (freq <= -CUT_OFF_FREQ) {
+        return ATTENUATION_FACTOR;
+    }
+
+    return (1.0f - invLerp(-CUT_OFF_FREQ, CUT_OFF_FREQ, freq)) * ATTENUATION_FACTOR;
 }
 
 // 0x4D8010

@@ -223,7 +223,7 @@ void CVehicle::InjectHooks() {
     // RH_ScopedInstall(DoTailLightEffect, 0x6E1780);
     // RH_ScopedInstall(DoVehicleLights, 0x6E1A60);
     RH_ScopedInstall(FillVehicleWithPeds, 0x6E2900);
-    RH_ScopedInstall(DoBladeCollision, 0x6E2E50);
+    RH_ScopedInstall(DoBladeCollision, 0x6E2E50, { .enabled = false, .locked = true }); // Crashes in `ProcessColModels` (0x418733)
     // RH_ScopedInstall(AddVehicleUpgrade, 0x6E3290);
     RH_ScopedInstall(SetupUpgradesAfterLoad, 0x6E3400);
     // RH_ScopedInstall(GetPlaneWeaponFiringStatus, 0x6E3440);
