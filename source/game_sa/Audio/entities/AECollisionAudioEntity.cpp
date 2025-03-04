@@ -262,8 +262,8 @@ void CAECollisionAudioEntity::ReportObjectDestruction(CEntity* entity) {
 }
 
 // 0x4DBA10
-void CAECollisionAudioEntity::ReportCollision(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, CVector& colPoint, CVector* normal, float collisionImpact1, float collisionImpact2, bool bOnlyPlayOneShotCollisionSound, bool unknown) {
-    return plugin::CallMethod<0x4DBA10, CAECollisionAudioEntity*, CEntity*, CEntity*, uint8, uint8, CVector&, CVector*, float, float, bool, bool>(this, entity1, entity2, surf1, surf2, colPoint, normal, collisionImpact1, collisionImpact2, bOnlyPlayOneShotCollisionSound, unknown);
+void CAECollisionAudioEntity::ReportCollision(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, const CVector& pos, const CVector* normal, float collisionImpact1, float collisionImpact2, bool bOnlyPlayOneShotCollisionSound, bool unknown) {
+    return plugin::CallMethod<0x4DBA10, CAECollisionAudioEntity*, CEntity*, CEntity*, uint8, uint8, const CVector&, const CVector*, float, float, bool, bool>(this, entity1, entity2, surf1, surf2, pos, normal, collisionImpact1, collisionImpact2, bOnlyPlayOneShotCollisionSound, unknown);
 }
 
 // 0x4DBDF0
