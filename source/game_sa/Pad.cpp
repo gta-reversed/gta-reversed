@@ -12,6 +12,10 @@
 #include "ControllerConfigManager.h"
 #include "app.h"
 #include "platform/win/Platform.h"
+#include "SDL3/SDL.h"
+
+// SDL3.lib
+#pragma comment(lib, "SDL3.lib")
 
 // mouse states
 CMouseControllerState& CPad::PCTempMouseControllerState = *(CMouseControllerState*)0xB73404;
@@ -30,6 +34,10 @@ char& CPad::padNumber = *(char*)0xB73400;
 static bool& byte_B73403 = *(bool*)0xB73403; // TODO: Find out what modifies this, as it has no value by default..
 static bool& byte_8CD782 = *(bool*)0x8CD782; // true by default, left here for documentation purposes, as it's used in multiple CPad functions
 static char& byte_B73401 = *(char*)0xB73401; // unused, unknown
+
+// Variables globales para SDL
+static bool SDL_Initialized = false;
+static std::vector<SDL_Gamepad*> GamepadsList;
 
 void CPad::InjectHooks() {
     RH_ScopedClass(CPad);
@@ -115,6 +123,16 @@ CPad::CPad() {
 
 // 0x541D90
 void CPad::Initialise() {
+    // Inicializar SDL si no se ha hecho
+    if (!SDL_Initialized) {
+        if (!SDL_Init(SDL_INIT_GAMEPAD)) {
+            // Error al inicializar SDL
+            return;
+        }
+        SDL_Initialized = true;
+    }
+
+    // Resto del código original
     for (auto& pad : Pads) {
         pad.Clear(true, true);
         pad.Mode = 0;
@@ -257,70 +275,102 @@ void CPad::UpdateMouse() {
 }
 
 // 0x746A10
+static bool started = false;
 void CPad::ProcessPad(int padNum) {
-    LPDIRECTINPUTDEVICE8* pDiDevice = nullptr;
-    DIJOYSTATE2 joyState;
-
-    if (padNum == 0) {
-        pDiDevice = &PSGLOBAL(diDevice1);
-    } else if (padNum == 1) {
-        pDiDevice = &PSGLOBAL(diDevice2);
-    } else {
+    if (padNum >= MAX_PADS)
         return;
-    }
-    
-    if (!*pDiDevice) {
+        
+    CPad* pPad = CPad::GetPad(padNum);
+    if (!pPad) {
         return;
     }
 
-    if (FAILED((*pDiDevice)->Poll())) {
-        (*pDiDevice)->Acquire();
-        return;
-    }
+    auto& pad = GetPad(padNum)->PCTempJoyState;
 
- 
-    WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
+    // Inicialización una sola vez
+    if (!started) {
+        started = true;
+        pad.Clear();
 
-    if (ControlsManager.m_bJoyJustInitialised) {
-        ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState = joyState;
-        ControlsManager.m_bJoyJustInitialised = false;
-    } else {
-        ControlsManager.m_OldJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
-    }
-    RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padNum);
-
-    if (*pDiDevice) {
-        float padX1 = joyState.lX / 2000.0f;
-        float padX2 = joyState.lY / 2000.0f;
-        float padY1 = 0.0f;
-        float padY2 = 0.0f;
-
-        if (joyState.rgdwPOV[1] >= 0) {
-            padX1 = sin(joyState.rgdwPOV[1] / 5730.0f);
-            padY1 = cos(joyState.rgdwPOV[1] / 5730.0f) * -1.0f;
-        }
-        if (PadConfigs[padNum].rzAxisPresent && PadConfigs[padNum].zAxisPresent) {
-            padX2 = joyState.lZ / 2000.0f;
-            padY2 = joyState.lRz / 2000.0f;
-        }
-
-        RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padNum);
-        RsPadEventHandler(RsEvent::rsPADBUTTONDOWN, &padNum);
-        CPad* pPad = CPad::GetPad(padNum);
-
-        const auto UpdateJoyStickPosition = [](float pos, int16& outA, int16& outB, bool isInverted, bool isSwapped) {
-            if (fabs(pos) > 0.3f) {
-                pos = isInverted ? -pos : pos;
-                pos /= 128.f;
-                (isSwapped ? outA : outB) = (int32)pos;
+        if (SDL_HasGamepad()) {
+            SDL_JoystickID* gamepadIDs;
+            int count;
+            gamepadIDs = SDL_GetGamepads(&count);
+            
+            if (gamepadIDs && count > 0 && padNum < count) {
+                if (GamepadsList.size() <= (size_t)padNum) {
+                    SDL_Gamepad* gamepad = SDL_OpenGamepad(gamepadIDs[padNum]);
+                    if (gamepad) {
+                        GamepadsList.push_back(gamepad);
+                    }
+                }
             }
-        };
-
-        UpdateJoyStickPosition(padX1, pPad->PCTempJoyState.LeftStickY, pPad->PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
-        UpdateJoyStickPosition(padY1, pPad->PCTempJoyState.LeftStickX, pPad->PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis2);
-        UpdateJoyStickPosition(padX2, pPad->PCTempJoyState.LeftStickY, pPad->PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis1);
-        UpdateJoyStickPosition(padY2, pPad->PCTempJoyState.LeftStickX, pPad->PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
+            SDL_free(gamepadIDs);
+        }
     }
+
+    // Procesar eventos pendientes sin actualizar estados
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        // Solo procesamos eventos de conexión/desconexión
+        if (event.type == SDL_EVENT_GAMEPAD_ADDED || 
+            event.type == SDL_EVENT_GAMEPAD_REMOVED) {
+            // Reinicializar gamepads si es necesario
+            // ...
+        }
+    }
+
+    // Si no hay gamepad válido para este padNum, salir
+    if (GamepadsList.size() <= (size_t)padNum || !GamepadsList[padNum]) {
+        return;
+    }
+
+    // Obtener estado actual del gamepad directamente
+    SDL_Gamepad* gamepad = GamepadsList[padNum];
+
+    // Actualizar botones
+    pad.ButtonCross = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH) ? 255 : 0;
+    pad.ButtonCircle = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_EAST) ? 255 : 0;
+    pad.ButtonSquare = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST) ? 255 : 0;
+    pad.ButtonTriangle = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_NORTH) ? 255 : 0;
+    pad.Select = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_BACK) ? 255 : 0;
+    pad.Start = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START) ? 255 : 0;
+    pad.LeftShoulder1 = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER) ? 255 : 0;
+    pad.RightShoulder1 = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER) ? 255 : 0;
+    pad.ShockButtonL = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_LEFT_STICK) ? 255 : 0;
+    pad.ShockButtonR = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_RIGHT_STICK) ? 255 : 0;
+    pad.DPadUp = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP) ? 255 : 0;
+    pad.DPadDown = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN) ? 255 : 0;
+    pad.DPadLeft = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT) ? 255 : 0;
+    pad.DPadRight = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT) ? 255 : 0;
+
+    // Constantes para el manejo de ejes
+    const float AXIS_MAX = 32767.0f;
+    const float DEADZONE = 0.2f;  // 20% de deadzone
+
+    // Función helper para procesar ejes analógicos
+    auto ProcessAxis = [AXIS_MAX, DEADZONE](float value) -> int16 {
+        float normalized = value / AXIS_MAX;
+        if (fabs(normalized) < DEADZONE) {
+            return 0;
+        }
+        // Ajustar por deadzone y normalizar al rango -128 a 127
+        float adjusted = (normalized - (normalized > 0 ? DEADZONE : -DEADZONE)) / (1.0f - DEADZONE);
+        return (int16)(adjusted * 128.0f);
+    };
+
+    // Procesar ejes analógicos
+    pad.LeftStickX = ProcessAxis(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTX));
+    pad.LeftStickY = ProcessAxis(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFTY));
+    pad.RightStickX = ProcessAxis(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHTX));
+    pad.RightStickY = ProcessAxis(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHTY));
+
+    // Procesar triggers como botones analógicos
+    float leftTrigger = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) / AXIS_MAX;
+    float rightTrigger = SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) / AXIS_MAX;
+    
+    pad.LeftShoulder2 = (uint8)(leftTrigger * 255.0f);
+    pad.RightShoulder2 = (uint8)(rightTrigger * 255.0f);
 }
 
 // 0x53FB40
@@ -445,6 +495,7 @@ void CPad::StartShake(int16 time, uint8 freq, uint32 shakeDelayMs) {
         ShakeDur = 0;
         ShakeFreq = 0;
     }
+    SDL_RumbleGamepad(GamepadsList[padNumber], ShakeFreq, ShakeFreq, ShakeDur);
 }
 
 // originally 3x float instead of CVector
@@ -464,6 +515,8 @@ void CPad::StartShake_Distance(int16 time, uint8 freq, CVector pos) {
             ShakeFreq = 0;
         }
     }
+    
+    SDL_RumbleGamepad(GamepadsList[padNumber], ShakeFreq, ShakeFreq, ShakeDur);
 }
 
 // 0x53FA70
@@ -481,6 +534,7 @@ void CPad::StartShake_Train(const CVector2D& point) {
         ShakeDur = 100;
         ShakeFreq = static_cast<uint8>(70.0f - sqrt(fDistSq) + 30.0f);
     }
+    SDL_RumbleGamepad(GamepadsList[padNumber], ShakeFreq, ShakeFreq, ShakeDur);
 }
 
 // 0x541D70
@@ -493,6 +547,7 @@ void CPad::StopPadsShaking() {
 // 0x53FB50
 void CPad::StopShaking(int16 arg0) {
     // NOP
+    SDL_RumbleGamepad(GamepadsList[padNumber], 0, 0, 0);
 }
 
 // 0x53FC50
@@ -1281,3 +1336,17 @@ IDirectInputDevice8* DIReleaseMouse() { // todo: wininput
 void InitialiseMouse(bool exclusive) {
     WinInput::diMouseInit(exclusive);
 }
+
+// Agregamos una función de limpieza
+// void CPad::Shutdown() {
+//     if (SDL_Initialized) {
+//         for (auto gamepad : GamepadsList) {
+//             if (gamepad) {
+//                 SDL_CloseGamepad(gamepad);
+//             }
+//         }
+//         GamepadsList.clear();
+//         SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
+//         SDL_Initialized = false;
+//     }
+// }

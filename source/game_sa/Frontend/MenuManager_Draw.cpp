@@ -28,7 +28,7 @@ void CMenuManager::DrawFrontEnd() {
     }
 
     if (m_nCurrentScreenItem == 0 && aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == MENU_ACTION_TEXT) {
-        m_nCurrentScreenItem = 1;
+        m_nCurrentScreenItem = (eControllerAction)1;
     }
 
     DrawBackground();
