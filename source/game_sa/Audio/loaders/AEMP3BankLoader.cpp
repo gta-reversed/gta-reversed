@@ -34,10 +34,10 @@ CAEMP3BankLoader::CAEMP3BankLoader() {
 
 // 0x4E08F0
 bool CAEMP3BankLoader::Initialise() {
-    rng::for_each(m_Requests, &CAESoundRequest::Reset);
-    m_NextOneSoundReqIdx       = 0;
-    m_RequestCnt = 0;
-    m_NextRequestIdx  = 0;
+    rng::fill(m_Requests, CAESoundRequest{});
+    m_NextOneSoundReqIdx = 0;
+    m_RequestCnt         = 0;
+    m_NextRequestIdx     = 0;
 
     if (!LoadBankSlotFile() || !LoadBankLookupFile() || !LoadSFXPakLookupFile()) {
         return false;
@@ -123,7 +123,7 @@ int32 CAEMP3BankLoader::GetLoopOffset(uint16 soundId, int16 bankSlot) {
 // 0x4E03B0
 bool CAEMP3BankLoader::IsSoundLoaded(uint16 bankId, uint16 soundId, int16 bankSlot) const {
     return m_IsInitialised
-        && GetBankSlot(bankSlot).Bank == bankId
+        && m_BankSlots[bankId].Bank == bankId
         && m_BankSlotSound[bankSlot] == soundId;
 }
 

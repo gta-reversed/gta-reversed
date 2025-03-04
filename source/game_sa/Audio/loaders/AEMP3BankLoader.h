@@ -42,8 +42,6 @@ public:
         }
         return false;
     }
-
-    CAEBankSlot& GetBankSlot(eSoundBankSlot slot) const;
 private:
     void AddRequest(eSoundBank bank, eSoundBankSlot slot, std::optional<eSoundID> sound);
 
