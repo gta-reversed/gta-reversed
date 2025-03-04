@@ -1393,9 +1393,14 @@ void CAEVehicleAudioEntity::CancelAllVehicleEngineSounds(std::optional<eVehicleE
 // 0x4F56D0
 // NB: Our function returns whenever the sound was updated, original doesn't, (!) so this function IS NOT hooked!
 bool CAEVehicleAudioEntity::UpdateVehicleEngineSound(eVehicleEngineSoundType st, float speed, float volume) {
+    return UpdateVehicleEngineSoundRawVolume(st, speed, m_EventVolume + volume);
+}
+
+// notsa
+bool CAEVehicleAudioEntity::UpdateVehicleEngineSoundRawVolume(eVehicleEngineSoundType st, float speed, float volume) {
     if (CAESound* const sound = m_EngineSounds[st].Sound) {
         sound->m_Speed  = speed;
-        sound->m_Volume = m_EventVolume + volume;
+        sound->m_Volume = volume;
         return true;
     }
     return false;
@@ -3205,20 +3210,23 @@ void CAEVehicleAudioEntity::ProcessAircraft(tVehicleParams& params) {
 
 // 0x4F93C0
 void CAEVehicleAudioEntity::PlayAircraftSound(eAircraftSoundType st, eSoundBankSlot slot, eSoundID sfx, float volume, float speed) {
-    if (UpdateVehicleEngineSound(st, speed, volume)) {
+    if (notsa::IsFixBugs()) { // Most likely they left this out, because, for example, vehicle sounds (`ProcessPlayerVehicleEngine`) use `UpdateVehicleEngineSound` that does this too
+        volume += m_EventVolume;
+    }
+    if (UpdateVehicleEngineSoundRawVolume(st, speed, volume)) {
         return;
     }
     const auto DoPlaySound = [&](float rollOff, float doppler = 1.0f, std::optional<CVector> pos = std::nullopt) {
         m_EngineSounds[st].Sound = AESoundManager.PlaySound({
-            .BankSlot = slot,
-            .SoundID = sfx,
-            .AudioEntity = this,
-            .Pos = pos.value_or(m_Entity->GetPosition()),
-            .Volume = volume,
+            .BankSlot      = slot,
+            .SoundID       = sfx,
+            .AudioEntity   = this,
+            .Pos           = pos.value_or(m_Entity->GetPosition()),
+            .Volume        = m_EventVolume + volume,
             .RollOffFactor = rollOff,
-            .Speed = speed,
-            .Doppler = doppler,
-            .Flags = SOUND_REQUEST_UPDATES
+            .Speed         = speed,
+            .Doppler       = doppler,
+            .Flags         = SOUND_REQUEST_UPDATES
         });
     };
     switch (st) {
@@ -3314,8 +3322,12 @@ void CAEVehicleAudioEntity::ProcessDummyOrPlayerProp(tVehicleParams& vp, bool is
         return;
     }
 
-    vp.ThisAccel = plane->m_GasPedal;
-    vp.ThisBrake = plane->m_BrakePedal;
+    if (isDummy) {
+        vp.ThisAccel = plane->m_GasPedal;
+        vp.ThisBrake = plane->m_BrakePedal;
+    } else {
+        GetAccelAndBrake(vp);
+    }
 
     // 0x4FDA9B
     const auto propSpeedFactor = GetPropSpeedFactor(std::clamp(CalculatePropSpeed(plane, vp.ThisAccel, vp.ThisBrake), 0.f, 1.f));
@@ -3329,7 +3341,7 @@ void CAEVehicleAudioEntity::ProcessDummyOrPlayerProp(tVehicleParams& vp, bool is
         // 0x4FDEB3
         const auto rotorFreq = (
             + std::abs(plane->GetRight().Dot(CVector::ZAxisVector())) * 0.1f // Right tilt
-            + plane->GetForward().Dot(CVector::ZAxisVector()) * -1.f * 0.15f // Backward tilt
+            - plane->GetForward().Dot(CVector::ZAxisVector()) * 0.15f // Backward tilt
             + GetAircraftAcceleration(vp) // <- 0x4FDB81
             + 1.f
         ) * propStalledFreq;
@@ -4190,6 +4202,9 @@ void CAEVehicleAudioEntity::UpdateBoatSound(eBoatEngineSoundType st, eSoundBankS
 #pragma region Bicycle
 // 0x4F9710
 void CAEVehicleAudioEntity::PlayBicycleSound(eBicycleSoundType st, eSoundBankSlot slot, eSoundID sfx, float volume, float speed) {
+    if (notsa::IsFixBugs()) { // Most likely they left this out, because, for example, vehicle sounds (`ProcessPlayerVehicleEngine`) use `UpdateVehicleEngineSound` that does this too
+        volume += m_EventVolume;
+    }
     if (m_DummySlot == SND_BANK_SLOT_NONE) {
         return;
     }
@@ -4209,7 +4224,7 @@ void CAEVehicleAudioEntity::PlayBicycleSound(eBicycleSoundType st, eSoundBankSlo
     };
 
     if (st != AE_SOUND_BICYCLE_CHAIN_CLANG) {
-        if (UpdateVehicleEngineSound(st, speed, volume)) {
+        if (UpdateVehicleEngineSoundRawVolume(st, speed, volume)) {
             return;
         }
     }

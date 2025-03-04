@@ -754,6 +754,7 @@ private:
     void StopNonEngineSounds() noexcept;
     void GenericPlaySurfaceSound(eSoundBankSlot slot, eSoundID newSoundType, float speed, float volume, float rollOff) noexcept;
     void UpdateDummyRCAcAndBrake(tVehicleParams& vp);
+    bool UpdateVehicleEngineSoundRawVolume(eVehicleEngineSoundType st, float speed, float volume);
 
 public:
     int16                  m_DoCountStalls;
