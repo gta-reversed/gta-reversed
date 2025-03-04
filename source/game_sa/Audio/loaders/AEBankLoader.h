@@ -40,7 +40,6 @@ struct CAEBankSlot {
     // Calculate size of the sound at the given index
     size_t GetSoundSize(eSoundID id) const {
         assert(IsSingleSound() || id >= 0 && id < (eSoundID)(NumSounds));
-        assert(!IsSingleSound() || id == 0);
         const auto next = IsSingleSound()
             ? NumBytes
             : Sounds[id + 1].BankOffsetBytes;

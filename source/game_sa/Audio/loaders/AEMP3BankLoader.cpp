@@ -3,10 +3,6 @@
 #include "AEAudioUtility.h"
 #include <cstdlib>
 
-// Naming scheme:
-// * BankLookup == BankId
-//
-
 void CAEMP3BankLoader::InjectHooks() {
     RH_ScopedClass(CAEMP3BankLoader);
     RH_ScopedCategory("Audio/Loaders");
