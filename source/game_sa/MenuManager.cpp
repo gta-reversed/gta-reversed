@@ -72,7 +72,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(CheckForMenuClosing, 0x576B70, { .locked = true });  // Must be hooked at all times otherwise imgui stops working! [The input at least does]
     RH_ScopedInstall(CheckHover, 0x57C4F0);
     RH_ScopedInstall(CheckMissionPackValidMenu, 0x57D720);
-    RH_ScopedInstall(CheckCodesForControls, 0x57DB20, { .reversed = false });
+    RH_ScopedInstall(CheckCodesForControls, 0x57DB20);
 
     RH_ScopedInstall(DisplaySlider, 0x576860);
     RH_ScopedInstall(DisplayHelperText, 0x57E240);
@@ -174,7 +174,7 @@ CMenuManager::~CMenuManager() {
 void CMenuManager::Initialise() {
     m_nPlayerNumber = 0;
     field_1B1C = 0;
-    m_nCurrentScreenItem = 0;
+    m_nCurrentScreenItem = (eControllerAction)0;
     m_bSelectedSaveGame = 0;
     if (m_bDoVideoModeUpdate) {
         RwD3D9ChangeMultiSamplingLevels(m_nPrefsAntialiasing);
@@ -432,35 +432,35 @@ void CMenuManager::SwitchToNewScreen(eMenuScreen screen) {
         if (m_bMainMenuSwitch) {
             switch (m_nCurrentScreen) {
             case SCREEN_START_GAME:
-                m_nCurrentScreenItem = 0;
+                m_nCurrentScreenItem = (eControllerAction)0;
                 break;
             case SCREEN_OPTIONS:
-                m_nCurrentScreenItem = 1;
+                m_nCurrentScreenItem = (eControllerAction)1;
                 break;
             case SCREEN_QUIT_GAME_ASK:
-                m_nCurrentScreenItem = 2;
+                m_nCurrentScreenItem = (eControllerAction)2;
                 break;
             default:
-                m_nCurrentScreenItem = aScreens[m_nCurrentScreen].m_nStartEntry;
+                m_nCurrentScreenItem = (eControllerAction)aScreens[m_nCurrentScreen].m_nStartEntry;
                 break;
             }
         } else {
-            m_nCurrentScreenItem = aScreens[m_nCurrentScreen].m_nStartEntry;
+            m_nCurrentScreenItem = (eControllerAction)aScreens[m_nCurrentScreen].m_nStartEntry;
         }
         m_nCurrentScreen = aScreens[m_nCurrentScreen].m_nParentMenu;
     } else {
         if (screen) {
-            m_nCurrentScreenItem = 0;
+            m_nCurrentScreenItem = (eControllerAction)0;
             m_nCurrentScreen     = screen;
         }
         else {
-            m_nCurrentScreenItem = 0;
+            m_nCurrentScreenItem = (eControllerAction)0;
             m_nCurrentScreen     = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nTargetMenu;
         }
     }
 
     if (m_nCurrentScreen == SCREEN_GAME_SAVE) {
-        m_nCurrentScreenItem = 9;
+        m_nCurrentScreenItem = (eControllerAction)9;
     }
 
     if (m_nPrevScreen == SCREEN_AUDIO_SETTINGS) {

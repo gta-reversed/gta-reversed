@@ -128,7 +128,7 @@ void CCam::Init() {
     gCameraMode = (eCamMode)-1;
     gLastTime2PlayerCameraWasOK = 0;
     gLastTime2PlayerCameraCollided = 0;
-    TheCamera.m_bCinemaCamera = false;
+    TheCamera.m_bForceCinemaCam = false;
 }
 
 // 0x50D7A0

@@ -106,7 +106,7 @@ void CMenuManager::ProcessFileActions() {
             if (s_PcSaveHelper.DeleteSlot(m_bSelectedSaveGame)) {
                 s_PcSaveHelper.PopulateSlotInfo();
                 SwitchToNewScreen(SCREEN_DELETE_SUCCESSFUL);
-                m_nCurrentScreenItem = true;
+                m_nCurrentScreenItem = (eControllerAction)1;
             } else {
                 // Delete Game
                 //
@@ -433,9 +433,9 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
     }
     case MENU_ACTION_45:
         field_1B14 = 1;
-        field_1B09 = 1;
+        pControlEdit = 1;
         m_bJustOpenedControlRedefWindow = true;
-        field_1B0C = m_nCurrentScreenItem;
+        OptionToChange = m_nCurrentScreenItem;
         m_pPressedKey = &m_KeyPressedCode;
         return true;
     case MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
@@ -482,7 +482,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
                 SetVideoMode(m_nDisplayVideoMode);
                 CentreMousePointer();
                 m_bDrawMouse = true;
-                m_nCurrentScreenItem = 5;
+                m_nCurrentScreenItem = (eControllerAction)5;
                 SaveSettings();
                 CPostEffects::DoScreenModeDependentInitializations();
             }

@@ -534,7 +534,7 @@ bool psSelectDevice() {
         }
     }
 
-    FrontEndMenuManager.m_nCurrentScreenItem = 0;
+    FrontEndMenuManager.m_nCurrentScreenItem = (eControllerAction)0;
 
     // Set selected videomode
     if (!RwEngineSetVideoMode(GcurSelVM)) {
