@@ -4,10 +4,11 @@
 #include <CommandParser/Parser.hpp>
 #include "Ped.h"
 #include "CommandParser/Parser.hpp"
+
 /*!
 * Various ped commands (TODO: Isn't this the same as Chars.cpp?)
 */
-
+namespace {
 void SetDeathWeaponPersist(CPed& ped, bool enable) {
     ped.bDeathPickupsPersist = enable;
 }
@@ -23,6 +24,7 @@ void ShutAllCharsUp(bool disable) {
 void SetCharGetOutUpsideDownCar(CPed& ped, bool enable) {
     ped.bGetOutUpsideDownCar = enable;
 }
+};
 
 void notsa::script::commands::ped::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Ped");
