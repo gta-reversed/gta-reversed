@@ -3109,6 +3109,13 @@ void CAEVehicleAudioEntity::UpdateDummyRCAcAndBrake(tVehicleParams& vp) {
 #pragma endregion
 
 #pragma region Aircraft
+// notsa - Update rotor frequency smoothly
+void CAEVehicleAudioEntity::UpdateRotorFreq(float freq, float stepUp, float stepDown) {
+    m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
+        ? freq
+        : notsa::step_to(m_CurrentRotorFrequency, freq, stepUp, stepDown, notsa::IsFixBugs());
+}
+
 // notsa
 auto GetAircraftDistantSoundVolume(const CPhysical* v, float baseVol) {
     const auto distSq = CVector::DistSqr(TheCamera.GetPosition(), v->GetPosition());
@@ -3127,7 +3134,7 @@ auto GetAircraftCameraPoVFactor(const CPhysical* p) {
     return ((p->GetPosition() - TheCamera.GetPosition()).Normalized().Dot(p->GetForward()) + 1.f) * 0.5f;
 }
 
-// notsa
+// notsa - Get acceleration factor for aircrafts
 auto GetAircraftAcceleration(CAEVehicleAudioEntity::tVehicleParams& vp) {
     auto s = vp.ThisAccel > 0
         ? 0.1f
@@ -3258,6 +3265,16 @@ float CalculatePropSpeed(const CPlane* plane, float gas, float brake) {
         : plane->m_fPropSpeed / 0.34f;
 }
 
+// notsa
+float CalculatePropFreq(CAEVehicleAudioEntity::tVehicleParams& vp, float ac) {
+    const auto plane = vp.Vehicle->AsPlane();
+    return (
+        + std::abs(plane->GetRight().Dot(CVector::ZAxisVector())) * 0.1f // Right tilt
+        - plane->GetForward().Dot(CVector::ZAxisVector()) * 0.15f // Backward tilt
+        + ac
+        + 1.f
+    );
+}
 
 // 0x4FDFD0 - Process AI propeller sound
 void CAEVehicleAudioEntity::ProcessAIProp(tVehicleParams& vp) {
@@ -3282,16 +3299,8 @@ void CAEVehicleAudioEntity::ProcessAIProp(tVehicleParams& vp) {
     const auto propSpeedFactor = GetPropSpeedFactor(propSpeed);
 
     // 0x4FE25A
-    {
-        const auto propFreq = (
-              std::abs(plane->GetMatrix().GetRight().z) * 0.1f
-            - plane->GetMatrix().GetForward().z * 0.15f + 1.f
-        );
-        m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
-            ? propFreq
-            : notsa::step_to(m_CurrentRotorFrequency, propFreq, 1.f / 187.5f, notsa::IsFixBugs());
-    }
-
+    UpdateRotorFreq(CalculatePropFreq(vp, 0.f), 1.f / 187.5f, 1.f / 187.5f);
+    
     // 0x4FE3CF
     PlayAircraftSound(
         AE_SOUND_AIRCRAFT_FRONT,
@@ -3336,22 +3345,9 @@ void CAEVehicleAudioEntity::ProcessDummyOrPlayerProp(tVehicleParams& vp, bool is
     float propStalledVol, propStalledFreq;
     ProcessPropOrJetStall(plane, propStalledVol, propStalledFreq);
 
-    // Calculate rotor frequency
-    {
-        // 0x4FDEB3
-        const auto rotorFreq = (
-            + std::abs(plane->GetRight().Dot(CVector::ZAxisVector())) * 0.1f // Right tilt
-            - plane->GetForward().Dot(CVector::ZAxisVector()) * 0.15f // Backward tilt
-            + GetAircraftAcceleration(vp) // <- 0x4FDB81
-            + 1.f
-        ) * propStalledFreq;
-
-        // 0x4FDEB7
-        m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
-            ? rotorFreq
-            : notsa::step_to(m_CurrentRotorFrequency, rotorFreq, 0.0053333f, notsa::IsFixBugs());
-    }
-
+    // 0x4FDEB7 - Calculate and update rotor frequency
+    UpdateRotorFreq(CalculatePropFreq(vp, GetAircraftAcceleration(vp)) * propStalledFreq, 1 / 187.5f, 1 / 187.5f);
+    
     const auto camPoVFactor = GetAircraftCameraPoVFactor(plane);
 
     // 0x4FDF72
@@ -3502,9 +3498,7 @@ void CAEVehicleAudioEntity::UpdateHeliRotorFrequency(const CHeli* heli, float ro
     const auto* const stepping = rotorSpeed <= 0.63f
         ? &cfg->RotorFreqStepLoSpeed
         : &cfg->RotorFreqStepHiSpeed;
-    m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
-        ? rotorFreq
-        : notsa::step_to(m_CurrentRotorFrequency, rotorFreq, stepping->StepUp, stepping->StepDown, notsa::IsFixBugs());
+    UpdateRotorFreq(rotorFreq, stepping->StepUp, stepping->StepDown);
 }
 
 // 0x4FEE20
@@ -3765,8 +3759,8 @@ auto GetDummyRCAcceleration(CAEVehicleAudioEntity::tVehicleParams& vp) {
     return vp.ThisBrake > 0
         ? -0.05f
         : vp.ThisAccel > 0
-        ? 0.1f
-        : 0.f;
+            ? 0.1f
+            : 0.f;
 }
 
 // notsa
@@ -3799,23 +3793,8 @@ void CAEVehicleAudioEntity::ProcessDummyRCPlane(tVehicleParams& vp) {
     // 0x4FA8B9 - Calculate accel/brake
     UpdateDummyRCAcAndBrake(vp);
 
-    // Calculate rotor freq
-    {
-        // 0x4FA914 - Calculate tilt (As cos(x))
-        const auto tiltBwd   = plane->GetForward().Dot(CVector::ZAxisVector()) * -1.f;
-        const auto tiltRight = std::abs(plane->GetRight().Dot(CVector::ZAxisVector()));
-
-        // 0x4FA9C3
-        const auto rotorFrq = 1.f
-            + tiltRight * 0.1f
-            + tiltBwd * 0.15f
-            + GetDummyRCAcceleration(vp); // <- 0x4FA8DB
-
-        // 0x4FA9EE
-        m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
-            ? rotorFrq
-            : notsa::step_to(m_CurrentRotorFrequency, rotorFrq, cfg->RotorFreqStepUp, cfg->RotorFreqStepDown, notsa::IsFixBugs());
-    }
+    // 0x4FA9EE - Calculate and update rotor frequency
+    UpdateRotorFreq(CalculatePropFreq(vp, GetDummyRCAcceleration(vp)), cfg->RotorFreqStepUp, cfg->RotorFreqStepDown);
 
     PlayAircraftSound(
         AE_SOUND_AIRCRAFT_FRONT,

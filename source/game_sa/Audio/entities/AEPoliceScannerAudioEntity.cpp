@@ -141,10 +141,8 @@ void CAEPoliceScannerAudioEntity::FinishedPlayingScannerDialogue() {
     std::ranges::fill(s_SlotState, -1);
     s_SlotState[4] = 1;
 
-    for (auto i = 0; i < NUM_POLICE_SCANNER_SLOTS; i++) {
-        s_ScannerSlotFirst[i].Clear();
-        s_ScannerSlotSecond[i].Clear();
-    }
+    rng::fill(s_ScannerSlotFirst, tScannerSlot{});
+    rng::fill(s_ScannerSlotSecond, tScannerSlot{});
 }
 
 // 0x4E6F60

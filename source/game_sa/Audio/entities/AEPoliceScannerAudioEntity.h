@@ -6,14 +6,6 @@ struct tScannerSlot {
     eSoundBank Bank{SND_BANK_UNK};
     eSoundID   SoundID{-1};
 
-    tScannerSlot() {
-        Clear();
-    }
-
-    void Clear() {
-        *this = tScannerSlot{};
-    }
-
     // bad name?
     [[nodiscard]] bool IsActive() const {
         return Bank < 0 || SoundID < 0;
