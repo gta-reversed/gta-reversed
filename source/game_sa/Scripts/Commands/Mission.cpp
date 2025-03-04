@@ -9,6 +9,7 @@
 * Various mission commands
 */
 
+namespace {
 void LoadAndLaunchMissionInternal(int32 missionId) {
     // Mostly CP from StartMission @ MissionDebugModule
     if (CTheScripts::NumberOfExclusiveMissionScripts > 0) {
@@ -72,6 +73,7 @@ int32 StartScriptFire(CVector pos, int8 propagation, int32 size) {
 void LaunchMission(uint32 label) {
     CTheScripts::StartNewScript(&CTheScripts::ScriptSpace[label]);
 }
+};
 
 void notsa::script::commands::mission::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Mission");
