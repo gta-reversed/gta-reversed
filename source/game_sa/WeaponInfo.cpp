@@ -47,7 +47,7 @@ void CWeaponInfo::Initialise() {
         info.m_fAnimLoop2End = 0.0f;
         info.m_fAnimLoop2Fire = 0.0f;
         info.m_fBreakoutTime = 0.0f;
-        info.m_fSpeed = 0.0f;
+        info.m_Speed = 0.0f;
         info.m_fRadius = 0.0f;
         info.m_fLifespan = 0.0f;
         info.m_fSpread = 0.0f;
@@ -228,7 +228,7 @@ void CWeaponInfo::LoadWeaponData() {
             wi.m_fMoveSpeed = moveSpeed;
             wi.m_fBreakoutTime = (float)breakoutTime / 30.f;
             wi.m_nFlags = flags;
-            wi.m_fSpeed = speed;
+            wi.m_Speed = speed;
             wi.m_fLifespan = lifespan;
             wi.m_fSpread = spread;
             wi.m_fRadius = radius;

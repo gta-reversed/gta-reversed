@@ -188,6 +188,22 @@ void SAFE_RELEASE(T*& ptr) { // DirectX stuff `Release()`
     }
 }
 
+
+// std::format support for enums that have `EnumToString` defined
+template<typename Enum>
+    requires requires { EnumToString((Enum)(0)); }
+struct std::formatter<Enum> : std::formatter<std::string> {
+    auto format(Enum e, format_context& ctx) const {
+        if (const auto name = EnumToString(e)) {
+            return formatter<string>::format(*name, ctx);
+        }
+        return formatter<string>::format(
+            std::format("{} ({})", typeid(Enum).name(), static_cast<std::underlying_type_t<Enum>>(e)),
+            ctx
+        );
+    }
+};
+
 #define _IGNORED_
 #define _CAN_BE_NULL_
 

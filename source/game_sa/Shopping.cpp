@@ -120,7 +120,7 @@ void CShopping::Buy(uint32 key, int32 extraInfo) {
             const auto car = veh->AsAutomobile();
 
             // todo: refactor
-            const auto carModId = upgradeModel->nCarmodId;
+            const auto carModId = upgradeModel->CarMod;
             auto parentId = vehModel->m_pVehicleStruct->m_aUpgrades[carModId].m_nParentComponentId;
             if (upgradeModel->bUsesVehDummy) {
                 parentId = carModId;

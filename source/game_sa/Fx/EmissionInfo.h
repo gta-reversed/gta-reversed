@@ -9,7 +9,7 @@ struct EmissionInfo_t {
     CVector m_SizeMin;
     CVector m_SizeMax;
 
-    float   m_fSpeed;
+    float   m_Speed;
     float   m_fSpeedBias;
     CVector m_Direction;
 
@@ -33,7 +33,7 @@ struct EmissionInfo_t {
         m_fLife   = 1.0f;
         m_fRadius = 0.0f;
 
-        m_fSpeed     = 0.0f;
+        m_Speed     = 0.0f;
         m_fSpeedBias = 0.0f;
 
         m_fAngleMin = 0.0f;

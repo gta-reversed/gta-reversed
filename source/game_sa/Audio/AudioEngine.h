@@ -73,7 +73,7 @@ public:
     static void EnableEffectsLoading();
     static void DisableEffectsLoading();
 
-    void ReportCollision(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, CVector& point, CVector* normal, float fCollisionImpact1, float fCollisionImpact2, bool playOnlyOneShotCollisionSound, bool unknown);
+    void ReportCollision(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, const CVector& pos, const CVector* normal, float fCollisionImpact1, float fCollisionImpact2, bool playOnlyOneShotCollisionSound, bool unknown);
     void ReportBulletHit(CEntity* entity, eSurfaceType surface, const CVector& posn, float angleWithColPointNorm);
     void ReportObjectDestruction(CEntity* entity);
     void ReportGlassCollisionEvent(eAudioEvents glassSoundType, Const CVector& posn);
@@ -89,12 +89,12 @@ public:
     void ReportFrontendAudioEvent(eAudioEvents eventId, float volumeChange = 0.0f, float speed = 1.0f);
 
     void InitialiseRadioStationID(eRadioID id);
-    void StartRadio(tVehicleAudioSettings* settings);
-    void StartRadio(eRadioID id, int8 bassValue);
+    void StartRadio(const tVehicleAudioSettings& settings);
+    void StartRadio(eRadioID id, eBassSetting bassSetting);
     void StopRadio(tVehicleAudioSettings* settings, bool bDuringPause);
     void SetRadioAutoRetuneOnOff(bool);
     void SetBassEnhanceOnOff(bool enable);
-    void SetRadioBassSetting(int8);
+    void SetRadioBassSetting(eBassSetting bassSetting);
     bool HasRadioRetuneJustStarted();
     const GxtChar* GetRadioStationName(eRadioID id);
     void GetRadioStationNameKey(eRadioID id, char* outStr);

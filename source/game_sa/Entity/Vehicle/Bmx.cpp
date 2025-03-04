@@ -14,9 +14,9 @@ void CBmx::InjectHooks() {
 CBmx::CBmx(int32 modelIndex, eVehicleCreatedBy createdBy) : CBike(modelIndex, createdBy) {
     auto mi = CModelInfo::GetModelInfo(modelIndex);
     m_nVehicleSubType = VEHICLE_TYPE_BMX;
-    m_RideAnimData.m_nAnimGroup = CAnimManager::GetAnimBlocks()[mi->GetAnimFileIndex()].GroupId;
-    if (m_RideAnimData.m_nAnimGroup < ANIM_GROUP_BMX || m_RideAnimData.m_nAnimGroup > ANIM_GROUP_CHOPPA) {
-        m_RideAnimData.m_nAnimGroup = ANIM_GROUP_BMX;
+    m_RideAnimData.AnimGroup = CAnimManager::GetAnimBlocks()[mi->GetAnimFileIndex()].GroupId;
+    if (m_RideAnimData.AnimGroup < ANIM_GROUP_BMX || m_RideAnimData.AnimGroup > ANIM_GROUP_CHOPPA) {
+        m_RideAnimData.AnimGroup = ANIM_GROUP_BMX;
     }
 
     m_fControlJump = 0.0f;
@@ -80,8 +80,8 @@ void CBmx::ProcessDrivingAnims(CPed* driver, bool blend) {
 void CBmx::LaunchBunnyHopCB(CAnimBlendAssociation* assoc, void* data) {
     return plugin::Call<0x6C0390, CAnimBlendAssociation*, void*>(assoc, data);
     auto bmx = static_cast<CBmx*>(data);
-    if ((bmx->m_aWheelCounts[0] > 0.0f || bmx->m_aWheelCounts[1] > 0.0f) &&
-        (bmx->m_aWheelCounts[2] > 0.0f || bmx->m_aWheelCounts[3] > 0.0f)
+    if ((bmx->m_WheelCounts[0] > 0.0f || bmx->m_WheelCounts[1] > 0.0f) &&
+        (bmx->m_WheelCounts[2] > 0.0f || bmx->m_WheelCounts[3] > 0.0f)
     ) {
         auto power = std::min(bmx->m_fControlJump / 25.0f, 1.0f) + 1.0f;
         if (bmx->m_nStatus != STATUS_PLAYER) {

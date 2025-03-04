@@ -180,7 +180,7 @@ void CAtomicModelInfo::SetupVehicleUpgradeFlags(const char* name)
         }
 
         bUseCommonVehicleDictionary = true;
-        nCarmodId = pChassis->m_nFlag;
+        CarMod = pChassis->m_nFlag;
         return;
     }
 
@@ -193,7 +193,7 @@ void CAtomicModelInfo::SetupVehicleUpgradeFlags(const char* name)
 
         bUseCommonVehicleDictionary = true;
         bUsesVehDummy = true;
-        nCarmodId = pDummy->m_nFlag;
+        CarMod = pDummy->m_nFlag;
         return;
     }
 }

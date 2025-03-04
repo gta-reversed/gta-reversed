@@ -19,7 +19,7 @@ public:
     CAEMP3BankLoader();
 
     bool Initialise();
-    uint8* GetBankSlot(uint16 bankSlot, uint32& outLength);
+    uint8* GetBankSlotBuffer(uint16 bankSlot, uint32& outLength);
     float GetSoundHeadroom(uint16 soundId, int16 bankSlot);
     bool IsSoundBankLoaded(uint16 bankId, int16 bankSlot);
     bool GetSoundBankLoadingStatus(uint16 bankId, int16 bankSlot);
@@ -42,6 +42,9 @@ public:
         }
         return false;
     }
+
+    // notsa
+    const CAEBankSlot* GetBankSlot(eSoundBankSlot slot) const;
 
 private:
     // NOTSA

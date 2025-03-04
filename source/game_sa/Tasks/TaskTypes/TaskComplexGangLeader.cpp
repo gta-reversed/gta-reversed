@@ -467,7 +467,7 @@ void CTaskComplexGangLeader::ScanForStuff(CPed* ped) {
                 m_gang->GetMembership().AddFollower(&scannedPed);
             }
 
-            // Find a member close enough to the scanned ped, and make the partners
+            // Find a member close enough to the scanned ped, and make them partners
             if (const auto [closestMem, distSq] = m_gang->GetMembership().GetMemberClosestTo(&scannedPed); // 0x65E61F
                 closestMem && sq(10.f) >= distSq && distSq >= sq(4.f)
             ) {           

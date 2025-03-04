@@ -13,7 +13,7 @@ enum eGameState : uint8 {
     GAME_STATE_IDLE             = 9, // In-game (loop state)
 };
 
-inline const char* EnumToString(eGameState gs) {
+inline std::optional<const char*> EnumToString(eGameState gs) {
     switch (gs) {
     case GAME_STATE_INITIAL:          return "INITIAL";
     case GAME_STATE_LOGO:             return "LOGO";
@@ -25,6 +25,6 @@ inline const char* EnumToString(eGameState gs) {
     case GAME_STATE_FRONTEND_IDLE:    return "FRONTEND_IDLE";
     case GAME_STATE_LOADING_STARTED:  return "LOADING_STARTED";
     case GAME_STATE_IDLE:             return "IDLE";
-    default:                          return "UNKNOWN";
+    default:                          return std::nullopt;
     }
 }

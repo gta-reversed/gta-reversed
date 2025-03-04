@@ -22,7 +22,7 @@ public:
     uint32                m_nFlags;
     uint32                m_nLengthInBytes;
     uint32                m_dwStopTime; // unused
-    float                 m_fVolume;
+    float                 m_Volume;
     bool                  m_bPaused;
     uint8                 field_39; // unused
     uint16                m_nChannelId;
@@ -58,7 +58,7 @@ public:
     virtual void   SetFrequencyScalingFactor(float factor);
 
     void   SetPosition(const CVector& vecPos) const;
-    float  GetVolume() const { return m_fVolume; };
+    float  GetVolume() const { return m_Volume; };
     void   SetVolume(float volume);
     bool   IsBufferPlaying() const { return m_nBufferStatus & DSBSTATUS_PLAYING; };
     uint32 GetCurrentPlaybackPosition() const;

@@ -221,14 +221,7 @@ public:
         m_pos = pos;
     }
 
-    static auto GetIdentity() {
-        CMatrix mat;
-        mat.m_right   = CVector{ 1.f, 0.f, 0.f };
-        mat.m_forward = CVector{ 0.f, 1.f, 0.f };
-        mat.m_up      = CVector{ 0.f, 0.f, 1.f };
-        mat.m_pos     = CVector{ 0.f, 0.f, 0.f };
-        return mat;
-    }
+    static CMatrix GetIdentity();
     
     // Similar to ::Scale but this also scales the position vector.
     // 0x45AF40

@@ -524,6 +524,15 @@ void CMatrix::operator*=(const CMatrix& rvalue)
     *this = (*this * rvalue);
 }
 
+CMatrix CMatrix::GetIdentity() {
+    CMatrix m;
+    m.m_right   = CVector{ 1.f, 0.f, 0.f };
+    m.m_forward = CVector{ 0.f, 1.f, 0.f };
+    m.m_up      = CVector{ 0.f, 0.f, 1.f };
+    m.m_pos     = CVector{ 0.f, 0.f, 0.f };
+    return m;
+}
+
 CMatrix operator*(const CMatrix& a, const CMatrix& b)
 {
     auto result = CMatrix();

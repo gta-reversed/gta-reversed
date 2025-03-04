@@ -83,7 +83,7 @@ public:
     void PlayMiniGunFireSounds(CPhysical* entity, eAudioEvents audioEventId);
     void PlayMiniGunStopSound(CPhysical* entity);
 
-    void PlayFlameThrowerSounds(CPhysical* entity, int16 sfx1, int16 sfx2, eAudioEvents audioEventId, float audability, float speed);
+    void PlayFlameThrowerSounds(CPhysical* entity, eSoundID dryFireSfxID, eSoundID flameSfxID, eAudioEvents audioEvent, float volumeOffsetdB, float speed);
     void PlayFlameThrowerIdleGasLoop(CPhysical* entity);
     void StopFlameThrowerIdleGasLoop();
 

@@ -414,10 +414,6 @@ namespace fs = std::filesystem;
 #include "game_sa\Entity\Vehicle\Train.h"
 #include "game_sa\Entity\Vehicle\Vehicle.h"
 
-#include "game_sa\Audio\config\eAudioBank.h"
-#include "game_sa\Audio\config\eAudioSlot.h"
-#include "game_sa\Audio\config\eSFX.h"
-
 #include "game_sa\Fx\eFxInfoType.h"
 #include "game_sa\Fx\FxManager.h"
 #include "game_sa\Fx\FxPrtMult.h"

@@ -430,3 +430,39 @@ uint32 CCarGenerator::CalcNextGen()
 {
     return CTimer::GetTimeInMS() + 4;
 }
+
+// notsa
+CVehicle* CCarGenerator::CreateVehicle(eModelID model, eVehicleCreatedBy createdBy) {
+    const auto* mi = CModelInfo::GetModelInfo(model)->AsVehicleModelInfoPtr();
+    switch (const auto vt = mi->m_nVehicleType) {
+    case VEHICLE_TYPE_AUTOMOBILE:
+        return new CAutomobile{model, createdBy, true};
+    case VEHICLE_TYPE_MTRUCK:
+        return new CMonsterTruck{model, createdBy};
+    case VEHICLE_TYPE_QUAD:
+        return new CQuadBike{model, createdBy};
+    case VEHICLE_TYPE_HELI:
+        return new CHeli{model, createdBy};
+    case VEHICLE_TYPE_PLANE:
+        return new CPlane{model, createdBy};
+    case VEHICLE_TYPE_BOAT:
+        return new CBoat{model, createdBy};
+    case VEHICLE_TYPE_BIKE: {
+        auto* bike = new CBike{model, createdBy};
+        bike->bikeFlags.bOnSideStand = true;
+        return bike;
+    }
+    case VEHICLE_TYPE_BMX: {
+        auto* const bmx = new CBmx{model, createdBy};
+        bmx->bikeFlags.bOnSideStand = true;
+        return bmx;
+    }
+    case VEHICLE_TYPE_TRAILER:
+        return new CTrailer{model, createdBy};
+    case VEHICLE_TYPE_TRAIN:
+        return new CTrain{model, createdBy};
+    default:
+        NOTSA_LOG_WARN("Invalid vehicle type ({})", (int32)(vt));
+    }
+    return nullptr;
+}

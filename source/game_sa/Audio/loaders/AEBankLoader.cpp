@@ -72,7 +72,7 @@ bool CAEBankLoader::LoadBankSlotFile() {
             CalculateBankSlotsInfosOffsets();
             assert(m_nBankSlotCount > 0);
             const auto& lastSlot = m_paBankSlots[m_nBankSlotCount - 1];
-            m_nBufferSize = lastSlot.m_nOffset + lastSlot.m_nSize;
+            m_nBufferSize = lastSlot.Offset + lastSlot.NumBytes;
             m_pBuffer = (uint8*)CMemoryMgr::Malloc(m_nBufferSize);
         } else {
             delete m_paBankSlots;
@@ -100,7 +100,7 @@ bool CAEBankLoader::LoadSFXPakLookupFile() {
 
             for (auto i = 0; i < m_nPakLookupCount; i++) {
                 // NOTSA: Originally a 128 char array allocated in the stack.
-                m_paStreamHandles[i] = CdStreamOpen(std::format("AUDIO\\SFX\\{}", m_paPakLookups[i].m_szName).c_str());
+                m_paStreamHandles[i] = CdStreamOpen(std::format("AUDIO\\SFX\\{}", m_paPakLookups[i].BaseFilename).c_str());
             }
             failed = false;
         }
@@ -117,7 +117,7 @@ bool CAEBankLoader::LoadSFXPakLookupFile() {
 void CAEBankLoader::CalculateBankSlotsInfosOffsets() {
     auto offset = 0u;
     for (auto& slot : std::span{m_paBankSlots, m_nBankSlotCount}) {
-        slot.m_nOffset = offset;
-        offset += slot.m_nSize;
+        slot.Offset = offset;
+        offset += slot.NumBytes;
     }
 }

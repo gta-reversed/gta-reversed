@@ -31,7 +31,7 @@ CAEAudioChannel::CAEAudioChannel(IDirectSound* directSound, uint16 channelId, ui
     m_nBufferStatus              = 0;
     m_nFrequency                 = samplesPerSec;
     m_nOriginalFrequency         = samplesPerSec;
-    m_fVolume                    = -100.0f;
+    m_Volume                    = -100.0f;
     m_pDirectSoundBuffer         = nullptr;
     m_pDirectSound3DBuffer       = nullptr;
     m_bPaused                    = false;
@@ -85,8 +85,8 @@ void CAEAudioChannel::SetFrequencyScalingFactor(float factor) {
 
             m_pDirectSoundBuffer->Play(0, 0, m_bLooped);
 
-            if (curPos != 0 && !AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, m_fVolume, -2, false)) {
-                const auto volume = static_cast<LONG>(m_fVolume * 100.0F);
+            if (curPos != 0 && !AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, m_Volume, -2, false)) {
+                const auto volume = static_cast<LONG>(m_Volume * 100.0F);
                 m_pDirectSoundBuffer->SetVolume(volume);
             }
         }
@@ -112,20 +112,20 @@ void CAEAudioChannel::SetVolume(float volume) {
     if (!m_pDirectSoundBuffer)
         return;
 
-    if (IsBufferPlaying() && fabs(volume - m_fVolume) > 60.0F) {
-        if (volume <= m_fVolume) {
+    if (IsBufferPlaying() && fabs(volume - m_Volume) > 60.0F) {
+        if (volume <= m_Volume) {
             if (AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, volume, -1, false)) {
-                m_fVolume = volume;
+                m_Volume = volume;
                 return;
             }
         } else if (AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, volume, -2, false)) {
-            m_fVolume = volume;
+            m_Volume = volume;
             return;
         }
     }
 
     AESmoothFadeThread.SetBufferVolume(m_pDirectSoundBuffer, volume);
-    m_fVolume = volume;
+    m_Volume = volume;
 }
 
 // 0x4D79A0

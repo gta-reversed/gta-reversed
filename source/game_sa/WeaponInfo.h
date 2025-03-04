@@ -97,7 +97,7 @@ public:
     float        m_fAnimLoop2Fire;  // time in animation2 when weapon should be fired
 
     float        m_fBreakoutTime;   // time after which player can break out of attack and run off
-    float        m_fSpeed;          // speed of projectile
+    float        m_Speed;          // speed of projectile
     float        m_fRadius;         // radius affected
     float        m_fLifespan;       // time taken for shot to dissipate
     float        m_fSpread;         // angle inside which shots are created

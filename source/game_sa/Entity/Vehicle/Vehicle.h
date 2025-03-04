@@ -334,8 +334,8 @@ public:
     CFire*            m_pFire;
     float             m_fSteerAngle;
     float             m_f2ndSteerAngle; // used for steering 2nd set of wheels or elevators etc..
-    float             m_fGasPedal;
-    float             m_fBreakPedal;
+    float             m_GasPedal;
+    float             m_BrakePedal;
     eVehicleCreatedBy m_nCreatedBy;
     int16             m_nExtendedRemovalRange;        // when game wants to delete a vehicle, it gets min(m_wExtendedRemovalRange, 170.0)
     uint8             m_nBombOnBoard : 3;             // 0 = None
@@ -383,8 +383,8 @@ public:
     char            field_511;             // initialised, but not used?
     char            field_512;             // initialised, but not used?
     eCarWeapon      m_nVehicleWeaponInUse;
-    uint32          m_nHornCounter;
-    int8            m_nRandomIdRelatedToSiren;
+    uint32          m_HornCounter;
+    int8            m_HornPattern;
     char            m_nCarHornTimer; // car horn related
     eComedyControlState m_comedyControlState;
     char            m_nHasslePosId;
@@ -565,7 +565,7 @@ public:
     void ClearGettingOutFlags(uint8 doorId);
     void SetWindowOpenFlag(uint8 doorId);
     void ClearWindowOpenFlag(uint8 doorId);
-    bool SetVehicleUpgradeFlags(int32 upgradeModelIndex, int32 componentIndex, int32& resultModelIndex);
+    bool SetVehicleUpgradeFlags(int32 upgradeModelIndex, int32 mod, int32& resultModelIndex);
     bool ClearVehicleUpgradeFlags(int32 arg0, int32 componentIndex);
     RpAtomic* CreateUpgradeAtomic(CBaseModelInfo* model, const UpgradePosnDesc* upgradePosn, RwFrame* parentComponent, bool isDamaged);
     void RemoveUpgrade(int32 upgradeId);
@@ -617,7 +617,7 @@ public:
     bool UsesSiren();
     bool IsSphereTouchingVehicle(CVector posn, float radius);
     void FlyingControl(eFlightModel flightModel, float leftRightSkid, float steeringUpDown, float steeringLeftRight, float accelerationBreakStatus);
-    bool BladeColSectorList(CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult);
+    bool BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult);
     void SetComponentRotation(RwFrame* component, eRotationAxis axis, float angle, bool bResetPosition);
     void SetTransmissionRotation(RwFrame* component, float angleL, float angleR, CVector wheelPos, bool isFront);
     void ProcessBoatControl(tBoatHandlingData* boatHandling, float* fWaterResistance, bool bCollidedWithWorld, bool bPostCollision);
@@ -657,6 +657,9 @@ public:
     bool AreAnyOfPassengersFollowerOfGroup(const CPedGroup& group);
 
     auto GetPassengerIndex(const CPed* ped) const -> std::optional<size_t>;
+
+
+    auto GetHealth() const noexcept { return m_fHealth; }
 
     static void Shutdown();
     static void SetComponentAtomicAlpha(RpAtomic* atomic, int32 alpha);

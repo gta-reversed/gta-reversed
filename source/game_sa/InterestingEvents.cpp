@@ -30,7 +30,7 @@ CInterestingEvents::CInterestingEvents() {
     m_fRadius = 30.f;
     m_nLastScanTimeUpdate = 0;
     m_nInterestingEvent = -1;
-    m_nLastFrameUpdate = CTimer::GetFrameCounter() - 1;
+    m_LastFrameUpdateMs = CTimer::GetFrameCounter() - 1;
     std::memset(m_Events, 0, sizeof(m_Events));
 
     const auto SetOptions = [=](auto index, auto priority, auto delay, uint32 end = 0) {
@@ -97,8 +97,8 @@ void CInterestingEvents::Add(CInterestingEvents::EType type, CEntity* entity) {
     DEV_LOG("type={}, model={}", (int32)(type), entity->m_nModelIndex);
 
     const auto& camPos = CCamera::GetActiveCamera().m_vecSource;
-    if (m_nLastFrameUpdate != CTimer::GetFrameCounter()) {
-        m_nLastFrameUpdate = CTimer::GetFrameCounter();
+    if (m_LastFrameUpdateMs != CTimer::GetFrameCounter()) {
+        m_LastFrameUpdateMs = CTimer::GetFrameCounter();
 
         CPlayerPed* player = FindPlayerPed();
         const auto& playerPos = player->GetPosition();
@@ -163,8 +163,8 @@ void CInterestingEvents::ScanForNearbyEntities() {
     m_nLastScanTimeUpdate = CTimer::GetTimeInMS();
 
     CPlayerPed* player = FindPlayerPed();
-    if (m_nLastFrameUpdate != CTimer::GetFrameCounter()) {
-        m_nLastFrameUpdate = CTimer::GetFrameCounter();
+    if (m_LastFrameUpdateMs != CTimer::GetFrameCounter()) {
+        m_LastFrameUpdateMs = CTimer::GetFrameCounter();
         const auto& camPos = CCamera::GetActiveCamera().m_vecSource, playerPos = player->GetPosition();
         vec148 = playerPos - camPos;
         vec148.z = 0.f;

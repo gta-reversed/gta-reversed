@@ -7,7 +7,7 @@ tReplayVehicleBlock tReplayVehicleBlock::MakeVehicleUpdateData(CVehicle* vehicle
     ret.type = REPLAY_PACKET_VEHICLE;
     ret.poolRef  = (uint8)poolIdx;
     ret.health   = (uint8)(std::min(vehicle->m_fHealth, 1000.0f) / 4.0f);
-    ret.gasPedal = (uint8)(vehicle->m_fGasPedal * 100.0f);
+    ret.gasPedal = (uint8)(vehicle->m_GasPedal * 100.0f);
     ret.matrix   = CCompressedMatrixNotAligned::Compress(vehicle->GetMatrix());
     ret.modelId  = vehicle->m_nModelIndex;
     ret.panels   = (vehicle->IsAutomobile()) ? vehicle->AsAutomobile()->m_damageManager.m_nPanelsStatus : 0;
@@ -85,8 +85,8 @@ tReplayBikeBlock tReplayBikeBlock::MakeBikeUpdateData(CBike* bike, int32 poolIdx
     *ret.As<tReplayVehicleBlock>() = tReplayVehicleBlock::MakeVehicleUpdateData(bike->AsVehicle(), poolIdx);
 
     ret.type = REPLAY_PACKET_BIKE;
-    ret.animLean = (uint8)(bike->GetRideAnimData()->m_fAnimLean * 50.0f);
-    ret.steerAngle = (uint8)(bike->GetRideAnimData()->m_fSteerAngle * 50.0f);
+    ret.animLean = (uint8)(bike->GetRideAnimData()->LeanAngle * 50.0f);
+    ret.steerAngle = (uint8)(bike->GetRideAnimData()->BarSteerAngle * 50.0f);
     return ret;
 }
 
@@ -105,7 +105,7 @@ void tReplayVehicleBlock::ExtractVehicleUpdateData(CVehicle* vehicle, float inte
     vehicle->GetMatrix() = Lerp(vehicle->GetMatrix(), CCompressedMatrixNotAligned::Decompress(matrix), interpolation);
     vehicle->GetTurnSpeed() = CVector{0.0f};
     vehicle->m_fHealth = (float)(health * 4);
-    vehicle->m_fGasPedal = (float)gasPedal / 100.0f;
+    vehicle->m_GasPedal = (float)gasPedal / 100.0f;
     if (vehicle->IsAutomobile()) {
         // inlined ApplyPanelDamageToCar() @ 0x59CA10
         auto automobile = vehicle->AsAutomobile();
@@ -173,7 +173,7 @@ void tReplayVehicleBlock::ExtractVehicleUpdateData(CVehicle* vehicle, float inte
             }
         }
 
-        automobile->m_nWheelsOnGround = 4;
+        automobile->m_NumDriveWheelsOnGround = 4;
     }
 
     vehicle->vehicleFlags.bEngineOn = vehicle->vehicleFlags.bEngineBroken != true;
@@ -187,8 +187,8 @@ void tReplayVehicleBlock::ExtractVehicleUpdateData(CVehicle* vehicle, float inte
 void tReplayBikeBlock::ExtractBikeUpdateData(CBike* bike, float interpolation) {
     As<tReplayVehicleBlock>()->ExtractVehicleUpdateData(bike->AsVehicle(), interpolation);
 
-    bike->GetRideAnimData()->m_fSteerAngle = (float)steerAngle / 50.0f;
-    bike->GetRideAnimData()->m_fAnimLean   = (float)animLean / 50.0f;
+    bike->GetRideAnimData()->BarSteerAngle = (float)steerAngle / 50.0f;
+    bike->GetRideAnimData()->LeanAngle   = (float)animLean / 50.0f;
     bike->m_bLeanMatrixCalculated = false;
     bike->CalculateLeanMatrix();
 }

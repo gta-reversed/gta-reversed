@@ -261,10 +261,10 @@ int16 CAEAudioHardware::AllocateChannels(uint16 numChannels) {
 }
 
 // 0x4D94A0
-void CAEAudioHardware::SetBassSetting(int8 nBassSet, float fBassEqGain) {
-    m_nBassSet = nBassSet;
-    m_fBassEqGain = fBassEqGain;
-    m_pStreamingChannel->SetBassEQ(nBassSet, fBassEqGain);
+void CAEAudioHardware::SetBassSetting(eBassSetting bassSetting, float bassGain) {
+    m_BassSetting = bassSetting;
+    m_BassGain    = bassGain;
+    m_pStreamingChannel->SetBassEQ(bassSetting, bassGain);
 }
 
 // 0x4D8810
@@ -289,42 +289,52 @@ void CAEAudioHardware::SetChannelVolume(int16 channel, uint16 channelId, float v
 }
 
 // 0x4D88A0
-void CAEAudioHardware::LoadSoundBank(uint16 bankId, int16 bankSlotId) {
+void CAEAudioHardware::LoadSoundBank(eSoundBank bank, eSoundBankSlot slot) {
     if (!m_bDisableEffectsLoading) {
-        m_pMP3BankLoader->LoadSoundBank(bankId, bankSlotId);
+        m_pMP3BankLoader->LoadSoundBank(bank, slot);
     }
 }
 
 // 0x4D88C0
-bool CAEAudioHardware::IsSoundBankLoaded(uint16 bankId, int16 bankSlotId) {
-    return m_pMP3BankLoader->IsSoundBankLoaded(bankId, bankSlotId);
+bool CAEAudioHardware::IsSoundBankLoaded(eSoundBank bank, eSoundBankSlot slot) {
+    return m_pMP3BankLoader->IsSoundBankLoaded(bank, slot);
 }
 
 // 0x4D88D0
-int8 CAEAudioHardware::GetSoundBankLoadingStatus(uint16 bankId, int16 bankSlotId) {
-    return m_pMP3BankLoader->GetSoundBankLoadingStatus(bankId, bankSlotId);
+int8 CAEAudioHardware::GetSoundBankLoadingStatus(eSoundBank bank, eSoundBankSlot slot) {
+    return m_pMP3BankLoader->GetSoundBankLoadingStatus(bank, slot);
 }
 
-// 0x4D8ED0
-bool CAEAudioHardware::LoadSound(uint16 bank, uint16 sound, int16 slot) {
-    if (!m_bDisableEffectsLoading) {
-        return m_pMP3BankLoader->LoadSound(bank, sound, slot);
+// notsa
+bool CAEAudioHardware::EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot slot, bool checkLoadingTune) {
+    if (AEAudioHardware.IsSoundBankLoaded(bank, slot)) {
+        return true;
     }
+    if (checkLoadingTune && AudioEngine.IsLoadingTuneActive()) {
+        return false;
+    }
+    LoadSoundBank(bank, slot);
     return false;
 }
 
+// 0x4D8ED0
+bool CAEAudioHardware::LoadSound(eSoundBank bank, eSoundID sound, eSoundBankSlot slot) {
+    return !m_bDisableEffectsLoading
+        && m_pMP3BankLoader->LoadSound(bank, sound, slot);
+}
+
 // 0x4D8EF0
-bool CAEAudioHardware::IsSoundLoaded(uint16 bankId, uint16 sfxId, int16 bankSlot) {
-    return m_pMP3BankLoader->IsSoundLoaded(bankId, sfxId, bankSlot);
+bool CAEAudioHardware::IsSoundLoaded(eSoundBank bank, eSoundID sfx, eSoundBankSlot slot) {
+    return m_pMP3BankLoader->IsSoundLoaded(bank, sfx, slot);
 }
 
 // 0x4D8F00
-bool CAEAudioHardware::GetSoundLoadingStatus(uint16 bankId, uint16 sfxId, int16 bankSlot) {
-    return m_pMP3BankLoader->GetSoundLoadingStatus(bankId, sfxId, bankSlot);
+bool CAEAudioHardware::GetSoundLoadingStatus(eSoundBank bank, eSoundID sfx, eSoundBankSlot slot) {
+    return m_pMP3BankLoader->GetSoundLoadingStatus(bank, sfx, slot);
 }
 
 // 0x4D88E0
-void CAEAudioHardware::StopSound(int16 channel, uint16 channelId) {
+void CAEAudioHardware::StopSound(int16 channel, uint16 channelId) const {
     if (channel >= 0 && channelId < m_anNumChannelsInSlot[channel]) {
         const auto ch = m_aChannels[channel + channelId];
         if (ch) {
@@ -334,7 +344,7 @@ void CAEAudioHardware::StopSound(int16 channel, uint16 channelId) {
 }
 
 // 0x4D8920
-void CAEAudioHardware::SetChannelPosition(int16 slotId, uint16 channelId, const CVector& posn, uint8 unused) {
+void CAEAudioHardware::SetChannelPosition(int16 slotId, uint16 channelId, const CVector& posn, uint8 unused) const {
     if (slotId >= 0 && channelId < m_anNumChannelsInSlot[slotId]) {
         const auto ch = m_aChannels[slotId + channelId];
         if (ch) {
@@ -363,18 +373,20 @@ void CAEAudioHardware::UpdateReverbEnvironment() {
     if (reverb == m_nReverbEnvironment && depth == m_nReverbDepth) { // Nothing is changing?
         return;
     }
+
     if (!rng::none_of(GetChannels(), [=](CAEAudioChannel* ch) { // Also covers the case of `m_nNumChannels == 0`
         return ch && ch->SetReverbAndDepth(reverb, depth); }
     )) {
         return;
     }
+
     m_nReverbEnvironment = reverb;
     m_nReverbDepth       = depth;
 }
 
 // 0x4D8E30
-float CAEAudioHardware::GetSoundHeadroom(uint16 sfxId, int16 bankSlotId) {
-    return m_pMP3BankLoader->GetSoundHeadroom(sfxId, bankSlotId);
+float CAEAudioHardware::GetSoundHeadroom(eSoundID sfx, eSoundBankSlot slot) {
+    return m_pMP3BankLoader->GetSoundHeadroom(sfx, slot);
 }
 
 // 0x4D8E40
@@ -388,19 +400,20 @@ void CAEAudioHardware::DisableEffectsLoading() {
 }
 
 // 0x4D8E60
-void CAEAudioHardware::RequestVirtualChannelSoundInfo(uint16 idx, uint16 sfxId, uint16 bankSlotId) {
-    assert(idx < MAX_NUM_SOUNDS);
-    m_aBankSlotIds[idx] = bankSlotId;
-    m_aSoundIdsInSlots[idx] = sfxId;
+void CAEAudioHardware::RequestVirtualChannelSoundInfo(uint16 vch, eSoundID sfx, eSoundBankSlot slot) {
+    assert(vch < MAX_NUM_SOUNDS);
+
+    m_VirtualChannelSettings.BankSlotIDs[vch] = slot;
+    m_VirtualChannelSettings.SoundIDs[vch]    = sfx;
 }
 
 // 0x4D8E90
-void CAEAudioHardware::GetVirtualChannelSoundLengths(int16* soundLengths) {
+void CAEAudioHardware::GetVirtualChannelSoundLengths(int16* soundLengths) const {
     memcpy(soundLengths, m_VirtualChannelSoundLengths, sizeof(m_VirtualChannelSoundLengths));
 }
 
 // 0x4D8EB0
-void CAEAudioHardware::GetVirtualChannelSoundLoopStartTimes(int16* soundLoopStartTimes) {
+void CAEAudioHardware::GetVirtualChannelSoundLoopStartTimes(int16* soundLoopStartTimes) const {
     memcpy(soundLoopStartTimes, m_VirtualChannelLoopTimes, sizeof(m_VirtualChannelLoopTimes)); // size is 600, replaced by loop?
 }
 
@@ -501,12 +514,12 @@ void CAEAudioHardware::GetBeatInfo(tBeatInfo* beatInfo) {
 
 // 0x4D94E0
 void CAEAudioHardware::EnableBassEq() {
-    m_pStreamingChannel->SetBassEQ(m_nBassSet, m_fBassEqGain);
+    m_pStreamingChannel->SetBassEQ(m_BassSetting, m_BassGain);
 }
 
 // 0x4D94D0
 void CAEAudioHardware::DisableBassEq() {
-    m_pStreamingChannel->SetBassEQ(0, 0.f);
+    m_pStreamingChannel->SetBassEQ(eBassSetting::NORMAL, 0.f);
 }
 
 // 0x4D9500
@@ -643,4 +656,8 @@ void CAEAudioHardware::Service() {
         m_VirtualChannelLoopTimes
     );
     m_pMP3BankLoader->Service();
+}
+
+const CAEBankSlot* CAEAudioHardware::GetBankSlot(eSoundBankSlot slot) const {
+    return m_pMP3BankLoader->GetBankSlot(slot);
 }
