@@ -4825,13 +4825,11 @@ bool CPhysical::CheckCollision()
         if (ped->IsPlayer()) {
             CTaskSimpleClimb* taskClimb = ped->m_pIntelligence->GetTaskClimb();
             if (taskClimb) {
-                switch (taskClimb->m_nHeightForPos) {
+                switch (taskClimb->GetHeightForPos()) {
                 case CLIMB_GRAB:
                 case CLIMB_PULLUP:
                 case CLIMB_STANDUP:
-                case CLIMB_VAULT:
-                    physicalFlags.bSkipLineCol = true;
-                    break;
+                case CLIMB_VAULT: physicalFlags.bSkipLineCol = true; break;
                 }
             }
         }

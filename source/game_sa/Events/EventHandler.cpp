@@ -686,9 +686,9 @@ void CEventHandler::ComputeBuildingCollisionResponse(CEventBuildingCollision* e,
 
             if (CTaskComplexGangFollower::ms_bUseClimbing) { // 0x4BF6B3
                 if (CPedGroups::IsInPlayersGroup(m_Ped)) {
-                    CVector climbPos;
-                    float   climbGrabHeading;
-                    uint8   climbSurfaceType;
+                    CVector      climbPos;
+                    float        climbGrabHeading;
+                    eSurfaceType climbSurfaceType;
                     if (const auto entityToClimb = CTaskSimpleClimb::TestForClimb(m_Ped, climbPos, climbGrabHeading, climbSurfaceType, true)) {
                         return new CTaskSimpleClimb{
                             entityToClimb,
