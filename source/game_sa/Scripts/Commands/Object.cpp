@@ -11,10 +11,11 @@
 
 using namespace notsa;
 using namespace notsa::script;
+
 /*!
 * Various object commands
 */
-
+namespace {
 namespace Object {
 CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     const auto mi = CModelInfo::GetModelInfo(model);
@@ -184,6 +185,7 @@ auto SetObjectAnimCurrentTime(CObject& obj, const char* animName, float progress
     }
 }
 } // namespace Animation
+};
 
 void notsa::script::commands::object::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Object");

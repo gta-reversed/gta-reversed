@@ -291,7 +291,7 @@ void CAEWeaponAudioEntity::WeaponReload(eWeaponType type, CPhysical* entity, eAu
         return;
     }
 
-    const auto PlaySound = [&](tSoundID soundID, float volumeOffsetdB = 0.f) {
+    const auto PlaySound = [&](eSoundID soundID, float volumeOffsetdB = 0.f) {
         CAESound s;
         s.Initialise(
             5,
@@ -504,7 +504,7 @@ void CAEWeaponAudioEntity::ReportStealthKill(eWeaponType type, CPhysical* entity
         return;
     }
 
-    const auto PlayStealthKillSound = [&](int16 bankSlotID, tSoundID soundID, float volumeOffsetdB, int32 eventID) {
+    const auto PlayStealthKillSound = [&](int16 bankSlotID, eSoundID soundID, float volumeOffsetdB, int32 eventID) {
         AESoundManager.PlaySound({
             .BankSlotID         = bankSlotID,
             .SoundID            = soundID,

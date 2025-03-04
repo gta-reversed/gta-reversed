@@ -101,12 +101,12 @@ uint64 CAEAudioUtility::GetCurrentTimeInMS() {
     //For some reason this doesn't work (original code):
     //LARGE_INTEGER counter;
     //QueryPerformanceCounter(&counter);
-    //return counter.QuadPart / Frequency.QuadPart * 1000 - startTimeMs;
+    //return counter.QuadPart / SampleFrequency.QuadPart * 1000 - startTimeMs;
 }
 
 // 0x4d9ef0
-uint32 CAEAudioUtility::ConvertFromBytesToMS(uint32 lengthInBytes, uint32 frequency, uint16 frequencyMult) {
-    return static_cast<uint32>(std::floorf(lengthInBytes / (float(frequency * frequencyMult) / 500.0f)));
+uint32 CAEAudioUtility::ConvertFromBytesToMS(uint32 lengthInBytes, uint32 sampleRate, uint16 numChannels) {
+    return static_cast<uint32>(std::floorf(lengthInBytes / (float(sampleRate * numChannels) / 500.0f)));
 }
 
 // 0x4d9f40

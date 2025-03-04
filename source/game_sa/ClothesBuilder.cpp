@@ -57,9 +57,11 @@ void CClothesBuilder::LoadCdDirectory() {
 // 0x5A41C0
 void CClothesBuilder::RequestGeometry(int32 modelId, uint32 modelNameKey) {
     CModelInfo::GetModelInfo(modelId)->bHasComplexHierarchy = true; // TODO/NOTE: Not sure
-    uint32 offset, size;
-    VERIFY(playerImg.FindItem(CKeyGen::AppendStringToKey(modelNameKey, ".DFF"), offset, size));
-    CStreaming::RequestFile(modelId, offset, size, CClothes::ms_clothesImageId, STREAMING_PRIORITY_REQUEST | STREAMING_GAME_REQUIRED);
+
+    uint32 size;
+    CdStreamPos pos;
+    VERIFY(playerImg.FindItem(CKeyGen::AppendStringToKey(modelNameKey, ".DFF"), pos, size));
+    CStreaming::RequestFile(modelId, pos, size, CClothes::ms_clothesImageId, STREAMING_PRIORITY_REQUEST | STREAMING_GAME_REQUIRED);
 }
 
 // 0x5A4220
@@ -72,9 +74,10 @@ int32 CClothesBuilder::RequestTexture(uint32 txdNameKey) {
     const auto defaultTxd = CTxdStore::defaultTxds[defaultTxdIdx];
     defaultTxdIdx = (defaultTxdIdx + 1) % 4;
 
-    uint32 offset, size;
-    VERIFY(playerImg.FindItem(CKeyGen::AppendStringToKey(txdNameKey, ".TXD"), offset, size));
-    CStreaming::RequestFile(TXDToModelId(defaultTxd), offset, size, CClothes::ms_clothesImageId, STREAMING_PRIORITY_REQUEST | STREAMING_GAME_REQUIRED);
+    uint32 size;
+    CdStreamPos pos;
+    VERIFY(playerImg.FindItem(CKeyGen::AppendStringToKey(txdNameKey, ".TXD"), pos, size));
+    CStreaming::RequestFile(TXDToModelId(defaultTxd), pos, size, CClothes::ms_clothesImageId, STREAMING_PRIORITY_REQUEST | STREAMING_GAME_REQUIRED);
 
     return defaultTxd;
 }

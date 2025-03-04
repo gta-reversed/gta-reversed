@@ -27,7 +27,7 @@ public:
     static bool      ResolveProbability(float prob);
     static float     AudioLog10(float p);
 
-    static uint32    ConvertFromBytesToMS(uint32 lengthInBytes, uint32 frequency, uint16 frequencyMult);
+    static uint32    ConvertFromBytesToMS(uint32 lengthInBytes, uint32 sampleRate, uint16 numChannels);
     static uint32    ConvertFromMSToBytes(uint32 a, uint32 frequency, uint16 frequencyMult);
 
     static bool      GetBankAndSoundFromScriptSlotAudioEvent(const eAudioEvents& ae, eSoundBankS32& outBankID, int32& outSoundID, int32 slot);
