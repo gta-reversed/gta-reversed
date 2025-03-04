@@ -213,7 +213,7 @@ void CAEMP3BankLoader::Service() {
     for (auto&& [i, req] : notsa::enumerate(m_Requests)) {
         const auto AllocateStreamBuffer = [&](uint32 sectors) {
             const auto buf  = (std::byte*)(CMemoryMgr::Malloc(sectors * STREAMING_SECTOR_SIZE));
-            req.StreamBufPtr  = (AEAudioStream*)(buf);
+            req.StreamBufPtr  = buf;
             req.StreamDataPtr = (AEAudioStream*)(buf + (req.BankOffsetBytes % STREAMING_SECTOR_SIZE));
         };
 
