@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DebugModule.h"
+#include <DebugModules/DebugModule.h>
 #include <Audio/managers/AESoundManager.h>
 #include <Audio/Enums/eSoundBankSlot.h>
 
