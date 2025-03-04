@@ -6,8 +6,8 @@ void CCover::InjectHooks() {
     RH_ScopedClass(CCover);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Init, 0x698710, {.reversed = false});
-    RH_ScopedInstall(RemoveCoverPointIfEntityLost, 0x698DB0, {.reversed = false});
+    RH_ScopedInstall(Init, 0x698710);
+    RH_ScopedInstall(RemoveCoverPointIfEntityLost, 0x698DB0);
     RH_ScopedInstall(RemoveCoverPointsForThisEntity, 0x698740, {.reversed = false});
     RH_ScopedInstall(ShouldThisBuildingHaveItsCoverPointsCreated, 0x699230);
     RH_ScopedInstall(Update, 0x6997E0, {.reversed = false});
@@ -20,22 +20,27 @@ void CCover::InjectHooks() {
     RH_ScopedInstall(FindAndReserveCoverPoint, 0x6992B0, {.reversed = false});
     RH_ScopedInstall(FindCoordinatesCoverPoint, 0x699570, {.reversed = false});
     RH_ScopedInstall(FindCoverPointsForThisBuilding, 0x699120);
-    RH_ScopedInstall(FindDirFromVector, 0x698D40, {.reversed = false});
-    RH_ScopedInstall(FindVectorFromDir, 0x698D60, {.reversed = false});
-    RH_ScopedInstall(FindVectorFromFirstToMissingVertex, 0x698790, {.reversed = false});
+    RH_ScopedInstall(FindDirFromVector, 0x698D40);
+    RH_ScopedInstall(FindVectorFromDir, 0x698D60);
+    RH_ScopedInstall(FindVectorFromFirstToMissingVertex, 0x698790);
 }
 
 // 0x698710
 void CCover::Init() {
     ZoneScoped;
 
-    plugin::Call<0x698710>();
+    m_NumPoints = 0;
+    m_ListOfProcessedBuildings.Flush();
+    rng::fill(m_aPoints, CCoverPoint{});
 }
 
 // unused
 // 0x698DB0
 void CCover::RemoveCoverPointIfEntityLost(CCoverPoint* point) {
-    plugin::Call<0x698DB0>();
+    if (0 < point->m_nMaxPedsInCover && point->m_nMaxPedsInCover < 4 && !point->m_pCoverEntity) {
+        point->m_nMaxPedsInCover = 0;
+        m_NumPoints--;
+    }
 }
 
 // 0x698740
@@ -96,38 +101,63 @@ bool CCover::FindCoordinatesCoverPoint(CCoverPoint* point, CPed* ped, const CVec
     return plugin::CallAndReturn<bool, 0x699570, CCoverPoint*, CPed*, const CVector&, CVector&>(point, ped, position, outCoordinates);
 }
 
+// 0x699120
 void CCover::FindCoverPointsForThisBuilding(CBuilding* building) {
     auto* mi = CModelInfo::GetModelInfo(building->m_nModelIndex);
-    if (!mi->m_n2dfxCount)
+    if (!mi->m_n2dfxCount) {
         return;
+    }
 
-    for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
-        auto* effect = mi->Get2dEffect(iFxInd);
-        if (effect->m_type != e2dEffectType::EFFECT_COVER_POINT)
+    for (int32 fxN = 0; fxN < mi->m_n2dfxCount; ++fxN) {
+        auto* const fx = mi->Get2dEffect(fxN);
+
+        if (fx->m_type != e2dEffectType::EFFECT_COVER_POINT) {
             continue;
+        }
 
-        auto vecDir = CVector(effect->coverPoint.m_vecDirection.x, effect->coverPoint.m_vecDirection.y, 0.0F);
-        const auto vedTransformed = building->GetMatrix().TransformVector(vecDir);
-
-        const auto fTwoPiToChar = 256.0F / TWO_PI;
-        const auto ucAngle = static_cast<uint8>(atan2(vedTransformed.x, vedTransformed.y) * fTwoPiToChar);
-        auto vecPoint = building->GetMatrix().TransformPoint(effect->m_pos);
-        CCover::AddCoverPoint(3, building, &vecPoint, effect->coverPoint.m_nType, ucAngle);
+        const auto dirWS = building->GetMatrix().TransformVector(CVector{CVector2D{fx->coverPoint.m_vecDirection}, 0.f});
+        auto vecPoint = building->GetMatrix().TransformPoint(fx->m_pos);
+        CCover::AddCoverPoint(3, building, &vecPoint, fx->coverPoint.m_nType, static_cast<uint8>(atan2(dirWS.x, dirWS.y) * (256.0F / TWO_PI)));
     }
 }
 
 // 0x698D40
-uint8 CCover::FindDirFromVector(float x, float y) {
-    return plugin::CallAndReturn<uint8, 0x698D40, float, float>(x, y);
+uint8 CCover::FindDirFromVector(CVector dir) {
+    NOTSA_UNUSED_FUNCTION();
+
+    //return (uint8)(atan2(-dir.x, dir.y) * 255.f / TWO_PI);
 }
 
 // 0x698D60
 CVector CCover::FindVectorFromDir(uint8 direction) {
-    return plugin::CallAndReturn<CVector, 0x698D60, uint8>(direction);
+    CVector vector;
+    vector.x = (float)sin(direction / (256.f / TWO_PI));
+    vector.y = (float)cos(direction / (256.f / TWO_PI));
+    vector.z = 0.0;
+    return vector;
 }
 
 // unused
 // 0x698790
 CVector CCover::FindVectorFromFirstToMissingVertex(CColTriangle* triangle, int32* a3, CVector* vertPositions) {
-    return plugin::CallAndReturn<CVector, 0x698790, CColTriangle*, int32*, CVector*>(triangle, a3, vertPositions);
+    NOTSA_UNUSED_FUNCTION();
+
+    //uint16 vertexIndex;
+    //uint16 referenceIndex = *a3;
+    //
+    //// Is vertex missing ?
+    //if ((triangle->vA != referenceIndex && triangle->vA != a3[1])) {
+    //    vertexIndex = triangle->vA;
+    //} else if (triangle->vB != referenceIndex && triangle->vB != a3[1]) {
+    //    vertexIndex = triangle->vB;
+    //} else {
+    //    vertexIndex = triangle->vC;
+    //}
+    //
+    //CVector vector;
+    //vector.x = vertPositions[vertexIndex].x - vertPositions[referenceIndex].x;
+    //vector.y = vertPositions[vertexIndex].y - vertPositions[referenceIndex].y;
+    //vector.z = vertPositions[vertexIndex].z - vertPositions[referenceIndex].z;
+    //
+    //return vector;
 }
