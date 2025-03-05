@@ -1414,16 +1414,14 @@ void CFileLoader::LoadOcclusionVolume(const char* line, const char* filename) {
     float fRotX = 0.0F, fRotY = 0.0F;
     uint32 nFlags = 0;
     float fCenterX, fCenterY, fBottomZ, fWidth, fLength, fHeight, fRotZ;
-
     VERIFY(sscanf_s(line, "%f %f %f %f %f %f %f %f %f %d ", &fCenterX, &fCenterY, &fBottomZ, &fWidth, &fLength, &fHeight, &fRotX, &fRotY, &fRotZ, &nFlags) == 10);
-    auto fCenterZ = fHeight * 0.5F + fBottomZ;
-    auto strLen = strlen(filename);
-
-    bool bIsInterior = false;
-    if (filename[strLen - 7] == 'i' && filename[strLen - 6] == 'n' && filename[strLen - 5] == 't') // todo:
-        bIsInterior = true;
-
-    COcclusion::AddOne(fCenterX, fCenterY, fCenterZ, fWidth, fLength, fHeight, fRotX, fRotY, fRotZ, nFlags, bIsInterior);
+    COcclusion::AddOne(
+        fCenterX, fCenterY, fHeight * 0.5F + fBottomZ,
+        fWidth, fLength, fHeight,
+        fRotX, fRotY, fRotZ,
+        nFlags,
+        std::string_view{filename}.ends_with("int.ipl")
+    );
 }
 
 // 0x5B41C0
