@@ -272,6 +272,11 @@ protected: // Config:
         } Boat{};
 
         struct {
+            float VolSpeedFactor{ 0.2f }; // 0x8CBF88
+            float VolBase{ -12.f }; // 0x8CBF84
+        } Combine;
+
+        struct {
             struct TheProps {
                 float EngineSoundRollOff;
                 float TrackSoundRollOff;
