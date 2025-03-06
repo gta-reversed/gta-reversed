@@ -12,19 +12,25 @@ class CPlaceable;
 
 class CMatrixLink : public CMatrix {
 public:
-    CMatrixLink() : CMatrix() {}
+    CMatrixLink() = default;
+    CMatrixLink(const CMatrix& matrix) : CMatrix(matrix) {} // NOTSA
     CMatrixLink(float fScale) : CMatrix() { SetScale(fScale); }
-
-public:
-    CPlaceable*  m_pOwner;
-    CMatrixLink* m_pPrev;
-    CMatrixLink* m_pNext;
-
-public:
-    static void InjectHooks();
 
     inline void Insert(CMatrixLink* pWhere);
     inline void Remove();
+
+    // NOTSA
+    operator CMatrix&() { return *this; }
+    operator const CMatrix&() const { return *this; }
+
+public:
+    CPlaceable*  m_pOwner{};
+    CMatrixLink* m_pPrev{};
+    CMatrixLink* m_pNext{};
+
+private:
+    friend void InjectHooksMain();
+    static void InjectHooks();
 };
 
 VALIDATE_SIZE(CMatrixLink, 0x54);
