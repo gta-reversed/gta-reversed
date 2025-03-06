@@ -5,6 +5,8 @@
     Do not delete this comment block. Respect others' work!
 */
 #include "StdInc.h"
+#include "WindModifiers.h"
+#include "Entity.h"
 
 void CHeli::InjectHooks() {
     RH_ScopedVirtualClass(CHeli, 0x871680, 71);
@@ -17,6 +19,7 @@ void CHeli::InjectHooks() {
     RH_ScopedInstall(SwitchPoliceHelis, 0x6C4800);
     RH_ScopedInstall(RenderAllHeliSearchLights, 0x6C7C50);
     RH_ScopedInstall(TestSniperCollision, 0x6C6890);
+    RH_ScopedVMTInstall(ProcessFlyingCarStuff, 0x6C4E60, {.reversed = false});
     RH_ScopedVMTInstall(Render, 0x6C4400);
     RH_ScopedVMTInstall(Fix, 0x6C4530);
     RH_ScopedVMTInstall(BurstTyre, 0x6C4330);
@@ -337,8 +340,122 @@ void CHeli::SetupDamageAfterLoad() {
 }
 
 // 0x6C4E60
+//Vanilla BUG: There is a small bug related in this case, when it comes to a Seasparrow or a LEVIATHN the blades should not stop when touching the water but there is a small reset.
 void CHeli::ProcessFlyingCarStuff() {
-    plugin::CallMethod<0x6C4E60, CHeli*>(this);
+    const auto vehicleType = AsAutomobile();
+
+    // Please do not confuse with type of automobile!
+    if (!GetStatus() || GetStatus() == STATUS_REMOTE_CONTROLLED || GetStatus() == STATUS_PHYSICS) {
+        // Handle wheel angular velocity
+        if (vehicleType->m_fHeliRotorSpeed < 0.22f && !physicalFlags.bSubmergedInWater) {
+            vehicleType->m_fHeliRotorSpeed += (m_nModelIndex == MODEL_RCGOBLIN || m_nModelIndex == MODEL_RCRAIDER) ? 0.003f : 0.001f;
+        }
+
+        // Process flying controls if needed
+        if (m_fHeliRotorSpeed > 0.15) {
+            if (vehicleFlags.bIsRCVehicle ||
+                (m_nWheelsOnGround < 4 && !(IsAmphibiousHeli() && physicalFlags.bTouchingWater) 
+                ||(m_fAccelerationBreakStatus > 0.0f) 
+                ||std::abs(m_vecMoveSpeed.x) > 0.02f 
+                ||std::abs(m_vecMoveSpeed.y) > 0.02f 
+                ||std::abs(m_vecMoveSpeed.z) > 0.02f))
+            {
+                FlyingControl(
+                    vehicleFlags.bIsRCVehicle ? FLIGHT_MODEL_RC : FLIGHT_MODEL_HELI,
+                    m_fLeftRightSkid,
+                    m_fSteeringUpDown,
+                    m_fSteeringLeftRight,
+                    m_fAccelerationBreakStatus
+                );
+            }
+        }
+
+        // Process blade collision if needed
+        if (vehicleType->m_fHeliRotorSpeed > 0.015f) {
+            auto bladeFrame = m_aCarNodes[PLANE_STATIC_PROP];
+            if (bladeFrame) {
+                auto bladeMatrix = CMatrix();
+                bladeMatrix.Attach(RwFrameGetMatrix(bladeFrame), false);
+
+                RpAtomic* atomic = nullptr;
+                RwFrameForAllObjects(bladeFrame, GetCurrentAtomicObjectCB, &atomic);
+
+                if (atomic) {
+                    if ((atomic->interpolator.flags & rpINTERPOLATORDIRTYSPHERE) != 0) {
+                        _rpAtomicResyncInterpolatedSphere(atomic);
+                    }
+
+                    float bladeRadius = atomic->boundingSphere.radius;
+                    if (bladeRadius > 0.1f) {
+                        float collisionFactor = 1.0f;
+                        switch (m_nModelIndex) {
+                        case MODEL_RCRAIDER:
+                        case MODEL_RCGOBLIN:
+                            collisionFactor = 0.9f;
+                            break;
+                        case MODEL_SPARROW:
+                        case MODEL_SEASPAR:
+                            collisionFactor = 0.8f;
+                            break;
+                        case MODEL_HUNTER:
+                            collisionFactor = 0.5f;
+                            break;
+                        }
+
+                        if (!GetStatus() || GetStatus() == STATUS_REMOTE_CONTROLLED) {
+                            // Probably for optimization reasons only the top rotor was chosen.
+                            CVehicle::DoBladeCollision(bladeMatrix.GetPosition(), GetMatrix(), ROTOR_TOP, bladeRadius, collisionFactor);
+                        }
+                    }
+                }
+
+                if (GetStatus() && GetStatus() != STATUS_PHYSICS || vehicleType->m_fHeliRotorSpeed <= 0.0075f) {
+                    if (GetStatus() == STATUS_SIMPLE) {
+                        CVector windPosition = GetPosition();
+                        CWindModifiers::RegisterOne(windPosition, 1, 1.0f);
+                    }
+                } else {
+                    CVector windPosition = GetPosition();
+                    CWindModifiers::RegisterOne(windPosition, 1, std::min(vehicleType->m_fHeliRotorSpeed * 6.6666665f, 1.0f));
+                }
+            }
+        }
+    } else {
+        if (!vehicleType->IsRealHeli()) {
+            return;
+        }
+
+        vehicleType->vehicleFlags.bEngineOn = false;
+        float speedReduction                   = CTimer::ms_fTimeStep * 0.00055f;
+        if (speedReduction >= vehicleType->m_fHeliRotorSpeed) {
+            vehicleType->m_fHeliRotorSpeed = 0.0f;
+        } else {
+            m_nFakePhysics = 0;
+            vehicleType->m_fHeliRotorSpeed -= speedReduction;
+        }
+    }
+
+    // Process audio events for specific models
+    if (m_nModelIndex != MODEL_RCRAIDER && m_nModelIndex != MODEL_RCGOBLIN && vehicleType->m_fHeliRotorSpeed < 0.154f && vehicleType->m_fHeliRotorSpeed > 0.0044f) {
+        RwFrame* bladeFrame = m_aCarNodes[PLANE_STATIC_PROP];
+        if (bladeFrame) {
+            CVector camDist = TheCamera.GetPosition() - GetPosition();
+            float   distSq  = camDist.SquaredMagnitude();
+
+            if (distSq < sq(20.0f) && std::abs(vehicleType->m_fUpDownLightAngle[0] - m_wheelRotation[1]) > DegreesToRadians(30.0f)) { // SQ(20) mts = 400 e. dis.
+                CMatrix mat;
+                mat.Attach(RwFrameGetMatrix(bladeFrame), false);
+                CVector bladeDirection = mat.GetRight();
+                m_matrix->InverseTransformVector(bladeDirection);
+
+                float distance = 1.0f / std::max(std::sqrt(distSq), 0.01f);
+                if (std::abs(DotProduct(camDist, bladeDirection)) > HELI_ROTOR_DOTPROD_LIMIT) {
+                    vehicleType->m_vehicleAudio.AddAudioEvent(AE_HELI_BLADE, 0.0f);
+                    vehicleType->m_fUpDownLightAngle[0] = m_wheelRotation[1];
+                }
+            }
+        }
+    }
 }
 
 // 0x6C5420

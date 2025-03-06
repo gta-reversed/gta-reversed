@@ -251,8 +251,8 @@ void CPad::UpdateMouse() {
 
         // Write directly to NewMouseControllerState
         CPad::OldMouseControllerState = std::exchange(CPad::NewMouseControllerState, state);
-        CPad::NewMouseControllerState.X *= invertX;
-        CPad::NewMouseControllerState.Y *= invertY;
+        CPad::NewMouseControllerState.m_AmountMoved.x *= invertX;
+        CPad::NewMouseControllerState.m_AmountMoved.y *= invertY;
     }
 }
 
