@@ -24,7 +24,7 @@ bool CTaskSimpleEvasiveDive::MakeAbortable(CPed* ped, eAbortPriority priority, c
         }
         return true;
     }
-    if (const auto eDmg = CEvent::DynCast<const CEventDamage>(event)) {
+    if (const auto eDmg = notsa::dyn_cast_if_present<const CEventDamage>(event)) {
         if (eDmg->m_pSourceEntity && eDmg->m_pSourceEntity->IsVehicle()) {
             switch (eDmg->m_weaponType) {
             case WEAPON_RAMMEDBYCAR:
