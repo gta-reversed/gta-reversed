@@ -113,6 +113,10 @@ public:
             : nullptr;
     }
 
+public: // Casting.hpp support //
+    template<typename From, typename Self>
+    static constexpr bool classof(const From* f) { return f->GetTaskType() == Self::Type; }
+
 protected:
     CTaskComplex* m_Parent{};
 };
