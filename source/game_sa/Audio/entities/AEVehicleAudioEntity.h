@@ -760,83 +760,81 @@ private:
     void GenericPlaySurfaceSound(eSoundBankSlot slot, eSoundID newSoundType, float speed, float volume, float rollOff) noexcept;
     void UpdateDummyRCAcAndBrake(tVehicleParams& vp);
     bool UpdateVehicleEngineSoundRawVolume(eVehicleEngineSoundType st, float speed, float volume);
-    void UpdatePlanePropFreq(tVehicleParams& vp, float ac, float stepUp, float stepDown);
-
     void UpdateRotorFreq(float freq, float stepUp, float stepDown);
 
 public:
-    int16                  m_DoCountStalls;
-    tVehicleAudioSettings  m_AuSettings;
-    bool                   m_IsInitialized;
-    bool                   m_IsPlayerDriver;
-    bool                   m_IsPlayerPassenger;
-    bool                   m_IsPlayerDriverAboutToExit;
-    bool                   m_IsWreckedVehicle;
-    eAEState               m_State;    //!< Self explainatory
-    uint8                  m_AuGear;   //!< Still not sure
-    float                  m_CrzCount; //!< Max value is defined in the config (`MaxCrzCount`) - Used when in the last gear and the engine is maxed out
-    bool                   m_IsSingleGear;
-    int16                  m_RainDropCounter;
-    int16                  m_StalledCount;
-    uint32                 m_SwapStalledTime;
-    bool                   m_IsSilentStalled; // ProcessPlayerProp
-    bool                   m_IsHelicopterDisabled;
+    int16                  m_DoCountStalls{};
+    tVehicleAudioSettings  m_AuSettings{};
+    bool                   m_IsInitialized{};
+    bool                   m_IsPlayerDriver{};
+    bool                   m_IsPlayerPassenger{};
+    bool                   m_IsPlayerDriverAboutToExit{};
+    bool                   m_IsWreckedVehicle{};
+    eAEState               m_State{};    //!< Self explanatory
+    uint8                  m_AuGear{};   //!< Still not sure
+    float                  m_CrzCount{}; //!< Max value is defined in the config (`MaxCrzCount`) - Used when in the last gear and the engine is maxed out
+    bool                   m_IsSingleGear{};
+    int16                  m_RainDropCounter{};
+    int16                  m_StalledCount{};
+    uint32                 m_SwapStalledTime{};
+    bool                   m_IsSilentStalled{}; // ProcessPlayerProp
+    bool                   m_IsHelicopterDisabled{};
 
-    bool                   m_IsHornOn;
-    bool                   m_IsSirenOn;
-    bool                   m_IsFastSirenOn;
-    float                  m_HornVolume;
-    bool                   m_HasSiren;
+    bool                   m_IsHornOn{};
+    bool                   m_IsSirenOn{};
+    bool                   m_IsFastSirenOn{};
+    float                  m_HornVolume{};
+    bool                   m_HasSiren{};
 
-    uint32                 m_TimeSplashLastTriggered;
-    uint32                 m_TimeBeforeAllowAccelerate;
-    uint32                 m_TimeBeforeAllowCruise;
+    uint32                 m_TimeSplashLastTriggered{};
+    uint32                 m_TimeBeforeAllowAccelerate{};
+    uint32                 m_TimeBeforeAllowCruise{};
 
-    float                  m_EventVolume;
+    float                  m_EventVolume{};
 
-    eSoundBankS16          m_DummyEngineBank;
-    eSoundBankS16          m_PlayerEngineBank;
-    eSoundBankSlotS16      m_DummySlot;
-    std::array<tEngineSound, AE_SOUND_ENGINE_MAX> m_EngineSounds;
+    eSoundBankS16          m_DummyEngineBank{SND_BANK_UNK};
+    eSoundBankS16          m_PlayerEngineBank{SND_BANK_UNK};
+    eSoundBankSlotS16      m_DummySlot{SND_BANK_SLOT_NONE};
+    std::array<tEngineSound, AE_SOUND_ENGINE_MAX> m_EngineSounds{};
 
-    int32                  m_TimeLastServiced;
+    int32                  m_TimeLastServiced{};
 
-    int16                  m_ACPlayPositionThisFrame;
-    int16                  m_ACPlayPositionLastFrame;
-    int16                  m_FramesAgoACLooped;
-    int16                  m_ACPlayPercentWhenStopped;  // [0, 100]
-    uint32                 m_TimeACStopped;
-    int16                  m_ACPlayPositionWhenStopped;
+    int16                  m_ACPlayPositionThisFrame{};
+    int16                  m_ACPlayPositionLastFrame{};
+    int16                  m_FramesAgoACLooped{};
+    int16                  m_ACPlayPercentWhenStopped{};  // [0, 100]
+    uint32                 m_TimeACStopped{};
+    int16                  m_ACPlayPositionWhenStopped{};
 
-    eSoundID               m_SurfaceSoundType; //!< Used for `m_SkidSound` (Not `m_SurfaceSound`!)
-    CAESound*              m_SurfaceSound; //!< Not actually used, instead `m_SkidSound` is used
+    eSoundID               m_SurfaceSoundType{}; //!< Used for `m_SkidSound` (Not `m_SurfaceSound`!)
+    CAESound*              m_SurfaceSound{}; //!< Not actually used, instead `m_SkidSound` is used
 
-    eSoundID               m_RoadNoiseSoundType;
-    CAESound*              m_RoadNoiseSound;
+    eSoundID               m_RoadNoiseSoundType{};
+    CAESound*              m_RoadNoiseSound{};
 
-    eSoundID               m_FlatTireSoundType;
-    CAESound*              m_FlatTireSound;
+    eSoundID               m_FlatTireSoundType{};
+    CAESound*              m_FlatTireSound{};
 
-    eSoundID               m_ReverseGearSoundType;
-    CAESound*              m_ReverseGearSound;
+    eSoundID               m_ReverseGearSoundType{};
+    CAESound*              m_ReverseGearSound{};
 
-    eSoundID               m_HornSoundType;
-    CAESound*              m_HornSound;
-    CAESound*              m_SirenSound;
-    CAESound*              m_FastSirenSound;
+    eSoundID               m_HornSoundType{};
+    CAESound*              m_HornSound{};
+    CAESound*              m_SirenSound{};
+    CAESound*              m_FastSirenSound{};
 
-    CAETwinLoopSoundEntity m_SkidSound;
+    CAETwinLoopSoundEntity m_SkidSound{};
 
-    float                  m_CurrentRotorFrequency;
-    float                  m_CurrentDummyEngineVolume;
-    float                  m_CurrentDummyEngineFrequency;
-    float                  m_MovingPartSmoothedSpeed;
+    float                  m_CurrentRotorFrequency{};
+    float                  m_CurrentDummyEngineVolume{};
+    float                  m_CurrentDummyEngineFrequency{};
+    float                  m_MovingPartSmoothedSpeed{};
 
-    float                  m_FadeIn;
-    float                  m_FadeOut;
+    float                  m_FadeIn{}; //<! Used for dummies (`ProcessDummyStateTransition`)
+    float                  m_FadeOut{}; //<! Used for dummies (`ProcessDummyStateTransition`)
 
-    bool                   m_bNitroOnLastFrame;
-    float                  m_CurrentNitroRatio;
+    bool                   m_bNitroOnLastFrame{};
+    float                  m_CurrentNitroRatio{};
 
 
 private:

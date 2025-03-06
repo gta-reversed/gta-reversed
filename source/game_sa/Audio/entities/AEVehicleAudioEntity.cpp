@@ -4736,12 +4736,12 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(GetFrequencyForDummyRev, 0x4F54F0);
 
     RH_ScopedInstall(JustGotInVehicleAsDriver, 0x4F5700);
-    RH_ScopedInstall(TurnOnRadioForVehicle, 0x4F5B20);  // -
-    RH_ScopedInstall(TurnOffRadioForVehicle, 0x4F5B60); // -
+    RH_ScopedInstall(TurnOnRadioForVehicle, 0x4F5B20);
+    RH_ScopedInstall(TurnOffRadioForVehicle, 0x4F5B60);
     RH_ScopedInstall(PlayerAboutToExitVehicleAsDriver, 0x4F5BA0);
     RH_ScopedInstall(GetFreqForIdle, 0x4F5C60);
     RH_ScopedInstall(GetAccelAndBrake, 0x4F5080);
-    RH_ScopedInstall(UpdateGasPedalAudio, 0x4F5EB0); // [1]
+    RH_ScopedInstall(UpdateGasPedalAudio, 0x4F5EB0);
 
     RH_ScopedInstall(JustGotOutOfVehicleAsDriver, 0x4FCF40);
     RH_ScopedInstall(JustWreckedVehicle, 0x4FD0B0);
@@ -4756,7 +4756,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(JustFinishedAccelerationLoop, 0x4F5E50);
     RH_ScopedInstall(IsAccInhibited, 0x4F4F70);
     RH_ScopedInstall(IsAccInhibitedBackwards, 0x4F4FC0);
-    RH_ScopedInstall(IsAccInhibitedForLowSpeed, 0x4F4FF0); // [1] 
+    RH_ScopedInstall(IsAccInhibitedForLowSpeed, 0x4F4FF0);
     RH_ScopedInstall(IsAccInhibitedForTime, 0x4F5020);
     RH_ScopedInstall(InhibitAccForTime, 0x4F5030);
 
@@ -4772,7 +4772,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
 
     // Horn
     RH_ScopedOverloadedInstall(GetHornState, "", 0x4F61E0, void(CAEVehicleAudioEntity::*)(bool*, tVehicleParams&) const); // Done
-    RH_ScopedInstall(GetSirenState, 0x4F62A0);  // Done
+    RH_ScopedInstall(GetSirenState, 0x4F62A0);
     RH_ScopedInstall(PlayHornOrSiren, 0x4F99D0);
     RH_ScopedInstall(ProcessVehicleSirenAlarmHorn, 0x5002C0);
 
@@ -4782,15 +4782,15 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(StartVehicleEngineSound, 0x4F7F20);
     RH_ScopedInstall(CancelVehicleEngineSound, 0x4F55C0);
     RH_ScopedInstall(RequestNewPlayerCarEngineSound, 0x4F7A50);
-    RH_ScopedInstall(GetFreqForPlayerEngineSound, 0x4F8070); // [1]
-    RH_ScopedInstall(GetVolForPlayerEngineSound, 0x4F5D00); // [1]
+    RH_ScopedInstall(GetFreqForPlayerEngineSound, 0x4F8070);
+    RH_ScopedInstall(GetVolForPlayerEngineSound, 0x4F5D00);
     //RH_ScopedInstall(UpdateVehicleEngineSound, 0x4F56D0); // Don't hook because original function doesn't return a bool, ours does
     RH_ScopedInstall(StopGenericEngineSound, 0x4F6320);
 
     // Car + bike
-    RH_ScopedInstall(PlayFlatTyreSound, 0x4F8650); // + Caddy
+    RH_ScopedInstall(PlayFlatTyreSound, 0x4F8650);
     RH_ScopedInstall(PlayReverseSound, 0x4F87D0);
-    RH_ScopedInstall(PlayRoadNoiseSound, 0x4F84D0); // + Trailers
+    RH_ScopedInstall(PlayRoadNoiseSound, 0x4F84D0);
 
     // Boat
     RH_ScopedInstall(ProcessBoatMovingOverWater, 0x4FA0C0);
@@ -4855,11 +4855,6 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessVehicle, 0x501E10, { .locked = true }); // -||-
     RH_ScopedInstall(Service, 0x502280, { .locked = true }); // -||-
 
-
     RH_ScopedOverloadedInstall(AddAudioEvent, "0", 0x4F6420, void(CAEVehicleAudioEntity::*)(eAudioEvents, float));
     RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CVehicle*));
-
-    /* Footnotes:
-    * [1] - Dont hook unless `ProcessPlayerVehicleEngine` is hooked
-    */
 }
