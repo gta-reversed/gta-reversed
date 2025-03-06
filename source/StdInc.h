@@ -41,7 +41,7 @@ namespace fs = std::filesystem;
 
 #include <extensions/Casting.hpp>
 
-#include <tracy/Tracy.hpp>
+#include <Tracy.hpp>
 
 // DirectX
 #include <d3d9.h>
