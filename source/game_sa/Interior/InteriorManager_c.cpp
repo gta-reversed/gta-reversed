@@ -194,7 +194,7 @@ void InteriorManager_c::AddSameGroupEffectInfos(InteriorEffectInfo_t* ifxi, int3
             continue;
         }
 
-        const auto fx = C2dEffect::DynCast<C2dEffectInterior>(mi->Get2dEffect(i));
+        const auto fx = notsa::dyn_cast_if_present<C2dEffectInterior>(mi->Get2dEffect(i));
         if (!fx || ifxi->Effects[0]->m_groupId != fx->m_groupId) {
             continue;
         }
@@ -251,7 +251,7 @@ size_t InteriorManager_c::GetVisibleEffects(InteriorEffectInfo_t* intFxInfos, ui
 
         const auto mi = e->GetModelInfo();
         for (size_t i = 0; i < mi->m_n2dfxCount; i++) {
-            const auto ifx = C2dEffect::DynCast<C2dEffectInterior>(mi->Get2dEffect((int32)i));
+            const auto ifx = notsa::dyn_cast_if_present<C2dEffectInterior>(mi->Get2dEffect((int32)i));
 
             // We only care about visible interior effects
             if (!ifx || !IsInteriorEffectVisible(ifx, e)) {
