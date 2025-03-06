@@ -79,40 +79,43 @@ extern RwRGBAReal& AmbientLightColourForFrame;
 
 #define RpGeometryGetMesh(_geometry, _index) (&((RpMesh*)(((char*)(_geometry)->mesh) + sizeof(RpMeshHeader) + ((_geometry)->mesh->firstMeshOffset)))[_index])
 
-constexpr float E              = 2.71828f;          // e
-constexpr float E_CONST        = 0.577f;            // Euler-Mascheroni constant
-constexpr float FRAC_1_TAU     = 0.159154f;         // 1 / τ
-constexpr float FRAC_1_PI      = 0.318309f;         // 1 / π
-constexpr float FRAC_2_TAU     = 0.318309f;         // 2 / τ
-constexpr float FRAC_2_PI      = 0.636619f;         // 2 / π
-constexpr float FRAC_2_SQRT_PI = 1.12837f;          // 2 / √π
-constexpr float FRAC_4_TAU     = 0.636619f;         // 4 / τ
-constexpr float FRAC_1_SQRT_2  = 0.707106f;         // 1 / √2
-constexpr float FRAC_PI_2      = 1.57079f;          // π / 2
-constexpr float FRAC_PI_3      = 1.04719f;          // π / 3
-constexpr float FRAC_PI_4      = 0.785398f;         // π / 4
-constexpr float FRAC_PI_6      = 0.523598f;         // π / 6
-constexpr float FRAC_PI_8      = 0.392699f;         // π / 8
-constexpr float FRAC_TAU_2     = 3.14159f;          // τ / 2 = π
-constexpr float FRAC_TAU_3     = 2.09439f;          // τ / 3
-constexpr float FRAC_TAU_4     = 1.57079f;          // τ / 4
-constexpr float FRAC_TAU_6     = 1.04719f;          // τ / 6
-constexpr float FRAC_TAU_8     = 0.785398f;         // τ / 8
-constexpr float FRAC_TAU_12    = 0.523598f;         // τ / 12
-constexpr float LN_2           = 0.693147f;         // ln(2)
-constexpr float LN_10          = 2.30258f;          // ln(10)
-constexpr float LOG2_E         = 1.44269f;          // log2(e)
-constexpr float LOG10_E        = 0.434294f;         // log10(e)
-constexpr float LOG10_2        = 0.301029f;         // log10(2)
-constexpr float LOG2_10        = 3.32192f;          // log2(10)
-constexpr float PI             = 3.14159f;          // π
-constexpr float HALF_PI        = PI / 2.0f;         // π / 2
-constexpr float PI_6           = PI / 6.0f;         // π / 6
-constexpr float SQRT_2         = 1.41421f;          // √2
-constexpr float SQRT_3         = 1.73205f;          // √3
-constexpr float TWO_PI         = 6.28318f;          // τ (TAU)
+constexpr float E               = 2.71828f;          // e
+constexpr float E_CONST         = 0.577f;            // Euler-Mascheroni constant
+constexpr float FRAC_1_TAU      = 0.159154f;         // 1 / τ
+constexpr float FRAC_1_PI       = 0.318309f;         // 1 / π
+constexpr float FRAC_2_TAU      = 0.318309f;         // 2 / τ
+constexpr float FRAC_2_PI       = 0.636619f;         // 2 / π
+constexpr float FRAC_2_SQRT_PI  = 1.12837f;          // 2 / √π
+constexpr float FRAC_4_TAU      = 0.636619f;         // 4 / τ
+constexpr float FRAC_1_SQRT_2   = 0.707106f;         // 1 / √2
+constexpr float FRAC_PI_2       = 1.57079f;          // π / 2
+constexpr float FRAC_PI_3       = 1.04719f;          // π / 3
+constexpr float FRAC_PI_4       = 0.785398f;         // π / 4
+constexpr float FRAC_PI_6       = 0.523598f;         // π / 6
+constexpr float FRAC_PI_8       = 0.392699f;         // π / 8
+constexpr float FRAC_TAU_2      = 3.14159f;          // τ / 2 = π
+constexpr float FRAC_TAU_3      = 2.09439f;          // τ / 3
+constexpr float FRAC_TAU_4      = 1.57079f;          // τ / 4
+constexpr float FRAC_TAU_6      = 1.04719f;          // τ / 6
+constexpr float FRAC_TAU_8      = 0.785398f;         // τ / 8
+constexpr float FRAC_TAU_12     = 0.523598f;         // τ / 12
+constexpr float LN_2            = 0.693147f;         // ln(2)
+constexpr float LN_10           = 2.30258f;          // ln(10)
+constexpr float LOG2_E          = 1.44269f;          // log2(e)
+constexpr float LOG10_E         = 0.434294f;         // log10(e)
+constexpr float LOG10_2         = 0.301029f;         // log10(2)
+constexpr float LOG2_10         = 3.32192f;          // log2(10)
+constexpr float PI              = 3.14159f;          // π
+constexpr float HALF_PI         = PI / 2.0f;         // π / 2
+constexpr float PI_6            = PI / 6.0f;         // π / 6
+constexpr float SQRT_2          = 1.41421f;          // √2
+constexpr float SQRT_3          = 1.73205f;          // √3
+constexpr float TWO_PI          = 6.28318f;          // τ (TAU)
+constexpr float TWO_PI_OVER_256 = TWO_PI / 256.0F;   // Here because the compiler shits itself when this it put into FixedFloat's template
+constexpr float DEG_TO_RAD     = 0.01745329252f;    // π / 180
 
-constexpr float COS_45 = SQRT_2 / 2.f; // cos(45deg)
+
+constexpr float COS_45         = SQRT_2 / 2.f;      // cos(45°)
 
 template<typename T>
 NOTSA_FORCEINLINE constexpr T sq(T x) { return x * x; }
@@ -146,7 +149,7 @@ static bool IsPointInSphere(const CVector& point, const CVector& center, float r
 // Converts degrees to radians
 // keywords: 0.017453292 flt_8595EC
 constexpr float DegreesToRadians(float angleInDegrees) {
-    return angleInDegrees * PI / 180.0F;
+    return angleInDegrees * DEG_TO_RAD;
 }
 
 //! @notsa
@@ -255,8 +258,13 @@ bool GraphicsHighQuality();
 void WriteRaster(RwRaster* raster, const char* filename);
 bool CalcScreenCoors(const CVector& in, CVector& out, float& screenX, float& screenY);
 bool CalcScreenCoors(const CVector& in, CVector& out);
-bool DoesInfiniteLineTouchScreen(float baseX, float baseY, float deltaX, float deltaY);
-bool IsPointInsideLine(float fLineBaseX, float fLineBaseY, float fDeltaX, float fDeltaY, float fTestPointX, float fTestPointY, float fRadius);
+bool DoesInfiniteLineTouchScreen(CVector2D origin, CVector2D dir);
+bool IsPointInsideLine(
+    CVector2D origin,
+    CVector2D dir,
+    CVector2D pt,
+    float     radius
+);
 
 void LittleTest();
 
