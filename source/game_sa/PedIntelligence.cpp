@@ -35,6 +35,9 @@
 #include "TaskSimpleInAir.h"
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleSwim.h"
+#include "TaskSimplePutDownEntity.h"
+#include <TaskComplexGoToCarDoorAndStandStill.h>
+#include "TaskSimplePickUpEntity.h"
 #include <extensions/enumerate.hpp>
 
 
@@ -283,7 +286,7 @@ CTaskSimpleHoldEntity* CPedIntelligence::GetTaskHold(bool bIgnoreCheckingForSimp
 
     if (!bIgnoreCheckingForSimplestActiveTask) {
         if (const auto task = m_TaskMgr.GetSimplestActiveTask()) {
-            if (CTask::IsA<TASK_SIMPLE_PICKUP_ENTITY, TASK_SIMPLE_PUTDOWN_ENTITY>(task)) {
+            if (notsa::isa<CTaskSimplePickUpEntity, CTaskSimplePutDownEntity>(task)) {
                 return static_cast<CTaskSimpleHoldEntity*>(task);
             }
         }
@@ -846,7 +849,7 @@ void CPedIntelligence::RemoveAllInterestingEntities() {
 bool CPedIntelligence::IsPedGoingForCarDoor() {
     auto* task = m_TaskMgr.GetSimplestActiveTask();
     for (auto i = 0; task && i < 3; i++, task = task->GetParent()) {
-        if (CTask::IsA<TASK_COMPLEX_GO_TO_CAR_DOOR_AND_STAND_STILL>(task)) {
+        if (notsa::isa<CTaskComplexGoToCarDoorAndStandStill>(task)) {
             return true;
         }
     }

@@ -108,7 +108,7 @@ public:
     //! @breif Clone a task and check if it's of the specified type
     template<Task T>
     static T* CloneIfIs(CTask* t) {
-        return t && IsA<T>(t)
+        return t && notsa::isa<T>(t)
             ? DynCast<T>(t->Clone())
             : nullptr;
     }

@@ -76,7 +76,7 @@ CTask* CTaskComplexFleeEntity::CreateSubTask(eTaskType taskType) {
 CTask* CTaskComplexFleeEntity::CreateNextSubTask(CPed* ped) {
     // Not even sure what's the point here, both returns null xD
 
-    if (m_entity && !CTask::IsA<TASK_COMPLEX_FLEE_POINT>(m_pSubTask)) {
+    if (m_entity && !notsa::isa<CTaskComplexFleePoint>(m_pSubTask)) {
         return nullptr;
     }
     return CreateSubTask(TASK_FINISHED);
