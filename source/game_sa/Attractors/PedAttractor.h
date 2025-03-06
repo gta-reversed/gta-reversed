@@ -103,14 +103,4 @@ private:
         return this;
     }
 };
-
-//struct CPedSeatAttractor : CPedAttractor { };
-//struct CPedStopAttractor : CPedAttractor { };
-//struct CPedPizzaAttractor : CPedAttractor { };
-//struct CPedTriggerScriptAttractor : CPedAttractor { };
-//struct CPedLookAtAttractor : CPedAttractor { };
-//struct CPedScriptedAttractor : CPedAttractor { };
-//struct CPedParkAttractor : CPedAttractor { };
-//struct CPedStepAttractor : CPedAttractor { };
-
 VALIDATE_SIZE(CPedAttractor, 0x8C);

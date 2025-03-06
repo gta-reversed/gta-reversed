@@ -255,14 +255,14 @@ public:
 
     template<std::derived_from<C2dEffectBase> To, std::derived_from<C2dEffectBase> From>
     static To* DynCast(From* p) {
-        return p->m_type == To::Type
+        return p->m_Type == To::Type
             ? reinterpret_cast<To*>(p)
             : nullptr;
     }
 
     template<std::derived_from<C2dEffectBase> To, std::derived_from<C2dEffectBase> From>
     static To* Cast(From* p) {
-        assert(!p || p->m_type == To::Type);
+        assert(!p || p->m_Type == To::Type);
         return reinterpret_cast<To*>(p);
     }
 
