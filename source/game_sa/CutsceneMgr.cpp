@@ -489,7 +489,7 @@ void CCutsceneMgr::LoadCutsceneData_postload() {
         const auto raii = notsa::ScopeGuard{ [&] { CFileMgr::CloseFile(img); } };
         
         char csSplinesFile[1024];
-        *std::format_to(csSplinesFile, "{}.DAT", ms_cutsceneName) = 0;
+        notsa::format_to_sz(csSplinesFile, "{}.DAT", ms_cutsceneName);
 
         uint32      size;
         CdStreamPos pos;
