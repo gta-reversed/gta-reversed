@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include <Base.h>
 #include "eLevelName.h"
 #include "ePedRace.h"
 #include "ePedStats.h"
@@ -144,7 +145,7 @@ public:
 
     // returns ped model index
     static eModelID FindSpecificDriverModelForCar_ToUse(eModelID carModelIndex);
-    static bool  IsCorrectTimeOfDayForEffect(const C2dEffect* effect);
+    static bool  IsCorrectTimeOfDayForEffect(const C2dEffectPedAttractor& effect);
     // return CPopulation::m_bMoreCarsAndFewerPeds? 1.7f : 1.0f;
     static float FindCarMultiplierMotorway();
     // return 1.0f;
@@ -183,7 +184,7 @@ public:
     static void  PlaceMallPedsAsStationaryGroup(const CVector& posn);
     static void  PlaceCouple(ePedType pedType1, eModelID modelIndex1, ePedType pedType2, eModelID modelIndex2, CVector placeAt);
     // Creates ped at attractor. decisionMakerType can be set to -1
-    static bool  AddPedAtAttractor(eModelID modelIndex, C2dEffect* attractor, CVector posn, CEntity* entity, int32 decisionMakerType);
+    static bool  AddPedAtAttractor(eModelID modelIndex, C2dEffectPedAttractor* attractor, CVector posn, CEntity* entity, int32 decisionMakerType); 
     static float FindDistanceToNearestPedOfType(ePedType pedType, CVector posn);
     static float FindDistanceToNearestPed(CVector pos);
     static eModelID PickGangCar(eGangID forGang);
