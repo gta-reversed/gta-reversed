@@ -65,7 +65,7 @@ void CTaskSimpleEvasiveDive::StartAnim(CPed* ped) {
 
 // 0x6536A0
 void CTaskSimpleEvasiveDive::FinishAnimEvasiveDiveCB(CAnimBlendAssociation* assoc, void* data) {
-    const auto self = CTask::Cast<CTaskSimpleEvasiveDive>(static_cast<CTask*>(data));
+    const auto self = notsa::cast<CTaskSimpleEvasiveDive>(static_cast<CTask*>(data));
 
     self->m_bFinished = true;
     self->m_DiveAnim  = nullptr;

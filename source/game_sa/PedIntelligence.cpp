@@ -389,7 +389,7 @@ void CPedIntelligence::SetTaskDuckSecondary(uint16 nLengthOfDuck) {
         useGun->ClearAnim(m_pPed);
     }
 
-    CTask::Cast<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))->ProcessPed(m_pPed);
+    notsa::cast<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))->ProcessPed(m_pPed);
 }
 
 // 0x601390

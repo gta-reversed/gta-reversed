@@ -356,7 +356,7 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
             || targetToOurPedDistSq >= sq(4.f) && !ped->bStayInSamePlace && CTimer::GetTimeInMS() >= m_shootTimer
             || !LineOfSightClearForAttack(ped)
         ) {
-            const auto gctrl = CTask::Cast<CTaskSimpleGunControl>(m_pSubTask);
+            const auto gctrl = notsa::cast<CTaskSimpleGunControl>(m_pSubTask);
             if (gctrl->m_firingTask != eGunCommand::END_LEISURE) {
                 gctrl->m_nextAtkTimeMs = 0;
                 gctrl->m_firingTask    = eGunCommand::END_LEISURE;

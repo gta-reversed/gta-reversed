@@ -62,7 +62,7 @@ bool CTaskSimpleUseGun::ControlGunMove(const CVector2D& moveDir) {
 
 // 0x61F3A0
 void CTaskSimpleUseGun::FinishGunAnimCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = CTask::Cast<CTaskSimpleUseGun>(static_cast<CTask*>(data));
+    const auto self = notsa::cast<CTaskSimpleUseGun>(static_cast<CTask*>(data));
 
     if (self->m_BurstShots > 0 && self->m_LastCmd == eGunCommand::RELOAD && self->m_NextCmd < eGunCommand::END_LEISURE) {
         switch (anim->GetAnimId()) {

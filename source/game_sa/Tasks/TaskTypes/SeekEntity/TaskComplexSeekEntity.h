@@ -336,7 +336,7 @@ public:
                     return CreateSubTask(TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL, ped);
                 }
             } else {
-                const auto subTaskStandStill = CTask::Cast<CTaskComplexGoToPointAndStandStill>(m_pSubTask);
+                const auto subTaskStandStill = notsa::cast<CTaskComplexGoToPointAndStandStill>(m_pSubTask);
                 if (subTaskStandStill->m_bWasSuccessful) {
                     return m_pSubTask;      
                 } else if (m_minEntityDist2D == 0.f || pedToSeekPosDist2dSq <= sq(m_minEntityDist2D + 1.f)) {

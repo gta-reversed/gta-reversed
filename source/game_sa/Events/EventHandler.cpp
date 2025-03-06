@@ -975,7 +975,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                         );
                     }
                 }
-                const auto tfall = CTask::Cast<CTaskSimpleFall>(tsimplest);
+                const auto tfall = notsa::cast<CTaskSimpleFall>(tsimplest);
                 if (const auto a = tfall->m_pAnim) { // 0x4C08ED
                     if (a->m_BlendAmount > 0.5f && a->m_BlendDelta >= 0.f && a->m_CurrentTime < a->m_BlendHier->m_fTotalTime) {
                         e->m_nAnimGroup = a->m_AnimGroupId;
@@ -998,7 +998,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                 break;
             }
             case TASK_SIMPLE_GET_UP: { // 0x4C0987
-                const auto tgup = CTask::Cast<CTaskSimpleGetUp>(tsimplest);
+                const auto tgup = notsa::cast<CTaskSimpleGetUp>(tsimplest);
                 if (!tgup->m_Anim || tgup->m_Anim->GetTimeProgress() >= 0.5f) {
                     if (tgup->m_bHasPedGotUp) {
                         return DoDieMaybeFall();
