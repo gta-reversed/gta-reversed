@@ -109,7 +109,7 @@ public:
     template<Task T>
     static T* CloneIfIs(CTask* t) {
         return t && notsa::isa<T>(t)
-            ? DynCast<T>(t->Clone())
+            ? notsa::cast_if_present<T>(t->Clone())
             : nullptr;
     }
 

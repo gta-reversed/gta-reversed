@@ -1053,7 +1053,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                     const auto t = eventSrcPed->GetIntelligence()->GetTaskUseGun();
                     if (!t || t->GetLastGunCommand() != eGunCommand::PISTOLWHIP) {
                         const auto bIsTearGas = e->m_weaponType == WEAPON_TEARGAS;
-                        if (const auto t = CTask::DynCast<CTaskSimpleChoking>(m_Ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_PHYSICAL_RESPONSE))) {
+                        if (const auto t = notsa::dyn_cast_if_present<CTaskSimpleChoking>(m_Ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_PHYSICAL_RESPONSE))) {
                             t->UpdateChoke(m_Ped, eventSrcPed, bIsTearGas);
                         } else {
                             m_PhysicalResponseTask = new CTaskSimpleChoking{eventSrcPed, bIsTearGas};
@@ -2327,7 +2327,7 @@ void CEventHandler::ComputeShotFiredWhizzedByResponse(CEventGunShotWhizzedBy* e,
             };
 
             if (tsimplest) {
-                if (const auto tDuck = CTask::DynCast<CTaskSimpleDuck>(tsimplest)) {
+                if (const auto tDuck = notsa::dyn_cast_if_present<CTaskSimpleDuck>(tsimplest)) {
                     ProcessTaskDuck(tDuck);
                     return nullptr;
                 }
@@ -3038,7 +3038,7 @@ void CEventHandler::ComputeEventResponseTask(CEvent* e, CTask* pAbortedTaskEvent
         ComputeVehicleOnFireResponse(static_cast<CEventVehicleOnFire*>(e), tactive, tsimplest);
         break;
     case EVENT_INTERIOR_USE_INFO:
-        ComputeInteriorUseInfoResponse(static_cast<CEventInteriorUseInfo*>(e), CTask::DynCast<CTaskInteriorUseInfo>(tactive), tsimplest);
+        ComputeInteriorUseInfoResponse(static_cast<CEventInteriorUseInfo*>(e), notsa::dyn_cast_if_present<CTaskInteriorUseInfo>(tactive), tsimplest);
         break;
     case EVENT_SIGNAL_AT_PED:
         ComputeSignalAtPedResponse(static_cast<CEventSignalAtPed*>(e), tactive, tsimplest);

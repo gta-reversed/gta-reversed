@@ -1762,7 +1762,7 @@ void CPopulation::ManageDummy(CDummy* dummy, const CVector& posn) {
 // 0x6160A0
 void CPopulation::ManageAllPopulation() {
     const auto objPlyrIsHolding = [] {
-        const auto holdEntityTask = CTask::DynCast<CTaskSimpleHoldEntity>(FindPlayerPed()->GetIntelligence()->GetTaskHold(false));
+        const auto holdEntityTask = notsa::dyn_cast_if_present<CTaskSimpleHoldEntity>(FindPlayerPed()->GetIntelligence()->GetTaskHold(false));
         return holdEntityTask
             ? holdEntityTask->GetHeldEntity()
             : nullptr;

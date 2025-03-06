@@ -89,7 +89,7 @@ CTask* CTaskComplexFacial::ControlSubTask(CPed* ped) {
 
     if (m_RequestA != eFacialExpression::NONE) { // Check for a new request...
         const auto requestedFacialType = std::exchange(m_RequestA, eFacialExpression::NONE);
-        if (const auto st = CTask::DynCast<CTaskSimpleFacial>(m_pSubTask)) { // There's a sub-task already running, just change it
+        if (const auto st = notsa::dyn_cast_if_present<CTaskSimpleFacial>(m_pSubTask)) { // There's a sub-task already running, just change it
             if (st->GetFacialType() == requestedFacialType) {
                 st->StartTimer(m_DurationA);
                 return m_pSubTask;

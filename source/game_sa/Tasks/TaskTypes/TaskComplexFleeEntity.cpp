@@ -115,7 +115,7 @@ CTask* CTaskComplexFleeEntity::CreateFirstSubTask(CPed* ped) {
 // 0x65BBB0
 CTask* CTaskComplexFleeEntity::ControlSubTask(CPed* ped) {
      if (m_entity) {
-        if (const auto fleePointTask = CTask::DynCast<CTaskComplexFleePoint>(m_pSubTask)) {
+        if (const auto fleePointTask = notsa::dyn_cast_if_present<CTaskComplexFleePoint>(m_pSubTask)) {
             // Check if position update timer is out of time, if so, update position (if outside tolerance)
             if (m_posCheckTimer.IsOutOfTime()) {
                 m_posCheckTimer.Start(m_posCheckPeriod);
