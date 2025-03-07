@@ -145,25 +145,25 @@ void CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAct
 void CControllerConfigManager::StoreMouseButtonState(eMouseButtons button, bool state) {
     switch (button) {
         case MOUSE_BUTTON_LEFT:
-            CPad::PCTempMouseControllerState.lmb = state;
+            CPad::TempMouseControllerState.lmb = state;
             break;
         case MOUSE_BUTTON_MIDDLE:
-            CPad::PCTempMouseControllerState.mmb = state;
+            CPad::TempMouseControllerState.mmb = state;
             break;
         case MOUSE_BUTTON_RIGHT:
-            CPad::PCTempMouseControllerState.rmb = state;
+            CPad::TempMouseControllerState.rmb = state;
             break;
         case MOUSE_BUTTON_WHEEL_UP:
-            CPad::PCTempMouseControllerState.wheelUp = state;
+            CPad::TempMouseControllerState.wheelUp = state;
             break;
         case MOUSE_BUTTON_WHEEL_DOWN:
-            CPad::PCTempMouseControllerState.wheelDown = state;
+            CPad::TempMouseControllerState.wheelDown = state;
             break;
         case MOUSE_BUTTON_WHEEL_XBUTTON1:
-            CPad::PCTempMouseControllerState.bmx1 = state;
+            CPad::TempMouseControllerState.bmx1 = state;
             break;
         case MOUSE_BUTTON_WHEEL_XBUTTON2:
-            CPad::PCTempMouseControllerState.bmx2 = state;
+            CPad::TempMouseControllerState.bmx2 = state;
             break;
         case MOUSE_BUTTON_NONE:
             break;

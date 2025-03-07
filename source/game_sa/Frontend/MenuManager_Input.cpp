@@ -260,10 +260,13 @@ void CMenuManager::CheckForMenuClosing() {
                     pad->ClearKeyBoardHistory();
                     pad->ClearMouseHistory();
 
+#ifndef NOTSA_USE_SDL3
                     if (IsVideoModeExclusive()) {
                         DIReleaseMouse();
                         InitialiseMouse(false);
                     }
+#endif // NOTSA_USE_DINPUT
+
                     Initialise();
                     LoadAllTextures();
 
@@ -283,6 +286,7 @@ void CMenuManager::CheckForMenuClosing() {
                 pad->ClearKeyBoardHistory();
                 pad->ClearMouseHistory();
 
+#ifndef NOTSA_USE_SDL3
                 if (IsVideoModeExclusive()) {
                     DIReleaseMouse();
 #ifdef FIX_BUGS // Causes the retarded fucktard code to not dispatch mouse input to WndProc => ImGUI mouse not working. Amazing piece of technology.
@@ -291,6 +295,7 @@ void CMenuManager::CheckForMenuClosing() {
                     InitialiseMouse(true);
 #endif // !FIX_BUGS
                 }
+#endif // NOTSA_USE_DINPUT
 
                 m_fStatsScrollSpeed = 150.0f;
                 SaveSettings();
@@ -349,10 +354,12 @@ void CMenuManager::CheckForMenuClosing() {
         m_bMenuActive = true;
         field_F4 = true;
 
+#ifndef NOTSA_USE_SDL3
         if (IsVideoModeExclusive()) {
             DIReleaseMouse();
             InitialiseMouse(false);
         }
+#endif // NOTSA_USE_DINPUT
 
         Initialise();
         LoadAllTextures();
@@ -395,7 +402,11 @@ bool CMenuManager::CheckMissionPackValidMenu() {
         CTimer::StartUserPause();
 
         while (true) {
+#ifdef NOTSA_USE_SDL3
+            NOTSA_UNREACHABLE("This will shit itself");
+#else
             MessageLoop();
+#endif
             CPad::UpdatePads();
 
             //                 Load failed!

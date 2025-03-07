@@ -132,6 +132,7 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     game_sa/Tasks/TaskTypes/SeekEntity/
 
     app/
+    app/imgui
     app/platform/
     app/platform/android/
     app/platform/win/
@@ -140,6 +141,8 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     app/securom/
 
     oswrapper
+
+    libs/imgui
 )
 target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
     _CRT_SECURE_NO_WARNINGS
@@ -148,6 +151,7 @@ target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
     EXTRA_DEBUG_FEATURES
     FIX_BUGS
     SA_SKINNED_PEDS
+    NOTSA_USE_SDL3
 )
 target_compile_features(${RE_PROJECT_LIB_NAME} PRIVATE cxx_std_23)
 target_precompile_headers(${RE_PROJECT_LIB_NAME} PRIVATE StdInc.cpp)

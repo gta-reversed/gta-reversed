@@ -9,7 +9,7 @@
 */
 
 bool IsKeyPressed(int32 virtualKey) {
-    return GetKeyState(virtualKey) & 0x8000;
+    return GetKeyState(virtualKey) & 0x8000; // NOTE: TODO
 }
 
 void notsa::script::commands::cleo::pad::RegisterHandlers() {

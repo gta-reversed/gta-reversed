@@ -12,9 +12,11 @@
 #include "ControllerConfigManager.h"
 #include "app.h"
 #include "platform/win/Platform.h"
+#include <SDLWrapper.hpp>
 
-// mouse states
-CMouseControllerState& CPad::PCTempMouseControllerState = *(CMouseControllerState*)0xB73404;
+
+// mouse states 
+CMouseControllerState& CPad::TempMouseControllerState = *(CMouseControllerState*)0xB73404; // Updated in `CPad::UpdateMouse`
 CMouseControllerState& CPad::NewMouseControllerState = *(CMouseControllerState*)0xB73418;
 CMouseControllerState& CPad::OldMouseControllerState = *(CMouseControllerState*)0xB7342C;
 
@@ -121,6 +123,10 @@ void CPad::Initialise() {
     }
     padNumber = 0;
     byte_B73401 = 0;
+
+#ifndef NOTSA_USE_DINPUT
+    notsa::SDLWrapper::Initialize();
+#endif
 }
 
 // 0x53F1E0
@@ -132,7 +138,7 @@ void CPad::ClearKeyBoardHistory() {
 
 // 0x541BD0
 void CPad::ClearMouseHistory() {
-    PCTempMouseControllerState.Clear();
+    TempMouseControllerState.Clear();
     NewMouseControllerState.Clear();
     OldMouseControllerState.Clear();
 }
@@ -151,7 +157,7 @@ void CPad::Clear(bool clearDisabledControls, bool resetPhase) {
 
     NewMouseControllerState.Clear();
     OldMouseControllerState.Clear();
-    PCTempMouseControllerState.Clear();
+    TempMouseControllerState.Clear();
 
     if (resetPhase) {
         Phase = 0;
@@ -189,9 +195,11 @@ void CPad::Update(int32 pad) {
     ReconcileTwoControllersInput(NewState, PCTempKeyState, PCTempJoyState);
     ReconcileTwoControllersInput(NewState, PCTempMouseState, NewState);
 
+#ifdef NOTSA_USE_SDL3
     PCTempJoyState.Clear();
     PCTempKeyState.Clear();
     PCTempMouseState.Clear();
+#endif
 
     if (NewState.CheckForInput()) {
         SetTouched();
@@ -221,7 +229,31 @@ void CPad::UpdatePads() {
         GetPad(0)->UpdateMouse();
     }
 
-    ProcessPad(0);
+    ProcessPad(PAD1);
+
+#ifndef NOTSA_USE_SDL3
+#else
+    //CMouseControllerState ms = NewMouseControllerState;
+    //notsa::SDLWrapper::ProcessEvents(
+    //    CPad::NewMouseControllerState,
+    //    TempKeyState,
+    //    GetPad(0)->PCTempJoyState
+    //);
+    //
+    //// Update mouse
+    //if (ms.CheckForInput()) {
+    //    GetPad(0)->SetTouched();
+    //}
+    //
+    //// Write directly to NewMouseControllerState
+    //CPad::OldMouseControllerState = std::exchange(CPad::NewMouseControllerState, ms);
+    //CPad::NewMouseControllerState.X *= FrontEndMenuManager.bInvertMouseX ? -1 : 1;
+    //CPad::NewMouseControllerState.Y *= FrontEndMenuManager.bInvertMouseY ? -1 : 1;
+    //
+    //// Now just update internal stuff and that's it
+    //GetPad(0)->Update(0);
+#endif
+
     ControlsManager.ClearSimButtonPressCheckers();
 
     if (!ImIONavActive) {
@@ -231,8 +263,10 @@ void CPad::UpdatePads() {
         GetPad(1)->Update(1);
     }
 
-    OldKeyState = NewKeyState;
-    NewKeyState = TempKeyState;
+#ifdef NOTSA_USE_SDL3
+    TempKeyState = notsa::SDLWrapper::GetKeyboardState();
+#endif
+    OldKeyState = std::exchange(NewKeyState, TempKeyState);
 }
 
 // 0x53F3C0
@@ -244,9 +278,14 @@ void CPad::UpdateMouse() {
         invertX = FrontEndMenuManager.bInvertMouseX ? -1 : 1;
         invertY = FrontEndMenuManager.bInvertMouseY ? -1 : 1;
 
-        CMouseControllerState state = WinInput::GetMouseState();
+        CMouseControllerState state =
+#ifdef NOTSA_USE_SDL3
+            notsa::SDLWrapper::GetMouseState();
+#else
+            WinInput::GetMouseState();
+#endif
         if (state.CheckForInput()) {
-            CPad::GetPad(0)->LastTimeTouched = CTimer::m_snTimeInMilliseconds;
+            SetTouched();
         }
 
         // Write directly to NewMouseControllerState
@@ -257,13 +296,14 @@ void CPad::UpdateMouse() {
 }
 
 // 0x746A10
-void CPad::ProcessPad(int padNum) {
+void CPad::ProcessPad(ePadID padID) {
+#ifndef NOTSA_USE_SDL3
     LPDIRECTINPUTDEVICE8* pDiDevice = nullptr;
     DIJOYSTATE2 joyState;
 
-    if (padNum == 0) {
+    if (padID == PAD1) {
         pDiDevice = &PSGLOBAL(diDevice1);
-    } else if (padNum == 1) {
+    } else if (padID == PAD2) {
         pDiDevice = &PSGLOBAL(diDevice2);
     } else {
         return;
@@ -287,7 +327,7 @@ void CPad::ProcessPad(int padNum) {
     } else {
         ControlsManager.m_OldJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
     }
-    RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padNum);
+    RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padID);
 
     if (*pDiDevice) {
         float padX1 = joyState.lX / 2000.0f;
@@ -299,14 +339,14 @@ void CPad::ProcessPad(int padNum) {
             padX1 = sin(joyState.rgdwPOV[1] / 5730.0f);
             padY1 = cos(joyState.rgdwPOV[1] / 5730.0f) * -1.0f;
         }
-        if (PadConfigs[padNum].rzAxisPresent && PadConfigs[padNum].zAxisPresent) {
+        if (PadConfigs[padID].rzAxisPresent && PadConfigs[padID].zAxisPresent) {
             padX2 = joyState.lZ / 2000.0f;
             padY2 = joyState.lRz / 2000.0f;
         }
 
-        RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padNum);
-        RsPadEventHandler(RsEvent::rsPADBUTTONDOWN, &padNum);
-        CPad* pPad = CPad::GetPad(padNum);
+        RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padID);
+        RsPadEventHandler(RsEvent::rsPADBUTTONDOWN, &padID);
+        CPad* pPad = CPad::GetPad(padID);
 
         const auto UpdateJoyStickPosition = [](float pos, int16& outA, int16& outB, bool isInverted, bool isSwapped) {
             if (fabs(pos) > 0.3f) {
@@ -318,9 +358,11 @@ void CPad::ProcessPad(int padNum) {
 
         UpdateJoyStickPosition(padX1, pPad->PCTempJoyState.LeftStickY, pPad->PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
         UpdateJoyStickPosition(padY1, pPad->PCTempJoyState.LeftStickX, pPad->PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis2);
+
         UpdateJoyStickPosition(padX2, pPad->PCTempJoyState.LeftStickY, pPad->PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis1);
         UpdateJoyStickPosition(padY2, pPad->PCTempJoyState.LeftStickX, pPad->PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
     }
+#endif
 }
 
 // 0x53FB40
@@ -1274,6 +1316,7 @@ int GetCurrentKeyPressed(RsKeyCodes& keys) {
     return plugin::CallAndReturn<int, 0x541490, RsKeyCodes&>(keys);
 }
 
+#ifndef NOTSA_USE_SDL3
 IDirectInputDevice8* DIReleaseMouse() { // todo: wininput
     return plugin::CallAndReturn<IDirectInputDevice8*, 0x746F70>();
 }
@@ -1281,3 +1324,4 @@ IDirectInputDevice8* DIReleaseMouse() { // todo: wininput
 void InitialiseMouse(bool exclusive) {
     WinInput::diMouseInit(exclusive);
 }
+#endif

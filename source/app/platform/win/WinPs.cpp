@@ -14,7 +14,9 @@
 // NOTE: This macro doesn't do a whole lot. Leaving it here for completeness sake
 #define USE_D3D9
 
+#ifndef NOTSA_USE_SDL3 // For SDL we do a `new`
 static auto& PsGlobal = StaticRef<psGlobalType, 0xC8CF88>();
+#endif
 
 //! Disable "This function was depracated"
 #pragma warning (disable : 28159 4996)
@@ -98,7 +100,11 @@ void InitialiseLanguage() {
 // 0x747420
 RwBool psInitialize() {
     SetProcessDPIAware();
+#ifdef NOTSA_USE_SDL3
+    auto ps = new psGlobalType;
+#else
     auto ps = &PsGlobal;
+#endif
 
     RsGlobal.ps = ps;
 
@@ -191,7 +197,9 @@ RwBool psInitialize() {
 
 // 0x7458A0
 void psTerminate() {
-    // NOP
+#ifdef NOTSA_USE_SDL3
+    delete RsGlobal.ps;
+#endif
 }
 
 // 0x7451B0

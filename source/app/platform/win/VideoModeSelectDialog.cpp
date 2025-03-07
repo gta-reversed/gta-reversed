@@ -4,6 +4,10 @@
 #include "VideoMode.h"
 #include "platform/platform.h"
 
+#ifdef NOTSA_USE_SDL3
+#include <SDL3/SDL.h>
+#endif
+
 //
 // TODO:
 // For the final exe we have to add win.rc (A resource file that contains the definition of this dialogbox)
@@ -159,6 +163,13 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam) {
                 GcurSelSS = GetCBItemData(hDevSel, currEntry);
 
                 VERIFY(RwEngineSetSubSystem(GcurSelSS));
+
+#ifdef NOTSA_USE_SDL3
+                RwVideoMode vmi;
+                RwEngineGetVideoModeInfo(&vmi, GcurSelSS);
+
+                SDL_SetWindowSize((SDL_Window*)(PSGLOBAL(sdlWindow)), (int)(vmi.width), (int)(vmi.height));
+#endif
 
                 // Deal with VM select ComboBox
                 ComboBoxClear(hVMSel);

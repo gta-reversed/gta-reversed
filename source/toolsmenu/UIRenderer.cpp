@@ -11,10 +11,15 @@
 #include "TaskComplexDriveWander.h"
 
 #include <imgui.h>
-#include "imgui_impl_win32.h"
-#include "imgui_impl_dx9.h"
-#include <imgui_stdlib.h>
 #include <imgui_internal.h>
+#include <libs/imgui/misc/cpp/imgui_stdlib.h>
+
+#ifdef NOTSA_USE_SDL3
+#include <libs/imgui/bindings/imgui_impl_sdl3.h>
+#else
+#include <libs/imgui/bindings/imgui_impl_win32.h>
+#endif
+#include <libs/imgui/bindings/imgui_impl_dx9.h>
 
 #include <Windows.h>
 #include <extensions/ScriptCommands.h>
@@ -32,7 +37,11 @@ UIRenderer::UIRenderer() :
     m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT);
     m_ImIO->NavActive   = false;
 
+#ifdef NOTSA_USE_SDL3
+    ImGui_ImplSDL3_InitForD3D((SDL_Window*)(PSGLOBAL(sdlWindow)));
+#else
     ImGui_ImplWin32_Init(PSGLOBAL(window));
+#endif
     ImGui_ImplDX9_Init(GetD3DDevice());
 
     DEV_LOG("I say hello!");
@@ -40,7 +49,11 @@ UIRenderer::UIRenderer() :
 
 UIRenderer::~UIRenderer() {
     ImGui_ImplDX9_Shutdown();
+#ifdef NOTSA_USE_SDL3
+    ImGui_ImplSDL3_Shutdown();
+#else
     ImGui_ImplWin32_Shutdown();
+#endif
     ImGui::DestroyContext(m_ImCtx);
 
     //DEV_LOG("Good bye!");
@@ -75,8 +88,10 @@ void UIRenderer::PreRenderUpdate() {
         }
         pad->Clear(false, true);
 
-        m_ImIO->MouseDrawCursor = m_InputActive;
-        m_ImIO->NavActive       = m_InputActive;
+        m_ImIO->MouseDrawCursor     = m_InputActive;
+        m_ImIO->NavActive           = m_InputActive;
+        m_ImIO->WantCaptureKeyboard = m_InputActive;
+        m_ImIO->WantCaptureMouse    = m_InputActive;
     }
 }
 
@@ -93,7 +108,11 @@ void UIRenderer::DrawLoop() {
     }
 
     PreRenderUpdate();
+#ifdef NOTSA_USE_SDL3
+    ImGui_ImplSDL3_NewFrame();
+#else
     ImGui_ImplWin32_NewFrame();
+#endif
     ImGui_ImplDX9_NewFrame();
     ImGui::NewFrame();
 

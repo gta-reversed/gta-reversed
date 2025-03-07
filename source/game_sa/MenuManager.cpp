@@ -1080,7 +1080,12 @@ void CMenuManager::NoDiskInDriveMessage() {
     if (RsGlobal.quit) {
         return;
     }
+#ifdef NOTSA_USE_SDL3
+    NOTSA_UNREACHABLE("Implement me :(");
+#else
     MessageLoop();
+#endif
+
     CPad::UpdatePads();
     MessageScreen("NO_PCCD", true, false);
     CFont::DrawFonts();

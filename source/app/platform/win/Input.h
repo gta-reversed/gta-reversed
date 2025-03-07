@@ -1,5 +1,6 @@
 #pragma once
 
+#ifndef NOTSA_USE_SDL3
 #include <Windows.h>
 #include <dinput.h>
 
@@ -20,3 +21,5 @@ bool IsKeyPressed(unsigned int keyCode);
 HRESULT Shutdown();
 
 }; // namespace WinInput
+#endif // NOTSA_USE_DINPUT
+

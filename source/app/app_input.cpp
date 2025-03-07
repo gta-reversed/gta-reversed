@@ -99,7 +99,7 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
     }
 
     // Then if a pad is plugged in, possibly handle that as well
-    if (CPad::padNumber) {
+    if (CPad::padNumber != 0) {
         const auto [pPadBtnState, downValue] = [&]() -> std::pair<int16*, int16> {
             auto& pctks = CPad::GetPad(1)->PCTempKeyState; // Why pad 1?
             switch (ks->keyScanCode) { // TODO: Enums

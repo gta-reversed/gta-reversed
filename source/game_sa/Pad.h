@@ -13,7 +13,7 @@
 #include "ControllerState.h"
 
 // Taken from GTA3 Script Compiler (miss2.exe)
-enum {
+enum ePadID {
     PAD1 = 0,
     PAD2 = 1,
 
@@ -80,7 +80,7 @@ public:
     char    _pad131[3];
 
 public:
-    static CMouseControllerState& PCTempMouseControllerState;
+    static CMouseControllerState& TempMouseControllerState;
     static CMouseControllerState& NewMouseControllerState;
     static CMouseControllerState& OldMouseControllerState;
 
@@ -107,7 +107,7 @@ public:
     void Update(int32 pad);
     static void UpdatePads();
     void UpdateMouse();
-    static void ProcessPad(int numPad);
+    static void ProcessPad(ePadID padID);
     void ProcessPCSpecificStuff();
     CControllerState& ReconcileTwoControllersInput(CControllerState& out, const CControllerState& controllerA, const CControllerState& controllerB);
 
@@ -325,8 +325,10 @@ VALIDATE_SIZE(CPad, 0x134);
 int GetCurrentKeyPressed(RsKeyCodes& keys);
 
 // todo: move these fucks out
+#ifndef NOTSA_USE_SDL3
 IDirectInputDevice8* DIReleaseMouse();
 void InitialiseMouse(bool exclusive);
+#endif
 
 /*
 Android has 99 funcs
