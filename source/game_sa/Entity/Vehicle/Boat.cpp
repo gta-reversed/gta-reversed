@@ -926,12 +926,12 @@ void CBoat::ProcessControlInputs(uint8 ucPadNum) {
     // Mouse steering
     // TODO: Try copy paste code from `CAutomobile::ProcessControlInputs` for this...
     if (CCamera::m_bUseMouse3rdPerson && CVehicle::m_bEnableMouseSteering) {
-        auto bChangedInput = CVehicle::m_nLastControlInput != eControllerType::CONTROLLER_MOUSE || pad->GetSteeringLeftRight();
+        auto bChangedInput = CVehicle::m_nLastControlInput != eControllerType::MOUSE || pad->GetSteeringLeftRight();
         if (CPad::NewMouseControllerState.X == 0.0F && bChangedInput) { // No longer using mouse controls
             m_fRawSteerAngle += (static_cast<float>(-pad->GetSteeringLeftRight()) * (1.0F / 128.0F) - m_fRawSteerAngle) * 0.2F * CTimer::GetTimeStep();
-            CVehicle::m_nLastControlInput = eControllerType::CONTROLLER_KEYBOARD1;
+            CVehicle::m_nLastControlInput = eControllerType::KEYBOARD;
         } else if (m_fRawSteerAngle != 0.0F || m_fRawSteerAngle != 0.0F) { // todo: doesn't match OG and duplicateExpression: Same expression on both sides of '||'.
-            CVehicle::m_nLastControlInput = eControllerType::CONTROLLER_MOUSE;
+            CVehicle::m_nLastControlInput = eControllerType::MOUSE;
             if (!pad->NewState.m_bVehicleMouseLook) {
                 m_fRawSteerAngle += CPad::NewMouseControllerState.X * -0.0035F;
             }
@@ -942,7 +942,7 @@ void CBoat::ProcessControlInputs(uint8 ucPadNum) {
         }
     } else {
         m_fRawSteerAngle += (static_cast<float>(-pad->GetSteeringLeftRight()) * (1.0F / 128.0F) - m_fRawSteerAngle) * 0.2F * CTimer::GetTimeStep();
-        CVehicle::m_nLastControlInput = eControllerType::CONTROLLER_KEYBOARD1;
+        CVehicle::m_nLastControlInput = eControllerType::KEYBOARD;
     }
 
     m_fRawSteerAngle = std::clamp(m_fRawSteerAngle, -1.0F, 1.0F);

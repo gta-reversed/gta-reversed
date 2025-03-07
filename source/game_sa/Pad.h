@@ -13,7 +13,7 @@
 #include "ControllerState.h"
 
 // Taken from GTA3 Script Compiler (miss2.exe)
-enum {
+enum ePadID {
     PAD1 = 0,
     PAD2 = 1,
 
@@ -107,7 +107,7 @@ public:
     void Update(int32 pad);
     static void UpdatePads();
     void UpdateMouse();
-    static void ProcessPad(int numPad);
+    static void ProcessPad(ePadID padID);
     void ProcessPCSpecificStuff();
     CControllerState& ReconcileTwoControllersInput(CControllerState& out, const CControllerState& controllerA, const CControllerState& controllerB);
 
