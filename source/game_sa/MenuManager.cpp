@@ -69,7 +69,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(CheckFrontEndDownInput, 0x5738B0);
     RH_ScopedInstall(CheckFrontEndLeftInput, 0x573920);
     RH_ScopedInstall(CheckFrontEndRightInput, 0x573990);
-    RH_ScopedInstall(CheckForMenuClosing, 0x576B70, { .locked = true });  // Must be hooked at all times otherwise imgui stops working! [The input at least does]
+    RH_ScopedInstall(CheckForMenuClosing, 0x576B70, { .locked = true });  // Must be hooked at all times otherwise imgui/sdl stops working! [The input at least does]
     RH_ScopedInstall(CheckHover, 0x57C4F0);
     RH_ScopedInstall(CheckMissionPackValidMenu, 0x57D720);
     RH_ScopedInstall(CheckCodesForControls, 0x57DB20, { .reversed = false });
@@ -1080,12 +1080,7 @@ void CMenuManager::NoDiskInDriveMessage() {
     if (RsGlobal.quit) {
         return;
     }
-#ifdef NOTSA_USE_SDL3
-    NOTSA_UNREACHABLE("Implement me :(");
-#else
     MessageLoop();
-#endif
-
     CPad::UpdatePads();
     MessageScreen("NO_PCCD", true, false);
     CFont::DrawFonts();

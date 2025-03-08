@@ -407,11 +407,7 @@ bool CMenuManager::CheckMissionPackValidMenu() {
         CTimer::StartUserPause();
 
         while (true) {
-#ifdef NOTSA_USE_SDL3
-            NOTSA_UNREACHABLE("This will shit itself");
-#else
             MessageLoop();
-#endif
             CPad::UpdatePads();
 
             //                 Load failed!

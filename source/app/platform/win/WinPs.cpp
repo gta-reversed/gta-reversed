@@ -574,8 +574,8 @@ void WinPsInjectHooks() {
     RH_ScopedCategory("Win");
     RH_ScopedNamespaceName("Ps");
 
-    RH_ScopedGlobalInstall(psInitialize, 0x747420);
-    RH_ScopedGlobalInstall(psTerminate, 0x7458A0);
+    RH_ScopedGlobalInstall(psInitialize, 0x747420, { .locked = true }); // Locked because of SDL3 stuff
+    RH_ScopedGlobalInstall(psTerminate, 0x7458A0, { .locked = true }); // -||-
     RH_ScopedGlobalInstall(psWindowSetText, 0x7451B0);
     RH_ScopedGlobalInstall(psErrorMessage, 0x7451D0);
     RH_ScopedGlobalInstall(psWarningMessage, 0x7451F0);

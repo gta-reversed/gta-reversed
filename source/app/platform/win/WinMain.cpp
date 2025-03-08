@@ -26,9 +26,11 @@ char* getDvdGamePath() {
     return plugin::CallAndReturn<char*, 0x747300>();
 }
 
-#ifndef NOTSA_USE_SDL3
 // 0x746870
 void MessageLoop() {
+#ifdef NOTSA_USE_SDL3
+    notsa::SDLWrapper::ProcessEvents();
+#else
     MSG msg;
     while (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE | PM_NOYIELD)) {
         if (msg.message == WM_QUIT) {
@@ -38,8 +40,10 @@ void MessageLoop() {
             DispatchMessageA(&msg);
         }
     }
+#endif
 }
 
+#ifndef NOTSA_USE_SDL3
 // 0x7486A0
 bool Win32_InitApplication(HINSTANCE hInstance) {
     WNDCLASS windowClass      = { 0 };
@@ -462,9 +466,9 @@ void InjectWinMainStuff() {
 
     // Unhooking these 2 after the game has started will do nothing
     RH_ScopedGlobalInstall(NOTSA_WinMain, 0x748710, {.locked = true});
+    RH_ScopedGlobalInstall(MessageLoop, 0x746870, {.locked = true});
 
 #ifndef NOTSA_USE_SDL3
-    RH_ScopedGlobalInstall(MessageLoop, 0x746870);
     RH_ScopedGlobalInstall(Win32_InitApplication, 0x7486A0);
     RH_ScopedGlobalInstall(Win32_InitInstance, 0x745560, {.locked = true});
 #endif

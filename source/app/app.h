@@ -129,8 +129,5 @@ extern void SetLightsForNightVision();
 float GetDayNightBalance();
 
 // 0x746870
-#ifndef NOTSA_USE_SDL3
 void MessageLoop();
-#endif
-
 char* getDvdGamePath();

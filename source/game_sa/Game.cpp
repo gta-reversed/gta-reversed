@@ -674,11 +674,7 @@ void CGame::InitialiseWhenRestarting() {
             CTrain::InitTrains();
         } else {
             for (auto i = 50; i > 0; --i) {
-#ifdef NOTSA_USE_SDL3
-                NOTSA_UNREACHABLE("Implement me");
-#else
                 MessageLoop();
-#endif
                 if (loaded) {
                     FrontEndMenuManager.MessageScreen("FES_LOC", true, false);
                 } else {
