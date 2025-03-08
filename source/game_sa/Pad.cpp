@@ -134,6 +134,10 @@ void CPad::ClearKeyBoardHistory() {
     NewKeyState.Clear();
     OldKeyState.Clear();
     TempKeyState.Clear();
+
+#ifdef NOTSA_USE_SDL3
+    notsa::SDLWrapper::GetKeyboardState().Clear();
+#endif
 }
 
 // 0x541BD0
@@ -141,23 +145,23 @@ void CPad::ClearMouseHistory() {
     TempMouseControllerState.Clear();
     NewMouseControllerState.Clear();
     OldMouseControllerState.Clear();
+
+#ifdef NOTSA_USE_SDL3
+    notsa::SDLWrapper::GetMouseState().Clear();
+#endif
 }
 
 // 0x541A70
 void CPad::Clear(bool clearDisabledControls, bool resetPhase) {
     NewState.Clear();
     OldState.Clear();
+
     PCTempKeyState.Clear();
     PCTempJoyState.Clear();
     PCTempMouseState.Clear();
 
-    NewKeyState.Clear();
-    OldKeyState.Clear();
-    TempKeyState.Clear();
-
-    NewMouseControllerState.Clear();
-    OldMouseControllerState.Clear();
-    TempMouseControllerState.Clear();
+    ClearKeyBoardHistory();
+    ClearMouseHistory();
 
     if (resetPhase) {
         Phase = 0;
@@ -195,11 +199,9 @@ void CPad::Update(int32 pad) {
     ReconcileTwoControllersInput(NewState, PCTempKeyState, PCTempJoyState);
     ReconcileTwoControllersInput(NewState, PCTempMouseState, NewState);
 
-#ifdef NOTSA_USE_SDL3
     PCTempJoyState.Clear();
     PCTempKeyState.Clear();
     PCTempMouseState.Clear();
-#endif
 
     if (NewState.CheckForInput()) {
         SetTouched();
@@ -222,6 +224,54 @@ void CPad::Update(int32 pad) {
 // 0x541DD0
 void CPad::UpdatePads() {
     ZoneScoped;
+
+#ifdef NOTSA_USE_SDL3
+    TempKeyState = notsa::SDLWrapper::GetKeyboardState();
+#endif
+
+    // Then if a pad is plugged in, possibly handle that as well
+    if (CPad::padNumber != 0) {
+        auto* const pad = CPad::GetPad(1);
+        auto& cs = CPad::GetPad(1)->PCTempKeyState;
+
+        const auto Get = [&](char key, int16 down) {
+            return TempKeyState.standardKeys[key] ? down : 0;
+        };
+
+        cs.LeftStickX = Get('D', 128);
+        cs.LeftStickX = Get('A', -128);
+
+        cs.LeftStickY = Get('W', 128);
+        cs.LeftStickY = Get('S', -128);
+
+        cs.RightStickX = Get('J', 128);
+        cs.RightStickX = Get('G', -128);
+
+        cs.RightStickY = Get('Y', 128);
+        cs.RightStickY = Get('H', -128);
+
+        cs.LeftShoulder1 = Get('Z', 255);
+        cs.LeftShoulder2 = Get('X', 255);
+
+        cs.RightShoulder1 = Get('C', 255);
+        cs.RightShoulder2 = Get('V', 255);
+
+        cs.DPadUp    = Get('O', 255);
+        cs.DPadDown  = Get('L', 255);
+        cs.DPadLeft  = Get('K', 255);
+        cs.DPadRight = Get(';', 255);
+
+        cs.Start  = Get('B', 255);
+        cs.Select = Get('N', 255);
+
+        cs.ButtonSquare   = Get('M', 255);
+        cs.ButtonTriangle = Get(',', 255);
+        cs.ButtonCross    = Get('.', 255);
+        cs.ButtonCircle   = Get('/', 255);
+
+        cs.ShockButtonL = TempKeyState.shift ? 255 : 0;
+        cs.ShockButtonR = TempKeyState.rctrl ? 255 : 0;
+    }
 
     const auto& ImIONavActive = notsa::ui::UIRenderer::GetSingleton().GetImIO()->NavActive;
 
@@ -263,9 +313,6 @@ void CPad::UpdatePads() {
         GetPad(1)->Update(1);
     }
 
-#ifdef NOTSA_USE_SDL3
-    TempKeyState = notsa::SDLWrapper::GetKeyboardState();
-#endif
     OldKeyState = std::exchange(NewKeyState, TempKeyState);
 }
 
@@ -297,6 +344,8 @@ void CPad::UpdateMouse() {
 
 // 0x746A10
 void CPad::ProcessPad(ePadID padID) {
+
+
 #ifndef NOTSA_USE_SDL3
     LPDIRECTINPUTDEVICE8* pDiDevice = nullptr;
     DIJOYSTATE2 joyState;

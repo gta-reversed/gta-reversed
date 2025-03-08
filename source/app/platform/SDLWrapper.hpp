@@ -9,7 +9,7 @@ bool Initialize();
 void Terminate();
 void ProcessEvents();
 
-const CMouseControllerState& GetMouseState();
-const CKeyboardState& GetKeyboardState();
+CMouseControllerState& GetMouseState();
+CKeyboardState& GetKeyboardState();
 };
 };

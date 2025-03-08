@@ -27,8 +27,8 @@ void CControllerConfigManager::InjectHooks() {
     RH_ScopedInstall(ClearSimButtonPressCheckers, 0x52DD90, { .reversed = false });
     RH_ScopedInstall(GetJoyButtonJustUp, 0x52D1C0, { .reversed = false });
     RH_ScopedInstall(GetJoyButtonJustDown, 0x52D1E0, { .reversed = false });
-    RH_ScopedInstall(GetIsKeyboardKeyDown, 0x52DDB0, { .reversed = false });
-    RH_ScopedInstall(GetIsKeyboardKeyJustDown, 0x52E450, { .reversed = false });
+    RH_ScopedInstall(GetIsKeyboardKeyDown, 0x52DDB0);
+    RH_ScopedInstall(GetIsKeyboardKeyJustDown, 0x52E450);
     RH_ScopedInstall(GetIsMouseButtonDown, 0x52EF30, { .reversed = false });
     RH_ScopedInstall(GetIsMouseButtonUp, 0x52F020, { .reversed = false });
     RH_ScopedInstall(GetIsMouseButtonJustUp, 0x52F110, { .reversed = false });
@@ -218,14 +218,73 @@ bool CControllerConfigManager::GetJoyButtonJustDown() {
     return plugin::CallMethodAndReturn<bool, 0x52D1E0, CControllerConfigManager*>(this);
 }
 
+bool IsKeyboardKeyDownInState(CKeyboardState& state, RsKeyCodes key) {
+    if (key >= 0 && key < 0xFF) {
+        return state.standardKeys[key] != 0;
+    }
+
+    if (key >= rsF1 && key <= rsF12) {
+        return state.FKeys[key - rsF1];
+    }
+
+    switch (key) {
+    case rsESC: return state.esc;
+    case rsINS: return state.insert;
+    case rsDEL: return state.del;
+    case rsHOME: return state.home;
+    case rsEND: return state.end;
+    case rsPGUP: return state.pgup;
+    case rsPGDN: return state.pgdn;
+    case rsUP: return state.up;
+    case rsDOWN: return state.down;
+    case rsLEFT: return state.left;
+    case rsRIGHT: return state.right;
+    case rsDIVIDE: return state.div;
+    case rsTIMES: return state.mul;
+    case rsPLUS: return state.add;
+    case rsMINUS: return state.sub;
+    case rsPADDEL: return state.decimal;
+    case rsPADEND: return state.num1;
+    case rsPADDOWN: return state.num2;
+    case rsPADPGDN: return state.num3;
+    case rsPADLEFT: return state.num4;
+    case rsPAD5: return state.num5;
+    case rsNUMLOCK: return state.numlock;
+    case rsPADRIGHT: return state.num6;
+    case rsPADHOME: return state.num7;
+    case rsPADUP: return state.num8;
+    case rsPADPGUP: return state.num9;
+    case rsPADINS: return state.num0;
+    case rsPADENTER: return state.enter;
+    case rsSCROLL: return state.scroll;
+    case rsPAUSE: return state.pause;
+    case rsBACKSP: return state.back;
+    case rsTAB: return state.tab;
+    case rsCAPSLK: return state.capslock;
+    case rsENTER: return state.extenter;
+    case rsLSHIFT: return state.lshift;
+    case rsRSHIFT: return state.rshift;
+    case rsSHIFT: return state.shift;
+    case rsLCTRL: return state.lctrl;
+    case rsRCTRL: return state.rctrl;
+    case rsLALT: return state.lmenu;
+    case rsRALT: return state.rmenu;
+    case rsLWIN: return state.lwin;
+    case rsRWIN: return state.rwin;
+    case rsAPPS: return state.apps;
+    }
+
+    return false;
+}
+
 // 0x52DDB0
 bool CControllerConfigManager::GetIsKeyboardKeyDown(RsKeyCodes key) {
-    return plugin::CallMethodAndReturn<bool, 0x52DDB0, CControllerConfigManager*, RsKeyCodes>(this, key);
+    return IsKeyboardKeyDownInState(CPad::NewKeyState, key);
 }
 
 // 0x52E450
 bool CControllerConfigManager::GetIsKeyboardKeyJustDown(RsKeyCodes key) {
-    return plugin::CallMethodAndReturn<bool, 0x52E450, CControllerConfigManager*, RsKeyCodes>(this, key);
+    return IsKeyboardKeyDownInState(CPad::NewKeyState, key) && !IsKeyboardKeyDownInState(CPad::OldKeyState, key);
 }
 
 // 0x52EF30

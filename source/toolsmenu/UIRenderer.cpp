@@ -14,6 +14,8 @@
 #include <imgui_internal.h>
 #include <libs/imgui/misc/cpp/imgui_stdlib.h>
 
+#include <SDL3/SDL.h>
+
 #ifdef NOTSA_USE_SDL3
 #include <libs/imgui/bindings/imgui_impl_sdl3.h>
 #else
@@ -90,8 +92,8 @@ void UIRenderer::PreRenderUpdate() {
 
         m_ImIO->MouseDrawCursor     = m_InputActive;
         m_ImIO->NavActive           = m_InputActive;
-        m_ImIO->WantCaptureKeyboard = m_InputActive;
-        m_ImIO->WantCaptureMouse    = m_InputActive;
+
+        SDL_SetWindowRelativeMouseMode((SDL_Window*)(PSGLOBAL(sdlWindow)), !m_InputActive);
     }
 }
 

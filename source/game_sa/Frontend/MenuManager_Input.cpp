@@ -1,12 +1,13 @@
 #include "StdInc.h"
 
+#include <SDL3/SDL.h>
+
 #include "MenuManager.h"
 #include "MenuManager_Internal.h"
 #include "MenuSystem.h"
 #include "app/app.h"
 #include "VideoMode.h" // todo
 #include "ControllerConfigManager.h"
-
 #include "extensions/Configs/FastLoader.hpp"
 
 /*!
@@ -260,7 +261,9 @@ void CMenuManager::CheckForMenuClosing() {
                     pad->ClearKeyBoardHistory();
                     pad->ClearMouseHistory();
 
-#ifndef NOTSA_USE_SDL3
+#ifdef NOTSA_USE_SDL3
+                    SDL_SetWindowRelativeMouseMode((SDL_Window*)(PSGLOBAL(sdlWindow)), false);
+#else
                     if (IsVideoModeExclusive()) {
                         DIReleaseMouse();
                         InitialiseMouse(false);
@@ -286,7 +289,9 @@ void CMenuManager::CheckForMenuClosing() {
                 pad->ClearKeyBoardHistory();
                 pad->ClearMouseHistory();
 
-#ifndef NOTSA_USE_SDL3
+#ifdef NOTSA_USE_SDL3
+                SDL_SetWindowRelativeMouseMode((SDL_Window*)(PSGLOBAL(sdlWindow)), true);
+#else
                 if (IsVideoModeExclusive()) {
                     DIReleaseMouse();
 #ifdef FIX_BUGS // Causes the retarded fucktard code to not dispatch mouse input to WndProc => ImGUI mouse not working. Amazing piece of technology.
