@@ -33,6 +33,8 @@ class saRecipe(ConanFile):
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
+        if USE_SDL3:
+            tc.preprocessor_definitions['NOTSA_USE_SDL3'] = 1
         tc.user_presets_path = 'ConanPresets.json'
         tc.generate()
 

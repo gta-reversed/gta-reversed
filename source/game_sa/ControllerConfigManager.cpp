@@ -267,8 +267,8 @@ bool IsKeyboardKeyDownInState(CKeyboardState& state, RsKeyCodes key) {
     case rsSHIFT: return state.shift;
     case rsLCTRL: return state.lctrl;
     case rsRCTRL: return state.rctrl;
-    case rsLALT: return state.lmenu;
-    case rsRALT: return state.rmenu;
+    case rsLALT: return state.lalt;
+    case rsRALT: return state.ralt;
     case rsLWIN: return state.lwin;
     case rsRWIN: return state.rwin;
     case rsAPPS: return state.apps;
@@ -401,6 +401,13 @@ void CControllerConfigManager::MakeControllerActionsBlank() {
 // 0x531140
 void CControllerConfigManager::AffectPadFromKeyBoard() {
     plugin::CallMethod<0x531140, CControllerConfigManager*>(this);
+    //const auto isNotInMenu = !FrontEndMenuManager.m_bMenuActive;
+    //
+    //for (auto& action : m_Actions) {
+    //    for (auto& key : action.Keys) {
+    //        const auto isPlayerDriving = FindPlayerPed() && FindPlayerPed()->GetPedState() == PEDSTATE_DRIVING && !CPad::GetPad()->DisablePlayerControls;
+    //    }
+    //}
 }
 
 // 0x5314A0

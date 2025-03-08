@@ -43,8 +43,8 @@ public:
     int16 shift{};             //!< Shift keys combined (lshift | rshift)
     int16 lctrl{};             //!< Left ctrl
     int16 rctrl{};             //!< Right ctrl
-    int16 lmenu{};             //!< ?
-    int16 rmenu{};             //!< ?
+    int16 lalt{};              //!< L Alt (AKA lmenu)
+    int16 ralt{};              //!< R Alt (AKA rmenu)
     int16 lwin{};              //!< Left windows key
     int16 rwin{};              //!< Right windows key
     int16 apps{};              //!< Apps

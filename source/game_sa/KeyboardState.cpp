@@ -47,8 +47,8 @@ void CKeyboardState::Clear() {
     capslock = 0;
     tab = 0;
     back = 0;
-    rmenu = 0;
-    lmenu = 0;
+    ralt = 0;
+    lalt = 0;
     rctrl = 0;
     lctrl = 0;
     rshift = 0;

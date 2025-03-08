@@ -14,9 +14,8 @@
 #include <imgui_internal.h>
 #include <libs/imgui/misc/cpp/imgui_stdlib.h>
 
-#include <SDL3/SDL.h>
-
 #ifdef NOTSA_USE_SDL3
+#include <SDL3/SDL.h>
 #include <libs/imgui/bindings/imgui_impl_sdl3.h>
 #else
 #include <libs/imgui/bindings/imgui_impl_win32.h>
@@ -35,9 +34,11 @@ UIRenderer::UIRenderer() :
 {
     IMGUI_CHECKVERSION();
 
-    m_ImIO->ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad | ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
+    m_ImIO->ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard
+                        | ImGuiConfigFlags_NavEnableGamepad
+                        | ImGuiConfigFlags_DockingEnable
+                        | ImGuiConfigFlags_ViewportsEnable;
     m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT);
-    m_ImIO->NavActive   = false;
 
 #ifdef NOTSA_USE_SDL3
     ImGui_ImplSDL3_InitForD3D((SDL_Window*)(PSGLOBAL(sdlWindow)));
@@ -45,6 +46,8 @@ UIRenderer::UIRenderer() :
     ImGui_ImplWin32_Init(PSGLOBAL(window));
 #endif
     ImGui_ImplDX9_Init(GetD3DDevice());
+
+    SetIsActive(false);
 
     DEV_LOG("I say hello!");
 }
@@ -61,6 +64,40 @@ UIRenderer::~UIRenderer() {
     //DEV_LOG("Good bye!");
 }
 
+void UIRenderer::SetIsActive(bool active) {
+    const auto pad = CPad::GetPad(0);
+
+    m_InputActive = active;
+
+    if (active) { // Clear controller states
+        pad->OldMouseControllerState
+            = pad->NewMouseControllerState
+            = CMouseControllerState{};
+    } else {
+        SetFocus(PSGLOBAL(window)); // Re-focus GTA main window
+    }
+    pad->Clear(false, true);
+
+    m_ImIO->MouseDrawCursor = active;
+    m_ImIO->ConfigNavCaptureKeyboard = active;
+    
+    if (active) {
+        m_ImIO->ConfigFlags &= ~(ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard);
+    } else {
+        m_ImIO->ConfigFlags |= ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard;
+    }
+
+    if (active) {
+        ImGui::TeleportMousePos(m_LastMousePos);
+    } else {
+        m_LastMousePos = ImGui::GetMousePos();
+    }
+
+#ifdef NOTSA_USE_SDL3
+    SDL_SetWindowRelativeMouseMode((SDL_Window*)(PSGLOBAL(sdlWindow)), !active);
+#endif
+}
+
 void UIRenderer::PreRenderUpdate() {
     ZoneScoped;
 
@@ -71,34 +108,13 @@ void UIRenderer::PreRenderUpdate() {
     DebugCode();
     ReversibleHooks::CheckAll();
 
-    // A delay of a frame has to be added, otherwise
-    // the release of F7 wont be processed and the menu will close
-    const auto Shortcut = [](ImGuiKeyChord chord) {
-        return ImGui::IsKeyChordPressed(chord, ImGuiInputFlags_RouteAlways);
-    };
-    if (Shortcut(ImGuiKey_F7) || Shortcut(ImGuiKey_M | ImGuiMod_Ctrl)) {
-        const auto pad = CPad::GetPad(0);
-
-        m_InputActive = !m_InputActive;
-
-        if (m_InputActive) { // Clear controller states
-            pad->OldMouseControllerState
-                = pad->NewMouseControllerState
-                = CMouseControllerState{};
-        } else {
-            SetFocus(PSGLOBAL(window)); // Re-focus GTA main window
-        }
-        pad->Clear(false, true);
-
-        m_ImIO->MouseDrawCursor     = m_InputActive;
-        m_ImIO->NavActive           = m_InputActive;
-
-        SDL_SetWindowRelativeMouseMode((SDL_Window*)(PSGLOBAL(sdlWindow)), !m_InputActive);
+    if (ImGui::IsKeyChordPressed(ImGuiKey_F7, ImGuiInputFlags_RouteAlways) || CPad::GetPad()->IsFKeyJustDown(FKEY7)) {
+        SetIsActive(!m_InputActive);
     }
 }
 
 void UIRenderer::PostRenderUpdate() {
-    m_ImIO->NavActive = m_InputActive; // ImGUI clears `NavActive` every frame, so have to set it here.
+    //m_ImIO->NavActive = m_InputActive; // ImGUI clears `NavActive` every frame, so have to set it here.
 }
 
 void UIRenderer::DrawLoop() {
@@ -151,7 +167,7 @@ void UIRenderer::DebugCode() {
 
     const auto player = FindPlayerPed();
 
-    if (UIRenderer::Visible() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
+    if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
 
     if (pad->IsStandardKeyJustPressed('8')) {
@@ -217,28 +233,6 @@ void UIRenderer::DebugCode() {
     }
     if (pad->IsStandardKeyJustPressed('6')) {
         FindPlayerPed()->Say(CTX_GLOBAL_JACKED_CAR);
-    }
-
-    if (pad->IsStandardKeyJustPressed('T')) {
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-
-        for (int32 i = 0; i < 10; i++) {
-            std::cout << "loop " << i << std::endl;
-        }
-
-        int* a = (int*)(rand() % 1);
-        *a = 1;
-
-        player->GetTaskManager().SetTask(
-            new CTaskSimpleAchieveHeading{PI/2.f},
-            TASK_PRIMARY_PRIMARY
-        );
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {

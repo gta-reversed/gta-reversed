@@ -354,7 +354,7 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     SDL_Window* sdlWnd = SDL_CreateWindow(
         APP_CLASS,
         APP_DEFAULT_WIDTH, APP_DEFAULT_HEIGHT,
-        SDL_WINDOW_RESIZABLE // | SDL_WINDOW_MOUSE_GRABBED | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS
+        SDL_WINDOW_RESIZABLE  //| SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS// | SDL_WINDOW_MOUSE_GRABBED | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS
     );
     PSGLOBAL(sdlWindow) = sdlWnd;
     PSGLOBAL(window) = (HWND)(SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWnd), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL)); // NOTE/TODO: Hacky, but required due to RW
@@ -387,10 +387,12 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
         RsEventHandler(rsCOMMANDLINE, argv[i]);
     }
 
+#ifndef NOTSA_USE_SDL3
     if (MultipleSubSystems || PSGLOBAL(fullScreen)) {
         SetWindowLongPtr(PSGLOBAL(window), GWL_STYLE, (LONG_PTR)WS_POPUP);
         SetWindowPos(PSGLOBAL(window), nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
     }
+#endif
 
     RwRect rect{ 0, 0, RsGlobal.maximumWidth, RsGlobal.maximumHeight };
     RsEventHandler(rsCAMERASIZE, &rect);
@@ -403,8 +405,14 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     STICKYKEYS pvParam1 = { .cbSize = sizeof(STICKYKEYS), .dwFlags = SKF_TWOKEYSOFF };
     SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &pvParam1, 2u);
 
-    ShowWindow(PSGLOBAL(window), nCmdShow);
     UpdateWindow(PSGLOBAL(window));
+#ifdef NOTSA_USE_SDL3
+    SDL_SetWindowFocusable(sdlWnd, true);
+    SDL_SetWindowPosition(sdlWnd, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    SDL_RaiseWindow(sdlWnd);
+#else
+    ShowWindow(PSGLOBAL(window), nCmdShow);
+#endif
 
     // 0x748995
     CFileMgr::SetDirMyDocuments();

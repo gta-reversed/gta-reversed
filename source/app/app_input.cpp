@@ -63,6 +63,7 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
         case rsPLUS:     return &tks.add;
         case rsMINUS:    return &tks.sub;
         case rsPADDEL:   return &tks.decimal;
+
         case rsPADEND:   return &tks.num1;
         case rsPADDOWN:  return &tks.num2;
         case rsPADPGDN:  return &tks.num3;
@@ -74,6 +75,7 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
         case rsPADUP:    return &tks.num8;
         case rsPADPGUP:  return &tks.num9;
         case rsPADINS:   return &tks.num0;
+
         case rsPADENTER: return &tks.enter;
         case rsSCROLL:   return &tks.scroll;
         case rsPAUSE:    return &tks.pause;
@@ -86,8 +88,8 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
         case rsSHIFT:    return &tks.shift;
         case rsLCTRL:    return &tks.lctrl;
         case rsRCTRL:    return &tks.rctrl;
-        case rsLALT:     return &tks.lmenu;
-        case rsRALT:     return &tks.rmenu;
+        case rsLALT:     return &tks.lalt;
+        case rsRALT:     return &tks.ralt;
         case rsLWIN:     return &tks.lwin;
         case rsRWIN:     return &tks.rwin;
         case rsAPPS:     return &tks.apps;
