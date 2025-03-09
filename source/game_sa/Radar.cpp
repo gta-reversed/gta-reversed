@@ -1461,26 +1461,24 @@ void CRadar::DrawRadarSection(int32 x, int32 y) {
         const CRGBA seaColor{111, 137, 170, 255};
 
         RwRenderStateSet(rwRENDERSTATETEXTURERASTER, nullptr);
-        CSprite2d::SetVertices(numVerts, verts, seaColor);
+        CSprite2d::SetVertices(numVerts, verts, texCoords, seaColor);
+    } else if (CTheScripts::bPlayerIsOffTheMap) {
+        const CRGBA blankColor{204, 204, 204, 255};
+
+        RwRenderStateSet(rwRENDERSTATETEXTURERASTER, nullptr);
+        CSprite2d::SetVertices(numVerts, verts, texCoords, blankColor);
     } else {
-        if (CTheScripts::bPlayerIsOffTheMap) {
-            const CRGBA blankColor{204, 204, 204, 255};
-
-            RwRenderStateSet(rwRENDERSTATETEXTURERASTER, nullptr);
-            CSprite2d::SetVertices(numVerts, verts, blankColor);
-        } else {
-            RwTexture* texture = nullptr;
-            if (const auto txdIndex = gRadarTextures[y][x]) {
-                if (const auto txd = CTxdStore::GetTxd(txdIndex)) {
-                    texture = GetFirstTexture(txd);
-                }
+        RwTexture* texture = nullptr;
+        if (const auto txdIndex = gRadarTextures[y][x]) {
+            if (const auto txd = CTxdStore::GetTxd(txdIndex)) {
+                texture = GetFirstTexture(txd);
             }
-            if (texture) {
-                const CRGBA bg{255, 255, 255, 255};
+        }
+        if (texture) {
+            const CRGBA bg{255, 255, 255, 255};
 
-                RwRenderStateSet(rwRENDERSTATETEXTURERASTER, texture->raster);
-                CSprite2d::SetVertices(numVerts, verts, texCoords, bg);
-            }
+            RwRenderStateSet(rwRENDERSTATETEXTURERASTER, texture->raster);
+            CSprite2d::SetVertices(numVerts, verts, texCoords, bg);
         }
     }
     if (numVerts > 2) {
