@@ -592,7 +592,7 @@ CTask* CTaskComplexEnterCar::ControlSubTask(CPed* ped) {
         }
     }
 
-    if (const auto tGoToCarDoor = CTask::DynCast<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) { // 0x63AB28 - Moved up here to simplify the code
+    if (const auto tGoToCarDoor = notsa::dyn_cast_if_present<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) { // 0x63AB28 - Moved up here to simplify the code
         if (tGoToCarDoor->GetTargetDoor() != 0) {
             m_TargetDoorPos = tGoToCarDoor->GetTargetPt();
         }
@@ -816,7 +816,7 @@ CVector CTaskComplexEnterCar::GetTargetPos() const {
     if (m_TargetDoor != 0) { // TODO: Enum
         return m_TargetDoorPos;
     }
-    if (const auto tGoTo = CTask::DynCast<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) {
+    if (const auto tGoTo = notsa::dyn_cast_if_present<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) {
         return tGoTo->GetTargetPt();
     }
     return {};

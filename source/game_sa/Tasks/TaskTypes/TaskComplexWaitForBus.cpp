@@ -27,7 +27,7 @@ CTaskComplexWaitForBus::CTaskComplexWaitForBus(const CTaskComplexWaitForBus& o) 
 CTask* CTaskComplexWaitForBus::CreateNextSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_WAIT_FOR_BUS: {
-        m_bus = CTask::Cast<CTaskSimpleWaitForBus>(m_pSubTask)->m_bus;
+        m_bus = notsa::cast<CTaskSimpleWaitForBus>(m_pSubTask)->m_bus;
         return new CTaskComplexEnterCarAsPassenger{ m_bus, 0, false };
     }
     case TASK_COMPLEX_ENTER_CAR_AS_PASSENGER: {

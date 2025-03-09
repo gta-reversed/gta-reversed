@@ -120,13 +120,13 @@ bool CPedAttractorManager::IsPedRegisteredWithEffect(CPed* ped, const C2dEffectP
 // notsa
 CPedAttractor* CPedAttractorManager::FindAssociatedAttractor(const C2dEffectPedAttractor* fx, const CEntity* entity) {
     return VisitAttractorsOfType(fx->m_nAttractorType, [&](auto&& attractors) {
-        return notsa::Cast<CPedAttractor>(FindAssociatedAttractor(fx, entity, attractors));
+        return notsa::cast_if_present<CPedAttractor>(FindAssociatedAttractor(fx, entity, attractors));
     });
 }
 
 // 0x5EBBA0
 bool CPedAttractorManager::HasQueueTailArrivedAtSlot(const C2dEffectPedAttractor* fx, const CEntity* entity) {
-    assert(fx->m_Type == EFFECT_ATTRACTOR); // NOTE: Original function just returned `false`
+    assert(notsa::isa<C2dEffectPedAttractor>(fx)); // NOTE: Original function just returned `false`
 
     const auto* const attractor = FindAssociatedAttractor(fx, entity);
     if (!attractor) {
@@ -146,7 +146,7 @@ bool CPedAttractorManager::HasQueueTailArrivedAtSlot(const C2dEffectPedAttractor
 
 // 0x5EBB00
 bool CPedAttractorManager::HasEmptySlot(const C2dEffectPedAttractor* fx, const CEntity* entity) {
-    assert(fx->m_Type == EFFECT_ATTRACTOR); // NOTE: Original function just returned `false`
+    assert(notsa::isa<C2dEffectPedAttractor>(fx)); // NOTE: Original function just returned `false`
 
     const auto* const attractor = FindAssociatedAttractor(fx, entity);
     return !attractor || attractor->HasEmptySlot();
@@ -192,7 +192,7 @@ CPedAttractor* CPedAttractorManager::RegisterPedWithAttractor(CPed* ped, C2dEffe
         return nullptr;
     }
     return VisitAttractorsOfType(fx->m_nAttractorType, [&](auto&& attractors) {
-        return notsa::Cast<CPedAttractor>(RegisterPed(ped, fx, entity, ms, attractors));
+        return notsa::cast<CPedAttractor>(RegisterPed(ped, fx, entity, ms, attractors));
     });
 }
 

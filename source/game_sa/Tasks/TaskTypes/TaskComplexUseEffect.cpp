@@ -55,7 +55,7 @@ bool CTaskComplexUseEffect::MakeAbortable(CPed* ped, eAbortPriority priority, CE
 
     if (event && notsa::contains({EVENT_PED_COLLISION_WITH_PED, EVENT_PED_COLLISION_WITH_PLAYER}, event->GetEventType())) {
         if (const auto collisionVictim = static_cast<const CEventPedCollisionWithPed*>(event)->m_victim) {
-            if (const auto t = CTask::DynCast<CTaskComplexGoToAttractor>(m_pSubTask)) {
+            if (const auto t = notsa::dyn_cast_if_present<CTaskComplexGoToAttractor>(m_pSubTask)) {
                 if ((ped->GetPosition() - t->m_vecAttrPosn).SquaredMagnitude2D() <= sq(1.5f)) {
                     if (m_MoveState == PEDMOVE_STILL && (collisionVictim->GetPosition() - t->m_vecAttrPosn).SquaredMagnitude2D() <= sq(1.5f)) {
                         m_bAbort = true;

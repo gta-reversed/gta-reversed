@@ -192,7 +192,7 @@ CTask* CTaskComplexKillPedOnFootArmed::CreateSubTask(eTaskType taskType, CPed* p
 bool CTaskComplexKillPedOnFootArmed::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     switch (priority) {
     case ABORT_PRIORITY_URGENT: {
-        if (const auto aimedAtEvent = CEvent::DynCast<const CEventGunAimedAt>(event)) {
+        if (const auto aimedAtEvent = notsa::dyn_cast_if_present<const CEventGunAimedAt>(event)) {
             if (aimedAtEvent->m_AimedBy == m_target) {
                 return false;
             }
@@ -356,7 +356,7 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
             || targetToOurPedDistSq >= sq(4.f) && !ped->bStayInSamePlace && CTimer::GetTimeInMS() >= m_shootTimer
             || !LineOfSightClearForAttack(ped)
         ) {
-            const auto gctrl = CTask::Cast<CTaskSimpleGunControl>(m_pSubTask);
+            const auto gctrl = notsa::cast<CTaskSimpleGunControl>(m_pSubTask);
             if (gctrl->m_firingTask != eGunCommand::END_LEISURE) {
                 gctrl->m_nextAtkTimeMs = 0;
                 gctrl->m_firingTask    = eGunCommand::END_LEISURE;

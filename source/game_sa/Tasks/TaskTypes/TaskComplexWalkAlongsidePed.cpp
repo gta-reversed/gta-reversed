@@ -111,7 +111,7 @@ CTask* CTaskComplexWalkAlongsidePed::ControlSubTask(CPed* ped) {
         return nullptr;
     }
 
-    const auto tSubTaskSeekEntity = CTask::DynCast<CTaskComplexSeekEntity<CEntitySeekPosCalculatorXYOffset>>(m_pSubTask);
+    const auto tSubTaskSeekEntity = notsa::dyn_cast_if_present<CTaskComplexSeekEntity<CEntitySeekPosCalculatorXYOffset>>(m_pSubTask);
     if (!tSubTaskSeekEntity) { // 0x68528B
         ped->bMoveAnimSpeedHasBeenSetByTask         = false;
         m_TargetPed->bMoveAnimSpeedHasBeenSetByTask = false;
