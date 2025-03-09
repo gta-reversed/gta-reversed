@@ -295,6 +295,11 @@ public:
     static bool IsMouseBmx2Pressed() noexcept      { return MOUSE_IS_PRESSED(bmx2); }                                               // 0x57C460
     static bool IsMouseLButton() noexcept          { return MOUSE_IS_DOWN(lmb); }                                                   // 0x45AF70
     static bool IsMouseRButton() noexcept          { return MOUSE_IS_DOWN(rmb); }                                                   // 0x45AF80
+    static bool IsMouseMButton() noexcept          { return MOUSE_IS_DOWN(mmb); }                                                   // 
+    static bool IsMouseWheelUp() noexcept          { return MOUSE_IS_DOWN(wheelUp); }                                               // 0x572E60
+    static bool IsMouseWheelDown() noexcept        { return MOUSE_IS_DOWN(wheelDown); }                                             // 0x572E50
+    static bool IsMouseBmx1() noexcept             { return MOUSE_IS_DOWN(bmx1); }                                                  // 
+    static bool IsMouseBmx2() noexcept             { return MOUSE_IS_DOWN(bmx2); }                                                  // 
     // MOUSE END
 
     int32 sub_541320() { return AverageWeapon / AverageEntries; } // 0x541320

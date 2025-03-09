@@ -24,7 +24,7 @@ HRESULT CreateInput() {
 // 0x7487CF
 bool Initialise() {
     ControlsManager.MakeControllerActionsBlank();
-    ControlsManager.InitDefaultControlConfiguration();
+    ControlsManager.InitializeDefaultKeyboardAndMouseBindings();
 
     if (FAILED(CreateInput())) {
         return false;
