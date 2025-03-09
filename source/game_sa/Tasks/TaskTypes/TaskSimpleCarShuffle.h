@@ -30,9 +30,9 @@ private:
     static void FinishAnimCarShuffleCB(CAnimBlendAssociation* assoc, void* task);
 
 protected:
-    bool                          m_bFinished{};
+    bool                          m_IsFinished{};
     CAnimBlendAssociation*        m_Anim{};
-    CVehicle*                     m_Car{};
+    CVehicle::Ref                 m_Car{};
     int32                         m_TargetDoor{};
     CTaskUtilityLineUpPedWithCar* m_LineUpUtility{};
 
