@@ -25,7 +25,7 @@ Since this project is done as a hobby, and worked on at irregular intervals, the
 * Install Conan using `pip install conan` [You might need to reload the console if you've freshly installed Python.]
 
 #### 2. Setting up VS
-0) Run: `install.sh Debug` (Or any of `Debug`, `Release`, `RelWithDebInfo`)
+0) Run: `install` depending on the environment with the `Debug` argument (Or any of `Debug`, `Release`, `RelWithDebInfo`) (e.g. `install.bat Debug`)
 1) Open the folder with VS
 2) Select `conan-debug (conan-default-conan-debug)` or `conan-release (conan-default-conan-release)` (Depending on what you've spcified in the command above), other builds will result in CMake errors [TODO: Fix this somehow... We aren't proeficient with Conan/CMake sadly]
 3) Alternatively you can type `cmake --preset conan-debug/release` and build with `cmake --build build` in CLI.
