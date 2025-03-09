@@ -1,6 +1,6 @@
-# Reversed Classes
+# Reversed Classes [As of Jan 24, 2025, 01:00:13 UTC]
 
-## Completely Reversed (498 classes)
+## Completely Reversed classes (514/674) [76%]
 
 - cTransmission (4)
 - cHandlingDataMgr (11)
@@ -50,6 +50,7 @@
 - CRenderer (33)
 - CRegisteredMotionBlurStreak (2)
 - CReferences (4)
+- CRadar (63)
 - CPlayerPedData (5)
 - CPlaneTrails (4)
 - CPlaneTrail (3)
@@ -77,18 +78,21 @@
 - CLoadedCarGroup (8)
 - CKeyboardState (1)
 - CIniFile (1)
+- CInformGroupEventQueue (4)
+- CInformGroupEvent (3)
+- CInformFriendsEventQueue (4)
 - CHudColours (5)
 - CHandShaker (3)
 - CGridRef (5)
 - CGlass (18)
-- CGarages (19)
+- CGarages (21)
 - CGarage (4)
 - CGamma (2)
 - CGameLogic (27)
-- CGame (22)
 - CFireManager (24)
 - CFire (5)
 - CFileMgr (17)
+- CFileLoader (47)
 - CFallingGlassPane (2)
 - CExplosion (12)
 - CEscalators (4)
@@ -103,18 +107,21 @@
 - CCustomCarPlateMgr (14)
 - CCurrentVehicle (2)
 - CCullZones (16)
+- CCrime (2)
 - CCreepingFire (3)
 - CCranes (5)
 - CControllerState (2)
 - CCompressedMatrixNotAligned (2)
-- CClothes (11)
 - CClock (9)
+- CCheckpoints (8)
+- CCheckpoint (1)
 - CCheat (71)
 - CCarGenerator (8)
 - CBulletTraces (5)
 - CBulletInfo (4)
 - CBrightLights (4)
 - CBridge (4)
+- CBouncingPanel (3)
 - CBirds (6)
 - CActiveOccluder (2)
 - CAcquaintance (5)
@@ -226,15 +233,18 @@
 - CHeli (11)
 - CBoat (22)
 - CBmx (4)
-- CAutomobile (99)
 - Fx_c (3)
 - FxSystemBP_c (10)
 - FxSphere_c (4)
 - FxMemoryPool_c (5)
 - FxInfoManager_c (4)
 - FxEmitterPrt_c (1)
+- CAEWeaponAudioEntity (20)
 - CAEWaterCannonAudioEntity (7)
 - CAETwinLoopSoundEntity (7)
+- CAEPedlessSpeechAudioEntity (11)
+- CAEPedSpeechAudioEntity (58)
+- CAEGlobalWeaponAudioEntity (6)
 - CAEFireAudioEntity (7)
 - CAEExplosionAudioEntity (3)
 - CAEDoorAudioEntity (6)
@@ -259,23 +269,19 @@
 - CAESmoothFadeThread (10)
 - CAEAudioUtility (11)
 - CAEAudioEnvironment (6)
-- CPlantSurfPropMgr (4)
-- CPlantMgr (19)
-- CPlantLocTri (3)
-- CPlantColEntEntry (2)
-- CPPTriPlantBuffer (7)
-- CGrassRenderer (12)
 - CCopPed (7)
-- CObject (46)
+- CObject (48)
 - CHandObject (3)
 - CCutsceneObject (6)
 - CDummyObject (2)
 - CDummy (1)
+- CCivilianPed (3)
 - CPlaceable (16)
 - CPhysical (56)
 - CEntity (64)
 - CBuilding (2)
 - CAnimatedBuilding (3)
+- CTempColModels (2)
 - CCollisionData (8)
 - CColTrianglePlane (2)
 - CColStore (23)
@@ -284,8 +290,16 @@
 - CColLine (1)
 - CColAccel (11)
 - CBox (2)
+- ProcSurfaceInfo_c (4)
+- ProcObjectMan_c (8)
+- CPlantSurfPropMgr (4)
+- CPlantMgr (19)
+- CPlantLocTri (3)
+- CPlantColEntEntry (2)
+- CPPTriPlantBuffer (7)
+- CGrassRenderer (12)
 - CAnimManager (31)
-- CAnimBlendStaticAssociation (4)
+- CAnimBlendStaticAssociation (6)
 - CAnimBlendSequence (14)
 - CAnimBlendNode (16)
 - CAnimBlendHierarchy (16)
@@ -383,6 +397,7 @@
 - CTaskSimpleArrestPed (3)
 - CTaskSimpleAnim (1)
 - CTaskSimpleAffectSecondaryBehaviour (5)
+- CTaskSimpleAchieveHeading (5)
 - CTaskComplexWanderFlee (6)
 - CTaskComplexWanderCop (9)
 - CTaskComplexWalkRoundObject (1)
@@ -477,17 +492,17 @@
 - CPedScriptedTaskRecordData (8)
 - CPedScriptedTaskRecord (5)
 - RtAnim (1)
-- RpAnimBlend (39)
 - PipelinePlugin (3)
 - NodeNamePlugin (3)
 - CCollisionPlugin (2)
 - BreakablePlugin (6)
+- InteriorManager_c (21)
 - FurnitureManager_c (7)
 - FurnitureGroup_c (6)
 - CStaticShadow (1)
 - CShadowCamera (19)
 - CRealTimeShadow (8)
-- CStreamedScripts (1)
+- CStreamedScripts (12)
 - VideoPlayer (6)
 - Input (9)
 - Game (12)
@@ -498,175 +513,169 @@
 - CData (2)
 - Win (7)
 - Ps (22)
+- CCustomCarEnvMapPipeline (37)
+- RwCore (4)
 - Common (6)
-- CBouncingPanel (3)
 
-## Partially Reversed (167 classes)
+## Partially Reversed classes (160/674) [24%]
 
-- C_PcSave (0/5)
-- CWorld (91/92)
-- CWeather (9/13)
-- CWeaponEffects (8/9)
-- CWeapon (33/40)
-- CWaterLevel (23/30)
-- CWanted (31/32)
-- CTimeCycle (17/20)
-- CStuckCarCheck (2/8)
-- CStencilShadows (6/11)
-- CSprite2d (32/33)
-- CSprite (7/15)
-- CSpecialFX (3/6)
-- CRopes (9/11)
-- CRope (5/7)
-- CRoadBlocks (0/8)
-- CRadar (57/59)
-- CPostEffects (22/37)
-- CPopulation (64/66)
-- CPopCycle (14/15)
-- CPools (13/19)
-- CPlayerInfo (24/28)
-- CPickups (35/38)
-- CPickup (11/12)
-- CPedGeometryAnalyser (6/20)
-- CPedDamageResponseCalculator (1/7)
-- CPedClothesDesc (3/5)
-- CPedAttractorManager (6/16)
-- CPathFind (51/53)
-- COcclusion (4/5)
-- CMessages (27/28)
-- CMenuSystem (18/21)
-- CMenuManager (47/59)
-- CLoadingScreen (19/20)
-- CLoadMonitor (0/6)
-- CIplStore (31/34)
-- CInterestingEvents (2/7)
-- CInformGroupEventQueue (1/4)
-- CInformFriendsEventQueue (0/4)
-- CGenericGameStorage (1/17)
-- CGeneral (8/9)
-- CGangs (7/8)
-- CGangWars (32/35)
-- CFont (32/36)
-- CFileLoader (46/47)
-- CEscalator (0/3)
-- CEntryExit (10/11)
-- CEntityScanner (0/2)
-- CDecisionMakerTypesFileLoader (1/6)
-- CCustomBuildingRenderer (3/7)
-- CCustomBuildingPipeline (0/4)
-- CCover (2/16)
-- CCoronas (6/10)
-- CCollision (1/59)
-- CClouds (20/21)
-- CClothesBuilder (15/23)
-- CCheckpoints (6/8)
-- CCheckpoint (0/1)
-- CCarEnterExit (19/25)
-- CCarCtrl (19/20)
-- CCamera (86/108)
-- C3dMarkers (19/20)
-- CGroupEventHandler (30/32)
-- CEventHandler (69/72)
-- CBaseModelInfo (33/34)
-- CVehicle (125/126)
-- CTrain (20/40)
-- CTrailer (8/13)
-- CQuadBike (11/12)
-- CPlane (14/23)
-- CMonsterTruck (5/11)
-- CBike (21/40)
-- FxSystem_c (31/35)
-- FxPrimBP_c (1/2)
-- FxManager_c (24/25)
-- FxEmitterBP_c (2/9)
-- CCarFXRenderer (9/10)
-- CAEWeatherAudioEntity (2/5)
-- CAEWeaponAudioEntity (15/20)
-- CAEVehicleAudioEntity (36/107)
-- CAEScriptAudioEntity (8/19)
-- CAEPoliceScannerAudioEntity (13/17)
-- CAEPedlessSpeechAudioEntity (4/11)
-- CAEPedSpeechAudioEntity (26/58)
-- CAEPedAudioEntity (15/20)
-- CAEGlobalWeaponAudioEntity (5/6)
-- CAEFrontendAudioEntity (4/6)
-- CAECollisionAudioEntity (9/16)
-- CAEMP3BankLoader (12/13)
-- CAERadioTrackManager (27/43)
-- CAEAmbienceTrackManager (6/7)
-- CAEStreamingChannel (19/23)
-- CAEStaticChannel (7/8)
-- CAEAudioHardware (51/54)
-- ProcSurfaceInfo_c (2/4)
-- ProcObjectMan_c (7/8)
-- CPlayerPed (47/50)
-- CPed (134/145)
-- CAnimBlendAssocGroup (14/15)
-- CEntitySeekPosCalculatorXYOffset (0/1)
-- CEntitySeekPosCalculatorRadiusAngleOffset (0/1)
-- CTaskUtilityLineUpPedWithCar (2/5)
-- CTaskSimpleThrowControl (5/6)
-- CTaskSimpleRunNamedAnim (4/7)
-- CTaskSimplePlayerOnFoot (11/12)
-- CTaskSimpleJetPack (13/14)
-- CTaskSimpleFightingControl (6/7)
-- CTaskSimpleClimb (13/15)
-- CTaskSimpleChoking (5/7)
-- CTaskSimpleCarDrive (7/13)
-- CTaskLeanOnVehicle (3/5)
-- CTaskGoToVehicleAndLean (2/7)
-- CTaskGangHassleVehicle (2/8)
-- CTaskGangHasslePed (2/5)
-- CTaskComplexWander (13/14)
-- CTaskComplexWalkRoundCar (9/13)
-- CTaskComplexWaitForBus (2/7)
-- CTaskComplexUseClosestFreeScriptedAttractorSprint (2/4)
-- CTaskComplexUseClosestFreeScriptedAttractor (6/8)
-- CTaskComplexTrackEntity (8/11)
-- CTaskComplexSunbathe (2/8)
-- CTaskComplexStuckInAir (0/4)
-- CTaskComplexSmartFleePoint (2/12)
-- CTaskComplexSignalAtPed (4/7)
-- CTaskComplexRoadRage (8/9)
-- CTaskComplexPolicePursuit (0/11)
-- CTaskComplexPlayHandSignalAnim (3/9)
-- CTaskComplexLeaveCarAndWander (2/8)
-- CTaskComplexKillPedOnFootArmed (9/11)
-- CTaskComplexGotoDoorAndOpen (3/7)
-- CTaskComplexGoToPointShooting (1/3)
-- CTaskComplexGoToPointAnyMeans (3/7)
-- CTaskComplexGoToPointAndStandStillAndAchieveHeading (3/7)
-- CTaskComplexGoToPointAiming (5/8)
-- CTaskComplexGoToAttractor (2/5)
-- CTaskComplexGangLeader (2/13)
-- CTaskComplexGangJoinRespond (2/7)
-- CTaskComplexGangFollower (0/8)
-- CTaskComplexFollowLeaderInFormation (1/7)
-- CTaskComplexDragPedFromCar (1/2)
-- CTaskComplexDestroyCarMelee (9/10)
-- CTaskComplexDestroyCarArmed (8/10)
-- CTaskComplexDestroyCar (8/9)
-- CTaskComplexCarSlowBeDraggedOutAndStandUp (3/9)
-- CTaskComplexCarSlowBeDraggedOut (3/10)
-- CTaskComplexAvoidEntity (0/12)
-- CTaskComplexArrestPed (4/7)
-- CScriptsForBrains (3/4)
-- C2dEffect (13/14)
-- Interior_c (0/52)
-- InteriorManager_c (17/22)
-- InteriorGroup_c (2/24)
-- FurnitureSubGroup_c (0/3)
-- CShadows (21/31)
-- CRealTimeShadowManager (5/7)
-- CTheScripts (8/9)
-- CScripted2dEffects (4/5)
-- CScriptResourceManager (1/4)
-- CRunningScript (24/39)
-- Light (26/27)
-- CCustomCarEnvMapPipeline (31/37)
-- CCustomBuildingDNPipeline (6/12)
-- CPedGroupPlacer (1/4)
-- CPedGroup (10/12)
-- CCam (3/43)
-- CPedAttractorPedPlacer (0/1)
-- CCarAI (5/25)
+- C_PcSave (0/5) [0%]
+- CWorld (91/92) [99%]
+- CWeather (9/13) [69%]
+- CWeaponEffects (8/9) [89%]
+- CWeapon (35/41) [85%]
+- CWaterLevel (25/30) [83%]
+- CWanted (31/32) [97%]
+- CTimeCycle (17/20) [85%]
+- CStuckCarCheck (2/8) [25%]
+- CStencilShadows (9/13) [69%]
+- CSprite2d (32/33) [97%]
+- CSprite (8/15) [53%]
+- CSpecialFX (4/7) [57%]
+- CShotInfo (1/5) [20%]
+- CRopes (9/11) [82%]
+- CRope (5/7) [71%]
+- CRoadBlocks (0/8) [0%]
+- CPostEffects (22/37) [59%]
+- CPopulation (64/66) [97%]
+- CPopCycle (14/15) [93%]
+- CPools (14/19) [74%]
+- CPlayerInfo (24/28) [86%]
+- CPickups (35/37) [95%]
+- CPickup (11/12) [92%]
+- CPedGroupPlacer (1/4) [25%]
+- CPedGroupIntelligence (3/24) [12%]
+- CPedGroup (10/12) [83%]
+- CPedGeometryAnalyser (6/20) [30%]
+- CPedDamageResponseCalculator (1/7) [14%]
+- CPedClothesDesc (3/5) [60%]
+- CPedAttractorManager (6/16) [38%]
+- CPathFind (51/53) [96%]
+- COcclusion (4/5) [80%]
+- CMessages (27/28) [96%]
+- CMenuSystem (20/21) [95%]
+- CMenuManager (51/61) [84%]
+- CLoadingScreen (19/20) [95%]
+- CLoadMonitor (0/6) [0%]
+- CIplStore (33/34) [97%]
+- CInterestingEvents (2/7) [29%]
+- CGenericGameStorage (5/19) [26%]
+- CGeneral (8/9) [89%]
+- CGangs (7/8) [88%]
+- CGangWars (32/35) [91%]
+- CGame (21/22) [95%]
+- CFont (32/36) [89%]
+- CEscalator (0/3) [0%]
+- CEntryExit (10/11) [91%]
+- CEntityScanner (0/2) [0%]
+- CDecisionMakerTypesFileLoader (1/6) [17%]
+- CCustomBuildingRenderer (3/7) [43%]
+- CCustomBuildingPipeline (0/4) [0%]
+- CCover (2/16) [12%]
+- CCoronas (6/10) [60%]
+- CCollision (1/59) [2%]
+- CClouds (20/21) [95%]
+- CClothesBuilder (15/23) [65%]
+- CClothes (10/11) [91%]
+- CCarEnterExit (27/32) [84%]
+- CCarCtrl (20/21) [95%]
+- CCamera (87/108) [81%]
+- C3dMarkers (19/20) [95%]
+- CGroupEventHandler (30/32) [94%]
+- CEventHandler (69/72) [96%]
+- CBaseModelInfo (33/34) [97%]
+- CVehicle (138/142) [97%]
+- CTrain (20/40) [50%]
+- CTrailer (8/13) [62%]
+- CQuadBike (11/12) [92%]
+- CPlane (14/23) [61%]
+- CMonsterTruck (5/11) [45%]
+- CBike (21/40) [52%]
+- CAutomobile (97/99) [98%]
+- FxSystem_c (31/35) [89%]
+- FxPrimBP_c (1/2) [50%]
+- FxManager_c (24/25) [96%]
+- FxEmitterBP_c (2/9) [22%]
+- CCarFXRenderer (9/10) [90%]
+- CAEWeatherAudioEntity (2/5) [40%]
+- CAEVehicleAudioEntity (36/107) [34%]
+- CAEScriptAudioEntity (8/19) [42%]
+- CAEPoliceScannerAudioEntity (13/17) [76%]
+- CAEPedAudioEntity (15/20) [75%]
+- CAEFrontendAudioEntity (4/6) [67%]
+- CAECollisionAudioEntity (9/16) [56%]
+- CAEMP3BankLoader (12/13) [92%]
+- CAERadioTrackManager (29/43) [67%]
+- CAEAmbienceTrackManager (6/7) [86%]
+- CAEStreamingChannel (21/24) [88%]
+- CAEStaticChannel (7/8) [88%]
+- CAEAudioHardware (51/54) [94%]
+- CPlayerPed (50/51) [98%]
+- CPed (134/145) [92%]
+- CAnimBlendAssocGroup (14/15) [93%]
+- CEntitySeekPosCalculatorXYOffset (0/1) [0%]
+- CEntitySeekPosCalculatorRadiusAngleOffset (0/1) [0%]
+- CTaskUtilityLineUpPedWithCar (2/5) [40%]
+- CTaskSimpleUseGun (18/19) [95%]
+- CTaskSimpleThrowControl (5/6) [83%]
+- CTaskSimpleRunNamedAnim (4/7) [57%]
+- CTaskSimplePlayerOnFoot (11/12) [92%]
+- CTaskSimpleJetPack (13/14) [93%]
+- CTaskSimpleFightingControl (6/7) [86%]
+- CTaskSimpleClimb (13/15) [87%]
+- CTaskSimpleChoking (5/7) [71%]
+- CTaskSimpleCarDrive (7/13) [54%]
+- CTaskLeanOnVehicle (3/5) [60%]
+- CTaskGoToVehicleAndLean (2/7) [29%]
+- CTaskGangHassleVehicle (2/8) [25%]
+- CTaskGangHasslePed (2/5) [40%]
+- CTaskComplexWander (13/14) [93%]
+- CTaskComplexWalkRoundCar (9/13) [69%]
+- CTaskComplexWaitForBus (2/7) [29%]
+- CTaskComplexUseClosestFreeScriptedAttractorSprint (2/4) [50%]
+- CTaskComplexUseClosestFreeScriptedAttractor (6/8) [75%]
+- CTaskComplexTrackEntity (8/11) [73%]
+- CTaskComplexSunbathe (2/8) [25%]
+- CTaskComplexStuckInAir (0/4) [0%]
+- CTaskComplexSmartFleePoint (2/12) [17%]
+- CTaskComplexSignalAtPed (4/7) [57%]
+- CTaskComplexRoadRage (8/9) [89%]
+- CTaskComplexPolicePursuit (0/11) [0%]
+- CTaskComplexPlayHandSignalAnim (3/9) [33%]
+- CTaskComplexLeaveCarAndWander (2/8) [25%]
+- CTaskComplexKillPedOnFootArmed (9/11) [82%]
+- CTaskComplexGotoDoorAndOpen (3/7) [43%]
+- CTaskComplexGoToPointShooting (1/3) [33%]
+- CTaskComplexGoToPointAnyMeans (3/7) [43%]
+- CTaskComplexGoToPointAndStandStillAndAchieveHeading (3/7) [43%]
+- CTaskComplexGoToPointAiming (5/8) [62%]
+- CTaskComplexGoToAttractor (2/5) [40%]
+- CTaskComplexGangLeader (2/13) [15%]
+- CTaskComplexGangJoinRespond (2/7) [29%]
+- CTaskComplexGangFollower (0/8) [0%]
+- CTaskComplexFollowLeaderInFormation (1/7) [14%]
+- CTaskComplexDragPedFromCar (1/2) [50%]
+- CTaskComplexDestroyCarMelee (9/10) [90%]
+- CTaskComplexDestroyCarArmed (8/10) [80%]
+- CTaskComplexDestroyCar (8/9) [89%]
+- CTaskComplexCarSlowBeDraggedOutAndStandUp (3/9) [33%]
+- CTaskComplexCarSlowBeDraggedOut (3/10) [30%]
+- CTaskComplexAvoidEntity (0/12) [0%]
+- CTaskComplexArrestPed (4/7) [57%]
+- CScriptsForBrains (3/6) [50%]
+- RpAnimBlend (38/43) [88%]
+- C2dEffect (13/14) [93%]
+- Interior_c (0/52) [0%]
+- InteriorGroup_c (2/24) [8%]
+- FurnitureSubGroup_c (0/3) [0%]
+- CShadows (21/31) [68%]
+- CRealTimeShadowManager (5/7) [71%]
+- CTheScripts (68/69) [99%]
+- CScripted2dEffects (4/5) [80%]
+- CScriptResourceManager (1/4) [25%]
+- CRunningScript (24/39) [62%]
+- Light (26/27) [96%]
+- CCustomBuildingDNPipeline (6/12) [50%]
+- CCam (3/43) [7%]
+- CPedAttractorPedPlacer (0/1) [0%]
+- CCarAI (5/25) [20%]
