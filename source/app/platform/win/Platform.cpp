@@ -25,9 +25,11 @@ void WinPsInjectHooks();
 void Win32InjectHooks() {
     RH_ScopedCategory("Win");
     RH_ScopedNamespaceName("Win");
-    
+
+#ifndef NOTSA_USE_SDL3
     InjectHooksWndProcStuff();
+    WinInput::InjectHooks();
+#endif
     InjectWinMainStuff();
     WinPsInjectHooks();
-    WinInput::InjectHooks();
 }

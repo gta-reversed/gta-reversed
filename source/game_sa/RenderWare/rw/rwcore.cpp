@@ -1081,7 +1081,6 @@ RwCamera* RwCameraEndUpdate(RwCamera* camera) {
 }
 
 RwCamera* RwCameraClear(RwCamera* camera, RwRGBA* colour, RwInt32 clearMode) {
-    ZoneScoped;
     return RwEngineInstance->stdFunc[rwSTANDARDCAMERACLEAR](camera, colour, clearMode) ? camera : nullptr;
 }
 
