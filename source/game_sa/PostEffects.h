@@ -41,8 +41,6 @@ public:
     static int32& m_defScreenXPosn;
     static int32& m_defScreenYPosn;
 
-    static float& ms_imf;
-
     static RwRaster*& pRasterFrontBuffer;
 
     static int32& m_DarknessFilterAlpha;
@@ -156,6 +154,7 @@ public:
     static void SetupBackBufferVertex();
     static void Update();
 
+    // X2,Y2 is added to X1,Y1. So they are more like width and height in a rectangle.
     static void DrawQuad(float x1, float y1, float x2, float y2, uint8 red, uint8 green, uint8 blue, uint8 alpha, RwRaster* raster);
     static void DrawQuadSetDefaultUVs();
     static void DrawQuadSetPixelUVs(float u0, float v0, float u1, float v1, float u3, float v3, float u2, float v2);
@@ -178,7 +177,7 @@ public:
     static void ScriptNightVisionSwitch(bool enable);
     static void ScriptResetForEffects();
 
-    static void UnderWaterRipple(RwRGBA col, float xoffset, float yoffset, int32 strength, float speed, float freq);
+    static void UnderWaterRipple(RwRGBA col, float xoffset, float yoffset, float strength, float speed, float freq);
     static void UnderWaterRippleFadeToFX();
 
     static void HeatHazeFXInit();
@@ -203,6 +202,7 @@ public:
     static void DarknessFilter(int32 alpha);
     static void ColourFilter(RwRGBA pass1, RwRGBA pass2);
     static void Radiosity(int32 intensityLimit, int32 filterPasses, int32 renderPasses, int32 intensity);
+    static void SetSpeedFXManualSpeedCurrentFrame(float value);
 
     static void Render();
 };
