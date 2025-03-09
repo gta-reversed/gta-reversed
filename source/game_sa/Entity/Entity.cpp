@@ -1070,7 +1070,7 @@ C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot)
         if (effect->m_Type != effectType)
             continue;
 
-        if (bCheckForEmptySlot && !GetPedAttractorManager()->HasEmptySlot(C2dEffect::Cast<C2dEffectPedAttractor>(effect), this))
+        if (bCheckForEmptySlot && !GetPedAttractorManager()->HasEmptySlot(notsa::cast<C2dEffectPedAttractor>(effect), this))
             continue;
 
         if (iFoundCount < 32) {

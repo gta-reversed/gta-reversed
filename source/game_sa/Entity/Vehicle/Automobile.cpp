@@ -2036,7 +2036,7 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
             }
             auto value = plyrpad->GetAccelerate() - plyrpad->GetBrake(); // Rescaled later..
             if (   !value
-                && CTask::DynCast<CTaskSimpleGangDriveBy>(plyrdriver->GetTaskManager().GetSimplestActiveTask())
+                && notsa::dyn_cast_if_present<CTaskSimpleGangDriveBy>(plyrdriver->GetTaskManager().GetSimplestActiveTask())
                 && TheCamera.m_aCams[0].m_nMode == MODE_AIMWEAPON_FROMCAR
             ) {
                 value = plyrpad->NewState.RightShoulder2 - plyrpad->NewState.LeftShoulder2; // Rescaled later..

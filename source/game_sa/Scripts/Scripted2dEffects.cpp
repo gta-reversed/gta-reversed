@@ -63,7 +63,7 @@ int32 CScripted2dEffects::AddScripted2DEffect(float radius) {
 // 0x6F9E80
 void CScripted2dEffects::ReturnScripted2DEffect(int32 index) {
     ms_activated[index] = false;
-    GetPedAttractorManager()->RemoveEffect(C2dEffect::Cast<C2dEffectPedAttractor>(&ms_effects[index]));
+    GetPedAttractorManager()->RemoveEffect(notsa::cast<C2dEffectPedAttractor>(&ms_effects[index]));
 }
 
 auto CScripted2dEffects::IndexOfEffect(const C2dEffectBase* effect) -> std::optional<size_t> {

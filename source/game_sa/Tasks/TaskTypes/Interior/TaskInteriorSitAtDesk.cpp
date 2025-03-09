@@ -40,7 +40,7 @@ CTaskInteriorSitAtDesk::~CTaskInteriorSitAtDesk() {
 
 // 0x676190
 void CTaskInteriorSitAtDesk::FinishAnimCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = CTask::Cast<CTaskInteriorSitAtDesk>(static_cast<CTask*>(data));
+    const auto self = notsa::cast<CTaskInteriorSitAtDesk>(static_cast<CTask*>(data));
 
     assert(self && anim);
     assert(anim == self->m_Anim);

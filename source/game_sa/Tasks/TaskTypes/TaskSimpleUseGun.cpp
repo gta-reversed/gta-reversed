@@ -62,7 +62,7 @@ bool CTaskSimpleUseGun::ControlGunMove(const CVector2D& moveDir) {
 
 // 0x61F3A0
 void CTaskSimpleUseGun::FinishGunAnimCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = CTask::Cast<CTaskSimpleUseGun>(static_cast<CTask*>(data));
+    const auto self = notsa::cast<CTaskSimpleUseGun>(static_cast<CTask*>(data));
 
     if (self->m_BurstShots > 0 && self->m_LastCmd == eGunCommand::RELOAD && self->m_NextCmd < eGunCommand::END_LEISURE) {
         switch (anim->GetAnimId()) {
@@ -207,7 +207,7 @@ bool CTaskSimpleUseGun::RequirePistolWhip(CPed* ped, CEntity* targetEntity) {
         if (pedPos.z >= forPedHeadPos.z || pedPos.z + 1.5f <= forPedHeadPos.z) { // Ped is below/above us
             return false;
         }
-        if (otherPed.bFallenDown && !CTask::DynCast<CTaskSimpleGetUp>(ped->GetTaskManager().GetSimplestActiveTask())) { // Fell, but hasn't got up yet?
+        if (otherPed.bFallenDown && !notsa::dyn_cast_if_present<CTaskSimpleGetUp>(ped->GetTaskManager().GetSimplestActiveTask())) { // Fell, but hasn't got up yet?
             return false;
         }
         const auto pedToOther = otherPed.GetPosition() - ped->GetPosition();
