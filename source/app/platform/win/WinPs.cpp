@@ -10,6 +10,9 @@
 #include "C_PcSave.h"
 #include <windows.h>
 
+#ifdef NOTSA_USE_SDL3
+#include <SDL3/SDL.h>
+#endif
 
 // NOTE: This macro doesn't do a whole lot. Leaving it here for completeness sake
 #define USE_D3D9
@@ -554,6 +557,11 @@ bool psSelectDevice() {
 
     RwVideoMode vmi;
     RwEngineGetVideoModeInfo(&vmi, GcurSelVM);
+
+#ifdef NOTSA_USE_SDL3
+    SDL_SetWindowSize((SDL_Window*)(PSGLOBAL(sdlWindow)), (int)(vmi.width), (int)(vmi.height));
+#endif
+
     if (vmi.flags & rwVIDEOMODEEXCLUSIVE) {
         if (const auto rr = GetBestRefreshRate(vmi.width, vmi.height, vmi.depth); rr != -1) {
             DEV_LOG("Refresh Rate: {} Hz", rr);

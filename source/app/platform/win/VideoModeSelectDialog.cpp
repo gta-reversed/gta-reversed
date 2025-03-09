@@ -58,7 +58,14 @@ void FillAvailableVMs(HWND hVMSel) {
         RwVideoMode vmi;
         RwEngineGetVideoModeInfo(&vmi, i);
 
-        if ((vmi.flags & rwVIDEOMODEEXCLUSIVE) == 0 || vmi.width < APP_MINIMAL_WIDTH || vmi.height < APP_MINIMAL_HEIGHT) {
+        // Allow non-fulllscreen modes too
+        if (!notsa::IsFixBugs()) {
+            if ((vmi.flags & rwVIDEOMODEEXCLUSIVE) == 0) {
+                continue;
+            }
+        }
+
+        if (vmi.width < APP_MINIMAL_WIDTH || vmi.height < APP_MINIMAL_HEIGHT) {
             continue;
         }
 
@@ -70,8 +77,14 @@ void FillAvailableVMs(HWND hVMSel) {
 
         // NOTSA: Provide aspect ratio info (W:H) instead of 'FULLSCREEN' and 'WIDESCREEN'.
         if (IsFullScreenRatio(aspectr) || IsWideScreenRatio(aspectr)) {
-            static char vmName[1024];
-            *std::format_to(vmName, "{} x {} x {} ({}:{})", vmi.width, vmi.height, vmi.depth, ratioW, ratioH) = 0;
+            char vmName[1024];
+            notsa::format_to_sz(
+                vmName,
+                "{} x {} x {} ({}:{}) {}",
+                vmi.width, vmi.height, vmi.depth,
+                ratioW, ratioH,
+                vmi.flags & rwVIDEOMODEEXCLUSIVE ? "[FULLSCREEN]" : ""
+            );
             const auto idx = SendMessage(hVMSel, CB_ADDSTRING, NULL, (LPARAM)vmName); // Add entry, and get it's index
             SendMessage(hVMSel, CB_SETITEMDATA, idx, i);                              // Set index of that entry to correspond to `i`
         } else {
@@ -163,13 +176,6 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam) {
                 GcurSelSS = GetCBItemData(hDevSel, currEntry);
 
                 VERIFY(RwEngineSetSubSystem(GcurSelSS));
-
-#ifdef NOTSA_USE_SDL3
-                RwVideoMode vmi;
-                RwEngineGetVideoModeInfo(&vmi, GcurSelSS);
-
-                SDL_SetWindowSize((SDL_Window*)(PSGLOBAL(sdlWindow)), (int)(vmi.width), (int)(vmi.height));
-#endif
 
                 // Deal with VM select ComboBox
                 ComboBoxClear(hVMSel);
