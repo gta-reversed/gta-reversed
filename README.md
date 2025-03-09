@@ -1,4 +1,4 @@
-## gtasa-reversed [![Build Status](https://github.com/gta-reversed/gta-reversed-modern/workflows/Build/badge.svg?event=push&branch=master)](https://github.com/gta-reversed/gta-reversed-modern/actions?query=workflow%3ABuild)
+## gtasa-reversed [![Build Status](https://github.com/gta-reversed/gta-reversed/workflows/Build/badge.svg?event=push&branch=master)](https://github.com/gta-reversed/gta-reversed/actions?query=workflow%3ABuild)
 
 A project to reverse Grand Theft Auto San Andreas completely, and to rewrite and document every function.
 
