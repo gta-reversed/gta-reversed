@@ -8,6 +8,7 @@
 * Basic language feature commands (Comparasions, assingments, etc...)
 */
 
+namespace {
 //
 // GREATER_OR_EQUAL
 //
@@ -204,6 +205,7 @@ auto Wait(CRunningScript& S, uint32 duration) {
 auto Nop() {
     /* Hello! How are you? */
 }
+};
 
 void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Basic");

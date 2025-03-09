@@ -10,6 +10,7 @@
 * Various text commands
 */
 
+namespace {
 void ClearSmallPrints() {
     CMessages::ClearSmallMessagesOnly();
 }
@@ -66,6 +67,7 @@ void DisplayText(CVector2D pos, const char* gxtKey) {
     line->param2     = -1;
     strcpy_s(line->m_szGxtEntry, gxtKey);
 }
+};
 
 void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Text");

@@ -13,12 +13,12 @@
 #include "Restart.h"
 #include "Garages.h"
 #include "MenuSystem.h"
-#include "CommandParser/Parser.hpp"
 
 /*!
-* Various game realted commands
+* Various game related commands
 */
 
+namespace {
 void SetAllTaxisHaveNitro(bool enabled) {
     (enabled ? CCheat::ApplyCheat : CCheat::Disable)(CHEAT_ALL_TAXIS_NITRO);
 }
@@ -168,6 +168,7 @@ void RegisterMoneyMadeTaxi(float amount) {
 
 void SaveIntToDebugFile(int32 value) { /* DEBUG */ }
 void SaveFloatToDebugFile(float value) { /* DEBUG */ }
+};
 
 void notsa::script::commands::game::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Game");
