@@ -1,8 +1,8 @@
 #pragma once
 
-using tSoundID = int16;
+using eSoundID = int16;
 
-enum eGenrlWeaponSoundID : tSoundID { // GENRL_WEAPONS
+enum eGenrlWeaponSoundID : eSoundID { // GENRL_WEAPONS
     SND_GENRL_WEAPONS_UNK = -1,
     SND_GENRL_WEAPONS_9MM1SHOT_L = 0x0,
     SND_GENRL_WEAPONS_9MM1SHOT_R = 0x1,

@@ -12,7 +12,7 @@ using namespace notsa::script;
 /*!
 * Various player commands
 */
-
+namespace {
 /*!
 * @brief Create a player at the given world position
 * @param playerId Player's id (0 or 1)
@@ -113,6 +113,7 @@ bool IsPlayerTouchingObjectOnFoot(CPlayerPed& player, CObject& object) {
 //bool IsPlayerInPositionForConversation(CPed& ped) { // Yes, it's CPed
 //
 //}
+};
 
 void notsa::script::commands::player::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Player");
