@@ -7,7 +7,7 @@
 /*!
 * Various utility commands
 */
-
+namespace {
 auto GetDistanceBetweenCoords2d(CVector2D a, CVector2D b) {
     return DistanceBetweenPoints2D(a, b);
 }
@@ -35,6 +35,7 @@ auto Sin(float deg) {
 auto Cos(float deg) {
     return std::cosf(DegreesToRadians(deg));
 }
+};
 
 void notsa::script::commands::math::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Math");

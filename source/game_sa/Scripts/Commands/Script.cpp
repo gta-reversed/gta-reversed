@@ -14,6 +14,7 @@
 * Various Script commands
 */
 
+namespace {
 void TerminateAllScriptsWithThisName(const char* name) {
     std::string scriptName{name};
     rng::transform(scriptName, scriptName.begin(), [](char c) { return std::tolower(c); });
@@ -102,6 +103,7 @@ void SetUpConversationNodeWithScriptedSpeech(
     int32 answerNoWAV) {
     CConversations::SetUpConversationNode(questionKey, answerYesKey, answerNoKey, questionWAV, answerYesWAV, answerNoWAV);
 }
+};
 
 void notsa::script::commands::script::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Script");

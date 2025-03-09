@@ -15,6 +15,7 @@ using namespace notsa::script;
 * Various vehicle commands
 */
 
+namespace {
 void ClearHeliOrientation(CHeli& heli) {
     heli.ClearHeliOrientation();
 }
@@ -101,6 +102,7 @@ bool IsCarInAirProper(CRunningScript& S, CVehicle& vehicle) {
     }
     return true;
 }
+};
 
 void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Vehicle");
