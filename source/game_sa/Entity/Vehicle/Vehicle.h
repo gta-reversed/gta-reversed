@@ -183,7 +183,7 @@ VALIDATE_SIZE(tHydraulicData, 0x28);
 class NOTSA_EXPORT_VTABLE CVehicle : public CPhysical {
 public:
     using Ref = notsa::EntityRef<CVehicle>;
-    
+
 public:
     static constexpr auto NUM_VEHICLE_UPGRADES = 15u;
 
