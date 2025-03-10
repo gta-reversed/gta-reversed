@@ -16,6 +16,7 @@
 #include "Input.h"
 #include "Platform.h"
 #include "WndProc.h"
+#include "WindowedMode.hpp"
 
 #include "extensions/Configs/FastLoader.hpp"
 
@@ -198,6 +199,11 @@ bool ProcessGameLogic(INT nCmdShow) {
         CGame::InitialiseCoreDataAfterRW();
         ChangeGameStateTo(GAME_STATE_FRONTEND_LOADED);
         anisotropySupportedByGFX = (((const D3DCAPS9*)RwD3D9GetCaps())->RasterCaps & D3DPRASTERCAPS_ANISOTROPY) != 0; // todo: func
+
+#ifdef NOTSA_WINDOWED_MODE
+        RwCameraClear(Scene.m_pRwCamera, &gColourTop, rwCAMERACLEARZ);
+#endif
+
         break;
     }
     case GAME_STATE_FRONTEND_LOADED: {
@@ -246,6 +252,11 @@ bool ProcessGameLogic(INT nCmdShow) {
         FrontEndMenuManager.m_bMainMenuSwitch = false;
 
         AudioEngine.InitialisePostLoading();
+
+#ifdef NOTSA_WINDOWED_MODE
+        notsa::WindowedMode::AdjustPresentParams(nullptr);
+#endif
+
         break;
     }
     case GAME_STATE_IDLE: {

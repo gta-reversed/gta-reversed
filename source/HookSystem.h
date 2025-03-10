@@ -23,7 +23,7 @@ struct SHook
 VALIDATE_SIZE(SHook, 0x34);
 
 template<typename T>
-void *FunctionPointerToVoidP(T func)
+void *FunctionToVoidPtr(T func)
 {
     union
     {
@@ -34,9 +34,18 @@ void *FunctionPointerToVoidP(T func)
 }
 
 template<typename T>
+T VoidToFunctionPtr(void* p) {
+    union {
+        void* p;
+        T     f;
+    } u = { .p = p };
+    return u.f;
+}
+
+template<typename T>
 void HookInstallHoodlum(DWORD installAddress, T addressToJumpTo)
 {
-    DWORD dwAddressToJumpTo = (DWORD)FunctionPointerToVoidP(addressToJumpTo);
+    DWORD dwAddressToJumpTo = (DWORD)FunctionToVoidPtr(addressToJumpTo);
     const DWORD x86FixedJumpSize = 5;
     SHook theHook;
     theHook.jumpLocation = (DWORD)dwAddressToJumpTo - (DWORD)installAddress - (DWORD)x86FixedJumpSize;
@@ -49,7 +58,7 @@ void HookInstallHoodlum(DWORD installAddress, T addressToJumpTo)
 template<typename T>
 void HookInstall(DWORD installAddress, T addressToJumpTo, int iJmpCodeSize = 5)
 {
-    DWORD dwAddressToJumpTo = (DWORD) FunctionPointerToVoidP(addressToJumpTo);
+    DWORD dwAddressToJumpTo = (DWORD) FunctionToVoidPtr(addressToJumpTo);
 
     const DWORD x86FixedJumpSize = 5;
     SHook theHook;

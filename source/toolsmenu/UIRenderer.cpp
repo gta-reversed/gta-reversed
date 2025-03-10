@@ -45,7 +45,7 @@ UIRenderer::UIRenderer() :
 #else
     ImGui_ImplWin32_Init(PSGLOBAL(window));
 #endif
-    ImGui_ImplDX9_Init(GetD3DDevice());
+    ImGui_ImplDX9_Init(GetD3D9Device());
 
     SetIsActive(false);
 
