@@ -40,8 +40,6 @@ public:
     void UnTick() { m_nTimeActive--; }
     void Tick() { m_nTimeActive++; }
 
-
-
     /// Works like `dynamic_cast` => Checks if the event if ofthe required type, if so, returns it, otherwise nullptr
     template<std::derived_from<CEvent> T>
     static T* DynCast(auto event) {
