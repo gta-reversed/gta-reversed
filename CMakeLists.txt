@@ -15,8 +15,11 @@ project(GTASA C CXX)
 
 if (MSVC)
     add_compile_options(/bigobj /utf-8)
-
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+    # For Edit&Continue
+    add_compile_options(/ZI)
+    add_link_options(/SAFESEH:NO)
 endif()
 
 option(BUILD_DOC "Build documentation" OFF)
@@ -47,6 +50,7 @@ find_package(spdlog REQUIRED)
 find_package(Tracy REQUIRED)
 find_package(Vorbis REQUIRED)
 find_package(imgui REQUIRED)
+find_package(SDL3 REQUIRED)
 
 add_subdirectory(source)
 
