@@ -2,9 +2,7 @@
 
 REM %1: CMake build type [Debug, Release, RelWithDebInfo]
 
-if "%1"=="" (
-    echo %1 must be one of {Debug, Release, RelWithDebInfo}
-) else (
-    conan install . --build missing -s build_type=%1 --profile conanprofile.txt
-    cmake --preset conan-default
-)
+set BUILDTYPE=%1
+if "%BUILDTYPE%"=="" set BUILDTYPE=Debug
+conan install . --build missing -s build_type=%BUILDTYPE% --profile conanprofile.txt
+cmake --preset conan-default
