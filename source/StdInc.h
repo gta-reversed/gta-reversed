@@ -39,6 +39,8 @@ namespace fs = std::filesystem;
 #include "HookSystem.h"
 #include "reversiblehooks\ReversibleHooks.h"
 
+#include <extensions/Casting.hpp>
+
 #include <Tracy.hpp>
 
 // DirectX

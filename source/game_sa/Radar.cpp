@@ -18,6 +18,7 @@ constexpr std::array<airstrip_info, NUM_AIRSTRIPS> airstrip_table = { // 0x8D06E
 };
 
 // Array of TXD slot indices for each radar section's texture
+// Index using y, x (In that order)
 static std::array<std::array<int32, MAX_RADAR_WIDTH_TILES>, MAX_RADAR_HEIGHT_TILES>& gRadarTextures = *(std::array<std::array<int32, MAX_RADAR_WIDTH_TILES>, MAX_RADAR_HEIGHT_TILES>*)0xBA8478;
 
 // 0x8D0720
@@ -1450,39 +1451,26 @@ void CRadar::DrawRadarSection(int32 x, int32 y) {
     CVector2D texCoords[8]{};
     CVector2D verts[8]{};
     for (auto i = 0; i < numVerts; i++) {
-        const auto coord = CachedRotateCounterclockwise(clipped[i]) * m_radarRange + vec2DRadarOrigin;
-
-        texCoords[i] = TransformRealWorldToTexCoordSpace(coord, x, y);
-        verts[i] = TransformRadarPointToScreenSpace(clipped[i]);
+        texCoords[i] = TransformRealWorldToTexCoordSpace(vec2DRadarOrigin + CachedRotateCounterclockwise(clipped[i]) * m_radarRange, x, y);
+        verts[i]     = TransformRadarPointToScreenSpace(clipped[i]);
     }
 
-    if (!IsMapSectionInBounds(x, y)) {
-        // there is no land here, draw the sea.
-        const CRGBA seaColor{111, 137, 170, 255};
-
+    if (!IsMapSectionInBounds(x, y)) { // there is no land here, draw the sea.
         RwRenderStateSet(rwRENDERSTATETEXTURERASTER, nullptr);
-        CSprite2d::SetVertices(numVerts, verts, seaColor);
-    } else {
-        if (CTheScripts::bPlayerIsOffTheMap) {
-            const CRGBA blankColor{204, 204, 204, 255};
-
-            RwRenderStateSet(rwRENDERSTATETEXTURERASTER, nullptr);
-            CSprite2d::SetVertices(numVerts, verts, blankColor);
-        } else {
-            RwTexture* texture = nullptr;
-            if (const auto txdIndex = gRadarTextures[y][x]) {
-                if (const auto txd = CTxdStore::GetTxd(txdIndex)) {
-                    texture = GetFirstTexture(txd);
-                }
-            }
-            if (texture) {
-                const CRGBA bg{255, 255, 255, 255};
-
-                RwRenderStateSet(rwRENDERSTATETEXTURERASTER, texture->raster);
-                CSprite2d::SetVertices(numVerts, verts, texCoords, bg);
+        CSprite2d::SetVertices(numVerts, verts, texCoords, { 111, 137, 170, 255 });
+    } else if (CTheScripts::bPlayerIsOffTheMap) { // Draw blank
+        RwRenderStateSet(rwRENDERSTATETEXTURERASTER, nullptr);
+        CSprite2d::SetVertices(numVerts, verts, texCoords, { 204, 204, 204, 255 });
+    } else if (const auto txdIndex = gRadarTextures[y][x]) { // Or if it has a txture, draw that
+        if (const auto txd = CTxdStore::GetTxd(txdIndex)) {
+            if (RwTexture* const texture = GetFirstTexture(txd)) {
+                RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RwTextureGetRaster(texture));
+                CSprite2d::SetVertices(numVerts, verts, texCoords, { 255, 255, 255, 255 });
             }
         }
     }
+
+    // Now draw what we have
     if (numVerts > 2) {
         RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, numVerts);
     }

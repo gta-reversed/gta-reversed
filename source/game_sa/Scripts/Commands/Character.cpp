@@ -44,6 +44,7 @@ void HandleEntityMissionCleanup(CRunningScript& S, T& entity) {
 // Flags getters/setters
 //
 
+namespace {
 void SetCharProofs(CPed& ped, bool bullet, bool fire, bool explosion, bool collision, bool melee) {
     auto& flags = ped.physicalFlags;
     flags.bBulletProof = bullet;
@@ -1473,6 +1474,7 @@ CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
     }
     return ped->m_pAttachedTo->AsVehicle();
 }
+};
 
 void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Char");
