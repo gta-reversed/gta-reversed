@@ -520,12 +520,11 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
 
         bool isControlPrinted = false;
         if (controllerAction != CA_INVALID) {
-            for (auto priority = 1u; priority < PRIORITY_NUM; ++priority) {
+            for (auto order = 1; order <= CONTROLLER_NUM; ++order) {
                 if (m_DeleteAllNextDefine && m_ListSelection == actionIndex) {
                     break;
                 }
-
-                const auto buttonText = ControlsManager.GetControllerSettingText(controllerAction, (ePriority)priority);
+                const auto buttonText = ControlsManager.GetControllerSettingText(controllerAction, order);
                 if (buttonText) {
                     if (!isRedefining) {
                         CFont::PrintString(currentX, currentY, buttonText);

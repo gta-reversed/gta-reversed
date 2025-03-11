@@ -281,9 +281,9 @@ void CPad::ProcessPad(int padNum) {
  
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
 
-    if (ControlsManager.m_bJoyJustInitialised) {
+    if (ControlsManager.m_WasJoyJustInitialised) {
         ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState = joyState;
-        ControlsManager.m_bJoyJustInitialised = false;
+        ControlsManager.m_WasJoyJustInitialised = false;
     } else {
         ControlsManager.m_OldJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
     }
