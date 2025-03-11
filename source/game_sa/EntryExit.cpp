@@ -332,7 +332,7 @@ bool CEntryExit::TransitionFinished(CPed* ped) {
 
     const auto DisplayEnExName = [this]{
         if (const auto enex = GetEntryExitToDisplayNameOf()) {
-            CHud::SetZoneName(TheText.Get(enex->BaseFilename), true);
+            CHud::SetZoneName(TheText.Get(enex->m_szName), true);
         }
     };
 
@@ -492,7 +492,7 @@ bool CEntryExit::TransitionFinished(CPed* ped) {
         if (bRewardInterior) {
             CShopping::RemoveLoadedShop();
         } else {
-            CShopping::LoadShop(BaseFilename);
+            CShopping::LoadShop(m_szName);
             if (m_pLink) {
                 m_pLink->bRewardInterior = true;
             }

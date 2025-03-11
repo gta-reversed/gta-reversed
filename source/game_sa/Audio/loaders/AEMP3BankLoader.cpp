@@ -66,8 +66,6 @@ bool CAEMP3BankLoader::GetSoundBankLoadingStatus(eSoundBank bankId, eSoundBankSl
 
 // 0x4E0280
 uint8* CAEMP3BankLoader::GetSoundBuffer(eSoundID soundId, eSoundBankSlot bankSlot, uint32& outSize, uint16& outSampleRate) {
-    assert(soundId >= 0);
-
     if (!m_IsInitialised) {
         return nullptr;
     }

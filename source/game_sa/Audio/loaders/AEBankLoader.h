@@ -16,8 +16,8 @@ struct AEBankLookup {
 VALIDATE_SIZE(AEBankLookup, 0xC);
 
 struct CAEBankSlotItem {
-    uint32 BankOffsetBytes; // Bytes
-    uint32 LoopStartOffset; // Bytes
+    uint32 BankOffsetBytes;
+    uint32 LoopStartOffset;
     uint16 SampleFrequency;
     int16  Headroom;
 };
