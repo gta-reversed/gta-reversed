@@ -121,6 +121,8 @@ public:
     static void Initialise();
     static void ClearKeyBoardHistory();
     static void ClearMouseHistory();
+
+    /* SDL Support, see `Pad_SDL.cpp` */
 #ifdef NOTSA_USE_SDL3
     bool ProcessMouseEvent(const SDL_Event& e, CMouseControllerState& ms);
     bool ProcessKeyboardEvent(const SDL_Event& e, CKeyboardState& ks);
