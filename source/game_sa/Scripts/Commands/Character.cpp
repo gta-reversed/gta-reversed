@@ -1302,7 +1302,7 @@ auto IsCharAtScriptedAttractor(CPed* ped, C2dEffectPedAttractor* attractor) {
     if (!attractor) {
         return false;
     }
-    const auto pedUsingAttractor = GetPedAttractorManager()->GetPedUsingEffect(reinterpret_cast<C2dEffect*>(attractor));
+    const auto pedUsingAttractor = GetPedAttractorManager()->GetPedUsingEffect(attractor);
     return ped
         ? pedUsingAttractor == ped
         : pedUsingAttractor != nullptr;
