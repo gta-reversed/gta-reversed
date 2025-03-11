@@ -20,9 +20,10 @@ Since this project is done as a hobby, and worked on at irregular intervals, the
 * [Conan](https://docs.conan.io/2/installation.html#install-with-pip-recommended) (>= 2.x)
 * [CMake](https://cmake.org/download/)
 
-#### 1. Install Python, and Conan
+#### 1. Install Python and Conan
 * Install the [latest Python](https://www.python.org/downloads/) [When installing make sure to tick the "Add to PATH" checkbox!]
 * Install Conan using `pip install conan` [You might need to reload the console if you've freshly installed Python.]
+* If you are installing Conan for the first time, also run `conan profile detect`
 
 #### 2. Setting up VS
 0) Run: `install` depending on the environment with the `Debug` argument (Or any of `Debug`, `Release`, `RelWithDebInfo`) (e.g. `install.bat Debug`)
