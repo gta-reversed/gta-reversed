@@ -49,7 +49,7 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
  * @addr 0x57E4D0
  */
 bool CMenuManager::CheckRedefineControlInput() {
-    if (field_1B09) {
+    if (m_EditingControlOptions) {
         if (m_bJustOpenedControlRedefWindow) {
             m_bJustOpenedControlRedefWindow = false;
         } else {
@@ -80,21 +80,21 @@ bool CMenuManager::CheckRedefineControlInput() {
                 type = rsPAD;
             }
 
-            if (field_1B14) {
+            if (m_CanBeDefined) {
                 if (m_DeleteAllBoundControls) {
                     AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
-                    field_1B14 = 0;
-                    m_DeleteAllNextDefine = 1;
-                    m_DeleteAllBoundControls = 0;
+                    m_CanBeDefined = false;
+                    m_DeleteAllNextDefine = true;
+                    m_DeleteAllBoundControls = false;
                 } else {
                     if (*m_pPressedKey != rsNULL || m_nPressedMouseButton || m_nJustDownJoyButton) {
                         CheckCodesForControls(type);
                     }
-                    field_1B15 = 1;
+                    m_JustExitedRedefine = true;
                 }
             } else {
                 m_pPressedKey = nullptr;
-                field_1B09 = 0;
+                m_EditingControlOptions = false;
                 m_KeyPressedCode = (RsKeyCodes)-1;
                 m_bJustOpenedControlRedefWindow = false;
             }
@@ -299,7 +299,7 @@ void CMenuManager::CheckForMenuClosing() {
                 m_MenuIsAbleToQuit = 0;
                 m_bDontDrawFrontEnd = false;
                 m_bActivateMenuNextFrame = false;
-                field_1B09 = 0;
+                m_EditingControlOptions = false;
                 m_bIsSaveDone = false;
                 UnloadTextures();
 
