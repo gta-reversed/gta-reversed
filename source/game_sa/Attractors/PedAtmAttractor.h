@@ -2,12 +2,27 @@
 
 #include "PedAttractor.h"
 
-class NOTSA_EXPORT_VTABLE CPedAtmAttractor : public CPedAttractor {
+class NOTSA_EXPORT_VTABLE CPedATMAttractor final : public CPedAttractor {
 public:
+    static constexpr auto Type = PED_ATTRACTOR_ATM;
+
     // 0x5EE470
-    CPedAtmAttractor(C2dEffect* effect, CEntity* entity, int a4)
-        : CPedAttractor(effect, entity, a4, 5, 1.0f, 30000.0f, 3000.0f, 0.2f, 0.15f, 0.1f, 0.1f, 0) {
+    CPedATMAttractor(C2dEffectPedAttractor* effect, CEntity* entity, eMoveState moveState) :
+        CPedAttractor(
+            effect,
+            entity,
+            moveState,
+            5u,
+            1.0f,
+            30000.0f,
+            3000.0f,
+            0.2f,
+            0.15f,
+            0.1f,
+            0.1f
+        )
+    {
     }
 
-    ePedAttractorType GetType() const override { return PED_ATTRACTOR_ATM; }; // 0x5EE4D0
+    ePedAttractorType GetType() const override { return Type; }; // 0x5EE4D0
 };
