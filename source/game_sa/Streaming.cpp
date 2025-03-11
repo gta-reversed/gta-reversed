@@ -386,7 +386,7 @@ int32 CStreaming::GetDiscInDrive() {
 int32 CStreaming::GetNextFileOnCd(uint32 streamLastPosn, bool bNotPriority) {
     ZoneScoped;
 
-    uint32 nextRequestModelOffset    = UINT32_MAX;
+    uint32 nextRequestModelOffset  = UINT32_MAX;
     uint32 firstRequestModelOffset = UINT32_MAX;
     int32  firstRequestModelId    = MODEL_INVALID;
     int32  nextRequestModelId     = MODEL_INVALID;
