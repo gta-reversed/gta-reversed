@@ -123,7 +123,13 @@ enum eRotationAxis : int32 {
 };
 
 typedef int32 eOrdnanceType;
-typedef int32 eBikeWheelSpecial;
+
+enum eBikeWheelSpecial {
+	BIKE_WHEELSPEC_0 = 0, // both wheels on ground
+	BIKE_WHEELSPEC_1 = 1, // rear wheel on ground
+	BIKE_WHEELSPEC_2 = 2, // only front wheel on ground
+	BIKE_WHEELSPEC_3 = 3, // can't happen
+};
 
 enum eFlightModel : int32 {
     FLIGHT_MODEL_UNK = 0,
@@ -136,11 +142,21 @@ enum eFlightModel : int32 {
 };
 
 enum tWheelState : int32 {
-    WHEEL_STATE_NORMAL,   // standing still or rolling normally
-    WHEEL_STATE_SPINNING, // rotating but not moving
-    WHEEL_STATE_SKIDDING,
-    WHEEL_STATE_FIXED,    // not rotating
+    WHEEL_STATE_NORMAL = 0,   // standing still or rolling normally
+    WHEEL_STATE_SPINNING = 1, // rotating but not moving
+    WHEEL_STATE_SKIDDING = 2,
+    WHEEL_STATE_FIXED = 3,    // not rotating
 };
+
+enum eEngineStatus
+{
+	ENGINE_STATUS_STEAM1 = 100,
+	ENGINE_STATUS_STEAM2 = 150,
+	ENGINE_STATUS_SMOKE = 200,
+	ENGINE_STATUS_ON_FIRE = 225,
+};
+
+constexpr float DAMAGE_HEALTH_TO_CATCH_FIRE = 250.0f;
 
 enum class eVehicleCollisionComponent : uint16
 {
@@ -750,6 +766,7 @@ public: // NOTSA functions
     [[nodiscard]] bool HasSpaceForAPassenger() const { return m_nMaxPassengers > m_nNumPassengers + 1; }
 
 private:
+
     friend void InjectHooksMain();
     static void InjectHooks();
 
