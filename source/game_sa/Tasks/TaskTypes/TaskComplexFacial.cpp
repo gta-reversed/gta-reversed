@@ -46,7 +46,7 @@ CTask* CTaskComplexFacial::CreateNextSubTask(CPed* ped) {
         return new CTaskSimplePause{ 5'000 };
     }
     if (m_RequestB == eFacialExpression::NONE) {
-        if (!notsa::isa<CTaskComplexFacial>(m_pSubTask) && m_IsChewing) {
+        if (!notsa::isa<CTaskSimpleFacial>(m_pSubTask) && m_IsChewing) {
             return new CTaskSimpleFacial{ eFacialExpression::CHEWING, 5'000 };
         }
         return new CTaskSimplePause{ 5'000 };
