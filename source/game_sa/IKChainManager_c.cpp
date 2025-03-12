@@ -220,10 +220,12 @@ void IKChainManager_c::LookAt(
 
     auto& taskIKMgr = *GetPedIKManagerTask(ped, true);
 
-    const auto lookAtOffset = offset ? *offset : CVector{};
+    const CVector lookAtOffset = offset
+        ? *offset
+        : CVector{};
 
     // Now, either update existing task or createIfNotExists one
-    if (const auto tLookAt = notsa::cast<CTaskSimpleIKLookAt>(taskIKMgr.GetTaskAtSlot(eIKChainSlot::LOOK_AT))) {
+    if (const auto tLookAt = notsa::cast_if_present<CTaskSimpleIKLookAt>(taskIKMgr.GetTaskAtSlot(eIKChainSlot::LOOK_AT))) {
         if (priority < tLookAt->m_nPriority) {
             return;
         }
