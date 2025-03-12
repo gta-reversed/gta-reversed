@@ -251,7 +251,7 @@ void TwoDEffectsDebugModule::RenderSelectedEffectDetails() {
 
     ig::Text("%-15s %s", "Type:", s_2DEffectTypeNames[selFx.Fx->m_Type]);
     ig::Text("%-15s %.3f", "Distance:", selFx.DistToPlayer);
-    if (auto* const attr = notsa::dyn_cast<C2dEffectPedAttractor>(selFx.Fx)) {
+    if (auto* const attr = C2dEffect::DynCast<C2dEffectPedAttractor>(selFx.Fx)) {
         ig::Text("%-15s %s", "Attractor Type:", s_PedAttractorTypeNames[attr->m_nAttractorType]);
         ig::Text("%-15s %s", "Script Name:", attr->m_szScriptName);
         ig::Text("%-15s 0x%X", "Flags:", (uint32)attr->m_nFlags);
@@ -294,7 +294,7 @@ void TwoDEffectsDebugModule::RenderEffectBB(const InRange2DFx& fx) {
 void TwoDEffectsDebugModule::RenderSelectedEffectDetails3D() {
     const auto& selFx = *m_SelectedFx;
 
-    if (auto* const attr = notsa::dyn_cast<C2dEffectPedAttractor>(selFx.Fx)) {
+    if (auto* const attr = C2dEffect::DynCast<C2dEffectPedAttractor>(selFx.Fx)) {
         const auto attrPos = CPedAttractorManager::ComputeEffectPos(attr, selFx.Entity->GetMatrix());
         const auto RenderDirectionVector = [&](CVector dir, auto dirID) {
             CLines::RenderLineNoClipping(

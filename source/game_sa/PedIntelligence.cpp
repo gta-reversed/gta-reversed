@@ -35,9 +35,6 @@
 #include "TaskSimpleInAir.h"
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleSwim.h"
-#include "TaskSimplePutDownEntity.h"
-#include <TaskComplexGoToCarDoorAndStandStill.h>
-#include "TaskSimplePickUpEntity.h"
 #include <extensions/enumerate.hpp>
 
 
@@ -265,28 +262,28 @@ CTask* CPedIntelligence::FindTaskByType(eTaskType type) {
 
 // 0x600F30
 CTaskSimpleFight* CPedIntelligence::GetTaskFighting() {
-    return notsa::dyn_cast_if_present<CTaskSimpleFight>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
+    return CTask::DynCast<CTaskSimpleFight>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
 }
 
 // 0x600F70
 CTaskSimpleUseGun* CPedIntelligence::GetTaskUseGun() {
-    return notsa::dyn_cast_if_present<CTaskSimpleUseGun>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
+    return CTask::DynCast<CTaskSimpleUseGun>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
 }
 
 // 0x600FB0
 CTaskSimpleThrowProjectile* CPedIntelligence::GetTaskThrow() {
-    return notsa::dyn_cast_if_present<CTaskSimpleThrowProjectile>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
+    return CTask::DynCast<CTaskSimpleThrowProjectile>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
 }
 
 // 0x600FF0
 CTaskSimpleHoldEntity* CPedIntelligence::GetTaskHold(bool bIgnoreCheckingForSimplestActiveTask) {
-    if (const auto task = notsa::dyn_cast_if_present<CTaskSimpleHoldEntity>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM))) {
+    if (const auto task = CTask::DynCast<CTaskSimpleHoldEntity>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM))) {
         return task;
     }
 
     if (!bIgnoreCheckingForSimplestActiveTask) {
         if (const auto task = m_TaskMgr.GetSimplestActiveTask()) {
-            if (notsa::isa<CTaskSimplePickUpEntity, CTaskSimplePutDownEntity>(task)) {
+            if (CTask::IsA<TASK_SIMPLE_PICKUP_ENTITY, TASK_SIMPLE_PUTDOWN_ENTITY>(task)) {
                 return static_cast<CTaskSimpleHoldEntity*>(task);
             }
         }
@@ -297,12 +294,12 @@ CTaskSimpleHoldEntity* CPedIntelligence::GetTaskHold(bool bIgnoreCheckingForSimp
 
 // 0x601070
 CTaskSimpleSwim* CPedIntelligence::GetTaskSwim() {
-    return notsa::dyn_cast_if_present<CTaskSimpleSwim>(m_TaskMgr.GetSimplestActiveTask());
+    return CTask::DynCast<CTaskSimpleSwim>(m_TaskMgr.GetSimplestActiveTask());
 }
 
 // 0x6010A0
 CTaskSimpleDuck* CPedIntelligence::GetTaskDuck(bool bIgnoreCheckingForSimplestActiveTask) {
-    if (const auto task = notsa::dyn_cast_if_present<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))) {
+    if (const auto task = CTask::DynCast<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))) {
         return task;
     }
 
@@ -312,7 +309,7 @@ CTaskSimpleDuck* CPedIntelligence::GetTaskDuck(bool bIgnoreCheckingForSimplestAc
     }
 
     if (!bIgnoreCheckingForSimplestActiveTask) {
-        if (const auto task = notsa::dyn_cast_if_present<CTaskSimpleDuck>(m_TaskMgr.GetSimplestActiveTask())) {
+        if (const auto task = CTask::DynCast<CTaskSimpleDuck>(m_TaskMgr.GetSimplestActiveTask())) {
             return task;
         }
     }
@@ -323,24 +320,24 @@ CTaskSimpleDuck* CPedIntelligence::GetTaskDuck(bool bIgnoreCheckingForSimplestAc
 // 0x601110
 CTaskSimpleJetPack* CPedIntelligence::GetTaskJetPack() {
     if (m_pPed->IsPlayer()) {
-        return notsa::dyn_cast_if_present<CTaskSimpleJetPack>(m_TaskMgr.GetSimplestActiveTask());
+        return CTask::DynCast<CTaskSimpleJetPack>(m_TaskMgr.GetSimplestActiveTask());
     }
     return nullptr;
 }
 
 // 0x601150
 CTaskSimpleInAir* CPedIntelligence::GetTaskInAir() {
-    return notsa::dyn_cast_if_present<CTaskSimpleInAir>(m_TaskMgr.GetSimplestActiveTask());
+    return CTask::DynCast<CTaskSimpleInAir>(m_TaskMgr.GetSimplestActiveTask());
 }
 
 // 0x601180
 CTaskSimpleClimb* CPedIntelligence::GetTaskClimb() {
-    return notsa::dyn_cast_if_present<CTaskSimpleClimb>(m_TaskMgr.GetSimplestActiveTask());
+    return CTask::DynCast<CTaskSimpleClimb>(m_TaskMgr.GetSimplestActiveTask());
 }
 
 // @sa [@addr unk]
 CTaskSimpleDuck* CPedIntelligence::GetTaskSecondaryDuck() {
-    return notsa::dyn_cast_if_present<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK));
+    return CTask::DynCast<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK));
 }
 
 // 0x6011B0
@@ -389,7 +386,7 @@ void CPedIntelligence::SetTaskDuckSecondary(uint16 nLengthOfDuck) {
         useGun->ClearAnim(m_pPed);
     }
 
-    notsa::cast<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))->ProcessPed(m_pPed);
+    CTask::Cast<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))->ProcessPed(m_pPed);
 }
 
 // 0x601390
@@ -479,7 +476,7 @@ void CPedIntelligence::FlushImmediately(bool bSetPrimaryDefaultTask) {
     bool bIsEntityVisible = false;
     CObject* objectToHold = nullptr;
     CTaskSimpleHoldEntity* taskSimpleHoldEntityCloned = nullptr;
-    if (const auto tSimpleHoldEntity = notsa::dyn_cast_if_present<CTaskSimpleHoldEntity>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM))) {
+    if (const auto tSimpleHoldEntity = CTask::DynCast<CTaskSimpleHoldEntity>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM))) {
         objectToHold = (CObject*)tSimpleHoldEntity->m_pEntityToHold;
         if (objectToHold) {
             if (objectToHold->IsObject()) {
@@ -730,7 +727,7 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
     if (DotProduct(distance, target->GetForward()) <= 0.0f)
         return false;
 
-    if (const auto tKillPedOnFoot = notsa::dyn_cast_if_present<CTaskComplexKillPedOnFoot>(target->GetTaskManager().GetActiveTask())) {
+    if (const auto tKillPedOnFoot = CTask::DynCast<CTaskComplexKillPedOnFoot>(target->GetTaskManager().GetActiveTask())) {
         if (tKillPedOnFoot->m_target == m_pPed) {
             return false;
         }
@@ -849,7 +846,7 @@ void CPedIntelligence::RemoveAllInterestingEntities() {
 bool CPedIntelligence::IsPedGoingForCarDoor() {
     auto* task = m_TaskMgr.GetSimplestActiveTask();
     for (auto i = 0; task && i < 3; i++, task = task->GetParent()) {
-        if (notsa::isa<CTaskComplexGoToCarDoorAndStandStill>(task)) {
+        if (CTask::IsA<TASK_COMPLEX_GO_TO_CAR_DOOR_AND_STAND_STILL>(task)) {
             return true;
         }
     }

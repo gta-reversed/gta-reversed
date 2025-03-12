@@ -105,7 +105,7 @@ CTask* CTaskComplexSmartFleeEntity::CreateFirstSubTask(CPed* ped) {
 // 0x65C780
 CTask* CTaskComplexSmartFleeEntity::ControlSubTask(CPed* ped) {
     if (fleeFrom) {
-        if (const auto fleePointTask = notsa::dyn_cast_if_present<CTaskComplexSmartFleePoint>(m_pSubTask)) {
+        if (const auto fleePointTask = CTask::DynCast<CTaskComplexSmartFleePoint>(m_pSubTask)) {
             fleePointTask->m_moveState = m_moveState;
 
             // Check if position update timer is out of time, if so, update position (if still outside tolerance)

@@ -51,7 +51,7 @@ CTaskComplexStareAtPed::~CTaskComplexStareAtPed() {
 
 // 0x660420
 CTask* CTaskComplexStareAtPed::CreateNextSubTask(CPed* ped) {
-    if (const auto turnToFace = notsa::dyn_cast_if_present<CTaskComplexTurnToFaceEntityOrCoord>(m_pSubTask)) {
+    if (const auto turnToFace = CTask::DynCast<CTaskComplexTurnToFaceEntityOrCoord>(m_pSubTask)) {
         return new CTaskSimpleStandStill{ CGeneral::GetRandomNumberInRange(500, 1000) };
     }
     return new CTaskComplexTurnToFaceEntityOrCoord{ m_pPed };

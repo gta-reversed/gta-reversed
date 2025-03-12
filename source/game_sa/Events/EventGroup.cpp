@@ -88,7 +88,7 @@ CEvent* CEventGroup::Add(CEvent* event, bool bValid) {
 // 0x4AB840
 bool CEventGroup::HasScriptCommandOfTaskType(eTaskType taskId) {
     for (auto& event : GetEvents()) {
-        if (const auto eScriptCmd = notsa::dyn_cast<CEventScriptCommand>(event)) {
+        if (const auto eScriptCmd = CEvent::DynCast<CEventScriptCommand>(event)) {
             if (eScriptCmd->m_task && eScriptCmd->m_task->GetTaskType() == taskId) {
                 return true;
             }
@@ -173,7 +173,7 @@ void CEventGroup::Flush(bool bKeepJoinGroupScriptCommands) {
     const auto eScriptCmdBeInGroup = [=, this]() -> CEvent* {
         if (bKeepJoinGroupScriptCommands) {
             for (auto& event : GetEvents()) {
-                if (const auto eScriptCmd = notsa::dyn_cast<CEventScriptCommand>(event)) {
+                if (const auto eScriptCmd = CEvent::DynCast<CEventScriptCommand>(event)) {
                     if (eScriptCmd->m_task && eScriptCmd->m_task->GetTaskType() == TASK_COMPLEX_BE_IN_GROUP) {
                         return std::exchange(event, nullptr); // null the slot out so it doesn't get deleted
                     }

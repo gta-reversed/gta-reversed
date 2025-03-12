@@ -76,7 +76,7 @@ CTask* CTaskComplexTurnToFaceEntityOrCoord::ControlSubTask(CPed* ped) {
         const auto heading = m_EntityToFace
             ? ComputeTargetHeading(ped)
             : ped->m_fCurrentRotation;
-        notsa::cast<CTaskSimpleAchieveHeading>(m_pSubTask)->SetHeading(heading, m_fMaxHeading, m_fChangeRateMult);
+        CTask::Cast<CTaskSimpleAchieveHeading>(m_pSubTask)->SetHeading(heading, m_fMaxHeading, m_fChangeRateMult);
     }
     return m_pSubTask;
 }

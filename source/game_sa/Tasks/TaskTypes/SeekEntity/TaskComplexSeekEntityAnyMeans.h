@@ -74,7 +74,7 @@ public:
         if (m_entity) {
             if (m_scanTimer.IsOutOfTime()) {
                 m_scanTimer.Start(m_scanInterval);
-                notsa::cast<CTaskComplexDriveToPoint>(m_pSubTask)->GoToPoint(GetSeekPos(ped));
+                CTask::Cast<CTaskComplexDriveToPoint>(m_pSubTask)->GoToPoint(GetSeekPos(ped));
             }
             return m_pSubTask;
         }

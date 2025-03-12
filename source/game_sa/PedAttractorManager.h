@@ -42,7 +42,7 @@ public:
     // 0x5EF920
     template<std::derived_from<CPedAttractor> T>
     bool BroadcastArrival(CPed* ped, CPedAttractor* attractor, SArray<T*>& attractors) {
-        T* const a = notsa::cast_if_present<T>(attractor);
+        T* const a = notsa::Cast<T>(attractor);
         return a
             && rng::contains(attractors, a)
             && a->BroadcastArrival(ped);
@@ -52,7 +52,7 @@ public:
     // 0x5EC660
     template<std::derived_from<CPedAttractor> T>
     bool BroadcastDeparture(CPed* ped, CPedAttractor* attractor, SArray<T*>& attractors) {
-        T* const a = notsa::cast_if_present<T>(attractor);
+        T* const a = notsa::Cast<T>(attractor);
         if (!a) {
             return false;
         }
@@ -71,7 +71,7 @@ public:
     // 0x5EC740
     template<std::derived_from<CPedAttractor> T>
     bool DeRegisterPed(CPed* ped, CPedAttractor* attractor, SArray<T*>& attractors) {
-        T* const a = notsa::cast_if_present<T>(attractor);
+        T* const a = notsa::Cast<T>(attractor);
         if (!a) {
             return false;
         }

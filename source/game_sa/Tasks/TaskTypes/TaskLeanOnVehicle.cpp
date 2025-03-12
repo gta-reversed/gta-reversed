@@ -39,7 +39,7 @@ CTaskLeanOnVehicle::~CTaskLeanOnVehicle() {
 
 // 0x661160
 void CTaskLeanOnVehicle::FinishAnimCB(CAnimBlendAssociation* assoc, void* data) {
-    const auto self = notsa::cast<CTaskLeanOnVehicle>(static_cast<CTask*>(data));
+    const auto self = CTask::Cast<CTaskLeanOnVehicle>(static_cast<CTask*>(data));
 
     self->m_LastAnimId = assoc->m_AnimId;
 

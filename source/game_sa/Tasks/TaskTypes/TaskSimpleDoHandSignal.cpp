@@ -29,11 +29,11 @@ bool CTaskSimpleDoHandSignal::ProcessPed(CPed* ped) {
     const auto animTask = ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM);
 
     if (m_Initialized) {
-        return !animTask || !notsa::isa<CTaskComplexPlayHandSignalAnim>(animTask);
+        return !animTask || !CTask::IsA<TASK_COMPLEX_HANDSIGNAL_ANIM>(animTask);
     }
 
     if (animTask) {
-        if (notsa::isa<CTaskComplexPlayHandSignalAnim>(animTask)) {
+        if (CTask::IsA<TASK_COMPLEX_HANDSIGNAL_ANIM>(animTask)) {
             return true;
         }
         animTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr);

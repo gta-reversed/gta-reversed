@@ -40,7 +40,7 @@ void VisualiseTaskIfPossible(CTask* task, CPed& ped) {
     if (!task) {
         return;
     }
-    T* typedTask = notsa::dyn_cast_if_present<T>(task);
+    T* typedTask = CTask::DynCast<T>(task);
     if (typedTask) {
         Visualisation::VisualiseTask(*typedTask, ped);
     }

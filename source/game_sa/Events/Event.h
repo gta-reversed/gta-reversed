@@ -51,10 +51,6 @@ public:
         return nullptr;
     }
 
-public: // Casting.hpp support //
-    template<typename From, typename Self>
-    static constexpr bool classof(const From* f) { return f->GetEventType() == Self::Type; }
-
 private:
     friend void InjectHooksMain();
     static void InjectHooks();

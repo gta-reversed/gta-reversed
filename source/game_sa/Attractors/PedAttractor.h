@@ -92,10 +92,7 @@ public:
 
     void AbortPedTasks();
 
-public:
-    // Casting.hpp support //
-    template<typename From, typename Self>
-    static constexpr bool classof(const From* f) { return f->GetType() == Self::Type; }
+
 
 private:
     auto* Constructor(C2dEffectPedAttractor* fx, CEntity* entity, eMoveState moveState, size_t maxNoOfPeds, float spacing, float achieveQueueTime, float achieveQueueShuffleTime, float arriveRange, float headingRange, float deltaPos, float deltaHeading) {

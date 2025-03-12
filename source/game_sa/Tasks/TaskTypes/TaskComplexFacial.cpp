@@ -46,7 +46,7 @@ CTask* CTaskComplexFacial::CreateNextSubTask(CPed* ped) {
         return new CTaskSimplePause{ 5'000 };
     }
     if (m_RequestB == eFacialExpression::NONE) {
-        if (!notsa::isa<CTaskComplexFacial>(m_pSubTask) && m_IsChewing) {
+        if (!CTask::IsA<CTaskSimpleFacial>(m_pSubTask) && m_IsChewing) {
             return new CTaskSimpleFacial{ eFacialExpression::CHEWING, 5'000 };
         }
         return new CTaskSimplePause{ 5'000 };
@@ -89,7 +89,7 @@ CTask* CTaskComplexFacial::ControlSubTask(CPed* ped) {
 
     if (m_RequestA != eFacialExpression::NONE) { // Check for a new request...
         const auto requestedFacialType = std::exchange(m_RequestA, eFacialExpression::NONE);
-        if (const auto st = notsa::dyn_cast_if_present<CTaskSimpleFacial>(m_pSubTask)) { // There's a sub-task already running, just change it
+        if (const auto st = CTask::DynCast<CTaskSimpleFacial>(m_pSubTask)) { // There's a sub-task already running, just change it
             if (st->GetFacialType() == requestedFacialType) {
                 st->StartTimer(m_DurationA);
                 return m_pSubTask;

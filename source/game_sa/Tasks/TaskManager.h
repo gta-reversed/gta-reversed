@@ -251,7 +251,7 @@ public:
     */
     template<Task T>
     T* GetSimplestActiveTaskAs() {
-        return notsa::dyn_cast_if_present<T>(GetSimplestActiveTask());
+        return CTask::DynCast<T>(GetSimplestActiveTask());
     }
 
     /*!

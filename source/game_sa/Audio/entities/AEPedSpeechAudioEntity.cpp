@@ -971,7 +971,7 @@ void CAEPedSpeechAudioEntity::StopCurrentSpeech() {
         return;
     }
 
-    if (auto* const tFacial = notsa::cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
+    if (auto* const tFacial = CTask::Cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
         tFacial->StopAll();
     }
 
@@ -1388,7 +1388,7 @@ void CAEPedSpeechAudioEntity::I_UpdateParameters(CAESound* sound, int16 playTime
                 }
             }
 
-            if (auto* const tFacial = notsa::cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
+            if (auto* const tFacial = CTask::Cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
                 tFacial->StopAll();
             }
         }
@@ -1472,7 +1472,7 @@ void CAEPedSpeechAudioEntity::I_PlayLoadedSound(CEntity* attachTo) {
             case CTX_GLOBAL_STOMACH_RUMBLE:
                 break;
             default: {
-                notsa::cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))->SetRequest(
+                CTask::Cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))->SetRequest(
                     eFacialExpression::TALKING,
                     2800
                 );
