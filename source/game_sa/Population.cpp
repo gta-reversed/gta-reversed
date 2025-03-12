@@ -1662,7 +1662,7 @@ int32 CPopulation::GeneratePedsAtAttractors(
             if (!ent->IsInCurrentArea()) {
                 continue;
             }
-            auto* const attractor = notsa::cast<C2dEffectPedAttractor>(ent->GetRandom2dEffect(EFFECT_ATTRACTOR, true));
+            auto* const attractor = notsa::cast_if_present<C2dEffectPedAttractor>(ent->GetRandom2dEffect(EFFECT_ATTRACTOR, true));
             if (!attractor || !IsCorrectTimeOfDayForEffect(*attractor)) {
                 continue;
             }
