@@ -939,8 +939,8 @@ void CReplay::RecordThisFrame() {
                 *packet.As<tReplayVehicleBlock>() = tReplayVehicleBlock::MakeVehicleUpdateData(vehicle, i);
 
                 packet.type = REPLAY_PACKET_PLANE;
-                packet.field_9C8 = vehicle->AsPlane()->field_9C8;
-                packet.propSpeed = vehicle->AsPlane()->m_fPropSpeed;
+                packet.engineSpeed = vehicle->AsPlane()->m_fEngineSpeed;
+                packet.propellerAngle = vehicle->AsPlane()->m_fPropellerAngle;
                 Record.Write(packet);
                 break;
             }
@@ -1290,8 +1290,9 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
                 auto vehicle = GetVehiclePool()->GetAt(poolIdx);
 
                 planePacket.ExtractVehicleUpdateData(vehicle, interpolation);
-                vehicle->AsPlane()->field_9C8 = planePacket.field_9C8;
-                vehicle->AsPlane()->m_fPropSpeed = planePacket.propSpeed;
+                vehicle->AsPlane()->m_fEngineSpeed = planePacket.engineSpeed;
+                vehicle->AsPlane()->m_fPropellerAngle = planePacket.propellerAngle;
+
             }
             break;
         }

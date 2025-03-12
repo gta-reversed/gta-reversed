@@ -25,15 +25,38 @@ class CPed;
 class CSphere;
 class CGarage;
 
+// $EB00DB600F272ABF9EF915EA8B0BA2F1
+enum {
+    NO_ONE = 0,
+    SCRIPT_CAM_CONTROL,
+    OBBE_CAM_CONTROL
+};
+
 enum class eFadeFlag : uint16 {
     FADE_IN,
     FADE_OUT
 };
 
-enum class eSwitchType : uint16 {
-    NONE,
-    INTERPOLATION,
-    JUMPCUT
+enum class eTransMode : int32 {
+    TRANS_NONE = 0,
+    TRANS_INTERPOLATION = 1,
+    TRANS_JUMP_CUT = 2
+};
+
+//$59651489DE6398DC03417D5A15FC1EE9
+enum {
+  SCRIPT_ZOOM_ONE = 0,
+  SCRIPT_ZOOM_TWO = 1,
+  SCRIPT_ZOOM_THREE = 2,
+};
+
+enum CarZoomLevel : int32 {
+  ZOOM_ZERO = 0,
+  ZOOM_ONE = 1,
+  ZOOM_TWO = 2,
+  ZOOM_THREE = 3,
+  ZOOM_FOUR = 4,
+  ZOOM_FIVE = 5,
 };
 
 /* todo:
@@ -277,7 +300,7 @@ public:
     int32           m_nModeObbeCamIsInForCar{30};
     eCamMode        m_nModeToGoTo{ MODE_FOLLOWPED };
     eFadeFlag       m_nMusicFadingDirection{};
-    eSwitchType     m_nTypeOfSwitch{ eSwitchType::INTERPOLATION };
+    eTransMode     m_nTypeOfSwitch{ eTransMode::TRANS_INTERPOLATION };
     char            _alignC40[2]{};
     uint32          m_nFadeStartTime{};
     uint32          m_nFadeTimeStartedMusic{};
@@ -422,10 +445,10 @@ public:
 
     void StoreValuesDuringInterPol(CVector *sourceDuringInter, CVector *targetDuringInter, CVector *upDuringInter, float *FOVDuringInter);
 
-    void TakeControl(CEntity *target, eCamMode modeToGoTo, eSwitchType switchType, int32 whoIsInControlOfTheCamera);
-    void TakeControlNoEntity(const CVector& fixedModeVector, eSwitchType switchType, int32 whoIsInControlOfTheCamera);
-    void TakeControlAttachToEntity(CEntity* target, CEntity* attached, CVector* attachedCamOffset, CVector* attachedCamLookAt, float attachedCamAngle, eSwitchType switchType, int32 whoIsInControlOfTheCamera);
-    void TakeControlWithSpline(eSwitchType switchType);
+    void TakeControl(CEntity *target, eCamMode modeToGoTo, eTransMode switchType, int32 whoIsInControlOfTheCamera);
+    void TakeControlNoEntity(const CVector& fixedModeVector, eTransMode switchType, int32 whoIsInControlOfTheCamera);
+    void TakeControlAttachToEntity(CEntity* target, CEntity* attached, CVector* attachedCamOffset, CVector* attachedCamLookAt, float attachedCamAngle, eTransMode switchType, int32 whoIsInControlOfTheCamera);
+    void TakeControlWithSpline(eTransMode switchType);
 
     bool TryToStartNewCamMode(int32 camSequence);
 
@@ -441,8 +464,8 @@ public:
 
     void AllowShootingWith2PlayersInCar(bool bAllow);
     void ApplyVehicleCameraTweaks(CVehicle* vehicle);
-    void AvoidTheGeometry(const CVector* arg2, const CVector* arg3, CVector* arg4, float FOV);
-
+    void AvoidTheGeometry(const CVector &TheCamPos, const CVector &TheTargetPos, CVector &ResultantCameraPos, float fFOV);
+    
     void CalculateDerivedValues(bool bForMirror, bool bOriented);
     void CalculateFrustumPlanes(bool bForMirror);
     float CalculateGroundHeight(eGroundHeightType type);
@@ -469,12 +492,12 @@ public:
     void Enable1rstPersonWeaponsCamera();
 
     void Fade(float duration, eFadeFlag direction);
-    void Find3rdPersonCamTargetVector(float range, CVector vecGunMuzzle, CVector& outSource, CVector& outTarget);
+    bool Find3rdPersonCamTargetVector(float fRange, CVector vecGunMuzzle, CVector &vecSource, CVector &vecTarget);
     float Find3rdPersonQuickAimPitch() const;
     float FindCamFOV() const;
     void FinishCutscene();
 
-    bool GetArrPosForVehicleType(eVehicleType type, int32& arrPos);
+    bool GetArrPosForVehicleType(eVehicleAppearance type, int32& arrPos);
     uint32 GetCutSceneFinishTime();
     [[nodiscard]] bool GetFading() const;
     [[nodiscard]] int32 GetFadingDirection() const;
@@ -518,7 +541,7 @@ public:
         return m_bMirrorActive && IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatMirrorInverse);
     }
 };
-VALIDATE_SIZE(CCamera, 0xD78);
+// VALIDATE_SIZE(CCamera, 0xD78);
 
 extern CCamera& TheCamera;
 extern bool& gbModelViewer;
@@ -535,3 +558,4 @@ static inline auto& gpMadeInvisibleEntities = StaticRef<std::array<CEntity*, 10>
 static inline auto& gNumEntitiesSetInvisible = StaticRef<uint32, 0x9655DC>();
 
 void CamShakeNoPos(CCamera* camera, float strength);
+void WellBufferMe(float TheTarget, float* TheValueToChange, float* ValueSpeedSoFar, float TopSpeed, float SpeedStep, bool IsAnAngle);

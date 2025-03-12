@@ -13,6 +13,18 @@
 
 /* http://code.google.com/p/mtasa-blue/source/browse/tags/1.3.4/MTA10/game_sa/CCamSA.h */
 
+enum eArrestCam {
+    ARRESTCAM_NONE = 0,
+    ARRESTCAM_DW = 1,
+    ARRESTCAM_OVERSHOULDER = 2,
+    ARRESTCAM_ALONGGROUND = 3,
+    ARRESTCAM_ALONGGROUND_RIGHT = 4,
+    ARRESTCAM_ALONGGROUND_RIGHT_UP = 5,
+    ARRESTCAM_ALONGGROUND_LEFT = 6,
+    ARRESTCAM_ALONGGROUND_LEFT_UP = 7,
+    ARRESTCAM_FROMLAMPPOST = 8,
+};
+
 class CEntity;
 class CPed;
 class CVehicle;
@@ -142,7 +154,7 @@ public:
     void GetCoreDataForDWCineyCamMode(CEntity**, CVehicle**, CVector*, CVector*, CVector*, CVector*, CVector*, CVector*, float*, CVector*, float*, CColSphere*);
     void GetLookFromLampPostPos(CEntity*, CPed*, CVector&, CVector&);
     void GetVectorsReadyForRW();
-    void Get_TwoPlayer_AimVector(CVector&);
+    CEntity *Get_TwoPlayer_AimVector(CVector&);
     void IsTimeToExitThisDWCineyCamMode(int32, CVector*, CVector*, float, bool);
     void KeepTrackOfTheSpeed(const CVector&, const CVector&, const CVector&, const float&, const float&, const float&);
     void LookBehind();
@@ -153,7 +165,7 @@ public:
 
     bool Process();
     bool ProcessArrestCamOne();
-    bool ProcessPedsDeadBaby();
+    void ProcessPedsDeadBaby();
     bool Process_1rstPersonPedOnPC(const CVector&, float, float, float);
     bool Process_1stPerson(const CVector&, float, float, float);
     bool Process_AimWeapon(const CVector&, float, float, float);

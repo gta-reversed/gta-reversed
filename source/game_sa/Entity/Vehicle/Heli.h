@@ -69,38 +69,46 @@ VALIDATE_SIZE(tHeliLight, 0x4C);
 
 class FxSystem_c;
 
+// Declaración adelantada de la clase CHeli
+class CHeli;
+
 class NOTSA_EXPORT_VTABLE CHeli : public CAutomobile {
 public:
-    uint8        m_nHeliFlags;
-    float        m_fLeftRightSkid;
-    float        m_fSteeringUpDown;
-    float        m_fSteeringLeftRight;
-    float        m_fAccelerationBreakStatus;
-    int32        field_99C;
-    int32        m_fRotorZ;
-    int32        m_fSecondRotorZ;
-    float        m_fMaxAltitude;
-    float        field_9AC;
-    float        m_fMinAltitude;
-    float        field_9B4; // m_fHeading related
-    char         field_9B8;
-    int8         m_nNumSwatOccupants;
-    std::array<uint8, 4> m_aSwatState;
-    CVector      field_9C0;
-    int32        f9CC; // unused?
-    int32        f9D0; // unused?
-    FxSystem_c** m_pParticlesList;
-    std::array<float, 3> m_aSearchLightHistoryX;
-    std::array<float, 3> m_aSearchLightHistoryY;
-    uint32       m_nSearchLightTimer;
-    CVector      m_vecSearchLightTarget;
-    float        m_fSearchLightIntensity;
-    uint32       m_nShootTimer;
-    uint32       m_nPoliceShoutTimer;
-    FxSystem_c** m_ppGunflashFx;
-    uint8        m_nFiringMultiplier;
-    bool         m_bSearchLightEnabled;
-    float        field_A14;
+    // Definir CHeliFlags dentro de la clase CHeli
+    struct CHeliFlags {
+        uint8 bStopFlyingForAWhile : 1;
+        uint8 bUseSearchLightOnTarget : 1;
+        uint8 bWarnTarger : 1;
+    };
+
+    CHeliFlags m_nHeliFlags;
+    float m_fYawControl;
+    float m_fPitchControl;
+    float m_fRollControl;
+    float m_fThrottleControl;
+    float m_fEngineSpeed;
+    float m_fMainRotorAngle;
+    float m_fRearRotorAngle;
+    float m_LowestFlightHeight;
+    float m_DesiredHeight;
+    float m_MinHeightAboveTerrain;
+    float m_FlightDirection;
+    bool m_bStopFlyingForAWhile;
+    uint8 m_nSwatOnBoard;
+    std::array<uint8, 4> m_SwatRopeActive;
+    std::array<float, 6> m_OldSearchLightX;
+    std::array<float, 6> m_OldSearchLightY;
+    uint32 m_LastSearchLightSample;
+    float m_SearchLightX;
+    float m_SearchLightY;
+    float m_SearchLightZ;
+    float m_LightBrightness;
+    uint32 m_LastTimeSearchLightWasTooFarAwayToShoot;
+    uint32 m_nNextTalkTimer;
+    FxSystem_c **m_GunflashFxPtrs;
+    uint8 m_FiringRateMultiplier;
+    bool8 m_bSearchLightOn;
+    float m_crashAndBurnTurnSpeed;
 
     static inline bool& bPoliceHelisAllowed                   = *(bool*)0x8D338C; // 1
     static inline uint32& TestForNewRandomHelisTimer          = *(uint32*)0xC1C960;
@@ -130,7 +138,7 @@ public:
     CVector FindSwatPositionRelativeToHeli(int32 swatNumber);
     bool SendDownSwat();
 
-    inline uint32 GetRopeId() { return reinterpret_cast<int32>(this + m_nNumSwatOccupants - 1); }
+    inline uint32 GetRopeId() { return reinterpret_cast<int32>(this + m_nSwatOnBoard - 1); }
 
     static void InitHelis();
     static void AddHeliSearchLight(const CVector& origin, const CVector& target, float targetRadius, float power, uint32 coronaIndex, uint8 unknownFlag, uint8 drawShadow);

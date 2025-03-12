@@ -73,7 +73,7 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
             m_fWheelsSuspensionCompression[i] = 0.f;
             m_wheelPosition[i] = thisWheelTouchDistNow;
 
-            m_anCollisionLighting[i] = thisWheelColPtNow.m_nLightingB;
+            m_storedCollisionLighting[i] = thisWheelColPtNow.m_nLightingB;
             m_nContactSurface = thisWheelColPtNow.m_nSurfaceTypeB;
 
             // Same as in CAutomobile::ProcessEntityCollision
@@ -84,12 +84,12 @@ int32 CMonsterTruck::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint
 
                 m_vWheelCollisionPos[i] = thisWheelColPtNow.m_vecPoint - entity->GetPosition();
                 if (entity->IsVehicle()) {
-                    m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
+                    m_storedCollisionLighting[i] = entity->AsVehicle()->m_storedCollisionLighting[i];
                 }
                 break;
             }
             case ENTITY_TYPE_BUILDING: {
-                m_pEntityWeAreOn = entity;
+                pEntityWeAreOnForVisibilityCheck = entity;
                 m_bTunnel = entity->m_bTunnel;
                 m_bTunnelTransition = entity->m_bTunnelTransition;
                 break;

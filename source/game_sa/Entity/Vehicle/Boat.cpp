@@ -56,8 +56,8 @@ CBoat::CBoat(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     m_vecBoatTurnForce.Set(0.0F, 0.0F, 0.0F);
     m_nPadNumber = 0;
     m_fMovingHiRotation = 0.0f;
-    m_fPropSpeed = 0.0f;
-    m_fPropRotation = 0.0f;
+    m_fEngineSpeed = 0.0f;
+    m_fPropellerAngle = 0.0f;
     m_nAttackPlayerTime = CTimer::GetTimeInMS();
     CVehicle::SetModelIndex(modelIndex);
     SetupModelNodes();
@@ -469,7 +469,7 @@ void CBoat::ProcessControl() {
     PruneWakeTrail();
     CVehicle::ProcessDelayedExplosion();
     auto fMassCheck = (m_fMass * 0.008F * 100.0F) / 125.0F;
-    if (physicalFlags.bDestroyed && fMassCheck < m_fBuoyancyConstant)
+    if (physicalFlags.bRenderScorched && fMassCheck < m_fBuoyancyConstant)
         m_fBuoyancyConstant -= ((m_fMass * 0.001F) * 0.008F);
 
     auto wanted = FindPlayerWanted();
@@ -477,7 +477,7 @@ void CBoat::ProcessControl() {
         auto vehicle = FindPlayerVehicle();
         if (vehicle && vehicle->GetVehicleAppearance() == eVehicleAppearance::VEHICLE_APPEARANCE_BOAT) {
             auto iCarMission = m_autoPilot.m_nCarMission;
-            if (iCarMission == eCarMission::MISSION_ATTACKPLAYER ||
+            if (iCarMission == eCarMission::MISSION_BOAT_ATTACKPLAYER ||
                 (iCarMission >= eCarMission::MISSION_RAMPLAYER_FARAWAY && iCarMission <= eCarMission::MISSION_BLOCKPLAYER_CLOSE)
             ) {
                 if (CTimer::GetTimeInMS() > m_nAttackPlayerTime) {
@@ -546,16 +546,16 @@ void CBoat::ProcessControl() {
             fROCPropSpeed *= 5.0F;
 
         if (m_fGasPedal == 0.0F)
-            m_fPropSpeed += (fSTDPropSpeed - m_fPropSpeed) * CTimer::GetTimeStep() * fROCPropSpeed;
+            m_fEngineSpeed += (fSTDPropSpeed - m_fEngineSpeed) * CTimer::GetTimeStep() * fROCPropSpeed;
         else if (m_fGasPedal < 0.0F) {
             fSTDPropSpeed = (CPlane::PLANE_STD_PROP_SPEED - 0.05F) * m_fGasPedal + CPlane::PLANE_STD_PROP_SPEED;
-            m_fPropSpeed += (fSTDPropSpeed - m_fPropSpeed) * CTimer::GetTimeStep() * fROCPropSpeed;
+            m_fEngineSpeed += (fSTDPropSpeed - m_fEngineSpeed) * CTimer::GetTimeStep() * fROCPropSpeed;
         } else {
             fSTDPropSpeed = (CPlane::PLANE_MAX_PROP_SPEED - CPlane::PLANE_STD_PROP_SPEED) * m_fGasPedal + CPlane::PLANE_STD_PROP_SPEED;
-            m_fPropSpeed += (fSTDPropSpeed - m_fPropSpeed) * CTimer::GetTimeStep() * fROCPropSpeed;
+            m_fEngineSpeed += (fSTDPropSpeed - m_fEngineSpeed) * CTimer::GetTimeStep() * fROCPropSpeed;
         }
-    } else if (m_fPropSpeed > 0.0F) {
-        m_fPropSpeed *= 0.95F;
+    } else if (m_fEngineSpeed > 0.0F) {
+        m_fEngineSpeed *= 0.95F;
     }
 
     auto fDamagePower = m_fDamageIntensity * m_pHandlingData->m_fCollisionDamageMultiplier;
@@ -627,7 +627,7 @@ void CBoat::ProcessControl() {
     ProcessBoatControl(m_pBoatHandling, &m_fLastWaterImmersionDepth, m_bHasHitWall, bPostCollision);
 
     if (m_nModelIndex == MODEL_SKIMMER
-        && (m_fPropSpeed > CPlane::PLANE_MIN_PROP_SPEED || m_vecMoveSpeed.SquaredMagnitude() > CPlane::PLANE_MIN_PROP_SPEED)) {
+        && (m_fEngineSpeed > CPlane::PLANE_MIN_PROP_SPEED || m_vecMoveSpeed.SquaredMagnitude() > CPlane::PLANE_MIN_PROP_SPEED)) {
         FlyingControl(FLIGHT_MODEL_PLANE, -10000.0f, -10000.0f, -10000.0f, -10000.0f);
     }
     else if (CCheat::IsActive(CHEAT_BOATS_FLY)) {
@@ -671,19 +671,19 @@ void CBoat::PreRender() {
     SetComponentRotation(m_aBoatNodes[BOAT_REARFLAP_LEFT],  AXIS_Z, fUsedAngle, true);
     SetComponentRotation(m_aBoatNodes[BOAT_REARFLAP_RIGHT], AXIS_Z, fUsedAngle, true);
 
-    auto fPropSpeed = std::min(1.0F, m_fPropSpeed * (32.0F / TWO_PI));
+    auto fPropSpeed = std::min(1.0F, m_fEngineSpeed * (32.0F / TWO_PI));
     auto ucTransparency = static_cast<RwUInt8>((1.0F - fPropSpeed) * 255.0F);
 
-    m_fPropRotation += m_fPropSpeed * CTimer::GetTimeStep();
-    while (m_fPropRotation > TWO_PI)
-        m_fPropRotation -= TWO_PI;
+    m_fPropellerAngle += m_fEngineSpeed * CTimer::GetTimeStep();
+    while (m_fPropellerAngle > TWO_PI)
+        m_fPropellerAngle -= TWO_PI;
 
-    ProcessBoatNodeRendering(BOAT_STATIC_PROP,   m_fPropRotation * 2,  ucTransparency);
-    ProcessBoatNodeRendering(BOAT_STATIC_PROP_2, m_fPropRotation * -2, ucTransparency);
+    ProcessBoatNodeRendering(BOAT_STATIC_PROP,   m_fPropellerAngle * 2,  ucTransparency);
+    ProcessBoatNodeRendering(BOAT_STATIC_PROP_2, m_fPropellerAngle * -2, ucTransparency);
 
     ucTransparency = (ucTransparency >= 150 ? 0 : 150 - ucTransparency);
-    ProcessBoatNodeRendering(BOAT_MOVING_PROP,  -m_fPropRotation, ucTransparency);
-    ProcessBoatNodeRendering(BOAT_MOVING_PROP_2, m_fPropRotation, ucTransparency);
+    ProcessBoatNodeRendering(BOAT_MOVING_PROP,  -m_fPropellerAngle, ucTransparency);
+    ProcessBoatNodeRendering(BOAT_MOVING_PROP_2, m_fPropellerAngle, ucTransparency);
 
     if (m_nModelIndex == MODEL_MARQUIS) {
         auto pFlap = m_aBoatNodes[BOAT_FLAP_LEFT];
@@ -964,7 +964,7 @@ void CBoat::BlowUpCar(CEntity* damager, bool bHideExplosion) {
     if (!vehicleFlags.bCanBeDamaged)
         return;
 
-    physicalFlags.bDestroyed = true;
+    physicalFlags.bRenderScorched = true;
     m_nStatus = eEntityStatus::STATUS_WRECKED;
     CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_IS_BLOWN_UP);
     m_vecMoveSpeed.z += 0.13F;

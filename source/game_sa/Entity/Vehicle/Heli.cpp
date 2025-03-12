@@ -19,6 +19,7 @@ void CHeli::InjectHooks() {
     RH_ScopedInstall(SwitchPoliceHelis, 0x6C4800);
     RH_ScopedInstall(RenderAllHeliSearchLights, 0x6C7C50);
     RH_ScopedInstall(TestSniperCollision, 0x6C6890);
+    RH_ScopedInstall(UpdateHelis, 0x6C79A0);
     RH_ScopedVMTInstall(ProcessFlyingCarStuff, 0x6C4E60, {.reversed = false});
     RH_ScopedVMTInstall(Render, 0x6C4400);
     RH_ScopedVMTInstall(Fix, 0x6C4530);
@@ -30,23 +31,22 @@ void CHeli::InjectHooks() {
 CHeli::CHeli(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(modelIndex, createdBy, true) {
     m_nVehicleSubType = VEHICLE_TYPE_HELI;
 
-    m_fLeftRightSkid           = 0.0f;
-    m_fSteeringUpDown          = 0.0f;
-    m_fSteeringLeftRight       = 0.0f;
-    m_fAccelerationBreakStatus = 0.0f;
+    m_fYawControl                        = 0.0;
+    m_fPitchControl                      = 0.0;
+    m_fRollControl                       = 0.0;
+    m_fThrottleControl                   = 0.0;
+    m_fEngineSpeed                       = 0.0;
+    m_fMainRotorAngle                    = 0.0;
+    m_fRearRotorAngle                    = 0.0;
+    m_MinHeightAboveTerrain              = 10.0;
+    m_LowestFlightHeight                 = 10.0;
+    m_DesiredHeight                      = 10.0;
+    m_FlightDirection                    = 0.0;
+    m_nHeliFlags.bStopFlyingForAWhile    = 0;
+    m_nHeliFlags.bUseSearchLightOnTarget = 0;
+    m_nHeliFlags.bWarnTarger             = 0; // fix
+    m_LightBrightness                    = 0.0;
 
-    field_99C = 0;
-    m_fRotorZ = 0;
-    m_fSecondRotorZ = 0;
-
-    m_fMinAltitude = 10.0f;
-    m_fMaxAltitude = 10.0f;
-
-    field_9AC = 10.0f;
-    field_9B4 = 0;
-
-    m_nHeliFlags = m_nHeliFlags & 0xFC;
-    m_fSearchLightIntensity = 0.0f;
     physicalFlags.bDontCollideWithFlyers = true;
 
     if (modelIndex == MODEL_HUNTER) {
@@ -57,39 +57,39 @@ CHeli::CHeli(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(modelI
         m_doors[DOOR_LEFT_FRONT].m_nDirn = 19;
     }
 
-    m_nNumSwatOccupants = 4;
-    m_aSwatState.fill(0);
+    m_nSwatOnBoard = 4;
+    m_SwatRopeActive.fill(0);
 
-    m_nSearchLightTimer = CTimer::GetTimeInMS();
+    m_LastSearchLightSample = CTimer::GetTimeInMS();
 
-    m_aSearchLightHistoryX.fill(0.0f);
-    m_aSearchLightHistoryY.fill(0.0f);
+    m_OldSearchLightX.fill(0.0f);
+    m_OldSearchLightY.fill(0.0f);
 
-    m_nShootTimer = 0;
-    m_nPoliceShoutTimer = CTimer::GetTimeInMS();
+    m_LastTimeSearchLightWasTooFarAwayToShoot = 0;
+    m_nNextTalkTimer = CTimer::GetTimeInMS();
 
     vehicleFlags.bNeverUseSmallerRemovalRange = true; // 0x6C42BD
     m_autoPilot.m_ucHeliTargetDist2 = 10;
 
-    m_ppGunflashFx = nullptr;
-    m_nFiringMultiplier = 16;
+    m_GunflashFxPtrs = nullptr;
+    m_FiringRateMultiplier = 16;
 
-    field_9B8 = 0;
-    m_bSearchLightEnabled = false;
-    field_A14 = CGeneral::GetRandomNumberInRange(2.f, 8.f);
+    m_bStopFlyingForAWhile = 0;
+    m_bSearchLightOn = false;
+    m_crashAndBurnTurnSpeed = CGeneral::GetRandomNumberInRange(2.f, 8.f);
 }
 
 // 0x6C4340
 CHeli::~CHeli() {
-    if (m_ppGunflashFx) {
+    if (m_GunflashFxPtrs) {
         for (auto i = 0; i < CVehicle::GetPlaneNumGuns(); i++) {
-            if (auto& fx = m_ppGunflashFx[i]) {
+            if (auto& fx = m_GunflashFxPtrs[i]) {
                 fx->Kill();
                 g_fxMan.DestroyFxSystem(fx);
             }
         }
-        delete[] m_ppGunflashFx;
-        m_ppGunflashFx = nullptr;
+        delete[] m_GunflashFxPtrs;
+        m_GunflashFxPtrs = nullptr;
     }
 
     m_vehicleAudio.Terminate();
@@ -225,7 +225,7 @@ void CHeli::TestSniperCollision(CVector* origin, CVector* target) {
         if (CCollision::DistToLine(*origin, *target, mat->TransformPoint({ -0.43f, 1.49f, 1.5f })) < 0.8f) {
             heli->m_fRotationBalance = (float)(CGeneral::GetRandomNumber() < pow(2, 14) - 1) * 0.1f - 0.05f; // 2^14 - 1 = 16383 [-0.05, 0.05]
             heli->BlowUpCar(FindPlayerPed(), false);
-            heli->m_nNumSwatOccupants = 0;
+            heli->m_nSwatOnBoard = 0;
         };
     }
 }
@@ -237,9 +237,146 @@ bool CHeli::SendDownSwat() {
 
 // 0x6C79A0
 void CHeli::UpdateHelis() {
-    ZoneScoped;
+    bool hasValidPolmav;
+    int currentHeliCount;
+    int maxAllowedHelis;
+    CVector playerPosition;
+    
+    // Reset search light count
+    CHeli::NumberOfSearchLights = 0;
+    
+    // Check existing helicopters status
+    currentHeliCount = 0;
+    hasValidPolmav = false;
+    
+    // Create a lambda for checking valid helicopters
+    auto IsHeliValid = [](CHeli* heli) -> bool {
+        return heli != nullptr;
+    };
+    
+    // Check first helicopter
+    if (IsHeliValid(CHeli::pHelis[0])) {
+        hasValidPolmav = CHeli::pHelis[0]->m_nModelIndex == MODEL_POLMAV && 
+                            !CHeli::pHelis[0]->physicalFlags.bRenderScorched && 
+                            !CHeli::pHelis[0]->vehicleFlags.bIsDrowning;
+        currentHeliCount = 1;
+    }
+    
+    // Check second helicopter
+    if (IsHeliValid(CHeli::pHelis[1])) {
+        currentHeliCount++;
+        if (CHeli::pHelis[1]->m_nModelIndex == MODEL_POLMAV && !CHeli::pHelis[1]->physicalFlags.bRenderScorched) {
+            hasValidPolmav = hasValidPolmav || !CHeli::pHelis[1]->vehicleFlags.bIsDrowning;
+        }
+    }
+    
+    // Check game conditions for helicopters
+    if (IsHeliValid(CHeli::pHelis[0])) {
+        hasValidPolmav &= CHeli::pHelis[0]->m_nModelIndex != MODEL_VCNMAV;
+    }
+    
+    if (IsHeliValid(CHeli::pHelis[1])) {
+        hasValidPolmav &= CHeli::pHelis[1]->m_nModelIndex != MODEL_VCNMAV;
+    }
 
-    ((void(__cdecl*)())0x6C79A0)();
+    // Determine max allowed helicopters based on game conditions
+    maxAllowedHelis = (CHeli::bPoliceHelisAllowed
+                       && !CCullZones::PlayerNoRain()
+                       && !CGame::IsInInterior()
+                       && CWeather::OldWeatherType != WEATHER_SANDSTORM_DESERT
+                       && CWeather::NewWeatherType != WEATHER_SANDSTORM_DESERT)
+        ? FindPlayerWanted()->NumOfHelisRequired()
+        : 0;
+
+    // Check if news helicopter is allowed
+    const bool useNewsHeliAllowed = hasValidPolmav && CWanted::bUseNewsHeliInAdditionToPolice;
+    const int modelIndexOffset = useNewsHeliAllowed ? MODEL_VCNMAV : MODEL_POLMAV;
+    
+    // Generate new helicopter if needed
+    if (CStreaming::ms_aInfoForModel[modelIndexOffset].m_nLoadState == 1 && 
+        CTimer::GetTimeInMS() > CHeli::TestForNewRandomHelisTimer) {
+        
+        CHeli::TestForNewRandomHelisTimer = CTimer::GetTimeInMS() + 15000;
+        
+        if (currentHeliCount < maxAllowedHelis) {
+            CPlayerPed* playerPed = FindPlayerPed();
+            CHeli* newHeli = CHeli::GenerateHeli(playerPed, useNewsHeliAllowed);
+            
+            // Register new helicopter - corregido según definición de plantilla
+            if (CHeli::pHelis[0]) {
+                if (!CHeli::pHelis[1]) {
+                    CHeli::pHelis[1] = newHeli;
+                    CEntity::RegisterReference(CHeli::pHelis[1]);
+                }
+            } else {
+                CHeli::pHelis[0] = newHeli;
+                CEntity::RegisterReference(CHeli::pHelis[0]);
+            }
+        }
+    }
+    
+    // Process first helicopter
+    if (IsHeliValid(CHeli::pHelis[0])) {
+        // Check if destroyed
+        if (CHeli::pHelis[0]->physicalFlags.bRenderScorched || CHeli::pHelis[0]->vehicleFlags.bIsDrowning) {
+            CHeli::pHelis[0]->m_autoPilot.m_nCarMission = MISSION_HELI_FLY_AWAY_FROM_PLAYER;
+            CHeli::pHelis[0] = nullptr;
+        } 
+        else if (CHeli::pHelis[0]->m_autoPilot.m_nCarMission == MISSION_HELI_FLY_AWAY_FROM_PLAYER) {
+            // Check distance to player for removal
+            playerPosition = FindPlayerCoors();
+            CVector camDist = playerPosition - CHeli::pHelis[0]->GetPosition();
+            float distanceToPlayer = camDist.Magnitude();
+
+            if (distanceToPlayer > 170.0f) {
+                CWorld::Remove(CHeli::pHelis[0]);
+                if (CHeli::pHelis[0]) {
+                    delete std::exchange(CHeli::pHelis[0], nullptr);
+                }
+                CHeli::pHelis[0] = nullptr;
+            }
+        }
+    }
+    
+    // Process second helicopter
+    if (IsHeliValid(CHeli::pHelis[1])) {
+        // Check if destroyed
+        if (CHeli::pHelis[1]->physicalFlags.bRenderScorched || CHeli::pHelis[1]->vehicleFlags.bIsDrowning) {
+            CHeli::pHelis[1]->m_autoPilot.m_nCarMission = MISSION_HELI_FLY_AWAY_FROM_PLAYER;
+            CHeli::pHelis[1] = nullptr;
+        } else if (CHeli::pHelis[1]->m_autoPilot.m_nCarMission == MISSION_HELI_FLY_AWAY_FROM_PLAYER) {
+            // Check distance to player for removal
+            playerPosition = FindPlayerCoors();
+            CVector camDist = playerPosition - CHeli::pHelis[1]->GetPosition();
+            float distanceToPlayer = camDist.Magnitude();
+
+            if (distanceToPlayer > 170.0f) {
+                CWorld::Remove(CHeli::pHelis[1]);
+                if (CHeli::pHelis[1]) {
+                    delete std::exchange(CHeli::pHelis[1], nullptr);
+                }
+                CHeli::pHelis[1] = nullptr;
+            }
+        }
+    }
+    
+    // Make helicopters fly away if too many
+    if (IsHeliValid(CHeli::pHelis[0]) && CHeli::pHelis[0]->m_autoPilot.m_nCarMission != MISSION_HELI_FLY_AWAY_FROM_PLAYER) {
+        if (maxAllowedHelis < 1) {
+            CHeli::pHelis[0]->m_autoPilot.m_nCarMission = MISSION_HELI_FLY_AWAY_FROM_PLAYER;
+            CHeli::pHelis[0]->m_MinHeightAboveTerrain = 100.0f;
+            CHeli::pHelis[0]->m_LowestFlightHeight = 100.0f;
+        } else {
+            maxAllowedHelis--;
+        }
+    }
+    
+    // Process second helicopter flying away if too many
+    if (IsHeliValid(CHeli::pHelis[1]) && CHeli::pHelis[1]->m_autoPilot.m_nCarMission != MISSION_HELI_FLY_AWAY_FROM_PLAYER && maxAllowedHelis <= 0) {
+        CHeli::pHelis[1]->m_autoPilot.m_nCarMission = MISSION_HELI_FLY_AWAY_FROM_PLAYER;
+        CHeli::pHelis[1]->m_MinHeightAboveTerrain = 100.0f;
+        CHeli::pHelis[1]->m_LowestFlightHeight = 100.0f;
+    }
 }
 
 // 0x6C7C50
@@ -355,17 +492,17 @@ void CHeli::ProcessFlyingCarStuff() {
         if (m_fHeliRotorSpeed > 0.15) {
             if (vehicleFlags.bIsRCVehicle ||
                 (m_nWheelsOnGround < 4 && !(IsAmphibiousHeli() && physicalFlags.bTouchingWater) 
-                ||(m_fAccelerationBreakStatus > 0.0f) 
+                || (m_fThrottleControl > 0.0f) 
                 ||std::abs(m_vecMoveSpeed.x) > 0.02f 
                 ||std::abs(m_vecMoveSpeed.y) > 0.02f 
                 ||std::abs(m_vecMoveSpeed.z) > 0.02f))
             {
                 FlyingControl(
                     vehicleFlags.bIsRCVehicle ? FLIGHT_MODEL_RC : FLIGHT_MODEL_HELI,
-                    m_fLeftRightSkid,
-                    m_fSteeringUpDown,
-                    m_fSteeringLeftRight,
-                    m_fAccelerationBreakStatus
+                    m_fYawControl,
+                    m_fPitchControl,
+                    m_fRollControl,
+                    m_fThrottleControl
                 );
             }
         }

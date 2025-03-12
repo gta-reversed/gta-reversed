@@ -144,7 +144,7 @@ void CStuntJumpManager::Update() {
 
             CTimer::SetTimeScale(0.3f);
             TheCamera.SetCamPositionForFixedMode(mp_Active->camera, CVector{ 0.f, 0.f, 0.f });
-            TheCamera.TakeControl(plyrVeh, MODE_FIXED, eSwitchType::JUMPCUT, 1);
+            TheCamera.TakeControl(plyrVeh, MODE_FIXED, eTransMode::TRANS_JUMP_CUT, 1);
 
             break;
         }

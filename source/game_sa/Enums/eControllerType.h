@@ -5,4 +5,5 @@ enum eControllerType {
     OPTIONAL_EXTRA_KEY,
     MOUSE,
     JOY_STICK,
+    ALL_CONTROLLERS
 };

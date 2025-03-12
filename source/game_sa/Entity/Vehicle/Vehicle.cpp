@@ -330,14 +330,14 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     m_nAdditionalProjectileWeaponFiringTime = 0;
     m_nTimeForMinigunFiring = 0;
     m_pLastDamageEntity = nullptr;
-    m_pEntityWeAreOn = nullptr;
+    pEntityWeAreOnForVisibilityCheck = nullptr;
     m_fVehicleRearGroundZ = 0.0f;
     m_fVehicleFrontGroundZ = 0.0f;
     field_511 = 0;
     field_512 = 0;
     m_comedyControlState = eComedyControlState::INACTIVE;
-    m_FrontCollPoly.valid = false;
-    m_RearCollPoly.valid = false;
+    StoredCollPolys[0].bValidPolyStored = 0;
+    StoredCollPolys[1].bValidPolyStored = 0;
     m_pHandlingData = nullptr;
     m_nHandlingFlagsIntValue = static_cast<eVehicleHandlingFlags>(0);
     m_autoPilot.m_nCarMission = MISSION_NONE;
@@ -418,7 +418,7 @@ CVehicle::~CVehicle() {
         CRopes::GetRope(iRopeInd).Remove();
     }
 
-    if (!physicalFlags.bDestroyed && m_fHealth < 250.0F) {
+    if (!physicalFlags.bRenderScorched && m_fHealth < 250.0F) {
         CDarkel::RegisterCarBlownUpByPlayer(*this, 0);
     }
 }
@@ -698,7 +698,7 @@ bool CVehicle::SetupLighting() {
 
 // 0x5533D0
 void CVehicle::RemoveLighting(bool bRemove) {
-    if (!physicalFlags.bDestroyed)
+    if (!physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 
     SetAmbientColours();
@@ -1187,22 +1187,33 @@ void CVehicle::SetRemap(int32 remapIndex) {
 
 // 0x6D0CA0
 void CVehicle::SetCollisionLighting(tColLighting lighting) {
-    std::ranges::fill(m_anCollisionLighting, lighting);
+    std::ranges::fill(m_storedCollisionLighting, lighting);
 }
 
 // 0x6D0CC0
-void CVehicle::UpdateLightingFromStoredPolys() {
-    m_anCollisionLighting[0] = m_FrontCollPoly.ligthing;
-    m_anCollisionLighting[1] = m_FrontCollPoly.ligthing;
+// void CVehicle::UpdateLightingFromStoredPolys() {
+//     m_storedCollisionLighting[0] = m_FrontCollPoly.lighting;
+//     m_storedCollisionLighting[1] = m_FrontCollPoly.lighting;
 
-    m_anCollisionLighting[2] = m_RearCollPoly.ligthing;
-    m_anCollisionLighting[3] = m_RearCollPoly.ligthing;
+//     m_storedCollisionLighting[2] = m_RearCollPoly.lighting;
+//     m_storedCollisionLighting[3] = m_RearCollPoly.lighting;
+// }
+
+void CVehicle::UpdateLightingFromStoredPolys() {
+    // CStoredCollPoly m_FrontCollPoly;          // poly which is under front part of car
+    // CStoredCollPoly m_RearCollPoly;           // poly which is under rear part of car
+
+  m_storedCollisionLighting[0] = StoredCollPolys[0].lighting;
+  m_storedCollisionLighting[1] = StoredCollPolys[0].lighting;
+
+  m_storedCollisionLighting[2] = StoredCollPolys[1].lighting;
+  m_storedCollisionLighting[3] = StoredCollPolys[1].lighting;
 }
 
 // 0x6D0CF0
 void CVehicle::CalculateLightingFromCollision() {
     float fAvgLight = 0.0F;
-    for (auto& colLighting : m_anCollisionLighting) {
+    for (auto& colLighting : m_storedCollisionLighting) {
         fAvgLight += colLighting.GetCurrentLighting();
     }
 
@@ -2693,10 +2704,10 @@ void CVehicle::SetFiringRateMultiplier(float multiplier) {
     multiplier = std::clamp(multiplier, 0.0f, 15.9375f);
     switch (m_nVehicleSubType) {
     case VEHICLE_TYPE_PLANE:
-        AsPlane()->m_nFiringMultiplier = uint8(multiplier * 16.0f);
+        AsPlane()->m_FiringRateMultiplier = uint8(multiplier * 16.0f);
         break;
     case VEHICLE_TYPE_HELI:
-        AsHeli()->m_nFiringMultiplier = uint8(multiplier * 16.0f);
+        AsHeli()->m_FiringRateMultiplier = uint8(multiplier * 16.0f);
         break;
     }
 }
@@ -2705,9 +2716,9 @@ void CVehicle::SetFiringRateMultiplier(float multiplier) {
 float CVehicle::GetFiringRateMultiplier() {
     switch (m_nVehicleSubType) {
     case VEHICLE_TYPE_PLANE:
-        return float(AsPlane()->m_nFiringMultiplier) / 16.0f;
+        return float(AsPlane()->m_FiringRateMultiplier) / 16.0f;
     case VEHICLE_TYPE_HELI:
-        return float(AsHeli()->m_nFiringMultiplier) / 16.0f;
+        return float(AsHeli()->m_FiringRateMultiplier) / 16.0f;
     default:
         return 1.0f;
     }
@@ -2882,11 +2893,11 @@ void CVehicle::DoPlaneGunFireFX(CWeapon* weapon, CVector& particlePos, CVector& 
 
     switch (m_nVehicleSubType) {
     case VEHICLE_TYPE_PLANE: {
-        DoFx(AsPlane()->m_pGunParticles);
+        DoFx(AsPlane()->m_GunflashFxPtrs);
         break;
     }
     case VEHICLE_TYPE_HELI: {
-        DoFx(AsHeli()->m_pParticlesList);
+        DoFx(AsHeli()->m_GunflashFxPtrs);
         break;
     }
     default: {
@@ -4042,7 +4053,7 @@ void CVehicle::DoSunGlare() {
 
     /*
     * Below code should be good so far, I'm lazy to finish it, srry.
-    if (physicalFlags.bDestroyed || GetUp().z < 0.f || GetVehicleAppearance() != eVehicleAppearance::VEHICLE_APPEARANCE_AUTOMOBILE || CWeather::SunGlare <= 0.f) {
+    if (physicalFlags.bRenderScorched || GetUp().z < 0.f || GetVehicleAppearance() != eVehicleAppearance::VEHICLE_APPEARANCE_AUTOMOBILE || CWeather::SunGlare <= 0.f) {
         return;
     }
     */

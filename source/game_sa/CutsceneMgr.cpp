@@ -313,7 +313,7 @@ void CCutsceneMgr::Initialise() {
 bool CCutsceneMgr::IsCutsceneSkipButtonBeingPressed() {
     const auto pad = CPad::GetPad(0);
     return pad->IsCrossPressed()
-        || pad->IsMouseLButtonPressed()
+        || pad->GetLeftMouseJustDown()
         || pad->IsEnterJustPressed()
         || pad->IsStandardKeyJustDown(' ')
         || !isForeground; // ????
@@ -967,7 +967,7 @@ void CCutsceneMgr::StartCutscene() {
     CCutsceneMgr::ms_cutscenePlayStatus = PlayStatus::STARTING;
     if (dataFileLoaded) {
         TheCamera.SetCamCutSceneOffSet(ms_cutsceneOffset);
-        TheCamera.TakeControlWithSpline(eSwitchType::JUMPCUT);
+        TheCamera.TakeControlWithSpline(eTransMode::TRANS_JUMP_CUT);
         TheCamera.SetWideScreenOn();
 
         CHud::SetHelpMessage(nullptr, true, false, false);

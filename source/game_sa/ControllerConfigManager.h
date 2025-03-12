@@ -8,18 +8,7 @@
 
 #include "RenderWare.h"
 
-#include "ePadButton.h"
-
-enum eMouseButtons {
-    MOUSE_BUTTON_NONE = 0,
-    MOUSE_BUTTON_LEFT,
-    MOUSE_BUTTON_MIDDLE,
-    MOUSE_BUTTON_RIGHT,
-    MOUSE_BUTTON_WHEEL_UP,
-    MOUSE_BUTTON_WHEEL_DOWN,
-    MOUSE_BUTTON_WHEEL_XBUTTON1,
-    MOUSE_BUTTON_WHEEL_XBUTTON2
-};
+#include "eInputs.h"
 
 enum eActionType {
     ACTION_0,
@@ -92,10 +81,10 @@ public:
     void SetMouseButtonAssociatedWithAction(const eControllerAction& action, eMouseButtons button);
 
     void StoreMouseButtonState(eMouseButtons button, bool state);
-    void UpdateJoyInConfigMenus_ButtonDown(ePadButton button, int32 padNumber);
-    void UpdateJoy_ButtonDown(ePadButton button, int32 unk);
-    void UpdateJoyInConfigMenus_ButtonUp(ePadButton button, int32 padNumber);
-    void UpdateJoy_ButtonUp(ePadButton button, int32 unk);
+    void UpdateJoyInConfigMenus_ButtonDown(eJOY_BUTTONS button, int32 padNumber);
+    void UpdateJoy_ButtonDown(eJOY_BUTTONS button, int32 unk);
+    void UpdateJoyInConfigMenus_ButtonUp(eJOY_BUTTONS button, int32 padNumber);
+    void UpdateJoy_ButtonUp(eJOY_BUTTONS button, int32 unk);
     void AffectControllerStateOn_ButtonUp_DebugStuff(int32, eControllerType);
     void ClearSimButtonPressCheckers();
 
@@ -136,6 +125,9 @@ public:
 
     // NOTSA
     uint16 GetActionIDByName(std::string_view name);
+
+    // not used
+    bool GetIsActionAButtonCombo(eControllerAction Action);
 };
 // VALIDATE_SIZE(CControllerConfigManager, 0x12E4);
 

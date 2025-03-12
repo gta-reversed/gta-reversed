@@ -27,8 +27,8 @@ void CMenuManager::PlaceRedMarker() {
     const auto pad = CPad::GetPad(m_nPlayerNumber);
     auto pressed = (
          pad->IsCirclePressed()
-      || pad->IsMouseLButtonPressed()
-      || pad->IsMouseRButtonPressed()
+      || pad->GetLeftMouseJustDown()
+      || pad->GetRightMouseJustDown()
       || pad->IsStandardKeyJustPressed('T') || pad->IsStandardKeyJustPressed('t')
     );
     if (!pressed)

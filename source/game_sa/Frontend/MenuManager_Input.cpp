@@ -53,24 +53,24 @@ bool CMenuManager::CheckRedefineControlInput() {
         if (m_bJustOpenedControlRedefWindow) {
             m_bJustOpenedControlRedefWindow = false;
         } else {
-            GetCurrentKeyPressed(*m_pPressedKey);
+            GetCurrentKeyPressed(m_pPressedKey);
             m_nPressedMouseButton = (RsKeyCodes)0;
             m_nJustDownJoyButton = 0;
 
             auto pad = CPad::GetPad();
-            if (pad->IsMouseLButtonPressed()) {
+            if (pad->GetLeftMouseJustDown()) {
                 m_nPressedMouseButton = rsMOUSE_LEFT_BUTTON;
-            } else if (pad->IsMouseRButtonPressed()) {
+            } else if (pad->GetRightMouseJustDown()) {
                 m_nPressedMouseButton = rsMOUSE_RIGHT_BUTTON;
-            } else if (pad->IsMouseMButtonPressed()) {
+            } else if (pad->GetMiddleMouseJustDown()) {
                 m_nPressedMouseButton = rsMOUSE_MIDDLE_BUTTON;
-            } else if (pad->IsMouseWheelUpPressed()) {
+            } else if (pad->GetMouseWheelUpJustDown()) {
                 m_nPressedMouseButton = rsMOUSE_WHEEL_UP_BUTTON;
-            } else if (pad->IsMouseWheelDownPressed()) {
+            } else if (pad->GetMouseWheelDownJustDown()) {
                 m_nPressedMouseButton = rsMOUSE_WHEEL_DOWN_BUTTON;
-            } else if (pad->IsMouseBmx1Pressed()) {
+            } else if (pad->GetMouseX1JustDown()) {
                 m_nPressedMouseButton = rsMOUSE_X1_BUTTON;
-            } else if (pad->IsMouseBmx2Pressed()) {
+            } else if (pad->GetMouseX2JustDown()) {
                 m_nPressedMouseButton = rsMOUSE_X2_BUTTON;
             }
             m_nJustDownJoyButton = ControlsManager.GetJoyButtonJustDown();

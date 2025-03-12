@@ -329,7 +329,7 @@ public:
     uint8             m_nWindowsOpenFlags; // initialised, but not used?
     uint8             m_nNitroBoosts;
     int8              m_vehicleSpecialColIndex;
-    CEntity*          m_pEntityWeAreOn; // we get it from CWorld::ProcessVerticalLine or ProcessEntityCollision, it's entity under us,
+    CEntity*          pEntityWeAreOnForVisibilityCheck; // we get it from CWorld::ProcessVerticalLine or ProcessEntityCollision, it's entity under us,
                                         // only static entities (buildings or roads)
     CFire*            m_pFire;
     float             m_fSteerAngle;
@@ -388,9 +388,8 @@ public:
     char            m_nCarHornTimer; // car horn related
     eComedyControlState m_comedyControlState;
     char            m_nHasslePosId;
-    CStoredCollPoly m_FrontCollPoly;          // poly which is under front part of car
-    CStoredCollPoly m_RearCollPoly;           // poly which is under rear part of car
-    tColLighting    m_anCollisionLighting[4]; // left front, left rear, right front, right rear
+    CStoredCollPoly StoredCollPolys[2];
+    tColLighting    m_storedCollisionLighting[4]; // left front, left rear, right front, right rear
     FxSystem_c*     m_pOverheatParticle;
     FxSystem_c*     m_pFireParticle;
     FxSystem_c*     m_pDustParticle;
@@ -404,7 +403,7 @@ public:
         } m_renderLights;
     };
     RwTexture*   m_pCustomCarPlate;
-    float        m_fRawSteerAngle; // AKA m_fSteeringLeftRight
+    float        m_fRawSteerAngle; // AKA m_fRollControl
     eVehicleType m_nVehicleType;    // Theory by forkerer:
     eVehicleType m_nVehicleSubType; // Hack to have stuff be 2 classes at once, like vortex which can act like a car and a boat
     int16        m_nPreviousRemapTxd;
