@@ -629,7 +629,7 @@ void CTaskSimpleClimb::StartSpeech(CPed* ped) const {
 
 // 0x67A380
 void CTaskSimpleClimb::DeleteAnimCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = CTask::Cast<CTaskSimpleClimb>(static_cast<CTask*>(data));
+    const auto self = notsa::cast<CTaskSimpleClimb>(static_cast<CTask*>(data));
 
     self->m_Anim = nullptr;
 }
