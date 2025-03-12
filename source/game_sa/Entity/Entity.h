@@ -85,7 +85,7 @@ public:
             bool m_bTunnel : 1;                      // Is this model part of a tunnel
             bool m_bTunnelTransition : 1;            // This model should be rendered from within and outside the tunnel
         };
-        uint32 m_nFlags;
+        uint32 m_nFlags; // TODO: Fix that and delete the fucking m_...
     };
     /* */
     union {

@@ -168,7 +168,7 @@ void CRenderer::RenderOneNonRoad(CEntity* entity) {
 
 // 0x553390
 void CRenderer::RemoveVehiclePedLights(CPhysical* entity) {
-    if (!entity->physicalFlags.bDestroyed)
+    if (!entity->physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 }
 
@@ -444,7 +444,7 @@ void CRenderer::RenderFirstPersonVehicle() {
 // 0x553E40
 bool CRenderer::SetupLightingForEntity(CPhysical* entity) {
     CCarFXRenderer::SetFxEnvMapLightMult(1.0f);
-    if (entity->physicalFlags.bDestroyed) {
+    if (entity->physicalFlags.bRenderScorched) {
         WorldReplaceNormalLightsWithScorched(Scene.m_pRpWorld, 0.18f);
         return false;
     }
@@ -968,12 +968,9 @@ void CRenderer::ConstructRenderList() {
 
     const auto& camPos = TheCamera.GetPosition();
 
-    eZoneAttributes zoneAttributes = CCullZones::FindTunnelAttributesForCoors(camPos);
-    ms_bRenderTunnels = (zoneAttributes & (eZoneAttributes::UNKNOWN_2 | eZoneAttributes::UNKNOWN_1)) != 0;
-    if ((zoneAttributes & eZoneAttributes::UNKNOWN_1) || !(zoneAttributes & eZoneAttributes::UNKNOWN_2))
-        ms_bRenderOutsideTunnels = true;
-    else
-        ms_bRenderOutsideTunnels = false;
+    eZoneAttributeFlags zoneAttributes = CCullZones::FindTunnelAttributesForCoors(camPos);
+    ms_bRenderTunnels = (zoneAttributes & (eZoneAttributeFlags::ZONE_ATTRIBUTE_UNKNOWN_2 | eZoneAttributeFlags::ZONE_ATTRIBUTE_UNKNOWN_1)) != 0;
+    ms_bRenderOutsideTunnels = ((zoneAttributes & eZoneAttributeFlags::ZONE_ATTRIBUTE_UNKNOWN_1) || !(zoneAttributes & eZoneAttributeFlags::ZONE_ATTRIBUTE_UNKNOWN_2)) ? true : false;
 
     ms_lowLodDistScale = 1.0f;
     ms_bInTheSky = false;

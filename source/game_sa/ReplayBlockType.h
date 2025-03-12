@@ -266,8 +266,8 @@ struct tReplayHeliBlock : tReplayVehicleBlock {
 struct tReplayPlaneBlock : tReplayVehicleBlock {
     static constexpr auto Type = REPLAY_PACKET_PLANE;
 
-    float propSpeed;
-    float field_9C8;
+    float engineSpeed;
+    float propellerAngle;
 };
 
 struct tReplayTrainBlock : tReplayVehicleBlock {

@@ -251,8 +251,8 @@ void CPad::UpdateMouse() {
 
         // Write directly to NewMouseControllerState
         CPad::OldMouseControllerState = std::exchange(CPad::NewMouseControllerState, state);
-        CPad::NewMouseControllerState.X *= invertX;
-        CPad::NewMouseControllerState.Y *= invertY;
+        CPad::NewMouseControllerState.m_AmountMoved.x *= invertX;
+        CPad::NewMouseControllerState.m_AmountMoved.y *= invertY;
     }
 }
 
@@ -1238,7 +1238,7 @@ bool CPad::GetAnaloguePadDown() {
 }
 
 // 0x540530
-bool CPad::sub_540530() const noexcept {
+bool CPad::CycleCameraModeJustDown() const noexcept {
     switch (Mode) {
     case 0:
     case 2:
@@ -1270,8 +1270,8 @@ bool CPad::DebugMenuJustPressed() {
 }
 
 // 0x541490
-int GetCurrentKeyPressed(RsKeyCodes& keys) {
-    return plugin::CallAndReturn<int, 0x541490, RsKeyCodes&>(keys);
+int GetCurrentKeyPressed(RsKeyCodes* keys) {
+    return plugin::CallAndReturn<int, 0x541490, RsKeyCodes*>(keys);
 }
 
 IDirectInputDevice8* DIReleaseMouse() { // todo: wininput

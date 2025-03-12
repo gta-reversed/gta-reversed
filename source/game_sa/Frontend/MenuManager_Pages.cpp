@@ -27,8 +27,8 @@ void CMenuManager::PlaceRedMarker() {
     const auto pad = CPad::GetPad(m_nPlayerNumber);
     auto pressed = (
          pad->IsCirclePressed()
-      || pad->IsMouseLButtonPressed()
-      || pad->IsMouseRButtonPressed()
+      || pad->GetLeftMouseJustDown()
+      || pad->GetRightMouseJustDown()
       || pad->IsStandardKeyJustPressed('T') || pad->IsStandardKeyJustPressed('t')
     );
     if (!pressed)
@@ -54,7 +54,7 @@ void CMenuManager::RadarZoomIn() {
     auto pressed = ( // todo:
            pad->NewState.LeftShoulder2
         && !pad->NewState.RightShoulder2
-        && CPad::NewMouseControllerState.wheelUp
+        && CPad::NewMouseControllerState.m_bWheelMovedUp
         && CPad::NewKeyState.pgup
     );
     if (!pressed)
@@ -74,7 +74,7 @@ void CMenuManager::RadarZoomIn() {
         m_fMapZoom = FRONTEND_MAP_RANGE_MAX;
     } else {
         m_fMapZoom += 7.0f;
-        if (CPad::NewMouseControllerState.wheelUp) {
+        if (CPad::NewMouseControllerState.m_bWheelMovedUp) {
             m_fMapZoom += 21.0f;
         }
         m_vMapOrigin.x -= (x * m_fMapZoom - v103);
@@ -311,7 +311,7 @@ void CMenuManager::PrintMap() {
     if (FrontEndMenuManager.m_bViewRadar) {
         if (CTheZones::ZonesRevealed >= 80
             || CTheZones::GetCurrentZoneLockedOrUnlocked(m_vMousePos)
-                && !pad->NewMouseControllerState.lmb)
+                && !pad->NewMouseControllerState.m_bLeftButton)
         {
             CPlaceName placeName;
             CFont::SetFontStyle(FONT_PRICEDOWN);

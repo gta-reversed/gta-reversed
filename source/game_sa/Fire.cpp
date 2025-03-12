@@ -277,7 +277,7 @@ void CFire::ProcessFire() {
                     vehicle->m_fHealth = 75.0f;
                 }
             } else if (!targetPed->IsPlayer() && !targetPed->IsAlive()) {
-                targetPed->physicalFlags.bDestroyed = true;
+                targetPed->physicalFlags.bRenderScorched = true;
             }
 
             break;
@@ -331,10 +331,10 @@ void CFire::ProcessFire() {
             if (DistanceBetweenPoints(m_vecPosition, vehicle->GetPosition()) >= 2.0f)
                 continue;
 
-            if (vehicle->IsSubBMX()) {
+            if (vehicle->IsBike()) { // FIX_BUG: BurstTyre expects a wheel index, not a car piece like GTA IV.
                 player->DoStuffToGoOnFire();
                 gFireManager.StartFire(player, m_pEntityCreator, 0.8f, true, 7000, 100);
-                vehicle->BurstTyre(vehicle->FindTyreNearestPoint(m_vecPosition) + 13, false); // TODO: What's this 13?
+                vehicle->BurstTyre(vehicle->FindTyreNearestPoint(m_vecPosition) + CAR_PIECE_WHEEL_LF, true);
             } else {
                 gFireManager.StartFire(vehicle, m_pEntityCreator, 0.8f, true, 7000, 100);
             }
@@ -382,7 +382,9 @@ void CFire::ProcessFire() {
     }
 
     if (createdByScript || (HasTimeToBurn() && IsNotInRemovalDistance())) {
-        const float fColorRG = (float)(CGeneral::GetRandomNumber() % 128) / 512.0f; // todo: GetRandomNumberInRange
+        // Original code:
+        // const float fColorRG = (float)(CGeneral::GetRandomNumber() % 128) / 512.0f;
+        const float fColorRG = CGeneral::GetRandomNumberInRange(0.0f, 0.25f);
         CPointLights::AddLight(ePointLightType::PLTYPE_POINTLIGHT, m_vecPosition, CVector{}, 8.0f, fColorRG, fColorRG, 0.0f, 0, false, nullptr);
     } else {
         if (m_fStrength <= 1.0f) {

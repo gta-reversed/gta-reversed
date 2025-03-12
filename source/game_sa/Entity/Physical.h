@@ -99,7 +99,7 @@ public:
             uint32 bAddMovingCollisionSpeed : 1;
             uint32 bTouchingWater : 1;
             uint32 bCanBeCollidedWith : 1;
-            uint32 bDestroyed : 1;
+            uint32 bRenderScorched : 1;
             uint32 b31 : 1;
             uint32 b32 : 1;
         } physicalFlags;

@@ -17,7 +17,7 @@ bool IsButtonPressed(CRunningScript* S, int16 playerIndex, eButtonId button) {
 
 MultiRet<float, float> GetPCMouseMovement() {
     // TODO(izzotop): check ASM
-    return {CPad::NewMouseControllerState.X, CPad::NewMouseControllerState.Y};
+    return {CPad::NewMouseControllerState.m_AmountMoved.x, CPad::NewMouseControllerState.m_AmountMoved.y};
 }
 
 bool IsPCUsingJoyPad() {

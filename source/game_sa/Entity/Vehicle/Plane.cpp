@@ -57,27 +57,28 @@ void CPlane::InjectHooks() {
 CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(modelIndex, createdBy, true) {
     m_nVehicleSubType = VEHICLE_TYPE_PLANE;
 
-    m_fLeftRightSkid               = 0.0f;
-    m_fSteeringUpDown              = 0.0f;
-    m_fSteeringLeftRight           = 0.0f;
-    m_fAccelerationBreakStatus     = 0.0f;
-    m_fAccelerationBreakStatusPrev = 1.0f;
-    m_fPropSpeed                   = 0.0f;
-    field_9C8                      = 0.0f;
-    m_fLandingGearStatus           = 0.0f;
-    field_9A0                      = 0;
-    m_planeCreationHeading         = 0.0f;
-    m_planeHeading                 = 0.0f;
-    m_planeHeadingPrev             = 0.0f;
-    m_maxAltitude                  = 15.0f;
-    m_altitude                     = 25.0f;
-    m_minAltitude                  = 20.0f;
-    m_forwardZ                     = 0;
-    m_nStartedFlyingTime           = 0;
-    m_fSteeringFactor              = 0.0f;
+    m_fYawControl                    = 0.0f;
+    m_fPitchControl                  = 0.0f;
+    m_fRollControl                   = 0.0f;
+    m_fThrottleControl               = 0.0f;
+    m_fScriptThrottleControl         = 1.0f;
+    m_fEngineSpeed                   = 0.0f;
+    m_fPropellerAngle                = 0.0f;
+    m_fLGearAngle                    = 0.0f;
+    m_nStallCounter                  = 0;
+    m_TakeOffDirection               = 0.0f;
+    m_FlightDirection                = 0.0f;
+    m_FlightDirectionAvoidingTerrain = 0.0f;
+    m_LowestFlightHeight             = 15.0f;
+    m_DesiredHeight                  = 25.0f;
+    m_MinHeightAboveTerrain          = 20.0f;
+    m_OldTilt                        = 0;
+    m_OnGroundTimer                  = 0;
+    m_fPreviousRoll                  = 0.0f;
 
-    if (m_nModelIndex != MODEL_VORTEX)
+    if (m_nModelIndex != MODEL_VORTEX) {
         physicalFlags.bDontCollideWithFlyers = true;
+    }
 
     m_nExtendedRemovalRange = 255;
     vehicleFlags.bNeverUseSmallerRemovalRange = true;
@@ -110,8 +111,9 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
         leftDoor.m_nDirn = 20;
         break;
     case MODEL_VORTEX:
-        if (m_panels[FRONT_LEFT_PANEL].m_nFrameId == (uint16)-1)
+        if (m_panels[FRONT_LEFT_PANEL].m_nFrameId == (uint16)-1) {
             m_panels[FRONT_LEFT_PANEL].SetPanel(PLANE_GEAR_L, 1, -0.25f);
+        }
         break;
     case MODEL_STUNT:
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
@@ -131,41 +133,42 @@ CPlane::CPlane(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(mode
         m_wheelPosition[wheelId] = m_wheelPosition[wheelId] - modelPos.z + localPos.z;
     }
 
-    m_planeDamageWave = 0;
-    m_pGunParticles = nullptr;
-    m_nFiringMultiplier = 16;
-    field_9DC = 0;
-    field_9E0 = 0;
-    m_apJettrusParticles.fill(nullptr);
+    m_nDamageControlWaveCounter = 0;
+    m_GunflashFxPtrs = nullptr;
+    m_FiringRateMultiplier = 16;
+    m_FireMissilePressedTime = 0;
+    m_pLastMissileTarget = 0;
+    m_fxSysNozzle.fill(nullptr);
 
-    m_pSmokeParticle = nullptr;
+    m_fxSysFire = nullptr;
 
-    if (m_nModelIndex == MODEL_HYDRA)
+    if (m_nModelIndex == MODEL_HYDRA) {
         m_wMiscComponentAngle = HARRIER_NOZZLE_ROTATE_LIMIT;
+    }
 
-    m_bSmokeEjectorEnabled = false;
+    m_fxActive = false;
 }
 
 // 0x6C9160
 CPlane::~CPlane() {
-    if (m_pGunParticles) {
+    if (m_GunflashFxPtrs) {
         for (auto i = 0; i < CVehicle::GetPlaneNumGuns(); i++) {
-            if (auto& particle = m_pGunParticles[i]) {
+            if (auto& particle = m_GunflashFxPtrs[i]) {
                 particle->Kill();
                 g_fxMan.DestroyFxSystem(particle);
             }
         }
-        delete[] m_pGunParticles;
-        m_pGunParticles = nullptr;
+        delete[] m_GunflashFxPtrs;
+        m_GunflashFxPtrs = nullptr;
     }
 
-    for (auto particle : m_apJettrusParticles) {
+    for (auto particle : m_fxSysNozzle) {
         if (particle) {
             FxSystem_c::KillAndClear(particle);
         }
     }
 
-    FxSystem_c::SafeKillAndClear(m_pSmokeParticle);
+    FxSystem_c::SafeKillAndClear(m_fxSysFire);
 
     m_vehicleAudio.Terminate();
 }
@@ -185,7 +188,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
     if (!vehicleFlags.bCanBeDamaged)
         return;
 
-    if (m_nStatus == STATUS_PLAYER || m_autoPilot.m_nCarMission == MISSION_CRASH_PLANE_AND_BURN || m_nModelIndex == MODEL_RCBARON) {
+    if (m_nStatus == STATUS_PLAYER || m_autoPilot.m_nCarMission == MISSION_PLANE_CRASH_AND_BURN || m_nModelIndex == MODEL_RCBARON) {
         if (damager == FindPlayerPed() || damager == FindPlayerVehicle()) {
             FindPlayerInfo().m_nHavocCaused += 20;
             FindPlayerInfo().m_fCurrentChaseValue += 10.0f;
@@ -207,7 +210,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         }
 
         // m_nType = m_nType & 7 | STATUS_WRECKED;
-        physicalFlags.bDestroyed = true;
+        physicalFlags.bRenderScorched = true;
         m_nTimeWhenBlowedUp = CTimer::GetTimeInMS();
         CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, ATOMIC_IS_BLOWN_UP);
         m_damageManager.FuckCarCompletely(false);
@@ -240,7 +243,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         // auto v23 = this->m_nFlags1 & 0xAF;
         // this->m_nBombLightsWinchFlags &= 0xE7u;
         // this->m_nFlags1 = v23;
-        m_bSmokeEjectorEnabled = false;
+        m_fxActive = false;
         // this->m_nFlags6 = m_nFlags6 & 0x7F; // vehicleFlags.bSirenOrAlarm = false;
         // this->ucNPCVehicleFlags = this->ucNPCVehicleFlags & 0xFE;
 
@@ -264,7 +267,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
             CExplosion::AddExplosion(this, damager, EXPLOSION_AIRCRAFT, GetPosition(), 0, 1, -1.0f, 0);
         }
     } else {
-        m_autoPilot.m_nCarMission = MISSION_CRASH_PLANE_AND_BURN;
+        m_autoPilot.m_nCarMission = MISSION_PLANE_CRASH_AND_BURN;
         m_fHealth = 0.0f;
     }
 }
@@ -310,12 +313,12 @@ void CPlane::VehicleDamage(float damageIntensity, eVehicleCollisionComponent com
 
 // 0x6CAB90
 void CPlane::IsAlreadyFlying() {
-    m_nStartedFlyingTime = CTimer::GetTimeInMS() - 20000;
+    m_OnGroundTimer = CTimer::GetTimeInMS() - 20000;
 }
 
 // 0x6CAC20
 void CPlane::SetGearUp() {
-    m_fLandingGearStatus = 1.0f;
+    m_fLGearAngle = 1.0f;
     m_fAirResistance = m_pHandlingData->m_fDragMult / 1000.0f / 2.0f * m_pFlyingHandlingData->m_fGearUpR;
     m_damageManager.SetWheelStatus(CAR_WHEEL_FRONT_LEFT,  WHEEL_STATUS_MISSING);
     m_damageManager.SetWheelStatus(CAR_WHEEL_REAR_LEFT,   WHEEL_STATUS_MISSING);
@@ -325,7 +328,7 @@ void CPlane::SetGearUp() {
 
 // 0x6CAC70
 void CPlane::SetGearDown() {
-    m_fLandingGearStatus = 0.0f;
+    m_fLGearAngle = 0.0f;
     m_fAirResistance = m_pHandlingData->m_fDragMult / 1000.0f / 2.0f;
     m_damageManager.SetWheelStatus(CAR_WHEEL_FRONT_LEFT,  WHEEL_STATUS_OK);
     m_damageManager.SetWheelStatus(CAR_WHEEL_REAR_LEFT,   WHEEL_STATUS_OK);
@@ -408,14 +411,14 @@ void CPlane::ProcessControl() {
         if (m_nModelIndex == MODEL_CROPDUST || m_nModelIndex == MODEL_STUNT) {
             auto pad = CPad::GetPad(m_pDriver->GetPadNumber());
             if (pad->IsRightShockPressed()) {
-                m_bSmokeEjectorEnabled = m_bSmokeEjectorEnabled == 0;
+                m_fxActive = m_fxActive == 0;
             }
         }
     }
 
-    if (m_bSmokeEjectorEnabled) {
+    if (m_fxActive) {
         if (!vehicleFlags.bEngineOn || vehicleFlags.bIsDrowning || !m_pDriver) {
-            m_bSmokeEjectorEnabled = false;
+            m_fxActive = false;
         }
     }
 
@@ -425,9 +428,9 @@ void CPlane::ProcessControl() {
 
     CAutomobile::ProcessControl();
 
-    m_vehicleAudio.field_7C = static_cast<int16>(field_9A0);
-    if (field_9A0) {
-        field_9A0 = 0;
+    m_vehicleAudio.field_7C = static_cast<int16>(m_nStallCounter);
+    if (m_nStallCounter) {
+        m_nStallCounter = 0;
     }
 
     CVehicle::ProcessWeapons();
@@ -438,17 +441,17 @@ void CPlane::ProcessControl() {
         m_aWheelState[3] = WHEEL_STATE_NORMAL;
     }
 
-    if (m_pSmokeParticle) {
+    if (m_fxSysFire) {
         RwMatrix out;
-        m_nSmokeTimer += (uint32)(-CTimer::GetTimeStepInMS());
-        m_pSmokeParticle->GetCompositeMatrix(&out);
+        m_fireTime += (uint32)(-CTimer::GetTimeStepInMS());
+        m_fxSysFire->GetCompositeMatrix(&out);
         CVector velocity = -m_vecMoveSpeed * 5.0f;
         auto particleData = FxPrtMult_c(0.0f, 0.0f, 0.0f, 0.2f, 1.0f, 1.0f, 0.1f);
         g_fx.m_SmokeHuge->AddParticle((CVector*)&out.pos, &velocity, 0.00f, &particleData, -1.0f, 1.2f, 0.6f, false);
         g_fx.m_SmokeHuge->AddParticle((CVector*)&out.pos, &velocity, 0.05f, &particleData, -1.0f, 1.2f, 0.6f, false);
-        if (m_nSmokeTimer <= 0 || vehicleFlags.bIsDrowning) {
-            m_pSmokeParticle->Kill();
-            m_pSmokeParticle = nullptr;
+        if (m_fireTime <= 0 || vehicleFlags.bIsDrowning) {
+            m_fxSysFire->Kill();
+            m_fxSysFire = nullptr;
         }
     }
 }
