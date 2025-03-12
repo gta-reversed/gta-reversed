@@ -170,7 +170,7 @@ public:
     void AddToMovingList();
 
     void RemoveFromMovingList();
-    void SetDamagedPieceRecord(float fDamageIntensity, CEntity* entity, CColPoint& colPoint, float fDistanceMult);
+    void SetDamagedPieceRecord(float fDamageIntensity, CEntity* entity, const CColPoint& colPoint, float fDistanceMult);
     void ApplyMoveForce(float x, float y, float z);
     void ApplyMoveForce(CVector force);
     void ApplyTurnForce(CVector force, CVector point);
@@ -189,8 +189,8 @@ public:
     bool GetHasCollidedWith(CEntity* entity);
     bool GetHasCollidedWithAnyObject();
 
-    bool ApplyCollision(CEntity* entity, CColPoint& colPoint, float& damageIntensity);
-    bool ApplySoftCollision(CEntity* entity, CColPoint& colPoint, float& damageIntensity);
+    bool ApplyCollision(CEntity* entity, const CColPoint& colPoint, float& outDamageIntensity);
+    bool ApplySoftCollision(CEntity* entity, const CColPoint& colPoint, float& outDamageIntensity);
     bool ApplySpringCollision(float fSuspensionForceLevel, CVector& direction, CVector& collisionPoint, float fSpringLength, float fSuspensionBias, float& fSpringForceDampingLimit);
     bool ApplySpringCollisionAlt(float fSuspensionForceLevel, CVector& direction, CVector& collisionPoint, float fSpringLength, float fSuspensionBias, CVector& normal, float& fSpringForceDampingLimit);
     bool ApplySpringDampening(float fDampingForce, float fSpringForceDampingLimit, CVector& direction, CVector& collisionPoint, CVector& collisionPos);

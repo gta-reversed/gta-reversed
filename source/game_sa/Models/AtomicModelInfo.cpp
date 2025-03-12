@@ -69,12 +69,6 @@ void CAtomicModelInfo::DeleteRwObject()
         CAnimManager::RemoveAnimBlockRef(iAnimIndex);
 }
 
-// 0x4C5580
-uint32 CAtomicModelInfo::GetRwModelType()
-{
-    return rpATOMIC;
-}
-
 RwObject* CAtomicModelInfo::CreateInstance()
 {
     if (!m_pRwObject)
