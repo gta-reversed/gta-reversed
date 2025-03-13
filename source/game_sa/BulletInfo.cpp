@@ -114,7 +114,7 @@ void CBulletInfo::Update() {
                     g_fx.AddBlood(colPoint.m_vecPoint, colPoint.m_vecNormal, 8, hitPed->m_fContactSurfaceBrightness);
                     // std::cout << "Create blood\n";
                     if (hitPed->m_nPedState == PEDSTATE_DEAD) {
-                        const auto anim = RpAnimBlendClumpGetFirstAssociation(hitPed->m_pRwClump, ANIMATION_800) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT;
+                        const auto anim = RpAnimBlendClumpGetFirstAssociation(hitPed->m_pRwClump, ANIMATION_IS_FRONT) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT;
 
                         if (auto assoc = CAnimManager::BlendAnimation(hitPed->m_pRwClump, ANIM_GROUP_DEFAULT, anim, 8.0f)) {
                             assoc->SetCurrentTime(0.0f);
