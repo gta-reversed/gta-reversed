@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include "UIRenderer.h"
-#include "TaskSimpleAchieveHeading.h"
+#include "TaskComplexDestroyCarMelee.h"
 #include "TaskComplexWalkAlongsidePed.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
 #include "TaskComplexFollowNodeRoute.h"
@@ -11,8 +11,8 @@
 #include "TaskComplexDriveWander.h"
 
 #include <imgui.h>
-#include <imgui_impl_win32.h>
-#include <imgui_impl_dx9.h>
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx9.h"
 #include <imgui_stdlib.h>
 #include <imgui_internal.h>
 
@@ -199,8 +199,13 @@ void UIRenderer::DebugCode() {
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {
+        CStreaming::RequestModel(MODEL_INFERNUS, STREAMING_PRIORITY_REQUEST);
+        CStreaming::LoadAllRequestedModels(true);
+        const auto veh = new CAutomobile{MODEL_INFERNUS, eVehicleCreatedBy::RANDOM_VEHICLE, true};
+        veh->SetPosn(player->GetPosition() + player->GetForward() * 3.f);
+        CWorld::Add(veh);
         player->GetTaskManager().SetTask(
-            new CTaskSimpleAchieveHeading{PI/2.f},
+            new CTaskComplexDestroyCarMelee{ veh },
             TASK_PRIMARY_PRIMARY
         );
     }

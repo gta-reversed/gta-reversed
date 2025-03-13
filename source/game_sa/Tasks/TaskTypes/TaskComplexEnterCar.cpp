@@ -327,15 +327,30 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask(CPed* ped) {
         m_bQuitAfterDraggingPedOut = false;
         return C(m_DraggedPed ? TASK_SIMPLE_WAIT_UNTIL_PED_OUT_CAR : TASK_FINISHED);
     }
+    case TASK_COMPLEX_FALL_AND_GET_UP: {
+        if (FindPlayerPed() == ped) {
+            FindPlayerInfo().SetLastTargetVehicle(nullptr);
+        }
+
+        if (m_bCarryOnAfterFallingOff) {
+            return CreateFirstSubTask(ped);
+        }
+        return C(TASK_FINISHED);
+    }
     case TASK_SIMPLE_CAR_CLOSE_DOOR_FROM_OUTSIDE:
     case TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER:
     case TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER:
     case TASK_SIMPLE_CAR_DRIVE_TIMED:
     case TASK_SIMPLE_WAIT_UNTIL_PED_OUT_CAR:
-    case TASK_COMPLEX_FALL_AND_GET_UP:
     case TASK_COMPLEX_ENTER_BOAT_AS_DRIVER:
+    case TASK_SIMPLE_STAND_STILL:
     case TASK_NONE:
         return C(TASK_FINISHED);
+
+    case TASK_SIMPLE_UNINTERRUPTABLE:
+    case TASK_SIMPLE_PAUSE:
+        return nullptr;
+
     default:
         NOTSA_UNREACHABLE("SubTaskType = {}", tt);
     }
@@ -481,8 +496,8 @@ CTask* CTaskComplexEnterCar::CreateNextSubTask_AfterSimpleCarAlign(CPed* ped) {
         }, true);
     };
 
-    AddJackedTaskToPed(m_DraggedPed, m_TargetDoor != 18 || !m_Car->GetPassengers()[0] ? 10 : 11); // 0x63FF50
-    if (m_Car->IsDriver(m_DraggedPed) && m_Car->GetPassengers()[0]) {
+    AddJackedTaskToPed(m_DraggedPed, m_TargetDoor != 18 || m_Car->HasPassengerAtSeat(0) ? 10 : 11); // 0x63FF50
+    if (m_Car->IsDriver(m_DraggedPed) && m_Car->HasPassengerAtSeat(0)) {
         AddJackedTaskToPed(m_Car->GetPassengers()[0], 11);
 
         if (const auto draggedPedGrp = m_DraggedPed->GetGroup()) {
@@ -577,7 +592,7 @@ CTask* CTaskComplexEnterCar::ControlSubTask(CPed* ped) {
         }
     }
 
-    if (const auto tGoToCarDoor = CTask::DynCast<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) { // 0x63AB28 - Moved up here to simplify the code
+    if (const auto tGoToCarDoor = notsa::dyn_cast_if_present<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) { // 0x63AB28 - Moved up here to simplify the code
         if (tGoToCarDoor->GetTargetDoor() != 0) {
             m_TargetDoorPos = tGoToCarDoor->GetTargetPt();
         }
@@ -763,7 +778,17 @@ void CTaskComplexEnterCar::PrepareVehicleForPedEnter(CPed* ped) {
 
 // 0x63ACC0
 void CTaskComplexEnterCar::CreateTaskUtilityLineUpPedWithCar(CPed* ped) {
-    assert(!m_LineUpUtility);
+    if (m_LineUpUtility && notsa::IsFixBugs()) {
+        m_LineUpUtility = new (m_LineUpUtility) CTaskUtilityLineUpPedWithCar{
+            CCarEnterExit::GetPositionToOpenCarDoor(m_Car, m_TargetDoor) - ped->GetPosition(),
+            600,
+            0,
+            m_TargetDoor
+        };
+        return;
+    } else {
+        assert(!m_LineUpUtility);
+    }
     m_LineUpUtility = new CTaskUtilityLineUpPedWithCar{
         CCarEnterExit::GetPositionToOpenCarDoor(m_Car, m_TargetDoor) - ped->GetPosition(),
         600,
@@ -791,7 +816,7 @@ CVector CTaskComplexEnterCar::GetTargetPos() const {
     if (m_TargetDoor != 0) { // TODO: Enum
         return m_TargetDoorPos;
     }
-    if (const auto tGoTo = CTask::DynCast<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) {
+    if (const auto tGoTo = notsa::dyn_cast_if_present<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) {
         return tGoTo->GetTargetPt();
     }
     return {};

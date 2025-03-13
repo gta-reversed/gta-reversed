@@ -525,6 +525,7 @@ public:
     bool AddPassenger(CPed* passenger, uint8 seatNumber);
     void RemovePassenger(CPed* passenger);
     void SetDriver(CPed* driver);
+    CPed* GetDriver() const { return m_pDriver; }
     void RemoveDriver(bool arg0);
     CPed* SetUpDriver(int32 pedType, bool arg1, bool arg2);
     CPed* SetupPassenger(int32 seatNumber, int32 pedType, bool arg2, bool arg3);
@@ -616,7 +617,7 @@ public:
     bool UsesSiren();
     bool IsSphereTouchingVehicle(CVector posn, float radius);
     void FlyingControl(eFlightModel flightModel, float leftRightSkid, float steeringUpDown, float steeringLeftRight, float accelerationBreakStatus);
-    bool BladeColSectorList(CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult);
+    bool BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult);
     void SetComponentRotation(RwFrame* component, eRotationAxis axis, float angle, bool bResetPosition);
     void SetTransmissionRotation(RwFrame* component, float angleL, float angleR, CVector wheelPos, bool isFront);
     void ProcessBoatControl(tBoatHandlingData* boatHandling, float* fWaterResistance, bool bCollidedWithWorld, bool bPostCollision);
@@ -727,6 +728,8 @@ public: // NOTSA functions
     [[nodiscard]] CVehicleAnimGroup& GetAnimGroup() const;
     [[nodiscard]] AssocGroupId GetAnimGroupId() const;
 
+    auto HasDriver() const { return m_pDriver != nullptr; }
+    auto HasPassengerAtSeat(int32 seat) const { return m_apPassengers[seat] != nullptr; } // TODO: Figure out a good enum for this
     auto GetPassengers() const { return std::span{ m_apPassengers, m_nMaxPassengers }; }
     auto GetMaxPassengerSeats() { return std::span{ m_apPassengers, m_nMaxPassengers }; } // NOTE: Added this because I plan to refactor `GetPassengers()`
 

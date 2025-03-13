@@ -277,7 +277,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                 if (eventDamage.AffectsPed(targetEntity)) {
                     damageCalculator.ComputeDamageResponse(targetEntity, eventDamage.m_damageResponse, false);
                     targetEntity->GetEventGroup().Add(&eventDamage, false);
-                    CCrime::ReportCrime(eCrimeType::CRIME_SEALTH_KILL_PED_WITH_KNIFE, targetEntity, player);
+                    CCrime::ReportCrime(eCrimeType::CRIME_STAB_PED, targetEntity, player);
                     player->GetWeaponAE().AddAudioEvent(AE_WEAPON_STEALTH_KILL);
                 }
                 player->ClearWeaponTarget();
@@ -1014,7 +1014,7 @@ int32 CTaskSimplePlayerOnFoot::PlayerControlZelda(CPlayerPed* player, bool bAvoi
         default: {
             player->ClearWeaponTarget();
             if (const auto task = player->GetTaskManager().GetActiveTask()) {
-                if (!CTask::IsA<TASK_COMPLEX_JUMP>(task)) {
+                if (!notsa::isa<CTaskComplexJump>(task)) {
                     player->GetTaskManager().SetTask(new CTaskComplexJump(COMPLEX_JUMP_TYPE_JUMP), TASK_PRIMARY_PRIMARY, false);
                 }
             }

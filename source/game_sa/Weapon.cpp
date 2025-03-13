@@ -712,7 +712,7 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                                 ? -(incrementalHit * (int32)wi->m_nDamage)
                                 : (int32)wi->m_nDamage;
                         }(),
-                        (ePedPieceTypes)hitCP.m_nSurfaceTypeB,
+                        (ePedPieceTypes)hitCP.m_nPieceTypeB,
                         victimPed->GetLocalDirection(startPoint - victimPed->GetPosition2D())
                     );
                 }();
@@ -1066,7 +1066,7 @@ void CWeapon::Update(CPed* owner) {
             if (wi->flags.bReload && (!owner->IsPlayer() || !FindPlayerInfo().m_bFastReload)) { // 0x73DCCE
                 auto animRLoad = RpAnimBlendClumpGetAssociation(
                     owner->m_pRwClump,
-                    ANIM_ID_RELOAD //(wi->m_nFlags & 0x1000) != 0 ? ANIM_ID_RELOAD : ANIM_ID_WALK // Always going to be `ANIM_ID_RELOAD`
+                    ANIM_ID_RELOAD //(wi->m_Flags & 0x1000) != 0 ? ANIM_ID_RELOAD : ANIM_ID_WALK // Always going to be `ANIM_ID_RELOAD`
                 );
                 if (!animRLoad) {
                     animRLoad = RpAnimBlendClumpGetAssociation(owner->m_pRwClump, wi->GetCrouchReloadAnimationID());

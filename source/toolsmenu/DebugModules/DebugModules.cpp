@@ -33,6 +33,7 @@
 #include "./WeaponDebugModule.hpp"
 #include "./CheckpointsDebugModule.hpp"
 #include "./BugsDebugModule.hpp"
+#include "./TwoDEffectsDebugModule.hpp"
 #include "./VehicleInfoDebugModule.h"
 
 DebugModules::DebugModules(ImGuiContext* ctx) :
@@ -112,6 +113,7 @@ void DebugModules::CreateModules() {
     Add<ParticleDebugModule>();
     Add<TextDebugModule>();
     Add<notsa::debugmodules::CheckpointsDebugModule>();
+    Add<notsa::debugmodules::TwoDEffectsDebugModule>();
     Add<ProcObjectDebugModule>();
     Add<VehicleInfoDebugModule>();
 
