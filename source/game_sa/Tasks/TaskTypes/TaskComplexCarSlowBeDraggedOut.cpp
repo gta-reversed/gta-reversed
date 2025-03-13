@@ -1,10 +1,10 @@
 #include "StdInc.h"
 
-#include "./TaskComplexCarSlowBeDraggedOut.h"
-#include "./TaskSimpleCarSetPedSlowDraggedOut.h"
-#include "./TaskSimpleCarSlowBeDraggedOut.h"
-#include "./TaskSimpleCarSetPedOut.h"
-#include "./TaskSimpleCarFallOut.h"
+#include <Tasks/TaskTypes/TaskComplexCarSlowBeDraggedOut.h>
+#include <Tasks/TaskTypes/TaskSimpleCarSetPedSlowDraggedOut.h>
+#include <Tasks/TaskTypes/TaskSimpleCarSlowBeDraggedOut.h>
+#include <Tasks/TaskTypes/TaskSimpleCarSetPedOut.h>
+#include <Tasks/TaskTypes/TaskSimpleCarFallOut.h>
 
 void CTaskComplexCarSlowBeDraggedOut::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexCarSlowBeDraggedOut, 0x86EF54, 11);
