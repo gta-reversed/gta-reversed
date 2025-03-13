@@ -20,7 +20,7 @@ enum eAnimationFlags {
     ANIMATION_DEFAULT                = 0,      //0x0,
     ANIMATION_IS_PLAYING             = 1 << 0, //0x1,
     ANIMATION_IS_LOOPED              = 1 << 1, //0x2,
-    ANIMATION_IS_BLEND_AUTO_REMOVE   = 1 << 2, //0x4,
+    ANIMATION_IS_BLEND_AUTO_REMOVE   = 1 << 2, //!< (0x4) Automatically `delete this` once faded out (`m_BlendAmount <= 0 && m_BlendDelta <= 0`)
     ANIMATION_IS_FINISH_AUTO_REMOVE  = 1 << 3, //0x8,  // Animation will be stuck on last frame, if not set
     ANIMATION_IS_PARTIAL             = 1 << 4, //0x10, // TODO: Flag name is possibly incorrect? Following the usual logic (like `ANIMATION_MOVEMENT`), it should be `ANIMATION_GET_IN_CAR` (See  `RemoveGetInAnims`)
     ANIMATION_IS_SYNCRONISED         = 1 << 5, //0x20,
