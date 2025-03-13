@@ -152,17 +152,17 @@ struct tStreamingFileDesc {
     tStreamingFileDesc() = default;
 
     tStreamingFileDesc(const char* name, bool bNotPlayerImg) :
-          m_bNotPlayerImg(bNotPlayerImg),
-          m_StreamHandle(CdStreamOpen(name))
+          IsNotPlayerImg(bNotPlayerImg),
+          StreamHandle(CdStreamOpen(name))
     {
-        strncpy_s(m_szName, name, std::size(m_szName));
+        strncpy_s(Name, name, std::size(Name));
     }
 
-    [[nodiscard]] bool IsInUse() const noexcept { return m_szName[0]; }
+    [[nodiscard]] bool IsInUse() const noexcept { return Name[0]; }
 
-    char  m_szName[40]{}; // If this string is empty (eg.: first elem in array is NULL) the entry isnt in use
-    bool  m_bNotPlayerImg{};
-    int32 m_StreamHandle{-1};
+    char   Name[40]{}; // If this string is empty (eg.: first elem in array is NULL) the entry isnt in use
+    bool   IsNotPlayerImg{};
+    uint32 StreamHandle{(uint32)(-1)};
 };
 
 VALIDATE_SIZE(tStreamingFileDesc, 0x30);
@@ -171,8 +171,8 @@ struct tStreamingChannel {
     int32               modelIds[16];
     int32               modelStreamingBufferOffsets[16];
     eChannelState       LoadStatus;
-    int32               iLoadingLevel; // the value gets modified, but it's not used
-    int32               offsetAndHandle;
+    int32               loadingLevel; // the value gets modified, but it's not used
+    CdStreamPos         pos;
     int32               sectorCount;
     int32               totalTries;
     eCdStreamStatus     m_nCdStreamStatus;
@@ -311,7 +311,7 @@ public:
     static bool IsObjectInCdImage(int32 modelId);
     static bool IsVeryBusy();
     static void LoadAllRequestedModels(bool bOnlyPriorityRequests);
-    static void LoadCdDirectory(const char* filename, int32 archiveId);
+    static void LoadCdDirectory(const char* filename, StreamingImgID img);
     static void LoadCdDirectory();
     static void LoadInitialPeds();
     static void LoadInitialVehicles();
@@ -346,7 +346,7 @@ public:
     static void RemoveUnusedModelsInLoadedList();
     static void RenderEntity(CLink<CEntity*>* streamingLink);
     static void RequestBigBuildings(const CVector& point);
-    static void RequestFile(int32 modelId, int32 posn, uint32 size, int32 imgId, int32 streamingFlags);
+    static void RequestFile(int32 modelId, CdStreamPos posn, uint32 size, StreamingImgID imgId, int32 streamingFlags);
     static void RequestFilesInChannel(int32 channelId);
     static void RequestModel(int32 modelId, int32 flags);
     static void RequestModelStream(int32 channelId);
@@ -388,7 +388,7 @@ public:
     static bool Save();
 
     // Inlined or NOTSA
-    static bool IsModelLoaded(int32 model) { return ms_aInfoForModel[model].m_nLoadState == eStreamingLoadState::LOADSTATE_LOADED; }
+    static bool IsModelLoaded(int32 model) { return ms_aInfoForModel[model].m_LoadState == eStreamingLoadState::LOADSTATE_LOADED; }
     static CStreamingInfo& GetInfo(int32 modelId) { assert(modelId >= 0); return ms_aInfoForModel[modelId]; }
     static bool IsRequestListEmpty() { return ms_pEndRequestedList->GetPrev() == ms_pStartRequestedList; }
     static ptrdiff_t GetModelFromInfo(const CStreamingInfo* info) { return info - CStreaming::ms_aInfoForModel; }
