@@ -63,7 +63,7 @@ void CAEGlobalWeaponAudioEntity::ProjectileFire(eWeaponType weaponType, CPhysica
     constexpr float gfRocketFrequencyVariations[] = { 1.08f, 1.0f, 0.92f, 3.3f };// 0x8AE5AC
     m_FrequencyVariation = (m_FrequencyVariation + 1) % (std::size(gfRocketFrequencyVariations) - 1);
 
-    const auto PlayRocketSound = [&](int16 bankSlotID, eSoundID soundID, float speedMult, float volumeOffsetdB) {
+    const auto PlayRocketSound = [&](int16 bankSlotID, tSoundID soundID, float speedMult, float volumeOffsetdB) {
         AESoundManager.PlaySound({
             .BankSlotID = bankSlotID,
             .SoundID = soundID,

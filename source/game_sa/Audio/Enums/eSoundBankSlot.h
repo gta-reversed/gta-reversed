@@ -2,7 +2,7 @@
 
 #include <extensions/WEnum.hpp>
 
-enum eSoundBankSlot : int16 {
+enum eSoundBankSlot : int32 {
     SND_BANK_SLOT_UNK                 = -1,
     SND_BANK_SLOT_FRONTEND_GAME       = 0, // 0x0
     SND_BANK_SLOT_FRONTEND_MENU       = 1, // 0x1

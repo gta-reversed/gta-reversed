@@ -6,12 +6,6 @@
 */
 #pragma once
 
-#include <Base.h>
-#include <CdStreamInfo.h>
-
-//! Index into CStreaming::ms_files
-using StreamingImgID = uint8;
-
 enum eStreamingFlags {
     STREAMING_DEFAULT = 0x0,
     STREAMING_UNKNOWN_1 = 0x1,
@@ -43,24 +37,42 @@ enum eStreamingLoadState : uint8 {
     LOADSTATE_FINISHING = 4
 };
 
-constexpr auto STREAMING_SECTOR_SIZE = 2048u; // OR `<< 11`
+constexpr auto STREAMING_SECTOR_SIZE = 2048u;
 
 class CStreamingInfo {
 public:
+    int16 m_nNextIndex;     // ms_pArrayBase array index
+    int16 m_nPrevIndex;     // ms_pArrayBase array index
+    int16 m_nNextIndexOnCd; // ModelId after this file in the containing image file
+    union {
+        uint8 m_nFlags; // see eStreamingFlags
+        struct {
+            uint8 bUnkn0x1 : 1;
+            uint8 bGameRequired : 1;
+            uint8 bMissionRequired : 1;
+            uint8 bKeepInMemory : 1;
+            uint8 bPriorityRequest : 1;
+            uint8 bLoadingScene : 1;
+        };
+    };
+    uint8  m_nImgId;        // Index into CStreaming::ms_files
+    uint32 m_nCdPosn;       // Position in directory (in sectors)
+    size_t m_nCdSize;       // Size of resource (in sectors); m_nCdSize * STREAMING_BLOCK_SIZE = actual size in bytes
+    eStreamingLoadState m_nLoadState;
+
     static CStreamingInfo*& ms_pArrayBase;
 
 public:
     static void InjectHooks();
 
     void Init();
-    [[nodiscard]] CdStreamPos GetCdPosn() const;
-    void SetCdPosnAndSize(uint32 offset, size_t CdSize);
-    bool GetCdPosnAndSize(CdStreamPos& CdPosn, size_t& CdSize);
-    [[nodiscard]] bool HasCdPosnAndSize() const noexcept { return m_CDSize != 0; }
-    [[nodiscard]] auto GetCdSize() const { return m_CDSize; }
-    CStreamingInfo* GetNext() { return m_NextIndex == -1 ? nullptr : &ms_pArrayBase[m_NextIndex]; }
-    CStreamingInfo* GetPrev() { return m_PrevIndex == -1 ? nullptr : &ms_pArrayBase[m_PrevIndex]; }
-    void SetImg(StreamingImgID imgID) { m_ImgID = imgID; }
+    [[nodiscard]] size_t GetCdPosn() const;
+    void SetCdPosnAndSize(size_t CdPosn, size_t CdSize);
+    bool GetCdPosnAndSize(size_t& CdPosn, size_t& CdSize);
+    [[nodiscard]] bool HasCdPosnAndSize() const noexcept { return m_nCdSize != 0; }
+    [[nodiscard]] auto GetCdSize() const { return m_nCdSize; }
+    CStreamingInfo* GetNext() { return m_nNextIndex == -1 ? nullptr : &ms_pArrayBase[m_nNextIndex]; }
+    CStreamingInfo* GetPrev() { return m_nPrevIndex == -1 ? nullptr : &ms_pArrayBase[m_nPrevIndex]; }
 
     /*!
     * @addr 0x407480
@@ -80,14 +92,14 @@ public:
     */
     bool InList() const;
 
-    void SetFlags(uint32 flags) { m_Flags |= flags; }
-    void ClearFlags(uint32 flags) { m_Flags &= ~flags; }
-    [[nodiscard]] auto GetFlags() const noexcept { return m_Flags; }
-    void ClearAllFlags() noexcept { m_Flags = 0; } // Clears all flags
+    void SetFlags(uint32 flags) { m_nFlags |= flags; }
+    void ClearFlags(uint32 flags) { m_nFlags &= ~flags; }
+    [[nodiscard]] auto GetFlags() const noexcept { return m_nFlags; }
+    void ClearAllFlags() noexcept { m_nFlags = 0; } // Clears all flags
     [[nodiscard]] bool AreAnyFlagsSetOutOf(uint32 flags) const noexcept { return GetFlags() & flags; }
 
     [[nodiscard]] bool IsLoadedOrBeingRead() const noexcept {
-        switch (m_LoadState) {
+        switch (m_nLoadState) {
         case eStreamingLoadState::LOADSTATE_LOADED:
         case eStreamingLoadState::LOADSTATE_READING:
             return true;
@@ -95,38 +107,18 @@ public:
             return false;
         }
     }
-    [[nodiscard]] bool IsLoaded() const           { return m_LoadState == eStreamingLoadState::LOADSTATE_LOADED; }
-    [[nodiscard]] bool IsRequested() const        { return m_LoadState == eStreamingLoadState::LOADSTATE_REQUESTED; }
-    [[nodiscard]] bool IsBeingRead() const        { return m_LoadState == eStreamingLoadState::LOADSTATE_READING; }
-    [[nodiscard]] bool IsLoadingFinishing() const { return m_LoadState == eStreamingLoadState::LOADSTATE_FINISHING; }
+    [[nodiscard]] bool IsLoaded() const { return m_nLoadState == eStreamingLoadState::LOADSTATE_LOADED; }
+    [[nodiscard]] bool IsRequested() const { return m_nLoadState == eStreamingLoadState::LOADSTATE_REQUESTED; }
+    [[nodiscard]] bool IsBeingRead() const { return m_nLoadState == eStreamingLoadState::LOADSTATE_READING; }
+    [[nodiscard]] bool IsLoadingFinishing() const { return m_nLoadState == eStreamingLoadState::LOADSTATE_FINISHING; }
 
-    [[nodiscard]] bool DontRemoveInLoadScene() const noexcept   { return m_Flags & eStreamingFlags::STREAMING_DONTREMOVE_IN_LOADSCENE; }
-    [[nodiscard]] bool IsGameRequired() const noexcept          { return m_Flags & eStreamingFlags::STREAMING_GAME_REQUIRED; }
-    [[nodiscard]] bool IsMissionRequired() const noexcept       { return m_Flags & eStreamingFlags::STREAMING_MISSION_REQUIRED; }
-    [[nodiscard]] bool DoKeepInMemory() const noexcept          { return m_Flags & eStreamingFlags::STREAMING_KEEP_IN_MEMORY; }
-    [[nodiscard]] bool IsPriorityRequest() const noexcept       { return m_Flags & eStreamingFlags::STREAMING_PRIORITY_REQUEST; }
-    [[nodiscard]] bool IsLoadingScene() const noexcept          { return m_Flags & eStreamingFlags::STREAMING_LOADING_SCENE; }
+    [[nodiscard]] bool DontRemoveInLoadScene() const noexcept { return m_nFlags & eStreamingFlags::STREAMING_DONTREMOVE_IN_LOADSCENE; }
+    [[nodiscard]] bool IsGameRequired() const noexcept        { return m_nFlags & eStreamingFlags::STREAMING_GAME_REQUIRED; }
+    [[nodiscard]] bool IsMissionRequired() const noexcept     { return m_nFlags & eStreamingFlags::STREAMING_MISSION_REQUIRED; }
+    [[nodiscard]] bool DoKeepInMemory() const noexcept        { return m_nFlags & eStreamingFlags::STREAMING_KEEP_IN_MEMORY; }
+    [[nodiscard]] bool IsPriorityRequest() const noexcept     { return m_nFlags & eStreamingFlags::STREAMING_PRIORITY_REQUEST; }
+    [[nodiscard]] bool IsLoadingScene() const noexcept        { return m_nFlags & eStreamingFlags::STREAMING_LOADING_SCENE; }
     [[nodiscard]] bool IsMissionOrGameRequired() const noexcept { return IsMissionRequired() || IsGameRequired(); }
-    [[nodiscard]] bool IsRequiredToBeKept() const noexcept      { return IsMissionOrGameRequired() || DoKeepInMemory(); } // GameRequired || MissionRequired || m_KeepInMemory
-
-public:
-    int16 m_NextIndex{-1};     // ms_pArrayBase array index
-    int16 m_PrevIndex{-1};     // ms_pArrayBase array index
-    int16 m_NextIndexOnCd{-1}; // ModelId after this file in the containing image file
-    union {
-        uint8 m_Flags; // see eStreamingFlags
-        struct {
-            uint8 bUnkn0x1 : 1;
-            uint8 m_IsGameRequired : 1;
-            uint8 m_IsMissionRequired : 1;
-            uint8 m_KeepInMemory : 1;
-            uint8 m_IsPriorityRequest : 1;
-            uint8 m_IsLoadingScene : 1;
-        };
-    };
-    StreamingImgID      m_ImgID;    //!< Index into CStreaming::ms_files
-    uint32              m_CDOffset;    //!< Offset in directory (in sectors)
-    size_t              m_CDSize;   //!< Size of resource (in sectors); (m_CDSize * STREAMING_BLOCK_SIZE = actual size in bytes)
-    eStreamingLoadState m_LoadState{LOADSTATE_NOT_LOADED};
+    [[nodiscard]] bool IsRequiredToBeKept() const noexcept      { return IsMissionOrGameRequired() || DoKeepInMemory(); } // GameRequired || MissionRequired || KeepInMemory
 };
 VALIDATE_SIZE(CStreamingInfo, 0x14);

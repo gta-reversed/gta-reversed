@@ -742,7 +742,7 @@ void CAEPedSpeechAudioEntity::LoadAndPlaySpeech(uint32 playbackTimeOffsetMS) {
         return;
     }
 
-    AEAudioHardware.LoadSound(m_BankID, m_SoundID, SND_BANK_SLOT_SPEECH1 + m_PedSpeechSlotID);
+    VERIFY(AEAudioHardware.LoadSound(m_BankID, m_SoundID, SND_BANK_SLOT_SPEECH1 + m_PedSpeechSlotID));
     *speech = CAEPedSpeechSlot{
         .Status            = CAEPedSpeechSlot::eStatus::LOADING,
         .AudioEntity       = this,

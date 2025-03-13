@@ -455,16 +455,14 @@ void CCutsceneMgr::LoadCutsceneData_postload() {
 
         char csIFPFile[1024];
         *std::format_to(csIFPFile, "{}.IFP", ms_cutsceneName) = 0;
-
-        uint32 size;
-        CdStreamPos pos;
-        if (ms_animLoaded = ms_pCutsceneDir->FindItem(csIFPFile, pos, size)) {
-            CStreaming::MakeSpaceFor(size * STREAMING_SECTOR_SIZE / 2); // Not sure why it's only half, but okay
+        
+        if (uint32 streamOffset, streamSz; ms_animLoaded = ms_pCutsceneDir->FindItem(csIFPFile, streamOffset, streamSz)) {
+            CStreaming::MakeSpaceFor(streamSz * STREAMING_SECTOR_SIZE / 2); // Not sure why it's only half, but okay
 
             CStreaming::ImGonnaUseStreamingMemory();
 
             // Load ifp file
-            RwStreamSkip(stream, pos.Offset * STREAMING_SECTOR_SIZE);
+            RwStreamSkip(stream, streamOffset * STREAMING_SECTOR_SIZE);
             CAnimManager::LoadAnimFile(stream, 1, ms_aUncompressedCutsceneAnims.data());
 
             // Now create the anims in memory
@@ -489,14 +487,12 @@ void CCutsceneMgr::LoadCutsceneData_postload() {
         const auto raii = notsa::ScopeGuard{ [&] { CFileMgr::CloseFile(img); } };
         
         char csSplinesFile[1024];
-        notsa::format_to_sz(csSplinesFile, "{}.DAT", ms_cutsceneName);
+        *std::format_to(csSplinesFile, "{}.DAT", ms_cutsceneName) = 0;
 
-        uint32      size;
-        CdStreamPos pos;
-        if (dataFileLoaded = ms_pCutsceneDir->FindItem(csSplinesFile, pos, size)) {
+        if (uint32 streamOffset, streamSz; dataFileLoaded = ms_pCutsceneDir->FindItem(csSplinesFile, streamOffset, streamSz)) {
             CStreaming::ImGonnaUseStreamingMemory();
 
-            CFileMgr::Seek(img, pos.Offset * STREAMING_SECTOR_SIZE, SEEK_SET);
+            CFileMgr::Seek(img, streamOffset * STREAMING_SECTOR_SIZE, SEEK_SET);
             TheCamera.LoadPathSplines(img);
 
             CStreaming::IHaveUsedStreamingMemory();
@@ -515,13 +511,12 @@ void CCutsceneMgr::LoadCutsceneData_postload() {
 bool CCutsceneMgr::LoadCutSceneFile(const char* csFileName) {
     DEV_LOG("LoadCutSceneFile(\"{}\")", csFileName);
 
-    uint32      csFileSzBytes;
-    CdStreamPos pos;
-    if (!ms_pCutsceneDir->FindItem(csFileName, pos, csFileSzBytes)) {
-        NOTSA_LOG_WARN("Cutscene file (`{}`) not found", csFileName);
+    uint32 csFileOffsetBytes, csFileSzBytes;
+    if (!ms_pCutsceneDir->FindItem(csFileName, csFileOffsetBytes, csFileSzBytes)) {
         return false;
     }
-    csFileSzBytes  *= STREAMING_SECTOR_SIZE;
+    csFileOffsetBytes *= STREAMING_SECTOR_SIZE;
+    csFileSzBytes     *= STREAMING_SECTOR_SIZE;
 
     // Allocate data for the file
     auto csFileData{ std::make_unique<char[]>(csFileSzBytes * STREAMING_SECTOR_SIZE) };
@@ -529,7 +524,7 @@ bool CCutsceneMgr::LoadCutSceneFile(const char* csFileName) {
     // Load cutscene data
     {
         const auto s = RwStreamOpen(rwSTREAMFILENAME, rwSTREAMREAD, "ANIM\\CUTS.IMG");
-        RwStreamSkip(s, pos.Offset * STREAMING_SECTOR_SIZE); // Skip to beginning of it
+        RwStreamSkip(s, csFileOffsetBytes); // Skip to beginning of it
         RwStreamRead(s, csFileData.get(), csFileSzBytes);
         RwStreamClose(s, nullptr);
     }

@@ -900,12 +900,10 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
             // Eventually remove these lambdas.
             // I'm pretty sure this code can be linearized, but first I want to make sure it actually works :D
             const auto DoDie = [&](bool bFallingToDeath = false, eDirection fallToDeathDir = eDirection::FORWARD, bool bFallToDeathOverRailing = false) { // 0x4C0AA2
-                const auto isBeingKilledByStealth = tactive && tactive->GetTaskType() == TASK_SIMPLE_STEALTH_KILL && !static_cast<CTaskSimpleStealthKill*>(tactive)->m_bKeepTargetAlive;
-
                 g_InterestingEvents.Add(CInterestingEvents::INTERESTING_EVENT_28, m_Ped);
                 if (const auto tPhyResp = m_Ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_PHYSICAL_RESPONSE)) {
                     if (tPhyResp->GetTaskType() != TASK_SIMPLE_CHOKING || !notsa::contains({ WEAPON_SPRAYCAN, WEAPON_EXTINGUISHER, WEAPON_TEARGAS }, e->m_weaponType)) {
-                        m_Ped->GetIntelligence()->AddTaskPhysResponse(nullptr); // NB: This might delete `tactive` or `tsimplest`!
+                        m_Ped->GetIntelligence()->AddTaskPhysResponse(nullptr);
                     }
                 }
 
@@ -919,7 +917,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                     e->m_nAnimID,
                     e->m_fAnimBlend,
                     e->m_fAnimSpeed,
-                    isBeingKilledByStealth,
+                    tactive && tactive->GetTaskType() == TASK_SIMPLE_STEALTH_KILL && !static_cast<CTaskSimpleStealthKill*>(tactive)->m_bKeepTargetAlive,
                     bFallingToDeath,
                     fallToDeathDir,
                     bFallToDeathOverRailing

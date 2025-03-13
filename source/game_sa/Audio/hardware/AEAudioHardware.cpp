@@ -295,35 +295,36 @@ void CAEAudioHardware::SetChannelVolume(int16 channel, uint16 channelId, float v
 // 0x4D88A0
 void CAEAudioHardware::LoadSoundBank(uint16 bankId, int16 bankSlotId) {
     if (!m_bDisableEffectsLoading) {
-        m_pMP3BankLoader->LoadSoundBank((eSoundBank)(bankId), (eSoundBankSlot)(bankSlotId));
+        m_pMP3BankLoader->LoadSoundBank(bankId, bankSlotId);
     }
 }
 
 // 0x4D88C0
 bool CAEAudioHardware::IsSoundBankLoaded(uint16 bankId, int16 bankSlotId) {
-    return m_pMP3BankLoader->IsSoundBankLoaded((eSoundBank)(bankId), (eSoundBankSlot)(bankSlotId));
+    return m_pMP3BankLoader->IsSoundBankLoaded(bankId, bankSlotId);
 }
 
 // 0x4D88D0
 int8 CAEAudioHardware::GetSoundBankLoadingStatus(uint16 bankId, int16 bankSlotId) {
-    return m_pMP3BankLoader->GetSoundBankLoadingStatus((eSoundBank)(bankId), (eSoundBankSlot)(bankSlotId));
+    return m_pMP3BankLoader->GetSoundBankLoadingStatus(bankId, bankSlotId);
 }
 
 // 0x4D8ED0
-void CAEAudioHardware::LoadSound(uint16 bank, uint16 sound, int16 slot) {
+bool CAEAudioHardware::LoadSound(uint16 bank, uint16 sound, int16 slot) {
     if (!m_bDisableEffectsLoading) {
-        m_pMP3BankLoader->LoadSound((eSoundBank)(bank), sound, (eSoundBankSlot)(slot));
+        return m_pMP3BankLoader->LoadSound(bank, sound, slot);
     }
+    return false;
 }
 
 // 0x4D8EF0
 bool CAEAudioHardware::IsSoundLoaded(uint16 bankId, uint16 sfxId, int16 bankSlot) {
-    return m_pMP3BankLoader->IsSoundLoaded((eSoundBank)(bankId), sfxId, (eSoundBankSlot)(bankSlot));
+    return m_pMP3BankLoader->IsSoundLoaded(bankId, sfxId, bankSlot);
 }
 
 // 0x4D8F00
 bool CAEAudioHardware::GetSoundLoadingStatus(uint16 bankId, uint16 sfxId, int16 bankSlot) {
-    return m_pMP3BankLoader->GetSoundLoadingStatus((eSoundBank)(bankId), sfxId, (eSoundBankSlot)(bankSlot));
+    return m_pMP3BankLoader->GetSoundLoadingStatus(bankId, sfxId, bankSlot);
 }
 
 // 0x4D88E0
@@ -377,7 +378,7 @@ void CAEAudioHardware::UpdateReverbEnvironment() {
 
 // 0x4D8E30
 float CAEAudioHardware::GetSoundHeadroom(uint16 sfxId, int16 bankSlotId) {
-    return m_pMP3BankLoader->GetSoundHeadroom(sfxId, (eSoundBankSlot)(bankSlotId));
+    return m_pMP3BankLoader->GetSoundHeadroom(sfxId, bankSlotId);
 }
 
 // 0x4D8E40

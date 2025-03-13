@@ -11,7 +11,7 @@
 class CAEAudioEntity;
 class CEntity;
 
-using eSoundID = int16;
+using tSoundID = int16;
 
 enum eSoundEnvironment : uint16 {
     SOUND_DEFAULT                          = 0x0,
