@@ -18,7 +18,7 @@ CTaskSimpleCarSlowBeDraggedOut::~CTaskSimpleCarSlowBeDraggedOut() {
 
 // 0x6483A0
 void CTaskSimpleCarSlowBeDraggedOut::FinishAnimCarSlowBeDraggedOutCB(CAnimBlendAssociation* pAnim, void* data) {
-    const auto self = CTask::Cast<CTaskSimpleCarSlowBeDraggedOut>(static_cast<CTask*>(data));
+    auto* const self = notsa::cast<CTaskSimpleCarSlowBeDraggedOut>(static_cast<CTask*>(data));
 
     self->m_HasAnimFinished = true;
     self->m_Anim            = nullptr;

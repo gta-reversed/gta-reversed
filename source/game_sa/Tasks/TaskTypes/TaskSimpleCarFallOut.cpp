@@ -19,7 +19,7 @@ CTaskSimpleCarFallOut::~CTaskSimpleCarFallOut() {
 
 // 0x648EE0
 void CTaskSimpleCarFallOut::FinishAnimFallOutCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = CTask::Cast<CTaskSimpleCarFallOut>(static_cast<CTask*>(data));
+    auto* const self = notsa::cast<CTaskSimpleCarFallOut>(static_cast<CTask*>(data));
     assert(self->m_Anim == anim);
 
     self->m_HasFinished = true;
