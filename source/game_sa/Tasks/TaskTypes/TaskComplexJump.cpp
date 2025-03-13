@@ -59,7 +59,7 @@ CTask* CTaskComplexJump::CreateNextSubTask(CPed* ped) {
         if (!jumpTask->m_bLaunchAnimStarted) {
             ped->bIsLanding = false;
             return CreateSubTask(TASK_FINISHED, ped);
-        } else if (jumpTask->m_bIsJumpBlocked) {
+        } if (jumpTask->m_bIsJumpBlocked) {
             ped->bIsLanding = true;
             return CreateSubTask(TASK_SIMPLE_HIT_HEAD, ped);
         } else if (jumpTask->m_pClimbEntity && m_nType != -1) {
@@ -131,12 +131,11 @@ CTask* CTaskComplexJump::CreateSubTask(eTaskType taskType, CPed* ped) {
             return new CTaskComplexInAirAndLand(true, false);
         }
     case TASK_COMPLEX_IN_AIR_AND_LAND: {
-        auto newTask = new CTaskComplexInAirAndLand(true, false);
-
-        if (m_pSubTask->GetTaskType() == TASK_SIMPLE_CLIMB && reinterpret_cast<CTaskSimpleClimb*>(m_pSubTask)->m_bInvalidClimb)
-            newTask->m_bInvalidClimb = true;
-
-        return newTask;
+        auto t = new CTaskComplexInAirAndLand(true, false);
+        if (const auto tc = notsa::cast<CTaskSimpleClimb>(m_pSubTask)) {
+            t->m_bInvalidClimb = tc->GetIsInvalidClimb();
+        }
+        return t;
     }
     default:
         return nullptr;

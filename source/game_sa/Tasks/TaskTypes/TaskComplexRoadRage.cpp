@@ -16,7 +16,7 @@ void CTaskComplexRoadRage::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x6220A0);
     RH_ScopedInstall(Destructor, 0x622110);
 
-    RH_ScopedInstall(CreateSubTask, 0x629080, { .reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x629080);
 
     RH_ScopedVMTInstall(Clone, 0x623670);
     RH_ScopedVMTInstall(GetTaskType, 0x622100);
@@ -57,8 +57,8 @@ CTask* CTaskComplexRoadRage::CreateSubTask(eTaskType taskType, CPed* ped) {
     case TASK_COMPLEX_SEEK_ENTITY:
         return new CTaskComplexSeekEntityStandard{
             ped->m_pVehicle,
-            20'000u,
-            1000u,
+            20'000,
+            1'000,
             m_rageWith->m_pVehicle->GetModelInfo()->GetColModel()->GetBoundRadius() + 1.f,
             2.f,
             2.f,
@@ -84,7 +84,6 @@ CTask* CTaskComplexRoadRage::CreateNextSubTask(CPed* ped) {
     if (!m_rageWith) {
         return nullptr;
     }
-
     switch (m_pSubTask->GetTaskType()) {
     case TASK_COMPLEX_TURN_TO_FACE_ENTITY:
         return CreateSubTask(TASK_SIMPLE_SHAKE_FIST, ped);

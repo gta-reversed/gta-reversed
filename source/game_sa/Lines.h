@@ -8,8 +8,8 @@ public:
 
 public:
     // NOTSA wrappers
-    static void RenderLineNoClipping(const CVector& start, const CVector& end, uint32 startColor, uint32 endColor) {
-        RenderLineNoClipping(start.x, start.y, start.z, end.x, end.y, end.z, startColor, endColor);
+    static void RenderLineNoClipping(const CVector& start, const CVector& end, uint32 startRGBA, uint32 endRGBA) {
+        RenderLineNoClipping(start.x, start.y, start.z, end.x, end.y, end.z, startRGBA, endRGBA);
     }
 
     static void RenderLineWithClipping(const CVector& start, const CVector& end, uint32 startColor, uint32 endColor) {
