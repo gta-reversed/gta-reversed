@@ -158,7 +158,7 @@ CTask* CTaskComplexDestroyCarMelee::ControlSubTask(CPed* ped) {
         if (!IsPointInSphere(ped->GetPosition(), m_VehToDestroy->GetPosition(), m_MaxAtkRange + 0.6f)) {
             return CreateSubTask(TASK_COMPLEX_SEEK_ENTITY, ped);
         }
-        const auto tFightCtrl = CTask::Cast<CTaskSimpleFightingControl>(m_pSubTask);
+        const auto tFightCtrl = notsa::cast<CTaskSimpleFightingControl>(m_pSubTask);
         tFightCtrl->m_angleRad = m_MaxAtkAngleRad;
         tFightCtrl->m_maxAttackRange = m_MaxAtkRange;
         return m_pSubTask;

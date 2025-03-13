@@ -132,7 +132,7 @@ CTask* CTaskComplexJump::CreateSubTask(eTaskType taskType, CPed* ped) {
         }
     case TASK_COMPLEX_IN_AIR_AND_LAND: {
         auto t = new CTaskComplexInAirAndLand(true, false);
-        if (const auto tClimb = CTask::DynCast<CTaskSimpleClimb>(m_pSubTask)) {
+        if (const auto tClimb = notsa::dyn_cast_if_present<CTaskSimpleClimb>(m_pSubTask)) {
             t->m_bInvalidClimb = tClimb->GetIsInvalidClimb();
         }
         return t;
