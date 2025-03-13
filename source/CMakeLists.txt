@@ -26,7 +26,7 @@ function(supress_deps_warnings targets)
         )
     endforeach()
 endfunction()
-supress_deps_warnings(ogg imgui vorbisfile spdlog nlohmann_json)
+supress_deps_warnings(ogg imgui vorbisfile spdlog nlohmann_json sdl3)
 
 set_target_properties(${RE_PROJECT_LIB_NAME}
     PROPERTIES
@@ -70,6 +70,7 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     dsound
     d3d9
     nlohmann_json::nlohmann_json
+    SDL3::SDL3
 )
 
 if(WIN32) 
@@ -127,6 +128,7 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     game_sa/Tasks/TaskTypes/SeekEntity/
 
     app/
+    app/imgui
     app/platform/
     app/platform/android/
     app/platform/win/
@@ -135,6 +137,8 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     app/securom/
 
     oswrapper
+
+    libs/imgui
 )
 target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
     _CRT_SECURE_NO_WARNINGS
