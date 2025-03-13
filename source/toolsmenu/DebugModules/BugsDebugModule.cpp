@@ -24,7 +24,7 @@ void BugsDebugModule::RenderWindow() {
     ImGui::TableHeadersRow();
 
     for (auto bug = notsa::bugfixes::ReversibleBugFix::Tail; bug; bug = bug->Prev) {
-        if (!NameFilter.PassFilter(bug->Name.c_str())) {
+        if (!NameFilter.PassFilter(bug->Name)) {
             continue;
         }
 
@@ -42,11 +42,11 @@ void BugsDebugModule::RenderWindow() {
 
         // Name
         ImGui::TableNextColumn();
-        ImGui::Text(bug->Name.c_str());
+        ImGui::Text(bug->Name);
 
         // Description
         ImGui::TableNextColumn();
-        ImGui::Text(bug->Description.c_str());
+        ImGui::Text(bug->Description);
 
         ImGui::EndGroup();
         ImGui::PopID();
