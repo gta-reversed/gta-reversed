@@ -5,6 +5,10 @@
 
 
 namespace notsa::bugfixes {
+/*!
+* This class is *not* meant to be constructed on the stack.
+* Only place it should be defined at is `Bugs.hpp`.
+*/
 struct ReversibleBugFix {
     static inline ReversibleBugFix* Tail{};
 
