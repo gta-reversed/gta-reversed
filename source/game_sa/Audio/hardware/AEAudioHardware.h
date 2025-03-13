@@ -129,7 +129,7 @@ public:
     bool IsSoundBankLoaded(uint16 bankId, int16 bankSlotId);
     int8 GetSoundBankLoadingStatus(uint16 bankId, int16 bankSlotId);
 
-    bool LoadSound(uint16 bank, uint16 sound, int16 slot);
+    void LoadSound(uint16 bank, uint16 sound, int16 slot);
     bool IsSoundLoaded(uint16, uint16, int16);
     bool GetSoundLoadingStatus(uint16 bankId, uint16 sfxId, int16 bankSlot);
 

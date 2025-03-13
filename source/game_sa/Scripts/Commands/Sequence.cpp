@@ -7,6 +7,7 @@
 * Various Sequence commands
 */
 
+namespace {
 void SetSequenceToRepeat(int32 index, bool repeat) {
     const auto actualIndex = CTheScripts::GetActualScriptThingIndex(index, SCRIPT_THING_SEQUENCE_TASK);
     if (actualIndex < 0 || actualIndex >= MAX_NUM_SCRIPT_SEQUENCE_TASKS) {
@@ -15,6 +16,7 @@ void SetSequenceToRepeat(int32 index, bool repeat) {
     }
     CTaskSequences::GetActiveSequence().SetRepeatMode(repeat);
 }
+};
 
 void notsa::script::commands::sequence::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Sequence");

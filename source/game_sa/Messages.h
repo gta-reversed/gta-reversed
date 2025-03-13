@@ -6,6 +6,8 @@
 */
 #pragma once
 
+#include <Base.h>
+
 struct tMessage {
     tMessage() = default;
 
