@@ -163,11 +163,6 @@ void CAEMP3BankLoader::AddRequest(eSoundBank bank, eSoundBankSlot slot, std::opt
         return;
     }
 
-    // Already loaded?
-    if (IsSoundBankLoaded(bank, slot)) {
-        return;
-    }
-
     // Same request already exists?
     for (auto& req : m_Requests) {
         if (req.Bank == bank && req.Slot == slot && req.SoundID == sound.value_or(-1)) {
@@ -177,16 +172,18 @@ void CAEMP3BankLoader::AddRequest(eSoundBank bank, eSoundBankSlot slot, std::opt
 
     // Add new request
     const auto* const bankLkup = &GetBankLookup(bank);
-    m_Requests[m_NextRequestIdx] = CAESoundRequest{
+    auto& req = m_Requests[m_NextRequestIdx] = CAESoundRequest{
         .SlotInfo        = &GetBankSlot(slot),
         .BankOffsetBytes = bankLkup->FileOffset,
-        .BankNumBytes    = bankLkup->NumBytes,
         .Status          = eSoundRequestStatus::REQUESTED,
         .Bank            = bank,
         .Slot            = slot,
         .SoundID         = sound.value_or(-1),
         .PakFileNo       = bankLkup->PakFileNo
     };
+    if (!sound.has_value()) {
+        req.BankNumBytes = bankLkup->NumBytes;
+    }
     m_RequestCnt++;
     m_NextRequestIdx = (m_NextRequestIdx + 1) % std::size(m_Requests);
 }
@@ -194,12 +191,23 @@ void CAEMP3BankLoader::AddRequest(eSoundBank bank, eSoundBankSlot slot, std::opt
 
 // 0x4E0670
 void CAEMP3BankLoader::LoadSoundBank(eSoundBank bankId, eSoundBankSlot bankSlot) {
+    // Already loaded?
+    if (IsSoundBankLoaded(bankId, bankSlot)) {
+        return;
+    }
     AddRequest((eSoundBank)(bankId), (eSoundBankSlot)(bankSlot), std::nullopt);
 }
 
 // 0x4E07A0
 void CAEMP3BankLoader::LoadSound(eSoundBank bankId, eSoundID soundId, eSoundBankSlot bankSlot) {
-    AddRequest((eSoundBank)(bankId), (eSoundBankSlot)(bankSlot), (eSoundID)(soundId));
+    if (IsSoundLoaded(bankId, soundId, bankSlot)) {
+        return;
+    }
+    if (soundId >= 0 && soundId < AE_BANK_MAX_NUM_SOUNDS) {
+        AddRequest((eSoundBank)(bankId), (eSoundBankSlot)(bankSlot), (eSoundID)(soundId));
+    } else {
+        NOTSA_LOG_WARN("Trying to load invalid sound ({})", (int32)(soundId));
+    }
 }
 
 // 0x4DFE30
