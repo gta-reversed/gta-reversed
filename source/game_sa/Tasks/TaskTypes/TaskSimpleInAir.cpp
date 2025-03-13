@@ -185,7 +185,7 @@ bool CTaskSimpleInAir::ProcessPed(CPed* ped)
         && ped->m_vecMoveSpeed.z > -0.2F
         && ped->m_vecMoveSpeed.Magnitude2D() > 0.05F)
     {
-        const auto tInAirLand = notsa::dyn_cast_if_present<CTaskComplexInAirAndLand>(m_Parent);
+        const auto tInAirLand = notsa::dyn_cast<CTaskComplexInAirAndLand>(m_Parent);
         if (!tInAirLand || !tInAirLand->m_bInvalidClimb) {
             m_pClimbEntity = CTaskSimpleClimb::TestForClimb(ped, m_vecPosn, m_fAngle, m_nSurfaceType, false);
             if (m_pClimbEntity) {
