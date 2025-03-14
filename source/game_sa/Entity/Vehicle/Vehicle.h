@@ -24,7 +24,6 @@
 #include "FxSystem.h"
 #include "Fire.h"
 
-#include <extensions/EntityRef.hpp>
 #include <Enums/eControllerType.h>
 
 /*  Thanks to MTA team for https://github.com/multitheftauto/mtasa-blue/blob/master/Client/game_sa/CVehicleSA.cpp */
