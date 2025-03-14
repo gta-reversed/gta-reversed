@@ -9,7 +9,7 @@
 #include "TaskComplexStealCar.h"
 #include "TaskComplexFleeAnyMeans.h"
 #include "TaskComplexDriveWander.h"
-
+#include "TaskComplexCarSlowBeDraggedOut.h"
 #include <imgui.h>
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx9.h"
@@ -199,15 +199,14 @@ void UIRenderer::DebugCode() {
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {
-        CStreaming::RequestModel(MODEL_INFERNUS, STREAMING_PRIORITY_REQUEST);
-        CStreaming::LoadAllRequestedModels(true);
-        const auto veh = new CAutomobile{MODEL_INFERNUS, eVehicleCreatedBy::RANDOM_VEHICLE, true};
-        veh->SetPosn(player->GetPosition() + player->GetForward() * 3.f);
-        CWorld::Add(veh);
-        player->GetTaskManager().SetTask(
-            new CTaskComplexDestroyCarMelee{ veh },
-            TASK_PRIMARY_PRIMARY
-        );
+        if (const auto veh = player->GetVehicleIfInOne()) {
+            player->GetTaskManager().SetTask(
+                new CTaskComplexCarSlowBeDraggedOut{ veh, TARGET_DOOR_DRIVER, true },
+                TASK_PRIMARY_PRIMARY
+            );
+        } else {
+            CMessages::AddBigMessageQ("NOT IN VEHICLE"_gxt, 5'000, STYLE_MIDDLE);
+        }
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {
