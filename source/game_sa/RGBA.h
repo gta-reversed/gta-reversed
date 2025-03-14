@@ -190,4 +190,13 @@ public:
     constexpr uint8& operator[](size_t i) {
         return (&r)[i];
     }
+
+    // Same as operator* but doesn't touch the alpha.
+    CRGBA& ScaleRGB(float mult) {
+        r = (uint8)((float)r * mult);
+        g = (uint8)((float)g * mult);
+        b = (uint8)((float)b * mult);
+
+        return *this;
+    }
 };
