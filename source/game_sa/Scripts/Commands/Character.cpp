@@ -44,6 +44,7 @@ void HandleEntityMissionCleanup(CRunningScript& S, T& entity) {
 // Flags getters/setters
 //
 
+namespace {
 void SetCharProofs(CPed& ped, bool bullet, bool fire, bool explosion, bool collision, bool melee) {
     auto& flags = ped.physicalFlags;
     flags.bBulletProof = bullet;
@@ -1301,7 +1302,7 @@ auto IsCharAtScriptedAttractor(CPed* ped, C2dEffectPedAttractor* attractor) {
     if (!attractor) {
         return false;
     }
-    const auto pedUsingAttractor = GetPedAttractorManager()->GetPedUsingEffect(reinterpret_cast<C2dEffect*>(attractor));
+    const auto pedUsingAttractor = GetPedAttractorManager()->GetPedUsingEffect(attractor);
     return ped
         ? pedUsingAttractor == ped
         : pedUsingAttractor != nullptr;
@@ -1475,6 +1476,7 @@ CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
     }
     return ped->m_pAttachedTo->AsVehicle();
 }
+};
 
 // 0x46BCEA - COMMAND_CLEAR_CHAR_TASKS_IMMEDIATELY
 void ClearCharTasksImmediately(CPed& ped) {

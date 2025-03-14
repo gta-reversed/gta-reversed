@@ -114,7 +114,7 @@ CTask* CTaskManager::GetTaskSecondary(eSecondaryTask taskIndex) {
 }
 
 CTaskComplexFacial* CTaskManager::GetTaskSecondaryFacial() {
-    return CTask::Cast<CTaskComplexFacial>(GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX));
+    return notsa::cast<CTaskComplexFacial>(GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX));
 }
 
 // NOTSA?

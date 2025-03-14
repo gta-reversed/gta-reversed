@@ -143,6 +143,9 @@ public:
     //! Find follower closest to the leader
     auto FindClosestFollowerToLeader() -> FindClosestMemberResult;
 
+    //! @notsa
+    CPed* GetFirstAvailableMember();
+
     static eModelID GetObjectForPedToHold();
 private:
     //! NOTSA

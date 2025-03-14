@@ -6,7 +6,7 @@
 */
 #pragma once
 
-#include "Base.h"
+#include <Base.h>
 #include <initializer_list>
 #include "Task.h"
 #include <algorithm>
@@ -251,7 +251,7 @@ public:
     */
     template<Task T>
     T* GetSimplestActiveTaskAs() {
-        return CTask::DynCast<T>(GetSimplestActiveTask());
+        return notsa::dyn_cast_if_present<T>(GetSimplestActiveTask());
     }
 
     /*!

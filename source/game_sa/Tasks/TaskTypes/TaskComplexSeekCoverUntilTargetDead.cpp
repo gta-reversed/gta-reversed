@@ -88,7 +88,7 @@ CPed* CTaskComplexSeekCoverUntilTargetDead::GetTargetPed() const {
 
 // 0x622C90
 CTask* CTaskComplexSeekCoverUntilTargetDead::CreateNextSubTask(CPed* ped) {
-    return CTask::IsA<TASK_SIMPLE_STAND_STILL>(m_pSubTask) // SimpleStandStill is the last task
+    return notsa::isa<CTaskSimpleStandStill>(m_pSubTask) // SimpleStandStill is the last task
         ? CreateFirstSubTask(ped)
         : nullptr;
 }
