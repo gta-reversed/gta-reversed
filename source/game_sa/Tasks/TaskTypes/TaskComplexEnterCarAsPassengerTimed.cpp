@@ -25,13 +25,13 @@ CTaskComplexEnterCarAsPassengerTimed::CTaskComplexEnterCarAsPassengerTimed(CVehi
     m_TargetCar{ vehicle },
     m_TargetSeat{ targetSeat },
     m_Time{ timeMs },
-    m_bCarryOnAfterFallingOff{ bCarryOnAfterFallingOff }
+    m_ShouldCarryOnAfterFallingOff{ bCarryOnAfterFallingOff }
 {   
 }
 
 // 0x63D7E0
 CTaskComplexEnterCarAsPassengerTimed::CTaskComplexEnterCarAsPassengerTimed(const CTaskComplexEnterCarAsPassengerTimed& o) :
-    CTaskComplexEnterCarAsPassengerTimed{o.m_TargetCar, o.m_TargetSeat, o.m_Time, o.m_bCarryOnAfterFallingOff}
+    CTaskComplexEnterCarAsPassengerTimed{o.m_TargetCar, o.m_TargetSeat, o.m_Time, o.m_ShouldCarryOnAfterFallingOff}
 {
     m_MoveState = o.m_MoveState;
 }
@@ -67,7 +67,7 @@ CTask* CTaskComplexEnterCarAsPassengerTimed::CreateFirstSubTask(CPed* ped) {
 
     m_Timer.Start(m_Time);
 
-    const auto tEnterCar = new CTaskComplexEnterCarAsPassenger{m_TargetCar, (int32)m_TargetSeat, m_bCarryOnAfterFallingOff};
+    const auto tEnterCar = new CTaskComplexEnterCarAsPassenger{m_TargetCar, (int32)(m_TargetSeat), m_ShouldCarryOnAfterFallingOff};
     tEnterCar->SetMoveState(m_MoveState);
     return tEnterCar;
 }

@@ -42,7 +42,7 @@ private:
     CVehicle::Ref m_TargetCar{};
     uint32        m_Time{};
     uint32        m_TargetSeat{};
-    bool          m_bCarryOnAfterFallingOff{};
+    bool          m_ShouldCarryOnAfterFallingOff{};
     eMoveState    m_MoveState{eMoveState::PEDMOVE_RUN};
     CTaskTimer    m_Timer{};
 };
