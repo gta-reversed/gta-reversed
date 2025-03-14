@@ -26,6 +26,9 @@ public:
 
     static uint16 (&ms_aEntityLightsOffsets)[8];
 
+    static float& SunScreenX;
+    static float& SunScreenY;
+
     inline static struct { // NOTSA
         bool DisableWetRoadReflections;
         bool AlwaysRenderWetRoadReflections; // Ignored if if `DisableReflections == false`
@@ -56,6 +59,7 @@ public:
     */
     static void RenderSunReflection();
 
+    // TODO: var r, g, b, a -> class RGBA
     static void RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 alpha, const CVector& posn,
                                float radius, float farClip, RwTexture* texture, eCoronaFlareType flareType, bool enableReflection, bool checkObstacles, int32 _param_not_used,
                                float angle, bool longDistance, float nearClip, uint8 fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay);

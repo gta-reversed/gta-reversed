@@ -55,7 +55,9 @@ public:
     uint8            m_bAttached : 1;          // This corona is attached to an entity.
     CEntity*         m_pAttachedTo;
 
+public:
     CRegisteredCorona() = default;
+    static void InjectHooks();
 
     void Update();
     auto GetPosition() const -> CVector;
