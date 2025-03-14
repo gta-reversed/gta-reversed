@@ -1610,7 +1610,7 @@ void CEventHandler::ComputePedEnteredVehicleResponse(CEventPedEnteredMyVehicle* 
             return new CTaskComplexScreamInCarThenLeave{ e->m_Vehicle, e->m_TargetDoor };
         }
         case TASK_COMPLEX_LEAVE_CAR: // 0x4C16CE
-            return new CTaskComplexLeaveCar{ e->m_Vehicle, e->m_TargetDoor, CGeneral::GetRandomNumberInRange(300, 600), false, true };
+            return new CTaskComplexLeaveCar{ e->m_Vehicle, (int32)e->m_TargetDoor, CGeneral::GetRandomNumberInRange(300, 600), false, true };
         case TASK_COMPLEX_LEAVE_CAR_AND_FLEE: // 0x4C18C9
             return LeaveCarAndFlee();
         case TASK_COMPLEX_LEAVE_CAR_AND_WANDER: // 0x4C1744
