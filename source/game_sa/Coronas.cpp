@@ -1,5 +1,5 @@
 #include "StdInc.h"
-
+#include <reversiblebugfixes/Bugs.hpp>
 #include "Coronas.h"
 
 //bool& CCoronas::SunBlockedByClouds = *(bool*)0x0;
@@ -400,7 +400,7 @@ void CCoronas::RenderReflections() {
             return (uint8)((uint16)((float)cc * t) >> 8 & 0xFF); // divide by 256
         };
         CSprite::RenderBufferedOneXLUSprite(
-            { onScrPos.x, onScrPos.y, notsa::IsFixBugs() ? onScrPos.z : RwIm2DGetNearScreenZMacro() },
+            { onScrPos.x, onScrPos.y, notsa::bugfixes::PS2CoronaRendering ? onScrPos.z : RwIm2DGetNearScreenZMacro() },
             onScrSize * CVector2D{0.75f, 2.f} * c.m_fSize,
             LerpColorC(c.m_Color.r),
             LerpColorC(c.m_Color.g),

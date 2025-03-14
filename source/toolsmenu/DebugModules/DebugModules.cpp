@@ -32,6 +32,7 @@
 #include "./AudioZonesDebugModule.h"
 #include "./WeaponDebugModule.hpp"
 #include "./CheckpointsDebugModule.hpp"
+#include "./BugsDebugModule.hpp"
 #include "./TwoDEffectsDebugModule.hpp"
 #include "./VehicleInfoDebugModule.h"
 
@@ -89,6 +90,7 @@ void DebugModules::CreateModules() {
     // "Settings" menu
     Add<HooksDebugModule>();
     Add<PostEffectsDebugModule>();
+    Add<notsa::debugmodules::BugsDebugModule>();
 
     // "Visualization" menu
     Add<CollisionDebugModule>();
