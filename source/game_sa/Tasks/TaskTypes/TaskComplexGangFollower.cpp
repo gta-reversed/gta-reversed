@@ -28,8 +28,8 @@ CTaskComplexGangFollower::~CTaskComplexGangFollower() {
 }
 
 // 0x65ED40
-void CTaskComplexGangFollower::CalculateOffsetPosition(CVector& pos) {
-    plugin::CallMethod<0x65ED40, CTaskComplexGangFollower*, CVector&>(this, pos);
+CVector CTaskComplexGangFollower::CalculateOffsetPosition() {
+    return plugin::CallMethodAndReturn<CVector, 0x65ED40, CTaskComplexGangFollower*>(this);
 }
 
 // 0x65ECB0
