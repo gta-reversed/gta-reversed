@@ -364,17 +364,17 @@ void WellBufferMe(float target, float* valueToChange, float* valueSpeedSoFar, fl
     *valueToChange += *valueSpeedSoFar * std::min(CTimer::GetTimeStep(), 10.0f);
 }
 
-float& fCloseNearClipLimit = *reinterpret_cast<float*>(0x8CC390); // 0.15f (Please dont delete this comment)
-float  fRangePlayerRadius  = *reinterpret_cast<float*>(0x8CC38C); // 0.50f (Please dont delete this comment)
-// bool bAvoidTest1 = *reinterpret_cast<bool*>(0xB6EC65); // true (Please dont delete this comment)
-constexpr bool bAvoidTest1 = true; // failed hook
 
 // 0x514030
 void CCamera::AvoidTheGeometry(const CVector& TheCamPos, const CVector& TheTargetPos, CVector& ResultantCameraPos, float fFOV) {
-    plugin::CallMethod<0x514030, CCamera*, const CVector&, const CVector&, CVector&, float>(this, TheCamPos, TheTargetPos, ResultantCameraPos, fFOV);
-    /*
+    
+    float& fCloseNearClipLimit = *reinterpret_cast<float*>(0x8CC390); // 0.15f (Please dont delete this comment)
+    float  fRangePlayerRadius  = *reinterpret_cast<float*>(0x8CC38C); // 0.50f (Please dont delete this comment)
+    constexpr bool bAvoidTest1 = true; // failed hook
     assert(fCloseNearClipLimit == 0.15f);
     assert(fRangePlayerRadius == 0.50f);
+
+    // bool bAvoidTest1 = *reinterpret_cast<bool*>(0xB6EC65); // true (Please dont delete this comment)
     // assert(bAvoidTest1 == true); // failed hook
 
     constexpr float fAvoidProbTimerDamp        = 0.9f;
@@ -514,7 +514,7 @@ void CCamera::AvoidTheGeometry(const CVector& TheCamPos, const CVector& TheTarge
 
     // Apply final avoidance vector
     TheCamera.m_vecClearGeometryVec *= AvoidTheWallsFraction;
-    TheCamera.m_bMoveCamToAvoidGeom = true;*/
+    TheCamera.m_bMoveCamToAvoidGeom = true;
 }
 
 // 0x50A9F0
