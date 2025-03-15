@@ -161,15 +161,9 @@ void CCamera::InjectHooks() {
     RH_ScopedGlobalInstall(CamShakeNoPos, 0x50A970);
 }
 
-constexpr float TiltTopSpeed[]      = { 0.035f, 0.035f, 0.001f, 0.005f, 0.035f };
-constexpr float TiltSpeedStep[]     = { 0.016f, 0.016f, 0.0002f, 0.0014f, 0.016f };
-constexpr float TiltOverShoot[]     = { 1.05f, 1.05f, 0.0f, 0.0f, 1.0f };
-constexpr float ZOOM_ONE_DISTANCE[] = { -1.0f, -0.2f, -3.2f, 0.05f, -2.41f };
-constexpr float ZOOM_TWO_DISTANCE[] = { 1.0f, 1.4f, 0.65f, 1.9f, 6.49f };
+constexpr float ZOOM_ONE_DISTANCE[]   = { -1.0f, -0.2f, -3.2f, 0.05f, -2.41f };
+constexpr float ZOOM_TWO_DISTANCE[]   = { 1.0f, 1.4f, 0.65f, 1.9f, 6.49f };
 constexpr float ZOOM_THREE_DISTANCE[] = { 6.0f, 6.0f, 15.9f, 15.9f, 15.0f };
-constexpr float ZmOneAlphaOffset[]    = { 0.08f, 0.08f, 0.15f, 0.08f, 0.08f };
-constexpr float ZmTwoAlphaOffset[]    = { 0.07f, 0.08f, 0.30f, 0.08f, 0.08f };
-constexpr float ZmThreeAlphaOffset[]  = { 0.055f, 0.05f, 0.15f, 0.06f, 0.08f };
 
 CCamera* CCamera::Constructor() {
     this->CCamera::CCamera();
@@ -364,13 +358,11 @@ void WellBufferMe(float target, float* valueToChange, float* valueSpeedSoFar, fl
     *valueToChange += *valueSpeedSoFar * std::min(CTimer::GetTimeStep(), 10.0f);
 }
 
-
 // 0x514030
 void CCamera::AvoidTheGeometry(const CVector& TheCamPos, const CVector& TheTargetPos, CVector& ResultantCameraPos, float fFOV) {
-    
-    float& fCloseNearClipLimit = *reinterpret_cast<float*>(0x8CC390); // 0.15f (Please dont delete this comment)
-    float  fRangePlayerRadius  = *reinterpret_cast<float*>(0x8CC38C); // 0.50f (Please dont delete this comment)
-    constexpr bool bAvoidTest1 = true; // failed hook
+    float&         fCloseNearClipLimit = *reinterpret_cast<float*>(0x8CC390); // 0.15f (Please dont delete this comment)
+    float          fRangePlayerRadius  = *reinterpret_cast<float*>(0x8CC38C); // 0.50f (Please dont delete this comment)
+    constexpr bool bAvoidTest1         = true;                                // failed hook
     assert(fCloseNearClipLimit == 0.15f);
     assert(fRangePlayerRadius == 0.50f);
 
@@ -1651,14 +1643,14 @@ bool CCamera::CameraObscuredByWaterLevel() {
 }
 
 int8_t& gCinematicModeSwitchDir = *(int8_t*)0x8CC471; // ?
-bool& bSwitchedToObbeCam      = *(bool*)0xB6EC34;   // false
+bool&   bSwitchedToObbeCam      = *(bool*)0xB6EC34;   // false
 
 // Lambda auxiliar function
 // NotSA: This function is used to avoid code duplication.
 void ProcessObbeCinemaCameraBuilder(int32& OldMode, int32& TimeForNext, int32 allCinemaCams, const eMovieCam* SequenceOfCams, const int32 mode) {
-    bool started = false; 
+    bool       started    = false;
     const bool stringMode = (CAM_ON_A_STRING_LAST_RESORT == mode);
-    bool           obbeFix    = (TheCamera.CameraObscuredByWaterLevel() && stringMode);
+    bool       obbeFix    = (TheCamera.CameraObscuredByWaterLevel() && stringMode);
 
     if (!TheCamera.bDidWeProcessAnyCinemaCam) {
         OldMode = -1, bSwitchedToObbeCam = true;
@@ -1689,12 +1681,12 @@ void ProcessObbeCinemaCameraBuilder(int32& OldMode, int32& TimeForNext, int32 al
 // unused, empty
 // 0x50B880
 void CCamera::ProcessObbeCinemaCameraPed() {
-    static int32        OldMode             = -1;
-    static int32        TimeForNext         = 0;
-    constexpr int32     allCinemaCams       = 5;
+    static int32        OldMode                           = -1;
+    static int32        TimeForNext                       = 0;
+    constexpr int32     allCinemaCams                     = 5;
     constexpr eMovieCam SequenceOfPedsCams[allCinemaCams] = { MOVIECAM9, MOVIECAM10, MOVIECAM11, MOVIECAM12, MOVIECAM13 };
     return ProcessObbeCinemaCameraBuilder(OldMode, TimeForNext, allCinemaCams, SequenceOfPedsCams, CAM_ON_A_STRING_LAST_RESORT);
-}    
+}
 
 // 0x526C80
 void CCamera::ProcessObbeCinemaCameraPlane() {
