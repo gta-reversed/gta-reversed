@@ -4,14 +4,14 @@
 
 class NOTSA_EXPORT_VTABLE CTaskAllocatorKillThreatsBasic : public CTaskAllocator {
 public:
-    constexpr static inline auto Type = eTaskAllocatorType::TASK_ALLOCATOR_KILL_THREATS_BASIC;
+    constexpr static inline auto Type = eTaskAllocatorType::KILL_THREATS_BASIC;
 
     static void InjectHooks();
 
     explicit CTaskAllocatorKillThreatsBasic(CPed* threat);
     ~CTaskAllocatorKillThreatsBasic() override = default;
 
-    eTaskAllocatorType GetType() override { return TASK_ALLOCATOR_KILL_THREATS_BASIC; }; // 0x69C2C0
+    eTaskAllocatorType GetType() override { return eTaskAllocatorType::KILL_THREATS_BASIC; }; // 0x69C2C0
     void               AllocateTasks(CPedGroupIntelligence* intel) override;
     CTaskAllocator*    ProcessGroup(CPedGroupIntelligence* intel) final override;
 

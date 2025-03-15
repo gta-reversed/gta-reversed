@@ -4,19 +4,19 @@ class CPed;
 class CPedGroup;
 class CPedGroupIntelligence;
 
-enum eTaskAllocatorType {
-    TASK_ALLOCATOR_NONE                            = 0,
-    TASK_ALLOCATOR_ATTACK                          = 1,
-    TASK_ALLOCATOR_RETREAT                         = 2,
-    TASK_ALLOCATOR_COVER_SEEK                      = 3,
-    TASK_ALLOCATOR_KILL_ON_FOOT                    = 4,
-    TASK_ALLOCATOR_KILL_ON_FOOT_USING_COVER        = 5,
-    TASK_ALLOCATOR_PLAYER_COMMAND_ATTACK           = 6,
-    TASK_ALLOCATOR_PLAYER_COMMAND_RETREAT          = 7,
-    TASK_ALLOCATOR_ADVANCE_IN_FORMATION            = 8,
-    TASK_ALLOCATOR_KILL_THREATS_BASIC              = 9,
-    TASK_ALLOCATOR_KILL_THREATS_BASIC_RANDOM_GROUP = 10,
-    TASK_ALLOCATOR_KILL_THREATS_DRIVEBY            = 11,
+enum class eTaskAllocatorType : int32 {
+    NONE                            = 0,  // 0x0
+    ATTACK                          = 1,  // 0x1
+    RETREAT                         = 2,  // 0x2
+    COVER_SEEK                      = 3,  // 0x3
+    KILL_ON_FOOT                    = 4,  // 0x4
+    KILL_ON_FOOT_USING_COVER        = 5,  // 0x5
+    PLAYER_COMMAND_ATTACK           = 6,  // 0x6
+    PLAYER_COMMAND_RETREAT          = 7,  // 0x7
+    ADVANCE_IN_FORMATION            = 8,  // 0x8
+    KILL_THREATS_BASIC              = 9,  // 0x9
+    KILL_THREATS_BASIC_RANDOM_GROUP = 10, // 0xA
+    KILL_THREATS_DRIVEBY            = 11, // 0xB
 };
 
 class NOTSA_EXPORT_VTABLE CTaskAllocator {

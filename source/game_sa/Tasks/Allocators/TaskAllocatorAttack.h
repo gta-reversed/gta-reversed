@@ -5,14 +5,14 @@
 
 class NOTSA_EXPORT_VTABLE CTaskAllocatorAttack : public CTaskAllocator {
 public:
-    constexpr static inline auto Type = TASK_ALLOCATOR_ATTACK;
+    constexpr static inline auto Type = eTaskAllocatorType::ATTACK;
 
     static void InjectHooks();
 
     CTaskAllocatorAttack(CPed* target, int32 groupTargetID, CPed* originator);
     ~CTaskAllocatorAttack() override = default;
 
-    eTaskAllocatorType GetType() override { return TASK_ALLOCATOR_ATTACK; } // 0x69C2C0
+    eTaskAllocatorType GetType() override { return eTaskAllocatorType::ATTACK; } // 0x69C2C0
     void               AllocateTasks(CPedGroupIntelligence* intel) override;
     CTaskAllocator*    ProcessGroup(CPedGroupIntelligence* intel) override;
 

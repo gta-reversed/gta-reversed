@@ -4,7 +4,7 @@
 
 class NOTSA_EXPORT_VTABLE CTaskAllocatorKillOnFoot : public CTaskAllocator {
 public:
-    constexpr static inline auto Type = TASK_ALLOCATOR_KILL_ON_FOOT;
+    constexpr static inline auto Type = eTaskAllocatorType::KILL_ON_FOOT;
 
     static void InjectHooks();
 
@@ -12,7 +12,7 @@ public:
     CTaskAllocatorKillOnFoot(CPed* ped, int32 groupId);
     ~CTaskAllocatorKillOnFoot() override = default;
 
-    eTaskAllocatorType GetType() override { return TASK_ALLOCATOR_KILL_ON_FOOT; }; // 0x69BBE0
+    eTaskAllocatorType GetType() override { return eTaskAllocatorType::KILL_ON_FOOT; }; // 0x69BBE0
     void AllocateTasks(CPedGroupIntelligence* intel) override;
 
 private:
