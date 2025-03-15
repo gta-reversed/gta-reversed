@@ -33,11 +33,22 @@
  *
  */
 
-#include "rwcore.h"
+#include <rwcore.h>
 
-RwInt8      RpAnisotGetMaxSupportedMaxAnisotropy();                      // 0x748F20
-RwTexture*  RpAnisotTextureSetMaxAnisotropy(RwTexture* tex, RwInt8 val); // 0x748F30
-RwInt8      RpAnisotTextureGetMaxAnisotropy(RwTexture* tex);             // 0x748F50
-RwBool      RpAnisotPluginAttach();                                      // 0x748F70
-
+#ifdef __cplusplus
+extern              "C"
+{
 #endif
+
+extern RwInt8      RpAnisotGetMaxSupportedMaxAnisotropy(void);
+
+extern RwTexture    *RpAnisotTextureSetMaxAnisotropy(RwTexture *tex, RwInt8 val);
+extern RwInt8       RpAnisotTextureGetMaxAnisotropy(RwTexture *tex);
+
+extern RwBool       RpAnisotPluginAttach(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif                          /* RPANISOTPLUGIN_H */

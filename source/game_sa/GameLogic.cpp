@@ -244,28 +244,28 @@ bool CGameLogic::LaRiotsActiveHere() {
 
 // 0x5D33C0
 void CGameLogic::Save() {
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::NumAfterDeathStartPoints,                sizeof(int32));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::bPenaltyForDeathApplies,                 sizeof(bool));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::bPenaltyForArrestApplies,                sizeof(bool));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::GameState,                               sizeof(eGameState));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::TimeOfLastEvent,                         sizeof(uint32));
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::NumAfterDeathStartPoints);
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::bPenaltyForDeathApplies);
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::bPenaltyForArrestApplies);
+    CGenericGameStorage::SaveDataToWorkBuffer(static_cast<uint8>(CGameLogic::GameState));
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::TimeOfLastEvent);
 
     for (int32 i = 0; i < NumAfterDeathStartPoints; i++) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::AfterDeathStartPoints[i],            sizeof(CVector));
-        CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::AfterDeathStartPointOrientations[i], sizeof(float));
+        CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::AfterDeathStartPoints[i]);
+        CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::AfterDeathStartPointOrientations[i]);
     }
 }
 
 // 0x5D3440
 void CGameLogic::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::NumAfterDeathStartPoints,                sizeof(int32));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::bPenaltyForDeathApplies,                 sizeof(bool));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::bPenaltyForArrestApplies,                sizeof(bool));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::GameState,                               sizeof(eGameState));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::TimeOfLastEvent,                         sizeof(uint32));
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::NumAfterDeathStartPoints);
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::bPenaltyForDeathApplies);
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::bPenaltyForArrestApplies);
+    CGameLogic::GameState = static_cast<eGameLogicState>(CGenericGameStorage::LoadDataFromWorkBuffer<uint8>());
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::TimeOfLastEvent);
     for (int32 i = 0; i < NumAfterDeathStartPoints; ++i) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::AfterDeathStartPoints[i],            sizeof(CVector));
-        CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::AfterDeathStartPointOrientations[i], sizeof(float));
+        CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::AfterDeathStartPoints[i]);
+        CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::AfterDeathStartPointOrientations[i]);
     }
 }
 
@@ -378,7 +378,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
         fire->Extinguish();
         fire = nullptr;
     }
-    player->m_pedAudio.TurnOffJetPack();
+    player->GetAE().TurnOffJetPack();
     player->bInVehicle = false;
     if (auto vehicle = player->m_pVehicle) {
         CEntity::CleanUpOldReference(vehicle);
@@ -655,7 +655,7 @@ void CGameLogic::Update() {
             } else if (ped->m_nPedState == PEDSTATE_ARRESTED) {
                 ped->ClearAdrenaline();
                 player.ArrestPlayer();
-                ped->Say(15, 2300, 1.0f, 1u, 1u);
+                ped->Say(CTX_GLOBAL_ARRESTED, 2300, 1.0f, 1u, 1u);
                 GameState = GAMELOGIC_STATE_BUSTED;
                 TimeOfLastEvent = CTimer::GetTimeInMS();
 
@@ -903,4 +903,29 @@ void CGameLogic::UpdateSkip() {
     default:
         return;
     }
+}
+
+// notsa
+bool CGameLogic::IsAPlayerInFocusOn2PlayerGame() {
+    return n2PlayerPedInFocus == eFocusedPlayer::PLAYER1 || n2PlayerPedInFocus == eFocusedPlayer::PLAYER2;
+}
+
+// notsa
+CPlayerPed* CGameLogic::GetFocusedPlayerPed() {
+    if (!IsAPlayerInFocusOn2PlayerGame()) {
+        return nullptr;
+    } else {
+        return FindPlayerPed((int32)n2PlayerPedInFocus);
+    }
+}
+
+// notsa
+bool CGameLogic::CanPlayerTripSkip() {
+    return SkipState == SKIP_AVAILABLE || SkipState == SKIP_AFTER_MISSION;
+}
+
+// notsa
+void CGameLogic::SetMissionFailed(){
+    GameState = GAMELOGIC_STATE_MISSION_FAILED;
+    TimeOfLastEvent = CTimer::GetTimeInMS();
 }

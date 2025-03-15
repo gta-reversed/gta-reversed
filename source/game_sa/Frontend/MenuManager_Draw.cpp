@@ -27,8 +27,7 @@ void CMenuManager::DrawFrontEnd() {
         m_nCurrentScreen = m_bMainMenuSwitch ? SCREEN_MAIN_MENU : SCREEN_PAUSE_MENU;
     }
 
-    const auto& menu = aScreens[m_nCurrentScreen];
-    if (m_nCurrentScreenItem == 0 && menu.m_aItems[0].m_nActionType == MENU_ACTION_TEXT) {
+    if (m_nCurrentScreenItem == 0 && aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == MENU_ACTION_TEXT) {
         m_nCurrentScreenItem = 1;
     }
 

@@ -35,6 +35,7 @@ public:
 
 
     void ProcessControl() override;
+    void SetMoveAnim() override;
     bool Load() override;
     bool Save() override;
 

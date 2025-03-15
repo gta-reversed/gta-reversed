@@ -10,6 +10,20 @@ enum class eCdStreamStatus : int32 {
     READING = 255,
 };
 
+constexpr uint32 CD_STREAM_HANDLE_BITS = 24;
+
+using CdStreamID     = uint8; // Value is `CdStreamHandle << 24`
+using CdStreamHandle = uint32; // Value is `CdStreamID >> 24`
+
+struct CdStreamPos {
+    uint32 Offset : 24; //!< Offset (In Sectors)
+    uint32 FileID : 8;  //!< Index into `gStreamFileHandles` (See `CdStreamHandleToFileID`)
+
+    uint32 ToInt() const { return ((FileID & 0xFF) << 24) | (Offset & 0xFFFFFF); }
+    friend auto operator<=>(const CdStreamPos&, const CdStreamPos&) = default;
+};
+VALIDATE_SIZE(CdStreamPos, sizeof(uint32));
+
 union SyncObj {
     HANDLE             hSemaphore;
     CONDITION_VARIABLE cv;
@@ -49,7 +63,6 @@ struct CdStreamInfoSA {
     DWORD     gtaint_id;
     DWORD     gta3_id;
 };
-
 VALIDATE_SIZE(SyncObj, sizeof(HANDLE));
 VALIDATE_SIZE(CdStreamInfoSA, 0x8CC);
 VALIDATE_SIZE(CdStream, 0x30);
@@ -71,11 +84,13 @@ extern HANDLE& gStreamingThread;
 extern DWORD& gStreamingThreadId;
 extern uint32& gLastCdStreamPosn;
 
+
+uint32 CdStreamHandleToFileID(CdStreamHandle h);
 void InjectCdStreamHooks();
-int32 CdStreamOpen(const char* lpFileName);
+CdStreamHandle CdStreamOpen(const char* lpFileName);
 eCdStreamStatus CdStreamSync(int32 streamId);
 eCdStreamStatus CdStreamGetStatus(int32 streamId);
-bool CdStreamRead(int32 streamId, void* lpBuffer, uint32 offsetAndHandle, int32 sectorCount);
+bool CdStreamRead(int32 streamId, void* lpBuffer, CdStreamPos offsetAndHandle, int32 sectorCount);
 static uint32 CdStreamGetLastPosn() { return gLastCdStreamPosn; }
 [[noreturn]] void WINAPI CdStreamThread(LPVOID lpParam);
 void CdStreamInitThread();

@@ -68,7 +68,7 @@ CTask* CTaskComplexTreatAccident::CreateFirstSubTask(CPed* ped)
     if (targetPed && !targetPed->bFadeOut)
     {
         targetPed->m_nDeathTimeMS = CTimer::GetTimeInMS();
-        ped->Say(232, 0, 1.0F, false, false, false);
+        ped->Say(CTX_GLOBAL_VICTIM, 0, 1.0F, false, false, false);
         g_ikChainMan.LookAt("TaskTreatAccident", ped, targetPed, 5000, BONE_HEAD, nullptr, true, 0.25F, 500, 3, false);
         return CreateSubTask(TASK_SIMPLE_ACHIEVE_HEADING, ped);
     }

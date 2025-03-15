@@ -23,6 +23,7 @@
 #include "Fire.h"
 #include "PedGroups.h"
 
+#include <Audio/Enums/PedSpeechContexts.h>
 #include "AnimationEnums.h"
 #include "eWeaponType.h"
 #include "eWeaponSkill.h"
@@ -104,9 +105,11 @@ public:
 
     static inline int16 m_sGunFlashBlendStart = 10'000; // 0x8D1370
 
+protected: // Use accessors
     CAEPedAudioEntity       m_pedAudio;
     CAEPedSpeechAudioEntity m_pedSpeech;
     CAEPedWeaponAudioEntity m_weaponAudio;
+public:
     char                    field_43C[36];
     CPed*                   m_roadRageWith;
     char                    field_464[4];
@@ -451,6 +454,7 @@ public:
     bool TurnBody();
     bool IsPointerValid();
     CVector GetBonePosition(eBoneTag boneId, bool updateSkinBones = false);
+    void GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones);
     void GiveObjectToPedToHold(int32 modelIndex, uint8 replace);
     void SetPedState(ePedState pedState);
     ePedState GetPedState() { return m_nPedState; }
@@ -496,9 +500,9 @@ public:
     void EnablePedSpeech();
     void DisablePedSpeechForScriptSpeech(bool stopCurrentSpeech);
     void EnablePedSpeechForScriptSpeech();
-    bool CanPedHoldConversation();
-    void SayScript(int32 arg0, uint8 arg1, uint8 arg2, uint8 arg3);
-    int16 Say(uint16 phraseId, uint32 offset = 0, float arg2 = 1.0f, uint8 arg3 = 0, uint8 arg4 = 0, uint8 arg5 = 0);
+    bool CanPedHoldConversation() const;
+    void SayScript(eAudioEvents scriptID, bool overrideSilence, bool isForceAudible, bool isFrontEnd);
+    int16 Say(eGlobalSpeechContext gCtx, uint32 startTimeDelay = 0, float probability = 1.f, bool overrideSilence = false, bool isForceAudible = false, bool isFrontEnd = false);
     void RemoveBodyPart(ePedNode pedNode, char localDir);
     void SpawnFlyingComponent(int32 arg0, char arg1);
     uint8 DoesLOSBulletHitPed(CColPoint& colPoint);
@@ -567,6 +571,10 @@ public:
     bool IsInVehicle(const CVehicle* veh) const { return bInVehicle && m_pVehicle == veh; }
     int32 GetPadNumber() const;
     bool IsCurrentlyUnarmed() { return GetActiveWeapon().m_Type == WEAPON_UNARMED; }
+
+    auto&& GetAE(this auto&& self)    { return self.m_pedAudio; }
+    auto&& GetSpeechAE(this auto&& self) { return self.m_pedSpeech; }
+    auto&& GetWeaponAE(this auto&& self) { return self.m_weaponAudio; }
 
     /*!
      * @notsa

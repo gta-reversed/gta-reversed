@@ -164,8 +164,41 @@ void CCam::GetVectorsReadyForRW() {
 }
 
 // 0x513E40
-void CCam::Get_TwoPlayer_AimVector(CVector& out) {
-    assert(0);
+void CCam::Get_TwoPlayer_AimVector(CVector& out)
+{
+    plugin::Call<0x513E40>(&out);
+    /* not tested
+    // Determine which player to use based on driving status
+    CPlayerPed *player = FindPlayerPed(PED_TYPE_PLAYER1);
+    if (player && player->m_pVehicle && !player->m_pVehicle->IsDriver(player))
+        player = FindPlayerPed(PED_TYPE_PLAYER2);
+    
+    if (!player)
+        return;
+
+    const auto weaponInfo = player->GetActiveWeapon().GetWeaponInfo(player);
+    
+    // Find nearest target entity
+    const auto nearestTargetEntity = CWeapon::FindNearestTargetEntityWithScreenCoors(
+        this->m_fX_Targetting,
+        this->m_fY_Targetting,
+        2 * weaponInfo.m_fWeaponRange,
+        player->GetPosition(),
+        0,
+        0
+    );
+
+    if (nearestTargetEntity) {
+        out = nearestTargetEntity->GetPosition() - m_vecSource;
+    } else {
+        const auto right  = CrossProduct(m_vecFront, m_vecUp);
+        const auto tanFov = std::tan(m_fFOV * PI / 360.0f);
+
+        out = m_fX_Targetting * tanFov * right + m_vecFront - tanFov / CDraw::ms_fAspectRatio * m_vecUp;
+    }
+
+    out.Normalise();
+    */
 }
 
 // 0x517400
@@ -194,7 +227,7 @@ void CCam::RotCamIfInFrontCar(const CVector&, float) {
 }
 
 // 0x50A850
-bool CCam::Using3rdPersonMouseCam() {
+bool CCam::Using3rdPersonMouseCam() const {
     return CCamera::m_bUseMouse3rdPerson && m_nMode == MODE_FOLLOWPED;
 }
 

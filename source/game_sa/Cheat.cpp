@@ -398,7 +398,7 @@ void CCheat::EverybodyAttacksPlayerCheat() {
             ped->GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PED_TYPE_PLAYER1));
 
             CEventAcquaintancePedHate event(player);
-            event.m_taskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
+            event.m_TaskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
             ped->GetEventGroup().Add(&event, false);
         }
     }
@@ -565,7 +565,7 @@ void CCheat::MayhemCheat() {
             }
             if (CPed* closestPed = ped.GetIntelligence()->GetPedScanner().GetClosestPedInRange()) {
                 CEventAcquaintancePedHate event(closestPed);
-                event.m_taskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
+                event.m_TaskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
                 ped.GetEventGroup().Add(&event, false);
             }
         }
@@ -580,7 +580,7 @@ void CCheat::MayhemCheat() {
 
             if (CPed* closestPed = ped.GetIntelligence()->GetPedScanner().GetClosestPedInRange()) {
                 CEventAcquaintancePedHate event(closestPed);
-                event.m_taskId = TASK_NONE;
+                event.m_TaskId = TASK_NONE;
                 ped.GetEventGroup().Remove(&event);
             }
         }

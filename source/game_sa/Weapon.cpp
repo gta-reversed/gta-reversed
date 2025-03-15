@@ -183,7 +183,9 @@ bool CWeapon::GenerateDamageEvent(CPed* victim, CEntity* creator, eWeaponType we
         const auto floorHitAnim = CAnimManager::BlendAnimation(
             victim->m_pRwClump,
             ANIM_GROUP_DEFAULT,
-            RpAnimBlendClumpGetFirstAssociation(victim->m_pRwClump, ANIMATION_800) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT
+            RpAnimBlendClumpGetFirstAssociation(victim->m_pRwClump, ANIMATION_IS_FRONT)
+                ? ANIM_ID_FLOOR_HIT_F
+                : ANIM_ID_FLOOR_HIT
         );
         if (floorHitAnim) {
             floorHitAnim->SetFlag(ANIMATION_IS_FINISH_AUTO_REMOVE, false);
@@ -712,7 +714,7 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                                 ? -(incrementalHit * (int32)wi->m_nDamage)
                                 : (int32)wi->m_nDamage;
                         }(),
-                        (ePedPieceTypes)hitCP.m_nSurfaceTypeB,
+                        (ePedPieceTypes)hitCP.m_nPieceTypeB,
                         victimPed->GetLocalDirection(startPoint - victimPed->GetPosition2D())
                     );
                 }();
@@ -1027,7 +1029,7 @@ void CWeapon::Update(CPed* owner) {
     const auto ProcessReloadAudioIf = [&](auto Pred) {
         const auto ProcessOne = [&](uint32 delay, eAudioEvents ae) {
             if (Pred(delay, ae)) {
-                owner->m_weaponAudio.AddAudioEvent(ae);
+                owner->GetWeaponAE().AddAudioEvent(ae);
             }
         };
         ProcessOne(owner->bIsDucking ? ao->CrouchRLoadA : ao->RLoadA, AE_WEAPON_RELOAD_A);
@@ -1066,7 +1068,7 @@ void CWeapon::Update(CPed* owner) {
             if (wi->flags.bReload && (!owner->IsPlayer() || !FindPlayerInfo().m_bFastReload)) { // 0x73DCCE
                 auto animRLoad = RpAnimBlendClumpGetAssociation(
                     owner->m_pRwClump,
-                    ANIM_ID_RELOAD //(wi->m_nFlags & 0x1000) != 0 ? ANIM_ID_RELOAD : ANIM_ID_WALK // Always going to be `ANIM_ID_RELOAD`
+                    ANIM_ID_RELOAD //(wi->m_Flags & 0x1000) != 0 ? ANIM_ID_RELOAD : ANIM_ID_WALK // Always going to be `ANIM_ID_RELOAD`
                 );
                 if (!animRLoad) {
                     animRLoad = RpAnimBlendClumpGetAssociation(owner->m_pRwClump, wi->GetCrouchReloadAnimationID());
@@ -1362,7 +1364,7 @@ bool CWeapon::FireFromCar(CVehicle* vehicle, bool leftSide, bool rightSide) {
         return notsa::IsFixBugs() ? false : true;
     }
     if (const auto d = vehicle->m_pDriver) {
-        d->m_weaponAudio.AddAudioEvent(AE_WEAPON_FIRE);
+        d->GetWeaponAE().AddAudioEvent(AE_WEAPON_FIRE);
     }
     if (!CCheat::IsActive(CHEAT_INFINITE_AMMO)) {
         if (m_AmmoInClip) { // NOTE: I'm pretty sure this is redundant
@@ -1851,9 +1853,9 @@ bool CWeapon::Fire(CEntity* firedBy, CVector* startPosn, CVector* barrelPosn, CE
             if (m_Type != WEAPON_CAMERA) {
                 firedByPed->bFiringWeapon = true;
             }
-            firedByPed->m_weaponAudio.AddAudioEvent(AE_WEAPON_FIRE);
+            firedByPed->GetWeaponAE().AddAudioEvent(AE_WEAPON_FIRE);
             if (isPlayerFiring && targetEnt && targetEnt->IsPed() && m_Type != WEAPON_PISTOL_SILENCED) {
-                firedByPed->Say(182, 200); // 0x74280E
+                firedByPed->Say(CTX_GLOBAL_SHOOT, 200); // 0x74280E
             }
         }
 

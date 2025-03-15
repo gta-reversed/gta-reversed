@@ -112,7 +112,7 @@ CTask* CTaskComplexArrestPed::ControlSubTask(CPed* ped) {
         [this, ped] {
             if (m_PedToArrest && m_PedToArrest->IsPlayer()) {
                 if (FindPlayerWanted()->m_nCopsInPursuit == 1) {
-                    ped->Say(199);
+                    ped->Say(CTX_GLOBAL_SOLO);
                 }
             }
         }

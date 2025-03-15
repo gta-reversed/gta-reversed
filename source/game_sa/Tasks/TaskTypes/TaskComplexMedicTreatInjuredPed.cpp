@@ -190,7 +190,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask(CPed* ped) {
                 if (taskTreat->m_pAccident && taskTreat->m_pAccident->m_pPed) {
                     m_vecAccidentPosition = taskTreat->m_vecAccidentPosition;
                     if (DistanceBetweenPointsSquared(m_vecAccidentPosition, m_pVehicle->GetPosition()) < 100.0f) {
-                        ped->Say(231, 0, 1.0F);
+                        ped->Say(CTX_GLOBAL_VAN, 0, 1.0F);
                         return CreateSubTask(TASK_COMPLEX_LEAVE_CAR);
                     }
                 }
@@ -204,7 +204,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask(CPed* ped) {
                 return CreateSubTask(TASK_COMPLEX_CAR_DRIVE_WANDER);
 
             if (DistanceBetweenPointsSquared(m_vecAccidentPosition, m_pVehicle->GetPosition()) < 100.0f) {
-                ped->Say(231, 0, 1.0F);
+                ped->Say(CTX_GLOBAL_VAN, 0, 1.0F);
                 return CreateSubTask(TASK_COMPLEX_LEAVE_CAR);
             }
         }

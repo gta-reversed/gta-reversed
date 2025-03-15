@@ -225,32 +225,31 @@ void CAESoundManager::Service() {
     }
 
     // Play sounds that require that
-    for (auto i = 0, curSound = 0; i < m_nNumAvailableChannels; ++i, ++curSound) {
-        const auto uncancell = m_aChannelSoundUncancellable[i];
-        if (uncancell == -1)
+    for (auto i = 0, chN = 0; i < m_nNumAvailableChannels; ++i, ++chN) {
+        const auto soundN = m_aChannelSoundUncancellable[i];
+        if (soundN == -1) {
             continue;
+        }
 
-        while (m_aChannelSoundTable[curSound] != -1 && curSound < m_nNumAvailableChannels)
-            ++curSound;
+        while (m_aChannelSoundTable[chN] != -1 && ++chN < m_nNumAvailableChannels);
+        if (chN >= m_nNumAvailableChannels) {
+            continue; // TODO: Probably want to `break` here instead?
+        }
 
-        if (curSound >= m_nNumAvailableChannels)
-            continue;
+        m_aChannelSoundTable[chN] = soundN;
+        auto& sound               = m_aSounds[soundN];
+        sound.m_nHasStarted       = true;
 
-        m_aChannelSoundTable[curSound] = uncancell;
-        auto& sound = m_aSounds[uncancell];
-        sound.m_nHasStarted = 1;
-
-        auto freq = sound.GetRelativePlaybackFrequencyWithDoppler();
+        auto freq        = sound.GetRelativePlaybackFrequencyWithDoppler();
         auto slomoFactor = sound.GetSlowMoFrequencyScalingFactor();
 
         CAEAudioHardwarePlayFlags flags{};
         flags.CopyFromAESound(sound);
 
-        AEAudioHardware.PlaySound(m_nChannel, curSound, sound.m_nSoundIdInSlot, sound.m_nBankSlotId, sound.m_nCurrentPlayPosition, flags.m_nFlags, sound.m_fSpeed);
-        AEAudioHardware.SetChannelVolume(m_nChannel, curSound, sound.m_fFinalVolume, 0);
-
-        AEAudioHardware.SetChannelPosition(m_nChannel, curSound, sound.GetRelativePosition(), 0);
-        AEAudioHardware.SetChannelFrequencyScalingFactor(m_nChannel, curSound, freq * slomoFactor);
+        AEAudioHardware.PlaySound(m_nChannel, chN, sound.m_nSoundIdInSlot, sound.m_nBankSlotId, sound.m_nCurrentPlayPosition, flags.m_nFlags, sound.m_fSpeed);
+        AEAudioHardware.SetChannelVolume(m_nChannel, chN, sound.m_fFinalVolume, 0);
+        AEAudioHardware.SetChannelPosition(m_nChannel, chN, sound.GetRelativePosition(), 0);
+        AEAudioHardware.SetChannelFrequencyScalingFactor(m_nChannel, chN, freq * slomoFactor);
     }
 
     for (auto i = 0; i < m_nNumAvailableChannels; ++i) {
@@ -298,6 +297,33 @@ CAESound* CAESoundManager::RequestNewSound(CAESound* pSound) {
         AEAudioHardware.RequestVirtualChannelSoundInfo((uint16)sidx, s->m_nSoundIdInSlot, s->m_nBankSlotId);
     }
     return s;
+}
+
+CAESound* CAESoundManager::PlaySound(tSoundPlayParams p) {
+    if (p.RegisterWithEntity) {
+        p.Flags |= SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY;
+    }
+    CAESound s;
+    s.Initialise(
+        p.BankSlotID,
+        p.SoundID,
+        p.AudioEntity,
+        p.Pos,
+        p.Volume,
+        p.RollOffFactor,
+        p.Speed,
+        p.Doppler,
+        p.FrameDelay,
+        p.Flags,
+        p.FrequencyVariance,
+        p.PlayTime
+    );
+    s.m_nEvent = p.EventID;
+    s.m_ClientVariable = p.ClientVariable;
+    if (p.Flags & SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY) {
+        s.RegisterWithPhysicalEntity(p.RegisterWithEntity);
+    }
+    return RequestNewSound(&s);
 }
 
 // 0x4EF520

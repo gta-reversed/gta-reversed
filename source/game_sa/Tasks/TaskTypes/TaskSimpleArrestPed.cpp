@@ -97,7 +97,7 @@ void CTaskSimpleArrestPed::StartAnim(CPed* ped) {
     m_Assoc->SetDeleteCallback(FinishAnimArrestPedCB, this);
 
     if (m_Ped->IsPlayer()) {
-        ped->Say(13u, 0, 1.0f, 1, 1);
+        ped->Say(CTX_GLOBAL_ARREST, 0, 1.0f, 1, 1);
     }
 
     if (m_Ped->CanSetPedState()) {

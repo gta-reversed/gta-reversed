@@ -79,7 +79,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(ClearLook, 0x5E3FF0);
     RH_ScopedInstall(TurnBody, 0x5E4000);
     RH_ScopedInstall(IsPointerValid, 0x5E4220);
-    RH_ScopedInstall(GetBonePosition, 0x5E4280);
+    RH_ScopedOverloadedInstall(GetBonePosition, "Original", 0x5E4280, void(CPed::*)(CVector*, eBoneTag, bool));
     RH_ScopedInstall(PutOnGoggles, 0x5E3AE0);
     RH_ScopedInstall(ReplaceWeaponWhenExitingVehicle, 0x5E6490);
     RH_ScopedInstall(KillPedWithCar, 0x5F0360, { .reversed = false });
@@ -490,14 +490,15 @@ void CPed::SetMoveAnim() {
 * @addr 0x5D4640
  */
 bool CPed::Load() {
+    auto size = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
+
+    // TODO: Can't do `auto save = CGenericGameStorage::LoadDataFromWorkBuffer<CPedSaveStructure>()` dure to deleted copy constructor in CWanted which is used somehow inside.
+    // Would be nice if someone with more knowledge of templates and shit can fix that
     CPedSaveStructure save;
-    uint32 size{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&save, sizeof(save));
-
+    CGenericGameStorage::LoadDataFromWorkBuffer(save);
     assert(size == sizeof(save));
-    save.Extract(this);
 
+    save.Extract(this);
     return true;
 }
 
@@ -508,9 +509,8 @@ bool CPed::Save() {
     CPedSaveStructure save;
     save.Construct(this);
 
-    uint32 size{ sizeof(save) };
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::SaveDataToWorkBuffer(&save, sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(save);
 
     return true;
 }
@@ -649,7 +649,7 @@ void CPed::CreateDeadPedWeaponPickups() {
         // No. of ammo the pickups will contain
         const auto pickupAmmo{ std::min(wep.m_TotalAmmo, (uint32)AmmoForWeapon_OnStreet[(size_t)wep.m_Type] * 2) };
 
-        if (CPickups::TryToMerge_WeaponType(
+        if (!CPickups::TryToMerge_WeaponType(
             pickupPos,
             wep.m_Type,
             ePickupType::PICKUP_ONCE_TIMEOUT,
@@ -715,22 +715,22 @@ void CPed::SetMoveAnimSpeed(CAnimBlendAssociation* association) {
 * @addr 0x5DED10
 */
 void CPed::StopNonPartialAnims() {
-    for (auto assoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump); assoc; assoc = RpAnimBlendGetNextAssociation(assoc)) {
-        if ((assoc->m_Flags & ANIMATION_IS_PARTIAL) == 0) {
-            assoc->SetFlag(ANIMATION_IS_PLAYING, false);
+    RpAnimBlendClumpForEachAssociation(m_pRwClump, [](CAnimBlendAssociation* a) {
+        if (!(a->m_Flags & ANIMATION_IS_PARTIAL)) {
+            a->SetFlag(ANIMATION_IS_PLAYING, false);
         }
-    }
+    });
 }
 
 /*!
 * @addr 0x5DED50
 */
 void CPed::RestartNonPartialAnims() {
-    for (auto assoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump); assoc; assoc = RpAnimBlendGetNextAssociation(assoc)) {
-        if ((assoc->m_Flags & ANIMATION_IS_PARTIAL) == 0) {
-            assoc->SetFlag(ANIMATION_IS_PLAYING, true);
+    RpAnimBlendClumpForEachAssociation(m_pRwClump, [](CAnimBlendAssociation* a) {
+        if (!(a->m_Flags & ANIMATION_IS_PARTIAL)) {
+            a->SetFlag(ANIMATION_IS_PLAYING, true);
         }
-    }
+    });
 }
 
 /*!
@@ -2024,6 +2024,14 @@ CVector CPed::GetBonePosition(eBoneTag bone, bool updateSkinBones) {
     return GetPosition();
 }
 
+/*
+* @addr 0x5E4280
+* @brief Added for compatiblity reasons for hooking - use the version returning CVector where possible in code.
+*/
+void CPed::GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones) {
+    *outVec = CPed::GetBonePosition(bone, updateSkinBones);
+}
+
 /*!
 * @addr 0x5E01C0
 * @brief Transform \r inOutPos into the given \a bone's space
@@ -3118,27 +3126,25 @@ void CPed::EnablePedSpeechForScriptSpeech() {
 /*!
 * @addr 0x5EFFA0
 */
-bool CPed::CanPedHoldConversation() {
+bool CPed::CanPedHoldConversation() const {
     return m_pedSpeech.CanPedHoldConversation();
 }
 
 /*!
 * @addr 0x5EFFB0
 */
-void CPed::SayScript(int32 arg0, uint8 arg1, uint8 arg2, uint8 arg3) {
-    m_pedSpeech.AddScriptSayEvent(eAudioEvents::AE_SCRIPT_SPEECH_PED, arg0, arg1, arg2, arg3);
+void CPed::SayScript(eAudioEvents scriptID, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    m_pedSpeech.AddScriptSayEvent(AE_SCRIPT_SPEECH_PED, scriptID, overrideSilence, isForceAudible, isFrontEnd);
 }
 
 /*!
 * @addr 0x5EFFE0
 * @returns Played soundID - TODO: I'm not sure about this..
 */
-int16 CPed::Say(uint16 phraseId, uint32 offset, float arg2, uint8 arg3, uint8 arg4, uint8 arg5) {
-    if (phraseId) {
-        return m_pedSpeech.AddSayEvent(eAudioEvents::AE_SPEECH_PED, phraseId, offset, arg2, arg3, arg4, arg5);
-    } else {
-        return -1;
-    }
+int16 CPed::Say(eGlobalSpeechContext gCtx, uint32 startTimeDelay, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    return gCtx != CTX_GLOBAL_NO_SPEECH
+        ? m_pedSpeech.AddSayEvent(AE_SPEECH_PED, gCtx, startTimeDelay, probability, overrideSilence, isForceAudible, isFrontEnd)
+        : -1;
 }
 
 /*!
@@ -3678,25 +3684,25 @@ bool CPed::IsPedStandingInPlace() const {
 }
 
 // 0x6497A0
-bool SayJacked(CPed* jacked, CVehicle* vehicle, uint32 offset) {
+bool SayJacked(CPed* jacked, CVehicle* vehicle, uint32 timeDelay) {
     if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio())
-        return jacked->Say(119u, offset) != -1;
+        return jacked->Say(CTX_GLOBAL_JACKED_GENERIC, timeDelay) != -1;
     else
-        return jacked->Say(118u, offset) != -1;
+        return jacked->Say(CTX_GLOBAL_JACKED_CAR, timeDelay) != -1;
 }
 
 // 0x6497F0
-bool SayJacking(CPed* jacker, CPed* jacked, CVehicle* vehicle, uint32 offset) {
+bool SayJacking(CPed* jacker, CPed* jacked, CVehicle* vehicle, uint32 timeDelay) {
     if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio() == 1)
-        return jacker->Say(121u, offset) != -1;
+        return jacker->Say(CTX_GLOBAL_JACKING_BIKE, timeDelay) != -1;
 
     if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio())
-        return jacker->Say(124u, offset) != -1;
+        return jacker->Say(CTX_GLOBAL_JACKING_GENERIC, timeDelay) != -1;
 
-    if (jacked->m_pedSpeech.IsPedFemaleForAudio())
-        return jacker->Say(122u, offset) != -1;
+    if (jacked->GetSpeechAE().IsPedFemaleForAudio())
+        return jacker->Say(CTX_GLOBAL_JACKING_CAR_FEM, timeDelay) != -1;
 
-    return jacker->Say(123u, offset) != -1;
+    return jacker->Say(CTX_GLOBAL_JACKING_CAR_MALE, timeDelay) != -1;
 }
 
 // NOTSA

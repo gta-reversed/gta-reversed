@@ -46,16 +46,16 @@ CTaskComplexUseSwatRope::CTaskComplexUseSwatRope(uint32 ropeId) : CTaskComplex()
 
 // 0x65A3C0
 CTaskComplexUseSwatRope::~CTaskComplexUseSwatRope() {
-    if (m_bIsOnHeli)
-        m_pHeli->CleanUpOldReference(reinterpret_cast<CEntity**>(&m_pHeli));
+    if (m_bIsOnHeli) {
+        CEntity::SafeCleanUpRef(m_pHeli);
+    }
 }
 
 // 0x659C30
 CTask* CTaskComplexUseSwatRope::Clone() const {
-    if (m_bIsOnHeli)
-        return new CTaskComplexUseSwatRope(m_nRopeId, m_pHeli);
-    else
-        return new CTaskComplexUseSwatRope(m_nRopeId);
+    return m_bIsOnHeli
+        ? new CTaskComplexUseSwatRope(m_nRopeId, m_pHeli)
+        : new CTaskComplexUseSwatRope(m_nRopeId);
 }
 
 // 0x659530
@@ -131,7 +131,7 @@ CTask* CTaskComplexUseSwatRope::ControlSubTask(CPed* ped) {
             ped->SetPosn(posn);
             ped->m_fAimingRotation = ped->m_fCurrentRotation - CTimer::GetTimeStep() * 0.05F;
             ped->m_vecMoveSpeed.z = -0.03f;
-            ped->Say(177);
+            ped->Say(CTX_GLOBAL_ROPE);
         }
     }
 

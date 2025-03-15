@@ -22,27 +22,29 @@ CPlantColEntEntry* CPlantColEntEntry::AddEntry(CEntity* entity) {
         return nullptr;
     }
     m_numTriangles = cd->m_nNumTriangles;
-    m_Objects = (CPlantLocTri**)CMemoryMgr::Calloc(m_numTriangles, sizeof(CPlantLocTri*)); // originally Malloc zeroed afterwards
+    m_Objects = (CPlantLocTri**)CMemoryMgr::Malloc(m_numTriangles * sizeof(CPlantLocTri*));
+    for (int i = 0; i < m_numTriangles; i++)
+        m_Objects[i] = nullptr;
 
-    if (auto prev = m_PrevEntry) {
-        if (auto next = m_NextEntry) {
+    if (auto* prev = m_PrevEntry) {
+        if (auto* next = m_NextEntry) {
             next->m_PrevEntry = prev;
             prev->m_NextEntry = next;
         } else {
-            prev->m_NextEntry = next;
+            prev->m_NextEntry = nullptr;
         }
     } else {
-        if (CPlantMgr::m_UnusedColEntListHead = m_NextEntry) {
-            CPlantMgr::m_UnusedColEntListHead->m_PrevEntry = nullptr;
+        CPlantMgr::m_UnusedColEntListHead = m_NextEntry;
+        if (m_NextEntry) {
+            m_NextEntry->m_PrevEntry = nullptr;
         }
     }
     m_NextEntry = CPlantMgr::m_CloseColEntListHead;
     m_PrevEntry = nullptr;
-    CPlantMgr::m_CloseColEntListHead = nullptr;
+    CPlantMgr::m_CloseColEntListHead = this;
 
-    if (auto next = m_NextEntry) {
-        next->m_PrevEntry = this;
-    }
+    if (m_NextEntry)
+        m_NextEntry->m_PrevEntry = this;
 
     return this;
 }
@@ -78,7 +80,8 @@ void CPlantColEntEntry::ReleaseEntry() {
     }
     m_NextEntry = CPlantMgr::m_UnusedColEntListHead;
     m_PrevEntry = nullptr;
-    if (auto next = m_NextEntry) {
-        next->m_PrevEntry = this;
+    CPlantMgr::m_UnusedColEntListHead = this;
+    if (m_NextEntry) {
+        m_NextEntry->m_PrevEntry = this;
     }
 }
