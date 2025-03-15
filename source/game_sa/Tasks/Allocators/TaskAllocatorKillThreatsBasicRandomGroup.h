@@ -2,7 +2,7 @@
 
 #include "TaskAllocatorKillThreatsBasic.h"
 
-class CTaskAllocatorKillThreatsBasicRandomGroup final : public CTaskAllocatorKillThreatsBasic {
+class NOTSA_EXPORT_VTABLE CTaskAllocatorKillThreatsBasicRandomGroup final : public CTaskAllocatorKillThreatsBasic {
 public:
     constexpr static inline auto Type = eTaskAllocatorType::KILL_THREATS_BASIC_RANDOM_GROUP;
 

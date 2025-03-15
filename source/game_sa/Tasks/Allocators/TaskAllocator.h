@@ -8,12 +8,12 @@ enum class eTaskAllocatorType : int32 {
     NONE                            = 0,  // 0x0
     ATTACK                          = 1,  // 0x1
     RETREAT                         = 2,  // 0x2
-    COVER_SEEK                      = 3,  // 0x3
+    COVER_SEEK                      = 3,  // 0x3 - Unused?
     KILL_ON_FOOT                    = 4,  // 0x4
-    KILL_ON_FOOT_USING_COVER        = 5,  // 0x5
+    KILL_ON_FOOT_USING_COVER        = 5,  // 0x5 - Unused?
     PLAYER_COMMAND_ATTACK           = 6,  // 0x6
     PLAYER_COMMAND_RETREAT          = 7,  // 0x7
-    ADVANCE_IN_FORMATION            = 8,  // 0x8
+    ADVANCE_IN_FORMATION            = 8,  // 0x8 - Unused?
     KILL_THREATS_BASIC              = 9,  // 0x9
     KILL_THREATS_BASIC_RANDOM_GROUP = 10, // 0xA
     KILL_THREATS_DRIVEBY            = 11, // 0xB

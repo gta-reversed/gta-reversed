@@ -3,7 +3,7 @@
 #include "TaskAllocator.h"
 
 // Android
-class NOTSA_EXPORT_VTABLE CTaskAllocatorPlayerCommandRetreat : public CTaskAllocator {
+class NOTSA_EXPORT_VTABLE CTaskAllocatorPlayerCommandRetreat final : public CTaskAllocator {
 public:
     constexpr static inline auto Type = eTaskAllocatorType::PLAYER_COMMAND_RETREAT;
 
