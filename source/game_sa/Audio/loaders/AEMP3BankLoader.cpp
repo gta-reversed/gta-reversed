@@ -279,9 +279,6 @@ void CAEMP3BankLoader::Service() {
                 req.SlotInfo->Bank      = SND_BANK_UNK;
                 req.SlotInfo->NumSounds = -1;
                 
-                // Fix the offset calculation to properly point to the sound data
-                // The original offset points to the start of the bank file
-                // We need to add the offset of the specific sound data within the bank
                 const auto soundOffsetInBank = req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes;
                 req.BankOffsetBytes = req.BankOffsetBytes + soundOffsetInBank;
 
