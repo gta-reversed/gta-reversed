@@ -381,7 +381,7 @@ void CCutsceneMgr::LoadCutsceneData_loading() {
             const auto objIdx = csfx.m_nObjectId;
 
             // If not a cutscene object we don't have an object matrix - i'm not quite sure how this works, but okay.
-            if (objIdx < 0 || objIdx >= ms_numCutsceneObjs + 1) { // TODO: Bug? Pretty sure the +1 is erronous...
+            if (objIdx < 0 || objIdx >= ms_numCutsceneObjs + 1) { // TODO: Bug? Pretty sure the +1 is erroneous...
                 return nullptr;
             }
 

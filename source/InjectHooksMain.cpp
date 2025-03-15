@@ -173,6 +173,22 @@
 #include "PPTriPlantBuffer.h"
 #include "PlantSurfPropMgr.h"
 
+// Task ped group default allocators
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorFollowAnyMeans.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorFollowLimited.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorStandStill.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorChat.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorSitInLeaderCar.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorRandom.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocators.h>
+
+#include <Tasks/Allocators/TaskAllocatorKillThreatsBasic.h>
+#include <Tasks/Allocators/TaskAllocatorKillThreatsDriveby.h>
+#include <Tasks/Allocators/TaskAllocatorKillThreatsBasicRandomGroup.h>
+#include <Tasks/Allocators/TaskAllocatorKillOnFoot.h>
+#include <Tasks/Allocators/TaskAllocatorAttack.h>
+#include <Tasks/Allocators/TaskAllocatorPlayerCommandAttack.h>
+
 // Tasks
 #include "TaskComplexSitDownThenIdleThenStandUp.h"
 #include "TaskComplexLeaveCarAsPassengerWait.h"
@@ -503,6 +519,7 @@ void InjectHooksMain() {
     HookInstall(0x541DD0, CPad::UpdatePads); // [ImGui] Changes logic of the function and shouldn't be toggled on/off
     HookInstall(0x459F70, CVehicleRecording::Render); // [ImGui] Debug stuff rendering
 
+    CFormation::InjectHooks();
     CHandShaker::InjectHooks();
     CCutsceneMgr::InjectHooks();
     CFileMgr::InjectHooks();
@@ -865,6 +882,28 @@ void InjectHooksMain() {
     Plant();
 
     const auto Tasks = []() {
+        const auto Allocators = [] {
+            const auto PedGroup = [] {
+                CPedGroupDefaultTaskAllocatorFollowAnyMeans::InjectHooks();
+                CPedGroupDefaultTaskAllocatorFollowLimited::InjectHooks();
+                CPedGroupDefaultTaskAllocatorStandStill::InjectHooks();
+                CPedGroupDefaultTaskAllocatorChat::InjectHooks();
+                CPedGroupDefaultTaskAllocatorSitInLeaderCar::InjectHooks();
+                CPedGroupDefaultTaskAllocatorRandom::InjectHooks();
+                CPedGroupDefaultTaskAllocators::InjectHooks();
+            };
+            PedGroup();
+
+            CTaskAllocator::InjectHooks();
+            CTaskAllocatorKillThreatsBasic::InjectHooks();
+            CTaskAllocatorKillThreatsDriveby::InjectHooks();
+            CTaskAllocatorKillThreatsBasicRandomGroup::InjectHooks();
+            CTaskAllocatorKillOnFoot::InjectHooks();
+            CTaskAllocatorAttack::InjectHooks();
+            CTaskAllocatorPlayerCommandAttack::InjectHooks();
+        };
+        Allocators();
+
         const auto Interior = [] {
             CTaskInteriorBeInHouse::InjectHooks();
             CTaskInteriorBeInOffice::InjectHooks();

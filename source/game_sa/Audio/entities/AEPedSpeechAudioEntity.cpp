@@ -481,10 +481,10 @@ eCJMood CAEPedSpeechAudioEntity::GetCurrentCJMood() {
             return false;
         case 1: { // Exactly one
             const auto& mem = plyrGrp.GetMembership().GetMembers().front(); // The one-and-only member (This isnt the same as `GetMember(0)`!!!)
-            if (mem.m_nPedType == PED_TYPE_GANG2) {
+            if (mem->m_nPedType == PED_TYPE_GANG2) {
                 return true;
             }
-            auto& memSpeech = mem.GetSpeechAE();
+            auto& memSpeech = mem->GetSpeechAE();
             return memSpeech.m_PedAudioType == PED_TYPE_GANG
                 && notsa::contains({ VOICE_GNG_RYDER, VOICE_GNG_SWEET, VOICE_GNG_SMOKE }, (eGngSpeechVoices)memSpeech.m_VoiceID);
         }
