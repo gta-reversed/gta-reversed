@@ -13,7 +13,7 @@ public:
     // are there any obstacles between sun and camera
     static inline auto& SunBlockedByClouds = StaticRef<bool, 0xC3E030>();
     // change coronas brightness immediately
-    static bool& bChangeBrightnessImmediately;
+    static uint8& bChangeBrightnessImmediately;
     // num of registered coronas in frame
     static uint32& NumCoronas;
     // coronas intensity multiplier
@@ -69,6 +69,8 @@ public:
 
     static void UpdateCoronaCoors(uint32 id, const CVector& posn, float farClip, float angle);
     static void DoSunAndMoon();
+    // NOTSA
+    static CRegisteredCorona* GetCoronaByID(int32 id);
 };
 
 extern uint32 MAX_CORONAS;
