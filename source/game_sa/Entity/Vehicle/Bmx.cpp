@@ -9,6 +9,7 @@ void CBmx::InjectHooks() {
     RH_ScopedVMTInstall(BurstTyre, 0x6BF9C0);
     RH_ScopedVMTInstall(FindWheelWidth, 0x6C0550);
     RH_ScopedVMTInstall(ProcessControl, 0x6BFA30);
+    RH_ScopedVMTInstall(ProcessDrivingAnims, 0x6BFB50, {.reversed = false});
 }
 
 // 0x6BF820
@@ -77,7 +78,7 @@ void CBmx::ProcessControl() {
 
     CBike::ProcessControl();
 
-    if (!m_bWasPostponed || m_nStatus != eEntityStatus::STATUS_PLAYER || !m_pDriver) {
+    if (m_bWasPostponed || m_nStatus != STATUS_PLAYER || !m_pDriver) {
         return;
     }
 
@@ -87,12 +88,11 @@ void CBmx::ProcessControl() {
     if (anim && anim->GetBlendAmount() > 0.01f) {
         float mult = isMountainBike ? MTB_SPRINT_LEANMULT : BMX_SPRINT_LEANMULT;
         m_fSprintLeanAngle = std::sin(anim->GetCurrentTime() / anim->GetHier()->GetTotalTime() * TWO_PI + BMX_SPRINT_LEANSTART) * anim->GetBlendAmount() * mult;
-    }
-    else {
+    } else {
         anim = RpAnimBlendClumpGetAssociation(m_pDriver->m_pRwClump, ANIM_ID_BIKE_PEDAL);
         if (anim && anim->GetBlendAmount() > 0.01f) {
             float mult = isMountainBike ? MTB_PEDAL_LEANMULT : BMX_PEDAL_LEANMULT;
-            m_RideAnimData.m_fAnimLean += std::sin(anim->GetCurrentTime() / anim->GetHier()->GetTotalTime() * TWO_PI + BMX_PEDAL_LEANSTART) * anim->GetBlendAmount() * mult;
+            GetRideAnimData()->m_fAnimLean += std::sin(anim->GetCurrentTime() / anim->GetHier()->GetTotalTime() * TWO_PI + BMX_PEDAL_LEANSTART) * anim->GetBlendAmount() * mult;
         }
         m_fSprintLeanAngle *= 0.95f;
     }
