@@ -22,7 +22,7 @@ void CTaskAllocatorKillThreatsDriveby::AllocateTasks(CPedGroupIntelligence* inte
     }
 
     auto* const group = &intel->GetPedGroup();
-    if (auto* const tPrimaryBeInGroup = CTask::Cast<CTaskComplexBeInGroup>(m_Threat->GetTaskManager().FindTaskByType(TASK_PRIMARY_PRIMARY, TASK_COMPLEX_BE_IN_GROUP))) {
+    if (auto* const tPrimaryBeInGroup = notsa::cast_if_present<CTaskComplexBeInGroup>(m_Threat->GetTaskManager().FindTaskByType(TASK_PRIMARY_PRIMARY, TASK_COMPLEX_BE_IN_GROUP))) {
         const auto threatGroup = &tPrimaryBeInGroup->GetGroup();
         if (group == threatGroup) { // 0x69CCB2
             NOTSA_LOG_DEBUG("ComputeKillThreatsDriveby() - threat ped already in group"); // vanilla

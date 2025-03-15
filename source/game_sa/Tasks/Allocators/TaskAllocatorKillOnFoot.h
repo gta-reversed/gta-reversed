@@ -4,6 +4,8 @@
 
 class NOTSA_EXPORT_VTABLE CTaskAllocatorKillOnFoot : public CTaskAllocator {
 public:
+    constexpr static inline auto Type = TASK_ALLOCATOR_KILL_ON_FOOT;
+
     static void InjectHooks();
 
 public:

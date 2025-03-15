@@ -5,6 +5,8 @@
 
 class NOTSA_EXPORT_VTABLE CTaskAllocatorPlayerCommandAttack final : public CTaskAllocatorAttack {
 public:
+    constexpr static inline auto Type = eTaskAllocatorType::TASK_ALLOCATOR_PLAYER_COMMAND_ATTACK;
+
     static void InjectHooks();
 
     CTaskAllocatorPlayerCommandAttack(CPed* target, int32 groupTargetID, ePedType pedTypeToAttack);

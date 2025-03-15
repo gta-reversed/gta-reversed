@@ -4,6 +4,8 @@
 
 class NOTSA_EXPORT_VTABLE CTaskAllocatorKillThreatsBasic : public CTaskAllocator {
 public:
+    constexpr static inline auto Type = eTaskAllocatorType::TASK_ALLOCATOR_KILL_THREATS_BASIC;
+
     static void InjectHooks();
 
     explicit CTaskAllocatorKillThreatsBasic(CPed* threat);

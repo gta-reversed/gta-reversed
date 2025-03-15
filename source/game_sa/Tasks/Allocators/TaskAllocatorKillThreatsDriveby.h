@@ -6,6 +6,8 @@
 // but they share a few things, so why not
 class NOTSA_EXPORT_VTABLE CTaskAllocatorKillThreatsDriveby final : public CTaskAllocatorKillThreatsBasic {
 public:
+    constexpr static inline auto Type = eTaskAllocatorType::TASK_ALLOCATOR_KILL_THREATS_DRIVEBY;
+
     static void InjectHooks();
 
     using CTaskAllocatorKillThreatsBasic::CTaskAllocatorKillThreatsBasic;

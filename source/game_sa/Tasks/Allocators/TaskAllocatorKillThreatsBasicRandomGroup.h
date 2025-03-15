@@ -4,6 +4,8 @@
 
 class CTaskAllocatorKillThreatsBasicRandomGroup final : public CTaskAllocatorKillThreatsBasic {
 public:
+    constexpr static inline auto Type = eTaskAllocatorType::TASK_ALLOCATOR_KILL_THREATS_BASIC_RANDOM_GROUP;
+
     static void InjectHooks();
 
     using CTaskAllocatorKillThreatsBasic::CTaskAllocatorKillThreatsBasic;

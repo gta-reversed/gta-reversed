@@ -478,9 +478,9 @@ CTaskAllocator* CGroupEventHandler::ComputeMemberResponses(const CEventEditableR
         }
         if (clone->HasEditableResponse()) {
             clone->m_TaskId = TASK_NONE;
-            clone->ComputeResponseTaskType(&m, true);
-        } else if (const auto rt = std::unique_ptr<CTask>(CEventHandler::ComputeEventResponseTask(m, *clone))) {
-            pg->GetIntelligence().SetEventResponseTask(&m, *rt);
+            clone->ComputeResponseTaskType(m, true);
+        } else if (const auto rt = std::unique_ptr<CTask>(CEventHandler::ComputeEventResponseTask(*m, *clone))) {
+            pg->GetIntelligence().SetEventResponseTask(m, *rt);
         }
     }
     return nullptr;

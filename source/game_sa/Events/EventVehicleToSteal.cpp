@@ -28,12 +28,9 @@ CEventVehicleToSteal* CEventVehicleToSteal::Constructor(CVehicle* vehicle) {
 // 0x4AF760
 bool CEventVehicleToSteal::AffectsPed(CPed* ped) {
     if (ped->IsAlive() && m_vehicle) {
-        auto enterCarAsDriverTask = CTask::Cast<CTaskComplexEnterCarAsDriver>(FindPlayerPed()->GetTaskManager().FindTaskByType(
-            TASK_PRIMARY_PRIMARY, TASK_COMPLEX_ENTER_CAR_AS_DRIVER
-        ));
-        if (!enterCarAsDriverTask || !enterCarAsDriverTask->GetTargetCar()) {
-            if (m_vehicle == FindPlayerPed()->m_pVehicle
-                && (CTheScripts::IsPlayerOnAMission() || CPad::GetPad(0)->bPlayerSafe)) {
+        auto tEnterCarAsDriver = notsa::cast_if_present<CTaskComplexEnterCarAsDriver>(FindPlayerPed()->GetTaskManager().FindTaskByType(TASK_PRIMARY_PRIMARY, TASK_COMPLEX_ENTER_CAR_AS_DRIVER));
+        if (!tEnterCarAsDriver || !tEnterCarAsDriver->GetTargetCar()) {
+            if (m_vehicle == FindPlayerPed()->m_pVehicle && (CTheScripts::IsPlayerOnAMission() || CPad::GetPad(0)->bPlayerSafe)) {
                 return false;
             }
             return ped->m_nPedType == PED_TYPE_CRIMINAL && ped->m_pVehicle != m_vehicle

@@ -5,6 +5,8 @@
 
 class NOTSA_EXPORT_VTABLE CTaskAllocatorAttack : public CTaskAllocator {
 public:
+    constexpr static inline auto Type = TASK_ALLOCATOR_ATTACK;
+
     static void InjectHooks();
 
     CTaskAllocatorAttack(CPed* target, int32 groupTargetID, CPed* originator);
