@@ -12,7 +12,7 @@ public:
     float        m_fSteerAngle{};
     float        m_fAnimLean{};
     int32        dwordC{};
-    float        dword10{};
+    float        m_fLeanFwd{};
     float        m_fHandlebarsAngle{};
     float        m_fAnimPercentageState{};
 
