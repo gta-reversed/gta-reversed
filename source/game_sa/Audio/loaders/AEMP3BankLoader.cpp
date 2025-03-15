@@ -220,7 +220,7 @@ void CAEMP3BankLoader::Service() {
         };
 
         switch (req.Status) {
-        case eSoundRequestStatus::REQUESTED: {
+        case eSoundRequestStatus::REQUESTED: { // 0x4E0117
             if (CdStreamGetStatus(m_StreamingChannel) != eCdStreamStatus::READING_SUCCESS) {
                 continue;
             }
@@ -239,7 +239,7 @@ void CAEMP3BankLoader::Service() {
             req.Status = eSoundRequestStatus::PENDING_READ;
             break;
         }
-        case eSoundRequestStatus::PENDING_READ: {
+        case eSoundRequestStatus::PENDING_READ: { // 0x4DFF58
             if (CdStreamGetStatus(m_StreamingChannel) != eCdStreamStatus::READING_SUCCESS) {
                 continue;
             }
@@ -282,30 +282,45 @@ void CAEMP3BankLoader::Service() {
                 const auto soundOffsetInBank = req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes;
                 req.BankOffsetBytes = req.BankOffsetBytes + soundOffsetInBank;
 
-                // Calculate bank size
+                // 0x4E006F - Calculate bank size
                 const auto nextOrEnd = req.SoundID + 1 >= req.StreamDataPtr->NumSounds
                     ? GetBankLookup(req.Bank).NumBytes                       // If no more sounds we use the end of bank
                     : req.StreamDataPtr->Sounds[req.SoundID + 1].BankOffsetBytes; // Otherwise use next sound's offset
                 req.BankNumBytes = nextOrEnd - soundOffsetInBank;
-
+                
+                // 0x4E00BA
                 CMemoryMgr::Free(req.StreamBufPtr);
-
+                
+                // 0x4E00C7
                 const auto offset = req.BankOffsetBytes / STREAMING_SECTOR_SIZE;
                 const auto sectors = (req.BankNumBytes + (req.BankOffsetBytes % STREAMING_SECTOR_SIZE) + STREAMING_SECTOR_SIZE - 1) / STREAMING_SECTOR_SIZE;
                 AllocateStreamBuffer(sectors);
 
-                CdStreamRead( // 0x4E00FB
+                // 0x4E00FB
+                CdStreamRead(
                     m_StreamingChannel,
                     req.StreamBufPtr,
-                    { .Offset = offset, .FileID = CdStreamHandleToFileID(m_StreamHandles[req.PakFileNo]) },
-                    sectors
+                    { .Offset = offset, .FileID = CdStreamHandleToFileID(m_StreamHandles[req.PakFileNo]) }, sectors
                 );
+                
+                /*
+                // 0x4E00C7
+                const auto readSize = req.BankNumBytes / STREAMING_SECTOR_SIZE;
+                AllocateStreamBuffer(readSize);
+
+                // 0x4E00FB
+                CdStreamRead(
+                    m_StreamingChannel,
+                    req.StreamBufPtr,
+                    { .Offset = req.BankOffsetBytes / STREAMING_SECTOR_SIZE, .FileID = CdStreamHandleToFileID(m_StreamHandles[req.PakFileNo]) },
+                    readSize
+                );*/
 
                 req.Status = eSoundRequestStatus::PENDING_LOAD_ONE_SOUND;
             }
             break;
         }
-        case eSoundRequestStatus::PENDING_LOAD_ONE_SOUND: {
+        case eSoundRequestStatus::PENDING_LOAD_ONE_SOUND: { // 0x4DFE92
             if (CdStreamGetStatus(m_StreamingChannel) != eCdStreamStatus::READING_SUCCESS || req.SoundID == -1) {
                 continue;
             }
