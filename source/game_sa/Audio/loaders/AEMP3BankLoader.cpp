@@ -278,18 +278,20 @@ void CAEMP3BankLoader::Service() {
                 VERIFY(req.SlotInfo == &m_BankSlots[req.Slot]);
                 req.SlotInfo->Bank      = SND_BANK_UNK;
                 req.SlotInfo->NumSounds = -1;
-                req.BankOffsetBytes    += req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes + sizeof(AEAudioStream);
+                
+                const auto soundOffsetInBank = req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes;
+                req.BankOffsetBytes = req.BankOffsetBytes + soundOffsetInBank;
 
                 // Calculate bank size
                 const auto nextOrEnd = req.SoundID + 1 >= req.StreamDataPtr->NumSounds
                     ? GetBankLookup(req.Bank).NumBytes                       // If no more sounds we use the end of bank
                     : req.StreamDataPtr->Sounds[req.SoundID + 1].BankOffsetBytes; // Otherwise use next sound's offset
-                req.BankNumBytes = nextOrEnd - req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes;
+                req.BankNumBytes = nextOrEnd - soundOffsetInBank;
 
                 CMemoryMgr::Free(req.StreamBufPtr);
 
                 const auto offset = req.BankOffsetBytes / STREAMING_SECTOR_SIZE;
-                const auto sectors = offset + 2;
+                const auto sectors = (req.BankNumBytes + (req.BankOffsetBytes % STREAMING_SECTOR_SIZE) + STREAMING_SECTOR_SIZE - 1) / STREAMING_SECTOR_SIZE;
                 AllocateStreamBuffer(sectors);
 
                 CdStreamRead( // 0x4E00FB
