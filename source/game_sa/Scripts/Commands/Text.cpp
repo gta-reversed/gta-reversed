@@ -77,10 +77,10 @@ void I_DisplayText(CVector2D pos, const char* gxtKey, int32 p1, int32 p2) {
     assert(CTheScripts::UseTextCommands != CTheScripts::eUseTextCommandState::DISABLED);
 
     auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame++];
-    line->m_Pos      = pos;
-    line->param1     = p1;
-    line->param2     = p2;
-    strcpy_s(line->m_szGxtEntry, gxtKey);
+    line->Pos      = pos;
+    line->NumberToInsert1     = p1;
+    line->NumberToInsert2     = p2;
+    strcpy_s(line->GXTKey, gxtKey);
 }
 
 // COMMAND_DISPLAY_TEXT - 0x481A0C
@@ -262,96 +262,94 @@ void ClearThisBigPrint(const char* key) {
 }
 
 // COMMAND_SET_TEXT_SCALE - 0x481AB2
-void SetTextScale(float w, float h) {
-    auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_fLetterWidth  = w;
-    line->m_fLetterHeight = h;
+void SetTextScale(float x, float y) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->Scale.x    = x;
+    line->Scale.y    = y;
 }
 
 // COMMAND_SET_TEXT_COLOUR - 0x481B10
 void SetTextColour(uint8 r, uint8 b, uint8 g, uint8 a) {
-    auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_Color = CRGBA{ r, g, b, a };
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->Color      = CRGBA{ r, g, b, a };
 }
 
 // COMMAND_SET_TEXT_JUSTIFY - 0x481B4B
 void SetTextJustify(bool enabled) {
     auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_bJustify = enabled;
+    line->Justify    = enabled;
 }
 
 // COMMAND_SET_TEXT_CENTRE - 0x481B88
 void SetTextCentre(bool enabled) {
     auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_bCentered = enabled;
+    line->IsCentered = enabled;
 }
 
 // COMMAND_SET_TEXT_WRAPX - 0x481BC5
 void SetTextWrapx(float wrap) {
     auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_fLineHeight = wrap;
+    line->WrapX      = wrap;
 }
 
 // COMMAND_SET_TEXT_CENTRE_SIZE - 0x481BE9
 void SetTextCentreSize(float width) {
     auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_fLineWidth = width;
+    line->CentreSize = width;
 }
 
 // COMMAND_SET_TEXT_BACKGROUND - 0x481C17
 void SetTextBackground(bool enabled) {
     auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_bWithBackground = enabled;
+    line->HasBg      = enabled;
 }
 
 // COMMAND_SET_TEXT_BACKGROUND_COLOUR
 void SetTextBackgroundColour() {
     auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-
 }
 
 // COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT
 void SetTextBackgroundOnlyText() {
     auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-
 }
 
 // COMMAND_SET_TEXT_PROPORTIONAL - 0x481C49
 void SetTextProportional(bool enabled) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_bProportional = enabled;
+    auto* const line     = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->IsProportional = enabled;
 }
 
 // COMMAND_SET_TEXT_FONT - 0x481C86
 void SetTextFont(eFontStyle font) {
     auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_nFont = font;
+    line->FontStyle  = font;
 }
 
 // COMMAND_SET_TEXT_DRAW_BEFORE_FADE - 0x485536
 void SetTextDrawBeforeFade(bool enabled) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_bDrawBeforeFade = enabled;
+    auto* const line       = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->IsDrawBeforeFade = enabled;
 }
 
 // COMMAND_SET_TEXT_RIGHT_JUSTIFY - 0x4855BA
 void SetTextRightJustify(bool enabled) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_bRightJustify = enabled;
+    auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->HasRightJustify = enabled;
 }
 
 // COMMAND_SET_TEXT_DROPSHADOW - 0x491579
 void SetTextDropshadow(int32 shadowType, uint8 r, uint8 g, uint8 b, uint8 a) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_BackgroundColor = CRGBA{ r, g, b, a };
-    line->m_nShadowType = shadowType;
+    auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->DropShadowColor = CRGBA{ r, g, b, a };
+    line->DropShadow      = shadowType;
 }
 
 // COMMAND_SET_TEXT_EDGE - 0x473DD5
 void SetTextEdge(int32 outlineType, uint8 r, uint8 g, uint8 b, uint8 a) {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-    line->m_BackgroundColor = CRGBA{ r, g, b, a };
-    line->m_nOutlineType = outlineType;
+    auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->DropShadowColor = CRGBA{ r, g, b, a };
+    line->TextEdge        = outlineType;
 }
 
 // COMMAND_LOAD_MISSION_TEXT - 0x48D590
