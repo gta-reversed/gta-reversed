@@ -261,94 +261,112 @@ void ClearThisBigPrint(const char* key) {
     CMessages::ClearThisBigPrint(TheText.Get(key));
 }
 
-// COMMAND_SET_TEXT_SCALE
-void SetTextScale() {
-
+// COMMAND_SET_TEXT_SCALE - 0x481AB2
+void SetTextScale(float w, float h) {
+    auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_fLetterWidth  = w;
+    line->m_fLetterHeight = h;
 }
 
-// COMMAND_SET_TEXT_COLOUR
-void SetTextColour() {
-
+// COMMAND_SET_TEXT_COLOUR - 0x481B10
+void SetTextColour(uint8 r, uint8 b, uint8 g, uint8 a) {
+    auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_Color = CRGBA{ r, g, b, a };
 }
 
-// COMMAND_SET_TEXT_JUSTIFY
-void SetTextJustify() {
-
+// COMMAND_SET_TEXT_JUSTIFY - 0x481B4B
+void SetTextJustify(bool enabled) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_bJustify = enabled;
 }
 
-// COMMAND_SET_TEXT_CENTRE
-void SetTextCentre() {
-
+// COMMAND_SET_TEXT_CENTRE - 0x481B88
+void SetTextCentre(bool enabled) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_bCentered = enabled;
 }
 
-// COMMAND_SET_TEXT_WRAPX
-void SetTextWrapx() {
-
+// COMMAND_SET_TEXT_WRAPX - 0x481BC5
+void SetTextWrapx(float wrap) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_fLineHeight = wrap;
 }
 
-// COMMAND_SET_TEXT_CENTRE_SIZE
-void SetTextCentreSize() {
-
+// COMMAND_SET_TEXT_CENTRE_SIZE - 0x481BE9
+void SetTextCentreSize(float width) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_fLineWidth = width;
 }
 
-// COMMAND_SET_TEXT_BACKGROUND
-void SetTextBackground() {
-
+// COMMAND_SET_TEXT_BACKGROUND - 0x481C17
+void SetTextBackground(bool enabled) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_bWithBackground = enabled;
 }
 
 // COMMAND_SET_TEXT_BACKGROUND_COLOUR
 void SetTextBackgroundColour() {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
 
 }
 
 // COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT
 void SetTextBackgroundOnlyText() {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
 
 }
 
-// COMMAND_SET_TEXT_PROPORTIONAL
-void SetTextProportional() {
-
+// COMMAND_SET_TEXT_PROPORTIONAL - 0x481C49
+void SetTextProportional(bool enabled) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_bProportional = enabled;
 }
 
-// COMMAND_SET_TEXT_FONT
-void SetTextFont() {
-
+// COMMAND_SET_TEXT_FONT - 0x481C86
+void SetTextFont(eFontStyle font) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_nFont = font;
 }
 
-// COMMAND_SET_TEXT_DRAW_BEFORE_FADE
-void SetTextDrawBeforeFade() {
-
+// COMMAND_SET_TEXT_DRAW_BEFORE_FADE - 0x485536
+void SetTextDrawBeforeFade(bool enabled) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_bDrawBeforeFade = enabled;
 }
 
-// COMMAND_SET_TEXT_RIGHT_JUSTIFY
-void SetTextRightJustify() {
-
+// COMMAND_SET_TEXT_RIGHT_JUSTIFY - 0x4855BA
+void SetTextRightJustify(bool enabled) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_bRightJustify = enabled;
 }
 
-// COMMAND_SET_TEXT_DROPSHADOW
-void SetTextDropshadow() {
-
+// COMMAND_SET_TEXT_DROPSHADOW - 0x491579
+void SetTextDropshadow(int32 shadowType, uint8 r, uint8 g, uint8 b, uint8 a) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_BackgroundColor = CRGBA{ r, g, b, a };
+    line->m_nShadowType = shadowType;
 }
 
-// COMMAND_LOAD_MISSION_TEXT
-void LoadMissionText() {
-
+// COMMAND_SET_TEXT_EDGE - 0x473DD5
+void SetTextEdge(int32 outlineType, uint8 r, uint8 g, uint8 b, uint8 a) {
+    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
+    line->m_BackgroundColor = CRGBA{ r, g, b, a };
+    line->m_nOutlineType = outlineType;
 }
 
-// COMMAND_SAVE_TEXT_LABEL_TO_DEBUG_FILE
-void SaveTextLabelToDebugFile() {
-
+// COMMAND_LOAD_MISSION_TEXT - 0x48D590
+void LoadMissionText(const char* key) {
+    TheText.LoadMissionText(key);
 }
 
-// COMMAND_SET_TEXT_EDGE
-void SetTextEdge() {
-
+// COMMAND_SAVE_TEXT_LABEL_TO_DEBUG_FILE - 0x47366D
+void SaveTextLabelToDebugFile(const char* key) {
+    /* noop */
 }
 
-// COMMAND_DRAW_WINDOW_TEXT
+// COMMAND_DRAW_WINDOW_TEXT - 0x474937
 void DrawWindowText() {
-
+    /* noop */
 }
 };
 
@@ -408,23 +426,23 @@ void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_PRINT, ClearThisPrint);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_BIG_PRINT, ClearThisBigPrint);
 
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_SCALE, SetTextScale);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_COLOUR, SetTextColour);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_JUSTIFY, SetTextJustify);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_CENTRE, SetTextCentre);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_WRAPX, SetTextWrapx);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_CENTRE_SIZE, SetTextCentreSize);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND, SetTextBackground);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND_COLOUR, SetTextBackgroundColour);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT, SetTextBackgroundOnlyText);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_PROPORTIONAL, SetTextProportional);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_FONT, SetTextFont);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_DRAW_BEFORE_FADE, SetTextDrawBeforeFade);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_RIGHT_JUSTIFY, SetTextRightJustify);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_DROPSHADOW, SetTextDropshadow);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_SCALE, SetTextScale);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_COLOUR, SetTextColour);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_JUSTIFY, SetTextJustify);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_CENTRE, SetTextCentre);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_WRAPX, SetTextWrapx);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_CENTRE_SIZE, SetTextCentreSize);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND, SetTextBackground);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND_COLOUR, SetTextBackgroundColour);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT, SetTextBackgroundOnlyText);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_PROPORTIONAL, SetTextProportional);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_FONT, SetTextFont);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_DRAW_BEFORE_FADE, SetTextDrawBeforeFade);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_RIGHT_JUSTIFY, SetTextRightJustify);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_DROPSHADOW, SetTextDropshadow);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_EDGE, SetTextEdge);
 
-    // REGISTER_COMMAND_HANDLER(COMMAND_LOAD_MISSION_TEXT, LoadMissionText);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SAVE_TEXT_LABEL_TO_DEBUG_FILE, SaveTextLabelToDebugFile);
-    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_EDGE, SetTextEdge);
-    // REGISTER_COMMAND_HANDLER(COMMAND_DRAW_WINDOW_TEXT, DrawWindowText);
+    REGISTER_COMMAND_HANDLER(COMMAND_LOAD_MISSION_TEXT, LoadMissionText);
+    REGISTER_COMMAND_HANDLER(COMMAND_SAVE_TEXT_LABEL_TO_DEBUG_FILE, SaveTextLabelToDebugFile);
+    REGISTER_COMMAND_HANDLER(COMMAND_DRAW_WINDOW_TEXT, DrawWindowText);
 }

@@ -145,7 +145,7 @@ struct tScriptText {
     int8      m_nOutlineType{ 0 };
     bool      m_bDrawBeforeFade{ false };
     bool      m_bRightJustify{ false };
-    int32     m_nFont{ 1 };
+    int32     m_nFont{ 1 }; // eFontStyle?
     CVector2D m_Pos{};
     char      m_szGxtEntry[8]{};
     int32     param1{ -1 };
