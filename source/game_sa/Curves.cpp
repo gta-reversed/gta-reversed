@@ -44,7 +44,6 @@ float CCurves::CalcSpeedVariationInBend(CVector2D const& startCoors, CVector2D c
 
 // 0x43C710
 float CCurves::CalcSpeedScaleFactor(CVector2D const& startCoors, CVector2D const& endCoors, CVector2D startDir, CVector2D endDir) {
-    TestCurves();
     if (const auto startCrossEndDist = DistForLineToCrossOtherLine(startCoors, startDir, endCoors, endDir); startCrossEndDist > 0.f) {
         if (const auto endCrossStartDist = DistForLineToCrossOtherLine(endCoors, endDir, startCoors, startDir); endCrossStartDist > 0.f) {
             const auto minDist = std::min({ startCrossEndDist, endCrossStartDist, 5.f }); // Min. of the 2 distances, but not higher than 5
