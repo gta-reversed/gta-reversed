@@ -316,16 +316,6 @@ void SetTextBackground(bool enabled) {
     line->HasBg      = enabled;
 }
 
-// COMMAND_SET_TEXT_BACKGROUND_COLOUR
-void SetTextBackgroundColour() {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-}
-
-// COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT
-void SetTextBackgroundOnlyText() {
-    auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
-}
-
 // COMMAND_SET_TEXT_PROPORTIONAL - 0x481C49
 void SetTextProportional(bool enabled) {
     auto* const line     = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
@@ -351,17 +341,17 @@ void SetTextRightJustify(bool enabled) {
 }
 
 // COMMAND_SET_TEXT_DROPSHADOW - 0x491579
-void SetTextDropshadow(int32 shadowType, uint8 r, uint8 g, uint8 b, uint8 a) {
+void SetTextDropshadow(int32 shadow, uint8 r, uint8 g, uint8 b, uint8 a) {
     auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
     line->DropShadowColor = CRGBA{ r, g, b, a };
-    line->DropShadow      = shadowType;
+    line->DropShadow      = shadow;
 }
 
 // COMMAND_SET_TEXT_EDGE - 0x473DD5
-void SetTextEdge(int32 outlineType, uint8 r, uint8 g, uint8 b, uint8 a) {
+void SetTextEdge(int32 edge, uint8 r, uint8 g, uint8 b, uint8 a) {
     auto* const line      = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame];
     line->DropShadowColor = CRGBA{ r, g, b, a };
-    line->TextEdge        = outlineType;
+    line->TextEdge        = edge;
 }
 
 // COMMAND_LOAD_MISSION_TEXT - 0x48D590
@@ -431,7 +421,6 @@ void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_BIG_Q, PrintBigQ);
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_HELP_FOREVER, PrintHelpForever);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_HELP_WITH_NUMBER);
-    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_HELP_FOREVER);
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_HELP_FOREVER_WITH_NUMBER, PrintHelpForeverWithNumber);
     
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_PRINT, ClearThisPrint);
@@ -444,8 +433,8 @@ void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_WRAPX, SetTextWrapx);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_CENTRE_SIZE, SetTextCentreSize);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND, SetTextBackground);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND_COLOUR, SetTextBackgroundColour);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT, SetTextBackgroundOnlyText);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_TEXT_BACKGROUND_COLOUR);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_PROPORTIONAL, SetTextProportional);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_FONT, SetTextFont);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_DRAW_BEFORE_FADE, SetTextDrawBeforeFade);
