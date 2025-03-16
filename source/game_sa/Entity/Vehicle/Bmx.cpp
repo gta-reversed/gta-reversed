@@ -147,7 +147,6 @@ void CBmx::BlowUpCar(CEntity* damager, bool bHideExplosion) {
 
 // 0x6C0590
 void CBmx::ProcessBunnyHop() {
-    //plugin::CallMethod<0x6C0590, CBmx*>(this);
     CAnimBlendAssociation* anim = nullptr;
     if (m_pDriver) {
         anim = RpAnimBlendClumpGetAssociation(m_pDriver->m_pRwClump, ANIM_ID_BIKE_BUNNYHOP);
@@ -206,7 +205,7 @@ void CBmx::ProcessBunnyHop() {
     if (anim) {
         if (anim->GetBlendAmount() > 0.5f) {
             m_fGasPedal = 0.0f;
-            FindPlayerPed(-1)->m_pPlayerData->m_fMoveSpeed = 0.0f;
+            FindPlayerPed()->m_pPlayerData->m_fMoveSpeed = 0.0f;
             if (!vehicleFlags.bIsHandbrakeOn &&
                 (m_aWheelRatios[0] < 1.0f ||
                  m_aWheelRatios[1] < 1.0f ||
@@ -218,8 +217,6 @@ void CBmx::ProcessBunnyHop() {
         }
     }
 }
-
-
 
 // 0x6C0810
 void CBmx::PreRender() {
