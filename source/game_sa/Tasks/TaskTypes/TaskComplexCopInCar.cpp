@@ -157,7 +157,7 @@ CTask* CTaskComplexCopInCar::CreateNextSubTask(CPed* ped) {
         return CreateSubTask(TASK_SIMPLE_CAR_DRIVE, ped);
     }
     case TASK_COMPLEX_POLICE_PURSUIT: {
-        const auto tSubTaskPursit = CTask::Cast<CTaskComplexPolicePursuit>(m_pSubTask);
+        const auto tSubTaskPursit = notsa::cast<CTaskComplexPolicePursuit>(m_pSubTask);
 
         if (!FindPlayerWanted()->m_nWantedLevel) {
             return CreateSubTask(TASK_FINISHED, ped);

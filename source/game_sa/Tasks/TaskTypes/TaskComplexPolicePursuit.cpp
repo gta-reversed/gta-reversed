@@ -1,4 +1,5 @@
 #include "StdInc.h"
+
 #include "TaskComplexPolicePursuit.h"
 #include "TaskComplexArrestPed.h"
 #include "TaskComplexSeekEntity.h"
@@ -43,9 +44,9 @@ CTaskComplexPolicePursuit::~CTaskComplexPolicePursuit() {
     CEntity::SafeCleanUpRef(m_Persecuted);
 }
 
-//! @addr 0x68BAD0
-//! Make sure cop has a weapon on them
-void __stdcall CTaskComplexPolicePursuit::SetWeapon(CPed* ped) { // `ped` is the pursuer
+// 0x68BAD0
+// Make sure cop has a weapon on them
+void CTaskComplexPolicePursuit::SetWeapon(CPed* ped) { // `ped` is the pursuer
     const auto wantedLevel = FindPlayerWanted()->GetWantedLevel();
 
     // At level 0 we dont do anything (I don't think this is possible anyways)
@@ -78,7 +79,7 @@ void __stdcall CTaskComplexPolicePursuit::SetWeapon(CPed* ped) { // `ped` is the
 }
 
 // 0x68BD90
-void __stdcall CTaskComplexPolicePursuit::ClearPursuit(CCopPed* pursuer) {
+void CTaskComplexPolicePursuit::ClearPursuit(CCopPed* pursuer) {
     if (FindPlayerPed()) {
         FindPlayerWanted()->RemovePursuitCop(pursuer);
     }
@@ -114,10 +115,10 @@ bool CTaskComplexPolicePursuit::SetPursuit(CPed* ped) {
 bool CTaskComplexPolicePursuit::PersistPursuit(CCopPed* pursuer) {
     const auto wanted = FindPlayerWanted();
 
-    if (pursuer->m_fHealth < 0.f) { // 0x68BDD0
+    if (pursuer->m_fHealth <= 0.f) { // 0x68BDD0
         ClearPursuit(pursuer);
     } else if (CCullZones::NoPolice() && !m_bRoadBlockCop) { // 0x68BDF1
-        if (pursuer->bHitSomethingLastFrame) {
+        if (pursuer->bHitSomethingLastFrame) { // 0x68BE01
             m_bPlayerInCullZone = m_bRoadBlockCop = true;
             ClearPursuit(pursuer);
         }
@@ -183,19 +184,19 @@ CTask* CTaskComplexPolicePursuit::ControlSubTask(CPed* ped) {
         return m_pSubTask;
     }
 
-    if (nextSubTaskType == TASK_COMPLEX_ENTER_CAR_AS_DRIVER) { // 0x690A6C - Inverted
-        ped->GetEventGroup().Add(CEventVehicleToSteal{ped->m_pVehicle});
-        return new CTaskSimpleScratchHead{};
+    if (nextSubTaskType != TASK_COMPLEX_ENTER_CAR_AS_DRIVER) { // 0x690A6C
+        return CreateSubTask(nextSubTaskType, ped);
     }
 
-    return CreateSubTask(nextSubTaskType, ped);
+    ped->GetEventGroup().Add(CEventVehicleToSteal{ ped->m_pVehicle });
+    return new CTaskSimpleScratchHead{};
 }
 
-// Code @ 0x690956 (not a function originally)
+// 0x690956 (not a function originally)
 eTaskType CTaskComplexPolicePursuit::GetNextSubTaskType(CCopPed* pursuer) { // ped is the pursuer
     const auto plyrWanted = FindPlayerWanted();
 
-    if (PersistPursuit(pursuer)) { // 0x0x690956
+    if (PersistPursuit(pursuer)) { // 0x690956
         return TASK_NONE;
     }
 
@@ -225,5 +226,3 @@ eTaskType CTaskComplexPolicePursuit::GetNextSubTaskType(CCopPed* pursuer) { // p
 
     return TASK_NONE;
 }
-// 0x68CDD0// 0x68BAC0// 0x6908E0// 0x690920
-
