@@ -72,15 +72,32 @@ void UseTextCommands(bool state) {
     CTheScripts::UseTextCommands = state ? ENABLED_BY_SCRIPT : DISABLE_NEXT_FRAME;
 }
 
-// COMMAND_DISPLAY_TEXT - 0x481A0C
-void DisplayText(CVector2D pos, const char* gxtKey) {
+/* Implementation for `COMMAND_DISPLAY_TEXT` and `COMMAND_DISPLAY_TEXT_WITH_FLOAT` */
+void I_DisplayText(CVector2D pos, const char* gxtKey, int32 p1, int32 p2) {
     assert(CTheScripts::UseTextCommands != CTheScripts::eUseTextCommandState::DISABLED);
 
     auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame++];
     line->m_Pos      = pos;
-    line->param1     = -1;
-    line->param2     = -1;
+    line->param1     = p1;
+    line->param2     = p2;
     strcpy_s(line->m_szGxtEntry, gxtKey);
+}
+
+// COMMAND_DISPLAY_TEXT - 0x481A0C
+void DisplayText(CVector2D pos, const char* gxtKey) {
+    I_DisplayText(pos, gxtKey, -1, -1);
+}
+
+// COMMAND_DISPLAY_TEXT_WITH_FLOAT - 0x4730F8
+void DisplayTextWithFloat(CVector2D pos, const char* gxtKey, float value, float precision) {
+    float whole;
+    float fract = std::modf(value, &whole);
+    I_DisplayText(
+        pos,
+        gxtKey,
+        (int32)(whole),
+        (int32)(std::pow(10.f, precision) * fract)
+    );
 }
 
 /* implementation */
@@ -243,10 +260,112 @@ void ClearThisPrint(const char* key) {
 void ClearThisBigPrint(const char* key) {
     CMessages::ClearThisBigPrint(TheText.Get(key));
 }
+
+// COMMAND_SET_TEXT_SCALE
+void SetTextScale() {
+
+}
+
+// COMMAND_SET_TEXT_COLOUR
+void SetTextColour() {
+
+}
+
+// COMMAND_SET_TEXT_JUSTIFY
+void SetTextJustify() {
+
+}
+
+// COMMAND_SET_TEXT_CENTRE
+void SetTextCentre() {
+
+}
+
+// COMMAND_SET_TEXT_WRAPX
+void SetTextWrapx() {
+
+}
+
+// COMMAND_SET_TEXT_CENTRE_SIZE
+void SetTextCentreSize() {
+
+}
+
+// COMMAND_SET_TEXT_BACKGROUND
+void SetTextBackground() {
+
+}
+
+// COMMAND_SET_TEXT_BACKGROUND_COLOUR
+void SetTextBackgroundColour() {
+
+}
+
+// COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT
+void SetTextBackgroundOnlyText() {
+
+}
+
+// COMMAND_SET_TEXT_PROPORTIONAL
+void SetTextProportional() {
+
+}
+
+// COMMAND_SET_TEXT_FONT
+void SetTextFont() {
+
+}
+
+// COMMAND_SET_TEXT_DRAW_BEFORE_FADE
+void SetTextDrawBeforeFade() {
+
+}
+
+// COMMAND_SET_TEXT_RIGHT_JUSTIFY
+void SetTextRightJustify() {
+
+}
+
+// COMMAND_SET_TEXT_DROPSHADOW
+void SetTextDropshadow() {
+
+}
+
+// COMMAND_LOAD_MISSION_TEXT
+void LoadMissionText() {
+
+}
+
+// COMMAND_SAVE_TEXT_LABEL_TO_DEBUG_FILE
+void SaveTextLabelToDebugFile() {
+
+}
+
+// COMMAND_SET_TEXT_EDGE
+void SetTextEdge() {
+
+}
+
+// COMMAND_DRAW_WINDOW_TEXT
+void DrawWindowText() {
+
+}
 };
 
 void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Text");
+
+    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_SMALL_PRINTS, ClearSmallPrints);
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_HELP, PrintHelp);
+    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_HELP, ClearHelp);
+    REGISTER_COMMAND_HANDLER(COMMAND_FLASH_HUD_OBJECT, FlashHudObject);
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_BIG, PrintBig);
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT, Print);
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_NOW, PrintNow);
+    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_PRINT_BIG_NOW, ClearThisPrintBigNow);
+    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_PRINTS, ClearPrints);
+    REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT, DisplayText);
+    REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_FLOAT, DisplayTextWithFloat);
 
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_NUMBER_NOW, PrintWithNumberNow);
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_2_NUMBERS_NOW, PrintWith2NumbersNow);
@@ -289,14 +408,23 @@ void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_PRINT, ClearThisPrint);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_BIG_PRINT, ClearThisBigPrint);
 
-    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_SMALL_PRINTS, ClearSmallPrints);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_HELP, PrintHelp);
-    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_HELP, ClearHelp);
-    REGISTER_COMMAND_HANDLER(COMMAND_FLASH_HUD_OBJECT, FlashHudObject);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_BIG, PrintBig);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT, Print);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_NOW, PrintNow);
-    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_PRINT_BIG_NOW, ClearThisPrintBigNow);
-    REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_PRINTS, ClearPrints);
-    REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT, DisplayText);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_SCALE, SetTextScale);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_COLOUR, SetTextColour);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_JUSTIFY, SetTextJustify);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_CENTRE, SetTextCentre);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_WRAPX, SetTextWrapx);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_CENTRE_SIZE, SetTextCentreSize);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND, SetTextBackground);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND_COLOUR, SetTextBackgroundColour);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_BACKGROUND_ONLY_TEXT, SetTextBackgroundOnlyText);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_PROPORTIONAL, SetTextProportional);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_FONT, SetTextFont);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_DRAW_BEFORE_FADE, SetTextDrawBeforeFade);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_RIGHT_JUSTIFY, SetTextRightJustify);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_DROPSHADOW, SetTextDropshadow);
+
+    // REGISTER_COMMAND_HANDLER(COMMAND_LOAD_MISSION_TEXT, LoadMissionText);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SAVE_TEXT_LABEL_TO_DEBUG_FILE, SaveTextLabelToDebugFile);
+    // REGISTER_COMMAND_HANDLER(COMMAND_SET_TEXT_EDGE, SetTextEdge);
+    // REGISTER_COMMAND_HANDLER(COMMAND_DRAW_WINDOW_TEXT, DrawWindowText);
 }
