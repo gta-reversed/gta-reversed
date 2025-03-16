@@ -214,8 +214,8 @@ void CAEMP3BankLoader::LoadSound(eSoundBank bankId, eSoundID soundId, eSoundBank
 void CAEMP3BankLoader::Service() {
     for (auto&& [i, req] : notsa::enumerate(m_Requests)) {
         const auto AllocateStreamBuffer = [&](uint32 sectors) {
-            const auto buf = (std::byte*)(CMemoryMgr::Malloc(sectors * STREAMING_SECTOR_SIZE));
-            req.StreamBufPtr = buf;
+            const auto buf  = (std::byte*)(CMemoryMgr::Malloc(sectors * STREAMING_SECTOR_SIZE));
+            req.StreamBufPtr  = buf;
             req.StreamDataPtr = (AEAudioStream*)(buf + (req.BankOffsetBytes % STREAMING_SECTOR_SIZE));
         };
 
@@ -225,10 +225,9 @@ void CAEMP3BankLoader::Service() {
                 continue;
             }
 
-            const auto sectors = req.SoundID == -1 
-                ? ((req.BankNumBytes + sizeof(AEAudioStream)) / STREAMING_SECTOR_SIZE) + 2
-                : 4; // The original always uses 4 sectors for the initial sound reading
-            
+            const auto sectors = req.SoundID == -1 // Load specific sound?
+                ? (sizeof(AEAudioStream) + req.BankNumBytes) / STREAMING_SECTOR_SIZE + 2 // No, so load whole bank
+                : (sizeof(AEAudioStream) / STREAMING_SECTOR_SIZE) + 2; // Yes, so just load the header
             AllocateStreamBuffer(sectors);
             CdStreamRead( // 0x4E016F
                 m_StreamingChannel,
@@ -262,36 +261,44 @@ void CAEMP3BankLoader::Service() {
                 req.SlotInfo->Bank        = req.Bank;
                 req.SlotInfo->NumSounds   = req.StreamDataPtr->NumSounds;
 
-                m_BankSlotSound[req.Slot] = -1;
-                
+                m_BankSlotSound[req.Slot] = -1; // Whole bank loaded, so use `-1`
+
                 CMemoryMgr::Free(req.StreamBufPtr);
                 m_RequestCnt--;
 
                 req.Status = eSoundRequestStatus::INACTIVE;
             } else { // 0x4E0033 - Load specified sound only
-                const auto soundOffsetInBank = req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes;
-                
-                req.BankOffsetBytes = soundOffsetInBank + sizeof(AEAudioStream) + req.BankOffsetBytes;
-                
-                // 0x4E006F - Calculate bank size
-                req.BankNumBytes =
-                    (req.SoundID >= req.StreamDataPtr->NumSounds - 1)
-                    ? (GetBankLookup(req.Bank).NumBytes - soundOffsetInBank)                            // If no more sounds we use the end of bank
-                    : (req.StreamDataPtr->Sounds[req.SoundID + 1].BankOffsetBytes - soundOffsetInBank); // Otherwise use next sound's offset
+                // Now the whole bank is loaded into the memory,
+                // this is done because we need the offset of the sound we need
+                // then, we read the same data again (talk about inefficiency)
+                // and this time actually copy it into the bank's data buffer
 
-                // 0x4E00BA - Free the current buffer
+                VERIFY(req.SlotInfo == &m_BankSlots[req.Slot]);
+                req.SlotInfo->Bank      = SND_BANK_UNK;
+                req.SlotInfo->NumSounds = -1;
+                req.BankOffsetBytes    += req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes + sizeof(AEAudioStream);
+
+                m_BankSlotSound[req.Slot] = -1;
+
+                // 0x4E006F - Calculate bank size
+                const auto nextOrEnd = req.SoundID + 1 >= req.StreamDataPtr->NumSounds
+                    ? GetBankLookup(req.Bank).NumBytes                       // If no more sounds we use the end of bank
+                    : req.StreamDataPtr->Sounds[req.SoundID + 1].BankOffsetBytes; // Otherwise use next sound's offset
+                req.BankNumBytes = nextOrEnd - req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes;
+
+                // 0x4E00BA
                 CMemoryMgr::Free(req.StreamBufPtr);
 
                 // 0x4E00C7
-                const auto sectors = (req.BankNumBytes / STREAMING_SECTOR_SIZE) + 2;
-                AllocateStreamBuffer(sectors);
+                const auto readSize = req.BankNumBytes / STREAMING_SECTOR_SIZE + 2;
+                AllocateStreamBuffer(readSize);
 
                 // 0x4E00FB
                 CdStreamRead(
                     m_StreamingChannel,
                     req.StreamBufPtr,
                     { .Offset = req.BankOffsetBytes / STREAMING_SECTOR_SIZE, .FileID = CdStreamHandleToFileID(m_StreamHandles[req.PakFileNo]) },
-                    sectors 
+                    readSize
                 );
 
                 req.Status = eSoundRequestStatus::PENDING_LOAD_ONE_SOUND;
