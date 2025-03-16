@@ -17,28 +17,29 @@ void CBmx::InjectHooks() {
 }
 
 // 0x6BF820
-CBmx::CBmx(int32 modelIndex, eVehicleCreatedBy createdBy) : CBike(modelIndex, createdBy) {
-    auto mi = CModelInfo::GetModelInfo(modelIndex);
-    m_nVehicleSubType = VEHICLE_TYPE_BMX;
+CBmx::CBmx(int32 modelIndex, eVehicleCreatedBy createdBy) :
+    CBike(modelIndex, createdBy) {
+    auto mi                     = CModelInfo::GetModelInfo(modelIndex);
+    m_nVehicleSubType           = VEHICLE_TYPE_BMX;
     m_RideAnimData.m_nAnimGroup = CAnimManager::GetAnimBlocks()[mi->GetAnimFileIndex()].GroupId;
     if (m_RideAnimData.m_nAnimGroup < ANIM_GROUP_BMX || m_RideAnimData.m_nAnimGroup > ANIM_GROUP_CHOPPA) {
         m_RideAnimData.m_nAnimGroup = ANIM_GROUP_BMX;
     }
 
-    m_fControlJump = 0.0f;
+    m_fControlJump     = 0.0f;
     m_fControlPedaling = 0.0f;
     m_fSprintLeanAngle = 0.0f;
-    m_fCrankAngle = 0.0f;
-    m_fPedalAngleL = 0.0f;
-    m_fPedalAngleR = 0.0f;
-    m_nFixLeftHand = false;
-    m_nFixRightHand = false;
-    m_bIsFreewheeling = false;
+    m_fCrankAngle      = 0.0f;
+    m_fPedalAngleL     = 0.0f;
+    m_fPedalAngleR     = 0.0f;
+    m_nFixLeftHand     = false;
+    m_nFixRightHand    = false;
+    m_bIsFreewheeling  = false;
 
     const auto Calc = [&](eBmxNodes node) -> float {
         RwMatrix matrix;
         RwFrame* wheelFront = m_aBikeNodes[node];
-        matrix = *RwFrameGetMatrix(wheelFront);
+        matrix              = *RwFrameGetMatrix(wheelFront);
 
         auto parent = RwFrameGetParent(wheelFront);
         if (parent) {
@@ -74,11 +75,11 @@ bool CBmx::BurstTyre(uint8 tyreComponentId, bool bPhysicalEffect) {
 // 0x6BFA30
 void CBmx::ProcessControl() {
     const float BMX_SPRINT_LEANSTART = FRAC_PI_2;
-    const float BMX_PEDAL_LEANSTART = 0.0f;
-    const float BMX_SPRINT_LEANMULT = 0.3f;
-    const float MTB_SPRINT_LEANMULT = 0.087f;
-    const float BMX_PEDAL_LEANMULT = 0.07f;
-    const float MTB_PEDAL_LEANMULT = 0.02f;
+    const float BMX_PEDAL_LEANSTART  = 0.0f;
+    const float BMX_SPRINT_LEANMULT  = 0.3f;
+    const float MTB_SPRINT_LEANMULT  = 0.087f;
+    const float BMX_PEDAL_LEANMULT   = 0.07f;
+    const float MTB_PEDAL_LEANMULT   = 0.02f;
 
     CBike::ProcessControl();
 
@@ -86,17 +87,17 @@ void CBmx::ProcessControl() {
         return;
     }
 
-    auto anim = RpAnimBlendClumpGetAssociation(m_pDriver->m_pRwClump, ANIM_ID_BIKE_SPRINT);
+    auto animBikeSprint = RpAnimBlendClumpGetAssociation(m_pDriver->m_pRwClump, ANIM_ID_BIKE_SPRINT);
     bool isMountainBike = GetModelId() == MODEL_MTBIKE;
 
-    if (anim && anim->GetBlendAmount() > 0.01f) {
-        float mult = isMountainBike ? MTB_SPRINT_LEANMULT : BMX_SPRINT_LEANMULT;
-        m_fSprintLeanAngle = std::sin(anim->GetCurrentTime() / anim->GetHier()->GetTotalTime() * TWO_PI + BMX_SPRINT_LEANSTART) * anim->GetBlendAmount() * mult;
+    if (animBikeSprint && animBikeSprint->GetBlendAmount() > 0.01f) {
+        float mult         = isMountainBike ? MTB_SPRINT_LEANMULT : BMX_SPRINT_LEANMULT;
+        m_fSprintLeanAngle = std::sin(animBikeSprint->GetCurrentTime() / animBikeSprint->GetHier()->GetTotalTime() * TWO_PI + BMX_SPRINT_LEANSTART) * animBikeSprint->GetBlendAmount() * mult;
     } else {
-        anim = RpAnimBlendClumpGetAssociation(m_pDriver->m_pRwClump, ANIM_ID_BIKE_PEDAL);
-        if (anim && anim->GetBlendAmount() > 0.01f) {
+        auto animBikePedal = RpAnimBlendClumpGetAssociation(m_pDriver->m_pRwClump, ANIM_ID_BIKE_PEDAL);
+        if (animBikePedal && animBikePedal->GetBlendAmount() > 0.01f) {
             float mult = isMountainBike ? MTB_PEDAL_LEANMULT : BMX_PEDAL_LEANMULT;
-            GetRideAnimData()->m_fAnimLean += std::sin(anim->GetCurrentTime() / anim->GetHier()->GetTotalTime() * TWO_PI + BMX_PEDAL_LEANSTART) * anim->GetBlendAmount() * mult;
+            GetRideAnimData()->m_fAnimLean += std::sin(animBikePedal->GetCurrentTime() / animBikePedal->GetHier()->GetTotalTime() * TWO_PI + BMX_PEDAL_LEANSTART) * animBikePedal->GetBlendAmount() * mult;
         }
         m_fSprintLeanAngle *= 0.95f;
     }
@@ -111,9 +112,7 @@ void CBmx::ProcessDrivingAnims(CPed* driver, bool blend) {
 // 0x6C0390
 void CBmx::LaunchBunnyHopCB(CAnimBlendAssociation* assoc, void* data) {
     auto bmx = static_cast<CBmx*>(data);
-    if ((bmx->m_aWheelCounts[0] > 0.0f || bmx->m_aWheelCounts[1] > 0.0f) &&
-        (bmx->m_aWheelCounts[2] > 0.0f || bmx->m_aWheelCounts[3] > 0.0f)
-    ) {
+    if ((bmx->m_aWheelCounts[0] > 0.0f || bmx->m_aWheelCounts[1] > 0.0f) && (bmx->m_aWheelCounts[2] > 0.0f || bmx->m_aWheelCounts[3] > 0.0f)) {
         auto power = std::min(bmx->m_fControlJump / 25.0f, 1.0f) + 1.0f;
         if (bmx->m_nStatus == STATUS_PLAYER) {
             power *= CStats::GetFatAndMuscleModifier(STAT_MOD_6);
@@ -121,7 +120,7 @@ void CBmx::LaunchBunnyHopCB(CAnimBlendAssociation* assoc, void* data) {
         if (CCheat::IsActive(CHEAT_HUGE_BUNNY_HOP)) {
             power *= 5.0f;
         }
-        bmx->ApplyMoveForce(0.06f * bmx->m_fMass     * power * bmx->m_matrix->GetUp());
+        bmx->ApplyMoveForce(0.06f * bmx->m_fMass * power * bmx->m_matrix->GetUp());
         bmx->ApplyTurnForce(0.01f * bmx->m_fTurnMass * power * bmx->m_matrix->GetUp(), bmx->m_matrix->GetForward());
     }
 }
@@ -131,7 +130,7 @@ void CBmx::GetFrameOffset(float& fZOffset, float& fAngleOffset) {
     const auto d1 = m_aWheelSuspensionHeights[0] - m_aWheelOrigHeights[0];
     const auto d2 = m_aWheelSuspensionHeights[1] - m_aWheelOrigHeights[1];
 
-    fZOffset = (1.0f - m_fMidWheelFracY) * d1 + d2 * m_fMidWheelFracY;
+    fZOffset     = (1.0f - m_fMidWheelFracY) * d1 + d2 * m_fMidWheelFracY;
     fAngleOffset = std::atan2(d1 - d2, m_fMidWheelDistY);
 }
 
@@ -147,10 +146,9 @@ void CBmx::BlowUpCar(CEntity* damager, bool bHideExplosion) {
 
 // 0x6C0590
 void CBmx::ProcessBunnyHop() {
-    CAnimBlendAssociation* anim = nullptr;
-    if (m_pDriver) {
-        anim = RpAnimBlendClumpGetAssociation(m_pDriver->m_pRwClump, ANIM_ID_BIKE_BUNNYHOP);
-    }
+    auto* anim = m_pDriver
+        ? RpAnimBlendClumpGetAssociation(m_pDriver->m_pRwClump, ANIM_ID_BIKE_BUNNYHOP)
+        : nullptr;
 
     if (GetStatus() != STATUS_PLAYER || !m_pDriver || !m_pDriver->IsPlayer()) {
         if (anim) {
@@ -161,12 +159,9 @@ void CBmx::ProcessBunnyHop() {
         return;
     }
 
-    auto pad = static_cast<CPlayerPed*>(m_pDriver)->GetPadFromPlayer();
+    auto pad = m_pDriver->AsPlayer()->GetPadFromPlayer();
 
-    if (pad->IsLeftShoulder1Pressed() &&
-        !pad->DisablePlayerControls &&
-        m_fControlJump == 0.0f
-    ) {
+    if (pad->IsLeftShoulder1Pressed() && !pad->DisablePlayerControls && m_fControlJump == 0.0f) {
         m_fControlJump += CTimer::GetTimeStep();
         anim = CAnimManager::BlendAnimation(m_pDriver->m_pRwClump, m_RideAnimData.m_nAnimGroup, ANIM_ID_BIKE_BUNNYHOP, 8.0f);
         if (anim) {
@@ -187,11 +182,9 @@ void CBmx::ProcessBunnyHop() {
                     m_fControlJump = std::min(m_fControlJump + CTimer::GetTimeStep(), 25.0f);
                     anim->SetCurrentTime(m_fControlJump / 25.0f * 0.2f);
                 }
-            }
-            else if (!anim->IsPlaying()) {
+            } else if (!anim->IsPlaying()) {
                 if (anim->GetCurrentTime() < 0.2f) {
-                    anim->SetCurrentTime((0.2f - anim->GetCurrentTime()) / 0.2f *
-                        (anim->GetHier()->GetTotalTime() - 0.2f) + 0.2f);
+                    anim->SetCurrentTime((0.2f - anim->GetCurrentTime()) / 0.2f * (anim->GetHier()->GetTotalTime() - 0.2f) + 0.2f);
                 }
                 anim->SetFlag(ANIMATION_IS_PLAYING, true);
                 anim->SetSpeed(1.5f);
@@ -204,14 +197,9 @@ void CBmx::ProcessBunnyHop() {
 
     if (anim) {
         if (anim->GetBlendAmount() > 0.5f) {
-            m_fGasPedal = 0.0f;
+            m_fGasPedal                                  = 0.0f;
             FindPlayerPed()->m_pPlayerData->m_fMoveSpeed = 0.0f;
-            if (!vehicleFlags.bIsHandbrakeOn &&
-                (m_aWheelRatios[0] < 1.0f ||
-                 m_aWheelRatios[1] < 1.0f ||
-                 m_aWheelRatios[2] < 1.0f ||
-                 m_aWheelRatios[3] < 1.0f)
-            ) {
+            if (!vehicleFlags.bIsHandbrakeOn && (m_aWheelRatios[0] < 1.0f || m_aWheelRatios[1] < 1.0f || m_aWheelRatios[2] < 1.0f || m_aWheelRatios[3] < 1.0f)) {
                 m_bIsFreewheeling = true;
             }
         }
