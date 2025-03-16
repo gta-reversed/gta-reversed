@@ -2,7 +2,7 @@
 
 #include "TaskSimple.h"
 
-class CTaskSimpleLand : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleLand : public CTaskSimple {
     CAnimBlendAssociation* m_pAnim;
     AnimationId            m_nAnimId;
     union {
@@ -33,7 +33,5 @@ public:
 
     static void InjectHooks();
     CTaskSimpleLand* Constructor(AnimationId nAnimId);
-    bool ProcessPed_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 };
 VALIDATE_SIZE(CTaskSimpleLand, 0x14);

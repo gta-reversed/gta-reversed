@@ -2,7 +2,7 @@
 
 #include "TaskSimpleDie.h"
 
-class CTaskSimpleDieInCar : public CTaskSimpleDie {
+class NOTSA_EXPORT_VTABLE CTaskSimpleDieInCar : public CTaskSimpleDie {
 public:
     static constexpr auto Type = TASK_SIMPLE_DIE_IN_CAR;
 

@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexCrossRoadLookAndAchieveHeading : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexCrossRoadLookAndAchieveHeading : public CTaskComplex {
 public:
     int32 m_nDuration;
     float m_fTargetHeading;

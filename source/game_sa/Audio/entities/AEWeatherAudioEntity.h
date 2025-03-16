@@ -8,7 +8,7 @@
 
 #include "AEAudioEntity.h"
 
-class CAEWeatherAudioEntity : public CAEAudioEntity {
+class NOTSA_EXPORT_VTABLE CAEWeatherAudioEntity : public CAEAudioEntity {
 public:
     uint8 m_nThunderFrequencyVariationCounter;
 
@@ -29,6 +29,5 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    void UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos);
 };
 VALIDATE_SIZE(CAEWeatherAudioEntity, 0x80);

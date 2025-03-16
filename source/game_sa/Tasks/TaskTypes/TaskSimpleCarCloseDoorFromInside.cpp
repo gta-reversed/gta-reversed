@@ -55,7 +55,7 @@ void CTaskSimpleCarCloseDoorFromInside::FinishAnimCarCloseDoorFromInsideCB(CAnim
 
     // The anim has just finished and they do this? Maybe inlined?
     if (self->m_anim) {
-        self->m_anim->m_fBlendDelta = -1000.f;
+        self->m_anim->m_BlendDelta = -1000.f;
     }
     self->m_anim = nullptr;
 }
@@ -106,7 +106,7 @@ bool CTaskSimpleCarCloseDoorFromInside::MakeAbortable(CPed* ped, eAbortPriority 
     switch (priority) {
     case ABORT_PRIORITY_IMMEDIATE: {
         if (m_anim) {
-            m_anim->m_fBlendDelta = -1000.f;
+            m_anim->m_BlendDelta = -1000.f;
         }
         if (m_veh) {
             ProcessDoorOpen(ped);
@@ -140,8 +140,8 @@ bool CTaskSimpleCarCloseDoorFromInside::ProcessPed(CPed* ped) {
         StartAnim(ped);
     }
 
-    const auto animId = (AnimationId)m_anim->m_nAnimId;
-    m_veh->ProcessOpenDoor(ped, m_door, m_veh->GetAnimGroup().GetGroup(animId), animId, m_anim->m_fCurrentTime);
+    const auto animId = (AnimationId)m_anim->m_AnimId;
+    m_veh->ProcessOpenDoor(ped, m_door, m_veh->GetAnimGroup().GetGroup(animId), animId, m_anim->m_CurrentTime);
 
     return false;
 }

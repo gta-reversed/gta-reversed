@@ -96,7 +96,7 @@ bool CTaskSimpleCarGetIn::MakeAbortable(CPed* ped, eAbortPriority priority, CEve
     switch (priority) {
     case ABORT_PRIORITY_IMMEDIATE: {
         if (m_anim) {
-            m_anim->m_fBlendDelta = -1000.f;
+            m_anim->m_BlendDelta = -1000.f;
         }
         return true;
     }
@@ -124,14 +124,14 @@ bool CTaskSimpleCarGetIn::ProcessPed(CPed* ped) {
     }
 
     // Apply move force for BMX like vehicles
-    if (m_veh && m_veh->IsSubBMX() && m_anim && (m_anim->m_nFlags & ANIMATION_STARTED)) {
-        switch (m_anim->m_nAnimId) {
+    if (m_veh && m_veh->IsSubBMX() && m_anim && (m_anim->m_Flags & ANIMATION_IS_PLAYING)) {
+        switch (m_anim->m_AnimId) {
         case ANIM_ID_CAR_GETIN_LHS_0:
         case ANIM_ID_CAR_GETIN_RHS_0:
         case ANIM_ID_CAR_GETIN_LHS_1:
         case ANIM_ID_CAR_GETIN_RHS_1: {
             constexpr auto flt_8D2ED4 = 30.f; // TODO | STATICREF: 0x8D2ED4
-            if (flt_8D2ED4 / 30.f < m_anim->m_fCurrentTime) { 
+            if (flt_8D2ED4 / 30.f < m_anim->m_CurrentTime) { 
                 constexpr auto flt_8D2ED0 = 0.001f; // TODO | STATICREF: 0x8D2ED0
                 m_veh->ApplyMoveForce(m_veh->GetForward() * CTimer::GetTimeStep() * m_veh->m_fMass * flt_8D2ED0);
             }

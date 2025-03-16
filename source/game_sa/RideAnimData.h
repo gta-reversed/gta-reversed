@@ -20,5 +20,4 @@ public:
     CRideAnimData() = default; // 0x6D0B10
     CRideAnimData(AssocGroupId animGroup) : m_nAnimGroup(animGroup) {} // NOTSA
 };
-
 VALIDATE_SIZE(CRideAnimData, 0x1C);

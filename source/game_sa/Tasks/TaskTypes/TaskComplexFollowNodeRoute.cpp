@@ -10,8 +10,6 @@
 #include "Tasks/TaskTypes/TaskSimpleGoToPoint.h"
 #include "Tasks/TaskTypes/TaskSimpleStandStill.h"
 
-#include "Events/PotentialWalkIntoEvents.h"
-
 void CTaskComplexFollowNodeRoute::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexFollowNodeRoute, 0x8700a8, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
@@ -247,13 +245,13 @@ void CTaskComplexFollowNodeRoute::ComputePathNodes(CPed const* ped) {
 
     const CVector pedPos = ped->GetPosition();
 
-    if (CanGoStraightThere(ped, pedPos, m_TargetPt, ped->GetIntelligence()->m_FollowNodeThresholdDist)) {
+    if (!CanGoStraightThere(ped, pedPos, m_TargetPt, ped->GetIntelligence()->m_FollowNodeThresholdDistance)) {
         ThePaths.ComputeRoute(
             PATH_TYPE_PED,
             ped->GetPosition(),
             m_TargetPt,
             m_StartNode,
-            *m_NodeRoute
+            m_NodeRoute
         );
         m_StartNode = {};
     }
@@ -295,7 +293,7 @@ void CTaskComplexFollowNodeRoute::ComputePathNodes(CPed const* ped) {
                                 ped->GetPosition(),
                                 m_TargetPt,
                                 pedInt->GetNodeAddress(),
-                                *m_NodeRoute
+                                m_NodeRoute
                             );
                         }
                     }
@@ -307,7 +305,7 @@ void CTaskComplexFollowNodeRoute::ComputePathNodes(CPed const* ped) {
                             ped->GetPosition(),
                             m_TargetPt,
                             routeFirstNodeInt->GetNodeAddress(),
-                            *m_NodeRoute
+                            m_NodeRoute
                         );
                         m_NodeRoute->Reverse();
                     }
@@ -326,7 +324,7 @@ void CTaskComplexFollowNodeRoute::ComputePathNodes(CPed const* ped) {
                 continue; 
             }
             nodePos.z += 1.f;
-            if (CanGoStraightThere(ped, nodePos, m_TargetPt, ped->GetIntelligence()->m_FollowNodeThresholdDist)) {
+            if (CanGoStraightThere(ped, nodePos, m_TargetPt, ped->GetIntelligence()->m_FollowNodeThresholdDistance)) {
                 m_NodeRoute->ResizeTo(i + 1);
                 break;
             }

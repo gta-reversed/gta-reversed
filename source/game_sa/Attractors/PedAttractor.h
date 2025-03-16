@@ -1,31 +1,34 @@
 #pragma once
 
 #include "Plugins\TwoDEffectPlugin\2dEffect.h"
+#include "PedTaskPair.h"
 #include "SArray.h"
+#include <Enums/eMoveState.h>
 
 class CEntity;
 class CPed;
 class CTask;
 
-class CPedAttractor {
+class NOTSA_EXPORT_VTABLE CPedAttractor {
 public:
-    C2dEffect*    m_pEffect;
-    CEntity*      m_pEntity;
-    SArray<CPed>  field_C;
-    SArray<CPed>  m_pedQueue;
-    SArray<CTask> m_pedTasks;
-    int32         field_3C;
-    float         queueMp;
-    float         time1;
-    float         time2;
-    char          field_4C[8];
-    float         m_fRange;
-    float         m_fDeltaHeading;
-    CVector       m_vecAttractorPosn;
-    CVector       m_vecQueueDir;
-    CVector       m_vecUseDir;
-    int32         field_80;
-    char          m_szScriptName[8];
+    C2dEffectPedAttractor* m_Fx{};
+    CEntity::Ref           m_Entity{};
+    SArray<CPed*>          m_AttractPeds{};
+    SArray<CPed*>          m_ArrivedPeds{}; // AKA queue
+    SArray<CPedTaskPair>   m_PedTaskPairs{};
+    size_t                 m_MaxNumPeds{}; //!< Maximum number of registered peds (ArrivedPeds + AttractPeds, see `GetNoOfRegisteredPeds()`)
+    float                  m_Spacing{};
+    float                  m_AchieveQueueTime{};
+    float                  m_AchieveQueueShuffleTime{};
+    float                  m_ArriveRange{};
+    float                  m_HeadingRange{};
+    float                  m_DeltaPos{};
+    float                  m_DeltaHeading{};
+    CVector                m_Pos{};
+    CVector                m_QueueDir{};
+    CVector                m_UseDir{};
+    eMoveState             m_MoveState{};
+    char                   m_ScriptName[8]{};
 
     inline static SArray<CTask>& ms_tasks = *reinterpret_cast<SArray<CTask>*>(0xC0985C);
 
@@ -35,40 +38,72 @@ public:
     void* operator new(unsigned size);
     void  operator delete(void* object);
 
-    CPedAttractor(C2dEffect* effect, CEntity* entity, int32 a3, int32 a4, float a5, float time2, float time1, float a8, float a9, float range, float a11, float a12);
+    CPedAttractor(
+        C2dEffectPedAttractor* fx,
+        CEntity*               entity,
+        eMoveState             moveState,
+        size_t                 maxNoOfPeds,
+        float                  spacing,
+        float                  achieveQueueTime,
+        float                  achieveQueueShuffleTime,
+        float                  arriveRange,
+        float                  headingRange,
+        float                  deltaPos,
+        float                  deltaHeading
+    );
+
+    virtual ~CPedAttractor() {}
+
+    static void Shutdown();
 
     virtual ePedAttractorType GetType() const { return PED_ATTRACTOR_UNDEFINED; }
 
-    // 0x5EC410, 0x5EC4B0
-    virtual ~CPedAttractor();
-
     void SetTaskForPed(CPed* ped, CTask* task);
     bool RegisterPed(CPed* ped);
-    void DeRegisterPed(CPed* ped);
+    bool DeRegisterPed(CPed* ped);
 
-    bool IsRegisteredWithPed(const CPed* ped);
+    bool IsRegisteredWithPed(const CPed* ped) const;
 
     virtual bool IsAtHeadOfQueue(CPed* ped);
 
-    CTask* GetTaskForPed(CPed* ped);
-    uint32 GetTailOfQueue();
-    int32 GetQueueSlot(const CPed*);
-    bool GetNoOfRegisteredPeds();
-    void* GetHeadOfQueue();
+    CTask*   GetTaskForPed(CPed* ped);
+    size_t   GetNoOfRegisteredPeds() const { return m_AttractPeds.size() + m_ArrivedPeds.size(); }
+    int32    GetQueueSlot(const CPed*);
+    CPed*    GetHeadOfQueue() const;
+    CPed*    GetTailOfQueue() const;
+    auto&    GetArrivedPeds() { return m_ArrivedPeds; }
+    size_t   GetSizeOfQueue() const { return m_ArrivedPeds.size(); }
+    auto&    GetAttractPeds() { return m_AttractPeds; }
+    auto     GetEffect() const { return m_Fx; }
+    CEntity* GetEntity() const { return m_Entity; }
 
-    // 0x
-    int32 ComputeFreeSlot();
-    float ComputeDeltaPos() const;
-    float ComputeDeltaHeading() const;
+    bool         HasEmptySlot() const { return GetNoOfRegisteredPeds() < m_MaxNumPeds; }
+    int32        ComputeFreeSlot();
 
-    void ComputeAttractTime(int32 unused, bool time1_or_time2, float& outTime) const;
+    float        ComputeDeltaPos() const;
+    float        ComputeDeltaHeading() const;
 
+    void         ComputeAttractTime(int32 slotIdx, bool hasArrived, float& outTime) const;
     virtual void ComputeAttractPos(int32 pedId, CVector& outPos);
     virtual void ComputeAttractHeading(int32 bQueue, float& heading);
+
     virtual void BroadcastDeparture(CPed* ped);
+    bool         BroadcastArrival(CPed* ped);
 
-    void BroadcastArrival(CPed* ped);
     void AbortPedTasks();
-};
 
+public:
+    // Casting.hpp support //
+    template<typename From, typename Self>
+    static constexpr bool classof(const From* f) { return f->GetType() == Self::Type; }
+
+private:
+    auto* Constructor(C2dEffectPedAttractor* fx, CEntity* entity, eMoveState moveState, size_t maxNoOfPeds, float spacing, float achieveQueueTime, float achieveQueueShuffleTime, float arriveRange, float headingRange, float deltaPos, float deltaHeading) {
+        return std::construct_at(this,fx, entity, moveState, maxNoOfPeds, spacing, achieveQueueTime, achieveQueueShuffleTime, arriveRange, headingRange, deltaPos, deltaHeading);
+    }
+    auto* Destructor() {
+        std::destroy_at(this);
+        return this;
+    }
+};
 VALIDATE_SIZE(CPedAttractor, 0x8C);

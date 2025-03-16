@@ -160,27 +160,6 @@ public: // NOTSA
     static void InjectHooks();
     CBike* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) { this->CBike::CBike(modelIndex, createdBy); return this; }
     CBike* Destructor() {this->CBike::~CBike(); return this; }
-    void Fix_Reversed() { CBike::Fix(); }
-    void BlowUpCar_Reversed(CEntity* damager, bool bHideExplosion) { CBike::BlowUpCar(damager, bHideExplosion); }
-    void ProcessDrivingAnims_Reversed(CPed* driver, bool blend) { CBike::ProcessDrivingAnims(driver, blend); }
-    bool BurstTyre_Reversed(uint8 tyreComponentId, bool bPhysicalEffect) { return CBike::BurstTyre(tyreComponentId, bPhysicalEffect); }
-    void ProcessControlInputs_Reversed(uint8 playerNum) { CBike::ProcessControlInputs(playerNum); }
-    int32 ProcessEntityCollision_Reversed(CEntity* entity, CColPoint* colPoint) { return CBike::ProcessEntityCollision(entity, colPoint); }
-    void Render_Reversed() { CBike::Render(); }
-    void PreRender_Reversed() { CBike::PreRender(); }
-    void Teleport_Reversed(CVector destination, bool resetRotation) { CBike::Teleport(destination, resetRotation); }
-    void ProcessControl_Reversed() { CBike::ProcessControl(); }
-    void VehicleDamage_Reversed(float damageIntensity, eVehicleCollisionComponent component, CEntity* damager, CVector* vecCollisionCoors, CVector* vecCollisionDirection, eWeaponType weapon) { CBike::VehicleDamage(damageIntensity, component, damager, vecCollisionCoors, vecCollisionDirection, weapon); }
-    void SetupSuspensionLines_Reversed() { CBike::SetupSuspensionLines(); }
-    void SetModelIndex_Reversed(uint32 index) { CBike::SetModelIndex(index); }
-    void PlayCarHorn_Reversed() { CBike::PlayCarHorn(); }
-    void SetupDamageAfterLoad_Reversed() { CBike::SetupDamageAfterLoad(); }
-    void DoBurstAndSoftGroundRatios_Reversed() { CBike::DoBurstAndSoftGroundRatios(); }
-    bool SetUpWheelColModel_Reversed(CColModel* wheelCol) { return CBike::SetUpWheelColModel(wheelCol); }
-    void RemoveRefsToVehicle_Reversed(CEntity* entityToRemove) { CBike::RemoveRefsToVehicle(entityToRemove); }
-    void ProcessControlCollisionCheck_Reversed(bool applySpeed) { CBike::ProcessControlCollisionCheck(applySpeed); }
-    void GetComponentWorldPosition_Reversed(int32 componentId, CVector& outPos) { CBike::GetComponentWorldPosition(componentId, outPos); }
-    void ProcessOpenDoor_Reversed(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime) { CBike::ProcessOpenDoor(ped, doorComponentId, animGroup, animId, fTime); }
-};
+                                                                                    };
 VALIDATE_SIZE(CBike, 0x814);
 VALIDATE_OFFSET(CBike, m_fGasPedalAudioRevs, 0x808);

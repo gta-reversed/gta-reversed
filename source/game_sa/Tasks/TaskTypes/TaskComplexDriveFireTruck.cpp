@@ -9,14 +9,14 @@
 #include "FireManager.h"
 
 void CTaskComplexDriveFireTruck::InjectHooks() {
-    RH_ScopedClass(CTaskComplexDriveFireTruck);
+    RH_ScopedVirtualClass(CTaskComplexDriveFireTruck, 0x86F570, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x659310);
     RH_ScopedInstall(CreateSubTask, 0x65A240);
-    RH_ScopedVirtualInstall(Clone, 0x659BC0);
-    RH_ScopedVirtualInstall(CreateFirstSubTask, 0x65B140);
-    RH_ScopedVirtualInstall(CreateNextSubTask, 0x65B090);
-    RH_ScopedVirtualInstall(ControlSubTask, 0x65B1E0);
+    RH_ScopedVMTInstall(Clone, 0x659BC0);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x65B140);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x65B090);
+    RH_ScopedVMTInstall(ControlSubTask, 0x65B1E0);
 }
 
 CTaskComplexDriveFireTruck* CTaskComplexDriveFireTruck::Constructor(CVehicle* vehicle, CPed* partnerFireman, bool bIsDriver) {
@@ -43,29 +43,11 @@ CTaskComplexDriveFireTruck::~CTaskComplexDriveFireTruck() {
 
 // 0x659BC0
 CTask* CTaskComplexDriveFireTruck::Clone() const {
-    return Clone_Reversed();
+    return new CTaskComplexDriveFireTruck(m_pVehicle, m_pPartnerFireman, m_bIsDriver);
 }
 
 // 0x65B090
 CTask* CTaskComplexDriveFireTruck::CreateNextSubTask(CPed* ped) {
-    return CreateNextSubTask_Reversed(ped);
-}
-
-// 0x65B140
-CTask* CTaskComplexDriveFireTruck::CreateFirstSubTask(CPed* ped) {
-    return CreateFirstSubTask_Reversed(ped);
-}
-
-// 0x65B1E0
-CTask* CTaskComplexDriveFireTruck::ControlSubTask(CPed* ped) {
-    return ControlSubTask_Reversed(ped);
-}
-
-CTask* CTaskComplexDriveFireTruck::Clone_Reversed() const {
-    return new CTaskComplexDriveFireTruck(m_pVehicle, m_pPartnerFireman, m_bIsDriver);
-}
-
-CTask* CTaskComplexDriveFireTruck::CreateNextSubTask_Reversed(CPed* ped) {
     eTaskType subTaskType = m_pSubTask->GetTaskType();
 
     if (subTaskType == TASK_COMPLEX_CAR_DRIVE_WANDER)
@@ -83,7 +65,8 @@ CTask* CTaskComplexDriveFireTruck::CreateNextSubTask_Reversed(CPed* ped) {
     return nullptr;
 }
 
-CTask* CTaskComplexDriveFireTruck::CreateFirstSubTask_Reversed(CPed* ped) {
+// 0x65B140
+CTask* CTaskComplexDriveFireTruck::CreateFirstSubTask(CPed* ped) {
     if (!m_pVehicle || !ped->bInVehicle)
         return CreateSubTask(TASK_FINISHED, ped);
 
@@ -94,7 +77,8 @@ CTask* CTaskComplexDriveFireTruck::CreateFirstSubTask_Reversed(CPed* ped) {
     return CreateSubTask(m_pFire ? TASK_COMPLEX_CAR_DRIVE_TO_POINT : TASK_COMPLEX_CAR_DRIVE_WANDER, ped);
 }
 
-CTask* CTaskComplexDriveFireTruck::ControlSubTask_Reversed(CPed* ped) {
+// 0x65B1E0
+CTask* CTaskComplexDriveFireTruck::ControlSubTask(CPed* ped) {
     eTaskType subTaskId = m_pSubTask->GetTaskType();
 
     if (!m_pVehicle || !ped->bInVehicle)

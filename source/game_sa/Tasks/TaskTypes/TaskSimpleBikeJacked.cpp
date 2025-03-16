@@ -3,7 +3,7 @@
 #include "TaskUtilityLineUpPedWithCar.h"
 
 void CTaskSimpleBikeJacked::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleBikeJacked);
+    RH_ScopedVirtualClass(CTaskSimpleBikeJacked, 0x86EFAC, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x648B90);
@@ -11,11 +11,11 @@ void CTaskSimpleBikeJacked::InjectHooks() {
 
     RH_ScopedGlobalInstall(FinishAnimBikeHitCB, 0x648D30);
 
-    RH_ScopedVirtualInstall2(Clone, 0x64A200);
-    RH_ScopedVirtualInstall2(GetTaskType, 0x648C30);
-    RH_ScopedVirtualInstall2(MakeAbortable, 0x648CE0);
-    RH_ScopedVirtualInstall2(ProcessPed, 0x64C970);
-    RH_ScopedVirtualInstall2(SetPedPosition, 0x648D00);
+    RH_ScopedVMTInstall(Clone, 0x64A200);
+    RH_ScopedVMTInstall(GetTaskType, 0x648C30);
+    RH_ScopedVMTInstall(MakeAbortable, 0x648CE0);
+    RH_ScopedVMTInstall(ProcessPed, 0x64C970);
+    RH_ScopedVMTInstall(SetPedPosition, 0x648D00);
 }
 
 // 0x648B90
@@ -50,7 +50,7 @@ CTaskSimpleBikeJacked::~CTaskSimpleBikeJacked() {
 bool CTaskSimpleBikeJacked::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     if (priority == ABORT_PRIORITY_IMMEDIATE) {
         if (m_firstAnim) {
-            m_firstAnim->m_fBlendDelta = -1000.f;
+            m_firstAnim->m_BlendDelta = -1000.f;
         }
         return true;
     }
@@ -94,7 +94,7 @@ bool CTaskSimpleBikeJacked::ProcessPed(CPed* ped) {
             [this, ped] {
                 if (m_jacker) {
                     if (const auto anim = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, { ANIM_ID_CAR_PULLOUT_RHS, ANIM_ID_CAR_PULLOUT_LHS, ANIM_ID_CAR_GETIN_BIKE_FRONT })) {
-                        if (anim->m_fCurrentTime <= 0.3f) {
+                        if (anim->m_CurrentTime <= 0.3f) {
                             return false;
                         }
                     }
@@ -114,7 +114,7 @@ bool CTaskSimpleBikeJacked::ProcessPed(CPed* ped) {
             // Play animation and some sound effect
             m_firstAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_vehicle->GetRideAnimData()->m_nAnimGroup, ANIM_ID_BIKE_HIT);
             m_firstAnim->SetFinishCallback(FinishAnimBikeHitCB, this);
-            ped->m_pedAudio.AddAudioEvent(AE_PED_JACKED_BIKE);
+            ped->GetAE().AddAudioEvent(AE_PED_JACKED_BIKE);
         }
 
         if (!m_taskUtilityLineUpPedWithCar) {

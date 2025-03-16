@@ -8,7 +8,7 @@ class CAnimBlendAssociation;
 class CVehicle;
 class CTaskUtilityLineUpPedWithCar;
 
-class CTaskSimpleCarSlowDragPedOut : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleCarSlowDragPedOut : public CTaskSimple {
 public:
     bool                          m_bAnimFinished;
     CAnimBlendAssociation*        m_AnimAssoc;
@@ -29,8 +29,15 @@ public:
     void StartAnim(const CPed* ped);
     CPed* GetJackedPed() const; // NOTSA
 
-    CTask* Clone() const override { return new CTaskSimpleCarSlowDragPedOut(m_Vehicle, m_TargetDoor, m_LineUpPedWithCarTask, m_bWasPedStatic); } // 0x649FD0
-    eTaskType GetTaskType() const override { return Type; }
+
+
+CTask* Clone() const override { return new CTaskSimpleCarSlowDragPedOut(m_Vehicle, m_TargetDoor, m_LineUpPedWithCarTask, m_bWasPedStatic); }
+
+ // 0x649FD0
+
+
+eTaskType GetTaskType() const override { return Type; }
+
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool ProcessPed(CPed* ped) override;
     bool SetPedPosition(CPed* ped) override;
@@ -45,10 +52,5 @@ private:
     CTaskSimpleCarSlowDragPedOut* Constructor(CVehicle* veh, eTargetDoor targetDoor, CTaskUtilityLineUpPedWithCar* lineUpPedWithCarTask, bool isPedStatic) { this->CTaskSimpleCarSlowDragPedOut::CTaskSimpleCarSlowDragPedOut(veh, targetDoor, lineUpPedWithCarTask, isPedStatic); return this; }
     CTaskSimpleCarSlowDragPedOut* Destructor() { this->CTaskSimpleCarSlowDragPedOut::~CTaskSimpleCarSlowDragPedOut(); return this; }
 
-    CTask * Clone_Reversed() { return CTaskSimpleCarSlowDragPedOut::Clone(); }
-    eTaskType GetTaskType_Reversed() { return CTaskSimpleCarSlowDragPedOut::GetTaskType(); }
-    bool MakeAbortable_Reversed(CPed * ped, eAbortPriority priority, CEvent const* event) { return CTaskSimpleCarSlowDragPedOut::MakeAbortable(ped, priority, event); }
-    bool ProcessPed_Reversed(CPed * ped) { return CTaskSimpleCarSlowDragPedOut::ProcessPed(ped); }
-    bool SetPedPosition_Reversed(CPed * ped) { return CTaskSimpleCarSlowDragPedOut::SetPedPosition(ped); }
-};
+                    };
 VALIDATE_SIZE(CTaskSimpleCarSlowDragPedOut, 0x20);

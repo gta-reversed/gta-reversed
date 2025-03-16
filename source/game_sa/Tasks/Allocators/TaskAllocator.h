@@ -17,7 +17,7 @@ enum eTaskAllocatorType {
     TASK_ALLOCATOR_KILL_THREATS_DRIVEBY = 11,
 };
 
-class CTaskAllocator {
+class NOTSA_EXPORT_VTABLE CTaskAllocator {
 public:
     CPed*  m_Ped0;
     int32  m_GroupId;

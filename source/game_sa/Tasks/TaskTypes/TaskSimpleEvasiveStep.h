@@ -3,7 +3,7 @@
 #include "TaskSimple.h"
 class CEntity;
 
-class CTaskSimpleEvasiveStep : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleEvasiveStep : public CTaskSimple {
 public:
     CEntity* m_Entity;
     bool     m_bFinished;

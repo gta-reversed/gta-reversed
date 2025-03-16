@@ -34,10 +34,10 @@ public:
     CTaskComplexFleeEntity(
         CEntity* fleeEntity,
         bool scream,
-        float safeDistance,
-        int32 fleeTime,
-        int32 posCheckPeriod,
-        float posChangeTolerance
+        float safeDistance = 60.f,
+        int32 fleeTime = 1'000'000,
+        int32 posCheckPeriod = 1'000,
+        float posChangeTolerance = 1.f
     );
     CTaskComplexFleeEntity(const CTaskComplexFleeEntity&);
     ~CTaskComplexFleeEntity();

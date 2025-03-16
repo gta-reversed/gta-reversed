@@ -7,15 +7,15 @@
 #include "TaskSimpleCarSetPedInAsDriver.h"
 
 void CTaskSimpleCreateCarAndGetIn::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleCreateCarAndGetIn);
+    RH_ScopedVirtualClass(CTaskSimpleCreateCarAndGetIn, 0x86F070, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x6493E0);
     RH_ScopedInstall(Destructor, 0x64CEA0);
-    RH_ScopedVirtualInstall(Clone, 0x64A410);
-    RH_ScopedVirtualInstall(GetTaskType, 0x649430);
-    RH_ScopedVirtualInstall(MakeAbortable, 0x649440);
-    RH_ScopedVirtualInstall(ProcessPed, 0x64CF40);
+    RH_ScopedVMTInstall(Clone, 0x64A410);
+    RH_ScopedVMTInstall(GetTaskType, 0x649430);
+    RH_ScopedVMTInstall(MakeAbortable, 0x649440);
+    RH_ScopedVMTInstall(ProcessPed, 0x64CF40);
 }
 
 // 0x6493E0

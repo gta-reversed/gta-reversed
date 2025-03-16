@@ -5,21 +5,17 @@
 float& CEventGunShot::ms_fGunShotSenseRangeForRiot2 = *(float*)0x8A625C;
 
 void CEventGunShot::InjectHooks() {
-    RH_ScopedClass(CEventGunShot);
+    RH_ScopedVirtualClass(CEventGunShot, 0x85ABE0, 17);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x4AC610);
-    RH_ScopedVirtualInstall(AffectsPed, 0x4B2CD0);
-    RH_ScopedVirtualInstall(IsCriminalEvent, 0x4AC810);
-    RH_ScopedVirtualInstall(TakesPriorityOver, 0x4AC780);
-    RH_ScopedVirtualInstall(CloneEditable, 0x4B6B20);
+    RH_ScopedVMTInstall(AffectsPed, 0x4B2CD0);
+    RH_ScopedVMTInstall(IsCriminalEvent, 0x4AC810);
+    RH_ScopedVMTInstall(TakesPriorityOver, 0x4AC780);
+    RH_ScopedVMTInstall(CloneEditable, 0x4B6B20);
 }
 
 CEventGunShot* CEventGunShot::Constructor(CEntity* entity, CVector startPoint, CVector endPoint, bool bHasNoSound) { this->CEventGunShot::CEventGunShot(entity, startPoint, endPoint, bHasNoSound); return this; }
-bool CEventGunShot::AffectsPed(CPed* ped) { return CEventGunShot::AffectsPed_Reversed(ped); }
-bool CEventGunShot::IsCriminalEvent() { return CEventGunShot::IsCriminalEvent_Reversed(); }
-bool CEventGunShot::TakesPriorityOver(const CEvent& refEvent) { return CEventGunShot::TakesPriorityOver_Reversed(refEvent); }
-CEventEditableResponse* CEventGunShot::CloneEditable() { return CEventGunShot::CloneEditable_Reversed(); }
 
 // 0x4AC610
 CEventGunShot::CEventGunShot(CEntity* entity, CVector startPoint, CVector endPoint, bool bHasNoSound) : CEventEditableResponse() {
@@ -35,7 +31,7 @@ CEventGunShot::~CEventGunShot() {
 }
 
 // 0x4B2CD0
-bool CEventGunShot::AffectsPed_Reversed(CPed* ped) {
+bool CEventGunShot::AffectsPed(CPed* ped) {
     if (!m_firedBy)
         return false;
 
@@ -77,12 +73,12 @@ bool CEventGunShot::AffectsPed_Reversed(CPed* ped) {
 }
 
 // 0x4AC810
-bool CEventGunShot::IsCriminalEvent_Reversed() {
+bool CEventGunShot::IsCriminalEvent() {
     return m_firedBy && m_firedBy->IsPed() && m_firedBy->AsPed()->IsPlayer();
 }
 
 // 0x4AC780
-bool CEventGunShot::TakesPriorityOver_Reversed(const CEvent& refEvent) {
+bool CEventGunShot::TakesPriorityOver(const CEvent& refEvent) {
     if (refEvent.GetEventType() == GetEventType()) {
         bool bIsPlayer = false;
         bool otherPedIsPlayer = false;
@@ -101,6 +97,6 @@ bool CEventGunShot::TakesPriorityOver_Reversed(const CEvent& refEvent) {
 }
 
 // 0x4B6B20
-CEventEditableResponse* CEventGunShot::CloneEditable_Reversed() {
+CEventEditableResponse* CEventGunShot::CloneEditable() {
     return new CEventGunShot(m_firedBy, m_startPoint, m_endPoint, m_bHasNoSound);
 }

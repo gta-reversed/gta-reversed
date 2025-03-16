@@ -18,19 +18,19 @@ void CTaskComplexEnterCarAsPassengerWait::InjectHooks() {
 
 // 0x63B320
 CTaskComplexEnterCarAsPassengerWait::CTaskComplexEnterCarAsPassengerWait(CVehicle* target, CPed* waitFor, bool forceFrontSeat, eMoveState ms) :
-    m_Target{target},
+    m_Car{target},
     m_WaitForPed{waitFor},
     m_bForceFrontSeat{forceFrontSeat},
     m_MoveState{ms}
 {
-    CEntity::SafeRegisterRef(m_Target);
+    CEntity::SafeRegisterRef(m_Car);
     CEntity::SafeRegisterRef(m_WaitForPed);
 }
     
 // NOTSA (for 0x63D850)
 CTaskComplexEnterCarAsPassengerWait::CTaskComplexEnterCarAsPassengerWait(const CTaskComplexEnterCarAsPassengerWait& o) :
     CTaskComplexEnterCarAsPassengerWait{
-        o.m_Target,
+        o.m_Car,
         o.m_WaitForPed,
         o.m_bForceFrontSeat,
         o.m_MoveState
@@ -40,7 +40,7 @@ CTaskComplexEnterCarAsPassengerWait::CTaskComplexEnterCarAsPassengerWait(const C
 
 // 0x63B3C0
 CTaskComplexEnterCarAsPassengerWait::~CTaskComplexEnterCarAsPassengerWait() {
-    CEntity::SafeCleanUpRef(m_Target);
+    CEntity::SafeCleanUpRef(m_Car);
     CEntity::SafeCleanUpRef(m_WaitForPed);
 }
 

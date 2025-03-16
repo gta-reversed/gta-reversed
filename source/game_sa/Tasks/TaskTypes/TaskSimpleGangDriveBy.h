@@ -11,6 +11,22 @@ class CAnimBlendAssociation;
 class CEntity;
 class CWeaponInfo;
 
+enum class eDrivebyStyle : int8 {
+    FIXED_LHS,
+    FIXED_RHS,
+
+    START_FROM_LHS,
+    START_FROM_RHS,
+
+    AI_SIDE,
+
+    FIXED_FWD,
+    FIXED_BAK,
+
+    AI_FWD_BAK,
+    AI_ALL_DIRN,
+};
+
 class NOTSA_EXPORT_VTABLE CTaskSimpleGangDriveBy : public CTaskSimple {
 public:
     bool                   m_bIsFinished;
@@ -23,7 +39,7 @@ public:
     char                   m_nNextCommand;
     char                   m_nLastCommand;
     char                   m_nBurstShots;
-    char                   m_nDrivebyStyle;
+    eDrivebyStyle          m_nDrivebyStyle;
     int8                   m_nFrequencyPercentage;
     char                   m_nFakeShootDirn;
     int16                  m_nAttackTimer;
@@ -40,7 +56,7 @@ public:
 public:
     static constexpr auto Type = TASK_SIMPLE_GANG_DRIVEBY;
 
-    CTaskSimpleGangDriveBy(CEntity *target, const CVector *targetPos, float abortRange, int8 frequencyPercentage, int8 drivebyStyle, bool seatRHS);
+    CTaskSimpleGangDriveBy(CEntity *target, const CVector *targetPos, float abortRange, int8 frequencyPercentage, eDrivebyStyle drivebyStyle, bool seatRHS);
     ~CTaskSimpleGangDriveBy() override;
 
     eTaskType GetTaskType() const override { return Type; }

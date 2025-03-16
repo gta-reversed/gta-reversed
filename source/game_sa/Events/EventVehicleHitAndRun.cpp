@@ -4,12 +4,12 @@
 
 void CEventVehicleHitAndRun::InjectHooks()
 {
-    RH_ScopedClass(CEventVehicleHitAndRun);
+    RH_ScopedVirtualClass(CEventVehicleHitAndRun, 0x85AFA8, 16);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x4AE990);
-    RH_ScopedVirtualInstall(Clone, 0x4B7100);
-    RH_ScopedVirtualInstall(ReportCriminalEvent, 0x4B27D0);
+    RH_ScopedVMTInstall(Clone, 0x4B7100);
+    RH_ScopedVMTInstall(ReportCriminalEvent, 0x4B27D0);
 }
 
 CEventVehicleHitAndRun::CEventVehicleHitAndRun(CPed* victim, CVehicle* vehicle)
@@ -36,21 +36,11 @@ CEventVehicleHitAndRun* CEventVehicleHitAndRun::Constructor(CPed* victim, CVehic
 // 0x4B7100
 CEvent* CEventVehicleHitAndRun::Clone()
 {
-    return CEventVehicleHitAndRun::Clone_Reversed();
+    return new CEventVehicleHitAndRun(m_victim, m_vehicle);
 }
 
 // 0x4B27D0
 void CEventVehicleHitAndRun::ReportCriminalEvent(CPed* ped)
-{
-    return CEventVehicleHitAndRun::ReportCriminalEvent_Reversed(ped);
-}
-
-CEvent* CEventVehicleHitAndRun::Clone_Reversed()
-{
-    return new CEventVehicleHitAndRun(m_victim, m_vehicle);
-}
-
-void CEventVehicleHitAndRun::ReportCriminalEvent_Reversed(CPed* ped)
 {
     if (IsCriminalEvent()) {
         if (m_victim->m_nPedType == PED_TYPE_COP)

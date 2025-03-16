@@ -141,7 +141,7 @@ bool CTaskSimpleCarCloseDoorFromOutside::MakeAbortable(CPed* ped, eAbortPriority
     switch (priority) {
     case ABORT_PRIORITY_IMMEDIATE: {
         if (m_anim) {
-            m_anim->m_fBlendDelta = -1000.f;
+            m_anim->m_BlendDelta = -1000.f;
         }
         if (m_veh) {
             ProcessDoorOpen(ped);
@@ -171,7 +171,7 @@ bool CTaskSimpleCarCloseDoorFromOutside::ProcessPed(CPed* ped) {
     }
 
     const auto [grpId, animId] = ComputeAnimID_Helper();
-    m_veh->ProcessOpenDoor(ped, m_door, grpId, animId, m_anim->m_fCurrentTime);
+    m_veh->ProcessOpenDoor(ped, m_door, grpId, animId, m_anim->m_CurrentTime);
 
     return false;
 }

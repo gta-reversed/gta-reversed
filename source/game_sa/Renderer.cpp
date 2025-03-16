@@ -660,7 +660,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
     if (entity->m_nAreaCode == CGame::currArea || entity->m_nAreaCode == AREA_CODE_13) {
         CVector position = entity->GetPosition();
         if (entity->m_pLod) {
-            position = &entity->m_pLod->GetPosition();
+            position = entity->m_pLod->GetPosition();
         }
 
         outDistance = DistanceBetweenPoints(ms_vecCameraPosition, position);

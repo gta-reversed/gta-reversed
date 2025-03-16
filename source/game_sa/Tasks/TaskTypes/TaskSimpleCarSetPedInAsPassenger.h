@@ -14,7 +14,7 @@ class CAnimBlendAssociation;
 class CTaskUtilityLineUpPedWithCar;
 
 
-class CTaskSimpleCarSetPedInAsPassenger : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleCarSetPedInAsPassenger : public CTaskSimple {
 public:
     bool                          m_bIsFinished{};
     CAnimBlendAssociation*        m_pAnim{};

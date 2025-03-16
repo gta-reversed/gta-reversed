@@ -71,13 +71,16 @@ public:
 
     /*!
     * @addr 0x5F8510
-    * @note The tasks passed to this function **shouldn't** be `new`-d, but rather stack allocated! Also, it's often inlined into an unused `CTaskSimpleNone` and `SetTask` call.
+    * @note The tasks passed to this function **shouldn't** be `new`-d, but rather stack allocated!
+    * @note Also, it's often inlined into an unused `CTaskSimpleNone` and `SetTask` call.
     */
     void SetEventResponseTask(
         CPed*        ped,
         bool         hasMainTask,
+
         const CTask& mainTask,
         bool         hasSecondaryTask = false,
+
         const CTask& secondaryTask = CTaskSimpleNone{},
         int32        slot = -1
     );

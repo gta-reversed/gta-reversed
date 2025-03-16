@@ -142,7 +142,7 @@ CTask* CTaskComplexFollowPointRoute::CreateTask(eTaskType taskType, CPed* ped) {
                 }
             }(),
             false,
-            m_pParentTask && m_pParentTask->GetTaskType() == TASK_COMPLEX_WALK_ROUND_CAR && static_cast<CTaskComplexWalkRoundCar*>(m_pParentTask)->IsGoingForDoor()
+            m_Parent && m_Parent->GetTaskType() == TASK_COMPLEX_WALK_ROUND_CAR && static_cast<CTaskComplexWalkRoundCar*>(m_Parent)->GoingForDoor()
         };
     case TASK_SIMPLE_GO_TO_POINT:
         return new CTaskSimpleGoToPoint{

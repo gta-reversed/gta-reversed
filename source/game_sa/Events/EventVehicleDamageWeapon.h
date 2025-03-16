@@ -15,7 +15,6 @@ private:
     static void InjectHooks();
 
     CEventVehicleDamageWeapon* Constructor(CVehicle* vehicle, CEntity* attacker, eWeaponType weaponType);
-    CEventEditableResponse* CloneEditable_Reversed();
 };
 
 VALIDATE_SIZE(CEventVehicleDamageWeapon, 0x20);

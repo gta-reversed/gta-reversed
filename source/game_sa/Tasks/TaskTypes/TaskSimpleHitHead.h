@@ -2,7 +2,7 @@
 
 #include "TaskSimple.h"
 
-class CTaskSimpleHitHead : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleHitHead : public CTaskSimple {
 public:
     bool m_bIsFinished;
     CAnimBlendAssociation* m_pAnim;
@@ -21,7 +21,5 @@ public:
 
     static void InjectHooks();
     CTaskSimpleHitHead* Constructor();
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool ProcessPed_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskSimpleHitHead, 0x10);

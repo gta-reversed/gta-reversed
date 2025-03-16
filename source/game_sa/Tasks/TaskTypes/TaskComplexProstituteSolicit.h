@@ -9,7 +9,7 @@
 #include "TaskComplex.h"
 #include "Ped.h"
 
-class CTaskComplexProstituteSolicit : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexProstituteSolicit : public CTaskComplex {
 public:
     CPed*   m_pClient; // player only
     CVector m_vecVehiclePosn;

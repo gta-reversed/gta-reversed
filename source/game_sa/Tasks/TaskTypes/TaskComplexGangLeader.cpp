@@ -111,30 +111,22 @@ void CTaskComplexGangLeader::DoGangAbuseSpeech(CPed* talker, CPed* sayTo) {
         return;
     }
 
-    if (!talker->IsGangster() && !sayTo->IsPlayer()) { // Second check is redundant.
+    if (!sayTo->IsGangster() && !sayTo->IsPlayer()) {
         return;
     }
 
     if (const auto phrase = [&] {
         switch (sayTo->m_nPedType) {
-        case PED_TYPE_GANG1:
-            return 1;
-        case PED_TYPE_GANG2:
-        case PED_TYPE_PLAYER1:
-        case PED_TYPE_PLAYER2:
-            return 4;
-        case PED_TYPE_GANG4:
-            return 7;
-        case PED_TYPE_GANG5:
-            return 8;
-        case PED_TYPE_GANG6:
-            return 6;
-        case PED_TYPE_GANG7:
-            return 5;
-        case PED_TYPE_GANG8:
-            return 3;
-        default:
-            return 0;
+        case PED_TYPE_GANG1:   return CTX_GLOBAL_ABUSE_GANG_BALLAS;
+        case PED_TYPE_GANG2:   
+        case PED_TYPE_PLAYER1: 
+        case PED_TYPE_PLAYER2: return CTX_GLOBAL_ABUSE_GANG_FAMILIES;
+        case PED_TYPE_GANG4:   return CTX_GLOBAL_ABUSE_RIFA;
+        case PED_TYPE_GANG5:   return CTX_GLOBAL_ABUSE_DA_NANG;
+        case PED_TYPE_GANG6:   return CTX_GLOBAL_ABUSE_MAFIA;
+        case PED_TYPE_GANG7:   return CTX_GLOBAL_ABUSE_TRIAD;
+        case PED_TYPE_GANG8:   return CTX_GLOBAL_ABUSE_GANG_VLA;
+        default:               return CTX_GLOBAL_NO_SPEECH;
         }
     }()) {
         talker->Say(phrase);
@@ -210,7 +202,7 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
         }
     } else if (ShouldLoadGangAnims()) {
         const auto blk = CAnimManager::GetAnimationBlockIndex("gangs");
-        if (CAnimManager::ms_aAnimBlocks[blk].bLoaded) {
+        if (CAnimManager::GetAnimBlocks()[blk].IsLoaded) {
             CAnimManager::AddAnimBlockRef(blk);
             m_animsReferenced = true;
         } else {
@@ -219,9 +211,9 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
     }
 
     // If we're wandering and the wander time is out of time...
-    if (const auto wander = CTask::DynCast<CTaskComplexWander>(m_pSubTask)) { // 0x66241F
+    if (const auto tWander = notsa::dyn_cast_if_present<CTaskComplexWander>(m_pSubTask)) { // 0x66241F
         if (m_wanderTimer.IsOutOfTime()) {
-            if (wander->GetDistSqOfClosestPathNodeToPed(ped) <= 2.f) {
+            if (tWander->GetDistSqOfClosestPathNodeToPed(ped) <= 2.f) {
                 m_gang->GetIntelligence().SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllocatorType::RANDOM);
                 // Above call causes this task to be flushed (deleted), and changes our vfptr to `CTaskComplex`'s.
                 // If we return non-null here, `CTaskManager::ParentsControlChildren` will be called, and calls our
@@ -236,9 +228,8 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
     if (m_exhaleTimer.IsOutOfTime()) { // 0x6624C1
         if (ped->m_pRwClump) {
             if (auto matrix = RwFrameGetMatrix(RpClumpGetFrame(ped->m_pRwClump))) {
-                CVector PoS{ 0.f, 0.1f, 0.f };
-                if (const auto fx = g_fxMan.CreateFxSystem("exhale", &PoS, matrix)) {
-                    fx->AttachToBone(ped, ePedBones::BONE_HEAD);
+                if (const auto fx = g_fxMan.CreateFxSystem("exhale", CVector{ 0.f, 0.1f, 0.f }, matrix)) {
+                    fx->AttachToBone(ped, eBoneTag::BONE_HEAD);
                     fx->PlayAndKill();
                 }
             }
@@ -336,7 +327,7 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
                 std::array{ SMKCIG_PRTL, SMKCIG_PRTL_F },
                 [&](auto idx) {
                     const auto anim = anims[idx];
-                    return anim && anim->m_fCurrentTime < 0.5f;
+                    return anim && anim->m_CurrentTime < 0.5f;
                 })
             ) {
                 m_exhaleTimer.Start(2700);
@@ -345,9 +336,9 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
     }
 
     if (pedHeldEntity->m_nModelIndex == ModelIndices::MI_GANG_DRINK) { // 0x662729
-        ped->Say(23, 0, 0.2f);
+        ped->Say(CTX_GLOBAL_BOOZE_RECEIVE, 0, 0.2f);
     } else if (pedHeldEntity->m_nModelIndex == ModelIndices::MI_GANG_SMOKE) {
-        ped->Say(200, 0, 0.2f);
+        ped->Say(CTX_GLOBAL_SPLIFF_RECEIVE, 0, 0.2f);
     }
 
     // Now, pass on the entity held in hand (if not already)
@@ -373,9 +364,9 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
         if (!passObjTo->GetEntityThatThisPedIsHolding() && passObjTo->IsCurrentlyUnarmed()) {    
             // Very similar to code above, but not quite the same!
             if (pedHeldEntity->m_nModelIndex == ModelIndices::MI_GANG_DRINK) {
-                passObjTo->Say(24);
+                passObjTo->Say(CTX_GLOBAL_BOOZE_REQUEST);
             } else if (pedHeldEntity->m_nModelIndex == ModelIndices::MI_GANG_SMOKE) {
-                passObjTo->Say(201);
+                passObjTo->Say(CTX_GLOBAL_SPLIFF_REQUEST);
             }
             passObjTo->GetEventGroup().Add(CEventPassObject{ ped });
             return new CTaskComplexPassObject{ passObjTo, true };           

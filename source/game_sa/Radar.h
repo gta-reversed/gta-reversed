@@ -168,7 +168,11 @@ struct tRadarTrace {
     uint16       m_nCounter;
     float        m_fSphereRadius;
     uint16       m_nBlipSize;
-    CEntryExit*  m_pEntryExit;
+
+    union {
+        CEntryExit* m_pEntryExit;       // Used for normal usage
+        uint32      m_EntryExitPoolInd; // Used when saving/loading to save file
+    };
     eRadarSprite m_nBlipSprite;
 
     bool         m_bBright : 1;              // It makes use of bright colors. Always set.
@@ -232,10 +236,10 @@ public:
     static float LimitRadarPoint(CVector2D& point);
     static void LimitToMap(float& x, float& y);
     static uint8 CalculateBlipAlpha(float distance);
-    static void TransformRadarPointToScreenSpace(CVector2D& out, const CVector2D& in);
-    static void TransformRealWorldPointToRadarSpace(CVector2D& out, const CVector2D& in);
-    static void TransformRadarPointToRealWorldSpace(CVector2D& out, const CVector2D& in);
-    static void TransformRealWorldToTexCoordSpace(CVector2D& out, const CVector2D& in, int32 x, int32 y);
+    static CVector2D TransformRadarPointToScreenSpace(const CVector2D& in);
+    static CVector2D TransformRealWorldPointToRadarSpace(const CVector2D& in);
+    static CVector2D TransformRadarPointToRealWorldSpace(const CVector2D& in);
+    static CVector2D TransformRealWorldToTexCoordSpace(const CVector2D& in, int32 x, int32 y);
     static void CalculateCachedSinCos();
     static tBlipHandle SetCoordBlip(eBlipType type, CVector posn, eBlipColour color, eBlipDisplay blipDisplay, const char* scriptName = nullptr);
     static tBlipHandle SetShortRangeCoordBlip(eBlipType type, CVector posn, eBlipColour color, eBlipDisplay blipDisplay, const char* scriptName = nullptr);
@@ -293,7 +297,7 @@ public:
     static bool Save();
 
     // NOTSA
-    static const char* GetBlipName(eRadarSprite sprite);
+    static const GxtChar* GetBlipName(eRadarSprite sprite);
     static int32 FindTraceNotTrackingBlipIndex(); // Return the index of the first trace with the `TrackingBlip` flag NOT set
 
     static bool IsMapSectionInBounds(int32 x, int32 y) {

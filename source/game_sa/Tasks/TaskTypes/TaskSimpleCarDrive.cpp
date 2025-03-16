@@ -4,7 +4,7 @@
 #include "IKChainManager_c.h"
 
 void CTaskSimpleCarDrive::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleCarDrive);
+    RH_ScopedVirtualClass(CTaskSimpleCarDrive, 0x86E904, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x63C340);
@@ -16,11 +16,11 @@ void CTaskSimpleCarDrive::InjectHooks() {
     RH_ScopedInstall(ProcessHeadBopping, 0x6428C0, { .reversed = false });
     RH_ScopedInstall(ProcessArmBopping, 0x642AE0, { .reversed = false });
     RH_ScopedInstall(ProcessBopping, 0x642E70);
-    RH_ScopedInstall(Clone_Reversed, 0x63DC20);
-    RH_ScopedInstall(GetTaskType_Reversed, 0x63C450);
-    RH_ScopedInstall(MakeAbortable_Reversed, 0x63C670, { .reversed = false });
-    RH_ScopedInstall(ProcessPed_Reversed, 0x644470, { .reversed = false });
-    RH_ScopedInstall(SetPedPosition_Reversed, 0x63C770, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x63DC20);
+    RH_ScopedVMTInstall(GetTaskType, 0x63C450);
+    RH_ScopedVMTInstall(MakeAbortable, 0x63C670, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x644470, { .reversed = false });
+    RH_ScopedVMTInstall(SetPedPosition, 0x63C770, { .reversed = false });
 }
 
 // 0x63C340
@@ -152,6 +152,8 @@ void CTaskSimpleCarDrive::ProcessBopping(CPed* ped, bool a3) {
 }
 
 // 0x63DC20
+
+
 CTask* CTaskSimpleCarDrive::Clone() const {
     auto task = new CTaskSimpleCarDrive(m_pVehicle);
     task->m_bUpdateCurrentVehicle = m_bUpdateCurrentVehicle;
@@ -159,16 +161,23 @@ CTask* CTaskSimpleCarDrive::Clone() const {
 }
 
 // 0x63C670
+
+
 bool CTaskSimpleCarDrive::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     return plugin::CallMethodAndReturn<bool, 0x63C670, CTaskSimpleCarDrive*, CPed*, eAbortPriority, CEvent const*>(this, ped, priority, event);
 }
 
 // 0x644470
+
+
 bool CTaskSimpleCarDrive::ProcessPed(CPed* ped) {
     return plugin::CallMethodAndReturn<bool, 0x644470, CTaskSimpleCarDrive*, CPed*>(this, ped);
 }
 
 // 0x63C770
+
+// 0x0
 bool CTaskSimpleCarDrive::SetPedPosition(CPed* ped) {
     return plugin::CallMethodAndReturn<bool, 0x63C770, CTaskSimpleCarDrive*, CPed*>(this, ped);
 }
+

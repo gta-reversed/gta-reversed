@@ -8,7 +8,7 @@ class CEntity;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexSmartFleeEntity : public CTaskComplex {
 public:
-    CEntity*   m_entity{};                      /// Entity to flee from
+    CEntity*   fleeFrom{};                      /// Entity to flee from
     CVector    m_pos{};                         /// The current position to flee from (It's the entity's position with some tolerance, see `m_posCheckTimer`)
     int32      m_time{};                        /// The time in which we have to flee
     float      m_safeDistance{};                /// Distance from entity in which we're safe (thus task ends)
@@ -33,9 +33,12 @@ public:
         CEntity* fleeEntity,
         bool scream,
         float safeDistance,
-        int32 fleeTime,
-        int32 posCheckPeriod,
-        float posChangeTolerance
+        int32 fleeTime = 1'000'000,
+        int32 posCheckPeriod = 1000, 
+        float posChangeTolerance = 1.f, /* = fEntityPosChangeThreshold */
+
+        // VVV NOTSA ARGS VVV //
+        eMoveState moveState = PEDMOVE_SPRINT
     );
     CTaskComplexSmartFleeEntity(const CTaskComplexSmartFleeEntity&);
     ~CTaskComplexSmartFleeEntity() override;

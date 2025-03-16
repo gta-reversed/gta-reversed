@@ -1,6 +1,9 @@
 #pragma once
 
-class CEventFireNearby : public CEventEditableResponse {
+#include "EventEditableResponse.h"
+
+
+class NOTSA_EXPORT_VTABLE CEventFireNearby : public CEventEditableResponse {
 public:
     CVector m_position;
 

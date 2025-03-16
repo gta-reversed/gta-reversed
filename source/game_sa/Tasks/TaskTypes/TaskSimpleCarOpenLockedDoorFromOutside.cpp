@@ -70,7 +70,7 @@ bool CTaskSimpleCarOpenLockedDoorFromOutside::MakeAbortable(CPed* ped, eAbortPri
     }
 
     if (m_anim) {
-        m_anim->m_fBlendDelta = -1000.f;
+        m_anim->m_BlendDelta = -1000.f;
     }
 
     return true;

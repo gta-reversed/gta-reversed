@@ -18,7 +18,7 @@ void CTaskComplexUseSequence::InjectHooks() {
 CTaskComplexUseSequence::CTaskComplexUseSequence(int32 sequenceIndex) :
     m_nSequenceIndex{sequenceIndex}
 {
-    CTaskSequences::ms_taskSequence[m_nSequenceIndex].m_nReferenceCount++;
+    CTaskSequences::ms_taskSequence[m_nSequenceIndex].m_RefCnt++;
 }
 
 CTaskComplexUseSequence::CTaskComplexUseSequence(const CTaskComplexUseSequence& o) :
@@ -31,8 +31,8 @@ CTaskComplexUseSequence::CTaskComplexUseSequence(const CTaskComplexUseSequence& 
 CTaskComplexUseSequence::~CTaskComplexUseSequence() {
     if (m_nSequenceIndex != -1) {
         auto complexSequence = &CTaskSequences::ms_taskSequence[m_nSequenceIndex];
-        bool bFinalReference = complexSequence->m_nReferenceCount == 1;
-        complexSequence->m_nReferenceCount--;
+        bool bFinalReference = complexSequence->m_RefCnt == 1;
+        complexSequence->m_RefCnt--;
         if (bFinalReference && complexSequence->m_bFlushTasks) {
             complexSequence->m_bFlushTasks = false;
             complexSequence->Flush();
@@ -45,34 +45,14 @@ CTaskComplexUseSequence* CTaskComplexUseSequence::Constructor(int32 sequenceInde
     return this;
 }
 
-// 0x639730
 bool CTaskComplexUseSequence::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    return MakeAbortable_Reversed(ped, priority, event);
-}
-
-// 0x6354A0
-CTask* CTaskComplexUseSequence::CreateNextSubTask(CPed* ped) {
-    return CreateNextSubTask_Reversed(ped);
-}
-
-// 0x6354D0
-CTask* CTaskComplexUseSequence::CreateFirstSubTask(CPed* ped) {
-    return CreateFirstSubTask_Reversed(ped);
-}
-
-// 0x635530
-CTask* CTaskComplexUseSequence::ControlSubTask(CPed* ped) {
-    return ControlSubTask_Reversed(ped);
-}
-
-bool CTaskComplexUseSequence::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) {
     bool bMakeAbortable = m_pSubTask->MakeAbortable(ped, priority, event);
     if (bMakeAbortable && event && event->GetEventType() == EVENT_DAMAGE) {
         auto* eventDamage = (CEventDamage*)event;
         if (eventDamage->m_damageResponse.m_bHealthZero && eventDamage->m_bAddToEventGroup) {
             CTaskComplexSequence* sequence = &CTaskSequences::ms_taskSequence[m_nSequenceIndex];
-            bool bFinalReference = sequence->m_nReferenceCount == 1;
-            sequence->m_nReferenceCount--;
+            bool bFinalReference = sequence->m_RefCnt == 1;
+            sequence->m_RefCnt--;
             if (bFinalReference && sequence->m_bFlushTasks) {
                 sequence->m_bFlushTasks = false;
                 sequence->Flush();
@@ -83,7 +63,7 @@ bool CTaskComplexUseSequence::MakeAbortable_Reversed(CPed* ped, eAbortPriority p
     return bMakeAbortable;
 }
 
-CTask* CTaskComplexUseSequence::CreateNextSubTask_Reversed(CPed* ped) {
+CTask* CTaskComplexUseSequence::CreateNextSubTask(CPed* ped) {
     if (m_nSequenceIndex == -1) {
         return nullptr;
     } else {
@@ -92,13 +72,14 @@ CTask* CTaskComplexUseSequence::CreateNextSubTask_Reversed(CPed* ped) {
     }
 }
 
-CTask* CTaskComplexUseSequence::CreateFirstSubTask_Reversed(CPed* ped) {
+
+CTask* CTaskComplexUseSequence::CreateFirstSubTask(CPed* ped) {
     if (m_nSequenceIndex == -1) {
         return nullptr;
     }
 
     CTask* firstSubTask = nullptr;
-    CTask* currentSequenceTask = CTaskSequences::ms_taskSequence[m_nSequenceIndex].m_aTasks[m_nCurrentTaskIndex];
+    CTask* currentSequenceTask = CTaskSequences::ms_taskSequence[m_nSequenceIndex].m_Tasks[m_nCurrentTaskIndex];
     if (currentSequenceTask) {
         firstSubTask = currentSequenceTask->Clone();
     }
@@ -113,6 +94,7 @@ CTask* CTaskComplexUseSequence::CreateFirstSubTask_Reversed(CPed* ped) {
     return firstSubTask;
 }
 
-CTask* CTaskComplexUseSequence::ControlSubTask_Reversed(CPed* ped) {
+// 0x0
+CTask* CTaskComplexUseSequence::ControlSubTask(CPed* ped) {
     return m_pSubTask;
 }

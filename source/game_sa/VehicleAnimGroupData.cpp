@@ -33,6 +33,9 @@ void CVehicleAnimGroup::InitAnimGroup(
     sVehAnimGroupGeneralTiming* generalTiming,
     sVehAnimGroupInOutTiming* startTiming, sVehAnimGroupInOutTiming* endTiming
 ) {
+    assert(firstGroup >= ANIM_GROUP_CARS_BEGIN && firstGroup < ANIM_GROUP_CARS_END);
+    assert(secondGroup >= ANIM_GROUP_CARS_BEGIN && secondGroup < ANIM_GROUP_CARS_END);
+
     m_ucFirstGroup = firstGroup;
     m_ucSecondGroup = secondGroup;
     m_animFlags.intValue = animFlags;
@@ -189,19 +192,17 @@ CVector CVehicleAnimGroup::ComputeAnimDoorOffsets(eVehAnimDoorOffset doorId) {
         case EXIT_REAR:        return ANIM_ID_CAR_GETOUT_LHS_1;
         case JACK_PED_LEFT:    return ANIM_ID_CAR_JACKEDLHS;
         case JACK_PED_RIGHT:   return ANIM_ID_CAR_JACKEDRHS;
-        default:
-            assert(false); // Shouldn't enter default case ever
-            return static_cast<AnimationId>(doorId);
+        default:               NOTSA_UNREACHABLE();
         }
     }();
 
     const auto groupId = CVehicleAnimGroup::GetGroup(animId);
     auto* animAssoc = CAnimManager::GetAnimAssociation(groupId, animId);
-    auto* sequences = animAssoc->m_pHierarchy->m_pSequences;
-    CAnimManager::UncompressAnimation(animAssoc->m_pHierarchy);
-    if (sequences->m_nFrameCount > 0) {
-        auto* frame = sequences->GetUncompressedFrame(sequences->m_nFrameCount - 1);
-        GetDoorOffset(doorId) = frame->translation;
+    auto* sequences = animAssoc->m_BlendHier->m_pSequences;
+    CAnimManager::UncompressAnimation(animAssoc->m_BlendHier);
+    if (sequences->m_FramesNum > 0) {
+        auto* frame = sequences->GetUKeyFrame(sequences->m_FramesNum - 1);
+        GetDoorOffset(doorId) = frame->Trans;
     }
 
     return GetDoorOffset(doorId);
@@ -252,7 +253,6 @@ int32 CVehicleAnimGroup::InitFromData(const char* line) {
 
         &animSpecialFlags
     );
-
     // Check for fail
     if (n != 35) {
         return n;

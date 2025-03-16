@@ -97,7 +97,7 @@ bool CTaskSimpleCarOpenDoorFromOutside::MakeAbortable(CPed* ped, eAbortPriority 
     switch (priority) {
     case ABORT_PRIORITY_IMMEDIATE: {
         if (m_anim) {
-            m_anim->m_fBlendDelta = -1000.f;
+            m_anim->m_BlendDelta = -1000.f;
         }
         if (m_veh) {
             const auto [groupId, animId] = ComputeAnimID();
@@ -144,9 +144,9 @@ bool CTaskSimpleCarOpenDoorFromOutside::ProcessPed(CPed* ped) {
     }
 
     const auto doorOpenTiming = m_veh->GetAnimGroup().GetInOutTiming(TIMING_START)[OPEN_START];
-    if (m_veh->IsAutomobile() || m_anim->m_fCurrentTime >= doorOpenTiming) {
+    if (m_veh->IsAutomobile() || m_anim->m_CurrentTime >= doorOpenTiming) {
         const auto [groupId, animId] = ComputeAnimID();
-        m_veh->ProcessOpenDoor(ped, m_door, groupId, m_anim->m_nAnimId, m_anim->m_fCurrentTime);        
+        m_veh->ProcessOpenDoor(ped, m_door, groupId, m_anim->m_AnimId, m_anim->m_CurrentTime);        
     } else {
         // Open the door visually
         const auto doorId = [this] {
@@ -164,7 +164,7 @@ bool CTaskSimpleCarOpenDoorFromOutside::ProcessPed(CPed* ped) {
                 NOTSA_UNREACHABLE();
             }
         }();
-        m_veh->OpenDoor(ped, m_door, doorId, (1.f - m_anim->m_fCurrentTime / doorOpenTiming) * m_doorOpenAngleRatio, false);
+        m_veh->OpenDoor(ped, m_door, doorId, (1.f - m_anim->m_CurrentTime / doorOpenTiming) * m_doorOpenAngleRatio, false);
     }
 
     return false;

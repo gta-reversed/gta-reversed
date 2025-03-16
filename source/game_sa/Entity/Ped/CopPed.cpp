@@ -3,7 +3,7 @@
 #include "CopPed.h"
 
 void CCopPed::InjectHooks() {
-    RH_ScopedClass(CCopPed);
+    RH_ScopedVirtualClass(CCopPed, 0x86C120, 26);
     RH_ScopedCategory("Entity/Ped");
 
     RH_ScopedInstall(Constructor, 0x5DDC60);
@@ -12,7 +12,7 @@ void CCopPed::InjectHooks() {
     RH_ScopedInstall(AddCriminalToKill, 0x5DDEB0);
     RH_ScopedInstall(RemoveCriminalToKill, 0x5DE040);
     RH_ScopedInstall(ClearCriminalsToKill, 0x5DE070);
-    RH_ScopedVirtualInstall(ProcessControl, 0x5DE160);
+    RH_ScopedVMTInstall(ProcessControl, 0x5DE160);
 }
 
 // NOTSA
@@ -245,12 +245,9 @@ void CCopPed::ClearCriminalsToKill() {
 }
 
 // 0x5DE160
-void CCopPed::ProcessControl() {
-    ProcessControl_Reversed();
-}
 
 // 0x5DE160
-void CCopPed::ProcessControl_Reversed() {
+void CCopPed::ProcessControl() {
     if (FindPlayerWanted()->GetWantedLevel() != 0) {
         if (GetIntelligence()->GetPedDecisionMakerType() == eDecisionMakerEvents::DM_EVENT_PED_ENTERED_MY_VEHICLE)
         {
@@ -272,7 +269,7 @@ void CCopPed::ProcessControl_Reversed() {
         return;
 
     if (m_pTargetedObject)
-        Say(220);
+        Say(CTX_GLOBAL_TARGET);
 
     if (!field_79D)
         return;

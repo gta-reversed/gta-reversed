@@ -97,7 +97,6 @@ private:
     CAEPoliceScannerAudioEntity* Constructor();
     CAEPoliceScannerAudioEntity* Destructor();
 
-    void UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos);
 };
 
 VALIDATE_SIZE(CAEPoliceScannerAudioEntity, 0x7C);

@@ -3,11 +3,11 @@
 #include "PedAttractor.h"
 
 void CPedAttractor::InjectHooks() {
-    RH_ScopedClass(CPedAttractor);
+    RH_ScopedVirtualClass(CPedAttractor, 0x86C538, 6);
     RH_ScopedCategory("Attractors");
 
-    //RH_ScopedInstall(Constructor, 0x5EDFB0, { .reversed = false });
-    //RH_ScopedInstall(Destructor, 0x5EC410, { .reversed = false });
+    RH_ScopedInstall(Constructor, 0x5EDFB0);
+    RH_ScopedInstall(Destructor, 0x5EC410);
 
     RH_ScopedInstall(SetTaskForPed, 0x5EECA0, { .reversed = false });
     RH_ScopedInstall(RegisterPed, 0x5EEE30, { .reversed = false });
@@ -15,11 +15,12 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(IsRegisteredWithPed, 0x5EB4C0, { .reversed = false });
     RH_ScopedInstall(IsAtHeadOfQueue, 0x5EB530, { .reversed = false });
     RH_ScopedInstall(GetTaskForPed, 0x5EC500, { .reversed = false });
-    RH_ScopedInstall(GetTailOfQueue, 0x5EB5B0, { .reversed = false });
     RH_ScopedInstall(GetQueueSlot, 0x5EB550, { .reversed = false });
-    RH_ScopedInstall(GetNoOfRegisteredPeds, 0x5EAF10, { .reversed = false });
-    RH_ScopedInstall(GetHeadOfQueue, 0x5EB590, { .reversed = false });
-    RH_ScopedInstall(ComputeFreeSlot, 0x0, { .reversed = false });
+    //RH_ScopedInstall(GetNoOfRegisteredPeds, 0xdeadbeef, { .reversed = false }); // Address incorrect
+    RH_ScopedInstall(GetHeadOfQueue, 0x5EB590);
+    RH_ScopedInstall(GetTailOfQueue, 0x5EB5B0);
+    RH_ScopedInstall(HasEmptySlot, 0x5EAF10);
+    //RH_ScopedInstall(ComputeFreeSlot, 0x0, { .reversed = false });
     RH_ScopedInstall(ComputeDeltaPos, 0x5E9600);
     RH_ScopedInstall(ComputeDeltaHeading, 0x5E9640);
     RH_ScopedInstall(ComputeAttractTime, 0x5E95E0);
@@ -41,13 +42,43 @@ void CPedAttractor::operator delete(void* object) {
 }
 
 // 0x5EDFB0
-CPedAttractor::CPedAttractor(C2dEffect* effect, CEntity* entity, int32 a3, int32 a4, float a5, float time2, float time1, float a8, float a9, float range, float a11, float a12) {
-    plugin::CallMethod<0x5EDFB0, CPedAttractor*, C2dEffect*, CEntity*, int32, int32, float, float, float, float, float, float, float, float>(this, effect, entity, a3, a4, a5, time2, time1, a8, a9, range, a11, a12);
+CPedAttractor::CPedAttractor(
+    C2dEffectPedAttractor* fx,
+    CEntity*               entity,
+    eMoveState             moveState,
+    size_t                 maxNoOfPeds,
+    float                  spacing,
+    float                  achieveQueueTime,
+    float                  achieveQueueShuffleTime,
+    float                  arriveRange,
+    float                  headingRange,
+    float                  deltaPos,
+    float                  deltaHeading
+) :
+    m_Fx{fx},
+    m_Entity{entity},
+    m_MoveState{moveState},
+    m_MaxNumPeds{maxNoOfPeds},
+    m_Spacing{spacing},
+    m_AchieveQueueTime{achieveQueueTime},
+    m_AchieveQueueShuffleTime{achieveQueueShuffleTime},
+    m_ArriveRange{arriveRange},
+    m_HeadingRange{headingRange},
+    m_DeltaPos{deltaPos},
+    m_DeltaHeading{deltaHeading}
+{
+    const CMatrix mat = entity
+        ? entity->GetMatrix()
+        : CMatrix::Unity();
+    m_Pos             = CPedAttractorManager::ComputeEffectPos(fx, mat);
+    m_QueueDir        = CPedAttractorManager::ComputeEffectQueueDir(fx, mat);
+    m_UseDir          = CPedAttractorManager::ComputeEffectUseDir(fx, mat);
+
+    strcpy_s(m_ScriptName, fx->m_szScriptName);
 }
 
-// 0x5EC410
-CPedAttractor::~CPedAttractor() {
-    plugin::CallMethod<0x5EC410, CPedAttractor*>(this);
+void CPedAttractor::Shutdown() {
+    ms_tasks.clear();
 }
 
 // 0x5EECA0
@@ -61,13 +92,13 @@ bool CPedAttractor::RegisterPed(CPed* ped) {
 }
 
 // 0x5EC5B0
-void CPedAttractor::DeRegisterPed(CPed* ped) {
-    return plugin::CallMethod<0x5EC5B0, CPedAttractor*, CPed*>(this, ped);
+bool CPedAttractor::DeRegisterPed(CPed* ped) {
+    return plugin::CallMethodAndReturn<bool, 0x5EC5B0, CPedAttractor*, CPed*>(this, ped);
 }
 
 // 0x5EB4C0
-bool CPedAttractor::IsRegisteredWithPed(const CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x5EB4C0, CPedAttractor*, const CPed*>(this, ped);
+bool CPedAttractor::IsRegisteredWithPed(const CPed* ped) const {
+    return plugin::CallMethodAndReturn<bool, 0x5EB4C0, const CPedAttractor*, const CPed*>(this, ped);
 }
 
 // 0x5EB530
@@ -80,24 +111,23 @@ CTask* CPedAttractor::GetTaskForPed(CPed* ped) {
     return plugin::CallMethodAndReturn<CTask*, 0x5EC500, CPedAttractor*>(this);
 }
 
-// 0x5EB5B0
-uint32 CPedAttractor::GetTailOfQueue() {
-    return plugin::CallMethodAndReturn<uint32, 0x5EB5B0, CPedAttractor*>(this);
-}
-
 // 0x5EB550
 int32 CPedAttractor::GetQueueSlot(const CPed*) {
     return plugin::CallMethodAndReturn<int32, 0x5EB550, CPedAttractor*>(this);
 }
 
-// 0x5EAF10
-bool CPedAttractor::GetNoOfRegisteredPeds() {
-    return plugin::CallMethodAndReturn<bool, 0x5EAF10, CPedAttractor*>(this);
+// 0x5EB590
+CPed* CPedAttractor::GetHeadOfQueue() const {
+    return m_ArrivedPeds.empty()
+        ? nullptr
+        : m_ArrivedPeds.front();
 }
 
-// 0x5EB590
-void* CPedAttractor::GetHeadOfQueue() {
-    return plugin::CallMethodAndReturn<void*, 0x5EB590, CPedAttractor*>(this);
+// 0x5EB5B0
+CPed* CPedAttractor::GetTailOfQueue() const {
+    return m_ArrivedPeds.empty()
+        ? nullptr
+        : m_ArrivedPeds.back();
 }
 
 int32 CPedAttractor::ComputeFreeSlot() {
@@ -107,27 +137,27 @@ int32 CPedAttractor::ComputeFreeSlot() {
 
 // 0x5E9600
 float CPedAttractor::ComputeDeltaPos() const {
-    return CGeneral::GetRandomNumberInRange(-m_fRange, m_fRange);
+    return CGeneral::GetRandomNumberInRange(-m_DeltaPos, m_DeltaPos);
 }
 
 // 0x5E9640
 float CPedAttractor::ComputeDeltaHeading() const {
-    return CGeneral::GetRandomNumberInRange(-m_fDeltaHeading, m_fDeltaHeading);
+    return CGeneral::GetRandomNumberInRange(-m_DeltaHeading, m_DeltaHeading);
 }
 
 // inlined
 // 0x5E95E0
 void CPedAttractor::ComputeAttractTime(int32 unused, bool time1_or_time2, float& outTime) const {
     if (time1_or_time2)
-        outTime = time2;
+        outTime = m_AchieveQueueShuffleTime;
     else
-        outTime = time1;
+        outTime = m_AchieveQueueTime;
 }
 
 // 0x5EA110
 void CPedAttractor::ComputeAttractPos(int32 pedId, CVector& outPos) {
-    if (m_pEffect) {
-        outPos = m_vecAttractorPosn - queueMp * (float)pedId * m_vecQueueDir;
+    if (m_Fx) {
+        outPos = m_Pos - m_Spacing * (float)pedId * m_QueueDir;
 
         if (pedId) {
             outPos.x += ComputeDeltaPos();
@@ -139,11 +169,11 @@ void CPedAttractor::ComputeAttractPos(int32 pedId, CVector& outPos) {
 // bQueue - bad name?
 // 0x5EA1C0
 void CPedAttractor::ComputeAttractHeading(int32 bQueue, float& heading) {
-    if (m_pEffect) {
+    if (m_Fx) {
         if (bQueue)
-            m_vecUseDir = m_vecQueueDir;
+            m_UseDir = m_QueueDir;
 
-        heading = CGeneral::GetRadianAngleBetweenPoints(m_vecUseDir.x, m_vecUseDir.y, 0.0f, 0.0f);
+        heading = CGeneral::GetRadianAngleBetweenPoints(m_UseDir.x, m_UseDir.y, 0.0f, 0.0f);
         if (bQueue)
             heading += CPedAttractor::ComputeDeltaHeading();
     }
@@ -155,8 +185,8 @@ void CPedAttractor::BroadcastDeparture(CPed* ped) {
 }
 
 // 0x5EEF80
-void CPedAttractor::BroadcastArrival(CPed* ped) {
-    plugin::CallMethod<0x5EEF80, CPedAttractor*, CPed*>(this, ped);
+bool CPedAttractor::BroadcastArrival(CPed* ped) {
+    return plugin::CallMethodAndReturn<bool, 0x5EEF80, CPedAttractor*, CPed*>(this, ped);
 }
 
 // 0x5EAF60

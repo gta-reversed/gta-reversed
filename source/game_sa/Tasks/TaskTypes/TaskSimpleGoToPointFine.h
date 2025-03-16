@@ -2,7 +2,7 @@
 
 #include "TaskSimpleGoTo.h"
 
-class CTaskSimpleGoToPointFine : public CTaskSimpleGoTo {
+class NOTSA_EXPORT_VTABLE CTaskSimpleGoToPointFine : public CTaskSimpleGoTo {
 public:
     float m_fMoveRatio;
 
@@ -30,8 +30,5 @@ private:
 
     CTaskSimpleGoToPointFine* Constructor(float moveRatio, CVector targetPoint, float fRadius, CEntity* entity);
 
-    CTask*  Clone_Reversed() const;
-    bool   MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool   ProcessPed_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskSimpleGoToPointFine, 0x24);

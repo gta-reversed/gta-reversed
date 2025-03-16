@@ -62,21 +62,18 @@ void CGangWars::InjectHooks() {
 
 // 0x5D3EB0
 bool CGangWars::Load() {
-    size_t size;
-    CGangWarsSaveStructure data{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size_t));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(CGangWarsSaveStructure));
+    CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // Discard
+    auto data = CGenericGameStorage::LoadDataFromWorkBuffer<CGangWarsSaveStructure>();
     data.Extract();
     return true;
 }
 
 // 0x5D5530
 bool CGangWars::Save() {
-    size_t size = sizeof(CGangWarsSaveStructure);
     CGangWarsSaveStructure data{};
     data.Construct();
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size_t));
-    CGenericGameStorage::SaveDataToWorkBuffer(&data, sizeof(CGangWarsSaveStructure));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CGangWarsSaveStructure));
+    CGenericGameStorage::SaveDataToWorkBuffer(data);
     return true;
 }
 
@@ -169,21 +166,25 @@ void CGangWars::CheerVictory() {
 
     CPed* nearestMember = nullptr;
     playerGroup.FindDistanceToNearestMember(&nearestMember);
-    if (!nearestMember)
+    if (!nearestMember) {
         return;
-
-    static constexpr const char* zoneNames[] = {
-        "CHC", "LFL", "EBE", "ELF", "JEF",
-        "GLN", "IWD", "GAN", "LMEX", "LIND",
-        "PLS", "SUN"
-    };
-
-    for (auto i = 0u; i < std::size(zoneNames); i++) {
-        if (!_stricmp(pZoneToFightOver->m_TextLabel, zoneNames[i])) {
-            nearestMember->Say(208 + i);
-            break;
-        }
     }
+
+    static const auto mapping = notsa::make_mapping<notsa::ci_string_view, eGlobalSpeechContext>({
+        {"CHC",  CTX_GLOBAL_TAKE_TURF_LAS_COLINAS      },
+        {"LFL",  CTX_GLOBAL_TAKE_TURF_LOS_FLORES       },
+        {"EBE",  CTX_GLOBAL_TAKE_TURF_EAST_BEACH       },
+        {"ELF",  CTX_GLOBAL_TAKE_TURF_EAST_LS          },
+        {"JEF",  CTX_GLOBAL_TAKE_TURF_JEFFERSON        },
+        {"GLN",  CTX_GLOBAL_TAKE_TURF_GLEN_PARK        },
+        {"IWD",  CTX_GLOBAL_TAKE_TURF_IDLEWOOD         },
+        {"GAN",  CTX_GLOBAL_TAKE_TURF_GANTON           },
+        {"LMEX", CTX_GLOBAL_TAKE_TURF_LITTLE_MEXICO    },
+        {"LIND", CTX_GLOBAL_TAKE_TURF_WILLOWFIELD      },
+        {"PLS",  CTX_GLOBAL_TAKE_TURF_PLAYA_DEL_SEVILLE},
+        {"SUN",  CTX_GLOBAL_TAKE_TURF_TEMPLE           },
+    });
+    nearestMember->Say(notsa::find_value(mapping, pZoneToFightOver->m_TextLabel));
 }
 
 // 0x443FF0

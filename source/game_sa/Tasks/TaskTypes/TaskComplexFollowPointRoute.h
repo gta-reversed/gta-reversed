@@ -48,14 +48,14 @@ public:
     static constexpr auto Type = eTaskType::TASK_COMPLEX_FOLLOW_POINT_ROUTE;
 
     CTaskComplexFollowPointRoute(
-        eMoveState moveState,
+        eMoveState         moveState,
         CPointRoute const& route,
-        Mode mode = Mode::ONE_WAY,
-        float targetRadius = 0.5f,
-        float slowDownDist = 5.f,
-        bool overshootTarget = false,
-        bool useBlending = true,
-        bool standStillAfterMove = true
+        Mode               mode                 = Mode::ONE_WAY,
+        float              targetRadius         = 0.5f,
+        float              slowDownDist         = 0.f,
+        bool               overshootTarget      = true,
+        bool               useBlending          = false,
+        bool               standStillAfterMove  = false
     );
     CTaskComplexFollowPointRoute(const CTaskComplexFollowPointRoute&);
     ~CTaskComplexFollowPointRoute() override;

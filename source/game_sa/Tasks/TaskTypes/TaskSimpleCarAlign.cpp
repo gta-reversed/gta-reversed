@@ -3,7 +3,7 @@
 #include "TaskUtilityLineUpPedWithCar.h"
 
 void CTaskSimpleCarAlign::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleCarAlign);
+    RH_ScopedVirtualClass(CTaskSimpleCarAlign, 0x86EC78, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x645B40);
@@ -14,11 +14,11 @@ void CTaskSimpleCarAlign::InjectHooks() {
     RH_ScopedInstall(FixHeading, 0x645CB0);
     RH_ScopedInstall(StartAnim, 0x64AC00);
 
-    RH_ScopedVirtualInstall2(Clone, 0x649930);
-    RH_ScopedVirtualInstall2(GetTaskType, 0x645BD0);
-    RH_ScopedVirtualInstall2(MakeAbortable, 0x645C50);
-    RH_ScopedVirtualInstall2(ProcessPed, 0x64D6D0);
-    RH_ScopedVirtualInstall2(SetPedPosition, 0x645C70);
+    RH_ScopedVMTInstall(Clone, 0x649930);
+    RH_ScopedVMTInstall(GetTaskType, 0x645BD0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x645C50);
+    RH_ScopedVMTInstall(ProcessPed, 0x64D6D0);
+    RH_ScopedVMTInstall(SetPedPosition, 0x645C70);
 }
 
 // 0x645B40
@@ -104,7 +104,7 @@ bool CTaskSimpleCarAlign::MakeAbortable(CPed* ped, eAbortPriority priority, CEve
     switch (priority) {
     case ABORT_PRIORITY_IMMEDIATE: {
         if (m_anim) {
-            m_anim->m_fBlendDelta = -1000.f;
+            m_anim->m_BlendDelta = -1000.f;
         }
         return true;
     }

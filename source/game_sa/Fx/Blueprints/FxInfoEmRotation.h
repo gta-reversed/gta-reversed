@@ -3,7 +3,7 @@
 #include "FxInfo.h"
 #include "FxInterpInfoFloat.h"
 
-class FxInfoEmRotation_c : public FxInfo_c {
+class NOTSA_EXPORT_VTABLE FxInfoEmRotation_c : public FxInfo_c {
 protected:
     FxInterpInfoFloat_c m_InterpInfo;
 

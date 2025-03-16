@@ -10,7 +10,7 @@ enum field_30_enum : int32 {
     RACING,
 };
 
-class CTaskComplexDriveToPoint : public CTaskComplexCarDrive {
+class NOTSA_EXPORT_VTABLE CTaskComplexDriveToPoint : public CTaskComplexCarDrive {
 public:
     CVector m_Point;
     field_30_enum field_30;

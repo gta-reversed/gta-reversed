@@ -83,7 +83,7 @@ bool CTaskSimpleCarJumpOut::MakeAbortable(CPed* ped, eAbortPriority priority, CE
     switch (priority) {
     case ABORT_PRIORITY_IMMEDIATE: {
         if (m_anim) {
-            m_anim->m_fBlendDelta = -1000.f;
+            m_anim->m_BlendDelta = -1000.f;
         }
         return true;
     }
@@ -92,7 +92,7 @@ bool CTaskSimpleCarJumpOut::MakeAbortable(CPed* ped, eAbortPriority priority, CE
             switch (event->GetEventType()) {
             case EVENT_IN_AIR:
             case EVENT_IN_WATER: {
-                m_anim->m_fBlendDelta = -2.f;
+                m_anim->m_BlendDelta = -2.f;
                 m_finishedAnim = true;
                 return true;
             }
@@ -121,9 +121,9 @@ bool CTaskSimpleCarJumpOut::ProcessPed(CPed* ped) {
         }
 
         if (m_veh->IsBike() || m_veh->IsSubQuad()) {
-            return m_anim->m_fCurrentTime < 0.7333333f; // TODO: Magic?
+            return m_anim->m_CurrentTime < 0.7333333f; // TODO: Magic?
         } else if (m_veh->IsAutomobile()) {
-            return m_anim->m_fCurrentTime < 0.45f;
+            return m_anim->m_CurrentTime < 0.45f;
         }
 
         return false;    
@@ -156,10 +156,10 @@ bool CTaskSimpleCarJumpOut::ProcessPed(CPed* ped) {
         }
         return 0.07f;
     };
-    if (GetDoorOpenTimeThreshold() >= m_anim->m_fCurrentTime) {
+    if (GetDoorOpenTimeThreshold() >= m_anim->m_CurrentTime) {
         if (m_veh->IsAutomobile()) {
             const auto [grpId, animId] = ComputeAnimID(); // 0x64E00D
-            m_veh->ProcessOpenDoor(ped, m_door, grpId, animId, m_anim->m_fCurrentTime);
+            m_veh->ProcessOpenDoor(ped, m_door, grpId, animId, m_anim->m_CurrentTime);
         }
         return false;
     }
@@ -200,7 +200,7 @@ bool CTaskSimpleCarJumpOut::SetPedPosition(CPed* ped) {
 
     // Do some Z position interpolation for ped for specific anim types
     if (m_anim) {
-        switch (m_anim->m_nAnimId) {
+        switch (m_anim->m_AnimId) {
         case ANIM_ID_CAR_ROLLOUT_RHS:
         case ANIM_ID_CAR_ROLLOUT_LHS: {
             const auto& pedPos = ped->GetPosition();
@@ -217,7 +217,7 @@ bool CTaskSimpleCarJumpOut::SetPedPosition(CPed* ped) {
                     }
                     return 0.07f;
                 }();
-                ped->GetMatrix().GetPosition().z += m_anim->m_fCurrentTime / timeDivier * (pedPosAdj.z - pedPos.z);
+                ped->GetMatrix().GetPosition().z += m_anim->m_CurrentTime / timeDivier * (pedPosAdj.z - pedPos.z);
             }
             break;
         }

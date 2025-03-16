@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexBeInCouple : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexBeInCouple : public CTaskComplex {
     enum WalkSide : int32 {
         NONE,
         RIGHT,

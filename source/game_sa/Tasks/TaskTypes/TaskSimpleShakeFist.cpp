@@ -41,8 +41,8 @@ void CTaskSimpleShakeFist::FinishAnimShakeFistCB(CAnimBlendAssociation*, void* d
 // 0x692DF0
 void CTaskSimpleShakeFist::StartAnim(CPed* ped) {
     m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_FUCKU, 4.f);
-    m_anim->SetFlag(ANIMATION_UNLOCK_LAST_FRAME);
-    m_anim->SetFlag(ANIMATION_FREEZE_LAST_FRAME);
+    m_anim->SetFlag(ANIMATION_IS_FINISH_AUTO_REMOVE);
+    m_anim->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
     m_anim->SetDeleteCallback(FinishAnimShakeFistCB, this);
 }
 
@@ -52,7 +52,7 @@ bool CTaskSimpleShakeFist::MakeAbortable(CPed* ped, eAbortPriority priority, CEv
     case ABORT_PRIORITY_URGENT:
     case ABORT_PRIORITY_IMMEDIATE: {
         if (m_anim) {
-            m_anim->m_fBlendDelta = -4.f;
+            m_anim->m_BlendDelta = -4.f;
             m_anim->SetDefaultFinishCallback();
             m_anim = nullptr;
         }
@@ -60,7 +60,7 @@ bool CTaskSimpleShakeFist::MakeAbortable(CPed* ped, eAbortPriority priority, CEv
     }
     case ABORT_PRIORITY_LEISURE: {
         if (m_anim) {
-            m_anim->m_fBlendDelta = -4.f;
+            m_anim->m_BlendDelta = -4.f;
         }
         return false;
     }

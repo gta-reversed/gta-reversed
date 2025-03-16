@@ -26,12 +26,12 @@ public:
         CEntity* entity,
         bool attackWhileFeeling,
         float safeDist,
-        int32 fleeTime,
-        int32 shootTime,
-        int32 shootRecoverTime,
-        float stealCarDist,
-        int32 posChangePeriod,
-        float posChangeTolerance
+        int32 fleeTime = 1'000'000,
+        int32 shootTime = 4'000,
+        int32 shootRecoverTime = 4'000,
+        float stealCarDist = 20.f,
+        int32 posChangePeriod = 1'000,
+        float posChangeTolerance = 1.f
     );
     CTaskComplexFleeAnyMeans(const CTaskComplexFleeAnyMeans&);
     ~CTaskComplexFleeAnyMeans();

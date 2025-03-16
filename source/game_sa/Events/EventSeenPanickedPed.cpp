@@ -1,17 +1,17 @@
 #include "StdInc.h"
-
 #include "EventSeenPanickedPed.h"
 
+
 void CEventSeenPanickedPed::InjectHooks() {
-    RH_ScopedClass(CEventSeenPanickedPed);
+    RH_ScopedVirtualClass(CEventSeenPanickedPed, 0x85B778, 17);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x4B2080);
-    RH_ScopedVirtualInstall(AffectsPed, 0x4B53C0);
+    RH_ScopedVMTInstall(AffectsPed, 0x4B53C0);
 }
 
+// 0x4B2080
 CEventSeenPanickedPed* CEventSeenPanickedPed::Constructor(CPed* ped) { this->CEventSeenPanickedPed::CEventSeenPanickedPed(ped); return this; }
-bool CEventSeenPanickedPed::AffectsPed(CPed* ped) { return CEventSeenPanickedPed::AffectsPed_Reversed(ped); }
 
 // 0x4B2080
 CEventSeenPanickedPed::CEventSeenPanickedPed(CPed* ped) : CEventEditableResponse() {
@@ -19,13 +19,12 @@ CEventSeenPanickedPed::CEventSeenPanickedPed(CPed* ped) : CEventEditableResponse
     CEntity::SafeRegisterRef(m_ped);
 }
 
-// 0x4B2130
 CEventSeenPanickedPed::~CEventSeenPanickedPed() {
     CEntity::SafeCleanUpRef(m_ped);
 }
 
 // 0x4B53C0
-bool CEventSeenPanickedPed::AffectsPed_Reversed(CPed* ped) {
+bool CEventSeenPanickedPed::AffectsPed(CPed* ped) {
     if (!ped->IsPlayer() && m_ped && m_ped != ped) {
         CEvent* currentEvent = m_ped->GetEventHandlerHistory().GetCurrentEvent();
         if (currentEvent && currentEvent->GetSourceEntity()) {

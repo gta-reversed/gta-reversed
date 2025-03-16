@@ -1,11 +1,13 @@
 #pragma once
 
+#include "Enums/eMoveState.h"
+
 class CPed;
 class CTaskComplexEnterCarAsPassengerTimed;
 class CTaskComplexEnterCarAsPassengerWait;
 class CVehicle;
 
-class CTaskComplexEnterCarAsPassengerWait : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexEnterCarAsPassengerWait : public CTaskComplex {
 public:
     static constexpr auto Type = eTaskType::TASK_COMPLEX_ENTER_CAR_AS_PASSENGER_WAIT;
 
@@ -23,7 +25,7 @@ public:
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
 
-    auto GetTarget() const { return m_Target; }
+    auto GetCar() const { return m_Car; }
 
 private: // Wrappers for hooks
     // 0x63B320
@@ -37,7 +39,7 @@ private: // Wrappers for hooks
         return this;
     }
 private:
-    CVehicle*  m_Target{};
+    CVehicle*  m_Car{};
     CPed*      m_WaitForPed{};
     uint32     m_EnterCarFails{};
     bool       m_bForceFrontSeat{};

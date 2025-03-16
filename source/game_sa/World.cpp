@@ -509,7 +509,7 @@ void CWorld::CallOffChaseForAreaSectorListPeds(CPtrList& ptrList, float x1, floa
             for (auto i = 0; i < colData->m_nNumSpheres; i++) {
                 const auto& sphere    = colData->m_pSpheres[i];
                 const auto  radius    = sphere.m_fRadius;
-                const auto  spherePos = MultiplyMatrixWithVector(mat, sphere.m_vecCenter);
+                const auto  spherePos = mat.TransformPoint(sphere.m_vecCenter);
                 if (   (spherePos.x + radius > x1 && spherePos.x - radius < x2)
                     && (spherePos.y + radius > y1 && spherePos.y - radius < y2)
                 ) {
@@ -552,7 +552,7 @@ bool CWorld::CameraToIgnoreThisObject(CEntity* entity) {
     }
 }
 
-// Returns player ID (0 or 1), -1 - not found
+// Returns p ID (0 or 1), -1 - not found
 // 0x563FA0
 int32 CWorld::FindPlayerSlotWithPedPointer(void* ped) {
     for (int32 i = 0; i < MAX_PLAYERS; i++) {
@@ -562,7 +562,7 @@ int32 CWorld::FindPlayerSlotWithPedPointer(void* ped) {
     return -1;
 }
 
-// Returns player ID (0 or 1), -1 - not found
+// Returns p ID (0 or 1), -1 - not found
 // 0x563FD0
 int32 CWorld::FindPlayerSlotWithRemoteVehiclePointer(void* vehicle) {
     for (int32 i = 0; i < MAX_PLAYERS; i++) {
@@ -572,7 +572,7 @@ int32 CWorld::FindPlayerSlotWithRemoteVehiclePointer(void* vehicle) {
     return -1;
 }
 
-// Returns player ID (0 or 1), -1 - not found
+// Returns p ID (0 or 1), -1 - not found
 // 0x564000
 int32 CWorld::FindPlayerSlotWithVehiclePointer(CEntity* vehiclePtr) {
     for (int32 i = 0; i < MAX_PLAYERS; i++) {
@@ -949,7 +949,7 @@ void CWorld::FindObjectsIntersectingAngledCollisionBoxSectorList(CPtrList& ptrLi
         entity->SetCurrentScanCode();
 
         CColSphere sphere{
-            Multiply3x3(entity->GetPosition() - point, transform),
+            transform.InverseTransformVector(entity->GetPosition() - point),
             entity->GetColModel()->GetBoundRadius()
         };
         if (CCollision::TestSphereBox(sphere, box)) {
@@ -1851,12 +1851,12 @@ void CWorld::TriggerExplosionSectorList(CPtrList& ptrList, const CVector& point,
             CColPoint cp{};
             float maxTouchDist{ 100'000.f };
             if (CCollision::ProcessSphereBox(
-                CColSphere{ Multiply3x3(veh->GetMatrix(), -entityToPointDir), entityToPointDist },
+                CColSphere{ veh->GetMatrix().TransformVector(-entityToPointDir), entityToPointDist },
                 veh->GetColModel()->m_boundBox,
                 cp,
                 maxTouchDist)
             ) {
-                auto colNormal = Multiply3x3(veh->GetMatrix(), -cp.m_vecNormal);
+                auto colNormal = veh->GetMatrix().TransformVector(-cp.m_vecNormal);
                 if (auto& z = colNormal.z; z >= -0.f) { // TODO: Wat is dis?
                     if (z < 0.2f && z > 0.f)
                         z += 0.2f;
@@ -1864,7 +1864,7 @@ void CWorld::TriggerExplosionSectorList(CPtrList& ptrList, const CVector& point,
                     z = -0.2f;
                 }
 
-                colPointPos  = Multiply3x3(veh->GetMatrix(), cp.m_vecPoint);
+                colPointPos  = veh->GetMatrix().TransformVector(cp.m_vecPoint);
                 const auto colPointToExploPointDist = ((colPointPos + veh->GetPosition()) - point).Magnitude();
 
                 // TODO: Document this a little better pls
@@ -2130,7 +2130,7 @@ void CWorld::Process() {
                     if (!entity->m_bIsInSafePosition) {
                         entity->m_bIsStuck = true;
 
-                        if (entity->m_nStatus == STATUS_PLAYER) { // Try to unstuck player
+                        if (entity->m_nStatus == STATUS_PLAYER) { // Try to unstuck p
                             const auto physical = entity->AsPhysical();
                             physical->m_vecMoveSpeed *= (float)std::pow(SQRT_2 / 2.f, CTimer::GetTimeStepInMS());
                             physical->ApplyMoveSpeed();
@@ -2162,22 +2162,18 @@ void CWorld::Process() {
 
     CMessages::Process();
 
-    for (auto i = 0u; i < std::size(Players); i++) {
-        if (Players[i].m_pPed)
-            Players[i].Process(i);
+    for (auto&& [i, p] : notsa::enumerate(Players)) {
+        if (p.m_pPed) {
+            p.Process((uint32)i);
+        }
     }
 
     CPedScriptedTaskRecord::Process();
-
     CPedGroups::Process();
 
     switch (CTimer::GetFrameCounter() % 8) {
-    case 1:
-        RemoveFallenPeds();
-        break;
-    case 5:
-        RemoveFallenCars();
-        break;
+    case 1: RemoveFallenPeds(); break;
+    case 5: RemoveFallenCars(); break;
     }
 }
 
@@ -2473,7 +2469,7 @@ void CWorld::RepositionOneObject(CEntity* object) {
     })) {
         if (const auto CD = colModel->m_pColData) {
             if (CD->m_nNumBoxes == 1) {
-                RecalcZPosAtPoint(Multiply3x3(object->GetMatrix(), CD->m_pBoxes[0].GetCenter()));
+                RecalcZPosAtPoint(object->GetMatrix().TransformVector(CD->m_pBoxes[0].GetCenter()));
             } else if (CD->m_nNumSpheres) {
                 auto point{ object->GetPosition() };
                 point.z = 1000.f;
@@ -2487,7 +2483,7 @@ void CWorld::RepositionOneObject(CEntity* object) {
                 if (point.z >= 1000.f)
                     RecalcZPosAtPoint(object->GetPosition());
                 else
-                    RecalcZPosAtPoint(Multiply3x3(object->GetMatrix(), point));
+                    RecalcZPosAtPoint(object->GetMatrix().TransformVector(point));
             }
         } else {
             RecalcZPosAtPoint(object->GetPosition());
@@ -2544,12 +2540,12 @@ CEntity* CWorld::TestSphereAgainstWorld(CVector sphereCenter, float sphereRadius
 }
 
 // 0x56A0D0
-// Remove all peds/vehicles not related to the player's group in the area + projectiles, explosions, pickups, etc..
+// Remove all peds/vehicles not related to the p's group in the area + projectiles, explosions, pickups, etc..
 void CWorld::ClearExcitingStuffFromArea(const CVector& point, float radius, uint8 bRemoveProjectilesAndShadows) {
     const auto playerPed = FindPlayerPed();
     const auto playerGroup = CPedGroups::GetPedsGroup(playerPed);
 
-    // Remove all peds in radius who aren't followers of the player's group
+    // Remove all peds in radius who aren't followers of the p's group
     const auto pedPool = GetPedPool();
     for (auto i = 0; i < pedPool->GetSize(); i++) {
         if (auto ped = pedPool->GetAt(i)) {
@@ -2563,7 +2559,7 @@ void CWorld::ClearExcitingStuffFromArea(const CVector& point, float radius, uint
         }
     }
 
-    // Remove all vehicles in radius in which there are no peds who're follower's of the player's group
+    // Remove all vehicles in radius in which there are no peds who're follower's of the p's group
     const auto vehPool = GetVehiclePool();
     for (auto i = 0; i < vehPool->GetSize(); i++) {
         const auto veh = vehPool->GetAt(i);
@@ -2850,6 +2846,8 @@ void CWorld::RepositionCertainDynamicObjects() {
 // 0x56BA00
 bool CWorld::ProcessLineOfSight(const CVector& origin, const CVector& target, CColPoint& outColPoint, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck) {
     assert(!origin.HasNanOrInf() && !target.HasNanOrInf()); // We're getting random nan/inf's from somewhere, so let's try to root cause it...
+
+    outEntity = nullptr;
 
     const int32 originSectorX = GetSectorX(origin.x);
     const int32 originSectorY = GetSectorY(origin.y);

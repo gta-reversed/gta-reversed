@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexDriveFireTruck : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexDriveFireTruck : public CTaskComplex {
 public:
     CVehicle* m_pVehicle;
     uint8     m_bIsDriver;
@@ -21,10 +21,6 @@ public:
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
 
-    CTask*  Clone_Reversed() const;
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
 
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 

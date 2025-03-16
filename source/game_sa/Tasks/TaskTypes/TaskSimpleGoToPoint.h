@@ -2,7 +2,7 @@
 
 #include "TaskSimpleGoTo.h"
 
-class CTaskSimpleGoToPoint : public CTaskSimpleGoTo {
+class NOTSA_EXPORT_VTABLE CTaskSimpleGoToPoint : public CTaskSimpleGoTo {
 public:
     union {
         struct {
@@ -30,11 +30,9 @@ public:
     // bDontCheckRadius is always false
     void UpdatePoint(const CVector& targetPosition, float fRadius = 0.5f, bool bDontCheckRadius = false);
 
-    bool WasTaskSuccessful(CPed* ped) const { return gotoPointFlags.m_b03 && std::abs(m_vecTargetPoint.z - ped->GetPosition().z) < 3.f; }
+    bool WasTaskSuccessful(CPed* ped) const;
 
     static void InjectHooks();
     auto Constructor(eMoveState moveState, const CVector& targetPoint, float fRadius, bool bMoveTowardsTargetPoint, bool a6) { this->CTaskSimpleGoToPoint::CTaskSimpleGoToPoint(moveState, targetPoint, fRadius, bMoveTowardsTargetPoint, a6); return this; }
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool ProcessPed_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskSimpleGoToPoint, 0x30);

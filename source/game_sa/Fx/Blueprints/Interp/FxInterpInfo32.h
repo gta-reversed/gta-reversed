@@ -2,7 +2,7 @@
 
 #include "FxInterpInfo.h"
 
-class FxInterpInfo32_c : public FxInterpInfo_c {
+class NOTSA_EXPORT_VTABLE FxInterpInfo32_c : public FxInterpInfo_c {
 protected:
     int16** m_Keys;
 

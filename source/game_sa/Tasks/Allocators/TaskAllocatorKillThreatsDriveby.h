@@ -2,7 +2,7 @@
 
 #include "TaskAllocator.h"
 
-class CTaskAllocatorKillThreatsDriveby : public CTaskAllocator {
+class NOTSA_EXPORT_VTABLE CTaskAllocatorKillThreatsDriveby : public CTaskAllocator {
 public:
     CEntity* m_pEntity;
     uint32   m_nTime;

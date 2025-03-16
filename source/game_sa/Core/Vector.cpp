@@ -162,18 +162,12 @@ void CVector::operator /= (float divisor)
     z /= divisor;
 }
 
-void CVector::FromMultiply(const CMatrix& matrix, const CVector& vector)
-{
-    x = matrix.m_pos.x + matrix.m_right.x * vector.x + matrix.m_forward.x * vector.y + matrix.m_up.x * vector.z;
-    y = matrix.m_pos.y + matrix.m_right.y * vector.x + matrix.m_forward.y * vector.y + matrix.m_up.y * vector.z;
-    z = matrix.m_pos.z + matrix.m_right.z * vector.x + matrix.m_forward.z * vector.y + matrix.m_up.z * vector.z;
+void CVector::FromMultiply(const CMatrix& matrix, const CVector& vector) {
+    *this = matrix.TransformPoint(vector);
 }
 
-void CVector::FromMultiply3x3(const CMatrix& matrix, const CVector& vector)
-{
-    x = matrix.m_right.x * vector.x + matrix.m_forward.x * vector.y + matrix.m_up.x * vector.z;
-    y = matrix.m_right.y * vector.x + matrix.m_forward.y * vector.y + matrix.m_up.y * vector.z;
-    z = matrix.m_right.z * vector.x + matrix.m_forward.z * vector.y + matrix.m_up.z * vector.z;
+void CVector::FromMultiply3x3(const CMatrix& matrix, const CVector& vector) {
+    *this = matrix.TransformVector(vector);
 }
 
 CVector CVector::Average(const CVector* begin, const CVector* end) {
@@ -190,7 +184,7 @@ float CVector::Heading(bool limitAngle) const {
 
 CVector* CrossProduct(CVector* out, CVector* a, CVector* b)
 {
-    *out = a->Cross(b);
+    *out = a->Cross(*b);
     return out;
 }
 
@@ -212,33 +206,4 @@ float DotProduct(const CVector& v1, const CVector& v2)
 float DotProduct2D(const CVector& v1, const CVector& v2)
 {
     return v1.y * v2.y + v1.x * v2.x;
-}
-
-// NOTE: This function doesn't add m.GetPosition() like
-//       MultiplyMatrixWithVector @ 0x59C890 does.
-CVector Multiply3x3(const CMatrix& constm, const CVector& v) {
-    auto& m = const_cast<CMatrix&>(constm);
-    return {
-        m.GetRight().x * v.x + m.GetForward().x * v.y + m.GetUp().x * v.z,
-        m.GetRight().y * v.x + m.GetForward().y * v.y + m.GetUp().y * v.z,
-        m.GetRight().z * v.x + m.GetForward().z * v.y + m.GetUp().z * v.z,
-    };
-}
-
-// vector by matrix mult, resulting in a vector where each component is the dot product of the in vector and a matrix direction
-CVector Multiply3x3(const CVector& v, const CMatrix& constm) {
-    auto& m = const_cast<CMatrix&>(constm);
-    return {
-        DotProduct(m.GetRight(), v),
-        DotProduct(m.GetForward(), v),
-        DotProduct(m.GetUp(), v)
-    };
-}
-
-CVector MultiplyMatrixWithVector(const CMatrix& mat, const CVector& vec) {
-    return const_cast<CMatrix&>(mat).GetPosition() + Multiply3x3(const_cast<CMatrix&>(mat), vec);
-}
-
-CVector MultiplyMatrixWithVector(CMatrix& m, const CVector& v) {
-    return m.GetPosition() + Multiply3x3(m, v);
 }

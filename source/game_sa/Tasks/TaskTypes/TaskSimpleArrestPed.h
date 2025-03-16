@@ -2,7 +2,7 @@
 
 #include "TaskSimple.h"
 
-class CTaskSimpleArrestPed : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleArrestPed : public CTaskSimple {
 public:
     CPed* m_Ped;
     bool  m_bFinished;
@@ -22,8 +22,6 @@ public:
 
     static void FinishAnimArrestPedCB(CAnimBlendAssociation* assoc, void* data);
 
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool ProcessPed_Reversed(CPed*);
 };
 VALIDATE_SIZE(CTaskSimpleArrestPed, 0x14);
 extern void CTaskSimpleArrestPed__InjectHooks();

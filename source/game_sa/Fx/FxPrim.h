@@ -3,7 +3,7 @@
 class FxPrimBP_c;
 class FxSystem_c;
 
-class FxPrim_c {
+class NOTSA_EXPORT_VTABLE FxPrim_c {
 public:
     FxPrimBP_c* m_PrimBP;
     FxSystem_c* m_System;

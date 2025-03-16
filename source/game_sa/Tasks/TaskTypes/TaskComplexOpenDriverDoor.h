@@ -3,7 +3,7 @@
 #include "TaskComplexEnterCar.h"
 class CVehicle;
 
-class CTaskComplexOpenDriverDoor : public CTaskComplexEnterCar {
+class NOTSA_EXPORT_VTABLE CTaskComplexOpenDriverDoor : public CTaskComplexEnterCar {
 public:
     static constexpr auto Type = TASK_COMPLEX_CAR_OPEN_DRIVER_DOOR;
 

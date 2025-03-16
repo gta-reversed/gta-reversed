@@ -55,7 +55,7 @@ bool CTaskSimpleStealthKill::ProcessPed(CPed* ped) {
     const auto pedToTarget = m_target->GetPosition() - ped->GetPosition();
 
     if (!m_bKeepTargetAlive) {
-        if (!m_anim || m_anim->m_nAnimId == ANIM_ID_KILL_KNIFE_PED_DAMAGE) {
+        if (!m_anim || m_anim->m_AnimId == ANIM_ID_KILL_KNIFE_PED_DAMAGE) {
             ped->m_fAimingRotation = -pedToTarget.Heading();
         }
         return false;
@@ -86,7 +86,7 @@ bool CTaskSimpleStealthKill::MakeAbortable(class CPed* ped, eAbortPriority prior
         if (m_bKeepTargetAlive) {
             return false;
         }
-        if (!m_anim || m_anim->m_nAnimId != ANIM_ID_KILL_KNIFE_PED_DIE) {
+        if (!m_anim || m_anim->m_AnimId != ANIM_ID_KILL_KNIFE_PED_DIE) {
             return false;
         }
         if (event->GetEventType() != EVENT_DAMAGE || static_cast<const CEventDamage*>(event)->m_pSourceEntity != m_target) {
@@ -100,8 +100,8 @@ bool CTaskSimpleStealthKill::MakeAbortable(class CPed* ped, eAbortPriority prior
 
 // 0x6296D0
 void CTaskSimpleStealthKill::ManageAnim(CPed* ped) {
-    CAnimBlock* pAnimBlock = CAnimManager::ms_aAnimAssocGroups[m_animGrpId].m_pAnimBlock;
-    if (!pAnimBlock || !pAnimBlock->bLoaded) {
+    CAnimBlock* pAnimBlock = CAnimManager::GetAssocGroups()[m_animGrpId].m_AnimBlock;
+    if (!pAnimBlock || !pAnimBlock->IsLoaded) {
         m_spentWaitingMs += (uint32)CTimer::GetTimeStepInMS();
         if (m_spentWaitingMs > 10000) {
             m_bIsAborting = true;
@@ -153,6 +153,6 @@ void CTaskSimpleStealthKill::ManageAnim(CPed* ped) {
 // 0x622790
 void CTaskSimpleStealthKill::FinishAnimStealthKillCB(CAnimBlendAssociation* pAnimAssoc, void* data) {
     const auto self = static_cast<CTaskSimpleStealthKill*>(data);
-    self->m_bIsAborting = notsa::contains({ ANIM_ID_KILL_KNIFE_PLAYER, ANIM_ID_KILL_KNIFE_PED_DIE }, pAnimAssoc->m_nAnimId);
+    self->m_bIsAborting = notsa::contains<AnimationId>({ ANIM_ID_KILL_KNIFE_PLAYER, ANIM_ID_KILL_KNIFE_PED_DIE }, pAnimAssoc->m_AnimId);
     self->m_anim        = nullptr;
 }

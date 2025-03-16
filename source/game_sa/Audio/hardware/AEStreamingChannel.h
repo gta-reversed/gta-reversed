@@ -5,37 +5,37 @@
 #include "AESmoothFadeThread.h"
 
 enum class StreamingChannelState : int32 {
-    UNK_MINUS_7 = -7,
-    UNK_MINUS_6 = -6,
-    UNK_MINUS_5 = -5,
-    UNK_MINUS_4 = -4,
+    Paused = -7,
+    Stopped = -6,
+    Stopping = -5,
+    Finished = -4,
     UNK_MINUS_3 = -3,
     UNK_MINUS_2 = -2,
-    UNK_MINUS_1 = -1,
+    Started = -1,
 };
 
 class NOTSA_EXPORT_VTABLE CAEStreamingChannel : public CAEAudioChannel {
 public:
     bool                  m_bInitialized{false};
-    uint8                 field_61{0u};
-    bool                  m_bPrepareNewStream{false};
-    uint8                 m_bWrongSampleRate{false};
-    uint8                 field_64{0u};
-    uint8                 m_bFxEnabled{false};
-    uint8                 m_nCurrentlyLoadedChunk{0u};
-    uint8                 field_67{0u};
+    bool                  m_bLoopTrack{ false };
+    bool                  m_bNeedSwitch{false};
+    bool                  m_bSilenced{ false };
+    bool                  m_bNeedToFinish{ false };
+    bool                  m_bEQEnabled{ false };
+    uint8                 m_lastSlot{0u};
+    uint8                 m_lastWrittenSlot{0u};
     void*                 m_pBuffer{nullptr};
     uint8                 m_aBuffer[0x60000];
     CAEStreamingDecoder*  m_pStreamingDecoder{nullptr};
     CAEStreamingDecoder*  m_pNextStreamingDecoder{nullptr};
-    StreamingChannelState m_nState{StreamingChannelState::UNK_MINUS_6};
+    StreamingChannelState m_nState{StreamingChannelState::Stopped};
     uint32                m_nStreamPlayTimeMs{0u};
-    uint32                m_nPlayTime;
-    uint32                field_60084;
-    int32                 field_60088{0u};
+    int32                 m_nPlayTime;
+    uint32                m_LastTimer;
+    int32                 m_lStoppingFrameCount{0u};
     uint64                m_nLastUpdateTime;
     IDirectSoundBuffer*   m_pSilenceBuffer;
-    float                 m_fSomething{1.0f};
+    float                 m_fEQScaleFactor{1.0f};
 
 public:
     CAEStreamingChannel(IDirectSound* directSound, uint16 channelId)
@@ -47,7 +47,7 @@ public:
     bool   IsSoundPlaying() override;
     int16  GetPlayTime() override;
     uint16 GetLength() override;
-    void   Play(int16, int8, float) override;
+    void   Play(int16 startOffsetMs, int8 soundFlags, float freqFac) override;
     void   SynchPlayback() override;
     void   Stop() override;
     void   SetFrequencyScalingFactor(float factor) override;
@@ -66,6 +66,7 @@ public:
     uint32 FillBuffer(void* buffer, uint32 size);
     void   SetBassEQ(uint8 mode, float gain);
     void   SetReady();
+    void   Stop(bool bUpdateState);
     void   PrepareStream(CAEStreamingDecoder* stream, int8 arg2, uint32 audioBytes);
     void   Pause();
 
@@ -82,35 +83,7 @@ private:
         CAEStreamingChannel::~CAEStreamingChannel();
     }
 
-    void Service_Reversed() {
-        CAEStreamingChannel::Service();
-    }
-
-    bool IsSoundPlaying_Reversed() {
-        return CAEStreamingChannel::IsSoundPlaying();
-    }
-
-    int32 GetPlayTime_Reversed() {
-        return CAEStreamingChannel::GetPlayTime();
-    }
-
-    int32 GetLength_Reversed() {
-        return CAEStreamingChannel::GetLength();
-    }
-
-    void Play_Reversed(int16 a2, char a3, float a4) {
-        CAEStreamingChannel::Play(a2, a3, a4);
-    }
-
-    void Stop_Reversed() {
-        CAEStreamingChannel::Stop();
-    }
-
-    void SetFrequencyScalingFactor_Reversed(float a2) {
-        CAEStreamingChannel::SetFrequencyScalingFactor(a2);
-    }
-
-    // NOTSA
+                                // NOTSA
     void DirectSoundBufferFadeToSilence() {
         if (!AESmoothFadeThread.RequestFade(m_pDirectSoundBuffer, -100.0, 35, true))
             m_pDirectSoundBuffer->Stop();

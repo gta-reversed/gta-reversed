@@ -26,7 +26,7 @@ void CTaskComplexPolicePursuit::InjectHooks() {
     RH_ScopedVMTInstall(ControlSubTask, 0x690920);
 }
 
-// 0x68CDD0
+
 CTaskComplexPolicePursuit::CTaskComplexPolicePursuit(const CTaskComplexPolicePursuit& o) :
     CTaskComplexPolicePursuit{}
 {
@@ -225,3 +225,5 @@ eTaskType CTaskComplexPolicePursuit::GetNextSubTaskType(CCopPed* pursuer) { // p
 
     return TASK_NONE;
 }
+// 0x68CDD0// 0x68BAC0// 0x6908E0// 0x690920
+

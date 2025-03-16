@@ -29,10 +29,6 @@ public:
     CEventEditableResponse* CloneEditable() override;
 
     CEventGunShot* Constructor(CEntity* entity, CVector startPoint, CVector endPoint, bool bHasNoSound);
-    bool AffectsPed_Reversed(CPed* ped);
-    bool IsCriminalEvent_Reversed();
-    bool TakesPriorityOver_Reversed(const CEvent& refEvent);
-    CEventEditableResponse* CloneEditable_Reversed();
 };
 
 VALIDATE_SIZE(CEventGunShot, 0x34);

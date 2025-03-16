@@ -8,7 +8,7 @@
 #include "FxEmitterPrt.h"
 
 void FxEmitter_c::InjectHooks() {
-    RH_ScopedClass(FxEmitter_c);
+    RH_ScopedVirtualClass(FxEmitter_c, 0x85A7A4, 6);
     RH_ScopedCategory("Fx");
 
     // RH_ScopedInstall(Init_Reversed, 0x4A2550);
@@ -20,14 +20,9 @@ void FxEmitter_c::InjectHooks() {
     // RH_ScopedInstall(CreateParticle, 0x4A2580);
 }
 
-bool FxEmitter_c::Init(FxPrimBP_c* primBP, FxSystem_c* system) { return Init_Reversed(primBP, system); }
-void FxEmitter_c::Update(float currentTime, float deltaTime) { Update_Reversed(currentTime, deltaTime); }
-void FxEmitter_c::Reset() { Reset_Reversed(); }
-void FxEmitter_c::AddParticle(RwMatrix* mat, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) { AddParticle_Reversed(mat, vel, timeSince, fxMults, rotZ, brightness, createLocal); }
-void FxEmitter_c::AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) { AddParticle_Reversed(pos, vel, timeSince, fxMults, rotZ, brightness, createLocal); }
 
 // 0x4A2550
-bool FxEmitter_c::Init_Reversed(FxPrimBP_c* primBP, FxSystem_c* system) {
+bool FxEmitter_c::Init(FxPrimBP_c* primBP, FxSystem_c* system) {
     m_PrimBP             = primBP;
     m_System             = system;
     m_fEmissionIntensity = 0.0f;
@@ -35,19 +30,19 @@ bool FxEmitter_c::Init_Reversed(FxPrimBP_c* primBP, FxSystem_c* system) {
 }
 
 // 0x4A4460
-void FxEmitter_c::Update_Reversed(float currentTime, float deltaTime) {
+void FxEmitter_c::Update(float currentTime, float deltaTime) {
     if (m_bEnabled && !m_System->m_stopParticleCreation) {
         CreateParticles(currentTime, deltaTime);
     }
 }
 
 // 0x4A2570
-void FxEmitter_c::Reset_Reversed() {
+void FxEmitter_c::Reset() {
     m_fEmissionIntensity = 0.0f;
 }
 
 // 0x4A3EA0
-void FxEmitter_c::AddParticle_Reversed(CVector* pos, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) {
+void FxEmitter_c::AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) {
     return plugin::CallMethod<0x4A3EA0, FxEmitter_c*, CVector*, CVector*, float, FxPrtMult_c*, float, float, bool>(this, pos, vel, timeSince, fxMults, rotZ, brightness,
                                                                                                                    createLocal);
 
@@ -87,7 +82,7 @@ void FxEmitter_c::AddParticle_Reversed(CVector* pos, CVector* vel, float timeSin
 }
 
 // 0x4A4050
-void FxEmitter_c::AddParticle_Reversed(RwMatrix* mat, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) {
+void FxEmitter_c::AddParticle(RwMatrix* mat, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float brightness, bool createLocal) {
     return plugin::CallMethod<0x4A4050, FxEmitter_c*, RwMatrix*, CVector*, float, FxPrtMult_c*, float, float, bool>(this, mat, vel, timeSince, fxMults, rotZ, brightness,
                                                                                                                     createLocal);
 
@@ -248,16 +243,17 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(EmissionInfo_t* emissionInfo, RwMatr
     if (velOverride) {
         particle->m_Velocity = *velOverride;
     } else {
-        auto index = CGeneral::GetRandomNumberInRange(0.0f, TWO_PI);
+        auto randomAngle = CGeneral::GetRandomNumberInRange(0.0f, TWO_PI);
         auto minAngle = DegreesToRadians(emissionInfo->m_fAngleMin);
         auto maxAngle = DegreesToRadians(emissionInfo->m_fAngleMax);
 
-        auto sinY = (CGeneral::GetRandomNumberInRange(0.0f, 1.0f) * (maxAngle - minAngle) + minAngle) * 40.743664f;
+        auto randomAngleBetweenMinMax = lerp(minAngle, maxAngle, CGeneral::GetRandomNumberInRange(0.0f, 1.0f));
 
-        CVector v37;
-        v37.x = CMaths::ms_SinTable[(uint8)((index * 40.743664f) + 64.0f) + 1] * CMaths::ms_SinTable[(uint8)sinY + 1];
-        v37.y = CMaths::ms_SinTable[(uint8)(sinY + 64.0f) + 1];
-        v37.z = CMaths::ms_SinTable[(uint8)(index * 40.743664f) + 1] * CMaths::ms_SinTable[(uint8)sinY + 1];
+        CVector randomizedAngleVec{
+            CMaths::GetCosFast(randomAngle) * CMaths::GetSinFast(randomAngleBetweenMinMax),
+            CMaths::GetCosFast(randomAngleBetweenMinMax),
+            CMaths::GetSinFast(randomAngle) * CMaths::GetSinFast(randomAngleBetweenMinMax)
+        };
 
         CVector vectorsIn;
         CVector vectorsOut;
@@ -269,7 +265,7 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(EmissionInfo_t* emissionInfo, RwMatr
         }
         RwV3dTransformVectors(&vectorsOut, &vectorsIn, 1, wldMat);
         CVector v38;
-        RotateVecIntoVec(&v38, &v37, &vectorsOut);
+        RotateVecIntoVec(&v38, &randomizedAngleVec, &vectorsOut);
         particle->m_Velocity = v38 * ((CGeneral::GetRandomNumberInRange(0.0f, 2.0f) - 1.0f) * emissionInfo->m_fSpeedBias + emissionInfo->m_fSpeed);
     }
 

@@ -3,7 +3,7 @@
 
 class CPed;
 
-class CTaskComplexWaitForPed : public CTaskComplex
+class NOTSA_EXPORT_VTABLE CTaskComplexWaitForPed : public CTaskComplex
 {
 public:
     CPed* m_ped;

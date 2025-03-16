@@ -20,6 +20,7 @@
 #include "CutsceneObject.h"
 #include "Dummy.h"
 #include "ColModel.h"
+#include "IplDef.h"
 #include "Task.h"
 #include "PedIntelligence.h"
 #include "PtrNodeSingleLink.h"

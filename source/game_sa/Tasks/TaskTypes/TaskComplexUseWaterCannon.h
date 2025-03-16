@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexUseWaterCannon : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexUseWaterCannon : public CTaskComplex {
 public:
     CFire* m_pFire;
 
@@ -20,9 +20,5 @@ public:
 
     static void InjectHooks();
     CTaskComplexUseWaterCannon* Constructor(CFire* pFire);
-    CTask*  Clone_Reversed() const;
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskComplexUseWaterCannon, 0x10);

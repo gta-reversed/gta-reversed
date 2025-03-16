@@ -102,6 +102,9 @@ public:
         m_nCarMission = carMission;
     }
 
+    void SetDrivingStyle(eCarDrivingStyle s) { m_nCarDrivingStyle = s; }
+    void SetCruisingSpeed(uint8 s) { m_nCruiseSpeed = s; }
+
     void SetCarMission(eCarMission carMission, uint32 cruiseSpeed) { // NOTSA
         m_nCarMission = carMission;
         m_nCruiseSpeed = cruiseSpeed;

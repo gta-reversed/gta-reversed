@@ -4,7 +4,7 @@
 
 class CPed;
 
-class CTaskComplexUseSequence : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexUseSequence : public CTaskComplex {
 public:
     static constexpr auto Type = TASK_COMPLEX_USE_SEQUENCE;
 
@@ -26,10 +26,6 @@ private:
 
     CTaskComplexUseSequence* Constructor(int32 sequenceIndex);
 
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
 
 public:
     int32 m_nSequenceIndex{};         /**< Used in CTaskSequences::ms_taskSequence global array */

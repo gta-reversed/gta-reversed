@@ -9,6 +9,8 @@
 template <typename T>
 class ListItem_c;
 
+//! Simple (and shit) linked list
+//! When Insert-ing an item, you have to make sure not to insert the same item twice. (Error checks are not possible due to game code and performance)
 template <typename T>
 class TList_c {
     template<typename Y>
@@ -43,57 +45,88 @@ public:
     using const_iterator = BaseIterator<const T>;
 
 public:
+    //static void Test() {
+    //    struct Item : ListItem_c<Item> {
+    //        int i;
+    //    };
+    //    using List = TList_c<Item>;
+    //
+    //    Item items[10];
+    //
+    //    List l{};
+    //    l.AddItem(&items[0]);
+    //    assert(l.m_cnt == 0);
+    //    assert(l.m_tail == &items[0]);
+    //    assert(l.m_head == &items[0]);
+    //    assert(items[0].m_pPrev == nullptr);
+    //    assert(items[0].m_pNext == nullptr);
+    //}
+
+    //! Add item to the beginning (head) of the list
     void AddItem(T* item) {
         assert(item);
+        assert(item != m_tail); // Double insertion
+        assert(item != m_head); // Double insertion
 
-        auto* pOldHead = m_head;
-        m_head = item;
-        item->m_pPrev = nullptr;
-        item->m_pNext = pOldHead;
+        const auto oldHead = std::exchange(m_head, item);
+        item->m_pPrev      = nullptr;
+        item->m_pNext      = oldHead;
 
-        if (pOldHead)
-            pOldHead->m_pPrev = item;
-        else
+        if (oldHead) {
+            oldHead->m_pPrev = item;
+        } else {
+            assert(m_cnt == 0); // If there was no head, the list must've been empty
+            assert(!m_tail);     // And obviously the there mustn't be a tail either
             m_tail = item;
+        }
 
         ++m_cnt;
     }
 
+    //! @brief Add item to the end (tail) of the list
     void AppendItem(T* item) {
-        auto* pOldTail = m_tail;
-        m_tail = item;
-        item->m_pPrev = pOldTail;
-        item->m_pNext = nullptr;
+        assert(item);
+        assert(item != m_tail); // Double insertion
+        assert(item != m_head); // Double insertion
 
-        if (pOldTail)
-            pOldTail->m_pNext = item;
-        else
+        const auto oldTail = std::exchange(m_tail, item);
+        item->m_pPrev      = oldTail;
+        item->m_pNext      = nullptr;
+
+        if (oldTail) {
+            oldTail->m_pNext = item;
+        } else {
+            assert(m_cnt == 0); // If there was no tail, the list must've been empty
+            assert(!m_head);    // And obviously the there mustn't be a head either
             m_head = item;
+        }
 
         ++m_cnt;
     }
 
-    
-    void InsertAfterItem(T* addedItem, T* pExistingItem) {
+    //! @brief Insert `item` after `after`
+    void InsertAfterItem(T* item, T* after) {
         ++m_cnt; // BUG: We increment count even though the item wasn't added to table, and there's no certainity that it will
-        if (!m_head)
+        if (!m_head) {
             return;
+        }
 
+        // NOTE: ???? Just use `after->m_pPrev`, no?
         auto curItem = GetHead();
-        while (curItem && curItem != pExistingItem)
+        while (curItem && curItem != after)
             curItem = GetNext(curItem);
 
         if (!curItem)
             return;
 
-        addedItem->m_pPrev = curItem;
-        addedItem->m_pNext = curItem->m_pNext;
+        item->m_pPrev = curItem;
+        item->m_pNext = curItem->m_pNext;
         auto* pOldNext = curItem->m_pNext;
-        curItem->m_pNext = addedItem;
+        curItem->m_pNext = item;
         if (pOldNext)
-            pOldNext->m_pPrev = addedItem;
+            pOldNext->m_pPrev = item;
         else
-            m_tail = addedItem;
+            m_tail = item;
     }
 
     void InsertBeforeItem(T* addedItem, T* pExistingItem) {
@@ -121,18 +154,23 @@ public:
     
     void RemoveItem(T* item) {
         assert(item);
+        assert(item->m_pPrev != m_tail);
+        assert(item->m_pNext != m_head);
+        assert(m_cnt > 0);
 
-        if (item->m_pNext)
+        if (item->m_pNext) {
             item->m_pNext->m_pPrev = item->m_pPrev;
-        else
+        } else {
             m_tail = item->m_pPrev;
+        }
 
-        if (item->m_pPrev)
+        if (item->m_pPrev) {
             item->m_pPrev->m_pNext = item->m_pNext;
-        else
+        } else {
             m_head = item->m_pNext;
+        }
 
-        --m_cnt;
+        m_cnt--;
     }
 
     void RemoveAll() {
@@ -141,34 +179,50 @@ public:
         m_cnt  = 0;
     }
 
+    /*!
+    * @brief  Remove the head
+    * @return The old head
+    */
     T* RemoveHead() {
-        if (!m_head)
+        if (!m_head) {
             return nullptr;
+        }
 
+        assert(m_cnt > 0);
         --m_cnt;
-        auto* pOldHead = m_head;
-        if (m_head == m_tail) {
+
+        const auto pOldHead = m_head;
+        if (m_head == m_tail) { // 1 items
             m_tail = nullptr;
             m_head = nullptr;
             return pOldHead;
         }
 
-        if (m_head->m_pNext)
+        if (m_head->m_pNext) {
             m_head->m_pNext->m_pPrev = nullptr;
+        }
 
         m_head = m_head->m_pNext;
+
         return pOldHead;
     }
 
+    /*!
+    * @brief  Remove the tail
+    * @return The old tail
+    */
     T* RemoveTail() {
         if (!m_tail) {
             return nullptr;
         }
 
+        assert(m_cnt > 0);
         --m_cnt;
+
         const auto oldTail = m_tail;
         m_tail->m_pPrev->m_pNext = nullptr;
         m_tail = m_tail->m_pPrev;
+
         return oldTail;
     }
 
@@ -207,7 +261,7 @@ public:
     auto begin()          const { return cbegin(); }
     auto begin()                { return iterator{ GetHead() }; }
 
-    // Past the end is always `nullptr` - Not really std comforting, but oh well
+    // Past the end is always `nullptr` - Not really std comforting (because `end() != --(++end())`), but oh well
     auto cend()           const { return const_iterator{ nullptr }; }
     auto end()            const { return cend(); }
     auto end()                  { return iterator{ nullptr }; }

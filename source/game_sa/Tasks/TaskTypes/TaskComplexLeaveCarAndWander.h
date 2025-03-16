@@ -21,7 +21,7 @@ public:
 
     static constexpr auto Type = eTaskType::TASK_COMPLEX_LEAVE_CAR_AND_WANDER;
 
-    CTaskComplexLeaveCarAndWander(CVehicle* veh, eTargetDoor door, int32 leaveDelayMs, bool sensibleLeaveVeh);
+    CTaskComplexLeaveCarAndWander(CVehicle* veh, eTargetDoor door = TARGET_DOOR_FRONT_LEFT, int32 leaveDelayMs = 0, bool sensibleLeaveVeh = true);
     CTaskComplexLeaveCarAndWander(const CTaskComplexLeaveCarAndWander&);
     ~CTaskComplexLeaveCarAndWander();
 

@@ -2,7 +2,9 @@
 
 #include "EventEditableResponse.h"
 
-class CEventPotentialGetRunOver : public CEventEditableResponse {
+#include "EventEditableResponse.h"
+
+class NOTSA_EXPORT_VTABLE CEventPotentialGetRunOver : public CEventEditableResponse {
 public:
     CVehicle* m_Vehicle;
 
@@ -18,3 +20,4 @@ public:
     float GetLocalSoundLevel() override { return 100.0f; }
     CEventEditableResponse* CloneEditable() override { return new CEventPotentialGetRunOver(m_Vehicle); }
 };
+VALIDATE_SIZE(CEventPotentialGetRunOver, 0x18);

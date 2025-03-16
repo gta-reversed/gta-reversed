@@ -10,7 +10,7 @@
 #include "Vehicle.h"
 #include "TaskUtilityLineUpPedWithCar.h"
 
-class CTaskSimpleCarSetPedInAsDriver : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleCarSetPedInAsDriver : public CTaskSimple {
 public:
     bool                          m_bIsFinished;
     CAnimBlendAssociation*        m_pAnim;

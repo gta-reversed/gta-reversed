@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexFallAndGetUp : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexFallAndGetUp : public CTaskComplex {
 public:
     AnimationId  m_nFallAnimId;
     AssocGroupId m_nFallAnimGroup;
@@ -33,9 +33,5 @@ private:
     CTaskComplexFallAndGetUp* Constructor(AnimationId nFallAnimId, AssocGroupId nFallAnimGroup, int32 nFallDownTime);
     CTaskComplexFallAndGetUp* Constructor2(int32 nDir, int32 nFallDownTime);
 
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 };
 VALIDATE_SIZE(CTaskComplexFallAndGetUp, 0x18);

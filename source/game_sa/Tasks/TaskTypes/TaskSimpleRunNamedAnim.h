@@ -31,11 +31,15 @@ public:
         uint32 endTime, bool bDontInterrupt, bool bRunInSequence, bool bOffsetPed, bool bHoldLastFrame);
 
     eTaskType GetTaskType() const override { return Type; }
-    CTask* Clone() const override {
+
+
+CTask* Clone() const override {
         return new CTaskSimpleRunNamedAnim(m_animName, m_animGroupName,
                                            m_animFlags, m_fBlendDelta, m_Time,
                                            (m_nFlags & 2) >> 1, (m_nFlags & 0x10) >> 4, (m_nFlags & 0x20) >> 5, (m_nFlags & 4) >> 2); // todo: flags
-    } // 0x61B770
+    }
+
+ // 0x61B770
     bool ProcessPed(CPed* ped) override;
     void OffsetPedPosition(CPed* ped);
 
@@ -45,7 +49,5 @@ private:
     CTaskSimpleRunNamedAnim* Constructor(char const* pAnimName, char const* pAnimGroupName, int32 animFlags, float blendDelta, int32 endTime, bool bDontInterrupt, bool bRunInSequence, bool bOffsetPed, bool bHoldLastFrame) { this->CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(pAnimName, pAnimGroupName, animFlags, blendDelta, endTime, bDontInterrupt, bRunInSequence, bOffsetPed, bHoldLastFrame); return this; }
     CTaskSimpleRunNamedAnim* Constructor() { this->CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(); return this; }
     CTaskSimpleRunNamedAnim* Destructor() { this->CTaskSimpleRunNamedAnim::~CTaskSimpleRunNamedAnim(); return this; }
-    CTask* Clone_Reversed() { return CTaskSimpleRunNamedAnim::Clone(); }
-    bool ProcessPed_Reversed(CPed* ped) { return CTaskSimpleRunNamedAnim::ProcessPed(ped); }
-};
+        };
 VALIDATE_SIZE(CTaskSimpleRunNamedAnim, 0x64);

@@ -25,19 +25,19 @@ bool& CObject::bArea51SamSiteDisabled = *(bool*)0xBB4A72;
 
 void CObject::InjectHooks()
 {
-    RH_ScopedClass(CObject);
+    RH_ScopedVirtualClass(CObject, 0x866F60, 23);
     RH_ScopedCategory("Entity/Object");
 
-    RH_ScopedVirtualInstall(SetIsStatic, 0x5A0760);
-    RH_ScopedVirtualInstall(CreateRwObject, 0x59F110);
-    RH_ScopedVirtualInstall(ProcessControl, 0x5A2130);
-    RH_ScopedVirtualInstall(Teleport, 0x5A17B0);
-    RH_ScopedVirtualInstall(PreRender, 0x59FD50);
-    RH_ScopedVirtualInstall(Render, 0x59F180);
-    RH_ScopedVirtualInstall(SetupLighting, 0x554FA0);
-    RH_ScopedVirtualInstall(RemoveLighting, 0x553E10);
-    RH_ScopedVirtualInstall(SpecialEntityPreCollisionStuff, 0x59FEE0);
-    RH_ScopedVirtualInstall(SpecialEntityCalcCollisionSteps, 0x5A02E0);
+    RH_ScopedVMTInstall(SetIsStatic, 0x5A0760);
+    RH_ScopedVMTInstall(CreateRwObject, 0x59F110);
+    RH_ScopedVMTInstall(ProcessControl, 0x5A2130);
+    RH_ScopedVMTInstall(Teleport, 0x5A17B0);
+    RH_ScopedVMTInstall(PreRender, 0x59FD50);
+    RH_ScopedVMTInstall(Render, 0x59F180);
+    RH_ScopedVMTInstall(SetupLighting, 0x554FA0);
+    RH_ScopedVMTInstall(RemoveLighting, 0x553E10);
+    RH_ScopedVMTInstall(SpecialEntityPreCollisionStuff, 0x59FEE0);
+    RH_ScopedVMTInstall(SpecialEntityCalcCollisionSteps, 0x5A02E0);
     RH_ScopedInstall(Init, 0x59F840);
     RH_ScopedInstall(ProcessGarageDoorBehaviour, 0x44A4D0);
     RH_ScopedInstall(CanBeDeleted, 0x59F120);
@@ -74,18 +74,10 @@ void CObject::InjectHooks()
     RH_ScopedInstall(DeleteAllTempObjectsInArea, 0x5A1980);
     RH_ScopedGlobalInstall(IsObjectPointerValid_NotInWorld, 0x5A2B90);
     RH_ScopedGlobalInstall(IsObjectPointerValid, 0x5A2C20);
-}
 
-void CObject::SetIsStatic(bool isStatic) { return SetIsStatic_Reversed(isStatic); }
-void CObject::CreateRwObject() { CObject::CreateRwObject_Reversed(); }
-void CObject::ProcessControl() { CObject::ProcessControl_Reversed(); }
-void CObject::Teleport(CVector destination, bool resetRotation) { CObject::Teleport_Reversed(destination, resetRotation); }
-void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnoreStuckCheck, bool& bCollisionDisabled, bool& bCollidedEntityCollisionIgnored, bool& bCollidedEntityUnableToMove, bool& bThisOrCollidedEntityStuck) { CObject::SpecialEntityPreCollisionStuff_Reversed(colPhysical, bIgnoreStuckCheck, bCollisionDisabled, bCollidedEntityCollisionIgnored, bCollidedEntityUnableToMove, bThisOrCollidedEntityStuck); }
-uint8 CObject::SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2) { return CObject::SpecialEntityCalcCollisionSteps_Reversed(bProcessCollisionBeforeSettingTimeStep, unk2); }
-void CObject::PreRender() { CObject::PreRender_Reversed(); }
-void CObject::Render() { CObject::Render_Reversed(); }
-bool CObject::SetupLighting() { return CObject::SetupLighting_Reversed(); }
-void CObject::RemoveLighting(bool bRemove) { CObject::RemoveLighting_Reversed(bRemove); }
+    RH_ScopedGlobalInstall(Save, 0x5D2830);
+    RH_ScopedGlobalInstall(Load, 0x5D2870);
+}
 
 // 0x5A1D10
 CObject::CObject() : CPhysical() {
@@ -132,13 +124,12 @@ CObject::CObject(CDummyObject* dummyObj) : CPhysical() {
 
 // 0x59F660
 CObject::~CObject() {
-    if (objectFlags.b0x200000 || objectFlags.b0x100000) {
-        const auto iIndex = SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_wScriptTriggerIndex].m_nIMGindex);
+    if (objectFlags.b0x100000_0x200000) {
+        const auto iIndex = SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_nStreamedScriptBrainToLoad].m_StreamedScriptIndex);
         CStreaming::SetMissionDoesntRequireModel(iIndex);
-        objectFlags.b0x100000 = false;
-        objectFlags.b0x200000 = false;
-        CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_wScriptTriggerIndex);
-        m_wScriptTriggerIndex = -1;
+        objectFlags.b0x100000_0x200000 = 0;
+        CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_nStreamedScriptBrainToLoad);
+        m_nStreamedScriptBrainToLoad = -1;
     }
 
     if (objectFlags.bHasNoModel) {
@@ -188,7 +179,7 @@ void CObject::operator delete(void* obj, int32 poolRef) {
 }
 
 // 0x5A0760
-void CObject::SetIsStatic_Reversed(bool isStatic) {
+void CObject::SetIsStatic(bool isStatic) {
     m_bIsStatic = isStatic;
     physicalFlags.b31 = false;
     if (!isStatic && (physicalFlags.bDisableMoveForce && m_fDoorStartAngle < -1000.0F)) {
@@ -197,12 +188,12 @@ void CObject::SetIsStatic_Reversed(bool isStatic) {
 }
 
 // 0x59F110
-void CObject::CreateRwObject_Reversed() {
+void CObject::CreateRwObject() {
     CEntity::CreateRwObject();
 }
 
 // 0x5A2130
-void CObject::ProcessControl_Reversed() {
+void CObject::ProcessControl() {
     auto* mi = GetModelInfo();
     auto bIsAnimated = false;
     if (mi->GetRwModelType() == rpCLUMP && mi->bHasAnimBlend && m_pRwObject)
@@ -353,7 +344,7 @@ void CObject::ProcessControl_Reversed() {
 }
 
 // 0x5A17B0
-void CObject::Teleport_Reversed(CVector destination, bool resetRotation) {
+void CObject::Teleport(CVector destination, bool resetRotation) {
     CWorld::Remove(this);
     SetPosn(destination);
     CEntity::UpdateRW();
@@ -362,7 +353,7 @@ void CObject::Teleport_Reversed(CVector destination, bool resetRotation) {
 }
 
 // 0x59FEE0
-void CObject::SpecialEntityPreCollisionStuff_Reversed(CPhysical* colPhysical, bool bIgnoreStuckCheck, bool& bCollisionDisabled, bool& bCollidedEntityCollisionIgnored, bool& bCollidedEntityUnableToMove, bool& bThisOrCollidedEntityStuck) {
+void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnoreStuckCheck, bool& bCollisionDisabled, bool& bCollidedEntityCollisionIgnored, bool& bCollidedEntityUnableToMove, bool& bThisOrCollidedEntityStuck) {
     if (m_pEntityIgnoredCollision == colPhysical || colPhysical->m_pEntityIgnoredCollision == this) {
         bCollidedEntityCollisionIgnored = true;
         return;
@@ -413,7 +404,7 @@ void CObject::SpecialEntityPreCollisionStuff_Reversed(CPhysical* colPhysical, bo
                         auto tempMat = CMatrix();
                         auto* cm = CEntity::GetColModel();
                         auto vecSize = cm->GetBoundingBox().GetSize();
-                        auto vecTransformed = *m_matrix * vecSize;
+                        auto vecTransformed = m_matrix->TransformPoint(vecSize);
 
                         auto& vecCollidedPos = colPhysical->GetPosition();
                         if (vecTransformed.z < vecCollidedPos.z)
@@ -424,7 +415,7 @@ void CObject::SpecialEntityPreCollisionStuff_Reversed(CPhysical* colPhysical, bo
                         else
                         {
                             Invert(colPhysical->GetMatrix(), tempMat);
-                            if ((tempMat * vecTransformed).z < 0.0F)
+                            if ((tempMat.TransformPoint(vecTransformed)).z < 0.0F)
                             {
                                 bCollidedEntityCollisionIgnored = true;
                                 m_pEntityIgnoredCollision = colPhysical;
@@ -462,7 +453,7 @@ void CObject::SpecialEntityPreCollisionStuff_Reversed(CPhysical* colPhysical, bo
 }
 
 // 0x5A02E0
-uint8 CObject::SpecialEntityCalcCollisionSteps_Reversed(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2) {
+uint8 CObject::SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2) {
     if (physicalFlags.bDisableZ || m_pObjectInfo->m_nSpecialColResponseCase == COL_SPECIAL_RESPONSE_GRENADE) {
         auto* cm = GetModelInfo()->GetColModel();
         const auto fMove = m_vecMoveSpeed.SquaredMagnitude() * sq(CTimer::GetTimeStep());
@@ -475,7 +466,7 @@ uint8 CObject::SpecialEntityCalcCollisionSteps_Reversed(bool& bProcessCollisionB
     if (!physicalFlags.bDisableMoveForce) {
         if (physicalFlags.bInfiniteMass) {
             auto cm = CEntity::GetColModel();
-            auto vecMin = Multiply3x3(GetMatrix(), cm->GetBoundingBox().m_vecMin);
+            auto vecMin = GetMatrix().TransformVector(cm->GetBoundingBox().m_vecMin);
             auto vecSpeed = CPhysical::GetSpeed(vecMin);
             const auto fMove = vecSpeed.SquaredMagnitude() * sq(CTimer::GetTimeStep());
             if (fMove >= 0.0225F) // std::pow(0.15F, 2.0F)
@@ -491,11 +482,11 @@ uint8 CObject::SpecialEntityCalcCollisionSteps_Reversed(bool& bProcessCollisionB
             auto* cm = GetModelInfo()->GetColModel();
 
             auto vecMin = CVector(0.0F, 0.0F, cm->GetBoundingBox().m_vecMin.z);
-            vecMin = Multiply3x3(GetMatrix(), vecMin);
+            vecMin = GetMatrix().TransformVector(vecMin);
             vecMin = CPhysical::GetSpeed(vecMin);
 
             auto vecMax = CVector(0.0F, 0.0F, cm->GetBoundingBox().m_vecMax.z);
-            vecMax = Multiply3x3(GetMatrix(), vecMax);
+            vecMax = GetMatrix().TransformVector(vecMax);
             vecMax = CPhysical::GetSpeed(vecMax);
 
             auto& vecUsed = vecMin.SquaredMagnitude() >= vecMax.SquaredMagnitude() ? vecMin : vecMax;
@@ -535,7 +526,7 @@ uint8 CObject::SpecialEntityCalcCollisionSteps_Reversed(bool& bProcessCollisionB
 }
 
 // 0x59FD50
-void CObject::PreRender_Reversed() {
+void CObject::PreRender() {
     if (objectFlags.bAffectedByColBrightness)
         GetLightingFromCollisionBelow();
 
@@ -570,7 +561,7 @@ void CObject::PreRender_Reversed() {
 }
 
 // 0x59F180
-void CObject::Render_Reversed() {
+void CObject::Render() {
     if (objectFlags.bDoNotRender)
         return;
 
@@ -585,7 +576,7 @@ void CObject::Render_Reversed() {
 }
 
 // 0x554FA0
-bool CObject::SetupLighting_Reversed() {
+bool CObject::SetupLighting() {
     if (physicalFlags.bDestroyed) {
         WorldReplaceNormalLightsWithScorched(Scene.m_pRpWorld, 0.18F);
         return true;
@@ -600,7 +591,7 @@ bool CObject::SetupLighting_Reversed() {
 }
 
 // 0x553E10
-void CObject::RemoveLighting_Reversed(bool bRemove) {
+void CObject::RemoveLighting(bool bRemove) {
     if (!bRemove)
         return;
 
@@ -613,10 +604,9 @@ void CObject::RemoveLighting_Reversed(bool bRemove) {
 
 // 0x5D2870 - Deserializes object from save storage buffer
 bool CObject::Load() {
-    uint32 size; // unused
-    CObjectSaveStructure data;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(data));
+    auto size = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
+    auto data = CGenericGameStorage::LoadDataFromWorkBuffer<CObjectSaveStructure>();
+    assert(size == sizeof(data)); // Check structure size.
     data.Extract(this);
     return true;
 }
@@ -625,9 +615,8 @@ bool CObject::Load() {
 bool CObject::Save() {
     CObjectSaveStructure data;
     data.Construct(this);
-    uint32 size = sizeof(CObjectSaveStructure);
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::SaveDataToWorkBuffer(&data, size);
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CObjectSaveStructure));
+    CGenericGameStorage::SaveDataToWorkBuffer(data);
     return true;
 }
 
@@ -641,7 +630,7 @@ void CObject::ProcessGarageDoorBehaviour() {
 
     const auto& vecDummyPos = m_pDummyObject->GetPosition();
     auto* mi = GetModelInfo();
-    const auto fHeight = mi->GetColModel()->GetBoundingBox().GetHeight();
+    const auto fHeight = mi->GetColModel()->GetBoundingBox().GetHeight() - 0.1f;
     const auto& garage = CGarages::GetGarage(m_nGarageDoorGarageIndex);
     if (garage.m_bDoorOpensUp) {
         m_matrix->GetPosition().z = vecDummyPos.z + fHeight * garage.m_fDoorPosition * 0.48F;
@@ -876,11 +865,11 @@ void CObject::Init() {
 
     m_nColLighting.day = 0x8;
     m_nColLighting.night = 0x4;
-    m_wScriptTriggerIndex = -1;
+    m_nStreamedScriptBrainToLoad = -1;
 }
 
 // 0x59FB50
-void CObject::DoBurnEffect() {
+void CObject::DoBurnEffect() const {
     const auto& box = GetModelInfo()->GetColModel()->GetBoundingBox();
     const auto& vecSize = box.GetSize();
     const auto nUsedSize = static_cast<int32>(vecSize.x * vecSize.y * vecSize.z * m_fBurnDamage / 20.0F);
@@ -891,7 +880,7 @@ void CObject::DoBurnEffect() {
         const auto fRandX = CGeneral::GetRandomNumberInRange(box.m_vecMin.x, box.m_vecMax.x);
         const auto fRandY = CGeneral::GetRandomNumberInRange(box.m_vecMin.y, box.m_vecMax.y);
         const auto fRandZ = CGeneral::GetRandomNumberInRange(box.m_vecMin.z, box.m_vecMax.z);
-        auto vecParticlePos = *m_matrix * CVector(fRandX, fRandY, fRandZ);
+        auto vecParticlePos = m_matrix->TransformPoint(CVector(fRandX, fRandY, fRandZ));
 
         // auto smokePart = FxPrtMult_c() Originally overwritten right after
         auto smokePart = FxPrtMult_c(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.4F);
@@ -968,7 +957,7 @@ void CObject::ProcessSamSiteBehaviour() {
                 return;
 
             auto vecRocketDir = m_matrix->GetForward() + m_matrix->GetUp();
-            const auto vecSrcPos = *m_matrix * CVector(0.0F, 2.0F, 4.0F);
+            const auto vecSrcPos = m_matrix->TransformPoint(CVector(0.0F, 2.0F, 4.0F));
             CProjectileInfo::AddProjectile(this, eWeaponType::WEAPON_ROCKET_HS, vecSrcPos, 0.0F, &vecRocketDir, targetEntity);
             return;
         }
@@ -1166,7 +1155,7 @@ void CObject::ObjectDamage(float damage, const CVector* fxOrigin, const CVector*
         return;
     }
 
-    auto vecPoint = *m_matrix * m_pObjectInfo->m_vFxOffset;
+    auto vecPoint = m_matrix->TransformPoint(m_pObjectInfo->m_vFxOffset);
     vecPoint += GetPosition();
     auto* fxSystem = g_fxMan.CreateFxSystem(m_pObjectInfo->m_pFxSystemBP, vecPoint, nullptr, false);
     if (fxSystem)
@@ -1195,9 +1184,9 @@ void CObject::Explode() {
     }
 
     if (m_pObjectInfo->m_nFxType == eObjectFxType::PLAY_ON_DESTROYED) {
-        auto vecPoint = *m_matrix * m_pObjectInfo->m_vFxOffset;
+        auto vecPoint = m_matrix->TransformPoint(m_pObjectInfo->m_vFxOffset);
         vecPoint += GetPosition();
-        auto* fxSystem = g_fxMan.CreateFxSystem(m_pObjectInfo->m_pFxSystemBP, &vecPoint, nullptr, false);
+        auto* fxSystem = g_fxMan.CreateFxSystem(m_pObjectInfo->m_pFxSystemBP, vecPoint, nullptr, false);
         if (fxSystem)
             fxSystem->PlayAndKill();
     }
@@ -1313,7 +1302,7 @@ void CObject::GrabObjectToCarryWithRope(CPhysical* attachTo) {
 
     auto vecRopePoint = CVector();
     vecRopePoint.z = CRopes::FindPickupHeight(attachTo);
-    vecRopePoint *= *attachTo->m_matrix * vecRopePoint;
+    vecRopePoint *= attachTo->m_matrix->TransformPoint(vecRopePoint);
 
     rope.m_pRopeAttachObject->SetPosn(vecRopePoint);
     rope.m_pRopeAttachObject->m_bUsesCollision = false;
@@ -1402,16 +1391,16 @@ void CObject::ProcessControlLogic() {
         }
 
         if (m_nModelIndex == ModelIndices::MI_MAGNOCRANE) {
-            auto vecRopePoint = *m_matrix * CVector(0.0F, 36.64F, -1.69F);
+            auto vecRopePoint = m_matrix->TransformPoint(CVector(0.0F, 36.64F, -1.69F));
             vecRopePoint.z += fRopeLengthChange;
             CRopes::RegisterRope((uint32)this, static_cast<uint32>(eRopeType::CRANE_MAGNO), vecRopePoint, false, nSegments, 1u, this, 20'000u);
         } else if (m_nModelIndex == ModelIndices::MI_CRANETROLLEY) {
             const auto nRopeType = static_cast<const uint32>(GetPosition().x >= 0 ? eRopeType::CRANE_TROLLEY : eRopeType::WRECKING_BALL);
-            auto vecRopePoint = *m_matrix * CVector(0.0F, 0.0F, 0.0F);
+            auto vecRopePoint = m_matrix->TransformPoint(CVector(0.0F, 0.0F, 0.0F));
             vecRopePoint.z += fRopeLengthChange;
             CRopes::RegisterRope((uint32)this, nRopeType, vecRopePoint, false, nSegments, 1u, this, 20'000u);
         } else {
-            auto vecRopePoint = *m_matrix * CVector(0.0F, 0.0F, 59.0F);
+            auto vecRopePoint = m_matrix->TransformPoint(CVector(0.0F, 0.0F, 59.0F));
             vecRopePoint.z += fRopeLengthChange;
             CRopes::RegisterRope((uint32)this, static_cast<uint32>(eRopeType::QUARRY_CRANE_ARM), vecRopePoint, false, nSegments, 1u, this, 20'000u);
         }

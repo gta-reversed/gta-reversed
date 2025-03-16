@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexEvasiveCower : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexEvasiveCower : public CTaskComplex {
 public:
     CVector  m_Pos;
     CEntity* m_Entity;

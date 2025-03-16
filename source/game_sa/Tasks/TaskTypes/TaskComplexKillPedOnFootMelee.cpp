@@ -169,7 +169,7 @@ CTask* CTaskComplexKillPedOnFootMelee::CreateFirstSubTask(CPed* ped) {
 
 // 0x626D90
 CTask* CTaskComplexKillPedOnFootMelee::ControlSubTask(CPed* ped) {
-    ped->Say(89);
+    ped->Say(CTX_GLOBAL_FIGHT);
 
     if (m_bNewTarget) {
         return CreateFirstSubTask(ped);
@@ -180,7 +180,7 @@ CTask* CTaskComplexKillPedOnFootMelee::ControlSubTask(CPed* ped) {
     }
 
     const auto TryAbortAndCreate = [&, this](eTaskType taskToCreate) {
-        return m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)
+        return m_pSubTask->MakeAbortable(ped)
             ? CreateSubTask(taskToCreate, ped)
             : m_pSubTask;
     };

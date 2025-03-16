@@ -32,7 +32,7 @@ float (&arrTotalTrackLength)[4] = *(float (*)[4])0xC37FEC;
 float (&StationDist)[6] = *(float (*)[6])0xC38034;
 
 void CTrain::InjectHooks() {
-    RH_ScopedClass(CTrain);
+    RH_ScopedVirtualClass(CTrain, 0x872370, 66);
     RH_ScopedCategory("Vehicle");
 
     RH_ScopedInstall(Constructor, 0x6F6030, { .reversed = false });
@@ -70,7 +70,7 @@ void CTrain::InjectHooks() {
     RH_ScopedInstall(CreateMissionTrain, 0x6F7550, { .reversed = false });
     RH_ScopedInstall(DoTrainGenerationAndRemoval, 0x6F7900, { .reversed = false });
     RH_ScopedInstall(AddNearbyPedAsRandomPassenger, 0x6F8170, { .reversed = false });
-    RH_ScopedVirtualInstall(ProcessControl, 0x6F86A0);
+    RH_ScopedVMTInstall(ProcessControl, 0x6F86A0);
 
     RH_ScopedGlobalInstall(ProcessTrainAnnouncements, 0x6F5910);
     RH_ScopedGlobalInstall(PlayAnnouncement, 0x6F5920);
@@ -937,3 +937,4 @@ void CTrain::ProcessControl() {
         }
     }
 }
+

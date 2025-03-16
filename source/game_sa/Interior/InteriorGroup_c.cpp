@@ -19,8 +19,8 @@ void InteriorGroup_c::InjectHooks() {
     RH_ScopedInstall(Exit, 0x595290, { .reversed = false });
     RH_ScopedInstall(ContainsInteriorType, 0x595250, { .reversed = false });
     RH_ScopedInstall(CalcIsVisible, 0x595200, { .reversed = false });
-    RH_ScopedInstall(DereferenceAnims, 0x595160, { .reversed = false });
-    RH_ScopedInstall(ReferenceAnims, 0x5950D0, { .reversed = false });
+    RH_ScopedInstall(DereferenceAnims, 0x595160);
+    RH_ScopedInstall(ReferenceAnims, 0x5950D0);
     RH_ScopedInstall(UpdateOfficePeds, 0x594E90, { .reversed = false });
     RH_ScopedInstall(RemovePed, 0x594E30, { .reversed = false });
     RH_ScopedInstall(SetupShopPeds, 0x594C10, { .reversed = false });
@@ -95,13 +95,26 @@ int8 InteriorGroup_c::CalcIsVisible() {
 }
 
 // 0x595160
-int8 InteriorGroup_c::DereferenceAnims() {
-    return plugin::CallMethodAndReturn<int8, 0x595160, InteriorGroup_c*>(this);
+void InteriorGroup_c::DereferenceAnims() {
+    if (!m_animBlockReferenced) {
+        return;
+    }
+    CAnimManager::AddAnimBlockRef(CAnimManager::GetAnimationBlockIndex(GetAnimBlockName()));
+    m_animBlockReferenced = false;
 }
 
 // 0x5950D0
 void InteriorGroup_c::ReferenceAnims() {
-    plugin::CallMethod<0x5950D0, InteriorGroup_c*>(this);
+    if (m_animBlockReferenced) {
+        return;
+    }
+    const auto animBlkIdx = CAnimManager::GetAnimationBlockIndex(GetAnimBlockName());
+    if (CStreaming::IsModelLoaded(IFPToModelId(animBlkIdx))) {
+        CAnimManager::AddAnimBlockRef(animBlkIdx);
+        m_animBlockReferenced = true;
+    } else {
+        CStreaming::RequestModel(IFPToModelId(animBlkIdx), STREAMING_KEEP_IN_MEMORY);
+    }
 }
 
 // 0x594E90
@@ -141,8 +154,8 @@ bool InteriorGroup_c::FindClosestInteriorInfo(int32 a, CVector point, float b, I
 }
 
 // 0x594970
-bool InteriorGroup_c::FindInteriorInfo(int32 a2, InteriorInfo_t** a3, Interior_c** a4) {
-    return plugin::CallMethodAndReturn<bool, 0x594970, InteriorGroup_c*, int32, InteriorInfo_t**, Interior_c**>(this, a2, a3, a4);
+bool InteriorGroup_c::FindInteriorInfo(eInteriorInfoType infoType, InteriorInfo_t** a3, Interior_c** a4) {
+    return plugin::CallMethodAndReturn<bool, 0x594970, InteriorGroup_c*, eInteriorInfoType, InteriorInfo_t**, Interior_c**>(this, infoType, a3, a4);
 }
 
 // 0x594920
@@ -153,4 +166,14 @@ int32 InteriorGroup_c::GetNumInteriorInfos(int32 a2) {
 // 0x5948C0
 int32 InteriorGroup_c::GetRandomInterior() {
     return plugin::CallMethodAndReturn<int32, 0x5948C0, InteriorGroup_c*>(this);
+}
+
+//! @notsa
+const char* InteriorGroup_c::GetAnimBlockName() {
+    switch ((eInteriorGroupType)m_groupType) {
+    case eInteriorGroupType::HOUSE:  return "int_house";
+    case eInteriorGroupType::SHOP:   return "int_shop";
+    case eInteriorGroupType::OFFICE: return "int_office";
+    default:                         NOTSA_UNREACHABLE();
+    }
 }

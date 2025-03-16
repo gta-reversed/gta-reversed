@@ -2,18 +2,18 @@
 
 #include "TaskSimple.h"
 
-class CTaskSimpleJump : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleJump : public CTaskSimple {
 public:
-    CVector  m_vecClimbPos;
-    float    m_fClimbAngle;
-    uint8    m_nClimbSurfaceType;
-    CEntity* m_pClimbEntity;
-    uint8    m_bIsFinished;
-    uint8    m_bIsJumpBlocked;
-    uint8    m_bClimbJump;
-    uint8    m_bLaunchAnimStarted;
-    uint8    m_bCanClimb;
-    uint8    m_bHighJump;
+    CVector                m_vecClimbPos;
+    float                  m_fClimbAngle;
+    eSurfaceType           m_nClimbSurfaceType;
+    CEntity*               m_pClimbEntity;
+    uint8                  m_bIsFinished;
+    uint8                  m_bIsJumpBlocked;
+    uint8                  m_bClimbJump;
+    uint8                  m_bLaunchAnimStarted;
+    uint8                  m_bCanClimb;
+    uint8                  m_bHighJump;
     CAnimBlendAssociation* m_pAnim;
 
 public:
@@ -34,8 +34,5 @@ public:
 
     static void InjectHooks();
     CTaskSimpleJump* Constructor(bool bCanClimb);
-    CTask*  Clone_Reversed() const;
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool ProcessPed_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskSimpleJump, 0x2C);

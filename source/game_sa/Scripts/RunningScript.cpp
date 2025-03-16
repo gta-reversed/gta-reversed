@@ -33,6 +33,9 @@ static notsa::log_ptr logger;
 //! Holds all custom command handlers (or null for commands with no custom handler)
 static inline std::array<notsa::script::CommandHandlerFunction, (size_t)(COMMAND_HIGHEST_ID_TO_HOOK) + 1> s_CustomCommandHandlerTable{};
 
+std::array<std::array<char, COMMANDS_CHAR_BUFFER_SIZE>, COMMANDS_CHAR_BUFFERS_COUNT> CRunningScript::ScriptArgCharBuffers        = {};
+uint8                                                                                CRunningScript::ScriptArgCharNextFreeBuffer = 0;
+
 void CRunningScript::InjectHooks() {
     logger = NOTSA_MAKE_LOGGER("script");
 
@@ -130,19 +133,6 @@ void CRunningScript::InjectCustomCommandHooks() {
     cleo::extensions::intoperations::RegisterHandlers();
 #endif
 
-    // To enable use premake: `./premake5.exe vs2022 --allow-script-cmd-hooks`
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
-    // After injecting all hooks, we can create their reversible hook
-    for (auto&& [idx, cmd] : notsa::enumerate(s_CustomCommandHandlerTable)) {
-        const auto id = (eScriptCommands)(idx);
-
-        ReversibleHooks::AddItemToCategory(
-            "Scripts/Commands",
-            std::make_shared<ReversibleHooks::ReversibleHook::ScriptCommand>(id)
-        );
-    }
-#endif
-
 #ifdef DUMP_CUSTOM_COMMAND_HANDLERS_TO_FILE
     auto reversed{0}, total{0};
     std::ofstream ofsrev{ "reversed_script_command_handlers.txt" }, ofsnotrev{ "NOT_reversed_script_command_handlers.txt" };
@@ -217,7 +207,7 @@ void CRunningScript::ShutdownThisScript() {
     /*
     if (m_bIsExternal) {
         const auto idx = CTheScripts::StreamedScripts.GetStreamedScriptWithThisStartAddress(m_pBaseIP);
-        CTheScripts::StreamedScripts.m_aScripts[idx].m_nStatus--;
+        CTheScripts::StreamedScripts.m_aScripts[idx].Status--;
     }
 
     switch (m_nExternalType) {
@@ -480,17 +470,17 @@ void CRunningScript::ScriptTaskPickUpObject(int32 commandId) {
 void CRunningScript::SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, bool offset) {
     CWorld::PutToGroundIfTooLow(posn);
 
-    CVehicle* vehicle = ped.bInVehicle ? ped.m_pVehicle : nullptr;
+    CVehicle* vehicle = ped.GetVehicleIfInOne();
     if (vehicle) {
         posn.z += vehicle->GetDistanceFromCentreOfMassToBaseOfModel();
         vehicle->Teleport(posn, false);
-        CTheScripts::ClearSpaceForMissionEntity(&posn, vehicle);
+        CTheScripts::ClearSpaceForMissionEntity(posn, vehicle);
     } else {
         posn.z += offset ? ped.GetDistanceFromCentreOfMassToBaseOfModel() : 0.0f;
-        CTheScripts::ClearSpaceForMissionEntity(&posn, &ped);
+        CTheScripts::ClearSpaceForMissionEntity(posn, &ped);
         auto* group = CPedGroups::GetPedsGroup(&ped);
         if (group && group->GetMembership().IsLeader(&ped) && warpGang) {
-            group->Teleport(&posn);
+            group->Teleport(posn);
         } else {
             ped.Teleport(posn, false);
         }
@@ -499,10 +489,9 @@ void CRunningScript::SetCharCoordinates(CPed& ped, CVector posn, bool warpGang, 
 
 // 0x463CA0
 tScriptParam* CRunningScript::GetPointerToLocalVariable(int32 varIndex) {
-    if (m_bIsMission)
-        return reinterpret_cast<tScriptParam*>(&CTheScripts::LocalVariablesForCurrentMission[varIndex]);
-    else
-        return reinterpret_cast<tScriptParam*>(&m_aLocalVars[varIndex]);
+    return m_bIsMission
+        ? reinterpret_cast<tScriptParam*>(&CTheScripts::LocalVariablesForCurrentMission[varIndex])
+        : reinterpret_cast<tScriptParam*>(&m_aLocalVars[varIndex]);
 }
 
 /*!
@@ -513,8 +502,8 @@ tScriptParam* CRunningScript::GetPointerToLocalVariable(int32 varIndex) {
  * @param index            Index of the variable inside the array
  * @param arrayEntriesSize Size of 1 variable in the array (In terms of `tScriptParam`'s - So for a regular `int` (or float, etc) variable this will be `1`, for long strings it's `4` and for short one's it's `2`)
  */
-tScriptParam* CRunningScript::GetPointerToLocalArrayElement(int32 arrayBaseOffset, uint16 index, uint8 arrayEntriesSize) {
-    return GetPointerToLocalVariable(arrayBaseOffset + arrayEntriesSize * index);
+tScriptParam* CRunningScript::GetPointerToLocalArrayElement(int32 arrayBaseOffset, uint16 index, uint8 arrayEntriesSizeInDWords) {
+    return GetPointerToLocalVariable(arrayBaseOffset + arrayEntriesSizeInDWords * index);
 }
 
 /*!
@@ -572,22 +561,40 @@ tScriptParam* CRunningScript::GetPointerToScriptVariable(eScriptVariableType) {
 }
 
 /*!
+ * @notsa
+ */
+tScriptParam* CRunningScript::GetPointerToGlobalVariable(int32 varOffset) {
+    return reinterpret_cast<tScriptParam*>(&CTheScripts::ScriptSpace[varOffset]);
+}
+
+/*!
+ * @notsa
+ * @brief Returns pointer to a global script variable.
+ *
+ * @param arrayBaseOffset  The offset of the array (In terms of the number of `tScriptParam`s before it, so, bytes * 4)
+ * @param index            Index of the variable inside the array
+ * @param arrayEntriesSize Size of 1 variable in the array (In terms of `tScriptParam`'s - So for a regular `int` (or float, etc) variable this will be `1`, for long strings it's `4` and for short one's it's `2`)
+ */
+tScriptParam* CRunningScript::GetPointerToGlobalArrayElement(int32 arrBase, uint16 arrIdx, uint8 arrayEntriesSizeAsParams) {
+    return reinterpret_cast<tScriptParam*>(&CTheScripts::ScriptSpace[arrBase + arrIdx * (arrayEntriesSizeAsParams * sizeof(tScriptParam))]);
+}
+
+/*!
  * Returns offset of global variable
  * @addr 0x464700
  */
 uint16 CRunningScript::GetIndexOfGlobalVariable() {
-    uint16 arrVarOffset;
-    int32  arrElemIdx;
-
-    switch (CTheScripts::Read1ByteFromScript(m_IP)) {
+    switch (const auto t = ReadAtIPAs<uint8>()) {
     case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-        return CTheScripts::Read2BytesFromScript(m_IP);
-    case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY:
-        ReadArrayInformation(true, &arrVarOffset, &arrElemIdx);
-        return arrVarOffset + 4 * arrElemIdx;
+        return ReadAtIPAs<uint16>();
+    case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY: {
+        uint16 base;
+        int32  idx;
+        ReadArrayInformation(true, &base, &idx);
+        return base + sizeof(tScriptParam) * idx;
+    }
     default:
-        // todo: ???
-        return (uint16)(uint32)this;
+        NOTSA_UNREACHABLE();
     }
 }
 
@@ -704,7 +711,8 @@ void CRunningScript::StoreParameters(int16 count) {
         }
         case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY:
             ReadArrayInformation(true, &arrVarOffset, &arrElemIdx);
-            *reinterpret_cast<int32*>(&CTheScripts::ScriptSpace[arrVarOffset + 4 * arrElemIdx]) = ScriptParams[i].iParam;
+            GetPointerToGlobalArrayElement(arrVarOffset, arrElemIdx, 1)->iParam = ScriptParams[i].iParam;
+            //*reinterpret_cast<int32*>(&CTheScripts::ScriptSpace[arrVarOffset + 4 * arrElemIdx]) = ScriptParams[i].iParam;
             break;
         case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY:
             ReadArrayInformation(true, &arrVarOffset, &arrElemIdx);
@@ -716,20 +724,19 @@ void CRunningScript::StoreParameters(int16 count) {
 
 // Reads array var base offset and element index from index variable.
 // 0x463CF0
-void CRunningScript::ReadArrayInformation(int32 updateIp, uint16* outArrVarOffset, int32* outArrElemIdx) {
-    auto* ip = m_IP;
+void CRunningScript::ReadArrayInformation(int32 updateIP, uint16* outArrayBase, int32* outArrayIndex) {
+    auto ipPtr     = reinterpret_cast<uint16*>(m_IP);
+    *outArrayBase  = static_cast<uint16>(ipPtr[0]);
+    auto arrIndex  = ipPtr[1];
+    auto checkValue = (int16)ipPtr[2];
 
-    *outArrVarOffset      = CTheScripts::Read2BytesFromScript(ip);
-    uint16 arrayIndexVar  = CTheScripts::Read2BytesFromScript(ip);
-    bool isGlobalIndexVar = CTheScripts::Read2BytesFromScript(ip) < 0; // high bit set
+    *outArrayIndex = checkValue < 0
+        ? GetPointerToGlobalVariable(arrIndex)->iParam
+        : GetPointerToLocalVariable(arrIndex)->iParam;
 
-    if (isGlobalIndexVar)
-        *outArrElemIdx = *reinterpret_cast<int32*>(&CTheScripts::ScriptSpace[arrayIndexVar]);
-    else
-        *outArrElemIdx = GetPointerToLocalVariable(arrayIndexVar)->iParam;
-
-    if (updateIp)
-        m_IP = ip;
+    if (updateIP) {
+        m_IP = reinterpret_cast<uint8*>(&ipPtr[3]);
+    }
 }
 
 // Collects parameters and puts them to local variables of new script
@@ -916,7 +923,13 @@ OpcodeResult CRunningScript::ProcessOneCommand() {
         };
     } op = { CTheScripts::Read2BytesFromScript(m_IP) };
 
-    SPDLOG_LOGGER_TRACE(logger, "[{}][IP: {:#x} + {:#x}]: {} [{:#x}]", m_szName, LOG_PTR(m_pBaseIP), LOG_PTR(m_IP - m_pBaseIP), notsa::script::GetScriptCommandName((eScriptCommands)op.command), (size_t)op.command);
+#ifdef NOTSA_SCRIPT_TRACING
+    // snprintf is faster (in debug at least) - Gotta stick to it for now
+    char msg[4096];
+    sprintf_s(msg, "[%s][IP: 0x%X + 0x%X]: %s [0x%X]", m_szName, LOG_PTR(m_pBaseIP), LOG_PTR(m_IP - m_pBaseIP), notsa::script::GetScriptCommandName((eScriptCommands)op.command).data(), (size_t)op.command);
+    SPDLOG_LOGGER_TRACE(logger, msg);
+    //SPDLOG_LOGGER_TRACE(logger, "[{}][IP: {:#x} + {:#x}]: {} [{:#x}]", BaseFilename, LOG_PTR(m_pBaseIP), LOG_PTR(m_IP - m_pBaseIP), notsa::script::GetScriptCommandName((eScriptCommands)op.command), (size_t)op.command);
+#endif
     
     m_bNotFlag = op.notFlag;
 

@@ -4,7 +4,7 @@
 
 void CTaskComplexPartnerShove::InjectHooks()
 {
-    RH_ScopedClass(CTaskComplexPartnerShove);
+    RH_ScopedVirtualClass(CTaskComplexPartnerShove, 0x870800, 14);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x6846F0);
 }

@@ -4,7 +4,7 @@
 
 class CPed;
 
-class NOTSA_EXPORT_VTABLE CEventDeadPed : public CEventEditableResponse {
+class NOTSA_EXPORT_VTABLE CEventDeadPed final : public CEventEditableResponse {
     CPed*  m_ped;
     bool   field_18;
     uint32 m_deathTimeInMs;
@@ -20,5 +20,7 @@ public:
     CEntity* GetSourceEntity() const override { return m_ped; }
     float GetLocalSoundLevel() override { return 60.0f; }
     CEventEditableResponse* CloneEditable() override;
+
+    auto GetDeadPed() const { return m_ped; }
 };
 VALIDATE_SIZE(CEventDeadPed, 0x20);

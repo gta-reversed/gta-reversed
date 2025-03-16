@@ -9,7 +9,7 @@
 #include "TaskSimple.h"
 class CVehicle;
 
-class CTaskSimpleCarSetPedOut : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleCarSetPedOut : public CTaskSimple {
 public:
     CVehicle*   m_pTargetVehicle{};
     eTargetDoor m_nTargetDoor{};

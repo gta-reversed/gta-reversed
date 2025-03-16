@@ -87,11 +87,11 @@ void CKeyGen::InjectHooks() {
     RH_ScopedInstall(AppendStringToKey, 0x53CF70);
     RH_ScopedOverloadedInstall(GetKey, "", 0x53CF00, uint32(*)(const char*));
     RH_ScopedOverloadedInstall(GetKey, "size", 0x53CED0, uint32(*)(const char*, int32));
-    RH_ScopedInstall(GetUppercaseKey, 0x53CF30);
+    RH_ScopedOverloadedInstall(GetUppercaseKey, "", 0x53CF30, uint32(*)(const char*));
 }
 
 // 0x53CF70
-uint32 CKeyGen::AppendStringToKey(uint32 key, const char* str) {
+uint32 CKeyGen::AppendStringToKey(uint32 key, const char* str) noexcept {
     for (int32 i = 0; str[i]; ++i) {
         key = keyTable[(uint8)(str[i] ^ key)] ^ (key >> 8);
     }
@@ -99,7 +99,7 @@ uint32 CKeyGen::AppendStringToKey(uint32 key, const char* str) {
 }
 
 // 0x53CF00
-uint32 CKeyGen::GetKey(const char* str) {
+uint32 CKeyGen::GetKey(const char* str) noexcept {
     uint32 key = INITIAL_REMAINDER;
     for (int32 i = 0; str[i]; ++i) {
         key = keyTable[(uint8)(str[i] ^ key)] ^ (key >> 8);
@@ -108,7 +108,7 @@ uint32 CKeyGen::GetKey(const char* str) {
 }
 
 // 0x53CED0
-uint32 CKeyGen::GetKey(const char* str, int32 size) {
+uint32 CKeyGen::GetKey(const char* str, int32 size) noexcept {
     uint32 key = INITIAL_REMAINDER;
     for (int32 i = 0; i < size; ++i) {
         key = keyTable[(uint8)(str[i] ^ key)] ^ (key >> 8);
@@ -117,10 +117,19 @@ uint32 CKeyGen::GetKey(const char* str, int32 size) {
 }
 
 // 0x53CF30
-uint32 CKeyGen::GetUppercaseKey(const char* str) {
+uint32 CKeyGen::GetUppercaseKey(const char* str) noexcept {
     uint32 key = INITIAL_REMAINDER;
     for (int32 i = 0; str[i]; ++i) {
         key = keyTable[(uint8)(toupper((uint8)str[i]) ^ key)] ^ (key >> 8);
+    }
+    return key;
+}
+
+// notsa
+uint32 CKeyGen::GetUppercaseKey(const char* begin, const char* end) noexcept {
+    uint32 key = INITIAL_REMAINDER;
+    for (auto i = begin; i != end; i++) {
+        key = keyTable[(uint8)(toupper((uint8)*i) ^ key)] ^ (key >> 8);
     }
     return key;
 }

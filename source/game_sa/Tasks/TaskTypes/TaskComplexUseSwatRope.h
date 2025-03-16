@@ -3,7 +3,7 @@
 #include "TaskComplex.h"
 #include "Heli.h"
 
-class CTaskComplexUseSwatRope : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexUseSwatRope : public CTaskComplex {
 public:
     uint32 m_nRopeId;
     float  m_fCoorAlongRope;
@@ -34,11 +34,6 @@ private:
 
     CTaskComplexUseSwatRope* Constructor(uint32 ropeId, CHeli* heli);
 
-    CTask*  Clone_Reversed() const;
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
 };
 
 VALIDATE_SIZE(CTaskComplexUseSwatRope, 0x1C);

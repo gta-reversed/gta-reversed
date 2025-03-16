@@ -3,7 +3,7 @@
 #include "TaskComplexGoToPointAndStandStill.h"
 #include "TaskTimer.h"
 
-class CTaskComplexGoToPointAndStandStillTimed : public CTaskComplexGoToPointAndStandStill {
+class NOTSA_EXPORT_VTABLE CTaskComplexGoToPointAndStandStillTimed : public CTaskComplexGoToPointAndStandStill {
 public:
     int32      m_nTime;
     CTaskTimer m_timer;
@@ -28,11 +28,6 @@ private:
         return this;
     }
 
-    CTask*  Clone_Reversed() const;
-    void StopTimer_Reversed(const CEvent* event);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
 };
 
 VALIDATE_SIZE(CTaskComplexGoToPointAndStandStillTimed, 0x38);

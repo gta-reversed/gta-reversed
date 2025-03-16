@@ -3,14 +3,14 @@
 #include "CarCtrl.h"
 
 void CTaskComplexCarDriveMission::InjectHooks() {
-    RH_ScopedClass(CTaskComplexCarDriveMission);
+    RH_ScopedVirtualClass(CTaskComplexCarDriveMission, 0x86E9A4, 14);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x63CC30);
     RH_ScopedInstall(Destructor, 0x63CCC0);
-    RH_ScopedVirtualInstall(Clone, 0x63DD70);
-    RH_ScopedVirtualInstall(GetTaskType, 0x63CCB0);
-    RH_ScopedVirtualInstall(SetUpCar, 0x63CD20);
+    RH_ScopedVMTInstall(Clone, 0x63DD70);
+    RH_ScopedVMTInstall(GetTaskType, 0x63CCB0);
+    RH_ScopedVMTInstall(SetUpCar, 0x63CD20);
 }
 
 // 0x63CC30

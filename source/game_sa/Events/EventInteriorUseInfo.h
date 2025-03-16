@@ -2,10 +2,12 @@
 
 #include "Event.h"
 
-struct InteriorInfo_t;
-class Interior_c;
+#include "Event.h"
+#include "Interior_c.h"
+#include "InteriorInfo_t.h"
 
-class CEventInteriorUseInfo : public CEvent {
+
+class NOTSA_EXPORT_VTABLE CEventInteriorUseInfo : public CEvent {
 public:
     InteriorInfo_t* m_InteriorInfo;
     Interior_c*     m_Interior;

@@ -3,7 +3,7 @@
 #include "FxInfo.h"
 #include "FxInterpInfoFloat.h"
 
-class FxInfoEmAngle_c : public FxInfo_c {
+class NOTSA_EXPORT_VTABLE FxInfoEmAngle_c : public FxInfo_c {
 protected:
     FxInterpInfoFloat_c m_InterpInfo;
 

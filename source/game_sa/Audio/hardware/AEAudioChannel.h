@@ -7,7 +7,7 @@
 #define USE_DSOUND
 
 #pragma pack(push, 1)
-class CAEAudioChannel {
+class NOTSA_EXPORT_VTABLE CAEAudioChannel {
 public:
 #ifdef USE_DSOUND
     IDirectSound*         m_pDirectSound;
@@ -21,16 +21,16 @@ public:
     char                  _pad10[24];
     uint32                m_nFlags;
     uint32                m_nLengthInBytes;
-    uint32                field_30; // unused
+    uint32                m_dwStopTime; // unused
     float                 m_fVolume;
-    bool                  m_bNoScalingFactor;
+    bool                  m_bPaused;
     uint8                 field_39; // unused
     uint16                m_nChannelId;
     uint32                m_nFrequency;
     uint32                m_nOriginalFrequency;
     bool                  m_bLooped;
-    uint8                 field_45;
-    uint8                 field_46; // unused
+    bool                  m_bShouldStop;
+    bool                  m_bShouldPlay; // unused
     WAVEFORMATEX          m_WaveFormat;
     uint16                field_59;
 #ifdef USE_DSOUND
@@ -79,7 +79,6 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    void SetFrequencyScalingFactor_Reversed(float factor);
 };
 #pragma pack(pop)
 VALIDATE_SIZE(CAEAudioChannel, 0x60);

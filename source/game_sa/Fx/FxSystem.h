@@ -79,7 +79,7 @@ public:
     void Pause();
     void Stop();
 
-    void AttachToBone(CEntity* entity, ePedBones boneId);
+    void AttachToBone(CEntity* entity, eBoneTag boneId);
 
     void AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal);
     void AddParticle(RwMatrix* mat, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal);

@@ -4,7 +4,7 @@
 
 class CPed;
 
-class  CTaskSimpleChat : public CTaskSimpleRunTimedAnim {
+class NOTSA_EXPORT_VTABLE  CTaskSimpleChat : public CTaskSimpleRunTimedAnim {
 public:
     static constexpr auto Type = TASK_SIMPLE_CHAT;
 

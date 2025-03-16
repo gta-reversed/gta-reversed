@@ -1,9 +1,10 @@
 #pragma once
 
 #include "TaskSimple.h"
+#include "Enums/eMoveState.h"
 #include "Vector.h"
 
-class CTaskSimpleGoTo : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleGoTo : public CTaskSimple {
 public:
     eMoveState m_moveState;
     CVector    m_vecTargetPoint;
@@ -45,5 +46,4 @@ private:
         return this;
     }
 };
-
 VALIDATE_SIZE(CTaskSimpleGoTo, 0x20);

@@ -354,7 +354,7 @@ uint16 CalculateShadowStrength(float currDist, float maxDist, uint16 maxStrength
 // 0x707B40
 void CShadows::StoreShadowForPedObject(CPed* ped, float displacementX, float displacementY, float frontX, float frontY, float sideX, float sideY) {
     // Okay, so.
-    // This function is called from `CCutsceneObject::PreRender_Reversed`
+    // This function is called from `CCutsceneObject::PreRender`
     // And you might ask "what the fuck, an object is not a ped!!"
     // well, in R* world it is.
     // it has bones (as anything can have bones actually, that's a known fact)
@@ -363,7 +363,7 @@ void CShadows::StoreShadowForPedObject(CPed* ped, float displacementX, float dis
     // But we really should fix this in a sensible way in the future.
     assert(ped->IsPed() || ped->IsObject());
 
-    const auto  bonePos           = ped->GetBonePosition(BONE_NORMAL);
+    const auto  bonePos           = ped->GetBonePosition(BONE_ROOT);
     const auto& camPos            = TheCamera.GetPosition();
     const auto  boneToCamDist2DSq = (bonePos - camPos).SquaredMagnitude2D();
 
@@ -407,7 +407,7 @@ void CShadows::StoreRealTimeShadow(CPhysical* physical, float displacementX, flo
     }
     const auto& camPos = TheCamera.GetPosition();
     const auto  shdwPos = physical->IsPed()
-        ? physical->AsPed()->GetBonePosition(BONE_NORMAL)
+        ? physical->AsPed()->GetBonePosition(BONE_ROOT)
         : physical->GetPosition();
     const auto shdwToCamDist2DSq = (shdwPos - camPos).SquaredMagnitude2D();
 
@@ -993,7 +993,7 @@ void CShadows::StoreShadowForVehicle(CVehicle* vehicle, VEH_SHD_TYPE vehShadowTy
     /*
     const auto shdwStrength = CTimeCycle::m_CurrentColours.m_nShadowStrength;
 
-    if (GraphicsLowQuality() || !shdwStrength) {
+    if (GraphicsHighQuality() || !shdwStrength) {
         return;
     }
 
@@ -1192,7 +1192,7 @@ void CShadows::StoreCarLightShadow(CVehicle* vehicle, int32 id, RwTexture* textu
 
 // 0x70C750
 void CShadows::StoreShadowForPole(CEntity* entity, float offsetX, float offsetY, float offsetZ, float poleHeight, float poleWidth, uint32 localId) {
-    if (GraphicsLowQuality() || !CTimeCycle::m_CurrentColours.m_nPoleShadowStrength) {
+    if (GraphicsHighQuality() || !CTimeCycle::m_CurrentColours.m_nPoleShadowStrength) {
         return;
     }
 

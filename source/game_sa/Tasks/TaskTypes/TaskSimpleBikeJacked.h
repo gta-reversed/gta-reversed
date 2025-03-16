@@ -7,7 +7,7 @@ class CTaskUtilityLineUpPedWithCar;
 class CPed;
 class CVehicle;
 
-class CTaskSimpleBikeJacked : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleBikeJacked : public CTaskSimple {
     bool m_animWasPlayed{};
     CAnimBlendAssociation* m_firstAnim{};
     AnimationId m_secondAnimId{ ANIM_ID_NO_ANIMATION_SET }; // Animation that is played after `m_anim` has finished

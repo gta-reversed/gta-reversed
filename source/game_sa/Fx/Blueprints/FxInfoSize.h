@@ -3,7 +3,7 @@
 #include "FxInfo.h"
 #include "FxInterpInfo32.h"
 
-class FxInfoSize_c : public FxInfo_c {
+class NOTSA_EXPORT_VTABLE FxInfoSize_c : public FxInfo_c {
 protected:
     FxInterpInfo32_c m_InterpInfo;
 

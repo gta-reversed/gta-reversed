@@ -13,6 +13,10 @@ private:
     ToolMap* m_originalGristListMap = nullptr;
     ToolMap m_gristListMap;
     size_t findCaseInsensitive(std::string data, std::string toSearch, size_t pos = 0);
+
+public:
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(CDebugMenuToolInput, m_inputBuffer);
+
 public:
     void Initialise(int32 inputBufferCapacity, ToolMap* OriginalMap);
     void Process();

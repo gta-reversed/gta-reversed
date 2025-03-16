@@ -22,7 +22,6 @@ public:
     bool AffectsPedGroup(CPedGroup* pedGroup) override { return pedGroup->GetMembership().IsMember(m_ped); }
     float GetLocalSoundLevel() override { return 100.0f; }
 
-    CEvent* Clone_Reversed();
     bool BaseEventTakesPriorityOverBaseEvent(const CEventGroupEvent& other);
 
     auto& GetEvent() const { return *m_event; }

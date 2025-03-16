@@ -4,12 +4,12 @@
 
 void CEventVehicleDied::InjectHooks()
 {
-    RH_ScopedClass(CEventVehicleDied);
+    RH_ScopedVirtualClass(CEventVehicleDied, 0x85B400, 16);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x4B0D10);
-    RH_ScopedVirtualInstall(Clone, 0x4B76D0);
-    RH_ScopedVirtualInstall(AffectsPed, 0x4B0E00);
+    RH_ScopedVMTInstall(Clone, 0x4B76D0);
+    RH_ScopedVMTInstall(AffectsPed, 0x4B0E00);
 }
 
 CEventVehicleDied::CEventVehicleDied (CVehicle* vehicle)
@@ -34,21 +34,11 @@ CEventVehicleDied* CEventVehicleDied::Constructor(CVehicle* vehicle)
 // 0x4B76D0
 CEvent* CEventVehicleDied::Clone()
 {
-    return CEventVehicleDied::Clone_Reversed();
+    return new CEventVehicleDied(m_vehicle);
 }
 
 // 0x4B0E00
 bool CEventVehicleDied::AffectsPed(CPed* ped)
-{
-    return CEventVehicleDied::AffectsPed_Reversed(ped);
-}
-
-CEvent* CEventVehicleDied::Clone_Reversed()
-{
-    return new CEventVehicleDied(m_vehicle);
-}
-
-bool CEventVehicleDied::AffectsPed_Reversed(CPed* ped)
 {
     if (ped->IsAlive() && !m_IsOccupantLeavingCar) {
         m_IsOccupantLeavingCar = ped->GetTaskManager().Has<TASK_COMPLEX_LEAVE_CAR>();

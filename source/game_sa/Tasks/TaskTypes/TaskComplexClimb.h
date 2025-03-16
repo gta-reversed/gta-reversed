@@ -2,7 +2,7 @@
 
 #include "TaskComplexJump.h"
 
-class CTaskComplexClimb : public CTaskComplexJump {
+class NOTSA_EXPORT_VTABLE CTaskComplexClimb : public CTaskComplexJump {
 public:
     static constexpr auto Type = TASK_COMPLEX_CLIMB;
 

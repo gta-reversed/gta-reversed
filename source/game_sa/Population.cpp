@@ -20,8 +20,8 @@
 #include <TaskTypes/TaskComplexFollowLeaderInFormation.h>
 #include <TaskTypes/TaskSimpleHoldEntity.h>
 
-#include <Events/EventAcquaintancePed.h>
 #include <Events/EventSexyPed.h>
+#include "Events/EventAcquaintancePedHate.h"
 
 //! Define this to have extra DEV_LOG's of CPopulation
 #define EXTRA_DEBUG_LOGS
@@ -679,8 +679,8 @@ eModelID CPopulation::FindSpecificDriverModelForCar_ToUse(eModelID carModelIndex
 }
 
 // 0x611B20
-bool CPopulation::IsCorrectTimeOfDayForEffect(const C2dEffect* effect) {
-    switch (effect->pedAttractor.m_nAttractorType) {
+bool CPopulation::IsCorrectTimeOfDayForEffect(const C2dEffectPedAttractor& fx) {
+    switch (fx.m_nAttractorType) {
     case PED_ATTRACTOR_PIZZA:
     case PED_ATTRACTOR_SHELTER:
     case PED_ATTRACTOR_TRIGGER_SCRIPT:
@@ -1069,7 +1069,6 @@ eModelID CPopulation::ChooseCivilianOccupation(
         }
         return modelId;
     }
-
     return doTestForUsedOccupations
         ? MODEL_INVALID
         : MODEL_MALE01;
@@ -1448,7 +1447,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
 }
 
 // 0x614210
-bool CPopulation::AddPedAtAttractor(eModelID modelIndex, C2dEffect* attractor, CVector posn, CEntity* entity, int32 decisionMakerType) {
+bool CPopulation::AddPedAtAttractor(eModelID modelIndex, C2dEffectPedAttractor* attractor, CVector posn, CEntity* entity, int32 decisionMakerType) {
     if (FindDistanceToNearestPed(posn) <= 0.015f) {
         return false;
     }
@@ -1466,7 +1465,7 @@ bool CPopulation::AddPedAtAttractor(eModelID modelIndex, C2dEffect* attractor, C
     ped->GetIntelligence()->SetPedDecisionMakerType(decisionMakerType == -1 ? 2 : decisionMakerType);
     ped->GetTaskManager().SetTask(CTaskComplexWander::GetWanderTaskByPedType(ped), TASK_PRIMARY_DEFAULT);
 
-    CPedAttractorPedPlacer::PlacePedAtEffect(reinterpret_cast<C2dEffectPedAttractor&>(*attractor), entity, ped, 0.02f);
+    CPedAttractorPedPlacer::PlacePedAtEffect(*attractor, entity, ped, 0.02f);
     ped->bUseAttractorInstantly = true;
 
     ped->GetEventGroup().Add(CEventAttractor{ attractor, ped, true, TASK_COMPLEX_USE_ATTRACTOR });
@@ -1652,9 +1651,6 @@ int32 CPopulation::GeneratePedsAtAttractors(
             : EffInRange(minRadiusClose, maxRadiusClose);
     };
 
-    const auto GetRadiusForEffect = [=](CVector effectPos) -> std::pair<float, float> { // min, max radius
-    };
-
     int32 numPedsCreated{};
     for (size_t i{}; i < 12; i++) {
         for (int16 o{}; o < numEntitiesInRng; o++) {
@@ -1666,11 +1662,10 @@ int32 CPopulation::GeneratePedsAtAttractors(
             if (!ent->IsInCurrentArea()) {
                 continue;
             }
-            const auto effect = ent->GetRandom2dEffect(EFFECT_ATTRACTOR, true);
-            if (!effect || !IsCorrectTimeOfDayForEffect(effect)) {
+            auto* const attractor = notsa::cast_if_present<C2dEffectPedAttractor>(ent->GetRandom2dEffect(EFFECT_ATTRACTOR, true));
+            if (!attractor || !IsCorrectTimeOfDayForEffect(*attractor)) {
                 continue;
             }
-            const auto attractor = &effect->pedAttractor;
             if (attractor->m_nFlags & 1) {
                 if (!ent->IsObject()) {
                     continue;
@@ -1680,16 +1675,28 @@ int32 CPopulation::GeneratePedsAtAttractors(
                 }
             }
 
-            const auto effectPosWS = ent->GetMatrix() * effect->m_pos; // ws = world space
+            const auto effectPosWS = ent->GetMatrix().TransformPoint(attractor->m_Pos); // ws = world space
             if (!IsEffectInRadius(effectPosWS)) {
                 continue;
             }
 
-            const auto usePoliceModel = bInPoliceStation && CGeneral::RandomBool(70) && PedMICanBeCreatedAtThisAttractor(CStreaming::GetDefaultCopModel(), attractor->m_szScriptName);
+            const auto usePoliceModel = bInPoliceStation
+                && CGeneral::RandomBool(70.f)
+                && PedMICanBeCreatedAtThisAttractor(CStreaming::GetDefaultCopModel(), attractor->m_szScriptName);
 
             const auto model = usePoliceModel
                 ? CStreaming::GetDefaultCopModel()
-                : ChooseCivilianOccupation(false, false, ANIM_GROUP_NONE, MODEL_INVALID, ePedStats::NONE, true, true, true, attractor->m_szScriptName);
+                : ChooseCivilianOccupation(
+                    false,
+                    false,
+                    ANIM_GROUP_NONE,
+                    MODEL_INVALID,
+                    ePedStats::NONE,
+                    true,
+                    true,
+                    true,
+                    attractor->m_szScriptName
+                );
 
             if (usePoliceModel) {
                 decisionMaker = 1; // TODO: Shouldn't this be local to this iteration instead? Right now this will presist into all futher iterations...
@@ -1701,7 +1708,7 @@ int32 CPopulation::GeneratePedsAtAttractors(
                 continue;
             }
 
-            if (!AddPedAtAttractor(model, effect, effectPosWS, ent, decisionMaker)) {
+            if (!AddPedAtAttractor(model, attractor, effectPosWS, ent, decisionMaker)) {
                 continue;
             }
 
@@ -1755,7 +1762,7 @@ void CPopulation::ManageDummy(CDummy* dummy, const CVector& posn) {
 // 0x6160A0
 void CPopulation::ManageAllPopulation() {
     const auto objPlyrIsHolding = [] {
-        const auto holdEntityTask = CTask::DynCast<CTaskSimpleHoldEntity>(FindPlayerPed()->GetIntelligence()->GetTaskHold(false));
+        const auto holdEntityTask = notsa::dyn_cast_if_present<CTaskSimpleHoldEntity>(FindPlayerPed()->GetIntelligence()->GetTaskHold(false));
         return holdEntityTask
             ? holdEntityTask->GetHeldEntity()
             : nullptr;

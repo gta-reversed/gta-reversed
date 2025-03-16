@@ -1,5 +1,5 @@
 #pragma once
-#include "StdInc.h"
+
 
 class CEntity;
 class CPlantLocTri;

@@ -59,7 +59,7 @@ CEntryExit::CEntryExit(
     m_fExitAngle{ exitAngle },
     m_nSkyColor{ (uint8)skyColor },
     m_fEntranceZ{ center.z + 1.f },
-    m_fEntranceAngleRad{ RWDEG2RAD(entranceAngleDeg) }
+    m_fEntranceAngleRad{ DegreesToRadians(entranceAngleDeg) }
 {
     std::tie(m_nTimeOn, m_nTimeOff) = [&]() -> std::pair<uint8, uint8> {
         if (bUnknownBurglary && CGeneral::RandomBool(50.f)) {
@@ -158,7 +158,7 @@ bool CEntryExit::IsVisibleByTime() const {
 
 // Transforms a point into the entrance rect
 CVector CEntryExit::TransformEntrancePoint(const CVector& point) const {
-    return MultiplyMatrixWithVector(GetRectEntranceMatrix(), point - GetPosition());
+    return GetRectEntranceMatrix().TransformPoint(point - GetPosition());
 }
 
 // 0x43EAF0
@@ -290,7 +290,7 @@ bool CEntryExit::TransitionStarted(CPed* ped) {
             // 0x44031A
             auto fixedModePos = GetPosition() - lookAtDir * 3.f;
             fixedModePos.z += 1.f;
-            TheCamera.SetCamPositionForFixedMode(&fixedModePos, {});
+            TheCamera.SetCamPositionForFixedMode(fixedModePos, {});
             TheCamera.TakeControlNoEntity(GetPosition() + lookAtDir, eSwitchType::JUMPCUT, 1);
         };
 
@@ -605,6 +605,7 @@ void CEntryExit::WarpGangWithPlayer(CPlayerPed* player) {
 
         // Teleport them
         mem.Teleport(memTeleportTo, false);
+        mem.GetIntelligence()->FlushImmediately(false);
 
         // Make the member be heading towards the player
         mem.m_fCurrentRotation = mem.m_fAimingRotation = memHeading;

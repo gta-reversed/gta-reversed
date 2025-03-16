@@ -158,7 +158,7 @@ public:
     // originally virtual functions
     void Add() override;
     void Remove() override;
-    CRect* GetBoundRect(CRect* rect) override;
+    CRect GetBoundRect() override;
     void ProcessControl() override;
     void ProcessCollision() override;
     void ProcessShift() override;
@@ -170,7 +170,7 @@ public:
     void AddToMovingList();
 
     void RemoveFromMovingList();
-    void SetDamagedPieceRecord(float fDamageIntensity, CEntity* entity, CColPoint& colPoint, float fDistanceMult);
+    void SetDamagedPieceRecord(float fDamageIntensity, CEntity* entity, const CColPoint& colPoint, float fDistanceMult);
     void ApplyMoveForce(float x, float y, float z);
     void ApplyMoveForce(CVector force);
     void ApplyTurnForce(CVector force, CVector point);
@@ -189,8 +189,8 @@ public:
     bool GetHasCollidedWith(CEntity* entity);
     bool GetHasCollidedWithAnyObject();
 
-    bool ApplyCollision(CEntity* entity, CColPoint& colPoint, float& damageIntensity);
-    bool ApplySoftCollision(CEntity* entity, CColPoint& colPoint, float& damageIntensity);
+    bool ApplyCollision(CEntity* entity, const CColPoint& colPoint, float& outDamageIntensity);
+    bool ApplySoftCollision(CEntity* entity, const CColPoint& colPoint, float& outDamageIntensity);
     bool ApplySpringCollision(float fSuspensionForceLevel, CVector& direction, CVector& collisionPoint, float fSpringLength, float fSuspensionBias, float& fSpringForceDampingLimit);
     bool ApplySpringCollisionAlt(float fSuspensionForceLevel, CVector& direction, CVector& collisionPoint, float fSpringLength, float fSuspensionBias, CVector& normal, float& fSpringForceDampingLimit);
     bool ApplySpringDampening(float fDampingForce, float fSpringForceDampingLimit, CVector& direction, CVector& collisionPoint, CVector& collisionPos);
@@ -226,7 +226,8 @@ public:
     bool CheckCollision();
     bool CheckCollision_SimpleCar();
 
-    CVector& GetMoveSpeed()            { return m_vecMoveSpeed; }
+    void     SetMoveSpeedXY(CVector2D v)   { m_vecMoveSpeed = CVector{v.x, v.y, m_vecMoveSpeed.z}; }
+    CVector& GetMoveSpeed()                { return m_vecMoveSpeed; }
     void     SetVelocity(CVector velocity) { m_vecMoveSpeed = velocity; } // 0x441130
     void     ResetMoveSpeed()              { SetVelocity(CVector{}); }
 
@@ -253,14 +254,6 @@ private:
     CPhysical* Constructor() { this->CPhysical::CPhysical(); return this; }
     CPhysical* Destructor() { this->CPhysical::~CPhysical(); return this; }
 
-    void Add_Reversed() { CPhysical::Add(); }
-    void Remove_Reversed() { CPhysical::Remove(); }
-    CRect* GetBoundRect_Reversed(CRect* rect) { return CPhysical::GetBoundRect(rect); }
-    void ProcessControl_Reversed() { CPhysical::ProcessControl(); }
-    int32 ProcessEntityCollision_Reversed(CEntity* entity, CColPoint* colPoint) { return CPhysical::ProcessEntityCollision(entity, colPoint); }
-    void ProcessCollision_Reversed() { CPhysical::ProcessCollision(); }
-    void ProcessShift_Reversed() { CPhysical::ProcessShift(); }
-    bool TestCollision_Reversed(bool bApplySpeed) { return CPhysical::TestCollision(bApplySpeed); }
 };
 
 VALIDATE_SIZE(CPhysical, 0x138);

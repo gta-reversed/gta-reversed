@@ -3,6 +3,7 @@
 #include <array>
 #include <span>
 
+#include "Enums/eDirection.h"
 #include "Vector.h"
 #include "Base.h"
 #include "Route.hpp"
@@ -24,8 +25,8 @@ class CPedGeometryAnalyser {
 public:
     static void InjectHooks();
     
-    static void CanPedJumpObstacle(const CPed& ped, const CEntity& entity);
-    static void CanPedJumpObstacle(const CPed& ped, const CEntity& entity, const CVector&, const CVector&);
+    static bool CanPedJumpObstacle(const CPed& ped, const CEntity& entity);
+    static bool CanPedJumpObstacle(const CPed& ped, const CEntity& entity, const CVector& contactNormal, const CVector& contactPos);
 
     static bool CanPedTargetPed(CPed& ped, CPed& targetPed, bool checkDirection);
     static bool CanPedTargetPoint(const CPed& ped, const CVector& a2, bool a3);
@@ -53,10 +54,11 @@ public:
 
     static int32 ComputeMoveDirToAvoidEntity(const CPed& ped, CEntity& entity, CVector& posn);
 
+    static CVector ComputeEntityDir(const CEntity& entity, eDirection dir);
     static CVector* ComputeEntityDirs(const CEntity& entity, CVector* posn);
-    static int32 ComputeEntityHitSide(const CPed& ped, CEntity& entity);
-    static int32 ComputeEntityHitSide(const CVector& point1, const CVector* point2, const float* x);
-    static int32 ComputeEntityHitSide(const CVector& point, CEntity& entity);
+    static int32 ComputeEntityHitSide(const CPed& ped, CEntity& entity); // Returns `eDirection`
+    static int32 ComputeEntityHitSide(const CVector& point1, const CVector* point2, const float* x); // Returns `eDirection`
+    static int32 ComputeEntityHitSide(const CVector& point, CEntity& entity); // Returns `eDirection`
     static int32 ComputePedHitSide(const CPed& ped, const CPhysical& physical);
     static int32 ComputePedHitSide(const CPed& ped, const CVector& posn);
     static int32 ComputePedShotSide(const CPed& ped, const CVector& posn);
@@ -80,7 +82,7 @@ public:
         BLOCKED_SHARP_DROP,
         CLEAR,
     };
-    static WanderPathClearness IsWanderPathClear(const CVector& a1, const CVector& a2, float a3, int32 a4);
+    static WanderPathClearness IsWanderPathClear(const CVector& from, const CVector& to, float maxHeightChange, int32 maxSamples);
 
     static bool LiesInsideBoundingBox(const CPed& ped, const CVector& posn, CEntity& entity);
 };

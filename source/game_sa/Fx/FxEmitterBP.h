@@ -31,12 +31,6 @@ public:
 private:
     FxEmitterBP_c* Constructor() { this->FxEmitterBP_c::FxEmitterBP_c(); return this; }
 
-    FxPrim_c* CreateInstance_Reversed();
-    void Update_Reversed(float deltaTime);
-    bool LoadTextures_Reversed(FxName32_t* textureNames, int32 version);
-    bool Load_Reversed(FILESTREAM file, int32 version, FxName32_t* textureNames);
-    void Render_Reversed(RwCamera* camera, uint32 txdHashKey, float brightness, bool doHeatHaze);
-    bool FreePrtFromPrim_Reversed(FxSystem_c* system);
 
 };
 VALIDATE_SIZE(FxEmitterBP_c, 0x48);

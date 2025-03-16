@@ -13,7 +13,7 @@ enum eComplexJumpType : uint32 {
     COMPLEX_JUMP_TYPE_CLIMB = 1
 };
 
-class CTaskComplexJump : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexJump : public CTaskComplex {
 public:
     eComplexJumpType m_nType;
     bool             m_bHighJump;
@@ -37,10 +37,6 @@ private:
 
     CTaskComplexJump* Constructor(eComplexJumpType jumpType);
 
-    CTask*  Clone_Reversed() const;
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    bool   MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 };

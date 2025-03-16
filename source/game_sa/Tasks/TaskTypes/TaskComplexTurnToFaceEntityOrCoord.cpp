@@ -75,11 +75,8 @@ CTask* CTaskComplexTurnToFaceEntityOrCoord::ControlSubTask(CPed* ped) {
     if (m_bFaceEntity) {
         const auto heading = m_EntityToFace
             ? ComputeTargetHeading(ped)
-            : ped->m_fCurrentRotation; // I'm pretty sure that's unreachable, unless the entity was deleted in the meantime [since the task was created]
-        const auto tAchieveHeading = CTask::Cast<CTaskSimpleAchieveHeading>(m_pSubTask);
-        if (tAchieveHeading->m_fAngle != heading || tAchieveHeading->m_fChangeRateMult != m_fChangeRateMult || tAchieveHeading->m_fMaxHeading != m_fMaxHeading) {
-            tAchieveHeading->SetHeading(heading, m_fMaxHeading, m_fChangeRateMult);
-        }
+            : ped->m_fCurrentRotation;
+        notsa::cast<CTaskSimpleAchieveHeading>(m_pSubTask)->SetHeading(heading, m_fMaxHeading, m_fChangeRateMult);
     }
     return m_pSubTask;
 }

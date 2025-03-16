@@ -2,13 +2,15 @@
 
 #include "Event.h"
 
-class CEventPassObject : public CEvent {
+#include "Event.h"
+
+class NOTSA_EXPORT_VTABLE CEventPassObject : public CEvent {
 public:
-    CEntity* m_giver;
-    bool     m_dontPassObject;
+    CPed* m_giver;
+    bool  m_dontPassObject;
 
 public:
-    explicit CEventPassObject(CEntity* giver, bool dontPassObject = false);
+    explicit CEventPassObject(CPed* giver, bool dontPassObject = false);
     ~CEventPassObject() override;
 
     eEventType GetEventType() const override { return EVENT_PASS_OBJECT; }
@@ -22,10 +24,8 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CEventPassObject* Constructor(CEntity* giver, bool dontPassObject);
+    CEventPassObject* Constructor(CPed* giver, bool dontPassObject);
     CEventPassObject* Destructor();
 
-    bool IsValid_Reversed(CPed* ped);
 };
-
 VALIDATE_SIZE(CEventPassObject, 0x14);

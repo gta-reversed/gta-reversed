@@ -5,7 +5,7 @@
 
 class CPointRoute;
 
-class CTaskComplexWalkRoundObject : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexWalkRoundObject : public CTaskComplex {
 public:
     int32        m_moveState;
     CVector      m_targetPoint;

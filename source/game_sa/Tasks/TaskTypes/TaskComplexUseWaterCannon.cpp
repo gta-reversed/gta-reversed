@@ -7,14 +7,14 @@
 
 void CTaskComplexUseWaterCannon::InjectHooks()
 {
-    RH_ScopedClass(CTaskComplexUseWaterCannon);
+    RH_ScopedVirtualClass(CTaskComplexUseWaterCannon, 0x86F5D0, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x659780);
     //VTABLE
-    RH_ScopedVirtualInstall(Clone, 0x659D10);
-    RH_ScopedVirtualInstall(CreateFirstSubTask, 0x6597D0);
-    RH_ScopedVirtualInstall(CreateNextSubTask, 0x6597C0);
-    RH_ScopedVirtualInstall(ControlSubTask, 0x65A640);
+    RH_ScopedVMTInstall(Clone, 0x659D10);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6597D0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6597C0);
+    RH_ScopedVMTInstall(ControlSubTask, 0x65A640);
 }
 
 CTaskComplexUseWaterCannon* CTaskComplexUseWaterCannon::Constructor(CFire* pFire)
@@ -36,42 +36,23 @@ CTaskComplexUseWaterCannon::~CTaskComplexUseWaterCannon()
 
 // 0x659D10
 CTask* CTaskComplexUseWaterCannon::Clone() const {
-    return Clone_Reversed();
+    return new CTaskComplexUseWaterCannon(m_pFire);
 }
 
 // 0x6597C0
 CTask* CTaskComplexUseWaterCannon::CreateNextSubTask(CPed* ped)
 {
-    return CreateNextSubTask_Reversed(ped);
+    return nullptr;
 }
 
 // 0x6597D0
 CTask* CTaskComplexUseWaterCannon::CreateFirstSubTask(CPed* ped)
 {
-    return CreateFirstSubTask_Reversed(ped);
+    return new CTaskSimpleCarDrive(ped->m_pVehicle, nullptr, false);
 }
 
 // 0x65A640
 CTask* CTaskComplexUseWaterCannon::ControlSubTask(CPed* ped)
-{
-    return ControlSubTask_Reversed(ped);
-}
-
-CTask* CTaskComplexUseWaterCannon::Clone_Reversed() const {
-    return new CTaskComplexUseWaterCannon(m_pFire);
-}
-
-CTask* CTaskComplexUseWaterCannon::CreateNextSubTask_Reversed(CPed* ped)
-{
-    return nullptr;
-}
-
-CTask* CTaskComplexUseWaterCannon::CreateFirstSubTask_Reversed(CPed* ped)
-{
-    return new CTaskSimpleCarDrive(ped->m_pVehicle, nullptr, false);
-}
-
-CTask* CTaskComplexUseWaterCannon::ControlSubTask_Reversed(CPed* ped)
 {
     if (m_pSubTask->GetTaskType() == TASK_SIMPLE_CAR_DRIVE)
     {

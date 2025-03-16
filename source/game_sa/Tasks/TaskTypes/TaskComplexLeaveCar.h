@@ -10,7 +10,7 @@
 #include "Vehicle.h"
 #include "TaskUtilityLineUpPedWithCar.h"
 
-class CTaskComplexLeaveCar : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexLeaveCar : public CTaskComplex {
 public:
     CVehicle*                     m_pTargetVehicle;
     int32                         m_nTargetDoor;

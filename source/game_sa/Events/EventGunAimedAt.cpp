@@ -6,13 +6,13 @@
 
 // 0x4B0700
 CEventGunAimedAt::CEventGunAimedAt(CPed* ped) : CEventEditableResponse() {
-    m_ped = ped;
-    CEntity::SafeRegisterRef(m_ped);
+    m_AimedBy = ped;
+    CEntity::SafeRegisterRef(m_AimedBy);
 }
 
 // 0x4B07B0
 CEventGunAimedAt::~CEventGunAimedAt() {
-    CEntity::SafeCleanUpRef(m_ped);
+    CEntity::SafeCleanUpRef(m_AimedBy);
 }
 
 // 0x4B4EE0
@@ -24,8 +24,8 @@ bool CEventGunAimedAt::AffectsPed(CPed* ped) {
     if (activeTask && activeTask->GetTaskType() == TASK_COMPLEX_REACT_TO_GUN_AIMED_AT)
         return false;
 
-    if (m_ped && ped->GetIntelligence()->IsInSeeingRange(m_ped->GetPosition()) && ped->IsAlive()) {
-        if (CPedGroups::AreInSameGroup(ped, m_ped))
+    if (m_AimedBy && ped->GetIntelligence()->IsInSeeingRange(m_AimedBy->GetPosition()) && ped->IsAlive()) {
+        if (CPedGroups::AreInSameGroup(ped, m_AimedBy))
             return false;
         if (!ped->IsInVehicleThatHasADriver()) {
             if (ped->m_nPedType == PED_TYPE_COP)
@@ -44,8 +44,8 @@ void CEventGunAimedAt::ReportCriminalEvent(CPed* ped) {
 
 // 0x4B0810
 bool CEventGunAimedAt::TakesPriorityOver(const CEvent& refEvent) {
-    if (m_ped && m_ped->IsPlayer()) {
-        if (refEvent.GetSourceEntity() == m_ped)
+    if (m_AimedBy && m_AimedBy->IsPlayer()) {
+        if (refEvent.GetSourceEntity() == m_AimedBy)
             return GetEventPriority() >= refEvent.GetEventPriority();
 
         switch (refEvent.GetEventType()) {
@@ -61,5 +61,5 @@ bool CEventGunAimedAt::TakesPriorityOver(const CEvent& refEvent) {
 
 // 0x4B7630
 CEventEditableResponse* CEventGunAimedAt::CloneEditable() {
-    return new CEventGunAimedAt(m_ped);
+    return new CEventGunAimedAt(m_AimedBy);
 }

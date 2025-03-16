@@ -11,11 +11,14 @@
 #include <Base.h>
 
 class CVector;
+class CVector2D;
+
+constexpr CVector2D operator-(const CVector2D& vecOne, const CVector2D& vecTwo);
 
 class CVector2D : public RwV2d {
 public:
     constexpr CVector2D() = default;
-    constexpr CVector2D(float XY) : RwV2d{XY, XY} {}
+    constexpr explicit CVector2D(float XY) : RwV2d{XY, XY} {}
     constexpr CVector2D(float X, float Y) : RwV2d{ X, Y } {}
     constexpr CVector2D(const RwV2d& vec2d)     { x = vec2d.x; y = vec2d.y; }
     constexpr CVector2D(const CVector2D& vec2d) { x = vec2d.x; y = vec2d.y; }
@@ -47,7 +50,7 @@ public:
         return cpy;
     }
 
-    [[nodiscard]] constexpr float ComponentwiseSum() const {
+    [[nodiscard]] constexpr float CWSum() const { // Component-wise
         return x + y;
     }
 
@@ -110,7 +113,8 @@ public:
         y = Y;
     }
 
-    //! Heading of the vector - 
+    //! Heading of the vector
+    //! Tip: atan2(x, -y) is off by 180deg clockwise
     float Heading() const {
         return std::atan2(-x, y);
     }
@@ -173,6 +177,26 @@ public:
 
     float& operator[](size_t i) {
         return (&x)[i];
+    }
+
+    /*!
+     * @brief Prefer this over (a - b).Magnitude()
+     * @param a Point A
+     * @param b Point B
+     * @return 2D Distance between 2 points
+    */
+    static inline float Dist(CVector2D a, CVector2D b) {
+        return (a - b).Magnitude();
+    }
+
+    /*!
+    * @brief Prefer this over (a - b).SquaredMagnitude()
+    * @param a Point A
+    * @param b Point B
+    * @return 2D Squared distance between 2 points
+    */
+    static inline float DistSqr(CVector2D a, CVector2D b) {
+        return (a - b).SquaredMagnitude();
     }
 };
 

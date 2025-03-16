@@ -104,7 +104,7 @@ CTask* CTaskComplexSitDownThenIdleThenStandUp::CreateFirstSubTask(CPed* ped) {
 CTask* CTaskComplexSitDownThenIdleThenStandUp::ControlSubTask(CPed* ped) {
     if (!m_animBlockRefAdded && m_sitOnStep) {
         const auto idx = CAnimManager::GetAnimationBlockIndex("attractors");
-        if (CAnimManager::ms_aAnimBlocks[idx].bLoaded) {
+        if (CAnimManager::GetAnimBlocks()[idx].IsLoaded) {
             CAnimManager::AddAnimBlockRef(idx);
             m_animBlockRefAdded = true;
         } else {

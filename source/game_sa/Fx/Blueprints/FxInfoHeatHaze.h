@@ -3,7 +3,7 @@
 #include "FxInfo.h"
 #include "FxInterpInfo255.h"
 
-class FxInfoHeatHaze_c : public FxInfo_c {
+class NOTSA_EXPORT_VTABLE FxInfoHeatHaze_c : public FxInfo_c {
 protected:
     FxInterpInfo255_c m_InterpInfo;
 

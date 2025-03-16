@@ -3,7 +3,7 @@
 #include "EventEditableResponse.h"
 #include "Vector.h"
 
-class NOTSA_EXPORT_VTABLE CEventSoundQuiet : public CEventEditableResponse {
+class NOTSA_EXPORT_VTABLE CEventSoundQuiet final : public CEventEditableResponse {
 public:
     CEntity* m_entity;
     float    m_fLocalSoundLevel;
@@ -29,6 +29,4 @@ private:
 
     CEventSoundQuiet* Constructor(CEntity* entity, float fLocalSoundLevel, uint32 startTime, const CVector& position);
 
-    bool AffectsPed_Reversed(CPed* ped);
-    CEventEditableResponse* CloneEditable_Reversed();
 };

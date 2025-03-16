@@ -77,7 +77,7 @@ struct cVehicleParams {
 };
 VALIDATE_SIZE(cVehicleParams, 0x4C);
 
-class tVehicleSound {
+class NOTSA_EXPORT_VTABLE tVehicleSound {
 public:
     uint32    m_nIndex;
     CAESound* m_pSound;
@@ -351,7 +351,6 @@ private:
 
     CAEVehicleAudioEntity* Constructor() { this->CAEVehicleAudioEntity::CAEVehicleAudioEntity(); return this; }
     CAEVehicleAudioEntity* Destructor() { this->CAEVehicleAudioEntity::~CAEVehicleAudioEntity(); return this; }
-    void UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos);
 };
 VALIDATE_SIZE(CAEVehicleAudioEntity, 0x24C);
 

@@ -11,26 +11,19 @@
 #include "FxTools.h"
 
 void FxEmitterBP_c::InjectHooks() {
-    RH_ScopedClass(FxEmitterBP_c);
+    RH_ScopedVirtualClass(FxEmitterBP_c, 0x85A788, 7);
     RH_ScopedCategory("Fx");
 
     RH_ScopedInstall(Constructor, 0x4A18D0);
     RH_ScopedInstall(RenderHeatHaze, 0x4A1940, {.reversed = false});
     RH_ScopedInstall(UpdateParticle, 0x4A21D0, {.reversed = false});
-    RH_ScopedInstall(CreateInstance_Reversed, 0x4A2B40, {.reversed = false}); // bad
-    RH_ScopedInstall(Update_Reversed, 0x4A2BC0, {.reversed = false});
-    RH_ScopedInstall(Load_Reversed, 0x5C25F0, {.reversed = false});
-    RH_ScopedInstall(LoadTextures_Reversed, 0x5C0A30, {.reversed = true});
-    RH_ScopedInstall(Render_Reversed, 0x4A2C40, {.reversed = false});
-    RH_ScopedInstall(FreePrtFromPrim_Reversed, 0x4A2510, {.reversed = false});
+    RH_ScopedVMTInstall(CreateInstance, 0x4A2B40, {.reversed = false}); // bad
+    RH_ScopedVMTInstall(Update, 0x4A2BC0, {.reversed = false});
+    RH_ScopedVMTInstall(Load, 0x5C25F0, {.reversed = false});
+    RH_ScopedVMTInstall(LoadTextures, 0x5C0A30, {.reversed = true});
+    RH_ScopedVMTInstall(Render, 0x4A2C40, {.reversed = false});
+    RH_ScopedVMTInstall(FreePrtFromPrim, 0x4A2510, {.reversed = false});
 }
-
-FxPrim_c* FxEmitterBP_c::CreateInstance() { return CreateInstance_Reversed(); }
-void FxEmitterBP_c::Update(float deltaTime) { Update_Reversed(deltaTime); }
-bool FxEmitterBP_c::LoadTextures(FxName32_t* textureNames, int32 version) { return LoadTextures_Reversed(textureNames, version); }
-bool FxEmitterBP_c::Load(FILESTREAM file, int32 version, FxName32_t* textureNames) { return Load_Reversed(file, version, textureNames); }
-void FxEmitterBP_c::Render(RwCamera* camera, uint32 a2, float dayNightBalance, bool bCanRenderHeatHaze) { Render_Reversed(camera, a2, dayNightBalance, bCanRenderHeatHaze); }
-bool FxEmitterBP_c::FreePrtFromPrim(FxSystem_c* system) { return FreePrtFromPrim_Reversed(system); }
 
 // 0x4A18D0
 FxEmitterBP_c::FxEmitterBP_c() : FxPrimBP_c() {
@@ -48,12 +41,16 @@ bool FxEmitterBP_c::UpdateParticle(float deltaTime, FxEmitterPrt_c* emitter) {
 }
 
 // 0x4A2B40
-FxPrim_c* FxEmitterBP_c::CreateInstance_Reversed() {
+
+
+FxPrim_c* FxEmitterBP_c::CreateInstance() {
     return new FxEmitter_c();
 }
 
 // 0x4A2BC0
-void FxEmitterBP_c::Update_Reversed(float deltaTime) {
+
+
+void FxEmitterBP_c::Update(float deltaTime) {
     for (auto it = m_Particles.GetHead(); it; it = m_Particles.GetNext(it)) {
         if (it->m_System->m_nKillStatus == eFxSystemKillStatus::FX_3) {
             it->m_System->m_nKillStatus = eFxSystemKillStatus::FX_KILLED;
@@ -68,7 +65,9 @@ void FxEmitterBP_c::Update_Reversed(float deltaTime) {
 }
 
 // 0x5C25F0
-bool FxEmitterBP_c::Load_Reversed(FILESTREAM file, int32 version, FxName32_t* textureNames) {
+
+
+bool FxEmitterBP_c::Load(FILESTREAM file, int32 version, FxName32_t* textureNames) {
     FxPrimBP_c::Load(file, version, textureNames);
 
     m_nLodStart = uint16(ReadField<float>(file, "LODSTART:") * 64.0f);
@@ -78,7 +77,9 @@ bool FxEmitterBP_c::Load_Reversed(FILESTREAM file, int32 version, FxName32_t* te
 }
 
 // 0x5C0A30
-bool FxEmitterBP_c::LoadTextures_Reversed(FxName32_t* textureNames, int32 version) {
+
+
+bool FxEmitterBP_c::LoadTextures(FxName32_t* textureNames, int32 version) {
     assert(textureNames);
 
     const auto LoadTexture = [&](auto ind) -> RwTexture* {
@@ -106,7 +107,9 @@ bool FxEmitterBP_c::LoadTextures_Reversed(FxName32_t* textureNames, int32 versio
 }
 
 // 0x4A2C40
-void FxEmitterBP_c::Render_Reversed(RwCamera* camera, uint32 txdHashKey, float brightness, bool doHeatHaze) {
+
+
+void FxEmitterBP_c::Render(RwCamera* camera, uint32 txdHashKey, float brightness, bool doHeatHaze) {
     return plugin::CallMethod<0x4A2C40, FxEmitterBP_c*, RwCamera*, uint32, float, bool>(this, camera, txdHashKey, brightness, doHeatHaze);
 
     /*
@@ -173,7 +176,9 @@ void FxEmitterBP_c::Render_Reversed(RwCamera* camera, uint32 txdHashKey, float b
 }
 
 // 0x4A2510
-bool FxEmitterBP_c::FreePrtFromPrim_Reversed(FxSystem_c* system) {
+
+// 0x0
+bool FxEmitterBP_c::FreePrtFromPrim(FxSystem_c* system) {
     return plugin::CallMethodAndReturn<bool, 0x4A2510, FxEmitterBP_c*, FxSystem_c*>(this, system);
 }
 

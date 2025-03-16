@@ -18,7 +18,7 @@ class CPed;
 
 class NOTSA_EXPORT_VTABLE CTaskSimplePlayerOnFoot : public CTaskSimple {
 public:
-    uint32   m_nAnimationBlockIndex;
+    uint32   m_PlayerIdlesAnimBlockId;
     uint32   m_nFrameCounter;
     int32    m_nTimer;
     int32    dword_14;           // always 0

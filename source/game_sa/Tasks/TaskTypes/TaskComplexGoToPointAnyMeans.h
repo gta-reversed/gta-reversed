@@ -6,7 +6,7 @@
 class CVehicle;
 enum eMoveState : uint32;
 
-class CTaskComplexGoToPointAnyMeans : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGoToPointAnyMeans : public CTaskComplex {
 public:
     CVector    m_Pos;
     eMoveState m_MoveState;

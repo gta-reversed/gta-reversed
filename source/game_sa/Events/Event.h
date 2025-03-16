@@ -1,28 +1,19 @@
 #pragma once
 
+
 #include "eEventType.h"
 
 class CPed;
-class CPedGroup;
 class CEntity;
-enum eEventType;
 
-class CEvent {
+class NOTSA_EXPORT_VTABLE CEvent {
 public:
     int32 m_nTimeActive;
     bool  m_bValid;
-    bool  field_9;
-    bool  field_A;
-    bool  field_B;
 
 public:
-    static void* operator new(unsigned size) {
-        return ((CEvent * (__cdecl*)(uint32))0x4B5620)(size);
-    }
-
-    static void operator delete(void* object) {
-        ((void(__cdecl*)(void*))0x4B5630)(object);
-    }
+    static void* operator new(unsigned size);
+    static void operator delete(void* object);
 
     CEvent();
 
@@ -46,6 +37,9 @@ public:
     float GetSoundLevel(const CEntity* entity, CVector& position);
     static float CalcSoundLevelIncrement(float level1, float level2);
 
+    void UnTick() { m_nTimeActive--; }
+    void Tick() { m_nTimeActive++; }
+
     /// Works like `dynamic_cast` => Checks if the event if ofthe required type, if so, returns it, otherwise nullptr
     template<std::derived_from<CEvent> T>
     static T* DynCast(auto event) {
@@ -56,6 +50,10 @@ public:
         }
         return nullptr;
     }
+
+public: // Casting.hpp support //
+    template<typename From, typename Self>
+    static constexpr bool classof(const From* f) { return f->GetEventType() == Self::Type; }
 
 private:
     friend void InjectHooksMain();

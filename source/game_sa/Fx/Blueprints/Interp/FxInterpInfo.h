@@ -2,7 +2,7 @@
 
 #include "FxTools.h"
 
-class FxInterpInfo_c {
+class NOTSA_EXPORT_VTABLE FxInterpInfo_c {
 public:
     bool    m_bLooped;  // (4 bytes in Manhunt)
     int8    m_nNumKeys;

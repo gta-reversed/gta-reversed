@@ -4,16 +4,16 @@
 
 class CPed;
 
-class CTaskComplexGangJoinRespond : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGangJoinRespond : public CTaskComplex {
 public:
-    bool  m_response;
-    bool  m_animsReferenced;
-    int32 m_attempts;
+    bool  m_response{};
+    bool  m_animsReferenced{};
+    int32 m_attempts{};
 
 public:
     static constexpr auto Type = TASK_COMPLEX_GANG_JOIN_RESPOND;
 
-    explicit CTaskComplexGangJoinRespond(uint8 a2);
+    explicit CTaskComplexGangJoinRespond(bool response);
     ~CTaskComplexGangJoinRespond() override;
 
     eTaskType GetTaskType() const override { return Type; }

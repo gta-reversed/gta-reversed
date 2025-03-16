@@ -2,7 +2,7 @@
 
 #include "TaskComplexWanderStandard.h"
 
-class CTaskComplexWanderProstitute : public CTaskComplexWanderStandard {
+class NOTSA_EXPORT_VTABLE CTaskComplexWanderProstitute : public CTaskComplexWanderStandard {
 public:
     uint32 m_nStartTimeInMs;
 

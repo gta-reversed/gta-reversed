@@ -34,6 +34,7 @@ for (auto& thing : m_things | rng::views::take(m_numThings));
 auto GetActiveThings() {
     return std::span{ m_things, m_numThings }
 }
+```
 * Use `f` in float literals [As omitting it would make them a `double`] (e.g. `1.0f`)
 * Use `std` library for generic functions like `min`, `max`, `lerp`, etc...
 * `CVector` is interchangible with 3 floats [As is `CVector2D` with 2 floats] for function args
@@ -67,6 +68,13 @@ If that's not possible [due to code complexity], then wrap into an `#ifdef`:
 // Bug fixing code here
 #endif
 ```
+
+### Handling translated (GXT) text
+* GXT code page is a partial superset of ASCII, it's one-to-one except for `^`, `[` and `]`. (translated to [`¡`](https://en.wikipedia.org/wiki/Inverted_question_and_exclamation_marks), `<` and `>` respectively)
+* GXT encoded strings are 1-byte long and null-terminated. They can be used in C copy-compare functions.
+* Do not assume anything other than above for GXT strings.
+* Use `AsciiToGxtChar` and `GxtCharToUTF8` for safely converting. UTF-8 strings should be safe to print and manipulate in general.
+* Use `AsciiFromGxtChar` (or `""_gxt` for literals) and `GxtCharFromAscii` for implicitly converting. You **must** be sure that all characters are ASCII.
 
 ### Contributing
 Please make sure to test your code before opening a PR. Guess what places/missions are affected by your code and test them. Use debug menu (F7) for quick access to stuff.

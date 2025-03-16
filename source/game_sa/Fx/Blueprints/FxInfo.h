@@ -7,7 +7,7 @@
 #include "RenderInfo.h"
 #include "eFxInfoType.h"
 
-class FxInfo_c {
+class NOTSA_EXPORT_VTABLE FxInfo_c {
 protected:
     eFxInfoType m_nType;
     bool        m_bTimeModeParticle;

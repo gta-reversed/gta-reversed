@@ -51,7 +51,8 @@ void SetSelectedVM(HWND hDlg, RwInt32 vm) {
 void FillAvailableVMs(HWND hVMSel) {
     const auto numVM = RwEngineGetNumVideoModes();
     for (auto i = 0; i < numVM; i++) {
-        const auto vmi = RwEngineGetVideoModeInfo(i);
+        RwVideoMode vmi;
+        RwEngineGetVideoModeInfo(&vmi, i);
 
         if ((vmi.flags & rwVIDEOMODEEXCLUSIVE) == 0 || vmi.width < APP_MINIMAL_WIDTH || vmi.height < APP_MINIMAL_HEIGHT) {
             continue;

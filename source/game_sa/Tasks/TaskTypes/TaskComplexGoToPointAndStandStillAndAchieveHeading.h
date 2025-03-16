@@ -4,7 +4,7 @@
 
 class CVector;
 
-class CTaskComplexGoToPointAndStandStillAndAchieveHeading : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGoToPointAndStandStillAndAchieveHeading : public CTaskComplex {
 private:
     eMoveState m_MoveState;
     CVector    m_TargetPos;

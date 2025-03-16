@@ -6,10 +6,11 @@
 */
 #pragma once
 
-#include "Base.h"
+#include <Base.h>
 #include <initializer_list>
 #include "Task.h"
 #include <algorithm>
+#include <extensions/utility.hpp>
 
 enum ePrimaryTasks // array indices
 {
@@ -39,6 +40,7 @@ enum eSecondaryTask : uint32 // array indexes
 class CTaskComplex;
 class CTaskSimple;
 class CPed;
+class CTaskComplexFacial;
 
 class CTaskManager {
 public:
@@ -60,8 +62,15 @@ public:
     CTask* GetActiveTask();
 
     /*!
+    * @notsa
+    * @brief Get the highest priority task's index
+    */
+    size_t GetActiveTaskIndex() const;
+
+    /*!
     * @addr 0x681740
     * @brief Find the first task with type `taskType`
+    * Can be replced with `Find<T>(true)`
     */
     CTask* FindActiveTaskByType(eTaskType taskType);
 
@@ -71,11 +80,17 @@ public:
     */
     CTask* FindTaskByType(ePrimaryTasks taskIndex, eTaskType taskType);
 
-    /*
+    /*!
     * @addr 0x681810
     * @brief Get the secondary task at `taskIndex`
     */
     CTask* GetTaskSecondary(eSecondaryTask taskIndex);
+
+    /*!
+     * @brief GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX)
+     * @return The facial task (if any)
+    */
+    CTaskComplexFacial* GetTaskSecondaryFacial();
 
     /*
     * @addr unknown
@@ -103,7 +118,11 @@ public:
 
     /*!
     * @addr 0x681920
-    * @brief Set the next sub task of `task`
+    * @brief Set the next sub task of a task in the task tree of `task`
+    *
+    * Traverses the task tree until up until it can create a new sub-task (Using `CreateNextSubTask`)
+    * All old sub-tasks are deleted (freed) (By `SetSubTask`).
+    * If no new sub-task can be created the last task (that is in one of the task slots) will not be freed.
     */
     void SetNextSubTask(CTaskComplex* task);
 
@@ -113,22 +132,22 @@ public:
     * @addr 0x6819D0
     * @brief Get simplest active primary task
     */
-    CTask* GetSimplestActiveTask() { return GetSimplestTask(GetActiveTask()); }
+    CTask* GetSimplestActiveTask() { return GetLastTaskOf(GetActiveTask()); }
 
     /*
     * @addr 0x681A00
-    * @brief Get the simplest task of the given primary task at `taskIndex`
+    * @brief Last task in the task-chain
     */
-    CTask* GetSimplestTask(ePrimaryTasks taskIndex) { return GetSimplestTask(GetTaskPrimary(taskIndex)); }
+    CTask* GetLastTaskOf(ePrimaryTasks taskIndex) const { return GetLastTaskOf(GetTaskPrimary(taskIndex)); }
 
     /*!
     * @addr 0x681970
     * @param The first task, `nullptr` is allowed, in which case it is returned.
-    * @return Last task in the task-chain
+    * @return Last task in the task-chain (Possible `task` itself) 
     *
-    * This function has a horrible naming, it should be `GetLastSubTask` or of similar nature.
+    * This function had horrible naming, original name was `GetSimplestTask`
     */
-    static CTask* GetSimplestTask(CTask* task);
+    static CTask* GetLastTaskOf(CTask* task);
 
     /*!
     * @addr 0x681A30
@@ -175,9 +194,15 @@ public:
     void ManageTasks();
 
     // Why they doesn't have version for *primary tasks*? :thinking:
-    CTask* GetTaskPrimary(int32 taskIndex) noexcept {
+    CTask* GetTaskPrimary(int32 taskIndex) const noexcept {
         return m_aPrimaryTasks[taskIndex];
     }
+
+    //! @notsa
+    CTask* GetPresistentEventResponseTask() const;
+
+    //! @notsa
+    CTask* GetTemporaryEventResponseTask() const;
 
     /*!
     * Get all the primary tasks [there might be null entries]
@@ -226,12 +251,7 @@ public:
     */
     template<Task T>
     T* GetSimplestActiveTaskAs() {
-        if (const auto task = GetSimplestActiveTask()) {
-            if (task->GetTaskType() == T::Type) {
-                return static_cast<T*>(task);
-            }
-        }
-        return nullptr;
+        return notsa::dyn_cast_if_present<T>(GetSimplestActiveTask());
     }
 
     /*!
@@ -355,6 +375,7 @@ protected:
     * @param changeTo The new slot to be set, allowed to be `nullptr`, in which case `taskInSlot` is deleted and nulled out
     */
     void ChangeTaskInSlot(CTask*& taskInSlot, CTask* changeTo);
+
 private:
     CTaskManager* Constructor(CPed* ped) {
         this->CTaskManager::CTaskManager(ped);

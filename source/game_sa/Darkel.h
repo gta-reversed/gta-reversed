@@ -21,7 +21,7 @@ enum eDarkelStatus {
 class CDarkel {
 public:
     inline static std::array<int16[2], 800>& RegisteredKills = *reinterpret_cast<std::array<int16[2], 800>*>(0x969A50);
-    inline static const char*& pStartMessage = *reinterpret_cast<const char**>(0x96A6D0);
+    inline static const GxtChar*& pStartMessage = *reinterpret_cast<const GxtChar**>(0x96A6D0);
     inline static uint32& AmmoInterruptedWeapon = *reinterpret_cast<uint32*>(0x96A6D4);
     inline static eWeaponType& InterruptedWeaponType = *reinterpret_cast<eWeaponType*>(0x96A6D8);
     inline static eWeaponType& InterruptedWeaponTypeSelected = *reinterpret_cast<eWeaponType*>(0x96A6DC);
@@ -47,7 +47,7 @@ public:
     static void RegisterKillNotByPlayer(const CPed* killedPed);
     static bool ThisPedShouldBeKilledForFrenzy(const CPed& ped);
     static bool ThisVehicleShouldBeKilledForFrenzy(const CVehicle& vehicle);
-    static void StartFrenzy(eWeaponType weaponType, int32 timeLimit, uint16 killsNeeded, int32 modelToKill, const char* startMessage, int32 modelToKill2, int32 modelToKill3, int32 modelToKill4, bool standardSoundAndMessages, bool needHeadShot);
+    static void StartFrenzy(eWeaponType weaponType, int32 timeLimit, uint16 killsNeeded, int32 modelToKill, const GxtChar* startMessage, int32 modelToKill2, int32 modelToKill3, int32 modelToKill4, bool standardSoundAndMessages, bool needHeadShot);
     static void ResetModelsKilledByPlayer(int32 playerId);
     static int16 QueryModelsKilledByPlayer(int32 modelId, int32 playerId);
     static int32 FindTotalPedsKilledByPlayer(int32 playerId);

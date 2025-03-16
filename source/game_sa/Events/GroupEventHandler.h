@@ -64,4 +64,4 @@ public:
     static CTaskAllocator* ComputeEventResponseTasks(const CEventGroupEvent& groupEvent, CPedGroup* pg);
 };
 
-static inline auto& fEntityPosChangeThreshold = StaticRef<float>(0xC18CF0);
+static constexpr auto fEntityPosChangeThreshold = 1.f;

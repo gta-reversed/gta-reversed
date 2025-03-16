@@ -2,7 +2,7 @@
 
 #include "TaskSimpleDie.h"
 
-class CTaskSimpleDrown : public CTaskSimpleDie {
+class NOTSA_EXPORT_VTABLE CTaskSimpleDrown : public CTaskSimpleDie {
 public:
     bool m_bShouldExecute;
 
@@ -20,5 +20,4 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    bool ProcessPed_Reversed(CPed* ped);
 };

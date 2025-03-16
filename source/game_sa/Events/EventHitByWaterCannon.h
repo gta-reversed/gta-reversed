@@ -2,6 +2,8 @@
 
 #include "Event.h"
 
+#include "Event.h"
+
 class NOTSA_EXPORT_VTABLE CEventHitByWaterCannon : public CEvent {
 public:
     CVector m_point;
@@ -24,7 +26,5 @@ private:
 
     CEventHitByWaterCannon* Constructor(const CVector& point, const CVector& moveSpeed);
 
-    bool AffectsPed_Reversed(CPed* ped);
 };
-
 VALIDATE_SIZE(CEventHitByWaterCannon, 0x24);

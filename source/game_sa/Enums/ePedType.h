@@ -11,7 +11,9 @@ enum ePedType : uint32 {
     PED_TYPE_PLAYER_UNUSED,
     PED_TYPE_CIVMALE,
     PED_TYPE_CIVFEMALE,
+
     PED_TYPE_COP,
+
     PED_TYPE_GANG1,         // Ballas
     PED_TYPE_GANG2,         // Grove Street Families
     PED_TYPE_GANG3,         // Los Santos Vagos
@@ -22,6 +24,7 @@ enum ePedType : uint32 {
     PED_TYPE_GANG8,         // Varrio Los Aztecas
     PED_TYPE_GANG9,         // Russian Mafia
     PED_TYPE_GANG10,        // Bikers
+
     PED_TYPE_DEALER,
     PED_TYPE_MEDIC,
     PED_TYPE_FIREMAN,

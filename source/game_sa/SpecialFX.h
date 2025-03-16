@@ -8,6 +8,8 @@
 
 #include "eWeaponType.h"
 
+static inline RwTexture*& gpFinishFlagTex = *reinterpret_cast<RwTexture**>(0xC7C718);
+
 class CSpecialFX {
 public:
     static bool& bVideoCam;

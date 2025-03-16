@@ -165,7 +165,7 @@ void FxSystem_c::Kill() {
 }
 
 // 0x4AA400
-void FxSystem_c::AttachToBone(CEntity* entity, ePedBones boneId) {
+void FxSystem_c::AttachToBone(CEntity* entity, eBoneTag boneId) {
     auto animHier = GetAnimHierarchyFromSkinClump(entity->m_pRwClump);
     auto index = RpHAnimIDGetIndex(animHier, boneId);
     m_ParentMatrix = &RpHAnimHierarchyGetMatrixArray(animHier)[index];

@@ -31,12 +31,6 @@ private:
 
     CEventScriptCommand* Constructor(int32 primaryTaskIndex, CTask* task, bool affectsDeadPeds);
 
-    int32 GetEventPriority_Reversed() const;
-    CEvent* Clone_Reversed();
-    bool AffectsPed_Reversed(CPed* ped);
-    bool TakesPriorityOver_Reversed(const CEvent& refEvent);
-    bool IsValid_Reversed(CPed* ped);
-    CTask* CloneScriptTask_Reversed();
 };
 
 VALIDATE_SIZE(CEventScriptCommand, 0x18);
