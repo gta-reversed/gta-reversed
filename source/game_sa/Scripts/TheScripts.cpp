@@ -630,7 +630,7 @@ void CTheScripts::CleanUpThisPed(CPed* ped) {
 
     const auto CheckTaskExists = [ped](eTaskType type) {
         if (auto* event = ped->GetEventGroup().GetEventOfType(EVENT_SCRIPT_COMMAND)) {
-            if (auto* esc = CEvent::DynCast<CEventScriptCommand>(event); esc && esc->m_task->GetTaskType() == type) {
+            if (auto* esc = notsa::dyn_cast<CEventScriptCommand>(event); esc && esc->m_task->GetTaskType() == type) {
                 return true;
             }
         }

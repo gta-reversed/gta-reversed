@@ -42,7 +42,7 @@ inline auto GetAt(uint32 idx) -> tScriptCheckpoint& { return CTheScripts::Script
 template<std::derived_from<C2dEffectBase> T>
 inline auto GetAt(uint32 idx) -> T& {
     auto& effect = CScripted2dEffects::ms_effects[idx];
-    assert(T::Type == effect.m_type);
+    assert(T::Type == effect.m_Type);
     return reinterpret_cast<T&>(effect);
 }
 

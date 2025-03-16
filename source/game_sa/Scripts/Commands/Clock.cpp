@@ -10,6 +10,7 @@ using namespace notsa::script;
 * Various clock commands
 */
 
+namespace {
 /// Get hours and minutes
 MultiRet<uint8, uint8> GetTimeOfDay() {
     return { CClock::ms_nGameClockHours, CClock::ms_nGameClockMinutes };
@@ -30,6 +31,7 @@ void StoreClock() {
 void RestoreClock() {
     CClock::RestoreClock();
 }
+};
 
 void notsa::script::commands::clock::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Clock");
