@@ -244,6 +244,18 @@ void PrintBigQ(const char* key, int32 time, int16 style) {
     CMessages::AddBigMessageQ(TheText.Get(key), time, (eMessageStyle)(style - 1));
 }
 
+// COMMAND_PRINT_HELP_FOREVER - 0x48CB76
+void PrintHelpForever(CRunningScript& S, const char* key) {
+    const auto* const text = TheText.Get(key);
+    if (CTheScripts::bDisplayNonMiniGameHelpMessages || S.m_IsTextBlockOverride || !CTheScripts::bMiniGameInProgress) {
+        CHud::SetHelpMessage(text, false, true, false);
+        if (CTheScripts::bAddNextMessageToPreviousBriefs) {
+            CMessages::AddToPreviousBriefArray(text);
+        }
+    }
+    CTheScripts::bAddNextMessageToPreviousBriefs = true;
+}
+
 // COMMAND_PRINT_HELP_FOREVER_WITH_NUMBER - 0x48CBEB
 void PrintHelpForeverWithNumber(CRunningScript& S, const char* key, int32 n1) {
     if (CTheScripts::bDisplayNonMiniGameHelpMessages || S.m_IsTextBlockOverride || !CTheScripts::bMiniGameInProgress) {
@@ -417,6 +429,7 @@ void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_STRING_IN_STRING_SOON);
 
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_BIG_Q, PrintBigQ);
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_HELP_FOREVER, PrintHelpForever);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_HELP_WITH_NUMBER);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_HELP_FOREVER);
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_HELP_FOREVER_WITH_NUMBER, PrintHelpForeverWithNumber);
