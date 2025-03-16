@@ -101,152 +101,90 @@ void DisplayTextWithFloat(CVector2D pos, const char* key, float value, float pre
 }
 
 // COMMAND_DISPLAY_TEXT_WITH_NUMBER - 0x48A5B9
-void DisplayTextWithNumber(CVector2D pos, const char* key, int32 n1) {
-    I_DisplayText(pos, key, n1, -1);
-}
-
 // COMMAND_DISPLAY_TEXT_WITH_2_NUMBERS - 0x48A664
-void DisplayTextWith2Numbers(CVector2D pos, const char* key, int32 n1, int32 n2) {
-    I_DisplayText(pos, key, n1, n2);
+template<typename... Numbers>
+void DisplayTextWithNumbers(CVector2D pos, const char* key, Numbers... args) {
+    constexpr auto N{ sizeof...(args) };
+    const int32 numbers[] = { args... };
+    I_DisplayText(
+        pos,
+        key,
+        N > 0 ? numbers[0] : -1,
+        N > 1 ? numbers[1] : -1
+    );
 }
 
-/* implementation */
-void PrintWithNumbersNow(const char* key, int32 time, int32 flag, int32 n1, int32 n2 = -1, int32 n3 = -1, int32 n4 = -1, int32 n5 = -1, int32 n6 = -1) {
+// COMMAND_PRINT_WITH_NUMBER_NOW - 0x47DAF5
+// COMMAND_PRINT_WITH_2_NUMBERS_NOW
+// COMMAND_PRINT_WITH_3_NUMBERS_NOW
+// COMMAND_PRINT_WITH_4_NUMBERS_NOW
+// COMMAND_PRINT_WITH_5_NUMBERS_NOW
+// COMMAND_PRINT_WITH_6_NUMBERS_NOW
+template<typename... Numbers>
+void PrintWithNumbersNow(const char* key, Numbers... args, int32 time, int32 flag) {
+    constexpr auto N{ sizeof...(args) };
+    const int32 numbers[] = { args... };
     CMessages::AddMessageJumpQWithNumber(
         TheText.Get(key),
         time,
         flag,
-        n1,
-        n2,
-        n3,
-        n4,
-        n5,
-        n6,
-        CTheScripts::bAddNextMessageToPreviousBriefs
-    );
-    CTheScripts::bAddNextMessageToPreviousBriefs = true;
-}
-
-// COMMAND_PRINT_WITH_NUMBER_NOW - 0x47DAF5
-void PrintWithNumberNow(const char* key, int32 n1, int32 time, int32 flag) {
-    PrintWithNumbersNow(key, time, flag, n1);
-}
-
-// COMMAND_PRINT_WITH_2_NUMBERS_NOW
-void PrintWith2NumbersNow(const char* key, int32 n1, int32 n2, int32 time, int32 flag) {
-    PrintWithNumbersNow(key, time, flag, n1, n2);
-}
-
-// COMMAND_PRINT_WITH_3_NUMBERS_NOW
-void PrintWith3NumbersNow(const char* key, int32 n1, int32 n2, int32 n3, int32 time, int32 flag) {
-    PrintWithNumbersNow(key, time, flag, n1, n2, n3);
-}
-
-// COMMAND_PRINT_WITH_4_NUMBERS_NOW
-void PrintWith4NumbersNow(const char* key, int32 n1, int32 n2, int32 n3, int32 n4, int32 time, int32 flag) {
-    PrintWithNumbersNow(key, time, flag, n1, n2, n3, n4);
-}
-
-// COMMAND_PRINT_WITH_5_NUMBERS_NOW
-void PrintWith5NumbersNow(const char* key, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 time, int32 flag) {
-    PrintWithNumbersNow(key, time, flag, n1, n2, n3, n4, n5);
-}
-
-// COMMAND_PRINT_WITH_6_NUMBERS_NOW
-void PrintWith6NumbersNow(const char* key, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, int32 time, int32 flag) {
-    PrintWithNumbersNow(key, time, flag, n1, n2, n3, n4, n5, n6);
-}
-
-/* Implementation */
-void PrintWithNumbers(const char* key, int32 time, int32 flag, int32 n1, int32 n2 = -1, int32 n3 = -1, int32 n4 = -1, int32 n5 = -1, int32 n6 = -1) {
-    CMessages::AddMessageWithNumberQ(
-        TheText.Get(key),
-        time,
-        flag,
-        n1,
-        n2,
-        n3,
-        n4,
-        n5,
-        n6,
+        N > 0 ? numbers[0] : -1,
+        N > 1 ? numbers[1] : -1,
+        N > 2 ? numbers[2] : -1,
+        N > 3 ? numbers[3] : -1,
+        N > 4 ? numbers[4] : -1,
+        N > 5 ? numbers[5] : -1,
         CTheScripts::bAddNextMessageToPreviousBriefs
     );
     CTheScripts::bAddNextMessageToPreviousBriefs = true;
 }
 
 // COMMAND_PRINT_WITH_NUMBER - 0x47DA7A
-void PrintWithNumber(const char* key, int32 n1, int32 time, int32 flag) {
-    PrintWithNumbers(key, time, flag, n1);
-}
-
 // COMMAND_PRINT_WITH_2_NUMBERS
-void PrintWith2Numbers(const char* key, int32 n1, int32 n2, int32 time, int32 flag) {
-    PrintWithNumbers(key, time, flag, n1, n2);
-}
-
 // COMMAND_PRINT_WITH_3_NUMBERS
-void PrintWith3Numbers(const char* key, int32 n1, int32 n2, int32 n3, int32 time, int32 flag) {
-    PrintWithNumbers(key, time, flag, n1, n2, n3);
-}
-
 // COMMAND_PRINT_WITH_4_NUMBERS
-void PrintWith4Numbers(const char* key, int32 n1, int32 n2, int32 n3, int32 n4, int32 time, int32 flag) {
-    PrintWithNumbers(key, time, flag, n1, n2, n3, n4);
-}
-
 // COMMAND_PRINT_WITH_5_NUMBERS
-void PrintWith5Numbers(const char* key, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 time, int32 flag) {
-    PrintWithNumbers(key, time, flag, n1, n2, n3, n4, n5);
-}
-
 // COMMAND_PRINT_WITH_6_NUMBERS
-void PrintWith6Numbers(const char* key, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, int32 time, int32 flag) {
-    PrintWithNumbers(key, time, flag, n1, n2, n3, n4, n5, n6);
+template<typename... Numbers>
+void PrintWithNumbers(const char* key, Numbers... args, int32 time, int32 flag) {
+    constexpr auto N{ sizeof...(args) };
+    const int32 numbers[] = { args... };
+    CMessages::AddMessageWithNumberQ(
+        TheText.Get(key),
+        time,
+        flag,
+        N > 0 ? numbers[0] : -1,
+        N > 1 ? numbers[1] : -1,
+        N > 2 ? numbers[2] : -1,
+        N > 3 ? numbers[3] : -1,
+        N > 4 ? numbers[4] : -1,
+        N > 5 ? numbers[5] : -1,
+        CTheScripts::bAddNextMessageToPreviousBriefs
+    );
+    CTheScripts::bAddNextMessageToPreviousBriefs = true;
 }
 
-/* Implementation */
-void PrintWithNumbersBig(const char* key, int32 time, int16 style, int32 n1, int32 n2 = -1, int32 n3 = -1, int32 n4 = -1, int32 n5 = -1, int32 n6 = -1) {
+// COMMAND_PRINT_WITH_NUMBER_BIG - 0x47DA14
+// COMMAND_PRINT_WITH_2_NUMBERS_BIG
+// COMMAND_PRINT_WITH_3_NUMBERS_BIG
+// COMMAND_PRINT_WITH_4_NUMBERS_BIG
+// COMMAND_PRINT_WITH_5_NUMBERS_BIG
+// COMMAND_PRINT_WITH_6_NUMBERS_BIG
+template<typename... Numbers>
+void PrintWithNumbersBig(const char* key, Numbers... args, int32 time, int16 style) {
+    constexpr auto N{ sizeof...(args) };
+    const int32 numbers[] = { args... };
     CMessages::AddBigMessageWithNumber(
         TheText.Get(key),
         time,
         (eMessageStyle)(style - 1),
-        n1,
-        n2,
-        n3,
-        n4,
-        n5,
-        n6
+        N > 0 ? numbers[0] : -1,
+        N > 1 ? numbers[1] : -1,
+        N > 2 ? numbers[2] : -1,
+        N > 3 ? numbers[3] : -1,
+        N > 4 ? numbers[4] : -1,
+        N > 5 ? numbers[5] : -1
     );
-}
-
-// COMMAND_PRINT_WITH_NUMBER_BIG - 0x47DA14
-void PrintWithNumberBig(const char* key, int32 time, int16 style, int32 n1) {
-    PrintWithNumbersBig(key, time, style, n1);
-}
-
-// COMMAND_PRINT_WITH_2_NUMBERS_BIG
-void PrintWith2NumbersBig(const char* key, int32 n1, int32 n2, int32 time, int16 style) {
-    PrintWithNumbersBig(key, time, style, n1, n2);
-}
-
-// COMMAND_PRINT_WITH_3_NUMBERS_BIG
-void PrintWith3NumbersBig(const char* key, int32 n1, int32 n2, int32 n3, int32 time, int16 style) {
-    PrintWithNumbersBig(key, time, style, n1, n2, n3);
-}
-
-// COMMAND_PRINT_WITH_4_NUMBERS_BIG
-void PrintWith4NumbersBig(const char* key, int32 n1, int32 n2, int32 n3, int32 n4, int32 time, int16 style) {
-    PrintWithNumbersBig(key, time, style, n1, n2, n3, n4);
-}
-
-// COMMAND_PRINT_WITH_5_NUMBERS_BIG
-void PrintWith5NumbersBig(const char* key, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 time, int16 style) {
-    PrintWithNumbersBig(key, time, style, n1, n2, n3, n4, n5);
-}
-
-// COMMAND_PRINT_WITH_6_NUMBERS_BIG
-void PrintWith6NumbersBig(const char* key, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, int32 time, int16 style) {
-    PrintWithNumbersBig(key, time, style, n1, n2, n3, n4, n5, n6);
 }
 
 // COMMAND_PRINT_BIG_Q - 0x47E743
@@ -393,17 +331,19 @@ void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_PRINT_BIG_NOW, ClearThisPrintBigNow);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_PRINTS, ClearPrints);
     REGISTER_COMMAND_HANDLER(COMMAND_USE_TEXT_COMMANDS, UseTextCommands);
+
     REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT, DisplayText);
     REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_FLOAT, DisplayTextWithFloat);
-    REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_NUMBER, DisplayTextWithNumber);
-    REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_2_NUMBERS, DisplayTextWith2Numbers);
+    REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_NUMBER, (DisplayTextWithNumbers<int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_2_NUMBERS, (DisplayTextWithNumbers<int32, int32>));
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_DISPLAY_TEXT_WITH_3_NUMBERS);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_NUMBER_NOW, PrintWithNumberNow);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_2_NUMBERS_NOW, PrintWith2NumbersNow);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_3_NUMBERS_NOW, PrintWith3NumbersNow);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_4_NUMBERS_NOW, PrintWith4NumbersNow);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_5_NUMBERS_NOW, PrintWith5NumbersNow);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_6_NUMBERS_NOW, PrintWith6NumbersNow);
+
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_NUMBER_NOW, (PrintWithNumbersNow<int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_2_NUMBERS_NOW, (PrintWithNumbersNow<int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_3_NUMBERS_NOW, (PrintWithNumbersNow<int32, int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_4_NUMBERS_NOW, (PrintWithNumbersNow<int32, int32, int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_5_NUMBERS_NOW, (PrintWithNumbersNow<int32, int32, int32, int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_6_NUMBERS_NOW, (PrintWithNumbersNow<int32, int32, int32, int32, int32, int32>));
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_NUMBER_SOON);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_2_NUMBERS_SOON);
@@ -412,20 +352,20 @@ void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_5_NUMBERS_SOON);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_6_NUMBERS_SOON);
 
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_NUMBER, PrintWithNumber);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_2_NUMBERS, PrintWith2Numbers);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_3_NUMBERS, PrintWith3Numbers);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_4_NUMBERS, PrintWith4Numbers);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_5_NUMBERS, PrintWith5Numbers);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_6_NUMBERS, PrintWith6Numbers);
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_NUMBER, (PrintWithNumbers<int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_2_NUMBERS, (PrintWithNumbers<int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_3_NUMBERS, (PrintWithNumbers<int32, int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_4_NUMBERS, (PrintWithNumbers<int32, int32, int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_5_NUMBERS, (PrintWithNumbers<int32, int32, int32, int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_6_NUMBERS, (PrintWithNumbers<int32, int32, int32, int32, int32, int32>));
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_WITH_NUMBER_BIG_Q);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_NUMBER_BIG, PrintWithNumberBig);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_2_NUMBERS_BIG, PrintWith2NumbersBig);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_3_NUMBERS_BIG, PrintWith3NumbersBig);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_4_NUMBERS_BIG, PrintWith4NumbersBig);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_5_NUMBERS_BIG, PrintWith5NumbersBig);
-    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_6_NUMBERS_BIG, PrintWith6NumbersBig);
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_NUMBER_BIG, (PrintWithNumbersBig<int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_2_NUMBERS_BIG, (PrintWithNumbersBig<int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_3_NUMBERS_BIG, (PrintWithNumbersBig<int32, int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_4_NUMBERS_BIG, (PrintWithNumbersBig<int32, int32, int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_5_NUMBERS_BIG, (PrintWithNumbersBig<int32, int32, int32, int32, int32>));
+    REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_6_NUMBERS_BIG, (PrintWithNumbersBig<int32, int32, int32, int32, int32, int32>));
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_STRING_IN_STRING);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_PRINT_STRING_IN_STRING_NOW);
