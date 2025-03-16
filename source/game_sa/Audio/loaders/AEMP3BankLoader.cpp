@@ -220,7 +220,7 @@ void CAEMP3BankLoader::Service() {
         };
 
         switch (req.Status) {
-        case eSoundRequestStatus::REQUESTED: {
+        case eSoundRequestStatus::REQUESTED: { // 0x4E0117
             if (CdStreamGetStatus(m_StreamingChannel) != eCdStreamStatus::READING_SUCCESS) {
                 continue;
             }
@@ -239,7 +239,7 @@ void CAEMP3BankLoader::Service() {
             req.Status = eSoundRequestStatus::PENDING_READ;
             break;
         }
-        case eSoundRequestStatus::PENDING_READ: {
+        case eSoundRequestStatus::PENDING_READ: { // 0x4DFF58
             if (CdStreamGetStatus(m_StreamingChannel) != eCdStreamStatus::READING_SUCCESS) {
                 continue;
             }
@@ -273,42 +273,49 @@ void CAEMP3BankLoader::Service() {
                 // then, we read the same data again (talk about inefficiency)
                 // and this time actually copy it into the bank's data buffer
 
-                m_BankSlotSound[req.Slot] = -1;
-
                 VERIFY(req.SlotInfo == &m_BankSlots[req.Slot]);
                 req.SlotInfo->Bank      = SND_BANK_UNK;
                 req.SlotInfo->NumSounds = -1;
-                
-                const auto soundOffsetInBank = req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes;
-                req.BankOffsetBytes = req.BankOffsetBytes + soundOffsetInBank;
+                req.BankOffsetBytes    += req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes + sizeof(AEAudioStream);
 
-                // Calculate bank size
+                m_BankSlotSound[req.Slot] = -1;
+
+                // 0x4E006F - Calculate bank size
                 const auto nextOrEnd = req.SoundID + 1 >= req.StreamDataPtr->NumSounds
                     ? GetBankLookup(req.Bank).NumBytes                       // If no more sounds we use the end of bank
                     : req.StreamDataPtr->Sounds[req.SoundID + 1].BankOffsetBytes; // Otherwise use next sound's offset
-                req.BankNumBytes = nextOrEnd - soundOffsetInBank;
+                req.BankNumBytes = nextOrEnd - req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes;
 
+                // 0x4E00BA
                 CMemoryMgr::Free(req.StreamBufPtr);
 
-                const auto offset = req.BankOffsetBytes / STREAMING_SECTOR_SIZE;
-                const auto sectors = (req.BankNumBytes + (req.BankOffsetBytes % STREAMING_SECTOR_SIZE) + STREAMING_SECTOR_SIZE - 1) / STREAMING_SECTOR_SIZE;
-                AllocateStreamBuffer(sectors);
+                // 0x4E00C7
+                const auto readSize = req.BankNumBytes / STREAMING_SECTOR_SIZE + 2;
+                AllocateStreamBuffer(readSize);
 
-                CdStreamRead( // 0x4E00FB
+                // 0x4E00FB
+                CdStreamRead(
                     m_StreamingChannel,
                     req.StreamBufPtr,
-                    { .Offset = offset, .FileID = CdStreamHandleToFileID(m_StreamHandles[req.PakFileNo]) },
-                    sectors
+                    { .Offset = req.BankOffsetBytes / STREAMING_SECTOR_SIZE, .FileID = CdStreamHandleToFileID(m_StreamHandles[req.PakFileNo]) },
+                    readSize
                 );
 
                 req.Status = eSoundRequestStatus::PENDING_LOAD_ONE_SOUND;
             }
             break;
         }
-        case eSoundRequestStatus::PENDING_LOAD_ONE_SOUND: {
+        case eSoundRequestStatus::PENDING_LOAD_ONE_SOUND: { // 0x4DFE92
             if (CdStreamGetStatus(m_StreamingChannel) != eCdStreamStatus::READING_SUCCESS || req.SoundID == -1) {
                 continue;
             }
+
+            NOTSA_LOG_DEBUG("Processing request:\n");
+            NOTSA_LOG_DEBUG("SoundID:       {}", (int32)(req.SoundID));
+            NOTSA_LOG_DEBUG("Bank:          {}", (int32)(req.Bank));
+            NOTSA_LOG_DEBUG("Slot:          {}", (int32)(req.Slot));
+            NOTSA_LOG_DEBUG("StreamDataPtr: 0x{:x}", (uintptr)(req.StreamDataPtr));
+            NOTSA_LOG_DEBUG("StreamBufPtr:  0x{:x}", (uintptr)(req.StreamBufPtr));
 
             // Copy over data into internal buffer as the request buffer will be deallocated now
             assert(m_BufferSize > req.SlotInfo->OffsetBytes);
