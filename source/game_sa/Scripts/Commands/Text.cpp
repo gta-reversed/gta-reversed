@@ -73,31 +73,41 @@ void UseTextCommands(bool state) {
 }
 
 /* Implementation for `COMMAND_DISPLAY_TEXT` and `COMMAND_DISPLAY_TEXT_WITH_FLOAT` */
-void I_DisplayText(CVector2D pos, const char* gxtKey, int32 p1, int32 p2) {
+void I_DisplayText(CVector2D pos, const char* key, int32 n1, int32 n2) {
     assert(CTheScripts::UseTextCommands != CTheScripts::eUseTextCommandState::DISABLED);
 
     auto* const line = &CTheScripts::IntroTextLines[CTheScripts::NumberOfIntroTextLinesThisFrame++];
-    line->Pos      = pos;
-    line->NumberToInsert1     = p1;
-    line->NumberToInsert2     = p2;
-    strcpy_s(line->GXTKey, gxtKey);
+    line->Pos             = pos;
+    line->NumberToInsert1 = n1;
+    line->NumberToInsert2 = n2;
+    strcpy_s(line->GXTKey, key);
 }
 
 // COMMAND_DISPLAY_TEXT - 0x481A0C
-void DisplayText(CVector2D pos, const char* gxtKey) {
-    I_DisplayText(pos, gxtKey, -1, -1);
+void DisplayText(CVector2D pos, const char* key) {
+    I_DisplayText(pos, key, -1, -1);
 }
 
 // COMMAND_DISPLAY_TEXT_WITH_FLOAT - 0x4730F8
-void DisplayTextWithFloat(CVector2D pos, const char* gxtKey, float value, float precision) {
+void DisplayTextWithFloat(CVector2D pos, const char* key, float value, float precision) {
     float whole;
     float fract = std::modf(value, &whole);
     I_DisplayText(
         pos,
-        gxtKey,
+        key,
         (int32)(whole),
         (int32)(std::pow(10.f, precision) * fract)
     );
+}
+
+// COMMAND_DISPLAY_TEXT_WITH_NUMBER - 0x48A5B9
+void DisplayTextWithNumber(CVector2D pos, const char* key, int32 n1) {
+    I_DisplayText(pos, key, n1, -1);
+}
+
+// COMMAND_DISPLAY_TEXT_WITH_2_NUMBERS - 0x48A664
+void DisplayTextWith2Numbers(CVector2D pos, const char* key, int32 n1, int32 n2) {
+    I_DisplayText(pos, key, n1, n2);
 }
 
 /* implementation */
@@ -382,9 +392,12 @@ void notsa::script::commands::text::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_NOW, PrintNow);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_THIS_PRINT_BIG_NOW, ClearThisPrintBigNow);
     REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_PRINTS, ClearPrints);
+    REGISTER_COMMAND_HANDLER(COMMAND_USE_TEXT_COMMANDS, UseTextCommands);
     REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT, DisplayText);
     REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_FLOAT, DisplayTextWithFloat);
-
+    REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_NUMBER, DisplayTextWithNumber);
+    REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_TEXT_WITH_2_NUMBERS, DisplayTextWith2Numbers);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_DISPLAY_TEXT_WITH_3_NUMBERS);
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_NUMBER_NOW, PrintWithNumberNow);
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_2_NUMBERS_NOW, PrintWith2NumbersNow);
     REGISTER_COMMAND_HANDLER(COMMAND_PRINT_WITH_3_NUMBERS_NOW, PrintWith3NumbersNow);
