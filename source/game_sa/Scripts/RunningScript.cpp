@@ -112,6 +112,7 @@ void CRunningScript::InjectCustomCommandHooks() {
     unused::RegisterHandlers();
     utility::RegisterHandlers();
     vehicle::RegisterHandlers();
+    zone::RegisterHandlers();
 
 #ifdef NOTSA_USE_CLEO_COMMANDS
     cleo::audiostream::RegisterHandlers();
