@@ -73,7 +73,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(MakeTyresMuddySectorList, 0x6AE0D0, { .reversed = false });
     RH_ScopedInstall(IsPedInControl, 0x5E3960);
     RH_ScopedInstall(RemoveWeaponModel, 0x5E3990);
-    RH_ScopedInstall(RemoveWeaponWhenEnteringVehicle, 0x5E6370, { .reversed = false });
+    RH_ScopedInstall(RemoveWeaponWhenEnteringVehicle, 0x5E6370);
     RH_ScopedInstall(AddGogglesModel, 0x5E3A90);
     RH_ScopedInstall(SetWeaponSkill, 0x5E3C10);
     RH_ScopedInstall(ClearLook, 0x5E3FF0);
@@ -2665,12 +2665,12 @@ void CPed::ClearWeapons()
 
 /*!
 * @addr 0x5E6370
+* @brief Saves ped's in foot weapon and equips a weapon that can be used in a vehicle if available.
+* @param isJetpack  1: when entering jetpack, 0: any other vehicle
 */
-void CPed::RemoveWeaponWhenEnteringVehicle(int32 arg0) {
-    ((void(__thiscall *)(CPed*, int32))0x5E6370)(this, arg0);
-
-    // Missing some code below (Had too many jumps and I was lazy to deal with it all)
-    /*if (m_pPlayerData) {
+void CPed::RemoveWeaponWhenEnteringVehicle(int32 isJetpack) {
+    assert(isJetpack == 0 || isJetpack == 1);
+    if (m_pPlayerData) {
         m_pPlayerData->m_bInVehicleDontAllowWeaponChange = true;
     }
 
@@ -2678,31 +2678,48 @@ void CPed::RemoveWeaponWhenEnteringVehicle(int32 arg0) {
         return;
     }
 
-    const auto RemoveActiveWepModel = [this] {
-        RemoveWeaponModel(GetActiveWeapon().GetWeaponInfo().m_nModelId1);
+    const auto SaveCurrentWeaponAndEquipInSlot = [&](eWeaponSlot slot) {
+        // if (m_nSavedWeapon == WEAPON_UNIDENTIFIED) // always true
+        m_nSavedWeapon = GetActiveWeapon().GetType();
+        SetCurrentWeapon(GetWeaponInSlot(slot).GetWeaponInfo().m_nSlot);
+    };
+
+    const auto EquipHandgunIfPossible = [&] {
+        const auto &shotgun = GetWeaponInSlot(eWeaponSlot::SHOTGUN), &handgun = GetWeaponInSlot(eWeaponSlot::HANDGUN);
+        if (shotgun.GetType() == WEAPON_SAWNOFF_SHOTGUN && shotgun.GetTotalAmmo() > 0 || handgun.GetType() == WEAPON_PISTOL && handgun.GetTotalAmmo() > 0) {
+            SaveCurrentWeaponAndEquipInSlot(eWeaponSlot::HANDGUN);
+        } else {
+            RemoveWeaponModel(CWeaponInfo::GetWeaponInfo(this, eWeaponSkill::STD)->m_nModelId1);
+        }
+    };
+
+    const auto HandleDriveByWeapons = [&](const CWeapon& w) {
+        if (w.GetTotalAmmo() > 0) {
+            SaveCurrentWeaponAndEquipInSlot(eWeaponSlot::SMG);
+        } else if (isJetpack != 1) {
+            RemoveWeaponModel(CWeaponInfo::GetWeaponInfo(this, eWeaponSkill::STD)->m_nModelId1);
+        } else {
+            EquipHandgunIfPossible();
+        }
     };
 
     if (!IsPlayer() || !AsPlayer()->GetPlayerInfoForThisPlayerPed()->m_bCanDoDriveBy) {
-        RemoveActiveWepModel();
-        return;
+        return RemoveWeaponModel(CWeaponInfo::GetWeaponInfo(this, eWeaponSkill::STD)->m_nModelId1);
     }
 
-    const auto SaveCurrentSetActiveWeapon = [](eWeaponType wt) {
+    if (const auto& w = GetWeaponInSlot(eWeaponSlot::SMG); notsa::contains({ WEAPON_MICRO_UZI, WEAPON_TEC9 }, w.GetType())) {
+        return HandleDriveByWeapons(w);
+    }
 
-    };
+    if (isJetpack == 1) {
+        // Whole logic of this function is complicated asf because the player is not
+        // supposed to be able to use MP5 while using jetpack. Only Tec-9 or Uzi.
+        return EquipHandgunIfPossible();
+    }
 
-    if (arg0) {
-        const auto IsWeaponInSlotWithAmmo = [this](eWeaponSlot slot, eWeaponType wt) {
-            const auto& wepInSlot = GetWeaponInSlot(slot);
-            return wepInSlot.m_nType == wt && wepInSlot.m_nTotalAmmo > 0;
-        };
-
-        if (   IsWeaponInSlotWithAmmo(eWeaponSlot::SHOTGUN, WEAPON_SAWNOFF_SHOTGUN)
-            || IsWeaponInSlotWithAmmo(eWeaponSlot::HANDGUN, WEAPON_PISTOL)
-        ) {
-            SaveCurrentSetActiveWeapon(WEAPON_GOLFCLUB);
-        }
-    }*/
+    if (const auto& w = GetWeaponInSlot(eWeaponSlot::SMG); w.GetType() == eWeaponType::WEAPON_MP5) {
+        return HandleDriveByWeapons(w);
+    }
 }
 
 /*!

@@ -142,8 +142,8 @@ public:
     void StreamModelsForWeapon(eStreamingFlags streamingFlags);
 
     //! NOTSA: GetWeaponInfo for specific ped.
-    static auto GetWeaponInfo(CPed* ped) {
-        return GetWeaponInfo(ped->GetActiveWeapon().m_Type, ped->GetWeaponSkill());
+    static auto GetWeaponInfo(CPed* ped, std::optional<eWeaponSkill> skill = {}) {
+        return GetWeaponInfo(ped->GetActiveWeapon().m_Type, skill.has_value() ? *skill : ped->GetWeaponSkill());
     }
 
     const auto& GetAimingOffset() const { return g_GunAimingOffsets[m_nAimOffsetIndex]; }
