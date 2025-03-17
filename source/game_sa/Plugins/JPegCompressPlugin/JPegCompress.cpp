@@ -1,6 +1,8 @@
 #include "StdInc.h"
 #include "jpeglib.h"
 
+static std::array<uint8, 204'800> g_ScreenshotFileBuf    = StaticRef<std::array<uint8, 204'800>>(0xBD0B78);
+
 // NOTSA. For debugging purposes, without using this callback,
 // game terminates without notice in case of any libjpeg failure.
 static void JPegErrorExit(j_common_ptr cinfo) {
@@ -16,7 +18,7 @@ void JPegPlugin::InjectHooks() {
     RH_ScopedCategory("Plugins");
 
     RH_ScopedGlobalInstall(JPegCompressScreen, 0x5D0470);
-    RH_ScopedGlobalInstall(JPegCompressScreenToFile, 0x5D0820, {.reversed=false});
+    RH_ScopedGlobalInstall(JPegCompressScreenToFile, 0x5D0820);
     RH_ScopedGlobalInstall(JPegCompressScreenToBuffer, 0x5D0740, {.reversed=false});
     RH_ScopedGlobalInstall(JPegDecompressToRaster, 0x5D05F0, {.reversed=false});
     RH_ScopedGlobalInstall(JPegDecompressToVramFromBuffer, 0x5D0320, {.reversed=false});
@@ -58,7 +60,37 @@ void JPegCompressScreen(RwCamera* camera, jpeg_destination_mgr& dst) {
 
 // 0x5D0820
 void JPegCompressScreenToFile(RwCamera* camera, const char* path) {
-    plugin::Call<0x5D0820, RwCamera*, const char*>(camera, path);
+    static FILESTREAM g_ScreenshotFileHandle{};
+
+    if (g_ScreenshotFileHandle = CFileMgr::OpenFile(path, "wb")) {
+        jpeg_destination_mgr dst{};
+
+        // InitDestination (0x5D03E0)
+        dst.init_destination = [](j_compress_ptr c) {
+            c->dest->next_output_byte = g_ScreenshotFileBuf.data();
+            c->dest->free_in_buffer   = g_ScreenshotFileBuf.size();
+        };
+
+        // HDEmptyOutputBuffer (0x5D0400)
+        dst.empty_output_buffer = [](j_compress_ptr c) -> boolean {
+            CFileMgr::Write(g_ScreenshotFileHandle, g_ScreenshotFileBuf.data(), g_ScreenshotFileBuf.size());
+            c->dest->next_output_byte = g_ScreenshotFileBuf.data();
+            c->dest->free_in_buffer   = g_ScreenshotFileBuf.size();
+            return true;
+        };
+
+        // HDTermDestination (0x5D0440)
+        dst.term_destination = [](j_compress_ptr c) {
+            // NOTSA: signed -> unsigned
+            const auto totalProcessed = (uintptr)c->dest->next_output_byte - (uintptr)g_ScreenshotFileBuf.data();
+            if (totalProcessed > 0) {
+                CFileMgr::Write(g_ScreenshotFileHandle, g_ScreenshotFileBuf.data(), totalProcessed);
+            }
+        };
+
+        JPegCompressScreen(camera, dst);
+        CFileMgr::CloseFile(g_ScreenshotFileHandle);
+    }
 }
 
 // 0x5D0740
