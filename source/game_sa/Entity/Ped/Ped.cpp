@@ -490,14 +490,15 @@ void CPed::SetMoveAnim() {
 * @addr 0x5D4640
  */
 bool CPed::Load() {
+    auto size = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
+
+    // TODO: Can't do `auto save = CGenericGameStorage::LoadDataFromWorkBuffer<CPedSaveStructure>()` dure to deleted copy constructor in CWanted which is used somehow inside.
+    // Would be nice if someone with more knowledge of templates and shit can fix that
     CPedSaveStructure save;
-    uint32 size{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&save, sizeof(save));
-
+    CGenericGameStorage::LoadDataFromWorkBuffer(save);
     assert(size == sizeof(save));
-    save.Extract(this);
 
+    save.Extract(this);
     return true;
 }
 
@@ -508,9 +509,8 @@ bool CPed::Save() {
     CPedSaveStructure save;
     save.Construct(this);
 
-    uint32 size{ sizeof(save) };
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::SaveDataToWorkBuffer(&save, sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(save);
 
     return true;
 }
@@ -649,7 +649,7 @@ void CPed::CreateDeadPedWeaponPickups() {
         // No. of ammo the pickups will contain
         const auto pickupAmmo{ std::min(wep.m_TotalAmmo, (uint32)AmmoForWeapon_OnStreet[(size_t)wep.m_Type] * 2) };
 
-        if (CPickups::TryToMerge_WeaponType(
+        if (!CPickups::TryToMerge_WeaponType(
             pickupPos,
             wep.m_Type,
             ePickupType::PICKUP_ONCE_TIMEOUT,
@@ -715,22 +715,22 @@ void CPed::SetMoveAnimSpeed(CAnimBlendAssociation* association) {
 * @addr 0x5DED10
 */
 void CPed::StopNonPartialAnims() {
-    for (auto assoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump); assoc; assoc = RpAnimBlendGetNextAssociation(assoc)) {
-        if ((assoc->m_Flags & ANIMATION_IS_PARTIAL) == 0) {
-            assoc->SetFlag(ANIMATION_IS_PLAYING, false);
+    RpAnimBlendClumpForEachAssociation(m_pRwClump, [](CAnimBlendAssociation* a) {
+        if (!(a->m_Flags & ANIMATION_IS_PARTIAL)) {
+            a->SetFlag(ANIMATION_IS_PLAYING, false);
         }
-    }
+    });
 }
 
 /*!
 * @addr 0x5DED50
 */
 void CPed::RestartNonPartialAnims() {
-    for (auto assoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump); assoc; assoc = RpAnimBlendGetNextAssociation(assoc)) {
-        if ((assoc->m_Flags & ANIMATION_IS_PARTIAL) == 0) {
-            assoc->SetFlag(ANIMATION_IS_PLAYING, true);
+    RpAnimBlendClumpForEachAssociation(m_pRwClump, [](CAnimBlendAssociation* a) {
+        if (!(a->m_Flags & ANIMATION_IS_PARTIAL)) {
+            a->SetFlag(ANIMATION_IS_PLAYING, true);
         }
-    }
+    });
 }
 
 /*!
