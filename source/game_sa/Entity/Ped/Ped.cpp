@@ -27,6 +27,9 @@
 #include "TaskSimpleStandStill.h"
 #include "TaskComplexFacial.h"
 #include "WeaponInfo.h"
+#include "Shadows.h"
+#include "TaskComplexEnterCarAsDriver.h"
+#include "RealTimeShadowManager.h"
 
 void CPed::InjectHooks() {
     RH_ScopedVirtualClass(CPed, 0x86C358, 26);
@@ -2767,7 +2770,96 @@ void CPed::RemoveWeaponForScriptedCutscene()
 */
 void CPed::PreRenderAfterTest()
 {
-    ((void(__thiscall *)(CPed*))0x5E65A0)(this);
+    auto* intel = GetIntelligence();
+    if (const auto* swim = intel->GetTaskSwim()) {
+        swim->ApplyRollAndPitch(this);
+        m_pedIK.bSlopePitch = false;
+    } else if (auto* jetpack = intel->GetTaskJetPack()) {
+        jetpack->ApplyRollAndPitch(this);
+        m_pedIK.bSlopePitch = false;
+    }
+
+    if (auto* inAir = intel->GetTaskInAir()) {
+        m_pedIK.bSlopePitch = false;
+    } else if (m_pedIK.bSlopePitch || !IsPlayer() && m_pedIK.m_fSlopePitch != 0.0f) {
+        m_pedIK.PitchForSlope();
+    }
+    bCalledPreRender = true;
+    UpdateRpHAnim();
+
+    if (!CTimer::bSkipProcessThisFrame && m_pWeaponObject && m_pPlayerData) {
+        if (GetActiveWeapon().GetType() == eWeaponType::WEAPON_MINIGUN) {
+            if (const auto f = CClumpModelInfo::GetFrameFromName(m_pWeaponObject, "minigun2")) {
+                RwMatrixRotate(
+                    RwFrameGetMatrix(f),
+                    &CPedIK::XaxisIK,
+                    RadiansToDegrees(CTimer::GetTimeStep() * m_pPlayerData->m_fGunSpinSpeed),
+                    rwCOMBINEPRECONCAT
+                );
+            }
+        }
+    }
+
+    if (m_bIsVisible && CTimeCycle::m_CurrentColours.m_nShadowStrength != 0) {
+        const auto [shadowNeeded, activeTask] = [&]() -> std::pair<bool, CTask*> {
+            if (!bInVehicle) {
+                return std::make_pair(false, intel->m_TaskMgr.FindActiveTaskByType(TASK_COMPLEX_ENTER_ANY_CAR_AS_DRIVER));
+            }
+
+            return std::make_pair(intel->m_TaskMgr.FindActiveTaskFromList({ TASK_COMPLEX_LEAVE_CAR, TASK_COMPLEX_DRAG_PED_FROM_CAR }) != nullptr, nullptr);
+        }();
+
+        // FIX_BUGS: Original check was only for 1st player in high FX quality.
+        if (g_fx.GetFxQuality() != FX_QUALITY_VERY_HIGH && g_fx.GetFxQuality() != FX_QUALITY_HIGH || !IsPlayer()) {
+            // goto label 58;
+        }
+
+        const auto boneRootPos = GetBonePosition(eBoneTag::BONE_ROOT);
+        if (DistanceBetweenPoints2D(boneRootPos, TheCamera.GetPosition2D()) <= MAX_DISTANCE_PED_SHADOWS_SQR && !physicalFlags.bSubmergedInWater) {
+            const auto IsVehicleRTShadable = [](eVehicleType t) {
+                switch (t) {
+                case VEHICLE_TYPE_BMX:
+                case VEHICLE_TYPE_BIKE:
+                case VEHICLE_TYPE_QUAD:
+                    return true;
+                default:
+                    return false;
+                }
+            };
+
+            auto drawRealTimeShadow = true;
+            if (const auto* veh = GetVehicleIfInOne()) {
+                drawRealTimeShadow = IsVehicleRTShadable(veh->Type);
+            }
+
+            if (activeTask) {
+                drawRealTimeShadow = false;
+                if (const auto* targetVeh = notsa::cast<CTaskComplexEnterCarAsDriver>(activeTask)->GetTargetCar()) {
+                    drawRealTimeShadow = IsVehicleRTShadable(targetVeh->Type);
+                }
+            }
+
+            const auto boneSpinePos = GetBonePosition(eBoneTag::BONE_SPINE);
+            if (IsAlive() && GetPosition().z - 0.2f > boneSpinePos.z) {
+                drawRealTimeShadow = bIsDucking;
+            }
+
+            if (drawRealTimeShadow) {
+                g_realTimeShadowMan.DoShadowThisFrame(this);
+                if (!m_pShadowData && (!bInVehicle || shadowNeeded)) {
+                    CShadows::StoreShadowForPedObject(
+                        this,
+                        CTimeCycle::m_fShadowDisplacementX[CTimeCycle::m_CurrentStoredValue],
+                        CTimeCycle::m_fShadowDisplacementY[CTimeCycle::m_CurrentStoredValue],
+                        CTimeCycle::m_fShadowFrontX[CTimeCycle::m_CurrentStoredValue],
+                        CTimeCycle::m_fShadowFrontY[CTimeCycle::m_CurrentStoredValue],
+                        CTimeCycle::m_fShadowSideX[CTimeCycle::m_CurrentStoredValue],
+                        CTimeCycle::m_fShadowSideY[CTimeCycle::m_CurrentStoredValue]
+                    );
+                }
+            }
+        }
+    }
 }
 
 /*!
