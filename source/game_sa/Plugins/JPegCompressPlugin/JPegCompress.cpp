@@ -169,7 +169,7 @@ void JPegDecompressToRaster(RwRaster* raster, jpeg_source_mgr& src) {
             }
 
             for (auto i = 0; i < 2'048; i += 4) {
-                RwRGBA color{ g_JpegScan[i + 256], g_JpegScan[i + 257], g_JpegScan[i + 258], 256 };
+                RwRGBA color{ g_JpegScan[i + 256], g_JpegScan[i + 257], g_JpegScan[i + 258], 255 };
                 *g_JpegDecodingToRaster++ = RwRGBAToPixel(&color, RwRasterGetFormat(raster));
             }
         }
