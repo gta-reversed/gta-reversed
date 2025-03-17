@@ -241,16 +241,16 @@ void CCamera::InitCameraVehicleTweaks() {
 
     if (!m_bCameraVehicleTweaksInitialized) {
         for (auto& camTweak : m_aCamTweak) {
-            camTweak.m_nModelIndex = -1;
-            camTweak.m_fDistance   = 1.0f;
-            camTweak.m_fAltitude   = 1.0f;
-            camTweak.m_fAngle      = 0.0f;
+            camTweak.ModelID = -1;
+            camTweak.Dist   = 1.0f;
+            camTweak.Alt   = 1.0f;
+            camTweak.Angle      = 0.0f;
         }
 
-        m_aCamTweak[0].m_nModelIndex = MODEL_RCGOBLIN;
-        m_aCamTweak[0].m_fDistance = 1.0f;
-        m_aCamTweak[0].m_fAltitude = 1.0f;
-        m_aCamTweak[0].m_fAngle    = 0.178997f; // todo: magic number
+        m_aCamTweak[0].ModelID = MODEL_RCGOBLIN;
+        m_aCamTweak[0].Dist = 1.0f;
+        m_aCamTweak[0].Alt = 1.0f;
+        m_aCamTweak[0].Angle    = 0.178997f; // todo: magic number
 
         m_bCameraVehicleTweaksInitialized = true;
     }
@@ -302,10 +302,10 @@ void CCamera::ApplyVehicleCameraTweaks(CVehicle* vehicle) {
 
     InitCameraVehicleTweaks();
     for (auto& camTweak : m_aCamTweak) {
-        if (camTweak.m_nModelIndex == (int32)vehicle->m_nModelIndex) { // todo: vehicle->m_nModelIndex -> int16?
-            m_fCurrentTweakDistance = camTweak.m_fDistance;
-            m_fCurrentTweakAltitude = camTweak.m_fAltitude;
-            m_fCurrentTweakAngle    = camTweak.m_fAngle;
+        if (camTweak.ModelID == (int32)vehicle->m_nModelIndex) { // todo: vehicle->m_nModelIndex -> int16?
+            m_fCurrentTweakDistance = camTweak.Dist;
+            m_fCurrentTweakAltitude = camTweak.Alt;
+            m_fCurrentTweakAngle    = camTweak.Angle;
             return;
         }
     }
@@ -1103,8 +1103,8 @@ void CCamera::TakeControlNoEntity(const CVector& fixedModeVector, eSwitchType sw
 }
 
 // 0x50C910
-void CCamera::TakeControlAttachToEntity(CEntity* target, CEntity* attached, CVector* attachedCamOffset, CVector* attachedCamLookAt, float attachedCamAngle, eSwitchType switchType, int32 whoIsInControlOfTheCamera) {
-    plugin::CallMethod<0x50C910, CCamera*, CEntity*, CEntity*, CVector*, CVector*, float, eSwitchType, int32>(this, target, attached, attachedCamOffset, attachedCamLookAt, attachedCamAngle, switchType, whoIsInControlOfTheCamera);
+void CCamera::TakeControlAttachToEntity(CEntity* target, CEntity* attached, CVector* attachedCamOffset, CVector* attachedCamLookAt, float tilt, eSwitchType switchType, int32 whoIsInControlOfTheCamera) {
+    plugin::CallMethod<0x50C910, CCamera*, CEntity*, CEntity*, CVector*, CVector*, float, eSwitchType, int32>(this, target, attached, attachedCamOffset, attachedCamLookAt, tilt, switchType, whoIsInControlOfTheCamera);
 }
 
 // 0x50CAE0
@@ -1283,13 +1283,13 @@ void CCamera::HandleCameraMotionForDuckingDuringAim(CPed* ped, CVector* source, 
 }
 
 // 0x50D160
-void CCamera::VectorMoveLinear(CVector* moveLinearPosnEnd, CVector* moveLinearPosnStart, float duration, bool bMoveLinearWithEase) {
-    plugin::CallMethod<0x50D160, CCamera*, CVector*, CVector*, float, bool>(this, moveLinearPosnEnd, moveLinearPosnStart, duration, bMoveLinearWithEase);
+void CCamera::VectorMoveLinear(CVector* to, CVector* from, float duration, bool bMoveLinearWithEase) {
+    plugin::CallMethod<0x50D160, CCamera*, CVector*, CVector*, float, bool>(this, to, from, duration, bMoveLinearWithEase);
 }
 
 // 0x50D1D0
-void CCamera::VectorTrackLinear(CVector* trackLinearStartPoint, CVector* trackLinearEndPoint, float duration, bool bEase) {
-    plugin::CallMethod<0x50D1D0, CCamera*, CVector*, CVector*, float, bool>(this, trackLinearStartPoint, trackLinearEndPoint, duration, bEase);
+void CCamera::VectorTrackLinear(CVector* to, CVector* from, float duration, bool bEase) {
+    plugin::CallMethod<0x50D1D0, CCamera*, CVector*, CVector*, float, bool>(this, to, from, duration, bEase);
 }
 
 // 0x516400
@@ -1516,6 +1516,16 @@ void CCamera::DrawBordersForWideScreen() {
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
     CSprite2d::DrawRect({ -5.f, -5.f,     SCREEN_WIDTH + 5.f, rect.top         }, { 0, 0, 0, 255 });
     CSprite2d::DrawRect({ -5.f, rect.bottom, SCREEN_WIDTH + 5.f, SCREEN_HEIGHT + 5.f }, { 0, 0, 0, 255 });
+}
+
+// 0x4748A0
+bool CCamera::VectorMoveRunning() const {
+    return CTimer::m_snTimeInMilliseconds <= m_fMoveLinearEndTime;
+}
+
+// 0x474891
+bool CCamera::VectorTrackRunning() const {
+    return CTimer::m_snTimeInMilliseconds <= m_fTrackLinearEndTime;
 }
 
 // 0x514950
