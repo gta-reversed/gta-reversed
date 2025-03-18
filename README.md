@@ -37,7 +37,7 @@ Since this project is done as a hobby, and worked on at irregular intervals, the
 [!IMPORTANT]
 GTA SA ***Compact exe*** is not the same as ***1.0 US exe***, so check that your executable is exactly `5'189'632 bytes` (4.94 MiB).
 
-2. To install all the necessary files (after building the project!), run `install.py` with **__administrator privileges__** [Necessary to create symlinks on Windows] in the root directory.
+1. To install all the necessary files (after building the project!), run `install.py` with **__administrator privileges__** [Necessary to create symlinks on Windows] in the root directory.
 Alternatively, you can install them by yourself:
     * [ASI Loader](https://gtaforums.com/topic/523982-relopensrc-silents-asi-loader/)
     * [III.VC.SA.WindowedMode.asi](https://github.com/ThirteenAG/III.VC.SA.WindowedMode)
