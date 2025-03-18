@@ -96,10 +96,11 @@ public:
     //! Get all the present members [Returns a view of references]
     auto GetMembers(bool bIncludeLeader = true) {
         assert(LEADER_MEM_ID == m_members.size() - 1); // the drop below requires this
+        auto takeNum = bIncludeLeader ? m_members.size() : m_members.size() - 1;
         return m_members
-             | rng::views::drop(bIncludeLeader ? 0 : 1) // Last member is the leader
-             | rng::views::filter(notsa::NotIsNull{})
-             | rng::views::transform([](CPed* mem) -> CPed& { return *mem; }); // Dereference
+            | rng::views::take(takeNum) // Last member is the leader
+            | rng::views::filter(notsa::NotIsNull{})
+            | rng::views::transform([](CPed* mem) -> CPed& { return *mem; }); // Dereference
     }
 
     //! Get followers [that is, members excl. the leader]
@@ -142,6 +143,9 @@ public:
 
     //! Find follower closest to the leader
     auto FindClosestFollowerToLeader() -> FindClosestMemberResult;
+
+    //! @notsa
+    CPed* GetFirstAvailableMember();
 
     static eModelID GetObjectForPedToHold();
 private:

@@ -266,7 +266,7 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
         CPad::bInvertLook4Pad ^= true;
         return;
     case MENU_ACTION_23:
-        field_31 ^= true;
+        m_DisplayControllerOnFoot ^= true;
         return;
     case MENU_ACTION_SUBTITLES:
         m_bShowSubtitles ^= true;
@@ -337,12 +337,12 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
     case MENU_ACTION_CTRLS_FOOT: // Redefine Controls -> Foot Controls
         field_B7 = 0;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
-        field_90 = 0;
+        m_ListSelection = 0;
         return true;
     case MENU_ACTION_CTRLS_CAR: // Redefine Controls -> Vehicle Controls
         field_B7 = 1;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
-        field_90 = 0;
+        m_ListSelection = 0;
         return true;
     case MENU_ACTION_FRAME_LIMITER:
         m_bPrefsFrameLimiter ^= true;
@@ -436,7 +436,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         field_1B09 = 1;
         m_bJustOpenedControlRedefWindow = true;
         field_1B0C = m_nCurrentScreenItem;
-        m_pPressedKey = &field_38;
+        m_pPressedKey = &m_KeyPressedCode;
         return true;
     case MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
         bInvertMouseY = bInvertMouseY == 0;

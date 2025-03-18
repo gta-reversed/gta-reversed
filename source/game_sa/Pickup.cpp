@@ -203,7 +203,8 @@ void CPickup::ProcessGunShot(const CVector& start, const CVector& end) {
 
 // 0x4556C0
 void CPickup::Remove() {
-    CRadar::ClearBlipForEntity(BLIP_PICKUP, CPickups::GetUniquePickupIndex(this - CPickups::aPickUps.data()).num);
+    auto pickupRef = tPickupReference(*this);
+    CRadar::ClearBlipForEntity(BLIP_PICKUP, pickupRef.num);
     GetRidOfObjects();
     m_nPickupType = PICKUP_NONE;
     m_nFlags.bDisabled = true;
@@ -500,7 +501,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                         m_nRegenerationTime = regenTime + 30'000;
                                         break;
                                     case PICKUP_ON_STREET_SLOW:
-                                        m_nRegenerationTime = regenTime + (mi == MI_PICKUP_BRIBE) ? 30'000 : 36'000;
+                                        m_nRegenerationTime = regenTime + ((mi == MI_PICKUP_BRIBE) ? 30'000 : 36'000);
                                         break;
                                     default:
                                         break;

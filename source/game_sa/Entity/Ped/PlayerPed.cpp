@@ -35,8 +35,8 @@ void CPlayerPed::InjectHooks() {
     RH_ScopedInstall(SetWantedLevelNoDrop, 0x609F30);
     RH_ScopedInstall(CheatWantedLevel, 0x609F50);
     RH_ScopedInstall(DoStuffToGoOnFire, 0x60A020);
-    RH_ScopedVMTInstall(Load, 0x5D46E0, { .reversed = false });
-    RH_ScopedVMTInstall(Save, 0x5D57E0, { .reversed = false });
+    RH_ScopedVMTInstall(Load, 0x5D46E0);
+    RH_ScopedVMTInstall(Save, 0x5D57E0);
     RH_ScopedInstall(DeactivatePlayerPed, 0x609520);
     RH_ScopedInstall(ReactivatePlayerPed, 0x609540);
     RH_ScopedInstall(GetPadFromPlayer, 0x609560);
@@ -77,47 +77,36 @@ void CPlayerPed::InjectHooks() {
     RH_ScopedInstall(SetupPlayerPed, 0x60D790);
 
     RH_ScopedVMTInstall(ProcessControl, 0x60EA90);
+    RH_ScopedVMTInstall(SetMoveAnim, 0x609490);
 }
 
 struct WorkBufferSaveData {
-    uint32          SaveSize = sizeof(WorkBufferSaveData); // Never read, but written
     uint32          ChaosLevel{};
     uint32          WantedLevel{};
     CPedClothesDesc ClothesDesc{};
     uint32          ChosenWeapon{};
 };
-VALIDATE_SIZE(WorkBufferSaveData, 132u + 4u);
-
-// calls of LoadDataFromWorkBuffer are optimized
-// todo: fix
+VALIDATE_SIZE(WorkBufferSaveData, 132u);
 
 // 0x5D46E0
 bool CPlayerPed::Load() {
-    return plugin::CallMethodAndReturn<bool, 0x5D46E0, CPlayerPed*>(this);
-
     CPed::Load();
 
-    WorkBufferSaveData sd{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&sd, sizeof(WorkBufferSaveData));
-    assert(sd.SaveSize == sizeof(sd));
+    CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // Discard structure size
+    auto sd = CGenericGameStorage::LoadDataFromWorkBuffer<WorkBufferSaveData>();
 
     CWanted* wanted = m_pPlayerData->m_pWanted;
     wanted->m_nChaosLevel = sd.ChaosLevel;
     wanted->m_nWantedLevel= sd.WantedLevel;
 
-    m_pPlayerData->m_nChosenWeapon   = sd.ChosenWeapon;
     *m_pPlayerData->m_pPedClothesDesc = sd.ClothesDesc;
+    m_pPlayerData->m_nChosenWeapon   = sd.ChosenWeapon;
 
     return true;
 }
 
-// calls of SaveDataToWorkBuffer are optimized
-// todo: fix
-
 // 0x5D57E0
 bool CPlayerPed::Save() {
-    return plugin::CallMethodAndReturn<bool, 0x5D57E0>(this);
-
     WorkBufferSaveData saveData{};
 
     CWanted* wanted = m_pPlayerData->m_pWanted;
@@ -126,7 +115,9 @@ bool CPlayerPed::Save() {
     saveData.ChosenWeapon = m_pPlayerData->m_nChosenWeapon;
     saveData.ClothesDesc  = *m_pPlayerData->m_pPedClothesDesc;
 
-    CGenericGameStorage::SaveDataToWorkBuffer(&saveData, sizeof(WorkBufferSaveData));
+    CPed::Save();
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(WorkBufferSaveData));
+    CGenericGameStorage::SaveDataToWorkBuffer(saveData);
 
     return true;
 }
@@ -574,7 +565,7 @@ void CPlayerPed::TellGroupToStartFollowingPlayer(bool arg0, bool arg1, bool arg2
         playerCmdEvent.ComputeResponseTaskType(&group);
         if (playerCmdEvent.WillRespond()) {
             auto gatherCmdEvent = new CEventPlayerCommandToGroup(ePlayerGroupCommand::PLAYER_GROUP_COMMAND_GATHER);
-            gatherCmdEvent->m_taskId = playerCmdEvent.m_taskId;
+            gatherCmdEvent->m_TaskId = playerCmdEvent.m_TaskId;
 
             CEventGroupEvent groupEvent(this, gatherCmdEvent);
             groupIntel.AddEvent(&groupEvent);
@@ -1258,4 +1249,9 @@ void CPlayerPed::ProcessControl() {
     }
     if (!bInVehicle && GetLightingTotal() <= 0.05f && !CEntryExitManager::WeAreInInteriorTransition())
         Say(CTX_GLOBAL_BREATHING);
+}
+
+// 0x609490
+void CPlayerPed::SetMoveAnim() {
+    //nop
 }

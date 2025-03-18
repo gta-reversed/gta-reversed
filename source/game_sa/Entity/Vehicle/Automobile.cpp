@@ -129,8 +129,8 @@ void CAutomobile::InjectHooks()
     RH_ScopedVMTInstall(GetHeightAboveRoad, 0x6A62B0);
     RH_ScopedVMTInstall(GetNumContactWheels, 0x6A62A0);
     RH_ScopedVMTInstall(Teleport, 0x6A9CA0);
-    RH_ScopedVMTInstall(Save, 0x5D47E0);
-    RH_ScopedVMTInstall(Load, 0x5D2980);
+    RH_ScopedVMTInstall(Save, 0x5D47E0, {.enabled = false });
+    RH_ScopedVMTInstall(Load, 0x5D2980, {.enabled = false });
     RH_ScopedVMTInstall(ProcessControl, 0x6B1880);
     RH_ScopedVMTInstall(AddMovingCollisionSpeed, 0x6A1ED0);
     RH_ScopedVMTInstall(ProcessAI, 0x6B4800);
@@ -2036,7 +2036,7 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
             }
             auto value = plyrpad->GetAccelerate() - plyrpad->GetBrake(); // Rescaled later..
             if (   !value
-                && CTask::DynCast<CTaskSimpleGangDriveBy>(plyrdriver->GetTaskManager().GetSimplestActiveTask())
+                && notsa::dyn_cast_if_present<CTaskSimpleGangDriveBy>(plyrdriver->GetTaskManager().GetSimplestActiveTask())
                 && TheCamera.m_aCams[0].m_nMode == MODE_AIMWEAPON_FROMCAR
             ) {
                 value = plyrpad->NewState.RightShoulder2 - plyrpad->NewState.LeftShoulder2; // Rescaled later..

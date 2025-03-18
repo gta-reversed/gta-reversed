@@ -16,7 +16,7 @@ class NOTSA_EXPORT_VTABLE CTaskSimpleInAir : public CTaskSimple {
 public:
     CVector                m_vecPosn;
     float                  m_fAngle;
-    uint8                  m_nSurfaceType;
+    eSurfaceType           m_nSurfaceType;
     CAnimBlendAssociation* m_pAnim;
     float                  m_fMinZSpeed;
     union {
