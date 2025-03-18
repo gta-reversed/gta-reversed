@@ -48,7 +48,6 @@ void SetZoneGangStrength(const char* label, eGangID gang, uint8 strength) {
     if (auto* const zi = GetZoneInfoByLabel(label)) {
         zi->GangStrength[gang] = strength;
     }
-    NOTSA_UNREACHABLE();
 }
 
 // GET_ZONE_GANG_STRENGTH (1901)
