@@ -30,7 +30,7 @@
 #include "Shadows.h"
 #include "TaskComplexEnterCarAsDriver.h"
 #include "RealTimeShadowManager.h"
-#include <WindModifiers.h>
+#include "WindModifiers.h"
 
 void CPed::InjectHooks() {
     RH_ScopedVirtualClass(CPed, 0x86C358, 26);
@@ -103,7 +103,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(GiveDelayedWeapon, 0x5E89B0);
     RH_ScopedOverloadedInstall(GetWeaponSkill, "Current", 0x5E6580, eWeaponSkill(CPed::*)());
     RH_ScopedOverloadedInstall(GetWeaponSkill, "WeaponType", 0x5E3B60, eWeaponSkill(CPed::*)(eWeaponType));
-    RH_ScopedInstall(PreRenderAfterTest, 0x5E65A0, { .reversed = false });
+    RH_ScopedInstall(PreRenderAfterTest, 0x5E65A0);
     RH_ScopedInstall(SetIdle, 0x5E7980);
     RH_ScopedOverloadedInstall(SetLook, "Heading", 0x5E79B0, void(CPed::*)(float));
     RH_ScopedOverloadedInstall(SetLook, "Entity", 0x5E7A60, void(CPed::*)(CEntity *));
@@ -2825,9 +2825,9 @@ void CPed::PreRenderAfterTest()
         };
 
         // FIX_BUGS: Original check was only for 1st player in high FX quality.
-        if (g_fx.GetFxQuality() != FX_QUALITY_VERY_HIGH && g_fx.GetFxQuality() != FX_QUALITY_HIGH || !IsPlayer()) {
+        if (g_fx.GetFxQuality() != FX_QUALITY_VERY_HIGH && (g_fx.GetFxQuality() != FX_QUALITY_HIGH || !IsPlayer())) {
             ShadePed();
-        } else if (const auto boneRootPos = GetBonePosition(eBoneTag::BONE_ROOT); DistanceBetweenPoints2D(boneRootPos, TheCamera.GetPosition2D()) <= MAX_DISTANCE_PED_SHADOWS_SQR && !physicalFlags.bSubmergedInWater) {
+        } else if (const auto brp = GetBonePosition(eBoneTag::BONE_ROOT); DistanceBetweenPoints2D(brp, TheCamera.GetPosition2D()) <= MAX_DISTANCE_PED_SHADOWS_SQR) {
             const auto IsVehicleRTShadable = [](eVehicleType t) {
                 switch (t) {
                 case VEHICLE_TYPE_BMX:
@@ -2840,25 +2840,27 @@ void CPed::PreRenderAfterTest()
             };
 
             auto drawRealTimeShadow = true;
-            if (const auto* veh = GetVehicleIfInOne()) {
-                drawRealTimeShadow = IsVehicleRTShadable(veh->Type);
-            }
-
-            if (activeTask) {
-                drawRealTimeShadow = false;
-                if (const auto* targetVeh = notsa::cast<CTaskComplexEnterCarAsDriver>(activeTask)->GetTargetCar()) {
-                    drawRealTimeShadow = IsVehicleRTShadable(targetVeh->Type);
+            if (!physicalFlags.bSubmergedInWater) {
+                if (const auto* veh = GetVehicleIfInOne()) {
+                    drawRealTimeShadow = IsVehicleRTShadable(veh->m_nVehicleSubType);
                 }
-            }
 
-            const auto boneSpinePos = GetBonePosition(eBoneTag::BONE_SPINE);
-            if (IsAlive() && GetPosition().z - 0.2f > boneSpinePos.z) {
-                drawRealTimeShadow = bIsDucking;
-            }
+                if (activeTask) {
+                    drawRealTimeShadow = false;
+                    if (const auto* targetVeh = notsa::cast<CTaskComplexEnterCarAsDriver>(activeTask)->GetTargetCar()) {
+                        drawRealTimeShadow = IsVehicleRTShadable(targetVeh->m_nVehicleSubType);
+                    }
+                }
 
-            if (drawRealTimeShadow) {
-                g_realTimeShadowMan.DoShadowThisFrame(this);
-                ShadePed();
+                const auto boneSpinePos = GetBonePosition(eBoneTag::BONE_SPINE1);
+                if (IsAlive() && GetPosition().z - 0.2f > boneSpinePos.z) {
+                    drawRealTimeShadow = bIsDucking;
+                }
+
+                if (drawRealTimeShadow) {
+                    g_realTimeShadowMan.DoShadowThisFrame(this);
+                    ShadePed();
+                }
             }
         }
     }
@@ -2958,7 +2960,7 @@ void CPed::PreRenderAfterTest()
                 for (auto& sphere : colData->GetSpheres()) {
                     if (notsa::contains(std::initializer_list<uint8>{ 5, 6, 9 }, sphere.m_Surface.m_nPiece)) {
                         FxPrtMult_c p{ 1.0f, 1.0f, 1.0f, 0.35f, 0.01f, 0.0f, 0.03f };
-                        CVector pos = sphere.m_vecCenter;
+                        CVector     pos = sphere.m_vecCenter;
                         pos.x += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
                         pos.y += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
                         pos.z += CGeneral::GetRandomNumberInRange(-0.08f, 0.02f);
@@ -2968,6 +2970,21 @@ void CPed::PreRenderAfterTest()
                 }
             }
         }
+    }
+
+    if (m_pPlayerData && m_pPlayerData->m_nWetness && m_pPlayerData->m_nWaterCoverPerc < 30u) {
+        FxPrtMult_c p{1.0f, 1.0f, 1.0f, 0.2f, 0.15f, 0.0f, 0.1f};
+        CVector     pos = GetPosition();
+        pos.x += CGeneral::GetRandomNumberInRange(-0.03f, 0.03f);
+        pos.y += CGeneral::GetRandomNumberInRange(-0.03f, 0.03f);
+        pos.z += CGeneral::GetRandomNumberInRange(-0.8f, 0.2f);
+        p.m_Color.alpha *= (float)m_pPlayerData->m_nWetness / 100.0f;
+        CVector vel{};
+        g_fx.m_WaterSplash->AddParticle(&pos, &vel, 0.0f, &p, -1.0f, 1.2f, 0.6f, false);
+    }
+
+    if (const auto* veh = GetVehicleIfInOne()) {
+        m_fContactSurfaceBrightness = veh->m_fContactSurfaceBrightness;
     }
 }
 
