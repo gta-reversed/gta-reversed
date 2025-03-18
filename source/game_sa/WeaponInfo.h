@@ -143,7 +143,7 @@ public:
 
     //! NOTSA: GetWeaponInfo for specific ped.
     static auto GetWeaponInfo(CPed* ped, std::optional<eWeaponSkill> skill = {}) {
-        return GetWeaponInfo(ped->GetActiveWeapon().m_Type, skill.has_value() ? *skill : ped->GetWeaponSkill());
+        return GetWeaponInfo(ped->GetActiveWeapon().m_Type, skill.value_or(ped->GetWeaponSkill()));
     }
 
     const auto& GetAimingOffset() const { return g_GunAimingOffsets[m_nAimOffsetIndex]; }

@@ -34,11 +34,9 @@ public:
 
     // NOTSA
     bool IsWearingModel(const char* model, std::optional<eClothesModelPart> modelPart = {}) const {
-        if (modelPart.has_value()) {
-            return m_anModelKeys[+*modelPart] == CKeyGen::GetUppercaseKey(model);
-        } else {
-            return rng::contains(m_anModelKeys, CKeyGen::GetUppercaseKey(model));
-        }
+        return modelPart.has_value()
+            ? m_anModelKeys[+*modelPart] == CKeyGen::GetUppercaseKey(model)
+            : rng::contains(m_anModelKeys, CKeyGen::GetUppercaseKey(model));
     }
 };
 
