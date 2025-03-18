@@ -34,6 +34,9 @@ Since this project is done as a hobby, and worked on at irregular intervals, the
 ### 3. Set up the game and ASI
 0. GTA SA ***Compact exe***: Our code requires you to use this exe, otherwise you will experience random crashes. You must own the original game and assets for this to work.
 
+[!IMPORTANT]
+GTA SA ***Compact exe*** is not the same as ***1.0 US exe***, so check that your executable is exactly `5'189'632 bytes` (4.94 MiB).
+
 1. To install all the necessary files (after building the project!), run `install.py` with **__administrator privileges__** [Necessary to create symlinks on Windows] in the root directory.
 Alternatively, you can install them by yourself:
     * [ASI Loader](https://gtaforums.com/topic/523982-relopensrc-silents-asi-loader/)
