@@ -2,20 +2,9 @@
 
 #include "Coronas.h"
 
-//bool& CCoronas::SunBlockedByClouds = *(bool*)0x0;
-uint8& CCoronas::bChangeBrightnessImmediately = *(uint8*)0xC3E034;
-uint32& CCoronas::NumCoronas = *(uint32*)0xC3E038;
-float& CCoronas::SunScreenY = *(float*)0xC3E02C; // unused
-float& CCoronas::SunScreenX = *(float*)0xC3E028; // unused
-float& CCoronas::LightsMult = *(float*)0x8D4B5C; // 1.0f
-uint32& CCoronas::MoonSize = *(uint32*)0x8D4B60; // 3
-RwTexture* (&gpCoronaTexture)[CORONA_TEXTURES_COUNT] = *(RwTexture*(*)[CORONA_TEXTURES_COUNT])0xC3E000;
-CRegisteredCorona(&CCoronas::aCoronas)[MAX_NUM_CORONAS] = *(CRegisteredCorona(*)[MAX_NUM_CORONAS])0xC3E058;
 
-uint16(&CCoronas::ms_aEntityLightsOffsets)[8] = *(uint16(*)[8])0x8D5028;
-
-auto& aCoronastar = StaticRef<std::array<char[26], 10>, 0x8D4950>();
-auto& coronaTexturesAlphaMasks = StaticRef<std::array<char[26], 10>, 0x8D4A58>();
+auto& aCoronastar = StaticRef<std::array<char[26], CORONA_TEXTURES_COUNT>, 0x8D4950>();
+auto& coronaTexturesAlphaMasks = StaticRef<std::array<char[26], CORONA_TEXTURES_COUNT>, 0x8D4A58>();
 
 struct CFlareDefinition
 {
@@ -107,15 +96,9 @@ void CCoronas::InjectHooks() {
 void CCoronas::Init() {
     {
         CTxdStore::ScopedTXDSlot txd{"particle"};
-        //for (auto&& [tex, name, maskName] : rng::zip_view{ gpCoronaTexture, aCoronastar, coronaTexturesAlphaMasks }) { // TODO: C++23
-        //    if (!tex) { 
-        //        tex = RwTextureRead(name, maskName);
-        //    }
-        //}
-        for (auto i = 0; i < CORONA_TEXTURES_COUNT; i++) {
-            auto& tex = gpCoronaTexture[i];
-            if (!tex) {
-                tex = RwTextureRead(aCoronastar[i], coronaTexturesAlphaMasks[i]);
+        for (auto&& [tex, name, maskName] : rng::zip_view{ gpCoronaTexture, aCoronastar, coronaTexturesAlphaMasks }) {
+            if (!tex) { 
+                tex = RwTextureRead(name, maskName);
             }
         }
     }
@@ -125,7 +108,6 @@ void CCoronas::Init() {
 // Terminates coronas
 // 0x6FAB00
 void CCoronas::Shutdown() {
-    // NOTE: R* used a loop on SunScreenX and maybe SunScreenY, here on gpCoronaTexture
     for (auto& t : gpCoronaTexture) {
         if (t) {
             RwTextureDestroy(std::exchange(t, nullptr));
@@ -143,7 +125,7 @@ void CCoronas::Update() {
     struct CamLook {
         bool unused : 4{}, left : 1{}, right : 1{}, behind : 1{}, forward : 1{}; // Have to initialize the msb 4 bits too, otherwise it wont compare equal to the original code's value
         constexpr bool operator==(const CamLook& other) const = default;
-    } &LastCamLook = StaticRef<CamLook, 0xC3EF58>(); // NOTE/TODO: I'm not sure if foward is really forward
+    } &LastCamLook = StaticRef<CamLook>(0xC3EF58); // NOTE/TODO: I'm not sure if foward is really forward
 
     const auto c = TheCamera.GetActiveCam();
     const CamLook currLook{
@@ -161,9 +143,10 @@ void CCoronas::Update() {
         bChangeBrightnessImmediately = 3;
     }
     LastCamLook = currLook;
-    for (auto* corona = aCoronas; (int32)corona < (int32)&LastCamLook; ++corona) {
-        if (corona->m_dwId) {
-            corona->Update();
+
+    for (auto& corona : aCoronas) {
+        if (corona.IsActive()) {
+            corona.Update();
         }
     }
 }
@@ -523,8 +506,11 @@ void CCoronas::RenderSunReflection() {
 // Registers a corona effect with a custom texture.
 // Creates or updates a light corona in the game world with specified properties.
 // 0x6FC180
-void CCoronas::RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 alpha, const CVector& posn, float radius, float farClip, RwTexture* texture, eCoronaFlareType flareType, bool enableReflection, bool checkObstacles, int32 /*unused*/, float angle, bool longDistance, float nearClip, uint8 fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay) {
-    const auto  coronaPos = attachTo ? attachTo->GetMatrix().TransformPoint(posn) : posn;
+void CCoronas::RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 alpha, const CVector& inPos, float radius, float farClip, RwTexture* texture, eCoronaFlareType flareType, bool enableReflection, bool checkObstacles, int32 /*unused*/, float angle, bool longDistance, float nearClip, uint8 fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay) {
+    const auto coronaPos = attachTo
+        ? attachTo->GetMatrix().TransformPoint(inPos)
+        : inPos;
+
     const auto& camPos    = TheCamera.GetPosition();
     if (sq(farClip) < (camPos - coronaPos).SquaredMagnitude2D()) {
         return; // Corona is beyond far clip distance
@@ -544,66 +530,50 @@ void CCoronas::RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 gre
     }
 
     // Find or allocate a corona slot
-    int32 index = -1;
-    for (auto i = 0; i < MAX_NUM_CORONAS; ++i) {
-        auto& corona = aCoronas[i];
-        if (corona.m_dwId == id) {
-            // 0x6FC485
-            // Found existing corona
-            if (!corona.m_Color.a && !adjustedAlpha) {
-                corona.m_dwId = 0;
-                --NumCoronas;
-                return;
-            }
-            index = i;
-            break;
+    CRegisteredCorona* corona = GetCoronaByID(id);
+    if (corona) {
+        if (!corona->m_Color.a && !adjustedAlpha) {
+            corona->SetInactive();
+            --NumCoronas;
+            return;
         }
-        // 0x6FC303 - 0x6FC316
-        if (!corona.m_dwId && index == -1) {
-            index = i;
+    } else { /* allocate new */
+        if (!(corona = GetFree())) {
+            return;
         }
+
+        // 0x6FC33D
+        // Initialize new corona in free slot
+        corona->m_FadedIntensity             = fadeState ? 255 : 0;
+        corona->m_bJustCreated               = true;
+        corona->m_dwId                       = id;
+        corona->m_bCheckObstacles            = checkObstacles;
+        corona->m_bHasValidHeightAboveGround = false;
+        ++NumCoronas;
     }
 
-    // If no existing corona found but alpha is present, initialize a new one
-    if (index != -1) {
-        auto& corona = aCoronas[index];
-        if (corona.m_dwId == 0) {
-            // 0x6FC33D
-            // Initialize new corona in free slot
-            corona.m_FadedIntensity             = fadeState ? 255 : 0;
-            corona.m_bJustCreated               = true;
-            corona.m_dwId                       = id;
-            corona.m_bCheckObstacles            = checkObstacles;
-            corona.m_bHasValidHeightAboveGround = false;
-            ++NumCoronas;
-        }
+    // Update corona properties
+    corona->m_Color                = CRGBA{ red, green, blue, adjustedAlpha };
+    corona->m_vPosn                = coronaPos;
+    corona->m_fSize                = radius;
+    corona->m_fFarClip             = farClip;
+    corona->m_fNearClip            = nearClip;
+    corona->m_fFadeSpeed           = fadeSpeed;
+    corona->m_fAngle               = angle;
+    corona->m_pTexture             = texture;
+    corona->m_nFlareType           = flareType;
+    corona->m_bUsesReflection      = enableReflection;
+    corona->m_bCheckObstacles      = checkObstacles;
+    corona->m_bRegisteredThisFrame = true;
 
-        // Update corona properties
-        corona.m_Color                = CRGBA{ red, green, blue, adjustedAlpha };
-        corona.m_vPosn                = posn; // NOTE/BUG?: this coronaPos?
-        corona.m_fSize                = radius;
-        corona.m_fFarClip             = farClip;
-        corona.m_fNearClip            = nearClip;
-        corona.m_fFadeSpeed           = fadeSpeed;
-        corona.m_fAngle               = angle;
-        corona.m_pTexture             = texture;
-        corona.m_nFlareType           = flareType;
-        corona.m_bUsesReflection      = enableReflection;
-        corona.m_bCheckObstacles      = checkObstacles;
-        corona.m_bRegisteredThisFrame = true;
+    // 0x6FC401
+    corona->m_bOnlyFromBelow     = onlyFromBelow;
+    corona->m_bDrawWithWhiteCore = reflectionDelay;
+    corona->m_bFlashWhileFading  = false;
 
-        // 0x6FC401
-        corona.m_bOnlyFromBelow     = onlyFromBelow;
-        corona.m_bDrawWithWhiteCore = reflectionDelay;
-        corona.m_bFlashWhileFading  = false;
-
-        // Handle attachment to entity
-        corona.m_bAttached   = (attachTo != nullptr);
-        corona.m_pAttachedTo = attachTo;
-        if (attachTo) {
-            attachTo->RegisterReference(&corona.m_pAttachedTo);
-        }
-    }
+    // Handle attachment to entity
+    corona->m_bAttached   = (attachTo != nullptr);
+    CEntity::SetEntityReference(corona->m_pAttachedTo, attachTo);
 }
 
 // Registers a corona effect using a predefined corona type.
@@ -685,10 +655,19 @@ void CCoronas::DoSunAndMoon() {
 
 // NOTSA, 0x6FC524
 CRegisteredCorona* CCoronas::GetCoronaByID(int32 id) {
-    for (auto i = 0; i < MAX_NUM_CORONAS; ++i) {
-        auto& corona = aCoronas[i];
+    for (auto& corona : aCoronas) {
         if (corona.m_dwId == id) {
             return &corona;
+        }
+    }
+    return nullptr;
+}
+
+// notsa
+CRegisteredCorona* CCoronas::GetFree() {
+    for (auto& corona : aCoronas) {
+        if (!corona.IsActive()) {
+            return &corona; /* Caller has to increase `NumCoronas` */
         }
     }
     return nullptr;
