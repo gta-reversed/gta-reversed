@@ -2955,7 +2955,7 @@ void CPed::PreRenderAfterTest()
             auto* pedModelInfo = GetModelInfo()->AsPedModelInfoPtr();
             pedModelInfo->AnimatePedColModelSkinnedWorld(m_pRwClump);
 
-            if (const auto s = FindPlayerSpeed(); std::abs(s.x) <= 0.05f && std::abs(s.y) <= 0.05f && !IsStateDying() && !notsa::contains({ PEDSTATE_FALL, PEDSTATE_ATTACK, PEDSTATE_FIGHT }, m_nPedState) && IsPedHeadAbovePos(0.3f) && !RpAnimBlendClumpGetAssociation(m_pRwClump, ANIM_ID_IDLE_TIRED)) {
+            if (const auto& s = FindPlayerSpeed(); std::abs(s.x) <= 0.05f && std::abs(s.y) <= 0.05f && !IsStateDying() && !notsa::contains({ PEDSTATE_FALL, PEDSTATE_ATTACK, PEDSTATE_FIGHT }, m_nPedState) && IsPedHeadAbovePos(0.3f) && !RpAnimBlendClumpGetAssociation(m_pRwClump, ANIM_ID_IDLE_TIRED)) {
                 const auto* colData = pedModelInfo->GetColModel()->GetData();
                 for (auto& sphere : colData->GetSpheres()) {
                     if (notsa::contains(std::initializer_list<uint8>{ 5, 6, 9 }, sphere.m_Surface.m_nPiece)) {
