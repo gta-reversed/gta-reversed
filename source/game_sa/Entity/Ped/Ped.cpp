@@ -30,6 +30,7 @@
 #include "Shadows.h"
 #include "TaskComplexEnterCarAsDriver.h"
 #include "RealTimeShadowManager.h"
+#include <WindModifiers.h>
 
 void CPed::InjectHooks() {
     RH_ScopedVirtualClass(CPed, 0x86C358, 26);
@@ -299,7 +300,7 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     }
     GetTaskManager().SetTask(new CTaskSimpleStandStill{ 0, true, false, 8.0 }, TASK_PRIMARY_DEFAULT, false);
 
-    field_758 = 0;
+    m_Wobble = 0.0f;
     m_fRemovalDistMultiplier = 1.0f;
     m_StreamedScriptBrainToLoad = -1;
 
@@ -2809,13 +2810,24 @@ void CPed::PreRenderAfterTest()
             return std::make_pair(intel->m_TaskMgr.FindActiveTaskFromList({ TASK_COMPLEX_LEAVE_CAR, TASK_COMPLEX_DRAG_PED_FROM_CAR }) != nullptr, nullptr);
         }();
 
+        const auto ShadePed = [&] {
+            if (!m_pShadowData && (!bInVehicle || shadowNeeded)) {
+                CShadows::StoreShadowForPedObject(
+                    this,
+                    CTimeCycle::m_fShadowDisplacementX[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowDisplacementY[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowFrontX[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowFrontY[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowSideX[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowSideY[CTimeCycle::m_CurrentStoredValue]
+                );
+            }
+        };
+
         // FIX_BUGS: Original check was only for 1st player in high FX quality.
         if (g_fx.GetFxQuality() != FX_QUALITY_VERY_HIGH && g_fx.GetFxQuality() != FX_QUALITY_HIGH || !IsPlayer()) {
-            // goto label 58;
-        }
-
-        const auto boneRootPos = GetBonePosition(eBoneTag::BONE_ROOT);
-        if (DistanceBetweenPoints2D(boneRootPos, TheCamera.GetPosition2D()) <= MAX_DISTANCE_PED_SHADOWS_SQR && !physicalFlags.bSubmergedInWater) {
+            ShadePed();
+        } else if (const auto boneRootPos = GetBonePosition(eBoneTag::BONE_ROOT); DistanceBetweenPoints2D(boneRootPos, TheCamera.GetPosition2D()) <= MAX_DISTANCE_PED_SHADOWS_SQR && !physicalFlags.bSubmergedInWater) {
             const auto IsVehicleRTShadable = [](eVehicleType t) {
                 switch (t) {
                 case VEHICLE_TYPE_BMX:
@@ -2846,16 +2858,113 @@ void CPed::PreRenderAfterTest()
 
             if (drawRealTimeShadow) {
                 g_realTimeShadowMan.DoShadowThisFrame(this);
-                if (!m_pShadowData && (!bInVehicle || shadowNeeded)) {
-                    CShadows::StoreShadowForPedObject(
-                        this,
-                        CTimeCycle::m_fShadowDisplacementX[CTimeCycle::m_CurrentStoredValue],
-                        CTimeCycle::m_fShadowDisplacementY[CTimeCycle::m_CurrentStoredValue],
-                        CTimeCycle::m_fShadowFrontX[CTimeCycle::m_CurrentStoredValue],
-                        CTimeCycle::m_fShadowFrontY[CTimeCycle::m_CurrentStoredValue],
-                        CTimeCycle::m_fShadowSideX[CTimeCycle::m_CurrentStoredValue],
-                        CTimeCycle::m_fShadowSideY[CTimeCycle::m_CurrentStoredValue]
-                    );
+                ShadePed();
+            }
+        }
+    }
+
+    if (!m_nModelIndex) {
+        ShoulderBoneRotation(m_pRwClump);
+        m_bDontUpdateHierarchy = true;
+    }
+    float windMod{};
+    bool  isRainingForPlayer = IsPlayer() && CWindModifiers::FindWindModifier(GetPosition(), &windMod, &windMod) && !CCullZones::PlayerNoRain();
+    bool  isDrivingOpenVeh   = IsStateDriving() && IsInVehicle() && (GetVehicleIfInOne()->IsBike() || GetVehicleIfInOne()->IsAutomobile() && GetVehicleIfInOne()->IsOpenTopCar());
+
+    const auto GetHierMatrix = [h = GetAnimHierarchyFromSkinClump(m_pRwClump)](int32 id) {
+        return &RpHAnimHierarchyGetMatrixArray(h)[RpHAnimIDGetIndex(h, id)];
+    };
+
+    if (!m_pPlayerData || m_pPlayerData->m_pPedClothesDesc->IsWearingModel("vest") && m_pPlayerData->m_pPedClothesDesc->IsWearingModel("torso")) {
+        if (isRainingForPlayer || isDrivingOpenVeh) {
+            float vehSpeed = isDrivingOpenVeh ? GetVehicleIfInOne()->GetMoveSpeed().Magnitude() : 0.0f;
+
+            if (isRainingForPlayer) {
+                vehSpeed = std::max(vehSpeed, std::abs(windMod - 1.0f));
+            }
+
+            static constexpr float flt_8D1378 = 0.2f, flt_8D1380 = 0.2f;
+            static constexpr float flt_8D137C = 0.1f;
+
+            const auto ScaleAnimHierMat = [GetHierMatrix](float range, int32 id1) {
+                const CVector scale{
+                    CGeneral::GetRandomNumberInRange(1.0f - range, 1.0f + range),
+                    CGeneral::GetRandomNumberInRange(1.0f - range, 1.0f + range),
+                    CGeneral::GetRandomNumberInRange(1.0f - range, 1.0f + range),
+                };
+                RwMatrixScale(GetHierMatrix(id1), &scale, rwCOMBINEPRECONCAT);
+                return scale;
+            };
+
+            ScaleAnimHierMat(flt_8D1378 * vehSpeed, 4);
+            auto scale = ScaleAnimHierMat(flt_8D137C * vehSpeed, 31);
+            RwMatrixScale(GetHierMatrix(21), &scale, rwCOMBINEPRECONCAT);
+            if (isDrivingOpenVeh || !intel->GetTaskJetPack()) {
+                RwMatrixScale(GetHierMatrix(3), &scale, rwCOMBINEPRECONCAT);
+            }
+            scale = ScaleAnimHierMat(flt_8D1380 * vehSpeed, 32);
+            RwMatrixScale(GetHierMatrix(22), &scale, rwCOMBINEPRECONCAT);
+        }
+    }
+
+    if (bIsTalking && m_nBodypartToRemove == 2) {
+        CVector scale{};
+        RwMatrixScale(GetHierMatrix(5), &scale, rwCOMBINEPRECONCAT);
+        RwMatrixScale(GetHierMatrix(8), &scale, rwCOMBINEPRECONCAT);
+        RwMatrixScale(GetHierMatrix(6), &scale, rwCOMBINEPRECONCAT);
+        RwMatrixScale(GetHierMatrix(7), &scale, rwCOMBINEPRECONCAT);
+    }
+
+    if (m_Wobble > 0.0f) {
+        static constexpr float WOBBLE_FACTOR = 5.0f; // 0x8D21F0
+
+        const auto angle = std::sin(m_Wobble) * -WOBBLE_FACTOR;
+        m_Wobble -= CTimer::GetTimeStep() * m_WobbleSpeed;
+
+        if (IsPlayer()) {
+            RwMatrixRotate(GetHierMatrix(ANIM_ID_SMKCIG_PRTL_F), &CPedIK::ZaxisIK, angle, rwCOMBINEPRECONCAT);
+            RwMatrixRotate(GetHierMatrix(ANIM_ID_DRNKBR_PRTL_F), &CPedIK::ZaxisIK, angle, rwCOMBINEPRECONCAT);
+        }
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_BIKE_HIT), &CPedIK::ZaxisIK, angle, rwCOMBINEPRECONCAT);
+    }
+
+    if (CWeather::Earthquake > 0.0f) {
+        const auto swing = CGeneral::GetRandomNumberInRange(-CWeather::Earthquake, CWeather::Earthquake);
+
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_FIGHTSH_LEFT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_GUNMOVE_BWD), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_HIT_L), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_KD_RIGHT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_HIT_FRONT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_KD_LEFT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_FIGHTSH_BWD), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_GUNMOVE_R), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_HIT_BACK), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_KO_SKID_FRONT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_WALK_START), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+    }
+
+    if (bIsTalking && m_nBodypartToRemove == 2 && !IsStateDead() && !bIsDyingStuck && CTimer::GetFrameCounter() % 8 > 3) {
+        g_fx.AddBlood(GetHierMatrix(ANIM_ID_WALK_START)->pos, 0.6f * GetUp(), 16, m_fContactSurfaceBrightness);
+    }
+
+    if (CWeather::Rain > 0.3f && TheCamera.m_fSoundDistUp > 15.0f && !bInVehicle && CGame::CanSeeOutSideFromCurrArea() && GetPosition().z < 900.0f && !CCullZones::CamNoRain()) {
+        if (DistanceBetweenPoints(TheCamera.GetPosition(), GetPosition()) < 25.0f) {
+            auto* pedModelInfo = GetModelInfo()->AsPedModelInfoPtr();
+            pedModelInfo->AnimatePedColModelSkinnedWorld(m_pRwClump);
+
+            if (const auto s = FindPlayerSpeed(); std::abs(s.x) <= 0.05f && std::abs(s.y) <= 0.05f && !IsStateDying() && !notsa::contains({ PEDSTATE_FALL, PEDSTATE_ATTACK, PEDSTATE_FIGHT }, m_nPedState) && IsPedHeadAbovePos(0.3f) && !RpAnimBlendClumpGetAssociation(m_pRwClump, ANIM_ID_IDLE_TIRED)) {
+                const auto* colData = pedModelInfo->GetColModel()->GetData();
+                for (auto& sphere : colData->GetSpheres()) {
+                    if (notsa::contains(std::initializer_list<uint8>{ 5, 6, 9 }, sphere.m_Surface.m_nPiece)) {
+                        FxPrtMult_c p{ 1.0f, 1.0f, 1.0f, 0.35f, 0.01f, 0.0f, 0.03f };
+                        CVector pos = sphere.m_vecCenter;
+                        pos.x += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
+                        pos.y += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
+                        pos.z += CGeneral::GetRandomNumberInRange(-0.08f, 0.02f);
+                        CVector vel = s * 50.0f;
+                        g_fx.m_Splash->AddParticle(&pos, &vel, 0.0f, &p, -1.0f, 1.2f, 0.6f, false);
+                    }
                 }
             }
         }

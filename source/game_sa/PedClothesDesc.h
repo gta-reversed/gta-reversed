@@ -31,6 +31,15 @@ public:
     bool HasVisibleTattoo();
     void SetTextureAndModel(uint32 texture, uint32 model, eClothesTexturePart texturePart);
     void SetTextureAndModel(const char* textureName, const char* modelName, eClothesTexturePart texturePart);
+
+    // NOTSA
+    bool IsWearingModel(const char* model, std::optional<eClothesModelPart> modelPart = {}) const {
+        if (modelPart.has_value()) {
+            return m_anModelKeys[+*modelPart] == CKeyGen::GetUppercaseKey(model);
+        } else {
+            return rng::contains(m_anModelKeys, CKeyGen::GetUppercaseKey(model));
+        }
+    }
 };
 
 VALIDATE_SIZE(CPedClothesDesc, 0x78);
