@@ -101,7 +101,7 @@ public:
     auto&& GetPedGroup(this auto&& self) { return *self.m_pPedGroup; }
 
 private:
-    bool InterruptCurrentWithHighestPriorityEvent();
+    bool ShouldSetHighestPriorityEventAsCurrent();
 
 private: // Wrappers for hooks
     // 0x5F7250
