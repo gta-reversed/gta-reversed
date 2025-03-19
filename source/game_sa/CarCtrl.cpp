@@ -475,10 +475,10 @@ bool CCarCtrl::IsAnyoneParking() {
     for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
         if (auto vehicle = GetVehiclePool()->GetAt(i)) {
             switch (vehicle->m_autoPilot.m_nCarMission) {
-            case eCarMission::MISSION_PARK_PARALLEL_0:
-            case eCarMission::MISSION_PARK_PARALLEL_1:
-            case eCarMission::MISSION_PARK_PERPENDICULAR_0:
-            case eCarMission::MISSION_PARK_PERPENDICULAR_1:
+            case eCarMission::MISSION_PARK_PARALLEL:
+            case eCarMission::MISSION_PARK_PARALLEL_2:
+            case eCarMission::MISSION_PARK_PERPENDICULAR:
+            case eCarMission::MISSION_PARK_PERPENDICULAR_2:
                 return true;
             }
         }
@@ -509,33 +509,33 @@ void CCarCtrl::JoinCarWithRoadAccordingToMission(CVehicle* vehicle) {
     case MISSION_WAITFORDELETION:
     case MISSION_EMERGENCYVEHICLE_STOP:
     case MISSION_STOP_FOREVER:
-    case MISSION_FOLLOW_PRE_RECORDED_PATH:
-    case MISSION_PARK_PERPENDICULAR_0:
-    case MISSION_PARK_PARALLEL_0:
-    case MISSION_PARK_PERPENDICULAR_1:
-    case MISSION_PARK_PARALLEL_1:
+    case MISSION_FOLLOW_RECORDED_PATH:
+    case MISSION_PARK_PERPENDICULAR:
+    case MISSION_PARK_PARALLEL:
+    case MISSION_PARK_PERPENDICULAR_2:
+    case MISSION_PARK_PARALLEL_2:
         return JoinCarWithRoadSystem(vehicle);
     case MISSION_RAMPLAYER_FARAWAY:
     case MISSION_RAMPLAYER_CLOSE:
     case MISSION_BLOCKPLAYER_FARAWAY:
     case MISSION_BLOCKPLAYER_CLOSE:
     case MISSION_BLOCKPLAYER_HANDBRAKESTOP:
-    case MISSION_ATTACKPLAYER:
+    case MISSION_BOAT_ATTACKPLAYER:
     case MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_1:
     case MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_2:
     case MISSION_BLOCKPLAYER_FORWARDANDBACK:
-    case MISSION_POLICE_BIKE:
-    case MISSION_2C:
-    case MISSION_BOAT_CIRCLING_PLAYER: {
+    case MISSION_APPROACHPLAYER_FARAWAY:
+    case MISSION_APPROACHPLAYER_CLOSE:
+    case MISSION_BOAT_CIRCLEPLAYER: {
         JoinCarWithRoadSystemGotoCoors(vehicle, FindPlayerCoors(-1), true, vehicle->IsSubBoat());
         break;
     }
-    case MISSION_GOTOCOORDS:
-    case MISSION_GOTOCOORDS_STRAIGHT:
-    case MISSION_GOTOCOORDS_ACCURATE:
-    case MISSION_GOTOCOORDS_STRAIGHT_ACCURATE:
-    case MISSION_GOTOCOORDS_ASTHECROWSWIMS:
-    case MISSION_FOLLOW_PATH_RACING: {
+    case MISSION_GOTOCOORDINATES:
+    case MISSION_GOTOCOORDINATES_STRAIGHTLINE:
+    case MISSION_GOTOCOORDINATES_ACCURATE:
+    case MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE:
+    case MISSION_GOTOCOORDINATES_ASTHECROWSWIMS:
+    case MISSION_GOTOCOORDINATES_RACING: {
         JoinCarWithRoadSystemGotoCoors(vehicle, vehicle->m_autoPilot.m_vecDestinationCoors, true, vehicle->IsSubBoat());
         break;
     }
@@ -544,22 +544,22 @@ void CCarCtrl::JoinCarWithRoadAccordingToMission(CVehicle* vehicle) {
     case MISSION_BLOCKCAR_FARAWAY:
     case MISSION_BLOCKCAR_CLOSE:
     case MISSION_BLOCKCAR_HANDBRAKESTOP:
-    case MISSION_1B:
-    case MISSION_1C:
-    case MISSION_GOTO_ESCORTPOINT_0:
-    case MISSION_GOTO_ESCORTPOINT_1:
-    case MISSION_GOTO_ESCORTPOINT_2:
-    case MISSION_GOTO_ESCORTPOINT_3:
-    case MISSION_34:
-    case MISSION_35:
-    case MISSION_36:
-    case MISSION_37:
-    case MISSION_3C:
-    case MISSION_3D:
-    case MISSION_41:
-    case MISSION_42:
-    case MISSION_43:
-    case MISSION_44: {
+    case MISSION_PROTECTION_REAR:
+    case MISSION_PROTECTION_FRONT:
+    case MISSION_ESCORT_LEFT:
+    case MISSION_ESCORT_RIGHT:
+    case MISSION_ESCORT_REAR:
+    case MISSION_ESCORT_FRONT:
+    case MISSION_FOLLOWCAR_FARAWAY:
+    case MISSION_FOLLOWCAR_CLOSE:
+    case MISSION_KILLPED_FARAWAY:
+    case MISSION_KILLPED_CLOSE:
+    case MISSION_DO_DRIVEBY_CLOSE:
+    case MISSION_DO_DRIVEBY_FARAWAY:
+    case MISSION_ESCORT_LEFT_FARAWAY:
+    case MISSION_ESCORT_RIGHT_FARAWAY:
+    case MISSION_ESCORT_REAR_FARAWAY:
+    case MISSION_ESCORT_FRONT_FARAWAY: {
         JoinCarWithRoadSystemGotoCoors(vehicle, vehicle->m_autoPilot.m_pTargetCar->GetPosition(), true, vehicle->IsSubBoat());
         break;
     }
@@ -744,7 +744,7 @@ bool CCarCtrl::ScriptGenerateOneEmergencyServicesCar(uint32 modelId, CVector pos
     if (CStreaming::IsModelLoaded(modelId)) {
         if (auto pAuto = GenerateOneEmergencyServicesCar(modelId, posn)) {
             pAuto->m_autoPilot.m_vecDestinationCoors = posn;
-            pAuto->m_autoPilot.m_nCarMission = JoinCarWithRoadSystemGotoCoors(pAuto, posn, false, false) ? MISSION_GOTOCOORDS_STRAIGHT : MISSION_GOTOCOORDS;
+            pAuto->m_autoPilot.m_nCarMission = JoinCarWithRoadSystemGotoCoors(pAuto, posn, false, false) ? MISSION_GOTOCOORDINATES_STRAIGHTLINE : MISSION_GOTOCOORDINATES;
             return true;
         }
     }
