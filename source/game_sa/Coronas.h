@@ -73,10 +73,9 @@ public:
     static void DoSunAndMoon();
     // NOTSA
     static CRegisteredCorona* GetCoronaByID(int32 id);
-    // notsa
+    // NOTSA
     static CRegisteredCorona* GetFree();
 };
 
-constexpr int32 CORONA_TEXTURES_COUNT = 10;
-inline auto& gpCoronaTexture = StaticRef<std::array<RwTexture*, CORONA_TEXTURES_COUNT>>(0xC3E000);
+inline auto& gpCoronaTexture = StaticRef<std::array<RwTexture*, eCoronaType::CORONATYPE_COUNT>>(0xC3E000);
 

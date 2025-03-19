@@ -9,7 +9,8 @@ void CRegisteredCorona::InjectHooks() {
     RH_ScopedInstall(Update, 0x6FABF0, { .reversed = false });
 }
 
-void CRegisteredCorona::Update() { }
+void CRegisteredCorona::Update() {
+}
 
 //! Calculate the position to use for rendering
 auto CRegisteredCorona::GetPosition() const -> CVector {

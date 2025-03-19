@@ -2,9 +2,8 @@
 
 #include "Coronas.h"
 
-
-auto& aCoronastar = StaticRef<std::array<char[26], CORONA_TEXTURES_COUNT>, 0x8D4950>();
-auto& coronaTexturesAlphaMasks = StaticRef<std::array<char[26], CORONA_TEXTURES_COUNT>, 0x8D4A58>();
+auto& aCoronastar = StaticRef<std::array<char[26], eCoronaType::CORONATYPE_COUNT>, 0x8D4950>();
+auto& coronaTexturesAlphaMasks = StaticRef<std::array<char[26], eCoronaType::CORONATYPE_COUNT>, 0x8D4A58>();
 
 struct CFlareDefinition
 {
@@ -94,12 +93,10 @@ void CCoronas::InjectHooks() {
 // Initialises coronas
 // 0x6FAA70
 void CCoronas::Init() {
-    {
-        CTxdStore::ScopedTXDSlot txd{"particle"};
-        for (auto&& [tex, name, maskName] : rng::zip_view{ gpCoronaTexture, aCoronastar, coronaTexturesAlphaMasks }) {
-            if (!tex) { 
-                tex = RwTextureRead(name, maskName);
-            }
+    CTxdStore::ScopedTXDSlot txd{"particle"};
+    for (auto&& [tex, name, maskName] : rng::zip_view{ gpCoronaTexture, aCoronastar, coronaTexturesAlphaMasks }) {
+        if (!tex) { 
+            tex = RwTextureRead(name, maskName);
         }
     }
     rng::fill(aCoronas, CRegisteredCorona{});
@@ -252,7 +249,7 @@ void CCoronas::Render() {
         //< 0x6FB2F3 - Render flare
         if (c.m_nFlareType != FLARETYPE_NONE) {
             RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(FALSE));
-            RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCoronaTexture[0])));
+            RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCoronaTexture[CORONATYPE_SHINYSTAR])));
 
             //< 0x6FB35B
             const auto colorVariationMult = CGeneral::GetRandomNumberInRange(0.7f, 1.f) * (float)c.m_FadedIntensity; 
@@ -350,7 +347,7 @@ void CCoronas::RenderReflections() {
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
     RwRenderStateSet(rwRENDERSTATESRCBLEND,          RWRSTATE(rwBLENDONE));
     RwRenderStateSet(rwRENDERSTATEDESTBLEND,         RWRSTATE(rwBLENDONE));
-    RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(RwTextureGetRaster(gpCoronaTexture[3])));
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(RwTextureGetRaster(gpCoronaTexture[CORONATYPE_REFLECTION])));
 
     const auto camPos = TheCamera.GetPosition();
     for (auto&& [i, c] : notsa::enumerate(aCoronas)) {
@@ -491,7 +488,7 @@ void CCoronas::RenderSunReflection() {
     RwRenderStateSet(rwRENDERSTATESRCBLEND,          RWRSTATE(rwBLENDONE));
     RwRenderStateSet(rwRENDERSTATEDESTBLEND,         RWRSTATE(rwBLENDONE));
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
-    RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(RwTextureGetRaster(gpCoronaTexture[4])));
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(RwTextureGetRaster(gpCoronaTexture[CORONATYPE_HEADLIGHTLINE])));
 
     RenderBuffer::RenderStuffInBuffer();
 
@@ -621,7 +618,7 @@ void CCoronas::DoSunAndMoon() {
                 coronaPos,
                 cc.m_fSunSize * radiusMult,
                 999999.88f,
-                gpCoronaTexture[0],
+                gpCoronaTexture[CORONATYPE_SHINYSTAR],
                 ftype,
                 false,
                 isCoronaColor,
@@ -655,7 +652,7 @@ void CCoronas::DoSunAndMoon() {
     */
 }
 
-// NOTSA, 0x6FC524
+// NOTSA, code from 0x6FC524 to 0x6FC53C
 CRegisteredCorona* CCoronas::GetCoronaByID(int32 id) {
     for (auto& corona : aCoronas) {
         if (corona.m_dwId == id) {
@@ -665,7 +662,7 @@ CRegisteredCorona* CCoronas::GetCoronaByID(int32 id) {
     return nullptr;
 }
 
-// notsa
+// NOTSA, code from 0x6FC309 to 0x6FC31E
 CRegisteredCorona* CCoronas::GetFree() {
     for (auto& corona : aCoronas) {
         if (!corona.IsActive()) {
