@@ -1,64 +1,35 @@
-cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.23 FATAL_ERROR)
+
+project(GTASA C CXX)
+option(BUILD_DOC "Build documentation" OFF)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-if (MSVC)
-    set(CMAKE_GENERATOR_PLATFORM Win32)
-endif()
-
-if (MSVC_TOOLSET_VERSION)
-    message("-- MSVC_TOOLSET_VERSION: ${MSVC_TOOLSET_VERSION}")
-endif()
-
-project(GTASA C CXX)
-
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 if (MSVC)
     add_compile_options(/bigobj /utf-8)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-    # For Edit&Continue
-    add_compile_options(/ZI)
-    add_link_options(/SAFESEH:NO)
+    # For Edit & Continue
+    add_compile_options("$<$<CONFIG:Debug>:/ZI>")
+    add_link_options("$<$<CONFIG:Debug>:/SAFESEH:NO>")
 endif()
 
-option(BUILD_DOC "Build documentation" OFF)
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-include(Documentation)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/vendor/")
+if(BUILD_DOC)
+    include(Documentation)
+endif()
+include(vendor_ogg)
+include(vendor_vorbis)
+include(vendor_spdlog)
+include(vendor_nlohmann_json)
+include(vendor_tracy)
+include(vendor_imgui)
+include(vendor_libjpeg-turbo)
 
 set(RE_PROJECT GTASA)
 set(RE_PROJECT_LIB_NAME gta_reversed)
 set(RE_PROJECT_APP_NAME gta_reversed_app)
 
-set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
-set_property(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    PROPERTY VS_STARTUP_PROJECT ${RE_PROJECT_LIB_NAME}
-)
-
-# Put DLLs in root
-set(CMAKE_INSTALL_BINDIR .)
-# And other components in its own folder
-set(CMAKE_INSTALL_LIBDIR ${RE_PROJECT_LIB_NAME}/lib)
-set(CMAKE_INSTALL_INCLUDEDIR ${RE_PROJECT_LIB_NAME}/include)
-
-find_package(nlohmann_json REQUIRED)
-find_package(Ogg REQUIRED)
-find_package(spdlog REQUIRED)
-find_package(Tracy REQUIRED)
-find_package(Vorbis REQUIRED)
-find_package(imgui REQUIRED)
-find_package(libjpeg-turbo REQUIRED)
-
 add_subdirectory(source)
-
-function(create_source_group target)
-    get_property(sources TARGET ${target} PROPERTY SOURCES)
-    foreach (filename ${sources})
-        source_group("${path}" FILES ${filename})
-    endforeach ()
-endfunction()
-create_source_group(${RE_PROJECT_LIB_NAME})
-

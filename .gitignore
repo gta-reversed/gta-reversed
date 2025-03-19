@@ -15,7 +15,10 @@
 *.pdb
 *.dll
 *.lnk
+*.sln
 
+# content
+/game
 
 # workflow
 *.orig

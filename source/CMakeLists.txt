@@ -1,15 +1,30 @@
 option(${RE_PROJECT}_UNITY_BUILD "Use Unity/Jumbo build" OFF)
 option(${RE_PROJECT}_WITH_SANITIZERS "Use Sanitizers (better crash log)" OFF)
 option(${RE_PROJECT}_WITH_LTO "Use Link Time Optimization" OFF)
+set(${RE_PROJECT}_GAME_DIRECTORY "" CACHE STRING "Copy to directory")
 
 file(
     GLOB_RECURSE SOURCE_FILES_LIST
     LIST_DIRECTORIES false
-    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.h*"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.c*"
 )
-list(APPEND SOURCE_FILES_LIST StdInc.cpp)
+
+foreach(FILE ${SOURCE_FILES_LIST})
+    # Get the relative path of the file with respect to the base directory
+    file(RELATIVE_PATH FILE_RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${FILE}")
+    
+    # Extract the directory part of the relative path
+    get_filename_component(FILE_DIRECTTORY "${FILE_RELATIVE}" DIRECTORY)
+    
+    # Use the directory as the group name, or fall back to prefix if empty
+    if(FILE_DIRECTTORY)
+        string(REPLACE "/" "\\" FILE_GROUP "${FILE_DIRECTTORY}")
+        source_group("${FILE_GROUP}" FILES "${FILE}")
+    else()
+        source_group("" FILES "${FILE}")
+    endif()
+endforeach()
 
 add_library(${RE_PROJECT_LIB_NAME} MODULE ${SOURCE_FILES_LIST})
 
@@ -28,14 +43,49 @@ function(supress_deps_warnings targets)
 endfunction()
 supress_deps_warnings(ogg imgui vorbisfile spdlog nlohmann_json)
 
+set(GAME_DIRECTORY "${${RE_PROJECT}_GAME_DIRECTORY}")
+if("${GAME_DIRECTORY}" STREQUAL "")
+    if(EXISTS "${PROJECT_SOURCE_DIR}/game/gta_sa.exe")
+        file(SIZE "${PROJECT_SOURCE_DIR}/game/gta_sa.exe" FILE_SIZE)
+        if(NOT FILE_SIZE EQUAL 5189632)
+            message(FATAL_ERROR "Error: gta_sa.exe size is not exactly 5,189,632 bytes!")
+        else()
+            message(STATUS "Found valid compact executable! '${PROJECT_SOURCE_DIR}/game/gta_sa.exe'")
+        endif()
+        set(GAME_DIRECTORY "${PROJECT_SOURCE_DIR}/game")
+    endif()
+endif()
+if(NOT "${GAME_DIRECTORY}" STREQUAL "")
+    set(OUTPUT_DIRECTORY "${GAME_DIRECTORY}/scripts")
+    set_target_properties(${RE_PROJECT_LIB_NAME} PROPERTIES VS_DEBUGGER_COMMAND "${GAME_DIRECTORY}/gta_sa.exe")
+    set_target_properties(${RE_PROJECT_LIB_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${GAME_DIRECTORY}")
+elseif(MSVC)
+    set(OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/$<CONFIG>")
+else()
+    set(OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}")
+endif()
+
 set_target_properties(${RE_PROJECT_LIB_NAME}
     PROPERTIES
     SUFFIX ".asi"
-    ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
-    LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
-    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
+    ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY}"
+    LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY}"
+    RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIRECTORY}"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}"
+    RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${OUTPUT_DIRECTORY}"
+    RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${OUTPUT_DIRECTORY}"
+    LIBRARY_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}"
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}"
+    LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${OUTPUT_DIRECTORY}"
+    LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${OUTPUT_DIRECTORY}"
+    ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}"
+    ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}"
+    ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO "${OUTPUT_DIRECTORY}"
+    ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL "${OUTPUT_DIRECTORY}"
     COMPILE_WARNING_AS_ERROR ON
 )
+
 if (${RE_PROJECT}_UNITY_BUILD)
     set_target_properties(${RE_PROJECT_LIB_NAME}
         PROPERTIES
@@ -57,20 +107,21 @@ endif()
 
 target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
 
+add_dependencies(${RE_PROJECT_LIB_NAME} ogg)
 target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
-    Ogg::ogg
-    vorbis::vorbis
-    imgui::imgui
-    spdlog::spdlog
-    Tracy::TracyClient
+    ogg
+    vorbis
+    imgui
+    spdlog
+    tracy
+    nlohmann_json
+    libjpeg-turbo
     ddraw
     Winmm
     dxguid
     strmiids
     dsound
     d3d9
-    nlohmann_json::nlohmann_json
-    libjpeg-turbo::libjpeg-turbo
 )
 
 if(WIN32) 
@@ -155,9 +206,9 @@ if (${RE_PROJECT}_INSTALL)
     install(
         TARGETS ${RE_PROJECT_LIB_NAME}
         EXPORT ${RE_PROJECT_LIB_NAME}-targets
-        RUNTIME DESTINATION "."
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
     )
     if (MSVC)
-        install(FILES $<TARGET_PDB_FILE:${RE_PROJECT_LIB_NAME}> DESTINATION "." OPTIONAL)
+        install(FILES $<TARGET_PDB_FILE:${RE_PROJECT_LIB_NAME}> DESTINATION ${CMAKE_INSTALL_PREFIX} OPTIONAL)
     endif()
 endif()
