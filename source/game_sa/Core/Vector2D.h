@@ -50,7 +50,7 @@ public:
         return cpy;
     }
 
-    [[nodiscard]] constexpr float ComponentwiseSum() const {
+    [[nodiscard]] constexpr float CWSum() const { // Component-wise
         return x + y;
     }
 
@@ -113,7 +113,8 @@ public:
         y = Y;
     }
 
-    //! Heading of the vector - 
+    //! Heading of the vector
+    //! Tip: atan2(x, -y) is off by 180deg clockwise
     float Heading() const {
         return std::atan2(-x, y);
     }

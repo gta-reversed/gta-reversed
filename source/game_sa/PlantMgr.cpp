@@ -15,22 +15,25 @@ static void AtomicCreatePrelitIfNeeded(RpAtomic* atomic) {
 }
 
 // 0x5DD1E0 (do not hook! it has retarded calling conv)
-static bool GeometrySetPrelitConstantColor(RpGeometry* geometry, uint32 color) {
-    if ((geometry->flags & rpGEOMETRYPRELIT) == 0) {
+static bool GeometrySetPrelitConstantColor(RpGeometry* geometry, RwRGBA color) {
+    if ((RpGeometryGetFlags(geometry) & rpGEOMETRYPRELIT) == 0) {
         return false;
     }
 
-    RpGeometryLock(geometry, 4095);
-    if (geometry->preLitLum) {
-        std::memset(geometry->preLitLum, CRGBA(255, 255, 255, 255).ToInt(), geometry->numVertices);
+    RpGeometryLock(geometry, rpGEOMETRYLOCKALL);
+    auto prelit = RpGeometryGetPreLightColors(geometry);
+    if (prelit) {
+        auto numVertices = RpGeometryGetNumVertices(geometry);
+        for (auto i = 0; i < numVertices; ++i) {
+            prelit[i] = color;
+        }
     }
     RpGeometryUnlock(geometry);
-
     return true;
 }
 
 // 0x5DD220
-static bool LoadModels(std::initializer_list<const char*> models, RpAtomic* (&atomics)[4]) {
+static bool LoadModels(std::initializer_list<const char*> models, RpAtomic** atomics) {
     for (auto& model : models) {
         auto stream = RwStreamOpen(rwSTREAMFILENAME, rwSTREAMREAD, std::format("models\\grass\\{}", model).c_str());
         RpClump* clump = nullptr;
@@ -45,23 +48,26 @@ static bool LoadModels(std::initializer_list<const char*> models, RpAtomic* (&at
         SetFilterModeOnAtomicsTextures(firstAtomic, rwFILTERMIPLINEAR);
         AtomicCreatePrelitIfNeeded(firstAtomic);
 
-        auto geometry = firstAtomic->geometry;
-        RpGeometryLock(geometry, 4095); // todo: enum?
-        geometry->flags = (geometry->flags & 0xFFFFFF8F) | rpGEOMETRYMODULATEMATERIALCOLOR;
+        auto geometry = RpAtomicGetGeometry(firstAtomic);
+        RpGeometryLock(geometry, rpGEOMETRYLOCKALL);
+        RpGeometryGetFlags(geometry) &= 0xFFFFFF8F; // Negate bit 5 and 6, nothing seems to match it currently
+        RpGeometryGetFlags(geometry) |= rpGEOMETRYMODULATEMATERIALCOLOR;
         RpGeometryUnlock(geometry);
-        GeometrySetPrelitConstantColor(geometry, CRGBA(255, 255, 255, 255).ToInt());
+        GeometrySetPrelitConstantColor(geometry, RwRGBA{ 255, 255, 255, 255 });
 
-        auto data = 0x32000000;
-        RpGeometryForAllMaterials(geometry, [](RpMaterial* material, void* data) {
-            material->color = *(RwRGBA*)data;
-            RpMaterialSetTexture(material, tex_gras07Si);
-            return material;
-        }, &data);
+        RwRGBA color = { 0, 0, 0, 50 };
+        RpGeometryForAllMaterials(geometry, [](RpMaterial* material, void* color) {
+                RpMaterialSetColor(material, (RwRGBA*)color);
+                RpMaterialSetTexture(material, tex_gras07Si);
+                return material;
+            }, &color
+        );
 
         auto atomicCopy = RpAtomicClone(firstAtomic);
         RpClumpDestroy(clump);
         SetFilterModeOnAtomicsTextures(atomicCopy, rwFILTERLINEAR);
         RpAtomicSetFrame(atomicCopy, RwFrameCreate());
+        *atomics++ = atomicCopy;
     }
 
     return true;
@@ -80,7 +86,7 @@ void CPlantMgr::InjectHooks() {
     RH_ScopedInstall(Update, 0x5DCFA0);
     RH_ScopedInstall(PreUpdateOnceForNewCameraPos, 0x5DCF30);
     RH_ScopedInstall(UpdateAmbientColor, 0x5DB310);
-    RH_ScopedInstall(CalculateWindBending, 0x5DB3D0); // <-- probably incorrect?
+    RH_ScopedInstall(CalculateWindBending, 0x5DB3D0);
     RH_ScopedInstall(_ColEntityCache_Add, 0x5DBEB0);
     RH_ScopedInstall(_ColEntityCache_FindInCache, 0x5DB530);
     RH_ScopedInstall(_ColEntityCache_Remove, 0x5DBEF0);
@@ -89,6 +95,7 @@ void CPlantMgr::InjectHooks() {
     RH_ScopedInstall(_ProcessEntryCollisionDataSections_AddLocTris, 0x5DC8B0);
     RH_ScopedInstall(_ProcessEntryCollisionDataSections_RemoveLocTris, 0x5DBF20);
     RH_ScopedInstall(_UpdateLocTris, 0x5DCF00);
+    RH_ScopedInstall(Render, 0x5DBAE0);
     //RH_ScopedGlobalInstall(LoadModels, 0x5DD220); // uses `__usercall`, can't hook
 
     // Do not uncomment!
@@ -136,8 +143,8 @@ bool CPlantMgr::Initialise() {
         CTxdStore::PopCurrentTxd();
         CStreaming::IHaveUsedStreamingMemory();
 
-        grassTexturesPtr[0] = grassTexturesPtr[2] = *PC_PlantTextureTab[0];
-        grassTexturesPtr[1] = grassTexturesPtr[3] = *PC_PlantTextureTab[1];
+        grassTexturesPtr[0] = grassTexturesPtr[2] = PC_PlantTextureTab[0];
+        grassTexturesPtr[1] = grassTexturesPtr[3] = PC_PlantTextureTab[1];
     }
 
     // Load models
@@ -152,7 +159,7 @@ bool CPlantMgr::Initialise() {
                 CGrassRenderer::SetPlantModelsTab(i, PC_PlantModelsTab[0]); // grassModelsPtr[0]
             }
 
-            CGrassRenderer::SetCloseFarAlphaDist(3.0f, 60.0f);
+            CGrassRenderer::SetCloseFarAlphaDist(PLANTS_ALPHA_MIN_DIST, PLANTS_ALPHA_MAX_DIST);
             return true;
         }
     }
@@ -162,8 +169,11 @@ bool CPlantMgr::Initialise() {
 
 // 0x5DB940
 void CPlantMgr::Shutdown() {
-    for (auto it = m_CloseColEntListHead; it;) {
-        std::exchange(it, it->m_NextEntry)->ReleaseEntry();
+    auto* nextEntry = CPlantMgr::m_CloseColEntListHead;
+    while (nextEntry) {
+        auto* curEntry = nextEntry;
+        nextEntry      = curEntry->m_NextEntry;
+        curEntry->ReleaseEntry();
     }
 
     // Destroy atomics
@@ -209,7 +219,7 @@ bool CPlantMgr::ReloadConfig() {
 
     CPlantLocTri* prevTri = nullptr;
     for (auto& tab : m_LocTrisTab) {
-        tab.m_V1 = tab.m_V2 = tab.m_V3 = CVector{0.0f, 0.0f, 0.0f};
+        tab.m_V1 = tab.m_V2 = tab.m_V3 = tab.m_Center = CVector{0.0f, 0.0f, 0.0f};
         tab.m_SurfaceId = 0u;
         rng::fill(tab.m_nMaxNumPlants, 0u);
 
@@ -220,7 +230,7 @@ bool CPlantMgr::ReloadConfig() {
 
         prevTri = &tab;
     }
-    m_LocTrisTab[255].m_NextTri = nullptr;
+    m_LocTrisTab[MAX_NUM_PLANT_TRIANGLES - 1].m_NextTri = nullptr;
     m_CloseColEntListHead = nullptr;
     m_UnusedColEntListHead = m_ColEntCacheTab;
 
@@ -237,7 +247,7 @@ bool CPlantMgr::ReloadConfig() {
 
         prevEntry = &tab;
     }
-    m_ColEntCacheTab[255].m_NextEntry = nullptr;
+    m_ColEntCacheTab[MAX_NUM_PROC_OBJECTS - 1].m_NextEntry = nullptr;
 
     return true;
 }
@@ -315,8 +325,8 @@ void CPlantMgr::SetPlantFriendlyFlagInAtomicMI(CAtomicModelInfo* ami) {
 void CPlantMgr::Update(const CVector& cameraPosition) {
     ZoneScoped;
 
-    static int8& cache = *(int8*)0xC09171;
-    static int8& section = *(int8*)0xC09170;
+    static int8& nUpdateEntCache    = *(int8*)0xC09171;
+    static int8& nLocTriSkipCounter = *(int8*)0xC09170;
 
     IncrementScanCode();
     CGrassRenderer::SetCurrentScanCode(m_scanCode);
@@ -325,17 +335,18 @@ void CPlantMgr::Update(const CVector& cameraPosition) {
     UpdateAmbientColor();
     CGrassRenderer::SetGlobalWindBending(CalculateWindBending());
 
-    _ColEntityCache_Update(cameraPosition, (++cache % MAX_PLANTS) != 0);
+    _ColEntityCache_Update(cameraPosition, (++nUpdateEntCache % MAX_PLANTS) != 0);
 
-    auto head = m_CloseColEntListHead;
-    for (auto i = section++ % 8; m_CloseColEntListHead; head = m_CloseColEntListHead->m_NextEntry) {
-        _ProcessEntryCollisionDataSections(*head, cameraPosition, i);
+    auto skipMask = nLocTriSkipCounter++ % 8;
+    for (auto head = m_CloseColEntListHead; head; head = head->m_NextEntry) {
+        _ProcessEntryCollisionDataSections(*head, cameraPosition, skipMask);
     }
 }
 
 // 0x5DCF30
 void CPlantMgr::PreUpdateOnceForNewCameraPos(const CVector& posn) {
-    CGrassRenderer::SetCurrentScanCode(++m_scanCode);
+    IncrementScanCode();
+    CGrassRenderer::SetCurrentScanCode(m_scanCode);
     CGrassRenderer::SetGlobalCameraPos(posn);
     UpdateAmbientColor();
     CGrassRenderer::SetGlobalWindBending(CalculateWindBending());
@@ -359,33 +370,107 @@ void CPlantMgr::UpdateAmbientColor() {
 // 0x5DB3D0
 float CPlantMgr::CalculateWindBending() {
     static uint32& calculateTimer = *(uint32*)0xC0916C;
-    static uint16& seed = *(uint16*)0xC09168;
+    static uint16& RandomSeed = *(uint16*)0xC09168;
 
     if ((calculateTimer % 2) == 0) {
         calculateTimer++;
-        seed = CGeneral::GetRandomNumber();
+        RandomSeed = CGeneral::GetRandomNumber();
     }
 
-    // 36 times the earth's radius, in AU.
-    constexpr float radius_x36 = 0.0015332f;
+    // The 2PI approximation here is nice, they could have went for `PI = 3` tho.
+    constexpr float scalingFactor = 6.28f / 4096.f;
 
-    // TODO: Look CEntity::ModifyMatrixForTreeInWind; it's definitely inlined somewhere.
+    // TODO: Look CEntity::ModifyMatrixForTreeInWind; it's definitely inlined somewhere. (Not actually inlined anywhere, according to android debug symbols)
     if (CWeather::Wind >= 0.5f) {
-        uint32 v4 = 8 * CTimer::GetTimeInMS() + seed;
+        auto uiOffset1 = (((RandomSeed + CTimer::GetTimeInMS() * 8) & 0xFFFF) / 4'096) % 16;
+        auto uiOffset2 = (uiOffset1 + 1) % 16;
+        auto fContrib  = static_cast<float>(((RandomSeed + CTimer::GetTimeInMS() * 8) % 4'096)) / 4096.0F;
 
-        // return AIDS;
-        return CWeather::Wind
-            * (CWeather::saTreeWindOffsets[v4 >> 12] * (1.0f - (float)(v4 % 4096) / 4096.0f) + 1.0f)
-            + CWeather::saTreeWindOffsets[((v4 >> 12) + 1) % 16] * ((float)(v4 % 4096) / 4096.0f)
-            * 0.015f;
+        auto fWindOffset = (1.0F - fContrib) * CWeather::saTreeWindOffsets[uiOffset1];
+        fWindOffset += 1.0F + fContrib * CWeather::saTreeWindOffsets[uiOffset2];
+        fWindOffset *= CWeather::Wind;
+        fWindOffset *= 0.015F;
+        return fWindOffset;
     } else {
-        return std::sinf(radius_x36 * (float)(CTimer::GetTimeInMS() % 4096)) / (CWeather::Wind >= 0.2f ? 125.0f : 200.0f);
+        return std::sinf(scalingFactor * (float)(CTimer::GetTimeInMS() % 4'096)) / (CWeather::Wind >= 0.2f ? 125.0f : 200.0f);
     }
 }
 
 // 0x5DBAE0
 void CPlantMgr::Render() {
-    plugin::Call<0x5DBAE0>();
+    if (g_fx.GetFxQuality() == FX_QUALITY_LOW) {
+        return;
+    }
+
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,         RWRSTATE(FALSE));
+    RwRenderStateSet(rwRENDERSTATEZTESTENABLE,          RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE,    RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATESRCBLEND,             RWRSTATE(rwBLENDSRCALPHA));
+    RwRenderStateSet(rwRENDERSTATEDESTBLEND,            RWRSTATE(rwBLENDINVSRCALPHA));
+    RwRenderStateSet(rwRENDERSTATEFOGENABLE,            RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(NULL));
+    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTION,    RWRSTATE(rwALPHATESTFUNCTIONALWAYS));
+
+    for (auto i = 0; i < 4; i++) {
+        auto* plantTri = m_CloseLocTriListHead[i];
+        auto* grassTextures = grassTexturesPtr[i];
+
+        while (plantTri) {
+            if (!plantTri->m_createsPlants) {
+                plantTri = plantTri->m_NextTri;
+                continue;
+            }
+
+            auto* surfData = CPlantSurfPropMgr::GetSurfProperties(plantTri->m_SurfaceId);
+            for (auto k = 0; k < 3; k++) {
+                if (!TheCamera.IsSphereVisible(plantTri->m_Center, plantTri->m_SphereRadius) && !TheCamera.IsSphereVisibleInMirror(plantTri->m_Center, plantTri->m_SphereRadius)) {
+                    continue;
+                }
+
+                auto& plantSurf = surfData->m_Plants[k];
+                if (plantSurf.model_id == 0xFFFF) {
+                    continue;
+                }
+
+                PPTriPlant triPlant;
+                triPlant.V1 = plantTri->m_V1;
+                triPlant.V2 = plantTri->m_V2;
+                triPlant.V3 = plantTri->m_V3;
+                triPlant.Center = plantTri->m_Center;
+                triPlant.seed            = plantTri->m_Seed[k];
+                triPlant.num_plants = (plantTri->m_nMaxNumPlants[k] + 8) & 0xFFF8;
+
+                triPlant.model_id = plantSurf.model_id;
+                triPlant.scale.x  = plantSurf.scale_xy;
+                triPlant.scale.y  = plantSurf.scale_z;
+                triPlant.texture    = grassTextures[plantSurf.uv_offset];
+
+                auto colorMix = plantTri->m_nLighting.GetCurrentLighting();
+                // Not sure if applicable: colorMix *= 255.f;
+                triPlant.color = plantSurf.color;
+                auto alpha     = triPlant.color.a;
+                triPlant.color *= colorMix;
+                triPlant.color.a = alpha;
+
+                triPlant.intensity = plantSurf.intensity;
+                triPlant.intensity_var = plantSurf.intensity_variation;
+                triPlant.scale_var_xy  = plantSurf.scale_variation_xy;
+                triPlant.scale_var_z   = plantSurf.scale_variation_z;
+                triPlant.wind_bend_scale = plantSurf.wind_blending_scale;
+                triPlant.wind_bend_var   = plantSurf.wind_blending_variation;
+
+                CGrassRenderer::AddTriPlant(&triPlant, i);
+            }
+
+            plantTri = plantTri->m_NextTri;
+        }
+
+        CGrassRenderer::FlushTriPlantBuffer();
+    }
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,         RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEZTESTENABLE,          RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTION,    RWRSTATE(rwALPHATESTFUNCTIONGREATEREQUAL));
+    RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(NULL));
 }
 
 // 0x5DBEB0
@@ -422,9 +507,12 @@ void CPlantMgr::_ColEntityCache_Remove(CEntity* entity) {
 void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
     if (fast) {
         // doing a fast update, prune only ones that have no entity.
-        for (auto i = CPlantMgr::m_CloseColEntListHead; i; i = i->m_NextEntry) {
-            if (!i->m_Entity) {
-                i->ReleaseEntry();
+        auto* nextFastEntry = CPlantMgr::m_CloseColEntListHead;
+        while (nextFastEntry) {
+            auto* curEntry = nextFastEntry; // ReleaseEntry() Overwrites m_NextEntry pointer, we need to keep track of it before that can happen
+            nextFastEntry  = curEntry->m_NextEntry;
+            if (!curEntry->m_Entity) {
+                curEntry->ReleaseEntry();
             }
         }
 
@@ -432,9 +520,12 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
     }
 
     // prune ones that have no entity, too far or not in the same area.
-    for (auto i = CPlantMgr::m_CloseColEntListHead; i; i = i->m_NextEntry) {
-        if (!i->m_Entity || _CalcDistanceSqrToEntity(i->m_Entity, cameraPos) > sq(340.0f) || !i->m_Entity->IsInCurrentAreaOrBarberShopInterior()) {
-            i->ReleaseEntry();
+    auto* nextEntry = CPlantMgr::m_CloseColEntListHead;
+    while (nextEntry) {
+        auto* curEntry = nextEntry; // ReleaseEntry() Overwrites m_NextEntry pointer, we need to keep track of it before that can happen
+        nextEntry      = curEntry->m_NextEntry;
+        if (!curEntry->m_Entity || _CalcDistanceSqrToEntity(curEntry->m_Entity, cameraPos) > PROC_OBJECTS_MAX_DISTANCE_SQUARED || !curEntry->m_Entity->IsInCurrentAreaOrBarberShopInterior()) {
+            curEntry->ReleaseEntry();
         }
     }
 
@@ -442,7 +533,7 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
         return;
 
     CWorld::IncrementCurrentScanCode();
-    CWorld::IterateSectorsOverlappedByRect({ cameraPos, 340.0f }, [cameraPos](int32 x, int32 y) {
+    CWorld::IterateSectorsOverlappedByRect({ cameraPos, PROC_OBJECTS_MAX_DISTANCE }, [cameraPos](int32 x, int32 y) {
         for (auto i = GetSector(x, y)->m_buildings.GetNode(); i; i = i->m_next) {
             const auto item = static_cast<CEntity*>(i->m_item);
 
@@ -450,16 +541,18 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
                 continue;
 
             if (auto mi = item->GetModelInfo(); mi->GetModelType() == MODEL_INFO_ATOMIC && mi->bAtomicFlag0x200) {
+                bool foundEntity = false;
                 for (auto j = m_CloseColEntListHead; j; j = j->m_NextEntry) {
                     if (j->m_Entity == item) {
-                        // found the stuff, continue
-                        continue;
+                        foundEntity = true;
+                        break;
                     }
                 }
-
-                if (_CalcDistanceSqrToEntity(item, cameraPos) <= sq(340.0f)) {
-                    if (!m_UnusedColEntListHead || !m_UnusedColEntListHead->AddEntry(item)) {
-                        return false;
+                if (!m_CloseColEntListHead || !foundEntity) {
+                    if (_CalcDistanceSqrToEntity(item, cameraPos) <= PROC_OBJECTS_MAX_DISTANCE_SQUARED) {
+                        if (!m_UnusedColEntListHead || !m_UnusedColEntListHead->AddEntry(item)) {
+                            return false;
+                        }
                     }
                 }
             }
@@ -470,100 +563,108 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
 }
 
 // 0x5DCD80
-void CPlantMgr::_ProcessEntryCollisionDataSections(const CPlantColEntEntry& entry, const CVector& center, int32 a3) {
+void CPlantMgr::_ProcessEntryCollisionDataSections(const CPlantColEntEntry& entry, const CVector& center, int32 iTriProcessSkipMask) {
     const auto cd = entry.m_Entity->GetColData();
     const auto numTriangles = entry.m_numTriangles;
 
     if (!cd || numTriangles != cd->m_nNumTriangles)
         return;
 
-    _ProcessEntryCollisionDataSections_RemoveLocTris(entry, center, a3, 0, numTriangles - 1);
+    _ProcessEntryCollisionDataSections_RemoveLocTris(entry, center, iTriProcessSkipMask, 0, numTriangles - 1);
 
     if (!cd->bHasFaceGroups) {
-        return _ProcessEntryCollisionDataSections_AddLocTris(entry, center, a3, 0, numTriangles - 1);
+        return _ProcessEntryCollisionDataSections_AddLocTris(entry, center, iTriProcessSkipMask, 0, numTriangles - 1);
     }
 
-    for (auto i = cd->GetNumFaceGroups(); i != 0; i--) {
-        auto& faceGroup = cd->GetFaceGroups()[i];
-        auto& box = faceGroup.bb;
+    for (const auto& faceGroup : cd->GetFaceGroups()) {
 
         CVector out[2]{};
-        TransformPoints(out, 2, entry.m_Entity->GetMatrix(), (CVector*)&box);
+        TransformPoints(out, 2, entry.m_Entity->GetMatrix(), (CVector*)&faceGroup.bb);
+        CBox box{};
         box.Set(out[0], out[1]);
         box.Recalc();
 
-        if (CCollision::TestSphereBox({ center, 100.0f }, box)) {
-            _ProcessEntryCollisionDataSections_AddLocTris(entry, center, a3, faceGroup.first, faceGroup.last);
+        if (CCollision::TestSphereBox({ center, PLANTS_MAX_DISTANCE }, box)) {
+            _ProcessEntryCollisionDataSections_AddLocTris(entry, center, iTriProcessSkipMask, faceGroup.first, faceGroup.last);
         }
     }
 }
 
 // 0x5DC8B0
-void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEntEntry& entry, const CVector& center, int32 a3, int32 start, int32 end) {
+void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEntEntry& entry, const CVector& center, int32 iTriProcessSkipMask, int32 start, int32 end) {
     const auto entity = entry.m_Entity;
     const auto cd = entity->GetColData();
     if (!cd)
         return;
 
     for (auto i = start; i <= end; i++) {
-        if ((a3 != 0xFAFAFAFA && a3 != (i % 8)) || !entry.m_Objects[i])
+        if ((iTriProcessSkipMask != 0xFAFAFAFA && iTriProcessSkipMask != (i % 8)) || entry.m_Objects[i])
             continue;
 
-        if (m_UnusedLocTriListHead) {
-            const auto& tri = cd->m_pTriangles[i];
+        if (!m_UnusedLocTriListHead)
+            continue;
+    
+        const auto& tri = cd->m_pTriangles[i];
 
-            CVector vertices[3];
-            cd->GetTrianglePoint(vertices[0], tri.vA);
-            cd->GetTrianglePoint(vertices[1], tri.vB);
-            cd->GetTrianglePoint(vertices[2], tri.vC);
+        CVector vertices[3];
+        cd->GetTrianglePoint(vertices[0], tri.vA);
+        cd->GetTrianglePoint(vertices[1], tri.vB);
+        cd->GetTrianglePoint(vertices[2], tri.vC);
 
-            TransformPoints(vertices, 3, entity->GetMatrix(), vertices);
+        TransformPoints (vertices, 3, entity->GetMatrix(), vertices);
 
-            CVector cmp[] = {
-                vertices[1],
-                vertices[2],
-                CVector::AverageN(vertices, 3),
-                (vertices[0] + vertices[1]) / 2.0f,
-                (vertices[0] + vertices[2]) / 2.0f,
-                (vertices[1] + vertices[2]) / 2.0f
-            };
+        CVector cmp[] = {
+            vertices[0],
+            vertices[1],
+            vertices[2],
+            CVector::AverageN(vertices, 3),
+            (vertices[0] + vertices[1]) / 2.0f,
+            (vertices[0] + vertices[2]) / 2.0f,
+            (vertices[1] + vertices[2]) / 2.0f
+        };
 
-            if (rng::none_of(cmp, [center](auto v) { return DistanceBetweenPoints(v, center) < 10000.0f; }))
-                continue;
+        if (rng::none_of(cmp, [center](auto v) { return DistanceBetweenPointsSquared(v, center) < PLANTS_MAX_DISTANCE_SQUARED; })) {
+            continue;
+        }
 
-            auto createsPlants = g_surfaceInfos.CreatesPlants(tri.m_nMaterial);
-            auto createsObjects = g_surfaceInfos.CreatesPlants(tri.m_nMaterial);
+        auto createsPlants = g_surfaceInfos.CreatesPlants(tri.m_nMaterial);
+        auto createsObjects = g_surfaceInfos.CreatesObjects(tri.m_nMaterial);
 
-            if (!createsPlants || !createsObjects)
-                continue;
+        if (!createsPlants && !createsObjects)
+            continue;
 
-            const auto unusedHead = m_UnusedLocTriListHead;
-            if (unusedHead->Add(
-                vertices[0],
-                vertices[1],
-                vertices[2],
-                tri.m_nMaterial,
-                tri.m_nLight,
-                createsPlants,
-                createsObjects)) {
-                entry.m_Objects[i] = unusedHead;
+        const auto unusedHead = m_UnusedLocTriListHead;
+        bool bAdded = unusedHead->Add(
+            vertices[0],
+            vertices[1],
+            vertices[2],
+            tri.m_nMaterial,
+            tri.m_nLight,
+            createsPlants,
+            createsObjects
+        );
 
-                if (unusedHead->m_createsObjects) {
-                    if (g_procObjMan.ProcessTriangleAdded(unusedHead)) {
-                        if (!unusedHead->m_createsPlants) {
-                            unusedHead->Release();
-                        }
-                    } else {
-                        unusedHead->m_createdObjects = true;
-                    }
+        if (!bAdded)
+            continue;
+
+        entry.m_Objects[i] = unusedHead;
+        if (unusedHead->m_createsObjects) {
+            auto numTrianglesAdded = g_procObjMan.ProcessTriangleAdded(unusedHead);
+            if (numTrianglesAdded == 0) {
+                if (!unusedHead->m_createsPlants) {
+                    unusedHead->Release();
+                    entry.m_Objects[i] = 0;
                 }
+            } else {
+                unusedHead->m_createdObjects = true;
             }
         }
+
     }
 }
 
 // 0x5DBF20
-void CPlantMgr::_ProcessEntryCollisionDataSections_RemoveLocTris(const CPlantColEntEntry& entry, const CVector& center, int32 a3, int32 start, int32 end) {
+void CPlantMgr::_ProcessEntryCollisionDataSections_RemoveLocTris(const CPlantColEntEntry& entry, const CVector& center, int32 iTriProcessSkipMask, int32 start, int32 end) {
     const auto entity = entry.m_Entity;
     const auto colModel = entity->GetColModel();
 
@@ -574,7 +675,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_RemoveLocTris(const CPlantCol
             }
         }
 
-        if (a3 != 0xFAFAFAFA && a3 != (i % 8))
+        if (iTriProcessSkipMask != 0xFAFAFAFA && iTriProcessSkipMask != (i % 8))
             continue;
 
         if (auto& object = entry.m_Objects[i]; object) {
@@ -587,11 +688,10 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_RemoveLocTris(const CPlantCol
                 (object->m_V1 + object->m_V3) / 2.0f
             };
 
-            if (rng::none_of(cmp, [center](auto v) { return DistanceBetweenPoints(v, center) < 10000.0f; }))
-                continue;
-
-            object->Release();
-            object = nullptr;
+            if (rng::all_of(cmp, [center](auto v) { return DistanceBetweenPointsSquared(v, center) >= PLANTS_MAX_DISTANCE_SQUARED; })) {
+                object->Release();
+                object = nullptr;
+            }
         }
     }
 }

@@ -305,7 +305,7 @@ void CCam::RotCamIfInFrontCar(const CVector&, float) {
 }
 
 // 0x50A850
-bool CCam::Using3rdPersonMouseCam() {
+bool CCam::Using3rdPersonMouseCam() const {
     return CCamera::m_bUseMouse3rdPerson && m_nMode == MODE_FOLLOWPED;
 }
 

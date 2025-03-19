@@ -10,12 +10,15 @@
 namespace notsa {
 namespace script {
 /*!
-* Bool is a sepcial case, it isn't stored, but rather updates the compare flag.
+* Bool is a special case, it isn't stored, but rather updates the compare flag.
 * TODO: Actually verify this theory.
 */
-inline void StoreArg(CRunningScript* S, bool arg) {
+template<typename T>
+    requires std::is_same_v<T, bool> // Must do it like this to avoid erronous implicit conversions to bool
+inline void StoreArg(CRunningScript* S, T arg) {
     S->UpdateCompareFlag(arg);
 }
+
 /*!
 * @brief Store an argument of type. NOTE: Increments script's IP.
 *
@@ -23,7 +26,7 @@ inline void StoreArg(CRunningScript* S, bool arg) {
 * @param arg    The argument to store
 */
 template<typename T>
-    requires (std::is_arithmetic_v<T>)
+    requires (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
 inline void StoreArg(CRunningScript* S, const T& arg) { // Add requirements to filter out possible mistakes (Like returning an unsupported type)
     tScriptParam* dest = [&] {
         const auto GetFromArray = [S](auto&& GetArrayElement) {
@@ -46,7 +49,7 @@ inline void StoreArg(CRunningScript* S, const T& arg) { // Add requirements to f
             NOTSA_UNREACHABLE("Variable type unknown ={:x}", t);
         }
     }();
-    static_assert(sizeof(T) <= sizeof(tScriptParam)); // Otherwise we'd be overwriting the script => bad
+    static_assert(sizeof(arg) <= sizeof(tScriptParam)); // Otherwise we'd be overwriting the script => bad
 
     memset((void*)dest, 0, sizeof(tScriptParam));  // Zero it all out
     memcpy((void*)dest, (void*)&arg, sizeof(arg)); // Now copy the value to it (Which might be less than 4 bytes)
@@ -73,9 +76,12 @@ inline void StoreArg(CRunningScript* S, CompareFlagUpdate flag) {
 // Below must be after the basic overloads, otherwise won't compile
 
 //! Store a pooled type (CPed, CVehicle, etc) - It pushes a handle of the entity to the script
-template<detail::PooledType T>
-inline void StoreArg(CRunningScript* S, const T& value) {
-    const auto StoreEntity = [&](auto ptr) { StoreArg(S, detail::PoolOf<std::remove_cvref_t<T>>().GetRef(ptr)); };
+template<typename T, typename U = std::remove_cvref_t<std::remove_pointer_t<T>>>
+    requires detail::PooledType<U>
+inline void StoreArg(CRunningScript* S, T&& value) {
+    const auto StoreEntity = [&](auto ptr) {
+        StoreArg(S, detail::PoolOf<U>().GetRef(ptr));
+    };
     if constexpr (std::is_pointer_v<T>) {
         if (value) { // As always, pointers might be null, so we have to check.
             StoreEntity(value);
@@ -86,7 +92,6 @@ inline void StoreArg(CRunningScript* S, const T& value) {
         StoreEntity(&value);
     }
 }
-
 
 /*!
  * @brief Overload for enum types. They're casted to their underlying type.

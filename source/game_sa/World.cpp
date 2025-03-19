@@ -2847,6 +2847,8 @@ void CWorld::RepositionCertainDynamicObjects() {
 bool CWorld::ProcessLineOfSight(const CVector& origin, const CVector& target, CColPoint& outColPoint, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck) {
     assert(!origin.HasNanOrInf() && !target.HasNanOrInf()); // We're getting random nan/inf's from somewhere, so let's try to root cause it...
 
+    outEntity = nullptr;
+
     const int32 originSectorX = GetSectorX(origin.x);
     const int32 originSectorY = GetSectorY(origin.y);
     const int32 targetSectorX = GetSectorX(target.x);

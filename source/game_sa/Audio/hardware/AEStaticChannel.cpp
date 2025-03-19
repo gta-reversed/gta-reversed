@@ -61,7 +61,7 @@ void CAEStaticChannel::Service() {
 
     UpdateStatus();
 
-    if (!m_bNoScalingFactor && !bufferStatus.Bit0x1) {
+    if (!m_bPaused && !bufferStatus.Bit0x1) {
         if (const auto buf = std::exchange(m_pDirectSoundBuffer, nullptr)) {
             --g_numSoundChannelsUsed;
             buf->Release();
@@ -74,7 +74,7 @@ bool CAEStaticChannel::IsSoundPlaying() {
     if (!m_pDirectSoundBuffer)
         return false;
 
-    if (m_bNoScalingFactor || m_bNeedsSynch)
+    if (m_bPaused || m_bNeedsSynch)
         return true;
 
     return CAEAudioChannel::IsBufferPlaying();
@@ -103,14 +103,14 @@ void CAEStaticChannel::Play(int16 timeInMs, int8 unused, float scalingFactor) {
         m_bUnkn2 = true;
     }
     m_bNeedsSynch = true;
-    m_bNoScalingFactor = scalingFactor == 0.0f;
+    m_bPaused = scalingFactor == 0.0f;
 }
 
     
 
 // 0x4F1040
 void CAEStaticChannel::SynchPlayback() {
-    if (!m_pDirectSoundBuffer || !m_bNeedsSynch || m_bNoScalingFactor)
+    if (!m_pDirectSoundBuffer || !m_bNeedsSynch || m_bPaused)
         return;
 
     if (m_bUnkn2) {

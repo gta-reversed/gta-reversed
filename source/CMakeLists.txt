@@ -17,10 +17,6 @@ target_compile_options(${RE_PROJECT_LIB_NAME} PRIVATE
     "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/wd26812;/wd26495>"
     "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wall;>"
 )
-# MSVC Program Database for Edit And Continue ()
-add_compile_options(${RE_PROJECT_LIB_NAME} PRIVATE
-    $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<AND:$<CONFIG:DEBUG>>>:/ZI>
-)
 
 function(supress_deps_warnings targets)
     foreach (target ${targets})
@@ -59,11 +55,13 @@ if (${RE_PROJECT}_WITH_SANITIZERS)
     # add_sanitizers(${RE_PROJECT_LIB_NAME})
 endif()
 
+target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
+
 target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
-    ogg
-    vorbisfile
-    imgui
-    spdlog
+    Ogg::ogg
+    vorbis::vorbis
+    imgui::imgui
+    spdlog::spdlog
     Tracy::TracyClient
     ddraw
     Winmm
@@ -71,7 +69,8 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     strmiids
     dsound
     d3d9
-    nlohmann_json
+    nlohmann_json::nlohmann_json
+    libjpeg-turbo::libjpeg-turbo
 )
 
 if(WIN32) 
