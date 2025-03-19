@@ -1399,7 +1399,7 @@ void CStreaming::RenderEntity(CLink<CEntity*>* streamingLink) {
 // 0x409430
 // Load big buildings around `point`
 void CStreaming::RequestBigBuildings(const CVector& point) {
-    for (auto i = GetBuildingPool()->GetSize() - 1; i >= 0; i--) {
+    for (auto i = GetBuildingPool()->GetSize(); i --> 0;) {
         CBuilding* building = GetBuildingPool()->GetAt(i);
         if (building && building->m_bIsBIGBuilding) {
             if (CRenderer::ShouldModelBeStreamed(building, point, TheCamera.m_pRwCamera->farPlane)) {
@@ -1858,7 +1858,7 @@ void CStreaming::RequestSpecialModel(int32 modelId, const char* name, int32 flag
 
     // Make sure model isn't used anywhere by destroying all objects/peds using it.
     if (mi->m_nRefCount > 0) {
-        for (auto i = GetPedPool()->GetSize() - 1; i >= 0; i--) {
+        for (auto i = GetPedPool()->GetSize(); i --> 0;) {
             if (mi->m_nRefCount <= 0) {
                 break;
             }
@@ -1869,7 +1869,7 @@ void CStreaming::RequestSpecialModel(int32 modelId, const char* name, int32 flag
             }
         }
 
-        for (auto i = GetObjectPool()->GetSize() - 1; i >= 0; i--) {
+        for (auto i = GetObjectPool()->GetSize(); i --> 0;) {
             if (mi->m_nRefCount <= 0) {
                 break;
             }
@@ -2189,7 +2189,7 @@ void CStreaming::RemoveAllUnusedModels() {
 // 0x4093B0
 // Remove all BIG building's RW objects and models
 void CStreaming::RemoveBigBuildings() {
-    for (auto i = GetBuildingPool()->GetSize() - 1; i >= 0; i--) {
+        for (auto i = GetBuildingPool()->GetSize(); i --> 0;) {
         CBuilding* building = GetBuildingPool()->GetAt(i);
         if (building && building->m_bIsBIGBuilding && !building->m_bImBeingRendered) {
             building->DeleteRwObject();
@@ -2202,7 +2202,7 @@ void CStreaming::RemoveBigBuildings() {
 // 0x4094B0
 // Remove buildings, objects and dummies not in the current area (as in CWorld::currArea)
 void CStreaming::RemoveBuildingsNotInArea(eAreaCodes areaCode) {
-    for (auto i = GetBuildingPool()->GetSize() - 1; i >= 0; i--) {
+        for (auto i = GetBuildingPool()->GetSize(); i --> 0;) {
         CBuilding* building = GetBuildingPool()->GetAt(i);
         if (building && building->m_pRwObject) {
             if (!building->IsInCurrentAreaOrBarberShopInterior()) {
@@ -2211,7 +2211,7 @@ void CStreaming::RemoveBuildingsNotInArea(eAreaCodes areaCode) {
             }
         }
     }
-    for (auto i = GetObjectPool()->GetSize() - 1; i >= 0; i--) {
+    for (auto i = GetObjectPool()->GetSize(); i --> 0;) {
         CObject* obj = GetObjectPool()->GetAt(i);
         if (obj && obj->m_pRwObject) {
             if (obj->IsInCurrentAreaOrBarberShopInterior()) {
@@ -2220,7 +2220,7 @@ void CStreaming::RemoveBuildingsNotInArea(eAreaCodes areaCode) {
             }
         }
     }
-    for (auto i = GetDummyPool()->GetSize() - 1; i >= 0; i--) {
+    for (auto i = GetDummyPool()->GetSize(); i --> 0;) {
         CDummy* dummy = GetDummyPool()->GetAt(i);
         if (dummy && dummy->m_pRwObject) {
             if (dummy->IsInCurrentAreaOrBarberShopInterior()) {
