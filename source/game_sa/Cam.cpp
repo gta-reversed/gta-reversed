@@ -1017,8 +1017,8 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
     }
 
     float alphaUpLimit = CARCAM_SET[vehicleCamType].fUpLimit;
-    if (pTargetVehicle->GetMoveSpeed().SquaredMagnitude() < 0.4f && !(pTargetVehicle->IsBike() && ((CBike *)pTargetVehicle)->m_nNumContactWheels < 4) &&
-        !(pTargetVehicle->IsSubHeli()) && !(pTargetVehicle->IsSubPlane() && ((CAutomobile *)pTargetVehicle)->m_nNumContactWheels == 0)) {
+    if (pTargetVehicle->GetMoveSpeed().SquaredMagnitude() < 0.4f && !(pTargetVehicle->IsBike() && ((CBike *)pTargetVehicle)->m_nNoOfContactWheels < 4) &&
+        !(pTargetVehicle->IsSubHeli()) && !(pTargetVehicle->IsSubPlane() && ((CAutomobile *)pTargetVehicle)->m_nNoOfContactWheels == 0)) {
         CVector vecTempRight = CrossProduct(pTargetVehicle->GetMatrix().GetForward(), CVector(0.0f, 0.0f, 1.0f));
         vecTempRight.Normalise();
         CVector vecTempUp = CrossProduct(vecTempRight, pTargetVehicle->GetMatrix().GetForward());
@@ -1050,7 +1050,7 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
 
             alphaUpLimit += std::cos(m_fBeta - (pTargetVehicle->GetHeading() - HALF_PI)) * std::atan2(pTargetVehicle->GetMatrix().GetForward().z, pTargetVehicle->GetMatrix().GetForward().Magnitude2D());
 
-            if (pTargetVehicle->IsAutomobile() && ((CAutomobile *)pTargetVehicle)->m_nNumContactWheels > 1 &&
+            if (pTargetVehicle->IsAutomobile() && ((CAutomobile *)pTargetVehicle)->m_nNoOfContactWheels > 1 &&
                 std::abs(DotProduct(pTargetVehicle->GetTurnSpeed(), pTargetVehicle->GetMatrix().GetForward())) < 0.05f) {
                 alphaUpLimit += std::cos(m_fBeta - (pTargetVehicle->GetHeading() - HALF_PI) + HALF_PI) * std::atan2(pTargetVehicle->GetMatrix().GetRight().z, pTargetVehicle->GetMatrix().GetRight().Magnitude2D());
             }
@@ -1217,9 +1217,9 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
     if (vehicleCamType <= FOLLOW_CAR_ONBIKE && targetAlphaAngle < m_fAlpha && distanceToTarget >= cameraDistanceFromTarget) {
         int nWheelsOnGround = 0;
         if (pTargetVehicle->IsAutomobile()) {
-            nWheelsOnGround = ((CAutomobile *)pTargetVehicle)->m_nNumContactWheels;
+            nWheelsOnGround = ((CAutomobile *)pTargetVehicle)->m_nNoOfContactWheels;
         } else if (pTargetVehicle->IsSubBike()) {
-            nWheelsOnGround = ((CBike*)pTargetVehicle)->m_nNumContactWheels;
+            nWheelsOnGround = ((CBike*)pTargetVehicle)->m_nNoOfContactWheels;
         }
 
         if (nWheelsOnGround > 1) {

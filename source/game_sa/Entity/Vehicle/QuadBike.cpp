@@ -143,7 +143,7 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
                 // Lean forward
                 if (m_sRideAnimData.m_fLeanFwd > 0.0f) {
                     if (fLeanDirection > -m_pHandling->m_fLeanFwdCOM) {
-                        if (m_nNumContactWheels) {
+                        if (m_nNoOfContactWheels) {
                             if (m_fBreakPedal > 0.0f) {
                                 fTurnForcePerTimeStep =
                                     m_pHandling->m_fLeanFwdForce * m_fTurnMass * m_sRideAnimData.m_fLeanFwd * std::min(0.1f, m_vecMoveSpeed.Magnitude());
@@ -157,7 +157,7 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
                 }
             } else {
                 // Lean back
-                if (m_nNumContactWheels) {
+                if (m_nNoOfContactWheels) {
                     if (m_fBreakPedal == 0.0f && !vehicleFlags.bIsHandbrakeOn) {
                         fTurnForcePerTimeStep =
                             m_pHandling->m_fLeanBakForce * m_fTurnMass * m_sRideAnimData.m_fLeanFwd * std::min(0.1f, m_vecMoveSpeed.Magnitude());

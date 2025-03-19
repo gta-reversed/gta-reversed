@@ -363,7 +363,7 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     rng::fill(m_fWheelsSuspensionCompression, 1.f);
     rng::fill(m_fWheelsSuspensionCompressionPrev, 1.f);
 
-    m_nNumContactWheels     = 0;
+    m_nNoOfContactWheels     = 0;
     m_nWheelsOnGround       = 0;
     m_wheelsOnGrounPrev     = 0;
     m_fHeightAboveRoad = 0.0f;
@@ -554,7 +554,7 @@ void CAutomobile::ProcessControl()
 
         if (IsRealHeli()
             && m_wheelSpeed[CAR_WHEEL_REAR_LEFT] > 0.0f || IsAmphibiousHeli()
-            && !m_nNumContactWheels
+            && !m_nNoOfContactWheels
             && m_fDamageIntensity <= 0.0f
             || m_nModelIndex == MODEL_VORTEX
             || CCheat::IsActive(CHEAT_CARS_ON_WATER)
@@ -747,7 +747,7 @@ void CAutomobile::ProcessControl()
         float brake = m_pHandlingData->m_fBrakeDeceleration * m_fBreakPedal * CTimer::GetTimeStep();
 
         m_wheelsOnGrounPrev = m_nWheelsOnGround;
-        m_nNumContactWheels = 0;
+        m_nNoOfContactWheels = 0;
         m_nWheelsOnGround = 0;
 
         for (int32 i = 0; i < 4; i++) {
@@ -760,7 +760,7 @@ void CAutomobile::ProcessControl()
                 m_aWheelTimer[i] = 4.0f;
             }
 
-            m_nNumContactWheels++;
+            m_nNoOfContactWheels++;
 
             switch (m_pHandlingData->GetTransmission().m_nDriveType)
             {
@@ -1263,7 +1263,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         CCarAI::UpdateCarAI(this);
         CPhysical::ProcessControl();
         CCarCtrl::UpdateCarOnRails(this);
-        m_nNumContactWheels = 4;
+        m_nNoOfContactWheels = 4;
         m_wheelsOnGrounPrev = m_nWheelsOnGround;
         m_nWheelsOnGround = 4;
         float speed = m_autoPilot.m_speed / 50.0f;
@@ -1444,7 +1444,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         }
     }
 
-    if (!pad || m_nNumContactWheels != 0 || IsSubHeli() || IsSubPlane()) {
+    if (!pad || m_nNoOfContactWheels != 0 || IsSubHeli() || IsSubPlane()) {
         DoSoftGroundResistance(extraHandlingFlags);
         return false;
     }
@@ -2849,7 +2849,7 @@ float CAutomobile::GetHeightAboveRoad() {
 
 // 0x6A62A0
 int32 CAutomobile::GetNumContactWheels() {
-    return m_nNumContactWheels;
+    return m_nNoOfContactWheels;
 }
 
 // 0x6A7650
@@ -4687,14 +4687,14 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
             }
             tWheelState wheelState = m_aWheelState[leftWheel];
             if (m_damageManager.GetWheelStatus(leftWheel) == WHEEL_STATUS_BURST) {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * m_damageManager.m_fWheelDamageEffect * tractionBias,
                     leftWheel, &m_fWheelBurnoutSpeed[leftWheel], &wheelState, WHEEL_STATUS_BURST);
             }
             else {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * tractionBias,
@@ -4737,7 +4737,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
             }
             tWheelState wheelState = m_aWheelState[rightWheel];
             if (m_damageManager.GetWheelStatus(rightWheel) == WHEEL_STATUS_BURST) {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * m_damageManager.m_fWheelDamageEffect * tractionBias,
@@ -4745,7 +4745,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                );
             }
             else {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * tractionBias,

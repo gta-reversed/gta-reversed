@@ -109,7 +109,7 @@ public:
     float m_fDoomHorizontalRotation;
     float m_fForcedOrientation;
     std::array<float, 2> m_fUpDownLightAngle;
-    uint8 m_nNumContactWheels;
+    uint8 m_nNoOfContactWheels;
     uint8 m_nWheelsOnGround;
     uint8 m_wheelsOnGrounPrev;
     float m_fGasPedalAudio; // [0; 1] adjusts the speed of playback of the skiding sound

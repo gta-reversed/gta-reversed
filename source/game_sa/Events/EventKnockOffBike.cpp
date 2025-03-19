@@ -149,9 +149,9 @@ int32 CEventKnockOffBike::CalcForcesAndAnims(CPed* ped)
     uint8 numContactWheels = 0;
     float massRatio = ped->m_fMass / m_vehicle->m_fMass;
     if (m_vehicle->IsBike())
-        numContactWheels = m_vehicle->AsBike()->m_nNumContactWheels;
+        numContactWheels = m_vehicle->AsBike()->m_nNoOfContactWheels;
     else if (m_vehicle->IsAutomobile())
-        numContactWheels = m_vehicle->AsAutomobile()->m_nNumContactWheels;
+        numContactWheels = m_vehicle->AsAutomobile()->m_nNoOfContactWheels;
 
     switch (m_knockOffType)
     {

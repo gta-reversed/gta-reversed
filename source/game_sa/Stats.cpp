@@ -627,7 +627,7 @@ void CStats::UpdateStatsWhenOnMotorBike(CBike* bike) {
         const float bikeMoveSpeed = bike->m_vecMoveSpeed.Magnitude();
         const auto  fTimeStep = CTimer::GetTimeStepInMS();
 
-        if (bikeMoveSpeed > 0.6f || bike->m_nNumContactWheels < 3u && bikeMoveSpeed > 0.1f)
+        if (bikeMoveSpeed > 0.6f || bike->m_nNoOfContactWheels < 3u && bikeMoveSpeed > 0.1f)
             m_BikeCounter = static_cast<uint32>(fTimeStep * 1.5f + bikeCounter);
         else if (bikeMoveSpeed > 0.2f)
             m_BikeCounter = static_cast<uint32>(fTimeStep * 0.5f + bikeCounter);
