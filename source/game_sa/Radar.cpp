@@ -1695,7 +1695,7 @@ void CRadar::DrawCoordBlip(int32 blipIndex, bool isSprite) {
     }
 
     const auto GetHeight = [&] {
-        const auto zDiff = trace.GetWorldPos().z - FindPlayerCentreOfWorld_NoInteriorShift(PEDTYPE_PLAYER1).z;
+        const auto zDiff = trace.GetWorldPos().z - FindPlayerCentreOfWorld_NoInteriorShift(PED_TYPE_PLAYER1).z;
 
         if (zDiff > 2.0f) {
             // trace is higher

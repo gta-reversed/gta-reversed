@@ -461,7 +461,7 @@ int32 CWanted::WorkOutPolicePresence(CVector posn, float radius) {
     auto pedPool = GetPedPool();
     for (auto i = pedPool->GetSize(); i; i--) {
         if (auto ped = pedPool->GetAt(i - 1)) {
-            if (ped->m_nPedType != PEDTYPE_COP || !ped->IsAlive())
+            if (ped->m_nPedType != PED_TYPE_COP || !ped->IsAlive())
                 continue;
 
             if (DistanceBetweenPoints(ped->GetPosition(), posn) < radius)

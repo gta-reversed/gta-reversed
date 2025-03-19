@@ -15,7 +15,7 @@ void CTaskAllocatorPlayerCommandAttack::AllocateTasks(CPedGroupIntelligence* int
     plugin::CallMethod<0x69C4D0, CTaskAllocatorPlayerCommandAttack*, CPedGroupIntelligence*>(this, intel);
 
     /*
-    if (m_PedType < PEDTYPE_PLAYER1) {
+    if (m_PedType < PED_TYPE_PLAYER1) {
         if (m_Ped0) {
             CTaskAllocatorAttack::AllocateTasks(intel);
         }

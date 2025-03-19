@@ -176,7 +176,7 @@ bool CGame::CanSeeWaterFromCurrArea() {
 
 // 0x53C500
 void CGame::TidyUpMemory(bool a1, bool clearD3Dmem) {
-    if (FindPlayerPed(PEDTYPE_PLAYER1) && clearD3Dmem) {
+    if (FindPlayerPed(PED_TYPE_PLAYER1) && clearD3Dmem) {
         DrasticTidyUpMemory(a1);
     }
 }
@@ -305,7 +305,7 @@ void CGame::ShutDownForRestart() {
     CShopping::ShutdownForRestart();
     CTagManager::ShutdownForRestart();
     CStuntJumpManager::ShutdownForRestart();
-    FindPlayerPed(PEDTYPE_PLAYER1);
+    FindPlayerPed(PED_TYPE_PLAYER1);
     CVehicle::ms_forceVehicleLightsOff = false;
 }
 
@@ -472,7 +472,7 @@ bool CGame::Init2(const char* datFile) {
     CPopulation::Initialise();
 
     LoadingScreen(nullptr, nullptr);
-    CWorld::PlayerInFocus = PEDTYPE_PLAYER1;
+    CWorld::PlayerInFocus = PED_TYPE_PLAYER1;
     CCoronas::Init();
     CShadows::Init();
 
@@ -523,8 +523,8 @@ bool CGame::Init3(const char* datFile) {
     ZoneScoped;
 
     LoadingScreen("Loading the Game", "Load scene");
-    CPad::GetPad(PEDTYPE_PLAYER1)->Clear(true, true);
-    CPad::GetPad(PEDTYPE_PLAYER2)->Clear(true, true);
+    CPad::GetPad(PED_TYPE_PLAYER1)->Clear(true, true);
+    CPad::GetPad(PED_TYPE_PLAYER2)->Clear(true, true);
     D3DResourceSystem::SetUseD3DResourceBuffering(true);
     LoadingScreen("Loading the Game", "Procedural Interiors");
     g_interiorMan.Init();
@@ -867,7 +867,7 @@ void CGame::ReInitGameObjectVariables() {
     CWeapon::InitialiseWeapons();
     CPopulation::Initialise();
     rng::for_each(CWorld::Players, [](auto& info) { info.Clear(); });
-    CWorld::PlayerInFocus = PEDTYPE_PLAYER1;
+    CWorld::PlayerInFocus = PED_TYPE_PLAYER1;
     CGlass::Init();
     gbLARiots_NoPoliceCars = false;
     gbLARiots = false;
@@ -903,8 +903,8 @@ void CGame::ReInitGameObjectVariables() {
         TheCamera.Process();
         CTrain::InitTrains();
     }
-    CPad::GetPad(PEDTYPE_PLAYER1)->Clear(true, true);
-    CPad::GetPad(PEDTYPE_PLAYER2)->Clear(true, true);
+    CPad::GetPad(PED_TYPE_PLAYER1)->Clear(true, true);
+    CPad::GetPad(PED_TYPE_PLAYER2)->Clear(true, true);
 }
 
 // 0x53BED0

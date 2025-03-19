@@ -22,7 +22,7 @@ void CAEPedlessSpeechAudioEntity::InjectHooks() {
 
 // 0x4E4E10
 void CAEPedlessSpeechAudioEntity::Initialise() {
-    *this = CAEPedlessSpeechAudioEntity{PEDTYPE_GFD};
+    *this = CAEPedlessSpeechAudioEntity{PED_TYPE_GFD};
 }
 
 // 0x4E4E80

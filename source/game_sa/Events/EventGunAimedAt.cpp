@@ -28,7 +28,7 @@ bool CEventGunAimedAt::AffectsPed(CPed* ped) {
         if (CPedGroups::AreInSameGroup(ped, m_AimedBy))
             return false;
         if (!ped->IsInVehicleThatHasADriver()) {
-            if (ped->m_nPedType == PEDTYPE_COP)
+            if (ped->m_nPedType == PED_TYPE_COP)
                 CCrime::ReportCrime(eCrimeType::CRIME_AIM_GUN, ped, FindPlayerPed());
             return true;
         }

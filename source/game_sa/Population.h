@@ -133,9 +133,9 @@ public:
     static bool  IsSunbather(CPed* ped); // NOTSA
     // returns false
     static bool CanSolicitPlayerOnFoot(eModelID modelIndex);
-    // returns true if ped type is PEDTYPE_PROSTITUTE
+    // returns true if ped type is PED_TYPE_PROSTITUTE
     static bool CanSolicitPlayerInCar(eModelID modelIndex);
-    // returns true if ped type is PEDTYPE_CIVMALE 
+    // returns true if ped type is PED_TYPE_CIVMALE 
     static bool CanJeerAtStripper(eModelID modelIndex);
     static void PlaceGangMembers(ePedType pedType, uint32 numOfPeds, const CVector& posn);
 

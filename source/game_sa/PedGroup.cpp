@@ -69,7 +69,7 @@ void CPedGroup::PlayerGaveCommand_Attack(CPed* playerPed, CPed* target) {
     if (!m_groupIntelligence.AddEvent(CEventGroupEvent{ playerPed, new CEventPlayerCommandToGroup{PLAYER_GROUP_COMMAND_ATTACK, target} })) {
         return;
     }
-    if (target && target->m_nPedType != PEDTYPE_GANG2) {
+    if (target && target->m_nPedType != PED_TYPE_GANG2) {
         target->Say(target->IsGangster() ? CTX_GLOBAL_ORDER_ATTACK_MANY : CTX_GLOBAL_ORDER_ATTACK_SINGLE);
     }
 }

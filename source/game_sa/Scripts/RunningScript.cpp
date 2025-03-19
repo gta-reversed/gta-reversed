@@ -91,7 +91,7 @@ void CRunningScript::InjectCustomCommandHooks() {
     // Uncommenting any call will prevent it from being hooked, so
     // feel free to do so when debugging (Just don't forget to undo the changes!)
 
-    using namespace notsa::script::commands;
+    using namespace ::notsa::script::commands;
 
     basic::RegisterHandlers();
     camera::RegisterHandlers();
@@ -112,6 +112,7 @@ void CRunningScript::InjectCustomCommandHooks() {
     unused::RegisterHandlers();
     utility::RegisterHandlers();
     vehicle::RegisterHandlers();
+    ::notsa::script::commands::stat::RegisterHandlers();
 
 #ifdef NOTSA_USE_CLEO_COMMANDS
     cleo::audiostream::RegisterHandlers();
@@ -348,21 +349,21 @@ bool CRunningScript::IsPedDead(CPed* ped) const {
 // 0x489490
 bool CRunningScript::ThisIsAValidRandomPed(ePedType pedType, bool civilian, bool gang, bool criminal) {
     switch (pedType) {
-    case PEDTYPE_CIVMALE:
-    case PEDTYPE_CIVFEMALE:
+    case PED_TYPE_CIVMALE:
+    case PED_TYPE_CIVFEMALE:
         return civilian;
-    case PEDTYPE_GANG1:
-    case PEDTYPE_GANG2:
-    case PEDTYPE_GANG3:
-    case PEDTYPE_GANG4:
-    case PEDTYPE_GANG5:
-    case PEDTYPE_GANG6:
-    case PEDTYPE_GANG7:
-    case PEDTYPE_GANG8:
-    case PEDTYPE_GANG9:
+    case PED_TYPE_GANG1:
+    case PED_TYPE_GANG2:
+    case PED_TYPE_GANG3:
+    case PED_TYPE_GANG4:
+    case PED_TYPE_GANG5:
+    case PED_TYPE_GANG6:
+    case PED_TYPE_GANG7:
+    case PED_TYPE_GANG8:
+    case PED_TYPE_GANG9:
         return gang;
-    case PEDTYPE_CRIMINAL:
-    case PEDTYPE_PROSTITUTE:
+    case PED_TYPE_CRIMINAL:
+    case PED_TYPE_PROSTITUTE:
         return criminal;
     default:
         return false;
@@ -403,27 +404,27 @@ void CRunningScript::GetCorrectPedModelIndexForEmergencyServiceType(ePedType ped
     case MODEL_SFPD1:
     case MODEL_LVPD1:
     case MODEL_LAPDM1:
-        if (pedType == PEDTYPE_COP) {
+        if (pedType == PED_TYPE_COP) {
             *typeSpecificModelId = COP_TYPE_CITYCOP;
         }
         break;
     case MODEL_CSHER:
-        if (pedType == PEDTYPE_COP) {
+        if (pedType == PED_TYPE_COP) {
             *typeSpecificModelId = COP_TYPE_CSHER;
         }
         break;
     case MODEL_SWAT:
-        if (pedType == PEDTYPE_COP) {
+        if (pedType == PED_TYPE_COP) {
             *typeSpecificModelId = COP_TYPE_SWAT1;
         }
         break;
     case MODEL_FBI:
-        if (pedType == PEDTYPE_COP) {
+        if (pedType == PED_TYPE_COP) {
             *typeSpecificModelId = COP_TYPE_FBI;
         }
         break;
     case MODEL_ARMY:
-        if (pedType == PEDTYPE_COP) {
+        if (pedType == PED_TYPE_COP) {
             *typeSpecificModelId = COP_TYPE_ARMY;
         }
         break;

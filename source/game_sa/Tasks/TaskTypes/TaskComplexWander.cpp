@@ -333,10 +333,10 @@ bool CTaskComplexWander::ScanForBlockedNode(const CVector& position, CEntity* en
 CTaskComplexWander* CTaskComplexWander::GetWanderTaskByPedType(CPed* ped) {
     uint8 randomDir = CGeneral::GetRandomNumberInRange(0, 8);
     switch (ped->m_nPedType) {
-    case PEDTYPE_COP:        return new CTaskComplexWanderCop(PEDMOVE_WALK, randomDir);
-    case PEDTYPE_MEDIC:      return new CTaskComplexWanderMedic(PEDMOVE_WALK, randomDir);
-    case PEDTYPE_CRIMINAL:   return new CTaskComplexWanderCriminal(PEDMOVE_WALK, randomDir);
-    case PEDTYPE_PROSTITUTE: return new CTaskComplexWanderProstitute(PEDMOVE_WALK, randomDir);
+    case PED_TYPE_COP:        return new CTaskComplexWanderCop(PEDMOVE_WALK, randomDir);
+    case PED_TYPE_MEDIC:      return new CTaskComplexWanderMedic(PEDMOVE_WALK, randomDir);
+    case PED_TYPE_CRIMINAL:   return new CTaskComplexWanderCriminal(PEDMOVE_WALK, randomDir);
+    case PED_TYPE_PROSTITUTE: return new CTaskComplexWanderProstitute(PEDMOVE_WALK, randomDir);
     default:                  return new CTaskComplexWanderStandard(PEDMOVE_WALK, randomDir);
     }
 }

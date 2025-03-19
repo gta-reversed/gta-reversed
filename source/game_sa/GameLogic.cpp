@@ -75,13 +75,13 @@ void CGameLogic::ClearSkip(bool afterMission) {
         TheCamera.Fade(0.5f, eFadeFlag::FADE_OUT);
     }
     SkipState = SKIP_NONE;
-    CPad::GetPad(PEDTYPE_PLAYER1)->bCamera = false;
+    CPad::GetPad(PED_TYPE_PLAYER1)->bCamera = false;
 }
 
 // 0x4428B0
 void CGameLogic::DoWeaponStuffAtStartOf2PlayerGame(bool shareWeapons) {
-    auto player1 = FindPlayerPed(PEDTYPE_PLAYER1);
-    auto player2 = FindPlayerPed(PEDTYPE_PLAYER2);
+    auto player1 = FindPlayerPed(PED_TYPE_PLAYER1);
+    auto player2 = FindPlayerPed(PED_TYPE_PLAYER2);
     RestorePedsWeapons(player1);
 
     if (shareWeapons) {
@@ -148,13 +148,13 @@ void CGameLogic::InitAtStartOfGame() {
 // 2 players are playing
 // 0x441390
 bool CGameLogic::IsCoopGameGoingOn() {
-    return FindPlayerPed(PEDTYPE_PLAYER1) && FindPlayerPed(PEDTYPE_PLAYER2);
+    return FindPlayerPed(PED_TYPE_PLAYER1) && FindPlayerPed(PED_TYPE_PLAYER2);
 }
 
 // 0x441E10
 bool CGameLogic::IsPlayerAllowedToGoInThisDirection(CPed* ped, CVector moveDirection, float distanceLimit) {
-    const auto player1 = FindPlayerPed(PEDTYPE_PLAYER1);
-    const auto player2 = FindPlayerPed(PEDTYPE_PLAYER2);
+    const auto player1 = FindPlayerPed(PED_TYPE_PLAYER1);
+    const auto player2 = FindPlayerPed(PED_TYPE_PLAYER2);
 
     if (!player1 || !player2 || !bLimitPlayerDistance)
         return true;
@@ -297,12 +297,12 @@ void CGameLogic::PassTime(uint32 minutes) {
 
 // 0x4413C0
 void CGameLogic::Remove2ndPlayerIfPresent() {
-    if (auto ped = FindPlayerPed(PEDTYPE_PLAYER2)) {
+    if (auto ped = FindPlayerPed(PED_TYPE_PLAYER2)) {
         CWorld::Remove(ped);
         delete ped;
-        CWorld::Players[PEDTYPE_PLAYER2].m_pPed = nullptr;
+        CWorld::Players[PED_TYPE_PLAYER2].m_pPed = nullptr;
 
-        auto player1 = FindPlayerPed(PEDTYPE_PLAYER1);
+        auto player1 = FindPlayerPed(PED_TYPE_PLAYER1);
         CClothes::RebuildPlayer(player1, false);
         player1->CantBeKnockedOffBike = false;
     }
@@ -322,7 +322,7 @@ void CGameLogic::ResetStuffUponResurrection() {
     SortOutStreamingAndMemory(playerPed->GetPosition(), playerPed->GetHeading());
     TheCamera.m_fCamShakeForce = 0.0f;
     TheCamera.SetMotionBlur(0, 0, 0, 0, 0);
-    CPad::GetPad(PEDTYPE_PLAYER1)->StopShaking(0);
+    CPad::GetPad(PED_TYPE_PLAYER1)->StopShaking(0);
     CReferences::RemoveReferencesToPlayer();
     CCarCtrl::CountDownToCarsAtStart = 10;
     CPopulation::m_CountDownToPedsAtStart = 10;
@@ -499,7 +499,7 @@ void CGameLogic::SetUpSkip(CVector coors, float angle, bool afterMission, CEntit
         TheCamera.Fade(0.5f, eFadeFlag::FADE_OUT);
     }
     SkipState = SKIP_NONE;
-    CPad::GetPad(PEDTYPE_PLAYER1)->bCamera = false;
+    CPad::GetPad(PED_TYPE_PLAYER1)->bCamera = false;
     SkipPosition = coors;
     SkipState = afterMission ? SKIP_AFTER_MISSION : SKIP_AVAILABLE;
     SkipTimer = CTimer::GetTimeInMS();
@@ -575,7 +575,7 @@ void CGameLogic::Update() {
     if (CCutsceneMgr::ms_cutsceneProcessing)
         return;
 
-    auto& player1 = FindPlayerInfo(PEDTYPE_PLAYER1);
+    auto& player1 = FindPlayerInfo(PED_TYPE_PLAYER1);
     auto player1Ped = player1.m_pPed;
 
     const auto Process = [&] {
@@ -620,7 +620,7 @@ void CGameLogic::Update() {
 
             TheCamera.m_fCamShakeForce = 0.0f;
             TheCamera.SetMotionBlur(0, 0, 0, 0, 0); // todo: eBlurType enum
-            CPad::GetPad(PEDTYPE_PLAYER1)->StopShaking(0);
+            CPad::GetPad(PED_TYPE_PLAYER1)->StopShaking(0);
             CReferences::RemoveReferencesToPlayer();
             CCarCtrl::CountDownToCarsAtStart = 10;
             CPopulation::m_CountDownToPedsAtStart = 10;
@@ -659,7 +659,7 @@ void CGameLogic::Update() {
                 GameState = GAMELOGIC_STATE_BUSTED;
                 TimeOfLastEvent = CTimer::GetTimeInMS();
 
-                if (ped == FindPlayerPed(PEDTYPE_PLAYER2) && CHud::m_BigMessage[2][0] == '\0') {
+                if (ped == FindPlayerPed(PED_TYPE_PLAYER2) && CHud::m_BigMessage[2][0] == '\0') {
                     CMessages::AddBigMessage(TheText.Get("BUSTED"), 5000, STYLE_WHITE_MIDDLE);
                 }
             }
@@ -776,9 +776,9 @@ void CGameLogic::Update() {
         }
 
         if (bLimitPlayerDistance && IsCoopGameGoingOn()) {
-            if (auto diff = FindPlayerCoors(PEDTYPE_PLAYER2) - FindPlayerCoors(PEDTYPE_PLAYER1); diff.Magnitude2D() > MaxPlayerDistance) {
-                StopPlayerMovingFromDirection(PEDTYPE_PLAYER1,  diff.Normalized());
-                StopPlayerMovingFromDirection(PEDTYPE_PLAYER2, -diff.Normalized());
+            if (auto diff = FindPlayerCoors(PED_TYPE_PLAYER2) - FindPlayerCoors(PED_TYPE_PLAYER1); diff.Magnitude2D() > MaxPlayerDistance) {
+                StopPlayerMovingFromDirection(PED_TYPE_PLAYER1,  diff.Normalized());
+                StopPlayerMovingFromDirection(PED_TYPE_PLAYER2, -diff.Normalized());
             }
         }
     };
@@ -788,7 +788,7 @@ void CGameLogic::Update() {
         Process();
     } else {
         static float& lastPlayerDistance = *(float*)(0x96AB24);
-        const auto dist = DistanceBetweenPoints2D(FindPlayerCoors(PEDTYPE_PLAYER1), FindPlayerCoors(PEDTYPE_PLAYER2));
+        const auto dist = DistanceBetweenPoints2D(FindPlayerCoors(PED_TYPE_PLAYER1), FindPlayerCoors(PED_TYPE_PLAYER2));
 
         const auto UpdateTimerAndLastDistance = [&dist] {
             if (IsAPlayerInFocusOn2PlayerGame() && nPrintFocusHelpTimer != 0) {
@@ -838,7 +838,7 @@ void CGameLogic::UpdateSkip() {
         }
 
         // TRIP SKIP
-        if (auto pad = CPad::GetPad(PEDTYPE_PLAYER1); pad->IsDPadRightPressed()) {
+        if (auto pad = CPad::GetPad(PED_TYPE_PLAYER1); pad->IsDPadRightPressed()) {
             SkipState = SKIP_IN_PROGRESS;
             pad->bCamera = true;
 
@@ -884,7 +884,7 @@ void CGameLogic::UpdateSkip() {
 
         if (SkipToBeFinishedByScript) {
             SkipState = SKIP_WAITING_SCRIPT;
-            CPad::GetPad(PEDTYPE_PLAYER1)->bCamera = false;
+            CPad::GetPad(PED_TYPE_PLAYER1)->bCamera = false;
         } else {
             TheCamera.SetFadeColour(0, 0, 0);
             TheCamera.Fade(1.5f, eFadeFlag::FADE_OUT);
@@ -895,7 +895,7 @@ void CGameLogic::UpdateSkip() {
     case SKIP_FADING_OUT:
         if (CTimer::GetTimeInMS() > SkipTimer) {
             SkipState = SKIP_NONE;
-            CPad::GetPad(PEDTYPE_PLAYER1)->bCamera = false;
+            CPad::GetPad(PED_TYPE_PLAYER1)->bCamera = false;
         }
         break;
 

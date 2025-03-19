@@ -88,8 +88,8 @@ void CEventEditableResponse::InformRespectedFriends(CPed* ped) {
         }
 
         CPed* entityPed = entity->AsPed();
-        if (ped->m_nPedType == PEDTYPE_COP) {
-            if (entityPed->m_nPedType != PEDTYPE_COP) {
+        if (ped->m_nPedType == PED_TYPE_COP) {
+            if (entityPed->m_nPedType != PED_TYPE_COP) {
                 continue;
             }
 

@@ -1515,8 +1515,8 @@ CPed* CWorld::FindUnsuspectingTargetPed(CVector point, CVector playerPosn) {
         if (!ped->IsCreatedBy(ePedCreatedBy::PED_GAME) || !ped->IsAlive())
             continue;
 
-        if (ped->m_nPedType <= PEDTYPE_GANG1 || ped->m_nPedType >= PEDTYPE_GANG10)
-            if (ped->m_nPedType != PEDTYPE_CIVMALE)
+        if (ped->m_nPedType <= PED_TYPE_GANG1 || ped->m_nPedType >= PED_TYPE_GANG10)
+            if (ped->m_nPedType != PED_TYPE_CIVMALE)
                 continue;
 
         if (CTask* pActive = ped->GetTaskManager().GetActiveTask())
@@ -1938,7 +1938,7 @@ void CWorld::TriggerExplosionSectorList(CPtrList& ptrList, const CVector& point,
                 ped->GetIntelligence()->m_eventGroup.Add(&eventDamage, false);
 
                 if (creator && creator->IsPed()) {
-                    CCrime::ReportCrime(creator->AsPed()->m_nPedType == PEDTYPE_COP ? CRIME_DAMAGE_COP_CAR : CRIME_DAMAGE_CAR, ped, creator->AsPed());
+                    CCrime::ReportCrime(creator->AsPed()->m_nPedType == PED_TYPE_COP ? CRIME_DAMAGE_COP_CAR : CRIME_DAMAGE_CAR, ped, creator->AsPed());
                 }
             }
             break;

@@ -147,7 +147,7 @@ void CRealTimeShadowManager::DoShadowThisFrame(CPhysical* physical) {
         break;
     case FX_QUALITY_HIGH: { // Only draw for main player
         if (physical->IsPed()) {
-            if (physical->AsPed()->m_nPedType == PEDTYPE_PLAYER1) {
+            if (physical->AsPed()->m_nPedType == PED_TYPE_PLAYER1) {
                 break;
             }
         }

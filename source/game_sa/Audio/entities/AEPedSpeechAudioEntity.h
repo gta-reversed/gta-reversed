@@ -67,7 +67,7 @@ struct CAEPedSpeechSlot {
     eSoundBankS16            SoundBankID{ SND_BANK_UNK };
     uint32                   StartPlaybackTime{};
     eGlobalSpeechContextS16  GCtx{ CTX_GLOBAL_UNK };
-    eAudioPedType            PedAudioType{ PEDTYPE_UNK };
+    eAudioPedType            PedAudioType{ PED_TYPE_UNK };
     bool                     ForceAudible{};
     bool                     IsReservedForPedConversation{};
     bool                     IsReservedForPlayerConversation{};
@@ -90,7 +90,7 @@ VALIDATE_SIZE(tPhraseMemory, 0x04);
  */
 struct tGlobalSpeechContextInfo {
     eGlobalSpeechContext                                 GCtx;                           //!< The global context this entry is for
-    std::array<eSpecificSpeechContext, PEDTYPE_NUM - 1> SpecificSpeechContext;          //!< Holds values from enums: `eGenSpeechContexts`, `eEmgSpeechContexts`, `ePlySpeechContexts`, `eGngSpeechContexts`, `eGfdSpeechContexts` (But nothing for the SPC ped type)
+    std::array<eSpecificSpeechContext, PED_TYPE_NUM - 1> SpecificSpeechContext;          //!< Holds values from enums: `eGenSpeechContexts`, `eEmgSpeechContexts`, `ePlySpeechContexts`, `eGngSpeechContexts`, `eGfdSpeechContexts` (But nothing for the SPC ped type)
     int16                                                RepeatTime;                     //!< For how much time this context can't be played
     int16                                                Zero;                           //!< Always zero
     bool                                                 IsImportantForStreaming : 1;    //!< [NOTSA] (?)
@@ -176,7 +176,7 @@ public:
 public:
     static void InjectHooks();
 
-    CAEPedSpeechAudioEntity(eAudioPedType pt = PEDTYPE_UNK) noexcept;
+    CAEPedSpeechAudioEntity(eAudioPedType pt = PED_TYPE_UNK) noexcept;
     CAEPedSpeechAudioEntity(CPed* ped) noexcept;
     ~CAEPedSpeechAudioEntity() = default;
 
@@ -390,7 +390,7 @@ protected:
 protected:
     std::array<CAESound*, 5>                                            m_Sounds{};                     //!< Not actually used
     bool                                                                m_IsInitialized{};              //!< The instance was initialized successfully (!) using `Initialise()`
-    eAudioPedType                                                       m_PedAudioType{ PEDTYPE_UNK }; //!< Audio type of this ped (Usually obtained from the `ModelInfo`)
+    eAudioPedType                                                       m_PedAudioType{ PED_TYPE_UNK }; //!< Audio type of this ped (Usually obtained from the `ModelInfo`)
     ePedSpeechVoiceS16                                                  m_VoiceID{ VOICE_UNK };         //!< Exact enum to use depends on `m_PedAudioType` (See `PedSpeechVoices.h`)
     int16                                                               m_IsFemale{};                   //!< Is the ped a female (Thus should use female voices)
     bool                                                                m_IsPlayingSpeech{};            //!< A speech is currently being played

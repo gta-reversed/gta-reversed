@@ -43,7 +43,7 @@ CEvent* CEventVehicleHitAndRun::Clone()
 void CEventVehicleHitAndRun::ReportCriminalEvent(CPed* ped)
 {
     if (IsCriminalEvent()) {
-        if (m_victim->m_nPedType == PEDTYPE_COP)
+        if (m_victim->m_nPedType == PED_TYPE_COP)
             FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_KILL_COP_PED_WITH_CAR, m_vehicle->GetPosition(), m_vehicle->m_pDriver, false);
         else
             FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_KILL_PED_WITH_CAR, m_vehicle->GetPosition(), m_vehicle->m_pDriver, false);

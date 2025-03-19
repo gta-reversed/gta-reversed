@@ -49,7 +49,7 @@ void CCrime::ReportCrime(eCrimeType crimeType, CEntity* pVictim, CPed* pCommited
             if (const auto text = TheText.Get("GOODBOY")) { // Good Citizen Bonus! +$50
                 CMessages::AddBigMessage(text, 5'000, eMessageStyle::STYLE_MIDDLE);
             }
-            if (pCommitedby->m_nPedType == PEDTYPE_PLAYER1) {
+            if (pCommitedby->m_nPedType == PED_TYPE_PLAYER1) {
                 pCommitedby->AsPlayer()->GetPlayerInfoForThisPlayerPed()->m_nMoney += 50;
             }
         }

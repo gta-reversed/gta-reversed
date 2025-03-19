@@ -70,6 +70,7 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     dsound
     d3d9
     nlohmann_json::nlohmann_json
+    libjpeg-turbo::libjpeg-turbo
 )
 
 if(WIN32) 

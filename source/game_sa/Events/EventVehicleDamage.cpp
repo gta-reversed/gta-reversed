@@ -67,7 +67,7 @@ void CEventVehicleDamage::ReportCriminalEvent(CPed* ped)
 {
     if (IsCriminalEvent() && m_attacker) {
         bool bPoliceDontReallyCare = CPedType::PoliceDontCareAboutCrimesAgainstPedType(ped->m_nPedType);
-        if (ped->m_nPedType == PEDTYPE_COP) 
+        if (ped->m_nPedType == PED_TYPE_COP) 
             FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_VEHICLE_DAMAGE, m_attacker->GetPosition(), ped, bPoliceDontReallyCare);
     }
 }

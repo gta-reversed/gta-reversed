@@ -395,7 +395,7 @@ void CCheat::EverybodyAttacksPlayerCheat() {
             if (!ped || ped->IsPlayer())
                 continue;
 
-            ped->GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PEDTYPE_PLAYER1));
+            ped->GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PED_TYPE_PLAYER1));
 
             CEventAcquaintancePedHate event(player);
             event.m_TaskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
@@ -552,7 +552,7 @@ void CCheat::MayhemCheat() {
     if (IsActive(CHEAT_PEDS_ATTACK_OTHER_WITH_GOLFCLUB)) {
         std::swap(CPedType::ms_apPedTypesOld, CPedType::ms_apPedTypes); // NOTSA
 
-        for (uint32 pedType = PEDTYPE_CIVMALE; pedType <= PEDTYPE_PROSTITUTE; pedType++) {
+        for (uint32 pedType = PED_TYPE_CIVMALE; pedType <= PED_TYPE_PROSTITUTE; pedType++) {
             CPedType::SetPedTypeAsAcquaintance(ACQUAINTANCE_HATE, static_cast<ePedType>(pedType), 0xFFFFF);
         }
 
@@ -560,8 +560,8 @@ void CCheat::MayhemCheat() {
             if (ped.IsPlayer())
                 continue;
 
-            for (uint32 pedType_1 = PEDTYPE_CIVMALE; pedType_1 <= PEDTYPE_PROSTITUTE; ++pedType_1) {
-                ped.GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(static_cast<ePedType>(pedType_1)));
+            for (uint32 PED_TYPE_1 = PED_TYPE_CIVMALE; PED_TYPE_1 <= PED_TYPE_PROSTITUTE; ++PED_TYPE_1) {
+                ped.GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(static_cast<ePedType>(PED_TYPE_1)));
             }
             if (CPed* closestPed = ped.GetIntelligence()->GetPedScanner().GetClosestPedInRange()) {
                 CEventAcquaintancePedHate event(closestPed);

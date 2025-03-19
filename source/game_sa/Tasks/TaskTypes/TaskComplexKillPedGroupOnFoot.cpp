@@ -89,7 +89,7 @@ CPed* CTaskComplexKillPedGroupOnFoot::ComputeNearestLivingGroupPed(CPed& ped, bo
         }
         if (mem.IsPlayer()) {
             if (const auto wanted = mem.AsPlayer()->GetWanted()) {
-                if (wanted->m_nCopsInPursuit && ped.m_nPedType != PEDTYPE_COP && ped.IsCreatedBy(PED_GAME)) {
+                if (wanted->m_nCopsInPursuit && ped.m_nPedType != PED_TYPE_COP && ped.IsCreatedBy(PED_GAME)) {
                     return false;
                 }
             }

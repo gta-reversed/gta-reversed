@@ -80,13 +80,13 @@ eModelID CGangs::ChooseGangPedModel(eGangID gangId) {
 // unused (0x5DE500)
 bool CGangs::GetWillAttackPlayerWithCops(ePedType pedType) {
     assert(IsPedTypeGang(pedType));
-    return GangAttackWithCops[pedType - PEDTYPE_GANG1];
+    return GangAttackWithCops[pedType - PED_TYPE_GANG1];
 }
 
 // unused (0x5DE4E0)
 void CGangs::SetWillAttackPlayerWithCops(ePedType pedType, bool attackPlayerWithCops) {
     assert(IsPedTypeGang(pedType));
-    GangAttackWithCops[pedType - PEDTYPE_GANG1] = attackPlayerWithCops;
+    GangAttackWithCops[pedType - PED_TYPE_GANG1] = attackPlayerWithCops;
 }
 
 // unused (0x5DE580)

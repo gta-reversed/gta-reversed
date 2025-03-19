@@ -76,7 +76,7 @@ void CAEPedSpeechAudioEntity::InjectHooks() {
 CAEPedSpeechAudioEntity::CAEPedSpeechAudioEntity(eAudioPedType pt) noexcept :
     m_PedAudioType{pt}
 {
-    if (pt != PEDTYPE_UNK) {
+    if (pt != PED_TYPE_UNK) {
         m_IsInitialized = true;
     }
     m_NextTimeCanSayPain.fill(0);
@@ -91,9 +91,9 @@ CAEPedSpeechAudioEntity::CAEPedSpeechAudioEntity(CPed* ped) noexcept :
         auto* const mi = ped->GetPedModelInfo();
         m_PedAudioType = mi->m_nPedAudioType;
         switch (m_PedAudioType) {
-        case PEDTYPE_UNK:
+        case PED_TYPE_UNK:
             return;
-        case PEDTYPE_SPC: {
+        case PED_TYPE_SPC: {
             if (!GetVoiceAndTypeForSpecialPed(mi->m_nKey)) {
                 return;
             }
@@ -352,8 +352,8 @@ void CAEPedSpeechAudioEntity::SetUpConversation() {
     const auto PushConvoForPeds = [&](eGlobalSpeechContext ifFemale, eGlobalSpeechContext ifMale) {
         const auto PushConvoForPed = [&](const CPed* p) {
             switch (p->m_nPedType) {
-            case PEDTYPE_PROSTITUTE:
-            case PEDTYPE_CIVFEMALE: PushConvo(ifFemale); break;
+            case PED_TYPE_PROSTITUTE:
+            case PED_TYPE_CIVFEMALE: PushConvo(ifFemale); break;
             default:                 PushConvo(ifMale);   break;
             }
         };
@@ -402,14 +402,14 @@ void CAEPedSpeechAudioEntity::SetUpConversation() {
 // 0x4E3C60
 eAudioPedType CAEPedSpeechAudioEntity::GetAudioPedType(const char* name) {
     static const auto mapping = notsa::make_mapping<std::string_view, eAudioPedType>({
-        {"PEDTYPE_GEN",    PEDTYPE_GEN   },
-        {"PEDTYPE_EMG",    PEDTYPE_EMG   },
-        {"PEDTYPE_PLAYER", PEDTYPE_PLAYER},
-        {"PEDTYPE_GANG",   PEDTYPE_GANG  },
-        {"PEDTYPE_GFD",    PEDTYPE_GFD   },
-        {"PEDTYPE_SPC",    PEDTYPE_SPC   },
+        {"PED_TYPE_GEN",    PED_TYPE_GEN   },
+        {"PED_TYPE_EMG",    PED_TYPE_EMG   },
+        {"PED_TYPE_PLAYER", PED_TYPE_PLAYER},
+        {"PED_TYPE_GANG",   PED_TYPE_GANG  },
+        {"PED_TYPE_GFD",    PED_TYPE_GFD   },
+        {"PED_TYPE_SPC",    PED_TYPE_SPC   },
     });
-    return notsa::find_value_or(mapping, name, PEDTYPE_UNK);
+    return notsa::find_value_or(mapping, name, PED_TYPE_UNK);
 }
 
 // 0x4E3CD0
@@ -418,12 +418,12 @@ ePedSpeechVoiceS16 CAEPedSpeechAudioEntity::GetVoice(const char* name, eAudioPed
         return notsa::find_value_or(mapping, name, VOICE_UNK);
     };
     switch (type) {
-    case PEDTYPE_GEN:   return DoLookUpIn(gGenSpeechVoiceLookup);
-    case PEDTYPE_EMG:   return DoLookUpIn(gEmgSpeechVoiceLookup);
-    case PEDTYPE_PLAYER:return DoLookUpIn(gPlySpeechVoiceLookup);
-    case PEDTYPE_GANG:  return DoLookUpIn(gGngSpeechVoiceLookup);
-    case PEDTYPE_GFD:   return DoLookUpIn(gGfdSpeechVoiceLookup);
-    case PEDTYPE_SPC:   return VOICE_UNK;
+    case PED_TYPE_GEN:   return DoLookUpIn(gGenSpeechVoiceLookup);
+    case PED_TYPE_EMG:   return DoLookUpIn(gEmgSpeechVoiceLookup);
+    case PED_TYPE_PLAYER:return DoLookUpIn(gPlySpeechVoiceLookup);
+    case PED_TYPE_GANG:  return DoLookUpIn(gGngSpeechVoiceLookup);
+    case PED_TYPE_GFD:   return DoLookUpIn(gGfdSpeechVoiceLookup);
+    case PED_TYPE_SPC:   return VOICE_UNK;
     default:             NOTSA_UNREACHABLE();
     }
 }
@@ -481,11 +481,11 @@ eCJMood CAEPedSpeechAudioEntity::GetCurrentCJMood() {
             return false;
         case 1: { // Exactly one
             const auto& mem = plyrGrp.GetMembership().GetMembers().front(); // The one-and-only member (This isnt the same as `GetMember(0)`!!!)
-            if (mem.m_nPedType == PEDTYPE_GANG2) {
+            if (mem.m_nPedType == PED_TYPE_GANG2) {
                 return true;
             }
             auto& memSpeech = mem.GetSpeechAE();
-            return memSpeech.m_PedAudioType == PEDTYPE_GANG
+            return memSpeech.m_PedAudioType == PED_TYPE_GANG
                 && notsa::contains({ VOICE_GNG_RYDER, VOICE_GNG_SWEET, VOICE_GNG_SMOKE }, (eGngSpeechVoices)memSpeech.m_VoiceID);
         }
         default: // 2 or more
@@ -612,7 +612,7 @@ bool CAEPedSpeechAudioEntity::IsCJDressedInForGangSpeech() {
         { CLOTHES_TEXTURE_GLASSES, "bandblack3"  },
     };
 
-    if (!FindPlayerPed(PEDTYPE_PLAYER1)) {
+    if (!FindPlayerPed(PED_TYPE_PLAYER1)) {
         return false;
     }
 
@@ -656,8 +656,8 @@ bool __stdcall CAEPedSpeechAudioEntity::IsGlobalContextPain(eGlobalSpeechContext
 // 0x4E46B0
 bool CAEPedSpeechAudioEntity::IsGlobalContextImportantForWidescreen(eGlobalSpeechContext gCtx) {
     switch (m_PedAudioType) {
-    case PEDTYPE_GFD:
-    case PEDTYPE_PLAYER:
+    case PED_TYPE_GFD:
+    case PED_TYPE_PLAYER:
         return true;
     }
     const auto ctxi = GetGlobalSpeechContextInfo(gCtx);
@@ -676,8 +676,8 @@ bool CAEPedSpeechAudioEntity::IsGlobalContextImportantForWidescreen(eGlobalSpeec
 // 0x4E4510
 bool CAEPedSpeechAudioEntity::IsGlobalContextImportantForStreaming(eGlobalSpeechContext gCtx) {
     switch (m_PedAudioType) {
-    case PEDTYPE_GFD:
-    case PEDTYPE_PLAYER:
+    case PED_TYPE_GFD:
+    case PED_TYPE_PLAYER:
         return true;
     }
     const auto ctxi = GetGlobalSpeechContextInfo(gCtx);
@@ -814,8 +814,8 @@ bool CAEPedSpeechAudioEntity::GetVoiceAndTypeFromModel(eModelID modelId) {
     auto* const mi = CModelInfo::GetModelInfo(modelId)->AsPedModelInfoPtr();
 
     switch (mi->m_nPedAudioType) {
-    case PEDTYPE_UNK: return false;
-    case PEDTYPE_SPC: return GetVoiceAndTypeForSpecialPed(mi->m_nKey);
+    case PED_TYPE_UNK: return false;
+    case PED_TYPE_SPC: return GetVoiceAndTypeForSpecialPed(mi->m_nKey);
     }
 
     m_VoiceID = mi->m_nVoiceId;
@@ -841,7 +841,7 @@ int16 CAEPedSpeechAudioEntity::GetSoundAndBankIDs(eGlobalSpeechContext gCtx, eSp
     const auto voiceID = [&]() -> ePedSpeechVoiceS32 {
         if (IsGlobalContextPain(gCtx)) {
             return GetPainVoice();
-        } else if (m_PedAudioType == PEDTYPE_PLAYER) {
+        } else if (m_PedAudioType == PED_TYPE_PLAYER) {
             eCJMood mood = GetCurrentCJMood();
             NOTSA_LOG_DEBUG("GetCurrentCJMood: 0x{:x}", (int)mood);
             for (; ;mood = GetNextMoodToUse(mood)) {
@@ -992,7 +992,7 @@ void CAEPedSpeechAudioEntity::StopCurrentSpeech() {
     };
 
     m_IsPlayingSpeech = false;
-    if (m_PedAudioType == PEDTYPE_PLAYER) {
+    if (m_PedAudioType == PED_TYPE_PLAYER) {
         s_bAPlayerSpeaking = false;
     }
     m_PedSpeechSlotID = -1;
@@ -1017,11 +1017,11 @@ bool CAEPedSpeechAudioEntity::GetSoundAndBankIDsForScriptedSpeech(eAudioEvents s
 // 0x4E4200
 bool CAEPedSpeechAudioEntity::GetSexFromModel(eModelID model) {
     const auto* const mi = CModelInfo::GetModelInfo(model)->AsPedModelInfoPtr();
-    assert(mi->m_nPedAudioType < PEDTYPE_NUM);
-    if (mi->m_nPedAudioType == PEDTYPE_SPC) {
+    assert(mi->m_nPedAudioType < PED_TYPE_NUM);
+    if (mi->m_nPedAudioType == PED_TYPE_SPC) {
         return true;
     }
-    m_IsFemale = notsa::contains({PEDTYPE_CIVFEMALE, PEDTYPE_PROSTITUTE}, mi->GetPedType());
+    m_IsFemale = notsa::contains({PED_TYPE_CIVFEMALE, PED_TYPE_PROSTITUTE}, mi->GetPedType());
     return true;
 }
 
@@ -1042,7 +1042,7 @@ bool CAEPedSpeechAudioEntity::GetVoiceAndTypeForSpecialPed(uint32 modelNameHash)
 
 // notsa
 ePainSpeechVoices CAEPedSpeechAudioEntity::GetPainVoice() const {
-    if (m_PedAudioType == PEDTYPE_PLAYER) {
+    if (m_PedAudioType == PED_TYPE_PLAYER) {
         return VOICE_PAIN_CARL;
     }
     return m_IsFemale
@@ -1070,7 +1070,7 @@ void CAEPedSpeechAudioEntity::AddScriptSayEvent(eAudioEvents audioEvent, eAudioE
     if (CStreaming::IsVeryBusy()) {
         return;
     }
-    const auto speechSlotID = m_PedAudioType == PEDTYPE_PLAYER
+    const auto speechSlotID = m_PedAudioType == PED_TYPE_PLAYER
         ? !CAEPedSpeechAudioEntity::s_bAPlayerSpeaking || m_IsPlayingSpeech
             ? PLAYER_SPEECH_SLOT
             : -1
@@ -1094,12 +1094,12 @@ void CAEPedSpeechAudioEntity::AddScriptSayEvent(eAudioEvents audioEvent, eAudioE
     }
 
     m_EventVolume = GetDefaultVolume(AE_SPEECH_PED);
-    if (m_PedAudioType == PEDTYPE_PLAYER) {
+    if (m_PedAudioType == PED_TYPE_PLAYER) {
         m_EventVolume += 3.f;
     }
 
     m_IsPlayingSpeech = true;
-    if (m_PedAudioType == PEDTYPE_PLAYER) {
+    if (m_PedAudioType == PED_TYPE_PLAYER) {
         s_bAPlayerSpeaking = true;
     }
 
@@ -1143,7 +1143,7 @@ bool CAEPedSpeechAudioEntity::WillPedChatAboutTopic(int16 topic) {
 eAudioPedType CAEPedSpeechAudioEntity::GetPedType() {
     return m_IsInitialized 
         ? m_PedAudioType
-        : PEDTYPE_UNK;
+        : PED_TYPE_UNK;
 }
 
 // 0x4E4150
@@ -1169,7 +1169,7 @@ tPedSpeechSlotID CAEPedSpeechAudioEntity::GetFreeSpeechSlot() {
 // 0x4E4470
 eSpecificSpeechContext CAEPedSpeechAudioEntity::GetSpecificSpeechContext(eGlobalSpeechContext gCtx, eAudioPedType pedAudioType) {
     // Omitted useless `if`s
-    // NOTE: Original code allowed `PEDTYPE_SPC` as a valid ped type too... but that (technically) caused an out-of-bounds read...
+    // NOTE: Original code allowed `PED_TYPE_SPC` as a valid ped type too... but that (technically) caused an out-of-bounds read...
     //       We won't assert on that, because there are bounds check for the array (as we use std::array)
     if (const auto* const ctxi = GetGlobalSpeechContextInfo(gCtx)) {
         return ctxi->SpecificSpeechContext[pedAudioType];
@@ -1196,11 +1196,11 @@ const tSpecificSpeechContextInfo* CAEPedSpeechAudioEntity::GetSpecificSpeechCont
         return &gPainSpeechLookup[sCtx][voice];
     }
     switch (pt) {
-    case PEDTYPE_GEN:    return &gGenSpeechLookup[sCtx][voice];
-    case PEDTYPE_EMG:    return &gEmgSpeechLookup[sCtx][voice];
-    case PEDTYPE_PLAYER: return &gPlySpeechLookup[sCtx][voice];
-    case PEDTYPE_GANG:   return &gGngSpeechLookup[sCtx][voice];
-    case PEDTYPE_GFD:    return &gGfdSpeechLookup[sCtx][voice];
+    case PED_TYPE_GEN:    return &gGenSpeechLookup[sCtx][voice];
+    case PED_TYPE_EMG:    return &gEmgSpeechLookup[sCtx][voice];
+    case PED_TYPE_PLAYER: return &gPlySpeechLookup[sCtx][voice];
+    case PED_TYPE_GANG:   return &gGngSpeechLookup[sCtx][voice];
+    case PED_TYPE_GFD:    return &gGfdSpeechLookup[sCtx][voice];
     default:              return nullptr;
     }
 }
@@ -1210,11 +1210,11 @@ eSoundBank CAEPedSpeechAudioEntity::GetVoiceSoundBank(eGlobalSpeechContext gCtx,
         return gPainVoiceToBankLookup[voice];
     }
     switch (pt) {
-    case PEDTYPE_GEN:    return gGenSpeechVoiceToBankLookup[voice];
-    case PEDTYPE_EMG:    return gEmgSpeechVoiceToBankLookup[voice];
-    case PEDTYPE_PLAYER: return gPlySpeechVoiceToBankLookup[voice];
-    case PEDTYPE_GANG:   return gGngSpeechVoiceToBankLookup[voice];
-    case PEDTYPE_GFD:    return gGfdSpeechVoiceToBankLookup[voice];
+    case PED_TYPE_GEN:    return gGenSpeechVoiceToBankLookup[voice];
+    case PED_TYPE_EMG:    return gEmgSpeechVoiceToBankLookup[voice];
+    case PED_TYPE_PLAYER: return gPlySpeechVoiceToBankLookup[voice];
+    case PED_TYPE_GANG:   return gGngSpeechVoiceToBankLookup[voice];
+    case PED_TYPE_GFD:    return gGfdSpeechVoiceToBankLookup[voice];
     default:              NOTSA_UNREACHABLE();
     }
 }
@@ -1291,7 +1291,7 @@ int16 CAEPedSpeechAudioEntity::I_AddSayEvent(CVector pos, eAudioEvents audioEven
     }
 
     if constexpr (!IsPedless) {
-        if (m_PedAudioType == PEDTYPE_PLAYER) {
+        if (m_PedAudioType == PED_TYPE_PLAYER) {
             if (FindPlayerPed() != m_pEntity || s_bAPlayerSpeaking && !m_IsPlayingSpeech) {
                 return -1;
             }
@@ -1308,7 +1308,7 @@ int16 CAEPedSpeechAudioEntity::I_AddSayEvent(CVector pos, eAudioEvents audioEven
         return -1;
     }
 
-    const auto speechSlotID = !IsPedless && m_PedAudioType == PEDTYPE_PLAYER
+    const auto speechSlotID = !IsPedless && m_PedAudioType == PED_TYPE_PLAYER
         ? CTimer::GetTimeInMS() >= GetNextPlayTime(gCtx)
         ? PLAYER_SPEECH_SLOT
         : -1
@@ -1331,7 +1331,7 @@ int16 CAEPedSpeechAudioEntity::I_AddSayEvent(CVector pos, eAudioEvents audioEven
 
     m_EventVolume = GetDefaultVolume(AE_SPEECH_PED);
     if constexpr (!IsPedless) {
-        if (m_PedAudioType == PEDTYPE_PLAYER) {
+        if (m_PedAudioType == PED_TYPE_PLAYER) {
             m_EventVolume += 3.f;
         }
         m_EventVolume += GetSpeechContextVolumeOffset(gCtx);
@@ -1339,7 +1339,7 @@ int16 CAEPedSpeechAudioEntity::I_AddSayEvent(CVector pos, eAudioEvents audioEven
 
     m_IsPlayingSpeech = true;
     if constexpr (!IsPedless) {
-        if (m_PedAudioType == PEDTYPE_PLAYER) {
+        if (m_PedAudioType == PED_TYPE_PLAYER) {
             s_bAPlayerSpeaking = true;
         }
     }
@@ -1372,7 +1372,7 @@ void CAEPedSpeechAudioEntity::I_UpdateParameters(CAESound* sound, int16 playTime
         m_PedSpeechSlotID = -1;
 
         if constexpr (!IsPedless) {
-            if (m_PedAudioType == PEDTYPE_PLAYER) {
+            if (m_PedAudioType == PED_TYPE_PLAYER) {
                 s_bAPlayerSpeaking = false;
             }
 
@@ -1482,7 +1482,7 @@ void CAEPedSpeechAudioEntity::I_PlayLoadedSound(CEntity* attachTo) {
     } else {
         *speech = CAEPedSpeechSlot{};
         if constexpr (!IsPedless) {
-            if (m_PedAudioType == PEDTYPE_PLAYER) {
+            if (m_PedAudioType == PED_TYPE_PLAYER) {
                 s_bAPlayerSpeaking = false;
             }
         }

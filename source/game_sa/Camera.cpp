@@ -1350,9 +1350,9 @@ void CCamera::SetColVarsAimWeapon(int32 aimingType) {
 void CCamera::SetColVarsPed(ePedType pedType, int32 nCamPedZoom) {
     const int32 camColVars = [=] {
         switch (pedType) {
-        case PEDTYPE_PLAYER1:
+        case PED_TYPE_PLAYER1:
             return nCamPedZoom + 3;
-        case PEDTYPE_PLAYER2:
+        case PED_TYPE_PLAYER2:
             return nCamPedZoom + 6;
         default:
             return 0;

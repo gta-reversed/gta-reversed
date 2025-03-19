@@ -35,7 +35,7 @@ bool CEventAttractor::AffectsPed(CPed* ped) {
         && (GetEventType() != EVENT_ATTRACTOR || IsEffectActive(m_entity, m_2dEffect))
         && !ped->GetIntelligence()->FindTaskByType(TASK_COMPLEX_BE_IN_COUPLE))
     {
-        if (ped->m_nPedType != PEDTYPE_COP
+        if (ped->m_nPedType != PED_TYPE_COP
             || GetEventType() != EVENT_ATTRACTOR
             || !FindPlayerWanted()->m_nWantedLevel
             && m_2dEffect->m_nAttractorType == PED_ATTRACTOR_TRIGGER_SCRIPT

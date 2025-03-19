@@ -221,9 +221,9 @@ CEntity* CCam::Get_TwoPlayer_AimVector(CVector& vecFront) {
     constexpr int INCAR_2PLAYER_WEAPON_RANGE_MULTIPLIER = 2;
 
     // Are we targetting an entity at the moment?
-    CPlayerPed* player = FindPlayerPed(PEDTYPE_PLAYER1);
+    CPlayerPed* player = FindPlayerPed(PED_TYPE_PLAYER1);
     if (player && player->m_pVehicle && !player->m_pVehicle->IsDriver(player)) {
-        player = FindPlayerPed(PEDTYPE_PLAYER2);
+        player = FindPlayerPed(PED_TYPE_PLAYER2);
     }
 
     const auto weaponInfo    = player->GetActiveWeapon().GetWeaponInfo(player);
@@ -804,7 +804,7 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
     CVehicle *pTargetVehicle = m_pCamTargetEntity->AsVehicle();
     CVector cameraTargetPos = ThisCamsTarget;
     CPad *pPlayerPad = CPad::GetPad(0);
-    if (pTargetVehicle->m_pDriver && pTargetVehicle->m_pDriver->m_nPedType == PEDTYPE_PLAYER2) {
+    if (pTargetVehicle->m_pDriver && pTargetVehicle->m_pDriver->m_nPedType == PED_TYPE_PLAYER2) {
         pPlayerPad = CPad::GetPad(1);
     }
 

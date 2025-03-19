@@ -44,8 +44,8 @@ void CCarAI::InjectHooks() {
 
 // 0x41C4A0
 void CCarAI::AddAmbulanceOccupants(CVehicle* vehicle) {
-    CPed* driver    = vehicle->SetUpDriver(PEDTYPE_NONE, false, false);
-    CPed* passenger = vehicle->SetupPassenger(1, PEDTYPE_NONE, false, false);
+    CPed* driver    = vehicle->SetUpDriver(PED_TYPE_NONE, false, false);
+    CPed* passenger = vehicle->SetupPassenger(1, PED_TYPE_NONE, false, false);
 
     driver->GetTaskManager().SetTask(new CTaskSimpleCarDrive{ vehicle }, TASK_PRIMARY_DEFAULT);
     driver->GetTaskManager().SetTask(new CTaskComplexMedicTreatInjuredPed{ vehicle, passenger, true }, TASK_PRIMARY_PRIMARY);

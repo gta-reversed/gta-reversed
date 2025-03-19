@@ -26,7 +26,7 @@ void CEmergencyPed::ProcessControl() {
     weapon.Update(nullptr);
     if (m_nPedState != PEDSTATE_DIE) {
         weapon.Update(nullptr);
-        if (m_nPedType != PEDTYPE_MEDIC && m_nPedType == PEDTYPE_FIREMAN) { // todo: bad OG expression
+        if (m_nPedType != PED_TYPE_MEDIC && m_nPedType == PED_TYPE_FIREMAN) { // todo: bad OG expression
             CPed::IsPedInControl();
         }
     }

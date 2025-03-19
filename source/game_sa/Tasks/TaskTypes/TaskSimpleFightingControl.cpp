@@ -188,7 +188,7 @@ bool CTaskSimpleFightingControl::ProcessPed(CPed* ped) {
 
     const auto pedShootingRange = [ped] {
         const auto range = (int16)ped->m_nWeaponShootingRate;
-        if (!ped->IsCreatedByMission() && ped->m_nPedType != PEDTYPE_COP && range == 40) {
+        if (!ped->IsCreatedByMission() && ped->m_nPedType != PED_TYPE_COP && range == 40) {
             return ped->m_pStats->m_wShootingRate;
         }
         return range;

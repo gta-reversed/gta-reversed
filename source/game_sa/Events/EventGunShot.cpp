@@ -40,7 +40,7 @@ bool CEventGunShot::AffectsPed(CPed* ped) {
 
     if (!ped->IsInVehicleThatHasADriver()) {
         CWanted* playerWanted = FindPlayerWanted();
-        if (ped->m_nPedType == PEDTYPE_COP && playerWanted->m_nWantedLevel > 0) {
+        if (ped->m_nPedType == PED_TYPE_COP && playerWanted->m_nWantedLevel > 0) {
             CCopPed* cop = static_cast<CCopPed*>(ped);
             if (playerWanted->IsInPursuit(cop) || playerWanted->CanCopJoinPursuit(cop)) {
                 if (m_firedBy != FindPlayerPed())

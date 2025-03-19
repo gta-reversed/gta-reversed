@@ -608,9 +608,9 @@ auto CreatePed(CRunningScript& S, ePedType pedType, eModelID pedModel) -> CPed& 
         uint32 typeSpecificModelId = (uint32)(pedModel);
         S.GetCorrectPedModelIndexForEmergencyServiceType(pedType, &typeSpecificModelId);
         switch (pedType) {
-        case PEDTYPE_COP:      return new CCopPed{ typeSpecificModelId };
-        case PEDTYPE_MEDIC:
-        case PEDTYPE_FIREMAN:  return new CEmergencyPed{ pedType, typeSpecificModelId };
+        case PED_TYPE_COP:      return new CCopPed{ typeSpecificModelId };
+        case PED_TYPE_MEDIC:
+        case PED_TYPE_FIREMAN:  return new CEmergencyPed{ pedType, typeSpecificModelId };
         default:                return new CCivilianPed{ pedType, typeSpecificModelId };
         }
     }();

@@ -111,7 +111,7 @@ bool CPopCycle::FindNewPedType(ePedType& outPedType, eModelID& outPedMI, bool no
     }
 
     if (CPopulation::bInPoliceStation && CGeneral::RandomBool(70.f)) {
-        outPedType = PEDTYPE_COP;
+        outPedType = PED_TYPE_COP;
         outPedMI = CPopulation::ChoosePolicePedOccupation();
         return true;
     }
@@ -160,7 +160,7 @@ bool CPopCycle::FindNewPedType(ePedType& outPedType, eModelID& outPedMI, bool no
                 if (CStreaming::IsModelLoaded(modelId)) {
                     outPedMI = modelId;
                     assert(outPedMI != MODEL_PLAYER);
-                    outPedType = PEDTYPE_DEALER;
+                    outPedType = PED_TYPE_DEALER;
                     return true;
                 }
             }
@@ -169,7 +169,7 @@ bool CPopCycle::FindNewPedType(ePedType& outPedType, eModelID& outPedMI, bool no
         } else if (highestChance == gangChance) { // 0x60FF13
             outPedType = PickGangToCreateMembersOf();
             assert(IsPedTypeGang(outPedType));
-            outPedMI = CPopulation::ChooseGangOccupation((eGangID)(outPedType - ePedType::PEDTYPE_GANG1));
+            outPedMI = CPopulation::ChooseGangOccupation((eGangID)(outPedType - ePedType::PED_TYPE_GANG1));
             assert(outPedMI != MODEL_PLAYER);
             if (outPedMI >= 0) {
                 return true;
@@ -181,7 +181,7 @@ bool CPopCycle::FindNewPedType(ePedType& outPedType, eModelID& outPedMI, bool no
             continue;
         } else if (highestChance == copChance) { // 0x60FF62
             outPedMI = CPopulation::ChoosePolicePedOccupation();
-            outPedType = PEDTYPE_COP;
+            outPedType = PED_TYPE_COP;
             return true;
         } else if (highestChance == civPedsChance) { // 0x60FF8F
             outPedMI = CPopulation::ChooseCivilianOccupation();
@@ -472,7 +472,7 @@ ePedType CPopCycle::PickGangToCreateMembersOf() {
             return (float)m_pCurrZoneInfo->GangDensity[gangId] / sumGangDensity - (float)CPopulation::ms_nNumGang[gangId] / m_NumGangs_Peds;
         }
     );
-    return (ePedType)((size_t)PEDTYPE_GANG1 + dominatingGangId);
+    return (ePedType)((size_t)PED_TYPE_GANG1 + dominatingGangId);
 }
 
 // notsa

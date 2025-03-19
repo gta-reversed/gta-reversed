@@ -29,7 +29,7 @@ void ParticleDebugModule::RenderWindow() {
     if (Button("Random Fx here")) {
         auto* fx = g_fxMan.CreateFxSystem(
             CGeneral::RandomChoice(FX_PARTICLES),
-            FindPlayerCoors(PEDTYPE_PLAYER1),
+            FindPlayerCoors(PED_TYPE_PLAYER1),
             nullptr,
             ignoreBC
         );

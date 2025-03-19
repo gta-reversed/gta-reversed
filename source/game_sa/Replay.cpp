@@ -682,7 +682,7 @@ bool CReplay::CanWeFindPoolIndexForVehicle(int32 index) {
 
 // 0x45F020
 void CReplay::StorePlayerInfoVariables() {
-    auto& playerInfo = FindPlayerInfo(PEDTYPE_PLAYER1);
+    auto& playerInfo = FindPlayerInfo(PED_TYPE_PLAYER1);
 
     PlayerInfo = playerInfo;
     playerInfo.m_PlayerData.m_pWanted = nullptr;
@@ -695,7 +695,7 @@ void CReplay::StorePlayerInfoVariables() {
 
 // 0x45E1F0
 void CReplay::RestorePlayerInfoVariables() {
-    FindPlayerInfo(PEDTYPE_PLAYER1) = PlayerInfo;
+    FindPlayerInfo(PED_TYPE_PLAYER1) = PlayerInfo;
     PlayerInfo.m_PlayerData.m_pWanted = nullptr;
     PlayerInfo.m_PlayerData.m_pPedClothesDesc = nullptr;
     PlayerInfo.m_PlayerData.m_pArrestingCop = nullptr;
@@ -1037,17 +1037,17 @@ CPed* CReplay::DealWithNewPedPacket(const tReplayPedHeaderBlock& pedPacket, bool
     if (GetPedPool()->GetAt(FindPoolIndexForPed(pedPacket.poolRef)))
         return nullptr;
 
-    if (pedPacket.pedType == PEDTYPE_PLAYER1 && loadModel) {
+    if (pedPacket.pedType == PED_TYPE_PLAYER1 && loadModel) {
         CStreaming::RequestModel(pedPacket.modelId, STREAMING_DEFAULT);
         CStreaming::LoadAllRequestedModels(false);
     }
 
     if (CStreaming::GetInfo(pedPacket.modelId).IsLoaded()) {
         CPed* ped = nullptr;
-        if (pedPacket.pedType == PEDTYPE_PLAYER1) {
+        if (pedPacket.pedType == PED_TYPE_PLAYER1) {
             assert(clothesPacket && clothesPacket->type == REPLAY_PACKET_CLOTHES);
 
-            ped = new (FindPoolIndexForPed(pedPacket.poolRef) << 8) CPlayerPed(PEDTYPE_PLAYER1, true);
+            ped = new (FindPoolIndexForPed(pedPacket.poolRef) << 8) CPlayerPed(PED_TYPE_PLAYER1, true);
             RestoreClothesDesc(*ped->GetClothesDesc(), *clothesPacket);
             CClothes::RebuildPlayer(static_cast<CPlayerPed*>(ped), true);
         } else if (!loadModel) {

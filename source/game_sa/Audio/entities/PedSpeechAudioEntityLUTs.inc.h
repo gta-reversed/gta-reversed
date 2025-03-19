@@ -19,7 +19,7 @@ namespace {
 // 0x8C6A68
 static constexpr std::array<tGlobalSpeechContextInfo, CTX_GLOBAL_NUM> gSpeechContextLookup{{
     // GCtx                                                                                         ....SpecificContext....                                                                                               RepeatTime Zero        ...IsImportantFor...       IsPain
-    //                                          PEDTYPE_GEN                   PEDTYPE_EMG             PEDTYPE_PLAYER                      PEDTYPE_GANG                     PEDTYPE_GFD                                               Streaming Interrupting Widescreen                                                       
+    //                                          PED_TYPE_GEN                   PED_TYPE_EMG             PED_TYPE_PLAYER                      PED_TYPE_GANG                     PED_TYPE_GFD                                               Streaming Interrupting Widescreen                                                       
     {CTX_GLOBAL_NO_SPEECH,                      {CTX_GEN_UNK,                  CTX_EMG_UNK,             CTX_PLY_UNK,                         CTX_GNG_UNK,                      CTX_GFD_UNK,                            }, 7000,      0,   false,    false,       false,     false},
     {CTX_GLOBAL_ABUSE_GANG_BALLAS,              {CTX_GEN_UNK,                  CTX_EMG_UNK,             CTX_PLY_UNK,                         CTX_GNG_ABUSE_GANG_BALLAS,        CTX_GFD_UNK,                            }, 7000,      0,   false,    false,       false,     false},
     {CTX_GLOBAL_ABUSE_GANG_LSV,                 {CTX_GEN_UNK,                  CTX_EMG_UNK,             CTX_PLY_UNK,                         CTX_GNG_ABUSE_GANG_LSV,           CTX_GFD_UNK,                            }, 7000,      0,   false,    false,       false,     false},
@@ -1295,51 +1295,51 @@ constexpr size_t NUM_SPECIAL_PEDS = 45;
 // 0x8C6948
 static constexpr std::array<std::tuple<ePedSpeechVoiceS16, eAudioPedType, bool>, NUM_SPECIAL_PEDS> gSpecialPedVoiceLookup{{
     //VoiceID            PedType        IsFemale
-    {VOICE_GFD_DENISE,   PEDTYPE_GFD,  true }, // GANGRL1
-    {VOICE_GFD_DENISE,   PEDTYPE_GFD,  true }, // GANGRL2
-    {VOICE_GFD_DENISE,   PEDTYPE_GFD,  true }, // GANGRL3
-    {VOICE_GFD_MICHELLE, PEDTYPE_GFD,  true }, // MECGRL1
-    {VOICE_GFD_MICHELLE, PEDTYPE_GFD,  true }, // MECGRL2
-    {VOICE_GFD_MICHELLE, PEDTYPE_GFD,  true }, // MECGRL3
-    {VOICE_GFD_HELENA,   PEDTYPE_GFD,  true }, // GUNGRL1
-    {VOICE_GFD_HELENA,   PEDTYPE_GFD,  true }, // GUNGRL2
-    {VOICE_GFD_HELENA,   PEDTYPE_GFD,  true }, // GUNGRL3
-    {VOICE_GFD_BARBARA,  PEDTYPE_GFD,  true }, // COPGRL1
-    {VOICE_GFD_BARBARA,  PEDTYPE_GFD,  true }, // COPGRL2
-    {VOICE_GFD_BARBARA,  PEDTYPE_GFD,  true }, // COPGRL3
-    {VOICE_GFD_KATIE,    PEDTYPE_GFD,  true }, // NURGRL1
-    {VOICE_GFD_KATIE,    PEDTYPE_GFD,  true }, // NURGRL2
-    {VOICE_GFD_KATIE,    PEDTYPE_GFD,  true }, // NURGRL3
-    {VOICE_GFD_MILLIE,   PEDTYPE_GFD,  true }, // CROGRL1
-    {VOICE_GFD_MILLIE,   PEDTYPE_GFD,  true }, // CROGRL2
-    {VOICE_GFD_MILLIE,   PEDTYPE_GFD,  true }, // CROGRL3
-    {VOICE_UNK,          PEDTYPE_UNK,  false}, // maddogg
-    {VOICE_UNK,          PEDTYPE_UNK,  false}, // janitor
-    {VOICE_UNK,          PEDTYPE_UNK,  false}, // paul
-    {VOICE_GNG_MACCER,   PEDTYPE_GANG, false}, // macca
-    {VOICE_UNK,          PEDTYPE_UNK,  false}, // claude
-    {VOICE_EMG_PULASKI,  PEDTYPE_EMG,  false}, // pulaski
-    {VOICE_UNK,          PEDTYPE_UNK,  false}, // sindaco
-    {VOICE_GNG_SMOKE,    PEDTYPE_GANG, false}, // smoke
-    {VOICE_GNG_OGLOC,    PEDTYPE_GANG, false}, // ogloc
-    {VOICE_GNG_RYDER,    PEDTYPE_GANG, false}, // ryder
-    {VOICE_GNG_RYDER,    PEDTYPE_GANG, false}, // ryder2
-    {VOICE_GNG_CESAR,    PEDTYPE_GANG, false}, // cesar
-    {VOICE_GNG_TRUTH,    PEDTYPE_GANG, false}, // truth
-    {VOICE_GNG_TBONE,    PEDTYPE_GANG, false}, // tbone
-    {VOICE_UNK,          PEDTYPE_UNK,  false}, // tenpen
-    {VOICE_GNG_SMOKE,    PEDTYPE_GANG, false}, // smokev
-    {VOICE_UNK,          PEDTYPE_UNK,  false}, // rose
-    {VOICE_UNK,          PEDTYPE_UNK,  false}, // hern
-    {VOICE_GNG_DWAINE,   PEDTYPE_GANG, false}, // dwayne
-    {VOICE_UNK,          PEDTYPE_UNK,  false}, // jethro
-    {VOICE_GNG_SWEET,    PEDTYPE_GANG, false}, // sweet
-    {VOICE_GFD_CATALINA, PEDTYPE_GFD,  true }, // cat
-    {VOICE_GNG_BIG_BEAR, PEDTYPE_GANG, false}, // bb
-    {VOICE_GNG_BIG_BEAR, PEDTYPE_GANG, false}, // bbthin
-    {VOICE_GNG_JIZZY,    PEDTYPE_GANG, false}, // jizzy
-    {VOICE_GNG_TORENO,   PEDTYPE_GANG, false}, // torino
-    {VOICE_GNG_WOOZIE,   PEDTYPE_GANG, false}, // wuzimu
+    {VOICE_GFD_DENISE,   PED_TYPE_GFD,  true }, // GANGRL1
+    {VOICE_GFD_DENISE,   PED_TYPE_GFD,  true }, // GANGRL2
+    {VOICE_GFD_DENISE,   PED_TYPE_GFD,  true }, // GANGRL3
+    {VOICE_GFD_MICHELLE, PED_TYPE_GFD,  true }, // MECGRL1
+    {VOICE_GFD_MICHELLE, PED_TYPE_GFD,  true }, // MECGRL2
+    {VOICE_GFD_MICHELLE, PED_TYPE_GFD,  true }, // MECGRL3
+    {VOICE_GFD_HELENA,   PED_TYPE_GFD,  true }, // GUNGRL1
+    {VOICE_GFD_HELENA,   PED_TYPE_GFD,  true }, // GUNGRL2
+    {VOICE_GFD_HELENA,   PED_TYPE_GFD,  true }, // GUNGRL3
+    {VOICE_GFD_BARBARA,  PED_TYPE_GFD,  true }, // COPGRL1
+    {VOICE_GFD_BARBARA,  PED_TYPE_GFD,  true }, // COPGRL2
+    {VOICE_GFD_BARBARA,  PED_TYPE_GFD,  true }, // COPGRL3
+    {VOICE_GFD_KATIE,    PED_TYPE_GFD,  true }, // NURGRL1
+    {VOICE_GFD_KATIE,    PED_TYPE_GFD,  true }, // NURGRL2
+    {VOICE_GFD_KATIE,    PED_TYPE_GFD,  true }, // NURGRL3
+    {VOICE_GFD_MILLIE,   PED_TYPE_GFD,  true }, // CROGRL1
+    {VOICE_GFD_MILLIE,   PED_TYPE_GFD,  true }, // CROGRL2
+    {VOICE_GFD_MILLIE,   PED_TYPE_GFD,  true }, // CROGRL3
+    {VOICE_UNK,          PED_TYPE_UNK,  false}, // maddogg
+    {VOICE_UNK,          PED_TYPE_UNK,  false}, // janitor
+    {VOICE_UNK,          PED_TYPE_UNK,  false}, // paul
+    {VOICE_GNG_MACCER,   PED_TYPE_GANG, false}, // macca
+    {VOICE_UNK,          PED_TYPE_UNK,  false}, // claude
+    {VOICE_EMG_PULASKI,  PED_TYPE_EMG,  false}, // pulaski
+    {VOICE_UNK,          PED_TYPE_UNK,  false}, // sindaco
+    {VOICE_GNG_SMOKE,    PED_TYPE_GANG, false}, // smoke
+    {VOICE_GNG_OGLOC,    PED_TYPE_GANG, false}, // ogloc
+    {VOICE_GNG_RYDER,    PED_TYPE_GANG, false}, // ryder
+    {VOICE_GNG_RYDER,    PED_TYPE_GANG, false}, // ryder2
+    {VOICE_GNG_CESAR,    PED_TYPE_GANG, false}, // cesar
+    {VOICE_GNG_TRUTH,    PED_TYPE_GANG, false}, // truth
+    {VOICE_GNG_TBONE,    PED_TYPE_GANG, false}, // tbone
+    {VOICE_UNK,          PED_TYPE_UNK,  false}, // tenpen
+    {VOICE_GNG_SMOKE,    PED_TYPE_GANG, false}, // smokev
+    {VOICE_UNK,          PED_TYPE_UNK,  false}, // rose
+    {VOICE_UNK,          PED_TYPE_UNK,  false}, // hern
+    {VOICE_GNG_DWAINE,   PED_TYPE_GANG, false}, // dwayne
+    {VOICE_UNK,          PED_TYPE_UNK,  false}, // jethro
+    {VOICE_GNG_SWEET,    PED_TYPE_GANG, false}, // sweet
+    {VOICE_GFD_CATALINA, PED_TYPE_GFD,  true }, // cat
+    {VOICE_GNG_BIG_BEAR, PED_TYPE_GANG, false}, // bb
+    {VOICE_GNG_BIG_BEAR, PED_TYPE_GANG, false}, // bbthin
+    {VOICE_GNG_JIZZY,    PED_TYPE_GANG, false}, // jizzy
+    {VOICE_GNG_TORENO,   PED_TYPE_GANG, false}, // torino
+    {VOICE_GNG_WOOZIE,   PED_TYPE_GANG, false}, // wuzimu
 }};
 };
 
