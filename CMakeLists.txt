@@ -50,6 +50,7 @@ find_package(spdlog REQUIRED)
 find_package(Tracy REQUIRED)
 find_package(Vorbis REQUIRED)
 find_package(imgui REQUIRED)
+find_package(libjpeg-turbo REQUIRED)
 
 add_subdirectory(source)
 

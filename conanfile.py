@@ -17,7 +17,8 @@ class saRecipe(ConanFile):
         "spdlog/1.15.0",
         "tracy/cci.20220130",
         "vorbis/1.3.7",
-        "imgui/1.91.5-docking"
+        "imgui/1.91.5-docking",
+        "libjpeg-turbo/3.1.0",
     ]
 
     def layout(self):
