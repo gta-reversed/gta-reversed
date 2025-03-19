@@ -573,7 +573,9 @@ void CCoronas::RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 gre
 
     // Handle attachment to entity
     corona->m_bAttached   = (attachTo != nullptr);
-    CEntity::SetEntityReference(corona->m_pAttachedTo, attachTo);
+    if (attachTo) {
+        CEntity::SetEntityReference(corona->m_pAttachedTo, attachTo);
+    }
 }
 
 // Registers a corona effect using a predefined corona type.
