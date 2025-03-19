@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include "UIRenderer.h"
-#include "TaskSimpleAchieveHeading.h"
+#include "TaskComplexDestroyCarMelee.h"
 #include "TaskComplexWalkAlongsidePed.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
 #include "TaskComplexFollowNodeRoute.h"
@@ -9,7 +9,7 @@
 #include "TaskComplexStealCar.h"
 #include "TaskComplexFleeAnyMeans.h"
 #include "TaskComplexDriveWander.h"
-
+#include "TaskComplexCarSlowBeDraggedOut.h"
 #include <imgui.h>
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx9.h"
@@ -199,25 +199,14 @@ void UIRenderer::DebugCode() {
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-        std::cout << "Now im gonna crash" << std::endl;
-
-        for (int32 i = 0; i < 10; i++) {
-            std::cout << "loop " << i << std::endl;
+        if (const auto veh = player->GetVehicleIfInOne()) {
+            player->GetTaskManager().SetTask(
+                new CTaskComplexCarSlowBeDraggedOut{ veh, TARGET_DOOR_DRIVER, true },
+                TASK_PRIMARY_PRIMARY
+            );
+        } else {
+            CMessages::AddBigMessageQ("NOT IN VEHICLE"_gxt, 5'000, STYLE_MIDDLE);
         }
-
-        int* a = (int*)(rand() % 1);
-        *a = 1;
-
-        player->GetTaskManager().SetTask(
-            new CTaskSimpleAchieveHeading{PI/2.f},
-            TASK_PRIMARY_PRIMARY
-        );
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {

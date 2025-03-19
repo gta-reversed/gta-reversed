@@ -122,7 +122,7 @@ bool CTaskSimpleGetUp::StartAnim(CPed* ped) {
             m_Anim = CAnimManager::BlendAnimation(
                 ped->m_pRwClump,
                 ANIM_GROUP_DEFAULT,
-                RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_800) ? ANIM_ID_GETUP_FRONT : ANIM_ID_GETUP_0,
+                RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_FRONT) ? ANIM_ID_GETUP_FRONT : ANIM_ID_GETUP_0,
                 1000.0F
             );
 

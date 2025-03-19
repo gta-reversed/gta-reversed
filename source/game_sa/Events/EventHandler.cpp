@@ -900,10 +900,12 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
             // Eventually remove these lambdas.
             // I'm pretty sure this code can be linearized, but first I want to make sure it actually works :D
             const auto DoDie = [&](bool bFallingToDeath = false, eDirection fallToDeathDir = eDirection::FORWARD, bool bFallToDeathOverRailing = false) { // 0x4C0AA2
+                const auto isBeingKilledByStealth = tactive && tactive->GetTaskType() == TASK_SIMPLE_STEALTH_KILL && !static_cast<CTaskSimpleStealthKill*>(tactive)->m_bKeepTargetAlive;
+
                 g_InterestingEvents.Add(CInterestingEvents::INTERESTING_EVENT_28, m_Ped);
                 if (const auto tPhyResp = m_Ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_PHYSICAL_RESPONSE)) {
                     if (tPhyResp->GetTaskType() != TASK_SIMPLE_CHOKING || !notsa::contains({ WEAPON_SPRAYCAN, WEAPON_EXTINGUISHER, WEAPON_TEARGAS }, e->m_weaponType)) {
-                        m_Ped->GetIntelligence()->AddTaskPhysResponse(nullptr);
+                        m_Ped->GetIntelligence()->AddTaskPhysResponse(nullptr); // NB: This might delete `tactive` or `tsimplest`!
                     }
                 }
 
@@ -917,7 +919,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                     e->m_nAnimID,
                     e->m_fAnimBlend,
                     e->m_fAnimSpeed,
-                    tactive && tactive->GetTaskType() == TASK_SIMPLE_STEALTH_KILL && !static_cast<CTaskSimpleStealthKill*>(tactive)->m_bKeepTargetAlive,
+                    isBeingKilledByStealth,
                     bFallingToDeath,
                     fallToDeathDir,
                     bFallToDeathOverRailing
@@ -991,7 +993,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                 e->m_fAnimBlend = 4.f;
                 e->m_fAnimSpeed = 1.f;
                 e->m_nAnimGroup = ANIM_GROUP_DEFAULT;
-                if (const auto a = RpAnimBlendClumpGetFirstAssociation(m_Ped->m_pRwClump, ANIMATION_800)) { // 0x4C094E
+                if (const auto a = RpAnimBlendClumpGetFirstAssociation(m_Ped->m_pRwClump, ANIMATION_IS_FRONT)) { // 0x4C094E
                     e->m_nAnimID = ANIM_ID_FLOOR_HIT_F;
                     return DoDieMaybeFall();
                 }
@@ -1003,7 +1005,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                     if (tgup->m_bHasPedGotUp) {
                         return DoDieMaybeFall();
                     }
-                    e->m_nAnimID = RpAnimBlendClumpGetFirstAssociation(m_Ped->m_pRwClump, ANIMATION_800)
+                    e->m_nAnimID = RpAnimBlendClumpGetFirstAssociation(m_Ped->m_pRwClump, ANIMATION_IS_FRONT)
                         ? ANIM_ID_FLOOR_HIT_F
                         : ANIM_ID_FLOOR_HIT;
                     
