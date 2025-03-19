@@ -20,7 +20,7 @@ void CCurves::TestCurves() {
 }
 
 // 0x43C610
-float DistForLineToCrossOtherLine(CVector2D originA, CVector2D dirA, CVector2D originB, CVector2D dirB) {
+float CCurves::DistForLineToCrossOtherLine(CVector2D originA, CVector2D dirA, CVector2D originB, CVector2D dirB) {
     const auto crossAB = dirA.Cross(dirB);
     if (crossAB == 0.f) {
         return -1.f;
