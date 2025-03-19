@@ -34,8 +34,8 @@ public:
         INTERESTING_EVENT_20    = 20, // CEventHandler::ComputePedEnteredVehicleResponse
         INTERESTING_EVENT_21    = 21, // CHeli::ProcessControl
         INTERESTING_EVENT_22    = 22, // CWeapon::FireSniper CWeapon::FireInstantHitFromCar2 CWeapon::FireInstantHit CWeapon::FireProjectile
-        INTERESTING_EVENT_23    = 23, // CTaskAllocatorKillThreatsDriveby::AllocateTasks CTaskAllocatorKillThreatsBasic::AllocateTasks ComputeKillThreatsBasicResponse
-        INTERESTING_EVENT_24    = 24, //
+        GANG_ATTACKING_PED      = 23, // CTaskAllocatorKillThreatsDriveby::AllocateTasks CTaskAllocatorKillThreatsBasic::AllocateTasks ComputeKillThreatsBasicResponse
+        GANG_FIGHT              = 24, //
         INTERESTING_EVENT_25    = 25, // CTaskComplexKillCriminal::CreateFirstSubTask
         ZELDICK_OCCUPATION      = 26, // CHeli::ProcessControl
         EVENT_ATTRACTOR         = 27, //
