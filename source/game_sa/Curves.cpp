@@ -20,13 +20,12 @@ void CCurves::TestCurves() {
 }
 
 // 0x43C610
-float CCurves::DistForLineToCrossOtherLine(CVector2D lineStart, CVector2D lineDir, CVector2D otherLineStart, CVector2D otherLineDir) {
-    const auto cross = lineDir.Cross(otherLineDir);
-    if (cross == 0.f) {
+float DistForLineToCrossOtherLine(CVector2D originA, CVector2D dirA, CVector2D originB, CVector2D dirB) {
+    const auto crossAB = dirA.Cross(dirB);
+    if (crossAB == 0.f) {
         return -1.f;
     }
-    const auto delta = lineStart - otherLineStart;
-    return delta.Cross(otherLineDir) * (-1.f / cross);
+    return (originA - originB).Cross(dirB) * (-1.f / crossAB);
 }
 
 // 0x43C660
