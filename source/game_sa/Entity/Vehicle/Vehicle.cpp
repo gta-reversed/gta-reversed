@@ -1641,7 +1641,7 @@ bool CVehicle::IsPedOfModelInside(eModelID model) const {
     return IsDriver(model) || IsPassenger(model);
 }
 
-bool CVehicle::IsDriver(CPed* ped) const {
+bool CVehicle::IsDriver(const CPed* ped) const {
     return ped && ped == m_pDriver;
 }
 
