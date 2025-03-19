@@ -33,6 +33,35 @@ enum eArrestCam {
     ARRESTCAM_FROMLAMPPOST = 8,
 };
 
+struct CamFollowPedData {
+    float fTargetOffsetZ;
+    float fBaseCamDist;
+    float fBaseCamZ;
+    float fMinDist;
+    float fMinFollowDist;
+    float fDiffAlphaRate;
+    float fDiffAlphaCap;
+    float fDiffAlphaSwing;
+    float fDiffBetaRate;
+    float fDiffBetaCap;
+    float fDiffBetaSwing;
+    float fDiffBetaSwingCap;
+    float fStickMult;
+    float fUpLimit;
+    float fDownLimit;
+};
+
+enum {
+    FOLLOW_CAR_INCAR = 0,
+    FOLLOW_CAR_ONBIKE,
+    FOLLOW_CAR_INHELI,
+    FOLLOW_CAR_INPLANE,
+    FOLLOW_CAR_INBOAT,
+    FOLLOW_CAR_RCCAR,
+    FOLLOW_CAR_RCHELI,
+    FOLLOW_CAR_MAX
+};
+
 class CEntity;
 class CPed;
 class CVehicle;

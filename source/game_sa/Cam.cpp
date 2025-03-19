@@ -2,6 +2,7 @@
 
 #include "Cam.h"
 #include "Camera.h"
+#include "TaskComplexProstituteSolicit.h"
 
 bool& gbFirstPersonRunThisFrame = *reinterpret_cast<bool*>(0xB6EC20);
 
@@ -374,13 +375,13 @@ bool CCam::ProcessArrestCamOne() {
                     pStoredCopPed = pHandyCopPointer;
                     pHandyCopPointer = nullptr;
                 } else if (pHandyPedPointer) {
-                    CEntity **ppNearbyEntities = pHandyPedPointer->GetPedIntelligence()->GetNearbyPeds();
-                    for (int i = 0; i < pHandyPedPointer->GetPedIntelligence()->GetMaxNumPedsInRange(); i++) {
+                    CEntity **ppNearbyEntities = pHandyPedPointer->m_pIntelligence->m_TaskMgr->GetNearbyPeds();
+                    for (int i = 0; i < pHandyPedPointer->m_pIntelligence->m_TaskMgr->GetMaxNumPedsInRange(); i++) {
                         CEntity *pNearbyEntity = ppNearbyEntities[i];
                         if (pNearbyEntity) {
                             assert(pNearbyEntity->GetType() == ENTITY_TYPE_PED);
                             CPed *pNearbyPed = (CPed *)pNearbyEntity;
-                            CTaskSimpleArrestPed *pTaskArrest = (CTaskSimpleArrestPed *)pNearbyPed->GetPedIntelligence()->FindTaskActiveByType(eTaskType::TASK_SIMPLE_ARREST_PED);
+                            CTaskSimpleArrestPed *pTaskArrest = (CTaskSimpleArrestPed *)pNearbyPed->m_pIntelligence->m_TaskMgr->FindTaskActiveByType(eTaskType::TASK_SIMPLE_ARREST_PED);
                             if (pTaskArrest) {
                                 if (FindPlayerPed() == pTaskArrest->GetTargetPed()) {
                                     bGotCameraPos = GetLookOverShoulderPos(TheCamera.m_pTargetEntity, pNearbyPed, PlayerPosition, ArrestCamPos);
@@ -401,13 +402,13 @@ bool CCam::ProcessArrestCamOne() {
                     pStoredCopPed = pHandyCopPointer;
                     pHandyCopPointer = nullptr;
                 } else if (pHandyPedPointer) {
-                    CEntity **ppNearbyEntities = pHandyPedPointer->GetPedIntelligence()->GetNearbyPeds();
-                    for (int i = 0; i < pHandyPedPointer->GetPedIntelligence()->GetMaxNumPedsInRange(); i++) {
+                    CEntity **ppNearbyEntities = pHandyPedPointer->m_pIntelligence->m_TaskMgr->GetNearbyPeds();
+                    for (int i = 0; i < pHandyPedPointer->m_pIntelligence->m_TaskMgr->GetMaxNumPedsInRange(); i++) {
                         CEntity *pNearbyEntity = ppNearbyEntities[i];
                         if (pNearbyEntity) {
                             assert(pNearbyEntity->GetType() == ENTITY_TYPE_PED);
                             CPed *pNearbyPed = (CPed *)pNearbyEntity;
-                            CTaskSimpleArrestPed *pTaskArrest = (CTaskSimpleArrestPed *)pNearbyPed->GetPedIntelligence()->FindTaskActiveByType(eTaskType::TASK_SIMPLE_ARREST_PED);
+                            CTaskSimpleArrestPed *pTaskArrest = (CTaskSimpleArrestPed *)pNearbyPed->m_pIntelligence->m_TaskMgr->FindTaskActiveByType(eTaskType::TASK_SIMPLE_ARREST_PED);
                             if (pTaskArrest) {
                                 if (FindPlayerPed() == pTaskArrest->GetTargetPed()) {
                                     bGotCameraPos = GetLookOverShoulderPos(TheCamera.m_pTargetEntity, pNearbyPed, PlayerPosition, ArrestCamPos);
@@ -758,35 +759,6 @@ bool CCam::Process_FlyBy(const CVector&, float, float, float) {
 // 0x5245B0
 void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrientation, float SpeedVar, float SpeedVarDesired, bool bScriptSetAngles) {
 
-    struct CamFollowPedData {
-        float fTargetOffsetZ;
-        float fBaseCamDist;
-        float fBaseCamZ;
-        float fMinDist;
-        float fMinFollowDist;
-        float fDiffAlphaRate;
-        float fDiffAlphaCap;
-        float fDiffAlphaSwing;
-        float fDiffBetaRate;
-        float fDiffBetaCap;
-        float fDiffBetaSwing;
-        float fDiffBetaSwingCap;
-        float fStickMult;
-        float fUpLimit;
-        float fDownLimit;
-    };
-
-    enum {
-        FOLLOW_CAR_INCAR = 0,
-        FOLLOW_CAR_ONBIKE,
-        FOLLOW_CAR_INHELI,
-        FOLLOW_CAR_INPLANE,
-        FOLLOW_CAR_INBOAT,
-        FOLLOW_CAR_RCCAR,
-        FOLLOW_CAR_RCHELI,
-        FOLLOW_CAR_MAX
-    };
-    
     CamFollowPedData CARCAM_SET[FOLLOW_CAR_MAX] = {
         {1.3f,	1.0f,	0.40f,	10.0f,	15.0f,	0.5f, 	1.0f, 	1.0f,	0.85f,	0.2f,	0.075,	0.05f,		0.80f,	DegreesToRadians(45.0f), DegreesToRadians(89.0f)},
         {1.1f,	1.0f,	0.10f,	10.0f,	11.0f,	0.5f, 	1.0f, 	1.0f,	0.85f,	0.2f,	0.075f,	0.05f,		0.75f,	DegreesToRadians(45.0f), DegreesToRadians(89.0f)},
@@ -1029,7 +1001,6 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
             vehicleHeightAboveRoad += cameraTargetPos.z - pTargetVehicle->GetPosition().z;
             float cornerAngle = std::atan2(vehCol->GetBoundBoxMax().x, -vehCol->GetBoundBoxMin().y);
 
-            // difference between camera and vehicle's heading
             float betaDiff = std::abs(std::sin(m_fBeta - (pTargetVehicle->GetHeading() - HALF_PI)));
             betaDiff = std::asin(betaDiff);
 
@@ -1089,7 +1060,7 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
         pTargetVehicle->GetModelIndex() == MODEL_ANDROM || pTargetVehicle->GetModelIndex() == MODEL_HYDRA || pTargetVehicle->GetModelIndex() == MODEL_TOWTRUCK || pTargetVehicle->GetModelIndex() == MODEL_FORKLIFT ||
         pTargetVehicle->GetModelIndex() == MODEL_TRACTOR) {
         stickAlphaOffset = 0.0f;
-    } else if (pTargetVehicle->GetModelIndex() == MODEL_RCTIGER ) { //|| (pTargetVehicle->IsAutomobile() && ((CAutomobile *)pTargetVehicle)->hFlagsLocal & HF_HYDRAULICS_INSTALLED)) {
+    } else if (pTargetVehicle->GetModelIndex() == MODEL_RCTIGER || (pTargetVehicle->IsAutomobile() && pTargetVehicle->AsAutomobile()->handlingFlags.bHydraulicInst)) {
         stickAlphaOffset = 0.0f;
         stickBetaOffset = 0.0f;
     } else {
@@ -1101,23 +1072,20 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
         stickBetaOffset = 0.0f;
     }
 
-    /*
-    if (vehicleCamType == FOLLOW_CAR_INCAR && std::abs(pPlayerPad->GetSteeringUpDown()) > 120.0f && pTargetVehicle->m_pDriver && pTargetVehicle->m_pDriver->GetPedIntelligence()->GetTaskActive() &&
-        pTargetVehicle->m_pDriver->GetPedIntelligence()->GetTaskActive()->GetTaskType() != eTaskType::TASK_COMPLEX_LEAVE_CAR) {
+    if (vehicleCamType == FOLLOW_CAR_INCAR && std::abs(pPlayerPad->GetSteeringUpDown()) > 120.0f && pTargetVehicle->m_pDriver && pTargetVehicle->m_pDriver->GetIntelligence()->GetActivePrimaryTask() && pTargetVehicle->m_pDriver->GetIntelligence()->GetActivePrimaryTask()->GetTaskType() != eTaskType::TASK_COMPLEX_LEAVE_CAR) {
         float extraLeftStickMod = pPlayerPad->GetSteeringUpDown();
         extraLeftStickMod = 0.5f * AIMWEAPON_STICK_SENS * AIMWEAPON_STICK_SENS * std::abs(extraLeftStickMod) * extraLeftStickMod * (0.15f / 3.5f * (m_fFOV / 80.0f));
         stickAlphaOffset += extraLeftStickMod;
-    }*/
+    }
 
     if (stickAlphaOffset > 0.0f) {
         stickAlphaOffset *= 0.5f;
     }
 
-    /*
     bool usingMouse = false;
     if (TheCamera.m_bUseMouse3rdPerson && pPlayerPad->DisablePlayerControls == 0) {
-        float mouseStickY = pPlayerPad->GetAmountMouseMoved().y * 2.0f;
-        float mouseStickX = -pPlayerPad->GetAmountMouseMoved().x * 2.0f;
+        float mouseStickY = pPlayerPad->CPad::NewMouseControllerState.m_AmountMoved.y * 2.0f;
+        float mouseStickX = -pPlayerPad->CPad::NewMouseControllerState.m_AmountMoved.x * 2.0f;
 
         static float MOUSE_INPUT_COUNTER = 0.0f;
 
@@ -1128,7 +1096,7 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
             mouseSteeringOn = CVehicle::m_bEnableMouseSteering;
         }
 
-        if ((mouseStickX != 0.0f || mouseStickY != 0.0f) && (pPlayerPad->GetVehicleMouseLook() || !mouseSteeringOn)) {
+        if ((mouseStickX != 0.0f || mouseStickY != 0.0f) && (pPlayerPad->NewState.m_bVehicleMouseLook || !mouseSteeringOn)) {
             stickAlphaOffset = TheCamera.m_fMouseAccelHorzntl * mouseStickY * (m_fFOV / 80.0f);
             stickBetaOffset = TheCamera.m_fMouseAccelHorzntl * mouseStickX * (m_fFOV / 80.0f);
             m_fAlphaSpeed = m_fBetaSpeed = 0.0f;
@@ -1149,9 +1117,8 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
         }
     }
 
-    if (pTargetVehicle->m_apPassengers[0] && pTargetVehicle->m_apPassengers[0]->GetPedIntelligence()->GetTaskActive() &&
-        pTargetVehicle->m_apPassengers[0]->GetPedIntelligence()->GetTaskActive()->GetTaskType() == eTaskType::TASK_COMPLEX_PROSTITUTE_SOLICIT) {
-        if (((CTaskComplexProstituteSolicit *)pTargetVehicle->m_apPassengers[0]->GetPedIntelligence()->GetTaskActive())->IsInSexCamMode()) {
+    if (pTargetVehicle->m_apPassengers[0] && pTargetVehicle->m_apPassengers[0]->GetIntelligence()->GetActivePrimaryTask() && pTargetVehicle->m_apPassengers[0]->GetIntelligence()->GetActivePrimaryTask()->GetTaskType() == eTaskType::TASK_COMPLEX_PROSTITUTE_SOLICIT) {
+        if (((CTaskComplexProstituteSolicit*)pTargetVehicle->m_apPassengers[0]->GetIntelligence()->GetActivePrimaryTask())->bSexProcessStarted) {
             static float PROSTITUTE_CAM_ALPHA_ANGLE = 0.1f;
             static float PROSTITUTE_CAM_ALPHA_RATE = 0.0035f;
             if (m_fAlpha < alphaUpLimit - PROSTITUTE_CAM_ALPHA_ANGLE) {
@@ -1160,7 +1127,7 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
                 stickAlphaOffset = 0.0f;
             }
         }
-    }*/
+    }
 
     if (fixAlphaAngle) {
         static float gStickAlphaFix = 0.05f;
@@ -1198,11 +1165,11 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
         m_fBetaSpeed = 0.0f;
     }
 
-    /*if (usingMouse) {
+    if (usingMouse) {
         m_fBeta += stickBetaOffset;
-    } else {*/
+    } else {
         m_fBeta += m_fBetaSpeed * CTimer::GetTimeStep();
-    //}
+    }
 
     if (TheCamera.m_bJustCameOutOfGarage) {
         m_fBeta = CGeneral::GetATanOfXY(m_vecFront.x, m_vecFront.y) + PI;
@@ -1244,13 +1211,13 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
         m_fAlphaSpeed = 0.0f;
     }
 
-    /*if (usingMouse) {
+    if (usingMouse) {
         targetAlphaAngle += stickAlphaOffset;
         m_fAlpha += stickAlphaOffset;
-    } else {*/
+    } else {
         targetAlphaAngle += m_fAlphaSpeed * CTimer::GetTimeStep();
         m_fAlpha += targetBeta;
-    //}
+    }
 
     if (m_fAlpha > alphaUpLimit) {
         m_fAlpha = alphaUpLimit;
@@ -1300,18 +1267,9 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
         CWorld::pIgnoreEntity = pTargetVehicle;
         TheCamera.CameraGenericModeSpecialCases(nullptr);
         TheCamera.CameraVehicleModeSpecialCases(pTargetVehicle);
-
-        // static bool gTopSphereCastTest;
-        // if (pTargetVehicle->m_pHandlingData->m_bIsBig) {
-        //     gTopSphereCastTest = true; // nop
-        // }
-
         TheCamera.CameraColDetAndReact(&m_vecSource, &cameraTargetPos);
-
         TheCamera.ImproveNearClip(pTargetVehicle, nullptr, &m_vecSource, &cameraTargetPos);
-
         CWorld::pIgnoreEntity = nullptr;
-
         VecTrunc(&m_vecSource, 4);
     }
 
