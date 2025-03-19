@@ -5835,105 +5835,66 @@ void CAutomobile::BlowUpCarsInPath() {
 
 // 0x6AF420
 void CAutomobile::PlaceOnRoadProperly() {
-    CVector             frontPosition, rearPosition;
-    CColPoint           colPoint;
-    bool                hasFoundHeight;
-    float               foundHeight;
-    CCollisionData*     colData = GetColModel()->m_pColData;
-
-    // Create a lambda to get position from colPoint without using its GetPosition method directly
-    auto getColPointPosition = [](const CColPoint& colP) -> const CVector& {
-        return colP.m_vecPoint;
-    };
-
-    float frontCarLength = colData->m_pLines[0].m_vecStart.y;
-    float rearCarLength  = colData->m_pLines[3].m_vecStart.y;
-
-    CVector forwardVector = GetMatrix().GetForward();
-
-    rearPosition.x = GetPosition().x - (forwardVector.x * rearCarLength);
-    rearPosition.y = GetPosition().y - (forwardVector.y * rearCarLength);
-
-    frontPosition.x = GetPosition().x + (forwardVector.x * frontCarLength);
-    frontPosition.y = GetPosition().y + (forwardVector.y * frontCarLength);
-
-    frontPosition.z = GetPosition().z;
-    hasFoundHeight = false;
-
+    CColPoint colPoint;
     CEntity* hitEntity;
-    if (CWorld::ProcessVerticalLine(frontPosition, frontPosition.z + 5.0f, colPoint, hitEntity, true, false, false, false, false, false, nullptr)) {
-        hasFoundHeight = true;
-        foundHeight = getColPointPosition(colPoint).z;
+    CColModel* colModel = GetColModel();
+    float frontCarLength, rearCarLength;
+    float frontZ, rearZ;
+
+    frontCarLength = colModel->m_boundBox.m_vecMax.y;
+    rearCarLength = -colModel->m_boundBox.m_vecMin.y;
+
+    CVector frontPosition(GetPosition().x + GetForward().x*frontCarLength,
+                          GetPosition().y + GetForward().y*frontCarLength,
+                          GetPosition().z + 5.0f);
+    
+    if(CWorld::ProcessVerticalLine(frontPosition, GetPosition().z - 5.0f, colPoint, hitEntity,
+            true, false, false, false, false, false, nullptr)) {
+        frontZ = colPoint.m_vecPoint.z;
         pEntityWeAreOnForVisibilityCheck = hitEntity;
         m_bTunnel = hitEntity->m_bTunnel;
         m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-    }
-    if (CWorld::ProcessVerticalLine(frontPosition, frontPosition.z - 5.0f, colPoint, hitEntity, true, false, false, false, false, false, nullptr)) {
-        if (hasFoundHeight) {
-            if (std::abs(frontPosition.z - foundHeight) > std::abs(frontPosition.z - getColPointPosition(colPoint).z)) {
-                foundHeight = getColPointPosition(colPoint).z;
-                pEntityWeAreOnForVisibilityCheck = hitEntity;
-                m_bTunnel = hitEntity->m_bTunnel;
-                m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-            }
-        } else {
-            foundHeight = getColPointPosition(colPoint).z;
-            pEntityWeAreOnForVisibilityCheck = hitEntity;
-            m_bTunnel = hitEntity->m_bTunnel;
-            m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-        }
-        hasFoundHeight = true;
-    }
-    if (hasFoundHeight) {
-        frontPosition.z = foundHeight;
         StoredCollPolys[0].lighting = colPoint.m_nLightingB;
+    } else {
+        // Fall back to the current height if no ground found
+        frontZ = GetPosition().z;
     }
 
-    rearPosition.z = GetPosition().z;
-    hasFoundHeight = false;
-    if (CWorld::ProcessVerticalLine(rearPosition, rearPosition.z + 5.0f, colPoint, hitEntity, true, false, false, false, false, false, nullptr)) {
-        hasFoundHeight = true;
-        foundHeight = getColPointPosition(colPoint).z;
+    CVector rearPosition(GetPosition().x - GetForward().x*rearCarLength,
+                         GetPosition().y - GetForward().y*rearCarLength,
+                         GetPosition().z + 5.0f);
+    
+    if(CWorld::ProcessVerticalLine(rearPosition, GetPosition().z - 5.0f, colPoint, hitEntity,
+            true, false, false, false, false, false, nullptr)) {
+        rearZ = colPoint.m_vecPoint.z;
         pEntityWeAreOnForVisibilityCheck = hitEntity;
         m_bTunnel = hitEntity->m_bTunnel;
         m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-    }
-    if (CWorld::ProcessVerticalLine(rearPosition, rearPosition.z - 5.0f, colPoint, hitEntity, true, false, false, false, false, false, nullptr)) {
-        if (hasFoundHeight) {
-            if (std::abs(rearPosition.z - foundHeight) > std::abs(rearPosition.z - getColPointPosition(colPoint).z)) {
-                foundHeight = getColPointPosition(colPoint).z;
-                pEntityWeAreOnForVisibilityCheck = hitEntity;
-                m_bTunnel = hitEntity->m_bTunnel;
-                m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-            }
-        } else {
-            foundHeight = getColPointPosition(colPoint).z;
-            pEntityWeAreOnForVisibilityCheck = hitEntity;
-            m_bTunnel = hitEntity->m_bTunnel;
-            m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-        }
-        hasFoundHeight = true;
-    }
-    if (hasFoundHeight) {
-        rearPosition.z = foundHeight;
         AsVehicle()->StoredCollPolys[1].lighting = colPoint.m_nLightingB;
+    } else {
+        // Fall back to the current height if no ground found
+        rearZ = GetPosition().z;
     }
 
-    frontPosition.z += GetHeightAboveRoad();
-    rearPosition.z += m_fRearHeightAboveRoad;
+    float totalLength = frontCarLength + rearCarLength;
+    float angle = atan2(frontZ - rearZ, totalLength);
+    float cosAngle = cos(angle);
+    float sinAngle = sin(angle);
 
-    GetRight().Set((frontPosition.y - rearPosition.y) / (frontCarLength + rearCarLength), 
-                  -(frontPosition.x - rearPosition.x) / (frontCarLength + rearCarLength), 
+    GetRight().Set((frontPosition.y - rearPosition.y) / totalLength, 
+                  -(frontPosition.x - rearPosition.x) / totalLength, 
                    0.0f);
-
-    auto directionVector = frontPosition - rearPosition;
-    directionVector.Normalise();
-    GetForward() = directionVector;
-
-    auto normalVector = CrossProduct(GetRight(), GetForward());
-    GetUp() = normalVector;
-
-    CVector newPosition = (frontPosition * rearCarLength + rearPosition * frontCarLength) / (rearCarLength + frontCarLength);
+    
+    GetForward().Set(-cosAngle * GetRight().y, 
+                     cosAngle * GetRight().x, 
+                     sinAngle);
+    
+    GetUp() = CrossProduct(GetRight(), GetForward());
+    
+    CVector newPosition((frontPosition.x + rearPosition.x) / 2.0f,
+                        (frontPosition.y + rearPosition.y) / 2.0f,
+                        (frontZ + rearZ) / 2.0f + GetHeightAboveRoad());
+    
     SetPosn(newPosition);
 
     if (IsPlane()) {
