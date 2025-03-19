@@ -27,6 +27,10 @@
 #include "TaskSimpleStandStill.h"
 #include "TaskComplexFacial.h"
 #include "WeaponInfo.h"
+#include "Shadows.h"
+#include "TaskComplexEnterCarAsDriver.h"
+#include "RealTimeShadowManager.h"
+#include "WindModifiers.h"
 
 void CPed::InjectHooks() {
     RH_ScopedVirtualClass(CPed, 0x86C358, 26);
@@ -73,7 +77,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(MakeTyresMuddySectorList, 0x6AE0D0, { .reversed = false });
     RH_ScopedInstall(IsPedInControl, 0x5E3960);
     RH_ScopedInstall(RemoveWeaponModel, 0x5E3990);
-    RH_ScopedInstall(RemoveWeaponWhenEnteringVehicle, 0x5E6370, { .reversed = false });
+    RH_ScopedInstall(RemoveWeaponWhenEnteringVehicle, 0x5E6370);
     RH_ScopedInstall(AddGogglesModel, 0x5E3A90);
     RH_ScopedInstall(SetWeaponSkill, 0x5E3C10);
     RH_ScopedInstall(ClearLook, 0x5E3FF0);
@@ -99,7 +103,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(GiveDelayedWeapon, 0x5E89B0);
     RH_ScopedOverloadedInstall(GetWeaponSkill, "Current", 0x5E6580, eWeaponSkill(CPed::*)());
     RH_ScopedOverloadedInstall(GetWeaponSkill, "WeaponType", 0x5E3B60, eWeaponSkill(CPed::*)(eWeaponType));
-    RH_ScopedInstall(PreRenderAfterTest, 0x5E65A0, { .reversed = false });
+    RH_ScopedInstall(PreRenderAfterTest, 0x5E65A0);
     RH_ScopedInstall(SetIdle, 0x5E7980);
     RH_ScopedOverloadedInstall(SetLook, "Heading", 0x5E79B0, void(CPed::*)(float));
     RH_ScopedOverloadedInstall(SetLook, "Entity", 0x5E7A60, void(CPed::*)(CEntity *));
@@ -296,7 +300,7 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     }
     GetTaskManager().SetTask(new CTaskSimpleStandStill{ 0, true, false, 8.0 }, TASK_PRIMARY_DEFAULT, false);
 
-    field_758 = 0;
+    m_Wobble = 0.0f;
     m_fRemovalDistMultiplier = 1.0f;
     m_StreamedScriptBrainToLoad = -1;
 
@@ -2665,12 +2669,12 @@ void CPed::ClearWeapons()
 
 /*!
 * @addr 0x5E6370
+* @brief Saves ped's in foot weapon and equips a weapon that can be used in a vehicle if available.
+* @param isJetpack  1: when entering jetpack, 0: any other vehicle
 */
-void CPed::RemoveWeaponWhenEnteringVehicle(int32 arg0) {
-    ((void(__thiscall *)(CPed*, int32))0x5E6370)(this, arg0);
-
-    // Missing some code below (Had too many jumps and I was lazy to deal with it all)
-    /*if (m_pPlayerData) {
+void CPed::RemoveWeaponWhenEnteringVehicle(int32 isJetpack) {
+    assert(isJetpack == 0 || isJetpack == 1);
+    if (m_pPlayerData) {
         m_pPlayerData->m_bInVehicleDontAllowWeaponChange = true;
     }
 
@@ -2678,31 +2682,48 @@ void CPed::RemoveWeaponWhenEnteringVehicle(int32 arg0) {
         return;
     }
 
-    const auto RemoveActiveWepModel = [this] {
-        RemoveWeaponModel(GetActiveWeapon().GetWeaponInfo().m_nModelId1);
+    const auto SaveCurrentWeaponAndEquipInSlot = [&](eWeaponSlot slot) {
+        // if (m_nSavedWeapon == WEAPON_UNIDENTIFIED) // always true
+        m_nSavedWeapon = GetActiveWeapon().GetType();
+        SetCurrentWeapon(GetWeaponInSlot(slot).GetWeaponInfo().m_nSlot);
+    };
+
+    const auto EquipHandgunIfPossible = [&] {
+        const auto &shotgun = GetWeaponInSlot(eWeaponSlot::SHOTGUN), &handgun = GetWeaponInSlot(eWeaponSlot::HANDGUN);
+        if (shotgun.GetType() == WEAPON_SAWNOFF_SHOTGUN && shotgun.GetTotalAmmo() > 0 || handgun.GetType() == WEAPON_PISTOL && handgun.GetTotalAmmo() > 0) {
+            SaveCurrentWeaponAndEquipInSlot(eWeaponSlot::HANDGUN);
+        } else {
+            RemoveWeaponModel(CWeaponInfo::GetWeaponInfo(this, eWeaponSkill::STD)->m_nModelId1);
+        }
+    };
+
+    const auto HandleDriveByWeapons = [&](const CWeapon& w) {
+        if (w.GetTotalAmmo() > 0) {
+            SaveCurrentWeaponAndEquipInSlot(eWeaponSlot::SMG);
+        } else if (isJetpack != 1) {
+            RemoveWeaponModel(CWeaponInfo::GetWeaponInfo(this, eWeaponSkill::STD)->m_nModelId1);
+        } else {
+            EquipHandgunIfPossible();
+        }
     };
 
     if (!IsPlayer() || !AsPlayer()->GetPlayerInfoForThisPlayerPed()->m_bCanDoDriveBy) {
-        RemoveActiveWepModel();
-        return;
+        return RemoveWeaponModel(CWeaponInfo::GetWeaponInfo(this, eWeaponSkill::STD)->m_nModelId1);
     }
 
-    const auto SaveCurrentSetActiveWeapon = [](eWeaponType wt) {
+    if (const auto& w = GetWeaponInSlot(eWeaponSlot::SMG); notsa::contains({ WEAPON_MICRO_UZI, WEAPON_TEC9 }, w.GetType())) {
+        return HandleDriveByWeapons(w);
+    }
 
-    };
+    if (isJetpack == 1) {
+        // Whole logic of this function is complicated asf because the player is not
+        // supposed to be able to use MP5 while using jetpack. Only Tec-9 or Uzi.
+        return EquipHandgunIfPossible();
+    }
 
-    if (arg0) {
-        const auto IsWeaponInSlotWithAmmo = [this](eWeaponSlot slot, eWeaponType wt) {
-            const auto& wepInSlot = GetWeaponInSlot(slot);
-            return wepInSlot.m_nType == wt && wepInSlot.m_nTotalAmmo > 0;
-        };
-
-        if (   IsWeaponInSlotWithAmmo(eWeaponSlot::SHOTGUN, WEAPON_SAWNOFF_SHOTGUN)
-            || IsWeaponInSlotWithAmmo(eWeaponSlot::HANDGUN, WEAPON_PISTOL)
-        ) {
-            SaveCurrentSetActiveWeapon(WEAPON_GOLFCLUB);
-        }
-    }*/
+    if (const auto& w = GetWeaponInSlot(eWeaponSlot::SMG); w.GetType() == eWeaponType::WEAPON_MP5) {
+        return HandleDriveByWeapons(w);
+    }
 }
 
 /*!
@@ -2750,7 +2771,233 @@ void CPed::RemoveWeaponForScriptedCutscene()
 */
 void CPed::PreRenderAfterTest()
 {
-    ((void(__thiscall *)(CPed*))0x5E65A0)(this);
+    auto* const intel = GetIntelligence();
+    if (const auto* swim = intel->GetTaskSwim()) {
+        swim->ApplyRollAndPitch(this);
+        m_pedIK.bSlopePitch = false;
+    } else if (auto* jetpack = intel->GetTaskJetPack()) {
+        jetpack->ApplyRollAndPitch(this);
+        m_pedIK.bSlopePitch = false;
+    }
+
+    if (intel->GetTaskInAir()) {
+        m_pedIK.bSlopePitch = false;
+    } else if (m_pedIK.bSlopePitch || !IsPlayer() && m_pedIK.m_fSlopePitch != 0.0f) {
+        m_pedIK.PitchForSlope();
+    }
+    bCalledPreRender = true;
+    UpdateRpHAnim();
+
+    if (!CTimer::bSkipProcessThisFrame && m_pWeaponObject && m_pPlayerData) {
+        if (GetActiveWeapon().GetType() == eWeaponType::WEAPON_MINIGUN) {
+            if (const auto f = CClumpModelInfo::GetFrameFromName(m_pWeaponObject, "minigun2")) {
+                RwMatrixRotate(
+                    RwFrameGetMatrix(f),
+                    &CPedIK::XaxisIK,
+                    RadiansToDegrees(CTimer::GetTimeStep() * m_pPlayerData->m_fGunSpinSpeed),
+                    rwCOMBINEPRECONCAT
+                );
+            }
+        }
+    }
+
+    if (m_bIsVisible && CTimeCycle::m_CurrentColours.m_nShadowStrength != 0) {
+        const auto [shadowNeeded, activeTask] = [&]() -> std::pair<bool, CTask*> {
+            if (!bInVehicle) {
+                return std::make_pair(false, intel->m_TaskMgr.FindActiveTaskByType(TASK_COMPLEX_ENTER_ANY_CAR_AS_DRIVER));
+            }
+
+            return std::make_pair(intel->m_TaskMgr.FindActiveTaskFromList({ TASK_COMPLEX_LEAVE_CAR, TASK_COMPLEX_DRAG_PED_FROM_CAR }) != nullptr, nullptr);
+        }();
+
+        // Low quality circle below feet shadow
+        const auto DrawDummyShadow = [&] {
+            if (!m_pShadowData && (!bInVehicle || shadowNeeded)) {
+                CShadows::StoreShadowForPedObject(
+                    this,
+                    CTimeCycle::m_fShadowDisplacementX[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowDisplacementY[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowFrontX[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowFrontY[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowSideX[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowSideY[CTimeCycle::m_CurrentStoredValue]
+                );
+            }
+        };
+
+        // FIX_BUGS: Original check was only for 1st player in high FX quality.
+        if (g_fx.GetFxQuality() != FX_QUALITY_VERY_HIGH && (g_fx.GetFxQuality() != FX_QUALITY_HIGH || !IsPlayer())) {
+            DrawDummyShadow();
+        } else if (const auto b = GetBonePosition(eBoneTag::BONE_ROOT); DistanceBetweenPoints2D(b, TheCamera.GetPosition2D()) <= MAX_DISTANCE_PED_SHADOWS_SQR) {
+            const auto IsVehicleRTShadable = [](eVehicleType t) {
+                switch (t) {
+                case VEHICLE_TYPE_BMX:
+                case VEHICLE_TYPE_BIKE:
+                case VEHICLE_TYPE_QUAD:
+                    return true;
+                default:
+                    return false;
+                }
+            };
+
+            auto drawRealTimeShadow = true;
+            if (!physicalFlags.bSubmergedInWater) {
+                if (const auto* veh = GetVehicleIfInOne()) {
+                    drawRealTimeShadow = IsVehicleRTShadable(veh->m_nVehicleSubType);
+                }
+
+                if (activeTask) {
+                    drawRealTimeShadow = false;
+                    if (const auto* targetVeh = notsa::cast<CTaskComplexEnterCarAsDriver>(activeTask)->GetTargetCar()) {
+                        drawRealTimeShadow = IsVehicleRTShadable(targetVeh->m_nVehicleSubType);
+                    }
+                }
+
+                if (const auto bsp = GetBonePosition(eBoneTag::BONE_SPINE1); IsAlive() && GetPosition().z - 0.2f > bsp.z) {
+                    drawRealTimeShadow = bIsDucking;
+                }
+
+                if (drawRealTimeShadow) {
+                    g_realTimeShadowMan.DoShadowThisFrame(this);
+                    DrawDummyShadow();
+                }
+            }
+        }
+    }
+
+    if (GetModelID() == MODEL_PLAYER) {
+        ShoulderBoneRotation(m_pRwClump);
+        m_bDontUpdateHierarchy = true;
+    }
+    float windMod{};
+    const auto rainAffectsPlayer = IsPlayer() && CWindModifiers::FindWindModifier(GetPosition(), &windMod, &windMod) && !CCullZones::PlayerNoRain();
+    const auto drivingOpenTopVeh = IsStateDriving() && IsInVehicle() && (m_pVehicle->IsBike() || m_pVehicle->IsAutomobile() && m_pVehicle->IsOpenTopCar());
+
+    const auto GetHierMatrix = [h = GetAnimHierarchyFromSkinClump(m_pRwClump)](AnimationId id) {
+        return &RpHAnimHierarchyGetMatrixArray(h)[RpHAnimIDGetIndex(h, id)];
+    };
+
+    if (!m_pPlayerData || !m_pPlayerData->m_pPedClothesDesc->IsWearingModel("vest") && !m_pPlayerData->m_pPedClothesDesc->IsWearingModel("torso")) {
+        if (rainAffectsPlayer || drivingOpenTopVeh) {
+            float vehSpeed = drivingOpenTopVeh ? m_pVehicle->GetMoveSpeed().Magnitude() : 0.0f;
+
+            if (rainAffectsPlayer) {
+                vehSpeed = std::max(vehSpeed, std::abs(windMod - 1.0f));
+            }
+
+            static constexpr float flt_8D1378 = 0.2f, flt_8D1380 = 0.2f;
+            static constexpr float flt_8D137C = 0.1f;
+
+            const auto ScaleAnimHierMat = [GetHierMatrix](float range, AnimationId id) {
+                const CVector scale{
+                    CGeneral::GetRandomNumberInRange(1.0f - range, 1.0f + range),
+                    CGeneral::GetRandomNumberInRange(1.0f - range, 1.0f + range),
+                    CGeneral::GetRandomNumberInRange(1.0f - range, 1.0f + range),
+                };
+                RwMatrixScale(GetHierMatrix(id), &scale, rwCOMBINEPRECONCAT);
+                return scale;
+            };
+
+            ScaleAnimHierMat(flt_8D1378 * vehSpeed, ANIM_ID_ROADCROSS);
+            auto scale = ScaleAnimHierMat(flt_8D137C * vehSpeed, ANIM_ID_SHOT_RIGHTP);
+            RwMatrixScale(GetHierMatrix(ANIM_ID_GAS_CWR), &scale, rwCOMBINEPRECONCAT);
+            if (drivingOpenTopVeh || !intel->GetTaskJetPack()) {
+                RwMatrixScale(GetHierMatrix(ANIM_ID_IDLE), &scale, rwCOMBINEPRECONCAT);
+            }
+            scale = ScaleAnimHierMat(flt_8D1380 * vehSpeed, ANIM_ID_HIT_FRONT);
+            RwMatrixScale(GetHierMatrix(ANIM_ID_KD_LEFT), &scale, rwCOMBINEPRECONCAT);
+        }
+    }
+
+    if (bIsTalking && m_nBodypartToRemove == 2) {
+        const CVector scale{};
+        RwMatrixScale(GetHierMatrix(ANIM_ID_WALK_START), &scale, rwCOMBINEPRECONCAT);
+        RwMatrixScale(GetHierMatrix(ANIM_ID_IDLE_HBHB_0), &scale, rwCOMBINEPRECONCAT);
+        RwMatrixScale(GetHierMatrix(ANIM_ID_RUN_STOP), &scale, rwCOMBINEPRECONCAT);
+        RwMatrixScale(GetHierMatrix(ANIM_ID_RUN_STOPR), &scale, rwCOMBINEPRECONCAT);
+    }
+
+    if (m_Wobble > 0.0f) {
+        static constexpr float WOBBLE_FACTOR = 5.0f; // 0x8D21F0
+
+        const auto angle = std::sin(m_Wobble) * -WOBBLE_FACTOR;
+        m_Wobble -= CTimer::GetTimeStep() * m_WobbleSpeed;
+
+        if (IsPlayer()) {
+            RwMatrixRotate(GetHierMatrix(ANIM_ID_SMKCIG_PRTL_F), &CPedIK::ZaxisIK, angle, rwCOMBINEPRECONCAT);
+            RwMatrixRotate(GetHierMatrix(ANIM_ID_DRNKBR_PRTL_F), &CPedIK::ZaxisIK, angle, rwCOMBINEPRECONCAT);
+        }
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_BIKE_HIT), &CPedIK::ZaxisIK, angle, rwCOMBINEPRECONCAT);
+    }
+
+    if (CWeather::Earthquake > 0.0f) {
+        const auto swing = CGeneral::GetRandomNumberInRange(-CWeather::Earthquake, CWeather::Earthquake);
+
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_FIGHTSH_LEFT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_GUNMOVE_BWD), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_HIT_L), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_KD_RIGHT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_HIT_FRONT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_KD_LEFT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_FIGHTSH_BWD), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_GUNMOVE_R), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_HIT_BACK), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_KO_SKID_FRONT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_WALK_START), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+    }
+
+    if (bIsTalking && m_nBodypartToRemove == 2 && !IsStateDead() && !bIsDyingStuck && CTimer::GetFrameCounter() % 8 > 3) {
+        g_fx.AddBlood(GetHierMatrix(ANIM_ID_WALK_START)->pos, 0.6f * GetUp(), 16, m_fContactSurfaceBrightness);
+    }
+
+    if (CWeather::Rain > 0.3f
+        && TheCamera.m_fSoundDistUp > 15.0f
+        && !bInVehicle
+        && CGame::CanSeeOutSideFromCurrArea()
+        && GetPosition().z < 900.0f
+        && !CCullZones::CamNoRain()
+    ) {
+        if (DistanceBetweenPoints(TheCamera.GetPosition(), GetPosition()) < 25.0f) {
+            auto* const pedModelInfo = GetModelInfo()->AsPedModelInfoPtr();
+            pedModelInfo->AnimatePedColModelSkinnedWorld(m_pRwClump);
+
+            if (const auto& s = FindPlayerSpeed(); std::abs(s.x) <= 0.05f
+                && std::abs(s.y) <= 0.05f
+                && !IsStateDying()
+                && !notsa::contains({ PEDSTATE_FALL, PEDSTATE_ATTACK, PEDSTATE_FIGHT }, m_nPedState)
+                && IsPedHeadAbovePos(0.3f)
+                && !RpAnimBlendClumpGetAssociation(m_pRwClump, ANIM_ID_IDLE_TIRED)
+            ) {
+                const auto* colData = pedModelInfo->GetColModel()->GetData();
+                for (const auto& sphere : colData->GetSpheres()) {
+                    if (notsa::contains(std::initializer_list<uint8>{ 5, 6, 9 }, sphere.m_Surface.m_nPiece)) {
+                        FxPrtMult_c p{ 1.0f, 1.0f, 1.0f, 0.35f, 0.01f, 0.0f, 0.03f };
+                        CVector     pos = sphere.m_vecCenter;
+                        pos.x += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
+                        pos.y += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
+                        pos.z += CGeneral::GetRandomNumberInRange(-0.08f, 0.02f);
+                        CVector vel = s * 50.0f;
+                        g_fx.m_Splash->AddParticle(&pos, &vel, 0.0f, &p, -1.0f, 1.2f, 0.6f, false);
+                    }
+                }
+            }
+        }
+    }
+
+    if (m_pPlayerData && m_pPlayerData->m_nWetness && m_pPlayerData->m_nWaterCoverPerc < 30u) {
+        FxPrtMult_c p{1.0f, 1.0f, 1.0f, 0.2f, 0.15f, 0.0f, 0.1f};
+        CVector     pos = GetPosition();
+        pos.x += CGeneral::GetRandomNumberInRange(-0.03f, 0.03f);
+        pos.y += CGeneral::GetRandomNumberInRange(-0.03f, 0.03f);
+        pos.z += CGeneral::GetRandomNumberInRange(-0.8f, 0.2f);
+        p.m_Color.alpha *= (float)m_pPlayerData->m_nWetness / 100.0f;
+        CVector vel{};
+        g_fx.m_WaterSplash->AddParticle(&pos, &vel, 0.0f, &p, -1.0f, 1.2f, 0.6f, false);
+    }
+
+    if (const auto* veh = GetVehicleIfInOne()) {
+        m_fContactSurfaceBrightness = veh->m_fContactSurfaceBrightness;
+    }
 }
 
 /*!

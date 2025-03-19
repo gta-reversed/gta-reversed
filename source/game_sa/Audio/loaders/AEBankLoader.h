@@ -72,7 +72,7 @@ class CAESoundRequest {
 public:
     CAEBankSlot*        SlotInfo{};                              //!< Slot's info (Same as `&m_BankSlots[Slot]`)
     uint32              BankOffsetBytes{};                       //!< Offset (#Sectors) (From lookup)
-    uint32              BankNumBytes{};                          //!< Size of bank [bytes] (From lookup)
+    uint32              BankNumBytes{};                          //!< Size of bank [bytes] (From lookup) - Set only for whole bank loads (SoundID == -1)
     AEAudioStream*      StreamDataPtr{};                         //!< Sector (STREAMING_SECTOR_SIZE) aligned pointer into the buffer
     void*               StreamBufPtr{};                          //!< Buffer (Allocated using `CMemoryMgr::Malloc`)
     eSoundRequestStatus Status{ eSoundRequestStatus::INACTIVE }; //!< Current load status
