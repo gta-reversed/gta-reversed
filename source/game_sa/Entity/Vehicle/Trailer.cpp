@@ -62,8 +62,8 @@ bool CTrailer::SetTowLink(CVehicle* vehicle, bool setMyPosToTowBar) {
     m_pTractor = vehicle;
     m_pTractor->RegisterReference(m_pTractor);
 
-    vehicle->m_pTrailer = this;
-    vehicle->m_pTrailer->RegisterReference(vehicle->m_pTrailer);
+    vehicle->m_pVehicleBeingTowed = this;
+    vehicle->m_pVehicleBeingTowed->RegisterReference(vehicle->m_pVehicleBeingTowed);
 
     CPhysical::RemoveFromMovingList();
     vehicle->RemoveFromMovingList();
@@ -71,7 +71,7 @@ bool CTrailer::SetTowLink(CVehicle* vehicle, bool setMyPosToTowBar) {
     AddToMovingList();
     vehicle->AddToMovingList();
 
-    vehicle->m_pTrailer->vehicleFlags.bLightsOn = true; // NOTSA | FIX_BUGS
+    vehicle->m_pVehicleBeingTowed->vehicleFlags.bLightsOn = true; // NOTSA | FIX_BUGS
 
     if (!setMyPosToTowBar) {
         UpdateTractorLink(true, false);
@@ -172,7 +172,7 @@ int32 CTrailer::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints)
     }
 
     // Hide triangles in some cases
-    const auto didHideTriangles = m_pTractor == entity || m_pTrailer == entity;
+    const auto didHideTriangles = m_pTractor == entity || m_pVehicleBeingTowed == entity;
     const auto tNumTri = tcd->m_nNumTriangles, // Saving my sanity here, and unconditionally assigning
                oNumTri = ocd->m_nNumTriangles;
     if (didHideTriangles) {
@@ -334,7 +334,7 @@ bool CTrailer::BreakTowLink() {
     }
 
     if (m_pTractor) {
-        CEntity::ClearReference(m_pTractor->m_pTrailer);
+        CEntity::ClearReference(m_pTractor->m_pVehicleBeingTowed);
         CEntity::ClearReference(m_pTractor);
     }
 

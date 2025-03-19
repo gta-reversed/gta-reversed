@@ -1216,8 +1216,8 @@ void CCamera::CameraVehicleModeSpecialCases(CVehicle* vehicle) {
     CCollision::bCamCollideWithPeds     = slow;
     CCollision::bCamCollideWithObjects  = slow;
 
-    if (vehicle->m_pTrailer) {
-        m_pExtraEntity[m_nExtraEntitiesCount++] = vehicle->m_pTrailer;
+    if (vehicle->m_pVehicleBeingTowed) {
+        m_pExtraEntity[m_nExtraEntitiesCount++] = vehicle->m_pVehicleBeingTowed;
     }
 }
 

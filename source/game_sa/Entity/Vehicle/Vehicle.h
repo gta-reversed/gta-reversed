@@ -359,7 +359,7 @@ public:
     float            m_fWheelSpinForAudio;
     float            m_fHealth; // 1000.0f = full health. 0 -> explode
     CVehicle*        m_pTractor;
-    CVehicle*        m_pTrailer;
+    CVehicle*        m_pVehicleBeingTowed;
     CPed*            m_pWhoInstalledBombOnMe;
     uint32           m_nTimeTillWeNeedThisCar;     // game won't try to delete this car while this time won't reach
     uint32           m_nGunFiringTime;             // last time when gun on vehicle was fired (used on boats)

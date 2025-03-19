@@ -1054,15 +1054,15 @@ void CAutomobile::ProcessControl()
             BreakTowLink();
         }
     }
-    else if (m_pTrailer) {
-        if (m_pTrailer->m_nStatus == STATUS_IS_TOWED) {
-            if (m_pTrailer->m_pTractor == this) {
+    else if (m_pVehicleBeingTowed) {
+        if (m_pVehicleBeingTowed->m_nStatus == STATUS_IS_TOWED) {
+            if (m_pVehicleBeingTowed->m_pTractor == this) {
                 RemoveFromMovingList();
                 AddToMovingList();
             }
         }
         else {
-            CEntity::ClearReference(m_pTrailer);
+            CEntity::ClearReference(m_pVehicleBeingTowed);
         }
     }
 
@@ -1790,7 +1790,7 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
     }
 
     // Hide triangles in some cases
-    const auto didHideTriangles = m_pTractor == entity || m_pTrailer == entity;
+    const auto didHideTriangles = m_pTractor == entity || m_pVehicleBeingTowed == entity;
     const auto tNumTri = tcd->m_nNumTriangles, // Saving my sanity here, and unconditionally assigning
                oNumTri = ocd->m_nNumTriangles;
     if (didHideTriangles) {
@@ -2978,7 +2978,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
     }
 
     // 0x6A7984
-    if (damager && (damager == m_pTractor || damager == m_pTrailer)) {
+    if (damager && (damager == m_pTractor || damager == m_pVehicleBeingTowed)) {
         return;
     }
 
@@ -3379,8 +3379,8 @@ bool CAutomobile::SetTowLink(CVehicle* tractor, bool placeMeOnRoadProperly) {
     m_pTractor = tractor;
     tractor->RegisterReference(m_pTractor);
 
-    m_pTractor->m_pTrailer = this;
-    RegisterReference(m_pTractor->m_pTrailer);
+    m_pTractor->m_pVehicleBeingTowed = this;
+    RegisterReference(m_pTractor->m_pVehicleBeingTowed);
 
     for (auto&& entity : { AsVehicle(), tractor }) {
         entity->RemoveFromMovingList();
@@ -3414,7 +3414,7 @@ bool CAutomobile::SetTowLink(CVehicle* tractor, bool placeMeOnRoadProperly) {
 // 0x6A4400
 bool CAutomobile::BreakTowLink() {
     if (m_pTractor) {
-        CEntity::ClearReference(m_pTractor->m_pTrailer);
+        CEntity::ClearReference(m_pTractor->m_pVehicleBeingTowed);
         CEntity::ClearReference(m_pTractor);
     }
 
@@ -4478,7 +4478,7 @@ void CAutomobile::TowTruckControl() {
             // up
             if (carUpDown > 0) {
                 m_wMiscComponentAngle = std::max(
-                    m_pTrailer ? TOWTRUCK_HOIST_UP_LIMIT : 0,
+                    m_pVehicleBeingTowed ? TOWTRUCK_HOIST_UP_LIMIT : 0,
                     m_wMiscComponentAngle - step
                 );
             } else if (m_wMiscComponentAngle < TOWTRUCK_HOIST_DOWN_LIMIT) { // down
@@ -4492,7 +4492,7 @@ void CAutomobile::TowTruckControl() {
     }
 
     // Attach a suitable plyrveh in range if we don't already have a trailer
-    if (m_wMiscComponentAngle != TOWTRUCK_HOIST_DOWN_LIMIT || m_pTrailer)
+    if (m_wMiscComponentAngle != TOWTRUCK_HOIST_DOWN_LIMIT || m_pVehicleBeingTowed)
         return;
 
     CVector towBarPos{};

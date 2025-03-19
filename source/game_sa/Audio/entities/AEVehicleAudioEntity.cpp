@@ -754,7 +754,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float fGearRevProgress, float
         volume -= 6.0f;
     }
 
-    if (vehicle->m_pTrailer) {
+    if (vehicle->m_pVehicleBeingTowed) {
         volume += 6.0f;
     }
 
@@ -834,7 +834,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyRev(float fRatio, float fFadeRatio
         volume -= 6.0f;
     }
 
-    if (m_pEntity->AsAutomobile()->m_pTrailer) {
+    if (m_pEntity->AsAutomobile()->m_pVehicleBeingTowed) {
         volume += 6.0f;
     }
 
@@ -1136,7 +1136,7 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(cVehicleParams& params, 
     if (vehicle->vehicleFlags.bIsDrowning)
         fVolume -= 6.0f;
 
-    if (vehicle->m_pTrailer)
+    if (vehicle->m_pVehicleBeingTowed)
         fVolume += 6.0f;
 
     if (m_bNitroSoundPresent && field_248 <= 1.0f && field_248 >= 0.0f)
