@@ -52,8 +52,14 @@ public:
     }
 
 public: // Casting.hpp support //
-    template<typename From, typename Self>
-    static constexpr bool classof(const From* f) { return f->GetEventType() == Self::Type; }
+    template<typename From, typename To>
+    static constexpr bool classof(const From* f) {
+        if constexpr (std::is_same_v<To, CEventEditableResponse>) {
+            return f->HasEditableResponse();
+        } else {
+            return f->GetEventType() == To::Type;
+        }
+    }
 
 private:
     friend void InjectHooksMain();
