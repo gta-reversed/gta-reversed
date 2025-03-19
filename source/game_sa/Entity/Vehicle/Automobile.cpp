@@ -1036,17 +1036,17 @@ void CAutomobile::ProcessControl()
         }
     }
 
-    if (m_pTractor) {
+    if (m_pTowingVehicle) {
         if (m_nStatus == STATUS_IS_TOWED) {
             bool updateTractorLink = false; // TODO: rename this variable later
-            if (m_pTractor->m_vecMoveSpeed != 0.0f || m_vecMoveSpeed.SquaredMagnitude() > 0.01f) {
+            if (m_pTowingVehicle->m_vecMoveSpeed != 0.0f || m_vecMoveSpeed.SquaredMagnitude() > 0.01f) {
                 updateTractorLink = true;
-                m_pTractor->UpdateTractorLink(false, false);
+                m_pTowingVehicle->UpdateTractorLink(false, false);
             }
             CVehicle::UpdateTrailerLink(false, false);
-            if (m_pTractor && m_nStatus == STATUS_IS_TOWED) {
+            if (m_pTowingVehicle && m_nStatus == STATUS_IS_TOWED) {
                 if (updateTractorLink)
-                    m_pTractor->UpdateTractorLink(false, true);
+                    m_pTowingVehicle->UpdateTractorLink(false, true);
                 UpdateTrailerLink(false, true);
             }
         }
@@ -1056,7 +1056,7 @@ void CAutomobile::ProcessControl()
     }
     else if (m_pVehicleBeingTowed) {
         if (m_pVehicleBeingTowed->m_nStatus == STATUS_IS_TOWED) {
-            if (m_pVehicleBeingTowed->m_pTractor == this) {
+            if (m_pVehicleBeingTowed->m_pTowingVehicle == this) {
                 RemoveFromMovingList();
                 AddToMovingList();
             }
@@ -1086,7 +1086,7 @@ void CAutomobile::ProcessControl()
                 if (((float)m_wMiscComponentAngle == 0.0f || m_wMiscComponentAngle == m_wMiscComponentAnglePrev)
                     && !physicalFlags.bSubmergedInWater)
                 {
-                    if ((!m_pTractor || m_pTractor->m_vecMoveSpeed == 0.0f) && DidAnyWheelTouchGroundPrev()) {
+                    if ((!m_pTowingVehicle || m_pTowingVehicle->m_vecMoveSpeed == 0.0f) && DidAnyWheelTouchGroundPrev()) {
                         if (m_nModelIndex == MODEL_VORTEX || CCheat::IsActive(CHEAT_CARS_ON_WATER)
                             && DidAnyWheelTouchShallowWaterGroundPrev())
                         {
@@ -1385,7 +1385,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         m_fBreakPedal = 0.0f;
         m_fSteerAngle = 0.0f;
         m_fGasPedal = 0.0f;
-        if (!m_pTractor)
+        if (!m_pTowingVehicle)
             BreakTowLink();
         return false;
     }
@@ -1790,7 +1790,7 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
     }
 
     // Hide triangles in some cases
-    const auto didHideTriangles = m_pTractor == entity || m_pVehicleBeingTowed == entity;
+    const auto didHideTriangles = m_pTowingVehicle == entity || m_pVehicleBeingTowed == entity;
     const auto tNumTri = tcd->m_nNumTriangles, // Saving my sanity here, and unconditionally assigning
                oNumTri = ocd->m_nNumTriangles;
     if (didHideTriangles) {
@@ -2978,7 +2978,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
     }
 
     // 0x6A7984
-    if (damager && (damager == m_pTractor || damager == m_pVehicleBeingTowed)) {
+    if (damager && (damager == m_pTowingVehicle || damager == m_pVehicleBeingTowed)) {
         return;
     }
 
@@ -3357,7 +3357,7 @@ bool CAutomobile::SetTowLink(CVehicle* tractor, bool placeMeOnRoadProperly) {
         return false;
     }
 
-    if (m_pTractor) {
+    if (m_pTowingVehicle) {
         return false;
     }
 
@@ -3376,11 +3376,11 @@ bool CAutomobile::SetTowLink(CVehicle* tractor, bool placeMeOnRoadProperly) {
 
     m_nStatus = STATUS_IS_TOWED;
 
-    m_pTractor = tractor;
-    tractor->RegisterReference(m_pTractor);
+    m_pTowingVehicle = tractor;
+    tractor->RegisterReference(m_pTowingVehicle);
 
-    m_pTractor->m_pVehicleBeingTowed = this;
-    RegisterReference(m_pTractor->m_pVehicleBeingTowed);
+    m_pTowingVehicle->m_pVehicleBeingTowed = this;
+    RegisterReference(m_pTowingVehicle->m_pVehicleBeingTowed);
 
     for (auto&& entity : { AsVehicle(), tractor }) {
         entity->RemoveFromMovingList();
@@ -3413,9 +3413,9 @@ bool CAutomobile::SetTowLink(CVehicle* tractor, bool placeMeOnRoadProperly) {
 
 // 0x6A4400
 bool CAutomobile::BreakTowLink() {
-    if (m_pTractor) {
-        CEntity::ClearReference(m_pTractor->m_pVehicleBeingTowed);
-        CEntity::ClearReference(m_pTractor);
+    if (m_pTowingVehicle) {
+        CEntity::ClearReference(m_pTowingVehicle->m_pVehicleBeingTowed);
+        CEntity::ClearReference(m_pTowingVehicle);
     }
 
     switch (m_nStatus) {

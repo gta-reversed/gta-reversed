@@ -41,7 +41,7 @@ bool CEventPotentialWalkIntoVehicle::AffectsPed(CPed* ped) {
     if (const auto task = ped->GetTaskManager().Find<CTaskComplexWalkRoundCar>()) {
         if (task->m_Veh != m_vehicle) {
             if ((m_vehicle->m_pVehicleBeingTowed && m_vehicle->m_pVehicleBeingTowed == task->m_Veh) ||
-                (m_vehicle->m_pTractor && m_vehicle->m_pTractor == task->m_Veh)
+                (m_vehicle->m_pTowingVehicle && m_vehicle->m_pTowingVehicle == task->m_Veh)
             ) {
                 task->SetNewVehicle(m_vehicle, 0);
             }

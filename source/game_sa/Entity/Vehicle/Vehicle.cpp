@@ -318,7 +318,7 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     m_nRandomIdRelatedToSiren = 0;
     m_nCarHornTimer = 0;
     field_4EC = 0;
-    m_pTractor = nullptr;
+    m_pTowingVehicle = nullptr;
     m_pVehicleBeingTowed = nullptr;
     m_nTimeTillWeNeedThisCar = 0;
     m_nAlarmState = 0;
@@ -610,7 +610,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
         return;
     }
 
-    if (colPhysical == m_pTractor || colPhysical == m_pVehicleBeingTowed) {
+    if (colPhysical == m_pTowingVehicle || colPhysical == m_pVehicleBeingTowed) {
         bThisOrCollidedEntityStuck = true;
         physicalFlags.bSkipLineCol = true;
         return;
