@@ -105,7 +105,7 @@ void CFire::Start(CEntity* creator, CEntity* target, uint32 nTimeToBurn, uint8 n
         auto targetPed = target->AsPed();
         targetPed->m_pFire = this;
         CCrime::ReportCrime(
-            targetPed->m_nPedType == PED_TYPE_COP ? eCrimeType::CRIME_SET_COP_PED_ON_FIRE : eCrimeType::CRIME_SET_PED_ON_FIRE,
+            targetPed->m_nPedType == PEDTYPE_COP ? eCrimeType::CRIME_SET_COP_PED_ON_FIRE : eCrimeType::CRIME_SET_PED_ON_FIRE,
             targetPed,
             creator->AsPed()
         );

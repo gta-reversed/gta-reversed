@@ -94,7 +94,7 @@ void CGangWars::AddKillToProvocation(ePedType pedType) {
     if (!bCanTriggerGangWarWhenOnAMission && CTheScripts::IsPlayerOnAMission())
         return;
 
-    if (pedType != PED_TYPE_GANG1 && pedType != PED_TYPE_GANG3)
+    if (pedType != PEDTYPE_GANG1 && pedType != PEDTYPE_GANG3)
         return;
 
     if (NumSpecificZones == 0) {
@@ -105,7 +105,7 @@ void CGangWars::AddKillToProvocation(ePedType pedType) {
     for (auto& zone : std::span { aSpecificZones.data(), (size_t)NumSpecificZones }) {
         auto zoneInfo = CTheZones::GetZoneInfo(CTheZones::GetNavigationZone(zone));
 
-        if (zoneInfo->GangDensity[pedType - PED_TYPE_GANG1] != 0) {
+        if (zoneInfo->GangDensity[pedType - PEDTYPE_GANG1] != 0) {
             Provocation += 1.0f;
             return;
         }
@@ -261,7 +261,7 @@ bool CGangWars::CreateDefendingGroup(int32 unused) {
         ped->GetEventGroup().Add(&event);
 
         ped->SetWeaponAccuracy(static_cast<uint8_t>(90.0f - Difficulty * 60.0f));
-        ped->GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PED_TYPE_PLAYER1));
+        ped->GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PEDTYPE_PLAYER1));
 
         eWeaponType weaponToGive = [&i]{
             switch (i % 4) {
@@ -692,7 +692,7 @@ void CGangWars::TellGangMembersTo(bool isGangWarEnding) {
         if (!ped || ped->IsPlayer())
             continue;
 
-        if (!ped->IsGangster() || ped->m_nPedType == PED_TYPE_GANG2)
+        if (!ped->IsGangster() || ped->m_nPedType == PEDTYPE_GANG2)
             continue;
 
         if (!isGangWarEnding) {

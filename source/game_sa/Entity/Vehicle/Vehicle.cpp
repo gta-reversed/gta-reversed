@@ -324,8 +324,8 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     m_nRandomIdRelatedToSiren = 0;
     m_nCarHornTimer = 0;
     field_4EC = 0;
-    m_pTractor = nullptr;
-    m_pTrailer = nullptr;
+    m_pTowingVehicle = nullptr;
+    m_pVehicleBeingTowed = nullptr;
     m_nTimeTillWeNeedThisCar = 0;
     m_nAlarmState = 0;
     m_nDoorLock = eCarLock::CARLOCK_UNLOCKED;
@@ -616,7 +616,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
         return;
     }
 
-    if (colPhysical == m_pTractor || colPhysical == m_pTrailer) {
+    if (colPhysical == m_pTowingVehicle || colPhysical == m_pVehicleBeingTowed) {
         bThisOrCollidedEntityStuck = true;
         physicalFlags.bSkipLineCol = true;
         return;
@@ -1580,23 +1580,23 @@ CPed* CVehicle::SetupPassenger(int32 seatIdx, int32 gangPedType, bool createAsMa
     const auto ShouldCheckModels = [&] {
         // unit test: https://godbolt.org/z/deqcso6WT
         switch (psgrAdded->m_nPedType) {
-        case PED_TYPE_MEDIC:
-        case PED_TYPE_FIREMAN:
-        case PED_TYPE_COP: {
+        case PEDTYPE_MEDIC:
+        case PEDTYPE_FIREMAN:
+        case PEDTYPE_COP: {
             return false;
         }
-        case PED_TYPE_CRIMINAL: { // (ped_added_to_car_type != PED_TYPE_CRIMINAL || pedType < PED_TYPE_GANG8 || pedType > PED_TYPE_SPECIAL) )
-            switch (gangPedType) { // pedType < PED_TYPE_GANG8 || pedType > PED_TYPE_SPECIAL)
-            case PED_TYPE_GANG8:
-            case PED_TYPE_GANG9:
-            case PED_TYPE_GANG10:
-            case PED_TYPE_DEALER:
-            case PED_TYPE_MEDIC:
-            case PED_TYPE_FIREMAN:
-            case PED_TYPE_CRIMINAL:
-            case PED_TYPE_BUM:
-            case PED_TYPE_PROSTITUTE:
-            case PED_TYPE_SPECIAL:
+        case PEDTYPE_CRIMINAL: { // (ped_added_to_car_type != PEDTYPE_CRIMINAL || pedType < PEDTYPE_GANG8 || pedType > PEDTYPE_SPECIAL) )
+            switch (gangPedType) { // pedType < PEDTYPE_GANG8 || pedType > PEDTYPE_SPECIAL)
+            case PEDTYPE_GANG8:
+            case PEDTYPE_GANG9:
+            case PEDTYPE_GANG10:
+            case PEDTYPE_DEALER:
+            case PEDTYPE_MEDIC:
+            case PEDTYPE_FIREMAN:
+            case PEDTYPE_CRIMINAL:
+            case PEDTYPE_BUM:
+            case PEDTYPE_PROSTITUTE:
+            case PEDTYPE_SPECIAL:
                 return false;
             }
             break;
@@ -3585,7 +3585,7 @@ void CVehicle::InflictDamage(CEntity* pInflictor, eWeaponType WeaponUsed, float 
             {
                 auto pDriver = this->m_pDriver->AsPed();
                 if (pDriver) {
-                    if (pDriver->m_nPedType == PED_TYPE_COP) {
+                    if (pDriver->m_nPedType == PEDTYPE_COP) {
                         accuracy = 0;
                     }
                 }
@@ -4935,7 +4935,7 @@ void CVehicle::DoVehicleLights(CMatrix& matrix, eVehicleLightsFlags flags) {
 // 0x6E2900
 void CVehicle::FillVehicleWithPeds(bool setClothesToAfro) {
     if (setClothesToAfro) {
-        const auto playerPed = FindPlayerPed(PED_TYPE_PLAYER1);
+        const auto playerPed = FindPlayerPed(PEDTYPE_PLAYER1);
         CStats::SetStatValue(STAT_FAT, 1000.0f);
         playerPed->m_pPlayerData->m_pPedClothesDesc->SetModel("afro", CLOTHES_MODEL_HEAD);
         CClothes::RebuildPlayer(playerPed, false);
@@ -4947,7 +4947,7 @@ void CVehicle::FillVehicleWithPeds(bool setClothesToAfro) {
     }
     const auto AddPedToSeat = [modelId, this](int32 seat) {
         CCarEnterExit::SetPedInCarDirect(
-            CPopulation::AddPed(PED_TYPE_CIVFEMALE, modelId, GetPosition(), false),
+            CPopulation::AddPed(PEDTYPE_CIVFEMALE, modelId, GetPosition(), false),
             this,
             seat,
             true
@@ -5053,7 +5053,7 @@ void CVehicle::DoFixedMachineGuns() {
     if (CCamera::GetActiveCamera().m_nDirectionWasLooking != eLookingDirection::LOOKING_DIRECTION_FORWARD)
         return;
 
-    const auto* const driverPad = CPad::GetPad(m_pDriver && m_pDriver->m_nPedType == PED_TYPE_PLAYER2 ? 1 : 0);
+    const auto* const driverPad = CPad::GetPad(m_pDriver && m_pDriver->m_nPedType == PEDTYPE_PLAYER2 ? 1 : 0);
     if (driverPad->GetCarGunFired() && !vehicleFlags.bGunSwitchedOff) {
         FireFixedMachineGuns();
     } else if (CTimer::GetTimeInMS() > m_nGunFiringTime + 1400) {

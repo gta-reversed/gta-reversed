@@ -117,15 +117,15 @@ void CTaskComplexGangLeader::DoGangAbuseSpeech(CPed* talker, CPed* sayTo) {
 
     if (const auto phrase = [&] {
         switch (sayTo->m_nPedType) {
-        case PED_TYPE_GANG1:   return CTX_GLOBAL_ABUSE_GANG_BALLAS;
-        case PED_TYPE_GANG2:   
-        case PED_TYPE_PLAYER1: 
-        case PED_TYPE_PLAYER2: return CTX_GLOBAL_ABUSE_GANG_FAMILIES;
-        case PED_TYPE_GANG4:   return CTX_GLOBAL_ABUSE_RIFA;
-        case PED_TYPE_GANG5:   return CTX_GLOBAL_ABUSE_DA_NANG;
-        case PED_TYPE_GANG6:   return CTX_GLOBAL_ABUSE_MAFIA;
-        case PED_TYPE_GANG7:   return CTX_GLOBAL_ABUSE_TRIAD;
-        case PED_TYPE_GANG8:   return CTX_GLOBAL_ABUSE_GANG_VLA;
+        case PEDTYPE_GANG1:   return CTX_GLOBAL_ABUSE_GANG_BALLAS;
+        case PEDTYPE_GANG2:   
+        case PEDTYPE_PLAYER1: 
+        case PEDTYPE_PLAYER2: return CTX_GLOBAL_ABUSE_GANG_FAMILIES;
+        case PEDTYPE_GANG4:   return CTX_GLOBAL_ABUSE_RIFA;
+        case PEDTYPE_GANG5:   return CTX_GLOBAL_ABUSE_DA_NANG;
+        case PEDTYPE_GANG6:   return CTX_GLOBAL_ABUSE_MAFIA;
+        case PEDTYPE_GANG7:   return CTX_GLOBAL_ABUSE_TRIAD;
+        case PEDTYPE_GANG8:   return CTX_GLOBAL_ABUSE_GANG_VLA;
         default:               return CTX_GLOBAL_NO_SPEECH;
         }
     }()) {

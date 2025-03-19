@@ -102,7 +102,7 @@ void CBulletInfo::Update() {
                             hitPed->GetLocalDirection(hitPed->GetPosition2D() - CVector2D{ colPoint.m_vecPoint })
                         );
                         CCrime::ReportCrime(
-                            (hitPed->m_nPedType == PED_TYPE_COP) ? eCrimeType::CRIME_DAMAGE_COP_CAR : eCrimeType::CRIME_DAMAGE_CAR,
+                            (hitPed->m_nPedType == PEDTYPE_COP) ? eCrimeType::CRIME_DAMAGE_COP_CAR : eCrimeType::CRIME_DAMAGE_CAR,
                             hitPed,
                             info.m_pCreator->AsPed()
                         );

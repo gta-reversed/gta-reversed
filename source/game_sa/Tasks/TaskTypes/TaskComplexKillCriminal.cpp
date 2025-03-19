@@ -28,7 +28,7 @@ CTaskComplexKillCriminal::CTaskComplexKillCriminal(CPed* criminal, bool randomiz
     assert(m_Criminal);
 
     if (m_Criminal) {
-        if (m_Criminal->IsPlayer() || notsa::contains({ PED_TYPE_COP, PED_TYPE_MEDIC, PED_TYPE_FIREMAN, PED_TYPE_MISSION1 }, m_Criminal->m_nPedType) || m_Criminal->IsCreatedByMission()) {
+        if (m_Criminal->IsPlayer() || notsa::contains({ PEDTYPE_COP, PEDTYPE_MEDIC, PEDTYPE_FIREMAN, PEDTYPE_MISSION1 }, m_Criminal->m_nPedType) || m_Criminal->IsCreatedByMission()) {
             m_Criminal = nullptr; // Interesting solution, but okay
             DEV_LOG("Ped can't be a criminal, aborting");
         } else {

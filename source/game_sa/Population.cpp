@@ -356,12 +356,12 @@ bool CPopulation::ArePedStatsCompatible(ePedStats st1, ePedStats st2) {
 // 0x6110C0
 bool CPopulation::PedMICanBeCreatedAtAttractor(eModelID modelIndex) {
     switch (CModelInfo::GetPedModelInfo(modelIndex)->GetPedType()) {
-    case PED_TYPE_DEALER:
-    case PED_TYPE_MEDIC:
-    case PED_TYPE_FIREMAN:
-    case PED_TYPE_CRIMINAL:
-    case PED_TYPE_BUM:
-    case PED_TYPE_PROSTITUTE:
+    case PEDTYPE_DEALER:
+    case PEDTYPE_MEDIC:
+    case PEDTYPE_FIREMAN:
+    case PEDTYPE_CRIMINAL:
+    case PEDTYPE_BUM:
+    case PEDTYPE_PROSTITUTE:
         return false;
     }
     return true;
@@ -380,10 +380,10 @@ bool CPopulation::PedMICanBeCreatedAtThisAttractor(eModelID modelId, const char*
     const auto pedType = CModelInfo::GetPedModelInfo(modelId)->GetPedType();
 
     if (NameIsAnyOf("COPST", "COPLOOK", "BROWSE")) {
-        return pedType == PED_TYPE_COP;
+        return pedType == PEDTYPE_COP;
     }
 
-    if (pedType == PED_TYPE_COP) {
+    if (pedType == PEDTYPE_COP) {
         return false;
     }
 
@@ -451,7 +451,7 @@ bool CPopulation::PedMICanBeCreatedAtThisAttractor(eModelID modelId, const char*
     }
 
     if (NameIsAnyOf("STRIPM")) {
-        return pedType != PED_TYPE_CIVFEMALE;
+        return pedType != PEDTYPE_CIVFEMALE;
     }
 
     return false;
@@ -460,23 +460,23 @@ bool CPopulation::PedMICanBeCreatedAtThisAttractor(eModelID modelId, const char*
 // 0x611450
 bool CPopulation::PedMICanBeCreatedInInterior(eModelID modelIndex) {
     switch (CModelInfo::GetPedModelInfo(modelIndex)->GetPedType()) {
-    case PED_TYPE_COP:
-    case PED_TYPE_GANG1:
-    case PED_TYPE_GANG2:
-    case PED_TYPE_GANG3:
-    case PED_TYPE_GANG4:
-    case PED_TYPE_GANG5:
-    case PED_TYPE_GANG6:
-    case PED_TYPE_GANG7:
-    case PED_TYPE_GANG8:
-    case PED_TYPE_GANG9:
-    case PED_TYPE_GANG10:
-    case PED_TYPE_DEALER:
-    case PED_TYPE_MEDIC:
-    case PED_TYPE_FIREMAN:
-    case PED_TYPE_CRIMINAL:
-    case PED_TYPE_BUM:
-    case PED_TYPE_PROSTITUTE:
+    case PEDTYPE_COP:
+    case PEDTYPE_GANG1:
+    case PEDTYPE_GANG2:
+    case PEDTYPE_GANG3:
+    case PEDTYPE_GANG4:
+    case PEDTYPE_GANG5:
+    case PEDTYPE_GANG6:
+    case PEDTYPE_GANG7:
+    case PEDTYPE_GANG8:
+    case PEDTYPE_GANG9:
+    case PEDTYPE_GANG10:
+    case PEDTYPE_DEALER:
+    case PEDTYPE_MEDIC:
+    case PEDTYPE_FIREMAN:
+    case PEDTYPE_CRIMINAL:
+    case PEDTYPE_BUM:
+    case PEDTYPE_PROSTITUTE:
         return false;
     }
     return true;
@@ -484,12 +484,12 @@ bool CPopulation::PedMICanBeCreatedInInterior(eModelID modelIndex) {
 
 // 0x611470
 bool CPopulation::IsMale(eModelID modelIndex) {
-    return CModelInfo::GetPedModelInfo(modelIndex)->GetPedType() == PED_TYPE_CIVMALE;
+    return CModelInfo::GetPedModelInfo(modelIndex)->GetPedType() == PEDTYPE_CIVMALE;
 }
 
 // 0x611490
 bool CPopulation::IsFemale(eModelID modelIndex) {
-    return CModelInfo::GetPedModelInfo(modelIndex)->GetPedType() == PED_TYPE_CIVFEMALE;
+    return CModelInfo::GetPedModelInfo(modelIndex)->GetPedType() == PEDTYPE_CIVFEMALE;
 }
 
 // 0x6114B0
@@ -532,38 +532,38 @@ void CPopulation::UpdatePedCount(CPed* ped, bool pedAddedOrRemoved) {
     };
 
     switch (ped->m_nPedType) {
-    case PED_TYPE_CIVMALE:
-    case PED_TYPE_CRIMINAL:
+    case PEDTYPE_CIVMALE:
+    case PEDTYPE_CRIMINAL:
         DoOp(ms_nNumCivMale);
         break;
-    case PED_TYPE_CIVFEMALE:
-    case PED_TYPE_PROSTITUTE:
+    case PEDTYPE_CIVFEMALE:
+    case PEDTYPE_PROSTITUTE:
         DoOp(ms_nNumCivFemale);
         break;
-    case PED_TYPE_COP:
+    case PEDTYPE_COP:
         DoOp(ms_nNumCop);
         break;
-    case PED_TYPE_GANG1:
-    case PED_TYPE_GANG2:
-    case PED_TYPE_GANG3:
-    case PED_TYPE_GANG4:
-    case PED_TYPE_GANG5:
-    case PED_TYPE_GANG6:
-    case PED_TYPE_GANG7:
-    case PED_TYPE_GANG8:
-    case PED_TYPE_GANG9:
-    case PED_TYPE_GANG10:
+    case PEDTYPE_GANG1:
+    case PEDTYPE_GANG2:
+    case PEDTYPE_GANG3:
+    case PEDTYPE_GANG4:
+    case PEDTYPE_GANG5:
+    case PEDTYPE_GANG6:
+    case PEDTYPE_GANG7:
+    case PEDTYPE_GANG8:
+    case PEDTYPE_GANG9:
+    case PEDTYPE_GANG10:
 #ifdef FIX_BUGS
-        DoOp(ms_nNumGang[ped->m_nPedType - PED_TYPE_GANG1]);
+        DoOp(ms_nNumGang[ped->m_nPedType - PEDTYPE_GANG1]);
 #else
         DoOp(ms_nNumGang[ped->m_nPedType]);
 #endif
         break;
-    case PED_TYPE_DEALER:
+    case PEDTYPE_DEALER:
         DoOp(ms_nNumDealers);
         break;
-    case PED_TYPE_MEDIC:
-    case PED_TYPE_FIREMAN:
+    case PEDTYPE_MEDIC:
+    case PEDTYPE_FIREMAN:
         DoOp(ms_nNumEmergency);
         break;
     }
@@ -608,12 +608,12 @@ bool CPopulation::CanSolicitPlayerOnFoot(eModelID modelIndex) {
 
 // 0x611790
 bool CPopulation::CanSolicitPlayerInCar(eModelID modelIndex) {
-    return CModelInfo::GetPedModelInfo(modelIndex)->GetPedType() == PED_TYPE_PROSTITUTE;
+    return CModelInfo::GetPedModelInfo(modelIndex)->GetPedType() == PEDTYPE_PROSTITUTE;
 }
 
 // 0x6117B0
 bool CPopulation::CanJeerAtStripper(eModelID modelIndex) {
-    return CModelInfo::GetPedModelInfo(modelIndex)->GetPedType() == PED_TYPE_CIVMALE;
+    return CModelInfo::GetPedModelInfo(modelIndex)->GetPedType() == PEDTYPE_CIVMALE;
 }
 
 // 0x6117D0
@@ -760,7 +760,7 @@ void CPopulation::ManagePed(CPed* ped, const CVector& playerPosn) {
             RemovePed(ped);
         }
     } else if (pedsRemovalDist <= 25.f || ped->GetIsOnScreen()) { // From here on I did some truth table magic, and was able to remove some of the redudant code (So some of the code is missing)
-        ped->m_nTimeTillWeNeedThisPed = CTimer::GetTimeInMS() + (ped->m_nPedType == PED_TYPE_COP ? 10'000 : 4'000);
+        ped->m_nTimeTillWeNeedThisPed = CTimer::GetTimeInMS() + (ped->m_nPedType == PEDTYPE_COP ? 10'000 : 4'000);
     } else if (CTimer::GetTimeInMS() > ped->m_nTimeTillWeNeedThisPed) { // Ped not needed anymore
         const auto& activeCam = TheCamera.GetActiveCamera();
         switch (activeCam.m_nMode) {
@@ -855,8 +855,8 @@ CPed* CPopulation::AddPed(ePedType pedType, eModelID modelIndex, const CVector& 
     // Create the ped
     const auto ped = [&]() -> CPed* {
         switch (pedType) {
-        case PED_TYPE_CIVMALE:
-        case PED_TYPE_CIVFEMALE: { // 0x61274E
+        case PEDTYPE_CIVMALE:
+        case PEDTYPE_CIVFEMALE: { // 0x61274E
             const auto ped = new CCivilianPed(pedType, modelIndex);
 
             if (CCheat::IsAnyActive({ CHEAT_EVERYONE_ARMED, CHEAT_PEDS_ATTACK_OTHER_WITH_GOLFCLUB })) {
@@ -865,19 +865,19 @@ CPed* CPopulation::AddPed(ePedType pedType, eModelID modelIndex, const CVector& 
 
             return ped;
         }
-        case PED_TYPE_GANG1:
-        case PED_TYPE_GANG2:
-        case PED_TYPE_GANG3:
-        case PED_TYPE_GANG4:
-        case PED_TYPE_GANG5:
-        case PED_TYPE_GANG6:
-        case PED_TYPE_GANG7:
-        case PED_TYPE_GANG8:
-        case PED_TYPE_GANG9:
-        case PED_TYPE_GANG10: { // 0x6128C4
+        case PEDTYPE_GANG1:
+        case PEDTYPE_GANG2:
+        case PEDTYPE_GANG3:
+        case PEDTYPE_GANG4:
+        case PEDTYPE_GANG5:
+        case PEDTYPE_GANG6:
+        case PEDTYPE_GANG7:
+        case PEDTYPE_GANG8:
+        case PEDTYPE_GANG9:
+        case PEDTYPE_GANG10: { // 0x6128C4
             const auto ped = new CCivilianPed(pedType, modelIndex);
 
-            if (CCheat::IsActive(CHEAT_NINJA_THEME) && pedType == PED_TYPE_GANG7) {
+            if (CCheat::IsActive(CHEAT_NINJA_THEME) && pedType == PEDTYPE_GANG7) {
                 GiveAndSetPedWeapon(ped, WEAPON_KATANA);
             } else if (CGeneral::RandomBool(33)) { // Give random weapon
                 if (const auto wtype = CGangs::Gang[GetGangOfPedType(pedType)].GetRandomWeapon(); wtype != WEAPON_UNARMED) {
@@ -887,23 +887,23 @@ CPed* CPopulation::AddPed(ePedType pedType, eModelID modelIndex, const CVector& 
 
             return ped;
         }
-        case PED_TYPE_DEALER:
-        case PED_TYPE_CRIMINAL:
-        case PED_TYPE_PROSTITUTE:
-        case PED_TYPE_SPECIAL:
-        case PED_TYPE_MISSION1:
-        case PED_TYPE_MISSION2:
-        case PED_TYPE_MISSION3:
-        case PED_TYPE_MISSION4:
-        case PED_TYPE_MISSION5:
-        case PED_TYPE_MISSION6:
-        case PED_TYPE_MISSION7:
-        case PED_TYPE_MISSION8: // 0x612992
+        case PEDTYPE_DEALER:
+        case PEDTYPE_CRIMINAL:
+        case PEDTYPE_PROSTITUTE:
+        case PEDTYPE_SPECIAL:
+        case PEDTYPE_MISSION1:
+        case PEDTYPE_MISSION2:
+        case PEDTYPE_MISSION3:
+        case PEDTYPE_MISSION4:
+        case PEDTYPE_MISSION5:
+        case PEDTYPE_MISSION6:
+        case PEDTYPE_MISSION7:
+        case PEDTYPE_MISSION8: // 0x612992
             return new CCivilianPed(pedType, modelIndex);
-        case PED_TYPE_MEDIC: // 0x612848
-        case PED_TYPE_FIREMAN: // 0x612886
+        case PEDTYPE_MEDIC: // 0x612848
+        case PEDTYPE_FIREMAN: // 0x612886
             return new CEmergencyPed(pedType, modelIndex);
-        case PED_TYPE_COP: // 0x61280C
+        case PEDTYPE_COP: // 0x61280C
             return new CCopPed(modelIndex);
         default:
             NOTSA_UNREACHABLE();
@@ -924,7 +924,7 @@ CPed* CPopulation::AddPed(ePedType pedType, eModelID modelIndex, const CVector& 
     auto& tmgr = ped->GetTaskManager();
 
     // Set it's default tasks
-    if (pedType == PED_TYPE_COP) {
+    if (pedType == PEDTYPE_COP) {
         tmgr.SetTask(
             CTaskComplexWander::GetWanderTaskByPedType(ped),
             TASK_PRIMARY_PRIMARY
@@ -940,7 +940,7 @@ CPed* CPopulation::AddPed(ePedType pedType, eModelID modelIndex, const CVector& 
         );
     }
 
-    if (CCheat::IsActive(CHEAT_SLUT_MAGNET) && pedType == PED_TYPE_PROSTITUTE) {
+    if (CCheat::IsActive(CHEAT_SLUT_MAGNET) && pedType == PEDTYPE_PROSTITUTE) {
         ped->GetEventGroup().Add(CEventSexyPed{ FindPlayerPed(), TASK_COMPLEX_GANG_HASSLE_PED });
         GiveAndSetPedWeapon(ped, CGeneral::RandomChoiceFromList({ WEAPON_DILDO1, WEAPON_DILDO2, WEAPON_VIBE1, WEAPON_VIBE2 }), 1);
     }
@@ -973,7 +973,7 @@ CPed* CPopulation::AddDeadPedInFrontOfCar(const CVector& createPedAt, CVehicle* 
         return nullptr;
     }
 
-    const auto ped = AddPed(PED_TYPE_CIVMALE, MODEL_MALE01, CVector{ createPedAt, groundZ }, false);
+    const auto ped = AddPed(PEDTYPE_CIVMALE, MODEL_MALE01, CVector{ createPedAt, groundZ }, false);
 
     ped->GetEventGroup().Add(
         CEventScriptCommand{
@@ -1046,10 +1046,10 @@ eModelID CPopulation::ChooseCivilianOccupation(
         if (bOnlyOnFoots && (mi->m_nCarsCanDriveMask & 0x1000) == 0) {
             continue;
         }
-        if (mustBeMale && mi->GetPedType() != PED_TYPE_CIVMALE) {
+        if (mustBeMale && mi->GetPedType() != PEDTYPE_CIVMALE) {
             continue;
         }
-        if (mustBeFemale && mi->GetPedType() != PED_TYPE_CIVFEMALE) {
+        if (mustBeFemale && mi->GetPedType() != PEDTYPE_CIVFEMALE) {
             continue;
         }
         if (mustUseThisAnimGroup != ANIM_GROUP_NONE && mi->m_nAnimType != mustUseThisAnimGroup) {
@@ -1315,20 +1315,20 @@ CPed* CPopulation::AddPedInCar(
         default: {
             const auto gangPedTypeForRating = [carRating] {
                 switch (carRating) {
-                case 14: return PED_TYPE_GANG1;
-                case 15: return PED_TYPE_GANG2;
-                case 16: return PED_TYPE_GANG3;
-                case 17: return PED_TYPE_GANG4;
-                case 18: return PED_TYPE_GANG5;
-                case 19: return PED_TYPE_GANG6;
-                case 20: return PED_TYPE_GANG7;
-                case 21: return PED_TYPE_GANG8;
-                case 22: return PED_TYPE_GANG9;
-                case 23: return PED_TYPE_GANG10;
-                default: return PED_TYPE_NONE;
+                case 14: return PEDTYPE_GANG1;
+                case 15: return PEDTYPE_GANG2;
+                case 16: return PEDTYPE_GANG3;
+                case 17: return PEDTYPE_GANG4;
+                case 18: return PEDTYPE_GANG5;
+                case 19: return PEDTYPE_GANG6;
+                case 20: return PEDTYPE_GANG7;
+                case 21: return PEDTYPE_GANG8;
+                case 22: return PEDTYPE_GANG9;
+                case 23: return PEDTYPE_GANG10;
+                default: return PEDTYPE_NONE;
                 }
             }();
-            if (gangPedTypeForRating != PED_TYPE_NONE) {
+            if (gangPedTypeForRating != PEDTYPE_NONE) {
                 return FixIfInvalid(CGangs::ChooseGangPedModel(GetGangOfPedType(gangPedTypeForRating)), true);
             }
             return FixIfInvalid(ChooseCivilianOccupationForVehicle(mustBeMale, veh), true);
@@ -1352,7 +1352,7 @@ CPed* CPopulation::AddPedInCar(
 
     if (isCriminal) {
         UpdatePedCount(ped, false);
-        ped->m_nPedType = PED_TYPE_CRIMINAL;
+        ped->m_nPedType = PEDTYPE_CRIMINAL;
         UpdatePedCount(ped, true);
     }
 
@@ -1377,7 +1377,7 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
         return;
     }
 
-    if (husbandPedType != PED_TYPE_CIVMALE || wifeyPedType != PED_TYPE_CIVFEMALE) {
+    if (husbandPedType != PEDTYPE_CIVMALE || wifeyPedType != PEDTYPE_CIVFEMALE) {
         return;
     }
 
@@ -1406,13 +1406,13 @@ void CPopulation::PlaceCouple(ePedType husbandPedType, eModelID husbandModelId, 
         return AddPed(ptype, model, placeAt, true);
     };
 
-    const auto husb = CreatePed(PED_TYPE_CIVMALE, husbandModelId);
+    const auto husb = CreatePed(PEDTYPE_CIVMALE, husbandModelId);
     if (!husb) {
         return;
     }
     CVisibilityPlugins::SetClumpAlpha(husb->m_pRwClump, 0);
 
-    const auto wifey = CreatePed(PED_TYPE_CIVFEMALE, wifeyModelId);
+    const auto wifey = CreatePed(PEDTYPE_CIVFEMALE, wifeyModelId);
     if (!wifey) {
         return; // No need to delete `husband`, as he's been added to the world already (and he'll get deleted eventually)
     }
@@ -1481,7 +1481,7 @@ bool CPopulation::AddPedAtAttractor(eModelID modelIndex, C2dEffectPedAttractor* 
 float CPopulation::FindDistanceToNearestPedOfType(ePedType pedType, CVector posn) {
     float closest3DSq = sq(10'000'000.f);
     for (CPed& ped : GetPedPool()->GetAllValid()) {
-        if (pedType != PED_TYPE_NONE /*notsa*/ && ped.m_nPedType != pedType) {
+        if (pedType != PEDTYPE_NONE /*notsa*/ && ped.m_nPedType != pedType) {
             continue;
         }
         closest3DSq = std::min(closest3DSq, (ped.GetPosition() - posn).SquaredMagnitude());
@@ -1510,7 +1510,7 @@ float CPopulation::FindDistanceToNearestPedOfType(ePedType pedType, CVector posn
 }
 
 float CPopulation::FindDistanceToNearestPed(CVector pos) {
-    return FindDistanceToNearestPedOfType(PED_TYPE_NONE, pos);
+    return FindDistanceToNearestPedOfType(PEDTYPE_NONE, pos);
 }
 
 // 0x614490

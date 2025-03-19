@@ -76,11 +76,11 @@ void CDarkel::DrawMessages() {
         CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_GRAY));
 
         const auto y1 = CHud::GetYPosBasedOnHealth(CWorld::PlayerInFocus, SCREEN_SCALE_Y(148.0f), 12);
-        auto remainingTimerY = CHud::GetYPosBasedOnHealth(PED_TYPE_PLAYER2, y1, 12);
+        auto remainingTimerY = CHud::GetYPosBasedOnHealth(PEDTYPE_PLAYER2, y1, 12);
 
         const auto y2 = CHud::GetYPosBasedOnHealth(CWorld::PlayerInFocus, SCREEN_SCALE_Y(168.0f), 12);
-        auto remainingKillsY = CHud::GetYPosBasedOnHealth(PED_TYPE_PLAYER2, y2, 12);
-        if (FindPlayerPed(PED_TYPE_PLAYER2)) {
+        auto remainingKillsY = CHud::GetYPosBasedOnHealth(PEDTYPE_PLAYER2, y2, 12);
+        if (FindPlayerPed(PEDTYPE_PLAYER2)) {
             remainingTimerY += SCREEN_SCALE_Y(72.0f);
             remainingKillsY += SCREEN_SCALE_Y(72.0f);
         }
@@ -121,7 +121,7 @@ void CDarkel::RegisterKillNotByPlayer(const CPed* killedPed) {
     }
     CStats::IncrementStat(STAT_PEOPLE_WASTED_BY_OTHERS);
 
-    if (const auto friendly = killedPed->m_nPedType == PED_TYPE_GANG2; killedPed->IsGangster()) {
+    if (const auto friendly = killedPed->m_nPedType == PEDTYPE_GANG2; killedPed->IsGangster()) {
         CStats::IncrementStat(friendly ? STAT_FRIENDLY_GANG_MEMBERS_KILLED : STAT_ENEMY_GANG_MEMBERS_KILLED);
     }
 }
@@ -384,7 +384,7 @@ void CDarkel::Update() {
             CGameLogic::SetMissionFailed();
         }
         StartFrenzy();
-    } else if (Status != DARKEL_STATUS_4 || FindPlayerPed(PED_TYPE_PLAYER2)) {
+    } else if (Status != DARKEL_STATUS_4 || FindPlayerPed(PEDTYPE_PLAYER2)) {
         if (remaining / 1000 != PreviousTime) {
             if (PreviousTime < 12) {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_TIMER_COUNT);
@@ -437,15 +437,15 @@ void CDarkel::FailKillFrenzy() {
 // 0x43DCD0
 void CDarkel::RegisterKillByPlayer(const CPed& killedPed, eWeaponType damageWeaponId, bool headShotted, int32 playerId) {
     switch (killedPed.m_nPedType) {
-    case PED_TYPE_COP:
-    case PED_TYPE_DEALER:
+    case PEDTYPE_COP:
+    case PEDTYPE_DEALER:
         CStats::IncrementStat(STAT_RESPECT, 1.5f);
         break;
     default:
         break;
     }
 
-    if (const auto friendly = killedPed.m_nPedType == PED_TYPE_GANG2; killedPed.IsGangster()) {
+    if (const auto friendly = killedPed.m_nPedType == PEDTYPE_GANG2; killedPed.IsGangster()) {
         if (friendly) {
             CStats::IncrementStat(STAT_FRIENDLY_GANG_MEMBERS_KILLED);
             CStats::DecrementStat(STAT_RESPECT, 5.0f);
@@ -506,18 +506,18 @@ void CDarkel::RegisterKillByPlayer(const CPed& killedPed, eWeaponType damageWeap
 
         RegisteredKills[killedPed.m_nModelIndex][playerId]++;
         CStats::IncrementStat(STAT_PEOPLE_YOUVE_WASTED);
-        CStats::PedsKilledOfThisType[killedPed.bChrisCriminal ? PED_TYPE_CRIMINAL : killedPed.m_nPedType]++;
+        CStats::PedsKilledOfThisType[killedPed.bChrisCriminal ? PEDTYPE_CRIMINAL : killedPed.m_nPedType]++;
 
         if (headShotted) {
             CStats::IncrementStat(STAT_NUMBER_OF_HEADSHOTS);
         }
         CStats::IncrementStat(STAT_KILLS_SINCE_LAST_CHECKPOINT);
 
-        if (playerId == PED_TYPE_PLAYER1 && !FindPlayerPed(PED_TYPE_PLAYER1)->bInVehicle) {
+        if (playerId == PEDTYPE_PLAYER1 && !FindPlayerPed(PEDTYPE_PLAYER1)->bInVehicle) {
             CGangWars::AddKillToProvocation(killedPed.m_nPedType);
         }
 
-        if (killedPed.m_nPedType >= PED_TYPE_DEALER) { // BUG?
+        if (killedPed.m_nPedType >= PEDTYPE_DEALER) { // BUG?
             CPopCycle::PlayerKilledADealer();
         }
     }

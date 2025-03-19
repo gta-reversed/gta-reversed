@@ -553,9 +553,9 @@ public:
     bool IsStateDeadForScript()  const noexcept { return m_nPedState == PEDSTATE_DEAD || m_nPedState == PEDSTATE_DIE || m_nPedState == PEDSTATE_DIE_BY_STEALTH; }
     bool IsInVehicleAsPassenger() const noexcept;
 
-    bool IsCop()      const noexcept { return m_nPedType == PED_TYPE_COP; }
+    bool IsCop()      const noexcept { return m_nPedType == PEDTYPE_COP; }
     bool IsGangster() const noexcept { return IsPedTypeGang(m_nPedType); }
-    bool IsCivilian() const noexcept { return m_nPedType == PED_TYPE_CIVMALE || m_nPedType == PED_TYPE_CIVFEMALE; }
+    bool IsCivilian() const noexcept { return m_nPedType == PEDTYPE_CIVMALE || m_nPedType == PEDTYPE_CIVFEMALE; }
 
     CCopPed*       AsCop()       { return reinterpret_cast<CCopPed*>(this); }
     CCivilianPed*  AsCivilian()  { return reinterpret_cast<CCivilianPed*>(this); }

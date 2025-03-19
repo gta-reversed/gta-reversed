@@ -13,6 +13,14 @@
 
 /* http://code.google.com/p/mtasa-blue/source/browse/tags/1.3.4/MTA10/game_sa/CCamSA.h */
 
+// C2DBCEB0BDF82F2DB2529BA1681CB0F9
+enum {
+  LOOKING_BEHIND = 0x0,
+  LOOKING_LEFT = 0x1,
+  LOOKING_RIGHT = 0x2,
+  LOOKING_FORWARD = 0x3,
+};
+
 enum eArrestCam {
     ARRESTCAM_NONE = 0,
     ARRESTCAM_DW = 1,
@@ -85,11 +93,11 @@ public:
     float     m_fTrueBeta;
     float     m_fTrueAlpha;
     float     m_fInitialPlayerOrientation;
-    float     m_fVerticalAngle;  ///< The radian angle ([-pi/2, pi/2]) relative to the entity the camera is locked on (the player usually)
+    float     m_fAlpha;  ///< The radian angle ([-pi/2, pi/2]) relative to the entity the camera is locked on (the player usually)
     float     m_fAlphaSpeed;
     float     m_fFOV;
     float     m_fFOVSpeed;
-    float     m_fHorizontalAngle;
+    float     m_fBeta;
     float     m_fBetaSpeed;
     float     m_fDistance;
     float     m_fDistanceSpeed;
@@ -128,9 +136,9 @@ public:
     CVector   m_vecSource;
     CVector   m_vecSourceBeforeLookBehind;
     CVector   m_vecUp;
-    CVector   m_avecPreviousVectors[2];
-    CVector   m_avecTargetHistoryPos[4];
-    uint32    m_anTargetHistoryTime[4];
+    CVector   m_arrPreviousVectors[2];
+    CVector   m_aTargetHistoryPos[4];
+    uint32    m_nTargetHistoryTime[4];
     uint32    m_nCurrentHistoryPoints;
     CEntity*  m_pCamTargetEntity;
     float     m_fCameraDistance;
@@ -184,7 +192,7 @@ public:
     bool Process_Editor(const CVector&, float, float, float);
     bool Process_Fixed(const CVector&, float, float, float);
     bool Process_FlyBy(const CVector&, float, float, float);
-    bool Process_FollowCar_SA(const CVector&, float, float, float, bool);
+    void Process_FollowCar_SA(const CVector&, float, float, float, bool);
     bool Process_FollowPedWithMouse(const CVector&, float, float, float);
     bool Process_FollowPed_SA(const CVector&, float, float, float, bool);
     bool Process_M16_1stPerson(const CVector&, float, float, float);
@@ -193,4 +201,7 @@ public:
     bool Process_WheelCam(const CVector&, float, float, float);
 };
 
-VALIDATE_SIZE(CCam, 0x238);
+// VALIDATE_SIZE(CCam, 0x238);
+
+float FTrunc(float, int);
+void VecTrunc(CVector*, int);

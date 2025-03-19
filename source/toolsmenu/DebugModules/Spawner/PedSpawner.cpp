@@ -304,7 +304,7 @@ void Initialise() {
 void SpawnPed(int32 modelId, CVector position) {
     CStreaming::RequestModel(modelId, STREAMING_MISSION_REQUIRED | STREAMING_KEEP_IN_MEMORY);
     CStreaming::LoadAllRequestedModels(false);
-    CPed* ped = new CCivilianPed(CPopulation::IsFemale((eModelID)modelId) ? PED_TYPE_CIVFEMALE : PED_TYPE_CIVMALE, modelId);
+    CPed* ped = new CCivilianPed(CPopulation::IsFemale((eModelID)modelId) ? PEDTYPE_CIVFEMALE : PEDTYPE_CIVMALE, modelId);
     ped->SetOrientation(0.0f, 0.0f, 0.0f);
     ped->SetPosn(position);
     CWorld::Add(ped);

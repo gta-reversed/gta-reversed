@@ -98,7 +98,7 @@ bool CEventKnockOffBike::AffectsPed(CPed* ped)
 void CEventKnockOffBike::ReportCriminalEvent(CPed* ped)
 {
     if (IsCriminalEvent()) {
-        if (ped->m_nPedType == PED_TYPE_COP && m_ped && m_ped->IsPlayer())
+        if (ped->m_nPedType == PEDTYPE_COP && m_ped && m_ped->IsPlayer())
             FindPlayerWanted()->RegisterCrime(eCrimeType::CRIME_DAMAGE_COP_CAR, ped->GetPosition(), ped, false);
     }
 }
@@ -149,7 +149,7 @@ int32 CEventKnockOffBike::CalcForcesAndAnims(CPed* ped)
     uint8 numContactWheels = 0;
     float massRatio = ped->m_fMass / m_vehicle->m_fMass;
     if (m_vehicle->IsBike())
-        numContactWheels = m_vehicle->AsBike()->m_nNoOfContactWheels;
+        numContactWheels = m_vehicle->AsBike()->m_nNumContactWheels;
     else if (m_vehicle->IsAutomobile())
         numContactWheels = m_vehicle->AsAutomobile()->m_nNumContactWheels;
 

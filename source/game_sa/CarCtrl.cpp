@@ -715,7 +715,7 @@ void CCarCtrl::RemoveDistantCars() {
                 CRoadBlocks::GenerateRoadBlockCopsForCar(
                     vehicle,
                     vehicle->m_nPedsPositionForRoadBlock,
-                    vehicle->IsLawEnforcementVehicle() ? PED_TYPE_COP : PED_TYPE_GANG1
+                    vehicle->IsLawEnforcementVehicle() ? PEDTYPE_COP : PEDTYPE_GANG1
                 );
 
                 vehicle->vehicleFlags.bCreateRoadBlockPeds = false;

@@ -36,7 +36,7 @@ CTaskComplexWanderCop::~CTaskComplexWanderCop() {
 
 // 0x674860
 CTask* CTaskComplexWanderCop::CreateNextSubTask(CPed* ped) {
-    if (ped->m_nPedType != PED_TYPE_COP)
+    if (ped->m_nPedType != PEDTYPE_COP)
         return CTaskComplexWander::CreateNextSubTask(ped);
 
     if (ped->AsCop()->m_bDontPursuit)
@@ -66,7 +66,7 @@ CTask* CTaskComplexWanderCop::CreateNextSubTask(CPed* ped) {
 
 // 0x674750
 CTask* CTaskComplexWanderCop::CreateFirstSubTask(CPed* ped) {
-    if (ped->m_nPedType != PED_TYPE_COP)
+    if (ped->m_nPedType != PEDTYPE_COP)
         return CTaskComplexWander::CreateFirstSubTask(ped);
 
     if (ped->AsCop()->m_bDontPursuit) {
@@ -85,7 +85,7 @@ CTask* CTaskComplexWanderCop::CreateFirstSubTask(CPed* ped) {
 
 // 0x674D80
 CTask* CTaskComplexWanderCop::ControlSubTask(CPed* ped) {
-    if (ped->m_nPedType != PED_TYPE_COP)
+    if (ped->m_nPedType != PEDTYPE_COP)
         return CTaskComplexWander::ControlSubTask(ped);
 
     if (!ShouldPursuePlayer(ped)) {
@@ -174,7 +174,7 @@ void CTaskComplexWanderCop::LookForCriminals(CPed* ped) {
             continue;
 
         auto pedType = criminalPed->m_nPedType;
-        if (pedType >= PED_TYPE_GANG1 && pedType <= PED_TYPE_GANG10 || pedType == PED_TYPE_CRIMINAL && criminalPed != m_pLastCriminalPedLookedFor) {
+        if (pedType >= PEDTYPE_GANG1 && pedType <= PEDTYPE_GANG10 || pedType == PEDTYPE_CRIMINAL && criminalPed != m_pLastCriminalPedLookedFor) {
             CTask* activeTask = criminalPed->GetTaskManager().GetActiveTask();
             if (activeTask && activeTask->GetTaskType() == GetTaskType()) {
                 const auto& criminalPos = criminalPed->GetPosition();

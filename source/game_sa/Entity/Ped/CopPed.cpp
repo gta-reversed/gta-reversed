@@ -54,7 +54,7 @@ eModelID ResolveModelForCopType(uint32_t typeOrModelID) {
 
 // 0x5DDC60
 CCopPed::CCopPed(uint32_t copTypeOrModelID) :
-    CPed{ PED_TYPE_COP },
+    CPed{ PEDTYPE_COP },
     m_nCopTypeOrModelID{ copTypeOrModelID }
 {
     // V1053 Calling the 'SetModelIndex' virtual function in the constructor may lead to unexpected result at runtime
@@ -182,12 +182,12 @@ void CCopPed::AddCriminalToKill(CPed* criminal) {
         return;
 
     switch (criminal->m_nPedType) {
-    case PED_TYPE_COP:
-    case PED_TYPE_MEDIC:
-    case PED_TYPE_FIREMAN:
+    case PEDTYPE_COP:
+    case PEDTYPE_MEDIC:
+    case PEDTYPE_FIREMAN:
         return;
     }
-    if ((unsigned)criminal->m_nPedType >= (unsigned)PED_TYPE_MISSION1)
+    if ((unsigned)criminal->m_nPedType >= (unsigned)PEDTYPE_MISSION1)
         return;
 
     if (criminal->IsCreatedBy(ePedCreatedBy::PED_MISSION))

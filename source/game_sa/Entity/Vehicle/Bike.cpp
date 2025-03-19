@@ -129,7 +129,7 @@ CBike::CBike(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
         m_aGroundOffsets[i] = CVector{};
     }
 
-    m_nNoOfContactWheels = 0;
+    m_nNumContactWheels = 0;
     m_nDriveWheelsOnGround = 0;
     m_nDriveWheelsOnGroundLastFrame = 0;
     m_fHeightAboveRoad = 0.0f;
@@ -438,7 +438,7 @@ void CBike::ResetSuspension() {
 
 // 0x6B6790
 bool CBike::GetAllWheelsOffGround() const {
-    return m_nNoOfContactWheels == 0;
+    return m_nNumContactWheels == 0;
 }
 
 // 0x6B67A0

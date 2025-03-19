@@ -304,7 +304,7 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
 
     if (CCheat::IsActive(CHEAT_HAVE_ABOUNTY_ON_YOUR_HEAD)) {
         if (!IsPlayer()) {
-            GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(ePedType::PED_TYPE_PLAYER1));
+            GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(ePedType::PEDTYPE_PLAYER1));
             GetEventGroup().Add(CEventAcquaintancePedHate{FindPlayerPed()});
         }
     }
@@ -572,9 +572,9 @@ void CPed::CreateDeadPedMoney() {
     }
 
     switch (m_nPedType) {
-    case PED_TYPE_COP:
-    case PED_TYPE_MEDIC:
-    case PED_TYPE_FIREMAN:
+    case PEDTYPE_COP:
+    case PEDTYPE_MEDIC:
+    case PEDTYPE_FIREMAN:
         return;
     }
 
@@ -1249,8 +1249,8 @@ void CPed::SetLookTimer(uint32 time) {
 bool CPed::IsPlayer() const
 {
     switch (m_nPedType) {
-    case PED_TYPE_PLAYER1:
-    case PED_TYPE_PLAYER2:
+    case PEDTYPE_PLAYER1:
+    case PEDTYPE_PLAYER2:
         return true;
     }
     return false;
@@ -1913,7 +1913,7 @@ eWeaponSkill CPed::GetWeaponSkill(eWeaponType weaponType)
             return eWeaponSkill::STD; // Somewhere in-between poor and pro stat levels
         }
     } else {
-        if (weaponType == WEAPON_PISTOL && m_nPedType == PED_TYPE_COP)
+        if (weaponType == WEAPON_PISTOL && m_nPedType == PEDTYPE_COP)
             return eWeaponSkill::COP;
         return m_nWeaponSkill;
     }
@@ -3038,21 +3038,21 @@ void CPed::GiveWeaponAtStartOfFight()
 
         switch (m_nPedType)
         {
-        case PED_TYPE_GANG1:
-        case PED_TYPE_GANG2:
-        case PED_TYPE_GANG3:
-        case PED_TYPE_GANG4:
-        case PED_TYPE_GANG5:
-        case PED_TYPE_GANG6:
-        case PED_TYPE_GANG7:
-        case PED_TYPE_GANG8:
-        case PED_TYPE_GANG9:
-        case PED_TYPE_GANG10:
+        case PEDTYPE_GANG1:
+        case PEDTYPE_GANG2:
+        case PEDTYPE_GANG3:
+        case PEDTYPE_GANG4:
+        case PEDTYPE_GANG5:
+        case PEDTYPE_GANG6:
+        case PEDTYPE_GANG7:
+        case PEDTYPE_GANG8:
+        case PEDTYPE_GANG9:
+        case PEDTYPE_GANG10:
             GiveRandomWeaponByType(WEAPON_PISTOL, 400);
             break;
-        case PED_TYPE_DEALER:
-        case PED_TYPE_CRIMINAL:
-        case PED_TYPE_PROSTITUTE:
+        case PEDTYPE_DEALER:
+        case PEDTYPE_CRIMINAL:
+        case PEDTYPE_PROSTITUTE:
             GiveRandomWeaponByType(WEAPON_KNIFE, 200);
             GiveRandomWeaponByType(WEAPON_PISTOL, 400);
             break;
@@ -3708,9 +3708,9 @@ bool SayJacking(CPed* jacker, CPed* jacked, CVehicle* vehicle, uint32 timeDelay)
 // NOTSA
 int32 CPed::GetPadNumber() const {
     switch (m_nPedType) {
-    case PED_TYPE_PLAYER1:
+    case PEDTYPE_PLAYER1:
         return 0;
-    case PED_TYPE_PLAYER2:
+    case PEDTYPE_PLAYER2:
         return 1;
     default:
         assert(true && "Inappropriate usage of GetPadNumber");

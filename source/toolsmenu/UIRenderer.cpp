@@ -210,7 +210,7 @@ void UIRenderer::DebugCode() {
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {
-    //    const auto ped = new CPed(ePedType::PED_TYPE_GANG1);
+    //    const auto ped = new CPed(ePedType::PEDTYPE_GANG1);
     //    ped->SetCreatedBy(PED_GAME);
     //    ped->SetModelIndex(MODEL_MALE01);
     //    ped->SetHeading(player->GetHeading());

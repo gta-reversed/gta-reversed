@@ -374,8 +374,8 @@ public:
     float            m_fGearChangeCount; // used as parameter for cTransmission::CalculateDriveAcceleration, but doesn't change
     float            m_fWheelSpinForAudio;
     float            m_fHealth; // 1000.0f = full health. 0 -> explode
-    CVehicle*        m_pTractor;
-    CVehicle*        m_pTrailer;
+    CVehicle*        m_pTowingVehicle;
+    CVehicle*        m_pVehicleBeingTowed;
     CPed*            m_pWhoInstalledBombOnMe;
     uint32           m_nTimeTillWeNeedThisCar;     // game won't try to delete this car while this time won't reach
     uint32           m_nGunFiringTime;             // last time when gun on vehicle was fired (used on boats)
@@ -677,7 +677,7 @@ public:
     static void SetComponentAtomicAlpha(RpAtomic* atomic, int32 alpha);
 
 public: // NOTSA functions
-    // m_nVehicleType start
+    // m_nVehicleType start - base
     [[nodiscard]] bool IsVehicleTypeValid()     const { return m_nVehicleType != VEHICLE_TYPE_IGNORE; }
     [[nodiscard]] bool IsAutomobile()           const { return m_nVehicleType == VEHICLE_TYPE_AUTOMOBILE; }
     [[nodiscard]] bool IsMonsterTruck()         const { return m_nVehicleType == VEHICLE_TYPE_MTRUCK; }
@@ -692,7 +692,7 @@ public: // NOTSA functions
     [[nodiscard]] bool IsTrailer()              const { return m_nVehicleType == VEHICLE_TYPE_TRAILER; }
     // m_nVehicleType end
 
-    // m_nVehicleSubType start
+    // m_nVehicleSubType start - none
     [[nodiscard]] bool IsSubVehicleTypeValid() const { return m_nVehicleSubType != VEHICLE_TYPE_IGNORE; }
     [[nodiscard]] bool IsSubAutomobile()       const { return m_nVehicleSubType == VEHICLE_TYPE_AUTOMOBILE; }
     [[nodiscard]] bool IsSubMonsterTruck()     const { return m_nVehicleSubType == VEHICLE_TYPE_MTRUCK; }
@@ -722,6 +722,8 @@ public: // NOTSA functions
     [[nodiscard]] eVehicleCreatedBy GetCreatedBy() const      { return m_nCreatedBy; }
     [[nodiscard]] bool IsCreatedBy(eVehicleCreatedBy v) const { return v == m_nCreatedBy; }
     [[nodiscard]] bool IsMissionVehicle() const { return m_nCreatedBy == MISSION_VEHICLE; }
+
+    auto GetModelIndex() const { return m_nModelIndex; }
 
     bool CanUpdateHornCounter() { return m_nAlarmState == 0 || m_nAlarmState == -1 || m_nStatus == STATUS_WRECKED; }
 

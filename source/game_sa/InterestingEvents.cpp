@@ -216,13 +216,13 @@ void CInterestingEvents::ScanForNearbyEntities() {
                 }
 
                 switch (ped->m_nPedType) {
-                case PED_TYPE_COP:
+                case PEDTYPE_COP:
                     Add(INTERESTING_EVENT_5, entity);
                     break;
-                case PED_TYPE_CRIMINAL:
+                case PEDTYPE_CRIMINAL:
                     Add(INTERESTING_EVENT_6, entity);
                     break;
-                case PED_TYPE_PROSTITUTE:
+                case PEDTYPE_PROSTITUTE:
                     Add(INTERESTING_EVENT_4, entity);
                     break;
                 default:

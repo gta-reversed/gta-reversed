@@ -22,7 +22,7 @@ public:
     void PlayLoadedSound() override;
     ePedSpeechVoiceS16 GetAllocatedVoice() override { return VOICE_UNK; } // // 0x4E6090
     bool WillPedChatAboutTopic(int16 topic) override { return false; } // 0x4E60A0
-    eAudioPedType GetPedType() override { return PED_TYPE_UNK; } // 0x4E60B0
+    eAudioPedType GetPedType() override { return PEDTYPE_UNK; } // 0x4E60B0
     bool IsPedFemaleForAudio() override { return false; } // 0x4E60C0
 
 private:

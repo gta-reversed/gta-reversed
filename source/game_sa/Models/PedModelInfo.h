@@ -63,7 +63,7 @@ public:
     auto GetPedType() const { return (ePedType)(m_nPedType); }
     auto GetPedStatType() const { return (ePedStats)(m_nStatType); }
     auto CanPedDriveVehicleClass(eVehicleClass cls) const { return (m_nCarsCanDriveMask & (1 << (size_t)cls)) != 0; }
-    bool IsPedTypeFemale() const noexcept { return notsa::contains({PED_TYPE_CIVFEMALE, PED_TYPE_PROSTITUTE}, GetPedType()); }
+    bool IsPedTypeFemale() const noexcept { return notsa::contains({PEDTYPE_CIVFEMALE, PEDTYPE_PROSTITUTE}, GetPedType()); }
 };
 
 VALIDATE_SIZE(CPedModelInfo, 0x44);

@@ -161,7 +161,7 @@ CTask* CTaskComplexCopInCar::CreateNextSubTask(CPed* ped) {
             return CreateSubTask(TASK_FINISHED, ped);
         }
 
-        assert(ped->m_nPedType == PED_TYPE_COP);
+        assert(ped->m_nPedType == PEDTYPE_COP);
         if (FindPlayerWanted()->CanCopJoinPursuit(ped->AsCop()) && static_cast<CTaskComplexPolicePursuit*>(m_pSubTask)->m_nFlags & 4) { // todo: flags
             // 0x68FBC6 - Inverted
             if (m_Suspect->bIsBeingArrested) {

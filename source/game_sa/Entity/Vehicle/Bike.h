@@ -94,7 +94,7 @@ public:
     CPhysical* m_aGroundPhysicalPtrs[4];
     CVector m_aGroundOffsets[4];
     CEntity* m_Damager; // Entity That Set Us On Fire
-    uint8 m_nNoOfContactWheels;
+    uint8 m_nNumContactWheels;
     uint8 m_nDriveWheelsOnGround;
     uint8 m_nDriveWheelsOnGroundLastFrame;
     float m_fGasPedalAudioRevs;
@@ -141,7 +141,7 @@ public:
     inline bool IsComponentPresent(int32 componentId) override { return m_aBikeNodes[componentId] != nullptr; } // 0x6B59E0
     CRideAnimData* GetRideAnimData() override { return &m_RideAnimData; }                                       // 0x6B58C0
     float GetHeightAboveRoad() override { return m_fHeightAboveRoad; }                                          // 0x6B58B0
-    int32 GetNumContactWheels() override { return m_nNoOfContactWheels; }                                       // 0x6B58A0
+    int32 GetNumContactWheels() override { return m_nNumContactWheels; }                                       // 0x6B58A0
     float FindWheelWidth(bool bRear) override { return 0.15f; }                                                 // 0x6B8940
 
     virtual bool ProcessAI(uint32& extraHandlingFlags);

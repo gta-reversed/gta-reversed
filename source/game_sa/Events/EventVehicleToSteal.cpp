@@ -42,8 +42,8 @@ bool CEventVehicleToSteal::AffectsPed(CPed* ped)
             {
                 return false;
             }
-            return ped->m_nPedType == PED_TYPE_CRIMINAL && ped->m_pVehicle != m_vehicle
-                || ped->m_nPedType == PED_TYPE_COP && m_vehicle == ped->m_pVehicle;
+            return ped->m_nPedType == PEDTYPE_CRIMINAL && ped->m_pVehicle != m_vehicle
+                || ped->m_nPedType == PEDTYPE_COP && m_vehicle == ped->m_pVehicle;
         }
     }
     return false;

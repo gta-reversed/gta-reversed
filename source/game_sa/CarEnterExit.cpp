@@ -260,7 +260,7 @@ bool CCarEnterExit::GetNearestCarDoor(const CPed* ped, const CVehicle* vehicle, 
                  && DotProduct2D(vehicle->GetForward(), ped->GetForward()) > std::cos(PI / 6.f)
                 ) {
                     if ((ped->IsPlayer() && ped->m_pPlayerData->m_fMoveBlendRatio > 1.5f && doorId == 0) 
-                    || (!ped->IsPlayer() && ped->m_nPedType != PED_TYPE_COP && ped->m_nMoveState == PEDMOVE_RUN && ped->m_pStats->m_nTemper > 65 && doorId == 0)
+                    || (!ped->IsPlayer() && ped->m_nPedType != PEDTYPE_COP && ped->m_nMoveState == PEDMOVE_RUN && ped->m_pStats->m_nTemper > 65 && doorId == 0)
                     ) {
                         // 18 here is probably either from eBikeNodes or eQuadNodes, not sure?
                         if (IsRoomForPedToLeaveCar(vehicle, 18)) {
@@ -284,7 +284,7 @@ bool CCarEnterExit::GetNearestCarDoor(const CPed* ped, const CVehicle* vehicle, 
     CVector2D pedPos2D = ped->GetPosition();
     CVector2D dir2DToDoorFLeft = posDoorFLeft - pedPos2D, dir2DToDoorFRight = posDoorFRight - pedPos2D;
 
-    if (vehicle->m_pTrailer) {
+    if (vehicle->m_pVehicleBeingTowed) {
         if (dir2DToDoorFLeft.SquaredMagnitude() < dir2DToDoorFRight.SquaredMagnitude()) {
             if (IsPathToDoorBlockedByVehicleCollisionModel(ped, vehicle, posDoorFRight)) {
                 dir2DToDoorFRight = { 999.90002f, 999.90002f };

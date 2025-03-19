@@ -79,7 +79,7 @@ CTask* CTaskComplexStealCar::CreateNextSubTask(CPed* ped) {
         switch (m_pSubTask->GetTaskType()) {
         case TASK_COMPLEX_ENTER_CAR_AS_DRIVER: {
             if (ped->IsInVehicle()) {
-                if (ped->m_nPedType == PED_TYPE_CRIMINAL) {
+                if (ped->m_nPedType == PEDTYPE_CRIMINAL) {
                     ped->Say(CTX_GLOBAL_MUGGING);
                 }
                 if (m_originalriver && !m_originalriver->IsPlayer()) {
@@ -90,7 +90,7 @@ CTask* CTaskComplexStealCar::CreateNextSubTask(CPed* ped) {
             return TASK_FINISHED;
         }
         case TASK_SIMPLE_SET_PED_AS_AUTO_DRIVER: {
-            if (ped->m_nPedType == PED_TYPE_CRIMINAL) {
+            if (ped->m_nPedType == PEDTYPE_CRIMINAL) {
                 ped->bWantedByPolice = true;
                 ped->m_pVehicle->vehicleFlags.bMadDriver = true;
             }

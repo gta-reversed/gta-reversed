@@ -123,7 +123,7 @@ bool CPlayerPed::Save() {
 }
 
 // 0x60D5B0
-CPlayerPed::CPlayerPed(int32 playerId, bool bGroupCreated) : CPed(PED_TYPE_PLAYER1) {
+CPlayerPed::CPlayerPed(int32 playerId, bool bGroupCreated) : CPed(PEDTYPE_PLAYER1) {
     m_pPlayerData = &CWorld::Players[playerId].m_PlayerData;
     m_pPlayerData->AllocateData();
 
@@ -200,10 +200,10 @@ void CPlayerPed::ReactivatePlayerPed(int32 playerId) {
 // 0x609560
 CPad* CPlayerPed::GetPadFromPlayer() const {
     switch (m_nPedType) {
-    case PED_TYPE_PLAYER1:
+    case PEDTYPE_PLAYER1:
         return CPad::GetPad(0);
 
-    case PED_TYPE_PLAYER2:
+    case PEDTYPE_PLAYER2:
         return CPad::GetPad(1);
     }
     assert(0); // shouldn't happen
@@ -409,7 +409,7 @@ float CPlayerPed::FindTargetPriority(CEntity* entity) {
         if (CPedGroups::AreInSameGroup(this, ped))
             return 0.05f;
 
-        if (ped->m_nPedType == PED_TYPE_GANG2)
+        if (ped->m_nPedType == PEDTYPE_GANG2)
             return 0.06f;
 
         if (ped->IsCreatedByMission())
@@ -860,7 +860,7 @@ CPed* CPlayerPed::FindPedToAttack() {
             continue;
         if (membership.IsMember(ped))
             continue;
-        if (ped->m_nPedType == PED_TYPE_GANG2)
+        if (ped->m_nPedType == PEDTYPE_GANG2)
             continue;
 
         CVector point = ped->GetPosition();
@@ -965,7 +965,7 @@ void CPlayerPed::SetupPlayerPed(int32 playerId) {
     playerInfo.m_pPed = ped;
 
     if (playerId == 1)
-        ped->m_nPedType = PED_TYPE_PLAYER2;
+        ped->m_nPedType = PEDTYPE_PLAYER2;
 
     ped->SetOrientation(0.0f, 0.0f, 0.0f);
     CWorld::Add(ped);

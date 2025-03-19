@@ -26,8 +26,8 @@ void CPedType::InjectHooks() {
 
 // 0x608E40
 void CPedType::Initialise() {
-    ms_apPedTypes = new CAcquaintance[PED_TYPE_COUNT]();
-    ms_apPedTypesOld = new CAcquaintance[PED_TYPE_COUNT](); // NOTSA
+    ms_apPedTypes = new CAcquaintance[PEDTYPE_COUNT]();
+    ms_apPedTypesOld = new CAcquaintance[PEDTYPE_COUNT](); // NOTSA
     LoadPedData();
 }
 
@@ -39,7 +39,7 @@ void CPedType::Shutdown() {
 
 // 0x608B30
 void CPedType::LoadPedData() {
-    ePedType pedType = PED_TYPE_MISSION8;
+    ePedType pedType = PEDTYPE_MISSION8;
     auto file = CFileMgr::OpenFile("DATA\\PED.DAT", "r");
     for (char* line = CFileLoader::LoadLine(file); line; line = CFileLoader::LoadLine(file)) {
         if (*line == '#' || !*line)
@@ -85,7 +85,7 @@ void CPedType::LoadPedData() {
 
 // 0x5D3D10
 void CPedType::Load() {
-    for (uint32 i = 0; i < PED_TYPE_COUNT; ++i ) {
+    for (uint32 i = 0; i < PEDTYPE_COUNT; ++i ) {
         for (auto id = 0; id < ACQUAINTANCE_NUM; ++id) {
             auto value = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
             GetPedTypeAcquaintances(static_cast<ePedType>(i)).SetAcquaintances(id, value);
@@ -95,7 +95,7 @@ void CPedType::Load() {
 
 // 0x5D3CD0
 void CPedType::Save() {
-    for (uint32 i = 0; i < PED_TYPE_COUNT; ++i ) {
+    for (uint32 i = 0; i < PEDTYPE_COUNT; ++i ) {
         for (auto id = 0; id < ACQUAINTANCE_NUM; ++id) {
             uint32 value = GetPedTypeAcquaintances(static_cast<ePedType>(i)).GetAcquaintances(id);
             CGenericGameStorage::SaveDataToWorkBuffer(value);
@@ -105,7 +105,7 @@ void CPedType::Save() {
 
 // 0x608790
 ePedType CPedType::FindPedType(const char* pedTypeName) {
-    for (int16 pedType = 0; pedType < PED_TYPE_COUNT; pedType++) {
+    for (int16 pedType = 0; pedType < PEDTYPE_COUNT; pedType++) {
         if (strcmp(pedTypeName, aPedTypeNames[pedType]) != 0)
             continue;
 
@@ -113,11 +113,11 @@ ePedType CPedType::FindPedType(const char* pedTypeName) {
     }
 
     if (strcmp(pedTypeName, "PLAYER_NETWORK") == 0) {
-        return PED_TYPE_PLAYER_NETWORK;
+        return PEDTYPE_PLAYER_NETWORK;
     } else if (strcmp(pedTypeName, "PLAYER_UNUSED") == 0) {
-        return PED_TYPE_PLAYER_UNUSED;
+        return PEDTYPE_PLAYER_UNUSED;
     } else {
-        return PED_TYPE_MISSION8;
+        return PEDTYPE_MISSION8;
     }
 }
 
@@ -158,5 +158,5 @@ void CPedType::ClearPedTypeAsAcquaintance(AcquaintanceId id, ePedType pedType, i
 
 // 0x608A40
 bool CPedType::PoliceDontCareAboutCrimesAgainstPedType(ePedType pedType) {
-    return pedType >= PED_TYPE_GANG1 && pedType <= PED_TYPE_GANG10 || pedType == PED_TYPE_CRIMINAL || pedType == PED_TYPE_DEALER;
+    return pedType >= PEDTYPE_GANG1 && pedType <= PEDTYPE_GANG10 || pedType == PEDTYPE_CRIMINAL || pedType == PEDTYPE_DEALER;
 }

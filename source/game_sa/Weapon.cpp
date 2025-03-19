@@ -690,7 +690,7 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
             const auto victimPed = victim->AsPed();
             if (   !firedByPed
                 || firedByPed->m_nPedType != victimPed->m_nPedType
-                || notsa::contains({ PED_TYPE_CIVMALE, PED_TYPE_CIVFEMALE }, victimPed->m_nPedType)
+                || notsa::contains({ PEDTYPE_CIVMALE, PEDTYPE_CIVFEMALE }, victimPed->m_nPedType)
                 || firedByPlayer
             ) {
                 const auto bAddBloodFx = [&]{
@@ -1633,8 +1633,8 @@ bool CWeapon::FireM16_1stPerson(CPed* owner) {
         }
 
         // Move the camera around a little
-        cam->m_fHorizontalAngle += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
-        cam->m_fVerticalAngle += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
+        cam->m_fBeta += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
+        cam->m_fAlpha += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
 
         // Do pad shaking
         const auto shakeFreq = (uint8)lerp(130.f, 210.f, std::clamp((20.f - (wi->m_fAnimLoopEnd - wi->m_fAnimLoopStart) * 900.f) / 80.f, 0.f, 1.f));
@@ -1742,7 +1742,7 @@ bool CWeapon::Fire(CEntity* firedBy, CVector* startPosn, CVector* barrelPosn, CE
         case WEAPON_COUNTRYRIFLE:
         case WEAPON_MINIGUN: { // 0x7424FE
             if (   firedByPed
-                && firedByPed->m_nPedType == PED_TYPE_PLAYER1
+                && firedByPed->m_nPedType == PEDTYPE_PLAYER1
                 && notsa::contains({ MODE_M16_1STPERSON, MODE_HELICANNON_1STPERSON }, (eCamMode)TheCamera.m_PlayerWeaponMode.m_nMode)
             ) {
                 return { FireM16_1stPerson(firedByPed), true };
@@ -1775,7 +1775,7 @@ bool CWeapon::Fire(CEntity* firedBy, CVector* startPosn, CVector* barrelPosn, CE
                 true
             };
         case WEAPON_SNIPERRIFLE: { // 0x7424AC
-            if (firedByPed && firedByPed->m_nPedType == PED_TYPE_PLAYER1 && TheCamera.m_PlayerWeaponMode.m_nMode == MODE_SNIPER) {
+            if (firedByPed && firedByPed->m_nPedType == PEDTYPE_PLAYER1 && TheCamera.m_PlayerWeaponMode.m_nMode == MODE_SNIPER) {
                 return {
                     FireSniper(firedByPed, targetEnt, targetPosn),
                     true

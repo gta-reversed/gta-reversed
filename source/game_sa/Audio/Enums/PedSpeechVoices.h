@@ -1,7 +1,7 @@
 #pragma once
 
 /*!
- * @brief Generic voices (For `PED_TYPE_GEN`)
+ * @brief Generic voices (For `PEDTYPE_GEN`)
  */
 enum eGenSpeechVoices : int16 {
     VOICE_GEN_BBDYG1  = 0,   // 0x0
@@ -217,7 +217,7 @@ enum eGenSpeechVoices : int16 {
 };
 
 /*!
- * @brief Emergency voices (For `PED_TYPE_EMG`)
+ * @brief Emergency voices (For `PEDTYPE_EMG`)
  */
 enum eEmgSpeechVoices : int16 {
     VOICE_EMG_ARMY1   = 0,  // 0x0
@@ -270,7 +270,7 @@ enum eEmgSpeechVoices : int16 {
 };
 
 /*!
- * @brief Player voices (For `PED_TYPE_PLAYER`)
+ * @brief Player voices (For `PEDTYPE_PLAYER`)
  */
 enum ePlySpeechVoices : int16 {
     VOICE_PLY_AG  = 0,  // 0x0
@@ -307,7 +307,7 @@ enum ePlySpeechVoices : int16 {
 };
 
 /*!
- * @brief Gang voices (For `PED_TYPE_GANG`)
+ * @brief Gang voices (For `PEDTYPE_GANG`)
  */
 enum eGngSpeechVoices : int16 {
     VOICE_GNG_BALLAS1  = 0,  // 0x0
@@ -366,7 +366,7 @@ enum eGngSpeechVoices : int16 {
 };
 
 /*!
- * @brief Girlfriend voices (For `PED_TYPE_GFD`)
+ * @brief Girlfriend voices (For `PEDTYPE_GFD`)
  */
 enum eGfdSpeechVoices : int16 {
     VOICE_GFD_BARBARA  = 0,  // 0x0

@@ -293,7 +293,7 @@ void CCarGenerator::DoInternalProcessing()
                     vehicle->m_nStatus = eEntityStatus::STATUS_PHYSICS;
                     vehicle->vehicleFlags.bNeverUseSmallerRemovalRange = true;
                     bWaitUntilFarFromPlayer = true;
-                    tractorDriverPedType = PED_TYPE_CIVMALE;
+                    tractorDriverPedType = PEDTYPE_CIVMALE;
                 }
             }
         }
@@ -305,7 +305,7 @@ void CCarGenerator::DoInternalProcessing()
 
     if (actualModelId == MODEL_HOTDOG && m_nModelId == MODEL_HOTDOG && CStreaming::GetInfo(MODEL_BMOCHIL).IsLoaded())
     {
-        CPed* ped = CPopulation::AddPed(PED_TYPE_CIVMALE, MODEL_BMOCHIL, vehicle->GetPosition() - vehicle->GetRight() * 3.0f, false);
+        CPed* ped = CPopulation::AddPed(PEDTYPE_CIVMALE, MODEL_BMOCHIL, vehicle->GetPosition() - vehicle->GetRight() * 3.0f, false);
         if (ped)
         {
             if (!m_bHotdogVendorPositionOffsetInitialized)

@@ -173,7 +173,7 @@ bool CPools::LoadPedPool() {
         const auto pedType = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
 
         CPlayerPed* playerPed = nullptr;
-        if (pedType == PED_TYPE_PLAYER1) {
+        if (pedType == PEDTYPE_PLAYER1) {
             playerPed = new(poolRef) CPlayerPed(0, false);
             playerPed->SetWeaponAccuracy(100);
             CWorld::Players[0].m_pPed = playerPed;

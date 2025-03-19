@@ -18,8 +18,8 @@ bool&  CCamera::bDidWeProcessAnyCinemaCam = *reinterpret_cast<bool*>(0xB6EC2D);
 CCamera&  TheCamera                      = *reinterpret_cast<CCamera*>(0xB6F028);
 bool&     gbModelViewer                  = *reinterpret_cast<bool*>(0xBA6728);
 int8&     gbCineyCamMessageDisplayed     = *(int8*)0x8CC381;     // 2
-int32&    gCameraDirection               = *(int32*)0x8CC384;    // 3
-eCamMode& gCameraMode                    = *(eCamMode*)0x8CC388; // -1
+int32&    gDirectionIsLooking               = *(int32*)0x8CC384;    // 3
+eCamMode& gLastCamMode                    = *(eCamMode*)0x8CC388; // -1
 uint32&   gLastTime2PlayerCameraWasOK    = *(uint32*)0xB6EC24;   // 0
 uint32&   gLastTime2PlayerCameraCollided = *(uint32*)0xB6EC28;   // 0
 bool&     gPlayerPedVisible              = *(bool*)0x8CC380;     // true
@@ -252,25 +252,23 @@ void CCamera::Init() {
 
 // 0x50A3B0
 void CCamera::InitCameraVehicleTweaks() {
-    m_fCurrentTweakDistance   = 1.0f;
-    m_fCurrentTweakAltitude   = 1.0f;
-    m_fCurrentTweakAngle      = 0.0f;
-    m_nCurrentTweakModelIndex = -1;
+    m_VehicleTweakLenMod      = 1.0f;
+    m_VehicleTweakTargetZMod  = 1.0f;
+    m_VehicleTweakPitchMod    = 0.0f;
+    m_VehicleTweakLastModelId = -1;
 
-    if (!m_bCameraVehicleTweaksInitialized) {
-        for (auto& camTweak : m_aCamTweak) {
+    if (!m_bInitedVehicleCamTweaks) {
+        for (auto& camTweak : m_VehicleTweaks) {
             camTweak.m_nModelIndex = -1;
             camTweak.m_fDistance   = 1.0f;
             camTweak.m_fAltitude   = 1.0f;
             camTweak.m_fAngle      = 0.0f;
         }
-
-        m_aCamTweak[0].m_nModelIndex = MODEL_RCGOBLIN;
-        m_aCamTweak[0].m_fDistance   = 1.0f;
-        m_aCamTweak[0].m_fAltitude   = 1.0f;
-        m_aCamTweak[0].m_fAngle      = 0.178997f; // todo: magic number
-
-        m_bCameraVehicleTweaksInitialized = true;
+        m_VehicleTweaks[0].m_nModelIndex = MODEL_RCGOBLIN;
+        m_VehicleTweaks[0].m_fDistance   = 1.0f;
+        m_VehicleTweaks[0].m_fAltitude   = 1.0f;
+        m_VehicleTweaks[0].m_fAngle      = 0.178997f; // todo: magic number
+        m_bInitedVehicleCamTweaks = true;
     }
 }
 
@@ -314,16 +312,16 @@ void CCamera::InitialiseCameraForDebugMode() {
 
 // 0x50A480
 void CCamera::ApplyVehicleCameraTweaks(CVehicle* vehicle) {
-    if (vehicle->m_nModelIndex == m_nCurrentTweakModelIndex) {
+    if (vehicle->m_nModelIndex == m_VehicleTweakLastModelId) {
         return;
     }
 
     InitCameraVehicleTweaks();
-    for (auto& camTweak : m_aCamTweak) {
+    for (auto& camTweak : m_VehicleTweaks) {
         if (camTweak.m_nModelIndex == (int32)vehicle->m_nModelIndex) { // todo: vehicle->m_nModelIndex -> int16?
-            m_fCurrentTweakDistance = camTweak.m_fDistance;
-            m_fCurrentTweakAltitude = camTweak.m_fAltitude;
-            m_fCurrentTweakAngle    = camTweak.m_fAngle;
+            m_VehicleTweakLenMod = camTweak.m_fDistance;
+            m_VehicleTweakTargetZMod = camTweak.m_fAltitude;
+            m_VehicleTweakPitchMod = camTweak.m_fAngle;
             return;
         }
     }
@@ -593,7 +591,7 @@ float CCamera::Find3rdPersonQuickAimPitch() const {
     // https://mathworld.wolfram.com/images/eps-svg/SOHCAHTOA_500.svg
     const auto adjacent = (0.5f - m_f3rdPersonCHairMultY) * 2.f;
     const auto opposite = std::tan(DegreesToRadians(cam.m_fFOV / 2.0f)) * adjacent;
-    const auto relAngle = cam.m_fVerticalAngle - std::atan(opposite / CDraw::ms_fAspectRatio);
+    const auto relAngle = cam.m_fAlpha - std::atan(opposite / CDraw::ms_fAspectRatio);
     return -relAngle; // Flip it
 }
 
@@ -1352,9 +1350,9 @@ void CCamera::SetColVarsAimWeapon(int32 aimingType) {
 void CCamera::SetColVarsPed(ePedType pedType, int32 nCamPedZoom) {
     const int32 camColVars = [=] {
         switch (pedType) {
-        case PED_TYPE_PLAYER1:
+        case PEDTYPE_PLAYER1:
             return nCamPedZoom + 3;
-        case PED_TYPE_PLAYER2:
+        case PEDTYPE_PLAYER2:
             return nCamPedZoom + 6;
         default:
             return 0;
@@ -1410,8 +1408,8 @@ void CCamera::CameraVehicleModeSpecialCases(CVehicle* vehicle) {
     CCollision::bCamCollideWithPeds           = slow;
     CCollision::bCamCollideWithObjects        = slow;
 
-    if (vehicle->m_pTrailer) {
-        m_pExtraEntity[m_nExtraEntitiesCount++] = vehicle->m_pTrailer;
+    if (vehicle->m_pVehicleBeingTowed) {
+        m_pExtraEntity[m_nExtraEntitiesCount++] = vehicle->m_pVehicleBeingTowed;
     }
 }
 
@@ -2059,7 +2057,7 @@ void CCamera::StartTransition(eCamMode newCamMode) {
         break;
     case MODE_FOLLOWPED: {
         if (m_bJustCameOutOfGarage) {
-            activeCam.m_fHorizontalAngle = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y) + PI;
+            activeCam.m_fBeta = CGeneral::GetATanOfXY(activeCam.m_vecFront.x, activeCam.m_vecFront.y) + PI;
             activeCam.m_fTransitionBeta  = 0.0f;
         }
 
@@ -2086,8 +2084,8 @@ void CCamera::StartTransition(eCamMode newCamMode) {
     case MODE_ROCKETLAUNCHER_RUNABOUT_HS: {
         CEntity* vehicle             = FindPlayerVehicle();
         CMatrix* playerMat           = vehicle ? &vehicle->GetMatrix() : &FindPlayerPed()->GetMatrix();
-        activeCam.m_fHorizontalAngle = CGeneral::GetATanOfXY(playerMat->GetForward().x, playerMat->GetForward().y);
-        activeCam.m_fVerticalAngle   = 0.0f;
+        activeCam.m_fBeta = CGeneral::GetATanOfXY(playerMat->GetForward().x, playerMat->GetForward().y);
+        activeCam.m_fAlpha   = 0.0f;
         break;
     }
     case MODE_CAM_ON_A_STRING: {
@@ -2105,12 +2103,12 @@ void CCamera::StartTransition(eCamMode newCamMode) {
         break;
     }
     case MODE_PED_DEAD_BABY:
-        activeCam.m_fVerticalAngle = DegreesToRadians(15.0f);
+        activeCam.m_fAlpha = DegreesToRadians(15.0f);
         break;
     }
 
     // Backup horizontal angle before Init.
-    const float horizAngle = activeCam.m_fHorizontalAngle;
+    const float horizAngle = activeCam.m_fBeta;
 
     int targetCoorsDuration = 600; // Like android version instead bool.
     m_nTransitionDuration   = 1'350;
@@ -2122,7 +2120,7 @@ void CCamera::StartTransition(eCamMode newCamMode) {
     } else {
         activeCam.Init();
         activeCam.m_nMode            = newCamMode;
-        activeCam.m_fHorizontalAngle = horizAngle;
+        activeCam.m_fBeta = horizAngle;
     }
 
     [&]() -> const void {

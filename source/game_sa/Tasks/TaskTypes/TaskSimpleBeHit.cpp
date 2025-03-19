@@ -183,7 +183,7 @@ bool CTaskSimpleBeHit::ProcessPed(CPed* ped) {
 
     if (   !m_Attacker
         || !m_Attacker->IsPlayer()
-        || m_Attacker->m_nPedType != PED_TYPE_GANG2
+        || m_Attacker->m_nPedType != PEDTYPE_GANG2
         || (ped->DisablePedSpeech(true), ped->EnablePedSpeech(), ped->Say(CTX_GLOBAL_ATTACK_BY_PLAYER_LIKE, 1000) < 0)
     ) {
         ped->Say(CTX_GLOBAL_PAIN_LOW);

@@ -667,7 +667,7 @@ void CPickups::Update() {
         CollectPickupBuffer = 0;
     }
 
-    const auto player1 = FindPlayerPed(PED_TYPE_PLAYER1);
+    const auto player1 = FindPlayerPed(PEDTYPE_PLAYER1);
     const auto p1Busy = player1->GetIntelligence()->FindTaskByType(TASK_COMPLEX_ENTER_CAR_AS_DRIVER) || player1->GetIntelligence()->FindTaskByType(TASK_COMPLEX_USE_MOBILE_PHONE);
 
     start = 620 * (CTimer::GetFrameCounter() % 6) / 6;
@@ -682,8 +682,8 @@ void CPickups::Update() {
             if (pickup.Update(FindPlayerPed(), FindPlayerVehicle(), CWorld::PlayerInFocus)) {
                 AddToCollectedPickupsArray(i);
             }
-        } else if (FindPlayerPed(PED_TYPE_PLAYER2)) {
-            if (pickup.Update(FindPlayerPed(1), FindPlayerVehicle(1), PED_TYPE_PLAYER2)) {
+        } else if (FindPlayerPed(PEDTYPE_PLAYER2)) {
+            if (pickup.Update(FindPlayerPed(1), FindPlayerVehicle(1), PEDTYPE_PLAYER2)) {
                 AddToCollectedPickupsArray(i);
             }
         }
