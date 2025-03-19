@@ -105,7 +105,7 @@ CPedTaskPair* CPedGroupIntelligence::GetPedsTaskPair(CPed* ped, PedTaskPairs& ta
             return &tp;
         }
     }
-    return nullptr;   
+    return nullptr;
 }
 
 // 0x5F85A0
