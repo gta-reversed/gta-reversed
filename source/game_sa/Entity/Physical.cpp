@@ -2659,9 +2659,9 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
             fEntityMassFactor = 10.0f;
         }
     }
-    else if (IsVehicle() && thisVehicle->m_pTrailer)
+    else if (IsVehicle() && thisVehicle->m_pVehicleBeingTowed)
     {
-        fEntityMassFactor = (thisVehicle->m_pTrailer->m_fMass + m_fMass) / m_fMass;
+        fEntityMassFactor = (thisVehicle->m_pVehicleBeingTowed->m_fMass + m_fMass) / m_fMass;
     }
     else
     {

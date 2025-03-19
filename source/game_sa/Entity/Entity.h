@@ -195,8 +195,7 @@ public:
     // Always returns a non-null value. In case there's no LOD object `this` is returned. NOTSA
     CEntity* FindLastLOD() noexcept;
 
-    // NOTSA
-    auto GetModelId() const { return (eModelID)m_nModelIndex; }
+    auto GetModelndex() const { return (eModelID)m_nModelIndex; }
     CBaseModelInfo* GetModelInfo() const;
     CCollisionData* GetColData() { return GetColModel()->m_pColData; }
 

@@ -202,7 +202,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(UsesSiren, 0x6D8470);
     RH_ScopedInstall(IsSphereTouchingVehicle, 0x6D84D0);
     // RH_ScopedInstall(FlyingControl, 0x6D85F0);
-    RH_ScopedInstall(BladeColSectorList, 0x6DAF00, {.reversed = false});
+    RH_ScopedInstall(BladeColSectorList, 0x6DAF00);
     RH_ScopedInstall(SetComponentRotation, 0x6DBA30);
     RH_ScopedInstall(SetTransmissionRotation, 0x6DBBB0);
     RH_ScopedInstall(DoBoatSplashes, 0x6DD130);
@@ -324,8 +324,8 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     m_nRandomIdRelatedToSiren = 0;
     m_nCarHornTimer = 0;
     field_4EC = 0;
-    m_pTractor = nullptr;
-    m_pTrailer = nullptr;
+    m_pTowingVehicle = nullptr;
+    m_pVehicleBeingTowed = nullptr;
     m_nTimeTillWeNeedThisCar = 0;
     m_nAlarmState = 0;
     m_nDoorLock = eCarLock::CARLOCK_UNLOCKED;
@@ -616,7 +616,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
         return;
     }
 
-    if (colPhysical == m_pTractor || colPhysical == m_pTrailer) {
+    if (colPhysical == m_pTowingVehicle || colPhysical == m_pVehicleBeingTowed) {
         bThisOrCollidedEntityStuck = true;
         physicalFlags.bSkipLineCol = true;
         return;
@@ -1659,7 +1659,7 @@ bool CVehicle::IsPedOfModelInside(eModelID model) const {
 }
 
 bool CVehicle::IsDriver(CPed* ped) const {
-    return ped ? ped == m_pDriver : false;
+    return ped && ped == m_pDriver;
 }
 
 bool CVehicle::IsDriver(int32 modelIndex) const {
@@ -3993,7 +3993,6 @@ bool CVehicle::BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, 
             m_fElasticity = prevElasticity;
         }
     }
-    */
 
     return false;
 }
@@ -4230,7 +4229,7 @@ void CVehicle::ProcessBoatControl(tBoatHandlingData* boatHandling, float* fLastW
                     }
 
                     //This code does nothing
-                    /*if (m_fGasPedal > 0.0F && m_nStatus == eEntityStatus::STATUS_PLAYER) {
+                    /*if (m_fGasPedal > 0.0F && GetStatus() == eEntityStatus::STATUS_PLAYER) {
                         const auto& vecBoundMin = GetColModel()->m_boundBox.m_vecMin;
                         CVector vecUnkn = CVector(0.0F, vecBoundingMin.y, 0.0F);
                         CVector vecUnknTransformed;
@@ -5011,7 +5010,7 @@ bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, f
     s_TestBladeColData.m_nNumSpheres = 0;
     s_TestBladeCol.m_pColData = nullptr;
 
-    return collided;*/
+    return collided;
 }
 
 // 0x6E3290

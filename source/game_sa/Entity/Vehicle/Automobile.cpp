@@ -363,7 +363,7 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     rng::fill(m_fWheelsSuspensionCompression, 1.f);
     rng::fill(m_fWheelsSuspensionCompressionPrev, 1.f);
 
-    m_nNumContactWheels     = 0;
+    m_nNoOfContactWheels     = 0;
     m_nWheelsOnGround       = 0;
     m_wheelsOnGrounPrev     = 0;
     m_fHeightAboveRoad = 0.0f;
@@ -554,7 +554,7 @@ void CAutomobile::ProcessControl()
 
         if (IsRealHeli()
             && m_wheelSpeed[CAR_WHEEL_REAR_LEFT] > 0.0f || IsAmphibiousHeli()
-            && !m_nNumContactWheels
+            && !m_nNoOfContactWheels
             && m_fDamageIntensity <= 0.0f
             || m_nModelIndex == MODEL_VORTEX
             || CCheat::IsActive(CHEAT_CARS_ON_WATER)
@@ -747,7 +747,7 @@ void CAutomobile::ProcessControl()
         float brake = m_pHandlingData->m_fBrakeDeceleration * m_fBreakPedal * CTimer::GetTimeStep();
 
         m_wheelsOnGrounPrev = m_nWheelsOnGround;
-        m_nNumContactWheels = 0;
+        m_nNoOfContactWheels = 0;
         m_nWheelsOnGround = 0;
 
         for (int32 i = 0; i < 4; i++) {
@@ -760,7 +760,7 @@ void CAutomobile::ProcessControl()
                 m_aWheelTimer[i] = 4.0f;
             }
 
-            m_nNumContactWheels++;
+            m_nNoOfContactWheels++;
 
             switch (m_pHandlingData->GetTransmission().m_nDriveType)
             {
@@ -1036,17 +1036,17 @@ void CAutomobile::ProcessControl()
         }
     }
 
-    if (m_pTractor) {
+    if (m_pTowingVehicle) {
         if (m_nStatus == STATUS_IS_TOWED) {
             bool updateTractorLink = false; // TODO: rename this variable later
-            if (m_pTractor->m_vecMoveSpeed != 0.0f || m_vecMoveSpeed.SquaredMagnitude() > 0.01f) {
+            if (m_pTowingVehicle->m_vecMoveSpeed != 0.0f || m_vecMoveSpeed.SquaredMagnitude() > 0.01f) {
                 updateTractorLink = true;
-                m_pTractor->UpdateTractorLink(false, false);
+                m_pTowingVehicle->UpdateTractorLink(false, false);
             }
             CVehicle::UpdateTrailerLink(false, false);
-            if (m_pTractor && m_nStatus == STATUS_IS_TOWED) {
+            if (m_pTowingVehicle && m_nStatus == STATUS_IS_TOWED) {
                 if (updateTractorLink)
-                    m_pTractor->UpdateTractorLink(false, true);
+                    m_pTowingVehicle->UpdateTractorLink(false, true);
                 UpdateTrailerLink(false, true);
             }
         }
@@ -1054,15 +1054,15 @@ void CAutomobile::ProcessControl()
             BreakTowLink();
         }
     }
-    else if (m_pTrailer) {
-        if (m_pTrailer->m_nStatus == STATUS_IS_TOWED) {
-            if (m_pTrailer->m_pTractor == this) {
+    else if (m_pVehicleBeingTowed) {
+        if (m_pVehicleBeingTowed->m_nStatus == STATUS_IS_TOWED) {
+            if (m_pVehicleBeingTowed->m_pTowingVehicle == this) {
                 RemoveFromMovingList();
                 AddToMovingList();
             }
         }
         else {
-            CEntity::ClearReference(m_pTrailer);
+            CEntity::ClearReference(m_pVehicleBeingTowed);
         }
     }
 
@@ -1086,7 +1086,7 @@ void CAutomobile::ProcessControl()
                 if (((float)m_wMiscComponentAngle == 0.0f || m_wMiscComponentAngle == m_wMiscComponentAnglePrev)
                     && !physicalFlags.bSubmergedInWater)
                 {
-                    if ((!m_pTractor || m_pTractor->m_vecMoveSpeed == 0.0f) && DidAnyWheelTouchGroundPrev()) {
+                    if ((!m_pTowingVehicle || m_pTowingVehicle->m_vecMoveSpeed == 0.0f) && DidAnyWheelTouchGroundPrev()) {
                         if (m_nModelIndex == MODEL_VORTEX || CCheat::IsActive(CHEAT_CARS_ON_WATER)
                             && DidAnyWheelTouchShallowWaterGroundPrev())
                         {
@@ -1263,7 +1263,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         CCarAI::UpdateCarAI(this);
         CPhysical::ProcessControl();
         CCarCtrl::UpdateCarOnRails(this);
-        m_nNumContactWheels = 4;
+        m_nNoOfContactWheels = 4;
         m_wheelsOnGrounPrev = m_nWheelsOnGround;
         m_nWheelsOnGround = 4;
         float speed = m_autoPilot.m_speed / 50.0f;
@@ -1385,7 +1385,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         m_fBreakPedal = 0.0f;
         m_fSteerAngle = 0.0f;
         m_fGasPedal = 0.0f;
-        if (!m_pTractor)
+        if (!m_pTowingVehicle)
             BreakTowLink();
         return false;
     }
@@ -1444,7 +1444,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         }
     }
 
-    if (!pad || m_nNumContactWheels != 0 || IsSubHeli() || IsSubPlane()) {
+    if (!pad || m_nNoOfContactWheels != 0 || IsSubHeli() || IsSubPlane()) {
         DoSoftGroundResistance(extraHandlingFlags);
         return false;
     }
@@ -1747,7 +1747,7 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
     // The original code handled this properly, because `ProcessColModels` returned `0` 
     // if either colmodel's data was missing
     // but there's a lot of no-op stuff done below that we can just avoid altogether
-    // Though, in the original code there was an edge case if `m_pTractor == entity || m_pTrailer == entity` => crash
+    // Though, in the original code there was an edge case if `m_pTowingVehicle == entity || m_pVehicleBeingTowed == entity` => crash
     // but since I moved the assignment to the outside of the function now it always crashes xD
     if (!tcd || !ocd) {
         return 0;
@@ -1790,7 +1790,7 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
     }
 
     // Hide triangles in some cases
-    const auto didHideTriangles = m_pTractor == entity || m_pTrailer == entity;
+    const auto didHideTriangles = m_pTowingVehicle == entity || m_pVehicleBeingTowed == entity;
     const auto tNumTri = tcd->m_nNumTriangles, // Saving my sanity here, and unconditionally assigning
                oNumTri = ocd->m_nNumTriangles;
     if (didHideTriangles) {
@@ -2392,8 +2392,8 @@ void CAutomobile::BlowUpCar_Impl(CEntity* dmgr, bool bDontShakeCam, bool bDontSp
     m_damageManager.FuckCarCompletely(false);
 
     const auto isRcShit = (bFixBugs || !bIsForCutScene)
-        ? notsa::contains({ MODEL_RCTIGER, MODEL_RCBANDIT }, GetModelId()) // I'm 99% sure they forgot to copy paste this too, but let it be.
-        : GetModelId() == MODEL_RCBANDIT;
+        ? notsa::contains({ MODEL_RCTIGER, MODEL_RCBANDIT }, GetModelndex()) // I'm 99% sure they forgot to copy paste this too, but let it be.
+        : GetModelndex() == MODEL_RCBANDIT;
     if (!isRcShit) { // 0x6B3C61
         for (auto bumper : { FRONT_BUMPER, REAR_BUMPER }) {
             SetBumperDamage(bumper, bDontSpawnStuff);
@@ -2849,7 +2849,7 @@ float CAutomobile::GetHeightAboveRoad() {
 
 // 0x6A62A0
 int32 CAutomobile::GetNumContactWheels() {
-    return m_nNumContactWheels;
+    return m_nNoOfContactWheels;
 }
 
 // 0x6A7650
@@ -2978,7 +2978,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
     }
 
     // 0x6A7984
-    if (damager && (damager == m_pTractor || damager == m_pTrailer)) {
+    if (damager && (damager == m_pTowingVehicle || damager == m_pVehicleBeingTowed)) {
         return;
     }
 
@@ -3357,7 +3357,7 @@ bool CAutomobile::SetTowLink(CVehicle* tractor, bool placeMeOnRoadProperly) {
         return false;
     }
 
-    if (m_pTractor) {
+    if (m_pTowingVehicle) {
         return false;
     }
 
@@ -3376,11 +3376,11 @@ bool CAutomobile::SetTowLink(CVehicle* tractor, bool placeMeOnRoadProperly) {
 
     m_nStatus = STATUS_IS_TOWED;
 
-    m_pTractor = tractor;
-    tractor->RegisterReference(m_pTractor);
+    m_pTowingVehicle = tractor;
+    tractor->RegisterReference(m_pTowingVehicle);
 
-    m_pTractor->m_pTrailer = this;
-    RegisterReference(m_pTractor->m_pTrailer);
+    m_pTowingVehicle->m_pVehicleBeingTowed = this;
+    RegisterReference(m_pTowingVehicle->m_pVehicleBeingTowed);
 
     for (auto&& entity : { AsVehicle(), tractor }) {
         entity->RemoveFromMovingList();
@@ -3413,9 +3413,9 @@ bool CAutomobile::SetTowLink(CVehicle* tractor, bool placeMeOnRoadProperly) {
 
 // 0x6A4400
 bool CAutomobile::BreakTowLink() {
-    if (m_pTractor) {
-        CEntity::ClearReference(m_pTractor->m_pTrailer);
-        CEntity::ClearReference(m_pTractor);
+    if (m_pTowingVehicle) {
+        CEntity::ClearReference(m_pTowingVehicle->m_pVehicleBeingTowed);
+        CEntity::ClearReference(m_pTowingVehicle);
     }
 
     switch (m_nStatus) {
@@ -4478,7 +4478,7 @@ void CAutomobile::TowTruckControl() {
             // up
             if (carUpDown > 0) {
                 m_wMiscComponentAngle = std::max(
-                    m_pTrailer ? TOWTRUCK_HOIST_UP_LIMIT : 0,
+                    m_pVehicleBeingTowed ? TOWTRUCK_HOIST_UP_LIMIT : 0,
                     m_wMiscComponentAngle - step
                 );
             } else if (m_wMiscComponentAngle < TOWTRUCK_HOIST_DOWN_LIMIT) { // down
@@ -4492,7 +4492,7 @@ void CAutomobile::TowTruckControl() {
     }
 
     // Attach a suitable plyrveh in range if we don't already have a trailer
-    if (m_wMiscComponentAngle != TOWTRUCK_HOIST_DOWN_LIMIT || m_pTrailer)
+    if (m_wMiscComponentAngle != TOWTRUCK_HOIST_DOWN_LIMIT || m_pVehicleBeingTowed)
         return;
 
     CVector towBarPos{};
@@ -4687,14 +4687,14 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
             }
             tWheelState wheelState = m_aWheelState[leftWheel];
             if (m_damageManager.GetWheelStatus(leftWheel) == WHEEL_STATUS_BURST) {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * m_damageManager.m_fWheelDamageEffect * tractionBias,
                     leftWheel, &m_fWheelBurnoutSpeed[leftWheel], &wheelState, WHEEL_STATUS_BURST);
             }
             else {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * tractionBias,
@@ -4737,7 +4737,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
             }
             tWheelState wheelState = m_aWheelState[rightWheel];
             if (m_damageManager.GetWheelStatus(rightWheel) == WHEEL_STATUS_BURST) {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * m_damageManager.m_fWheelDamageEffect * tractionBias,
@@ -4745,7 +4745,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                );
             }
             else {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * tractionBias,
@@ -4955,7 +4955,7 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
                     MODEL_RCGOBLIN,
                     MODEL_RCBANDIT,
                     MODEL_RCTIGER
-                }, GetModelId());
+                }, GetModelndex());
 
                 m_fBurnTimer += m_fireParticleCounter || isRcShit
                     ? floorTsMS
@@ -5835,105 +5835,66 @@ void CAutomobile::BlowUpCarsInPath() {
 
 // 0x6AF420
 void CAutomobile::PlaceOnRoadProperly() {
-    CVector             frontPosition, rearPosition;
-    CColPoint           colPoint;
-    bool                hasFoundHeight;
-    float               foundHeight;
-    CCollisionData*     colData = GetColModel()->m_pColData;
-
-    // Create a lambda to get position from colPoint without using its GetPosition method directly
-    auto getColPointPosition = [](const CColPoint& colP) -> const CVector& {
-        return colP.m_vecPoint;
-    };
-
-    float frontCarLength = colData->m_pLines[0].m_vecStart.y;
-    float rearCarLength  = colData->m_pLines[3].m_vecStart.y;
-
-    CVector forwardVector = GetMatrix().GetForward();
-
-    rearPosition.x = GetPosition().x - (forwardVector.x * rearCarLength);
-    rearPosition.y = GetPosition().y - (forwardVector.y * rearCarLength);
-
-    frontPosition.x = GetPosition().x + (forwardVector.x * frontCarLength);
-    frontPosition.y = GetPosition().y + (forwardVector.y * frontCarLength);
-
-    frontPosition.z = GetPosition().z;
-    hasFoundHeight = false;
-
+    CColPoint colPoint;
     CEntity* hitEntity;
-    if (CWorld::ProcessVerticalLine(frontPosition, frontPosition.z + 5.0f, colPoint, hitEntity, true, false, false, false, false, false, nullptr)) {
-        hasFoundHeight = true;
-        foundHeight = getColPointPosition(colPoint).z;
+    CColModel* colModel = GetColModel();
+    float frontCarLength, rearCarLength;
+    float frontZ, rearZ;
+
+    frontCarLength = colModel->m_boundBox.m_vecMax.y;
+    rearCarLength = -colModel->m_boundBox.m_vecMin.y;
+
+    CVector frontPosition(GetPosition().x + GetForward().x*frontCarLength,
+                          GetPosition().y + GetForward().y*frontCarLength,
+                          GetPosition().z + 5.0f);
+    
+    if(CWorld::ProcessVerticalLine(frontPosition, GetPosition().z - 5.0f, colPoint, hitEntity,
+            true, false, false, false, false, false, nullptr)) {
+        frontZ = colPoint.m_vecPoint.z;
         pEntityWeAreOnForVisibilityCheck = hitEntity;
         m_bTunnel = hitEntity->m_bTunnel;
         m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-    }
-    if (CWorld::ProcessVerticalLine(frontPosition, frontPosition.z - 5.0f, colPoint, hitEntity, true, false, false, false, false, false, nullptr)) {
-        if (hasFoundHeight) {
-            if (std::abs(frontPosition.z - foundHeight) > std::abs(frontPosition.z - getColPointPosition(colPoint).z)) {
-                foundHeight = getColPointPosition(colPoint).z;
-                pEntityWeAreOnForVisibilityCheck = hitEntity;
-                m_bTunnel = hitEntity->m_bTunnel;
-                m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-            }
-        } else {
-            foundHeight = getColPointPosition(colPoint).z;
-            pEntityWeAreOnForVisibilityCheck = hitEntity;
-            m_bTunnel = hitEntity->m_bTunnel;
-            m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-        }
-        hasFoundHeight = true;
-    }
-    if (hasFoundHeight) {
-        frontPosition.z = foundHeight;
         StoredCollPolys[0].lighting = colPoint.m_nLightingB;
+    } else {
+        // Fall back to the current height if no ground found
+        frontZ = GetPosition().z;
     }
 
-    rearPosition.z = GetPosition().z;
-    hasFoundHeight = false;
-    if (CWorld::ProcessVerticalLine(rearPosition, rearPosition.z + 5.0f, colPoint, hitEntity, true, false, false, false, false, false, nullptr)) {
-        hasFoundHeight = true;
-        foundHeight = getColPointPosition(colPoint).z;
+    CVector rearPosition(GetPosition().x - GetForward().x*rearCarLength,
+                         GetPosition().y - GetForward().y*rearCarLength,
+                         GetPosition().z + 5.0f);
+    
+    if(CWorld::ProcessVerticalLine(rearPosition, GetPosition().z - 5.0f, colPoint, hitEntity,
+            true, false, false, false, false, false, nullptr)) {
+        rearZ = colPoint.m_vecPoint.z;
         pEntityWeAreOnForVisibilityCheck = hitEntity;
         m_bTunnel = hitEntity->m_bTunnel;
         m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-    }
-    if (CWorld::ProcessVerticalLine(rearPosition, rearPosition.z - 5.0f, colPoint, hitEntity, true, false, false, false, false, false, nullptr)) {
-        if (hasFoundHeight) {
-            if (std::abs(rearPosition.z - foundHeight) > std::abs(rearPosition.z - getColPointPosition(colPoint).z)) {
-                foundHeight = getColPointPosition(colPoint).z;
-                pEntityWeAreOnForVisibilityCheck = hitEntity;
-                m_bTunnel = hitEntity->m_bTunnel;
-                m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-            }
-        } else {
-            foundHeight = getColPointPosition(colPoint).z;
-            pEntityWeAreOnForVisibilityCheck = hitEntity;
-            m_bTunnel = hitEntity->m_bTunnel;
-            m_bTunnelTransition = hitEntity->m_bTunnelTransition;
-        }
-        hasFoundHeight = true;
-    }
-    if (hasFoundHeight) {
-        rearPosition.z = foundHeight;
         AsVehicle()->StoredCollPolys[1].lighting = colPoint.m_nLightingB;
+    } else {
+        // Fall back to the current height if no ground found
+        rearZ = GetPosition().z;
     }
 
-    frontPosition.z += GetHeightAboveRoad();
-    rearPosition.z += m_fRearHeightAboveRoad;
+    float totalLength = frontCarLength + rearCarLength;
+    float angle = atan2(frontZ - rearZ, totalLength);
+    float cosAngle = cos(angle);
+    float sinAngle = sin(angle);
 
-    GetRight().Set((frontPosition.y - rearPosition.y) / (frontCarLength + rearCarLength), 
-                  -(frontPosition.x - rearPosition.x) / (frontCarLength + rearCarLength), 
+    GetRight().Set((frontPosition.y - rearPosition.y) / totalLength, 
+                  -(frontPosition.x - rearPosition.x) / totalLength, 
                    0.0f);
-
-    auto directionVector = frontPosition - rearPosition;
-    directionVector.Normalise();
-    GetForward() = directionVector;
-
-    auto normalVector = CrossProduct(GetRight(), GetForward());
-    GetUp() = normalVector;
-
-    CVector newPosition = (frontPosition * rearCarLength + rearPosition * frontCarLength) / (rearCarLength + frontCarLength);
+    
+    GetForward().Set(-cosAngle * GetRight().y, 
+                     cosAngle * GetRight().x, 
+                     sinAngle);
+    
+    GetUp() = CrossProduct(GetRight(), GetForward());
+    
+    CVector newPosition((frontPosition.x + rearPosition.x) / 2.0f,
+                        (frontPosition.y + rearPosition.y) / 2.0f,
+                        (frontZ + rearZ) / 2.0f + GetHeightAboveRoad());
+    
     SetPosn(newPosition);
 
     if (IsPlane()) {

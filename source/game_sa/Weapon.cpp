@@ -183,7 +183,9 @@ bool CWeapon::GenerateDamageEvent(CPed* victim, CEntity* creator, eWeaponType we
         const auto floorHitAnim = CAnimManager::BlendAnimation(
             victim->m_pRwClump,
             ANIM_GROUP_DEFAULT,
-            RpAnimBlendClumpGetFirstAssociation(victim->m_pRwClump, ANIMATION_800) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT
+            RpAnimBlendClumpGetFirstAssociation(victim->m_pRwClump, ANIMATION_IS_FRONT)
+                ? ANIM_ID_FLOOR_HIT_F
+                : ANIM_ID_FLOOR_HIT
         );
         if (floorHitAnim) {
             floorHitAnim->SetFlag(ANIMATION_IS_FINISH_AUTO_REMOVE, false);
@@ -1066,7 +1068,7 @@ void CWeapon::Update(CPed* owner) {
             if (wi->flags.bReload && (!owner->IsPlayer() || !FindPlayerInfo().m_bFastReload)) { // 0x73DCCE
                 auto animRLoad = RpAnimBlendClumpGetAssociation(
                     owner->m_pRwClump,
-                    ANIM_ID_RELOAD //(wi->m_nFlags & 0x1000) != 0 ? ANIM_ID_RELOAD : ANIM_ID_WALK // Always going to be `ANIM_ID_RELOAD`
+                    ANIM_ID_RELOAD //(wi->m_Flags & 0x1000) != 0 ? ANIM_ID_RELOAD : ANIM_ID_WALK // Always going to be `ANIM_ID_RELOAD`
                 );
                 if (!animRLoad) {
                     animRLoad = RpAnimBlendClumpGetAssociation(owner->m_pRwClump, wi->GetCrouchReloadAnimationID());
@@ -1631,8 +1633,8 @@ bool CWeapon::FireM16_1stPerson(CPed* owner) {
         }
 
         // Move the camera around a little
-        cam->m_fHorizontalAngle += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
-        cam->m_fVerticalAngle += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
+        cam->m_fBeta += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
+        cam->m_fAlpha += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
 
         // Do pad shaking
         const auto shakeFreq = (uint8)lerp(130.f, 210.f, std::clamp((20.f - (wi->m_fAnimLoopEnd - wi->m_fAnimLoopStart) * 900.f) / 80.f, 0.f, 1.f));

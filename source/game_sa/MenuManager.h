@@ -117,7 +117,7 @@ public:
     bool      field_8C;
     int32     m_ListSelection;      // controller related
     int32     field_94;      // unused
-    char*     m_pJPegBuffer; //!< +0x98  \see JPegCompress file
+    uint8*    m_GalleryImgBuffer;   //!< +0x98  \see JPegCompress file
     char      field_9C[16];
     int32     m_nUserTrackIndex;
     int8      m_nRadioMode;

@@ -754,7 +754,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float fGearRevProgress, float
         volume -= 6.0f;
     }
 
-    if (vehicle->m_pTrailer) {
+    if (vehicle->m_pVehicleBeingTowed) {
         volume += 6.0f;
     }
 
@@ -834,7 +834,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyRev(float fRatio, float fFadeRatio
         volume -= 6.0f;
     }
 
-    if (m_pEntity->AsAutomobile()->m_pTrailer) {
+    if (m_pEntity->AsAutomobile()->m_pVehicleBeingTowed) {
         volume += 6.0f;
     }
 
@@ -1136,7 +1136,7 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(cVehicleParams& params, 
     if (vehicle->vehicleFlags.bIsDrowning)
         fVolume -= 6.0f;
 
-    if (vehicle->m_pTrailer)
+    if (vehicle->m_pVehicleBeingTowed)
         fVolume += 6.0f;
 
     if (m_bNitroSoundPresent && field_248 <= 1.0f && field_248 >= 0.0f)
@@ -1789,7 +1789,7 @@ void CAEVehicleAudioEntity::ProcessVehicleRoadNoise(cVehicleParams& params) {
     // Check if any wheels touch the ground. (Perhaps params.m_nWheelsOnGround could be used?)
     const auto GetNumContactWheels = [=]() -> uint8 {
         switch (params.nBaseVehicleType) {
-        case VEHICLE_TYPE_AUTOMOBILE: return vehicle->AsAutomobile()->m_nNumContactWheels;
+        case VEHICLE_TYPE_AUTOMOBILE: return vehicle->AsAutomobile()->m_nNoOfContactWheels;
         case VEHICLE_TYPE_BIKE: return vehicle->AsBike()->m_nNoOfContactWheels;
         default: return 4;
         }

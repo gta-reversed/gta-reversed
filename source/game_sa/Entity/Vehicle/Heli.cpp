@@ -293,7 +293,7 @@ void CHeli::UpdateHelis() {
     const int modelIndexOffset = useNewsHeliAllowed ? MODEL_VCNMAV : MODEL_POLMAV;
     
     // Generate new helicopter if needed
-    if (CStreaming::ms_aInfoForModel[modelIndexOffset].m_nLoadState == 1 && 
+    if (CStreaming::ms_aInfoForModel[modelIndexOffset].m_LoadState == 1 && 
         CTimer::GetTimeInMS() > CHeli::TestForNewRandomHelisTimer) {
         
         CHeli::TestForNewRandomHelisTimer = CTimer::GetTimeInMS() + 15000;
