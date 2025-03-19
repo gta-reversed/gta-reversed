@@ -3,6 +3,7 @@
 #include "Cam.h"
 #include "Camera.h"
 #include "TaskComplexProstituteSolicit.h"
+#include "TaskSimpleArrestPed.h"
 
 bool& gbFirstPersonRunThisFrame = *reinterpret_cast<bool*>(0xB6EC20);
 
@@ -284,278 +285,7 @@ bool CCam::Process() {
 
 // 0x518500
 bool CCam::ProcessArrestCamOne() {
-    /*
-    constexpr int NUM_ARREST_CAMS = 6;
-
-    bool bGotCameraPos = false;
-    CVector ArrestCamPos;
-    CVector PlayerPosition;
-    CVector CopPosition;
-    CVector CopToPlayer;
-
-    CPed *pHandyPedPointer = nullptr;
-    CVehicle *pHandyCarPointer = nullptr;
-    CPed *pHandyCopPointer = nullptr;
-
-    CEntity *pHitEntity = nullptr;
-    CColPoint colPoint;
-    m_fFOV = 45.0f;
-
-    int32 aTryArrestCamList[NUM_ARREST_CAMS];
-    rng::fill(aTryArrestCamList, -1);
-
-    if (m_bResetStatics) {
-        nUsingWhichCamera = 0;
-
-        if (TheCamera.m_pTargetEntity->GetIsTypePed()) {
-            pHandyPedPointer = (CPed *)TheCamera.m_pTargetEntity;
-            pHandyPedPointer->PlayerPosition.GetBonePosition(BONE_SPINE1, true);
-            if (FindPlayerPed() && FindPlayerPed()->GetPlayerData()->m_ArrestingOfficer)
-                pHandyCopPointer = FindPlayerPed()->GetPlayerData()->m_ArrestingOfficer;
-
-            aTryArrestCamList[0] = ARRESTCAM_DW;
-            if (pHandyCopPointer && CGeneral::GetRandomNumberInRange(0.0f, 1.0f) > 0.5f) {
-                aTryArrestCamList[1] = ARRESTCAM_OVERSHOULDER;
-                aTryArrestCamList[2] = ARRESTCAM_ALONGGROUND;
-                aTryArrestCamList[3] = ARRESTCAM_OVERSHOULDER;
-                aTryArrestCamList[4] = ARRESTCAM_FROMLAMPPOST;
-            } else {
-                aTryArrestCamList[1] = ARRESTCAM_ALONGGROUND;
-                aTryArrestCamList[2] = ARRESTCAM_OVERSHOULDER;
-                aTryArrestCamList[3] = ARRESTCAM_FROMLAMPPOST;
-            }
-        } else if (TheCamera.m_pTargetEntity->IsVehicle()) {
-            pHandyCarPointer = (CVehicle *)TheCamera.m_pTargetEntity;
-            if (pHandyCarPointer->m_pDriver && pHandyCarPointer->m_pDriver->IsPlayer()) {
-                pHandyPedPointer = pHandyCarPointer->m_pDriver;
-                pHandyPedPointer->PlayerPosition.GetBonePosition(BONE_SPINE1, true);
-            } else {
-                pHandyPedPointer = nullptr;
-                PlayerPosition = pHandyCarPointer->GetPosition();
-            }
-
-            if (FindPlayerPed() && FindPlayerPed()->GetPlayerData()->m_ArrestingOfficer)
-                pHandyCopPointer = FindPlayerPed()->GetPlayerData()->m_ArrestingOfficer;
-
-            if (pHandyCopPointer && CGeneral::GetRandomNumberInRange(0.0f, 1.0f) > 0.65f) {
-                aTryArrestCamList[0] = ARRESTCAM_OVERSHOULDER;
-                aTryArrestCamList[1] = ARRESTCAM_FROMLAMPPOST;
-                aTryArrestCamList[2] = ARRESTCAM_ALONGGROUND;
-                aTryArrestCamList[3] = ARRESTCAM_OVERSHOULDER;
-            } else {
-                aTryArrestCamList[0] = ARRESTCAM_FROMLAMPPOST;
-                aTryArrestCamList[1] = ARRESTCAM_ALONGGROUND;
-                aTryArrestCamList[2] = ARRESTCAM_OVERSHOULDER;
-            }
-        } else {
-            return false;
-        }
-
-        if (!CHud::m_BigMessage[BIG_MESSAGE_WASTED][0]) {
-            CMessages::AddBigMessage(TheText.Get("BUSTED"), 1'000 * 5, 2);
-        }
-
-        int32 nTryCam = 0;
-        while (nUsingWhichCamera == 0 && nTryCam < NUM_ARREST_CAMS && aTryArrestCamList[nTryCam] > 0) {
-            pStoredCopPed = nullptr;
-
-            switch (aTryArrestCamList[nTryCam]) {
-            case ARRESTCAM_DW: {
-                gTimeDWBustedCamStarted = CTimer::GetTimeInMS();
-                if (ProcessDWBustedCam1(pHandyCopPointer, true)) {
-                    TheCamera.m_pTargetEntity->SetIsVisible(false);
-                    nUsingWhichCamera = ARRESTCAM_DW;
-                    m_bResetStatics = false;
-                    return true;
-                }
-            } break;
-            case ARRESTCAM_OVERSHOULDER:
-                if (pHandyCopPointer) {
-                    bGotCameraPos = GetLookOverShoulderPos(TheCamera.m_pTargetEntity, pHandyCopPointer, PlayerPosition, ArrestCamPos);
-                    pStoredCopPed = pHandyCopPointer;
-                    pHandyCopPointer = nullptr;
-                } else if (pHandyPedPointer) {
-                    CEntity **ppNearbyEntities = pHandyPedPointer->m_pIntelligence->m_TaskMgr->GetNearbyPeds();
-                    for (int i = 0; i < pHandyPedPointer->m_pIntelligence->m_TaskMgr->GetMaxNumPedsInRange(); i++) {
-                        CEntity *pNearbyEntity = ppNearbyEntities[i];
-                        if (pNearbyEntity) {
-                            assert(pNearbyEntity->GetType() == ENTITY_TYPE_PED);
-                            CPed *pNearbyPed = (CPed *)pNearbyEntity;
-                            CTaskSimpleArrestPed *pTaskArrest = (CTaskSimpleArrestPed *)pNearbyPed->m_pIntelligence->m_TaskMgr->FindTaskActiveByType(eTaskType::TASK_SIMPLE_ARREST_PED);
-                            if (pTaskArrest) {
-                                if (FindPlayerPed() == pTaskArrest->GetTargetPed()) {
-                                    bGotCameraPos = GetLookOverShoulderPos(TheCamera.m_pTargetEntity, pNearbyPed, PlayerPosition, ArrestCamPos);
-                                    if (bGotCameraPos) {
-                                        pStoredCopPed = pNearbyPed;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-
-            case ARRESTCAM_ALONGGROUND:
-                if (pHandyCopPointer) {
-                    bGotCameraPos = GetLookAlongGroundPos(TheCamera.m_pTargetEntity, pHandyCopPointer, PlayerPosition, ArrestCamPos);
-                    pStoredCopPed = pHandyCopPointer;
-                    pHandyCopPointer = nullptr;
-                } else if (pHandyPedPointer) {
-                    CEntity **ppNearbyEntities = pHandyPedPointer->m_pIntelligence->m_TaskMgr->GetNearbyPeds();
-                    for (int i = 0; i < pHandyPedPointer->m_pIntelligence->m_TaskMgr->GetMaxNumPedsInRange(); i++) {
-                        CEntity *pNearbyEntity = ppNearbyEntities[i];
-                        if (pNearbyEntity) {
-                            assert(pNearbyEntity->GetType() == ENTITY_TYPE_PED);
-                            CPed *pNearbyPed = (CPed *)pNearbyEntity;
-                            CTaskSimpleArrestPed *pTaskArrest = (CTaskSimpleArrestPed *)pNearbyPed->m_pIntelligence->m_TaskMgr->FindTaskActiveByType(eTaskType::TASK_SIMPLE_ARREST_PED);
-                            if (pTaskArrest) {
-                                if (FindPlayerPed() == pTaskArrest->GetTargetPed()) {
-                                    bGotCameraPos = GetLookOverShoulderPos(TheCamera.m_pTargetEntity, pNearbyPed, PlayerPosition, ArrestCamPos);
-                                    if (bGotCameraPos) {
-                                        pStoredCopPed = pNearbyPed;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-
-            case ARRESTCAM_FROMLAMPPOST:
-                bGotCameraPos = GetLookFromLampPostPos(TheCamera.m_pTargetEntity, pHandyCopPointer, PlayerPosition, ArrestCamPos);
-                break;
-            }
-
-            if (bGotCameraPos) {
-                if (pStoredCopPed) {
-                    CEntity::RegisterReference((CEntity **)&pStoredCopPed);
-                }
-
-                nUsingWhichCamera = aTryArrestCamList[nTryCam];
-
-                if (nUsingWhichCamera == ARRESTCAM_ALONGGROUND) {
-                    float fChooseCamRotation = CGeneral::GetRandomNumberInRange(0.0f, 5.0f);
-                    if (fChooseCamRotation < 1.0f)
-                        nUsingWhichCamera = ARRESTCAM_ALONGGROUND;
-                    else if (fChooseCamRotation < 2.0f)
-                        nUsingWhichCamera = ARRESTCAM_ALONGGROUND_RIGHT;
-                    else if (fChooseCamRotation < 3.0f)
-                        nUsingWhichCamera = ARRESTCAM_ALONGGROUND_RIGHT_UP;
-                    else if (fChooseCamRotation < 4.0f)
-                        nUsingWhichCamera = ARRESTCAM_ALONGGROUND_LEFT;
-                    else
-                        nUsingWhichCamera = ARRESTCAM_ALONGGROUND_LEFT_UP;
-                }
-            }
-
-            nTryCam++;
-        }
-
-        m_vecSource = ArrestCamPos;
-        CVector SourceBeforeChange = m_vecSource;
-        TheCamera.AvoidTheGeometry(SourceBeforeChange, PlayerPosition, m_vecSource, m_fFOV);
-
-        m_vecFront = PlayerPosition - m_vecSource;
-        m_vecFront.Normalise();
-
-        m_vecUp = CVector(0.0f, 0.0f, 1.0f);
-        CVector TempRight = CrossProduct(m_vecFront, m_vecUp);
-        TempRight.Normalise();
-        m_vecUp = CrossProduct(TempRight, m_vecFront);
-
-        if (nUsingWhichCamera != 0)
-            m_bResetStatics = false;
-
-        return true;
-    } else {
-        if (nUsingWhichCamera == ARRESTCAM_DW) {
-            TheCamera.m_pTargetEntity->SetIsVisible(false);
-
-            if (FindPlayerPed() && FindPlayerPed()->GetPlayerData()->m_ArrestingOfficer)
-                pHandyCopPointer = FindPlayerPed()->GetPlayerData()->m_ArrestingOfficer;
-
-            return ProcessDWBustedCam1(pHandyCopPointer, false) ? true : false;
-        }
-
-        if (TheCamera.m_pTargetEntity->GetIsTypePed()) {
-            ((CPed *)TheCamera.m_pTargetEntity)->PlayerPosition.GetBonePosition(BONE_SPINE1, true);
-        } else if (TheCamera.m_pTargetEntity->IsVehicle()) {
-            if (((CVehicle *)TheCamera.m_pTargetEntity)->m_pDriver && ((CVehicle *)TheCamera.m_pTargetEntity)->m_pDriver->IsPlayer()) {
-                ((CVehicle *)TheCamera.m_pTargetEntity)->m_pDriver->PlayerPosition.GetBonePosition(BONE_SPINE1, true);
-            } else
-                PlayerPosition = TheCamera.m_pTargetEntity->GetPosition();
-        } else
-            return false;
-
-        if (nUsingWhichCamera == ARRESTCAM_OVERSHOULDER && pStoredCopPed) {
-            bGotCameraPos = GetLookOverShoulderPos(TheCamera.m_pTargetEntity, pStoredCopPed, PlayerPosition, ArrestCamPos);
-            if (ArrestCamPos.z > m_vecSource.z + ARRESTCAM_S_ROTATION_UP * CTimer::GetTimeStep())
-                ArrestCamPos.z = m_vecSource.z + ARRESTCAM_S_ROTATION_UP * CTimer::GetTimeStep();
-        } else if (nUsingWhichCamera > ARRESTCAM_ALONGGROUND && nUsingWhichCamera <= ARRESTCAM_ALONGGROUND_LEFT_UP) {
-            ArrestCamPos = m_vecSource;
-            m_vecFront = PlayerPosition - m_vecSource;
-            m_vecFront.Normalise();
-
-            m_vecUp = CVector(0.0f, 0.0f, 1.0f);
-            CVector TempRight = CrossProduct(m_vecFront, m_vecUp);
-            TempRight.Normalise();
-
-            if (nUsingWhichCamera == ARRESTCAM_ALONGGROUND_LEFT || nUsingWhichCamera == ARRESTCAM_ALONGGROUND_LEFT_UP)
-                TempRight *= -1.0f;
-
-            if (!CWorld::TestSphereAgainstWorld(m_vecSource + 0.5f * TempRight, 0.4f, TheCamera.m_pTargetEntity, true, true, false, true, false, true)) {
-                bGotCameraPos = true;
-                ArrestCamPos += TempRight * ARRESTCAM_ROTATION_SPEED * CTimer::GetTimeStep();
-                if (nUsingWhichCamera == ARRESTCAM_ALONGGROUND_RIGHT_UP || nUsingWhichCamera == ARRESTCAM_ALONGGROUND_LEFT_UP) {
-                    ArrestCamPos.z += ARRESTCAM_ROTATION_UP * CTimer::GetTimeStep();
-                } else {
-                    bool bGroundFound = false;
-                    float fGroundZ = CWorld::FindGroundZFor3DCoord(ArrestCamPos, &bGroundFound);
-                    if (bGroundFound)
-                        ArrestCamPos.z = fGroundZ + ARRESTDIST_ABOVE_GROUND;
-                }
-            }
-        } else if (nUsingWhichCamera == ARRESTCAM_FROMLAMPPOST) {
-            ArrestCamPos = m_vecSource;
-            m_vecFront = PlayerPosition - ArrestCamPos;
-            m_vecFront.z = 0.0f;
-            m_vecFront.Normalise();
-
-            m_vecUp = CVector(0.0f, 0.0f, 1.0f);
-            CVector TempRight = CrossProduct(m_vecFront, m_vecUp);
-            TempRight.Normalise();
-
-            m_vecFront = (PlayerPosition - ArrestCamPos) + TempRight * ARRESTCAM_LAMPPOST_ROTATEDIST;
-            m_vecFront.z = 0.0f;
-            m_vecFront.Normalise();
-
-            if (!CWorld::TestSphereAgainstWorld(ArrestCamPos + 0.5f * m_vecFront, 0.4f, TheCamera.m_pTargetEntity, true, true, false, true, false, true)) {
-                bGotCameraPos = true;
-                ArrestCamPos += m_vecFront * ARRESTCAM_LAMPPOST_TRANSLATE * CTimer::GetTimeStep();
-            }
-        }
-
-        if (bGotCameraPos) {
-            m_vecSource = ArrestCamPos;
-            CVector SourceBeforeChange = m_vecSource;
-            TheCamera.AvoidTheGeometry(SourceBeforeChange, PlayerPosition, m_vecSource, m_fFOV);
-
-            m_vecFront = PlayerPosition - m_vecSource;
-            m_vecFront.Normalise();
-
-            m_vecUp = CVector(0.0f, 0.0f, 1.0f);
-            CVector TempRight = CrossProduct(m_vecFront, m_vecUp);
-            TempRight.Normalise();
-            m_vecUp = CrossProduct(TempRight, m_vecFront);
-        } else {
-            CVector SourceBeforeChange = m_vecSource;
-            TheCamera.AvoidTheGeometry(SourceBeforeChange, PlayerPosition, m_vecSource, m_fFOV);
-        }
-    }
-*/
-    return true;
+    assert(0); return false;
 }
 
 // 0x519250
@@ -565,6 +295,8 @@ void CCam::ProcessPedsDeadBaby() {
     constexpr float DEADCAM_WAFT_AMPLITUDE = 2.0f;
     constexpr float DEADCAM_WAFT_RATE      = 600.0f;
     constexpr float DEADCAM_WAFT_TILT_AMP  = -0.35f;
+    static float startTimeDWDeadCam = 0.0f;
+    static float cameraRot          = 0.0f;
 
     CVector PlayerPosition;
     CVector DeadCamPos;
@@ -580,8 +312,6 @@ void CCam::ProcessPedsDeadBaby() {
         return;
     }
 
-    static float startTimeDWDeadCam = 0.0f;
-    static float cameraRot          = 0.0f;
 
     if (m_bResetStatics) {
         startTimeDWDeadCam = (float)CTimer::GetTimeInMS();
@@ -758,6 +488,16 @@ bool CCam::Process_FlyBy(const CVector&, float, float, float) {
 
 // 0x5245B0
 void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrientation, float SpeedVar, float SpeedVarDesired, bool bScriptSetAngles) {
+
+    static float gOldAlpha = -9999.0f;
+    static float gOldBeta = -9999.0f;
+    static float gAlphaTol = 0.0001f;
+    static float gBetaTol = 0.0001f;
+    float targetBeta;
+    float betaDiffMult;
+    float betaDiffCap;
+    bool usingMouse = false;
+
 
     CamFollowPedData CARCAM_SET[FOLLOW_CAR_MAX] = {
         {1.3f,	1.0f,	0.40f,	10.0f,	15.0f,	0.5f, 	1.0f, 	1.0f,	0.85f,	0.2f,	0.075,	0.05f,		0.80f,	DegreesToRadians(45.0f), DegreesToRadians(89.0f)},
@@ -937,8 +677,6 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
     m_vecFront = cameraTargetPos - m_aTargetHistoryPos[0];
     m_vecFront.Normalise();
     float distanceToTarget = (cameraTargetPos - m_aTargetHistoryPos[1]).Magnitude();
-
-    float targetBeta, betaDiffMult, betaDiffCap;
     float targetBetaAngle = std::atan2(-m_vecFront.x, m_vecFront.y) - HALF_PI;
     if (targetBetaAngle < -PI) {
         targetBetaAngle += TWO_PI;
@@ -1082,7 +820,6 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
         stickAlphaOffset *= 0.5f;
     }
 
-    bool usingMouse = false;
     if (TheCamera.m_bUseMouse3rdPerson && pPlayerPad->DisablePlayerControls == 0) {
         float mouseStickY = pPlayerPad->CPad::NewMouseControllerState.m_AmountMoved.y * 2.0f;
         float mouseStickX = -pPlayerPad->CPad::NewMouseControllerState.m_AmountMoved.x * 2.0f;
@@ -1226,11 +963,6 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
         m_fAlpha = -CARCAM_SET[vehicleCamType].fDownLimit;
         m_fAlphaSpeed = 0.0f;
     }
-
-    static float gOldAlpha = -9999.0f;
-    static float gOldBeta = -9999.0f;
-    static float gAlphaTol = 0.0001f;
-    static float gBetaTol = 0.0001f;
 
     float dA = std::abs(gOldAlpha - m_fAlpha);
     if (dA < gAlphaTol) {
