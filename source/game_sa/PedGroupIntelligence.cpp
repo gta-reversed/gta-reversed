@@ -73,10 +73,10 @@ void CPedGroupIntelligence::Flush() {
 
 // 0x5F7470
 bool CPedGroupIntelligence::AddEvent(CEvent* event) {
-    if (event->GetEventType() != EVENT_GROUP_EVENT) {
+    const auto eGrpEvent = notsa::dyn_cast<CEventGroupEvent>(event);
+    if (!eGrpEvent) {
         return false;
     }
-    const auto eGrpEvent = static_cast<CEventGroupEvent*>(event);
     if (!eGrpEvent->AffectsPedGroup(m_pPedGroup) || !eGrpEvent->GetEvent().AffectsPedGroup(m_pPedGroup)) {
         return false;
     }
@@ -86,14 +86,14 @@ bool CPedGroupIntelligence::AddEvent(CEvent* event) {
         }
     }
     if (eGrpEvent->GetEvent().HasEditableResponse()) {
-        const auto eEditableResponse = static_cast<CEventEditableResponse*>(&eGrpEvent->GetEvent());
+        const auto eEditableResponse = notsa::cast<CEventEditableResponse>(&eGrpEvent->GetEvent());
         eEditableResponse->ComputeResponseTaskType(m_pPedGroup);
         if (!eEditableResponse->WillRespond()) {
             return false;
         }
     }
     if (!m_HighestPriorityEvent || eGrpEvent->BaseEventTakesPriorityOverBaseEvent(*m_HighestPriorityEvent)) {
-        delete std::exchange(m_HighestPriorityEvent, static_cast<CEventGroupEvent*>(eGrpEvent->Clone()));
+        delete std::exchange(m_HighestPriorityEvent, notsa::cast<CEventGroupEvent>(eGrpEvent->Clone()));
     }
     return true;
 }
@@ -289,17 +289,22 @@ void CPedGroupIntelligence::SetDefaultTask(CPed* ped, const CTask& task) {
 }
 
 // separated this out for readability @ 0x5FC6A2
-bool CPedGroupIntelligence::InterruptCurrentWithHighestPriorityEvent() {
+bool CPedGroupIntelligence::ShouldSetHighestPriorityEventAsCurrent() {
     assert(m_HighestPriorityEvent);
 
+    // No current event?
     if (!m_CurrentEvent) {
         return true;
     }
+
+    // Same type, but current can't be interrupted by it?
     if (m_HighestPriorityEvent->GetEvent().GetEventType() == m_CurrentEvent->GetEvent().GetEventType()) {
         if (!m_CurrentEvent->GetEvent().CanBeInterruptedBySameEvent()) {
             return false;
         }
     }
+
+    // Event with higher priority takes precedence
     return m_HighestPriorityEvent->BaseEventTakesPriorityOverBaseEvent(*m_CurrentEvent);
 }
 
