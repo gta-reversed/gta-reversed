@@ -207,7 +207,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         }
 
         // m_nType = m_nType & 7 | STATUS_WRECKED;
-        physicalFlags.bDestroyed = true;
+        physicalFlags.bRenderScorched = true;
         m_nTimeWhenBlowedUp = CTimer::GetTimeInMS();
         CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, ATOMIC_IS_BLOWN_UP);
         m_damageManager.FuckCarCompletely(false);

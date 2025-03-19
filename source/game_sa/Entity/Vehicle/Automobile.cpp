@@ -2385,7 +2385,7 @@ void CAutomobile::BlowUpCar_Impl(CEntity* dmgr, bool bDontShakeCam, bool bDontSp
 
     SetStatus(STATUS_WRECKED);
 
-    physicalFlags.bDestroyed = true;
+    physicalFlags.bRenderScorched = true;
     m_nTimeWhenBlowedUp      = CTimer::GetTimeInMS();
 
     CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, ATOMIC_IS_BLOWN_UP);
@@ -2539,7 +2539,7 @@ bool CAutomobile::BurstTyre(uint8 tyreComponentId, bool bPhysicalEffect) {
     if (vehicleFlags.bTyresDontBurst)
         return false;
 
-    if (physicalFlags.bDestroyed)
+    if (physicalFlags.bRenderScorched)
         return false;
 
     const auto GetCarWheel = [&]() -> eCarWheel { // TODO: `CarPieceToCarWheel` (See `CarWheelToCarPiece`)
@@ -5184,8 +5184,8 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
     if (CCollision::ProcessColModels(*obj->m_matrix, *obj->GetColModel(), *m_matrix, *GetColModel(), CWorld::m_aTempColPts, nullptr, nullptr, false) > 0)
         obj->m_pEntityIgnoredCollision = this;
 
-    if (physicalFlags.bDestroyed)
-        obj->physicalFlags.bDestroyed = true;
+    if (physicalFlags.bRenderScorched)
+        obj->physicalFlags.bRenderScorched = true;
 
     CWorld::Add(obj);
 
@@ -5823,7 +5823,7 @@ void CAutomobile::BlowUpCarsInPath() {
         auto& veh = *entity->AsVehicle();
         if (ModelIndices::IsRhino(veh.m_nModelIndex))
             continue;
-        if (veh.physicalFlags.bDestroyed)
+        if (veh.physicalFlags.bRenderScorched)
             continue;
 
         if (this == FindPlayerVehicle()) {

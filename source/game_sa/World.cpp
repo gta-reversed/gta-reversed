@@ -1226,7 +1226,7 @@ void CWorld::RemoveFallenCars() {
             continue;
 
         const auto ShouldWeKeepIt = [vehicle]() {
-            if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bDestroyed)
+            if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bRenderScorched)
                 return true;
 
             if (vehicle == FindPlayerVehicle())

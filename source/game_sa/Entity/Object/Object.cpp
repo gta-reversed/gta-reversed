@@ -577,7 +577,7 @@ void CObject::Render() {
 
 // 0x554FA0
 bool CObject::SetupLighting() {
-    if (physicalFlags.bDestroyed) {
+    if (physicalFlags.bRenderScorched) {
         WorldReplaceNormalLightsWithScorched(Scene.m_pRpWorld, 0.18F);
         return true;
     }
@@ -595,7 +595,7 @@ void CObject::RemoveLighting(bool bRemove) {
     if (!bRemove)
         return;
 
-    if (!physicalFlags.bDestroyed)
+    if (!physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 
     SetAmbientColours();

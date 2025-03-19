@@ -415,7 +415,7 @@ CVehicle::~CVehicle() {
         CRopes::GetRope(iRopeInd).Remove();
     }
 
-    if (!physicalFlags.bDestroyed && m_fHealth < 250.0F) {
+    if (!physicalFlags.bRenderScorched && m_fHealth < 250.0F) {
         CDarkel::RegisterCarBlownUpByPlayer(*this, 0);
     }
 }
@@ -695,7 +695,7 @@ bool CVehicle::SetupLighting() {
 
 // 0x5533D0
 void CVehicle::RemoveLighting(bool bRemove) {
-    if (!physicalFlags.bDestroyed)
+    if (!physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 
     SetAmbientColours();

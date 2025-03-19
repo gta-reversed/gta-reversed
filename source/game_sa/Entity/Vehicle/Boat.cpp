@@ -469,7 +469,7 @@ void CBoat::ProcessControl() {
     PruneWakeTrail();
     CVehicle::ProcessDelayedExplosion();
     auto fMassCheck = (m_fMass * 0.008F * 100.0F) / 125.0F;
-    if (physicalFlags.bDestroyed && fMassCheck < m_fBuoyancyConstant)
+    if (physicalFlags.bRenderScorched && fMassCheck < m_fBuoyancyConstant)
         m_fBuoyancyConstant -= ((m_fMass * 0.001F) * 0.008F);
 
     auto wanted = FindPlayerWanted();
@@ -964,7 +964,7 @@ void CBoat::BlowUpCar(CEntity* damager, bool bHideExplosion) {
     if (!vehicleFlags.bCanBeDamaged)
         return;
 
-    physicalFlags.bDestroyed = true;
+    physicalFlags.bRenderScorched = true;
     m_nStatus = eEntityStatus::STATUS_WRECKED;
     CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_IS_BLOWN_UP);
     m_vecMoveSpeed.z += 0.13F;
