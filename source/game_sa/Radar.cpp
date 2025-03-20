@@ -1512,13 +1512,13 @@ void CRadar::DrawRadarGangOverlay(bool inMenu) {
     for (auto& zone : CTheZones::GetNavigationZones()) {
         const auto info = CTheZones::GetZoneInfo(&zone);
 
-        if (!info || !info->radarMode || !CGangWars::CanPlayerStartAGangWarHere(info))
+        if (!info || !info->RadarMode || !CGangWars::CanPlayerStartAGangWarHere(info))
             continue;
 
         g_RadarGangOverlay = zone.GetRect();
 
         // todo: enum
-        switch (info->radarMode) {
+        switch (info->RadarMode) {
         case 1:
             DrawAreaOnRadar(g_RadarGangOverlay, info->ZoneColor, inMenu);
             break;

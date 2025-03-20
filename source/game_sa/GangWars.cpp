@@ -105,7 +105,7 @@ void CGangWars::AddKillToProvocation(ePedType pedType) {
     for (auto& zone : std::span { aSpecificZones.data(), (size_t)NumSpecificZones }) {
         auto zoneInfo = CTheZones::GetZoneInfo(CTheZones::GetNavigationZone(zone));
 
-        if (zoneInfo->GangDensity[pedType - PED_TYPE_GANG1] != 0) {
+        if (zoneInfo->GangStrength[pedType - PED_TYPE_GANG1] != 0) {
             Provocation += 1.0f;
             return;
         }
@@ -342,8 +342,8 @@ void CGangWars::DoStuffWhenPlayerVictorious() {
 
 // 0x443AE0
 bool CGangWars::DoesPlayerControlThisZone(CZoneInfo* zoneInfo) {
-    auto enemyDensity = zoneInfo->GangDensity[GANG_BALLAS] + zoneInfo->GangDensity[GANG_VAGOS];
-    auto groveDensity = zoneInfo->GangDensity[GANG_GROVE];
+    auto enemyDensity = zoneInfo->GangStrength[GANG_BALLAS] + zoneInfo->GangStrength[GANG_VAGOS];
+    auto groveDensity = zoneInfo->GangStrength[GANG_GROVE];
     return groveDensity != 0 && groveDensity >= enemyDensity;
 }
 
@@ -385,14 +385,14 @@ void CGangWars::MakeEnemyGainInfluenceInZone(int32 gangId, int32 density) {
     if (!pZoneInfoToFightOver)
         return;
 
-    auto totalGangDensity = pZoneInfoToFightOver->GangDensity[GANG_BALLAS]
-        + pZoneInfoToFightOver->GangDensity[GANG_GROVE]
-        + pZoneInfoToFightOver->GangDensity[GANG_VAGOS];
+    auto totalGangDensity = pZoneInfoToFightOver->GangStrength[GANG_BALLAS]
+        + pZoneInfoToFightOver->GangStrength[GANG_GROVE]
+        + pZoneInfoToFightOver->GangStrength[GANG_VAGOS];
 
     if (!totalGangDensity)
         return;
 
-    pZoneInfoToFightOver->GangDensity[gangId] += density;
+    pZoneInfoToFightOver->GangStrength[gangId] += density;
 
     if (!DoesPlayerControlThisZone(pZoneInfoToFightOver)) {
         CStats::IncrementStat(STAT_TERRITORIES_LOST, 1.0f);
@@ -410,14 +410,14 @@ bool CGangWars::MakePlayerGainInfluenceInZone(float removeMult) {
         GANG_UNUSED1, GANG_UNUSED2
     };
     for (auto gang : gangs) {
-        auto& density = pZoneInfoToFightOver->GangDensity[gang];
+        auto& density = pZoneInfoToFightOver->GangStrength[gang];
         auto densityInitial = density;
 
         density = static_cast<uint8>((1.0f - removeMult) * (float)density);
         if (density < 4u) {
             density = 0u;
         }
-        pZoneInfoToFightOver->GangDensity[GANG_GROVE] += densityInitial - density;
+        pZoneInfoToFightOver->GangStrength[GANG_GROVE] += densityInitial - density;
         totalEnemyDensity += density;
     }
 
@@ -470,7 +470,7 @@ bool CGangWars::PickZoneToAttack() {
         if (!zoneInfo)
             continue;
 
-        if (zoneInfo->GangDensity[GANG_BALLAS] + zoneInfo->GangDensity[GANG_VAGOS] >= 20) {
+        if (zoneInfo->GangStrength[GANG_BALLAS] + zoneInfo->GangStrength[GANG_VAGOS] >= 20) {
             enemyGangZone = zone;
             break;
         }
@@ -490,7 +490,7 @@ bool CGangWars::PickZoneToAttack() {
         if ((float)zone->m_fX1 <= 2500.0f && (float)zone->m_fX2 >= 2500.0f && (float)zone->m_fY1 <= -1666.0f && (float)zone->m_fY2 >= -1666.0f) // todo:
             continue;
 
-        if (zoneInfo->GangDensity[GANG_GROVE] <= 15)
+        if (zoneInfo->GangStrength[GANG_GROVE] <= 15)
             continue;
 
         if (CTheZones::Calc2DDistanceBetween2Zones(enemyGangZone, zone) < 10.0f) {
@@ -503,7 +503,7 @@ bool CGangWars::PickZoneToAttack() {
             };
 
             auto enemyGangZoneInfo = CTheZones::GetZoneInfo(enemyGangZone);
-            Gang1 = (enemyGangZoneInfo->GangDensity[GANG_BALLAS] > enemyGangZoneInfo->GangDensity[GANG_VAGOS]) ? GANG_BALLAS : GANG_VAGOS;
+            Gang1 = (enemyGangZoneInfo->GangStrength[GANG_BALLAS] > enemyGangZoneInfo->GangStrength[GANG_VAGOS]) ? GANG_BALLAS : GANG_VAGOS;
 
             if (DistanceBetweenPoints2D(FindPlayerCoors(), PointOfAttack) > 60.0f)
                 return true;
@@ -601,7 +601,7 @@ void CGangWars::StartDefensiveGangWar() {
         }());
 
         bPlayerIsCloseby = false;
-        pZoneInfoToFightOver->radarMode = 2;
+        pZoneInfoToFightOver->RadarMode = 2;
         pZoneInfoToFightOver->ZoneColor = CRGBA{ 255, 0, 0, 160 };
     } else {
         TimeTillNextAttack = CalculateTimeTillNextAttack();
@@ -621,16 +621,16 @@ void CGangWars::StartOffensiveGangWar() {
     }
 
     // NOTSA
-    Gang1 = (eGangID)(std::ranges::max_element(zoneInfo->GangDensity) - zoneInfo->GangDensity);
-    auto gang1Density = zoneInfo->GangDensity[Gang1];
-    zoneInfo->GangDensity[Gang1] = 0; // to find the second biggest
+    Gang1 = (eGangID)(std::ranges::max_element(zoneInfo->GangStrength) - zoneInfo->GangStrength);
+    auto gang1Density = zoneInfo->GangStrength[Gang1];
+    zoneInfo->GangStrength[Gang1] = 0; // to find the second biggest
 
-    Gang2 = std::ranges::max_element(zoneInfo->GangDensity) - zoneInfo->GangDensity;
-    auto gang2Density = zoneInfo->GangDensity[Gang2];
-    zoneInfo->GangDensity[Gang1] = gang1Density; // to restore
+    Gang2 = std::ranges::max_element(zoneInfo->GangStrength) - zoneInfo->GangStrength;
+    auto gang2Density = zoneInfo->GangStrength[Gang2];
+    zoneInfo->GangStrength[Gang1] = gang1Density; // to restore
 
     Provocation = 0.0f;
-    auto densitySum = std::accumulate(std::begin(zoneInfo->GangDensity), std::end(zoneInfo->GangDensity), 0);
+    auto densitySum = std::accumulate(std::begin(zoneInfo->GangStrength), std::end(zoneInfo->GangStrength), 0);
     if (densitySum && (Gang1 == GANG_BALLAS || Gang1 == GANG_VAGOS)) {
         if (State2 != NO_ATTACK)
             return;
@@ -658,7 +658,7 @@ void CGangWars::StartOffensiveGangWar() {
             Gang2 = Gang1;
 
         TellGangMembersTo(false);
-        pZoneInfoToFightOver->radarMode = 2;
+        pZoneInfoToFightOver->RadarMode = 2;
         zoneInfo->ZoneColor = CRGBA{ 255, 0, 0, 160 };
         pDriveByCar = nullptr;
     }
@@ -668,7 +668,7 @@ void CGangWars::StartOffensiveGangWar() {
 void CGangWars::StrengthenPlayerInfluenceInZone(int32 density) {
     bool controlledBefore = DoesPlayerControlThisZone(pZoneInfoToFightOver);
 
-    auto& groveDensity = pZoneInfoToFightOver->GangDensity[GANG_GROVE];
+    auto& groveDensity = pZoneInfoToFightOver->GangStrength[GANG_GROVE];
     if (groveDensity < 55u) { // todo: magic number
         groveDensity = std::min(groveDensity + density, 55);
     }
@@ -988,9 +988,9 @@ void CGangWars::UpdateTerritoryUnderControlPercentage() {
             if (!zoneInfo)
                 continue;
 
-            auto ballasDensity = zoneInfo->GangDensity[GANG_BALLAS],
-                 groveDensity = zoneInfo->GangDensity[GANG_GROVE],
-                 vagosDensity = zoneInfo->GangDensity[GANG_VAGOS];
+            auto ballasDensity = zoneInfo->GangStrength[GANG_BALLAS],
+                 groveDensity = zoneInfo->GangStrength[GANG_GROVE],
+                 vagosDensity = zoneInfo->GangStrength[GANG_VAGOS];
 
             // there should be one liner solution for this, no?
             if (groveDensity > ballasDensity + vagosDensity) {
