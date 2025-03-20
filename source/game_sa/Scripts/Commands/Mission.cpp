@@ -31,9 +31,9 @@ void LoadAndLaunchMissionInternal(int32 missionId) {
 
             CTheScripts::WipeLocalVariableMemoryForMissionScript();
             CRunningScript* script = CTheScripts::StartNewScript(&CTheScripts::MissionBlock[0]);
-            script->m_bUseMissionCleanup = true;
-            script->m_bIsMission = true;
-            script->m_pBaseIP = &CTheScripts::MissionBlock[0];
+            script->m_UsesMissionCleanup = true;
+            script->m_ThisMustBeTheOnlyMissionRunning = true;
+            script->m_BaseIP = &CTheScripts::MissionBlock[0];
             CTheScripts::bAlreadyRunningAMissionScript = true;
             CGameLogic::ClearSkip(false);
 

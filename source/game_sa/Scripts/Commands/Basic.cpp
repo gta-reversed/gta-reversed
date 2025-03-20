@@ -103,7 +103,7 @@ auto GoTo(CRunningScript& S, int32 address) {
 }
 
 auto GoToIfFalse(CRunningScript& S, int32 goToAddress) {
-    if (!S.m_bCondResult) {
+    if (!S.m_CondResult) {
         S.UpdatePC(goToAddress);
     }
 }
@@ -139,15 +139,15 @@ auto Return(CRunningScript& S) {
 // OR, AND
 auto AndOr(CRunningScript& S, int32 logicalOp) { // 0x0D6
     // Read comment above `CRunningScript::LogicalOpType` for a little more insight!
-    S.m_nLogicalOp = logicalOp;
-    if (S.m_nLogicalOp == CRunningScript::ANDOR_NONE) {
-        S.m_bCondResult = false;
-    } else if (S.m_nLogicalOp >= CRunningScript::ANDS_1 && S.m_nLogicalOp <= CRunningScript::ANDS_8) { // It's an `AND`
-        S.m_nLogicalOp++;
-        S.m_bCondResult = true;
-    } else if (S.m_nLogicalOp >= CRunningScript::ORS_1 && S.m_nLogicalOp <= CRunningScript::ORS_8) { // It's an `OR`
-        S.m_nLogicalOp++;
-        S.m_bCondResult = false;
+    S.m_AndOrState = logicalOp;
+    if (S.m_AndOrState == CRunningScript::ANDOR_NONE) {
+        S.m_CondResult = false;
+    } else if (S.m_AndOrState >= CRunningScript::ANDS_1 && S.m_AndOrState <= CRunningScript::ANDS_8) { // It's an `AND`
+        S.m_AndOrState++;
+        S.m_CondResult = true;
+    } else if (S.m_AndOrState >= CRunningScript::ORS_1 && S.m_AndOrState <= CRunningScript::ORS_8) { // It's an `OR`
+        S.m_AndOrState++;
+        S.m_CondResult = false;
     } else {
         NOTSA_UNREACHABLE("Unknown LogicalOp: {}", logicalOp);
     }
@@ -160,7 +160,7 @@ auto AndOr(CRunningScript& S, int32 logicalOp) { // 0x0D6
 
 // COMMAND_TERMINATE_THIS_SCRIPT
 auto TerminateThisScript(CRunningScript& S) { // 0x04E 
-    if (S.m_bIsMission) {
+    if (S.m_ThisMustBeTheOnlyMissionRunning) {
         CTheScripts::bAlreadyRunningAMissionScript = false;
     }
     S.RemoveScriptFromList(&CTheScripts::pActiveScripts);
@@ -198,7 +198,7 @@ void DebugOff() {
 }
 
 auto Wait(CRunningScript& S, uint32 duration) {
-    S.m_nWakeTime = CTimer::GetTimeInMS() + duration;
+    S.m_WakeTime = CTimer::GetTimeInMS() + duration;
     return OR_WAIT;
 }
 

@@ -18,7 +18,6 @@
 #include <imgui_internal.h>
 
 #include <Windows.h>
-#include <extensions/ScriptCommands.h>
 #include "DebugModules/DebugModules.h"
 
 namespace notsa {
