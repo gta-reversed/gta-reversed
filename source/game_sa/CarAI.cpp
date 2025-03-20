@@ -156,8 +156,6 @@ void CCarAI::AddPoliceCarOccupants(CVehicle* vehicle, bool bAlwaysCreatePassenge
 
 // 0x41BFA0
 void CCarAI::BackToCruisingIfNoWantedLevel(CVehicle* vehicle) {
-    assert(vehicle->IsBoat());
-
     if (!vehicle->vehicleFlags.bIsLawEnforcer) {
         return;
     }
