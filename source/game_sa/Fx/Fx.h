@@ -12,10 +12,10 @@
 class CVehicle;
 
 enum FxQuality_e : uint32 {
-    FX_QUALITY_LOW,
-    FX_QUALITY_MEDIUM,
-    FX_QUALITY_HIGH,
-    FX_QUALITY_VERY_HIGH
+    FX_QUALITY_LOW = 0,
+    FX_QUALITY_MEDIUM = 1,
+    FX_QUALITY_HIGH = 2,
+    FX_QUALITY_VERY_HIGH = 3,
 };
 
 enum eSparkType : uint8 {
@@ -77,7 +77,7 @@ public:
     void Exit();
     void Reset();
 
-    void CreateEntityFx(CEntity* entity, const char* fxName, CVector* pos, RwMatrix* transform);
+    void CreateEntityFx(CEntity* entity, const char* fxName, const CVector& pos, RwMatrix* transform);
     void DestroyEntityFx(CEntity* entity);
 
     void Update(RwCamera* camera, float timeDelta);

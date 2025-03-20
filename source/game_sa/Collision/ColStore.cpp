@@ -89,6 +89,7 @@ int32 CColStore::AddColSlot(const char* name)
     def->m_bProcedural = false;
     def->m_bInterior = false;
     def->m_Area = CRect();
+    strcpy_s(def->name, name);
     def->m_nModelIdStart = -1;
     def->m_nModelIdEnd = SHRT_MIN;
     def->m_nRefCount = 0;
@@ -132,8 +133,14 @@ void CColStore::AddRef(int32 colNum)
     ++colDef->m_nRefCount; //BUG: We don't check whether the GetAt returned nullptr, which it can
 }
 
-int32 CColStore::FindColSlot()
+// We can assume that there was a code similar to `CIplStore::FindIplSlot` here, but it was deleted for some reason
+int32 CColStore::FindColSlot(const char* name)
 {
+    for (auto& def : ms_pColPool->GetAllValid()) {
+        if (!_stricmp(name, def.name)) {
+            return ms_pColPool->GetIndex(&def);
+        }
+    }
     return -1;
 }
 

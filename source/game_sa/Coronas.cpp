@@ -123,7 +123,11 @@ void CCoronas::Init() {
 // Terminates coronas
 // 0x6FAB00
 void CCoronas::Shutdown() {
-    rng::for_each(gpCoronaTexture, RwTextureDestroy);
+    for (auto& t : gpCoronaTexture) {
+        if (t) {
+            RwTextureDestroy(std::exchange(t, nullptr));
+        }
+    }
 }
 
 // Updates coronas
@@ -290,8 +294,12 @@ void CCoronas::Render() {
                     false,
                     true
                 )) { //< 0x6FB409
-                    auto color = c.m_Color * colorVariationMult;
-                    color.a = 255;
+                    CRGBA color = {
+                        static_cast<uint8>(static_cast<float>(c.m_Color.r) * colorVariationMult * it->ColorMult.x),
+                        static_cast<uint8>(static_cast<float>(c.m_Color.g) * colorVariationMult * it->ColorMult.y),
+                        static_cast<uint8>(static_cast<float>(c.m_Color.b) * colorVariationMult * it->ColorMult.z),
+                        255
+                    };
                     CSprite::RenderBufferedOneXLUSprite2D(
                         lerp(rasterSize / 2.f, CVector2D{ onScrPos }, it->Position),
                         CVector2D{ it->Size, it->Size } * 4.f,
@@ -545,7 +553,7 @@ void CCoronas::DoSunAndMoon() {
                 (uint8)cc.m_nSunCoreGreen,
                 (uint8)cc.m_nSunCoreBlue,
                 255u,
-                &coronaPos,
+                coronaPos,
                 cc.m_fSunSize * radiusMult,
                 999999.88f,
                 gpCoronaTexture[0],

@@ -10,12 +10,15 @@
 namespace notsa {
 namespace script {
 /*!
-* Bool is a sepcial case, it isn't stored, but rather updates the compare flag.
+* Bool is a special case, it isn't stored, but rather updates the compare flag.
 * TODO: Actually verify this theory.
 */
-inline void StoreArg(CRunningScript* S, bool arg) {
+template<typename T>
+    requires std::is_same_v<T, bool> // Must do it like this to avoid erronous implicit conversions to bool
+inline void StoreArg(CRunningScript* S, T arg) {
     S->UpdateCompareFlag(arg);
 }
+
 /*!
 * @brief Store an argument of type. NOTE: Increments script's IP.
 *
@@ -23,38 +26,30 @@ inline void StoreArg(CRunningScript* S, bool arg) {
 * @param arg    The argument to store
 */
 template<typename T>
-    requires (std::is_arithmetic_v<T>)
+    requires (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
 inline void StoreArg(CRunningScript* S, const T& arg) { // Add requirements to filter out possible mistakes (Like returning an unsupported type)
     tScriptParam* dest = [&] {
-        auto& ip = S->m_IP;
-
-        // Helper
-        const auto ReadArrayInfo = [S] {
-            uint16 offset{};
+        const auto GetFromArray = [S](auto&& GetArrayElement) {
+            uint16 base{};
             int32 idx{};
-            S->ReadArrayInformation(true, &offset, &idx);
-            return std::make_tuple(offset, idx);
+            S->ReadArrayInformation(true, &base, &idx);
+            return std::invoke(GetArrayElement, S, base, idx, 1);
         };
 
-        switch (const auto t = CTheScripts::Read1ByteFromScript(ip)) {
+        switch (const auto t = S->ReadAtIPAs<int8>()) {
         case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-            return reinterpret_cast<tScriptParam*>(&CTheScripts::ScriptSpace[CTheScripts::Read2BytesFromScript(ip)]);
-        case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE: {
-            return S->GetPointerToLocalVariable(CTheScripts::Read2BytesFromScript(ip));
-        }
-        case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY: {
-            const auto [offset, idx] = ReadArrayInfo();
-            return reinterpret_cast<tScriptParam*>(&CTheScripts::ScriptSpace[offset + 4 * idx]);
-        }
-        case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY: {
-            const auto [offset, idx] = ReadArrayInfo();
-            return S->GetPointerToLocalArrayElement(offset, idx, 1);
-        }
+            return S->GetPointerToGlobalVariable(S->ReadAtIPAs<uint16>());
+        case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
+            return S->GetPointerToLocalVariable(S->ReadAtIPAs<uint16>());
+        case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY:
+            return GetFromArray(&CRunningScript::GetPointerToGlobalArrayElement);
+        case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY:
+            return GetFromArray(&CRunningScript::GetPointerToLocalArrayElement);
         default:
             NOTSA_UNREACHABLE("Variable type unknown ={:x}", t);
         }
     }();
-    static_assert(sizeof(T) <= sizeof(tScriptParam)); // Otherwise we'd be overwriting the script => bad
+    static_assert(sizeof(arg) <= sizeof(tScriptParam)); // Otherwise we'd be overwriting the script => bad
 
     memset((void*)dest, 0, sizeof(tScriptParam));  // Zero it all out
     memcpy((void*)dest, (void*)&arg, sizeof(arg)); // Now copy the value to it (Which might be less than 4 bytes)
@@ -81,9 +76,12 @@ inline void StoreArg(CRunningScript* S, CompareFlagUpdate flag) {
 // Below must be after the basic overloads, otherwise won't compile
 
 //! Store a pooled type (CPed, CVehicle, etc) - It pushes a handle of the entity to the script
-template<detail::PooledType T>
-inline void StoreArg(CRunningScript* S, const T& value) {
-    const auto StoreEntity = [&](auto ptr) { StoreArg(S, detail::PoolOf<std::remove_cvref_t<T>>().GetRef(ptr)); };
+template<typename T, typename U = std::remove_cvref_t<std::remove_pointer_t<T>>>
+    requires detail::PooledType<U>
+inline void StoreArg(CRunningScript* S, T&& value) {
+    const auto StoreEntity = [&](auto ptr) {
+        StoreArg(S, detail::PoolOf<U>().GetRef(ptr));
+    };
     if constexpr (std::is_pointer_v<T>) {
         if (value) { // As always, pointers might be null, so we have to check.
             StoreEntity(value);
@@ -94,7 +92,6 @@ inline void StoreArg(CRunningScript* S, const T& value) {
         StoreEntity(&value);
     }
 }
-
 
 /*!
  * @brief Overload for enum types. They're casted to their underlying type.

@@ -39,7 +39,7 @@ void CHud::InjectHooks() {
     RH_ScopedInstall(DrawAreaName, 0x58AA50);
     RH_ScopedInstall(DrawBustedWastedMessage, 0x58CA50);
     RH_ScopedInstall(DrawCrossHairs, 0x58E020, { .reversed = false }); // -
-    RH_ScopedInstall(DrawFadeState, 0x58D580, { .reversed = false });  // untested
+    RH_ScopedInstall(DrawFadeState, 0x58D580);
     RH_ScopedInstall(DrawHelpText, 0x58B6E0, { .reversed = false });
     RH_ScopedInstall(DrawMissionTimers, 0x58B180, { .reversed = false });
     RH_ScopedInstall(DrawMissionTitle, 0x58D240);
@@ -645,7 +645,7 @@ void CHud::DrawCrossHairs() {
     }
 
     CTaskSimpleUseGun* localTakUseGun = player->GetIntelligence()->GetTaskUseGun();
-    if (!player->m_pTargetedObject && !player->bIsRestoringLook && (!localTakUseGun || !localTakUseGun->m_bSkipAim)) {
+    if (!player->m_pTargetedObject && !player->bIsRestoringLook && (!localTakUseGun || !localTakUseGun->m_SkipAim)) {
         if (camMode == MODE_AIMWEAPON || camMode == MODE_AIMWEAPON_FROMCAR || camMode == MODE_AIMWEAPON_ATTACHED) {
             if (player->m_nPedState != ePedState::PEDSTATE_ENTER_CAR && player->m_nPedState != ePedState::PEDSTATE_CARJACK) {
                 if ((activeWeapon.m_Type >= eWeaponType::WEAPON_PISTOL &&
@@ -826,8 +826,6 @@ void CHud::DrawCrossHairs() {
 
 // 0x58D580
 float CHud::DrawFadeState(DRAW_FADE_STATE fadingElement, int32 forceFadingIn) {
-    return plugin::CallAndReturn<float, 0x58D580, DRAW_FADE_STATE, int32>(fadingElement, forceFadingIn);
-
     uint32 state, timer, fadeTimer;
     switch (fadingElement) {
     case WANTED_STATE:
@@ -875,7 +873,7 @@ float CHud::DrawFadeState(DRAW_FADE_STATE fadingElement, int32 forceFadingIn) {
     float alpha = 255.0f;
     if (state != NAME_DONT_SHOW) {
         switch (state) {
-        case NAME_SWITCH:
+        case NAME_SHOW:
             fadeTimer = 1000;
             if (timer > 10'000) {
                 fadeTimer = 3000;
@@ -885,7 +883,7 @@ float CHud::DrawFadeState(DRAW_FADE_STATE fadingElement, int32 forceFadingIn) {
         case NAME_FADE_IN:
             fadeTimer += (uint32)CTimer::GetTimeStepInMS();
             if (fadeTimer > 1000) {
-                state = NAME_SWITCH;
+                state = NAME_SHOW;  
                 fadeTimer = 1000;
             }
             alpha = float(fadeTimer) / 1000.0f * 255.0f;

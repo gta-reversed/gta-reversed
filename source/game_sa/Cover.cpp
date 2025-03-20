@@ -108,16 +108,19 @@ void CCover::FindCoverPointsForThisBuilding(CBuilding* building) {
         return;
     }
 
-    for (int32 fxN = 0; fxN < mi->m_n2dfxCount; ++fxN) {
-        auto* const fx = mi->Get2dEffect(fxN);
-
-        if (fx->m_type != e2dEffectType::EFFECT_COVER_POINT) {
+    for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
+        auto* effect = mi->Get2dEffect(iFxInd);
+        if (effect->m_Type != e2dEffectType::EFFECT_COVER_POINT)
             continue;
         }
 
-        const auto dirWS = building->GetMatrix().TransformVector(CVector{CVector2D{fx->coverPoint.m_vecDirection}, 0.f});
-        auto vecPoint = building->GetMatrix().TransformPoint(fx->m_pos);
-        CCover::AddCoverPoint(3, building, &vecPoint, fx->coverPoint.m_nType, static_cast<uint8>(atan2(dirWS.x, dirWS.y) * (256.0F / TWO_PI)));
+        auto vecDir = CVector(effect->coverPoint.m_vecDirection.x, effect->coverPoint.m_vecDirection.y, 0.0F);
+        const auto vedTransformed = building->GetMatrix().TransformVector(vecDir);
+
+        const auto fTwoPiToChar = 256.0F / TWO_PI;
+        const auto ucAngle = static_cast<uint8>(atan2(vedTransformed.x, vedTransformed.y) * fTwoPiToChar);
+        auto vecPoint = building->GetMatrix().TransformPoint(effect->m_Pos);
+        CCover::AddCoverPoint(3, building, &vecPoint, effect->coverPoint.m_nType, ucAngle);
     }
 }
 

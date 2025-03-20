@@ -11,7 +11,7 @@ void COcclusionDebugModule::RenderWindow() {
     {
         const notsa::ui::ScopedDisable disabledScope{ true };
 
-        ImGui::InputScalar("NumInteriorOcculdersOnMap", ImGuiDataType_S32, &COcclusion::NumInteriorOcculdersOnMap);
+        ImGui::InputScalar("NumInteriorOcculdersOnMap", ImGuiDataType_S32, &COcclusion::NumInteriorOccludersOnMap);
         ImGui::InputScalar("NumOccludersOnMap", ImGuiDataType_S32, &COcclusion::NumOccludersOnMap);
         ImGui::InputScalar("NumActiveOccluders", ImGuiDataType_S32, &COcclusion::NumActiveOccluders);
 
@@ -21,6 +21,13 @@ void COcclusionDebugModule::RenderWindow() {
         ImGui::InputScalar("NearbyList", ImGuiDataType_S16, &COcclusion::NearbyList);
         ImGui::InputScalar("ListWalkThroughFA", ImGuiDataType_S16, &COcclusion::ListWalkThroughFA);
         ImGui::InputScalar("PreviousListWalkThroughFA", ImGuiDataType_S16, &COcclusion::PreviousListWalkThroughFA);
+
+        ImGui::NewLine();
+
+        ImGui::InputScalar("MinXInOccluder", ImGuiDataType_Float, &COccluder::MinXInOccluder);
+        ImGui::InputScalar("MaxXInOccluder", ImGuiDataType_Float, &COccluder::MaxXInOccluder);
+        ImGui::InputScalar("MinYInOccluder", ImGuiDataType_Float, &COccluder::MinYInOccluder);
+        ImGui::InputScalar("MaxYInOccluder", ImGuiDataType_Float, &COccluder::MaxYInOccluder);
     }
     
     ImGui::NewLine();
@@ -45,7 +52,7 @@ void COcclusionDebugModule::Render3D() {
     const CRGBA white = { 255, 255, 255, 255 };
     for (auto& occl : COcclusion::GetActiveOccluders()) {
         for (auto& line : occl.GetLines()) {
-            CLines::ImmediateLine2D(line.m_vecOrigin, line.m_vecOrigin + line.m_vecDirection * line.m_fLength, white, white);
+            CLines::ImmediateLine2D(line.Origin, line.Origin + line.Dir * line.Length, white, white);
         }
     }
 }

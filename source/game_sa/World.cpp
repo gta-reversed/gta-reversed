@@ -495,8 +495,8 @@ void CWorld::CallOffChaseForAreaSectorListPeds(CPtrList& ptrList, float x1, floa
         case eCarMission::MISSION_RAMPLAYER_CLOSE:
         case eCarMission::MISSION_BLOCKPLAYER_FARAWAY:
         case eCarMission::MISSION_BLOCKPLAYER_CLOSE:
-        case eCarMission::MISSION_3D:
-        case eCarMission::MISSION_3C:
+        case eCarMission::MISSION_DO_DRIVEBY_FARAWAY:
+        case eCarMission::MISSION_DO_DRIVEBY_CLOSE:
             break;
         default:
             continue;
@@ -1226,7 +1226,7 @@ void CWorld::RemoveFallenCars() {
             continue;
 
         const auto ShouldWeKeepIt = [vehicle]() {
-            if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bDestroyed)
+            if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bRenderScorched)
                 return true;
 
             if (vehicle == FindPlayerVehicle())
@@ -2846,6 +2846,8 @@ void CWorld::RepositionCertainDynamicObjects() {
 // 0x56BA00
 bool CWorld::ProcessLineOfSight(const CVector& origin, const CVector& target, CColPoint& outColPoint, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck) {
     assert(!origin.HasNanOrInf() && !target.HasNanOrInf()); // We're getting random nan/inf's from somewhere, so let's try to root cause it...
+
+    outEntity = nullptr;
 
     const int32 originSectorX = GetSectorX(origin.x);
     const int32 originSectorY = GetSectorY(origin.y);

@@ -63,20 +63,20 @@ void CTaskComplexDie::SayDeathSample(CPed* ped) const {
     switch (m_nWeaponType) {
     case WEAPON_RAMMEDBYCAR:
     case WEAPON_RUNOVERBYCAR:
-        ped->Say(342);
+        ped->Say(CTX_GLOBAL_PAIN_DEATH_HIGH);
         break;
     case WEAPON_EXPLOSION:
         return;
     case WEAPON_DROWNING:
-        ped->Say(341);
+        ped->Say(CTX_GLOBAL_PAIN_DEATH_DROWN);
         break;
     case WEAPON_FALL:
-        ped->Say(342);
+        ped->Say(CTX_GLOBAL_PAIN_DEATH_HIGH);
         if (CLocalisation::Blood())
-            ped->m_pedAudio.AddAudioEvent(AE_PED_CRUNCH, 0.0f, 1.0f, ped);
+            ped->GetAE().AddAudioEvent(AE_PED_CRUNCH, 0.0f, 1.0f, ped);
         break;
     default:
-        ped->Say(343);
+        ped->Say(CTX_GLOBAL_PAIN_DEATH_LOW);
         break;
     }
 }
@@ -102,8 +102,6 @@ CTask* CTaskComplexDie::CreateNextSubTask(CPed* ped) {
 }
 
 // 0x6302D0
-
-// 0x0
 CTask* CTaskComplexDie::CreateFirstSubTask(CPed* ped) {
     SayDeathSample(ped);
 

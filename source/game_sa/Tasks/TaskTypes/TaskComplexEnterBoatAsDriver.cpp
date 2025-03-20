@@ -61,7 +61,7 @@ CTask* CTaskComplexEnterBoatAsDriver::CreateNextSubTask(CPed* ped) {
     return CreateSubTask([this, ped] {
         switch (m_pSubTask->GetTaskType()) {
         case TASK_COMPLEX_GO_TO_BOAT_STEERING_WHEEL: {
-            return CTask::Cast<CTaskComplexGoToBoatSteeringWheel>(m_pSubTask)->HasAchievedPoint()
+            return notsa::cast<CTaskComplexGoToBoatSteeringWheel>(m_pSubTask)->HasAchievedPoint()
                 ? TASK_COMPLEX_GET_ON_BOAT_SEAT
                 : TASK_FINISHED;
         }

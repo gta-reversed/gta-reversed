@@ -27,14 +27,9 @@ public:
 
     auto GetHashKey() const noexcept { return m_BlendHier->m_hashKey; }
 
-    // 0x4CDF50 - Yeah
-    auto Destructor() {
-        this->~CAnimBlendStaticAssociation();
-        return this;
-    }
-
-    bool IsValid() const { return m_BlendSeqs; } // vanilla sa, inlined function
+    bool IsValid() const { return !!m_BlendSeqs; } // vanilla sa, inlined function
     auto GetAnimHierarchy() const { return m_BlendHier; }
+
 public:
     uint16                        m_NumBlendNodes{};
     notsa::WEnumS16<AnimationId>  m_AnimId{ANIM_ID_UNDEFINED};
@@ -42,5 +37,24 @@ public:
     uint16                        m_Flags{};
     CAnimBlendSequence**          m_BlendSeqs{};
     CAnimBlendHierarchy*          m_BlendHier{};
+
+private:
+    // 0x4CE940
+    auto Constructor1() {
+        this->CAnimBlendStaticAssociation::CAnimBlendStaticAssociation();
+        return this;
+    }
+
+    // 0x4CEF60
+    auto Constructor2(RpClump* clump, CAnimBlendHierarchy* h) {
+        this->CAnimBlendStaticAssociation::CAnimBlendStaticAssociation(clump, h);
+        return this;
+    }
+
+    // 0x4CDF50
+    auto Destructor() {
+        this->~CAnimBlendStaticAssociation();
+        return this;
+    }
 };
 VALIDATE_SIZE(CAnimBlendStaticAssociation, 0x14);

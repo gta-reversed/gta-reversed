@@ -42,7 +42,7 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(ClearMouseHistory, 0x541BD0);
     RH_ScopedInstall(Clear, 0x541A70);
     RH_ScopedInstall(Update, 0x541C40);
-    RH_ScopedInstall(UpdateMouse, 0x53F3C0);
+    RH_ScopedInstall(UpdateMouse, 0x53F3C0, {.locked = true});
     RH_ScopedInstall(ProcessPad, 0x746A10);
     RH_ScopedInstall(ProcessPCSpecificStuff, 0x53FB40);
     RH_ScopedInstall(ReconcileTwoControllersInput, 0x53F530);
@@ -138,7 +138,7 @@ void CPad::ClearMouseHistory() {
 }
 
 // 0x541A70
-void CPad::Clear(bool enablePlayerControls, bool resetPhase) {
+void CPad::Clear(bool clearDisabledControls, bool resetPhase) {
     NewState.Clear();
     OldState.Clear();
     PCTempKeyState.Clear();
@@ -160,7 +160,7 @@ void CPad::Clear(bool enablePlayerControls, bool resetPhase) {
     ShakeDur = 0;
     std::ranges::fill(SteeringLeftRightBuffer, 0);
     DrunkDrivingBufferUsed = 0;
-    if (enablePlayerControls) {
+    if (clearDisabledControls) {
         DisablePlayerControls = 0;
         bDisablePlayerEnterCar = false;
         bDisablePlayerDuck = false;
@@ -250,7 +250,7 @@ void CPad::UpdateMouse() {
         }
 
         // Write directly to NewMouseControllerState
-         CPad::OldMouseControllerState = std::exchange(CPad::NewMouseControllerState, state);
+        CPad::OldMouseControllerState = std::exchange(CPad::NewMouseControllerState, state);
         CPad::NewMouseControllerState.X *= invertX;
         CPad::NewMouseControllerState.Y *= invertY;
     }

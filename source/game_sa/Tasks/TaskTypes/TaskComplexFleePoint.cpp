@@ -154,7 +154,7 @@ CTask* CTaskComplexFleePoint::ControlSubTask(CPed* ped) {
     }
 
     if (m_bScream) {
-        ped->Say(347, 0, 0.1f);
+        ped->Say(CTX_GLOBAL_PAIN_PANIC, 0, 0.1f);
     }
 
     // Moved this here for simplicity, logic unchanged

@@ -480,7 +480,7 @@ void CGlass::RenderHiLightPolys() {
         RwRenderStateSet(rwRENDERSTATEDESTBLEND,     RWRSTATE(rwBLENDONE));
         RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpShadowExplosionTex)));
 
-        if (RwIm3DTransform(aTempBufferVertices, H1iLightPolyVerticesIdx, nullptr, rwIM3D_VERTEXUV)) {
+        if (RwIm3DTransform(TempBufferVertices.m_3d, H1iLightPolyVerticesIdx, nullptr, rwIM3D_VERTEXUV)) {
             RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, aTempBufferIndices, HiLightPolyIndicesIdx);
             RwIm3DEnd();
         }

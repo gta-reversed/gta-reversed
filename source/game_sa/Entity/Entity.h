@@ -176,15 +176,20 @@ public:
     void CalculateBBProjection(CVector* corner1, CVector* corner2, CVector* corner3, CVector* corner4);
     void UpdateAnim();
     bool IsVisible();
-    float GetDistanceFromCentreOfMassToBaseOfModel();
+    float GetDistanceFromCentreOfMassToBaseOfModel() const;
     void CleanUpOldReference(CEntity** entity); // See helper SafeCleanUpOldReference
+
+    /*!
+     * @addr 0x571A40
+     * @brief Clear (set to null) references to `this`
+    */
     void ResolveReferences();
     void PruneReferences();
     void RegisterReference(CEntity** entity);
     void ProcessLightsForEntity();
     void RemoveEscalatorsForEntity();
     bool IsEntityOccluded();
-    bool IsInCurrentAreaOrBarberShopInterior();
+    bool IsInCurrentAreaOrBarberShopInterior() const;
     bool IsInCurrentArea() const;
     void UpdateRW();
     // Always returns a non-null value. In case there's no LOD object `this` is returned. NOTSA
