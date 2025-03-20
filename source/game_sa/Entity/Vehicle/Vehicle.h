@@ -7,6 +7,7 @@
 #pragma once
 
 #include <optional>
+#include <extensions/EntityRef.hpp>
 
 #include "Physical.h"
 #include "AEVehicleAudioEntity.h"
@@ -23,7 +24,6 @@
 #include "FxSystem.h"
 #include "Fire.h"
 
-#include <extensions/EntityRef.hpp>
 #include <Enums/eControllerType.h>
 
 /*  Thanks to MTA team for https://github.com/multitheftauto/mtasa-blue/blob/master/Client/game_sa/CVehicleSA.cpp */
@@ -764,8 +764,8 @@ public: // NOTSA functions
     /// Is the vehicle totally flipped (Should probably be moved to `CPlaceable`)
     [[nodiscard]] bool IsTotallyUpsideDown() const { return GetUp().z < 0.f; }
 
-    /// Is there enough space for at least one more passenger
-    [[nodiscard]] bool HasSpaceForAPassenger() const { return m_nMaxPassengers > m_nNumPassengers + 1; }
+    /// Is there enough space for at least one more passenger - TODO: -1 is only for buses
+    [[nodiscard]] bool HasSpaceForAPassenger() const { return m_nMaxPassengers -1 > m_nNumPassengers; }
 
 private:
 
