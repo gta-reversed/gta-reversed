@@ -3,7 +3,6 @@
 #include "./Commands.hpp"
 #include <CommandParser/Parser.hpp>
 
-#include "CommandParser/Parser.hpp"
 using namespace notsa::script;
 /*!
 * Various camera commands
@@ -38,7 +37,7 @@ void DoCameraBump(float horizontal, float vertical) {
     CCamera::GetActiveCamera().DoCamBump(horizontal, vertical);
 }
 
-// DO_FADE @ 0x47C7C7
+// DO_FADE - 0x47C7C7
 void DoCamFade(CRunningScript* S, uint32 time, eFadeFlag direction) {
     TheCamera.Fade((float)time / 1000.f, direction);
     if (S->m_bUseMissionCleanup) {
