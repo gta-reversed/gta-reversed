@@ -88,7 +88,7 @@ void CBmx::ProcessControl() {
     }
 
     auto animBikeSprint = RpAnimBlendClumpGetAssociation(m_pDriver->m_pRwClump, ANIM_ID_BIKE_SPRINT);
-    bool isMountainBike = GetModelId() == MODEL_MTBIKE;
+    bool isMountainBike = GetModelIndex() == MODEL_MTBIKE;
 
     if (animBikeSprint && animBikeSprint->GetBlendAmount() > 0.01f) {
         float mult         = isMountainBike ? MTB_SPRINT_LEANMULT : BMX_SPRINT_LEANMULT;

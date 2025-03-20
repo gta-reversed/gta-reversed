@@ -13,6 +13,54 @@
 
 /* http://code.google.com/p/mtasa-blue/source/browse/tags/1.3.4/MTA10/game_sa/CCamSA.h */
 
+enum {
+  LOOKING_BEHIND = 0x0,
+  LOOKING_LEFT = 0x1,
+  LOOKING_RIGHT = 0x2,
+  LOOKING_FORWARD = 0x3,
+};
+
+enum eArrestCam {
+    ARRESTCAM_NONE = 0,
+    ARRESTCAM_DW = 1,
+    ARRESTCAM_OVERSHOULDER = 2,
+    ARRESTCAM_ALONGGROUND = 3,
+    ARRESTCAM_ALONGGROUND_RIGHT = 4,
+    ARRESTCAM_ALONGGROUND_RIGHT_UP = 5,
+    ARRESTCAM_ALONGGROUND_LEFT = 6,
+    ARRESTCAM_ALONGGROUND_LEFT_UP = 7,
+    ARRESTCAM_FROMLAMPPOST = 8,
+};
+
+struct CamFollowPedData {
+    float fTargetOffsetZ;
+    float fBaseCamDist;
+    float fBaseCamZ;
+    float fMinDist;
+    float fMinFollowDist;
+    float fDiffAlphaRate;
+    float fDiffAlphaCap;
+    float fDiffAlphaSwing;
+    float fDiffBetaRate;
+    float fDiffBetaCap;
+    float fDiffBetaSwing;
+    float fDiffBetaSwingCap;
+    float fStickMult;
+    float fUpLimit;
+    float fDownLimit;
+};
+
+enum {
+    FOLLOW_CAR_INCAR = 0,
+    FOLLOW_CAR_ONBIKE,
+    FOLLOW_CAR_INHELI,
+    FOLLOW_CAR_INPLANE,
+    FOLLOW_CAR_INBOAT,
+    FOLLOW_CAR_RCCAR,
+    FOLLOW_CAR_RCHELI,
+    FOLLOW_CAR_MAX
+};
+
 class CEntity;
 class CPed;
 class CVehicle;
@@ -73,11 +121,11 @@ public:
     float     m_fTrueBeta;
     float     m_fTrueAlpha;
     float     m_fInitialPlayerOrientation;
-    float     m_fVerticalAngle;  ///< The radian angle ([-pi/2, pi/2]) relative to the entity the camera is locked on (the player usually)
+    float     m_fAlpha;  ///< The radian angle ([-pi/2, pi/2]) relative to the entity the camera is locked on (the player usually)
     float     m_fAlphaSpeed;
     float     m_fFOV;
     float     m_fFOVSpeed;
-    float     m_fHorizontalAngle;
+    float     m_fBeta;
     float     m_fBetaSpeed;
     float     m_fDistance;
     float     m_fDistanceSpeed;
@@ -116,9 +164,9 @@ public:
     CVector   m_vecSource;
     CVector   m_vecSourceBeforeLookBehind;
     CVector   m_vecUp;
-    CVector   m_avecPreviousVectors[2];
-    CVector   m_avecTargetHistoryPos[4];
-    uint32    m_anTargetHistoryTime[4];
+    CVector   m_arrPreviousVectors[2];
+    CVector   m_aTargetHistoryPos[4];
+    uint32    m_nTargetHistoryTime[4];
     uint32    m_nCurrentHistoryPoints;
     CEntity*  m_pCamTargetEntity; // Owner entity. e.g.: player
     float     m_fCameraDistance;
@@ -141,7 +189,7 @@ public:
     void GetCoreDataForDWCineyCamMode(CEntity*& entity, CVehicle*& vehicle, CVector& dest, CVector& src, CVector& targetUp, CVector& targetRight, CVector& targetFwd, CVector& targetVel, float& targetSpeed, CVector& targetAngVel, float& targetAngSpeed, CColSphere& colSphere);
     void GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& vecTarget, const CVector& vecSource);
     void GetVectorsReadyForRW();
-    void Get_TwoPlayer_AimVector(CVector&);
+    CEntity *Get_TwoPlayer_AimVector(CVector&);
     bool IsTimeToExitThisDWCineyCamMode(int32 camId, const CVector& src, const CVector& dst, float t, bool lineOfSightCheck);
     void KeepTrackOfTheSpeed(const CVector&, const CVector&, const CVector&, const float&, const float&, const float&);
     void LookBehind();
@@ -195,3 +243,5 @@ VALIDATE_SIZE(CCam, 0x238);
 
 int32 ConvertPedNode2BoneTag(int32 simpleId);
 bool  IsLampPost(eModelID modelId);
+float FTrunc(float, int);
+void VecTrunc(CVector*, int);

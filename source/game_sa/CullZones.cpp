@@ -10,18 +10,24 @@ void CCullZones::InjectHooks() {
     RH_ScopedInstall(AddCullZone, 0x72DF70);
     RH_ScopedInstall(AddTunnelAttributeZone, 0x72DB50);
     RH_ScopedInstall(AddMirrorAttributeZone, 0x72DC10);
-    RH_ScopedInstall(InRoomForAudio, 0x72DD70);
-    RH_ScopedInstall(FewerCars, 0x72DD80);
-    RH_ScopedInstall(CamNoRain, 0x72DDB0);
-    RH_ScopedInstall(PlayerNoRain, 0x72DDC0);
-    RH_ScopedInstall(FewerPeds, 0x72DD90);
-    RH_ScopedInstall(NoPolice, 0x72DD50);
-    RH_ScopedInstall(DoExtraAirResistanceForPlayer, 0x72DDD0);
     RH_ScopedInstall(FindTunnelAttributesForCoors, 0x72D9F0);
     RH_ScopedInstall(FindMirrorAttributesForCoors, 0x72DA70);
     RH_ScopedInstall(FindZoneWithStairsAttributeForPlayer, 0x72DAD0);
     RH_ScopedInstall(FindAttributesForCoors, 0x72D970);
     RH_ScopedInstall(Update, 0x72DEC0);
+    RH_ScopedInstall(CamCloseInForPlayer, 0x72DD20);
+    RH_ScopedInstall(CamStairsForPlayer, 0x72DD30);
+    RH_ScopedInstall(Cam1stPersonForPlayer, 0x72DD40);
+    RH_ScopedInstall(PoliceAbandonCars, 0x72DD60);
+    RH_ScopedInstall(InRoomForAudio, 0x72DD70);
+    RH_ScopedInstall(CamNoRain, 0x72DDB0);
+    RH_ScopedInstall(FewerCars, 0x72DD80);
+    RH_ScopedInstall(PlayerNoRain, 0x72DDC0);
+    RH_ScopedInstall(FewerPeds, 0x72DD90);
+    RH_ScopedInstall(NoPolice, 0x72DD50);
+    RH_ScopedInstall(DoExtraAirResistanceForPlayer, 0x72DDD0);
+
+    RH_ScopedGlobalInstall(IsPointWithinArbitraryArea, 0x72DDE0);
 }
 
 // 0x72D6B0
@@ -33,37 +39,51 @@ void CCullZones::Init() {
     CurrentFlags_Camera = 0;
 }
 
-// flags: see eZoneAttributes
+// 0x72DDE0
+bool IsPointWithinArbitraryArea(float TestPointX, float TestPointY, float Point1X, float Point1Y, float Point2X, float Point2Y, float Point3X, float Point3Y, float Point4X, float Point4Y) {
+    if (-(((TestPointY - Point1Y) * (Point2X - Point1X)) - ((TestPointX - Point1X) * (Point2Y - Point1Y))) < 0.0) {
+        return 0;
+    }
+    if (-(((TestPointY - Point2Y) * (Point3X - Point2X)) - ((TestPointX - Point2X) * (Point3Y - Point2Y))) < 0.0) {
+        return 0;
+    }
+    if (-(((TestPointY - Point3Y) * (Point4X - Point3X)) - ((TestPointX - Point3X) * (Point4Y - Point3Y))) >= 0.0) {
+        return -(((Point1X - Point4X) * (TestPointY - Point4Y)) - ((TestPointX - Point4X) * (Point1Y - Point4Y))) >= 0.0;
+    }
+    return 0;
+}
+
+// flags: see eZoneAttributeFlags
 // 0x72DF70
 void CCullZones::AddCullZone(const CVector& center, float unk1, float fWidthY, float fBottomZ, float fWidthX, float unk2, float fTopZ, uint16 flags) {
-    if ((flags & (eZoneAttributes::UNKNOWN_1 | eZoneAttributes::UNKNOWN_2))) {
+    if ((flags & (eZoneAttributeFlags::ZONE_ATTRIBUTE_UNKNOWN_1 | eZoneAttributeFlags::ZONE_ATTRIBUTE_UNKNOWN_2))) {
         AddTunnelAttributeZone(center, unk1, fWidthY, fBottomZ, fWidthX, unk2, fTopZ, flags);
-        flags &= ~(eZoneAttributes::UNKNOWN_2 | eZoneAttributes::UNKNOWN_1);
+        flags &= ~(eZoneAttributeFlags::ZONE_ATTRIBUTE_UNKNOWN_2 | eZoneAttributeFlags::ZONE_ATTRIBUTE_UNKNOWN_1);
     }
 
-    // Will be computed if flags less than 0x880 (UNKNOWN_1 + UNKNOWN_2)
+    // Will be computed if flags less than 0x880 (ZONE_ATTRIBUTE_UNKNOWN_1 + ZONE_ATTRIBUTE_UNKNOWN_2)
     if (flags) {
         CCullZone& zone = aAttributeZones[NumAttributeZones];
         zone.zoneDef.Init(center, unk1, fWidthY, fBottomZ, fWidthX, unk2, fTopZ);
-        zone.flags = static_cast<eZoneAttributes>(flags);
+        zone.flags = static_cast<eZoneAttributeFlags>(flags);
 
         NumAttributeZones += 1;
     }
 }
 
-// flags: see eZoneAttributes
+// flags: see eZoneAttributeFlags
 // 0x72DB50
 void CCullZones::AddTunnelAttributeZone(const CVector& center, float unk1, float fWidthY, float fBottomZ, float fWidthX, float unk2, float fTopZ, uint16 flags) {
     CCullZone& zone = aTunnelAttributeZones[NumTunnelAttributeZones];
 
     zone.zoneDef.Init(center, unk1, fWidthY, fBottomZ, fWidthX, unk2, fTopZ);
-    zone.flags = static_cast<eZoneAttributes>(flags);
+    zone.flags = static_cast<eZoneAttributeFlags>(flags);
 
     NumTunnelAttributeZones += 1;
 }
 
 // 0x72DC10
-void CCullZones::AddMirrorAttributeZone(const CVector& center, float unk1, float fWidthY, float fBottomZ, float fWidthX, float unk2, float fTopZ, eZoneAttributes flags, float cm, float vX, float vY, float vZ) {
+void CCullZones::AddMirrorAttributeZone(const CVector& center, float unk1, float fWidthY, float fBottomZ, float fWidthX, float unk2, float fTopZ, eZoneAttributeFlags flags, float cm, float vX, float vY, float vZ) {
     CCullZoneReflection& zone = aMirrorAttributeZones[NumMirrorAttributeZones];
 
     zone.zoneDef.Init(center, unk1, fWidthY, fBottomZ, fWidthX, unk2, fTopZ);
@@ -76,60 +96,81 @@ void CCullZones::AddMirrorAttributeZone(const CVector& center, float unk1, float
     NumMirrorAttributeZones += 1;
 }
 
+// 0x72DD20
+bool CCullZones::CamCloseInForPlayer() {
+    return (CCullZones::CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_CAMCLOSEIN_FORPLAYER) != 0;
+}
+
+// 0x72DD30
+bool CCullZones::CamStairsForPlayer() {
+    return (CCullZones::CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_CAMSTAIRS_FORPLAYER) != 0;
+}
+
+// 0x72DD40
+bool CCullZones::Cam1stPersonForPlayer() {
+    return (CCullZones::CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_CAM1STPERSONS_FORPLAYER) != 0;
+}
+// 0x72DD60
+bool CCullZones::PoliceAbandonCars() {
+    return (CCullZones::CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_POLICES_ABANDONCARS) != 0;
+}
+
 // 0x72DD70
 bool CCullZones::InRoomForAudio() {
-    return (CurrentFlags_Camera & eZoneAttributes::IN_ROOMS_FOR_AUDIO) != 0;
+    return (CCullZones::CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_INROOMS_FORAUDIO) != 0;
 }
 
 // 0x72DD80
 bool CCullZones::FewerCars() {
-    return (CurrentFlags_Player & eZoneAttributes::FEWER_CARS) != 0;
+    return (CCullZones::CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_FEWERCARS) != 0;
 }
 
 // 0x72DDB0
 bool CCullZones::CamNoRain() {
-    return (CurrentFlags_Camera & eZoneAttributes::CAM_NO_RAIN) != 0;
+    return (CCullZones::CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_CAMNORAIN) != 0;
 }
 
 // 0x72DDC0
 bool CCullZones::PlayerNoRain() {
-    return (CurrentFlags_Player & eZoneAttributes::CAM_NO_RAIN) != 0;
+    return (CCullZones::CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_CAMNORAIN) != 0;
 }
 
 // 0x72DD90
 bool CCullZones::FewerPeds() {
-    return (CurrentFlags_Player & eZoneAttributes::IN_ROOMS_FEWER_PEDS) != 0;
+    return (CCullZones::CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_INROOMS_FEWERPEDS) != 0;
 }
 
 // 0x72DD50
 bool CCullZones::NoPolice() {
-    return (CurrentFlags_Player & eZoneAttributes::NO_POLICE) != 0;
+    return (CCullZones::CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_POLICES_ABANDONCARS) != 0;
 }
 
 // 0x72DDD0
 bool CCullZones::DoExtraAirResistanceForPlayer() {
-    return (CurrentFlags_Player & eZoneAttributes::EXTRA_AIR_RESISTANCE) != 0;
+    return (CCullZones::CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_EXTRA_AIRRESISTANCE) != 0;
 }
 
 // 0x72D9F0
-eZoneAttributes CCullZones::FindTunnelAttributesForCoors(CVector point) {
-    if (NumTunnelAttributeZones <= 0)
-        return eZoneAttributes::NONE;
+eZoneAttributeFlags CCullZones::FindTunnelAttributesForCoors(CVector point) {
+    if (NumTunnelAttributeZones <= 0) {
+        return eZoneAttributeFlags::ZONE_ATTRIBUTE_CAMNONE;
+    }
 
-    int32 out = eZoneAttributes::NONE;
+    int32 out = eZoneAttributeFlags::ZONE_ATTRIBUTE_CAMNONE;
     for (CCullZone& zone : aTunnelAttributeZones) {
         if (zone.IsPointWithin(point)) {
             out |= zone.flags;
         }
     }
 
-    return static_cast<eZoneAttributes>(out);
+    return static_cast<eZoneAttributeFlags>(out);
 }
 
 // 0x72DA70
 CCullZoneReflection* CCullZones::FindMirrorAttributesForCoors(CVector cameraPosition) {
-    if (NumMirrorAttributeZones <= 0)
+    if (NumMirrorAttributeZones <= 0) {
         return nullptr;
+    }
 
     for (CCullZoneReflection& zone : aMirrorAttributeZones) {
         if (zone.IsPointWithin(cameraPosition)) {
@@ -142,11 +183,12 @@ CCullZoneReflection* CCullZones::FindMirrorAttributesForCoors(CVector cameraPosi
 
 // 0x72DAD0
 CCullZone* CCullZones::FindZoneWithStairsAttributeForPlayer() {
-    if (NumAttributeZones <= 0)
+    if (NumAttributeZones <= 0) {
         return nullptr;
+    }
 
     for (CCullZone& zone : aAttributeZones) {
-        if ((zone.flags & eZoneAttributes::CAM_STAIRS_FOR_PLAYER) != 0 &&
+        if ((zone.flags & eZoneAttributeFlags::ZONE_ATTRIBUTE_CAMSTAIRS_FORPLAYER) != 0 &&
             zone.IsPointWithin(FindPlayerCoors())
         ) {
             return &zone;
@@ -157,18 +199,19 @@ CCullZone* CCullZones::FindZoneWithStairsAttributeForPlayer() {
 }
 
 // 0x72D970
-eZoneAttributes CCullZones::FindAttributesForCoors(CVector pos) {
-    if (NumAttributeZones <= 0)
-        return eZoneAttributes::NONE;
+eZoneAttributeFlags CCullZones::FindAttributesForCoors(CVector pos) {
+    if (NumAttributeZones <= 0) {
+        return eZoneAttributeFlags::ZONE_ATTRIBUTE_CAMNONE;
+    }
 
-    int32 out = eZoneAttributes::NONE;
+    int32 out = eZoneAttributeFlags::ZONE_ATTRIBUTE_CAMNONE;
     for (CCullZone& zone : aAttributeZones) {
         if (zone.IsPointWithin(pos)) {
             out |= zone.flags;
         }
     }
 
-    return static_cast<eZoneAttributes>(out);
+    return static_cast<eZoneAttributeFlags>(out);
 }
 
 // 0x72DEC0
@@ -182,7 +225,7 @@ void CCullZones::Update() {
 
     if ((CTimer::GetFrameCounter() & 7) == 6) {
         CurrentFlags_Player = FindAttributesForCoors(FindPlayerCoors());
-        if (!bMilitaryZonesDisabled && (CurrentFlags_Player & eZoneAttributes::MILITARY_ZONE) != 0) {
+        if (!bMilitaryZonesDisabled && (CurrentFlags_Player & eZoneAttributeFlags::ZONE_ATTRIBUTE_MILITARYZONE) != 0) {
             auto player = FindPlayerPed();
             if (player->IsAlive()) {
                 player->SetWantedLevelNoDrop(5);

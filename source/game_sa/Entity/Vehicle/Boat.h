@@ -30,8 +30,8 @@ enum eBoatNodes {
 class NOTSA_EXPORT_VTABLE CBoat : public CVehicle {
 public:
     float m_fMovingHiRotation; // works as counter also
-    float m_fPropSpeed;        // propeller speed
-    float m_fPropRotation;     // propeller rotation (radians)
+    float m_fEngineSpeed;        // propeller speed
+    float m_fPropellerAngle;     // propeller rotation (radians)
     struct {
         uint8 bOnWater : 1; // is placed on water
         uint8 bMovingOnWater : 1;

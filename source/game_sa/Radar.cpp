@@ -1859,7 +1859,7 @@ void CRadar::DrawBlips() {
             // draw the menu map ruler.
             const auto mouseX = FrontEndMenuManager.m_nMousePosX, mouseY = FrontEndMenuManager.m_nMousePosY;
 
-            if (!CPad::IsMouseLButton() &&
+            if (!CPad::GetLeftMouse() &&
                 mouseX > SCREEN_STRETCH_X(60.0f) && mouseX < SCREEN_STRETCH_FROM_RIGHT(60.0f) &&
                 mouseY > SCREEN_STRETCH_Y(60.0f) && mouseY < SCREEN_STRETCH_FROM_BOTTOM(60.0f) ||
                 !FrontEndMenuManager.m_bDrawMouse)

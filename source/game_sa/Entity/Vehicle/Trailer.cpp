@@ -217,7 +217,7 @@ int32 CTrailer::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints)
             m_fWheelsSuspensionCompression[i] = touchDist;
             m_wheelColPoint[i] = cp;
 
-            m_anCollisionLighting[i] = cp.m_nLightingB;
+            m_storedCollisionLighting[i] = cp.m_nLightingB;
             m_nContactSurface = cp.m_nSurfaceTypeB;
 
             switch (entity->GetType()) {
@@ -227,12 +227,12 @@ int32 CTrailer::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints)
 
                 m_vWheelCollisionPos[i] = cp.m_vecPoint - entity->GetPosition();
                 if (entity->IsVehicle()) {
-                    m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
+                    m_storedCollisionLighting[i] = entity->AsVehicle()->m_storedCollisionLighting[i];
                 }
                 break;
             }
             case ENTITY_TYPE_BUILDING: {
-                m_pEntityWeAreOn = entity;
+                pEntityWeAreOnForVisibilityCheck = entity;
                 m_bTunnel = entity->m_bTunnel;
                 m_bTunnelTransition = entity->m_bTunnelTransition;
                 break;
@@ -301,7 +301,7 @@ bool CTrailer::GetTowHitchPos(CVector& outPos, bool bCheckModelInfo, CVehicle* v
         if (bCheckModelInfo) {
             outPos.x = 0.0f;
             outPos.y = mi->GetColModel()->GetBoundingBox().m_vecMax.y + 1.0f;
-            outPos.z = 0.5f - m_fFrontHeightAboveRoad;
+            outPos.z = 0.5f - m_fHeightAboveRoad;
             outPos = m_matrix->TransformPoint(outPos);
             return true;
         }
@@ -322,7 +322,7 @@ bool CTrailer::GetTowBarPos(CVector& outPos, bool bCheckModelInfo, CVehicle* veh
     auto mi = GetVehicleModelInfo();
     outPos.x = 0.0f;
     outPos.y = mi->GetColModel()->GetBoundingBox().m_vecMin.y - -0.05f;
-    outPos.z = 0.5f - m_fFrontHeightAboveRoad;
+    outPos.z = 0.5f - m_fHeightAboveRoad;
     outPos = m_matrix->TransformPoint(outPos);
     return true;
 }

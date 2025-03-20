@@ -39,34 +39,35 @@ enum ePlaneNodes {
 
 class NOTSA_EXPORT_VTABLE CPlane : public CAutomobile {
 public:
-    float        m_fLeftRightSkid;
-    float        m_fSteeringUpDown;
-    float        m_fSteeringLeftRight;
-    float        m_fAccelerationBreakStatus;
-    float        m_fAccelerationBreakStatusPrev;
-    float        m_fSteeringFactor;
-    float        field_9A0;
-    float        m_planeCreationHeading; // The heading when plane is created or placed on road properly
-    float        m_maxAltitude;
-    float        m_altitude;
-    float        m_minAltitude;
-    float        m_planeHeading;
-    float        m_planeHeadingPrev;
-    float        m_forwardZ;
-    uint32       m_nStartedFlyingTime;
-    float        m_fPropSpeed;
-    float        field_9C8;
-    float        m_fLandingGearStatus;
-    int32        m_planeDamageWave;
-    FxSystem_c** m_pGunParticles;
-    uint8        m_nFiringMultiplier;
-    int32        field_9DC;
-    int32        field_9E0;
-    int32        field_9E4;
-    std::array<FxSystem_c*, 4> m_apJettrusParticles;
-    FxSystem_c*  m_pSmokeParticle;
-    uint32       m_nSmokeTimer;
-    bool         m_bSmokeEjectorEnabled;
+    float                      m_fYawControl;
+    float                      m_fPitchControl;
+    float                      m_fRollControl;
+    float                      m_fThrottleControl;
+    float                      m_fScriptThrottleControl;
+    float                      m_fPreviousRoll;
+    uint32                     m_nStallCounter;
+    float                      m_TakeOffDirection;
+    float                      m_LowestFlightHeight;
+    float                      m_DesiredHeight;
+    float                      m_MinHeightAboveTerrain;
+    float                      m_FlightDirection;
+    float                      m_FlightDirectionAvoidingTerrain;
+    float                      m_OldTilt;
+    uint32                     m_OnGroundTimer;
+    float                      m_fEngineSpeed;
+    float                      m_fPropellerAngle;
+    float                      m_fLGearAngle;
+    uint32                     m_nDamageControlWaveCounter;
+    FxSystem_c**               m_GunflashFxPtrs;
+    uint8                      m_FiringRateMultiplier;
+    uint32                     m_FireMissilePressedTime;
+    CEntity*                   m_pLastMissileTarget;
+    uint32                     m_LastHSMissileLOSTime : 31;
+    uint32                     m_bLastHSMissileLOS : 1;
+    std::array<FxSystem_c*, 4> m_fxSysNozzle;
+    FxSystem_c*                m_fxSysFire;
+    int32                      m_fireTime;
+    bool8                      m_fxActive;
 
     static constexpr auto Type = VEHICLE_TYPE_PLANE;
 

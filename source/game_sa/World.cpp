@@ -88,7 +88,7 @@ void CWorld::InjectHooks() {
     RH_ScopedInstall(FindObjectsIntersectingCube, 0x568DD0);
     RH_ScopedInstall(FindObjectsKindaColliding, 0x568B80); // bad
     RH_ScopedInstall(FindObjectsOfTypeInRangeSectorList, 0x5635C0);
-    RH_ScopedInstall(FindObjectsInRangeSectorList, 0x563500);
+    RH_ScopedInstall(FindObjectsInRangeSectorList, 0x563500, { .reversed = false });
     RH_ScopedInstall(FindPlayerSlotWithVehiclePointer, 0x563FD0);
     RH_ScopedInstall(FindNearestObjectOfTypeSectorList, 0x565450);
     RH_ScopedInstall(FindMissionEntitiesIntersectingCubeSectorList, 0x565300);
