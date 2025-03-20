@@ -13,7 +13,6 @@
 
 /* http://code.google.com/p/mtasa-blue/source/browse/tags/1.3.4/MTA10/game_sa/CCamSA.h */
 
-// C2DBCEB0BDF82F2DB2529BA1681CB0F9
 enum {
   LOOKING_BEHIND = 0x0,
   LOOKING_LEFT = 0x1,
