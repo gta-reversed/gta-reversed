@@ -887,10 +887,9 @@ void CPostEffects::CCTV() {
     const auto linePadding = 2 * lineHeight;
     const auto numLines    = static_cast<uint32>(SCREEN_HEIGHT) / linePadding;
     for (auto i = 0u, y = 0u; i < numLines; i++, y += linePadding) {
-        const auto Y = static_cast<float>(y);
         DrawQuad(
             0.0f,
-            Y,
+            (float)(y),
             SCREEN_WIDTH,
             static_cast<float>(lineHeight),
             m_CCTVcol.r,
