@@ -228,7 +228,7 @@ void CPostEffects::DoScreenModeDependentInitializations() {
 
 // NOTSA
 // Returns the next power of two of `n`
-uint32 GetNextPow2(uint32 n) {
+static uint32 GetNextPow2(uint32 n) {
     if (n == 0) {
         return 1;
     }
@@ -281,16 +281,16 @@ void CPostEffects::SetupBackBufferVertex() {
     cc_vertices[2].x   = fwidth;
     cc_vertices[2].y   = fheight;
     cc_vertices[2].z   = RwIm2DGetNearScreenZ();
-    cc_vertices[3].y   = 0.0f;
     cc_vertices[2].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
     cc_vertices[2].u   = (fwidth + 0.5f) / fwidth;
     cc_vertices[2].v   = (fheight + 0.5f) / fheight;
 
     cc_vertices[3].x   = fwidth;
+    cc_vertices[3].y   = 0.0f;
     cc_vertices[3].z   = RwIm2DGetNearScreenZ();
+    cc_vertices[3].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
     cc_vertices[3].u   = (fwidth + 0.5f) / fwidth;
     cc_vertices[3].v   = 0.5f / fheight;
-    cc_vertices[3].rhw = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
 
     if (pRasterFrontBuffer) {
         DoScreenModeDependentInitializations();
@@ -565,7 +565,7 @@ void CPostEffects::ScriptResetForEffects() {
     CWaterLevel::m_bWaterFogScript = true;
 }
 
-// 0x7039C00x7039C0
+// 0x7039C0
 void CPostEffects::UnderWaterRipple(RwRGBA col, float xoffset, float yoffset, float strength, float speed, float freq) {
     plugin::Call<0x7039C0, RwRGBA, float, float, float, float, float>(col, xoffset, yoffset, strength, speed, freq);
 }
@@ -1159,14 +1159,6 @@ void CPostEffects::Render() {
     }
 
     if (m_waterEnable || CWeather::UnderWaterness >= m_fWaterFXStartUnderWaterness) {
-        const auto depthLightMult = [&] {
-            if (m_bWaterDepthDarkness) {
-                return 1.0f - std::min(CWeather::WaterDepth, m_fWaterFullDarknessDepth) / m_fWaterFullDarknessDepth;
-            } else {
-                return 1.0f;
-            }
-        }();
-
         CRGBA color{m_waterCol};
         color.r += 184;
         color.g += static_cast<uint8>(184.0f + s_WaterGreen);
