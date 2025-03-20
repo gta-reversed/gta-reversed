@@ -1245,13 +1245,10 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         if (m_nModelIndex != MODEL_TAXI && m_nModelIndex != MODEL_CABBIE) {
             CVector target = GetPosition();
             target += GetRight() * 3.0f + GetForward() * 10.0f;
-            CColPoint outColPoint{};
-            CEntity* outEntity = nullptr;
-            if (!CWorld::ProcessLineOfSight(GetPosition(), target, outColPoint, outEntity, true, true, true,
-                false, false, false, false, false)
-                || outEntity == this)
-            {
-                CCarAI::GetCarToParkAtCoors(this, &target);
+            CColPoint cp{};
+            CEntity* hit;
+            if (!CWorld::ProcessLineOfSight(GetPosition(), target, cp, hit, true, true, true, false, false, false, false, false) || hit == this) {
+                CCarAI::GetCarToParkAtCoors(this, target);
             }
         }
     }
@@ -2356,11 +2353,11 @@ void CAutomobile::BlowUpCar_Impl(CEntity* dmgr, bool bDontShakeCam, bool bDontSp
         if (IsSubPlane() && GetStatus() != STATUS_PLAYER) {
             switch (m_autoPilot.m_nCarMission) {
             case MISSION_PLANE_FLYTOCOORS:
-            case MISSION_PLANE_ATTACK_PLAYER_0:
-            case MISSION_PLANE_FLY_IN_DIRECTION:
+            case MISSION_PLANE_ATTACK_PLAYER:
+            case MISSION_PLANE_FLYINDIRECTION:
             case MISSION_PLANE_FOLLOW_ENTITY:
-            case MISSION_PLANE_ATTACK_PLAYER_1:
-            case MISSION_PLANE_DOGFIGHT:
+            case MISSION_PLANE_ATTACK_PLAYER_POLICE:
+            case MISSION_PLANE_DOG_FIGHT_ENTITY:
             case MISSION_PLANE_DOGFIGHT_AGAINST_PLAYER:
                 m_autoPilot.SetCarMission(MISSION_CRASH_PLANE_AND_BURN);
                 return;
@@ -2917,8 +2914,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
             && lastImpactVel_Dot_Fwd < -0.4f // Impact was from behind - (-66, 66) deg
             && m_fDamageIntensity / m_fMass > 0.1f
         ) {
-            m_autoPilot.m_nTempAction = 19;
-            m_autoPilot.m_nTempActionTime = CTimer::GetTimeInMS() + 4000;
+            m_autoPilot.SetTempAction(TEMPACT_HEADON_COLLISION, 4'000);
         }
 
         if (m_pDamageEntity) {
@@ -3922,8 +3918,8 @@ float CAutomobile::GetMovingCollisionOffset() {
 // 0x6A2390
 void CAutomobile::TellHeliToGoToCoors(float x, float y, float z, float altitudeMin, float altitudeMax) {
     m_autoPilot.m_vecDestinationCoors = CVector{ x, y, z };
-    m_autoPilot.m_nCarMission = MISSION_HELI_FLYTOCOORS;
-    m_autoPilot.m_nCruiseSpeed = 100;
+    m_autoPilot.SetCarMission(MISSION_HELI_FLYTOCOORS);
+    m_autoPilot.SetCruiseSpeed(100);
 
     AsHeli()->m_fMinAltitude = altitudeMin;
     AsHeli()->m_fMaxAltitude = altitudeMax;
@@ -3956,8 +3952,8 @@ void CAutomobile::ClearHeliOrientation() {
 // 0x6A2470
 void CAutomobile::TellPlaneToGoToCoors(float x, float y, float z, float altitudeMin, float altitudeMax) {
     m_autoPilot.m_vecDestinationCoors = CVector{ x, y, z };
-    m_autoPilot.m_nCarMission = MISSION_PLANE_FLYTOCOORS;
-    m_autoPilot.m_nCruiseSpeed = 0;
+    m_autoPilot.SetCarMission(MISSION_PLANE_FLYTOCOORS);
+    m_autoPilot.SetCruiseSpeed(0);
 
     AsPlane()->m_minAltitude = std::max(altitudeMin, z);
     AsPlane()->m_maxAltitude = altitudeMax;

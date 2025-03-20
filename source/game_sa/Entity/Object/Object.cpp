@@ -150,8 +150,8 @@ CObject::~CObject() {
 
     RemoveFromControlCodeList();
     if (m_nModelIndex == ModelIndices::MI_TRAINCROSSING1) {
-        const auto& dummyPos = m_pDummyObject->GetPosition();
-        ThePaths.SetLinksBridgeLights(dummyPos.x - 12.0F, dummyPos.x + 12.0F, dummyPos.y - 12.0F, dummyPos.y + 12.0F, false);
+        const auto& p = m_pDummyObject->GetPosition();
+        ThePaths.SetLinksBridgeLights(p.x - 12.0F, p.x + 12.0F, p.y - 12.0F, p.y + 12.0F, false);
     }
 
     if (m_pFire)

@@ -337,9 +337,8 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     m_RearCollPoly.valid = false;
     m_pHandlingData = nullptr;
     m_nHandlingFlagsIntValue = static_cast<eVehicleHandlingFlags>(0);
-    m_autoPilot.m_nCarMission = MISSION_NONE;
-    m_autoPilot.m_nTempAction = 0;
-    m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
+    m_autoPilot.m_nTempAction = TEMPACT_NONE;
+    m_autoPilot.SetCarMission(MISSION_NONE, 0);
     m_autoPilot.carCtrlFlags.bAvoidLevelTransitions = false;
     m_nRemapTxd = -1;
     m_nPreviousRemapTxd = -1;

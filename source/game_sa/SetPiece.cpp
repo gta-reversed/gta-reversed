@@ -159,8 +159,7 @@ void CSetPiece::Update() {
             car->m_autoPilot.m_vecDestinationCoors = CVector{ target };
             car->m_nTimeTillWeNeedThisCar          = CTimer::GetTimeInMS() + timeNeeded;
             if (tempAction) {
-                car->m_autoPilot.m_nTempAction = 9;
-                car->m_autoPilot.m_nTempActionTime = CTimer::GetTimeInMS() + 100;
+                car->m_autoPilot.SetTempAction(TEMPACT_GOFORWARD, 100);
             }
             if (addSpeed) {
                 car->GetMoveSpeed() = car->GetForward() * 2.0f / 3.0f;
