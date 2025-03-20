@@ -69,10 +69,10 @@ enum class eMotionBlurType : uint32 {
 };
 
 struct CamTweak {
-    int32 m_nModelIndex;
-    float m_fDistance;
-    float m_fAltitude;
-    float m_fAngle;
+    int32 ModelID;
+    float Dist;
+    float Alt;
+    float Angle;
 };
 VALIDATE_SIZE(CamTweak, 0x10);
 
@@ -210,7 +210,7 @@ public:
     uint16          m_nAvoidTheGeometryProbsDirn{};
     float           m_fWideScreenReductionAmount{};
     float           m_fStartingFOVForInterPol{};
-    CCam            m_aCams[3]{};
+    CCam            m_aCams[3]{}; /* 2 = debug cam */
     CGarage*        m_pToGarageWeAreIn{};
     CGarage*        m_pToGarageWeAreInForHackAvoidFirstPerson{};
     CQueuedMode     m_PlayerMode{};
@@ -433,10 +433,11 @@ public:
     void UpdateTargetEntity();
     bool Using1stPersonWeaponMode() const;
 
-    bool VectorMoveRunning();
-    void VectorMoveLinear(CVector* moveLinearPosnEnd, CVector* moveLinearPosnStart, float duration, bool bMoveLinearWithEase);
-    bool VectorTrackRunning();
-    void VectorTrackLinear(CVector* trackLinearStartPoint, CVector* trackLinearEndPoint, float duration, bool bEase);
+    bool VectorMoveRunning() const;
+    void VectorMoveLinear(CVector* to, CVector* from, float duration, bool bMoveLinearWithEase);
+
+    bool VectorTrackRunning() const;
+    void VectorTrackLinear(CVector* to, CVector* from, float duration, bool bEase);
 
     void AllowShootingWith2PlayersInCar(bool bAllow);
     void ApplyVehicleCameraTweaks(CVehicle* vehicle);

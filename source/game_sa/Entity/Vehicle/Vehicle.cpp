@@ -318,8 +318,8 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     m_nRandomIdRelatedToSiren = 0;
     m_nCarHornTimer = 0;
     field_4EC = 0;
-    m_pTractor = nullptr;
-    m_pTrailer = nullptr;
+    m_pTowingVehicle = nullptr;
+    m_pVehicleBeingTowed = nullptr;
     m_nTimeTillWeNeedThisCar = 0;
     m_nAlarmState = 0;
     m_nDoorLock = eCarLock::CARLOCK_UNLOCKED;
@@ -415,7 +415,7 @@ CVehicle::~CVehicle() {
         CRopes::GetRope(iRopeInd).Remove();
     }
 
-    if (!physicalFlags.bDestroyed && m_fHealth < 250.0F) {
+    if (!physicalFlags.bRenderScorched && m_fHealth < 250.0F) {
         CDarkel::RegisterCarBlownUpByPlayer(*this, 0);
     }
 }
@@ -610,7 +610,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
         return;
     }
 
-    if (colPhysical == m_pTractor || colPhysical == m_pTrailer) {
+    if (colPhysical == m_pTowingVehicle || colPhysical == m_pVehicleBeingTowed) {
         bThisOrCollidedEntityStuck = true;
         physicalFlags.bSkipLineCol = true;
         return;
@@ -695,7 +695,7 @@ bool CVehicle::SetupLighting() {
 
 // 0x5533D0
 void CVehicle::RemoveLighting(bool bRemove) {
-    if (!physicalFlags.bDestroyed)
+    if (!physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 
     SetAmbientColours();

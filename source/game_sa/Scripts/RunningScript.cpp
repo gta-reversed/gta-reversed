@@ -112,6 +112,7 @@ void CRunningScript::InjectCustomCommandHooks() {
     unused::RegisterHandlers();
     utility::RegisterHandlers();
     vehicle::RegisterHandlers();
+    zone::RegisterHandlers();
     ::notsa::script::commands::stat::RegisterHandlers();
 
 #ifdef NOTSA_USE_CLEO_COMMANDS
