@@ -999,7 +999,7 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
     TheCamera.m_bCamDirectlyBehind = false;
     TheCamera.m_bCamDirectlyInFront = false;
 
-    VecTrunc(&m_vecSource);
+    VecTrunc(&m_vecSource, 4);
 
     GetVectorsReadyForRW();
 
