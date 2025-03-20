@@ -1046,11 +1046,11 @@ int32 ConvertPedNode2BoneTag(int32 simpleId) {
 }
 
 // 0x509A30
-bool bIsLampPost(eModelID modelId) {
+bool IsLampPost(eModelID modelId) {
     using namespace ModelIndices;
 
-    return notsa::contains(
-        std::initializer_list<eModelID>{
+    return notsa::contains<eModelID>(
+        {
             MI_SINGLESTREETLIGHTS1,
             MI_SINGLESTREETLIGHTS2,
             MI_SINGLESTREETLIGHTS3,
