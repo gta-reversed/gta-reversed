@@ -3,6 +3,7 @@
 #include "RenderWare.h"
 
 struct RxOpenGLMeshInstanceData;
+struct CustomEnvMapPipeMaterialData;
 
 /*!
 * @brief ExtraVertColour plugin unique RW plugin ID
@@ -13,8 +14,8 @@ constexpr auto CUSTOM_BUILDING_DN_PIPELINE_ID = 0x0;
 
 //! Extra Vertex Colour plugin data [Inside RpGeometry]
 struct ExtraVertColour { // AKA `gtaVertexColorPlugin`
-    RwRGBA *NightColors, *DayColors; // heap allocated
-    float   Intensity;
+    RwRGBA *NightColors, *DayColors; //!<  heap allocated
+    float   DNBalance; //!< lerp(DayColors, NightColors, DNBalance)
 };
 VALIDATE_SIZE(ExtraVertColour, 12); // 24 on Android
 

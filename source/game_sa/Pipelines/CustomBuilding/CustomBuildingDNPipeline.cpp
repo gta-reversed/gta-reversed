@@ -6,25 +6,6 @@
 uint32& s_Magic1 = StaticRef<uint32, 0xC02C14>();
 uint32& s_Magic2 = StaticRef<uint32, 0xC02C18>();
 
-void CCustomBuildingDNPipeline::InjectHooks() {
-    RH_ScopedClass(CCustomBuildingDNPipeline);
-    RH_ScopedCategory("Pipelines");
-
-    RH_ScopedInstall(ExtraVertColourPluginAttach, 0x5D72E0);
-    RH_ScopedInstall(pluginExtraVertColourConstructorCB, 0x5D6D10);
-    RH_ScopedInstall(pluginExtraVertColourDestructorCB, 0x5D6D30);
-    RH_ScopedInstall(pluginExtraVertColourStreamReadCB, 0x5D6DE0);
-    RH_ScopedInstall(pluginExtraVertColourStreamWriteCB, 0x5D6D80);
-    RH_ScopedInstall(pluginExtraVertColourStreamGetSizeCB, 0x5D6DC0);
-    RH_ScopedInstall(PreRenderUpdate, 0x5D7200);
-    RH_ScopedInstall(PreRenderUpdateRpAtomicCB, 0x5D72A0);
-    RH_ScopedInstall(CreatePipe, 0x5D7100);
-    RH_ScopedInstall(DestroyPipe, 0x5D5FA0);
-    RH_ScopedInstall(CreateCustomObjPipe, 0x5D6750);
-    RH_ScopedInstall(CustomPipeAtomicSetup, 0x5D71C0);
-    RH_ScopedInstall(SetFxEnvTexture, 0x5D9570);
-}
-
 // 0x5D72E0
 bool CCustomBuildingDNPipeline::ExtraVertColourPluginAttach() {
     if ((ms_extraVertColourPluginOffset = RpGeometryRegisterPlugin(
@@ -58,7 +39,7 @@ void* CCustomBuildingDNPipeline::pluginExtraVertColourConstructorCB(void* object
 
     self->NightColors = nullptr;
     self->DayColors   = nullptr;
-    self->Intensity   = 0.f;
+    self->DNBalance   = 0.f;
 
     return object;
 }
@@ -94,7 +75,7 @@ RwStream* CCustomBuildingDNPipeline::pluginExtraVertColourStreamReadCB(
         for (const auto ptr : { &self->NightColors, &self->DayColors }) {
             *ptr = static_cast<RwRGBA*>(CMemoryMgr::Malloc(sizeof(RwRGBA) * numVerts));
         }
-        self->Intensity = 1.f;
+        self->DNBalance = 1.f;
 
         VERIFY(RwStreamRead(stream, self->NightColors, sizeof(RwRGBA) * numVerts) != 0);
 
@@ -122,7 +103,7 @@ RwStream* CCustomBuildingDNPipeline::pluginExtraVertColourStreamWriteCB(RwStream
 RwInt32 CCustomBuildingDNPipeline::pluginExtraVertColourStreamGetSizeCB(const void* object, RwInt32 offsetInObject, RwInt32 sizeInObject) {
     const auto geo = static_cast<const RpGeometry*>(object);
 
-    return 2 * sizeof(RwRGBA) * RpGeometryGetNumVertices(geo) /*Day and Night colors*/ + sizeof(ExtraVertColour::Intensity);
+    return 2 * sizeof(RwRGBA) * RpGeometryGetNumVertices(geo) /*Day and Night colors*/ + sizeof(ExtraVertColour::DNBalance);
 }
 
 // 0x5D5FC0
@@ -131,8 +112,20 @@ bool AtomicHasNVCPipeline(RpAtomic* atomic) {
 }
 
 // 0x5D6850 [AKA `NVC__Process`]
+// Update atomic's geometry's pre-lit vertices according
 void NVCPipelineProcess(RpAtomic* a, float DNBalance) {
-    plugin::Call<0x5D6850>(a, DNBalance);
+    auto* geo = RpAtomicGetGeometry(a);
+    auto* const data = CCustomBuildingDNPipeline::GetExtraVertColourPtr(geo);
+
+    data->DNBalance = DNBalance;
+    DNBalance = std::clamp(DNBalance, 0.f, 1.f);
+
+    geo = RpGeometryLock(geo, rpGEOMETRYLOCKPRELIGHT);
+    auto* const prelit = RpGeometryGetPreLightColors(geo);
+    for (int32 i = RpGeometryGetNumVertices(geo); i --> 0; ) {
+        prelit[i] = lerp(data->DayColors[i], data->NightColors[i], DNBalance);
+    }
+    RpGeometryUnlock(geo);
 }
 
 // 0x5D7200
@@ -143,7 +136,7 @@ void CCustomBuildingDNPipeline::PreRenderUpdate(RpAtomic* a, bool ignoreDNBalanc
     if (!AtomicHasNVCPipeline(a)) {
         return;
     }
-    const auto intensity = std::abs(GetExtraVertColourPtr(RpAtomicGetGeometry(a))->Intensity - m_fDNBalanceParam);
+    const auto intensity = std::abs(GetExtraVertColourPtr(RpAtomicGetGeometry(a))->DNBalance - m_fDNBalanceParam);
     if (intensity <= 0.01f && !ignoreDNBalanceParam) {
         return;
     }
@@ -288,4 +281,24 @@ void CCustomBuildingDNPipeline::SetFxEnvShininess(RpMaterial* material, float va
 
 float CCustomBuildingDNPipeline::GetFxEnvShininess(RpMaterial* material) {
     return CCustomCarEnvMapPipeline::GetFxEnvShininess(material);
+}
+
+void CCustomBuildingDNPipeline::InjectHooks() {
+    RH_ScopedClass(CCustomBuildingDNPipeline);
+    RH_ScopedCategory("Pipelines");
+
+    RH_ScopedInstall(ExtraVertColourPluginAttach, 0x5D72E0);
+    RH_ScopedInstall(pluginExtraVertColourConstructorCB, 0x5D6D10);
+    RH_ScopedInstall(pluginExtraVertColourDestructorCB, 0x5D6D30);
+    RH_ScopedInstall(pluginExtraVertColourStreamReadCB, 0x5D6DE0);
+    RH_ScopedInstall(pluginExtraVertColourStreamWriteCB, 0x5D6D80);
+    RH_ScopedInstall(pluginExtraVertColourStreamGetSizeCB, 0x5D6DC0);
+    RH_ScopedInstall(PreRenderUpdate, 0x5D7200);
+    RH_ScopedGlobalInstall(NVCPipelineProcess, 0x5D6850);
+    RH_ScopedInstall(PreRenderUpdateRpAtomicCB, 0x5D72A0);
+    RH_ScopedInstall(CreatePipe, 0x5D7100);
+    RH_ScopedInstall(DestroyPipe, 0x5D5FA0);
+    RH_ScopedInstall(CreateCustomObjPipe, 0x5D6750);
+    RH_ScopedInstall(CustomPipeAtomicSetup, 0x5D71C0);
+    RH_ScopedInstall(SetFxEnvTexture, 0x5D9570);
 }
