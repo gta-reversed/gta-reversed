@@ -305,13 +305,13 @@ void CIdleCam::FinaliseIdleCamera(float curAngleX, float curAngleY, float shakeD
     vecFwd = hs.m_resultMat.TransformPoint(vecFwd);
 
     vecUp.Set(std::sin(angle), 0.0f, std::cos(angle));
-    auto a = CrossProduct(vecFwd, vecUp).Normalized();
-    vecUp  = CrossProduct(a, vecFwd);
+    auto rightDir = CrossProduct(vecFwd, vecUp).Normalized();
+    vecUp         = CrossProduct(rightDir, vecFwd);
     if (vecFwd.x == 0 && vecFwd.y == 0.0f) {
         vecFwd.x = vecFwd.y = 0.0001f;
     }
-    a     = CrossProduct(vecFwd, vecUp).Normalized();
-    vecUp = CrossProduct(a, vecFwd);
+    rightDir = CrossProduct(vecFwd, vecUp).Normalized();
+    vecUp    = CrossProduct(rightDir, vecFwd);
     m_Cam->GetVectorsReadyForRW();
 }
 

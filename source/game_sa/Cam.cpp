@@ -199,13 +199,13 @@ void CCam::Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float 
 
     // What is this thing?
     {
-        const auto a = CrossProduct(m_vecFront, { std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
-        m_vecUp      = CrossProduct(a, m_vecFront);
+        auto rightDir = CrossProduct(m_vecFront, { std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
+        m_vecUp       = CrossProduct(rightDir, m_vecFront);
         if (m_vecFront.x == 0.0f && m_vecFront.y == 0.0f) {
             m_vecFront.x = m_vecFront.y = 0.0001f;
         }
-        const auto b = CrossProduct(m_vecFront, m_vecUp).Normalized();
-        m_vecUp      = CrossProduct(b, m_vecFront);
+        rightDir = CrossProduct(m_vecFront, m_vecUp).Normalized();
+        m_vecUp  = CrossProduct(rightDir, m_vecFront);
     }
 
     m_fFOV = fov;
@@ -217,13 +217,13 @@ void CCam::Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float 
     m_vecFront = gHandShaker[0].m_resultMat.TransformVector(m_vecFront);
 
     {
-        const auto a = CrossProduct(m_vecFront, { std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
-        m_vecUp      = CrossProduct(a, m_vecFront);
+        auto rightDir = CrossProduct(m_vecFront, { std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
+        m_vecUp       = CrossProduct(rightDir, m_vecFront);
         if (m_vecFront.x == 0.0f && m_vecFront.y == 0.0f) {
             m_vecFront.x = m_vecFront.y = 0.0001f;
         }
-        const auto b = CrossProduct(m_vecFront, m_vecUp).Normalized();
-        m_vecUp      = CrossProduct(b, m_vecFront);
+        rightDir = CrossProduct(m_vecFront, m_vecUp).Normalized();
+        m_vecUp  = CrossProduct(rightDir, m_vecFront);
     }
 }
 
