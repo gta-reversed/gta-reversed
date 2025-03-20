@@ -319,17 +319,12 @@ void CIdleCam::Run() {
     const auto beginTime = CTimer::GetTimeInMS();
     ProcessTargetSelection();
 
-    const auto shakeDegree = [&] {
-        if (const auto d = beginTime - m_TimeIdleCamStarted; d < m_ShakeBuildUpTime) {
-            return d / m_ShakeBuildUpTime;
-        }
-        return 1.0f;
-    }();
-
     float angleX{}, angleZ{};
     m_SlerpTime = ProcessSlerp(angleX, angleZ);
     ProcessFOVZoom(m_SlerpTime);
-    FinaliseIdleCamera(angleX, angleZ, shakeDegree);
+
+    const auto delta = beginTime - m_TimeIdleCamStarted;
+    FinaliseIdleCamera(angleX, angleZ, delta < m_ShakeBuildUpTime ? delta / m_ShakeBuildUpTime : 1.f);
 }
 
 // 0x522C80
