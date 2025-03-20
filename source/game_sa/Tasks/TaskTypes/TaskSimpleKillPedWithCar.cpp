@@ -40,12 +40,8 @@ void CTaskSimpleKillPedWithCar::DamageCarBonnet(CPed const*) {
         return;
     }
 
-    const auto dir =
-          m_Car->GetRight() * 0.1f
-        + m_Car->GetUp() * 0.5f;
-    flyingObj->m_vecMoveSpeed += CGeneral::DoCoinFlip()
-        ? dir
-        : -dir;
+    const auto dir = m_Car->GetRight() * 0.1f + m_Car->GetUp() * 0.5f;
+    flyingObj->m_vecMoveSpeed += CGeneral::DoCoinFlip() ? dir : -dir;
 
     flyingObj->ApplyTurnForce(m_Car->GetUp() * 10.f, m_Car->GetForward());
 }
@@ -158,11 +154,7 @@ bool CTaskSimpleKillPedWithCar::ProcessPed(CPed* ped) {
 
     if (FindPlayerVehicle() == m_Car) {
         const auto f = (uint32)std::min(250.f, m_Car->GetMoveSpeed().Magnitude() / m_Car->GetMass() * 200'000.f + 80.f);
-        CPad::GetPad()->StartShake(
-            40'000 / (f % 256),
-            f,
-            0
-        );
+        CPad::GetPad()->StartShake(40'000 / (f % 256), f, 0);
     }
 
     ped->bIsStanding       = false;
