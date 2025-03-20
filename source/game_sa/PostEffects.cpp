@@ -1043,11 +1043,9 @@ void CPostEffects::Render() {
         auto lightFromCol = player->GetLightingFromCol(false);
 
         if (std::abs(lightFromCol - s_ExtraMult) >= step) {
-            if (lightFromCol <= s_ExtraMult) {
-                lightFromCol = s_ExtraMult - step;
-            } else {
-                lightFromCol = s_ExtraMult + step;
-            }
+            lightFromCol = lightFromCol <= s_ExtraMult 
+                ? s_ExtraMult - step
+                : s_ExtraMult + step;
         }
         s_ExtraMult = std::min(lightFromCol, SCREEN_EXTRA_MULT_BASE_CAP);
         colorMultFactor += (1.0f - s_ExtraMult / SCREEN_EXTRA_MULT_BASE_CAP) * SCREEN_EXTRA_MULT_BASE_MULT;
