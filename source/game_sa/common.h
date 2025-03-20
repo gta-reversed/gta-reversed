@@ -206,6 +206,16 @@ T lerp(const T& from, const T& to, float t) {
     return static_cast<T>(to * t + from * (1.f - t));
 }
 
+template<>
+inline RwRGBA lerp<RwRGBA>(const RwRGBA& from, const RwRGBA& to, float t) {
+    return RwRGBA{
+        .red   = lerp(from.red, to.red, t),
+        .green = lerp(from.green, to.green, t),
+        .blue  = lerp(from.blue, to.blue, t),
+        .alpha = lerp(from.alpha, to.alpha, t),
+    };
+}
+
 constexpr float invLerp(float fMin, float fMax, float fVal) {
     return (fVal - fMin) / (fMax - fMin);
 }
