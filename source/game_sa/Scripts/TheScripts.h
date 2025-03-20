@@ -22,8 +22,6 @@
 
 #include "SCMChunks.hpp"
 
-inline bool gAllowScriptedFixedCameraCollision = false;
-
 class CCheckpoint;
 enum class eCheckpointType : uint32;
 
