@@ -150,8 +150,6 @@ bool CIdleCam::IsTargetValid(CEntity* target) {
         return true;
     }
 
-    // NOTE: What about:
-    // CWorld::IgnoreGuard _(target)
     const auto oldIgnore  = CWorld::pIgnoreEntity;
     CWorld::pIgnoreEntity = target;
     notsa::ScopeGuard _([&]{ CWorld::pIgnoreEntity = oldIgnore; });
@@ -182,14 +180,7 @@ void CIdleCam::SetTarget(CEntity* target) {
         m_PositionToSlerpFrom = m_Cam->m_vecSource + m_Cam->m_vecFront;
     }
 
-    if (target) {
-        CEntity::SafeCleanUpRef(m_Target);
-        m_Target = target;
-        CEntity::SafeRegisterRef(m_Target);
-    } else if (m_Target) {
-        CEntity::SafeCleanUpRef(m_Target);
-        m_Target = nullptr;
-    }
+    CEntity::ChangeEntityReference(m_Target, target);
 
     m_TimeSlerpStarted       = time;
     m_TimeLastTargetSelected = time;
