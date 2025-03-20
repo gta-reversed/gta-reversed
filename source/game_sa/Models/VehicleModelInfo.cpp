@@ -367,16 +367,13 @@ int32 CVehicleModelInfo::ChooseComponent()
 
 int32 CVehicleModelInfo::ChooseSecondComponent()
 {
-    auto result = ms_compsToUse[1];
-    if (result != -2) {
-        ms_compsToUse[1] = -2;
-        return result;
+    if (ms_compsToUse[1] != -2) {
+        return std::exchange(ms_compsToUse[1], -2);
     }
 
     if (m_extraComps.nExtraBRule && IsValidCompRule(m_extraComps.nExtraBRule)) {
         return ::ChooseComponent(m_extraComps.nExtraBRule, m_extraComps.nExtraBComp);
-    }
-    else if (CGeneral::GetRandomNumberInRange(0, 3) < 2) {
+    } else if (m_extraComps.nExtraARule && IsValidCompRule(m_extraComps.nExtraARule) && CGeneral::GetRandomNumberInRange(0, 3) < 2) {
         int32 anVariations[6];
         auto numComps = GetListOfComponentsNotUsedByRules(m_extraComps.m_nComps, m_pVehicleStruct->m_nNumExtras, anVariations);
         if (numComps)

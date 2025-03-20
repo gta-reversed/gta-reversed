@@ -107,11 +107,14 @@ CTask* CTaskManager::FindTaskByType(ePrimaryTasks taskIndex, eTaskType taskId) {
 
 // 0x681810
 CTask* CTaskManager::GetTaskSecondary(eSecondaryTask taskIndex) {
+    if (notsa::IsFixBugs() && taskIndex == eSecondaryTask::TASK_SECONDARY_INVALID) {
+        return nullptr;
+    }
     return m_aSecondaryTasks[taskIndex];
 }
 
 CTaskComplexFacial* CTaskManager::GetTaskSecondaryFacial() {
-    return CTask::Cast<CTaskComplexFacial>(GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX));
+    return notsa::cast<CTaskComplexFacial>(GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX));
 }
 
 // NOTSA?
@@ -222,7 +225,7 @@ void CTaskManager::ParentsControlChildren(CTask* parent) {
             return;
         }
 
-        task = oldSubTask;
+        task = task->GetSubTask();
     }
 }
 

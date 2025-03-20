@@ -262,15 +262,18 @@ bool CPathFind::TestForPedTrafficLight(CNodeAddress startNodeAddress, CNodeAddre
 }
 
 // 0x4509A0
-CVector CPathFind::TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, uint16 randomSeed) {
+CVector CPathFind::TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, int16 randomSeed) {
     // Invalid area, or area not loaded
-    if (nodeAddress.IsValid() && IsAreaNodesAvailable(nodeAddress)) {
-        const auto nbits = 4u;
-        const auto Random = [](uint16 seed) { return (float)(seed % (1 << nbits) - 7); };
-        return GetPathNode(nodeAddress)->GetPosition() + CVector{ Random(randomSeed), Random(randomSeed >> nbits), 0.f };
+    if (!nodeAddress.IsValid() || !IsAreaNodesAvailable(nodeAddress)) {
+        return {};
     }
 
-    return {};
+    auto node         = GetPathNode(nodeAddress);
+    auto basePosition = node->GetPosition();
+    auto offsetX      = float(node->m_nPathWidth * ((randomSeed % 16) - 7)); // bottom 8 bits remapped to [-7 : +8]
+    auto offsetY      = float(node->m_nPathWidth * (((randomSeed / 16) % 16) - 7)); // top 8 bits remapped to [-7 : +8]
+    auto offset       = CVector{ offsetX * 0.00775f, offsetY * 0.00775f, 0.f };
+    return basePosition + offset;
 }
 
 //  0x44F8C0
@@ -484,8 +487,8 @@ void CPathFind::DoPathSearch(
 }
 
 // 0x452760
-void CPathFind::ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& address, CNodeRoute& nodeRoute) {
-    plugin::CallMethod<0x452760>(this, nodeType, &vecStart, &vecEnd, &address, &nodeRoute);
+void CPathFind::ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& startAddress, CNodeRoute* route) {
+    plugin::CallMethod<0x452760>(this, nodeType, &vecStart, &vecEnd, &startAddress, route);
 }
 
 // 0x44D960
@@ -792,11 +795,11 @@ void CPathFind::UpdateStreaming(bool bForceStreaming) {
                         ? STREAMING_MISSION_REQUIRED
                         : STREAMING_KEEP_IN_MEMORY
                 );
-                DEV_LOG("Requested area: %i", (int)areaId);
+                DEV_LOG("Requested area: {}", (int)areaId);
             }
         } else if (IsAreaLoaded(areaId)) {
             CStreaming::RemoveModel(DATToModelId(areaId));
-            DEV_LOG("Removed area: %i", (int)areaId);
+            DEV_LOG("Removed area: {}", (int)areaId);
         }
     }
 }
@@ -965,18 +968,18 @@ CNodeAddress CPathFind::FindNodeClosestToCoorsFavourDirection(CVector pos, ePath
 
 // 0x5D34C0
 bool CPathFind::Save() {
-    CGenericGameStorage::SaveDataToWorkBuffer(&m_nNumForbiddenAreas, sizeof(m_nNumForbiddenAreas));
-    for (auto& area : std::span{ m_aForbiddenAreas, (size_t)m_nNumForbiddenAreas }) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&area, sizeof(area));
+    CGenericGameStorage::SaveDataToWorkBuffer(m_nNumForbiddenAreas);
+    for (auto& area : std::span{ m_aForbiddenAreas, m_nNumForbiddenAreas }) {
+        CGenericGameStorage::SaveDataToWorkBuffer(area);
     }
     return true;
 }
 
 // 0x5D3500
 bool CPathFind::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nNumForbiddenAreas, sizeof(m_nNumForbiddenAreas));
-    for (auto& area : std::span{ m_aForbiddenAreas, (size_t)m_nNumForbiddenAreas }) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&area, sizeof(area));
+    CGenericGameStorage::LoadDataFromWorkBuffer(m_nNumForbiddenAreas);
+    for (auto& area : std::span{ m_aForbiddenAreas, m_nNumForbiddenAreas }) {
+        CGenericGameStorage::LoadDataFromWorkBuffer(area);
     }
     return true;
 }

@@ -74,6 +74,9 @@ void CObject::InjectHooks()
     RH_ScopedInstall(DeleteAllTempObjectsInArea, 0x5A1980);
     RH_ScopedGlobalInstall(IsObjectPointerValid_NotInWorld, 0x5A2B90);
     RH_ScopedGlobalInstall(IsObjectPointerValid, 0x5A2C20);
+
+    RH_ScopedGlobalInstall(Save, 0x5D2830);
+    RH_ScopedGlobalInstall(Load, 0x5D2870);
 }
 
 // 0x5A1D10
@@ -574,7 +577,7 @@ void CObject::Render() {
 
 // 0x554FA0
 bool CObject::SetupLighting() {
-    if (physicalFlags.bDestroyed) {
+    if (physicalFlags.bRenderScorched) {
         WorldReplaceNormalLightsWithScorched(Scene.m_pRpWorld, 0.18F);
         return true;
     }
@@ -592,7 +595,7 @@ void CObject::RemoveLighting(bool bRemove) {
     if (!bRemove)
         return;
 
-    if (!physicalFlags.bDestroyed)
+    if (!physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 
     SetAmbientColours();
@@ -601,10 +604,9 @@ void CObject::RemoveLighting(bool bRemove) {
 
 // 0x5D2870 - Deserializes object from save storage buffer
 bool CObject::Load() {
-    uint32 size; // unused
-    CObjectSaveStructure data;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(data));
+    auto size = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
+    auto data = CGenericGameStorage::LoadDataFromWorkBuffer<CObjectSaveStructure>();
+    assert(size == sizeof(data)); // Check structure size.
     data.Extract(this);
     return true;
 }
@@ -613,9 +615,8 @@ bool CObject::Load() {
 bool CObject::Save() {
     CObjectSaveStructure data;
     data.Construct(this);
-    uint32 size = sizeof(CObjectSaveStructure);
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::SaveDataToWorkBuffer(&data, size);
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CObjectSaveStructure));
+    CGenericGameStorage::SaveDataToWorkBuffer(data);
     return true;
 }
 

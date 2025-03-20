@@ -57,8 +57,8 @@ void CPhysical::InjectHooks()
     RH_ScopedInstall(AddCollisionRecord, 0x543490);
     RH_ScopedInstall(GetHasCollidedWith, 0x543540);
     RH_ScopedInstall(GetHasCollidedWithAnyObject, 0x543580);
-    RH_ScopedOverloadedInstall(ApplyCollision, "1", 0x5435C0, bool(CPhysical::*)(CEntity*, CColPoint&, float&));
-    RH_ScopedOverloadedInstall(ApplySoftCollision, "1", 0x543890, bool(CPhysical::*)(CEntity*, CColPoint&, float&));
+    RH_ScopedOverloadedInstall(ApplyCollision, "1", 0x5435C0, bool(CPhysical::*)(CEntity*, const CColPoint&, float&));
+    RH_ScopedOverloadedInstall(ApplySoftCollision, "1", 0x543890, bool(CPhysical::*)(CEntity*, const CColPoint&, float&));
     RH_ScopedInstall(ApplySpringCollision, 0x543C90);
     RH_ScopedInstall(ApplySpringCollisionAlt, 0x543D60);
     RH_ScopedInstall(ApplySpringDampening, 0x543E90);
@@ -696,7 +696,7 @@ void CPhysical::RemoveFromMovingList()
 }
 
 // 0x5428C0
-void CPhysical::SetDamagedPieceRecord(float fDamageIntensity, CEntity* entity, CColPoint& colPoint, float fDistanceMult)
+void CPhysical::SetDamagedPieceRecord(float fDamageIntensity, CEntity* entity, const CColPoint& colPoint, float fDistanceMult)
 {
     auto* object = AsObject();
     if (fDamageIntensity > m_fDamageIntensity) {
@@ -741,21 +741,23 @@ void CPhysical::ApplyMoveForce(CVector force)
 }
 
 // 0x542A50
-void CPhysical::ApplyTurnForce(CVector force, CVector point)
-{
-    if (!physicalFlags.bDisableTurnForce)
-    {
-        CVector vecCentreOfMassMultiplied{};
-        if (!physicalFlags.bInfiniteMass)
-            vecCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
-
-        if (physicalFlags.bDisableMoveForce) {
-            point.z = 0.0f;
-            force.z = 0.0f;
-        }
-        CVector vecDifference = point - vecCentreOfMassMultiplied;
-        m_vecTurnSpeed += CrossProduct(vecDifference, force) / m_fTurnMass;
+void CPhysical::ApplyTurnForce(CVector force, CVector point) {
+    if (physicalFlags.bDisableTurnForce) {
+        return;
     }
+
+    if (physicalFlags.bDisableMoveForce) {
+        point.z = 0.0f;
+        force.z = 0.0f;
+    }
+
+    // Adjust point to be relative to the centre-of-mass
+    if (!physicalFlags.bInfiniteMass)  {
+        point -= GetMatrix().TransformVector(m_vecCentreOfMass);
+    }
+    
+    // Apply angular velocity around this point now
+    m_vecTurnSpeed += CrossProduct(point, force) / m_fTurnMass;
 }
 
 // 0x542B50
@@ -991,11 +993,9 @@ bool CPhysical::GetHasCollidedWithAnyObject()
 }
 
 // 0x5435C0
-bool CPhysical::ApplyCollision(CEntity* entity, CColPoint& colPoint, float& damageIntensity)
-{
-    if (physicalFlags.bDisableTurnForce)
-    {
-        float fSpeedDotProduct = DotProduct(&m_vecMoveSpeed, &colPoint.m_vecNormal);
+bool CPhysical::ApplyCollision(CEntity* entity, const CColPoint& colPoint, float& damageIntensity) {
+    if (physicalFlags.bDisableTurnForce) {
+        float fSpeedDotProduct = m_vecMoveSpeed.Dot(colPoint.m_vecNormal);
         if (fSpeedDotProduct < 0.0f)
         {
             damageIntensity = -(fSpeedDotProduct * m_fMass);
@@ -1006,9 +1006,7 @@ bool CPhysical::ApplyCollision(CEntity* entity, CColPoint& colPoint, float& dama
             AudioEngine.ReportCollision(this, entity, colPoint.m_nSurfaceTypeA, colPoint.m_nSurfaceTypeB, colPoint.m_vecPoint, &colPoint.m_vecNormal, fCollisionImpact1, 1.0f, false, false);
             return true;
         }
-    }
-    else
-    {
+    } else {
         CVector vecDistanceToPoint = colPoint.m_vecPoint - GetPosition();
         CVector vecSpeed = GetSpeed(vecDistanceToPoint);
 
@@ -1045,7 +1043,7 @@ bool CPhysical::ApplyCollision(CEntity* entity, CColPoint& colPoint, float& dama
 }
 
 // 0x543890
-bool CPhysical::ApplySoftCollision(CEntity* entity, CColPoint& colPoint, float& outDamageIntensity)
+bool CPhysical::ApplySoftCollision(CEntity* entity, const CColPoint& colPoint, float& outDamageIntensity)
 {
     if (physicalFlags.bDisableTurnForce)
     {
@@ -2663,9 +2661,9 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
             fEntityMassFactor = 10.0f;
         }
     }
-    else if (IsVehicle() && thisVehicle->m_pTrailer)
+    else if (IsVehicle() && thisVehicle->m_pVehicleBeingTowed)
     {
-        fEntityMassFactor = (thisVehicle->m_pTrailer->m_fMass + m_fMass) / m_fMass;
+        fEntityMassFactor = (thisVehicle->m_pVehicleBeingTowed->m_fMass + m_fMass) / m_fMass;
     }
     else
     {
@@ -4825,13 +4823,11 @@ bool CPhysical::CheckCollision()
         if (ped->IsPlayer()) {
             CTaskSimpleClimb* taskClimb = ped->m_pIntelligence->GetTaskClimb();
             if (taskClimb) {
-                switch (taskClimb->m_nHeightForPos) {
+                switch (taskClimb->GetHeightForPos()) {
                 case CLIMB_GRAB:
                 case CLIMB_PULLUP:
                 case CLIMB_STANDUP:
-                case CLIMB_VAULT:
-                    physicalFlags.bSkipLineCol = true;
-                    break;
+                case CLIMB_VAULT: physicalFlags.bSkipLineCol = true; break;
                 }
             }
         }

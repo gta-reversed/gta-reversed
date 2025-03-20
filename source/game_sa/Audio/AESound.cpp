@@ -13,6 +13,9 @@
 #include "AEAudioHardware.h"
 #include "AEAudioUtility.h"
 
+//TODO: Remove once the cause of occasional nan here is found
+#define NANCHECK() if (isnan(m_vecCurrPosn.x)) { assert(false); }
+
 void CAESound::InjectHooks() {
     RH_ScopedClass(CAESound);
     RH_ScopedCategory("Audio");
@@ -71,6 +74,8 @@ CAESound::CAESound(CAESound& sound) {
         m_pPhysicalEntity = sound.m_pPhysicalEntity;
         m_pPhysicalEntity->RegisterReference(&m_pPhysicalEntity);
     }
+
+    NANCHECK()
 }
 
 CAESound::CAESound(int16 bankSlotId, int16 sfxId, CAEAudioEntity* baseAudio, CVector posn, float volume, float fDistance, float speed, float timeScale,
@@ -142,6 +147,7 @@ CAESound& CAESound::operator=(const CAESound& sound) {
     m_pPhysicalEntity       = nullptr;
     RegisterWithPhysicalEntity(sound.m_pPhysicalEntity);
 
+    NANCHECK()
     return *this;
 }
 
@@ -201,7 +207,9 @@ CVector CAESound::GetRelativePosition() const {
 
 // 0x4EF350 - Matches the original calling convention, to be used by reversible hooks, use the version returning CVector instead in our code
 void CAESound::GetRelativePosition(CVector* outVec) const {
-    *outVec = GetFrontEnd() ? m_vecCurrPosn : CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
+    *outVec = GetFrontEnd()
+        ? m_vecCurrPosn
+        : CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
 }
 
 // 0x4EF390
@@ -285,6 +293,8 @@ void CAESound::SetPosition(CVector pos) {
         m_nCurrTimeUpdate = CTimer::GetTimeInMS();
         m_nLastFrameUpdate = CTimer::GetFrameCounter();
     }
+
+    NANCHECK()
 }
 
 // 0x4EFA10
@@ -292,10 +302,9 @@ void CAESound::CalculateVolume() {
     if (GetFrontEnd())
         m_fFinalVolume = m_fVolume - m_fSoundHeadRoom;
     else {
-        const auto relativePos = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
-        const auto fDist = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn).Magnitude() / m_fSoundDistance;
-        const auto fAttenuation = CAEAudioEnvironment::GetDistanceAttenuation(fDist);
-        m_fFinalVolume = CAEAudioEnvironment::GetDirectionalMikeAttenuation(relativePos) + fAttenuation + m_fVolume - m_fSoundHeadRoom;
+        const auto relativeToCamPos = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
+        const auto attenuation      = CAEAudioEnvironment::GetDistanceAttenuation(relativeToCamPos.Magnitude() / m_fSoundDistance);
+        m_fFinalVolume              = CAEAudioEnvironment::GetDirectionalMikeAttenuation(relativeToCamPos) + attenuation + m_fVolume - m_fSoundHeadRoom;
     }
 }
 

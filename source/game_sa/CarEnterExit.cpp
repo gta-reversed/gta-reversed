@@ -284,7 +284,7 @@ bool CCarEnterExit::GetNearestCarDoor(const CPed* ped, const CVehicle* vehicle, 
     CVector2D pedPos2D = ped->GetPosition();
     CVector2D dir2DToDoorFLeft = posDoorFLeft - pedPos2D, dir2DToDoorFRight = posDoorFRight - pedPos2D;
 
-    if (vehicle->m_pTrailer) {
+    if (vehicle->m_pVehicleBeingTowed) {
         if (dir2DToDoorFLeft.SquaredMagnitude() < dir2DToDoorFRight.SquaredMagnitude()) {
             if (IsPathToDoorBlockedByVehicleCollisionModel(ped, vehicle, posDoorFRight)) {
                 dir2DToDoorFRight = { 999.90002f, 999.90002f };
@@ -515,8 +515,8 @@ bool CCarEnterExit::IsPlayerToQuitCarEnter(const CPed* ped, const CVehicle* vehi
 }
 
 // 0x6504C0
-bool CCarEnterExit::IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId, CVector* pos) {
-    return plugin::CallAndReturn<bool, 0x6504C0, const CVehicle*, int32, CVector*>(vehicle, doorId, pos);
+bool CCarEnterExit::IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId, const CVector* pos) {
+    return plugin::CallAndReturn<bool, 0x6504C0>(vehicle, doorId, pos);
 }
 
 // 0x64EEC0

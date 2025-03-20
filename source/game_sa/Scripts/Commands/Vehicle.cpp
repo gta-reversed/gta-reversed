@@ -15,6 +15,7 @@ using namespace notsa::script;
 * Various vehicle commands
 */
 
+namespace {
 void ClearHeliOrientation(CHeli& heli) {
     heli.ClearHeliOrientation();
 }
@@ -93,6 +94,16 @@ void DisableHeliAudio(CVehicle& vehicle, bool enable) {
     }
 }
 
+bool IsCarInAirProper(CRunningScript& S, CVehicle& vehicle) {
+    for (auto* const e : vehicle.GetCollidingEntities()) {
+        if (e && (e->IsBuilding() || e->IsVehicle())) {
+            return false;
+        }
+    }
+    return true;
+}
+};
+
 void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Vehicle");
 
@@ -110,6 +121,7 @@ void notsa::script::commands::vehicle::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SKIP_TO_NEXT_ALLOWED_STATION, SkipToNextAllowedStation);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_RAILTRACK_RESISTANCE_MULT, SetRailTrackResistanceMult);
     REGISTER_COMMAND_HANDLER(COMMAND_DISABLE_HELI_AUDIO, DisableHeliAudio);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_CAR_IN_AIR_PROPER, IsCarInAirProper);
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_TAXI);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SWITCH_TAXI_TIMER);

@@ -16,8 +16,6 @@
 
 #include "extensions/File.hpp"
 
-static inline bool gAllowScriptedFixedCameraCollision = false;
-
 void CTheScripts::InjectHooks() {
     // Has to have these, because there seems to be something going on with the variable init order
     // For now I just changed it to use static addresses, not sure whats going on..
@@ -27,7 +25,7 @@ void CTheScripts::InjectHooks() {
     RH_ScopedClass(CTheScripts);
     RH_ScopedCategory("Scripts");
 
-    RH_ScopedInstall(Init, 0x468D50);
+    RH_ScopedInstall(Init, 0x468D50, {.enabled = false });
     RH_ScopedInstall(InitialiseAllConnectLodObjects, 0x470960);
     RH_ScopedInstall(InitialiseConnectLodObjects, 0x470940);
     RH_ScopedInstall(InitialiseSpecialAnimGroupsAttachedToCharModels, 0x474730);
@@ -444,7 +442,7 @@ void CTheScripts::AddToInvisibilitySwapArray(CEntity* entity, bool visible) {
 
 // 0x470980
 void CTheScripts::AddToListOfConnectedLodObjects(CObject* obj1, CObject* obj2) {
-    const auto idx1 = GetObjectPool()->GetIndex(obj1), idx2 = GetObjectPool()->GetIndex(obj2);
+    const auto idx1 = GetObjectPool()->GetRef(obj1), idx2 = GetObjectPool()->GetRef(obj2);
 
     const auto lod = rng::find_if(ScriptConnectLodsObjects, [idx1, idx2](auto& lod) {
         return lod.a == idx1 && lod.b == idx2;
@@ -541,7 +539,7 @@ void CTheScripts::AttachSearchlightToSearchlightObject(int32 searchLightId, CObj
 }
 
 // 0x464FF0
-bool CTheScripts::CheckStreamedScriptVersion(RwStream* stream, char* filename) {
+bool CTheScripts::CheckStreamedScriptVersion(RwStream* stream, const char* filename) {
     return true;
 }
 
@@ -579,7 +577,7 @@ void CTheScripts::CleanUpThisPed(CPed* ped) {
     if (auto* veh = ped->GetVehicleIfInOne(); veh && veh->IsDriver(ped)) {
         const auto FixMission = [veh](eCarMission fix) {
             auto& mis = veh->m_autoPilot.m_nCarMission;
-            if (mis != MISSION_CRASH_PLANE_AND_BURN && mis != MISSION_CRASH_HELI_AND_BURN) {
+            if (mis != MISSION_PLANE_CRASH_AND_BURN && mis != MISSION_HELI_CRASH_AND_BURN) {
                 mis = fix;
             }
         };
@@ -628,7 +626,7 @@ void CTheScripts::CleanUpThisPed(CPed* ped) {
 
     const auto CheckTaskExists = [ped](eTaskType type) {
         if (auto* event = ped->GetEventGroup().GetEventOfType(EVENT_SCRIPT_COMMAND)) {
-            if (auto* esc = CEvent::DynCast<CEventScriptCommand>(event); esc && esc->m_task->GetTaskType() == type) {
+            if (auto* esc = notsa::dyn_cast<CEventScriptCommand>(event); esc && esc->m_task->GetTaskType() == type) {
                 return true;
             }
         }
@@ -1105,36 +1103,36 @@ bool CTheScripts::IsVehicleStopped(CVehicle* veh) {
 void CTheScripts::Load() {
     Init();
 
-    const auto globalVarsLen = LoadDataFromWorkBuffer<uint32>();
-    if (globalVarsLen > MAX_SAVED_GVAR_PART_SIZE) {
-        const auto numParts  = (globalVarsLen - MAX_SAVED_GVAR_PART_SIZE - 1) / MAX_SAVED_GVAR_PART_SIZE + 1;
-        const auto remainder = globalVarsLen - MAX_SAVED_GVAR_PART_SIZE * numParts;
+    const auto totalSize = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
+    auto       p         = ScriptSpace.data();
 
-        for (auto i = 0u; i < numParts; i++) {
-            CGenericGameStorage::LoadDataFromWorkBuffer(ScriptSpace.data(), MAX_SAVED_GVAR_PART_SIZE);
-        }
-        CGenericGameStorage::LoadDataFromWorkBuffer(ScriptSpace.data(), remainder);
-    } else {
-        CGenericGameStorage::LoadDataFromWorkBuffer(ScriptSpace.data(), globalVarsLen);
+    // Load chunks
+    auto nParts = totalSize / MAX_SAVED_GVAR_PART_SIZE;
+    for (nParts; nParts-- > 0; p += MAX_SAVED_GVAR_PART_SIZE) {
+        CGenericGameStorage::LoadDataFromWorkBuffer(p, MAX_SAVED_GVAR_PART_SIZE);
     }
+
+    // Load remainder
+    const auto remainder = totalSize % MAX_SAVED_GVAR_PART_SIZE;
+    CGenericGameStorage::LoadDataFromWorkBuffer(p, remainder);
 
     for (auto& sfb : ScriptsForBrains.m_aScriptForBrains) {
-        LoadDataFromWorkBuffer(sfb);
+        CGenericGameStorage::LoadDataFromWorkBuffer(sfb);
     }
 
-    LoadDataFromWorkBuffer(OnAMissionFlag);
-    LoadDataFromWorkBuffer(LastMissionPassedTime);
+    CGenericGameStorage::LoadDataFromWorkBuffer(OnAMissionFlag);
+    CGenericGameStorage::LoadDataFromWorkBuffer(LastMissionPassedTime);
 
     for (auto& bswap : BuildingSwapArray) {
-        const auto type    = LoadDataFromWorkBuffer<ScriptSavedObjectType>();
-        const auto poolRef = LoadDataFromWorkBuffer<uint32>() - 1;
-        LoadDataFromWorkBuffer(bswap.m_nNewModelIndex);
-        LoadDataFromWorkBuffer(bswap.m_nOldModelIndex);
+        const auto type    = CGenericGameStorage::LoadDataFromWorkBuffer<ScriptSavedObjectType>();
+        const auto poolRef = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>() - 1;
+        CGenericGameStorage::LoadDataFromWorkBuffer(bswap.m_nNewModelIndex);
+        CGenericGameStorage::LoadDataFromWorkBuffer(bswap.m_nOldModelIndex);
 
         bswap.m_pCBuilding = nullptr;
         switch (type) {
         case ScriptSavedObjectType::NONE:
-        case ScriptSavedObjectType::NOP:
+        case ScriptSavedObjectType::INVISIBLE:
             break;
         case ScriptSavedObjectType::BUILDING:
             bswap.m_pCBuilding = GetBuildingPool()->GetAt(poolRef);
@@ -1151,16 +1149,22 @@ void CTheScripts::Load() {
     }
 
     for (auto& is : InvisibilitySettingArray) {
-        const auto type    = LoadDataFromWorkBuffer<ScriptSavedObjectType>();
-        const auto poolRef = LoadDataFromWorkBuffer<uint32>() - 1;
+        const auto type    = CGenericGameStorage::LoadDataFromWorkBuffer<ScriptSavedObjectType>();
+        const auto poolRef = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>() - 1;
 
-        is = nullptr; // clear beforehand
         switch (type) {
         case ScriptSavedObjectType::NONE:
-        case ScriptSavedObjectType::NOP:
-            // set to nullptr, already done
+            is = nullptr;
+            break;
+        case ScriptSavedObjectType::INVISIBLE:
+            // Not saved by the game, but the logic is still there
+            if (is) {
+                is->m_bUsesCollision = false;
+                is->m_bIsVisible = false;
+            }
             break;
         case ScriptSavedObjectType::BUILDING:
+            is = nullptr;
             if (auto* obj = GetBuildingPool()->GetAt(poolRef)) {
                 is                   = obj;
                 is->m_bUsesCollision = false;
@@ -1168,6 +1172,7 @@ void CTheScripts::Load() {
             }
             break;
         case ScriptSavedObjectType::OBJECT:
+            is = nullptr;
             if (auto* obj = GetObjectPool()->GetAt(poolRef)) {
                 is                   = obj;
                 is->m_bUsesCollision = false;
@@ -1175,6 +1180,7 @@ void CTheScripts::Load() {
             }
             break;
         case ScriptSavedObjectType::DUMMY:
+            is = nullptr;
             if (auto* obj = GetDummyPool()->GetAt(poolRef)) {
                 is                   = obj;
                 is->m_bUsesCollision = false;
@@ -1187,31 +1193,31 @@ void CTheScripts::Load() {
     }
 
     for (auto& veh : VehicleModelsBlockedByScript) {
-        LoadDataFromWorkBuffer(veh);
+        CGenericGameStorage::LoadDataFromWorkBuffer(veh);
     }
 
     for (auto& lod : ScriptConnectLodsObjects) {
-        LoadDataFromWorkBuffer(lod);
+        CGenericGameStorage::LoadDataFromWorkBuffer(lod);
     }
 
     for (auto& ag : ScriptAttachedAnimGroups) {
-        LoadDataFromWorkBuffer(ag);
+        CGenericGameStorage::LoadDataFromWorkBuffer(ag);
 
         if (ag.m_nModelID != MODEL_INVALID) {
             ScriptAttachAnimGroupToCharModel(ag.m_nModelID, ag.m_IfpName);
         }
     }
 
-    LoadDataFromWorkBuffer(bUsingAMultiScriptFile);
-    LoadDataFromWorkBuffer(bPlayerHasMetDebbieHarry);
+    CGenericGameStorage::LoadDataFromWorkBuffer(bUsingAMultiScriptFile);
+    CGenericGameStorage::LoadDataFromWorkBuffer(bPlayerHasMetDebbieHarry);
 
     {
         // Ignored
-        LoadDataFromWorkBuffer<uint32>(); // MainScriptSize
-        LoadDataFromWorkBuffer<uint32>(); // LargestMissionScriptSize
-        LoadDataFromWorkBuffer<uint16>(); // NumberOfMissionScripts
-        LoadDataFromWorkBuffer<uint16>(); // NumberOfExclusiveMissionScripts
-        LoadDataFromWorkBuffer<uint32>(); // LargestNumberOfMissionScriptLocalVariables
+        CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // MainScriptSize
+        CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // LargestMissionScriptSize
+        CGenericGameStorage::LoadDataFromWorkBuffer<uint16>(); // NumberOfMissionScripts
+        CGenericGameStorage::LoadDataFromWorkBuffer<uint16>(); // NumberOfExclusiveMissionScripts
+        CGenericGameStorage::LoadDataFromWorkBuffer<uint32>(); // LargestNumberOfMissionScriptLocalVariables
     }
 
     // Unused
@@ -1219,19 +1225,19 @@ void CTheScripts::Load() {
     // for (auto* s = pActiveScripts; s; s->m_pNext)
     //     j++;
 
-    auto numScripts = LoadDataFromWorkBuffer<uint32>();
+    auto numScripts = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
     for (auto i = 0u; i < numScripts; i++) {
-        auto* script = StartNewScript((uint8*)LoadDataFromWorkBuffer<uint16>());
+        auto* script = StartNewScript(nullptr, CGenericGameStorage::LoadDataFromWorkBuffer<uint16>());
         {
             const auto prev = script->m_pPrev, next = script->m_pNext;
-            LoadDataFromWorkBuffer(*script);
+            CGenericGameStorage::LoadDataFromWorkBuffer(*script);
             script->m_pPrev = prev;
             script->m_pNext = next;
         }
-        script->SetCurrentIp(&ScriptSpace[LoadDataFromWorkBuffer<uint32>()]);
+        script->SetCurrentIp(&ScriptSpace[CGenericGameStorage::LoadDataFromWorkBuffer<uint32>()]);
 
         for (auto& stk : script->m_IPStack) {
-            if (const auto ip = LoadDataFromWorkBuffer<uint32>()) {
+            if (const auto ip = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>()) {
                 stk = &ScriptSpace[ip];
             } else {
                 stk = nullptr;
@@ -1242,18 +1248,20 @@ void CTheScripts::Load() {
 
 // 0x5D4C40
 void CTheScripts::Save() {
-    const auto globalVarsLen = GetSCMChunk<tSCMGlobalVarChunk>()->m_NextChunkOffset;
-    if (globalVarsLen > MAX_SAVED_GVAR_PART_SIZE) {
-        const auto numParts  = (globalVarsLen - MAX_SAVED_GVAR_PART_SIZE - 1) / MAX_SAVED_GVAR_PART_SIZE + 1;
-        const auto remainder = globalVarsLen - MAX_SAVED_GVAR_PART_SIZE * numParts;
+    const auto totalSize = GetSCMChunk<tSCMGlobalVarChunk>()->m_NextChunkOffset;
+    auto       p         = ScriptSpace.data();
+    CGenericGameStorage::SaveDataToWorkBuffer(totalSize);
 
-        for (auto i = 0u; i < numParts; i++) {
-            CGenericGameStorage::SaveDataToWorkBuffer(ScriptSpace.data(), MAX_SAVED_GVAR_PART_SIZE);
-        }
-        CGenericGameStorage::SaveDataToWorkBuffer(ScriptSpace.data(), remainder);
-    } else {
-        CGenericGameStorage::SaveDataToWorkBuffer(ScriptSpace.data(), globalVarsLen);
+    // Load chunks
+    auto nParts = totalSize / MAX_SAVED_GVAR_PART_SIZE;
+    for (nParts; nParts-- > 0; p += MAX_SAVED_GVAR_PART_SIZE) {
+        CGenericGameStorage::SaveDataToWorkBuffer(p, MAX_SAVED_GVAR_PART_SIZE);
     }
+
+    // Load remainder
+    const auto remainder = totalSize % MAX_SAVED_GVAR_PART_SIZE;
+    CGenericGameStorage::SaveDataToWorkBuffer(p, remainder);
+
 
     for (auto& sfb : ScriptsForBrains.m_aScriptForBrains) {
         CGenericGameStorage::SaveDataToWorkBuffer(sfb);
@@ -1279,6 +1287,8 @@ void CTheScripts::Save() {
 
     for (auto& is : InvisibilitySettingArray) {
         if (!is) {
+            CGenericGameStorage::SaveDataToWorkBuffer(ScriptSavedObjectType::NONE);
+            CGenericGameStorage::SaveDataToWorkBuffer(0);
             continue;
         }
 
@@ -1328,9 +1338,9 @@ void CTheScripts::Save() {
     auto numNonExternalScripts = 0u;
     auto* lastScript           = pActiveScripts;
     for (auto* s = pActiveScripts; s; s = s->m_pNext) {
+        lastScript = s;
         if (!s->m_bIsExternal && s->m_nExternalType == -1) {
             numNonExternalScripts++;
-            lastScript = s;
         }
     }
     CGenericGameStorage::SaveDataToWorkBuffer(numNonExternalScripts);

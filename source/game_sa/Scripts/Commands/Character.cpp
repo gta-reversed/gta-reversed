@@ -44,6 +44,7 @@ void HandleEntityMissionCleanup(CRunningScript& S, T& entity) {
 // Flags getters/setters
 //
 
+namespace {
 void SetCharProofs(CPed& ped, bool bullet, bool fire, bool explosion, bool collision, bool melee) {
     auto& flags = ped.physicalFlags;
     flags.bBulletProof = bullet;
@@ -1288,10 +1289,10 @@ auto TaskKillCharOnFootWhileDucking(eScriptCommands command, CRunningScript& S, 
 }
 
 // TASK_TURN_CHAR_TO_FACE_CHAR
-auto TaskTurnCharToFaceChar(eScriptCommands command, CRunningScript& S, CPed& ped, CPed& target) {
+auto TaskTurnCharToFaceChar(eScriptCommands command, CRunningScript& S, int32 pedHandle, CPed& target) {
     S.GivePedScriptedTask(
-        &ped,
-        new CTaskComplexTurnToFaceEntityOrCoord{ &ped },
+        pedHandle,
+        new CTaskComplexTurnToFaceEntityOrCoord{ &target },
         command
     );
 }
@@ -1301,7 +1302,7 @@ auto IsCharAtScriptedAttractor(CPed* ped, C2dEffectPedAttractor* attractor) {
     if (!attractor) {
         return false;
     }
-    const auto pedUsingAttractor = GetPedAttractorManager()->GetPedUsingEffect(reinterpret_cast<C2dEffect*>(attractor));
+    const auto pedUsingAttractor = GetPedAttractorManager()->GetPedUsingEffect(attractor);
     return ped
         ? pedUsingAttractor == ped
         : pedUsingAttractor != nullptr;
@@ -1473,6 +1474,7 @@ CVehicle* StoreCarCharIsAttachedToNoSave(CPed* ped) {
     }
     return ped->m_pAttachedTo->AsVehicle();
 }
+};
 
 void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Char");

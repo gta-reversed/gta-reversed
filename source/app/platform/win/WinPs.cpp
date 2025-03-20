@@ -8,6 +8,8 @@
 #include "VideoModeSelectDialog.h"
 #include "LoadingScreen.h"
 #include "C_PcSave.h"
+#include <windows.h>
+
 
 // NOTE: This macro doesn't do a whole lot. Leaving it here for completeness sake
 #define USE_D3D9
@@ -95,6 +97,7 @@ void InitialiseLanguage() {
 
 // 0x747420
 RwBool psInitialize() {
+    SetProcessDPIAware();
     auto ps = &PsGlobal;
 
     RsGlobal.ps = ps;

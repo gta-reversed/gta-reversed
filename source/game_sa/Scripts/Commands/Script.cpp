@@ -14,6 +14,7 @@
 * Various Script commands
 */
 
+namespace {
 void TerminateAllScriptsWithThisName(const char* name) {
     std::string scriptName{name};
     rng::transform(scriptName, scriptName.begin(), [](char c) { return std::tolower(c); });
@@ -60,8 +61,8 @@ void AttachMissionAudioToCar(uint32 slotId, CVehicle& veh) {
     AudioEngine.AttachMissionAudioToPhysical(slotId - 1, &veh);
 }
 
-void ReportMissionAudioEventAtChar(CPlayerPed& player, int32 eventId) {
-    AudioEngine.ReportMissionAudioEvent(eventId, &player);
+void ReportMissionAudioEventAtChar(CPed& ped, int32 eventId) {
+    AudioEngine.ReportMissionAudioEvent(eventId, &ped);
 }
 
 void ReportMissionAudioEventAtCar(CVehicle& vehicle, int eventId) {
@@ -102,6 +103,7 @@ void SetUpConversationNodeWithScriptedSpeech(
     int32 answerNoWAV) {
     CConversations::SetUpConversationNode(questionKey, answerYesKey, answerNoKey, questionWAV, answerYesWAV, answerNoWAV);
 }
+};
 
 void notsa::script::commands::script::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Script");
