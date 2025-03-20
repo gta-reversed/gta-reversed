@@ -267,6 +267,7 @@ float CIdleCam::ProcessSlerp(float& outX, float& outZ) {
     auto [lookAtAtan, lookAtDistAtan] = VectorToAnglesRotXRotZ(lookAtPos - m_Cam->m_vecSource);
 
     const auto ClampAngle = [](float& angle, float compare) {
+        // TODO: simplify
         if (compare <= DegreesToRadians(180.0f)) {
             if (compare < -DegreesToRadians(180.0f)) {
                 angle += DegreesToRadians(360.0f);
