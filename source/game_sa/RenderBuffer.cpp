@@ -6,7 +6,7 @@ auto& s_IndicesToBeStored{ StaticRef<int32, 0xC40410>() };
 auto& s_VerticesToBeStored{ StaticRef<int32, 0xC40414>() };
 
 const auto IdxBufferSize = (int32)std::size(aTempBufferIndices);
-const auto VtxBufferSize = (int32)std::size(aTempBufferVertices);
+const auto VtxBufferSize = (int32)std::size(TempBufferVertices.m_3d);
 
 void InjectHooks() {
     RH_ScopedNamespace(RenderBuffer);
@@ -37,7 +37,7 @@ void StartStoring(
     }
 
     outPtrFirstIndex = &aTempBufferIndices[uiTempBufferIndicesStored];
-    outPtrFirstVertex = &aTempBufferVertices[uiTempBufferVerticesStored];
+    outPtrFirstVertex = &TempBufferVertices.m_3d[uiTempBufferVerticesStored];
 
     s_IndicesToBeStored = nIndicesNeeded;
     s_VerticesToBeStored = nVerticesNeeded;
@@ -61,7 +61,7 @@ void StopStoring() {
 // NOTSA
 void Render(RwPrimitiveType primType, RwMatrix* ltm, RwUInt32 /*RwIm3DTransformFlags*/ flags, bool isIndexed) {
     if (uiTempBufferVerticesStored) {
-        if (RwIm3DTransform(aTempBufferVertices, uiTempBufferVerticesStored, ltm, flags)) {
+        if (RwIm3DTransform(TempBufferVertices.m_3d, uiTempBufferVerticesStored, ltm, flags)) {
             if (isIndexed) {
                 assert(aTempBufferIndices);
                 RwIm3DRenderIndexedPrimitive(primType, aTempBufferIndices, uiTempBufferIndicesStored);
@@ -94,7 +94,7 @@ void RenderIfDoesntFit(int32 nIdxNeeded, int32 nVtxNeeded) {
 
 // notsa
 RwIm3DVertex* PushVertex(CVector pos, CRGBA color) {
-    const auto vtx = &aTempBufferVertices[uiTempBufferVerticesStored++];
+    const auto vtx = &TempBufferVertices.m_3d[uiTempBufferVerticesStored++];
 
     RwIm3DVertexSetPos(vtx, pos.x, pos.y, pos.z);
     RwIm3DVertexSetRGBA(vtx, color.r, color.g, color.b, color.a);

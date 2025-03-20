@@ -180,7 +180,7 @@ bool CGarage::IsGarageEmpty() {
 
     int16 outCount[2];
     CEntity* outEntities[16];
-    CWorld::FindObjectsIntersectingCube(&cornerA, &cornerB, outCount, static_cast<int16>(std::size(outEntities)), outEntities, false, true, true, false, false);
+    CWorld::FindObjectsIntersectingCube(cornerA, cornerB, outCount, static_cast<int16>(std::size(outEntities)), outEntities, false, true, true, false, false);
     if (outCount[0] <= 0)
         return true;
 

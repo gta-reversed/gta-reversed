@@ -6,6 +6,8 @@ void CAnimBlendStaticAssociation::InjectHooks() {
     RH_ScopedVirtualClass(CAnimBlendStaticAssociation, 0x85C6CC, 1);
     RH_ScopedCategory("Animation");
 
+    RH_ScopedInstall(Constructor1, 0x4CE940);
+    RH_ScopedInstall(Constructor2, 0x4CEF60);
     RH_ScopedInstall(Destructor, 0x4CDF50);
 
     RH_ScopedInstall(Init, 0x4CEC20);

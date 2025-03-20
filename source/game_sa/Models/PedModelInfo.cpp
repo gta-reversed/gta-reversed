@@ -154,11 +154,10 @@ CColModel* CPedModelInfo::AnimatePedColModelSkinnedWorld(RpClump* clump) {
 void CPedModelInfo::IncrementVoice() {
     if (m_nVoiceMin < 0 || m_nVoiceMax < 0) {
         m_nVoiceId = -1;
-        return;
-    }
-
-    ++m_nVoiceId;
-    if (m_nVoiceId > m_nVoiceMax || m_nVoiceId < m_nVoiceMin) {
-        m_nVoiceId = m_nVoiceMin;
+    } else {
+        ++m_nVoiceId;
+        if (m_nVoiceId > m_nVoiceMax || m_nVoiceId < m_nVoiceMin) {
+            m_nVoiceId = m_nVoiceMin;
+        }
     }
 }

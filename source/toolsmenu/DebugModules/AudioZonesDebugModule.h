@@ -2,14 +2,16 @@
 
 #include "DebugModule.h"
 
-class AudioZonesDebugModule : public DebugModule {
+class AudioZonesDebugModule final : public DebugModule {
 public:
     void Render3D() override final;
     void RenderMenuEntry() override final;
 
-private:
-    bool m_ShowAudioZones{};
-    bool m_IsOpen{};
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(AudioZonesDebugModule, m_IsOpen, m_ShowAudioZones);
 
-    CMatrix m_transform = CMatrix::GetIdentity();
+private:
+    bool m_IsOpen{};
+    bool m_ShowAudioZones{};
+
+    CMatrix m_Transform = CMatrix::GetIdentity();
 };

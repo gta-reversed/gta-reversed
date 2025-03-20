@@ -7,6 +7,7 @@
 #pragma once
 
 #include <execution>
+#include <Base.h>
 
 #define INVALID_POOL_SLOT (-1)
 
@@ -121,13 +122,13 @@ public:
 
     // Returns if specified slot is free
     // 0x404940
-    bool IsFreeSlotAtIndex(int32 idx) {
+    bool IsFreeSlotAtIndex(int32 idx) const {
         assert(IsIndexInBounds(idx));
         return m_byteMap[idx].bEmpty;
     }
 
     // Returns slot index for this object
-    int32 GetIndex(const A* obj) {
+    int32 GetIndex(const A* obj) const {
         assert(IsFromObjectArray(obj));
         return reinterpret_cast<const B*>(obj) - m_pObjects;
     }
@@ -252,7 +253,7 @@ public:
     }
 
     // 0x5A1CD0
-    bool IsObjectValid(const A *obj) {
+    bool IsObjectValid(const A *obj) const {
         return IsFromObjectArray(obj) && !IsFreeSlotAtIndex(GetIndex(obj));
     }
 

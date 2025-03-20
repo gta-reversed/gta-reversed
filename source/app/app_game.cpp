@@ -1,6 +1,6 @@
 #include "StdInc.h"
 
-#include <tracy/Tracy.hpp>
+#include <Tracy.hpp>
 
 #include "app_game.h"
 #include "LoadingScreen.h"
@@ -208,7 +208,7 @@ void RenderScene() {
         RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLBACK));
     }
 
-    gRenderStencil();
+    CStencilShadows::RenderStencilShadows();
 }
 
 // 0x53E530

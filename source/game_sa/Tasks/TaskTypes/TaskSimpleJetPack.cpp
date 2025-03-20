@@ -105,7 +105,7 @@ bool CTaskSimpleJetPack::MakeAbortable(class CPed* ped, eAbortPriority priority,
     m_bIsFinished = true;
 
     StopJetPackEffect();
-    ped->m_pedAudio.TurnOffJetPack();
+    ped->GetAE().TurnOffJetPack();
 
     return true;
 }
@@ -275,8 +275,8 @@ void CTaskSimpleJetPack::ProcessThrust(CPed* ped) {
     m_PrevVelocity = ped->GetMoveSpeed();
 
     if (!m_bIsFinished) {
-        ped->m_pedAudio.TurnOnJetPack();
-        ped->m_pedAudio.UpdateJetPack((float)m_ThrustFwd, m_ThrustAngle);
+        ped->GetAE().TurnOnJetPack();
+        ped->GetAE().UpdateJetPack((float)m_ThrustFwd, m_ThrustAngle);
     }
 }
 
@@ -316,7 +316,7 @@ void CTaskSimpleJetPack::ProcessControlInput(CPlayerPed* player) {
     const auto wi  = &player->GetActiveWeapon().GetWeaponInfo(player);
 
     if (wi->m_nWeaponFire == WEAPON_FIRE_INSTANT_HIT && wi->flags.bAimWithArm) { // 0x67E7E5
-        if (const auto tPlayerOnFoot = CTask::DynCast<CTaskSimplePlayerOnFoot>(player->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT))) {
+        if (const auto tPlayerOnFoot = notsa::dyn_cast_if_present<CTaskSimplePlayerOnFoot>(player->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT))) {
             tPlayerOnFoot->ProcessPlayerWeapon(player);
         }
     }

@@ -10,6 +10,7 @@ using namespace notsa::script;
 * Various player pad commands
 */
 
+namespace {
 bool IsButtonPressed(CRunningScript* S, int16 playerIndex, eButtonId button) {
     return S->GetPadState(playerIndex, button) && !CPad::GetPad(0)->JustOutOfFrontEnd;
 }
@@ -30,8 +31,11 @@ bool IsMouseUsingVerticalInversion() {
 bool HasGameJustReturnedFromFrontend() {
     return CPad::GetPad(0)->JustOutOfFrontEnd;
 }
+};
 
 void notsa::script::commands::pad::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Pad");
+
     REGISTER_COMMAND_HANDLER(COMMAND_IS_BUTTON_PRESSED, IsButtonPressed);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_PC_MOUSE_MOVEMENT, GetPCMouseMovement);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_PC_USING_JOYPAD, IsPCUsingJoyPad);

@@ -6,9 +6,9 @@
 #include <app_debug.h>
 
 namespace CommandLine {
-    bool unhookAll{false};
-    std::vector<std::string_view> unhookSome{};
-    std::vector<std::string_view> unhookExcept{};
+    bool s_UnhookAll{false};
+    std::vector<std::string_view> s_UnhookSome{};
+    std::vector<std::string_view> s_UnhookExcept{};
 
     bool waitForDebugger{false};
 
@@ -21,42 +21,42 @@ namespace CommandLine {
         }
 
         if (str == "--unhook-all") {
-            if (!unhookExcept.empty()) {
+            if (!s_UnhookExcept.empty()) {
                 NOTSA_LOG_WARN("--unhook-except has been called previously, unhook-all will be effective.");
-                unhookExcept.clear(); // we aren't gonna use it.
+                s_UnhookExcept.clear(); // we aren't gonna use it.
             }
-            if (!unhookSome.empty()) {
+            if (!s_UnhookSome.empty()) {
                 NOTSA_LOG_WARN("--unhook-some has been called previously, unhook-all will be effective.");
-                unhookSome.clear(); // we aren't gonna use it.
+                s_UnhookSome.clear(); // we aren't gonna use it.
             }
-            unhookAll = true;
+            s_UnhookAll = true;
             return;
         }
 
         if (str.starts_with("--unhook-except=")) {
-            if (unhookAll) {
+            if (s_UnhookAll) {
                 NOTSA_LOG_WARN("--unhook-all has been called previously, unhook-all will be effective.");
             } else {
-                if (!unhookSome.empty()) {
+                if (!s_UnhookSome.empty()) {
                     NOTSA_LOG_WARN("--unhook has been called previously, unhook-except will be effective.");
-                    unhookSome.clear(); // we aren't gonna use it.
+                    s_UnhookSome.clear(); // we aren't gonna use it.
                 }
 
                 for (auto hook : SplitStringView(str.substr(str.find('=') + 1), ",")) {
-                    unhookExcept.emplace_back(std::move(hook));
+                    s_UnhookExcept.emplace_back(std::move(hook));
                 }
             }
             return;
         }
 
         if (str.starts_with("--unhook=")) {
-            if (unhookAll) {
+            if (s_UnhookAll) {
                 NOTSA_LOG_WARN("--unhook-all has been called previously, unhook-all will be effective.");
-            } else if (!unhookExcept.empty()) {
+            } else if (!s_UnhookExcept.empty()) {
                 NOTSA_LOG_WARN("--unhook-except has been called previously, unhook-except will be effective.");
             } else {
                 for (auto hook : SplitStringView(str.substr(str.find('=') + 1), ",")) {
-                    unhookSome.emplace_back(std::move(hook));
+                    s_UnhookSome.emplace_back(std::move(hook));
                 }
             }
             return;

@@ -27,6 +27,10 @@
 #include "TaskSimpleStandStill.h"
 #include "TaskComplexFacial.h"
 #include "WeaponInfo.h"
+#include "Shadows.h"
+#include "TaskComplexEnterCarAsDriver.h"
+#include "RealTimeShadowManager.h"
+#include "WindModifiers.h"
 
 void CPed::InjectHooks() {
     RH_ScopedVirtualClass(CPed, 0x86C358, 26);
@@ -73,13 +77,13 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(MakeTyresMuddySectorList, 0x6AE0D0, { .reversed = false });
     RH_ScopedInstall(IsPedInControl, 0x5E3960);
     RH_ScopedInstall(RemoveWeaponModel, 0x5E3990);
-    RH_ScopedInstall(RemoveWeaponWhenEnteringVehicle, 0x5E6370, { .reversed = false });
+    RH_ScopedInstall(RemoveWeaponWhenEnteringVehicle, 0x5E6370);
     RH_ScopedInstall(AddGogglesModel, 0x5E3A90);
     RH_ScopedInstall(SetWeaponSkill, 0x5E3C10);
     RH_ScopedInstall(ClearLook, 0x5E3FF0);
     RH_ScopedInstall(TurnBody, 0x5E4000);
     RH_ScopedInstall(IsPointerValid, 0x5E4220);
-    RH_ScopedOverloadedInstall(GetBonePosition, "", 0x5E4280, void(CPed::*)(RwV3d&, eBoneTag, bool));
+    RH_ScopedOverloadedInstall(GetBonePosition, "Original", 0x5E4280, void(CPed::*)(CVector*, eBoneTag, bool));
     RH_ScopedInstall(PutOnGoggles, 0x5E3AE0);
     RH_ScopedInstall(ReplaceWeaponWhenExitingVehicle, 0x5E6490);
     RH_ScopedInstall(KillPedWithCar, 0x5F0360, { .reversed = false });
@@ -99,7 +103,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(GiveDelayedWeapon, 0x5E89B0);
     RH_ScopedOverloadedInstall(GetWeaponSkill, "Current", 0x5E6580, eWeaponSkill(CPed::*)());
     RH_ScopedOverloadedInstall(GetWeaponSkill, "WeaponType", 0x5E3B60, eWeaponSkill(CPed::*)(eWeaponType));
-    RH_ScopedInstall(PreRenderAfterTest, 0x5E65A0, { .reversed = false });
+    RH_ScopedInstall(PreRenderAfterTest, 0x5E65A0);
     RH_ScopedInstall(SetIdle, 0x5E7980);
     RH_ScopedOverloadedInstall(SetLook, "Heading", 0x5E79B0, void(CPed::*)(float));
     RH_ScopedOverloadedInstall(SetLook, "Entity", 0x5E7A60, void(CPed::*)(CEntity *));
@@ -296,9 +300,9 @@ CPed::CPed(ePedType pedType) : CPhysical(), m_pedIK{CPedIK(this)} {
     }
     GetTaskManager().SetTask(new CTaskSimpleStandStill{ 0, true, false, 8.0 }, TASK_PRIMARY_DEFAULT, false);
 
-    field_758 = 0;
+    m_Wobble = 0.0f;
     m_fRemovalDistMultiplier = 1.0f;
-    m_nSpecialModelIndex = -1;
+    m_StreamedScriptBrainToLoad = -1;
 
     CPopulation::UpdatePedCount(this, 0);
 
@@ -318,10 +322,10 @@ CPed::~CPed() {
 
     // Remove script brain
     if (bWaitingForScriptBrainToLoad) {
-        CStreaming::SetMissionDoesntRequireModel(SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_nSpecialModelIndex].m_nIMGindex));
+        CStreaming::SetMissionDoesntRequireModel(SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_StreamedScriptBrainToLoad].m_StreamedScriptIndex));
         bWaitingForScriptBrainToLoad = false;
-        CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_nSpecialModelIndex);
-        m_nSpecialModelIndex = -1;
+        CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_StreamedScriptBrainToLoad);
+        m_StreamedScriptBrainToLoad = -1;
     }
 
     CWorld::Remove(this);
@@ -490,14 +494,15 @@ void CPed::SetMoveAnim() {
 * @addr 0x5D4640
  */
 bool CPed::Load() {
+    auto size = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
+
+    // TODO: Can't do `auto save = CGenericGameStorage::LoadDataFromWorkBuffer<CPedSaveStructure>()` dure to deleted copy constructor in CWanted which is used somehow inside.
+    // Would be nice if someone with more knowledge of templates and shit can fix that
     CPedSaveStructure save;
-    uint32 size{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&save, sizeof(save));
-
+    CGenericGameStorage::LoadDataFromWorkBuffer(save);
     assert(size == sizeof(save));
-    save.Extract(this);
 
+    save.Extract(this);
     return true;
 }
 
@@ -508,9 +513,8 @@ bool CPed::Save() {
     CPedSaveStructure save;
     save.Construct(this);
 
-    uint32 size{ sizeof(save) };
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::SaveDataToWorkBuffer(&save, sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(save));
+    CGenericGameStorage::SaveDataToWorkBuffer(save);
 
     return true;
 }
@@ -649,7 +653,7 @@ void CPed::CreateDeadPedWeaponPickups() {
         // No. of ammo the pickups will contain
         const auto pickupAmmo{ std::min(wep.m_TotalAmmo, (uint32)AmmoForWeapon_OnStreet[(size_t)wep.m_Type] * 2) };
 
-        if (CPickups::TryToMerge_WeaponType(
+        if (!CPickups::TryToMerge_WeaponType(
             pickupPos,
             wep.m_Type,
             ePickupType::PICKUP_ONCE_TIMEOUT,
@@ -715,22 +719,22 @@ void CPed::SetMoveAnimSpeed(CAnimBlendAssociation* association) {
 * @addr 0x5DED10
 */
 void CPed::StopNonPartialAnims() {
-    for (auto assoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump); assoc; assoc = RpAnimBlendGetNextAssociation(assoc)) {
-        if ((assoc->m_Flags & ANIMATION_IS_PARTIAL) == 0) {
-            assoc->SetFlag(ANIMATION_IS_PLAYING, false);
+    RpAnimBlendClumpForEachAssociation(m_pRwClump, [](CAnimBlendAssociation* a) {
+        if (!(a->m_Flags & ANIMATION_IS_PARTIAL)) {
+            a->SetFlag(ANIMATION_IS_PLAYING, false);
         }
-    }
+    });
 }
 
 /*!
 * @addr 0x5DED50
 */
 void CPed::RestartNonPartialAnims() {
-    for (auto assoc = RpAnimBlendClumpGetFirstAssociation(m_pRwClump); assoc; assoc = RpAnimBlendGetNextAssociation(assoc)) {
-        if ((assoc->m_Flags & ANIMATION_IS_PARTIAL) == 0) {
-            assoc->SetFlag(ANIMATION_IS_PLAYING, true);
+    RpAnimBlendClumpForEachAssociation(m_pRwClump, [](CAnimBlendAssociation* a) {
+        if (!(a->m_Flags & ANIMATION_IS_PARTIAL)) {
+            a->SetFlag(ANIMATION_IS_PLAYING, true);
         }
-    }
+    });
 }
 
 /*!
@@ -1120,21 +1124,24 @@ bool CPed::DoWeHaveWeaponAvailable(eWeaponType weaponType) {
 * @addr 0x5DF340
 * @brief Do gun flash by resetting it's alpha to max
 */
-void CPed::DoGunFlash(int32 lifetime, bool bRightHand) {
+bool CPed::DoGunFlash(int32 duration, bool isLeftHand) {
     if (!m_pGunflashObject || !m_pWeaponObject) {
-        return;
+        return false;
     }
 
     // Really elegant.. ;D
-    if (bRightHand) {
+    if (isLeftHand) {
         m_nWeaponGunflashAlphaMP2     = m_sGunFlashBlendStart;
-        m_nWeaponGunFlashAlphaProgMP2 = (uint16)m_sGunFlashBlendStart / lifetime;
+        m_nWeaponGunFlashAlphaProgMP2 = (uint16)m_sGunFlashBlendStart / duration;
     } else {
         m_nWeaponGunflashAlphaMP1     = m_sGunFlashBlendStart;
-        m_nWeaponGunFlashAlphaProgMP1 = (uint16)m_sGunFlashBlendStart / lifetime;
+        m_nWeaponGunFlashAlphaProgMP1 = (uint16)m_sGunFlashBlendStart / duration;
     }
+
     const auto angle = CGeneral::GetRandomNumberInRange(-360.0f, 360.0f);
     RwMatrixRotate(RwFrameGetMatrix(m_pGunflashObject), &CPedIK::XaxisIK, angle, rwCOMBINEPRECONCAT);
+
+    return true;
 }
 
 /*!
@@ -1197,44 +1204,36 @@ float CPed::GetBikeRidingSkill() const {
 * @brief Deal with shoulder bone (clavicle) rotation based on arm and breast rotation
 */
 void CPed::ShoulderBoneRotation(RpClump* clump) {
-    // Note: Didn't use `GetBoneMatrix` here, because it would be slower
-    // (Because it would call `GetAnimHierarchyFromClump` multiple times)
-    auto GetMatrixOf = [hier = GetAnimHierarchyFromClump(clump)](eBoneTag bone) mutable -> RwMatrix& {
-        return (RpHAnimHierarchyGetMatrixArray(hier))[RpHAnimIDGetIndex(hier, (size_t)bone)];
+    const auto GetMatrixOf = [hier = GetAnimHierarchyFromClump(clump)](eBoneTag bone) {
+        return RpHAnimHierarchyGetNodeMatrix(hier, bone);
     };
-
-    constexpr struct { eBoneTag breast, upperArm, clavicle; } bones[]{
-        {eBoneTag::BONE_L_BREAST, eBoneTag::BONE_L_UPPER_ARM, eBoneTag::BONE_L_CLAVICLE},
-        {eBoneTag::BONE_R_BREAST, eBoneTag::BONE_R_UPPER_ARM, eBoneTag::BONE_R_CLAVICLE},
-    };
-
-    // Update left, and right sides
-    for (auto [breast, upperArm, clavicle] : bones) {
-        auto& breastRwMat = GetMatrixOf(breast);
+    const auto DoUpdate = [&](eBoneTag breast, eBoneTag upperArm, eBoneTag clavicle) {
+        auto* const breastRwMat = GetMatrixOf(breast);
 
         // Make the breast's matrix same as the upper arm's
-        breastRwMat = GetMatrixOf(upperArm);
+        RwMatrixCopy(breastRwMat, GetMatrixOf(upperArm));
 
-        CMatrix breastMat{ &breastRwMat };
-        CMatrix clavicleMat{ &GetMatrixOf(clavicle) };
+        CMatrix breastMat{ breastRwMat };
+        CMatrix clavicleMat{ GetMatrixOf(clavicle) };
 
         // Calculate breast to clavicle transformation matrix (and store it in breastMat)
         breastMat = Invert(clavicleMat) * breastMat;
 
         // Half it's X rotation
-
-        float x, y, z;
-        breastMat.ConvertToEulerAngles(&x, &y, &z, ORDER_ZYX | SWAP_XZ);
+        float rx, ry, rz;
+        breastMat.ConvertToEulerAngles(&rx, &ry, &rz, ORDER_ZYX | SWAP_XZ);
         // Originally there is an `if` check of a static bool value, which is always true.
-        x /= 2.f;
-        breastMat.ConvertFromEulerAngles(x, y, z, ORDER_ZYX | SWAP_XZ);
+        rx /= 2.f;
+        breastMat.ConvertFromEulerAngles(rx, ry, rz, ORDER_ZYX | SWAP_XZ);
 
         // Transform it back into it's own space
         breastMat = clavicleMat * breastMat;
 
         // Finally, update it's RW associated matrix
         breastMat.UpdateRW();
-    }
+    };
+    DoUpdate(eBoneTag::BONE_L_BREAST, eBoneTag::BONE_L_UPPER_ARM, eBoneTag::BONE_L_CLAVICLE);
+    DoUpdate(eBoneTag::BONE_R_BREAST, eBoneTag::BONE_R_UPPER_ARM, eBoneTag::BONE_R_CLAVICLE);
 }
 
 /*!
@@ -1359,29 +1358,6 @@ void CPed::UpdateStatEnteringVehicle()
 void CPed::UpdateStatLeavingVehicle()
 {
     // NOP
-}
-
-/*!
-* @addr 0x5E01C0
-* @brief Transform \r inOffsetOutPosn into the given \a bone's space
-*
-* @param [in,out] inOffsetOutPosn The position to be transformed in-place.
-* @param          updateSkinBones If `UpdateRpHAnim` should be called
-*/
-void CPed::GetTransformedBonePosition(RwV3d& inOffsetOutPosn, eBoneTag bone, bool updateSkinBones) {
-    // Pretty much the same as GetBonePosition..
-    if (updateSkinBones) {
-        if (!bCalledPreRender) {
-            UpdateRpHAnim();
-            bCalledPreRender = true;
-        }
-    } else if (!bCalledPreRender) { // Return static local bone position instead
-        inOffsetOutPosn = m_matrix->TransformPoint(GetPedBoneStdPosition(bone));
-        return;
-    }
-
-    // Return actual position
-    RwV3dTransformPoints(&inOffsetOutPosn, &inOffsetOutPosn, 1, &GetBoneMatrix(bone));
 }
 
 /*!
@@ -1690,7 +1666,7 @@ void CPed::ProcessBuoyancy()
         auto& standingOnEntity = m_pContactEntity;
         if (standingOnEntity && standingOnEntity->IsVehicle()) {
             auto pStandingOnVehicle = standingOnEntity->AsVehicle();
-            if (pStandingOnVehicle->IsBoat() && !pStandingOnVehicle->physicalFlags.bDestroyed) {
+            if (pStandingOnVehicle->IsBoat() && !pStandingOnVehicle->physicalFlags.bRenderScorched) {
                 physicalFlags.bSubmergedInWater = false;
                 auto swimTask = GetIntelligence()->GetTaskSwim();
                 if (!swimTask)
@@ -1711,7 +1687,7 @@ void CPed::ProcessBuoyancy()
             if (colEntity->IsVehicle()) {
                 auto colVehicle = colEntity->AsVehicle();
                 if (colVehicle->IsBoat()
-                    && !colVehicle->physicalFlags.bDestroyed
+                    && !colVehicle->physicalFlags.bRenderScorched
                     && colVehicle->GetMatrix().GetUp().z > 0.0F) {
 
                     physicalFlags.bSubmergedInWater = false;
@@ -2038,18 +2014,49 @@ bool CPed::IsPointerValid() {
 * @brief Retrieve object-space position of the given \a bone.
 * @param updateSkinBones if not already called `UpdateRpHAnim` will be called. If this param is not set, and the latter function wasn't yet called a default position will be returned.
 */
-void CPed::GetBonePosition(RwV3d& outPosition, eBoneTag bone, bool updateSkinBones) {
+CVector CPed::GetBonePosition(eBoneTag bone, bool updateSkinBones) {
+    if (!bCalledPreRender) {
+        if (!updateSkinBones) {
+            return m_matrix->TransformPoint(GetPedBoneStdPosition(bone));
+        }
+        UpdateRpHAnim();
+        bCalledPreRender = true;
+    }
+    if (const auto* const m = GetBoneMatrix(bone)) {
+        return *RwMatrixGetPos(m);
+    }
+    return GetPosition();
+}
+
+/*
+* @addr 0x5E4280
+* @brief Added for compatiblity reasons for hooking - use the version returning CVector where possible in code.
+*/
+void CPed::GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones) {
+    *outVec = CPed::GetBonePosition(bone, updateSkinBones);
+}
+
+/*!
+* @addr 0x5E01C0
+* @brief Transform \r inOutPos into the given \a bone's space
+*
+* @param [in,out] inOutPos The position to be transformed in-place.
+* @param          updateSkinBones If `UpdateRpHAnim` should be called
+*/
+void CPed::GetTransformedBonePosition(RwV3d& inOutPos, eBoneTag bone, bool updateSkinBones) { // todo: fix this too!!!
+    // Pretty much the same as GetBonePosition..
     if (updateSkinBones) {
         if (!bCalledPreRender) {
             UpdateRpHAnim();
             bCalledPreRender = true;
         }
     } else if (!bCalledPreRender) { // Return static local bone position instead
-        outPosition = m_matrix->TransformPoint(GetPedBoneStdPosition(bone));
+        inOutPos = m_matrix->TransformPoint(GetPedBoneStdPosition(bone));
         return;
     }
-    RwV3dAssign(&outPosition, RwMatrixGetPos(&GetBoneMatrix(bone)));
-    assert(!std::isnan(outPosition.x)); // TODO: Sometimes this shit becomes nan, let's investigate
+
+    // Return actual position
+    RwV3dTransformPoints(&inOutPos, &inOutPos, 1, GetBoneMatrix(bone));
 }
 
 /*!
@@ -2418,14 +2425,13 @@ void CPed::AddWeaponModel(int32 modelIndex) {
 
    m_nWeaponModelId = modelIndex;
 
-   // If player and model is molotov create FX for it.
+   // Create FX for molotovs
    if (IsPlayer()) {
        if (   activeWep.m_Type == WEAPON_MOLOTOV
            && modelIndex == eModelID::MODEL_MOLOTOV
            && !activeWep.m_FxSystem
         ) {
-           CVector pos{ 0.f, 0.f, 0.f };
-           activeWep.m_FxSystem = g_fxMan.CreateFxSystem("molotov_flame", &pos, &GetBoneMatrix(eBoneTag::BONE_R_HAND), false);
+           activeWep.m_FxSystem = g_fxMan.CreateFxSystem("molotov_flame", CVector{ 0.f, 0.f, 0.f }, GetBoneMatrix(eBoneTag::BONE_R_HAND), false);
            if (const auto fx = activeWep.m_FxSystem) {
                fx->SetLocalParticles(true);
                fx->CopyParentMatrix();
@@ -2663,12 +2669,12 @@ void CPed::ClearWeapons()
 
 /*!
 * @addr 0x5E6370
+* @brief Saves ped's in foot weapon and equips a weapon that can be used in a vehicle if available.
+* @param isJetpack  1: when entering jetpack, 0: any other vehicle
 */
-void CPed::RemoveWeaponWhenEnteringVehicle(int32 arg0) {
-    ((void(__thiscall *)(CPed*, int32))0x5E6370)(this, arg0);
-
-    // Missing some code below (Had too many jumps and I was lazy to deal with it all)
-    /*if (m_pPlayerData) {
+void CPed::RemoveWeaponWhenEnteringVehicle(int32 isJetpack) {
+    assert(isJetpack == 0 || isJetpack == 1);
+    if (m_pPlayerData) {
         m_pPlayerData->m_bInVehicleDontAllowWeaponChange = true;
     }
 
@@ -2676,31 +2682,48 @@ void CPed::RemoveWeaponWhenEnteringVehicle(int32 arg0) {
         return;
     }
 
-    const auto RemoveActiveWepModel = [this] {
-        RemoveWeaponModel(GetActiveWeapon().GetWeaponInfo().m_nModelId1);
+    const auto SaveCurrentWeaponAndEquipInSlot = [&](eWeaponSlot slot) {
+        // if (m_nSavedWeapon == WEAPON_UNIDENTIFIED) // always true
+        m_nSavedWeapon = GetActiveWeapon().GetType();
+        SetCurrentWeapon(GetWeaponInSlot(slot).GetWeaponInfo().m_nSlot);
+    };
+
+    const auto EquipHandgunIfPossible = [&] {
+        const auto &shotgun = GetWeaponInSlot(eWeaponSlot::SHOTGUN), &handgun = GetWeaponInSlot(eWeaponSlot::HANDGUN);
+        if (shotgun.GetType() == WEAPON_SAWNOFF_SHOTGUN && shotgun.GetTotalAmmo() > 0 || handgun.GetType() == WEAPON_PISTOL && handgun.GetTotalAmmo() > 0) {
+            SaveCurrentWeaponAndEquipInSlot(eWeaponSlot::HANDGUN);
+        } else {
+            RemoveWeaponModel(CWeaponInfo::GetWeaponInfo(this, eWeaponSkill::STD)->m_nModelId1);
+        }
+    };
+
+    const auto HandleDriveByWeapons = [&](const CWeapon& w) {
+        if (w.GetTotalAmmo() > 0) {
+            SaveCurrentWeaponAndEquipInSlot(eWeaponSlot::SMG);
+        } else if (isJetpack != 1) {
+            RemoveWeaponModel(CWeaponInfo::GetWeaponInfo(this, eWeaponSkill::STD)->m_nModelId1);
+        } else {
+            EquipHandgunIfPossible();
+        }
     };
 
     if (!IsPlayer() || !AsPlayer()->GetPlayerInfoForThisPlayerPed()->m_bCanDoDriveBy) {
-        RemoveActiveWepModel();
-        return;
+        return RemoveWeaponModel(CWeaponInfo::GetWeaponInfo(this, eWeaponSkill::STD)->m_nModelId1);
     }
 
-    const auto SaveCurrentSetActiveWeapon = [](eWeaponType wt) {
+    if (const auto& w = GetWeaponInSlot(eWeaponSlot::SMG); notsa::contains({ WEAPON_MICRO_UZI, WEAPON_TEC9 }, w.GetType())) {
+        return HandleDriveByWeapons(w);
+    }
 
-    };
+    if (isJetpack == 1) {
+        // Whole logic of this function is complicated asf because the player is not
+        // supposed to be able to use MP5 while using jetpack. Only Tec-9 or Uzi.
+        return EquipHandgunIfPossible();
+    }
 
-    if (arg0) {
-        const auto IsWeaponInSlotWithAmmo = [this](eWeaponSlot slot, eWeaponType wt) {
-            const auto& wepInSlot = GetWeaponInSlot(slot);
-            return wepInSlot.m_nType == wt && wepInSlot.m_nTotalAmmo > 0;
-        };
-
-        if (   IsWeaponInSlotWithAmmo(eWeaponSlot::SHOTGUN, WEAPON_SAWNOFF_SHOTGUN)
-            || IsWeaponInSlotWithAmmo(eWeaponSlot::HANDGUN, WEAPON_PISTOL)
-        ) {
-            SaveCurrentSetActiveWeapon(WEAPON_GOLFCLUB);
-        }
-    }*/
+    if (const auto& w = GetWeaponInSlot(eWeaponSlot::SMG); w.GetType() == eWeaponType::WEAPON_MP5) {
+        return HandleDriveByWeapons(w);
+    }
 }
 
 /*!
@@ -2748,7 +2771,233 @@ void CPed::RemoveWeaponForScriptedCutscene()
 */
 void CPed::PreRenderAfterTest()
 {
-    ((void(__thiscall *)(CPed*))0x5E65A0)(this);
+    auto* const intel = GetIntelligence();
+    if (const auto* swim = intel->GetTaskSwim()) {
+        swim->ApplyRollAndPitch(this);
+        m_pedIK.bSlopePitch = false;
+    } else if (auto* jetpack = intel->GetTaskJetPack()) {
+        jetpack->ApplyRollAndPitch(this);
+        m_pedIK.bSlopePitch = false;
+    }
+
+    if (intel->GetTaskInAir()) {
+        m_pedIK.bSlopePitch = false;
+    } else if (m_pedIK.bSlopePitch || !IsPlayer() && m_pedIK.m_fSlopePitch != 0.0f) {
+        m_pedIK.PitchForSlope();
+    }
+    bCalledPreRender = true;
+    UpdateRpHAnim();
+
+    if (!CTimer::bSkipProcessThisFrame && m_pWeaponObject && m_pPlayerData) {
+        if (GetActiveWeapon().GetType() == eWeaponType::WEAPON_MINIGUN) {
+            if (const auto f = CClumpModelInfo::GetFrameFromName(m_pWeaponObject, "minigun2")) {
+                RwMatrixRotate(
+                    RwFrameGetMatrix(f),
+                    &CPedIK::XaxisIK,
+                    RadiansToDegrees(CTimer::GetTimeStep() * m_pPlayerData->m_fGunSpinSpeed),
+                    rwCOMBINEPRECONCAT
+                );
+            }
+        }
+    }
+
+    if (m_bIsVisible && CTimeCycle::m_CurrentColours.m_nShadowStrength != 0) {
+        const auto [shadowNeeded, activeTask] = [&]() -> std::pair<bool, CTask*> {
+            if (!bInVehicle) {
+                return std::make_pair(false, intel->m_TaskMgr.FindActiveTaskByType(TASK_COMPLEX_ENTER_ANY_CAR_AS_DRIVER));
+            }
+
+            return std::make_pair(intel->m_TaskMgr.FindActiveTaskFromList({ TASK_COMPLEX_LEAVE_CAR, TASK_COMPLEX_DRAG_PED_FROM_CAR }) != nullptr, nullptr);
+        }();
+
+        // Low quality circle below feet shadow
+        const auto DrawDummyShadow = [&] {
+            if (!m_pShadowData && (!bInVehicle || shadowNeeded)) {
+                CShadows::StoreShadowForPedObject(
+                    this,
+                    CTimeCycle::m_fShadowDisplacementX[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowDisplacementY[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowFrontX[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowFrontY[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowSideX[CTimeCycle::m_CurrentStoredValue],
+                    CTimeCycle::m_fShadowSideY[CTimeCycle::m_CurrentStoredValue]
+                );
+            }
+        };
+
+        // FIX_BUGS: Original check was only for 1st player in high FX quality.
+        if (g_fx.GetFxQuality() != FX_QUALITY_VERY_HIGH && (g_fx.GetFxQuality() != FX_QUALITY_HIGH || !IsPlayer())) {
+            DrawDummyShadow();
+        } else if (const auto b = GetBonePosition(eBoneTag::BONE_ROOT); DistanceBetweenPoints2D(b, TheCamera.GetPosition2D()) <= MAX_DISTANCE_PED_SHADOWS_SQR) {
+            const auto IsVehicleRTShadable = [](eVehicleType t) {
+                switch (t) {
+                case VEHICLE_TYPE_BMX:
+                case VEHICLE_TYPE_BIKE:
+                case VEHICLE_TYPE_QUAD:
+                    return true;
+                default:
+                    return false;
+                }
+            };
+
+            auto drawRealTimeShadow = true;
+            if (!physicalFlags.bSubmergedInWater) {
+                if (const auto* veh = GetVehicleIfInOne()) {
+                    drawRealTimeShadow = IsVehicleRTShadable(veh->m_nVehicleSubType);
+                }
+
+                if (activeTask) {
+                    drawRealTimeShadow = false;
+                    if (const auto* targetVeh = notsa::cast<CTaskComplexEnterCarAsDriver>(activeTask)->GetTargetCar()) {
+                        drawRealTimeShadow = IsVehicleRTShadable(targetVeh->m_nVehicleSubType);
+                    }
+                }
+
+                if (const auto bsp = GetBonePosition(eBoneTag::BONE_SPINE1); IsAlive() && GetPosition().z - 0.2f > bsp.z) {
+                    drawRealTimeShadow = bIsDucking;
+                }
+
+                if (drawRealTimeShadow) {
+                    g_realTimeShadowMan.DoShadowThisFrame(this);
+                    DrawDummyShadow();
+                }
+            }
+        }
+    }
+
+    if (GetModelID() == MODEL_PLAYER) {
+        ShoulderBoneRotation(m_pRwClump);
+        m_bDontUpdateHierarchy = true;
+    }
+    float windMod{};
+    const auto rainAffectsPlayer = IsPlayer() && CWindModifiers::FindWindModifier(GetPosition(), &windMod, &windMod) && !CCullZones::PlayerNoRain();
+    const auto drivingOpenTopVeh = IsStateDriving() && IsInVehicle() && (m_pVehicle->IsBike() || m_pVehicle->IsAutomobile() && m_pVehicle->IsOpenTopCar());
+
+    const auto GetHierMatrix = [h = GetAnimHierarchyFromSkinClump(m_pRwClump)](AnimationId id) {
+        return &RpHAnimHierarchyGetMatrixArray(h)[RpHAnimIDGetIndex(h, id)];
+    };
+
+    if (!m_pPlayerData || !m_pPlayerData->m_pPedClothesDesc->IsWearingModel("vest") && !m_pPlayerData->m_pPedClothesDesc->IsWearingModel("torso")) {
+        if (rainAffectsPlayer || drivingOpenTopVeh) {
+            float vehSpeed = drivingOpenTopVeh ? m_pVehicle->GetMoveSpeed().Magnitude() : 0.0f;
+
+            if (rainAffectsPlayer) {
+                vehSpeed = std::max(vehSpeed, std::abs(windMod - 1.0f));
+            }
+
+            static constexpr float flt_8D1378 = 0.2f, flt_8D1380 = 0.2f;
+            static constexpr float flt_8D137C = 0.1f;
+
+            const auto ScaleAnimHierMat = [GetHierMatrix](float range, AnimationId id) {
+                const CVector scale{
+                    CGeneral::GetRandomNumberInRange(1.0f - range, 1.0f + range),
+                    CGeneral::GetRandomNumberInRange(1.0f - range, 1.0f + range),
+                    CGeneral::GetRandomNumberInRange(1.0f - range, 1.0f + range),
+                };
+                RwMatrixScale(GetHierMatrix(id), &scale, rwCOMBINEPRECONCAT);
+                return scale;
+            };
+
+            ScaleAnimHierMat(flt_8D1378 * vehSpeed, ANIM_ID_ROADCROSS);
+            auto scale = ScaleAnimHierMat(flt_8D137C * vehSpeed, ANIM_ID_SHOT_RIGHTP);
+            RwMatrixScale(GetHierMatrix(ANIM_ID_GAS_CWR), &scale, rwCOMBINEPRECONCAT);
+            if (drivingOpenTopVeh || !intel->GetTaskJetPack()) {
+                RwMatrixScale(GetHierMatrix(ANIM_ID_IDLE), &scale, rwCOMBINEPRECONCAT);
+            }
+            scale = ScaleAnimHierMat(flt_8D1380 * vehSpeed, ANIM_ID_HIT_FRONT);
+            RwMatrixScale(GetHierMatrix(ANIM_ID_KD_LEFT), &scale, rwCOMBINEPRECONCAT);
+        }
+    }
+
+    if (bIsTalking && m_nBodypartToRemove == 2) {
+        const CVector scale{};
+        RwMatrixScale(GetHierMatrix(ANIM_ID_WALK_START), &scale, rwCOMBINEPRECONCAT);
+        RwMatrixScale(GetHierMatrix(ANIM_ID_IDLE_HBHB_0), &scale, rwCOMBINEPRECONCAT);
+        RwMatrixScale(GetHierMatrix(ANIM_ID_RUN_STOP), &scale, rwCOMBINEPRECONCAT);
+        RwMatrixScale(GetHierMatrix(ANIM_ID_RUN_STOPR), &scale, rwCOMBINEPRECONCAT);
+    }
+
+    if (m_Wobble > 0.0f) {
+        static constexpr float WOBBLE_FACTOR = 5.0f; // 0x8D21F0
+
+        const auto angle = std::sin(m_Wobble) * -WOBBLE_FACTOR;
+        m_Wobble -= CTimer::GetTimeStep() * m_WobbleSpeed;
+
+        if (IsPlayer()) {
+            RwMatrixRotate(GetHierMatrix(ANIM_ID_SMKCIG_PRTL_F), &CPedIK::ZaxisIK, angle, rwCOMBINEPRECONCAT);
+            RwMatrixRotate(GetHierMatrix(ANIM_ID_DRNKBR_PRTL_F), &CPedIK::ZaxisIK, angle, rwCOMBINEPRECONCAT);
+        }
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_BIKE_HIT), &CPedIK::ZaxisIK, angle, rwCOMBINEPRECONCAT);
+    }
+
+    if (CWeather::Earthquake > 0.0f) {
+        const auto swing = CGeneral::GetRandomNumberInRange(-CWeather::Earthquake, CWeather::Earthquake);
+
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_FIGHTSH_LEFT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_GUNMOVE_BWD), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_HIT_L), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_KD_RIGHT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_HIT_FRONT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_KD_LEFT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_FIGHTSH_BWD), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_GUNMOVE_R), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_HIT_BACK), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_KO_SKID_FRONT), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+        RwMatrixRotate(GetHierMatrix(ANIM_ID_WALK_START), &CPedIK::ZaxisIK, swing, rwCOMBINEPOSTCONCAT);
+    }
+
+    if (bIsTalking && m_nBodypartToRemove == 2 && !IsStateDead() && !bIsDyingStuck && CTimer::GetFrameCounter() % 8 > 3) {
+        g_fx.AddBlood(GetHierMatrix(ANIM_ID_WALK_START)->pos, 0.6f * GetUp(), 16, m_fContactSurfaceBrightness);
+    }
+
+    if (CWeather::Rain > 0.3f
+        && TheCamera.m_fSoundDistUp > 15.0f
+        && !bInVehicle
+        && CGame::CanSeeOutSideFromCurrArea()
+        && GetPosition().z < 900.0f
+        && !CCullZones::CamNoRain()
+    ) {
+        if (DistanceBetweenPoints(TheCamera.GetPosition(), GetPosition()) < 25.0f) {
+            auto* const pedModelInfo = GetModelInfo()->AsPedModelInfoPtr();
+            pedModelInfo->AnimatePedColModelSkinnedWorld(m_pRwClump);
+
+            if (const auto& s = FindPlayerSpeed(); std::abs(s.x) <= 0.05f
+                && std::abs(s.y) <= 0.05f
+                && !IsStateDying()
+                && !notsa::contains({ PEDSTATE_FALL, PEDSTATE_ATTACK, PEDSTATE_FIGHT }, m_nPedState)
+                && IsPedHeadAbovePos(0.3f)
+                && !RpAnimBlendClumpGetAssociation(m_pRwClump, ANIM_ID_IDLE_TIRED)
+            ) {
+                const auto* colData = pedModelInfo->GetColModel()->GetData();
+                for (const auto& sphere : colData->GetSpheres()) {
+                    if (notsa::contains(std::initializer_list<uint8>{ 5, 6, 9 }, sphere.m_Surface.m_nPiece)) {
+                        FxPrtMult_c p{ 1.0f, 1.0f, 1.0f, 0.35f, 0.01f, 0.0f, 0.03f };
+                        CVector     pos = sphere.m_vecCenter;
+                        pos.x += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
+                        pos.y += CGeneral::GetRandomNumberInRange(-0.08f, 0.08f);
+                        pos.z += CGeneral::GetRandomNumberInRange(-0.08f, 0.02f);
+                        CVector vel = s * 50.0f;
+                        g_fx.m_Splash->AddParticle(&pos, &vel, 0.0f, &p, -1.0f, 1.2f, 0.6f, false);
+                    }
+                }
+            }
+        }
+    }
+
+    if (m_pPlayerData && m_pPlayerData->m_nWetness && m_pPlayerData->m_nWaterCoverPerc < 30u) {
+        FxPrtMult_c p{1.0f, 1.0f, 1.0f, 0.2f, 0.15f, 0.0f, 0.1f};
+        CVector     pos = GetPosition();
+        pos.x += CGeneral::GetRandomNumberInRange(-0.03f, 0.03f);
+        pos.y += CGeneral::GetRandomNumberInRange(-0.03f, 0.03f);
+        pos.z += CGeneral::GetRandomNumberInRange(-0.8f, 0.2f);
+        p.m_Color.alpha *= (float)m_pPlayerData->m_nWetness / 100.0f;
+        CVector vel{};
+        g_fx.m_WaterSplash->AddParticle(&pos, &vel, 0.0f, &p, -1.0f, 1.2f, 0.6f, false);
+    }
+
+    if (const auto* veh = GetVehicleIfInOne()) {
+        m_fContactSurfaceBrightness = veh->m_fContactSurfaceBrightness;
+    }
 }
 
 /*!
@@ -3124,27 +3373,25 @@ void CPed::EnablePedSpeechForScriptSpeech() {
 /*!
 * @addr 0x5EFFA0
 */
-bool CPed::CanPedHoldConversation() {
+bool CPed::CanPedHoldConversation() const {
     return m_pedSpeech.CanPedHoldConversation();
 }
 
 /*!
 * @addr 0x5EFFB0
 */
-void CPed::SayScript(int32 arg0, uint8 arg1, uint8 arg2, uint8 arg3) {
-    m_pedSpeech.AddScriptSayEvent(eAudioEvents::AE_SCRIPT_SPEECH_PED, arg0, arg1, arg2, arg3);
+void CPed::SayScript(eAudioEvents scriptID, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    m_pedSpeech.AddScriptSayEvent(AE_SCRIPT_SPEECH_PED, scriptID, overrideSilence, isForceAudible, isFrontEnd);
 }
 
 /*!
 * @addr 0x5EFFE0
 * @returns Played soundID - TODO: I'm not sure about this..
 */
-int16 CPed::Say(uint16 phraseId, uint32 offset, float arg2, uint8 arg3, uint8 arg4, uint8 arg5) {
-    if (phraseId) {
-        return m_pedSpeech.AddSayEvent(eAudioEvents::AE_SPEECH_PED, phraseId, offset, arg2, arg3, arg4, arg5);
-    } else {
-        return -1;
-    }
+int16 CPed::Say(eGlobalSpeechContext gCtx, uint32 startTimeDelay, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    return gCtx != CTX_GLOBAL_NO_SPEECH
+        ? m_pedSpeech.AddSayEvent(AE_SPEECH_PED, gCtx, startTimeDelay, probability, overrideSilence, isForceAudible, isFrontEnd)
+        : -1;
 }
 
 /*!
@@ -3197,7 +3444,7 @@ uint8 CPed::DoesLOSBulletHitPed(CColPoint& colPoint) {
     RwV3d headPos{};
 
     // TODO: Doesn't this just return the position of the matrix? Eg.: `BoneMatrix.pos` ?
-    RwV3dTransformPoint(&headPos, &zero, &GetBoneMatrix((eBoneTag)m_apBones[ePedNode::PED_NODE_HEAD]->BoneTag));
+    RwV3dTransformPoint(&headPos, &zero, GetBoneMatrix((eBoneTag)m_apBones[ePedNode::PED_NODE_HEAD]->BoneTag));
 
     if (m_nPedState == PEDSTATE_FALL || colPoint.m_vecPoint.z < headPos.z) { // Ped falling, adjust
         return 1;
@@ -3242,7 +3489,7 @@ bool CPed::IsPedHeadAbovePos(float zPos) {
     RwV3d headPos{};
 
     // TODO: Doesn't this just return the position of the matrix? Eg.: `BoneMatrix.pos` ?
-    RwV3dTransformPoint(&headPos, &zero, &GetBoneMatrix((eBoneTag)m_apBones[ePedNode::PED_NODE_HEAD]->BoneTag));
+    RwV3dTransformPoint(&headPos, &zero, GetBoneMatrix((eBoneTag)m_apBones[ePedNode::PED_NODE_HEAD]->BoneTag));
 
     return zPos + GetPosition().z < headPos.z;
 }
@@ -3299,7 +3546,9 @@ bool CPed::IsInVehicleThatHasADriver() {
 * @notsa
 */
 int32 CPed::GetGroupId() {
-    return GetGroup() ? GetGroup()->GetId() : -1;
+    return GetGroup()
+        ? GetGroup()->GetId()
+        : -1;
 }
 
 /*!
@@ -3312,11 +3561,13 @@ bool CPed::IsFollowerOfGroup(const CPedGroup& group) const {
 
 /*!
 * @notsa
-* @returns Bone transformation matrix in object space. To transform to world space ped's matrix must be used as well.
+* @returns Bone transformation matrix into object space. To transform to world space ped's matrix must be used as well.
 */
-RwMatrix& CPed::GetBoneMatrix(eBoneTag bone) const {
-    const auto h = GetAnimHierarchyFromClump(m_pRwClump);
-    return RpHAnimHierarchyGetMatrixArray(h)[RpHAnimIDGetIndex(h, (size_t)bone)];
+RwMatrix* CPed::GetBoneMatrix(eBoneTag bone) const {
+    if (const auto h = GetAnimHierarchyFromClump(m_pRwClump)) {
+        return RpHAnimHierarchyGetNodeMatrix(h, bone);
+    }
+    return nullptr;
 }
 
 /*!
@@ -3515,14 +3766,14 @@ void CPed::Render() {
     // 0x5E787C
     // Render goggles object
     if (m_pGogglesObject) {
-        auto& headMat = GetBoneMatrix(eBoneTag::BONE_HEAD);
+        const auto* const headMat = GetBoneMatrix(eBoneTag::BONE_HEAD);
 
         // Update goggle's matrix with head's
-        *RwFrameGetMatrix(RpClumpGetFrame(m_pGogglesObject)) = headMat; // TODO: Is there a better way to do this?
+        *RwFrameGetMatrix(RpClumpGetFrame(m_pGogglesObject)) = *headMat; // TODO: Is there a better way to do this?
 
         // Calculate it's new position
-        RwV3d pos{0.f, 0.084f, 0.f};                   // Offset
-        RwV3dTransformPoints(&pos, &pos, 1, &headMat); // Transform offset into the head's space
+        RwV3d pos{0.f, 0.084f, 0.f};                  // Offset
+        RwV3dTransformPoints(&pos, &pos, 1, headMat); // Transform offset into the head's space
 
         RwV3dAssign(RwMatrixGetPos(RwFrameGetMatrix(RpClumpGetFrame(m_pGogglesObject))), &pos);
         RwFrameUpdateObjects(RpClumpGetFrame(m_pGogglesObject)); // After changing the position it has to be updated
@@ -3598,7 +3849,7 @@ bool CPed::SetupLighting() {
 void CPed::RemoveLighting(bool bRemove) {
     UNUSED(bRemove);
 
-    if (!physicalFlags.bDestroyed) {
+    if (!physicalFlags.bRenderScorched) {
         CPointLights::RemoveLightsAffectingObject();
     }
 
@@ -3649,12 +3900,6 @@ bool CPed::IsInVehicleAsPassenger() const noexcept {
     return bInVehicle && m_pVehicle && m_pVehicle->m_pDriver != this;
 }
 
-CVector CPed::GetBonePosition(eBoneTag boneId, bool updateSkinBones) {
-    CVector pos;
-    GetBonePosition(pos, boneId, updateSkinBones);
-    return pos;
-}
-
 bool CPed::IsJoggingOrFaster() const {
     switch (m_nMoveState) {
     case PEDMOVE_JOG:
@@ -3686,25 +3931,25 @@ bool CPed::IsPedStandingInPlace() const {
 }
 
 // 0x6497A0
-bool SayJacked(CPed* jacked, CVehicle* vehicle, uint32 offset) {
+bool SayJacked(CPed* jacked, CVehicle* vehicle, uint32 timeDelay) {
     if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio())
-        return jacked->Say(119u, offset) != -1;
+        return jacked->Say(CTX_GLOBAL_JACKED_GENERIC, timeDelay) != -1;
     else
-        return jacked->Say(118u, offset) != -1;
+        return jacked->Say(CTX_GLOBAL_JACKED_CAR, timeDelay) != -1;
 }
 
 // 0x6497F0
-bool SayJacking(CPed* jacker, CPed* jacked, CVehicle* vehicle, uint32 offset) {
+bool SayJacking(CPed* jacker, CPed* jacked, CVehicle* vehicle, uint32 timeDelay) {
     if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio() == 1)
-        return jacker->Say(121u, offset) != -1;
+        return jacker->Say(CTX_GLOBAL_JACKING_BIKE, timeDelay) != -1;
 
     if (vehicle->m_vehicleAudio.GetVehicleTypeForAudio())
-        return jacker->Say(124u, offset) != -1;
+        return jacker->Say(CTX_GLOBAL_JACKING_GENERIC, timeDelay) != -1;
 
-    if (jacked->m_pedSpeech.IsPedFemaleForAudio())
-        return jacker->Say(122u, offset) != -1;
+    if (jacked->GetSpeechAE().IsPedFemaleForAudio())
+        return jacker->Say(CTX_GLOBAL_JACKING_CAR_FEM, timeDelay) != -1;
 
-    return jacker->Say(123u, offset) != -1;
+    return jacker->Say(CTX_GLOBAL_JACKING_CAR_MALE, timeDelay) != -1;
 }
 
 // NOTSA

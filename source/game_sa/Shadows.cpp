@@ -993,7 +993,7 @@ void CShadows::StoreShadowForVehicle(CVehicle* vehicle, VEH_SHD_TYPE vehShadowTy
     /*
     const auto shdwStrength = CTimeCycle::m_CurrentColours.m_nShadowStrength;
 
-    if (GraphicsLowQuality() || !shdwStrength) {
+    if (GraphicsHighQuality() || !shdwStrength) {
         return;
     }
 
@@ -1192,7 +1192,7 @@ void CShadows::StoreCarLightShadow(CVehicle* vehicle, int32 id, RwTexture* textu
 
 // 0x70C750
 void CShadows::StoreShadowForPole(CEntity* entity, float offsetX, float offsetY, float offsetZ, float poleHeight, float poleWidth, uint32 localId) {
-    if (GraphicsLowQuality() || !CTimeCycle::m_CurrentColours.m_nPoleShadowStrength) {
+    if (GraphicsHighQuality() || !CTimeCycle::m_CurrentColours.m_nPoleShadowStrength) {
         return;
     }
 

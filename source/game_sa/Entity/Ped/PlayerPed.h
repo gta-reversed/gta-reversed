@@ -35,6 +35,7 @@ public:
 
 
     void ProcessControl() override;
+    void SetMoveAnim() override;
     bool Load() override;
     bool Save() override;
 
@@ -53,7 +54,7 @@ public:
     void Clear3rdPersonMouseTarget();
     // GetWanted()->m_nWantedLevel = 0;
     void Busted();
-    uint32 GetWantedLevel();
+    uint32 GetWantedLevel() const;
     void SetWantedLevel(int32 level);
     void SetWantedLevelNoDrop(int32 level);
     void CheatWantedLevel(int32 level);
@@ -98,6 +99,10 @@ public:
     // Thanks to Silent
     // 0x41BE60
     inline CWanted* GetWanted() {
+        return m_pPlayerData ? m_pPlayerData->m_pWanted : nullptr;
+    }
+
+    inline const CWanted* GetWanted() const {
         return m_pPlayerData ? m_pPlayerData->m_pWanted : nullptr;
     }
 

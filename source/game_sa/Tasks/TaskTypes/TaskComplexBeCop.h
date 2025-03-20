@@ -3,6 +3,7 @@
 #include "TaskComplexWanderCop.h"
 
 class NOTSA_EXPORT_VTABLE CTaskComplexBeCop : public CTaskComplexWanderCop {
+public:
     static constexpr auto Type = TASK_COMPLEX_BE_COP;
 
     CTaskComplexBeCop(eMoveState moveState, bool dir, CTask* task) : CTaskComplexWanderCop(moveState, dir) {

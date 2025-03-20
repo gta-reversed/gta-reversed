@@ -150,7 +150,7 @@ CDebugMenuToolInput::ToolMap s_MissionsMap{
 };
 
 MissionDebugModule::MissionDebugModule() {
-    m_missionToolInput.Initialise(256, &s_MissionsMap);
+    m_MissionToolInput.Initialise(256, &s_MissionsMap);
 }
 
 void InitializeAndStartNewScript() {
@@ -164,18 +164,18 @@ void InitializeAndStartNewScript() {
 }
 
 bool MissionDebugModule::StartMission(int32 missionId, bool bDoMissionCleanUp = true) {
-    if (!m_bStartMission && CTheScripts::IsPlayerOnAMission()) {
+    if (!m_ShouldStartMission && CTheScripts::IsPlayerOnAMission()) {
         if (CCutsceneMgr::HasLoaded()) {
             CCutsceneMgr::DeleteCutsceneData();
         }
         CTheScripts::FailCurrentMission = 2;
     }
     if (CTheScripts::FailCurrentMission > 0) {
-        m_bStartMission = true;
-        m_missionToStartId = missionId;
+        m_ShouldStartMission = true;
+        m_MissionIDToStart = missionId;
         return true;
     }
-    m_bStartMission = false;
+    m_ShouldStartMission = false;
     CTheScripts::bPlayerIsOffTheMap = false;
     CGame::currArea = 0;
     CPlayerPed* player = FindPlayerPed();
@@ -234,14 +234,14 @@ void MissionDebugModule::RenderWindow() {
         return;
     }
 
-    if (m_bStartMission) {
-        StartMission(m_missionToStartId);
+    if (m_ShouldStartMission) {
+        StartMission(m_MissionIDToStart);
     }
     
     ImGui::SetNextItemWidth(ImGui::GetWindowWidth() - 10.f);
-    ImGui::InputText(" ", &m_missionToolInput.GetInputBuffer());
+    ImGui::InputText(" ", &m_MissionToolInput.GetInputBuffer());
 
-    m_missionToolInput.Process();
+    m_MissionToolInput.Process();
 
     ImGui::BeginChild("##missionstool", ImVec2(0.f, 310.f));
     if (ImGui::BeginTable("Missions", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Borders)) { 
@@ -250,7 +250,7 @@ void MissionDebugModule::RenderWindow() {
 
         ImGui::TableHeadersRow();
 
-        for (auto&& [idx, name] : m_missionToolInput.GetGridListMap()) {
+        for (auto&& [idx, name] : m_MissionToolInput.GetGridListMap()) {
             const notsa::ui::ScopedID tableID{ idx };
             //ImGui::BeginGroup();
             ImGui::TableNextRow();

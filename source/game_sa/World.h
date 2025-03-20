@@ -273,6 +273,11 @@ public:
             pos.z = CWorld::FindGroundZForCoord(pos.x, pos.y);
         }
     }
+
+    // @notsa
+    static CVector AddGroundZToCoord(CVector2D xy) {
+        return CVector{ xy, FindGroundZForCoord(xy.x, xy.y) };
+    }
 };
 
 extern uint32 &FilledColPointIndex;

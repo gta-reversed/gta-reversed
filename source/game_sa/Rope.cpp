@@ -116,7 +116,7 @@ void CRope::Render() {
     DefinedState();
 
     const auto GetVertex = [](unsigned i) {
-        return &aTempBufferVertices[i];
+        return &TempBufferVertices.m_3d[i];
     };
 
     const RwRGBA color = { 0, 0, 0, 128 };
@@ -132,7 +132,7 @@ void CRope::Render() {
     RwRenderStateSet(rwRENDERSTATETEXTUREFILTER,     RWRSTATE(rwFILTERLINEAR));
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(FALSE));
 
-    if (RwIm3DTransform(aTempBufferVertices, NUM_ROPE_SEGMENTS, nullptr, 0)) {
+    if (RwIm3DTransform(TempBufferVertices.m_3d, NUM_ROPE_SEGMENTS, nullptr, 0)) {
         RxVertexIndex indices[] = { // *(RxVertexIndex(*)[64])0x8CD818
             0,  1,  1,  2,  2,  3,  3,  4,
             4,  5,  5,  6,  6,  7,  7,  8,
@@ -153,7 +153,7 @@ void CRope::Render() {
             RxObjSpace3DVertexSetPreLitColor(GetVertex(i), &color);
             RxObjSpace3DVertexSetPos(GetVertex(i), &pos[i]);
         }
-        if (RwIm3DTransform(aTempBufferVertices, std::size(pos), nullptr, 0)) {
+        if (RwIm3DTransform(TempBufferVertices.m_3d, std::size(pos), nullptr, 0)) {
             RxVertexIndex indices[] = { 0, 1 };
             RwIm3DRenderIndexedPrimitive(rwPRIMTYPELINELIST, indices, std::size(indices));
             RwIm3DEnd();

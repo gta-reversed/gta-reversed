@@ -1,17 +1,18 @@
 #pragma once
 
 #include "TaskComplex.h"
+#include <Audio/Enums/PedSpeechContexts.h>
 
 class CEntity;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexChat : public CTaskComplex {
 public:
-    bool  m_IsChatter{};
-    CPed* m_ChatPartner{};
-    int32 m_Stage{};
-    int16 m_GlobalSpeechContext{};
-    bool  m_TaskFinished{};
-    int32 m_NoChatTimeout{};
+    bool                 m_IsChatter{};
+    CPed*                m_ChatPartner{};
+    int32                m_Stage{};
+    eGlobalSpeechContext m_GlobalSpeechContext{};
+    bool                 m_TaskFinished{};
+    int32                m_NoChatTimeout{};
 
 public:
     static constexpr auto Type = TASK_COMPLEX_CHAT;

@@ -22,6 +22,8 @@ namespace text { void RegisterHandlers(); };
 namespace unused { void RegisterHandlers(); };
 namespace utility { void RegisterHandlers(); };
 namespace vehicle { void RegisterHandlers(); };
+namespace zone { void RegisterHandlers(); };
+namespace stat { void RegisterHandlers(); };
 }; // namespace commands
 }; // namespace notsa
 }; // namespace script
