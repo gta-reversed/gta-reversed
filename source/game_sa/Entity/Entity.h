@@ -85,7 +85,7 @@ public:
             bool m_bTunnel : 1;                      // Is this model part of a tunnel
             bool m_bTunnelTransition : 1;            // This model should be rendered from within and outside the tunnel
         };
-        uint32 m_nFlags;
+        uint32 m_nFlags; // TODO: Fix that and delete the fucking m_...
     };
     /* */
     union {
@@ -195,8 +195,7 @@ public:
     // Always returns a non-null value. In case there's no LOD object `this` is returned. NOTSA
     CEntity* FindLastLOD() noexcept;
 
-    // NOTSA
-    auto GetModelId() const { return (eModelID)m_nModelIndex; }
+    auto GetModelndex() const { return (eModelID)m_nModelIndex; }
     CBaseModelInfo* GetModelInfo() const;
     CCollisionData* GetColData() { return GetColModel()->m_pColData; }
 

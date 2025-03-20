@@ -123,7 +123,13 @@ enum eRotationAxis : int32 {
 };
 
 typedef int32 eOrdnanceType;
-typedef int32 eBikeWheelSpecial;
+
+enum eBikeWheelSpecial {
+	BIKE_WHEELSPEC_0 = 0, // both wheels on ground
+	BIKE_WHEELSPEC_1 = 1, // rear wheel on ground
+	BIKE_WHEELSPEC_2 = 2, // only front wheel on ground
+	BIKE_WHEELSPEC_3 = 3, // can't happen
+};
 
 enum eFlightModel : int32 {
     FLIGHT_MODEL_UNK = 0,
@@ -136,11 +142,21 @@ enum eFlightModel : int32 {
 };
 
 enum tWheelState : int32 {
-    WHEEL_STATE_NORMAL,   // standing still or rolling normally
-    WHEEL_STATE_SPINNING, // rotating but not moving
-    WHEEL_STATE_SKIDDING,
-    WHEEL_STATE_FIXED,    // not rotating
+    WHEEL_STATE_NORMAL = 0,   // standing still or rolling normally
+    WHEEL_STATE_SPINNING = 1, // rotating but not moving
+    WHEEL_STATE_SKIDDING = 2,
+    WHEEL_STATE_FIXED = 3,    // not rotating
 };
+
+enum eEngineStatus
+{
+	ENGINE_STATUS_STEAM1 = 100,
+	ENGINE_STATUS_STEAM2 = 150,
+	ENGINE_STATUS_SMOKE = 200,
+	ENGINE_STATUS_ON_FIRE = 225,
+};
+
+constexpr float DAMAGE_HEALTH_TO_CATCH_FIRE = 250.0f;
 
 enum class eVehicleCollisionComponent : uint16
 {
@@ -329,7 +345,7 @@ public:
     uint8             m_nWindowsOpenFlags; // initialised, but not used?
     uint8             m_nNitroBoosts;
     int8              m_vehicleSpecialColIndex;
-    CEntity*          m_pEntityWeAreOn; // we get it from CWorld::ProcessVerticalLine or ProcessEntityCollision, it's entity under us,
+    CEntity*          pEntityWeAreOnForVisibilityCheck; // we get it from CWorld::ProcessVerticalLine or ProcessEntityCollision, it's entity under us,
                                         // only static entities (buildings or roads)
     CFire*            m_pFire;
     float             m_fSteerAngle;
@@ -388,9 +404,8 @@ public:
     char            m_nCarHornTimer; // car horn related
     eComedyControlState m_comedyControlState;
     char            m_nHasslePosId;
-    CStoredCollPoly m_FrontCollPoly;          // poly which is under front part of car
-    CStoredCollPoly m_RearCollPoly;           // poly which is under rear part of car
-    tColLighting    m_anCollisionLighting[4]; // left front, left rear, right front, right rear
+    CStoredCollPoly StoredCollPolys[2];
+    tColLighting    m_storedCollisionLighting[4]; // left front, left rear, right front, right rear
     FxSystem_c*     m_pOverheatParticle;
     FxSystem_c*     m_pFireParticle;
     FxSystem_c*     m_pDustParticle;
@@ -404,7 +419,7 @@ public:
         } m_renderLights;
     };
     RwTexture*   m_pCustomCarPlate;
-    float        m_fRawSteerAngle; // AKA m_fSteeringLeftRight
+    float        m_fRawSteerAngle; // AKA m_fRollControl
     eVehicleType m_nVehicleType;    // Theory by forkerer:
     eVehicleType m_nVehicleSubType; // Hack to have stuff be 2 classes at once, like vortex which can act like a car and a boat
     int16        m_nPreviousRemapTxd;
@@ -662,7 +677,7 @@ public:
     static void SetComponentAtomicAlpha(RpAtomic* atomic, int32 alpha);
 
 public: // NOTSA functions
-    // m_nVehicleType start
+    // m_nVehicleType start - base
     [[nodiscard]] bool IsVehicleTypeValid()     const { return m_nVehicleType != VEHICLE_TYPE_IGNORE; }
     [[nodiscard]] bool IsAutomobile()           const { return m_nVehicleType == VEHICLE_TYPE_AUTOMOBILE; }
     [[nodiscard]] bool IsMonsterTruck()         const { return m_nVehicleType == VEHICLE_TYPE_MTRUCK; }
@@ -677,7 +692,7 @@ public: // NOTSA functions
     [[nodiscard]] bool IsTrailer()              const { return m_nVehicleType == VEHICLE_TYPE_TRAILER; }
     // m_nVehicleType end
 
-    // m_nVehicleSubType start
+    // m_nVehicleSubType start - none
     [[nodiscard]] bool IsSubVehicleTypeValid() const { return m_nVehicleSubType != VEHICLE_TYPE_IGNORE; }
     [[nodiscard]] bool IsSubAutomobile()       const { return m_nVehicleSubType == VEHICLE_TYPE_AUTOMOBILE; }
     [[nodiscard]] bool IsSubMonsterTruck()     const { return m_nVehicleSubType == VEHICLE_TYPE_MTRUCK; }
@@ -707,6 +722,8 @@ public: // NOTSA functions
     [[nodiscard]] eVehicleCreatedBy GetCreatedBy() const      { return m_nCreatedBy; }
     [[nodiscard]] bool IsCreatedBy(eVehicleCreatedBy v) const { return v == m_nCreatedBy; }
     [[nodiscard]] bool IsMissionVehicle() const { return m_nCreatedBy == MISSION_VEHICLE; }
+
+    auto GetModelIndex() const { return m_nModelIndex; }
 
     bool CanUpdateHornCounter() { return m_nAlarmState == 0 || m_nAlarmState == -1 || m_nStatus == STATUS_WRECKED; }
 
@@ -751,6 +768,7 @@ public: // NOTSA functions
     [[nodiscard]] bool HasSpaceForAPassenger() const { return m_nMaxPassengers -1 > m_nNumPassengers; }
 
 private:
+
     friend void InjectHooksMain();
     static void InjectHooks();
 

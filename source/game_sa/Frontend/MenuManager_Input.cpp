@@ -49,28 +49,28 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
  * @addr 0x57E4D0
  */
 bool CMenuManager::CheckRedefineControlInput() {
-    if (field_1B09) {
+    if (pControlEdit) {
         if (m_bJustOpenedControlRedefWindow) {
             m_bJustOpenedControlRedefWindow = false;
         } else {
-            GetCurrentKeyPressed(*m_pPressedKey);
+            GetCurrentKeyPressed(m_pPressedKey);
             m_nPressedMouseButton = (RsKeyCodes)0;
             m_nJustDownJoyButton = 0;
 
             auto pad = CPad::GetPad();
-            if (pad->IsMouseLButtonPressed()) {
+            if (pad->GetLeftMouseJustDown()) {
                 m_nPressedMouseButton = rsMOUSE_LEFT_BUTTON;
-            } else if (pad->IsMouseRButtonPressed()) {
+            } else if (pad->GetRightMouseJustDown()) {
                 m_nPressedMouseButton = rsMOUSE_RIGHT_BUTTON;
-            } else if (pad->IsMouseMButtonPressed()) {
+            } else if (pad->GetMiddleMouseJustDown()) {
                 m_nPressedMouseButton = rsMOUSE_MIDDLE_BUTTON;
-            } else if (pad->IsMouseWheelUpPressed()) {
+            } else if (pad->GetMouseWheelUpJustDown()) {
                 m_nPressedMouseButton = rsMOUSE_WHEEL_UP_BUTTON;
-            } else if (pad->IsMouseWheelDownPressed()) {
+            } else if (pad->GetMouseWheelDownJustDown()) {
                 m_nPressedMouseButton = rsMOUSE_WHEEL_DOWN_BUTTON;
-            } else if (pad->IsMouseBmx1Pressed()) {
+            } else if (pad->GetMouseX1JustDown()) {
                 m_nPressedMouseButton = rsMOUSE_X1_BUTTON;
-            } else if (pad->IsMouseBmx2Pressed()) {
+            } else if (pad->GetMouseX2JustDown()) {
                 m_nPressedMouseButton = rsMOUSE_X2_BUTTON;
             }
             m_nJustDownJoyButton = ControlsManager.GetJoyButtonJustDown();
@@ -94,7 +94,7 @@ bool CMenuManager::CheckRedefineControlInput() {
                 }
             } else {
                 m_pPressedKey = nullptr;
-                field_1B09 = 0;
+                pControlEdit = 0;
                 m_KeyPressedCode = (RsKeyCodes)-1;
                 m_bJustOpenedControlRedefWindow = false;
             }
@@ -299,7 +299,7 @@ void CMenuManager::CheckForMenuClosing() {
                 m_MenuIsAbleToQuit = 0;
                 m_bDontDrawFrontEnd = false;
                 m_bActivateMenuNextFrame = false;
-                field_1B09 = 0;
+                pControlEdit = 0;
                 m_bIsSaveDone = false;
                 UnloadTextures();
 
@@ -357,7 +357,7 @@ void CMenuManager::CheckForMenuClosing() {
         Initialise();
         LoadAllTextures();
 
-        m_nCurrentScreenItem = 0;
+        m_nCurrentScreenItem = (eControllerAction)0;
 
         m_nCurrentScreen = (!CCheat::m_bHasPlayerCheated) ? SCREEN_GAME_SAVE : SCREEN_GAME_WARNING_DONT_SAVE;
     }
@@ -426,6 +426,91 @@ bool CMenuManager::CheckMissionPackValidMenu() {
 }
 
 // 0x57DB20
-bool CMenuManager::CheckCodesForControls(RsInputDeviceType type) {
-    return plugin::CallMethodAndReturn<bool, 0x57DB20, CMenuManager*, RsInputDeviceType>(this, type);
+void CMenuManager::CheckCodesForControls(RsInputDeviceType type) {
+    eControllerAction actionId   = (eControllerAction)OptionToChange;
+    bool escPressed = false;
+    bool invalidKey = false;
+
+    // this->field_1AE8 = false; // Dead code
+
+    eControllerType redefinitionType = (eControllerType)-1; // Keyboard = 0, Mouse = 2, Joypad = 3
+
+    if (type == rsKEYBOARD) {
+        RsKeyCodes pressedKey = *m_pPressedKey;
+        if (pressedKey == rsESC) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
+            escPressed = true;
+        } else if (
+            pressedKey == rsNULL ||
+            pressedKey == rsF1 ||
+            pressedKey == rsF2 ||
+            pressedKey == rsF3 ||
+            pressedKey == rsF9 ||
+            pressedKey == rsLWIN ||
+            // pressedKey == rsPAD5 || // numpad 5 bugfix v1.01
+            pressedKey == rsRWIN ||
+            pressedKey == rsRALT
+        ) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
+            invalidKey = true;
+        } else {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
+            redefinitionType = KEYBOARD; // 0
+            if (ControlsManager.GetControllerKeyAssociatedWithAction(actionId, KEYBOARD) != rsNULL) {
+                redefinitionType = ControlsManager.GetControllerKeyAssociatedWithAction(actionId, KEYBOARD) != *m_pPressedKey ? OPTIONAL_EXTRA_KEY : KEYBOARD;
+            }
+        }
+    } else if (type == rsPAD) {
+        if (m_nPressedMouseButton) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
+            redefinitionType = MOUSE; // 2
+        } else if (m_nJustDownJoyButton) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
+            redefinitionType = JOY_STICK; // 3
+            // Dead code
+            // if (dummy_52F550(actionId)) {
+            //     this->field_1AE8 = true;
+            // }
+        }
+    }
+
+    // if (this->field_1AE8 || escPressed || invalidKey) { // Dead code
+    if (escPressed || invalidKey) {
+        this->m_DeleteAllNextDefine = false;
+        this->m_pPressedKey = nullptr;
+        this->pControlEdit = false;
+        this->m_KeyPressedCode = (RsKeyCodes)-1;
+        this->m_bJustOpenedControlRedefWindow = false;
+        //return false;
+        return;
+    }
+
+    if (this->m_DeleteAllNextDefine) {
+        for (int i = 0; i < JOY_STICK + 1; ++i) {
+            ControlsManager.ClearSettingsAssociatedWithAction(OptionToChange, (eControllerType)i);
+        }
+        this->m_DeleteAllNextDefine = false;
+    }
+
+    ControlsManager.ClearSettingsAssociatedWithAction(actionId, redefinitionType);
+
+    if (type == rsKEYBOARD) {
+        ControlsManager.DeleteMatchingActionInitiators(actionId, *this->m_pPressedKey, KEYBOARD); // 0
+        ControlsManager.DeleteMatchingActionInitiators(actionId, *this->m_pPressedKey, OPTIONAL_EXTRA_KEY); // 1
+        ControlsManager.SetControllerKeyAssociatedWithAction(actionId, *this->m_pPressedKey, redefinitionType);
+    } else if (type == rsPAD) {
+        if (m_nPressedMouseButton) {
+            ControlsManager.DeleteMatchingActionInitiators(actionId, this->m_nPressedMouseButton, MOUSE); // 2
+            ControlsManager.SetControllerKeyAssociatedWithAction(actionId, this->m_nPressedMouseButton, redefinitionType);
+        } else if (m_nJustDownJoyButton) {
+            ControlsManager.DeleteMatchingActionInitiators(actionId, this->m_nJustDownJoyButton, JOY_STICK); // 3
+            ControlsManager.SetControllerKeyAssociatedWithAction(actionId, this->m_nJustDownJoyButton, redefinitionType);
+        }
+    }
+
+    this->m_pPressedKey = nullptr;
+    this->pControlEdit = false;
+    this->m_KeyPressedCode = (RsKeyCodes)-1;
+    this->m_bJustOpenedControlRedefWindow = false;
+    return SaveSettings();
 }

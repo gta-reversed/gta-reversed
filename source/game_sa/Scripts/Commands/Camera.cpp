@@ -20,7 +20,7 @@ void ShakeCam(float strength) {
     CamShakeNoPos(&TheCamera, strength / 1000.0f);
 }
 
-void AttachCameraToVehicleLookAtVehicle(CVehicle& attachTo, CVector offset, CVehicle& lookAt, float tilt, eSwitchType switchType) {
+void AttachCameraToVehicleLookAtVehicle(CVehicle& attachTo, CVector offset, CVehicle& lookAt, float tilt, eTransMode switchType) {
     CVector zero{};
     TheCamera.TakeControlAttachToEntity(
         &lookAt,
