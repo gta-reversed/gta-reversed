@@ -63,7 +63,6 @@ void CCarAI::AddAmbulanceOccupants(CVehicle* vehicle) {
         ped->GetTaskManager().SetTask(new CTaskSimpleCarDrive{ vehicle }, TASK_PRIMARY_DEFAULT);
         ped->GetTaskManager().SetTask(new CTaskComplexMedicTreatInjuredPed{ vehicle, partner, isDriver }, TASK_PRIMARY_PRIMARY);
     };
-
     SetupPed(driver, passenger, true);
     SetupPed(passenger, driver, false);
 }
@@ -77,13 +76,12 @@ void CCarAI::AddFiretruckOccupants(CVehicle* vehicle) {
         ped->GetTaskManager().SetTask(new CTaskSimpleCarDrive{ vehicle }, TASK_PRIMARY_DEFAULT);
         ped->GetTaskManager().SetTask(new CTaskComplexDriveFireTruck{ vehicle, partner, isDriver }, TASK_PRIMARY_PRIMARY);
     };
-
     SetupPed(driver, passenger, true);
     SetupPed(passenger, driver, false);
 }
 
 // 0x41C070
-void CCarAI::AddPoliceCarOccupants(CVehicle* vehicle, bool arg2) {
+void CCarAI::AddPoliceCarOccupants(CVehicle* vehicle, bool bAlwaysCreatePassenger) {
     if (vehicle->vehicleFlags.bOccupantsHaveBeenGenerated) {
         return;
     }
@@ -91,13 +89,14 @@ void CCarAI::AddPoliceCarOccupants(CVehicle* vehicle, bool arg2) {
 
     switch (vehicle->m_nModelIndex) {
     case MODEL_ENFORCER:
-    case MODEL_FBIRANCH:
+    case MODEL_FBIRANCH: {
         vehicle->SetUpDriver(PED_TYPE_NONE, false, false);
         for (int32 i = 0; i < 3; i++) {
             vehicle->SetupPassenger(i, PED_TYPE_NONE, false, false);
         }
         break;
-    case MODEL_PREDATOR:
+    }
+    case MODEL_PREDATOR: {
         if (FindPlayerPed()->GetWantedLevel() > 1) {
             const auto drvr = vehicle->SetUpDriver(PED_TYPE_NONE, false, false);
             CTaskSimpleCarSetPedOut{ vehicle, TARGET_DOOR_DRIVER, true }.ProcessPed(drvr);
@@ -110,15 +109,17 @@ void CCarAI::AddPoliceCarOccupants(CVehicle* vehicle, bool arg2) {
         }
         vehicle->SetUpDriver(PED_TYPE_NONE, false, false);
         break;
+    }
     case MODEL_RHINO:
-    case MODEL_COPBIKE:
+    case MODEL_COPBIKE: {
         vehicle->SetUpDriver(PED_TYPE_NONE, false, false);
         break;
+    }
     case MODEL_BARRACKS:
     case MODEL_COPCARLA:
     case MODEL_COPCARSF:
     case MODEL_COPCARVG:
-    case MODEL_COPCARRU:
+    case MODEL_COPCARRU: {
         const auto drvr = vehicle->SetUpDriver(PED_TYPE_NONE, false, false);
         const auto plyrWantedLvl = FindPlayerPed()->GetWantedLevel();
         if (plyrWantedLvl > 1) {
@@ -145,10 +146,11 @@ void CCarAI::AddPoliceCarOccupants(CVehicle* vehicle, bool arg2) {
             };
             SetupPed(drvr, psgr, true);
             SetupPed(psgr, drvr, false);
-        } else if (arg2 || CGeneral::RandomBool(50.0f)) {
+        } else if (bAlwaysCreatePassenger || CGeneral::RandomBool(50.0f)) {
             vehicle->SetupPassenger(0, PED_TYPE_NONE, false, false);
         }
         break;
+    }
     }
 }
 
@@ -470,9 +472,8 @@ void CCarAI::MakeWayForCarWithSiren(CVehicle* carWithSiren) {
 void CCarAI::MellowOutChaseSpeed(CVehicle* vehicle) {
     const auto isPlayerInVeh = !!FindPlayerVehicle();
     const auto plyrToVehDist3D = (vehicle->GetPosition() - FindPlayerCoors()).Magnitude();
-    const auto desiredSpeed = [&]() -> uint32 {
-        switch (FindPlayerWanted()->GetWantedLevel())
-        {
+    const auto desiredSpeed    = [&]() -> uint32 {
+        switch (FindPlayerWanted()->GetWantedLevel()) {
         case 1: { // 0x41D438
             if (isPlayerInVeh) {
                 if (plyrToVehDist3D < 10.0f) {
@@ -911,7 +912,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                         veh->vehicleFlags.bSirenOrAlarm = false;
                     }
                 } else if (veh->GetModelID() == MODEL_COPBIKE && veh->m_pDriver) {
-                    const auto tUseSeq = CTask::DynCast<CTaskComplexSequence>(veh->m_pDriver->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_PRIMARY));
+                    const auto tUseSeq = notsa::dyn_cast_if_present<CTaskComplexSequence>(veh->m_pDriver->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_PRIMARY));
                     if (!tUseSeq || (!tUseSeq->Contains(TASK_COMPLEX_ENTER_CAR_AS_DRIVER)) && !tUseSeq->Contains(TASK_SIMPLE_GANG_DRIVEBY)) { 
                         veh->m_pDriver->GetEventGroup().Add(
                             CEventScriptCommand{

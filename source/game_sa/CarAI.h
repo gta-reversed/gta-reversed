@@ -14,7 +14,7 @@ public:
 
     static void AddAmbulanceOccupants(CVehicle* veh);
     static void AddFiretruckOccupants(CVehicle* veh);
-    static void AddPoliceCarOccupants(CVehicle* veh, bool a2);
+    static void AddPoliceCarOccupants(CVehicle* veh, bool bAlwaysCreatePassenger);
 
     static void BackToCruisingIfNoWantedLevel(CVehicle* veh);
     static void CarHasReasonToStop(CVehicle* veh);
