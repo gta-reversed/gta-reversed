@@ -83,22 +83,13 @@ constexpr float ZmThreeAlphaOffset[5] = { 0.055f, 0.05f, 0.15f, 0.06f, 0.08f };
 constexpr float fTestShiftHeliCamTarget = 0.6f;
 
 // 0x50A0A0
+// High precision truncation function
+// Clearly the person who made the function did not understand the difference between rounding and truncating.
+// The legacy func must do truncation, not rounding, but actually it does rounding.
+// Now that is fixed for trunc like it should be.
 float FTrunc(float n, int digits) {
-    long double v2;
-    long double v3; 
-    double v5;
-
-    v5 = digits + 1;
-    v2 = std::pow(10.0, (digits + 1)) * n;
-    
-    if (n >= 0.0) {
-        v3 = v2 + 5.0;
-    } else {
-        v3 = v2 - 5.0;
-    }
-    
-    std::modf(v3 * 0.1, &v5);
-    return v5 / std::pow(10.0, digits);
+    const double factor = std::pow(10.0, digits);
+    return std::trunc(n * factor) / factor;
 }
 
 // 0x50A120
