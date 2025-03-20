@@ -9,8 +9,9 @@
 * Unused commands
 */
 
+namespace {
 void NoOp() {}
-
+};
 
 void notsa::script::commands::unused::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Unused");

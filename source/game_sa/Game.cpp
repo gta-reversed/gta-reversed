@@ -261,15 +261,7 @@ bool CGame::Shutdown() {
     col1[1].m_boundBox.m_vecMin.z = 0.0f;
     col1[0].m_pColData = nullptr;
     CTaskSimpleClimb::Shutdown();
-
-    { // todo: move to CPedAttractor::Shutdown() or something
-        // delete CPedAttractor::ms_tasks.First;
-        // CPedAttractor::ms_tasks.First = 0;
-        // CPedAttractor::ms_tasks.Last = 0;
-        // CPedAttractor::ms_tasks.End = 0;
-        CPedAttractor::ms_tasks = {};
-    }
-
+    CPedAttractor::Shutdown();
     CTheScripts::RemoveScriptTextureDictionary();
     CMBlur::MotionBlurClose();
     CdStreamRemoveImages();

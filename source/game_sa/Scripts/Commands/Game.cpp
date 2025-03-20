@@ -13,12 +13,12 @@
 #include "Restart.h"
 #include "Garages.h"
 #include "MenuSystem.h"
-#include "CommandParser/Parser.hpp"
 
 /*!
-* Various game realted commands
+* Various game related commands
 */
 
+namespace {
 void SetAllTaxisHaveNitro(bool enabled) {
     (enabled ? CCheat::ApplyCheat : CCheat::Disable)(CHEAT_ALL_TAXIS_NITRO);
 }
@@ -116,11 +116,6 @@ void SetMenuHeaderOrientation() {
     // CMenuSystem::SetHeaderOrientation();
 }
 
-void SetFloatStat(eStats stat, float value) {
-    CStats::SetStatValue(stat, value);
-    CStats::DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, stat, value);
-}
-
 // vvv Originally unsupported
 void RegisterJumpDistance(float distance) {
     CStats::SetStatValue(STAT_MAXIMUM_INSANE_JUMP_DISTANCE, std::max(
@@ -168,6 +163,7 @@ void RegisterMoneyMadeTaxi(float amount) {
 
 void SaveIntToDebugFile(int32 value) { /* DEBUG */ }
 void SaveFloatToDebugFile(float value) { /* DEBUG */ }
+};
 
 void notsa::script::commands::game::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER_BEGIN("Game");
@@ -196,7 +192,6 @@ void notsa::script::commands::game::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DISPLAY_RADAR, DisplayRadar);
     REGISTER_COMMAND_HANDLER(COMMAND_REGISTER_BEST_POSITION, RegisterBestPosition);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_MENU_HEADER_ORIENTATION, SetMenuHeaderOrientation);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_FLOAT_STAT, SetFloatStat);
 
     REGISTER_COMMAND_HANDLER(COMMAND_SAVE_INT_TO_DEBUG_FILE, SaveIntToDebugFile);
     REGISTER_COMMAND_HANDLER(COMMAND_SAVE_FLOAT_TO_DEBUG_FILE, SaveFloatToDebugFile);

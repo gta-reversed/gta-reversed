@@ -10,6 +10,13 @@
 #include "CarCtrl.h"
 #include "TrafficLights.h"
 #include "TheScripts.h"
+#include "GangWars.h"
+#include "Game.h"
+#include "General.h"
+#include "GameLogic.h"
+#include "CutsceneMgr.h"
+#include "TheCarGenerators.h"
+#include "eAreaCodes.h"
 
 uint32& CCarCtrl::NumLawEnforcerCars = *(uint32*)0x969098;
 uint32& CCarCtrl::NumParkedCars = *(uint32*)0x9690A0;
@@ -61,6 +68,7 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(SlowCarDownForObject, 0x426220);
     RH_ScopedInstall(SlowCarOnRailsDownForTrafficAndLights, 0x434790);
     RH_ScopedInstall(FindMaxSteerAngle, 0x427FE0);
+    RH_ScopedInstall(GenerateRandomCars, 0x4341C0);
 }
 
 // 0x4212E0
@@ -380,9 +388,32 @@ void CCarCtrl::GenerateOneRandomCar() {
 
 // 0x4341C0
 void CCarCtrl::GenerateRandomCars() {
-    ZoneScoped;
+    if (CCutsceneMgr::ms_running) {
+        CountDownToCarsAtStart = 2;
+        return;
+    }
+    if (CGangWars::DontCreateCivilians() || !CGame::CanSeeOutSideFromCurrArea()) {
+        return;
+    }
 
-    plugin::Call<0x4341C0>();
+    if (CGameLogic::LaRiotsActiveHere() && TimeNextMadDriverChaseCreated > 480.0f) {
+        TimeNextMadDriverChaseCreated = CGeneral::GetRandomNumberInRange(240.0f, 480.0f);
+    }
+    TimeNextMadDriverChaseCreated -= (CTimer::GetTimeStep() * 0.02f);
+
+    if (NumRandomCars < 45) {
+        if (CountDownToCarsAtStart) {
+            CountDownToCarsAtStart--;
+            for (auto i = 100; i --> 0;) {
+                GenerateOneRandomCar();
+            }
+            CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
+        } else {
+            GenerateOneRandomCar();
+            GenerateOneRandomCar();
+        }
+    }
+
 }
 
 // 0x42F3C0

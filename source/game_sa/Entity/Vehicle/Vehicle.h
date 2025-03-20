@@ -7,6 +7,7 @@
 #pragma once
 
 #include <optional>
+#include <extensions/EntityRef.hpp>
 
 #include "Physical.h"
 #include "AEVehicleAudioEntity.h"
@@ -23,7 +24,6 @@
 #include "FxSystem.h"
 #include "Fire.h"
 
-#include <extensions/EntityRef.hpp>
 #include <Enums/eControllerType.h>
 
 /*  Thanks to MTA team for https://github.com/multitheftauto/mtasa-blue/blob/master/Client/game_sa/CVehicleSA.cpp */
@@ -525,6 +525,7 @@ public:
     bool AddPassenger(CPed* passenger, uint8 seatNumber);
     void RemovePassenger(CPed* passenger);
     void SetDriver(CPed* driver);
+    CPed* GetDriver() const { return m_pDriver; }
     void RemoveDriver(bool arg0);
     CPed* SetUpDriver(int32 pedType, bool arg1, bool arg2);
     CPed* SetupPassenger(int32 seatNumber, int32 pedType, bool arg2, bool arg3);
@@ -616,7 +617,7 @@ public:
     bool UsesSiren();
     bool IsSphereTouchingVehicle(CVector posn, float radius);
     void FlyingControl(eFlightModel flightModel, float leftRightSkid, float steeringUpDown, float steeringLeftRight, float accelerationBreakStatus);
-    bool BladeColSectorList(CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult);
+    bool BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult);
     void SetComponentRotation(RwFrame* component, eRotationAxis axis, float angle, bool bResetPosition);
     void SetTransmissionRotation(RwFrame* component, float angleL, float angleR, CVector wheelPos, bool isFront);
     void ProcessBoatControl(tBoatHandlingData* boatHandling, float* fWaterResistance, bool bCollidedWithWorld, bool bPostCollision);
@@ -746,8 +747,8 @@ public: // NOTSA functions
     /// Is the vehicle totally flipped (Should probably be moved to `CPlaceable`)
     [[nodiscard]] bool IsTotallyUpsideDown() const { return GetUp().z < 0.f; }
 
-    /// Is there enough space for at least one more passenger
-    [[nodiscard]] bool HasSpaceForAPassenger() const { return m_nMaxPassengers > m_nNumPassengers + 1; }
+    /// Is there enough space for at least one more passenger - TODO: -1 is only for buses
+    [[nodiscard]] bool HasSpaceForAPassenger() const { return m_nMaxPassengers -1 > m_nNumPassengers; }
 
 private:
     friend void InjectHooksMain();

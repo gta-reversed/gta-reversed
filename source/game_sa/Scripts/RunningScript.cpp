@@ -91,7 +91,7 @@ void CRunningScript::InjectCustomCommandHooks() {
     // Uncommenting any call will prevent it from being hooked, so
     // feel free to do so when debugging (Just don't forget to undo the changes!)
 
-    using namespace notsa::script::commands;
+    using namespace ::notsa::script::commands;
 
     basic::RegisterHandlers();
     camera::RegisterHandlers();
@@ -112,6 +112,8 @@ void CRunningScript::InjectCustomCommandHooks() {
     unused::RegisterHandlers();
     utility::RegisterHandlers();
     vehicle::RegisterHandlers();
+    zone::RegisterHandlers();
+    ::notsa::script::commands::stat::RegisterHandlers();
 
 #ifdef NOTSA_USE_CLEO_COMMANDS
     cleo::audiostream::RegisterHandlers();
@@ -207,7 +209,7 @@ void CRunningScript::ShutdownThisScript() {
     /*
     if (m_bIsExternal) {
         const auto idx = CTheScripts::StreamedScripts.GetStreamedScriptWithThisStartAddress(m_pBaseIP);
-        CTheScripts::StreamedScripts.m_aScripts[idx].m_nStatus--;
+        CTheScripts::StreamedScripts.m_aScripts[idx].Status--;
     }
 
     switch (m_nExternalType) {
@@ -928,7 +930,7 @@ OpcodeResult CRunningScript::ProcessOneCommand() {
     char msg[4096];
     sprintf_s(msg, "[%s][IP: 0x%X + 0x%X]: %s [0x%X]", m_szName, LOG_PTR(m_pBaseIP), LOG_PTR(m_IP - m_pBaseIP), notsa::script::GetScriptCommandName((eScriptCommands)op.command).data(), (size_t)op.command);
     SPDLOG_LOGGER_TRACE(logger, msg);
-    //SPDLOG_LOGGER_TRACE(logger, "[{}][IP: {:#x} + {:#x}]: {} [{:#x}]", m_szName, LOG_PTR(m_pBaseIP), LOG_PTR(m_IP - m_pBaseIP), notsa::script::GetScriptCommandName((eScriptCommands)op.command), (size_t)op.command);
+    //SPDLOG_LOGGER_TRACE(logger, "[{}][IP: {:#x} + {:#x}]: {} [{:#x}]", BaseFilename, LOG_PTR(m_pBaseIP), LOG_PTR(m_IP - m_pBaseIP), notsa::script::GetScriptCommandName((eScriptCommands)op.command), (size_t)op.command);
 #endif
     
     m_bNotFlag = op.notFlag;

@@ -39,7 +39,7 @@ void CPopCycle::Initialise() {
     const notsa::ScopeGuard autoCloser{ [&] { CFileMgr::CloseFile(file); } };
 
     auto nline{ 1u };
-    for (auto zone = 0; zone < (uint32)ZoneType::COUNT; zone++) {
+    for (auto zone = 0u; zone < +eZonePopulationType::COUNT; zone++) {
         for (auto wktime = 0; wktime < 2; wktime++) { // weekday (0) / weekend(1)
             for (auto daytime = 0; daytime < 24 / PERC_DATA_TIME_RESOLUTION_HR; daytime++) {
                 // Find next suitable data line
@@ -127,7 +127,7 @@ bool CPopCycle::FindNewPedType(ePedType& outPedType, eModelID& outPedMI, bool no
     }
 
     auto copChance = m_NumCops_Peds - (float)CPopulation::ms_nNumCop;
-    if (CGangWars::GangWarFightingGoingOn() || CPopulation::m_bDontCreateRandomCops || noCops || m_pCurrZoneInfo->noCops) {
+    if (CGangWars::GangWarFightingGoingOn() || CPopulation::m_bDontCreateRandomCops || noCops || m_pCurrZoneInfo->IsNoCops) {
         copChance = -10.f;
     }
 
@@ -231,7 +231,7 @@ bool CPopCycle::IsPedAppropriateForCurrentZone(int32 modelIndex) {
     // Check if any group active in this zone contains the given model
     for (auto grpId = 0; grpId < POPCYCLE_TOTAL_GROUPS; grpId++) {
         // Check if this group is active now
-        if (!m_nPercTypeGroup[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_pCurrZoneInfo->zonePopulationType]) {
+        if (!m_nPercTypeGroup[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_pCurrZoneInfo->PopType]) {
             continue;
         }
 
@@ -276,7 +276,7 @@ bool CPopCycle::PedIsAcceptableInCurrentZone(int32 modelIndex) {
 
 // 0x610420
 ePopcycleGroup CPopCycle::PickARandomGroupOfOtherPeds() {
-    const auto& percs = m_nPercTypeGroup[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_pCurrZoneInfo->zonePopulationType];
+    const auto& percs = m_nPercTypeGroup[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_pCurrZoneInfo->PopType];
     auto rndPerc = CGeneral::GetRandomNumberInRange(
         0,
 #ifdef FIX_BUGS // See `Initialise` for an explanation
@@ -314,8 +314,8 @@ eModelID CPopCycle::PickPedMIToStreamInForCurrentZone() {
 
 // 0x610490
 void CPopCycle::PlayerKilledADealer() {
-    if (m_pCurrZoneInfo && m_pCurrZoneInfo->DrugDealerCounter) {
-        m_pCurrZoneInfo->DrugDealerCounter--;
+    if (m_pCurrZoneInfo && m_pCurrZoneInfo->DealerStrength) {
+        m_pCurrZoneInfo->DealerStrength--;
     }
 }
 
@@ -345,7 +345,7 @@ void CPopCycle::Update() {
 
     if (const auto& pos = FindPlayerCentreOfWorld(); pos.z < 950.f || !m_pCurrZoneInfo) {
         m_pCurrZoneInfo = CTheZones::GetZoneInfo(pos, &m_pCurrZone);
-        m_nCurrentZoneType = m_pCurrZoneInfo->zonePopulationType;
+        m_nCurrentZoneType = m_pCurrZoneInfo->PopType;
     }
 
     UpdatePercentages();
@@ -356,7 +356,7 @@ void CPopCycle::Update() {
 
 // 0x610560
 void CPopCycle::UpdateAreaDodgyness() {
-    m_fCurrentZoneDodgyness = std::min((float)m_pCurrZoneInfo->DrugDealerCounter * 0.07f + (float)m_pCurrZoneInfo->GetSumOfGangDensity() / 100.f, 1.0f);
+    m_fCurrentZoneDodgyness = std::min((float)m_pCurrZoneInfo->DealerStrength * 0.07f + (float)m_pCurrZoneInfo->GetSumOfGangDensity() / 100.f, 1.0f);
 }
 
 // 0x6104B0
@@ -374,27 +374,27 @@ void CPopCycle::UpdateDealerStrengths() {
     }
 
     for (auto& zone : CTheZones::ZoneInfoArray) {
-        const auto Chk = [&](eGangID gangId) { return zone.GangDensity[gangId] > 10u; };
+        const auto Chk = [&](eGangID gangId) { return zone.GangStrength[gangId] > 10u; };
         if (!Chk(GANG_BALLAS) && !Chk(GANG_GROVE) && !Chk(GANG_VAGOS)) {
             continue;
         }
 
         constexpr float chances[]{ 0.05f, 0.2f, 0.3f, 0.35f, 0.4f, 0.5f, 0.55f, 0.6f, 0.65f, 0.7f, 0.7f, 0.7f, 0.7f, 0.7f, 0.7f }; // 0x8D24F0
-        if (zone.DrugDealerCounter >= std::size(chances)) {
+        if (zone.DealerStrength >= std::size(chances)) {
             continue;
         }
 
-        if (CGeneral::GetRandomNumber() >= chances[zone.DrugDealerCounter]) {
+        if (CGeneral::GetRandomNumber() >= chances[zone.DealerStrength]) {
             continue;
         }
 
-        zone.DrugDealerCounter++;
+        zone.DealerStrength++;
     }
 }
 
 // 0x610770
 void CPopCycle::UpdatePercentages() {
-    m_fPercDealers = std::max(0.1f, (float)m_pCurrZoneInfo->DrugDealerCounter / 100.f);
+    m_fPercDealers = std::max(0.1f, (float)m_pCurrZoneInfo->DealerStrength / 100.f);
 
     m_fPercGangs = std::min(0.5f, (float)m_pCurrZoneInfo->GetSumOfGangDensity() / 100.f);
     m_fPercCops = m_fPercGangs >= 0.15f
@@ -403,7 +403,7 @@ void CPopCycle::UpdatePercentages() {
 
     // 0x610881
     m_fPercCops = [] {
-        switch (m_pCurrZoneInfo->zonePopulationType) {
+        switch (m_pCurrZoneInfo->PopType) {
         case POPCYCLE_PEDGROUP_BUSINESS_SF:
         case POPCYCLE_PEDGROUP_CASUAL_RICH_LA:
         case POPCYCLE_PEDGROUP_CASUAL_RICH_VG:
@@ -469,7 +469,7 @@ ePedType CPopCycle::PickGangToCreateMembersOf() {
         rng::iota_view{0u, (size_t)TOTAL_GANGS},
         rng::less{},
         [sumGangDensity = (float)m_pCurrZoneInfo->GetSumOfGangDensity()](auto gangId) {
-            return (float)m_pCurrZoneInfo->GangDensity[gangId] / sumGangDensity - (float)CPopulation::ms_nNumGang[gangId] / m_NumGangs_Peds;
+            return (float)m_pCurrZoneInfo->GangStrength[gangId] / sumGangDensity - (float)CPopulation::ms_nNumGang[gangId] / m_NumGangs_Peds;
         }
     );
     return (ePedType)((size_t)PED_TYPE_GANG1 + dominatingGangId);
@@ -477,7 +477,7 @@ ePedType CPopCycle::PickGangToCreateMembersOf() {
 
 // notsa
 bool CPopCycle::IsRaceAllowedInCurrentZone(ePedRace race) {
-    return race == RACE_DEFAULT || m_pCurrZoneInfo->zonePopulationRace & (1 << (race - 1));
+    return race == RACE_DEFAULT || m_pCurrZoneInfo->PopRaces & (1 << (race - 1));
 }
 
 // notsa

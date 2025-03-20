@@ -113,7 +113,8 @@ public:
         y = Y;
     }
 
-    //! Heading of the vector - 
+    //! Heading of the vector
+    //! Tip: atan2(x, -y) is off by 180deg clockwise
     float Heading() const {
         // -x, y is basically GetPerpRight()
         // that's the same as std::atan(y, x) - 90deg;
