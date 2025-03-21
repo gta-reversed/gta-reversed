@@ -1181,44 +1181,57 @@ void CHud::DrawRadar() {
 }
 
 // 0x58C080
-void CHud::DrawScriptText(bool displayImmediately) {
-    CTheScripts::DrawScriptSpritesAndRectangles(displayImmediately);
+void CHud::DrawScriptText(bool isBeforeFade) {
+    CTheScripts::DrawScriptSpritesAndRectangles(isBeforeFade);
 
-    GxtChar textFormatted[400];
-    for (auto& scriptText : CTheScripts::IntroTextLines) { // todo: NOTSA optimization std::span{ CTheScripts::IntroTextLines, CTheScripts::NumberOfIntroTextLinesThisFrame }
-        if (!scriptText.m_szGxtEntry[0])
+    for (auto& t : CTheScripts::IntroTextLines) {
+        if (!t.GXTKey[0]) { /* empty key? */
             continue;
-        if (scriptText.m_bDrawBeforeFade != displayImmediately)
+        }
+        if (t.IsDrawBeforeFade != isBeforeFade) {
             continue;
+        }
 
-        CFont::SetScale(SCREEN_SCALE_X(scriptText.m_fLetterWidth), SCREEN_SCALE_Y(scriptText.m_fLetterHeight / 2.0f));
-        CFont::SetColor(scriptText.m_Color);
-        CFont::SetJustify(scriptText.m_bJustify);
-
-        if (scriptText.m_bRightJustify)
+        CFont::SetScale(SCREEN_SCALE_X(t.Scale.x), SCREEN_SCALE_Y(t.Scale.y / 2.0f));
+        CFont::SetColor(t.Color);
+        CFont::SetJustify(t.Justify);
+        if (t.HasRightJustify) {
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-        else
-            CFont::SetOrientation((eFontAlignment)!scriptText.m_bCentered);
+        } else {
+            CFont::SetOrientation(t.IsCentered ? eFontAlignment::ALIGN_CENTER : eFontAlignment::ALIGN_LEFT);
+        }
+        CFont::SetWrapx(SCREEN_SCALE_X(t.WrapX));
+        CFont::SetCentreSize(SCREEN_SCALE_X(t.CentreSize));
+        CFont::SetBackground(t.HasBg, false);
+        CFont::SetBackgroundColor(t.BgColor);
+        CFont::SetProportional(t.IsProportional);
+        CFont::SetDropColor(t.DropShadowColor);
+        if (t.TextEdge) {
+            CFont::SetEdge(t.TextEdge);
+        } else {
+            CFont::SetDropShadowPosition(t.DropShadow);
+        }
+        CFont::SetFontStyle((eFontStyle)t.FontStyle);
 
-        CFont::SetWrapx(SCREEN_SCALE_X(scriptText.m_fLineHeight)); // todo: SCREEN_SCALE_X used while height passed - it's ok?
-        CFont::SetCentreSize(SCREEN_SCALE_X(scriptText.m_fLineWidth));
-        CFont::SetBackground(scriptText.m_bWithBackground, false);
-        CFont::SetBackgroundColor(scriptText.m_BackgroundBoxColor);
-        CFont::SetProportional(scriptText.m_bProportional);
-        CFont::SetDropColor(scriptText.m_BackgroundColor);
-
-        if (scriptText.m_nOutlineType)
-            CFont::SetEdge(scriptText.m_nOutlineType);
-        else
-            CFont::SetDropShadowPosition(scriptText.m_nShadowType);
-
-        CFont::SetFontStyle((eFontStyle)scriptText.m_nFont);
-        CMessages::InsertNumberInString(TheText.Get(scriptText.m_szGxtEntry), scriptText.param1, scriptText.param2, -1, -1, -1, -1, textFormatted);
-        CMessages::InsertPlayerControlKeysInString(textFormatted);
-
+        GxtChar text[400];
+        CMessages::InsertNumberInString(
+            TheText.Get(t.GXTKey),
+            t.NumberToInsert1,
+            t.NumberToInsert2,
+            -1,
+            -1,
+            -1,
+            -1,
+            text
+        );
+        CMessages::InsertPlayerControlKeysInString(text);
         // todo: Replace DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT
         // The first letter doesn't look good in window mode, but it looks fine in full-screen mode
-        CFont::PrintString(SCREEN_SCALE_FROM_RIGHT(DEFAULT_SCREEN_WIDTH - scriptText.m_Pos.x), SCREEN_SCALE_FROM_BOTTOM(DEFAULT_SCREEN_HEIGHT - scriptText.m_Pos.y), textFormatted);
+        CFont::PrintString(
+            SCREEN_SCALE_FROM_RIGHT(DEFAULT_SCREEN_WIDTH - t.Pos.x),
+            SCREEN_SCALE_FROM_BOTTOM(DEFAULT_SCREEN_HEIGHT - t.Pos.y),
+            text
+        );
         CFont::SetEdge(0);
     }
 }
