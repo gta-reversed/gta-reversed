@@ -139,7 +139,7 @@ public:
     static inline char (&m_grainStrength)[2] = *(char (*)[2])0x8D5094;
 
     static inline bool&  m_bCCTV   = *(bool*)0xC402C5;
-    static inline CRGBA& m_CCTVcol = *(CRGBA*)0x8D50FC; // { 0, 0, 0, 64 }
+    static inline CRGBA& m_CCTVcol = *(CRGBA*)0x8D50FC; // { 64, 0, 0, 0 }
 
     static inline bool& m_bRainEnable  = *(bool*)0xC402D1;
     static inline bool& m_bColorEnable = *(bool*)0x8D518C; // true;
