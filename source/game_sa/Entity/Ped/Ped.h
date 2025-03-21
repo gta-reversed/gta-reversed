@@ -457,7 +457,7 @@ public:
     void GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones);
     void GiveObjectToPedToHold(int32 modelIndex, uint8 replace);
     void SetPedState(ePedState pedState);
-    ePedState GetPedState() { return m_nPedState; }
+    ePedState GetPedState() const { return m_nPedState; }
     //1 = default, 2 = scm/mission script
     void SetCharCreatedBy(ePedCreatedBy createdBy);
     void CalculateNewVelocity();
