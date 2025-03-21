@@ -177,7 +177,7 @@ void CPostEffects::InjectHooks() {
     RH_ScopedInstall(ScriptInfraredVisionSwitch, 0x701140);
     RH_ScopedInstall(ScriptNightVisionSwitch, 0x701120);
     RH_ScopedInstall(ScriptResetForEffects, 0x7010F0);
-    RH_ScopedInstall(UnderWaterRipple, 0x7039C0, { .reversed = false });
+    RH_ScopedInstall(UnderWaterRipple, 0x7039C0);
     RH_ScopedInstall(HeatHazeFXInit, 0x701450);
     RH_ScopedInstall(HeatHazeFX, 0x701780, { .reversed = false });
     RH_ScopedInstall(IsVisionFXActive, 0x7034F0);
@@ -565,8 +565,60 @@ void CPostEffects::ScriptResetForEffects() {
 }
 
 // 0x7039C0
-void CPostEffects::UnderWaterRipple(RwRGBA col, float xoffset, float yoffset, float strength, float speed, float freq) {
-    plugin::Call<0x7039C0, RwRGBA, float, float, float, float, float>(col, xoffset, yoffset, strength, speed, freq);
+void CPostEffects::UnderWaterRipple(CRGBA color, float xoffset, float yoffset, float strength, float speed, float freq) {
+    color.a = 255;
+
+    RwCameraEndUpdate(Scene.m_pRwCamera);
+    RsCameraBeginUpdate(Scene.m_pRwCamera);
+    uiTempBufferVerticesStored = uiTempBufferIndicesStored = 0;
+    ImmediateModeRenderStatesStore();
+    ImmediateModeRenderStatesSet();
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER, CPostEffects::pRasterFrontBuffer);
+
+    const auto rasterWidth   = RwRasterGetWidth(CPostEffects::pRasterFrontBuffer);
+    const auto rasterHeight  = RwRasterGetHeight(CPostEffects::pRasterFrontBuffer);
+    const auto fRasterWidth  = float(rasterWidth);
+    const auto fRasterHeight = float(rasterHeight);
+    const auto recipNearClip = 1.0f / RwCameraGetNearClipPlane(Scene.m_pRwCamera);
+
+    const auto EmitVertex = [&](float wave, int32 y) {
+        const auto i = uiTempBufferVerticesStored;
+
+        TempBufferVertices.m_2d[i].x             = 0.0f;
+        TempBufferVertices.m_2d[i].y             = float(y);
+        TempBufferVertices.m_2d[i].z             = RwIm2DGetNearScreenZ();
+        TempBufferVertices.m_2d[i].rhw           = recipNearClip;
+        TempBufferVertices.m_2d[i].u             = (wave + xoffset) / fRasterWidth;
+        TempBufferVertices.m_2d[i].v             = float(y) / fRasterHeight;
+        TempBufferVertices.m_2d[i].emissiveColor = color.ToIntABGR();
+
+        TempBufferVertices.m_2d[i + 1].x             = float(int32(2.0f * xoffset) + rasterWidth);
+        TempBufferVertices.m_2d[i + 1].y             = float(y);
+        TempBufferVertices.m_2d[i + 1].z             = RwIm2DGetNearScreenZ();
+        TempBufferVertices.m_2d[i + 1].rhw           = recipNearClip;
+        TempBufferVertices.m_2d[i + 1].u             = (fRasterWidth + wave - xoffset) / fRasterWidth;
+        TempBufferVertices.m_2d[i + 1].v             = float(y) / fRasterHeight;
+        TempBufferVertices.m_2d[i + 1].emissiveColor = color.ToIntABGR();
+
+        uiTempBufferVerticesStored += 2;
+    };
+
+    //EmitVertex(std::sin(freq * float(y) + speed * CTimer::GetTimeInMS()) * xoffset, float(y) * yoffset);
+    if (rasterHeight > 0) {
+        auto y = 0;
+        for (; y < rasterHeight; y = int32(float(y) + yoffset)) {
+            EmitVertex(std::sin(freq * float(y) + speed * CTimer::GetTimeInMS()) * xoffset, y);
+        }
+        EmitVertex(std::sin(freq * float(y) + speed * CTimer::GetTimeInMS()) * xoffset, y);
+    } else {
+        // unexpected path?
+        EmitVertex(std::sin(speed * CTimer::GetTimeInMS()) * xoffset, 0.0f);
+    }
+
+    if (uiTempBufferVerticesStored > 2) {
+        RwIm2DRenderPrimitive(rwPRIMTYPETRISTRIP, TempBufferVertices.m_2d, uiTempBufferVerticesStored);
+    }
+    ImmediateModeRenderStatesReStore();
 }
 
 // unused

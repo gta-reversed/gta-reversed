@@ -177,7 +177,7 @@ public:
     static void ScriptNightVisionSwitch(bool enable);
     static void ScriptResetForEffects();
 
-    static void UnderWaterRipple(RwRGBA col, float xoffset, float yoffset, float strength, float speed, float freq);
+    static void UnderWaterRipple(CRGBA color, float xoffset, float yoffset, float strength, float speed, float freq);
     static void UnderWaterRippleFadeToFX();
 
     static void HeatHazeFXInit();
