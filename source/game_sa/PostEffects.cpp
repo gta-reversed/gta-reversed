@@ -12,10 +12,6 @@ bool& CPostEffects::m_bDisableAllPostEffect = *(bool*)0xC402CF;
 bool& CPostEffects::m_bSavePhotoFromScript = *(bool*)0xC402D0;
 bool& CPostEffects::m_bInCutscene = *(bool*)0xC402B7;
 
-RwRaster*& pVisionFXRaster = *(RwRaster**)0xC40158;
-
-RwIm2DVertex (&vertexGroup)[4] = *(RwIm2DVertex(*)[4])0xC401D8;
-
 float& CPostEffects::m_xoffset = *(float*)0x8D5130; // 4.0f
 float& CPostEffects::m_yoffset = *(float*)0x8D5134; // 24.0f
 
@@ -65,6 +61,8 @@ int32& CPostEffects::m_SpeedFXAlpha = *(int32*)0x8D5104; // 36
 RwRaster*& CPostEffects::pRasterFrontBuffer = *(RwRaster**)0xC402D8;
 
 // Immediate Mode Filter
+// TODO: Many static variables on top are actually stored in this structure, we need to
+// reference every function using them to this struct.
 struct imf {
     float                       screenZ;
     float                       recipCameraZ;
@@ -120,10 +118,6 @@ float& CPostEffects::m_RadiosityPixelsY = *(float*)0xC40318;        // SCREEN_HE
 uint32& CPostEffects::m_RadiosityFilterPasses = *(uint32*)0x8D5110; // 1
 uint32& CPostEffects::m_RadiosityRenderPasses = *(uint32*)0x8D510C; // 2
 
-// see NightVision
-static float& fRasterFrontBufferWidth = *(float*)0xC4015C;
-static float& fRasterFrontBufferHeight = *(float*)0xC40160;
-
 float& CPostEffects::m_VisionFXDayNightBalance = *(float*)0x8D50A4; // 1.0f
 
 bool& CPostEffects::m_bInfraredVision = *(bool*)0xC402B9;
@@ -133,10 +127,6 @@ float& CPostEffects::m_fInfraredVisionFilterRadius = *(float*)0x8D50B8; // 0.003
 CRGBA& CPostEffects::m_InfraredVisionCol = *(CRGBA*)0x8D50CC;                      // FF 3C 28 6E
 CRGBA& CPostEffects::m_InfraredVisionMainCol = *(CRGBA*)0x8D50D0;                  // FF C8 00 64
 RwRGBAReal& CPostEffects::m_fInfraredVisionHeatObjectCol = *(RwRGBAReal*)0x8D50BC; // { 1.0f, 0.0f, 0.0f, 1.0f }
-
-// see InfraredVision
-RwTexCoords& UV_0 = *(RwTexCoords*)0xC40164;
-RwTexCoords& UV_1 = *(RwTexCoords*)0xC4016C;
 
 bool& CPostEffects::m_waterEnable = *(bool*)0xC402D3;
 float& CPostEffects::m_waterStrength = *(float*)0x8D512C; // 64
@@ -312,27 +302,27 @@ void CPostEffects::DrawQuad(float x1, float y1, float x2, float y2, uint8 red, u
 
     const auto color = CRGBA(red, green, blue, alpha).ToIntARGB();
 
-    vertexGroup[0].x = x1;
-    vertexGroup[0].y = y1;
-    vertexGroup[0].z = ms_imf.screenZ;
-    vertexGroup[0].emissiveColor = color;
+    ms_imf.quad[0].x = x1;
+    ms_imf.quad[0].y = y1;
+    ms_imf.quad[0].z = ms_imf.screenZ;
+    ms_imf.quad[0].emissiveColor = color;
 
-    vertexGroup[1].x = x1 + x2;
-    vertexGroup[1].y = y1;
-    vertexGroup[1].z = ms_imf.screenZ;
-    vertexGroup[1].emissiveColor = color;
+    ms_imf.quad[1].x = x1 + x2;
+    ms_imf.quad[1].y = y1;
+    ms_imf.quad[1].z = ms_imf.screenZ;
+    ms_imf.quad[1].emissiveColor = color;
 
-    vertexGroup[2].x = x1;
-    vertexGroup[2].y = y1 + y2;
-    vertexGroup[2].z = ms_imf.screenZ;
-    vertexGroup[2].emissiveColor = color;
+    ms_imf.quad[2].x = x1;
+    ms_imf.quad[2].y = y1 + y2;
+    ms_imf.quad[2].z = ms_imf.screenZ;
+    ms_imf.quad[2].emissiveColor = color;
 
-    vertexGroup[3].x = x1 + x2;
-    vertexGroup[3].y = y1 + y2;
-    vertexGroup[3].z = ms_imf.screenZ;
-    vertexGroup[3].emissiveColor = color;
+    ms_imf.quad[3].x = x1 + x2;
+    ms_imf.quad[3].y = y1 + y2;
+    ms_imf.quad[3].z = ms_imf.screenZ;
+    ms_imf.quad[3].emissiveColor = color;
 
-    RwIm2DRenderPrimitive(rwPRIMTYPETRISTRIP, vertexGroup, std::size(vertexGroup));
+    RwIm2DRenderPrimitive(rwPRIMTYPETRISTRIP, ms_imf.quad.data(), 4);
 }
 
 // 0x701060
@@ -342,32 +332,32 @@ void CPostEffects::DrawQuadSetDefaultUVs() {
 
 // 0x700F90
 void CPostEffects::DrawQuadSetUVs(float u1, float v1, float u2, float v2, float u3, float v3, float u4, float v4) {
-    vertexGroup[0].u = u1;
-    vertexGroup[0].v = v1;
-    vertexGroup[1].u = u2;
-    vertexGroup[1].v = v2;
-    vertexGroup[2].u = u3;
-    vertexGroup[2].v = v3;
-    vertexGroup[3].u = u4;
-    vertexGroup[3].v = v4;
+    ms_imf.quad[0].u = u1;
+    ms_imf.quad[0].v = v1;
+    ms_imf.quad[1].u = u2;
+    ms_imf.quad[1].v = v2;
+    ms_imf.quad[2].u = u3;
+    ms_imf.quad[2].v = v3;
+    ms_imf.quad[3].u = u4;
+    ms_imf.quad[3].v = v4;
 }
 
 // 0x700FE0
 void CPostEffects::DrawQuadSetPixelUVs(float u0, float v0, float u1, float v1, float u3, float v3, float u2, float v2) {
-    const float x = 1.0f / fRasterFrontBufferWidth;
-    const float y = 1.0f / fRasterFrontBufferHeight;
+    const float x = 1.0f / ms_imf.sizeDrawBufferX;
+    const float y = 1.0f / ms_imf.sizeDrawBufferY;
 
-    vertexGroup[0].u = x * u0;
-    vertexGroup[0].v = y * v0;
+    ms_imf.quad[0].u = x * u0;
+    ms_imf.quad[0].v = y * v0;
 
-    vertexGroup[1].u = x * u1;
-    vertexGroup[1].v = y * v1;
+    ms_imf.quad[1].u = x * u1;
+    ms_imf.quad[1].v = y * v1;
 
-    vertexGroup[2].u = x * u2;
-    vertexGroup[2].v = y * v2;
+    ms_imf.quad[2].u = x * u2;
+    ms_imf.quad[2].v = y * v2;
 
-    vertexGroup[3].u = x * u3;
-    vertexGroup[3].v = y * v3;
+    ms_imf.quad[3].u = x * u3;
+    ms_imf.quad[3].v = y * v3;
 }
 
 // 0x7034B0
@@ -775,15 +765,15 @@ void CPostEffects::InfraredVision(RwRGBA color, RwRGBA colorMain) {
     RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDONE));
 
     float radius = m_fInfraredVisionFilterRadius * 100.0f;
-    int32 i = 0, j = 0; // todo: use loop?
+    int32 i = 0, j = 0; // todo: use for loop?
     float xy;
     do {
         j = i + 1;
         DrawQuadSetUVs(
-            UV_0.u, UV_0.v,
-            UV_1.u, UV_0.v,
-            UV_0.u, UV_1.v,
-            UV_1.u, UV_1.v
+            ms_imf.fFrontBufferU1, ms_imf.fFrontBufferV1,
+            ms_imf.fFrontBufferU2, ms_imf.fFrontBufferV1,
+            ms_imf.fFrontBufferU1, ms_imf.fFrontBufferV2,
+            ms_imf.fFrontBufferU2, ms_imf.fFrontBufferV2
         );
 
         xy = (float)(j) * radius;
@@ -796,7 +786,7 @@ void CPostEffects::InfraredVision(RwRGBA color, RwRGBA colorMain) {
             color.green,
             color.blue,
             255,
-            pVisionFXRaster
+            ms_imf.RasterDrawBuffer
         );
         i = j;
     } while (j < 4);
@@ -808,7 +798,7 @@ void CPostEffects::InfraredVision(RwRGBA color, RwRGBA colorMain) {
 
     DrawQuad(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 255, 64, 255, 255, nullptr);
     ImmediateModeRenderStatesReStore();
-    SetFilterMainColour(pVisionFXRaster, colorMain);
+    SetFilterMainColour(ms_imf.RasterDrawBuffer, colorMain);
 }
 
 // 0x701430
