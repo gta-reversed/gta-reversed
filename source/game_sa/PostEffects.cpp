@@ -226,8 +226,7 @@ void CPostEffects::DoScreenModeDependentInitializations() {
     HeatHazeFXInit();
 }
 
-// NOTSA
-// Returns the next power of two of `n`
+// NOTSA: Returns the next power of 2 greater than or equal to n.
 static uint32 GetNextPow2(uint32 n) {
     if (n == 0) {
         return 1;
@@ -248,9 +247,9 @@ void CPostEffects::SetupBackBufferVertex() {
     RwRaster* raster = RwCameraGetRaster(Scene.m_pRwCamera);
 
     // get maximum 2^N dimensions
-    const auto width  = GetNextPow2(RwRasterGetWidth(raster));
-    const auto height = GetNextPow2(RwRasterGetHeight(raster));
-    const auto fwidth = float(width);
+    const auto width   = GetNextPow2(RwRasterGetWidth(raster));
+    const auto height  = GetNextPow2(RwRasterGetHeight(raster));
+    const auto fwidth  = float(width);
     const auto fheight = float(height);
 
     if (pRasterFrontBuffer && (width != RwRasterGetWidth(pRasterFrontBuffer) || height != RwRasterGetHeight(pRasterFrontBuffer))) {
@@ -1157,9 +1156,15 @@ void CPostEffects::Render() {
 
     if (m_waterEnable || CWeather::UnderWaterness >= m_fWaterFXStartUnderWaterness) {
         CRGBA color{m_waterCol};
-        color.r += 184;
-        color.g += static_cast<uint8>(184.0f + s_WaterGreen);
-        color.b += 184;
+        color.r = std::min(color.r + 184, 255);
+        color.g = static_cast<uint8>(std::min(float(color.g) + s_WaterGreen + 184.0f, 255.0f));
+        color.b = std::min(color.b + 184, 255);
+
+        const auto depthDarkness = m_bWaterDepthDarkness
+            ? 1.0f - std::min(CWeather::WaterDepth, m_fWaterFullDarknessDepth) / m_fWaterFullDarknessDepth
+            : 0.0f;
+        color.ScaleRGB(depthDarkness);
+
         s_WaterGreen = std::min(s_WaterGreen + CTimer::GetTimeStep(), 24.0f);
 
         UnderWaterRipple(
