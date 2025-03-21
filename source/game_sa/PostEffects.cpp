@@ -4,136 +4,6 @@
 #include "CustomBuildingDNPipeline.h"
 #include "Clouds.h"
 
-float& CPostEffects::SCREEN_EXTRA_MULT_CHANGE_RATE = *(float*)0x8D5168; // 0.0005f;
-float& CPostEffects::SCREEN_EXTRA_MULT_BASE_CAP = *(float*)0x8D516C;    // 0.35f;
-float& CPostEffects::SCREEN_EXTRA_MULT_BASE_MULT = *(float*)0x8D5170;   // 1.0f;
-
-bool& CPostEffects::m_bDisableAllPostEffect = *(bool*)0xC402CF;
-bool& CPostEffects::m_bSavePhotoFromScript = *(bool*)0xC402D0;
-bool& CPostEffects::m_bInCutscene = *(bool*)0xC402B7;
-
-float& CPostEffects::m_xoffset = *(float*)0x8D5130; // 4.0f
-float& CPostEffects::m_yoffset = *(float*)0x8D5134; // 24.0f
-
-float& CPostEffects::m_colour1Multiplier = *(float*)0x8D5160;   // 1.0f;
-float& CPostEffects::m_colour2Multiplier = *(float*)0x8D5164;   // 1.0f;
-float& CPostEffects::m_colourLeftUOffset = *(float*)0x8D5150;   // 8
-float& CPostEffects::m_colourRightUOffset = *(float*)0x8D5154;  // 8
-float& CPostEffects::m_colourTopVOffset = *(float*)0x8D5158;    // 8
-float& CPostEffects::m_colourBottomVOffset = *(float*)0x8D515C; // 8
-
-bool& CPostEffects::m_bNightVision = *(bool*)0xC402B8;
-float& CPostEffects::m_fNightVisionSwitchOnFXCount = *(float*)0xC40300; // = CPostEffects::m_fNightVisionSwitchOnFXTime
-float& CPostEffects::m_fNightVisionSwitchOnFXTime = *(float*)0x8D50B0;  // 50.0f
-int32& CPostEffects::m_NightVisionGrainStrength = *(int32*)0x8D50A8;    // 48
-CRGBA& CPostEffects::m_NightVisionMainCol = *(CRGBA*)0x8D50AC;          // { 255, 0, 130, 0};
-
-bool& CPostEffects::m_bDarknessFilter = *(bool*)0xC402C4;
-int32& CPostEffects::m_DarknessFilterAlpha = *(int32*)0x8D5204;                   // 170
-int32& CPostEffects::m_DarknessFilterAlphaDefault = *(int32*)0x8D50F4;            // 170
-int32& CPostEffects::m_DarknessFilterRadiosityIntensityLimit = *(int32*)0x8D50F8; // 45
-
-float& CPostEffects::m_fWaterFXStartUnderWaterness = *(float*)0x8D514C; // 0.535f;
-float& CPostEffects::m_fWaterFullDarknessDepth = *(float*)0x8D5148;     // 90.0f
-bool& CPostEffects::m_bWaterDepthDarkness = *(bool*)0x8D5144;           // true;
-
-bool& CPostEffects::m_bHeatHazeFX = *(bool*)0xC402BA;
-int32& CPostEffects::m_HeatHazeFXSpeedMin = *(int32*)0x8D50EC;      // 6
-int32& CPostEffects::m_HeatHazeFXSpeedMax = *(int32*)0x8D50F0;      // 10
-int32& CPostEffects::m_HeatHazeFXIntensity = *(int32*)0x8D50E8;   // 150
-int32& CPostEffects::m_HeatHazeFXType = *(int32*)0xC402BC;        // 0
-int32& CPostEffects::m_HeatHazeFXTypeLast = *(int32*)0x8D50E4;    // -1
-int32& CPostEffects::m_HeatHazeFXRandomShift = *(int32*)0xC402C0;
-int32& CPostEffects::m_HeatHazeFXScanSizeX = *(int32*)0xC40304;   // int32(SCREEN_WIDTH_UNIT  * 24.0f);
-int32& CPostEffects::m_HeatHazeFXScanSizeY = *(int32*)0xC40308;   // int32(SCREEN_HEIGHT_UNIT * 24.0f);
-int32& CPostEffects::m_HeatHazeFXRenderSizeX = *(int32*)0xC4030C; // int32(SCREEN_WIDTH_UNIT  * 24.0f);
-int32& CPostEffects::m_HeatHazeFXRenderSizeY = *(int32*)0xC40310; // int32(SCREEN_HEIGHT_UNIT * 24.0f);
-
-bool& CPostEffects::m_bFog = *(bool*)0xC402C6;
-
-bool& CPostEffects::m_bSpeedFX = *(bool*)0x8D5100; // true;
-bool& CPostEffects::m_bSpeedFXTestMode = *(bool*)0xC402C7;
-bool& CPostEffects::m_bSpeedFXUserFlag = *(bool*)0x8D5108;             // always true;
-bool& CPostEffects::m_bSpeedFXUserFlagCurrentFrame = *(bool*)0x8D5109; // 0
-float& CPostEffects::m_fSpeedFXManualSpeedCurrentFrame = *(float*)0xC402C8;
-int32& CPostEffects::m_SpeedFXAlpha = *(int32*)0x8D5104; // 36
-
-RwRaster*& CPostEffects::pRasterFrontBuffer = *(RwRaster**)0xC402D8;
-
-// Immediate Mode Filter
-// TODO: Many static variables on top are actually stored in this structure, we need to
-// reference every function using them to this struct.
-struct imf {
-    float                       screenZ;
-    float                       recipCameraZ;
-    RwRaster*                   RasterDrawBuffer;
-    int32                       sizeDrawBufferX;
-    int32                       sizeDrawBufferY;
-    float                       fFrontBufferU1;
-    float                       fFrontBufferV1;
-    float                       fFrontBufferU2;
-    float                       fFrontBufferV2;
-    std::array<RwIm2DVertex, 3> triangle;
-    float                       uMinTri;
-    float                       uMaxTri;
-    float                       vMinTri;
-    float                       vMaxTri;
-    std::array<RwIm2DVertex, 6> quad;
-    RwBlendFunction             blendSrc;
-    RwBlendFunction             blendDst;
-    RwBool                      bFog;
-    RwCullMode                  cullMode;
-    RwBool                      bZTest;
-    RwBool                      bZWrite;
-    RwShadeMode                 shadeMode;
-    RwBool                      bVertexAlpha;
-    RwTextureAddressMode        textureAddress;
-    RwTextureFilterMode         textureFilter;
-};
-
-VALIDATE_SIZE(imf, 0x158);
-static inline imf& ms_imf = *(imf*)0xC40150;
-
-bool& CPostEffects::m_bGrainEnable = *(bool*)0xC402B4;
-RwRaster*& CPostEffects::m_pGrainRaster = *(RwRaster**)0xC402B0;
-char (&CPostEffects::m_grainStrength)[2] = *(char (*)[2])0x8D5094;
-
-bool& CPostEffects::m_bCCTV = *(bool*)0xC402C5;
-CRGBA& CPostEffects::m_CCTVcol = *(CRGBA*)0x8D50FC; // { 0, 0, 0, 64 }
-
-bool& CPostEffects::m_bRainEnable = *(bool*)0xC402D1;
-bool& CPostEffects::m_bColorEnable = *(bool*)0x8D518C; // true;
-
-bool& CPostEffects::m_bRadiosity = *(bool*)0xC402CC;
-// bool& CPostEffects::m_bRadiosityDebug = *(bool*)0x0;
-// bool& CPostEffects::m_bRadiosityLinearFilter = *(bool*)0x0;
-// bool& CPostEffects::m_bRadiosityStripCopyMode = *(bool*)0x0;
-// static CPostEffects::m_RadiosityFilterUCorrection;
-// static CPostEffects::m_RadiosityFilterVCorrection;
-int32& CPostEffects::m_RadiosityIntensity = *(int32*)0x8D5118;      // 35
-int32& CPostEffects::m_RadiosityIntensityLimit = *(int32*)0x8D5114; // 220
-bool& CPostEffects::m_bRadiosityBypassTimeCycleIntensityLimit = *(bool*)0xC402CE;
-float& CPostEffects::m_RadiosityPixelsX = *(float*)0xC40314;        // SCREEN_WIDTH
-float& CPostEffects::m_RadiosityPixelsY = *(float*)0xC40318;        // SCREEN_HEIGHT
-uint32& CPostEffects::m_RadiosityFilterPasses = *(uint32*)0x8D5110; // 1
-uint32& CPostEffects::m_RadiosityRenderPasses = *(uint32*)0x8D510C; // 2
-
-float& CPostEffects::m_VisionFXDayNightBalance = *(float*)0x8D50A4; // 1.0f
-
-bool& CPostEffects::m_bInfraredVision = *(bool*)0xC402B9;
-int32& CPostEffects::m_InfraredVisionGrainStrength = *(int32*)0x8D50B4; // 64
-float& CPostEffects::m_fInfraredVisionFilterRadius = *(float*)0x8D50B8; // 0.003f
-// float& CPostEffects::m_fInfraredVisionSwitchOnFXCount;
-CRGBA& CPostEffects::m_InfraredVisionCol = *(CRGBA*)0x8D50CC;                      // FF 3C 28 6E
-CRGBA& CPostEffects::m_InfraredVisionMainCol = *(CRGBA*)0x8D50D0;                  // FF C8 00 64
-RwRGBAReal& CPostEffects::m_fInfraredVisionHeatObjectCol = *(RwRGBAReal*)0x8D50BC; // { 1.0f, 0.0f, 0.0f, 1.0f }
-
-bool& CPostEffects::m_waterEnable = *(bool*)0xC402D3;
-float& CPostEffects::m_waterStrength = *(float*)0x8D512C; // 64
-float& CPostEffects::m_waterSpeed = *(float*)0x8D5138;    // 0.0015f
-float& CPostEffects::m_waterFreq = *(float*)0x8D513C;     // 0.04f
-CRGBA& CPostEffects::m_waterCol = *(CRGBA*)0x8D5140;      // { 64, 64, 64, 64 }
-
 RwIm2DVertex (&cc_vertices)[4] = *(RwIm2DVertex(*)[4])0xC400D8;
 RwImVertexIndex (&cc_indices)[12] = *(RwImVertexIndex(*)[12])0x8D5174; // { 0, 1, 2, 0, 2, 3, 0, 1, 2, 0, 2, 3 };
 
@@ -473,30 +343,30 @@ void CPostEffects::ImmediateModeRenderStatesSet() {
 
 // 0x700CC0
 void CPostEffects::ImmediateModeRenderStatesStore() {
-    RwRenderStateGet(rwRENDERSTATESRCBLEND,          &gStoredRenderStateSrcBlend);
-    RwRenderStateGet(rwRENDERSTATEDESTBLEND,         &gStoredRenderStateDestBlend);
-    RwRenderStateGet(rwRENDERSTATEFOGENABLE,         &gStoredRenderStateFogEnable);
-    RwRenderStateGet(rwRENDERSTATECULLMODE,          &gStoredRenderStateCullMode);
-    RwRenderStateGet(rwRENDERSTATEZTESTENABLE,       &gStoredRenderStateZTestEnable);
-    RwRenderStateGet(rwRENDERSTATEZWRITEENABLE,      &gStoredRenderStateZWriteEnable);
-    RwRenderStateGet(rwRENDERSTATESHADEMODE,         &gStoredRenderStateShadeMode);
-    RwRenderStateGet(rwRENDERSTATEVERTEXALPHAENABLE, &gStoredRenderStateVertexAlphaEnable);
-    RwRenderStateGet(rwRENDERSTATETEXTUREADDRESS,    &gStoredRenderStateTextureAddress);
-    RwRenderStateGet(rwRENDERSTATETEXTUREFILTER,     &gStoredRenderStateTextureFilter);
+    RwRenderStateGet(rwRENDERSTATESRCBLEND,          &ms_imf.blendSrc);
+    RwRenderStateGet(rwRENDERSTATEDESTBLEND,         &ms_imf.blendDst);
+    RwRenderStateGet(rwRENDERSTATEFOGENABLE,         &ms_imf.bFog);
+    RwRenderStateGet(rwRENDERSTATECULLMODE,          &ms_imf.cullMode);
+    RwRenderStateGet(rwRENDERSTATEZTESTENABLE,       &ms_imf.bZTest);
+    RwRenderStateGet(rwRENDERSTATEZWRITEENABLE,      &ms_imf.bZWrite);
+    RwRenderStateGet(rwRENDERSTATESHADEMODE,         &ms_imf.shadeMode);
+    RwRenderStateGet(rwRENDERSTATEVERTEXALPHAENABLE, &ms_imf.bVertexAlpha);
+    RwRenderStateGet(rwRENDERSTATETEXTUREADDRESS,    &ms_imf.textureAddress);
+    RwRenderStateGet(rwRENDERSTATETEXTUREFILTER,     &ms_imf.textureFilter);
 }
 
 // 0x700E00
 void CPostEffects::ImmediateModeRenderStatesReStore() {
-    RwRenderStateSet(rwRENDERSTATESRCBLEND,           RWRSTATE(gStoredRenderStateSrcBlend));
-    RwRenderStateSet(rwRENDERSTATEDESTBLEND,          RWRSTATE(gStoredRenderStateDestBlend));
-    RwRenderStateSet(rwRENDERSTATEFOGENABLE,          RWRSTATE(gStoredRenderStateFogEnable));
-    RwRenderStateSet(rwRENDERSTATECULLMODE,           RWRSTATE(gStoredRenderStateCullMode));
-    RwRenderStateSet(rwRENDERSTATEZTESTENABLE,        RWRSTATE(gStoredRenderStateZTestEnable));
-    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,       RWRSTATE(gStoredRenderStateZWriteEnable));
-    RwRenderStateSet(rwRENDERSTATESHADEMODE,          RWRSTATE(gStoredRenderStateShadeMode));
-    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE,  RWRSTATE(gStoredRenderStateVertexAlphaEnable));
-    RwRenderStateSet(rwRENDERSTATETEXTUREADDRESS,     RWRSTATE(gStoredRenderStateTextureAddress));
-    RwRenderStateSet(rwRENDERSTATETEXTUREFILTER,      RWRSTATE(gStoredRenderStateTextureFilter));
+    RwRenderStateSet(rwRENDERSTATESRCBLEND,           RWRSTATE(ms_imf.blendSrc));
+    RwRenderStateSet(rwRENDERSTATEDESTBLEND,          RWRSTATE(ms_imf.blendDst));
+    RwRenderStateSet(rwRENDERSTATEFOGENABLE,          RWRSTATE(ms_imf.bFog));
+    RwRenderStateSet(rwRENDERSTATECULLMODE,           RWRSTATE(ms_imf.cullMode));
+    RwRenderStateSet(rwRENDERSTATEZTESTENABLE,        RWRSTATE(ms_imf.bZTest));
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,       RWRSTATE(ms_imf.bZWrite));
+    RwRenderStateSet(rwRENDERSTATESHADEMODE,          RWRSTATE(ms_imf.shadeMode));
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE,  RWRSTATE(ms_imf.bVertexAlpha));
+    RwRenderStateSet(rwRENDERSTATETEXTUREADDRESS,     RWRSTATE(ms_imf.textureAddress));
+    RwRenderStateSet(rwRENDERSTATETEXTUREFILTER,      RWRSTATE(ms_imf.textureFilter));
 }
 
 // 0x700C90
