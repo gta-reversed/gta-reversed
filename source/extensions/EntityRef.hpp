@@ -2,11 +2,11 @@
 
 // We can't include this header, because it creates a circular dependency with it.
 // Wherever this is included has to include the entity they want to use the `Ref` of anyways...
-//#include <Entity.h>
+#include <Entity.h>
 
 namespace notsa {
 //! Wrapper for entity references, avoids manual usage of `CleanupOldRef` and `RegisterRef`
-template<typename T>
+template<typename T = CEntity>
 struct EntityRef {
     EntityRef(T* ptr = nullptr) noexcept :
         m_Ptr{ ptr }

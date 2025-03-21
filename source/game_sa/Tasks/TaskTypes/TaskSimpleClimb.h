@@ -75,7 +75,7 @@ private:
     int8                   m_FallAfterVault{-1};
     float                  m_HandholdHeading{};
     CVector                m_HandholdPos{};
-    CEntity::Ref           m_ClimbEntity{};
+    notsa::EntityRef<>     m_ClimbEntity{};
     uint16                 m_GetToPosCounter{}; // we can use u32 without any problems
     CAnimBlendAssociation* m_Anim{};
 

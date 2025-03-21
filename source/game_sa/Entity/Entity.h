@@ -11,7 +11,6 @@
 #include "Rect.h"
 #include "ColModel.h"
 #include "Plugins\TwoDEffectPlugin\2dEffect.h"
-#include <extensions/EntityRef.hpp>
 
 #include "eEntityType.h"
 #include "eEntityStatus.h"
@@ -37,9 +36,6 @@ class CPhysical;
 class CBaseModelInfo;
 
 class NOTSA_EXPORT_VTABLE CEntity : public CPlaceable {
-public:
-    using Ref = notsa::EntityRef<CEntity>;
-
 public:
     union {
         struct RwObject* m_pRwObject;
