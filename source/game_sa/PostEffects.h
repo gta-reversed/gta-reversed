@@ -128,7 +128,7 @@ public:
     static inline bool&  m_bSpeedFX                        = *(bool*)0x8D5100; // true;
     static inline bool&  m_bSpeedFXTestMode                = *(bool*)0xC402C7;
     static inline bool&  m_bSpeedFXUserFlag                = *(bool*)0x8D5108; // always true;
-    static inline bool&  m_bSpeedFXUserFlagCurrentFrame    = *(bool*)0x8D5109; // 0
+    static inline bool&  m_bSpeedFXUserFlagCurrentFrame    = *(bool*)0x8D5109; // true
     static inline float& m_fSpeedFXManualSpeedCurrentFrame = *(float*)0xC402C8;
     static inline int32& m_SpeedFXAlpha                    = *(int32*)0x8D5104; // 36
 
@@ -145,11 +145,11 @@ public:
     static inline bool& m_bColorEnable = *(bool*)0x8D518C; // true;
 
     static inline bool& m_bRadiosity = *(bool*)0xC402CC;
-    // bool& m_bRadiosityDebug = *(bool*)0x0;
-    // bool& m_bRadiosityLinearFilter = *(bool*)0x0;
-    // bool& m_bRadiosityStripCopyMode = *(bool*)0x0;
-    // static CPostEffects::m_RadiosityFilterUCorrection;
-    // static CPostEffects::m_RadiosityFilterVCorrection;
+    static inline bool&  m_bRadiosityDebug = *(bool*)0xC402CD;
+    static inline bool&  m_bRadiosityLinearFilter = *(bool*)0x8D510A; // true;
+    static inline bool&  m_bRadiosityStripCopyMode = *(bool*)0x8D510B; // true;
+    static inline int32&  m_RadiosityFilterUCorrection = *(int32*)0x8D511C; // 2;
+    static inline int32&  m_RadiosityFilterVCorrection = *(int32*)0x8D5120; // 2;
     static inline int32&  m_RadiosityIntensity                      = *(int32*)0x8D5118; // 35
     static inline int32&  m_RadiosityIntensityLimit                 = *(int32*)0x8D5114; // 220
     static inline bool&   m_bRadiosityBypassTimeCycleIntensityLimit = *(bool*)0xC402CE;
@@ -164,9 +164,13 @@ public:
     static inline int32& m_InfraredVisionGrainStrength = *(int32*)0x8D50B4; // 64
     static inline float& m_fInfraredVisionFilterRadius = *(float*)0x8D50B8; // 0.003f
     // float& m_fInfraredVisionSwitchOnFXCount;
-    static inline CRGBA&      m_InfraredVisionCol            = *(CRGBA*)0x8D50CC;      // FF 3C 28 6E
-    static inline CRGBA&      m_InfraredVisionMainCol        = *(CRGBA*)0x8D50D0;      // FF C8 00 64
+    static inline CRGBA&      m_InfraredVisionCol            = *(CRGBA*)0x8D50CC;      // { FF, 3C, 28, 6E }
+    static inline CRGBA&      m_InfraredVisionMainCol        = *(CRGBA*)0x8D50D0;      // { FF, C8, 00, 64 }
     static inline RwRGBAReal& m_fInfraredVisionHeatObjectCol = *(RwRGBAReal*)0x8D50BC; // { 1.0f, 0.0f, 0.0f, 1.0f }
+    static inline int32& m_HeatHazeFXHourOfDayStart = *(int32*)0x8D50D4; // 10
+    static inline int32& m_HeatHazeFXHourOfDayEnd   = *(int32*)0x8D50D8; // 19
+    static inline float& m_fHeatHazeFXFadeSpeed = *(float*)0x8D50DC; // 0.05f
+    static inline float& m_fHeatHazeFXInsideBuildingFadeSpeed = *(float*)0x8D50DC; // 0.5f
 
     static inline bool&  m_waterEnable   = *(bool*)0xC402D3;
     static inline float& m_waterStrength = *(float*)0x8D512C; // 64
