@@ -33,8 +33,7 @@ struct EntityRef {
         if (m_Ptr) {
             m_Ptr->CleanUpOldReference(reinterpret_cast<CEntity**>(&m_Ptr));
         }
-        m_Ptr = ptr;
-        if (m_Ptr) {
+        if (m_Ptr = ptr) {
             m_Ptr->RegisterReference(reinterpret_cast<CEntity**>(&m_Ptr));
         }
         return *this;
@@ -53,6 +52,12 @@ struct EntityRef {
 
     T* operator&()  const noexcept { return m_Ptr; }
     T* operator&()        noexcept { return m_Ptr; }
+
+    //auto operator==(const EntityRef<T>& o) const noexcept { return m_Ptr == o.m_Ptr; }
+    //auto operator!=(const EntityRef<T>& o) const noexcept { return !(*this == o); }
+    //
+    //auto operator==(const T* o) const noexcept { return m_Ptr == o; }
+    //auto operator!=(const T* o) const noexcept { return !(*this == o); }
 
 private:
     T* m_Ptr;

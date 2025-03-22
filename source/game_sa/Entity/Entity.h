@@ -10,13 +10,13 @@
 #include "Reference.h"
 #include "Rect.h"
 #include "ColModel.h"
-#include "Plugins\TwoDEffectPlugin\2dEffect.h"
 
 #include "eEntityType.h"
 #include "eEntityStatus.h"
 #include "eModelID.h"
 #include "eAreaCodes.h"
 
+class C2dEffect;
 class CObject;
 class CVehicle;
 class CTrain;
