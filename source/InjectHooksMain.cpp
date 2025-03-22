@@ -711,6 +711,7 @@ void InjectHooksMain() {
     CClock::InjectHooks();
     CClouds::InjectHooks();
     CCoronas::InjectHooks();
+    CRegisteredCorona::InjectHooks();
     CCustomCarPlateMgr::InjectHooks();
     CDraw::InjectHooks();
     CEntryExitManager::InjectHooks();
