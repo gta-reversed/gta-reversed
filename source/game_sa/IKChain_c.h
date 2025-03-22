@@ -55,7 +55,7 @@ private:
     eBoneTag16                   m_EffectorBone{};
     RwV3d                        m_EffectorPos{};
     eBoneTag16                   m_PivotBone{};
-    CEntity::Ref                 m_TargetEntity{};
+    notsa::EntityRef<>                 m_TargetEntity{};
     eBoneTag32                   m_OffsetBone{};   //!< Offset bone
     CVector                      m_OffsetPos{};    //!< - If `m_TargetEntity` is set:
                                                    //!<   - And `m_OffsetBone` is set too: This is a position relative to that bone
