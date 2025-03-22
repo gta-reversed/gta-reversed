@@ -6,7 +6,7 @@
 */
 
 #include "StdInc.h"
-
+#include <reversiblebugfixes/Bugs.hpp>
 #include "AESound.h"
 
 #include "AEAudioEnvironment.h"
@@ -193,7 +193,7 @@ void CAESound::UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 play
     // Avoid division by 0
     // This seems to have been fixed the same way in Android
     // The cause is/can be missing audio files, but I'm lazy to fix it, so this is gonna be fine for now
-    m_nCurrentPlayPosition = !notsa::IsFixBugs() || soundLength > 0
+    m_nCurrentPlayPosition = !notsa::bugfixes::AESound_UpdatePlayTime_DivisionByZero || soundLength > 0
         ? loopStartTime + (m_nCurrentPlayPosition % soundLength)
         : loopStartTime;
 }
