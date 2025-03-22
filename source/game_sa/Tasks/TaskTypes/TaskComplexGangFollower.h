@@ -35,7 +35,7 @@ public:
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
 
-    void CalculateOffsetPosition(CVector& pos);
+    CVector CalculateOffsetPosition();
 
 private:
     friend void InjectHooksMain();
