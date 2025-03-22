@@ -7,6 +7,7 @@
 #pragma once
 
 #include "RenderWare.h"
+#include "eVisibleArea.h"
 
 class CColModel;
 class CEntity;
@@ -49,6 +50,8 @@ public:
     static void DrasticTidyUpMemory(bool a1);
     static void FinalShutdown();
     static void TidyUpMemory(bool a1, bool clearD3Dmem);
+
+    inline static bool IsInInterior() { return CGame::currArea != AREA_MAIN_MAP; };
 };
 
 inline static int32& gameTxdSlot = *reinterpret_cast<int32*>(0xB728E8);

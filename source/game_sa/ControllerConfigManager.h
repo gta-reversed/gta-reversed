@@ -8,18 +8,7 @@
 
 #include "RenderWare.h"
 
-#include "ePadButton.h"
-
-enum eMouseButtons {
-    MOUSE_BUTTON_NONE = 0,
-    MOUSE_BUTTON_LEFT,
-    MOUSE_BUTTON_MIDDLE,
-    MOUSE_BUTTON_RIGHT,
-    MOUSE_BUTTON_WHEEL_UP,
-    MOUSE_BUTTON_WHEEL_DOWN,
-    MOUSE_BUTTON_WHEEL_XBUTTON1,
-    MOUSE_BUTTON_WHEEL_XBUTTON2
-};
+#include "eInputs.h"
 
 enum eActionType {
     ACTION_0,
@@ -29,67 +18,6 @@ enum eActionType {
     ACTION_4,
     ACTION_5,
     ACTION_6,
-};
-
-enum eControllerAction {
-    CA_PED_FIREWEAPON,
-    CA_PED_FIREWEAPON_ALT,
-    CA_PED_CYCLE_WEAPON_RIGHT,
-    CA_PED_CYCLE_WEAPON_LEFT,
-    CA_GO_FORWARD,
-    CA_GO_BACK,
-    CA_GO_LEFT,
-    CA_GO_RIGHT,
-    CA_PED_SNIPER_ZOOM_IN,
-    CA_PED_SNIPER_ZOOM_OUT,
-    CA_VEHICLE_ENTER_EXIT,
-    CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS,
-    CA_PED_JUMPING,
-    CA_PED_SPRINT,
-    CA_PED_LOOKBEHIND,
-    CA_PED_DUCK,
-    CA_PED_ANSWER_PHONE,
-    CA_SNEAK_ABOUT,
-    CA_VEHICLE_FIREWEAPON,
-    CA_VEHICLE_FIREWEAPON_ALT,
-    CA_VEHICLE_STEERLEFT,
-    CA_VEHICLE_STEERRIGHT,
-    CA_VEHICLE_STEERUP,
-    CA_VEHICLE_STEERDOWN,
-    CA_VEHICLE_ACCELERATE,
-    CA_VEHICLE_BRAKE,
-    CA_VEHICLE_RADIO_STATION_UP,
-    CA_VEHICLE_RADIO_STATION_DOWN,
-    CA_UNKNOWN_28,
-    CA_VEHICLE_HORN = 29,
-    CA_TOGGLE_SUBMISSIONS,
-    CA_VEHICLE_HANDBRAKE,
-    CA_PED_1RST_PERSON_LOOK_LEFT,
-    CA_PED_1RST_PERSON_LOOK_RIGHT,
-    CA_VEHICLE_LOOKLEFT,
-    CA_VEHICLE_LOOKRIGHT,
-    CA_VEHICLE_LOOKBEHIND,
-    CA_VEHICLE_MOUSELOOK,
-    CA_VEHICLE_TURRETLEFT,
-    CA_VEHICLE_TURRETRIGHT,
-    CA_VEHICLE_TURRETUP,
-    CA_VEHICLE_TURRETDOWN,
-    CA_PED_CYCLE_TARGET_LEFT,
-    CA_PED_CYCLE_TARGET_RIGHT,
-    CA_PED_CENTER_CAMERA_BEHIND_PLAYER,
-    CA_PED_LOCK_TARGET,
-    CA_NETWORK_TALK,
-    CA_CONVERSATION_YES,
-    CA_CONVERSATION_NO,
-    CA_GROUP_CONTROL_FWD,
-    CA_GROUP_CONTROL_BWD,
-    CA_PED_1RST_PERSON_LOOK_UP,
-    CA_PED_1RST_PERSON_LOOK_DOWN,
-    CA_UNKNOWN_53,
-    CA_TOGGLE_DPAD = 54,
-    CA_SWITCH_DEBUG_CAM_ON,
-    CA_TAKE_SCREEN_SHOT,
-    CA_SHOW_MOUSE_POINTER_TOGGLE
 };
 
 struct CControllerKey {
@@ -150,14 +78,13 @@ public:
     void InitialiseControllerActionNameArray();
     void ReinitControls();
 
-    void SetMouseButtonAssociatedWithAction(eControllerAction action, RsKeyCodes button);
+    void SetMouseButtonAssociatedWithAction(const eControllerAction& action, eMouseButtons button);
 
     void StoreMouseButtonState(eMouseButtons button, bool state);
-    void UpdateJoyInConfigMenus_ButtonDown(ePadButton button, int32 padNumber);
-    void UpdateJoy_ButtonDown(ePadButton button, int32 unk);
-    void AffectControllerStateOn_ButtonDown_DebugStuff(int32, eControllerType);
-    void UpdateJoyInConfigMenus_ButtonUp(ePadButton button, int32 padNumber);
-    void UpdateJoy_ButtonUp(ePadButton button, int32 unk);
+    void UpdateJoyInConfigMenus_ButtonDown(eJOY_BUTTONS button, int32 padNumber);
+    void UpdateJoy_ButtonDown(eJOY_BUTTONS button, int32 unk);
+    void UpdateJoyInConfigMenus_ButtonUp(eJOY_BUTTONS button, int32 padNumber);
+    void UpdateJoy_ButtonUp(eJOY_BUTTONS button, int32 unk);
     void AffectControllerStateOn_ButtonUp_DebugStuff(int32, eControllerType);
     void ClearSimButtonPressCheckers();
 
@@ -180,12 +107,28 @@ public:
     void AffectPadFromKeyBoard();
     void AffectPadFromMouse();
     void DeleteMatchingActionInitiators(eControllerAction Action, int32 KeyToBeChecked, eControllerType ControllerTypeToBeChecked);
+    void SetControllerKeyAssociatedWithAction(eControllerAction action, int32 key, eControllerType type);
+    void ResetSettingOrder(eControllerAction event);
+    RsKeyCodes GetControllerKeyAssociatedWithAction(eControllerAction event, eControllerType type);
 
     void GetDefinedKeyByGxtName(uint16 actionId, char* buf, uint16 bufsz);
 
+    // Button down state handlers
+    void AffectControllerStateOn_ButtonDown(int32 ButtonPress, eControllerType ControllerType);
+    void AffectControllerStateOn_ButtonDown_Driving(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_FirstPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_ThirdPersonOnly(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_AllStates(int32 ButtonPress, eControllerType ControllerType, CControllerState* ControllerToUpdate);
+    void AffectControllerStateOn_ButtonDown_DebugStuff(int32 ButtonPress, eControllerType ControllerType);
+
     // NOTSA
     uint16 GetActionIDByName(std::string_view name);
+
+    // not used
+    bool GetIsActionAButtonCombo(eControllerAction Action);
 };
-VALIDATE_SIZE(CControllerConfigManager, 0x12E4);
+// VALIDATE_SIZE(CControllerConfigManager, 0x12E4);
 
 extern CControllerConfigManager &ControlsManager;

@@ -1633,8 +1633,8 @@ bool CWeapon::FireM16_1stPerson(CPed* owner) {
         }
 
         // Move the camera around a little
-        cam->m_fHorizontalAngle += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
-        cam->m_fVerticalAngle += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
+        cam->m_fBeta += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
+        cam->m_fAlpha += (float)CGeneral::GetRandomNumberInRange(-64, 64) * intensity;
 
         // Do pad shaking
         const auto shakeFreq = (uint8)lerp(130.f, 210.f, std::clamp((20.f - (wi->m_fAnimLoopEnd - wi->m_fAnimLoopStart) * 900.f) / 80.f, 0.f, 1.f));

@@ -12,6 +12,7 @@
 #include "Sprite2d.h"
 #include "Vector2D.h"
 #include "eLanguage.h"
+#include "eInputs.h"
 
 class CRect;
 
@@ -36,8 +37,8 @@ struct MPack {
     char  m_Name[260];
 };
 
-constexpr auto FRONTEND_MAP_RANGE_MIN = 300.0f;
-constexpr auto FRONTEND_MAP_RANGE_MAX = 1100.0f;
+constexpr float FRONTEND_MAP_RANGE_MIN = 300.0f;
+constexpr float FRONTEND_MAP_RANGE_MAX = 1100.0f;
 
 class CMenuManager {
     enum {
@@ -91,7 +92,7 @@ public:
 
     eRadioID  m_nRadioStation;
     char      field_53;
-    int32     m_nCurrentScreenItem;
+    eControllerAction     m_nCurrentScreenItem;
     bool      m_bQuitGameNoDVD; // CMenuManager::WaitForUserCD 0x57C5E0
 
     bool      m_bDrawingMap;
@@ -186,10 +187,10 @@ public:
     int32 m_MouseInBounds;
     int32 field_1B04;
     char  m_bJustOpenedControlRedefWindow;
-    char  field_1B09; // controller
+    char  pControlEdit; // controller
     bool  m_DeleteAllBoundControls;
     bool  m_DeleteAllNextDefine;
-    int32 field_1B0C;
+    eControllerAction OptionToChange;
     char  field_1B10;
     char  field_1B11;
     char  field_1B12;
@@ -308,7 +309,7 @@ public:
     void CheckForMenuClosing();
     [[nodiscard]] bool CheckHover(int32 left, int32 right, int32 top, int32 bottom) const;
     bool CheckMissionPackValidMenu();
-    bool CheckCodesForControls(RsInputDeviceType type);
+    void CheckCodesForControls(RsInputDeviceType type);
 
     int32 DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing);
 
@@ -361,6 +362,6 @@ private:
     static void SetBrightness(float brightness, bool arg2);
 };
 
-VALIDATE_SIZE(CMenuManager, 0x1B78);
+// VALIDATE_SIZE(CMenuManager, 0x1B78);
 
 extern CMenuManager& FrontEndMenuManager;

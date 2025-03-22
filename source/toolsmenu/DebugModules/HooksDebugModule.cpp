@@ -298,7 +298,8 @@ void HooksDebugModule::HookFilter::Render() {
     }
     PopItemWidth();
 }
-template<typename T> 
+
+template<typename T>
 struct IDScope_Helper {
     IDScope_Helper(T id) { PushID(id); }
     ~IDScope_Helper() { PopID(); }

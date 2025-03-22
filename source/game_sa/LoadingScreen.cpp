@@ -49,7 +49,7 @@ void CLoadingScreen::Init(bool unusedFlag, bool loaded) {
     }
 
     m_currDisplayedSplash = -1;
-    m_bActive             = true;
+    m_bActive             = !g_FastLoaderConfig.NoLoadScreen;
     m_timeSinceLastScreen = GetClockTime();
 }
 

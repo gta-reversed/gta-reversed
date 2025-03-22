@@ -149,7 +149,7 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         if (   Windowed
             || ControlsManager.GetJoyButtonJustDown()
             || pad->NewState.CheckForInput()
-            || CPad::IsMouseLButtonPressed()
+            || CPad::GetLeftMouseJustDown()
             || CPad::IsEnterJustPressed()
             || pad->IsStandardKeyJustPressed(VK_SPACE)
             || CPad::IsMenuKeyJustPressed()

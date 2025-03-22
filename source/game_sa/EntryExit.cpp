@@ -291,7 +291,7 @@ bool CEntryExit::TransitionStarted(CPed* ped) {
             auto fixedModePos = GetPosition() - lookAtDir * 3.f;
             fixedModePos.z += 1.f;
             TheCamera.SetCamPositionForFixedMode(fixedModePos, {});
-            TheCamera.TakeControlNoEntity(GetPosition() + lookAtDir, eSwitchType::JUMPCUT, 1);
+            TheCamera.TakeControlNoEntity(GetPosition() + lookAtDir, eTransMode::TRANS_JUMP_CUT, 1);
         };
 
 
