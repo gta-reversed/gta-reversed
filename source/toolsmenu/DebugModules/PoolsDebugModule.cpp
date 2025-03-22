@@ -20,7 +20,7 @@ void PoolsDebugModule::RenderWindow() {
     ImGui::TableSetupColumn("Size");
     ImGui::TableSetupColumn("Active objects");
     ImGui::TableSetupColumn("Usage (%)");
-    ImGui::TableSetupColumn("Locked");
+    ImGui::TableSetupColumn("DealWithNoMemory");
     ImGui::TableHeadersRow();
 
     const auto Draw = [](auto* pool, const char* name) {
@@ -55,7 +55,7 @@ void PoolsDebugModule::RenderWindow() {
             ImGui::PopStyleColor();
 
             ImGui::TableNextColumn();
-            ImGui::Text(pool->m_bIsLocked ? "T" : "F");
+            ImGui::Text(pool->CanDealWithNoMemory() ? "T" : "F");
 
             ImGui::PopID();
         }

@@ -38,7 +38,7 @@ void CEntryExitManager::Init() {
     ms_bBurglaryHousesEnabled = false;
 
     mp_poolEntryExits = new CEntryExitsPool(400u, "Entry exits");
-    mp_poolEntryExits->m_bIsLocked = true;
+    mp_poolEntryExits->SetDealWithNoMemory(true);
 }
 
 // 0x440B90

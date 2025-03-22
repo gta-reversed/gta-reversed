@@ -568,7 +568,7 @@ void CAutomobile::ProcessControl()
     for (auto& collisionEntity : m_apWheelCollisionEntity) {
         // FIXME(yukani): I need this to test anything outside, do not remove
         // until game doesn't crash on me here.
-        if (collisionEntity == (CPhysical*)0xffffffff) {
+        if (collisionEntity == (CPhysical*)0xffffffff || collisionEntity == (CPhysical*)0xcdcdcdcd) {
             collisionEntity = nullptr;
         }
         if (collisionEntity) {
@@ -5051,9 +5051,9 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
         return nullptr; // No atomic means there's nothing to render :D
     }
 
-    GetObjectPool()->m_bIsLocked = true;
+    GetObjectPool()->SetDealWithNoMemory(true);
     auto obj = new CObject;
-    GetObjectPool()->m_bIsLocked = false;
+    GetObjectPool()->SetDealWithNoMemory(false);
 
     if (!obj) {
         return nullptr;

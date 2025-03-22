@@ -137,6 +137,11 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
 
     oswrapper
 )
+
+target_sources(${RE_PROJECT_LIB_NAME} PRIVATE
+    notsa.natvis
+)
+
 target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
     _CRT_SECURE_NO_WARNINGS
     NOMINMAX
