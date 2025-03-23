@@ -20,6 +20,8 @@ public:
     void Render3D() override;
     void Update() override;
 
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(CoverPointsDebugModule, m_IsOpen, m_IsShowPointsEnabled, m_AllBBsEnabled, m_Range);
+
 protected:
     void UpdateCoverPointsInRange();
     void RenderCoverPointsTable();

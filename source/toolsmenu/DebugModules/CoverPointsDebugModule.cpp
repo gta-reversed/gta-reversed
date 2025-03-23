@@ -112,9 +112,8 @@ void CoverPointsDebugModule::RenderCoverPointsTable() {
             std::partial_ordering o;
             switch (spec->ColumnIndex) {
             case 0: o = a.TblIdx <=> b.TblIdx;                               break; // #
-            case 1:                                                          break; // Color (not sortable)
-            case 2: o = a.CoverPoint->GetType() <=> a.CoverPoint->GetType(); break; // Type
-            case 3: o = a.DistToPlayer <=> b.DistToPlayer;                   break; // Distance
+            case 1: o = a.CoverPoint->GetType() <=> a.CoverPoint->GetType(); break; // Type
+            case 2: o = a.DistToPlayer <=> b.DistToPlayer;                   break; // Distance
             }
             if (o != 0) {
                 return spec->SortDirection == ImGuiSortDirection_Ascending
@@ -170,17 +169,19 @@ void CoverPointsDebugModule::RenderSelectedCoverPointDetails() {
 }
 
 void CoverPointsDebugModule::RenderCoverPointDetails3D(const CCoverPoint& cpt) {
+    constexpr float RADIUS = 0.25f;
+
     if (!IsCoverPointValid(cpt)) {
         return;
     }
-    const CVector pos = cpt.GetPos();
+    CVector pos = cpt.GetPos();
+    pos.z = CWorld::FindGroundZForCoord(pos.x, pos.y) + RADIUS;
 
     const auto color = &cpt == m_SelectedCpt
         ? lerp<CRGBA>({ 0xFF, 0x69, 0xB4, 0xFF }, { 0x0, 0xFF, 0x0, 0xFF }, std::abs(std::sin(TWO_PI * (float)(CTimer::GetTimeInMS() % 4096) / 4096.f))) // hot pink
         : CRGBA{ 0x0, 0xFF, 0x0, 0xFF };
 
     // Position BB
-    constexpr float RADIUS = 0.25f;
     CBox{
         pos - CVector{RADIUS},
         pos + CVector{RADIUS},
