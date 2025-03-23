@@ -163,7 +163,7 @@ public:
     bool            m_bCondResult;                  //< (See `COMMAND_GOTO_IF_FALSE`) (Unsure)
     bool            m_bUseMissionCleanup;           //< If mission cleanup is needed after this script has finished
     bool            m_bIsExternal;
-    bool            m_bTextBlockOverride;
+    bool            m_IsTextBlockOverride;
     int8            m_nExternalType;
     int32           m_nWakeTime;                    //< Used for sleep-like comamands (like `COMMAND_WAIT`) - The script halts execution until the time is reached
     uint16          m_nLogicalOp;                   //< Next logical OP type (See `COMMAND_ANDOR`)

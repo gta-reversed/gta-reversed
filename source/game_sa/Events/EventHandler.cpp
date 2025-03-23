@@ -993,7 +993,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                 e->m_fAnimBlend = 4.f;
                 e->m_fAnimSpeed = 1.f;
                 e->m_nAnimGroup = ANIM_GROUP_DEFAULT;
-                if (const auto a = RpAnimBlendClumpGetFirstAssociation(m_Ped->m_pRwClump, ANIMATION_800)) { // 0x4C094E
+                if (const auto a = RpAnimBlendClumpGetFirstAssociation(m_Ped->m_pRwClump, ANIMATION_IS_FRONT)) { // 0x4C094E
                     e->m_nAnimID = ANIM_ID_FLOOR_HIT_F;
                     return DoDieMaybeFall();
                 }
@@ -1005,7 +1005,7 @@ void CEventHandler::ComputeDamageResponse(CEventDamage* e, CTask* tactive, CTask
                     if (tgup->m_bHasPedGotUp) {
                         return DoDieMaybeFall();
                     }
-                    e->m_nAnimID = RpAnimBlendClumpGetFirstAssociation(m_Ped->m_pRwClump, ANIMATION_800)
+                    e->m_nAnimID = RpAnimBlendClumpGetFirstAssociation(m_Ped->m_pRwClump, ANIMATION_IS_FRONT)
                         ? ANIM_ID_FLOOR_HIT_F
                         : ANIM_ID_FLOOR_HIT;
                     
@@ -2127,7 +2127,7 @@ void CEventHandler::ComputeReviveResponse(CEventRevived* e, CTask* tactive, CTas
         m_Ped->bKnockedUpIntoAir        = false;
         m_Ped->bKnockedOffBike          = false;
         m_Ped->bKilledByStealth         = false;
-        m_Ped->physicalFlags.bDestroyed = false;
+        m_Ped->physicalFlags.bRenderScorched = false;
 
         m_Ped->SetPedState(PEDSTATE_IDLE);
         m_Ped->RestartNonPartialAnims();
@@ -2612,7 +2612,7 @@ void CEventHandler::ComputeVehicleDiedResponse(CEventVehicleDied* e, CTask* tact
         if (!e->m_vehicle) {
             return nullptr;
         }
-        m_Ped->physicalFlags.bDestroyed = true;
+        m_Ped->physicalFlags.bRenderScorched = true;
         m_Ped->m_fHealth = 0.f;
         if (m_Ped->IsInVehicle() && (m_Ped->m_pVehicle->IsBike() || m_Ped->m_pVehicle->IsSubQuad())) {
             ComputeKnockOffBikeResponse(e, tactive, tsimplest);

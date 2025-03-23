@@ -69,6 +69,8 @@ CTask* CTaskComplexRoadRage::CreateSubTask(eTaskType taskType, CPed* ped) {
         return new CTaskComplexDestroyCar{ m_rageWith->m_pVehicle };
     case TASK_COMPLEX_KILL_PED_ON_FOOT:
         return new CTaskComplexKillPedOnFoot{ m_rageWith, -1, 0, 0, 0, true };
+    case TASK_FINISHED:
+        return nullptr;
     default:
         NOTSA_UNREACHABLE();
     }
