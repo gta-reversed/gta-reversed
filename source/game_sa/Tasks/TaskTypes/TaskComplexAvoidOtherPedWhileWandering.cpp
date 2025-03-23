@@ -111,14 +111,14 @@ CTask* CTaskComplexAvoidOtherPedWhileWandering::ControlSubTask(CPed* ped) {
         goto quitik_and_end;
     }
 
-    if (const auto tGangFollower = CTask::DynCast<CTaskComplexGangFollower>(ped->GetIntelligence()->FindTaskByType(TASK_COMPLEX_GANG_FOLLOWER))) {
+    if (const auto tGangFollower = notsa::dyn_cast_if_present<CTaskComplexGangFollower>(ped->GetIntelligence()->FindTaskByType(TASK_COMPLEX_GANG_FOLLOWER))) {
         if (tGangFollower->m_Leader) {
             m_TargetPt = tGangFollower->m_Leader->GetPosition() + tGangFollower->CalculateOffsetPosition();
         }
     }
 
     if (ComputeDetourTarget(ped)) {
-        CTask::Cast<CTaskSimpleGoToPoint>(m_pSubTask)->UpdatePoint(m_TargetPt);
+        notsa::cast<CTaskSimpleGoToPoint>(m_pSubTask)->UpdatePoint(m_TargetPt);
         return m_pSubTask;
     }
 
