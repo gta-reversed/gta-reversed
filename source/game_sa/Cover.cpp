@@ -10,7 +10,7 @@ void CCover::InjectHooks() {
     RH_ScopedInstall(RemoveCoverPointIfEntityLost, 0x698DB0);
     RH_ScopedInstall(RemoveCoverPointsForThisEntity, 0x698740);
     RH_ScopedInstall(ShouldThisBuildingHaveItsCoverPointsCreated, 0x699230);
-    RH_ScopedInstall(Update, 0x6997E0, {.enabled=false});
+    RH_ScopedInstall(Update, 0x6997E0);
     RH_ScopedInstall(AddCoverPoint, 0x698F30);
     RH_ScopedInstall(CalculateHorizontalSize, 0x6987F0);
     RH_ScopedInstall(DoLineCheckWithinObject, 0x698990);
@@ -330,7 +330,7 @@ void CCover::FindCoverPointsForThisBuilding(CBuilding* building) {
                 building,
                 &pos,
                 fx->m_Usage,
-                std::atan2(dir.x, dir.y)
+                std::atan2(-dir.x, dir.y)
             );
         }
     }

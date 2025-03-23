@@ -16,7 +16,7 @@ class CPed;
 
 class CCoverPoint {
 public:
-    using Dir = FixedFloat<uint8, TWO_PI_OVER_256>; // [0, 2π)
+    using Dir = FixedFloat<uint8, 256.f / TWO_PI>; // [0, 2π)
 
     enum class eType : int8 {
         NONE       = 0, // 0x0
