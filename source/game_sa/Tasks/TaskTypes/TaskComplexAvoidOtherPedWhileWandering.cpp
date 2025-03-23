@@ -36,18 +36,18 @@ CTaskComplexAvoidOtherPedWhileWandering::CTaskComplexAvoidOtherPedWhileWandering
     eMoveState moveState,
 
     //VVV NOTSA ARGS VVV//
-    bool bMovingTarget
+    bool isMovingTarget
 ) :
-    m_PedToAvoid{pedToAvoid},
-    m_TargetPt{targetPoint},
-    m_DetourTargetPt{targetPoint},
-    m_bMovingTarget{bMovingTarget},
+    m_PedToAvoid{ pedToAvoid },
+    m_TargetPt{ targetPoint },
+    m_DetourTargetPt{ targetPoint },
+    m_IsMovingTarget{ isMovingTarget },
     m_MoveState{ moveState }
 {
 }
 
 CTaskComplexAvoidOtherPedWhileWandering::CTaskComplexAvoidOtherPedWhileWandering(const CTaskComplexAvoidOtherPedWhileWandering& o) :
-    CTaskComplexAvoidOtherPedWhileWandering{m_PedToAvoid, m_TargetPt, m_MoveState, o.m_bMovingTarget}
+    CTaskComplexAvoidOtherPedWhileWandering{m_PedToAvoid, m_TargetPt, m_MoveState, o.m_IsMovingTarget}
 {
 }
 
@@ -65,7 +65,7 @@ CTask* CTaskComplexAvoidOtherPedWhileWandering::ControlSubTask(CPed* ped) {
         return DoQuit();
     }
 
-    if (m_bWantsToQuit && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+    if (m_WantsToQuit && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
         return DoQuit(); // did they forget to do `QuitIK` here?
     }
     
@@ -109,7 +109,7 @@ CTask* CTaskComplexAvoidOtherPedWhileWandering::ControlSubTask(CPed* ped) {
     }
     m_Timer.Start(200);
     
-    if (!m_bMovingTarget) {
+    if (!m_IsMovingTarget) {
         return DoQuit();
     }
     
@@ -164,7 +164,7 @@ CTask* CTaskComplexAvoidOtherPedWhileWandering::CreateFirstSubTask(CPed* ped) {
 }
 
 void CTaskComplexAvoidOtherPedWhileWandering::QuitIK(CPed* ped) {
-    if (m_bDoingIK && g_ikChainMan.IsLooking(ped)) {
+    if (m_IsDoingIK && g_ikChainMan.IsLooking(ped)) {
         g_ikChainMan.AbortLookAt(ped);
     }
 }
@@ -206,7 +206,7 @@ void CTaskComplexAvoidOtherPedWhileWandering::SetUpIK(CPed* ped) {
     if (ped == FindPlayerPed() && !CPad::GetPad()->DisablePlayerControls) {
         return;
     }
-    if (m_bDoingIK) {
+    if (m_IsDoingIK) {
         return;
     }
     if (!ped->GetIsOnScreen()) {
@@ -235,7 +235,7 @@ void CTaskComplexAvoidOtherPedWhileWandering::SetUpIK(CPed* ped) {
     CVector lookAt = m_TargetPt + pedToTargetDir * 2.f;
     lookAt.z += 0.61f;
     g_ikChainMan.LookAt("TaskAvoidOthPed", ped, 0, 5000, BONE_UNKNOWN, &lookAt, false, 0.25f, 500, 3, false);
-    m_bDoingIK = true;
+    m_IsDoingIK = true;
 }
 
 // 0x671FE0
