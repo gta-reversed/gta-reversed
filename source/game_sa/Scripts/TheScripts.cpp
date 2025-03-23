@@ -16,8 +16,6 @@
 
 #include "extensions/File.hpp"
 
-static inline bool gAllowScriptedFixedCameraCollision = false;
-
 static inline auto& ScriptsArray = *(std::array<CRunningScript, MAX_NUM_SCRIPTS>*)0xA8B430;
 
 void CTheScripts::InjectHooks() {
@@ -581,7 +579,7 @@ void CTheScripts::CleanUpThisPed(CPed* ped) {
     if (auto* veh = ped->GetVehicleIfInOne(); veh && veh->IsDriver(ped)) {
         const auto FixMission = [veh](eCarMission fix) {
             auto& mis = veh->m_autoPilot.m_nCarMission;
-            if (mis != MISSION_CRASH_PLANE_AND_BURN && mis != MISSION_CRASH_HELI_AND_BURN) {
+            if (mis != MISSION_PLANE_CRASH_AND_BURN && mis != MISSION_HELI_CRASH_AND_BURN) {
                 mis = fix;
             }
         };

@@ -168,7 +168,7 @@ void CRenderer::RenderOneNonRoad(CEntity* entity) {
 
 // 0x553390
 void CRenderer::RemoveVehiclePedLights(CPhysical* entity) {
-    if (!entity->physicalFlags.bDestroyed)
+    if (!entity->physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 }
 
@@ -444,7 +444,7 @@ void CRenderer::RenderFirstPersonVehicle() {
 // 0x553E40
 bool CRenderer::SetupLightingForEntity(CPhysical* entity) {
     CCarFXRenderer::SetFxEnvMapLightMult(1.0f);
-    if (entity->physicalFlags.bDestroyed) {
+    if (entity->physicalFlags.bRenderScorched) {
         WorldReplaceNormalLightsWithScorched(Scene.m_pRpWorld, 0.18f);
         return false;
     }

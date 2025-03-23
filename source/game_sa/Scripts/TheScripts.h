@@ -19,6 +19,8 @@
 #include "UpsideDownCarCheck.h"
 #include "ScriptsForBrains.h"
 #include "./ScriptParam.h"
+#include "Font.h"
+
 #include "SCMChunks.hpp"
 
 class CRunningScript;
@@ -128,28 +130,27 @@ struct tScriptSequence {
 VALIDATE_SIZE(tScriptSequence, 0x4);
 
 struct tScriptText {
-    // values from 0x4690A8
-    float     m_fLetterWidth{ 0.48f };
-    float     m_fLetterHeight{ 1.12f };
-    CRGBA     m_Color{ 225, 225, 225, 255 };
-    bool      m_bJustify{ false };
-    bool      m_bCentered{ false };
-    bool      m_bWithBackground{ false };
-    bool      m_bUnk{ false };
-    float     m_fLineHeight{ SCREEN_HEIGHT };
-    float     m_fLineWidth{ SCREEN_WIDTH };
-    CRGBA     m_BackgroundBoxColor{ 128, 128, 128, 128 };
-    bool      m_bProportional{ true };
-    CRGBA     m_BackgroundColor{ 0, 0, 0, 255 };
-    int8      m_nShadowType{ 2 };
-    int8      m_nOutlineType{ 0 };
-    bool      m_bDrawBeforeFade{ false };
-    bool      m_bRightJustify{ false };
-    int32     m_nFont{ 1 };
-    CVector2D m_Pos{};
-    char      m_szGxtEntry[8]{};
-    int32     param1{ -1 };
-    int32     param2{ -1 };
+    // Values from 0x4690A8
+    CVector2D     Scale{ 0.48f, 1.12f };
+    CRGBA         Color{ 225, 225, 225, 255 };
+    bool          Justify{ false };
+    bool          IsCentered{ false }; //!< `HasRightJustify` takes precedence over it. If true, uses `eFontAlignment::ALIGN_CENTER` otherwise `eFontAlignment::ALIGN_LEFT`.
+    bool          HasBg{ false };
+    bool          HasBgTextOnly{ false }; //!< Unused
+    float         WrapX{ SCREEN_HEIGHT };
+    float         CentreSize{ SCREEN_WIDTH };
+    CRGBA         BgColor{ 128, 128, 128, 128 };
+    bool          IsProportional{ true };
+    CRGBA         DropShadowColor{ 0, 0, 0, 255 };
+    int8          DropShadow{ 2 };
+    int8          TextEdge{ 0 };
+    bool          IsDrawBeforeFade{ false };
+    bool          HasRightJustify{ false }; //!< Takes priority over `IsCentered`. If true `eFontAlignment::ALIGN_RIGHT` is used.
+    eFontStyleS32 FontStyle{ FONT_SUBTITLES };
+    CVector2D     Pos{};
+    char          GXTKey[8]{};
+    int32         NumberToInsert1{ -1 };
+    int32         NumberToInsert2{ -1 };
 };
 VALIDATE_SIZE(tScriptText, 0x44);
 
@@ -341,8 +342,10 @@ enum class ScriptSavedObjectType : uint32 {
 };
 
 static constexpr uint32 SCRIPT_VAR_TIMERA = 32, SCRIPT_VAR_TIMERB = 33;
-
 static constexpr uint32 MISSION_SCRIPT_SIZE = 69000;
+
+static inline bool gAllowScriptedFixedCameraCollision = false;
+
 class CTheScripts {
 public:
     static constexpr uint32 MAIN_SCRIPT_SIZE         = 200'000;

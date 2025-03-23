@@ -2,6 +2,7 @@
 
 #include "UIRenderer.h"
 #include "TaskComplexDestroyCarMelee.h"
+#include <TaskComplexEnterCarAsPassengerTimed.h>
 #include "TaskComplexWalkAlongsidePed.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
 #include "TaskComplexFollowNodeRoute.h"
@@ -198,14 +199,21 @@ void UIRenderer::DebugCode() {
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {
-        if (const auto veh = player->GetVehicleIfInOne()) {
-            player->GetTaskManager().SetTask(
-                new CTaskComplexCarSlowBeDraggedOut{ veh, TARGET_DOOR_DRIVER, true },
-                TASK_PRIMARY_PRIMARY
-            );
-        } else {
-            CMessages::AddBigMessageQ("NOT IN VEHICLE"_gxt, 5'000, STYLE_MIDDLE);
-        }
+        auto* const veh = CCheat::VehicleCheat(eModelID::MODEL_INFERNUS);
+        player->GetTaskManager().SetTask(
+            new CTaskComplexEnterCarAsPassengerTimed{veh, 0, 2'000, true},
+            TASK_PRIMARY_PRIMARY
+        );
+
+
+        //if (const auto veh = player->GetVehicleIfInOne()) {
+        //    player->GetTaskManager().SetTask(
+        //        new CTaskComplexCarSlowBeDraggedOut{ veh, TARGET_DOOR_DRIVER, true },
+        //        TASK_PRIMARY_PRIMARY
+        //    );
+        //} else {
+        //    CMessages::AddBigMessageQ("NOT IN VEHICLE"_gxt, 5'000, STYLE_MIDDLE);
+        //}
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {

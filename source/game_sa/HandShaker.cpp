@@ -2,8 +2,6 @@
 
 #include "HandShaker.h"
 
-CHandShaker*& gHandShaker = *(CHandShaker**)0xB6ECA0;
-
 void CHandShaker::InjectHooks() {
     RH_ScopedClass(CHandShaker);
     RH_ScopedCategoryGlobal();
