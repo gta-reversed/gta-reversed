@@ -416,7 +416,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     CWorld::Add(player);
     CHud::ResetWastedText();
     CStreaming::StreamZoneModels(posn);
-    CPostEffects::m_smokeyEnable = false;
+    CPostEffects::m_waterEnable = false;
     CTimeCycle::StopExtraColour(0);
     CPostEffects::ScriptResetForEffects();
 

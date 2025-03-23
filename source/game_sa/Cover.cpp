@@ -11,7 +11,6 @@ void CCover::InjectHooks() {
     RH_ScopedInstall(RemoveCoverPointsForThisEntity, 0x698740, {.reversed = false});
     RH_ScopedInstall(ShouldThisBuildingHaveItsCoverPointsCreated, 0x699230);
     RH_ScopedInstall(Update, 0x6997E0, {.reversed = false});
-
     RH_ScopedInstall(AddCoverPoint, 0x698F30, {.reversed = false});
     RH_ScopedInstall(CalculateHorizontalSize, 0x6987F0, {.reversed = false});
     RH_ScopedInstall(DoLineCheckWithinObject, 0x698990, {.reversed = false});
