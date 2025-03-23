@@ -117,15 +117,21 @@ void CCover::Update() {
 
     /* Process buildings too */
     if (CTimer::GetFrameCounter() % 8 == 5) { // 0x699A71
+        // BUG:
+        // This implementation may've accessed objects after they've been destoryed (use-after-free
+        // I've modified it so that it uses refernces that get null'd automatically
         for (CPtrNodeDoubleLink *it = m_ListOfProcessedBuildings.GetNode(), *next{}; it; it = next) {
             next            = it->GetNext();
             auto* const obj = it->GetItem<CBuilding>();
 
-            if (ShouldThisBuildingHaveItsCoverPointsCreated(obj)) {
-                continue;
-            }
-            if (!notsa::IsFixBugs() || GetBuildingPool()->IsObjectValid(obj)) { // FIX BUGS: Use-after-free
+            if (!notsa::IsFixBugs() || obj) { // If fixbugs the reference may've got cleared
+                if (ShouldThisBuildingHaveItsCoverPointsCreated(obj)) {
+                    continue;
+                }
                 RemoveCoverPointsForThisEntity(obj);
+                if (notsa::IsFixBugs()) { // FIXBUGS: Use-after-free
+                    CEntity::SafeCleanUpRef(reinterpret_cast<CEntity*&>(it->m_item));
+                }
             }
             m_ListOfProcessedBuildings.DeleteNode(it);
         }
@@ -147,9 +153,11 @@ void CCover::Update() {
                     if (m_ListOfProcessedBuildings.IsMemberOfList(obj)) {
                         continue;
                     }
-                    m_ListOfProcessedBuildings.AddItem(obj);
+                    auto* const link = m_ListOfProcessedBuildings.AddItem(obj);
+                    if (notsa::IsFixBugs()) { // FIXBUGS: Use-after-free
+                        CEntity::SafeRegisterRef(reinterpret_cast<CEntity*&>(link->m_item));
+                    }
                 }
-
                 return true;
             });
         }
@@ -312,27 +320,23 @@ bool CCover::FindCoordinatesCoverPoint(const CCoverPoint& cpt, CPed* ped, const 
 void CCover::FindCoverPointsForThisBuilding(CBuilding* building) {
     auto* mi = CModelInfo::GetModelInfo(building->m_nModelIndex);
     for (int32 i = 0; i < mi->m_n2dfxCount; ++i) {
-        auto* fx = mi->Get2dEffect(i);
-        if (fx->m_Type != e2dEffectType::EFFECT_COVER_POINT) {
-            continue;
+        if (auto* const fx = notsa::dyn_cast<C2dEffectCoverPoint>(mi->Get2dEffect(i))) {
+            const auto dir = building->GetMatrix().TransformVector(CVector{fx->m_DirOfCover, 0.f});
+            const auto pos = building->GetMatrix().TransformPoint(fx->m_Pos);
+            CCover::AddCoverPoint(
+                CCoverPoint::eType::POINTONMAP,
+                building,
+                &pos,
+                fx->m_Usage,
+                std::atan2(dir.x, dir.y)
+            );
         }
-        const auto dir = building->GetMatrix().TransformVector(CVector(fx->coverPoint.m_DirOfCover.x, fx->coverPoint.m_DirOfCover.y, 0.0F));
-        const auto pos = building->GetMatrix().TransformPoint(fx->m_Pos);
-        CCover::AddCoverPoint(
-            CCoverPoint::eType::POINTONMAP,
-            building,
-            &pos,
-            fx->coverPoint.m_Usage,
-            std::atan2(dir.x, dir.y)
-        );
     }
 }
 
-// 0x698D40
+// 0x698D40 - unused
 uint8 CCover::FindDirFromVector(CVector dir) {
-    NOTSA_UNUSED_FUNCTION();
-
-    //return (uint8)(atan2(-dir.x, dir.y) * 255.f / TWO_PI);
+    return (uint8)(atan2(-dir.x, dir.y) * 255.f / TWO_PI);
 }
 
 // 0x698D60
