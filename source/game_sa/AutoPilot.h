@@ -98,7 +98,7 @@ public:
     void RemoveOnePathNode();
 
     void SetCarMission(eCarMission carMission) { // NOTSA | inlined
-        //if (m_nCarMission != MISSION_CRASH_PLANE_AND_BURN && m_nCarMission != MISSION_CRASH_HELI_AND_BURN) // This was here for some reason, yet no explanation... 
+        //if (m_nCarMission != MISSION_PLANE_CRASH_AND_BURN && m_nCarMission != MISSION_HELI_CRASH_AND_BURN) // This was here for some reason, yet no explanation... 
         m_nCarMission = carMission;
     }
 

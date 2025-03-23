@@ -213,33 +213,39 @@ void CAEMP3BankLoader::LoadSound(eSoundBank bankId, eSoundID soundId, eSoundBank
 // 0x4DFE30
 void CAEMP3BankLoader::Service() {
     for (auto&& [i, req] : notsa::enumerate(m_Requests)) {
-        const auto AllocateStreamBuffer = [&](uint32 sectors) {
-            const auto buf  = (std::byte*)(CMemoryMgr::Malloc(sectors * STREAMING_SECTOR_SIZE));
+        const auto AllocateMemoryAndRead = [&](size_t readSizeBytes) {
+            // Convert bytes to sectors
+            const auto readSizeSectors = (readSizeBytes / STREAMING_SECTOR_SIZE) + 2;
+
+            // Allocate buffers
+            assert(!req.StreamBufPtr);
+            const auto buf    = (std::byte*)(CMemoryMgr::Malloc(readSizeSectors * STREAMING_SECTOR_SIZE));
             req.StreamBufPtr  = buf;
-            req.StreamDataPtr = (AEAudioStream*)(buf + (req.BankOffsetBytes % STREAMING_SECTOR_SIZE));
-        };
+            req.StreamDataPtr = (AEAudioStream*)(buf + (req.BankOffsetBytes % STREAMING_SECTOR_SIZE)); /* Align buffer pointer */
 
-        switch (req.Status) {
-        case eSoundRequestStatus::REQUESTED: {
-            if (CdStreamGetStatus(m_StreamingChannel) != eCdStreamStatus::READING_SUCCESS) {
-                continue;
-            }
-
-            const auto sectors = req.SoundID == -1 // Load specific sound?
-                ? (sizeof(AEAudioStream) + req.BankNumBytes) / STREAMING_SECTOR_SIZE + 2 // No, so load whole bank
-                : (sizeof(AEAudioStream) / STREAMING_SECTOR_SIZE) + 2; // Yes, so just load the header
-            AllocateStreamBuffer(sectors);
+            // Read
             CdStreamRead( // 0x4E016F
                 m_StreamingChannel,
                 req.StreamBufPtr,
                 { .Offset = req.BankOffsetBytes / STREAMING_SECTOR_SIZE, .FileID = CdStreamHandleToFileID(m_StreamHandles[req.PakFileNo]) },
-                sectors
+                readSizeSectors
             );
+        };
 
+        switch (req.Status) {
+        case eSoundRequestStatus::REQUESTED: { // 0x4E0117
+            if (CdStreamGetStatus(m_StreamingChannel) != eCdStreamStatus::READING_SUCCESS) {
+                continue;
+            }
+
+            // For single sound requests we load the header only and then later the sound, otherwise the whole bank
+            AllocateMemoryAndRead((sizeof(AEAudioStream) + (req.SoundID == -1 ? req.BankNumBytes : 0)));
+
+            // Now wait for it to be read
             req.Status = eSoundRequestStatus::PENDING_READ;
             break;
         }
-        case eSoundRequestStatus::PENDING_READ: {
+        case eSoundRequestStatus::PENDING_READ: { // 0x4DFF58
             if (CdStreamGetStatus(m_StreamingChannel) != eCdStreamStatus::READING_SUCCESS) {
                 continue;
             }
@@ -263,50 +269,49 @@ void CAEMP3BankLoader::Service() {
 
                 m_BankSlotSound[req.Slot] = -1; // Whole bank loaded, so use `-1`
 
-                CMemoryMgr::Free(req.StreamBufPtr);
+                CMemoryMgr::Free(std::exchange(req.StreamBufPtr, nullptr));
                 m_RequestCnt--;
 
                 req.Status = eSoundRequestStatus::INACTIVE;
             } else { // 0x4E0033 - Load specified sound only
-                // Now the whole bank is loaded into the memory,
-                // this is done because we need the offset of the sound we need
-                // then, we read the same data again (talk about inefficiency)
-                // and this time actually copy it into the bank's data buffer
-
-                m_BankSlotSound[req.Slot] = -1;
+                // At this point only the header (AEAudioStream) has been
+                // loaded into memory, with that info we can calculate
+                // where the sound's data is and load it in the next step
 
                 VERIFY(req.SlotInfo == &m_BankSlots[req.Slot]);
                 req.SlotInfo->Bank      = SND_BANK_UNK;
                 req.SlotInfo->NumSounds = -1;
-                req.BankOffsetBytes    += req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes + sizeof(AEAudioStream);
+                req.BankOffsetBytes    += sizeof(AEAudioStream) + req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes;
 
-                // Calculate bank size
+                m_BankSlotSound[req.Slot] = -1; // This will be set when the sound has been loaded below
+
+                // 0x4E006F - Calculate bank size
                 const auto nextOrEnd = req.SoundID + 1 >= req.StreamDataPtr->NumSounds
-                    ? GetBankLookup(req.Bank).NumBytes                       // If no more sounds we use the end of bank
+                    ? GetBankLookup(req.Bank).NumBytes                            // If no more sounds we use the end of bank
                     : req.StreamDataPtr->Sounds[req.SoundID + 1].BankOffsetBytes; // Otherwise use next sound's offset
                 req.BankNumBytes = nextOrEnd - req.StreamDataPtr->Sounds[req.SoundID].BankOffsetBytes;
 
-                CMemoryMgr::Free(req.StreamBufPtr);
+                // 0x4E00BA - De-allocate old buffer
+                CMemoryMgr::Free(std::exchange(req.StreamBufPtr, nullptr));
 
-                const auto offset = req.BankOffsetBytes / STREAMING_SECTOR_SIZE;
-                const auto sectors = offset + 2;
-                AllocateStreamBuffer(sectors);
-
-                CdStreamRead( // 0x4E00FB
-                    m_StreamingChannel,
-                    req.StreamBufPtr,
-                    { .Offset = offset, .FileID = CdStreamHandleToFileID(m_StreamHandles[req.PakFileNo]) },
-                    sectors
-                );
+                // 0x4E00C7 - Read the sound's data 
+                AllocateMemoryAndRead(req.BankNumBytes);
 
                 req.Status = eSoundRequestStatus::PENDING_LOAD_ONE_SOUND;
             }
             break;
         }
-        case eSoundRequestStatus::PENDING_LOAD_ONE_SOUND: {
+        case eSoundRequestStatus::PENDING_LOAD_ONE_SOUND: { // 0x4DFE92
             if (CdStreamGetStatus(m_StreamingChannel) != eCdStreamStatus::READING_SUCCESS || req.SoundID == -1) {
                 continue;
             }
+
+            NOTSA_LOG_DEBUG("Processing CAEMP3BankLoader request:\n");
+            NOTSA_LOG_DEBUG("SoundID:       {}", (int32)(req.SoundID));
+            NOTSA_LOG_DEBUG("Bank:          {}", (int32)(req.Bank));
+            NOTSA_LOG_DEBUG("Slot:          {}", (int32)(req.Slot));
+            NOTSA_LOG_DEBUG("StreamDataPtr: 0x{:x}", (uintptr)(req.StreamDataPtr));
+            NOTSA_LOG_DEBUG("StreamBufPtr:  0x{:x}", (uintptr)(req.StreamBufPtr));
 
             // Copy over data into internal buffer as the request buffer will be deallocated now
             assert(m_BufferSize > req.SlotInfo->OffsetBytes);
@@ -324,7 +329,7 @@ void CAEMP3BankLoader::Service() {
 
             m_BankSlotSound[req.Slot] = req.SoundID;
 
-            CMemoryMgr::Free(req.StreamBufPtr);
+            CMemoryMgr::Free(std::exchange(req.StreamBufPtr, nullptr));
             m_RequestCnt--;
 
             req.Status = eSoundRequestStatus::INACTIVE;
