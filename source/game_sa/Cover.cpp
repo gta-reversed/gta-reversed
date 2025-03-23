@@ -301,11 +301,7 @@ CCoverPoint* CCover::FindAndReserveCoverPoint(CPed* ped, const CVector& targetPo
     if (points.empty()) {
         return nullptr;
     }
-    auto it = rng::max_element(points, [](auto&& a, auto&& b) { return a.second < b.second; });
-    if (it == points.end()) {
-        return nullptr;
-    }
-    const auto [cpt, dist] = *it;
+    const auto [cpt, dist] = *rng::max_element(points, [](auto&& a, auto&& b) { return a.second < b.second; });;
     if (!rng::contains(cpt->GetCoveredPeds(), ped)) {
         return nullptr;
     }
