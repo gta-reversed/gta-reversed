@@ -32,16 +32,12 @@ inline void StoreArg(CRunningScript* S, const T& arg) { // Add requirements to f
         switch (const auto t = S->GetAtIPAs<int8>()) {
         case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
             return S->GetGlobal<T>(S->GetAtIPAs<uint16>());
-            //return S->GetPointerToGlobalVariable(S->GetAtIPAs<uint16>());
         case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
             return S->GetLocal<T>(S->GetAtIPAs<uint16>());
-            //return S->GetPointerToLocalVariable(S->GetAtIPAs<uint16>());
         case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY:
             return S->GetAtIPFromArray<T>(true);
-            //return GetFromArray(&CRunningScript::GetPointerToGlobalArrayElement);
         case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY:
             return S->GetAtIPFromArray<T>(false);
-            //return GetFromArray(&CRunningScript::GetPointerToLocalArrayElement);
         default:
             NOTSA_UNREACHABLE("Variable type unknown ={:x}", t);
         }
