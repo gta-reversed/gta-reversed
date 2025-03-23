@@ -27,6 +27,7 @@ jobs:
                 os: [ windows-2025 ]
                 arch: [ x86 ]
                 conf: [ Debug, Release ]
+                preset: [ conan-default, conan-default-unity ]
 
         steps:
             -   name: Checkout
@@ -54,7 +55,7 @@ jobs:
 
             -   name: Configure ${{ matrix.conf }}-${{ matrix.arch }}
                 shell: cmd
-                run: cmake --preset conan-default
+                run: cmake --preset ${{ matrix.preset }}
 
             -   name: Build ${{ matrix.conf }}-${{ matrix.arch }}
                 shell: cmd
