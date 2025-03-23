@@ -41,7 +41,8 @@ CTaskComplexAvoidOtherPedWhileWandering::CTaskComplexAvoidOtherPedWhileWandering
     m_PedToAvoid{pedToAvoid},
     m_TargetPt{targetPoint},
     m_DetourTargetPt{targetPoint},
-    m_bMovingTarget{bMovingTarget}
+    m_bMovingTarget{bMovingTarget},
+    m_MoveState{ moveState }
 {
 }
 
@@ -138,7 +139,7 @@ bool CTaskComplexAvoidOtherPedWhileWandering::MakeAbortable(CPed* ped, eAbortPri
 // 0x66A2C0
 CTask* CTaskComplexAvoidOtherPedWhileWandering::CreateNextSubTask(CPed* ped) {
     if (m_pSubTask->GetTaskType() == TASK_SIMPLE_STAND_STILL) {
-        return m_pSubTask->AsComplex()->CreateFirstSubTask(ped);
+        return CreateFirstSubTask(ped);
     }
     QuitIK(ped);
     ped->bIgnoreHeightCheckOnGotoPointTask = false;
@@ -149,7 +150,6 @@ CTask* CTaskComplexAvoidOtherPedWhileWandering::CreateNextSubTask(CPed* ped) {
 CTask* CTaskComplexAvoidOtherPedWhileWandering::CreateFirstSubTask(CPed* ped) {
     if (m_PedToAvoid) {
         m_StartPt = ped->GetPosition();
-
         if (ComputeDetourTarget(ped)) {
             ped->bIgnoreHeightCheckOnGotoPointTask = true;
             m_DontQuitYetTimer.Start(2000);
