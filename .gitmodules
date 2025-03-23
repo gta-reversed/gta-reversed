@@ -1,0 +1,21 @@
+[submodule "vendor/ogg"]
+	path = vendor/ogg
+	url = https://github.com/xiph/ogg.git
+[submodule "vendor/json"]
+	path = vendor/nlohmann_json
+	url = https://github.com/nlohmann/json.git
+[submodule "vendor/spdlog"]
+	path = vendor/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "vendor/tracy"]
+	path = vendor/tracy
+	url = https://github.com/wolfpld/tracy.git
+[submodule "vendor/vorbis"]
+	path = vendor/vorbis
+	url = https://github.com/xiph/vorbis
+[submodule "vendor/libjpeg-turbo"]
+	path = vendor/libjpeg-turbo
+	url = https://github.com/libjpeg-turbo/libjpeg-turbo
+[submodule "vendor/imgui"]
+	path = vendor/imgui
+	url = https://github.com/ocornut/imgui.git

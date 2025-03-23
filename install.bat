@@ -1,9 +1,6 @@
 @echo off
-
-REM %1: CMake build type [Debug, Release, RelWithDebInfo]
-
-set BUILDTYPE=%1
-if "%BUILDTYPE%"=="" set BUILDTYPE=Debug
-conan install . --build missing -s build_type=%BUILDTYPE% --profile conanprofile.txt
-cmake --preset conan-default
-PAUSE
+mkdir game
+mkdir build
+git submodule update --init --recursive
+cmake -S . -A Win32 -B build
+mklink $GTASA.sln build\GTASA.sln

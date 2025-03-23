@@ -1,5 +1,6 @@
 name: Build
 
+
 env:
     # Compile in parallel where possible.
     CL: /MP
@@ -35,30 +36,14 @@ jobs:
                     fetch-depth: 1
                     submodules: recursive
 
-            -   name: Setup Python
-                uses: actions/setup-python@v4
-                with:
-                    python-version: '3.x'
+            -   name: Setup CMake
+                uses: jwlawson/actions-setup-cmake@v2.0.2
 
-            -   name: Install Conan via Python
-                shell: cmd
-                run: |
-                    python -m pip install --upgrade pip
-                    python -m pip install conan
+            -   name: Configure CMake for ${{ matrix.conf }}
+                run: cmake -S . -B Build -G "Visual Studio 17 2022" -A Win32
 
-            -   name: Setup Conan for ${{ matrix.conf }}-${{ matrix.arch }}
-                shell: cmd
-                run: |
-                    conan profile detect
-                    conan install . --build missing -s build_type=${{ matrix.conf }} --profile conanprofile.txt
-
-            -   name: Configure ${{ matrix.conf }}-${{ matrix.arch }}
-                shell: cmd
-                run: cmake --preset conan-default
-
-            -   name: Build ${{ matrix.conf }}-${{ matrix.arch }}
-                shell: cmd
-                run: cmake --build build --config ${{ matrix.conf }}
+            -   name: Build ${{ matrix.conf }}
+                run: cmake --build Build --config ${{ matrix.conf }}
 
             -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
                 uses: actions/upload-artifact@v4
@@ -76,7 +61,7 @@ jobs:
                     ruleset: NativeRecommendedRules.ruleset
                     buildConfiguration: ${{ matrix.conf }}
                     # Exclude external libraries from analysis
-                    ignoredPaths: ${{ github.workspace }}/libs
+                    ignoredPaths: ${{ github.workspace }}/libs;${{ github.workspace }}/vendor
 
                 # Upload SARIF file to GitHub Code Scanning Alerts
             -   name: Upload SARIF to GitHub

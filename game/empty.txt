@@ -1,0 +1,2 @@
+place game files here
+remember to overwrite gta_sa.exe with compact version
