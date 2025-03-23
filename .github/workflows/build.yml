@@ -64,7 +64,7 @@ jobs:
             -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
                 uses: actions/upload-artifact@v4
                 with:
-                    name: gta_reversed-${{ matrix.conf }}
+                    name: gta_reversed-${{ matrix.conf }}-${{ matrix.preset }}
                     path: bin/${{ matrix.conf }}
 
             -   name: Initialize MSVC Code Analysis
