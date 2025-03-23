@@ -321,7 +321,7 @@ void CGameLogic::ResetStuffUponResurrection() {
     RestorePlayerStuffDuringResurrection(playerPed, playerPed->GetPosition(), playerPed->m_fCurrentRotation * RadiansToDegrees(1.0f));
     SortOutStreamingAndMemory(playerPed->GetPosition(), playerPed->GetHeading());
     TheCamera.m_fCamShakeForce = 0.0f;
-    TheCamera.SetMotionBlur(0, 0, 0, 0, 0);
+    TheCamera.SetMotionBlur(0, 0, 0, 0, eMotionBlurType::NONE);
     CPad::GetPad(PED_TYPE_PLAYER1)->StopShaking(0);
     CReferences::RemoveReferencesToPlayer();
     CCarCtrl::CountDownToCarsAtStart = 10;
@@ -416,7 +416,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     CWorld::Add(player);
     CHud::ResetWastedText();
     CStreaming::StreamZoneModels(posn);
-    CPostEffects::m_smokeyEnable = false;
+    CPostEffects::m_waterEnable = false;
     CTimeCycle::StopExtraColour(0);
     CPostEffects::ScriptResetForEffects();
 
@@ -619,7 +619,7 @@ void CGameLogic::Update() {
             SortOutStreamingAndMemory(player1Ped->GetPosition(), player1Ped->GetHeading());
 
             TheCamera.m_fCamShakeForce = 0.0f;
-            TheCamera.SetMotionBlur(0, 0, 0, 0, 0); // todo: eBlurType enum
+            TheCamera.SetMotionBlur(0, 0, 0, 0, eMotionBlurType::NONE);
             CPad::GetPad(PED_TYPE_PLAYER1)->StopShaking(0);
             CReferences::RemoveReferencesToPlayer();
             CCarCtrl::CountDownToCarsAtStart = 10;

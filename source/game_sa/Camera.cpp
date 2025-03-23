@@ -224,7 +224,7 @@ void CCamera::Init() {
         m_fMouseAccelVertical = 0.0015f;
     }
     
-    SetMotionBlur(255, 255, 255, 0, 0);
+    SetMotionBlur(255, 255, 255, 0, eMotionBlurType::NONE);
 
     m_f3rdPersonCHairMultX = 0.53f;
     m_f3rdPersonCHairMultY = 0.4f;
@@ -554,7 +554,7 @@ void CCamera::DealWithMirrorBeforeConstructRenderList(bool bActiveMirror, CVecto
 void CCamera::RenderMotionBlur() const {
     ZoneScoped;
 
-    if (m_nBlurType) {
+    if (m_nBlurType != eMotionBlurType::NONE) {
         // CMBlur::MotionBlurRender(); // todo: Add CMBlur::MotionBlurRender is NOP, 0x71D700
     }
 }
@@ -781,9 +781,8 @@ void CCamera::SetFadeColour(uint8 red, uint8 green, uint8 blue) {
     CDraw::FadeBlue  = blue;
 }
 
-// TODO: eBlurType
 // 0x50BF40
-void CCamera::SetMotionBlur(uint8 red, uint8 green, uint8 blue, int32 value, uint32 blurType) {
+void CCamera::SetMotionBlur(uint8 red, uint8 green, uint8 blue, int32 value, eMotionBlurType blurType) {
     m_nBlurRed    = red;
     m_nBlurGreen  = green;
     m_nBlurBlue   = blue;
@@ -1510,7 +1509,7 @@ void CCamera::Process() {
 void CCamera::DrawBordersForWideScreen() {
     CRect rect;
     GetScreenRect(&rect);
-    if (m_nBlurType == MOTION_BLUR_NONE  || m_nBlurType == MOTION_BLUR_LIGHT_SCENE) {
+    if (m_nBlurType == eMotionBlurType::NONE || m_nBlurType == eMotionBlurType::LIGHT_SCENE) {
         m_nMotionBlurAddAlpha = 80;
     }
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));

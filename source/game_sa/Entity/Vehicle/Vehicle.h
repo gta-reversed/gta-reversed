@@ -532,7 +532,7 @@ public:
     bool IsPassenger(CPed* ped) const;
     [[nodiscard]] bool IsPassenger(int32 modelIndex) const;
     bool IsPedOfModelInside(eModelID model) const; // NOTSA
-    bool IsDriver(CPed* ped) const;
+    bool IsDriver(const CPed* ped) const;
     [[nodiscard]] bool IsDriver(int32 modelIndex) const;
     void KillPedsInVehicle();
     bool IsUpsideDown() const;

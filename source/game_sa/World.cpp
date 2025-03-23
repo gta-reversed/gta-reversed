@@ -2415,7 +2415,7 @@ void CWorld::RepositionOneObject(CEntity* object) {
     // you never know..
 
     const auto IsObjectModelAnyOf = [object](std::initializer_list<ModelIndex> models) {
-        return std::ranges::find(models, (ModelIndex)object->m_nModelIndex) != models.end();
+        return std::ranges::find(models, object->m_nModelIndex) != models.end();
     };
 
     const auto modelInfo = CModelInfo::GetModelInfo(object->m_nModelIndex);

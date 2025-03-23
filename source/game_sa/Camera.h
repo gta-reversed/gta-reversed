@@ -55,17 +55,17 @@ enum class eGroundHeightType : int32 {
     ENTITY_BB_TOP = 2        // ground height + boundingBoxMax.z of colliding entity
 };
 
-enum {
-    MOTION_BLUR_NONE = 0,
-    MOTION_BLUR_SNIPER,
-    MOTION_BLUR_LIGHT_SCENE,
-    MOTION_BLUR_SECURITY_CAM,
-    MOTION_BLUR_CUT_SCENE,
-    MOTION_BLUR_INTRO,
-    MOTION_BLUR_INTRO2,
-    MOTION_BLUR_SNIPER_ZOOM,
-    MOTION_BLUR_INTRO3,
-    MOTION_BLUR_INTRO4,
+enum class eMotionBlurType : uint32 {
+    NONE = 0,
+    SNIPER,
+    LIGHT_SCENE,
+    SECURITY_CAM,
+    CUT_SCENE,
+    INTRO,
+    INTRO2,
+    SNIPER_ZOOM,
+    INTRO3,
+    INTRO4,
 };
 
 struct CamTweak {
@@ -153,7 +153,7 @@ public:
     uint32          m_nBlurBlue{};
     uint32          m_nBlurGreen{};
     uint32          m_nBlurRed{};
-    uint32          m_nBlurType{};
+    eMotionBlurType m_nBlurType{};
     uint32          m_nWorkOutSpeedThisNumFrames{4};
     uint32          m_nNumFramesSoFar{};
     uint32          m_nCurrentTrainCamNode{};
@@ -396,7 +396,7 @@ public:
     void SetCameraDirectlyInFrontForFollowPed_ForAPed_CamOnAString(CPed* targetPed);
     void SetCameraUpForMirror();
     void SetFadeColour(uint8 red, uint8 green, uint8 blue);
-    void SetMotionBlur(uint8 red, uint8 green, uint8 blue, int32 value, uint32 blurType);
+    void SetMotionBlur(uint8 red, uint8 green, uint8 blue, int32 value, eMotionBlurType blurType);
     void SetMotionBlurAlpha(int32 alpha);
     void SetNearClipBasedOnPedCollision(float arg2);
     void SetNearClipScript(float nearClip);
