@@ -43,4 +43,6 @@ public:
     static uint8 FindDirFromVector(CVector dir);
     static CVector FindVectorFromDir(uint8 direction);
     static CVector FindVectorFromFirstToMissingVertex(CColTriangle* triangle, int32* a3, CVector* vertPositions);
+
+    static auto& GetCoverPoints() { return m_Points; }
 };

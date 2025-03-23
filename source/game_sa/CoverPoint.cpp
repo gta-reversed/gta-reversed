@@ -9,7 +9,7 @@ CCoverPoint::CCoverPoint(eType type, eUsage usage, Dir dir, CEntity* coverEntity
     assert(!!pos != !!coverEntity && "Only either `pos` or `coverEntity` must be set");
 
     if (pos) {
-        m_Pos = *pos;
+        m_PointOnMap = *pos;
     } else if (coverEntity) {
         if (!coverEntity->IsBuilding() || coverEntity->m_nIplIndex != 0) {
             m_CoverEntity = coverEntity;
@@ -67,26 +67,25 @@ bool CCoverPoint::FindCoordinatesCoverPoint(CPed* ped, const CVector& targetPos,
             &points,
             targetPos,
             &m_CoverEntity->GetMatrix(),
-            &m_CoverEntity->GetColModel()->GetBoundCenter(),
-            &m_CoverEntity->GetColModel()->GetBoundingBox().m_vecMin,
-            &m_CoverEntity->GetColModel()->GetBoundingBox().m_vecMax,
+            m_CoverEntity->GetColModel()->GetBoundCenter(),
+            m_CoverEntity->GetColModel()->GetBoundingBox().m_vecMin,
+            m_CoverEntity->GetColModel()->GetBoundingBox().m_vecMax,
             1000000.f
         );
-        if (points.m_nCount != 2) {
+        if (points.m_Count != 2) {
             return false;
         }
-        out = (points.m_avCoords[0] - targetPos).SquaredMagnitude() < (points.m_avCoords[1] - targetPos).SquaredMagnitude() // Use closest point
-            ? points.m_avCoords[0]
-            : points.m_avCoords[1];
+        out = (points.m_Points[0] - targetPos).SquaredMagnitude() < (points.m_Points[1] - targetPos).SquaredMagnitude() // Use closest point
+            ? points.m_Points[0]
+            : points.m_Points[1];
         return true;
     }
     case eType::POINTONMAP: { // 0x6995BB
-        out = m_Pos;
+        out = m_PointOnMap;
         return true;
     }
-    case eType::NONE:
-        NOTSA_UNREACHABLE();
     }
+    NOTSA_UNREACHABLE();
 }
 
 // notsa
@@ -126,6 +125,18 @@ bool CCoverPoint::CanBeRemoved() const {
     }
     case CCoverPoint::eType::NONE:
         return false; /* Already removed, no need to remove again */
+    }
+    NOTSA_UNREACHABLE();
+}
+
+// notsa
+CVector CCoverPoint::GetPos() const {
+    switch (GetType()) {
+    case eType::OBJECT:
+    case eType::VEHICLE:
+        return GetCoverEntity()->GetPosition();
+    case eType::POINTONMAP:
+        return GetPointOnMap();
     }
     NOTSA_UNREACHABLE();
 }

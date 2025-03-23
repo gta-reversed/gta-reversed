@@ -190,7 +190,7 @@ CCoverPoint* CCover::AddCoverPoint(CCoverPoint::eType type, CEntity* coverEntity
                 break;
             }
             case CCoverPoint::eType::POINTONMAP: {
-                if (*pos == cpt.GetPos()) {
+                if (*pos == cpt.GetPointOnMap()) {
                     return &cpt;
                 }
                 break;
@@ -198,15 +198,15 @@ CCoverPoint* CCover::AddCoverPoint(CCoverPoint::eType type, CEntity* coverEntity
             }
         }
 
-        // 0x698F9F
-        if (cpt.GetType() == CCoverPoint::eType::NONE) {
+        // 0x698F9F - BUG: `GetPointOnMap()` only works if the type is `POINTONMAP`
+        if (notsa::IsFixBugs() ? cpt.GetType() != CCoverPoint::eType::POINTONMAP : cpt.GetType() == CCoverPoint::eType::NONE) {
             continue;
         }
 
         const CVector atPos = coverEntity
             ? coverEntity->GetPosition()
             : *pos;
-        const auto distToCptSq = (atPos - cpt.GetPos()).SquaredMagnitude();
+        const auto distToCptSq = (atPos - cpt.GetPointOnMap()).SquaredMagnitude();
 
         // 0x69901E
         if (distToCptSq < sq(0.8f)) {
@@ -255,7 +255,7 @@ bool CCover::DoesCoverPointStillProvideCover(CCoverPoint* cpt, CVector pos) {
     case CCoverPoint::eType::NONE:
         return false;
     case CCoverPoint::eType::POINTONMAP: {
-        if (FindVectorFromDir(cpt->GetDir()).Dot(pos - cpt->GetPos()) > 0.f) {
+        if (FindVectorFromDir(cpt->GetDir()).Dot(pos - cpt->GetPointOnMap()) > 0.f) {
             return true;
         }
         return false;
@@ -277,19 +277,10 @@ CCoverPoint* CCover::FindAndReserveCoverPoint(CPed* ped, const CVector& targetPo
         rng::views::filter(&CCoverPoint::CanAccommodateAnotherPed) |
         rng::views::filter([&](const CCoverPoint& cpt) { // 0x69936B (Yes, I had to move this up here)
             return cpt.GetType() != CCoverPoint::eType::POINTONMAP
-                || (targetPos - cpt.GetPos()).Dot(cpt.GetDirVector()) > 0.f;
+                || (targetPos - cpt.GetPointOnMap()).Dot(cpt.GetDirVector()) > 0.f;
         }) |
         rng::views::transform([&](CCoverPoint& cpt) -> std::pair<CCoverPoint*, CVector> { // 0x699316
-            switch (cpt.GetType()) {
-            case CCoverPoint::eType::OBJECT:
-            case CCoverPoint::eType::VEHICLE: {
-                return { &cpt, cpt.GetCoverEntity()->GetPosition() };
-            }
-            case CCoverPoint::eType::POINTONMAP: {
-                return { &cpt, cpt.GetPos() };
-            }
-            }
-            NOTSA_UNREACHABLE();
+            return { &cpt, cpt.GetPos() };
         }) |
         rng::views::filter([&](auto&& pair) { // 0x6994A1
             return !isForAttack || CVector2D::Dist(ped->GetPosition2D(), pair.second) < CVector2D::Dist(ped->GetPosition2D(), targetPos) + 4.f;
