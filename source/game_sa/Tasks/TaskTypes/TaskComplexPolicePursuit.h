@@ -1,5 +1,6 @@
 #pragma once
 
+#include <extensions/EntityRef.hpp>
 #include "TaskComplex.h"
 
 class CEvent;
@@ -7,11 +8,11 @@ class CPed;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexPolicePursuit : public CTaskComplex {
 public:
-    bool     m_bRoadBlockCop : 1{};
-    bool     m_bPlayerInCullZone : 1{};
-    bool     m_bCouldJoinPursuit : 1{true};
-    CCopPed* m_Pursuer{};
-    CPed*    m_Persecuted{};
+    bool                      m_bRoadBlockCop : 1 {};
+    bool                      m_bPlayerInCullZone : 1 {};
+    bool                      m_bCouldJoinPursuit : 1 { true };
+    notsa::EntityRef<CCopPed> m_Pursuer{};
+    notsa::EntityRef<CPed>    m_PursuedPed{};
 
 public:
     static constexpr auto Type = TASK_COMPLEX_POLICE_PURSUIT;

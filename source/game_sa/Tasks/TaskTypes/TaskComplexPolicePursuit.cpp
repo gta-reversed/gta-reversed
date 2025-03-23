@@ -37,11 +37,7 @@ CTaskComplexPolicePursuit::CTaskComplexPolicePursuit(const CTaskComplexPolicePur
 CTaskComplexPolicePursuit::~CTaskComplexPolicePursuit() {
     if (m_Pursuer) {
         ClearPursuit(m_Pursuer);
-        if (notsa::IsFixBugs()) {
-            CEntity::SafeCleanUpRef(m_Pursuer);
-        }
     }
-    CEntity::SafeCleanUpRef(m_Persecuted);
 }
 
 // 0x68BAD0
@@ -49,7 +45,7 @@ CTaskComplexPolicePursuit::~CTaskComplexPolicePursuit() {
 void CTaskComplexPolicePursuit::SetWeapon(CPed* ped) { // `ped` is the pursuer
     const auto wantedLevel = FindPlayerWanted()->GetWantedLevel();
 
-    // At level 0 we dont do anything (I don't think this is possible anyways)
+    // At level 0 we don't do anything (I don't think this is possible anyways)
     if (wantedLevel == 0) {
         return;
     }
@@ -107,7 +103,7 @@ bool CTaskComplexPolicePursuit::SetPursuit(CPed* ped) {
         closestPlayer = plyr;
         minDistSq     = distSq;
     }
-    CEntity::ChangeEntityReference(m_Persecuted, closestPlayer);
+    m_Pursued = closestPlayer;
     return closestPlayer && FindPlayerWanted()->SetPursuitCop(ped->AsCop());
 }
 
@@ -140,7 +136,7 @@ bool CTaskComplexPolicePursuit::PersistPursuit(CCopPed* pursuer) {
 CTask* CTaskComplexPolicePursuit::CreateSubTask(eTaskType taskType, CPed* ped) {
     switch (taskType) {
     case TASK_COMPLEX_ARREST_PED:
-        return new CTaskComplexArrestPed{m_Persecuted};
+        return new CTaskComplexArrestPed{m_Pursued};
     case TASK_COMPLEX_SEEK_ENTITY:
         return new CTaskComplexSeekEntity<CEntitySeekPosCalculatorStandard>{
             ped->m_pVehicle,
