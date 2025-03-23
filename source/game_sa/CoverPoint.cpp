@@ -5,17 +5,17 @@
 CCoverPoint::CCoverPoint(eType type, eUsage usage, Dir dir, CEntity* coverEntity, const CVector* pos) :
     m_Type{ type },
     m_Usage{ usage },
-    m_Dir{ dir } {
-    assert(!!pos != !!coverEntity && "Only either `pos` or `coverEntity` must be set");
+    m_Dir{ dir }
+{
+    assert(type == eType::POINTONMAP || !!pos != !!coverEntity && "Only either `pos` or `coverEntity` must be set");
 
     if (pos) {
         m_PointOnMap = *pos;
-    } else if (coverEntity) {
+    }
+    if (coverEntity) {
         if (!coverEntity->IsBuilding() || coverEntity->m_nIplIndex != 0) {
             m_CoverEntity = coverEntity;
         }
-    } else {
-        NOTSA_UNREACHABLE();
     }
 }
 

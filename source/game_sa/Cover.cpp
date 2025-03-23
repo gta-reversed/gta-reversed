@@ -10,7 +10,7 @@ void CCover::InjectHooks() {
     RH_ScopedInstall(RemoveCoverPointIfEntityLost, 0x698DB0);
     RH_ScopedInstall(RemoveCoverPointsForThisEntity, 0x698740);
     RH_ScopedInstall(ShouldThisBuildingHaveItsCoverPointsCreated, 0x699230);
-    RH_ScopedInstall(Update, 0x6997E0);
+    RH_ScopedInstall(Update, 0x6997E0, {.enabled=false});
     RH_ScopedInstall(AddCoverPoint, 0x698F30);
     RH_ScopedInstall(CalculateHorizontalSize, 0x6987F0);
     RH_ScopedInstall(DoLineCheckWithinObject, 0x698990);
@@ -153,6 +153,7 @@ void CCover::Update() {
                     if (m_ListOfProcessedBuildings.IsMemberOfList(obj)) {
                         continue;
                     }
+                    FindCoverPointsForThisBuilding(obj);
                     auto* const link = m_ListOfProcessedBuildings.AddItem(obj);
                     if (notsa::IsFixBugs()) { // FIXBUGS: Use-after-free
                         CEntity::SafeRegisterRef(reinterpret_cast<CEntity*&>(link->m_item));
@@ -178,7 +179,8 @@ CCoverPoint* CCover::GetFree() {
 // 0x698F30
 // NOTE: Original function didn't return the (possibly) created point, we do
 CCoverPoint* CCover::AddCoverPoint(CCoverPoint::eType type, CEntity* coverEntity, const CVector* pos, CCoverPoint::eUsage usage, CCoverPoint::Dir dir) {
-    assert(!!pos != !!coverEntity && "Only either `position` or `coverEntity` must be set"); 
+    // `POINTONMAP` is tied to a building, thus both variables are supposed to be set
+    assert(type == CCoverPoint::eType::POINTONMAP || !!pos != !!coverEntity && "Only either `position` or `coverEntity` must be set"); 
 
     if (m_NumPoints >= m_Points.size()) {
         return nullptr;
