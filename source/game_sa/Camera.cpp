@@ -257,20 +257,20 @@ void CCamera::InitCameraVehicleTweaks() {
     m_VehicleTweakPitchMod    = 0.0f;
     m_VehicleTweakLastModelId = -1;
 
-    if (!m_bCameraVehicleTweaksInitialized) {
-        for (auto& camTweak : m_aCamTweak) {
-            camTweak.ModelID = -1;
-            camTweak.Dist   = 1.0f;
-            camTweak.Alt   = 1.0f;
-            camTweak.Angle      = 0.0f;
+    if (!m_bInitedVehicleCamTweaks) {
+        for (auto& camTweak : m_VehicleTweaks) {
+            camTweak.m_ModelId  = -1;
+            camTweak.m_LenMod     = 1.0f;
+            camTweak.m_TargetZMod = 1.0f;
+            camTweak.m_PitchMod = 0.0f;
         }
 
-        m_aCamTweak[0].ModelID = MODEL_RCGOBLIN;
-        m_aCamTweak[0].Dist = 1.0f;
-        m_aCamTweak[0].Alt = 1.0f;
-        m_aCamTweak[0].Angle    = 0.178997f; // todo: magic number
+        m_VehicleTweaks[0].m_ModelId = MODEL_RCGOBLIN;
+        m_VehicleTweaks[0].m_LenMod     = 1.0f;
+        m_VehicleTweaks[0].m_TargetZMod = 1.0f;
+        m_VehicleTweaks[0].m_PitchMod = 0.178997f; // todo: magic number
 
-        m_bCameraVehicleTweaksInitialized = true;
+        m_bInitedVehicleCamTweaks = true;
     }
 }
 
@@ -319,11 +319,12 @@ void CCamera::ApplyVehicleCameraTweaks(CVehicle* vehicle) {
     }
 
     InitCameraVehicleTweaks();
-    for (auto& camTweak : m_aCamTweak) {
-        if (camTweak.ModelID == (int32)vehicle->m_nModelIndex) { // todo: vehicle->m_nModelIndex -> int16?
-            m_fCurrentTweakDistance = camTweak.Dist;
-            m_fCurrentTweakAltitude = camTweak.Alt;
-            m_fCurrentTweakAngle    = camTweak.Angle;
+    for (auto& camTweak : m_VehicleTweaks) {
+        if (camTweak.m_ModelId == vehicle->m_nModelIndex) {
+            m_VehicleTweakLenMod = camTweak.m_LenMod;
+            m_VehicleTweakLastModelId = camTweak.m_ModelId;
+            m_VehicleTweakTargetZMod = camTweak.m_TargetZMod;
+            m_VehicleTweakPitchMod = camTweak.m_PitchMod;
             return;
         }
     }
@@ -757,7 +758,7 @@ void CCamera::RenderMotionBlur() const {
 void CCamera::Restore() {
     m_bLookingAtPlayer              = true;
     m_bLookingAtVector              = false;
-    m_nTypeOfSwitch                 = eTransMode::TRANS_INTERPOLATION;
+    m_nTypeOfSwitch                 = eSwitchType::TRANS_INTERPOLATION;
     m_bUseNearClipScript            = false;
     m_nModeObbeCamIsInForCar        = 30;
     m_fPositionAlongSpline          = 0.0f;
@@ -811,7 +812,7 @@ void CCamera::RestoreWithJumpCut() {
     m_bRestoreByJumpCut             = true;
     m_bLookingAtPlayer              = true;
     m_bLookingAtVector              = false;
-    m_nTypeOfSwitch                 = eTransMode::TRANS_JUMP_CUT;
+    m_nTypeOfSwitch                 = eSwitchType::TRANS_JUMP_CUT;
     m_nWhoIsInControlOfTheCamera    = 0;
     m_fPositionAlongSpline          = 0.0f;
     m_bStartingSpline               = false;
@@ -1243,7 +1244,7 @@ void CCamera::UpdateTargetEntity() {
 }
 
 // 0x50C7C0
-void CCamera::TakeControl(CEntity* target, eCamMode modeToGoTo, eTransMode switchType, int32 whoIsInControlOfTheCamera) {
+void CCamera::TakeControl(CEntity* target, eCamMode modeToGoTo, eSwitchType switchType, int32 whoIsInControlOfTheCamera) {
     if (!m_bForceCinemaCam) {
         if (whoIsInControlOfTheCamera == 2 && m_nWhoIsInControlOfTheCamera == 1) {
             return;
@@ -1281,7 +1282,7 @@ void CCamera::TakeControl(CEntity* target, eCamMode modeToGoTo, eTransMode switc
 }
 
 // 0x50C8B0
-void CCamera::TakeControlNoEntity(const CVector& fixedModeVector, eTransMode switchType, int32 whoIsInControlOfTheCamera) {
+void CCamera::TakeControlNoEntity(const CVector& fixedModeVector, eSwitchType switchType, int32 whoIsInControlOfTheCamera) {
     if (whoIsInControlOfTheCamera == 2 && m_nWhoIsInControlOfTheCamera == 1) {
         return;
     }
@@ -1301,7 +1302,7 @@ void CCamera::TakeControlAttachToEntity(CEntity* target, CEntity* attached, CVec
 }
 
 // 0x50CAE0
-void CCamera::TakeControlWithSpline(eTransMode switchType) {
+void CCamera::TakeControlWithSpline(eSwitchType switchType) {
     m_bLookingAtPlayer  = false;
     m_bLookingAtVector  = false;
     m_bCutsceneFinished = false;

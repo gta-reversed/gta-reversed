@@ -37,7 +37,7 @@ ZONE_ATTRIBUTE_CAMNONE:
     No special cull attributes.
 */
 
-enum eZoneAttributeFlags : uint16 {
+enum eZoneAttributes : uint16 {
     ZONE_ATTRIBUTE_CAMNONE                 = 0x0, // NOTSA
     ZONE_ATTRIBUTE_CAMCLOSEIN_FORPLAYER    = 0x1,
     ZONE_ATTRIBUTE_CAMSTAIRS_FORPLAYER     = 0x2,
@@ -122,7 +122,7 @@ VALIDATE_SIZE(CCullZoneReflection, 0x18);
 
 struct CCullZone {
     CZoneDef zoneDef;
-    eZoneAttributeFlags flags;
+    eZoneAttributes flags;
 
     [[nodiscard]] bool IsPointWithin(const CVector& point) const { return zoneDef.IsPointWithin(point); };
 };
@@ -156,7 +156,7 @@ public:
 
     static void AddCullZone(const CVector& center, float unk1, float fWidthY, float fBottomZ, float fWidthX, float unk2, float fTopZ, uint16 flags);
     static void AddTunnelAttributeZone(const CVector& center, float unk1, float fWidthY, float fBottomZ, float fWidthX, float unk2, float fTopZ, uint16 flags);
-    static void AddMirrorAttributeZone(const CVector& center, float unk1, float fWidthY, float fBottomZ, float fWidthX, float unk2, float fTopZ, eZoneAttributeFlags flags, float cm, float vX, float vY, float vZ);
+    static void AddMirrorAttributeZone(const CVector& center, float unk1, float fWidthY, float fBottomZ, float fWidthX, float unk2, float fTopZ, eZoneAttributes flags, float cm, float vX, float vY, float vZ);
 
     // Flag check functions
     static bool CamCloseInForPlayer();
@@ -171,12 +171,12 @@ public:
     static bool NoPolice();
     static bool DoExtraAirResistanceForPlayer();
 
-    static eZoneAttributeFlags FindTunnelAttributesForCoors(CVector point);
+    static eZoneAttributes FindTunnelAttributesForCoors(CVector point);
     static CCullZoneReflection* FindMirrorAttributesForCoors(CVector cameraPosition);
     static CCullZone* FindZoneWithStairsAttributeForPlayer();
-    static eZoneAttributeFlags FindAttributesForCoors(CVector pos);
+    static eZoneAttributes FindAttributesForCoors(CVector pos);
 
 
 };
 
-[[nodiscard]] bool IsPointWithinArbitraryArea(float TestPointX, float TestPointY, float Point1X, float Point1Y, float Point2X, float Point2Y, float Point3X, float Point3Y, float Point4X, float Point4Y);
+[[nodiscard]] bool IsPointWithinArbitraryArea(const CVector2D& TestPoint, const CVector2D& Point1, const CVector2D& Point2, const CVector2D& Point3, const CVector2D& Point4);

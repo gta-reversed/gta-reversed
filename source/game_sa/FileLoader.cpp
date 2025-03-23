@@ -1131,7 +1131,7 @@ void CFileLoader::LoadCullZone(const char* line) {
             width,
             unknown2,
             zTop,
-            static_cast<eZoneAttributeFlags>(flags),
+            static_cast<eZoneAttributes>(flags),
             cm,
             mirrorDirection.x, mirrorDirection.y, mirrorDirection.z
         );

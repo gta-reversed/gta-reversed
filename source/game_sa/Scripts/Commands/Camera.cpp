@@ -20,7 +20,7 @@ void ShakeCam(float strength) {
     CamShakeNoPos(&TheCamera, strength / 1000.0f);
 }
 
-void AttachCameraToVehicleLookAtVehicle(CVehicle& attachTo, CVector offset, CVehicle& lookAt, float tilt, eTransMode switchType) {
+void AttachCameraToVehicleLookAtVehicle(CVehicle& attachTo, CVector offset, CVehicle& lookAt, float tilt, eSwitchType switchType) {
     CVector zero{};
     TheCamera.TakeControlAttachToEntity(
         &lookAt,
@@ -240,7 +240,7 @@ void CameraSetVectorMove(CVector from, CVector to, float time, bool ease) {
 
 // SET_CINEMA_CAMERA (2365)
 void SetCinemaCamera(bool enabled) {
-    TheCamera.m_bCinemaCamera = enabled;
+    TheCamera.m_bForceCinemaCam = enabled;
 }
 
 // SET_CAMERA_IN_FRONT_OF_CHAR (2372)
@@ -267,29 +267,29 @@ void AllowFixedCameraCollision(bool enabled) {
 
 // SET_VEHICLE_CAMERA_TWEAK (2543)
 void SetVehicleCameraTweak(eModelID model, float dist, float alt, float angle) {
-    TheCamera.m_aCamTweak[4] = {
-        .ModelID = model,
-        .Dist    = dist,
-        .Alt     = alt,
-        .Angle   = angle
+    TheCamera.m_VehicleTweaks[4] = {
+        .m_ModelId = model,
+        .m_LenMod     = dist,
+        .m_TargetZMod = alt,
+        .m_PitchMod = angle
     };
 }
 
 // RESET_VEHICLE_CAMERA_TWEAK (2544)
 void ResetVehicleCameraTweak() {
-    TheCamera.m_aCamTweak[4] = {
-        .ModelID = MODEL_INVALID,
-        .Dist    = 1.f,
-        .Alt     = 1.f,
-        .Angle   = 0.f
+    TheCamera.m_VehicleTweaks[4] = {
+        .m_ModelId = MODEL_INVALID,
+        .m_LenMod  = 1.f,
+        .m_TargetZMod = 1.f,
+        .m_PitchMod   = 0.f
     };
 }
 
 // SET_CAMERA_POSITION_UNFIXED (2597)
 void SetCameraPositionUnfixed(CVector2D offset) {
     auto* const cam = &TheCamera.GetActiveCam();
-    cam->m_fVerticalAngle = offset.x;
-    cam->m_fHorizontalAngle = offset.y;
+    cam->m_fBeta = offset.x;
+    cam->m_fAlpha = offset.y;
     if (cam->m_nMode == MODE_FOLLOWPED) {
         cam->Process_FollowPed_SA(FindPlayerPed()->GetPosition(), 0.f, 0.f, 0.f, true);
     } else if (auto* const veh = FindPlayerVehicle()) {

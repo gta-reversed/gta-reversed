@@ -8,6 +8,7 @@
 #include "InterestingEvents.h"
 #include "ModelIndices.h"
 #include "HandShaker.h"
+#include "TaskComplexProstituteSolicit.h "
 
 bool& gbFirstPersonRunThisFrame = StaticRef<bool>(0xB6EC20);
 uint32& gLastFrameProcessedDWCineyCam = StaticRef<uint32>(0x8CCB9C);
@@ -21,35 +22,6 @@ static inline CVector& DWCineyCamLastFwd = StaticRef<CVector>(0xB6FEB0);
 
 static inline float& DWCineyCamLastNearClip = StaticRef<float>(0xB6EC08);
 static inline float& DWCineyCamLastFov = StaticRef<float>(0xB6EC0C);
-
-// 0x509AE0
-static void WellBufferMe(float target, float& valueToChange, float& speedSoFar, float topSpeed, float speedStep, bool isAnAngle) {
-    const auto valueToTargetDiff = [&] {
-        auto d = target - valueToChange;
-        if (isAnAngle) {
-            for (; d >= DegreesToRadians(180.0f); d -= DegreesToRadians(360.0f)) {
-                ;
-            }
-            for (; d < DegreesToRadians(-180.0f); d += DegreesToRadians(360.0f)) {
-                ;
-            }
-        }
-        return d;
-    }();
-
-    const auto fullSpeedStep = valueToTargetDiff * topSpeed;
-    speedSoFar += std::abs(std::abs(fullSpeedStep - speedSoFar) * CTimer::GetTimeStep() * speedStep);
-
-    if (fullSpeedStep >= 0.0f || fullSpeedStep <= speedSoFar) {
-        if (fullSpeedStep > 0.0f && fullSpeedStep < speedSoFar) {
-            speedSoFar = fullSpeedStep;
-        }
-    } else {
-        speedSoFar = fullSpeedStep;
-    }
-
-    valueToChange += std::min(CTimer::GetTimeStep(), 10.0f) * speedSoFar;
-}
 
 void CCam::InjectHooks() {
     RH_ScopedClass(CCam);
@@ -378,8 +350,8 @@ return m_pCamTargetEntity && m_pCamTargetEntity->IsPed() && m_pCamTargetEntity->
 
 // inlined -- alpha = vertical angle
 void CCam::ClipAlpha() {
-    m_fVerticalAngle = std::clamp(
-        m_fVerticalAngle,
+    m_fAlpha = std::clamp(
+        m_fAlpha,
         DegreesToRadians(-85.5f),
         DegreesToRadians(+60.0f)
     );
@@ -387,17 +359,16 @@ void CCam::ClipAlpha() {
 
 // 0x509C50 -- beta = horizontal angle
 void CCam::ClipBeta() {
-    if (m_fHorizontalAngle < DegreesToRadians(-180.0f)) {
-        m_fHorizontalAngle += DegreesToRadians(360.0f);
+    if (m_fBeta < DegreesToRadians(-180.0f)) {
+        m_fBeta += DegreesToRadians(360.0f);
     } else {
-        m_fHorizontalAngle -= DegreesToRadians(360.0f);
+        m_fBeta -= DegreesToRadians(360.0f);
     }
 }
 
 // 0x526FC0
-bool CCam::Process() {
+void CCam::Process() {
     assert(0);
-    return false;
 }
 
 // 0x518500
@@ -529,12 +500,12 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
 
     if (m_bResetStatics) {
         // unnecessary entity ped check
-        m_fVerticalAngle = 0.0f;
+        m_fAlpha = 0.0f;
         byte_B6FFDC      = false;
         v3d_B6FFD0.Reset();
-        m_fHorizontalAngle            = targetPed->m_fCurrentRotation + DegreesToRadians(90.0f);
+        m_fBeta            = targetPed->m_fCurrentRotation + DegreesToRadians(90.0f);
         m_bCollisionChecksOn          = true;
-        m_fInitialPlayerOrientation   = m_fHorizontalAngle;
+        m_fInitialPlayerOrientation   = m_fBeta;
         m_vecBufferedPlayerBodyOffset = v3d_B6FFC4 = pointIn;
     }
     m_vecBufferedPlayerBodyOffset.y = pointIn.y;
@@ -566,17 +537,17 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
     // TODO: Put in a function name e.g. 'HandleFreeMouseControl'?
     auto*      pad1   = CPad::GetPad(0);
     const auto fov    = m_fFOV / 80.0f;
-    const auto mouseX = pad1->NewMouseControllerState.X, mouseY = pad1->NewMouseControllerState.Y;
+    const auto mouseX = pad1->NewMouseControllerState.m_AmountMoved.x, mouseY = pad1->NewMouseControllerState.m_AmountMoved.y;
 
     if (mouseX != 0.0f || mouseY != 0.0f) {
-        m_fHorizontalAngle += -3.0f * mouseX * fov * CCamera::m_fMouseAccelHorzntl;
-        m_fVerticalAngle += +4.0f * mouseY * fov * CCamera::m_fMouseAccelVertical;
+        m_fBeta += -3.0f * mouseX * fov * CCamera::m_fMouseAccelHorzntl;
+        m_fAlpha += +4.0f * mouseY * fov * CCamera::m_fMouseAccelVertical;
     } else {
         const auto hv = (float)-pad1->sub_540BD0(targetPed);
         const auto vv = (float)pad1->sub_540CC0(targetPed);
 
-        m_fHorizontalAngle += sq(hv) / 10000.0f * fov / 17.5f * CTimer::GetTimeStep() * (hv < 0.0f ? -1.0f : 1.0f);
-        m_fVerticalAngle += sq(vv) / 22500.0f * fov / 14.0f * CTimer::GetTimeStep() * (vv < 0.0f ? -1.0f : 1.0f);
+        m_fBeta += sq(hv) / 10000.0f * fov / 17.5f * CTimer::GetTimeStep() * (hv < 0.0f ? -1.0f : 1.0f);
+        m_fAlpha += sq(vv) / 22500.0f * fov / 14.0f * CTimer::GetTimeStep() * (vv < 0.0f ? -1.0f : 1.0f);
     }
     ClipBeta();
     ClipAlpha();
@@ -585,16 +556,16 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
         // enum?
         switch (targetPed->m_fTurretAngleA) {
         case 0u:
-            m_fHorizontalAngle -= a->GetHeading() + DegreesToRadians(90.0f);
+            m_fBeta -= a->GetHeading() + DegreesToRadians(90.0f);
             break;
         case 1u:
-            m_fHorizontalAngle -= a->GetHeading() + DegreesToRadians(180.0f);
+            m_fBeta -= a->GetHeading() + DegreesToRadians(180.0f);
             break;
         case 2u:
-            m_fHorizontalAngle -= a->GetHeading() + DegreesToRadians(-90.0f);
+            m_fBeta -= a->GetHeading() + DegreesToRadians(-90.0f);
             break;
         case 3u:
-            m_fHorizontalAngle -= a->GetHeading();
+            m_fBeta -= a->GetHeading();
             break;
         default:
             // NOTE(yukani): If this is fired, gimme a call. 0x50F0ED
@@ -621,15 +592,15 @@ void CCam::Process_1stPerson(const CVector& target, float orientation, float spe
     }
 
     if (m_bResetStatics) {
-        m_fVerticalAngle   = 0.0f;
-        m_fHorizontalAngle = [&] {
+        m_fAlpha   = 0.0f;
+        m_fBeta = [&] {
             if (m_pCamTargetEntity->IsPed()) {
                 return m_pCamTargetEntity->AsPed()->m_fCurrentRotation + DegreesToRadians(90.0f);
             } else {
                 return orientation;
             }
         }();
-        m_fInitialPlayerOrientation = m_fHorizontalAngle;
+        m_fInitialPlayerOrientation = m_fBeta;
 
         s_GroundFaultProtection                 = 0.0f;
         TheCamera.m_fAvoidTheGeometryProbsTimer = 0.0f;
@@ -848,11 +819,11 @@ void CCam::Process_Editor(const CVector& target, float orientation, float speedV
 
     static constexpr float _90DEG_PER_HOUR_IN_RAD_PER_MIN = 0.02617994f;
     const auto* pad = CPad::GetPad(1);
-    m_fHorizontalAngle += pad->GetLeftStickX() * _90DEG_PER_HOUR_IN_RAD_PER_MIN / 19.0f;
-    m_fVerticalAngle   += DegreesToRadians(static_cast<float>(pad->GetLeftStickY())) / 50.0f;
+    m_fBeta += pad->GetLeftStickX() * _90DEG_PER_HOUR_IN_RAD_PER_MIN / 19.0f;
+    m_fAlpha   += DegreesToRadians(static_cast<float>(pad->GetLeftStickY())) / 50.0f;
 
-    m_fVerticalAngle = std::max(m_fVerticalAngle, DegreesToRadians(85.0f));
-    if (m_fVerticalAngle >= DegreesToRadians(-85.0f)) {
+    m_fAlpha = std::max(m_fAlpha, DegreesToRadians(85.0f));
+    if (m_fAlpha >= DegreesToRadians(-85.0f)) {
         if (pad->IsSquareDown()) {
             s_LookAtAngle += 0.1f;
         } else if (pad->IsCrossDown()) {
@@ -861,7 +832,7 @@ void CCam::Process_Editor(const CVector& target, float orientation, float speedV
             s_LookAtAngle = 0.0f;
         }
     } else {
-        m_fVerticalAngle = DegreesToRadians(-85.0f);
+        m_fAlpha = DegreesToRadians(-85.0f);
     }
     s_LookAtAngle = std::clamp(s_LookAtAngle, -70.0f, 70.0f);
 
@@ -969,7 +940,8 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
     float betaDiffMult;
     float betaDiffCap;
     bool usingMouse = false;
-
+    static float PROSTITUTE_CAM_ALPHA_ANGLE = 0.1f;
+    static float PROSTITUTE_CAM_ALPHA_RATE  = 0.0035f;
 
     CamFollowPedData CARCAM_SET[FOLLOW_CAR_MAX] = {
         {1.3f,	1.0f,	0.40f,	10.0f,	15.0f,	0.5f, 	1.0f, 	1.0f,	0.85f,	0.2f,	0.075,	0.05f,		0.80f,	DegreesToRadians(45.0f), DegreesToRadians(89.0f)},
@@ -1328,8 +1300,6 @@ void CCam::Process_FollowCar_SA(const CVector &ThisCamsTarget, float TargetOrien
 
     if (pTargetVehicle->m_apPassengers[0] && pTargetVehicle->m_apPassengers[0]->GetIntelligence()->GetActivePrimaryTask() && pTargetVehicle->m_apPassengers[0]->GetIntelligence()->GetActivePrimaryTask()->GetTaskType() == eTaskType::TASK_COMPLEX_PROSTITUTE_SOLICIT) {
         if (((CTaskComplexProstituteSolicit*)pTargetVehicle->m_apPassengers[0]->GetIntelligence()->GetActivePrimaryTask())->bSexProcessStarted) {
-            static float PROSTITUTE_CAM_ALPHA_ANGLE = 0.1f;
-            static float PROSTITUTE_CAM_ALPHA_RATE = 0.0035f;
             if (m_fAlpha < alphaUpLimit - PROSTITUTE_CAM_ALPHA_ANGLE) {
                 stickAlphaOffset = PROSTITUTE_CAM_ALPHA_RATE * CTimer::GetTimeStep();
             } else {
@@ -1516,10 +1486,10 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
     m_fFOV = 70.0f;
     if (m_bResetStatics) {
         if (!CCamera::m_bUseMouse3rdPerson || targetPed->m_pTargetedObject) {
-            m_fVerticalAngle = 0.0f;
-            m_fHorizontalAngle = targetPed->m_fCurrentRotation - DegreesToRadians(90.0f);
+            m_fAlpha = 0.0f;
+            m_fBeta = targetPed->m_fCurrentRotation - DegreesToRadians(90.0f);
         }
-        m_fInitialPlayerOrientation = m_fHorizontalAngle;
+        m_fInitialPlayerOrientation = m_fBeta;
         m_bResetStatics             = 0;
         m_bCollisionChecksOn        = true;
         byte_B70000                 = 0;
@@ -1534,25 +1504,25 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
 
     auto*      pad1   = CPad::GetPad(0);
     const auto fov    = m_fFOV / 80.0f;
-    const auto mouseX = pad1->NewMouseControllerState.X, mouseY = pad1->NewMouseControllerState.Y;
+    const auto mouseX = pad1->NewMouseControllerState.m_AmountMoved.x, mouseY = pad1->NewMouseControllerState.m_AmountMoved.y;
     
     if (mouseX != 0.0f || mouseY != 0.0f) {
-        m_fHorizontalAngle += -3.0f * mouseX * fov * CCamera::m_fMouseAccelHorzntl;
-        m_fVerticalAngle   += +4.0f * mouseY * fov * CCamera::m_fMouseAccelVertical;
+        m_fBeta += -3.0f * mouseX * fov * CCamera::m_fMouseAccelHorzntl;
+        m_fAlpha += +4.0f * mouseY * fov * CCamera::m_fMouseAccelVertical;
     } else {
         const auto hv  = (float)-pad1->sub_540BD0(targetPed);
         const auto vv  = (float)pad1->sub_540CC0(targetPed);
 
-        m_fHorizontalAngle += sq(hv) / 10000.0f * fov / 17.5f * CTimer::GetTimeStep() * (hv < 0.0f ? -1.0f : 1.0f);
-        m_fVerticalAngle   += sq(vv) / 22500.0f * fov / 14.0f * CTimer::GetTimeStep() * (vv < 0.0f ? -1.0f : 1.0f);
+        m_fBeta += sq(hv) / 10000.0f * fov / 17.5f * CTimer::GetTimeStep() * (hv < 0.0f ? -1.0f : 1.0f);
+        m_fAlpha   += sq(vv) / 22500.0f * fov / 14.0f * CTimer::GetTimeStep() * (vv < 0.0f ? -1.0f : 1.0f);
     }
     ClipBeta();
     ClipAlpha();
 
     m_vecFront.Set(
-        -(std::cos(m_fHorizontalAngle) * std::cos(m_fVerticalAngle)),
-        -(std::sin(m_fHorizontalAngle) * std::cos(m_fVerticalAngle)),
-        std::sin(m_fVerticalAngle)
+        -(std::cos(m_fBeta) * std::cos(m_fAlpha)),
+        -(std::sin(m_fBeta) * std::cos(m_fAlpha)),
+        std::sin(m_fAlpha)
     );
     GetVectorsReadyForRW();
 
@@ -1641,10 +1611,6 @@ void CCam::Process_SpecialFixedForSyphon(const CVector&, float, float, float) {
 
 // 0x512110
 bool CCam::Process_WheelCam(const CVector&, float, float, float) {
-<<<<<<< HEAD
-    assert(0);
-    return false;
-=======
     NOTSA_UNREACHABLE();
     return false;
 }
@@ -1718,5 +1684,4 @@ bool IsLampPost(eModelID modelId) {
         },
         modelId
     );
->>>>>>> upstream/master
 }

@@ -25,7 +25,6 @@ class CPed;
 class CSphere;
 class CGarage;
 
-// $EB00DB600F272ABF9EF915EA8B0BA2F1
 enum {
     NO_ONE = 0,
     SCRIPT_CAM_CONTROL,
@@ -37,13 +36,12 @@ enum class eFadeFlag : uint16 {
     FADE_OUT
 };
 
-enum class eTransMode : int32 {
+enum eSwitchType : int32 {
     TRANS_NONE = 0,
     TRANS_INTERPOLATION = 1,
     TRANS_JUMP_CUT = 2
 };
 
-//$59651489DE6398DC03417D5A15FC1EE9
 enum {
   SCRIPT_ZOOM_ONE = 0,
   SCRIPT_ZOOM_TWO = 1,
@@ -92,11 +90,12 @@ enum class eMotionBlurType : uint32 {
 };
 
 struct CamTweak {
-    int32 ModelID;
-    float Dist;
-    float Alt;
-    float Angle;
+    int32 m_ModelId;
+    float m_LenMod; 
+    float m_TargetZMod;
+    float m_PitchMod;
 };
+
 VALIDATE_SIZE(CamTweak, 0x10);
 
 class CCamera : public CPlaceable {
@@ -300,7 +299,7 @@ public:
     int32           m_nModeObbeCamIsInForCar{30};
     eCamMode        m_nModeToGoTo{ MODE_FOLLOWPED };
     eFadeFlag       m_nMusicFadingDirection{};
-    eTransMode     m_nTypeOfSwitch{ eTransMode::TRANS_INTERPOLATION };
+    eSwitchType     m_nTypeOfSwitch{ eSwitchType::TRANS_INTERPOLATION };
     char            _alignC40[2]{};
     uint32          m_nFadeStartTime{};
     uint32          m_nFadeTimeStartedMusic{};
@@ -445,10 +444,10 @@ public:
 
     void StoreValuesDuringInterPol(CVector *sourceDuringInter, CVector *targetDuringInter, CVector *upDuringInter, float *FOVDuringInter);
 
-    void TakeControl(CEntity *target, eCamMode modeToGoTo, eTransMode switchType, int32 whoIsInControlOfTheCamera);
-    void TakeControlNoEntity(const CVector& fixedModeVector, eTransMode switchType, int32 whoIsInControlOfTheCamera);
-    void TakeControlAttachToEntity(CEntity* target, CEntity* attached, CVector* attachedCamOffset, CVector* attachedCamLookAt, float attachedCamAngle, eTransMode switchType, int32 whoIsInControlOfTheCamera);
-    void TakeControlWithSpline(eTransMode switchType);
+    void TakeControl(CEntity *target, eCamMode modeToGoTo, eSwitchType switchType, int32 whoIsInControlOfTheCamera);
+    void TakeControlNoEntity(const CVector& fixedModeVector, eSwitchType switchType, int32 whoIsInControlOfTheCamera);
+    void TakeControlAttachToEntity(CEntity* target, CEntity* attached, CVector* attachedCamOffset, CVector* attachedCamLookAt, float attachedCamAngle, eSwitchType switchType, int32 whoIsInControlOfTheCamera);
+    void TakeControlWithSpline(eSwitchType switchType);
 
     bool TryToStartNewCamMode(int32 camSequence);
 

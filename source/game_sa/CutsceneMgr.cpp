@@ -972,7 +972,7 @@ void CCutsceneMgr::StartCutscene() {
     CCutsceneMgr::ms_cutscenePlayStatus = PlayStatus::STARTING;
     if (dataFileLoaded) {
         TheCamera.SetCamCutSceneOffSet(ms_cutsceneOffset);
-        TheCamera.TakeControlWithSpline(eTransMode::TRANS_JUMP_CUT);
+        TheCamera.TakeControlWithSpline(eSwitchType::TRANS_JUMP_CUT);
         TheCamera.SetWideScreenOn();
 
         CHud::SetHelpMessage(nullptr, true, false, false);

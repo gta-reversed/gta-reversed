@@ -20,5 +20,7 @@ public:
 
     void Clear();
     [[nodiscard]] bool CheckForInput() const;
+    [[nodiscard]] auto GetAmountMouseMoved() const { return m_AmountMoved; }
+
 };
 VALIDATE_SIZE(CMouseControllerState, 0x14);
