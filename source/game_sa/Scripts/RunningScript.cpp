@@ -91,7 +91,7 @@ void CRunningScript::InjectCustomCommandHooks() {
     // Uncommenting any call will prevent it from being hooked, so
     // feel free to do so when debugging (Just don't forget to undo the changes!)
 
-    using namespace notsa::script::commands;
+    using namespace ::notsa::script::commands;
 
     basic::RegisterHandlers();
     camera::RegisterHandlers();
@@ -112,6 +112,8 @@ void CRunningScript::InjectCustomCommandHooks() {
     unused::RegisterHandlers();
     utility::RegisterHandlers();
     vehicle::RegisterHandlers();
+    zone::RegisterHandlers();
+    ::notsa::script::commands::stat::RegisterHandlers();
 
 #ifdef NOTSA_USE_CLEO_COMMANDS
     cleo::audiostream::RegisterHandlers();
@@ -161,7 +163,7 @@ void CRunningScript::Init() {
     m_bCondResult = false;
     m_bUseMissionCleanup = false;
     m_bIsExternal = false;
-    m_bTextBlockOverride = false;
+    m_IsTextBlockOverride = false;
     m_nExternalType = -1;
     memset(m_aLocalVars, 0, sizeof(m_aLocalVars));
     m_nLogicalOp = 0;

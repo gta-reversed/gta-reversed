@@ -76,7 +76,7 @@ CTask* CTaskComplexCopInCar::CreateSubTask(eTaskType taskType, CPed* copPed) {
             return new CTaskComplexCarDriveMission(
                 m_Vehicle,
                 targetEntity,
-                m_Suspect->bInVehicle ? (eCarMission)CCarAI::FindPoliceCarMissionForWantedLevel() : MISSION_POLICE_BIKE, // CCarAI::FindPoliceBikeMissionForWantedLevel()?
+                m_Suspect->bInVehicle ? (eCarMission)CCarAI::FindPoliceCarMissionForWantedLevel() : MISSION_APPROACHPLAYER_FARAWAY, // CCarAI::FindPoliceBikeMissionForWantedLevel()?
                 (eCarDrivingStyle)CCarAI::FindPoliceCarSpeedForWantedLevel(m_Vehicle), // TODO: This really doesn't add up.. How does this work?
                 10.f
             );
@@ -85,7 +85,7 @@ CTask* CTaskComplexCopInCar::CreateSubTask(eTaskType taskType, CPed* copPed) {
                 if (m_Suspect->bInVehicle) {
                     return CGeneral::GetRandomNumber() % 4 < 2 ? MISSION_BLOCKPLAYER_FARAWAY : MISSION_RAMPLAYER_FARAWAY;
                 }
-                return MISSION_37;
+                return MISSION_KILLPED_CLOSE;
             };
 
             // FindPoliceCarSpeedForWantedLevel - wanted level 3

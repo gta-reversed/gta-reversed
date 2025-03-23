@@ -2,6 +2,7 @@
 
 #include "UIRenderer.h"
 #include "TaskComplexDestroyCarMelee.h"
+#include <TaskComplexEnterCarAsPassengerTimed.h>
 #include "TaskComplexWalkAlongsidePed.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
 #include "TaskComplexFollowNodeRoute.h"

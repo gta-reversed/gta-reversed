@@ -323,8 +323,8 @@ public:
     char                m_nBodypartToRemove;
     char                field_755;
     int16               m_nMoneyCount; // Used for money pickup when ped is killed
-    float               field_758;
-    float               field_75C;
+    float               m_Wobble;
+    float               m_WobbleSpeed;
     char                m_nLastWeaponDamage; // See eWeaponType
     CEntity*            m_pLastEntityDamage;
     int32               field_768;

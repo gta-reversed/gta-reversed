@@ -175,6 +175,7 @@
 #include "PlantSurfPropMgr.h"
 
 // Tasks
+#include "TaskSimpleKillPedWithCar.h"
 #include "TaskComplexSitDownThenIdleThenStandUp.h"
 #include "TaskComplexLeaveCarAsPassengerWait.h"
 #include "TaskComplexInvestigateDeadPed.h"
@@ -203,6 +204,7 @@
 #include "TaskComplexDestroyCarArmed.h"
 #include "TaskSimpleAbseil.h"
 #include "TaskComplexWanderCop.h"
+#include "TaskComplexEnterCarAsPassengerTimed.h"
 #include "TaskSimpleWaitUntilPedIsInCar.h"
 #include "TaskComplexUseMobilePhone.h"
 #include "TaskSimpleStandStill.h"
@@ -901,7 +903,7 @@ void InjectHooksMain() {
         CTaskComplexDragPedFromCar__InjectHooks();
         CTaskComplexDrivePointRoute::InjectHooks();
         CTaskComplexEnterCarAsDriverTimed::InjectHooks();
-        // CTaskComplexEnterCarAsPassengerTimed::InjectHooks();
+        CTaskComplexEnterCarAsPassengerTimed::InjectHooks();
         // CTaskComplexEnterCarAsPassengerWait::InjectHooks();
         // CTaskComplexEvasiveCower::InjectHooks();
         // CTaskComplexEvasiveDiveAndGetUp::InjectHooks();
@@ -1058,8 +1060,8 @@ void InjectHooksMain() {
         CTaskSimpleHitFromLeft::InjectHooks();
         CTaskSimpleHitFromRight::InjectHooks();
         CTaskSimpleHitWall::InjectHooks();
+        CTaskSimpleKillPedWithCar::InjectHooks();
         CTaskSimpleHurtPedWithCar::InjectHooks();
-        // CTaskSimpleKillPedWithCar::InjectHooks();
         CTaskSimpleLookAbout::InjectHooks();
         // CTaskSimpleOnEscalator::InjectHooks();
         CTaskSimplePickUpBike::InjectHooks();
