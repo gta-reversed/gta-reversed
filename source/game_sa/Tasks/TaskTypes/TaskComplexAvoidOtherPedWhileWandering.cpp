@@ -53,25 +53,26 @@ CTaskComplexAvoidOtherPedWhileWandering::CTaskComplexAvoidOtherPedWhileWandering
 
 // 0x6721B0
 CTask* CTaskComplexAvoidOtherPedWhileWandering::ControlSubTask(CPed* ped) {
-    // Pirulax: Yes, I know, using goto's isn't necessary.
-    // Alternative is to nest it.
-
-    if (!m_PedToAvoid) {
-    quitik_and_end:
-        QuitIK(ped);
-    end:
+    const auto DoQuit = [&](bool stopIK = true) {
+        if (stopIK) {
+            QuitIK(ped);
+        }
         ped->bIgnoreHeightCheckOnGotoPointTask = false;
         return nullptr;
+    };
+
+    if (!m_PedToAvoid) {
+        return DoQuit();
     }
 
     if (m_bWantsToQuit && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
-        goto end; // maybe this is just a mistake? And they wanted to do `goto quitik_and_end`?
+        return DoQuit(); // did they forget to do `QuitIK` here?
     }
-
+    
     m_Timer.StartIfNotAlready(200);
-
+    
     SetUpIK(ped);
-
+    
     if (m_pSubTask->GetTaskType() == TASK_SIMPLE_STAND_STILL) {
         return m_pSubTask;
     }
@@ -80,13 +81,13 @@ CTask* CTaskComplexAvoidOtherPedWhileWandering::ControlSubTask(CPed* ped) {
         QuitIK(ped);
         return new CTaskSimpleStandStill{ CGeneral::GetRandomNumberInRange(500, 2500) };
     }
-
+    
     const auto &pedPos        = ped->GetPosition(),
                &pedToAvoidPos = m_PedToAvoid->GetPosition();
     if (std::abs(pedToAvoidPos.z - pedPos.z) >= 3.f) {
-        goto quitik_and_end;
+        return DoQuit();
     }
-
+    
     const auto pedToAvoidDist2DSq = (pedPos - pedToAvoidPos).SquaredMagnitude2D();
     const auto pedSimplestTask = ped->GetTaskManager().GetSimplestActiveTask();
     if (   pedSimplestTask
@@ -96,34 +97,34 @@ CTask* CTaskComplexAvoidOtherPedWhileWandering::ControlSubTask(CPed* ped) {
         && (ped->GetMoveSpeed() * CTimer::TIMESTEP_PER_SECOND).SquaredMagnitude2D() <= (m_PedToAvoid->GetMoveSpeed() * CTimer::TIMESTEP_PER_SECOND).SquaredMagnitude2D() + sq(0.5f)
         && pedToAvoidDist2DSq >= sq(1.f)
     ) {
-        goto quitik_and_end;
+        return DoQuit();
     }
-
+    
     if (pedToAvoidDist2DSq >= sq(2.5f) + 1.f) {
-        goto quitik_and_end;
+        return DoQuit();
     }
-
+    
     if (!m_Timer.IsOutOfTime()) {
         return m_pSubTask;
     }
     m_Timer.Start(200);
-
+    
     if (!m_bMovingTarget) {
-        goto quitik_and_end;
+        return DoQuit();
     }
-
+    
     if (const auto tGangFollower = notsa::dyn_cast_if_present<CTaskComplexGangFollower>(ped->GetIntelligence()->FindTaskByType(TASK_COMPLEX_GANG_FOLLOWER))) {
         if (tGangFollower->m_Leader) {
             m_TargetPt = tGangFollower->m_Leader->GetPosition() + tGangFollower->CalculateOffsetPosition();
         }
     }
-
+    
     if (ComputeDetourTarget(ped)) {
         notsa::cast<CTaskSimpleGoToPoint>(m_pSubTask)->UpdatePoint(m_TargetPt);
         return m_pSubTask;
     }
-
-    goto quitik_and_end;
+    
+    return DoQuit();
 }
 
 // 0x66A260
