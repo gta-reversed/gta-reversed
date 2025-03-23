@@ -9,6 +9,8 @@ public:
     void RenderWindow() override;
     void RenderMenuEntry() override; 
 
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(WeaponDebugModule, m_IsOpen);
+
 private:
     bool m_IsOpen{};
 };

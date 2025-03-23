@@ -225,19 +225,14 @@ do                                                      \
 }                                                       \
 while(0);
 
-//{@ 20050511 DDonSS : 메세지 출력 지정할수 있도록 변경
-#define RWMESSAGE(args)                             \
-do                                                  \
-{                                                   \
-    if ( RWSRCGLOBAL( debugMessage ) )              \
-    {                                               \
-        RwDebugSendMessage(rwDEBUGMESSAGE,          \
-                             __dbFunctionName,      \
-                           _rwdbsprintf args);      \
-    }                                               \
-}                                                   \
+#define RWMESSAGE(args)                         \
+do                                              \
+{                                               \
+    RwDebugSendMessage(rwDEBUGMESSAGE,          \
+                         __dbFunctionName,      \
+                       _rwdbsprintf args);      \
+}                                               \
 while (0)
-//}@ DDonSS
 
 #define RWASSERT(condition)                             \
 do                                                      \

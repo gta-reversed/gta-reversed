@@ -393,7 +393,7 @@ void CFireManager::Update() {
         // a 100% clear to me.
         // TODO: Use the array here
         if (DotProduct(TheCamera.GetForward(), pointToCamDirNorm) > 0.2f || CGeneral::GetRandomNumber() < RAND_MAX / 2) {
-            auto fx = g_fxMan.CreateFxSystem("riot_smoke", &point, nullptr, true);
+            auto fx = g_fxMan.CreateFxSystem("riot_smoke", point, nullptr, true);
             if (fx)
                 fx->PlayAndKill();
         } else {
@@ -411,7 +411,7 @@ void CFireManager::Update() {
         // Find the strongest fire, which hasn't yet been visited
         CFire* strongest{};
         for (size_t i = 0; i < MAX_NUM_FIRES; i++) {
-            CFire& fire = Get(i);
+            CFire& fire = m_aFires[i];
             if (firesVisited[i] || !fire.IsActive())
                 continue;
             if (!strongest || strongest->m_fStrength < fire.m_fStrength)
@@ -422,7 +422,7 @@ void CFireManager::Update() {
         float fCombinedStrength{};
         int32 nCombinedCeilStrength{};
         for (size_t i = 0; i < MAX_NUM_FIRES; i++) {
-            CFire& fire = Get(i);
+            CFire& fire = m_aFires[i];
             if (firesVisited[i] || !fire.IsActive())
                 continue;
 
@@ -453,7 +453,7 @@ void CFireManager::Update() {
                     reinterpret_cast<uint32>(strongest),
                     SHADOW_ADDITIVE,
                     gpShadowExplosionTex,
-                    &shdwPos,
+                    shdwPos,
                     fDir * -1.2f,
                     0.0f,
                     0.0f,
@@ -475,12 +475,9 @@ void CFireManager::Update() {
                 // Keep in mind, the right line's end is always pointing towards the camera,
                 // so what you see is more like |
 
-                CVector point = strongest->m_vecPosition + CVector{ 0.0f, 0.0f, 2.6f };
-                {
-                    CVector camToPointDirNorm = TheCamera.GetPosition() - point;
-                    camToPointDirNorm.Normalise();
-                    point += camToPointDirNorm * 3.5f;
-                }
+                CVector point = strongest->m_vecPosition
+                    + CVector{ 0.0f, 0.0f, 2.6f }
+                    + (TheCamera.GetPosition() - point).Normalized() * 3.5f;
 
                 auto strongestId = reinterpret_cast<uint32>(strongest);
                 // Wrapper lambda for code readability

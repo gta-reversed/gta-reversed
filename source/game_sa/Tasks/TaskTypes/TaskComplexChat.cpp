@@ -61,14 +61,14 @@ CTask* CTaskComplexChat::CreateFirstSubTask(CPed* ped) {
         return new CTaskSimpleStandStill(999'999);
     }
 
-    if (m_GlobalSpeechContext > -1) {
+    if (m_GlobalSpeechContext != eGlobalSpeechContext::CTX_GLOBAL_UNK) {
         ped->Say(m_GlobalSpeechContext);
     }
 
     g_InterestingEvents.Add(CInterestingEvents::PEDS_CHATTING, ped);
 
-    if (m_GlobalSpeechContext == 164 || m_GlobalSpeechContext > 166 && m_GlobalSpeechContext <= 168) {
-        switch (CGeneral::GetRandomNumberInRange(0, notsa::IsFixBugs() ? 3 : 4)) {
+    if (m_GlobalSpeechContext == CTX_GLOBAL_PCONV_DISMISS || m_GlobalSpeechContext >= CTX_GLOBAL_PCONV_PART_FEM && m_GlobalSpeechContext <= CTX_GLOBAL_PCONV_PART_MALE) {
+        switch (CGeneral::GetRandomNumberInRange(0, notsa::IsFixBugs() ? 4 : 3)) {
         case 0: return new CTaskSimpleRunAnim(ANIM_GROUP_DEFAULT, ANIM_ID_ENDCHAT_01, 4.0f, 0);
         case 1: return new CTaskSimpleRunAnim(ANIM_GROUP_DEFAULT, ANIM_ID_ENDCHAT_02, 4.0f, 0);
         case 2: return new CTaskSimpleRunAnim(ANIM_GROUP_DEFAULT, ANIM_ID_ENDCHAT_03, 4.0f, 0);

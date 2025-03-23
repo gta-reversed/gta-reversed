@@ -154,7 +154,7 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     switch (m_nPickupType) {
     case PICKUP_IN_SHOP_OUT_OF_STOCK:
         object->objectFlags.bPickupInShopOutOfStock = true;
-        object->physicalFlags.bDestroyed = true; // ?
+        object->physicalFlags.bRenderScorched = true; // ?
         break;
 
     case PICKUP_PROPERTY_FORSALE:
@@ -191,7 +191,7 @@ bool CPickup::PickUpShouldBeInvisible() {
 
 // Checks if pickup collides with line (origin;target), removes pickup and creates an explosion. Used in previous GTA games for mine pickup
 // 0x4588B0
-void CPickup::ProcessGunShot(CVector* start, CVector* end) {
+void CPickup::ProcessGunShot(const CVector& start, const CVector& end) {
     if (!m_pObject)
         return;
 
@@ -203,7 +203,8 @@ void CPickup::ProcessGunShot(CVector* start, CVector* end) {
 
 // 0x4556C0
 void CPickup::Remove() {
-    CRadar::ClearBlipForEntity(BLIP_PICKUP, CPickups::GetUniquePickupIndex(this - CPickups::aPickUps.data()).num);
+    auto pickupRef = tPickupReference(*this);
+    CRadar::ClearBlipForEntity(BLIP_PICKUP, pickupRef.num);
     GetRidOfObjects();
     m_nPickupType = PICKUP_NONE;
     m_nFlags.bDisabled = true;
@@ -500,7 +501,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                         m_nRegenerationTime = regenTime + 30'000;
                                         break;
                                     case PICKUP_ON_STREET_SLOW:
-                                        m_nRegenerationTime = regenTime + (mi == MI_PICKUP_BRIBE) ? 30'000 : 36'000;
+                                        m_nRegenerationTime = regenTime + ((mi == MI_PICKUP_BRIBE) ? 30'000 : 36'000);
                                         break;
                                     default:
                                         break;
@@ -574,7 +575,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                             case PICKUP_MONEY_DOESNTDISAPPEAR:
                                 FindPlayerInfo().m_nMoney += m_nAmmo; // originally player 0
                                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_MONEY);
-                                player->Say(172u);
+                                player->Say(CTX_GLOBAL_PICKUP_CASH);
                                 SetRemoved();
                                 break;
                             case PICKUP_ASSET_REVENUE:
@@ -599,7 +600,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                     CHud::SetHelpMessage(gGxtString, false, false, false);
                                 }
                                 if (CollectPickupBuffer) {
-                                    const char* textToPrint = nullptr;
+                                    const GxtChar* textToPrint = nullptr;
                                     if (CTheScripts::IsPlayerOnAMission()) {
                                         textToPrint = TheText.Get("PROP_2");
                                     } else if (FindPlayerInfo().m_nMoney < (int32)m_nAmmo) {

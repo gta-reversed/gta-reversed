@@ -11,7 +11,12 @@
 #include "AnimBlendSequence.h"
 #include "AnimBlendAssociation.h"
 
-//! Animation of a single node (bone)
+/*!
+ * @brief Represents the animation of a single node (bone)
+ *
+ * @detail An animation can move one or more nodes (bones).
+ * @detail Each node has a sequence (that contain key-frames)
+ */
 class CAnimBlendNode {
 public:
     static void InjectHooks();

@@ -240,7 +240,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
                     continue;
 
                 vehicle->m_nScanCode = GetCurrentScanCode();
-                if (vehicle->physicalFlags.bDestroyed != 0)
+                if (vehicle->physicalFlags.bRenderScorched != 0)
                     continue;
 
                 if (!vehicle->m_pDriver)

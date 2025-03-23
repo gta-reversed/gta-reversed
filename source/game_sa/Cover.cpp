@@ -11,7 +11,6 @@ void CCover::InjectHooks() {
     RH_ScopedInstall(RemoveCoverPointsForThisEntity, 0x698740, {.reversed = false});
     RH_ScopedInstall(ShouldThisBuildingHaveItsCoverPointsCreated, 0x699230);
     RH_ScopedInstall(Update, 0x6997E0, {.reversed = false});
-
     RH_ScopedInstall(AddCoverPoint, 0x698F30, {.reversed = false});
     RH_ScopedInstall(CalculateHorizontalSize, 0x6987F0, {.reversed = false});
     RH_ScopedInstall(DoLineCheckWithinObject, 0x698990, {.reversed = false});
@@ -103,7 +102,7 @@ void CCover::FindCoverPointsForThisBuilding(CBuilding* building) {
 
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto* effect = mi->Get2dEffect(iFxInd);
-        if (effect->m_type != e2dEffectType::EFFECT_COVER_POINT)
+        if (effect->m_Type != e2dEffectType::EFFECT_COVER_POINT)
             continue;
 
         auto vecDir = CVector(effect->coverPoint.m_vecDirection.x, effect->coverPoint.m_vecDirection.y, 0.0F);
@@ -111,7 +110,7 @@ void CCover::FindCoverPointsForThisBuilding(CBuilding* building) {
 
         const auto fTwoPiToChar = 256.0F / TWO_PI;
         const auto ucAngle = static_cast<uint8>(atan2(vedTransformed.x, vedTransformed.y) * fTwoPiToChar);
-        auto vecPoint = building->GetMatrix().TransformPoint(effect->m_pos);
+        auto vecPoint = building->GetMatrix().TransformPoint(effect->m_Pos);
         CCover::AddCoverPoint(3, building, &vecPoint, effect->coverPoint.m_nType, ucAngle);
     }
 }

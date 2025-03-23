@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include <Base.h>
 #include "RepeatSector.h"
 #include <extensions/utility.hpp>
 
@@ -36,7 +37,7 @@ public:
         using namespace notsa;
 
         return m_apEntities
-             | filter(Not(IsNull<CEntity*>)) // Filter all null
+             | filter([](auto&& e) { return e != nullptr; })  // Filter all null
              | transform([](CEntity* e) -> T& { return static_cast<T&>(*e); }); // Cast to required type and dereference
     }
 

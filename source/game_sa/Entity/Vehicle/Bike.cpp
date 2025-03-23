@@ -53,7 +53,7 @@ void CBike::InjectHooks() {
     RH_ScopedVMTInstall(DoBurstAndSoftGroundRatios, 0x6B6950, { .reversed = false });
     RH_ScopedVMTInstall(SetUpWheelColModel, 0x6B67E0, { .reversed = false });
     RH_ScopedVMTInstall(RemoveRefsToVehicle, 0x6B67B0);
-    RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6B6620, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6B6620);
     RH_ScopedVMTInstall(GetComponentWorldPosition, 0x6B5990);
     RH_ScopedVMTInstall(ProcessOpenDoor, 0x6B58D0);
 }
@@ -360,7 +360,7 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
                 } else {
                     for (auto i = 0; i < numPedEntityColPts && numColPts < 32; i++) {
                         const auto& pedEntityCP = pedCPs[i];
-                        if (pedEntityCP.m_nPieceTypeA == PED_PIECE_UNKNOWN) {
+                        if (pedEntityCP.m_nPieceTypeA == PED_COL_SPHERE_LEG) {
                             continue;
                         }
                         outColPoints[numColPts++] = pedEntityCP;
@@ -589,7 +589,32 @@ void CBike::RemoveRefsToVehicle(CEntity* entityToRemove) {
 
 // 0x6B6620
 void CBike::ProcessControlCollisionCheck(bool applySpeed) {
-    plugin::CallMethod<0x6B6620, CBike*, bool>(this, applySpeed);
+    const CMatrix oldMat = GetMatrix();
+    m_bIsStuck = false;
+    SkipPhysics();
+    physicalFlags.bSkipLineCol     = false;
+    physicalFlags.bProcessingShift = false;
+    m_fMovingSpeed                 = 0.0f;
+    rng::fill(m_aWheelRatios, 1.0f);
+
+    if (applySpeed) {
+        ApplyMoveSpeed();
+        ApplyTurnSpeed();
+
+        for (auto i = 0; CheckCollision() && i < 5; i++) {
+            GetMatrix() = oldMat;
+            ApplyMoveSpeed();
+            ApplyTurnSpeed();
+        }
+    } else {
+        const auto usesCollision = m_bUsesCollision;
+        m_bUsesCollision = false;
+        CheckCollision();
+        m_bUsesCollision = usesCollision;
+    }
+
+    m_bIsStuck          = false;
+    m_bIsInSafePosition = true;
 }
 
 // 0x6B5990

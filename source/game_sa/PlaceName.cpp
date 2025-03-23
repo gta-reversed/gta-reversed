@@ -32,7 +32,7 @@ void CPlaceName::ProcessAfterFrontEndShutDown() {
 }
 
 // 0x571D90
-const char* CPlaceName::GetForMap(float x, float y) {
+const GxtChar* CPlaceName::GetForMap(float x, float y) {
     CVector posn = CalcPosition();
     CZone* zone = CTheZones::FindSmallestZoneForPosition({ x, y, posn.z }, false);
     return zone->GetTranslatedName();
@@ -66,7 +66,7 @@ void CPlaceName::Process() {
 // 0x571E60
 void CPlaceName::Display() const {
     if (m_pZone) {
-        CHud::SetZoneName(const_cast<char*>(m_pZone->GetTranslatedName()), false);
+        CHud::SetZoneName(m_pZone->GetTranslatedName(), false);
     } else {
         CHud::SetZoneName(nullptr, false);
     }

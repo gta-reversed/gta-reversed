@@ -39,7 +39,7 @@ public:
     static constexpr size_t FIRST_INT_STAT = 120;
     static constexpr size_t FIRST_UNUSED_STAT = 82;
 
-    static tStatMessage (&StatMessage)[8];
+    static tStatMessage (&StatMessage)[128];
     static uint32& TotalNumStatMessages;
     static char (&LastMissionPassedName)[8];
     static int32 (&TimesMissionAttempted)[100];
@@ -98,7 +98,7 @@ public:
     static void SetStatValue(eStats stat, float value);
     static void RegisterFastestTime(eStats stat, int32 fastestTime);
     static void RegisterBestPosition(eStats stat, int32 position);
-    static char* FindCriminalRatingString();
+    static GxtChar* FindCriminalRatingString();
     static int32 ConstructStatLine(int32 arg0, uint8 arg1);
     static void ProcessReactionStatsOnIncrement(eStats stat);
     static void DisplayScriptStatUpdateMessage(eStatUpdateState state, eStats stat, float value);

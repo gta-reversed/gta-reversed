@@ -5,6 +5,7 @@
 #include <string>
 #include <filesystem>
 
+#include <Enums/eScriptCommands.h>
 #include "ReversibleHook/Base.h"
 
 //
@@ -42,46 +43,50 @@
 
 // Supports nested categories separeted by `/`. Eg.: `Entities/Ped`
 #define RH_ScopedCategory(name) \
-    ReversibleHooks::ScopeCategory  RhCurrentCat{name};
+    ReversibleHooks::ScopeCategory  RHCurrentCat{name};
 
 #define RH_RootCategoryName "Root"
 #define RH_GlobalCategoryName "Global"
 #define RH_ScopedCategoryGlobal() \
-    ReversibleHooks::ScopeCategory  RhCurrentCat{ RH_GlobalCategoryName };
+    ReversibleHooks::ScopeCategory  RHCurrentCat{ RH_GlobalCategoryName };
 
 // Install a hook living in the current scoped class/namespace
 #define RH_ScopedInstall(fn, fnAddr, ...) \
-    ReversibleHooks::Install(RhCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, fnAddr, &RHCurrentNS::fn __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::Install(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, fnAddr, &RHCurrentNS::fn __VA_OPT__(,) __VA_ARGS__)
 
 // Install a hook on a global function
 #define RH_ScopedGlobalInstall(fn, fnAddr, ...) \
-    ReversibleHooks::Install(RhCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, fnAddr, &fn __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::Install(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, fnAddr, &fn __VA_OPT__(,) __VA_ARGS__)
 
 // Tip: If a member function is const just add the `const` keyword after the function arg list;
 // Eg.: `void(CRect::*)(float*, float*) const` (Notice the const at the end) (See function `CRect::GetCenter`)
 #define RH_ScopedOverloadedInstall(fn, suffix, fnAddr, addrCast, ...) \
-    ReversibleHooks::Install(RhCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, fnAddr, static_cast<addrCast>(&RHCurrentNS::fn) __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::Install(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, fnAddr, static_cast<addrCast>(&RHCurrentNS::fn) __VA_OPT__(,) __VA_ARGS__)
 
 #define RH_ScopedGlobalOverloadedInstall(fn, suffix, fnAddr, addrCast, ...) \
-    ReversibleHooks::Install(RhCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, fnAddr, static_cast<addrCast>(&fn) __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::Install(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, fnAddr, static_cast<addrCast>(&fn) __VA_OPT__(,) __VA_ARGS__)
 
 // Used in CCheat only - Install global `fn` as name `fnName`
 #define RH_ScopedNamedGlobalInstall(fn, fnName, fnAddr, ...) \
-    ReversibleHooks::Install(RhCurrentCat.name + "/" + RHCurrentScopeName.name, fnName, fnAddr, &fn __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::Install(RHCurrentCat.name + "/" + RHCurrentScopeName.name, fnName, fnAddr, &fn __VA_OPT__(,) __VA_ARGS__)
 
 // Similar to RH_ScopedInstall but you can specify the name explicitly.
 #define RH_ScopedNamedInstall(fn, fnName, fnAddr, ...) \
-    ReversibleHooks::Install(RhCurrentCat.name + "/" + RHCurrentScopeName.name, fnName, fnAddr, &RHCurrentNS::fn __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::Install(RHCurrentCat.name + "/" + RHCurrentScopeName.name, fnName, fnAddr, &RHCurrentNS::fn __VA_OPT__(,) __VA_ARGS__)
 
 #define RH_ScopedVMTOverloadedInstall(fn, suffix, fnGTAAddr, addrCast, ...) \
-    ReversibleHooks::InstallVirtual(RhCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionPointerToVoidP(static_cast<addrCast>(&fn)), nVirtFns __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionPointerToVoidP(static_cast<addrCast>(&fn)), nVirtFns __VA_OPT__(,) __VA_ARGS__)
 
 // Install a hook on a virtual function. To use it, `RH_ScopedVirtualClass` must be used instead of `RH_ScopedClass`
 #define RH_ScopedVMTInstall(fn, fnGTAAddr, ...) \
-    ReversibleHooks::InstallVirtual(RhCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionPointerToVoidP(&RHCurrentNS::fn), nVirtFns __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionPointerToVoidP(&RHCurrentNS::fn), nVirtFns __VA_OPT__(,) __VA_ARGS__)
+
+//! Install a script hook
+#define RH_ScopedInstallScriptCommand(cmd) \
+    ReversibleHooks::InstallScriptCommand(RHCurrentCat.name + "/" + RHCurrentScopeName.name, cmd)
 
 //#define RH_ScopedVMTAddressChange(fn, fnGTAAddr, ...) \
-//    ReversibleHooks::InstallVirtual(RhCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, pGTAVTbl, pOurVTbl, FunctionPointerToVoidP(fnGTAAddr), nVirtFns __VA_OPT__(,) __VA_ARGS__)
+//    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, pGTAVTbl, pOurVTbl, FunctionPointerToVoidP(fnGTAAddr), nVirtFns __VA_OPT__(,) __VA_ARGS__)
 
 namespace ReversibleHooks {
     class RootHookCategory;
@@ -103,6 +108,14 @@ namespace ReversibleHooks {
     };
 
     RootHookCategory& GetRootCategory();
+
+    enum class SetCatOrItemStateResult {
+        NotFound,
+        Locked,
+        Done
+    };
+
+    SetCatOrItemStateResult SetCategoryOrItemStateByPath(std::string_view path, bool enabled);
 
     namespace detail {
         // Change protection of memory pages, and automatically rollback on scope exit
@@ -153,6 +166,8 @@ namespace ReversibleHooks {
     * @param item     Item to add
     */
     void AddItemToCategory(std::string_view category, std::shared_ptr<ReversibleHook::Base> item);
+
+    void InstallScriptCommand(std::string_view category, eScriptCommands cmd);
 
     /*static void Switch(std::shared_ptr<SReversibleHook> pHook) {
         detail::HookSwitch(pHook);

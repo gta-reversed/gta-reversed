@@ -50,11 +50,12 @@ public:
             uint16 unk2 : 1;
             uint16 bPlayerAwaitsInGarage : 1;
             uint16 bPlayerOnInteriorTransition : 1;
-            uint16 unk3 : 1;                        // 0x10 unused
+            uint16 unk3 : 1; // 0x10 unused
             uint16 bPlayerSafe : 1;
-            uint16 bPlayerTalksOnPhone : 1;         // bPlayerSafeForPhoneCall?
+            uint16 bPlayerTalksOnPhone : 1; // bPlayerSafeForPhoneCall?
             uint16 bPlayerSafeForCutscene : 1;
-            uint16 bPlayerSkipsToDestination : 1;   // bPlayerSafeForDestination?
+
+            uint16 bPlayerSkipsToDestination : 1; // bPlayerSafeForDestination?
         };
         uint16 DisablePlayerControls;
     };
@@ -231,11 +232,16 @@ public:
     // KEYBOARD END
 
     // PAD
-    [[nodiscard]] bool IsCrossPressed() const noexcept                      { return BUTTON_IS_PRESSED(ButtonCross); }                                                       // 0x4D59E0
     [[nodiscard]] bool f0x57C3A0() const noexcept                           { return !NewState.ButtonCross && OldState.ButtonCross; }                                        // 0x57C3A0
+    [[nodiscard]] bool IsCrossPressed() const noexcept                      { return BUTTON_IS_PRESSED(ButtonCross); }                                                       // 0x4D59E0
     [[nodiscard]] bool IsCirclePressed() const noexcept                     { return BUTTON_IS_PRESSED(ButtonCircle); }                                                      // 0x53EF60
     [[nodiscard]] bool IsTrianglePressed() const noexcept                   { return BUTTON_IS_PRESSED(ButtonTriangle); }                                                    // 0x53EF40
     [[nodiscard]] bool IsSquarePressed() const noexcept                     { return BUTTON_IS_PRESSED(ButtonSquare); }                                                      // 0x53EF20
+
+    [[nodiscard]] bool IsCrossDown() const noexcept                         { return BUTTON_IS_DOWN(ButtonCross); }                                                       // 0x4D59E0
+    [[nodiscard]] bool IsCircleDown() const noexcept                        { return BUTTON_IS_DOWN(ButtonCircle); }                                                      // 0x53EF60
+    [[nodiscard]] bool IsTriangleDown() const noexcept                      { return BUTTON_IS_DOWN(ButtonTriangle); }                                                    // 0x53EF40
+    [[nodiscard]] bool IsSquareDown() const noexcept                        { return BUTTON_IS_DOWN(ButtonSquare); }                                                      // 0x53EF20
 
     [[nodiscard]] bool IsLeftShockPressed() const noexcept                  { return BUTTON_IS_PRESSED(ShockButtonL); }                                                      // 0x509840
     [[nodiscard]] bool IsRightShockPressed() const noexcept                 { return BUTTON_IS_PRESSED(ShockButtonR); }                                                      //
@@ -274,6 +280,7 @@ public:
     [[nodiscard]] bool IsRightShoulder2Pressed() const noexcept             { return BUTTON_IS_PRESSED(RightShoulder2); }                                                    //
     [[nodiscard]] bool IsRightShoulder2JustUp() const noexcept              { return BUTTON_JUST_UP(RightShoulder2); }                                                       // 0x53EE40
 
+    // returns angle in degrees
     [[nodiscard]] int16 GetLeftStickX() const noexcept                      { return BUTTON_IS_DOWN(LeftStickX); }
     [[nodiscard]] int16 GetLeftStickY() const noexcept                      { return BUTTON_IS_DOWN(LeftStickY); }
     [[nodiscard]] int16 GetRightStickX() const noexcept                     { return BUTTON_IS_DOWN(RightStickX); }
@@ -295,6 +302,9 @@ public:
     static bool IsMouseLButton() noexcept          { return MOUSE_IS_DOWN(lmb); }                                                   // 0x45AF70
     static bool IsMouseRButton() noexcept          { return MOUSE_IS_DOWN(rmb); }                                                   // 0x45AF80
     // MOUSE END
+
+    int16 sub_540BD0(CPed* entity) noexcept;
+    int16 sub_540CC0(CPed* ped) noexcept;
 
     int32 sub_541320() { return AverageWeapon / AverageEntries; } // 0x541320
     int32 sub_541290();

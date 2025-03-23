@@ -11,7 +11,7 @@ void CMessages::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(GetStringLength, 0x69DB50);
-    RH_ScopedInstall(StringCopy, 0x69DB70, { .reversed = false });
+    RH_ScopedInstall(StringCopy, 0x69DB70);
     RH_ScopedInstall(StringCompare, 0x69DBD0);
     RH_ScopedInstall(CutString, 0x69DC50);
     RH_ScopedInstall(ClearMessages, 0x69DCD0);
@@ -74,7 +74,7 @@ tMessage* FindUnusedMsgInArray(std::array<tMessage, N>& arr) {
 * @param numbers        Numbers to insert (Use -1 as placeholder)
 * @notsa
 */
-void CMessages::AddMessage2(const char* text, uint32 time, uint16 flag, bool bPreviousBrief, bool showInstantly, char* str, std::optional<std::array<int32, 6>> numbers) {
+void CMessages::AddMessage2(const GxtChar* text, uint32 time, uint16 flag, bool bPreviousBrief, bool showInstantly, GxtChar* str, std::optional<std::array<int32, 6>> numbers) {
     const auto CreateAt = [&](tMessage* p) {
         new (p) tMessage{
             text,
@@ -108,7 +108,7 @@ void CMessages::AddMessage2(const char* text, uint32 time, uint16 flag, bool bPr
 * Adds message to [Q]ueue
 * @addr 0x69F0B0
 */
-void CMessages::AddMessageQ(const char* text, uint32 time, uint16 flag, bool bPreviousBrief) { // Renamed from AddMessage
+void CMessages::AddMessageQ(const GxtChar* text, uint32 time, uint16 flag, bool bPreviousBrief) { // Renamed from AddMessage
     /* Some string copy code here */
     AddMessage2(text, time, flag, bPreviousBrief, false);
 }
@@ -117,7 +117,7 @@ void CMessages::AddMessageQ(const char* text, uint32 time, uint16 flag, bool bPr
 * Adds message to [Q]ueue [With a string in `text` that will be replaced by `string`]
 * @addr 0x69E800
 */
-void CMessages::AddMessageWithStringQ(const char* text, uint32 time, uint16 flag, char* string, bool bPreviousBrief) {
+void CMessages::AddMessageWithStringQ(const GxtChar* text, uint32 time, uint16 flag, GxtChar* string, bool bPreviousBrief) {
     /* Some string copy code here */
     AddMessage2(text, time, flag, bPreviousBrief, false, string);
 }
@@ -126,7 +126,7 @@ void CMessages::AddMessageWithStringQ(const char* text, uint32 time, uint16 flag
 * Show a message instantly
 * @addr 0x69F1E0
 */
-void CMessages::AddMessageJump(const char* text, uint32 time, uint16 flag, bool bPreviousBrief) { // Renamed from AddMessageJumpQ
+void CMessages::AddMessageJump(const GxtChar* text, uint32 time, uint16 flag, bool bPreviousBrief) { // Renamed from AddMessageJumpQ
     /* unused string copy here */
     AddMessage2(text, time, flag, bPreviousBrief, true);
 }
@@ -135,7 +135,7 @@ void CMessages::AddMessageJump(const char* text, uint32 time, uint16 flag, bool 
 * Adds message to [Q]ueue [With numbers in `text`]
 * @addr 0x69E360
 */
-void CMessages::AddMessageWithNumberQ(const char* text, uint32 time, uint16 flag, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, bool bPreviousBrief) {
+void CMessages::AddMessageWithNumberQ(const GxtChar* text, uint32 time, uint16 flag, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, bool bPreviousBrief) {
     /* Some string copy code here */
     AddMessage2(text, time, flag, bPreviousBrief, false, nullptr, { { n1, n2, n3, n4, n5, n6 } });
 }
@@ -144,7 +144,7 @@ void CMessages::AddMessageWithNumberQ(const char* text, uint32 time, uint16 flag
 * Show a message instantly [With numbers in `text`]
 * @addr 0x69E4E0
 */
-void CMessages::AddMessageJumpQWithNumber(const char* text, uint32 time, uint16 flag, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, bool bPreviousBrief) {
+void CMessages::AddMessageJumpQWithNumber(const GxtChar* text, uint32 time, uint16 flag, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, bool bPreviousBrief) {
     AddMessage2(text, time, flag, bPreviousBrief, true, nullptr, { { n1, n2, n3, n4, n5, n6 } });
 }
 
@@ -152,7 +152,7 @@ void CMessages::AddMessageJumpQWithNumber(const char* text, uint32 time, uint16 
 * Show a message instantly [With a string in `text`]
 * @addr 0x69E950
 */
-void CMessages::AddMessageJumpQWithString(const char* text, uint32 time, uint16 flag, char* string, bool bPreviousBrief) {
+void CMessages::AddMessageJumpQWithString(const GxtChar* text, uint32 time, uint16 flag, GxtChar* string, bool bPreviousBrief) {
     AddMessage2(text, time, flag, bPreviousBrief, true, string);
 }
 
@@ -169,7 +169,7 @@ void CMessages::AddMessageJumpQWithString(const char* text, uint32 time, uint16 
 * @param numbers        Numbers to insert (Use -1 as placeholder)
 * @notsa
 */
-void CMessages::AddBigMessage2(const char* text, uint32 time, eMessageStyle style, bool showInstantly, char* str, std::optional<std::array<int32, 6>> numbers) {
+void CMessages::AddBigMessage2(const GxtChar* text, uint32 time, eMessageStyle style, bool showInstantly, GxtChar* str, std::optional<std::array<int32, 6>> numbers) {
     const auto CreateAt = [&](auto* ptr) {
         new (ptr) tMessage{
             text,
@@ -189,31 +189,31 @@ void CMessages::AddBigMessage2(const char* text, uint32 time, eMessageStyle styl
 
 // Adds big message and shows it instantly
 // 0x69F2B0
-void CMessages::AddBigMessage(const char* text, uint32 time, eMessageStyle style) {
+void CMessages::AddBigMessage(const GxtChar* text, uint32 time, eMessageStyle style) {
     AddBigMessage2(text, time, style, true);
 }
 
 // Adds big message to [Q]ueue
 // 0x69F370
-void CMessages::AddBigMessageQ(const char* text, uint32 time, eMessageStyle style) {
+void CMessages::AddBigMessageQ(const GxtChar* text, uint32 time, eMessageStyle style) {
     AddBigMessage2(text, time, style, false);
 }
 
 // Adds big message with numbers and shows it instantly
 // 0x69E5F0
-void CMessages::AddBigMessageWithNumber(const char* text, uint32 time, eMessageStyle style, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6) {
+void CMessages::AddBigMessageWithNumber(const GxtChar* text, uint32 time, eMessageStyle style, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6) {
     AddBigMessage2(text, time, style, true, nullptr, {{n1, n2, n3, n4, n5, n6}});
 }
 
 // Adds big message with numbers to [Q]ueue
 // 0x69E6E0
-void CMessages::AddBigMessageWithNumberQ(const char* text, uint32 time, eMessageStyle style, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6) {
+void CMessages::AddBigMessageWithNumberQ(const GxtChar* text, uint32 time, eMessageStyle style, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6) {
     AddBigMessage2(text, time, style, false, nullptr, { {n1, n2, n3, n4, n5, n6} });
 }
 
 // Adds message to previous brief
 // 0x69DD50
-void CMessages::AddToPreviousBriefArray(const char* text, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, const char* string) {
+void CMessages::AddToPreviousBriefArray(const GxtChar* text, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, const GxtChar* string) {
     const auto numbers = std::array{ n1, n2, n3, n4, n5, n6 };
 
     // Find unused entry + duplicate check
@@ -257,11 +257,16 @@ void CMessages::AddToPreviousBriefArray(const char* text, int32 n1, int32 n2, in
 // Removes registered messages
 // 0x69DCD0
 void CMessages::ClearMessages(bool bIgnoreMissionTitle) {
-    for (auto i = BIGMessages.size(); i-- > 0;) {
-        if (bIgnoreMissionTitle || (i != STYLE_BOTTOM_RIGHT && i != STYLE_MIDDLE_SMALLER_HIGHER)) {
-            BIGMessages[i] = {};
+    // Clear all big messages except mission titles if bIgnoreMissionTitle is true
+    for (eMessageStyle style = eMessageStyle::STYLE_MIDDLE; style < eMessageStyle::NUM_MESSAGE_STYLES; style = static_cast<eMessageStyle>(style + 1)) {
+        // Skip STYLE_BOTTOM_RIGHT and STYLE_MIDDLE_SMALLER_HIGHER if ignoring mission titles
+        if (bIgnoreMissionTitle && (style == eMessageStyle::STYLE_BOTTOM_RIGHT || style == eMessageStyle::STYLE_MIDDLE_SMALLER_HIGHER)) {
+            continue;
         }
+        rng::fill(BIGMessages[style].Stack, tMessage{});
     }
+
+    // Clear brief messages
     ClearSmallMessagesOnly();
 }
 
@@ -278,7 +283,7 @@ void CMessages::ClearPreviousBriefArray() {
 }
 
 template<size_t N>
-void ClearThisPrint_Impl(std::array<tMessage, N>& messages, const char* text, auto&& OnFirstMessageCleared) {
+void ClearThisPrint_Impl(std::array<tMessage, N>& messages, const GxtChar* text, auto&& OnFirstMessageCleared) {
     assert(text);
     for (;;) {
         size_t i = 0;
@@ -287,7 +292,7 @@ void ClearThisPrint_Impl(std::array<tMessage, N>& messages, const char* text, au
             if (!msg.IsValid()) {
                 return; // Reached end of active texts
             }
-            if (strcmp(msg.Text, text) == 0) {
+            if (strcmp(AsciiFromGxtChar(msg.Text), AsciiFromGxtChar(text)) == 0) {
                 break; // Texts match, so clear this
             }
             if (++i >= messages.size()) {
@@ -317,7 +322,7 @@ void ClearThisPrint_Impl(std::array<tMessage, N>& messages, const char* text, au
 
 // Removes small message with this text
 // 0x69EA30
-void CMessages::ClearThisPrint(const char* text) {
+void CMessages::ClearThisPrint(const GxtChar* text) {
     ClearThisPrint_Impl(BriefMessages, text, [](tMessage& msg) {
         if (!msg.Text) {
             return;
@@ -337,7 +342,7 @@ void CMessages::ClearThisPrint(const char* text) {
 
 // Removes big message with this text
 // 0x69EBE0
-void CMessages::ClearThisBigPrint(const char* text) {
+void CMessages::ClearThisBigPrint(const GxtChar* text) {
     assert(text);
     for (size_t b = 0; b < NUM_MESSAGE_STYLES; b++) {
         ClearThisPrint_Impl(BIGMessages[b].Stack, text, [](tMessage&) { /*nop*/ });
@@ -366,27 +371,34 @@ void CMessages::ClearAllMessagesDisplayedByGame(bool unk) {
 
 // Returns length of a string
 // 0x69DB50
-uint32 CMessages::GetStringLength(const char* string) {
-    return strlen(string);
+uint32 CMessages::GetStringLength(const GxtChar* string) {
+    return std::strlen(AsciiFromGxtChar(string));
 }
 
 // Copies string src to dest
 // 0x69DB70
-void CMessages::StringCopy(char* dest, const char* src, uint16 len) {
-    //strncpy(dest, src, len); - TODO: Can't use this cause it's unsafe
-    plugin::Call<0x69DB70, const char*, const char*, uint16>(dest, src, len);
+void CMessages::StringCopy(GxtChar* dest, const GxtChar* src, uint16 len) {
+    if (src) {
+        GxtCharStrcpy(dest, src);
+        dest[len - 1] = 0; // Ensure null termination at specified length
+    } else {
+        // Handling of NULL
+        if (len > 0) {
+            dest[0] = 0;
+        }
+    }
 }
 
 /*!
 * Check if 2 string are equal
 * @addr 0x69DBD0
 */
-bool CMessages::StringCompare(const char* str1, const char* str2, uint16 len) {
-    return strncmp(str1, str2, len) == 0;
+bool CMessages::StringCompare(const GxtChar* str1, const GxtChar* str2, uint16 len) {
+    return std::strncmp(AsciiFromGxtChar(str1), AsciiFromGxtChar(str2), len) == 0;
 }
 
 // 0x69DC50
-void CMessages::CutString(int32 count, const char* str, char** dest) {
+void CMessages::CutString(int32 count, const GxtChar* str, GxtChar** dest) {
     NOTSA_UNREACHABLE(); // unused
 }
 
@@ -419,43 +431,43 @@ void StringReplace(const char* haystack, const char (&needle)[N], char* dst, aut
 
 // Insert numbers into string
 // 0x69DE90
-void CMessages::InsertNumberInString(const char* str, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, char* dst) {
+void CMessages::InsertNumberInString(const GxtChar* str, int32 n1, int32 n2, int32 n3, int32 n4, int32 n5, int32 n6, GxtChar* dst) {
     if (!str) { // Appereantly that's valid?
         *dst = 0; // Null terminate result anyways
         return;
     }
-    StringReplace(str, "~1~", dst, [n = 0, numbers = std::array{ n1, n2, n3, n4, n5, n6 }](char* where) mutable {
-        // Originally they used sprintf + AsciiToGxtChar, but this should work for now (Until we start using GtxChar properly)
+    StringReplace(AsciiFromGxtChar(str), "~1~", (char*)dst, [n = 0, numbers = std::array{ n1, n2, n3, n4, n5, n6 }](char* where) mutable {
+        // Originally they used sprintf + AsciiToGxtChar, but this should work. We don't care about any substring except '~1~'.
         return std::format_to(where, "{}", numbers[n++]);
     });
 }
 
 // Inserts string into src
 // 0x69E040
-void CMessages::InsertStringInString(char* target, const char* replacement) {
+void CMessages::InsertStringInString(GxtChar* target, const GxtChar* replacement) {
     if (!target || !replacement) { // Appereantly that's valid?
         return;
     }
 
-    char buf[MSG_BUF_SZ];
-    strcpy_s(buf, target);
-    StringReplace(buf, "~1~", target, [&, szrepl = strlen(replacement)](char* where) {
+    GxtChar buf[MSG_BUF_SZ];
+    notsa::string_copy((char*)buf, AsciiFromGxtChar(target), sizeof(buf));
+    StringReplace(AsciiFromGxtChar(buf), "~1~", (char*)target, [&, szrepl = strlen(AsciiFromGxtChar(replacement))](char* where) {
         return std::copy(replacement, replacement + szrepl, where);
     });
 }
 
 // Inserts key events into string
 // 0x69E160
-void CMessages::InsertPlayerControlKeysInString(char* string) {
-    char haystack[MSG_BUF_SZ];
-    strcpy_s(haystack, string);
+void CMessages::InsertPlayerControlKeysInString(GxtChar* string) {
+    GxtChar haystack[MSG_BUF_SZ];
+    GxtCharStrcpy(haystack, string);
 
     // Based on https://stackoverflow.com/a/32413923
     auto        pDst = string;
-    const char* pHS  = haystack;
+    const auto* pHS  = haystack;
 
     // Skip over a portion in the haystack and copy it into `dst`
-    const auto SkipTo = [&](const char* to) {
+    const auto SkipTo = [&](const GxtChar* to) {
         pDst = std::copy(pHS, to, pDst);
         pHS  = to;
     };
@@ -464,11 +476,11 @@ void CMessages::InsertPlayerControlKeysInString(char* string) {
     // We tolerate errors because this function is called for all strings printed on the screen
     // So in case it's a debug string that happens to contain ~k~ we don't want to `assert` and crash.
     for(;;) {
-        const auto pNeedle = strstr(pHS, "~k~~");
+        const auto pNeedle = strstr(AsciiFromGxtChar(pHS), "~k~~");
 
         // walked past last occurrence of needle; copy remaining part (up to the end)
         if (!pNeedle) {
-            SkipTo(pHS + strlen(pHS));
+            SkipTo(pHS + strlen(AsciiFromGxtChar(pHS)));
             break;
         }
 
@@ -481,7 +493,7 @@ void CMessages::InsertPlayerControlKeysInString(char* string) {
 
         // If not found, skip `~k`, as that for sure won't be a valid format string the next time. (This way ~k~k would still work)
         if (!pNameEnd) {
-            DEV_LOG("Closing tag of ~k~ not found [String: {}]", haystack);
+            DEV_LOG("Closing tag of ~k~ not found [String: {}]", AsciiFromGxtChar(haystack));
             SkipTo(pHS + 2);
             continue;
         }
@@ -492,13 +504,13 @@ void CMessages::InsertPlayerControlKeysInString(char* string) {
 
         // If not found we know the location of the next `~`, so skip to there
         if (actionId == (uint16)-1) {
-            SkipTo(pNameEnd);
-            DEV_LOG("Invalid action name({}) [String: {}]", std::string_view{ pNeedle, pNameEnd }, haystack);
+            SkipTo((const GxtChar*)pNameEnd);
+            DEV_LOG("Invalid action name({}) [String: {}]", std::string_view{ pNeedle, pNameEnd }, AsciiFromGxtChar(haystack));
             continue;
         }
 
         // Copy stuff from before the control name (Using SkipTo for ease of life)
-        SkipTo(pNeedle);
+        SkipTo((const GxtChar*)pNeedle);
 
         // Get action name....
         char aname[256];
@@ -511,7 +523,7 @@ void CMessages::InsertPlayerControlKeysInString(char* string) {
         pDst = std::copy(aname, aname + strlen(aname), pDst);
 
         // We don't use SkipTo here, as we don't want to copy anything
-        pHS  = pNameEnd + 1; // Go past the `~` that's after the control name
+        pHS  = GxtCharFromAscii(pNameEnd) + 1; // Go past the `~` that's after the control name
     }
 
     // null terminate
@@ -561,37 +573,30 @@ void CMessages::Process() {
 // Displays messages
 // 0x69EFC0
 void CMessages::Display(bool bNotFading) {
-    ZoneScoped;
+    GxtChar buff[MSG_BUF_SZ];
 
-    char msgText[MSG_BUF_SZ];
-    const auto PreProcessMsgText = [&](tMessage msg) {
-        InsertNumberInString(
-            msg.Text,
-            msg.NumbersToInsert[0],
-            msg.NumbersToInsert[1],
-            msg.NumbersToInsert[2],
-            msg.NumbersToInsert[3],
-            msg.NumbersToInsert[4],
-            msg.NumbersToInsert[5],
-            msgText
-        );
-        InsertStringInString(msgText, msg.StringToInsert);
-        InsertPlayerControlKeysInString(msgText);
+    // Helper function to process text for display
+    const auto ProcessMessageText = [&buff](const tMessage& msg) {
+        InsertNumberInString(msg.Text, msg.NumbersToInsert[0], msg.NumbersToInsert[1], msg.NumbersToInsert[2], msg.NumbersToInsert[3], msg.NumbersToInsert[4], msg.NumbersToInsert[5], buff);
+        InsertStringInString(buff, msg.StringToInsert);
+        InsertPlayerControlKeysInString(buff);
     };
 
+    // Display big messages if not fading
     if (bNotFading) {
-        for (auto&& [style, omgVeryBig] : notsa::enumerate(BIGMessages)) {
-            const auto& msg = omgVeryBig.Stack.front();
-            if (!msg.IsValid()) {
-                continue;
-            }
-            PreProcessMsgText(msg);
-            CHud::SetBigMessage(msgText, (eMessageStyle)style);
+        for (eMessageStyle style = STYLE_MIDDLE; style < NUM_MESSAGE_STYLES; style = static_cast<eMessageStyle>(style + 1)) {
+            const auto& msg = BIGMessages[style].Stack[0];
+            // Please dont check for IsValid here, that isnt correct, because if
+            // the array is empty, the first element is still valid, but not initialized
+            ProcessMessageText(msg);
+            CHud::SetBigMessage(buff, style);
         }
     }
 
+    // Display brief messages based on script fading condition
     if (bNotFading == CTheScripts::bDrawSubtitlesBeforeFade) {
-        PreProcessMsgText(BriefMessages[0]);
-        CHud::SetMessage(msgText);
+        const auto& msg = BriefMessages[0];
+        ProcessMessageText(msg);
+        CHud::SetMessage(buff);
     }
 }

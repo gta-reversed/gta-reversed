@@ -15,7 +15,7 @@
 void ResetGammaWhenExiting() {
     if (gbGammaChanged) {
         if (auto d3dDevice = (IDirect3DDevice9*)RwD3D9GetCurrentD3DDevice()) {
-            d3dDevice->SetGammaRamp(0u, D3DSGR_CALIBRATE, &savedGamma);
+            d3dDevice->SetGammaRamp(0u, D3DSGR_CALIBRATE, &CGamma::ms_SavedGamma);
         }
         gbGammaChanged = false;
     }

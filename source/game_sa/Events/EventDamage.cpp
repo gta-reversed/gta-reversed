@@ -427,14 +427,13 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
         if (m_pSourceEntity && m_pSourceEntity->IsPed())
             taskFight = pedSourceEntity->m_pIntelligence->GetTaskFighting();
 
-        CVector bonePosition;
-        ped->GetBonePosition(*(RwV3d*)&bonePosition, BONE_HEAD, false);
+        const auto bonePosition = ped->GetBonePosition(BONE_HEAD, false);
         CTask* pSimplestActiveTask = ped->GetTaskManager().GetSimplestActiveTask();
         if (ped->GetPosition().z - 0.2f > bonePosition.z
             && pSimplestActiveTask && (pSimplestActiveTask->GetTaskType() == TASK_SIMPLE_FALL || pSimplestActiveTask->GetTaskType() == TASK_SIMPLE_GET_UP))
         {
             m_bFallDown = true;
-            m_nAnimID = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_800) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT;
+            m_nAnimID = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_FRONT) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT;
         }
         else
         {
@@ -678,18 +677,18 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
     }
 
     CTask* pSimplestActiveTask = ped->GetTaskManager().GetSimplestActiveTask();
-    CVector bonePosition;
-    ped->GetBonePosition(*(RwV3d*)&bonePosition, BONE_HEAD, false);
-    if (bonePosition.z < ped->GetPosition().z && !ped->IsPlayer()
+
+    const auto headPos = ped->GetBonePosition(BONE_HEAD, false);
+    if (headPos.z < ped->GetPosition().z && !ped->IsPlayer()
         && pSimplestActiveTask
         && (pSimplestActiveTask->GetTaskType() == TASK_SIMPLE_FALL|| pSimplestActiveTask->GetTaskType() == TASK_SIMPLE_GET_UP))
     {
         m_bFallDown = true;
-        m_nAnimID = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_800) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT;
+        m_nAnimID = RpAnimBlendClumpGetFirstAssociation(ped->m_pRwClump, ANIMATION_IS_FRONT) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT;
     }
     else if (m_pedPieceType == PED_PIECE_TORSO) {
         bool bMultiplyForceWithPedStrength = false;
-        if (sourceEntityTaskUseGun && sourceEntityTaskUseGun->m_nLastCommand == eGunCommand::PISTOLWHIP) {
+        if (sourceEntityTaskUseGun && sourceEntityTaskUseGun->GetLastGunCommand() == eGunCommand::PISTOLWHIP) {
             if (m_ucDirection)
                 bMultiplyForceWithPedStrength = true;
             if (ped->IsPlayer())
@@ -737,7 +736,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                     m_bFallDown = true;
                 bPlayHitAnim = false;
             }
-            else if (sourceEntityTaskUseGun && sourceEntityTaskUseGun->m_nLastCommand == eGunCommand::PISTOLWHIP) {
+            else if (sourceEntityTaskUseGun && sourceEntityTaskUseGun->m_LastCmd == eGunCommand::PISTOLWHIP) {
                 m_nAnimGroup = CTaskSimpleFight::m_aComboData[0].m_nAnimGroup;
                 m_nAnimID = ANIM_ID_FIGHT_HIT_2;
                 m_fAnimBlend = 16.0f;

@@ -14,6 +14,41 @@
 #include "TheScripts.h"
 #include "Garages.h"
 
+//#define ENABLE_SAVE_DATA_LOG
+#ifdef ENABLE_SAVE_DATA_LOG
+template<typename TInputIter>
+std::string make_hex_string(TInputIter first, TInputIter last, bool use_uppercase = true, bool insert_spaces = false) {
+    std::ostringstream ss;
+    ss << std::hex << std::setfill('0');
+    if (use_uppercase) {
+        ss << std::uppercase;
+    }
+    while (first != last) {
+        ss << std::setw(2) << static_cast<int>(*first++);
+        if (insert_spaces && first != last) {
+            ss << " ";
+        }
+    }
+    return ss.str();
+}
+
+
+void LOG_HEX_SPAN(uint8* start, size_t size) {
+    auto span = std::span(start, size);
+    auto str  = make_hex_string(span.begin(), span.end(), true, true);
+    DEV_LOG("{}", str);
+}
+
+    #define LOG_SAVE(msg) DEV_LOG(msg)
+
+#else
+void LOG_HEX_SPAN(uint8* start, size_t size) {}
+    #define LOG_SAVE(msg)
+#endif
+
+
+
+
 constexpr uint32 SIZE_OF_ONE_GAME_IN_BYTES = 202748;
 
 void CGenericGameStorage::InjectHooks() {
@@ -30,11 +65,11 @@ void CGenericGameStorage::InjectHooks() {
     RH_ScopedInstall(DoGameSpecificStuffAfterSucessLoad, 0x618E90, { .reversed = false });
     RH_ScopedInstall(InitRadioStationPositionList, 0x618E70, { .reversed = false });
     RH_ScopedGlobalInstall(GetSavedGameDateAndTime, 0x618D00, { .reversed = false });
-    RH_ScopedInstall(GenericLoad, 0x5D17B0, { .reversed = false });
-    RH_ScopedInstall(GenericSave, 0x5D13E0, { .reversed = false });
+    RH_ScopedInstall(GenericLoad, 0x5D17B0);
+    RH_ScopedInstall(GenericSave, 0x5D13E0, {.enabled = true });
     RH_ScopedInstall(CheckSlotDataValid, 0x5D1380, { .reversed = false });
-    //RH_ScopedInstall(LoadDataFromWorkBuffer, 0x5D1300, { .reversed = false });
-    //RH_ScopedInstall(SaveDataToWorkBuffer, 0x5D1270, { .reversed = false });
+    RH_ScopedOverloadedInstall(LoadDataFromWorkBuffer, "org", 0x5D1300, bool(*)(void*, int32));
+    RH_ScopedOverloadedInstall(SaveDataToWorkBuffer, "org", 0x5D1270, bool(*)(void*, int32));
     RH_ScopedInstall(LoadWorkBuffer, 0x5D10B0, { .reversed = false });
     RH_ScopedInstall(SaveWorkBuffer, 0x5D0F80, { .reversed = false });
     RH_ScopedInstall(GetCurrentVersionNumber, 0x5D0F50, { .reversed = false });
@@ -48,7 +83,7 @@ void CGenericGameStorage::InjectHooks() {
 
 // 0x5D08C0
 void CGenericGameStorage::ReportError(eBlocks nBlock, eSaveLoadError nError) {
-    char buffer[256]{};
+    char       buffer[256]{};
     const auto GetErrorString = [nError] {
         switch (nError) {
         case eSaveLoadError::LOADING:
@@ -139,7 +174,7 @@ void CGenericGameStorage::DoGameSpecificStuffBeforeSave() {
     CRopes::Shutdown();
     CPickups::RemovePickupObjects();
 
-    auto& pinfo = FindPlayerInfo(0);
+    auto& pinfo             = FindPlayerInfo(0);
     pinfo.m_pPed->m_fHealth = (float)std::min((uint8)200u, pinfo.m_nMaxHealth);
 
     CGangWars::EndGangWar(false);
@@ -160,7 +195,7 @@ void CGenericGameStorage::DoGameSpecificStuffAfterSucessLoad() {
     CStreaming::LoadAllRequestedModels(false);
     CGame::TidyUpMemory(true, false);
     JustLoadedDontFadeInYet = true;
-    StillToFadeOut = true;
+    StillToFadeOut          = true;
     TheCamera.Fade(0.f, eFadeFlag::FADE_IN);
     CTheScripts::Process();
     CTagManager::UpdateNumTagged();
@@ -181,7 +216,7 @@ void CGenericGameStorage::InitRadioStationPositionList() {
 bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
     out_bVariablesLoaded = false;
 
-    ms_bFailed = false;
+    ms_bFailed  = false;
     ms_CheckSum = 0;
     CCheat::ResetCheats();
     if (!OpenFileForReading(nullptr, 0)) {
@@ -190,15 +225,16 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
     ms_bLoading = true;
 
     CSimpleVariablesSaveStructure varsBackup{};
-
+    LOG_SAVE("LOAD - START");
     for (auto block = 0u; block < (uint32)eBlocks::TOTAL; block++) {
         char header[std::size(ms_BlockTagName)]{};
+        LOG_SAVE("LOAD - HEADER");
         if (!LoadDataFromWorkBuffer(header, sizeof(header) - 1)) {
             CloseFile();
             return false;
         }
 
-        if (std::string_view{header} != ms_BlockTagName) {
+        if (std::string_view{ header } != ms_BlockTagName) {
             if (block != 0) {
                 ReportError((eBlocks)(block - 1), eSaveLoadError::LOADING);
                 if (block == 1) {
@@ -213,10 +249,11 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
 
         switch ((eBlocks)block) {
         case eBlocks::SIMPLE_VARIABLES: {
+            LOG_SAVE("LOAD - SIMPLE_VARIABLES");
             varsBackup.Construct();
 
             CSimpleVariablesSaveStructure vars{};
-            if (!LoadDataFromWorkBuffer(&vars, sizeof(vars))) {
+            if (!LoadDataFromWorkBuffer(vars)) {
                 ms_bFailed = true;
                 break;
             }
@@ -232,39 +269,51 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
             break;
         }
         case eBlocks::SCRIPTS:
+            LOG_SAVE("LOAD - SCRIPTS");
             CTheScripts::Load();
             break;
         case eBlocks::POOLS:
-            if (CPools::Load())
+            LOG_SAVE("LOAD - POOLS");
+            if (CPools::Load()) {
                 CTheScripts::DoScriptSetupAfterPoolsHaveLoaded();
+            }
             break;
         case eBlocks::GARAGES:
+            LOG_SAVE("LOAD - GARAGES");
             CGarages::Load();
             break;
         case eBlocks::GAMELOGIC:
+            LOG_SAVE("LOAD - GAMELOGIC");
             CGameLogic::Load();
             break;
         case eBlocks::PATHS:
+            LOG_SAVE("LOAD - PATHS");
             ThePaths.Load();
             break;
         case eBlocks::PICKUPS:
+            LOG_SAVE("LOAD - PICKUPS");
             CPickups::Load();
             break;
         case eBlocks::PHONEINFO: // Unused
-             break;
+            break;
         case eBlocks::RESTART:
+            LOG_SAVE("LOAD - RESTART");
             CRestart::Load();
             break;
         case eBlocks::RADAR:
+            LOG_SAVE("LOAD - RADAR");
             CRadar::Load();
             break;
         case eBlocks::ZONES:
+            LOG_SAVE("LOAD - ZONES");
             CTheZones::Load();
             break;
         case eBlocks::GANGS:
+            LOG_SAVE("LOAD - GANGS");
             CGangs::Load();
             break;
         case eBlocks::CAR_GENERATORS:
+            LOG_SAVE("LOAD - CAR_GENERATORS");
             CTheCarGenerators::Load();
             break;
         case eBlocks::PED_GENERATORS: // Unused
@@ -272,42 +321,55 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
         case eBlocks::AUDIO_SCRIPT_OBJECT: // Unused
             break;
         case eBlocks::PLAYERINFO:
+            LOG_SAVE("LOAD - PLAYERINFO");
             FindPlayerInfo().Load();
             break;
         case eBlocks::STATS:
+            LOG_SAVE("LOAD - STATS");
             CStats::Load();
             break;
         case eBlocks::SET_PIECES:
+            LOG_SAVE("LOAD - SET_PIECES");
             CSetPieces::Load();
             break;
         case eBlocks::STREAMING:
+            LOG_SAVE("LOAD - STREAMING");
             CStreaming::Load();
             break;
         case eBlocks::PED_TYPES:
+            LOG_SAVE("LOAD - PED_TYPES");
             CPedType::Load();
             break;
         case eBlocks::TAGS:
+            LOG_SAVE("LOAD - TAGS");
             CTagManager::Load();
             break;
         case eBlocks::IPLS:
+            LOG_SAVE("LOAD - IPLS");
             CIplStore::Load();
             break;
         case eBlocks::SHOPPING:
+            LOG_SAVE("LOAD - SHOPPING");
             CShopping::Load();
             break;
         case eBlocks::GANGWARS:
+            LOG_SAVE("LOAD - GANGWARS");
             CGangWars::Load();
             break;
         case eBlocks::STUNTJUMPS:
+            LOG_SAVE("LOAD - STUNTJUMPS");
             CStuntJumpManager::Load();
             break;
         case eBlocks::ENTRY_EXITS:
+            LOG_SAVE("LOAD - ENTRY_EXITS");
             CEntryExitManager::Load();
             break;
         case eBlocks::RADIOTRACKS:
+            LOG_SAVE("LOAD - RADIOTRACKS");
             CAERadioTrackManager::Load();
             break;
         case eBlocks::USER3DMARKERS:
+            LOG_SAVE("LOAD - USER3DMARKERS");
             C3dMarkers::LoadUser3dMarkers();
             break;
         default:
@@ -322,6 +384,7 @@ bool CGenericGameStorage::GenericLoad(bool& out_bVariablesLoaded) {
             return false;
         }
     }
+    LOG_SAVE("LOAD - END");
 
     ms_bLoading = false;
     if (!CloseFile()) {
@@ -341,8 +404,9 @@ bool CGenericGameStorage::GenericSave() {
     }
 
     ms_CheckSum = {};
-
+    LOG_SAVE("SAVE - START");
     for (auto block = 0u; block < (uint32)eBlocks::TOTAL; block++) {
+        LOG_SAVE("SAVE - HEADER");
         if (!SaveDataToWorkBuffer((void*)ms_BlockTagName, strlen(ms_BlockTagName))) {
             CloseFile();
             return false;
@@ -350,44 +414,56 @@ bool CGenericGameStorage::GenericSave() {
 
         switch ((eBlocks)block) {
         case eBlocks::SIMPLE_VARIABLES: {
+            LOG_SAVE("SAVE - SIMPLE_VARIABLES");
             CSimpleVariablesSaveStructure vars{};
             vars.Construct();
-            ms_bFailed = !SaveDataToWorkBuffer((void*)&vars, sizeof(vars));
+            ms_bFailed = !SaveDataToWorkBuffer(vars);
             break;
         }
         case eBlocks::SCRIPTS:
+            LOG_SAVE("SAVE - SCRIPTS");
             CTheScripts::Save();
             break;
         case eBlocks::POOLS:
+            LOG_SAVE("SAVE - POOLS");
             CPools::Save();
             break;
         case eBlocks::GARAGES:
+            LOG_SAVE("SAVE - GARAGES");
             CGarages::Save();
             break;
         case eBlocks::GAMELOGIC:
+            LOG_SAVE("SAVE - GAMELOGIC");
             CGameLogic::Save();
             break;
         case eBlocks::PATHS:
+            LOG_SAVE("SAVE - PATHS");
             ThePaths.Save();
             break;
         case eBlocks::PICKUPS:
+            LOG_SAVE("SAVE - PICKUPS");
             CPickups::Save();
             break;
         case eBlocks::PHONEINFO: // Unused
             break;
         case eBlocks::RESTART:
+            LOG_SAVE("SAVE - RESTART");
             CRestart::Save();
             break;
         case eBlocks::RADAR:
+            LOG_SAVE("SAVE - RADAR");
             CRadar::Save();
             break;
         case eBlocks::ZONES:
+            LOG_SAVE("SAVE - ZONES");
             CTheZones::Save();
             break;
         case eBlocks::GANGS:
+            LOG_SAVE("SAVE - GANGS");
             CGangs::Save();
             break;
         case eBlocks::CAR_GENERATORS:
+            LOG_SAVE("SAVE - CAR_GENERATORS");
             CTheCarGenerators::Save();
             break;
         case eBlocks::PED_GENERATORS: // Unused
@@ -395,68 +471,92 @@ bool CGenericGameStorage::GenericSave() {
         case eBlocks::AUDIO_SCRIPT_OBJECT: // Unused
             break;
         case eBlocks::PLAYERINFO:
+            LOG_SAVE("SAVE - PLAYERINFO");
             FindPlayerInfo().Save();
             break;
         case eBlocks::STATS:
+            LOG_SAVE("SAVE - STATS");
             CStats::Save();
             break;
         case eBlocks::SET_PIECES:
+            LOG_SAVE("SAVE - SET_PIECES");
             CSetPieces::Save();
             break;
         case eBlocks::STREAMING:
+            LOG_SAVE("SAVE - STREAMING");
             CStreaming::Save();
             break;
         case eBlocks::PED_TYPES:
+            LOG_SAVE("SAVE - PED_TYPES");
             CPedType::Save();
             break;
         case eBlocks::TAGS:
+            LOG_SAVE("SAVE - TAGS");
             CTagManager::Save();
             break;
         case eBlocks::IPLS:
+            LOG_SAVE("SAVE - IPLS");
             CIplStore::Save();
             break;
         case eBlocks::SHOPPING:
+            LOG_SAVE("SAVE - SHOPPING");
             CShopping::Save();
             break;
         case eBlocks::GANGWARS:
+            LOG_SAVE("SAVE - GANGWARS");
             CGangWars::Save();
             break;
         case eBlocks::STUNTJUMPS:
+            LOG_SAVE("SAVE - STUNTJUMPS");
             CStuntJumpManager::Save();
             break;
         case eBlocks::ENTRY_EXITS:
+            LOG_SAVE("SAVE - ENTRY_EXITS");
             CEntryExitManager::Save();
             break;
         case eBlocks::RADIOTRACKS:
+            LOG_SAVE("SAVE - RADIOTRACKS");
             CAERadioTrackManager::Save();
             break;
         case eBlocks::USER3DMARKERS:
+            LOG_SAVE("SAVE - USER3DMARKERS");
             C3dMarkers::SaveUser3dMarkers();
             break;
         default:
             assert(0 && "Invalid block"); // NOTSA
             break;
         }
-    }
 
+        if (ms_bFailed) {
+            CloseFile();
+            return false;
+        }
+    }
+    LOG_SAVE("SAVE - END");
     while (ms_WorkBufferPos + ms_FilePos < SIZE_OF_ONE_GAME_IN_BYTES && (SIZE_OF_ONE_GAME_IN_BYTES - ms_FilePos) >= BUFFER_SIZE) {
         ms_WorkBufferPos = BUFFER_SIZE;
         if (!SaveWorkBuffer(false)) {
             CloseFile();
             return false;
         }
+
+        if (ms_WorkBufferPos + ms_FilePos >= SIZE_OF_ONE_GAME_IN_BYTES) {
+            break;
+        }
+        ms_WorkBufferPos = SIZE_OF_ONE_GAME_IN_BYTES - ms_FilePos;
     }
 
-    if (SaveWorkBuffer(true)) {
-        strncpy_s(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
-        if (CloseFile()) {
-            CPad::UpdatePads();
-            return true;
-        }
+    if (!SaveWorkBuffer(true)) {
+        CloseFile();
         return false;
+	}
+
+    strncpy_s(ms_SaveFileNameJustSaved, ms_SaveFileName, std::size(ms_SaveFileNameJustSaved) - 1);
+    if (CloseFile()) {
+        CPad::UpdatePads();
+        return true;
     }
-    CloseFile();
-    return true;
+    return false;
 }
 
 // 0x5D1380
@@ -479,48 +579,53 @@ bool CGenericGameStorage::CheckSlotDataValid(int32 slot) {
 bool CGenericGameStorage::LoadDataFromWorkBuffer(void* data, int32 size) {
     assert(data);
 
-    if (ms_bFailed)
+    if (ms_bFailed) {
         return false;
+    }
 
-    if (size <= 0)
+    if (size <= 0) {
         return true;
+    }
 
-    auto pos = ms_WorkBufferPos;
-
-    if (static_cast<uint32>(size + pos) > ms_WorkBufferSize) {
-        const auto maxSize = BUFFER_SIZE - pos;
-        if (LoadDataFromWorkBuffer(data, maxSize)) {
-            if (LoadWorkBuffer()) {
-                pos = ms_WorkBufferPos;
-                data = (uint8*)data + maxSize;
-                size -= maxSize;
-            }
+    if (static_cast<uint32>(ms_WorkBufferPos + size) > ms_WorkBufferSize) {
+        const auto buffSizeRemaining = ms_WorkBufferSize - ms_WorkBufferPos;
+        if (!LoadDataFromWorkBuffer(data, buffSizeRemaining)) {
+            return false;
         }
+
+        if (!LoadWorkBuffer()) {
+            return false;
+        }
+
+        data = reinterpret_cast<uint8*>(data) + buffSizeRemaining;
+        size -= buffSizeRemaining;
     }
 
     assert(ms_WorkBuffer);
 
-    memcpy(data, ms_WorkBuffer + pos, size);
+    memcpy(data, &ms_WorkBuffer[ms_WorkBufferPos], size);
     ms_WorkBufferPos += size;
+    LOG_HEX_SPAN((uint8*)&ms_WorkBuffer[ms_WorkBufferPos - size], size);
 
     return true;
-
 }
 
 // 0x5D1270
-int32 CGenericGameStorage::SaveDataToWorkBuffer(void* data, int32 size) {
+bool CGenericGameStorage::SaveDataToWorkBuffer(void* data, int32 size) {
     assert(data);
 
-    if (ms_bFailed)
+    if (ms_bFailed) {
         return false;
+    }
 
-    if (size <= 0)
+    if (size <= 0) {
         return true;
+    }
 
-    if (ms_WorkBufferPos + size > BUFFER_SIZE) {
+    if (static_cast<uint32>(ms_WorkBufferPos + size) > ms_WorkBufferSize) {
         // Make space for data
 
-        const auto buffSizeRemaining = BUFFER_SIZE - ms_WorkBufferPos;
+        const auto buffSizeRemaining = ms_WorkBufferSize - ms_WorkBufferPos;
         if (!SaveDataToWorkBuffer(data, buffSizeRemaining)) { // Try writing what we have space for
             return false;
         }
@@ -535,14 +640,16 @@ int32 CGenericGameStorage::SaveDataToWorkBuffer(void* data, int32 size) {
 
     memcpy(&ms_WorkBuffer[ms_WorkBufferPos], data, size);
     ms_WorkBufferPos += size;
+    LOG_HEX_SPAN((uint8*)&ms_WorkBuffer[ms_WorkBufferPos - size], size);
 
     return true;
 }
 
 // 0x5D10B0
 bool CGenericGameStorage::LoadWorkBuffer() {
-    if (ms_bFailed)
+    if (ms_bFailed) {
         return false;
+    }
 
     uint32 toReadSize = BUFFER_SIZE;
     if (ms_FilePos + BUFFER_SIZE > ms_FileSize) {
@@ -563,7 +670,7 @@ bool CGenericGameStorage::LoadWorkBuffer() {
         if (CFileMgr::Read(ms_FileHandle, ms_WorkBuffer, toReadSize) == toReadSize) {
             ms_FilePos += toReadSize;
             ms_WorkBufferSize = toReadSize;
-            ms_WorkBufferPos = 0;
+            ms_WorkBufferPos  = 0;
             return true;
         }
     }
@@ -654,7 +761,7 @@ bool CGenericGameStorage::CloseFile() {
 bool CGenericGameStorage::OpenFileForWriting() {
     ms_FileHandle = CFileMgr::OpenFile(ms_SaveFileName, "wb");
     if (ms_FileHandle) {
-        ms_FilePos = 0;
+        ms_FilePos       = 0;
         ms_WorkBufferPos = 0;
         if (!ms_WorkBuffer)
             ms_WorkBuffer = new uint8[BUFFER_SIZE + 1];
@@ -677,10 +784,10 @@ bool CGenericGameStorage::OpenFileForReading(const char* fileName, int32 slot) {
     ms_FileHandle = CFileMgr::OpenFile(ms_LoadFileName, "rb");
 
     if (ms_FileHandle) {
-        ms_FileSize = CFileMgr::GetTotalSize(ms_FileHandle);
-        ms_FilePos = 0;
+        ms_FileSize       = CFileMgr::GetTotalSize(ms_FileHandle);
+        ms_FilePos        = 0;
         ms_WorkBufferSize = BUFFER_SIZE;
-        ms_WorkBufferPos = BUFFER_SIZE;
+        ms_WorkBufferPos  = BUFFER_SIZE;
 
         if (!ms_WorkBuffer)
             ms_WorkBuffer = new uint8[BUFFER_SIZE + 1];
@@ -705,7 +812,7 @@ bool CGenericGameStorage::CheckDataNotCorrupt(int32 slot, const char* fileName) 
     uint32 nCheckSum = 0;
 
     while (LoadWorkBuffer()) {
-         for (auto i = 0; i != ms_WorkBufferSize; ++i) {
+        for (auto i = 0; i != ms_WorkBufferSize; ++i) {
             nCheckSum += ms_WorkBuffer[i];
         }
     }
@@ -732,7 +839,7 @@ bool CGenericGameStorage::RestoreForStartLoad() {
 }
 
 // 0x618D00
-const char* GetSavedGameDateAndTime(int32 slot) {
+const GxtChar* GetSavedGameDateAndTime(int32 slot) {
     assert(slot < MAX_SAVEGAME_SLOTS);
     return CGenericGameStorage::ms_SlotSaveDate[slot];
 }
