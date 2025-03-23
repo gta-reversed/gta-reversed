@@ -250,10 +250,10 @@ float CCarAI::FindSwitchDistanceFar(CVehicle* vehicle) {
 float CCarAI::GetCarToGoToCoors(CVehicle* veh, const CVector& coors, eCarDrivingStyle drivingStyle, bool setCruiseSpeed) {
     const auto ap = &veh->m_autoPilot;
     switch (ap->m_nCarMission) {
-    case MISSION_PARK_PERPENDICULAR_0:
-    case MISSION_PARK_PERPENDICULAR_1:
-    case MISSION_PARK_PARALLEL_0:
-    case MISSION_PARK_PARALLEL_1:
+    case MISSION_PARK_PERPENDICULAR:
+    case MISSION_PARK_PARALLEL:
+    case MISSION_PARK_PERPENDICULAR_2:
+    case MISSION_PARK_PARALLEL_2:
         break;
     case MISSION_GOTOCOORDINATES:
     case MISSION_GOTOCOORDINATES_STRAIGHTLINE: {
@@ -819,7 +819,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
 
             break;
         }
-        case MISSION_ATTACKPLAYER: { // 0x41EE05
+        case MISSION_BOAT_ATTACKPLAYER: { // 0x41EE05
             if (!veh->vehicleFlags.bIsLawEnforcer) {
                 break;
             }
@@ -1013,7 +1013,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
         case MISSION_BOAT_CIRCLEPLAYER: { // 0x41EE3D
             if (veh->vehicleFlags.bIsLawEnforcer) {
                 if (plyrVeh) {
-                    ap->SetCarMission(MISSION_ATTACKPLAYER);
+                    ap->SetCarMission(MISSION_BOAT_ATTACKPLAYER);
                 }
                 ap->SetCruiseSpeed(10);
                 BackToCruisingIfNoWantedLevel(veh);
