@@ -192,14 +192,13 @@ eCarMission CCarAI::FindPoliceBikeMissionForWantedLevel() {
 
 // 0x41CA50
 eCarMission CCarAI::FindPoliceBoatMissionForWantedLevel() {
-    if (FindPlayerWanted()->GetWantedLevel() < 2) {
-        return FindPlayerVehicle()
-            ? MISSION_BLOCKPLAYER_FARAWAY
-            : MISSION_BOAT_CIRCLEPLAYER;
+    if (FindPlayerVehicle()) {
+        const auto level = FindPlayerWanted()->GetWantedLevel();
+        return 2 <= level && level <= 6
+            ? MISSION_BOAT_ATTACKPLAYER
+            : MISSION_BLOCKPLAYER_FARAWAY;
     }
-    return FindPlayerVehicle()
-        ? MISSION_ATTACKPLAYER
-        : MISSION_BOAT_CIRCLEPLAYER;
+    return MISSION_BOAT_CIRCLEPLAYER;
 }
 
 // 0x41C9D0

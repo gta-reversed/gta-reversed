@@ -2127,7 +2127,7 @@ void CEventHandler::ComputeReviveResponse(CEventRevived* e, CTask* tactive, CTas
         m_Ped->bKnockedUpIntoAir        = false;
         m_Ped->bKnockedOffBike          = false;
         m_Ped->bKilledByStealth         = false;
-        m_Ped->physicalFlags.bDestroyed = false;
+        m_Ped->physicalFlags.bRenderScorched = false;
 
         m_Ped->SetPedState(PEDSTATE_IDLE);
         m_Ped->RestartNonPartialAnims();
@@ -2612,7 +2612,7 @@ void CEventHandler::ComputeVehicleDiedResponse(CEventVehicleDied* e, CTask* tact
         if (!e->m_vehicle) {
             return nullptr;
         }
-        m_Ped->physicalFlags.bDestroyed = true;
+        m_Ped->physicalFlags.bRenderScorched = true;
         m_Ped->m_fHealth = 0.f;
         if (m_Ped->IsInVehicle() && (m_Ped->m_pVehicle->IsBike() || m_Ped->m_pVehicle->IsSubQuad())) {
             ComputeKnockOffBikeResponse(e, tactive, tsimplest);

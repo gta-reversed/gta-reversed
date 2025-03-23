@@ -476,10 +476,10 @@ bool CCarCtrl::IsAnyoneParking() {
     for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
         if (auto vehicle = GetVehiclePool()->GetAt(i)) {
             switch (vehicle->m_autoPilot.m_nCarMission) {
-            case eCarMission::MISSION_PARK_PARALLEL_0:
-            case eCarMission::MISSION_PARK_PARALLEL_1:
-            case eCarMission::MISSION_PARK_PERPENDICULAR_0:
-            case eCarMission::MISSION_PARK_PERPENDICULAR_1:
+            case eCarMission::MISSION_PARK_PARALLEL:
+            case eCarMission::MISSION_PARK_PARALLEL_2:
+            case eCarMission::MISSION_PARK_PERPENDICULAR:
+            case eCarMission::MISSION_PARK_PERPENDICULAR_2:
                 return true;
             }
         }
@@ -511,17 +511,17 @@ void CCarCtrl::JoinCarWithRoadAccordingToMission(CVehicle* vehicle) {
     case MISSION_EMERGENCYVEHICLE_STOP:
     case MISSION_STOP_FOREVER:
     case MISSION_FOLLOW_RECORDED_PATH:
-    case MISSION_PARK_PERPENDICULAR_0:
-    case MISSION_PARK_PARALLEL_0:
-    case MISSION_PARK_PERPENDICULAR_1:
-    case MISSION_PARK_PARALLEL_1:
+    case MISSION_PARK_PERPENDICULAR:
+    case MISSION_PARK_PARALLEL:
+    case MISSION_PARK_PERPENDICULAR_2:
+    case MISSION_PARK_PARALLEL_2:
         return JoinCarWithRoadSystem(vehicle);
     case MISSION_RAMPLAYER_FARAWAY:
     case MISSION_RAMPLAYER_CLOSE:
     case MISSION_BLOCKPLAYER_FARAWAY:
     case MISSION_BLOCKPLAYER_CLOSE:
     case MISSION_BLOCKPLAYER_HANDBRAKESTOP:
-    case MISSION_ATTACKPLAYER:
+    case MISSION_BOAT_ATTACKPLAYER:
     case MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_1:
     case MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_2:
     case MISSION_BLOCKPLAYER_FORWARDANDBACK:

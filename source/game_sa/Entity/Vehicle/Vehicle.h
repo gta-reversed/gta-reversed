@@ -183,7 +183,7 @@ VALIDATE_SIZE(tHydraulicData, 0x28);
 class NOTSA_EXPORT_VTABLE CVehicle : public CPhysical {
 public:
     using Ref = notsa::EntityRef<CVehicle>;
-    
+
 public:
     static constexpr auto NUM_VEHICLE_UPGRADES = 15u;
 
@@ -358,8 +358,8 @@ public:
     float            m_fGearChangeCount; // used as parameter for cTransmission::CalculateDriveAcceleration, but doesn't change
     float            m_fWheelSpinForAudio;
     float            m_fHealth; // 1000.0f = full health. 0 -> explode
-    CVehicle*        m_pTractor;
-    CVehicle*        m_pTrailer;
+    CVehicle*        m_pTowingVehicle;
+    CVehicle*        m_pVehicleBeingTowed;
     CPed*            m_pWhoInstalledBombOnMe;
     uint32           m_nTimeTillWeNeedThisCar;     // game won't try to delete this car while this time won't reach
     uint32           m_nGunFiringTime;             // last time when gun on vehicle was fired (used on boats)
@@ -532,7 +532,7 @@ public:
     bool IsPassenger(CPed* ped) const;
     [[nodiscard]] bool IsPassenger(int32 modelIndex) const;
     bool IsPedOfModelInside(eModelID model) const; // NOTSA
-    bool IsDriver(CPed* ped) const;
+    bool IsDriver(const CPed* ped) const;
     [[nodiscard]] bool IsDriver(int32 modelIndex) const;
     void KillPedsInVehicle();
     bool IsUpsideDown() const;

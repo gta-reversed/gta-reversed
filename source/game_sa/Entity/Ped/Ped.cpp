@@ -1666,7 +1666,7 @@ void CPed::ProcessBuoyancy()
         auto& standingOnEntity = m_pContactEntity;
         if (standingOnEntity && standingOnEntity->IsVehicle()) {
             auto pStandingOnVehicle = standingOnEntity->AsVehicle();
-            if (pStandingOnVehicle->IsBoat() && !pStandingOnVehicle->physicalFlags.bDestroyed) {
+            if (pStandingOnVehicle->IsBoat() && !pStandingOnVehicle->physicalFlags.bRenderScorched) {
                 physicalFlags.bSubmergedInWater = false;
                 auto swimTask = GetIntelligence()->GetTaskSwim();
                 if (!swimTask)
@@ -1687,7 +1687,7 @@ void CPed::ProcessBuoyancy()
             if (colEntity->IsVehicle()) {
                 auto colVehicle = colEntity->AsVehicle();
                 if (colVehicle->IsBoat()
-                    && !colVehicle->physicalFlags.bDestroyed
+                    && !colVehicle->physicalFlags.bRenderScorched
                     && colVehicle->GetMatrix().GetUp().z > 0.0F) {
 
                     physicalFlags.bSubmergedInWater = false;
@@ -3849,7 +3849,7 @@ bool CPed::SetupLighting() {
 void CPed::RemoveLighting(bool bRemove) {
     UNUSED(bRemove);
 
-    if (!physicalFlags.bDestroyed) {
+    if (!physicalFlags.bRenderScorched) {
         CPointLights::RemoveLightsAffectingObject();
     }
 

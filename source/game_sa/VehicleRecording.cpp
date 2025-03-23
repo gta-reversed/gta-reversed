@@ -328,7 +328,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
     for (auto i : GetActivePlaybackIndices()) {
         auto vehicle = pVehicleForPlayback[i];
 
-        if (!vehicle || vehicle->physicalFlags.bDestroyed) {
+        if (!vehicle || vehicle->physicalFlags.bRenderScorched) {
             StopPlaybackWithIndex(i);
             continue;
         }
