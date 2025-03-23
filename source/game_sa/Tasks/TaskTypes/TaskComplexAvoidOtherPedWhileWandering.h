@@ -71,8 +71,8 @@ private:
     CTaskTimer m_Timer{};
     CTaskTimer m_DontQuitYetTimer{};
     eMoveState m_MoveState{};
-    bool       m_bDoingIK : 1{};
-    bool       m_bWantsToQuit : 1{};
-    bool       m_bMovingTarget : 1{};
+    bool       m_IsDoingIK : 1{};
+    bool       m_WantsToQuit : 1{};
+    bool       m_IsMovingTarget : 1{};
 };
 VALIDATE_SIZE(CTaskComplexAvoidOtherPedWhileWandering, 0x60);
