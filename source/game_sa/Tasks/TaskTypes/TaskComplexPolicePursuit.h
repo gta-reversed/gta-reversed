@@ -8,11 +8,11 @@ class CPed;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexPolicePursuit : public CTaskComplex {
 public:
-    bool                      m_bRoadBlockCop : 1 {};
-    bool                      m_bPlayerInCullZone : 1 {};
-    bool                      m_bCouldJoinPursuit : 1 { true };
+    bool                      m_IsRoadBlockCop : 1 {};
+    bool                      m_IsPlayerInCullZone : 1 {};
+    bool                      m_CouldJoinPursuit : 1 { true };
     notsa::EntityRef<CCopPed> m_Pursuer{};
-    notsa::EntityRef<CPed>    m_PursuedPed{};
+    notsa::EntityRef<CPed>    m_Pursued{};
 
 public:
     static constexpr auto Type = TASK_COMPLEX_POLICE_PURSUIT;

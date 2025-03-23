@@ -164,7 +164,7 @@ CTask* CTaskComplexCopInCar::CreateNextSubTask(CPed* ped) {
         }
 
         assert(ped->m_nPedType == PED_TYPE_COP);
-        if (FindPlayerWanted()->CanCopJoinPursuit(ped->AsCop()) && tSubTaskPursit->m_bCouldJoinPursuit) {
+        if (FindPlayerWanted()->CanCopJoinPursuit(ped->AsCop()) && tSubTaskPursit->m_CouldJoinPursuit) {
             // 0x68FBC6 - Inverted
             if (m_Suspect->bIsBeingArrested) {
                 return CreateSubTask(TASK_FINISHED, ped);

@@ -113,17 +113,17 @@ bool CTaskComplexPolicePursuit::PersistPursuit(CCopPed* pursuer) {
 
     if (pursuer->m_fHealth <= 0.f) { // 0x68BDD0
         ClearPursuit(pursuer);
-    } else if (CCullZones::NoPolice() && !m_bRoadBlockCop) { // 0x68BDF1
+    } else if (CCullZones::NoPolice() && !m_IsRoadBlockCop) { // 0x68BDF1
         if (pursuer->bHitSomethingLastFrame) { // 0x68BE01
-            m_bPlayerInCullZone = m_bRoadBlockCop = true;
+            m_IsPlayerInCullZone = m_IsRoadBlockCop = true;
             ClearPursuit(pursuer);
         }
-    } else if (!CCullZones::NoPolice() && m_bPlayerInCullZone) { // 0x68BE16
-        m_bPlayerInCullZone = m_bRoadBlockCop = false;
+    } else if (!CCullZones::NoPolice() && m_IsPlayerInCullZone) { // 0x68BE16
+        m_IsPlayerInCullZone = m_IsRoadBlockCop = false;
         ClearPursuit(pursuer);
     } else if (wanted->GetWantedLevel() == 0) { // 0x68BE43
-        if (m_bRoadBlockCop && !m_bPlayerInCullZone) {
-            m_bPlayerInCullZone = m_bRoadBlockCop = false;
+        if (m_IsRoadBlockCop && !m_IsPlayerInCullZone) {
+            m_IsPlayerInCullZone = m_IsRoadBlockCop = false;
             ClearPursuit(pursuer);
         }
     }
@@ -164,7 +164,7 @@ CTask* CTaskComplexPolicePursuit::CreateFirstSubTask(CPed* ped) {
     if (SetPursuit(ped->AsCop())) {
         return CreateSubTask(TASK_COMPLEX_ARREST_PED, ped);
     }
-    m_bCouldJoinPursuit = false;
+    m_CouldJoinPursuit = false;
     return CreateSubTask(TASK_FINISHED, ped);
 }
 
@@ -196,7 +196,7 @@ eTaskType CTaskComplexPolicePursuit::GetNextSubTaskType(CCopPed* pursuer) { // p
         return TASK_NONE;
     }
 
-    if (m_bRoadBlockCop && (!pursuer->bStayInSamePlace || pursuer->GetActiveWeapon().GetType() != WEAPON_PISTOL)) { // 0x690991 (Inverted)
+    if (m_IsRoadBlockCop && (!pursuer->bStayInSamePlace || pursuer->GetActiveWeapon().GetType() != WEAPON_PISTOL)) { // 0x690991 (Inverted)
         pursuer->SetCurrentWeapon(WEAPON_PISTOL);
         pursuer->bStayInSamePlace = true;
         return TASK_COMPLEX_ARREST_PED;
