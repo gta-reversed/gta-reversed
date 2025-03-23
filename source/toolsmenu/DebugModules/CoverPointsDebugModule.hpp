@@ -24,8 +24,7 @@ protected:
     void UpdateCoverPointsInRange();
     void RenderCoverPointsTable();
     void RenderSelectedCoverPointDetails();
-    void RenderSelectedCoverPointDetails3D();
-    void RenderCoverPointBB(const CCoverPoint& cpt);
+    void RenderCoverPointDetails3D(const CCoverPoint& cpt);
     bool IsCoverPointValid(const CCoverPoint& cpt);
 
 private:

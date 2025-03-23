@@ -52,13 +52,10 @@ void CoverPointsDebugModule::RenderMenuEntry() {
 void CoverPointsDebugModule::Render3D() {
     if (m_AllBBsEnabled) {
         for (const auto& v : m_CptsInRange) {
-            RenderCoverPointBB(*v.CoverPoint);
+            RenderCoverPointDetails3D(*v.CoverPoint);
         }
     } else if (m_SelectedCpt) {
-        RenderCoverPointBB(*m_SelectedCpt);
-    }
-    if (m_SelectedCpt) {
-        RenderSelectedCoverPointDetails3D();
+        RenderCoverPointDetails3D(*m_SelectedCpt);
     }
 }
 
@@ -73,7 +70,7 @@ void CoverPointsDebugModule::UpdateCoverPointsInRange() {
     m_CptsInRange.reserve(0x64);
     const auto plyrPos = FindPlayerCoors();
     for (auto& cpt : CCover::GetCoverPoints()) {
-        if (cpt.GetType() == CCoverPoint::eType::NONE) {
+        if (!IsCoverPointValid(cpt)) {
             continue;
         }
         const auto dist = CVector::Dist(plyrPos, cpt.GetPos());
@@ -82,7 +79,7 @@ void CoverPointsDebugModule::UpdateCoverPointsInRange() {
         }
         m_CptsInRange.emplace_back(dist, &cpt, m_CptsInRange.size());
     }
-    if (m_SelectedCpt && m_SelectedCpt->GetType() == CCoverPoint::eType::NONE) {
+    if (m_SelectedCpt && !IsCoverPointValid(*m_SelectedCpt)) {
         m_SelectedCpt = nullptr;
     }
 }
@@ -172,32 +169,29 @@ void CoverPointsDebugModule::RenderSelectedCoverPointDetails() {
     ig::Text("%-15s {%2.f, %2.f, %2.f} (%.3f deg)", "Dir", dir.x, dir.y, dir.z, RadiansToDegrees((float)(m_SelectedCpt->GetDir())));
 }
 
-void CoverPointsDebugModule::RenderSelectedCoverPointDetails3D() {
-    if (IsCoverPointValid(*m_SelectedCpt)) {
+void CoverPointsDebugModule::RenderCoverPointDetails3D(const CCoverPoint& cpt) {
+    if (!IsCoverPointValid(cpt)) {
         return;
     }
-    const auto pos = m_SelectedCpt->GetPos();
-    CLines::RenderLineNoClipping(
-        pos,
-        pos + m_SelectedCpt->GetDirVector() * 2.f,
-        0xff69b4ff, // hotpink
-        0xFFFFFFFF
-    );
-}
+    const CVector pos = cpt.GetPos();
 
-void CoverPointsDebugModule::RenderCoverPointBB(const CCoverPoint& cpt) {
-    if (IsCoverPointValid(cpt)) {
-        return;
-    }
+    const auto color = &cpt == m_SelectedCpt
+        ? lerp<CRGBA>({ 0xFF, 0x69, 0xB4, 0xFF }, { 0x0, 0xFF, 0x0, 0xFF }, std::abs(std::sin(TWO_PI * (float)(CTimer::GetTimeInMS() % 4096) / 4096.f))) // hot pink
+        : CRGBA{ 0x0, 0xFF, 0x0, 0xFF };
+
+    // Position BB
     constexpr float RADIUS = 0.25f;
-    const CVector   pos = cpt.GetPos();
     CBox{
         pos - CVector{RADIUS},
         pos + CVector{RADIUS},
-    }.DrawWireFrame(
-        &cpt == m_SelectedCpt
-            ? CRGBA{0x0, 0xFF, 0x0, 0xFF}
-            : CRGBA{0xFF, 0x69, 0xB4, 0xFF}
+    }.DrawWireFrame(color);
+
+    // Direction vector
+    CLines::RenderLineNoClipping(
+        pos,
+        pos + cpt.GetDirVector() * 2.f,
+        color.ToInt(),
+        0xFFFFFFFF
     );
 }
 bool CoverPointsDebugModule::IsCoverPointValid(const CCoverPoint& cpt) {
