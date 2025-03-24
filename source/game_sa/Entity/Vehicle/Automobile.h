@@ -170,7 +170,7 @@ public:
     void BlowUpCarCutSceneNoExtras(bool bDontShakeCam, bool bDontSpawnStuff, bool bNoExplosion, bool bMakeSound) override;
     bool SetUpWheelColModel(CColModel* wheelCol) override;
     bool BurstTyre(uint8 tyreComponentId, bool bPhysicalEffect) override;
-    bool IsRoomForPedToLeaveCar(uint32 arg0, CVector* arg1) override;
+    bool IsRoomForPedToLeaveCar(uint32 arg0, CVector* arg1 = nullptr) override;
     void SetupSuspensionLines() override;
     CVector AddMovingCollisionSpeed(CVector& point) override;
     void Fix() override;
