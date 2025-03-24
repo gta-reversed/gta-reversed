@@ -293,14 +293,6 @@ bool contains(std::initializer_list<Y> r, const T& value) {
 }
 
 /*!
-* Helper (Of your fingers) - Reduces typing needed for Python style `value in {}`
-*/
-template<typename Y, typename T>
-bool contains(std::initializer_list<Y> r, const T& value) {
-    return contains(r, value, {});
-}
-
-/*!
 * @brief Similar to `std::remove_if`, but only removes the first element found (Unlike the former that removes all)
 *
 * @return Whenever an element was removed. If it was, you have to pop the last element from your container

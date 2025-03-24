@@ -1458,21 +1458,21 @@ float CPed::GetWalkAnimSpeed() {
     auto hier = CAnimManager::GetAnimAssociation(m_nAnimGroup, ANIM_ID_WALK)->m_BlendHier;
 
     CAnimManager::UncompressAnimation(hier);
-    auto& firstSequence = hier->m_pSequences[ANIM_ID_WALK];
+    auto* const seq = &hier->m_pSequences[ANIM_ID_WALK];
 
-    if (!firstSequence.m_FramesNum) {
+    if (!seq->m_FramesNum) {
         return 0.f; // No frames
     }
 
     // NOTE: This is quite garbage, based on at least 5 assumptions, more of a hack than a solution from R*'s side.
-    //       It won't work correctly if first frame is not a root frame, nor if the animation happens on any other axis than Y, etc..
+    //       It won't work correctly if first frame has no translation, nor if the animation happens on any other axis than Y, etc..
 
-    const auto lastFrame = firstSequence.GetUncompressedFrame(firstSequence.m_nFrameCount - 1);
-    const auto lastFrameY = firstSequence.m_isRoot
-        ? lastFrame->translation.y
-        : ((KeyFrame*)lastFrame)->rotation.imag.y;
-
-    return (lastFrameY - firstSequence.GetUKeyFrame(0)->Trans.y) / hier->m_fTotalTime;
+    const auto lastFrame = seq->GetUKeyFrame(seq->m_FramesNum - 1);
+    const auto lastFrameY = seq->HasTranslation()
+        ? lastFrame->Trans.y
+        : ((KeyFrame*)lastFrame)->Rot.imag.y;
+    const auto firstFrameY = seq->GetUKeyFrame(0)->Trans.y;
+    return (lastFrameY - firstFrameY) / hier->m_fTotalTime;
 }
 
 /*!

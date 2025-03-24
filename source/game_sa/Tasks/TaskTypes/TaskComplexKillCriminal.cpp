@@ -145,13 +145,13 @@ CTask* CTaskComplexKillCriminal::CreateSubTask(eTaskType tt, CPed* ped, bool for
         if (const auto cveh = m_criminal->GetVehicleIfInOne()) {
             return CreateDriveMission(
                 oveh->IsBike()
-                    ? MISSION_35
+                    ? MISSION_FOLLOWCAR_CLOSE
                     : MISSION_BLOCKCAR_CLOSE,
-                (float)m_criminal->m_pVehicle->m_autoPilot.m_nCruiseSpeed + 10.f,
+                (float)(m_criminal->m_pVehicle->m_autoPilot.m_nCruiseSpeed) + 10.f,
                 cveh
             );
         } else {
-            return CreateDriveMission(MISSION_37, 20.f, m_criminal);
+            return CreateDriveMission(MISSION_KILLPED_CLOSE, 20.f, m_criminal);
         }
     }
     }
@@ -184,7 +184,7 @@ bool CTaskComplexKillCriminal::ChangeTarget(CPed* newTarget) { // TODO: Figure o
         return false;
     }
 
-    if (CTask::DynCast<CTaskComplexKillPedOnFoot>(m_pSubTask) && !m_pSubTask->MakeAbortable(newTarget, ABORT_PRIORITY_URGENT, nullptr)) {
+    if (notsa::isa_and_nonnull<CTaskComplexKillPedOnFoot>(m_pSubTask) && !m_pSubTask->MakeAbortable(newTarget, ABORT_PRIORITY_URGENT, nullptr)) {
         return false;
     }
 

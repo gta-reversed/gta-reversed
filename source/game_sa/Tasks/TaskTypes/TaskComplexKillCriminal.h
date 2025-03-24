@@ -27,7 +27,7 @@ public:
 
     static constexpr auto Type = eTaskType::TASK_COMPLEX_KILL_CRIMINAL;
 
-    CTaskComplexKillCriminal(CPed* criminal, bool randomize);
+    CTaskComplexKillCriminal(CPed* criminal, bool randomize = false);
     CTaskComplexKillCriminal(const CTaskComplexKillCriminal&);
     ~CTaskComplexKillCriminal();
 
@@ -35,8 +35,8 @@ public:
     CPed* FindNextCriminalToKill(CPed* ped, bool any);
     bool ChangeTarget(CPed* ped);
 
-    CTask*    Clone() override { return new CTaskComplexKillCriminal{ *this }; } // 0x68CE50
-    eTaskType GetTaskType() override { return Type; } // 0x68BF20
+    CTask*    Clone() const override { return new CTaskComplexKillCriminal{ *this }; } // 0x68CE50
+    eTaskType GetTaskType() const override { return Type; } // 0x68BF20
     bool      MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
