@@ -16,32 +16,32 @@ namespace notsa::bugfixes {
 // Generic
 //
 inline const ReversibleBugFix GenericCrashing{
-    "Generic crashes (null ptr access, etc)",
-    "Fixes bugs that cause null ptr access, and similar anomalies crashing the game",
-    "Contributors"
+    .Name        = "Generic crashes (null ptr access, etc)",
+    .Description = "Fixes bugs that cause null ptr access, and similar anomalies crashing the game",
+    .Credit      = "Contributors"
 };
 inline const ReversibleBugFix GenericOOB{
-    "Generic out-of-bounds bugs",
-    "Fixes generic out-of-bounds bugs across the codebase",
-    "Contributors"
+    .Name        = "Generic out-of-bounds bugs",
+    .Description = "Fixes generic out-of-bounds bugs across the codebase",
+    .Credit      = "Contributors"
 };
 
 //
 // Other bugs
 //
 inline const ReversibleBugFix PS2CoronaRendering{
-    "PS2 Corona Rendering",
-    "Fix corona rendering, so they're like on PS2",
-    "SilentPatch Contributors"
+    .Name        = "PS2 Corona Rendering",
+    .Description = "Fix corona rendering, so they're like on PS2",
+    .Credit      = "SilentPatch Contributors"
 };
 inline const ReversibleBugFix AnimBlendSequence_SetName_SetBoneTagFlag{
-    "BoneTag Name Flag",
-    "Correctly set BoneTag flag in `CAnimBlendSequence::SetName`",
-    "Pirulax"
+    .Name        = "BoneTag Name Flag",
+    .Description = "Correctly set BoneTag flag in `CAnimBlendSequence::SetName`",
+    .Credit      = "Pirulax"
 };
 inline const ReversibleBugFix AESound_UpdatePlayTime_DivisionByZero{
-    "UpdatePlayTime Division-By-Zero",
-    "Avoid Division-by-zero in CAESound::UpdatePlayTime",
-    "Pirulax"
+    .Name        = "UpdatePlayTime Division-By-Zero",
+    .Description = "Avoid Division-by-zero in CAESound::UpdatePlayTime",
+    .Credit      = "Pirulax"
 };
 };

@@ -20,6 +20,7 @@ public:
     const char*       Credit{};                          //!< Credits for this bugfix
     bool              Enabled{ true };                   //!< Is this bugfix enabled? (If not, the bug is present)
     bool              Locked{ false };                   //!< Can this bugfix's enabled state be changed?
+    bool              RequiresRestart{ false };          //!< Does this bug require a restart for it to take effect? 
     ReversibleBugFix* Prev{ std::exchange(Tail, this) }; //!< Linked list of bugfixes (Maintained for the debug tool)
 };
 };
