@@ -257,7 +257,7 @@ float CCarAI::GetCarToGoToCoors(CVehicle* veh, const CVector& coors, eCarDriving
         break;
     case MISSION_GOTOCOORDINATES:
     case MISSION_GOTOCOORDINATES_STRAIGHTLINE: {
-        if (veh->GetPosition2D().EqualTo(coors, 5.f)) {
+        if (veh->GetPosition2D().ApproxEqualTo(coors, 5.f)) {
             break;
         }
         [[fallthrough]];
@@ -290,7 +290,7 @@ float CCarAI::GetCarToGoToCoorsAccurate(CVehicle* veh, const CVector& coors, eCa
     switch (ap->m_nCarMission) {
     case MISSION_GOTOCOORDINATES_ACCURATE:
     case MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE: {
-        if (!veh->GetPosition2D().EqualTo(coors, 2.f)) {
+        if (!veh->GetPosition2D().ApproxEqualTo(coors, 2.f)) {
             ap->m_vecDestinationCoors = coors;
         }
         break;
@@ -324,7 +324,7 @@ float CCarAI::GetCarToGoToCoorsRacing(CVehicle* veh, const CVector& coors, eCarD
     switch (ap->m_nCarMission) {
     case MISSION_GOTOCOORDINATES_RACING:
     case MISSION_GOTOCOORDINATES_STRAIGHTLINE: {
-        if (!veh->GetPosition2D().EqualTo(coors, 2.f)) {
+        if (!veh->GetPosition2D().ApproxEqualTo(coors, 2.f)) {
             ap->m_vecDestinationCoors = coors;
         }
         break;
@@ -354,7 +354,7 @@ float CCarAI::GetCarToGoToCoorsStraightLine(CVehicle* veh, const CVector& coors,
 
     switch (ap->m_nCarMission) {
     case MISSION_GOTOCOORDINATES_STRAIGHTLINE: {
-        if (!veh->GetPosition2D().EqualTo(coors, 2.f)) {
+        if (!veh->GetPosition2D().ApproxEqualTo(coors, 2.f)) {
             ap->m_vecDestinationCoors = coors;
         }
         break;

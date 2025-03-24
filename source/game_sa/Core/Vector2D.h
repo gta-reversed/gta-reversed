@@ -181,7 +181,7 @@ public:
         return (&x)[i];
     }
 
-    bool EqualTo(CVector2D o, float epsilon);
+    bool ApproxEqualTo(CVector2D o, float epsilon);
 
     /*!
      * @brief Prefer this over (a - b).Magnitude()

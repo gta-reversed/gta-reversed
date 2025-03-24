@@ -49,6 +49,6 @@ CVector2D CVector2D::RotatedBy(float rad) const {
     };
 }
 
-bool CVector2D::EqualTo(CVector2D o, float epsilon) {
+bool CVector2D::ApproxEqualTo(CVector2D o, float epsilon) {
     return approxEqual(x, o.x, epsilon) && approxEqual(y, o.y, epsilon);
 }
