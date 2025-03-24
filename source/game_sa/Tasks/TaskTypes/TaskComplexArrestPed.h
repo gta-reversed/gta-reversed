@@ -27,6 +27,8 @@ public:
     CTask* ControlSubTask(CPed* ped) override;
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
+    CPed* GetPedToArrest() const noexcept { return m_PedToArrest; }
+
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
