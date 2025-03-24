@@ -125,7 +125,7 @@ public:
     bool IsDoorClosedU32(uint32 door) override { return false; }    // 0x6B5940
     bool IsDoorMissingU32(uint32 door) override { return true; }    // 0x6B5950
 
-    bool IsRoomForPedToLeaveCar(uint32 door, CVector* pvecCarJackOffset = nullptr) override { return true; }              // 0x6B7270
+    bool IsRoomForPedToLeaveCar(uint32 door, CVector* pvecCarJackOffset) override { return true; }              // 0x6B7270
     inline bool IsComponentPresent(int32 componentId) override { return m_aBikeNodes[componentId] != nullptr; } // 0x6B59E0
     CRideAnimData* GetRideAnimData() override { return &m_RideAnimData; }                                       // 0x6B58C0
     float GetHeightAboveRoad() override { return m_fHeightAboveRoad; }                                          // 0x6B58B0
