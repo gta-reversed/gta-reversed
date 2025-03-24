@@ -25,7 +25,7 @@ public:
 
     // Inlined functions below (Present in Android version)
     void FillUpHoles();
-    void BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* pedGroupMembership);
+    void BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership& pedGroupMembership);
     void BuildListOfPedsOfPedType(int32 pedType);
     void RemovePedsAttackingPedType(int32 pedType);
     void RemovePedsThatDontListenToPlayer();

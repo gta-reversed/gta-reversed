@@ -2,6 +2,7 @@
 
 #include "PedGroup.h"
 #include <TaskSimpleCarSetPedOut.h>
+#include <TaskSimpleGoToPoint.h>
 #include <TaskComplexFollowLeaderInFormation.h>
 
 //! @addr 0x5FB010
@@ -76,7 +77,28 @@ void CPedGroup::PlayerGaveCommand_Attack(CPed* playerPed, CPed* target) {
 
 // 0x5FAB60
 void CPedGroup::PlayerGaveCommand_Gather(CPed* ped) {
-    plugin::CallMethod<0x5FAB60, CPedGroup*, CPed*>(this, ped);
+    CPedList peds{};
+    peds.BuildListFromGroup_NotInCar_NoLeader(GetMembership());
+
+    if (ped->GetIntelligence()->IsInACarOrEnteringOne() && ped->m_pVehicle) {
+        CFormation::GenerateGatherDestinations_AroundCar(&peds, ped->m_pVehicle);
+    } else {
+        CFormation::GenerateGatherDestinations(&peds, ped);
+    }
+
+    CFormation::DistributeDestinations_CoverPoints(&peds);
+    CVector pos{};
+    for (auto& _ped : peds.GetPeds()) {
+        if (!CFormation::ReturnDestinationForPed(_ped, pos)) {
+            continue;
+        }
+
+        _ped->GetGroup()->GetIntelligence().SetTask(
+            _ped,
+            CTaskSimpleGoToPoint{ PEDMOVE_SPRINT, pos, 2.0f, true },
+            GetIntelligence().m_PedTaskPairs
+        );
+    }
 }
 
 // 0x5FC7E0
@@ -138,13 +160,13 @@ bool CPedGroup::IsActive() const {
 
 void CPedGroup::InjectHooks() {
     RH_ScopedClass(CPedGroup);
-    RH_ScopedCategoryGlobal();
+    RH_ScopedCategory("Ped Groups");
 
     RH_ScopedInstall(Constructor, 0x5FC150);
     RH_ScopedInstall(Destructor, 0x5FC190);
 
     RH_ScopedInstall(Teleport, 0x5F7AD0);
-    RH_ScopedInstall(PlayerGaveCommand_Gather, 0x5FAB60, {.reversed = false});
+    RH_ScopedInstall(PlayerGaveCommand_Gather, 0x5FAB60);
     RH_ScopedInstall(PlayerGaveCommand_Attack, 0x5F7CC0);
     RH_ScopedInstall(IsAnyoneUsingCar, 0x5F7DB0);
     RH_ScopedInstall(GetClosestGroupPed, 0x5FACD0);

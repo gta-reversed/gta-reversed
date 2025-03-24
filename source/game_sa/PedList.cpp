@@ -8,6 +8,10 @@ void CPedList::InjectHooks() {
     RH_ScopedInstall(Empty, 0x699DB0);
     RH_ScopedInstall(BuildListFromGroup_NoLeader, 0x699DD0);
     RH_ScopedInstall(ExtractPedsWithGuns, 0x69A4C0);
+    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340, {.reversed = false});
+    RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0, {.reversed = false});
+    RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450, {.reversed = false});
+    RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420, {.reversed = false});
 }
 
 // 0x699DB0
@@ -43,6 +47,22 @@ void CPedList::ExtractPedsWithGuns(CPedList& from) {
 // array there might be a hole, so it has to be filled
 void CPedList::FillUpHoles() {
     rng::fill(rng::remove(m_peds, nullptr), nullptr);
+}
+
+// 0x69A340
+void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership& pedGroupMembership) {
+}
+
+// 0x69A3B0
+void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
+}
+
+// 0x69A450
+void CPedList::RemovePedsAttackingPedType(int32 pedType) {
+}
+
+// 0x69A420
+void CPedList::RemovePedsThatDontListenToPlayer() {
 }
 
 //

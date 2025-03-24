@@ -39,7 +39,7 @@ public:
     void PlayerGaveCommand_Attack(CPed* playerPed, CPed* ped);
 
     //! todo
-    void PlayerGaveCommand_Gather(CPed* ped);
+    void PlayerGaveCommand_Gather(CPed* player);
 
     //! Update routine
     void Process();
