@@ -93,10 +93,12 @@ void CCoronas::InjectHooks() {
 // Initialises coronas
 // 0x6FAA70
 void CCoronas::Init() {
-    CTxdStore::ScopedTXDSlot txd{"particle"};
-    for (auto&& [tex, name, maskName] : rng::zip_view{ gpCoronaTexture, aCoronastar, coronaTexturesAlphaMasks }) {
-        if (!tex) { 
-            tex = RwTextureRead(name, maskName);
+    {
+        CTxdStore::ScopedTXDSlot txd{"particle"};
+        for (auto&& [tex, name, maskName] : rng::zip_view{ gpCoronaTexture, aCoronastar, coronaTexturesAlphaMasks }) {
+            if (!tex) { 
+                tex = RwTextureRead(name, maskName);
+            }
         }
     }
     rng::fill(aCoronas, CRegisteredCorona{});
