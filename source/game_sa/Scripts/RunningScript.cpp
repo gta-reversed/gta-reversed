@@ -135,7 +135,6 @@ void CRunningScript::InjectCustomCommandHooks() {
     cleo::extensions::intoperations::RegisterHandlers();
 #endif
 
-    // To enable use premake: `./premake5.exe vs2022 --allow-script-cmd-hooks`
 #ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
     // After injecting all hooks, we can create their reversible hook
     for (auto&& [idx, cmd] : notsa::enumerate(s_CustomCommandHandlerTable)) {
