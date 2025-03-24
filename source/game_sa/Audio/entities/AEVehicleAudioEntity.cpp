@@ -1789,7 +1789,7 @@ void CAEVehicleAudioEntity::ProcessVehicleRoadNoise(cVehicleParams& params) {
     // Check if any wheels touch the ground. (Perhaps params.m_nWheelsOnGround could be used?)
     const auto GetNumContactWheels = [=]() -> uint8 {
         switch (params.nBaseVehicleType) {
-        case VEHICLE_TYPE_AUTOMOBILE: return vehicle->AsAutomobile()->m_nNumContactWheels;
+        case VEHICLE_TYPE_AUTOMOBILE: return vehicle->AsAutomobile()->m_nNoOfContactWheels;
         case VEHICLE_TYPE_BIKE: return vehicle->AsBike()->m_nNoOfContactWheels;
         default: return 4;
         }

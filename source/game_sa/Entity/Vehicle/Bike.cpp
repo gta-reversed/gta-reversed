@@ -383,7 +383,7 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
 
             numProcessedLines++;
 
-            m_anCollisionLighting[i] = cp.m_nLightingB;
+            m_storedCollisionLighting[i] = cp.m_nLightingB;
             m_nContactSurface = cp.m_nSurfaceTypeB;
 
             switch (entity->GetType()) {
@@ -393,12 +393,12 @@ int32 CBike::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints) {
 
                 m_aGroundOffsets[i] = cp.m_vecPoint - entity->GetPosition();
                 if (entity->IsVehicle()) {
-                    m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
+                    m_storedCollisionLighting[i] = entity->AsVehicle()->m_storedCollisionLighting[i];
                 }
                 break;
             }
             case ENTITY_TYPE_BUILDING: {
-                m_pEntityWeAreOn = entity;
+                pEntityWeAreOnForVisibilityCheck = entity;
                 m_bTunnel = entity->m_bTunnel;
                 m_bTunnelTransition = entity->m_bTunnelTransition;
                 break;

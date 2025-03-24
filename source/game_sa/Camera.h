@@ -25,15 +25,36 @@ class CPed;
 class CSphere;
 class CGarage;
 
+enum {
+    NO_ONE = 0,
+    SCRIPT_CAM_CONTROL,
+    OBBE_CAM_CONTROL
+};
+
 enum class eFadeFlag : uint16 {
     FADE_IN,
     FADE_OUT
 };
 
-enum class eSwitchType : uint16 {
-    NONE,
-    INTERPOLATION,
-    JUMPCUT
+enum eSwitchType : int32 {
+    TRANS_NONE = 0,
+    TRANS_INTERPOLATION = 1,
+    TRANS_JUMP_CUT = 2
+};
+
+enum {
+  SCRIPT_ZOOM_ONE = 0,
+  SCRIPT_ZOOM_TWO = 1,
+  SCRIPT_ZOOM_THREE = 2,
+};
+
+enum CarZoomLevel : int32 {
+  ZOOM_ZERO = 0,
+  ZOOM_ONE = 1,
+  ZOOM_TWO = 2,
+  ZOOM_THREE = 3,
+  ZOOM_FOUR = 4,
+  ZOOM_FIVE = 5,
 };
 
 /* todo:
@@ -69,11 +90,12 @@ enum class eMotionBlurType : uint32 {
 };
 
 struct CamTweak {
-    int32 ModelID;
-    float Dist;
-    float Alt;
-    float Angle;
+    int32 m_ModelId;
+    float m_LenMod; 
+    float m_TargetZMod;
+    float m_PitchMod;
 };
+
 VALIDATE_SIZE(CamTweak, 0x10);
 
 class CCamera : public CPlaceable {
@@ -277,7 +299,7 @@ public:
     int32           m_nModeObbeCamIsInForCar{30};
     eCamMode        m_nModeToGoTo{ MODE_FOLLOWPED };
     eFadeFlag       m_nMusicFadingDirection{};
-    eSwitchType     m_nTypeOfSwitch{ eSwitchType::INTERPOLATION };
+    eSwitchType     m_nTypeOfSwitch{ eSwitchType::TRANS_INTERPOLATION };
     char            _alignC40[2]{};
     uint32          m_nFadeStartTime{};
     uint32          m_nFadeTimeStartedMusic{};
@@ -314,13 +336,13 @@ public:
     bool            m_bBlockZoom{};
     bool            m_bCameraPersistPosition{};
     bool            m_bCameraPersistTrack{};
-    bool            m_bCinemaCamera{};
-    CamTweak        m_aCamTweak[5]{};
-    bool            m_bCameraVehicleTweaksInitialized{};
-    float           m_fCurrentTweakDistance{};
-    float           m_fCurrentTweakAltitude{};
-    float           m_fCurrentTweakAngle{};
-    int32           m_nCurrentTweakModelIndex{};
+    bool            m_bForceCinemaCam{};
+    CamTweak        m_VehicleTweaks[5]{};
+    bool            m_bInitedVehicleCamTweaks{};
+    float           m_VehicleTweakLenMod{};
+    float           m_VehicleTweakTargetZMod{};
+    float           m_VehicleTweakPitchMod{};
+    int32           m_VehicleTweakLastModelId{};
     // the following are unused?
     int32           field_D58{};
     int32           field_D5C{};
@@ -355,7 +377,7 @@ public:
 
     bool IsTargetingActive();
     bool IsExtraEntityToIgnore(CEntity *entity);
-    bool IsItTimeForNewCamera(int32 camSequence, int32 startTime); // IsItTimeForNewcam
+    bool IsItTimeForNewCamera(int32 camSequence, int32 startTime); // IsItTimeForNewcam - For some reason the function name is not correct for compiler
     bool IsSphereVisible(const CVector& origin, float radius, RwMatrix* transformMatrix);
     bool IsSphereVisible(const CVector& origin, float radius);
     bool IsSphereVisible(const CSphere& sphere) { return IsSphereVisible(sphere.m_vecCenter, sphere.m_fRadius); }
@@ -374,6 +396,7 @@ public:
     void ProcessVectorMoveLinear(float ratio);
     void ProcessVectorTrackLinear();
     void ProcessVectorTrackLinear(float ratio);
+    bool CameraObscuredByWaterLevel();
     void ProcessObbeCinemaCameraBoat();
     void ProcessObbeCinemaCameraCar();
     void ProcessObbeCinemaCameraHeli();
@@ -416,8 +439,8 @@ public:
 
     void StartCooperativeCamMode();
     void StopCooperativeCamMode();
-    void StartTransition(eCamMode newCamMode);
-    void StartTransitionWhenNotFinishedInter(eCamMode newCamMode);
+    void StartTransition(eCamMode targetCamMode);
+    void StartTransitionWhenNotFinishedInter(eCamMode targetCamMode);
 
     void StoreValuesDuringInterPol(CVector *sourceDuringInter, CVector *targetDuringInter, CVector *upDuringInter, float *FOVDuringInter);
 
@@ -441,8 +464,8 @@ public:
 
     void AllowShootingWith2PlayersInCar(bool bAllow);
     void ApplyVehicleCameraTweaks(CVehicle* vehicle);
-    void AvoidTheGeometry(const CVector* arg2, const CVector* arg3, CVector* arg4, float FOV);
-
+    void AvoidTheGeometry(const CVector &TheCamPos, const CVector &TheTargetPos, CVector &ResultantCameraPos, float fFOV);
+    
     void CalculateDerivedValues(bool bForMirror, bool bOriented);
     void CalculateFrustumPlanes(bool bForMirror);
     float CalculateGroundHeight(eGroundHeightType type);
@@ -469,12 +492,12 @@ public:
     void Enable1rstPersonWeaponsCamera();
 
     void Fade(float duration, eFadeFlag direction);
-    void Find3rdPersonCamTargetVector(float range, CVector vecGunMuzzle, CVector& outSource, CVector& outTarget);
+    bool Find3rdPersonCamTargetVector(float fRange, CVector vecGunMuzzle, CVector &vecSource, CVector &vecTarget);
     float Find3rdPersonQuickAimPitch() const;
     float FindCamFOV() const;
     void FinishCutscene();
 
-    bool GetArrPosForVehicleType(eVehicleType type, int32& arrPos);
+    bool GetArrPosForVehicleType(eVehicleAppearance type, int32& arrPos);
     uint32 GetCutSceneFinishTime();
     [[nodiscard]] bool GetFading() const;
     [[nodiscard]] int32 GetFadingDirection() const;
@@ -518,15 +541,15 @@ public:
         return m_bMirrorActive && IsSphereVisible(origin, radius, (RwMatrix*)&m_mMatMirrorInverse);
     }
 };
-VALIDATE_SIZE(CCamera, 0xD78);
+// VALIDATE_SIZE(CCamera, 0xD78);
 
 extern CCamera& TheCamera;
 extern bool& gbModelViewer;
 extern int8& gbCineyCamMessageDisplayed;
 extern bool& gPlayerPedVisible;
 extern uint8& gCurCamColVars;
-extern int32& gCameraDirection;
-extern eCamMode& gCameraMode;
+extern int32& gDirectionIsLooking;
+extern eCamMode& gLastCamMode;
 extern uint32& gLastTime2PlayerCameraWasOK;
 extern uint32& gLastTime2PlayerCameraCollided;
 extern float*& gpCamColVars;
@@ -535,3 +558,4 @@ static inline auto& gpMadeInvisibleEntities = StaticRef<std::array<CEntity*, 10>
 static inline auto& gNumEntitiesSetInvisible = StaticRef<uint32, 0x9655DC>();
 
 void CamShakeNoPos(CCamera* camera, float strength);
+void WellBufferMe(float TheTarget, float* TheValueToChange, float* ValueSpeedSoFar, float TopSpeed, float SpeedStep, bool IsAnAngle);

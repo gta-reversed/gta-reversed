@@ -363,10 +363,10 @@ CAutomobile::CAutomobile(int32 modelIndex, eVehicleCreatedBy createdBy, bool set
     rng::fill(m_fWheelsSuspensionCompression, 1.f);
     rng::fill(m_fWheelsSuspensionCompressionPrev, 1.f);
 
-    m_nNumContactWheels     = 0;
+    m_nNoOfContactWheels     = 0;
     m_nWheelsOnGround       = 0;
     m_wheelsOnGrounPrev     = 0;
-    m_fFrontHeightAboveRoad = 0.0f;
+    m_fHeightAboveRoad = 0.0f;
     m_fRearHeightAboveRoad  = 0.0f;
     m_fCarTraction          = 1.0f;
     m_fTireTemperature      = 1.0f;
@@ -554,7 +554,7 @@ void CAutomobile::ProcessControl()
 
         if (IsRealHeli()
             && m_wheelSpeed[CAR_WHEEL_REAR_LEFT] > 0.0f || IsAmphibiousHeli()
-            && !m_nNumContactWheels
+            && !m_nNoOfContactWheels
             && m_fDamageIntensity <= 0.0f
             || m_nModelIndex == MODEL_VORTEX
             || CCheat::IsActive(CHEAT_CARS_ON_WATER)
@@ -747,7 +747,7 @@ void CAutomobile::ProcessControl()
         float brake = m_pHandlingData->m_fBrakeDeceleration * m_fBreakPedal * CTimer::GetTimeStep();
 
         m_wheelsOnGrounPrev = m_nWheelsOnGround;
-        m_nNumContactWheels = 0;
+        m_nNoOfContactWheels = 0;
         m_nWheelsOnGround = 0;
 
         for (int32 i = 0; i < 4; i++) {
@@ -760,7 +760,7 @@ void CAutomobile::ProcessControl()
                 m_aWheelTimer[i] = 4.0f;
             }
 
-            m_nNumContactWheels++;
+            m_nNoOfContactWheels++;
 
             switch (m_pHandlingData->GetTransmission().m_nDriveType)
             {
@@ -807,7 +807,7 @@ void CAutomobile::ProcessControl()
             traction = 250.0f / m_fCarTraction * m_pHandlingData->m_fTractionMultiplier;
         traction *= 0.25f / m_fVelocityFrequency;
         CPlane* vortex = AsPlane();
-        if (CCheat::IsActive(CHEAT_PERFECT_HANDLING) || m_nModelIndex == MODEL_VORTEX && vortex->m_fAccelerationBreakStatus == 0.0f)
+        if (CCheat::IsActive(CHEAT_PERFECT_HANDLING) || m_nModelIndex == MODEL_VORTEX && vortex->m_fThrottleControl == 0.0f)
             traction *= 4.0f;
 
         if (this != FindPlayerVehicle() && (extraPerfectHandling || CCheat::IsActive(CHEAT_PERFECT_HANDLING))) {
@@ -1080,8 +1080,8 @@ void CAutomobile::ProcessControl()
         && std::fabs(m_vecMoveSpeed.z) < 0.0045f)
     {
         if (m_fDamageIntensity <= 0.0f || m_pDamageEntity != FindPlayerPed()) {
-            if ((!IsSubPlane() || AsPlane()->m_fAccelerationBreakStatus == 0.0f) &&
-                (!IsSubHeli() || AsHeli()->m_fAccelerationBreakStatus == 0.0f))
+            if ((!IsSubPlane() || AsPlane()->m_fThrottleControl == 0.0f) &&
+                (!IsSubHeli() || AsHeli()->m_fThrottleControl == 0.0f))
             {
                 if (((float)m_wMiscComponentAngle == 0.0f || m_wMiscComponentAngle == m_wMiscComponentAnglePrev)
                     && !physicalFlags.bSubmergedInWater)
@@ -1207,7 +1207,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
 
     bool extraPerfectHandling = !!(extraHandlingFlags & EXTRA_HANDLING_PERFECT);
     if (extraPerfectHandling || CCheat::IsActive(CHEAT_PERFECT_HANDLING)) {
-        m_vecCentreOfMass.z = m_aSuspensionSpringLength[CAR_WHEEL_FRONT_LEFT] * 0.3f - m_fFrontHeightAboveRoad;
+        m_vecCentreOfMass.z = m_aSuspensionSpringLength[CAR_WHEEL_FRONT_LEFT] * 0.3f - m_fHeightAboveRoad;
     }
     else if (m_nStatus == STATUS_PHYSICS) {
         if (handlingFlags.bHydraulicGeom) {
@@ -1263,7 +1263,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         CCarAI::UpdateCarAI(this);
         CPhysical::ProcessControl();
         CCarCtrl::UpdateCarOnRails(this);
-        m_nNumContactWheels = 4;
+        m_nNoOfContactWheels = 4;
         m_wheelsOnGrounPrev = m_nWheelsOnGround;
         m_nWheelsOnGround = 4;
         float speed = m_autoPilot.m_speed / 50.0f;
@@ -1444,7 +1444,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         }
     }
 
-    if (!pad || m_nNumContactWheels != 0 || IsSubHeli() || IsSubPlane()) {
+    if (!pad || m_nNoOfContactWheels != 0 || IsSubHeli() || IsSubPlane()) {
         DoSoftGroundResistance(extraHandlingFlags);
         return false;
     }
@@ -1459,8 +1459,8 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
     float steerLeftRight = (float)pad->GetSteeringLeftRight() / 128.0f;
     float steerUpDown    = (float)pad->GetSteeringUpDown() / 128.0f;
     if (CCamera::m_bUseMouse3rdPerson && std::fabs(steerLeftRight) < 0.05f && std::fabs(steerUpDown) < 0.05f) {
-        steerLeftRight = std::clamp<float>(CPad::NewMouseControllerState.X / 50.0f, -1.5f, 1.5f);
-        steerUpDown    = std::clamp<float>(CPad::NewMouseControllerState.Y / 50.0f, -1.5f, 1.5f);
+        steerLeftRight = std::clamp<float>(CPad::NewMouseControllerState.m_AmountMoved.x / 50.0f, -1.5f, 1.5f);
+        steerUpDown    = std::clamp<float>(CPad::NewMouseControllerState.m_AmountMoved.y / 50.0f, -1.5f, 1.5f);
     }
 
     // 0x6B4F69
@@ -1602,7 +1602,7 @@ void CAutomobile::ProcessSuspension() {
             }
 
             if (ModelIndices::IsVortex(m_nModelIndex)) {
-                fSuspensionForceLevel *= std::fabs(AsPlane()->m_fAccelerationBreakStatus) * 0.25f + 1.0f;
+                fSuspensionForceLevel *= std::fabs(AsPlane()->m_fThrottleControl) * 0.25f + 1.0f;
             }
 
             if (CCheat::IsActive(CHEAT_CARS_ON_WATER) || ModelIndices::IsVortex(m_nModelIndex))
@@ -1747,7 +1747,7 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
     // The original code handled this properly, because `ProcessColModels` returned `0` 
     // if either colmodel's data was missing
     // but there's a lot of no-op stuff done below that we can just avoid altogether
-    // Though, in the original code there was an edge case if `m_pTractor == entity || m_pTrailer == entity` => crash
+    // Though, in the original code there was an edge case if `m_pTowingVehicle == entity || m_pVehicleBeingTowed == entity` => crash
     // but since I moved the assignment to the outside of the function now it always crashes xD
     if (!tcd || !ocd) {
         return 0;
@@ -1832,7 +1832,7 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
             m_fWheelsSuspensionCompression[i] = wheelColPtsTouchDist;
             m_wheelColPoint[i] = cp;
 
-            m_anCollisionLighting[i] = cp.m_nLightingB;
+            m_storedCollisionLighting[i] = cp.m_nLightingB;
             m_nContactSurface = cp.m_nSurfaceTypeB;
 
             switch (entity->GetType()) {
@@ -1842,12 +1842,12 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
 
                 m_vWheelCollisionPos[i] = cp.m_vecPoint - entity->GetPosition();
                 if (entity->IsVehicle()) {
-                    m_anCollisionLighting[i] = entity->AsVehicle()->m_anCollisionLighting[i];
+                    m_storedCollisionLighting[i] = entity->AsVehicle()->m_storedCollisionLighting[i];
                 }
                 break;
             }
             case ENTITY_TYPE_BUILDING: {
-                m_pEntityWeAreOn = entity;
+                pEntityWeAreOnForVisibilityCheck = entity;
                 m_bTunnel = entity->m_bTunnel;
                 m_bTunnelTransition = entity->m_bTunnelTransition;
                 break;
@@ -1998,23 +1998,23 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
         };
     
         if (!CCamera::m_bUseMouse3rdPerson || !m_bEnableMouseSteering) {
-            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), CONTROLLER_KEYBOARD1 };
+            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), KEYBOARD };
         }
 
-        if (CPad::NewMouseControllerState.X == 0.f && (m_nLastControlInput != CONTROLLER_MOUSE || plyrpad->GetSteeringLeftRight() != 0)) { // Simplified `if` here
-            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), CONTROLLER_KEYBOARD1 };
+        if (CPad::NewMouseControllerState.m_AmountMoved.x == 0.f && (m_nLastControlInput != MOUSE || plyrpad->GetSteeringLeftRight() != 0)) { // Simplified `if` here
+            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), KEYBOARD };
         }
 
-        if (CPad::NewMouseControllerState.X != 0.f || m_fRawSteerAngle != 0.f) {
+        if (CPad::NewMouseControllerState.m_AmountMoved.x != 0.f || m_fRawSteerAngle != 0.f) {
             if (!plyrpad->NewState.m_bVehicleMouseLook) {
-                return { m_fRawSteerAngle - CPad::NewMouseControllerState.X * 0.0035f, CONTROLLER_MOUSE };
+                return { m_fRawSteerAngle - CPad::NewMouseControllerState.m_AmountMoved.x * 0.0035f, MOUSE };
             }
 
             if (plyrpad->NewState.m_bVehicleMouseLook || std::abs(m_fRawSteerAngle) <= 0.7f) { // Slowly steer back to 0
-                return { m_fRawSteerAngle * std::pow(0.975f, CTimer::GetTimeStep()), CONTROLLER_MOUSE };
+                return { m_fRawSteerAngle * std::pow(0.975f, CTimer::GetTimeStep()), MOUSE };
             }
 
-            return { m_fRawSteerAngle, CONTROLLER_MOUSE };
+            return { m_fRawSteerAngle, MOUSE };
         }
 
         return { m_fRawSteerAngle, m_nLastControlInput }; // No change
@@ -2392,8 +2392,8 @@ void CAutomobile::BlowUpCar_Impl(CEntity* dmgr, bool bDontShakeCam, bool bDontSp
     m_damageManager.FuckCarCompletely(false);
 
     const auto isRcShit = (bFixBugs || !bIsForCutScene)
-        ? notsa::contains({ MODEL_RCTIGER, MODEL_RCBANDIT }, GetModelId()) // I'm 99% sure they forgot to copy paste this too, but let it be.
-        : GetModelId() == MODEL_RCBANDIT;
+        ? notsa::contains({ MODEL_RCTIGER, MODEL_RCBANDIT }, GetModelndex()) // I'm 99% sure they forgot to copy paste this too, but let it be.
+        : GetModelndex() == MODEL_RCBANDIT;
     if (!isRcShit) { // 0x6B3C61
         for (auto bumper : { FRONT_BUMPER, REAR_BUMPER }) {
             SetBumperDamage(bumper, bDontSpawnStuff);
@@ -2628,13 +2628,13 @@ void CAutomobile::SetupSuspensionLines() {
     };
 
     // 0x6A65D0
-    m_fFrontHeightAboveRoad = CalculateHeightAboveRoad(eCarWheel::CAR_WHEEL_FRONT_LEFT);
+    m_fHeightAboveRoad = CalculateHeightAboveRoad(eCarWheel::CAR_WHEEL_FRONT_LEFT);
     m_fRearHeightAboveRoad = CalculateHeightAboveRoad(eCarWheel::CAR_WHEEL_REAR_LEFT);
 
     // 0x6A681A
     // Adjust wheel's position based on height above road
     for (auto i = 0u; i < std::size(m_wheelPosition); i++) {
-        m_wheelPosition[i] = mi.GetSizeOfWheel((eCarWheel)i) / 2.f - m_fFrontHeightAboveRoad; // Not sure why it uses front height for all wheels?
+        m_wheelPosition[i] = mi.GetSizeOfWheel((eCarWheel)i) / 2.f - m_fHeightAboveRoad; // Not sure why it uses front height for all wheels?
     }
 
     // 0x6A681C
@@ -2660,7 +2660,7 @@ void CAutomobile::SetupSuspensionLines() {
 
     // 0x6A68FD
     if (handling.m_bForceGroundClearance && hadToAllocateLines) {
-        const auto sphBottomMinZ = (ModelIndices::IsKart(m_nModelIndex) ? 0.12f : 0.25f) - m_fFrontHeightAboveRoad;
+        const auto sphBottomMinZ = (ModelIndices::IsKart(m_nModelIndex) ? 0.12f : 0.25f) - m_fHeightAboveRoad;
         for (auto&& sph : cd.GetSpheres()) {
             const auto sphBottomZ = sph.m_vecCenter.z - sph.m_fRadius;
             if (sphBottomZ < sphBottomMinZ) {
@@ -2844,12 +2844,12 @@ void CAutomobile::PlayCarHorn()
 
 // 0x6A62B0
 float CAutomobile::GetHeightAboveRoad() {
-    return m_fFrontHeightAboveRoad;
+    return m_fHeightAboveRoad;
 }
 
 // 0x6A62A0
 int32 CAutomobile::GetNumContactWheels() {
-    return m_nNumContactWheels;
+    return m_nNoOfContactWheels;
 }
 
 // 0x6A7650
@@ -3282,7 +3282,7 @@ bool CAutomobile::GetTowHitchPos(CVector& outPos, bool bCheckModelInfo, CVehicle
     }
     outPos.x = 0.0f;
     outPos.y = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->m_boundBox.m_vecMax.y - 0.5f;
-    outPos.z = 0.5f - m_fFrontHeightAboveRoad;
+    outPos.z = 0.5f - m_fHeightAboveRoad;
     outPos = m_matrix->TransformPoint(outPos);
     return true;
 }
@@ -3304,7 +3304,7 @@ bool CAutomobile::GetTowBarPos(CVector& outPos, bool ignoreModelType, CVehicle* 
 
         outPos.x = 0.0f;
         outPos.y = baseY + CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->m_boundBox.m_vecMin.y;
-        outPos.z = ((1.0f - (float)m_wMiscComponentAngle / (float)TOWTRUCK_HOIST_DOWN_LIMIT) / 2.0f + 0.5f) - m_fFrontHeightAboveRoad;
+        outPos.z = ((1.0f - (float)m_wMiscComponentAngle / (float)TOWTRUCK_HOIST_DOWN_LIMIT) / 2.0f + 0.5f) - m_fHeightAboveRoad;
         outPos = m_matrix->TransformPoint(outPos);
         return true;
     }
@@ -3925,8 +3925,8 @@ void CAutomobile::TellHeliToGoToCoors(float x, float y, float z, float altitudeM
     m_autoPilot.m_nCarMission = MISSION_HELI_FLYTOCOORS;
     m_autoPilot.m_nCruiseSpeed = 100;
 
-    AsHeli()->m_fMinAltitude = altitudeMin;
-    AsHeli()->m_fMaxAltitude = altitudeMax;
+    AsHeli()->m_MinHeightAboveTerrain = altitudeMin;
+    AsHeli()->m_LowestFlightHeight    = altitudeMax;
 
     m_nStatus = STATUS_PHYSICS;
 
@@ -3959,8 +3959,8 @@ void CAutomobile::TellPlaneToGoToCoors(float x, float y, float z, float altitude
     m_autoPilot.m_nCarMission = MISSION_PLANE_FLYTOCOORS;
     m_autoPilot.m_nCruiseSpeed = 0;
 
-    AsPlane()->m_minAltitude = std::max(altitudeMin, z);
-    AsPlane()->m_maxAltitude = altitudeMax;
+    AsPlane()->m_MinHeightAboveTerrain = std::max(altitudeMin, z);
+    AsPlane()->m_LowestFlightHeight = altitudeMax;
 
     m_nStatus = STATUS_PHYSICS;
 
@@ -4687,14 +4687,14 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
             }
             tWheelState wheelState = m_aWheelState[leftWheel];
             if (m_damageManager.GetWheelStatus(leftWheel) == WHEEL_STATUS_BURST) {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * m_damageManager.m_fWheelDamageEffect * tractionBias,
                     leftWheel, &m_fWheelBurnoutSpeed[leftWheel], &wheelState, WHEEL_STATUS_BURST);
             }
             else {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[leftWheel], contactPoints[leftWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * tractionBias,
@@ -4737,7 +4737,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
             }
             tWheelState wheelState = m_aWheelState[rightWheel];
             if (m_damageManager.GetWheelStatus(rightWheel) == WHEEL_STATUS_BURST) {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * m_damageManager.m_fWheelDamageEffect * tractionBias,
@@ -4745,7 +4745,7 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
                );
             }
             else {
-                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNumContactWheels,
+                CVehicle::ProcessWheel(wheelFwd, wheelRight, contactSpeeds[rightWheel], contactPoints[rightWheel], m_nNoOfContactWheels,
                     thrust,
                     brake * brakeBias,
                     adhesion * tractionBias,
@@ -4955,7 +4955,7 @@ void CAutomobile::ProcessCarOnFireAndExplode(bool bExplodeImmediately) {
                     MODEL_RCGOBLIN,
                     MODEL_RCBANDIT,
                     MODEL_RCTIGER
-                }, GetModelId());
+                }, GetModelndex());
 
                 m_fBurnTimer += m_fireParticleCounter || isRcShit
                     ? floorTsMS
@@ -5834,105 +5834,72 @@ void CAutomobile::BlowUpCarsInPath() {
 }
 
 // 0x6AF420
-void CAutomobile::PlaceOnRoadProperly()
-{
-    auto* cm = GetColModel();
-    auto fStartY =  cm->m_pColData->m_pLines[0].m_vecStart.y;
-    auto fEndY   = -cm->m_pColData->m_pLines[3].m_vecStart.y;
+void CAutomobile::PlaceOnRoadProperly() {
+    CColPoint colPoint;
+    CEntity* hitEntity;
+    CColModel* colModel = GetColModel();
+    float frontCarLength, rearCarLength;
+    float frontZ, rearZ;
 
-    const auto& vecPos = GetPosition();
+    frontCarLength = colModel->m_boundBox.m_vecMax.y;
+    rearCarLength = -colModel->m_boundBox.m_vecMin.y;
 
-    auto vecRearCheck = vecPos - GetForward() * fEndY;
-    vecRearCheck.z = vecPos.z;
-
-    auto vecFrontCheck = vecPos + GetForward() * fStartY;
-    vecFrontCheck.z = vecPos.z;
-
-    bool bColFoundFront = false;
-    CColPoint colPoint{};
-    CEntity* colEntity;
-    float fColZ;
-    if (CWorld::ProcessVerticalLine(vecFrontCheck, vecFrontCheck.z + 5.0F, colPoint, colEntity, true)) {
-        m_bTunnel = colEntity->m_bTunnel;
-        m_bTunnelTransition = colEntity->m_bTunnelTransition;
-
-        fColZ = colPoint.m_vecPoint.z;
-        m_pEntityWeAreOn = colEntity;
-        bColFoundFront = true;
-    }
-    if (CWorld::ProcessVerticalLine(vecFrontCheck, vecFrontCheck.z - 5.0F, colPoint, colEntity, true)) {
-        if (!bColFoundFront || std::fabs(vecFrontCheck.z - colPoint.m_vecPoint.z) < std::fabs(vecFrontCheck.z - fColZ)) {
-            m_bTunnel = colEntity->m_bTunnel;
-            m_bTunnelTransition = colEntity->m_bTunnelTransition;
-
-            fColZ = colPoint.m_vecPoint.z;
-            m_pEntityWeAreOn = colEntity;
-
-            m_FrontCollPoly.ligthing = colPoint.m_nLightingB;
-            vecFrontCheck.z = fColZ;
-        }
-    }
-    else if (bColFoundFront) {
-        m_FrontCollPoly.ligthing = colPoint.m_nLightingB;
-        vecFrontCheck.z = fColZ;
+    CVector frontPosition(GetPosition().x + GetForward().x*frontCarLength,
+                          GetPosition().y + GetForward().y*frontCarLength,
+                          GetPosition().z + 5.0f);
+    
+    if(CWorld::ProcessVerticalLine(frontPosition, GetPosition().z - 5.0f, colPoint, hitEntity,
+            true, false, false, false, false, false, nullptr)) {
+        frontZ = colPoint.m_vecPoint.z;
+        pEntityWeAreOnForVisibilityCheck = hitEntity;
+        m_bTunnel = hitEntity->m_bTunnel;
+        m_bTunnelTransition = hitEntity->m_bTunnelTransition;
+        StoredCollPolys[0].lighting = colPoint.m_nLightingB;
+    } else {
+        // Fall back to the current height if no ground found
+        frontZ = GetPosition().z;
     }
 
-    bool bColFoundRear = false;
-    colEntity = nullptr;
-    if (CWorld::ProcessVerticalLine(vecRearCheck, vecRearCheck.z + 5.0F, colPoint, colEntity, true)) {
-        m_bTunnel = colEntity->m_bTunnel;
-        m_bTunnelTransition = colEntity->m_bTunnelTransition;
-
-        fColZ = colPoint.m_vecPoint.z;
-        m_pEntityWeAreOn = colEntity;
-        bColFoundRear = true;
-    }
-    if (CWorld::ProcessVerticalLine(vecRearCheck, vecRearCheck.z - 5.0F, colPoint, colEntity, true)) {
-        if (!bColFoundRear || std::fabs(vecRearCheck.z - colPoint.m_vecPoint.z) < std::fabs(vecRearCheck.z - fColZ)) {
-            m_bTunnel = colEntity->m_bTunnel;
-            m_bTunnelTransition = colEntity->m_bTunnelTransition;
-
-            fColZ = colPoint.m_vecPoint.z;
-            m_pEntityWeAreOn = colEntity;
-
-            m_RearCollPoly.ligthing = colPoint.m_nLightingB;
-            vecRearCheck.z = fColZ;
-        }
-    }
-    else if (bColFoundRear) {
-        m_RearCollPoly.ligthing = colPoint.m_nLightingB;
-        vecRearCheck.z = fColZ;
+    CVector rearPosition(GetPosition().x - GetForward().x*rearCarLength,
+                         GetPosition().y - GetForward().y*rearCarLength,
+                         GetPosition().z + 5.0f);
+    
+    if(CWorld::ProcessVerticalLine(rearPosition, GetPosition().z - 5.0f, colPoint, hitEntity,
+            true, false, false, false, false, false, nullptr)) {
+        rearZ = colPoint.m_vecPoint.z;
+        pEntityWeAreOnForVisibilityCheck = hitEntity;
+        m_bTunnel = hitEntity->m_bTunnel;
+        m_bTunnelTransition = hitEntity->m_bTunnelTransition;
+        AsVehicle()->StoredCollPolys[1].lighting = colPoint.m_nLightingB;
+    } else {
+        // Fall back to the current height if no ground found
+        rearZ = GetPosition().z;
     }
 
-    //FIXME: Not originally in this function, we can't spawn skimmer from debug menu cause those 2 values aren't initialized,
-    //       resulting in garbage results further down, either we have a bug somewhere, or it's like that in original SA too
-    if (m_nModelIndex == MODEL_SKIMMER) {
-        m_fFrontHeightAboveRoad = 0.0F;
-        m_fRearHeightAboveRoad = 0.0F;
-        vecFrontCheck.z += 4.0F;
-        vecRearCheck.z += 4.0F;
+    float totalLength = frontCarLength + rearCarLength;
+    float angle = atan2(frontZ - rearZ, totalLength);
+    float cosAngle = cos(angle);
+    float sinAngle = sin(angle);
+
+    GetRight().Set((frontPosition.y - rearPosition.y) / totalLength, 
+                  -(frontPosition.x - rearPosition.x) / totalLength, 
+                   0.0f);
+    
+    GetForward().Set(-cosAngle * GetRight().y, 
+                     cosAngle * GetRight().x, 
+                     sinAngle);
+    
+    GetUp() = CrossProduct(GetRight(), GetForward());
+    
+    CVector newPosition((frontPosition.x + rearPosition.x) / 2.0f,
+                        (frontPosition.y + rearPosition.y) / 2.0f,
+                        (frontZ + rearZ) / 2.0f + GetHeightAboveRoad());
+    
+    SetPosn(newPosition);
+
+    if (IsPlane()) {
+        AsPlane()->m_TakeOffDirection = CGeneral::GetATanOfXY(GetMatrix().GetForward().x, GetMatrix().GetForward().y);
     }
-    else {
-        auto fHeightAboveRoad = GetHeightAboveRoad();
-        vecFrontCheck.z += fHeightAboveRoad;
-        vecRearCheck.z += m_fRearHeightAboveRoad;
-    }
-
-    auto fLength = fEndY + fStartY;
-    GetRight().Set((vecFrontCheck.y - vecRearCheck.y) / fLength, -((vecFrontCheck.x - vecRearCheck.x) / fLength), 0.0F);
-
-    auto vecDiff = vecFrontCheck - vecRearCheck;
-    vecDiff.Normalise();
-    GetForward() = vecDiff;
-
-    auto vecCross = CrossProduct(GetRight(), GetForward());
-    GetUp() = vecCross;
-
-    CVector vecNewPos = (vecFrontCheck * fEndY + vecRearCheck * fStartY) / fLength;
-    SetPosn(vecNewPos);
-
-    if (IsSubPlane())
-        AsPlane()->m_planeCreationHeading = CGeneral::GetATanOfXY(GetForward().x, GetForward().y);
 }
 
 // 0x6AF910

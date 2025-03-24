@@ -106,8 +106,8 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(ConversationNoJustDown, 0x541200);
     RH_ScopedInstall(GroupControlForwardJustDown, 0x541230);
     RH_ScopedInstall(GroupControlBackJustDown, 0x541260);
-    RH_ScopedInstall(sub_540BD0, 0x540BD0, {.reversed = true});
-    RH_ScopedInstall(sub_540CC0, 0x540CC0, {.reversed = true});
+    RH_ScopedInstall(LookAroundLeftRight, 0x540BD0);
+    RH_ScopedInstall(LookAroundUpDown, 0x540CC0);
 }
 
 // 0x541D80
@@ -220,17 +220,17 @@ void CPad::UpdatePads() {
     const auto& ImIONavActive = notsa::ui::UIRenderer::GetSingleton().GetImIO()->NavActive;
 
     if (!ImIONavActive) {
-        GetPad(0)->UpdateMouse();
+        GetPad(PAD1)->UpdateMouse();
     }
 
-    ProcessPad(0);
+    ProcessPad(PAD1);
     ControlsManager.ClearSimButtonPressCheckers();
 
     if (!ImIONavActive) {
-        ControlsManager.AffectPadFromKeyBoard();
-        ControlsManager.AffectPadFromMouse();
-        GetPad(0)->Update(0);
-        GetPad(1)->Update(1);
+        ControlsManager.ProcessKeyboardInput();
+        ControlsManager.ProcessMouseInput();
+        GetPad(PAD1)->Update(PAD1);
+        GetPad(PAD2)->Update(PAD2);
     }
 
     OldKeyState = NewKeyState;
@@ -253,8 +253,8 @@ void CPad::UpdateMouse() {
 
         // Write directly to NewMouseControllerState
         CPad::OldMouseControllerState = std::exchange(CPad::NewMouseControllerState, state);
-        CPad::NewMouseControllerState.X *= invertX;
-        CPad::NewMouseControllerState.Y *= invertY;
+        CPad::NewMouseControllerState.m_AmountMoved.x *= invertX;
+        CPad::NewMouseControllerState.m_AmountMoved.y *= invertY;
     }
 }
 
@@ -283,9 +283,9 @@ void CPad::ProcessPad(int padNum) {
  
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
 
-    if (ControlsManager.m_bJoyJustInitialised) {
+    if (ControlsManager.m_WasJoyJustInitialised) {
         ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState = joyState;
-        ControlsManager.m_bJoyJustInitialised = false;
+        ControlsManager.m_WasJoyJustInitialised = false;
     } else {
         ControlsManager.m_OldJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
     }
@@ -1126,7 +1126,7 @@ int16 CPad::AimWeaponUpDown(CPed* ped) const {
 }
 
 // 0x540BD0
-int16 CPad::sub_540BD0(CPed* ped) noexcept {
+int16 CPad::LookAroundLeftRight(CPed* ped) const {
     if (DisablePlayerControls) {
         return 0;
     }
@@ -1149,7 +1149,7 @@ int16 CPad::sub_540BD0(CPed* ped) noexcept {
 }
 
 // 0x540CC0
-int16 CPad::sub_540CC0(CPed* ped) noexcept {
+int16 CPad::LookAroundUpDown(CPed* ped) const {
     if (DisablePlayerControls) {
         return 0;
     }
@@ -1176,6 +1176,16 @@ int16 CPad::sub_540CC0(CPed* ped) noexcept {
 
     constexpr auto UNK = 1.3763441f;
     return static_cast<int16>((static_cast<float>(s1) + (s1 < 0 ? 35.0f : -35.0f)) * UNK);
+}
+
+// Alias for SniperModeLookLeftRight, same as LookAroundLeftRight
+int16 CPad::SniperModeLookLeftRight(CPed* ped) const {
+    return LookAroundLeftRight(ped);
+}
+
+// Alias for SniperModeLookUpDown, same as LookAroundUpDown
+int16 CPad::SniperModeLookUpDown(CPed* ped) const {
+    return LookAroundUpDown(ped);
 }
 
 // 0x541290
@@ -1293,7 +1303,7 @@ bool CPad::GetAnaloguePadDown() {
 }
 
 // 0x540530
-bool CPad::sub_540530() const noexcept {
+bool CPad::CycleCameraModeJustDown() const noexcept { // TODO: Check if it's correct
     switch (Mode) {
     case 0:
     case 2:

@@ -137,7 +137,7 @@ void CMirrors::RenderMirrorBuffer() {
 
     RwImVertexIndex indices[] = { 0, 1, 2, 0, 2, 3 };
 
-    if (MirrorFlags & CAM_STAIRS_FOR_PLAYER || bFudgeNow) {
+    if (MirrorFlags & ZONE_ATTRIBUTE_CAMSTAIRS_FORPLAYER || bFudgeNow) {
         RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(TRUE));
         RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
         RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
@@ -317,7 +317,7 @@ void CMirrors::BeforeConstructRenderList() {
             return false;
         }
 
-        if ((mirrorAttrs->flags & CAM_STAIRS_FOR_PLAYER) == 0) {
+        if ((mirrorAttrs->flags & ZONE_ATTRIBUTE_CAMSTAIRS_FORPLAYER) == 0) {
             return true;
         }
 
@@ -342,7 +342,7 @@ void CMirrors::BeforeConstructRenderList() {
         ShutDown();
     }
 
-    if ((MirrorFlags & CAM_STAIRS_FOR_PLAYER) != 0 || bFudgeNow) {
+    if ((MirrorFlags & ZONE_ATTRIBUTE_CAMSTAIRS_FORPLAYER) != 0 || bFudgeNow) {
         CMatrix mat{};
         BuildCameraMatrixForScreens(mat);
         TheCamera.DealWithMirrorBeforeConstructRenderList(mirrorActive, MirrorNormal, MirrorV, &mat);
