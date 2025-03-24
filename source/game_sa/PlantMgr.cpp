@@ -707,7 +707,7 @@ void CPlantMgr::_UpdateLocTris(const CVector& center, int32 a2) {
 float CPlantMgr::_CalcDistanceSqrToEntity(CEntity* entity, const CVector& posn) {
     const auto colModel = entity->GetColModel();
     CVector dst;
-    entity->TransformFromObjectSpace(dst, colModel->m_boundSphere.m_vecCenter);
+    entity->TransformIntoWorldSpace(dst, colModel->m_boundSphere.m_vecCenter);
 
     auto d = DistanceBetweenPoints(dst, posn);
     if (auto r = colModel->m_boundSphere.m_fRadius; d > r) {

@@ -153,8 +153,6 @@ public:
     void SetRwObjectAlpha(int32 alpha);
     CVector* FindTriggerPointCoors(CVector* pOutVec, int32 triggerIndex);
     C2dEffect* GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot);
-    CVector TransformFromObjectSpace(const CVector& offset);
-    CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset);
     void CreateEffects();
     void DestroyEffects();
     void AttachToRwObject(RwObject* object, bool updateEntityMatrix);

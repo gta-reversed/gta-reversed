@@ -60,8 +60,6 @@ void CEntity::InjectHooks()
     RH_ScopedInstall(SetRwObjectAlpha, 0x5332C0);
     RH_ScopedInstall(FindTriggerPointCoors, 0x533380);
     RH_ScopedInstall(GetRandom2dEffect, 0x533410);
-    RH_ScopedOverloadedInstall(TransformFromObjectSpace, "ref", 0x5334F0, CVector(CEntity::*)(const CVector&));
-    RH_ScopedOverloadedInstall(TransformFromObjectSpace, "ptr", 0x533560, CVector*(CEntity::*)(CVector&, const CVector&));
     RH_ScopedInstall(CreateEffects, 0x533790);
     RH_ScopedInstall(DestroyEffects, 0x533BF0);
     RH_ScopedInstall(AttachToRwObject, 0x533ED0);
@@ -411,16 +409,16 @@ CRect CEntity::GetBoundRect()
     CVector vecMax = colModel->m_boundBox.m_vecMax;
     CRect rect;
     CVector point;
-    TransformFromObjectSpace(point, vecMin);
+    TransformIntoWorldSpace(point, vecMin);
     rect.StretchToPoint(point.x, point.y);
-    TransformFromObjectSpace(point, vecMax);
+    TransformIntoWorldSpace(point, vecMax);
     rect.StretchToPoint(point.x, point.y);
     float maxX = vecMax.x;
     vecMax.x = vecMin.x;
     vecMin.x = maxX;
-    TransformFromObjectSpace(point, vecMin);
+    TransformIntoWorldSpace(point, vecMin);
     rect.StretchToPoint(point.x, point.y);
-    TransformFromObjectSpace(point, vecMax);
+    TransformIntoWorldSpace(point, vecMax);
     rect.StretchToPoint(point.x, point.y);
     return rect;
 }
@@ -1086,27 +1084,6 @@ C2dEffect* CEntity::GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot)
     return nullptr;
 }
 
-// 0x5334F0
-CVector CEntity::TransformFromObjectSpace(const CVector& offset)
-{
-    auto result = CVector();
-    if (m_matrix) {
-        result = m_matrix->TransformPoint(offset);
-        return result;
-    }
-
-    TransformPoint(result, m_placement, offset);
-    return result;
-}
-
-// 0x533560
-CVector* CEntity::TransformFromObjectSpace(CVector& outPos, const CVector& offset)
-{
-    auto result = TransformFromObjectSpace(offset);
-    outPos = result;
-    return &outPos;
-}
-
 // 0x533790
 void CEntity::CreateEffects()
 {
@@ -1133,8 +1110,8 @@ void CEntity::CreateEffects()
         }
         case e2dEffectType::EFFECT_ENEX: {
             auto vecExit = effect->m_Pos + effect->enEx.m_vecExitPosn;
-            auto vecWorldEffect = TransformFromObjectSpace(effect->m_Pos);
-            auto vecWorldExit = TransformFromObjectSpace(vecExit);
+            auto vecWorldEffect = TransformIntoWorldSpace(effect->m_Pos);
+            auto vecWorldExit = TransformIntoWorldSpace(vecExit);
 
             if (effect->enEx.bTimedEffect) {
                 auto ucDays = CClock::GetGameClockDays();
@@ -1204,10 +1181,10 @@ void CEntity::CreateEffects()
             break;
         }
         case e2dEffectType::EFFECT_ESCALATOR: {
-            auto vecStart = TransformFromObjectSpace(effect->m_Pos);
-            auto vecBottom = TransformFromObjectSpace(effect->escalator.m_vecBottom);
-            auto vecTop = TransformFromObjectSpace(effect->escalator.m_vecTop);
-            auto vecEnd = TransformFromObjectSpace(effect->escalator.m_vecEnd);
+            auto vecStart = TransformIntoWorldSpace(effect->m_Pos);
+            auto vecBottom = TransformIntoWorldSpace(effect->escalator.m_vecBottom);
+            auto vecTop = TransformIntoWorldSpace(effect->escalator.m_vecTop);
+            auto vecEnd = TransformIntoWorldSpace(effect->escalator.m_vecEnd);
             auto bMovingDown = effect->escalator.m_nDirection == 0;
 
             CEscalators::AddOne(vecStart, vecBottom, vecTop, vecEnd, bMovingDown, this);
@@ -1242,7 +1219,7 @@ void CEntity::DestroyEffects()
             break;
         }
         case e2dEffectType::EFFECT_ENEX: {
-            auto vecWorld = TransformFromObjectSpace(effect->m_Pos);
+            CVector vecWorld = TransformIntoWorldSpace(effect->m_Pos);
             auto iNearestEnex = CEntryExitManager::FindNearestEntryExit(vecWorld, 1.5F, -1);
             if (iNearestEnex != -1) {
                 auto enex = CEntryExitManager::mp_poolEntryExits->GetAt(iNearestEnex);
@@ -1402,7 +1379,7 @@ bool CEntity::GetIsBoundingBoxOnScreen()
 
     for (int32 i = 0; i < 2; ++i) {
         #define ChooseComponent(c) vecNormals[i].c < 0 ? cm->m_boundBox.m_vecMax.c : cm->m_boundBox.m_vecMin.c
-        CVector vecWorld = TransformFromObjectSpace(CVector{
+        CVector vecWorld = TransformIntoWorldSpace(CVector{
             ChooseComponent(x),
             ChooseComponent(y),
             ChooseComponent(z)
@@ -1839,7 +1816,7 @@ void CEntity::ProcessLightsForEntity()
         auto uiRand = m_nRandomSeed ^ CCoronas::ms_aEntityLightsOffsets[iFxInd & 0x7];
 
         if (effect->m_Type == e2dEffectType::EFFECT_SUN_GLARE && CWeather::SunGlare >= 0.0F) {
-            auto vecEffPos = TransformFromObjectSpace(effect->m_Pos);
+            CVector vecEffPos = TransformIntoWorldSpace(effect->m_Pos);
 
             auto vecDir = vecEffPos - GetPosition();
             vecDir.Normalise();
@@ -1892,7 +1869,7 @@ void CEntity::ProcessLightsForEntity()
         if (effect->m_Type != e2dEffectType::EFFECT_LIGHT)
             continue;
 
-        auto vecEffPos = TransformFromObjectSpace(effect->m_Pos);
+        auto vecEffPos = TransformIntoWorldSpace(effect->m_Pos);
         auto bDoColorLight = false;
         auto bDoNoColorLight = false;
         auto bCoronaVisible = false;
@@ -2344,7 +2321,7 @@ bool CEntity::IsEntityOccluded() {
     const auto occlusionRadius = boundingRadius * longEdge * 0.9f;
 
     const auto GetOccluderPt = [this](CVector pt) -> std::pair<CVector, std::optional<CVector>> {
-        const auto ws = TransformFromObjectSpace(pt);
+        const auto ws = TransformIntoWorldSpace(pt);
         if (CVector scr; CalcScreenCoors(ws, scr)) {
             return {ws, scr};
         }
