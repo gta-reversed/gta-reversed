@@ -46,9 +46,9 @@ private:
     * static unsigned char _bCleanLandFill  = 0xCD;
     *   // fill new objects with this
     */
-    constexpr static auto NOMANSLAND_FILL = 0xFD; //!< Fill no-man's land with this
-    constexpr static auto DEADLAND_FILL   = 0xDD; //!< Fill free objects with this
-    constexpr static auto CLEANLAND_FILL  = 0xCD; //!< Fill new objects with this
+    constexpr static auto NOMANSLAND_FILL = 0xFD; //!< Initial fill of the pool's storage (That is, no objects have ever used this space)
+    constexpr static auto DEADLAND_FILL   = 0xDD; //!< Delete'd objects are filled with this
+    constexpr static auto CLEANLAND_FILL  = 0xCD; //!< New'd objects are filled with this (Expect the constructor to overwrite most of this)
 
 public:
     /*!
