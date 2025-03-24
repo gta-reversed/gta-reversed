@@ -61,7 +61,7 @@ protected:
     Dir                                   m_Dir{};         //!< [0, 2π)
     CVector                               m_PointOnMap{};  //!< Only used when `m_Type` is `POINTONMAP`
     notsa::EntityRef<CEntity>             m_CoverEntity{}; //!< Only used when `m_Type` is `OBJECT` or `VEHICLE`
-    std::array<notsa::EntityRef<CPed>, 2> m_CoveredPeds{}; //!< Pes currently covered by this cover point
+std::array<notsa::EntityRef<CPed>, 2> m_CoveredPeds{}; //!< Peds currently covered by this cover point
 };
 
 VALIDATE_SIZE(CCoverPoint, 0x1C);
