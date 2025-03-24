@@ -277,7 +277,7 @@ void CFire::ProcessFire() {
                     vehicle->m_fHealth = 75.0f;
                 }
             } else if (!targetPed->IsPlayer() && !targetPed->IsAlive()) {
-                targetPed->physicalFlags.bDestroyed = true;
+                targetPed->physicalFlags.bRenderScorched = true;
             }
 
             break;

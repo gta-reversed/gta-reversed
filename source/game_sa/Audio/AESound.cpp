@@ -207,7 +207,9 @@ CVector CAESound::GetRelativePosition() const {
 
 // 0x4EF350 - Matches the original calling convention, to be used by reversible hooks, use the version returning CVector instead in our code
 void CAESound::GetRelativePosition(CVector* outVec) const {
-    *outVec = GetFrontEnd() ? m_vecCurrPosn : CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
+    *outVec = GetFrontEnd()
+        ? m_vecCurrPosn
+        : CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
 }
 
 // 0x4EF390
@@ -300,10 +302,9 @@ void CAESound::CalculateVolume() {
     if (GetFrontEnd())
         m_fFinalVolume = m_fVolume - m_fSoundHeadRoom;
     else {
-        const auto relativePos = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
-        const auto fDist = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn).Magnitude() / m_fSoundDistance;
-        const auto fAttenuation = CAEAudioEnvironment::GetDistanceAttenuation(fDist);
-        m_fFinalVolume = CAEAudioEnvironment::GetDirectionalMikeAttenuation(relativePos) + fAttenuation + m_fVolume - m_fSoundHeadRoom;
+        const auto relativeToCamPos = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
+        const auto attenuation      = CAEAudioEnvironment::GetDistanceAttenuation(relativeToCamPos.Magnitude() / m_fSoundDistance);
+        m_fFinalVolume              = CAEAudioEnvironment::GetDirectionalMikeAttenuation(relativeToCamPos) + attenuation + m_fVolume - m_fSoundHeadRoom;
     }
 }
 

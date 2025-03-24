@@ -1173,3 +1173,7 @@ void _rwObjectHasFrameSetFrame(void *object, RwFrame *frame) {
 void _rwObjectHasFrameReleaseFrame(void *object) {
     plugin::Call<0x804F40, void*>(object);
 }
+
+RwUInt32 RwRGBAToPixel(RwRGBA* rgbIn, RwInt32 rasterFormat) {
+    return plugin::CallAndReturn<RwUInt32, 0x803740, RwRGBA*, RwInt32>(rgbIn, rasterFormat);
+}

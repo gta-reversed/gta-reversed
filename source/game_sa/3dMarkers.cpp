@@ -171,10 +171,10 @@ void C3dMarkers::DirectionArrowsDraw() {
         }
 
         if (!bRenderParamsSet) {
-            RwRenderStateGet(rwRENDERSTATECULLMODE,          &gStoredRenderStateCullMode);
-            RwRenderStateGet(rwRENDERSTATEZTESTENABLE,       &gStoredRenderStateZTestEnable);
-            RwRenderStateGet(rwRENDERSTATEZWRITEENABLE,      &gStoredRenderStateZWriteEnable);
-            RwRenderStateGet(rwRENDERSTATEVERTEXALPHAENABLE, &gStoredRenderStateVertexAlphaEnable);
+            RwRenderStateGet(rwRENDERSTATECULLMODE,          &CPostEffects::ms_imf.cullMode);
+            RwRenderStateGet(rwRENDERSTATEZTESTENABLE,       &CPostEffects::ms_imf.bZTest);
+            RwRenderStateGet(rwRENDERSTATEZWRITEENABLE,      &CPostEffects::ms_imf.bZWrite);
+            RwRenderStateGet(rwRENDERSTATEVERTEXALPHAENABLE, &CPostEffects::ms_imf.bVertexAlpha);
 
             RwRenderStateSet(rwRENDERSTATECULLMODE,          RWRSTATE(rwCULLMODECULLNONE));
             RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
@@ -190,10 +190,10 @@ void C3dMarkers::DirectionArrowsDraw() {
     }
 
     if (bRenderParamsSet) {
-        RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(gStoredRenderStateCullMode));
-        RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(gStoredRenderStateZTestEnable));
-        RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(gStoredRenderStateZWriteEnable));
-        RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(gStoredRenderStateVertexAlphaEnable));
+        RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(CPostEffects::ms_imf.cullMode));
+        RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(CPostEffects::ms_imf.bZTest));
+        RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(CPostEffects::ms_imf.bZWrite));
+        RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(CPostEffects::ms_imf.bVertexAlpha));
     }
 }
 
@@ -314,9 +314,9 @@ void C3dMarkers::User3dMarkersDraw() {
         }
 
         if (!bRenderParamsSet) {
-            RwRenderStateGet(rwRENDERSTATECULLMODE, &gStoredRenderStateCullMode);
-            RwRenderStateGet(rwRENDERSTATEZTESTENABLE, &gStoredRenderStateZTestEnable);
-            RwRenderStateGet(rwRENDERSTATEZWRITEENABLE, &gStoredRenderStateZWriteEnable);
+            RwRenderStateGet(rwRENDERSTATECULLMODE, &CPostEffects::ms_imf.cullMode);
+            RwRenderStateGet(rwRENDERSTATEZTESTENABLE, &CPostEffects::ms_imf.bZTest);
+            RwRenderStateGet(rwRENDERSTATEZWRITEENABLE, &CPostEffects::ms_imf.bZWrite);
 
             RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLNONE));
             RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(TRUE));
@@ -329,9 +329,9 @@ void C3dMarkers::User3dMarkersDraw() {
     }
 
     if (bRenderParamsSet) {
-        RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(gStoredRenderStateCullMode));
-        RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(gStoredRenderStateZTestEnable));
-        RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(gStoredRenderStateZWriteEnable));
+        RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(CPostEffects::ms_imf.cullMode));
+        RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(CPostEffects::ms_imf.bZTest));
+        RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(CPostEffects::ms_imf.bZWrite));
     }
 }
 

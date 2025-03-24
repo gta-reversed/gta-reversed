@@ -2,6 +2,7 @@
 
 #include "UIRenderer.h"
 #include "TaskComplexDestroyCarMelee.h"
+#include <TaskComplexEnterCarAsPassengerTimed.h>
 #include "TaskComplexWalkAlongsidePed.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
 #include "TaskComplexFollowNodeRoute.h"
@@ -9,12 +10,13 @@
 #include "TaskComplexStealCar.h"
 #include "TaskComplexFleeAnyMeans.h"
 #include "TaskComplexDriveWander.h"
-
+#include "TaskComplexCarSlowBeDraggedOut.h"
 #include <imgui.h>
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx9.h"
 #include <imgui_stdlib.h>
 #include <imgui_internal.h>
+#include <Curves.h>
 
 #include <Windows.h>
 #include <extensions/ScriptCommands.h>
@@ -199,15 +201,7 @@ void UIRenderer::DebugCode() {
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {
-        CStreaming::RequestModel(MODEL_INFERNUS, STREAMING_PRIORITY_REQUEST);
-        CStreaming::LoadAllRequestedModels(true);
-        const auto veh = new CAutomobile{MODEL_INFERNUS, eVehicleCreatedBy::RANDOM_VEHICLE, true};
-        veh->SetPosn(player->GetPosition() + player->GetForward() * 3.f);
-        CWorld::Add(veh);
-        player->GetTaskManager().SetTask(
-            new CTaskComplexDestroyCarMelee{ veh },
-            TASK_PRIMARY_PRIMARY
-        );
+        CCurves::TestCurves();
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {
