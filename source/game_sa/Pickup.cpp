@@ -154,7 +154,7 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     switch (m_nPickupType) {
     case PICKUP_IN_SHOP_OUT_OF_STOCK:
         object->objectFlags.bPickupInShopOutOfStock = true;
-        object->physicalFlags.bDestroyed = true; // ?
+        object->physicalFlags.bRenderScorched = true; // ?
         break;
 
     case PICKUP_PROPERTY_FORSALE:

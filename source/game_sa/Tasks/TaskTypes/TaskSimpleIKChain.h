@@ -38,22 +38,22 @@ private:
     CTaskSimpleIKChain* Destructor() { this->CTaskSimpleIKChain::~CTaskSimpleIKChain(); return this; }
 
 protected:
-    int32        m_Duration{};
-    int32        m_BlendDuration{};
-    IKChain_c*   m_IKChain{};
-    int16        m_SlotId{};
-    eBoneTag16   m_PivotBone{}; //! Bone we're moving bones up to
-    eBoneTag16   m_EffectorBone{}; //! Bone we're moving
-    CVector      m_EffectorOffset{};
-    CEntity::Ref m_TargetEntity{};
-    eBoneTag16   m_OffsetBone{};
-    CVector      m_OffsetPos{};
-    float        m_Speed{};
-    bool         m_TargetEntityExisted{};
-    float        m_Blend{};
-    int32        m_EndTime{};
-    float        m_TargetBlend{};
-    int32        m_TargetTime{};
-    int32        m_IsBlendingOut{};
+    int32              m_Duration{};
+    int32              m_BlendDuration{};
+    IKChain_c*         m_IKChain{};
+    int16              m_SlotId{};
+    eBoneTag16         m_PivotBone{};    //! Bone we're moving bones up to
+    eBoneTag16         m_EffectorBone{}; //! Bone we're moving
+    CVector            m_EffectorOffset{};
+    notsa::EntityRef<> m_TargetEntity{};
+    eBoneTag16         m_OffsetBone{};
+    CVector            m_OffsetPos{};
+    float              m_Speed{};
+    bool               m_TargetEntityExisted{};
+    float              m_Blend{};
+    int32              m_EndTime{};
+    float              m_TargetBlend{};
+    int32              m_TargetTime{};
+    int32              m_IsBlendingOut{};
 };
 VALIDATE_SIZE(CTaskSimpleIKChain, 0x58);

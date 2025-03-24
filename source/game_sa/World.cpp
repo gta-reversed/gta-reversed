@@ -182,7 +182,7 @@ void CWorld::Add(CEntity* entity) {
 }
 
 /*!
-* @brief Remove ped from the world.
+* @brief Remove entity from the world.
 * Caller still has to `delete` the entity. (In case they want to delete it, and not just re-add)
 * In case of peds `CPopulation::RemovePed` should be used instead.
 */
@@ -495,8 +495,8 @@ void CWorld::CallOffChaseForAreaSectorListPeds(CPtrList& ptrList, float x1, floa
         case eCarMission::MISSION_RAMPLAYER_CLOSE:
         case eCarMission::MISSION_BLOCKPLAYER_FARAWAY:
         case eCarMission::MISSION_BLOCKPLAYER_CLOSE:
-        case eCarMission::MISSION_3D:
-        case eCarMission::MISSION_3C:
+        case eCarMission::MISSION_DO_DRIVEBY_FARAWAY:
+        case eCarMission::MISSION_DO_DRIVEBY_CLOSE:
             break;
         default:
             continue;
@@ -1226,7 +1226,7 @@ void CWorld::RemoveFallenCars() {
             continue;
 
         const auto ShouldWeKeepIt = [vehicle]() {
-            if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bDestroyed)
+            if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bRenderScorched)
                 return true;
 
             if (vehicle == FindPlayerVehicle())
@@ -2415,7 +2415,7 @@ void CWorld::RepositionOneObject(CEntity* object) {
     // you never know..
 
     const auto IsObjectModelAnyOf = [object](std::initializer_list<ModelIndex> models) {
-        return std::ranges::find(models, (ModelIndex)object->m_nModelIndex) != models.end();
+        return std::ranges::find(models, object->m_nModelIndex) != models.end();
     };
 
     const auto modelInfo = CModelInfo::GetModelInfo(object->m_nModelIndex);

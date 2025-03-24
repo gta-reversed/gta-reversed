@@ -109,6 +109,7 @@ template<typename... Ts>
 #else 
 #define NOTSA_UNREACHABLE(...) UNREACHABLE_INTRINSIC()
 #endif
+#define NOTSA_UNUSED_FUNCTION() NOTSA_UNREACHABLE("Unused Function")
 
 #ifdef _DEBUG
 #define NOTSA_DEBUG_BREAK() __debugbreak()

@@ -63,19 +63,19 @@ void CBox::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
     workVec = m_vecMax;
     CVector v8 = transform.TransformPoint(workVec);
 
-    const auto colorARGB = color.ToIntARGB();
-    CLines::RenderLineNoClipping(v1, v2, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v1, v3, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v1, v4, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v5, v2, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v5, v8, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v5, v4, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v6, v2, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v6, v8, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v6, v3, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v7, v8, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v7, v3, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v7, v4, colorARGB, colorARGB);
+    const auto colorRGBA = color.ToInt();
+    CLines::RenderLineNoClipping(v1, v2, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v1, v3, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v1, v4, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v5, v2, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v5, v8, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v5, v4, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v6, v2, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v6, v8, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v6, v3, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v7, v8, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v7, v3, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v7, v4, colorRGBA, colorRGBA);
 }
 
 bool CBox::IsPointInside(const CVector& point) const {

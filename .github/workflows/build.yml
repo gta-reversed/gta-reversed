@@ -27,6 +27,7 @@ jobs:
                 os: [ windows-2025 ]
                 arch: [ x86 ]
                 conf: [ Debug, Release ]
+                preset: [ conan-default, conan-default-unity ]
 
         steps:
             -   name: Checkout
@@ -54,7 +55,7 @@ jobs:
 
             -   name: Configure ${{ matrix.conf }}-${{ matrix.arch }}
                 shell: cmd
-                run: cmake --preset conan-default
+                run: cmake --preset ${{ matrix.preset }}
 
             -   name: Build ${{ matrix.conf }}-${{ matrix.arch }}
                 shell: cmd
@@ -63,7 +64,7 @@ jobs:
             -   name: Upload artifacts for ${{ matrix.conf }}-${{ matrix.arch }}
                 uses: actions/upload-artifact@v4
                 with:
-                    name: gta_reversed-${{ matrix.conf }}
+                    name: gta_reversed-${{ matrix.conf }}-${{ matrix.preset }}
                     path: bin/${{ matrix.conf }}
 
             -   name: Initialize MSVC Code Analysis

@@ -3034,7 +3034,7 @@ bool CStreaming::IsCarModelNeededInCurrentZone(int32 modelId) {
 
     // Check gangs
     for (int32 groupId = 0; groupId < TOTAL_GANGS; groupId++) {
-        if (CPopCycle::m_pCurrZoneInfo->GangDensity[groupId] != 0 &&
+        if (CPopCycle::m_pCurrZoneInfo->GangStrength[groupId] != 0 &&
             CPopulation::DoesCarGroupHaveModelId(groupId, modelId)
         ) {
             return true;
@@ -3466,7 +3466,7 @@ void CStreaming::StreamVehiclesAndPeds() {
         if (CWeather::WeatherRegion == WEATHER_REGION_SF) {
             pedGroupId = POPCYCLE_PEDGROUP_BUSINESS_LA;
         } else if (CPopCycle::m_pCurrZoneInfo) {
-            const auto& currenZoneFlags = CPopCycle::m_pCurrZoneInfo->zonePopulationRace;
+            const auto& currenZoneFlags = CPopCycle::m_pCurrZoneInfo->PopRaces;
             if (currenZoneFlags & 1)
                 pedGroupId = 0; // POPCYCLE_PEDGROUP_WORKERS_LA ?
             else if (currenZoneFlags & 2)
@@ -3536,9 +3536,9 @@ void CStreaming::StreamVehiclesAndPeds_Always(const CVector& unused) {
 
     if (CPopCycle::m_pCurrZoneInfo) {
         static int32& lastZonePopulationType = *(int32*)0x96552C; // TODO | STATICREF // 0; = 0;
-        if (CPopCycle::m_pCurrZoneInfo->zonePopulationType != lastZonePopulationType) {
+        if (CPopCycle::m_pCurrZoneInfo->PopType != lastZonePopulationType) {
             ReclassifyLoadedCars();
-            lastZonePopulationType = CPopCycle::m_pCurrZoneInfo->zonePopulationType;
+            lastZonePopulationType = CPopCycle::m_pCurrZoneInfo->PopType;
         }
     }
 }
@@ -3549,7 +3549,7 @@ void CStreaming::StreamZoneModels(const CVector& unused) {
         return;
 
     static int32& timeBeforeNextLoad = *(int32*)0x9654CC; // TODO | STATICREF // 0; = 0;
-    if (CPopCycle::m_pCurrZoneInfo->zonePopulationType == ms_currentZoneType) {
+    if (CPopCycle::m_pCurrZoneInfo->PopType == ms_currentZoneType) {
         if (timeBeforeNextLoad >= 0) {
             timeBeforeNextLoad--;
         } else {
@@ -3589,7 +3589,7 @@ void CStreaming::StreamZoneModels(const CVector& unused) {
         }
         ms_numPedsLoaded = 0;
 
-        ms_currentZoneType = CPopCycle::m_pCurrZoneInfo->zonePopulationType;
+        ms_currentZoneType = CPopCycle::m_pCurrZoneInfo->PopType;
 
         numPedsToLoad = std::max(numPedsToLoad, 4); // Loads back the same count of models as before unloading them, but at least 4.
         for (int32 i = 0; i < numPedsToLoad; i++) {
@@ -3659,7 +3659,7 @@ void CStreaming::StreamZoneModels_Gangs(const CVector& unused) {
 
     uint32 gangsNeeded = 0; // Bitfield of gangs to be loaded
     for (int32 i = 0; i < TOTAL_GANGS; i++) {
-        if (CPopCycle::m_pCurrZoneInfo->GangDensity[i] != 0) {
+        if (CPopCycle::m_pCurrZoneInfo->GangStrength[i] != 0) {
             gangsNeeded |= (1 << i);
         }
     }
