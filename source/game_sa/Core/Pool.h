@@ -341,8 +341,7 @@ public:
     // NOTSA - Get all valid objects - Useful for iteration
     template<typename R = T&>
     auto GetAllValid() {
-        using namespace std;
-        return span{ reinterpret_cast<S*>(m_Storage), (size_t)(m_Capacity) }
+        return std::span{ reinterpret_cast<S*>(m_Storage), (size_t)(m_Capacity) }
             | rngv::filter([this](auto&& obj) {
                 return !IsFreeSlotAtIndex(GetIndex(&obj));
             }) // Filter only slots in use
