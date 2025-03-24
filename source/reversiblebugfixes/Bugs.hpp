@@ -26,6 +26,7 @@ inline const ReversibleBugFix GenericOOB{
     .Credit      = "Contributors"
 };
 
+
 //
 // Other bugs
 //
@@ -42,6 +43,11 @@ inline const ReversibleBugFix AnimBlendSequence_SetName_SetBoneTagFlag{
 inline const ReversibleBugFix AESound_UpdatePlayTime_DivisionByZero{
     .Name        = "UpdatePlayTime Division-By-Zero",
     .Description = "Avoid Division-by-zero in CAESound::UpdatePlayTime",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CCarCtrl_RemoveDistantCars_UseAfterFree{
+    .Name        = "CCarCtrl::RemoveDistantCars Use-After-Free",
+    .Description = "Fix user-after-free of vehicles (possibly) deleted by PossiblyRemoveVehicle",
     .Credit      = "Pirulax"
 };
 };

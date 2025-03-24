@@ -18,6 +18,8 @@
 #include "TheCarGenerators.h"
 #include "eAreaCodes.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
+
 uint32& CCarCtrl::NumLawEnforcerCars = *(uint32*)0x969098;
 uint32& CCarCtrl::NumParkedCars = *(uint32*)0x9690A0;
 uint32& CCarCtrl::NumAmbulancesOnDuty = *(uint32*)0x9690A8;
@@ -704,23 +706,32 @@ void CCarCtrl::RemoveCarsIfThePoolGetsFull() {
 void CCarCtrl::RemoveDistantCars() {
     ZoneScoped;
 
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        if (auto vehicle = GetVehiclePool()->GetAt(i)) {
-            PossiblyRemoveVehicle(vehicle);
-            if (!vehicle->vehicleFlags.bCreateRoadBlockPeds)
-                continue;
-
-            CVector centreOfWorld = FindPlayerCentreOfWorld();
-            if (DistanceBetweenPoints(centreOfWorld, vehicle->GetPosition()) < 54.5f) {
-                CRoadBlocks::GenerateRoadBlockCopsForCar(
-                    vehicle,
-                    vehicle->m_nPedsPositionForRoadBlock,
-                    vehicle->IsLawEnforcementVehicle() ? PED_TYPE_COP : PED_TYPE_GANG1
-                );
-
-                vehicle->vehicleFlags.bCreateRoadBlockPeds = false;
-            }
+    // FIXBUGS: First remove vehicles that can be removed
+    if (notsa::bugfixes::CCarCtrl_RemoveDistantCars_UseAfterFree) {
+        for (auto& veh : GetVehiclePool()->GetAllValid()) {
+            PossiblyRemoveVehicle(&veh);
         }
+    }
+
+    //... only then process them, this way we don't do use-after-free
+    // only other solution would be `PossiblyRemoveVehicle` returning a `bool`
+    // to indicate whenever the vehicle was deleted or not.
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        if (!notsa::bugfixes::CCarCtrl_RemoveDistantCars_UseAfterFree) {
+            PossiblyRemoveVehicle(&veh); // This may or may not invalidate `veh`
+        }
+        if (!veh.vehicleFlags.bCreateRoadBlockPeds) {
+            continue;
+        }
+        if (DistanceBetweenPoints(FindPlayerCentreOfWorld(), veh.GetPosition()) >= 54.5f) {
+            continue;
+        }
+        CRoadBlocks::GenerateRoadBlockCopsForCar(
+            &veh,
+            veh.m_nPedsPositionForRoadBlock,
+            veh.IsLawEnforcementVehicle() ? PED_TYPE_COP : PED_TYPE_GANG1
+        );
+        veh.vehicleFlags.bCreateRoadBlockPeds = false;
     }
 }
 
