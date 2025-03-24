@@ -38,9 +38,9 @@ CTaskComplexPassObject::CTaskComplexPassObject(const CTaskComplexPassObject& o) 
 // 0x661230
 CTaskComplexPassObject::~CTaskComplexPassObject() {
     CEntity::SafeCleanUpRef(m_ped);
-#ifdef FIX_BUGS
-    CEntity::SafeCleanUpRef(m_entityToPass);
-#endif
+    if (notsa::IsFixBugs()) {
+        CEntity::SafeCleanUpRef(m_entityToPass);
+    }
 }
 
 // 0x661290

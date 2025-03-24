@@ -119,11 +119,12 @@ CTask* CTaskComplexSeekCoverUntilTargetDead::ControlSubTask(CPed* ped) {
 
     // No ped to cover, or they're dead?
     if (!m_coverPed || !m_coverPed->IsAlive()) { // Inverted
-#ifdef FIX_BUGS
-        CEntity::ChangeEntityReference(m_coverPed, GetCoverPed(ped));
-#else
-        CEntity::ChangeEntityReference(m_coverPed, GetTargetPed());
-#endif
+        if (notsa::IsFixBugs()) {
+            CEntity::ChangeEntityReference(m_coverPed, GetCoverPed(ped));
+        } else {
+            CEntity::ChangeEntityReference(m_coverPed, GetTargetPed());
+        }
+
         // Try aborting current subtask and returning new
         if (m_pSubTask->MakeAbortable(ped)) { // Moved out as common code
             if (m_coverPed) { // Found a new ped to cover, do it all over again

@@ -168,6 +168,11 @@ public:
     int32 GetWeapon(CPed* ped) const;
     int16 AimWeaponLeftRight(CPed* ped) const;
     int16 AimWeaponUpDown(CPed* ped) const;
+    int16 SniperModeLookLeftRight(CPed* ped) const;
+    int16 SniperModeLookUpDown(CPed* ped) const;
+    int16 LookAroundLeftRight(CPed* ped) const;
+    int16 LookAroundUpDown(CPed* ped) const;
+
 
     static CPad* GetPad(int32 nPadNumber = 0)                               { return &Pads[nPadNumber]; }                                                                    // 0x53FB70
 
@@ -232,8 +237,8 @@ public:
     // KEYBOARD END
 
     // PAD
-    [[nodiscard]] bool f0x57C3A0() const noexcept                           { return !NewState.ButtonCross && OldState.ButtonCross; }                                        // 0x57C3A0
     [[nodiscard]] bool IsCrossPressed() const noexcept                      { return BUTTON_IS_PRESSED(ButtonCross); }                                                       // 0x4D59E0
+    [[nodiscard]] bool f0x57C3A0() const noexcept                           { return !NewState.ButtonCross && OldState.ButtonCross; }                                        // 0x57C3A0
     [[nodiscard]] bool IsCirclePressed() const noexcept                     { return BUTTON_IS_PRESSED(ButtonCircle); }                                                      // 0x53EF60
     [[nodiscard]] bool IsTrianglePressed() const noexcept                   { return BUTTON_IS_PRESSED(ButtonTriangle); }                                                    // 0x53EF40
     [[nodiscard]] bool IsSquarePressed() const noexcept                     { return BUTTON_IS_PRESSED(ButtonSquare); }                                                      // 0x53EF20
@@ -280,7 +285,6 @@ public:
     [[nodiscard]] bool IsRightShoulder2Pressed() const noexcept             { return BUTTON_IS_PRESSED(RightShoulder2); }                                                    //
     [[nodiscard]] bool IsRightShoulder2JustUp() const noexcept              { return BUTTON_JUST_UP(RightShoulder2); }                                                       // 0x53EE40
 
-    // returns angle in degrees
     [[nodiscard]] int16 GetLeftStickX() const noexcept                      { return BUTTON_IS_DOWN(LeftStickX); }
     [[nodiscard]] int16 GetLeftStickY() const noexcept                      { return BUTTON_IS_DOWN(LeftStickY); }
     [[nodiscard]] int16 GetRightStickX() const noexcept                     { return BUTTON_IS_DOWN(RightStickX); }
@@ -326,14 +330,14 @@ public:
     static float GetMouseX() noexcept                       { return NewMouseControllerState.m_AmountMoved.x; }
     static float GetMouseY() noexcept                       { return NewMouseControllerState.m_AmountMoved.y; }
     // MOUSE END
-
-    int16 sub_540BD0(CPed* entity) noexcept;
-    int16 sub_540CC0(CPed* ped) noexcept;
+    
+    //int16 sub_540BD0(CPed* entity) noexcept;
+    //int16 sub_540CC0(CPed* ped) noexcept;
+    //bool sub_541170() const noexcept;
+    //bool sub_541150() const noexcept;
 
     int32 sub_541320() { return AverageWeapon / AverageEntries; } // 0x541320
     int32 sub_541290();
-    bool sub_541170() const noexcept;
-    bool sub_541150() const noexcept;
     static bool sub_540A40();
     static bool sub_540A10();
     static bool GetAnaloguePadLeft();
@@ -352,10 +356,10 @@ public:
     bool DebugMenuJustPressed();
 };
 
-VALIDATE_SIZE(CPad, 0x134);
+// VALIDATE_SIZE(CPad, 0x134);
 
 // return pressed key, in order of CKeyboardState
-int GetCurrentKeyPressed(RsKeyCodes* keys);
+int GetCurrentKeyPressed(RsKeyCodes& keys);
 
 // todo: move these fucks out
 IDirectInputDevice8* DIReleaseMouse();

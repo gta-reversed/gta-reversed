@@ -26,9 +26,7 @@ void CMenuManager::CalculateMapLimits(float& bottom, float& top, float& left, fl
 void CMenuManager::PlaceRedMarker() {
     const auto pad = CPad::GetPad(m_nPlayerNumber);
     auto pressed = (
-         pad->IsCirclePressed()
-      || pad->GetLeftMouseJustDown()
-      || pad->GetRightMouseJustDown()
+         pad->IsCirclePressed() || pad->GetLeftMouseJustDown() || pad->GetRightMouseJustDown()
       || pad->IsStandardKeyJustPressed('T') || pad->IsStandardKeyJustPressed('t')
     );
     if (!pressed)

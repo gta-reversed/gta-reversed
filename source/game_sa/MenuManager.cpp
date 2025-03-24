@@ -55,8 +55,8 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(DrawWindowedText, 0x578F50);
     RH_ScopedInstall(DrawQuitGameScreen, 0x57D860);
     RH_ScopedInstall(DrawControllerScreenExtraText, 0x57D8D0, { .reversed = false });
-    RH_ScopedInstall(DrawControllerBound, 0x57E6E0, { .reversed = false });
-    RH_ScopedInstall(DrawControllerSetupScreen, 0x57F300, { .reversed = false });
+    RH_ScopedInstall(DrawControllerBound, 0x57E6E0);
+    RH_ScopedInstall(DrawControllerSetupScreen, 0x57F300);
 
     RH_ScopedInstall(CentreMousePointer, 0x57C520);
     RH_ScopedInstall(LoadSettings, 0x57C8F0);
@@ -72,7 +72,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(CheckForMenuClosing, 0x576B70, { .locked = true });  // Must be hooked at all times otherwise imgui stops working! [The input at least does]
     RH_ScopedInstall(CheckHover, 0x57C4F0);
     RH_ScopedInstall(CheckMissionPackValidMenu, 0x57D720);
-    RH_ScopedInstall(CheckCodesForControls, 0x57DB20);
+    RH_ScopedInstall(CheckCodesForControls, 0x57DB20, { .reversed = false });
 
     RH_ScopedInstall(DisplaySlider, 0x576860);
     RH_ScopedInstall(DisplayHelperText, 0x57E240);
@@ -115,7 +115,7 @@ CMenuManager::CMenuManager() {
     m_MenuIsAbleToQuit            = false;
     m_nTitleLanguage              = 9;
     m_nUserTrackIndex             = 0;
-    m_nController                 = 0;
+    m_bController                 = false;
     CCamera::m_bUseMouse3rdPerson = 1;
     m_nMousePosX                  = m_nMousePosWinX;
     m_ListSelection               = 0;
@@ -174,7 +174,7 @@ CMenuManager::~CMenuManager() {
 void CMenuManager::Initialise() {
     m_nPlayerNumber = 0;
     field_1B1C = 0;
-    m_nCurrentScreenItem = (eControllerAction)0;
+    m_nCurrentScreenItem = 0;
     m_bSelectedSaveGame = 0;
     if (m_bDoVideoModeUpdate) {
         RwD3D9ChangeMultiSamplingLevels(m_nPrefsAntialiasing);
@@ -432,35 +432,35 @@ void CMenuManager::SwitchToNewScreen(eMenuScreen screen) {
         if (m_bMainMenuSwitch) {
             switch (m_nCurrentScreen) {
             case SCREEN_START_GAME:
-                m_nCurrentScreenItem = (eControllerAction)0;
+                m_nCurrentScreenItem = 0;
                 break;
             case SCREEN_OPTIONS:
-                m_nCurrentScreenItem = (eControllerAction)1;
+                m_nCurrentScreenItem = 1;
                 break;
             case SCREEN_QUIT_GAME_ASK:
-                m_nCurrentScreenItem = (eControllerAction)2;
+                m_nCurrentScreenItem = 2;
                 break;
             default:
-                m_nCurrentScreenItem = (eControllerAction)aScreens[m_nCurrentScreen].m_nStartEntry;
+                m_nCurrentScreenItem = aScreens[m_nCurrentScreen].m_nStartEntry;
                 break;
             }
         } else {
-            m_nCurrentScreenItem = (eControllerAction)aScreens[m_nCurrentScreen].m_nStartEntry;
+            m_nCurrentScreenItem = aScreens[m_nCurrentScreen].m_nStartEntry;
         }
         m_nCurrentScreen = aScreens[m_nCurrentScreen].m_nParentMenu;
     } else {
         if (screen) {
-            m_nCurrentScreenItem = (eControllerAction)0;
+            m_nCurrentScreenItem = 0;
             m_nCurrentScreen     = screen;
         }
         else {
-            m_nCurrentScreenItem = (eControllerAction)0;
+            m_nCurrentScreenItem = 0;
             m_nCurrentScreen     = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nTargetMenu;
         }
     }
 
     if (m_nCurrentScreen == SCREEN_GAME_SAVE) {
-        m_nCurrentScreenItem = (eControllerAction)9;
+        m_nCurrentScreenItem = 9;
     }
 
     if (m_nPrevScreen == SCREEN_AUDIO_SETTINGS) {
@@ -562,7 +562,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_bShowSubtitles                 = true;
         break;
     case SCREEN_CONTROLLER_SETUP:
-        m_nController                    = 0;
+        m_bController                    = false;
         CCamera::m_fMouseAccelHorzntl    = 0.0025f;
         CCamera::m_bUseMouse3rdPerson    = true;
         CVehicle::m_bEnableMouseFlying   = true;
@@ -714,7 +714,7 @@ void CMenuManager::LoadSettings() {
     ReadFromFile(m_bWidescreenOn);
     ReadFromFile(m_bPrefsFrameLimiter);
     ReadFromFile(m_nDisplayVideoMode);
-    ReadFromFile(m_nController);
+    ReadFromFile(m_bController);
     ReadFromFile(m_nPrefsLanguage);
     ReadFromFile(m_bHudOn);
     ReadFromFile(m_nRadarMode);
@@ -739,7 +739,7 @@ void CMenuManager::LoadSettings() {
         return SetToDefaultSettings();
     }
 
-    CCamera::m_bUseMouse3rdPerson = m_nController == 0;
+    CCamera::m_bUseMouse3rdPerson = m_bController == false;
     CRenderer::ms_lodDistScale = m_fDrawDistance;
     g_fx.SetFxQuality(fxQuality);
     SetBrightness(static_cast<float>(m_PrefsBrightness), true);
@@ -801,7 +801,7 @@ void CMenuManager::SaveSettings() {
     WriteToFile(m_bWidescreenOn);
     WriteToFile(m_bPrefsFrameLimiter);
     WriteToFile(m_nPrefsVideoMode);
-    WriteToFile(m_nController);
+    WriteToFile(m_bController);
     WriteToFile(m_nPrefsLanguage);
     WriteToFile(m_bHudOn);
     WriteToFile(m_nRadarMode);

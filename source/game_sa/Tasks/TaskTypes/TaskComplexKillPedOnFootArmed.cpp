@@ -298,9 +298,9 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
                 quack->SetDuckTimer((uint16)m_lengthOfDuck);
             } else {
                 ped->GetIntelligence()->SetTaskDuckSecondary((uint16)m_lengthOfDuck);
-#ifdef FIX_BUGS
-                m_lastDuckTime = CTimer::GetTimeInMS(); // Not actually sure if this is necessary tbh
-#endif
+                if (notsa::IsFixBugs()) {
+                    m_lastDuckTime = CTimer::GetTimeInMS(); // Not actually sure if this is necessary tbh    
+                }
             }
         }
     } else {

@@ -106,7 +106,7 @@ void CMenuManager::ProcessFileActions() {
             if (s_PcSaveHelper.DeleteSlot(m_bSelectedSaveGame)) {
                 s_PcSaveHelper.PopulateSlotInfo();
                 SwitchToNewScreen(SCREEN_DELETE_SUCCESSFUL);
-                m_nCurrentScreenItem = (eControllerAction)1;
+                m_nCurrentScreenItem = true;
             } else {
                 // Delete Game
                 //
@@ -332,15 +332,15 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         m_bScanningUserTracks = true;
         return true;
     case MENU_ACTION_CTRLS_JOYPAD:
-        SwitchToNewScreen(m_nController == 1 ? SCREEN_JOYPAD_SETTINGS : SCREEN_MOUSE_SETTINGS);
+        SwitchToNewScreen(m_bController ? SCREEN_JOYPAD_SETTINGS : SCREEN_MOUSE_SETTINGS);
         return true;
     case MENU_ACTION_CTRLS_FOOT: // Redefine Controls -> Foot Controls
-        field_B7 = 0;
+        m_RedefiningControls = false;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
     case MENU_ACTION_CTRLS_CAR: // Redefine Controls -> Vehicle Controls
-        field_B7 = 1;
+        m_RedefiningControls = true;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
@@ -432,10 +432,10 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         return true;
     }
     case MENU_ACTION_45:
-        field_1B14 = 1;
-        pControlEdit = 1;
+        m_CanBeDefined = true;
+        m_EditingControlOptions = true;
         m_bJustOpenedControlRedefWindow = true;
-        OptionToChange = m_nCurrentScreenItem;
+        m_OptionToChange = m_nCurrentScreenItem;
         m_pPressedKey = &m_KeyPressedCode;
         return true;
     case MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
@@ -482,7 +482,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
                 SetVideoMode(m_nDisplayVideoMode);
                 CentreMousePointer();
                 m_bDrawMouse = true;
-                m_nCurrentScreenItem = (eControllerAction)5;
+                m_nCurrentScreenItem = 5;
                 SaveSettings();
                 CPostEffects::DoScreenModeDependentInitializations();
             }
@@ -540,24 +540,24 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         return true;
     }
     case MENU_ACTION_CONTROL_TYPE:
-        if (m_nController == 1) {
-            m_nController = 0;
+        if (m_bController) {
+            m_bController = false;
             CCamera::m_bUseMouse3rdPerson = true;
         } else {
-            m_nController = 1;
+            m_bController = true;
             CCamera::m_bUseMouse3rdPerson = false;
         }
         SaveSettings();
         return true;
     case MENU_ACTION_MOUSE_STEERING:
-        if (m_nController) {
+        if (m_bController) {
             return true;
         }
         CVehicle::m_bEnableMouseSteering ^= true;
         SaveSettings();
         return true;
     case MENU_ACTION_MOUSE_FLY:
-        if (m_nController) {
+        if (m_bController) {
             return true;
         }
         CVehicle::m_bEnableMouseFlying ^= true;

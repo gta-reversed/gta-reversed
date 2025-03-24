@@ -224,7 +224,7 @@ void CCustomCarEnvMapPipeline::CustomPipeRenderCB(RwResEntry* resEntry, void* ob
 
     // Fixed blown up car rendering ("DarkVehiclesFix")
     // Credit: SilentPatch
-    const auto isBlownUp = notsa::IsFixBugs() && (atmFlags & ATOMIC_IS_BLOWN_UP) && !(RpLightGetFlags(pDirect) & rpLIGHTLIGHTATOMICS);
+    const auto isBlownUp = notsa::IsFixBugs() && (atmFlags & ATOMIC_IS_BLOWN_UP) && !(RpLightGetFlags(pDirect) & rpLIGHTLIGHTATOMICS); 
 
     DWORD isLightingEnabled = 0;
     RwD3D9GetRenderState(D3DRS_LIGHTING, &isLightingEnabled);

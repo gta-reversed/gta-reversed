@@ -1504,12 +1504,9 @@ struct NeedsRemoveQuatFlips<false, false, true, false> : std::true_type {}; // F
 template<bool IsCompressed, bool IsSkinned, bool ExtractVelocity, bool Extract3DVelocity>
 void FrameUpdateCallBackT(AnimBlendFrameData* fd, AnimBlendUpdateData* c) {
     const auto partialScale = 1.f - CalculateTotalBlendOfPartial(c, fd, true);
-
-    constexpr bool IsFixBugs = true;
-
     const auto GetVelocityFromTranslation = [](CAnimBlendNode* node, CVector t) {
         return CVector{
-            !IsFixBugs && Extract3DVelocity || node->GetAnimAssoc()->HasFlag(ANIMATION_CAN_EXTRACT_X_VELOCITY) // BUGFIX: Check this flag for 3D too (Like they did for 2D)
+            !notsa::IsFixBugs() && Extract3DVelocity || node->GetAnimAssoc()->HasFlag(ANIMATION_CAN_EXTRACT_X_VELOCITY) // BUGFIX: Check this flag for 3D too (Like they did for 2D)
                 ? t.x
                 : 0.f,
             t.y,
@@ -1534,7 +1531,7 @@ void FrameUpdateCallBackT(AnimBlendFrameData* fd, AnimBlendUpdateData* c) {
                 continue;
             }
 
-            if (IsFixBugs || !Extract3DVelocity) {
+            if (notsa::IsFixBugs() || !Extract3DVelocity) {
                 if (assoc->HasFlag(ANIMATION_IGNORE_ROOT_TRANSLATION)) { // BUGFIX: Check this flag for 3D too (Like they did for 2D)
                     continue;
                 }
@@ -1580,7 +1577,7 @@ void FrameUpdateCallBackT(AnimBlendFrameData* fd, AnimBlendUpdateData* c) {
             continue;
         }
 
-        if (IsFixBugs || ExtractVelocity && !Extract3DVelocity) {
+        if (notsa::IsFixBugs() || ExtractVelocity && !Extract3DVelocity) {
             if (assoc->HasFlag(ANIMATION_IGNORE_ROOT_TRANSLATION)) { // BUGFIX: Check this flag for 3D too (Like they did for 2D)
                 continue;
             }
