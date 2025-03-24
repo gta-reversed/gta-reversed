@@ -1295,7 +1295,7 @@ void CEntity::DetachFromRwObject()
 
 // 0x534250
 CVector CEntity::GetBoundCentre() {
-    CVector v = TransformIntoWorldSpace(GetColModel()->GetBoundCenter());
+    return TransformIntoWorldSpace(GetColModel()->GetBoundCenter());
     return v;
 }
 
