@@ -64,7 +64,7 @@ void CEntity::InjectHooks()
     RH_ScopedInstall(DestroyEffects, 0x533BF0);
     RH_ScopedInstall(AttachToRwObject, 0x533ED0);
     RH_ScopedInstall(DetachFromRwObject, 0x533FB0);
-    RH_ScopedOverloadedInstall(GetBoundCentre, "ptr", 0x534250, CVector*(CEntity::*)(CVector*));
+    RH_ScopedOverloadedInstall(GetBoundCentre, "void", 0x534250, CVector(CEntity::*)());
     RH_ScopedOverloadedInstall(GetBoundCentre, "ref", 0x534290, void(CEntity::*)(CVector&));
     RH_ScopedInstall(RenderEffects, 0x5342B0);
     RH_ScopedOverloadedInstall(GetIsTouching, "ent", 0x5343F0, bool(CEntity::*)(CEntity*));
@@ -91,7 +91,6 @@ void CEntity::InjectHooks()
     RH_ScopedInstall(SetMaterialAlphaCB, 0x533280);
     RH_ScopedGlobalInstall(MaterialUpdateUVAnimCB, 0x532D70);
     RH_ScopedGlobalInstall(IsEntityPointerValid, 0x533310);
-
     RH_ScopedGlobalInstall(IsGlassModel, 0x46A760);
 }
 
@@ -1290,23 +1289,14 @@ void CEntity::DetachFromRwObject()
 }
 
 // 0x534250
-CVector* CEntity::GetBoundCentre(CVector* pOutCentre)
-{
-    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
-    const auto& colCenter = mi->GetColModel()->GetBoundCenter();
-    return TransformFromObjectSpace(*pOutCentre, colCenter);
+CVector CEntity::GetBoundCentre() {
+    CVector v = TransformIntoWorldSpace(GetColModel()->GetBoundCenter());
+    return v;
 }
 
 // 0x534290
 void CEntity::GetBoundCentre(CVector& outCentre) {
-    TransformFromObjectSpace(outCentre, GetColModel()->GetBoundCenter());
-}
-
-CVector CEntity::GetBoundCentre()
-{
-    CVector v;
-    GetBoundCentre(v);
-    return v;
+    TransformIntoWorldSpace(outCentre, GetColModel()->GetBoundCenter());
 }
 
 // 0x5342B0

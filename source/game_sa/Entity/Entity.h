@@ -157,7 +157,6 @@ public:
     void DestroyEffects();
     void AttachToRwObject(RwObject* object, bool updateEntityMatrix);
     void DetachFromRwObject();
-    CVector* GetBoundCentre(CVector* pOutCentre);
     void GetBoundCentre(CVector& outCentre);
     CVector GetBoundCentre();
     void RenderEffects();
