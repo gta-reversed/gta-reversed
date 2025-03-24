@@ -92,6 +92,7 @@ void CEntity::InjectHooks()
     RH_ScopedGlobalInstall(MaterialUpdateUVAnimCB, 0x532D70);
     RH_ScopedGlobalInstall(IsEntityPointerValid, 0x533310);
     RH_ScopedGlobalInstall(IsGlassModel, 0x46A760);
+    RH_ScopedInstall(GetModelIndex, 0x404420);
 }
 
 CEntity::CEntity() : CPlaceable() {
@@ -840,6 +841,10 @@ void CEntity::RemoveLighting(bool bRemove)
 void CEntity::FlagToDestroyWhenNextProcessed()
 {
     // NOP
+}
+
+uint32 CEntity::GetModelIndex() const {
+    return m_nModelIndex;
 }
 
 // 0x532B00

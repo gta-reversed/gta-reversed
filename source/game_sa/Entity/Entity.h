@@ -141,6 +141,7 @@ public:
     virtual void RemoveLighting(bool bRemove);                                                                        // VTab: 20
     virtual void FlagToDestroyWhenNextProcessed();                                                                    // VTab: 21
 
+    uint32 GetModelIndex() const;
     void UpdateRwFrame();
     void UpdateRpHAnim();
     bool HasPreRenderEffects();
