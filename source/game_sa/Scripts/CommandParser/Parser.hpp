@@ -5,7 +5,7 @@
 #include "ReadArg.hpp"
 #include "RunningScript.h"
 
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 #include <ScriptCommand.h>
 #endif
 
@@ -107,7 +107,7 @@ constexpr inline auto AddressOfFunction(T fn) {
 };
 
 //! Register a custom command handler
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 //! Use this before calling any of the 
 #define REGISTER_COMMAND_HANDLER_BEGIN(_namespace) \
     RH_ScopedCategory("Scripts/Commands") \

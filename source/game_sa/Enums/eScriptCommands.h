@@ -2880,7 +2880,7 @@ enum eScriptCommands : uint16 {
 
     //! Highest command ID that may be hooked
     COMMAND_HIGHEST_ID_TO_HOOK
-#ifdef NOTSA_USE_CLEO_COMMANDS
+#ifdef NOTSA_WITH_CLEO_SCRIPT_COMMANDS
         = COMMAND_HIGHEST_ID
 #else
         = COMMAND_HIGHEST_VANILLA_ID

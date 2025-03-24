@@ -23,7 +23,7 @@ static notsa::log_ptr logger;
 #include "ReversibleHooks/ReversibleHook/ScriptCommand.h"
 
 #include "Commands/Commands.hpp"
-#ifdef NOTSA_USE_CLEO_COMMANDS // TODO: Add premake/cmake option for this define
+#ifdef NOTSA_WITH_CLEO_SCRIPT_COMMANDS // TODO: Add premake/cmake option for this define
 #include "Commands/CLEO/Commands.hpp"
 #include "Commands/CLEO/Extensions/Commands.hpp"
 #endif
@@ -115,7 +115,7 @@ void CRunningScript::InjectCustomCommandHooks() {
     zone::RegisterHandlers();
     ::notsa::script::commands::stat::RegisterHandlers();
 
-#ifdef NOTSA_USE_CLEO_COMMANDS
+#ifdef NOTSA_WITH_CLEO_SCRIPT_COMMANDS
     cleo::audiostream::RegisterHandlers();
     cleo::character::RegisterHandlers();
     cleo::dynamiclibrary::RegisterHandlers();
@@ -136,7 +136,7 @@ void CRunningScript::InjectCustomCommandHooks() {
 #endif
 
     // To enable use premake: `./premake5.exe vs2022 --allow-script-cmd-hooks`
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
     // After injecting all hooks, we can create their reversible hook
     for (auto&& [idx, cmd] : notsa::enumerate(s_CustomCommandHandlerTable)) {
         const auto id = (eScriptCommands)(idx);
