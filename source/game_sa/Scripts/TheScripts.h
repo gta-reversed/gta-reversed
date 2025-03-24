@@ -18,7 +18,7 @@
 #include "StuckCarCheck.h"
 #include "UpsideDownCarCheck.h"
 #include "ScriptsForBrains.h"
-#include "./ScriptParam.h"
+#include "ScriptParam.h"
 #include "Font.h"
 
 #include "SCMChunks.hpp"

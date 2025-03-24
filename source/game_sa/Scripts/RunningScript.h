@@ -11,8 +11,8 @@
 #include "eWeaponType.h"
 #include "Ped.h"
 #include "CommandParser/Utility.hpp"
-#include "./ScriptParam.h"
-#include "./TheScripts.h"
+#include "ScriptParam.h"
+#include "TheScripts.h"
 
 enum ePedType : uint32;
 
