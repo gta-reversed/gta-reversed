@@ -61,6 +61,13 @@ auto make_mapping(std::pair<const K, const V> (&&m)[N]) {
         return detail::Mapping<K, V, N>{std::move(m)};
     }
 }
+/*
+* Want to know something funny?
+* `std::initializer_list` is just a proxy object for a stack allocated array.
+* So, if you return one from a function you're dommed to be fucked :)
+* And best thing, it does allow copying, it has a fucking copy constructor for whatever reason
+* Lesson: Don't return `initializer_list`'s from functions
+*/
 
 /*
 * Want to know something funny?
@@ -281,6 +288,14 @@ bool contains(R&& r, const T& value, Proj proj = {}) {
 */
 template<typename Y>
 bool contains(std::initializer_list<Y> r, const Y& value) {
+    return contains(r, value, {});
+}
+
+/*!
+* Helper (Of your fingers) - Reduces typing needed for Python style `value in {}`
+*/
+template<typename Y, typename T>
+bool contains(std::initializer_list<Y> r, const T& value) {
     return contains(r, value, {});
 }
 
