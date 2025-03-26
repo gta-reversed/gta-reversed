@@ -2,6 +2,8 @@
 
 #include "TaskComplex.h"
 
+#include <extensions/EntityRef.hpp>
+
 class CTaskComplexKillCriminal;
 class CEvent;
 class CTask;
@@ -9,19 +11,6 @@ class CCopPed;
 class CPed;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexKillCriminal : public CTaskComplex {
-
-public:
-    CPed* m_criminal{};
-    CCopPed* m_cop{};           
-    float m_timeToGetOutOfCar{3.f};
-    bool m_randomize{};         
-    bool m_finished{};          
-    bool m_cantGetInCar{};      
-    int8 m_origDrivingMode{};   
-    int8 m_origMission{};       
-    uint8 m_origCruiseSpeed{};  
-    bool m_isSetUp{};           
-
 public:
     static void InjectHooks();
 
@@ -54,4 +43,16 @@ private: // Wrappers for hooks
         this->CTaskComplexKillCriminal::~CTaskComplexKillCriminal();
         return this;
     }
+
+private:
+    notsa::EntityRef<CPed>    m_criminal{};
+    notsa::EntityRef<CCopPed> m_cop{};
+    float                     m_timeToGetOutOfCar{ 3.f };
+    bool                      m_randomize{};
+    bool                      m_finished{};
+    bool                      m_cantGetInCar{};
+    int8                      m_origDrivingMode{};
+    int8                      m_origMission{};
+    uint8                     m_origCruiseSpeed{};
+    bool                      m_isSetUp{};
 };
