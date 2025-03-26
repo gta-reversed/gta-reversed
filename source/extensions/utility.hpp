@@ -199,7 +199,9 @@ auto SpatialQuery(R&& r, CVector distToPos, T_Ptr ignored, T_Ptr closest = nullp
         return (e->GetPosition() - distToPos).SquaredMagnitude();
     };
 
-    float closestDistSq = closest ? GetDistSq(closest) : std::numeric_limits<float>::max();
+    float closestDistSq = closest
+        ? GetDistSq(closest)
+        : std::numeric_limits<float>::max();
     for (T_Ptr e : r) {
         if (ignored && e == ignored) {
             continue;
@@ -281,14 +283,6 @@ bool contains(R&& r, const T& value, Proj proj = {}) {
 */
 template<typename Y>
 bool contains(std::initializer_list<Y> r, const Y& value) {
-    return contains(r, value, {});
-}
-
-/*!
-* Helper (Of your fingers) - Reduces typing needed for Python style `value in {}`
-*/
-template<typename Y, typename T>
-bool contains(std::initializer_list<Y> r, const T& value) {
     return contains(r, value, {});
 }
 
