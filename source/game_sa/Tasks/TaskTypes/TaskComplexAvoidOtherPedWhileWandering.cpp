@@ -218,6 +218,9 @@ void CTaskComplexAvoidOtherPedWhileWandering::SetUpIK(CPed* ped) {
     if (!ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_IK)) {
         return;
     }
+    if (!m_Parent) {
+        return;
+    }
     switch (m_Parent->GetTaskType()) {
     case TASK_COMPLEX_AVOID_OTHER_PED_WHILE_WANDERING:
     case TASK_COMPLEX_AVOID_ENTITY:
