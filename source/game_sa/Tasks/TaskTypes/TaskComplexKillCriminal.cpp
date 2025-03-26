@@ -40,7 +40,11 @@ CTaskComplexKillCriminal::CTaskComplexKillCriminal(CPed* criminal, bool randomiz
     m_randomize{randomize},
     m_criminal{criminal}
 {
-    if (!m_criminal || m_criminal->IsCreatedByMission() || notsa::contains({PED_TYPE_MEDIC, PED_TYPE_FIREMAN, PED_TYPE_MISSION1}, m_criminal->m_nPedType)) {
+    if (   !m_criminal
+        || m_criminal->IsPlayer()
+        || m_criminal->IsCreatedByMission()
+        || notsa::contains({ PED_TYPE_COP, PED_TYPE_MEDIC, PED_TYPE_FIREMAN, PED_TYPE_MISSION1 }, m_criminal->m_nPedType)
+    ) {
         m_criminal = nullptr;
     }
 }
@@ -149,7 +153,7 @@ CTask* CTaskComplexKillCriminal::CreateSubTask(eTaskType tt, CPed* ped, bool for
 // 0x68C3C0
 CPed* CTaskComplexKillCriminal::FindNextCriminalToKill(CPed* ped, bool any) {
     const auto [closest, distSq] = notsa::SpatialQuery(
-        m_cop->m_apCriminalsToKill | rng::views::filter(NoPedOrNoHp),
+        m_cop->m_apCriminalsToKill | rng::views::filter(notsa::Not(NoPedOrNoHp)),
         m_cop->GetPosition(),
         m_criminal.Get(),
         !any && NoPedOrNoHp(m_criminal)
