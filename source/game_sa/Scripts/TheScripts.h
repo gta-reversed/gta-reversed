@@ -224,11 +224,11 @@ struct tScriptSearchlight {
     CVector                 m_PathCoord1{};
     CVector                 m_PathCoord2{};
     float                   m_fPathSpeed{};
-    CEntity::Ref            m_AttachedEntity{};
-    CEntity::Ref            m_FollowingEntity{};
-    CEntity::Ref            m_Tower{};
-    CEntity::Ref            m_Housing{};
-    CEntity::Ref            m_Bulb{};
+    notsa::EntityRef<>      m_AttachedEntity{};
+    notsa::EntityRef<>      m_FollowingEntity{};
+    notsa::EntityRef<>      m_Tower{};
+    notsa::EntityRef<>      m_Housing{};
+    notsa::EntityRef<>      m_Bulb{};
     CVector                 m_TargetSpot{};
     CVector                 vf64{};
     CVector                 vf70{};
@@ -282,9 +282,9 @@ struct tStoredLine {
 VALIDATE_SIZE(tStoredLine, 0x20);
 
 struct tScriptBrainWaitEntity {
-    CEntity::Ref m_pEntity{};
-    int16        m_ScriptBrainIndex{ -1 };
-    int16        field_6{};
+    notsa::EntityRef<> m_pEntity{};
+    int16              m_ScriptBrainIndex{ -1 };
+    int16              field_6{};
 
     tScriptBrainWaitEntity() = default; // 0x468E12
 

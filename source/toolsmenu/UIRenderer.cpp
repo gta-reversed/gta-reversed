@@ -16,6 +16,7 @@
 #include "imgui_impl_dx9.h"
 #include <imgui_stdlib.h>
 #include <imgui_internal.h>
+#include <Curves.h>
 
 #include <Windows.h>
 #include <extensions/ScriptCommands.h>
@@ -200,21 +201,7 @@ void UIRenderer::DebugCode() {
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {
-        auto* const veh = CCheat::VehicleCheat(eModelID::MODEL_INFERNUS);
-        player->GetTaskManager().SetTask(
-            new CTaskComplexEnterCarAsPassengerTimed{veh, 0, 2'000, true},
-            TASK_PRIMARY_PRIMARY
-        );
-
-
-        //if (const auto veh = player->GetVehicleIfInOne()) {
-        //    player->GetTaskManager().SetTask(
-        //        new CTaskComplexCarSlowBeDraggedOut{ veh, TARGET_DOOR_DRIVER, true },
-        //        TASK_PRIMARY_PRIMARY
-        //    );
-        //} else {
-        //    CMessages::AddBigMessageQ("NOT IN VEHICLE"_gxt, 5'000, STYLE_MIDDLE);
-        //}
+        CCurves::TestCurves();
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {
