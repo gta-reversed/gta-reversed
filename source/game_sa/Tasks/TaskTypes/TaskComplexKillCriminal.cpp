@@ -298,7 +298,7 @@ CTask* CTaskComplexKillCriminal::CreateNextSubTask(CPed* ped) {
         const auto copPartnerNoneOrInVeh = IsPedNullOrLowHP(m_cop->m_pCopPartner) || m_cop->m_pCopPartner->bInVehicle;
         if (!m_finished && !IsPedNullOrLowHP(m_criminal) && !m_criminal->IsInVehicle()) {
             return CreateSubTask(
-                !ped->m_pVehicle || m_criminal->InRadiusOf(ped->m_pVehicle, 25.f) // 0x68E5D8
+                !ped->m_pVehicle || m_criminal->IsEntityInRange(ped->m_pVehicle, 25.f) // 0x68E5D8
                     ? TASK_COMPLEX_KILL_PED_ON_FOOT
                     : copPartnerNoneOrInVeh // otherwise if criminal is too far chase them with the car
                         ? TASK_COMPLEX_CAR_DRIVE_MISSION
@@ -322,7 +322,7 @@ CTask* CTaskComplexKillCriminal::CreateNextSubTask(CPed* ped) {
     }
     case TASK_COMPLEX_LEAVE_CAR: // 0x68E77F
         return CreateSubTask(
-            m_finished || !ped->bInVehicle || m_cantGetInCar || (!IsPedNullOrLowHP(m_criminal) && !m_criminal->IsInVehicle() && m_criminal->InRadiusOf(ped, 25.f))
+            m_finished || !ped->bInVehicle || m_cantGetInCar || (!IsPedNullOrLowHP(m_criminal) && !m_criminal->IsInVehicle() && m_criminal->IsEntityInRange(ped, 25.f))
                 ? TASK_COMPLEX_KILL_PED_ON_FOOT     // Criminal can be killed on foot
                 : TASK_COMPLEX_ENTER_CAR_AS_DRIVER, // We have to chase the criminal with a vehicle
             ped
