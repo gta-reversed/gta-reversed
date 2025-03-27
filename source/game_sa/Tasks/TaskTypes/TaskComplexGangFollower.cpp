@@ -38,51 +38,51 @@ void CTaskComplexGangFollower::InjectHooks() {
 
 // 0x65EAA0
 CTaskComplexGangFollower::CTaskComplexGangFollower(CPedGroup* pedGrp, CPed* grpLeader, uint8 grpMembershitIdx, CVector followOffset, float targetRadius) :
-    m_grp{pedGrp},
-    m_leader{grpLeader},
-    m_grpMemshitIdx{grpMembershitIdx},
-    m_offsetPos{followOffset},
-    m_initialOffsetPos{followOffset},
-    m_targetRadius{targetRadius}
+    m_PedGroup{pedGrp},
+    m_Leader{grpLeader},
+    m_GrpMemIdx{grpMembershitIdx},
+    m_OffsetPos{followOffset},
+    m_InitialOffsetPos{followOffset},
+    m_TargetRadius{targetRadius}
 {
-    if (m_leader) {
-        CEntity::SafeRegisterRef(m_leader);
-        m_leaderInitialPos = m_leader->GetPosition();
+    if (m_Leader) {
+        CEntity::SafeRegisterRef(m_Leader);
+        m_LeaderInitialPos = m_Leader->GetPosition();
     }
 }
 
 CTaskComplexGangFollower::CTaskComplexGangFollower(const CTaskComplexGangFollower& o) :
     CTaskComplexGangFollower{
-        o.m_grp,
-        o.m_leader,
-        o.m_grpMemshitIdx,
-        o.m_offsetPos,
-        o.m_targetRadius
+        o.m_PedGroup,
+        o.m_Leader,
+        o.m_GrpMemIdx,
+        o.m_OffsetPos,
+        o.m_TargetRadius
     }
 {
-    m_followLeader = o.m_followLeader;
+    m_FollowLeader = o.m_FollowLeader;
 }
 
 
 // 0x65EBB0
 CTaskComplexGangFollower::~CTaskComplexGangFollower() {
-    CEntity::SafeCleanUpRef(m_leader);
-    if (m_animsReferenced) {
+    CEntity::SafeCleanUpRef(m_Leader);
+    if (m_AnimsRef) {
         CAnimManager::RemoveAnimBlockRef(CAnimManager::GetAnimationBlockIndex("gangs"));
     }
 }
 
 // 0x65ED40
 CVector CTaskComplexGangFollower::CalculateOffsetPosition() {
-    if (notsa::contains({ PEDMOVE_WALK, PEDMOVE_RUN, PEDMOVE_SPRINT }, m_leader->m_nMoveState)) {
-        m_offsetPos                 = m_leader->GetMatrix() * CVector{ CTaskComplexFollowLeaderInFormation::ms_offsets.movingOffsets[m_grpMemshitIdx] };
-        m_usingStandingStillOffsets = false;
-    } else if (!m_usingStandingStillOffsets || (m_leader->GetPosition() - m_leaderInitialPos).SquaredMagnitude() >= sq(3.f)) {
-        m_leaderInitialPos          = m_leader->GetPosition();
-        m_offsetPos                 = CVector{ CTaskComplexFollowLeaderInFormation::ms_offsets.movingOffsets[m_grpMemshitIdx] };
-        m_usingStandingStillOffsets = true;
+    if (notsa::contains({ PEDMOVE_WALK, PEDMOVE_RUN, PEDMOVE_SPRINT }, m_Leader->m_nMoveState)) {
+        m_OffsetPos                 = m_Leader->GetMatrix() * CVector{ CTaskComplexFollowLeaderInFormation::ms_offsets.movingOffsets[m_GrpMemIdx] };
+        m_IsUsingStandingStillOffsets = false;
+    } else if (!m_IsUsingStandingStillOffsets || (m_Leader->GetPosition() - m_LeaderInitialPos).SquaredMagnitude() >= sq(3.f)) {
+        m_LeaderInitialPos          = m_Leader->GetPosition();
+        m_OffsetPos                 = CVector{ CTaskComplexFollowLeaderInFormation::ms_offsets.movingOffsets[m_GrpMemIdx] };
+        m_IsUsingStandingStillOffsets = true;
     }
-    return m_offsetPos;
+    return m_OffsetPos;
 }
 
 // 0x65EC30
@@ -99,8 +99,8 @@ bool CTaskComplexGangFollower::MakeAbortable(CPed* ped, eAbortPriority priority,
 CTask* CTaskComplexGangFollower::CreateNextSubTask(CPed* ped) {
     const auto sttype = m_pSubTask->GetTaskType();
 
-    if (m_leaveGroup && sttype == TASK_COMPLEX_SIGNAL_AT_PED) {
-        m_grp->GetMembership().RemoveMember(ped);
+    if (m_LeaveGroup && sttype == TASK_COMPLEX_SIGNAL_AT_PED) {
+        m_PedGroup->GetMembership().RemoveMember(ped);
         ped->GetTaskManager().SetTask(new CTaskComplexWanderGang{
             PEDMOVE_WALK,
             CGeneral::RandomNodeHeading(),
@@ -112,20 +112,20 @@ CTask* CTaskComplexGangFollower::CreateNextSubTask(CPed* ped) {
         return nullptr;
     }
     if (   ped->GetIntelligence()->m_AnotherStaticCounter > 30
-        || (sttype == TASK_COMPLEX_SEEK_ENTITY && notsa::contains({ PEDMOVE_NONE, PEDMOVE_STILL, PEDMOVE_TURN_L, PEDMOVE_TURN_R }, m_leader->m_nMoveState))
+        || (sttype == TASK_COMPLEX_SEEK_ENTITY && notsa::contains({ PEDMOVE_NONE, PEDMOVE_STILL, PEDMOVE_TURN_L, PEDMOVE_TURN_R }, m_Leader->m_nMoveState))
     ) {
-        if (m_leader && m_leader->IsPlayer()) {
-            m_leader->Say(90, 0, 0.3f);
+        if (m_Leader && m_Leader->IsPlayer()) {
+            m_Leader->Say(CTX_GLOBAL_FOLLOW_ARRIVE, 0, 0.3f);
         }
         return new CTaskSimpleStandStill{ 500 };
     }
 
     if (notsa::contains({ TASK_SIMPLE_STAND_STILL, TASK_COMPLEX_HANDSIGNAL_ANIM }, sttype)) {
-        if (m_leaveGroup) { // Inverted
+        if (m_LeaveGroup) { // Inverted
             if (CGeneral::RandomBool(1.f / 30.f * 100.f)) {
-                auto rndMember = m_grp->GetMembership().GetRandom();
+                auto rndMember = m_PedGroup->GetMembership().GetRandom();
                 if (rndMember == ped) {
-                    rndMember = m_grp->GetMembership().GetLeader();
+                    rndMember = m_PedGroup->GetMembership().GetLeader();
                 }
                 if (rndMember) {
                     return new CTaskComplexTurnToFaceEntityOrCoord{ rndMember };
@@ -133,7 +133,7 @@ CTask* CTaskComplexGangFollower::CreateNextSubTask(CPed* ped) {
             }
             return new CTaskSimplePause{ 50 };
         } else {
-            return new CTaskComplexSignalAtPed{ m_leader, -1, false };
+            return new CTaskComplexSignalAtPed{ m_Leader, -1, false };
         }
         return nullptr;
     }
@@ -142,12 +142,12 @@ CTask* CTaskComplexGangFollower::CreateNextSubTask(CPed* ped) {
         return CreateFirstSubTask(ped);
     }
 
-    if (!m_followLeader) {
+    if (!m_FollowLeader) {
         return new CTaskSimpleStandStill{ 500 };
     }
 
     return new CTaskComplexSeekEntity<CEntitySeekPosCalculatorXYOffset>{
-        m_leader,
+        m_Leader,
         50'000,
         1'000,
         0.5f,
@@ -155,28 +155,28 @@ CTask* CTaskComplexGangFollower::CreateNextSubTask(CPed* ped) {
         2.f,
         false,
         false,
-        {m_offsetPos},
+        {m_OffsetPos},
         PEDMOVE_SPRINT
     };
 }
 
 // 0x666160
 CTask* CTaskComplexGangFollower::CreateFirstSubTask(CPed* ped) {
-    if (!m_leader) {
+    if (!m_Leader) {
         ped->bMoveAnimSpeedHasBeenSetByTask = false;
         return nullptr;
     }
 
     if (ped->IsInVehicle()) {
-        if (ped->m_pVehicle == m_leader->m_pVehicle) {
+        if (ped->m_pVehicle == m_Leader->m_pVehicle) {
             return new CTaskSimpleCarDrive{ ped->m_pVehicle };
         }
         return new CTaskComplexLeaveCar{ ped->m_pVehicle, 0, 0, true, false };
     }
 
-    if (m_followLeader && ped->GetIntelligence()->m_AnotherStaticCounter <= 30) {
+    if (m_FollowLeader && ped->GetIntelligence()->m_AnotherStaticCounter <= 30) {
         return new CTaskComplexSeekEntity<CEntitySeekPosCalculatorXYOffset>{
-            m_leader,
+            m_Leader,
             50'000,
             1'000,
             0.5f,
@@ -184,7 +184,7 @@ CTask* CTaskComplexGangFollower::CreateFirstSubTask(CPed* ped) {
             2.f,
             false,
             false,
-            {m_offsetPos},
+            {m_OffsetPos},
             PEDMOVE_SPRINT
         };
     }
@@ -194,7 +194,7 @@ CTask* CTaskComplexGangFollower::CreateFirstSubTask(CPed* ped) {
 
 // 0x662A10
 CTask* CTaskComplexGangFollower::ControlSubTask(CPed* ped) {
-    if (!m_leader) {
+    if (!m_Leader) {
         if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
             ped->bMoveAnimSpeedHasBeenSetByTask = false;
             return nullptr;
@@ -210,38 +210,38 @@ CTask* CTaskComplexGangFollower::ControlSubTask(CPed* ped) {
     const auto walkAnim        = RpAnimBlendClumpGetAssociation(ped->m_pRwClump, ANIM_ID_WALK);
     const auto isPedMovingFast = notsa::contains({ PEDMOVE_WALK, PEDMOVE_RUN, PEDMOVE_SPRINT }, ped->GetIntelligence()->GetMoveStateFromGoToTask());
 
-    m_offsetPos = CalculateOffsetPosition();
+    m_OffsetPos = CalculateOffsetPosition();
 
-    const auto leaderToPed       = m_leader->GetPosition() - ped->GetPosition();
+    const auto leaderToPed       = m_Leader->GetPosition() - ped->GetPosition();
     float      leaderToPedDist2D;
     const auto leaderToPedDir2D  = CVector2D{ leaderToPed }.Normalized(&leaderToPedDist2D);
 
     //> 0x662B5B
-    if (sttype == TASK_COMPLEX_SEEK_ENTITY && m_followLeader) {
+    if (sttype == TASK_COMPLEX_SEEK_ENTITY && m_FollowLeader) {
         const auto stSeekEntity = static_cast<CTaskComplexSeekEntity<CEntitySeekPosCalculatorXYOffset>*>(m_pSubTask);
-        stSeekEntity->GetSeekPosCalculator().SetOffset(m_offsetPos);
-        stSeekEntity->SetMinEntityDist2D(2.f);
+        stSeekEntity->GetSeekPosCalculator().SetOffset(m_OffsetPos);
+        stSeekEntity->SetEntityMinDist2D(2.f);
 
         //> 0x662BD3
         const auto tGoToPoint = ped->GetTaskManager().Find<CTaskSimpleGoToPoint>();
         bool hasChangedAnimSpeed = false;
         if (tGoToPoint && !ped->GetTaskManager().Find<CTaskComplexFollowNodeRoute>()) {
-            auto       goToPoint         = m_leader->GetPosition() + m_offsetPos;   // 0x662BFD
+            auto       goToPoint         = m_Leader->GetPosition() + m_OffsetPos;   // 0x662BFD
             const auto goToPointToPedDir = CVector2D{ goToPoint - ped->GetPosition() }; // 0x662C1E
-            if (isPedMovingFast && m_leader->GetPosition().Dot(m_leader->GetForward()) <= goToPointToPedDir.Dot(m_leader->GetForward()))  { // 0x662C34
+            if (isPedMovingFast && m_Leader->GetPosition().Dot(m_Leader->GetForward()) <= goToPointToPedDir.Dot(m_Leader->GetForward()))  { // 0x662C34
                 if (goToPointToPedDir.SquaredMagnitude() >= sq(tGoToPoint->m_fRadius)) {
                     if (walkAnim) {
-                        const auto prevWalkAnimSpeed = walkAnim->m_fSpeed;
+                        const auto prevWalkAnimSpeed = walkAnim->GetSpeed();
                         ped->SetMoveAnimSpeed(walkAnim);
                         if (std::abs(prevWalkAnimSpeed - prevWalkAnimSpeed) < 0.013f) {
-                            walkAnim->m_fSpeed = prevWalkAnimSpeed + std::copysign(0.0125f, walkAnim->m_fSpeed - prevWalkAnimSpeed);
+                            walkAnim->SetSpeed(prevWalkAnimSpeed + std::copysign(0.0125f, walkAnim->GetSpeed() - prevWalkAnimSpeed));
                             hasChangedAnimSpeed = true;
                         }
                     }
                 } else { //> 0x662A10
-                    goToPoint += m_leader->GetForward() * 2.f;
+                    goToPoint += m_Leader->GetForward() * 2.f;
                     if (walkAnim) {
-                        walkAnim->m_fSpeed = std::max(0.85f, walkAnim->m_fSpeed - 0.0125f);
+                        walkAnim->SetSpeed(std::max(0.85f, walkAnim->GetSpeed() - 0.0125f));
                         hasChangedAnimSpeed = true;
                     }
                 }
@@ -254,31 +254,33 @@ CTask* CTaskComplexGangFollower::ControlSubTask(CPed* ped) {
         ped->bMoveAnimSpeedHasBeenSetByTask = hasChangedAnimSpeed; // 0x662E28
     }
 
-    if (m_animsReferenced) { // 0x662E2E
-        if (!CTaskComplexGangLeader::ShouldLoadGangAnims()) { // Loaded, but not needed => unload
-            CAnimManager::RemoveAnimBlockRef(CAnimManager::GetAnimationBlockIndex("gangs"));
-            m_animsReferenced = false;
-        }
-    } else if (CTaskComplexGangLeader::ShouldLoadGangAnims()) { // Anim is not needed anymore
-        const auto idx = CAnimManager::GetAnimationBlockIndex("gangs");
-        if (CAnimManager::ms_aAnimBlocks[idx].bLoaded) { // And is loaded, so just add ref
-            CAnimManager::AddAnimBlockRef(idx);
-        } else { // Not loaded, request it
-            CStreaming::RequestModel(IFPToModelId(idx), STREAMING_KEEP_IN_MEMORY);
-        }
+    m_AnimsRef = CAnimManager::StreamAnimBlock("gangs", CTaskComplexGangLeader::ShouldLoadGangAnims(), m_AnimsRef);
+
+    //if (m_AnimsRef) { // 0x662E2E
+    //    if (!CTaskComplexGangLeader::ShouldLoadGangAnims()) { // Loaded, but not needed => unload
+    //        CAnimManager::RemoveAnimBlockRef(CAnimManager::GetAnimationBlockIndex("gangs"));
+    //        m_AnimsRef = false;
+    //    }
+    //} else if (CTaskComplexGangLeader::ShouldLoadGangAnims()) { // Anim is not needed anymore
+    //    const auto idx = CAnimManager::GetAnimationBlockIndex("gangs");
+    //    if (CAnimManager::ms_aAnimBlocks[idx].IsLoaded) { // And is loaded, so just add ref
+    //        CAnimManager::AddAnimBlockRef(idx);
+    //    } else { // Not loaded, request it
+    //        CStreaming::RequestModel(IFPToModelId(idx), STREAMING_KEEP_IN_MEMORY);
+    //    }
+    //}
+
+    if (!m_PedGroup->m_bIsMissionGroup && !m_IsInPlayersGroup && m_PedGroup->GetMembership().CountMembers() > 3 && CGeneral::RandomBool(1.f / 2000.f * 100.f)) { //> 0x662EA3
+        m_LeaveGroup = true;
     }
 
-    if (!m_grp->m_bIsMissionGroup && !m_inPlayersGroup && m_grp->GetMembership().CountMembers() > 3 && CGeneral::RandomBool(1.f / 2000.f * 100.f)) { //> 0x662EA3
-        m_leaveGroup = true;
-    }
-
-    if (m_exhaleTimer.IsStarted() && m_exhaleTimer.IsOutOfTime() && ped->m_pRwClump) { // 0x662EDD
+    if (m_ExhaleTimer.IsStarted() && m_ExhaleTimer.IsOutOfTime() && ped->m_pRwClump) { // 0x662EDD
         RwV3d pos{ 0.f, 0.1f, 0.f };
-        if (const auto fx = g_fxMan.CreateFxSystem("exhale", &pos, RwFrameGetMatrix(RpClumpGetFrame(ped->m_pRwClump)), false)) {
+        if (const auto fx = g_fxMan.CreateFxSystem("exhale", pos, RwFrameGetMatrix(RpClumpGetFrame(ped->m_pRwClump)), false)) {
             fx->AttachToBone(ped, BONE_HEAD);
             fx->PlayAndKill();
         }
-        m_exhaleTimer.Stop();
+        m_ExhaleTimer.Stop();
     }
 
     if (!ped->IsVisible()) {
@@ -286,9 +288,9 @@ CTask* CTaskComplexGangFollower::ControlSubTask(CPed* ped) {
     }
 
     if (!g_ikChainMan.IsLooking(ped) && CGeneral::RandomBool(5.f)) { // 0x662F60
-        auto rndMember = m_grp->GetMembership().GetRandom();
+        auto rndMember = m_PedGroup->GetMembership().GetRandom();
         if (rndMember == ped) {
-            rndMember = m_grp->GetMembership().GetLeader();
+            rndMember = m_PedGroup->GetMembership().GetLeader();
         }
         if (rndMember) {
             g_ikChainMan.LookAt(
@@ -329,8 +331,8 @@ CTask* CTaskComplexGangFollower::ControlSubTask(CPed* ped) {
                 g_ikChainMan.AbortLookAt(ped, 250);
             }
             ped->bDontAcceptIKLookAts = true;
-            if (smkCigAnim && smkCigAnim->m_fCurrentTime < 0.5f || smkCigAnimF && smkCigAnimF->m_fCurrentTime < 0.5f && !m_exhaleTimer.IsStarted()) {
-                m_exhaleTimer.Start(2700);
+            if (smkCigAnim && smkCigAnim->GetCurrentTime() < 0.5f || smkCigAnimF && smkCigAnimF->GetCurrentTime() < 0.5f && !m_ExhaleTimer.IsStarted()) {
+                m_ExhaleTimer.Start(2700);
             }
         }
 
@@ -354,7 +356,7 @@ CTask* CTaskComplexGangFollower::ControlSubTask(CPed* ped) {
         }
 
         // 0x66315B
-        const auto passHeldEntityToPed = CTaskComplexGangLeader::TryToPassObject(ped, m_grp);
+        const auto passHeldEntityToPed = CTaskComplexGangLeader::TryToPassObject(ped, m_PedGroup);
         if (!passHeldEntityToPed || passHeldEntityToPed->GetEntityThatThisPedIsHolding() || !ped->GetActiveWeapon().IsTypeMelee()) {
             return m_pSubTask;
         }
@@ -362,15 +364,15 @@ CTask* CTaskComplexGangFollower::ControlSubTask(CPed* ped) {
         // 0x6631A6
         if (pedHeldEntity->GetModelID() == ModelIndices::MI_GANG_DRINK) {
             if (CGeneral::RandomBool(50.f)) {
-                ped->Say(23, 1500);
+                ped->Say(CTX_GLOBAL_BOOZE_RECEIVE, 1500);
             } else {
-                passHeldEntityToPed->Say(24);
+                passHeldEntityToPed->Say(CTX_GLOBAL_BOOZE_REQUEST);
             }
         } else if (pedHeldEntity->GetModelID() == ModelIndices::MI_GANG_SMOKE) {
             if (CGeneral::RandomBool(50.f)) {
-                ped->Say(200, 1500);
+                ped->Say(CTX_GLOBAL_SPLIFF_RECEIVE, 1500);
             } else {
-                passHeldEntityToPed->Say(201);
+                passHeldEntityToPed->Say(CTX_GLOBAL_SPLIFF_REQUEST);
             }
         }
 
@@ -393,18 +395,14 @@ CTask* CTaskComplexGangFollower::ControlSubTask(CPed* ped) {
                     switch (CGeneral::GetRandomNumberInRange(0, 10)) {
                     case 0:
                     case 1:
-                    case 2:
-                        return 45;
+                    case 2: return CTX_GLOBAL_CHAT;
                     case 3:
                     case 4:
                     case 5:
                     case 6:
-                    case 7:
-                        return 166;
-                    case 8:
-                        return 24;
-                    case 9:
-                        return 201;
+                    case 7: return CTX_GLOBAL_PCONV_GREET_MALE;
+                    case 8: return CTX_GLOBAL_BOOZE_REQUEST;
+                    case 9: return CTX_GLOBAL_SPLIFF_REQUEST;
                     }
                     NOTSA_UNREACHABLE();
                 }());

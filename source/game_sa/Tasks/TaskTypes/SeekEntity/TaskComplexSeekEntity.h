@@ -82,7 +82,10 @@ public:
         float     followNodeThresholdHeightChange,
         bool      bPlayTiredAnim,
         bool      bFaceEntityWhenDone,
-        T_PosCalc seekPosCalculator = {} // NOTSA
+
+        // NOTSA ARGS //
+        T_PosCalc seekPosCalculator = {},
+        eMoveState moveState = PEDMOVE_RUN
     ) :
         m_entityToSeek{ entity },
         m_seekInterval{ seekInterval },
@@ -92,7 +95,8 @@ public:
         m_followNodeThresholdHeightChange{ followNodeThresholdHeightChange },
         m_bPlayTiredAnim{ bPlayTiredAnim },
         m_bFaceEntityWhenDone{ bFaceEntityWhenDone },
-        m_entitySeekPosCalculator{ seekPosCalculator }
+        m_entitySeekPosCalculator{ seekPosCalculator },
+        m_moveState{moveState}
     {
         CEntity::SafeRegisterRef(m_entityToSeek);
     }
@@ -410,9 +414,6 @@ private:
             ped
         );
     }
-
-    auto& GetSeekPosCalculator() { return m_entitySeekPosCalculator; }
-    void SetMinEntityDist2D(float dist) { m_minEntityDist2D = dist; }
 
 protected: // Wrappers for hooks
     // 0x493730
