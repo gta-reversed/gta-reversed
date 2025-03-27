@@ -41,7 +41,7 @@ CTaskSimpleCarShuffle::~CTaskSimpleCarShuffle() {
 
 // 0x646970
 void CTaskSimpleCarShuffle::FinishAnimCarShuffleCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = CTask::Cast<CTaskSimpleCarShuffle>(static_cast<CTask*>(data));
+    const auto self = notsa::cast<CTaskSimpleCarShuffle>(static_cast<CTask*>(data));
 
     assert(self->m_Anim == anim);
 

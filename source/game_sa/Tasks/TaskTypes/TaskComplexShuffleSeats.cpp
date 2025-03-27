@@ -131,9 +131,9 @@ CTask* CTaskComplexShuffleSeats::CreateNextSubTask(CPed* ped) {
                     ? TASK_FINISHED
                     : TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER;
             } else {
-                return m_Veh->m_apPassengers[CCarEnterExit::ComputePassengerIndexFromCarDoor(m_Veh, m_TargetDoor)]
-                    ? TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER
-                    : TASK_FINISHED;
+                return m_Veh->m_apPassengers[CCarEnterExit::ComputePassengerIndexFromCarDoor(m_Veh, m_TargetDoor)] // Inverted
+                    ? TASK_FINISHED
+                    : TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER;
             }
         }
         default:
