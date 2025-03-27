@@ -20,7 +20,7 @@ enum eAnimationFlags {
     ANIMATION_DEFAULT                = 0,      //0x0,
     ANIMATION_IS_PLAYING             = 1 << 0, //0x1,
     ANIMATION_IS_LOOPED              = 1 << 1, //0x2,
-    ANIMATION_IS_BLEND_AUTO_REMOVE   = 1 << 2, //0x4,
+    ANIMATION_IS_BLEND_AUTO_REMOVE   = 1 << 2, //!< (0x4) Automatically `delete this` once faded out (`m_BlendAmount <= 0 && m_BlendDelta <= 0`)
     ANIMATION_IS_FINISH_AUTO_REMOVE  = 1 << 3, //0x8,  // Animation will be stuck on last frame, if not set
     ANIMATION_IS_PARTIAL             = 1 << 4, //0x10, // TODO: Flag name is possibly incorrect? Following the usual logic (like `ANIMATION_MOVEMENT`), it should be `ANIMATION_GET_IN_CAR` (See  `RemoveGetInAnims`)
     ANIMATION_IS_SYNCRONISED         = 1 << 5, //0x20,
@@ -28,11 +28,11 @@ enum eAnimationFlags {
     ANIMATION_CAN_EXTRACT_X_VELOCITY = 1 << 7, //0x80,
 
     // ** User defined flags **
-    ANIMATION_WALK                = 1 << 8,  //0x100,
-    ANIMATION_200                 = 1 << 9,  //0x200,
-    ANIMATION_DONT_ADD_TO_PARTIAL_BLEND        = 1 << 10, //0x400, // Possibly should be renamed to ANIMATION_IDLE, see `CPed::PlayFootSteps()`
-    ANIMATION_800                 = 1 << 11, //0x800,
-    ANIMATION_SECONDARY_TASK_ANIM = 1 << 12, //0x1000,
+    ANIMATION_WALK                      = 1 << 8,  //0x100,
+    ANIMATION_200                       = 1 << 9,  //0x200,
+    ANIMATION_DONT_ADD_TO_PARTIAL_BLEND = 1 << 10, //0x400, // Possibly should be renamed to ANIMATION_IDLE, see `CPed::PlayFootSteps()`
+    ANIMATION_IS_FRONT                  = 1 << 11, //0x800,
+    ANIMATION_SECONDARY_TASK_ANIM       = 1 << 12, //0x1000,
     // **
 
     ANIMATION_IGNORE_ROOT_TRANSLATION = 1 << 13, //0x2000,
@@ -114,31 +114,29 @@ public:
 };
 
 /*!
-* @brief Represents a running animtion for a clump (Usually peds)
-* 
-* The sequence/frames data is copied from `CAnimBlendHierarchy` to `CAnimBlendAssociation` when a clump requests an animation.
-* The instance of `CAnimBlendAssociation` gets destroyed when the ped/clump stops playing the animation.
-* But `CAnimBlendHierarchy` is never destroyed and stays in memory unless `CStreaming` forces the IFP to unload (to create space in memory)
-* 
-* A clump can have one, or more, instances of this class. Usually there's only 1 primary animation,
-* but there are also partial animations, which can be played alongside primary animations, like hand gestures or smoking.
-* So if an animation moves up to 15 bones in one animation, there'll be 15 instances of `CAnimBlendSequence`,
-* and there'll be always one instance of `CAnimBlendHierarchy` for that animation (containing the `CAnimBlendSequence`'s).
-*/
+ * @brief Running animation of a clump (Usually peds), created from an `CAnimBlendHierarchy`.
+ * 
+ * @detail The sequence/frames data is copied from `CAnimBlendHierarchy` to `CAnimBlendAssociation` when a clump requests an animation.
+ * @detail The instance of `CAnimBlendAssociation` gets destroyed when the ped/clump stops playing the animation.
+ * @detail But `CAnimBlendHierarchy` is never destroyed and stays in memory unless `CStreaming` forces the IFP to unload (to create space in memory)
+ *
+ * @detail A clump can have one, or more, instances of this class. Usually there's only 1 primary animation,
+ * @detail but there are also partial animations, which can be played alongside primary animations, like hand gestures or smoking.
+ */
 class NOTSA_EXPORT_VTABLE CAnimBlendAssociation {
 public:
-    CAnimBlendLink                m_Link;
-    uint16                        m_NumBlendNodes;
-    notsa::WEnumS16<AssocGroupId> m_AnimGroupId;
-    CAnimBlendNode*               m_BlendNodes; //!< Node per-node animations - NOTE: Order of these depends on order of nodes in Clump this was built from
-    CAnimBlendHierarchy*          m_BlendHier;
-    float                         m_BlendAmount;
-    float                         m_BlendDelta; //!< How much `BlendAmount` changes over time
-    float                         m_CurrentTime;
-    float                         m_Speed;
-    float                         m_TimeStep;
-    notsa::WEnumS16<AnimationId>  m_AnimId;
-    uint16                        m_Flags;
+    CAnimBlendLink                m_Link;          //!< Link to the next association of the clump
+    uint16                        m_NumBlendNodes; //!< Number of bones this anim moves
+    notsa::WEnumS16<AssocGroupId> m_AnimGroupId;   //!< Anim's group
+    CAnimBlendNode*               m_BlendNodes;    //!< Node per-node animations - NOTE: Order of these depends on order of nodes in Clump this was built from
+    CAnimBlendHierarchy*          m_BlendHier;     //!< The animation hierarchy this association was created from
+    float                         m_BlendAmount;   //!< How much this animation is blended
+    float                         m_BlendDelta;    //!< How much `BlendAmount` changes over time
+    float                         m_CurrentTime;   //!< Current play time
+    float                         m_Speed;         //!< Play speed
+    float                         m_TimeStep;      //!< Time-per-tick
+    notsa::WEnumS16<AnimationId>  m_AnimId;        //!< Anim's ID
+    uint16                        m_Flags;         //!< Flags
 
     // Callback shit
     eAnimBlendCallbackType m_nCallbackType;
@@ -153,10 +151,8 @@ public:
 
     virtual ~CAnimBlendAssociation();
 
-    #undef GetCurrentTime
-    float GetCurrentTime() const { return m_CurrentTime; }
-
     float GetTimeProgress()                  const;
+    void  SetBlendAmount(float a)                  { m_BlendAmount = a; }
     float GetBlendAmount(float weight = 1.f) const { return IsPartial() ? m_BlendAmount : m_BlendAmount * weight; }
     float GetBlendDelta()                    const { return m_BlendDelta; }
 
@@ -182,8 +178,14 @@ public:
     void SetBlend(float blendAmount, float blendDelta);
     void SetBlendTo(float blendAmount, float blendDelta);
     void SetCurrentTime(float currentTime);
+    float GetCurrentTime() const { return m_CurrentTime; }
+
     void SetDeleteCallback(void(*callback)(CAnimBlendAssociation*, void*), void* data = nullptr);
+    void SetDefaultDeleteCallback() { SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr); }
+
     void SetFinishCallback(void(*callback)(CAnimBlendAssociation*, void*), void* data = nullptr);
+    void SetDefaultFinishCallback() { SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr); }
+
     void Start(float currentTime = 0.f);
 
     /*!
@@ -214,12 +216,9 @@ public:
     auto GetSpeed() const      { return m_Speed; }
     void SetSpeed(float speed) { m_Speed = speed; }
 
-    
     std::span<CAnimBlendNode> GetNodes();
     CAnimBlendNode*           GetNode(int32 nodeIndex) { return &GetNodes()[nodeIndex]; } // 0x4CEB60
     CAnimBlendNode*           GetNodesPtr() { return m_BlendNodes; }
-
-    void SetDefaultFinishCallback() { SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr); }
 
     auto& GetLink() { return m_Link; }
     auto  GetHier() const { return m_BlendHier; }

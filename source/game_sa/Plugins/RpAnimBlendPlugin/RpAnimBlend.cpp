@@ -632,10 +632,27 @@ float CalculateTotalBlendOfPartial(AnimBlendUpdateData* c, AnimBlendFrameData* f
 }
 
 #define USE_COPY_PASTE_FRAME_UPDATE 0
+#ifdef USE_COPY_PASTE_FRAME_UPDATE
+    #define DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS 1
+#endif
 
+#ifdef USE_COPY_PASTE_FRAME_UPDATE
 #pragma region "R* Frame Update Functions"
 // 0x4D1DB0
 void FrameUpdateCallBackWithVelocityExtractionCompressedSkinned(AnimBlendUpdateData* c, AnimBlendFrameData* fd) {
+    assert(fd->HasVelocity);
+    assert(fd->HasZVelocity);
+
+#if DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS
+    _asm {
+        mov eax, c
+        push fd
+        mov ecx, 0x4D1DB0
+        call ecx
+    };
+    return;
+#endif
+
     const auto partialScale = 1.f - CalculateTotalBlendOfPartial(c, fd, false);
 
     CVector currV{}; // Velocity
@@ -738,11 +755,11 @@ void FrameUpdateCallBackCompressedSkinned(AnimBlendFrameData* fd, void* data) {
 
         CVector t;
         CQuaternion q;
-        node->Update(t, q, partialScale);
+        node->UpdateCompressed(t, q, partialScale);
 
         // Sum translation
         if (node->GetRootKF()->HasTranslation()) {
-            nextT += t;
+            nextT      += t;
             nextBlendT += node->GetAnimAssoc()->GetBlendAmount();
         }
 
@@ -765,9 +782,22 @@ void FrameUpdateCallBackCompressedSkinned(AnimBlendFrameData* fd, void* data) {
 // 0x4D27F0
 // FrameUpdateCallBackT<true, false, true, true>
 void FrameUpdateCallBackWithVelocityExtractionCompressedNonSkinned(AnimBlendUpdateData* c, AnimBlendFrameData* fd) {
+    assert(fd->HasVelocity);
+    assert(fd->HasZVelocity);
+
+#if DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS
+    _asm {
+        mov eax, c
+        push fd
+        mov ecx, 0x4D27F0
+        call ecx
+    };
+    return;
+#endif
+
     const auto partialScale = 1.f - CalculateTotalBlendOfPartial(c, fd, false);
 
-    CVector currV{}; // Velocity
+    CVector currV{}; // 3D Velocity
     for (auto it = c->BlendNodeArrays; *it; it++) {
         const auto node = *it;
 
@@ -906,10 +936,23 @@ void FrameUpdateCallBackCompressedNonSkinned(AnimBlendFrameData* fd, void* data)
 // 0x4D1A50
 // FrameUpdateCallBackT<false, true, true, true>
 void FrameUpdateCallBackSkinnedWith3dVelocityExtraction(AnimBlendUpdateData* c, AnimBlendFrameData* fd) { // `c` is passed in `eax`, can't hook
+    assert(fd->HasVelocity);
+    assert(fd->HasZVelocity);
+
+#if DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS
+    _asm {
+        mov eax, c
+        push fd
+        mov ecx, 0x4D1A50
+        call ecx
+    };
+    return;
+#endif
+
     const auto partialScale = 1.f - CalculateTotalBlendOfPartial(c, fd, true);
 
     // 0x4D1B32
-    CVector currV{}; // Velocity
+    CVector currV{}; // 3D Velocity
     for (auto it = c->BlendNodeArrays; *it; it++) {
         const auto node = *it;
 
@@ -990,6 +1033,18 @@ void FrameUpdateCallBackSkinnedWith3dVelocityExtraction(AnimBlendUpdateData* c, 
 // 0x4D1680
 // FrameUpdateCallBackT<false, true, true, false>
 void FrameUpdateCallBackSkinnedWithVelocityExtraction(AnimBlendUpdateData* c, AnimBlendFrameData* fd) { // `c` is passed in `eax`, can't hook
+    assert(fd->HasVelocity);
+
+#if DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS
+    _asm {
+        mov eax, c
+        push fd
+        mov ecx, 0x4D1680
+        call ecx
+    };
+    return;
+#endif
+
     const auto partialScale = 1.f - CalculateTotalBlendOfPartial(c, fd, true);
 
     // 0x4D174C
@@ -1148,6 +1203,19 @@ void FrameUpdateCallBackSkinned(AnimBlendFrameData* fd, void* data) {
 // 0x4D2450
 // FrameUpdateCallBackT<false, false, true, true>
 void FrameUpdateCallBackNonSkinnedWith3dVelocityExtraction(AnimBlendUpdateData* c, AnimBlendFrameData* fd) {
+    assert(fd->HasVelocity);
+    assert(fd->HasZVelocity);
+
+#if DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS
+    _asm {
+        mov eax, c
+        push fd
+        mov ecx, 0x4D2450
+        call ecx
+    };
+    return;
+#endif
+
     const auto partialScale = 1.f - CalculateTotalBlendOfPartial(c, fd, false);
 
     CVector currV{}; // Velocity
@@ -1234,6 +1302,18 @@ void FrameUpdateCallBackNonSkinnedWith3dVelocityExtraction(AnimBlendUpdateData* 
 // 0x4D2100
 // FrameUpdateCallBackT<false, false, true, false>
 void FrameUpdateCallBackNonSkinnedWithVelocityExtraction(AnimBlendUpdateData* c, AnimBlendFrameData* fd) {
+    assert(fd->HasVelocity);
+
+#if DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS
+    _asm {
+        mov eax, c
+        push fd
+        mov ecx, 0x4D2100
+        call ecx
+    };
+    return;
+#endif
+
     const auto partialScale = 1.f - CalculateTotalBlendOfPartial(c, fd, false);
 
     CVector2D currV{}; // Velocity
@@ -1399,6 +1479,7 @@ void FrameUpdateCallBackNonSkinned(AnimBlendFrameData* fd, void* data) {
 }
 
 #pragma endregion
+#endif
 
 template<bool IsCompressed, bool IsSkinned, bool ExtractVelocity, bool Extract3DVelocity>
 struct NeedsRemoveQuatFlips : std::false_type {};
@@ -1846,10 +1927,18 @@ void RpAnimBlendPlugin::InjectHooks() {
     RH_ScopedGlobalOverloadedInstall(RpAnimBlendGetNextAssociation, "Any", 0x4D6AB0, CAnimBlendAssociation * (*)(CAnimBlendAssociation * association));
     RH_ScopedGlobalOverloadedInstall(RpAnimBlendGetNextAssociation, "Flags", 0x4D6AD0, CAnimBlendAssociation * (*)(CAnimBlendAssociation * association, uint32 flags));
 
-    //RH_ScopedGlobalInstall(FrameUpdateCallBackCompressedSkinned, 0x4D2E40, {.reversed=false});
-    //RH_ScopedGlobalInstall(FrameUpdateCallBackCompressedNonSkinned, 0x4D32D0, {.reversed=false});
-    //RH_ScopedGlobalInstall(FrameUpdateCallBackSkinned, 0x4D2B90);
-    //RH_ScopedGlobalInstall(FrameUpdateCallBackNonSkinned, 0x4D30A0, {.reversed=false});
-    //RH_ScopedGlobalInstall(FrameUpdateCallBackOffscreen, 0x4D2E10);
-    RH_ScopedGlobalInstall(RpAnimBlendClumpUpdateAnimations, 0x4D34F0);
+    RH_ScopedGlobalInstall(RpAnimBlendClumpUpdateAnimations, 0x4D34F0, {.reversed = false}); // TODO: Hook this again... Unhooked for testing.
+#ifdef USE_COPY_PASTE_FRAME_UPDATE
+    // Most of these functions aren't hookable (without effort) they take args in <eax> and whatnot, they aren't regular `__cdecl` calls
+    //RH_ScopedGlobalInstall(FrameUpdateCallBackWithVelocityExtractionCompressedSkinned, 0x4D1DB0);
+    RH_ScopedGlobalInstall(FrameUpdateCallBackCompressedSkinned, 0x4D2E40, {.enabled = !DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS});
+    //RH_ScopedGlobalInstall(FrameUpdateCallBackWithVelocityExtractionCompressedNonSkinned, 0x4D27F0);
+    RH_ScopedGlobalInstall(FrameUpdateCallBackCompressedNonSkinned, 0x4D32D0, {.enabled = !DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS});
+    //RH_ScopedGlobalInstall(FrameUpdateCallBackSkinnedWith3dVelocityExtraction, 0x4D1A50);
+    //RH_ScopedGlobalInstall(FrameUpdateCallBackSkinnedWithVelocityExtraction, 0x4D1680);
+    RH_ScopedGlobalInstall(FrameUpdateCallBackSkinned, 0x4D2B90, {.enabled = !DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS});
+    //RH_ScopedGlobalInstall(FrameUpdateCallBackNonSkinnedWith3dVelocityExtraction, 0x4D2450);
+    //RH_ScopedGlobalInstall(FrameUpdateCallBackNonSkinnedWithVelocityExtraction, 0x4D2100);
+    RH_ScopedGlobalInstall(FrameUpdateCallBackNonSkinned, 0x4D30A0, {.enabled = !DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS});
+#endif
 }

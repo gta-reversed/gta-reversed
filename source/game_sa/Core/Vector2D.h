@@ -11,6 +11,9 @@
 #include <Base.h>
 
 class CVector;
+class CVector2D;
+
+constexpr CVector2D operator-(const CVector2D& vecOne, const CVector2D& vecTwo);
 
 class CVector2D : public RwV2d {
 public:
@@ -47,7 +50,7 @@ public:
         return cpy;
     }
 
-    [[nodiscard]] constexpr float ComponentwiseSum() const {
+    [[nodiscard]] constexpr float CWSum() const { // Component-wise
         return x + y;
     }
 
@@ -110,7 +113,8 @@ public:
         y = Y;
     }
 
-    //! Heading of the vector - 
+    //! Heading of the vector
+    //! Tip: atan2(x, -y) is off by 180deg clockwise
     float Heading() const {
         return std::atan2(-x, y);
     }
@@ -128,10 +132,26 @@ public:
         return x * lhs.x + y * lhs.y;
     }
 
-    //! 2D "cross product" of *this and another vector
-    //! See https://stackoverflow.com/a/243977
+    /*!
+    * @notsa
+    * 
+    * @brief Calculate the cross product of *this and `lhs`
+    * 
+    * @param lhs The vector to calculate the cross product with
+    *
+    * @return Magnitude of the vector that would result from a regular 3D cross product of the input vectors taking their Z values implicitly as 0.
+    *
+    * Returns the signed magnitude of the vector that would result
+    * from a regular 3D cross product of the input vectors,
+    * taking their Z values implicitly as 0
+    * (i.e. treating the 2D space as a plane in the 3D space).
+    * The 3D cross product will be perpendicular to that plane,
+    * and thus have 0 X & Y components
+    * (thus the scalar returned is the Z value of the 3D cross product vector).
+    * Copied from (with 1 change): https://stackoverflow.com/a/243977
+    */
     float Cross(const CVector2D& lhs) const {
-        return (x * lhs.y) - (y * lhs.x);
+        return (x * lhs.y) - (y * lhs.x); // same as Dot(lhs.GetPerpRight());
     }
 
     //! Get a copy of `*this` vector projected onto `projectOnTo` (which is assumed to be unit length)
@@ -173,6 +193,26 @@ public:
 
     float& operator[](size_t i) {
         return (&x)[i];
+    }
+
+    /*!
+     * @brief Prefer this over (a - b).Magnitude()
+     * @param a Point A
+     * @param b Point B
+     * @return 2D Distance between 2 points
+    */
+    static inline float Dist(CVector2D a, CVector2D b) {
+        return (a - b).Magnitude();
+    }
+
+    /*!
+    * @brief Prefer this over (a - b).SquaredMagnitude()
+    * @param a Point A
+    * @param b Point B
+    * @return 2D Squared distance between 2 points
+    */
+    static inline float DistSqr(CVector2D a, CVector2D b) {
+        return (a - b).SquaredMagnitude();
     }
 };
 

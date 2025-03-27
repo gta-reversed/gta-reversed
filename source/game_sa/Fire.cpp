@@ -210,7 +210,7 @@ auto CFire::GetFireParticleNameForStrength() const {
 // 0x539360
 void CFire::CreateFxSysForStrength(const CVector& point, RwMatrix* matrix) {
     DestroyFx();
-    m_pFxSystem = g_fxMan.CreateFxSystem(GetFireParticleNameForStrength(), const_cast<CVector*>(&point), matrix, true); // TODO: Make CreateFxSys take const CVector&
+    m_pFxSystem = g_fxMan.CreateFxSystem(GetFireParticleNameForStrength(), point, matrix, true);
     if (m_pFxSystem)
         m_pFxSystem->Play();
 }
@@ -277,7 +277,7 @@ void CFire::ProcessFire() {
                     vehicle->m_fHealth = 75.0f;
                 }
             } else if (!targetPed->IsPlayer() && !targetPed->IsAlive()) {
-                targetPed->physicalFlags.bDestroyed = true;
+                targetPed->physicalFlags.bRenderScorched = true;
             }
 
             break;

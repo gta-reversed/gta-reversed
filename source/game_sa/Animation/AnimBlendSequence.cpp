@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include "AnimBlendSequence.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 void CAnimBlendSequence::InjectHooks() {
     RH_ScopedClass(CAnimBlendSequence);
@@ -48,7 +49,7 @@ bool CAnimBlendSequence::ConvertKeyFrames(byte* pDataBlock) {
     auto* outKF = static_cast<To*>(outFrames);
     for (auto i = m_FramesNum; i --> 0; inKF++, outKF++) {
         outKF->Rot = inKF->Rot;
-        outKF->SetDeltaTime(inKF->DeltaTime);
+        outKF->DeltaTime = inKF->DeltaTime;
         if constexpr (HasTranslation) {
             outKF->Trans = inKF->Trans;
         }
@@ -122,7 +123,7 @@ void CAnimBlendSequence::RemoveQuaternionFlips() const {
 
 // 0x4D0C50
 void CAnimBlendSequence::SetName(const char* name) {
-    if (notsa::IsFixBugs()) {
+    if (notsa::bugfixes::AnimBlendSequence_SetName_SetBoneTagFlag) {
         m_IsUsingBoneTag = false;
     }
     m_NameHashKey = CKeyGen::GetUppercaseKey(name);

@@ -192,7 +192,7 @@ CTask* CTaskComplexKillPedOnFootArmed::CreateSubTask(eTaskType taskType, CPed* p
 bool CTaskComplexKillPedOnFootArmed::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     switch (priority) {
     case ABORT_PRIORITY_URGENT: {
-        if (const auto aimedAtEvent = CEvent::DynCast<const CEventGunAimedAt>(event)) {
+        if (const auto aimedAtEvent = notsa::dyn_cast_if_present<const CEventGunAimedAt>(event)) {
             if (aimedAtEvent->m_AimedBy == m_target) {
                 return false;
             }
@@ -233,7 +233,7 @@ CTask* CTaskComplexKillPedOnFootArmed::CreateFirstSubTask(CPed* ped) {
         ped->m_pCoverPoint = CCover::FindAndReserveCoverPoint(ped, targetPos, false);
         if (ped->m_pCoverPoint) {
             CVector coverPos{};
-            VERIFY(CCover::FindCoordinatesCoverPoint(ped->m_pCoverPoint, ped, targetPos, coverPos));
+            VERIFY(CCover::FindCoordinatesCoverPoint(*ped->m_pCoverPoint, ped, targetPos, coverPos));
             if (CWorld::GetIsLineOfSightClear(coverPos, ourPos, true, true, false, false, false, false, false)) {
                 ped->GetIntelligence()->SetTaskDuckSecondary(6000);
                 if (const auto task = new CTaskSimpleGoToPoint{
@@ -345,7 +345,7 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
             return CreateSubTask(TASK_SIMPLE_GUN_CTRL, ped);
         } else {
             if (ped->GetGroup()) {
-                ped->Say(65);
+                ped->Say(CTX_GLOBAL_COVER_ME);
             }
         }
         break;
@@ -356,7 +356,7 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
             || targetToOurPedDistSq >= sq(4.f) && !ped->bStayInSamePlace && CTimer::GetTimeInMS() >= m_shootTimer
             || !LineOfSightClearForAttack(ped)
         ) {
-            const auto gctrl = CTask::Cast<CTaskSimpleGunControl>(m_pSubTask);
+            const auto gctrl = notsa::cast<CTaskSimpleGunControl>(m_pSubTask);
             if (gctrl->m_firingTask != eGunCommand::END_LEISURE) {
                 gctrl->m_nextAtkTimeMs = 0;
                 gctrl->m_firingTask    = eGunCommand::END_LEISURE;
@@ -369,7 +369,7 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
         }
 
         if (ped->GetGroup()) {
-            ped->Say(207);
+            ped->Say(CTX_GLOBAL_SURROUNDED);
         }
 
         //> 0x62CF88

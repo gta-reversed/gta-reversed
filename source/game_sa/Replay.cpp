@@ -1569,9 +1569,9 @@ void CReplay::TriggerPlayback(eReplayCamMode mode, CVector fixedCamPos, bool loa
             LoadScene = TheCamera.GetPosition();
             CVector point{};
             FindFirstFocusCoordinate(point);
-            CGame::currLevel = CTheZones::GetLevelFromPosition(&point);
+            CGame::currLevel = CTheZones::GetLevelFromPosition(point);
             CCollision::SortOutCollisionAfterLoad();
-            CStreaming::LoadScene(&point);
+            CStreaming::LoadScene(point);
 
             return true;
         }

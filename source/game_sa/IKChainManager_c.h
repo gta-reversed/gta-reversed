@@ -41,10 +41,8 @@ public:
     void RemoveIKChain(IKChain_c* chain);
 
     bool CanAccept(CPed* ped, float) const;
-    bool IsLooking(CPed* ped) const;
     CEntity* GetLookAtEntity(CPed* ped);
     CVector GetLookAtOffset(CPed* ped);
-    void AbortLookAt(CPed* ped, uint32 blendOutTime = 250u);
     bool CanAcceptLookAt(CPed* ped);
 
     /*!
@@ -77,6 +75,26 @@ public:
     );
 
     /*!
+     * @addr 0x6181A0
+     * @brief Check if the ped is looking
+     * @param ped The ped
+    */
+    bool IsLooking(CPed* ped) const;
+
+
+    /*!
+    * @addr 0x618280
+    * @brief Abort lookat of a ped
+    */
+    void AbortLookAt(CPed* ped, uint32 blendOutTime = 250u);
+
+    /*!
+    * @notsa
+    * @brief Abort lookat of a ped if doing lookat
+    */
+    void AbortLookAtIfLooking(CPed* ped, uint32 blendOutTime = 250u);
+
+    /*!
      * @addr 0x618B60
      * @brief Point the ped's arm towards an entity/position
      * @param purpose A string describing the usecase, not used
@@ -101,7 +119,13 @@ public:
      * @addr 0x6182F0
      * @brief Abort the arm pointing of a ped
     */
-    static void __stdcall AbortPointArm(eIKArm arm, CPed* ped, int32 blendOutTime);
+    static void __stdcall AbortPointArm(eIKArm arm, CPed* ped, int32 blendOutTime = 250);
+
+    /*!
+    * @notsa
+    * @brief Abort arm pointing if it's pointed
+    */
+    static void AbortPointArmIfPointing(eIKArm arm, CPed* ped, int32 blendOutTime = 250);
 
     /*!
      * @addr 0x618330

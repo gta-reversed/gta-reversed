@@ -11,13 +11,13 @@ void CEventScriptedAttractor::InjectHooks()
 }
 
 // 0x5FEF40
-CEventScriptedAttractor::CEventScriptedAttractor(C2dEffect* the2dEffect, CEntity* entity, bool bAvoidLookingAtAttractor) :
+CEventScriptedAttractor::CEventScriptedAttractor(C2dEffectPedAttractor* the2dEffect, CEntity* entity, bool bAvoidLookingAtAttractor) :
     CEventAttractor(the2dEffect, entity, false)
 {
 }
 
 // 0x5FEF40
-CEventScriptedAttractor* CEventScriptedAttractor::Constructor(C2dEffect* the2dEffect, CEntity* entity, bool bAvoidLookingAtAttractor)
+CEventScriptedAttractor* CEventScriptedAttractor::Constructor(C2dEffectPedAttractor* the2dEffect, CEntity* entity, bool bAvoidLookingAtAttractor)
 {
     this->CEventScriptedAttractor::CEventScriptedAttractor(the2dEffect, entity, bAvoidLookingAtAttractor);
     return this;

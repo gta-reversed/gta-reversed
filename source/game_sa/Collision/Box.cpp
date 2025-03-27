@@ -63,23 +63,30 @@ void CBox::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
     workVec = m_vecMax;
     CVector v8 = transform.TransformPoint(workVec);
 
-    const auto colorARGB = color.ToInt();
-    CLines::RenderLineNoClipping(v1, v2, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v1, v3, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v1, v4, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v5, v2, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v5, v8, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v5, v4, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v6, v2, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v6, v8, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v6, v3, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v7, v8, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v7, v3, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v7, v4, colorARGB, colorARGB);
+    const auto colorRGBA = color.ToInt();
+    CLines::RenderLineNoClipping(v1, v2, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v1, v3, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v1, v4, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v5, v2, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v5, v8, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v5, v4, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v6, v2, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v6, v8, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v6, v3, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v7, v8, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v7, v3, colorRGBA, colorRGBA);
+    CLines::RenderLineNoClipping(v7, v4, colorRGBA, colorRGBA);
 }
 
 bool CBox::IsPointInside(const CVector& point) const {
     return point.x >= m_vecMin.x && point.x <= m_vecMax.x
         && point.y >= m_vecMin.y && point.y <= m_vecMax.y
         && point.z >= m_vecMin.z && point.z <= m_vecMax.z;
+}
+
+void CBox::StretchToPoint(const CVector& pt) {
+    for (size_t i = 0; i < 3; i++) {
+        m_vecMin[i] = std::min(m_vecMin[i], pt[i]);
+        m_vecMax[i] = std::max(m_vecMax[i], pt[i]);
+    }
 }

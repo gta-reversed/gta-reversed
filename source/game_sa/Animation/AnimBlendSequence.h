@@ -8,7 +8,9 @@
 
 #include "AnimSequenceFrames.h"
 
-//! The sequence of key-frames of one animated node (bone)
+/*!
+ * @brief Animation key-frames of a single node (bone)
+ */
 class CAnimBlendSequence {
 public:
     static void InjectHooks();
@@ -85,7 +87,7 @@ public:
 
 private:
     /*!
-     * @brief Implementation for compression/uncompression of key-frames
+     * @brief Implementation for compression/decompression of key-frames
      * @tparam From Key-Frame type to convert from
      * @tparam To Key-Frame type to convert to
      * @param [opt] frameData Pre-allocated frame data buffer

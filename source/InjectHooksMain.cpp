@@ -157,12 +157,14 @@
 #include "Birds.h"
 #include "Hud.h"
 #include "CarFXRenderer.h"
+#include "Curves.h"
 #include "ProcObjectMan.h"
 #include "ProcSurfaceInfo.h"
 #include "Pickup.h"
 #include "Pickups.h"
 #include "PedIK.h"
 #include "HandShaker.h"
+#include "TempColModels.h"
 
 // Plant
 #include "PlantMgr.h"
@@ -173,11 +175,13 @@
 #include "PlantSurfPropMgr.h"
 
 // Tasks
+#include "TaskSimpleKillPedWithCar.h"
 #include "TaskComplexSitDownThenIdleThenStandUp.h"
 #include "TaskComplexLeaveCarAsPassengerWait.h"
 #include "TaskComplexInvestigateDeadPed.h"
 #include "TaskComplexSignalAtPed.h"
 #include "TaskSimpleCarCloseDoorFromOutside.h"
+#include "TaskSimpleCarFallOut.h"
 #include "TaskSimpleCarGetIn.h"
 #include "TaskSimpleBeHit.h"
 #include "TaskSimpleHitByGunFromFront.h"
@@ -200,6 +204,7 @@
 #include "TaskComplexDestroyCarArmed.h"
 #include "TaskSimpleAbseil.h"
 #include "TaskComplexWanderCop.h"
+#include "TaskComplexEnterCarAsPassengerTimed.h"
 #include "TaskSimpleWaitUntilPedIsInCar.h"
 #include "TaskComplexUseMobilePhone.h"
 #include "TaskSimpleStandStill.h"
@@ -277,6 +282,7 @@
 #include "TaskComplexEnterCarAsPassenger.h"
 #include "TaskComplexEnterCarAsDriver.h"
 #include "TaskSimpleCarShuffle.h"
+#include "TaskSimpleCarSlowBeDraggedOut.h"
 #include "TaskComplexReactToGunAimedAt.h"
 #include "TaskSimpleNone.h"
 #include "TaskComplexKillPedOnFoot.h"
@@ -339,6 +345,7 @@
 #include "TaskSimpleGoTo.h"
 #include "TaskSimpleUseAtm.h"
 #include "TaskSimpleCarOpenLockedDoorFromOutside.h"
+#include "TaskSimpleCarSetPedSlowDraggedOut.h"
 #include "TaskComplexPartner.h"
 #include "TaskComplexFollowPointRoute.h"
 #include "TaskComplexDrivePointRoute.h"
@@ -480,6 +487,7 @@
 #include "EventLeaderQuitEnteringCarAsDriver.h"
 #include "EventAreaCodes.h"
 #include "EventLeaderEntryExit.h"
+#include "Formation.h"
 
 #include "Plugins/BreakablePlugin/BreakablePlugin.h"
 
@@ -501,6 +509,7 @@ void InjectHooksMain() {
     HookInstall(0x541DD0, CPad::UpdatePads); // [ImGui] Changes logic of the function and shouldn't be toggled on/off
     HookInstall(0x459F70, CVehicleRecording::Render); // [ImGui] Debug stuff rendering
 
+    CFormation::InjectHooks();
     CHandShaker::InjectHooks();
     CCutsceneMgr::InjectHooks();
     CFileMgr::InjectHooks();
@@ -516,6 +525,7 @@ void InjectHooksMain() {
     ProcObjectMan_c::InjectHooks();
     ProcSurfaceInfo_c::InjectHooks();
     RwHelperInjectHooks();
+    RwCoreInjectHooks();
     CPad::InjectHooks();
     InjectCommonHooks();
     CEscalator::InjectHooks();
@@ -541,6 +551,7 @@ void InjectHooksMain() {
     CRopes::InjectHooks();
     CWeaponInfo::InjectHooks();
     CCurrentVehicle::InjectHooks();
+    CCurves::InjectHooks();
     CPlaceName::InjectHooks();
     CUserDisplay::InjectHooks();
     COnscreenTimer::InjectHooks();
@@ -564,6 +575,7 @@ void InjectHooksMain() {
     CSetPiece::InjectHooks();
     CSetPieces::InjectHooks();
     CCopPed::InjectHooks();
+    CCivilianPed::InjectHooks();
     CDamageManager::InjectHooks();
     CCreepingFire::InjectHooks();
     CPtrList::InjectHooks();
@@ -605,6 +617,7 @@ void InjectHooksMain() {
     CTimeModelInfo::InjectHooks();
     CDamageAtomicModelInfo::InjectHooks();
     CWeaponModelInfo::InjectHooks();
+    CShotInfo::InjectHooks();
     CPedModelInfo::InjectHooks();
     CTimeInfo::InjectHooks();
     SurfaceInfos_c::InjectHooks();
@@ -625,7 +638,9 @@ void InjectHooksMain() {
     CVisibilityPlugins::InjectHooks();
     CPed::InjectHooks();
     CPedIntelligence::InjectHooks();
+    CPedGroupIntelligence::InjectHooks();
     CCollision::InjectHooks();
+    CTempColModels::InjectHooks();
     CColSphere::InjectHooks();
     CColLine::InjectHooks();
     CColTrianglePlane::InjectHooks();
@@ -651,6 +666,7 @@ void InjectHooksMain() {
     CWaterLevel::InjectHooks();
     cBuoyancy::InjectHooks();
     CWanted::InjectHooks();
+    CCrime::InjectHooks();
     CEscalators::InjectHooks();
     CWeapon::InjectHooks();
     cTransmission::InjectHooks();
@@ -674,7 +690,6 @@ void InjectHooksMain() {
     CPostEffects::InjectHooks();
     CIniFile::InjectHooks();
     CStencilShadowObject::InjectHooks();
-    CStencilShadowObjects::InjectHooks();
     CStencilShadows::InjectHooks();
     CFont::InjectHooks();
     CGameLogic::InjectHooks();
@@ -706,6 +721,7 @@ void InjectHooksMain() {
     CDraw::InjectHooks();
     CEntryExitManager::InjectHooks();
     CEntryExit::InjectHooks();
+    CInformGroupEvent::InjectHooks();
     CInformGroupEventQueue::InjectHooks();
     CGangs::InjectHooks();
     CPlayerInfo::InjectHooks();
@@ -891,7 +907,7 @@ void InjectHooksMain() {
         CTaskComplexDragPedFromCar__InjectHooks();
         CTaskComplexDrivePointRoute::InjectHooks();
         CTaskComplexEnterCarAsDriverTimed::InjectHooks();
-        // CTaskComplexEnterCarAsPassengerTimed::InjectHooks();
+        CTaskComplexEnterCarAsPassengerTimed::InjectHooks();
         // CTaskComplexEnterCarAsPassengerWait::InjectHooks();
         // CTaskComplexEvasiveCower::InjectHooks();
         // CTaskComplexEvasiveDiveAndGetUp::InjectHooks();
@@ -1005,7 +1021,7 @@ void InjectHooksMain() {
         CTaskSimpleCarAlign::InjectHooks();
         CTaskSimpleCarCloseDoorFromInside::InjectHooks();
         CTaskSimpleCarCloseDoorFromOutside::InjectHooks();
-        // CTaskSimpleCarFallOut::InjectHooks();
+        CTaskSimpleCarFallOut::InjectHooks();
         // CTaskSimpleCarForcePedOut::InjectHooks();
         CTaskSimpleCarGetOut::InjectHooks();
         CTaskSimpleCarGetIn::InjectHooks();
@@ -1013,10 +1029,10 @@ void InjectHooksMain() {
         CTaskSimpleCarOpenDoorFromOutside::InjectHooks();
         CTaskSimpleCarJumpOut::InjectHooks();
         CTaskSimpleCarOpenLockedDoorFromOutside::InjectHooks();
-        // CTaskSimpleCarSetPedSlowDraggedOut::InjectHooks();
+        CTaskSimpleCarSetPedSlowDraggedOut::InjectHooks();
         CTaskSimpleCarSetTempAction::InjectHooks();
         CTaskSimpleCarShuffle::InjectHooks();
-        // CTaskSimpleCarSlowBeDraggedOut::InjectHooks();
+        CTaskSimpleCarSlowBeDraggedOut::InjectHooks();
         CTaskSimpleCarWaitToSlowDown::InjectHooks();
         CTaskSimpleCarWaitForDoorNotToBeInUse::InjectHooks();
         // CTaskSimpleChat::InjectHooks();
@@ -1048,8 +1064,8 @@ void InjectHooksMain() {
         CTaskSimpleHitFromLeft::InjectHooks();
         CTaskSimpleHitFromRight::InjectHooks();
         CTaskSimpleHitWall::InjectHooks();
+        CTaskSimpleKillPedWithCar::InjectHooks();
         CTaskSimpleHurtPedWithCar::InjectHooks();
-        // CTaskSimpleKillPedWithCar::InjectHooks();
         CTaskSimpleLookAbout::InjectHooks();
         // CTaskSimpleOnEscalator::InjectHooks();
         CTaskSimplePickUpBike::InjectHooks();
@@ -1364,12 +1380,6 @@ void InjectHooksMain() {
     Vehicle();
     Interior();
     Scripts();
-
-    if (CommandLine::unhookAll)
-        ReversibleHooks::GetRootCategory().SetAllItemsEnabled(false);
-
-    if (!CommandLine::unhookSome.empty() || !CommandLine::unhookExcept.empty())
-        NOTSA_LOG_WARN("Command line arguments --unhook and --unhook-except are unimplemented!");
 }
 
 void InjectHooksMain(HMODULE hThisDLL) {

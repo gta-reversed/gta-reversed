@@ -11,14 +11,18 @@
 
 using namespace notsa;
 using namespace notsa::script;
+
 /*!
 * Various object commands
 */
-
+namespace {
 namespace Object {
 CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     const auto mi = CModelInfo::GetModelInfo(model);
+    mi->m_nAlpha  = 255u;
+
     auto* object = CObject::Create(model, false);
+    object->m_nObjectType = (S.m_bIsExternal || S.m_nExternalType != -1) ? OBJECT_MISSION2 : OBJECT_MISSION;
     CWorld::PutToGroundIfTooLow(posn);
     posn.z += object->GetDistanceFromCentreOfMassToBaseOfModel();
     object->SetPosn(posn);
@@ -38,13 +42,15 @@ CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     return *object;
 }
 
-void RemoveObject(CRunningScript& S, CObject& object) {
-    CWorld::Remove(&object);
-    CWorld::RemoveReferencesToDeletedObject(&object);
-    delete &object;
+void RemoveObject(CRunningScript& S, CObject* object) {
+    if (object) {
+        CWorld::Remove(object);
+        CWorld::RemoveReferencesToDeletedObject(object);
+        delete object;
+    }
 
     if (S.m_bUseMissionCleanup) {
-        CTheScripts::MissionCleanUp.RemoveEntityFromList(object);
+        CTheScripts::MissionCleanUp.RemoveEntityFromList((int32)object, MISSION_CLEANUP_ENTITY_TYPE_OBJECT);
     }
 }
 
@@ -179,8 +185,11 @@ auto SetObjectAnimCurrentTime(CObject& obj, const char* animName, float progress
     }
 }
 } // namespace Animation
+};
 
 void notsa::script::commands::object::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Object");
+
     using namespace Object;
     using namespace Model;
     using namespace Fx;

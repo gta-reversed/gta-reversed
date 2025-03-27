@@ -168,6 +168,13 @@ void IKChainManager_c::AbortLookAt(CPed* ped, uint32 blendOutTime) {
     }
 }
 
+// notsa
+void IKChainManager_c::AbortLookAtIfLooking(CPed* ped, uint32 blendOutTime) {
+    if (IsLooking(ped)) {
+        AbortLookAt(ped, blendOutTime);
+    }
+}
+
 // 0x6188B0
 bool IKChainManager_c::CanAcceptLookAt(CPed* ped) {
     if (!CanAccept(ped, 20.f)) {
@@ -213,10 +220,12 @@ void IKChainManager_c::LookAt(
 
     auto& taskIKMgr = *GetPedIKManagerTask(ped, true);
 
-    const auto lookAtOffset = offset ? *offset : CVector{};
+    const CVector lookAtOffset = offset
+        ? *offset
+        : CVector{};
 
     // Now, either update existing task or createIfNotExists one
-    if (const auto tLookAt = CTask::Cast<CTaskSimpleIKLookAt>(taskIKMgr.GetTaskAtSlot(eIKChainSlot::LOOK_AT))) {
+    if (const auto tLookAt = notsa::cast_if_present<CTaskSimpleIKLookAt>(taskIKMgr.GetTaskAtSlot(eIKChainSlot::LOOK_AT))) {
         if (priority < tLookAt->m_nPriority) {
             return;
         }
@@ -255,6 +264,13 @@ void __stdcall IKChainManager_c::AbortPointArm(eIKArm arm, CPed* ped, int32 blen
     const auto mgr = GetPedIKManagerTask(ped);
     if (const auto lookAt = static_cast<CTaskSimpleIKChain*>(mgr->GetTaskAtSlot(IKArmToIKSlot(arm)))) {
         lookAt->BlendOut(blendOutTime);
+    }
+}
+
+// notsa
+void IKChainManager_c::AbortPointArmIfPointing(eIKArm arm, CPed* ped, int32 blendOutTime) {
+    if (IsArmPointing(arm, ped)) {
+        AbortPointArm(arm, ped, blendOutTime);
     }
 }
 

@@ -24,7 +24,7 @@ public:
     uint8       m_groupType;           // 0xE - TODO: eInteriorGroupType
     uint8       m_numInteriors;        // 0xF
     Interior_c* m_interiors[8];        // 0x10
-    CEntryExit* m_enex;                // 0x30
+    CEntryExit* m_EnEx;                // 0x30
     bool        m_isVisible;           // 0x34
     bool        m_lastIsVisible;       // 0x35
     int8        m_numPeds;             // 0x36
@@ -76,6 +76,5 @@ private:
 
     //! @notsa
     const char* GetAnimBlockName();
-
 };
 VALIDATE_SIZE(InteriorGroup_c, 0xBC);

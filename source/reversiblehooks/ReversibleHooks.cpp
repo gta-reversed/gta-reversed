@@ -1,6 +1,9 @@
 #include "StdInc.h"
 #include <unordered_set>
 
+#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#include "ReversibleHook/ScriptCommand.h"
+#endif
 #include "ReversibleHooks.h"
 #include "ReversibleHook/Simple.h"
 #include "ReversibleHook/Virtual.h"
@@ -19,6 +22,33 @@ std::unordered_set<uint32> s_HookedAddresses{};  // Original GTA addresses to wh
 
 RootHookCategory& GetRootCategory() {
     return s_RootCategory;
+}
+
+SetCatOrItemStateResult SetCategoryOrItemStateByPath(std::string_view path, bool enabled) {
+    if (path.ends_with("/")) {
+        path.remove_suffix(1);
+    }
+
+    const auto    separated = SplitStringView(path, "/") | rng::to<std::vector>();
+    HookCategory* cat       = &GetRootCategory();
+    for (auto name : std::span(separated).first(separated.size() - 1)) {
+        cat = cat->FindSubcategory(name);
+        if (!cat) {
+            return SetCatOrItemStateResult::NotFound;
+        }
+    }
+
+    if (auto category = cat->FindSubcategory(separated.back())) {
+        category->SetAllItemsEnabled(enabled);
+        return SetCatOrItemStateResult::Done;
+    } else if (auto item = cat->FindItem(separated.back())) {
+        if (item->Hooked() == enabled) {
+            return SetCatOrItemStateResult::Done;
+        }
+        return item->State(enabled) ? SetCatOrItemStateResult::Done : SetCatOrItemStateResult::Locked;
+    }
+
+    return SetCatOrItemStateResult::NotFound;
 }
 
 void CheckAll() {
@@ -87,6 +117,15 @@ void AddItemToCategory(std::string_view category, std::shared_ptr<ReversibleHook
     s_RootCategory.AddItemToNamedCategory(category, std::move(item));
 }
 
+#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+void InstallScriptCommand(std::string_view category, eScriptCommands cmd) {
+    AddItemToCategory( \
+        category,
+        std::make_shared<::ReversibleHooks::ReversibleHook::ScriptCommand>(cmd)
+    );
+}
+#endif
+
 void WriteHooksToFile(const std::filesystem::path& file) {
     std::ofstream of{ file };
     of << "class,fn_name,address,reversed,locked,is_virtual\n";
@@ -98,15 +137,16 @@ void WriteHooksToFile(const std::filesystem::path& file) {
                 << cat.Name() << "," // class
                 << item->Name() << "," // fn_name
                 << "0x" << std::hex << [&] { // address
-                switch (item->Type()) {
-                case Base::HookType::Virtual:
-                    return std::static_pointer_cast<Virtual>(item)->GetHookGTAAddress();
-                case Base::HookType::Simple:
-                    return std::static_pointer_cast<Simple>(item)->GetHookGTAAddress();
-                default:
-                    NOTSA_UNREACHABLE();
-                }
-            }() << std::dec << ","
+                        switch (item->Type()) {
+                        case Base::HookType::Virtual:
+                            return std::static_pointer_cast<Virtual>(item)->GetHookGTAAddress();
+                        case Base::HookType::Simple:
+                            return std::static_pointer_cast<Simple>(item)->GetHookGTAAddress();
+                        default:
+                            NOTSA_UNREACHABLE();
+                        }
+                    }()
+                << std::dec << ","
                 << item->Hooked() << "," // reversed // TODO: Improve this (Add `m_isReversed` to `Base`) - For now this will do
                 << item->Locked() << "," // locked
                 << (item->Type() == Base::HookType::Virtual) << '\n'; // is_virtual

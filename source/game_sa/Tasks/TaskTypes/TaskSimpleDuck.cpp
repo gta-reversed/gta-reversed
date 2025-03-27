@@ -250,6 +250,11 @@ void CTaskSimpleDuck::ForceStopMove() {
     m_MoveCmd.y = 0.f;
 }
 
+// 0x61C420
+bool CTaskSimpleDuck::StopFireGun() const {
+    return m_MoveCmd.x != 0.f || !m_DuckAnim || m_DuckAnim->GetBlendAmount() < 1.f || m_bIsAborting || m_ShotWhizzingCounter > 0;
+}
+
 // 0x692530
 void CTaskSimpleDuck::SetDuckTimer(uint16 time) {
     if (m_DuckControlType != DUCK_SCRIPT_CONTROLLED) {
@@ -286,8 +291,8 @@ bool CTaskSimpleDuck::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent c
         if (m_ShotWhizzingCounter <= 0) {
             break;
         }
-        if (const auto eShotFired = CEvent::DynCast<const CEventGunShotWhizzedBy>(event)) {
-            if (eShotFired->m_taskId == TASK_SIMPLE_DUCK_WHILE_SHOTS_WHIZZING && event->GetSourceEntity()) {
+        if (const auto eShotFired = notsa::dyn_cast_if_present<const CEventGunShotWhizzedBy>(event)) {
+            if (eShotFired->m_TaskId == TASK_SIMPLE_DUCK_WHILE_SHOTS_WHIZZING && event->GetSourceEntity()) {
                 SetPedIsDucking(ped, false);
                 return true;
             }

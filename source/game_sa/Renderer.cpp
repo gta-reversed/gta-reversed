@@ -168,7 +168,7 @@ void CRenderer::RenderOneNonRoad(CEntity* entity) {
 
 // 0x553390
 void CRenderer::RemoveVehiclePedLights(CPhysical* entity) {
-    if (!entity->physicalFlags.bDestroyed)
+    if (!entity->physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 }
 
@@ -444,7 +444,7 @@ void CRenderer::RenderFirstPersonVehicle() {
 // 0x553E40
 bool CRenderer::SetupLightingForEntity(CPhysical* entity) {
     CCarFXRenderer::SetFxEnvMapLightMult(1.0f);
-    if (entity->physicalFlags.bDestroyed) {
+    if (entity->physicalFlags.bRenderScorched) {
         WorldReplaceNormalLightsWithScorched(Scene.m_pRpWorld, 0.18f);
         return false;
     }
@@ -660,7 +660,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
     if (entity->m_nAreaCode == CGame::currArea || entity->m_nAreaCode == AREA_CODE_13) {
         CVector position = entity->GetPosition();
         if (entity->m_pLod) {
-            position = &entity->m_pLod->GetPosition();
+            position = entity->m_pLod->GetPosition();
         }
 
         outDistance = DistanceBetweenPoints(ms_vecCameraPosition, position);

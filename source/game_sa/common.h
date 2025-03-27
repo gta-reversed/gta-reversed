@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include <Base.h>
 #include <string>
 #include <initializer_list>
 #include <RenderWare.h>
@@ -78,43 +79,46 @@ extern RwRGBAReal& AmbientLightColourForFrame;
 
 #define RpGeometryGetMesh(_geometry, _index) (&((RpMesh*)(((char*)(_geometry)->mesh) + sizeof(RpMeshHeader) + ((_geometry)->mesh->firstMeshOffset)))[_index])
 
-constexpr float E              = 2.71828f;          // e
-constexpr float E_CONST        = 0.577f;            // Euler-Mascheroni constant
-constexpr float FRAC_1_TAU     = 0.159154f;         // 1 / τ
-constexpr float FRAC_1_PI      = 0.318309f;         // 1 / π
-constexpr float FRAC_2_TAU     = 0.318309f;         // 2 / τ
-constexpr float FRAC_2_PI      = 0.636619f;         // 2 / π
-constexpr float FRAC_2_SQRT_PI = 1.12837f;          // 2 / √π
-constexpr float FRAC_4_TAU     = 0.636619f;         // 4 / τ
-constexpr float FRAC_1_SQRT_2  = 0.707106f;         // 1 / √2
-constexpr float FRAC_PI_2      = 1.57079f;          // π / 2
-constexpr float FRAC_PI_3      = 1.04719f;          // π / 3
-constexpr float FRAC_PI_4      = 0.785398f;         // π / 4
-constexpr float FRAC_PI_6      = 0.523598f;         // π / 6
-constexpr float FRAC_PI_8      = 0.392699f;         // π / 8
-constexpr float FRAC_TAU_2     = 3.14159f;          // τ / 2 = π
-constexpr float FRAC_TAU_3     = 2.09439f;          // τ / 3
-constexpr float FRAC_TAU_4     = 1.57079f;          // τ / 4
-constexpr float FRAC_TAU_6     = 1.04719f;          // τ / 6
-constexpr float FRAC_TAU_8     = 0.785398f;         // τ / 8
-constexpr float FRAC_TAU_12    = 0.523598f;         // τ / 12
-constexpr float LN_2           = 0.693147f;         // ln(2)
-constexpr float LN_10          = 2.30258f;          // ln(10)
-constexpr float LOG2_E         = 1.44269f;          // log2(e)
-constexpr float LOG10_E        = 0.434294f;         // log10(e)
-constexpr float LOG10_2        = 0.301029f;         // log10(2)
-constexpr float LOG2_10        = 3.32192f;          // log2(10)
-constexpr float PI             = 3.14159f;          // π
-constexpr float HALF_PI        = PI / 2.0f;         // π / 2
-constexpr float PI_6           = PI / 6.0f;         // π / 6
-constexpr float SQRT_2         = 1.41421f;          // √2
-constexpr float SQRT_3         = 1.73205f;          // √3
-constexpr float TWO_PI         = 6.28318f;          // τ (TAU)
+constexpr float E               = 2.71828f;          // e
+constexpr float E_CONST         = 0.577f;            // Euler-Mascheroni constant
+constexpr float FRAC_1_TAU      = 0.159154f;         // 1 / τ
+constexpr float FRAC_1_PI       = 0.318309f;         // 1 / π
+constexpr float FRAC_2_TAU      = 0.318309f;         // 2 / τ
+constexpr float FRAC_2_PI       = 0.636619f;         // 2 / π
+constexpr float FRAC_2_SQRT_PI  = 1.12837f;          // 2 / √π
+constexpr float FRAC_4_TAU      = 0.636619f;         // 4 / τ
+constexpr float FRAC_1_SQRT_2   = 0.707106f;         // 1 / √2
+constexpr float FRAC_PI_2       = 1.57079f;          // π / 2
+constexpr float FRAC_PI_3       = 1.04719f;          // π / 3
+constexpr float FRAC_PI_4       = 0.785398f;         // π / 4
+constexpr float FRAC_PI_6       = 0.523598f;         // π / 6
+constexpr float FRAC_PI_8       = 0.392699f;         // π / 8
+constexpr float FRAC_TAU_2      = 3.14159f;          // τ / 2 = π
+constexpr float FRAC_TAU_3      = 2.09439f;          // τ / 3
+constexpr float FRAC_TAU_4      = 1.57079f;          // τ / 4
+constexpr float FRAC_TAU_6      = 1.04719f;          // τ / 6
+constexpr float FRAC_TAU_8      = 0.785398f;         // τ / 8
+constexpr float FRAC_TAU_12     = 0.523598f;         // τ / 12
+constexpr float LN_2            = 0.693147f;         // ln(2)
+constexpr float LN_10           = 2.30258f;          // ln(10)
+constexpr float LOG2_E          = 1.44269f;          // log2(e)
+constexpr float LOG10_E         = 0.434294f;         // log10(e)
+constexpr float LOG10_2         = 0.301029f;         // log10(2)
+constexpr float LOG2_10         = 3.32192f;          // log2(10)
+constexpr float PI              = 3.14159f;          // π
+constexpr float HALF_PI         = PI / 2.0f;         // π / 2
+constexpr float PI_6            = PI / 6.0f;         // π / 6
+constexpr float SQRT_2          = 1.41421f;          // √2
+constexpr float SQRT_3          = 1.73205f;          // √3
+constexpr float TWO_PI          = 6.28318f;          // τ (TAU)
+constexpr float TWO_PI_OVER_256 = TWO_PI / 256.0F;   // Here because the compiler shits itself when this it put into FixedFloat's template
+constexpr float DEG_TO_RAD     = 0.01745329252f;    // π / 180
 
-constexpr float COS_45 = SQRT_2 / 2.f; // cos(45deg)
+
+constexpr float COS_45         = SQRT_2 / 2.f;      // cos(45°)
 
 template<typename T>
-constexpr T sq(T x) { return x * x; }
+NOTSA_FORCEINLINE constexpr T sq(T x) { return x * x; }
 
 struct SpriteFileName {
     const char* name;
@@ -126,7 +130,7 @@ void InjectCommonHooks();
 void TransformPoint(RwV3d& point, const CSimpleTransform& placement, const RwV3d& vecPos);
 void TransformVectors(RwV3d* vecsOut, int32 numVectors, const CMatrix& matrix, const RwV3d* vecsin);
 void TransformVectors(RwV3d* vecsOut, int32 numVectors, const CSimpleTransform& transform, const RwV3d* vecsin);
-void TransformPoints(RwV3d* pointOut, int count, const RwMatrix& transformMatrix, RwV3d* pointIn);
+void TransformPoints(RwV3d* pointOut, int count, const CMatrix& transformMatrix, RwV3d* pointIn);
 
 // Check point is within 2D rectangle
 static bool IsPointInRect2D(const CVector2D& point, const CVector2D& min, const CVector2D& max) {
@@ -145,7 +149,7 @@ static bool IsPointInSphere(const CVector& point, const CVector& center, float r
 // Converts degrees to radians
 // keywords: 0.017453292 flt_8595EC
 constexpr float DegreesToRadians(float angleInDegrees) {
-    return angleInDegrees * PI / 180.0F;
+    return angleInDegrees * DEG_TO_RAD;
 }
 
 //! @notsa
@@ -202,6 +206,16 @@ T lerp(const T& from, const T& to, float t) {
     return static_cast<T>(to * t + from * (1.f - t));
 }
 
+template<>
+inline RwRGBA lerp<RwRGBA>(const RwRGBA& from, const RwRGBA& to, float t) {
+    return RwRGBA{
+        .red   = lerp(from.red, to.red, t),
+        .green = lerp(from.green, to.green, t),
+        .blue  = lerp(from.blue, to.blue, t),
+        .alpha = lerp(from.alpha, to.alpha, t),
+    };
+}
+
 constexpr float invLerp(float fMin, float fMax, float fVal) {
     return (fVal - fMin) / (fMax - fMin);
 }
@@ -246,16 +260,21 @@ bool EndsWith(const char* str, const char* with, bool caseSensitive = true);
 RpAtomic* RemoveRefsCB(RpAtomic* atomic, void* _IGNORED_ data);
 void RemoveRefsForAtomic(RpClump* clump);
 
-bool GraphicsLowQuality();
+bool GraphicsHighQuality();
 
 /**
  * Writes given raster to PNG file using RtPNGImageWrite
  */
 void WriteRaster(RwRaster* raster, const char* filename);
-bool CalcScreenCoors(const CVector& in, CVector* out, float* screenX, float* screenY);
-bool CalcScreenCoors(const CVector& in, CVector* out);
-bool DoesInfiniteLineTouchScreen(float baseX, float baseY, float deltaX, float deltaY);
-bool IsPointInsideLine(float fLineBaseX, float fLineBaseY, float fDeltaX, float fDeltaY, float fTestPointX, float fTestPointY, float fRadius);
+bool CalcScreenCoors(const CVector& in, CVector& out, float& screenX, float& screenY);
+bool CalcScreenCoors(const CVector& in, CVector& out);
+bool DoesInfiniteLineTouchScreen(CVector2D origin, CVector2D dir);
+bool IsPointInsideLine(
+    CVector2D origin,
+    CVector2D dir,
+    CVector2D pt,
+    float     radius
+);
 
 void LittleTest();
 
@@ -265,13 +284,19 @@ std::wstring UTF8ToUnicode(const std::string& str);
 std::string UnicodeToUTF8(const std::wstring& str);
 
 constexpr int32 TOTAL_TEMP_BUFFER_INDICES = 4096;
-constexpr int32 TOTAL_TEMP_BUFFER_VERTICES = 2048;
+constexpr int32 TOTAL_TEMP_BUFFER_3DVERTICES = 2048;
+constexpr int32 TOTAL_TEMP_BUFFER_2DVERTICES = 1024;
 constexpr int32 TOTAL_RADIOSITY_VERTEX_BUFFER = 1532;
 
 static inline int32 WindowsCharset = static_cast<int32>(GetACP());
 
+struct TempVertexBuffer {
+    RwIm3DVertex m_3d[TOTAL_TEMP_BUFFER_3DVERTICES]; // For Im3D rendering
+    RwIm2DVertex m_2d[TOTAL_TEMP_BUFFER_2DVERTICES]; // For Im2D rendering
+};
+
 static inline uint16& uiTempBufferIndicesStored = *(uint16*)0xC4B954;
 static inline uint16& uiTempBufferVerticesStored = *(uint16*)0xC4B950;
 static inline RxVertexIndex(&aTempBufferIndices)[TOTAL_TEMP_BUFFER_INDICES] = *(RxVertexIndex(*)[TOTAL_TEMP_BUFFER_INDICES])0xC4B958;
-static inline RxObjSpace3DVertex(&aTempBufferVertices)[TOTAL_TEMP_BUFFER_VERTICES] = *(RxObjSpace3DVertex(*)[TOTAL_TEMP_BUFFER_VERTICES])0xC4D958; // size 1024 - after this there are 2 more arrays like this, both sized 512
+static inline auto& TempBufferVertices = StaticRef<TempVertexBuffer>(0xC4D958);
 static inline RwD3D9Vertex(&aRadiosityVertexBuffer)[TOTAL_RADIOSITY_VERTEX_BUFFER] = *reinterpret_cast<RwD3D9Vertex(*)[TOTAL_RADIOSITY_VERTEX_BUFFER]>(0xC5F958);

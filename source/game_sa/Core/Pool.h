@@ -7,6 +7,7 @@
 #pragma once
 
 #include <execution>
+#include <Base.h>
 
 #define INVALID_POOL_SLOT (-1)
 
@@ -15,222 +16,265 @@
     JustIndex           Index
     Index               Id
     Ref                 Handle/Ref
+    Size                Capacity
 */
 
-union tPoolObjectFlags {
-    struct {
-        uint8 nId : 7;    // Mask: 0x7F
-        bool  bEmpty : 1; // Mask: 0x80
-    };
+template<class T, class S = T>
+class CPool {
+    using ReturnType  = T;               //!< Common base of all these objects, this is the value returned from/expected to all functions
+    using StorageType = byte[sizeof(S)]; //!< Memory for the widest object
 
 private:
-    uint8 nValue;
+    struct SlotState {
+        uint8 Ref : 7 { 0 };        //!< Incremented each time an object is allocated in this slot (Mask: 0x7F)
+        bool  IsEmpty : 1 { true }; //!< If this slot is allocated right now (Mask: 0x80)
+
+        auto ToInt() const { return std::bit_cast<uint8>(*this); }
+    };
+
+    VALIDATE_SIZE(SlotState, 1);
+
+private:
+    /*
+    * Debug fill bytes for compatibility with MSVC/C++ debug heap
+    * See
+    * \Program Files\Microsoft Visual Studio\VC98\CRT\SRC\DBGHEAP.C:
+    * static unsigned char _bNoMansLandFill = 0xFD;
+    *   // fill no-man's land with this
+    * static unsigned char _bDeadLandFill   = 0xDD;
+    *   // fill free objects with this
+    * static unsigned char _bCleanLandFill  = 0xCD;
+    *   // fill new objects with this
+    */
+    constexpr static auto NOMANSLAND_FILL = 0xFD; //!< Initial fill of the pool's storage (That is, no objects have ever used this space)
+    constexpr static auto DEADLAND_FILL   = 0xDD; //!< Delete'd objects are filled with this
+    constexpr static auto CLEANLAND_FILL  = 0xCD; //!< New'd objects are filled with this (Expect the constructor to overwrite most of this)
 
 public:
-    void Init() {
-        bEmpty = true;
-        nId = 0;
+    /*!
+    * @brief Default constructor, with no memory allocated
+    */
+    CPool() = default;
+
+    /*!
+    * @brief Initializes pool, owning memory
+    ****/
+    CPool(size_t capacity, const char* name) :
+        m_Storage{ new StorageType[capacity] },
+        m_SlotState{ new SlotState[capacity] },
+        m_Capacity{ capacity },
+        m_OwnsAllocations{ true }
+    {
+        assert(m_Storage);
+        assert(m_SlotState);
+
+        rng::uninitialized_fill(m_SlotState, m_SlotState + capacity, SlotState{});
+        DoFill(NOMANSLAND_FILL);
     }
 
-    uint8 IntValue() {
-        return nValue;
-    }
-};
+    /*!
+    * @brief Initialises a pool with pre-allocated memory (non-owning)
+    * @brief To be called one-time-only for statically allocated pools.
+    ****/
+    CPool(size_t capacity, void* storage, void* states) :
+        m_Storage{ static_cast<StorageType*>(storage) },
+        m_SlotState{ static_cast<SlotState*>(states) },
+        m_Capacity{ capacity },
+        m_OwnsAllocations{ false }
+    {
+        assert(m_Storage);
+        assert(m_SlotState);
 
-VALIDATE_SIZE(tPoolObjectFlags, 1);
-
-// `DontDebugCheckAlloc` is NOTSA, used to skip allocation fail checking, as some places actually handle it correctly.
-template <class A, class B = A, bool DontDebugCheckAlloc = false> class CPool {
-public:
-    // NOTSA typenames
-    using base_type = A;   // Common base of all these objects
-    using widest_type = B; // Type using the most memory (So each object takes this much memory basically)
-
-    B*                m_pObjects;
-    tPoolObjectFlags* m_byteMap;
-    int32             m_nSize;
-    int32             m_nFirstFree;
-    bool              m_bOwnsAllocations;
-    bool              m_bIsLocked; // Seemingly not used anywhere, only toggled on/off
-
-    // Default constructor for statically allocated pools
-    CPool() {
-        // Remember to call CPool::Init to fill in the fields!
-        m_pObjects = nullptr;
-        m_byteMap = nullptr;
-        m_nSize = 0;
-        m_bOwnsAllocations = false;
-    }
-
-    // Initializes pool
-    CPool(int32 size, const char* name) {
-        m_pObjects = static_cast<B*>(operator new(sizeof(B) * size));
-        assert(m_pObjects);
-
-        m_byteMap  = new tPoolObjectFlags[size]();
-        assert(m_byteMap);
-
-        m_nSize = size;
-        m_nFirstFree = -1;
-        m_bOwnsAllocations = true;
-        for (auto i = 0; i < size; ++i) {
-            m_byteMap[i].Init();
-        }
+        rng::uninitialized_fill(m_SlotState, m_SlotState + capacity, SlotState{});
+        DoFill(NOMANSLAND_FILL);
     }
 
     ~CPool() {
         Flush();
     }
 
-    // Initialises a pool with pre-allocated
-    // To be called one-time-only for statically allocated pools.
-    void Init(int32 size, void* objects, void* infos) {
-        assert(m_pObjects == nullptr); // Since we statically allocated the pools we do not deallocate.
-
-        m_pObjects = static_cast<B*>(objects);
-        m_byteMap  = static_cast<tPoolObjectFlags*>(infos);
-        m_nSize = size;
-        m_nFirstFree = -1;
-        m_bOwnsAllocations = false;
-        for (auto i = 0; i < size; ++i) {
-            m_byteMap[i].Init();
-        }
+    inline friend void swap(CPool<T, S>& a, CPool<T, S>& b) {
+        using std::swap;
+    
+        swap(a.m_Storage, b.m_Storage);
+        swap(a.m_SlotState, b.m_SlotState);
+        swap(a.m_Capacity, b.m_Capacity);
+        swap(a.m_FirstFreeSlot, b.m_FirstFreeSlot);
+        swap(a.m_OwnsAllocations, b.m_OwnsAllocations);
+        swap(a.m_DealWithNoMemory, b.m_DealWithNoMemory);
     }
 
-    // Shutdown pool
+    /* The `Init` function has been replaced by a constructor taking the same args */
+
+    /*!
+    * @brief Shut down pool, deallocate
+    */
     void Flush() {
-        if (m_bOwnsAllocations) {
-            delete[] m_pObjects;
-            delete[] m_byteMap;
+        DoFill(NOMANSLAND_FILL);
+        if (m_OwnsAllocations) {
+            delete[] std::exchange(m_Storage, nullptr);
+            delete[] std::exchange(m_SlotState, nullptr);
         }
-        m_pObjects = nullptr;
-        m_byteMap = nullptr;
-        m_nSize = 0;
-        m_nFirstFree = 0;
+        m_Capacity         = 0;
+        m_FirstFreeSlot    = -1;
+        m_OwnsAllocations  = false;
+        m_DealWithNoMemory = false;
     }
 
     // Clears pool
     void Clear() {
-        for (auto i = 0; i < m_nSize; i++)
-            m_byteMap[i].bEmpty = true;
+        for (auto i = 0; i < m_Capacity; i++) {
+            m_SlotState[i].IsEmpty = true;
+        }
+        DoFill(DEADLAND_FILL);
     }
 
     auto GetSize() {
-        return m_nSize;
+        return m_Capacity;
     }
 
-    // Returns if specified slot is free
+    /*!
+    * @brief Returns if specified slot is free
+    */
     // 0x404940
-    bool IsFreeSlotAtIndex(int32 idx) {
+    bool IsFreeSlotAtIndex(size_t idx) const {
         assert(IsIndexInBounds(idx));
-        return m_byteMap[idx].bEmpty;
+        return m_SlotState[idx].IsEmpty;
     }
 
-    // Returns slot index for this object
-    int32 GetIndex(const A* obj) {
+    /*!
+    * @brief Returns slot index for this object
+    */
+    auto GetIndex(const T* obj) const {
         assert(IsFromObjectArray(obj));
-        return reinterpret_cast<const B*>(obj) - m_pObjects;
+        return (StorageType*)(obj) - (StorageType*)(m_Storage);
     }
 
-    // Returns pointer to object by slot index
-    A* GetAt(int32 idx) {
+    /*!
+    * @brief Returns pointer to object by slot index
+    */
+    T* GetAt(size_t idx) {
         assert(IsIndexInBounds(idx));
-        return !IsFreeSlotAtIndex(idx) ? (A*)&m_pObjects[idx] : nullptr;
+        return !IsFreeSlotAtIndex(idx) ? (T*)&m_Storage[idx] : nullptr;
     }
 
-    // Marks slot as free / used (0x404970)
-    void SetFreeAt(int32 idx, bool bFree) {
+    /*!
+    * @brief Marks slot as free / used (0x404970)
+    */
+    void SetFreeAt(size_t idx, bool isFree) {
         assert(IsIndexInBounds(idx));
-        m_byteMap[idx].bEmpty = bFree;
+        m_SlotState[idx].IsEmpty = isFree;
     }
 
-    // Set new id for slot (0x54F9F0)
-    void SetIdAt(int32 idx, uint8 id) {
+    /*!
+    * @brief Set new id for slot (0x54F9F0)
+    */
+    void SetIdAt(size_t idx, uint8 id) {
         assert(IsIndexInBounds(idx));
-        m_byteMap[idx].nId = id;
+        m_SlotState[idx].Ref = id;
     }
 
-    // Get id for slot (0x552200)
-    uint8 GetIdAt(int32 idx) {
+    /*!
+    * @brief Get id for slot (0x552200)
+    */
+    uint8 GetIdAt(size_t idx) {
         assert(IsIndexInBounds(idx));
-        return m_byteMap[idx].nId;
+        return m_SlotState[idx].Ref;
     }
 
-    // Allocates object
-    A* New() {
+    /*!
+    * @brief Allocates object
+    */
+    T* New() {
         bool bReachedTop = false;
         do {
-            if (++m_nFirstFree >= m_nSize) {
+            if (++m_FirstFreeSlot >= m_Capacity) {
                 if (bReachedTop) {
-                    m_nFirstFree = -1;
-                    if constexpr (DontDebugCheckAlloc) {
-                        DEV_LOG("Allocataion failed!"); // Code can handle alloc failures
+                    m_FirstFreeSlot = -1;
+                    if (CanDealWithNoMemory()) {
+                        DEV_LOG("Allocation failed!");
                     } else {
-                        NOTSA_DEBUG_BREAK(); // Code can't handle alloc failures, so break
+                        NOTSA_DEBUG_BREAK();
                     }
                     return nullptr;
                 }
-                bReachedTop = true;
-                m_nFirstFree = 0;
+                bReachedTop     = true;
+                m_FirstFreeSlot = 0;
             }
-        } while (!m_byteMap[m_nFirstFree].bEmpty);
+        } while (!m_SlotState[m_FirstFreeSlot].IsEmpty);
 
-        m_byteMap[m_nFirstFree].bEmpty = false;
-        ++m_byteMap[m_nFirstFree].nId;
+        assert(m_FirstFreeSlot >= 0);
 
-        return &m_pObjects[m_nFirstFree];
+        m_SlotState[m_FirstFreeSlot].IsEmpty = false;
+        ++m_SlotState[m_FirstFreeSlot].Ref;
+
+        S* ptr = reinterpret_cast<S*>(&m_Storage[m_FirstFreeSlot]);
+        DoFill(CLEANLAND_FILL, ptr);
+        return ptr;
     }
 
-    // Allocates object at a specific index from a SCM handle (ref) (0x59F610)
-    void CreateAtRef(int32 ref) {
-        const auto idx = GetIndexFromRef(ref); // GetIndexFromRef asserts if idx out of range
-        m_byteMap[idx].bEmpty = false;
-        m_byteMap[idx].nId = ref & 0x7F;
-        m_nFirstFree = 0;
-        while (!m_byteMap[m_nFirstFree].bEmpty) // Find next free
-            ++m_nFirstFree;
-    }
-
-    // 0x5A1C00
     /*!
-    * @brief Allocate object at ref
+    * @brief Allocates object at a specific index from a SCM handle (ref) (0x59F610)
+    */
+    void CreateAtRef(int32 ref) {
+        const auto idx          = GetIndexFromRef(ref); // GetIndexFromRef asserts if idx out of range
+        m_SlotState[idx].IsEmpty = false;
+        m_SlotState[idx].Ref    = ref & 0x7F;
+        m_FirstFreeSlot         = 0;
+        while (!m_SlotState[m_FirstFreeSlot].IsEmpty) { // Find next free
+            ++m_FirstFreeSlot;
+        }
+    }
+
+    /*!
+    * @brief Allocate object at ref (0x5A1C00)
     * @returns A ptr to the object at ref
     */
-    A* NewAt(int32 ref) {
-        // TODO/NOTE: Maybe check if where we're allocating at is free?
-        A* result = &m_pObjects[GetIndexFromRef(ref)]; // GetIndexFromRef asserts if idx out of range
+    T* NewAt(int32 ref) {
+        const auto idx = GetIndexFromRef(ref);
+        assert(IsFreeSlotAtIndex(idx));
+        S* ptr = reinterpret_cast<S*>(&m_Storage[idx]);
         CreateAtRef(ref);
-        return result;
+        DoFill(CLEANLAND_FILL, ptr);
+        return static_cast<T*>(ptr);
     }
 
-    // Deallocates object
-    void Delete(A* obj) {
+    /*!
+    * @brief Deallocates object
+    */
+    void Delete(T* obj) {
 #ifdef FIX_BUGS // C++ says that `delete nullptr` is well defined, and should do nothing.
         if (!obj) {
             return;
         }
 #endif
-        int32 index = GetIndex(obj);
-        m_byteMap[index].bEmpty = true;
-        if (index < m_nFirstFree)
-            m_nFirstFree = index;
+        int32 index               = GetIndex(obj);
+        m_SlotState[index].IsEmpty = true;
+        if (index < m_FirstFreeSlot) {
+            m_FirstFreeSlot = index;
+        }
+        DoFill(DEADLAND_FILL, (S*)(obj));
     }
 
-    // Returns SCM handle (ref) for object (0x424160)
-    int32 GetRef(const A* obj) {
+    /*!
+    * @brief Returns SCM handle (ref) for object (0x424160)
+    */
+    int32 GetRef(const T* obj) {
         const auto idx = GetIndex(obj);
-        return (idx << 8) + m_byteMap[idx].IntValue();
+        return (idx << 8) | m_SlotState[idx].ToInt();
     }
 
-    // Returns pointer to object by SCM handle (ref)
-    A* GetAtRef(int32 ref) {
+    /*!
+    * @brief Returns pointer to object by SCM handle (ref)
+    */
+    T* GetAtRef(int32 ref) {
         int32 idx = ref >> 8; // It is possible the ref is invalid here, thats why we check for the idx is valid below (And also why GetIndexFromRef isn't used, it would assert)
-        return IsIndexInBounds(idx) && m_byteMap[idx].IntValue() == (ref & 0xFF)
-            ? reinterpret_cast<A*>(&m_pObjects[idx])
+        return IsIndexInBounds(idx) && m_SlotState[idx].ToInt() == (ref & 0xFF)
+            ? reinterpret_cast<T*>(&m_Storage[idx])
             : nullptr;
     }
 
-    A* GetAtRefNoChecks(int32 ref) {
+    T* GetAtRefNoChecks(int32 ref) {
         return GetAt(GetIndexFromRef(ref));
     }
 
@@ -239,69 +283,103 @@ public:
     * @brief Calculate the number of used slots. CAUTION: Slow, especially for large pools.
     */
     size_t GetNoOfUsedSpaces() {
-        return (size_t)std::count_if(m_byteMap, m_byteMap + m_nSize, [](auto&& v) { return !v.bEmpty; });
+        return (size_t)std::count_if(m_SlotState, m_SlotState + m_Capacity, [](auto&& v) {
+            return !v.IsEmpty;
+        });
     }
 
     auto GetNoOfFreeSpaces() {
-        return m_nSize - GetNoOfUsedSpaces();
+        return m_Capacity - GetNoOfUsedSpaces();
     }
 
     // 0x54F690
     auto GetObjectSize() {
-        return sizeof(B);
+        return sizeof(S);
     }
 
     // 0x5A1CD0
-    bool IsObjectValid(const A *obj) {
+    bool IsObjectValid(const T* obj) const {
         return IsFromObjectArray(obj) && !IsFreeSlotAtIndex(GetIndex(obj));
     }
 
     // Helper so we don't write memcpy manually
-    void CopyItem(A* dest, A* src) {
-        *reinterpret_cast<B*>(dest) = *reinterpret_cast<B*>(src);
+    void CopyItem(T* dest, T* src) {
+        *reinterpret_cast<S*>(dest) = *reinterpret_cast<S*>(src);
     }
 
     //
     // NOTSA section
     //
 
-    // Check if index is in array bounds
-    [[nodiscard]] bool IsIndexInBounds(int32 idx) const {
-        return idx >= 0 && idx < m_nSize;
+    /*!
+    * @brief Check if index is in array bounds
+    */
+    [[nodiscard]] bool IsIndexInBounds(size_t idx) const {
+        return idx >= 0 && idx < m_Capacity;
     }
 
-    // Check if object pointer is inside object array (e.g.: It's index is in the bounds of the array)
-    bool IsFromObjectArray(const A* obj) const {
-        return obj >= m_pObjects && obj < m_pObjects + m_nSize;
+    /*!
+    * @brief Check if object pointer is inside object array (e.g.: It's index is in the bounds of the array)
+    */
+    bool IsFromObjectArray(const T* obj) const {
+        return m_Storage <= (StorageType*)(obj) && (StorageType*)(obj) < m_Storage + m_Capacity;
     }
 
-    // Get slot index from ref
+    /*!
+    * @brief Get slot index from ref
+    */
     int32 GetIndexFromRef(int32 ref) {
         const auto idx = ref >> 8;
         assert(IsIndexInBounds(idx));
         return idx;
     }
 
+    // notsa
+    void SetDealWithNoMemory(bool enabled) { m_DealWithNoMemory = enabled; }
+    bool CanDealWithNoMemory() const { return m_DealWithNoMemory; }
+
     // NOTSA - Get all valid objects - Useful for iteration
-    template<typename T = A&>
+    template<typename R = T&>
     auto GetAllValid() {
-        using namespace std;
-        return span{ m_pObjects, (size_t)m_nSize }
-            | rngv::filter([this](auto&& obj) { return !IsFreeSlotAtIndex(GetIndex(&obj)); }) // Filter only slots in use
-            | rngv::transform([](auto&& obj) -> T {
-                if constexpr (std::is_pointer_v<T>) { // For pointers we also do an address-of
-                    return static_cast<T>(&obj);
+        return std::span{ reinterpret_cast<S*>(m_Storage), (size_t)(m_Capacity) }
+            | rngv::filter([this](auto&& obj) {
+                return !IsFreeSlotAtIndex(GetIndex(&obj));
+            }) // Filter only slots in use
+            | rngv::transform([](auto&& obj) -> R {
+                if constexpr (std::is_pointer_v<R>) { // For pointers we also do an address-of
+                    return static_cast<R>(&obj);
                 } else {
-                    return static_cast<T>(obj);
+                    return static_cast<R>(obj);
                 }
             });
     }
 
-    // Similar to above, but gives back a pair [index, object]
-    template<typename T = A>
+    /*!
+    * @brief Similar to above, but gives back a pair [index, object]
+    */
+    template<typename R = T>
     auto GetAllValidWithIndex() {
-        return GetAllValid<T&>()
-             | rng::views::transform([this](auto&& obj) { return std::make_pair(GetIndex(&obj), std::ref(obj)); });
+        return GetAllValid<R&>()
+            | rng::views::transform([this](auto&& obj) {
+                   return std::make_pair(GetIndex(&obj), std::ref(obj));
+               });
     }
+
+protected:
+    void DoFill(byte fill, void* at = nullptr) {
+        if (at) {
+            memset(at, fill, sizeof(S)); /* One object */
+        } else {
+            memset(m_Storage, fill, sizeof(S) * m_Capacity); /* Whole storage */
+        }
+    }
+
+private:
+    StorageType* m_Storage{};           //!< Storage
+    SlotState*   m_SlotState{};         //!< States of each slot
+    size_t       m_Capacity{};          //!< Max no. of allocated objects (AKA Size)
+    int32        m_FirstFreeSlot{ -1 }; //!< First free slot in the storagea
+    bool         m_OwnsAllocations{};   //!< If the allocated arrays (`m_Storage` and `m_SlotState` is owned by, if so, we need to free them)
+    bool         m_DealWithNoMemory{};  //!< If the caller is expected to be able to handle out-of-memory situations (Used for debugging) (AKA m_bIsLocked)
 };
 VALIDATE_SIZE(CPool<int32>, 0x14);

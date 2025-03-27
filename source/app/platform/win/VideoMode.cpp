@@ -33,24 +33,25 @@ char** GetVideoModeList() {
     gVideoModes = (char**)CMemoryMgr::Calloc(numVidModes, sizeof(char*));
 
     for (auto modeId = 0u; modeId < numVidModes; modeId++) {
-        const auto videoMode = RwEngineGetVideoModeInfo(modeId);
+        RwVideoMode vmi;
+        RwEngineGetVideoModeInfo(&vmi, modeId);
 
         gVideoModes[modeId] = nullptr;
-        if ((videoMode.flags & rwVIDEOMODEEXCLUSIVE) == 0) {
+        if ((vmi.flags & rwVIDEOMODEEXCLUSIVE) == 0) {
 #ifdef VIDEO_MODE_LOGS
             DEV_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: video mode not exclusive]", modeId, videoMode.width, videoMode.height, videoMode.depth);
 #endif
             continue;
         }
 
-        if (videoMode.width < APP_MINIMAL_WIDTH || videoMode.height < APP_MINIMAL_HEIGHT) {
+        if (vmi.width < APP_MINIMAL_WIDTH || vmi.height < APP_MINIMAL_HEIGHT) {
 #ifdef VIDEO_MODE_LOGS
             DEV_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: size]", modeId, videoMode.width, videoMode.height, videoMode.depth);
 #endif
             continue;
         }
 
-        float fRatio = float(videoMode.height) / float(videoMode.width);
+        float fRatio = float(vmi.height) / float(vmi.width);
         if (!IS_FULLSCREEN_RATIO(fRatio) && !IS_WIDESCREEN_RATIO(fRatio)) {
 #ifdef VIDEO_MODE_LOGS
             DEV_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: ratio {:0.2f}]", modeId, videoMode.width, videoMode.height, videoMode.depth, fRatio);
@@ -58,14 +59,14 @@ char** GetVideoModeList() {
             continue;
         }
 
-        if (videoMode.width != APP_MINIMAL_WIDTH || videoMode.height != APP_MINIMAL_HEIGHT) {
-            if (s_OSStatus.VRAM.Avail - videoMode.height * videoMode.width * videoMode.depth / 8 <= GAME_FREE_VIDEO_MEM_REQUIRED) {
+        if (vmi.width != APP_MINIMAL_WIDTH || vmi.height != APP_MINIMAL_HEIGHT) {
+            if (s_OSStatus.VRAM.Avail - vmi.height * vmi.width * vmi.depth / 8 <= GAME_FREE_VIDEO_MEM_REQUIRED) {
                 continue;
             }
         }
 
         gVideoModes[modeId] = (char*)CMemoryMgr::Calloc(100, sizeof(char));                                  // 100 chars
-        sprintf_s(gVideoModes[modeId], 100 * sizeof(char), "%lu X %lu X %lu", videoMode.width, videoMode.height, videoMode.depth); // rwsprintf
+        sprintf_s(gVideoModes[modeId], 100 * sizeof(char), "%lu X %lu X %lu", vmi.width, vmi.height, vmi.depth); // rwsprintf
 
 #ifdef VIDEO_MODE_LOGS
         DEV_LOG("Available video mode id={:02d}: {}", modeId, gVideoModes[modeId]);
@@ -104,5 +105,7 @@ void SetVideoMode(int32 mode) {
 
 // 0x745CA0
 bool IsVideoModeExclusive() { // AKA isCurrentModeFullscreen
-    return RwEngineGetVideoModeInfo(gCurrentVideoMode).flags & rwVIDEOMODEEXCLUSIVE;
+    RwVideoMode vmi;
+    RwEngineGetVideoModeInfo(&vmi, gCurrentVideoMode);
+    return vmi.flags & rwVIDEOMODEEXCLUSIVE;
 }

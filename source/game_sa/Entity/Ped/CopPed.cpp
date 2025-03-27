@@ -269,7 +269,7 @@ void CCopPed::ProcessControl() {
         return;
 
     if (m_pTargetedObject)
-        Say(220);
+        Say(CTX_GLOBAL_TARGET);
 
     if (!field_79D)
         return;
