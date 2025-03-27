@@ -159,7 +159,7 @@ bool CTaskSimpleFight::ProcessPed(CPed * ped) {
                 const auto tstep = CTimer::GetTimeStep();
 
                 if (ped->GetActiveWeapon().GetType() == WEAPON_CHAINSAW) {
-                    ped->m_weaponAudio.AddAudioEvent(AE_WEAPON_CHAINSAW_ACTIVE);
+                    ped->GetWeaponAE().AddAudioEvent(AE_WEAPON_CHAINSAW_ACTIVE);
                 }
 
                 if (m_ComboSet > eMeleeCombo::END) {
@@ -242,7 +242,7 @@ eMeleeCombo CTaskSimpleFight::GetComboType(const char* comboName) {
 
 // 0x61DAE0
 void CTaskSimpleFight::FinishMeleeAnimCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = CTask::Cast<CTaskSimpleFight>(static_cast<CTask*>(data));
+    const auto self = notsa::cast<CTaskSimpleFight>(static_cast<CTask*>(data));
 
     assert(anim && self);
 
@@ -641,9 +641,9 @@ void CTaskSimpleFight::FightHitObj(CPed* attacker, CObject* victim, CVector& hit
     );
 
     if (attacker->GetActiveWeapon().GetType() == WEAPON_CHAINSAW) {
-        attacker->m_weaponAudio.AddAudioEvent(AE_WEAPON_CHAINSAW_CUTTING);
+        attacker->GetWeaponAE().AddAudioEvent(AE_WEAPON_CHAINSAW_CUTTING);
     } 
-    attacker->m_pedAudio.AddAudioEvent(
+    attacker->GetAE().AddAudioEvent(
         GetCurrentComboData().HitSound[+m_CurrentMove],
         0.f,
         1.f,
@@ -674,7 +674,7 @@ void CTaskSimpleFight::FightHitCar(CPed* attacker, CVehicle* victim, CVector& hi
     if (attackerWeaponType == WEAPON_CHAINSAW) { // 0x61D112
         g_fx.AddSparks(
             hitPt,
-            CVector{*RwMatrixGetAt(&attacker->GetBoneMatrix(BONE_R_HAND))},
+            CVector{*RwMatrixGetAt(attacker->GetBoneMatrix(BONE_R_HAND))},
             5.f,
             32,
             CVector{0.f, 0.f, 0.f},
@@ -704,9 +704,9 @@ void CTaskSimpleFight::FightHitCar(CPed* attacker, CVehicle* victim, CVector& hi
     }
 
     if (attacker->GetActiveWeapon().GetType() == WEAPON_CHAINSAW) {
-        attacker->m_weaponAudio.AddAudioEvent(AE_WEAPON_CHAINSAW_CUTTING);
+        attacker->GetWeaponAE().AddAudioEvent(AE_WEAPON_CHAINSAW_CUTTING);
     } 
-    attacker->m_pedAudio.AddAudioEvent(
+    attacker->GetAE().AddAudioEvent(
         GetCurrentComboData().HitSound[+m_CurrentMove],
         0.f,
         1.f,
@@ -727,7 +727,7 @@ CPed* CTaskSimpleFight::FightHitPed(CPed * attacker, CPed * victim, CVector & hi
     auto* const combo = &GetCurrentComboData();
 
     const auto AddAudioEventForMove = [&](int32 delay) {
-        attacker->m_pedAudio.AddAudioEvent(combo->AltHitSound[+m_CurrentMove], -9.f, 1.f, victim, 0, 0, delay);
+        attacker->GetAE().AddAudioEvent(combo->AltHitSound[+m_CurrentMove], -9.f, 1.f, victim, 0, 0, delay);
     };
 
     // 0x61CC04
@@ -753,7 +753,7 @@ CPed* CTaskSimpleFight::FightHitPed(CPed * attacker, CPed * victim, CVector & hi
     );
 
     if (atkrWeaponType == WEAPON_CHAINSAW) { // 0x61CD5C
-        attacker->m_weaponAudio.AddAudioEvent(AE_WEAPON_CHAINSAW_CUTTING);
+        attacker->GetWeaponAE().AddAudioEvent(AE_WEAPON_CHAINSAW_CUTTING);
     }
 
     if (victimHitSide == 0 && (m_ComboSet != eMeleeCombo::UNARMED_2 || m_CurrentMove > eMeleeMove::ATTACK3)) {
@@ -771,7 +771,7 @@ CPed* CTaskSimpleFight::FightHitPed(CPed * attacker, CPed * victim, CVector & hi
     }
 
     if (attacker->IsPlayer()) { // 0x61CEA6
-        attacker->Say(89);
+        attacker->Say(CTX_GLOBAL_FIGHT);
     }
 
     GetEventGlobalGroup()->Add(CEventSoundQuiet{attacker, 55.f, (uint32)-1, {0.f, 0.f, 0.f}}); // 0x61CEEE

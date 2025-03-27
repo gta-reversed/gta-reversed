@@ -213,7 +213,7 @@ private:
     uint16                 m_IdleCounter{0};
     int8                   m_ContinueStrike{0};
     int8                   m_ChainCounter{0};
-    CEntity::Ref           m_Target{nullptr};
+    notsa::EntityRef<>     m_Target{ nullptr };
     CAnimBlendAssociation* m_Anim{nullptr};
     CAnimBlendAssociation* m_IdleAnim{nullptr};
     eMeleeComboS8          m_ComboSet{eMeleeCombo::IDLE};
