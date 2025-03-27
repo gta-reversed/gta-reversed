@@ -23,6 +23,6 @@ CTask* CTaskComplexAttractorPartnerWait::ControlSubTask(CPed* ped) {
 CTask* CTaskComplexAttractorPartnerWait::CreateFirstSubTask(CPed* ped) {
     auto sequenceIndex = byteC ? m_Pair->dword4 : m_Pair->dword14;
     auto task = new CTaskComplexUseSequence(sequenceIndex);
-    ++CTaskSequences::ms_taskSequence[sequenceIndex].m_nReferenceCount;
+    ++CTaskSequences::ms_taskSequence[sequenceIndex].m_RefCnt;
     return task;
 }

@@ -150,7 +150,7 @@ bool CDarkel::ThisVehicleShouldBeKilledForFrenzy(const CVehicle& vehicle) {
 }
 
 // 0x43D3B0
-void CDarkel::StartFrenzy(eWeaponType weaponType, int32 timeLimit, uint16 killsNeeded, int32 modelToKill, const char* startMessage, int32 modelToKill2, int32 modelToKill3, int32 modelToKill4, bool standardSoundAndMessages, bool needHeadShot) {
+void CDarkel::StartFrenzy(eWeaponType weaponType, int32 timeLimit, uint16 killsNeeded, int32 modelToKill, const GxtChar* startMessage, int32 modelToKill2, int32 modelToKill3, int32 modelToKill4, bool standardSoundAndMessages, bool needHeadShot) {
     CGameLogic::ClearSkip(false);
     const eWeaponType weapon = (WeaponType != WEAPON_UZI_DRIVEBY) ? weaponType : WEAPON_MICRO_UZI;
 
@@ -180,12 +180,12 @@ void CDarkel::StartFrenzy(eWeaponType weaponType, int32 timeLimit, uint16 killsN
 
     auto playerPed = FindPlayerPed();
     if (weapon < WEAPON_LAST_WEAPON) {
-        InterruptedWeaponTypeSelected = playerPed->GetActiveWeapon().m_nType;
+        InterruptedWeaponTypeSelected = playerPed->GetActiveWeapon().m_Type;
         playerPed->RemoveWeaponAnims(InterruptedWeaponTypeSelected, -1000.0f);
 
         const auto frenzyWeaponSlot = CWeaponInfo::GetWeaponInfo(weapon)->m_nSlot;
-        InterruptedWeaponType = playerPed->GetWeaponInSlot(frenzyWeaponSlot).m_nType;
-        AmmoInterruptedWeapon = playerPed->GetWeaponInSlot(frenzyWeaponSlot).m_nTotalAmmo;
+        InterruptedWeaponType = playerPed->GetWeaponInSlot(frenzyWeaponSlot).m_Type;
+        AmmoInterruptedWeapon = playerPed->GetWeaponInSlot(frenzyWeaponSlot).m_TotalAmmo;
 
         if (InterruptedWeaponType != WEAPON_UNARMED) {
             const auto weaponInfo = CWeaponInfo::GetWeaponInfo(InterruptedWeaponType);
@@ -204,10 +204,10 @@ void CDarkel::StartFrenzy(eWeaponType weaponType, int32 timeLimit, uint16 killsN
             auto chosenWeapon = playerPed->m_pPlayerData->m_nChosenWeapon;
             playerPed->SetCurrentWeapon(chosenWeapon);
 
-            if (auto& activeWeapon = playerPed->GetActiveWeapon(); activeWeapon.m_nTotalAmmo >= activeWeapon.GetWeaponInfo().m_nAmmoClip) {
-                activeWeapon.m_nAmmoInClip = activeWeapon.GetWeaponInfo().m_nAmmoClip;
+            if (auto& activeWeapon = playerPed->GetActiveWeapon(); activeWeapon.m_TotalAmmo >= activeWeapon.GetWeaponInfo().m_nAmmoClip) {
+                activeWeapon.m_AmmoInClip = activeWeapon.GetWeaponInfo().m_nAmmoClip;
             } else {
-                activeWeapon.m_nAmmoInClip = activeWeapon.m_nTotalAmmo;
+                activeWeapon.m_AmmoInClip = activeWeapon.m_TotalAmmo;
             }
 
             playerPed->ClearWeaponTarget();
@@ -249,10 +249,10 @@ void CDarkel::DealWithWeaponChangeAtEndOfFrenzy() {
         const auto weaponInfo = CWeaponInfo::GetWeaponInfo(weapon);
         playerPed->RemoveWeaponModel(playerPed->GetWeaponInSlot(weaponInfo->m_nSlot).GetWeaponInfo().m_nModelId1);
 
-        playerPed->GetWeaponInSlot(weaponInfo->m_nSlot).m_nType = WEAPON_UNARMED;
-        playerPed->GetWeaponInSlot(weaponInfo->m_nSlot).m_nTotalAmmo = 0;
-        playerPed->GetWeaponInSlot(weaponInfo->m_nSlot).m_nAmmoInClip = 0;
-        playerPed->GetWeaponInSlot(weaponInfo->m_nSlot).m_nState = WEAPONSTATE_READY;
+        playerPed->GetWeaponInSlot(weaponInfo->m_nSlot).m_Type = WEAPON_UNARMED;
+        playerPed->GetWeaponInSlot(weaponInfo->m_nSlot).m_TotalAmmo = 0;
+        playerPed->GetWeaponInSlot(weaponInfo->m_nSlot).m_AmmoInClip = 0;
+        playerPed->GetWeaponInSlot(weaponInfo->m_nSlot).m_State = WEAPONSTATE_READY;
         playerPed->RemoveWeaponAnims(weapon, -1000.0f);
 
         if (auto mi = CModelInfo::GetModelInfo(weaponInfo->m_nModelId1); mi->m_nRefCount > 0) {
@@ -265,7 +265,7 @@ void CDarkel::DealWithWeaponChangeAtEndOfFrenzy() {
         playerPed->RemoveWeaponModel(playerPed->GetActiveWeapon().GetWeaponInfo().m_nModelId1);
 
         auto& chosenWeaponSlot = playerPed->m_pPlayerData->m_nChosenWeapon;
-        if (playerPed->GetWeaponInSlot(eWeaponSlot::SMG).m_nType != WEAPON_UNARMED) {
+        if (playerPed->GetWeaponInSlot(eWeaponSlot::SMG).m_Type != WEAPON_UNARMED) {
             chosenWeaponSlot = (uint8)eWeaponSlot::SMG;
         } else {
             chosenWeaponSlot = (uint8)eWeaponSlot::UNARMED;

@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexGoToAttractor : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGoToAttractor : public CTaskComplex {
 public:
     CPedAttractor* m_Attractor;
     CVector        m_vecAttrPosn;
@@ -17,9 +17,9 @@ public:
     CTaskComplexGoToAttractor(CPedAttractor* attractor, CVector const& pos, float heading, float attrTime, int32 queueNumber, int32 a7);
     ~CTaskComplexGoToAttractor() override = default; // 0x66B6A0
 
-    eTaskType GetTaskType() override { return Type;  }
-    CTask* Clone() override { return new CTaskComplexGoToAttractor(m_Attractor, m_vecAttrPosn, m_fAttrHeading, m_fAttrTime, m_nQueueNumber, field_28); } // 0x66D130
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type;  }
+    CTask* Clone() const override { return new CTaskComplexGoToAttractor(m_Attractor, m_vecAttrPosn, m_fAttrHeading, m_fAttrTime, m_nQueueNumber, field_28); } // 0x66D130
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;

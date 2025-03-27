@@ -3,7 +3,7 @@
 #include "TaskSimple.h"
 class CAnimBlendAssociation;
 
-class CTaskSimpleFall : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleFall : public CTaskSimple {
 public:
     bool                   m_bIsFinished;
     AnimationId            m_nAnimId;
@@ -20,13 +20,11 @@ public:
     CTaskSimpleFall(AnimationId nAnimId, AssocGroupId nAnimGroup, int32 nDownTime);
     ~CTaskSimpleFall() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskSimpleFall(m_nAnimId, m_nAnimGroup, m_nTotalDownTime); }
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskSimpleFall(m_nAnimId, m_nAnimGroup, m_nTotalDownTime); }
     bool ProcessPed(CPed* ped) override;
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
 
-    bool ProcessPed_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 
     bool StartAnim(CPed* ped);
     void ProcessFall(CPed* ped);

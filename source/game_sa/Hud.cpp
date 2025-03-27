@@ -39,7 +39,7 @@ void CHud::InjectHooks() {
     RH_ScopedInstall(DrawAreaName, 0x58AA50);
     RH_ScopedInstall(DrawBustedWastedMessage, 0x58CA50);
     RH_ScopedInstall(DrawCrossHairs, 0x58E020, { .reversed = false }); // -
-    RH_ScopedInstall(DrawFadeState, 0x58D580, { .reversed = false });  // untested
+    RH_ScopedInstall(DrawFadeState, 0x58D580);
     RH_ScopedInstall(DrawHelpText, 0x58B6E0, { .reversed = false });
     RH_ScopedInstall(DrawMissionTimers, 0x58B180, { .reversed = false });
     RH_ScopedInstall(DrawMissionTitle, 0x58D240);
@@ -172,9 +172,9 @@ bool CHud::HelpMessageDisplayed() {
 }
 
 // 0x588F60
-void CHud::SetMessage(const char* message) {
+void CHud::SetMessage(const GxtChar* message) {
     if (message) {
-        strncpy_s(m_Message, message, sizeof(m_Message));
+        strncpy_s((char*)m_Message, sizeof(m_Message), AsciiFromGxtChar(message), sizeof(m_Message));
     } else {
         m_Message[0] = '\0';
     }
@@ -182,20 +182,20 @@ void CHud::SetMessage(const char* message) {
 
 // little bit different from OG
 // 0x588FC0
-void CHud::SetBigMessage(char* message, eMessageStyle style) {
+void CHud::SetBigMessage(GxtChar* message, eMessageStyle style) {
     if (BigMessageX[style] != 0.0f) {
         return;
     }
 
-    strncpy_s(m_BigMessage[style], message, sizeof(m_BigMessage[style]));
+    strncpy_s((char*)m_BigMessage[style], sizeof(m_BigMessage[style]), AsciiFromGxtChar(message), sizeof(m_BigMessage[style]));
 
     switch (style) {
     case STYLE_WHITE_MIDDLE_SMALLER: {
-        if (strcmp(message, LastBigMessage[STYLE_WHITE_MIDDLE_SMALLER]) != 0) {
+        if (strcmp(AsciiFromGxtChar(message), AsciiFromGxtChar(LastBigMessage[STYLE_WHITE_MIDDLE_SMALLER])) != 0) {
             OddJob2OffTimer = 0.0f;
             OddJob2On = 0;
         }
-        strncpy_s(LastBigMessage[style], message, sizeof(LastBigMessage[style]));
+        strncpy_s((char*)LastBigMessage[style], sizeof(LastBigMessage[style]), AsciiFromGxtChar(message), sizeof(LastBigMessage[style]));
         break;
     }
     default: {
@@ -205,7 +205,7 @@ void CHud::SetBigMessage(char* message, eMessageStyle style) {
 }
 
 // 0x588BE0
-void CHud::SetHelpMessage(const char* text, bool quickMessage, bool permanent, bool addToBrief) {
+void CHud::SetHelpMessage(const GxtChar* text, bool quickMessage, bool permanent, bool addToBrief) {
     if (m_BigMessage[STYLE_MIDDLE_SMALLER_HIGHER][0] || CGarages::MessageIDString[0] || CReplay::Mode == MODE_PLAYBACK || CCutsceneMgr::IsRunning()) {
         return;
     }
@@ -214,7 +214,7 @@ void CHud::SetHelpMessage(const char* text, bool quickMessage, bool permanent, b
     std::ranges::fill(m_pLastHelpMessage, '\0');
     std::ranges::fill(m_pHelpMessage, '\0');
 
-    CMessages::StringCopy(m_pHelpMessage, const_cast<char*>(text), sizeof(m_pHelpMessage));
+    CMessages::StringCopy(m_pHelpMessage, text, sizeof(m_pHelpMessage));
     CMessages::InsertPlayerControlKeysInString(m_pHelpMessage);
     if (m_nHelpMessageState && CMessages::StringCompare(m_pHelpMessage, m_pHelpMessageToPrint, sizeof(m_pHelpMessage)))
         return;
@@ -234,7 +234,7 @@ void CHud::SetHelpMessage(const char* text, bool quickMessage, bool permanent, b
     }
 
     if (addToBrief)
-        CMessages::AddToPreviousBriefArray(const_cast<char*>(text));
+        CMessages::AddToPreviousBriefArray(text);
 
     m_bHelpMessagePermanent = permanent;
     m_bHelpMessageQuick = quickMessage;
@@ -268,13 +268,13 @@ void CHud::SetHelpMessageStatUpdate(eStatUpdateState state, uint16 statId, float
 }
 
 // 0x588E30
-void CHud::SetHelpMessageWithNumber(const char* text, int32 number, bool quickMessage, bool permanent) {
+void CHud::SetHelpMessageWithNumber(const GxtChar* text, int32 number, bool quickMessage, bool permanent) {
     if (m_BigMessage[STYLE_MIDDLE_SMALLER_HIGHER][0] || CGarages::MessageIDString[0] || CReplay::Mode == MODE_PLAYBACK || CCutsceneMgr::IsCutsceneProcessing()) {
         return;
     }
 
-    char str[400];
-    CMessages::InsertNumberInString(const_cast<char*>(text), number, -1, -1, -1, -1, -1, str);
+    GxtChar str[400];
+    CMessages::InsertNumberInString(text, number, -1, -1, -1, -1, -1, str);
     CMessages::GetStringLength(str);
     CMessages::StringCopy(m_pHelpMessage, str, sizeof(m_pHelpMessage));
     CMessages::InsertPlayerControlKeysInString(m_pHelpMessage);
@@ -296,12 +296,12 @@ void CHud::SetHelpMessageWithNumber(const char* text, int32 number, bool quickMe
 }
 
 // 0x588F50
-void CHud::SetVehicleName(const char* name) {
+void CHud::SetVehicleName(const GxtChar* name) {
     m_pVehicleName = name;
 }
 
 // 0x588BB0
-void CHud::SetZoneName(const char* name, bool displayImmediately) {
+void CHud::SetZoneName(const GxtChar* name, bool displayImmediately) {
     if (displayImmediately) {
         m_pZoneName = name;
         return;
@@ -645,13 +645,13 @@ void CHud::DrawCrossHairs() {
     }
 
     CTaskSimpleUseGun* localTakUseGun = player->GetIntelligence()->GetTaskUseGun();
-    if (!player->m_pTargetedObject && !player->bIsRestoringLook && (!localTakUseGun || !localTakUseGun->m_bSkipAim)) {
+    if (!player->m_pTargetedObject && !player->bIsRestoringLook && (!localTakUseGun || !localTakUseGun->m_SkipAim)) {
         if (camMode == MODE_AIMWEAPON || camMode == MODE_AIMWEAPON_FROMCAR || camMode == MODE_AIMWEAPON_ATTACHED) {
             if (player->m_nPedState != ePedState::PEDSTATE_ENTER_CAR && player->m_nPedState != ePedState::PEDSTATE_CARJACK) {
-                if ((activeWeapon.m_nType >= eWeaponType::WEAPON_PISTOL &&
-                     activeWeapon.m_nType <= eWeaponType::WEAPON_COUNTRYRIFLE
+                if ((activeWeapon.m_Type >= eWeaponType::WEAPON_PISTOL &&
+                     activeWeapon.m_Type <= eWeaponType::WEAPON_COUNTRYRIFLE
                     ) ||
-                     activeWeapon.m_nType == eWeaponType::WEAPON_FLAMETHROWER || activeWeapon.m_nType == eWeaponType::WEAPON_MINIGUN
+                     activeWeapon.m_Type == eWeaponType::WEAPON_FLAMETHROWER || activeWeapon.m_Type == eWeaponType::WEAPON_MINIGUN
                 ) {
                     bDrawCircleCrossHair = camMode == MODE_AIMWEAPON || TheCamera.m_bTransitionState;
                 }
@@ -740,10 +740,10 @@ void CHud::DrawCrossHairs() {
     float screenOffsetCenterX = 0.0f;
     float screenOffsetCenterY = 0.0f;
 
-    if (activeWeapon.m_nType == eWeaponType::WEAPON_CAMERA || activeWeapon.m_nType == eWeaponType::WEAPON_SNIPERRIFLE ||
+    if (activeWeapon.m_Type == eWeaponType::WEAPON_CAMERA || activeWeapon.m_Type == eWeaponType::WEAPON_SNIPERRIFLE ||
         CTheScripts::bDrawCrossHair == eCrossHairType::FIXED_DRAW_1STPERSON_WEAPON
     ) {
-        if (activeWeapon.m_nType == eWeaponType::WEAPON_CAMERA || CTheScripts::bDrawCrossHair == eCrossHairType::FIXED_DRAW_1STPERSON_WEAPON) {
+        if (activeWeapon.m_Type == eWeaponType::WEAPON_CAMERA || CTheScripts::bDrawCrossHair == eCrossHairType::FIXED_DRAW_1STPERSON_WEAPON) {
             screenStretchCrossHairX = SCREEN_STRETCH_X(256.0f);
             screenStretchCrossHairY = SCREEN_STRETCH_Y(192.0f);
         } else {
@@ -826,8 +826,6 @@ void CHud::DrawCrossHairs() {
 
 // 0x58D580
 float CHud::DrawFadeState(DRAW_FADE_STATE fadingElement, int32 forceFadingIn) {
-    return plugin::CallAndReturn<float, 0x58D580, DRAW_FADE_STATE, int32>(fadingElement, forceFadingIn);
-
     uint32 state, timer, fadeTimer;
     switch (fadingElement) {
     case WANTED_STATE:
@@ -875,7 +873,7 @@ float CHud::DrawFadeState(DRAW_FADE_STATE fadingElement, int32 forceFadingIn) {
     float alpha = 255.0f;
     if (state != NAME_DONT_SHOW) {
         switch (state) {
-        case NAME_SWITCH:
+        case NAME_SHOW:
             fadeTimer = 1000;
             if (timer > 10'000) {
                 fadeTimer = 3000;
@@ -885,7 +883,7 @@ float CHud::DrawFadeState(DRAW_FADE_STATE fadingElement, int32 forceFadingIn) {
         case NAME_FADE_IN:
             fadeTimer += (uint32)CTimer::GetTimeStepInMS();
             if (fadeTimer > 1000) {
-                state = NAME_SWITCH;
+                state = NAME_SHOW;  
                 fadeTimer = 1000;
             }
             alpha = float(fadeTimer) / 1000.0f * 255.0f;
@@ -1138,7 +1136,7 @@ void CHud::DrawRadar() {
     CPlayerPed* player = FindPlayerPed();
     // Draws Altimeter on Planes And Helis or when parachuting down
     if (vehicle && (vehicle->IsSubPlane() || vehicle->IsSubHeli() && vehicle->m_nModelIndex != MODEL_VORTEX)
-        || player->GetActiveWeapon().m_nType == WEAPON_PARACHUTE
+        || player->GetActiveWeapon().m_Type == WEAPON_PARACHUTE
     ) {
         rect.left   = SCREEN_STRETCH_X(40.0f) - SCREEN_STRETCH_X(20.0f);
         rect.bottom    = SCREEN_STRETCH_FROM_BOTTOM(104.0f);
@@ -1183,44 +1181,57 @@ void CHud::DrawRadar() {
 }
 
 // 0x58C080
-void CHud::DrawScriptText(bool displayImmediately) {
-    CTheScripts::DrawScriptSpritesAndRectangles(displayImmediately);
+void CHud::DrawScriptText(bool isBeforeFade) {
+    CTheScripts::DrawScriptSpritesAndRectangles(isBeforeFade);
 
-    char textFormatted[400];
-    for (auto& scriptText : CTheScripts::IntroTextLines) { // todo: NOTSA optimization std::span{ CTheScripts::IntroTextLines, CTheScripts::NumberOfIntroTextLinesThisFrame }
-        if (!scriptText.m_szGxtEntry[0])
+    for (auto& t : CTheScripts::IntroTextLines) {
+        if (!t.GXTKey[0]) { /* empty key? */
             continue;
-        if (scriptText.m_bDrawBeforeFade != displayImmediately)
+        }
+        if (t.IsDrawBeforeFade != isBeforeFade) {
             continue;
+        }
 
-        CFont::SetScale(SCREEN_SCALE_X(scriptText.m_fLetterWidth), SCREEN_SCALE_Y(scriptText.m_fLetterHeight / 2.0f));
-        CFont::SetColor(scriptText.m_Color);
-        CFont::SetJustify(scriptText.m_bJustify);
-
-        if (scriptText.m_bRightJustify)
+        CFont::SetScale(SCREEN_SCALE_X(t.Scale.x), SCREEN_SCALE_Y(t.Scale.y / 2.0f));
+        CFont::SetColor(t.Color);
+        CFont::SetJustify(t.Justify);
+        if (t.HasRightJustify) {
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-        else
-            CFont::SetOrientation((eFontAlignment)!scriptText.m_bCentered);
+        } else {
+            CFont::SetOrientation(t.IsCentered ? eFontAlignment::ALIGN_CENTER : eFontAlignment::ALIGN_LEFT);
+        }
+        CFont::SetWrapx(SCREEN_SCALE_X(t.WrapX));
+        CFont::SetCentreSize(SCREEN_SCALE_X(t.CentreSize));
+        CFont::SetBackground(t.HasBg, false);
+        CFont::SetBackgroundColor(t.BgColor);
+        CFont::SetProportional(t.IsProportional);
+        CFont::SetDropColor(t.DropShadowColor);
+        if (t.TextEdge) {
+            CFont::SetEdge(t.TextEdge);
+        } else {
+            CFont::SetDropShadowPosition(t.DropShadow);
+        }
+        CFont::SetFontStyle((eFontStyle)t.FontStyle);
 
-        CFont::SetWrapx(SCREEN_SCALE_X(scriptText.m_fLineHeight)); // todo: SCREEN_SCALE_X used while height passed - it's ok?
-        CFont::SetCentreSize(SCREEN_SCALE_X(scriptText.m_fLineWidth));
-        CFont::SetBackground(scriptText.m_bWithBackground, false);
-        CFont::SetBackgroundColor(scriptText.m_BackgroundBoxColor);
-        CFont::SetProportional(scriptText.m_bProportional);
-        CFont::SetDropColor(scriptText.m_BackgroundColor);
-
-        if (scriptText.m_nOutlineType)
-            CFont::SetEdge(scriptText.m_nOutlineType);
-        else
-            CFont::SetDropShadowPosition(scriptText.m_nShadowType);
-
-        CFont::SetFontStyle((eFontStyle)scriptText.m_nFont);
-        CMessages::InsertNumberInString(TheText.Get(scriptText.m_szGxtEntry), scriptText.param1, scriptText.param2, -1, -1, -1, -1, textFormatted);
-        CMessages::InsertPlayerControlKeysInString(textFormatted);
-
+        GxtChar text[400];
+        CMessages::InsertNumberInString(
+            TheText.Get(t.GXTKey),
+            t.NumberToInsert1,
+            t.NumberToInsert2,
+            -1,
+            -1,
+            -1,
+            -1,
+            text
+        );
+        CMessages::InsertPlayerControlKeysInString(text);
         // todo: Replace DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT
         // The first letter doesn't look good in window mode, but it looks fine in full-screen mode
-        CFont::PrintString(SCREEN_SCALE_FROM_RIGHT(DEFAULT_SCREEN_WIDTH - scriptText.m_Pos.x), SCREEN_SCALE_FROM_BOTTOM(DEFAULT_SCREEN_HEIGHT - scriptText.m_Pos.y), textFormatted);
+        CFont::PrintString(
+            SCREEN_SCALE_FROM_RIGHT(DEFAULT_SCREEN_WIDTH - t.Pos.x),
+            SCREEN_SCALE_FROM_BOTTOM(DEFAULT_SCREEN_HEIGHT - t.Pos.y),
+            text
+        );
         CFont::SetEdge(0);
     }
 }
@@ -1383,16 +1394,16 @@ void CHud::DrawAmmo(CPed* ped, int32 x, int32 y, float alpha) {
     const auto MAX_CLIP = 9999;
 
     const auto& weapon = ped->GetActiveWeapon();
-    const auto& totalAmmo = weapon.m_nTotalAmmo;
-    const auto& ammoInClip = weapon.m_nAmmoInClip;
-    const auto& ammoClip = CWeaponInfo::GetWeaponInfo(weapon.m_nType, ped->GetWeaponSkill())->m_nAmmoClip;
+    const auto& totalAmmo = weapon.m_TotalAmmo;
+    const auto& ammoInClip = weapon.m_AmmoInClip;
+    const auto& ammoClip = CWeaponInfo::GetWeaponInfo(weapon.m_Type, ped->GetWeaponSkill())->m_nAmmoClip;
 
     if (ammoClip <= 1 || ammoClip >= 1000) {
         sprintf_s(gString, "%d", totalAmmo);
     } else {
         uint32 total, current;
 
-        if (weapon.m_nType == WEAPON_FLAMETHROWER ) {
+        if (weapon.m_Type == WEAPON_FLAMETHROWER ) {
             uint32 out = MAX_CLIP;
             if ((totalAmmo - ammoInClip) / 10 <= MAX_CLIP) {
                 out = (totalAmmo - ammoInClip) / 10u;
@@ -1422,19 +1433,19 @@ void CHud::DrawAmmo(CPed* ped, int32 x, int32 y, float alpha) {
     CFont::SetDropColor({ 0, 0, 0, 255 });
     CFont::SetFontStyle(eFontStyle::FONT_SUBTITLES);
 
-    if (   totalAmmo - weapon.m_nAmmoInClip >= MAX_CLIP
+    if (   totalAmmo - weapon.m_AmmoInClip >= MAX_CLIP
         || CDarkel::FrenzyOnGoing()
-        || weapon.m_nType == WEAPON_UNARMED
-        || weapon.m_nType == WEAPON_DETONATOR
-        || weapon.m_nType == WEAPON_DILDO1
-        || weapon.m_nType == WEAPON_DILDO2
-        || weapon.m_nType == WEAPON_VIBE1
-        || weapon.m_nType == WEAPON_VIBE2
-        || weapon.m_nType == WEAPON_FLOWERS
-        || weapon.m_nType == WEAPON_CANE
-        || weapon.m_nType == WEAPON_PARACHUTE
-        || CWeaponInfo::GetWeaponInfo(weapon.m_nType)->m_nWeaponFire == WEAPON_FIRE_USE
-        || CWeaponInfo::GetWeaponInfo(weapon.m_nType)->m_nSlot <= 1
+        || weapon.m_Type == WEAPON_UNARMED
+        || weapon.m_Type == WEAPON_DETONATOR
+        || weapon.m_Type == WEAPON_DILDO1
+        || weapon.m_Type == WEAPON_DILDO2
+        || weapon.m_Type == WEAPON_VIBE1
+        || weapon.m_Type == WEAPON_VIBE2
+        || weapon.m_Type == WEAPON_FLOWERS
+        || weapon.m_Type == WEAPON_CANE
+        || weapon.m_Type == WEAPON_PARACHUTE
+        || CWeaponInfo::GetWeaponInfo(weapon.m_Type)->m_nWeaponFire == WEAPON_FIRE_USE
+        || CWeaponInfo::GetWeaponInfo(weapon.m_Type)->m_nSlot <= 1
     ) {
         CFont::SetEdge(0);
         return;
@@ -1452,7 +1463,7 @@ void CHud::DrawPlayerInfo() {
 
 inline void CHud::DrawClock() {
     char ascii[16];
-    char text[16];
+    GxtChar gxtText[16];
     CFont::SetBackground(false, false);
     CFont::SetScale(SCREEN_STRETCH_X(0.55f), SCREEN_STRETCH_Y(1.1f));
     CFont::SetProportional(false);
@@ -1462,15 +1473,15 @@ inline void CHud::DrawClock() {
     CFont::SetEdge(2);
     CFont::SetDropColor({0, 0, 0, 255});
     sprintf_s(ascii, "%02d:%02d", CClock::ms_nGameClockHours, CClock::ms_nGameClockMinutes);
-    AsciiToGxtChar(ascii, text);
+    AsciiToGxtChar(ascii, gxtText);
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_GRAY));
-    CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(32.0f), SCREEN_STRETCH_Y(22.0f), text);
+    CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(32.0f), SCREEN_STRETCH_Y(22.0f), gxtText);
     CFont::SetEdge(0);
 }
 
 inline void CHud::DrawMoney(const CPlayerInfo& playerInfo, uint8 alpha) {
     char ascii[16];
-    char text[16];
+    GxtChar gxtText[16];
 
     if (playerInfo.m_nDisplayMoney < 0) {
         CFont::SetColor(HudColour.GetRGBA(HUD_COLOUR_RED, alpha));
@@ -1483,7 +1494,7 @@ inline void CHud::DrawMoney(const CPlayerInfo& playerInfo, uint8 alpha) {
         CFont::SetColor(HudColour.GetRGBA(HUD_COLOUR_GREEN, alpha));
         sprintf_s(ascii, "$%08d", std::abs(playerInfo.m_nDisplayMoney));
     }
-    AsciiToGxtChar(ascii, text);
+    AsciiToGxtChar(ascii, gxtText);
     CFont::SetProportional(false);
     CFont::SetBackground(false, false);
     CFont::SetScale(SCREEN_STRETCH_X(0.55f), SCREEN_STRETCH_Y(1.1f));
@@ -1493,7 +1504,7 @@ inline void CHud::DrawMoney(const CPlayerInfo& playerInfo, uint8 alpha) {
     CFont::SetDropShadowPosition(0);
     CFont::SetEdge(2);
     CFont::SetDropColor({ 0, 0, 0, uint8(alpha) });
-    CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(32.0f), GetYPosBasedOnHealth(CWorld::PlayerInFocus, SCREEN_STRETCH_Y(89.0f), 12), text);
+    CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(32.0f), GetYPosBasedOnHealth(CWorld::PlayerInFocus, SCREEN_STRETCH_Y(89.0f), 12), gxtText);
     CFont::SetEdge(0);
 }
 

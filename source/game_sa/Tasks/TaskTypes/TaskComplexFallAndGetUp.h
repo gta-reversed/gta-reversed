@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexFallAndGetUp : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexFallAndGetUp : public CTaskComplex {
 public:
     AnimationId  m_nFallAnimId;
     AssocGroupId m_nFallAnimGroup;
@@ -15,12 +15,12 @@ public:
     CTaskComplexFallAndGetUp(int32 nDir, int32 nFallDownTime);
     ~CTaskComplexFallAndGetUp() override = default;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskComplexFallAndGetUp(m_nFallAnimId, m_nFallAnimGroup, m_nFallDownTime); }
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskComplexFallAndGetUp(m_nFallAnimId, m_nFallAnimGroup, m_nFallDownTime); }
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
 
     CTask* CreateSubTask(eTaskType taskType);
     bool IsFalling();
@@ -33,9 +33,5 @@ private:
     CTaskComplexFallAndGetUp* Constructor(AnimationId nFallAnimId, AssocGroupId nFallAnimGroup, int32 nFallDownTime);
     CTaskComplexFallAndGetUp* Constructor2(int32 nDir, int32 nFallDownTime);
 
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 };
 VALIDATE_SIZE(CTaskComplexFallAndGetUp, 0x18);

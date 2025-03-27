@@ -3,8 +3,11 @@
 #include <concepts>
 
 #include "TaskComplex.h"
+#include "World.h"
+#include "Ped.h"
+#include "General.h"
 #include "TaskTimer.h"
-#include "Ped.h" // TODO: eMoveState (When possible move to an enum file)
+#include "eMoveState.h"
 #include "extensions/utility.hpp"
 #include "PedPlacement.h"
 #include "TaskSimpleCarDriveTimed.h"
@@ -18,44 +21,68 @@
 #include "TaskSimpleStandStill.h"
 #include "TaskSimpleTired.h"
 #include "PosCalculators/EntitySeekPosCalculator.h"
+#include "PosCalculators/EntitySeekPosCalculatorStandard.h"
+#include "PosCalculators/EntitySeekPosCalculatorXYOffset.h"
 
-template <std::derived_from<CEntitySeekPosCalculator> T_PosCalc>
+template <std::derived_from<CEntitySeekPosCalculator> T_PosCalc = CEntitySeekPosCalculatorStandard>
 class NOTSA_EXPORT_VTABLE CTaskComplexSeekEntity : public CTaskComplex {
-    CEntity*   m_entityToSeek{};
-    int32      m_seekInterval{};
-    int32      m_scanInterval{};
-    float      m_maxEntityDist2D{};
-    float      m_moveStateRadius{};
-    float      m_minEntityDist2D{};
-    float      m_followNodeThresholdHeightChange{};
-    CTaskTimer m_seekTimer{};
+    CEntity* m_entityToSeek{};
+    int32 m_seekInterval{};
+    int32 m_scanInterval{};
+    float m_maxEntityDist2D{};
+    float m_moveStateRadius{};
+    float m_minEntityDist2D{};
+    float m_followNodeThresholdHeightChange{};
     CTaskTimer m_scanTimer{};
-    T_PosCalc  m_entitySeekPosCalculator{};
+    CTaskTimer m_seekTimer{};
+    T_PosCalc m_entitySeekPosCalculator{};
+
+    // Everything here mustn't be accesed without the proper `T_PosCalc` type!
     eMoveState m_moveState{ PEDMOVE_RUN };
-    bool       m_playTiredAnim : 1{};
-    bool       m_faceSeekEntityAfterReachingIt : 1{};
-    bool       m_hasReachedSeekEntity : 1{}; /// True when the distance between the `GetSeekPos()` and the `ped` is less than `m_maxEntityDist2D`
-    
+    bool m_bPlayTiredAnim : 1{};
+    bool m_bFaceEntityWhenDone : 1{};
+    bool m_bAchievedSeekEntity : 1{}; /// True when the distance between the `GetSeekPos()` and the `ped` is less than `m_maxEntityDist2D`
+    bool m_bTrackingEntity : 1{};
 public:
     /*!
     * NOTE: Since this task is templated but uses the same task type for all templated tasks
     *       our template magic stuff in TaskManager might not work properly with it,
     *       because at runtime all templated tasks will have the same type.
-    * NOTE: I commented this out for now, this way there'll be a compile time error (as Type won't be defined)
+    *       Accessing anything before `m_entitySeekPosCalculator` is fine either way
+    *       but anything after it depends on the actual `T_PosCalc` used [which can't [easily] be figured out at runtime]
     */
-    //static constexpr auto Type = eTaskType::TASK_COMPLEX_SEEK_ENTITY;
+    static constexpr auto Type = eTaskType::TASK_COMPLEX_SEEK_ENTITY;
+
+    static void InjectHooks() {
+        RH_ScopedCategory("Tasks/TaskTypes/SeekEntity");
+        if constexpr (std::is_same_v<T_PosCalc, CEntitySeekPosCalculatorXYOffset>) {
+            RH_ScopedVirtualClass(CTaskComplexSeekEntity<CEntitySeekPosCalculatorXYOffset>, 0x86FBB4, 11);
+
+            RH_ScopedInstall(Constructor, 0x661DC0);
+            RH_ScopedInstall(Destructor, 0x661F30);
+
+            RH_ScopedInstall(CreateSubTask, 0x496DC0);
+
+            RH_ScopedVMTInstall(Clone, 0x664AF0);
+            RH_ScopedVMTInstall(GetTaskType, 0x661EA0);
+            RH_ScopedVMTInstall(MakeAbortable, 0x661EB0);
+            RH_ScopedVMTInstall(CreateNextSubTask, 0x665080);
+            RH_ScopedVMTInstall(CreateFirstSubTask, 0x665600);
+            RH_ScopedVMTInstall(ControlSubTask, 0x665760);
+        }
+        // TODO: Add other specializations
+    }
 
     CTaskComplexSeekEntity(
-        CEntity*   entity,
-        int32      scanInterval,
-        int32      seekInterval,
-        float      maxEntityDist2D,
-        float      moveStateRadius,
-        float      followNodeThresholdHeightChange,
-        bool       playTiredAnim,
-        bool       faceSeekEntityAfterReachingIt,
-        T_PosCalc  seekPosCalculator = {}, 
-        eMoveState moveState = PEDMOVE_RUN
+        CEntity*  entity,
+        int32     seekInterval,
+        int32     scanInterval,
+        float     maxEntityDist2D,
+        float     moveStateRadius,
+        float     followNodeThresholdHeightChange,
+        bool      bPlayTiredAnim,
+        bool      bFaceEntityWhenDone,
+        T_PosCalc seekPosCalculator = {} // NOTSA
     ) :
         m_entityToSeek{ entity },
         m_seekInterval{ seekInterval },
@@ -63,10 +90,9 @@ public:
         m_maxEntityDist2D{ maxEntityDist2D },
         m_moveStateRadius{ moveStateRadius },
         m_followNodeThresholdHeightChange{ followNodeThresholdHeightChange },
-        m_playTiredAnim{ playTiredAnim },
-        m_faceSeekEntityAfterReachingIt{ faceSeekEntityAfterReachingIt },
-        m_entitySeekPosCalculator{ seekPosCalculator },
-        m_moveState{ moveState }
+        m_bPlayTiredAnim{ bPlayTiredAnim },
+        m_bFaceEntityWhenDone{ bFaceEntityWhenDone },
+        m_entitySeekPosCalculator{ seekPosCalculator }
     {
         CEntity::SafeRegisterRef(m_entityToSeek);
     }
@@ -78,12 +104,13 @@ public:
         m_maxEntityDist2D{ o.m_maxEntityDist2D },
         m_moveStateRadius{ o.m_moveStateRadius },
         m_followNodeThresholdHeightChange{ o.m_followNodeThresholdHeightChange },
+        m_bPlayTiredAnim{ o.m_bPlayTiredAnim },
+        m_bFaceEntityWhenDone{ true },
+
         m_entitySeekPosCalculator{ o.m_entitySeekPosCalculator },
-        m_minEntityDist2D{ o.m_minEntityDist2D },
         m_moveState{ o.m_moveState },
-        m_playTiredAnim{ o.m_playTiredAnim },
-        m_faceSeekEntityAfterReachingIt{ true },
-        m_hasReachedSeekEntity{ o.m_hasReachedSeekEntity }
+        m_bTrackingEntity{ o.m_bTrackingEntity },
+        m_minEntityDist2D{ o.m_minEntityDist2D }
     {
         CEntity::SafeRegisterRef(m_entityToSeek);
     }
@@ -100,7 +127,7 @@ public:
             return new CTaskComplexTurnToFaceEntityOrCoord{ m_entityToSeek };
         case TASK_COMPLEX_FOLLOW_NODE_ROUTE:
             return new CTaskComplexFollowNodeRoute{
-                (int32)m_moveState,
+                m_moveState,
                 GetSeekPos(ped),
                 m_maxEntityDist2D,
                 m_moveStateRadius,
@@ -116,7 +143,8 @@ public:
                 m_maxEntityDist2D,
                 m_moveStateRadius,
                 false,
-                false
+                false,
+                m_bTrackingEntity
             };
         case TASK_SIMPLE_CAR_DRIVE_TIMED:
             return new CTaskSimpleCarDriveTimed{ ped->m_pVehicle, 2000 };
@@ -124,7 +152,7 @@ public:
             return new CTaskComplexLeaveCar{ ped->m_pVehicle, TARGET_DOOR_FRONT_LEFT, 0, true, false };
         case TASK_COMPLEX_SEQUENCE: {
             const auto seq = new CTaskComplexSequence{};
-            if (m_faceSeekEntityAfterReachingIt) {
+            if (m_bFaceEntityWhenDone) {
                 seq->AddTask(new CTaskComplexTurnToFaceEntityOrCoord{ m_entityToSeek });
             }
             seq->AddTask(new CTaskSimpleStandStill{ 100 });
@@ -139,22 +167,22 @@ public:
         }
     }
 
-    CTask* Clone() override {
+    CTask* Clone() const override {
         return new CTaskComplexSeekEntity{ *this };
     }
 
-    eTaskType GetTaskType() override {
+    eTaskType GetTaskType() const override {
         return eTaskType::TASK_COMPLEX_SEEK_ENTITY;
     }
 
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override {
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override {
         if (priority == ABORT_PRIORITY_LEISURE) {
             m_scanInterval = -1;
-            m_scanTimer.SetAsOutOfTime();
+            m_seekTimer.SetAsOutOfTime();
         }
 
         if (m_pSubTask->MakeAbortable(ped, priority, event)) {
-            m_seekTimer.SetAsOutOfTime();
+            m_scanTimer.SetAsOutOfTime();
             return true;
         }
 
@@ -171,8 +199,8 @@ public:
             if (const auto dist2DSq = (ped->GetPosition() - GetSeekPos(ped)).SquaredMagnitude2D(); dist2DSq > sq(m_maxEntityDist2D)) {
                 return CreateSubTaskWhenPedIsTooFarFromEntity(ped, dist2DSq);
             }
-            m_hasReachedSeekEntity = true;
-            return CreateSubTask(m_faceSeekEntityAfterReachingIt ? TASK_COMPLEX_TURN_TO_FACE_ENTITY : TASK_FINISHED, ped); // Ternary inverted
+            m_bAchievedSeekEntity = true;
+            return CreateSubTask(m_bFaceEntityWhenDone ? TASK_COMPLEX_TURN_TO_FACE_ENTITY : TASK_FINISHED, ped); // Ternary inverted
         }
         case TASK_SIMPLE_CAR_DRIVE_TIMED:
             return CreateFirstSubTask(ped);
@@ -192,6 +220,7 @@ public:
 
     CTask* CreateFirstSubTask(CPed* ped) override {
         m_scanTimer.Start(m_scanInterval);
+        m_seekTimer.Start(m_seekInterval);
 
         if (!m_entityToSeek) {
             return CreateSubTask(TASK_SIMPLE_TIRED, ped);
@@ -201,11 +230,11 @@ public:
             return CreateSubTask(TASK_COMPLEX_LEAVE_CAR, ped);
         }
  
-        if (const auto dist2DSq = (ped->GetPosition() - GetSeekPos(ped)).SquaredMagnitude2D(); dist2DSq > sq(m_maxEntityDist2D)) {
+        if (const auto dist2DSq = (ped->GetPosition2D() - GetSeekPos2D(ped)).SquaredMagnitude(); dist2DSq > sq(m_maxEntityDist2D)) {
             return CreateSubTaskWhenPedIsTooFarFromEntity(ped, dist2DSq);
         }
 
-        m_hasReachedSeekEntity = true;
+        m_bAchievedSeekEntity = true;
         ped->SetMoveState(PEDMOVE_STILL);
         return CreateSubTask(TASK_COMPLEX_SEQUENCE, ped);
     }
@@ -250,7 +279,7 @@ public:
                ped->m_pAttachedTo // From 0x496821
             || !commonBoat
             || subTaskType == TASK_SIMPLE_STAND_STILL
-            || m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)
+            || m_pSubTask->MakeAbortable(ped)
         ) {
             notsa::ScopeGuard makePedTalkOnReturn{ [this, ped] {
                 if (m_entityToSeek && m_entityToSeek->IsPed()) {
@@ -258,7 +287,7 @@ public:
                         if (FindPlayerPed()->GetPlayerGroup().GetMembership().IsFollower(ped)) { // And ped is part of the player's group
                             if (ped->IsJoggingOrFaster()) {
                                 if (((uint16)CTimer::GetFrameCounter() + ped->m_nRandomSeed) % 16384 == 0) {
-                                    ped->Say(91);
+                                    ped->Say(CTX_GLOBAL_FOLLOW_CONSTANT);
                                 }
                             }
                         }
@@ -276,44 +305,43 @@ public:
             }
 
             if (!m_entityToSeek) {
-                return m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr) ? nullptr : m_pSubTask;
+                return m_pSubTask->MakeAbortable(ped) ? nullptr : m_pSubTask;
             }
 
-            if (m_scanTimer.IsOutOfTime()) {
-                if (!m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+            if (m_seekTimer.IsOutOfTime()) {
+                if (!m_pSubTask->MakeAbortable(ped)) {
                     return m_pSubTask;
                 }
 
-                if (!m_playTiredAnim) {
+                if (!m_bPlayTiredAnim) {
                     return nullptr;
                 }
 
                 return new CTaskSimpleTired{ 1000u };
             }
 
-            if (!m_seekTimer.IsOutOfTime()) {
+            if (!m_scanTimer.IsOutOfTime()) {
                 return m_pSubTask;
             }
 
-            m_seekTimer.Start(m_seekInterval);
+            m_scanTimer.Start(m_scanInterval);
 
-            CVector seekPos{};
-            m_entitySeekPosCalculator.ComputeEntitySeekPos(*ped, *m_entityToSeek, seekPos);
+            const auto seekPos = GetSeekPos(ped);
             const auto pedToSeekPosDist2dSq = (ped->GetPosition() - seekPos).SquaredMagnitude2D();
 
             if (subTaskType == TASK_COMPLEX_FOLLOW_NODE_ROUTE) {
                 if (m_minEntityDist2D == 0.f || pedToSeekPosDist2dSq >= sq(m_minEntityDist2D - 1.f)) {
                     static_cast<CTaskComplexFollowNodeRoute*>(m_pSubTask)->SetTarget(ped, seekPos, m_maxEntityDist2D, m_moveStateRadius, m_followNodeThresholdHeightChange, false);
-                } else if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+                } else if (m_pSubTask->MakeAbortable(ped)) {
                     return CreateSubTask(TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL, ped);
                 }
             } else {
-                const auto subTaskStandStill = static_cast<CTaskComplexGoToPointAndStandStill*>(m_pSubTask);
-                if (subTaskStandStill->m_b05) {
+                const auto subTaskStandStill = notsa::cast<CTaskComplexGoToPointAndStandStill>(m_pSubTask);
+                if (subTaskStandStill->m_bWasSuccessful) {
                     return m_pSubTask;      
                 } else if (m_minEntityDist2D == 0.f || pedToSeekPosDist2dSq <= sq(m_minEntityDist2D + 1.f)) {
                     subTaskStandStill->GoToPoint(seekPos, m_maxEntityDist2D, m_moveStateRadius, false);
-                } else if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+                } else if (m_pSubTask->MakeAbortable(ped)) {
                     return CreateSubTask(TASK_COMPLEX_FOLLOW_NODE_ROUTE, ped);
                 }
             }
@@ -331,10 +359,10 @@ public:
     
         ped->AttachPedToEntity(
             commonBoat,
-            Multiply3x3(Invert(commonBoat->GetMatrix()), newPedPos - boatPos),
+            Invert(commonBoat->GetMatrix()).TransformVector(newPedPos - boatPos),
             (int16)CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(pedToBoatDir, {})),
             0.2f,
-            ped->GetActiveWeapon().m_nType
+            ped->GetActiveWeapon().m_Type
         );
 
         return new CTaskSimpleStandStill{ 2000 };
@@ -347,11 +375,38 @@ public:
         return seekPos;
     }
 
+    CVector2D GetSeekPos2D(CPed* ped) {
+        return CVector2D{GetSeekPos(ped)};
+    }
+
+    void SetMoveState(eMoveState ms) {
+        m_moveState = ms;
+    }
+
+    void SetIsTrackingEntity(bool v) {
+        m_bTrackingEntity = v;
+    }
+
+    auto& GetSeekPosCalculator() {
+        return m_entitySeekPosCalculator;
+    }
+
+    void SetEntityMinDist2D(float v) {
+        m_minEntityDist2D = v;
+    }
+
+    auto GetEntityToSeek() const {
+        return m_entityToSeek;
+    }
+
+    auto GetMoveStateRadius() const {
+        return m_moveStateRadius;
+    }
+
+private:
     CTask* CreateSubTaskWhenPedIsTooFarFromEntity(CPed* ped, float pedToSeekPosDist2DSq) {
         return CreateSubTask(
-            (m_minEntityDist2D == 0.f || pedToSeekPosDist2DSq > sq(m_minEntityDist2D))
-                ? TASK_COMPLEX_FOLLOW_NODE_ROUTE
-                : TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL,
+            m_minEntityDist2D == 0.f || pedToSeekPosDist2DSq > sq(m_minEntityDist2D) ? TASK_COMPLEX_FOLLOW_NODE_ROUTE : TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL,
             ped
         );
     }

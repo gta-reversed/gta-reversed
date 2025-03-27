@@ -28,8 +28,8 @@ public:
     bool ComputeDetourTarget(const CPed& ped, CVector& outTarget) const;
     CVector GetDetourTarget(const CPed& ped) const;
 
-    CTask*    Clone() override { return new CTaskComplexWalkRoundFire{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
+    CTask*    Clone() const override { return new CTaskComplexWalkRoundFire{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
     CTask*    CreateNextSubTask(CPed* ped) override { return nullptr; }
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;

@@ -8,6 +8,8 @@
 #include "VideoModeSelectDialog.h"
 #include "LoadingScreen.h"
 #include "C_PcSave.h"
+#include <windows.h>
+
 
 // NOTE: This macro doesn't do a whole lot. Leaving it here for completeness sake
 #define USE_D3D9
@@ -95,6 +97,7 @@ void InitialiseLanguage() {
 
 // 0x747420
 RwBool psInitialize() {
+    SetProcessDPIAware();
     auto ps = &PsGlobal;
 
     RsGlobal.ps = ps;
@@ -404,12 +407,12 @@ BOOL CheckDefaultVideoModeSupported() {
 
     const auto SearchVideoMode = [](int32 width, int32 height) {
         for (auto i = 0; i < RwEngineGetNumVideoModes(); i++) {
-            const auto vm = RwEngineGetVideoModeInfo(i);
-            if (vm.width == width && vm.height == height && vm.depth == 32 && (vm.flags & rwVIDEOMODEEXCLUSIVE)) {
+            RwVideoMode vmi;
+            RwEngineGetVideoModeInfo(&vmi, i);
+            if (vmi.width == width && vmi.height == height && vmi.depth == 32 && (vmi.flags & rwVIDEOMODEEXCLUSIVE)) {
                 return i;
             }
         }
-
         return -1;
     };
 
@@ -522,14 +525,7 @@ bool psSelectDevice() {
 
     if (!UseDefaultVM && !MultipleSubSystems) {
         const auto vmDisplay = FrontEndMenuManager.m_nDisplayVideoMode;
-
-        // IMPROVEMENT/NOTSA: Originally `vmDisplay == 0`.
-        // Originally 0 (which is windowed vm) is a sentinel value for resolution settings.
-        // If that sentinel value is selected, the game searches for 'real default video mode'. (SA: 800x600)
-        //
-        // Zero as a sentinel value prevents us to save the game with windowed mode, so it's converted to -1.
-        // Look at: `SetToDefaultSettings` lambda at CMenuManager::LoadSettings.
-        if (vmDisplay == -1 || !GetVideoModeList()[vmDisplay]) {
+        if (!vmDisplay || !GetVideoModeList()[vmDisplay]) {
             if (IsVMNotSelected && !CheckDefaultVideoModeSupported()) {
                 return FALSE;
             }
@@ -548,7 +544,9 @@ bool psSelectDevice() {
 
     DEV_LOG("GcurSelVM={}", GcurSelVM);
 
-    if (const auto vmi = RwEngineGetVideoModeInfo(GcurSelVM); vmi.flags & rwVIDEOMODEEXCLUSIVE) {
+    RwVideoMode vmi;
+    RwEngineGetVideoModeInfo(&vmi, GcurSelVM);
+    if (vmi.flags & rwVIDEOMODEEXCLUSIVE) {
         if (const auto rr = GetBestRefreshRate(vmi.width, vmi.height, vmi.depth); rr != -1) {
             DEV_LOG("Refresh Rate: {} Hz", rr);
             RwD3D9EngineSetRefreshRate(rr);

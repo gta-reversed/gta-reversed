@@ -3,10 +3,10 @@
 #include "EntitySeekPosCalculatorXYOffset.h"
 
 void CEntitySeekPosCalculatorXYOffset::InjectHooks() {
-    RH_ScopedClass(CEntitySeekPosCalculatorXYOffset);
+    RH_ScopedVirtualClass(CEntitySeekPosCalculatorXYOffset, 0x86F8F8, 1);
     RH_ScopedCategory("Tasks/TaskTypes/SeekPosCalculators");
 
-    RH_ScopedVirtualInstall2(ComputeEntitySeekPos, 0x6946a0, { .reversed = false });
+    RH_ScopedVMTInstall(ComputeEntitySeekPos, 0x6946a0, { .reversed = false });
 }
 
 void CEntitySeekPosCalculatorXYOffset::ComputeEntitySeekPos(const CPed& seeker, const CEntity& target, CVector& outPos) {

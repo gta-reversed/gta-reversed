@@ -4,7 +4,7 @@
 // #include "PointRoute.h"
 
 void CTaskComplexFollowPedFootsteps::InjectHooks() {
-    RH_ScopedClass(CTaskComplexFollowPedFootsteps);
+    RH_ScopedVirtualClass(CTaskComplexFollowPedFootsteps, 0x870CC0, 12);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x694E20);

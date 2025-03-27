@@ -6,6 +6,8 @@
 #define BUILD_PC
 #define USE_BUILD_INFORMATION
 
+#undef TRACY_ENABLE // TODO
+
 #ifndef BAREBONES
 
 #define MORE_LANGUAGES
@@ -17,6 +19,9 @@
 
 // Extensions
 #define EXT_FAST_LOADER
+
+// do not uncomment -- doesn't work rn
+// #define USE_OPENAL
 
 #endif // !BAREBONES
 

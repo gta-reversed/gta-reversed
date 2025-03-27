@@ -2,7 +2,7 @@
 
 #include "TaskSimple.h"
 
-class CTaskSimpleLand : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleLand : public CTaskSimple {
     CAnimBlendAssociation* m_pAnim;
     AnimationId            m_nAnimId;
     union {
@@ -21,10 +21,10 @@ public:
     explicit CTaskSimpleLand(AnimationId nAnimId);
     ~CTaskSimpleLand() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskSimpleLand(m_nAnimId); }
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskSimpleLand(m_nAnimId); }
     bool ProcessPed(CPed* ped) override;
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
 
     bool LeftFootLanded();
     bool RightFootLanded();
@@ -33,7 +33,5 @@ public:
 
     static void InjectHooks();
     CTaskSimpleLand* Constructor(AnimationId nAnimId);
-    bool ProcessPed_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 };
 VALIDATE_SIZE(CTaskSimpleLand, 0x14);

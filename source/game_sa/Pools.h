@@ -20,6 +20,7 @@
 #include "CutsceneObject.h"
 #include "Dummy.h"
 #include "ColModel.h"
+#include "IplDef.h"
 #include "Task.h"
 #include "PedIntelligence.h"
 #include "PtrNodeSingleLink.h"
@@ -29,6 +30,7 @@
 //#include "PatrolRoute.h"
 #include "Allocators/TaskAllocator.h"
 #include "PedAttractor.h"
+#include <Events/EventDamage.h>
 
 class CopPed;
 class CHeli;
@@ -218,7 +220,7 @@ public:
     }
 };
 
-class CTaskAllocatorPool : public CPool<CTaskAllocator, CTaskAllocator, true> {
+class CTaskAllocatorPool : public CPool<CTaskAllocator, CTaskAllocator> {
 public:
     static void InjectHooks() {
         RH_ScopedClass(CTaskAllocatorPool);

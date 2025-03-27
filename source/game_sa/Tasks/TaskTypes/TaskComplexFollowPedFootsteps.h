@@ -4,7 +4,7 @@
 
 class CPointRoute;
 
-class CTaskComplexFollowPedFootsteps : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexFollowPedFootsteps : public CTaskComplex {
 public:
     CPed*        m_targetPed;
     uint32       m_subTaskCreateCheckTimer;
@@ -19,11 +19,11 @@ public:
     explicit CTaskComplexFollowPedFootsteps(CPed* ped);
     ~CTaskComplexFollowPedFootsteps() override;
 
-    CTask* Clone() override {
+    CTask* Clone() const override {
         return new CTaskComplexFollowPedFootsteps(m_targetPed);
     }
-    eTaskType GetTaskType() override { return Type; }
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; }
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;

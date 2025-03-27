@@ -77,7 +77,7 @@ void CFileLoader::InjectHooks() {
     RH_ScopedInstall(LoadScene, 0x5B8700);
     RH_ScopedInstall(LoadObjectTypes, 0x5B8400);
 
-    RH_ScopedGlobalInstall(LinkLods, 0x5B51E0, { .reversed = false });
+    RH_ScopedGlobalInstall(LinkLods, 0x5B51E0); 
 }
 
 // copy textures from dictionary to baseDictionary
@@ -738,7 +738,7 @@ void CFileLoader::LoadCollisionModelVer2(uint8* buffer, uint32 dataSize, CColMod
         // Return pointer for offset in allocated memory (relative to where it was in the file)
         const auto GetDataPtr = [&]() {
             return reinterpret_cast<T>(
-                p
+                  p
                 + sizeof(CCollisionData)                // Must offset by this (See memory layout above)
                 + fileOffset
                 + sizeof(FileHeader::FileInfo::fourcc)  // All offsets are relative to this, but since it is already included in the header's size, so we gotta compensate for it.
@@ -764,6 +764,8 @@ void CFileLoader::LoadCollisionModelVer2(uint8* buffer, uint32 dataSize, CColMod
     cd->m_pShadowTriangles = nullptr;
 
     cm.m_bIsSingleColDataAlloc = true;
+
+    assert(!cd->bHasFaceGroups || cd->m_pTriangles); // If it has face groups it should also have triangles allocated
 }
 
 // 0x537CE0
@@ -834,6 +836,8 @@ void CFileLoader::LoadCollisionModelVer3(uint8* buffer, uint32 dataSize, CColMod
     cd->m_pTrianglePlanes = nullptr;
 
     cm.m_bIsSingleColDataAlloc = true;
+
+    assert(!cd->bHasFaceGroups || cd->m_pTriangles); // If it has face groups it should also have triangles allocated
 }
 
 // 0x537AE0
@@ -904,6 +908,8 @@ void CFileLoader::LoadCollisionModelVer4(uint8* buffer, uint32 dataSize, CColMod
     cd->m_pTrianglePlanes = nullptr;
 
     cm.m_bIsSingleColDataAlloc = true;
+
+    assert(!cd->bHasFaceGroups || cd->m_pTriangles); // If it has face groups it should also have triangles allocated
 }
 
 // 0x5B3C60
@@ -962,8 +968,8 @@ void CFileLoader::Load2dEffect(const char* line) {
 
     auto& effect = CModelInfo::Get2dEffectStore()->AddItem();
     CModelInfo::GetModelInfo(modelId)->Add2dEffect(&effect);
-    effect.m_pos = pos;
-    effect.m_type = *reinterpret_cast<e2dEffectType*>(type);
+    effect.m_Pos = pos;
+    effect.m_Type = *reinterpret_cast<e2dEffectType*>(type);
 
     switch (type) {
     case EFFECT_LIGHT:
@@ -972,7 +978,7 @@ void CFileLoader::Load2dEffect(const char* line) {
         break;
     case EFFECT_ATTRACTOR:
         break;
-    case EFFECT_FURNITURE:
+    case EFFECT_INTERIOR:
         break;
     case EFFECT_ENEX:
         break;
@@ -1040,20 +1046,12 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
 
     newEntity->SetPosn(objInstance->m_vecPosition);
 
-    if (objInstance->m_bUnderwater)
-        newEntity->m_bUnderwater = true;
-
-    if (objInstance->m_bTunnel)
-        newEntity->m_bTunnel = true;
-
-    if (objInstance->m_bTunnelTransition)
-        newEntity->m_bTunnelTransition = true;
-
-    if (objInstance->m_bRedundantStream)
-        newEntity->m_bUnimportantStream = true;
-
-    newEntity->m_nAreaCode = static_cast<eAreaCodes>(objInstance->m_nAreaCode);
-    newEntity->m_nLodIndex = objInstance->m_nLodInstanceIndex;
+    newEntity->m_bUnderwater        |= objInstance->m_bUnderwater;
+    newEntity->m_bTunnel            |= objInstance->m_bTunnel;
+    newEntity->m_bTunnelTransition  |= objInstance->m_bTunnelTransition;
+    newEntity->m_bUnimportantStream |= objInstance->m_bRedundantStream;
+    newEntity->m_nAreaCode           = static_cast<eAreaCodes>(objInstance->m_nAreaCode);
+    newEntity->m_nLodIndex           = objInstance->m_nLodInstanceIndex;
 
     if (objInstance->m_nModelId == ModelIndices::MI_TRAINCROSSING)
     {
@@ -1066,12 +1064,9 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
     if (cm) {
         if (cm->m_bHasCollisionVolumes)
         {
-            if (cm->m_nColSlot)
+            if (cm->m_nColSlot) 
             {
-                CRect rect;
-                newEntity->GetBoundRect(&rect);
-                auto* colDef = CColStore::ms_pColPool->GetAt(cm->m_nColSlot);
-                colDef->m_Area.Restrict(rect);
+                CColStore::ms_pColPool->GetAt(cm->m_nColSlot)->m_Area.Restrict(newEntity->GetBoundRect());
             }
         }
         else
@@ -1419,16 +1414,14 @@ void CFileLoader::LoadOcclusionVolume(const char* line, const char* filename) {
     float fRotX = 0.0F, fRotY = 0.0F;
     uint32 nFlags = 0;
     float fCenterX, fCenterY, fBottomZ, fWidth, fLength, fHeight, fRotZ;
-
     VERIFY(sscanf_s(line, "%f %f %f %f %f %f %f %f %f %d ", &fCenterX, &fCenterY, &fBottomZ, &fWidth, &fLength, &fHeight, &fRotX, &fRotY, &fRotZ, &nFlags) == 10);
-    auto fCenterZ = fHeight * 0.5F + fBottomZ;
-    auto strLen = strlen(filename);
-
-    bool bIsInterior = false;
-    if (filename[strLen - 7] == 'i' && filename[strLen - 6] == 'n' && filename[strLen - 5] == 't') // todo:
-        bIsInterior = true;
-
-    COcclusion::AddOne(fCenterX, fCenterY, fCenterZ, fWidth, fLength, fHeight, fRotX, fRotY, fRotZ, nFlags, bIsInterior);
+    COcclusion::AddOne(
+        fCenterX, fCenterY, fHeight * 0.5F + fBottomZ,
+        fWidth, fLength, fHeight,
+        fRotX, fRotY, fRotZ,
+        nFlags,
+        std::string_view{filename}.ends_with("int.ipl")
+    );
 }
 
 // 0x5B41C0
@@ -1476,33 +1469,24 @@ int32 CFileLoader::LoadPedObject(const char* line) {
         SCANF_S_STR(voiceMax)
     ) == 14);
 
-    const auto FindAnimGroup = [animGroup, nAssocGroups = CAnimManager::ms_numAnimAssocDefinitions] {
-        for (auto i = 0; i < nAssocGroups; i++) {
-            if (CAnimManager::GetAnimGroupName((AssocGroupId)i) == std::string_view{animGroup}) {
-                return (AssocGroupId)i;
-            }
-        }
-        return (AssocGroupId)nAssocGroups;
-    };
-
     const auto mi = CModelInfo::AddPedModel(modelId);
 
     mi->m_nKey = CKeyGen::GetUppercaseKey(modelName);
     mi->SetTexDictionary(texName);
     mi->SetAnimFile(animFile);
-    mi->SetColModel(&colModelPeds, false);
-    mi->m_nPedType = CPedType::FindPedType(pedType);
-    mi->m_nStatType = CPedStats::GetPedStatType(statName);
-    mi->m_nAnimType = FindAnimGroup();
+    mi->SetColModel(&CTempColModels::ms_colModelPed1, false);
+    mi->m_nPedType          = CPedType::FindPedType(pedType);
+    mi->m_nStatType         = CPedStats::GetPedStatType(statName);
+    mi->m_nAnimType         = CAnimManager::GetAnimationGroupIdByName(animGroup);
     mi->m_nCarsCanDriveMask = carsCanDriveMask;
-    mi->m_nPedFlags = flags;
-    mi->m_nRadio2 = (eRadioID)(radio2 + 1);
-    mi->m_nRadio1 = (eRadioID)(radio1 + 1);
-    mi->m_nRace = CPopulation::FindPedRaceFromName(modelName);
-    mi->m_nPedAudioType = CAEPedSpeechAudioEntity::GetAudioPedType(pedVoiceType);
-    mi->m_nVoiceMin = CAEPedSpeechAudioEntity::GetVoice(voiceMin, mi->m_nPedAudioType);
-    mi->m_nVoiceMax = CAEPedSpeechAudioEntity::GetVoice(voiceMax, mi->m_nPedAudioType);
-    mi->m_nVoiceId = mi->m_nVoiceMin;
+    mi->m_nPedFlags         = flags;
+    mi->m_nRadio2           = (eRadioID)(radio2 + 1);
+    mi->m_nRadio1           = (eRadioID)(radio1 + 1);
+    mi->m_nRace             = CPopulation::FindPedRaceFromName(modelName);
+    mi->m_nPedAudioType     = CAEPedSpeechAudioEntity::GetAudioPedType(pedVoiceType);
+    mi->m_nVoiceMin         = CAEPedSpeechAudioEntity::GetVoice(voiceMin, mi->m_nPedAudioType);
+    mi->m_nVoiceMax         = CAEPedSpeechAudioEntity::GetVoice(voiceMax, mi->m_nPedAudioType);
+    mi->m_nVoiceId          = mi->m_nVoiceMin;
 
     return modelId;
 }
@@ -1671,7 +1655,7 @@ void CFileLoader::LoadPickup(const char* line) {
         }
     };
 
-    if (const auto model = GetModel(); model != -1) {
+    if (const auto model = GetModel(); model != MODEL_INVALID) {
         CPickups::GenerateNewOne(pos, model, PICKUP_ON_STREET, 0, 0, false, nullptr);
     }
 }
@@ -1965,27 +1949,92 @@ int32 CFileLoader::LoadWeaponObject(const char* line) {
 
 // 0x5B4AB0
 void CFileLoader::LoadZone(const char* line) {
-    char  name[24];
-    int32 type;
+    char    infoLabel[24];
+    int32   type;
     CVector min{}, max{};
-    int32 island;
-    char  zoneName[12];
+    int32   level;
+    char    textLabel[12];
 
-    auto iNumRead = sscanf_s(line, "%s %d %f %f %f %f %f %f %d %s", SCANF_S_STR(name), &type, &min.x, &min.y, &min.z, &max.x, &max.y, &max.z, &island, SCANF_S_STR(zoneName));
-    if (iNumRead == 10)
-        CTheZones::CreateZone(name, static_cast<eZoneType>(type), min.x, min.y, min.z, max.x, max.y, max.z, static_cast<eLevelName>(island), zoneName);
+    VERIFY(sscanf_s(line, "%s %d %f %f %f %f %f %f %d %s", SCANF_S_STR(infoLabel), &type, &min.x, &min.y, &min.z, &max.x, &max.y, &max.z, &level, SCANF_S_STR(textLabel)) == 10);
+    CTheZones::CreateZone(infoLabel, static_cast<eZoneType>(type), min, max, static_cast<eLevelName>(level), textLabel);
 }
 
 // 0x5B51E0
-void LinkLods(int32 a1) {
-    plugin::Call<0x5B51E0, int32>(a1);
+void LinkLods(int32 numRelatedIPLs) {
+    // Link LODs
+    for (auto& building : GetLoadedBuildings()) {
+        const auto idx = building->m_nLodIndex;
+        const auto lod = idx != -1
+            ? GetLoadedBuildings()[idx]
+            : nullptr;
+        if (idx != -1) {
+            lod->m_nNumLodChildren++;
+        }
+        building->m_pLod = lod;
+    }
+
+    // Load related IPLs (?)
+    // I'm unsure how this exactly works, but in theory:
+    // `SetupRelatedIPLs` returns how many IPLs were loaded, and that's what `numRelatedIPLs` is
+    // Thus, everything above `gNumLoadedBuildings` is such an IPL instance
+    // Here we process all buildings (and their related IPLs) + the (related) IPLs we've just loaded in `SetupRelatedIPLs`
+    const auto totalN = gNumLoadedBuildings + numRelatedIPLs;
+    for (uint32 i{}; i < totalN; i++) {
+        const auto isIPL = i >= gNumLoadedBuildings;
+        VERIFY(!isIPL || gNumLoadedBuildings <= i && i < totalN);
+        const auto building = gpLoadedBuildings[i];
+
+        // I'm very much unsure how this works, because `CColAccel`
+        // works on the same thread, so if its ever in loading state... it wont ever change...
+        if (!isIPL && CColAccel::isCacheLoading()) {
+            continue;
+        }
+
+        // Newly loaded IPLs have to be created
+        if (isIPL) {
+            CColAccel::addIPLEntity(gpLoadedBuildings.data(), gNumLoadedBuildings, i);
+        }
+
+        // 0x5B5285
+        if (building->m_nNumLodChildren || TheCamera.m_fLODDistMultiplier * building->GetModelInfo()->m_fDrawDistance > 300.f) {
+            building->SetupBigBuilding();
+        }
+
+        // 0x5B5293 - Now handle the collision model for the building/lod
+        if (const auto lod = building->m_pLod) {
+            const auto mi = building->GetModelInfo(),
+                lodMI = lod->GetModelInfo();
+            if (lod->m_nNumLodChildren == 1) {
+                lod->m_bUnderwater |= building->m_bUnderwater;
+                if (const auto cm = mi->GetColModel()) {
+                    if (cm != lodMI->GetColModel()) {
+                        lodMI->DeleteCollisionModel();
+                        lodMI->SetColModel(cm);
+                    }
+                }
+            } else if (mi->bDoWeOwnTheColModel) {
+                mi->m_fDrawDistance = 400.f;
+            } else {
+                lod->m_nNumLodChildren--;
+                building->m_pLod = nullptr;
+            }
+        }
+    }
+
+    // 0x5B5321
+    CColAccel::cacheIPLSection(gpLoadedBuildings.data(), gNumLoadedBuildings);
+
+    // 0x5B5358
+    for (auto& ipl : GetLoadedBuildings()) {
+        CWorld::Add(ipl);
+    }
 }
 
 // 0x5B8700
 void CFileLoader::LoadScene(const char* filename) {
     ZoneScoped;
 
-    gCurrIplInstancesCount = 0;
+    gNumLoadedBuildings = 0;
 
     enum class SectionID {
         NONE = 0, // NOTSA - Placeholder value
@@ -2030,7 +2079,7 @@ void CFileLoader::LoadScene(const char* filename) {
 
             switch (sectionId) {
             case SectionID::INST: {
-                gCurrIplInstances[gCurrIplInstancesCount++] = LoadObjectInstance(line);
+                gpLoadedBuildings[gNumLoadedBuildings++] = LoadObjectInstance(line);
                 break;
             }
             case SectionID::ZONE:
@@ -2126,11 +2175,14 @@ void CFileLoader::LoadScene(const char* filename) {
 
     // This really seems like should be in CIplStore...
     auto newIPLIndex{ -1 };
-    if (gCurrIplInstancesCount > 0) {
-        newIPLIndex = CIplStore::GetNewIplEntityIndexArray(gCurrIplInstancesCount);
-        rng::copy(gCurrIplInstances | std::views::take(gCurrIplInstancesCount), CIplStore::GetIplEntityIndexArray(newIPLIndex));
+    if (gNumLoadedBuildings > 0) {
+        newIPLIndex = CIplStore::GetNewIplEntityIndexArray(gNumLoadedBuildings);
+        rng::copy(
+            gpLoadedBuildings | std::views::take(gNumLoadedBuildings),
+            CIplStore::GetIplEntityIndexArray(newIPLIndex)
+        );
     }
-    LinkLods(CIplStore::SetupRelatedIpls(filename, newIPLIndex, &gCurrIplInstances[gCurrIplInstancesCount]));
+    LinkLods(CIplStore::SetupRelatedIpls(filename, newIPLIndex, &gpLoadedBuildings[gNumLoadedBuildings]));
     CIplStore::RemoveRelatedIpls(newIPLIndex); // I mean this totally makes sense, doesn't it?
 }
 

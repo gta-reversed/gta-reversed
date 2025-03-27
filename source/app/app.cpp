@@ -6,6 +6,7 @@
 #include "platform.h"
 
 #include "Clouds.h"
+#include "CarFXRenderer.h"
 
 #include "Plugins/BreakablePlugin/BreakablePlugin.h"
 #include "Pipelines/CustomBuilding/CustomBuildingRenderer.h"

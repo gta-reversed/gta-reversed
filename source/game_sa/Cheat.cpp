@@ -4,6 +4,7 @@
 #include "PedType.h"
 #include "PedClothesDesc.h"
 
+#include "Events/EventAcquaintancePedHate.h"
 #include "TaskSimpleJetPack.h"
 #include "PostEffects.h"
 #include "Hud.h"
@@ -308,7 +309,7 @@ void CCheat::BlackCarsCheat() {
 
 // 0x439d80
 void CCheat::BlowUpCarsCheat() {
-    for (int32 index = 0; index < GetVehiclePool()->m_nSize; index++) {
+    for (int32 index = 0; index < GetVehiclePool()->GetSize(); index++) {
         CVehicle* vehicle = GetVehiclePool()->GetAt(index);
         if (vehicle) {
             vehicle->BlowUpCar(nullptr, false);
@@ -356,7 +357,7 @@ void CCheat::DrivebyCheat() {
     Toggle(CHEAT_WEAPON_AIMING_WHILE_DRIVING);
 
     CPlayerPed *player = FindPlayerPed();
-    if (IsActive(CHEAT_WEAPON_AIMING_WHILE_DRIVING) && player->m_aWeapons[WEAPON_KNIFE].m_nType == WEAPON_UNARMED) {
+    if (IsActive(CHEAT_WEAPON_AIMING_WHILE_DRIVING) && player->m_aWeapons[WEAPON_KNIFE].m_Type == WEAPON_UNARMED) {
         player->GiveDelayedWeapon(WEAPON_MICRO_UZI, 150);
         player->SetCurrentWeapon(WEAPON_MICRO_UZI);
     }
@@ -389,7 +390,7 @@ void CCheat::EverybodyAttacksPlayerCheat() {
     Toggle(CHEAT_HAVE_ABOUNTY_ON_YOUR_HEAD);
     if (IsActive(CHEAT_HAVE_ABOUNTY_ON_YOUR_HEAD)) {
         auto player = FindPlayerPed();
-        for (auto i = 0; i < GetPedPool()->m_nSize; i++) {
+        for (auto i = 0; i < GetPedPool()->GetSize(); i++) {
             auto ped = GetPedPool()->GetAt(i);
             if (!ped || ped->IsPlayer())
                 continue;
@@ -397,7 +398,7 @@ void CCheat::EverybodyAttacksPlayerCheat() {
             ped->GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PED_TYPE_PLAYER1));
 
             CEventAcquaintancePedHate event(player);
-            event.m_taskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
+            event.m_TaskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
             ped->GetEventGroup().Add(&event, false);
         }
     }
@@ -564,7 +565,7 @@ void CCheat::MayhemCheat() {
             }
             if (CPed* closestPed = ped.GetIntelligence()->GetPedScanner().GetClosestPedInRange()) {
                 CEventAcquaintancePedHate event(closestPed);
-                event.m_taskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
+                event.m_TaskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
                 ped.GetEventGroup().Add(&event, false);
             }
         }
@@ -579,7 +580,7 @@ void CCheat::MayhemCheat() {
 
             if (CPed* closestPed = ped.GetIntelligence()->GetPedScanner().GetClosestPedInRange()) {
                 CEventAcquaintancePedHate event(closestPed);
-                event.m_taskId = TASK_NONE;
+                event.m_TaskId = TASK_NONE;
                 ped.GetEventGroup().Remove(&event);
             }
         }

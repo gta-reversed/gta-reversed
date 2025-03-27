@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexDieInCar : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexDieInCar : public CTaskComplex {
 public:
     eWeaponType m_nWeaponType;
     uint32      m_nTimeMS;
@@ -16,13 +16,13 @@ public:
     explicit CTaskComplexDieInCar(eWeaponType weaponType);
     ~CTaskComplexDieInCar() override = default; // 0x62FCF0, 0x6375D0
 
-    eTaskType GetTaskType() override { return Type; }; // 0x62FCB0
-    CTask* Clone() override { return new CTaskComplexDieInCar(m_nWeaponType); } // 0x635F90
+    eTaskType GetTaskType() const override { return Type; }; // 0x62FCB0
+    CTask* Clone() const override { return new CTaskComplexDieInCar(m_nWeaponType); } // 0x635F90
     CTask* ControlSubTask(CPed* ped) override;
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* CreateNextSubTask(CPed* ped) override;
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
 
     void PreparePedVehicleForPedDeath(CVehicle* vehicle);
 
@@ -30,9 +30,5 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTask* ControlSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 };
 VALIDATE_SIZE(CTaskComplexDieInCar, 0x1C);

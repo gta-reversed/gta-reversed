@@ -5,7 +5,7 @@
 #include "TaskComplexFollowNodeRoute.h"
 
 void CTaskComplexTrackEntity::InjectHooks() {
-    RH_ScopedClass(CTaskComplexTrackEntity);
+    RH_ScopedVirtualClass(CTaskComplexTrackEntity, 0x86F998, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x65F3B0);
@@ -15,12 +15,12 @@ void CTaskComplexTrackEntity::InjectHooks() {
     RH_ScopedInstall(CalcTargetPos, 0x65F780, {.enabled = false, .locked = true});
     RH_ScopedInstall(CalcMoveRatio, 0x65F930, {.enabled = false, .locked = true});
 
-    RH_ScopedVirtualInstall2(Clone, 0x65F4E0);
-    RH_ScopedVirtualInstall2(GetTaskType, 0x65F450);
-    RH_ScopedVirtualInstall2(MakeAbortable, 0x65F4C0);
-    RH_ScopedVirtualInstall2(CreateNextSubTask, 0x65F590);
-    RH_ScopedVirtualInstall2(CreateFirstSubTask, 0x65F700);
-    RH_ScopedVirtualInstall2(ControlSubTask, 0x663640, { .locked = true }); // Locked because it fucks up the stack and crashes 
+    RH_ScopedVMTInstall(Clone, 0x65F4E0);
+    RH_ScopedVMTInstall(GetTaskType, 0x65F450);
+    RH_ScopedVMTInstall(MakeAbortable, 0x65F4C0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x65F590);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x65F700);
+    RH_ScopedVMTInstall(ControlSubTask, 0x663640, { .locked = true }); // Locked because it fucks up the stack and crashes 
 }
 
 // 0x65F3B0
@@ -83,7 +83,7 @@ CTask* CTaskComplexTrackEntity::CreateNextSubTask(CPed* ped) {
     }
 
     return new CTaskComplexFollowNodeRoute{
-        6,
+        PEDMOVE_RUN,
         m_toTrack->GetPosition(),
         0.5f,
         0.2f,
@@ -112,7 +112,7 @@ CTask* CTaskComplexTrackEntity::CreateFirstSubTask(CPed* ped) {
 // 0x663640
 CTask* CTaskComplexTrackEntity::ControlSubTask(CPed* ped) {
     const auto TryAbort = [this, ped] {
-        return MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr);
+        return MakeAbortable(ped);
     };
 
     const auto TryAbortGetTask = [&, this] {

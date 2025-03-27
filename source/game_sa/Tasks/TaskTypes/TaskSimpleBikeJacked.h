@@ -7,7 +7,7 @@ class CTaskUtilityLineUpPedWithCar;
 class CPed;
 class CVehicle;
 
-class CTaskSimpleBikeJacked : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleBikeJacked : public CTaskSimple {
     bool m_animWasPlayed{};
     CAnimBlendAssociation* m_firstAnim{};
     AnimationId m_secondAnimId{ ANIM_ID_NO_ANIMATION_SET }; // Animation that is played after `m_anim` has finished
@@ -28,9 +28,9 @@ public:
 
     static void FinishAnimBikeHitCB(CAnimBlendAssociation* anim, void* data);
 
-    CTask* Clone() override { return new CTaskSimpleBikeJacked{ *this }; }
-    eTaskType GetTaskType() override { return Type;  }
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
+    CTask* Clone() const override { return new CTaskSimpleBikeJacked{ *this }; }
+    eTaskType GetTaskType() const override { return Type;  }
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool ProcessPed(CPed* ped) override;
     bool SetPedPosition(CPed* ped) override;
 

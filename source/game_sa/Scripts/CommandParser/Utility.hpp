@@ -4,6 +4,9 @@
 
 #include "Pools.h"
 
+class CRunningScript;
+class CPhysical;
+
 namespace notsa {
 namespace script {
 namespace detail {

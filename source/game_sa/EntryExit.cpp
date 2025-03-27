@@ -23,7 +23,7 @@ void CEntryExit::InjectHooks() {
     RH_ScopedInstall(GetEntryExitToDisplayNameOf, 0x43E650);
     RH_ScopedInstall(FindValidTeleportPoint, 0x43EAF0);
     RH_ScopedInstall(IsInArea, 0x43E460);
-    RH_ScopedInstall(GetPositionRelativeToOutsideWorld, 0x43EA00);
+    RH_ScopedInstall(GetPositionRelativeToOutsideWorld, 0x43EA00, {.locked = true});
     RH_ScopedInstall(TransitionStarted, 0x43FFD0);
     RH_ScopedInstall(TransitionFinished, 0x4404A0, { .reversed = false });
     RH_ScopedInstall(RequestObjectsInFrustum, 0x43E690);
@@ -59,7 +59,7 @@ CEntryExit::CEntryExit(
     m_fExitAngle{ exitAngle },
     m_nSkyColor{ (uint8)skyColor },
     m_fEntranceZ{ center.z + 1.f },
-    m_fEntranceAngleRad{ RWDEG2RAD(entranceAngleDeg) }
+    m_fEntranceAngleRad{ DegreesToRadians(entranceAngleDeg) }
 {
     std::tie(m_nTimeOn, m_nTimeOff) = [&]() -> std::pair<uint8, uint8> {
         if (bUnknownBurglary && CGeneral::RandomBool(50.f)) {
@@ -127,7 +127,7 @@ CEntryExit* CEntryExit::GetEntryExitToDisplayNameOf() {
 void CEntryExit::GetPositionRelativeToOutsideWorld(CVector& outPos) {
     _asm { push edx };
 
-    const auto enex = GetLinkedOrThis();
+    const auto enex = GetLinkedOrThis(); // this = GetLinkedOrThis();
     if (enex->m_nArea != eAreaCodes::AREA_CODE_NORMAL_WORLD) {
         outPos += GetPosition() - enex->m_vecExitPos;
     }
@@ -158,7 +158,7 @@ bool CEntryExit::IsVisibleByTime() const {
 
 // Transforms a point into the entrance rect
 CVector CEntryExit::TransformEntrancePoint(const CVector& point) const {
-    return MultiplyMatrixWithVector(GetRectEntranceMatrix(), point - GetPosition());
+    return GetRectEntranceMatrix().TransformPoint(point - GetPosition());
 }
 
 // 0x43EAF0
@@ -290,7 +290,7 @@ bool CEntryExit::TransitionStarted(CPed* ped) {
             // 0x44031A
             auto fixedModePos = GetPosition() - lookAtDir * 3.f;
             fixedModePos.z += 1.f;
-            TheCamera.SetCamPositionForFixedMode(&fixedModePos, {});
+            TheCamera.SetCamPositionForFixedMode(fixedModePos, {});
             TheCamera.TakeControlNoEntity(GetPosition() + lookAtDir, eSwitchType::JUMPCUT, 1);
         };
 
@@ -605,6 +605,7 @@ void CEntryExit::WarpGangWithPlayer(CPlayerPed* player) {
 
         // Teleport them
         mem.Teleport(memTeleportTo, false);
+        mem.GetIntelligence()->FlushImmediately(false);
 
         // Make the member be heading towards the player
         mem.m_fCurrentRotation = mem.m_fAimingRotation = memHeading;

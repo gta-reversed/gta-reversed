@@ -35,7 +35,7 @@ CTask* CTaskComplexGoToBoatSteeringWheel::CreateNextSubTask(CPed* ped) {
     case TASK_SIMPLE_STAND_STILL:
         return CreateSubTask(TASK_FINISHED);
     case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL:
-        m_unused = true;
+        m_bAchievedPoint = true;
         return CreateSubTask(TASK_FINISHED);
     default:
         NOTSA_UNREACHABLE();

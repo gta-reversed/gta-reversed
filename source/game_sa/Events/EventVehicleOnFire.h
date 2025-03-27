@@ -23,8 +23,6 @@ public:
 
 private:
     CEventVehicleOnFire* Constructor(CVehicle* vehicle);
-    bool AffectsPed_Reversed(CPed* ped);
-    CEventEditableResponse* CloneEditable_Reversed();
 };
 
 VALIDATE_SIZE(CEventVehicleOnFire, 0x18);

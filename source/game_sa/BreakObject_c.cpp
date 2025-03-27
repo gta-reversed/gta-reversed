@@ -50,7 +50,7 @@ bool BreakObject_c::Init(CObject* object, const CVector* velocity, float fVeloci
     if (info->m_uiPosRule != eBreakablePluginPositionRule::OBJECT_ORIGIN) {
         auto usedPoint = colModel->GetBoundingBox().GetCenter();
         usedPoint.z += 0.25f;
-        vecOrigin = *object->m_matrix * usedPoint;
+        vecOrigin = object->m_matrix->TransformPoint(usedPoint);
     } else {
         vecOrigin = *RwMatrixGetPos(ltm);
         vecOrigin.z += colModel->GetBoundingBox().m_vecMin.z + 0.25f;

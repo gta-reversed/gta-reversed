@@ -16,7 +16,7 @@ void CEntryExitManager::InjectHooks() {
     RH_ScopedInstall(FindNearestDoor, 0x43F630);
     RH_ScopedInstall(FindNearestEntryExit, 0x43F4B0);
     RH_ScopedInstall(EnableBurglaryHouses, 0x43F180);
-    RH_ScopedInstall(GetPositionRelativeToOutsideWorld, 0x43F150);
+    RH_ScopedInstall(GetPositionRelativeToOutsideWorld, 0x43F150, {.locked = true});
     RH_ScopedInstall(PostEntryExitsCreation, 0x43F0A0);
     RH_ScopedInstall(LinkEntryExit, 0x43F050);
     RH_ScopedInstall(GetEntryExitIndex, 0x43EFD0);
@@ -38,7 +38,7 @@ void CEntryExitManager::Init() {
     ms_bBurglaryHousesEnabled = false;
 
     mp_poolEntryExits = new CEntryExitsPool(400u, "Entry exits");
-    mp_poolEntryExits->m_bIsLocked = true;
+    mp_poolEntryExits->SetDealWithNoMemory(true);
 }
 
 // 0x440B90
@@ -423,24 +423,21 @@ bool CEntryExitManager::WeAreInInteriorTransition() {
 // 0x5D55C0
 bool CEntryExitManager::Load() {
     // Load entry exit stack
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_entryExitStackPosn, sizeof(ms_entryExitStackPosn));
+    CGenericGameStorage::LoadDataFromWorkBuffer(ms_entryExitStackPosn);
     for (auto i = 0u; i < ms_entryExitStackPosn; i++) {
         uint16 enexIdx{};
-        CGenericGameStorage::LoadDataFromWorkBuffer(&enexIdx, sizeof(enexIdx));
+        CGenericGameStorage::LoadDataFromWorkBuffer(enexIdx);
         ms_entryExitStack[i] = mp_poolEntryExits->GetAt(enexIdx);
     }
 
     // Load entry exits
-    int16 enexIdx{};
-    CGenericGameStorage::LoadDataFromWorkBuffer(&enexIdx, sizeof(enexIdx));
+    auto enexIdx = CGenericGameStorage::LoadDataFromWorkBuffer<int16>();
     while (enexIdx != -1) {
-        uint16 flags{};
-        CGenericGameStorage::LoadDataFromWorkBuffer(&flags, sizeof(flags));
-
-        int16 linkedIdx{};
-        CGenericGameStorage::LoadDataFromWorkBuffer(&linkedIdx, sizeof(linkedIdx));
+        const auto flags     = CGenericGameStorage::LoadDataFromWorkBuffer<uint16>();
+        const auto linkedIdx = CGenericGameStorage::LoadDataFromWorkBuffer<int16>();
 
         if (auto enex = mp_poolEntryExits->GetAt(enexIdx)) {
+            enex->m_nFlags = flags;
             if (linkedIdx == -1) {
                 enex->m_pLink = nullptr;
             } else if (const auto linked = mp_poolEntryExits->GetAt(linkedIdx)) {
@@ -452,7 +449,7 @@ bool CEntryExitManager::Load() {
             NOTSA_UNREACHABLE(); // NOTSA - Probably corrupted save file or something.
         }
 
-        CGenericGameStorage::LoadDataFromWorkBuffer(&enexIdx, sizeof(enexIdx));
+        CGenericGameStorage::LoadDataFromWorkBuffer(enexIdx);
     }
 
     return true;
@@ -461,19 +458,29 @@ bool CEntryExitManager::Load() {
 // 0x5D5970
 bool CEntryExitManager::Save() {
     // Save entry exit stack
-    CGenericGameStorage::SaveDataToWorkBuffer(&ms_entryExitStackPosn, sizeof(ms_entryExitStackPosn));
+    CGenericGameStorage::SaveDataToWorkBuffer(ms_entryExitStackPosn);
     for (auto&& enex : std::span{ ms_entryExitStack, ms_entryExitStackPosn}) {
         CGenericGameStorage::SaveDataToWorkBuffer((uint16)mp_poolEntryExits->GetIndex(enex));
     }
 
     // Save entry exits
-    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
+    for (int16 i = 0; i < mp_poolEntryExits->GetSize(); i++) {
         if (const auto enex = mp_poolEntryExits->GetAt(i)) {
-            CGenericGameStorage::SaveDataToWorkBuffer((uint16)i); // Enex idx in pool
-            CGenericGameStorage::SaveDataToWorkBuffer((uint16)(enex->m_pLink ? mp_poolEntryExits->GetIndex(enex->m_pLink) : -1)); // Linked enex idx in pool
-            CGenericGameStorage::SaveDataToWorkBuffer((uint16)enex->m_nFlags);
+            int16 data = -1;
+            if (enex->m_pLink) {
+                // Make sure the link reference is valid
+                auto linkIndex = mp_poolEntryExits->GetIndex(enex->m_pLink);
+                if (mp_poolEntryExits->IsIndexInBounds(linkIndex)) {
+                    data = linkIndex;
+                }
+            }
+            CGenericGameStorage::SaveDataToWorkBuffer(i); // Enex idx in pool
+            CGenericGameStorage::SaveDataToWorkBuffer(enex->m_nFlags);
+            CGenericGameStorage::SaveDataToWorkBuffer(data); // Linked enex idx in pool
         }
     }
 
+    // Mark the end of ENEX table
+    CGenericGameStorage::SaveDataToWorkBuffer((int16)-1);
     return true;
 }

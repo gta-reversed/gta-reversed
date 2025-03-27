@@ -4,21 +4,21 @@
 
 class CPed;
 
-class CTaskComplexGangJoinRespond : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexGangJoinRespond : public CTaskComplex {
 public:
-    bool  byteC;
-    bool  m_bAnimBlockRefAdded;
-    int32 b10;
+    bool  m_response{};
+    bool  m_animsReferenced{};
+    int32 m_attempts{};
 
 public:
     static constexpr auto Type = TASK_COMPLEX_GANG_JOIN_RESPOND;
 
-    explicit CTaskComplexGangJoinRespond(uint8 a2);
+    explicit CTaskComplexGangJoinRespond(bool response);
     ~CTaskComplexGangJoinRespond() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskComplexGangJoinRespond(byteC); } // 0x662290;
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override { return true; } // 0x661790;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskComplexGangJoinRespond(m_response); } // 0x662290;
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return true; } // 0x661790;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;

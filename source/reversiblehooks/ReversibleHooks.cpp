@@ -1,6 +1,9 @@
 #include "StdInc.h"
 #include <unordered_set>
 
+#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#include "ReversibleHook/ScriptCommand.h"
+#endif
 #include "ReversibleHooks.h"
 #include "ReversibleHook/Simple.h"
 #include "ReversibleHook/Virtual.h"
@@ -19,6 +22,33 @@ std::unordered_set<uint32> s_HookedAddresses{};  // Original GTA addresses to wh
 
 RootHookCategory& GetRootCategory() {
     return s_RootCategory;
+}
+
+SetCatOrItemStateResult SetCategoryOrItemStateByPath(std::string_view path, bool enabled) {
+    if (path.ends_with("/")) {
+        path.remove_suffix(1);
+    }
+
+    const auto    separated = SplitStringView(path, "/") | rng::to<std::vector>();
+    HookCategory* cat       = &GetRootCategory();
+    for (auto name : std::span(separated).first(separated.size() - 1)) {
+        cat = cat->FindSubcategory(name);
+        if (!cat) {
+            return SetCatOrItemStateResult::NotFound;
+        }
+    }
+
+    if (auto category = cat->FindSubcategory(separated.back())) {
+        category->SetAllItemsEnabled(enabled);
+        return SetCatOrItemStateResult::Done;
+    } else if (auto item = cat->FindItem(separated.back())) {
+        if (item->Hooked() == enabled) {
+            return SetCatOrItemStateResult::Done;
+        }
+        return item->State(enabled) ? SetCatOrItemStateResult::Done : SetCatOrItemStateResult::Locked;
+    }
+
+    return SetCatOrItemStateResult::NotFound;
 }
 
 void CheckAll() {
@@ -57,8 +87,8 @@ void OnInjectionEnd() {
     // WriteHooksToFile("C:/hooks.csv");
 }
 
-void InstallVirtual(std::string_view category, std::string fnName, void** vtblGTA, void** vtblOur, void* fnGTAAddr, size_t nVirtFns, const HookInstallOptions& opt) {
-    // Find
+void InstallVirtual(std::string_view category, std::string fnName, void** vtblGTA, void** vtblOur, void* fnGTAAddr, void* fnOurAddr, size_t nVirtFns, const HookInstallOptions& opt) {
+    // Find fn index in vtbl
     const auto spanGTAVTbl = std::span{ vtblGTA, nVirtFns };
     const auto iter = rng::find(spanGTAVTbl, fnGTAAddr);
     if (iter == spanGTAVTbl.end()) {
@@ -69,6 +99,9 @@ void InstallVirtual(std::string_view category, std::string fnName, void** vtblGT
         NOTSA_UNREACHABLE("{}: Couldn't find function [{} @ {}] in vtable\n", category, fnName, fnGTAAddr);
     }
     const auto fnVTblIdx = (size_t)rng::distance(spanGTAVTbl.begin(), iter);
+
+    // Make sure vtable entries correspond to GTA's layout
+    //assert(vtblOur[fnVTblIdx] == fnOurAddr); // Doesn't work because the compiler generates thunks in debug mode
 
 #ifdef HOOKS_DEBUG
     std::cout << std::format("{}::{} => {}\n", category, fnName, fnVTblIdx);
@@ -84,6 +117,15 @@ void AddItemToCategory(std::string_view category, std::shared_ptr<ReversibleHook
     s_RootCategory.AddItemToNamedCategory(category, std::move(item));
 }
 
+#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+void InstallScriptCommand(std::string_view category, eScriptCommands cmd) {
+    AddItemToCategory( \
+        category,
+        std::make_shared<::ReversibleHooks::ReversibleHook::ScriptCommand>(cmd)
+    );
+}
+#endif
+
 void WriteHooksToFile(const std::filesystem::path& file) {
     std::ofstream of{ file };
     of << "class,fn_name,address,reversed,locked,is_virtual\n";
@@ -95,15 +137,16 @@ void WriteHooksToFile(const std::filesystem::path& file) {
                 << cat.Name() << "," // class
                 << item->Name() << "," // fn_name
                 << "0x" << std::hex << [&] { // address
-                switch (item->Type()) {
-                case Base::HookType::Virtual:
-                    return std::static_pointer_cast<Virtual>(item)->GetHookGTAAddress();
-                case Base::HookType::Simple:
-                    return std::static_pointer_cast<Simple>(item)->GetHookGTAAddress();
-                default:
-                    NOTSA_UNREACHABLE();
-                }
-            }() << std::dec << ","
+                        switch (item->Type()) {
+                        case Base::HookType::Virtual:
+                            return std::static_pointer_cast<Virtual>(item)->GetHookGTAAddress();
+                        case Base::HookType::Simple:
+                            return std::static_pointer_cast<Simple>(item)->GetHookGTAAddress();
+                        default:
+                            NOTSA_UNREACHABLE();
+                        }
+                    }()
+                << std::dec << ","
                 << item->Hooked() << "," // reversed // TODO: Improve this (Add `m_isReversed` to `Base`) - For now this will do
                 << item->Locked() << "," // locked
                 << (item->Type() == Base::HookType::Virtual) << '\n'; // is_virtual
@@ -116,8 +159,8 @@ void HookInstall(std::string_view category, std::string fnName, uint32 installAd
 #ifndef NDEBUG // Functions with the same name are asserted in `HookCategory::AddItem()`
     auto [iter, inserted] = s_HookedAddresses.insert(installAddress);
     if (!inserted) {
-        // If this asserts that means the address was hooked once already - Thats bad!
-        printf("Warn %s %s\n", category.data(), fnName.c_str());
+        NOTSA_LOG_ERR("{}/{} is hooked to an address (0x{:X}) that is already hooked! That's bad!", category.data(), fnName.c_str(), LOG_PTR(installAddress));
+        assert(false);
         return;
     }
 #endif
@@ -135,12 +178,25 @@ void VirtualCopy(void* dst, void* src, size_t nbytes) {
     VirtualProtect(dst, nbytes, dwProtect[0], &dwProtect[1]);
 }
 
+// Really fucking simple name mangling for msvc
+// Check this out: https://en.m.wikiversity.org/wiki/Visual_C%2B%2B_name_mangling
+void MangleClassNameMSVC(CHAR* out, std::string_view name) {
+    if (const auto openerPos = name.find('<'); openerPos != std::string_view::npos) { // Templated class, this only works for single templated classes (for now)
+        // ??_7?$CTaskComplexSeekEntity@VCEntitySeekPosCalculatorStandard@@@@6B@
+        const auto closerPos = name.rfind('>');
+        *std::format_to(out, "??_7?${}@V{}@@@@6B@", name.substr(0, openerPos), name.substr(openerPos + 1, closerPos - openerPos - 1)) = 0;
+    } else {
+        // ??_7CTaskSimple@@6B@
+        *std::format_to(out, "??_7{}@@6B@", name) = 0;
+    }
+}
+
 // The VTable is exported as a symbol, in the format `??_7<class name>@@6B@` where `<class name>` is the name of the class.
 // In order for this to work the class has to be exported (So the `NOTSA_EXPORT_VTABLE` macro has to be used)
 void** GetVTableAddress(std::string_view className) {
-    CHAR buffer[1024];
-    sprintf_s(buffer, "??_7%.*s@@6B@", (int)className.length(), className.data());
-    if (const auto vtbl = reinterpret_cast<void**>(GetProcAddress(s_hThisDLL, buffer))) {
+    CHAR mangledName[1024];
+    MangleClassNameMSVC(mangledName, className);
+    if (const auto vtbl = reinterpret_cast<void**>(GetProcAddress(s_hThisDLL, mangledName))) {
 #ifdef HOOKS_DEBUG
         std::cout << std::format("{}: Our VMT: {} \n", className, (void*)vtbl);
 #endif

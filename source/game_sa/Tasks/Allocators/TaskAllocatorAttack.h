@@ -3,7 +3,7 @@
 #include "TaskAllocator.h"
 #include "ePedType.h"
 
-class CTaskAllocatorAttack : public CTaskAllocator {
+class NOTSA_EXPORT_VTABLE CTaskAllocatorAttack : public CTaskAllocator {
 public:
     int32    f14;
     int8     f18;

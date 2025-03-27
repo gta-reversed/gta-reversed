@@ -14,7 +14,7 @@ class CAnimBlendAssociation;
 class CTaskUtilityLineUpPedWithCar;
 
 
-class CTaskSimpleCarSetPedInAsPassenger : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleCarSetPedInAsPassenger : public CTaskSimple {
 public:
     bool                          m_bIsFinished{};
     CAnimBlendAssociation*        m_pAnim{};
@@ -29,11 +29,12 @@ public:
     static constexpr auto Type = TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER;
 
     CTaskSimpleCarSetPedInAsPassenger(CVehicle* targetVehicle, eTargetDoor nTargetDoor, bool warpingInToCar /* notsa arg */ = false, CTaskUtilityLineUpPedWithCar* utility = nullptr);
+    CTaskSimpleCarSetPedInAsPassenger(const CTaskSimpleCarSetPedInAsPassenger&);
     ~CTaskSimpleCarSetPedInAsPassenger() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override;
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override { return false; }
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskSimpleCarSetPedInAsPassenger{*this}; }  // 0x649D90
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return false; }
     bool ProcessPed(CPed* ped) override;
 };
 VALIDATE_SIZE(CTaskSimpleCarSetPedInAsPassenger, 0x20);

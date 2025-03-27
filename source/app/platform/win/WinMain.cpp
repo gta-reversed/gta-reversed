@@ -15,9 +15,13 @@
 #include "WndProc.h"
 
 #include "extensions/Configs/FastLoader.hpp"
-#include "extensions/Configs/WindowedMode.hpp"
 
 constexpr auto NO_FOREGROUND_PAUSE = true;
+
+// 0x747300
+char* getDvdGamePath() {
+    return plugin::CallAndReturn<char*, 0x747300>();
+}
 
 // 0x746870
 void MessageLoop() {
@@ -46,28 +50,18 @@ bool InitApplication(HINSTANCE hInstance) {
 
 // 0x745560
 HWND InitInstance(HINSTANCE hInstance) {
-    // NOTSA/HACK: With this hack we can set a specific value for
-    // windowed mode. Also this is so stupid it needs to be changed
-    // after 'window-stretch-freeze' bug fixed.
-    RsGlobal.maximumWidth = g_WindowedModeConfig.WindowWidth;
-    RsGlobal.maximumHeight = g_WindowedModeConfig.WindowHeight;
-
-    RECT winRt;
-    GetClientRect(GetDesktopWindow(), &winRt);
-
     RECT rect = { 0, 0, RsGlobal.maximumWidth, RsGlobal.maximumHeight };
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
-    const auto width = rect.right - rect.left, height = rect.bottom - rect.top;
 
     return CreateWindowEx(
         0,
         APP_CLASS,
         RsGlobal.appName,
         WS_OVERLAPPEDWINDOW,
-        (g_WindowedModeConfig.Centered) ? (winRt.right - winRt.left - width) / 2  : CW_USEDEFAULT,
-        (g_WindowedModeConfig.Centered) ? (winRt.bottom - winRt.top - height) / 2 : CW_USEDEFAULT,
-        width,
-        height,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        rect.right - rect.left,
+        rect.bottom - rect.top,
         nullptr,
         nullptr,
         hInstance,
@@ -91,11 +85,6 @@ bool IsAlreadyRunning() {
 // 0x746060
 bool IsForegroundApp() {
     return ForegroundApp;
-}
-
-// 0x746480
-char** CommandLineToArgv(char* cmdLine, int* argCount) {
-    return plugin::CallAndReturn<char**, 0x746480, char*, int*>(cmdLine, argCount);
 }
 
 // Code from winmain, 0x748DCF
@@ -195,7 +184,7 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         }
         CGame::InitialiseCoreDataAfterRW();
         ChangeGameStateTo(GAME_STATE_FRONTEND_LOADED);
-        anisotropySupportedByGFX = (RwD3D9GetCaps()->RasterCaps & D3DPRASTERCAPS_ANISOTROPY) != 0; // todo: func
+        anisotropySupportedByGFX = (((const D3DCAPS9*)RwD3D9GetCaps())->RasterCaps & D3DPRASTERCAPS_ANISOTROPY) != 0; // todo: func
         break;
     }
     case GAME_STATE_FRONTEND_LOADED: {
@@ -268,7 +257,7 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
 
 // Code from winmain, 0x7489FB
 void MainLoop(INT nCmdShow, MSG& Msg) {
-    bool bNewGameFirstTime = false;
+    bool isNewGameFirstTime = true;
     while (true) {
         RwInitialized = true;
 
@@ -296,7 +285,7 @@ void MainLoop(INT nCmdShow, MSG& Msg) {
             CGame::ShutDownForRestart();
             CGame::InitialiseWhenRestarting();
             FrontEndMenuManager.m_bLoadingData = false;
-        } else if (bNewGameFirstTime) {
+        } else if (isNewGameFirstTime) {
             CTimer::Stop();
             ChangeGameStateTo(
                 FrontEndMenuManager.m_nGameState != 1
@@ -310,7 +299,7 @@ void MainLoop(INT nCmdShow, MSG& Msg) {
             CGame::InitialiseWhenRestarting();
         }
 
-        bNewGameFirstTime = false;
+        isNewGameFirstTime = false;
         FrontEndMenuManager.m_nGameState = 0;
         FrontEndMenuManager.m_bStartGameLoading = false;
     }
@@ -333,12 +322,18 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
         return false;
     }
 
-    cmdLine = GetCommandLine();
-    int argc;
-    char** argv = CommandLineToArgv(cmdLine, &argc);
+    char** argv = __argv;
+    int    argc = __argc;
     for (int i = 0; i < argc; i++) {
         RsEventHandler(rsPREINITCOMMANDLINE, argv[i]);
     }
+
+    // Dirty fix for crash in crt when trying to free cmd line args
+    // Yeah we leak memory, but who cares
+    // Crash was in `uninitialize_allocated_io_buffers` (`C:\Program Files (x86)\Windows Kits\10\Source\<Win 10 SDK Version>\ucrt\internal\initialization.cpp`)
+    __argc  = 0;
+    __argv  = nullptr;
+    __wargv = nullptr;
 
     PSGLOBAL(window) = InitInstance(instance);
     if (!PSGLOBAL(window)) {
@@ -428,9 +423,8 @@ void InjectWinMainStuff() {
 
     RH_ScopedGlobalInstall(IsForegroundApp, 0x746060);
     RH_ScopedGlobalInstall(IsAlreadyRunning, 0x7468E0);
-    RH_ScopedGlobalInstall(CommandLineToArgv, 0x746480, { .reversed = false });
 
     // Unhooking these 2 after the game has started will do nothing
-    RH_ScopedGlobalInstall(NOTSA_WinMain, 0x748710, { .locked = true });
-    RH_ScopedGlobalInstall(InitInstance, 0x745560);
+    RH_ScopedGlobalInstall(NOTSA_WinMain, 0x748710, {.locked = true});
+    RH_ScopedGlobalInstall(InitInstance, 0x745560, {.locked = true});
 }

@@ -46,6 +46,7 @@ public:
 
 static CSync cdStreamThreadSync;
 #endif
+#include "AEBankLoader.h"
 
 void InjectCdStreamHooks() {
     RH_ScopedNamespaceName("CdStream");
@@ -63,20 +64,29 @@ void InjectCdStreamHooks() {
 }
 
 // 0x4067B0
-int32 CdStreamOpen(const char* lpFileName) {
-    int32 freeHandleIndex = 0;
-    for (; freeHandleIndex < MAX_CD_STREAM_HANDLES; freeHandleIndex++) {
-        if (!gStreamFileHandles[freeHandleIndex])
+CdStreamHandle CdStreamOpen(const char* lpFileName) {
+    NOTSA_LOG_DEBUG("CdStreamOpen: {}", lpFileName);
+    int32 idx = 0;
+    for (; idx < MAX_CD_STREAM_HANDLES; idx++) {
+        if (!gStreamFileHandles[idx])
             break;
     }
     SetLastError(NO_ERROR);
-    const DWORD dwFlagsAndAttributes = gStreamFileCreateFlags | FILE_ATTRIBUTE_READONLY | FILE_FLAG_RANDOM_ACCESS;
-    HANDLE file = CreateFileA(lpFileName, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, dwFlagsAndAttributes, nullptr);
-    gStreamFileHandles[freeHandleIndex] = file;
-    if (file == INVALID_HANDLE_VALUE)
+    HANDLE file = CreateFileA(
+        lpFileName,
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        nullptr,
+        OPEN_EXISTING,
+        gStreamFileCreateFlags | FILE_ATTRIBUTE_READONLY | FILE_FLAG_RANDOM_ACCESS,
+        nullptr
+    );
+    gStreamFileHandles[idx] = file;
+    if (file == INVALID_HANDLE_VALUE) {
         return 0;
-    strncpy_s(gCdImageNames[freeHandleIndex], lpFileName, MAX_CD_STREAM_IMAGE_NAME_SIZE);
-    return freeHandleIndex << 24;
+    }
+    strncpy_s(gCdImageNames[idx], lpFileName, MAX_CD_STREAM_IMAGE_NAME_SIZE);
+    return (CdStreamHandle)(idx << CD_STREAM_HANDLE_BITS);
 }
 
 // This function halts the caller thread if CdStreamThread is still reading the file to "sync" it.
@@ -149,17 +159,16 @@ eCdStreamStatus CdStreamGetStatus(int32 streamId) {
 // When CdStreamThread is done reading the model, then CdStreamThread will set `stream.nSectorsToRead` and `stream.bInUse` to 0,
 // so the main thread can call CdStreamRead again to read more models.
 // 0x406A20
-bool CdStreamRead(int32 streamId, void* lpBuffer, uint32 offsetAndHandle, int32 sectorCount) {
+bool CdStreamRead(int32 streamId, void* lpBuffer, CdStreamPos pos, int32 sectorCount) {
     CdStream& stream = gCdStreams[streamId];
-    gLastCdStreamPosn = sectorCount + offsetAndHandle;
-    const uint32 sectorOffset = offsetAndHandle & 0xFFFFFF;
-    stream.hFile = gStreamFileHandles[offsetAndHandle >> 24];
+    gLastCdStreamPosn = sectorCount + (notsa::IsFixBugs() ? pos.Offset : pos.ToInt()); // CD_STREAM_READ_POS_FIX
+    stream.hFile = gStreamFileHandles[pos.FileID];
     SetLastError(NO_ERROR);
     if (gStreamingInitialized) {
         if (stream.nSectorsToRead || stream.bInUse)
             return false;
         stream.status = eCdStreamStatus::READING_SUCCESS;
-        stream.nSectorOffset = sectorOffset;
+        stream.nSectorOffset = pos.Offset;
         stream.nSectorsToRead = sectorCount;
         stream.lpBuffer = lpBuffer;
         stream.bLocked = false;
@@ -169,7 +178,7 @@ bool CdStreamRead(int32 streamId, void* lpBuffer, uint32 offsetAndHandle, int32 
         return true;
     }
     const DWORD numberOfBytesToRead = sectorCount * STREAMING_SECTOR_SIZE;
-    const DWORD overlappedOffset = sectorOffset * STREAMING_SECTOR_SIZE;
+    const DWORD overlappedOffset = pos.Offset * STREAMING_SECTOR_SIZE;
     if (gOverlappedIO) {
         LPOVERLAPPED overlapped = &gCdStreams[streamId].overlapped;
         overlapped->Offset = overlappedOffset;
@@ -288,7 +297,7 @@ void CdStreamInit(int32 streamCount) {
     gStreamCount = streamCount;
     gCdStreams = (CdStream*)LocalAlloc(LPTR, sizeof(CdStream) * streamCount);
     CdStreamOpen("MODELS\\GTA3.IMG");
-    bool bStreamRead = CdStreamRead(0, pAllocatedMemory, 0, 1);
+    bool bStreamRead = CdStreamRead(0, pAllocatedMemory, {}, 1);
     CdStreamRemoveImages();
     gStreamingInitialized = 1;
     if (!bStreamRead) {
@@ -326,4 +335,8 @@ void CdStreamShutdown() {
         }
     }
     LocalFree(gCdStreams);
+}
+
+uint32 CdStreamHandleToFileID(CdStreamHandle h) {
+    return h >> CD_STREAM_HANDLE_BITS;
 }

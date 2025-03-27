@@ -55,7 +55,7 @@ CTask* CTaskComplexExtinguishFires::CreateNextSubTask(CPed* ped) {
             return CreateFirstSubTask(ped);
         }
 
-        if (ped->GetActiveWeapon().m_nType == WEAPON_EXTINGUISHER) { // Inverted
+        if (ped->GetActiveWeapon().m_Type == WEAPON_EXTINGUISHER) { // Inverted
             return new CTaskSimpleGunControl{ nullptr, nearestFireNow->GetPosition(), {}, eGunCommand::PISTOLWHIP, 1, -1 };
         } else {
             return new CTaskSimpleStandStill{ 2000 };
@@ -81,7 +81,7 @@ CTask* CTaskComplexExtinguishFires::ControlSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_GUN_CTRL: {
         if (nearestFireNow != m_fireToExt) {
-            if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+            if (m_pSubTask->MakeAbortable(ped)) {
                 return CreateFirstSubTask(ped);
             }
         }

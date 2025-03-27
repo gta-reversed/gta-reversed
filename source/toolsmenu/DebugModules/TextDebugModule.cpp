@@ -29,16 +29,16 @@ void TextDebugModule::RenderMainWindow() {
         ImGui::Text("%08X", entry.hash);
 
         ImGui::TableNextColumn();
-        ImGui::TextUnformatted(entry.string);
+        ImGui::TextUnformatted(GxtCharToUTF8(entry.string));
 
         ImGui::PopID();
     };
 
-    for (const auto& entry : TheText.GetMissionKeys()) {
+    for (const auto& entry : TheText.GetMissionKeys() | rngv::take(1'000)) {
         WriteRow(entry, TheText.GetMissionName());
     }
 
-    for (const auto& entry : TheText.GetKeys()) {
+    for (const auto& entry : TheText.GetKeys() | rngv::take(1'000)) {
         WriteRow(entry, "MAIN");
     }
 

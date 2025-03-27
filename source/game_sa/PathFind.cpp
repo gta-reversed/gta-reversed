@@ -67,13 +67,13 @@ void CPathFind::InjectHooks() {
     //RH_ScopedInstall(SwitchPedRoadsOffInArea, 0x452F00);
     //RH_ScopedInstall(SwitchRoadsOffInArea, 0x452C80);
     //RH_ScopedInstall(SwitchRoadsOffInAreaForOneRegion, 0x452820);
-    //RH_ScopedInstall(ComputeRoute, 0x452760);
+    RH_ScopedInstall(ComputeRoute, 0x452760, { .reversed = false });
     //RH_ScopedInstall(CompleteNewInterior, 0x452270);
     RH_ScopedInstall(SwitchOffNodeAndNeighbours, 0x452160);
     //RH_ScopedInstall(Find2NodesForCarCreation, 0x452090);
     //RH_ScopedInstall(TestCoorsCloseness, 0x452000);
     //RH_ScopedInstall(FindNextNodeWandering, 0x451B70);
-    RH_ScopedInstall(DoPathSearch, 0x4515D0);
+    RH_ScopedInstall(DoPathSearch, 0x4515D0, {.reversed = false}); // Sometimes breaks `CTaskComplexFollowNodeRoute::ComputePathNodes` - To repro just walk around in groove st. 
     //RH_ScopedInstall(FindParkingNodeInArea, 0x4513F0);
     RH_ScopedInstall(FindLinkBetweenNodes, 0x451350);
     RH_ScopedInstall(ReturnInteriorNodeIndex, 0x451300);
@@ -107,7 +107,7 @@ void CPathFind::InjectHooks() {
 void CPathNode::InjectHooks() {
     RH_ScopedClass(CPathNode);
     RH_ScopedCategoryGlobal();
-    RH_ScopedInstall(GetNodeCoors, 0x420A10);
+    RH_ScopedInstall(GetPosition, 0x420A10);
 }
 
 // 0x44D080
@@ -118,7 +118,7 @@ void CPathFind::Init() {
     m_nNumForbiddenAreas = 0;
     m_loadAreaRequestPending = false;
 
-    for (auto i = 0u; i < NUM_PATH_MAP_AREAS + NUM_PATH_INTERIOR_AREAS; ++i) {
+    for (auto i = 0u; i < NUM_TOTAL_PATH_NODE_AREAS; ++i) {
         m_pPathNodes[i] = nullptr;
         m_pNaviNodes[i] = nullptr;
         m_pNodeLinks[i] = nullptr;
@@ -128,7 +128,7 @@ void CPathFind::Init() {
         m_aUnused[i] = nullptr;    // BUG: Out of array bounds write, same as in original code
     }
 
-    rng::fill(m_interiorIDs, 0xFF);
+    rng::fill(m_interiorIDs, (uint32)-1);
 }
 
 // 0x44E4E0
@@ -262,15 +262,18 @@ bool CPathFind::TestForPedTrafficLight(CNodeAddress startNodeAddress, CNodeAddre
 }
 
 // 0x4509A0
-CVector CPathFind::TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, uint16 randomSeed) {
+CVector CPathFind::TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, int16 randomSeed) {
     // Invalid area, or area not loaded
-    if (nodeAddress.IsValid() && IsAreaNodesAvailable(nodeAddress)) {
-        const auto nbits = 4u;
-        const auto Random = [](uint16 seed) { return (float)(seed % (1 << nbits) - 7); };
-        return GetPathNode(nodeAddress)->GetNodeCoors() + CVector{ Random(randomSeed), Random(randomSeed >> nbits), 0.f };
+    if (!nodeAddress.IsValid() || !IsAreaNodesAvailable(nodeAddress)) {
+        return {};
     }
 
-    return {};
+    auto node         = GetPathNode(nodeAddress);
+    auto basePosition = node->GetPosition();
+    auto offsetX      = float(node->m_nPathWidth * ((randomSeed % 16) - 7)); // bottom 8 bits remapped to [-7 : +8]
+    auto offsetY      = float(node->m_nPathWidth * (((randomSeed / 16) % 16) - 7)); // top 8 bits remapped to [-7 : +8]
+    auto offset       = CVector{ offsetX * 0.00775f, offsetY * 0.00775f, 0.f };
+    return basePosition + offset;
 }
 
 //  0x44F8C0
@@ -483,9 +486,14 @@ void CPathFind::DoPathSearch(
     }
 }
 
-void CPathFind::SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, float fYMax, bool value) {
-    const auto areaRect = CRect{ {fXMax, fYMax}, {fXMin, fYMin} };
+// 0x452760
+void CPathFind::ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& startAddress, CNodeRoute* route) {
+    plugin::CallMethod<0x452760>(this, nodeType, &vecStart, &vecEnd, &startAddress, route);
+}
 
+// 0x44D960
+void CPathFind::SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, float fYMax, bool value) {
+    const auto areaRect = CRect{ {fXMin, fYMin}, {fXMax, fYMax} };
     for (auto areaId = 0u; areaId < NUM_PATH_MAP_AREAS; areaId++) {
         if (!IsAreaLoaded(areaId)) {
             continue;
@@ -503,7 +511,7 @@ void CPathFind::SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, floa
 namespace detail {
 // NOTSA
 CVector GetPosnBetweenNodesForScript(CPathNode* nodeA, CVector2D dir) {
-    return nodeA->GetNodeCoors() + CVector{dir.GetPerpLeft() * ((float)nodeA->m_nPathWidth / 16.f + 2.7f)};
+    return nodeA->GetPosition() + CVector{dir.GetPerpLeft() * ((float)nodeA->m_nPathWidth / 16.f + 2.7f)};
 }
 };
 
@@ -514,20 +522,20 @@ CVector CPathFind::FindNodeCoorsForScript(CNodeAddress address, bool* bFound) {
             *bFound = found;
         }
     };
-    if (!address.IsValid() || IsAreaNodesAvailable(address)) {
+    if (!address.IsValid() || !IsAreaNodesAvailable(address)) {
         SetFound(false);
         return {};
     } else {
         SetFound(true);
 
         const auto node = GetPathNode(address);
-        const auto nodePos = node->GetNodeCoors();
+        const auto nodePos = node->GetPosition();
  
         // If this node has a link return some kind of position between this and the first link
         if (node->m_nPathWidth && node->m_nNumLinks) {
             if (const auto firstLink = m_pNodeLinks[node->m_wBaseLinkId]) {
                 if (const auto firstLinkedNode = GetPathNode(*firstLink)) {
-                    auto dir = CVector2D{ firstLinkedNode->GetNodeCoors() - nodePos }.Normalized();
+                    auto dir = CVector2D{ firstLinkedNode->GetPosition() - nodePos }.Normalized();
 
                     // By negating here we invert the direction
                     dir = dir.x >= 0 ? dir : -dir;
@@ -553,8 +561,8 @@ CVector CPathFind::FindNodeCoorsForScript(CNodeAddress nodeAddrA, CNodeAddress n
         SetFound(true);
 
         const auto nodeA = GetPathNode(nodeAddrA);
-        const auto posA  = nodeA->GetNodeCoors();
-        const auto dir   = CVector2D{ GetPathNode(nodeAddrB)->GetNodeCoors() - posA }.Normalized();
+        const auto posA  = nodeA->GetPosition();
+        const auto dir   = CVector2D{ GetPathNode(nodeAddrB)->GetPosition() - posA }.Normalized();
 
         outHeadingDeg = RWRAD2DEG(dir.Heading());
 
@@ -698,7 +706,7 @@ bool CPathFind::IsWaterNodeNearby(CVector position, float radius) {
     for (auto areaId = 0u; areaId < NUM_PATH_MAP_AREAS; areaId++) {
         for (const auto& node : GetPathNodesInArea(areaId, PATH_TYPE_VEH)) {
             if (node.m_bWaterNode) {
-                if ((node.GetNodeCoors() - position).SquaredMagnitude() <= sq(radius)) {
+                if ((node.GetPosition() - position).SquaredMagnitude() <= sq(radius)) {
                     return true;
                 }
             }
@@ -786,11 +794,11 @@ void CPathFind::UpdateStreaming(bool bForceStreaming) {
                         ? STREAMING_MISSION_REQUIRED
                         : STREAMING_KEEP_IN_MEMORY
                 );
-                DEV_LOG("Requested area: %i", (int)areaId);
+                DEV_LOG("Requested area: {}", (int)areaId);
             }
         } else if (IsAreaLoaded(areaId)) {
             CStreaming::RemoveModel(DATToModelId(areaId));
-            DEV_LOG("Removed area: %i", (int)areaId);
+            DEV_LOG("Removed area: {}", (int)areaId);
         }
     }
 }
@@ -804,7 +812,7 @@ void CPathFind::StartNewInterior(int32 interiorNum) {
 
     // BUG: Possible endless loop if 8 interiors are loaded i think
     NewInteriorSlot = 0;
-    while (m_interiorIDs[NewInteriorSlot] != -1) {
+    while (m_interiorIDs[NewInteriorSlot] != (uint32)-1) {
         NewInteriorSlot++;
         assert(NewInteriorSlot < 8);
     }
@@ -939,14 +947,14 @@ CNodeAddress CPathFind::FindNodeClosestToCoorsFavourDirection(CVector pos, ePath
     float        scoreOfClosest{std::numeric_limits<float>::max()};
     for (auto areaId{ 0u }; areaId < NUM_TOTAL_PATH_NODE_AREAS; areaId++) {
         for (const auto& node : GetPathNodesInArea(areaId, nodeType)) { // NOTE: Function takes care of checking whenever the area is loaded
-            const auto dirToNodeUN = pos - node.GetNodeCoors();
+            const auto dirToNodeUN = pos - node.GetPosition();
 
             const auto dotScore = (abs(dirToNodeUN) * CVector { 1.f, 1.f, 3.f }).ComponentwiseSum();
             if (dotScore >= scoreOfClosest) {
                 continue;
             }
 
-            const auto score = dotScore - (dir.Dot(dirToNodeUN) - 1.f) * 20.f;
+            const auto score = dotScore - (dir.Dot(CVector2D{ dirToNodeUN }.Normalized()) - 1.f) * 20.f;
             if (score <= scoreOfClosest) {
                 scoreOfClosest = score;
                 closest = node.GetAddress();
@@ -959,18 +967,18 @@ CNodeAddress CPathFind::FindNodeClosestToCoorsFavourDirection(CVector pos, ePath
 
 // 0x5D34C0
 bool CPathFind::Save() {
-    CGenericGameStorage::SaveDataToWorkBuffer(&m_nNumForbiddenAreas, sizeof(m_nNumForbiddenAreas));
-    for (auto& area : std::span{ m_aForbiddenAreas, (size_t)m_nNumForbiddenAreas }) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&area, sizeof(area));
+    CGenericGameStorage::SaveDataToWorkBuffer(m_nNumForbiddenAreas);
+    for (auto& area : std::span{ m_aForbiddenAreas, m_nNumForbiddenAreas }) {
+        CGenericGameStorage::SaveDataToWorkBuffer(area);
     }
     return true;
 }
 
 // 0x5D3500
 bool CPathFind::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(&m_nNumForbiddenAreas, sizeof(m_nNumForbiddenAreas));
-    for (auto& area : std::span{ m_aForbiddenAreas, (size_t)m_nNumForbiddenAreas }) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&area, sizeof(area));
+    CGenericGameStorage::LoadDataFromWorkBuffer(m_nNumForbiddenAreas);
+    for (auto& area : std::span{ m_aForbiddenAreas, m_nNumForbiddenAreas }) {
+        CGenericGameStorage::LoadDataFromWorkBuffer(area);
     }
     return true;
 }
@@ -1174,9 +1182,8 @@ float CPathFind::FindYCoorsForRegion(size_t y) {
 // 0x44DED0
 void CPathFind::AddInteriorLink(int32 intNodeA, int32 intNodeB) {
     const auto AddLink = [](int32 intIdx, int32 linkTo) {
-        // NOTE: Original code compared >= 0, but it's most likely -1.. If anything goes bad use `>= 0`
         const auto it = rng::find(ConnectsToGiven[intIdx], -1); 
-        assert(*it >= 0);
+        assert(!(*it >= 0)); // NOTE: Original code did a `while (*it >= 0), if anything goes bad use `>= 0` for `rng::find`
         *it = linkTo;
     };
     AddLink(intNodeA, intNodeB);

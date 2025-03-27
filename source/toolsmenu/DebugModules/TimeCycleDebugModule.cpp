@@ -46,7 +46,7 @@ void TimeCycleDebugModule::RenderWindow() {
     ImGui::Checkbox("Stop Time", &CClock::gbFreezeTime);
     ImGui::SameLine();
     if (ImGui::Button("Save")) {
-        CMessages::AddBigMessage("Saved", 3000, STYLE_MIDDLE);
+        CMessages::AddBigMessage("Saved"_gxt, 3000, STYLE_MIDDLE);
     }
     ImGui::SameLine();
     if (ImGui::Button("Reset")) {
@@ -67,10 +67,10 @@ void TimeCycleDebugModule::RenderWindow() {
         CWeather::NewWeatherType = static_cast<eWeatherType>(m_NewWeatherType);
     }
 
-    if (ImGui::SliderInt("Hours", &m_Hours, 0, 23, "%.0f")) {
+    if (ImGui::SliderInt("Hours", &m_Hours, 0, 23, "%d")) {
         CClock::ms_nGameClockHours = static_cast<uint8>(m_Hours);
     }
-    if (ImGui::SliderInt("Minutes", &m_Minutes, 0, 59, "%.0f")) {
+    if (ImGui::SliderInt("Minutes", &m_Minutes, 0, 59, "%d")) {
         CClock::ms_nGameClockMinutes = static_cast<uint8>(m_Minutes);
     }
 

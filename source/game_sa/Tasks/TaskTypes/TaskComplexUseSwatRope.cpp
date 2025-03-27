@@ -10,15 +10,15 @@
 #include "Ropes.h"
 
 void CTaskComplexUseSwatRope::InjectHooks() {
-    RH_ScopedClass(CTaskComplexUseSwatRope);
+    RH_ScopedVirtualClass(CTaskComplexUseSwatRope, 0x86F59C, 13);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x659470);
     RH_ScopedInstall(CreateSubTask, 0x659620);
-    RH_ScopedVirtualInstall(Clone, 0x659C30);
-    RH_ScopedVirtualInstall(CreateFirstSubTask, 0x65A440);
-    RH_ScopedVirtualInstall(CreateNextSubTask, 0x65A3E0);
-    RH_ScopedVirtualInstall(ControlSubTask, 0x65A460);
-    RH_ScopedVirtualInstall(MakeAbortable, 0x659530);
+    RH_ScopedVMTInstall(Clone, 0x659C30);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x65A440);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x65A3E0);
+    RH_ScopedVMTInstall(ControlSubTask, 0x65A460);
+    RH_ScopedVMTInstall(MakeAbortable, 0x659530);
 }
 
 CTaskComplexUseSwatRope* CTaskComplexUseSwatRope::Constructor(uint32 ropeId, CHeli* heli) {
@@ -46,43 +46,20 @@ CTaskComplexUseSwatRope::CTaskComplexUseSwatRope(uint32 ropeId) : CTaskComplex()
 
 // 0x65A3C0
 CTaskComplexUseSwatRope::~CTaskComplexUseSwatRope() {
-    if (m_bIsOnHeli)
-        m_pHeli->CleanUpOldReference(reinterpret_cast<CEntity**>(&m_pHeli));
+    if (m_bIsOnHeli) {
+        CEntity::SafeCleanUpRef(m_pHeli);
+    }
 }
 
 // 0x659C30
-CTask* CTaskComplexUseSwatRope::Clone() {
-    return Clone_Reversed();
+CTask* CTaskComplexUseSwatRope::Clone() const {
+    return m_bIsOnHeli
+        ? new CTaskComplexUseSwatRope(m_nRopeId, m_pHeli)
+        : new CTaskComplexUseSwatRope(m_nRopeId);
 }
 
 // 0x659530
 bool CTaskComplexUseSwatRope::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    return MakeAbortable_Reversed(ped, priority, event);
-}
-
-// 0x65A3E0
-CTask* CTaskComplexUseSwatRope::CreateNextSubTask(CPed* ped) {
-    return CreateNextSubTask_Reversed(ped);
-}
-
-// 0x65A440
-CTask* CTaskComplexUseSwatRope::CreateFirstSubTask(CPed* ped) {
-    return CreateFirstSubTask_Reversed(ped);
-}
-
-// 0x65A460
-CTask* CTaskComplexUseSwatRope::ControlSubTask(CPed* ped) {
-    return ControlSubTask_Reversed(ped);
-}
-
-CTask* CTaskComplexUseSwatRope::Clone_Reversed() {
-    if (m_bIsOnHeli)
-        return new CTaskComplexUseSwatRope(m_nRopeId, m_pHeli);
-    else
-        return new CTaskComplexUseSwatRope(m_nRopeId);
-}
-
-bool CTaskComplexUseSwatRope::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) {
     eEventType eventType = event->GetEventType();
 
     if ((priority == ABORT_PRIORITY_IMMEDIATE
@@ -106,7 +83,8 @@ bool CTaskComplexUseSwatRope::MakeAbortable_Reversed(CPed* ped, eAbortPriority p
         return false;
 }
 
-CTask* CTaskComplexUseSwatRope::CreateNextSubTask_Reversed(CPed* ped) {
+// 0x65A3E0
+CTask* CTaskComplexUseSwatRope::CreateNextSubTask(CPed* ped) {
     eTaskType subTaskType = m_pSubTask->GetTaskType();
 
     if (subTaskType == TASK_NONE || subTaskType == TASK_SIMPLE_PAUSE)
@@ -118,18 +96,20 @@ CTask* CTaskComplexUseSwatRope::CreateNextSubTask_Reversed(CPed* ped) {
     return nullptr;
 }
 
-CTask* CTaskComplexUseSwatRope::CreateFirstSubTask_Reversed(CPed* ped) {
+// 0x65A440
+CTask* CTaskComplexUseSwatRope::CreateFirstSubTask(CPed* ped) {
     return CreateSubTask(TASK_SIMPLE_ABSEIL, ped);
 }
 
-CTask* CTaskComplexUseSwatRope::ControlSubTask_Reversed(CPed* ped) {
+// 0x65A460
+CTask* CTaskComplexUseSwatRope::ControlSubTask(CPed* ped) {
     if (   m_bIsOnHeli
         && (
                !m_pHeli
-               || m_pHeli->m_autoPilot.m_nCarMission == MISSION_CRASH_HELI_AND_BURN
+               || m_pHeli->m_autoPilot.m_nCarMission == MISSION_HELI_CRASH_AND_BURN
                || m_pHeli->m_fHealth <= 0.0F
            )
-        && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)
+        && m_pSubTask->MakeAbortable(ped)
     ) {
         ped->bIsStanding = false;
         ped->m_bUsesCollision = true;
@@ -142,7 +122,7 @@ CTask* CTaskComplexUseSwatRope::ControlSubTask_Reversed(CPed* ped) {
     if (subTaskType == TASK_SIMPLE_PAUSE || subTaskType == TASK_SIMPLE_ABSEIL) {
         CVector groundCoord = ped->GetPosition();
         CPedPlacement::FindZCoorForPed(groundCoord);
-        if (ped->GetPosition().z - 2.0F < groundCoord.z && m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr))
+        if (ped->GetPosition().z - 2.0F < groundCoord.z && m_pSubTask->MakeAbortable(ped))
             return CreateSubTask(TASK_NONE, ped);
 
         m_fCoorAlongRope += CTimer::GetTimeStep() * 0.003F;
@@ -151,7 +131,7 @@ CTask* CTaskComplexUseSwatRope::ControlSubTask_Reversed(CPed* ped) {
             ped->SetPosn(posn);
             ped->m_fAimingRotation = ped->m_fCurrentRotation - CTimer::GetTimeStep() * 0.05F;
             ped->m_vecMoveSpeed.z = -0.03f;
-            ped->Say(177);
+            ped->Say(CTX_GLOBAL_ROPE);
         }
     }
 

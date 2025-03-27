@@ -24,7 +24,7 @@ bool CTaskSimpleEvasiveStep::MakeAbortable(CPed* ped, eAbortPriority priority, c
     case ABORT_PRIORITY_URGENT:
     case ABORT_PRIORITY_IMMEDIATE:
         if (m_Assoc) {
-            m_Assoc->m_fBlendDelta = -4.0f;
+            m_Assoc->m_BlendDelta = -4.0f;
             m_Assoc->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
             m_Assoc = nullptr;
         }
@@ -44,7 +44,7 @@ bool CTaskSimpleEvasiveStep::ProcessPed(CPed* ped) {
 
     if (!m_Assoc) {
         if (m_Entity->m_nStatus == STATUS_SIMPLE) {
-            ped->Say(74);
+            ped->Say(CTX_GLOBAL_DODGE);
         }
         StartAnim(ped);
     }
@@ -54,16 +54,16 @@ bool CTaskSimpleEvasiveStep::ProcessPed(CPed* ped) {
 // 0x655EA0
 void CTaskSimpleEvasiveStep::StartAnim(CPed* ped) {
     m_Assoc = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_EV_STEP, 8.0f);
-    m_Assoc->SetFlag(ANIMATION_FREEZE_LAST_FRAME, false);
+    m_Assoc->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE, false);
     m_Assoc->SetFinishCallback(FinishAnimEvasiveStepCB, this);
 }
 
 // 0x653290
 void CTaskSimpleEvasiveStep::FinishAnimEvasiveStepCB(CAnimBlendAssociation* assoc, void* data) {
     auto task = static_cast<CTaskSimpleEvasiveStep*>(data);
-    task->m_Assoc->SetFlag(ANIMATION_FREEZE_LAST_FRAME, true);
-    if (task->m_Assoc->m_fBlendDelta >= 0.0f) {
-        task->m_Assoc->m_fBlendDelta = -4.0f;
+    task->m_Assoc->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE, true);
+    if (task->m_Assoc->m_BlendDelta >= 0.0f) {
+        task->m_Assoc->m_BlendDelta = -4.0f;
     }
     task->m_bFinished = true;
     task->m_Assoc = nullptr;

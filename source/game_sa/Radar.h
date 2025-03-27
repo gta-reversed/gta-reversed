@@ -168,7 +168,11 @@ struct tRadarTrace {
     uint16       m_nCounter;
     float        m_fSphereRadius;
     uint16       m_nBlipSize;
-    CEntryExit*  m_pEntryExit;
+
+    union {
+        CEntryExit* m_pEntryExit;       // Used for normal usage
+        uint32      m_EntryExitPoolInd; // Used when saving/loading to save file
+    };
     eRadarSprite m_nBlipSprite;
 
     bool         m_bBright : 1;              // It makes use of bright colors. Always set.
@@ -203,10 +207,6 @@ public:
     static inline float& cachedCos = *(float*)0xBA8308;
     static inline float& cachedSin = *(float*)0xBA830C;
 
-    // original name unknown
-    static inline eRadarTraceHeight& legendTraceHeight = *(eRadarTraceHeight*)0xBAA350;
-    static inline uint32& legendTraceTimer = *(uint32*)0xBAA354;
-
     static SpriteFileName RadarBlipFileNames[];
 
     static inline float& m_radarRange = *(float*)0xBA8314; // 2990.0 by default
@@ -236,10 +236,10 @@ public:
     static float LimitRadarPoint(CVector2D& point);
     static void LimitToMap(float& x, float& y);
     static uint8 CalculateBlipAlpha(float distance);
-    static void TransformRadarPointToScreenSpace(CVector2D& out, const CVector2D& in);
-    static void TransformRealWorldPointToRadarSpace(CVector2D& out, const CVector2D& in);
-    static void TransformRadarPointToRealWorldSpace(CVector2D& out, const CVector2D& in);
-    static void TransformRealWorldToTexCoordSpace(CVector2D& out, const CVector2D& in, int32 x, int32 y);
+    static CVector2D TransformRadarPointToScreenSpace(const CVector2D& in);
+    static CVector2D TransformRealWorldPointToRadarSpace(const CVector2D& in);
+    static CVector2D TransformRadarPointToRealWorldSpace(const CVector2D& in);
+    static CVector2D TransformRealWorldToTexCoordSpace(const CVector2D& in, int32 x, int32 y);
     static void CalculateCachedSinCos();
     static tBlipHandle SetCoordBlip(eBlipType type, CVector posn, eBlipColour color, eBlipDisplay blipDisplay, const char* scriptName = nullptr);
     static tBlipHandle SetShortRangeCoordBlip(eBlipType type, CVector posn, eBlipColour color, eBlipDisplay blipDisplay, const char* scriptName = nullptr);
@@ -257,7 +257,7 @@ public:
     static void SetBlipFriendly(tBlipHandle blip, bool friendly);
     static void SetBlipEntryExit(tBlipHandle blip, CEntryExit* enex);
     static void ShowRadarTrace(float x, float y, uint32 size, CRGBA color);
-    static void ShowRadarTraceWithHeight(float x, float y, uint32 size, CRGBA color, eRadarTraceHeight height);
+    static void ShowRadarTraceWithHeight(float x, float y, uint32 size, uint32 r, uint32 g, uint32 b, uint32 a, eRadarTraceHeight height);
     static void ShowRadarMarker(CVector posn, uint32 color, float radius);
     static uint32 GetRadarTraceColour(eBlipColour color, bool bright, bool friendly);
     static void DrawRotatingRadarSprite(CSprite2d& sprite, float x, float y, float angle, uint32 width, uint32 height, CRGBA color);
@@ -297,7 +297,7 @@ public:
     static bool Save();
 
     // NOTSA
-    static const char* GetBlipName(eRadarSprite sprite);
+    static const GxtChar* GetBlipName(eRadarSprite sprite);
     static int32 FindTraceNotTrackingBlipIndex(); // Return the index of the first trace with the `TrackingBlip` flag NOT set
 
     static bool IsMapSectionInBounds(int32 x, int32 y) {
@@ -313,7 +313,7 @@ public:
 
     static auto CachedRotateClockwise(const CVector2D& point) {
         return CVector2D{
-            cachedCos * point.x + cachedSin * point.y,
+            +cachedCos * point.x + cachedSin * point.y,
             -cachedSin * point.x + cachedCos * point.y
         };
     }

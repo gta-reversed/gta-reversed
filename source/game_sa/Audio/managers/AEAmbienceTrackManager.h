@@ -1,33 +1,38 @@
 #pragma once
 
 class CAEAmbienceTrackManager {
+    struct tAmbienceSettings {
+        int32 TrackID;
+        int32 PlayingTrackID;
+        uint8 TrackFlags;
+    };
 public:
-    enum State : int32 {
-        STATE_0              = 0,
-        PLAY_TRACK           = 1,
-        START_TRACK_PLAYBACK = 2,
-        SET_CHANNEL_VOLUME   = 3,
-        STOP_AMBIENCE_TRACK  = 4,
-        STATE_5              = 5,
-        STOP_SOUND           = 6,
-        STOP_TRACK           = 7,
-        STATE_8              = 8,
+    enum AmbienceStatus : int32 {
+        STARTING,
+        WAITING_TO_PLAY,
+        READY_TO_PLAY,
+        PLAYING,
+        STOPPING,
+        STOPPING_SILENCED,
+        STOPPING_CHANNELS_STOPPED,
+        WAITING_TO_STOP,
+        STOPPED,
     };
 
-    bool   m_bStop;
-    bool   m_bStopPrev;
-    bool   m_b3;
-    int8   m_IsAmbienceRadioActive;
-    int32  m_nChannel;
-    State  m_nState;
-    int32  m_nSpecialMissionAmbienceTrack;
-    int32  m_nTrackPlayTime;
-    uint32 m_nTimeInMs;
-    float  m_nVolume;
-    float  m_fFreqFactor;
-    int32  m_nTrackId;
-    int32  dword24;
-    int8   byte28;
+    bool              m_OverrideRadio;
+    bool              m_LastAmbienceOverrodeRadio;
+    bool              m_StartAmbienceAtBeginning;
+    eRadioID          m_AmbienceRadioStation;
+    int32             m_HwClientHandle; // AKA channel
+    AmbienceStatus    m_AmbienceStatus;
+    int32             m_SpecialMissionAmbienceTrackID;
+    int32             m_PrevAmbiencePlayTimeMs;
+    int32             m_PrevAmbienceStopTimeMs;
+    float             m_Volume;
+    float             m_FreqFactor;
+    tAmbienceSettings m_RequestedSettings;
+
+    /*tAmbienceSettings m_ActiveSettings;*/
 
 public:
     static void InjectHooks();
@@ -48,6 +53,9 @@ public:
 
     void Service(int32 trackPlayTime);
     void StartTrackPlayback() const;
+private:
+    void ChangeStatusToStopped();
+
 };
 
 VALIDATE_SIZE(CAEAmbienceTrackManager, 0x2C);

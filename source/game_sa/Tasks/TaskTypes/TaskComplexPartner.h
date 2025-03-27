@@ -8,7 +8,7 @@ enum ePartnerState : int8 {
     PARTNER_STATE_UNK_1 = 1
 };
 
-class CTaskComplexPartner : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexPartner : public CTaskComplex {
 public:
     int32         field_C;
     int32         field_10;
@@ -33,7 +33,7 @@ public:
     CTaskComplexPartner(const char* commandName, CPed* partner, bool leadSpeaker, float distanceMultiplier, bool makePedAlwaysFacePartner, int8 updateDirectionCount, CVector point);
     ~CTaskComplexPartner() override;
 
-    eTaskType GetTaskType() override { return Type; }
+    eTaskType GetTaskType() const override { return Type; }
     CTask*       CreateNextSubTask(CPed* ped) override;
     CTask*       CreateFirstSubTask(CPed* ped) override;
     CTask*       ControlSubTask(CPed* ped) override;

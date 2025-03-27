@@ -51,15 +51,8 @@ void SetSelectedVM(HWND hDlg, RwInt32 vm) {
 void FillAvailableVMs(HWND hVMSel) {
     const auto numVM = RwEngineGetNumVideoModes();
     for (auto i = 0; i < numVM; i++) {
-        const auto vmi = RwEngineGetVideoModeInfo(i);
-        static char vmName[1024];
-
-        if (notsa::IsFixBugs() && (vmi.flags & rwVIDEOMODEEXCLUSIVE) == 0) {
-            *std::format_to(vmName, "WINDOWED") = 0;
-            const auto idx = SendMessage(hVMSel, CB_ADDSTRING, NULL, (LPARAM)vmName); // Add entry, and get it's index
-            SendMessage(hVMSel, CB_SETITEMDATA, idx, i);                              // Set index of that entry to correspond to `i`
-            continue;
-        }
+        RwVideoMode vmi;
+        RwEngineGetVideoModeInfo(&vmi, i);
 
         if ((vmi.flags & rwVIDEOMODEEXCLUSIVE) == 0 || vmi.width < APP_MINIMAL_WIDTH || vmi.height < APP_MINIMAL_HEIGHT) {
             continue;
@@ -73,6 +66,7 @@ void FillAvailableVMs(HWND hVMSel) {
 
         // NOTSA: Provide aspect ratio info (W:H) instead of 'FULLSCREEN' and 'WIDESCREEN'.
         if (IsFullScreenRatio(aspectr) || IsWideScreenRatio(aspectr)) {
+            static char vmName[1024];
             *std::format_to(vmName, "{} x {} x {} ({}:{})", vmi.width, vmi.height, vmi.depth, ratioW, ratioH) = 0;
             const auto idx = SendMessage(hVMSel, CB_ADDSTRING, NULL, (LPARAM)vmName); // Add entry, and get it's index
             SendMessage(hVMSel, CB_SETITEMDATA, idx, i);                              // Set index of that entry to correspond to `i`

@@ -33,8 +33,8 @@ public:
     CTask* CreateSubTask(eTaskType taskType, CPed * ped);
     bool   IsTargetInRange(CPed* ped, float range); // NOTSA
 
-    CTask*    Clone() override { return new CTaskComplexKillPedOnFootMelee{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
+    CTask*    Clone() const override { return new CTaskComplexKillPedOnFootMelee{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;

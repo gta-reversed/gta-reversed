@@ -6,22 +6,22 @@
 
 #include "Vector.h"
 #include "NodeAddress.h"
-#include "tEffectFurniture.h"
 #include "InteriorInfo_t.h"
 #include "List_c.h"
 #include "ListItem_c.h"
+#include "./FurnitureEntity_c.h"
 
 class CEntity;
 class CObject;
-class FurnitureEntity_c; // TODO
 class Furniture_c;
+class InteriorGroup_c;
 
 class Interior_c : public ListItem_c<Interior_c> {
 public:
     int32             m_interiorId;         // 0x8
-    int32             m_pGroup;             // 0xC
+    InteriorGroup_c*  m_pGroup;             // 0xC
     int32             m_areaCode;           // 0x10
-    tEffectFurniture* m_furnitureEffect;    // 0x14
+    tEffectInterior*  m_box;                // 0x14
     RwMatrix          m_matrix;             // 0x18
     int32             field_58;             // 0x58
     TList_c<void>     m_list;               // 0x5C - TODO: Figure out type
@@ -55,10 +55,10 @@ public:
 public:
     static void InjectHooks();
 
-    Interior_c();
+    Interior_c() = default;
     ~Interior_c() = default; // 0x591360
 
-    int32 Init(CVector* a2);
+    int32 Init(const CVector& pos);
     void Exit();
 
     CObject* Bedroom_AddTableItem(int32 a2, int32 a3, int32 a4, int32 a5, int32 a6, int32 a7);
@@ -84,11 +84,11 @@ public:
     void Shop_FurnishCeiling();
     void Shop_AddShelfInfo(int32 a2, int32 a3, int32 a5);
     void Shop_FurnishEdges();
-    int8 GetBoundingBox(FurnitureEntity_c* entity, CVector* a3);
+    bool GetBoundingBox(FurnitureEntity_c* entity, CVector* a3);
     void ResetTiles();
     CObject* PlaceObject(uint8 isStealable, Furniture_c* furniture, float offsetX, float offsetY, float offsetZ, float rotationZ);
     FurnitureEntity_c* GetFurnitureEntity(CEntity*);
-    bool IsPtInside(CVector* a2, float a3, float a4, float a5);
+    bool IsPtInside(const CVector& pt, CVector bias = {});
     void CalcMatrix(CVector* translation);
     void Furnish();
     void Unfurnish();
@@ -113,5 +113,7 @@ public:
                                 int32* a13);
     bool FindEmptyTiles(int32 a3, int32 a4, int32* arg8, int32* a5);
     void FurnishShop(int32 a2);
+
+    auto GetNodeAddress() const { return m_nodeAddress; }
 };
 VALIDATE_SIZE(Interior_c, 0x794);

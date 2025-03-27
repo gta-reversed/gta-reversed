@@ -40,7 +40,9 @@ void CPedGroupMembership::AddFollower(CPed* ped) {
 
 // 0x5F6AE0
 void CPedGroupMembership::AddMember(CPed* member, int32 memIdx) {
+    assert(member);
     assert(!m_members[memIdx]);
+
     m_members[memIdx] = member;
     CEntity::RegisterReference(m_members[memIdx]);
     /* dead code before checking if the member is in the player's group */
@@ -60,8 +62,9 @@ void CPedGroupMembership::AppointNewLeader() {
         return;
     }
 
+    const auto leader = m_members[memId];
     RemoveMember(memId); // Must call as it does some cleanup
-    AddMember(m_members[memId], LEADER_MEM_ID);
+    AddMember(leader, LEADER_MEM_ID);
 }
 
 // 0x5F6A50
@@ -79,8 +82,8 @@ int32 CPedGroupMembership::CountMembersExcludingLeader() {
 
 // 0x5FB160
 void CPedGroupMembership::Flush() {
-    for (auto i = 0u; i < m_members.size(); i++) {
-        if (GetMember(i)) {
+    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+        if (mem) {
             RemoveMember(i);
         }
     }
@@ -159,7 +162,7 @@ void CPedGroupMembership::Process() {
 // 0x5FB190
 void CPedGroupMembership::RemoveAllFollowers(bool bCreatedByMissionOnly) {
     for (auto&& [i, mem] : notsa::enumerate(m_members)) {
-        if (IsLeader(mem)) { // Leader isn't a follower
+        if (!mem || IsLeader(mem)) { // Leader isn't a follower
             continue;
         }
         if (bCreatedByMissionOnly && mem->IsCreatedBy(PED_MISSION)) {
@@ -238,11 +241,21 @@ void CPedGroupMembership::SetLeader(CPed* ped) {
 }
 
 // NOTSA
-auto CPedGroupMembership::FindClosestFollowerToLeader() -> FindMemberResult {
+auto CPedGroupMembership::FindClosestFollowerToLeader() -> FindClosestMemberResult {
     if (const auto leader = GetLeader()) {
         return GetMemberClosestTo(leader);
     }
     return { nullptr, 0.f }; // We return 0.f here, `GetMemberClosestTo` returns FLT_MAX, but it should be ignored anyways, because the CPed* is nullptr
+}
+
+// NOTSA
+CPed* CPedGroupMembership::GetFirstAvailableMember() {
+    for (const auto m : m_members) {
+        if (m) {
+            return m;
+        }
+    }
+    return nullptr;
 }
 
 // 0x5F6950

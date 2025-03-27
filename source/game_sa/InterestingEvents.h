@@ -12,7 +12,7 @@ class CInterestingEvents {
 public:
     enum EType {
         INTERESTING_EVENT_0     =  0, //
-        INTERESTING_EVENT_1     =  1, // CTaskComplexChat::CreateFirstSubTask
+        PEDS_CHATTING           =  1, // CTaskComplexChat::CreateFirstSubTask
         INTERESTING_EVENT_2     =  2, // CTaskComplexSunbathe::CreateNextSubTask
         INTERESTING_EVENT_3     =  3, // CTaskComplexUseAttractor::CreateFirstSubTask CTaskComplexUseClosestFreeScriptedAttractor::CreateFirstSubTask
         INTERESTING_EVENT_4     =  4, //

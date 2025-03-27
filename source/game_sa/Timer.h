@@ -7,16 +7,16 @@
 #pragma once
 
 class CTimer {
+public:
     /*!
     * Thanks guys for figuring this out for me!
     * 
     * So basically, a timestep is just fraction of the frametime (timestep = frametime / TIMESTEP_PER_SECOND)
     * this timestep is used basically everywhere to calculate physics, etc.
     */
-    static constexpr float TIMESTEP_PER_SECOND = 50.f;                         /// Number of steps/second
-    static constexpr float TIMESTEP_LEN_IN_MS  = 1000.f / TIMESTEP_PER_SECOND; /// How long (in ms) a timestep is
+    static constexpr float TIMESTEP_PER_SECOND = 50.f;                         //!< Number of steps/second
+    static constexpr float TIMESTEP_LEN_IN_MS  = 1000.f / TIMESTEP_PER_SECOND; //!< How long (in ms) a timestep is
 
-public:
     typedef uint64(__cdecl* TimerFunction_t)();
     static TimerFunction_t& ms_fnTimerFunction;
 
@@ -64,10 +64,12 @@ public:
     static void   EndUserPause();
     static uint32 GetCyclesPerMillisecond();
     static uint32 GetCyclesPerFrame();
-    static uint64 GetCurrentTimeInCycles();
+    static uint32 GetCurrentTimeInCycles();
     static bool   GetIsSlowMotionActive();
     static void   UpdateVariables(float timeElapsed);
     static void   Update();
+
+    static float GetTimestepPerSecond() { return TIMESTEP_PER_SECOND; }
 
     // Inlined funcs
     // They could have used functions with a longer name, ex:

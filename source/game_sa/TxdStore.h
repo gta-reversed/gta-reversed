@@ -26,9 +26,10 @@ typedef CPool<TxdDef> CTxdPool;
 class CTxdStore {
 public:
     struct ScopedTXDSlot {
-        ScopedTXDSlot(uint32 id) {
+        ScopedTXDSlot(int32 id) {
+            assert(id >= 0);
             CTxdStore::PushCurrentTxd();
-            CTxdStore::SetCurrentTxd(id);
+            CTxdStore::SetCurrentTxd(static_cast<uint32>(id));
         }
 
         ScopedTXDSlot(const char* txd) :

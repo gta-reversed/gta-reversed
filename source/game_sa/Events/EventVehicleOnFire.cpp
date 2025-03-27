@@ -4,12 +4,12 @@
 
 void CEventVehicleOnFire::InjectHooks()
 {
-    RH_ScopedClass(CEventVehicleOnFire);
+    RH_ScopedVirtualClass(CEventVehicleOnFire, 0x85B440, 17);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x4B10C0);
-    RH_ScopedVirtualInstall(AffectsPed, 0x4B4FD0);
-    RH_ScopedVirtualInstall(CloneEditable, 0x4B7740);
+    RH_ScopedVMTInstall(AffectsPed, 0x4B4FD0);
+    RH_ScopedVMTInstall(CloneEditable, 0x4B7740);
 }
 
 // 0x4B10C0
@@ -33,17 +33,6 @@ CEventVehicleOnFire* CEventVehicleOnFire::Constructor(CVehicle* vehicle)
 // 0x4B4FD0
 bool CEventVehicleOnFire::AffectsPed(CPed* ped)
 {
-    return CEventVehicleOnFire::AffectsPed_Reversed(ped);
-}
-
-// 0x4B7740
-CEventEditableResponse* CEventVehicleOnFire::CloneEditable()
-{
-    return CEventVehicleOnFire::CloneEditable_Reversed();
-}
-
-bool CEventVehicleOnFire::AffectsPed_Reversed(CPed* ped)
-{
     if (m_vehicle) {
         if (!ped->m_pVehicle || !ped->bInVehicle || ped->m_pVehicle == m_vehicle) {
             if (!ped->IsPlayer() && ped->IsAlive()) {
@@ -62,7 +51,8 @@ bool CEventVehicleOnFire::AffectsPed_Reversed(CPed* ped)
     return false;
 }
 
-CEventEditableResponse* CEventVehicleOnFire::CloneEditable_Reversed()
+// 0x4B7740
+CEventEditableResponse* CEventVehicleOnFire::CloneEditable()
 {
     return new CEventVehicleOnFire(m_vehicle);
 }

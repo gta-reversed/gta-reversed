@@ -5,23 +5,16 @@
 
 class NOTSA_EXPORT_VTABLE CTaskSimplePause : public CTaskSimple {
 public:
-    CTaskTimer m_timer;
-    int32      m_nTime;
-
-public:
     static constexpr auto Type = TASK_SIMPLE_PAUSE;
 
     explicit CTaskSimplePause(int32 time = 0);
+    CTaskSimplePause(const CTaskSimplePause&);
     ~CTaskSimplePause() = default;
 
-    CTask* Clone() override;
-    eTaskType GetTaskType() override {
-        return TASK_SIMPLE_PAUSE;
-    };
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
+    CTask* Clone() const override { return new CTaskSimplePause{*this}; }
+    eTaskType GetTaskType() const override { return TASK_SIMPLE_PAUSE; };
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool ProcessPed(CPed* ped) override;
-    bool ProcessPed_Reversed(CPed* ped);
 
 private:
     friend void InjectHooksMain();
@@ -29,6 +22,9 @@ private:
 
     CTaskSimplePause* Constructor(int32 time);
 
+private:
+    CTaskTimer m_Timer{};
+    int32      m_PauseIntervalMs{};
 };
 
 VALIDATE_SIZE(CTaskSimplePause, 0x18);

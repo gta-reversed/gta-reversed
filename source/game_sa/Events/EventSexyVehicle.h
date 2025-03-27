@@ -2,9 +2,9 @@
 
 #include "Event.h"
 
-class CVehicle;
+#include "Event.h"
 
-class CEventSexyVehicle : public CEvent {
+class NOTSA_EXPORT_VTABLE CEventSexyVehicle : public CEvent {
 public:
     CVehicle* m_vehicle;
 

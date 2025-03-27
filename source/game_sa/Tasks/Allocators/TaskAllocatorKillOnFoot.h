@@ -2,7 +2,7 @@
 
 #include "TaskAllocator.h"
 
-class CTaskAllocatorKillOnFoot : public CTaskAllocator {
+class NOTSA_EXPORT_VTABLE CTaskAllocatorKillOnFoot : public CTaskAllocator {
 public:
     CTaskAllocatorKillOnFoot(CPed* ped, int32 groupId);
     ~CTaskAllocatorKillOnFoot() override;

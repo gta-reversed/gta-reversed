@@ -15,7 +15,7 @@ struct SHookContent {
 VALIDATE_SIZE(SHookContent, 0x34);
 
 struct Simple : Base {
-    // TODO: Refactor this copy-pate and document it
+    // TODO: Refactor this copy-paste and document it
 
     SHookContent m_HookContent{};
     uint8        m_OriginalFunctionContent[sizeof(m_HookContent)]{};

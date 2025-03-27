@@ -2,13 +2,13 @@
 
 #include "TaskSimple.h"
 
-class CTaskLeanOnVehicle : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskLeanOnVehicle : public CTaskSimple {
 public:
     CVehicle*  m_Vehicle;
     int32      m_LeanAnimDurationInMs;
     int8       field_10;
-    CAnimBlendAssociation* m_LeanAnimAssoc;
-    int32      m_nAnimId;
+    CAnimBlendAssociation* m_LeanAnim;
+    int32      m_LastAnimId;
     CTaskTimer m_LeanTimer;
     bool       m_bFinished;
     int8       m_LeanAnimId;
@@ -21,9 +21,9 @@ public:
     CTaskLeanOnVehicle(CEntity* vehicle, int32 leanAnimDurationInMs, uint8 a4);
     ~CTaskLeanOnVehicle() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask*    Clone() override { return new CTaskLeanOnVehicle(m_Vehicle, m_LeanAnimDurationInMs, field_10); } // 0x6610A0
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask*    Clone() const override { return new CTaskLeanOnVehicle(m_Vehicle, m_LeanAnimDurationInMs, field_10); } // 0x6610A0
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool      ProcessPed(CPed* ped) override;
 
     static void FinishAnimCB(CAnimBlendAssociation* assoc, void* data);

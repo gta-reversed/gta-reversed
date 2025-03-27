@@ -4,11 +4,10 @@
 #include "TaskSimpleDie.h"
 
 void CTaskSimpleDrown::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleDrown);
+    RH_ScopedVirtualClass(CTaskSimpleDrown, 0x86DE30, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
-    RH_ScopedInstall(ProcessPed_Reversed, 0x639900);
+    RH_ScopedVMTInstall(ProcessPed, 0x639900);
 }
-bool CTaskSimpleDrown::ProcessPed(CPed* ped) { return ProcessPed_Reversed(ped); }
 
 // 0x62FEC0
 CTaskSimpleDrown::CTaskSimpleDrown() : CTaskSimpleDie(ANIM_GROUP_DEFAULT, ANIM_ID_DROWN, 4.0f, 0.0f) {
@@ -16,7 +15,9 @@ CTaskSimpleDrown::CTaskSimpleDrown() : CTaskSimpleDie(ANIM_GROUP_DEFAULT, ANIM_I
 }
 
 // 0x639900
-bool CTaskSimpleDrown::ProcessPed_Reversed(CPed* ped) {
+
+// 0x0
+bool CTaskSimpleDrown::ProcessPed(CPed* ped) {
     if (m_bShouldExecute) {
         ped->SetPedState(PEDSTATE_DIE);
         ped->bIsInTheAir = false; 

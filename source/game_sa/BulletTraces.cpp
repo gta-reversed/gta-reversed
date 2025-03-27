@@ -11,8 +11,8 @@ void CBulletTraces::InjectHooks()
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Init, 0x721D50);
-    RH_ScopedOverloadedInstall(AddTrace, "", 0x723750, void(*)(CVector*, CVector*, float, uint32, uint8));
-    RH_ScopedOverloadedInstall(AddTrace, "Wrapper", 0x726AF0, void(*)(CVector*, CVector*, eWeaponType, CEntity*));
+    RH_ScopedOverloadedInstall(AddTrace, "", 0x723750, void(*)(const CVector&, const CVector&, float, uint32, uint8));
+    RH_ScopedOverloadedInstall(AddTrace, "Wrapper", 0x726AF0, void(*)(const CVector&, const CVector&, eWeaponType, CEntity*));
     RH_ScopedInstall(Render, 0x723C10);
     RH_ScopedInstall(Update, 0x723FB0);
 }
@@ -99,11 +99,11 @@ void PlayFrontEndSoundForTrace(CVector fromWorldSpace, CVector toWorldSpace) {
 }
 
 // 0x723750
-void CBulletTraces::AddTrace(CVector* from, CVector* to, float radius, uint32 disappearTime, uint8 alpha)
+void CBulletTraces::AddTrace(const CVector& from, const CVector& to, float radius, uint32 disappearTime, uint8 alpha)
 {
     if (CBulletTrace* pTrace = GetFree()) {
-        pTrace->m_vecStart = *from;
-        pTrace->m_vecEnd = *to;
+        pTrace->m_vecStart = from;
+        pTrace->m_vecEnd = to;
         pTrace->m_nCreationTime = CTimer::GetTimeInMS();
         pTrace->m_nTransparency = alpha;
         pTrace->m_bExists = true;
@@ -118,11 +118,11 @@ void CBulletTraces::AddTrace(CVector* from, CVector* to, float radius, uint32 di
             pTrace->m_nLifeTime = (uint32)(disappearTime / 4.0f);
         }
     }
-    PlayFrontEndSoundForTrace(*from, *to);
+    PlayFrontEndSoundForTrace(from, to);
 }
 
 // 0x726AF0
-void CBulletTraces::AddTrace(CVector* posMuzzle, CVector* posBulletHit, eWeaponType weaponType, CEntity* fromEntity)
+void CBulletTraces::AddTrace(const CVector& posMuzzle, const CVector& posBulletHit, eWeaponType weaponType, CEntity* fromEntity)
 {
     if (FindPlayerPed() == fromEntity || FindPlayerVehicle() && FindPlayerVehicle() == fromEntity) {
         switch (CCamera::GetActiveCamera().m_nMode) {
@@ -143,19 +143,19 @@ void CBulletTraces::AddTrace(CVector* posMuzzle, CVector* posBulletHit, eWeaponT
         }
     }
 
-    CVector dir = *posBulletHit - *posMuzzle;
+    CVector dir = posBulletHit - posMuzzle;
     const float traceLengthOriginal = dir.Magnitude();
     dir.Normalise();
 
     const float traceLengthNew = CGeneral::GetRandomNumberInRange(0.0f, traceLengthOriginal);
     const float fRadius = std::min(CGeneral::GetRandomNumberInRange(2.0f, 5.0f), traceLengthOriginal - traceLengthNew);
 
-    CVector from = *posMuzzle + dir * traceLengthNew;
+    CVector from = posMuzzle + dir * traceLengthNew;
     CVector to = from + dir * fRadius;
 
     AddTrace(
-        &from,
-        &to,
+        from,
+        to,
         0.01f,
         300,
         70

@@ -3,7 +3,7 @@
 #include "TaskComplexWanderCriminal.h"
 
 // 0x48E610
-CTaskComplexWanderCriminal::CTaskComplexWanderCriminal(int32 MoveState, uint8 Dir, bool bWanderSensibly) : CTaskComplexWander(MoveState, Dir, bWanderSensibly) { }
+CTaskComplexWanderCriminal::CTaskComplexWanderCriminal(eMoveState MoveState, uint8 Dir, bool bWanderSensibly) : CTaskComplexWander(MoveState, Dir, bWanderSensibly) { }
 
 // 0x670350
 void CTaskComplexWanderCriminal::ScanForStuff(CPed* ped) {

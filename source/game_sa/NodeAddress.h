@@ -21,7 +21,7 @@ public:
     void ResetNodeId() { m_wNodeId = UINT16_MAX; }
 
     [[nodiscard]] bool IsAreaValid() const { return m_wAreaId != (uint16)-1; }
-    [[nodiscard]] bool IsValid() const { return m_wAreaId != (uint16)-1 || m_wNodeId != (uint16)-1; }
+    [[nodiscard]] bool IsValid() const { return IsAreaValid() && m_wNodeId != UINT16_MAX; }
 
     operator bool() const { return IsValid(); }
 };

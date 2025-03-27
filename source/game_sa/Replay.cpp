@@ -139,20 +139,20 @@ void CReplay::StorePedAnimation(CPed* ped, CStoredAnimationState& state) {
     CAnimBlendAssociation* second{};
     const auto main = RpAnimBlendClumpGetMainAssociation(ped->m_pRwClump, &second, &blendValue);
     if (main) {
-        state[0] = AnimationState::Make(main->m_nAnimId, main->m_fCurrentTime, main->m_fSpeed, static_cast<uint8>(main->m_nAnimGroup));
+        state[0] = AnimationState::Make(main->m_AnimId, main->m_CurrentTime, main->m_Speed, static_cast<uint8>(main->m_AnimGroupId));
     } else {
         state[0] = AnimationState::Make(ANIM_ID_IDLE, 0.0f, 1.0f, 0);
     }
 
     if (second) {
-        state[1] = AnimationState::MakeBlend(second->m_nAnimId, second->m_fCurrentTime, second->m_fSpeed, static_cast<uint8>(second->m_nAnimGroup), blendValue);
+        state[1] = AnimationState::MakeBlend(second->m_AnimId, second->m_CurrentTime, second->m_Speed, static_cast<uint8>(second->m_AnimGroupId), blendValue);
     } else {
         state[1] = AnimationState::MakeBlend(ANIM_ID_WALK, 0.0f, 0.0f, 0, 0.0f);
     }
 
     const auto partial = RpAnimBlendClumpGetMainPartialAssociation(ped->m_pRwClump);
-    if (partial && partial->m_nAnimId >= ANIM_ID_WALK) {
-        state[2] = AnimationState::MakeBlend(partial->m_nAnimId, partial->m_fCurrentTime, partial->m_fSpeed, static_cast<uint8>(partial->m_nAnimGroup), partial->m_fBlendAmount);
+    if (partial && partial->m_AnimId >= ANIM_ID_WALK) {
+        state[2] = AnimationState::MakeBlend(partial->m_AnimId, partial->m_CurrentTime, partial->m_Speed, static_cast<uint8>(partial->m_AnimGroupId), partial->m_BlendAmount);
     } else {
         state[2] = AnimationState::MakeBlend(ANIM_ID_WALK, 0.0f, 0.0f, 0, 0.0f);
     }
@@ -198,8 +198,8 @@ void CReplay::RetrievePedAnimation(CPed* ped, const CStoredAnimationState& state
 
     CAnimBlendAssociation* anim = nullptr;
     if (auto first = state[0]; first.m_nAnimId > 3u) {
-        auto animBlock = CAnimManager::ms_aAnimAssocGroups[first.m_nGroupId1].m_pAnimBlock;
-        if (animBlock && animBlock->bLoaded) {
+        auto animBlock = CAnimManager::GetAssocGroups()[first.m_nGroupId1].m_AnimBlock;
+        if (animBlock && animBlock->IsLoaded) {
             anim = CAnimManager::BlendAnimation(ped->m_pRwClump, (AssocGroupId)first.m_nGroupId1, (AnimationId)first.m_nAnimId, 100.0f);
         } else {
             anim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_WALK, 100.0f);
@@ -213,7 +213,7 @@ void CReplay::RetrievePedAnimation(CPed* ped, const CStoredAnimationState& state
     anim->m_nCallbackType = ANIM_BLEND_CALLBACK_NONE;
 
     anim = nullptr;
-    if (auto second = state[1]; second.m_nGroupId1 && second.m_nAnimId && CAnimManager::ms_aAnimAssocGroups[second.m_nGroupId2].m_nNumAnimations > 0) {
+    if (auto second = state[1]; second.m_nGroupId1 && second.m_nAnimId && CAnimManager::GetAssocGroups()[second.m_nGroupId2].m_NumAnims > 0) {
         if (second.m_nAnimId > 3u) {
             anim = CAnimManager::BlendAnimation(ped->m_pRwClump, (AssocGroupId)second.m_nGroupId2, (AnimationId)second.m_nAnimId, 100.0f);
         } else {
@@ -228,10 +228,10 @@ void CReplay::RetrievePedAnimation(CPed* ped, const CStoredAnimationState& state
         }
     }
 
-    RpAnimBlendClumpRemoveAssociations(ped->m_pRwClump, ANIMATION_PARTIAL);
+    RpAnimBlendClumpRemoveAssociations(ped->m_pRwClump, ANIMATION_IS_PARTIAL);
     if (auto third = state[2]; third.m_nGroupId1 && third.m_nAnimId) {
         if (/*third.m_nGroupId1 >= 0 &&*/ third.m_nAnimId != 3u) {
-            if (auto animBlock = CAnimManager::ms_aAnimAssocGroups[third.m_nGroupId2].m_pAnimBlock; animBlock && animBlock->bLoaded) {
+            if (auto animBlock = CAnimManager::GetAssocGroups()[third.m_nGroupId2].m_AnimBlock; animBlock && animBlock->IsLoaded) {
                 anim = CAnimManager::BlendAnimation(ped->m_pRwClump, (AssocGroupId)third.m_nGroupId2, (AnimationId)third.m_nAnimId, 1000.0f);
 
                 anim->SetCurrentTime(third.m_nTime / ANIM_TIME_COMPRESS_VALUE);
@@ -1526,13 +1526,13 @@ void CReplay::TriggerPlayback(eReplayCamMode mode, CVector fixedCamPos, bool loa
     bAllowLookAroundCam = true;
     FramesActiveLookAroundCam = 0;
 
-    OldRadioStation = [&]() -> int8 {
+    OldRadioStation = [&]() -> eRadioID {
         if (FindPlayerVehicle()) {
             AudioEngine.StopRadio(nullptr, false);
             return AERadioTrackManager.GetCurrentRadioStationID();
         }
 
-        return 0;
+        return RADIO_EMERGENCY_AA; // Possibly not intended.
     }();
 
     CurrArea = CGame::currArea;
@@ -1569,9 +1569,9 @@ void CReplay::TriggerPlayback(eReplayCamMode mode, CVector fixedCamPos, bool loa
             LoadScene = TheCamera.GetPosition();
             CVector point{};
             FindFirstFocusCoordinate(point);
-            CGame::currLevel = CTheZones::GetLevelFromPosition(&point);
+            CGame::currLevel = CTheZones::GetLevelFromPosition(point);
             CCollision::SortOutCollisionAfterLoad();
-            CStreaming::LoadScene(&point);
+            CStreaming::LoadScene(point);
 
             return true;
         }

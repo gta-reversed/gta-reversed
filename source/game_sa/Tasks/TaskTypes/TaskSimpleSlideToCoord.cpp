@@ -38,7 +38,7 @@ CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, floa
 }
 
 // 0x66D300
-CTask* CTaskSimpleSlideToCoord::Clone() {
+CTask* CTaskSimpleSlideToCoord::Clone() const {
     return m_bRunningAnim
         ? new CTaskSimpleSlideToCoord(m_SlideToPos, m_fAimingRotation, m_fSpeed, m_animName, m_animGroupName, m_animFlags, m_fBlendDelta, !!m_bRunInSequence, m_Time)
         : new CTaskSimpleSlideToCoord(m_SlideToPos, m_fAimingRotation, m_fSpeed);

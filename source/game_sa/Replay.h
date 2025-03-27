@@ -236,7 +236,7 @@ public:
     inline static CVector_Reversed& LoadScene = *reinterpret_cast<CVector_Reversed*>(0x97FAC0);
     inline static eReplayCamMode& CameraMode = *reinterpret_cast<eReplayCamMode*>(0x97FB30);
     inline static int32& FramesActiveLookAroundCam = *reinterpret_cast<int32*>(0x97FAD0);
-    inline static int8& OldRadioStation = *reinterpret_cast<int8*>(0x97FABC);
+    inline static eRadioID& OldRadioStation = *reinterpret_cast<eRadioID*>(0x97FABC);
     inline static int8& CurrArea = *reinterpret_cast<int8*>(0x97FAB8);
     inline static std::array<eReplayBufferStatus, NUM_REPLAY_BUFFERS>& BufferStatus = *reinterpret_cast<std::array<eReplayBufferStatus, NUM_REPLAY_BUFFERS>*>(0x97FB7C);
 

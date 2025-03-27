@@ -77,7 +77,7 @@ struct cVehicleParams {
 };
 VALIDATE_SIZE(cVehicleParams, 0x4C);
 
-class tVehicleSound {
+class NOTSA_EXPORT_VTABLE tVehicleSound {
 public:
     uint32    m_nIndex;
     CAESound* m_pSound;
@@ -94,12 +94,12 @@ struct tVehicleAudioSettings {
     int16             m_nEngineOnSoundBankId;
     int16             m_nEngineOffSoundBankId;
     int8              m_nBassSetting; // m_nStereo
-    float             m_fBassEq;
+    float             m_fBassEq; // m_fBassFactor
     float             field_C;
     int8              m_nHornToneSoundInBank; // sfx id
     float             m_fHornHigh;
     char              m_nDoorSound;
-    char              field_19;
+    char              m_EngineUpgrade;
     eRadioID          m_nRadioID;
     eRadioType        m_nRadioType;
     int8              m_nVehTypeForAudio;
@@ -219,7 +219,7 @@ public:
     static tVehicleAudioSettings GetVehicleAudioSettings(int16 vehId);
 
     void AddAudioEvent(eAudioEvents event, float fVolume);
-    void AddAudioEvent(eAudioEvents event, CVehicle* vehicle);
+    void AddAudioEvent(eAudioEvents event, CEntity* entity);
 
     void Service();
     static void StaticService();
@@ -351,7 +351,6 @@ private:
 
     CAEVehicleAudioEntity* Constructor() { this->CAEVehicleAudioEntity::CAEVehicleAudioEntity(); return this; }
     CAEVehicleAudioEntity* Destructor() { this->CAEVehicleAudioEntity::~CAEVehicleAudioEntity(); return this; }
-    void UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos);
 };
 VALIDATE_SIZE(CAEVehicleAudioEntity, 0x24C);
 

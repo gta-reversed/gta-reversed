@@ -3,16 +3,18 @@
 #include "TaskSimpleRunNamedAnim.h"
 
 void CTaskSimpleRunNamedAnim::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleRunNamedAnim);
+    RH_ScopedVirtualClass(CTaskSimpleRunNamedAnim, 0x86D54C, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedOverloadedInstall(Constructor, "Default", 0x6674B0, CTaskSimpleRunNamedAnim*(CTaskSimpleRunNamedAnim::*)());
     RH_ScopedOverloadedInstall(Constructor, "Anim", 0x61A990, CTaskSimpleRunNamedAnim*(CTaskSimpleRunNamedAnim::*)(char const*, char const*, int32, float, int32, bool, bool, bool, bool));
     RH_ScopedInstall(Destructor, 0x61BF10);
-    // RH_ScopedGlobalInstall(FinishRunAnimMovePedCB, 0x61AAA0);
-    // RH_ScopedInstall(StartAnim, 0x61BB10);
-    // RH_ScopedInstall(Clone_Reversed, 0x61B770);
-    // RH_ScopedInstall(ProcessPed_Reversed, 0x61BF20);
+
+    //RH_ScopedInstall(FinishRunAnimMovePedCB, 0x61AAA0, { .reversed = false });
+    //RH_ScopedInstall(StartAnim, 0x61BB10, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x61B770, { .reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x61AA90, { .reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x61BF20, { .reversed = false });
     RH_ScopedInstall(OffsetPedPosition, 0x61AB00);
 }
 
@@ -52,6 +54,8 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(
 }
 
 // 0x61BF20
+
+// 0x0
 bool CTaskSimpleRunNamedAnim::ProcessPed(CPed* ped) {
     return plugin::CallMethodAndReturn<bool, 0x61BF20>(this, ped);
 }
@@ -61,6 +65,6 @@ void CTaskSimpleRunNamedAnim::OffsetPedPosition(CPed* ped) {
     ped->UpdateRpHAnim();
     ped->m_bDontUpdateHierarchy = true;
     auto& pos = ped->GetPosition();
-    pos += Multiply3x3(*ped->m_matrix, m_vecOffsetAtEnd);
+    pos += ped->m_matrix->TransformVector(m_vecOffsetAtEnd);
     m_bOffsetAvailable = false;
 }

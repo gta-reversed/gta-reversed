@@ -11,10 +11,12 @@ public:
     bool   m_affectsDeadPeds;
 
 public:
+    static constexpr auto Type = eEventType::EVENT_SCRIPT_COMMAND;
+
     CEventScriptCommand(int32 primaryTaskIndex, CTask* task, bool affectsDeadPeds = false);
     ~CEventScriptCommand() override;
 
-    eEventType GetEventType() const override { return EVENT_SCRIPT_COMMAND; }
+    eEventType GetEventType() const override { return Type; }
     int32 GetEventPriority() const override;
     int32 GetLifeTime() override { return 0; }
     CEvent* Clone() override;
@@ -29,12 +31,6 @@ private:
 
     CEventScriptCommand* Constructor(int32 primaryTaskIndex, CTask* task, bool affectsDeadPeds);
 
-    int32 GetEventPriority_Reversed() const;
-    CEvent* Clone_Reversed();
-    bool AffectsPed_Reversed(CPed* ped);
-    bool TakesPriorityOver_Reversed(const CEvent& refEvent);
-    bool IsValid_Reversed(CPed* ped);
-    CTask* CloneScriptTask_Reversed();
 };
 
 VALIDATE_SIZE(CEventScriptCommand, 0x18);

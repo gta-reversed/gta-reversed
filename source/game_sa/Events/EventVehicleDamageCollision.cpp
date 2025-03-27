@@ -4,11 +4,11 @@
 
 void CEventVehicleDamageCollision::InjectHooks()
 {
-    RH_ScopedClass(CEventVehicleDamageCollision);
+    RH_ScopedVirtualClass(CEventVehicleDamageCollision, 0x8710D0, 17);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x6A0620);
-    RH_ScopedVirtualInstall(CloneEditable, 0x6A0670);
+    RH_ScopedVMTInstall(CloneEditable, 0x6A0670);
 }
 
 // 0x6A0620
@@ -26,11 +26,6 @@ CEventVehicleDamageCollision* CEventVehicleDamageCollision::Constructor(CVehicle
 
 // 0x6A0670
 CEventEditableResponse* CEventVehicleDamageCollision::CloneEditable()
-{
-    return CEventVehicleDamageCollision::CloneEditable_Reversed();
-}
-
-CEventEditableResponse* CEventVehicleDamageCollision::CloneEditable_Reversed()
 {
     return new CEventVehicleDamageCollision(m_vehicle, m_attacker, m_weaponType);
 }

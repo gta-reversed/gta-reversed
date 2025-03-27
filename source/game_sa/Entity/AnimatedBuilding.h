@@ -20,9 +20,6 @@ public:
     void PreRender() override;
 
 private:
-    void ProcessControl_Reversed();
-    void ProcessCollision_Reversed();
-    void PreRender_Reversed();
 };
 
 VALIDATE_SIZE(CAnimatedBuilding, 0x38);

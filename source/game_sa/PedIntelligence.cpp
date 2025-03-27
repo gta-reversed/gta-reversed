@@ -10,6 +10,7 @@
 
 #include "IKChainManager_c.h"
 #include "PedType.h"
+#include "TaskComplexBeInGroup.h"
 #include "TaskSimpleCarDriveTimed.h"
 #include "TaskSimpleStandStill.h"
 #include "TaskComplexFacial.h"
@@ -34,6 +35,9 @@
 #include "TaskSimpleInAir.h"
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleSwim.h"
+#include "TaskSimplePutDownEntity.h"
+#include <TaskComplexGoToCarDoorAndStandStill.h>
+#include "TaskSimplePickUpEntity.h"
 #include <extensions/enumerate.hpp>
 
 
@@ -115,8 +119,8 @@ CPedIntelligence::CPedIntelligence(CPed* ped) :
     m_fSeeingRange                        = 15.0f;
     m_nDmNumPedsToScan                    = 3;
     m_fDmRadius                           = 15.0f;
-    field_CC                              = 30.0f;
-    field_D0                              = -1;
+    m_FollowNodeThresholdDistance                              = 30.0f;
+    m_NextEventResponseSequence                              = -1;
     m_nEventId                            = 0;
     m_nEventPriority                      = 0;
     field_188                             = 0;
@@ -213,7 +217,7 @@ bool CPedIntelligence::FindRespectedFriendInInformRange() {
 
 // 0x600DB0
 bool CPedIntelligence::IsRespondingToEvent(eEventType eventType) {
-    return m_eventHandler.m_history.IsRespondingToEvent(eventType);
+    return m_eventHandler.GetHistory().IsRespondingToEvent(eventType);
 }
 
 // (CTask *task, bool arg2)
@@ -261,28 +265,28 @@ CTask* CPedIntelligence::FindTaskByType(eTaskType type) {
 
 // 0x600F30
 CTaskSimpleFight* CPedIntelligence::GetTaskFighting() {
-    return CTask::DynCast<CTaskSimpleFight>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
+    return notsa::dyn_cast_if_present<CTaskSimpleFight>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
 }
 
 // 0x600F70
 CTaskSimpleUseGun* CPedIntelligence::GetTaskUseGun() {
-    return CTask::DynCast<CTaskSimpleUseGun>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
+    return notsa::dyn_cast_if_present<CTaskSimpleUseGun>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
 }
 
 // 0x600FB0
 CTaskSimpleThrowProjectile* CPedIntelligence::GetTaskThrow() {
-    return CTask::DynCast<CTaskSimpleThrowProjectile>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
+    return notsa::dyn_cast_if_present<CTaskSimpleThrowProjectile>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_ATTACK));
 }
 
 // 0x600FF0
 CTaskSimpleHoldEntity* CPedIntelligence::GetTaskHold(bool bIgnoreCheckingForSimplestActiveTask) {
-    if (const auto task = CTask::DynCast<CTaskSimpleHoldEntity>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM))) {
+    if (const auto task = notsa::dyn_cast_if_present<CTaskSimpleHoldEntity>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM))) {
         return task;
     }
 
     if (!bIgnoreCheckingForSimplestActiveTask) {
         if (const auto task = m_TaskMgr.GetSimplestActiveTask()) {
-            if (CTask::IsA<TASK_SIMPLE_PICKUP_ENTITY, TASK_SIMPLE_PUTDOWN_ENTITY>(task)) {
+            if (notsa::isa<CTaskSimplePickUpEntity, CTaskSimplePutDownEntity>(task)) {
                 return static_cast<CTaskSimpleHoldEntity*>(task);
             }
         }
@@ -293,12 +297,12 @@ CTaskSimpleHoldEntity* CPedIntelligence::GetTaskHold(bool bIgnoreCheckingForSimp
 
 // 0x601070
 CTaskSimpleSwim* CPedIntelligence::GetTaskSwim() {
-    return CTask::DynCast<CTaskSimpleSwim>(m_TaskMgr.GetSimplestActiveTask());
+    return notsa::dyn_cast_if_present<CTaskSimpleSwim>(m_TaskMgr.GetSimplestActiveTask());
 }
 
 // 0x6010A0
 CTaskSimpleDuck* CPedIntelligence::GetTaskDuck(bool bIgnoreCheckingForSimplestActiveTask) {
-    if (const auto task = CTask::DynCast<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))) {
+    if (const auto task = notsa::dyn_cast_if_present<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))) {
         return task;
     }
 
@@ -308,7 +312,7 @@ CTaskSimpleDuck* CPedIntelligence::GetTaskDuck(bool bIgnoreCheckingForSimplestAc
     }
 
     if (!bIgnoreCheckingForSimplestActiveTask) {
-        if (const auto task = CTask::DynCast<CTaskSimpleDuck>(m_TaskMgr.GetSimplestActiveTask())) {
+        if (const auto task = notsa::dyn_cast_if_present<CTaskSimpleDuck>(m_TaskMgr.GetSimplestActiveTask())) {
             return task;
         }
     }
@@ -319,25 +323,30 @@ CTaskSimpleDuck* CPedIntelligence::GetTaskDuck(bool bIgnoreCheckingForSimplestAc
 // 0x601110
 CTaskSimpleJetPack* CPedIntelligence::GetTaskJetPack() {
     if (m_pPed->IsPlayer()) {
-        return CTask::DynCast<CTaskSimpleJetPack>(m_TaskMgr.GetSimplestActiveTask());
+        return notsa::dyn_cast_if_present<CTaskSimpleJetPack>(m_TaskMgr.GetSimplestActiveTask());
     }
     return nullptr;
 }
 
 // 0x601150
 CTaskSimpleInAir* CPedIntelligence::GetTaskInAir() {
-    return CTask::DynCast<CTaskSimpleInAir>(m_TaskMgr.GetSimplestActiveTask());
+    return notsa::dyn_cast_if_present<CTaskSimpleInAir>(m_TaskMgr.GetSimplestActiveTask());
 }
 
 // 0x601180
 CTaskSimpleClimb* CPedIntelligence::GetTaskClimb() {
-    return CTask::DynCast<CTaskSimpleClimb>(m_TaskMgr.GetSimplestActiveTask());
+    return notsa::dyn_cast_if_present<CTaskSimpleClimb>(m_TaskMgr.GetSimplestActiveTask());
+}
+
+// @sa [@addr unk]
+CTaskSimpleDuck* CPedIntelligence::GetTaskSecondaryDuck() {
+    return notsa::dyn_cast_if_present<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK));
 }
 
 // 0x6011B0
 bool CPedIntelligence::GetUsingParachute() {
     CWeapon* activeWeapon = &m_pPed->GetActiveWeapon();
-    if (activeWeapon->m_nType != WEAPON_PARACHUTE) {
+    if (activeWeapon->m_Type != WEAPON_PARACHUTE) {
         return false;
     }
 
@@ -349,13 +358,13 @@ bool CPedIntelligence::GetUsingParachute() {
         return false;
     }
 
-    auto animAssoc = RpAnimBlendClumpGetFirstAssociation(m_pPed->m_pRwClump, ANIMATION_PARTIAL);
+    auto animAssoc = RpAnimBlendClumpGetFirstAssociation(m_pPed->m_pRwClump, ANIMATION_IS_PARTIAL);
     if (!animAssoc) {
         return false;
     }
 
-    int32 blockID = animAssoc->m_pHierarchy->m_nAnimBlockId;
-    if (_stricmp(CAnimManager::ms_aAnimBlocks[blockID].szName, "parachute") != 0) {
+    int32 blockID = animAssoc->m_BlendHier->m_nAnimBlockId;
+    if (_stricmp(CAnimManager::GetAnimBlocks()[blockID].Name, "parachute") != 0) {
         while (true) {
             animAssoc = RpAnimBlendGetNextAssociation(animAssoc);
             if (!animAssoc) {
@@ -369,7 +378,7 @@ bool CPedIntelligence::GetUsingParachute() {
 // 0x601230
 void CPedIntelligence::SetTaskDuckSecondary(uint16 nLengthOfDuck) {
     if (const auto duck = GetTaskDuck()) {
-        if (duck->m_nDuckControlType == DUCK_SCRIPT_CONTROLLED) {
+        if (duck->m_DuckControlType == DUCK_SCRIPT_CONTROLLED) {
             return;
         }
     }
@@ -380,7 +389,7 @@ void CPedIntelligence::SetTaskDuckSecondary(uint16 nLengthOfDuck) {
         useGun->ClearAnim(m_pPed);
     }
 
-    CTask::Cast<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))->ProcessPed(m_pPed);
+    notsa::cast<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))->ProcessPed(m_pPed);
 }
 
 // 0x601390
@@ -453,7 +462,7 @@ void CPedIntelligence::ClearTasks(bool bClearPrimaryTasks, bool bClearSecondaryT
             continue;
         }
 
-        if (task->MakeAbortable(m_pPed, ABORT_PRIORITY_URGENT, nullptr)) {
+        if (task->MakeAbortable(m_pPed)) {
             m_TaskMgr.SetTaskSecondary(nullptr, (eSecondaryTask)idx);
         } else {
             task->MakeAbortable(m_pPed, ABORT_PRIORITY_LEISURE, nullptr);
@@ -463,91 +472,79 @@ void CPedIntelligence::ClearTasks(bool bClearPrimaryTasks, bool bClearSecondaryT
 
 // 0x601640
 void CPedIntelligence::FlushImmediately(bool bSetPrimaryDefaultTask) {
-    CTask* primaryTask = m_TaskMgr.GetTaskPrimary(TASK_PRIMARY_PRIMARY);
-    CTaskComplex* taskBeInGroup = nullptr;
-    if (primaryTask && primaryTask->GetTaskType() == TASK_COMPLEX_BE_IN_GROUP) {
-        taskBeInGroup = (CTaskComplex*)primaryTask->Clone();
-    }
+    const auto tComplexBeInGroupClone = CTask::CloneIfIs<CTaskComplexBeInGroup>(m_TaskMgr.GetTaskPrimary(TASK_PRIMARY_PRIMARY));
 
-    CTaskSimpleHoldEntity* taskSimpleHoldEntity = nullptr;
-    CTask* secondaryTask = m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM);
-    if (secondaryTask && secondaryTask->GetTaskType() == TASK_SIMPLE_HOLD_ENTITY) {
-        taskSimpleHoldEntity = (CTaskSimpleHoldEntity*)secondaryTask;
-    }
-
+    // Save hold task
     int32 objectType = -1;
     bool bIsEntityVisible = false;
     CObject* objectToHold = nullptr;
     CTaskSimpleHoldEntity* taskSimpleHoldEntityCloned = nullptr;
-    if (taskSimpleHoldEntity && taskSimpleHoldEntity->GetTaskType() == TASK_SIMPLE_HOLD_ENTITY) {
-        objectToHold = (CObject*)taskSimpleHoldEntity->m_pEntityToHold;
+    if (const auto tSimpleHoldEntity = notsa::dyn_cast_if_present<CTaskSimpleHoldEntity>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_PARTIAL_ANIM))) {
+        objectToHold = (CObject*)tSimpleHoldEntity->m_pEntityToHold;
         if (objectToHold) {
             if (objectToHold->IsObject()) {
                 objectType = objectToHold->m_nObjectType;
                 bIsEntityVisible = objectToHold->m_bIsVisible;
             }
-            taskSimpleHoldEntityCloned = (CTaskSimpleHoldEntity*)taskSimpleHoldEntity->Clone();
+            taskSimpleHoldEntityCloned = (CTaskSimpleHoldEntity*)tSimpleHoldEntity->Clone();
         }
     }
 
-    CTaskComplexFacial* taskComplexFacialCloned = nullptr;
-    CTask* taskComplexFacial = m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX);
-    if (taskComplexFacial && taskComplexFacial->GetTaskType() == TASK_COMPLEX_FACIAL) {
-        taskComplexFacialCloned = static_cast<CTaskComplexFacial*>(taskComplexFacial->Clone());
-    }
+    // Save facial task
+    const auto tComplexFacialCloned = CTask::CloneIfIs<CTaskComplexFacial>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX));
 
+    // Now actually flush the subsystems
     m_eventGroup.Flush(true);
     m_eventHandler.FlushImmediately();
     m_TaskMgr.FlushImmediately();
     CPedScriptedTaskRecord::Process();
-    if (taskBeInGroup) {
+
+    // Restore group primary task
+    if (tComplexBeInGroupClone) {
         auto pedGroup = CPedGroups::GetPedsGroup(m_pPed);
         if (!pedGroup || m_pPed->IsPlayer()) {
-            delete taskBeInGroup;
-        }
-        else {
+            delete tComplexBeInGroupClone;
+        } else {
             pedGroup->GetIntelligence().ComputeDefaultTasks(m_pPed);
-            m_TaskMgr.SetTask(taskBeInGroup, TASK_PRIMARY_PRIMARY, false);
+            m_TaskMgr.SetTask(tComplexBeInGroupClone, TASK_PRIMARY_PRIMARY, false);
         }
     }
 
+    // Restore hold task
     if (taskSimpleHoldEntityCloned) {
         if (objectType != -1) {
             objectToHold->m_nObjectType = objectType;
-            objectToHold->m_bIsVisible = bIsEntityVisible;
+            objectToHold->m_bIsVisible  = bIsEntityVisible;
         }
-        m_TaskMgr.SetTaskSecondary((CTaskComplex*)taskSimpleHoldEntityCloned, TASK_SECONDARY_PARTIAL_ANIM);
+        m_TaskMgr.SetTaskSecondary(taskSimpleHoldEntityCloned, TASK_SECONDARY_PARTIAL_ANIM);
         taskSimpleHoldEntityCloned->ProcessPed(m_pPed);
     }
 
-    if (taskComplexFacialCloned) {
-        m_TaskMgr.SetTaskSecondary(taskComplexFacialCloned, TASK_SECONDARY_FACIAL_COMPLEX);
+    // Restore facial
+    if (tComplexFacialCloned) {
+        m_TaskMgr.SetTaskSecondary(tComplexFacialCloned, TASK_SECONDARY_FACIAL_COMPLEX);
     }
 
+    // And set a default primary task if necessary
     if (bSetPrimaryDefaultTask) {
-        if (m_pPed->IsPlayer()) {
-            auto taskSimplePlayerOnFoot = new CTaskSimplePlayerOnFoot();
-            m_TaskMgr.SetTask(taskSimplePlayerOnFoot, TASK_PRIMARY_DEFAULT, false);
-            return;
-        }
-        else {
-            if (m_pPed->m_nCreatedBy != PED_MISSION) {
-                auto taskComplexWander = CTaskComplexWander::GetWanderTaskByPedType(m_pPed);
-                m_TaskMgr.SetTask(taskComplexWander, TASK_PRIMARY_DEFAULT, false);
-                return;
-            }
-
-            auto taskSimpleStandStill = new CTaskSimpleStandStill(0, true, false, 8.0f);
-            m_TaskMgr.SetTask(taskSimpleStandStill, TASK_PRIMARY_DEFAULT, false);
-            return;
-        }
-        m_TaskMgr.SetTask(nullptr, TASK_PRIMARY_DEFAULT, false);
-        return;
+        m_TaskMgr.SetTask(
+            [this]() -> CTask* {
+                if (m_pPed->IsPlayer()) {
+                    return new CTaskSimplePlayerOnFoot();
+                } else if (m_pPed->m_nCreatedBy != PED_MISSION) {
+                    return CTaskComplexWander::GetWanderTaskByPedType(m_pPed);
+                } else {
+                    return new CTaskSimpleStandStill(0, true, false, 8.0f);
+                }
+            }(),
+            TASK_PRIMARY_DEFAULT,
+            false
+        );
     }
 }
 
 // 0x6018D0
-C2dEffect* CPedIntelligence::GetEffectInUse() {
+C2dEffect* CPedIntelligence::GetEffectInUse() const {
     return m_eventScanner.m_attractorScanner.m_pEffectInUse;
 }
 
@@ -564,7 +561,7 @@ void CPedIntelligence::ProcessAfterProcCol() {
     if (activeSimplestTask && activeSimplestTask->IsSimple()) {
         bool bPositionSet = static_cast<CTaskSimple*>(activeSimplestTask)->SetPedPosition(m_pPed);
         if (!bPositionSet) {
-            auto* simplestTask = m_TaskMgr.GetSimplestTask(TASK_PRIMARY_DEFAULT);
+            auto* simplestTask = m_TaskMgr.GetLastTaskOf(TASK_PRIMARY_DEFAULT);
             if (simplestTask && simplestTask->IsSimple()) {
                 bPositionSet = simplestTask->AsSimple()->SetPedPosition(m_pPed);
             }
@@ -605,10 +602,10 @@ void CPedIntelligence::ProcessAfterPreRender() {
     }
 
     CWeapon* activeWeapon = &m_pPed->GetActiveWeapon();
-    if (activeWeapon->m_nType == WEAPON_MOLOTOV && activeWeapon->m_pFxSystem)
+    if (activeWeapon->m_Type == WEAPON_MOLOTOV && activeWeapon->m_FxSystem)
     {
         RpHAnimHierarchy* animHierarchy = GetAnimHierarchyFromSkinClump(m_pPed->m_pRwClump);
-        int32 animIDIndex = RpHAnimIDGetIndex(animHierarchy, 24); // 24 = BONE_R_HAND?
+        int32 animIDIndex = RpHAnimIDGetIndex(animHierarchy, 24); // 24 = BONE_R_HAND? - "BONE_R" xDDD
         RwMatrix* matrixArray = RpHAnimHierarchyGetMatrixArray(animHierarchy);
 
         RwV3d pointIn = { 0.05f, 0.05f,  0.14f };
@@ -619,7 +616,7 @@ void CPedIntelligence::ProcessAfterPreRender() {
         memcpy(&matrix, m_pPed->GetModellingMatrix(), sizeof(matrix));
         matrix.pos = pointOut;
         RwMatrixUpdate(&matrix);
-        activeWeapon->m_pFxSystem->SetMatrix(&matrix);
+        activeWeapon->m_FxSystem->SetMatrix(&matrix);
     }
 
     if (m_pPed->bInVehicle)
@@ -664,11 +661,11 @@ bool CPedIntelligence::Respects(CPed* ped) const {
 // 0x601CC0
 bool CPedIntelligence::IsInACarOrEnteringOne() {
     if (const auto task = m_TaskMgr.Find<CTaskComplexEnterCarAsDriver>()) {
-        return !!task->GetVehicle();
+        return !!task->GetTargetCar();
     }
 
     if (const auto task = m_TaskMgr.Find<CTaskComplexEnterCarAsPassenger>()) {
-        return !!task->GetVehicle();
+        return !!task->GetTargetCar();
     }
 
     if (const auto task = m_TaskMgr.Find<CTaskSimpleCarDrive>()) {
@@ -686,31 +683,23 @@ bool CPedIntelligence::AreFriends(const CPed& ped1, const CPed& ped2) {
 // unused
 // 0x601D50
 bool CPedIntelligence::IsPedGoingSomewhereOnFoot() {
-    CTask* task = m_TaskMgr.GetSimplestActiveTask();
-    if (task)
-        return CTask::IsGoToTask(task);
-    else
-        return false;
+    const auto tSimplestActive = m_TaskMgr.GetSimplestActiveTask();
+    return tSimplestActive && CTask::IsGoToTask(tSimplestActive);
 }
 
-// 0x601D70
-int32 CPedIntelligence::GetMoveStateFromGoToTask() {
-    auto* task = m_TaskMgr.GetSimplestActiveTask();
-    if (task && CTask::IsGoToTask(task)) {
-        return static_cast<CTaskSimpleGoTo*>(task)->m_moveState;
-    }
-    return PEDMOVE_STILL;
+// 0x601D70 
+eMoveState CPedIntelligence::GetMoveStateFromGoToTask() {
+    const auto tSimplestActive = m_TaskMgr.GetSimplestActiveTask();
+    return tSimplestActive && CTask::IsGoToTask(tSimplestActive)
+        ? static_cast<CTaskSimpleGoTo*>(tSimplestActive)->m_moveState
+        : PEDMOVE_STILL;
 }
 
 // 0x601DA0
 void CPedIntelligence::FlushIntelligence() {
     m_TaskMgr.Flush();
-    m_eventHandler.m_physicalResponseTask = nullptr;
-    m_eventHandler.m_eventResponseTask = nullptr;
-    m_eventHandler.m_attackTask = nullptr;
-    m_eventHandler.m_sayTask = nullptr;
-    m_eventHandler.m_partialAnimTask = nullptr;
-    m_eventHandler.m_history.ClearAllEvents();
+    m_eventHandler.ResetHistory();
+    m_eventHandler.ResetResponse();
     m_eventGroup.Flush(false);
     m_vehicleScanner.Clear();
     m_pedScanner.Clear();
@@ -722,12 +711,10 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
     if (target->bInVehicle)
         return false;
 
-    CVector bonePosition;
-    target->GetBonePosition(bonePosition, BONE_HEAD, false);
     if (target->bIsDucking || target->m_fHealth < 1.0f)
         return false;
 
-    if (bonePosition.z < target->GetPosition().z)
+    if (target->GetBonePosition(BONE_HEAD).z < target->GetPosition().z)
         return false;
 
     if (bFullTest)
@@ -743,12 +730,10 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
     if (DotProduct(distance, target->GetForward()) <= 0.0f)
         return false;
 
-    CTask* activeTask = target->GetTaskManager().GetActiveTask();
-    if (activeTask
-        && activeTask->GetTaskType() == TASK_COMPLEX_KILL_PED_ON_FOOT
-        && static_cast<CTaskComplexKillPedOnFoot*>(activeTask)->m_target == m_pPed
-    ) {
-        return false;
+    if (const auto tKillPedOnFoot = notsa::dyn_cast_if_present<CTaskComplexKillPedOnFoot>(target->GetTaskManager().GetActiveTask())) {
+        if (tKillPedOnFoot->m_target == m_pPed) {
+            return false;
+        }
     }
 
     CEvent* currentEvent = target->GetEventHandlerHistory().GetCurrentEvent();
@@ -758,16 +743,15 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
         auto hate = target->GetAcquaintance().GetAcquaintances(ACQUAINTANCE_HATE);
         auto dislike = target->GetAcquaintance().GetAcquaintances(ACQUAINTANCE_DISLIKE);
         auto pedFlag = CPedType::GetPedFlag(m_pPed->m_nPedType);
-
         bool bAcquaintancesFlagSet = (
             (hate && (pedFlag & hate)) ||
             (dislike && (pedFlag & dislike))
         );
-        CPedGroup* pedGroup = CPedGroups::GetPedsGroup(target);
-        if (bAcquaintancesFlagSet && pedGroup) {
-            CEventGroupEvent* eventGroupEvent = pedGroup->GetIntelligence().m_pOldEventGroupEvent;
-            if (eventGroupEvent && eventGroupEvent->GetSourceEntity() == m_pPed && bAcquaintancesFlagSet)
+        if (bAcquaintancesFlagSet && target->GetGroup()) {
+            const auto oe = target->GetGroup()->GetIntelligence().GetOldEvent();
+            if (oe && oe->GetSourceEntity() == m_pPed && bAcquaintancesFlagSet) {
                 return false;
+            }
         }
     }
     return true;
@@ -775,8 +759,7 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
 
 // 0x602050
 void CPedIntelligence::RecordEventForScript(int32 eventId, int32 eventPriority) {
-    if (eventId != EVENT_SCRIPT_COMMAND && (!eventId || eventPriority > m_nEventPriority))
-    {
+    if (eventId != EVENT_SCRIPT_COMMAND && (!eventId || eventPriority > m_nEventPriority)) {
         m_nEventId = eventId;
         m_nEventPriority = eventPriority;
     }
@@ -865,21 +848,9 @@ void CPedIntelligence::RemoveAllInterestingEntities() {
 // 0x602350
 bool CPedIntelligence::IsPedGoingForCarDoor() {
     auto* task = m_TaskMgr.GetSimplestActiveTask();
-    if (task) {
-        if (task->GetTaskType() == TASK_COMPLEX_GO_TO_CAR_DOOR_AND_STAND_STILL) {
+    for (auto i = 0; task && i < 3; i++, task = task->GetParent()) {
+        if (notsa::isa<CTaskComplexGoToCarDoorAndStandStill>(task)) {
             return true;
-        }
-
-        CTask* parentTask = task->m_pParentTask;
-        if (parentTask) {
-            if (parentTask->GetTaskType() == TASK_COMPLEX_GO_TO_CAR_DOOR_AND_STAND_STILL) {
-                return true;
-            }
-
-            CTask* grandParentTask = parentTask->m_pParentTask;
-            if (grandParentTask && grandParentTask->GetTaskType() == TASK_COMPLEX_GO_TO_CAR_DOOR_AND_STAND_STILL) {
-                return true;
-            }
         }
     }
     return false;
@@ -1009,23 +980,27 @@ void CPedIntelligence::Process() {
 }
 
 // 0x4B85B0
-CTask* CPedIntelligence::GetActivePrimaryTask()
-{
-    CTask* task = m_TaskMgr.GetTaskPrimary(TASK_PRIMARY_PHYSICAL_RESPONSE);
-    if (task != nullptr)
-        return task;
-
-    task = m_TaskMgr.GetTaskPrimary(TASK_PRIMARY_EVENT_RESPONSE_TEMP);
-    if (task != nullptr)
-        return task;
-
-    task = m_TaskMgr.GetTaskPrimary(TASK_PRIMARY_EVENT_RESPONSE_NONTEMP);
-    return task;
+CTask* CPedIntelligence::GetActivePrimaryTask() const {
+    for (const auto i : { TASK_PRIMARY_PHYSICAL_RESPONSE, TASK_PRIMARY_EVENT_RESPONSE_TEMP, TASK_PRIMARY_EVENT_RESPONSE_NONTEMP }) {
+        if (CTask* task = m_TaskMgr.GetTaskPrimary(TASK_PRIMARY_PHYSICAL_RESPONSE)) {
+            return task;
+        }
+    }
+    return nullptr;
 }
 
 // 0x4ABEA0
 float CPedIntelligence::GetPedFOVRange() const {
     return std::max(m_fHearingRange, m_fSeeingRange);
+}
+
+// 0x421050
+void CPedIntelligence::IncrementAngerAtPlayer(uint8 anger) {
+    if (!m_mentalState.m_AngerTimer.IsOutOfTime()) {
+        return;
+    }
+    m_mentalState.m_AngerTimer.Start(3000);
+    m_mentalState.m_AngerAtPlayer += anger;
 }
 
 // 0x6074A0
@@ -1042,7 +1017,7 @@ void CPedIntelligence::operator delete(void* object) {
 CVehicle* CPedIntelligence::GetEnteringVehicle() {
     for (const auto taskt : { TASK_COMPLEX_ENTER_CAR_AS_DRIVER, TASK_COMPLEX_ENTER_CAR_AS_PASSENGER }) {
         if (const auto task = FindTaskByType(taskt)) {
-            return static_cast<CTaskComplexEnterCar*>(task)->GetVehicle();
+            return static_cast<CTaskComplexEnterCar*>(task)->GetTargetCar();
         }
     }
     return nullptr;

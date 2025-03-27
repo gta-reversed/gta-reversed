@@ -32,7 +32,7 @@ bool CTaskSimpleAffectSecondaryBehaviour::ProcessPed(CPed* ped) {
     const auto currSecTask = ped->GetTaskManager().GetTaskSecondary(m_secTaskType);
     
     if (m_bAdd) {
-        if (!currSecTask || currSecTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+        if (!currSecTask || currSecTask->MakeAbortable(ped)) {
             ped->GetTaskManager().SetTaskSecondary(m_task->Clone(), m_secTaskType);
             return true;
         }    

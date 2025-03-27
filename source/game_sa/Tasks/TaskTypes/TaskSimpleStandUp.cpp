@@ -59,7 +59,7 @@ bool CTaskSimpleStandUp::MakeAbortable(CPed*, eAbortPriority priority, CEvent co
     switch (priority) {
     case ABORT_PRIORITY_IMMEDIATE: {
         if (m_anim) {
-            m_anim->m_fBlendDelta = -1000.f;
+            m_anim->m_BlendDelta = -1000.f;
             m_anim->SetDefaultFinishCallback();
             m_anim = nullptr;
         }
@@ -74,8 +74,8 @@ bool CTaskSimpleStandUp::MakeAbortable(CPed*, eAbortPriority priority, CEvent co
     }
     case ABORT_PRIORITY_LEISURE: {
         if (m_anim) {
-            m_anim->m_nFlags |= ANIMATION_FREEZE_LAST_FRAME;
-            m_anim->m_fBlendDelta = -4.f;
+            m_anim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
+            m_anim->m_BlendDelta = -4.f;
         }
         return false;
     }

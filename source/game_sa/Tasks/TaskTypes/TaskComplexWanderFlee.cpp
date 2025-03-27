@@ -15,7 +15,7 @@ void CTaskComplexWanderFlee::InjectHooks() {
 }
 
 // 0x65B320
-CTaskComplexWanderFlee::CTaskComplexWanderFlee(int32 moveState, uint8 dir) :
+CTaskComplexWanderFlee::CTaskComplexWanderFlee(eMoveState moveState, uint8 dir) :
     CTaskComplexWander{moveState, dir, false}
 {
 }

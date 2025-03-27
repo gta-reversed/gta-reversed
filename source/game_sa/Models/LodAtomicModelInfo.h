@@ -18,9 +18,6 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CLodAtomicModelInfo* AsLodAtomicModelInfoPtr_Reversed();
-    ModelInfoType GetModelType_Reversed();
-    void Init_Reversed();
 };
 
 VALIDATE_SIZE(CLodAtomicModelInfo, 0x24);

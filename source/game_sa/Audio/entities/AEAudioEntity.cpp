@@ -17,12 +17,12 @@ bool CAEAudioEntity::StaticInitialise() {
     m_pAudioEventVolumes = new int8[45401];
     auto file = CFileMgr::OpenFile("AUDIO\\CONFIG\\EVENTVOL.DAT", "r");
     if (!file) {
-        DEV_LOG("[AudioEngine] Failed to open EVENTVOL.DAT");
+        NOTSA_LOG_WARN("[AudioEngine] Failed to open EVENTVOL.DAT");
         CFileMgr::CloseFile(file);
         return false;
     }
     if (CFileMgr::Read(file, m_pAudioEventVolumes, 45401) != 45401) {
-        DEV_LOG("[AudioEngine] Failed to read EVENTVOL.DAT");
+        NOTSA_LOG_WARN("[AudioEngine] Failed to read EVENTVOL.DAT");
         CFileMgr::CloseFile(file);
         return false;
     }

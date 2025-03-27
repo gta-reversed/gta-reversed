@@ -60,7 +60,7 @@ void CTaskSimplePickUpBike::StartAnim(CPed const* ped) {
             return rightZ >= 0.f ? ANIM_ID_CAR_ALIGNHI_RHS : ANIM_ID_CAR_ALIGN_RHS;
         }
     }();
-    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, (AssocGroupId)m_veh->GetAnimGroup().GetGroup(animationId), animationId);
+    m_anim = CAnimManager::BlendAnimation(ped->m_pRwClump, m_veh->GetAnimGroup().GetGroup(animationId), animationId);
     m_anim->SetFinishCallback(FinishAnimPickUpBikeCB, this);
 }
 
@@ -71,7 +71,7 @@ bool CTaskSimplePickUpBike::MakeAbortable(CPed* ped, eAbortPriority priority, CE
     }
 
     if (m_anim) {
-        m_anim->m_fBlendDelta = -1000.f;
+        m_anim->m_BlendDelta = -1000.f;
     }
     m_veh->AsBike()->bikeFlags.bGettingPickedUp = false;
     return true;
@@ -89,7 +89,7 @@ bool CTaskSimplePickUpBike::ProcessPed(CPed* ped) {
 
     if (const auto bike = m_veh->AsBike(); !bike->bikeFlags.bGettingPickedUp) {
         if (m_anim) {
-            if (m_anim->m_fCurrentTime > 0.47f) { // Simplified...
+            if (m_anim->m_CurrentTime > 0.47f) { // Simplified...
                 bike->bikeFlags.bGettingPickedUp = true;
             }        
         }        

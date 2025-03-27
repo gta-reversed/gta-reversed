@@ -11,11 +11,11 @@ class CTask;
 
 class CPedTaskPair {
 public:
-    CPed*  m_pPed;
-    CTask* m_pTask;
-    int32  m_taskSlot;
-    int32  field_C;
-    int8   field_10;
+    CPed*  m_Ped{};
+    CTask* m_Task{};
+    int32  m_Slot{-1};
+    int32  m_MatchID{};
+    int8   m_bUsedTask{};
 
 public:
     static void InjectHooks();

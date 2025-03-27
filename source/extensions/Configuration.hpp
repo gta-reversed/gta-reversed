@@ -3,7 +3,6 @@
 #include <optional>
 #include <unordered_map>
 #include <fstream>
-#include <filesystem>
 
 #include "app_debug.h"
 
@@ -11,27 +10,11 @@ static inline class {
     using IniContent = std::unordered_map<std::string, std::unordered_map<std::string, std::string>>;
     IniContent m_content{};
 
-    struct NewConfigFile {
-        std::ofstream out;
-        std::string lastSection;
-    };
-    std::optional<NewConfigFile> m_createdIniFile{};
-
 public:
     template <typename Ret = std::string>
-    Ret GetIniValue(const std::string& section, const std::string& key, Ret&& _default) {
-        if (m_content.empty() || !m_content.contains(section) || !m_content[section].contains(key)) {
-            if (m_createdIniFile.has_value()) {
-                if (std::exchange(m_createdIniFile->lastSection, section) != section)
-                    m_createdIniFile->out << "\n[" << section << "]\n";
-
-               if constexpr (std::is_same_v<Ret, bool>)
-                    m_createdIniFile->out << key << " = " << std::boolalpha << _default << "\n";
-               else
-                    m_createdIniFile->out << key << " = " << _default << "\n";
-            }
-            return _default;
-        }
+    std::optional<Ret> GetIniValue(const std::string& section, const std::string& key) {
+        if (m_content.empty() || !m_content.contains(section) || !m_content[section].contains(key))
+            return {};
 
         const auto& str = m_content[section][key];
         if constexpr (std::is_same_v<Ret, std::string>) {
@@ -43,25 +26,15 @@ public:
 
             auto [_, ec] = std::from_chars(str.data(), str.data() + str.size(), rt);
             if (ec != std::errc{})
-                return _default;
+                return {};
 
             return rt;
         } else {
-            return _default;
+            return {};
         }
     }
 
-    void Load(const std::filesystem::path& fileName) {
-        if (!std::filesystem::exists(fileName)) {
-            DEV_LOG("Configuration file {} doesn't exist! A new one will be generated.", fileName.string());
-            DEV_LOG("Using the provided config file with comments is recommended.");
-
-            auto out = std::ofstream{fileName};
-            out << "; GTA-Reversed configuration file generated at " << std::chrono::system_clock::now();
-            m_createdIniFile = {std::move(out), ""};
-            return;
-        }
-
+    void Load(const std::string& fileName) {
         std::ifstream in(fileName);
         assert(!in.bad());
 
@@ -114,7 +87,7 @@ private:
     static constexpr auto IniSectionName = name
 
 #define GET_INI_CONFIG_VALUE(key, _default) \
-	g_ConfigurationMgr.GetIniValue<decltype(_default)>(IniSectionName, key, _default)
+	g_ConfigurationMgr.GetIniValue<decltype(_default)>(IniSectionName, key).value_or(_default)
 
 #define STORE_INI_CONFIG_VALUE(key_var, _default) \
-	key_var = g_ConfigurationMgr.GetIniValue<decltype(key_var)>(IniSectionName, #key_var, _default)
+	key_var = g_ConfigurationMgr.GetIniValue<decltype(key_var)>(IniSectionName, #key_var).value_or(_default)

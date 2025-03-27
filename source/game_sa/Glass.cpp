@@ -105,10 +105,7 @@ void CGlass::CarWindscreenShatters(CVehicle* vehicle) {
     auto& vehMat = (CMatrix&)vehicle->GetMatrix();
 
     // Grab normal and transform it to world space
-    const auto normal = Multiply3x3(
-        vehMat,
-        colModel->m_pColData->m_pTrianglePlanes[glassTriIdx].GetNormal()
-    );
+    const auto normal = vehMat.TransformVector(colModel->m_pColData->m_pTrianglePlanes[glassTriIdx].GetNormal());
 
     // Calculate direction vectors
     const auto fwd   = Normalized(CrossProduct(vehMat.GetRight(), normal));
@@ -121,10 +118,7 @@ void CGlass::CarWindscreenShatters(CVehicle* vehicle) {
     for (auto t = 0; t < 2; t++) { // t - triangle idx
         const auto& tri = triangles[glassTriIdx + t];
         for (auto v = 0; v < 3; v++) { // v - vertex idx of this triangle
-            triVertices[t * 3 + v] = MultiplyMatrixWithVector(
-                vehMat,
-                UncompressVector(colModel->m_pColData->m_pVertices[tri.m_vertIndices[v]])
-            );
+            triVertices[t * 3 + v] =vehMat.TransformPoint(UncompressVector(colModel->m_pColData->m_pVertices[tri.m_vertIndices[v]]));
         }
     }
 
@@ -229,8 +223,8 @@ void CGlass::WindowRespondsToCollision(CEntity* entity, float fDamageIntensity, 
         const auto vertFurthestFromV0 = rng::max_element(verticesOS, {}, [v0 = verticesOS[0]](auto&& v) { return (v0 - v).SquaredMagnitude2D(); });
 
         // Transform vertices to world space
-        const auto vert0Pos          = MultiplyMatrixWithVector(object->GetMatrix(), { verticesOS[0].x, verticesOS[0].y, minZ });
-        const auto furthestFromV0Pos = MultiplyMatrixWithVector(object->GetMatrix(), { vertFurthestFromV0->x, vertFurthestFromV0->y, minZ });
+        const auto vert0Pos          = object->GetMatrix().TransformPoint({ verticesOS[0].x, verticesOS[0].y, minZ });
+        const auto furthestFromV0Pos = object->GetMatrix().TransformPoint({ vertFurthestFromV0->x, vertFurthestFromV0->y, minZ });
 
         AudioEngine.ReportGlassCollisionEvent(AE_GLASS_BREAK_FAST, object->GetPosition());
         GeneratePanesForWindow(
@@ -486,7 +480,7 @@ void CGlass::RenderHiLightPolys() {
         RwRenderStateSet(rwRENDERSTATEDESTBLEND,     RWRSTATE(rwBLENDONE));
         RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpShadowExplosionTex)));
 
-        if (RwIm3DTransform(aTempBufferVertices, H1iLightPolyVerticesIdx, nullptr, rwIM3D_VERTEXUV)) {
+        if (RwIm3DTransform(TempBufferVertices.m_3d, H1iLightPolyVerticesIdx, nullptr, rwIM3D_VERTEXUV)) {
             RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, aTempBufferIndices, HiLightPolyIndicesIdx);
             RwIm3DEnd();
         }
@@ -561,7 +555,7 @@ void CGlass::BreakGlassPhysically(CVector point, float radius) {
         // Test if point touches any of the model's triangles
         {
             const CColSphere sphere{
-                Multiply3x3(object->GetMatrix(), point - objPos),
+                object->GetMatrix().TransformVector(point - objPos),
                 radius
             };
             CCollision::CalculateTrianglePlanes(colModel);
@@ -597,8 +591,8 @@ void CGlass::BreakGlassPhysically(CVector point, float radius) {
             [&](const auto& v) { return DistanceBetweenPoints2D(verticesObjSpace[0], v); }
         );
 
-        const auto v0Pos = MultiplyMatrixWithVector(object->GetMatrix(), { verticesObjSpace[0].x, verticesObjSpace[0].y, minZ });
-        const auto furthestOfV0Pos = MultiplyMatrixWithVector(object->GetMatrix(), { furthestOfV0->x, furthestOfV0->y, minZ });
+        const auto v0Pos = object->GetMatrix().TransformPoint({ verticesObjSpace[0].x, verticesObjSpace[0].y, minZ });
+        const auto furthestOfV0Pos = object->GetMatrix().TransformPoint({ furthestOfV0->x, furthestOfV0->y, minZ });
 
         AudioEngine.ReportGlassCollisionEvent(AE_GLASS_HIT, objPos);
 

@@ -6,7 +6,7 @@
 
 class CEntity;
 
-class CEntitySeekPosCalculatorXYOffset : public CEntitySeekPosCalculator {
+class NOTSA_EXPORT_VTABLE CEntitySeekPosCalculatorXYOffset : public CEntitySeekPosCalculator {
     CVector m_offsetXY{};
 public:
     static void InjectHooks();

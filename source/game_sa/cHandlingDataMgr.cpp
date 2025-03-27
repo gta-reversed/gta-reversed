@@ -49,9 +49,9 @@ int32 tHandlingData::InitFromData(int32 id, const char* line) {
         &m_fTractionBias,
 
         &m_transmissionData.m_nNumberOfGears, // 11
-        &m_transmissionData.m_fMaxGearVelocity,
-        &m_transmissionData.m_fEngineAcceleration,
-        &m_transmissionData.m_fEngineInertia,
+        &m_transmissionData.m_MaxVelocity,
+        &m_transmissionData.m_EngineAcceleration,
+        &m_transmissionData.m_EngineInertia,
         &m_transmissionData.m_nDriveType, 1u,
         &m_transmissionData.m_nEngineType, 1u,
 
@@ -79,7 +79,7 @@ int32 tHandlingData::InitFromData(int32 id, const char* line) {
         &m_nAnimGroup
     );
     m_transmissionData.m_handlingFlags = m_nHandlingFlags;
-    m_transmissionData.m_fEngineAcceleration *= 0.4f;
+    m_transmissionData.m_EngineAcceleration *= 0.4f;
     gHandlingDataMgr.ConvertDataToGameUnits(this);
     return n == 35 ? -1 : n;
 }
@@ -288,9 +288,9 @@ int32 cHandlingDataMgr::GetHandlingId(const char* nameToFind) {
 void cHandlingDataMgr::ConvertDataToWorldUnits(tHandlingData* h) {
     const auto t = &h->GetTransmission();
 
-    t->m_fMaxGearVelocity /= VELOCITY_CONST;
+    t->m_MaxVelocity /= VELOCITY_CONST;
     h->m_fBrakeDeceleration /= ACCEL_CONST;
-    t->m_fEngineAcceleration *= (t->m_nDriveType == '4' ? 4.f : 2.f) / ACCEL_CONST;
+    t->m_EngineAcceleration *= (t->m_nDriveType == '4' ? 4.f : 2.f) / ACCEL_CONST;
     h->m_fCollisionDamageMultiplier *= h->m_fMass / 2000.f;
 }
 
@@ -299,47 +299,48 @@ void cHandlingDataMgr::ConvertDataToWorldUnits(tHandlingData* h) {
 void cHandlingDataMgr::ConvertDataToGameUnits(tHandlingData* h) {
     const auto t = &h->GetTransmission();
 
-    t->m_fEngineAcceleration *= ACCEL_CONST;
-    t->m_fMaxGearVelocity *= VELOCITY_CONST;
+    t->m_EngineAcceleration *= ACCEL_CONST;
+    t->m_MaxVelocity *= VELOCITY_CONST;
     h->m_fBrakeDeceleration *= ACCEL_CONST;
     h->m_fMassRecpr = 1.f / h->m_fMass;
     h->m_fBuoyancyConstant = h->m_fMass * 0.8f / (float)h->m_nPercentSubmerged;
     h->m_fCollisionDamageMultiplier *= h->m_fMassRecpr * 2000.f;
 
-    auto maxVelocity{ t->m_fMaxGearVelocity };
+    auto engineAccelLimit = t->m_EngineAcceleration / 6.f;
+    auto maxVelocity      = t->m_MaxVelocity;
     while (maxVelocity > 0.f) {
         maxVelocity -= 0.01f;
+        if (h->m_fDragMult >= 0.01f) {
+            if ((sq(maxVelocity) * (h->m_fDragMult / 2.f) / 1000.f) <= engineAccelLimit) {
+                break;
+            }
+            continue;
+        }
 
-        const auto maxVelocitySq = sq(maxVelocity);
-        const auto v = h->m_fDragMult >= 0.01f
-            ? h->m_fDragMult / 1000.f * 0.5f * maxVelocitySq
-            : -((1.f / (maxVelocitySq * h->m_fDragMult + 1.f) - 1.f) * maxVelocity);
-        if (t->m_fEngineAcceleration / 6.f < v) {
+        auto fRecip = 1.f / (sq(maxVelocity) * h->m_fDragMult + 1.f);
+        if ((fRecip - 1.f) * -maxVelocity <= engineAccelLimit) {
             break;
         }
     }
 
-    std::tie(t->m_fMaxVelocity, t->m_maxReverseGearVelocity) = [&]() -> std::tuple<float, float> {
-        if (h->m_nVehicleId == 38) { // RC Bandit
-            return { t->m_fMaxGearVelocity, -t->m_fMaxGearVelocity };
-        }
-
-        if (h->m_bUseMaxspLimit) {
-            const auto v = t->m_fMaxGearVelocity / 1.2f;
-            return { v, std::min(-0.2f, v * -0.25f) };
-        }
-
-        t->m_fMaxGearVelocity = maxVelocity * 1.2f;
-
-        if (h->m_nVehicleId >= 162 && h->m_nVehicleId <= 174) {
-            return { maxVelocity, -0.05f };
+    if (h->m_nVehicleId == VT_RCBANDIT) {
+        t->m_MaxFlatVelocity    = maxVelocity;
+        t->m_MaxReverseVelocity = -maxVelocity;
+    } else if (h->m_bUseMaxspLimit) {
+        t->m_MaxFlatVelocity    = maxVelocity / 1.2f;
+        t->m_MaxReverseVelocity = std::min(-t->m_MaxFlatVelocity / 4.f, -0.2f);
+    } else {
+        t->m_MaxVelocity     = maxVelocity * 1.2f;
+        t->m_MaxFlatVelocity = maxVelocity;
+        if (h->m_nVehicleId >= VT_BIKE && h->m_nVehicleId <= VT_FREEWAY) { 
+            // 2 wheelers
+            t->m_MaxReverseVelocity = -0.05f;
         } else {
-            return { maxVelocity, std::min(-0.2f, maxVelocity * -0.3f) };
+            t->m_MaxReverseVelocity = std::min(-maxVelocity * 0.3f, -0.2f);
         }
-    }();
+    }
 
-    t->m_fEngineAcceleration /= (t->m_nDriveType == '4') ? 4.f : 2.f;
-
+    t->m_EngineAcceleration /= (t->m_nDriveType == '4') ? 4.f : 2.f;
     t->InitGearRatios();
 }
 

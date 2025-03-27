@@ -33,6 +33,9 @@ void CVehicleAnimGroup::InitAnimGroup(
     sVehAnimGroupGeneralTiming* generalTiming,
     sVehAnimGroupInOutTiming* startTiming, sVehAnimGroupInOutTiming* endTiming
 ) {
+    assert(firstGroup >= ANIM_GROUP_CARS_BEGIN && firstGroup < ANIM_GROUP_CARS_END);
+    assert(secondGroup >= ANIM_GROUP_CARS_BEGIN && secondGroup < ANIM_GROUP_CARS_END);
+
     m_ucFirstGroup = firstGroup;
     m_ucSecondGroup = secondGroup;
     m_animFlags.intValue = animFlags;
@@ -52,87 +55,86 @@ void CVehicleAnimGroup::CopyAnimGroup(CVehicleAnimGroup* src) {
     GetInOutTiming(eInOutTiming::TIMING_END) = src->GetInOutTiming(eInOutTiming::TIMING_END);
 }
 
-uint32 CVehicleAnimGroup::GetGroup(AnimationId animId) { // TODO: Return `AssocGroupId`
-    switch (animId)
-    {
+AssocGroupId CVehicleAnimGroup::GetGroup(AnimationId animId) const {
+    switch (animId) {
     case ANIM_ID_CAR_ALIGN_LHS:
     case ANIM_ID_CAR_ALIGN_RHS:
     case ANIM_ID_CAR_ALIGNHI_LHS:
     case ANIM_ID_CAR_ALIGNHI_RHS:
-        return m_animFlags.bAlign ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bAlign ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_OPEN_LHS:
     case ANIM_ID_CAR_OPEN_RHS:
-        return m_animFlags.bOpenFrontDoorsOnExit ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bOpenFrontDoorsOnExit ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_OPEN_LHS_1:
     case ANIM_ID_CAR_OPEN_RHS_1:
-        return m_animFlags.bOpenRearDoorsOnExit ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bOpenRearDoorsOnExit ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_GETIN_LHS_0:
     case ANIM_ID_CAR_GETIN_RHS_0:
     case ANIM_ID_CAR_GETIN_BIKE_FRONT:
-        return m_animFlags.bCanEnterFrontDoors ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bCanEnterFrontDoors ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_GETIN_LHS_1:
     case ANIM_ID_CAR_GETIN_RHS_1:
-        return m_animFlags.bCanEnterRearDoors ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bCanEnterRearDoors ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_PULLOUT_LHS:
     case ANIM_ID_CAR_PULLOUT_RHS:
     case ANIM_ID_UNKNOWN_15:
-        return m_animFlags.bCanPulloutPed ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bCanPulloutPed ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_CLOSEDOOR_LHS_0:
     case ANIM_ID_CAR_CLOSEDOOR_RHS_0:
-        return m_animFlags.bCloseFrontDoorWhenInside ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bCloseFrontDoorWhenInside ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_CLOSEDOOR_LHS_1:
     case ANIM_ID_CAR_CLOSEDOOR_RHS_1:
-        return m_animFlags.bCloseRearDoorWhenInside ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bCloseRearDoorWhenInside ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_SHUFFLE_RHS_0:
     case ANIM_ID_CAR_SHUFFLE_RHS_1:
-        return m_animFlags.bShuffle ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bShuffle ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_GETOUT_LHS_0:
     case ANIM_ID_CAR_GETOUT_RHS_0:
-        return m_animFlags.bCanExitFrontDoors ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bCanExitFrontDoors ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_GETOUT_LHS_1:
     case ANIM_ID_CAR_GETOUT_RHS_1:
-        return m_animFlags.bCanExitRearDoors ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bCanExitRearDoors ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_JACKEDLHS:
     case ANIM_ID_CAR_JACKEDRHS:
-        return m_animFlags.bPlayerCanBeJacked ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bPlayerCanBeJacked ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_CLOSE_LHS_0:
     case ANIM_ID_CAR_CLOSE_RHS_0:
-        return m_animFlags.bCloseFrontDoorWhenOutside ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bCloseFrontDoorWhenOutside ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_CLOSE_LHS_1:
     case ANIM_ID_CAR_CLOSE_RHS_1:
-        return m_animFlags.bCloseRearDoorWhenOutside ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bCloseRearDoorWhenOutside ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_ROLLOUT_LHS:
     case ANIM_ID_CAR_ROLLOUT_RHS:
-        return m_animFlags.bCanJumpOutOfVehicle ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bCanJumpOutOfVehicle ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_ROLLDOOR:
-        return m_animFlags.bRollDownWindowOnDoorClose ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bRollDownWindowOnDoorClose ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_FALLOUT_LHS:
     case ANIM_ID_CAR_FALLOUT_RHS:
-        return m_animFlags.bPlayerCanFallOut ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bPlayerCanFallOut ? GetSecondGroup() : GetFirstGroup();
 
     case ANIM_ID_CAR_DOORLOCKED_LHS:
     case ANIM_ID_CAR_DOORLOCKED_RHS:
-        return m_animFlags.bDoorLocked ? m_ucSecondGroup : m_ucFirstGroup;
+        return m_animFlags.bDoorLocked ? GetSecondGroup() : GetFirstGroup();
     }
 
-    assert(false); // Shouldn't ever get to this point
-    return (m_animFlags.intValue & (1 << animId)) != 0 ? m_ucSecondGroup : m_ucFirstGroup;
+    NOTSA_UNREACHABLE(); // Shouldn't ever get to this point
+    //return (m_animFlags.intValue & (1 << animId)) != 0 ? GetSecondGroup() : GetFirstGroup();
 }
 
 float CVehicleAnimGroup::ComputeCriticalBlendTime(AnimationId animId) {
@@ -190,19 +192,17 @@ CVector CVehicleAnimGroup::ComputeAnimDoorOffsets(eVehAnimDoorOffset doorId) {
         case EXIT_REAR:        return ANIM_ID_CAR_GETOUT_LHS_1;
         case JACK_PED_LEFT:    return ANIM_ID_CAR_JACKEDLHS;
         case JACK_PED_RIGHT:   return ANIM_ID_CAR_JACKEDRHS;
-        default:
-            assert(false); // Shouldn't enter default case ever
-            return static_cast<AnimationId>(doorId);
+        default:               NOTSA_UNREACHABLE();
         }
     }();
 
-    const auto groupId = (AssocGroupId)CVehicleAnimGroup::GetGroup(animId);
+    const auto groupId = CVehicleAnimGroup::GetGroup(animId);
     auto* animAssoc = CAnimManager::GetAnimAssociation(groupId, animId);
-    auto* sequences = animAssoc->m_pHierarchy->m_pSequences;
-    CAnimManager::UncompressAnimation(animAssoc->m_pHierarchy);
-    if (sequences->m_nFrameCount > 0) {
-        auto* frame = sequences->GetUncompressedFrame(sequences->m_nFrameCount - 1);
-        GetDoorOffset(doorId) = frame->translation;
+    auto* sequences = animAssoc->m_BlendHier->m_pSequences;
+    CAnimManager::UncompressAnimation(animAssoc->m_BlendHier);
+    if (sequences->m_FramesNum > 0) {
+        auto* frame = sequences->GetUKeyFrame(sequences->m_FramesNum - 1);
+        GetDoorOffset(doorId) = frame->Trans;
     }
 
     return GetDoorOffset(doorId);
@@ -253,7 +253,6 @@ int32 CVehicleAnimGroup::InitFromData(const char* line) {
 
         &animSpecialFlags
     );
-
     // Check for fail
     if (n != 35) {
         return n;
@@ -301,7 +300,7 @@ void CVehicleAnimGroupData::GetInOutTimings(AssocGroupId groupId, eInOutTimingMo
 }
 
 // 0x639FC0
-int32 CVehicleAnimGroupData::GetGroupForAnim(AssocGroupId groupId, AnimationId animId) {
+AssocGroupId CVehicleAnimGroupData::GetGroupForAnim(AssocGroupId groupId, AnimationId animId) {
     return CVehicleAnimGroupData::GetVehicleAnimGroup(groupId).GetGroup(animId);
 }
 

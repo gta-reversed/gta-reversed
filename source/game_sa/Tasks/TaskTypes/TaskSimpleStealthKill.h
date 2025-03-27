@@ -37,10 +37,10 @@ public:
 
     void ManageAnim(CPed* ped);
 
-    CTask*    Clone() override { return new CTaskSimpleStealthKill{ *this }; }
-    eTaskType GetTaskType() override { return TASK_SIMPLE_STEALTH_KILL; } // 0x622670
+    CTask*    Clone() const override { return new CTaskSimpleStealthKill{ *this }; }
+    eTaskType GetTaskType() const override { return TASK_SIMPLE_STEALTH_KILL; } // 0x622670
     bool      ProcessPed(CPed* ped) override;
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
 
 private:
     auto Constructor(bool keepTargetAlive, CPed* target, AssocGroupId groupId) {

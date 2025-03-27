@@ -4,15 +4,18 @@
 
 #include "Vector.h"
 
+#include "AETrackLoader.h"
 #include "AESoundManager.h"
 #include "AEStreamThread.h"
+#include "AudioEngine.h"
+#include "AEMP3BankLoader.h"
 
 #ifdef PlaySound
 #undef PlaySound
 #endif
 
 union CAEAudioHardwarePlayFlags {
-    uint16 m_nFlags;
+    uint16 m_nFlags{};
     struct {
         uint16 m_bIsFrontend : 1;
         uint16 m_bIsUncompressable : 1;
@@ -26,6 +29,18 @@ union CAEAudioHardwarePlayFlags {
         uint16 m_bIsForcedFront : 1;
         uint16 m_bUnpausable : 1;
     };
+
+    void CopyFromAESound(const CAESound& sound) {
+        m_bIsFrontend        = sound.GetFrontEnd();
+        m_bIsUncompressable  = sound.GetUncompressable();
+        m_bIsUnduckable      = sound.GetUnduckable();
+        m_bIsStartPercentage = sound.GetStartPercentage();
+        m_bIsMusicMastered   = sound.GetMusicMastered();
+        m_bIsRolledOff       = sound.GetRolledOff();
+        m_bIsSmoothDucking   = sound.GetSmoothDucking();
+        m_bIsForcedFront     = sound.GetForcedFront();
+        m_bUnpausable        = m_bIsFrontend ? sound.GetUnpausable() : false;
+    }
 };
 
 class CAEStreamingChannel;
@@ -38,51 +53,57 @@ class tBeatInfo;
 
 class CAEAudioHardware {
 public:
-    bool                    m_bInitialised; // maybe
-    bool                    m_bDisableEffectsLoading;
-    uint8                   m_prev;
-    uint8                   field_3;
-    uint8                   field_4;
-    uint8                   m_nReverbEnvironment;
-    int16                   m_awChannelFlags[MAX_NUM_AUDIO_CHANNELS];
-    uint16                  field_86;
-    int32                   m_nReverbDepth;
-    uint16                  m_nNumAvailableChannels;
-    int16                   m_nNumChannels;
-    uint16                  m_anNumChannelsInSlot[MAX_NUM_AUDIO_CHANNELS];
-    float                   m_afChannelVolumes[MAX_NUM_AUDIO_CHANNELS];
-    float                   m_afUnkn[MAX_NUM_AUDIO_CHANNELS];
-    float                   m_afChannelsFrqScalingFactor[MAX_NUM_AUDIO_CHANNELS];
-    float                   m_fMusicMasterScalingFactor;
-    float                   m_fEffectMasterScalingFactor;
-    float                   m_fMusicFaderScalingFactor;
-    float                   m_fEffectsFaderScalingFactor;
-    float                   m_fNonStreamFaderScalingFactor;
-    float                   m_fStreamFaderScalingFactor;
-    float                   field_428;
-    float                   field_42C;
-    int16                   m_aBankSlotIds[MAX_NUM_SOUNDS];
-    int16                   m_aSoundIdsInSlots[MAX_NUM_SOUNDS];
-    int16                   m_anVirtualChannelSoundLoopStartTimes[MAX_NUM_SOUNDS];
-    int16                   m_anVirtualChannelSoundLengths[MAX_NUM_SOUNDS];
-    uint32                  m_nBassSet;
-    float                   m_fBassEqGain;
-    CAEMP3BankLoader*       m_pMP3BankLoader;
-    CAEMP3TrackLoader*      m_pMP3TrackLoader;
-    IDirectSound8*          m_pDevice;
-    void*                   m_dwSpeakerConfig;
-    void*                   m_n3dEffectsQueryResult;
-    DSCAPS                  m_dsCaps;
-    IDirectSound3DListener* m_pDirectSound3dListener;
-    CAEStreamingChannel*    m_pStreamingChannel;
-    CAEStreamThread         m_pStreamThread;
-    CAEAudioChannel*        m_aChannels[MAX_NUM_AUDIO_CHANNELS];
-    uint32                  m_aBeatInfo[40];
-    int32                   field_1004;
-    int32                   field_1008;
-    int32                   field_100C;
-    uint8                   field_1010;
-    int32                   field_1014;
+    bool                    m_bInitialised{};
+    bool                    m_bDisableEffectsLoading{};
+    uint8                   m_prev{};
+    uint8                   field_3{};
+    uint8                   field_4{};
+    uint8                   m_nReverbEnvironment{ (uint8)-1};
+    int16                   m_awChannelFlags[MAX_NUM_AUDIO_CHANNELS]{};
+    uint16                  field_86{};
+    int32                   m_nReverbDepth{ -10000 };
+    uint16                  m_nNumAvailableChannels{};
+    uint16                  m_nNumChannels{};
+    uint16                  m_anNumChannelsInSlot[MAX_NUM_AUDIO_CHANNELS]{};
+    float                   m_afChannelVolumes[MAX_NUM_AUDIO_CHANNELS]{};   // -1000.f
+    float                   m_afUnkn[MAX_NUM_AUDIO_CHANNELS]{};
+    float                   m_afChannelsFrqScalingFactor[MAX_NUM_AUDIO_CHANNELS]{};
+
+    float                   m_fMusicMasterScalingFactor{ 1.f };
+    float                   m_fEffectMasterScalingFactor{ 1.f };
+
+    float                   m_fMusicFaderScalingFactor{ 1.f };
+    float                   m_fEffectsFaderScalingFactor{ 1.f };
+
+    float                   m_fNonStreamFaderScalingFactor{ 1.f };
+    float                   m_fStreamFaderScalingFactor{ 1.f };
+
+    float                   field_428{};
+    float                   field_42C{};
+    union { // TODO: Get rid of the union, and use `m_VirtualChannelSettings` directly
+        tVirtualChannelSettings m_VirtualChannelSettings{};
+        struct {
+            int16 m_aBankSlotIds[MAX_NUM_SOUNDS];
+            int16 m_aSoundIdsInSlots[MAX_NUM_SOUNDS];
+        };
+    };
+    int16                   m_VirtualChannelLoopTimes[MAX_NUM_SOUNDS]{};
+    int16                   m_VirtualChannelSoundLengths[MAX_NUM_SOUNDS]{};
+
+    uint8                   m_nBassSet{};
+    float                   m_fBassEqGain{};
+    CAEMP3BankLoader*       m_pMP3BankLoader{};
+    CAEMP3TrackLoader*      m_pMP3TrackLoader{};
+    IDirectSound8*          m_pDSDevice{};
+    uint32                  m_nSpeakerConfig{};
+    int32                   m_n3dEffectsQueryResult{};
+    DSCAPS                  m_dsCaps{};
+    IDirectSound3DListener* m_pDirectSound3dListener{};
+    CAEStreamingChannel*    m_pStreamingChannel{};
+    CAEStreamThread         m_pStreamThread{};
+    CAEAudioChannel*        m_aChannels[MAX_NUM_AUDIO_CHANNELS]{};
+    tBeatInfo               gBeatInfo{};
+    uint8                   m_PlayingTrackFlags{};
 
 public:
     static void InjectHooks();
@@ -90,7 +111,7 @@ public:
     // Return types aren't real, I've just copied the signatures for now
 
     CAEAudioHardware();
-    ~CAEAudioHardware();
+    ~CAEAudioHardware() = default;
 
     bool Initialise();
     void InitOpenALListener();
@@ -104,16 +125,16 @@ public:
     void GetChannelPlayTimes(int16 channel, int16* playTimes);
     void SetChannelVolume(int16 channel, uint16 channelId, float volume, uint8 unused);
 
-    bool LoadSoundBank(uint16 bankId, int16 bankSlotId);
+    void LoadSoundBank(uint16 bankId, int16 bankSlotId);
     bool IsSoundBankLoaded(uint16 bankId, int16 bankSlotId);
     int8 GetSoundBankLoadingStatus(uint16 bankId, int16 bankSlotId);
 
-    bool LoadSound(uint16 bank, uint16 sound, int16 slot);
+    void LoadSound(uint16 bank, uint16 sound, int16 slot);
     bool IsSoundLoaded(uint16, uint16, int16);
     bool GetSoundLoadingStatus(uint16 bankId, uint16 sfxId, int16 bankSlot);
 
     void StopSound(int16 channel, uint16 channelSlot);
-    void SetChannelPosition(int16 channel, uint16 channelSlot, CVector* vecPos, uint8 unused);
+    void SetChannelPosition(int16 slotId, uint16 channelSlot, const CVector& vecPos, uint8 unused);
     void SetChannelFrequencyScalingFactor(int16 channel, uint16 channelSlot, float freqFactor);
     void RescaleChannelVolumes();
     void UpdateReverbEnvironment();
@@ -126,7 +147,7 @@ public:
     void GetVirtualChannelSoundLengths(int16* outArr);
     void GetVirtualChannelSoundLoopStartTimes(int16* outArr);
 
-    void PlayTrack(uint32 trackId, int32 nextTrackId, uint32 a3, char a4, bool isUserTrack, bool nextIsUserTrack);
+    void PlayTrack(uint32 trackID, int nextTrackID, uint32 startOffsetMs, uint8 trackFlags, bool bUserTrack, bool bUserNextTrack);
     void StartTrackPlayback() const;
     void StopTrack();
 
@@ -167,8 +188,24 @@ public:
     void Query3DSoundEffects();
 
     void Service();
-};
 
-VALIDATE_SIZE(CAEAudioHardware, 0x1018);
+private:
+    auto GetChannels() const { return std::span{m_aChannels, m_nNumChannels}; }
+
+private:
+    // 0x4D83E0
+    CAEAudioHardware* Constructor() {
+        this->CAEAudioHardware::CAEAudioHardware();
+        return this;
+    }
+
+    // 0x4D83A0
+    CAEAudioHardware* Destructor() {
+        this->CAEAudioHardware::~CAEAudioHardware();
+        return this;
+    }
+
+};
+VALIDATE_SIZE(CAEAudioHardware, 0x1014); // Size might be bigger, but nothing is accessed beyond `0x1014`
 
 extern CAEAudioHardware& AEAudioHardware;

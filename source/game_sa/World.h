@@ -14,6 +14,8 @@ class CRepeatSector;
 class CPtrListSingleLink;
 class CPed;
 class CVehicle;
+class CPlayerPed;
+class CWanted;
 
 constexpr int32 MAX_PLAYERS = 2;
 constexpr int32 MAX_WORLD_UNITS = 6000;
@@ -30,6 +32,7 @@ constexpr int32 MAX_LOD_PTR_LISTS_X = 30;
 constexpr int32 MAX_LOD_PTR_LISTS_Y = 30;
 constexpr int32 MAX_LOD_PTR_LISTS = MAX_LOD_PTR_LISTS_X * MAX_LOD_PTR_LISTS_Y;
 
+constexpr inline float WORLD_BOUND_RANGE = 3000.0f;
 constexpr inline CRect WORLD_BOUNDS{-3000.0F, -3000.0F, 3000.0F, 3000.0F};
 constexpr float MAP_Z_LOW_LIMIT = -100.0f;
 
@@ -269,6 +272,11 @@ public:
         if (pos.z <= MAP_Z_LOW_LIMIT) {
             pos.z = CWorld::FindGroundZForCoord(pos.x, pos.y);
         }
+    }
+
+    // @notsa
+    static CVector AddGroundZToCoord(CVector2D xy) {
+        return CVector{ xy, FindGroundZForCoord(xy.x, xy.y) };
     }
 };
 

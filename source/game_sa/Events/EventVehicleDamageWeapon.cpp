@@ -4,11 +4,11 @@
 
 void CEventVehicleDamageWeapon::InjectHooks()
 {
-    RH_ScopedClass(CEventVehicleDamageWeapon);
+    RH_ScopedVirtualClass(CEventVehicleDamageWeapon, 0x86D640, 17);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x61C2E0);
-    RH_ScopedVirtualInstall(CloneEditable, 0x61C330);
+    RH_ScopedVMTInstall(CloneEditable, 0x61C330);
 }
 
 // 0x61C2E0
@@ -26,11 +26,6 @@ CEventVehicleDamageWeapon* CEventVehicleDamageWeapon::Constructor(CVehicle* vehi
 
 // 0x61C330
 CEventEditableResponse* CEventVehicleDamageWeapon::CloneEditable()
-{
-    return CEventVehicleDamageWeapon::CloneEditable_Reversed();
-}
-
-CEventEditableResponse* CEventVehicleDamageWeapon::CloneEditable_Reversed()
 {
     return new CEventVehicleDamageWeapon(m_vehicle, m_attacker, m_weaponType);
 }

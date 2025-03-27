@@ -15,7 +15,7 @@ class QuadTreeNode;
 class CEntryExit;
 class CEntity;
 
-typedef CPool<CEntryExit, CEntryExit, true> CEntryExitsPool;
+typedef CPool<CEntryExit, CEntryExit> CEntryExitsPool;
 
 enum ExitEnterState : int32 {
     EXIT_ENTER_STATE_0,
@@ -27,7 +27,7 @@ enum ExitEnterState : int32 {
 
 class CEntryExitManager {
 public:
-    static inline CEntryExit* (&ms_entryExitStack)[4] = *(CEntryExit*(*)[4])0x96A71C;
+    static inline CEntryExit* (&ms_entryExitStack)[4] = *(CEntryExit*(*)[4])0x96A720;
     static inline bool& ms_bBurglaryHousesEnabled = *(bool*)0x96A730;
     static inline int32& ms_oldAreaCode = *(int32*)0x96A734;
     static inline CEntity* (&ms_visibleEntityList)[32] = *(CEntity * (*)[32])0x96A738;

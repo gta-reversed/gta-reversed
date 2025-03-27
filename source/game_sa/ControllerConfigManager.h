@@ -112,6 +112,7 @@ public:
     int32 vendorId{};
     int32 productId{};
 };
+VALIDATE_SIZE(CPadConfig, 16);
 static inline auto& PadConfigs = StaticRef<std::array<CPadConfig, 2>, 0xC92144>();
 
 using ControlName = char[40];

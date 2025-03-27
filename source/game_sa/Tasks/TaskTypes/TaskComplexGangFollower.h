@@ -24,6 +24,8 @@ public:
 public:
     static constexpr auto Type = eTaskType::TASK_COMPLEX_GANG_FOLLOWER;
 
+    static constexpr bool ms_bUseClimbing = true; // 0x8D2EDC
+
     CTaskComplexGangFollower(CPedGroup* pedGroup, CPed* ped, uint8 a4, CVector pos, float a6);
     CTaskComplexGangFollower(const CTaskComplexGangFollower&);
     ~CTaskComplexGangFollower() override;

@@ -40,7 +40,7 @@ enum eTrainPassengersGenerationState {
     TRAIN_PASSENGERS_GENERATION_FINISHED = 4
 };
 
-class CTrain : public CVehicle {
+class NOTSA_EXPORT_VTABLE CTrain : public CVehicle {
 public:
     int16    m_nNodeIndex;
     float    m_fTrainSpeed; // 1.0 - train derails
@@ -135,7 +135,6 @@ private:
     static void InjectHooks();
 
     CTrain* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) { this->CTrain::CTrain(modelIndex, createdBy); return this; }
-    void ProcessControl_Reversed() { CTrain::ProcessControl(); }
 };
 VALIDATE_SIZE(CTrain, 0x6AC);
 VALIDATE_OFFSET(CTrain, m_nTrainFlags, 0x5B8);

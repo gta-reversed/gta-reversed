@@ -7,38 +7,40 @@
 #define USE_DSOUND
 
 #pragma pack(push, 1)
-class CAEAudioChannel {
+class NOTSA_EXPORT_VTABLE CAEAudioChannel {
 public:
 #ifdef USE_DSOUND
     IDirectSound*         m_pDirectSound;
-    IDirectSoundBuffer*   m_pDirectSoundBuffer;
+    union {
+        IDirectSoundBuffer*  m_pDirectSoundBuffer;
+        IDirectSoundBuffer8* m_pDirectSoundBuffer8;
+    };
     IDirectSound3DBuffer* m_pDirectSound3DBuffer;
 #endif
 
     char                  _pad10[24];
     uint32                m_nFlags;
     uint32                m_nLengthInBytes;
-    uint32                field_30; // unused
+    uint32                m_dwStopTime; // unused
     float                 m_fVolume;
-    bool                  m_bNoScalingFactor;
+    bool                  m_bPaused;
     uint8                 field_39; // unused
     uint16                m_nChannelId;
     uint32                m_nFrequency;
     uint32                m_nOriginalFrequency;
     bool                  m_bLooped;
-    uint8                 field_45;
-    uint8                 field_46; // unused
-    uint16                field_47;
-    uint16                m_wFrequencyMult;
-    uint32                m_nBufferFrequency;
-    uint32                m_nBytesPerSec;
-    uint16                field_53;
-    uint16                m_wBitsPerSample;
-    uint16                field_57;
+    bool                  m_bShouldStop;
+    bool                  m_bShouldPlay; // unused
+    WAVEFORMATEX          m_WaveFormat;
     uint16                field_59;
 #ifdef USE_DSOUND
     char                  _pad;
-    uint32                m_nBufferStatus;
+    union {
+        struct {
+            bool Bit0x1 : 1;
+        } bufferStatus;
+        uint32 m_nBufferStatus;
+    };
 #endif
 
 public:
@@ -55,7 +57,7 @@ public:
     virtual void   Stop() = 0;
     virtual void   SetFrequencyScalingFactor(float factor);
 
-    void   SetPosition(CVector* vecPos) const;
+    void   SetPosition(const CVector& vecPos) const;
     float  GetVolume() const { return m_fVolume; };
     void   SetVolume(float volume);
     bool   IsBufferPlaying() const { return m_nBufferStatus & DSBSTATUS_PLAYING; };
@@ -77,13 +79,12 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    void SetFrequencyScalingFactor_Reversed(float factor);
 };
 #pragma pack(pop)
 VALIDATE_SIZE(CAEAudioChannel, 0x60);
 VALIDATE_OFFSET(CAEAudioChannel, m_pDirectSound, 0x4);
 VALIDATE_OFFSET(CAEAudioChannel, m_nChannelId, 0x3A);
-VALIDATE_OFFSET(CAEAudioChannel, m_nBufferFrequency, 0x4B);
-VALIDATE_OFFSET(CAEAudioChannel, m_wFrequencyMult, 0x49);
+//VALIDATE_OFFSET(CAEAudioChannel, m_nBufferFrequency, 0x4B);
+//VALIDATE_OFFSET(CAEAudioChannel, m_wFrequencyMult, 0x49);
 
 extern uint32& g_numSoundChannelsUsed;

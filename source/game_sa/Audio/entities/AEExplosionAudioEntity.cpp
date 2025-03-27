@@ -50,9 +50,7 @@ void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& po
         speed_b = gfExplosionFrequencyVariations[m_Speed] * sqrt(sqrt(2.0f));
     }
 
-    CVector relPos;
-    CAEAudioEnvironment::GetPositionRelativeToCamera(&relPos, &posn);
-    auto vol1 = CAEAudioEnvironment::GetDistanceAttenuation(relPos.Magnitude() * (1.0f / 12.0f)) + vol0 - 3.0f;
+    auto vol1 = CAEAudioEnvironment::GetDistanceAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(posn).Magnitude() / 12.0f) + vol0 - 3.0f;
     auto flags = static_cast<eSoundEnvironment>(SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_REQUEST_UPDATES | SOUND_FRONT_END);
 
     sound.Initialise(4, 1, this, { -1.0f, 0.0f, 0.0f }, vol1, 12.0f, speed_a, 1.0f, 0, flags, 0.0f, 0);
@@ -72,14 +70,10 @@ void CAEExplosionAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos
 }
 
 void CAEExplosionAudioEntity::InjectHooks() {
-    RH_ScopedClass(CAEExplosionAudioEntity);
+    RH_ScopedVirtualClass(CAEExplosionAudioEntity, 0x862E60, 1);
     RH_ScopedCategory("Audio/Entities");
 
     RH_ScopedInstall(StaticInitialise, 0x5B9A60);
     RH_ScopedInstall(AddAudioEvent, 0x4DCBE0);
-    RH_ScopedVirtualInstall(UpdateParameters, 0x4DCB90);
-}
-
-void CAEExplosionAudioEntity::UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) {
-    CAEExplosionAudioEntity::UpdateParameters(sound, curPlayPos);
+    RH_ScopedVMTInstall(UpdateParameters, 0x4DCB90);
 }

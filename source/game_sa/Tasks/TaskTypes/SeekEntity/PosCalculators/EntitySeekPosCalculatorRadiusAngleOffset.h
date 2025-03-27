@@ -3,7 +3,7 @@
 #include "EntitySeekPosCalculator.h"
 #include "Vector2D.h"
 
-class CEntitySeekPosCalculatorRadiusAngleOffset : public CEntitySeekPosCalculator {
+class NOTSA_EXPORT_VTABLE CEntitySeekPosCalculatorRadiusAngleOffset : public CEntitySeekPosCalculator {
     float m_radius{};
     float m_angle{};
 public:

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Event.h"
+
+#include "Event.h"
 #include "Ped.h"
 
 class NOTSA_EXPORT_VTABLE CEventPedToChase : public CEvent {

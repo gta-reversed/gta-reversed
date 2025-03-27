@@ -30,8 +30,6 @@ private:
 
     CEventVehicleHitAndRun* Constructor(CPed* victim, CVehicle* vehicle);
 
-    CEvent* Clone_Reversed();
-    void ReportCriminalEvent_Reversed(CPed* ped);
 };
 
 VALIDATE_SIZE(CEventVehicleHitAndRun, 0x14);

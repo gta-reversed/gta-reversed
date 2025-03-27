@@ -3,7 +3,7 @@
 #include "TaskSimple.h"
 class CEntity;
 
-class CTaskSimpleEvasiveStep : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleEvasiveStep : public CTaskSimple {
 public:
     CEntity* m_Entity;
     bool     m_bFinished;
@@ -15,9 +15,9 @@ public:
     explicit CTaskSimpleEvasiveStep(CEntity* entity);
     ~CTaskSimpleEvasiveStep() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskSimpleEvasiveStep(m_Entity); }
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskSimpleEvasiveStep(m_Entity); }
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool ProcessPed(CPed* ped) override;
 
     void StartAnim(CPed* ped);

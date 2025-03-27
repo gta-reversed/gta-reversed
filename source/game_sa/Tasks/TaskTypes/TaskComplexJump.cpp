@@ -8,14 +8,14 @@
 #include "TaskSimpleClimb.h"
 
 void CTaskComplexJump::InjectHooks() {
-    RH_ScopedClass(CTaskComplexJump);
+    RH_ScopedVirtualClass(CTaskComplexJump, 0x870570, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x67A030);
     RH_ScopedInstall(CreateSubTask, 0x67D980);
-    RH_ScopedVirtualInstall(CreateFirstSubTask, 0x67FD10);
-    RH_ScopedVirtualInstall(CreateNextSubTask, 0x67FC00);
-    RH_ScopedVirtualInstall(Clone, 0x67C5A0);
-    RH_ScopedVirtualInstall(MakeAbortable, 0x67A070);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x67FD10);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x67FC00);
+    RH_ScopedVMTInstall(Clone, 0x67C5A0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x67A070);
 }
 
 CTaskComplexJump* CTaskComplexJump::Constructor(eComplexJumpType jumpType) {
@@ -30,36 +30,19 @@ CTaskComplexJump::CTaskComplexJump(eComplexJumpType type) : CTaskComplex() {
 }
 
 // 0x67C5A0
-CTask* CTaskComplexJump::Clone() {
-    return Clone_Reversed();
-}
-
-// 0x67FD10
-CTask* CTaskComplexJump::CreateFirstSubTask(CPed* ped) {
-    return CreateFirstSubTask_Reversed(ped);
-}
-
-// 0x67FC00
-CTask* CTaskComplexJump::CreateNextSubTask(CPed* ped) {
-    return CreateNextSubTask_Reversed(ped);
-}
-
-// 0x67A070
-bool CTaskComplexJump::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    return MakeAbortable_Reversed(ped, priority, event);
-}
-
-CTask* CTaskComplexJump::Clone_Reversed() {
+CTask* CTaskComplexJump::Clone() const {
     auto newTask = new CTaskComplexJump(m_nType);
     newTask->m_bHighJump = this->m_bHighJump;
     return newTask;
 }
 
-CTask* CTaskComplexJump::CreateFirstSubTask_Reversed(CPed* ped) {
+// 0x67FD10
+CTask* CTaskComplexJump::CreateFirstSubTask(CPed* ped) {
     return CreateSubTask(TASK_SIMPLE_JUMP, ped);
 }
 
-CTask* CTaskComplexJump::CreateNextSubTask_Reversed(CPed* ped) {
+// 0x67FC00
+CTask* CTaskComplexJump::CreateNextSubTask(CPed* ped) {
     eTaskType subTaskType = m_pSubTask->GetTaskType();
 
     if (subTaskType == TASK_SIMPLE_CLIMB)
@@ -76,7 +59,7 @@ CTask* CTaskComplexJump::CreateNextSubTask_Reversed(CPed* ped) {
         if (!jumpTask->m_bLaunchAnimStarted) {
             ped->bIsLanding = false;
             return CreateSubTask(TASK_FINISHED, ped);
-        } else if (jumpTask->m_bIsJumpBlocked) {
+        } if (jumpTask->m_bIsJumpBlocked) {
             ped->bIsLanding = true;
             return CreateSubTask(TASK_SIMPLE_HIT_HEAD, ped);
         } else if (jumpTask->m_pClimbEntity && m_nType != -1) {
@@ -91,7 +74,8 @@ CTask* CTaskComplexJump::CreateNextSubTask_Reversed(CPed* ped) {
     return nullptr;
 }
 
-bool CTaskComplexJump::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) {
+// 0x67A070
+bool CTaskComplexJump::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     if (priority == ABORT_PRIORITY_URGENT && event) {
         if (event->GetEventType() == EVENT_DAMAGE) {
             const auto pDamageEvent = static_cast<const CEventDamage*>(event);
@@ -125,34 +109,30 @@ CTask* CTaskComplexJump::CreateSubTask(eTaskType taskType, CPed* ped) {
         ped->bIsInTheAir = false;
         return nullptr;
     case TASK_SIMPLE_JUMP: {
-        auto task = new CTaskSimpleJump(m_nType == COMPLEX_JUMP_TYPE_CLIMB);
+        auto t = new CTaskSimpleJump(m_nType == COMPLEX_JUMP_TYPE_CLIMB);
         if (m_bHighJump || CPedGroups::IsInPlayersGroup(ped))
-            task->m_bHighJump = true;
-        return task;
+            t->m_bHighJump = true;
+        return t;
     }
-    case TASK_SIMPLE_CLIMB:
-        if (m_pSubTask && m_pSubTask->GetTaskType() == TASK_SIMPLE_JUMP) {
-            auto jumpTask = reinterpret_cast<CTaskSimpleJump*>(m_pSubTask);
+    case TASK_SIMPLE_CLIMB: {
+        if (const auto* const tJump = notsa::dyn_cast_if_present<CTaskSimpleJump>(m_pSubTask)) {
             return new CTaskSimpleClimb(
-                jumpTask->m_pClimbEntity,
-                jumpTask->m_vecClimbPos,
-                jumpTask->m_fClimbAngle,
-                jumpTask->m_nClimbSurfaceType,
-                jumpTask->m_vecClimbPos.z - ped->GetPosition().z < CTaskSimpleClimb::ms_fMinForStretchGrab ? CLIMB_PULLUP : CLIMB_GRAB,
+                tJump->m_pClimbEntity,
+                tJump->m_vecClimbPos,
+                tJump->m_fClimbAngle,
+                tJump->m_nClimbSurfaceType,
+                tJump->m_vecClimbPos.z - ped->GetPosition().z < CTaskSimpleClimb::ms_fMinForStretchGrab ? CLIMB_PULLUP : CLIMB_GRAB,
                 m_nType == COMPLEX_JUMP_TYPE_CLIMB
             );
         }
-        else
-        {
-            return new CTaskComplexInAirAndLand(true, false);
-        }
+        return new CTaskComplexInAirAndLand(true, false);
+    }
     case TASK_COMPLEX_IN_AIR_AND_LAND: {
-        auto newTask = new CTaskComplexInAirAndLand(true, false);
-
-        if (m_pSubTask->GetTaskType() == TASK_SIMPLE_CLIMB && reinterpret_cast<CTaskSimpleClimb*>(m_pSubTask)->m_bInvalidClimb)
-            newTask->m_bInvalidClimb = true;
-
-        return newTask;
+        auto t = new CTaskComplexInAirAndLand(true, false);
+        if (const auto tClimb = notsa::dyn_cast_if_present<CTaskSimpleClimb>(m_pSubTask)) {
+            t->m_bInvalidClimb = tClimb->GetIsInvalidClimb();
+        }
+        return t;
     }
     default:
         return nullptr;

@@ -18,7 +18,7 @@ public:
     CVector  m_vecTargetOffset;
     float    m_fRange;
     CEntity* m_pCreator;
-    int32    m_nDestroyTime;
+    float    m_DestroyTime;
     bool     m_bExist;
     bool     m_bExecuted;
     char     _pad2A[2];
@@ -26,8 +26,9 @@ public:
     static float *ms_afRandTable; // static float ms_afRandTable[20]
 
 public:
+    static void InjectHooks();
+
     static void Initialise();
-    // dummy function
     static void Shutdown();
     static bool AddShot(CEntity* creator, eWeaponType weaponType, CVector origin, CVector target);
     static bool GetFlameThrowerShotPosn(uint8 shotId, CVector* outPos);
@@ -35,6 +36,3 @@ public:
 };
 
 VALIDATE_SIZE(CShotInfo, 0x2C);
-
-extern uint32 MAX_SHOT_INFOS; // default 100
-extern CShotInfo *aShotInfos; // CShotInfo aShotInfos[MAX_SHOT_INFOS]

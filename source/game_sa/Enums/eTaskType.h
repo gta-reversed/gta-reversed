@@ -984,3 +984,10 @@ static const char* GetTaskTypeName(eTaskType taskType) {
     }
 #undef CASE_FOR
 }
+
+template <>
+struct std::formatter<eTaskType> : std::formatter<std::string> {
+    auto format(eTaskType tt, format_context& ctx) const {
+        return formatter<string>::format(std::format("{} ({})", GetTaskTypeName(tt), (int)tt), ctx);
+    }
+};

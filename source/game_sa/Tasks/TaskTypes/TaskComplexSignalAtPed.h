@@ -17,12 +17,12 @@ public:
 
     constexpr static auto Type = eTaskType::TASK_COMPLEX_SIGNAL_AT_PED;
 
-    CTaskComplexSignalAtPed(CPed* pedToSignalAt, int32 unused1, bool playAnimAtEnd);
+    CTaskComplexSignalAtPed(CPed* pedToSignalAt, int32 unused1 = -1, bool playAnimAtEnd = false);
     CTaskComplexSignalAtPed(const CTaskComplexSignalAtPed& o);
     ~CTaskComplexSignalAtPed();
 
-    CTask*    Clone() override { return new CTaskComplexSignalAtPed{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
+    CTask*    Clone() const override { return new CTaskComplexSignalAtPed{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
     CTask*    CreateNextSubTask(CPed * ped) override;
     CTask*    CreateFirstSubTask(CPed * ped) override;
     CTask*    ControlSubTask(CPed * ped) override;

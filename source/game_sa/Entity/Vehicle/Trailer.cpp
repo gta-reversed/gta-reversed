@@ -59,11 +59,11 @@ bool CTrailer::SetTowLink(CVehicle* vehicle, bool setMyPosToTowBar) {
 
     m_nStatus = STATUS_IS_TOWED;
 
-    m_pTractor = vehicle;
-    m_pTractor->RegisterReference(m_pTractor);
+    m_pTowingVehicle = vehicle;
+    m_pTowingVehicle->RegisterReference(m_pTowingVehicle);
 
-    vehicle->m_pTrailer = this;
-    vehicle->m_pTrailer->RegisterReference(vehicle->m_pTrailer);
+    vehicle->m_pVehicleBeingTowed = this;
+    vehicle->m_pVehicleBeingTowed->RegisterReference(vehicle->m_pVehicleBeingTowed);
 
     CPhysical::RemoveFromMovingList();
     vehicle->RemoveFromMovingList();
@@ -71,7 +71,7 @@ bool CTrailer::SetTowLink(CVehicle* vehicle, bool setMyPosToTowBar) {
     AddToMovingList();
     vehicle->AddToMovingList();
 
-    vehicle->m_pTrailer->vehicleFlags.bLightsOn = true; // NOTSA | FIX_BUGS
+    vehicle->m_pVehicleBeingTowed->vehicleFlags.bLightsOn = true; // NOTSA | FIX_BUGS
 
     if (!setMyPosToTowBar) {
         UpdateTractorLink(true, false);
@@ -102,7 +102,7 @@ bool CTrailer::SetTowLink(CVehicle* vehicle, bool setMyPosToTowBar) {
 
 // 0x6CF030
 void CTrailer::ScanForTowLink() {
-    if (m_pTractor || CVehicleRecording::IsPlaybackGoingOnForCar(this) || m_nModelIndex == MODEL_FARMTR1)
+    if (m_pTowingVehicle || CVehicleRecording::IsPlaybackGoingOnForCar(this) || m_nModelIndex == MODEL_FARMTR1)
         return;
 
     CVector towHitchPos;
@@ -111,7 +111,7 @@ void CTrailer::ScanForTowLink() {
 
     int16 count = 0;
     CEntity* objects[16]{};
-    CWorld::FindObjectsInRange(&towHitchPos, 10.0f, true, &count, int16(std::size(objects)), objects, false, true, false, false, false);
+    CWorld::FindObjectsInRange(towHitchPos, 10.0f, true, &count, int16(std::size(objects)), objects, false, true, false, false, false);
 
     CVector towBarPos;
     CVehicle* vehicle = nullptr;
@@ -137,7 +137,7 @@ void CTrailer::ScanForTowLink() {
 void CTrailer::ResetSuspension() {
     CAutomobile::ResetSuspension();
     rng::fill(m_supportRatios, 1.f);
-    if (m_pTractor && m_fTrailerTowedRatio > -1000.0f)
+    if (m_pTowingVehicle && m_fTrailerTowedRatio > -1000.0f)
         m_fTrailerTowedRatio = 0.0f;
     else
         m_fTrailerTowedRatio = 1.0f;
@@ -172,7 +172,7 @@ int32 CTrailer::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoints)
     }
 
     // Hide triangles in some cases
-    const auto didHideTriangles = m_pTractor == entity || m_pTrailer == entity;
+    const auto didHideTriangles = m_pTowingVehicle == entity || m_pVehicleBeingTowed == entity;
     const auto tNumTri = tcd->m_nNumTriangles, // Saving my sanity here, and unconditionally assigning
                oNumTri = ocd->m_nNumTriangles;
     if (didHideTriangles) {
@@ -302,12 +302,12 @@ bool CTrailer::GetTowHitchPos(CVector& outPos, bool bCheckModelInfo, CVehicle* v
             outPos.x = 0.0f;
             outPos.y = mi->GetColModel()->GetBoundingBox().m_vecMax.y + 1.0f;
             outPos.z = 0.5f - m_fFrontHeightAboveRoad;
-            outPos = MultiplyMatrixWithVector(*m_matrix, outPos);
+            outPos = m_matrix->TransformPoint(outPos);
             return true;
         }
         return false;
     }
-    outPos = MultiplyMatrixWithVector(*m_matrix, outPos);
+    outPos = m_matrix->TransformPoint(outPos);
     return true;
 }
 
@@ -323,19 +323,19 @@ bool CTrailer::GetTowBarPos(CVector& outPos, bool bCheckModelInfo, CVehicle* veh
     outPos.x = 0.0f;
     outPos.y = mi->GetColModel()->GetBoundingBox().m_vecMin.y - -0.05f;
     outPos.z = 0.5f - m_fFrontHeightAboveRoad;
-    outPos = MultiplyMatrixWithVector(*m_matrix, outPos);
+    outPos = m_matrix->TransformPoint(outPos);
     return true;
 }
 
 // 0x6CEFB0
 bool CTrailer::BreakTowLink() {
-    if (m_pTractor) {
-        m_pTractor->m_vehicleAudio.AddAudioEvent(AE_TRAILER_DETACH, 0.0f);
+    if (m_pTowingVehicle) {
+        m_pTowingVehicle->m_vehicleAudio.AddAudioEvent(AE_TRAILER_DETACH, 0.0f);
     }
 
-    if (m_pTractor) {
-        CEntity::ClearReference(m_pTractor->m_pTrailer);
-        CEntity::ClearReference(m_pTractor);
+    if (m_pTowingVehicle) {
+        CEntity::ClearReference(m_pTowingVehicle->m_pVehicleBeingTowed);
+        CEntity::ClearReference(m_pTowingVehicle);
     }
 
     if (m_nStatus != STATUS_IS_TOWED && m_nStatus != STATUS_IS_SIMPLE_TOWED) {

@@ -10,92 +10,112 @@
 #include "RenderWare.h"
 #include "Vector.h"
 #include "AEFireAudioEntity.h"
-#include "FxPrtMult.h"
-#include "FxSphere.h"
-#include "FxBox.h"
 
-enum eFxSystemKillStatus {
-    FX_NOT_KILLED = 0,
-    FX_PLAY_AND_KILL = 1,
-    FX_KILLED = 2
+enum eFxSystemKillStatus : uint8 {
+    FX_NOT_KILLED    = 0,
+    FX_PLAY_AND_KILL = 1, // DESTROY_AFTER_FINISHING
+    FX_KILLED        = 2,
+    FX_3             = 3,
 };
 
-enum class eFxSystemPlayStatus {
+enum class eFxSystemPlayStatus : uint8 {
     FX_PLAYING = 0,
-    FX_STOPPED = 1
+    FX_STOPPED = 1,
+    T2         = 2,
 };
 
 class FxSystemBP_c;
-class Particle_c;
+class FxPrtMult_c;
+class FxSphere_c;
+class FxPrim_c;
+class FxPrimBP_c;
+class FxBox_c;
+struct Particle_c;
 
 class FxSystem_c : public ListItem_c<FxSystem_c> {
 public:
-    // ListItem_c m_link;
-    void *m_pBlueprint;
-    RwMatrix *m_pParentMatrix;
-    RwMatrix m_localMatrix;
-    uint8 m_nPlayStatus; // see eFxSystemPlayStatus
-    uint8 m_nKillStatus; // see eFxSystemKillStatus
-    uint8 m_bConstTimeSet;
-    char field_53;
-    int32 field_54;
-    float m_fCameraDistance;
+    FxSystemBP_c* m_SystemBP;
+    RwMatrix*     m_ParentMatrix;
+    RwMatrix      m_LocalMatrix; // aka Offset Mat
+
+    eFxSystemPlayStatus m_nPlayStatus;
+    eFxSystemKillStatus m_nKillStatus;
+
+    bool   m_UseConstTime;
+    float  m_fCurrentTime;
+    float  m_fCameraDistance;
     uint16 m_nConstTime;
+
     uint16 m_nRateMult;
     uint16 m_nTimeMult;
-    struct {
-        uint8 bOwnedParentMatrix: 1;
-        uint8 bLocalParticles : 1;
-        uint8 bZTestEnabled : 1;
-        uint8 bUnknown4 : 1;
-        uint8 bUnknown5 : 1;
-        uint8 bMustCreatePtrs : 1;
-    } m_nFlags;
-    char field_63;
-    float fUnkRandom;
-    CVector m_vecVelAdd;
-    void *m_pBounding;
-    void **m_pPrimsPtrList;
-    char m_fireAudio[0x88]; // CAEFireAudioEntity
 
-    CAEFireAudioEntity *GetFireAudio() { return reinterpret_cast<CAEFireAudioEntity *>(m_fireAudio); }
+    uint8 m_allocatedParentMat : 1; //  m_bOwnedParentMatrix
+    uint8 m_createLocal : 1;
+    uint8 m_useZTest : 1;
+    uint8 m_stopParticleCreation : 1;
+    uint8 m_prevCulled : 1;
+    uint8 m_MustCreateParticles : 1;
+
+    float              m_LoopInterval;
+    CVector            m_VelAdd;
+    FxSphere_c*        m_BoundingSphere;
+    FxPrim_c**         m_Prims;
+    CAEFireAudioEntity m_FireAE;
+
+public:
+    static void InjectHooks();
 
     FxSystem_c();
     ~FxSystem_c();
+    FxSystem_c* Constructor();
+    FxSystem_c* Destructor();
+
+    bool Init(FxSystemBP_c* systemBP, const RwMatrix& local, RwMatrix* parent);
+    void Exit();
+
     void Play();
-    void Pause();
-    void Stop();
     void PlayAndKill();
     void Kill();
-    void AttachToBone(CEntity* entity, int32 boneId);
-    void AddParticle(RwV3d* position, RwV3d* velocity, float arg2, FxPrtMult_c* prtMult, float arg4, float brightness, float arg6, uint8 arg7);
-    void AddParticle(RwMatrix* transform, RwV3d* position, float arg2, FxPrtMult_c* prtMult, float arg4, float arg5, float arg6, uint8 arg7);
-    void EnablePrim(int32 primIndex, uint8 enable);
+    void Pause();
+    void Stop();
+
+    void AttachToBone(CEntity* entity, eBoneTag boneId);
+
+    void AddParticle(CVector* pos, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal);
+    void AddParticle(RwMatrix* mat, CVector* vel, float timeSince, FxPrtMult_c* fxMults, float rotZ, float lightMult, float lightMultLimit, bool createLocal);
+
+    void EnablePrim(int32 primIndex, bool enable);
     void SetMatrix(RwMatrix* matrix);
     void SetOffsetPos(const CVector& pos);
-    void AddOffsetPos(RwV3d* pos);
-    void SetConstTime(uint8 arg0, float amount);
+    void AddOffsetPos(CVector* pos);
+    void SetConstTime(bool on, float time);
     void SetRateMult(float mult);
     void SetTimeMult(float mult);
-    void SetVelAdd(RwV3d* velAdd);
-    bool Init(FxSystemBP_c* arg0, RwMatrix* local, RwMatrix* parent);
-    void Exit();
+    void SetVelAdd(CVector* velocity);
     void CopyParentMatrix();
     void GetCompositeMatrix(RwMatrix* out);
-    eFxSystemPlayStatus GetPlayStatus();
-    void SetLocalParticles(uint8 enable);
-    uint32 ForAllParticles(void(*callback)(Particle_c *, int32, void **), void* data);
-    static void UpdateBoundingBoxCB(Particle_c* particle, int32 arg1, void** data);
+    eFxSystemPlayStatus GetPlayStatus() const;
+
+    uint32 ForAllParticles(void(*callback)(Particle_c *, int32, FxBox_c**), FxBox_c* data);
+    static void UpdateBoundingBoxCB(Particle_c* particle, int32 arg1, FxBox_c** data);
+
     void GetBoundingBox(FxBox_c* out);
     bool GetBoundingSphereWld(FxSphere_c* out);
     bool GetBoundingSphereLcl(FxSphere_c* out);
-    void SetBoundingSphere(FxSphere_c* bound);
+    void SetBoundingSphere(FxSphere_c* sphere);
     void ResetBoundingSphere();
-    void SetZTestEnable(uint8 enable);
-    void SetMustCreatePrts(uint8 enable);
-    void DoFxAudio(CVector posn);
+
+    void SetLocalParticles(bool enable);
+    void SetZTestEnable(bool enable);
+    void SetMustCreatePrts(bool enable);
+
     bool IsVisible();
+
+    void DoFxAudio(CVector pos);
     bool Update(RwCamera* camera, float timeDelta);
+
+public:
+    std::span<FxPrim_c*> GetPrims();
 
     template<typename T>
     static void KillAndClear(T*& fx) requires std::is_base_of_v<FxSystem_c, T> {

@@ -33,6 +33,7 @@ void CTaskComplexGangFollower::InjectHooks() {
     RH_ScopedVMTInstall(CreateNextSubTask, 0x665E00);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x666160);
     RH_ScopedVMTInstall(ControlSubTask, 0x662A10);
+    //RH_ScopedInstall(CalculateOffsetPosition, 0x65ED40, { .reversed = false }); // not hooked because i want to keep CVector return, but original function took a CVector&
 }
 
 // 0x65EAA0
@@ -61,6 +62,7 @@ CTaskComplexGangFollower::CTaskComplexGangFollower(const CTaskComplexGangFollowe
 {
     m_followLeader = o.m_followLeader;
 }
+
 
 // 0x65EBB0
 CTaskComplexGangFollower::~CTaskComplexGangFollower() {

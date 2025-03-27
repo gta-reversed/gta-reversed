@@ -204,7 +204,7 @@ void CAEPoliceScannerAudioEntity::PlayLoadedDialogue() {
         auto volume = GetDefaultVolume(AE_CRIME_COMMITTED) + s_fVolumeOffset;
         CAESound sound;
         sound.Initialise(i + 33, s_pCurrentSlots[i].sfxId, this, { 0.0, 1.0f, 0.0f }, volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
-        sound.m_fMaxVolume = (float)i;
+        sound.m_ClientVariable = (float)i;
         sound.m_nEnvironmentFlags = SOUND_FRONT_END | SOUND_UNCANCELLABLE | SOUND_REQUEST_UPDATES | SOUND_UNDUCKABLE;
         sound.m_nEvent = AE_CRIME_COMMITTED;
 
@@ -342,7 +342,7 @@ void CAEPoliceScannerAudioEntity::Service() {
 }
 
 void CAEPoliceScannerAudioEntity::InjectHooks() {
-    RH_ScopedClass(CAEPoliceScannerAudioEntity);
+    RH_ScopedVirtualClass(CAEPoliceScannerAudioEntity, 0x85F368, 1);
     RH_ScopedCategory("Audio/Entities");
 
     RH_ScopedInstall(Constructor, 0x56DA00);
@@ -360,7 +360,7 @@ void CAEPoliceScannerAudioEntity::InjectHooks() {
     RH_ScopedInstall(PopulateScannerDialogueLists, 0x4E6B60);
     RH_ScopedInstall(CanWePlayNewScannerDialogue, 0x4E6C00);
     RH_ScopedInstall(PlayPoliceScannerDialogue, 0x4E6ED0);
-    RH_ScopedVirtualInstall(UpdateParameters, 0x4E7590);
+    RH_ScopedVMTInstall(UpdateParameters, 0x4E7590);
     RH_ScopedInstall(Service, 0x4E7630, { .reversed = false });
 }
 
@@ -372,8 +372,4 @@ CAEPoliceScannerAudioEntity* CAEPoliceScannerAudioEntity::Constructor() {
 CAEPoliceScannerAudioEntity* CAEPoliceScannerAudioEntity::Destructor() {
     this->CAEPoliceScannerAudioEntity::~CAEPoliceScannerAudioEntity();
     return this;
-}
-
-void CAEPoliceScannerAudioEntity::UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) {
-    CAEPoliceScannerAudioEntity::UpdateParameters(sound, curPlayPos);
 }

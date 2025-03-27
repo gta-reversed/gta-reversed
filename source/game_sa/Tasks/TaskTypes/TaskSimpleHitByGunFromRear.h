@@ -14,7 +14,7 @@ public:
     CTaskSimpleHitByGunFromRear();
     CTaskSimpleHitByGunFromRear(const CTaskSimpleHitByGunFromRear&);
 
-    virtual CTask* Clone() { return new CTaskSimpleHitByGunFromRear{ *this }; }
+    virtual CTask* Clone() const { return new CTaskSimpleHitByGunFromRear{ *this }; }
     virtual bool IsInterruptable(CPed const* ped) { return false; }
 
 private: // Wrappers for hooks

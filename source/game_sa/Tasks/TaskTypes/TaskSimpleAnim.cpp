@@ -3,11 +3,10 @@
 #include "TaskSimpleAnim.h"
 
 void CTaskSimpleAnim::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleAnim);
+    RH_ScopedVirtualClass(CTaskSimpleAnim, 0x86D504, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
-    RH_ScopedInstall(MakeAbortable_Reversed, 0x61A790);
+    RH_ScopedVMTInstall(MakeAbortable, 0x61A790);
 }
-bool CTaskSimpleAnim::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) { return CTaskSimpleAnim::MakeAbortable_Reversed(ped, priority, event); }
 
 // 0x61A6C0
 CTaskSimpleAnim::CTaskSimpleAnim(bool bHoldLastFrame) : CTaskSimple() {
@@ -23,18 +22,20 @@ CTaskSimpleAnim::~CTaskSimpleAnim() {
         return;
 
     m_pAnim->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
-    m_pAnim->m_nFlags |= ANIMATION_FREEZE_LAST_FRAME;
+    m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
     if (!m_bHoldLastFrame &&
-        m_pAnim->m_fBlendAmount > 0.0f &&
-        m_pAnim->m_fBlendDelta >= 0.0f
+        m_pAnim->m_BlendAmount > 0.0f &&
+        m_pAnim->m_BlendDelta >= 0.0f
     ) {
-        m_pAnim->m_fBlendDelta = -4.0f;
+        m_pAnim->m_BlendDelta = -4.0f;
     }
     m_pAnim = nullptr;
 }
 
 // 0x61A790
-bool CTaskSimpleAnim::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) {
+
+// 0x0
+bool CTaskSimpleAnim::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     bool bSkipBlend = false;
     auto fBlend = -4.0F;
     if (priority == eAbortPriority::ABORT_PRIORITY_IMMEDIATE) {
@@ -49,7 +50,7 @@ bool CTaskSimpleAnim::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority,
             if (scriptCommand->m_task) {
                 if (scriptCommand->m_task->GetTaskType() == TASK_SIMPLE_NAMED_ANIM) {
                     if (m_pAnim)
-                        m_pAnim->m_nFlags |= ANIMATION_FREEZE_LAST_FRAME;
+                        m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
 
                     bSkipBlend = true;
                 }
@@ -59,10 +60,10 @@ bool CTaskSimpleAnim::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority,
 
     if (!bSkipBlend) {
         if (m_pAnim) {
-            m_pAnim->m_nFlags |= ANIMATION_FREEZE_LAST_FRAME;
+            m_pAnim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
             if (!m_bHoldLastFrame) {
-                if (m_pAnim->m_nFlags & ANIMATION_PARTIAL)
-                    m_pAnim->m_fBlendDelta = fBlend;
+                if (m_pAnim->m_Flags & ANIMATION_IS_PARTIAL)
+                    m_pAnim->m_BlendDelta = fBlend;
                 else
                     CAnimManager::BlendAnimation(ped->m_pRwClump, ped->m_nAnimGroup, ANIM_ID_IDLE, -fBlend);
             }

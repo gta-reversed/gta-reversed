@@ -31,7 +31,7 @@ public:
 
     CRect() = default; // 0x4041C0 - TODO: Fix retarded argument order to be: left, top, right, bottom
 
-    constexpr CRect(float left, float bottom, float right, float top) :
+    constexpr CRect(float left, float bottom, float right, float top) : // minX, minY, maxX, maxY
         left{ left },
         bottom{ bottom },
         right{ right },
@@ -104,6 +104,9 @@ public:
     * @brief Check if this rectangle is inside another one
     */
     bool Contains(const CRect& o) const;
+
+    bool operator==(const CRect&) const = default;
+    bool operator!=(const CRect&) const = default;
 };
 
 VALIDATE_SIZE(CRect, 0x10);

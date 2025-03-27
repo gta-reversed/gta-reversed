@@ -75,7 +75,7 @@ public:
     CPed*                 m_pPed{};
     bool                  m_bMembersEnterLeadersVehicle{true};
     CPedGroupMembership   m_groupMembership{*this};
-    CPedGroupIntelligence m_groupIntelligence{*this};
+    CPedGroupIntelligence m_groupIntelligence{this};
     bool                  m_bIsMissionGroup{};
 };
 VALIDATE_SIZE(CPedGroup, 0x2D4);

@@ -1,10 +1,3 @@
-/*
-    Plugin-SDK file
-    Authors: GTA Community. See more here
-    https://github.com/DK22Pac/plugin-sdk
-    Do not delete this comment block. Respect others' work!
-*/
-#pragma once
 /******************************************
  *                                        *
  *    RenderWare(TM) Graphics Library     *
@@ -33,6 +26,8 @@
  * Purpose : Hierarchical animation                                        *
  *                                                                         *
  **************************************************************************/
+#ifndef RPHANIM_H
+#define RPHANIM_H
 
 /**
  * Hierarchal animation plugin
@@ -61,15 +56,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "rwcore.h"
-#include "rpworld.h"
+#include <rwcore.h>
+#include <rpworld.h>
 
-#include "rpcriter.h"          /* Note: each vendor can choose their own method for
+#include <rpcriter.h>          /* Note: each vendor can choose their own method for
                                 * allocation of unique ID's. This file defines
                                 * the ID's used by Criterion.
                                 */
-#include "rtquat.h"
-#include "rtanim.h"
+////#include <rphanim.rpe>          /* automatically generated header file */
+#include <rtquat.h>
+#include <rtanim.h>
 
 #define rpHANIMSTREAMCURRENTVERSION 0x100
 
@@ -256,34 +252,422 @@ struct RpHAnimFrameExtension
     RpHAnimHierarchy *hierarchy; /**< Pointer to Animation hierarchy attached to this RwFrame */
 };
 
+/*--- Plugin API Functions ---*/
+
+#define RpHAnimHierarchySetFlagsMacro(hierarchy,_flags) \
+    (((hierarchy)->flags = _flags), (hierarchy))
+
+#define RpHAnimHierarchyGetFlagsMacro(hierarchy) \
+    ((hierarchy)->flags)
+
+#define RpHAnimKeyFrameToMatrixMacro(_matrix,_voidIFrame)               \
+MACRO_START                                                             \
+{                                                                       \
+    RpHAnimInterpFrame * iFrame = (RpHAnimInterpFrame *)(_voidIFrame);  \
+                                                                        \
+    /*                                                                  \
+     * RpHAnim uses the same types of quaternion as RtQuat              \
+     *  hence no conjugate call as in RpSkin                            \
+     */                                                                 \
+                                                                        \
+    RtQuatUnitConvertToMatrix(&iFrame->q,(_matrix));                    \
+                                                                        \
+    (_matrix)->pos.x = iFrame->t.x;                                     \
+    (_matrix)->pos.y = iFrame->t.y;                                     \
+    (_matrix)->pos.z = iFrame->t.z;                                     \
+}                                                                       \
+MACRO_STOP
+
+
+
+#if (! defined(RWDEBUG))
+
+#define RpHAnimHierarchySetFlags(hierarchy,_flags) \
+        RpHAnimHierarchySetFlagsMacro(hierarchy,_flags)
+
+#define RpHAnimHierarchyGetFlags(hierarchy) \
+        (RpHAnimHierarchyFlag)RpHAnimHierarchyGetFlagsMacro(hierarchy)
+#endif /* (! defined(RWDEBUG)) */
+
+#ifdef    __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
+
+extern RpHAnimAtomicGlobalVars RpHAnimAtomicGlobals;
+
+#if (defined(RWDEBUG))
+
+extern RpHAnimHierarchy *
+RpHAnimHierarchySetFlags(RpHAnimHierarchy *hierarchy,
+                         RpHAnimHierarchyFlag flags);
+
+extern RpHAnimHierarchyFlag
+RpHAnimHierarchyGetFlags(RpHAnimHierarchy *hierarchy);
+
+#endif /* (defined(RWDEBUG))  */
+
+/* Animation hierarchy creation */
+extern void
+RpHAnimHierarchySetFreeListCreateParams(RwInt32 blockSize,RwInt32 numBlocksToPrealloc);
+
+extern RpHAnimHierarchy *
+RpHAnimHierarchyCreate(RwInt32 numNodes,
+                       RwUInt32 *nodeFlags,
+                       RwInt32 *nodeIDs,
+                       RpHAnimHierarchyFlag flags,
+                       RwInt32 maxInterpKeyFrameSize);
+
+extern RpHAnimHierarchy *
+RpHAnimHierarchyCreateFromHierarchy(RpHAnimHierarchy *hierarchy,
+                                    RpHAnimHierarchyFlag flags,
+                                    RwInt32 maxInterpKeyFrameSize);
+
+extern RpHAnimHierarchy *
+RpHAnimHierarchyDestroy(RpHAnimHierarchy *hierarchy);
+
+extern RpHAnimHierarchy *
+RpHAnimHierarchyCreateSubHierarchy(RpHAnimHierarchy *parentHierarchy,
+                                   RwInt32 startNode,
+                                   RpHAnimHierarchyFlag flags,
+                                   RwInt32 maxInterpKeyFrameSize);
+
+extern RtAnimAnimation *
+RpHAnimRemoveDuplicates( RtAnimAnimation *animsrc,
+                           RwInt32         numBones,
+                           RwReal          tolerance,
+                           RwReal          averageNodeSize);
+
+extern RtAnimAnimation *
+RpHAnimRemoveInterpolate( RtAnimAnimation *animsrc,
+                          RwInt32         numBones,
+                          RwReal          tolerance,
+                          RwReal          averageNodeSize);
+
+extern RtAnimAnimation *
+RpHAnimRemoveInterpolateLoop( RtAnimAnimation *animsrc,
+                              RwInt32         numBones,
+                              RwReal          tolerance,
+                              RwReal          averageNodeSize);
+
+extern RtAnimAnimation *
+RpHAnimRemoveInterpolatesLoopLength( RtAnimAnimation *animsrc,
+                                     RwUInt32        *pushpops,
+                                     RwInt32         numBones,
+                                     RwReal          tolerance,
+                                     RwReal          averageNodeSize);
+
+extern RtAnimAnimation *
+RpHAnimRemoveNoLeafChange( RtAnimAnimation *animsrc,
+                           RwUInt32        *pushpops,
+                           RwInt32         numBones,
+                           RwReal          tolerance,
+                           RwReal          averageNodeSize);
+
+extern RpHAnimHierarchy *
+RpHAnimHierarchyAttach(RpHAnimHierarchy *hierarchy);
+
+extern RpHAnimHierarchy *
+RpHAnimHierarchyDetach(RpHAnimHierarchy *hierarchy);
+
+extern RpHAnimHierarchy *
+RpHAnimHierarchyAttachFrameIndex(RpHAnimHierarchy *hierarchy,
+                                 RwInt32 nodeIndex);
+
+extern RpHAnimHierarchy *
+RpHAnimHierarchyDetachFrameIndex(RpHAnimHierarchy *hierarchy,
+                                 RwInt32 nodeIndex);
+
+extern RwBool
+RpHAnimFrameSetHierarchy(RwFrame *frame,
+                         RpHAnimHierarchy *hierarchy);
+
+extern RpHAnimHierarchy *
+RpHAnimFrameGetHierarchy(RwFrame *frame);
+
+/* Macros for legacy support of old function names */
+#define RpHAnimSetHierarchy(frame,hierarchy) \
+                        RpHAnimFrameSetHierarchy(frame,hierarchy)
+#define RpHAnimGetHierarchy(frame) RpHAnimFrameGetHierarchy(frame)
+
+extern RwMatrix *
+RpHAnimHierarchyGetMatrixArray(RpHAnimHierarchy *hierarchy);
+
+extern RwMatrix *
+RpHAnimHierarchyGetNodeMatrix(RpHAnimHierarchy *hierarchy, RwInt32 nodeID);
+
+extern RwBool
+RpHAnimHierarchyUpdateMatrices(RpHAnimHierarchy *hierarchy);
+
+/* Macro for legacy support of old function name */
+#define RpHAnimUpdateHierarchyMatrices RpHAnimHierarchyUpdateMatrices
+
+extern RwInt32
+RpHAnimIDGetIndex(RpHAnimHierarchy *hierarchy,
+                  RwInt32 ID);
+
+/* Plugin support */
+
+extern RwBool
+RpHAnimPluginAttach(void);
+
+/* Hanim keyframe functions */
+
+extern void
+RpHAnimKeyFrameApply(void *matrix,
+                     void *voidIFrame);
+
+extern void
+RpHAnimKeyFrameBlend(void *voidOut,
+                        void *voidIn1,
+                        void *voidIn2,
+                        RwReal alpha);
+
+extern void
+RpHAnimKeyFrameInterpolate(void *voidOut,
+                           void *voidIn1,
+                           void *voidIn2,
+                           RwReal time,
+                           void *customData);
+
+extern void
+RpHAnimKeyFrameAdd(void *voidOut,
+                      void *voidIn1,
+                      void *voidIn2);
+
+extern void
+RpHAnimKeyFrameMulRecip(void *voidFrame,
+                           void *voidStart);
+
+extern RtAnimAnimation *
+RpHAnimKeyFrameStreamRead(RwStream *stream,
+                             RtAnimAnimation *animation);
+
+extern RwBool
+RpHAnimKeyFrameStreamWrite(const RtAnimAnimation *animation,
+                              RwStream *stream);
+
+extern RwInt32
+RpHAnimKeyFrameStreamGetSize(const RtAnimAnimation *animation);
+
+/* Access to RwFrame ID's */
+
+extern RwBool
+RpHAnimFrameSetID(RwFrame *frame,
+                  RwInt32 id);
+
+extern RwInt32
+RpHAnimFrameGetID(RwFrame *frame);
+
+/*
+ * Utility Functions
+ */
+#define RpHAnimHierarchySetCurrentAnimMacro(hierarchy,anim)\
+        RtAnimInterpolatorSetCurrentAnim((hierarchy)->currentAnim,anim)
+
+#define RpHAnimHierarchyGetCurrentAnimMacro(hierarchy)\
+        RtAnimInterpolatorGetCurrentAnim((hierarchy)->currentAnim)
+
+#define RpHAnimHierarchySetCurrentAnimTimeMacro(hierarchy,time)\
+        RtAnimInterpolatorSetCurrentTime((hierarchy)->currentAnim,time)
+
+#define RpHAnimHierarchyAddAnimTimeMacro(hierarchy,time)\
+        RtAnimInterpolatorAddAnimTime((hierarchy)->currentAnim,time)
+
+#define RpHAnimHierarchySubAnimTimeMacro(hierarchy,time)\
+        RtAnimInterpolatorSubAnimTime((hierarchy)->currentAnim,time)
+
+#define RpHAnimHierarchySetKeyFrameCallBacksMacro(hierarchy,keyFrameTypeID)  \
+        RtAnimInterpolatorSetKeyFrameCallBacks((hierarchy)->currentAnim,\
+                                                    keyFrameTypeID)
+
+#define RpHAnimHierarchyBlendMacro(outHierarchy,inHierarchy1,inHierarchy2,alpha)\
+        RtAnimInterpolatorBlend((outHierarchy)->currentAnim,\
+                                    (inHierarchy1)->currentAnim,\
+                                    (inHierarchy2)->currentAnim,\
+                                    alpha)
+
+#define RpHAnimHierarchyAddTogetherMacro(outHierarchy,inHierarchy1,inHierarchy2)\
+        RtAnimInterpolatorAddTogether((outHierarchy)->currentAnim,\
+                                            (inHierarchy1)->currentAnim,\
+                                            (inHierarchy2)->currentAnim)
+
+
+#define RpHAnimHierarchySetAnimCallBackMacro(hierarchy,callBack,time,data)\
+        RtAnimInterpolatorSetAnimCallBack((hierarchy)->currentAnim,callBack,time,data)
+
+#define RpHAnimHierarchySetAnimLoopCallBackMacro(hierarchy,callBack,data)\
+        RtAnimInterpolatorSetAnimLoopCallBack((hierarchy)->currentAnim,callBack,data)
+
+#define RpHAnimHierarchyBlendSubHierarchyMacro(outHierarchy,inHierarchy1,inHierarchy2,alpha)\
+        RtAnimInterpolatorBlendSubInterpolator((outHierarchy)->currentAnim,(inHierarchy1)->currentAnim,(inHierarchy2)->currentAnim,alpha)
+
+#define RpHAnimHierarchyAddSubHierarchyMacro(outHierarchy,mainHierarchy,subHierarchy)\
+        RtAnimInterpolatorAddSubInterpolator((outHierarchy)->currentAnim,(mainHierarchy)->currentAnim,(subHierarchy)->currentAnim)
+
+#define RpHAnimHierarchyCopyMacro(outHierarchy,inHierarchy)\
+        RtAnimInterpolatorCopy((outHierarchy)->currentAnim,(inHierarchy)->currentAnim)
+
+
+
+#ifdef RWDEBUG
+extern RwBool
+RpHAnimHierarchySetCurrentAnim(RpHAnimHierarchy *hierarchy,
+                                RtAnimAnimation *anim);
+
+extern RtAnimAnimation *
+RpHAnimHierarchyGetCurrentAnim(RpHAnimHierarchy *hierarchy);
+
+extern RwBool
+RpHAnimHierarchySetCurrentAnimTime(RpHAnimHierarchy *hierarchy,
+                                RwReal time);
+
+extern RwBool
+RpHAnimHierarchyAddAnimTime(RpHAnimHierarchy *hierarchy,
+                            RwReal time);
+
+extern RwBool
+RpHAnimHierarchySubAnimTime(RpHAnimHierarchy *hierarchy,
+                            RwReal time);
+
+extern RwBool
+RpHAnimHierarchySetKeyFrameCallBacks(RpHAnimHierarchy *hierarchy,
+                                     RwInt32 keyFrameTypeID);
+
+extern void
+RpHAnimHierarchySetAnimCallBack(RpHAnimHierarchy *hierarchy,
+                                RtAnimCallBack callBack,
+                                RwReal time,
+                                void *data);
+
+extern RwBool
+RpHAnimHierarchyBlend(RpHAnimHierarchy *outHierarchy,
+                      RpHAnimHierarchy *inHierarchy1,
+                      RpHAnimHierarchy *inHierarchy2,
+                      RwReal alpha);
+
+extern RwBool
+RpHAnimHierarchyAddTogether(RpHAnimHierarchy *outHierarchy,
+                            RpHAnimHierarchy *inHierarchy1,
+                            RpHAnimHierarchy *inHierarchy2);
+
+extern void
+RpHAnimHierarchySetAnimLoopCallBack(RpHAnimHierarchy *hierarchy,
+                                    RtAnimCallBack callBack,
+                                    void *data);
+extern RwBool
+RpHAnimHierarchyBlendSubHierarchy(RpHAnimHierarchy *outHierarchy,
+                      RpHAnimHierarchy *inHierarchy1,
+                      RpHAnimHierarchy *inHierarchy2,
+                      RwReal alpha);
+extern RwBool
+RpHAnimHierarchyAddSubHierarchy(RpHAnimHierarchy *outHierarchy,
+                      RpHAnimHierarchy *mainHierarchy1,
+                      RpHAnimHierarchy *subHierarchy2);
+extern RwBool
+RpHAnimHierarchyCopy(RpHAnimHierarchy *outHierarchy,
+                     RpHAnimHierarchy *inHierarchy);
+
+#else
+
+#define RpHAnimHierarchySetCurrentAnim(hierarchy,anim) \
+        RpHAnimHierarchySetCurrentAnimMacro((hierarchy),(anim))
+
+#define RpHAnimHierarchyGetCurrentAnim(hierarchy) \
+        RpHAnimHierarchyGetCurrentAnimMacro((hierarchy))
+
+#define RpHAnimHierarchySetCurrentAnimTime(hierarchy,time) \
+        RpHAnimHierarchySetCurrentAnimTimeMacro((hierarchy),(time))
+
+#define RpHAnimHierarchyAddAnimTime(hierarchy,time) \
+        RpHAnimHierarchyAddAnimTimeMacro((hierarchy),(time))
+
+#define RpHAnimHierarchySubAnimTime(hierarchy,time) \
+        RpHAnimHierarchySubAnimTimeMacro((hierarchy),(time))
+
+#define RpHAnimHierarchySetKeyFrameCallBacks(hierarchy,keyFrameTypeID) \
+        RpHAnimHierarchySetKeyFrameCallBacksMacro((hierarchy),(keyFrameTypeID))
+
+#define RpHAnimHierarchyBlend(outHierarchy,inHierarchy1,inHierarchy2,alpha) \
+        RpHAnimHierarchyBlendMacro((outHierarchy),(inHierarchy1),(inHierarchy2),(alpha))
+
+#define RpHAnimHierarchyAddTogether(outHierarchy,inHierarchy1,inHierarchy2) \
+        RpHAnimHierarchyAddTogetherMacro((outHierarchy),(inHierarchy1),(inHierarchy2))
+
+#define RpHAnimHierarchySetAnimCallBack(hierarchy,callBack,time,data)\
+        RpHAnimHierarchySetAnimCallBackMacro((hierarchy),(callBack),(time),(data))
+
+#define RpHAnimHierarchySetAnimLoopCallBack(hierarchy,callBack,data)\
+        RpHAnimHierarchySetAnimLoopCallBackMacro((hierarchy),(callBack),(data))
+
+#define RpHAnimHierarchyBlendSubHierarchy(outHierarchy,inHierarchy1,inHierarchy2,alpha)\
+        RpHAnimHierarchyBlendSubHierarchyMacro((outHierarchy),(inHierarchy1),(inHierarchy2),(alpha))
+
+#define RpHAnimHierarchyAddSubHierarchy(outHierarchy,mainHierarchy,subHierarchy)\
+        RpHAnimHierarchyAddSubHierarchyMacro((outHierarchy),(mainHierarchy),(subHierarchy))
+
+#define RpHAnimHierarchyCopy(outHierarchy,inHierarchy)\
+        RpHAnimHierarchyCopyMacro((outHierarchy),(inHierarchy))
+
+#endif /* RWDEBUG */
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
 /* Legacy TypeDef */
 
 
 typedef RtAnimAnimation RpHAnimAnimation;
 typedef RpHAnimKeyFrame RpHAnimStdKeyFrame;
 
-void RpHAnimHierarchySetFreeListCreateParams(RwInt32 blockSize, RwInt32 numBlocksToPrealloc); // 0x7C45E0
-RpHAnimHierarchy* RpHAnimHierarchyCreate(RwInt32 numNodes, RwUInt32* nodeFlags, RwInt32* nodeIDs, RpHAnimHierarchyFlag flags, RwInt32 maxInterpKeyFrameSize); // 0x7C4C30
-RpHAnimHierarchy* RpHAnimHierarchyCreateFromHierarchy(RpHAnimHierarchy* hierarchy, RpHAnimHierarchyFlag flags, RwInt32 maxInterpKeyFrameSize); // 0x7C4ED0
-RpHAnimHierarchy* RpHAnimHierarchyDestroy(RpHAnimHierarchy* hierarchy); // 0x7C4D30
-RpHAnimHierarchy* RpHAnimHierarchyCreateSubHierarchy(RpHAnimHierarchy* parentHierarchy, RwInt32 startNode, RpHAnimHierarchyFlag flags, RwInt32 maxInterpKeyFrameSize); // 0x7C4DB0
-RpHAnimHierarchy* RpHAnimHierarchyAttach(RpHAnimHierarchy* hierarchy); // 0x7C4F40
-RpHAnimHierarchy* RpHAnimHierarchyDetach(RpHAnimHierarchy* hierarchy); // 0x7C4FF0
-RpHAnimHierarchy* RpHAnimHierarchyAttachFrameIndex(RpHAnimHierarchy* hierarchy, RwInt32 nodeIndex); // 0x7C5020
-RpHAnimHierarchy* RpHAnimHierarchyDetachFrameIndex(RpHAnimHierarchy* hierarchy, RwInt32 nodeIndex); // 0x7C5100
-RwBool RpHAnimFrameSetHierarchy(RwFrame* frame, RpHAnimHierarchy* hierarchy); // 0x7C5130
-RpHAnimHierarchy* RpHAnimFrameGetHierarchy(RwFrame* frame); // 0x7C5160
-RwMatrix* RpHAnimHierarchyGetMatrixArray(RpHAnimHierarchy* hierarchy); // 0x7C5120
-RwBool RpHAnimHierarchyUpdateMatrices(RpHAnimHierarchy* hierarchy); // 0x7C51D0
-RwInt32 RpHAnimIDGetIndex(RpHAnimHierarchy* hierarchy, RwInt32 ID); // 0x7C51A0
-RwBool RpHAnimPluginAttach(); // 0x7C4600
-void RpHAnimKeyFrameApply(void* matrix, void* voidIFrame); // 0x7C5B80
-void RpHAnimKeyFrameBlend(void* voidOut, void* voidIn1, void* voidIn2, RwReal alpha); // 0x7C60C0
-void RpHAnimKeyFrameInterpolate(void* voidOut, void* voidIn1, void* voidIn2, RwReal time, void* customData); // 0x7C5CA0
-void RpHAnimKeyFrameAdd(void* voidOut, void* voidIn1, void* voidIn2); // 0x7C6720
-void RpHAnimKeyFrameMulRecip(void* voidFrame, void* voidStart); // 0x7C65C0
-RtAnimAnimation* RpHAnimKeyFrameStreamRead(RwStream* stream, RtAnimAnimation* animation); // 0x7C64C0
-RwBool RpHAnimKeyFrameStreamWrite(const RtAnimAnimation* animation, RwStream* stream); // 0x7C6540
-RwInt32 RpHAnimKeyFrameStreamGetSize(const RtAnimAnimation* animation); // 0x7C65B0
-RwBool RpHAnimFrameSetID(RwFrame* frame, RwInt32 id); // 0x7C5170
-RwInt32 RpHAnimFrameGetID(RwFrame* frame); // 0x7C5190
+/* Legacy Macros */
+
+
+/* Animations */
+
+
+#define RpHAnimAnimationCreate(typeID,numFrames,flags,duration)\
+        RtAnimAnimationCreate((typeID),(numFrames),(flags),(duration))
+
+
+#define RpHAnimAnimationDestroy(animation)\
+        RtAnimAnimationDestroy((animation))
+
+#define RpHAnimAnimationGetTypeID(animation)\
+        RtAnimAnimationGetTypeID((animation))
+
+
+#define RpHAnimAnimationRead(filename)\
+        RtAnimAnimationRead((filename))
+
+
+#define RpHAnimAnimationWrite(animation,filename)\
+        RtAnimAnimationWrite((animation),(filename))
+
+
+#define RpHAnimAnimationStreamRead(stream)\
+        RtAnimAnimationStreamRead((stream))
+
+
+#define RpHAnimAnimationStreamWrite(animation,stream)\
+        RtAnimAnimationStreamWrite((animation),(stream))
+
+
+#define RpHAnimAnimationStreamGetSize(animation)\
+        RtAnimAnimationStreamGetSize((animation))
+
+
+#define RpHAnimAnimationMakeDelta(animation,numNodes,time)\
+        RtAnimAnimationMakeDelta((animation),(numNodes),(time))
+
+
+/* Animation Interpolator */
+
+#define RpHAnimHierarchyStdKeyFrameAddAnimTime(hierarchy,time)\
+        RpHAnimHierarchyHAnimKeyFrameAddAnimTime((hierarchy),(time))
+
+#define RpHAnimHierarchyHAnimKeyFrameAddAnimTime(hierarchy,time)\
+        RpHAnimHierarchyAddAnimTime((hierarchy),(time))
+
+#endif                          /* RPHANIM_H */

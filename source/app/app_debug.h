@@ -39,6 +39,7 @@ private:
 
 #define NOTSA_LOG_CRIT SPDLOG_CRITICAL
 #define NOTSA_LOG_ERR SPDLOG_ERROR
+#define NOTSA_LOG_WARN SPDLOG_WARN
 #define NOTSA_LOG_TRACE SPDLOG_TRACE
 
 //! Use this to pass pointers to logging functions [both std::format, logs, and printf-style stuff]

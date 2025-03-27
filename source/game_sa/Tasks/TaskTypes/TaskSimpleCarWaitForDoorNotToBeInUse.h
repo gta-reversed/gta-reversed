@@ -18,13 +18,13 @@ public:
 
     constexpr static auto Type = eTaskType::TASK_SIMPLE_CAR_WAIT_FOR_DOOR_NOT_TO_BE_IN_USE;
 
-    CTaskSimpleCarWaitForDoorNotToBeInUse(CVehicle * veh, uint32 doorToWaitFor1, uint32 doorToWaitFor2);
+    CTaskSimpleCarWaitForDoorNotToBeInUse(CVehicle * veh, uint32 doorToWaitFor1, uint32 doorToWaitFor2 = 0);
     CTaskSimpleCarWaitForDoorNotToBeInUse(const CTaskSimpleCarWaitForDoorNotToBeInUse&);
     ~CTaskSimpleCarWaitForDoorNotToBeInUse();
 
-    CTask*    Clone() override { return new CTaskSimpleCarWaitForDoorNotToBeInUse{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
+    CTask*    Clone() const override { return new CTaskSimpleCarWaitForDoorNotToBeInUse{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool      ProcessPed(CPed* ped) override;
     bool      SetPedPosition(CPed* ped) override;  
  

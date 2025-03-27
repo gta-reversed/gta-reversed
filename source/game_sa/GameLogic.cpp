@@ -86,7 +86,7 @@ void CGameLogic::DoWeaponStuffAtStartOf2PlayerGame(bool shareWeapons) {
 
     if (shareWeapons) {
         for (auto& weapon : player1->m_aWeapons) {
-            if (weapon.m_nType == WEAPON_UNARMED)
+            if (weapon.m_Type == WEAPON_UNARMED)
                 continue;
 
             player2->GiveWeapon(weapon, true);
@@ -98,24 +98,28 @@ void CGameLogic::DoWeaponStuffAtStartOf2PlayerGame(bool shareWeapons) {
 
 // 0x441B70
 // 1 - Los Santos, 2 - San Fierro, 3 - Las Venturas
-uint32 CGameLogic::FindCityClosestToPoint(CVector2D point) {
-    constexpr CVector2D cityCoords[] = {
-        { 1670.0f, -1137.0f}, // LS
-        {-1810.0f,   884.0f}, // SF
-        { 2161.0f,  2140.0f}, // LV
+eLevelName CGameLogic::FindCityClosestToPoint(CVector2D point) {
+    constexpr struct {
+        eLevelName level;
+        CVector2D coords;
+    } CITIES[] = {
+        {LEVEL_NAME_LOS_SANTOS,   { 1670.0f, -1137.0f}},
+        {LEVEL_NAME_SAN_FIERRO,   {-1810.0f,   884.0f}},
+        {LEVEL_NAME_LAS_VENTURAS, { 2161.0f,  2140.0f}},
     };
-    std::pair<float, size_t> closest{FLT_MAX, 3}; // NOTSA
-    for (auto&& [i, d] : notsa::enumerate(cityCoords)) {
-        if (const auto d = DistanceBetweenPoints2D(cityCoords[i], point); d < closest.first) {
-            closest = {d, i};
+
+    std::pair<float, eLevelName> closest{FLT_MAX, NUM_LEVELS}; // NOTSA
+    for (const auto& city : CITIES) {
+        if (const auto d = DistanceBetweenPoints2D(city.coords, point); d < closest.first) {
+            closest = {d, city.level};
         }
     }
 
-    if (closest.second == 3) {
+    if (closest.second == NUM_LEVELS) {
         NOTSA_UNREACHABLE();
     }
 
-    return closest.second + 1;
+    return closest.second;
 }
 
 // 0x441240
@@ -167,7 +171,7 @@ bool CGameLogic::IsPlayerAllowedToGoInThisDirection(CPed* ped, CVector moveDirec
             return false;
         }
 
-        if (!CWorld::GetIsLineOfSightClear(TheCamera.GetGameCamPosition(), headPos, true, false, false, false, false, true, false)) {
+        if (!CWorld::GetIsLineOfSightClear(*TheCamera.GetGameCamPosition(), headPos, true, false, false, false, false, true, false)) {
             return false;
         }
     }
@@ -240,28 +244,28 @@ bool CGameLogic::LaRiotsActiveHere() {
 
 // 0x5D33C0
 void CGameLogic::Save() {
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::NumAfterDeathStartPoints,                sizeof(int32));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::bPenaltyForDeathApplies,                 sizeof(bool));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::bPenaltyForArrestApplies,                sizeof(bool));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::GameState,                               sizeof(eGameState));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::TimeOfLastEvent,                         sizeof(uint32));
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::NumAfterDeathStartPoints);
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::bPenaltyForDeathApplies);
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::bPenaltyForArrestApplies);
+    CGenericGameStorage::SaveDataToWorkBuffer(static_cast<uint8>(CGameLogic::GameState));
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::TimeOfLastEvent);
 
     for (int32 i = 0; i < NumAfterDeathStartPoints; i++) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::AfterDeathStartPoints[i],            sizeof(CVector));
-        CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::AfterDeathStartPointOrientations[i], sizeof(float));
+        CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::AfterDeathStartPoints[i]);
+        CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::AfterDeathStartPointOrientations[i]);
     }
 }
 
 // 0x5D3440
 void CGameLogic::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::NumAfterDeathStartPoints,                sizeof(int32));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::bPenaltyForDeathApplies,                 sizeof(bool));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::bPenaltyForArrestApplies,                sizeof(bool));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::GameState,                               sizeof(eGameState));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::TimeOfLastEvent,                         sizeof(uint32));
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::NumAfterDeathStartPoints);
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::bPenaltyForDeathApplies);
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::bPenaltyForArrestApplies);
+    CGameLogic::GameState = static_cast<eGameLogicState>(CGenericGameStorage::LoadDataFromWorkBuffer<uint8>());
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::TimeOfLastEvent);
     for (int32 i = 0; i < NumAfterDeathStartPoints; ++i) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::AfterDeathStartPoints[i],            sizeof(CVector));
-        CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::AfterDeathStartPointOrientations[i], sizeof(float));
+        CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::AfterDeathStartPoints[i]);
+        CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::AfterDeathStartPointOrientations[i]);
     }
 }
 
@@ -317,7 +321,7 @@ void CGameLogic::ResetStuffUponResurrection() {
     RestorePlayerStuffDuringResurrection(playerPed, playerPed->GetPosition(), playerPed->m_fCurrentRotation * RadiansToDegrees(1.0f));
     SortOutStreamingAndMemory(playerPed->GetPosition(), playerPed->GetHeading());
     TheCamera.m_fCamShakeForce = 0.0f;
-    TheCamera.SetMotionBlur(0, 0, 0, 0, 0);
+    TheCamera.SetMotionBlur(0, 0, 0, 0, eMotionBlurType::NONE);
     CPad::GetPad(PED_TYPE_PLAYER1)->StopShaking(0);
     CReferences::RemoveReferencesToPlayer();
     CCarCtrl::CountDownToCarsAtStart = 10;
@@ -342,7 +346,7 @@ void CGameLogic::RestorePedsWeapons(CPed* ped) {
         const auto IsModelLoaded = [](int id) { return id == MODEL_INVALID || CStreaming::GetInfo(id).IsLoaded(); };
 
         if (rng::all_of(weapon.GetWeaponInfo().GetModels(), IsModelLoaded)) { // FIX_BUGS: They checked modelId1 twice
-            ped->GiveWeapon(weapon.m_nType, weapon.m_nTotalAmmo, true);
+            ped->GiveWeapon(weapon.m_Type, weapon.m_TotalAmmo, true);
         }
     }
 }
@@ -357,7 +361,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     auto playerData = player->m_pPlayerData;
     auto playerInfo = player->GetPlayerInfoForThisPlayerPed();
 
-    player->physicalFlags.bDestroyed = false;
+    player->physicalFlags.bRenderScorched = false;
     player->m_fArmour = 0.0f;
     player->m_fHealth = static_cast<float>(playerInfo->m_nMaxHealth);
     player->m_bIsVisible = true;
@@ -374,7 +378,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
         fire->Extinguish();
         fire = nullptr;
     }
-    player->m_pedAudio.TurnOffJetPack();
+    player->GetAE().TurnOffJetPack();
     player->bInVehicle = false;
     if (auto vehicle = player->m_pVehicle) {
         CEntity::CleanUpOldReference(vehicle);
@@ -412,7 +416,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     CWorld::Add(player);
     CHud::ResetWastedText();
     CStreaming::StreamZoneModels(posn);
-    CPostEffects::m_smokeyEnable = false;
+    CPostEffects::m_waterEnable = false;
     CTimeCycle::StopExtraColour(0);
     CPostEffects::ScriptResetForEffects();
 
@@ -615,7 +619,7 @@ void CGameLogic::Update() {
             SortOutStreamingAndMemory(player1Ped->GetPosition(), player1Ped->GetHeading());
 
             TheCamera.m_fCamShakeForce = 0.0f;
-            TheCamera.SetMotionBlur(0, 0, 0, 0, 0); // todo: eBlurType enum
+            TheCamera.SetMotionBlur(0, 0, 0, 0, eMotionBlurType::NONE);
             CPad::GetPad(PED_TYPE_PLAYER1)->StopShaking(0);
             CReferences::RemoveReferencesToPlayer();
             CCarCtrl::CountDownToCarsAtStart = 10;
@@ -651,7 +655,7 @@ void CGameLogic::Update() {
             } else if (ped->m_nPedState == PEDSTATE_ARRESTED) {
                 ped->ClearAdrenaline();
                 player.ArrestPlayer();
-                ped->Say(15, 2300, 1.0f, 1u, 1u);
+                ped->Say(CTX_GLOBAL_ARRESTED, 2300, 1.0f, 1u, 1u);
                 GameState = GAMELOGIC_STATE_BUSTED;
                 TimeOfLastEvent = CTimer::GetTimeInMS();
 
@@ -899,4 +903,29 @@ void CGameLogic::UpdateSkip() {
     default:
         return;
     }
+}
+
+// notsa
+bool CGameLogic::IsAPlayerInFocusOn2PlayerGame() {
+    return n2PlayerPedInFocus == eFocusedPlayer::PLAYER1 || n2PlayerPedInFocus == eFocusedPlayer::PLAYER2;
+}
+
+// notsa
+CPlayerPed* CGameLogic::GetFocusedPlayerPed() {
+    if (!IsAPlayerInFocusOn2PlayerGame()) {
+        return nullptr;
+    } else {
+        return FindPlayerPed((int32)n2PlayerPedInFocus);
+    }
+}
+
+// notsa
+bool CGameLogic::CanPlayerTripSkip() {
+    return SkipState == SKIP_AVAILABLE || SkipState == SKIP_AFTER_MISSION;
+}
+
+// notsa
+void CGameLogic::SetMissionFailed(){
+    GameState = GAMELOGIC_STATE_MISSION_FAILED;
+    TimeOfLastEvent = CTimer::GetTimeInMS();
 }
