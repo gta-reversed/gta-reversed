@@ -119,22 +119,27 @@ CTask* CTaskComplexShuffleSeats::CreateNextSubTask(CPed* ped) {
         case TASK_SIMPLE_CAR_SHUFFLE: {
             m_TargetDoor = [this, ped] {
                 switch (m_OriginDoor) {
+                // Front seats
                 case TARGET_DOOR_FRONT_RIGHT: return TARGET_DOOR_DRIVER;
-                case TARGET_DOOR_REAR_RIGHT:  return TARGET_DOOR_REAR_LEFT;
                 case TARGET_DOOR_DRIVER:      return TARGET_DOOR_FRONT_RIGHT;
+
+                // Rear seats
+                case TARGET_DOOR_REAR_RIGHT:  return TARGET_DOOR_REAR_LEFT;
                 case TARGET_DOOR_REAR_LEFT:   return TARGET_DOOR_REAR_RIGHT;
                 default:                      NOTSA_UNREACHABLE();
                 }
             }();
+            //NOTSA_LOG_DEBUG("seat {} -> {}", m_OriginDoor, m_TargetDoor);
             if (m_TargetDoor == TARGET_DOOR_DRIVER) { // Inverted
-                return m_Veh->m_pDriver
-                    ? TASK_FINISHED
-                    : TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER;
+                if (!m_Veh->m_pDriver) {
+                    return TASK_SIMPLE_CAR_SET_PED_IN_AS_DRIVER;
+                }
             } else {
-                return m_Veh->m_apPassengers[CCarEnterExit::ComputePassengerIndexFromCarDoor(m_Veh, m_TargetDoor)] // Inverted
-                    ? TASK_FINISHED
-                    : TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER;
+                if (!m_Veh->m_apPassengers[CCarEnterExit::ComputePassengerIndexFromCarDoor(m_Veh, m_TargetDoor)]) {
+                    return TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER;
+                }
             }
+            return TASK_FINISHED;
         }
         default:
             NOTSA_UNREACHABLE();
