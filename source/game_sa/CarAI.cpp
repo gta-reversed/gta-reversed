@@ -80,16 +80,16 @@ void CCarAI::EntitiesGoHeadOn(CEntity* entity1, CEntity* entity2) {
 
 // 0x41CA40
 eCarMission CCarAI::FindPoliceBikeMissionForWantedLevel() {
-    return MISSION_POLICE_BIKE;
+    return MISSION_APPROACHPLAYER_FARAWAY;
 }
 
 // 0x41CA50
 eCarMission CCarAI::FindPoliceBoatMissionForWantedLevel() {
     const auto& wantedLevel = FindPlayerWanted()->m_nWantedLevel;
     if (wantedLevel < 2 || wantedLevel > 6)
-        return FindPlayerVehicle() ? MISSION_BLOCKPLAYER_FARAWAY : MISSION_BOAT_CIRCLING_PLAYER;
+        return FindPlayerVehicle() ? MISSION_BLOCKPLAYER_FARAWAY : MISSION_BOAT_CIRCLEPLAYER;
     else
-        return FindPlayerVehicle() ? MISSION_ATTACKPLAYER : MISSION_BOAT_CIRCLING_PLAYER;
+        return FindPlayerVehicle() ? MISSION_BOAT_ATTACKPLAYER : MISSION_BOAT_CIRCLEPLAYER;
 }
 
 // rtype eCarMission ?
@@ -100,7 +100,7 @@ int8 CCarAI::FindPoliceCarMissionForWantedLevel() {
 
 // 0x41CAA0
 int32 CCarAI::FindPoliceCarSpeedForWantedLevel(CVehicle* vehicle) {
-    const auto& maxVelocity = vehicle->m_pHandlingData->m_transmissionData.m_fMaxVelocity;
+    const auto& maxVelocity = vehicle->m_pHandlingData->m_transmissionData.m_MaxFlatVelocity;
     switch (FindPlayerWanted()->m_nWantedLevel) {
     case 0:
         return (int32)CGeneral::GetRandomNumberInRange(12.0f, 16.0f);

@@ -1,7 +1,8 @@
 #include "StdInc.h"
 
 #include "UIRenderer.h"
-#include "TaskSimpleAchieveHeading.h"
+#include "TaskComplexDestroyCarMelee.h"
+#include <TaskComplexEnterCarAsPassengerTimed.h>
 #include "TaskComplexWalkAlongsidePed.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
 #include "TaskComplexFollowNodeRoute.h"
@@ -9,12 +10,13 @@
 #include "TaskComplexStealCar.h"
 #include "TaskComplexFleeAnyMeans.h"
 #include "TaskComplexDriveWander.h"
-
+#include "TaskComplexCarSlowBeDraggedOut.h"
 #include <imgui.h>
-#include <imgui_impl_win32.h>
-#include <imgui_impl_dx9.h>
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx9.h"
 #include <imgui_stdlib.h>
 #include <imgui_internal.h>
+#include <Curves.h>
 
 #include <Windows.h>
 #include <extensions/ScriptCommands.h>
@@ -59,7 +61,7 @@ void UIRenderer::PreRenderUpdate() {
     // A delay of a frame has to be added, otherwise
     // the release of F7 wont be processed and the menu will close
     const auto Shortcut = [](ImGuiKeyChord chord) {
-        return ImGui::Shortcut(chord, ImGuiKeyOwner_Any, ImGuiInputFlags_RouteAlways);
+        return ImGui::IsKeyChordPressed(chord, ImGuiInputFlags_RouteAlways);
     };
     if (Shortcut(ImGuiKey_F7) || Shortcut(ImGuiKey_M | ImGuiMod_Ctrl)) {
         const auto pad = CPad::GetPad(0);
@@ -195,14 +197,11 @@ void UIRenderer::DebugCode() {
         }
     }
     if (pad->IsStandardKeyJustPressed('6')) {
-        CMessages::AddBigMessage("PRESS ~k~~PED_ANSWER_PHONE~ TO FUCK"_gxt, 1000, eMessageStyle::STYLE_BOTTOM_RIGHT);
+        FindPlayerPed()->Say(CTX_GLOBAL_JACKED_CAR);
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {
-        player->GetTaskManager().SetTask(
-            new CTaskSimpleAchieveHeading{PI/2.f},
-            TASK_PRIMARY_PRIMARY
-        );
+        CCurves::TestCurves();
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {

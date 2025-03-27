@@ -73,7 +73,7 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(InitialiseEssentialsAfterRW, 0x5BA160);
     RH_ScopedInstall(InitialiseOnceBeforeRW, 0x53BB50);
     RH_ScopedInstall(InitialiseRenderWare, 0x5BD600);
-    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680);
+    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.enabled = false});
     RH_ScopedInstall(Process, 0x53BEE0);
     RH_ScopedInstall(ReInitGameObjectVariables, 0x53BCF0);
     RH_ScopedInstall(ReloadIPLs, 0x53BED0);
@@ -261,15 +261,7 @@ bool CGame::Shutdown() {
     col1[1].m_boundBox.m_vecMin.z = 0.0f;
     col1[0].m_pColData = nullptr;
     CTaskSimpleClimb::Shutdown();
-
-    { // todo: move to CPedAttractor::Shutdown() or something
-        // delete CPedAttractor::ms_tasks.First;
-        // CPedAttractor::ms_tasks.First = 0;
-        // CPedAttractor::ms_tasks.Last = 0;
-        // CPedAttractor::ms_tasks.End = 0;
-        CPedAttractor::ms_tasks = {};
-    }
-
+    CPedAttractor::Shutdown();
     CTheScripts::RemoveScriptTextureDictionary();
     CMBlur::MotionBlurClose();
     CdStreamRemoveImages();
@@ -736,7 +728,7 @@ void CGame::Process() {
     CAudioZones::Update(false, TheCamera.GetPosition());
     CWindModifiers::Number = 0;
 
-    if (!CTimer::m_UserPause && !CTimer::m_CodePause) {
+    if (!CTimer::GetIsPaused()) {
         CSprite2d::SetRecipNearClip();
         CSprite2d::InitPerFrame();
         CFont::InitPerFrame();
@@ -803,7 +795,7 @@ void CGame::Process() {
         if (CReplay::ShouldStandardCameraBeProcessed()) {
             TheCamera.Process();
         } else {
-            TheCamera.CCamera::ProcessFade();
+            TheCamera.ProcessFade();
         }
 
         CCullZones::Update();
@@ -820,6 +812,12 @@ void CGame::Process() {
 
         CPlantMgr::Update(TheCamera.GetPosition());
         CCustomBuildingRenderer::Update();
+
+        CStencilShadows::RenderBuffer({
+            CTimeCycle::m_fShadowFrontX[CTimeCycle::m_CurrentStoredValue] * 2.f,
+            CTimeCycle::m_fShadowFrontY[CTimeCycle::m_CurrentStoredValue] * 2.f,
+            -1.5f
+        });
 
         CStencilShadows::Process(TheCamera.GetPosition());
         if (CReplay::Mode != MODE_PLAYBACK) {

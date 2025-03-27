@@ -8,10 +8,12 @@
 
 #include "Stats.h"
 #include "eHud.h"
+#include <GxtChar.h>
 
 class CSprite2d;
 class CPed;
 class CPlayerInfo;
+class CPlayerPed;
 
 class CHud {
 public:

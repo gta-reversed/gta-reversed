@@ -127,10 +127,9 @@ uint16 CClock::GetGameClockMinutesUntil(uint8 hours, uint8 minutes) {
  * @addr    0x52CEE0
  */
 bool CClock::GetIsTimeInRange(uint8 from, uint8 to) {
-    if (from > to)
-        return ms_nGameClockHours >= from || ms_nGameClockHours < to;
-    else
-        return ms_nGameClockHours >= from && ms_nGameClockHours < to;
+    return from > to
+        ? ms_nGameClockHours >= from || ms_nGameClockHours < to
+        : ms_nGameClockHours >= from && ms_nGameClockHours < to;
 }
 
 /*

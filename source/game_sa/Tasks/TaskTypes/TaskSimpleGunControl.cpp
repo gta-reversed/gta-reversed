@@ -35,7 +35,7 @@ CTaskSimpleGunControl::CTaskSimpleGunControl(CEntity* targetEntity, CVector cons
 }
 
 CTaskSimpleGunControl::CTaskSimpleGunControl(const CTaskSimpleGunControl& o) :
-    CTaskSimpleGunControl{o.m_targetEntity, &o.m_targetPos, &o.m_moveTarget, o.m_firingTask, o.m_burstAmmoCnt, o.m_leisureDurMs}
+    CTaskSimpleGunControl{o.m_targetEntity, o.m_targetPos, o.m_moveTarget, o.m_firingTask, o.m_burstAmmoCnt, o.m_leisureDurMs}
 {
     m_aimImmidiately = o.m_aimImmidiately;
 }
@@ -96,7 +96,7 @@ bool CTaskSimpleGunControl::ProcessPed(CPed* ped) {
 
     default: {
         if (const auto attackTask = ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
-            if (const auto useGun = CTask::DynCast<CTaskSimpleUseGun>(attackTask)) { // Inverted
+            if (const auto useGun = notsa::dyn_cast_if_present<CTaskSimpleUseGun>(attackTask)) { // Inverted
                 if (m_isFirstTime) {
                     m_nextAtkTimeMs = 0;
                     m_isFirstTime = false;

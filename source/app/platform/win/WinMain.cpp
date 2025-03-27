@@ -184,7 +184,7 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         }
         CGame::InitialiseCoreDataAfterRW();
         ChangeGameStateTo(GAME_STATE_FRONTEND_LOADED);
-        anisotropySupportedByGFX = (RwD3D9GetCaps()->RasterCaps & D3DPRASTERCAPS_ANISOTROPY) != 0; // todo: func
+        anisotropySupportedByGFX = (((const D3DCAPS9*)RwD3D9GetCaps())->RasterCaps & D3DPRASTERCAPS_ANISOTROPY) != 0; // todo: func
         break;
     }
     case GAME_STATE_FRONTEND_LOADED: {
@@ -327,6 +327,13 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     for (int i = 0; i < argc; i++) {
         RsEventHandler(rsPREINITCOMMANDLINE, argv[i]);
     }
+
+    // Dirty fix for crash in crt when trying to free cmd line args
+    // Yeah we leak memory, but who cares
+    // Crash was in `uninitialize_allocated_io_buffers` (`C:\Program Files (x86)\Windows Kits\10\Source\<Win 10 SDK Version>\ucrt\internal\initialization.cpp`)
+    __argc  = 0;
+    __argv  = nullptr;
+    __wargv = nullptr;
 
     PSGLOBAL(window) = InitInstance(instance);
     if (!PSGLOBAL(window)) {

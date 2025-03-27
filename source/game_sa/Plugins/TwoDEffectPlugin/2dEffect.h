@@ -8,6 +8,8 @@
 
 #include "Vector.h"
 #include "RGBA.h"
+#include <extensions/Casting.hpp>
+#include <CoverPoint.h>
 
 enum e2dEffectType : uint8 {
     EFFECT_LIGHT         = 0,
@@ -99,8 +101,6 @@ struct tEffectLight {
 VALIDATE_SIZE(tEffectLight, 0x30);
 
 struct tEffectParticle {
-    static inline constexpr e2dEffectType Type = EFFECT_PARTICLE;
-
     char m_szName[24];
 };
 VALIDATE_SIZE(tEffectParticle, 0x18);
@@ -171,8 +171,8 @@ VALIDATE_SIZE(tEffectSlotMachineWheel, 0x4);
 struct tEffectCoverPoint {
     static inline constexpr e2dEffectType Type = EFFECT_COVER_POINT;
 
-    RwV2d m_vecDirection;
-    uint8 m_nType;
+    RwV2d               m_DirOfCover;
+    CCoverPoint::eUsage m_Usage;
 };
 VALIDATE_SIZE(tEffectCoverPoint, 0xC);
 
@@ -219,8 +219,12 @@ VALIDATE_SIZE(tEffectInterior, 0x34 - 0x10);
 
 //! NOTASA base class (otherwise SA)
 struct C2dEffectBase {
-    CVector       m_pos;
-    e2dEffectType m_type;
+    CVector       m_Pos;
+    e2dEffectType m_Type;
+
+    // Casting.hpp support //
+    template<typename From, typename Self>
+    static constexpr bool classof(const From* f) { return f->m_Type == Self::Type; }
 };
 VALIDATE_SIZE(C2dEffectBase, 0x10);
 
@@ -252,6 +256,19 @@ struct C2dEffect : public C2dEffectBase {
 public:
     static uint32& g2dEffectPluginOffset;
     static uint32& ms_nTxdSlot;
+
+    template<std::derived_from<C2dEffectBase> To, std::derived_from<C2dEffectBase> From>
+    static To* DynCast(From* p) {
+        return p->m_Type == To::Type
+            ? reinterpret_cast<To*>(p)
+            : nullptr;
+    }
+
+    template<std::derived_from<C2dEffectBase> To, std::derived_from<C2dEffectBase> From>
+    static To* Cast(From* p) {
+        assert(!p || p->m_Type == To::Type);
+        return reinterpret_cast<To*>(p);
+    }
 
 public:
     static void InjectHooks();

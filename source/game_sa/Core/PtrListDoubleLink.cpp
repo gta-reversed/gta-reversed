@@ -21,34 +21,37 @@ void CPtrListDoubleLink::Flush() {
 }
 
 CPtrNodeDoubleLink* CPtrListDoubleLink::AddItem(void* item) {
-    auto pNewDoubleLink = new CPtrNodeDoubleLink(item);
-    pNewDoubleLink->AddToList(this);
-    return pNewDoubleLink;
+    auto link = new CPtrNodeDoubleLink{ item };
+    link->AddToList(this);
+    return link;
 }
 
 void CPtrListDoubleLink::DeleteItem(void* item) {
     if (!m_node)
         return;
 
-    auto* curNode = GetNode();
-    while (curNode->m_item != item) {
-        curNode = reinterpret_cast<CPtrNodeDoubleLink*>(curNode->m_next);
-        if (!curNode)
+    auto* node = GetNode();
+    while (node->m_item != item) {
+        node = reinterpret_cast<CPtrNodeDoubleLink*>(node->GetNext());
+        if (!node) {
             return;
+        }
     }
-
-    CPtrListDoubleLink::DeleteNode(curNode);
+    CPtrListDoubleLink::DeleteNode(node);
 }
 
 void CPtrListDoubleLink::DeleteNode(CPtrNodeDoubleLink* node) {
-    if (GetNode() == node)
+    if (GetNode() == node) {
         m_node = m_node->m_next;
+    }
 
-    if (node->m_prev)
+    if (node->m_prev) {
         node->m_prev->m_next = node->m_next;
+    }
 
-    if (node->m_next)
+    if (node->m_next) {
         node->m_next->m_prev = node->m_prev;
+    }
 
     delete node;
 }

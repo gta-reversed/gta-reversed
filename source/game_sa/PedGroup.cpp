@@ -70,7 +70,7 @@ void CPedGroup::PlayerGaveCommand_Attack(CPed* playerPed, CPed* target) {
         return;
     }
     if (target && target->m_nPedType != PED_TYPE_GANG2) {
-        target->Say(target->IsGangster() ? 147 : 148);
+        target->Say(target->IsGangster() ? CTX_GLOBAL_ORDER_ATTACK_MANY : CTX_GLOBAL_ORDER_ATTACK_SINGLE);
     }
 }
 
@@ -138,7 +138,7 @@ bool CPedGroup::IsActive() const {
 
 void CPedGroup::InjectHooks() {
     RH_ScopedClass(CPedGroup);
-    RH_ScopedCategory(); // TODO: Change this to the appropriate category!
+    RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Constructor, 0x5FC150);
     RH_ScopedInstall(Destructor, 0x5FC190);

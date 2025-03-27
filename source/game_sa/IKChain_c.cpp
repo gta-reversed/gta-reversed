@@ -89,7 +89,7 @@ void IKChain_c::Exit() {
 void IKChain_c::Update(float timeStep) {
     UNUSED(timeStep);
 
-    m_PivotBoneMatrix = &m_Ped->GetBoneMatrix(m_PivotBone);
+    m_PivotBoneMatrix = m_Ped->GetBoneMatrix(m_PivotBone);
     GetBones()[m_BonesCount - 1]->CalcWldMat(m_PivotBoneMatrix);
     MoveBonesToTarget();
     for (auto& bone : GetBones()) {
@@ -188,7 +188,7 @@ void IKChain_c::MoveBonesToTarget() {
                     RwV3dTransformPoint(&m_OffsetPosWS, &m_OffsetPos, mat);
                 }
             } else {
-                m_TargetEntity->AsPed()->GetBonePosition(m_OffsetPosWS, (eBoneTag)m_OffsetBone);
+                m_OffsetPosWS = m_TargetEntity->AsPed()->GetBonePosition((eBoneTag)m_OffsetBone);
                 if (mat) {
                     RwV3d transformed;
                     RwV3dTransformVector(&transformed, &m_OffsetPos, mat);
@@ -258,7 +258,7 @@ void IKChain_c::MoveBonesToTarget() {
 
 // 0x617CA0
 void IKChain_c::SetupBones(eBoneTag32 effectorBone, CVector effectorPos, eBoneTag32 pivotBone, AnimBlendFrameData* frames) {
-    m_PivotBoneMatrix = &m_Ped->GetBoneMatrix(pivotBone);
+    m_PivotBoneMatrix = m_Ped->GetBoneMatrix(pivotBone);
     m_PivotBone       = pivotBone;
 
     const auto GetBoneLinkPrev = [](eBoneTag32 b) {

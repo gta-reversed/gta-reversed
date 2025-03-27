@@ -163,7 +163,7 @@ MACRO_STOP
 #define RtQuatModulusMacro( result, q )         \
 MACRO_START                                     \
 {                                               \
-    (result) =  (q);    \
+    (result) = RtQuatModulusSquaredMacro(q);    \
     rwSqrtMacro(&result, result);               \
 }                                               \
 MACRO_STOP

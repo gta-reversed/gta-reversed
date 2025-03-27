@@ -43,7 +43,7 @@ CTaskComplexLeaveCar::~CTaskComplexLeaveCar() {
 }
 
 CTaskComplexLeaveCar::CTaskComplexLeaveCar(const CTaskComplexLeaveCar& o) :
-    CTaskComplexLeaveCar{ m_pTargetVehicle, m_nTargetDoor, m_nDelayTime, m_bSensibleLeaveCar, m_bForceGetOut }
+    CTaskComplexLeaveCar{ o.m_pTargetVehicle, o.m_nTargetDoor, o.m_nDelayTime, o.m_bSensibleLeaveCar, o.m_bForceGetOut }
 {
 }
 

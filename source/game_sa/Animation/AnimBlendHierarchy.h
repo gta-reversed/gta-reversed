@@ -66,15 +66,15 @@ private: // Function implementations
     template<bool Compressed>
     void ICalcTotalTime() {
         m_fTotalTime = 0.0f;
-        for (auto& sequence : GetSequences()) {
-            if (sequence.m_FramesNum == 0) { // FIX_BUGS by Mitchell Tobass
+        for (auto& seq : GetSequences()) {
+            if (seq.m_FramesNum == 0) { // FIX_BUGS by Mitchell Tobass
                 continue;
             }
-            m_fTotalTime = std::max<float>(m_fTotalTime, sequence.GetKeyFrame<Compressed>(sequence.m_FramesNum - 1)->DeltaTime);
-            for (auto j = sequence.m_FramesNum - 1; j >= 1; j--) {
-                const auto kf1 = sequence.GetKeyFrame<Compressed>(j);
-                const auto kf2 = sequence.GetKeyFrame<Compressed>(j - 1);
-                kf1->DeltaTime = kf1->DeltaTime - kf2->DeltaTime; // TODO/NOTE: With `FixedFloat` this has unncesessary conversions float <=> int
+            m_fTotalTime = std::max<float>(m_fTotalTime, seq.GetKeyFrame<Compressed>(seq.m_FramesNum - 1)->DeltaTime);
+            for (auto j = seq.m_FramesNum; j --> 1;) {
+                const auto kfA = seq.GetKeyFrame<Compressed>(j - 1);
+                const auto kfB = seq.GetKeyFrame<Compressed>(j);
+                kfB->DeltaTime = kfB->DeltaTime - kfA->DeltaTime; // TODO/NOTE: With `FixedFloat` this has unnecessary conversions float <=> int
             }
         }
     }

@@ -145,7 +145,7 @@ void CClouds::MovingFog_Create(CVector* posn) {
         CGeneral::GetRandomNumberInRange(-58.0f, 58.0f),
         CGeneral::GetRandomNumberInRange(-5.0f,  5.0f)
     };
-    ms_mf.m_vecPosn[slotId] += posn;
+    ms_mf.m_vecPosn[slotId] += *posn;
     ms_mf.m_fSize[slotId] = CGeneral::GetRandomNumberInRange(4.0f, 10.0f);
     ms_mf.m_fIntensity[slotId] = 1.0f;
     ms_mf.m_fMaxIntensity[slotId] = CGeneral::GetRandomNumberInRange(8.0f, 20.0f);
@@ -421,11 +421,11 @@ void CClouds::Render_MaybeRenderMoon(float colorBalance) {
 // From `CClouds::Render` [0x713D2A - 0x714019]
 // Draws the R* logo on the sky
 void CClouds::Render_MaybeRenderRockstarLogo(float colorBalance) {
-    constexpr auto LOGO_VISIBLE_FROM_HRS  = 22u,
-                   LOGO_VISIBLE_UNTIL_HRS = 5u;
+    constexpr auto LOGO_VISIBLE_FROM_HRS  = 22u, // From this hour (Eg.: 22:XX)
+                   LOGO_VISIBLE_UNTIL_HRS = 6u;  // Up to this hour (So at 06:00 it's not visible anymore)
 
-    constexpr auto R_OFFSET_FROM_CAMERA    = CVector{ 100.f, 0.f, 10.f }; // Letter `R` offset from camera
-    constexpr auto STAR_OFFSET_FROM_CAMERA = CVector{ 100.f, 0.f, R_OFFSET_FROM_CAMERA.z - 90.f }; // `*` [As in R*] offset from camera
+    constexpr auto R_OFFSET_FROM_CAMERA    = CVector{ 100.f,   0.f, 10.f }; // Letter `R` offset from camera
+    constexpr auto STAR_OFFSET_FROM_CAMERA = CVector{ 100.f, -90.f, 10.f }; // `*` [As in R*] offset from camera
 
     constexpr auto  STARS_NUM_POSITIONS                    = 9;
     constexpr float STARS_Y_POSITIONS[STARS_NUM_POSITIONS] = { 0.00f, 0.05f, 0.13f, 0.40f, 0.70f, 0.60f, 0.27f, 0.55f, 0.75f }; // 0x8D55EC
@@ -442,11 +442,17 @@ void CClouds::Render_MaybeRenderRockstarLogo(float colorBalance) {
         }
     }
 
-    const auto time = CClock::GetGameClockHours() == LOGO_VISIBLE_FROM_HRS
-        ? CClock::GetGameClockMinutes()
-        : 60u - CClock::GetGameClockMinutes();
+    const uint32_t t = CClock::GetGameClockHours() == LOGO_VISIBLE_FROM_HRS
+        ? CClock::GetGameClockMinutes() // Fading in
+        : CClock::GetGameClockHours() == LOGO_VISIBLE_UNTIL_HRS - 1
+              ? 60u - CClock::GetGameClockMinutes() // Fading out
+              : 60u; // Static
 
-    const auto colorB  = 255u * time / 60u;
+    if (t == 0) {
+        return;
+    }
+
+    const auto colorB  = (uint8)(255u * t / 60u);
     const auto colorRG = CalculateColorWithBalance(colorB, colorBalance);
 
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(gpCoronaTexture[0])));
@@ -493,14 +499,15 @@ void CClouds::Render_MaybeRenderRockstarLogo(float colorBalance) {
     if (CSprite::CalcScreenCoors(camPos + STAR_OFFSET_FROM_CAMERA, &lastStarPosScr, &lastStarSizeScr.x, &lastStarSizeScr.y, false, true)) {
         const auto cc = CalculateColorWithBalance(colorB, (float)(rand() % 128) * 0.0015625f + 0.5f);
 
-        lastStarSizeScr *= 5.f;
+        lastStarSizeScr.x *= 5.f;
+        lastStarSizeScr.y *= 5.f;
 
-        CSprite::RenderBufferedOneXLUSprite(
+        CSprite::RenderOneXLUSprite(
             lastStarPosScr,
             lastStarSizeScr,
             cc, cc, cc, 255,
             1.f / lastStarPosScr.z,
-            255
+            255, 0, 0
         );
     }
 
@@ -524,7 +531,7 @@ void CClouds::Render_RenderLowClouds(float colorBalance) {
         {0.8f,   0.4f, 1.3f},
         {-0.8f,  0.4f, 1.4f},
         {0.4f,  -0.8f, 1.2f},
-        {0.4f,  -0.8f, 1.7f},
+        {-0.4f, -0.8f, 1.7f},
     };
 
     const auto colorR = CalculateColorWithBalance((uint8)CTimeCycle::m_CurrentColours.m_nLowCloudsRed, colorBalance);
@@ -541,7 +548,8 @@ void CClouds::Render_RenderLowClouds(float colorBalance) {
     ms_cameraRoll = TheCamera.GetRoll();
 
     // Render clouds
-    const auto camPos = TheCamera.GetPosition();
+    auto camPos = TheCamera.GetPosition();
+    camPos.z = 0; // GTA immediately overwrites input.z of CalcScreenCoors with offset.z * 60.f + 40.f (notice that there is no "+ camPos.z", maybe R* simply confused = with +=)
     for (const auto& offset : LOW_CLOUDS_COORDS) {
         CVector   cloudPosScr;
         CVector2D cloudSizeScr;
@@ -550,7 +558,7 @@ void CClouds::Render_RenderLowClouds(float colorBalance) {
         }
         CSprite::RenderBufferedOneXLUSprite_Rotate_Dimension(
             cloudPosScr,
-            cloudSizeScr * CVector2D{ 40.f, 320.f },
+            cloudSizeScr * CVector2D{ 320.f, 40.f },
             colorR, colorG, colorB, 255,
             1.f / cloudPosScr.z,
             ms_cameraRoll,

@@ -26,12 +26,13 @@ private:
     static inline uint32& ms_numAnimAssocDefinitions = *(uint32*)0xB4EA28;
 
     static inline CAnimBlendAssocGroup*& ms_aAnimAssocGroups = *(CAnimBlendAssocGroup**)0xB4EA34;
-    static inline uint32& ms_numAnimBlocks = *(uint32*)0xB4EA30;
 
     static inline std::array<CAnimBlendHierarchy, 2500>& ms_aAnimations = *(std::array<CAnimBlendHierarchy, 2500>*)0xB4EA40;
     static inline int32& ms_numAnimations = *(int32*)0xB4EA2C;
 
     static inline std::array<CAnimBlock, NUM_ANIM_BLOCKS>& ms_aAnimBlocks = *(std::array<CAnimBlock, NUM_ANIM_BLOCKS>*)0xB5D4A0;
+    static inline uint32& ms_numAnimBlocks = *(uint32*)0xB4EA30;
+
     static inline CLinkList<CAnimBlendHierarchy*>& ms_AnimCache = *(CLinkList<CAnimBlendHierarchy*>*)0xB5EB20;
 
 public:

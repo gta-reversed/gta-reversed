@@ -59,7 +59,7 @@ bool CTaskSimpleThrowProjectile::ControlThrow(bool bButtonReleased, CEntity* tar
     }
 
     if (targetPos) {
-        m_TargetPos = targetPos;
+        m_TargetPos = *targetPos;
     }
 
     return false;
@@ -107,7 +107,7 @@ bool CTaskSimpleThrowProjectile::MakeAbortable(CPed* ped, eAbortPriority priorit
             m_Anim->m_BlendDelta = -1000.0f;
             m_Anim                = nullptr;
         }
-    } else if (const auto eDmg = CEvent::DynCast<const CEventDamage>(event)) {
+    } else if (const auto eDmg = notsa::dyn_cast_if_present<const CEventDamage>(event)) {
         if (eDmg->m_damageResponse.m_bHealthZero && eDmg->m_bAddToEventGroup || eDmg->m_bFallDown) {
             if (m_Anim) {
                 m_Anim->SetDefaultFinishCallback();
@@ -157,7 +157,7 @@ bool CTaskSimpleThrowProjectile::ProcessPed(CPed* ped) {
             }
 
             CVector firePos;
-            RwV3dTransformPoint(&firePos, &wi->m_vecFireOffset, &ped->GetBoneMatrix((eBoneTag)ped->m_apBones[PED_NODE_RIGHT_HAND]->BoneTag));
+            RwV3dTransformPoint(&firePos, &wi->m_vecFireOffset, ped->GetBoneMatrix((eBoneTag)ped->m_apBones[PED_NODE_RIGHT_HAND]->BoneTag));
             ped->GetActiveWeapon().Fire(ped, &firePos, &firePos, nullptr, m_TargetPos.IsZero() ? nullptr : &m_TargetPos, nullptr);
         }
     }

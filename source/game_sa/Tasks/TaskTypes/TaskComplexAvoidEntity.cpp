@@ -13,7 +13,7 @@ void CTaskComplexAvoidEntity::InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x66AA20, { .reversed = false });
-    RH_ScopedInstall(ComputeAvoidSphere, 0x672080, { .reversed = false });
+    //RH_ScopedInstall(ComputeAvoidSphere, 0x66FD30, { .reversed = false });
     RH_ScopedInstall(ComputeSphere, 0x66F6C0, { .reversed = false });
     RH_ScopedVMTInstall(ControlSubTask, 0x66ADE0, { .reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x672530, { .reversed = false });
@@ -84,7 +84,7 @@ CTask* CTaskComplexAvoidEntity::CreateFirstSubTask(CPed* ped) {
         return CreateNextSubTask(ped);
     }
 
-    return new CTaskSimpleGoToPoint(m_moveState, &f2C, 0.5f, false, false);
+    return new CTaskSimpleGoToPoint(m_moveState, f2C, 0.5f, false, false);
 }
 
 // 0x66AD70

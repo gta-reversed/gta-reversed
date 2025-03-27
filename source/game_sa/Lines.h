@@ -8,8 +8,8 @@ public:
 
 public:
     // NOTSA wrappers
-    static void RenderLineNoClipping(const CVector& start, const CVector& end, uint32 startColor, uint32 endColor) {
-        RenderLineNoClipping(start.x, start.y, start.z, end.x, end.y, end.z, startColor, endColor);
+    static void RenderLineNoClipping(const CVector& start, const CVector& end, uint32 startRGBA, uint32 endRGBA) {
+        RenderLineNoClipping(start.x, start.y, start.z, end.x, end.y, end.z, startRGBA, endRGBA);
     }
 
     static void RenderLineWithClipping(const CVector& start, const CVector& end, uint32 startColor, uint32 endColor) {
@@ -23,5 +23,15 @@ public:
             startColor.r, startColor.g, startColor.b, startColor.a,
             endColor.r, endColor.g, endColor.b, endColor.a
         );
+    }
+
+    static void RenderLineCircleNoClipping(const CVector& centerPoint, float radius, uint32 numLines, uint32 color) {
+        assert(numLines > 0);
+        auto angleDiff = TWO_PI / numLines;
+        for (float angle = 0; angle <= TWO_PI; angle += angleDiff) { //You are using radians so you will have to increase by a very small amount
+            auto vecStart = centerPoint + CVector{ radius * cos(angle), radius * sin(angle), 0.f };
+            auto vecEnd   = centerPoint + CVector{ radius * cos(angle + angleDiff), radius * sin(angle + angleDiff), 0.f };
+            RenderLineNoClipping(vecStart, vecEnd, color, color);
+        }
     }
 };

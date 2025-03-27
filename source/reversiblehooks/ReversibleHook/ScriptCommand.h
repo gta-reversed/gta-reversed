@@ -2,6 +2,7 @@
 
 #include "Base.h"
 #include "eScriptCommands.h"
+#include "RunningScript.h"
 
 #ifdef ENABLE_SCRIPT_COMMAND_HOOKS
 namespace ReversibleHooks {

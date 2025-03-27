@@ -8,9 +8,12 @@ float& CBouncingPanel::BOUNCE_HANGING_DAMP_MULT = *(float*)0x8D3960;
 float& CBouncingPanel::BOUNCE_HANGING_RETURN_MULT = *(float*)0x8D3964;
 
 void CBouncingPanel::InjectHooks() {
-    ReversibleHooks::Install("CBouncingPanel", "ResetPanel", 0x6F4910, &CBouncingPanel::ResetPanel);
-    ReversibleHooks::Install("CBouncingPanel", "SetPanel", 0x6F4920, &CBouncingPanel::SetPanel);
-    ReversibleHooks::Install("CBouncingPanel", "ProcessPanel", 0x6F49A0, &CBouncingPanel::ProcessPanel);
+    RH_ScopedClass(CBouncingPanel);
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedInstall(ResetPanel, 0x6F4910);
+    RH_ScopedInstall(SetPanel, 0x6F4920);
+    RH_ScopedInstall(ProcessPanel, 0x6F49A0);
 }
 
 // 0x6F4910

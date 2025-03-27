@@ -28,7 +28,7 @@ public:
     CTask* CreateSubTask(eTaskType taskType);
     CTask* CreateDealWithNextAccidentTask(CPed* ped, CAccident* accident);
     void   FindNearestAccident(CVector& posn);
-    void   FindAccidentPosition(CPed* ped, CPed* targetPed);
+    void   CalcTargetPosWithOffset(CPed* ped, CPed* targetPed);
 
 private:
     friend void InjectHooksMain();

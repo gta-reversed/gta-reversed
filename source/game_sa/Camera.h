@@ -7,7 +7,9 @@
 #pragma once
 
 #include <RenderWare.h>
-
+#include <Vector.h>
+#include <Vector2D.h>
+#include <Cam.h>
 #include "QueuedMode.h"
 #include "CamPathSplines.h"
 #include "eCamMode.h"
@@ -53,24 +55,24 @@ enum class eGroundHeightType : int32 {
     ENTITY_BB_TOP = 2        // ground height + boundingBoxMax.z of colliding entity
 };
 
-enum {
-    MOTION_BLUR_NONE = 0,
-    MOTION_BLUR_SNIPER,
-    MOTION_BLUR_LIGHT_SCENE,
-    MOTION_BLUR_SECURITY_CAM,
-    MOTION_BLUR_CUT_SCENE,
-    MOTION_BLUR_INTRO,
-    MOTION_BLUR_INTRO2,
-    MOTION_BLUR_SNIPER_ZOOM,
-    MOTION_BLUR_INTRO3,
-    MOTION_BLUR_INTRO4,
+enum class eMotionBlurType : uint32 {
+    NONE = 0,
+    SNIPER,
+    LIGHT_SCENE,
+    SECURITY_CAM,
+    CUT_SCENE,
+    INTRO,
+    INTRO2,
+    SNIPER_ZOOM,
+    INTRO3,
+    INTRO4,
 };
 
 struct CamTweak {
-    int32 m_nModelIndex;
-    float m_fDistance;
-    float m_fAltitude;
-    float m_fAngle;
+    int32 ModelID;
+    float Dist;
+    float Alt;
+    float Angle;
 };
 VALIDATE_SIZE(CamTweak, 0x10);
 
@@ -151,7 +153,7 @@ public:
     uint32          m_nBlurBlue{};
     uint32          m_nBlurGreen{};
     uint32          m_nBlurRed{};
-    uint32          m_nBlurType{};
+    eMotionBlurType m_nBlurType{};
     uint32          m_nWorkOutSpeedThisNumFrames{4};
     uint32          m_nNumFramesSoFar{};
     uint32          m_nCurrentTrainCamNode{};
@@ -208,7 +210,7 @@ public:
     uint16          m_nAvoidTheGeometryProbsDirn{};
     float           m_fWideScreenReductionAmount{};
     float           m_fStartingFOVForInterPol{};
-    CCam            m_aCams[3]{};
+    CCam            m_aCams[3]{}; /* 2 = debug cam */
     CGarage*        m_pToGarageWeAreIn{};
     CGarage*        m_pToGarageWeAreInForHackAvoidFirstPerson{};
     CQueuedMode     m_PlayerMode{};
@@ -383,7 +385,7 @@ public:
     void Restore();
     void RestoreCameraAfterMirror();
     void RestoreWithJumpCut();
-    void RenderMotionBlur();
+    void RenderMotionBlur() const;
     void ResetDuckingSystem(CPed *ped);
 
     void SetCamCutSceneOffSet(const CVector& offset);
@@ -394,7 +396,7 @@ public:
     void SetCameraDirectlyInFrontForFollowPed_ForAPed_CamOnAString(CPed* targetPed);
     void SetCameraUpForMirror();
     void SetFadeColour(uint8 red, uint8 green, uint8 blue);
-    void SetMotionBlur(uint8 red, uint8 green, uint8 blue, int32 value, uint32 blurType);
+    void SetMotionBlur(uint8 red, uint8 green, uint8 blue, int32 value, eMotionBlurType blurType);
     void SetMotionBlurAlpha(int32 alpha);
     void SetNearClipBasedOnPedCollision(float arg2);
     void SetNearClipScript(float nearClip);
@@ -414,8 +416,8 @@ public:
 
     void StartCooperativeCamMode();
     void StopCooperativeCamMode();
-    void StartTransition(eCamMode currentCamMode);
-    void StartTransitionWhenNotFinishedInter(eCamMode currentCamMode);
+    void StartTransition(eCamMode newCamMode);
+    void StartTransitionWhenNotFinishedInter(eCamMode newCamMode);
 
     void StoreValuesDuringInterPol(CVector *sourceDuringInter, CVector *targetDuringInter, CVector *upDuringInter, float *FOVDuringInter);
 
@@ -431,10 +433,11 @@ public:
     void UpdateTargetEntity();
     bool Using1stPersonWeaponMode() const;
 
-    bool VectorMoveRunning();
-    void VectorMoveLinear(CVector* moveLinearPosnEnd, CVector* moveLinearPosnStart, float duration, bool bMoveLinearWithEase);
-    bool VectorTrackRunning();
-    void VectorTrackLinear(CVector* trackLinearStartPoint, CVector* trackLinearEndPoint, float duration, bool bEase);
+    bool VectorMoveRunning() const;
+    void VectorMoveLinear(CVector* to, CVector* from, float duration, bool bMoveLinearWithEase);
+
+    bool VectorTrackRunning() const;
+    void VectorTrackLinear(CVector* to, CVector* from, float duration, bool bEase);
 
     void AllowShootingWith2PlayersInCar(bool bAllow);
     void ApplyVehicleCameraTweaks(CVehicle* vehicle);
@@ -467,8 +470,8 @@ public:
 
     void Fade(float duration, eFadeFlag direction);
     void Find3rdPersonCamTargetVector(float range, CVector vecGunMuzzle, CVector& outSource, CVector& outTarget);
-    float Find3rdPersonQuickAimPitch();
-    float FindCamFOV();
+    float Find3rdPersonQuickAimPitch() const;
+    float FindCamFOV() const;
     void FinishCutscene();
 
     bool GetArrPosForVehicleType(eVehicleType type, int32& arrPos);
@@ -476,13 +479,13 @@ public:
     [[nodiscard]] bool GetFading() const;
     [[nodiscard]] int32 GetFadingDirection() const;
     CVector* GetGameCamPosition();
-    int32 GetLookDirection();
-    bool GetLookingForwardFirstPerson();
-    bool GetLookingLRBFirstPerson();
+    int32 GetLookDirection() const;
+    bool GetLookingForwardFirstPerson() const;
+    bool GetLookingLRBFirstPerson() const;
     [[nodiscard]] float GetPositionAlongSpline() const;
     float GetRoughDistanceToGround();
     [[nodiscard]] enum eNameState GetScreenFadeStatus() const;
-    void GetScreenRect(CRect* rect);
+    void GetScreenRect(CRect* rect) const;
     [[nodiscard]] bool Get_Just_Switched_Status() const;
 
     void HandleCameraMotionForDucking(CPed* ped, CVector* source, CVector* targPosn, bool arg5);

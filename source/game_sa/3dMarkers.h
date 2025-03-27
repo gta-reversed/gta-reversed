@@ -24,7 +24,7 @@ struct tUser3dMarker {
     auto GetColor() const { return CRGBA((uint8)m_nRed, (uint8)m_nGreen, (uint8)m_nBlue, 255u); }
 
     auto IsInUse() const { return m_bIsUsed; }
-    void Render(RpClump* clump);
+    void Render(RpClump* clump) const;
 };
 
 VALIDATE_SIZE(tUser3dMarker, 0x1C);

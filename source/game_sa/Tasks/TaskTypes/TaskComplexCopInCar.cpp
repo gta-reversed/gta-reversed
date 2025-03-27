@@ -76,7 +76,7 @@ CTask* CTaskComplexCopInCar::CreateSubTask(eTaskType taskType, CPed* copPed) {
             return new CTaskComplexCarDriveMission(
                 m_Vehicle,
                 targetEntity,
-                m_Suspect->bInVehicle ? (eCarMission)CCarAI::FindPoliceCarMissionForWantedLevel() : MISSION_POLICE_BIKE, // CCarAI::FindPoliceBikeMissionForWantedLevel()?
+                m_Suspect->bInVehicle ? (eCarMission)CCarAI::FindPoliceCarMissionForWantedLevel() : MISSION_APPROACHPLAYER_FARAWAY, // CCarAI::FindPoliceBikeMissionForWantedLevel()?
                 (eCarDrivingStyle)CCarAI::FindPoliceCarSpeedForWantedLevel(m_Vehicle), // TODO: This really doesn't add up.. How does this work?
                 10.f
             );
@@ -85,11 +85,11 @@ CTask* CTaskComplexCopInCar::CreateSubTask(eTaskType taskType, CPed* copPed) {
                 if (m_Suspect->bInVehicle) {
                     return CGeneral::GetRandomNumber() % 4 < 2 ? MISSION_BLOCKPLAYER_FARAWAY : MISSION_RAMPLAYER_FARAWAY;
                 }
-                return MISSION_37;
+                return MISSION_KILLPED_CLOSE;
             };
 
             // FindPoliceCarSpeedForWantedLevel - wanted level 3
-            auto style = m_Vehicle->m_pHandlingData->m_transmissionData.m_fMaxVelocity * 60.0f * 0.9f; // TODO: This really doesn't add up.. How does this work?
+            auto style = m_Vehicle->m_pHandlingData->m_transmissionData.m_MaxFlatVelocity * 60.0f * 0.9f; // TODO: This really doesn't add up.. How does this work?
             return new CTaskComplexCarDriveMission(
                 m_Vehicle,
                 targetEntity,
@@ -157,12 +157,14 @@ CTask* CTaskComplexCopInCar::CreateNextSubTask(CPed* ped) {
         return CreateSubTask(TASK_SIMPLE_CAR_DRIVE, ped);
     }
     case TASK_COMPLEX_POLICE_PURSUIT: {
+        const auto tSubTaskPursit = notsa::cast<CTaskComplexPolicePursuit>(m_pSubTask);
+
         if (!FindPlayerWanted()->m_nWantedLevel) {
             return CreateSubTask(TASK_FINISHED, ped);
         }
 
         assert(ped->m_nPedType == PED_TYPE_COP);
-        if (FindPlayerWanted()->CanCopJoinPursuit(ped->AsCop()) && static_cast<CTaskComplexPolicePursuit*>(m_pSubTask)->m_nFlags & 4) { // todo: flags
+        if (FindPlayerWanted()->CanCopJoinPursuit(ped->AsCop()) && tSubTaskPursit->m_CouldJoinPursuit) {
             // 0x68FBC6 - Inverted
             if (m_Suspect->bIsBeingArrested) {
                 return CreateSubTask(TASK_FINISHED, ped);
