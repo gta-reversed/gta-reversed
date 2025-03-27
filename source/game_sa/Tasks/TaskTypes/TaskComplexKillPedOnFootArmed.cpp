@@ -232,7 +232,7 @@ CTask* CTaskComplexKillPedOnFootArmed::CreateFirstSubTask(CPed* ped) {
         ped->ReleaseCoverPoint();
         if (ped->m_pCoverPoint = CCover::FindAndReserveCoverPoint(ped, targetPos, false)) {
             CVector coverPos{};
-            if (!notsa::IsFixBugs() || CCover::FindCoordinatesCoverPoint(ped->m_pCoverPoint, ped, targetPos, coverPos)) {
+            if (!notsa::IsFixBugs() || CCover::FindCoordinatesCoverPoint(*ped->m_pCoverPoint, ped, targetPos, coverPos)) {
                 if (CWorld::GetIsLineOfSightClear(coverPos, ourPos, true, true, false, false, false, false, false)) {
                     ped->GetIntelligence()->SetTaskDuckSecondary(6000);
                     if (const auto task = new CTaskSimpleGoToPoint{
