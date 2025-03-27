@@ -105,6 +105,7 @@ public:
 
 private:
     static C3dMarker* FindById(uint32 id);
+    static C3dMarker* FindFree();
 
 public:
 

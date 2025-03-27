@@ -132,9 +132,20 @@ void C3dMarkers::Render3dMarkers() {
     }
 }
 
+// notsa, code from 0x725198
 C3dMarker* C3dMarkers::FindById(uint32 id) {
     for (auto& a : m_aMarkerArray) {
-        if (a.m_bIsUsed && a.m_nIdentifier == id) {
+        if (!a.m_bIsUsed && a.m_nIdentifier == id) {
+            return &a;
+        }
+    }
+    return nullptr;
+}
+
+// notsa, code from 0x7251EA
+C3dMarker* C3dMarkers::FindFree() {
+    for (auto& a : m_aMarkerArray) {
+        if (a.m_nType == MARKER3D_NA) {
             return &a;
         }
     }
@@ -256,6 +267,8 @@ C3dMarker* C3dMarkers::PlaceMarker(
     CVector normal,
     bool zCheck
 ) {
+    assert(id != 0);
+
     auto markerToPlayerDist2D = (pos - FindPlayerCentreOfWorld(0)).Magnitude2D();
 
     switch (type) {
@@ -281,8 +294,8 @@ C3dMarker* C3dMarkers::PlaceMarker(
     //> 0x725198 - Try finding by ID
     C3dMarker* m{FindById(id)};
 
-    //> 0x72521B - If not found by ID, find a reusable marker
-    if (!m) {
+    //> 0x72521B - If not found by ID, try finding an unused one, or find one that can be replaced
+    if (!m && !(m = FindFree())) {
         const auto IsReusableType = [](e3dMarkerType t) {
             switch (t) {
             case MARKER3D_ARROW:
@@ -299,10 +312,14 @@ C3dMarker* C3dMarkers::PlaceMarker(
             return nullptr;
         }
 
-        for (auto& i : m_aMarkerArray) {
-            if (IsReusableType(i.m_nType) && (!m || i.m_DistToCam2D > m->m_DistToCam2D)) {
-                m = &i;
+        for (auto& v : m_aMarkerArray) {
+            if (IsReusableType(v.m_nType) && (!m || v.m_DistToCam2D > m->m_DistToCam2D)) {
+                m = &v;
             }
+        }
+
+        if (m) {
+            m->m_nType = MARKER3D_NA;
         }
     }
 
@@ -310,8 +327,6 @@ C3dMarker* C3dMarkers::PlaceMarker(
     if (!m) {
         return nullptr;
     }
-
-    m->m_nType = MARKER3D_NA; // TODO: Check this
 
     m->m_DistToCam2D = markerToPlayerDist2D;
 
@@ -359,7 +374,7 @@ C3dMarker* C3dMarkers::PlaceMarker(
         switch (type) {
         case MARKER3D_CONE:
         case MARKER3D_CONE_NO_COLLISION: {
-            pos.z *= std::sin(DegreesToRadians(m_angleDiamondDeg)) * (m->m_fRoofHeight < 65535.f ? 0.15f : 0.3f);
+            pos.z += std::sin(DegreesToRadians(m_angleDiamondDeg)) * (m->m_fRoofHeight < 65535.f ? 0.15f : 0.3f);
         }
         }
 
@@ -379,7 +394,7 @@ C3dMarker* C3dMarkers::PlaceMarker(
         m->m_fSize = m->m_fStdSize - std::sin(0.f) * m->m_fStdSize * pulseFraction;
         if (m->m_nRotateRate) {
             const auto lastPos = m->m_mat.GetPosition();
-            m->m_mat.RotateZ(RadiansToDegrees((float)m->m_nRotateRate * CTimer::GetTimeStep() * PI));
+            m->m_mat.RotateZ(DegreesToRadians((float)(m->m_nRotateRate) * CTimer::GetTimeStep()));
             m->m_mat.GetPosition().x = lastPos.x;
             m->m_mat.GetPosition().y = lastPos.y;
             if (m->m_nLastMapReadX != (uint16)lastPos.x || m->m_nLastMapReadY != (uint16)lastPos.y) {

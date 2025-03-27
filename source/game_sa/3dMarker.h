@@ -34,8 +34,8 @@ enum e3dMarkerType : uint16 {
 class C3dMarker {
 public:
     CMatrix       m_mat;
-    RpAtomic* m_pAtomic;
-    RpMaterial* m_pMaterial;
+    RpAtomic*     m_pAtomic;
+    RpMaterial*   m_pMaterial;
     e3dMarkerType m_nType;
     bool          m_bIsUsed;
     bool          m_bMustBeRenderedThisFrame;
