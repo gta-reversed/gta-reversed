@@ -7,11 +7,7 @@
 // thanks to jte for reversing this
 struct ColDef {
     CRect  m_Area;
-    uint32 field_10;
-    uint32 field_14;
-    uint32 field_18;
-    uint32 field_1C;
-    uint16 field_20;
+    char   name[18]{};
     int16  m_nModelIdStart;
     int16  m_nModelIdEnd;
     uint16 m_nRefCount;
@@ -46,7 +42,8 @@ public:
     static int32 AddColSlot(const char* name);
     static void AddCollisionNeededAtPosn(const CVector& pos);
     static void AddRef(int32 colNum);
-    static int32 FindColSlot();
+    static int32 FindColSlot() { return -1; }
+    static int32 FindColSlot(const char*);
     static void BoundingBoxesPostProcess();
     static void EnsureCollisionIsInMemory(const CVector& pos);
     static CRect* GetBoundingBox(int32 colSlot);

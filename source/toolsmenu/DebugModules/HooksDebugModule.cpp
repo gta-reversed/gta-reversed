@@ -239,6 +239,7 @@ void HooksDebugModule::HookFilter::OnInputUpdate() {
     ClearFilters();
 
     if (inputsv.empty()) {
+        MakeAllVisibleAndOpen(RH::GetRootCategory(), true, false);
         return; // No filters
     }
 

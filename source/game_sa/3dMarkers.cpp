@@ -117,7 +117,7 @@ void C3dMarkers::Render3dMarkers() {
 
     for (auto& marker : m_aMarkerArray) {
         if (marker.m_bMustBeRenderedThisFrame) {
-            if (TheCamera.IsSphereVisible(&marker.m_mat.GetPosition(), 2.0f, reinterpret_cast<RwMatrix*>(&TheCamera.m_mMatInverse))) {
+            if (TheCamera.IsSphereVisible(marker.m_mat.GetPosition(), 2.0f, reinterpret_cast<RwMatrix*>(&TheCamera.m_mMatInverse))) {
                 if (marker.m_fCameraRange < 150.0f || IgnoreRenderLimit || marker.m_nType == MARKER3D_TORUS) {
                     marker.Render();
                 }
@@ -171,10 +171,10 @@ void C3dMarkers::DirectionArrowsDraw() {
         }
 
         if (!bRenderParamsSet) {
-            RwRenderStateGet(rwRENDERSTATECULLMODE,          &gStoredRenderStateCullMode);
-            RwRenderStateGet(rwRENDERSTATEZTESTENABLE,       &gStoredRenderStateZTestEnable);
-            RwRenderStateGet(rwRENDERSTATEZWRITEENABLE,      &gStoredRenderStateZWriteEnable);
-            RwRenderStateGet(rwRENDERSTATEVERTEXALPHAENABLE, &gStoredRenderStateVertexAlphaEnable);
+            RwRenderStateGet(rwRENDERSTATECULLMODE,          &CPostEffects::ms_imf.cullMode);
+            RwRenderStateGet(rwRENDERSTATEZTESTENABLE,       &CPostEffects::ms_imf.bZTest);
+            RwRenderStateGet(rwRENDERSTATEZWRITEENABLE,      &CPostEffects::ms_imf.bZWrite);
+            RwRenderStateGet(rwRENDERSTATEVERTEXALPHAENABLE, &CPostEffects::ms_imf.bVertexAlpha);
 
             RwRenderStateSet(rwRENDERSTATECULLMODE,          RWRSTATE(rwCULLMODECULLNONE));
             RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
@@ -190,10 +190,10 @@ void C3dMarkers::DirectionArrowsDraw() {
     }
 
     if (bRenderParamsSet) {
-        RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(gStoredRenderStateCullMode));
-        RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(gStoredRenderStateZTestEnable));
-        RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(gStoredRenderStateZWriteEnable));
-        RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(gStoredRenderStateVertexAlphaEnable));
+        RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(CPostEffects::ms_imf.cullMode));
+        RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(CPostEffects::ms_imf.bZTest));
+        RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(CPostEffects::ms_imf.bZWrite));
+        RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(CPostEffects::ms_imf.bVertexAlpha));
     }
 }
 
@@ -314,9 +314,9 @@ void C3dMarkers::User3dMarkersDraw() {
         }
 
         if (!bRenderParamsSet) {
-            RwRenderStateGet(rwRENDERSTATECULLMODE, &gStoredRenderStateCullMode);
-            RwRenderStateGet(rwRENDERSTATEZTESTENABLE, &gStoredRenderStateZTestEnable);
-            RwRenderStateGet(rwRENDERSTATEZWRITEENABLE, &gStoredRenderStateZWriteEnable);
+            RwRenderStateGet(rwRENDERSTATECULLMODE, &CPostEffects::ms_imf.cullMode);
+            RwRenderStateGet(rwRENDERSTATEZTESTENABLE, &CPostEffects::ms_imf.bZTest);
+            RwRenderStateGet(rwRENDERSTATEZWRITEENABLE, &CPostEffects::ms_imf.bZWrite);
 
             RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLNONE));
             RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(TRUE));
@@ -329,16 +329,16 @@ void C3dMarkers::User3dMarkersDraw() {
     }
 
     if (bRenderParamsSet) {
-        RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(gStoredRenderStateCullMode));
-        RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(gStoredRenderStateZTestEnable));
-        RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(gStoredRenderStateZWriteEnable));
+        RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(CPostEffects::ms_imf.cullMode));
+        RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(CPostEffects::ms_imf.bZTest));
+        RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(CPostEffects::ms_imf.bZWrite));
     }
 }
 
 // 0x5D42E0
 bool C3dMarkers::LoadUser3dMarkers() {
     for (auto& marker : ms_user3dMarkers) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&marker, sizeof(marker));
+        CGenericGameStorage::LoadDataFromWorkBuffer(marker);
     }
     return true;
 }
@@ -346,7 +346,7 @@ bool C3dMarkers::LoadUser3dMarkers() {
 // 0x5D4300
 bool C3dMarkers::SaveUser3dMarkers() {
     for (auto& marker : ms_user3dMarkers) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&marker, sizeof(marker));
+        CGenericGameStorage::SaveDataToWorkBuffer(marker);
     }
     return true;
 }
@@ -392,7 +392,7 @@ void tUser3dMarker::Render(RpClump* clump) const {
 
     // Update position
     CVector pos = m_vecPosition;
-    pos.z += std::sin(RWDEG2RAD(C3dMarkers::m_angleDiamondDeg)) * 0.25f;
+    pos.z += std::sin(DegreesToRadians(C3dMarkers::m_angleDiamondDeg)) * 0.25f;
     RwFrameTranslate(frame, &pos, rwCOMBINEREPLACE);
 
     // Apply color to material of clump

@@ -34,13 +34,13 @@ void COctTree::operator delete(void* data) {
 
 // 0x5A7460
 void COctTree::InitPool(void* data, int32 dataSize) {
-    const int32 size = sizeof(COctTree) + 1;
-    ms_octTreePool.Init(
-        dataSize / size,
+    const auto cap = dataSize / (sizeof(COctTree) + 1);
+    ms_octTreePool = {
+        cap,
         data,
-        (uint8*)data + sizeof(COctTree) * (dataSize / size)
-    );
-    ms_octTreePool.m_bIsLocked = true;
+        (uint8*)(data) + sizeof(COctTree) * cap
+    };
+    ms_octTreePool.SetDealWithNoMemory(true);
 }
 
 // 0x5A6F70

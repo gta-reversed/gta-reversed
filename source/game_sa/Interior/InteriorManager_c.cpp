@@ -120,7 +120,7 @@ bool InteriorManager_c::Update() {
             i->m_areaCode   = ifx.Entity->m_nAreaCode;
             i->m_pGroup     = grp;
 
-            i->Init(ifx.Effects[k]->m_pos);
+            i->Init(ifx.Effects[k]->m_Pos);
             grp->AddInterior(i);
 
             hasAddedAnyInteriors = true;
@@ -159,7 +159,7 @@ void InteriorManager_c::PruneVisibleEffects(InteriorEffectInfo_t* pIntFxInfos, s
             const auto fx = intFxInfo.Effects[k];
             intFxInfo.DistSq = std::min(
                 intFxInfo.DistSq,
-                CVector2D::DistSqr(intFxInfo.Entity->GetMatrix().TransformPoint(fx->m_pos), TheCamera.GetPosition2D())
+                CVector2D::DistSqr(intFxInfo.Entity->GetMatrix().TransformPoint(fx->m_Pos), TheCamera.GetPosition2D())
             );
         }
     }
@@ -194,7 +194,7 @@ void InteriorManager_c::AddSameGroupEffectInfos(InteriorEffectInfo_t* ifxi, int3
             continue;
         }
 
-        const auto fx = C2dEffect::DynCast<C2dEffectInterior>(mi->Get2dEffect(i));
+        const auto fx = notsa::dyn_cast_if_present<C2dEffectInterior>(mi->Get2dEffect(i));
         if (!fx || ifxi->Effects[0]->m_groupId != fx->m_groupId) {
             continue;
         }
@@ -251,7 +251,7 @@ size_t InteriorManager_c::GetVisibleEffects(InteriorEffectInfo_t* intFxInfos, ui
 
         const auto mi = e->GetModelInfo();
         for (size_t i = 0; i < mi->m_n2dfxCount; i++) {
-            const auto ifx = C2dEffect::DynCast<C2dEffectInterior>(mi->Get2dEffect((int32)i));
+            const auto ifx = notsa::dyn_cast_if_present<C2dEffectInterior>(mi->Get2dEffect((int32)i));
 
             // We only care about visible interior effects
             if (!ifx || !IsInteriorEffectVisible(ifx, e)) {
@@ -300,7 +300,7 @@ bool InteriorManager_c::IsInteriorEffectVisible(C2dEffectInterior* effect, CEnti
     };
     return CheckPoint(TheCamera.GetPosition())
         || CheckPoint(FindPlayerPed(0)->GetPosition())
-        || CheckPoint(FindPlayerPed(1)->GetPosition());
+        || FindPlayerPed(1) && CheckPoint(FindPlayerPed(1)->GetPosition());
 
     /**
      * Original horrifically complicated code:

@@ -23,7 +23,7 @@ void CTaskComplexUseEffect::InjectHooks() {
 }
 
 // 0x6321F0
-CTaskComplexUseEffect::CTaskComplexUseEffect(C2dEffectBase* attractor, CEntity* entity) :
+CTaskComplexUseEffect::CTaskComplexUseEffect(C2dEffectPedAttractor* attractor, CEntity* entity) :
     m_2dFx{attractor},
     m_Entity{entity}
 {
@@ -31,8 +31,8 @@ CTaskComplexUseEffect::CTaskComplexUseEffect(C2dEffectBase* attractor, CEntity* 
 }
 
 // For 0x636710
-CTaskComplexUseEffect::CTaskComplexUseEffect(const CTaskComplexUseEffect&) :
-    CTaskComplexUseEffect{m_2dFx, m_Entity}
+CTaskComplexUseEffect::CTaskComplexUseEffect(const CTaskComplexUseEffect& o) :
+    CTaskComplexUseEffect{o.m_2dFx, o.m_Entity}
 {
 }
 
@@ -55,7 +55,7 @@ bool CTaskComplexUseEffect::MakeAbortable(CPed* ped, eAbortPriority priority, CE
 
     if (event && notsa::contains({EVENT_PED_COLLISION_WITH_PED, EVENT_PED_COLLISION_WITH_PLAYER}, event->GetEventType())) {
         if (const auto collisionVictim = static_cast<const CEventPedCollisionWithPed*>(event)->m_victim) {
-            if (const auto t = CTask::DynCast<CTaskComplexGoToAttractor>(m_pSubTask)) {
+            if (const auto t = notsa::dyn_cast_if_present<CTaskComplexGoToAttractor>(m_pSubTask)) {
                 if ((ped->GetPosition() - t->m_vecAttrPosn).SquaredMagnitude2D() <= sq(1.5f)) {
                     if (m_MoveState == PEDMOVE_STILL && (collisionVictim->GetPosition() - t->m_vecAttrPosn).SquaredMagnitude2D() <= sq(1.5f)) {
                         m_bAbort = true;

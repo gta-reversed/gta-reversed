@@ -59,10 +59,8 @@ typedef uint32    bool32;
 #if _DEBUG
 #include <format>
 #include <winuser.h>
-#include <filesystem>
 
 namespace notsa {
-namespace fs = std::filesystem;
 static const fs::path SOURCE_PATH = fs::path(__FILE__).parent_path();
 
 template<typename... Ts>
@@ -107,10 +105,11 @@ template<typename... Ts>
 // Since all the code here is perfectly valid, so the compiler might
 // still complain that, for example, the function doesn't return on all code paths, etc
 #define IMPL_NOTSA_UNREACHABLE_FMT_ARGS(...) std::format(__VA_ARGS__)
-#define NOTSA_UNREACHABLE(...) do { notsa::unreachable("__FUNCTION__", __FILE__, __LINE__ __VA_OPT__(,IMPL_NOTSA_UNREACHABLE_FMT_ARGS(__VA_ARGS__))); } while (false)
+#define NOTSA_UNREACHABLE(...) do { notsa::unreachable(__FUNCTION__, __FILE__, __LINE__ __VA_OPT__(,IMPL_NOTSA_UNREACHABLE_FMT_ARGS(__VA_ARGS__))); } while (false)
 #else 
 #define NOTSA_UNREACHABLE(...) UNREACHABLE_INTRINSIC()
 #endif
+#define NOTSA_UNUSED_FUNCTION() NOTSA_UNREACHABLE("Unused Function")
 
 #ifdef _DEBUG
 #define NOTSA_DEBUG_BREAK() __debugbreak()
@@ -151,6 +150,27 @@ template<typename... Ts>
 template<typename T>
 T& StaticRef(uintptr addr) {
     return *reinterpret_cast<T*>(addr);
+}
+
+/*!
+ * @brief Use for scoped static variables (That is, static variables that are initialized in functions)
+ * @brief See `CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire` for examples)
+ * @tparam T The type of the var
+ * @param varAddr 
+ * @param flagsAddr 
+ * @param flagsMask 
+ * @param initVal 
+ * @return 
+ */
+template<typename T>
+T& ScopedStaticRef(uintptr varAddr, uintptr flagsAddr, uint32 flagsMask, T&& initVal) {
+    auto& var   = StaticRef<T>(varAddr);
+    auto& flags = StaticRef<uint32>(flagsAddr);
+    if (!(flags & flagsMask)) {
+        flags |= flagsMask;
+        var    = initVal;
+    }
+    return var;
 }
 
 // TODO: Replace this with the one above

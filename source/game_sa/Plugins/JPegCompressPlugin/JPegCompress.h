@@ -1,20 +1,20 @@
-/*
-    Plugin-SDK file
-    Authors: GTA Community. See more here
-    https://github.com/DK22Pac/plugin-sdk
-    Do not delete this comment block. Respect others' work!
-*/
-
 #pragma once
 
 #include "RenderWare.h"
 #include "MenuManager.h"
 
-namespace JPegPlugin
-{
+struct jpeg_destination_mgr;
+struct jpeg_source_mgr;
+
+namespace JPegPlugin {
 void InjectHooks();
 }
 
+/**
+ * Compress camera screen common
+ *
+ * @addr  0x5D0470
+ */
 void JPegCompressScreen(RwCamera* camera, struct jpeg_destination_mgr& dst);
 
 /**
@@ -22,12 +22,25 @@ void JPegCompressScreen(RwCamera* camera, struct jpeg_destination_mgr& dst);
  *
  * @addr  0x5D0820
  */
-extern void JPegCompressScreenToFile(RwCamera* camera, const char* path);
+void JPegCompressScreenToFile(RwCamera* camera, const char* path);
 
 /**
  * Compress camera screen to the given buffer
+ *
+ * @addr  0x5D0740
  */
-extern void JPegCompressScreenToBuffer(char** buffer, uint32* size);
+void JPegCompressScreenToBuffer(RwCamera* cam, uint8** buffer, size_t& bufferSizeInOut);
 
+/**
+ * Decompress a JPEG to a raster for displaying in-game. (PS2 gallery?)
+ *
+ * @addr  0x5D05F0
+ */
 void JPegDecompressToRaster(RwRaster* raster, struct jpeg_source_mgr& src);
-void JPegDecompressToVramFromBuffer(RwRaster* raster, RwInt8** unk);
+
+/**
+ * Decompress a JPEG to memory (GS?) for displaying in-game. (PS2 gallery?)
+ *
+ * @addr  0x5D05F0
+ */
+void JPegDecompressToVramFromBuffer(RwRaster* raster, bool enable);

@@ -171,7 +171,7 @@ CTask* CTaskComplexKillPedOnFootMelee::CreateFirstSubTask(CPed* ped) {
 
 // 0x626D90
 CTask* CTaskComplexKillPedOnFootMelee::ControlSubTask(CPed* ped) {
-    ped->Say(89);
+    ped->Say(CTX_GLOBAL_FIGHT);
 
     if (m_bNewTarget) {
         return CreateFirstSubTask(ped);

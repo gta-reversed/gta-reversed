@@ -296,7 +296,7 @@ void CWanted::ReportCrimeNow(eCrimeType crimeType, const CVector& posn, bool bPo
     switch (crimeType) {
     case CRIME_DAMAGED_PED:
     case CRIME_VEHICLE_DAMAGE:
-    case CRIME_TYPE_9:
+    case CRIME_SPEEDING:
         mul *= 5.0f;
         break;
     case CRIME_DAMAGED_COP:
@@ -313,14 +313,14 @@ void CWanted::ReportCrimeNow(eCrimeType crimeType, const CVector& posn, bool bPo
     case CRIME_CAR_STEAL:
         mul *= 15.0f;
         break;
-    case CRIME_TYPE_7:
+    case CRIME_RUN_REDLIGHT:
         mul *= 10.0f;
         break;
     case CRIME_KILL_PED_WITH_CAR:
         mul *= 18.0f;
         break;
-    case CRIME_TYPE_12:
-    case CRIME_TYPE_16:
+    case CRIME_DESTROY_HELI:
+    case CRIME_DESTROY_PLANE:
         mul *= 400.0f;
         break;
     case CRIME_SET_PED_ON_FIRE:
@@ -330,13 +330,13 @@ void CWanted::ReportCrimeNow(eCrimeType crimeType, const CVector& posn, bool bPo
     case CRIME_EXPLOSION:
         mul *= 25.0f;
         break;
-    case CRIME_SEALTH_KILL_PED_WITH_KNIFE:
+    case CRIME_STAB_PED:
         mul *= 35.0f;
         break;
-    case CRIME_TYPE_19:
+    case CRIME_STAB_COP:
         mul *= 100.0f;
         break;
-    case CRIME_TYPE_20:
+    case CRIME_DESTROY_VEHICLE:
         mul *= 70.0f;
         break;
     case CRIME_HIT_CAR:

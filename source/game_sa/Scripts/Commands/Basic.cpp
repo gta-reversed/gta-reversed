@@ -8,6 +8,7 @@
 * Basic language feature commands (Comparasions, assingments, etc...)
 */
 
+namespace {
 //
 // GREATER_OR_EQUAL
 //
@@ -205,7 +206,25 @@ auto Nop() {
     /* Hello! How are you? */
 }
 
+bool IsTextLabelEmpty(std::string_view l) {
+    return l.empty();
+}
+
+bool AreTextLabelsEqual(std::string_view a, std::string_view b) {
+    return a == b;
+}
+
+//template<size_t N>
+//void SetTextLabel(std::string_view a, std::string_view b) {
+//    assert(a.size() >= N);
+//    assert(b.size() >= N);
+//    strncpy(a.data(), b.data(), N);
+//}
+};
+
 void notsa::script::commands::basic::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Basic");
+
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_VAR_GREATER_OR_EQUAL_TO_NUMBER, IsGreaterEqual<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_INT_LVAR_GREATER_OR_EQUAL_TO_INT_LVAR, IsGreaterEqual<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CONSTANT_GREATER_OR_EQUAL_TO_INT_VAR, IsGreaterEqual<int32>);
@@ -367,6 +386,28 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DEBUG_OFF, DebugOff);
     REGISTER_COMMAND_HANDLER(COMMAND_WAIT, Wait);
     REGISTER_COMMAND_HANDLER(COMMAND_NOP, Nop);
+
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_VAR_TEXT_LABEL_EMPTY, IsTextLabelEmpty);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_LVAR_TEXT_LABEL_EMPTY, IsTextLabelEmpty);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_VAR_TEXT_LABEL16_EMPTY, IsTextLabelEmpty);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_LVAR_TEXT_LABEL16_EMPTY, IsTextLabelEmpty);
+
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_VAR_TEXT_LABEL16_EQUAL_TO_TEXT_LABEL, AreTextLabelsEqual);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_LVAR_TEXT_LABEL16_EQUAL_TO_TEXT_LABEL, AreTextLabelsEqual);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_VAR_TEXT_LABEL_EQUAL_TO_TEXT_LABEL, AreTextLabelsEqual);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_LVAR_TEXT_LABEL_EQUAL_TO_TEXT_LABEL, AreTextLabelsEqual);
+
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_TEXT_LABEL);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_TEXT_LABEL);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_TEXT_LABEL16);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_TEXT_LABEL16);
+
+    // TODO: `ReadArg` supports reading `string_view`, but it's `.data()` is const char*, thus we can't write to it
+    //       We need to introduce some intermediary type, like `ScriptStringRef` that stores a non-const `char*`
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL, SetTextLabel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL, SetTextLabel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL16, SetTextLabel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL16, SetTextLabel);
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_INT_VAR_NOT_EQUAL_TO_NUMBER);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_INT_LVAR_NOT_EQUAL_TO_NUMBER);

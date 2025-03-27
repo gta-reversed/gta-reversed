@@ -68,7 +68,9 @@ bool FxManager_c::Init() {
     m_Pool.Init();
 
     m_nCurrentMatrix = 0;
-    m_apMatrices.fill(RwMatrixCreate());
+    for (auto& matrix : m_apMatrices) {
+        matrix = RwMatrixCreate();
+    }
 
     m_FxEmitters = new FxEmitterPrt_c[FX_MANAGER_NUM_EMITTERS];
     for (auto i = 0; i < FX_MANAGER_NUM_EMITTERS; i++) {
@@ -95,11 +97,10 @@ void FxManager_c::DestroyFxSystem(FxSystem_c* system) {
     assert(system->m_SystemBP);
 
     for (auto i = 0; i < system->m_SystemBP->m_nNumPrims; i++) {
-        auto& prim = system->m_SystemBP->m_Prims[i];
+        auto& prim      = system->m_SystemBP->m_Prims[i];
         auto& particles = prim->m_Particles;
-
         for (Particle_c* it = particles.GetHead(); it;) {
-            const auto prt = it;
+            auto* const prt = it;
             it = particles.GetNext(it); // Iterator will be invalidated, so get next here immediately
 
             if (prt->m_System == system) {

@@ -3,6 +3,7 @@
 #include "TaskComplex.h"
 #include "eCarMission.h"
 #include "eCarDrivingStyle.h"
+#include <extensions/WEnum.hpp>
 
 class CVehicle;
 
@@ -36,14 +37,14 @@ private:
     CTaskComplexCarDrive* Destructor() { this->CTaskComplexCarDrive::~CTaskComplexCarDrive(); return this; }
 
 public:
-    CVehicle* m_Veh{};
-    float     m_CruiseSpeed{};
-    eModelID  m_DesiredCarModel{MODEL_INVALID};
-    uint32    m_CarDrivingStyle{DRIVING_STYLE_STOP_FOR_CARS};
-    bool      m_bAsDriver{};  
-    int8      m_OriginalDrivingStyle{};
-    int8      m_OriginalMission{};
-    uint8     m_OriginalSpeed{};
-    bool      m_bIsCarSetUp{};
+    CVehicle*                         m_Veh{};
+    float                             m_CruiseSpeed{};
+    eModelID                          m_DesiredCarModel{ MODEL_INVALID };
+    notsa::WEnumS32<eCarDrivingStyle> m_CarDrivingStyle{ DRIVING_STYLE_STOP_FOR_CARS };
+    bool                              m_bAsDriver{};
+    eCarDrivingStyle                  m_OriginalDrivingStyle{};
+    int8                              m_OriginalMission{};
+    uint8                             m_OriginalSpeed{};
+    bool                              m_bIsCarSetUp{};
 };
 VALIDATE_SIZE(CTaskComplexCarDrive, 0x24);

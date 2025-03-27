@@ -98,7 +98,7 @@ void CVehicleRecording::ChangeCarPlaybackToUseAI(CVehicle* vehicle) {
     if (const auto i = FindVehicleRecordingIndex(vehicle); i != -1) {
         bUseCarAI[i] = true;
 
-        vehicle->m_autoPilot.m_nCarMission = MISSION_FOLLOW_PRE_RECORDED_PATH;
+        vehicle->m_autoPilot.SetCarMission(MISSION_FOLLOW_RECORDED_PATH);
         SetRecordingToPointClosestToCoors(i, vehicle->GetPosition());
         vehicle->physicalFlags.bDisableCollisionForce = false;
         vehicle->ProcessControlCollisionCheck(false);
@@ -235,7 +235,7 @@ void CVehicleRecording::StartPlaybackRecordedCar(CVehicle* vehicle, int32 fileNu
     StreamingArray[recordId].AddRef();
     
     if (useCarAI) {
-        vehicle->m_autoPilot.m_nCarMission = MISSION_FOLLOW_PRE_RECORDED_PATH;
+        vehicle->m_autoPilot.SetCarMission(MISSION_FOLLOW_RECORDED_PATH);
         SetRecordingToPointClosestToCoors(playbackId, vehicle->GetPosition());
     } else {
         vehicle->physicalFlags.bDisableCollisionForce = true;
@@ -328,7 +328,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
     for (auto i : GetActivePlaybackIndices()) {
         auto vehicle = pVehicleForPlayback[i];
 
-        if (!vehicle || vehicle->physicalFlags.bDestroyed) {
+        if (!vehicle || vehicle->physicalFlags.bRenderScorched) {
             StopPlaybackWithIndex(i);
             continue;
         }

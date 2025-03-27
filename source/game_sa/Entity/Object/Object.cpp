@@ -74,6 +74,9 @@ void CObject::InjectHooks()
     RH_ScopedInstall(DeleteAllTempObjectsInArea, 0x5A1980);
     RH_ScopedGlobalInstall(IsObjectPointerValid_NotInWorld, 0x5A2B90);
     RH_ScopedGlobalInstall(IsObjectPointerValid, 0x5A2C20);
+
+    RH_ScopedGlobalInstall(Save, 0x5D2830);
+    RH_ScopedGlobalInstall(Load, 0x5D2870);
 }
 
 // 0x5A1D10
@@ -121,13 +124,12 @@ CObject::CObject(CDummyObject* dummyObj) : CPhysical() {
 
 // 0x59F660
 CObject::~CObject() {
-    if (objectFlags.b0x200000 || objectFlags.b0x100000) {
-        const auto iIndex = SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_wScriptTriggerIndex].m_nIMGindex);
+    if (objectFlags.b0x100000_0x200000) {
+        const auto iIndex = SCMToModelId(CTheScripts::ScriptsForBrains.m_aScriptForBrains[m_nStreamedScriptBrainToLoad].m_StreamedScriptIndex);
         CStreaming::SetMissionDoesntRequireModel(iIndex);
-        objectFlags.b0x100000 = false;
-        objectFlags.b0x200000 = false;
-        CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_wScriptTriggerIndex);
-        m_wScriptTriggerIndex = -1;
+        objectFlags.b0x100000_0x200000 = 0;
+        CTheScripts::RemoveFromWaitingForScriptBrainArray(this, m_nStreamedScriptBrainToLoad);
+        m_nStreamedScriptBrainToLoad = -1;
     }
 
     if (objectFlags.bHasNoModel) {
@@ -148,8 +150,8 @@ CObject::~CObject() {
 
     RemoveFromControlCodeList();
     if (m_nModelIndex == ModelIndices::MI_TRAINCROSSING1) {
-        const auto& dummyPos = m_pDummyObject->GetPosition();
-        ThePaths.SetLinksBridgeLights(dummyPos.x - 12.0F, dummyPos.x + 12.0F, dummyPos.y - 12.0F, dummyPos.y + 12.0F, false);
+        const auto& p = m_pDummyObject->GetPosition();
+        ThePaths.SetLinksBridgeLights(p.x - 12.0F, p.x + 12.0F, p.y - 12.0F, p.y + 12.0F, false);
     }
 
     if (m_pFire)
@@ -575,7 +577,7 @@ void CObject::Render() {
 
 // 0x554FA0
 bool CObject::SetupLighting() {
-    if (physicalFlags.bDestroyed) {
+    if (physicalFlags.bRenderScorched) {
         WorldReplaceNormalLightsWithScorched(Scene.m_pRpWorld, 0.18F);
         return true;
     }
@@ -593,7 +595,7 @@ void CObject::RemoveLighting(bool bRemove) {
     if (!bRemove)
         return;
 
-    if (!physicalFlags.bDestroyed)
+    if (!physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 
     SetAmbientColours();
@@ -602,10 +604,9 @@ void CObject::RemoveLighting(bool bRemove) {
 
 // 0x5D2870 - Deserializes object from save storage buffer
 bool CObject::Load() {
-    uint32 size; // unused
-    CObjectSaveStructure data;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(data));
+    auto size = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
+    auto data = CGenericGameStorage::LoadDataFromWorkBuffer<CObjectSaveStructure>();
+    assert(size == sizeof(data)); // Check structure size.
     data.Extract(this);
     return true;
 }
@@ -614,9 +615,8 @@ bool CObject::Load() {
 bool CObject::Save() {
     CObjectSaveStructure data;
     data.Construct(this);
-    uint32 size = sizeof(CObjectSaveStructure);
-    CGenericGameStorage::SaveDataToWorkBuffer(&size, sizeof(size));
-    CGenericGameStorage::SaveDataToWorkBuffer(&data, size);
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CObjectSaveStructure));
+    CGenericGameStorage::SaveDataToWorkBuffer(data);
     return true;
 }
 
@@ -630,7 +630,7 @@ void CObject::ProcessGarageDoorBehaviour() {
 
     const auto& vecDummyPos = m_pDummyObject->GetPosition();
     auto* mi = GetModelInfo();
-    const auto fHeight = mi->GetColModel()->GetBoundingBox().GetHeight();
+    const auto fHeight = mi->GetColModel()->GetBoundingBox().GetHeight() - 0.1f;
     const auto& garage = CGarages::GetGarage(m_nGarageDoorGarageIndex);
     if (garage.m_bDoorOpensUp) {
         m_matrix->GetPosition().z = vecDummyPos.z + fHeight * garage.m_fDoorPosition * 0.48F;
@@ -865,7 +865,7 @@ void CObject::Init() {
 
     m_nColLighting.day = 0x8;
     m_nColLighting.night = 0x4;
-    m_wScriptTriggerIndex = -1;
+    m_nStreamedScriptBrainToLoad = -1;
 }
 
 // 0x59FB50
@@ -1186,7 +1186,7 @@ void CObject::Explode() {
     if (m_pObjectInfo->m_nFxType == eObjectFxType::PLAY_ON_DESTROYED) {
         auto vecPoint = m_matrix->TransformPoint(m_pObjectInfo->m_vFxOffset);
         vecPoint += GetPosition();
-        auto* fxSystem = g_fxMan.CreateFxSystem(m_pObjectInfo->m_pFxSystemBP, &vecPoint, nullptr, false);
+        auto* fxSystem = g_fxMan.CreateFxSystem(m_pObjectInfo->m_pFxSystemBP, vecPoint, nullptr, false);
         if (fxSystem)
             fxSystem->PlayAndKill();
     }
@@ -1329,9 +1329,9 @@ bool CObject::CanBeUsedToTakeCoverBehind() {
 
 // 0x5A1F60
 CObject* CObject::Create(int32 modelIndex, bool bUnused) {
-    GetObjectPool()->m_bIsLocked = true;
+    GetObjectPool()->SetDealWithNoMemory(true);
     auto* obj = new CObject(modelIndex, false); //BUG? most likely the unused parameter was supposed to be passed to the constructor
-    GetObjectPool()->m_bIsLocked = false;
+    GetObjectPool()->SetDealWithNoMemory(false);
 
     if (obj)
         return obj;
@@ -1344,9 +1344,9 @@ CObject* CObject::Create(int32 modelIndex, bool bUnused) {
 
 // 0x5A2070
 CObject* CObject::Create(CDummyObject* dummyObject) {
-    GetObjectPool()->m_bIsLocked = true;
+    GetObjectPool()->SetDealWithNoMemory(true);
     auto* obj = new CObject(dummyObject);
-    GetObjectPool()->m_bIsLocked = false;
+    GetObjectPool()->SetDealWithNoMemory(false);
 
     if (obj)
         return obj;

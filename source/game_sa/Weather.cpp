@@ -310,29 +310,26 @@ void CWeather::UpdateInTunnelness() {
     plugin::Call<0x72B630>();
 }
 
+// Based on 0x72A640
+eWeatherRegion CWeather::FindWeatherRegion(CVector2D pos) {
+    if (pos.x > 1000.0f && pos.y > 910.0f) {
+        return WEATHER_REGION_LV;
+    }
+    if (pos.x > -850.0f && pos.x < 1000.0f && pos.y > 1280.0f) {
+        return WEATHER_REGION_DESERT;
+    }
+    if (pos.x < -1430.0f && pos.y > -580.0f && pos.y < 1430.0f) {
+        return WEATHER_REGION_SF;
+    }
+    if (pos.x > 250.0f && pos.x < 3000.0f && pos.y > -3000.0f && pos.y < -850.0f) {
+        return WEATHER_REGION_LA;
+    }
+    return WEATHER_REGION_DEFAULT;
+}
+
 // 0x72A640
 void CWeather::UpdateWeatherRegion(CVector* posn) {
-    CVector camPos = TheCamera.GetPosition();
-    if (posn) {
-        camPos = *posn;
-    }
-    if (camPos.x > 1000.0f && camPos.y > 910.0f) {
-        WeatherRegion = WEATHER_REGION_LV;
-        return;
-    }
-    if (camPos.x > -850.0f && camPos.x < 1000.0f && camPos.y > 1280.0f) {
-        WeatherRegion = WEATHER_REGION_DESERT;
-        return;
-    }
-    if (camPos.x < -1430.0f && camPos.y > 580.0f && camPos.y < 1430.0f) {
-        WeatherRegion = WEATHER_REGION_SF;
-        return;
-    }
-    if (camPos.x > 250.0f && camPos.x < 3000.0f && camPos.y > -3000.0f && camPos.y < -850.0f) { // todo: maybe wrong
-        WeatherRegion = WEATHER_REGION_LA;
-        return;
-    }
-    WeatherRegion = WEATHER_REGION_DEFAULT;
+    WeatherRegion = FindWeatherRegion(posn ? *posn : TheCamera.GetPosition());
 }
 
 // 0x4ABF50

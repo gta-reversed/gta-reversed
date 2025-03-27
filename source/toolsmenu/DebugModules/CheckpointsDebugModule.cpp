@@ -42,7 +42,7 @@ void CheckpointsDebugModule::RenderWindow() {
             pos,
             m_Dir,
             m_Size,
-            color.r, color.g, color.b, color.a,
+            color,
             (uint16)m_PulsePeriod,
             m_PulseFraction,
             (int16)m_RotateRate

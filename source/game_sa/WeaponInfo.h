@@ -74,6 +74,7 @@ public:
             uint32 bSlowdown : 1;
             uint32 bRandSpeed : 1;
             uint32 bExpands : 1;
+            uint32 bRangeIncreasesOverTime : 1;
         } flags;
         uint32 m_nFlags;
     };
@@ -141,8 +142,8 @@ public:
     void StreamModelsForWeapon(eStreamingFlags streamingFlags);
 
     //! NOTSA: GetWeaponInfo for specific ped.
-    static auto GetWeaponInfo(CPed* ped) {
-        return GetWeaponInfo(ped->GetActiveWeapon().m_Type, ped->GetWeaponSkill());
+    static auto GetWeaponInfo(CPed* ped, std::optional<eWeaponSkill> skill = {}) {
+        return GetWeaponInfo(ped->GetActiveWeapon().m_Type, skill.value_or(ped->GetWeaponSkill()));
     }
 
     const auto& GetAimingOffset() const { return g_GunAimingOffsets[m_nAimOffsetIndex]; }

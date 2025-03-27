@@ -15,15 +15,15 @@ void CTaskSimpleSay::InjectHooks() {
 }
 
 // 0x48E360
-CTaskSimpleSay::CTaskSimpleSay(uint32 sayId, int32 sayDuration) :
-    m_sayDuration{sayDuration},
-    m_sayId{sayId}
+CTaskSimpleSay::CTaskSimpleSay(eGlobalSpeechContext gctx, int32 sayDuration) :
+    m_Duration{sayDuration},
+    m_GlobalSpeechContext{gctx}
 {
 }
 
 // 0x48E440
 bool CTaskSimpleSay::ProcessPed(CPed* ped) {
-    m_timer.StartIfNotAlready(m_sayDuration);
-    ped->Say(m_sayId);
-    return m_timer.IsOutOfTime();
+    m_Timer.StartIfNotAlready(m_Duration);
+    ped->Say(m_GlobalSpeechContext);
+    return m_Timer.IsOutOfTime();
 }

@@ -39,7 +39,9 @@ namespace fs = std::filesystem;
 #include "HookSystem.h"
 #include "reversiblehooks\ReversibleHooks.h"
 
-#include <tracy/Tracy.hpp>
+#include <extensions/Casting.hpp>
+
+#include <Tracy.hpp>
 
 // DirectX
 #include <d3d9.h>
@@ -120,7 +122,6 @@ namespace fs = std::filesystem;
 #include "game_sa\Enums\eClothesTexturePart.h"
 #include "game_sa\Enums\eCrimeType.h"
 #include "game_sa\Enums\eDecisionMakerEvents.h"
-#include "game_sa\Enums\eEmergencyPedVoices.h"
 #include "game_sa\Enums\eEntityStatus.h"
 #include "game_sa\Enums\eEntityType.h"
 #include "game_sa\Enums\eEventType.h"
@@ -222,7 +223,6 @@ namespace fs = std::filesystem;
 #include "game_sa\WaterCreature_c.h"
 #include "game_sa\WaterCreatureManager_c.h"
 #include "game_sa\CdStreamInfo.h"
-#include "game_sa\Plugins\TwoDEffectPlugin\2dEffect.h"
 #include "game_sa\3dMarker.h"
 #include "game_sa\3dMarkers.h"
 #include "game_sa\Accident.h"
@@ -245,7 +245,6 @@ namespace fs = std::filesystem;
 #include "game_sa\ClothesBuilder.h"
 #include "game_sa\Coronas.h"
 #include "game_sa\Cover.h"
-#include "game_sa\CoverPoint.h"
 #include "game_sa\Cranes.h"
 #include "game_sa\CrimeBeingQd.h"
 #include "game_sa\CutsceneMgr.h"
@@ -383,6 +382,7 @@ namespace fs = std::filesystem;
 #include "game_sa\Audio\AESound.h"
 #include "game_sa\Audio\AudioZones.h"
 #include "game_sa\Collision\Collision.h"
+#include "game_sa\FireManager.h"
 
 #include "game_sa\Entity\AnimatedBuilding.h"
 #include "game_sa\Entity\Building.h"
@@ -439,6 +439,7 @@ namespace fs = std::filesystem;
 #include "game_sa\Plugins\PipelinePlugin\PipelinePlugin.h"
 #include "game_sa\Plugins\CollisionPlugin\CollisionPlugin.h"
 #include "game_sa\Plugins\RpAnimBlendPlugin\RpAnimBlend.h"
+#include "game_sa\Plugins\TwoDEffectPlugin\2dEffect.h"
 
 #include "game_sa\Scripts\RunningScript.h"
 #include "game_sa\Scripts\TheScripts.h"

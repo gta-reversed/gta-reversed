@@ -443,12 +443,16 @@ CAnimBlendAssociation* CAnimManager::BlendAnimation(RpClump* clump, CAnimBlendHi
         assert(a->m_BlendHier);
         if (a->m_BlendHier && a->m_BlendHier == toBlendHier) { // Found an instance of this anim running
             running = a;
-        } else if (((toBlendFlags & ANIMATION_IS_PARTIAL) == 0) == a->IsPartial()) {
+        } else if (((toBlendFlags & ANIMATION_IS_PARTIAL) != 0) == a->IsPartial()) {
             if (a->m_BlendAmount <= 0.f) {
                 a->m_BlendDelta = -1.f;
-            } else if (const auto bd = a->GetBlendAmount() * -blendDelta; (bd >= a->GetBlendDelta() && (toBlendFlags & ANIMATION_IS_PARTIAL)) || (a->m_BlendHier->m_nAnimBlockId && a->m_BlendHier->m_nAnimBlockId == toBlendHier->m_nAnimBlockId)) {
-                a->m_BlendDelta = std::min(-0.05f, bd);
+            } else {
+                const auto bd = a->GetBlendAmount() * -blendDelta;
+                if ((toBlendFlags & ANIMATION_IS_PARTIAL) == 0 || bd <= a->GetBlendDelta() || (a->m_BlendHier->m_nAnimBlockId && a->m_BlendHier->m_nAnimBlockId == toBlendHier->m_nAnimBlockId)) {
+                    a->m_BlendDelta = std::min(-0.05f, bd);
+                }
             }
+            
             a->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
             bFadeThisOut = true;
         }
@@ -456,7 +460,7 @@ CAnimBlendAssociation* CAnimManager::BlendAnimation(RpClump* clump, CAnimBlendHi
 
     // If already running just re-adjust blend delta (and re-start it if it has finished)
     if (running) {
-        running->SetBlendDelta((1.f - running->GetBlendAmount()) * blendDelta);
+        running->SetBlendDelta((1.f - running->m_BlendAmount) * blendDelta);
         if (running->HasFinished()) {
             running->Start();
         }
@@ -465,7 +469,7 @@ CAnimBlendAssociation* CAnimManager::BlendAnimation(RpClump* clump, CAnimBlendHi
     }
 
     // Otherwise create new instance
-    const auto a = new CAnimBlendAssociation{clump, toBlendHier};    
+    const auto a = new CAnimBlendAssociation{clump, toBlendHier};
     a->m_Flags = toBlendFlags;
     a->ReferenceAnimBlock();
     UncompressAnimation(a->m_BlendHier);

@@ -182,7 +182,7 @@ void CWorld::Add(CEntity* entity) {
 }
 
 /*!
-* @brief Remove ped from the world.
+* @brief Remove entity from the world.
 * Caller still has to `delete` the entity. (In case they want to delete it, and not just re-add)
 * In case of peds `CPopulation::RemovePed` should be used instead.
 */
@@ -495,15 +495,14 @@ void CWorld::CallOffChaseForAreaSectorListPeds(CPtrList& ptrList, float x1, floa
         case eCarMission::MISSION_RAMPLAYER_CLOSE:
         case eCarMission::MISSION_BLOCKPLAYER_FARAWAY:
         case eCarMission::MISSION_BLOCKPLAYER_CLOSE:
-        case eCarMission::MISSION_3D:
-        case eCarMission::MISSION_3C:
+        case eCarMission::MISSION_DO_DRIVEBY_FARAWAY:
+        case eCarMission::MISSION_DO_DRIVEBY_CLOSE:
             break;
         default:
             continue;
         }
 
-        veh->m_autoPilot.m_nTempAction = 1;
-        veh->m_autoPilot.m_nTempActionTime = CTimer::GetTimeInMS() + 2000;
+        veh->m_autoPilot.SetTempAction(TEMPACT_WAIT, 2'000);
 
         if (const auto colData = veh->GetColModel()->m_pColData; colData->m_nNumSpheres) {
             for (auto i = 0; i < colData->m_nNumSpheres; i++) {
@@ -1226,7 +1225,7 @@ void CWorld::RemoveFallenCars() {
             continue;
 
         const auto ShouldWeKeepIt = [vehicle]() {
-            if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bDestroyed)
+            if (vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE) && !vehicle->physicalFlags.bRenderScorched)
                 return true;
 
             if (vehicle == FindPlayerVehicle())
@@ -2415,7 +2414,7 @@ void CWorld::RepositionOneObject(CEntity* object) {
     // you never know..
 
     const auto IsObjectModelAnyOf = [object](std::initializer_list<ModelIndex> models) {
-        return std::ranges::find(models, (ModelIndex)object->m_nModelIndex) != models.end();
+        return std::ranges::find(models, object->m_nModelIndex) != models.end();
     };
 
     const auto modelInfo = CModelInfo::GetModelInfo(object->m_nModelIndex);
@@ -2846,6 +2845,8 @@ void CWorld::RepositionCertainDynamicObjects() {
 // 0x56BA00
 bool CWorld::ProcessLineOfSight(const CVector& origin, const CVector& target, CColPoint& outColPoint, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck) {
     assert(!origin.HasNanOrInf() && !target.HasNanOrInf()); // We're getting random nan/inf's from somewhere, so let's try to root cause it...
+
+    outEntity = nullptr;
 
     const int32 originSectorX = GetSectorX(origin.x);
     const int32 originSectorY = GetSectorY(origin.y);

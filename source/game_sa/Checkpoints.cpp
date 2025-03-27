@@ -53,11 +53,11 @@ void CCheckpoints::Update() {
 // 0x722C40
 CCheckpoint* CCheckpoints::PlaceMarker(
     uint32 id,
-    notsa::WEnumU16<eCheckpointType> type,
+    eCheckpointTypeU16 type,
     const CVector& pos,
     const CVector& direction,
     float size,
-    uint8 red, uint8 green, uint8 blue, uint8 alpha,
+    CRGBA color,
     uint16 pulsePeriod,
     float pulseFraction,
     int16 rotateRate
@@ -108,7 +108,7 @@ CCheckpoint* CCheckpoints::PlaceMarker(
 
     if (cp) { // 0x722F07
         cp->m_DistToCam2D   = cpDistToPlayer2D;
-        cp->m_Colour        = {red, green, blue, alpha};
+        cp->m_Colour        = color;
         cp->m_Size          = size;
         cp->m_RotateRate    = rotateRate;
         cp->m_Pos           = pos;

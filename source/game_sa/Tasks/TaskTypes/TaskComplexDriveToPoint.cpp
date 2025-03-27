@@ -29,7 +29,7 @@ void CTaskComplexDriveToPoint::SetUpCar() {
 
     if (m_CruiseSpeed > 0.0f) {
         assert(m_CruiseSpeed < 255.0f);
-        m_Veh->m_autoPilot.m_nCruiseSpeed = (uint8)m_CruiseSpeed;
+        m_Veh->m_autoPilot.SetCruiseSpeed((uint8)m_CruiseSpeed);
     }
     m_Veh->m_autoPilot.m_nCarDrivingStyle    = static_cast<eCarDrivingStyle>(m_CarDrivingStyle);
     m_Veh->m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
@@ -41,7 +41,7 @@ CTask* CTaskComplexDriveToPoint::Drive(CPed* ped) {
 
     auto dist = DistanceBetweenPoints(m_Veh->GetPosition(), m_Point);
     if (dist < m_Radius) {
-        m_Veh->m_autoPilot.m_nCarMission = MISSION_NONE;
+        m_Veh->m_autoPilot.SetCarMission(MISSION_NONE);
         field_38 = true;
         return CTaskComplexCarDrive::CreateSubTask(TASK_FINISHED, ped);
     }
@@ -49,7 +49,7 @@ CTask* CTaskComplexDriveToPoint::Drive(CPed* ped) {
     if (dist >= 3.0f || m_Veh->m_autoPilot.m_nCarMission) {
         if (!m_Veh->m_autoPilot.m_nCruiseSpeed) {
             assert(m_CruiseSpeed < 255.0f);
-            m_Veh->m_autoPilot.m_nCruiseSpeed = (uint8)m_CruiseSpeed;
+            m_Veh->m_autoPilot.SetCruiseSpeed((uint8)m_CruiseSpeed);
         }
 
         if (IsTargetBlocked(ped)) {
@@ -58,21 +58,13 @@ CTask* CTaskComplexDriveToPoint::Drive(CPed* ped) {
         }
 
         switch (field_30) {
-        case field_30_enum::DEFAULT:
-            CCarAI::GetCarToGoToCoors(m_Veh, &m_Point, m_CarDrivingStyle, false);
-            return m_pSubTask;
-        case field_30_enum::ACCURATE:
-            CCarAI::GetCarToGoToCoorsAccurate(m_Veh, &m_Point, m_CarDrivingStyle, false);
-            return m_pSubTask;
-        case field_30_enum::STRAIGHT_LINE:
-            CCarAI::GetCarToGoToCoorsStraightLine(m_Veh, &m_Point, m_CarDrivingStyle, false);
-            return m_pSubTask;
-        case field_30_enum::RACING:
-            CCarAI::GetCarToGoToCoorsRacing(m_Veh, &m_Point, m_CarDrivingStyle, false);
-            return m_pSubTask;
-        default:
-            return m_pSubTask;
+        case field_30_enum::DEFAULT:       CCarAI::GetCarToGoToCoors(m_Veh, m_Point, m_CarDrivingStyle, false); break;
+        case field_30_enum::ACCURATE:      CCarAI::GetCarToGoToCoorsAccurate(m_Veh, m_Point, m_CarDrivingStyle, false); break;
+        case field_30_enum::STRAIGHT_LINE: CCarAI::GetCarToGoToCoorsStraightLine(m_Veh, m_Point, m_CarDrivingStyle, false); break;
+        case field_30_enum::RACING:        CCarAI::GetCarToGoToCoorsRacing(m_Veh, m_Point, m_CarDrivingStyle, false); break;
+        default:                           NOTSA_UNREACHABLE();
         }
+        return m_pSubTask;
     }
 
     field_38 = true;

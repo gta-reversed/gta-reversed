@@ -291,8 +291,8 @@ bool CTaskSimpleDuck::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent c
         if (m_ShotWhizzingCounter <= 0) {
             break;
         }
-        if (const auto eShotFired = CEvent::DynCast<const CEventGunShotWhizzedBy>(event)) {
-            if (eShotFired->m_taskId == TASK_SIMPLE_DUCK_WHILE_SHOTS_WHIZZING && event->GetSourceEntity()) {
+        if (const auto eShotFired = notsa::dyn_cast_if_present<const CEventGunShotWhizzedBy>(event)) {
+            if (eShotFired->m_TaskId == TASK_SIMPLE_DUCK_WHILE_SHOTS_WHIZZING && event->GetSourceEntity()) {
                 SetPedIsDucking(ped, false);
                 return true;
             }

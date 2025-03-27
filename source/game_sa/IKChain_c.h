@@ -44,7 +44,7 @@ public:
     auto GetBones()       { return std::span{ m_Bones, (size_t)m_BonesCount }; }
 
     auto GetIKSlot() const { return m_IKSlot; }
-    auto GetPed() const { return m_Ped; }
+    CPed* GetPed() const { return m_Ped; }
 
 private:
     CPed::Ref                    m_Ped{};
@@ -55,7 +55,7 @@ private:
     eBoneTag16                   m_EffectorBone{};
     RwV3d                        m_EffectorPos{};
     eBoneTag16                   m_PivotBone{};
-    CEntity::Ref                 m_TargetEntity{};
+    notsa::EntityRef<>           m_TargetEntity{};
     eBoneTag32                   m_OffsetBone{};   //!< Offset bone
     CVector                      m_OffsetPos{};    //!< - If `m_TargetEntity` is set:
                                                    //!<   - And `m_OffsetBone` is set too: This is a position relative to that bone

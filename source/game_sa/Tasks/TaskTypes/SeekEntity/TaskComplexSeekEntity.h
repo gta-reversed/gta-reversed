@@ -287,7 +287,7 @@ public:
                         if (FindPlayerPed()->GetPlayerGroup().GetMembership().IsFollower(ped)) { // And ped is part of the player's group
                             if (ped->IsJoggingOrFaster()) {
                                 if (((uint16)CTimer::GetFrameCounter() + ped->m_nRandomSeed) % 16384 == 0) {
-                                    ped->Say(91);
+                                    ped->Say(CTX_GLOBAL_FOLLOW_CONSTANT);
                                 }
                             }
                         }
@@ -336,7 +336,7 @@ public:
                     return CreateSubTask(TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL, ped);
                 }
             } else {
-                const auto subTaskStandStill = CTask::Cast<CTaskComplexGoToPointAndStandStill>(m_pSubTask);
+                const auto subTaskStandStill = notsa::cast<CTaskComplexGoToPointAndStandStill>(m_pSubTask);
                 if (subTaskStandStill->m_bWasSuccessful) {
                     return m_pSubTask;      
                 } else if (m_minEntityDist2D == 0.f || pedToSeekPosDist2dSq <= sq(m_minEntityDist2D + 1.f)) {
