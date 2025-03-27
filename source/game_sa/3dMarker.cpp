@@ -35,113 +35,113 @@ RpAtomic* GetAtomicForMarkerType(e3dMarkerType type) {
 bool C3dMarker::AddMarker(uint32 id, e3dMarkerType type, float size, uint8 red, uint8 green, uint8 blue, uint8 alpha, uint16 pulsePeriod, float pulseFraction, int16 rotateRate) {
     const CRGBA color = { red, green, blue, alpha };
 
-    m_pAtomic = RpAtomicClone(GetAtomicForMarkerType(type));
-    assert(m_pAtomic);
+    m_Atomic = RpAtomicClone(GetAtomicForMarkerType(type));
+    assert(m_Atomic);
 
     const auto frame = RwFrameCreate();
-    const auto geo   = RpAtomicGetGeometry(m_pAtomic);
+    const auto geo   = RpAtomicGetGeometry(m_Atomic);
 
-    RpAtomicSetFrame(m_pAtomic, frame);
-    CVisibilityPlugins::SetAtomicRenderCallback(m_pAtomic, nullptr);
+    RpAtomicSetFrame(m_Atomic, frame);
+    CVisibilityPlugins::SetAtomicRenderCallback(m_Atomic, nullptr);
 
     RpGeometrySetFlags(geo, RpGeometryGetFlags(geo) | rpGEOMETRYMODULATEMATERIALCOLOR);
 
-    m_mat.SetUnity();
-    m_mat.Attach(RwFrameGetMatrix(frame), false);
+    m_Mat.SetUnity();
+    m_Mat.Attach(RwFrameGetMatrix(frame), false);
 
-    m_nIdentifier       = id;
-    m_pMaterial         = RpGeometryGetMaterial(geo, 0);
-    m_fSize             = size;
-    m_fStdSize          = size;
-    m_colour            = color;
-    m_nPulsePeriod      = pulsePeriod;
-    m_fPulseFraction    = pulseFraction;
-    m_nRotateRate       = rotateRate;
-    m_nStartTime        = CTimer::GetTimeInMS();
-    m_nOnScreenTestTime = CTimer::GetTimeInMS();
-    m_vecLastPosition   = CVector{};
-    m_nType             = type;
-    m_fRoofHeight       = 65535.0f;
+    m_ID               = id;
+    m_Material         = RpGeometryGetMaterial(geo, 0);
+    m_Size             = size;
+    m_StdSize          = size;
+    m_Color            = color;
+    m_PulsePeriod      = pulsePeriod;
+    m_PulseFraction    = pulseFraction;
+    m_RotateRate       = rotateRate;
+    m_StartTime        = CTimer::GetTimeInMS();
+    m_OnScreenTestTime = CTimer::GetTimeInMS();
+    m_LastPosition     = CVector{};
+    m_Type             = type;
+    m_RoofHeight       = 65535.0f;
 
-    return m_pAtomic != nullptr;
+    return m_Atomic != nullptr;
 }
 
 // 0x722390
 void C3dMarker::DeleteMarkerObject() {
-    m_nIdentifier               = 0;
-    m_nStartTime                = 0;
-    m_bIsUsed                   = false;
-    m_bMustBeRenderedThisFrame  = false;
-    m_nType                     = MARKER3D_NA;
+    m_ID        = 0;
+    m_StartTime = 0;
+    m_IsInUse   = false;
+    m_IsActive  = false;
+    m_Type      = MARKER3D_NA;
 
     // Destroy RW object
-    const auto frame = RpAtomicGetFrame(m_pAtomic);
-    RpAtomicDestroy(m_pAtomic);
+    const auto frame = RpAtomicGetFrame(m_Atomic);
+    RpAtomicDestroy(m_Atomic);
     RwFrameDestroy(frame);
-    m_pAtomic = nullptr;
+    m_Atomic = nullptr;
 }
 
 // 0x7226A0
 bool C3dMarker::IsZCoordinateUpToDate() {
-    const auto& pos = m_mat.GetPosition();
-    return m_nLastMapReadX == static_cast<uint16>(pos.x)
-        && m_nLastMapReadY == static_cast<uint16>(pos.y);
+    const auto& pos = m_Mat.GetPosition();
+    return m_LastMapReadX == static_cast<uint16>(pos.x)
+        && m_LastMapReadY == static_cast<uint16>(pos.y);
 }
 
 // 0x7223D0
 void C3dMarker::Render() {
-    if (!m_pAtomic) {
+    if (!m_Atomic) {
         return;
     }
 
-    RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(m_nType == MARKER3D_CYLINDER ? rwCULLMODECULLNONE : rwCULLMODECULLBACK));
+    RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(m_Type == MARKER3D_CYLINDER ? rwCULLMODECULLNONE : rwCULLMODECULLBACK));
 
-    m_mat.UpdateRW();
+    m_Mat.UpdateRW();
 
-    auto transform = CMatrix{ m_mat.m_pAttachMatrix };
-    if (m_nType == MARKER3D_TORUS || m_nType == MARKER3D_ARROW2) {
-        if (m_vecNormal != CVector{ 0.0f, 0.0f, 1.0f }) {
-            transform *= CMatrix::WithUp(m_vecNormal);
+    auto transform = CMatrix{ m_Mat.m_pAttachMatrix };
+    if (m_Type == MARKER3D_TORUS || m_Type == MARKER3D_ARROW2) {
+        if (m_Normal != CVector{ 0.0f, 0.0f, 1.0f }) {
+            transform *= CMatrix::WithUp(m_Normal);
         }
     }
 
-    if (m_nType == MARKER3D_TUBE) {
-        transform.ScaleXYZ(m_fSize, m_fSize, m_fSize * 20.0f);
+    if (m_Type == MARKER3D_TUBE) {
+        transform.ScaleXYZ(m_Size, m_Size, m_Size * 20.0f);
     } else {
-        transform.Scale(m_fSize);
+        transform.Scale(m_Size);
     }
 
     transform.UpdateRW();
 
-    RwFrameUpdateObjects(RpAtomicGetFrame(m_pAtomic));
+    RwFrameUpdateObjects(RpAtomicGetFrame(m_Atomic));
 
-    switch (m_nType) {
+    switch (m_Type) {
     case MARKER3D_ARROW:
     case MARKER3D_CONE:
     case MARKER3D_CONE_NO_COLLISION:
-        m_colour.a = 255;
+        m_Color.a = 255;
         break;
     }
 
     // TODO: What the fuck? I dont' think this does what they intended it to.
     static uint8& s_SavedAlpha = *(uint8*)0x8D5E44; // STATICREF
-    if (m_colour.a == s_SavedAlpha) {
-        m_colour.a += m_colour.a < 128u ? 1 : -1; // But then again, this doesn't make a lot more sense either
+    if (m_Color.a == s_SavedAlpha) {
+        m_Color.a += m_Color.a < 128u ? 1 : -1; // But then again, this doesn't make a lot more sense either
     }
-    s_SavedAlpha = m_colour.a;
+    s_SavedAlpha = m_Color.a;
 
-    const auto color = m_colour.ToRwRGBA();
-    RpMaterialSetColor(m_pMaterial, &color);
+    const auto color = m_Color.ToRwRGBA();
+    RpMaterialSetColor(m_Material, &color);
 
-    SetBrightMarkerColours(m_fBrightness);
+    SetBrightMarkerColours(m_Brightness);
 
     RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(FALSE));
 
-    if (m_nType == MARKER3D_ARROW2)
+    if (m_Type == MARKER3D_ARROW2)
         RwRenderStateSet(rwRENDERSTATECULLMODE, RWRSTATE(rwCULLMODECULLNONE));
 
     // And now, render the atomic
-    RpAtomicRender(m_pAtomic);
+    RpAtomicRender(m_Atomic);
 
     RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(TRUE));
 
@@ -151,7 +151,7 @@ void C3dMarker::Render() {
 // 0x724E10
 void C3dMarker::SetZCoordinateIfNotUpToDate(float coordinate) {
     if (!IsZCoordinateUpToDate()) {
-        m_mat.GetPosition().z = coordinate;
+        m_Mat.GetPosition().z = coordinate;
     }
 }
 
@@ -161,7 +161,7 @@ void C3dMarker::UpdateZCoordinate(CVector point, float zDistance) {
         return;
     }
 
-    auto& pos = m_mat.GetPosition();
+    auto& pos = m_Mat.GetPosition();
 
     if (DistanceBetweenPointsSquared2D(pos, point) >= sq(100.0f)) {
         return;
@@ -177,12 +177,12 @@ void C3dMarker::UpdateZCoordinate(CVector point, float zDistance) {
         pos.z = height - zDistance / 20.0f;
     }
 
-    m_nLastMapReadX = static_cast<uint16>(pos.x);
-    m_nLastMapReadY = static_cast<uint16>(pos.y);
+    m_LastMapReadX = static_cast<uint16>(pos.x);
+    m_LastMapReadY = static_cast<uint16>(pos.y);
 }
 
 void C3dMarker::DeleteIfHasAtomic() {
-    if (m_pAtomic) {
+    if (m_Atomic) {
         DeleteMarkerObject();
     }
 }

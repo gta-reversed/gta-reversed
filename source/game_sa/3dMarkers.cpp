@@ -33,9 +33,7 @@ void C3dMarkers::InjectHooks() {
 
 //> 0x724E40
 void C3dMarkers::Init() {
-    for (auto& marker : m_aMarkerArray) {
-        marker.Init();
-    }
+    rng::fill(m_aMarkerArray, C3dMarker{});
 
     NumActiveMarkers = 0;
     m_angleDiamondDeg = 0.0f;
@@ -45,22 +43,20 @@ void C3dMarkers::Init() {
     //
 
     rng::fill(m_pRpClumpArray, nullptr);
+    {
+        CTxdStore::ScopedTXDSlot slut{ "particle" };
 
-    CTxdStore::PushCurrentTxd();
-    CTxdStore::SetCurrentTxd(CTxdStore::FindTxdSlot("particle"));
-    CFileMgr::ChangeDir("\\");
+        CFileMgr::ChangeDir("\\");
+        m_pRpClumpArray[MARKER3D_CYLINDER] = LoadMarker("cylinder"); // black cylinder
+        m_pRpClumpArray[MARKER3D_TORUS]    = LoadMarker("hoop");     // black hoop
 
-    m_pRpClumpArray[MARKER3D_CYLINDER] = LoadMarker("cylinder"); // black cylinder
-    m_pRpClumpArray[MARKER3D_TORUS]    = LoadMarker("hoop");     // black hoop
+        m_pRpClumpArray[MARKER3D_ARROW]
+            = m_pRpClumpArray[MARKER3D_CONE_NO_COLLISION]
+            = m_pRpClumpArray[MARKER3D_CONE]
+            = LoadMarker("diamond_3");
 
-    m_pRpClumpArray[MARKER3D_ARROW]
-        = m_pRpClumpArray[MARKER3D_CONE_NO_COLLISION]
-        = m_pRpClumpArray[MARKER3D_CONE]
-        = LoadMarker("diamond_3");
-
-    // MARKER3D_ARROW2 and MARKER3D_TUBE don't seem to have clumps.
-
-    CTxdStore::PopCurrentTxd();
+        // MARKER3D_ARROW2 and MARKER3D_TUBE don't seem to have clumps.
+    }
 }
 
 //> 0x7227B0
@@ -68,10 +64,10 @@ void C3dMarkers::Update() {
     m_angleDiamondDeg += CTimer::GetTimeStep() * 5.0f;
 
     for (auto& marker : m_aMarkerArray) {
-        if (marker.m_bIsUsed) {
-            marker.m_mat.UpdateRW();
-            RwFrameUpdateObjects(RpAtomicGetFrame(marker.m_pAtomic));
-            marker.m_bMustBeRenderedThisFrame = true;
+        if (marker.m_IsInUse) {
+            marker.m_Mat.UpdateRW();
+            RwFrameUpdateObjects(RpAtomicGetFrame(marker.m_Atomic));
+            marker.m_IsActive = true;
         }
     }
 }
@@ -83,12 +79,10 @@ void C3dMarkers::Shutdown() {
     }
 
     // Original code is retarded, this does the same, but better.
-    for (auto& clump : m_pRpClumpArray) {
-        if (clump) {
+    for (auto& v : m_pRpClumpArray) {
+        if (auto* const clump = std::exchange(v, nullptr)) {
             RpClumpForAllAtomics(clump, RemoveRefsCB, nullptr);
             RpClumpDestroy(clump);
-
-            clump = nullptr;
         }
     }
 }
@@ -116,14 +110,14 @@ void C3dMarkers::Render3dMarkers() {
     NumActiveMarkers = 0;
 
     for (auto& marker : m_aMarkerArray) {
-        if (marker.m_bMustBeRenderedThisFrame) {
-            if (TheCamera.IsSphereVisible(marker.m_mat.GetPosition(), 2.0f, reinterpret_cast<RwMatrix*>(&TheCamera.m_mMatInverse))) {
-                if (marker.m_DistToCam2D < 150.0f || IgnoreRenderLimit || marker.m_nType == MARKER3D_TORUS) {
+        if (marker.m_IsActive) {
+            if (TheCamera.IsSphereVisible(marker.m_Mat.GetPosition(), 2.0f, reinterpret_cast<RwMatrix*>(&TheCamera.m_mMatInverse))) {
+                if (marker.m_DistToCam2D < 150.0f || IgnoreRenderLimit || marker.m_Type == MARKER3D_TORUS) {
                     marker.Render();
                 }
             }
-            marker.m_bIsUsed = false;
-            marker.m_bMustBeRenderedThisFrame = false;
+            marker.m_IsInUse = false;
+            marker.m_IsActive = false;
 
             NumActiveMarkers += 1;
         } else {
@@ -135,7 +129,7 @@ void C3dMarkers::Render3dMarkers() {
 // notsa, code from 0x725198
 C3dMarker* C3dMarkers::FindById(uint32 id) {
     for (auto& a : m_aMarkerArray) {
-        if (!a.m_bIsUsed && a.m_nIdentifier == id) {
+        if (!a.m_IsInUse && a.m_ID == id) {
             return &a;
         }
     }
@@ -145,7 +139,7 @@ C3dMarker* C3dMarkers::FindById(uint32 id) {
 // notsa, code from 0x7251EA
 C3dMarker* C3dMarkers::FindFree() {
     for (auto& a : m_aMarkerArray) {
-        if (a.m_nType == MARKER3D_NA) {
+        if (a.m_Type == MARKER3D_NA) {
             return &a;
         }
     }
@@ -313,13 +307,13 @@ C3dMarker* C3dMarkers::PlaceMarker(
         }
 
         for (auto& v : m_aMarkerArray) {
-            if (IsReusableType(v.m_nType) && (!m || v.m_DistToCam2D > m->m_DistToCam2D)) {
+            if (IsReusableType(v.m_Type) && (!m || v.m_DistToCam2D > m->m_DistToCam2D)) {
                 m = &v;
             }
         }
 
         if (m) {
-            m->m_nType = MARKER3D_NA;
+            m->m_Type = MARKER3D_NA;
         }
     }
 
@@ -330,14 +324,14 @@ C3dMarker* C3dMarkers::PlaceMarker(
 
     m->m_DistToCam2D = markerToPlayerDist2D;
 
-    if (m->m_nIdentifier == id && m->m_nType == type) {
+    if (m->m_ID == id && m->m_Type == type) {
         switch (type) {
         case MARKER3D_CONE:
         case MARKER3D_ARROW: {
             //> 0x725517
-            if (m->m_vecLastPosition.SquaredMagnitude() <= sq(0.01) && CTimer::GetTimeInMS() - m->m_nOnScreenTestTime >= 2'000) {
-                m->m_nOnScreenTestTime = CTimer::GetTimeInMS();
-                if (m->m_vecLastPosition != pos) {
+            if (m->m_LastPosition.SquaredMagnitude() <= sq(0.01) && CTimer::GetTimeInMS() - m->m_OnScreenTestTime >= 2'000) {
+                m->m_OnScreenTestTime = CTimer::GetTimeInMS();
+                if (m->m_LastPosition != pos) {
                     CEntity* hitEntity{};
                     CColPoint hitCP{};
                     const auto hasHit = CWorld::ProcessLineOfSight(
@@ -354,16 +348,16 @@ C3dMarker* C3dMarkers::PlaceMarker(
                         false,
                         false
                     );
-                    m->m_fRoofHeight = hasHit
+                    m->m_RoofHeight = hasHit
                         ? hitCP.m_vecPoint.z
                         : 65535.f;
                 }
             }
 
             //> 0x7255F9
-            if (m->m_fRoofHeight < 65535.f) {
+            if (m->m_RoofHeight < 65535.f) {
                 size *= 0.5f;
-                pos.z = m->m_fRoofHeight - RpAtomicGetBoundingSphere(m->m_pAtomic)->radius * 0.1f; // TODO: Is there a macro for `->radius`?
+                pos.z = m->m_RoofHeight - RpAtomicGetBoundingSphere(m->m_Atomic)->radius * 0.1f; // TODO: Is there a macro for `->radius`?
             }
 
             break;
@@ -374,7 +368,7 @@ C3dMarker* C3dMarkers::PlaceMarker(
         switch (type) {
         case MARKER3D_CONE:
         case MARKER3D_CONE_NO_COLLISION: {
-            pos.z += std::sin(DegreesToRadians(m_angleDiamondDeg)) * (m->m_fRoofHeight < 65535.f ? 0.15f : 0.3f);
+            pos.z += std::sin(DegreesToRadians(m_angleDiamondDeg)) * (m->m_RoofHeight < 65535.f ? 0.15f : 0.3f);
         }
         }
 
@@ -384,21 +378,21 @@ C3dMarker* C3dMarkers::PlaceMarker(
         case MARKER3D_ARROW2:
         case MARKER3D_CONE:
         case MARKER3D_CONE_NO_COLLISION: {
-            m->m_fStdSize = size * (1.f - 0.3f * (25.f - std::clamp(markerToPlayerDist2D, 5.f, 25.f)) / 20.f);
+            m->m_StdSize = size * (1.f - 0.3f * (25.f - std::clamp(markerToPlayerDist2D, 5.f, 25.f)) / 20.f);
         }
         }
 
         //> 0x7256D1 -> Moved after the `if` branch
 
         //> 0x72577E
-        m->m_fSize = m->m_fStdSize - std::sin(0.f) * m->m_fStdSize * pulseFraction;
-        if (m->m_nRotateRate) {
-            const auto lastPos = m->m_mat.GetPosition();
-            m->m_mat.RotateZ(DegreesToRadians((float)(m->m_nRotateRate) * CTimer::GetTimeStep()));
-            m->m_mat.GetPosition().x = lastPos.x;
-            m->m_mat.GetPosition().y = lastPos.y;
-            if (m->m_nLastMapReadX != (uint16)lastPos.x || m->m_nLastMapReadY != (uint16)lastPos.y) {
-                m->m_mat.GetPosition().z = lastPos.z;
+        m->m_Size = m->m_StdSize - std::sin(0.f) * m->m_StdSize * pulseFraction;
+        if (m->m_RotateRate) {
+            const auto lastPos = m->m_Mat.GetPosition();
+            m->m_Mat.RotateZ(DegreesToRadians((float)(m->m_RotateRate) * CTimer::GetTimeStep()));
+            m->m_Mat.GetPosition().x = lastPos.x;
+            m->m_Mat.GetPosition().y = lastPos.y;
+            if (m->m_LastMapReadX != (uint16)lastPos.x || m->m_LastMapReadY != (uint16)lastPos.y) {
+                m->m_Mat.GetPosition().z = lastPos.z;
             }
         }
 
@@ -408,10 +402,10 @@ C3dMarker* C3dMarkers::PlaceMarker(
         case MARKER3D_CYLINDER:
         case MARKER3D_CONE:
         case MARKER3D_CONE_NO_COLLISION: {
-            m->m_mat.GetPosition().x = pos.x;
-            m->m_mat.GetPosition().y = pos.y;
-            if (m->m_nLastMapReadX != (uint16)pos.x || m->m_nLastMapReadY != (uint16)pos.y) {
-                m->m_mat.GetPosition().z = pos.z;
+            m->m_Mat.GetPosition().x = pos.x;
+            m->m_Mat.GetPosition().y = pos.y;
+            if (m->m_LastMapReadX != (uint16)pos.x || m->m_LastMapReadY != (uint16)pos.y) {
+                m->m_Mat.GetPosition().z = pos.z;
             }
             break;
         }
@@ -420,19 +414,19 @@ C3dMarker* C3dMarkers::PlaceMarker(
         switch (type) {
         case MARKER3D_TORUS:
         case MARKER3D_TUBE: { //> 0x725855
-            m->m_mat.GetPosition().x = pos.x;
-            m->m_mat.GetPosition().y = pos.y;
+            m->m_Mat.GetPosition().x = pos.x;
+            m->m_Mat.GetPosition().y = pos.y;
             if (type == MARKER3D_TUBE && zCheck) {
-                if (m->m_nLastMapReadX != (uint16)pos.x || m->m_nLastMapReadY != (uint16)pos.y) {
-                    m->m_mat.GetPosition().z = pos.z;
+                if (m->m_LastMapReadX != (uint16)pos.x || m->m_LastMapReadY != (uint16)pos.y) {
+                    m->m_Mat.GetPosition().z = pos.z;
                 }
                 m->UpdateZCoordinate(pos, 10.f);
             }
             break;
         }
         case MARKER3D_CYLINDER: { //> 0x7258C2
-            auto& markerZ = m->m_mat.GetPosition().z;
-            if (float waterZ; !CWaterLevel::GetWaterLevelNoWaves(m->m_mat.GetPosition(), &waterZ, nullptr, nullptr) || waterZ < markerZ) {
+            auto& markerZ = m->m_Mat.GetPosition().z;
+            if (float waterZ; !CWaterLevel::GetWaterLevelNoWaves(m->m_Mat.GetPosition(), &waterZ, nullptr, nullptr) || waterZ < markerZ) {
                 m->UpdateZCoordinate(pos, size);
             } else {
                 markerZ = waterZ;
@@ -441,20 +435,20 @@ C3dMarker* C3dMarkers::PlaceMarker(
         }
         }
     } else { //> 0x725956
-        if (m->m_nIdentifier) {
-            m->m_nIdentifier              = 0;
-            m->m_nStartTime               = 0;
-            m->m_bIsUsed                  = 0;
-            m->m_bMustBeRenderedThisFrame = false;
-            m->m_nType                    = MARKER3D_NA;
+        if (m->m_ID) {
+            m->m_ID        = 0;
+            m->m_StartTime = 0;
+            m->m_IsInUse   = 0;
+            m->m_IsActive  = false;
+            m->m_Type      = MARKER3D_NA;
 
-            const auto f = RpAtomicGetFrame(m->m_pAtomic);
-            RpAtomicDestroy(m->m_pAtomic);
+            const auto f = RpAtomicGetFrame(m->m_Atomic);
+            RpAtomicDestroy(m->m_Atomic);
             RwFrameDestroy(f);
-            m->m_pAtomic = nullptr;
+            m->m_Atomic = nullptr;
         }
 
-        m->m_nLastMapReadX = 30'000;
+        m->m_LastMapReadX = 30'000;
 
         // 0x725991
         switch (type) {
@@ -464,15 +458,15 @@ C3dMarker* C3dMarkers::PlaceMarker(
         }
         }
 
-        m->m_mat.SetTranslate(pos);
+        m->m_Mat.SetTranslate(pos);
 
         m->AddMarker(id, type, size, red, green, blue, alpha, pulsePeriod, pulseFraction, rotateRate);
 
         //> 0x725A16 (Same as 0x7258C2)
         switch (type) {
         case MARKER3D_CYLINDER: {
-            auto& markerZ = m->m_mat.GetPosition().z;
-            if (float waterZ; !CWaterLevel::GetWaterLevelNoWaves(m->m_mat.GetPosition(), &waterZ, nullptr, nullptr) || waterZ < markerZ) {
+            auto& markerZ = m->m_Mat.GetPosition().z;
+            if (float waterZ; !CWaterLevel::GetWaterLevelNoWaves(m->m_Mat.GetPosition(), &waterZ, nullptr, nullptr) || waterZ < markerZ) {
                 m->UpdateZCoordinate(pos, size);
             } else {
                 markerZ = waterZ;
@@ -481,7 +475,7 @@ C3dMarker* C3dMarkers::PlaceMarker(
         }
         }
 
-        m->m_mat.UpdateRW();
+        m->m_Mat.UpdateRW();
 
         //> 0x725A8D
         switch (type) {
@@ -489,7 +483,7 @@ C3dMarker* C3dMarkers::PlaceMarker(
         case MARKER3D_ARROW2:
         case MARKER3D_CONE:
         case MARKER3D_CONE_NO_COLLISION: {
-            m->m_fStdSize = size * (1.f - 0.3f * (25.f - std::clamp(markerToPlayerDist2D, 5.f, 25.f)) / 20.f);
+            m->m_StdSize = size * (1.f - 0.3f * (25.f - std::clamp(markerToPlayerDist2D, 5.f, 25.f)) / 20.f);
         }
         }
     }
@@ -498,16 +492,16 @@ C3dMarker* C3dMarkers::PlaceMarker(
     //> 0x725AEC & 0x7256D1
     if (type != MARKER3D_ARROW2) {
         if (size + 12.f <= markerToPlayerDist2D) {
-            m->m_colour.a = alpha;
+            m->m_Color.a = alpha;
         } else if (size + 1.f >= markerToPlayerDist2D) {
-            m->m_colour.a = (uint8)((float)alpha * 0.65f);
+            m->m_Color.a = (uint8)((float)alpha * 0.65f);
         } else {
-            m->m_colour.a = (uint8)((float)alpha * (1.f - ((size + 12.f - markerToPlayerDist2D) * 0.35f) / 11.f));
+            m->m_Color.a = (uint8)((float)alpha * (1.f - ((size + 12.f - markerToPlayerDist2D) * 0.35f) / 11.f));
         }
     }
 
-    m->m_vecNormal = normal;
-    m->m_bIsUsed   = true;
+    m->m_Normal = normal;
+    m->m_IsInUse   = true;
 
     return m;
 }
