@@ -7,6 +7,7 @@
 #pragma once
 
 #include "AnimSequenceFrames.h"
+#undef MoveMemory
 
 /*!
  * @brief Animation key-frames of a single node (bone)

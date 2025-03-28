@@ -25,6 +25,7 @@
 #include <initializer_list>
 #include <format>
 #undef GetCurrentTime // gtfo windows.h
+#undef MoveMemory     // windows.h, conflicts with anim stuff `MoveMemory`
 
 #include <ranges>
 namespace rng = std::ranges;
@@ -91,12 +92,12 @@ namespace fs = std::filesystem;
 #include "MatrixLink.h"
 #include "MatrixLinkList.h"
 #include "Pool.h"
-#include "PtrList.h"
-#include "PtrListDoubleLink.h"
-#include "PtrListSingleLink.h"
 #include "PtrNode.h"
 #include "PtrNodeDoubleLink.h"
 #include "PtrNodeSingleLink.h"
+#include "PtrList.h"
+#include "PtrListDoubleLink.h"
+#include "PtrListSingleLink.h"
 #include "QuadTreeNode.h"
 #include "Quaternion.h"
 #include "Rect.h"
