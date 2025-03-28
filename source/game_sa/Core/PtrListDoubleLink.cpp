@@ -21,6 +21,8 @@ void CPtrListDoubleLink::Flush() {
 }
 
 CPtrNodeDoubleLink* CPtrListDoubleLink::AddItem(void* item) {
+    assert(item);
+
     auto link = new CPtrNodeDoubleLink{ item };
     link->AddToList(this);
     return link;
