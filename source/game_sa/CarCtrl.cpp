@@ -18,6 +18,8 @@
 #include "TheCarGenerators.h"
 #include "eAreaCodes.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
+
 uint32& CCarCtrl::NumLawEnforcerCars = *(uint32*)0x969098;
 uint32& CCarCtrl::NumParkedCars = *(uint32*)0x9690A0;
 uint32& CCarCtrl::NumAmbulancesOnDuty = *(uint32*)0x9690A8;
@@ -67,6 +69,7 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(ScriptGenerateOneEmergencyServicesCar, 0x42FBC0);
     RH_ScopedInstall(SlowCarDownForObject, 0x426220);
     RH_ScopedInstall(SlowCarOnRailsDownForTrafficAndLights, 0x434790);
+    RH_ScopedInstall(FindMaxSteerAngle, 0x427FE0);
     RH_ScopedInstall(GenerateRandomCars, 0x4341C0);
 }
 
@@ -208,10 +211,10 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
         boat->m_nStatus = eEntityStatus::STATUS_ABANDONED;
         JoinCarWithRoadSystem(boat);
 
-        boat->m_autoPilot.m_nCarMission = eCarMission::MISSION_NONE;
-        boat->m_autoPilot.m_nTempAction = 0;
+        boat->m_autoPilot.SetCarMission(eCarMission::MISSION_NONE);
+        boat->m_autoPilot.m_nTempAction = TEMPACT_NONE;
         boat->m_autoPilot.m_speed = 20.0F;
-        boat->m_autoPilot.m_nCruiseSpeed = 20;
+        boat->m_autoPilot.SetCruiseSpeed(20);
 
         if (doMissionCleanup)
             boat->m_bIsStaticWaitingForCollision = true;
@@ -250,11 +253,11 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
     vehicle->vehicleFlags.bEngineOn = false;
     vehicle->vehicleFlags.bHasBeenOwnedByPlayer = true;
 
-    vehicle->m_autoPilot.m_nCarMission = eCarMission::MISSION_NONE;
-    vehicle->m_autoPilot.m_nTempAction = 0;
+    vehicle->m_autoPilot.SetCarMission(eCarMission::MISSION_NONE);
+    vehicle->m_autoPilot.m_nTempAction = TEMPACT_NONE;
     vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVING_STYLE_STOP_FOR_CARS;
     vehicle->m_autoPilot.m_speed = 13.0F;
-    vehicle->m_autoPilot.m_nCruiseSpeed = 13;
+    vehicle->m_autoPilot.SetCruiseSpeed(13);
     vehicle->m_autoPilot.m_nCurrentLane = 0;
     vehicle->m_autoPilot.m_nNextLane = 0;
 
@@ -475,10 +478,10 @@ bool CCarCtrl::IsAnyoneParking() {
     for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
         if (auto vehicle = GetVehiclePool()->GetAt(i)) {
             switch (vehicle->m_autoPilot.m_nCarMission) {
-            case eCarMission::MISSION_PARK_PARALLEL_0:
-            case eCarMission::MISSION_PARK_PARALLEL_1:
-            case eCarMission::MISSION_PARK_PERPENDICULAR_0:
-            case eCarMission::MISSION_PARK_PERPENDICULAR_1:
+            case eCarMission::MISSION_PARK_PARALLEL:
+            case eCarMission::MISSION_PARK_PARALLEL_2:
+            case eCarMission::MISSION_PARK_PERPENDICULAR:
+            case eCarMission::MISSION_PARK_PERPENDICULAR_2:
                 return true;
             }
         }
@@ -509,33 +512,33 @@ void CCarCtrl::JoinCarWithRoadAccordingToMission(CVehicle* vehicle) {
     case MISSION_WAITFORDELETION:
     case MISSION_EMERGENCYVEHICLE_STOP:
     case MISSION_STOP_FOREVER:
-    case MISSION_FOLLOW_PRE_RECORDED_PATH:
-    case MISSION_PARK_PERPENDICULAR_0:
-    case MISSION_PARK_PARALLEL_0:
-    case MISSION_PARK_PERPENDICULAR_1:
-    case MISSION_PARK_PARALLEL_1:
+    case MISSION_FOLLOW_RECORDED_PATH:
+    case MISSION_PARK_PERPENDICULAR:
+    case MISSION_PARK_PARALLEL:
+    case MISSION_PARK_PERPENDICULAR_2:
+    case MISSION_PARK_PARALLEL_2:
         return JoinCarWithRoadSystem(vehicle);
     case MISSION_RAMPLAYER_FARAWAY:
     case MISSION_RAMPLAYER_CLOSE:
     case MISSION_BLOCKPLAYER_FARAWAY:
     case MISSION_BLOCKPLAYER_CLOSE:
     case MISSION_BLOCKPLAYER_HANDBRAKESTOP:
-    case MISSION_ATTACKPLAYER:
+    case MISSION_BOAT_ATTACKPLAYER:
     case MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_1:
     case MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_2:
     case MISSION_BLOCKPLAYER_FORWARDANDBACK:
-    case MISSION_POLICE_BIKE:
-    case MISSION_2C:
-    case MISSION_BOAT_CIRCLING_PLAYER: {
+    case MISSION_APPROACHPLAYER_FARAWAY:
+    case MISSION_APPROACHPLAYER_CLOSE:
+    case MISSION_BOAT_CIRCLEPLAYER: {
         JoinCarWithRoadSystemGotoCoors(vehicle, FindPlayerCoors(-1), true, vehicle->IsSubBoat());
         break;
     }
-    case MISSION_GOTOCOORDS:
-    case MISSION_GOTOCOORDS_STRAIGHT:
-    case MISSION_GOTOCOORDS_ACCURATE:
-    case MISSION_GOTOCOORDS_STRAIGHT_ACCURATE:
-    case MISSION_GOTOCOORDS_ASTHECROWSWIMS:
-    case MISSION_FOLLOW_PATH_RACING: {
+    case MISSION_GOTOCOORDINATES:
+    case MISSION_GOTOCOORDINATES_STRAIGHTLINE:
+    case MISSION_GOTOCOORDINATES_ACCURATE:
+    case MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE:
+    case MISSION_GOTOCOORDINATES_ASTHECROWSWIMS:
+    case MISSION_GOTOCOORDINATES_RACING: {
         JoinCarWithRoadSystemGotoCoors(vehicle, vehicle->m_autoPilot.m_vecDestinationCoors, true, vehicle->IsSubBoat());
         break;
     }
@@ -544,23 +547,23 @@ void CCarCtrl::JoinCarWithRoadAccordingToMission(CVehicle* vehicle) {
     case MISSION_BLOCKCAR_FARAWAY:
     case MISSION_BLOCKCAR_CLOSE:
     case MISSION_BLOCKCAR_HANDBRAKESTOP:
-    case MISSION_1B:
-    case MISSION_1C:
-    case MISSION_GOTO_ESCORTPOINT_0:
-    case MISSION_GOTO_ESCORTPOINT_1:
-    case MISSION_GOTO_ESCORTPOINT_2:
-    case MISSION_GOTO_ESCORTPOINT_3:
-    case MISSION_34:
-    case MISSION_35:
-    case MISSION_36:
-    case MISSION_37:
-    case MISSION_3C:
-    case MISSION_3D:
-    case MISSION_41:
-    case MISSION_42:
-    case MISSION_43:
-    case MISSION_44: {
-        JoinCarWithRoadSystemGotoCoors(vehicle, vehicle->m_autoPilot.m_pTargetCar->GetPosition(), true, vehicle->IsSubBoat());
+    case MISSION_PROTECTION_REAR:
+    case MISSION_PROTECTION_FRONT:
+    case MISSION_ESCORT_LEFT:
+    case MISSION_ESCORT_RIGHT:
+    case MISSION_ESCORT_REAR:
+    case MISSION_ESCORT_FRONT:
+    case MISSION_FOLLOWCAR_FARAWAY:
+    case MISSION_FOLLOWCAR_CLOSE:
+    case MISSION_KILLPED_FARAWAY:
+    case MISSION_KILLPED_CLOSE:
+    case MISSION_DO_DRIVEBY_CLOSE:
+    case MISSION_DO_DRIVEBY_FARAWAY:
+    case MISSION_ESCORT_LEFT_FARAWAY:
+    case MISSION_ESCORT_RIGHT_FARAWAY:
+    case MISSION_ESCORT_REAR_FARAWAY:
+    case MISSION_ESCORT_FRONT_FARAWAY: {
+        JoinCarWithRoadSystemGotoCoors(vehicle, vehicle->m_autoPilot.m_TargetEntity->GetPosition(), true, vehicle->IsSubBoat());
         break;
     }
     }
@@ -704,23 +707,32 @@ void CCarCtrl::RemoveCarsIfThePoolGetsFull() {
 void CCarCtrl::RemoveDistantCars() {
     ZoneScoped;
 
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        if (auto vehicle = GetVehiclePool()->GetAt(i)) {
-            PossiblyRemoveVehicle(vehicle);
-            if (!vehicle->vehicleFlags.bCreateRoadBlockPeds)
-                continue;
-
-            CVector centreOfWorld = FindPlayerCentreOfWorld();
-            if (DistanceBetweenPoints(centreOfWorld, vehicle->GetPosition()) < 54.5f) {
-                CRoadBlocks::GenerateRoadBlockCopsForCar(
-                    vehicle,
-                    vehicle->m_nPedsPositionForRoadBlock,
-                    vehicle->IsLawEnforcementVehicle() ? PED_TYPE_COP : PED_TYPE_GANG1
-                );
-
-                vehicle->vehicleFlags.bCreateRoadBlockPeds = false;
-            }
+    // FIXBUGS: First remove vehicles that can be removed
+    if (notsa::bugfixes::CCarCtrl_RemoveDistantCars_UseAfterFree) {
+        for (auto& veh : GetVehiclePool()->GetAllValid()) {
+            PossiblyRemoveVehicle(&veh);
         }
+    }
+
+    //... only then process them, this way we don't do use-after-free
+    // only other solution would be `PossiblyRemoveVehicle` returning a `bool`
+    // to indicate whenever the vehicle was deleted or not.
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        if (!notsa::bugfixes::CCarCtrl_RemoveDistantCars_UseAfterFree) {
+            PossiblyRemoveVehicle(&veh); // This may or may not invalidate `veh`
+        }
+        if (!veh.vehicleFlags.bCreateRoadBlockPeds) {
+            continue;
+        }
+        if (DistanceBetweenPoints(FindPlayerCentreOfWorld(), veh.GetPosition()) >= 54.5f) {
+            continue;
+        }
+        CRoadBlocks::GenerateRoadBlockCopsForCar(
+            &veh,
+            veh.m_nPedsPositionForRoadBlock,
+            veh.IsLawEnforcementVehicle() ? PED_TYPE_COP : PED_TYPE_GANG1
+        );
+        veh.vehicleFlags.bCreateRoadBlockPeds = false;
     }
 }
 
@@ -744,7 +756,7 @@ bool CCarCtrl::ScriptGenerateOneEmergencyServicesCar(uint32 modelId, CVector pos
     if (CStreaming::IsModelLoaded(modelId)) {
         if (auto pAuto = GenerateOneEmergencyServicesCar(modelId, posn)) {
             pAuto->m_autoPilot.m_vecDestinationCoors = posn;
-            pAuto->m_autoPilot.m_nCarMission = JoinCarWithRoadSystemGotoCoors(pAuto, posn, false, false) ? MISSION_GOTOCOORDS_STRAIGHT : MISSION_GOTOCOORDS;
+            pAuto->m_autoPilot.SetCarMission(JoinCarWithRoadSystemGotoCoors(pAuto, posn, false, false) ? MISSION_GOTOCOORDINATES_STRAIGHTLINE : MISSION_GOTOCOORDINATES);
             return true;
         }
     }
@@ -1016,4 +1028,9 @@ void CCarCtrl::WeaveThroughObjectsSectorList(CPtrList& ptrList, CVehicle* vehicl
 // 0x42D7E0
 void CCarCtrl::WeaveThroughPedsSectorList(CPtrList& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9) {
     plugin::Call<0x42D7E0, CPtrList&, CVehicle*, CPhysical*, float, float, float, float, float*, float*>(ptrList, vehicle, physical, arg4, arg5, arg6, arg7, arg8, arg9);
+}
+
+// 0x427FE0
+float CCarCtrl::FindMaxSteerAngle(CVehicle* veh) {
+    return std::clamp(0.9f - veh->GetMoveSpeed().Magnitude(), 0.2f, 0.7f);
 }

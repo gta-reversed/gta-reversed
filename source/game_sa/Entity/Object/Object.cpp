@@ -150,8 +150,8 @@ CObject::~CObject() {
 
     RemoveFromControlCodeList();
     if (m_nModelIndex == ModelIndices::MI_TRAINCROSSING1) {
-        const auto& dummyPos = m_pDummyObject->GetPosition();
-        ThePaths.SetLinksBridgeLights(dummyPos.x - 12.0F, dummyPos.x + 12.0F, dummyPos.y - 12.0F, dummyPos.y + 12.0F, false);
+        const auto& p = m_pDummyObject->GetPosition();
+        ThePaths.SetLinksBridgeLights(p.x - 12.0F, p.x + 12.0F, p.y - 12.0F, p.y + 12.0F, false);
     }
 
     if (m_pFire)
@@ -577,7 +577,7 @@ void CObject::Render() {
 
 // 0x554FA0
 bool CObject::SetupLighting() {
-    if (physicalFlags.bDestroyed) {
+    if (physicalFlags.bRenderScorched) {
         WorldReplaceNormalLightsWithScorched(Scene.m_pRpWorld, 0.18F);
         return true;
     }
@@ -595,7 +595,7 @@ void CObject::RemoveLighting(bool bRemove) {
     if (!bRemove)
         return;
 
-    if (!physicalFlags.bDestroyed)
+    if (!physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 
     SetAmbientColours();
@@ -1329,9 +1329,9 @@ bool CObject::CanBeUsedToTakeCoverBehind() {
 
 // 0x5A1F60
 CObject* CObject::Create(int32 modelIndex, bool bUnused) {
-    GetObjectPool()->m_bIsLocked = true;
+    GetObjectPool()->SetDealWithNoMemory(true);
     auto* obj = new CObject(modelIndex, false); //BUG? most likely the unused parameter was supposed to be passed to the constructor
-    GetObjectPool()->m_bIsLocked = false;
+    GetObjectPool()->SetDealWithNoMemory(false);
 
     if (obj)
         return obj;
@@ -1344,9 +1344,9 @@ CObject* CObject::Create(int32 modelIndex, bool bUnused) {
 
 // 0x5A2070
 CObject* CObject::Create(CDummyObject* dummyObject) {
-    GetObjectPool()->m_bIsLocked = true;
+    GetObjectPool()->SetDealWithNoMemory(true);
     auto* obj = new CObject(dummyObject);
-    GetObjectPool()->m_bIsLocked = false;
+    GetObjectPool()->SetDealWithNoMemory(false);
 
     if (obj)
         return obj;

@@ -291,7 +291,7 @@ public:
     CVector             field_578;
     CEntity*            m_pContactEntity;
     float               field_588;
-    CVehicle*           m_pVehicle;
+    CVehicle*           m_pVehicle;         // Ped's vehicle - Only physically in it if `bInVehicle` is `true`.
     CVehicle*           m_VehDeadInFrontOf; // Set if `bDeadPedInFrontOfCar` 
     int32               field_594;
     ePedType            m_nPedType;

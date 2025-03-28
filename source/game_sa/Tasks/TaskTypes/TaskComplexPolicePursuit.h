@@ -1,50 +1,65 @@
 #pragma once
 
+#include <extensions/EntityRef.hpp>
 #include "TaskComplex.h"
+
+class CEvent;
+class CPed;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexPolicePursuit : public CTaskComplex {
 public:
-    uint8 m_nFlags;
-    CPed* m_pursuer;
-    CPed* m_persecuted;
+    bool                      m_IsRoadBlockCop : 1 {};
+    bool                      m_IsPlayerInCullZone : 1 {};
+    bool                      m_CouldJoinPursuit : 1 { true };
+    notsa::EntityRef<CCopPed> m_Pursuer{};
+    notsa::EntityRef<CPed>    m_Pursued{};
 
 public:
     static constexpr auto Type = TASK_COMPLEX_POLICE_PURSUIT;
 
-    CTaskComplexPolicePursuit();
+    static void InjectHooks();
+
+    CTaskComplexPolicePursuit() = default;
     CTaskComplexPolicePursuit(const CTaskComplexPolicePursuit&);
     ~CTaskComplexPolicePursuit() override;
 
+    static void __stdcall SetWeapon(CPed* ped);
+    static void __stdcall ClearPursuit(CCopPed* pursuer);
 
-// 0x0
-eTaskType GetTaskType() const override { return Type; }
+    // 0x68BAA0
+    eTaskType GetTaskType() const override { return Type; }
 
+    // 0x68BAB0
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return m_pSubTask->MakeAbortable(ped, priority, event); }
 
-// 0x68BAB0
-bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return m_pSubTask->MakeAbortable(ped, priority, event); }
+    // 0x68CDD0
+    CTask* Clone() const override { return new CTaskComplexPolicePursuit{*this}; }
 
- 
+    // 0x68BAC0
+    CTask* CreateNextSubTask(CPed* ped) override { return nullptr; }
 
-// 0x68CDD0
-CTask* Clone() const override { return new CTaskComplexPolicePursuit{*this}; }
-
- 
-    CTask* ControlSubTask(CPed* ped) override;
-    CTask* CreateFirstSubTask(CPed* ped) override;
-    CTask* CreateNextSubTask(CPed* ped) override;
-
-    CTask* CreateSubTask(eTaskType taskType, CPed* ped);
-    bool PersistPursuit(CPed* ped);
     bool SetPursuit(CPed* ped);
-    void ClearPursuit(CPed* ped);
-    void SetWeapon(CPed* ped);
+    bool PersistPursuit(CCopPed* pursuer);
+    CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
-public:
-    friend void InjectHooksMain();
-    static void InjectHooks();
+    CTask*    CreateFirstSubTask(CPed* ped) override;
+    CTask*    ControlSubTask(CPed* ped) override;
 
-    CTaskComplexPolicePursuit* Constructor();
+private:
+    eTaskType GetNextSubTaskType(CCopPed* ped);
 
+private: // Wrappers for hooks
+    // 0x68BA70
+    CTaskComplexPolicePursuit* Constructor() {
+        this->CTaskComplexPolicePursuit::CTaskComplexPolicePursuit();
+        return this;
+    }
+
+    // 0x68D880
+    CTaskComplexPolicePursuit* Destructor() {
+        this->CTaskComplexPolicePursuit::~CTaskComplexPolicePursuit();
+        return this;
+    }
 };
 
 VALIDATE_SIZE(CTaskComplexPolicePursuit, 0x18);

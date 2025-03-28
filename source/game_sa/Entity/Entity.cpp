@@ -1821,7 +1821,7 @@ void CEntity::ProcessLightsForEntity()
         return;
 
     if (IsVehicle()) {
-        if (AsVehicle()->physicalFlags.bDestroyed)
+        if (AsVehicle()->physicalFlags.bRenderScorched)
             return;
     }
     else {

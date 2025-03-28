@@ -84,14 +84,13 @@ float CVector::NormaliseAndMag()
     return 1.0F / fRecip;
 }
 
-auto CVector::Normalized() const -> CVector {
-    CVector cpy = *this;
-    cpy.Normalise();
-    return cpy;
-}
-
 auto CVector::Dot(const CVector& o) const -> float{
     return DotProduct(*this, o);
+}
+
+auto CVector::Dot2D(const CVector& o) const -> float {
+    return y * o.y
+         + x * o.x;
 }
 
 // notsa

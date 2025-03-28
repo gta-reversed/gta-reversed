@@ -31,7 +31,7 @@ public:
 
     CRect() = default; // 0x4041C0 - TODO: Fix retarded argument order to be: left, top, right, bottom
 
-    constexpr CRect(float left, float bottom, float right, float top) :
+    constexpr CRect(float left, float bottom, float right, float top) : // minX, minY, maxX, maxY
         left{ left },
         bottom{ bottom },
         right{ right },

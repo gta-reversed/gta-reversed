@@ -144,7 +144,7 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     m_pNextCarriage = nullptr;
     m_nStatus = STATUS_TRAIN_MOVING;
     m_autoPilot.m_speed = 0.0f;
-    m_autoPilot.m_nCruiseSpeed = 0;
+    m_autoPilot.SetCruiseSpeed(0);
     m_vehicleAudio.Initialise(this);
 }
 
@@ -284,7 +284,7 @@ void CTrain::SetTrainSpeed(CTrain* train, float speed) {
 
 // 0x6F5E50
 void CTrain::SetTrainCruiseSpeed(CTrain* train, float speed) {
-    train->m_autoPilot.m_nCruiseSpeed = (uint8)speed;
+    train->m_autoPilot.SetCruiseSpeed((uint8)speed);
 }
 
 // 0x6F5E70

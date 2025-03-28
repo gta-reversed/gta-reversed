@@ -15,7 +15,7 @@ class QuadTreeNode;
 class CEntryExit;
 class CEntity;
 
-typedef CPool<CEntryExit, CEntryExit, true> CEntryExitsPool;
+typedef CPool<CEntryExit, CEntryExit> CEntryExitsPool;
 
 enum ExitEnterState : int32 {
     EXIT_ENTER_STATE_0,
