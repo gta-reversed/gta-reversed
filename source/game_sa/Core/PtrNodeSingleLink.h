@@ -6,20 +6,31 @@
 */
 #pragma once
 
-class CPtrNodeSingleLink {
+#include <PtrNode.h>
+
+class CPtrNodeSingleLink : public CPtrNode<CPtrNodeSingleLink> {
 public:
-    void*               m_item;
-    CPtrNodeSingleLink* m_next;
+    static void InjectHooks() {
+        RH_ScopedClass(CPtrNodeSingleLink);
+        RH_ScopedCategory("Core");
+
+        RH_ScopedInstall(AddToList, 0x532960);
+    }
+
+    static void* operator new(unsigned size) {
+        return GetPtrNodeSingleLinkPool()->New();
+    }
+
+    static void operator delete(void* data) {
+        GetPtrNodeSingleLinkPool()->Delete(static_cast<CPtrNodeSingleLink*>(data));
+    }
 
 public:
-    static void InjectHooks();
+    using CPtrNode::CPtrNode;
 
-    static void* operator new(unsigned size);
-    static void  operator delete(void* data);
-
-    CPtrNodeSingleLink(void* item) : m_item(item) {}
-
-    void AddToList(class CPtrListSingleLink* list);
+    //void AddToList(CPtrListSingleLink* list) {
+    //    m_next       = list->GetNode();
+    //    list->m_node = static_cast<CPtrNode*>(this);
+    //}
 };
-
 VALIDATE_SIZE(CPtrNodeSingleLink, 8);

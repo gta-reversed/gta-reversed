@@ -6,16 +6,20 @@
 */
 #pragma once
 
-class CPtrNode {
-public:
-    void*     m_item;
-    CPtrNode* m_next;
+#include "PtrList.h"
 
+template<typename LinkType>
+class CPtrNode {
+    friend CPtrList<CPtrNode<LinkType>>;
+public:
     CPtrNode(void* item) : m_item(item) {}
-    CPtrNode* GetNext() const { return m_next; }
 
     template<typename T>
-    T* ItemAs() { return reinterpret_cast<T*>(m_item); }
-};
+    auto GetItem() const { return static_cast<T*>(m_item); }
+    
+    auto GetNext() const noexcept { return m_next; }
 
-VALIDATE_SIZE(CPtrNode, 8);
+    void*     m_item;
+    LinkType* m_next;
+};
+VALIDATE_SIZE(CPtrNode<void>, 8);

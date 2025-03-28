@@ -6,22 +6,19 @@
 */
 #pragma once
 
-#include "PtrNode.h"
-
+template<typename NodeType>
 class CPtrList {
 public:
-    CPtrNode* m_node;
+    using NodeType = NodeType;
 
 public:
     static void InjectHooks();
 
-    CPtrList();
+    bool      IsMemberOfList(void* data) const;
+    bool      IsEmpty() const { return !m_node; }
+    uint32    CountElements() const;
+    NodeType* GetNode() const { return m_node; }
 
-    uint32 CountElements() const;
-    bool IsMemberOfList(void* data) const;
-
-    CPtrNode* GetNode() const { return m_node; }
-    bool IsEmpty() const { return !m_node; }
+public:
+    NodeType* m_node{};
 };
-
-VALIDATE_SIZE(CPtrList, 0x4);

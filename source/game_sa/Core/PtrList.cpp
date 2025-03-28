@@ -10,10 +10,6 @@ void CPtrList::InjectHooks() {
     RH_ScopedInstall(IsMemberOfList, 0x5521D0);
 }
 
-CPtrList::CPtrList() {
-    m_node = nullptr;
-}
-
 // Get elements count
 // 0x5521B0
 uint32 CPtrList::CountElements() const {
@@ -33,7 +29,7 @@ bool CPtrList::IsMemberOfList(void* data) const {
         if (currNode->m_item == data) {
             return true;
         }
-        currNode = currNode->m_next;
+        currNode = currNode->GetNext();
     }
     return false;
 }
