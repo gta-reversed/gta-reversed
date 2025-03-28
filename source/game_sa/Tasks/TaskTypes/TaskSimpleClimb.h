@@ -6,10 +6,12 @@
 */
 #pragma once
 
-
 #include "TaskSimple.h"
 #include "AnimBlendAssociation.h"
 #include "Entity.h"
+#include <extensions/EntityRef.hpp>
+#include <eSurfaceType.h>
+
 
 enum eClimbHeights : int8 {
     CLIMB_NOT_READY = 0,
