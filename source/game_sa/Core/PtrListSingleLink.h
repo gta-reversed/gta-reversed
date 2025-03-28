@@ -11,14 +11,14 @@
 
 class CPtrListSingleLink : public CPtrList<CPtrNodeSingleLink> {
 public:
-    static void InjectHooks() {
-        RH_ScopedClass(CPtrListSingleLink);
-        RH_ScopedCategory("Core");
-
-        RH_ScopedInstall(Flush, 0x552400);
-        RH_ScopedInstall(AddItem, 0x5335E0);
-        RH_ScopedInstall(DeleteItem, 0x533610);
-    }
+    //static void InjectHooks() {
+    //    RH_ScopedClass(CPtrListSingleLink);
+    //    RH_ScopedCategory("Core");
+    //
+    //    RH_ScopedInstall(Flush, 0x552400);
+    //    RH_ScopedInstall(AddItem, 0x5335E0);
+    //    RH_ScopedInstall(DeleteItem, 0x533610);
+    //}
 
     ~CPtrListSingleLink() { Flush(); }
 
@@ -28,7 +28,7 @@ public:
     */
     void Flush() {
         while (NodeType* node = GetNode()) { // Keep popping from the head until empty
-            CPtrListSingleLink::DeleteNode(node, GetNode());
+            DeleteNode(node, GetNode());
         }
     }
 
@@ -56,7 +56,7 @@ public:
                 return;
             }
         }
-        CPtrListSingleLink::DeleteNode(curr, prev);
+        DeleteNode(curr, prev);
     }
 
     /*!

@@ -10,15 +10,10 @@
 
 class CPtrNodeDoubleLink : public CPtrNode<CPtrNodeDoubleLink> {
 public:
-    static void InjectHooks();
+    //static void InjectHooks();
 
-    static void* operator new(unsigned size) {
-        return GetPtrNodeDoubleLinkPool()->New();
-    }
-
-    static void operator delete(void* ptr, size_t sz) {
-        GetPtrNodeDoubleLinkPool()->Delete(static_cast<CPtrNodeDoubleLink*>(ptr));
-    }
+    static void* operator new(unsigned size);
+    static void operator delete(void* ptr, size_t sz);
 
 public:
     using CPtrNode::CPtrNode;

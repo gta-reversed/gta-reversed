@@ -576,7 +576,6 @@ void InjectHooksMain() {
     CCivilianPed::InjectHooks();
     CDamageManager::InjectHooks();
     CCreepingFire::InjectHooks();
-    CPtrList::InjectHooks();
     BreakManager_c::InjectHooks();
     BreakObject_c::InjectHooks();
     CFireManager::InjectHooks();
@@ -600,10 +599,15 @@ void InjectHooksMain() {
     CMatrixLinkList::InjectHooks();
     CEntryInfoNode::InjectHooks();
     CEntryInfoList::InjectHooks();
-    CPtrNodeDoubleLink::InjectHooks();
-    CPtrListDoubleLink::InjectHooks();
-    CPtrNodeSingleLink::InjectHooks();
-    CPtrListSingleLink::InjectHooks();
+
+    //CPtrList::InjectHooks();
+
+    //CPtrNodeDoubleLink::InjectHooks();
+    //CPtrListDoubleLink::InjectHooks();
+    //
+    //CPtrNodeSingleLink::InjectHooks();
+    //CPtrListSingleLink::InjectHooks();
+
     CReferences::InjectHooks();
     CPopulation::InjectHooks();
     CModelInfo::InjectHooks();

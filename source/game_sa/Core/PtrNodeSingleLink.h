@@ -10,20 +10,15 @@
 
 class CPtrNodeSingleLink : public CPtrNode<CPtrNodeSingleLink> {
 public:
-    static void InjectHooks() {
-        RH_ScopedClass(CPtrNodeSingleLink);
-        RH_ScopedCategory("Core");
+    //static void InjectHooks() {
+    //    RH_ScopedClass(CPtrNodeSingleLink);
+    //    RH_ScopedCategory("Core");
+    //
+    //    //RH_ScopedInstall(AddToList, 0x532960);
+    //}
 
-        RH_ScopedInstall(AddToList, 0x532960);
-    }
-
-    static void* operator new(unsigned size) {
-        return GetPtrNodeSingleLinkPool()->New();
-    }
-
-    static void operator delete(void* data) {
-        GetPtrNodeSingleLinkPool()->Delete(static_cast<CPtrNodeSingleLink*>(data));
-    }
+    static void* operator new(unsigned size);
+    static void operator delete(void* data);
 
 public:
     using CPtrNode::CPtrNode;
