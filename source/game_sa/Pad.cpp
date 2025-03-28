@@ -220,17 +220,17 @@ void CPad::UpdatePads() {
     const auto& ImIONavActive = notsa::ui::UIRenderer::GetSingleton().GetImIO()->NavActive;
 
     if (!ImIONavActive) {
-        GetPad(0)->UpdateMouse();
+        GetPad(PAD1)->UpdateMouse();
     }
 
-    ProcessPad(0);
+    ProcessPad(PAD1);
     ControlsManager.ClearSimButtonPressCheckers();
 
     if (!ImIONavActive) {
-        ControlsManager.AffectPadFromKeyBoard();
-        ControlsManager.AffectPadFromMouse();
-        GetPad(0)->Update(0);
-        GetPad(1)->Update(1);
+        ControlsManager.ProcessKeyboardInput();
+        ControlsManager.ProcessMouseInput();
+        GetPad(PAD1)->Update(PAD1);
+        GetPad(PAD2)->Update(PAD2);
     }
 
     OldKeyState = NewKeyState;
@@ -283,9 +283,9 @@ void CPad::ProcessPad(int padNum) {
  
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
 
-    if (ControlsManager.m_bJoyJustInitialised) {
+    if (ControlsManager.m_WasJoyJustInitialised) {
         ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState = joyState;
-        ControlsManager.m_bJoyJustInitialised = false;
+        ControlsManager.m_WasJoyJustInitialised = false;
     } else {
         ControlsManager.m_OldJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
     }
