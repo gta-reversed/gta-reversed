@@ -5,7 +5,7 @@
     Do not delete this comment block. Respect others' work!
 */
 #include "StdInc.h"
-
+#include "TaskSimpleFight.h"
 #include "WeaponInfo.h"
 
 void CWeaponInfo::InjectHooks() {
@@ -53,7 +53,7 @@ void CWeaponInfo::Initialise() {
         info.m_fSpread = 0.0f;
         info.m_nAimOffsetIndex = 0;
         info.m_nFlags = 0;
-        info.m_nBaseCombo = 4;
+        info.m_nBaseCombo = eMeleeCombo::UNARMED_1;
         info.m_nNumCombos = 1;
     }
 
@@ -131,24 +131,6 @@ void CWeaponInfo::StreamModelsForWeapon(eStreamingFlags streamingFlags) {
         }
     }
     CStreaming::LoadAllRequestedModels(true);
-}
-
-// NOTSA
-auto GetBaseComboByName(const char* name) {
-    static constexpr std::pair<std::string_view, eMeleeCombo> mapping[]{
-        { "UNARMED",     MELEE_COMBO_UNARMED_1 },
-        { "BBALLBAT",    MELEE_COMBO_BBALLBAT  },
-        { "KNIFE",       MELEE_COMBO_KNIFE     },
-        { "GOLFCLUB",    MELEE_COMBO_GOLFCLUB  },
-        { "SWORD",       MELEE_COMBO_SWORD     },
-        { "CHAINSAW",    MELEE_COMBO_CHAINSAW  },
-        { "DILDO",       MELEE_COMBO_DILDO     },
-        { "FLOWERS",     MELEE_COMBO_FLOWERS   },
-    };
-    if (const auto it = rng::find(mapping, name, [](const auto& e) { return e.first; }); it != std::end(mapping))
-        return it->second;
-
-    return eMeleeCombo::MELEE_COMBO_UNARMED_1;
 }
 
 // 0x5BE670
@@ -321,7 +303,7 @@ void CWeaponInfo::LoadWeaponData() {
             wi.m_nModelId1 = modelId1;
             wi.m_nModelId2 = modelId2;
             wi.m_nSlot = slot;
-            wi.m_nBaseCombo = GetBaseComboByName(baseComboName);
+            wi.m_nBaseCombo = CTaskSimpleFight::GetComboType(baseComboName);
             wi.m_nNumCombos = (uint8)numCombos;
             wi.m_nFlags = flags;
 

@@ -1,22 +1,36 @@
 #pragma once
 
-enum eMeleeCombo : uint8 {
-    MELEE_COMBO_IDLE = 0x0,
-    MELEE_COMBO_MOVE = 0x1,
-    MELEE_COMBO_BLOCK = 0x2,
-    MELEE_COMBO_END = 0x3,
-    MELEE_COMBO_UNARMED_1 = 0x4,
-    MELEE_COMBO_UNARMED_2 = 0x5,
-    MELEE_COMBO_UNARMED_3 = 0x6,
-    MELEE_COMBO_UNARMED_4 = 0x7,
-    MELEE_COMBO_BBALLBAT = 0x8,
-    MELEE_COMBO_KNIFE = 0x9,
-    MELEE_COMBO_GOLFCLUB = 0xA,
-    MELEE_COMBO_SWORD = 0xB,
-    MELEE_COMBO_CHAINSAW = 0xC,
-    MELEE_COMBO_DILDO = 0xD,
-    MELEE_COMBO_FLOWERS = 0xE,
-    MELEE_COMBO_KICK_STD = 0xF,
-    MELEE_COMBO_PISTOL_WHIP = 0x10,
-    MELEE_COMBO_NUM = 0x11,
+#include <extensions/WEnum.hpp>
+
+enum class eMeleeCombo : int8 {
+    IDLE        = 0,
+    MOVE        = 1,
+    BLOCK       = 2,
+    END         = 3,
+
+    // The ones below are defined in `melee.dat` (Subtract 4 to use it as an index into `CTaskSimpleFight::m_aComboData`
+    UNARMED_1   = 4,
+    UNARMED_2   = 5,
+    UNARMED_3   = 6,
+    UNARMED_4   = 7,
+    BBALLBAT    = 8,
+    KNIFE       = 9,
+    GOLFCLUB    = 10,
+    SWORD       = 11,
+    CHAINSAW    = 12,
+    DILDO       = 13,
+    FLOWERS     = 14,
+    KICK_STD    = 15,
+    PISTOL_WHIP = 16,
+
+    //
+    // Add above
+    //
+    NUM,
+    NUM_SETS = +PISTOL_WHIP - +UNARMED_1 + 1
 };
+NOTSA_WENUM_DEFS_FOR(eMeleeCombo);
+
+constexpr auto MeleeCombo2MeleeDataIdx(eMeleeCombo e) {
+    return std::max(+e - +eMeleeCombo::UNARMED_1, 0);
+}

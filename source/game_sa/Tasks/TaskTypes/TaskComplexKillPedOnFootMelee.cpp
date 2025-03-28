@@ -49,9 +49,11 @@ CTaskComplexKillPedOnFootMelee::~CTaskComplexKillPedOnFootMelee() {
 
 // 0x621100
 void CTaskComplexKillPedOnFootMelee::CalculateSearchPositionAndRanges(CPed* ped) {
+    const auto tFighting = ped->GetIntelligence()->GetTaskFighting();
+    m_arriveRange = tFighting
+        ? ped->GetIntelligence()->GetTaskFighting()->GetRange()
+        : CTaskSimpleFight::m_aComboData[MeleeCombo2MeleeDataIdx(eMeleeCombo::UNARMED_1)].GroupRange;
     m_attackRange = 8.f;
-    const auto fight = ped->GetIntelligence()->GetTaskFighting();
-    m_arriveRange = CTaskSimpleFight::m_aComboData[fight ? std::max(0, fight->m_nComboSet - 4) : 0].m_fRanges;
     if (m_target) {
         m_targetPos = m_target->GetPosition();
     }

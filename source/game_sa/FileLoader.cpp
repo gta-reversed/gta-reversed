@@ -220,7 +220,7 @@ char* CFileLoader::LoadLine(auto file) {
         if ((uint8)*it < (uint8)' ' || *it == ',')
             *it = ' ';
     }
-
+    
     return FindFirstNonNullOrWS(ms_line);
 }
 

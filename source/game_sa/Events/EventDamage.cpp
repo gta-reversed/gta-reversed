@@ -440,11 +440,11 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
             if (   !m_ucDirection
                 && taskFight
                 && taskFight->IsComboSet()
-                && taskFight->m_nComboSet >= 4
-                && taskFight->m_nCurrentMove <= FIGHT_ATTACK_HIT_3
+                && taskFight->GetCurrentComboSet() >= eMeleeCombo::UNARMED_1
+                && taskFight->GetMove() <= eMeleeMove::ATTACK3
             ) {
                 m_nAnimGroup = taskFight->GetComboAnimGroupID();
-                m_nAnimID = (AnimationId)(taskFight->m_nCurrentMove + ANIM_ID_FIGHT_HIT_1);
+                m_nAnimID = (AnimationId)(+taskFight->GetMove() + ANIM_ID_FIGHT_HIT_1);
                 m_fAnimBlend = 16.0f;
                 fForceFactor = 1.0f;
             }
@@ -701,7 +701,7 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
         if (ped->bUpperBodyDamageAnimsOnly || ped->bIsDucking || ped->m_pAttachedTo || !bMultiplyForceWithPedStrength || !m_pSourceEntity) {
             if (m_weaponType >= WEAPON_CHAINSAW || ped->m_fHealth >= fHealthThreshold) {
                 if (m_weaponType != WEAPON_FALL ||  !m_pSourceEntity  || !m_pSourceEntity->IsObject()) {
-                    if (sourceEntityTaskFight && sourceEntityTaskFight->m_nCurrentMove == FIGHT_ATTACK_FIGHTIDLE && !ped->IsPlayer() && ped->m_nMoveState > PEDMOVE_WALK)
+                    if (sourceEntityTaskFight && sourceEntityTaskFight->GetMove() == eMeleeMove::MOVING && !ped->IsPlayer() && ped->m_nMoveState > PEDMOVE_WALK)
                         m_bFallDown = true;
                 }
                 else {
@@ -728,16 +728,19 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
     else {
         m_bFallDown = false;
         if (!m_ucDirection) {
-            if (sourceEntityTaskFight && sourceEntityTaskFight->m_nComboSet >= 4 && sourceEntityTaskFight->m_nCurrentMove <= FIGHT_ATTACK_HIT_3) {
+            if (   sourceEntityTaskFight
+                && sourceEntityTaskFight->GetCurrentComboSet() >= eMeleeCombo::UNARMED_1
+                && sourceEntityTaskFight->GetMove() <= eMeleeMove::MOVING
+            ) {
                 m_nAnimGroup = sourceEntityTaskFight->GetComboAnimGroupID();
-                m_nAnimID = (AnimationId)(sourceEntityTaskFight->m_nCurrentMove + ANIM_ID_FIGHT_HIT_1);
+                m_nAnimID = (AnimationId)(+sourceEntityTaskFight->GetMove() + ANIM_ID_FIGHT_HIT_1);
                 m_fAnimBlend = 16.0f;
                 if (sourceEntityTaskFight->IsComboSet())
                     m_bFallDown = true;
                 bPlayHitAnim = false;
             }
             else if (sourceEntityTaskUseGun && sourceEntityTaskUseGun->m_LastCmd == eGunCommand::PISTOLWHIP) {
-                m_nAnimGroup = CTaskSimpleFight::m_aComboData[0].m_nAnimGroup;
+                m_nAnimGroup = CTaskSimpleFight::m_aComboData[0].AnimGroup;
                 m_nAnimID = ANIM_ID_FIGHT_HIT_2;
                 m_fAnimBlend = 16.0f;
                 bPlayHitAnim = false;

@@ -72,6 +72,7 @@ public:
     static AnimAssocDefinition* AddAnimAssocDefinition(const char* groupName, const char* blockName, uint32 modelIndex, uint32 animsCount, AnimDescriptor* descriptor);
     static void AddAnimToAssocDefinition(AnimAssocDefinition* definition, const char* animName);
     static void AddAnimBlockRef(int32 index);
+    static void AddAnimBlockRef(CAnimBlock* b) { b->RefCnt++; }
 
     static void CreateAnimAssocGroups();
     static int32 RegisterAnimBlock(const char* name);
@@ -110,7 +111,21 @@ public:
     static auto GetAssocGroups() { return std::span{ms_aAnimAssocGroups, ms_numAnimAssocDefinitions}; }
     static auto GetAssocGroupDefs() { return std::span{ms_aAnimAssocDefinitions, ms_numAnimAssocDefinitions}; }
 
+    /*!
+    *  @notsa
+     * @brief Handle animation block refs and make sure the block is loaded/unloaded as requested.
+     * 
+     * @detail If `shouldBeLoaded` If the anim block is not yet loaded, use `CStreaming` to stream it in then add an anim ref and set `isLoaded` to true.
+     * @detail Otherwise, if loaded (`isLoaded`) unload remove the ref.
+     * @detail This pattern is very common in tasks that deal with animations
+     * @detail Usual usage would be: `StreamAnimBlock(m_animBlockName, CTaskComplexGangLeader::ShouldLoadGangAnims(), m_areAnimsReferenced)`
+     * 
+     * @param blck The block to load/unload
+     * @param shouldBeLoaded If the block should currently be loaded/unloaded. (Only unstreamed if no remaining refs)
+     * @param isLoaded If the anim block was loaded (=> if refs have to be removed or not)
+     */
     static void StreamAnimBlock(const char* blck, bool shouldBeLoaded, bool& isLoaded);
+    static void StreamAnimBlock(CAnimBlock* blck, bool shouldBeLoaded, bool& isLoaded);
 private:
     static void LoadAnimFile_ANPK(RwStream* stream, const IFPSectionHeader& h, bool compress, const char (*uncompressedAnims)[32]);
     static void LoadAnimFile_ANP23(RwStream* stream, const IFPSectionHeader& h, bool compress, bool isANP3);
