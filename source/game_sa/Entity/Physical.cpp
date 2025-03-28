@@ -638,18 +638,21 @@ void CPhysical::RemoveAndAdd()
 
             if (entryInfoNode) {
                 CPtrNodeDoubleLink* doubleLink = entryInfoNode->m_doubleLink;
-                if (entryInfoNode->m_doubleLinkList->m_node == (CPtrNode*)doubleLink)
-                    entryInfoNode->m_doubleLinkList->m_node = (CPtrNode*)doubleLink->m_next;
 
-                CPtrNodeDoubleLink* doubleLinkPrevious = doubleLink->m_prev;
-                if (doubleLinkPrevious)
-                    doubleLinkPrevious->m_next = doubleLink->m_next;
+                //CPtrNodeDoubleLink* doubleLink = entryInfoNode->m_doubleLink;
+                //if (entryInfoNode->m_doubleLinkList->m_node == (CPtrNode*)doubleLink)
+                //    entryInfoNode->m_doubleLinkList->m_node = (CPtrNode*)doubleLink->GetNext();
+                //
+                //CPtrNodeDoubleLink* doubleLinkPrevious = doubleLink->m_prev;
+                //if (doubleLinkPrevious)
+                //    doubleLinkPrevious->GetNext() = doubleLink->GetNext();
+                //
+                //CPtrNodeDoubleLink* doubleLinkNext = doubleLink->GetNext();
+                //if (doubleLinkNext)
+                //    doubleLinkNext->m_prev = doubleLink->m_prev;
 
-                CPtrNodeDoubleLink* doubleLinkNext = doubleLink->m_next;
-                if (doubleLinkNext)
-                    doubleLinkNext->m_prev = doubleLink->m_prev;
-
-                doubleLink->AddToList(list);
+                entryInfoNode->m_doubleLinkList->DeleteNode(doubleLink);
+                list->AddNode(doubleLink);
 
                 entryInfoNode->m_repeatSector = repeatSector;
                 entryInfoNode->m_doubleLinkList = list;
@@ -2022,7 +2025,7 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
             do
             {
                 auto* entity = reinterpret_cast<CPhysical*>(node->m_item);
-                node = node->m_next;
+                node = node->GetNext();
 
                 bool bProcessEntityCollision = true;
                 if (!entity->IsBuilding() && (!entity->IsObject() || !entity->physicalFlags.bDisableCollisionForce))
@@ -4026,7 +4029,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
                 entity = (CEntity*)node->m_item;
                 assert(entity);
 
-                node = node->m_next;
+                node = node->GetNext();
 
                 physicalEntity = entity->AsPhysical();
                 entityObject = entity->AsObject();
@@ -4561,7 +4564,7 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
     {
         entity = reinterpret_cast<CEntity*>(node->m_item);
         physicalEntity = entity->AsPhysical();
-        node = node->m_next;
+        node = node->GetNext();
 
         bool isLampTouchingGround = false;
         if (entity->IsObject() && entity->AsObject()->IsFallenLampPost())
