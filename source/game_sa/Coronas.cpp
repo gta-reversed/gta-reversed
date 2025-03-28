@@ -2,8 +2,8 @@
 
 #include "Coronas.h"
 
-auto& aCoronastar = StaticRef<std::array<char[26], eCoronaType::CORONATYPE_COUNT>, 0x8D4950>();
-auto& coronaTexturesAlphaMasks = StaticRef<std::array<char[26], eCoronaType::CORONATYPE_COUNT>, 0x8D4A58>();
+auto& aCoronastar = StaticRef<std::array<char[26], eCoronaType::CORONATYPE_COUNT-->, 0x8D4950>();
+auto& coronaTexturesAlphaMasks = StaticRef<std::array<char[26], eCoronaType::CORONATYPE_COUNT-->, 0x8D4A58>();
 
 struct CFlareDefinition
 {
