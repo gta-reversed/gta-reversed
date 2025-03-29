@@ -413,32 +413,36 @@ void CMenuManager::DrawQuitGameScreen() {
 }
 
 // 0x57D8D0
-void CMenuManager::DrawControllerScreenExtraText(int32 a2) {
-    int actionIndex = 0;
-    uint32 maxActions = 0;
+void CMenuManager::DrawContollerScreenExtraText(int32 StartingYPos) {
+    eControllerAction maxActions = eControllerAction::CA_PED_FIRE_WEAPON;
     uint8 verticalSpacing;
-    
-    if (m_RedefiningControls) {
-        if (m_RedefiningControls == 1) {
-            verticalSpacing = 13;
-            maxActions = 25;
-        } else {
-            verticalSpacing = a2;
-        }
+
+    if (m_RedefiningControls == 1) {
+        maxActions = eControllerAction::CA_VEHICLE_BRAKE;
+        verticalSpacing = 13;
     } else {
-        verticalSpacing = 4 * (!m_ControlMethod) + 11;
-        maxActions = m_ControlMethod ? 28 : 22;
+        if (m_ControlMethod) {
+            verticalSpacing = 11;
+            maxActions = eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP;
+        } else {
+            verticalSpacing = 15;
+            maxActions = eControllerAction::CA_VEHICLE_STEER_UP;
+        }
     }
-    
     if (maxActions) {
         float posX = 0.0f;
         
-        for (actionIndex = 0; actionIndex < maxActions; actionIndex++) {
+        for (auto action : std::views::iota(
+                static_cast<std::underlying_type_t<eControllerAction>>(eControllerAction::CA_PED_FIRE_WEAPON),
+                static_cast<std::underlying_type_t<eControllerAction>>(maxActions)
+            ))
+        {
+            eControllerAction actionIndex = static_cast<eControllerAction>(action);
             posX = StretchX(240.0f);
-            float posY = StretchY(float(a2));
+            float posY = StretchY(float(StartingYPos));
             
-            for (int32 order = 1; order <= 4; order--) {
-                const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)actionIndex, order);
+            for (const auto order : {eContSetOrder::FIRST, eContSetOrder::SECOND, eContSetOrder::THIRD, eContSetOrder::FOURTH}) {
+                const auto buttonText = ControlsManager.GetControllerSettingText(actionIndex, order);
                 if (buttonText) {
                     CFont::PrintString(posX, posY, buttonText);
                     posX += StretchX(75.0f);
@@ -448,7 +452,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 a2) {
             if (actionIndex == m_ListSelection) {
                 if (m_EditingControlOptions) {
                     if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.LastFlash > 150) {
-                        FrontEndMenuManager.ColourSwitch = FrontEndMenuManager.ColourSwitch ? false : true;
+                        FrontEndMenuManager.ColourSwitch = (FrontEndMenuManager.ColourSwitch) ? false : true;
                         FrontEndMenuManager.LastFlash  = CTimer::m_snTimeInMillisecondsPauseMode;
                     }
                     
@@ -460,7 +464,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 a2) {
                 }
             }
             
-            a2 += verticalSpacing;
+            StartingYPos += verticalSpacing;
         }
         
         // Handle combo text display
@@ -737,7 +741,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                 if (m_DeleteAllNextDefine && m_ListSelection == actionIndex) {
                     break;
                 }
-                const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)controllerAction, controlOrderIndex);
+                const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)controllerAction, (eContSetOrder)controlOrderIndex);
                 if (buttonText) {
                     if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, buttonText);

@@ -128,12 +128,12 @@ bool CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerA
     ResetSettingOrder(action);
     auto existingMappings = 0u;
     for (auto i = 0u; i < CONTROLLER_NUM; ++i) {
-        if (m_Actions[action].Keys[i].Key != rsNULL) {
+        if (m_Actions[action].Keys[i].m_uiActionInitiator != rsNULL) {
             existingMappings++;
         }
     }
-    m_Actions[action].Keys[type].Key  = button;
-    m_Actions[action].Keys[type].Order = (CControllerKey::KeyOrder)existingMappings++;
+    m_Actions[action].Keys[type].m_uiActionInitiator  = button;
+    m_Actions[action].Keys[type].m_uiSetOrder = (eContSetOrder)existingMappings++;
     return true;
 }
 
@@ -203,7 +203,7 @@ void CControllerConfigManager::StoreJoyButtonStates() {
 const GxtChar* CControllerConfigManager::GetActionKeyName(eControllerAction action) {
     int32 v3 = 0;
     ResetSettingOrder(action);
-    for (auto i = (int32)m_Actions[action].Keys[eControllerType::KEYBOARD].Order; !i; i += 2) {
+    for (auto i = (int32)m_Actions[action].Keys[eControllerType::KEYBOARD].m_uiSetOrder; !i; i += 2) {
         if (++v3 >= 2) {
             return 0;
         }
@@ -212,15 +212,15 @@ const GxtChar* CControllerConfigManager::GetActionKeyName(eControllerAction acti
 }
 
 // 0x531E20
-const GxtChar* CControllerConfigManager::GetControllerSettingText(eControllerAction action, CControllerKey::KeyOrder priority) {
+const GxtChar* CControllerConfigManager::GetControllerSettingText(eControllerAction action, eContSetOrder priority) {
     for (auto type = 0u; type < CONTROLLER_NUM; ++type) {
-        if (m_Actions[action].Keys[type].Order == priority) {
+        if (m_Actions[action].Keys[type].m_uiSetOrder == priority) {
             switch (type) {
             case eControllerType::KEYBOARD:
             case eControllerType::OPTIONAL_EXTRA_KEY: return GetKeyNameForKeyboard(action, (eControllerType)type);
-            case eControllerType::MOUSE:     return GetControllerSettingTextMouse(action);
-            case eControllerType::JOY_STICK:       return GetControllerSettingTextJoystick(action);
-            default:                   NOTSA_UNREACHABLE();
+            case eControllerType::MOUSE:              return GetControllerSettingTextMouse(action);
+            case eControllerType::JOY_STICK:          return GetControllerSettingTextJoystick(action);
+            default:                                  NOTSA_UNREACHABLE();
             }
         }
     }
@@ -247,12 +247,13 @@ void CControllerConfigManager::UnmapVehicleEnterExit(CControllerKey::KeyCode but
 }
 
 // 0x52FD70
-void CControllerConfigManager::ClearSettingsAssociatedWithAction(eControllerAction action, eControllerType type) {
-    m_Actions[action].Keys[type].Key  = (type == eControllerType::KEYBOARD || type == eControllerType::OPTIONAL_EXTRA_KEY)
-         ? rsNULL
-         : (RsKeyCodes)(0);
-    m_Actions[action].Keys[type].Order = 0;
-    ResetSettingOrder(action);
+void CControllerConfigManager::ClearSettingsAssociatedWithAction(eControllerAction Action, eControllerType ArrayToEnter) {
+    constexpr RsKeyCodes arrayToTest[4] = {rsNULL, rsNULL, (RsKeyCodes)(0), (RsKeyCodes)(0)};
+    if (ArrayToEnter <= eControllerType::JOY_STICK) {
+        m_Actions[Action].Keys[ArrayToEnter].m_uiActionInitiator  = arrayToTest[ArrayToEnter];
+        m_Actions[Action].Keys[ArrayToEnter].m_uiSetOrder = eContSetOrder::NO_ORDER_SET;
+    }
+    ResetSettingOrder(Action);
 }
 
 // unused
@@ -273,13 +274,13 @@ CControllerState* CControllerConfigManager::AffectControllerStateOn_ButtonDown_A
 
 // 0x52F580
 int32 CControllerConfigManager::GetMouseButtonAssociatedWithAction(eControllerAction action) {
-    return m_Actions[action].Keys[eControllerType::MOUSE].Key;
+    return m_Actions[action].Keys[eControllerType::MOUSE].m_uiActionInitiator;
 }
 
 // 0x52FAB0
 eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
     const auto CheckAndSetStick = [&](eControllerAction action, int16& stickValue, bool& stickFlag, int16 value) {
-        if (m_Actions[action].Keys[type].Key == button) {
+        if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
             if (stickFlag || (stickValue != 0 && stickValue != value)) {
                 stickValue = 0;
                 stickFlag  = true;
@@ -338,7 +339,7 @@ bool CControllerConfigManager::GetIsActionAButtonCombo(eControllerAction action)
 
 // 0x52F4F0
 int32 CControllerConfigManager::GetControllerKeyAssociatedWithAction(eControllerAction action, eControllerType type) {
-    return m_Actions[action].Keys[type].Key;
+    return m_Actions[action].Keys[type].m_uiActionInitiator;
 }
 
 // 0x52F9E0
@@ -352,7 +353,7 @@ int32 CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstPersonOn
 // 0x52FD40
 int32 CControllerConfigManager::HandleButtonRelease(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
     const auto CheckAndReset = [&](eControllerAction action, int16& stateFlag) {
-        if (m_Actions[action].Keys[type].Key == button) {
+        if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
             stateFlag = 0;
         }
     };
@@ -364,7 +365,7 @@ int32 CControllerConfigManager::HandleButtonRelease(CControllerKey::KeyCode butt
 // 0x52F7B0
 eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Driving(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
     const auto CheckAndSetStick = [&](eControllerAction action, int16& stickValue, bool& stickFlag, int16 value) {
-        if (m_Actions[action].Keys[type].Key == button) {
+        if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
             if (stickFlag) {
                 stickValue = 0;
                 stickFlag  = true;
@@ -412,7 +413,7 @@ void CControllerConfigManager::ResetSettingOrder(eControllerAction action) {
         bool priorityExists = false;
         
         for (int32 controllerType = 0; controllerType < 4; controllerType++) {
-            if (m_Actions[action].Keys[controllerType].Order == priorityLevel) {
+            if (m_Actions[action].Keys[controllerType].m_uiSetOrder == priorityLevel) {
                 priorityExists = true;
                 break;
             }
@@ -423,12 +424,12 @@ void CControllerConfigManager::ResetSettingOrder(eControllerAction action) {
             bool found = false;
             
             for (int32 controllerType = 0; controllerType < 4; controllerType++) {
-                const auto keyPriority = m_Actions[action].Keys[controllerType].Order;
+                const auto keyPriority = m_Actions[action].Keys[controllerType].m_uiSetOrder;
                 
                 // Only consider keys with priority > priorityLevel and not 0 (unset)
                 if (keyPriority > priorityLevel && keyPriority != 0) {
                     // If no key found yet or this key has lower priority than current best
-                    if (!found || keyPriority < m_Actions[action].Keys[result].Order) {
+                    if (!found || keyPriority < m_Actions[action].Keys[result].m_uiSetOrder) {
                         result = controllerType;
                         found = true;
                     }
@@ -437,7 +438,7 @@ void CControllerConfigManager::ResetSettingOrder(eControllerAction action) {
             
             // If we found a key with higher priority, adjust it to the current level
             if (found) {
-                m_Actions[action].Keys[result].Order = priorityLevel;
+                m_Actions[action].Keys[result].m_uiSetOrder = (eContSetOrder)priorityLevel;
             }
         }
     }
@@ -629,8 +630,8 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
                     }
                     
                     // Set the binding
-                    m_Actions[actionId].Keys[currentType].Key = (CControllerKey::KeyCode)keyValue;
-                    m_Actions[actionId].Keys[currentType].Order = (CControllerKey::KeyOrder)orderValue;
+                    m_Actions[actionId].Keys[currentType].m_uiActionInitiator = (CControllerKey::KeyCode)keyValue;
+                    m_Actions[actionId].Keys[currentType].m_uiSetOrder = (eContSetOrder)orderValue;
                 }
             }
         }
@@ -661,7 +662,7 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
         
         for (int j = 0; j < NUM_OF_CONTROLLER_ACTIONS; j++) {
             // Skip empty bindings
-            if (GetIsKeyBlank(m_Actions[j].Keys[i].Key, (eControllerType)i)) {
+            if (GetIsKeyBlank(m_Actions[j].Keys[i].m_uiActionInitiator, (eControllerType)i)) {
                 continue;
             }
             
@@ -672,8 +673,8 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
             // Write key=value
             char line[256];
             sprintf(line, "%s=%d,%d\n", actionName, 
-                   m_Actions[j].Keys[i].Key, 
-                   m_Actions[j].Keys[i].Order);
+                   m_Actions[j].Keys[i].m_uiActionInitiator, 
+                   m_Actions[j].Keys[i].m_uiSetOrder);
             CFileMgr::Write(file, line, (int32)strlen(line));
         }
         
@@ -971,10 +972,10 @@ bool CControllerConfigManager::ReinitControls() {
 int8 CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAction actionID, CControllerKey::KeyCode button) {
     auto& action = m_Actions[actionID];
     const auto order = 1 + rng::count_if(action.Keys, [](auto&& key) { /* 1 + count of previously set keys for this control */
-        return key.Key != rsNULL && key.Key != 0;
+        return key.m_uiActionInitiator != rsNULL && key.m_uiActionInitiator != 0;
     });
-    action.Keys[eControllerType::MOUSE].Key  = button;
-    action.Keys[eControllerType::MOUSE].Order = order;
+    action.Keys[eControllerType::MOUSE].m_uiActionInitiator  = button;
+    action.Keys[eControllerType::MOUSE].m_uiSetOrder = (eContSetOrder)order;
     return order;
 }
 
@@ -1390,7 +1391,7 @@ eActionType CControllerConfigManager::GetActionType(eControllerAction action) {
 
 // 0x52F390
 const GxtChar* CControllerConfigManager::GetControllerSettingTextMouse(eControllerAction action) {
-    switch (m_Actions[action].Keys[eControllerType::MOUSE].Key) {
+    switch (m_Actions[action].Keys[eControllerType::MOUSE].m_uiActionInitiator) {
     case rsMOUSE_LEFT_BUTTON:       return TheText.Get("FEC_MSL");
     case rsMOUSE_MIDDLE_BUTTON:     return TheText.Get("FEC_MSM");
     case rsMOUSE_RIGHT_BUTTON:      return TheText.Get("FEC_MSR");
@@ -1406,7 +1407,7 @@ const GxtChar* CControllerConfigManager::GetControllerSettingTextMouse(eControll
 const GxtChar* CControllerConfigManager::GetControllerSettingTextJoystick(eControllerAction action) {
     static thread_local GxtChar s_buttonName[64]; // 0xB7147C
 
-    const auto keyCode = (RsKeyCodes)m_Actions[action].Keys[eControllerType::JOY_STICK].Key;
+    const auto keyCode = (RsKeyCodes)m_Actions[action].Keys[eControllerType::JOY_STICK].m_uiActionInitiator;
     if (!keyCode) {
         return 0;
     }
@@ -1447,7 +1448,7 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
     for (auto i = 0u; i < NUM_OF_CONTROLLER_ACTIONS; ++i) {
         // Handle key press logic
         for (const auto& type : CONTROLLER_TYPES) {
-            const auto key = m_Actions[i].Keys[type].Key;
+            const auto key = m_Actions[i].Keys[type].m_uiActionInitiator;
             
             if (GetIsKeyboardKeyDown(key) && inMenu && key != rsNULL) {
                 bool useFirstPersonControls = false;
@@ -1475,7 +1476,7 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
                         }
                     }
                     
-                    if (m_Actions[CA_VEHICLE_ENTER_EXIT].Keys[type].Key == key) {
+                    if (m_Actions[CA_VEHICLE_ENTER_EXIT].Keys[type].m_uiActionInitiator == key) {
                         state->ButtonTriangle = 255;
                     }
                     
@@ -1493,12 +1494,12 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
         CControllerState* keyState = &pad->PCTempKeyState;
         
         for (const auto& type : CONTROLLER_TYPES) {
-            const auto key = m_Actions[i].Keys[type].Key;
+            const auto key = m_Actions[i].Keys[type].m_uiActionInitiator;
             if (!GetIsKeyboardKeyDown(key) && key != rsNULL) {
-                if (m_Actions[CA_NETWORK_TALK].Keys[type].Key == key) {
+                if (m_Actions[CA_NETWORK_TALK].Keys[type].m_uiActionInitiator == key) {
                     keyState->m_bChatIndicated = 0;
                 }
-                if (m_Actions[CA_VEHICLE_MOUSE_LOOK].Keys[type].Key == key) {
+                if (m_Actions[CA_VEHICLE_MOUSE_LOOK].Keys[type].m_uiActionInitiator == key) {
                     keyState->m_bVehicleMouseLook = 0;
                 }
             }
@@ -1513,7 +1514,7 @@ void CControllerConfigManager::AffectPadFromMouse() {
     CControllerState* state = &pad->PCTempMouseState;
 
     for (auto& action : m_Actions) {
-        const auto button = action.Keys[eControllerType::MOUSE].Key;
+        const auto button = action.Keys[eControllerType::MOUSE].m_uiActionInitiator;
 
         if (CControllerConfigManager::GetIsMouseButtonDown(button)) {
             if (controlsEnabled && button && pad) {
@@ -1535,10 +1536,10 @@ void CControllerConfigManager::AffectPadFromMouse() {
 
         if (GetIsMouseButtonUp(button) && button && pad) {
             if (!FrontEndMenuManager.m_bMenuActive) {
-                if (m_Actions[CA_NETWORK_TALK].Keys[eControllerType::MOUSE].Key == button) {
+                if (m_Actions[CA_NETWORK_TALK].Keys[eControllerType::MOUSE].m_uiActionInitiator == button) {
                     state->m_bChatIndicated = 0;
                 }
-                if (m_Actions[CA_VEHICLE_MOUSE_LOOK].Keys[eControllerType::MOUSE].Key == button) {
+                if (m_Actions[CA_VEHICLE_MOUSE_LOOK].Keys[eControllerType::MOUSE].m_uiActionInitiator == button) {
                     state->m_bVehicleMouseLook = 0;
                 }
             }
@@ -1598,7 +1599,7 @@ void CControllerConfigManager::DeleteMatchingActionInitiators(eControllerAction 
 const GxtChar* CControllerConfigManager::GetKeyNameForKeyboard(eControllerAction action, eControllerType type) {
     static thread_local GxtChar s_KeyName[50]; // 0xB714BC
 
-    const auto key = m_Actions[action].Keys[type].Key;
+    const auto key = m_Actions[action].Keys[type].m_uiActionInitiator;
 
     const auto KeyNameWithNumber = [&](const GxtChar* text, int32 key) {
         CMessages::InsertNumberInString(text, key, -1, -1, -1, -1, -1, s_KeyName);
@@ -1702,7 +1703,7 @@ const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction ev
 const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerAction action) {
     static thread_local GxtChar s_ButtonName[64]; // 0xB7147C
     if (FrontEndMenuManager.m_ControlMethod) {
-        if (const auto keyCode = m_Actions[action].Keys[eControllerType::JOY_STICK].Key) {
+        if (const auto keyCode = m_Actions[action].Keys[eControllerType::JOY_STICK].m_uiActionInitiator) {
             const auto joyButtonText = TheText.Get("FEC_JBO");
             CMessages::InsertNumberInString(joyButtonText, keyCode, -1, -1, -1, -1, -1, s_ButtonName);
             return s_ButtonName;
@@ -1721,7 +1722,7 @@ const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerActio
         return keyText;
     }
 
-    if (m_Actions[action].Keys[eControllerType::JOY_STICK].Key == (RsKeyCodes)(0)) {
+    if (m_Actions[action].Keys[eControllerType::JOY_STICK].m_uiActionInitiator == (RsKeyCodes)(0)) {
         return GetControllerSettingTextMouse(action);
     }
 
@@ -1731,7 +1732,7 @@ const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerActio
 // NOTSA
 eControllerAction CControllerConfigManager::GetActionIDByName(std::string_view name) {
     for (auto&& [i, actionName] : notsa::enumerate(m_ControllerActionName)) {
-        char actionNameUTF8[128];
+        char actionNameUTF8[128] = {0}; // Initialize with zeros to ensure null termination
         GxtCharToUTF8(actionNameUTF8, actionName);
         if (std::string_view{ actionNameUTF8 } == name) {
             return (eControllerAction)(i);
@@ -1781,21 +1782,21 @@ bool CControllerConfigManager::IsCheckSpecificGamepad()
 
 // NOTSA
 void CControllerConfigManager::CheckAndClear(eControllerAction action, eControllerType type, CControllerKey::KeyCode button) {
-    if (m_Actions[action].Keys[type].Key == button) {
+    if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
         ClearSettingsAssociatedWithAction(action, type);
     }
 };
 
 // NOTSA
 void CControllerConfigManager::CheckAndSetButton(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stateButton) {
-    if (m_Actions[action].Keys[type].Key == button) {
+    if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
         stateButton = 255;
     }
 }
 
 // NOTSA
 void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& dpad, int16& oppositeDpad) {
-    if (m_Actions[action].Keys[type].Key == button) {
+    if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
         if (dpad) {
             dpad         = 0;
             oppositeDpad = 0;

@@ -235,7 +235,7 @@ public:
     int16 field_1B52;
     int32 m_lastBlinkTime;
     uint32 m_nTimeHelperTextUpdated;
-    char  ColourSwitch;
+    bool  ColourSwitch;
     char  field_1B5D;
     int16 field_1B5E;
     int32 LastFlash;
@@ -285,7 +285,7 @@ public:
     void DrawWindow(const CRect& coords, const char* key, uint8 color, CRGBA backColor, bool unused, bool background);
     void DrawWindowedText(float x, float y, float wrap, const char* title, const char* message, eFontAlignment alignment);
     void DrawQuitGameScreen();
-    void DrawControllerScreenExtraText(int32);
+    void DrawContollerScreenExtraText(int32);
     void DrawControllerBound(uint16, bool);
     void DrawControllerSetupScreen();
 #ifdef USE_GALLERY
