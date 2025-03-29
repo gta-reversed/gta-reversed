@@ -10,7 +10,8 @@ template<typename LinkType>
 class CPtrNode {
 public:
     CPtrNode(void* item) :
-        m_item(item) {}
+        m_item(item)
+    { assert(item); }
 
     template<typename T>
     auto GetItem() const { return static_cast<T*>(m_item); }
@@ -20,7 +21,7 @@ public:
 
     auto GetNext() const noexcept { return m_next; }
 
-    void*     m_item;
-    LinkType* m_next;
+    void*     m_item{};
+    LinkType* m_next{};
 };
 //VALIDATE_SIZE(CPtrNode<void>, 8);

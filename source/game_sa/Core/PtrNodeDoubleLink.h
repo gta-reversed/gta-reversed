@@ -30,7 +30,7 @@ public:
     //}
 
 public:
-    CPtrNodeDoubleLink* m_prev;
+    CPtrNodeDoubleLink* m_prev{};
 
 };
 VALIDATE_SIZE(CPtrNodeDoubleLink, 0xC);

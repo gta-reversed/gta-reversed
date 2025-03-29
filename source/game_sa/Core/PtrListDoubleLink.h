@@ -9,6 +9,9 @@
 #include "PtrList.h"
 #include "PtrNodeDoubleLink.h"
 
+/*!
+* @brief A list of double-linked nodes
+*/
 class CPtrListDoubleLink : public CPtrList<CPtrNodeDoubleLink> {
 public:
     static void InjectHooks();
@@ -28,61 +31,73 @@ public:
 
     /*!
     * @brief Add item to the head (front) of the list
+    * @return The `node` of the added item
     **/
     NodeType* AddItem(void* item) {
-        auto node = new NodeType{ item };
-        AddNode(node);
-        return node;
+        return AddNode(new NodeType{ item });
     }
 
     /*!
     * @brief Delete an item from the list.
     * @warning Invalidates `item`'s node (iterator), please make sure you pre-fetch `next` before deleting!
+    * @return Node following the removed node (that is `node->next`)
     **/
-    void DeleteItem(void* item) {
-        if (!m_node) {
-            return;
-        }
+    NodeType* DeleteItem(void* item) {
+        assert(item);
 
-        auto* node = GetNode();
-        while (node->m_item != item) {
-            node = reinterpret_cast<NodeType*>(node->m_next);
-            if (!node) {
-                return;
+        for (NodeType* node = m_node; node; node = node->m_next) {
+            if (node->m_item == item) {
+                return DeleteNode(node);
             }
         }
-        DeleteNode(node);
+        return nullptr;
     }
 
     /*!
     * @brief Add a node to the head of the list
+    * @return The added node
     */
-    void AddNode(NodeType* node) {
-        if (m_node) {
-            m_node->m_prev = node;
+    NodeType* AddNode(NodeType* node) {
+        assert(node);
+
+        NodeType* next = node->m_next = std::exchange(m_node, node);
+        if (next) {
+            assert(next->m_prev == nullptr && "Head node must have no `prev`");
+            next->m_prev = node;
         }
         node->m_prev = nullptr;
-        node->m_next = std::exchange(m_node, node);
+        return node;
     }
 
     /*!
     * @brief Delete the specified node from the list
-    * @warning Invalidates `node`, make sure to pre-fetch `next` from it beforehands!
+    * @warning Invalidates `node`, make sure to pre-fetch `next` from it beforehand!
+    * @return Node following the removed node (that is `node->next`)
     */
-    void DeleteNode(NodeType* node) {
-        if (GetNode() == node) { // Head node?
-            assert(!node->m_prev);
-            m_node = m_node->m_next;
+    NodeType* DeleteNode(NodeType* node) {
+        assert(node);
+        assert(m_node && "Can't remove node from empty list");
+
+        NodeType *next = node->m_next,
+                 *prev = node->m_prev;
+
+        if (next) {
+            assert(next->m_prev == node);
+            next->m_prev = prev;
+        }
+
+        if (m_node == node) { // Node is the head?
+            assert(!prev && "Head node must have no `prev`");
+            m_node = next;
         } else {
-            assert(node->m_prev);
-            node->m_prev->m_next = node->m_next;
+            assert(prev && "All nodes other than the `head` must have a valid `prev`!");
+            assert(prev->m_next == node);
+            prev->m_next = next;
         }
 
-        if (node->m_next) {
-            node->m_next->m_prev = node->m_prev;
-        }
+        delete node;
 
-        delete node;    
+        return next;
     }
 };
 

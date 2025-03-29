@@ -9,6 +9,9 @@
 #include "PtrList.h"
 #include "PtrNodeSingleLink.h"
 
+/*!
+* @brief A list of single-linked nodes (forward list)
+*/
 class CPtrListSingleLink : public CPtrList<CPtrNodeSingleLink> {
 public:
     //static void InjectHooks() {
@@ -20,6 +23,7 @@ public:
     //    RH_ScopedInstall(DeleteItem, 0x533610);
     //}
 
+    CPtrListSingleLink() = default;
     ~CPtrListSingleLink() { Flush(); }
 
     /*!
@@ -27,8 +31,9 @@ public:
     * @warning Invalidates all nodes of this list
     */
     void Flush() {
-        while (NodeType* node = GetNode()) { // Keep popping from the head until empty
-            DeleteNode(node, GetNode());
+        // Keep popping from the head until empty
+        while (NodeType* node = GetNode()) {
+            DeleteNode(node, nullptr);
         }
     }
 
@@ -43,20 +48,14 @@ public:
     * @brief Delete an item from the list.
     * @warning Invalidates `item`'s node (iterator), please make sure you pre-fetch `next` before deleting!
     **/
-    void DeleteItem(void* item) {
-        if (!m_node) {
-            return;
-        }
-
-        NodeType* prev = nullptr;
-        auto*     curr = GetNode();
-        while (curr->m_item != item) {
-            prev = std::exchange(curr, curr->m_next);
-            if (!curr) {
-                return;
+    NodeType* DeleteItem(void* item) {
+        assert(item);
+        for (NodeType *curr = m_node, *prev{}; curr; prev = std::exchange(curr, curr->m_next)) {
+            if (curr->m_item == item) {
+                return DeleteNode(curr, prev);
             }
         }
-        DeleteNode(curr, prev);
+        return nullptr;
     }
 
     /*!
@@ -69,16 +68,24 @@ public:
 
     /*!
     * @brief Delete the specified node from the list
-    * @warning Invalidates `node`, make sure to pre-fetch `next` from it beforehands!
+    * @warning Invalidates `node`, make sure to pre-fetch `next` from it beforehand!
+    * @return Node following the removed node (that is `node->next`)
     */
-    void DeleteNode(NodeType* node, NodeType* prev) {
+    NodeType* DeleteNode(NodeType* node, NodeType* prev) {
+        assert(node);
+        assert(GetNode() && "Can't remove node from empty list");
+
+        NodeType* next = node->m_next;
         if (GetNode() == node) { // Node is the head?
-            assert(!prev);
-            m_node = node->m_next;
-        } else if (prev) { // Node not the tail?
-            prev->m_next = node->m_next;
+            assert(!prev && "Head node must have no `prev`"); 
+            m_node = next;
+        } else {
+            assert(prev && "All nodes other than the `head` must have a valid `prev`!");
+            assert(prev->m_next == node && "`prev->next` must point to `node`");
+            prev->m_next = next;
         }
         delete node;
+        return next;
     }
 };
 VALIDATE_SIZE(CPtrListSingleLink, 4);
