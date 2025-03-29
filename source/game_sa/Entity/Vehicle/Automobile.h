@@ -97,8 +97,8 @@ public:
 
     float m_fBurnTimer;
 
-    std::array<CPhysical*, 4> m_apWheelCollisionEntity;
-    std::array<CVector, 4>    m_vWheelCollisionPos; // Bike::m_avTouchPointsLocalSpace
+    std::array<CPhysical*, 4> m_apWheelCollisionEntity{};
+    std::array<CVector, 4>    m_vWheelCollisionPos{}; // Bike::m_avTouchPointsLocalSpace
 
     CPed* m_pExplosionVictim;
     std::array<char, 24> field_928;
