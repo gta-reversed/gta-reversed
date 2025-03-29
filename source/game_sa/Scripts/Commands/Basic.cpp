@@ -103,7 +103,7 @@ auto GoTo(CRunningScript& S, int32 address) {
 }
 
 auto GoToIfFalse(CRunningScript& S, int32 goToAddress) {
-    if (!S.m_bCondResult) {
+    if (!S.m_CondResult) {
         S.UpdatePC(goToAddress);
     }
 }
@@ -139,15 +139,15 @@ auto Return(CRunningScript& S) {
 // OR, AND
 auto AndOr(CRunningScript& S, int32 logicalOp) { // 0x0D6
     // Read comment above `CRunningScript::LogicalOpType` for a little more insight!
-    S.m_nLogicalOp = logicalOp;
-    if (S.m_nLogicalOp == CRunningScript::ANDOR_NONE) {
-        S.m_bCondResult = false;
-    } else if (S.m_nLogicalOp >= CRunningScript::ANDS_1 && S.m_nLogicalOp <= CRunningScript::ANDS_8) { // It's an `AND`
-        S.m_nLogicalOp++;
-        S.m_bCondResult = true;
-    } else if (S.m_nLogicalOp >= CRunningScript::ORS_1 && S.m_nLogicalOp <= CRunningScript::ORS_8) { // It's an `OR`
-        S.m_nLogicalOp++;
-        S.m_bCondResult = false;
+    S.m_AndOrState = logicalOp;
+    if (S.m_AndOrState == CRunningScript::ANDOR_NONE) {
+        S.m_CondResult = false;
+    } else if (S.m_AndOrState >= CRunningScript::ANDS_1 && S.m_AndOrState <= CRunningScript::ANDS_8) { // It's an `AND`
+        S.m_AndOrState++;
+        S.m_CondResult = true;
+    } else if (S.m_AndOrState >= CRunningScript::ORS_1 && S.m_AndOrState <= CRunningScript::ORS_8) { // It's an `OR`
+        S.m_AndOrState++;
+        S.m_CondResult = false;
     } else {
         NOTSA_UNREACHABLE("Unknown LogicalOp: {}", logicalOp);
     }
@@ -160,7 +160,7 @@ auto AndOr(CRunningScript& S, int32 logicalOp) { // 0x0D6
 
 // COMMAND_TERMINATE_THIS_SCRIPT
 auto TerminateThisScript(CRunningScript& S) { // 0x04E 
-    if (S.m_bIsMission) {
+    if (S.m_ThisMustBeTheOnlyMissionRunning) {
         CTheScripts::bAlreadyRunningAMissionScript = false;
     }
     S.RemoveScriptFromList(&CTheScripts::pActiveScripts);
@@ -198,13 +198,28 @@ void DebugOff() {
 }
 
 auto Wait(CRunningScript& S, uint32 duration) {
-    S.m_nWakeTime = CTimer::GetTimeInMS() + duration;
+    S.m_WakeTime = CTimer::GetTimeInMS() + duration;
     return OR_WAIT;
 }
 
 auto Nop() {
     /* Hello! How are you? */
 }
+
+bool IsTextLabelEmpty(std::string_view l) {
+    return l.empty();
+}
+
+bool AreTextLabelsEqual(std::string_view a, std::string_view b) {
+    return a == b;
+}
+
+//template<size_t N>
+//void SetTextLabel(std::string_view a, std::string_view b) {
+//    assert(a.size() >= N);
+//    assert(b.size() >= N);
+//    strncpy(a.data(), b.data(), N);
+//}
 };
 
 void notsa::script::commands::basic::RegisterHandlers() {
@@ -371,6 +386,28 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DEBUG_OFF, DebugOff);
     REGISTER_COMMAND_HANDLER(COMMAND_WAIT, Wait);
     REGISTER_COMMAND_HANDLER(COMMAND_NOP, Nop);
+
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_VAR_TEXT_LABEL_EMPTY, IsTextLabelEmpty);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_LVAR_TEXT_LABEL_EMPTY, IsTextLabelEmpty);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_VAR_TEXT_LABEL16_EMPTY, IsTextLabelEmpty);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_LVAR_TEXT_LABEL16_EMPTY, IsTextLabelEmpty);
+
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_VAR_TEXT_LABEL16_EQUAL_TO_TEXT_LABEL, AreTextLabelsEqual);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_LVAR_TEXT_LABEL16_EQUAL_TO_TEXT_LABEL, AreTextLabelsEqual);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_VAR_TEXT_LABEL_EQUAL_TO_TEXT_LABEL, AreTextLabelsEqual);
+    REGISTER_COMMAND_HANDLER(COMMAND_IS_LVAR_TEXT_LABEL_EQUAL_TO_TEXT_LABEL, AreTextLabelsEqual);
+
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_TEXT_LABEL);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_TEXT_LABEL);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_TEXT_LABEL16);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_TEXT_LABEL16);
+
+    // TODO: `ReadArg` supports reading `string_view`, but it's `.data()` is const char*, thus we can't write to it
+    //       We need to introduce some intermediary type, like `ScriptStringRef` that stores a non-const `char*`
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL, SetTextLabel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL, SetTextLabel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL16, SetTextLabel);
+    //REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL16, SetTextLabel);
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_INT_VAR_NOT_EQUAL_TO_NUMBER);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_INT_LVAR_NOT_EQUAL_TO_NUMBER);

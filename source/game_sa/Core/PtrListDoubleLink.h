@@ -19,7 +19,12 @@ public:
     void Flush();
     CPtrNodeDoubleLink* AddItem(void* item);
     void DeleteItem(void* item);
-    void DeleteNode(CPtrNodeDoubleLink* node); //Most likely inlined in the final exe, this code is used in multiple places
+
+    /*!
+    * @brief Most likely inlined in the final exe, this code is used in multiple places
+    * @brief Use this only on the head link, not on the link to be removed
+    */
+    void DeleteNode(CPtrNodeDoubleLink* node);
 
     CPtrNodeDoubleLink* GetNode() const { return reinterpret_cast<CPtrNodeDoubleLink*>(m_node); }
 };

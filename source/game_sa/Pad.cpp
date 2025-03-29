@@ -106,6 +106,8 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(ConversationNoJustDown, 0x541200);
     RH_ScopedInstall(GroupControlForwardJustDown, 0x541230);
     RH_ScopedInstall(GroupControlBackJustDown, 0x541260);
+    RH_ScopedInstall(sub_540BD0, 0x540BD0, {.reversed = true});
+    RH_ScopedInstall(sub_540CC0, 0x540CC0, {.reversed = true});
 }
 
 // 0x541D80
@@ -1121,6 +1123,59 @@ int16 CPad::AimWeaponUpDown(CPed* ped) const {
         }
     }
     return bInvertLook4Pad ? -GetRightStickY() : GetRightStickY();
+}
+
+// 0x540BD0
+int16 CPad::sub_540BD0(CPed* ped) noexcept {
+    if (DisablePlayerControls) {
+        return 0;
+    }
+
+    auto s1 = NewState.LeftStickX, s2 = NewState.RightStickX;
+    if (byte_8CD782) {
+        std::swap(s1, s2);
+    }
+
+    if (!CCamera::m_bUseMouse3rdPerson && (!byte_B73403 || ped && ped->m_pAttachedTo) && std::abs(s1) < std::abs(s2)) {
+        s1 = s2;
+    }
+
+    if (std::abs(s1) <= 35) {
+        return 0;
+    }
+
+    constexpr auto UNK = 1.3763441f;
+    return static_cast<int16>((static_cast<float>(s1) + (s1 < 0 ? 35.0f : -35.0f)) * UNK);
+}
+
+// 0x540CC0
+int16 CPad::sub_540CC0(CPed* ped) noexcept {
+    if (DisablePlayerControls) {
+        return 0;
+    }
+
+    auto [s1, s2] = [&] {
+        if (byte_8CD782) {
+            return std::make_pair(NewState.RightStickY, NewState.LeftStickY);
+        } else {
+            return std::make_pair(NewState.LeftStickY, NewState.RightStickY);
+        }
+    }();
+
+    if (!CCamera::m_bUseMouse3rdPerson && (!byte_B73403 || ped && ped->m_pAttachedTo) && std::abs(s1) < std::abs(s2)) {
+        s1 = s2;
+    }
+
+    if (bInvertLook4Pad) {
+        s1 = -s1;
+    }
+
+    if (std::abs(s1) <= 35) {
+        return 0;
+    }
+
+    constexpr auto UNK = 1.3763441f;
+    return static_cast<int16>((static_cast<float>(s1) + (s1 < 0 ? 35.0f : -35.0f)) * UNK);
 }
 
 // 0x541290

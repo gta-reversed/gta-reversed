@@ -185,7 +185,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
     if (!vehicleFlags.bCanBeDamaged)
         return;
 
-    if (m_nStatus == STATUS_PLAYER || m_autoPilot.m_nCarMission == MISSION_CRASH_PLANE_AND_BURN || m_nModelIndex == MODEL_RCBARON) {
+    if (m_nStatus == STATUS_PLAYER || m_autoPilot.m_nCarMission == MISSION_PLANE_CRASH_AND_BURN || m_nModelIndex == MODEL_RCBARON) {
         if (damager == FindPlayerPed() || damager == FindPlayerVehicle()) {
             FindPlayerInfo().m_nHavocCaused += 20;
             FindPlayerInfo().m_fCurrentChaseValue += 10.0f;
@@ -207,7 +207,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         }
 
         // m_nType = m_nType & 7 | STATUS_WRECKED;
-        physicalFlags.bDestroyed = true;
+        physicalFlags.bRenderScorched = true;
         m_nTimeWhenBlowedUp = CTimer::GetTimeInMS();
         CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, ATOMIC_IS_BLOWN_UP);
         m_damageManager.FuckCarCompletely(false);
@@ -264,7 +264,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
             CExplosion::AddExplosion(this, damager, EXPLOSION_AIRCRAFT, GetPosition(), 0, 1, -1.0f, 0);
         }
     } else {
-        m_autoPilot.m_nCarMission = MISSION_CRASH_PLANE_AND_BURN;
+        m_autoPilot.SetCarMission(MISSION_PLANE_CRASH_AND_BURN);
         m_fHealth = 0.0f;
     }
 }

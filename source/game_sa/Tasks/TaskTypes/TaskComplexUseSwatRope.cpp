@@ -106,7 +106,7 @@ CTask* CTaskComplexUseSwatRope::ControlSubTask(CPed* ped) {
     if (   m_bIsOnHeli
         && (
                !m_pHeli
-               || m_pHeli->m_autoPilot.m_nCarMission == MISSION_CRASH_HELI_AND_BURN
+               || m_pHeli->m_autoPilot.m_nCarMission == MISSION_HELI_CRASH_AND_BURN
                || m_pHeli->m_fHealth <= 0.0F
            )
         && m_pSubTask->MakeAbortable(ped)

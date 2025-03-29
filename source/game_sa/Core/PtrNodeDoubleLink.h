@@ -15,7 +15,7 @@ public:
 public:
     static void InjectHooks();
 
-    CPtrNodeDoubleLink(void* item) { m_item = item; }
+    CPtrNodeDoubleLink(void* item) { assert(item); m_item = item; }
 
     static void* operator new(unsigned size);
     static void  operator delete(void* ptr, size_t sz);

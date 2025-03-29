@@ -40,10 +40,21 @@ public:
     float NormaliseAndMag();
 
     /// Get a normalized copy of this vector
-    auto Normalized() const -> CVector;
+    auto Normalized(float* outMag = nullptr) const -> CVector {
+        CVector cpy = *this;
+        if (outMag) {
+            *outMag = cpy.NormaliseAndMag();
+        } else {
+            cpy.Normalise();
+        }
+        return cpy;
+    }
 
     /// Perform a dot product with this and `o`, returning the result
     auto Dot(const CVector& o) const -> float;
+
+    /// Perform a 2D dot product with this and `o`, returning the result
+    auto Dot2D(const CVector& o) const -> float;
 
     /*!
     * @notsa
