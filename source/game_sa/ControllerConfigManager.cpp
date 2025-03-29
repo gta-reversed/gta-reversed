@@ -248,8 +248,8 @@ void CControllerConfigManager::UnmapVehicleEnterExit(CControllerKey::KeyCode but
 
 // 0x52FD70
 void CControllerConfigManager::ClearSettingsAssociatedWithAction(eControllerAction Action, eControllerType ArrayToEnter) {
-    constexpr RsKeyCodes arrayToTest[4] = {rsNULL, rsNULL, (RsKeyCodes)(0), (RsKeyCodes)(0)};
-    if (ArrayToEnter <= eControllerType::JOY_STICK) {
+    constexpr RsKeyCodes arrayToTest[4] = { rsNULL, rsNULL, (RsKeyCodes)(0), (RsKeyCodes)(0) };
+    if (ArrayToEnter >= eControllerType::KEYBOARD && ArrayToEnter <= eControllerType::JOY_STICK) {
         m_Actions[Action].Keys[ArrayToEnter].m_uiActionInitiator  = arrayToTest[ArrayToEnter];
         m_Actions[Action].Keys[ArrayToEnter].m_uiSetOrder = eContSetOrder::NO_ORDER_SET;
     }
