@@ -10,8 +10,9 @@
 #include "PtrList.h"
 
 namespace details {
+template<typename ItemType>
 struct PtrListDoubleLinkTraits {
-    using NodeType = CPtrNodeDoubleLink;
+    using NodeType = CPtrNodeDoubleLink<ItemType>;
 
     static NodeType* AddNode(NodeType*& head, NodeType* node) {
         NodeType* next = node->m_next = std::exchange(head, node);
@@ -52,9 +53,14 @@ struct PtrListDoubleLinkTraits {
 /*!
 * @brief A list of double-linked nodes
 */
-class CPtrListDoubleLink : public CPtrList<details::PtrListDoubleLinkTraits> {
+template<typename ItemType>
+class CPtrListDoubleLink : public CPtrList<details::PtrListDoubleLinkTraits<ItemType>> {
+private:
+    using Base     = CPtrList<details::PtrListDoubleLinkTraits<ItemType>>;
+    using NodeType = typename Base::NodeType;
+
 public:
-    using CPtrList::CPtrList;
+    using Base::CPtrList;
 
     /*!
     * @brief Delete the specified node from the list
@@ -62,7 +68,7 @@ public:
     * @return Node following the removed node (that is `node->next`)
     */
     NodeType* DeleteNode(NodeType* node) {
-        return CPtrList::DeleteNode(node, node->m_prev);
+        return Base::DeleteNode(node, node->m_prev);
     }
 
     /*!
@@ -71,6 +77,6 @@ public:
     * @return Node following the removed node (that is `node->next`)
     */
     NodeType* UnlinkNode(NodeType* node) {
-        return Traits::UnlinkNode(m_node, node, node->m_prev);
+        return Base::Traits::UnlinkNode(this->m_node, node, node->m_prev);
     }
 };

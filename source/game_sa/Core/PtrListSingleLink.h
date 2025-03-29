@@ -10,8 +10,9 @@
 #include "PtrList.h"
 
 namespace details {
+template<typename ItemType>
 struct PtrListSingleLinkTraits {
-    using NodeType = CPtrNodeSingleLink;
+    using NodeType = CPtrNodeSingleLink<ItemType>;
 
     static NodeType* AddNode(NodeType*& head, NodeType* node) {
         node->m_next = std::exchange(head, node);
@@ -39,7 +40,8 @@ struct PtrListSingleLinkTraits {
 /*!
 * @brief A list of single-linked nodes (forward list)
 */
-class CPtrListSingleLink : public CPtrList<details::PtrListSingleLinkTraits> {
+template<typename ItemType>
+class CPtrListSingleLink : public CPtrList<details::PtrListSingleLinkTraits<ItemType>> {
 public:
-    using CPtrList::CPtrList;
+    using CPtrList<details::PtrListSingleLinkTraits<ItemType>>::CPtrList;
 };

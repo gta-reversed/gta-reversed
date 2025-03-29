@@ -8,24 +8,21 @@
 
 #include <PtrNode.h>
 
-class CPtrNodeSingleLink : public CPtrNode<CPtrNodeSingleLink> {
+template<typename TItemType>
+class CPtrNodeSingleLink : public CPtrNode<TItemType, CPtrNodeSingleLink<TItemType>> {
 public:
-    //static void InjectHooks() {
-    //    RH_ScopedClass(CPtrNodeSingleLink);
-    //    RH_ScopedCategory("Core");
-    //
-    //    //RH_ScopedInstall(AddToList, 0x532960);
-    //}
+    using ItemType = TItemType;
 
+public:
     static void* operator new(unsigned size);
     static void operator delete(void* data);
 
 public:
-    using CPtrNode::CPtrNode;
+    using CPtrNode<TItemType, CPtrNodeSingleLink<TItemType>>::CPtrNode;
 
     //void AddToList(CPtrListSingleLink* list) {
     //    m_next       = list->GetNode();
     //    list->m_node = static_cast<CPtrNode*>(this);
     //}
 };
-VALIDATE_SIZE(CPtrNodeSingleLink, 8);
+VALIDATE_SIZE(CPtrNodeSingleLink<void*>, 0x8);

@@ -66,7 +66,9 @@ public:
     }
 
     /*!
-    * @copydoc Traits::DeleteNode
+    * @brief Remove the specified node from the list
+    * @warning Invalidates (deletes) the node!
+    * @return Node following the removed node (that is `node->next`)
     */
     NodeType* DeleteNode(NodeType* node, NodeType* prev) {
         auto* const next = UnlinkNode(node, prev);
@@ -74,6 +76,9 @@ public:
         return next;
     }
 
+    /*!
+    * @return If the specified item is in the list
+    */
     bool IsMemberOfList(void* data) const {
         for (NodeType* node = GetNode(); node; node = node->m_next) {
             if (node->m_item == data) {
@@ -83,7 +88,11 @@ public:
         return false;
     }
 
-    uint32 CountElements() const {
+    /*!
+     * @warning This function is slow, because it's complexity is O(n)
+     * @return The number of nodes/items in the list
+     */
+    uint32 GetSize() const {
         uint32 counter;
         for (NodeType* node = GetNode(); node; node = node->m_next) {
             ++counter;
@@ -91,7 +100,14 @@ public:
         return counter;
     }
 
+    /*!
+     * @return If the list is empty
+     */
     bool IsEmpty() const { return !m_node; }
+
+    /*!
+     * @return The head node of the list
+     */
     NodeType* GetNode() const { return m_node; }
 
 public:

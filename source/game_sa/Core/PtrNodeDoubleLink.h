@@ -8,15 +8,18 @@
 
 #include <PtrNode.h>
 
-class CPtrNodeDoubleLink : public CPtrNode<CPtrNodeDoubleLink> {
+template<typename TItemType>
+class CPtrNodeDoubleLink : public CPtrNode<TItemType, CPtrNodeDoubleLink<TItemType>> {
 public:
-    //static void InjectHooks();
+    using ItemType = TItemType;
+
+public:
 
     static void* operator new(unsigned size);
     static void operator delete(void* ptr, size_t sz);
 
 public:
-    using CPtrNode::CPtrNode;
+    using CPtrNode<ItemType, CPtrNodeDoubleLink<ItemType>>::CPtrNode;
 
     //void AddToList(CPtrListDoubleLink* list) {
     //    m_prev = nullptr;
@@ -30,7 +33,6 @@ public:
     //}
 
 public:
-    CPtrNodeDoubleLink* m_prev{};
-
+    CPtrNodeDoubleLink<ItemType>* m_prev{};
 };
-VALIDATE_SIZE(CPtrNodeDoubleLink, 0xC);
+VALIDATE_SIZE(CPtrNodeDoubleLink<void*>, 0xC);

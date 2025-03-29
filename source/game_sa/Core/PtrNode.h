@@ -6,8 +6,11 @@
 */
 #pragma once
 
-template<typename LinkType>
+template<typename TItemType, typename TLinkType>
 class CPtrNode {
+public:
+    using LinkType = TLinkType;
+
 public:
     CPtrNode(void* item) :
         m_item(item)
@@ -21,7 +24,6 @@ public:
 
     auto GetNext() const noexcept { return m_next; }
 
-    void*     m_item{};
+    TItemType m_item{};
     LinkType* m_next{};
 };
-//VALIDATE_SIZE(CPtrNode<void>, 8);
