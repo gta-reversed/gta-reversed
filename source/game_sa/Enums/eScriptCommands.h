@@ -6,7 +6,7 @@
 */
 #pragma once
 
-enum eScriptCommands {
+enum eScriptCommands : uint16 {
     COMMAND_NOP = 0x0000,
     COMMAND_WAIT = 0x0001,
     COMMAND_GOTO = 0x0002,
@@ -2880,7 +2880,7 @@ enum eScriptCommands {
 
     //! Highest command ID that may be hooked
     COMMAND_HIGHEST_ID_TO_HOOK
-#ifdef NOTSA_USE_CLEO_COMMANDS
+#ifdef NOTSA_WITH_CLEO_SCRIPT_COMMANDS
         = COMMAND_HIGHEST_ID
 #else
         = COMMAND_HIGHEST_VANILLA_ID

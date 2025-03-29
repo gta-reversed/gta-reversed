@@ -7,7 +7,6 @@
 #pragma once
 
 #include "Text/Text.h"
-#include "RunningScript.h"
 #include "Ped.h"
 #include "Vehicle.h"
 #include "Object.h"
@@ -19,10 +18,12 @@
 #include "StuckCarCheck.h"
 #include "UpsideDownCarCheck.h"
 #include "ScriptsForBrains.h"
+#include "ScriptParam.h"
 #include "Font.h"
 
 #include "SCMChunks.hpp"
 
+class CRunningScript;
 class CCheckpoint;
 enum class eCheckpointType : uint32;
 
@@ -154,12 +155,12 @@ struct tScriptText {
 VALIDATE_SIZE(tScriptText, 0x44);
 
 enum class eScriptRectangleType : int32 {
-    TYPE_0,
-    TYPE_1,
-    TYPE_2,
-    TYPE_3,
-    TYPE_4,
-    TYPE_5,
+    INACTIVE,           //!< This entry is inactive (Not drawn)
+    TITLE_AND_MESSAGE,
+    TEXT,
+    MONOCOLOR,          //!< Mono-color rect
+    TEXTURED,           //!< Textured rect (basically a sprite)
+    MONOCOLOR_ANGLED,   //!< Angled mono-color rect
 };
 
 struct tScriptRectangle {
@@ -167,8 +168,8 @@ struct tScriptRectangle {
     bool                 m_bDrawBeforeFade;
     char                 field_5;
     int16                m_nTextureId;
-    CVector2D            cornerA;
-    CVector2D            cornerB;
+    CVector2D            cornerA; //!< Supposed to be: Top left corner (min x, y) - Sometimes this isn't the case though, for example in scripted videogames...
+    CVector2D            cornerB; //!< Supposed to be: Bottom right corner (max x, y) - Sometimes this isn't the case though, for example in scripted videogames...
     float                m_nAngle;
     CRGBA                m_nTransparentColor;
     char                 gxt1[8];
@@ -179,7 +180,7 @@ struct tScriptRectangle {
     uint32               m_nTextboxStyle;
 
     tScriptRectangle() { // 0x4691C8
-        m_nType             = eScriptRectangleType::TYPE_0;
+        m_nType             = eScriptRectangleType::INACTIVE;
         m_bDrawBeforeFade   = false;
         m_nTextureId        = -1;
         cornerA             = CVector2D();
@@ -382,7 +383,6 @@ public:
     static inline uint16& NumberOfUsedObjects = *reinterpret_cast<uint16*>(0xA44B6C);
 
     static inline auto&   EntitiesWaitingForScriptBrain   = *(std::array<tScriptBrainWaitEntity, MAX_NUM_ENTITIES_WAITING_FOR_SCRIPT_BRAIN>*)0xA476B0;
-    static inline auto&   ScriptsArray                    = *(std::array<CRunningScript, MAX_NUM_SCRIPTS>*)0xA8B430;
     static inline auto&   IntroTextLines                  = *(std::array<tScriptText, MAX_NUM_INTRO_TEXT_LINES>*)0xA913E8;
     static inline uint16& NumberOfIntroTextLinesThisFrame = *reinterpret_cast<uint16*>(0xA44B68);
 
@@ -631,14 +631,6 @@ public:
         auto* text = TheText.Get((const char*)&ScriptSpace[*ip]);
         ip += KEY_LENGTH_IN_SCRIPT;
         return text;
-    }
-
-    static CVector2D& ReadCVector2DFromScript(uint8 offset) {
-        return *reinterpret_cast<CVector2D*>(&ScriptParams[offset]);
-    }
-
-    static CVector& ReadCVectorFromScript(uint8 offset) {
-        return *reinterpret_cast<CVector*>(&ScriptParams[offset]);
     }
 
     static uint32 GetSizeOfVariableSpace() {

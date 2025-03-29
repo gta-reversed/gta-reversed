@@ -5,7 +5,7 @@
 
 namespace PedSpawnerModule {
 
-void SpawnPed(int32 modelId, CVector position);
+CPed* SpawnPed(int32 modelId, CVector position);
 void SpawnRandomPed();
 
 void Initialise();
