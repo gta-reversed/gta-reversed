@@ -128,7 +128,7 @@ public:
     bool      m_bSwapPadAxis1;
     bool      m_bSwapPadAxis2;
 
-    char      field_B7;
+    bool      m_RedefiningControls;
     bool      m_bDrawMouse; // m_bMouseMoved
     int32     m_nMousePosX;
     int32     m_nMousePosY;
@@ -136,7 +136,7 @@ public:
     bool      m_bTracksAutoScan;
     int32     m_nPrefsAntialiasing;
     int32     m_nDisplayAntialiasing;
-    int8      m_nController;
+    bool      m_ControlMethod;
     int32     m_nPrefsVideoMode;
     int32     m_nDisplayVideoMode;
     int32     m_nCurrentRwSubsystem; // initialized | not used
@@ -184,18 +184,18 @@ public:
     int32 m_nOldMousePosX;
     int32 m_nOldMousePosY;
     int32 m_MouseInBounds;
-    int32 field_1B04;
-    char  m_bJustOpenedControlRedefWindow;
-    char  field_1B09; // controller
+    int32 m_CurrentMouseOption;
+    bool  m_bJustOpenedControlRedefWindow;
+    bool  m_EditingControlOptions;
     bool  m_DeleteAllBoundControls;
     bool  m_DeleteAllNextDefine;
-    int32 field_1B0C;
+    int32 m_OptionToChange;
     char  field_1B10;
     char  field_1B11;
     char  field_1B12;
     char  field_1B13;
-    char  field_1B14;
-    char  field_1B15;
+    bool  m_CanBeDefined;
+    bool  m_JustExitedRedefine;
     char  field_1B16;
     char  field_1B17;
     eHelperText m_nHelperText;
@@ -231,14 +231,14 @@ public:
     };
 
     int8  m_nBackgroundSprite;
-    char  field_1B51;
+    bool  m_isTextBlinking;
     int16 field_1B52;
-    int32 field_1B54;
+    int32 m_lastBlinkTime;
     uint32 m_nTimeHelperTextUpdated;
-    char  field_1B5C;
+    char  ColourSwitch;
     char  field_1B5D;
     int16 field_1B5E;
-    int32 field_1B60;
+    int32 LastFlash;
     int32 field_1B64;
     int32 m_nTimeSlideLeftMove;
     int32 m_nTimeSlideRightMove;
@@ -308,7 +308,7 @@ public:
     void CheckForMenuClosing();
     [[nodiscard]] bool CheckHover(int32 left, int32 right, int32 top, int32 bottom) const;
     bool CheckMissionPackValidMenu();
-    bool CheckCodesForControls(RsInputDeviceType type);
+    void CheckCodesForControls(eControllerType type);
 
     int32 DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing);
 

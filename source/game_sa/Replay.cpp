@@ -583,7 +583,7 @@ void CReplay::ProcessLookAroundCam() {
         static float& viewAngle = *(float*)0x97FAD8;
 
         const auto& pad = CPad::GetPad();
-        auto steer = CVector2D{pad->NewMouseControllerState.X / 200.0f, pad->NewMouseControllerState.Y / 200.0f};
+        auto steer = CVector2D{pad->NewMouseControllerState.m_AmountMoved.x / 200.0f, pad->NewMouseControllerState.m_AmountMoved.y / 200.0f};
         // steerX2 = steer.x;
         // steerY2 = steer.y;
         // if (v2 | v2)
@@ -612,7 +612,7 @@ void CReplay::ProcessLookAroundCam() {
             playerCameraDirAngle += steer.x;
             FramesActiveLookAroundCam--;
 
-            if (pad->NewMouseControllerState.lmb && pad->NewMouseControllerState.rmb) {
+            if (pad->NewMouseControllerState.m_bLeftButton && pad->NewMouseControllerState.m_bRightButton) {
                 playerCameraDistance = std::clamp(playerCameraDistance + 2.0f * steer.y, 3.0f, 15.0f);
             } else {
                 viewAngle = std::clamp(viewAngle + steer.y, 0.1f, 1.5f); // probably some kind of cheap clamping between [0, pi/2].
