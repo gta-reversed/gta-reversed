@@ -741,7 +741,7 @@ void CStreaming::DeleteAllRwObjects() {
             CRepeatSector* repeatSector = GetRepeatSector(sx, sy);
             CSector* sector = GetSector(sx, sy);
             DeleteRwObjectsInList(sector->m_buildings);
-            DeleteRwObjectsInList(repeatSector->GetList(REPEATSECTOR_OBJECTS));
+            DeleteRwObjectsInList(repeatSector->Objects);
             DeleteRwObjectsInList(sector->m_dummies);
         }
     }
@@ -805,7 +805,7 @@ void CStreaming::DeleteRwObjectsAfterDeath(const CVector& point) {
                     CRepeatSector* repeatSector = GetRepeatSector(sx, sy);
                     CSector* sector = GetSector(sx, sy);
                     DeleteRwObjectsInSectorList(sector->m_buildings);
-                    DeleteRwObjectsInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS));
+                    DeleteRwObjectsInSectorList(repeatSector->Objects);
                     DeleteRwObjectsInSectorList(sector->m_dummies);
                 }
             }
@@ -850,7 +850,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -874,7 +874,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsNotInFrustumInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsNotInFrustumInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -888,7 +888,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -917,7 +917,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -940,7 +940,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsNotInFrustumInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsNotInFrustumInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -957,7 +957,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -2988,7 +2988,7 @@ void CStreaming::InstanceLoadedModels(const CVector& point) {
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
             CSector* sector = GetSector(sectorX, sectorY);
             InstanceLoadedModelsInSectorList(sector->m_buildings);
-            InstanceLoadedModelsInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS));
+            InstanceLoadedModelsInSectorList(repeatSector->Objects);
             InstanceLoadedModelsInSectorList(sector->m_dummies);
         }
     }

@@ -186,7 +186,7 @@ void CEntity::Add(const CRect& rect)
                     list = &repeatSector->Peds;
                     break;
                 case ENTITY_TYPE_OBJECT:
-                    list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
+                    list = &repeatSector->Objects;
                     break;
                 }
 
@@ -253,7 +253,7 @@ void CEntity::Remove()
                     list = &repeatSector->Peds;
                     break;
                 case ENTITY_TYPE_OBJECT:
-                    list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
+                    list = &repeatSector->Objects;
                     break;
                 }
 

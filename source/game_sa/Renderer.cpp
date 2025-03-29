@@ -1019,7 +1019,7 @@ void CRenderer::ScanSectorList_RequestModels(int32 sectorX, int32 sectorY) {
         CSector* sector = GetSector(sectorX, sectorY);
         ScanPtrList_RequestModels(sector->m_buildings);
         ScanPtrList_RequestModels(sector->m_dummies);
-        ScanPtrList_RequestModels(GetRepeatSector(sectorX, sectorY)->GetList(REPEATSECTOR_OBJECTS));
+        ScanPtrList_RequestModels(GetRepeatSector(sectorX, sectorY)->Objects);
     }
 }
 
@@ -1224,7 +1224,7 @@ void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY)
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
         CSector* sector = GetSector(sectorX, sectorY);
         scanLists->buildingsList = &sector->m_buildings;
-        scanLists->objectsList = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
+        scanLists->objectsList = &repeatSector->Objects;
         scanLists->vehiclesList = &repeatSector->Vehicles;
         scanLists->pedsList = &repeatSector->Peds;
         scanLists->dummiesList = &sector->m_dummies;
@@ -1232,7 +1232,7 @@ void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY)
     else {
         // sector x and y are out of bounds
         scanLists->buildingsList = nullptr;
-        scanLists->objectsList = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
+        scanLists->objectsList = &repeatSector->Objects;
         scanLists->vehiclesList = &repeatSector->Vehicles;
         scanLists->pedsList = &repeatSector->Peds;
         scanLists->dummiesList = nullptr;

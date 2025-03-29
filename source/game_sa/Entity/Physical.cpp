@@ -175,7 +175,7 @@ void CPhysical::Add()
                 list = &repeatSector->Peds;
                 break;
             case ENTITY_TYPE_OBJECT:
-                list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
+                list = &repeatSector->Objects;
                 break;
             }
 
@@ -632,7 +632,7 @@ void CPhysical::RemoveAndAdd()
                 list = &repeatSector->Peds;
                 break;
             case ENTITY_TYPE_OBJECT:
-                list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
+                list = &repeatSector->Objects;
                 break;
             }
 
@@ -2018,7 +2018,7 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
             list = &repeatSector->Peds;
             break;
         case 3:
-            list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
+            list = &repeatSector->Objects;
             break;
         }
         CPtrNodeDoubleLink* node = list->GetNode();
@@ -4005,7 +4005,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
             list = &repeatSector->Peds;
             break;
         case 1:
-            list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
+            list = &repeatSector->Objects;
             break;
         case 2:
             list = &repeatSector->Vehicles;
@@ -4543,7 +4543,7 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
             list = &repeatSector->Vehicles;
             break;
         case 1:
-            list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
+            list = &repeatSector->Objects;
             break;
         }
 

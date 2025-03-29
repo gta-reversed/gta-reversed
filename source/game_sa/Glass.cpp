@@ -70,7 +70,7 @@ bool CGlass::HasGlassBeenShatteredAtCoors(CVector point) {
     CEntity* entity{};
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            FindWindowSectorList(GetRepeatSector(sectorX, sectorY)->GetList(REPEATSECTOR_OBJECTS), maxDist, entity, point);
+            FindWindowSectorList(GetRepeatSector(sectorX, sectorY)->Objects, maxDist, entity, point);
             FindWindowSectorList(GetSector(sectorX, sectorY)->m_dummies, maxDist, entity, point);
         }
     }

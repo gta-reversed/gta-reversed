@@ -335,7 +335,7 @@ void MarkSurroundingEntitiesForCollisionWithTrain(CVector pos, float radius, CEn
             TrainHitStuff(repeatSector->Vehicles, entity);
             if (!bOnlyVehicles) {
                 TrainHitStuff(repeatSector->Peds, entity);
-                TrainHitStuff(repeatSector->GetList(REPEATSECTOR_OBJECTS), entity);
+                TrainHitStuff(repeatSector->Objects, entity);
             }
         }
     }

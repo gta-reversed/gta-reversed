@@ -2995,7 +2995,7 @@ bool CCollision::CheckCameraCollisionObjects(
     // Pirulax: At this point I'm certain R* devs were paid by lines written
 
     bool anyCollided = false;
-    for (CPtrNodeDoubleLink* it = GetRepeatSector(X, Y)->GetList(REPEATSECTOR_OBJECTS).GetNode(), *next{}; it; it = next) {
+    for (CPtrNodeDoubleLink* it = GetRepeatSector(X, Y)->Objects.GetNode(), *next{}; it; it = next) {
         next = it->GetNext();
 
         const auto entity = it->GetItem<CObject>();

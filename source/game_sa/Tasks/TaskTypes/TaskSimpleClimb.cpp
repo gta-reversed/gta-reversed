@@ -451,7 +451,7 @@ CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& ou
                 return static_cast<CEntity*>(ScanToGrabSectorList(&ptrList, ped, outClimbPos, outClimbAngle, pSurfaceType, flag1, bStandUp, bVault));
             };
             auto scanResult1 = ScanToGrabSector(GetSector(x, y)->m_buildings);
-            auto scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->GetList(REPEATSECTOR_OBJECTS));
+            auto scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->Objects);
             if (!scanResult2) {
                 scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->Vehicles);
             }
