@@ -15,25 +15,25 @@ struct PtrListDoubleLinkTraits {
     using NodeType = CPtrNodeDoubleLink<ItemType>;
 
     static NodeType* AddNode(NodeType*& head, NodeType* node) {
-        NodeType* next = node->m_next = std::exchange(head, node);
+        NodeType* next = node->Next = std::exchange(head, node);
         if (next) {
-            assert(next->m_prev == nullptr && "Head node must have no `prev`");
-            next->m_prev = node;
+            assert(next->Prev == nullptr && "Head node must have no `prev`");
+            next->Prev = node;
         }
-        node->m_prev = nullptr;
+        node->Prev = nullptr;
         return node;
     }
 
     static NodeType* UnlinkNode(NodeType*& head, NodeType* node, NodeType* prev) {
         assert(node);
-        assert(node->m_prev == prev && "Incorrect `prev` value");
+        assert(node->Prev == prev && "Incorrect `prev` value");
         assert(head && "Can't remove node from empty list");
 
-        NodeType* next = node->m_next;
+        NodeType* next = node->Next;
 
         if (next) {
-            assert(next->m_prev == node);
-            next->m_prev = prev;
+            assert(next->Prev == node);
+            next->Prev = prev;
         }
 
         if (head == node) {
@@ -41,8 +41,8 @@ struct PtrListDoubleLinkTraits {
             head = next;
         } else {
             assert(prev && "All nodes other than the `head` must have a valid `prev`!");
-            assert(prev->m_next == node);
-            prev->m_next = next;
+            assert(prev->Next == node);
+            prev->Next = next;
         }
 
         return next;
@@ -69,7 +69,7 @@ public:
     * @return Node following the removed node (that is `node->next`)
     */
     NodeType* DeleteNode(NodeType* node) {
-        return Base::DeleteNode(node, node->m_prev);
+        return Base::DeleteNode(node, node->Prev);
     }
 
     /*!
@@ -78,6 +78,6 @@ public:
     * @return Node following the removed node (that is `node->next`)
     */
     NodeType* UnlinkNode(NodeType* node) {
-        return Base::Traits::UnlinkNode(this->m_node, node, node->m_prev);
+        return Base::Traits::UnlinkNode(this->m_node, node, node->Prev);
     }
 };

@@ -121,8 +121,8 @@ void CCover::Update() {
         // This implementation may've accessed objects after they've been destroyed (use-after-free
         // I've modified it so that it uses references that get null'd automatically
         for (CPtrNodeDoubleLink<CBuilding*> *it = m_ListOfProcessedBuildings.GetNode(), *next{}; it; it = next) {
-            next            = it->GetNext();
-            auto* const obj = it->m_item;
+            next            = it->Next;
+            auto* const obj = it->Item;
 
             if (!notsa::IsFixBugs() || obj) { // If fixbugs the reference may've got cleared
                 if (ShouldThisBuildingHaveItsCoverPointsCreated(obj)) {
@@ -130,7 +130,7 @@ void CCover::Update() {
                 }
                 RemoveCoverPointsForThisEntity(obj);
                 if (notsa::IsFixBugs()) { // FIXBUGS: Use-after-free
-                    CEntity::SafeCleanUpRef(reinterpret_cast<CEntity*&>(it->m_item));
+                    CEntity::SafeCleanUpRef(reinterpret_cast<CEntity*&>(it->Item));
                 }
             }
             m_ListOfProcessedBuildings.DeleteNode(it);
@@ -153,7 +153,7 @@ void CCover::Update() {
                     FindCoverPointsForThisBuilding(obj);
                     auto* const link = m_ListOfProcessedBuildings.AddItem(obj);
                     if (notsa::IsFixBugs()) { // FIXBUGS: Use-after-free
-                        CEntity::SafeRegisterRef(reinterpret_cast<CEntity*&>(link->m_item));
+                        CEntity::SafeRegisterRef(reinterpret_cast<CEntity*&>(link->Item));
                     }
                 }
                 return true;

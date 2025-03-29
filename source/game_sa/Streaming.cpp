@@ -721,10 +721,7 @@ bool CStreaming::ConvertBufferToObject(uint8* fileBuffer, int32 modelId) {
 // 0x4090A0
 void CStreaming::DeleteAllRwObjects() {
     auto DeleteRwObjectsInList = []<typename PtrListType>(PtrListType& list) {
-        for (typename PtrListType::NodeType *it = list.m_node, *next{}; it; it = next) {
-            next = it->GetNext();
-
-            auto* entity = reinterpret_cast<CEntity*>(it->m_item);
+        for (auto* const entity : list) {
             if (!entity->m_bImBeingRendered && !entity->m_bStreamingDontDelete) {
                 entity->DeleteRwObject();
             }
@@ -975,10 +972,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
 // 0x409940
 template<typename PtrListType>
 bool CStreaming::DeleteRwObjectsBehindCameraInSectorList(PtrListType& list, size_t memoryToCleanInBytes) {
-    for (typename PtrListType::NodeType* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-
-        auto* entity = static_cast<CEntity*>(node->m_item);
+    for (auto* const entity : list) {
         if (entity->IsScanCodeCurrent())
             continue;
 
@@ -1004,10 +998,7 @@ bool CStreaming::DeleteRwObjectsBehindCameraInSectorList(PtrListType& list, size
 // 0x407A70
 template<typename PtrListType>
 void CStreaming::DeleteRwObjectsInSectorList(PtrListType& list, int32 sectorX, int32 sectorY) {
-    for (typename PtrListType::NodeType* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
+    for (auto* const entity : list) {
         if (sectorX < 0 || entity->LivesInThisNonOverlapSector(sectorX, sectorY)) {
             if (!entity->m_bImBeingRendered && !entity->m_bStreamingDontDelete)
                 entity->DeleteRwObject();
@@ -1018,10 +1009,7 @@ void CStreaming::DeleteRwObjectsInSectorList(PtrListType& list, int32 sectorX, i
 // 0x4099E0
 template<typename PtrListType>
 bool CStreaming::DeleteRwObjectsNotInFrustumInSectorList(PtrListType& list, size_t memoryToCleanInBytes) {
-    for (typename PtrListType::NodeType* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
+    for (auto* const entity : list) {
         if (entity->IsScanCodeCurrent())
             continue;
 
@@ -2568,11 +2556,7 @@ void CStreaming::MakeSpaceFor(size_t memoryToCleanInBytes) {
 // - In the radius of min(radius, <model draw distance> * <cam lod dist multiplier>)
 template<typename PtrListType>
 void CStreaming::ProcessEntitiesInSectorList(PtrListType& list, float posX, float posY, float minX, float minY, float maxX, float maxY, float radius, int32 streamingflags) {
-    for (typename PtrListType::NodeType* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
-
+    for (auto* const entity : list) {
         if (entity->IsScanCodeCurrent())
             continue;
         entity->SetCurrentScanCode() ;
@@ -2614,10 +2598,7 @@ void CStreaming::ProcessEntitiesInSectorList(PtrListType& list, float posX, floa
 // just requests all models necessary (if they meet the conditions).
 template<typename PtrListType>
 void CStreaming::ProcessEntitiesInSectorList(PtrListType& list, int32 streamingFlags) {
-    for (typename PtrListType::NodeType* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
+    for (auto* const entity : list) {
         if (entity->IsScanCodeCurrent())
             continue;
         entity->SetCurrentScanCode() ;
@@ -2996,9 +2977,7 @@ void CStreaming::InstanceLoadedModels(const CVector& point) {
 
 template<typename PtrListType>
 void CStreaming::InstanceLoadedModelsInSectorList(PtrListType& list) {
-    for (typename PtrListType::NodeType* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
+    for (auto* const entity : list) {
         if (entity->IsInCurrentAreaOrBarberShopInterior() && !entity->m_pRwObject) {
             entity->CreateRwObject();
         }

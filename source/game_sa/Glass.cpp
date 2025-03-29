@@ -407,10 +407,7 @@ void CGlass::FindWindowSectorList(PtrListType& objList, float& outDist, CEntity*
     if (!objList.GetNode())
         return;
 
-    for (typename PtrListType::NodeType* it = objList.GetNode(); it;) {
-        const auto entity = static_cast<CEntity*>(it->m_item);
-        it = it->GetNext();
-
+    for (auto* const entity : objList) {
         if (entity->IsScanCodeCurrent())
             continue;
 

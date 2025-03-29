@@ -2404,11 +2404,7 @@ bool CCollision::CheckCameraCollisionPeds(
     bool addedAny = false;
 
     const auto& sector = GetRepeatSector(sectorX, sectorY);
-    for (CPtrNodeDoubleLink<CPed*>* it = sector->Peds.GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-        
-        const auto ped = it->GetItem<CPed>();
-
+    for (auto* const ped : sector->Peds) {
         if (ped->IsScanCodeCurrent()) {
             continue;
         }
@@ -2903,10 +2899,7 @@ bool CCollision::CheckCameraCollisionBuildings(
     const auto checkFlyerCollision = plyrVeh && plyrVeh->physicalFlags.bDontCollideWithFlyers;
 
     bool anyCollided = false;
-    for (CPtrListSingleLink<CBuilding*>::NodeType* it = GetSector(X, Y)->m_buildings.GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-
-        auto* const entity = it->m_item;
+    for (auto* const entity : GetSector(X, Y)->m_buildings) {
         if (!entity->ProcessScan()) {
             continue;
         }
@@ -2940,11 +2933,7 @@ bool CCollision::CheckCameraCollisionVehicles(
     static auto& gpLastSittingOnEntity   = StaticRef<CEntity*, 0x9689D8>();
 
     bool anyCollided = false;
-    for (CPtrListDoubleLink<CVehicle*>::NodeType* it = GetRepeatSector(X, Y)->Vehicles.GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-
-        const auto entity = it->GetItem<CVehicle>();
-
+    for (auto* const entity : GetRepeatSector(X, Y)->Vehicles) {
         if (!entity->ProcessScan()) {
             continue;
         }

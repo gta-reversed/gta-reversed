@@ -32,6 +32,6 @@ public:
     using CPtrNode<ItemType, CPtrNodeDoubleLink<ItemType>>::CPtrNode;
 
 public:
-    CPtrNodeDoubleLink<ItemType>* m_prev{};
+    CPtrNodeDoubleLink<ItemType>* Prev{};
 };
 VALIDATE_SIZE(CPtrNodeDoubleLink<void*>, 0xC);

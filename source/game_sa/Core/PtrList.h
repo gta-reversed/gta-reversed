@@ -22,15 +22,15 @@ public:
 public:
     PtrListIterator(NodeType* node) :
         m_curr{ node },
-        m_next{ node ? node->m_next : nullptr }
+        m_next{ node ? node->Next : nullptr }
     {}
 
-    reference operator*() { return m_curr->m_item; }
-    pointer   operator->() { return &m_curr->m_item; }
+    reference operator*() { return m_curr->Item; }
+    pointer   operator->() { return &m_curr->Item; }
 
     PtrListIterator& operator++() {
         if (m_curr = m_next) {
-            m_next = m_curr->m_next;
+            m_next = m_curr->Next;
         }
         return *this;
     }
@@ -87,8 +87,8 @@ public:
     **/
     NodeType* DeleteItem(ItemType item) {
         assert(item);
-        for (NodeType *curr = m_node, *prev{}; curr; prev = std::exchange(curr, curr->m_next)) {
-            if (curr->m_item == item) {
+        for (NodeType *curr = m_node, *prev{}; curr; prev = std::exchange(curr, curr->Next)) {
+            if (curr->Item == item) {
                 return DeleteNode(curr, prev);
             }
         }
@@ -127,8 +127,8 @@ public:
     * @return If the specified item is in the list
     */
     bool IsMemberOfList(ItemType item) const {
-        for (NodeType* node = GetNode(); node; node = node->m_next) {
-            if (node->m_item == item) {
+        for (NodeType* node = m_node; node; node = node->Next) {
+            if (node->Item == item) {
                 return true;
             }
         }
@@ -141,7 +141,7 @@ public:
      */
     uint32 GetSize() const {
         uint32 counter;
-        for (NodeType* node = GetNode(); node; node = node->m_next) {
+        for (NodeType* node = m_node; node; node = node->Next) {
             ++counter;
         }
         return counter;

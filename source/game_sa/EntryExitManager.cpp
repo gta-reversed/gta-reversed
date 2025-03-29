@@ -100,9 +100,9 @@ void CEntryExitManager::Update() {
         mp_QuadTree->GetAllMatching(rect, matches);
 
         for (CPtrListSingleLink<void*>::NodeType* it = matches.m_node, *next{}; it; it = next) {
-            next = it->GetNext();
+            next = it->Next;
 
-            auto* enex = it->ItemAs<CEntryExit>();
+            auto* enex = static_cast<CEntryExit*>(it->Item);
             if (enex->bEnableAccess) {
                 if (   enex->m_pLink && enex->m_nArea == CGame::currArea  // Has link and link is in current area
                     || !enex->m_pLink && enex->m_nArea != CGame::currArea // Has no link, and is not in current area
@@ -138,9 +138,9 @@ void CEntryExitManager::Update() {
 
         bool wasAnyMarkerInArea{};
         for (CPtrListSingleLink<void*>::NodeType* it = matches.m_node, *next{}; it; it = next) {
-            next = it->GetNext();
+            next = it->Next;
 
-            auto* enex = it->ItemAs<CEntryExit>();
+            auto* enex = static_cast<CEntryExit*>(it->Item);
             if (enex->bEnableAccess && enex->IsInArea(playerPos)) {
                 wasAnyMarkerInArea = true;
                 if (!bDontShowMarkers && enex->TransitionStarted(player)) {
@@ -271,9 +271,9 @@ int32 CEntryExitManager::FindNearestEntryExit(const CVector2D& position, float r
     float closestDist2D{ 2.f * range };
     CEntryExit* closest{};
     for (CPtrListSingleLink<void*>::NodeType* it = enexInRange.m_node, *next{}; it; it = next) {
-        next = it->GetNext();
+        next = it->Next;
 
-        auto* enex = it->ItemAs<CEntryExit>();
+        auto* enex = static_cast<CEntryExit*>(it->Item);
         if (enex->GetLinkedOrThis()->GetArea() == ignoreArea) {
             continue;
         }

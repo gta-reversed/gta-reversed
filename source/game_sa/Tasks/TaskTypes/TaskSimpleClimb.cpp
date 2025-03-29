@@ -290,8 +290,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* p
             : &ms_ClimbColModel;
     CEntity* collidedEntity = nullptr;
 
-    for (auto node = sectorList->GetNode(); node; node = node->m_next) {
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
+    for (auto* const entity : *sectorList) {
 
         if (entity->IsScanCodeCurrent()) {
             continue;

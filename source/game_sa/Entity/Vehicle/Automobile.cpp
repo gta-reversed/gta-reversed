@@ -61,7 +61,7 @@ void CAutomobile::InjectHooks()
     RH_ScopedInstall(DoSoftGroundResistance, 0x6A4AF0);
     RH_ScopedInstall(ProcessCarWheelPair, 0x6A4EC0);
     RH_ScopedInstall(PlaceOnRoadProperly, 0x6AF420);
-    RH_ScopedInstall(RcbanditCheck1CarWheels<CPtrListSingleLink<CPhysical*>>, 0x6B3F70);
+    RH_ScopedInstall(RcbanditCheck1CarWheels, 0x6B3F70);
     RH_ScopedInstall(RcbanditCheckHitWheels, 0x6B45E0);
     RH_ScopedInstall(FireTruckControl, 0x729B60);
     RH_ScopedInstall(SetHeliOrientation, 0x6A2450);
@@ -6281,16 +6281,12 @@ void CAutomobile::SetDoorDamage(eDoors doorIdx, bool withoutVisualEffect)
 }
 
 // 0x6B3F70
-template<typename PtrListType>
-bool CAutomobile::RcbanditCheck1CarWheels(PtrListType& ptrList)
+bool CAutomobile::RcbanditCheck1CarWheels(CPtrListDoubleLink<CVehicle*>& ptrList)
 {
     CColModel* colModel = GetVehicleModelInfo()->GetColModel();
 
-    typename PtrListType::NodeType* next = nullptr;
-    for (typename PtrListType::NodeType* node = ptrList.m_node; node; node = next) {
-        next = node->m_next;
-        auto* vehicle = (CAutomobile*)node->m_item;
-        if (node->m_item == this || !vehicle->IsAutomobile())
+    for (auto* const vehicle : ptrList) {
+        if (vehicle == this || !vehicle->IsAutomobile())
             continue;
 
         if (!ModelIndices::IsRCBandit(vehicle->m_nModelIndex) && vehicle->m_nScanCode != GetCurrentScanCode())

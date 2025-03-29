@@ -13,17 +13,9 @@ public:
 
 public:
     CPtrNode(TItemType item) :
-        m_item(item)
+        Item(item)
     { assert(item); }
 
-    template<typename T>
-    auto GetItem() const { return static_cast<T*>(m_item); }
-
-    template<typename T>
-    auto ItemAs() const { return static_cast<T*>(m_item); }
-
-    auto GetNext() const noexcept { return m_next; }
-
-    TItemType m_item{};
-    LinkType* m_next{};
+    TItemType Item{};
+    LinkType* Next{};
 };

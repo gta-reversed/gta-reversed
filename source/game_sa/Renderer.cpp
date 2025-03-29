@@ -927,8 +927,7 @@ bool CRenderer::ShouldModelBeStreamed(CEntity* entity, const CVector& point, flo
 // 0x555680
 template<typename PtrListType>
 void CRenderer::ScanPtrList_RequestModels(PtrListType& list) {
-    for (auto node = list.GetNode(); node; node = node->m_next) {
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
+    for (auto* const entity : list) {
         if (!entity->IsScanCodeCurrent()) {
             entity->SetCurrentScanCode() ;
             if (ShouldModelBeStreamed(entity, ms_vecCameraPosition, ms_fFarClipPlane))

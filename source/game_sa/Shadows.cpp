@@ -677,11 +677,7 @@ void CShadows::CastPlayerShadowSectorList(
         cornerAX, cornerAY,
         cornerBX, cornerBY
     };
-    for (typename PtrListType::NodeType* it = ptrList.m_node, *next{}; it; it = next) {
-        next = it->GetNext();
-
-        auto* entity = reinterpret_cast<CEntity*>(it->m_item);
-
+    for (auto* const entity : ptrList) {
         if (entity->IsScanCodeCurrent()) {
             continue;
         }

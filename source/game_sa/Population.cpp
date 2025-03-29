@@ -826,9 +826,7 @@ bool CPopulation::TestSafeForRealObject(CDummyObject* obj) {
     return CWorld::IterateSectorsOverlappedByRect(
         CRect{ obj->GetBoundCentre(), objCM->GetBoundRadius()},
         [&](int32 x, int32 y) {
-            const auto& list = GetRepeatSector(x, y)->Vehicles;
-            for (CPtrNodeDoubleLink<CVehicle*>* node = list.GetNode(); node; node = node->GetNext()) {
-                const auto entity = node->GetItem<CVehicle>();
+            for (auto* const entity : GetRepeatSector(x, y)->Vehicles) {
                 if (CCollision::ProcessColModels(
                     objMat, *objCM,
                     entity->GetMatrix(), *entity->GetColModel(),
