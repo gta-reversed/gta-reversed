@@ -17,7 +17,7 @@ class CPedDebugVisualiser {
     };
 
     static void SetRenderStates();
-    //static void VisualiseAttractorsInPtrList(CPtrList& list, const CPed& ped);
+    //static void VisualiseAttractorsInPtrList(PtrListType& list, const CPed& ped);
     static void VisualiseBoundingVolumes(CPed& ped);
     static void VisualiseEvents(const CPed& ped);
     static void VisualiseFOV(const CPed& ped);

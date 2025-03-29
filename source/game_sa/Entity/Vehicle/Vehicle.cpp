@@ -196,7 +196,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(UsesSiren, 0x6D8470);
     RH_ScopedInstall(IsSphereTouchingVehicle, 0x6D84D0);
     // RH_ScopedInstall(FlyingControl, 0x6D85F0);
-    RH_ScopedInstall(BladeColSectorList, 0x6DAF00);
+    RH_ScopedInstall(BladeColSectorList<CPtrListSingleLink>, 0x6DAF00);
     RH_ScopedInstall(SetComponentRotation, 0x6DBA30);
     RH_ScopedInstall(SetTransmissionRotation, 0x6DBBB0);
     RH_ScopedInstall(DoBoatSplashes, 0x6DD130);
@@ -3444,7 +3444,8 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
 
 // 0x6DAF00
 // always returns `false`, and `rotorType` is always `-3`
-bool CVehicle::BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult) {
+template<typename PtrListType>
+bool CVehicle::BladeColSectorList(const PtrListType& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult) {
     if (ptrList.IsEmpty()) {
         return false;
     }
@@ -3471,7 +3472,7 @@ bool CVehicle::BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, 
     const auto colModelCenter         = matrix.TransformPoint(colModel.GetBoundCenter());
     const auto& thisPosn              = GetPosition();
 
-    for (CPtrNode* it = ptrList.GetNode(), *next{}; it; it = next) {
+    for (typename PtrListType::NodeType* it = ptrList.GetNode(), *next{}; it; it = next) {
         next = it->GetNext();
         auto& entity = *reinterpret_cast<CEntity*>(it->m_item);
 
@@ -4515,7 +4516,7 @@ bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, f
 
     CWorld::IncrementCurrentScanCode();
     CWorld::IterateSectorsOverlappedByRect(CRect{ m_matrix->TransformPoint(pos), radius }, [&](int32 x, int32 y) {
-        const auto ProcessSector = [&](const CPtrList& list, float damage) {
+        const auto ProcessSector = [&]<typename PtrListType>(const PtrListType& list, float damage) {
             return BladeColSectorList(list, s_TestBladeCol, matrix, rotorType, damage);
         };
 

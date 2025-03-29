@@ -6,17 +6,32 @@
 */
 #pragma once
 
-template<typename NodeType>
+template<typename T>
 class CPtrList {
 public:
-    using NodeType = NodeType;
+    using NodeType = T;
 
 public:
     static void InjectHooks();
 
-    bool      IsMemberOfList(void* data) const;
-    bool      IsEmpty() const { return !m_node; }
-    uint32    CountElements() const;
+    bool IsMemberOfList(void* data) const {
+        for (NodeType* node = GetNode(); node; node = node->m_next) {
+            if (node->m_item == data) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    uint32 CountElements() const {
+        uint32    counter;
+        for (NodeType* node = GetNode(); node; node = node->m_next) {
+            ++counter;
+        }
+        return counter;
+    }
+
+    bool IsEmpty() const { return !m_node; }
     NodeType* GetNode() const { return m_node; }
 
 public:

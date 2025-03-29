@@ -30,7 +30,7 @@ void CGlass::InjectHooks() {
     RH_ScopedInstall(GeneratePanesForWindow, 0x71B620);
     RH_ScopedInstall(Update, 0x71B0D0);
     RH_ScopedInstall(Render, 0x71CE20);
-    RH_ScopedInstall(FindWindowSectorList, 0x71AFC0);
+    RH_ScopedInstall(FindWindowSectorList<CPtrListSingleLink>, 0x71AFC0);
     RH_ScopedInstall(RenderReflectionPolys, 0x71AED0);
     RH_ScopedInstall(RenderShatteredPolys, 0x71AE30);
     RH_ScopedInstall(RenderHiLightPolys, 0x71ADA0);
@@ -402,11 +402,12 @@ void CGlass::Render() {
 
 // (..., CEntity**, float, float, float)
 // 0x71AFC0
-void CGlass::FindWindowSectorList(CPtrList& objList, float& outDist, CEntity*& outEntity, CVector point) {
+template<typename PtrListType>
+void CGlass::FindWindowSectorList(PtrListType& objList, float& outDist, CEntity*& outEntity, CVector point) {
     if (!objList.GetNode())
         return;
 
-    for (CPtrNode* it = objList.GetNode(); it;) {
+    for (typename PtrListType::NodeType* it = objList.GetNode(); it;) {
         const auto entity = static_cast<CEntity*>(it->m_item);
         it = it->GetNext();
 

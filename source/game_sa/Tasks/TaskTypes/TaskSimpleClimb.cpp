@@ -31,7 +31,7 @@ void CTaskSimpleClimb::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleClimb, 0x87059C, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(ScanToGrabSectorList, 0x67DE10);
+    RH_ScopedInstall(ScanToGrabSectorList<CPtrListSingleLink>, 0x67DE10);
     RH_ScopedInstall(ScanToGrab, 0x67FD30);
     RH_ScopedInstall(CreateColModel, 0x67A890);
     RH_ScopedInstall(TestForStandUp, 0x680570);
@@ -281,7 +281,8 @@ CEntity* CTaskSimpleClimb::TestForClimb(CPed* ped, CVector& outClimbPos, float& 
 }
 
 // 0x67DE10
-CEntity* CTaskSimpleClimb::ScanToGrabSectorList(CPtrList* sectorList, CPed* ped, CVector& outTargetPos, float& outAngle, eSurfaceType& outSurfaceType, bool isLaunch, bool hasToTestStandup, bool hasToTestDropOtherSide) {
+template<typename PtrListType>
+CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* ped, CVector& outTargetPos, float& outAngle, eSurfaceType& outSurfaceType, bool isLaunch, bool hasToTestStandup, bool hasToTestDropOtherSide) {
     const auto cm = hasToTestDropOtherSide
         ? &ms_VaultColModel
         : hasToTestStandup
@@ -446,7 +447,7 @@ CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& ou
 
     for (int32 y = startSectorY; y <= endSectorY; y++) {
         for (int32 x = startSectorX; x <= endSectorX; x++) {
-            const auto ScanToGrabSector = [&](CPtrList& ptrList) -> CEntity* {
+            const auto ScanToGrabSector = [&]<typename PtrListType>(PtrListType& ptrList) -> CEntity* {
                 return static_cast<CEntity*>(ScanToGrabSectorList(&ptrList, ped, outClimbPos, outClimbAngle, pSurfaceType, flag1, bStandUp, bVault));
             };
             auto scanResult1 = ScanToGrabSector(GetSector(x, y)->m_buildings);

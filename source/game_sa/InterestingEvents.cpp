@@ -194,9 +194,9 @@ void CInterestingEvents::ScanForNearbyEntities() {
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            auto& list = repeatSector->GetList(REPEATSECTOR_PEDS);
+            CPtrListDoubleLink& list = repeatSector->GetList(REPEATSECTOR_PEDS);
 
-            for (CPtrNode *it = list.m_node, *next{}; it; it = next) {
+            for (CPtrListDoubleLink::NodeType *it = list.m_node, *next{}; it; it = next) {
                 next = it->GetNext();
 
                 auto* ped = static_cast<CPed*>(it->m_item);
@@ -233,7 +233,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
                 }
             }
 
-            for (CPtrNode *it = list.m_node, *next{}; it; it = next) {
+            for (CPtrListDoubleLink::NodeType *it = list.m_node, *next{}; it; it = next) {
                 next = it->GetNext();
                 auto* vehicle = static_cast<CVehicle*>(it->m_item);
                 if (vehicle->m_nScanCode == GetCurrentScanCode())

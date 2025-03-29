@@ -286,7 +286,8 @@ public:
     void SetBumperDamage(ePanels panel, bool withoutVisualEffect);
     void SetPanelDamage(ePanels panel, bool createWindowGlass);
     void SetDoorDamage(eDoors door, bool withoutVisualEffect);
-    bool RcbanditCheck1CarWheels(CPtrList& ptrList);
+    template<typename PtrListType>
+    bool RcbanditCheck1CarWheels(PtrListType& ptrList);
     bool RcbanditCheckHitWheels();
     void FireTruckControl(CFire* fire);
     bool HasCarStoppedBecauseOfLight();

@@ -46,7 +46,8 @@ public:
         eSurfaceType& outSurfaceType,  //!< [out] Surface type
         bool          bLaunch          //!< [in]  Not sure
     );
-    static CEntity* ScanToGrabSectorList(CPtrList* sectorList, CPed* ped, CVector& climbPos, float& angle, eSurfaceType& pSurfaceType, bool flag1, bool bStandUp, bool bVault);
+    template<typename PtrListType>
+    static CEntity* ScanToGrabSectorList(PtrListType* sectorList, CPed* ped, CVector& climbPos, float& angle, eSurfaceType& pSurfaceType, bool flag1, bool bStandUp, bool bVault);
     static CEntity* ScanToGrab(CPed* ped, CVector& climbPos, float& angle, eSurfaceType& pSurfaceType, bool flag1, bool bStandUp, bool bVault, CVector* pedPosition);
     static bool CreateColModel();
     static void Shutdown();

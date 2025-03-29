@@ -14,7 +14,6 @@
 #include "constants.h"
 #include <CdStreamInfo.h>
 
-class CPtrList;
 class CEntity;
 class CLoadedCarGroup;
 class CDirectory;
@@ -274,9 +273,12 @@ public:
     static bool DeleteLeastUsedEntityRwObject(bool bNotOnScreen, int32 flags);
     static void DeleteRwObjectsAfterDeath(const CVector& point);
     static void DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes);
-    static bool DeleteRwObjectsBehindCameraInSectorList(CPtrList& list, size_t memoryToCleanInBytes);
-    static void DeleteRwObjectsInSectorList(CPtrList& list, int32 sectorX = -1, int32 sectorY = -1);
-    static bool DeleteRwObjectsNotInFrustumInSectorList(CPtrList& list, size_t memoryToCleanInBytes);
+    template<typename PtrListType>
+    static bool DeleteRwObjectsBehindCameraInSectorList(PtrListType& list, size_t memoryToCleanInBytes);
+    template<typename PtrListType>
+    static void DeleteRwObjectsInSectorList(PtrListType& list, int32 sectorX = -1, int32 sectorY = -1);
+    template<typename PtrListType>
+    static bool DeleteRwObjectsNotInFrustumInSectorList(PtrListType& list, size_t memoryToCleanInBytes);
 
     /*!
     * @addr 0x40D2F0
@@ -305,7 +307,8 @@ public:
     static void Init2();
     static void InitImageList();
     static void InstanceLoadedModels(const CVector& point);
-    static void InstanceLoadedModelsInSectorList(CPtrList& list);
+    template<typename PtrListType>
+    static void InstanceLoadedModelsInSectorList(PtrListType& list);
     static bool IsCarModelNeededInCurrentZone(int32 modelId);
     static bool IsInitialised();
     static bool IsObjectInCdImage(int32 modelId);
@@ -322,8 +325,10 @@ public:
     static void LoadZoneVehicle(const CVector& point);
     static void MakeSpaceFor(size_t memoryToCleanInBytes);
     static void PossiblyStreamCarOutAfterCreation(int32 modelId);
-    static void ProcessEntitiesInSectorList(CPtrList& list, float posX, float posY, float minX, float minY, float maxX, float maxY, float radius, int32 flags);
-    static void ProcessEntitiesInSectorList(CPtrList& list, int32 flags);
+    template<typename PtrListType>
+    static void ProcessEntitiesInSectorList(PtrListType& list, float posX, float posY, float minX, float minY, float maxX, float maxY, float radius, int32 flags);
+    template<typename PtrListType>
+    static void ProcessEntitiesInSectorList(PtrListType& list, int32 flags);
     static bool ProcessLoadingChannel(int32 channelIndex);
     static void PurgeRequestList();
     static void ReInit();

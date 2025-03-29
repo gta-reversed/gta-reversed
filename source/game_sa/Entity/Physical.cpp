@@ -640,8 +640,8 @@ void CPhysical::RemoveAndAdd()
                 CPtrNodeDoubleLink* doubleLink = entryInfoNode->m_doubleLink;
 
                 //CPtrNodeDoubleLink* doubleLink = entryInfoNode->m_doubleLink;
-                //if (entryInfoNode->m_doubleLinkList->m_node == (CPtrNode*)doubleLink)
-                //    entryInfoNode->m_doubleLinkList->m_node = (CPtrNode*)doubleLink->GetNext();
+                //if (entryInfoNode->m_doubleLinkList->m_node == (typename PtrListType::NodeType*)doubleLink)
+                //    entryInfoNode->m_doubleLinkList->m_node = (typename PtrListType::NodeType*)doubleLink->GetNext();
                 //
                 //CPtrNodeDoubleLink* doubleLinkPrevious = doubleLink->m_prev;
                 //if (doubleLinkPrevious)

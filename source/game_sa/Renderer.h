@@ -110,7 +110,8 @@ public:
     static void ScanSectorList(int32 sectorX, int32 sectorY);
     static void ScanBigBuildingList(int32 sectorX, int32 sectorY);
     static bool ShouldModelBeStreamed(CEntity* entity, const CVector& origin, float farClip);
-    static void ScanPtrList_RequestModels(CPtrList& list);
+    template<typename PtrListType>
+    static void ScanPtrList_RequestModels(PtrListType& list);
     static void ConstructRenderList();
     static void ScanSectorList_RequestModels(int32 sectorX, int32 sectorY);
     static void ScanWorld();

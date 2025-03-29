@@ -14,7 +14,7 @@ void CPlayerInfo::InjectHooks() {
     RH_ScopedInstall(FindObjectToSteal, 0x56DBD0, { .reversed = false });
     RH_ScopedInstall(EvaluateCarPosition, 0x56DAD0);
     RH_ScopedInstall(Process, 0x56F8D0, { .reversed = false });
-    RH_ScopedInstall(FindClosestCarSectorList, 0x56F4E0, { .reversed = false });
+    RH_ScopedInstall(FindClosestCarSectorList<CPtrListDoubleLink>, 0x56F4E0, { .reversed = false });
     RH_ScopedInstall(Clear, 0x56F330);
     RH_ScopedInstall(StreamParachuteWeapon, 0x56EB30);
     RH_ScopedInstall(AddHealth, 0x56EAB0);
@@ -134,8 +134,9 @@ void CPlayerInfo::Process(uint32 playerIndex) {
 }
 
 // 0x56F4E0
-void CPlayerInfo::FindClosestCarSectorList(CPtrList& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle) {
-    plugin::CallMethod<0x56F4E0, CPlayerInfo*, CPtrList&, CPed*, float, float, float, float, float*, CVehicle**>(this, ptrList, ped, minX, minY, maxX, maxY, outVehDist, outVehicle);
+template<typename PtrListType>
+void CPlayerInfo::FindClosestCarSectorList(PtrListType& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle) {
+    plugin::CallMethod<0x56F4E0, CPlayerInfo*, PtrListType&, CPed*, float, float, float, float, float*, CVehicle**>(this, ptrList, ped, minX, minY, maxX, maxY, outVehDist, outVehicle);
 }
 
 // 0x56F330

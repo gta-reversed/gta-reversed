@@ -99,7 +99,7 @@ void CEntryExitManager::Update() {
         CRect rect(x - 30.0f, y - 30.0f, x + 30.0f, y + 30.0f);
         mp_QuadTree->GetAllMatching(rect, matches);
 
-        for (CPtrNode* it = matches.m_node, *next{}; it; it = next) {
+        for (CPtrListSingleLink::NodeType* it = matches.m_node, *next{}; it; it = next) {
             next = it->GetNext();
 
             auto* enex = it->ItemAs<CEntryExit>();
@@ -137,7 +137,7 @@ void CEntryExitManager::Update() {
         mp_QuadTree->GetAllMatching(pos, matches);
 
         bool wasAnyMarkerInArea{};
-        for (CPtrNode* it = matches.m_node, *next{}; it; it = next) {
+        for (CPtrListSingleLink::NodeType* it = matches.m_node, *next{}; it; it = next) {
             next = it->GetNext();
 
             auto* enex = it->ItemAs<CEntryExit>();
@@ -270,7 +270,7 @@ int32 CEntryExitManager::FindNearestEntryExit(const CVector2D& position, float r
 
     float closestDist2D{ 2.f * range };
     CEntryExit* closest{};
-    for (CPtrNode* it = enexInRange.m_node, *next{}; it; it = next) {
+    for (CPtrListSingleLink::NodeType* it = enexInRange.m_node, *next{}; it; it = next) {
         next = it->GetNext();
 
         auto* enex = it->ItemAs<CEntryExit>();

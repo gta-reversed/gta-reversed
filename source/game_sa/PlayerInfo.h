@@ -99,7 +99,8 @@ public:
     static CEntity* FindObjectToSteal(CPed* ped);
 
     void Process(uint32 playerIndex);
-    void FindClosestCarSectorList(CPtrList& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle);
+    template<typename PtrListType>
+    void FindClosestCarSectorList(PtrListType& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle);
     void EvaluateCarPosition(CEntity* car, CPed* ped, float pedToVehDist, float* outDistance, CVehicle** outVehicle);
     void Clear();
     void GivePlayerParachute() const;

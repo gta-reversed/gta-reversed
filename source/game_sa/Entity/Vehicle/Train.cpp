@@ -75,7 +75,7 @@ void CTrain::InjectHooks() {
     RH_ScopedGlobalInstall(ProcessTrainAnnouncements, 0x6F5910);
     RH_ScopedGlobalInstall(PlayAnnouncement, 0x6F5920);
     RH_ScopedGlobalInstall(MarkSurroundingEntitiesForCollisionWithTrain, 0x6F6640);
-    RH_ScopedGlobalInstall(TrainHitStuff, 0x6F5CF0, { .reversed = false });
+    RH_ScopedGlobalInstall(TrainHitStuff<CPtrListSingleLink>, 0x6F5CF0, { .reversed = false });
 }
 
 // 0x6F6030
@@ -342,8 +342,9 @@ void MarkSurroundingEntitiesForCollisionWithTrain(CVector pos, float radius, CEn
 }
 
 // 0x6F5CF0
-void TrainHitStuff(CPtrList& ptrList, CEntity* entity) {
-    ((void(__cdecl*)(CPtrList&, CEntity*))0x6F5CF0)(ptrList, entity);
+template<typename PtrListType>
+void TrainHitStuff(PtrListType& ptrList, CEntity* entity) {
+    ((void(__cdecl*)(PtrListType&, CEntity*))0x6F5CF0)(ptrList, entity);
 }
 
 // 0x6F6850

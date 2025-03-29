@@ -69,7 +69,7 @@ void CRenderer::InjectHooks()
     RH_ScopedInstall(ScanSectorList, 0x554840);
     RH_ScopedInstall(ScanBigBuildingList, 0x554B10);
     RH_ScopedInstall(ShouldModelBeStreamed, 0x554EB0);
-    RH_ScopedInstall(ScanPtrList_RequestModels, 0x555680);
+    RH_ScopedInstall(ScanPtrList_RequestModels<CPtrListSingleLink>, 0x555680);
     RH_ScopedInstall(ConstructRenderList, 0x5556E0);
     RH_ScopedInstall(ScanSectorList_RequestModels, 0x555900);
     RH_ScopedInstall(ScanWorld, 0x554FE0);
@@ -900,7 +900,7 @@ void CRenderer::ScanBigBuildingList(int32 sectorX, int32 sectorY) {
         bRequestModel = true;
     }
 
-    CPtrList& list = CWorld::GetLodPtrList(sectorX, sectorY);
+    CPtrListSingleLink& list = CWorld::GetLodPtrList(sectorX, sectorY);
     auto* node = list.GetNode();
     while (node) {
         auto* entity = reinterpret_cast<CEntity*>(node->m_item);
@@ -951,7 +951,8 @@ bool CRenderer::ShouldModelBeStreamed(CEntity* entity, const CVector& point, flo
 }
 
 // 0x555680
-void CRenderer::ScanPtrList_RequestModels(CPtrList& list) {
+template<typename PtrListType>
+void CRenderer::ScanPtrList_RequestModels(PtrListType& list) {
     for (auto node = list.GetNode(); node; node = node->m_next) {
         auto* entity = reinterpret_cast<CEntity*>(node->m_item);
         if (!entity->IsScanCodeCurrent()) {
