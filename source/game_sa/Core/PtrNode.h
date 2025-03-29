@@ -12,7 +12,7 @@ public:
     using LinkType = TLinkType;
 
 public:
-    CPtrNode(void* item) :
+    CPtrNode(TItemType item) :
         m_item(item)
     { assert(item); }
 

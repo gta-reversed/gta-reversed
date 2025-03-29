@@ -6,7 +6,13 @@
 */
 #pragma once
 
-#include <PtrNode.h>
+#include "PtrNode.h"
+
+// Doing it like this because including `Pools.h` here is a suicide
+namespace details {
+void* CPtrNodeDoubleLink__operator_new(size_t sz);
+void  CPtrNodeDoubleLink__operator_delete(void* data, size_t sz);
+};
 
 template<typename TItemType>
 class CPtrNodeDoubleLink : public CPtrNode<TItemType, CPtrNodeDoubleLink<TItemType>> {
@@ -14,23 +20,16 @@ public:
     using ItemType = TItemType;
 
 public:
+    static void* operator new(size_t sz) {
+        return details::CPtrNodeDoubleLink__operator_new(sz);
+    }
 
-    static void* operator new(unsigned size);
-    static void operator delete(void* ptr, size_t sz);
+    static void operator delete(void* data, size_t sz) {
+        return details::CPtrNodeDoubleLink__operator_delete(data, sz);
+    }
 
 public:
     using CPtrNode<ItemType, CPtrNodeDoubleLink<ItemType>>::CPtrNode;
-
-    //void AddToList(CPtrListDoubleLink* list) {
-    //    m_prev = nullptr;
-    //    m_next = list->GetNode();
-    //
-    //    if (GetNext()) {
-    //        GetNext()->m_prev = this;
-    //    }
-    //
-    //    list->m_node = this;
-    //}
 
 public:
     CPtrNodeDoubleLink<ItemType>* m_prev{};

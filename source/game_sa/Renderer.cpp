@@ -746,7 +746,7 @@ template<bool CheckIsVisible>
 void I_ScanSectorList_ListModels(int32 sectorX, int32 sectorY) {
     CRenderer::SetupScanLists(sectorX, sectorY);
     reinterpret_cast<tScanLists*>(&PC_Scratch)->VisitLists([&]<typename PtrListType>(PtrListType& list) {
-        for (auto* const entity : *list) {
+        for (auto* const entity : list) {
             if (entity->IsScanCodeCurrent()) {
                 continue;
             }
@@ -789,10 +789,7 @@ void CRenderer::ScanSectorList(int32 sectorX, int32 sectorY) {
 
     CRenderer::SetupScanLists(sectorX, sectorY);
     reinterpret_cast<tScanLists*>(&PC_Scratch)->VisitLists([&]<typename PtrListType>(PtrListType& list) {
-        if (!list) {
-            return;
-        }
-        for (auto* const entity : *list) {
+        for (auto* const entity : list) {
             if (entity->IsScanCodeCurrent())
                 continue;
 
@@ -864,7 +861,7 @@ void CRenderer::ScanSectorList(int32 sectorX, int32 sectorY) {
                 }
             }
         }
-    };
+    });
 }
 
 // 0x554B10

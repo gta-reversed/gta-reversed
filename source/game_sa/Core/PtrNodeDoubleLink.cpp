@@ -1,9 +1,13 @@
 #include "StdInc.h"
 
-void* CPtrNodeDoubleLink::operator new(unsigned size) {
+namespace details {
+void* CPtrNodeDoubleLink__operator_new(size_t sz) {
+    assert(sz == sizeof(CPtrNodeDoubleLink<void*>));
     return GetPtrNodeDoubleLinkPool()->New();
 }
 
-void CPtrNodeDoubleLink::operator delete(void* ptr, size_t sz) {
-    GetPtrNodeDoubleLinkPool()->Delete(static_cast<CPtrNodeDoubleLink*>(ptr));
+void CPtrNodeDoubleLink__operator_delete(void* data, size_t sz) {
+    assert(sz == sizeof(CPtrNodeDoubleLink<void*>));
+    GetPtrNodeDoubleLinkPool()->Delete(reinterpret_cast<CPtrNodeDoubleLink<void*>*>(data));
 }
+};

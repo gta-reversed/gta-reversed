@@ -10,11 +10,8 @@ namespace details {
 /*!
  * @brief A safe iterator that pre-caches the next node
  */
-template<typename ItemType, typename TTraits>
+template<typename ItemType, typename NodeType>
 struct PtrListIterator {
-private:
-    using NodeType = typename TTraits::NodeType;
-
 public:
     using difference_type   = std::ptrdiff_t;
     using iterator_category = std::forward_iterator_tag; // Technically we could make this bidirectional for double-linked lists, but who cares (for now anyways)
@@ -28,8 +25,8 @@ public:
         m_next{ node ? node->m_next : nullptr }
     {}
 
-    reference operator*()  const { return *m_curr->m_item; }
-    pointer   operator->() const { return m_curr->m_item; }
+    reference operator*() { return m_curr->m_item; }
+    pointer   operator->() { return &m_curr->m_item; }
 
     PtrListIterator& operator++() {
         if (m_curr = m_next) {
@@ -59,8 +56,8 @@ public:
     using NodeType = typename Traits::NodeType;
     using ItemType = typename NodeType::ItemType;
 
-    using iterator       = details::PtrListIterator<ItemType, Traits>;
-    using const_iterator = details::PtrListIterator<const ItemType, Traits>;
+    using iterator       = details::PtrListIterator<ItemType, NodeType>;
+    using const_iterator = details::PtrListIterator<const ItemType, NodeType>;
 
 public:
     CPtrList() = default;
@@ -80,7 +77,7 @@ public:
     /*!
     * @brief Add item to the head (front) of the list
     **/
-    NodeType* AddItem(void* item) {
+    NodeType* AddItem(ItemType item) {
         return AddNode(new NodeType{item});
     }
 
@@ -88,7 +85,7 @@ public:
     * @brief Delete an item from the list.
     * @warning Invalidates `item`'s node (iterator), please make sure you pre-fetch `next` before deleting!
     **/
-    NodeType* DeleteItem(void* item) {
+    NodeType* DeleteItem(ItemType item) {
         assert(item);
         for (NodeType *curr = m_node, *prev{}; curr; prev = std::exchange(curr, curr->m_next)) {
             if (curr->m_item == item) {
@@ -129,9 +126,9 @@ public:
     /*!
     * @return If the specified item is in the list
     */
-    bool IsMemberOfList(void* data) const {
+    bool IsMemberOfList(ItemType item) const {
         for (NodeType* node = GetNode(); node; node = node->m_next) {
-            if (node->m_item == data) {
+            if (node->m_item == item) {
                 return true;
             }
         }

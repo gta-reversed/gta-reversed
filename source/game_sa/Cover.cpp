@@ -139,10 +139,7 @@ void CCover::Update() {
         if (!FindPlayerVehicle()) { // 0x699AE1
             CWorld::IncrementCurrentScanCode();
             CWorld::IterateSectorsOverlappedByRect(CRect{ FindPlayerCoors(), 30.f }, [&](int32 x, int32 y) {
-                for (CPtrNodeDoubleLink<CBuilding*>* it = GetSector(x, y)->m_buildings.GetNode(), *next{}; it; it = next) {
-                    next            = it->GetNext();
-                    auto* const obj = it->GetItem<CBuilding>();
-
+                for (auto* const obj : GetSector(x, y)->m_buildings) {
                     if (obj->IsScanCodeCurrent()) {
                         continue;
                     }

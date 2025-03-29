@@ -97,10 +97,8 @@ public:
     template<typename PtrListType>
     static void TestForUnusedModels(PtrListType& ptrList, int32* models);
     static void RemoveEntityInsteadOfProcessingIt(CEntity* entity);
-    template<typename PtrListType>
-    static void CallOffChaseForAreaSectorListVehicles(PtrListType& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
-    template<typename PtrListType>
-    static void CallOffChaseForAreaSectorListPeds(PtrListType& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
+    static void CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
+    static void CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY);
     static bool CameraToIgnoreThisObject(CEntity* entity);
     static int32 FindPlayerSlotWithPedPointer(void* ptr);
     static int32 FindPlayerSlotWithRemoteVehiclePointer(void* ptr);

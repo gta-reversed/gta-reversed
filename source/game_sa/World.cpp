@@ -113,7 +113,8 @@ void CWorld::InjectHooks() {
     RH_ScopedInstall(SetWorldOnFire, 0x56B910);
     RH_ScopedInstall(SetAllCarsCanBeDamaged, 0x5668F0);
 
-    RH_ScopedInstall(CallOffChaseForAreaSectorListVehicles<CPtrListSingleLink<CEntity*>>, 0x563A80, { .reversed = false });
+    RH_ScopedInstall(CallOffChaseForAreaSectorListVehicles, 0x563A80);
+    RH_ScopedInstall(CallOffChaseForAreaSectorListPeds, 0x563D00, {.reversed=false});
     RH_ScopedInstall(RemoveEntityInsteadOfProcessingIt, 0x563A10);
     RH_ScopedOverloadedInstall(TestForUnusedModels<CPtrListSingleLink<CEntity*>>, "InputArray", 0x5639D0, void(*)(CPtrListSingleLink<CEntity*>&, int32*));
     RH_ScopedOverloadedInstall(TestForBuildingsOnTopOfEachOther<CPtrListSingleLink<CEntity*>>, "", 0x563950, void(*)(CPtrListSingleLink<CEntity*>&));
@@ -121,7 +122,6 @@ void CWorld::InjectHooks() {
     RH_ScopedInstall(ClearScanCodes, 0x563470);
     RH_ScopedInstall(CastShadowSectorList<CPtrListSingleLink<CEntity*>>, 0x563390);
     RH_ScopedInstall(ResetLineTestOptions, 0x5631C0);
-    RH_ScopedInstall(CallOffChaseForAreaSectorListPeds<CPtrListSingleLink<CEntity*>>, 0x563D00);
     RH_ScopedInstall(RepositionCertainDynamicObjects, 0x56B9C0);
     RH_ScopedInstall(CameraToIgnoreThisObject, 0x563F40);
     RH_ScopedInstall(RemoveReferencesToDeletedObject, 0x565510);
@@ -470,18 +470,8 @@ void CWorld::RemoveEntityInsteadOfProcessingIt(CEntity* entity) {
 }
 
 // 0x563A80
-template<typename PtrListType>
-void CWorld::CallOffChaseForAreaSectorListVehicles(PtrListType& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY) {
-    plugin::Call<0x563A80, PtrListType&, float, float, float, float, float, float, float, float>(ptrList, x1, y1, x2, y2, minX, minY, maxX, maxY);
-}
-
-// 0x563D00
-template<typename PtrListType>
-void CWorld::CallOffChaseForAreaSectorListPeds(PtrListType& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY) {
-    for (typename PtrListType::NodeType* node = ptrList.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-
-        const auto veh = static_cast<CVehicle*>(node->m_item);
+void CWorld::CallOffChaseForAreaSectorListVehicles(CPtrListDoubleLink<CVehicle*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY) {
+    for (auto* const veh : ptrList) {
         const auto& pos = veh->GetPosition();
         const auto& mat = veh->GetMatrix();
 
@@ -533,6 +523,11 @@ void CWorld::CallOffChaseForAreaSectorListPeds(PtrListType& ptrList, float x1, f
             }
         }
     }
+}
+
+// 0x563D00
+void CWorld::CallOffChaseForAreaSectorListPeds(CPtrListDoubleLink<CPed*>& ptrList, float x1, float y1, float x2, float y2, float minX, float minY, float maxX, float maxY) {
+    plugin::Call<0x563D00>(&ptrList, x1, y1, x2, y2, minX, minY, maxX, maxY);
 }
 
 // 0x563F40

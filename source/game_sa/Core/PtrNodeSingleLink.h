@@ -7,7 +7,12 @@
 #pragma once
 
 #include <PtrNode.h>
-#include "Pools.h"
+
+// Doing it like this because including `Pools.h` here is a suicide
+namespace details {
+void* CPtrNodeSingleLink__operator_new(size_t sz);
+void  CPtrNodeSingleLink__operator_delete(void* data, size_t sz);
+};
 
 template<typename TItemType>
 class CPtrNodeSingleLink : public CPtrNode<TItemType, CPtrNodeSingleLink<TItemType>> {
@@ -16,13 +21,11 @@ public:
 
 public:
     static void* operator new(size_t sz) {
-        assert(sz == sizeof(CPtrNodeSingleLink<void*>));
-        return GetPtrNodeSingleLinkPool()->New();
+        return details::CPtrNodeSingleLink__operator_new(sz);
     }
 
     static void operator delete(void* data, size_t sz) {
-        assert(sz == sizeof(CPtrNodeSingleLink<void*>));
-        GetPtrNodeSingleLinkPool()->Delete(static_cast<CPtrNodeSingleLink*>(data));
+        return details::CPtrNodeSingleLink__operator_delete(data, sz);
     }
 
 public:
