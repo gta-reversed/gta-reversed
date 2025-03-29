@@ -1226,7 +1226,7 @@ void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY)
         scanLists->buildingsList = &sector->m_buildings;
         scanLists->objectsList = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
         scanLists->vehiclesList = &repeatSector->Vehicles;
-        scanLists->pedsList = &repeatSector->GetList(REPEATSECTOR_PEDS);
+        scanLists->pedsList = &repeatSector->Peds;
         scanLists->dummiesList = &sector->m_dummies;
     }
     else {
@@ -1234,7 +1234,7 @@ void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY)
         scanLists->buildingsList = nullptr;
         scanLists->objectsList = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
         scanLists->vehiclesList = &repeatSector->Vehicles;
-        scanLists->pedsList = &repeatSector->GetList(REPEATSECTOR_PEDS);
+        scanLists->pedsList = &repeatSector->Peds;
         scanLists->dummiesList = nullptr;
     }
 }

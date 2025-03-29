@@ -172,7 +172,7 @@ void CPhysical::Add()
                 list = &repeatSector->Vehicles;
                 break;
             case ENTITY_TYPE_PED:
-                list = &repeatSector->GetList(REPEATSECTOR_PEDS);
+                list = &repeatSector->Peds;
                 break;
             case ENTITY_TYPE_OBJECT:
                 list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
@@ -629,7 +629,7 @@ void CPhysical::RemoveAndAdd()
                 list = &repeatSector->Vehicles;
                 break;
             case ENTITY_TYPE_PED:
-                list = &repeatSector->GetList(REPEATSECTOR_PEDS);
+                list = &repeatSector->Peds;
                 break;
             case ENTITY_TYPE_OBJECT:
                 list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
@@ -2015,7 +2015,7 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
             list = &repeatSector->Vehicles;
             break;
         case 2:
-            list = &repeatSector->GetList(REPEATSECTOR_PEDS);
+            list = &repeatSector->Peds;
             break;
         case 3:
             list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
@@ -4002,7 +4002,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
         --scanListIndex;
         switch (scanListIndex) {
         case 0:
-            list = &repeatSector->GetList(REPEATSECTOR_PEDS);
+            list = &repeatSector->Peds;
             break;
         case 1:
             list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);

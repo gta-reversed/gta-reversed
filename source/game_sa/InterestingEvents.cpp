@@ -194,7 +194,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            CPtrListDoubleLink& list = repeatSector->GetList(REPEATSECTOR_PEDS);
+            CPtrListDoubleLink& list = repeatSector->Peds;
 
             for (CPtrListDoubleLink::NodeType *it = list.m_node, *next{}; it; it = next) {
                 next = it->GetNext();

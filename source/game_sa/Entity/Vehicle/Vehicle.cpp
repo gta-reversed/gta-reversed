@@ -4525,7 +4525,7 @@ bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, f
 
         collided |= ProcessSector(s->m_buildings, damageMult);
         collided |= ProcessSector(rs->Vehicles, damageMult);
-        collided |= ProcessSector(rs->GetList(REPEATSECTOR_PEDS), 0.0);
+        collided |= ProcessSector(rs->Peds, 0.0);
         collided |= ProcessSector(rs->GetList(REPEATSECTOR_OBJECTS), damageMult);
         return 1;
     });

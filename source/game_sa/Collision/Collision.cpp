@@ -2404,7 +2404,7 @@ bool CCollision::CheckCameraCollisionPeds(
     bool addedAny = false;
 
     const auto& sector = GetRepeatSector(sectorX, sectorY);
-    for (CPtrNodeDoubleLink* it = sector->GetList(REPEATSECTOR_PEDS).GetNode(), *next{}; it; it = next) {
+    for (CPtrNodeDoubleLink* it = sector->Peds.GetNode(), *next{}; it; it = next) {
         next = it->GetNext();
         
         const auto ped = it->GetItem<CPed>();
