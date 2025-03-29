@@ -30,9 +30,6 @@ bool& CWorld::bNoMoreCollisionTorque = *(bool*)0xB7CD72;
 bool& CWorld::bDoingCarCollisions = *(bool*)0xB7CD73;
 int8& CWorld::PlayerInFocus = *(int8*)0xB7CD74;
 uint16& CWorld::ms_nCurrentScanCode = *(uint16*)0xB7CD78;
-CPtrListSingleLink (&CWorld::ms_aLodPtrLists)[MAX_LOD_PTR_LISTS_Y][MAX_LOD_PTR_LISTS_X] = *(CPtrListSingleLink(*)[MAX_LOD_PTR_LISTS_Y][MAX_LOD_PTR_LISTS_X])0xB99EB8;
-CPtrListDoubleLink& CWorld::ms_listMovingEntityPtrs = *(CPtrListDoubleLink*)0xB9ACC8;
-CPtrListDoubleLink& CWorld::ms_listObjectsWithControlCode = *(CPtrListDoubleLink*)0xB9ACCC;
 CVector& CWorld::SnookerTableMax = *(CVector*)0x8CDEF4;
 CVector& CWorld::SnookerTableMin = *(CVector*)0x8CDF00;
 uint32& FilledColPointIndex = *(uint32*)0xB7CD7C;
@@ -53,22 +50,22 @@ void CWorld::InjectHooks() {
     RH_ScopedOverloadedInstall(TestForUnusedModels, "", 0x566510, void(*)());
     RH_ScopedOverloadedInstall(TestForBuildingsOnTopOfEachOther, "Void", 0x5664A0, void(*)());
     RH_ScopedInstall(PrintCarChanges, 0x566420);
-    RH_ScopedInstall(TestSphereAgainstSectorList<CPtrListSingleLink>, 0x566140);
+    RH_ScopedInstall(TestSphereAgainstSectorList<CPtrListSingleLink<CEntity*>>, 0x566140);
     RH_ScopedInstall(UseDetonator, 0x5660B0);
     RH_ScopedInstall(RemoveFallenCars, 0x565E80);
     RH_ScopedInstall(RemoveFallenPeds, 0x565CB0);
     RH_ScopedInstall(ClearCarsFromArea, 0x566610);
-    RH_ScopedInstall(TriggerExplosionSectorList<CPtrListSingleLink>, 0x567750);
+    RH_ScopedInstall(TriggerExplosionSectorList<CPtrListSingleLink<CEntity*>>, 0x567750);
     RH_ScopedInstall(Process, 0x5684A0);
     RH_ScopedInstall(ProcessLineOfSight, 0x56BA00);
     RH_ScopedInstall(ProcessLineOfSightSector, 0x56B5E0);
-    RH_ScopedInstall(ProcessLineOfSightSectorList<CPtrListSingleLink>, 0x566EE0);
+    RH_ScopedInstall(ProcessLineOfSightSectorList<CPtrListSingleLink<CEntity*>>, 0x566EE0);
     RH_ScopedInstall(ProcessVerticalLine, 0x5674E0);
     RH_ScopedInstall(ProcessVerticalLine_FillGlobeColPoints, 0x567620);
     RH_ScopedInstall(ProcessVerticalLineSector, 0x564500);
     RH_ScopedInstall(ProcessVerticalLineSector_FillGlobeColPoints, 0x564420);
-    RH_ScopedInstall(ProcessVerticalLineSectorList<CPtrListSingleLink>, 0x5632B0);
-    RH_ScopedInstall(ProcessVerticalLineSectorList_FillGlobeColPoints<CPtrListSingleLink>, 0x5636A0);
+    RH_ScopedInstall(ProcessVerticalLineSectorList<CPtrListSingleLink<CEntity*>>, 0x5632B0);
+    RH_ScopedInstall(ProcessVerticalLineSectorList_FillGlobeColPoints<CPtrListSingleLink<CEntity*>>, 0x5636A0);
     RH_ScopedInstall(ProcessForAnimViewer, 0x5633D0);
     RH_ScopedInstall(ProcessPedsAfterPreRender, 0x563430);
     RH_ScopedInstall(ProcessAttachedEntities, 0x5647F0);
@@ -87,14 +84,14 @@ void CWorld::InjectHooks() {
     RH_ScopedInstall(FindObjectsIntersectingAngledCollisionBox, 0x568FF0);
     RH_ScopedInstall(FindObjectsIntersectingCube, 0x568DD0);
     RH_ScopedInstall(FindObjectsKindaColliding, 0x568B80); // bad
-    RH_ScopedInstall(FindObjectsOfTypeInRangeSectorList<CPtrListSingleLink>, 0x5635C0);
-    RH_ScopedInstall(FindObjectsInRangeSectorList<CPtrListSingleLink>, 0x563500);
+    RH_ScopedInstall(FindObjectsOfTypeInRangeSectorList<CPtrListSingleLink<CEntity*>>, 0x5635C0);
+    RH_ScopedInstall(FindObjectsInRangeSectorList<CPtrListSingleLink<CEntity*>>, 0x563500);
     RH_ScopedInstall(FindPlayerSlotWithVehiclePointer, 0x563FD0);
-    RH_ScopedInstall(FindNearestObjectOfTypeSectorList<CPtrListSingleLink>, 0x565450);
-    RH_ScopedInstall(FindMissionEntitiesIntersectingCubeSectorList<CPtrListSingleLink>, 0x565300);
-    RH_ScopedInstall(FindObjectsIntersectingAngledCollisionBoxSectorList<CPtrListSingleLink>, 0x565200);
-    RH_ScopedInstall(FindObjectsIntersectingCubeSectorList<CPtrListSingleLink>, 0x5650E0);
-    RH_ScopedInstall(FindObjectsKindaCollidingSectorList<CPtrListSingleLink>, 0x565000);
+    RH_ScopedInstall(FindNearestObjectOfTypeSectorList<CPtrListSingleLink<CEntity*>>, 0x565450);
+    RH_ScopedInstall(FindMissionEntitiesIntersectingCubeSectorList<CPtrListSingleLink<CEntity*>>, 0x565300);
+    RH_ScopedInstall(FindObjectsIntersectingAngledCollisionBoxSectorList<CPtrListSingleLink<CEntity*>>, 0x565200);
+    RH_ScopedInstall(FindObjectsIntersectingCubeSectorList<CPtrListSingleLink<CEntity*>>, 0x5650E0);
+    RH_ScopedInstall(FindObjectsKindaCollidingSectorList<CPtrListSingleLink<CEntity*>>, 0x565000);
     RH_ScopedInstall(FindObjectsOfTypeInRange, 0x564C70);
     RH_ScopedInstall(FindObjectsInRange, 0x564A20);
     RH_ScopedInstall(FindPlayerSlotWithPedPointer, 0x563FA0);
@@ -104,7 +101,7 @@ void CWorld::InjectHooks() {
 
     RH_ScopedInstall(GetIsLineOfSightClear, 0x56A490);
     RH_ScopedInstall(GetIsLineOfSightSectorClear, 0x568AD0);
-    RH_ScopedInstall(GetIsLineOfSightSectorListClear<CPtrListSingleLink>, 0x564970);
+    RH_ScopedInstall(GetIsLineOfSightSectorListClear<CPtrListSingleLink<CEntity*>>, 0x564970);
     RH_ScopedGlobalInstall(GetCurrentScanCode, 0x407250);
     RH_ScopedGlobalInstall(GetSector, 0x407260);
     RH_ScopedGlobalInstall(GetRepeatSector, 0x4072A0);
@@ -116,15 +113,15 @@ void CWorld::InjectHooks() {
     RH_ScopedInstall(SetWorldOnFire, 0x56B910);
     RH_ScopedInstall(SetAllCarsCanBeDamaged, 0x5668F0);
 
-    RH_ScopedInstall(CallOffChaseForAreaSectorListVehicles<CPtrListSingleLink>, 0x563A80, { .reversed = false });
+    RH_ScopedInstall(CallOffChaseForAreaSectorListVehicles<CPtrListSingleLink<CEntity*>>, 0x563A80, { .reversed = false });
     RH_ScopedInstall(RemoveEntityInsteadOfProcessingIt, 0x563A10);
-    RH_ScopedOverloadedInstall(TestForUnusedModels<CPtrListSingleLink>, "InputArray", 0x5639D0, void(*)(CPtrListSingleLink&, int32*));
-    RH_ScopedOverloadedInstall(TestForBuildingsOnTopOfEachOther<CPtrListSingleLink>, "", 0x563950, void(*)(CPtrListSingleLink&));
+    RH_ScopedOverloadedInstall(TestForUnusedModels<CPtrListSingleLink<CEntity*>>, "InputArray", 0x5639D0, void(*)(CPtrListSingleLink<CEntity*>&, int32*));
+    RH_ScopedOverloadedInstall(TestForBuildingsOnTopOfEachOther<CPtrListSingleLink<CEntity*>>, "", 0x563950, void(*)(CPtrListSingleLink<CEntity*>&));
     RH_ScopedInstall(RemoveStaticObjects, 0x563840);
     RH_ScopedInstall(ClearScanCodes, 0x563470);
-    RH_ScopedInstall(CastShadowSectorList<CPtrListSingleLink>, 0x563390);
+    RH_ScopedInstall(CastShadowSectorList<CPtrListSingleLink<CEntity*>>, 0x563390);
     RH_ScopedInstall(ResetLineTestOptions, 0x5631C0);
-    RH_ScopedInstall(CallOffChaseForAreaSectorListPeds<CPtrListSingleLink>, 0x563D00);
+    RH_ScopedInstall(CallOffChaseForAreaSectorListPeds<CPtrListSingleLink<CEntity*>>, 0x563D00);
     RH_ScopedInstall(RepositionCertainDynamicObjects, 0x56B9C0);
     RH_ScopedInstall(CameraToIgnoreThisObject, 0x563F40);
     RH_ScopedInstall(RemoveReferencesToDeletedObject, 0x565510);
@@ -245,10 +242,7 @@ void CWorld::CastShadowSectorList(PtrListType& ptrList, float, float, float, flo
 
 // 0x5633D0
 void CWorld::ProcessForAnimViewer() {
-    for (CPtrListDoubleLink::NodeType* it = ms_listMovingEntityPtrs.m_node, *next{}; it; it = next) {
-        next = it->GetNext();
-
-        auto entity = static_cast<CEntity*>(it->m_item);
+    for (auto* const entity : ms_listMovingEntityPtrs) {
         if (!entity->m_bRemoveFromWorld) {
             entity->UpdateAnim();
             entity->UpdateRW();
@@ -263,10 +257,7 @@ void CWorld::ProcessPedsAfterPreRender() {
     if (CTimer::bSkipProcessThisFrame)
         return;
 
-    for (CPtrListDoubleLink::NodeType* it = ms_listMovingEntityPtrs.m_node, *next{}; it; it = next) {
-        next = it->GetNext();
-
-        auto entity = static_cast<CEntity*>(it->m_item);
+    for (auto* const entity : ms_listMovingEntityPtrs) {
         if (!entity->m_bRemoveFromWorld) {
             if (entity->IsPed()) {
                 entity->AsPed()->GetIntelligence()->ProcessAfterPreRender();
@@ -629,9 +620,8 @@ void CWorld::ShutDown() {
             for (typename PtrListType::NodeType* node = list.GetNode(), *next{}; node; node = next) {
                 next = node->GetNext();
 
-                const auto entity = static_cast<CEntity*>(node->m_item);
-                Remove(entity);
-                delete entity;
+                Remove(node->m_item);
+                delete node->m_item;
             }
         };
         IterateLodLists(DeleteEntitiesInList);
@@ -641,7 +631,7 @@ void CWorld::ShutDown() {
 
     // Make sure regular and repeat sectors are empty (And report it if not)
     {
-        const auto MakeSureListIsEmpty = [](CPtrListDoubleLink& list, int32 x, int32 y, const char* listName) {
+        const auto MakeSureListIsEmpty = []<typename PtrListType>(PtrListType& list, int32 x, int32 y, const char* listName) {
             if (!list.IsEmpty()) {
                 sprintf_s(gString, "%s overlap list %d,%d not empty\n", listName, x, y);
                 list.Flush();
@@ -1988,13 +1978,13 @@ void CWorld::Process() {
     ZoneScoped;
 
     const auto IterateMovingList = [&](auto&& fn) {
-        for (CPtrNodeDoubleLink* node = ms_listMovingEntityPtrs.GetNode(), *next{}; node; node = next) {
+        for (CPtrNodeDoubleLink<CPhysical*>* node = ms_listMovingEntityPtrs.GetNode(), *next{}; node; node = next) {
             next = node->m_next;
-            fn(static_cast<CEntity*>(node->m_item));
+            fn(node->m_item);
         }
     };
 
-    IterateMovingList([&](CEntity* entity) {
+    IterateMovingList([&](CPhysical* entity) {
         if (entity->IsPed()) {
             GetEventGlobalGroup()->AddEventsToPed(entity->AsPed());
         }
@@ -2065,9 +2055,9 @@ void CWorld::Process() {
         bForceProcessControl = false;
     }
 
-    for (CPtrNodeDoubleLink* node = ms_listObjectsWithControlCode.GetNode(), *next{}; node; node = next) {
+    for (CPtrNodeDoubleLink<CObject*>* node = ms_listObjectsWithControlCode.GetNode(), *next{}; node; node = next) {
         next = node->m_next;
-        static_cast<CObject*>(node->m_item)->ProcessControlLogic();
+        node->m_item->ProcessControlLogic();
     }
 
     g_LoadMonitor.StartTimer(true);
@@ -3061,12 +3051,4 @@ CSector* GetSector(int32 x, int32 y) {
 // 0x4072A0
 CRepeatSector* GetRepeatSector(int32 x, int32 y) {
     return &CWorld::ms_aRepeatSectors[y % MAX_REPEAT_SECTORS_Y][x % MAX_REPEAT_SECTORS_X];
-}
-
-// 0x4072C0
-CPtrListSingleLink& CWorld::GetLodPtrList(int32 x, int32 y) {
-    assert(x < MAX_LOD_PTR_LISTS_X);
-    assert(y < MAX_LOD_PTR_LISTS_Y);
-
-    return ms_aLodPtrLists[y][x];
 }

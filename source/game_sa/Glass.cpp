@@ -30,7 +30,7 @@ void CGlass::InjectHooks() {
     RH_ScopedInstall(GeneratePanesForWindow, 0x71B620);
     RH_ScopedInstall(Update, 0x71B0D0);
     RH_ScopedInstall(Render, 0x71CE20);
-    RH_ScopedInstall(FindWindowSectorList<CPtrListSingleLink>, 0x71AFC0);
+    RH_ScopedInstall(FindWindowSectorList<CPtrListSingleLink<CPhysical*>>, 0x71AFC0);
     RH_ScopedInstall(RenderReflectionPolys, 0x71AED0);
     RH_ScopedInstall(RenderShatteredPolys, 0x71AE30);
     RH_ScopedInstall(RenderHiLightPolys, 0x71ADA0);

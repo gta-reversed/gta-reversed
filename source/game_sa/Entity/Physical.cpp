@@ -1998,145 +1998,123 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
 
     GetBoundCentre(&vecBoundCentre);
 
-    CSector* sector = GetSector(sectorX, sectorY);
-    CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-
     int32 totalAcceptableColPoints = 0;
-    int32 scanListIndex = 4;
-    do
-    {
-        CPtrListDoubleLink* list = nullptr;
-        switch (--scanListIndex)
-        {
-        case 0:
-            list = &sector->m_buildings;
-            break;
-        case 1:
-            list = &repeatSector->Vehicles;
-            break;
-        case 2:
-            list = &repeatSector->Peds;
-            break;
-        case 3:
-            list = &repeatSector->Objects;
-            break;
-        }
-        CPtrNodeDoubleLink* node = list->GetNode();
-        if (list->GetNode())
-        {
-            do
+    const auto ProcessSectorList = [&]<typename PtrListType>(PtrListType& list) {
+        bool bProcessEntityCollision = true;
+        for (CEntity* const entity : list) {
+            if (!entity->IsBuilding() && (!entity->IsObject() || !entity->AsPhysical()->physicalFlags.bDisableCollisionForce))
             {
-                auto* entity = reinterpret_cast<CPhysical*>(node->m_item);
-                node = node->GetNext();
-
-                bool bProcessEntityCollision = true;
-                if (!entity->IsBuilding() && (!entity->IsObject() || !entity->physicalFlags.bDisableCollisionForce))
+                if (!IsPed() || !entity->IsObject()
+                    || !entity->IsStatic()
+                    || entity->AsObject()->objectFlags.bIsExploded)
                 {
-                    if (!IsPed() || !entity->IsObject()
-                        || !entity->IsStatic()
-                        || entity->AsObject()->objectFlags.bIsExploded)
-                    {
-                        bProcessEntityCollision = false;
-                    }
+                    bProcessEntityCollision = false;
                 }
-                if (entity != this
-                    && !entity->IsScanCodeCurrent()
-                    && entity->m_bUsesCollision && (!m_bHasHitWall || bProcessEntityCollision))
+            }
+            if (entity != this
+                && !entity->IsScanCodeCurrent()
+                && entity->m_bUsesCollision && (!m_bHasHitWall || bProcessEntityCollision))
+            {
+                if (entity->GetIsTouching(vecBoundCentre, fBoundingSphereRadius))
                 {
-                    if (entity->GetIsTouching(vecBoundCentre, fBoundingSphereRadius))
+                    bool bCollisionDisabled = false;
+                    bool bCollidedEntityCollisionIgnored = false;
+                    bool bCollidedEntityUnableToMove = false;
+                    bool bThisOrCollidedEntityStuck = false;
+                    if (entity->IsBuilding())
                     {
-                        bool bCollisionDisabled = false;
-                        bool bCollidedEntityCollisionIgnored = false;
-                        bool bCollidedEntityUnableToMove = false;
-                        bool bThisOrCollidedEntityStuck = false;
-                        if (entity->IsBuilding())
+                        if (physicalFlags.bDisableCollisionForce
+                            && (!IsVehicle() || entity->AsVehicle()->IsSubTrain()))
                         {
-                            if (physicalFlags.bDisableCollisionForce
-                                && (!IsVehicle() || entity->AsVehicle()->IsSubTrain()))
-                            {
-                                bCollisionDisabled = true;
-                            }
-                            else
-                            {
-                                if (m_pAttachedTo)
-                                {
-                                    if (m_pAttachedTo->IsPhysical() && m_pAttachedTo->physicalFlags.bDisableCollisionForce)
-                                    {
-                                        bCollisionDisabled = true;
-                                    }
-                                }
-                                else if (m_pEntityIgnoredCollision == entity)
-                                {
-                                    bCollisionDisabled = true;
-                                }
-
-                                else if (!physicalFlags.bDisableZ || physicalFlags.bApplyGravity)
-                                {
-                                    if (   physicalFlags.bDontCollideWithFlyers
-                                        && m_nStatus // todo:  == STATUS_PLAYER_PLAYBACK_FROM_BUFFER
-                                        && m_nStatus != STATUS_REMOTE_CONTROLLED
-                                        && entity->DoesNotCollideWithFlyers()
-                                    ) {
-                                        bCollisionDisabled = true;
-                                    }
-                                }
-                                else
-                                {
-                                    bCollisionDisabled = true;
-                                }
-                            }
+                            bCollisionDisabled = true;
                         }
                         else
                         {
-                            SpecialEntityPreCollisionStuff(
-                                entity,
-                                true,
-                                bCollisionDisabled,
-                                bCollidedEntityCollisionIgnored,
-                                bCollidedEntityUnableToMove,
-                                bThisOrCollidedEntityStuck
-                            );
+                            if (m_pAttachedTo)
+                            {
+                                if (m_pAttachedTo->IsPhysical() && m_pAttachedTo->physicalFlags.bDisableCollisionForce)
+                                {
+                                    bCollisionDisabled = true;
+                                }
+                            }
+                            else if (m_pEntityIgnoredCollision == entity)
+                            {
+                                bCollisionDisabled = true;
+                            }
+
+                            else if (!physicalFlags.bDisableZ || physicalFlags.bApplyGravity)
+                            {
+                                if (physicalFlags.bDontCollideWithFlyers
+                                    && m_nStatus // todo:  == STATUS_PLAYER_PLAYBACK_FROM_BUFFER
+                                    && m_nStatus != STATUS_REMOTE_CONTROLLED
+                                    && entity->DoesNotCollideWithFlyers()
+                                    ) {
+                                    bCollisionDisabled = true;
+                                }
+                            }
+                            else
+                            {
+                                bCollisionDisabled = true;
+                            }
                         }
+                    }
+                    else
+                    {
+                        SpecialEntityPreCollisionStuff(
+                            entity->AsPhysical(),
+                            true,
+                            bCollisionDisabled,
+                            bCollidedEntityCollisionIgnored,
+                            bCollidedEntityUnableToMove,
+                            bThisOrCollidedEntityStuck
+                        );
+                    }
 
-                        if (IsPed())
-                        {
-                            physicalFlags.bSkipLineCol = true;
-                        }
+                    if (IsPed())
+                    {
+                        physicalFlags.bSkipLineCol = true;
+                    }
 
-                        if (bCollidedEntityCollisionIgnored || bCollisionDisabled)
-                            continue;
+                    if (bCollidedEntityCollisionIgnored || bCollisionDisabled)
+                        continue;
 
-                        entity->SetCurrentScanCode() ;
-                        int32 totalColPointsToProcess = ProcessEntityCollision(entity, colPoints);
-                        if (totalColPointsToProcess <= 0)
-                            continue;
+                    entity->SetCurrentScanCode();
+                    int32 totalColPointsToProcess = ProcessEntityCollision(entity, colPoints);
+                    if (totalColPointsToProcess <= 0)
+                        continue;
 
-                        for (int32 colpointIndex = 0; colpointIndex < totalColPointsToProcess; colpointIndex++) {
-                            CColPoint* colPoint = &colPoints[colpointIndex];
-                            if (colPoint->m_fDepth > 0.0f) {
-                                uint8 pieceTypeB = colPoint->m_nPieceTypeB;
-                                if (pieceTypeB < 13 || pieceTypeB > 16) {
-                                    totalAcceptableColPoints++;
-                                    if (IsVehicle() && entity->IsPed() && colPoint->m_vecNormal.z < 0.0f) {
-                                        vecShift.x += colPoint->m_vecNormal.x;
-                                        vecShift.y += colPoint->m_vecNormal.y;
-                                        vecShift.z += colPoint->m_vecNormal.z * 0.0f;
+                    for (int32 colpointIndex = 0; colpointIndex < totalColPointsToProcess; colpointIndex++) {
+                        CColPoint* colPoint = &colPoints[colpointIndex];
+                        if (colPoint->m_fDepth > 0.0f) {
+                            uint8 pieceTypeB = colPoint->m_nPieceTypeB;
+                            if (pieceTypeB < 13 || pieceTypeB > 16) {
+                                totalAcceptableColPoints++;
+                                if (IsVehicle() && entity->IsPed() && colPoint->m_vecNormal.z < 0.0f) {
+                                    vecShift.x += colPoint->m_vecNormal.x;
+                                    vecShift.y += colPoint->m_vecNormal.y;
+                                    vecShift.z += colPoint->m_vecNormal.z * 0.0f;
+                                    fMaxColPointDepth = std::max(fMaxColPointDepth, colPoint->m_fDepth);
+                                } else {
+                                    if (!IsPed() || !entity->IsObject() || !entity->AsPhysical()->physicalFlags.bDisableMoveForce ||
+                                        fabs(colPoint->m_vecNormal.z) <= 0.1f) {
+                                        vecShift += colPoint->m_vecNormal;
                                         fMaxColPointDepth = std::max(fMaxColPointDepth, colPoint->m_fDepth);
-                                    } else {
-                                        if (!IsPed() || !entity->IsObject() || !entity->physicalFlags.bDisableMoveForce ||
-                                            fabs(colPoint->m_vecNormal.z) <= 0.1f) {
-                                            vecShift += colPoint->m_vecNormal;
-                                            fMaxColPointDepth = std::max(fMaxColPointDepth, colPoint->m_fDepth);
-                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            } while (node);
+            }
         }
-    } while (scanListIndex);
+    };
+
+    CSector* s = GetSector(sectorX, sectorY);
+    CRepeatSector* rs = GetRepeatSector(sectorX, sectorY);
+    ProcessSectorList(s->m_buildings);
+    ProcessSectorList(rs->Vehicles);
+    ProcessSectorList(rs->Peds);
+    ProcessSectorList(rs->Objects);
 
     if (totalAcceptableColPoints == 0) {
         return false;

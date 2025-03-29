@@ -90,9 +90,9 @@ void CStreaming::InjectHooks() {
     RH_ScopedInstall(DeleteLeastUsedEntityRwObject, 0x409760);
     RH_ScopedInstall(DeleteRwObjectsAfterDeath, 0x409210);
     RH_ScopedInstall(DeleteRwObjectsBehindCamera, 0x40D7C0);
-    RH_ScopedInstall(DeleteRwObjectsBehindCameraInSectorList<CPtrListSingleLink>, 0x409940);
-    RH_ScopedInstall(DeleteRwObjectsInSectorList<CPtrListSingleLink>, 0x407A70);
-    RH_ScopedInstall(DeleteRwObjectsNotInFrustumInSectorList<CPtrListSingleLink>, 0x4099E0);
+    RH_ScopedInstall(DeleteRwObjectsBehindCameraInSectorList<CPtrListSingleLink<CEntity*>>, 0x409940);
+    RH_ScopedInstall(DeleteRwObjectsInSectorList<CPtrListSingleLink<CEntity*>>, 0x407A70);
+    RH_ScopedInstall(DeleteRwObjectsNotInFrustumInSectorList<CPtrListSingleLink<CEntity*>>, 0x4099E0);
     RH_ScopedInstall(RemoveReferencedTxds, 0x40D2F0);
     RH_ScopedInstall(DisableCopBikes, 0x407D10);
     RH_ScopedInstall(IsVeryBusy, 0x4076A0);
@@ -139,7 +139,7 @@ void CStreaming::InjectHooks() {
     RH_ScopedInstall(RemoveModel, 0x4089A0);
     RH_ScopedInstall(RemoveTxdModel, 0x40C180);
     RH_ScopedInstall(MakeSpaceFor, 0x40E120);
-    RH_ScopedOverloadedInstall(ProcessEntitiesInSectorList<CPtrListSingleLink>, "", 0x40C270, void(*)(CPtrListSingleLink&, float, float, float, float, float, float, float, int32));
+    RH_ScopedOverloadedInstall(ProcessEntitiesInSectorList<CPtrListSingleLink<CEntity*>>, "", 0x40C270, void(*)(CPtrListSingleLink<CEntity*>&, float, float, float, float, float, float, float, int32));
     RH_ScopedInstall(RetryLoadFile, 0x4076C0);
     RH_ScopedInstall(LoadRequestedModels, 0x40E3A0);
     RH_ScopedInstall(FlushRequestList, 0x40E4E0);

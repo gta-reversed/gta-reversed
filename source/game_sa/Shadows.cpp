@@ -34,9 +34,9 @@ void CShadows::InjectHooks() {
     RH_ScopedInstall(RenderStaticShadows, 0x708300);
     RH_ScopedInstall(CastShadowEntityXY, 0x7086B0, { .reversed = false });
     RH_ScopedInstall(CastShadowEntityXYZ, 0x70A040, { .reversed = false });
-    RH_ScopedInstall(CastPlayerShadowSectorList<CPtrListSingleLink>, 0x70A470);
-    RH_ScopedInstall(CastShadowSectorList<CPtrListSingleLink>, 0x70A630, { .reversed = false });
-    RH_ScopedInstall(CastRealTimeShadowSectorList<CPtrListSingleLink>, 0x70A7E0, { .reversed = false });
+    RH_ScopedInstall(CastPlayerShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A470);
+    RH_ScopedInstall(CastShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A630, { .reversed = false });
+    RH_ScopedInstall(CastRealTimeShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A7E0, { .reversed = false });
     RH_ScopedInstall(RenderStoredShadows, 0x70A960);
     RH_ScopedInstall(GeneratePolysForStaticShadow, 0x70B730, { .reversed = false });
     RH_ScopedInstall(StoreStaticShadow, 0x70BA00, { .reversed = false });

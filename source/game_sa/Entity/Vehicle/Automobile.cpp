@@ -61,7 +61,7 @@ void CAutomobile::InjectHooks()
     RH_ScopedInstall(DoSoftGroundResistance, 0x6A4AF0);
     RH_ScopedInstall(ProcessCarWheelPair, 0x6A4EC0);
     RH_ScopedInstall(PlaceOnRoadProperly, 0x6AF420);
-    RH_ScopedInstall(RcbanditCheck1CarWheels<CPtrListSingleLink>, 0x6B3F70);
+    RH_ScopedInstall(RcbanditCheck1CarWheels<CPtrListSingleLink<CPhysical*>>, 0x6B3F70);
     RH_ScopedInstall(RcbanditCheckHitWheels, 0x6B45E0);
     RH_ScopedInstall(FireTruckControl, 0x729B60);
     RH_ScopedInstall(SetHeliOrientation, 0x6A2450);

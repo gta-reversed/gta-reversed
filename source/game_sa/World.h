@@ -6,12 +6,15 @@
 */
 #pragma once
 
+#include <extensions/utility.hpp>
+#include "PtrListDoubleLink.h"
+#include "PtrNodeDoubleLink.h"
+
 class CPlayerInfo;
 class CColPoint;
 class CStoredCollPoly;
 class CSector;
 class CRepeatSector;
-class CPtrListSingleLink;
 class CPed;
 class CVehicle;
 class CPlayerPed;
@@ -59,9 +62,9 @@ public:
     // Use GetRepeatSector() to access this array
     static inline CRepeatSector(&ms_aRepeatSectors)[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X] = *(CRepeatSector(*)[MAX_REPEAT_SECTORS_Y][MAX_REPEAT_SECTORS_X])0xB992B8;
     // Use GetLodPtrList() to access this array
-    static CPtrListSingleLink(&ms_aLodPtrLists)[MAX_LOD_PTR_LISTS_Y][MAX_LOD_PTR_LISTS_X];
-    static CPtrListDoubleLink &ms_listMovingEntityPtrs;
-    static CPtrListDoubleLink &ms_listObjectsWithControlCode;
+    static inline auto& ms_aLodPtrLists               = StaticRef<notsa::mdarray<CPtrListSingleLink<CEntity*>, MAX_LOD_PTR_LISTS_Y, MAX_LOD_PTR_LISTS_X>>(0xB99EB8);
+    static inline auto& ms_listMovingEntityPtrs       = StaticRef<CPtrListDoubleLink<CPhysical*>>(0xB9ACC8);
+    static inline auto& ms_listObjectsWithControlCode = StaticRef<CPtrListDoubleLink<CObject*>>(0xB9ACCC);
 
     static inline auto& m_aTempColPts = *(std::array<CColPoint, 32>*)0xB9ACD0;
     static CVector &SnookerTableMax; // default { 497.7925, -1670.3999, 13.19 }
@@ -186,7 +189,14 @@ public:
     static void RepositionCertainDynamicObjects();
     static bool ProcessLineOfSight(const CVector& origin, const CVector& target, CColPoint& outColPoint, CEntity*& outEntity, bool buildings, bool vehicles, bool peds, bool objects, bool dummies, bool doSeeThroughCheck, bool doCameraIgnoreCheck, bool doShootThroughCheck);
     static void IncrementCurrentScanCode();
-    static CPtrListSingleLink& GetLodPtrList(int32 x, int32 y);
+
+    // 0x4072C0
+    static auto& GetLodPtrList(int32 x, int32 y) {
+        assert(x < MAX_LOD_PTR_LISTS_X);
+        assert(y < MAX_LOD_PTR_LISTS_Y);
+
+        return ms_aLodPtrLists[y][x];
+    }
 
     // Returns sector index in range -60 to 60 (Example: -3000 => -60, 3000 => 60)
     static float GetHalfMapSectorX(float x) { return x / static_cast<float>(MAX_WORLD_UNITS / MAX_SECTORS_X); }

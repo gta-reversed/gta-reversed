@@ -31,7 +31,7 @@ void CTaskSimpleClimb::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleClimb, 0x87059C, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(ScanToGrabSectorList<CPtrListSingleLink>, 0x67DE10);
+    RH_ScopedInstall(ScanToGrabSectorList<CPtrListSingleLink<CPhysical*>>, 0x67DE10);
     RH_ScopedInstall(ScanToGrab, 0x67FD30);
     RH_ScopedInstall(CreateColModel, 0x67A890);
     RH_ScopedInstall(TestForStandUp, 0x680570);

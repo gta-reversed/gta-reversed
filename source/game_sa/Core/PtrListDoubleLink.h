@@ -55,8 +55,9 @@ struct PtrListDoubleLinkTraits {
 */
 template<typename ItemType>
 class CPtrListDoubleLink : public CPtrList<details::PtrListDoubleLinkTraits<ItemType>> {
-private:
-    using Base     = CPtrList<details::PtrListDoubleLinkTraits<ItemType>>;
+    using Base = CPtrList<details::PtrListDoubleLinkTraits<ItemType>>;
+
+public:
     using NodeType = typename Base::NodeType;
 
 public:

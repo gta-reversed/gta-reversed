@@ -6,11 +6,61 @@
 */
 #pragma once
 
+namespace details {
+/*!
+ * @brief A safe iterator that pre-caches the next node
+ */
+template<typename ItemType, typename TTraits>
+struct PtrListIterator {
+private:
+    using NodeType = typename TTraits::NodeType;
+
+public:
+    using difference_type   = std::ptrdiff_t;
+    using iterator_category = std::forward_iterator_tag; // Technically we could make this bidirectional for double-linked lists, but who cares (for now anyways)
+    using value_type        = ItemType;
+    using pointer           = ItemType*;
+    using reference         = ItemType&;
+
+public:
+    PtrListIterator(NodeType* node) :
+        m_curr{ node },
+        m_next{ node ? node->m_next : nullptr }
+    {}
+
+    reference operator*()  const { return *m_curr->m_item; }
+    pointer   operator->() const { return m_curr->m_item; }
+
+    PtrListIterator& operator++() {
+        if (m_curr = m_next) {
+            m_next = m_curr->m_next;
+        }
+        return *this;
+    }
+
+    PtrListIterator operator++(int) {
+        PtrListIterator tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    friend bool operator==(const PtrListIterator& a, const PtrListIterator& b) { return a.m_curr == b.m_curr; }
+    friend bool operator!=(const PtrListIterator& a, const PtrListIterator& b) = default;
+
+private:
+    NodeType *m_curr{}, *m_next{};
+};
+}; // namespace details
+
 template<typename TTraits>
 class CPtrList {
 public:
     using Traits   = TTraits;
     using NodeType = typename Traits::NodeType;
+    using ItemType = typename NodeType::ItemType;
+
+    using iterator       = details::PtrListIterator<ItemType, Traits>;
+    using const_iterator = details::PtrListIterator<const ItemType, Traits>;
 
 public:
     CPtrList() = default;
@@ -109,6 +159,12 @@ public:
      * @return The head node of the list
      */
     NodeType* GetNode() const { return m_node; }
+
+    auto begin() { return iterator{ m_node }; }
+    auto end() { return iterator{ nullptr }; }
+
+    auto cbegin() const { return const_iterator{ m_node }; }
+    auto cend() const { return const_iterator{ nullptr }; }
 
 public:
     NodeType* m_node{};

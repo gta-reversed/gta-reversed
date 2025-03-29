@@ -120,7 +120,7 @@ void CCover::Update() {
         // BUG:
         // This implementation may've accessed objects after they've been destoryed (use-after-free
         // I've modified it so that it uses refernces that get null'd automatically
-        for (CPtrNodeDoubleLink *it = m_ListOfProcessedBuildings.GetNode(), *next{}; it; it = next) {
+        for (CPtrNodeDoubleLink<CBuilding*> *it = m_ListOfProcessedBuildings.GetNode(), *next{}; it; it = next) {
             next            = it->GetNext();
             auto* const obj = it->GetItem<CBuilding>();
 
@@ -139,7 +139,7 @@ void CCover::Update() {
         if (!FindPlayerVehicle()) { // 0x699AE1
             CWorld::IncrementCurrentScanCode();
             CWorld::IterateSectorsOverlappedByRect(CRect{ FindPlayerCoors(), 30.f }, [&](int32 x, int32 y) {
-                for (CPtrNodeDoubleLink* it = GetSector(x, y)->m_buildings.GetNode(), *next{}; it; it = next) {
+                for (CPtrNodeDoubleLink<CBuilding*>* it = GetSector(x, y)->m_buildings.GetNode(), *next{}; it; it = next) {
                     next            = it->GetNext();
                     auto* const obj = it->GetItem<CBuilding>();
 

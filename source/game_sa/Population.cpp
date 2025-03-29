@@ -827,7 +827,7 @@ bool CPopulation::TestSafeForRealObject(CDummyObject* obj) {
         CRect{ obj->GetBoundCentre(), objCM->GetBoundRadius()},
         [&](int32 x, int32 y) {
             const auto& list = GetRepeatSector(x, y)->Vehicles;
-            for (CPtrNodeDoubleLink* node = list.GetNode(); node; node = node->GetNext()) {
+            for (CPtrNodeDoubleLink<CVehicle*>* node = list.GetNode(); node; node = node->GetNext()) {
                 const auto entity = node->GetItem<CVehicle>();
                 if (CCollision::ProcessColModels(
                     objMat, *objCM,

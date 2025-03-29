@@ -92,14 +92,14 @@ void CEntryExitManager::Update() {
       || CEntryExitManager::ms_bDisabled;
 
     if (!bDontShowMarkers && ms_exitEnterState == 0) { // Moved `bDontShowMarkers` here from inner loop
-        CPtrListSingleLink matches{};
+        CPtrListSingleLink<void*> matches{};
 
         auto x = TheCamera.m_mCameraMatrix.GetForward().x * 30.0f + TheCamera.GetPosition().x;
         auto y = TheCamera.m_mCameraMatrix.GetForward().y * 30.0f + TheCamera.GetPosition().y;
         CRect rect(x - 30.0f, y - 30.0f, x + 30.0f, y + 30.0f);
         mp_QuadTree->GetAllMatching(rect, matches);
 
-        for (CPtrListSingleLink::NodeType* it = matches.m_node, *next{}; it; it = next) {
+        for (CPtrListSingleLink<void*>::NodeType* it = matches.m_node, *next{}; it; it = next) {
             next = it->GetNext();
 
             auto* enex = it->ItemAs<CEntryExit>();
@@ -133,11 +133,11 @@ void CEntryExitManager::Update() {
     } else {
         const auto& playerPos = FindPlayerEntity()->GetPosition();
         const auto pos = CVector2D{ playerPos.x, playerPos.y }; // todo: refactor
-        CPtrListSingleLink matches{};
+        CPtrListSingleLink<void*> matches{};
         mp_QuadTree->GetAllMatching(pos, matches);
 
         bool wasAnyMarkerInArea{};
-        for (CPtrListSingleLink::NodeType* it = matches.m_node, *next{}; it; it = next) {
+        for (CPtrListSingleLink<void*>::NodeType* it = matches.m_node, *next{}; it; it = next) {
             next = it->GetNext();
 
             auto* enex = it->ItemAs<CEntryExit>();
@@ -265,12 +265,12 @@ CObject* CEntryExitManager::FindNearestDoor(CEntryExit const& exit, float radius
 
 // 0x43F4B0
 int32 CEntryExitManager::FindNearestEntryExit(const CVector2D& position, float range, int32 ignoreArea) {
-    CPtrListSingleLink enexInRange{};
+    CPtrListSingleLink<void*> enexInRange{};
     mp_QuadTree->GetAllMatching(CRect{ position, range }, enexInRange);
 
     float closestDist2D{ 2.f * range };
     CEntryExit* closest{};
-    for (CPtrListSingleLink::NodeType* it = enexInRange.m_node, *next{}; it; it = next) {
+    for (CPtrListSingleLink<void*>::NodeType* it = enexInRange.m_node, *next{}; it; it = next) {
         next = it->GetNext();
 
         auto* enex = it->ItemAs<CEntryExit>();

@@ -193,13 +193,9 @@ void CInterestingEvents::ScanForNearbyEntities() {
 
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            CPtrListDoubleLink& list = repeatSector->Peds;
+            CRepeatSector* const rs = GetRepeatSector(sectorX, sectorY);
 
-            for (CPtrListDoubleLink::NodeType *it = list.m_node, *next{}; it; it = next) {
-                next = it->GetNext();
-
-                auto* ped = static_cast<CPed*>(it->m_item);
+            for (auto* const ped : rs->Peds) {
                 if (ped->IsScanCodeCurrent())
                     continue;
 
@@ -233,9 +229,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
                 }
             }
 
-            for (CPtrListDoubleLink::NodeType *it = list.m_node, *next{}; it; it = next) {
-                next = it->GetNext();
-                auto* vehicle = static_cast<CVehicle*>(it->m_item);
+            for (auto* const vehicle : rs->Vehicles) {
                 if (vehicle->m_nScanCode == GetCurrentScanCode())
                     continue;
 
@@ -250,7 +244,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
                 if (!style)
                     continue;
 
-                if (style == (DRIVING_STYLE_STOP_FOR_CARS_IGNORE_LIGHTS | DRIVING_STYLE_AVOID_CARS))
+                if (style == DRIVING_STYLE_DRIVINGMODE_AVOIDCARS_STOPFORPEDS_OBEYLIGHTS)
                     continue;
 
                 Add(INTERESTING_EVENT_14, vehicle);

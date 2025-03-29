@@ -69,7 +69,7 @@ void CRenderer::InjectHooks()
     RH_ScopedInstall(ScanSectorList, 0x554840);
     RH_ScopedInstall(ScanBigBuildingList, 0x554B10);
     RH_ScopedInstall(ShouldModelBeStreamed, 0x554EB0);
-    RH_ScopedInstall(ScanPtrList_RequestModels<CPtrListSingleLink>, 0x555680);
+    RH_ScopedInstall(ScanPtrList_RequestModels<CPtrListSingleLink<CPhysical*>>, 0x555680);
     RH_ScopedInstall(ConstructRenderList, 0x5556E0);
     RH_ScopedInstall(ScanSectorList_RequestModels, 0x555900);
     RH_ScopedInstall(ScanWorld, 0x554FE0);
@@ -657,7 +657,7 @@ int32 CRenderer::SetupEntityVisibility(CEntity* entity, float& outDistance) {
         }
     }
 
-    if (entity->m_nAreaCode == CGame::currArea || entity->m_nAreaCode == AREA_CODE_13) {
+    if (entity->IsInCurrentAreaOrBarberShopInterior()) {
         CVector position = entity->GetPosition();
         if (entity->m_pLod) {
             position = entity->m_pLod->GetPosition();
@@ -742,50 +742,37 @@ int32 CRenderer::SetupBigBuildingVisibility(CEntity* entity, float& outDistance)
     return RENDERER_STREAMME;
 }
 
-// 0x5535D0
-void CRenderer::ScanSectorList_ListModels(int32 sectorX, int32 sectorY) {
-    SetupScanLists(sectorX, sectorY);
-    auto** scanLists = reinterpret_cast<CPtrListDoubleLink**>(&PC_Scratch);
-    for (int32 scanListIndex = 0; scanListIndex < TOTAL_ENTITY_SCAN_LISTS; scanListIndex++) {
-        CPtrListDoubleLink* doubleLinkList = scanLists[scanListIndex];
-        if (!doubleLinkList)
-            continue;
-
-        for (auto node = doubleLinkList->GetNode(); node; node = node->m_next) {
-            auto* entity = reinterpret_cast<CEntity*>(node->m_item);
-            if (!entity->IsScanCodeCurrent()) {
-                entity->SetCurrentScanCode() ;
-                if (entity->m_nAreaCode == CGame::currArea || entity->m_nAreaCode == AREA_CODE_13) {
-                    *gpOutEntitiesForGetObjectsInFrustum = entity;
-                    gpOutEntitiesForGetObjectsInFrustum++;
+template<bool CheckIsVisible>
+void I_ScanSectorList_ListModels(int32 sectorX, int32 sectorY) {
+    CRenderer::SetupScanLists(sectorX, sectorY);
+    reinterpret_cast<tScanLists*>(&PC_Scratch)->VisitLists([&]<typename PtrListType>(PtrListType& list) {
+        for (auto* const entity : *list) {
+            if (entity->IsScanCodeCurrent()) {
+                continue;
+            }
+            entity->SetCurrentScanCode();
+            if (!entity->IsInCurrentAreaOrBarberShopInterior()) {
+                continue;
+            }
+            if constexpr (CheckIsVisible) {
+                if (!entity->IsVisible()) {
+                    continue;
                 }
             }
+            *gpOutEntitiesForGetObjectsInFrustum = entity;
+            gpOutEntitiesForGetObjectsInFrustum++;
         }
-    }
+    });
+}
+
+// 0x5535D0
+void CRenderer::ScanSectorList_ListModels(int32 sectorX, int32 sectorY) {
+    I_ScanSectorList_ListModels<false>(sectorX, sectorY);
 }
 
 // 0x553650
 void CRenderer::ScanSectorList_ListModelsVisible(int32 sectorX, int32 sectorY) {
-    SetupScanLists(sectorX, sectorY);
-    auto** scanLists = reinterpret_cast<CPtrListDoubleLink**>(&PC_Scratch);
-    for (int32 scanListIndex = 0; scanListIndex < TOTAL_ENTITY_SCAN_LISTS; scanListIndex++) {
-        CPtrListDoubleLink* doubleLinkList = scanLists[scanListIndex];
-        if (!doubleLinkList)
-            continue;
-
-        for (auto node = doubleLinkList->GetNode(); node; node = node->m_next) {
-            auto* entity = reinterpret_cast<CEntity*>(node->m_item);
-            if (!entity->IsScanCodeCurrent()) {
-                entity->SetCurrentScanCode() ;
-                if (entity->m_nAreaCode == CGame::currArea || entity->m_nAreaCode == AREA_CODE_13) {
-                    if (entity->IsVisible()) {
-                        *gpOutEntitiesForGetObjectsInFrustum = entity;
-                        gpOutEntitiesForGetObjectsInFrustum++;
-                    }
-                }
-            }
-        }
-    }
+    I_ScanSectorList_ListModels<true>(sectorX, sectorY);
 }
 
 // 0x554840
@@ -800,17 +787,12 @@ void CRenderer::ScanSectorList(int32 sectorX, int32 sectorY) {
         bRequestModel = true;
     }
 
-    SetupScanLists(sectorX, sectorY);
-    auto* scanLists = reinterpret_cast<tScanLists*>(&PC_Scratch);
-    for (int32 scanListIndex = 0; scanListIndex < TOTAL_ENTITY_SCAN_LISTS; scanListIndex++) {
-        CPtrListDoubleLink* doubleLinkList = scanLists->GetList(scanListIndex);
-        if (!doubleLinkList)
-            continue;
-
-        CPtrNodeDoubleLink* doubleLinkNode = doubleLinkList->GetNode();
-        while (doubleLinkNode) {
-            auto* entity = reinterpret_cast<CEntity*>(doubleLinkNode->m_item);
-            doubleLinkNode = doubleLinkNode->m_next;
+    CRenderer::SetupScanLists(sectorX, sectorY);
+    reinterpret_cast<tScanLists*>(&PC_Scratch)->VisitLists([&]<typename PtrListType>(PtrListType& list) {
+        if (!list) {
+            return;
+        }
+        for (auto* const entity : *list) {
             if (entity->IsScanCodeCurrent())
                 continue;
 
@@ -882,7 +864,7 @@ void CRenderer::ScanSectorList(int32 sectorX, int32 sectorY) {
                 }
             }
         }
-    }
+    };
 }
 
 // 0x554B10
@@ -900,12 +882,7 @@ void CRenderer::ScanBigBuildingList(int32 sectorX, int32 sectorY) {
         bRequestModel = true;
     }
 
-    CPtrListSingleLink& list = CWorld::GetLodPtrList(sectorX, sectorY);
-    auto* node = list.GetNode();
-    while (node) {
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
-        node = node->GetNext();
-
+    for (auto* const entity : CWorld::GetLodPtrList(sectorX, sectorY)) {
         if (entity->IsScanCodeCurrent())
             continue;
 
@@ -1217,24 +1194,22 @@ void CRenderer::RequestObjectsInDirection(const CVector& posn, float angle, int3
 }
 
 // 0x553540
-void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY)
-{
+void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY) {
     CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-    auto* scanLists = reinterpret_cast<tScanLists*>(&PC_Scratch);
+    auto*          scanLists    = reinterpret_cast<tScanLists*>(&PC_Scratch);
     if (sectorX >= 0 && sectorY >= 0 && sectorX < MAX_SECTORS_X && sectorY < MAX_SECTORS_Y) {
-        CSector* sector = GetSector(sectorX, sectorY);
+        CSector* sector          = GetSector(sectorX, sectorY);
         scanLists->buildingsList = &sector->m_buildings;
-        scanLists->objectsList = &repeatSector->Objects;
-        scanLists->vehiclesList = &repeatSector->Vehicles;
-        scanLists->pedsList = &repeatSector->Peds;
-        scanLists->dummiesList = &sector->m_dummies;
-    }
-    else {
+        scanLists->objectsList   = &repeatSector->Objects;
+        scanLists->vehiclesList  = &repeatSector->Vehicles;
+        scanLists->pedsList      = &repeatSector->Peds;
+        scanLists->dummiesList   = &sector->m_dummies;
+    } else {
         // sector x and y are out of bounds
         scanLists->buildingsList = nullptr;
-        scanLists->objectsList = &repeatSector->Objects;
-        scanLists->vehiclesList = &repeatSector->Vehicles;
-        scanLists->pedsList = &repeatSector->Peds;
-        scanLists->dummiesList = nullptr;
+        scanLists->objectsList   = &repeatSector->Objects;
+        scanLists->vehiclesList  = &repeatSector->Vehicles;
+        scanLists->pedsList      = &repeatSector->Peds;
+        scanLists->dummiesList   = nullptr;
     }
 }

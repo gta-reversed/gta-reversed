@@ -74,7 +74,7 @@ void CPed::InjectHooks() {
     RH_ScopedInstall(ClearLookFlag, 0x5E1950);
     RH_ScopedInstall(WorkOutHeadingForMovingFirstPerson, 0x5E1A00);
     RH_ScopedInstall(UpdatePosition, 0x5E1B10, { .reversed = false });
-    RH_ScopedInstall(MakeTyresMuddySectorList<CPtrListSingleLink>, 0x6AE0D0, { .reversed = false });
+    RH_ScopedInstall(MakeTyresMuddySectorList<CPtrListSingleLink<CPhysical*>>, 0x6AE0D0, { .reversed = false });
     RH_ScopedInstall(IsPedInControl, 0x5E3960);
     RH_ScopedInstall(RemoveWeaponModel, 0x5E3990);
     RH_ScopedInstall(RemoveWeaponWhenEnteringVehicle, 0x5E6370);

@@ -7,6 +7,8 @@
 #pragma once
 
 #include "AnimSequenceFrames.h"
+#include <Enums/eBoneTag.h>
+
 #undef MoveMemory
 
 /*!
