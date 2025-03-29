@@ -3526,7 +3526,7 @@ void CPed::DeadPedMakesTyresBloody() {
 
     for (int32 sy = startSectorY; sy <= endSectorY; ++sy) {
         for (int32 sx = startSectorX; sx <= endSectorX; ++sx) {
-            MakeTyresMuddySectorList(GetRepeatSector(sx, sy)->GetList(REPEATSECTOR_VEHICLES));
+            MakeTyresMuddySectorList(GetRepeatSector(sx, sy)->Vehicles);
         }
     }
 }

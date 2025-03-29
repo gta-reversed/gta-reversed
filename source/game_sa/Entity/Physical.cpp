@@ -169,7 +169,7 @@ void CPhysical::Add()
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
             switch (m_nType) {
             case ENTITY_TYPE_VEHICLE:
-                list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
+                list = &repeatSector->Vehicles;
                 break;
             case ENTITY_TYPE_PED:
                 list = &repeatSector->GetList(REPEATSECTOR_PEDS);
@@ -626,7 +626,7 @@ void CPhysical::RemoveAndAdd()
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
             switch (m_nType) {
             case ENTITY_TYPE_VEHICLE:
-                list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
+                list = &repeatSector->Vehicles;
                 break;
             case ENTITY_TYPE_PED:
                 list = &repeatSector->GetList(REPEATSECTOR_PEDS);
@@ -2012,7 +2012,7 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
             list = &sector->m_buildings;
             break;
         case 1:
-            list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
+            list = &repeatSector->Vehicles;
             break;
         case 2:
             list = &repeatSector->GetList(REPEATSECTOR_PEDS);
@@ -4008,7 +4008,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
             list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
             break;
         case 2:
-            list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
+            list = &repeatSector->Vehicles;
             break;
         case 3:
             list = &sector->m_buildings;
@@ -4540,7 +4540,7 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
     while (true) {
         switch (--scanListIndex) {
         case 0:
-            list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
+            list = &repeatSector->Vehicles;
             break;
         case 1:
             list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);

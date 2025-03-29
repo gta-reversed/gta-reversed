@@ -2940,7 +2940,7 @@ bool CCollision::CheckCameraCollisionVehicles(
     static auto& gpLastSittingOnEntity   = StaticRef<CEntity*, 0x9689D8>();
 
     bool anyCollided = false;
-    for (CPtrNodeDoubleLink* it = GetRepeatSector(X, Y)->GetList(REPEATSECTOR_VEHICLES).GetNode(), *next{}; it; it = next) {
+    for (CPtrNodeDoubleLink* it = GetRepeatSector(X, Y)->Vehicles.GetNode(), *next{}; it; it = next) {
         next = it->GetNext();
 
         const auto entity = it->GetItem<CVehicle>();

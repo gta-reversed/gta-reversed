@@ -180,7 +180,7 @@ void CEntity::Add(const CRect& rect)
                     list = &sector->m_dummies;
                     break;
                 case ENTITY_TYPE_VEHICLE:
-                    list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
+                    list = &repeatSector->Vehicles;
                     break;
                 case ENTITY_TYPE_PED:
                     list = &repeatSector->GetList(REPEATSECTOR_PEDS);
@@ -247,7 +247,7 @@ void CEntity::Remove()
                     list = &sector->m_dummies;
                     break;
                 case ENTITY_TYPE_VEHICLE:
-                    list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
+                    list = &repeatSector->Vehicles;
                     break;
                 case ENTITY_TYPE_PED:
                     list = &repeatSector->GetList(REPEATSECTOR_PEDS);

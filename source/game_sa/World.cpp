@@ -615,7 +615,7 @@ void CWorld::ShutDown() {
         for (auto y = 0; y < MAX_REPEAT_SECTORS_Y; y++) {
             for (auto x = 0; x < MAX_REPEAT_SECTORS_X; x++) {
                 auto& sector = *GetRepeatSector(x, y);
-                fn(sector.GetList(REPEATSECTOR_VEHICLES), x, y, "Vehicles");
+                fn(sector.Vehicles, x, y, "Vehicles");
                 fn(sector.GetList(REPEATSECTOR_PEDS), x, y, "Peds");
                 fn(sector.GetList(REPEATSECTOR_OBJECTS), x, y, "Objects");
             }
@@ -686,7 +686,7 @@ void CWorld::ClearForRestart() {
         for (auto x = 0; x < MAX_SECTORS_X; x++) {
             auto& sector = *GetRepeatSector(x, y);
             DeleteEntitiesInList(sector.GetList(REPEATSECTOR_PEDS));
-            DeleteEntitiesInList(sector.GetList(REPEATSECTOR_VEHICLES));
+            DeleteEntitiesInList(sector.Vehicles);
         }
     }
 
@@ -699,7 +699,7 @@ bool CWorld::ProcessVerticalLineSector_FillGlobeColPoints(CSector& sector, CRepe
     bool bSuccess{};
 
     bSuccess |= buildings && ProcessVerticalLineSectorList_FillGlobeColPoints(sector.m_buildings, colLine, outEntity, doSeeThroughCheck, outCollPoly);
-    bSuccess |= vehicles && ProcessVerticalLineSectorList_FillGlobeColPoints(repeatSector.GetList(REPEATSECTOR_VEHICLES), colLine, outEntity, doSeeThroughCheck, outCollPoly);
+    bSuccess |= vehicles && ProcessVerticalLineSectorList_FillGlobeColPoints(repeatSector.Vehicles, colLine, outEntity, doSeeThroughCheck, outCollPoly);
     bSuccess |= peds && ProcessVerticalLineSectorList_FillGlobeColPoints(repeatSector.GetList(REPEATSECTOR_PEDS), colLine, outEntity, doSeeThroughCheck, outCollPoly);
     bSuccess |= objects && ProcessVerticalLineSectorList_FillGlobeColPoints(repeatSector.GetList(REPEATSECTOR_OBJECTS), colLine, outEntity, doSeeThroughCheck, outCollPoly);
     bSuccess |= dummies && ProcessVerticalLineSectorList_FillGlobeColPoints(sector.m_dummies, colLine, outEntity, doSeeThroughCheck, outCollPoly);
@@ -718,7 +718,7 @@ bool CWorld::ProcessVerticalLineSector(CSector& sector, CRepeatSector& repeatSec
     if (buildings)
         ProcessSector(sector.m_buildings);
     if (vehicles)
-        ProcessSector(repeatSector.GetList(REPEATSECTOR_VEHICLES));
+        ProcessSector(repeatSector.Vehicles);
     if (peds)
         ProcessSector(repeatSector.GetList(REPEATSECTOR_PEDS));
     if (objects)
@@ -813,7 +813,7 @@ void CWorld::FindObjectsInRange(const CVector& point, float radius, bool b2D, in
             if (buildings)
                 ProcessSector(sector->m_buildings);
             if (vehicles)
-                ProcessSector(repeatSector->GetList(REPEATSECTOR_VEHICLES));
+                ProcessSector(repeatSector->Vehicles);
             if (peds)
                 ProcessSector(repeatSector->GetList(REPEATSECTOR_PEDS));
             if (objects)
@@ -848,7 +848,7 @@ void CWorld::FindObjectsOfTypeInRange(uint32 modelId, const CVector& point, floa
             if (buildings)
                 ProcessSector(sector->m_buildings);
             if (vehicles)
-                ProcessSector(repeatSector->GetList(REPEATSECTOR_VEHICLES));
+                ProcessSector(repeatSector->Vehicles);
             if (peds)
                 ProcessSector(repeatSector->GetList(REPEATSECTOR_PEDS));
             if (objects)
@@ -1467,7 +1467,7 @@ void CWorld::CallOffChaseForArea(float minX, float minY, float maxX, float maxY)
         { minX - 10.f, minY - 10.f, maxX + 10.f, maxY + 10.f },
         [&](int32 x, int32 y) {
             CRepeatSector* sector = GetRepeatSector(x, y);
-            CallOffChaseForAreaSectorListVehicles(sector->GetList(REPEATSECTOR_VEHICLES), minX, minY, maxX, maxY, minX, minY, maxX, maxY);
+            CallOffChaseForAreaSectorListVehicles(sector->Vehicles, minX, minY, maxX, maxY, minX, minY, maxX, maxY);
             CallOffChaseForAreaSectorListPeds(sector->GetList(REPEATSECTOR_PEDS), minX, minY, maxX, maxY, minX, minY, maxX, maxY);
             return true;
         }
@@ -2200,7 +2200,7 @@ bool CWorld::GetIsLineOfSightSectorClear(CSector& sector, CRepeatSector& repeatS
         return GetIsLineOfSightSectorListClear(list, colLine, doSeeThroughCheck, doIgnoreCamCheckForThisSector);
     };
     return   (!buildings || ProcessSectorList(sector.m_buildings, false))
-          && (!vehicles  || ProcessSectorList(repeatSector.GetList(REPEATSECTOR_VEHICLES), false))
+          && (!vehicles  || ProcessSectorList(repeatSector.Vehicles, false))
           && (!peds      || ProcessSectorList(repeatSector.GetList(REPEATSECTOR_PEDS), false))
           && (!objects   || ProcessSectorList(repeatSector.GetList(REPEATSECTOR_OBJECTS), doIgnoreCameraCheck))
           && (!dummies   || ProcessSectorList(sector.m_dummies, false));
@@ -2223,7 +2223,7 @@ void CWorld::FindObjectsKindaColliding(const CVector& point, float radius, bool 
             if (buildings)
                 ProcessSector(sector->m_buildings);
             if (vehicles)
-                ProcessSector(repeatSector->GetList(REPEATSECTOR_VEHICLES));
+                ProcessSector(repeatSector->Vehicles);
             if (peds)
                 ProcessSector(repeatSector->GetList(REPEATSECTOR_PEDS));
             if (objects)
@@ -2261,7 +2261,7 @@ void CWorld::FindObjectsIntersectingCube(const CVector& cornerA, const CVector& 
             if (buildings)
                 ProcessSector(sector->m_buildings);
             if (vehicles)
-                ProcessSector(repeatSector->GetList(REPEATSECTOR_VEHICLES));
+                ProcessSector(repeatSector->Vehicles);
             if (peds)
                 ProcessSector(repeatSector->GetList(REPEATSECTOR_PEDS));
             if (objects)
@@ -2294,7 +2294,7 @@ void CWorld::FindObjectsIntersectingAngledCollisionBox(const CBox& box, const CM
             if (buildings)
                 ProcessSector(sector->m_buildings);
             if (vehicles)
-                ProcessSector(repeatSector->GetList(REPEATSECTOR_VEHICLES));
+                ProcessSector(repeatSector->Vehicles);
             if (peds)
                 ProcessSector(repeatSector->GetList(REPEATSECTOR_PEDS));
             if (objects)
@@ -2323,7 +2323,7 @@ void CWorld::FindMissionEntitiesIntersectingCube(const CVector& cornerA, const C
 
             auto repeatSector = GetRepeatSector(sectorX, sectorY);
             if (vehicles)
-                ProcessSector(repeatSector->GetList(REPEATSECTOR_VEHICLES), true, false, false);
+                ProcessSector(repeatSector->Vehicles, true, false, false);
             if (peds)
                 ProcessSector(repeatSector->GetList(REPEATSECTOR_PEDS), false, true, false);
             if (objects)
@@ -2355,7 +2355,7 @@ CEntity* CWorld::FindNearestObjectOfType(int32 modelId, const CVector& point, fl
             if (buildings)
                 ProcessSector(sector->m_buildings);
             if (vehicles)
-                ProcessSector(repeatSector->GetList(REPEATSECTOR_VEHICLES));
+                ProcessSector(repeatSector->Vehicles);
             if (peds)
                 ProcessSector(repeatSector->GetList(REPEATSECTOR_PEDS));
             if (objects)
@@ -2540,7 +2540,7 @@ CEntity* CWorld::TestSphereAgainstWorld(CVector sphereCenter, float sphereRadius
             if (buildings && (hitEntity = ProcessSector(sector->m_buildings, false)))
                 return hitEntity;
 
-            if (vehicles && (hitEntity = ProcessSector(repeatSector->GetList(REPEATSECTOR_VEHICLES), false)))
+            if (vehicles && (hitEntity = ProcessSector(repeatSector->Vehicles, false)))
                 return hitEntity;
 
             if (peds && (hitEntity = ProcessSector(repeatSector->GetList(REPEATSECTOR_PEDS), false)))
@@ -2786,7 +2786,7 @@ bool CWorld::ProcessLineOfSightSector(CSector& sector, CRepeatSector& repeatSect
         fWeaponSpreadRate = fWeaponSpreadRate_Original;
 
     if (vehicles)
-        ProcessSector(repeatSector.GetList(REPEATSECTOR_VEHICLES));
+        ProcessSector(repeatSector.Vehicles);
 
     if (peds) {
         if (bIncludeDeadPeds_Original)
@@ -2835,7 +2835,7 @@ void CWorld::TriggerExplosion(const CVector& point, float radius, float visibleD
             };
 
             auto sector = GetRepeatSector(sectorX, sectorY);
-            ProcessSector(sector->GetList(REPEATSECTOR_VEHICLES));
+            ProcessSector(sector->Vehicles);
             ProcessSector(sector->GetList(REPEATSECTOR_PEDS));
             ProcessSector(sector->GetList(REPEATSECTOR_OBJECTS));
         }

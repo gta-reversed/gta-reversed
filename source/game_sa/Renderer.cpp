@@ -1225,7 +1225,7 @@ void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY)
         CSector* sector = GetSector(sectorX, sectorY);
         scanLists->buildingsList = &sector->m_buildings;
         scanLists->objectsList = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
-        scanLists->vehiclesList = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
+        scanLists->vehiclesList = &repeatSector->Vehicles;
         scanLists->pedsList = &repeatSector->GetList(REPEATSECTOR_PEDS);
         scanLists->dummiesList = &sector->m_dummies;
     }
@@ -1233,7 +1233,7 @@ void CRenderer::SetupScanLists(int32 sectorX, int32 sectorY)
         // sector x and y are out of bounds
         scanLists->buildingsList = nullptr;
         scanLists->objectsList = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
-        scanLists->vehiclesList = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
+        scanLists->vehiclesList = &repeatSector->Vehicles;
         scanLists->pedsList = &repeatSector->GetList(REPEATSECTOR_PEDS);
         scanLists->dummiesList = nullptr;
     }

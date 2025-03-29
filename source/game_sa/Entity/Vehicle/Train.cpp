@@ -332,7 +332,7 @@ void MarkSurroundingEntitiesForCollisionWithTrain(CVector pos, float radius, CEn
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            TrainHitStuff(repeatSector->GetList(REPEATSECTOR_VEHICLES), entity);
+            TrainHitStuff(repeatSector->Vehicles, entity);
             if (!bOnlyVehicles) {
                 TrainHitStuff(repeatSector->GetList(REPEATSECTOR_PEDS), entity);
                 TrainHitStuff(repeatSector->GetList(REPEATSECTOR_OBJECTS), entity);
