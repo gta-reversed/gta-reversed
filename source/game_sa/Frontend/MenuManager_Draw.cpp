@@ -413,7 +413,7 @@ void CMenuManager::DrawQuitGameScreen() {
 }
 
 // 0x57D8D0
-void CMenuManager::DrawContollerScreenExtraText(int32 StartingYPos) {
+void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
     eControllerAction maxActions = eControllerAction::CA_PED_FIRE_WEAPON;
     uint8 verticalSpacing;
 

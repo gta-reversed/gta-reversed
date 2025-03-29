@@ -1788,7 +1788,7 @@ CMenuManager,DisplaySlider,0x00576860,1,0,0
 CMenuManager,DoSettingsBeforeStartingAGame,0x00573330,1,0,0
 CMenuManager,DrawBackground,0x0057B750,1,0,0
 CMenuManager,DrawControllerBound,0x0057E6E0,0,1,0
-CMenuManager,DrawContollerScreenExtraText,0x0057D8D0,0,1,0
+CMenuManager,DrawControllerScreenExtraText,0x0057D8D0,0,1,0
 CMenuManager,DrawControllerSetupScreen,0x0057F300,0,1,0
 CMenuManager,DrawFrontEnd,0x0057C290,1,0,0
 CMenuManager,DrawQuitGameScreen,0x0057D860,1,0,0
