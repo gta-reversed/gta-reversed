@@ -136,7 +136,7 @@ public:
     bool      m_bTracksAutoScan;
     int32     m_nPrefsAntialiasing;
     int32     m_nDisplayAntialiasing;
-    bool      m_bController;
+    bool      m_ControlMethod;
     int32     m_nPrefsVideoMode;
     int32     m_nDisplayVideoMode;
     int32     m_nCurrentRwSubsystem; // initialized | not used
@@ -235,10 +235,10 @@ public:
     int16 field_1B52;
     int32 m_lastBlinkTime;
     uint32 m_nTimeHelperTextUpdated;
-    char  field_1B5C;
+    char  ColourSwitch;
     char  field_1B5D;
     int16 field_1B5E;
-    int32 field_1B60;
+    int32 LastFlash;
     int32 field_1B64;
     int32 m_nTimeSlideLeftMove;
     int32 m_nTimeSlideRightMove;
@@ -308,7 +308,7 @@ public:
     void CheckForMenuClosing();
     [[nodiscard]] bool CheckHover(int32 left, int32 right, int32 top, int32 bottom) const;
     bool CheckMissionPackValidMenu();
-    bool CheckCodesForControls(RsInputDeviceType type);
+    void CheckCodesForControls(eControllerType type);
 
     int32 DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing);
 

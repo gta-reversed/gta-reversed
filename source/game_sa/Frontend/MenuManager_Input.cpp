@@ -75,10 +75,13 @@ bool CMenuManager::CheckRedefineControlInput() {
             }
             m_nJustDownJoyButton = ControlsManager.GetJoyButtonJustDown();
 
-            auto type = rsKEYBOARD;
-            if (m_nPressedMouseButton && *m_pPressedKey == rsNULL) {
-                type = rsPAD;
-            }
+            auto TypeOfControl = eControllerType::KEYBOARD;
+			if (m_nJustDownJoyButton)
+				TypeOfControl = eControllerType::JOY_STICK;
+			if (m_nPressedMouseButton)
+				TypeOfControl = eControllerType::MOUSE;
+			if (*m_pPressedKey != rsNULL)
+				TypeOfControl = eControllerType::KEYBOARD;
 
             if (m_CanBeDefined) {
                 if (m_DeleteAllBoundControls) {
@@ -88,7 +91,7 @@ bool CMenuManager::CheckRedefineControlInput() {
                     m_DeleteAllBoundControls = false;
                 } else {
                     if (*m_pPressedKey != rsNULL || m_nPressedMouseButton || m_nJustDownJoyButton) {
-                        CheckCodesForControls(type);
+                        CheckCodesForControls(TypeOfControl);
                     }
                     m_JustExitedRedefine = true;
                 }
@@ -426,6 +429,82 @@ bool CMenuManager::CheckMissionPackValidMenu() {
 }
 
 // 0x57DB20
-bool CMenuManager::CheckCodesForControls(RsInputDeviceType type) {
-    return plugin::CallMethodAndReturn<bool, 0x57DB20, CMenuManager*, RsInputDeviceType>(this, type);
+void CMenuManager::CheckCodesForControls(eControllerType type) {
+    auto actionId          = (eControllerAction)m_OptionToChange;
+    bool escapePressed = false;
+    bool invalidKeyPressed = false;
+    // field_1AE8 = 0;
+    eControllerType controllerType = eControllerType::KEYBOARD;
+
+    // Handle different input types
+    if (type == eControllerType::KEYBOARD) {
+        // Handle keyboard input
+        RsKeyCodes keyCode = *m_pPressedKey;
+        
+        if (keyCode == rsESC) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
+            escapePressed = true;
+        } else if (!keyCode || notsa::contains({ rsF1, rsF2, rsF3, rsLWIN, rsRWIN }, keyCode)) { // Fixed from v1.01
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
+            invalidKeyPressed = true;
+        } else {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
+            if ((ControlsManager.GetControllerKeyAssociatedWithAction(actionId, eControllerType::KEYBOARD) != rsNULL) && (ControlsManager.GetControllerKeyAssociatedWithAction(actionId, eControllerType::KEYBOARD) != *m_pPressedKey)) {
+                controllerType = eControllerType::OPTIONAL_EXTRA_KEY;
+            }
+        }
+    } else if (type == eControllerType::MOUSE) {
+        // Mouse input
+        controllerType = eControllerType::MOUSE;
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
+    } else if (type == eControllerType::JOY_STICK) {
+        // Joystick/controller input
+        controllerType = eControllerType::JOY_STICK;
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
+        // field_1AE8 = (DEPRECATEDCOMBOFUNC(actionId)) ? 1 : 0;
+    }
+
+    // Handle escape key or invalid key press
+    if (escapePressed || invalidKeyPressed /* || (field_1AE8 && escapePressed)*/) {
+        m_DeleteAllNextDefine = 0;
+        m_pPressedKey = nullptr;
+        m_EditingControlOptions = false;
+        m_KeyPressedCode = (RsKeyCodes)-1;
+        m_bJustOpenedControlRedefWindow = false;
+        return;
+    }
+
+    if (!invalidKeyPressed) {
+        // Process delete all bound controls
+        if (m_DeleteAllNextDefine) {
+            for (int i = 0; i < 4; i++) {
+                ControlsManager.ClearSettingsAssociatedWithAction(actionId, (eControllerType)i);
+            }
+            m_DeleteAllNextDefine = 0;
+        }
+
+        // Clear settings for the current controller type
+        ControlsManager.ClearSettingsAssociatedWithAction(actionId, controllerType);
+
+        // Set the new control based on input type
+        if (type == eControllerType::MOUSE) {
+            ControlsManager.DeleteMatchingActionInitiators(actionId, m_nPressedMouseButton, eControllerType::MOUSE);
+            ControlsManager.SetControllerKeyAssociatedWithAction(actionId, m_nPressedMouseButton, controllerType);
+        } else if (type == eControllerType::JOY_STICK) {
+            ControlsManager.DeleteMatchingActionInitiators(actionId, m_nJustDownJoyButton, eControllerType::JOY_STICK);
+            ControlsManager.SetControllerKeyAssociatedWithAction(actionId, m_nJustDownJoyButton, controllerType);
+        } else {
+            // Keyboard
+            ControlsManager.DeleteMatchingActionInitiators(actionId, *m_pPressedKey, eControllerType::KEYBOARD);
+            ControlsManager.DeleteMatchingActionInitiators(actionId, *m_pPressedKey, eControllerType::OPTIONAL_EXTRA_KEY);
+            ControlsManager.SetControllerKeyAssociatedWithAction(actionId, *m_pPressedKey, controllerType);
+        }
+
+        // Reset state
+        m_pPressedKey = nullptr;
+        m_EditingControlOptions = false;
+        m_KeyPressedCode = (RsKeyCodes) - 1;
+        m_bJustOpenedControlRedefWindow = false;
+        SaveSettings();
+    }
 }

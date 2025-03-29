@@ -12,9 +12,9 @@
 #include "ControllerConfigManager.h"
 
 // TODO: Rename
-static uint32 dword_865598[] = {0,2,3,12,13,11,10,4,5,6,7,14,15,16,22,23,24,26,27,28,29,34,36,37,38}; // 0x865598
-static uint32 dword_865608[] = {0,1,4,5,6,7,8,9,16,10,17,18,19,20,21,22,25,34,35,36,37,30,31,32,33}; // 0x865608
-static GxtChar dword_86539C[] = "FEM_ON"; // 0x86539C
+constexpr uint32 dword_865598[] = { 0, 2, 3, 12, 13, 11, 10, 4, 5, 6, 7, 14, 15, 16, 22, 23, 24, 26, 27, 28, 29, 34, 36, 37, 38, 39, 42, 1 }; // 0x865598
+constexpr uint32 dword_865608[] = { 0, 1, 4, 5, 6, 7, 8, 9, 16, 10, 17, 18, 19, 20, 21, 22, 25, 34, 35, 36, 37, 30, 31, 32, 33 };             // 0x865608
+static GxtChar   dword_86539C[] = "FEM_ON";                                                                                                   // 0x86539C
 
 // 0x57C290
 void CMenuManager::DrawFrontEnd() {
@@ -327,7 +327,7 @@ void CMenuManager::DrawBackground() {
 
         CRect mapRect(StretchX(60.0f), StretchY(60.0f), SCREEN_WIDTH - StretchX(60.0f), SCREEN_HEIGHT - StretchY(60.0f));
 
-        if (m_nCurrentScreen == SCREEN_MAP && CPad::NewMouseControllerState.lmb && mapRect.IsPointInside(CVector2D(x, y))) {
+        if (m_nCurrentScreen == SCREEN_MAP && CPad::NewMouseControllerState.m_bLeftButton && mapRect.IsPointInside(CVector2D(x, y))) {
             DrawCursor(FRONTEND_SPRITE_CROSS_HAIR);
         } else {
             DrawCursor(FRONTEND_SPRITE_MOUSE);
@@ -413,184 +413,424 @@ void CMenuManager::DrawQuitGameScreen() {
 }
 
 // 0x57D8D0
-void CMenuManager::DrawControllerScreenExtraText(int32 a1) {
-    plugin::CallMethod<0x57D8D0, CMenuManager*, int32>(this, a1);
+void CMenuManager::DrawControllerScreenExtraText(int32 a2) {
+    int actionIndex = 0;
+    uint32 maxActions = 0;
+    uint8 verticalSpacing;
+    
+    if (m_RedefiningControls) {
+        if (m_RedefiningControls == 1) {
+            verticalSpacing = 13;
+            maxActions = 25;
+        } else {
+            verticalSpacing = a2;
+        }
+    } else {
+        verticalSpacing = 4 * (!m_ControlMethod) + 11;
+        maxActions = m_ControlMethod ? 28 : 22;
+    }
+    
+    if (maxActions) {
+        float posX = 0.0f;
+        
+        for (actionIndex = 0; actionIndex < maxActions; actionIndex++) {
+            posX = StretchX(240.0f);
+            float posY = StretchY(float(a2));
+            
+            for (int32 order = 1; order <= 4; order--) {
+                const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)actionIndex, order);
+                if (buttonText) {
+                    CFont::PrintString(posX, posY, buttonText);
+                    posX += StretchX(75.0f);
+                }
+            }
+            
+            if (actionIndex == m_ListSelection) {
+                if (m_EditingControlOptions) {
+                    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.LastFlash > 150) {
+                        FrontEndMenuManager.ColourSwitch = FrontEndMenuManager.ColourSwitch ? false : true;
+                        FrontEndMenuManager.LastFlash  = CTimer::m_snTimeInMillisecondsPauseMode;
+                    }
+                    
+                    if (FrontEndMenuManager.ColourSwitch) {
+                        CFont::SetColor({0, 0, 0, 255});
+                        CFont::PrintString(posX, posY, TheText.Get("FEC_QUE"));
+                        CFont::SetColor({74, 90, 107, 255});
+                    }
+                }
+            }
+            
+            a2 += verticalSpacing;
+        }
+        
+        // Handle combo text display
+        // if (DEPRECATEDCOMBO) {
+        //     auto comboText = CControllerConfigManager::GetButtonComboText(m_ListSelection);
+        //     if (comboText) {
+        //         CFont::SetColor({200, 50, 50, 255});
+        //         CFont::PrintString(posX, StretchY(float(a2 + 10)), comboText);
+        //     }
+        // }
+    }
 }
 
 // 0x57E6E0
-void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining) {
-    // TODO: Magic number
-    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * !m_bController + 11u);
-    const auto maxActions      = m_RedefiningControls ? 25u : (m_bController ? 28u : 22u);
+void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScreen) {
+    int controllerAction;
+    uint8 verticalSpacing;
+    uint8 maxActions;
+    int actionIndex = 0;
+    float currentY;
+    int currentX;
+    bool hasControl;
 
-    const auto getControllerAction = [&](int32 index) -> eControllerAction {
+    // Determine vertical spacing based on control mode
+    if (m_RedefiningControls) {
+        if (m_RedefiningControls == 1) {
+            verticalSpacing = 13;
+        }
+    } else {
+        verticalSpacing = 4 * (m_ControlMethod == 0) + 11;
+    }
+    
+    // Determine maximum actions based on control mode
+    if (m_RedefiningControls) {
+        if (m_RedefiningControls == 1) {
+            maxActions = 25;
+        } else {
+            maxActions = isOppositeScreen;
+        }
+    } else {
+        maxActions = m_ControlMethod != 0 ? 28 : 22;
+    }
+    
+    currentY = StretchY(float(verticalOffset));
+    
+    // Main loop - process each action
+    while (actionIndex < maxActions) {
+        currentX = StretchX(270.0f);
+        hasControl = false;
+        controllerAction = 0;
+        
+        // Set default text color
+        CFont::SetColor({255, 255, 255, 255});
+        
+        // Map action index to controller action
         if (m_RedefiningControls) {
-            switch (dword_865608[index]) {
-            case 0: return CA_VEHICLE_FIRE_WEAPON;
-            case 1: return CA_VEHICLE_FIRE_WEAPON_ALT;
-            case 4: return CA_VEHICLE_ACCELERATE;
-            case 5: return CA_VEHICLE_BRAKE;
-            case 6: return CA_VEHICLE_STEER_LEFT;
-            case 7: return CA_VEHICLE_STEER_RIGHT;
-            case 8: return CA_VEHICLE_STEER_UP;
-            case 9: return CA_VEHICLE_STEER_DOWN;
-            case 10: return CA_CONVERSATION_YES;
-            case 16: return CA_VEHICLE_ENTER_EXIT;
-            case 17: return CA_VEHICLE_RADIO_STATION_UP;
-            case 18: return CA_VEHICLE_RADIO_STATION_DOWN;
-            case 19: return CA_VEHICLE_RADIO_TRACK_SKIP;
-            case 20: return CA_VEHICLE_HORN;
-            case 21: return CA_TOGGLE_SUBMISSIONS;
-            case 22: return CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS;
-            case 25: return CA_VEHICLE_HANDBRAKE;
-            case 30: return CA_VEHICLE_TURRET_LEFT;
-            case 31: return CA_VEHICLE_TURRET_RIGHT;
-            case 32: return CA_VEHICLE_TURRET_DOWN;
-            case 33: return CA_VEHICLE_TURRET_UP;
-            case 34: return CA_VEHICLE_LOOKBEHIND;
-            case 35: return CA_VEHICLE_MOUSE_LOOK;
-            case 36: return CA_VEHICLE_LOOK_LEFT;
-            case 37: return CA_VEHICLE_LOOK_RIGHT;
-            default: return CA_INVALID;
+            if (m_RedefiningControls == 1) {
+                switch (dword_865608[actionIndex]) {
+                case CA_PED_FIRE_WEAPON:
+                    controllerAction = 18;
+                    break;
+                case CA_PED_FIRE_WEAPON_ALT:
+                    controllerAction = 19;
+                    break;
+                case CA_PED_CYCLE_WEAPON_RIGHT:
+                case CA_PED_CYCLE_WEAPON_LEFT:
+                case CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS:
+                case CA_PED_JUMPING:
+                case CA_PED_SPRINT:
+                case CA_PED_LOOKBEHIND:
+                case CA_PED_DUCK:
+                case CA_VEHICLE_STEER_DOWN:
+                case CA_VEHICLE_ACCELERATE:
+                case CA_VEHICLE_RADIO_STATION_UP:
+                case CA_VEHICLE_RADIO_STATION_DOWN:
+                case CA_VEHICLE_RADIO_TRACK_SKIP:
+                case CA_VEHICLE_HORN:
+                case CA_VEHICLE_TURRET_LEFT:
+                case CA_VEHICLE_TURRET_RIGHT:
+                case CA_PED_CYCLE_TARGET_LEFT:
+                    controllerAction = -1;
+                    break;
+                case CA_GO_FORWARD:
+                    controllerAction = 24;
+                    break;
+                case CA_GO_BACK:
+                    controllerAction = 25;
+                    break;
+                case CA_GO_LEFT:
+                    controllerAction = 20;
+                    break;
+                case CA_GO_RIGHT:
+                    controllerAction = 21;
+                    break;
+                case CA_PED_SNIPER_ZOOM_IN:
+                    controllerAction = 22;
+                    break;
+                case CA_PED_SNIPER_ZOOM_OUT:
+                    controllerAction = 23;
+                    break;
+                case CA_VEHICLE_ENTER_EXIT:
+                    controllerAction = 47;
+                    break;
+                case CA_PED_ANSWER_PHONE:
+                    controllerAction = 10;
+                    break;
+                case CA_PED_WALK:
+                    controllerAction = 26;
+                    break;
+                case CA_VEHICLE_FIRE_WEAPON:
+                    controllerAction = 27;
+                    break;
+                case CA_VEHICLE_FIRE_WEAPON_ALT:
+                    controllerAction = 28;
+                    break;
+                case CA_VEHICLE_STEER_LEFT:
+                    controllerAction = 29;
+                    break;
+                case CA_VEHICLE_STEER_RIGHT:
+                    controllerAction = 30;
+                    break;
+                case CA_VEHICLE_STEER_UP:
+                    controllerAction = 11;
+                    break;
+                case CA_VEHICLE_BRAKE:
+                    controllerAction = 31;
+                    break;
+                case CA_TOGGLE_SUBMISSIONS:
+                    controllerAction = 38;
+                    break;
+                case CA_VEHICLE_HANDBRAKE:
+                    controllerAction = 39;
+                    break;
+                case CA_PED_1RST_PERSON_LOOK_LEFT:
+                    controllerAction = 41;
+                    break;
+                case CA_PED_1RST_PERSON_LOOK_RIGHT:
+                    controllerAction = 40;
+                    break;
+                case CA_VEHICLE_LOOK_LEFT:
+                    controllerAction = 36;
+                    break;
+                case CA_VEHICLE_LOOK_RIGHT:
+                    controllerAction = 37;
+                    break;
+                case CA_VEHICLE_LOOKBEHIND:
+                    controllerAction = 34;
+                    break;
+                case CA_VEHICLE_MOUSE_LOOK:
+                    controllerAction = 35;
+                    break;
+                }
             }
         } else {
-            switch (index) {
-            case 0:
-            case 28: return CA_PED_FIRE_WEAPON;
-            case 1: return CA_PED_CYCLE_WEAPON_RIGHT;
-            case 2: return CA_PED_CYCLE_WEAPON_LEFT;
-            case 3: return CA_GROUP_CONTROL_FWD;
-            case 4: return CA_GROUP_CONTROL_BWD;
-            case 5: return CA_CONVERSATION_NO;
-            case 6:
-            case 37: return CA_CONVERSATION_YES;
-            case 7:
-            case 30: return CA_GO_FORWARD;
-            case 8:
-            case 31: return CA_GO_BACK;
-            case 9:
-            case 32: return CA_GO_LEFT;
-            case 10:
-            case 33: return CA_GO_RIGHT;
-            case 11: return CA_PED_SNIPER_ZOOM_IN;
-            case 12: return CA_PED_SNIPER_ZOOM_OUT;
-            case 13:
-            case 36: return CA_VEHICLE_ENTER_EXIT;
-            case 14:
-            case 43: return CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS;
-            case 15: return CA_PED_JUMPING;
-            case 16: return CA_PED_SPRINT;
-            case 17: return CA_PED_LOCK_TARGET;
-            case 18: return CA_PED_DUCK;
-            case 19: return CA_PED_ANSWER_PHONE;
-            case 20: return CA_PED_WALK;
-            case 21:
-            case 45: return CA_PED_LOOKBEHIND;
-            case 22:
-            case 47: return m_bController ? CA_PED_1RST_PERSON_LOOK_LEFT : CA_INVALID;
-            case 23:
-            case 48: return m_bController ? CA_PED_1RST_PERSON_LOOK_RIGHT : CA_INVALID;
-            case 24: return CA_PED_1RST_PERSON_LOOK_UP;
-            case 25: return CA_PED_1RST_PERSON_LOOK_DOWN;
-            case 26: return CA_PED_CENTER_CAMERA_BEHIND_PLAYER;
-            case 27:
-            case 29: return CA_PED_FIRE_WEAPON_ALT;
-            default: return CA_INVALID;
+            switch (actionIndex) {
+            case CA_PED_FIRE_WEAPON:
+            case CA_VEHICLE_RADIO_TRACK_SKIP:
+                controllerAction = 0;
+                break;
+            case CA_PED_FIRE_WEAPON_ALT:
+                controllerAction = 2;
+                break;
+            case CA_PED_CYCLE_WEAPON_RIGHT:
+                controllerAction = 3;
+                break;
+            case CA_PED_CYCLE_WEAPON_LEFT:
+                controllerAction = 49;
+                break;
+            case CA_GO_FORWARD:
+                controllerAction = 50;
+                break;
+            case CA_GO_BACK:
+                controllerAction = 48;
+                break;
+            case CA_GO_LEFT:
+            case CA_VEHICLE_MOUSE_LOOK:
+                controllerAction = 47;
+                break;
+            case CA_GO_RIGHT:
+            case CA_TOGGLE_SUBMISSIONS:
+                controllerAction = 4;
+                break;
+            case CA_PED_SNIPER_ZOOM_IN:
+            case CA_VEHICLE_HANDBRAKE:
+                controllerAction = 5;
+                break;
+            case CA_PED_SNIPER_ZOOM_OUT:
+            case CA_PED_1RST_PERSON_LOOK_LEFT:
+                controllerAction = 6;
+                break;
+            case CA_VEHICLE_ENTER_EXIT:
+            case CA_PED_1RST_PERSON_LOOK_RIGHT:
+                controllerAction = 7;
+                break;
+            case CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS:
+                controllerAction = 8;
+                break;
+            case CA_PED_JUMPING:
+                controllerAction = 9;
+                break;
+            case CA_PED_SPRINT:
+            case CA_VEHICLE_LOOKBEHIND:
+                controllerAction = 10;
+                break;
+            case CA_PED_LOOKBEHIND:
+            case CA_PED_CYCLE_TARGET_RIGHT:
+                controllerAction = 11;
+                break;
+            case CA_PED_DUCK:
+                controllerAction = 12;
+                break;
+            case CA_PED_ANSWER_PHONE:
+                controllerAction = 13;
+                break;
+            case CA_PED_WALK:
+                controllerAction = 45;
+                break;
+            case CA_VEHICLE_FIRE_WEAPON:
+                controllerAction = 15;
+                break;
+            case CA_VEHICLE_FIRE_WEAPON_ALT:
+                controllerAction = 16;
+                break;
+            case CA_VEHICLE_STEER_LEFT:
+                controllerAction = 17;
+                break;
+            case CA_VEHICLE_STEER_RIGHT:
+            case CA_PED_LOCK_TARGET:
+                controllerAction = 14;
+                break;
+            case CA_VEHICLE_STEER_UP:
+            case CA_CONVERSATION_YES:
+                controllerAction = m_ControlMethod != 0 ? 32 : -1;
+                break;
+            case CA_VEHICLE_STEER_DOWN:
+            case CA_CONVERSATION_NO:
+                controllerAction = m_ControlMethod != 0 ? 33 : -1;
+                break;
+            case CA_VEHICLE_ACCELERATE:
+                controllerAction = 51;
+                break;
+            case CA_VEHICLE_BRAKE:
+                controllerAction = 52;
+                break;
+            case CA_VEHICLE_RADIO_STATION_UP:
+                controllerAction = 44;
+                break;
+            case CA_VEHICLE_RADIO_STATION_DOWN:
+            case CA_VEHICLE_HORN:
+                controllerAction = 1;
+                break;
+            case CA_VEHICLE_TURRET_LEFT:
+            case CA_VEHICLE_TURRET_RIGHT:
+            case CA_VEHICLE_TURRET_UP:
+            case CA_VEHICLE_TURRET_DOWN:
+            case CA_PED_CYCLE_TARGET_LEFT:
+            case CA_PED_CENTER_CAMERA_BEHIND_PLAYER:
+            case CA_NETWORK_TALK:
+            case CA_GROUP_CONTROL_FWD:
+            case CA_GROUP_CONTROL_BWD:
+            case CA_PED_1RST_PERSON_LOOK_UP:
+            case CA_PED_1RST_PERSON_LOOK_DOWN:
+                controllerAction = -1;
+                break;
             }
         }
-    };
 
-    auto currentY = StretchY(verticalOffset);
-    for (auto actionIndex = 0u; actionIndex < maxActions; ++actionIndex) {
-        auto currentX = StretchX(270.0f);
-        CFont::SetColor({ 255, 255, 255, 255 });
-        const auto controllerAction = getControllerAction(actionIndex);
-
-        // 0x57EA1E
-        if (m_ListSelection == actionIndex && !isRedefining) {
-            CSprite2d::DrawRect({ StretchX(260.0f), StretchY(actionIndex * verticalSpacing + verticalOffset + 1.0f), SCREEN_WIDTH - StretchX(20.0f), StretchY((actionIndex * verticalSpacing + verticalOffset + 1.0f) + 10.0f) }, { 172, 203, 241, 255 });
-            CFont::SetColor({ 255, 255, 255, 255 });
+        // Highlight selected action
+        if (m_ListSelection == actionIndex && !isOppositeScreen) {
+            CSprite2d::DrawRect(
+                CRect(
+                    StretchX(260.0f), 
+                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.0f),
+                    SCREEN_WIDTH - StretchX(20.0f),
+                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.0f + 10.0f)
+                ),
+                {172, 203, 241, 255}
+            );
+            CFont::SetColor({255, 255, 255, 255});
         }
 
-        // 0x57EB09
+        // Set text properties
         CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
         CFont::SetScale(StretchX(0.3f), StretchY(0.6f));
         CFont::SetFontStyle(FONT_SUBTITLES);
         CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
 
-        bool isControlPrinted = false;
-        if (controllerAction != CA_INVALID) {
-            for (auto order = 1; order <= CONTROLLER_NUM; ++order) {
+        // Draw control bindings
+        int controlOrderIndex = 1;
+        hasControl = false;
+        if (controllerAction != -1) {
+            while (controlOrderIndex <= 4) {
                 if (m_DeleteAllNextDefine && m_ListSelection == actionIndex) {
                     break;
                 }
-                const auto buttonText = ControlsManager.GetControllerSettingText(controllerAction, order);
+                const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)controllerAction, controlOrderIndex);
                 if (buttonText) {
-                    if (!isRedefining) {
+                    if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, buttonText);
                     }
                     currentX += StretchX(75.0f);
-                    isControlPrinted = true;
+                    hasControl = true;
                 }
+                controlOrderIndex++;
             }
         }
 
-        if (!isControlPrinted) {
-            if (controllerAction != static_cast<eControllerAction>(-2)) {
+        // Handle unbound controls or special cases
+        if (!hasControl) {
+            if (controllerAction != -2) {
                 m_bRadioAvailable = 0;
-                CFont::SetColor({ 200, 50, 50, 255 });
-
-                if (!isRedefining) {
+                CFont::SetColor({200, 50, 50, 255});
+                if (!isOppositeScreen) {
                     CFont::PrintString(currentX, currentY, TheText.Get("FEC_UNB"));
                 }
             } else {
-                CFont::SetColor({ 0, 0, 0, 255 });
-                if (!isRedefining) {
+                CFont::SetColor({0, 0, 0, 255});
+                if (!isOppositeScreen) {
                     CFont::PrintString(currentX, currentY, TheText.Get("FEC_CMP"));
                 }
             }
         }
 
+        // Handle selected action special behaviors
         if (actionIndex == m_ListSelection) {
-            if (controllerAction == CA_INVALID || controllerAction == static_cast<eControllerAction>(-2)) {
+            if (controllerAction == -1 || controllerAction == -2) {
                 if (actionIndex == m_ListSelection) {
-                    CMenuManager::DisplayHelperText("FET_EIG");
+                    DisplayHelperText("FET_EIG");
                 }
             } else {
-                m_OptionToChange = controllerAction;
+                m_OptionToChange = (eControllerAction)controllerAction;
                 if (m_EditingControlOptions) {
                     if (CTimer::m_snTimeInMillisecondsPauseMode - m_lastBlinkTime > 150) {
                         m_isTextBlinking = !m_isTextBlinking;
-                        m_lastBlinkTime  = CTimer::m_snTimeInMillisecondsPauseMode;
+                        m_lastBlinkTime = CTimer::m_snTimeInMillisecondsPauseMode;
                     }
+                    
                     if (m_isTextBlinking) {
-                        CFont::SetColor({ 0, 0, 0, 255 });
-                        if (!isRedefining) {
+                        CFont::SetColor({0, 0, 0, 255});
+                        if (!isOppositeScreen) {
                             CFont::PrintString(currentX, currentY, TheText.Get("FEC_QUE"));
                         }
                     }
+                    
                     if (m_DeleteAllBoundControls) {
-                        CMenuManager::DisplayHelperText("FET_CIG");
+                        DisplayHelperText("FET_CIG");
                     } else {
-                        CMenuManager::DisplayHelperText("FET_RIG");
+                        DisplayHelperText("FET_RIG");
                     }
                     m_CanBeDefined = true;
                 } else {
-                    CMenuManager::DisplayHelperText("FET_CIG");
-                    m_CanBeDefined           = false;
+                    DisplayHelperText("FET_CIG");
+                    m_CanBeDefined = false;
                     m_DeleteAllBoundControls = false;
                 }
             }
         }
+
+        // Move to next line and action
         currentY = StretchY(float(verticalOffset + (actionIndex + 1) * verticalSpacing));
+        actionIndex++;
     }
 }
 
 // 0x57F300
 void CMenuManager::DrawControllerSetupScreen() {
+
     // TODO: Magic number
-    const auto v51 = m_RedefiningControls ? 13u : (4u * (!m_bController) + 11u);
-    const auto max = m_RedefiningControls ? 25u : (m_bController ? 28u : 22u);
+    const auto v51 = m_RedefiningControls ? 13u : (4u * (!m_ControlMethod) + 11u);
+    const auto max = m_RedefiningControls ? 25u : (m_ControlMethod ? 28u : 22u);
 
     const char* keys[]{
         "FEC_FIR", "FEC_FIA", "FEC_NWE", "FEC_PWE", m_RedefiningControls ? "FEC_ACC" : "FEC_FOR", m_RedefiningControls ? "FEC_BRA" : "FEC_BAC", "FEC_LEF", "FEC_RIG", "FEC_PLU", "FEC_PLD", m_RedefiningControls ? "FEC_TSK" : "FEC_COY", "FEC_CON", "FEC_GPF", "FEC_GPB", "FEC_ZIN", "FEC_ZOT", "FEC_EEX", "FEC_RSC", "FEC_RSP", "FEC_RTS", "FEC_HRN", "FEC_SUB", "FEC_CMR", "FEC_JMP", "FEC_SPN", "FEC_HND", "FEC_TAR", "FEC_CRO", "FEC_ANS", "FEC_PDW", "FEC_TFL", "FEC_TFR", "FEC_TFU", "FEC_TFD", "FEC_LBA", "FEC_VML", "FEC_LOL", "FEC_LOR", "FEC_LDU", "FEC_LUD", "", "", "FEC_CEN", nullptr
@@ -603,7 +843,7 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
     CFont::PrintString(
-        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_bController ? "FET_CCN" : "FET_SCN")
+        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_ControlMethod ? "FET_CCN" : "FET_SCN")
     );
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::PrintString(
@@ -634,9 +874,7 @@ void CMenuManager::DrawControllerSetupScreen() {
         CFont::SetScale(StretchX(0.4f), StretchY(0.6f));
         CFont::SetFontStyle(FONT_MENU);
         CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
-        CFont::PrintString(
-            StretchX(40.0f), StretchY(i * v51 + 69.0f), TheText.Get(keys[m_RedefiningControls ? dword_865608[i] : dword_865598[i]])
-        );
+        CFont::PrintString(StretchX(40.0f), StretchY(i * v51 + 69.0f), TheText.Get(keys[m_RedefiningControls ? dword_865608[i] : dword_865598[i]]));
     }
 
     // 0x57FAF9

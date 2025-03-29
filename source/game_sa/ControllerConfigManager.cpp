@@ -11,13 +11,13 @@ void CControllerConfigManager::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Constructor, 0x531EE0);
-    RH_ScopedInstall(LoadSettings, 0x530530, { .reversed = false });
-    RH_ScopedInstall(SaveSettings, 0x52D200, { .reversed = false });
-    RH_ScopedInstall(InitializeDefaultKeyboardAndMouseBindings, 0x530640);
-    RH_ScopedInstall(InitDefaultControlConfiguration, 0x530B00);
+    RH_ScopedInstall(LoadSettings, 0x530530);
+    RH_ScopedInstall(SaveSettings, 0x52D200);
+    RH_ScopedInstall(InitDefaultControlConfiguration, 0x530640);
+    RH_ScopedInstall(InitDefaultControlConfigJoyPad, 0x530B00);
     RH_ScopedInstall(InitDefaultControlConfigMouse, 0x52F6F0);
     RH_ScopedInstall(InitialiseControllerActionNameArray, 0x52D260);
-    RH_ScopedInstall(ReinitControls, 0x531F20, { .reversed = false });
+    RH_ScopedInstall(ReinitControls, 0x531F20);
     RH_ScopedInstall(SetMouseButtonAssociatedWithAction, 0x52F590);
     RH_ScopedInstall(StoreMouseButtonState, 0x52DA30);
     RH_ScopedInstall(UpdateJoyInConfigMenus_ButtonDown, 0x52DAB0);
@@ -38,7 +38,7 @@ void CControllerConfigManager::InjectHooks() {
     RH_ScopedInstall(GetIsKeyBlank, 0x52F2A0);
     RH_ScopedInstall(GetActionType, 0x52F2F0);
     RH_ScopedInstall(GetControllerKeyAssociatedWithAction, 0x52F4F0);
-    RH_ScopedInstall(ResetSettingOrder, 0x52F5F0, { .reversed = false }); // todo
+    RH_ScopedInstall(ResetSettingOrder, 0x52F5F0);
     RH_ScopedInstall(AffectControllerStateOn_ButtonDown_Driving, 0x52F7B0);
     RH_ScopedInstall(AffectControllerStateOn_ButtonDown_FirstPersonOnly, 0x52F9E0);
     RH_ScopedInstall(GetControllerSettingTextMouse, 0x52F390);
@@ -55,16 +55,16 @@ void CControllerConfigManager::InjectHooks() {
     RH_ScopedInstall(GetKeyNameForKeyboard, 0x52FE10);
     RH_ScopedInstall(UnmapVehicleEnterExit, 0x531BC0);
     RH_ScopedInstall(ClearSniperZoomMappings, 0x531C20);
-    RH_ScopedInstall(DeleteMapping, 0x531C90);
+    RH_ScopedInstall(DeleteMatchingActionInitiators, 0x531C90);
     RH_ScopedInstall(GetControllerSettingText, 0x531E20);
     RH_ScopedInstall(GetActionKeyName, 0x531E90);
     RH_ScopedInstall(GetDefinedKeyByGxtName, 0x5303D0);
-    RH_ScopedInstall(ProcessMouseInput, 0x5314A0);
+    RH_ScopedInstall(AffectPadFromMouse, 0x5314A0);
     RH_ScopedInstall(Clear1st3rdPersonMappings, 0x5318C0);
     RH_ScopedInstall(ClearVehicleMappings, 0x5319D0);
-    RH_ScopedInstall(SetKeyForAction, 0x530490);
+    RH_ScopedInstall(SetControllerKeyAssociatedWithAction, 0x530490);
     RH_ScopedInstall(MakeControllerActionsBlank, 0x530500);
-    RH_ScopedInstall(ProcessKeyboardInput, 0x531140);
+    RH_ScopedInstall(AffectPadFromKeyBoard, 0x531140);
     RH_ScopedInstall(ClearCommonMappings, 0x531670);
     RH_ScopedInstall(ClearPedMappings, 0x531730);
 }
@@ -74,13 +74,13 @@ CControllerConfigManager::CControllerConfigManager() {
     /* Member variable init done in header */
 
     MakeControllerActionsBlank();
-    InitializeDefaultKeyboardAndMouseBindings();
+    InitDefaultControlConfiguration();
     InitialiseControllerActionNameArray();
 }
 
 // 0x531730
 void CControllerConfigManager::ClearPedMappings(eControllerAction action, CControllerKey::KeyCode button, eControllerType type) {
-    if (!GetIsKeyBlank(button, type)) {
+    if (GetIsKeyBlank(button, type)) {
         return;
     }
 
@@ -103,7 +103,7 @@ void CControllerConfigManager::ClearPedMappings(eControllerAction action, CContr
 
     CheckAndClear(CA_PED_WALK, type, button);
 
-    if (FrontEndMenuManager.m_bController) {
+    if (FrontEndMenuManager.m_ControlMethod) {
         CheckAndClear(CA_PED_CENTER_CAMERA_BEHIND_PLAYER, type, button);
     }
 }
@@ -111,7 +111,7 @@ void CControllerConfigManager::ClearPedMappings(eControllerAction action, CContr
 
 // 0x531670
 void CControllerConfigManager::ClearCommonMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type) {
-    if (!GetIsKeyBlank(button, type)) {
+    if (GetIsKeyBlank(button, type)) {
         return;
     }
 
@@ -124,7 +124,7 @@ void CControllerConfigManager::ClearCommonMappings(eControllerAction nop, CContr
 }
 
 // 0x530490
-bool CControllerConfigManager::SetKeyForAction(eControllerAction action, CControllerKey::KeyCode button, eControllerType type) {
+bool CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerAction action, CControllerKey::KeyCode button, eControllerType type) {
     ResetSettingOrder(action);
     auto existingMappings = 0u;
     for (auto i = 0u; i < CONTROLLER_NUM; ++i) {
@@ -139,7 +139,7 @@ bool CControllerConfigManager::SetKeyForAction(eControllerAction action, CContro
 
 // 0x5319D0
 void CControllerConfigManager::ClearVehicleMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type) {
-    if (!GetIsKeyBlank(button, type)) {
+    if (GetIsKeyBlank(button, type)) {
         return;
     }
 
@@ -169,7 +169,7 @@ void CControllerConfigManager::ClearVehicleMappings(eControllerAction nop, CCont
 
 // 0x5318C0
 void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction action, CControllerKey::KeyCode button, eControllerType type) {
-    if (!GetIsKeyBlank(button, type)) {
+    if (GetIsKeyBlank(button, type)) {
         return;
     }
 
@@ -183,7 +183,7 @@ void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction actio
     CheckAndClear(CA_GO_FORWARD, type, button);
     CheckAndClear(CA_GO_BACK, type, button);
 
-    if (FrontEndMenuManager.m_bController) {
+    if (FrontEndMenuManager.m_ControlMethod) {
         CheckAndClear(CA_PED_1RST_PERSON_LOOK_LEFT, type, button);
         CheckAndClear(CA_PED_1RST_PERSON_LOOK_RIGHT, type, button);
         CheckAndClear(CA_PED_1RST_PERSON_LOOK_DOWN, type, button);
@@ -203,7 +203,7 @@ void CControllerConfigManager::StoreJoyButtonStates() {
 const GxtChar* CControllerConfigManager::GetActionKeyName(eControllerAction action) {
     int32 v3 = 0;
     ResetSettingOrder(action);
-    for (auto i = (int32)m_Actions[action].Keys[CONTROLLER_KEYBOARD1].Order; !i; i += 2) {
+    for (auto i = (int32)m_Actions[action].Keys[eControllerType::KEYBOARD].Order; !i; i += 2) {
         if (++v3 >= 2) {
             return 0;
         }
@@ -216,10 +216,10 @@ const GxtChar* CControllerConfigManager::GetControllerSettingText(eControllerAct
     for (auto type = 0u; type < CONTROLLER_NUM; ++type) {
         if (m_Actions[action].Keys[type].Order == priority) {
             switch (type) {
-            case CONTROLLER_KEYBOARD1:
-            case CONTROLLER_KEYBOARD2: return GetKeyNameForKeyboard(action, (eControllerType)type);
-            case CONTROLLER_MOUSE:     return GetControllerSettingTextMouse(action);
-            case CONTROLLER_PAD:       return GetControllerSettingTextJoystick(action);
+            case eControllerType::KEYBOARD:
+            case eControllerType::OPTIONAL_EXTRA_KEY: return GetKeyNameForKeyboard(action, (eControllerType)type);
+            case eControllerType::MOUSE:     return GetControllerSettingTextMouse(action);
+            case eControllerType::JOY_STICK:       return GetControllerSettingTextJoystick(action);
             default:                   NOTSA_UNREACHABLE();
             }
         }
@@ -229,7 +229,7 @@ const GxtChar* CControllerConfigManager::GetControllerSettingText(eControllerAct
 
 // 0x531C20
 void CControllerConfigManager::ClearSniperZoomMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type) {
-    if (!GetIsKeyBlank(button, type)) {
+    if (GetIsKeyBlank(button, type)) {
         return;
     }
 
@@ -239,7 +239,7 @@ void CControllerConfigManager::ClearSniperZoomMappings(eControllerAction nop, CC
 
 // 0x531BC0
 void CControllerConfigManager::UnmapVehicleEnterExit(CControllerKey::KeyCode button, eControllerType type) {
-    if (!GetIsKeyBlank(button, type)) {
+    if (GetIsKeyBlank(button, type)) {
         return;
     }
 
@@ -248,7 +248,7 @@ void CControllerConfigManager::UnmapVehicleEnterExit(CControllerKey::KeyCode but
 
 // 0x52FD70
 void CControllerConfigManager::ClearSettingsAssociatedWithAction(eControllerAction action, eControllerType type) {
-    m_Actions[action].Keys[type].Key  = (type == CONTROLLER_KEYBOARD1 || type == CONTROLLER_KEYBOARD2)
+    m_Actions[action].Keys[type].Key  = (type == eControllerType::KEYBOARD || type == eControllerType::OPTIONAL_EXTRA_KEY)
          ? rsNULL
          : (RsKeyCodes)(0);
     m_Actions[action].Keys[type].Order = 0;
@@ -273,7 +273,7 @@ CControllerState* CControllerConfigManager::AffectControllerStateOn_ButtonDown_A
 
 // 0x52F580
 int32 CControllerConfigManager::GetMouseButtonAssociatedWithAction(eControllerAction action) {
-    return m_Actions[action].Keys[CONTROLLER_MOUSE].Key;
+    return m_Actions[action].Keys[eControllerType::MOUSE].Key;
 }
 
 // 0x52FAB0
@@ -306,7 +306,7 @@ eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Fir
     CheckAndSetStick(CA_PED_1RST_PERSON_LOOK_LEFT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128); 
     CheckAndSetStick(CA_PED_1RST_PERSON_LOOK_RIGHT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);  
 
-    if (FrontEndMenuManager.m_bController) {
+    if (FrontEndMenuManager.m_ControlMethod) {
         CheckAndSetStick(CA_PED_1RST_PERSON_LOOK_UP, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128); 
         CheckAndSetStick(CA_PED_1RST_PERSON_LOOK_DOWN, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
     }
@@ -324,7 +324,7 @@ int32 CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOn
     CheckAndSetButton(CA_PED_SPRINT, type, button, state->ButtonCross);
     CheckAndSetButton(CA_PED_DUCK, type, button, state->ShockButtonL);
 
-    if (FrontEndMenuManager.m_bController) {
+    if (FrontEndMenuManager.m_ControlMethod) {
         CheckAndSetButton(CA_PED_CENTER_CAMERA_BEHIND_PLAYER, type, button, state->LeftShoulder1);
     }
     return button;
@@ -373,12 +373,13 @@ eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Dri
             }
         }
     };
-
+    
     CheckAndSetButton(CA_VEHICLE_FIRE_WEAPON, type, button, state->ButtonCircle);
     CheckAndSetButton(CA_VEHICLE_FIRE_WEAPON_ALT, type, button, state->LeftShoulder1);
-    // why double ? check
+
+    // why double ? check: if you press both buttons you look behind
     CheckAndSetButton(CA_VEHICLE_LOOKBEHIND, type, button, state->LeftShoulder2); 
-    CheckAndSetButton(CA_VEHICLE_LOOKBEHIND, type, button, state->RightShoulder2); // Maybe CA_VEHICLE_MOUSE_LOOK ?
+    CheckAndSetButton(CA_VEHICLE_LOOKBEHIND, type, button, state->RightShoulder2);
 
     CheckAndSetButton(CA_VEHICLE_LOOK_LEFT, type, button, state->LeftShoulder2);
     CheckAndSetButton(CA_VEHICLE_LOOK_RIGHT, type, button, state->RightShoulder2);
@@ -403,45 +404,43 @@ eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Dri
 }
 
 // 0x52F5F0
-void CControllerConfigManager::ResetSettingOrder(eControllerAction ctrlAction) {
-    //auto& action = m_Actions[ctrlAction];
-    rng::sort(m_Actions[ctrlAction].Keys, [](auto&& a, auto&& b) {
-        return b.Order != -1 && a.Order < b.Order;
-    });
+void CControllerConfigManager::ResetSettingOrder(eControllerAction action) {
+    int32 result = 0;
+    
+    for (int32 priorityLevel = 1; priorityLevel < 5; priorityLevel++) {
+        // Check if any key already has this priority level
+        bool priorityExists = false;
+        
+        for (int32 controllerType = 0; controllerType < 4; controllerType++) {
+            if (m_Actions[action].Keys[controllerType].Order == priorityLevel) {
+                priorityExists = true;
+                break;
+            }
+        }
 
-
-    //for (auto order = 1; order <= CONTROLLER_NUM; ++order) {
-    //    if (rng::find(m_Actions[ctrlAction].Keys, order, &CControllerKey::Order)) {
-    //        continue;
-    //    }
-    //    auto it = rng::max_element(
-    //        action.Keys,
-    //        [](uint32 a, uint32 b) {
-    //            return b != -1 && a < b;
-    //        },
-    //        &CControllerKey::Order
-    //    );
-    //    if (it == rng::end(action.Keys) || it->Order == -1) {
-    //        continue;
-    //    }
-    //    it->Order = order;
-    //    return (eControllerType)(it - std::begin(action.Keys));
-    //
-    //    //ePriority minPriority = PRIORITY_NONE;
-    //    //for (int32 controller = CONTROLLER_FIRST; controller <= CONTROLLER_LAST; ++controller) {
-    //    //    ePriority currentPriority = m_Actions[ctrlAction].Keys[controller].Priority;
-    //    //    if (currentPriority > (ePriority)priority && currentPriority != PRIORITY_DISABLE) {
-    //    //        if (minPriority == PRIORITY_NONE || currentPriority < m_Actions[ctrlAction].Keys[type].Priority) {
-    //    //            minPriority = currentPriority;
-    //    //            type = (eControllerType)(controller);
-    //    //        }
-    //    //    }
-    //    //}
-    //    //if (minPriority != PRIORITY_NONE) {
-    //    //    m_Actions[ctrlAction].Keys[type].Priority = (ePriority)(priority);
-    //    //}
-    //}
-    //return CONTROLLER_KEYBOARD1;
+        if (!priorityExists) {
+            // No key has this priority, find the one with lowest priority > priorityLevel
+            bool found = false;
+            
+            for (int32 controllerType = 0; controllerType < 4; controllerType++) {
+                const auto keyPriority = m_Actions[action].Keys[controllerType].Order;
+                
+                // Only consider keys with priority > priorityLevel and not 0 (unset)
+                if (keyPriority > priorityLevel && keyPriority != 0) {
+                    // If no key found yet or this key has lower priority than current best
+                    if (!found || keyPriority < m_Actions[action].Keys[result].Order) {
+                        result = controllerType;
+                        found = true;
+                    }
+                }
+            }
+            
+            // If we found a key with higher priority, adjust it to the current level
+            if (found) {
+                m_Actions[action].Keys[result].Order = priorityLevel;
+            }
+        }
+    }
 }
 
 // NOTSA [Code combined from 0x7448B0 and 0x744930]
@@ -458,166 +457,357 @@ void CControllerConfigManager::HandleJoyButtonUpDown(int32 joyNo, bool isDown) {
             }
         } else {
             if (isDown) {
-                UpdateJoy_ButtonDown(padBtn, CONTROLLER_PAD);
+                UpdateJoy_ButtonDown(padBtn, eControllerType::JOY_STICK);
             } else {
-                UpdateJoy_ButtonUp(padBtn, CONTROLLER_PAD);
+                UpdateJoy_ButtonUp(padBtn, eControllerType::JOY_STICK);
             }
         }
     }
 }
+#define BINARY_CONFIG 0
+#if BINARY_CONFIG
+bool CControllerConfigManager::LoadSettings(FILE* file) {
+    if (!file) {
+        return 1;
+    }
 
+    // Check if file has valid header
+    char header[32];
+    CFileMgr::Read(file, header, 29);
+    if (strncmp(header, "THIS FILE IS NOT VALID YET", 26) == 0) {
+        // Invalid header
+        return 1;
+    }
+
+    // Reset file position to start and read version
+    CFileMgr::Seek(file, 0, 0);
+    int32 version;
+    CFileMgr::Read(file, &version, 4);
+    
+    if (version < 6) {
+        // Version too old
+        return 1;
+    }
+
+    // Verify file format by checking action IDs
+    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
+        for (int32 actionId = 0; actionId < 59; actionId++) {
+            int32 storedActionId;
+            CFileMgr::Read(file, &storedActionId, 4);
+            
+            if (storedActionId != actionId) {
+                // Invalid action ID in file
+                return 0;
+            }
+            
+            
+            // Skip key data for now
+            CFileMgr::Seek(file, 8, 1);
+        }
+    }
+
+    // Go back to position after version info
+    CFileMgr::Seek(file, 4, 0);
+    
+    // Clear existing settings
+    MakeControllerActionsBlank();
+
+    // Read key mappings for each controller type
+    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
+        for (int32 actionId = 0; actionId < 59; actionId++) {
+            // Skip action ID
+            CFileMgr::Seek(file, 4, 1);
+            
+            // Read key and order for this action
+            CFileMgr::Read(file, &m_Actions[actionId].Keys[controllerType], 8);
+        }
+    }
+
+    return 1;
+}
+
+int32 CControllerConfigManager::SaveSettings(FILE* file) {
+    if (!file) {
+        return 0;
+    }
+    
+    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
+        for (int32 actionId = 0; actionId < 59; actionId++) {
+            // Write action ID
+            CFileMgr::Write(file, &actionId, 4);
+            
+            // Write key mapping data
+            CFileMgr::Write(file, &m_Actions[actionId].Keys[controllerType], 8);
+        }
+    }
+
+    return 1;
+}
+#else
+// INI SETTINGS
 // 0x530530
 bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
     if (!file) {
-        return notsa::IsFixBugs() ? false : true;
+        return false;
     }
-
-    char header[29];
-    CFileMgr::Read(file, header, sizeof(header) - 1);
-    header[sizeof(header) - 1] = '\0';
-
-    if (strncmp(header, "THIS FILE IS NOT VALID YET", 26) == 0) {
-        return notsa::IsFixBugs() ? false : true;
+    
+    // Read the entire file into memory
+    char buffer[8192] = {0}; // Assuming the file won't be larger than this
+    int fileSize = CFileMgr::Read(file, buffer, sizeof(buffer) - 1);
+    if (fileSize <= 0) {
+        return false;
     }
-
-    CFileMgr::Seek(file, 0, SEEK_SET);
-    eActionType action;
-    CFileMgr::Read(file, &action, sizeof(action));
-
-    if (action <= ACTION_FIRST_THIRD_PERSON) { // Maybe eActionType, maybe not
-        return notsa::IsFixBugs() ? false : true;
-    }
-
-    for ([[maybe_unused]] auto i : std::views::iota(0u, 4u * std::size(m_Actions))) {
-        int32 temp;
-        CFileMgr::Read(file, &temp, sizeof(temp));
-        if (notsa::IsFixBugs() && temp != i % std::size(m_Actions)) {
-            return false;
+    buffer[fileSize] = '\0'; // Ensure null-termination
+    
+    MakeControllerActionsBlank(); // Clear existing bindings
+    
+    // Parse INI format
+    char* line = strtok(buffer, "\r\n");
+    eControllerType currentType = eControllerType::KEYBOARD;
+    
+    while (line) {
+        // Skip empty lines and comments
+        if (line[0] == '\0' || line[0] == ';' || line[0] == '#') {
+            line = strtok(NULL, "\r\n");
+            continue;
         }
-        CFileMgr::Seek(file, CONTROLLER_NUM * 2, SEEK_CUR);
+        
+        // Check for section header [SectionName]
+        if (line[0] == '[') {
+            char* end = strchr(line, ']');
+            if (end) {
+                *end = '\0';
+                if (strcmp(line + 1, "Keyboard") == 0) {
+                    currentType = eControllerType::KEYBOARD;
+                } else if (strcmp(line + 1, "OptionalKey") == 0) {
+                    currentType = eControllerType::OPTIONAL_EXTRA_KEY;
+                } else if (strcmp(line + 1, "Mouse") == 0) {
+                    currentType = eControllerType::MOUSE;
+                } else if (strcmp(line + 1, "Joystick") == 0) {
+                    currentType = eControllerType::JOY_STICK;
+                }
+            }
+        } 
+        // Parse key=value pairs
+        else {
+            char* separator = strchr(line, '=');
+            if (separator) {
+                *separator = '\0';
+                char* actionName = line;
+                char* value = separator + 1;
+                
+                // Find action by name or by ID
+                eControllerAction actionId = CA_INVALID;
+                
+                // Try to parse as action ID first
+                if (isdigit(actionName[0])) {
+                    int id = atoi(actionName);
+                    if (id >= 0 && id < NUM_OF_CONTROLLER_ACTIONS) {
+                        actionId = (eControllerAction)id;
+                    }
+                } else {
+                    // Try to find by name
+                    for (int i = 0; i < NUM_OF_CONTROLLER_ACTIONS; i++) {
+                        char textName[128];
+                        GxtCharToUTF8(textName, m_ControllerActionName[i]);
+                        if (strcmp(textName, actionName) == 0) {
+                            actionId = (eControllerAction)i;
+                            break;
+                        }
+                    }
+                }
+                
+                if (actionId != CA_INVALID) {
+                    // Parse the key value and order
+                    char* orderStr = strchr(value, ',');
+                    int keyValue = atoi(value);
+                    int orderValue = 0;
+                    
+                    if (orderStr) {
+                        *orderStr = '\0';
+                        orderValue = atoi(orderStr + 1);
+                    }
+                    
+                    // Set the binding
+                    m_Actions[actionId].Keys[currentType].Key = (CControllerKey::KeyCode)keyValue;
+                    m_Actions[actionId].Keys[currentType].Order = (CControllerKey::KeyOrder)orderValue;
+                }
+            }
+        }
+        
+        line = strtok(NULL, "\r\n");
     }
-
-    CFileMgr::Seek(file, sizeof(int32), SEEK_SET);
-    MakeControllerActionsBlank();
-
-    for (auto& action : m_Actions) {
-        CFileMgr::Seek(file, sizeof(action.Keys[0].Key), SEEK_CUR);
-        CFileMgr::Read(file, &action.Keys, CONTROLLER_NUM);
-    }
+    
     return true;
 }
 
 // 0x52D200
 int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
-    return plugin::CallMethodAndReturn<int32, 0x52D200, CControllerConfigManager*, FILE*>(this, file);
+    if (!file) {
+        return 0;
+    }
+    
+    // Write header
+    const char* header = "; GTA SA Controller Configuration\n; Generated by GTA:SA\n\n";
+    CFileMgr::Write(file, header, (int32)strlen(header));
+    
+    // Write sections for each controller type
+    const char* sections[] = {"Keyboard", "OptionalKey", "Mouse", "Joystick"};
+    
+    for (int i = 0; i < CONTROLLER_NUM; i++) {
+        char sectionHeader[128];
+        sprintf(sectionHeader, "[%s]\n", sections[i]);
+        CFileMgr::Write(file, sectionHeader, (int32)strlen(sectionHeader));
+        
+        for (int j = 0; j < NUM_OF_CONTROLLER_ACTIONS; j++) {
+            // Skip empty bindings
+            if (GetIsKeyBlank(m_Actions[j].Keys[i].Key, (eControllerType)i)) {
+                continue;
+            }
+            
+            // Get action name
+            char actionName[128];
+            GxtCharToUTF8(actionName, m_ControllerActionName[j]);
+            
+            // Write key=value
+            char line[256];
+            sprintf(line, "%s=%d,%d\n", actionName, 
+                   m_Actions[j].Keys[i].Key, 
+                   m_Actions[j].Keys[i].Order);
+            CFileMgr::Write(file, line, (int32)strlen(line));
+        }
+        
+        // Add a separator between sections
+        CFileMgr::Write(file, "\n", 1);
+    }
+    
+    return 1;
 }
+#endif
 
 // 0x530640
-void CControllerConfigManager::InitializeDefaultKeyboardAndMouseBindings() {
-    SetKeyForAction(CA_GO_FORWARD, rsUP, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_GO_BACK, rsDOWN, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_GO_LEFT, rsLEFT, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_GO_RIGHT, rsRIGHT, CONTROLLER_KEYBOARD1);
+void CControllerConfigManager::InitDefaultControlConfiguration() {
+    SetControllerKeyAssociatedWithAction(CA_GO_FORWARD, rsUP, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_GO_BACK, rsDOWN, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_GO_LEFT, rsLEFT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_GO_RIGHT, rsRIGHT, eControllerType::KEYBOARD);
 
     if (FrontEndMenuManager.m_nTitleLanguage == 2) {
-        SetKeyForAction(CA_CONVERSATION_YES, (RsKeyCodes)'Z', CONTROLLER_KEYBOARD1);
-        SetKeyForAction(CA_PED_SNIPER_ZOOM_IN, (RsKeyCodes)'Y', CONTROLLER_KEYBOARD2);
+        SetControllerKeyAssociatedWithAction(CA_CONVERSATION_YES, (RsKeyCodes)'Z', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_IN, (RsKeyCodes)'Y', eControllerType::OPTIONAL_EXTRA_KEY);
     } else {
-        SetKeyForAction(CA_CONVERSATION_YES, (RsKeyCodes)'Y', CONTROLLER_KEYBOARD1);
-        SetKeyForAction(CA_PED_SNIPER_ZOOM_IN, (RsKeyCodes)'X', CONTROLLER_KEYBOARD2);
+        SetControllerKeyAssociatedWithAction(CA_CONVERSATION_YES, (RsKeyCodes)'Y', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_IN, (RsKeyCodes)'X', eControllerType::OPTIONAL_EXTRA_KEY);
     }
 
     if (FrontEndMenuManager.m_nTitleLanguage == 1) {
-        SetKeyForAction(CA_GO_FORWARD, (RsKeyCodes)'Z', CONTROLLER_KEYBOARD2);
-        SetKeyForAction(CA_GO_LEFT, (RsKeyCodes)'Q', CONTROLLER_KEYBOARD2);
-        SetKeyForAction(CA_PED_CYCLE_WEAPON_LEFT, (RsKeyCodes)'A', CONTROLLER_KEYBOARD1);
-        SetKeyForAction(CA_PED_SNIPER_ZOOM_OUT, (RsKeyCodes)'W', CONTROLLER_KEYBOARD2);
+        SetControllerKeyAssociatedWithAction(CA_GO_FORWARD, (RsKeyCodes)'Z', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(CA_GO_LEFT, (RsKeyCodes)'Q', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT, (RsKeyCodes)'A', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_OUT, (RsKeyCodes)'W', eControllerType::OPTIONAL_EXTRA_KEY);
     } else {
-        SetKeyForAction(CA_GO_FORWARD, (RsKeyCodes)'W', CONTROLLER_KEYBOARD2);
-        SetKeyForAction(CA_GO_LEFT, (RsKeyCodes)'A', CONTROLLER_KEYBOARD2);
-        SetKeyForAction(CA_PED_CYCLE_WEAPON_LEFT, (RsKeyCodes)'Q', CONTROLLER_KEYBOARD1);
-        SetKeyForAction(CA_PED_SNIPER_ZOOM_OUT, (RsKeyCodes)'Z', CONTROLLER_KEYBOARD2);
+        SetControllerKeyAssociatedWithAction(CA_GO_FORWARD, (RsKeyCodes)'W', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(CA_GO_LEFT, (RsKeyCodes)'A', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT, (RsKeyCodes)'Q', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_OUT, (RsKeyCodes)'Z', eControllerType::OPTIONAL_EXTRA_KEY);
     }
 
-    SetKeyForAction(CA_GO_BACK, (RsKeyCodes)'S', CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_GO_RIGHT, (RsKeyCodes)'D', CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_PED_CYCLE_WEAPON_RIGHT, (RsKeyCodes)'E', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_CYCLE_WEAPON_RIGHT, rsPADENTER, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_PED_CYCLE_WEAPON_LEFT, rsPADDEL, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_PED_FIRE_WEAPON, rsPADINS, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_FIRE_WEAPON, rsLCTRL, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_PED_SNIPER_ZOOM_IN, rsPGUP, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_SNIPER_ZOOM_OUT, rsPGDN, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_FIRE_WEAPON_ALT, (RsKeyCodes)'\\', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_GROUP_CONTROL_FWD, (RsKeyCodes)'G', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_GROUP_CONTROL_BWD, (RsKeyCodes)'H', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_CONVERSATION_NO, (RsKeyCodes)'N', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_ENTER_EXIT, (RsKeyCodes)'F', CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_VEHICLE_ENTER_EXIT, rsENTER, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, (RsKeyCodes)'V', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, rsHOME, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_PED_JUMPING, rsLSHIFT, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_JUMPING, rsRCTRL, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_PED_SPRINT, (RsKeyCodes)' ', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_DUCK, (RsKeyCodes)'C', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_ANSWER_PHONE, rsTAB, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_WALK, rsLALT, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_LOCK_TARGET, rsDEL, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_LOCK_TARGET, rsCAPSLK, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_PED_1RST_PERSON_LOOK_LEFT, rsPADLEFT, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_1RST_PERSON_LOOK_RIGHT, rsPADRIGHT, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_1RST_PERSON_LOOK_UP, rsPADDOWN, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_1RST_PERSON_LOOK_DOWN, rsPADUP, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_CENTER_CAMERA_BEHIND_PLAYER, (RsKeyCodes)'#', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_LOOKBEHIND, rsPADEND, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_STEER_UP, rsUP, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_STEER_DOWN, rsDOWN, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_RADIO_STATION_UP, rsINS, CONTROLLER_KEYBOARD1);
+    SetControllerKeyAssociatedWithAction(CA_GO_BACK, (RsKeyCodes)'S', eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_GO_RIGHT, (RsKeyCodes)'D', eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_RIGHT, (RsKeyCodes)'E', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_RIGHT, rsPADENTER, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT, rsPADDEL, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_PED_FIRE_WEAPON, rsPADINS, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_FIRE_WEAPON, rsLCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_IN, rsPGUP, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_OUT, rsPGDN, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_FIRE_WEAPON_ALT, (RsKeyCodes)'\\', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_GROUP_CONTROL_FWD, (RsKeyCodes)'G', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_GROUP_CONTROL_BWD, (RsKeyCodes)'H', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_CONVERSATION_NO, (RsKeyCodes)'N', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_ENTER_EXIT, (RsKeyCodes)'F', eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_ENTER_EXIT, rsENTER, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, (RsKeyCodes)'V', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, rsHOME, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_PED_JUMPING, rsLSHIFT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_JUMPING, rsRCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_PED_SPRINT, (RsKeyCodes)' ', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_DUCK, (RsKeyCodes)'C', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_ANSWER_PHONE, rsTAB, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_WALK, rsLALT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_LOCK_TARGET, rsDEL, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_LOCK_TARGET, rsCAPSLK, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_PED_1RST_PERSON_LOOK_LEFT, rsPADLEFT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_1RST_PERSON_LOOK_RIGHT, rsPADRIGHT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_1RST_PERSON_LOOK_UP, rsPADDOWN, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_1RST_PERSON_LOOK_DOWN, rsPADUP, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_CENTER_CAMERA_BEHIND_PLAYER, (RsKeyCodes)'#', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_LOOKBEHIND, rsPADEND, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_UP, rsUP, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_DOWN, rsDOWN, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP, rsINS, eControllerType::KEYBOARD);
 
     if (FrontEndMenuManager.m_nTitleLanguage == 1) {
-        SetKeyForAction(CA_VEHICLE_STEER_LEFT, (RsKeyCodes)'Q', CONTROLLER_KEYBOARD1);
-        SetKeyForAction(CA_VEHICLE_LOOK_LEFT, (RsKeyCodes)'A', CONTROLLER_KEYBOARD1);
-        SetKeyForAction(CA_VEHICLE_RADIO_STATION_UP, (RsKeyCodes)'`', CONTROLLER_KEYBOARD2);
-        SetKeyForAction(CA_TOGGLE_SUBMISSIONS, (RsKeyCodes)233, CONTROLLER_KEYBOARD1);
-        SetKeyForAction(CA_VEHICLE_ACCELERATE, (RsKeyCodes)'Z', CONTROLLER_KEYBOARD1);
+        SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_LEFT, (RsKeyCodes)'Q', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(CA_VEHICLE_LOOK_LEFT, (RsKeyCodes)'A', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP, (RsKeyCodes)'`', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(CA_TOGGLE_SUBMISSIONS, (RsKeyCodes)233, eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(CA_VEHICLE_ACCELERATE, (RsKeyCodes)'Z', eControllerType::KEYBOARD);
     } else {
-        SetKeyForAction(CA_VEHICLE_STEER_LEFT, (RsKeyCodes)'A', CONTROLLER_KEYBOARD1);
-        SetKeyForAction(CA_VEHICLE_LOOK_LEFT, (RsKeyCodes)'Q', CONTROLLER_KEYBOARD1);
-        SetKeyForAction(CA_VEHICLE_RADIO_STATION_UP, (RsKeyCodes)'4', CONTROLLER_KEYBOARD2);
-        SetKeyForAction(CA_TOGGLE_SUBMISSIONS, (RsKeyCodes)'2', CONTROLLER_KEYBOARD1);
-        SetKeyForAction(CA_VEHICLE_ACCELERATE, (RsKeyCodes)'W', CONTROLLER_KEYBOARD1);
+        SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_LEFT, (RsKeyCodes)'A', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(CA_VEHICLE_LOOK_LEFT, (RsKeyCodes)'Q', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP, (RsKeyCodes)'4', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(CA_TOGGLE_SUBMISSIONS, (RsKeyCodes)'2', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(CA_VEHICLE_ACCELERATE, (RsKeyCodes)'W', eControllerType::KEYBOARD);
     }
 
-    SetKeyForAction(CA_TOGGLE_SUBMISSIONS, rsPLUS, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_VEHICLE_FIRE_WEAPON, rsRCTRL, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_FIRE_WEAPON, rsLALT, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_VEHICLE_FIRE_WEAPON_ALT, rsLCTRL, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_FIRE_WEAPON_ALT, rsPADINS, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_VEHICLE_BRAKE, (RsKeyCodes)'S', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_STEER_RIGHT, (RsKeyCodes)'D', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_STEER_LEFT, rsLEFT, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_VEHICLE_STEER_RIGHT, rsRIGHT, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_VEHICLE_HORN, rsCAPSLK, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_HORN, (RsKeyCodes)'H', CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_VEHICLE_HANDBRAKE, (RsKeyCodes)' ', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_HANDBRAKE, rsRCTRL, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_VEHICLE_LOOK_RIGHT, (RsKeyCodes)'E', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_TURRET_LEFT, rsPADLEFT, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_TURRET_RIGHT, rsPADRIGHT, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_TURRET_UP, rsPADDOWN, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_TURRET_DOWN, rsPADUP, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_TURRET_UP, rsEND, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_VEHICLE_TURRET_DOWN, rsDEL, CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_VEHICLE_RADIO_TRACK_SKIP, rsF5, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_RADIO_STATION_DOWN, rsDEL, CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_VEHICLE_RADIO_STATION_DOWN, (RsKeyCodes)'R', CONTROLLER_KEYBOARD2);
-    SetKeyForAction(CA_PED_CYCLE_TARGET_LEFT, (RsKeyCodes)'[', CONTROLLER_KEYBOARD1);
-    SetKeyForAction(CA_PED_CYCLE_TARGET_RIGHT, (RsKeyCodes)']', CONTROLLER_KEYBOARD1);
+    SetControllerKeyAssociatedWithAction(CA_TOGGLE_SUBMISSIONS, rsPLUS, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON, rsRCTRL, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON, rsLALT, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON_ALT, rsLCTRL, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON_ALT, rsPADINS, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_BRAKE, (RsKeyCodes)'S', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_RIGHT, (RsKeyCodes)'D', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_LEFT, rsLEFT, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_RIGHT, rsRIGHT, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_HORN, rsCAPSLK, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_HORN, (RsKeyCodes)'H', eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_HANDBRAKE, (RsKeyCodes)' ', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_HANDBRAKE, rsRCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_LOOK_RIGHT, (RsKeyCodes)'E', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_LEFT, rsPADLEFT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_RIGHT, rsPADRIGHT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_UP, rsPADDOWN, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_DOWN, rsPADUP, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_UP, rsEND, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_DOWN, rsDEL, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_TRACK_SKIP, rsF5, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_DOWN, rsDEL, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_DOWN, (RsKeyCodes)'R', eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_TARGET_LEFT, (RsKeyCodes)'[', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_TARGET_RIGHT, (RsKeyCodes)']', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_TARGET_RIGHT, (RsKeyCodes)']', eControllerType::KEYBOARD);
+
+    // NOTSA
+    SetControllerKeyAssociatedWithAction(CA_PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(CA_PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_MOUSE_LOOK,         rsMOUSE_RIGHT_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(CA_PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_DOWN, rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_IN,         rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
+
+
     ClearSimButtonPressCheckers();
 }
 
 // 0x530B00
-void CControllerConfigManager::InitDefaultControlConfiguration(uint32 buttonCount) {
+void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount) {
     m_WasJoyJustInitialised = true;
 
     buttonCount = std::min(buttonCount, 16u);
@@ -627,7 +817,7 @@ void CControllerConfigManager::InitDefaultControlConfiguration(uint32 buttonCoun
     auto set_actions = [&](std::initializer_list<std::pair<eControllerAction, RsKeyCodes>> init_list) {
         std::copy(init_list.begin(), init_list.end(), actions.begin());
         for (const auto& action : actions) {
-            SetKeyForAction(action.first, action.second, CONTROLLER_PAD);
+            SetControllerKeyAssociatedWithAction(action.first, action.second, eControllerType::JOY_STICK);
         }
     };
 
@@ -676,20 +866,20 @@ void CControllerConfigManager::InitDefaultControlConfiguration(uint32 buttonCoun
 
 // 0x52F6F0
 void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller) {
-    if (state.lmb) {
+    if (state.m_bLeftButton) {
         m_MouseFoundInitSet = true;
         SetMouseButtonAssociatedWithAction(CA_PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON);
         SetMouseButtonAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON);
     }
-    if (state.rmb) {                                                      
+    if (state.m_bRightButton) {                                                      
         SetMouseButtonAssociatedWithAction(CA_PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON);
         SetMouseButtonAssociatedWithAction(CA_VEHICLE_MOUSE_LOOK,         rsMOUSE_RIGHT_BUTTON);
     }
-    if (state.mmb) {                                                      
+    if (state.m_bMiddleButton) {                                                      
         SetMouseButtonAssociatedWithAction(CA_VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON);
         SetMouseButtonAssociatedWithAction(CA_PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON);
     }
-    if (state.wheelUp || state.wheelDown) {
+    if (state.m_bWheelMovedUp || state.m_bWheelMovedDown) {
         SetMouseButtonAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON);
         SetMouseButtonAssociatedWithAction(CA_PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON);
         SetMouseButtonAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON);
@@ -763,7 +953,17 @@ void CControllerConfigManager::InitialiseControllerActionNameArray() {
 }
 
 // 0x531F20
+#define LEGACY_WININPUT 1
+
 bool CControllerConfigManager::ReinitControls() {
+    CMouseControllerState MouseSetUp;
+    ControlsManager.MakeControllerActionsBlank();
+    ControlsManager.InitDefaultControlConfiguration();
+#if LEGACY_WININPUT
+    auto mouseState = WinInput::GetMouseState();
+#endif
+    ControlsManager.InitDefaultControlConfigMouse(mouseState, !FrontEndMenuManager.m_ControlMethod);
+    // ControlsManager.InitDefaultControlConfigJoyPad(44u);
     return 0;
 }
 
@@ -773,8 +973,8 @@ int8 CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAct
     const auto order = 1 + rng::count_if(action.Keys, [](auto&& key) { /* 1 + count of previously set keys for this control */
         return key.Key != rsNULL && key.Key != 0;
     });
-    action.Keys[CONTROLLER_MOUSE].Key  = button;
-    action.Keys[CONTROLLER_MOUSE].Order = order;
+    action.Keys[eControllerType::MOUSE].Key  = button;
+    action.Keys[eControllerType::MOUSE].Order = order;
     return order;
 }
 
@@ -782,13 +982,13 @@ int8 CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAct
 // 0x52DA30
 void CControllerConfigManager::StoreMouseButtonState(eMouseButtons button, bool state) {
     switch (button) {
-    case MOUSE_BUTTON_LEFT:           CPad::PCTempMouseControllerState.lmb = state; break;
-    case MOUSE_BUTTON_MIDDLE:         CPad::PCTempMouseControllerState.mmb = state; break;
-    case MOUSE_BUTTON_RIGHT:          CPad::PCTempMouseControllerState.rmb = state; break;
-    case MOUSE_BUTTON_WHEEL_UP:       CPad::PCTempMouseControllerState.wheelUp = state; break;
-    case MOUSE_BUTTON_WHEEL_DOWN:     CPad::PCTempMouseControllerState.wheelDown = state; break;
-    case MOUSE_BUTTON_WHEEL_XBUTTON1: CPad::PCTempMouseControllerState.bmx1 = state; break;
-    case MOUSE_BUTTON_WHEEL_XBUTTON2: CPad::PCTempMouseControllerState.bmx2 = state; break;
+    case MOUSE_BUTTON_LEFT:           CPad::PCTempMouseControllerState.m_bLeftButton = state; break;
+    case MOUSE_BUTTON_MIDDLE:         CPad::PCTempMouseControllerState.m_bMiddleButton = state; break;
+    case MOUSE_BUTTON_RIGHT:          CPad::PCTempMouseControllerState.m_bRightButton = state; break;
+    case MOUSE_BUTTON_WHEEL_UP:       CPad::PCTempMouseControllerState.m_bWheelMovedUp = state; break;
+    case MOUSE_BUTTON_WHEEL_DOWN:     CPad::PCTempMouseControllerState.m_bWheelMovedDown = state; break;
+    case MOUSE_BUTTON_WHEEL_XBUTTON1: CPad::PCTempMouseControllerState.m_bMsFirstXButton = state; break;
+    case MOUSE_BUTTON_WHEEL_XBUTTON2: CPad::PCTempMouseControllerState.m_bMsSecondXButton = state; break;
     }
 }
 
@@ -830,7 +1030,7 @@ void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(CControllerKey:
 
 // 0x530ED0
 void CControllerConfigManager::UpdateJoy_ButtonDown(CControllerKey::KeyCode button, eControllerType type) {
-    if (!GetIsKeyBlank(button, type)) {
+    if (GetIsKeyBlank(button, type)) {
         return;
     }
     CPad* pad = CPad::GetPad(0);
@@ -896,16 +1096,16 @@ void CControllerConfigManager::UpdateJoy_ButtonUp(CControllerKey::KeyCode button
     const auto pad = CPad::GetPad();
     if (pad) {
         switch (type) {
-        case CONTROLLER_KEYBOARD1:
-        case CONTROLLER_KEYBOARD2:
+        case eControllerType::KEYBOARD:
+        case eControllerType::OPTIONAL_EXTRA_KEY:
             p_PCTempKeyState = pad->PCTempKeyState;
             shouldProcessEvent = (button != rsNULL);
             break;
-        case CONTROLLER_MOUSE:
+        case eControllerType::MOUSE:
             p_PCTempKeyState = pad->PCTempMouseState;
             shouldProcessEvent = (button != 0);
             break;
-        case CONTROLLER_PAD:
+        case eControllerType::JOY_STICK:
             p_PCTempKeyState = pad->PCTempJoyState;
             shouldProcessEvent = (button != 0);
             break;
@@ -1107,11 +1307,11 @@ bool CControllerConfigManager::GetIsMouseButtonJustUp(CControllerKey::KeyCode ke
 // 0x52F2A0
 bool CControllerConfigManager::GetIsKeyBlank(CControllerKey::KeyCode key, eControllerType type) {
     switch (type) {
-    case CONTROLLER_KEYBOARD1:
-    case CONTROLLER_KEYBOARD2:
+    case eControllerType::KEYBOARD:
+    case eControllerType::OPTIONAL_EXTRA_KEY:
         return key == rsNULL;
-    case CONTROLLER_MOUSE:
-    case CONTROLLER_PAD:
+    case eControllerType::MOUSE:
+    case eControllerType::JOY_STICK:
         return key == 0;
     default:
         NOTSA_UNREACHABLE();
@@ -1190,7 +1390,7 @@ eActionType CControllerConfigManager::GetActionType(eControllerAction action) {
 
 // 0x52F390
 const GxtChar* CControllerConfigManager::GetControllerSettingTextMouse(eControllerAction action) {
-    switch (m_Actions[action].Keys[CONTROLLER_MOUSE].Key) {
+    switch (m_Actions[action].Keys[eControllerType::MOUSE].Key) {
     case rsMOUSE_LEFT_BUTTON:       return TheText.Get("FEC_MSL");
     case rsMOUSE_MIDDLE_BUTTON:     return TheText.Get("FEC_MSM");
     case rsMOUSE_RIGHT_BUTTON:      return TheText.Get("FEC_MSR");
@@ -1206,7 +1406,7 @@ const GxtChar* CControllerConfigManager::GetControllerSettingTextMouse(eControll
 const GxtChar* CControllerConfigManager::GetControllerSettingTextJoystick(eControllerAction action) {
     static thread_local GxtChar s_buttonName[64]; // 0xB7147C
 
-    const auto keyCode = (RsKeyCodes)m_Actions[action].Keys[CONTROLLER_PAD].Key;
+    const auto keyCode = (RsKeyCodes)m_Actions[action].Keys[eControllerType::JOY_STICK].Key;
     if (!keyCode) {
         return 0;
     }
@@ -1232,61 +1432,74 @@ void CControllerConfigManager::MakeControllerActionsBlank() {
 }
 
 // 0x531140
-void CControllerConfigManager::ProcessKeyboardInput() {
-    bool inMenu = !CPad::padNumber && !FrontEndMenuManager.m_bMenuActive;
+void CControllerConfigManager::AffectPadFromKeyBoard() {
+    constexpr eControllerType CONTROLLER_TYPES[] = {eControllerType::KEYBOARD, eControllerType::OPTIONAL_EXTRA_KEY};
 
+    RsKeyCodes keyCode;
+
+    // GTATranslateShiftKey(&keyCode); // No matter what you do, it won't work.
+    
+    bool inMenu = false;
+    if (!CPad::padNumber) {
+        inMenu = !FrontEndMenuManager.m_bMenuActive;
+    }
+    
     for (auto i = 0u; i < NUM_OF_CONTROLLER_ACTIONS; ++i) {
-        const auto key1 = (RsKeyCodes)(m_Actions[i].Keys[CONTROLLER_KEYBOARD1].Key);
-        const auto key2 = (RsKeyCodes)(m_Actions[i].Keys[CONTROLLER_KEYBOARD2].Key);
-        CPad* pad = CPad::GetPad();
-
-        auto ProcessKeyEvent = [&](RsKeyCodes key, eControllerType type, CControllerState* state) {
-            if (!pad) {
-                return;
-            }
-
-            if (UseDrivingControls()) {
-                AffectControllerStateOn_ButtonDown_Driving(key, type, state);
-            } else {
-                AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(key, type, state);
-                if (notsa::contains({ MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_CAMERA }, TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode)) {
-                    AffectControllerStateOn_ButtonDown_FirstPersonOnly(key, type, state);
-                } else {
-                    AffectControllerStateOn_ButtonDown_ThirdPersonOnly(key, type, state);
+        // Handle key press logic
+        for (const auto& type : CONTROLLER_TYPES) {
+            const auto key = m_Actions[i].Keys[type].Key;
+            
+            if (GetIsKeyboardKeyDown(key) && inMenu && key != rsNULL) {
+                bool useFirstPersonControls = false;
+                CPad* pad = CPad::GetPad(0);
+                
+                bool useDrivingControls = CControllerConfigManager::UseDrivingControls();
+                auto& cameraMode = TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode;
+                if (notsa::contains({MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER, 
+                    MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_CAMERA}, cameraMode)) {
+                    useFirstPersonControls = true;
                 }
-                AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(key, type, state);
-                AffectControllerStateOn_ButtonDown_AllStates(key, type, state);
-            }
-        };
-
-        if (GetIsKeyboardKeyDown(key1)) {
-            if (inMenu && key1 != rsNULL && pad) {
-                ProcessKeyEvent(key1, CONTROLLER_KEYBOARD1, &pad->PCTempKeyState);
+                
+                if (pad) {
+                    CControllerState* state = &pad->PCTempKeyState;
+                    
+                    if (useDrivingControls) {
+                        AffectControllerStateOn_ButtonDown_Driving(key, type, state);
+                    } else {
+                        AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(key, type, state);
+                        
+                        if (useFirstPersonControls) {
+                            AffectControllerStateOn_ButtonDown_FirstPersonOnly(key, type, state);
+                        } else {
+                            AffectControllerStateOn_ButtonDown_ThirdPersonOnly(key, type, state);
+                        }
+                    }
+                    
+                    if (m_Actions[CA_VEHICLE_ENTER_EXIT].Keys[type].Key == key) {
+                        state->ButtonTriangle = 255;
+                    }
+                    
+                    AffectControllerStateOn_ButtonDown_AllStates(key, type, state);
+                }
             }
         }
-
-        if (GetIsKeyboardKeyDown(key2)) {
-            if (inMenu && key2 != rsNULL && pad) {
-                ProcessKeyEvent(key2, CONTROLLER_KEYBOARD2, &pad->PCTempKeyState);
-            }
+        
+        // Handle key release logic
+        CPad* pad = CPad::GetPad(0);
+        if (!pad || FrontEndMenuManager.m_bMenuActive) {
+            continue;
         }
-
-        CControllerState* ks = &pad->PCTempKeyState;
-        if (!FrontEndMenuManager.m_bMenuActive) {
-            if (!GetIsKeyboardKeyDown(key2) && key1 != rsNULL && GetIsKeyboardKeyDown(key1)) {
-                if (m_Actions[CA_NETWORK_TALK].Keys[CONTROLLER_KEYBOARD1].Key == key1) {
-                    ks->m_bChatIndicated = 0;
+        
+        CControllerState* keyState = &pad->PCTempKeyState;
+        
+        for (const auto& type : CONTROLLER_TYPES) {
+            const auto key = m_Actions[i].Keys[type].Key;
+            if (!GetIsKeyboardKeyDown(key) && key != rsNULL) {
+                if (m_Actions[CA_NETWORK_TALK].Keys[type].Key == key) {
+                    keyState->m_bChatIndicated = 0;
                 }
-                if (m_Actions[CA_VEHICLE_MOUSE_LOOK].Keys[CONTROLLER_KEYBOARD1].Key == key1) {
-                    ks->m_bVehicleMouseLook = 0;
-                }
-            }
-            if (!GetIsKeyboardKeyDown(key1) && key2 != rsNULL && GetIsKeyboardKeyDown(key2)) {
-                if (m_Actions[CA_NETWORK_TALK].Keys[CONTROLLER_KEYBOARD2].Key == key2) {
-                    ks->m_bChatIndicated = 0;
-                }
-                if (m_Actions[CA_VEHICLE_MOUSE_LOOK].Keys[CONTROLLER_KEYBOARD2].Key == key2) {
-                    ks->m_bVehicleMouseLook = 0;
+                if (m_Actions[CA_VEHICLE_MOUSE_LOOK].Keys[type].Key == key) {
+                    keyState->m_bVehicleMouseLook = 0;
                 }
             }
         }
@@ -1294,38 +1507,38 @@ void CControllerConfigManager::ProcessKeyboardInput() {
 }
 
 // 0x5314A0
-void CControllerConfigManager::ProcessMouseInput() {
+void CControllerConfigManager::AffectPadFromMouse() {
     CPad* pad = CPad::GetPad();
     bool controlsEnabled = !CPad::padNumber && !FrontEndMenuManager.m_bMenuActive;
     CControllerState* state = &pad->PCTempMouseState;
 
     for (auto& action : m_Actions) {
-        const auto button = action.Keys[CONTROLLER_MOUSE].Key;
+        const auto button = action.Keys[eControllerType::MOUSE].Key;
 
         if (CControllerConfigManager::GetIsMouseButtonDown(button)) {
             if (controlsEnabled && button && pad) {
                 if (UseDrivingControls()) {
-                    AffectControllerStateOn_ButtonDown_Driving(button, CONTROLLER_MOUSE, state);
+                    AffectControllerStateOn_ButtonDown_Driving(button, eControllerType::MOUSE, state);
                 } else {
-                    AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(button, CONTROLLER_MOUSE, state);
+                    AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(button, eControllerType::MOUSE, state);
                     if (UseFirstPersonControls()) {
-                        AffectControllerStateOn_ButtonDown_FirstPersonOnly(button, CONTROLLER_MOUSE, state);
+                        AffectControllerStateOn_ButtonDown_FirstPersonOnly(button, eControllerType::MOUSE, state);
                     } else {
-                        AffectControllerStateOn_ButtonDown_ThirdPersonOnly(button, CONTROLLER_MOUSE, state);
+                        AffectControllerStateOn_ButtonDown_ThirdPersonOnly(button, eControllerType::MOUSE, state);
                     }
-                    AffectControllerStateOn_ButtonDown_AllStates(button, CONTROLLER_MOUSE, state);
+                    AffectControllerStateOn_ButtonDown_AllStates(button, eControllerType::MOUSE, state);
 
-                    AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(button, CONTROLLER_MOUSE, state);
+                    AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(button, eControllerType::MOUSE, state);
                 }
             }
         }
 
         if (GetIsMouseButtonUp(button) && button && pad) {
             if (!FrontEndMenuManager.m_bMenuActive) {
-                if (m_Actions[CA_NETWORK_TALK].Keys[CONTROLLER_MOUSE].Key == button) {
+                if (m_Actions[CA_NETWORK_TALK].Keys[eControllerType::MOUSE].Key == button) {
                     state->m_bChatIndicated = 0;
                 }
-                if (m_Actions[CA_VEHICLE_MOUSE_LOOK].Keys[CONTROLLER_MOUSE].Key == button) {
+                if (m_Actions[CA_VEHICLE_MOUSE_LOOK].Keys[eControllerType::MOUSE].Key == button) {
                     state->m_bVehicleMouseLook = 0;
                 }
             }
@@ -1334,8 +1547,8 @@ void CControllerConfigManager::ProcessMouseInput() {
 }
 
 // 0x531C90
-void CControllerConfigManager::DeleteMapping(eControllerAction action, CControllerKey::KeyCode button, eControllerType type) {
-    if (!GetIsKeyBlank(button, type)) {
+void CControllerConfigManager::DeleteMatchingActionInitiators(eControllerAction action, CControllerKey::KeyCode button, eControllerType type) {
+    if (GetIsKeyBlank(button, type)) {
         return;
     }
     switch (GetActionType(action)) {
@@ -1488,8 +1701,8 @@ const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction ev
 // 0x5303D0
 const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerAction action) {
     static thread_local GxtChar s_ButtonName[64]; // 0xB7147C
-    if (FrontEndMenuManager.m_bController) {
-        if (const auto keyCode = m_Actions[action].Keys[CONTROLLER_PAD].Key) {
+    if (FrontEndMenuManager.m_ControlMethod) {
+        if (const auto keyCode = m_Actions[action].Keys[eControllerType::JOY_STICK].Key) {
             const auto joyButtonText = TheText.Get("FEC_JBO");
             CMessages::InsertNumberInString(joyButtonText, keyCode, -1, -1, -1, -1, -1, s_ButtonName);
             return s_ButtonName;
@@ -1500,15 +1713,15 @@ const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerActio
         return keyText;
     }
 
-    if (const auto keyText = GetKeyNameForKeyboard(action, CONTROLLER_KEYBOARD1)) {
+    if (const auto keyText = GetKeyNameForKeyboard(action, eControllerType::KEYBOARD)) {
         return keyText;
     }
 
-    if (const auto keyText = GetKeyNameForKeyboard(action, CONTROLLER_KEYBOARD2)) {
+    if (const auto keyText = GetKeyNameForKeyboard(action, eControllerType::OPTIONAL_EXTRA_KEY)) {
         return keyText;
     }
 
-    if (m_Actions[action].Keys[CONTROLLER_PAD].Key == (RsKeyCodes)(0)) {
+    if (m_Actions[action].Keys[eControllerType::JOY_STICK].Key == (RsKeyCodes)(0)) {
         return GetControllerSettingTextMouse(action);
     }
 
@@ -1596,8 +1809,7 @@ bool CControllerConfigManager::UseDrivingControls() {
     // FindPlayerPed() && FindPlayerVehicle() && FindPlayerPed()->GetPedState() == PEDSTATE_DRIVING && !pad->DisablePlayerControls
     if (const auto* const plyr = FindPlayerPed()) {
         if (FindPlayerVehicle()) {
-            return plyr->GetPedState() == PEDSTATE_DRIVING
-                && !CPad::GetPad(0)->DisablePlayerControls;
+            return plyr->GetPedState() == PEDSTATE_DRIVING && !CPad::GetPad(0)->DisablePlayerControls;
         }
     }
     return false;
@@ -1609,10 +1821,10 @@ bool CControllerConfigManager::UseFirstPersonControls() {
 
 CControllerState& CControllerConfigManager::GetControllerState(CPad& pad, eControllerType ctrl) {
     switch (ctrl) {
-    case CONTROLLER_KEYBOARD1:
-    case CONTROLLER_KEYBOARD2: return pad.PCTempKeyState;
-    case CONTROLLER_MOUSE:     return pad.PCTempMouseState;
-    case CONTROLLER_PAD:       return pad.PCTempJoyState;
+    case eControllerType::KEYBOARD:
+    case eControllerType::OPTIONAL_EXTRA_KEY: return pad.PCTempKeyState;
+    case eControllerType::MOUSE:     return pad.PCTempMouseState;
+    case eControllerType::JOY_STICK:       return pad.PCTempJoyState;
     default:                   NOTSA_UNREACHABLE();
     }
 }

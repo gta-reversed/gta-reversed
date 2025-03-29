@@ -225,8 +225,8 @@ void CPad::UpdatePads() {
     ControlsManager.ClearSimButtonPressCheckers();
 
     if (!ImIONavActive) {
-        ControlsManager.ProcessKeyboardInput();
-        ControlsManager.ProcessMouseInput();
+        ControlsManager.AffectPadFromKeyBoard();
+        ControlsManager.AffectPadFromMouse();
         GetPad(PAD1)->Update(PAD1);
         GetPad(PAD2)->Update(PAD2);
     }
@@ -251,8 +251,8 @@ void CPad::UpdateMouse() {
 
         // Write directly to NewMouseControllerState
         CPad::OldMouseControllerState = std::exchange(CPad::NewMouseControllerState, state);
-        CPad::NewMouseControllerState.X *= invertX;
-        CPad::NewMouseControllerState.Y *= invertY;
+        CPad::NewMouseControllerState.m_AmountMoved.x *= invertX;
+        CPad::NewMouseControllerState.m_AmountMoved.y *= invertY;
     }
 }
 

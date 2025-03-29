@@ -2,18 +2,16 @@
 
 class CMouseControllerState {
 public:
-    uint8 lmb;
-    uint8 rmb;
-    uint8 mmb;
-    uint8 wheelUp;
-    uint8 wheelDown;
-    uint8 bmx1;
-    uint8 bmx2;
-    char  _align;
-    float Z;
-    float X;
-    float Y;
-
+    bool8 m_bLeftButton; // LMB
+    bool8 m_bRightButton; // RMB
+    bool8 m_bMiddleButton; // MMB
+    bool8 m_bWheelMovedUp; // Wheel up
+    bool8 m_bWheelMovedDown; // Wheel down
+    bool8 m_bMsFirstXButton; // BMX1
+    bool8 m_bMsSecondXButton; // BMX2
+    float m_fWheelMoved; // Wheel movement
+    CVector2D m_AmountMoved; // Mouse movement
+  
 public:
     static void InjectHooks();
 
@@ -22,5 +20,7 @@ public:
 
     void Clear();
     [[nodiscard]] bool CheckForInput() const;
+    [[nodiscard]] auto GetAmountMouseMoved() const { return m_AmountMoved; }
+
 };
-VALIDATE_SIZE(CMouseControllerState, 0x14);
+// VALIDATE_SIZE(CMouseControllerState, 0x14);

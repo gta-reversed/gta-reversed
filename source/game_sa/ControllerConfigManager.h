@@ -151,7 +151,7 @@ public:
 
     void ClearPedMappings(eControllerAction action, CControllerKey::KeyCode button, eControllerType controllerType);
     void ClearCommonMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type);
-    bool SetKeyForAction(eControllerAction action, CControllerKey::KeyCode button, eControllerType type);
+    bool SetControllerKeyAssociatedWithAction(eControllerAction action, CControllerKey::KeyCode button, eControllerType type);
     void ClearVehicleMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type);
     void Clear1st3rdPersonMappings(eControllerAction action, CControllerKey::KeyCode button, eControllerType type);
     void StoreJoyButtonStates();
@@ -173,8 +173,8 @@ public:
     void HandleJoyButtonUpDown(int32 joyNo, bool isDown);
     bool LoadSettings(FILESTREAM file);
     int32 SaveSettings(FILESTREAM file);
-    void InitDefaultControlConfiguration(uint32 buttonCount);
-    void InitializeDefaultKeyboardAndMouseBindings();
+    void InitDefaultControlConfigJoyPad(uint32 buttonCount);
+    void InitDefaultControlConfiguration();
     void InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller);
     void InitialiseControllerActionNameArray();
     bool ReinitControls();
@@ -200,9 +200,9 @@ public:
     const GxtChar* GetControllerSettingTextMouse(eControllerAction action);
     const GxtChar* GetControllerSettingTextJoystick(eControllerAction action);
     void MakeControllerActionsBlank();
-    void ProcessKeyboardInput();
-    void ProcessMouseInput();
-    void DeleteMapping(eControllerAction action, CControllerKey::KeyCode button, eControllerType controllerType);
+    void AffectPadFromKeyBoard();
+    void AffectPadFromMouse();
+    void DeleteMatchingActionInitiators(eControllerAction action, CControllerKey::KeyCode button, eControllerType controllerType);
     const GxtChar* GetKeyNameForKeyboard(eControllerAction action, eControllerType type);
     const GxtChar* GetButtonComboText(eControllerAction event);
 

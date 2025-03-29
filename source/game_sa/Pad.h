@@ -285,21 +285,21 @@ public:
     // PAD END
 
     // MOUSE
-    static bool f0x57C3C0() noexcept               { return !NewMouseControllerState.lmb && OldMouseControllerState.lmb; }          // 0x57C3C0
-    static bool IsMouseLButtonPressed() noexcept   { return MOUSE_IS_PRESSED(lmb); }                                                // 0x4D5A00
-    static bool IsMouseRButtonPressed() noexcept   { return MOUSE_IS_PRESSED(rmb); }                                                // 0x572E70
-    static bool IsMouseMButtonPressed() noexcept   { return MOUSE_IS_PRESSED(mmb); }                                                // 0x57C3E0
-    static bool IsMouseWheelUpPressed() noexcept   { return MOUSE_IS_PRESSED(wheelUp); }                                            // 0x57C400
-    static bool IsMouseWheelDownPressed() noexcept { return MOUSE_IS_PRESSED(wheelDown); }                                          // 0x57C420
-    static bool IsMouseBmx1Pressed() noexcept      { return MOUSE_IS_PRESSED(bmx1); }                                               // 0x57C440
-    static bool IsMouseBmx2Pressed() noexcept      { return MOUSE_IS_PRESSED(bmx2); }                                               // 0x57C460
-    static bool IsMouseLButton() noexcept          { return MOUSE_IS_DOWN(lmb); }                                                   // 0x45AF70
-    static bool IsMouseRButton() noexcept          { return MOUSE_IS_DOWN(rmb); }                                                   // 0x45AF80
-    static bool IsMouseMButton() noexcept          { return MOUSE_IS_DOWN(mmb); }                                                   // 
-    static bool IsMouseWheelUp() noexcept          { return MOUSE_IS_DOWN(wheelUp); }                                               // 0x572E60
-    static bool IsMouseWheelDown() noexcept        { return MOUSE_IS_DOWN(wheelDown); }                                             // 0x572E50
-    static bool IsMouseBmx1() noexcept             { return MOUSE_IS_DOWN(bmx1); }                                                  // 
-    static bool IsMouseBmx2() noexcept             { return MOUSE_IS_DOWN(bmx2); }                                                  // 
+    static bool f0x57C3C0() noexcept               { return !NewMouseControllerState.m_bLeftButton && OldMouseControllerState.m_bLeftButton; }          // 0x57C3C0
+    static bool IsMouseLButtonPressed() noexcept   { return MOUSE_IS_PRESSED(m_bLeftButton); }                                                // 0x4D5A00
+    static bool IsMouseRButtonPressed() noexcept   { return MOUSE_IS_PRESSED(m_bRightButton); }                                                // 0x572E70
+    static bool IsMouseMButtonPressed() noexcept   { return MOUSE_IS_PRESSED(m_bMiddleButton); }                                                // 0x57C3E0
+    static bool IsMouseWheelUpPressed() noexcept   { return MOUSE_IS_PRESSED(m_bWheelMovedUp); }                                            // 0x57C400
+    static bool IsMouseWheelDownPressed() noexcept { return MOUSE_IS_PRESSED(m_bWheelMovedDown); }                                          // 0x57C420
+    static bool IsMouseBmx1Pressed() noexcept      { return MOUSE_IS_PRESSED(m_bMsFirstXButton); }                                               // 0x57C440
+    static bool IsMouseBmx2Pressed() noexcept      { return MOUSE_IS_PRESSED(m_bMsSecondXButton); }                                               // 0x57C460
+    static bool IsMouseLButton() noexcept          { return MOUSE_IS_DOWN(m_bLeftButton); }                                                   // 0x45AF70
+    static bool IsMouseRButton() noexcept          { return MOUSE_IS_DOWN(m_bRightButton); }                                                   // 0x45AF80
+    static bool IsMouseMButton() noexcept          { return MOUSE_IS_DOWN(m_bMiddleButton); }                                                   // 
+    static bool IsMouseWheelUp() noexcept          { return MOUSE_IS_DOWN(m_bWheelMovedUp); }                                               // 0x572E60
+    static bool IsMouseWheelDown() noexcept        { return MOUSE_IS_DOWN(m_bWheelMovedDown); }                                             // 0x572E50
+    static bool IsMouseBmx1() noexcept             { return MOUSE_IS_DOWN(m_bMsFirstXButton); }                                                  // 
+    static bool IsMouseBmx2() noexcept             { return MOUSE_IS_DOWN(m_bMsSecondXButton); }                                                  // 
     // MOUSE END
 
     int32 sub_541320() { return AverageWeapon / AverageEntries; } // 0x541320
