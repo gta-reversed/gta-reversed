@@ -651,8 +651,11 @@ void CPhysical::RemoveAndAdd()
                 //if (doubleLinkNext)
                 //    doubleLinkNext->m_prev = doubleLink->m_prev;
 
+                auto* const item = doubleLink->m_item;
                 entryInfoNode->m_doubleLinkList->DeleteNode(doubleLink);
-                list->AddNode(doubleLink);
+                assert(item == this);
+                list->AddItem(item);
+                //list->AddNode(doubleLink);
 
                 entryInfoNode->m_repeatSector = repeatSector;
                 entryInfoNode->m_doubleLinkList = list;
@@ -672,6 +675,7 @@ void CPhysical::RemoveAndAdd()
 
     while (entryInfoNode) {
         CEntryInfoNode* nextEntryInfoNode = entryInfoNode->m_next;
+
         entryInfoNode->m_doubleLinkList->DeleteNode(entryInfoNode->m_doubleLink);
         m_pCollisionList.DeleteNode(entryInfoNode);
 
