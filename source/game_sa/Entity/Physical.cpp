@@ -32,7 +32,7 @@ void CPhysical::InjectHooks()
     RH_ScopedInstall(Constructor, 0x542260);
     RH_ScopedInstall(Destructor, 0x542450);
 
-    RH_ScopedInstall(RemoveAndAdd, 0x542560);
+    RH_ScopedInstall(RemoveAndAdd, 0x542560,{.enabled=false});
     RH_ScopedInstall(ApplyTurnForce, 0x542A50);
     RH_ScopedInstall(ApplyForce, 0x542B50);
     RH_ScopedInstall(GetSpeed, 0x542CE0);
@@ -651,10 +651,8 @@ void CPhysical::RemoveAndAdd()
                 //if (doubleLinkNext)
                 //    doubleLinkNext->m_prev = doubleLink->m_prev;
 
-                auto* const item = doubleLink->m_item;
-                entryInfoNode->m_doubleLinkList->DeleteNode(doubleLink);
-                assert(item == this);
-                list->AddItem(item);
+                entryInfoNode->m_doubleLinkList->UnlinkNode(doubleLink);
+                list->AddNode(doubleLink);
                 //list->AddNode(doubleLink);
 
                 entryInfoNode->m_repeatSector = repeatSector;
