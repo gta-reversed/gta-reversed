@@ -308,8 +308,8 @@ public:
     static bool IsMouseBmx2() noexcept             { return MOUSE_IS_DOWN(m_bMsSecondXButton); }                                                  // 
     // MOUSE END
 
-    int16 sub_540BD0(CPed* entity) noexcept;
-    int16 sub_540CC0(CPed* ped) noexcept;
+    int16 LookAroundLeftRight(CPed* entity) noexcept;
+    int16 LookAroundUpDown(CPed* ped) noexcept;
 
     int32 sub_541320() { return AverageWeapon / AverageEntries; } // 0x541320
     int32 sub_541290();

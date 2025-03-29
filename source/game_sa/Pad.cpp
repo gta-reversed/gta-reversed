@@ -106,8 +106,8 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(ConversationNoJustDown, 0x541200);
     RH_ScopedInstall(GroupControlForwardJustDown, 0x541230);
     RH_ScopedInstall(GroupControlBackJustDown, 0x541260);
-    RH_ScopedInstall(sub_540BD0, 0x540BD0, {.reversed = true});
-    RH_ScopedInstall(sub_540CC0, 0x540CC0, {.reversed = true});
+    RH_ScopedInstall(LookAroundLeftRight, 0x540BD0, {.reversed = true});
+    RH_ScopedInstall(LookAroundUpDown, 0x540CC0, {.reversed = true});
 }
 
 // 0x541D80
@@ -1126,7 +1126,7 @@ int16 CPad::AimWeaponUpDown(CPed* ped) const {
 }
 
 // 0x540BD0
-int16 CPad::sub_540BD0(CPed* ped) noexcept {
+int16 CPad::LookAroundLeftRight(CPed* ped) noexcept {
     if (DisablePlayerControls) {
         return 0;
     }
@@ -1149,7 +1149,7 @@ int16 CPad::sub_540BD0(CPed* ped) noexcept {
 }
 
 // 0x540CC0
-int16 CPad::sub_540CC0(CPed* ped) noexcept {
+int16 CPad::LookAroundUpDown(CPed* ped) noexcept {
     if (DisablePlayerControls) {
         return 0;
     }

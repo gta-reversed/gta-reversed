@@ -444,14 +444,14 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
     // TODO: Put in a function name e.g. 'HandleFreeMouseControl'?
     auto*      pad1   = CPad::GetPad(0);
     const auto fov    = m_fFOV / 80.0f;
-    const auto mouseX = pad1->NewMouseControllerState.X, mouseY = pad1->NewMouseControllerState.Y;
+    const auto amountMouseMoved = pad1->NewMouseControllerState.GetAmountMouseMoved();
 
-    if (mouseX != 0.0f || mouseY != 0.0f) {
-        m_fHorizontalAngle += -3.0f * mouseX * fov * CCamera::m_fMouseAccelHorzntl;
-        m_fVerticalAngle += +4.0f * mouseY * fov * CCamera::m_fMouseAccelVertical;
+    if (amountMouseMoved.x != 0.0f || amountMouseMoved.y != 0.0f) {
+        m_fHorizontalAngle += -3.0f * amountMouseMoved.x * fov * CCamera::m_fMouseAccelHorzntl;
+        m_fVerticalAngle += +4.0f * amountMouseMoved.y * fov * CCamera::m_fMouseAccelVertical;
     } else {
-        const auto hv = (float)-pad1->sub_540BD0(targetPed);
-        const auto vv = (float)pad1->sub_540CC0(targetPed);
+        const auto hv = (float)-pad1->LookAroundLeftRight(targetPed);
+        const auto vv = (float)pad1->LookAroundUpDown(targetPed);
 
         m_fHorizontalAngle += sq(hv) / 10000.0f * fov / 17.5f * CTimer::GetTimeStep() * (hv < 0.0f ? -1.0f : 1.0f);
         m_fVerticalAngle += sq(vv) / 22500.0f * fov / 14.0f * CTimer::GetTimeStep() * (vv < 0.0f ? -1.0f : 1.0f);
@@ -888,14 +888,14 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
 
     auto*      pad1   = CPad::GetPad(0);
     const auto fov    = m_fFOV / 80.0f;
-    const auto mouseX = pad1->NewMouseControllerState.X, mouseY = pad1->NewMouseControllerState.Y;
+    const auto amountMouseMoved = pad1->NewMouseControllerState.GetAmountMouseMoved();
     
-    if (mouseX != 0.0f || mouseY != 0.0f) {
-        m_fHorizontalAngle += -3.0f * mouseX * fov * CCamera::m_fMouseAccelHorzntl;
-        m_fVerticalAngle   += +4.0f * mouseY * fov * CCamera::m_fMouseAccelVertical;
+    if (amountMouseMoved.x != 0.0f || amountMouseMoved.y != 0.0f) {
+        m_fHorizontalAngle += -3.0f * amountMouseMoved.x * fov * CCamera::m_fMouseAccelHorzntl;
+        m_fVerticalAngle += +4.0f * amountMouseMoved.y * fov * CCamera::m_fMouseAccelVertical;
     } else {
-        const auto hv  = (float)-pad1->sub_540BD0(targetPed);
-        const auto vv  = (float)pad1->sub_540CC0(targetPed);
+        const auto hv  = (float)-pad1->LookAroundLeftRight(targetPed);
+        const auto vv  = (float)pad1->LookAroundUpDown(targetPed);
 
         m_fHorizontalAngle += sq(hv) / 10000.0f * fov / 17.5f * CTimer::GetTimeStep() * (hv < 0.0f ? -1.0f : 1.0f);
         m_fVerticalAngle   += sq(vv) / 22500.0f * fov / 14.0f * CTimer::GetTimeStep() * (vv < 0.0f ? -1.0f : 1.0f);
