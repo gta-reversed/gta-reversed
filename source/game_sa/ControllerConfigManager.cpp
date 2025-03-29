@@ -608,7 +608,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
                 } else {
                     // Try to find by name
                     for (int i = 0; i < NUM_OF_CONTROLLER_ACTIONS; i++) {
-                        char textName[128];
+                        char textName[128] = {0}; // Initialize with zeros to ensure null-termination
                         GxtCharToUTF8(textName, m_ControllerActionName[i]);
                         if (strcmp(textName, actionName) == 0) {
                             actionId = (eControllerAction)i;

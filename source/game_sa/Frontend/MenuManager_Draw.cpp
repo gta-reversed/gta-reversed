@@ -477,21 +477,14 @@ void CMenuManager::DrawControllerScreenExtraText(int32 a2) {
 // 0x57E6E0
 void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScreen) {
     int controllerAction;
-    uint8 verticalSpacing;
     uint8 maxActions;
     int actionIndex = 0;
     float currentY;
     int currentX;
     bool hasControl;
-
+    
     // Determine vertical spacing based on control mode
-    if (m_RedefiningControls) {
-        if (m_RedefiningControls == 1) {
-            verticalSpacing = 13;
-        }
-    } else {
-        verticalSpacing = 4 * (m_ControlMethod == 0) + 11;
-    }
+    uint8 verticalSpacing = (m_RedefiningControls && m_RedefiningControls == 1) ? 13 : (4 * ((m_ControlMethod == 0) ? 0 : 1) + 11);
     
     // Determine maximum actions based on control mode
     if (m_RedefiningControls) {
