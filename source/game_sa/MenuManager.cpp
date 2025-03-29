@@ -567,7 +567,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         CCamera::m_bUseMouse3rdPerson    = true;
         CVehicle::m_bEnableMouseFlying   = true;
         CVehicle::m_bEnableMouseSteering = false;
-        bInvertMouseY                    = false;
+        bInvertMouseY                    = true; // NOTSA Fix: The mouse's inversion is the opposite of that of the joysticks. It's easier to set the value to true.
         m_bInvertPadX1                   = false;
         m_bInvertPadY1                   = false;
         m_bInvertPadX2                   = false;
