@@ -118,11 +118,11 @@ void CCover::Update() {
     /* Process buildings too */
     if (CTimer::GetFrameCounter() % 8 == 5) { // 0x699A71
         // BUG:
-        // This implementation may've accessed objects after they've been destoryed (use-after-free
-        // I've modified it so that it uses refernces that get null'd automatically
+        // This implementation may've accessed objects after they've been destroyed (use-after-free
+        // I've modified it so that it uses references that get null'd automatically
         for (CPtrNodeDoubleLink<CBuilding*> *it = m_ListOfProcessedBuildings.GetNode(), *next{}; it; it = next) {
             next            = it->GetNext();
-            auto* const obj = it->GetItem<CBuilding>();
+            auto* const obj = it->m_item;
 
             if (!notsa::IsFixBugs() || obj) { // If fixbugs the reference may've got cleared
                 if (ShouldThisBuildingHaveItsCoverPointsCreated(obj)) {
