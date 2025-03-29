@@ -76,7 +76,7 @@ OpcodeResult CRunningScript::ProcessCommand<COMMAND_CALL_METHOD_RETURN>() { // 0
 
 const char* GetScriptStructNamed(CRunningScript* S) {
     NOTSA_UNREACHABLE("Not implemented!");
-    S->m_bCondResult = false;
+    S->m_CondResult = false;
 
     return nullptr;
 }

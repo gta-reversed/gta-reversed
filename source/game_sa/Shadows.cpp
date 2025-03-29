@@ -243,8 +243,8 @@ void CShadows::SetRenderModeForShadowType(eShadowType type) {
 }
 
 // 0x7074F0
-void CShadows::RemoveOilInArea(float x1, float x2, float y1, float y2) {
-    CRect rect{ {x1, y1}, {x2, y2} };
+void CShadows::RemoveOilInArea(float minX, float maxX, float minY, float maxY) {
+    CRect rect{ {minX, minY}, {maxX, maxY} };
     for (auto& shadow : aPermanentShadows) {
         switch (shadow.m_nType) {
         case SHADOW_OIL_1:

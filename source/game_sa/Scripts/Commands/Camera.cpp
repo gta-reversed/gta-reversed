@@ -40,7 +40,7 @@ void DoCameraBump(float horizontal, float vertical) {
 // DO_FADE - 0x47C7C7
 void DoCamFade(CRunningScript* S, uint32 time, eFadeFlag direction) {
     TheCamera.Fade((float)time / 1000.f, direction);
-    if (S->m_bUseMissionCleanup) {
+    if (S->m_UsesMissionCleanup) {
         CTheScripts::bScriptHasFadedOut = direction == eFadeFlag::FADE_IN;
     }
 }
