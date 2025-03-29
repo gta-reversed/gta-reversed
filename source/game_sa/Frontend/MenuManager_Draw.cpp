@@ -484,7 +484,16 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
     bool hasControl;
     
     // Determine vertical spacing based on control mode
-    uint8 verticalSpacing = (m_RedefiningControls && m_RedefiningControls == 1) ? 13 : (4 * ((m_ControlMethod == 0) ? 0 : 1) + 11);
+    uint8 verticalSpacing;
+    if ( m_RedefiningControls == 1 ) {
+        verticalSpacing = 13;
+    } else if ( m_RedefiningControls ) {
+        verticalSpacing = 0;
+    } else if ( m_ControlMethod ) {
+        verticalSpacing = 11;
+    } else {
+        verticalSpacing = 15;
+    }
     
     // Determine maximum actions based on control mode
     if (m_RedefiningControls) {
