@@ -293,9 +293,10 @@ void CWorld::ClearScanCodes() {
 
     for (auto y = 0; y < MAX_REPEAT_SECTORS_Y; y++) {
         for (auto x = 0; x < MAX_REPEAT_SECTORS_X; x++) {
-            for (const auto& list : GetRepeatSector(x, y)->m_lists) {
-                ProcessList(list);
-            }
+            auto* const rs = GetRepeatSector(x, y);
+            ProcessList(rs->Vehicles);
+            ProcessList(rs->Peds);
+            ProcessList(rs->Objects);
         }
     }
 }
