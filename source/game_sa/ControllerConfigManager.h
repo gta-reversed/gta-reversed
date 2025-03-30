@@ -92,8 +92,12 @@ enum eControllerAction {
     TAKE_SCREEN_SHOT = 56,
     SHOW_MOUSE_POINTER_TOGGLE = 57,
     SWITCH_CAM_DEBUG_MENU = 58,
-    NUM_OF_CONTROLLER_ACTIONS = 59 // notsa
+
+    // notsa
+    eControllerAction::NUM_OF_MIN_CONTROLLER_ACTIONS = 0,
+    NUM_OF_MAX_CONTROLLER_ACTIONS = eControllerAction::SWITCH_CAM_DEBUG_MENU + 1,
 };
+
 
 enum eContSetOrder {
     NO_ORDER_SET = 0,
@@ -159,9 +163,9 @@ public:
     bool                                                     m_WasJoyJustInitialised{};
     DIJOYSTATE2                                              m_OldJoyState{};
     DIJOYSTATE2                                              m_NewJoyState{};
-    std::array<GxtChar[40], NUM_OF_CONTROLLER_ACTIONS>       m_ControllerActionName{};
+    std::array<GxtChar[40], NUM_OF_MAX_CONTROLLER_ACTIONS>       m_ControllerActionName{};
     bool                                                     m_ButtonStates[17]{};     // True if down, false if up or missing, enum ePadButton?
-    std::array<CControllerAction, NUM_OF_CONTROLLER_ACTIONS> m_Actions;
+    std::array<CControllerAction, NUM_OF_MAX_CONTROLLER_ACTIONS> m_Actions;
     bool                                                     m_bStickL_X_Rgh_Lft_MovementBothDown[CONTROLLER_NUM];
     bool                                                     m_bStickL_Up_Dwn_MovementBothDown[CONTROLLER_NUM];
     bool                                                     m_bStickR_X_Rgh_Lft_MovementBothDown[CONTROLLER_NUM];

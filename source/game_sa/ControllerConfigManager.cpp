@@ -541,12 +541,12 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
                 // Try to parse as action ID first
                 if (std::isdigit(actionName[0])) {
                     int id = std::stoi(actionName);
-                    if (id >= 0 && id < eControllerAction::NUM_OF_CONTROLLER_ACTIONS) {
+                    if (id >= 0 && id < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS) {
                         actionId = (eControllerAction)id;
                     }
                 } else {
                     // Try to find by name
-                    for (int i = 0; i < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; i++) {
+                    for (int i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
                         char textName[128] = {0};
                         GxtCharToUTF8(textName, m_ControllerActionName[i]);
                         if (actionName == textName) {
@@ -594,7 +594,7 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
         std::string sectionHeader = "[" + sections[i] + "]\n";
         CFileMgr::Write(file, sectionHeader.c_str(), (int32)sectionHeader.length());
         
-        for (int j = 0; j < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; j++) {
+        for (int j = 0; j < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; j++) {
             // Skip empty bindings
             if (GetIsKeyBlank(m_Actions[j].Keys[i].m_uiActionInitiator, (eControllerType)i)) {
                 continue;
@@ -649,7 +649,7 @@ bool CControllerConfigManager::LoadSettings(FILE* file) {
     
     // Verify file format by checking action IDs
     for (int controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
-        for (int i = 0; i < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; i++) {
+        for (int i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
             CFileMgr::Read(file, &actionId, 4);
             if (actionId != i) {
                 return false;
@@ -666,7 +666,7 @@ bool CControllerConfigManager::LoadSettings(FILE* file) {
     
     // Read key mappings for all controller types
     for (int controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
-        for (int i = 0; i < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; i++) {
+        for (int i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
             // Skip action ID
             CFileMgr::Seek(file, 4, 1);
             
@@ -685,7 +685,7 @@ int32 CControllerConfigManager::SaveSettings(FILE* file) {
     }
     
     for (int32 controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
-        for (int32 actionId = 0; actionId < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; actionId++) {
+        for (int32 actionId = 0; actionId < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; actionId++) {
             // Write action ID
             CFileMgr::Write(file, &actionId, eControllerType::CONTROLLER_NUM);
             
@@ -1477,7 +1477,7 @@ const GxtChar* CControllerConfigManager::GetControllerSettingTextJoystick(eContr
 // 0x530500
 void CControllerConfigManager::MakeControllerActionsBlank() {
     for (auto i = 0u; i < CONTROLLER_NUM; ++i) {
-        for (auto j = 0u; j < NUM_OF_CONTROLLER_ACTIONS; ++j) {
+        for (auto j = 0u; j < NUM_OF_MAX_CONTROLLER_ACTIONS; ++j) {
             ClearSettingsAssociatedWithAction((eControllerAction)(j), (eControllerType)(i));
         }
     }
@@ -1496,7 +1496,7 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
         inMenu = !FrontEndMenuManager.m_bMenuActive;
     }
     
-    for (auto i = 0u; i < NUM_OF_CONTROLLER_ACTIONS; ++i) {
+    for (auto i = 0u; i < NUM_OF_MAX_CONTROLLER_ACTIONS; ++i) {
         // Handle key press logic
         for (const auto& type : CONTROLLER_TYPES) {
             const auto key = m_Actions[i].Keys[type].m_uiActionInitiator;

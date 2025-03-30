@@ -414,7 +414,7 @@ void CMenuManager::DrawQuitGameScreen() {
 
 // 0x57D8D0
 void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
-    eControllerAction maxActions = eControllerAction::PED_FIRE_WEAPON;
+    eControllerAction maxActions = eControllerAction::::NUM_OF_MIN_CONTROLLER_ACTIONS;
     uint8 verticalSpacing;
 
     if (m_RedefiningControls == 1) {
@@ -429,27 +429,23 @@ void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
             maxActions = eControllerAction::VEHICLE_STEER_UP;
         }
     }
-    if (maxActions) {
+
+    if (maxActions > 0) {
         float posX = 0.0f;
         
-        for (auto action : std::views::iota(
-                static_cast<std::underlying_type_t<eControllerAction>>(eControllerAction::PED_FIRE_WEAPON),
-                static_cast<std::underlying_type_t<eControllerAction>>(maxActions)
-            ))
-        {
-            eControllerAction actionIndex = static_cast<eControllerAction>(action);
+        for (auto actionIndex : std::views::iota(static_cast<int>(eControllerAction::::NUM_OF_MIN_CONTROLLER_ACTIONS), static_cast<int>(maxActions))) {
             posX = StretchX(240.0f);
             float posY = StretchY(float(StartingYPos));
             
             for (const auto order : {eContSetOrder::FIRST, eContSetOrder::SECOND, eContSetOrder::THIRD, eContSetOrder::FOURTH}) {
-                const auto buttonText = ControlsManager.GetControllerSettingText(actionIndex, order);
+                const auto buttonText = ControlsManager.GetControllerSettingText(static_cast<eControllerAction>(actionIndex), order);
                 if (buttonText) {
                     CFont::PrintString(posX, posY, buttonText);
                     posX += StretchX(75.0f);
                 }
             }
             
-            if (actionIndex == m_ListSelection) {
+            if (static_cast<eControllerAction>(actionIndex) == m_ListSelection) {
                 if (m_EditingControlOptions) {
                     if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.LastFlash > 150) {
                         FrontEndMenuManager.ColourSwitch = (FrontEndMenuManager.ColourSwitch) ? false : true;
@@ -467,14 +463,14 @@ void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
             StartingYPos += verticalSpacing;
         }
         
-        // Handle combo text display
-        // if (DEPRECATEDCOMBO) {
-        //     auto comboText = CControllerConfigManager::GetButtonComboText(m_ListSelection);
-        //     if (comboText) {
-        //         CFont::SetColor({200, 50, 50, 255});
-        //         CFont::PrintString(posX, StretchY(float(a2 + 10)), comboText);
-        //     }
-        // }
+        /*/ Handle combo text display - Dummy function deprecated
+        if (DEPRECATEDCOMBO) {
+            auto comboText = CControllerConfigManager::GetButtonComboText(m_ListSelection);
+            if (comboText) {
+                CFont::SetColor({200, 50, 50, 255});
+                CFont::PrintString(posX, StretchY(float(a2 + 10)), comboText);
+            }
+        }*/
     }
 }
 
