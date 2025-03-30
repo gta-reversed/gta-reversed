@@ -1,5 +1,6 @@
 #include "StdInc.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
 #include "PedDamageResponseCalculator.h"
 
 float& CPedDamageResponseCalculator::ms_damageFactor = *(float*)0x8A6260; // 5555.5498
@@ -116,7 +117,7 @@ void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageRespo
     if (!rsp.m_bForceDeath && m_weaponType == WEAPON_FALL && m_bSpeak) {
         const auto prevHP   = ped->m_fHealth;
         ped->m_fHealth      = std::max(prevHP - m_fDamageFactor, 5.0f);
-        if (notsa::IsFixBugs()) {
+        if (notsa::bugfixes::DrowningInstantDeath) {
             rsp.m_bForceDeath = false;
         } else {
             rsp.m_bHealthZero = false;
@@ -135,7 +136,7 @@ void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageRespo
         return;
     }
 
-    if (notsa::IsFixBugs()) {
+    if (notsa::bugfixes::DrowningInstantDeath) {
         rsp.m_bForceDeath = false;
     } else {
         rsp.m_bHealthZero = false;
