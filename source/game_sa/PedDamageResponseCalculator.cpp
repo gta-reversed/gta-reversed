@@ -99,25 +99,23 @@ bool CPedDamageResponseCalculator::ComputeWillForceDeath(CPed* ped, CPedDamageRe
  * @addr 0x4B3210
  */
 void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageResponse& response, bool bSpeak) {
-    //plugin::CallMethod<0x4B3210, CPedDamageResponseCalculator*, CPed*, CPedDamageResponse&, bool>(this, ped, response, bSpeak);
-    //return; // todo: not tested	
 
     if (ped->IsPlayer() && CCheat::IsActive(CHEAT_NO_ONE_CAN_STOP_US) && m_weaponType < WEAPON_LAST_WEAPON) {
         return;
     }
 
-    response.m_bForceDeath = this->ComputeWillForceDeath(ped, response);
+    response.m_bForceDeath = ComputeWillForceDeath(ped, response);
 
     if (CCheat::IsActive(CHEAT_MEGA_PUNCH)) {
         if (m_weaponType < WEAPON_GOLFCLUB || m_weaponType == WEAPON_PARACHUTE) {
-            this->m_fDamageFactor = ped->m_fHealth;
+            m_fDamageFactor = ped->m_fHealth;
         }
     }
 
-    if (m_weaponType == WEAPON_FALL && ped->bInVehicle) {
+    if (m_weaponType == WEAPON_FALL && m_bSpeak) {
         response.m_bForceDeath   = false;
-        response.m_fDamageHealth = std::min(m_fDamageFactor, ped->m_fHealth - 5.0f);
         ped->m_fHealth           = std::max(ped->m_fHealth - m_fDamageFactor, 5.0f);
+        response.m_fDamageHealth = m_fDamageFactor - ped->m_fHealth;
         if (bSpeak) {
             ped->Say(CTX_GLOBAL_PAIN_LOW, 0, 1.0, 0, 0, 0);
         }
@@ -125,12 +123,9 @@ void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageRespo
     }
 
     if (response.m_bForceDeath || ped->m_fHealth - m_fDamageFactor < 1.0f) {
-        response.m_bForceDeath   = true;
+        response.m_bHealthZero   = true;
         response.m_fDamageHealth = ped->m_fHealth;
         ped->m_fHealth           = 0.0f;
-        if (m_weaponType == WEAPON_DROWNING && ped->bIsDrowning) {
-            ped->bIsDrowning = false;
-        }
         return;
     }
     
