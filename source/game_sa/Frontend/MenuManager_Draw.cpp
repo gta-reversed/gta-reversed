@@ -414,7 +414,7 @@ void CMenuManager::DrawQuitGameScreen() {
 
 // 0x57D8D0
 void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
-    eControllerAction maxActions = eControllerAction::::NUM_OF_MIN_CONTROLLER_ACTIONS;
+    eControllerAction maxActions = eControllerAction::NUM_OF_MIN_CONTROLLER_ACTIONS;
     uint8 verticalSpacing;
 
     if (m_RedefiningControls == 1) {
@@ -433,7 +433,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
     if (maxActions > 0) {
         float posX = 0.0f;
         
-        for (auto actionIndex : std::views::iota(static_cast<int>(eControllerAction::::NUM_OF_MIN_CONTROLLER_ACTIONS), static_cast<int>(maxActions))) {
+        for (auto actionIndex : std::views::iota(static_cast<int>(eControllerAction::NUM_OF_MIN_CONTROLLER_ACTIONS), static_cast<int>(maxActions))) {
             posX = StretchX(240.0f);
             float posY = StretchY(float(StartingYPos));
             
