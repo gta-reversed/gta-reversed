@@ -525,12 +525,12 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
                 // Try to parse as action ID first
                 if (isdigit(actionName[0])) {
                     int id = atoi(actionName);
-                    if (id >= 0 && id < NUM_OF_CONTROLLER_ACTIONS) {
+                    if (id >= 0 && id < eControllerAction::NUM_OF_CONTROLLER_ACTIONS) {
                         actionId = (eControllerAction)id;
                     }
                 } else {
                     // Try to find by name
-                    for (int i = 0; i < NUM_OF_CONTROLLER_ACTIONS; i++) {
+                    for (int i = 0; i < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; i++) {
                         char textName[128] = {0}; // Initialize with zeros to ensure null-termination
                         GxtCharToUTF8(textName, m_ControllerActionName[i]);
                         if (strcmp(textName, actionName) == 0) {
@@ -582,7 +582,7 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
         sprintf(sectionHeader, "[%s]\n", sections[i]);
         CFileMgr::Write(file, sectionHeader, (int32)strlen(sectionHeader));
         
-        for (int j = 0; j < NUM_OF_CONTROLLER_ACTIONS; j++) {
+        for (int j = 0; j < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; j++) {
             // Skip empty bindings
             if (GetIsKeyBlank(m_Actions[j].Keys[i].m_uiActionInitiator, (eControllerType)i)) {
                 continue;
@@ -609,63 +609,57 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
 #else
 // 0x530530
 bool CControllerConfigManager::LoadSettings(FILE* file) {
+    int actionId = 0;
+    
     if (!file) {
-        return 1;
+        return true;
     }
-
+    
     // Check if file has valid header
-    char header[32];
-    CFileMgr::Read(file, header, 29);
-    if (strncmp(header, "THIS FILE IS NOT VALID YET", 26) == 0) {
-        // Invalid header
-        return 1;
+    char buffer[52] = {0};
+    CFileMgr::Read(file, buffer, 29);
+    if (!strncmp(buffer, "THIS FILE IS NOT VALID YET", 26)) {
+        return true;
     }
-
+    
     // Reset file position to start and read version
     CFileMgr::Seek(file, 0, 0);
-    int32 version;
+    int32 version = 0;
     CFileMgr::Read(file, &version, 4);
     
     if (version < 6) {
-        // Version too old
-        return 1;
+        return true;
     }
-
+    
     // Verify file format by checking action IDs
-    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
-        for (int32 actionId = 0; actionId < 59; actionId++) {
-            int32 storedActionId;
-            CFileMgr::Read(file, &storedActionId, 4);
-            
-            if (storedActionId != actionId) {
-                // Invalid action ID in file
-                return 0;
+    for (int controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
+        for (int i = 0; i < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; i++) {
+            CFileMgr::Read(file, &actionId, 4);
+            if (actionId != i) {
+                return false;
             }
-            
-            
-            // Skip key data for now
-            CFileMgr::Seek(file, 8, 1);
+            CFileMgr::Seek(file, 8, 1); // Skip key mapping data for validation pass
         }
     }
-
+    
     // Go back to position after version info
     CFileMgr::Seek(file, 4, 0);
     
     // Clear existing settings
     MakeControllerActionsBlank();
-
-    // Read key mappings for each controller type
-    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
-        for (int32 actionId = 0; actionId < 59; actionId++) {
+    
+    // Read key mappings for all controller types
+    for (int controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
+        for (int i = 0; i < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; i++) {
             // Skip action ID
             CFileMgr::Seek(file, 4, 1);
             
             // Read key and order for this action
-            CFileMgr::Read(file, &m_Actions[actionId].Keys[controllerType], 8);
+            CFileMgr::Read(file, &m_Actions[i].Keys[controllerType], 8);
         }
     }
-
-    return 1;
+    
+    return true;
 }
 
 // 0x52D200
@@ -675,7 +669,7 @@ int32 CControllerConfigManager::SaveSettings(FILE* file) {
     }
     
     for (int32 controllerType = 0; controllerType < 4; controllerType++) {
-        for (int32 actionId = 0; actionId < 59; actionId++) {
+        for (int32 actionId = 0; actionId < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; actionId++) {
             // Write action ID
             CFileMgr::Write(file, &actionId, 4);
             
