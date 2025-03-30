@@ -449,7 +449,7 @@ void CControllerConfigManager::HandleJoyButtonUpDown(int32 joyNo, bool isDown) {
     StoreJoyButtonStates();
     const auto forceConfigMenuMode = !isDown && notsa::contains({ MODE_FLYBY, MODE_FIXED }, TheCamera.GetActiveCamera().m_nMode); // Probably leftover debug stuff?
     for (auto i = isDown ? 1u : 2u; i < std::size(m_ButtonStates); i++) { // TODO: Why is this starting from 1/2?
-        const auto padBtn = (ePadButton)((m_ButtonStates[i - 1] == isDown) ? i : 0); // This doesn't make sense
+        const auto padBtn = ((m_ButtonStates[i - 1] == isDown) ? i : 0); // This doesn't make sense
         if (forceConfigMenuMode || FrontEndMenuManager.m_bMenuActive || joyNo != 0) {
             if (isDown) {
                 UpdateJoyInConfigMenus_ButtonDown(padBtn, joyNo);
@@ -1045,38 +1045,87 @@ void CControllerConfigManager::StoreMouseButtonState(eMouseButtons button, bool 
 }
 
 // 0x52DAB0
-void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(CControllerKey::KeyCode button, int32 padNumber) {
-    CPad* pad = CPad::GetPad(padNumber);
-    if (!pad || button == 0) {
+void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(CControllerKey::KeyCode ButtonPress, int32 PadNumber) {
+    CPad* pad = CPad::GetPad(PadNumber);
+    if (!pad || ButtonPress == 0) {
         return;
     }
-    switch (button) {
-    case LEFTSTICKY:  pad->PCTempJoyState.ButtonTriangle = 255; break;
-    case RIGHTSTICKX: pad->PCTempJoyState.ButtonCross = 255; break;
-    case RIGHTSTICKY: pad->PCTempJoyState.ButtonSquare = 255; break;
-    case LEFTSHOULDER1:
-        if (!IsCheckSpecificGamepad()) {
-            pad->PCTempJoyState.ButtonTriangle = 255;
-        }
+
+    switch (ButtonPress) {
+    case eJOY_BUTTONS::JOYBUTTON_FIVE:
+        pad->PCTempJoyState.LeftShoulder2 = 255;
         break;
-    case LEFTSHOULDER2:  pad->PCTempJoyState.LeftShoulder2 = 255; break;
-    case RIGHTSHOULDER1: pad->PCTempJoyState.RightShoulder2 = 255; break;
-    case RIGHTSHOULDER2: pad->PCTempJoyState.LeftShoulder1 = 255; break;
-    case DPADUP:         pad->PCTempJoyState.RightShoulder1 = 255; break;
-    case DPADDOWN:       pad->PCTempJoyState.Select = 255; break;
-    case DPADLEFT:       pad->PCTempJoyState.ShockButtonL = 255; break;
-    case DPADRIGHT:      pad->PCTempJoyState.ShockButtonR = 255; break;
-    case START:          {
+    case eJOY_BUTTONS::JOYBUTTON_SIX:
+        pad->PCTempJoyState.RightShoulder2 = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_SEVEN:
+        pad->PCTempJoyState.LeftShoulder1 = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_EIGHT:
+        pad->PCTempJoyState.RightShoulder1 = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_NINE:
+        pad->PCTempJoyState.Select = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_TEN:
+        pad->PCTempJoyState.ShockButtonL = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_ELEVEN:
+        pad->PCTempJoyState.ShockButtonR = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_TWELVE:
+        /*
         if (padNumber == 1) {
             pad->PCTempJoyState.Start = 255;
-        }
+        }*/
+        pad->PCTempJoyState.Start = 255; // FIX: You can press start on any pad to exit the menu.
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_THIRTEEN:
+        pad->PCTempJoyState.DPadUp = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_FOURTEEN:
+        pad->PCTempJoyState.DPadRight = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_FIFTHTEEN:
+        pad->PCTempJoyState.DPadDown = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_SIXTEEN:
+        pad->PCTempJoyState.DPadLeft = 255;
+        break;
+    default:
         break;
     }
-    case SELECT:   pad->PCTempJoyState.DPadUp = 255; break;
-    case SQUARE:   pad->PCTempJoyState.DPadRight = 255; break;
-    case TRIANGLE: pad->PCTempJoyState.DPadDown = 255; break;
-    case CROSS:    pad->PCTempJoyState.DPadLeft = 255; break;
-    default:       break;
+
+    if (IsCheckSpecificGamepad()) {
+        switch (ButtonPress) {
+        case eJOY_BUTTONS::JOYBUTTON_ONE:
+            pad->PCTempJoyState.ButtonTriangle = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_TWO:
+            pad->PCTempJoyState.ButtonCircle = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_THREE:
+            pad->PCTempJoyState.ButtonCross = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_FOUR:
+            pad->PCTempJoyState.ButtonSquare = 255;
+            break;
+        }
+    } else {
+        switch (ButtonPress) {
+        case eJOY_BUTTONS::JOYBUTTON_ONE:
+            pad->PCTempJoyState.ButtonCircle = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_TWO:
+            pad->PCTempJoyState.ButtonCross = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_THREE:
+            pad->PCTempJoyState.ButtonSquare = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_FOUR:
+            pad->PCTempJoyState.ButtonTriangle = 255;
+            break;
+        }
     }
 }
 
@@ -1110,33 +1159,86 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_DebugStuff(int
 }
 
 // 0x52DC20
-void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(CControllerKey::KeyCode button, int32 padNumber) {
-    CPad* pad = CPad::GetPad(padNumber);
-    if (!pad || button == 0) {
+void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(CControllerKey::KeyCode ButtonPress, int32 PadNumber) {
+    CPad* pad = CPad::GetPad(PadNumber);
+    if (!pad || ButtonPress == 0) {
         return;
     }
 
-    switch (button) {
-        case 5:  pad->PCTempJoyState.LeftShoulder2 = 0; break;
-        case 6:  pad->PCTempJoyState.RightShoulder2 = 0; break;
-        case 7:  pad->PCTempJoyState.LeftShoulder1 = 0; break;
-        case 8:  pad->PCTempJoyState.RightShoulder1 = 0; break;
-        case 9:  pad->PCTempJoyState.Select = 0; break;
-        case 10: pad->PCTempJoyState.ShockButtonL = 0; break;
-        case 11: pad->PCTempJoyState.ShockButtonR = 0; break;
-        case 12: if (padNumber == 1) pad->PCTempJoyState.Start = 0; break;
-        case 13: pad->PCTempJoyState.DPadUp = 0; break;
-        case 14: pad->PCTempJoyState.DPadRight = 0; break;
-        case 15: pad->PCTempJoyState.DPadDown = 0; break;
-        case 16: pad->PCTempJoyState.DPadLeft = 0; break;
-        default: break;
+    switch (ButtonPress) {
+    case eJOY_BUTTONS::JOYBUTTON_FIVE:
+        pad->PCTempJoyState.LeftShoulder2 = 0;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_SIX:
+        pad->PCTempJoyState.RightShoulder2 = 0;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_SEVEN:
+        pad->PCTempJoyState.LeftShoulder1 = 0;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_EIGHT:
+        pad->PCTempJoyState.RightShoulder1 = 0;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_NINE:
+        pad->PCTempJoyState.Select = 0;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_TEN:
+        pad->PCTempJoyState.ShockButtonL = 0;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_ELEVEN:
+        pad->PCTempJoyState.ShockButtonR = 0;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_TWELVE:
+        /*
+        if (padNumber == 1) {
+            pad->PCTempJoyState.Start = 0;
+        }*/
+        pad->PCTempJoyState.Start = 0; // FIX: You can press start on any pad to exit the menu.
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_THIRTEEN:
+        pad->PCTempJoyState.DPadUp = 0;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_FOURTEEN:
+        pad->PCTempJoyState.DPadRight = 0;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_FIFTHTEEN:
+        pad->PCTempJoyState.DPadDown = 0;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_SIXTEEN:
+        pad->PCTempJoyState.DPadLeft = 0;
+        break;
+    default:
+        break;
     }
+
     if (IsCheckSpecificGamepad()) {
-        switch (button) {
-        case 1: pad->PCTempJoyState.ButtonTriangle = 0; break;
-        case 2: pad->PCTempJoyState.ButtonCircle = 0; break;
-        case 3: pad->PCTempJoyState.ButtonCross = 0; break;
-        case 4: pad->PCTempJoyState.ButtonSquare = 0; break;
+        switch (ButtonPress) {
+        case eJOY_BUTTONS::JOYBUTTON_ONE:
+            pad->PCTempJoyState.ButtonTriangle = 0;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_TWO:
+            pad->PCTempJoyState.ButtonCircle = 0;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_THREE:
+            pad->PCTempJoyState.ButtonCross = 0;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_FOUR:
+            pad->PCTempJoyState.ButtonSquare = 0;
+            break;
+        }
+    } else {
+        switch (ButtonPress) {
+        case eJOY_BUTTONS::JOYBUTTON_ONE:
+            pad->PCTempJoyState.ButtonCircle = 0;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_TWO:
+            pad->PCTempJoyState.ButtonCross = 0;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_THREE:
+            pad->PCTempJoyState.ButtonSquare = 0;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_FOUR:
+            pad->PCTempJoyState.ButtonTriangle = 0;
+            break;
         }
     }
 }

@@ -8,8 +8,6 @@
 
 #include "RenderWare.h"
 
-#include "ePadButton.h"
-
 enum eMouseButtons {
     MOUSE_BUTTON_NONE,
     MOUSE_BUTTON_LEFT,
@@ -108,7 +106,7 @@ enum eContSetOrder {
 };
 
 enum eJOY_BUTTONS {
-    NO_JOYBUTTONS = 0,
+    NO_JOYBUTTONS = 0,        
     JOYBUTTON_ONE = 1,
     JOYBUTTON_TWO = 2,
     JOYBUTTON_THREE = 3,
@@ -163,7 +161,7 @@ public:
     bool                                                     m_WasJoyJustInitialised{};
     DIJOYSTATE2                                              m_OldJoyState{};
     DIJOYSTATE2                                              m_NewJoyState{};
-    std::array<GxtChar[40], NUM_OF_MAX_CONTROLLER_ACTIONS>       m_ControllerActionName{};
+    std::array<GxtChar[40], NUM_OF_MAX_CONTROLLER_ACTIONS>   m_ControllerActionName{};
     bool                                                     m_ButtonStates[17]{};     // True if down, false if up or missing, enum ePadButton?
     std::array<CControllerAction, NUM_OF_MAX_CONTROLLER_ACTIONS> m_Actions;
     bool                                                     m_bStickL_X_Rgh_Lft_MovementBothDown[CONTROLLER_NUM];
