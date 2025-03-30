@@ -99,7 +99,6 @@ bool CPedDamageResponseCalculator::ComputeWillForceDeath(CPed* ped, CPedDamageRe
  * @addr 0x4B3210
  */
 void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageResponse& response, bool bSpeak) {
-
     if (ped->IsPlayer() && CCheat::IsActive(CHEAT_NO_ONE_CAN_STOP_US) && m_weaponType < WEAPON_LAST_WEAPON) {
         return;
     }
@@ -107,7 +106,7 @@ void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageRespo
     response.m_bForceDeath = ComputeWillForceDeath(ped, response);
 
     if (CCheat::IsActive(CHEAT_MEGA_PUNCH)) {
-        if (m_weaponType < WEAPON_GOLFCLUB || m_weaponType == WEAPON_PARACHUTE) {
+        if (m_weaponType == WEAPON_UNARMED || m_weaponType == WEAPON_BRASSKNUCKLE || m_weaponType == WEAPON_PARACHUTE) {
             m_fDamageFactor = ped->m_fHealth;
         }
     }
