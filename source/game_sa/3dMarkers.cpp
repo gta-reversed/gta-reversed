@@ -55,7 +55,7 @@ void C3dMarkers::Init() {
             = m_pRpClumpArray[MARKER3D_CONE]
             = LoadMarker("diamond_3");
 
-        // MARKER3D_ARROW2 and MARKER3D_TUBE don't seem to have clumps.
+    // MARKER3D_ARROW2 and MARKER3D_TUBE don't seem to have clumps.
     }
 }
 
