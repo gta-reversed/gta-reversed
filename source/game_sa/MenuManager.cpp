@@ -647,6 +647,7 @@ void CMenuManager::CentreMousePointer() {
     }
 }
 
+#ifdef INI_SETTINGS
 // 0x57C8F0
 void CMenuManager::LoadSettings() {
     CFileMgr::SetDirMyDocuments();
@@ -819,6 +820,7 @@ void CMenuManager::LoadSettings() {
 
 }
 
+// 0x57C660
 void CMenuManager::SaveSettings() {
     CFileMgr::SetDirMyDocuments();
 
@@ -900,6 +902,198 @@ void CMenuManager::SaveSettings() {
     CFileMgr::CloseFile(file);
     CFileMgr::SetDir("");
 }
+#else // BINARY CLASSIC
+// 0x57C8F0
+void CMenuManager::LoadSettings() {
+    CFileMgr::SetDirMyDocuments();
+    FILE* file = nullptr;
+    eLanguage prevLanguage = m_nPrefsLanguage;
+    bInvertMouseY = true;
+    
+    try {
+        file = CFileMgr::OpenFile("gta_sa.set", "rb");
+        if (!file) {
+            throw std::runtime_error("Cannot open settings file");
+        }
+
+        const auto ReadFromFile = [&](auto& ref, size_t size = 0u) {
+            CFileMgr::Read(file, &ref, size != 0 ? size : sizeof(ref));
+        };
+
+        // Check for invalid file
+        char buf[29]{0};
+        ReadFromFile(buf, 29u);
+        if (!strncmp(buf, TopLineEmptyFile, 26u)) {
+            throw std::runtime_error("Invalid file format");
+        }
+
+        // Reset position
+        CFileMgr::Seek(file, 0, 0);
+
+        uint32 version = 0u;
+        struct { uint8 m_unk; uint8 m_separator; uint8 m_underscore; uint8 _align; } constants;
+        FxQuality_e fxQuality = FX_QUALITY_HIGH;
+        auto previousLang = m_nPrefsLanguage;
+
+        ReadFromFile(version);
+        if (version < SETTINGS_FILE_VERSION || !ControlsManager.LoadSettings(file)) {
+            throw std::runtime_error("Incompatible settings version");
+        }
+
+        ReadFromFile(CCamera::m_fMouseAccelHorzntl);
+        ReadFromFile(bInvertMouseY);
+        ReadFromFile(CVehicle::m_bEnableMouseSteering);
+        ReadFromFile(CVehicle::m_bEnableMouseFlying);
+        ReadFromFile(m_nSfxVolume);
+        ReadFromFile(m_nRadioVolume);
+        ReadFromFile(m_nRadioStation);
+        ReadFromFile(m_bRadioAutoSelect);
+        ReadFromFile(m_bRadioEq);
+        ReadFromFile(m_PrefsBrightness);
+        ReadFromFile(m_bPrefsMipMapping);
+        ReadFromFile(m_bTracksAutoScan);
+        ReadFromFile(m_nDisplayAntialiasing);
+        ReadFromFile(fxQuality);
+        ReadFromFile(constants.m_unk);
+        ReadFromFile(m_fDrawDistance);
+        ReadFromFile(m_bShowSubtitles);
+        ReadFromFile(m_bWidescreenOn);
+        ReadFromFile(m_bPrefsFrameLimiter);
+        ReadFromFile(m_nDisplayVideoMode);
+        ReadFromFile(m_ControlMethod);
+        ReadFromFile(m_nPrefsLanguage);
+        ReadFromFile(m_bHudOn);
+        ReadFromFile(m_nRadarMode);
+        ReadFromFile(m_nRadioMode);
+        ReadFromFile(m_bSavePhotos);
+        ReadFromFile(constants.m_separator);
+        ReadFromFile(m_bInvertPadX1);
+        ReadFromFile(m_bInvertPadY1);
+        ReadFromFile(m_bInvertPadX2);
+        ReadFromFile(m_bInvertPadY2);
+        ReadFromFile(m_bSwapPadAxis1);
+        ReadFromFile(m_bSwapPadAxis2);
+        ReadFromFile(m_bMapLegend);
+        ReadFromFile(m_nUserTrackIndex);
+        ReadFromFile(m_nCurrentRwSubsystem);
+        ReadFromFile(constants.m_underscore);
+
+        if (constants.m_unk != 'T' ||
+            constants.m_separator != 0x1D || // ASCII GS - Group Separator
+            constants.m_underscore != '_') 
+        {
+            throw std::runtime_error("Invalid settings data");
+        }
+
+        // Apply settings
+        CCamera::m_bUseMouse3rdPerson = (m_ControlMethod == false) ? true : false;
+        CRenderer::ms_lodDistScale = m_fDrawDistance;
+        g_fx.SetFxQuality(fxQuality);
+        SetBrightness(static_cast<float>(m_PrefsBrightness), true);
+        m_nPrefsAntialiasing = m_nDisplayAntialiasing;
+        m_bDoVideoModeUpdate = true;
+        AudioEngine.SetMusicMasterVolume(m_nRadioVolume);
+        AudioEngine.SetEffectsMasterVolume(m_nSfxVolume);
+        AudioEngine.SetBassEnhanceOnOff(m_bRadioEq);
+        AudioEngine.SetRadioAutoRetuneOnOff(m_bRadioAutoSelect);
+        AudioEngine.RetuneRadio(m_nRadioStation);
+
+        // Handle language change
+        if (previousLang == m_nPrefsLanguage) {
+            field_8C = false;
+        } else {
+            field_8C = true;
+            TheText.Load(false);
+            m_bLanguageChanged = true;
+            InitialiseChangedLanguageSettings(false);
+            OutputDebugStringA("The previously saved language is now in use"); // SA
+        }
+    }
+    catch (const std::exception&) {
+        // In case of any error, set defaults
+        SetDefaultPreferences(SCREEN_AUDIO_SETTINGS);
+        SetDefaultPreferences(SCREEN_DISPLAY_SETTINGS);
+        SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
+        SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
+        m_nCurrentRwSubsystem = 0;
+        m_nPrefsLanguage = prevLanguage;
+        m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
+    }
+
+    // Clean up
+    if (file) {
+        CFileMgr::CloseFile(file);
+    }
+    CFileMgr::SetDir("");
+}
+
+// 0x57C660
+void CMenuManager::SaveSettings() {
+    CFileMgr::SetDirMyDocuments();
+    FILE* file = nullptr;
+    
+    try {
+        file = CFileMgr::OpenFile("gta_sa.set", "w+b");
+        if (!file) {
+            throw std::runtime_error("Cannot create settings file");
+        }
+
+        const auto WriteToFile = [&](auto&& v, size_t size = 0u) {
+            CFileMgr::Write(file, &v, size != 0 ? size : sizeof(v));
+        };
+
+        // Write file version and settings
+        WriteToFile(SETTINGS_FILE_VERSION);
+        ControlsManager.SaveSettings(file);
+        WriteToFile(CCamera::m_fMouseAccelHorzntl);
+        WriteToFile(bInvertMouseY);
+        WriteToFile(CVehicle::m_bEnableMouseSteering);
+        WriteToFile(CVehicle::m_bEnableMouseFlying);
+        WriteToFile(m_nSfxVolume);
+        WriteToFile(m_nRadioVolume);
+        WriteToFile(m_nRadioStation);
+        WriteToFile(m_bRadioAutoSelect);
+        WriteToFile(m_bRadioEq);
+        WriteToFile(m_PrefsBrightness);
+        WriteToFile(m_bPrefsMipMapping);
+        WriteToFile(m_bTracksAutoScan);
+        WriteToFile(m_nPrefsAntialiasing);
+        WriteToFile(g_fx.GetFxQuality());
+        WriteToFile(int8(84)); // 'T'
+        WriteToFile(m_fDrawDistance);
+        WriteToFile(m_bShowSubtitles);
+        WriteToFile(m_bWidescreenOn);
+        WriteToFile(m_bPrefsFrameLimiter);
+        WriteToFile(m_nPrefsVideoMode);
+        WriteToFile(m_ControlMethod);
+        WriteToFile(m_nPrefsLanguage);
+        WriteToFile(m_bHudOn);
+        WriteToFile(m_nRadarMode);
+        WriteToFile(m_nRadioMode);
+        WriteToFile(m_bSavePhotos);
+        WriteToFile(int8(29)); // ASCII GS - Group Separator (0x1D)
+        WriteToFile(m_bInvertPadX1);
+        WriteToFile(m_bInvertPadY1);
+        WriteToFile(m_bInvertPadX2);
+        WriteToFile(m_bInvertPadY2);
+        WriteToFile(m_bSwapPadAxis1);
+        WriteToFile(m_bSwapPadAxis2);
+        WriteToFile(m_bMapLegend);
+        WriteToFile(m_nUserTrackIndex);
+        WriteToFile(RwEngineGetCurrentSubSystem());
+        WriteToFile(int8(95)); // '_' underscore
+    }
+    catch (const std::exception&) {
+        // Simply ignore write errors, but ensure cleanup
+    }
+    
+    // Clean up
+    if (file) {
+        CFileMgr::CloseFile(file);
+    }
+    CFileMgr::SetDir("");
+}
+#endif
 
 // 0x57DDE0
 void CMenuManager::SaveStatsToFile() {

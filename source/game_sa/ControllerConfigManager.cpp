@@ -465,86 +465,8 @@ void CControllerConfigManager::HandleJoyButtonUpDown(int32 joyNo, bool isDown) {
         }
     }
 }
-#define BINARY_CONFIG 0
-#if BINARY_CONFIG
-bool CControllerConfigManager::LoadSettings(FILE* file) {
-    if (!file) {
-        return 1;
-    }
 
-    // Check if file has valid header
-    char header[32];
-    CFileMgr::Read(file, header, 29);
-    if (strncmp(header, "THIS FILE IS NOT VALID YET", 26) == 0) {
-        // Invalid header
-        return 1;
-    }
-
-    // Reset file position to start and read version
-    CFileMgr::Seek(file, 0, 0);
-    int32 version;
-    CFileMgr::Read(file, &version, 4);
-    
-    if (version < 6) {
-        // Version too old
-        return 1;
-    }
-
-    // Verify file format by checking action IDs
-    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
-        for (int32 actionId = 0; actionId < 59; actionId++) {
-            int32 storedActionId;
-            CFileMgr::Read(file, &storedActionId, 4);
-            
-            if (storedActionId != actionId) {
-                // Invalid action ID in file
-                return 0;
-            }
-            
-            
-            // Skip key data for now
-            CFileMgr::Seek(file, 8, 1);
-        }
-    }
-
-    // Go back to position after version info
-    CFileMgr::Seek(file, 4, 0);
-    
-    // Clear existing settings
-    MakeControllerActionsBlank();
-
-    // Read key mappings for each controller type
-    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
-        for (int32 actionId = 0; actionId < 59; actionId++) {
-            // Skip action ID
-            CFileMgr::Seek(file, 4, 1);
-            
-            // Read key and order for this action
-            CFileMgr::Read(file, &m_Actions[actionId].Keys[controllerType], 8);
-        }
-    }
-
-    return 1;
-}
-
-int32 CControllerConfigManager::SaveSettings(FILE* file) {
-    if (!file) {
-        return 0;
-    }
-    
-    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
-        for (int32 actionId = 0; actionId < 59; actionId++) {
-            // Write action ID
-            CFileMgr::Write(file, &actionId, 4);
-            
-            // Write key mapping data
-            CFileMgr::Write(file, &m_Actions[actionId].Keys[controllerType], 8);
-        }
-    }
-
-    return 1;
-}
-#else
+#ifdef INI_SETTINGS
 // INI SETTINGS
 // 0x530530
 bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
@@ -682,6 +604,86 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
         CFileMgr::Write(file, "\n", 1);
     }
     
+    return 1;
+}
+#else
+// 0x530530
+bool CControllerConfigManager::LoadSettings(FILE* file) {
+    if (!file) {
+        return 1;
+    }
+
+    // Check if file has valid header
+    char header[32];
+    CFileMgr::Read(file, header, 29);
+    if (strncmp(header, "THIS FILE IS NOT VALID YET", 26) == 0) {
+        // Invalid header
+        return 1;
+    }
+
+    // Reset file position to start and read version
+    CFileMgr::Seek(file, 0, 0);
+    int32 version;
+    CFileMgr::Read(file, &version, 4);
+    
+    if (version < 6) {
+        // Version too old
+        return 1;
+    }
+
+    // Verify file format by checking action IDs
+    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
+        for (int32 actionId = 0; actionId < 59; actionId++) {
+            int32 storedActionId;
+            CFileMgr::Read(file, &storedActionId, 4);
+            
+            if (storedActionId != actionId) {
+                // Invalid action ID in file
+                return 0;
+            }
+            
+            
+            // Skip key data for now
+            CFileMgr::Seek(file, 8, 1);
+        }
+    }
+
+    // Go back to position after version info
+    CFileMgr::Seek(file, 4, 0);
+    
+    // Clear existing settings
+    MakeControllerActionsBlank();
+
+    // Read key mappings for each controller type
+    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
+        for (int32 actionId = 0; actionId < 59; actionId++) {
+            // Skip action ID
+            CFileMgr::Seek(file, 4, 1);
+            
+            // Read key and order for this action
+            CFileMgr::Read(file, &m_Actions[actionId].Keys[controllerType], 8);
+        }
+    }
+
+    return 1;
+}
+
+// 0x52D200
+int32 CControllerConfigManager::SaveSettings(FILE* file) {
+    if (!file) {
+        return 0;
+    }
+    
+    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
+        for (int32 actionId = 0; actionId < 59; actionId++) {
+            // Write action ID
+            CFileMgr::Write(file, &actionId, 4);
+            
+            // Write key mapping data
+            CFileMgr::Write(file, &m_Actions[actionId].Keys[controllerType], 8);
+        }
+    }
+
     return 1;
 }
 #endif
