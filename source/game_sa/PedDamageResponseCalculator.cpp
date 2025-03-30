@@ -98,50 +98,51 @@ bool CPedDamageResponseCalculator::ComputeWillForceDeath(CPed* ped, CPedDamageRe
  * @param bSpeak
  * @addr 0x4B3210
  */
-void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageResponse& response, bool bSpeak) {
-    if (ped->IsPlayer() && CCheat::IsActive(CHEAT_NO_ONE_CAN_STOP_US) && m_weaponType < WEAPON_LAST_WEAPON) {
-        return;
+void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageResponse& rsp, bool bSpeak) {
+    if (ped->IsPlayer()) {
+        if (CCheat::IsActive(CHEAT_NO_ONE_CAN_STOP_US) && m_weaponType < WEAPON_LAST_WEAPON) {
+            return;
+        }
     }
 
-    response.m_bForceDeath = ComputeWillForceDeath(ped, response);
+    rsp.m_bForceDeath = ComputeWillForceDeath(ped, rsp);
 
     if (CCheat::IsActive(CHEAT_MEGA_PUNCH)) {
-        if (m_weaponType == WEAPON_UNARMED || m_weaponType == WEAPON_BRASSKNUCKLE || m_weaponType == WEAPON_PARACHUTE) {
+        if (notsa::contains({ WEAPON_UNARMED, WEAPON_BRASSKNUCKLE, WEAPON_PARACHUTE }, m_weaponType)) {
             m_fDamageFactor = ped->m_fHealth;
         }
     }
 
-    if (m_weaponType == WEAPON_FALL && m_bSpeak) {
-        response.m_bForceDeath   = false;
-        ped->m_fHealth           = std::max(ped->m_fHealth - m_fDamageFactor, 5.0f);
-        response.m_fDamageHealth = m_fDamageFactor - ped->m_fHealth;
+    if (!rsp.m_bForceDeath && m_weaponType == WEAPON_FALL && m_bSpeak) {
+        const auto prevHP   = ped->m_fHealth;
+        rsp.m_bForceDeath   = false;
+        ped->m_fHealth      = std::max(prevHP - m_fDamageFactor, 5.0f);
+        rsp.m_fDamageHealth = prevHP - ped->m_fHealth;
         if (bSpeak) {
             ped->Say(CTX_GLOBAL_PAIN_LOW, 0, 1.0, 0, 0, 0);
         }
         return;
     }
 
-    if (response.m_bForceDeath || ped->m_fHealth - m_fDamageFactor < 1.0f) {
-        response.m_bHealthZero   = true;
-        response.m_fDamageHealth = ped->m_fHealth;
-        ped->m_fHealth           = 0.0f;
+    if (rsp.m_bForceDeath || ped->m_fHealth - m_fDamageFactor < 1.0f) {
+        rsp.m_fDamageHealth = ped->m_fHealth;
+        rsp.m_bHealthZero   = true;
+        ped->m_fHealth      = 0.0f;
         return;
     }
-    
-    response.m_bForceDeath   = false;
-    response.m_fDamageHealth = m_fDamageFactor;
-    ped->m_fHealth           = ped->m_fHealth - m_fDamageFactor;
+
+    rsp.m_bForceDeath   = false;
+    rsp.m_fDamageHealth = m_fDamageFactor;
+    ped->m_fHealth      = ped->m_fHealth - m_fDamageFactor;
 
     if (bSpeak) {
-        if (m_weaponType == WEAPON_DROWNING) {
-            ped->Say(CTX_GLOBAL_PAIN_CJ_DROWNING, 0, 1.0, 0, 0, 0);
-        } else {
-            if (m_fDamageFactor < 5.0f && ped->m_fHealth - m_fDamageFactor > 10.0f) {
-                ped->Say(CTX_GLOBAL_PAIN_LOW, 0, 1.0, 0, 0, 0);
-                return;
-            }
-            ped->Say(CTX_GLOBAL_PAIN_HIGH, 0, 1.0, 0, 0, 0);
-        }
+        ped->Say(
+            m_weaponType == WEAPON_DROWNING
+                ? CTX_GLOBAL_PAIN_CJ_DROWNING
+                : m_fDamageFactor < 5.0f && ped->m_fHealth > 10.0f
+                    ? CTX_GLOBAL_PAIN_LOW
+                    : CTX_GLOBAL_PAIN_HIGH
+        );
     }
 }
 
