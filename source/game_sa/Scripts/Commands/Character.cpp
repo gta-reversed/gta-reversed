@@ -35,7 +35,7 @@ using namespace notsa::script;
 
 template<typename T>
 void HandleEntityMissionCleanup(CRunningScript& S, T& entity) {
-    if (S.m_UsesMissionCleanup) {
+    if (S.m_bUseMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(entity);
     }
 }
@@ -164,15 +164,19 @@ auto AttachFxSystemToCharBone(tScriptEffectSystem& fx, CPed& ped, eBoneTag bone)
 }
 
 auto GetDeadCharCoordinates(CPed& ped) {
-    return ped.IsInVehicle()
-        ? ped.m_pVehicle->GetPosition()
-        : ped.GetBonePosition(BONE_PELVIS);
+    if (ped.IsInVehicle()) {
+        return ped.m_pVehicle->GetPosition();
+    } else {
+        return ped.GetBonePosition(BONE_PELVIS);
+    }
 }
 
 auto GetCharCoordinates(CPed& ped) {
-    return ped.IsInVehicle()
-        ? ped.m_pVehicle->GetPosition()
-        : ped.GetPosition();
+    if (ped.IsInVehicle()) {
+        return ped.m_pVehicle->GetPosition();
+    } else {
+        return ped.GetPosition();
+    }
 }
 
 auto SetCharCoordinates(CRunningScript& S, CPed& ped, CVector coords) {
@@ -204,7 +208,7 @@ auto IsCharInArea3D(CRunningScript& S, CPed& ped, CVector a, CVector b, bool hig
 auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
     const auto veh = ped.GetVehicleIfInOne();
 
-    if (GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_UsesMissionCleanup) {
+    if (GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_bUseMissionCleanup) {
         // Unstore previous (If it still exists)
         if (CTheScripts::StoreVehicleIndex != -1) { // NOTSA: Bugfix
             if (const auto stored = GetVehiclePool()->GetAt(CTheScripts::StoreVehicleIndex)) {
@@ -613,7 +617,7 @@ auto CreatePed(CRunningScript& S, ePedType pedType, eModelID pedModel) -> CPed& 
     ped->SetCharCreatedBy(PED_MISSION);
     ped->bAllowMedicsToReviveMe = false;
     CPopulation::ms_nTotalMissionPeds++;
-    if (S.m_UsesMissionCleanup) {
+    if (S.m_bUseMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(*ped);
     }
     return *ped;
@@ -739,7 +743,7 @@ auto GetRandomCharInZone(CRunningScript& S, std::string_view zoneName, bool civi
         CTheScripts::LastRandomPedId = pedHandle;
         ped.SetCharCreatedBy(PED_MISSION);
         CPopulation::ms_nTotalMissionPeds++;
-        if (S.m_UsesMissionCleanup) {
+        if (S.m_bUseMissionCleanup) {
             CTheScripts::MissionCleanUp.AddEntityToList(ped);
         }
 
@@ -823,7 +827,7 @@ auto RemoveCharElegantly(CRunningScript& S, CPed* ped) {
             CWorld::RemoveReferencesToDeletedObject(ped);
         }
     }
-    if (S.m_UsesMissionCleanup) {
+    if (S.m_bUseMissionCleanup) {
         CTheScripts::MissionCleanUp.RemoveEntityFromList(*ped);
     }
 }
@@ -1048,11 +1052,6 @@ auto GetCharArmour(CPed& ped) {
     return ped.m_fArmour;
 }
 
-// 0x48C12E - COMMAND_GET_CHAR_ARMOUR
-void SetCharArmour(CPed& ped, float value) {
-    ped.m_fArmour = value;
-}
-
 // ATTACH_CHAR_TO_OBJECT
 auto AttachCharToObject(CPed& ped, CObject& obj, CVector offset, int32 orientation, float angleLimitDeg, eWeaponType wtype) {
     ped.AttachPedToEntity(&obj, offset, orientation, DegreesToRadians(angleLimitDeg), wtype);
@@ -1060,8 +1059,19 @@ auto AttachCharToObject(CPed& ped, CObject& obj, CVector offset, int32 orientati
 
 // HAS_CHAR_BEEN_DAMAGED_BY_CHAR
 auto HasCharBeenDamagedByChar(CPed* ped, CPed& byPed) {
-    return ped && ped->m_pLastEntityDamage
-        && (ped->m_pLastEntityDamage == &byPed || byPed.bInVehicle && ped->m_pLastEntityDamage == byPed.m_pVehicle);
+    if (!ped) {
+        return false;
+    }
+    if (!ped->m_pLastEntityDamage) {
+        return false;
+    }
+    if (ped->m_pLastEntityDamage == &byPed) {
+        return true;
+    }
+    if (byPed.bInVehicle && ped->m_pLastEntityDamage == byPed.m_pVehicle) {
+        return true;
+    }
+    return false;
 }
 
 // HAS_CHAR_BEEN_DAMAGED_BY_CAR
@@ -1091,7 +1101,7 @@ auto CreateRandomCharInVehicle(CRunningScript& S, CVehicle& veh, bool asDriver, 
     }
     ped->bAllowMedicsToReviveMe = false;
     CPopulation::ms_nTotalMissionPeds++;
-    if (S.m_UsesMissionCleanup) {
+    if (S.m_bUseMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(*ped);
     }
     return *ped;
@@ -1126,7 +1136,7 @@ auto SetCharAccuracy(CPed& ped, uint8 accuracy) {
 }
 
 void DoSetPedIsWaitingForCollision(CRunningScript& S, CPed& ped) {
-    if (S.m_UsesMissionCleanup) {
+    if (S.m_bUseMissionCleanup) {
         CWorld::Remove(&ped);
         ped.m_bIsStaticWaitingForCollision = true;
         CWorld::Add(&ped);
@@ -1179,9 +1189,9 @@ auto IsCharInTaxi(CPed& ped) {
 auto LoadCharDecisionMaker(CRunningScript& S, int32 type) { // TODO: return ScriptThing<CDecisionMaker>
     char pedDMName[1024];
     CDecisionMakerTypesFileLoader::GetPedDMName(type, pedDMName);
-    const auto id = CDecisionMakerTypesFileLoader::LoadDecisionMaker(pedDMName, DECISION_ON_FOOT, S.m_UsesMissionCleanup);
+    const auto id = CDecisionMakerTypesFileLoader::LoadDecisionMaker(pedDMName, DECISION_ON_FOOT, S.m_bUseMissionCleanup);
     const auto handle = CTheScripts::GetNewUniqueScriptThingIndex(id, SCRIPT_THING_DECISION_MAKER);
-    if (S.m_UsesMissionCleanup) {
+    if (S.m_bUseMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(handle, MISSION_CLEANUP_ENTITY_TYPE_DECISION_MAKER);
     }
     return handle;
@@ -1321,7 +1331,7 @@ void SetCurrentCharWeapon(CPed& ped, eWeaponType weaponType) {
 void MarkCharAsNoLongerNeeded(CRunningScript& S, int32 handle) { // TODO: Some way to get a CPed* and it's handle too (As this function seems to be called even if the handle is not pointing to a ped anymore)
     const auto ped = GetPedPool()->GetAtRef(handle); // This might be null, but we need the handle even if it is, so we can't take `CPed*` either...
     CTheScripts::CleanUpThisPed(ped);
-    if (S.m_UsesMissionCleanup) {
+    if (S.m_bUseMissionCleanup) {
         CTheScripts::MissionCleanUp.RemoveEntityFromList(handle, MISSION_CLEANUP_ENTITY_TYPE_PED);
     }
 }
@@ -1580,7 +1590,6 @@ void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_FREEZE_CHAR_POSITION, FreezeCharPosition);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_DROWNS_IN_WATER, SetCharDrownsInWater);
     REGISTER_COMMAND_HANDLER(COMMAND_GET_CHAR_ARMOUR, GetCharArmour);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_CHAR_ARMOUR, SetCharArmour);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_CHAR_WAITING_FOR_WORLD_COLLISION, IsCharWaitingForWorldCollision);
     REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_CHAR_TO_OBJECT, AttachCharToObject);
     REGISTER_COMMAND_HANDLER(COMMAND_HAS_CHAR_BEEN_DAMAGED_BY_CHAR, HasCharBeenDamagedByChar);
@@ -1807,6 +1816,7 @@ void notsa::script::commands::character::RegisterHandlers() {
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CHAR_OBJ_WALK_TO_CHAR);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CHAR_OBJ_AIM_GUN_AT_CHAR);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_GET_NTH_CLOSEST_CHAR_NODE);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CHAR_ARMOUR);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CHAR_SHUFFLE_INTO_DRIVERS_SEAT);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_SET_CHAR_AS_PLAYER_FRIEND);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_CHAR_OBJ_NO_OBJ);

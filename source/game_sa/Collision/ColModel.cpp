@@ -30,11 +30,11 @@ CColModel::CColModel() : m_boundBox() {
     m_pColData              = nullptr;
     m_bHasCollisionVolumes  = false;
     m_bIsSingleColDataAlloc = false;
-    m_IsActive             = true;
+    m_bIsActive             = true;
 }
 
 CColModel::~CColModel() {
-    if (!m_IsActive) {
+    if (!m_bIsActive) {
         return;
     }
     RemoveCollisionVolumes();

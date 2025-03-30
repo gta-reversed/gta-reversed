@@ -66,9 +66,16 @@ static_assert(is_script_thing_v<C2dEffect> && !is_script_thing_v<int>);
 };
 
 namespace detail {
+inline auto ReadArrayInfo(CRunningScript* S) {
+    uint16 offset{};
+    int32 idx{};
+    S->ReadArrayInformation(true, &offset, &idx);
+    return std::make_tuple(offset, idx);
+}
+
 template<typename T>
 concept PooledType =
-    requires { detail::PoolOf<typename std::remove_cvref_t<T>>(); };
+    requires { detail::PoolOf<std::remove_cvref_t<T>>(); };
 };
 
 namespace detail {
@@ -95,7 +102,7 @@ inline T Read(CRunningScript* S) {
     using Y = std::remove_pointer_t<std::remove_cvref_t<T>>;
 
     // First of all, deal with references
-    // References are a way to express that a value (non-null) value must be present
+    // References are a way to express that a valud (non-null) value must be present
     // While simple pointers are a way to express that "it's okay if it's null, I can handle it".
     // This check here also means that all other branches must either return by-value or a pointer (not a refernce)
     if constexpr (std::is_reference_v<T>) {
@@ -107,39 +114,59 @@ inline T Read(CRunningScript* S) {
     } else if constexpr (std::is_same_v<Y, CVector2D>) {
         return { Read<float>(S), Read<float>(S) };
     } else if constexpr (std::is_same_v<Y, CRect>) {
-        return { Read<CVector2D>(S), Read<CVector2D>(S) }; // Read as (minX, minY)+(maxX, maxY) or top-left+bottom-right
-    } else if constexpr (std::is_same_v<Y, std::string_view>) {
-        switch (const auto ptype = S->GetAtIPAs<eScriptParameterType>()) {
+        return { Read<CVector2D>(S), Read<CVector2D>(S) };
+    } else if constexpr (std::is_same_v<Y, std::string_view>) { 
+        auto& IP = S->m_IP;
+
+        const auto FromScriptSpace = [](const auto offset) {
+            return (const char*)&CTheScripts::ScriptSpace[offset];
+        };
+
+        const auto FromGlobalArray = [&](uint8 elemsz) {
+            const auto [offset, idx] = detail::ReadArrayInfo(S);
+            return FromScriptSpace(elemsz * idx + offset);
+        };
+
+        const auto FromLocalArray = [&](uint8 elemsz) {
+            const auto [offset, idx] = detail::ReadArrayInfo(S);
+            return (const char*)S->GetPointerToLocalArrayElement(offset, idx, elemsz);
+        };
+
+        const auto FromStaticString = [&](size_t strsz) -> std::string_view {
+            const auto str = (const char*)(IP);
+            IP += strsz;
+            return str;
+        };
+
+        switch (const auto ptype = (eScriptParameterType)S->ReadAtIPAs<uint8>()) {
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_VARIABLE:
-            return S->GetGlobal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>());
+        case SCRIPT_PARAM_GLOBAL_LONG_STRING_VARIABLE:
+            return FromScriptSpace(S->ReadAtIPAs<uint16>());
+
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_VARIABLE:
-            return S->GetLocal<scm::ShortString>(S->GetAtIPAs<scm::VarLoc>());
+        case SCRIPT_PARAM_LOCAL_LONG_STRING_VARIABLE:
+            return (const char*)S->GetPointerToLocalVariable(S->ReadAtIPAs<uint16>());
 
         case SCRIPT_PARAM_GLOBAL_SHORT_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::ShortString>(true);
+            return FromGlobalArray(SHORT_STRING_SIZE);
         case SCRIPT_PARAM_GLOBAL_LONG_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::LongString>(true);
+            return FromGlobalArray(LONG_STRING_SIZE);
 
         case SCRIPT_PARAM_LOCAL_SHORT_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::ShortString>(false);
+            return FromLocalArray(2); // 8 bytes
         case SCRIPT_PARAM_LOCAL_LONG_STRING_ARRAY:
-            return S->GetAtIPFromArray<scm::LongString>(false);
-
-        case SCRIPT_PARAM_LOCAL_LONG_STRING_VARIABLE:
-            return S->GetLocal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>());
-        case SCRIPT_PARAM_GLOBAL_LONG_STRING_VARIABLE:
-            return S->GetGlobal<scm::LongString>(S->GetAtIPAs<scm::VarLoc>());
+            return FromLocalArray(4); // 16 bytes
 
         case SCRIPT_PARAM_STATIC_SHORT_STRING:
-            return S->GetAtIPAs<scm::ShortString>();
+            return FromStaticString(SHORT_STRING_SIZE);
         case SCRIPT_PARAM_STATIC_LONG_STRING:
-            return S->GetAtIPAs<scm::LongString>();
-
+            return FromStaticString(LONG_STRING_SIZE);
         case SCRIPT_PARAM_STATIC_PASCAL_STRING: {
-            const auto sSize = S->GetAtIPAs<int8>(); // signed size, max size = 127, not 255
-            VERIFY(sSize >= 0);
-            const auto size = (size_t)(sSize);
-            return { &S->GetAtIPAs<char>(true, size), size};
+            const auto sz = S->ReadAtIPAs<int8>(); // sign extension. max size = 127, not 255
+            assert(sz >= 0);
+            const auto str = (const char*)(IP);
+            IP += (ptrdiff_t)(sz);
+            return std::string_view{ str, (size_t)(sz) };
         }
         default:
             NOTSA_UNREACHABLE("Unknown param type: {}", (int32)(ptype));
@@ -153,42 +180,48 @@ inline T Read(CRunningScript* S) {
         buffer[sv.size()] = '\0';
         return buffer.data();
     } else if constexpr (std::is_arithmetic_v<Y>) { // Simple arithmetic types (After reading a string, because `const char*` with cv and pointer removed is just `char` which is an arithmetic type)
-        const auto ptype = S->GetAtIPAs<eScriptParameterType>();
-        if constexpr (std::is_pointer_v<T>) { // by-ref (This is a special case, as some basic ops need a reference instead of a value)
+        const auto ptype = S->ReadAtIPAs<eScriptParameterType>();
+        if constexpr (std::is_pointer_v<T>) { // This is a special case, as some basic ops need a reference instead of a value
             switch (ptype) {
             case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-                return &S->GetGlobal<Y>(S->GetAtIPAs<scm::VarLoc>());
+                return reinterpret_cast<Y*>(&CTheScripts::ScriptSpace[S->ReadAtIPAs<uint16>()]);
             case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
-                return &S->GetLocal<Y>(S->GetAtIPAs<scm::VarLoc>());
-            case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY:
-                return &S->GetAtIPFromArray<Y>(true);
-            case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY:
-                return &S->GetAtIPFromArray<Y>(false);
+                return reinterpret_cast<Y*>(S->GetPointerToLocalVariable(S->ReadAtIPAs<uint16>()));
+            case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY: {
+                const auto [offset, idx] = detail::ReadArrayInfo(S);
+                return reinterpret_cast<Y*>(&CTheScripts::ScriptSpace[offset + sizeof(tScriptParam) * idx]);
+            }
+            case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY: {
+                const auto [offset, idx] = detail::ReadArrayInfo(S);
+                return reinterpret_cast<Y*>(S->GetPointerToLocalArrayElement(offset, idx, 1));
+            }
             }
         } else { // Regular by-value
             switch (ptype) {
-            case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-                return S->GetGlobal<T>(S->GetAtIPAs<scm::VarLoc>());
-            case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
-                return S->GetLocal<T>(S->GetAtIPAs<scm::VarLoc>());
-            case SCRIPT_PARAM_STATIC_INT_8BITS:
-                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int8>());
-            case SCRIPT_PARAM_STATIC_INT_16BITS:
-                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int16>());
             case SCRIPT_PARAM_STATIC_INT_32BITS:
-                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<int32>());
+                return detail::safe_arithmetic_cast<T>(S->ReadAtIPAs<int32>());
+            case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
+                return *reinterpret_cast<T*>(&CTheScripts::ScriptSpace[S->ReadAtIPAs<uint16>()]);
+            case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
+                return *reinterpret_cast<T*>(S->GetPointerToLocalVariable(S->ReadAtIPAs<uint16>()));
+            case SCRIPT_PARAM_STATIC_INT_8BITS:
+                return detail::safe_arithmetic_cast<T>(S->ReadAtIPAs<int8>());
+            case SCRIPT_PARAM_STATIC_INT_16BITS:
+                return detail::safe_arithmetic_cast<T>(S->ReadAtIPAs<int16>());
             case SCRIPT_PARAM_STATIC_FLOAT: {
                 if constexpr (!std::is_floating_point_v<T>) {
-                    // Check your call stack and change the function argument type to a float.
-                    // Possibly unintended truncation of `float` to integeral type!
-                    DebugBreak();
+                    DebugBreak(); // Possibly unintended truncation of `float` to integeral type! Check your call stack and change the function argument type to a float.
                 }
-                return detail::safe_arithmetic_cast<T>(S->GetAtIPAs<float>());
+                return detail::safe_arithmetic_cast<T>(S->ReadAtIPAs<float>());
             }
-            case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY:
-                return S->GetAtIPFromArray<T>(true);
-            case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY:
-                return S->GetAtIPFromArray<Y>(false);
+            case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY: {
+                const auto [offset, idx] = detail::ReadArrayInfo(S);
+                return *reinterpret_cast<T*>(&CTheScripts::ScriptSpace[offset + sizeof(tScriptParam) * idx]);
+            }
+            case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY: {
+                const auto [offset, idx] = detail::ReadArrayInfo(S);
+                return *reinterpret_cast<T*>(S->GetPointerToLocalArrayElement(offset, idx, 1));
+            }
             }
         }
         NOTSA_UNREACHABLE("Unknown param type: {}", (int32)(ptype));

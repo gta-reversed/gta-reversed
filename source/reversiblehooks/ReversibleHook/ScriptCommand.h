@@ -4,7 +4,7 @@
 #include "eScriptCommands.h"
 #include "RunningScript.h"
 
-#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
+#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
 namespace ReversibleHooks {
 namespace ReversibleHook {
 struct ScriptCommand : Base {

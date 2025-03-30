@@ -333,7 +333,10 @@ void CSprite2d::SetVertices(RwIm2DVertex* vertices, const CRect& posn, const CRG
 void CSprite2d::DrawRect(const CRect& posn, const CRGBA& color) {
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(NULL));
     SetVertices(posn, color, color, color, color);
-    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(color.a != 255));
+    if (color.a == 255)
+        RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
+    else
+        RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
     RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, maVertices, 4);
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
 }

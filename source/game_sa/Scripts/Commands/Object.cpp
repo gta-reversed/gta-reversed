@@ -22,7 +22,7 @@ CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     mi->m_nAlpha  = 255u;
 
     auto* object = CObject::Create(model, false);
-    object->m_nObjectType = (S.m_IsExternal || S.m_ExternalType != -1) ? OBJECT_MISSION2 : OBJECT_MISSION;
+    object->m_nObjectType = (S.m_bIsExternal || S.m_nExternalType != -1) ? OBJECT_MISSION2 : OBJECT_MISSION;
     CWorld::PutToGroundIfTooLow(posn);
     posn.z += object->GetDistanceFromCentreOfMassToBaseOfModel();
     object->SetPosn(posn);
@@ -36,7 +36,7 @@ CObject& CreateObject(CRunningScript& S, script::Model model, CVector posn) {
     CTheScripts::ClearSpaceForMissionEntity(posn, object);
     CWorld::Add(object);
 
-    if (S.m_UsesMissionCleanup) {
+    if (S.m_bUseMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(*object);
     }
     return *object;
@@ -49,8 +49,8 @@ void RemoveObject(CRunningScript& S, CObject* object) {
         delete object;
     }
 
-    if (S.m_UsesMissionCleanup) {
-        CTheScripts::MissionCleanUp.RemoveEntityFromList(std::bit_cast<int32>(object), MISSION_CLEANUP_ENTITY_TYPE_OBJECT);
+    if (S.m_bUseMissionCleanup) {
+        CTheScripts::MissionCleanUp.RemoveEntityFromList((int32)object, MISSION_CLEANUP_ENTITY_TYPE_OBJECT);
     }
 }
 
@@ -61,7 +61,7 @@ bool DoesObjectExists(CObject* object) {
 void MarkObjectNoLongerNeeded(CRunningScript& S, CObject* object) {
     CTheScripts::CleanUpThisObject(object);
 
-    if (object && S.m_UsesMissionCleanup) {
+    if (object && S.m_bUseMissionCleanup) {
         CTheScripts::MissionCleanUp.RemoveEntityFromList(*object);
     }
 }

@@ -2012,6 +2012,6 @@ auto CCamera::GetFrustumPoints() -> std::array<CVector, 5> {
     // Transform them to world space
     RwV3dTransformPoints(pts, pts, 5, GetRwMatrix());
 
-    // top left, top right, bottom right, bottom left, center
+    // That's it!
     return std::to_array(pts);
 }

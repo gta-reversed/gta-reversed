@@ -15,7 +15,7 @@ static void VerifyMacroImpl(bool result) {
 }
 };
 };
-#define VERIFY ::notsa::detail::VerifyMacroImpl
+#define VERIFY notsa::detail::VerifyMacroImpl
 #define VERIFY_TODO_FIX(_expr) (_expr) // Macro used to mark shit that uses `VERIFY and sometimes fails
 
 namespace notsa {

@@ -6,7 +6,7 @@
 struct tAudioZoneData {
     char  m_szName[8];
     int16 m_nAudioZone;
-    bool  m_IsActive : 1;
+    bool  m_bIsActive : 1;
 };
 VALIDATE_SIZE(tAudioZoneData, 0xC);
 

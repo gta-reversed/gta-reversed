@@ -19,7 +19,7 @@ public:
         struct {
             uint8 m_bHasCollisionVolumes : 1; // AKA `m_bNotEmpty`
             uint8 m_bIsSingleColDataAlloc : 1;
-            uint8 m_IsActive : 1;
+            uint8 m_bIsActive : 1;
         };
         uint8 m_nFlags;
     };
