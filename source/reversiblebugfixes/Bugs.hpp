@@ -50,9 +50,4 @@ inline const ReversibleBugFix CCarCtrl_RemoveDistantCars_UseAfterFree{
     .Description = "Fix user-after-free of vehicles (possibly) deleted by PossiblyRemoveVehicle",
     .Credit      = "Pirulax"
 };
-inline const ReversibleBugFix DrowningInstantDeath{
-    .Name        = "DrowningInstantDeath",
-    .Description = "Die instantly when all hp is lost while drowning",
-    .Credit      = "Unknown",
-};
 };
