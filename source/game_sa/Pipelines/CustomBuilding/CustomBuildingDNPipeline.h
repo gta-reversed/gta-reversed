@@ -40,6 +40,8 @@ public:
     static uint32 UsesThisPipeline(RpAtomic* atomic);
     static RwBool CustomPipeInstanceCB(void* object, RwResEntry* resEntry, RxD3D9AllInOneInstanceCallBack instanceCallback);
     static void PreRenderUpdate(RpAtomic* atomic, bool ignoreDNBalanceParam);
+    static void PreRenderUpdate(RpClump* clump, bool ignoreDNBalanceParam);
+
     static RpAtomic* PreRenderUpdateRpAtomicCB(RpAtomic* atomic, void* data);
 
     static void*     pluginExtraVertColourConstructorCB(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);
