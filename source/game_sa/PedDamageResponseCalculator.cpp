@@ -115,8 +115,12 @@ void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageRespo
 
     if (!rsp.m_bForceDeath && m_weaponType == WEAPON_FALL && m_bSpeak) {
         const auto prevHP   = ped->m_fHealth;
-        rsp.m_bForceDeath   = false;
         ped->m_fHealth      = std::max(prevHP - m_fDamageFactor, 5.0f);
+        if (notsa::IsFixBugs()) {
+            rsp.m_bForceDeath = false;
+        } else {
+            rsp.m_bHealthZero = false;
+        }
         rsp.m_fDamageHealth = prevHP - ped->m_fHealth;
         if (bSpeak) {
             ped->Say(CTX_GLOBAL_PAIN_LOW, 0, 1.0, 0, 0, 0);
@@ -131,7 +135,11 @@ void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageRespo
         return;
     }
 
-    rsp.m_bForceDeath   = false;
+    if (notsa::IsFixBugs()) {
+        rsp.m_bForceDeath = false;
+    } else {
+        rsp.m_bHealthZero = false;
+    }
     rsp.m_fDamageHealth = m_fDamageFactor;
     ped->m_fHealth      = ped->m_fHealth - m_fDamageFactor;
 
