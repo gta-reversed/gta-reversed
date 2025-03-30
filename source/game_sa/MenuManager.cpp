@@ -647,123 +647,180 @@ void CMenuManager::CentreMousePointer() {
     }
 }
 
-#ifdef INI_SETTINGS
+#ifdef NOTSA_INI_SETTINGS
 // 0x57C8F0
 void CMenuManager::LoadSettings() {
     CFileMgr::SetDirMyDocuments();
     
+    // Define maps to store all configuration sections and values dynamically
+    using IniMap = std::unordered_map<std::string, std::unordered_map<std::string, std::string>>;
+    IniMap configData;
+    
     FILE* file = nullptr;
     FILE* fileController = nullptr;
-    eLanguage prevLanguage   = m_nPrefsLanguage;
+    eLanguage prevLanguage = m_nPrefsLanguage;
     bInvertMouseY = true;
     
     try {
-        // Open main settings file
+        // Open configuration files
         file = CFileMgr::OpenFile("gta_sa.ini", "r");
-        // Open controller settings file
         fileController = CFileMgr::OpenFile("gta_sa_controls.ini", "r");
         
         if (!file) {
-            throw std::runtime_error("Cannot open settings file");
+            throw std::runtime_error("Cannot open main settings file");
         }
 
-        const int MAX_LINE_LENGTH = 256;
-        char line[MAX_LINE_LENGTH];
-        char section[64] = "";
-        bool validSettings = false;
-
-        while (CFileMgr::ReadLine(file, line, MAX_LINE_LENGTH)) {
-            // Skip comments and empty lines
-            if (line[0] == ';' || line[0] == '#' || line[0] == '\0' || line[0] == '\n' || line[0] == '\r')
-                continue;
-
-            // Remove trailing newline
-            char* newline = strchr(line, '\n');
-            if (newline) *newline = '\0';
-            newline = strchr(line, '\r');
-            if (newline) *newline = '\0';
-
-            // Check if this is a section header
+        // Determine file size to allocate proper buffer
+        int32 currentPos = CFileMgr::Tell(file);
+        CFileMgr::Seek(file, 0, SEEK_END);
+        int32 fileSize = CFileMgr::Tell(file);
+        CFileMgr::Seek(file, currentPos, SEEK_SET);
+        
+        if (fileSize <= 0) {
+            throw std::runtime_error("Empty settings file");
+        }
+        
+        // Read entire file into memory - dynamic buffer size
+        std::string content;
+        content.resize(fileSize);
+        int bytesRead = CFileMgr::Read(file, content.data(), fileSize);
+        content.push_back('\0'); // Ensure null termination
+        
+        // Parse INI format using a string stream
+        std::istringstream stream(content);
+        std::string line;
+        std::string currentSection;
+        
+        // Process each line from the file
+        while (std::getline(stream, line)) {
+            // Remove whitespace from beginning and end
+            line.erase(0, line.find_first_not_of(" \t\r\n"));
+            if (line.empty() || line[0] == ';' || line[0] == '#') {
+                continue; // Skip comments and empty lines
+            }
+            
+            // Trim trailing whitespace
+            size_t endPos = line.find_last_not_of(" \t\r\n");
+            if (endPos != std::string::npos) {
+                line = line.substr(0, endPos + 1);
+            }
+            
+            // Check if this is a section header [SectionName]
             if (line[0] == '[') {
-                char* end = strchr(line, ']');
-                if (end) {
-                    *end = '\0';
-                    strncpy_s(section, &line[1], sizeof(section));
+                size_t closeBracket = line.find(']');
+                if (closeBracket != std::string::npos) {
+                    currentSection = line.substr(1, closeBracket - 1);
                 }
                 continue;
             }
-
-            // Parse key=value
-            char* eq = strchr(line, '=');
-            if (!eq) continue;
             
-            *eq = '\0';
-            char* key = line;
-            char* value = eq + 1;
-
-            // Trim whitespace
-            while (*key && isspace((unsigned char)*key)) key++;
-            char* end = key + strlen(key) - 1;
-            while (end > key && isspace((unsigned char)*end)) *end-- = '\0';
-
-            while (*value && isspace((unsigned char)*value)) value++;
-            end = value + strlen(value) - 1;
-            while (end > value && isspace((unsigned char)*end)) *end-- = '\0';
-
-            validSettings = true;
-
-            // Process settings based on section and key
-            if (strcmp(section, "Display") == 0) {
-                if (strcmp(key, "Brightness") == 0) m_PrefsBrightness = atoi(value);
-                else if (strcmp(key, "MipMapping") == 0) m_bPrefsMipMapping = atoi(value) != 0;
-                else if (strcmp(key, "Antialiasing") == 0) m_nPrefsAntialiasing = atoi(value);
-                else if (strcmp(key, "DrawDistance") == 0) m_fDrawDistance = (float)atof(value);
-                else if (strcmp(key, "Subtitles") == 0) m_bShowSubtitles = atoi(value) != 0;
-                else if (strcmp(key, "Widescreen") == 0) m_bWidescreenOn = atoi(value) != 0;
-                else if (strcmp(key, "FrameLimiter") == 0) m_bPrefsFrameLimiter = atoi(value) != 0;
-                else if (strcmp(key, "VideoMode") == 0) m_nPrefsVideoMode = atoi(value);
-                else if (strcmp(key, "HUD") == 0) m_bHudOn = atoi(value) != 0;
-                else if (strcmp(key, "RadarMode") == 0) m_nRadarMode = static_cast<eRadarMode>(atoi(value));
-                else if (strcmp(key, "FxQuality") == 0) g_fx.SetFxQuality(static_cast<FxQuality_e>(atoi(value)));
-                else if (strcmp(key, "SavePhotos") == 0) m_bSavePhotos = atoi(value) != 0;
-                else if (strcmp(key, "MapLegend") == 0) m_bMapLegend = atoi(value) != 0;
-            }
-            else if (strcmp(section, "Audio") == 0) {
-                if (strcmp(key, "SfxVolume") == 0) m_nSfxVolume = atoi(value);
-                else if (strcmp(key, "RadioVolume") == 0) m_nRadioVolume = atoi(value);
-                else if (strcmp(key, "RadioStation") == 0) m_nRadioStation = static_cast<eRadioID>(atoi(value));
-                else if (strcmp(key, "RadioAutoSelect") == 0) m_bRadioAutoSelect = atoi(value) != 0;
-                else if (strcmp(key, "RadioEq") == 0) m_bRadioEq = atoi(value) != 0;
-                else if (strcmp(key, "TracksAutoScan") == 0) m_bTracksAutoScan = atoi(value) != 0;
-                else if (strcmp(key, "RadioMode") == 0) m_nRadioMode = atoi(value);
-                else if (strcmp(key, "UserTrackIndex") == 0) m_nUserTrackIndex = atoi(value);
-            }
-            else if (strcmp(section, "Input") == 0) {
-                if (strcmp(key, "MouseAcceleration") == 0) CCamera::m_fMouseAccelHorzntl = (float)atof(value);
-                else if (strcmp(key, "InvertMouseY") == 0) bInvertMouseY = atoi(value) != 0;
-                else if (strcmp(key, "MouseSteering") == 0) CVehicle::m_bEnableMouseSteering = atoi(value) != 0;
-                else if (strcmp(key, "MouseFlying") == 0) CVehicle::m_bEnableMouseFlying = atoi(value) != 0;
-                else if (strcmp(key, "Controller") == 0) m_ControlMethod = atoi(value) != 0;
-                else if (strcmp(key, "InvertPadX1") == 0) m_bInvertPadX1 = atoi(value) != 0;
-                else if (strcmp(key, "InvertPadY1") == 0) m_bInvertPadY1 = atoi(value) != 0;
-                else if (strcmp(key, "InvertPadX2") == 0) m_bInvertPadX2 = atoi(value) != 0;
-                else if (strcmp(key, "InvertPadY2") == 0) m_bInvertPadY2 = atoi(value) != 0;
-                else if (strcmp(key, "SwapPadAxis1") == 0) m_bSwapPadAxis1 = atoi(value) != 0;
-                else if (strcmp(key, "SwapPadAxis2") == 0) m_bSwapPadAxis2 = atoi(value) != 0;
-            }
-            else if (strcmp(section, "System") == 0) {
-                if (strcmp(key, "Language") == 0) m_nPrefsLanguage = static_cast<eLanguage>(atoi(value));
-                else if (strcmp(key, "RwSubsystem") == 0) m_nCurrentRwSubsystem = atoi(value);
+            // Parse key=value pairs
+            size_t equalPos = line.find('=');
+            if (equalPos != std::string::npos) {
+                std::string key = line.substr(0, equalPos);
+                std::string value = line.substr(equalPos + 1);
+                
+                // Trim whitespace around key and value
+                key.erase(0, key.find_first_not_of(" \t"));
+                key.erase(key.find_last_not_of(" \t") + 1);
+                value.erase(0, value.find_first_not_of(" \t"));
+                value.erase(value.find_last_not_of(" \t") + 1);
+                
+                // Store in our configuration map
+                configData[currentSection][key] = value;
             }
         }
+        
+        // Helper function to retrieve values with type conversion
+        auto getValue = [&configData](const std::string& section, const std::string& key, auto defaultValue) -> std::decay_t<decltype(defaultValue)> {
+            try:
+                using ValueType = std::decay_t<decltype(defaultValue)>;
+                
+                if (configData.count(section) && configData[section].count(key)) {
+                    const std::string& valueStr = configData[section][key];
+                    if constexpr (std::is_same_v<ValueType, bool>) {
+                        return std::stoi(valueStr) != 0;
+                    } else if constexpr (std::is_same_v<ValueType, int> || std::is_integral_v<ValueType>) {
+                        return static_cast<ValueType>(std::stoi(valueStr));
+                    } else if constexpr (std::is_same_v<ValueType, float> || std::is_floating_point_v<ValueType>) {
+                        return static_cast<ValueType>(std::stof(valueStr));
+                    } else {
+                        return ValueType(valueStr);
+                    }
+                }
+            } catch (const std::exception&) {
+                // Handle conversion errors gracefully
+                std::cerr << "Error converting value for " << section << ":" << key << std::endl;
+            }
 
+            return defaultValue;
+        };
+        
+        // Process and apply configuration values
+        bool validSettings = !configData.empty();
+        
+        // Display settings
+        if (configData.count("Display")) {
+            m_PrefsBrightness = getValue("Display", "Brightness", m_PrefsBrightness);
+            m_bPrefsMipMapping = getValue("Display", "MipMapping", m_bPrefsMipMapping);
+            m_nPrefsAntialiasing = getValue("Display", "Antialiasing", m_nPrefsAntialiasing);
+            m_fDrawDistance = getValue("Display", "DrawDistance", m_fDrawDistance);
+            m_bShowSubtitles = getValue("Display", "Subtitles", m_bShowSubtitles);
+            m_bWidescreenOn = getValue("Display", "Widescreen", m_bWidescreenOn);
+            m_bPrefsFrameLimiter = getValue("Display", "FrameLimiter", m_bPrefsFrameLimiter);
+            m_nPrefsVideoMode = getValue("Display", "VideoMode", m_nPrefsVideoMode);
+            m_bHudOn = getValue("Display", "HUD", m_bHudOn);
+            m_nRadarMode = static_cast<eRadarMode>(getValue("Display", "RadarMode", static_cast<int>(m_nRadarMode)));
+            
+            // Special handling for FxQuality
+            if (configData["Display"].count("FxQuality")) {
+                g_fx.SetFxQuality(static_cast<FxQuality_e>(std::stoi(configData["Display"]["FxQuality"])));
+            }
+            
+            m_bSavePhotos = getValue("Display", "SavePhotos", m_bSavePhotos);
+            m_bMapLegend = getValue("Display", "MapLegend", m_bMapLegend);
+        }
+        
+        // Audio settings
+        if (configData.count("Audio")) {
+            m_nSfxVolume = getValue("Audio", "SfxVolume", m_nSfxVolume);
+            m_nRadioVolume = getValue("Audio", "RadioVolume", m_nRadioVolume);
+            m_nRadioStation = static_cast<eRadioID>(getValue("Audio", "RadioStation", static_cast<int>(m_nRadioStation)));
+            m_bRadioAutoSelect = getValue("Audio", "RadioAutoSelect", m_bRadioAutoSelect);
+            m_bRadioEq = getValue("Audio", "RadioEq", m_bRadioEq);
+            m_bTracksAutoScan = getValue("Audio", "TracksAutoScan", m_bTracksAutoScan);
+            m_nRadioMode = getValue("Audio", "RadioMode", m_nRadioMode);
+            m_nUserTrackIndex = getValue("Audio", "UserTrackIndex", m_nUserTrackIndex);
+        }
+        
+        // Input settings
+        if (configData.count("Input")) {
+            CCamera::m_fMouseAccelHorzntl = getValue("Input", "MouseAcceleration", CCamera::m_fMouseAccelHorzntl);
+            bInvertMouseY = getValue("Input", "InvertMouseY", bInvertMouseY);
+            CVehicle::m_bEnableMouseSteering = getValue("Input", "MouseSteering", CVehicle::m_bEnableMouseSteering);
+            CVehicle::m_bEnableMouseFlying = getValue("Input", "MouseFlying", CVehicle::m_bEnableMouseFlying);
+            m_ControlMethod = getValue("Input", "Controller", m_ControlMethod);
+            m_bInvertPadX1 = getValue("Input", "InvertPadX1", m_bInvertPadX1);
+            m_bInvertPadY1 = getValue("Input", "InvertPadY1", m_bInvertPadY1);
+            m_bInvertPadX2 = getValue("Input", "InvertPadX2", m_bInvertPadX2);
+            m_bInvertPadY2 = getValue("Input", "InvertPadY2", m_bInvertPadY2);
+            m_bSwapPadAxis1 = getValue("Input", "SwapPadAxis1", m_bSwapPadAxis1);
+            m_bSwapPadAxis2 = getValue("Input", "SwapPadAxis2", m_bSwapPadAxis2);
+        }
+        
+        // System settings
+        if (configData.count("System")) {
+            m_nPrefsLanguage = static_cast<eLanguage>(getValue("System", "Language", static_cast<int>(m_nPrefsLanguage)));
+            m_nCurrentRwSubsystem = getValue("System", "RwSubsystem", m_nCurrentRwSubsystem);
+        }
+        
         // Load controller settings from separate file
         bool controlsLoaded = false;
         if (fileController) {
             controlsLoaded = ControlsManager.LoadSettings(fileController);
         }
         
-        // If settings were valid, apply them
+        // Apply settings if valid data was found
         if (validSettings) {
             CCamera::m_bUseMouse3rdPerson = m_ControlMethod == false;
             CRenderer::ms_lodDistScale = m_fDrawDistance;
@@ -776,7 +833,7 @@ void CMenuManager::LoadSettings() {
             AudioEngine.SetBassEnhanceOnOff(m_bRadioEq);
             AudioEngine.SetRadioAutoRetuneOnOff(m_bRadioAutoSelect);
             AudioEngine.RetuneRadio(m_nRadioStation);
-
+            
             if (prevLanguage != m_nPrefsLanguage) {
                 field_8C = true;
                 TheText.Load(false);
@@ -787,7 +844,7 @@ void CMenuManager::LoadSettings() {
                 field_8C = false;
             }
         } else {
-            // Settings were not valid, set defaults but keep language and radio station
+            // If no valid settings found, set defaults but preserve language and radio station
             SetDefaultPreferences(SCREEN_AUDIO_SETTINGS);
             SetDefaultPreferences(SCREEN_DISPLAY_SETTINGS);
             SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
@@ -795,10 +852,9 @@ void CMenuManager::LoadSettings() {
             m_nCurrentRwSubsystem = 0;
             m_nPrefsLanguage = eLanguage::AMERICAN;
             m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
-            
         }
     }
-    catch (const std::exception&) {
+    catch (const std::exception& e) {
         // In case of error, set defaults
         SetDefaultPreferences(SCREEN_AUDIO_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_SETTINGS);
@@ -807,99 +863,127 @@ void CMenuManager::LoadSettings() {
         m_nCurrentRwSubsystem = 0;
         m_nPrefsLanguage = eLanguage::AMERICAN;
         m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
-
-        // Clean up
+        
+        // Log error message and clean up
+        OutputDebugStringA(e.what());
+        
         if (file) CFileMgr::CloseFile(file);
         if (fileController) CFileMgr::CloseFile(fileController);
         CFileMgr::SetDir("");
     }
-    // Clean up
+    
+    // Clean up resources
     if (file) CFileMgr::CloseFile(file);
     if (fileController) CFileMgr::CloseFile(fileController);
     CFileMgr::SetDir("");
-
 }
 
 // 0x57C660
 void CMenuManager::SaveSettings() {
     CFileMgr::SetDirMyDocuments();
-
-    auto file = CFileMgr::OpenFile("gta_sa.ini", "w");
-    if (!file) {
-        CFileMgr::SetDir("");
-        return;
+    
+    FILE* file = nullptr;
+    FILE* fileController = nullptr;
+    
+    try {
+        // Open files for writing
+        file = CFileMgr::OpenFile("gta_sa.ini", "w");
+        if (!file) {
+            throw std::runtime_error("Cannot create main settings file");
+        }
+        
+        fileController = CFileMgr::OpenFile("gta_sa_controls.ini", "w");
+        if (!fileController) {
+            CFileMgr::CloseFile(file);
+            throw std::runtime_error("Cannot create controller settings file");
+        }
+        
+        // Helper function to write a section to the INI file
+        auto writeSection = [&file](const std::string& sectionName, const std::vector<std::pair<std::string, std::string>>& settings) {
+            // Write section header
+            std::string header = "[" + sectionName + "]\n";
+            CFileMgr::Write(file, header.c_str(), static_cast<int32>(header.length()));
+            
+            // Write each key-value pair
+            for (const auto& [key, value] : settings) {
+                std::string line = key + "=" + value + "\n";
+                CFileMgr::Write(file, line.c_str(), static_cast<int32>(line.length()));
+            }
+            
+            // Add a blank line after each section
+            CFileMgr::Write(file, "\n", 1);
+        };
+        
+        // Write file header
+        std::string header = "; GTA San Andreas Settings File\n; Generated by GTA:SA\n\n";
+        CFileMgr::Write(file, header.c_str(), static_cast<int32>(header.length()));
+        
+        // Write display settings
+        std::ostringstream drawDistStream;
+        drawDistStream << std::fixed << std::setprecision(2) << m_fDrawDistance;
+        
+        writeSection("Display", {
+            {"Brightness", std::to_string(m_PrefsBrightness)},
+            {"MipMapping", std::to_string(m_bPrefsMipMapping)},
+            {"Antialiasing", std::to_string(m_nPrefsAntialiasing)},
+            {"DrawDistance", drawDistStream.str()},
+            {"Subtitles", std::to_string(m_bShowSubtitles)},
+            {"Widescreen", std::to_string(m_bWidescreenOn)},
+            {"FrameLimiter", std::to_string(m_bPrefsFrameLimiter)},
+            {"VideoMode", std::to_string(m_nPrefsVideoMode)},
+            {"HUD", std::to_string(m_bHudOn)},
+            {"RadarMode", std::to_string(m_nRadarMode)},
+            {"FxQuality", std::to_string(g_fx.GetFxQuality())},
+            {"SavePhotos", std::to_string(m_bSavePhotos)},
+            {"MapLegend", std::to_string(m_bMapLegend)}
+        });
+        
+        // Write audio settings
+        writeSection("Audio", {
+            {"SfxVolume", std::to_string(m_nSfxVolume)},
+            {"RadioVolume", std::to_string(m_nRadioVolume)},
+            {"RadioStation", std::to_string(m_nRadioStation)},
+            {"RadioAutoSelect", std::to_string(m_bRadioAutoSelect)},
+            {"RadioEq", std::to_string(m_bRadioEq)},
+            {"TracksAutoScan", std::to_string(m_bTracksAutoScan)},
+            {"RadioMode", std::to_string(m_nRadioMode)},
+            {"UserTrackIndex", std::to_string(m_nUserTrackIndex)}
+        });
+        
+        // Write input settings with special handling for floating-point values
+        std::ostringstream mouseAccel;
+        mouseAccel << std::fixed << std::setprecision(6) << CCamera::m_fMouseAccelHorzntl;
+        
+        writeSection("Input", {
+            {"MouseAcceleration", mouseAccel.str()},
+            {"InvertMouseY", std::to_string(bInvertMouseY)},
+            {"MouseSteering", std::to_string(CVehicle::m_bEnableMouseSteering)},
+            {"MouseFlying", std::to_string(CVehicle::m_bEnableMouseFlying)},
+            {"Controller", std::to_string(m_ControlMethod)},
+            {"InvertPadX1", std::to_string(m_bInvertPadX1)},
+            {"InvertPadY1", std::to_string(m_bInvertPadY1)},
+            {"InvertPadX2", std::to_string(m_bInvertPadX2)},
+            {"InvertPadY2", std::to_string(m_bInvertPadY2)},
+            {"SwapPadAxis1", std::to_string(m_bSwapPadAxis1)},
+            {"SwapPadAxis2", std::to_string(m_bSwapPadAxis2)}
+        });
+        
+        // Write system settings
+        writeSection("System", {
+            {"Language", std::to_string((int)m_nPrefsLanguage)},
+            {"RwSubsystem", std::to_string(RwEngineGetCurrentSubSystem())}
+        });
+        
+        // Save controller settings
+        ControlsManager.SaveSettings(fileController);
     }
-    auto fileController = CFileMgr::OpenFile("gta_sa_controls.ini", "w");
-    if (!fileController) {
-        CFileMgr::SetDir("");
-        return;
+    catch (const std::exception& e) {
+        OutputDebugStringA(e.what());
     }
-
-    // Helper function to write a line to the INI file
-    const auto WriteLine = [&](const char* format, ...) {
-        va_list args;
-        va_start(args, format);
-        char buffer[256];
-        vsprintf_s(buffer, format, args);
-        va_end(args);
-        CFileMgr::Write(file, buffer, strlen(buffer));
-    };
-
-    // Write header
-    WriteLine("; GTA San Andreas Settings File\n");
-    WriteLine("; Generated by GTA Reversed Keys\n\n");
-
-    // Display settings
-    WriteLine("[Display]\n");
-    WriteLine("Brightness=%d\n", m_PrefsBrightness);
-    WriteLine("MipMapping=%d\n", m_bPrefsMipMapping);
-    WriteLine("Antialiasing=%d\n", m_nPrefsAntialiasing);
-    WriteLine("FxQuality=%d\n", g_fx.GetFxQuality());
-    WriteLine("DrawDistance=%.2f\n", m_fDrawDistance);
-    WriteLine("Subtitles=%d\n", m_bShowSubtitles);
-    WriteLine("Widescreen=%d\n", m_bWidescreenOn);
-    WriteLine("FrameLimiter=%d\n", m_bPrefsFrameLimiter);
-    WriteLine("VideoMode=%d\n", m_nPrefsVideoMode);
-    WriteLine("HUD=%d\n", m_bHudOn);
-    WriteLine("RadarMode=%d\n", m_nRadarMode);
-    WriteLine("SavePhotos=%d\n", m_bSavePhotos);
-    WriteLine("MapLegend=%d\n\n", m_bMapLegend);
-
-    // Audio settings
-    WriteLine("[Audio]\n");
-    WriteLine("SfxVolume=%d\n", m_nSfxVolume);
-    WriteLine("RadioVolume=%d\n", m_nRadioVolume);
-    WriteLine("RadioStation=%d\n", m_nRadioStation);
-    WriteLine("RadioAutoSelect=%d\n", m_bRadioAutoSelect);
-    WriteLine("RadioEq=%d\n", m_bRadioEq);
-    WriteLine("TracksAutoScan=%d\n", m_bTracksAutoScan);
-    WriteLine("RadioMode=%d\n", m_nRadioMode);
-    WriteLine("UserTrackIndex=%d\n\n", m_nUserTrackIndex);
-
-    // Input settings
-    WriteLine("[Input]\n");
-    WriteLine("MouseAcceleration=%.6f\n", CCamera::m_fMouseAccelHorzntl);
-    WriteLine("InvertMouseY=%d\n", bInvertMouseY);
-    WriteLine("MouseSteering=%d\n", CVehicle::m_bEnableMouseSteering);
-    WriteLine("MouseFlying=%d\n", CVehicle::m_bEnableMouseFlying);
-    WriteLine("Controller=%d\n", m_ControlMethod);
-    WriteLine("InvertPadX1=%d\n", m_bInvertPadX1);
-    WriteLine("InvertPadY1=%d\n", m_bInvertPadY1);
-    WriteLine("InvertPadX2=%d\n", m_bInvertPadX2);
-    WriteLine("InvertPadY2=%d\n", m_bInvertPadY2);
-    WriteLine("SwapPadAxis1=%d\n", m_bSwapPadAxis1);
-    WriteLine("SwapPadAxis2=%d\n\n", m_bSwapPadAxis2);
-
-    // System settings
-    WriteLine("[System]\n");
-    WriteLine("Language=%d\n", m_nPrefsLanguage);
-    WriteLine("RwSubsystem=%d\n\n", RwEngineGetCurrentSubSystem());
-
-    // Control settings
-    ControlsManager.SaveSettings(fileController);
-    CFileMgr::CloseFile(fileController);
-
-    CFileMgr::CloseFile(file);
+    
+    // Clean up resources
+    if (file) CFileMgr::CloseFile(file);
+    if (fileController) CFileMgr::CloseFile(fileController);
     CFileMgr::SetDir("");
 }
 #else // BINARY CLASSIC

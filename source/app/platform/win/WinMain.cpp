@@ -379,11 +379,13 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
 
     // 0x748995
     CFileMgr::SetDirMyDocuments();
-    #ifdef INI_SETTINGS
+#define NOTSA_INI_SETTINGS 1
+
+#ifdef NOTSA_INI_SETTINGS
     if (auto* file = CFileMgr::OpenFile("gta_sa_controls.ini", "rb")) {
-    #else
+#else
     if (auto* file = CFileMgr::OpenFile("gta_sa.set", "rb")) {
-    #endif
+#endif
         if (!ControlsManager.LoadSettings(file)) {
             ControlsManager.ReinitControls();
         }

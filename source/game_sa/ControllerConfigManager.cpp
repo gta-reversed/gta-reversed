@@ -465,8 +465,7 @@ void CControllerConfigManager::HandleJoyButtonUpDown(int32 joyNo, bool isDown) {
         }
     }
 }
-
-#ifdef INI_SETTINGS
+#ifdef NOTSA_INI_SETTINGS
 // INI SETTINGS
 // 0x530530
 bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
@@ -475,65 +474,81 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
     }
     
     // Read the entire file into memory
-    char buffer[8192] = {0}; // Assuming the file won't be larger than this
-    int fileSize = CFileMgr::Read(file, buffer, sizeof(buffer) - 1);
+    int32 currentPos = CFileMgr::Tell(file);
+    CFileMgr::Seek(file, 0, SEEK_END);
+    int32 fileSize = CFileMgr::Tell(file);
+    CFileMgr::Seek(file, currentPos, SEEK_SET); // Reset file pointer
+    
     if (fileSize <= 0) {
         return false;
     }
-    buffer[fileSize] = '\0'; // Ensure null-termination
+    
+    // Save space for the file content
+    std::string buffer;
+    buffer.resize(fileSize);
+    
+    // Leer el archivo completo
+    int bytesRead = CFileMgr::Read(file, buffer.data(), fileSize);
+    if (bytesRead <= 0) {
+        return false;
+    }
+    
+    // Add null terminator to the end of the string
+    buffer.push_back('\0');
     
     MakeControllerActionsBlank(); // Clear existing bindings
     
-    // Parse INI format
-    char* line = strtok(buffer, "\r\n");
+    // Parse INI format with modern string handling
+    std::istringstream stream(buffer);
+    std::string line;
     eControllerType currentType = eControllerType::KEYBOARD;
     
-    while (line) {
+    while (std::getline(stream, line)) {
         // Skip empty lines and comments
-        if (line[0] == '\0' || line[0] == ';' || line[0] == '#') {
-            line = strtok(NULL, "\r\n");
+        if (line.empty() || line[0] == ';' || line[0] == '#') {
             continue;
         }
         
         // Check for section header [SectionName]
         if (line[0] == '[') {
-            char* end = strchr(line, ']');
-            if (end) {
-                *end = '\0';
-                if (strcmp(line + 1, "Keyboard") == 0) {
+            auto endBracket = line.find(']');
+            if (endBracket != std::string::npos) {
+                std::string section = line.substr(1, endBracket - 1);
+                
+                if (section == "Keyboard") {
                     currentType = eControllerType::KEYBOARD;
-                } else if (strcmp(line + 1, "OptionalKey") == 0) {
+                } else if (section == "OptionalKey") {
                     currentType = eControllerType::OPTIONAL_EXTRA_KEY;
-                } else if (strcmp(line + 1, "Mouse") == 0) {
+                } else if (section == "Mouse") {
                     currentType = eControllerType::MOUSE;
-                } else if (strcmp(line + 1, "Joystick") == 0) {
+                } else if (section == "Joystick") {
                     currentType = eControllerType::JOY_STICK;
                 }
             }
         } 
         // Parse key=value pairs
         else {
-            char* separator = strchr(line, '=');
-            if (separator) {
-                *separator = '\0';
-                char* actionName = line;
-                char* value = separator + 1;
+            auto separator = line.find('=');
+            if (separator != std::string::npos) {
+                std::string actionName = line.substr(0, separator);
+                std::string value = line.substr(separator + 1);
                 
                 // Find action by name or by ID
                 eControllerAction actionId = CA_INVALID;
                 
+                // Rest of the implementation remains the same...
                 // Try to parse as action ID first
-                if (isdigit(actionName[0])) {
-                    int id = atoi(actionName);
+                if (std::isdigit(actionName[0])) {
+                    int id = std::stoi(actionName);
                     if (id >= 0 && id < eControllerAction::NUM_OF_CONTROLLER_ACTIONS) {
                         actionId = (eControllerAction)id;
                     }
                 } else {
                     // Try to find by name
                     for (int i = 0; i < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; i++) {
-                        char textName[128] = {0}; // Initialize with zeros to ensure null-termination
+                        char textName[128] = {0};
                         GxtCharToUTF8(textName, m_ControllerActionName[i]);
-                        if (strcmp(textName, actionName) == 0) {
+                        if (actionName == textName) {
                             actionId = (eControllerAction)i;
                             break;
                         }
@@ -542,13 +557,12 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
                 
                 if (actionId != CA_INVALID) {
                     // Parse the key value and order
-                    char* orderStr = strchr(value, ',');
-                    int keyValue = atoi(value);
+                    auto commaPos = value.find(',');
+                    int keyValue = std::stoi(value);
                     int orderValue = 0;
                     
-                    if (orderStr) {
-                        *orderStr = '\0';
-                        orderValue = atoi(orderStr + 1);
+                    if (commaPos != std::string::npos) {
+                        orderValue = std::stoi(value.substr(commaPos + 1));
                     }
                     
                     // Set the binding
@@ -557,30 +571,27 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
                 }
             }
         }
-        
-        line = strtok(NULL, "\r\n");
     }
     
     return true;
 }
-
 // 0x52D200
 int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
     if (!file) {
-        return 0;
+        return false;
     }
     
     // Write header
-    const char* header = "; GTA SA Controller Configuration\n; Generated by GTA:SA\n\n";
-    CFileMgr::Write(file, header, (int32)strlen(header));
+    std::string header = "; GTA SA Controller Configuration\n; Generated by GTA:SA\n\n";
+    CFileMgr::Write(file, header.c_str(), (int32)header.length());
     
     // Write sections for each controller type
-    const char* sections[] = {"Keyboard", "OptionalKey", "Mouse", "Joystick"};
+    const std::array<std::string, 4> sections = {"Keyboard", "OptionalKey", "Mouse", "Joystick"};
     
     for (int i = 0; i < CONTROLLER_NUM; i++) {
-        char sectionHeader[128];
-        sprintf(sectionHeader, "[%s]\n", sections[i]);
-        CFileMgr::Write(file, sectionHeader, (int32)strlen(sectionHeader));
+        // Write section header
+        std::string sectionHeader = "[" + sections[i] + "]\n";
+        CFileMgr::Write(file, sectionHeader.c_str(), (int32)sectionHeader.length());
         
         for (int j = 0; j < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; j++) {
             // Skip empty bindings
@@ -592,19 +603,23 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
             char actionName[128];
             GxtCharToUTF8(actionName, m_ControllerActionName[j]);
             
-            // Write key=value
-            char line[256];
-            sprintf(line, "%s=%d,%d\n", actionName, 
-                   m_Actions[j].Keys[i].m_uiActionInitiator, 
-                   m_Actions[j].Keys[i].m_uiSetOrder);
-            CFileMgr::Write(file, line, (int32)strlen(line));
+            // Format key value assignment
+            std::ostringstream lineStream;
+            lineStream << actionName << "=" 
+                      << m_Actions[j].Keys[i].m_uiActionInitiator 
+                      << "," 
+                      << m_Actions[j].Keys[i].m_uiSetOrder 
+                      << "\n";
+            
+            std::string line = lineStream.str();
+            CFileMgr::Write(file, line.c_str(), (int32)line.length());
         }
         
         // Add a separator between sections
         CFileMgr::Write(file, "\n", 1);
     }
     
-    return 1;
+    return true;
 }
 #else
 // 0x530530

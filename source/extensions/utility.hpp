@@ -182,16 +182,6 @@ constexpr auto IsFixBugs() {
     return false;
 #endif
 }
-
-/* TODO: implement this in a better way later
-constexpr auto IsINISettings() {
-#ifdef INI_SETTINGS
-    return true;
-#else
-    return false;
-#endif
-}
-*/
     
 /// Predicate to check if `value` is null
 struct IsNull {
