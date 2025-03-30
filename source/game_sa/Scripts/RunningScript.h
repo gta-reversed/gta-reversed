@@ -186,7 +186,7 @@ public:
     };
 
 public:
-    CRunningScript *                                          m_pNext, *m_pPrev;    //< Linked list shit
+    CRunningScript*                                           m_pNext, *m_pPrev;    //< Linked list shit
     scm::ShortString                                          m_szName;             //< Name of the script
     uint8*                                                    m_BaseIP;             //< Base instruction pointer
     uint8*                                                    m_IP;                 //< current instruction pointer
