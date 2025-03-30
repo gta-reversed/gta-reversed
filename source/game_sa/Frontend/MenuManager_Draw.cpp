@@ -414,26 +414,26 @@ void CMenuManager::DrawQuitGameScreen() {
 
 // 0x57D8D0
 void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
-    eControllerAction maxActions = eControllerAction::CA_PED_FIRE_WEAPON;
+    eControllerAction maxActions = eControllerAction::PED_FIRE_WEAPON;
     uint8 verticalSpacing;
 
     if (m_RedefiningControls == 1) {
-        maxActions = eControllerAction::CA_VEHICLE_BRAKE;
+        maxActions = eControllerAction::VEHICLE_BRAKE;
         verticalSpacing = 13;
     } else {
         if (m_ControlMethod) {
             verticalSpacing = 11;
-            maxActions = eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP;
+            maxActions = eControllerAction::VEHICLE_RADIO_TRACK_SKIP;
         } else {
             verticalSpacing = 15;
-            maxActions = eControllerAction::CA_VEHICLE_STEER_UP;
+            maxActions = eControllerAction::VEHICLE_STEER_UP;
         }
     }
     if (maxActions) {
         float posX = 0.0f;
         
         for (auto action : std::views::iota(
-                static_cast<std::underlying_type_t<eControllerAction>>(eControllerAction::CA_PED_FIRE_WEAPON),
+                static_cast<std::underlying_type_t<eControllerAction>>(eControllerAction::PED_FIRE_WEAPON),
                 static_cast<std::underlying_type_t<eControllerAction>>(maxActions)
             ))
         {
@@ -504,210 +504,210 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         if (m_RedefiningControls) {
             if (m_RedefiningControls == 1) {
                 switch (dword_865608[actionIndex]) {
-                case CA_PED_FIRE_WEAPON:
+                case eControllerAction::PED_FIRE_WEAPON:
                     controllerAction = 18;
                     break;
-                case CA_PED_FIRE_WEAPON_ALT:
+                case eControllerAction::PED_FIRE_WEAPON_ALT:
                     controllerAction = 19;
                     break;
-                case CA_PED_CYCLE_WEAPON_RIGHT:
-                case CA_PED_CYCLE_WEAPON_LEFT:
-                case CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS:
-                case CA_PED_JUMPING:
-                case CA_PED_SPRINT:
-                case CA_PED_LOOKBEHIND:
-                case CA_PED_DUCK:
-                case CA_VEHICLE_STEER_DOWN:
-                case CA_VEHICLE_ACCELERATE:
-                case CA_VEHICLE_RADIO_STATION_UP:
-                case CA_VEHICLE_RADIO_STATION_DOWN:
-                case CA_VEHICLE_RADIO_TRACK_SKIP:
-                case CA_VEHICLE_HORN:
-                case CA_VEHICLE_TURRET_LEFT:
-                case CA_VEHICLE_TURRET_RIGHT:
-                case CA_PED_CYCLE_TARGET_LEFT:
+                case eControllerAction::PED_CYCLE_WEAPON_RIGHT:
+                case eControllerAction::PED_CYCLE_WEAPON_LEFT:
+                case eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS:
+                case eControllerAction::PED_JUMPING:
+                case eControllerAction::PED_SPRINT:
+                case eControllerAction::PED_LOOKBEHIND:
+                case eControllerAction::PED_DUCK:
+                case eControllerAction::VEHICLE_STEER_DOWN:
+                case eControllerAction::VEHICLE_ACCELERATE:
+                case eControllerAction::VEHICLE_RADIO_STATION_UP:
+                case eControllerAction::VEHICLE_RADIO_STATION_DOWN:
+                case eControllerAction::VEHICLE_RADIO_TRACK_SKIP:
+                case eControllerAction::VEHICLE_HORN:
+                case eControllerAction::VEHICLE_TURRETLEFT:
+                case eControllerAction::VEHICLE_TURRETRIGHT:
+                case eControllerAction::PED_CYCLE_TARGET_LEFT:
                     controllerAction = -1;
                     break;
-                case CA_GO_FORWARD:
+                case eControllerAction::GO_FORWARD:
                     controllerAction = 24;
                     break;
-                case CA_GO_BACK:
+                case eControllerAction::GO_BACK:
                     controllerAction = 25;
                     break;
-                case CA_GO_LEFT:
+                case eControllerAction::GO_LEFT:
                     controllerAction = 20;
                     break;
-                case CA_GO_RIGHT:
+                case eControllerAction::GO_RIGHT:
                     controllerAction = 21;
                     break;
-                case CA_PED_SNIPER_ZOOM_IN:
+                case eControllerAction::PED_SNIPER_ZOOM_IN:
                     controllerAction = 22;
                     break;
-                case CA_PED_SNIPER_ZOOM_OUT:
+                case eControllerAction::PED_SNIPER_ZOOM_OUT:
                     controllerAction = 23;
                     break;
-                case CA_VEHICLE_ENTER_EXIT:
+                case eControllerAction::VEHICLE_ENTER_EXIT:
                     controllerAction = 47;
                     break;
-                case CA_PED_ANSWER_PHONE:
+                case eControllerAction::PED_ANSWER_PHONE:
                     controllerAction = 10;
                     break;
-                case CA_PED_WALK:
+                case eControllerAction::PED_WALK:
                     controllerAction = 26;
                     break;
-                case CA_VEHICLE_FIRE_WEAPON:
+                case eControllerAction::VEHICLE_FIRE_WEAPON:
                     controllerAction = 27;
                     break;
-                case CA_VEHICLE_FIRE_WEAPON_ALT:
+                case eControllerAction::VEHICLE_FIRE_WEAPON_ALT:
                     controllerAction = 28;
                     break;
-                case CA_VEHICLE_STEER_LEFT:
+                case eControllerAction::VEHICLE_STEER_LEFT:
                     controllerAction = 29;
                     break;
-                case CA_VEHICLE_STEER_RIGHT:
+                case eControllerAction::VEHICLE_STEER_RIGHT:
                     controllerAction = 30;
                     break;
-                case CA_VEHICLE_STEER_UP:
+                case eControllerAction::VEHICLE_STEER_UP:
                     controllerAction = 11;
                     break;
-                case CA_VEHICLE_BRAKE:
+                case eControllerAction::VEHICLE_BRAKE:
                     controllerAction = 31;
                     break;
-                case CA_TOGGLE_SUBMISSIONS:
+                case eControllerAction::TOGGLE_SUBMISSIONS:
                     controllerAction = 38;
                     break;
-                case CA_VEHICLE_HANDBRAKE:
+                case eControllerAction::VEHICLE_HANDBRAKE:
                     controllerAction = 39;
                     break;
-                case CA_PED_1RST_PERSON_LOOK_LEFT:
+                case eControllerAction::PED_1RST_PERSON_LOOK_LEFT:
                     controllerAction = 41;
                     break;
-                case CA_PED_1RST_PERSON_LOOK_RIGHT:
+                case eControllerAction::PED_1RST_PERSON_LOOK_RIGHT:
                     controllerAction = 40;
                     break;
-                case CA_VEHICLE_LOOK_LEFT:
+                case eControllerAction::VEHICLE_LOOKLEFT:
                     controllerAction = 36;
                     break;
-                case CA_VEHICLE_LOOK_RIGHT:
+                case eControllerAction::VEHICLE_LOOKRIGHT:
                     controllerAction = 37;
                     break;
-                case CA_VEHICLE_LOOKBEHIND:
+                case eControllerAction::VEHICLE_LOOKBEHIND:
                     controllerAction = 34;
                     break;
-                case CA_VEHICLE_MOUSE_LOOK:
+                case eControllerAction::VEHICLE_MOUSELOOK:
                     controllerAction = 35;
                     break;
                 }
             }
         } else {
             switch (actionIndex) {
-            case CA_PED_FIRE_WEAPON:
-            case CA_VEHICLE_RADIO_TRACK_SKIP:
+            case eControllerAction::PED_FIRE_WEAPON:
+            case eControllerAction::VEHICLE_RADIO_TRACK_SKIP:
                 controllerAction = 0;
                 break;
-            case CA_PED_FIRE_WEAPON_ALT:
+            case eControllerAction::PED_FIRE_WEAPON_ALT:
                 controllerAction = 2;
                 break;
-            case CA_PED_CYCLE_WEAPON_RIGHT:
+            case eControllerAction::PED_CYCLE_WEAPON_RIGHT:
                 controllerAction = 3;
                 break;
-            case CA_PED_CYCLE_WEAPON_LEFT:
+            case eControllerAction::PED_CYCLE_WEAPON_LEFT:
                 controllerAction = 49;
                 break;
-            case CA_GO_FORWARD:
+            case eControllerAction::GO_FORWARD:
                 controllerAction = 50;
                 break;
-            case CA_GO_BACK:
+            case eControllerAction::GO_BACK:
                 controllerAction = 48;
                 break;
-            case CA_GO_LEFT:
-            case CA_VEHICLE_MOUSE_LOOK:
+            case eControllerAction::GO_LEFT:
+            case eControllerAction::VEHICLE_MOUSELOOK:
                 controllerAction = 47;
                 break;
-            case CA_GO_RIGHT:
-            case CA_TOGGLE_SUBMISSIONS:
+            case eControllerAction::GO_RIGHT:
+            case eControllerAction::TOGGLE_SUBMISSIONS:
                 controllerAction = 4;
                 break;
-            case CA_PED_SNIPER_ZOOM_IN:
-            case CA_VEHICLE_HANDBRAKE:
+            case eControllerAction::PED_SNIPER_ZOOM_IN:
+            case eControllerAction::VEHICLE_HANDBRAKE:
                 controllerAction = 5;
                 break;
-            case CA_PED_SNIPER_ZOOM_OUT:
-            case CA_PED_1RST_PERSON_LOOK_LEFT:
+            case eControllerAction::PED_SNIPER_ZOOM_OUT:
+            case eControllerAction::PED_1RST_PERSON_LOOK_LEFT:
                 controllerAction = 6;
                 break;
-            case CA_VEHICLE_ENTER_EXIT:
-            case CA_PED_1RST_PERSON_LOOK_RIGHT:
+            case eControllerAction::VEHICLE_ENTER_EXIT:
+            case eControllerAction::PED_1RST_PERSON_LOOK_RIGHT:
                 controllerAction = 7;
                 break;
-            case CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS:
+            case eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS:
                 controllerAction = 8;
                 break;
-            case CA_PED_JUMPING:
+            case eControllerAction::PED_JUMPING:
                 controllerAction = 9;
                 break;
-            case CA_PED_SPRINT:
-            case CA_VEHICLE_LOOKBEHIND:
+            case eControllerAction::PED_SPRINT:
+            case eControllerAction::VEHICLE_LOOKBEHIND:
                 controllerAction = 10;
                 break;
-            case CA_PED_LOOKBEHIND:
-            case CA_PED_CYCLE_TARGET_RIGHT:
+            case eControllerAction::PED_LOOKBEHIND:
+            case eControllerAction::PED_CYCLE_TARGET_RIGHT:
                 controllerAction = 11;
                 break;
-            case CA_PED_DUCK:
+            case eControllerAction::PED_DUCK:
                 controllerAction = 12;
                 break;
-            case CA_PED_ANSWER_PHONE:
+            case eControllerAction::PED_ANSWER_PHONE:
                 controllerAction = 13;
                 break;
-            case CA_PED_WALK:
+            case eControllerAction::PED_WALK:
                 controllerAction = 45;
                 break;
-            case CA_VEHICLE_FIRE_WEAPON:
+            case eControllerAction::VEHICLE_FIRE_WEAPON:
                 controllerAction = 15;
                 break;
-            case CA_VEHICLE_FIRE_WEAPON_ALT:
+            case eControllerAction::VEHICLE_FIRE_WEAPON_ALT:
                 controllerAction = 16;
                 break;
-            case CA_VEHICLE_STEER_LEFT:
+            case eControllerAction::VEHICLE_STEER_LEFT:
                 controllerAction = 17;
                 break;
-            case CA_VEHICLE_STEER_RIGHT:
-            case CA_PED_LOCK_TARGET:
+            case eControllerAction::VEHICLE_STEER_RIGHT:
+            case eControllerAction::PED_LOCK_TARGET:
                 controllerAction = 14;
                 break;
-            case CA_VEHICLE_STEER_UP:
-            case CA_CONVERSATION_YES:
+            case eControllerAction::VEHICLE_STEER_UP:
+            case eControllerAction::CONVERSATION_YES:
                 controllerAction = m_ControlMethod != 0 ? 32 : -1;
                 break;
-            case CA_VEHICLE_STEER_DOWN:
-            case CA_CONVERSATION_NO:
+            case eControllerAction::VEHICLE_STEER_DOWN:
+            case eControllerAction::CONVERSATION_NO:
                 controllerAction = m_ControlMethod != 0 ? 33 : -1;
                 break;
-            case CA_VEHICLE_ACCELERATE:
+            case eControllerAction::VEHICLE_ACCELERATE:
                 controllerAction = 51;
                 break;
-            case CA_VEHICLE_BRAKE:
+            case eControllerAction::VEHICLE_BRAKE:
                 controllerAction = 52;
                 break;
-            case CA_VEHICLE_RADIO_STATION_UP:
+            case eControllerAction::VEHICLE_RADIO_STATION_UP:
                 controllerAction = 44;
                 break;
-            case CA_VEHICLE_RADIO_STATION_DOWN:
-            case CA_VEHICLE_HORN:
+            case eControllerAction::VEHICLE_RADIO_STATION_DOWN:
+            case eControllerAction::VEHICLE_HORN:
                 controllerAction = 1;
                 break;
-            case CA_VEHICLE_TURRET_LEFT:
-            case CA_VEHICLE_TURRET_RIGHT:
-            case CA_VEHICLE_TURRET_UP:
-            case CA_VEHICLE_TURRET_DOWN:
-            case CA_PED_CYCLE_TARGET_LEFT:
-            case CA_PED_CENTER_CAMERA_BEHIND_PLAYER:
-            case CA_NETWORK_TALK:
-            case CA_GROUP_CONTROL_FWD:
-            case CA_GROUP_CONTROL_BWD:
-            case CA_PED_1RST_PERSON_LOOK_UP:
-            case CA_PED_1RST_PERSON_LOOK_DOWN:
+            case eControllerAction::VEHICLE_TURRETLEFT:
+            case eControllerAction::VEHICLE_TURRETRIGHT:
+            case eControllerAction::VEHICLE_TURRETUP:
+            case eControllerAction::VEHICLE_TURRETDOWN:
+            case eControllerAction::PED_CYCLE_TARGET_LEFT:
+            case eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER:
+            case eControllerAction::NETWORK_TALK:
+            case eControllerAction::GROUP_CONTROL_FWD:
+            case eControllerAction::GROUP_CONTROL_BWD:
+            case eControllerAction::PED_1RST_PERSON_LOOK_UP:
+            case eControllerAction::PED_1RST_PERSON_LOOK_DOWN:
                 controllerAction = -1;
                 break;
             }

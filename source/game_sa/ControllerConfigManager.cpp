@@ -84,27 +84,27 @@ void CControllerConfigManager::ClearPedMappings(eControllerAction action, CContr
         return;
     }
 
-    CheckAndClear(CA_GO_LEFT, type, button);
-    CheckAndClear(CA_GO_RIGHT, type, button);
-    CheckAndClear(CA_GROUP_CONTROL_FWD, type, button);
-    CheckAndClear(CA_GROUP_CONTROL_BWD, type, button);
-    CheckAndClear(CA_CONVERSATION_NO, type, button);
-    CheckAndClear(CA_CONVERSATION_YES, type, button);
-    CheckAndClear(CA_PED_CYCLE_WEAPON_LEFT, type, button);
-    CheckAndClear(CA_PED_CYCLE_WEAPON_RIGHT, type, button);
-    CheckAndClear(CA_PED_JUMPING, type, button);
-    CheckAndClear(CA_PED_SPRINT, type, button);
-    CheckAndClear(CA_PED_LOOKBEHIND, type, button);
-    CheckAndClear(CA_PED_DUCK, type, button);
+    CheckAndClear(eControllerAction::GO_LEFT, type, button);
+    CheckAndClear(eControllerAction::GO_RIGHT, type, button);
+    CheckAndClear(eControllerAction::GROUP_CONTROL_FWD, type, button);
+    CheckAndClear(eControllerAction::GROUP_CONTROL_BWD, type, button);
+    CheckAndClear(eControllerAction::CONVERSATION_NO, type, button);
+    CheckAndClear(eControllerAction::CONVERSATION_YES, type, button);
+    CheckAndClear(eControllerAction::PED_CYCLE_WEAPON_LEFT, type, button);
+    CheckAndClear(eControllerAction::PED_CYCLE_WEAPON_RIGHT, type, button);
+    CheckAndClear(eControllerAction::PED_JUMPING, type, button);
+    CheckAndClear(eControllerAction::PED_SPRINT, type, button);
+    CheckAndClear(eControllerAction::PED_LOOKBEHIND, type, button);
+    CheckAndClear(eControllerAction::PED_DUCK, type, button);
 
-    if (action != CA_PED_FIRE_WEAPON_ALT) {
-        CheckAndClear(CA_PED_ANSWER_PHONE, type, button);
+    if (action != eControllerAction::PED_FIRE_WEAPON_ALT) {
+        CheckAndClear(eControllerAction::PED_ANSWER_PHONE, type, button);
     }
 
-    CheckAndClear(CA_PED_WALK, type, button);
+    CheckAndClear(eControllerAction::PED_WALK, type, button);
 
     if (FrontEndMenuManager.m_ControlMethod) {
-        CheckAndClear(CA_PED_CENTER_CAMERA_BEHIND_PLAYER, type, button);
+        CheckAndClear(eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER, type, button);
     }
 }
 
@@ -115,12 +115,12 @@ void CControllerConfigManager::ClearCommonMappings(eControllerAction nop, CContr
         return;
     }
 
-    CheckAndClear(CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, type, button);
-    CheckAndClear(CA_NETWORK_TALK, type, button);
-    CheckAndClear(CA_SWITCH_DEBUG_CAM_ON, type, button);
-    CheckAndClear(CA_TOGGLE_DPAD, type, button);
-    CheckAndClear(CA_TAKE_SCREEN_SHOT, type, button);
-    CheckAndClear(CA_SHOW_MOUSE_POINTER_TOGGLE, type, button);
+    CheckAndClear(eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS, type, button);
+    CheckAndClear(eControllerAction::NETWORK_TALK, type, button);
+    CheckAndClear(eControllerAction::SWITCH_DEBUG_CAM_ON, type, button);
+    CheckAndClear(eControllerAction::TOGGLE_DPAD, type, button);
+    CheckAndClear(eControllerAction::TAKE_SCREEN_SHOT, type, button);
+    CheckAndClear(eControllerAction::SHOW_MOUSE_POINTER_TOGGLE, type, button);
 }
 
 // 0x530490
@@ -143,28 +143,28 @@ void CControllerConfigManager::ClearVehicleMappings(eControllerAction nop, CCont
         return;
     }
 
-    CheckAndClear(CA_VEHICLE_FIRE_WEAPON_ALT, type, button);
-    CheckAndClear(CA_VEHICLE_FIRE_WEAPON, type, button);
-    CheckAndClear(CA_VEHICLE_STEER_LEFT, type, button);
-    CheckAndClear(CA_VEHICLE_STEER_RIGHT, type, button);
-    CheckAndClear(CA_VEHICLE_STEER_UP, type, button);
-    CheckAndClear(CA_VEHICLE_STEER_DOWN, type, button);
-    CheckAndClear(CA_VEHICLE_ACCELERATE, type, button);
-    CheckAndClear(CA_VEHICLE_BRAKE, type, button);
-    CheckAndClear(CA_VEHICLE_RADIO_STATION_UP, type, button);
-    CheckAndClear(CA_VEHICLE_RADIO_STATION_DOWN, type, button);
-    CheckAndClear(CA_VEHICLE_RADIO_TRACK_SKIP, type, button);
-    CheckAndClear(CA_VEHICLE_HORN, type, button);
-    CheckAndClear(CA_TOGGLE_SUBMISSIONS, type, button);
-    CheckAndClear(CA_VEHICLE_HANDBRAKE, type, button);
-    CheckAndClear(CA_VEHICLE_LOOK_LEFT, type, button);
-    CheckAndClear(CA_VEHICLE_LOOK_RIGHT, type, button);
-    CheckAndClear(CA_VEHICLE_LOOKBEHIND, type, button);
-    CheckAndClear(CA_VEHICLE_MOUSE_LOOK, type, button);
-    CheckAndClear(CA_VEHICLE_TURRET_LEFT, type, button);
-    CheckAndClear(CA_VEHICLE_TURRET_RIGHT, type, button);
-    CheckAndClear(CA_VEHICLE_TURRET_UP, type, button);
-    CheckAndClear(CA_VEHICLE_TURRET_DOWN, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_FIRE_WEAPON_ALT, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_FIRE_WEAPON, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_STEER_LEFT, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_STEER_RIGHT, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_STEER_UP, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_STEER_DOWN, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_ACCELERATE, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_BRAKE, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_RADIO_STATION_UP, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_RADIO_STATION_DOWN, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_RADIO_TRACK_SKIP, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_HORN, type, button);
+    CheckAndClear(eControllerAction::TOGGLE_SUBMISSIONS, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_HANDBRAKE, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_LOOKLEFT, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_LOOKRIGHT, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_LOOKBEHIND, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_MOUSELOOK, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_TURRETLEFT, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_TURRETRIGHT, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_TURRETUP, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_TURRETDOWN, type, button);
 }
 
 // 0x5318C0
@@ -173,21 +173,21 @@ void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction actio
         return;
     }
 
-    if (action != CA_PED_ANSWER_PHONE)
+    if (action != eControllerAction::PED_ANSWER_PHONE)
     {
-        CheckAndClear(CA_PED_FIRE_WEAPON_ALT, type, button);
+        CheckAndClear(eControllerAction::PED_FIRE_WEAPON_ALT, type, button);
     }
 
-    CheckAndClear(CA_PED_FIRE_WEAPON, type, button);
-    CheckAndClear(CA_PED_LOCK_TARGET, type, button);
-    CheckAndClear(CA_GO_FORWARD, type, button);
-    CheckAndClear(CA_GO_BACK, type, button);
+    CheckAndClear(eControllerAction::PED_FIRE_WEAPON, type, button);
+    CheckAndClear(eControllerAction::PED_LOCK_TARGET, type, button);
+    CheckAndClear(eControllerAction::GO_FORWARD, type, button);
+    CheckAndClear(eControllerAction::GO_BACK, type, button);
 
     if (FrontEndMenuManager.m_ControlMethod) {
-        CheckAndClear(CA_PED_1RST_PERSON_LOOK_LEFT, type, button);
-        CheckAndClear(CA_PED_1RST_PERSON_LOOK_RIGHT, type, button);
-        CheckAndClear(CA_PED_1RST_PERSON_LOOK_DOWN, type, button);
-        CheckAndClear(CA_PED_1RST_PERSON_LOOK_UP, type, button);
+        CheckAndClear(eControllerAction::PED_1RST_PERSON_LOOK_LEFT, type, button);
+        CheckAndClear(eControllerAction::PED_1RST_PERSON_LOOK_RIGHT, type, button);
+        CheckAndClear(eControllerAction::PED_1RST_PERSON_LOOK_DOWN, type, button);
+        CheckAndClear(eControllerAction::PED_1RST_PERSON_LOOK_UP, type, button);
     }
 }
 
@@ -233,8 +233,8 @@ void CControllerConfigManager::ClearSniperZoomMappings(eControllerAction nop, CC
         return;
     }
 
-    CheckAndClear(CA_PED_SNIPER_ZOOM_IN, type, button);
-    CheckAndClear(CA_PED_SNIPER_ZOOM_OUT, type, button);
+    CheckAndClear(eControllerAction::PED_SNIPER_ZOOM_IN, type, button);
+    CheckAndClear(eControllerAction::PED_SNIPER_ZOOM_OUT, type, button);
 }
 
 // 0x531BC0
@@ -243,12 +243,12 @@ void CControllerConfigManager::UnmapVehicleEnterExit(CControllerKey::KeyCode but
         return;
     }
 
-    CheckAndClear(CA_VEHICLE_ENTER_EXIT, type, button);
+    CheckAndClear(eControllerAction::VEHICLE_ENTER_EXIT, type, button);
 }
 
 // 0x52FD70
 void CControllerConfigManager::ClearSettingsAssociatedWithAction(eControllerAction Action, eControllerType ArrayToEnter) {
-    constexpr RsKeyCodes arrayToTest[4] = { rsNULL, rsNULL, (RsKeyCodes)(0), (RsKeyCodes)(0) };
+    constexpr RsKeyCodes arrayToTest[eControllerType::CONTROLLER_NUM] = { rsNULL, rsNULL, (RsKeyCodes)(0), (RsKeyCodes)(0) };
     if (ArrayToEnter >= eControllerType::KEYBOARD && ArrayToEnter <= eControllerType::JOY_STICK) {
         m_Actions[Action].Keys[ArrayToEnter].m_uiActionInitiator  = arrayToTest[ArrayToEnter];
         m_Actions[Action].Keys[ArrayToEnter].m_uiSetOrder = eContSetOrder::NO_ORDER_SET;
@@ -259,16 +259,16 @@ void CControllerConfigManager::ClearSettingsAssociatedWithAction(eControllerActi
 // unused
 // 0x52FD20
 eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
-    CheckAndSetButton(CA_VEHICLE_ENTER_EXIT, type, button, state->ButtonTriangle);
+    CheckAndSetButton(eControllerAction::VEHICLE_ENTER_EXIT, type, button, state->ButtonTriangle);
     return type;
 }
 
 // 0x52FCA0
 CControllerState* CControllerConfigManager::AffectControllerStateOn_ButtonDown_AllStates(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
-    CheckAndSetButton(CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, type, button, state->Select);
-    CheckAndSetPad(CA_CONVERSATION_NO, type, button, state->DPadLeft, state->DPadRight);
-    CheckAndSetPad(CA_CONVERSATION_YES, type, button, state->DPadRight, state->DPadLeft);
-    CheckAndSetButton(CA_NETWORK_TALK, type, button, state->m_bChatIndicated);
+    CheckAndSetButton(eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS, type, button, state->Select);
+    CheckAndSetPad(eControllerAction::CONVERSATION_NO, type, button, state->DPadLeft, state->DPadRight);
+    CheckAndSetPad(eControllerAction::CONVERSATION_YES, type, button, state->DPadRight, state->DPadLeft);
+    CheckAndSetButton(eControllerAction::NETWORK_TALK, type, button, state->m_bChatIndicated);
     return state;
 }
 
@@ -290,26 +290,26 @@ eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Fir
         }
     };
 
-    CheckAndSetButton(CA_PED_FIRE_WEAPON, type, button, state->ButtonCircle);   
-    CheckAndSetButton(CA_PED_FIRE_WEAPON_ALT, type, button, state->LeftShoulder1);  
-    CheckAndSetButton(CA_PED_LOCK_TARGET, type, button, state->RightShoulder1);
+    CheckAndSetButton(eControllerAction::PED_FIRE_WEAPON, type, button, state->ButtonCircle);   
+    CheckAndSetButton(eControllerAction::PED_FIRE_WEAPON_ALT, type, button, state->LeftShoulder1);  
+    CheckAndSetButton(eControllerAction::PED_LOCK_TARGET, type, button, state->RightShoulder1);
 
-    CheckAndSetStick(CA_GO_FORWARD, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], -128);   
-    CheckAndSetStick(CA_GO_BACK, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], 128);    
-    CheckAndSetStick(CA_GO_LEFT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], -128);
-    CheckAndSetStick(CA_GO_RIGHT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], 128); 
+    CheckAndSetStick(eControllerAction::GO_FORWARD, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], -128);   
+    CheckAndSetStick(eControllerAction::GO_BACK, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], 128);    
+    CheckAndSetStick(eControllerAction::GO_LEFT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], -128);
+    CheckAndSetStick(eControllerAction::GO_RIGHT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], 128); 
 
-    CheckAndSetButton(CA_PED_WALK, type, button, state->m_bPedWalk);
+    CheckAndSetButton(eControllerAction::PED_WALK, type, button, state->m_bPedWalk);
 
-    CheckAndSetPad(CA_GROUP_CONTROL_FWD, type, button, state->DPadUp, state->DPadDown);
-    CheckAndSetPad(CA_GROUP_CONTROL_BWD, type, button, state->DPadDown, state->DPadUp);    
+    CheckAndSetPad(eControllerAction::GROUP_CONTROL_FWD, type, button, state->DPadUp, state->DPadDown);
+    CheckAndSetPad(eControllerAction::GROUP_CONTROL_BWD, type, button, state->DPadDown, state->DPadUp);    
 
-    CheckAndSetStick(CA_PED_1RST_PERSON_LOOK_LEFT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128); 
-    CheckAndSetStick(CA_PED_1RST_PERSON_LOOK_RIGHT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);  
+    CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_LEFT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128); 
+    CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_RIGHT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);  
 
     if (FrontEndMenuManager.m_ControlMethod) {
-        CheckAndSetStick(CA_PED_1RST_PERSON_LOOK_UP, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128); 
-        CheckAndSetStick(CA_PED_1RST_PERSON_LOOK_DOWN, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
+        CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_UP, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128); 
+        CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_DOWN, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
     }
 
     return type;
@@ -317,16 +317,16 @@ eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Fir
 
 // 0x52FA20
 int32 CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
-    CheckAndSetButton(CA_PED_LOOKBEHIND, type, button, state->ShockButtonR);
-    CheckAndSetButton(CA_PED_JUMPING, type, button, state->ButtonSquare);
-    CheckAndSetButton(CA_PED_ANSWER_PHONE, type, button, state->LeftShoulder1);
-    CheckAndSetButton(CA_PED_CYCLE_WEAPON_LEFT, type, button, state->LeftShoulder2);
-    CheckAndSetButton(CA_PED_CYCLE_WEAPON_RIGHT, type, button, state->RightShoulder2);
-    CheckAndSetButton(CA_PED_SPRINT, type, button, state->ButtonCross);
-    CheckAndSetButton(CA_PED_DUCK, type, button, state->ShockButtonL);
+    CheckAndSetButton(eControllerAction::PED_LOOKBEHIND, type, button, state->ShockButtonR);
+    CheckAndSetButton(eControllerAction::PED_JUMPING, type, button, state->ButtonSquare);
+    CheckAndSetButton(eControllerAction::PED_ANSWER_PHONE, type, button, state->LeftShoulder1);
+    CheckAndSetButton(eControllerAction::PED_CYCLE_WEAPON_LEFT, type, button, state->LeftShoulder2);
+    CheckAndSetButton(eControllerAction::PED_CYCLE_WEAPON_RIGHT, type, button, state->RightShoulder2);
+    CheckAndSetButton(eControllerAction::PED_SPRINT, type, button, state->ButtonCross);
+    CheckAndSetButton(eControllerAction::PED_DUCK, type, button, state->ShockButtonL);
 
     if (FrontEndMenuManager.m_ControlMethod) {
-        CheckAndSetButton(CA_PED_CENTER_CAMERA_BEHIND_PLAYER, type, button, state->LeftShoulder1);
+        CheckAndSetButton(eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER, type, button, state->LeftShoulder1);
     }
     return button;
 }
@@ -344,9 +344,9 @@ int32 CControllerConfigManager::GetControllerKeyAssociatedWithAction(eController
 
 // 0x52F9E0
 int32 CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
-    CheckAndSetButton(CA_PED_SNIPER_ZOOM_IN, type, button, state->ButtonSquare);
-    CheckAndSetButton(CA_PED_SNIPER_ZOOM_OUT, type, button, state->ButtonCross);
-    CheckAndSetButton(CA_PED_DUCK, type, button, state->ShockButtonL);
+    CheckAndSetButton(eControllerAction::PED_SNIPER_ZOOM_IN, type, button, state->ButtonSquare);
+    CheckAndSetButton(eControllerAction::PED_SNIPER_ZOOM_OUT, type, button, state->ButtonCross);
+    CheckAndSetButton(eControllerAction::PED_DUCK, type, button, state->ShockButtonL);
     return button;
 }
 
@@ -357,8 +357,8 @@ int32 CControllerConfigManager::HandleButtonRelease(CControllerKey::KeyCode butt
             stateFlag = 0;
         }
     };
-    CheckAndReset(CA_NETWORK_TALK, state->m_bChatIndicated);
-    CheckAndReset(CA_VEHICLE_MOUSE_LOOK, state->m_bVehicleMouseLook);
+    CheckAndReset(eControllerAction::NETWORK_TALK, state->m_bChatIndicated);
+    CheckAndReset(eControllerAction::VEHICLE_MOUSELOOK, state->m_bVehicleMouseLook);
     return button;
 }
 
@@ -375,32 +375,32 @@ eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Dri
         }
     };
     
-    CheckAndSetButton(CA_VEHICLE_FIRE_WEAPON, type, button, state->ButtonCircle);
-    CheckAndSetButton(CA_VEHICLE_FIRE_WEAPON_ALT, type, button, state->LeftShoulder1);
+    CheckAndSetButton(eControllerAction::VEHICLE_FIRE_WEAPON, type, button, state->ButtonCircle);
+    CheckAndSetButton(eControllerAction::VEHICLE_FIRE_WEAPON_ALT, type, button, state->LeftShoulder1);
 
     // why double ? check: if you press both buttons you look behind
-    CheckAndSetButton(CA_VEHICLE_LOOKBEHIND, type, button, state->LeftShoulder2); 
-    CheckAndSetButton(CA_VEHICLE_LOOKBEHIND, type, button, state->RightShoulder2);
+    CheckAndSetButton(eControllerAction::VEHICLE_LOOKBEHIND, type, button, state->LeftShoulder2); 
+    CheckAndSetButton(eControllerAction::VEHICLE_LOOKBEHIND, type, button, state->RightShoulder2);
 
-    CheckAndSetButton(CA_VEHICLE_LOOK_LEFT, type, button, state->LeftShoulder2);
-    CheckAndSetButton(CA_VEHICLE_LOOK_RIGHT, type, button, state->RightShoulder2);
-    CheckAndSetButton(CA_VEHICLE_MOUSE_LOOK, type, button, state->m_bVehicleMouseLook);
-    CheckAndSetButton(CA_VEHICLE_HORN, type, button, state->ShockButtonL);
-    CheckAndSetButton(CA_VEHICLE_HANDBRAKE, type, button, state->RightShoulder1);
-    CheckAndSetButton(CA_VEHICLE_ACCELERATE, type, button, state->ButtonCross);
-    CheckAndSetButton(CA_VEHICLE_BRAKE, type, button, state->ButtonSquare);
-    CheckAndSetStick(CA_VEHICLE_STEER_UP, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], -128);
-    CheckAndSetStick(CA_VEHICLE_STEER_DOWN, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], 128);
-    CheckAndSetStick(CA_VEHICLE_STEER_LEFT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], -128);
-    CheckAndSetStick(CA_VEHICLE_STEER_RIGHT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], 128);
-    CheckAndSetButton(CA_VEHICLE_RADIO_STATION_UP, type, button, state->DPadUp);
-    CheckAndSetButton(CA_VEHICLE_RADIO_STATION_DOWN, type, button, state->DPadDown);
-    CheckAndSetButton(CA_VEHICLE_RADIO_TRACK_SKIP, type, button, state->m_bRadioTrackSkip);
-    CheckAndSetButton(CA_TOGGLE_SUBMISSIONS, type, button, state->ShockButtonR);
-    CheckAndSetStick(CA_VEHICLE_TURRET_LEFT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128);
-    CheckAndSetStick(CA_VEHICLE_TURRET_RIGHT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);
-    CheckAndSetStick(CA_VEHICLE_TURRET_UP, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128);
-    CheckAndSetStick(CA_VEHICLE_TURRET_DOWN, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
+    CheckAndSetButton(eControllerAction::VEHICLE_LOOKLEFT, type, button, state->LeftShoulder2);
+    CheckAndSetButton(eControllerAction::VEHICLE_LOOKRIGHT, type, button, state->RightShoulder2);
+    CheckAndSetButton(eControllerAction::VEHICLE_MOUSELOOK, type, button, state->m_bVehicleMouseLook);
+    CheckAndSetButton(eControllerAction::VEHICLE_HORN, type, button, state->ShockButtonL);
+    CheckAndSetButton(eControllerAction::VEHICLE_HANDBRAKE, type, button, state->RightShoulder1);
+    CheckAndSetButton(eControllerAction::VEHICLE_ACCELERATE, type, button, state->ButtonCross);
+    CheckAndSetButton(eControllerAction::VEHICLE_BRAKE, type, button, state->ButtonSquare);
+    CheckAndSetStick(eControllerAction::VEHICLE_STEER_UP, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], -128);
+    CheckAndSetStick(eControllerAction::VEHICLE_STEER_DOWN, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], 128);
+    CheckAndSetStick(eControllerAction::VEHICLE_STEER_LEFT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], -128);
+    CheckAndSetStick(eControllerAction::VEHICLE_STEER_RIGHT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], 128);
+    CheckAndSetButton(eControllerAction::VEHICLE_RADIO_STATION_UP, type, button, state->DPadUp);
+    CheckAndSetButton(eControllerAction::VEHICLE_RADIO_STATION_DOWN, type, button, state->DPadDown);
+    CheckAndSetButton(eControllerAction::VEHICLE_RADIO_TRACK_SKIP, type, button, state->m_bRadioTrackSkip);
+    CheckAndSetButton(eControllerAction::TOGGLE_SUBMISSIONS, type, button, state->ShockButtonR);
+    CheckAndSetStick(eControllerAction::VEHICLE_TURRETLEFT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128);
+    CheckAndSetStick(eControllerAction::VEHICLE_TURRETRIGHT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);
+    CheckAndSetStick(eControllerAction::VEHICLE_TURRETUP, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128);
+    CheckAndSetStick(eControllerAction::VEHICLE_TURRETDOWN, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
     return type;
 }
 
@@ -412,7 +412,7 @@ void CControllerConfigManager::ResetSettingOrder(eControllerAction action) {
         // Check if any key already has this priority level
         bool priorityExists = false;
         
-        for (int32 controllerType = 0; controllerType < 4; controllerType++) {
+        for (int32 controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
             if (m_Actions[action].Keys[controllerType].m_uiSetOrder == priorityLevel) {
                 priorityExists = true;
                 break;
@@ -423,7 +423,7 @@ void CControllerConfigManager::ResetSettingOrder(eControllerAction action) {
             // No key has this priority, find the one with lowest priority > priorityLevel
             bool found = false;
             
-            for (int32 controllerType = 0; controllerType < 4; controllerType++) {
+            for (int32 controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
                 const auto keyPriority = m_Actions[action].Keys[controllerType].m_uiSetOrder;
                 
                 // Only consider keys with priority > priorityLevel and not 0 (unset)
@@ -465,6 +465,7 @@ void CControllerConfigManager::HandleJoyButtonUpDown(int32 joyNo, bool isDown) {
         }
     }
 }
+
 #ifdef NOTSA_INI_SETTINGS
 // INI SETTINGS
 // 0x530530
@@ -534,7 +535,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
                 std::string value = line.substr(separator + 1);
                 
                 // Find action by name or by ID
-                eControllerAction actionId = CA_INVALID;
+                eControllerAction actionId = eControllerAction::INVALID;
                 
                 // Rest of the implementation remains the same...
                 // Try to parse as action ID first
@@ -555,7 +556,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
                     }
                 }
                 
-                if (actionId != CA_INVALID) {
+                if (actionId != eControllerAction::INVALID) {
                     // Parse the key value and order
                     auto commaPos = value.find(',');
                     int keyValue = std::stoi(value);
@@ -586,7 +587,7 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
     CFileMgr::Write(file, header.c_str(), (int32)header.length());
     
     // Write sections for each controller type
-    const std::array<std::string, 4> sections = {"Keyboard", "OptionalKey", "Mouse", "Joystick"};
+    const std::array<std::string, eControllerType::CONTROLLER_NUM> sections = {"Keyboard", "OptionalKey", "Mouse", "Joystick"};
     
     for (int i = 0; i < CONTROLLER_NUM; i++) {
         // Write section header
@@ -683,10 +684,10 @@ int32 CControllerConfigManager::SaveSettings(FILE* file) {
         return 0;
     }
     
-    for (int32 controllerType = 0; controllerType < 4; controllerType++) {
+    for (int32 controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
         for (int32 actionId = 0; actionId < eControllerAction::NUM_OF_CONTROLLER_ACTIONS; actionId++) {
             // Write action ID
-            CFileMgr::Write(file, &actionId, 4);
+            CFileMgr::Write(file, &actionId, eControllerType::CONTROLLER_NUM);
             
             // Write key mapping data
             CFileMgr::Write(file, &m_Actions[actionId].Keys[controllerType], 8);
@@ -699,120 +700,120 @@ int32 CControllerConfigManager::SaveSettings(FILE* file) {
 
 // 0x530640
 void CControllerConfigManager::InitDefaultControlConfiguration() {
-    SetControllerKeyAssociatedWithAction(CA_GO_FORWARD, rsUP, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_GO_BACK, rsDOWN, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_GO_LEFT, rsLEFT, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_GO_RIGHT, rsRIGHT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::GO_FORWARD, rsUP, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::GO_BACK, rsDOWN, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::GO_LEFT, rsLEFT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::GO_RIGHT, rsRIGHT, eControllerType::KEYBOARD);
 
     if (FrontEndMenuManager.m_nTitleLanguage == 2) {
-        SetControllerKeyAssociatedWithAction(CA_CONVERSATION_YES, (RsKeyCodes)'Z', eControllerType::KEYBOARD);
-        SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_IN, (RsKeyCodes)'Y', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(eControllerAction::CONVERSATION_YES, (RsKeyCodes)'Z', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_IN, (RsKeyCodes)'Y', eControllerType::OPTIONAL_EXTRA_KEY);
     } else {
-        SetControllerKeyAssociatedWithAction(CA_CONVERSATION_YES, (RsKeyCodes)'Y', eControllerType::KEYBOARD);
-        SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_IN, (RsKeyCodes)'X', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(eControllerAction::CONVERSATION_YES, (RsKeyCodes)'Y', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_IN, (RsKeyCodes)'X', eControllerType::OPTIONAL_EXTRA_KEY);
     }
 
     if (FrontEndMenuManager.m_nTitleLanguage == 1) {
-        SetControllerKeyAssociatedWithAction(CA_GO_FORWARD, (RsKeyCodes)'Z', eControllerType::OPTIONAL_EXTRA_KEY);
-        SetControllerKeyAssociatedWithAction(CA_GO_LEFT, (RsKeyCodes)'Q', eControllerType::OPTIONAL_EXTRA_KEY);
-        SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT, (RsKeyCodes)'A', eControllerType::KEYBOARD);
-        SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_OUT, (RsKeyCodes)'W', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(eControllerAction::GO_FORWARD, (RsKeyCodes)'Z', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(eControllerAction::GO_LEFT, (RsKeyCodes)'Q', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_LEFT, (RsKeyCodes)'A', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT, (RsKeyCodes)'W', eControllerType::OPTIONAL_EXTRA_KEY);
     } else {
-        SetControllerKeyAssociatedWithAction(CA_GO_FORWARD, (RsKeyCodes)'W', eControllerType::OPTIONAL_EXTRA_KEY);
-        SetControllerKeyAssociatedWithAction(CA_GO_LEFT, (RsKeyCodes)'A', eControllerType::OPTIONAL_EXTRA_KEY);
-        SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT, (RsKeyCodes)'Q', eControllerType::KEYBOARD);
-        SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_OUT, (RsKeyCodes)'Z', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(eControllerAction::GO_FORWARD, (RsKeyCodes)'W', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(eControllerAction::GO_LEFT, (RsKeyCodes)'A', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_LEFT, (RsKeyCodes)'Q', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT, (RsKeyCodes)'Z', eControllerType::OPTIONAL_EXTRA_KEY);
     }
 
-    SetControllerKeyAssociatedWithAction(CA_GO_BACK, (RsKeyCodes)'S', eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_GO_RIGHT, (RsKeyCodes)'D', eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_RIGHT, (RsKeyCodes)'E', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_RIGHT, rsPADENTER, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT, rsPADDEL, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_PED_FIRE_WEAPON, rsPADINS, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_FIRE_WEAPON, rsLCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_IN, rsPGUP, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_OUT, rsPGDN, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_FIRE_WEAPON_ALT, (RsKeyCodes)'\\', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_GROUP_CONTROL_FWD, (RsKeyCodes)'G', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_GROUP_CONTROL_BWD, (RsKeyCodes)'H', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_CONVERSATION_NO, (RsKeyCodes)'N', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_ENTER_EXIT, (RsKeyCodes)'F', eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_ENTER_EXIT, rsENTER, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, (RsKeyCodes)'V', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, rsHOME, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_PED_JUMPING, rsLSHIFT, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_JUMPING, rsRCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_PED_SPRINT, (RsKeyCodes)' ', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_DUCK, (RsKeyCodes)'C', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_ANSWER_PHONE, rsTAB, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_WALK, rsLALT, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_LOCK_TARGET, rsDEL, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_LOCK_TARGET, rsCAPSLK, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_PED_1RST_PERSON_LOOK_LEFT, rsPADLEFT, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_1RST_PERSON_LOOK_RIGHT, rsPADRIGHT, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_1RST_PERSON_LOOK_UP, rsPADDOWN, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_1RST_PERSON_LOOK_DOWN, rsPADUP, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_CENTER_CAMERA_BEHIND_PLAYER, (RsKeyCodes)'#', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_LOOKBEHIND, rsPADEND, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_UP, rsUP, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_DOWN, rsDOWN, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP, rsINS, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::GO_BACK, (RsKeyCodes)'S', eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::GO_RIGHT, (RsKeyCodes)'D', eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_RIGHT, (RsKeyCodes)'E', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_RIGHT, rsPADENTER, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_LEFT, rsPADDEL, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON, rsPADINS, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON, rsLCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_IN, rsPGUP, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT, rsPGDN, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON_ALT, (RsKeyCodes)'\\', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::GROUP_CONTROL_FWD, (RsKeyCodes)'G', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::GROUP_CONTROL_BWD, (RsKeyCodes)'H', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::CONVERSATION_NO, (RsKeyCodes)'N', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_ENTER_EXIT, (RsKeyCodes)'F', eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_ENTER_EXIT, rsENTER, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS, (RsKeyCodes)'V', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS, rsHOME, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_JUMPING, rsLSHIFT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_JUMPING, rsRCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_SPRINT, (RsKeyCodes)' ', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_DUCK, (RsKeyCodes)'C', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_ANSWER_PHONE, rsTAB, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_WALK, rsLALT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_LOCK_TARGET, rsDEL, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_LOCK_TARGET, rsCAPSLK, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_1RST_PERSON_LOOK_LEFT, rsPADLEFT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_1RST_PERSON_LOOK_RIGHT, rsPADRIGHT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_1RST_PERSON_LOOK_UP, rsPADDOWN, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_1RST_PERSON_LOOK_DOWN, rsPADUP, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER, (RsKeyCodes)'#', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_LOOKBEHIND, rsPADEND, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_STEER_UP, rsUP, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_STEER_DOWN, rsDOWN, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_UP, rsINS, eControllerType::KEYBOARD);
 
     if (FrontEndMenuManager.m_nTitleLanguage == 1) {
-        SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_LEFT, (RsKeyCodes)'Q', eControllerType::KEYBOARD);
-        SetControllerKeyAssociatedWithAction(CA_VEHICLE_LOOK_LEFT, (RsKeyCodes)'A', eControllerType::KEYBOARD);
-        SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP, (RsKeyCodes)'`', eControllerType::OPTIONAL_EXTRA_KEY);
-        SetControllerKeyAssociatedWithAction(CA_TOGGLE_SUBMISSIONS, (RsKeyCodes)233, eControllerType::KEYBOARD);
-        SetControllerKeyAssociatedWithAction(CA_VEHICLE_ACCELERATE, (RsKeyCodes)'Z', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_STEER_LEFT, (RsKeyCodes)'Q', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_LOOKLEFT, (RsKeyCodes)'A', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_UP, (RsKeyCodes)'`', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(eControllerAction::TOGGLE_SUBMISSIONS, (RsKeyCodes)233, eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_ACCELERATE, (RsKeyCodes)'Z', eControllerType::KEYBOARD);
     } else {
-        SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_LEFT, (RsKeyCodes)'A', eControllerType::KEYBOARD);
-        SetControllerKeyAssociatedWithAction(CA_VEHICLE_LOOK_LEFT, (RsKeyCodes)'Q', eControllerType::KEYBOARD);
-        SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP, (RsKeyCodes)'4', eControllerType::OPTIONAL_EXTRA_KEY);
-        SetControllerKeyAssociatedWithAction(CA_TOGGLE_SUBMISSIONS, (RsKeyCodes)'2', eControllerType::KEYBOARD);
-        SetControllerKeyAssociatedWithAction(CA_VEHICLE_ACCELERATE, (RsKeyCodes)'W', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_STEER_LEFT, (RsKeyCodes)'A', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_LOOKLEFT, (RsKeyCodes)'Q', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_UP, (RsKeyCodes)'4', eControllerType::OPTIONAL_EXTRA_KEY);
+        SetControllerKeyAssociatedWithAction(eControllerAction::TOGGLE_SUBMISSIONS, (RsKeyCodes)'2', eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_ACCELERATE, (RsKeyCodes)'W', eControllerType::KEYBOARD);
     }
 
-    SetControllerKeyAssociatedWithAction(CA_TOGGLE_SUBMISSIONS, rsPLUS, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON, rsRCTRL, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON, rsLALT, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON_ALT, rsLCTRL, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON_ALT, rsPADINS, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_BRAKE, (RsKeyCodes)'S', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_RIGHT, (RsKeyCodes)'D', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_LEFT, rsLEFT, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_STEER_RIGHT, rsRIGHT, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_HORN, rsCAPSLK, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_HORN, (RsKeyCodes)'H', eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_HANDBRAKE, (RsKeyCodes)' ', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_HANDBRAKE, rsRCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_LOOK_RIGHT, (RsKeyCodes)'E', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_LEFT, rsPADLEFT, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_RIGHT, rsPADRIGHT, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_UP, rsPADDOWN, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_DOWN, rsPADUP, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_UP, rsEND, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_TURRET_DOWN, rsDEL, eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_TRACK_SKIP, rsF5, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_DOWN, rsDEL, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_DOWN, (RsKeyCodes)'R', eControllerType::OPTIONAL_EXTRA_KEY);
-    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_TARGET_LEFT, (RsKeyCodes)'[', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_TARGET_RIGHT, (RsKeyCodes)']', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_TARGET_RIGHT, (RsKeyCodes)']', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::TOGGLE_SUBMISSIONS, rsPLUS, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON, rsRCTRL, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON, rsLALT, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON_ALT, rsLCTRL, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON_ALT, rsPADINS, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_BRAKE, (RsKeyCodes)'S', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_STEER_RIGHT, (RsKeyCodes)'D', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_STEER_LEFT, rsLEFT, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_STEER_RIGHT, rsRIGHT, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_HORN, rsCAPSLK, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_HORN, (RsKeyCodes)'H', eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_HANDBRAKE, (RsKeyCodes)' ', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_HANDBRAKE, rsRCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_LOOKRIGHT, (RsKeyCodes)'E', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_TURRETLEFT, rsPADLEFT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_TURRETRIGHT, rsPADRIGHT, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_TURRETUP, rsPADDOWN, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_TURRETDOWN, rsPADUP, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_TURRETUP, rsEND, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_TURRETDOWN, rsDEL, eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_TRACK_SKIP, rsF5, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_DOWN, rsDEL, eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_DOWN, (RsKeyCodes)'R', eControllerType::OPTIONAL_EXTRA_KEY);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_TARGET_LEFT, (RsKeyCodes)'[', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_TARGET_RIGHT, (RsKeyCodes)']', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_TARGET_RIGHT, (RsKeyCodes)']', eControllerType::KEYBOARD);
 
     // NOTSA
-    SetControllerKeyAssociatedWithAction(CA_PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(CA_PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_MOUSE_LOOK,         rsMOUSE_RIGHT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(CA_PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(CA_PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(CA_VEHICLE_RADIO_STATION_DOWN, rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_IN,         rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(CA_PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_MOUSELOOK,         rsMOUSE_RIGHT_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_DOWN, rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_IN,         rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
 
 
     ClearSimButtonPressCheckers();
@@ -821,57 +822,96 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
 // 0x530B00
 void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount) {
     m_WasJoyJustInitialised = true;
+    buttonCount             = std::min(buttonCount, 16u);
 
-    buttonCount = std::min(buttonCount, 16u);
+    if (buttonCount >= eJOY_BUTTONS::NO_JOYBUTTONS) {
+        return;
+    }
 
-    std::array<std::pair<eControllerAction, RsKeyCodes>, 3> actions;
-
-    auto set_actions = [&](std::initializer_list<std::pair<eControllerAction, RsKeyCodes>> init_list) {
-        std::copy(init_list.begin(), init_list.end(), actions.begin());
-        for (const auto& action : actions) {
-            SetControllerKeyAssociatedWithAction(action.first, action.second, eControllerType::JOY_STICK);
-        }
+    // Define all possible button mappings in order from highest to lowest button number
+    struct ButtonMapping {
+        eJOY_BUTTONS      buttonNum;
+        eControllerAction action;
     };
 
-    if (IsCheckSpecificGamepad()) {
-        switch (buttonCount) {
-            case 16: set_actions({{CA_CONVERSATION_NO,(RsKeyCodes)16}}); [[fallthrough]];
-            case 15: set_actions({{CA_GROUP_CONTROL_BWD,(RsKeyCodes)15},{CA_VEHICLE_RADIO_STATION_DOWN,(RsKeyCodes)15}}); [[fallthrough]];
-            case 14: set_actions({{CA_CONVERSATION_YES,(RsKeyCodes)14}}); [[fallthrough]];
-            case 13: set_actions({{CA_GROUP_CONTROL_FWD,(RsKeyCodes)13},{CA_VEHICLE_RADIO_STATION_UP,(RsKeyCodes)13}}); [[fallthrough]];
-            case 12: 
-            case 11: set_actions({{CA_PED_LOOKBEHIND,(RsKeyCodes)11},{CA_TOGGLE_SUBMISSIONS,(RsKeyCodes)11}}); [[fallthrough]];
-            case 10: set_actions({{CA_VEHICLE_HORN,(RsKeyCodes)10},{CA_PED_DUCK,(RsKeyCodes)10}}); [[fallthrough]];
-            case 9:  set_actions({{CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS,(RsKeyCodes)9}}); [[fallthrough]];
-            case 8:  set_actions({{CA_VEHICLE_HANDBRAKE,(RsKeyCodes)8},{CA_PED_LOCK_TARGET,(RsKeyCodes)8}}); [[fallthrough]];
-            case 7:  set_actions({{CA_PED_ANSWER_PHONE,(RsKeyCodes)7},{CA_PED_FIRE_WEAPON_ALT,(RsKeyCodes)7},{CA_VEHICLE_FIRE_WEAPON_ALT,(RsKeyCodes)7}}); [[fallthrough]];
-            case 6:  set_actions({{CA_PED_CYCLE_WEAPON_RIGHT,(RsKeyCodes)6},{CA_VEHICLE_LOOK_RIGHT,(RsKeyCodes)6}}); [[fallthrough]];
-            case 5:  set_actions({{CA_PED_CYCLE_WEAPON_LEFT,(RsKeyCodes)5},{CA_VEHICLE_LOOK_LEFT,(RsKeyCodes)5}}); [[fallthrough]];
-            case 4:  set_actions({{CA_VEHICLE_BRAKE,(RsKeyCodes)4},{CA_PED_JUMPING,(RsKeyCodes)4},{CA_PED_SNIPER_ZOOM_IN,(RsKeyCodes)4}}); [[fallthrough]];
-            case 3:  set_actions({{CA_VEHICLE_ACCELERATE,(RsKeyCodes)3},{CA_PED_SPRINT,(RsKeyCodes)3},{CA_PED_SNIPER_ZOOM_OUT,(RsKeyCodes)3}}); [[fallthrough]];
-            case 2:  set_actions({{CA_PED_FIRE_WEAPON,(RsKeyCodes)2},{CA_VEHICLE_FIRE_WEAPON,(RsKeyCodes)2}}); [[fallthrough]];
-            case 1:  set_actions({{CA_VEHICLE_ENTER_EXIT,(RsKeyCodes)1}}); break;
-            default: return;
-        }
-        } else {
-            switch (buttonCount) {
-            case 16: set_actions({{CA_CONVERSATION_NO,(RsKeyCodes)16}}); [[fallthrough]];
-            case 15: set_actions({{CA_GROUP_CONTROL_BWD,(RsKeyCodes)15},{CA_VEHICLE_RADIO_STATION_DOWN,(RsKeyCodes)15}}); [[fallthrough]];
-            case 14: set_actions({{CA_CONVERSATION_YES,(RsKeyCodes)14}}); [[fallthrough]];
-            case 13: set_actions({{CA_GROUP_CONTROL_FWD,(RsKeyCodes)13},{CA_VEHICLE_RADIO_STATION_UP,(RsKeyCodes)13}}); [[fallthrough]];
-            case 12: 
-            case 11: set_actions({{CA_PED_LOOKBEHIND,(RsKeyCodes)11},{CA_TOGGLE_SUBMISSIONS,(RsKeyCodes)11}}); [[fallthrough]];
-            case 10: set_actions({{CA_VEHICLE_HORN,(RsKeyCodes)10},{CA_PED_DUCK,(RsKeyCodes)10}}); [[fallthrough]];
-            case 9:  set_actions({{CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS,(RsKeyCodes)9}}); [[fallthrough]];
-            case 8:  set_actions({{CA_VEHICLE_HANDBRAKE,(RsKeyCodes)8},{CA_PED_LOCK_TARGET,(RsKeyCodes)8}}); [[fallthrough]];
-            case 7:  set_actions({{CA_PED_ANSWER_PHONE,(RsKeyCodes)7},{CA_PED_FIRE_WEAPON_ALT,(RsKeyCodes)7},{CA_VEHICLE_FIRE_WEAPON_ALT,(RsKeyCodes)7}}); [[fallthrough]];
-            case 6:  set_actions({{CA_PED_CYCLE_WEAPON_RIGHT,(RsKeyCodes)6},{CA_VEHICLE_LOOK_RIGHT,(RsKeyCodes)6}}); [[fallthrough]];
-            case 5:  set_actions({{CA_PED_CYCLE_WEAPON_LEFT,(RsKeyCodes)5},{CA_VEHICLE_LOOK_LEFT,(RsKeyCodes)5}}); [[fallthrough]];
-            case 4:  set_actions({{CA_VEHICLE_ENTER_EXIT,(RsKeyCodes)4}}); [[fallthrough]];
-            case 3:  set_actions({{CA_VEHICLE_BRAKE,(RsKeyCodes)3},{CA_PED_JUMPING,(RsKeyCodes)3},{CA_PED_SNIPER_ZOOM_IN,(RsKeyCodes)3}}); [[fallthrough]];
-            case 2:  set_actions({{CA_VEHICLE_ACCELERATE,(RsKeyCodes)2},{CA_PED_SPRINT,(RsKeyCodes)2},{CA_PED_SNIPER_ZOOM_OUT,(RsKeyCodes)2}}); [[fallthrough]];
-            case 1:  set_actions({{CA_PED_FIRE_WEAPON,(RsKeyCodes)1},{CA_VEHICLE_FIRE_WEAPON,(RsKeyCodes)1}}); break;
-            default: return;
+    // Arrays for specific and standard controller configurations
+    constexpr ButtonMapping specificMappings[] = {
+        { JOYBUTTON_SIXTEEN,   eControllerAction::CONVERSATION_NO                   },
+        { JOYBUTTON_FIFTHTEEN, eControllerAction::GROUP_CONTROL_BWD                 },
+        { JOYBUTTON_FIFTHTEEN, eControllerAction::VEHICLE_RADIO_STATION_DOWN        },
+        { JOYBUTTON_FOURTEEN,  eControllerAction::CONVERSATION_YES                  },
+        { JOYBUTTON_THIRTEEN,  eControllerAction::GROUP_CONTROL_FWD                 },
+        { JOYBUTTON_THIRTEEN,  eControllerAction::VEHICLE_RADIO_STATION_UP          },
+        { JOYBUTTON_ELEVEN,    eControllerAction::PED_LOOKBEHIND                    },
+        { JOYBUTTON_ELEVEN,    eControllerAction::TOGGLE_SUBMISSIONS                },
+        { JOYBUTTON_TEN,       eControllerAction::VEHICLE_HORN                      },
+        { JOYBUTTON_TEN,       eControllerAction::PED_DUCK                          },
+        { JOYBUTTON_NINE,      eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS },
+        { JOYBUTTON_EIGHT,     eControllerAction::VEHICLE_HANDBRAKE                 },
+        { JOYBUTTON_EIGHT,     eControllerAction::PED_LOCK_TARGET                   },
+        { JOYBUTTON_SEVEN,     eControllerAction::PED_ANSWER_PHONE                  },
+        { JOYBUTTON_SEVEN,     eControllerAction::PED_FIRE_WEAPON_ALT               },
+        { JOYBUTTON_SEVEN,     eControllerAction::VEHICLE_FIRE_WEAPON_ALT           },
+        { JOYBUTTON_SIX,       eControllerAction::PED_CYCLE_WEAPON_RIGHT            },
+        { JOYBUTTON_SIX,       eControllerAction::VEHICLE_LOOKRIGHT                },
+        { JOYBUTTON_FIVE,      eControllerAction::PED_CYCLE_WEAPON_LEFT             },
+        { JOYBUTTON_FIVE,      eControllerAction::VEHICLE_LOOKLEFT                 },
+        { JOYBUTTON_FOUR,      eControllerAction::VEHICLE_BRAKE                     },
+        { JOYBUTTON_FOUR,      eControllerAction::PED_JUMPING                       },
+        { JOYBUTTON_FOUR,      eControllerAction::PED_SNIPER_ZOOM_IN                },
+        { JOYBUTTON_THREE,     eControllerAction::VEHICLE_ACCELERATE                },
+        { JOYBUTTON_THREE,     eControllerAction::PED_SPRINT                        },
+        { JOYBUTTON_THREE,     eControllerAction::PED_SNIPER_ZOOM_OUT               },
+        { JOYBUTTON_TWO,       eControllerAction::PED_FIRE_WEAPON                   },
+        { JOYBUTTON_TWO,       eControllerAction::VEHICLE_FIRE_WEAPON               },
+        { JOYBUTTON_ONE,       eControllerAction::VEHICLE_ENTER_EXIT                }
+    };
+
+    constexpr ButtonMapping standardMappings[] = {
+        { JOYBUTTON_SIXTEEN,   eControllerAction::CONVERSATION_NO                   },
+        { JOYBUTTON_FIFTHTEEN, eControllerAction::GROUP_CONTROL_BWD                 },
+        { JOYBUTTON_FIFTHTEEN, eControllerAction::VEHICLE_RADIO_STATION_DOWN        },
+        { JOYBUTTON_FOURTEEN,  eControllerAction::CONVERSATION_YES                  },
+        { JOYBUTTON_THIRTEEN,  eControllerAction::GROUP_CONTROL_FWD                 },
+        { JOYBUTTON_THIRTEEN,  eControllerAction::VEHICLE_RADIO_STATION_UP          },
+        { JOYBUTTON_ELEVEN,    eControllerAction::PED_LOOKBEHIND                    },
+        { JOYBUTTON_ELEVEN,    eControllerAction::TOGGLE_SUBMISSIONS                },
+        { JOYBUTTON_TEN,       eControllerAction::VEHICLE_HORN                      },
+        { JOYBUTTON_TEN,       eControllerAction::PED_DUCK                          },
+        { JOYBUTTON_NINE,      eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS },
+        { JOYBUTTON_EIGHT,     eControllerAction::VEHICLE_HANDBRAKE                 },
+        { JOYBUTTON_EIGHT,     eControllerAction::PED_LOCK_TARGET                   },
+        { JOYBUTTON_SEVEN,     eControllerAction::PED_ANSWER_PHONE                  },
+        { JOYBUTTON_SEVEN,     eControllerAction::PED_FIRE_WEAPON_ALT               },
+        { JOYBUTTON_SEVEN,     eControllerAction::VEHICLE_FIRE_WEAPON_ALT           },
+        { JOYBUTTON_SIX,       eControllerAction::PED_CYCLE_WEAPON_RIGHT            },
+        { JOYBUTTON_SIX,       eControllerAction::VEHICLE_LOOKRIGHT                },
+        { JOYBUTTON_FIVE,      eControllerAction::PED_CYCLE_WEAPON_LEFT             },
+        { JOYBUTTON_FIVE,      eControllerAction::VEHICLE_LOOKLEFT                 },
+        { JOYBUTTON_FOUR,      eControllerAction::VEHICLE_ENTER_EXIT                },
+        { JOYBUTTON_THREE,     eControllerAction::VEHICLE_BRAKE                     },
+        { JOYBUTTON_THREE,     eControllerAction::PED_JUMPING                       },
+        { JOYBUTTON_THREE,     eControllerAction::PED_SNIPER_ZOOM_IN                },
+        { JOYBUTTON_TWO,       eControllerAction::VEHICLE_ACCELERATE                },
+        { JOYBUTTON_TWO,       eControllerAction::PED_SPRINT                        },
+        { JOYBUTTON_TWO,       eControllerAction::PED_SNIPER_ZOOM_OUT               },
+        { JOYBUTTON_ONE,       eControllerAction::PED_FIRE_WEAPON                   },
+        { JOYBUTTON_ONE,       eControllerAction::VEHICLE_FIRE_WEAPON               }
+    };
+
+    // Choose which mapping array to use
+    bool                 isSpecific   = IsCheckSpecificGamepad();
+    const ButtonMapping* mappings     = isSpecific ? specificMappings : standardMappings;
+    const size_t         mappingCount = isSpecific ? std::size(specificMappings) : std::size(standardMappings);
+
+    // Apply mappings for available buttons
+    for (size_t i = 0; i < mappingCount; i++) {
+        if (mappings[i].buttonNum <= buttonCount) {
+            SetControllerKeyAssociatedWithAction(
+                mappings[i].action,
+                (RsKeyCodes)mappings[i].buttonNum,
+                eControllerType::JOY_STICK
+            );
         }
     }
 }
@@ -880,24 +920,24 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
 void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller) {
     if (state.m_bLeftButton) {
         m_MouseFoundInitSet = true;
-        SetMouseButtonAssociatedWithAction(CA_PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON);
     }
     if (state.m_bRightButton) {                                                      
-        SetMouseButtonAssociatedWithAction(CA_PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_VEHICLE_MOUSE_LOOK,         rsMOUSE_RIGHT_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_MOUSELOOK,         rsMOUSE_RIGHT_BUTTON);
     }
     if (state.m_bMiddleButton) {                                                      
-        SetMouseButtonAssociatedWithAction(CA_VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON);
     }
     if (state.m_bWheelMovedUp || state.m_bWheelMovedDown) {
-        SetMouseButtonAssociatedWithAction(CA_PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_VEHICLE_RADIO_STATION_DOWN, rsMOUSE_WHEEL_DOWN_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_PED_SNIPER_ZOOM_IN,         rsMOUSE_WHEEL_UP_BUTTON);
-        SetMouseButtonAssociatedWithAction(CA_PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_DOWN, rsMOUSE_WHEEL_DOWN_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_IN,         rsMOUSE_WHEEL_UP_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON);
     }
 }
 
@@ -906,62 +946,62 @@ void CControllerConfigManager::InitialiseControllerActionNameArray() {
     const auto SetActionName = [&](eControllerAction action, const GxtChar* name) {
         GxtCharStrcpy(m_ControllerActionName[action], name);
     };
-    SetActionName(CA_PED_LOOKBEHIND, "PED_LOOKBEHIND"_gxt);
-    SetActionName(CA_PED_CYCLE_WEAPON_LEFT, "PED_CYCLE_WEAPON_LEFT"_gxt);
-    SetActionName(CA_PED_CYCLE_WEAPON_RIGHT, "PED_CYCLE_WEAPON_RIGHT"_gxt);
-    SetActionName(CA_PED_LOCK_TARGET, "PED_LOCK_TARGET"_gxt);
-    SetActionName(CA_PED_JUMPING, "PED_JUMPING"_gxt);
-    SetActionName(CA_PED_SPRINT, "PED_SPRINT"_gxt);
-    SetActionName(CA_PED_WALK, "SNEAK_ABOUT"_gxt);
-    SetActionName(CA_PED_CYCLE_TARGET_LEFT, "PED_CYCLE_TARGET_LEFT"_gxt);
-    SetActionName(CA_PED_CYCLE_TARGET_RIGHT, "PED_CYCLE_TARGET_RIGHT"_gxt);
-    SetActionName(CA_PED_CENTER_CAMERA_BEHIND_PLAYER, "PED_CENTER_CAMERA_BEHIND_PLAYER"_gxt);
-    SetActionName(CA_VEHICLE_LOOKBEHIND, "VEHICLE_LOOKBEHIND"_gxt);
-    SetActionName(CA_PED_DUCK, "PED_DUCK"_gxt);
-    SetActionName(CA_PED_ANSWER_PHONE, "PED_ANSWER_PHONE"_gxt);
-    SetActionName(CA_VEHICLE_STEER_LEFT, "VEHICLE_STEERLEFT"_gxt);
-    SetActionName(CA_VEHICLE_STEER_RIGHT, "VEHICLE_STEERRIGHT"_gxt);
-    SetActionName(CA_VEHICLE_STEER_UP, "VEHICLE_STEERUP"_gxt);
-    SetActionName(CA_VEHICLE_STEER_DOWN, "VEHICLE_STEERDOWN"_gxt);
-    SetActionName(CA_VEHICLE_LOOK_LEFT, "VEHICLE_LOOKLEFT"_gxt);
-    SetActionName(CA_VEHICLE_LOOK_RIGHT, "VEHICLE_LOOKRIGHT"_gxt);
-    SetActionName(CA_VEHICLE_MOUSE_LOOK, "VEHICLE_MOUSELOOK"_gxt);
-    SetActionName(CA_VEHICLE_HORN, "VEHICLE_HORN"_gxt);
-    SetActionName(CA_VEHICLE_HANDBRAKE, "VEHICLE_HANDBRAKE"_gxt);
-    SetActionName(CA_VEHICLE_ACCELERATE, "VEHICLE_ACCELERATE"_gxt);
-    SetActionName(CA_VEHICLE_BRAKE, "VEHICLE_BRAKE"_gxt);
-    SetActionName(CA_VEHICLE_RADIO_STATION_UP, "VEHICLE_RADIO_STATION_UP"_gxt);
-    SetActionName(CA_VEHICLE_RADIO_STATION_DOWN, "VEHICLE_RADIO_STATION_DOWN"_gxt);
-    SetActionName(CA_TOGGLE_SUBMISSIONS, "TOGGLE_SUBMISSIONS"_gxt);
-    SetActionName(CA_PED_SNIPER_ZOOM_IN, "PED_SNIPER_ZOOM_IN"_gxt);
-    SetActionName(CA_PED_SNIPER_ZOOM_OUT, "PED_SNIPER_ZOOM_OUT"_gxt);
-    SetActionName(CA_PED_1RST_PERSON_LOOK_LEFT, "PED_1RST_PERSON_LOOK_LEFT"_gxt);
-    SetActionName(CA_PED_1RST_PERSON_LOOK_RIGHT, "PED_1RST_PERSON_LOOK_RIGHT"_gxt);
-    SetActionName(CA_PED_1RST_PERSON_LOOK_UP, "PED_1RST_PERSON_LOOK_UP"_gxt);
-    SetActionName(CA_PED_1RST_PERSON_LOOK_DOWN, "PED_1RST_PERSON_LOOK_DOWN"_gxt);
-    SetActionName(CA_SHOW_MOUSE_POINTER_TOGGLE, "SHOW_MOUSE_POINTER_TOGGLE"_gxt);
-    SetActionName(CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, "CAMERA_CHANGE_VIEW_ALL_SITUATIONS"_gxt);
-    SetActionName(CA_PED_FIRE_WEAPON, "PED_FIREWEAPON"_gxt);
-    SetActionName(CA_PED_FIRE_WEAPON_ALT, "PED_FIREWEAPON_ALT"_gxt);
-    SetActionName(CA_VEHICLE_FIRE_WEAPON, "VEHICLE_FIREWEAPON"_gxt);
-    SetActionName(CA_VEHICLE_FIRE_WEAPON_ALT, "VEHICLE_FIREWEAPON_ALT"_gxt);
-    SetActionName(CA_VEHICLE_ENTER_EXIT, "VEHICLE_ENTER_EXIT"_gxt);
-    SetActionName(CA_CONVERSATION_NO, "CONVERSATION_NO"_gxt);
-    SetActionName(CA_CONVERSATION_YES, "CONVERSATION_YES"_gxt);
-    SetActionName(CA_GROUP_CONTROL_FWD, "GROUP_CONTROL_FWD"_gxt);
-    SetActionName(CA_GROUP_CONTROL_BWD, "GROUP_CONTROL_BWD"_gxt);
-    SetActionName(CA_GO_LEFT, "GO_LEFT"_gxt);
-    SetActionName(CA_GO_RIGHT, "GO_RIGHT"_gxt);
-    SetActionName(CA_GO_FORWARD, "GO_FORWARD"_gxt);
-    SetActionName(CA_GO_BACK, "GO_BACK"_gxt);
-    SetActionName(CA_VEHICLE_TURRET_LEFT, "VEHICLE_TURRETLEFT"_gxt);
-    SetActionName(CA_VEHICLE_TURRET_RIGHT, "VEHICLE_TURRETRIGHT"_gxt);
-    SetActionName(CA_VEHICLE_TURRET_UP, "VEHICLE_TURRETUP"_gxt);
-    SetActionName(CA_VEHICLE_TURRET_DOWN, "VEHICLE_TURRETDOWN"_gxt);
-    SetActionName(CA_NETWORK_TALK, "NETWORK_TALK"_gxt);
-    SetActionName(CA_TOGGLE_DPAD, "TOGGLE_DPAD"_gxt);
-    SetActionName(CA_SWITCH_DEBUG_CAM_ON, "SWITCH_DEBUG_CAM_ON"_gxt);
-    SetActionName(CA_TAKE_SCREEN_SHOT, "TAKE_SCREEN_SHOT"_gxt);
+    SetActionName(eControllerAction::PED_LOOKBEHIND, "PED_LOOKBEHIND"_gxt);
+    SetActionName(eControllerAction::PED_CYCLE_WEAPON_LEFT, "PED_CYCLE_WEAPON_LEFT"_gxt);
+    SetActionName(eControllerAction::PED_CYCLE_WEAPON_RIGHT, "PED_CYCLE_WEAPON_RIGHT"_gxt);
+    SetActionName(eControllerAction::PED_LOCK_TARGET, "PED_LOCK_TARGET"_gxt);
+    SetActionName(eControllerAction::PED_JUMPING, "PED_JUMPING"_gxt);
+    SetActionName(eControllerAction::PED_SPRINT, "PED_SPRINT"_gxt);
+    SetActionName(eControllerAction::PED_WALK, "SNEAK_ABOUT"_gxt);
+    SetActionName(eControllerAction::PED_CYCLE_TARGET_LEFT, "PED_CYCLE_TARGET_LEFT"_gxt);
+    SetActionName(eControllerAction::PED_CYCLE_TARGET_RIGHT, "PED_CYCLE_TARGET_RIGHT"_gxt);
+    SetActionName(eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER, "PED_CENTER_CAMERA_BEHIND_PLAYER"_gxt);
+    SetActionName(eControllerAction::VEHICLE_LOOKBEHIND, "VEHICLE_LOOKBEHIND"_gxt);
+    SetActionName(eControllerAction::PED_DUCK, "PED_DUCK"_gxt);
+    SetActionName(eControllerAction::PED_ANSWER_PHONE, "PED_ANSWER_PHONE"_gxt);
+    SetActionName(eControllerAction::VEHICLE_STEER_LEFT, "VEHICLE_STEERLEFT"_gxt);
+    SetActionName(eControllerAction::VEHICLE_STEER_RIGHT, "VEHICLE_STEERRIGHT"_gxt);
+    SetActionName(eControllerAction::VEHICLE_STEER_UP, "VEHICLE_STEERUP"_gxt);
+    SetActionName(eControllerAction::VEHICLE_STEER_DOWN, "VEHICLE_STEERDOWN"_gxt);
+    SetActionName(eControllerAction::VEHICLE_LOOKLEFT, "VEHICLE_LOOKLEFT"_gxt);
+    SetActionName(eControllerAction::VEHICLE_LOOKRIGHT, "VEHICLE_LOOKRIGHT"_gxt);
+    SetActionName(eControllerAction::VEHICLE_MOUSELOOK, "VEHICLE_MOUSELOOK"_gxt);
+    SetActionName(eControllerAction::VEHICLE_HORN, "VEHICLE_HORN"_gxt);
+    SetActionName(eControllerAction::VEHICLE_HANDBRAKE, "VEHICLE_HANDBRAKE"_gxt);
+    SetActionName(eControllerAction::VEHICLE_ACCELERATE, "VEHICLE_ACCELERATE"_gxt);
+    SetActionName(eControllerAction::VEHICLE_BRAKE, "VEHICLE_BRAKE"_gxt);
+    SetActionName(eControllerAction::VEHICLE_RADIO_STATION_UP, "VEHICLE_RADIO_STATION_UP"_gxt);
+    SetActionName(eControllerAction::VEHICLE_RADIO_STATION_DOWN, "VEHICLE_RADIO_STATION_DOWN"_gxt);
+    SetActionName(eControllerAction::TOGGLE_SUBMISSIONS, "TOGGLE_SUBMISSIONS"_gxt);
+    SetActionName(eControllerAction::PED_SNIPER_ZOOM_IN, "PED_SNIPER_ZOOM_IN"_gxt);
+    SetActionName(eControllerAction::PED_SNIPER_ZOOM_OUT, "PED_SNIPER_ZOOM_OUT"_gxt);
+    SetActionName(eControllerAction::PED_1RST_PERSON_LOOK_LEFT, "PED_1RST_PERSON_LOOK_LEFT"_gxt);
+    SetActionName(eControllerAction::PED_1RST_PERSON_LOOK_RIGHT, "PED_1RST_PERSON_LOOK_RIGHT"_gxt);
+    SetActionName(eControllerAction::PED_1RST_PERSON_LOOK_UP, "PED_1RST_PERSON_LOOK_UP"_gxt);
+    SetActionName(eControllerAction::PED_1RST_PERSON_LOOK_DOWN, "PED_1RST_PERSON_LOOK_DOWN"_gxt);
+    SetActionName(eControllerAction::SHOW_MOUSE_POINTER_TOGGLE, "SHOW_MOUSE_POINTER_TOGGLE"_gxt);
+    SetActionName(eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS, "CAMERA_CHANGE_VIEW_ALL_SITUATIONS"_gxt);
+    SetActionName(eControllerAction::PED_FIRE_WEAPON, "PED_FIREWEAPON"_gxt);
+    SetActionName(eControllerAction::PED_FIRE_WEAPON_ALT, "PED_FIREWEAPON_ALT"_gxt);
+    SetActionName(eControllerAction::VEHICLE_FIRE_WEAPON, "VEHICLE_FIREWEAPON"_gxt);
+    SetActionName(eControllerAction::VEHICLE_FIRE_WEAPON_ALT, "VEHICLE_FIREWEAPON_ALT"_gxt);
+    SetActionName(eControllerAction::VEHICLE_ENTER_EXIT, "VEHICLE_ENTER_EXIT"_gxt);
+    SetActionName(eControllerAction::CONVERSATION_NO, "CONVERSATION_NO"_gxt);
+    SetActionName(eControllerAction::CONVERSATION_YES, "CONVERSATION_YES"_gxt);
+    SetActionName(eControllerAction::GROUP_CONTROL_FWD, "GROUP_CONTROL_FWD"_gxt);
+    SetActionName(eControllerAction::GROUP_CONTROL_BWD, "GROUP_CONTROL_BWD"_gxt);
+    SetActionName(eControllerAction::GO_LEFT, "GO_LEFT"_gxt);
+    SetActionName(eControllerAction::GO_RIGHT, "GO_RIGHT"_gxt);
+    SetActionName(eControllerAction::GO_FORWARD, "GO_FORWARD"_gxt);
+    SetActionName(eControllerAction::GO_BACK, "GO_BACK"_gxt);
+    SetActionName(eControllerAction::VEHICLE_TURRETLEFT, "VEHICLE_TURRETLEFT"_gxt);
+    SetActionName(eControllerAction::VEHICLE_TURRETRIGHT, "VEHICLE_TURRETRIGHT"_gxt);
+    SetActionName(eControllerAction::VEHICLE_TURRETUP, "VEHICLE_TURRETUP"_gxt);
+    SetActionName(eControllerAction::VEHICLE_TURRETDOWN, "VEHICLE_TURRETDOWN"_gxt);
+    SetActionName(eControllerAction::NETWORK_TALK, "NETWORK_TALK"_gxt);
+    SetActionName(eControllerAction::TOGGLE_DPAD, "TOGGLE_DPAD"_gxt);
+    SetActionName(eControllerAction::SWITCH_DEBUG_CAM_ON, "SWITCH_DEBUG_CAM_ON"_gxt);
+    SetActionName(eControllerAction::TAKE_SCREEN_SHOT, "TAKE_SCREEN_SHOT"_gxt);
 }
 
 // 0x531F20
@@ -1333,67 +1373,67 @@ bool CControllerConfigManager::GetIsKeyBlank(CControllerKey::KeyCode key, eContr
 // 0x52F2F0
 eActionType CControllerConfigManager::GetActionType(eControllerAction action) {
     switch (action) {
-    case CA_PED_FIRE_WEAPON:
-    case CA_PED_FIRE_WEAPON_ALT:
-    case CA_GO_FORWARD:
-    case CA_GO_BACK:
-    case CA_GO_LEFT:
-    case CA_GO_RIGHT:
-    case CA_PED_SNIPER_ZOOM_IN:
-    case CA_PED_SNIPER_ZOOM_OUT:
-    case CA_PED_1RST_PERSON_LOOK_LEFT:
-    case CA_PED_1RST_PERSON_LOOK_RIGHT:
-    case CA_PED_LOCK_TARGET:
-    case CA_PED_1RST_PERSON_LOOK_UP:
-    case CA_PED_1RST_PERSON_LOOK_DOWN:
+    case eControllerAction::PED_FIRE_WEAPON:
+    case eControllerAction::PED_FIRE_WEAPON_ALT:
+    case eControllerAction::GO_FORWARD:
+    case eControllerAction::GO_BACK:
+    case eControllerAction::GO_LEFT:
+    case eControllerAction::GO_RIGHT:
+    case eControllerAction::PED_SNIPER_ZOOM_IN:
+    case eControllerAction::PED_SNIPER_ZOOM_OUT:
+    case eControllerAction::PED_1RST_PERSON_LOOK_LEFT:
+    case eControllerAction::PED_1RST_PERSON_LOOK_RIGHT:
+    case eControllerAction::PED_LOCK_TARGET:
+    case eControllerAction::PED_1RST_PERSON_LOOK_UP:
+    case eControllerAction::PED_1RST_PERSON_LOOK_DOWN:
         return ACTION_FIRST_THIRD_PERSON;
-    case CA_PED_CYCLE_WEAPON_RIGHT:
-    case CA_PED_CYCLE_WEAPON_LEFT:
-    case CA_PED_JUMPING:
-    case CA_PED_SPRINT:
-    case CA_PED_LOOKBEHIND:
-    case CA_PED_DUCK:
-    case CA_PED_ANSWER_PHONE:
-    case CA_PED_WALK:
-    case CA_PED_CYCLE_TARGET_LEFT:
-    case CA_PED_CYCLE_TARGET_RIGHT:
-    case CA_PED_CENTER_CAMERA_BEHIND_PLAYER:
-    case CA_CONVERSATION_YES:
-    case CA_CONVERSATION_NO:
-    case CA_GROUP_CONTROL_FWD:
-    case CA_GROUP_CONTROL_BWD:
+    case eControllerAction::PED_CYCLE_WEAPON_RIGHT:
+    case eControllerAction::PED_CYCLE_WEAPON_LEFT:
+    case eControllerAction::PED_JUMPING:
+    case eControllerAction::PED_SPRINT:
+    case eControllerAction::PED_LOOKBEHIND:
+    case eControllerAction::PED_DUCK:
+    case eControllerAction::PED_ANSWER_PHONE:
+    case eControllerAction::PED_WALK:
+    case eControllerAction::PED_CYCLE_TARGET_LEFT:
+    case eControllerAction::PED_CYCLE_TARGET_RIGHT:
+    case eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER:
+    case eControllerAction::CONVERSATION_YES:
+    case eControllerAction::CONVERSATION_NO:
+    case eControllerAction::GROUP_CONTROL_FWD:
+    case eControllerAction::GROUP_CONTROL_BWD:
         return ACTION_THIRD_PERSON;
-    case CA_VEHICLE_ENTER_EXIT:
+    case eControllerAction::VEHICLE_ENTER_EXIT:
         return ACTION_IN_CAR_THIRD_PERSON;
-    case CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS:
-    case CA_NETWORK_TALK:
-    case CA_TOGGLE_DPAD:
-    case CA_SWITCH_DEBUG_CAM_ON:
-    case CA_TAKE_SCREEN_SHOT:
-    case CA_SHOW_MOUSE_POINTER_TOGGLE:
+    case eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS:
+    case eControllerAction::NETWORK_TALK:
+    case eControllerAction::TOGGLE_DPAD:
+    case eControllerAction::SWITCH_DEBUG_CAM_ON:
+    case eControllerAction::TAKE_SCREEN_SHOT:
+    case eControllerAction::SHOW_MOUSE_POINTER_TOGGLE:
         return ACTION_COMMON_CONTROLS;
-    case CA_VEHICLE_FIRE_WEAPON:
-    case CA_VEHICLE_FIRE_WEAPON_ALT:
-    case CA_VEHICLE_STEER_LEFT:
-    case CA_VEHICLE_STEER_RIGHT:
-    case CA_VEHICLE_STEER_UP:
-    case CA_VEHICLE_STEER_DOWN:
-    case CA_VEHICLE_ACCELERATE:
-    case CA_VEHICLE_BRAKE:
-    case CA_VEHICLE_RADIO_STATION_UP:
-    case CA_VEHICLE_RADIO_STATION_DOWN:
-    case CA_VEHICLE_RADIO_TRACK_SKIP:
-    case CA_VEHICLE_HORN:
-    case CA_TOGGLE_SUBMISSIONS:
-    case CA_VEHICLE_HANDBRAKE:
-    case CA_VEHICLE_LOOK_LEFT:
-    case CA_VEHICLE_LOOK_RIGHT:
-    case CA_VEHICLE_LOOKBEHIND:
-    case CA_VEHICLE_MOUSE_LOOK:
-    case CA_VEHICLE_TURRET_LEFT:
-    case CA_VEHICLE_TURRET_RIGHT:
-    case CA_VEHICLE_TURRET_UP:
-    case CA_VEHICLE_TURRET_DOWN:
+    case eControllerAction::VEHICLE_FIRE_WEAPON:
+    case eControllerAction::VEHICLE_FIRE_WEAPON_ALT:
+    case eControllerAction::VEHICLE_STEER_LEFT:
+    case eControllerAction::VEHICLE_STEER_RIGHT:
+    case eControllerAction::VEHICLE_STEER_UP:
+    case eControllerAction::VEHICLE_STEER_DOWN:
+    case eControllerAction::VEHICLE_ACCELERATE:
+    case eControllerAction::VEHICLE_BRAKE:
+    case eControllerAction::VEHICLE_RADIO_STATION_UP:
+    case eControllerAction::VEHICLE_RADIO_STATION_DOWN:
+    case eControllerAction::VEHICLE_RADIO_TRACK_SKIP:
+    case eControllerAction::VEHICLE_HORN:
+    case eControllerAction::TOGGLE_SUBMISSIONS:
+    case eControllerAction::VEHICLE_HANDBRAKE:
+    case eControllerAction::VEHICLE_LOOKLEFT:
+    case eControllerAction::VEHICLE_LOOKRIGHT:
+    case eControllerAction::VEHICLE_LOOKBEHIND:
+    case eControllerAction::VEHICLE_MOUSELOOK:
+    case eControllerAction::VEHICLE_TURRETLEFT:
+    case eControllerAction::VEHICLE_TURRETRIGHT:
+    case eControllerAction::VEHICLE_TURRETUP:
+    case eControllerAction::VEHICLE_TURRETDOWN:
         return ACTION_IN_CAR;
     default:
         return ACTION_NOT_TYPE;
@@ -1487,7 +1527,7 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
                         }
                     }
                     
-                    if (m_Actions[CA_VEHICLE_ENTER_EXIT].Keys[type].m_uiActionInitiator == key) {
+                    if (m_Actions[eControllerAction::VEHICLE_ENTER_EXIT].Keys[type].m_uiActionInitiator == key) {
                         state->ButtonTriangle = 255;
                     }
                     
@@ -1507,10 +1547,10 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
         for (const auto& type : CONTROLLER_TYPES) {
             const auto key = m_Actions[i].Keys[type].m_uiActionInitiator;
             if (!GetIsKeyboardKeyDown(key) && key != rsNULL) {
-                if (m_Actions[CA_NETWORK_TALK].Keys[type].m_uiActionInitiator == key) {
+                if (m_Actions[eControllerAction::NETWORK_TALK].Keys[type].m_uiActionInitiator == key) {
                     keyState->m_bChatIndicated = 0;
                 }
-                if (m_Actions[CA_VEHICLE_MOUSE_LOOK].Keys[type].m_uiActionInitiator == key) {
+                if (m_Actions[eControllerAction::VEHICLE_MOUSELOOK].Keys[type].m_uiActionInitiator == key) {
                     keyState->m_bVehicleMouseLook = 0;
                 }
             }
@@ -1547,10 +1587,10 @@ void CControllerConfigManager::AffectPadFromMouse() {
 
         if (GetIsMouseButtonUp(button) && button && pad) {
             if (!FrontEndMenuManager.m_bMenuActive) {
-                if (m_Actions[CA_NETWORK_TALK].Keys[eControllerType::MOUSE].m_uiActionInitiator == button) {
+                if (m_Actions[eControllerAction::NETWORK_TALK].Keys[eControllerType::MOUSE].m_uiActionInitiator == button) {
                     state->m_bChatIndicated = 0;
                 }
-                if (m_Actions[CA_VEHICLE_MOUSE_LOOK].Keys[eControllerType::MOUSE].m_uiActionInitiator == button) {
+                if (m_Actions[eControllerAction::VEHICLE_MOUSELOOK].Keys[eControllerType::MOUSE].m_uiActionInitiator == button) {
                     state->m_bVehicleMouseLook = 0;
                 }
             }
@@ -1705,7 +1745,7 @@ const GxtChar* CControllerConfigManager::GetKeyNameForKeyboard(eControllerAction
 
 // 0x52F560
 const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction event) {
-    return event == CA_VEHICLE_LOOKBEHIND
+    return event == eControllerAction::VEHICLE_LOOKBEHIND
         ? TheText.Get("FEC_LBC")
         : nullptr;
 }
@@ -1749,7 +1789,7 @@ eControllerAction CControllerConfigManager::GetActionIDByName(std::string_view n
             return (eControllerAction)(i);
         }
     }
-    return CA_INVALID;
+    return eControllerAction(-1);
 }
 
 // NOTSA
