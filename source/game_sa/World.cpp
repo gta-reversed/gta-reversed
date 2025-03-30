@@ -224,16 +224,14 @@ bool CWorld::ProcessVerticalLineSectorList(PtrListType& ptrList, const CColLine&
     return false;
 }
 
-// 0x563390
+// 0x563390 (Unused)
 template<typename PtrListType>
 void CWorld::CastShadowSectorList(PtrListType& ptrList, float, float, float, float) {
-    for (typename PtrListType::NodeType* it = ptrList.GetNode(), *next{}; it; it = next) {
-        next = it->Next;
-
-        auto entity = static_cast<CEntity*>(it->Item);
-        if (entity->m_nScanCode != ms_nCurrentScanCode && entity->m_bUsesCollision) {
-            entity->SetCurrentScanCode();
+    for (auto* const entity : ptrList) {
+        if (entity->IsScanCodeCurrent()) {
+            continue;
         }
+        entity->SetCurrentScanCode();
     }
 }
 
@@ -293,10 +291,7 @@ void CWorld::ClearScanCodes() {
 template<typename PtrListType>
 void CWorld::FindObjectsInRangeSectorList(PtrListType& ptrList, const CVector& point, float radius, bool b2D, int16* outCount, int16 maxCount, CEntity** outEntities) {
     const auto radiusSq = radius * radius;
-    for (typename PtrListType::NodeType* it = ptrList.m_node, *next{}; it; it = next) {
-        next = it->Next;
-
-        auto entity = static_cast<CEntity*>(it->Item);
+    for (auto* const entity : ptrList) {
         if (entity->IsScanCodeCurrent())
             continue;
 
