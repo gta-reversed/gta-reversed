@@ -14,9 +14,6 @@
 static auto& PsGlobal = StaticRef<psGlobalType, 0xC8CF88>();
 static inline char gCpuVendor[13] = "GTAReversed!"; // = "UnknownVendr";
 
-//! Disable "This function was depracated"
-#pragma warning (disable : 28159 4996)
-
 // 0x7455E0 - Get available videomem
 HRESULT GetVideoMemInfo(LPDWORD total, LPDWORD available) {
 	LPDIRECTDRAW7 dd;
@@ -62,8 +59,6 @@ BOOL CheckDirectSound() {
 
 // 0x7465B0
 void InitialiseLanguage() {
-//#pragma warning (disable : 4302) // "Type truncation from HKL to 
-
     // TODO: Use `GetLocaleInfoEx`
     const auto sysDefaultLCID = PRIMARYLANGID(GetSystemDefaultLCID());
 	const auto usrDefaultLCID = PRIMARYLANGID(GetUserDefaultLCID());
@@ -388,7 +383,7 @@ bool psAlwaysOnTop(bool alwaysOnTop) {
 }
 
 // NOTSA
-auto GetNativeResolutionOfCurrentSubsystem() {
+static auto GetNativeResolutionOfCurrentSubsystem() {
 #ifdef USE_D3D9
     const auto d3d = Direct3DCreate9(D3D_SDK_VERSION);
 #else

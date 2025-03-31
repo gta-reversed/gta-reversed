@@ -42,7 +42,7 @@ endif()
 add_library(${RE_PROJECT_LIB_NAME} MODULE ${SOURCE_FILES_LIST})
 
 target_compile_options(${RE_PROJECT_LIB_NAME} PRIVATE
-    "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/wd26812;/wd26495>"
+    "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/wd26812;/wd26495;/wd28159;/wd4996>"
     "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wall;>"
 )
 
