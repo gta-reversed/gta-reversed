@@ -728,12 +728,12 @@ bool ExtractIPLNameFromPath(const char* iplFilePath, char(&out)[N]) {
     // Extract name of IPL from path
     const auto fileNameWithExt = strrchr(iplFilePath, '\\');
     if (!fileNameWithExt) {
-        DEV_LOG("Failed to extract ipl name from path ({}) [No path separator]", iplFilePath);
+        NOTSA_LOG_DEBUG("Failed to extract ipl name from path ({}) [No path separator]", iplFilePath);
         return false;
     }
     const auto dot = strchr(fileNameWithExt, '.');
     if (!dot) {
-        DEV_LOG("Failed to extract ipl name from path ({}) [No file ext]", iplFilePath);
+        NOTSA_LOG_DEBUG("Failed to extract ipl name from path ({}) [No file ext]", iplFilePath);
         return false;
     }
     memcpy_s(out, rng::size(out), fileNameWithExt + 1, dot - (fileNameWithExt + 1)); // They used a manual loop, but this is better.

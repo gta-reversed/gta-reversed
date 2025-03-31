@@ -49,17 +49,6 @@ target_compile_options(${RE_PROJECT_LIB_NAME} PRIVATE
     "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/wd26812;/wd26495;/wd28159;/wd4996>"
     "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wall;>"
 )
-
-function(supress_deps_warnings targets)
-    foreach (target ${targets})
-        add_compile_options(${target} PRIVATE
-            "$<$<CXX_COMPILER_ID:MSVC>:-w>"
-            "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wno-everything>"
-        )
-    endforeach()
-endfunction()
-supress_deps_warnings(ogg imgui vorbisfile spdlog nlohmann_json)
-
 set_target_properties(${RE_PROJECT_LIB_NAME}
     PROPERTIES
     SUFFIX ".asi"
@@ -68,16 +57,38 @@ set_target_properties(${RE_PROJECT_LIB_NAME}
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
     COMPILE_WARNING_AS_ERROR ON
 )
-
 target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
 
+#--------------------------------------------------------------------
+# Add dependencies
+#--------------------------------------------------------------------
+macro(add_dependency)
+    foreach (target ${ARGV})
+        find_package(${target} REQUIRED)
+
+        add_compile_options(${target} PRIVATE
+            "$<$<CXX_COMPILER_ID:MSVC>:-w>"
+            "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wno-everything>"
+        )
+    endforeach()
+endmacro()
+add_dependency(
+    nlohmann_json
+    Ogg
+    spdlog
+    Tracy
+    Vorbis
+    imgui
+    libjpeg-turbo
+)
+
 target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
+    nlohmann_json::nlohmann_json
     Ogg::ogg
-    vorbis::vorbis
-    imgui::imgui
     spdlog::spdlog
     Tracy::TracyClient
-    nlohmann_json::nlohmann_json
+    vorbis::vorbis
+    imgui::imgui
     libjpeg-turbo::libjpeg-turbo
     ddraw
     Winmm
@@ -85,6 +96,7 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     strmiids
     d3d9
 )
+
 
 target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     /

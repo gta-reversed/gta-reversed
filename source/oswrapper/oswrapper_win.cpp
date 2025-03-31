@@ -186,7 +186,7 @@ void* OS_ThreadLaunch(OS_ThreadRoutine pfnStart, void* param, uint32 nFlags, con
         break;
     }
 
-    DEV_LOG("OS: Thread {} ({}) created", dwThreadID, name);
+    NOTSA_LOG_DEBUG("OS: Thread {} ({}) created", dwThreadID, name);
 
     return hThread;
 }

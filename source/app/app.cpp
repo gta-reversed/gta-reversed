@@ -122,7 +122,7 @@ RsEventStatus AppEventHandler(RsEvent event, void* param) {
 bool PluginAttach() {
     const auto Attach = [](auto name, auto attachFn) {
         if (!attachFn()) {
-            DEV_LOG("Couldn't attach {} plugin", name);
+            NOTSA_LOG_DEBUG("Couldn't attach {} plugin", name);
             return false;
         }
         return true;

@@ -285,7 +285,7 @@ void CGlass::GeneratePanesForWindow(ePaneType type, CVector point, CVector fwd, 
     const auto [countX, sizeX] = CalculateCountOfSectionsAndSizeAxis(totalSizeX);
     const auto [countY, sizeY] = CalculateCountOfSectionsAndSizeAxis(totalSizeY);
 
-    // DEV_LOG("Panes: {} x {} ({.3f} x {.3f})", countX, countY, sizeX, sizeY);
+    // NOTSA_LOG_DEBUG("Panes: {} x {} ({.3f} x {.3f})", countX, countY, sizeX, sizeY);
 
     bool hitGround{};
     float groundZ = CWorld::FindGroundZFor3DCoord(point, &hitGround, nullptr);

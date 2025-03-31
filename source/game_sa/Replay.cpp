@@ -437,7 +437,7 @@ void CReplay::PlayReplayFromHD() {
         CFileMgr::Read(file, gString, 8u);
 
         if (strncmp(gString, "GtaSA29", 8u) != 0) {
-            DEV_LOG("Invalid replay file data, header unmatch (='{}')", std::string_view{gString, 8u});
+            NOTSA_LOG_DEBUG("Invalid replay file data, header unmatch (='{}')", std::string_view{gString, 8u});
         } else {
             auto bufferIdx = 0u;
             for (; bufferIdx < NUM_REPLAY_BUFFERS && CFileMgr::Read(file, Buffers[bufferIdx].buffer.data(), sizeof(tReplayBuffer)); bufferIdx++) {

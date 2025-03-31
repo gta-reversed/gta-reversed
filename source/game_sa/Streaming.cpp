@@ -2642,7 +2642,7 @@ void CStreaming::ProcessEntitiesInSectorList(CPtrList& list, int32 streamingFlag
 
 // 0x4076C0
 void CStreaming::RetryLoadFile(int32 chIdx) {
-    DEV_LOG("CStreaming::RetryLoadFile called!"); // NOTSA
+    NOTSA_LOG_DEBUG("CStreaming::RetryLoadFile called!"); // NOTSA
 
     if (ms_channelError == -1)
         return CLoadingScreen::Continue();
