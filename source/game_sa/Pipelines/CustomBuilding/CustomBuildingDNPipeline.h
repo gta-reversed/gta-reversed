@@ -42,8 +42,6 @@ public:
     static void PreRenderUpdate(RpAtomic* atomic, bool ignoreDNBalanceParam);
     static void PreRenderUpdate(RpClump* clump, bool ignoreDNBalanceParam);
 
-    static RpAtomic* PreRenderUpdateRpAtomicCB(RpAtomic* atomic, void* data);
-
     static void*     pluginExtraVertColourConstructorCB(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);
     static void*     pluginExtraVertColourDestructorCB(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);
     static RwStream* pluginExtraVertColourStreamReadCB(RwStream* stream, RwInt32 binaryLength, void* object, RwInt32 offsetInObject, RwInt32 sizeInObject);

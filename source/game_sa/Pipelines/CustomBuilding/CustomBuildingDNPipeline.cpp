@@ -149,9 +149,9 @@ void CCustomBuildingDNPipeline::PreRenderUpdate(RpAtomic* a, bool ignoreDNBalanc
 // 0x5D72C0
 void CCustomBuildingDNPipeline::PreRenderUpdate(RpClump* clump, bool ignoreDNBalanceParam) {
     RpClumpForAllAtomics(clump, [](RpAtomic* atomic, void* data) { // 0x5D72A0
-        CCustomBuildingDNPipeline::PreRenderUpdate(atomic, false);
+        CCustomBuildingDNPipeline::PreRenderUpdate(atomic, *(bool*)(data));
         return atomic;
-    }, nullptr);
+    }, &ignoreDNBalanceParam);
 }
 
 // 0x5D7100
