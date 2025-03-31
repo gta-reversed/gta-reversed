@@ -43,7 +43,7 @@ bool CMouseControllerState::CheckForInput() const {
         || m_bWheelMovedDown
         || m_bMsFirstXButton
         || m_bMsSecondXButton
-        || (m_AmountMoved.x).IsZero()
-        || (m_AmountMoved.y).IsZero()
+        || m_AmountMoved.x != 0.0f
+        || m_AmountMoved.y != 0.0f
     );
 }
