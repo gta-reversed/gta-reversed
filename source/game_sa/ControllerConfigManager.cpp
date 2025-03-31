@@ -570,6 +570,20 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
         }
     }
 
+    // NOTSA: Check if there's at least one valid assignment for each action
+    for (int i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
+        bool hasAssignment = false;
+        for (int j = 0; j < CONTROLLER_NUM; j++) {
+            if (!GetIsKeyBlank(m_Actions[i].Keys[j].m_uiActionInitiator, (eControllerType)j)) {
+                hasAssignment = true;
+                break;
+            }
+        }
+        if (!hasAssignment) {
+            return false; // No valid assignment found for this action
+        }
+    }
+
     return true;
 }
 
@@ -603,13 +617,8 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
 
             // Format key value assignment
             // if is text empty, use action ID instead
-            if (m_ControllerActionName[j][0] == '\0') {
-                std::string line = std::to_string(j) + "=" + std::to_string(m_Actions[j].Keys[i].m_uiActionInitiator) + "," + std::to_string(m_Actions[j].Keys[i].m_uiSetOrder) + "\n";
-                CFileMgr::Write(file, line.c_str(), (int32)line.length());
-            } else {
-                std::string line = std::string(actionName) + "=" + std::to_string(m_Actions[j].Keys[i].m_uiActionInitiator) + "," + std::to_string(m_Actions[j].Keys[i].m_uiSetOrder) + "\n";
-                CFileMgr::Write(file, line.c_str(), (int32)line.length());
-            }
+            std::string line = std::format("{}={}\n", (m_ControllerActionName[j][0] == '\0') ? std::to_string(j) : actionName, m_Actions[j].Keys[i].m_uiActionInitiator);
+            CFileMgr::Write(file, line.c_str(), (int32)line.length());
         }
 
         // Add a separator between sections
@@ -670,7 +679,21 @@ bool CControllerConfigManager::LoadSettings(FILE* file) {
             CFileMgr::Read(file, &m_Actions[i].Keys[controllerType], 8);
         }
     }
-    
+
+    // NOTSA: Check if there's at least one valid assignment for each action
+    for (int i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
+        bool hasAssignment = false;
+        for (int j = 0; j < CONTROLLER_NUM; j++) {
+            if (!GetIsKeyBlank(m_Actions[i].Keys[j].m_uiActionInitiator, (eControllerType)j)) {
+                hasAssignment = true;
+                break;
+            }
+        }
+        if (!hasAssignment) {
+            return false; // No valid assignment found for this action
+        }
+    }
+
     return true;
 }
 

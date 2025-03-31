@@ -839,7 +839,14 @@ void CMenuManager::LoadSettings() {
         // Load controller settings from separate file
         bool controlsLoaded = false;
         if (fileController) {
-            controlsLoaded = ControlsManager.LoadSettings(fileController);
+            try{
+                controlsLoaded = ControlsManager.LoadSettings(fileController);
+            } catch (...) {
+                controlsLoaded = false;
+            }
+            if (!controlsLoaded) {
+                SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
+            }
         }
         
         // Apply settings if valid data was found
