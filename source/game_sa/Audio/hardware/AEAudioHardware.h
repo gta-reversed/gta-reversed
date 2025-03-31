@@ -49,8 +49,6 @@ class CAEMP3BankLoader;
 class CAEAudioChannel;
 class tBeatInfo;
 
-#define USE_DSOUND
-
 class CAEAudioHardware {
 public:
     bool                    m_bInitialised{};

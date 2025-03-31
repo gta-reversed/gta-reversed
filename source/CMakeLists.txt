@@ -1,5 +1,15 @@
+#--------------------------------------------------------------------
+# Game features
+#--------------------------------------------------------------------
+option(${RE_PROJECT}_WITH_OPENAL "Use OpenAL" OFF)
+
+
+#--------------------------------------------------------------------
+# Build options
+#--------------------------------------------------------------------
 option(${RE_PROJECT}_UNITY_BUILD "Use Unity/Jumbo build" OFF)
 option(${RE_PROJECT}_WITH_SANITIZERS "Use Sanitizers (better crash log)" OFF)
+option(${RE_PROJECT}_WITH_LTO "Use Link Time Optimization" OFF)
 option(${RE_PROJECT}_WITH_SCRIPT_COMMAND_HOOKS "Create script command hooks in the UI (Command hooks are installed regardless)" OFF)
 option(${RE_PROJECT}_WITH_CLEO_COMMANDS "Enable CLEO script commands" OFF)
 
@@ -11,6 +21,23 @@ file(
     "${CMAKE_CURRENT_SOURCE_DIR}/*.c*"
 )
 list(APPEND SOURCE_FILES_LIST StdInc.cpp)
+
+#--------------------------------------------------------------------
+# Remove unused Audio API sources
+#--------------------------------------------------------------------
+if (${RE_PROJECT}_WITH_OPENAL)
+    # TODO: Remove dsound specific sources
+else()
+    file(
+        GLOB_RECURSE OPENAL_FILES
+        LIST_DIRECTORIES false
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/game_sa/Audio/OpenAL/*.c*"
+        "${CMAKE_CURRENT_SOURCE_DIR}/game_sa/Audio/OpenAL/*.h*"
+    )
+    list(REMOVE_ITEM SOURCE_FILES_LIST ${OPENAL_FILES})
+endif()
+
 
 add_library(${RE_PROJECT_LIB_NAME} MODULE ${SOURCE_FILES_LIST})
 
@@ -37,24 +64,6 @@ set_target_properties(${RE_PROJECT_LIB_NAME}
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
     COMPILE_WARNING_AS_ERROR ON
 )
-if (${RE_PROJECT}_UNITY_BUILD)
-    set_target_properties(${RE_PROJECT_LIB_NAME}
-        PROPERTIES
-        UNITY_BUILD TRUE
-        UNITY_BUILD_MODE BATCH
-        UNITY_BUILD_BATCH_SIZE 16
-    )
-endif()
-
-if (${RE_PROJECT}_WITH_LTO)
-    message(STATUS "Configuring Link Time Optimization")
-    set_target_properties(${RE_PROJECT_LIB_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
-
-if (${RE_PROJECT}_WITH_SANITIZERS)
-    message(STATUS "Configuring sanitizers")
-    # add_sanitizers(${RE_PROJECT_LIB_NAME})
-endif()
 
 target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
 
@@ -64,25 +73,14 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     imgui::imgui
     spdlog::spdlog
     Tracy::TracyClient
+    nlohmann_json::nlohmann_json
+    libjpeg-turbo::libjpeg-turbo
     ddraw
     Winmm
     dxguid
     strmiids
-    dsound
     d3d9
-    nlohmann_json::nlohmann_json
-    libjpeg-turbo::libjpeg-turbo
 )
-
-if(WIN32) 
-    if(MSVC) # MSVC knows how to find dbghelp on it's own
-        target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
-            dbghelp
-        )
-    else()
-        message(FATAL_ERROR "Need to link dbghelp lib for win32")
-    endif()
-endif()
 
 target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     /
@@ -153,6 +151,64 @@ target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
 )
 target_compile_features(${RE_PROJECT_LIB_NAME} PRIVATE cxx_std_23)
 target_precompile_headers(${RE_PROJECT_LIB_NAME} PRIVATE StdInc.cpp)
+
+#--------------------------------------------------------------------
+# Configure build options
+#--------------------------------------------------------------------
+if (${RE_PROJECT}_UNITY_BUILD)
+    set_target_properties(${RE_PROJECT_LIB_NAME}
+        PROPERTIES
+        UNITY_BUILD TRUE
+        UNITY_BUILD_MODE BATCH
+        UNITY_BUILD_BATCH_SIZE 16
+    )
+endif()
+
+if (${RE_PROJECT}_WITH_LTO)
+    message(STATUS "Configuring Link Time Optimization")
+    set_target_properties(${RE_PROJECT_LIB_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
+if (${RE_PROJECT}_WITH_SANITIZERS)
+    message(STATUS "Configuring sanitizers")
+    # add_sanitizers(${RE_PROJECT_LIB_NAME})
+endif()
+
+
+#--------------------------------------------------------------------
+# Configure the Audio API
+#--------------------------------------------------------------------
+if (NOT WIN32 AND NOT ${RE_PROJECT}_WITH_OPENAL)
+    set(${RE_PROJECT}_WITH_OPENAL ON)
+endif()
+
+
+if (${RE_PROJECT}_WITH_OPENAL)
+    target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE USE_OPENAL)
+
+    target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
+        game_sa/Audio/OpenAL
+    )
+else()
+    target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE USE_DSOUND)
+
+    target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE dsound)
+endif()
+
+
+#--------------------------------------------------------------------
+# Configure dbghelp for Windows
+#--------------------------------------------------------------------
+if(WIN32)
+    if(MSVC) # MSVC knows how to find dbghelp on it's own
+        target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
+            dbghelp
+        )
+    else()
+        message(FATAL_ERROR "Need to link dbghelp lib for win32")
+    endif()
+endif()
+
 
 #--------------------------------------------------------------------
 # Install
