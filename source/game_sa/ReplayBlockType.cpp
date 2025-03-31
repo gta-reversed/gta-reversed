@@ -48,7 +48,7 @@ tReplayVehicleBlock tReplayVehicleBlock::MakeVehicleUpdateData(CVehicle* vehicle
         ret.angleDoorRF = (uint8)(automobile->m_doors[DOOR_RIGHT_FRONT].m_fAngle * 20.222929f);
 
         ret.doorStatus = 0u;
-        for (auto&& [i, status] : notsa::enumerate(automobile->m_damageManager.GetAllDoorsStatus())) {
+        for (auto&& [i, status] : rngv::enumerate(automobile->m_damageManager.GetAllDoorsStatus())) {
             if (status == eDoorState::DOOR_SLAM_SHUT) {
                 ret.doorStatus |= (uint8)std::pow(2, i);
             }

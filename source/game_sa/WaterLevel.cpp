@@ -830,7 +830,7 @@ uint32 CWaterLevel::AddWaterLevelVertex(int32 X, int32 Y, CRenPar P) {
     }
 
     // Try finding a vertex with the same coords, and use that
-    for (auto&& [id, vtx] : notsa::enumerate(m_aVertices | rng::views::take(NumWaterVertices))) {
+    for (auto&& [id, vtx] : rngv::enumerate(m_aVertices | rng::views::take(NumWaterVertices))) {
         if (vtx.x == X && vtx.y == Y && vtx.rp.z == P.z) {
             return id;
         }

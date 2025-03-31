@@ -8,7 +8,6 @@
 #include "StdInc.h"
 #include "IplStore.h"
 #include "tBinaryIplFile.h"
-#include "extensions/enumerate.hpp"
 #include "TheCarGenerators.h"
 
 int32& ms_currentIPLAreaCode = *(int32*)0x8E3EF8;

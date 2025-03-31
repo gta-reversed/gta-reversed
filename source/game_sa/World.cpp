@@ -2115,7 +2115,7 @@ void CWorld::Process() {
 
     CMessages::Process();
 
-    for (auto&& [i, p] : notsa::enumerate(Players)) {
+    for (auto&& [i, p] : rngv::enumerate(Players)) {
         if (p.m_pPed) {
             p.Process((uint32)i);
         }

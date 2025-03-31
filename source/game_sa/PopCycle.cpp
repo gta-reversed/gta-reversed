@@ -285,7 +285,7 @@ ePopcycleGroup CPopCycle::PickARandomGroupOfOtherPeds() {
         100
 #endif
     );
-    for (auto [grpIdx, grpPerc] : notsa::enumerate(percs)) {
+    for (auto [grpIdx, grpPerc] : rngv::enumerate(percs)) {
         if ((int32)(grpPerc) >= rndPerc) {
             return (ePopcycleGroup)grpIdx;
         }

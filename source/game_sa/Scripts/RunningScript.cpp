@@ -136,7 +136,7 @@ void CRunningScript::InjectCustomCommandHooks() {
 
 #ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
     // After injecting all hooks, we can create their reversible hook
-    for (auto&& [idx, cmd] : notsa::enumerate(s_CustomCommandHandlerTable)) {
+    for (auto&& [idx, cmd] : rngv::enumerate(s_CustomCommandHandlerTable)) {
         const auto id = (eScriptCommands)(idx);
 
         ReversibleHooks::AddItemToCategory(
@@ -149,7 +149,7 @@ void CRunningScript::InjectCustomCommandHooks() {
 #ifdef DUMP_CUSTOM_COMMAND_HANDLERS_TO_FILE
     auto reversed{0}, total{0};
     std::ofstream ofsrev{ "reversed_script_command_handlers.txt" }, ofsnotrev{ "NOT_reversed_script_command_handlers.txt" };
-    for (auto&& [idx, handler] : notsa::enumerate(s_CustomCommandHandlerTable)) {
+    for (auto&& [idx, handler] : rngv::enumerate(s_CustomCommandHandlerTable)) {
         const auto id = (eScriptCommands)(idx);
         ++total;
         if (handler) ++reversed;
