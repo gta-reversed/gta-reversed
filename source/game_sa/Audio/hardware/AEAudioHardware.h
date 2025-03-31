@@ -55,7 +55,7 @@ public:
     bool                    m_bDisableEffectsLoading{};
     uint8                   m_prev{};
     uint8                   field_3{};
-    uint8                   field_4{};
+    bool                    m_bHardwareMixAvailable{};
     uint8                   m_nReverbEnvironment{ (uint8)-1};
     int16                   m_awChannelFlags[MAX_NUM_AUDIO_CHANNELS]{};
     uint16                  field_86{};
@@ -63,7 +63,7 @@ public:
     uint16                  m_nNumAvailableChannels{};
     uint16                  m_nNumChannels{};
     uint16                  m_anNumChannelsInSlot[MAX_NUM_AUDIO_CHANNELS]{};
-    float                   m_afChannelVolumes[MAX_NUM_AUDIO_CHANNELS]{};   // -1000.f
+    float                   m_afChannelVolumes[MAX_NUM_AUDIO_CHANNELS]{-1000.0f};
     float                   m_afUnkn[MAX_NUM_AUDIO_CHANNELS]{};
     float                   m_afChannelsFrqScalingFactor[MAX_NUM_AUDIO_CHANNELS]{};
 
@@ -108,7 +108,7 @@ public:
 
     // Return types aren't real, I've just copied the signatures for now
 
-    CAEAudioHardware();
+    CAEAudioHardware() = default;
     ~CAEAudioHardware() = default;
 
     bool Initialise();
