@@ -182,7 +182,7 @@ constexpr auto IsFixBugs() {
     return false;
 #endif
 }
-    
+
 /// Predicate to check if `value` is null
 struct IsNull {
     template<typename T>
