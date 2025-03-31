@@ -806,10 +806,10 @@ void CMenuManager::LoadSettings() {
         
         auto normalizeMouseAccel = [](float value) {
             // Max 5 - 0.312500 min
-            if (value < 5) {
+            if (value > 5) {
                 value = 5;
             }
-            if (value > 0.312500) {
+            if (value < 0.312500) {
                 value = 0.312500;
             }
             return value / 1000;
@@ -972,13 +972,14 @@ void CMenuManager::SaveSettings() {
         
         auto normalizeMouseAccel = [](float value) {
             // Max 5 - 0.312500 min
-            if (value < 5) {
+            value = value * 1000;
+            if (value > 5) {
                 value = 5;
             }
-            if (value > 0.312500) {
+            if (value < 0.312500) {
                 value = 0.312500;
             }
-            return value * 1000;
+            return value;
         };
 
         // Input settings
