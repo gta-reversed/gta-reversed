@@ -652,10 +652,6 @@ void CMenuManager::CentreMousePointer() {
 void CMenuManager::LoadSettings() {
     CFileMgr::SetDirMyDocuments();
     
-    // Define maps to store all configuration sections and values dynamically
-    using IniMap = std::unordered_map<std::string, std::unordered_map<std::string, std::string>>;
-    IniMap configData;
-    
     FILE* file = nullptr;
     FILE* fileController = nullptr;
     eLanguage prevLanguage = m_nPrefsLanguage;
@@ -683,7 +679,7 @@ void CMenuManager::LoadSettings() {
         // Read entire file into memory - dynamic buffer size
         std::string content;
         content.resize(fileSize);
-        int bytesRead = CFileMgr::Read(file, content.data(), fileSize);
+        int bytesRead = CFileMgr::Read(file, &content[0], fileSize);
         content.push_back('\0'); // Ensure null termination
         
         // Parse INI format using a string stream
@@ -691,10 +687,18 @@ void CMenuManager::LoadSettings() {
         std::string line;
         std::string currentSection;
         
+        // Maps to store settings
+        std::unordered_map<std::string, std::unordered_map<std::string, std::string>> configData;
+        
         // Process each line from the file
         while (std::getline(stream, line)) {
             // Remove whitespace from beginning and end
-            line.erase(0, line.find_first_not_of(" \t\r\n"));
+            size_t startPos = line.find_first_not_of(" \t\r\n");
+            if (startPos == std::string::npos) {
+                continue; // Skip empty lines
+            }
+            line = line.substr(startPos);
+            
             if (line.empty() || line[0] == ';' || line[0] == '#') {
                 continue; // Skip comments and empty lines
             }
@@ -721,10 +725,17 @@ void CMenuManager::LoadSettings() {
                 std::string value = line.substr(equalPos + 1);
                 
                 // Trim whitespace around key and value
-                key.erase(0, key.find_first_not_of(" \t"));
-                key.erase(key.find_last_not_of(" \t") + 1);
-                value.erase(0, value.find_first_not_of(" \t"));
-                value.erase(value.find_last_not_of(" \t") + 1);
+                size_t keyStart = key.find_first_not_of(" \t");
+                size_t keyEnd = key.find_last_not_of(" \t");
+                if (keyStart != std::string::npos && keyEnd != std::string::npos) {
+                    key = key.substr(keyStart, keyEnd - keyStart + 1);
+                }
+                
+                size_t valueStart = value.find_first_not_of(" \t");
+                size_t valueEnd = value.find_last_not_of(" \t");
+                if (valueStart != std::string::npos && valueEnd != std::string::npos) {
+                    value = value.substr(valueStart, valueEnd - valueStart + 1);
+                }
                 
                 // Store in our configuration map
                 configData[currentSection][key] = value;
@@ -732,10 +743,10 @@ void CMenuManager::LoadSettings() {
         }
         
         // Helper function to retrieve values with type conversion
-        auto getValue = [&configData](const std::string& section, const std::string& key, auto defaultValue) -> std::decay_t<decltype(defaultValue)> {
-            try:
-                using ValueType = std::decay_t<decltype(defaultValue)>;
-                
+        auto getValue = [&configData](const std::string& section, const std::string& key, auto defaultValue) {
+            using ValueType = std::decay_t<decltype(defaultValue)>;
+            
+            try {
                 if (configData.count(section) && configData[section].count(key)) {
                     const std::string& valueStr = configData[section][key];
                     if constexpr (std::is_same_v<ValueType, bool>) {
@@ -750,7 +761,7 @@ void CMenuManager::LoadSettings() {
                 }
             } catch (const std::exception&) {
                 // Handle conversion errors gracefully
-                std::cerr << "Error converting value for " << section << ":" << key << std::endl;
+                OutputDebugStringA("Error converting value");
             }
 
             return defaultValue;
@@ -793,9 +804,20 @@ void CMenuManager::LoadSettings() {
             m_nUserTrackIndex = getValue("Audio", "UserTrackIndex", m_nUserTrackIndex);
         }
         
+        auto normalizeMouseAccel = [](float value) {
+            // Max 5 - 0.312500 min
+            if (value < 5) {
+                value = 5;
+            }
+            if (value > 0.312500) {
+                value = 0.312500;
+            }
+            return value / 1000;
+        };
+
         // Input settings
         if (configData.count("Input")) {
-            CCamera::m_fMouseAccelHorzntl = getValue("Input", "MouseAcceleration", CCamera::m_fMouseAccelHorzntl);
+            CCamera::m_fMouseAccelHorzntl = normalizeMouseAccel(getValue("Input", "MouseAcceleration", CCamera::m_fMouseAccelHorzntl));
             bInvertMouseY = getValue("Input", "InvertMouseY", bInvertMouseY);
             CVehicle::m_bEnableMouseSteering = getValue("Input", "MouseSteering", CVehicle::m_bEnableMouseSteering);
             CVehicle::m_bEnableMouseFlying = getValue("Input", "MouseFlying", CVehicle::m_bEnableMouseFlying);
@@ -864,17 +886,17 @@ void CMenuManager::LoadSettings() {
         m_nPrefsLanguage = eLanguage::AMERICAN;
         m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
         
-        // Log error message and clean up
+        // Log error message
         OutputDebugStringA(e.what());
-        
-        if (file) CFileMgr::CloseFile(file);
-        if (fileController) CFileMgr::CloseFile(fileController);
-        CFileMgr::SetDir("");
     }
     
     // Clean up resources
-    if (file) CFileMgr::CloseFile(file);
-    if (fileController) CFileMgr::CloseFile(fileController);
+    if (file) {
+        CFileMgr::CloseFile(file);
+    }
+    if (fileController) {
+        CFileMgr::CloseFile(fileController);
+    }
     CFileMgr::SetDir("");
 }
 
@@ -898,81 +920,89 @@ void CMenuManager::SaveSettings() {
             throw std::runtime_error("Cannot create controller settings file");
         }
         
-        // Helper function to write a section to the INI file
-        auto writeSection = [&file](const std::string& sectionName, const std::vector<std::pair<std::string, std::string>>& settings) {
-            // Write section header
-            std::string header = "[" + sectionName + "]\n";
-            CFileMgr::Write(file, header.c_str(), static_cast<int32>(header.length()));
+        // Write file header using std::format
+        const char* header = "; GTA San Andreas Settings File\n; Generated by GTA:SA\n\n";
+        CFileMgr::Write(file, header, strlen(header));
+        
+        // Helper function to write a section using std::format
+        auto writeSection = [&file](const char* sectionName, const std::vector<std::pair<std::string, std::string>>& settings) {
+            std::string header = std::format("[{}]\n", sectionName);
+            CFileMgr::Write(file, header.c_str(), header.length());
             
             // Write each key-value pair
-            for (const auto& [key, value] : settings) {
-                std::string line = key + "=" + value + "\n";
-                CFileMgr::Write(file, line.c_str(), static_cast<int32>(line.length()));
+            for (const auto& setting : settings) {
+                std::string line = std::format("{}={}\n", setting.first, setting.second);
+                CFileMgr::Write(file, line.c_str(), line.length());
             }
             
             // Add a blank line after each section
             CFileMgr::Write(file, "\n", 1);
         };
         
-        // Write file header
-        std::string header = "; GTA San Andreas Settings File\n; Generated by GTA:SA\n\n";
-        CFileMgr::Write(file, header.c_str(), static_cast<int32>(header.length()));
+        // Display settings
+        std::vector<std::pair<std::string, std::string>> displaySettings = {
+            {"Brightness", std::format("{}", m_PrefsBrightness)},
+            {"MipMapping", std::format("{}", m_bPrefsMipMapping ? 1 : 0)},
+            {"Antialiasing", std::format("{}", m_nPrefsAntialiasing)},
+            {"DrawDistance", std::format("{:.2f}", m_fDrawDistance)},
+            {"Subtitles", std::format("{}", m_bShowSubtitles ? 1 : 0)},
+            {"Widescreen", std::format("{}", m_bWidescreenOn ? 1 : 0)},
+            {"FrameLimiter", std::format("{}", m_bPrefsFrameLimiter ? 1 : 0)},
+            {"VideoMode", std::format("{}", m_nPrefsVideoMode)},
+            {"HUD", std::format("{}", m_bHudOn ? 1 : 0)},
+            {"RadarMode", std::format("{}", static_cast<int>(m_nRadarMode))},
+            {"FxQuality", std::format("{}", static_cast<int>(g_fx.GetFxQuality()))},
+            {"SavePhotos", std::format("{}", m_bSavePhotos ? 1 : 0)},
+            {"MapLegend", std::format("{}", m_bMapLegend ? 1 : 0)}
+        };
+        writeSection("Display", displaySettings);
+
+        // Audio settings
+        std::vector<std::pair<std::string, std::string>> audioSettings = {
+            {"SfxVolume", std::format("{}", m_nSfxVolume)},
+            {"RadioVolume", std::format("{}", m_nRadioVolume)},
+            {"RadioStation", std::format("{}", static_cast<int>(m_nRadioStation))},
+            {"RadioAutoSelect", std::format("{}", m_bRadioAutoSelect ? 1 : 0)},
+            {"RadioEq", std::format("{}", m_bRadioEq ? 1 : 0)},
+            {"TracksAutoScan", std::format("{}", m_bTracksAutoScan ? 1 : 0)},
+            {"RadioMode", std::format("{}", m_nRadioMode)},
+            {"UserTrackIndex", std::format("{}", m_nUserTrackIndex)}
+        };
+        writeSection("Audio", audioSettings);
         
-        // Write display settings
-        std::ostringstream drawDistStream;
-        drawDistStream << std::fixed << std::setprecision(2) << m_fDrawDistance;
+        auto normalizeMouseAccel = [](float value) {
+            // Max 5 - 0.312500 min
+            if (value < 5) {
+                value = 5;
+            }
+            if (value > 0.312500) {
+                value = 0.312500;
+            }
+            return value * 1000;
+        };
+
+        // Input settings
+        std::vector<std::pair<std::string, std::string>> inputSettings = {
+            {"MouseAcceleration", std::format("{:.6f}", normalizeMouseAccel(CCamera::m_fMouseAccelHorzntl))},
+            {"InvertMouseY", std::format("{}", bInvertMouseY ? 1 : 0)},
+            {"MouseSteering", std::format("{}", CVehicle::m_bEnableMouseSteering ? 1 : 0)},
+            {"MouseFlying", std::format("{}", CVehicle::m_bEnableMouseFlying ? 1 : 0)},
+            {"Controller", std::format("{}", m_ControlMethod ? 1 : 0)},
+            {"InvertPadX1", std::format("{}", m_bInvertPadX1 ? 1 : 0)},
+            {"InvertPadY1", std::format("{}", m_bInvertPadY1 ? 1 : 0)},
+            {"InvertPadX2", std::format("{}", m_bInvertPadX2 ? 1 : 0)},
+            {"InvertPadY2", std::format("{}", m_bInvertPadY2 ? 1 : 0)},
+            {"SwapPadAxis1", std::format("{}", m_bSwapPadAxis1 ? 1 : 0)},
+            {"SwapPadAxis2", std::format("{}", m_bSwapPadAxis2 ? 1 : 0)}
+        };
+        writeSection("Input", inputSettings);
         
-        writeSection("Display", {
-            {"Brightness", std::to_string(m_PrefsBrightness)},
-            {"MipMapping", std::to_string(m_bPrefsMipMapping)},
-            {"Antialiasing", std::to_string(m_nPrefsAntialiasing)},
-            {"DrawDistance", drawDistStream.str()},
-            {"Subtitles", std::to_string(m_bShowSubtitles)},
-            {"Widescreen", std::to_string(m_bWidescreenOn)},
-            {"FrameLimiter", std::to_string(m_bPrefsFrameLimiter)},
-            {"VideoMode", std::to_string(m_nPrefsVideoMode)},
-            {"HUD", std::to_string(m_bHudOn)},
-            {"RadarMode", std::to_string(m_nRadarMode)},
-            {"FxQuality", std::to_string(g_fx.GetFxQuality())},
-            {"SavePhotos", std::to_string(m_bSavePhotos)},
-            {"MapLegend", std::to_string(m_bMapLegend)}
-        });
-        
-        // Write audio settings
-        writeSection("Audio", {
-            {"SfxVolume", std::to_string(m_nSfxVolume)},
-            {"RadioVolume", std::to_string(m_nRadioVolume)},
-            {"RadioStation", std::to_string(m_nRadioStation)},
-            {"RadioAutoSelect", std::to_string(m_bRadioAutoSelect)},
-            {"RadioEq", std::to_string(m_bRadioEq)},
-            {"TracksAutoScan", std::to_string(m_bTracksAutoScan)},
-            {"RadioMode", std::to_string(m_nRadioMode)},
-            {"UserTrackIndex", std::to_string(m_nUserTrackIndex)}
-        });
-        
-        // Write input settings with special handling for floating-point values
-        std::ostringstream mouseAccel;
-        mouseAccel << std::fixed << std::setprecision(6) << CCamera::m_fMouseAccelHorzntl;
-        
-        writeSection("Input", {
-            {"MouseAcceleration", mouseAccel.str()},
-            {"InvertMouseY", std::to_string(bInvertMouseY)},
-            {"MouseSteering", std::to_string(CVehicle::m_bEnableMouseSteering)},
-            {"MouseFlying", std::to_string(CVehicle::m_bEnableMouseFlying)},
-            {"Controller", std::to_string(m_ControlMethod)},
-            {"InvertPadX1", std::to_string(m_bInvertPadX1)},
-            {"InvertPadY1", std::to_string(m_bInvertPadY1)},
-            {"InvertPadX2", std::to_string(m_bInvertPadX2)},
-            {"InvertPadY2", std::to_string(m_bInvertPadY2)},
-            {"SwapPadAxis1", std::to_string(m_bSwapPadAxis1)},
-            {"SwapPadAxis2", std::to_string(m_bSwapPadAxis2)}
-        });
-        
-        // Write system settings
-        writeSection("System", {
-            {"Language", std::to_string((int)m_nPrefsLanguage)},
-            {"RwSubsystem", std::to_string(RwEngineGetCurrentSubSystem())}
-        });
+        // System settings
+        std::vector<std::pair<std::string, std::string>> systemSettings = {
+            {"Language", std::format("{}", static_cast<int>(m_nPrefsLanguage))},
+            {"RwSubsystem", std::format("{}", RwEngineGetCurrentSubSystem())}
+        };
+        writeSection("System", systemSettings);
         
         // Save controller settings
         ControlsManager.SaveSettings(fileController);
@@ -981,9 +1011,13 @@ void CMenuManager::SaveSettings() {
         OutputDebugStringA(e.what());
     }
     
-    // Clean up resources
-    if (file) CFileMgr::CloseFile(file);
-    if (fileController) CFileMgr::CloseFile(fileController);
+    // Clean up
+    if (file) {
+        CFileMgr::CloseFile(file);
+    }
+    if (fileController) {
+        CFileMgr::CloseFile(fileController);
+    }
     CFileMgr::SetDir("");
 }
 #else // BINARY CLASSIC

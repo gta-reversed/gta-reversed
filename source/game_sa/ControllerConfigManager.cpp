@@ -535,7 +535,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
                 std::string value = line.substr(separator + 1);
                 
                 // Find action by name or by ID
-                eControllerAction actionId = eControllerAction::INVALID;
+                eControllerAction actionId = eControllerAction(-1);
                 
                 // Rest of the implementation remains the same...
                 // Try to parse as action ID first
@@ -556,7 +556,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
                     }
                 }
                 
-                if (actionId != eControllerAction::INVALID) {
+                if (actionId != eControllerAction(-1)) {
                     // Parse the key value and order
                     auto commaPos = value.find(',');
                     int keyValue = std::stoi(value);
