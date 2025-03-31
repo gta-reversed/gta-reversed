@@ -985,7 +985,7 @@ void CReplay::RecordThisFrame() {
         }
     }
 
-    for (auto&& [i, trace] : notsa::enumerate(CBulletTraces::aTraces)) {
+    for (auto&& [i, trace] : rngv::enumerate(CBulletTraces::aTraces)) {
         if (!trace.m_bExists)
             continue;
 
@@ -1539,7 +1539,7 @@ void CReplay::TriggerPlayback(eReplayCamMode mode, CVector fixedCamPos, bool loa
 
     // TODO: refactor
     auto idx = 7;
-    for (auto&& [i, status] : notsa::enumerate(BufferStatus)) {
+    for (auto&& [i, status] : rngv::enumerate(BufferStatus)) {
         if (status == REPLAYBUFFER_IN_USE) {
             idx = i;
             break;

@@ -115,7 +115,7 @@ void CAESoundManager::Service() {
     AEAudioHardware.GetVirtualChannelSoundLoopStartTimes(m_aSoundLoopStartTimes);
 
     // Initialize sounds that are using percentage specified start positions 0x4F011C
-    for (auto&& [i, sound] : notsa::enumerate(m_aSounds)) {
+    for (auto&& [i, sound] : rngv::enumerate(m_aSounds)) {
         if (!sound.IsUsed() || !sound.WasServiced() || !sound.GetStartPercentage())
             continue;
 
@@ -140,7 +140,7 @@ void CAESoundManager::Service() {
     }
 
     // Update sounds playtime
-    for (auto&& [i, sound] : notsa::enumerate(m_aSounds)) {
+    for (auto&& [i, sound] : rngv::enumerate(m_aSounds)) {
         if (!sound.IsUsed() || !sound.WasServiced() || sound.m_nIgnoredServiceCycles)
             continue;
 
@@ -181,7 +181,7 @@ void CAESoundManager::Service() {
     }
 
     // Mark some more songs as uncancellable under specific conditions
-    for (auto&& [i, sound] : notsa::enumerate(m_aSounds)) {
+    for (auto&& [i, sound] : rngv::enumerate(m_aSounds)) {
         if (!sound.IsUsed() || (sound.m_nHasStarted && sound.GetUncancellable()) || sound.m_nIgnoredServiceCycles)
             continue;
 
@@ -432,7 +432,7 @@ int16 CAESoundManager::GetVirtualChannelForPhysicalChannel(int16 physicalChannel
 
 // NOTSA
 CAESound* CAESoundManager::GetFreeSound(size_t* outIdx) {
-    for (auto&& [i, s] : notsa::enumerate(m_aSounds)) {
+    for (auto&& [i, s] : rngv::enumerate(m_aSounds)) {
         if (!s.IsUsed()) {
             if (outIdx) {
                 *outIdx = (size_t)i;

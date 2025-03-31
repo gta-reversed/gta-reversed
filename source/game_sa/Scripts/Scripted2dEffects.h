@@ -82,7 +82,7 @@ public:
 
     // NOTSA
     static int32 FindFreeSlot() {
-        for (auto&& [i, activated] : notsa::enumerate(ms_activated)) {
+        for (auto&& [i, activated] : rngv::enumerate(ms_activated)) {
             if (!activated) {
                 return (int32)i;
             }

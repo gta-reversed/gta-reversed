@@ -275,7 +275,7 @@ bool cHandlingDataMgr::HasRearWheelDrive(uint8 handlingId) {
 // get handling id by name
 // 0x6F4FD0
 int32 cHandlingDataMgr::GetHandlingId(const char* nameToFind) {
-    for (auto [id, name] : notsa::enumerate(VehicleNames)) {
+    for (auto [id, name] : rngv::enumerate(VehicleNames)) {
         if (!strcmp(name, nameToFind)) {
             return id;
         }

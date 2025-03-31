@@ -265,7 +265,7 @@ void CTheScripts::ReadObjectNamesFromScript() {
     NumberOfUsedObjects = usedObjs->m_NumberOfUsedObjects;
     assert(NumberOfUsedObjects < std::size(UsedObjectArray));
 
-    for (auto&& [i, name] : notsa::enumerate(usedObjs->GetObjectNames())) {
+    for (auto&& [i, name] : rngv::enumerate(usedObjs->GetObjectNames())) {
         UsedObjectArray[i].nModelIndex = 0; // To be updated via UpdateObjectIndices.
         std::memcpy(UsedObjectArray[i].szModelName, name, sizeof(name));
 
@@ -297,7 +297,7 @@ void CTheScripts::ReadMultiScriptFileOffsetsFromScript() {
     NumberOfMissionScripts                     = sfi->m_NumberOfMissionScripts;
     LargestNumberOfMissionScriptLocalVariables = sfi->m_LargestNumberOfMissionScriptLocalVars;
 
-    for (const auto&& [i, missionOffset] : notsa::enumerate(sfi->GetMissionOffsets())) {
+    for (const auto&& [i, missionOffset] : rngv::enumerate(sfi->GetMissionOffsets())) {
         MultiScriptArray[i] = missionOffset;
     }
 }
@@ -1952,7 +1952,7 @@ void CTheScripts::RenderTheScriptDebugLines() {
 void CTheScripts::RenderAllSearchLights() {
     ZoneScoped;
 
-    for (const auto&& [i, light] : notsa::enumerate(ScriptSearchLightArray)) {
+    for (const auto&& [i, light] : rngv::enumerate(ScriptSearchLightArray)) {
         if (!light.IsActive()) {
             continue;
         }

@@ -11,14 +11,16 @@
 * Prefer `get`-ters/`set`-ters over raw member access
 * Use range-based for loops as much as possible.
 * We encourage you to write modern C++, but if that's not your style, please keep the following in mind:
+* Use `ranges` versions of `std` functions as much as possible.
+* Use `rng::` instead of `std::ranges` and `rngv::` instead of `std::views`.
 ```cpp
 for (auto& element : array); // <-- GOOD
 
 for (int i = 0; i < std::size(array); i++); // <-- BAD
 ```
-* We have our own `enumerate` implementation. Use them if you need it. [C++ in the future will have it anyways](https://github.com/cplusplus/papers/issues/875)
+* Use `rngv::enumerate` if you need both the index and object.
 ```cpp
-for (auto&& [i, e] : notsa::enumerate(array));
+for (auto&& [i, e] : rngv::enumerate(array));
 ```
 * If there's a dynamic `count` variable associated with a fixed size array, use `std::span` or `rng::views::take`. E.g.:
 ```cpp

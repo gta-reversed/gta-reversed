@@ -5,7 +5,6 @@
 #include <optional>
 #include <format>
 
-#include "extensions/enumerate.hpp"
 #include "PedDebugModule.h"
 #include "Pools.h"
 #include "TaskManager.h"
@@ -187,7 +186,7 @@ void ProcessTask(CTask* task, std::optional<size_t> idx) {
 //! Process category, eg.: secondary or primary
 void ProcessTaskCategory(const char* label, const auto& tasks) {
     if (TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen)) {
-        for (const auto& [idx, task] : notsa::enumerate(tasks)) {
+        for (const auto& [idx, task] : rngv::enumerate(tasks)) {
             if (task) {
                 ProcessTask(task, idx);
             }

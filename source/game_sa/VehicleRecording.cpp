@@ -1,9 +1,6 @@
 #include "StdInc.h"
 #include <span>
-
 #include "VehicleRecording.h"
-
-#include "extensions\enumerate.hpp"
 
 uint32 CPath::GetIndex() const {
     const auto index = this - CVehicleRecording::StreamingArray.data();
@@ -109,7 +106,7 @@ void CVehicleRecording::ChangeCarPlaybackToUseAI(CVehicle* vehicle) {
 // inlined
 // 0x459FF0
 uint32 CVehicleRecording::FindIndexWithFileNameNumber(int32 fileNumber) {
-    for (auto&& [i, recording] : notsa::enumerate(GetRecordings())) {
+    for (auto&& [i, recording] : rngv::enumerate(GetRecordings())) {
         if (recording.m_nNumber == fileNumber) {
             return i;
         }
@@ -142,7 +139,7 @@ void CVehicleRecording::Load(RwStream* stream, int32 recordId, int32 totalSize) 
 
     CARREC_DEV_LOG("Load carrec to streaming slot idx:{} (size={})", recordId, totalSize);
 
-    for (auto&& [i, frame] : notsa::enumerate(StreamingArray[recordId].GetFrames())) {
+    for (auto&& [i, frame] : rngv::enumerate(StreamingArray[recordId].GetFrames())) {
         if (i != 0 && frame.m_nTime == 0) {
             // no valid frame that is not zeroth can have zero as a time.
             // so we count them as invalid and prune the following including itself.
@@ -290,7 +287,7 @@ void CVehicleRecording::RenderLineSegment(int32& numVertices) {
 
 // 0x45A160
 void CVehicleRecording::RemoveAllRecordingsThatArentUsed() {
-    for (auto&& [i, recording] : notsa::enumerate(GetRecordings())) {
+    for (auto&& [i, recording] : rngv::enumerate(GetRecordings())) {
         if (recording.m_nNumber == i && recording.m_pData && !recording.m_nRefCount) {
             recording.Remove();
         }
@@ -387,7 +384,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
 // 0x45A1E0
 void CVehicleRecording::SetRecordingToPointClosestToCoors(int32 playbackId, CVector posn) {
     auto minDist = 1'000'000.0f; // FLT_MAX
-    for (auto&& [i, frame] : notsa::enumerate(GetFramesFromPlaybackBuffer(playbackId))) {
+    for (auto&& [i, frame] : rngv::enumerate(GetFramesFromPlaybackBuffer(playbackId))) {
         if (const auto d = DistanceBetweenPoints(frame.m_vecPosn, posn); d < minDist) {
             PlaybackIndex[playbackId] = i;
             minDist = d;
