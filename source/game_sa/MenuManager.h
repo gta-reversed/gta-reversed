@@ -136,7 +136,7 @@ public:
     bool      m_bTracksAutoScan;
     int32     m_nPrefsAntialiasing;
     int32     m_nDisplayAntialiasing;
-    bool      m_ControlMethod;
+    int32     m_ControlMethod; // TODO: Change to enum
     int32     m_nPrefsVideoMode;
     int32     m_nDisplayVideoMode;
     int32     m_nCurrentRwSubsystem; // initialized | not used
