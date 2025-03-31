@@ -1245,27 +1245,31 @@ void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(CControllerKey::K
 
 // 0x531070
 void CControllerConfigManager::UpdateJoy_ButtonUp(CControllerKey::KeyCode button, eControllerType type) {
-    bool shouldProcessEvent = false;
+    bool             shouldProcessEvent = false;
     CControllerState p_PCTempKeyState;
-    const auto pad = CPad::GetPad();
+    const auto       pad = CPad::GetPad();
     if (pad) {
         switch (type) {
         case eControllerType::KEYBOARD:
-        case eControllerType::OPTIONAL_EXTRA_KEY:
-            p_PCTempKeyState = pad->PCTempKeyState;
+        case eControllerType::OPTIONAL_EXTRA_KEY: {
+            p_PCTempKeyState   = pad->PCTempKeyState;
             shouldProcessEvent = (button != rsNULL);
             break;
-        case eControllerType::MOUSE:
-            p_PCTempKeyState = pad->PCTempMouseState;
+        }
+        case eControllerType::MOUSE: {
+            p_PCTempKeyState   = pad->PCTempMouseState;
             shouldProcessEvent = (button != 0);
             break;
-        case eControllerType::JOY_STICK:
-            p_PCTempKeyState = pad->PCTempJoyState;
+        }
+        case eControllerType::JOY_STICK: {
+            p_PCTempKeyState   = pad->PCTempJoyState;
             shouldProcessEvent = (button != 0);
             break;
-        default:
+        }
+        default: {
             p_PCTempKeyState = (CControllerState)type;
             break;
+        }
         }
     }
 

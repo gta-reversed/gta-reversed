@@ -532,6 +532,16 @@ void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
         
 // 0x57E6E0
 void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScreen) {
+
+    int   controllerAction;
+    int   actionIndex = 0;
+    float currentY;
+    int   currentX;
+    bool  hasControl;
+
+    const uint8 verticalSpacing = m_RedefiningControls ? 13 : (4 * !m_ControlMethod + 11);
+    const uint8 maxActions      = m_RedefiningControls ? 25 : (m_ControlMethod ? 28 : 22);
+
     struct ControlActionMapping {
         eControllerAction actionToTest;
         int controllerAction;
@@ -634,15 +644,6 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::VEHICLE_STEER_RIGHT,               14 },
         { eControllerAction::PED_LOCK_TARGET,                   14 },
     };
-
-    int   controllerAction;
-    int   actionIndex = 0;
-    float currentY;
-    int   currentX;
-    bool  hasControl;
-
-    const uint8 verticalSpacing = m_RedefiningControls ? 13 : (4 * !m_ControlMethod + 11);
-    const uint8 maxActions      = m_RedefiningControls ? 25 : (m_ControlMethod ? 28 : 22);
 
     currentY = StretchY(float(verticalOffset));
 
