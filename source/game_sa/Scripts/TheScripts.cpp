@@ -1426,15 +1426,12 @@ void CTheScripts::Process() {
 
     CLoadingScreen::NewChunkLoaded();
 
-    for (auto it = pActiveScripts; it;) {
-        const auto next = it->m_pNext;
+    for (CRunningScript* it = pActiveScripts, *next{}; it; it = next) {
+        next = it->m_pNext;
 
-        for (auto& t : it->m_Timers) {
-            t += timeStepMS;
-        }
+        it->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
+        it->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
         it->Process();
-
-        it = next;
     }
 
     CLoadingScreen::NewChunkLoaded();

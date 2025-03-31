@@ -268,11 +268,12 @@ bool CTaskSimpleClimb::MakeAbortable(CPed* ped, eAbortPriority priority, const C
 CEntity* CTaskSimpleClimb::TestForClimb(CPed* ped, CVector& outClimbPos, float& outClimbHeading, eSurfaceType& outSurfaceType, bool bLaunch) {
     if (const auto entity = ScanToGrab(ped, outClimbPos, outClimbHeading, outSurfaceType, bLaunch, false, false, nullptr)) {
         auto [pt, angle] = GetHandholdPosAndAngleForEntity(entity, outClimbPos, outClimbHeading);
-        pt += GetClimbOffset3D({ ms_fHangingOffsetHorz, ms_fHangingOffsetVert }, angle);
+        pt += GetClimbOffset3D({ ms_fAtEdgeOffsetHorz, ms_fAtEdgeOffsetVert }, angle);
 
         CVector      grabPos;
         eSurfaceType grabSurface;
-        if (!ScanToGrab(ped, grabPos, angle, grabSurface, false, true, false, &pt)) {
+        float        grabAngle = outClimbHeading;
+        if (!ScanToGrab(ped, grabPos, grabAngle, grabSurface, false, true, false, &pt)) {
             return entity;
         }
         outClimbHeading = -9999.9f;

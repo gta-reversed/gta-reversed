@@ -186,27 +186,26 @@ public:
     };
 
 public:
-    CRunningScript*                          m_pNext, *m_pPrev;                 //< Linked list shit
-    scm::ShortString                         m_szName;                          //< Name of the script
-    uint8*                                   m_BaseIP;                          //< Base instruction pointer
-    uint8*                                   m_IP;                              //< current instruction pointer
-    std::array<uint8*, MAX_STACK_DEPTH>      m_IPStack;                         //< Stack of instruction pointers (Usually saved on function call, then popped on return)
-    uint16                                   m_StackDepth;                      //< Depth (size) of the stack
-    std::array<tScriptParam, MAX_LOCAL_VARS> m_LocalVars;                       //< This script's local variables (Also see `GetPointerToLocalVariable`)
-    std::array<int32, MAX_NUM_TIMERS>        m_Timers;                          //< Active timers (Unsure)
-    bool                                     m_IsActive;                        //< Is the script active (Unsure)
-    bool                                     m_CondResult;                      //< (See `COMMAND_GOTO_IF_FALSE`) (Unsure)
-    bool                                     m_UsesMissionCleanup;              //< If mission cleanup is needed after this script has finished
-    bool                                     m_IsExternal;
-    bool                                     m_IsTextBlockOverride;
-    int8                                     m_ExternalType;
-    int32                                    m_WakeTime;                        //< Used for sleep-like commands (like `COMMAND_WAIT`) - The script halts execution until the time is reached
-    uint16                                   m_AndOrState;                      //< Next logical OP type (See `COMMAND_ANDOR`)
-    bool                                     m_NotFlag;                         //< Boolean value returned by the called command should be negated
-    bool                                     m_IsDeathArrestCheckEnabled;
-    bool                                     m_DoneDeathArrest;
-    int32                                    m_SceneSkipIP;                     //< IP to use to skip the cutscene (?)
-    bool                                     m_ThisMustBeTheOnlyMissionRunning; //< Is (this script) a mission script
+    CRunningScript*                                           m_pNext, *m_pPrev;    //< Linked list shit
+    scm::ShortString                                          m_szName;             //< Name of the script
+    uint8*                                                    m_BaseIP;             //< Base instruction pointer
+    uint8*                                                    m_IP;                 //< current instruction pointer
+    std::array<uint8*, MAX_STACK_DEPTH>                       m_IPStack;            //< Stack of instruction pointers (Usually saved on function call, then popped on return)
+    uint16                                                    m_StackDepth;         //< Depth (size) of the stack
+    std::array<tScriptParam, MAX_LOCAL_VARS + MAX_NUM_TIMERS> m_LocalVars;          //< This script's local variables and timers
+    bool                                                      m_IsActive;           //< Is the script active (Unsure)
+    bool                                                      m_CondResult;         //< (See `COMMAND_GOTO_IF_FALSE`) (Unsure)
+    bool                                                      m_UsesMissionCleanup; //< If mission cleanup is needed after this script has finished
+    bool                                                      m_IsExternal;
+    bool                                                      m_IsTextBlockOverride;
+    int8                                                      m_ExternalType;
+    int32                                                     m_WakeTime;   //< Used for sleep-like commands (like `COMMAND_WAIT`) - The script halts execution until the time is reached
+    uint16                                                    m_AndOrState; //< Next logical OP type (See `COMMAND_ANDOR`)
+    bool                                                      m_NotFlag;    //< Boolean value returned by the called command should be negated
+    bool                                                      m_IsDeathArrestCheckEnabled;
+    bool                                                      m_DoneDeathArrest;
+    int32                                                     m_SceneSkipIP;                     //< IP to use to skip the cutscene (?)
+    bool                                                      m_ThisMustBeTheOnlyMissionRunning; //< Is (this script) a mission script
 
 public:
     using CommandHandlerFn_t    = OpcodeResult(__thiscall CRunningScript::*)(int32);
