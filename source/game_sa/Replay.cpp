@@ -583,7 +583,7 @@ void CReplay::ProcessLookAroundCam() {
         static float& viewAngle = *(float*)0x97FAD8;
 
         const auto& pad = CPad::GetPad();
-        auto steer = NewMouseControllerState.m_AmountMoved / 200.0f;
+        auto steer = CVector2D{pad->NewMouseControllerState.m_AmountMoved.x / 200.0f, pad->NewMouseControllerState.m_AmountMoved.y / 200.0f};
         // steerX2 = steer.x;
         // steerY2 = steer.y;
         // if (v2 | v2)
