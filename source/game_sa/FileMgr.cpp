@@ -30,7 +30,8 @@ inline void createDirectory(const wchar_t* path)
     }
 }
 
-// Modern cross-platform implementation using std::filesystem
+// 0x744FB0
+// NOTSA: Modern cross-platform implementation using std::filesystem
 char* InitUserDirectories()
 {
     if (gta_user_dir_path[0] != '\0')

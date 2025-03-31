@@ -532,7 +532,6 @@ void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
         
 // 0x57E6E0
 void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScreen) {
-
     int   controllerAction;
     int   actionIndex = 0;
     float currentY;
@@ -772,7 +771,6 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 
 // 0x57F300
 void CMenuManager::DrawControllerSetupScreen() {
-
     // Calculate spacing and max items based on control scheme
     const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * (!m_ControlMethod) + 11u);
     const auto maxControlActions = m_RedefiningControls ? 25u : (m_ControlMethod ? 28u : 22u);
