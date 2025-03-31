@@ -566,11 +566,6 @@ void CAutomobile::ProcessControl()
     }
 
     for (auto& collisionEntity : m_apWheelCollisionEntity) {
-        // FIXME(yukani): I need this to test anything outside, do not remove
-        // until game doesn't crash on me here.
-        if (collisionEntity == (CPhysical*)0xffffffff || collisionEntity == (CPhysical*)0xcdcdcdcd) {
-            collisionEntity = nullptr;
-        }
         if (collisionEntity) {
             vehicleFlags.bRestingOnPhysical = true;
             if (!CWorld::bForceProcessControl && collisionEntity->m_bIsInSafePosition) {
