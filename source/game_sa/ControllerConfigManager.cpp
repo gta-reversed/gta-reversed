@@ -969,7 +969,7 @@ void CControllerConfigManager::InitialiseControllerActionNameArray() {
     SetActionName(eControllerAction::VEHICLE_BRAKE, "VEHICLE_BRAKE"_gxt);
     SetActionName(eControllerAction::VEHICLE_RADIO_STATION_UP, "VEHICLE_RADIO_STATION_UP"_gxt);
     SetActionName(eControllerAction::VEHICLE_RADIO_STATION_DOWN, "VEHICLE_RADIO_STATION_DOWN"_gxt);
-    SetActionName(eControllerAction::VEHICLE_RADIO_TRACK_SKIP, "VEHICLE_RADIO_TRACK_SKIP"_gxt);
+    SetActionName(eControllerAction::VEHICLE_RADIO_TRACK_SKIP, "VEHICLE_RADIO_TRACK_SKIP"_gxt); // Fix: Missing on vanilla game
     SetActionName(eControllerAction::TOGGLE_SUBMISSIONS, "TOGGLE_SUBMISSIONS"_gxt);
     SetActionName(eControllerAction::PED_SNIPER_ZOOM_IN, "PED_SNIPER_ZOOM_IN"_gxt);
     SetActionName(eControllerAction::PED_SNIPER_ZOOM_OUT, "PED_SNIPER_ZOOM_OUT"_gxt);
