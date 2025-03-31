@@ -604,12 +604,12 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
             // Format key value assignment
             // if is text empty, use action ID instead
             if (m_ControllerActionName[j][0] == '\0') {
-                std::string line = std::format("{}={},{}\n", j, m_Actions[j].Keys[i].m_uiActionInitiator, m_Actions[j].Keys[i].m_uiSetOrder);
+                std::string line = std::to_string(j) + "=" + std::to_string(m_Actions[j].Keys[i].m_uiActionInitiator) + "," + std::to_string(m_Actions[j].Keys[i].m_uiSetOrder) + "\n";
                 CFileMgr::Write(file, line.c_str(), (int32)line.length());
-                continue;
+            } else {
+                std::string line = std::string(actionName) + "=" + std::to_string(m_Actions[j].Keys[i].m_uiActionInitiator) + "," + std::to_string(m_Actions[j].Keys[i].m_uiSetOrder) + "\n";
+                CFileMgr::Write(file, line.c_str(), (int32)line.length());
             }
-            std::string line = std::format("{}={},{}\n", actionName, m_Actions[j].Keys[i].m_uiActionInitiator, m_Actions[j].Keys[i].m_uiSetOrder);
-            CFileMgr::Write(file, line.c_str(), (int32)line.length());
         }
 
         // Add a separator between sections
