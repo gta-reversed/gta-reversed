@@ -223,14 +223,14 @@ int32 CTxdStore::AddTxdSlot(const char* name) {
     txd->m_hash = CKeyGen::GetUppercaseKey(name);
 
     const auto i = ms_pTxdPool->GetIndex(txd);
-    NOTSA_LOG_DEBUG("CTxdStore::AddTxdSlot({:?}) -> {}", name, i);
+    NOTSA_LOG_TRACE("CTxdStore::AddTxdSlot({:?}) -> {}", name, i);
     return i;
 }
 
 // remove txd slot
 // 0x731CD0
 void CTxdStore::RemoveTxdSlot(int32 index) {
-    NOTSA_LOG_DEBUG("CTxdStore::RemoveTxdSlot({})", index);
+    NOTSA_LOG_TRACE("CTxdStore::RemoveTxdSlot({})", index);
     TxdDef* txd = ms_pTxdPool->GetAt(index);
     if (!txd)
         return;

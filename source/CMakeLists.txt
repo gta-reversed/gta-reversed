@@ -148,6 +148,8 @@ target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
     EXTRA_DEBUG_FEATURES
     FIX_BUGS
     SA_SKINNED_PEDS
+
+    USE_D3D9 # TODO
 )
 target_compile_features(${RE_PROJECT_LIB_NAME} PRIVATE cxx_std_23)
 target_precompile_headers(${RE_PROJECT_LIB_NAME} PRIVATE StdInc.cpp)

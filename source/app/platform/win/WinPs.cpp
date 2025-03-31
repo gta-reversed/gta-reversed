@@ -8,13 +8,11 @@
 #include "VideoModeSelectDialog.h"
 #include "LoadingScreen.h"
 #include "C_PcSave.h"
-#include <windows.h>
-
-
-// NOTE: This macro doesn't do a whole lot. Leaving it here for completeness sake
-#define USE_D3D9
+#include "winincl.h"
+#include "intrin.h"
 
 static auto& PsGlobal = StaticRef<psGlobalType, 0xC8CF88>();
+static inline char gCpuVendor[13] = "GTAReversed!"; // = "UnknownVendr";
 
 //! Disable "This function was depracated"
 #pragma warning (disable : 28159 4996)
@@ -116,7 +114,13 @@ RwBool psInitialize() {
 
     gGameState = GAME_STATE_INITIAL;
 
-    // TODO: Load vendor from CPUID
+    int regs[4]{};
+    __cpuid(regs, 0); // EAX=0: Highest Function Parameter and Manufacturer ID
+    std::memcpy(gCpuVendor, &regs[1], 4);
+    std::memcpy(gCpuVendor + 4, &regs[3], 4);
+    std::memcpy(gCpuVendor + 8, &regs[2], 4);
+    gCpuVendor[12] = '\0';
+    NOTSA_LOG_DEBUG("CPU vendor: {}", gCpuVendor);
 
     // Figure out Windows version (TODO: Use `IsWindowsVersion*` from VersionHelpers.h instead)
     s_OSStatus.OSVer = [&] {

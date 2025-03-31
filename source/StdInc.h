@@ -1,8 +1,6 @@
 #pragma once
 #pragma message("Compiling precompiled header.\n")
 
-#include <WinSock2.h>
-#include <Windows.h>
 #include <cstdio>
 #include <cmath>
 #include <cinttypes>
@@ -24,7 +22,8 @@
 #include <tuple>
 #include <initializer_list>
 #include <format>
-#undef GetCurrentTime // gtfo windows.h
+
+#include "app\platform\win\winincl.h"
 
 #include <ranges>
 namespace rng = std::ranges;
