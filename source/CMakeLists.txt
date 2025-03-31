@@ -25,6 +25,10 @@ list(APPEND SOURCE_FILES_LIST StdInc.cpp)
 #--------------------------------------------------------------------
 # Remove unused Audio API sources
 #--------------------------------------------------------------------
+if (NOT WIN32 AND NOT ${RE_PROJECT}_WITH_OPENAL)
+    set(${RE_PROJECT}_WITH_OPENAL ON)
+endif()
+
 if (${RE_PROJECT}_WITH_OPENAL)
     # TODO: Remove dsound specific sources
 else()
@@ -180,11 +184,6 @@ endif()
 #--------------------------------------------------------------------
 # Configure the Audio API
 #--------------------------------------------------------------------
-if (NOT WIN32 AND NOT ${RE_PROJECT}_WITH_OPENAL)
-    set(${RE_PROJECT}_WITH_OPENAL ON)
-endif()
-
-
 if (${RE_PROJECT}_WITH_OPENAL)
     target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE USE_OPENAL)
 
