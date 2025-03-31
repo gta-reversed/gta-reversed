@@ -93,7 +93,7 @@ enum eControllerAction {
 
     // notsa
     NUM_OF_MIN_CONTROLLER_ACTIONS = 0,
-    NUM_OF_MAX_CONTROLLER_ACTIONS = eControllerAction::SWITCH_CAM_DEBUG_MENU + 1,
+    NUM_OF_MAX_CONTROLLER_ACTIONS = SWITCH_CAM_DEBUG_MENU + 1,
 };
 
 
