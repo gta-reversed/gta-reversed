@@ -730,7 +730,8 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
     SetControllerKeyAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON, rsLCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
     SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_IN, rsPGUP, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT, rsPGDN, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON_ALT, (RsKeyCodes)'\\', eControllerType::KEYBOARD);
+    // WIN98 SetControllerKeyAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON_ALT, (RsKeyCodes)'\\', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON_ALT, (RsKeyCodes)'0', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::GROUP_CONTROL_FWD, (RsKeyCodes)'G', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::GROUP_CONTROL_BWD, (RsKeyCodes)'H', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CONVERSATION_NO, (RsKeyCodes)'N', eControllerType::KEYBOARD);
@@ -750,7 +751,8 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
     SetControllerKeyAssociatedWithAction(eControllerAction::PED_1RST_PERSON_LOOK_RIGHT, rsPADRIGHT, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::PED_1RST_PERSON_LOOK_UP, rsPADDOWN, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::PED_1RST_PERSON_LOOK_DOWN, rsPADUP, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER, (RsKeyCodes)'#', eControllerType::KEYBOARD);
+    // WIN98 SetControllerKeyAssociatedWithAction(eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER, (RsKeyCodes)'#', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER, (RsKeyCodes)'3', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::PED_LOOKBEHIND, rsPADEND, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_STEER_UP, rsUP, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_STEER_DOWN, rsDOWN, eControllerType::KEYBOARD);
@@ -921,7 +923,7 @@ void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControl
     }
     if (state.m_bRightButton) {                                                      
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON);
-        SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_MOUSELOOK,         rsMOUSE_RIGHT_BUTTON);
+        SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_MOUSELOOK,          rsMOUSE_RIGHT_BUTTON);
     }
     if (state.m_bMiddleButton) {                                                      
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON);
@@ -1296,26 +1298,36 @@ void CControllerConfigManager::ClearSimButtonPressCheckers() {
 // unused
 // 0x52D1C0
 int32 CControllerConfigManager::GetJoyButtonJustUp() {
-    int32 v1 = 0;
-    // NOTE: I don't get it.
-    while ((m_NewJoyState.rgbButtons[v1] & 0x80) != 0 || (m_OldJoyState.rgbButtons[v1] & 0x80) == 0) {
-        if (++v1 >= 16) {
-            return 0;
+    // Check each button from 0 to JOYBUTTON_SIXTEEN-1
+    for (int32 buttonIndex = eJOY_BUTTONS::NO_JOYBUTTONS; buttonIndex < eJOY_BUTTONS::JOYBUTTON_SIXTEEN; buttonIndex++) {
+        // Check if button is released in current state but was pressed in previous state
+        const bool isCurrentlyPressed = (m_NewJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
+        const bool wasPreviouslyPressed = (m_OldJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
+        
+        if (!isCurrentlyPressed && wasPreviouslyPressed) {
+            // Return the button ID (1-based index)
+            return buttonIndex + eJOY_BUTTONS::JOYBUTTON_ONE;
         }
     }
-    return v1 + 1;
+    // No button was found that was just released
+    return eJOY_BUTTONS::NO_JOYBUTTONS;
 }
 
 // 0x52D1E0
 int32 CControllerConfigManager::GetJoyButtonJustDown() {
-    int32 v1 = 0;
-    // NOTE: I don't get it.
-    while ((m_NewJoyState.rgbButtons[v1] & 0x80) == 0 || (m_OldJoyState.rgbButtons[v1] & 0x80) != 0) {
-        if (++v1 >= 16) {
-            return 0;
+    // Check each button from 0 to JOYBUTTON_SIXTEEN-1
+    for (int32 buttonIndex = eJOY_BUTTONS::NO_JOYBUTTONS; buttonIndex < eJOY_BUTTONS::JOYBUTTON_SIXTEEN; buttonIndex++) {
+        // Check if button is pressed in current state but wasn't pressed in previous state
+        const bool isCurrentlyPressed = (m_NewJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
+        const bool wasPreviouslyPressed = (m_OldJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
+        
+        if (isCurrentlyPressed && !wasPreviouslyPressed) {
+            // Return the button ID (1-based index)
+            return buttonIndex + eJOY_BUTTONS::JOYBUTTON_ONE;
         }
     }
-    return v1 + 1;
+    // No button was found that was just pressed
+    return eJOY_BUTTONS::NO_JOYBUTTONS;
 }
 
 // 0x52DDB0
@@ -1324,60 +1336,59 @@ bool CControllerConfigManager::GetIsKeyboardKeyDown(CControllerKey::KeyCode key)
     if (key < 255 && pad->NewKeyState.standardKeys[key]) {
         return true;
     }
-    // TODO: normal magis value
-    for (auto i = 0u; i <= rsF12 - rsF1; ++i) {
-        if (i + rsF1 == key && pad->NewKeyState.FKeys[i]) {
-            return true;
-        }
+
+    // Check if key is a function key (F1-F12)
+    if (key >= rsF1 && key <= rsF12) {
+        return pad->NewKeyState.FKeys[key - rsF1];
     }
 
     switch (key) {
     // NOTE: If anyone wants to translate all the code into `Pad.h`, please do:
-    case rsESC: return pad->NewKeyState.esc;
-    case rsINS: return pad->NewKeyState.insert;
-    case rsDEL: return pad->NewKeyState.del;
-    case rsHOME: return pad->NewKeyState.home;
-    case rsEND: return pad->NewKeyState.end;
-    case rsPGUP: return pad->NewKeyState.pgup;
-    case rsPGDN: return pad->NewKeyState.pgdn;
-    case rsUP: return pad->NewKeyState.up;
-    case rsDOWN: return pad->NewKeyState.down;
-    case rsLEFT: return pad->NewKeyState.left;
-    case rsRIGHT: return pad->NewKeyState.right;
-    case rsDIVIDE: return pad->NewKeyState.div;
-    case rsTIMES: return pad->NewKeyState.mul;
-    case rsPLUS: return pad->NewKeyState.add;
-    case rsMINUS: return pad->NewKeyState.sub;
-    case rsPADDEL: return pad->NewKeyState.decimal;
-    case rsPADEND: return pad->NewKeyState.num1;
-    case rsPADDOWN: return pad->NewKeyState.num2;
-    case rsPADPGDN: return pad->NewKeyState.num3;
-    case rsPADLEFT: return pad->NewKeyState.num4;
-    case rsPAD5: return pad->NewKeyState.num5;
-    case rsNUMLOCK: return pad->NewKeyState.numlock;
+    case rsESC:      return pad->NewKeyState.esc;
+    case rsINS:      return pad->NewKeyState.insert;
+    case rsDEL:      return pad->NewKeyState.del;
+    case rsHOME:     return pad->NewKeyState.home;
+    case rsEND:      return pad->NewKeyState.end;
+    case rsPGUP:     return pad->NewKeyState.pgup;
+    case rsPGDN:     return pad->NewKeyState.pgdn;
+    case rsUP:       return pad->NewKeyState.up;
+    case rsDOWN:     return pad->NewKeyState.down;
+    case rsLEFT:     return pad->NewKeyState.left;
+    case rsRIGHT:    return pad->NewKeyState.right;
+    case rsDIVIDE:   return pad->NewKeyState.div;
+    case rsTIMES:    return pad->NewKeyState.mul;
+    case rsPLUS:     return pad->NewKeyState.add;
+    case rsMINUS:    return pad->NewKeyState.sub;
+    case rsPADDEL:   return pad->NewKeyState.decimal;
+    case rsPADEND:   return pad->NewKeyState.num1;
+    case rsPADDOWN:  return pad->NewKeyState.num2;
+    case rsPADPGDN:  return pad->NewKeyState.num3;
+    case rsPADLEFT:  return pad->NewKeyState.num4;
+    case rsPAD5:     return pad->NewKeyState.num5;
+    case rsNUMLOCK:  return pad->NewKeyState.numlock;
     case rsPADRIGHT: return pad->NewKeyState.num6;
-    case rsPADHOME: return pad->NewKeyState.num7;
-    case rsPADUP: return pad->NewKeyState.num8;
-    case rsPADPGUP: return pad->NewKeyState.num9;
-    case rsPADINS: return pad->NewKeyState.num0;
+    case rsPADHOME:  return pad->NewKeyState.num7;
+    case rsPADUP:    return pad->NewKeyState.num8;
+    case rsPADPGUP:  return pad->NewKeyState.num9;
+    case rsPADINS:   return pad->NewKeyState.num0;
     case rsPADENTER: return pad->NewKeyState.enter;
-    case rsSCROLL: return pad->NewKeyState.scroll;
-    case rsPAUSE: return pad->NewKeyState.pause;
-    case rsBACKSP: return pad->NewKeyState.back;
-    case rsTAB: return pad->NewKeyState.tab;
-    case rsCAPSLK: return pad->NewKeyState.capslock;
-    case rsENTER: return pad->NewKeyState.extenter;
-    case rsLSHIFT: return pad->NewKeyState.lshift;
-    case rsRSHIFT: return pad->NewKeyState.rshift;
-    case rsSHIFT: return pad->NewKeyState.shift;
-    case rsLCTRL: return pad->NewKeyState.lctrl;
-    case rsRCTRL: return pad->NewKeyState.rctrl;
-    case rsLALT: return pad->NewKeyState.lmenu;
-    case rsRALT: return pad->NewKeyState.rmenu;
-    case rsLWIN: return pad->NewKeyState.lwin;
-    case rsRWIN: return pad->NewKeyState.rwin;
-    case rsAPPS: return pad->NewKeyState.apps;
-    default: return false;
+    case rsSCROLL:   return pad->NewKeyState.scroll;
+    case rsPAUSE:    return pad->NewKeyState.pause;
+    case rsBACKSP:   return pad->NewKeyState.back;
+    case rsTAB:      return pad->NewKeyState.tab;
+    case rsCAPSLK:   return pad->NewKeyState.capslock;
+    case rsENTER:    return pad->NewKeyState.extenter;
+    case rsLSHIFT:   return pad->NewKeyState.lshift;
+    case rsRSHIFT:   return pad->NewKeyState.rshift;
+    case rsSHIFT:    return pad->NewKeyState.shift;
+    case rsLCTRL:    return pad->NewKeyState.lctrl;
+    case rsRCTRL:    return pad->NewKeyState.rctrl;
+    case rsLALT:     return pad->NewKeyState.lmenu;
+    case rsRALT:     return pad->NewKeyState.rmenu;
+    case rsLWIN:     return pad->NewKeyState.lwin;
+    case rsRWIN:     return pad->NewKeyState.rwin;
+    case rsAPPS:     return pad->NewKeyState.apps;
+    default:         return false;
     }
 }
 
@@ -1387,60 +1398,62 @@ bool CControllerConfigManager::GetIsKeyboardKeyJustDown(CControllerKey::KeyCode 
     if (key < 255 && pad->NewKeyState.standardKeys[key] && !pad->OldKeyState.standardKeys[key]) {
         return true;
     }
-    // TODO: nornal magis value
-    for (auto i = 0u; i <= rsF12 - rsF1; ++i) {
-        if (i + rsF1 == key && pad->NewKeyState.FKeys[i] && !pad->OldKeyState.FKeys[i]) {
+
+    // Check if key is a function key (F1-F12)
+    if (key >= rsF1 && key <= rsF12) {
+        const auto index = key - rsF1;
+        if (pad->NewKeyState.FKeys[index] && !pad->OldKeyState.FKeys[index]) {
             return true;
         }
     }
 
     switch (key) {
     // NOTE: If anyone wants to translate all the code into `Pad.h`, please do:
-    case rsESC: return pad->NewKeyState.esc && !pad->OldKeyState.esc;
-    case rsINS: return pad->NewKeyState.insert && !pad->OldKeyState.insert;
-    case rsDEL: return pad->NewKeyState.del && !pad->OldKeyState.del;
-    case rsHOME: return pad->NewKeyState.home && !pad->OldKeyState.home;
-    case rsEND: return pad->NewKeyState.end && !pad->OldKeyState.end;
-    case rsPGUP: return pad->NewKeyState.pgup && !pad->OldKeyState.pgup;
-    case rsPGDN: return pad->NewKeyState.pgdn && !pad->OldKeyState.pgdn;
-    case rsUP: return pad->NewKeyState.up && !pad->OldKeyState.up;
-    case rsDOWN: return pad->NewKeyState.down && !pad->OldKeyState.down;
-    case rsLEFT: return pad->NewKeyState.left && !pad->OldKeyState.left;
-    case rsRIGHT: return pad->NewKeyState.right && !pad->OldKeyState.right;
-    case rsDIVIDE: return pad->NewKeyState.div && !pad->OldKeyState.div;
-    case rsTIMES: return pad->NewKeyState.mul && !pad->OldKeyState.mul;
-    case rsPLUS: return pad->NewKeyState.add && !pad->OldKeyState.add;
-    case rsMINUS: return pad->NewKeyState.sub && !pad->OldKeyState.sub;
-    case rsPADDEL: return pad->NewKeyState.decimal && !pad->OldKeyState.decimal;
-    case rsPADEND: return pad->NewKeyState.num1 && !pad->OldKeyState.num1;
-    case rsPADDOWN: return pad->NewKeyState.num2 && !pad->OldKeyState.num2;
-    case rsPADPGDN: return pad->NewKeyState.num3 && !pad->OldKeyState.num3;
-    case rsPADLEFT: return pad->NewKeyState.num4 && !pad->OldKeyState.num4;
-    case rsPAD5: return pad->NewKeyState.num5 && !pad->OldKeyState.num5;
-    case rsNUMLOCK: return pad->NewKeyState.numlock && !pad->OldKeyState.numlock;
+    case rsESC:      return pad->NewKeyState.esc && !pad->OldKeyState.esc;
+    case rsINS:      return pad->NewKeyState.insert && !pad->OldKeyState.insert;
+    case rsDEL:      return pad->NewKeyState.del && !pad->OldKeyState.del;
+    case rsHOME:     return pad->NewKeyState.home && !pad->OldKeyState.home;
+    case rsEND:      return pad->NewKeyState.end && !pad->OldKeyState.end;
+    case rsPGUP:     return pad->NewKeyState.pgup && !pad->OldKeyState.pgup;
+    case rsPGDN:     return pad->NewKeyState.pgdn && !pad->OldKeyState.pgdn;
+    case rsUP:       return pad->NewKeyState.up && !pad->OldKeyState.up;
+    case rsDOWN:     return pad->NewKeyState.down && !pad->OldKeyState.down;
+    case rsLEFT:     return pad->NewKeyState.left && !pad->OldKeyState.left;
+    case rsRIGHT:    return pad->NewKeyState.right && !pad->OldKeyState.right;
+    case rsDIVIDE:   return pad->NewKeyState.div && !pad->OldKeyState.div;
+    case rsTIMES:    return pad->NewKeyState.mul && !pad->OldKeyState.mul;
+    case rsPLUS:     return pad->NewKeyState.add && !pad->OldKeyState.add;
+    case rsMINUS:    return pad->NewKeyState.sub && !pad->OldKeyState.sub;
+    case rsPADDEL:   return pad->NewKeyState.decimal && !pad->OldKeyState.decimal;
+    case rsPADEND:   return pad->NewKeyState.num1 && !pad->OldKeyState.num1;
+    case rsPADDOWN:  return pad->NewKeyState.num2 && !pad->OldKeyState.num2;
+    case rsPADPGDN:  return pad->NewKeyState.num3 && !pad->OldKeyState.num3;
+    case rsPADLEFT:  return pad->NewKeyState.num4 && !pad->OldKeyState.num4;
+    case rsPAD5:     return pad->NewKeyState.num5 && !pad->OldKeyState.num5;
+    case rsNUMLOCK:  return pad->NewKeyState.numlock && !pad->OldKeyState.numlock;
     case rsPADRIGHT: return pad->NewKeyState.num6 && !pad->OldKeyState.num6;
-    case rsPADHOME: return pad->NewKeyState.num7 && !pad->OldKeyState.num7;
-    case rsPADUP: return pad->NewKeyState.num8 && !pad->OldKeyState.num8;
-    case rsPADPGUP: return pad->NewKeyState.num9 && !pad->OldKeyState.num9;
-    case rsPADINS: return pad->NewKeyState.num0 && !pad->OldKeyState.num0;
+    case rsPADHOME:  return pad->NewKeyState.num7 && !pad->OldKeyState.num7;
+    case rsPADUP:    return pad->NewKeyState.num8 && !pad->OldKeyState.num8;
+    case rsPADPGUP:  return pad->NewKeyState.num9 && !pad->OldKeyState.num9;
+    case rsPADINS:   return pad->NewKeyState.num0 && !pad->OldKeyState.num0;
     case rsPADENTER: return pad->NewKeyState.enter && !pad->OldKeyState.enter;
-    case rsSCROLL: return pad->NewKeyState.scroll && !pad->OldKeyState.scroll;
-    case rsPAUSE: return pad->NewKeyState.pause && !pad->OldKeyState.pause;
-    case rsBACKSP: return pad->NewKeyState.back && !pad->OldKeyState.back;
-    case rsTAB: return pad->NewKeyState.tab && !pad->OldKeyState.tab;
-    case rsCAPSLK: return pad->NewKeyState.capslock && !pad->OldKeyState.capslock;
-    case rsENTER: return pad->NewKeyState.extenter && !pad->OldKeyState.extenter;
-    case rsLSHIFT: return pad->NewKeyState.lshift && !pad->OldKeyState.lshift;
-    case rsRSHIFT: return pad->NewKeyState.rshift && !pad->OldKeyState.rshift;
-    case rsSHIFT: return pad->NewKeyState.shift && !pad->OldKeyState.shift;
-    case rsLCTRL: return pad->NewKeyState.lctrl && !pad->OldKeyState.lctrl;
-    case rsRCTRL: return pad->NewKeyState.rctrl && !pad->OldKeyState.rctrl;
-    case rsLALT: return pad->NewKeyState.lmenu && !pad->OldKeyState.lmenu;
-    case rsRALT: return pad->NewKeyState.rmenu && !pad->OldKeyState.rmenu;
-    case rsLWIN: return pad->NewKeyState.lwin && !pad->OldKeyState.lwin;
-    case rsRWIN: return pad->NewKeyState.rwin && !pad->OldKeyState.rwin;
-    case rsAPPS: return pad->NewKeyState.apps && !pad->OldKeyState.apps;
-    default: return false;
+    case rsSCROLL:   return pad->NewKeyState.scroll && !pad->OldKeyState.scroll;
+    case rsPAUSE:    return pad->NewKeyState.pause && !pad->OldKeyState.pause;
+    case rsBACKSP:   return pad->NewKeyState.back && !pad->OldKeyState.back;
+    case rsTAB:      return pad->NewKeyState.tab && !pad->OldKeyState.tab;
+    case rsCAPSLK:   return pad->NewKeyState.capslock && !pad->OldKeyState.capslock;
+    case rsENTER:    return pad->NewKeyState.extenter && !pad->OldKeyState.extenter;
+    case rsLSHIFT:   return pad->NewKeyState.lshift && !pad->OldKeyState.lshift;
+    case rsRSHIFT:   return pad->NewKeyState.rshift && !pad->OldKeyState.rshift;
+    case rsSHIFT:    return pad->NewKeyState.shift && !pad->OldKeyState.shift;
+    case rsLCTRL:    return pad->NewKeyState.lctrl && !pad->OldKeyState.lctrl;
+    case rsRCTRL:    return pad->NewKeyState.rctrl && !pad->OldKeyState.rctrl;
+    case rsLALT:     return pad->NewKeyState.lmenu && !pad->OldKeyState.lmenu;
+    case rsRALT:     return pad->NewKeyState.rmenu && !pad->OldKeyState.rmenu;
+    case rsLWIN:     return pad->NewKeyState.lwin && !pad->OldKeyState.lwin;
+    case rsRWIN:     return pad->NewKeyState.rwin && !pad->OldKeyState.rwin;
+    case rsAPPS:     return pad->NewKeyState.apps && !pad->OldKeyState.apps;
+    default:         return false;
     }
 }
 
