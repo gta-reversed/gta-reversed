@@ -20,5 +20,5 @@ try:
 except subprocess.CalledProcessError as e:
     print(f"Installation failed with error code {e.returncode}!")
     exit(e.returncode)
-finally:
+else:
     print(f"Installation is done!")
