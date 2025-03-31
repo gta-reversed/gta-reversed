@@ -618,7 +618,6 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
 
     return true;
 }
-#endif
 #else
 // 0x530530
 bool CControllerConfigManager::LoadSettings(FILE* file) {
