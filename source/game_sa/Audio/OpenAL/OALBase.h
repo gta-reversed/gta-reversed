@@ -1,5 +1,7 @@
 #pragma once
-#include "extensions/HeapPtrArray.hpp"
+
+template<typename T, typename Deleter = std::default_delete<T>, typename Alloc = std::allocator<T>>
+using HeapPtrArray = std::vector<std::unique_ptr<T, Deleter>, Alloc>;
 
 // This class has to be heap allocated! (with `new`)
 class OALBase {
