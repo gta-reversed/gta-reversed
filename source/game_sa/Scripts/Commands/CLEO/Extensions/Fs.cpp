@@ -1,6 +1,6 @@
 #include <StdInc.h>
 
-#include "./Commands.hpp"
+#include "Commands.hpp"
 #include <CommandParser/Parser.hpp>
 
 void notsa::script::commands::cleo::extensions::fs::RegisterHandlers() {

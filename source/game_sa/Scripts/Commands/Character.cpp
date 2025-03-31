@@ -1,6 +1,6 @@
 #include <StdInc.h>
 
-#include "./Commands.hpp"
+#include "Commands.hpp"
 #include <CommandParser/Parser.hpp>
 #include <extensions/Shapes/AngledRect.hpp>
 #include "Utility.h"

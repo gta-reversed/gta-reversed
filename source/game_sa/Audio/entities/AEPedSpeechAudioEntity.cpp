@@ -7,7 +7,7 @@
 #include <AEAudioHardware.h>
 #include <Audio/Enums/eSoundBankSlot.h>
 
-#include "./PedSpeechAudioEntityLUTs.inc.h"
+#include "PedSpeechAudioEntityLUTs.inc.h"
 
 void CAEPedSpeechAudioEntity::InjectHooks() {
     RH_ScopedVirtualClass(CAEPedSpeechAudioEntity, 0x85F310, 8);
