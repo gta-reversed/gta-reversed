@@ -18,7 +18,7 @@ void CAEAudioHardware::InjectHooks() {
 
     RH_ScopedInstall(AllocateChannels, 0x5B9340);
     RH_ScopedInstall(RequestVirtualChannelSoundInfo, 0x4D8E60);
-    RH_ScopedInstall(Query3DSoundEffects, 0x4D8490, { .reversed = false });
+    RH_ScopedInstall(Query3DSoundEffects, 0x4D8490);
     RH_ScopedInstall(GetNumAvailableChannels, 0x4D8810);
     RH_ScopedInstall(GetChannelPlayTimes, 0x4D8820);
     RH_ScopedInstall(SetChannelVolume, 0x4D8870);
