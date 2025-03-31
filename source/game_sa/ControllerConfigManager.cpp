@@ -579,7 +579,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
                 break;
             }
         }
-        if (!hasAssignment) {
+        if (!hasAssignment && !notsa::contains({NETWORK_TALK, NUM_OF_1ST_PERSON_ACTIONS, TOGGLE_DPAD, SWITCH_DEBUG_CAM_ON, TAKE_SCREEN_SHOT, SHOW_MOUSE_POINTER_TOGGLE, SWITCH_CAM_DEBUG_MENU}, (eControllerAction)i)) {
             return false; // No valid assignment found for this action
         }
     }
@@ -689,7 +689,7 @@ bool CControllerConfigManager::LoadSettings(FILE* file) {
                 break;
             }
         }
-        if (!hasAssignment) {
+        if (!hasAssignment && !notsa::contains({NETWORK_TALK, NUM_OF_1ST_PERSON_ACTIONS, TOGGLE_DPAD, SWITCH_DEBUG_CAM_ON, TAKE_SCREEN_SHOT, SHOW_MOUSE_POINTER_TOGGLE, SWITCH_CAM_DEBUG_MENU}, (eControllerAction)i)) {
             return false; // No valid assignment found for this action
         }
     }
