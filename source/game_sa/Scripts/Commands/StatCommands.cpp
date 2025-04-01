@@ -1,7 +1,7 @@
 #include <StdInc.h>
 #include <Stats.h>
 
-#include "./Commands.hpp"
+#include "Commands.hpp"
 #include <CommandParser/Parser.hpp>
 
 namespace {
