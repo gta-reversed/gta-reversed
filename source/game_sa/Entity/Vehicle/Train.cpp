@@ -353,18 +353,13 @@ void CTrain::RemoveRandomPassenger() {
 
 // 0x6F6A20
 void CTrain::RemoveMissionTrains() {
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        auto vehicle = GetVehiclePool()->GetAt(i);
-        if (!vehicle) {
-            continue;
-        }
-
-        if (vehicle->IsTrain() &&
-            vehicle != FindPlayerVehicle() &&
-            vehicle->AsTrain()->trainFlags.bMissionTrain
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (vehicle.IsTrain() &&
+            &vehicle != FindPlayerVehicle() &&
+            vehicle.AsTrain()->trainFlags.bMissionTrain
         ) {
-            CWorld::Remove(vehicle);
-            delete vehicle;
+            CWorld::Remove(&vehicle);
+            delete &vehicle;
         }
     }
 }
@@ -376,14 +371,9 @@ void CTrain::RemoveAllTrains() {
 
 // 0x6F6B60
 void CTrain::ReleaseMissionTrains() {
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        auto vehicle = GetVehiclePool()->GetAt(i);
-        if (!vehicle) {
-            continue;
-        }
-
-        if (vehicle->IsTrain() && vehicle != FindPlayerVehicle()) {
-            vehicle->AsTrain()->trainFlags.bMissionTrain = false;
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (vehicle.IsTrain() && &vehicle != FindPlayerVehicle()) {
+            vehicle.AsTrain()->trainFlags.bMissionTrain = false;
         }
     }
 }

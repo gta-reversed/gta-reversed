@@ -475,15 +475,13 @@ CVehicle* CCarCtrl::GetNewVehicleDependingOnCarModel(int32 modelId, uint8 create
 
 // 0x42C250
 bool CCarCtrl::IsAnyoneParking() {
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        if (auto vehicle = GetVehiclePool()->GetAt(i)) {
-            switch (vehicle->m_autoPilot.m_nCarMission) {
-            case eCarMission::MISSION_PARK_PARALLEL:
-            case eCarMission::MISSION_PARK_PARALLEL_2:
-            case eCarMission::MISSION_PARK_PERPENDICULAR:
-            case eCarMission::MISSION_PARK_PERPENDICULAR_2:
-                return true;
-            }
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        switch (veh.m_autoPilot.m_nCarMission) {
+        case eCarMission::MISSION_PARK_PARALLEL:
+        case eCarMission::MISSION_PARK_PARALLEL_2:
+        case eCarMission::MISSION_PARK_PERPENDICULAR:
+        case eCarMission::MISSION_PARK_PERPENDICULAR_2:
+            return true;
         }
     }
     return false;
@@ -679,22 +677,24 @@ void CCarCtrl::RemoveCarsIfThePoolGetsFull() {
     const CVector camPos = TheCamera.GetPosition();
     float fClosestDist = std::numeric_limits<float>::max();
     CVehicle* closestVeh = nullptr;
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        if (auto vehicle = GetVehiclePool()->GetAt(i)) {
-            if (IsThisVehicleInteresting(vehicle))
-                continue;
-            if (vehicle->vehicleFlags.bIsLocked)
-                continue;
-            if (!vehicle->CanBeDeleted())
-                continue;
-            if (CCranes::IsThisCarBeingTargettedByAnyCrane(vehicle))
-                continue;
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        if (IsThisVehicleInteresting(&veh)) {
+            continue;
+        }
+        if (veh.vehicleFlags.bIsLocked) {
+            continue;
+        }
+        if (!veh.CanBeDeleted()) {
+            continue;
+        }
+        if (CCranes::IsThisCarBeingTargettedByAnyCrane(&veh)) {
+            continue;
+        }
 
-            const float fCamVehDist = (camPos - vehicle->GetPosition()).Magnitude();
-            if (fClosestDist > fCamVehDist) {
-                fClosestDist = fCamVehDist;
-                closestVeh = vehicle;
-            }
+        const float fCamVehDist = (camPos - veh.GetPosition()).Magnitude();
+        if (fClosestDist > fCamVehDist) {
+            fClosestDist = fCamVehDist;
+            closestVeh   = &veh;
         }
     }
     if (closestVeh) {

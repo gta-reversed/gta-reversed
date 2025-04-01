@@ -114,20 +114,19 @@ void CGangWars::AddKillToProvocation(ePedType pedType) {
 bool CGangWars::AttackWaveOvercome() {
     auto pedsNearPlayer = 0u, pedsLiving = 0u;
 
-    for (auto i = 0; i < GetPedPool()->GetSize(); i++) {
-        auto ped = GetPedPool()->GetAt(i);
-        if (!ped || !ped->bPartOfAttackWave)
+    for (auto& ped : GetPedPool()->GetAllValid()) {
+        if (!ped.bPartOfAttackWave)
             continue;
 
-        if (ped->IsStateDying()) {
-            ped->bDonePositionOutOfCollision = false;
-            ped->bPartOfAttackWave = false;
-            ped->SetCharCreatedBy(PED_GAME);
+        if (ped.IsStateDying()) {
+            ped.bDonePositionOutOfCollision = false;
+            ped.bPartOfAttackWave = false;
+            ped.SetCharCreatedBy(PED_GAME);
             continue;
         }
 
         pedsLiving++;
-        if (DistanceBetweenPoints2D(ped->GetPosition2D(), FindPlayerCoors()) < 45.0f) {
+        if (DistanceBetweenPoints2D(ped.GetPosition2D(), FindPlayerCoors()) < 45.0f) {
             pedsNearPlayer++;
         }
     }
@@ -193,12 +192,11 @@ void CGangWars::ClearSpecificZonesToTriggerGangWar() {
 
 // 0x4444B0
 void CGangWars::ClearTheStreets() {
-    for (auto i = 0; i < GetPedPool()->GetSize(); i++) {
-        auto ped = GetPedPool()->GetAt(i);
-        if (!ped || ped->IsPlayer() || !ped->IsCivilian())
+    for (auto& ped : GetPedPool()->GetAllValid()) {
+        if (ped.IsPlayer() || !ped.IsCivilian())
             continue;
 
-        if (auto task = ped->GetTaskManager().Find<CTaskComplexWander>()) {
+        if (auto task = ped.GetTaskManager().Find<CTaskComplexWander>()) {
             task->m_nMoveState = PEDMOVE_SPRINT;
         }
     }
@@ -513,11 +511,10 @@ bool CGangWars::PickZoneToAttack() {
 
 // 0x445E20
 void CGangWars::ReleaseCarsInAttackWave() {
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); ++i) {
-        auto vehicle = GetVehiclePool()->GetAt(i);
-        if (vehicle && vehicle->vehicleFlags.bPartOfAttackWave) {
-            vehicle->vehicleFlags.bPartOfAttackWave = false;
-            vehicle->SetVehicleCreatedBy(eVehicleCreatedBy::RANDOM_VEHICLE);
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (vehicle.vehicleFlags.bPartOfAttackWave) {
+            vehicle.vehicleFlags.bPartOfAttackWave = false;
+            vehicle.SetVehicleCreatedBy(eVehicleCreatedBy::RANDOM_VEHICLE);
         }
     }
 }
@@ -527,29 +524,25 @@ void CGangWars::ReleaseCarsInAttackWave() {
 uint32 CGangWars::ReleasePedsInAttackWave(bool isEndOfWar, bool restoreGangPedsAcquaintance) {
     auto numReleasedPeds = 0u;
 
-    for (auto i = 0; i < GetPedPool()->GetSize(); i++) {
-        CPed* ped = GetPedPool()->GetAt(i);
-        if (!ped)
-            continue;
-
-        if (ped->bPartOfAttackWave) {
-            ped->bPartOfAttackWave = false;
-            ped->SetCharCreatedBy(PED_GAME);
+    for (auto&& [i, ped] : GetPedPool()->GetAllValidWithIndex()) {
+        if (ped.bPartOfAttackWave) {
+            ped.bPartOfAttackWave = false;
+            ped.SetCharCreatedBy(PED_GAME);
             numReleasedPeds++;
             CRadar::ClearBlipForEntity(BLIP_CHAR, i);
-            ped->bClearRadarBlipOnDeath = false;
+            ped.bClearRadarBlipOnDeath = false;
 
             if (restoreGangPedsAcquaintance) {
-                auto taskWander = CTaskComplexWander::GetWanderTaskByPedType(ped);
+                auto taskWander = CTaskComplexWander::GetWanderTaskByPedType(&ped);
                 CEventScriptCommand event(TASK_PRIMARY_PRIMARY, taskWander, false);
-                ped->GetEventGroup().Add(&event);
-                ped->m_acquaintance = CPedType::GetPedTypeAcquaintances(ped->m_nPedType);
+                ped.GetEventGroup().Add(&event);
+                ped.m_acquaintance = CPedType::GetPedTypeAcquaintances(ped.m_nPedType);
             }
         }
 
-        if (isEndOfWar && ped->bClearRadarBlipOnDeath) {
+        if (isEndOfWar && ped.bClearRadarBlipOnDeath) {
             CRadar::ClearBlipForEntity(BLIP_CHAR, i);
-            ped->bClearRadarBlipOnDeath = false;
+            ped.bClearRadarBlipOnDeath = false;
         }
     }
 
@@ -685,37 +678,36 @@ void CGangWars::SwitchGangWarsActive() {
 void CGangWars::TellGangMembersTo(bool isGangWarEnding) {
     // return plugin::Call<0x444530, bool>(isGangWarEnding);
 
-    for (auto i = 0; i < GetPedPool()->GetSize(); ++i) {
-        auto ped = GetPedPool()->GetAt(i);
-        if (!ped || ped->IsPlayer())
+    for (auto& ped : GetPedPool()->GetAllValid()) {
+        if (ped.IsPlayer())
             continue;
 
-        if (!ped->IsGangster() || ped->m_nPedType == PED_TYPE_GANG2)
+        if (!ped.IsGangster() || ped.m_nPedType == PED_TYPE_GANG2)
             continue;
 
         if (!isGangWarEnding) {
             auto player = FindPlayerPed();
             auto task = new CTaskComplexKillPedOnFoot(player, -1, 0, 0, 0, 2);
             CEventScriptCommand esc(TASK_PRIMARY_PRIMARY, task, false);
-            ped->GetEventGroup().Add(&esc);
+            ped.GetEventGroup().Add(&esc);
 
             continue;
         }
 
-        if (ped->IsInVehicle()) {
+        if (ped.IsInVehicle()) {
             CTask* task;
-            if (!ped->IsInVehicleAsPassenger()) {
-                task = new CTaskComplexCarDriveWander(ped->GetVehicleIfInOne(), DRIVING_STYLE_STOP_FOR_CARS, 10.0f);
+            if (!ped.IsInVehicleAsPassenger()) {
+                task = new CTaskComplexCarDriveWander(ped.GetVehicleIfInOne(), DRIVING_STYLE_STOP_FOR_CARS, 10.0f);
             } else {
-                task = new CTaskSimpleCarDrive(ped->GetVehicleIfInOne());
+                task = new CTaskSimpleCarDrive(ped.GetVehicleIfInOne());
             }
             CEventScriptCommand event(TASK_PRIMARY_PRIMARY, task, false);
-            ped->GetEventGroup().Add(&event);
+            ped.GetEventGroup().Add(&event);
         }
 
         auto task = new CTaskComplexWanderGang(PEDMOVE_WALK, CGeneral::GetRandomNumberInRange(0, 8), 5000, true, 0.5f);
         CEventScriptCommand event(TASK_PRIMARY_PRIMARY, task, false);
-        ped->GetEventGroup().Add(&event);
+        ped.GetEventGroup().Add(&event);
     }
 }
 

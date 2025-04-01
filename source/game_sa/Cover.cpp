@@ -265,7 +265,7 @@ bool CCover::DoesCoverPointStillProvideCover(CCoverPoint* cpt, CVector pos) {
     case CCoverPoint::eType::NONE:
         return false;
     case CCoverPoint::eType::POINTONMAP: {
-        if (FindVectorFromDir(cpt->GetDir()).Dot(pos - cpt->GetPointOnMap()) > 0.f) {
+        if (FindVectorFromDir(cpt->GetDir().GetUnderlying()).Dot(pos - cpt->GetPointOnMap()) > 0.f) {
             return true;
         }
         return false;

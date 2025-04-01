@@ -91,16 +91,12 @@ int32 CPools::CheckBuildingAtomics() {
 
 // 0x551950
 void CPools::CheckPoolsEmpty() {
-    for (auto i = 0; i < ms_pObjectPool->GetSize(); i++) {
-        const auto obj = ms_pObjectPool->GetAt(i);
-        if (!obj)
+    for (auto& obj : ms_pObjectPool->GetAllValid()) {
+        if (obj.m_nObjectType != OBJECT_TYPE_DECORATION)
             continue;
 
-        if (obj->m_nObjectType != OBJECT_TYPE_DECORATION)
-            continue;
-
-        const auto& objPos = obj->GetPosition();
-        NOTSA_LOG_DEBUG("Offending object: MI: {} Coors:{} {} {}", obj->m_nModelIndex, objPos.x, objPos.y, objPos.z);
+        const auto& objPos = obj.GetPosition();
+        NOTSA_LOG_DEBUG("Offending object: MI: {} Coors:{} {} {}", obj.m_nModelIndex, objPos.x, objPos.y, objPos.z);
     }
     NOTSA_LOG_DEBUG("Pools have been cleared!");
 }

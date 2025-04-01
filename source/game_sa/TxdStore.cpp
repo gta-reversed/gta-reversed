@@ -166,7 +166,7 @@ int32 CTxdStore::FindTxdSlot(const char* name) {
     if (last < 0) {
         last = ms_lastSlotFound;
         for (last++;; last++) {
-            if (last >= ms_pTxdPool->GetSize())
+            if (last >= 0 && static_cast<size_t>(last) >= ms_pTxdPool->GetSize())
                 return -1;
 
             TxdDef* txd = ms_pTxdPool->GetAt(last);
@@ -182,9 +182,8 @@ int32 CTxdStore::FindTxdSlot(const char* name) {
 // find txd by name hash. Returning value is txd index
 // 0x7318E0
 int32 CTxdStore::FindTxdSlot(uint32 hash) {
-    for (int32 i = 0; i < ms_pTxdPool->GetSize(); i++) {
-        TxdDef* txd = ms_pTxdPool->GetAt(i);
-        if (txd && txd->m_hash == hash)
+    for (auto&& [i, txd] : ms_pTxdPool->GetAllValidWithIndex()) {
+        if (txd.m_hash == hash)
             return i;
     }
     return -1;

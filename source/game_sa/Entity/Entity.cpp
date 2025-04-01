@@ -1767,38 +1767,27 @@ void CEntity::RegisterReference(CEntity** entity)
     }
 
     if (!m_pReferences && !CReferences::pEmptyList) {
-        auto iPedsSize = GetPedPool()->GetSize();
-        for (int32 i = 0; i < iPedsSize; ++i) {
-            auto ped = GetPedPool()->GetAt(i);
-            if (ped) {
-                ped->PruneReferences();
-                if (CReferences::pEmptyList)
+        for (auto& ped : GetPedPool()->GetAllValid()) {
+            ped.PruneReferences();
+            if (CReferences::pEmptyList) {
+                break;
+            }
+        }
+
+        if (!CReferences::pEmptyList) {
+            for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+                vehicle.PruneReferences();
+                if (CReferences::pEmptyList) {
                     break;
-            }
-
-        }
-
-        if (!CReferences::pEmptyList) {
-            auto iVehsSize = GetVehiclePool()->GetSize();
-            for (int32 i = 0; i < iVehsSize; ++i) {
-                auto vehicle = GetVehiclePool()->GetAt(i);
-                if (vehicle) {
-                    vehicle->PruneReferences();
-                    if (CReferences::pEmptyList)
-                        break;
                 }
-
             }
         }
 
         if (!CReferences::pEmptyList) {
-            auto iObjectsSize = GetObjectPool()->GetSize();
-            for (int32 i = 0; i < iObjectsSize; ++i) {
-                auto obj = GetObjectPool()->GetAt(i);
-                if (obj) {
-                    obj->PruneReferences();
-                    if (CReferences::pEmptyList)
-                        break;
+            for (auto& obj : GetObjectPool()->GetAllValid()) {
+                obj.PruneReferences();
+                if (CReferences::pEmptyList) {
+                    break;
                 }
             }
         }
