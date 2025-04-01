@@ -91,29 +91,29 @@ void CRunningScript::InjectCustomCommandHooks() {
     // Uncommenting any call will prevent it from being hooked, so
     // feel free to do so when debugging (Just don't forget to undo the changes!)
 
-    using namespace ::notsa::script::commands;
+    namespace Cmd = notsa::script::commands;
 
-    basic::RegisterHandlers();
-    camera::RegisterHandlers();
-    character::RegisterHandlers();
-    clock::RegisterHandlers();
-    comparasion::RegisterHandlers();
-    game::RegisterHandlers();
-    generic::RegisterHandlers();
-    math::RegisterHandlers();
-    mission::RegisterHandlers();
-    object::RegisterHandlers();
-    pad::RegisterHandlers();
-    ped::RegisterHandlers();
-    player::RegisterHandlers();
-    script::RegisterHandlers();
-    sequence::RegisterHandlers();
-    text::RegisterHandlers();
-    unused::RegisterHandlers();
-    utility::RegisterHandlers();
-    vehicle::RegisterHandlers();
-    zone::RegisterHandlers();
-    ::notsa::script::commands::stat::RegisterHandlers();
+    Cmd::basic::RegisterHandlers();
+    Cmd::camera::RegisterHandlers();
+    Cmd::character::RegisterHandlers();
+    Cmd::clock::RegisterHandlers();
+    Cmd::comparasion::RegisterHandlers();
+    Cmd::game::RegisterHandlers();
+    Cmd::generic::RegisterHandlers();
+    Cmd::math::RegisterHandlers();
+    Cmd::mission::RegisterHandlers();
+    Cmd::object::RegisterHandlers();
+    Cmd::pad::RegisterHandlers();
+    Cmd::ped::RegisterHandlers();
+    Cmd::player::RegisterHandlers();
+    Cmd::script::RegisterHandlers();
+    Cmd::sequence::RegisterHandlers();
+    Cmd::text::RegisterHandlers();
+    Cmd::unused::RegisterHandlers();
+    Cmd::utility::RegisterHandlers();
+    Cmd::vehicle::RegisterHandlers();
+    Cmd::zone::RegisterHandlers();
+    Cmd::stat::RegisterHandlers();
 
 #ifdef NOTSA_WITH_CLEO_SCRIPT_COMMANDS
     cleo::audiostream::RegisterHandlers();
