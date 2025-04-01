@@ -106,8 +106,8 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(ConversationNoJustDown, 0x541200);
     RH_ScopedInstall(GroupControlForwardJustDown, 0x541230);
     RH_ScopedInstall(GroupControlBackJustDown, 0x541260);
-    RH_ScopedInstall(LookAroundLeftRight, 0x540BD0, {.reversed = true});
-    RH_ScopedInstall(LookAroundUpDown, 0x540CC0, {.reversed = true});
+    RH_ScopedInstall(LookAroundLeftRight, 0x540BD0);
+    RH_ScopedInstall(LookAroundUpDown, 0x540CC0);
 }
 
 // 0x541D80
@@ -1176,16 +1176,6 @@ int16 CPad::LookAroundUpDown(CPed* ped) noexcept {
 
     constexpr auto UNK = 1.3763441f;
     return static_cast<int16>((static_cast<float>(s1) + (s1 < 0 ? 35.0f : -35.0f)) * UNK);
-}
-
-// Alias for SniperModeLookLeftRight, same as LookAroundLeftRight
-int16 CPad::SniperModeLookLeftRight(CPed* ped) const {
-    return LookAroundLeftRight(ped);
-}
-
-// Alias for SniperModeLookUpDown, same as LookAroundUpDown
-int16 CPad::SniperModeLookUpDown(CPed* ped) const {
-    return LookAroundUpDown(ped);
 }
 
 // 0x541290

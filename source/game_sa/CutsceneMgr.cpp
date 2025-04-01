@@ -313,7 +313,7 @@ void CCutsceneMgr::Initialise() {
 bool CCutsceneMgr::IsCutsceneSkipButtonBeingPressed() {
     const auto pad = CPad::GetPad(0);
     return pad->IsCrossPressed()
-        || pad->GetLeftMouseJustDown()
+        || (!CPad::NewMouseControllerState.m_bLeftButton || CPad::OldMouseControllerState.m_bLeftButton) // TODO : Declare a function for this
         || pad->IsEnterJustPressed()
         || pad->IsStandardKeyJustDown(' ')
         || !isForeground; // ????

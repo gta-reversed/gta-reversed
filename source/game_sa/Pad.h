@@ -168,10 +168,8 @@ public:
     int32 GetWeapon(CPed* ped) const;
     int16 AimWeaponLeftRight(CPed* ped) const;
     int16 AimWeaponUpDown(CPed* ped) const;
-    int16 SniperModeLookLeftRight(CPed* ped) const;
-    int16 SniperModeLookUpDown(CPed* ped) const;
-    int16 LookAroundLeftRight(CPed* ped) const;
-    int16 LookAroundUpDown(CPed* ped) const;
+    // int16 LookAroundLeftRight(CPed* ped) const;
+    // int16 LookAroundUpDown(CPed* ped) const;
 
 
     static CPad* GetPad(int32 nPadNumber = 0)                               { return &Pads[nPadNumber]; }                                                                    // 0x53FB70
