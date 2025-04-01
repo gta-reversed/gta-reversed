@@ -46,3 +46,4 @@
 
 #undef GetCurrentTime
 #undef MoveMemory
+#undef PlaySound

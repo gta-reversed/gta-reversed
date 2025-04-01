@@ -10,10 +10,6 @@
 #include "AudioEngine.h"
 #include "AEMP3BankLoader.h"
 
-#ifdef PlaySound
-#undef PlaySound
-#endif
-
 union CAEAudioHardwarePlayFlags {
     uint16 m_nFlags{};
     struct {
