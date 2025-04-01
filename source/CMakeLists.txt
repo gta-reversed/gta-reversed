@@ -23,7 +23,7 @@ file(
 list(APPEND SOURCE_FILES_LIST StdInc.cpp)
 
 #--------------------------------------------------------------------
-# Remove unused Audio API sources
+# Remove unused sources
 #--------------------------------------------------------------------
 if (NOT WIN32 AND NOT ${RE_PROJECT}_WITH_OPENAL)
     set(${RE_PROJECT}_WITH_OPENAL ON)
@@ -46,7 +46,7 @@ endif()
 add_library(${RE_PROJECT_LIB_NAME} MODULE ${SOURCE_FILES_LIST})
 
 target_compile_options(${RE_PROJECT_LIB_NAME} PRIVATE
-    "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/wd26812;/wd26495;/wd28159;/wd4996>"
+    "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/W3;/wd4251;/wd4275;/wd4996;/wd26495;/wd26812;/wd28159>"
     "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wall;>"
 )
 set_target_properties(${RE_PROJECT_LIB_NAME}
@@ -210,13 +210,16 @@ endif()
 
 
 #--------------------------------------------------------------------
-# Configure dbghelp for Windows
+# Configure misc. dependencies for Windows
 #--------------------------------------------------------------------
 if(WIN32)
-    if(MSVC) # MSVC knows how to find dbghelp on it's own
+    if(MSVC)
+        # MSVC knows how to find dbghelp on it's own
         target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
             dbghelp
         )
+
+        target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE DIRECTINPUT_VERSION=0x0800)
     else()
         message(FATAL_ERROR "Need to link dbghelp lib for win32")
     endif()

@@ -43,9 +43,10 @@ namespace fs = std::filesystem;
 #include <Tracy.hpp>
 
 // DirectX
+#ifdef _WIN32
 #include <d3d9.h>
-#define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
+#endif
 
 // RenderWare
 #include "RenderWare/D3DIndexDataBuffer.h"
