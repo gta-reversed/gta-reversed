@@ -16,7 +16,7 @@
 #include "AEAudioHardware.h"
 #include "VideoMode.h"
 #include "VideoPlayer.h"
-#include "Input.h"
+#include "WinInput.h"
 #include "Gamma.h"
 
 // Dear ImGui said I have to copy this here

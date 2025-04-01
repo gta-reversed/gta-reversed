@@ -10,7 +10,7 @@
 
 #include "VideoPlayer.h"
 #include "VideoMode.h"
-#include "Input.h"
+#include "WinInput.h"
 #include "Platform.h"
 #include "WndProc.h"
 
