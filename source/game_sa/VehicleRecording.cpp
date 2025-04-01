@@ -137,13 +137,13 @@ void CVehicleRecording::Load(RwStream* stream, int32 recordId, int32 totalSize) 
     StreamingArray[recordId].m_nSize = size;
     RwStreamClose(stream, nullptr);
 
-    CARREC_NOTSA_LOG_DEBUG("Load carrec to streaming slot idx:{} (size={})", recordId, totalSize);
+    CARREC_DEV_LOG("Load carrec to streaming slot idx:{} (size={})", recordId, totalSize);
 
     for (auto&& [i, frame] : rngv::enumerate(StreamingArray[recordId].GetFrames())) {
         if (i != 0 && frame.m_nTime == 0) {
             // no valid frame that is not zeroth can have zero as a time.
             // so we count them as invalid and prune the following including itself.
-            CARREC_NOTSA_LOG_DEBUG("\tRecording pruned at index {}", i);
+            CARREC_DEV_LOG("\tRecording pruned at index {}", i);
 
             StreamingArray[recordId].m_nSize = i * sizeof(CVehicleStateEachFrame);
             break;
@@ -168,7 +168,7 @@ int32 CVehicleRecording::RegisterRecordingFile(const char* name) {
         VERIFY(sscanf_s(name, "CARREC%d", &fileNumber) == 1);
     }
 
-    CARREC_NOTSA_LOG_DEBUG("Registering carrec file '{}', (streamIdx={})", name, NumPlayBackFiles);
+    CARREC_DEV_LOG("Registering carrec file '{}', (streamIdx={})", name, NumPlayBackFiles);
 
     StreamingArray[NumPlayBackFiles].m_nNumber = fileNumber;
     StreamingArray[NumPlayBackFiles].m_pData = nullptr;

@@ -25,9 +25,9 @@ VALIDATE_SIZE(CVehicleStateEachFrame, 0x20);
 constexpr auto TOTAL_VEHICLE_RECORDS = 16;
 
 #ifdef EXTRA_CARREC_LOGS
-#define CARREC_NOTSA_LOG_DEBUG(...) NOTSA_LOG_DEBUG(__VA_ARGS__)
+#define CARREC_DEV_LOG(...) NOTSA_LOG_DEBUG(__VA_ARGS__)
 #else
-#define CARREC_NOTSA_LOG_DEBUG(...)
+#define CARREC_DEV_LOG(...)
 #endif
 
 class CPath {
@@ -56,12 +56,12 @@ public:
     }
 
     void AddRef() {
-        CARREC_NOTSA_LOG_DEBUG("Ref added for path {} (number= {}, size= {}, ptr= {})", GetIndex(), m_nNumber, m_nSize, LOG_PTR(m_pData));
+        CARREC_DEV_LOG("Ref added for path {} (number= {}, size= {}, ptr= {})", GetIndex(), m_nNumber, m_nSize, LOG_PTR(m_pData));
         m_nRefCount++;
     }
 
     void RemoveRef() {
-        CARREC_NOTSA_LOG_DEBUG("Ref removed for path {} (number= {}, size= {}, ptr= {})", GetIndex(), m_nNumber, m_nSize, LOG_PTR(m_pData));
+        CARREC_DEV_LOG("Ref removed for path {} (number= {}, size= {}, ptr= {})", GetIndex(), m_nNumber, m_nSize, LOG_PTR(m_pData));
         if (!--m_nRefCount) {
             Remove();
         }
