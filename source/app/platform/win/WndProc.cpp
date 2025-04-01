@@ -17,6 +17,7 @@
 #include "VideoMode.h"
 #include "VideoPlayer.h"
 #include "WinInput.h"
+#include "WinPlatform.h"
 #include "Gamma.h"
 
 // Dear ImGui said I have to copy this here

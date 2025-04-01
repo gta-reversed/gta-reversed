@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include "VideoMode.h"
-#include "platform.h"
+#include "WinPlatform.h"
 #include "PostEffects.h"
 
 // todo: "2014/12/07 [nick7]: is it related to streaming memory (45M default?)?"
