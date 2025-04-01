@@ -75,7 +75,7 @@ void CTrain::InjectHooks() {
     RH_ScopedGlobalInstall(ProcessTrainAnnouncements, 0x6F5910);
     RH_ScopedGlobalInstall(PlayAnnouncement, 0x6F5920);
     RH_ScopedGlobalInstall(MarkSurroundingEntitiesForCollisionWithTrain, 0x6F6640);
-    RH_ScopedGlobalInstall(TrainHitStuff, 0x6F5CF0, { .reversed = false });
+    RH_ScopedGlobalInstall(TrainHitStuff<CPtrListSingleLink<CPhysical*>>, 0x6F5CF0, { .reversed = false });
 }
 
 // 0x6F6030
@@ -332,18 +332,19 @@ void MarkSurroundingEntitiesForCollisionWithTrain(CVector pos, float radius, CEn
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            TrainHitStuff(repeatSector->GetList(REPEATSECTOR_VEHICLES), entity);
+            TrainHitStuff(repeatSector->Vehicles, entity);
             if (!bOnlyVehicles) {
-                TrainHitStuff(repeatSector->GetList(REPEATSECTOR_PEDS), entity);
-                TrainHitStuff(repeatSector->GetList(REPEATSECTOR_OBJECTS), entity);
+                TrainHitStuff(repeatSector->Peds, entity);
+                TrainHitStuff(repeatSector->Objects, entity);
             }
         }
     }
 }
 
 // 0x6F5CF0
-void TrainHitStuff(CPtrList& ptrList, CEntity* entity) {
-    ((void(__cdecl*)(CPtrList&, CEntity*))0x6F5CF0)(ptrList, entity);
+template<typename PtrListType>
+void TrainHitStuff(PtrListType& ptrList, CEntity* entity) {
+    ((void(__cdecl*)(PtrListType&, CEntity*))0x6F5CF0)(ptrList, entity);
 }
 
 // 0x6F6850

@@ -2403,11 +2403,7 @@ bool CCollision::CheckCameraCollisionPeds(
     bool addedAny = false;
 
     const auto& sector = GetRepeatSector(sectorX, sectorY);
-    for (CPtrNodeDoubleLink* it = sector->GetList(REPEATSECTOR_PEDS).GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-        
-        const auto ped = it->GetItem<CPed>();
-
+    for (auto* const ped : sector->Peds) {
         if (ped->IsScanCodeCurrent()) {
             continue;
         }
@@ -2902,10 +2898,7 @@ bool CCollision::CheckCameraCollisionBuildings(
     const auto checkFlyerCollision = plyrVeh && plyrVeh->physicalFlags.bDontCollideWithFlyers;
 
     bool anyCollided = false;
-    for (CPtrNodeDoubleLink* it = GetSector(X, Y)->m_buildings.GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-
-        const auto entity = it->GetItem<CBuilding>();
+    for (auto* const entity : GetSector(X, Y)->m_buildings) {
         if (!entity->ProcessScan()) {
             continue;
         }
@@ -2939,11 +2932,7 @@ bool CCollision::CheckCameraCollisionVehicles(
     static auto& gpLastSittingOnEntity   = StaticRef<CEntity*, 0x9689D8>();
 
     bool anyCollided = false;
-    for (CPtrNodeDoubleLink* it = GetRepeatSector(X, Y)->GetList(REPEATSECTOR_VEHICLES).GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-
-        const auto entity = it->GetItem<CVehicle>();
-
+    for (auto* const entity : GetRepeatSector(X, Y)->Vehicles) {
         if (!entity->ProcessScan()) {
             continue;
         }
@@ -2994,10 +2983,7 @@ bool CCollision::CheckCameraCollisionObjects(
     // Pirulax: At this point I'm certain R* devs were paid by lines written
 
     bool anyCollided = false;
-    for (CPtrNodeDoubleLink* it = GetRepeatSector(X, Y)->GetList(REPEATSECTOR_OBJECTS).GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-
-        const auto entity = it->GetItem<CObject>();
+    for (auto* const entity : GetRepeatSector(X, Y)->Objects) {
         if (!entity->ProcessScan()) {
             continue;
         }

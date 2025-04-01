@@ -5,8 +5,9 @@
 #include "Enums/eWeaponType.h"
 #include "Enums/eEventType.h"
 #include "Event.h"
+#include "EventEditableResponse.h"
 
-enum ePedPieceTypes;
+class CEntity;
 class CPedDamageResponseCalculator;
 
 class NOTSA_EXPORT_VTABLE CEventDamage : public CEventEditableResponse {

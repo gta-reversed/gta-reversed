@@ -289,3 +289,4 @@ bool CPools::SavePedPool() {
 bool CPools::SaveVehiclePool() {
     return plugin::CallAndReturn<bool, 0x5D4800>();
 }
+

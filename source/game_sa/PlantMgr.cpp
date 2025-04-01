@@ -533,9 +533,7 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
 
     CWorld::IncrementCurrentScanCode();
     CWorld::IterateSectorsOverlappedByRect({ cameraPos, PROC_OBJECTS_MAX_DISTANCE }, [cameraPos](int32 x, int32 y) {
-        for (auto i = GetSector(x, y)->m_buildings.GetNode(); i; i = i->m_next) {
-            const auto item = static_cast<CEntity*>(i->m_item);
-
+        for (auto* const item : GetSector(x, y)->m_buildings) {
             if (item->m_bIsProcObject || item->IsScanCodeCurrent() || !item->IsInCurrentAreaOrBarberShopInterior())
                 continue;
 
