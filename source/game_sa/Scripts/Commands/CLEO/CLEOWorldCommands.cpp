@@ -1,6 +1,6 @@
 #include <StdInc.h>
 
-#include "./Commands.hpp"
+#include "CLEOCommands.hpp"
 #include <CommandParser/Parser.hpp>
 
 #include "Radar.h"
