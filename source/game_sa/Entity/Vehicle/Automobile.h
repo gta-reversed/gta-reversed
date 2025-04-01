@@ -97,8 +97,8 @@ public:
 
     float m_fBurnTimer;
 
-    std::array<CPhysical*, 4> m_apWheelCollisionEntity;
-    std::array<CVector, 4>    m_vWheelCollisionPos; // Bike::m_avTouchPointsLocalSpace
+    std::array<CPhysical*, 4> m_apWheelCollisionEntity{};
+    std::array<CVector, 4>    m_vWheelCollisionPos{}; // Bike::m_avTouchPointsLocalSpace
 
     CPed* m_pExplosionVictim;
     std::array<char, 24> field_928;
@@ -286,7 +286,7 @@ public:
     void SetBumperDamage(ePanels panel, bool withoutVisualEffect);
     void SetPanelDamage(ePanels panel, bool createWindowGlass);
     void SetDoorDamage(eDoors door, bool withoutVisualEffect);
-    bool RcbanditCheck1CarWheels(CPtrList& ptrList);
+    bool RcbanditCheck1CarWheels(CPtrListDoubleLink<CVehicle*>& ptrList);
     bool RcbanditCheckHitWheels();
     void FireTruckControl(CFire* fire);
     bool HasCarStoppedBecauseOfLight();

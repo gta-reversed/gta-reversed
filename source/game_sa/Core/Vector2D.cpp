@@ -48,3 +48,7 @@ CVector2D CVector2D::RotatedBy(float rad) const {
         x * s - y * c,
     };
 }
+
+bool CVector2D::ApproxEqualTo(CVector2D o, float epsilon) {
+    return approxEqual(x, o.x, epsilon) && approxEqual(y, o.y, epsilon);
+}

@@ -144,6 +144,16 @@ public:
         return { r, g, b, newAlpha };
     }
 
+    //! Scale this color by a factor, but keep alpha
+    constexpr CRGBA LerpRGB(float t) {
+        return {
+            (uint8)((float)(r) * t),
+            (uint8)((float)(g) * t),
+            (uint8)((float)(b) * t),
+            a
+        };
+    }
+
     constexpr CRGBA Inverted() const {
         return {
             (uint8)(255u - r),
@@ -200,3 +210,13 @@ public:
         return *this;
     }
 };
+
+template<>
+inline CRGBA lerp<CRGBA>(const CRGBA& from, const CRGBA& to, float t) {
+    return {
+        lerp(from.r, to.r, t),
+        lerp(from.g, to.g, t),
+        lerp(from.b, to.b, t),
+        lerp(from.a, to.a, t),
+    };
+}

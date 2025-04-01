@@ -230,22 +230,24 @@ CTask* CTaskComplexKillPedOnFootArmed::CreateFirstSubTask(CPed* ped) {
         && (targetToOurPedDistSq >= sq(30.f) || targetToOurPedDistSq >= sq(6.f) && !m_target->GetActiveWeapon().IsTypeMelee()) 
     ) {
         ped->ReleaseCoverPoint();
-        ped->m_pCoverPoint = CCover::FindAndReserveCoverPoint(ped, targetPos, false);
-        if (ped->m_pCoverPoint) {
+        if (ped->m_pCoverPoint = CCover::FindAndReserveCoverPoint(ped, targetPos, false)) {
             CVector coverPos{};
-            VERIFY(CCover::FindCoordinatesCoverPoint(ped->m_pCoverPoint, ped, targetPos, coverPos));
-            if (CWorld::GetIsLineOfSightClear(coverPos, ourPos, true, true, false, false, false, false, false)) {
-                ped->GetIntelligence()->SetTaskDuckSecondary(6000);
-                if (const auto task = new CTaskSimpleGoToPoint{
-                    PEDMOVE_RUN,
-                    coverPos,
-                    0.5f,
-                    true
-                }) { // I can't believe my eyes.... error handling?
-                    return task;
+            if (!notsa::IsFixBugs() || CCover::FindCoordinatesCoverPoint(*ped->m_pCoverPoint, ped, targetPos, coverPos)) {
+                if (CWorld::GetIsLineOfSightClear(coverPos, ourPos, true, true, false, false, false, false, false)) {
+                    ped->GetIntelligence()->SetTaskDuckSecondary(6000);
+                    if (const auto task = new CTaskSimpleGoToPoint{
+                        PEDMOVE_RUN,
+                        coverPos,
+                        0.5f,
+                        true
+                    }) { // I can't believe my eyes.... error handling?
+                        return task;
+                    }
+                } else {
+                    ped->ReleaseCoverPoint();
                 }
             } else {
-                ped->ReleaseCoverPoint();
+                NOTSA_LOG_WARN("Can't find cover point's coordinates!"); // Originally the game has left `coverPos` uninitialized in this case
             }
         }
     }

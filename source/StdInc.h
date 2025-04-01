@@ -25,6 +25,7 @@
 #include <initializer_list>
 #include <format>
 #undef GetCurrentTime // gtfo windows.h
+#undef MoveMemory     // windows.h, conflicts with anim stuff `MoveMemory`
 
 #include <ranges>
 namespace rng = std::ranges;
@@ -91,12 +92,12 @@ namespace fs = std::filesystem;
 #include "MatrixLink.h"
 #include "MatrixLinkList.h"
 #include "Pool.h"
-#include "PtrList.h"
-#include "PtrListDoubleLink.h"
-#include "PtrListSingleLink.h"
 #include "PtrNode.h"
 #include "PtrNodeDoubleLink.h"
 #include "PtrNodeSingleLink.h"
+#include "PtrList.h"
+#include "PtrListDoubleLink.h"
+#include "PtrListSingleLink.h"
 #include "QuadTreeNode.h"
 #include "Quaternion.h"
 #include "Rect.h"
@@ -223,7 +224,6 @@ namespace fs = std::filesystem;
 #include "game_sa\WaterCreature_c.h"
 #include "game_sa\WaterCreatureManager_c.h"
 #include "game_sa\CdStreamInfo.h"
-#include "game_sa\Plugins\TwoDEffectPlugin\2dEffect.h"
 #include "game_sa\3dMarker.h"
 #include "game_sa\3dMarkers.h"
 #include "game_sa\Accident.h"
@@ -246,7 +246,6 @@ namespace fs = std::filesystem;
 #include "game_sa\ClothesBuilder.h"
 #include "game_sa\Coronas.h"
 #include "game_sa\Cover.h"
-#include "game_sa\CoverPoint.h"
 #include "game_sa\Cranes.h"
 #include "game_sa\CrimeBeingQd.h"
 #include "game_sa\CutsceneMgr.h"
@@ -441,6 +440,7 @@ namespace fs = std::filesystem;
 #include "game_sa\Plugins\PipelinePlugin\PipelinePlugin.h"
 #include "game_sa\Plugins\CollisionPlugin\CollisionPlugin.h"
 #include "game_sa\Plugins\RpAnimBlendPlugin\RpAnimBlend.h"
+#include "game_sa\Plugins\TwoDEffectPlugin\2dEffect.h"
 
 #include "game_sa\Scripts\RunningScript.h"
 #include "game_sa\Scripts\TheScripts.h"

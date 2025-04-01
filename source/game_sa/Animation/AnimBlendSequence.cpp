@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include "AnimBlendSequence.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 void CAnimBlendSequence::InjectHooks() {
     RH_ScopedClass(CAnimBlendSequence);
@@ -122,7 +123,7 @@ void CAnimBlendSequence::RemoveQuaternionFlips() const {
 
 // 0x4D0C50
 void CAnimBlendSequence::SetName(const char* name) {
-    if (notsa::IsFixBugs()) {
+    if (notsa::bugfixes::AnimBlendSequence_SetName_SetBoneTagFlag) {
         m_IsUsingBoneTag = false;
     }
     m_NameHashKey = CKeyGen::GetUppercaseKey(name);

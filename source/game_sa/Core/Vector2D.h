@@ -116,6 +116,8 @@ public:
     //! Heading of the vector
     //! Tip: atan2(x, -y) is off by 180deg clockwise
     float Heading() const {
+        // -x, y is basically GetPerpRight()
+        // that's the same as std::atan(y, x) - 90deg;
         return std::atan2(-x, y);
     }
 
@@ -194,6 +196,8 @@ public:
     float& operator[](size_t i) {
         return (&x)[i];
     }
+
+    bool ApproxEqualTo(CVector2D o, float epsilon);
 
     /*!
      * @brief Prefer this over (a - b).Magnitude()

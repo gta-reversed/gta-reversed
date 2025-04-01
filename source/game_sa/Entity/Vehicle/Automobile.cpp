@@ -566,11 +566,6 @@ void CAutomobile::ProcessControl()
     }
 
     for (auto& collisionEntity : m_apWheelCollisionEntity) {
-        // FIXME(yukani): I need this to test anything outside, do not remove
-        // until game doesn't crash on me here.
-        if (collisionEntity == (CPhysical*)0xffffffff) {
-            collisionEntity = nullptr;
-        }
         if (collisionEntity) {
             vehicleFlags.bRestingOnPhysical = true;
             if (!CWorld::bForceProcessControl && collisionEntity->m_bIsInSafePosition) {
@@ -1245,13 +1240,10 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         if (m_nModelIndex != MODEL_TAXI && m_nModelIndex != MODEL_CABBIE) {
             CVector target = GetPosition();
             target += GetRight() * 3.0f + GetForward() * 10.0f;
-            CColPoint outColPoint{};
-            CEntity* outEntity = nullptr;
-            if (!CWorld::ProcessLineOfSight(GetPosition(), target, outColPoint, outEntity, true, true, true,
-                false, false, false, false, false)
-                || outEntity == this)
-            {
-                CCarAI::GetCarToParkAtCoors(this, &target);
+            CColPoint cp{};
+            CEntity* hit;
+            if (!CWorld::ProcessLineOfSight(GetPosition(), target, cp, hit, true, true, true, false, false, false, false, false) || hit == this) {
+                CCarAI::GetCarToParkAtCoors(this, target);
             }
         }
     }
@@ -2917,8 +2909,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
             && lastImpactVel_Dot_Fwd < -0.4f // Impact was from behind - (-66, 66) deg
             && m_fDamageIntensity / m_fMass > 0.1f
         ) {
-            m_autoPilot.m_nTempAction = 19;
-            m_autoPilot.m_nTempActionTime = CTimer::GetTimeInMS() + 4000;
+            m_autoPilot.SetTempAction(TEMPACT_HEADON_COLLISION, 4'000);
         }
 
         if (m_pDamageEntity) {
@@ -3922,8 +3913,8 @@ float CAutomobile::GetMovingCollisionOffset() {
 // 0x6A2390
 void CAutomobile::TellHeliToGoToCoors(float x, float y, float z, float altitudeMin, float altitudeMax) {
     m_autoPilot.m_vecDestinationCoors = CVector{ x, y, z };
-    m_autoPilot.m_nCarMission = MISSION_HELI_FLYTOCOORS;
-    m_autoPilot.m_nCruiseSpeed = 100;
+    m_autoPilot.SetCarMission(MISSION_HELI_FLYTOCOORS);
+    m_autoPilot.SetCruiseSpeed(100);
 
     AsHeli()->m_MinHeightAboveTerrain = altitudeMin;
     AsHeli()->m_LowestFlightHeight    = altitudeMax;
@@ -3956,8 +3947,8 @@ void CAutomobile::ClearHeliOrientation() {
 // 0x6A2470
 void CAutomobile::TellPlaneToGoToCoors(float x, float y, float z, float altitudeMin, float altitudeMax) {
     m_autoPilot.m_vecDestinationCoors = CVector{ x, y, z };
-    m_autoPilot.m_nCarMission = MISSION_PLANE_FLYTOCOORS;
-    m_autoPilot.m_nCruiseSpeed = 0;
+    m_autoPilot.SetCarMission(MISSION_PLANE_FLYTOCOORS);
+    m_autoPilot.SetCruiseSpeed(0);
 
     AsPlane()->m_MinHeightAboveTerrain = std::max(altitudeMin, z);
     AsPlane()->m_LowestFlightHeight = altitudeMax;
@@ -5051,9 +5042,9 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
         return nullptr; // No atomic means there's nothing to render :D
     }
 
-    GetObjectPool()->m_bIsLocked = true;
+    GetObjectPool()->SetDealWithNoMemory(true);
     auto obj = new CObject;
-    GetObjectPool()->m_bIsLocked = false;
+    GetObjectPool()->SetDealWithNoMemory(false);
 
     if (!obj) {
         return nullptr;
@@ -5340,11 +5331,9 @@ inline void CAutomobile::ProcessPedInVehicleBuoyancy(CPed* ped, bool bIsDriver) 
             ped->GetEventGroup().Add(&damageEvent, false);
         }
     } else {
-        auto vecCollisionImpact = m_vecMoveSpeed * -1.0F; // TODO: -m_vecMoveSpeed.Normalized()
-        vecCollisionImpact.Normalise();
         auto fDamageIntensity = m_vecMoveSpeed.Magnitude() * m_fMass; // TODO: It's "force"
 
-        auto knockOffBikeEvent = CEventKnockOffBike(this, &m_vecMoveSpeed, &vecCollisionImpact, fDamageIntensity,
+        auto knockOffBikeEvent = CEventKnockOffBike(this, m_vecMoveSpeed, (-m_vecMoveSpeed).Normalized(), fDamageIntensity,
             0.0F, KNOCK_OFF_TYPE_FALL, 0, 0, nullptr, false, false);
 
         ped->GetEventGroup().Add(&knockOffBikeEvent, false);
@@ -6252,15 +6241,12 @@ void CAutomobile::SetDoorDamage(eDoors doorIdx, bool withoutVisualEffect)
 }
 
 // 0x6B3F70
-bool CAutomobile::RcbanditCheck1CarWheels(CPtrList& ptrList)
+bool CAutomobile::RcbanditCheck1CarWheels(CPtrListDoubleLink<CVehicle*>& ptrList)
 {
     CColModel* colModel = GetVehicleModelInfo()->GetColModel();
 
-    CPtrNode* next = nullptr;
-    for (CPtrNode* node = ptrList.m_node; node; node = next) {
-        next = node->m_next;
-        auto* vehicle = (CAutomobile*)node->m_item;
-        if (node->m_item == this || !vehicle->IsAutomobile())
+    for (auto* const vehicle : ptrList) {
+        if (vehicle == this || !vehicle->IsAutomobile())
             continue;
 
         if (!ModelIndices::IsRCBandit(vehicle->m_nModelIndex) && vehicle->m_nScanCode != GetCurrentScanCode())
@@ -6305,7 +6291,7 @@ bool CAutomobile::RcbanditCheckHitWheels() {
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            if (RcbanditCheck1CarWheels(repeatSector->GetList(REPEATSECTOR_VEHICLES)))
+            if (RcbanditCheck1CarWheels(repeatSector->Vehicles))
                 break;
         }
     }

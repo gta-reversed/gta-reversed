@@ -14,13 +14,13 @@ void CEventPedCollisionWithPed::InjectHooks()
 }
 
 // 0x4AC990
-CEventPedCollisionWithPed::CEventPedCollisionWithPed(int16 pieceType, float damageIntensity, CPed* victim, CVector* collisionImpactVelocity, CVector* collisionPos, eMoveState moveState, eMoveState victimMoveState)
+CEventPedCollisionWithPed::CEventPedCollisionWithPed(int16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState)
 {
     m_pieceType               = pieceType;
     m_damageIntensity         = damageIntensity;
     m_victim                  = victim;
-    m_collisionImpactVelocity = *collisionImpactVelocity;
-    m_collisionPos            = *collisionPos;
+    m_collisionImpactVelocity = collisionImpactVelocity;
+    m_collisionPos            = collisionPos;
     m_movestate               = moveState;
     m_victimMoveState         = victimMoveState;
     CEntity::SafeRegisterRef(m_victim);
@@ -32,7 +32,7 @@ CEventPedCollisionWithPed::~CEventPedCollisionWithPed()
 }
 
 // 0x4AC990
-CEventPedCollisionWithPed* CEventPedCollisionWithPed::Constructor(int16 pieceType, float damageIntensity, CPed* victim, CVector* collisionImpactVelocity, CVector* collisionPos, eMoveState moveState, eMoveState victimMoveState)
+CEventPedCollisionWithPed* CEventPedCollisionWithPed::Constructor(int16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState)
 {
     this->CEventPedCollisionWithPed::CEventPedCollisionWithPed(pieceType, damageIntensity, victim, collisionImpactVelocity, collisionPos, moveState, victimMoveState);
     return this;
@@ -79,7 +79,7 @@ bool CEventPedCollisionWithPed::AffectsPed(CPed* ped) {
     }
                 
     if (const auto task = ped->GetTaskManager().GetActiveTaskAs<CTaskComplexAvoidOtherPedWhileWandering>()) {
-        if (task->m_OtherPed == m_victim) {
+        if (task->GetPedToAvoid() == m_victim) {
             return false;
         }
     }

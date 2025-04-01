@@ -287,8 +287,8 @@ void CCarGenerator::DoInternalProcessing()
                 {
                     vehicle->SetVehicleCreatedBy(RANDOM_VEHICLE);
                     vehicle->m_autoPilot.m_currentAddress = pathLink;
-                    vehicle->m_autoPilot.m_nCruiseSpeed = 7;
-                    vehicle->m_autoPilot.m_nCarMission = eCarMission::MISSION_CRUISE;
+                    vehicle->m_autoPilot.SetCruiseSpeed(7);
+                    vehicle->m_autoPilot.SetCarMission(eCarMission::MISSION_CRUISE);
                     vehicle->m_autoPilot.m_startingRouteNode = baseLink;
                     vehicle->m_nStatus = eEntityStatus::STATUS_PHYSICS;
                     vehicle->vehicleFlags.bNeverUseSmallerRemovalRange = true;
