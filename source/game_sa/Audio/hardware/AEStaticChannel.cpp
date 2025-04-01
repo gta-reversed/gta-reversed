@@ -23,7 +23,7 @@ CAEStaticChannel::CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId,
     CAEAudioChannel(pDirectSound, channelId, samplesPerSec, bitsPerSample),
     m_bNeedData(false),
     m_bNeedsSynch(false),
-    m_bHardwareMixAvailable(hardwareMixAvailable)
+    m_IsHardwareMixAvailable(hardwareMixAvailable)
 {
 }
 

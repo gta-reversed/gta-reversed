@@ -70,6 +70,11 @@ void CAEAudioHardware::InjectHooks() {
     RH_ScopedInstall(Initialise, 0x4D9930);
 }
 
+// 0x4D83E0
+CAEAudioHardware::CAEAudioHardware() {
+    rng::fill(m_afChannelVolumes, -1000.0f);
+}
+
 // 0x4D9930
 bool CAEAudioHardware::Initialise() {
     m_pMP3BankLoader  = new CAEMP3BankLoader;
@@ -111,16 +116,16 @@ bool CAEAudioHardware::Initialise() {
     if (numFree3dBuffers < 24) {
         m_nNumChannels = 48;
         AESmoothFadeThread.m_nNumAvailableBuffers = 48;
-        m_bHardwareMixAvailable = false;
+        m_IsHardwareMixAvailable = false;
     } else {
         m_nNumChannels = (uint16)std::min(numFree3dBuffers, 64u) - 7;
-        m_bHardwareMixAvailable = true;
+        m_IsHardwareMixAvailable = true;
         AESmoothFadeThread.m_nNumAvailableBuffers = 7;
     }
 
     m_aChannels[0] = m_pStreamingChannel;
     for (auto i = 1u; i < m_nNumChannels; i++) {
-        m_aChannels[i] = new CAEStaticChannel(m_pDSDevice, i, m_bHardwareMixAvailable, 44'100, 16);
+        m_aChannels[i] = new CAEStaticChannel(m_pDSDevice, i, m_IsHardwareMixAvailable, 44'100, 16);
     }
 
     m_pStreamingChannel->SetVolume(-100.0f);
