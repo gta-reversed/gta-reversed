@@ -7,7 +7,7 @@
 * 4 space indentation, LF line endings
 * No hungarian notation [It's useless]
 * In classes, use `m_` prefix to nonstatic member variables and `ms_` for static members. Do not use a prefix in structs.
-* Use `s_` for global variables that only used in one source file, otherwise use `g_`.
+* Use `s_` for global variables that are only used in one source file, otherwise use `g_`.
 * If some rule about something is not specified here, refer to how it's done in the code
 * Some classes may have *helper* functions to make code more readable. (Denoted by *NOTSA*) - Try adding new ones, or looking for and using them.
 * If you made *helper* functions in a source file, mark them as `static`.

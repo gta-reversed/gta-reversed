@@ -235,7 +235,7 @@ bool CColStore::HasCollisionLoaded(const CVector& pos, int32 areaCode)
     if (foundInd == -1)
         return true;
 
-    for (auto i = static_cast<size_t>(foundInd); i < ms_pColPool->GetSize(); i++) {
+    for (auto i = (size_t)foundInd; i < ms_pColPool->GetSize(); i++) {
         auto* innerDef = ms_pColPool->GetAt(i);
         if (!innerDef)
             continue;
