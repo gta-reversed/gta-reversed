@@ -532,13 +532,13 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
 
                 // Try to parse as action ID first
                 if (std::isdigit(actionName[0])) {
-                    int id = std::stoi(actionName);
+                    int32 id = std::stoi(actionName);
                     if (id >= 0 && id < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS) {
                         actionId = (eControllerAction)id;
                     }
                 } else {
                     // Try to find by name
-                    for (int i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
+                    for (int32 i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
                         char textName[256] = {0};
                         GxtCharToUTF8(textName, m_ControllerActionName[i]);
                         if (actionName == textName) {
@@ -571,9 +571,9 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
     }
 
     // NOTSA: Check if there's at least one valid assignment for each action
-    for (int i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
+    for (int32 i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
         bool hasAssignment = false;
-        for (int j = 0; j < CONTROLLER_NUM; j++) {
+        for (int32 j = 0; j < CONTROLLER_NUM; j++) {
             if (!GetIsKeyBlank(m_Actions[i].Keys[j].m_uiActionInitiator, (eControllerType)j)) {
                 hasAssignment = true;
                 break;
@@ -600,12 +600,12 @@ int32 CControllerConfigManager::SaveSettings(FILESTREAM file) {
     // Write sections for each controller type
     const std::array<std::string, eControllerType::CONTROLLER_NUM> sections = {"Keyboard", "OptionalKey", "Mouse", "Joystick"};
 
-    for (int i = 0; i < CONTROLLER_NUM; i++) {
+    for (int32 i = 0; i < CONTROLLER_NUM; i++) {
         // Write section header
         std::string sectionHeader = std::format("[{}]\n", sections[i]);
         CFileMgr::Write(file, sectionHeader.c_str(), (int32)sectionHeader.length());
 
-        for (int j = 0; j < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; j++) {
+        for (int32 j = 0; j < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; j++) {
             // Skip empty bindings
             if (GetIsKeyBlank(m_Actions[j].Keys[i].m_uiActionInitiator, (eControllerType)i)) {
                 continue;
@@ -653,8 +653,8 @@ bool CControllerConfigManager::LoadSettings(FILE* file) {
     }
     
     // Verify file format by checking action IDs
-    for (int controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
-        for (int i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
+    for (int32 controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
+        for (int32 i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
             CFileMgr::Read(file, &actionId, 4);
             if (actionId != i) {
                 return false;
@@ -670,8 +670,8 @@ bool CControllerConfigManager::LoadSettings(FILE* file) {
     MakeControllerActionsBlank();
     
     // Read key mappings for all controller types
-    for (int controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
-        for (int i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
+    for (int32 controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
+        for (int32 i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
             // Skip action ID
             CFileMgr::Seek(file, 4, 1);
             
@@ -681,9 +681,9 @@ bool CControllerConfigManager::LoadSettings(FILE* file) {
     }
 
     // NOTSA: Check if there's at least one valid assignment for each action
-    for (int i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
+    for (int32 i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
         bool hasAssignment = false;
-        for (int j = 0; j < CONTROLLER_NUM; j++) {
+        for (int32 j = 0; j < CONTROLLER_NUM; j++) {
             if (!GetIsKeyBlank(m_Actions[i].Keys[j].m_uiActionInitiator, (eControllerType)j)) {
                 hasAssignment = true;
                 break;
