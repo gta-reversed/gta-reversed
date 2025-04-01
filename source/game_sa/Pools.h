@@ -42,8 +42,6 @@ class CDummy;
 class CColModel;
 class CTask;
 class CPedIntelligence;
-class CPtrNodeSingleLink;
-class CPtrNodeDoubleLink;
 class CEntryInfoNode;
 class CPointRoute;
 class CPatrolRoute;
@@ -150,7 +148,7 @@ public:
     }
 };
 
-class CPtrNodeSingleLinkPool : public CPool<CPtrNodeSingleLink> {
+class CPtrNodeSingleLinkPool : public CPool<CPtrNodeSingleLink<void*>> {
 public:
     static void InjectHooks() {
         RH_ScopedClass(CPtrNodeSingleLinkPool);
@@ -160,7 +158,7 @@ public:
     }
 };
 
-class CPtrNodeDoubleLinkPool : public CPool<CPtrNodeDoubleLink> {
+class CPtrNodeDoubleLinkPool : public CPool<CPtrNodeDoubleLink<void*>> {
 public:
     static void InjectHooks() {
         RH_ScopedClass(CPtrNodeDoubleLinkPool);

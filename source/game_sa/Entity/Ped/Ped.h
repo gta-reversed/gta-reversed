@@ -509,7 +509,8 @@ public:
     void RemoveWeaponAnims(int32 likeUnused, float blendDelta);
     bool IsPedHeadAbovePos(float zPos);
     void KillPedWithCar(CVehicle* car, float fDamageIntensity, bool bPlayDeadAnimation);
-    void MakeTyresMuddySectorList(CPtrList& ptrList);
+    template<typename PtrListType>
+    void MakeTyresMuddySectorList(PtrListType& ptrList);
     void DeadPedMakesTyresBloody();
     bool IsInVehicleThatHasADriver();
     void SetStayInSamePlace(bool enable) { bStayInSamePlace = enable; }

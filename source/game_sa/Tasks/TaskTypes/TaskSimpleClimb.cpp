@@ -31,7 +31,7 @@ void CTaskSimpleClimb::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleClimb, 0x87059C, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(ScanToGrabSectorList, 0x67DE10);
+    RH_ScopedInstall(ScanToGrabSectorList<CPtrListSingleLink<CPhysical*>>, 0x67DE10);
     RH_ScopedInstall(ScanToGrab, 0x67FD30);
     RH_ScopedInstall(CreateColModel, 0x67A890);
     RH_ScopedInstall(TestForStandUp, 0x680570);
@@ -282,7 +282,8 @@ CEntity* CTaskSimpleClimb::TestForClimb(CPed* ped, CVector& outClimbPos, float& 
 }
 
 // 0x67DE10
-CEntity* CTaskSimpleClimb::ScanToGrabSectorList(CPtrList* sectorList, CPed* ped, CVector& outTargetPos, float& outAngle, eSurfaceType& outSurfaceType, bool isLaunch, bool hasToTestStandup, bool hasToTestDropOtherSide) {
+template<typename PtrListType>
+CEntity* CTaskSimpleClimb::ScanToGrabSectorList(PtrListType* sectorList, CPed* ped, CVector& outTargetPos, float& outAngle, eSurfaceType& outSurfaceType, bool isLaunch, bool hasToTestStandup, bool hasToTestDropOtherSide) {
     const auto cm = hasToTestDropOtherSide
         ? &ms_VaultColModel
         : hasToTestStandup
@@ -290,8 +291,7 @@ CEntity* CTaskSimpleClimb::ScanToGrabSectorList(CPtrList* sectorList, CPed* ped,
             : &ms_ClimbColModel;
     CEntity* collidedEntity = nullptr;
 
-    for (auto node = sectorList->GetNode(); node; node = node->m_next) {
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
+    for (auto* const entity : *sectorList) {
 
         if (entity->IsScanCodeCurrent()) {
             continue;
@@ -447,13 +447,13 @@ CEntity* CTaskSimpleClimb::ScanToGrab(CPed* ped, CVector& outClimbPos, float& ou
 
     for (int32 y = startSectorY; y <= endSectorY; y++) {
         for (int32 x = startSectorX; x <= endSectorX; x++) {
-            const auto ScanToGrabSector = [&](CPtrList& ptrList) -> CEntity* {
+            const auto ScanToGrabSector = [&]<typename PtrListType>(PtrListType& ptrList) -> CEntity* {
                 return static_cast<CEntity*>(ScanToGrabSectorList(&ptrList, ped, outClimbPos, outClimbAngle, pSurfaceType, flag1, bStandUp, bVault));
             };
             auto scanResult1 = ScanToGrabSector(GetSector(x, y)->m_buildings);
-            auto scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->GetList(REPEATSECTOR_OBJECTS));
+            auto scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->Objects);
             if (!scanResult2) {
-                scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->GetList(REPEATSECTOR_VEHICLES));
+                scanResult2 = ScanToGrabSector(GetRepeatSector(x, y)->Vehicles);
             }
 
             if (scanResult1 == (CEntity*)(1) || scanResult2 == (CEntity*)(1)) {
