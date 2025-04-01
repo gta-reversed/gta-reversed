@@ -21,7 +21,7 @@ MultiRet<float, float> GetPCMouseMovement() {
 }
 
 bool IsPCUsingJoyPad() {
-    return FrontEndMenuManager.m_bController;
+    return FrontEndMenuManager.m_ControlMethod;
 }
 
 bool IsMouseUsingVerticalInversion() {

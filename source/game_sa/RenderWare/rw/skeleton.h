@@ -164,6 +164,8 @@ struct RsMouseStatus
 };
 
 enum RsKeyCodes : int32 {
+    /* ASCII chars up to 0xFF are also valid */
+
     rsESC            = 1000,
 
     rsF1             = 1001,

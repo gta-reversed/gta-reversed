@@ -52,6 +52,7 @@ char* GxtCharToUTF8(char* out, const GxtChar* src, size_t size, size_t offset) {
     return out;
 }
 
+// 0x718630
 GxtChar* GxtCharStrcat(GxtChar* dst, const GxtChar* src) {
     GxtChar* target = dst;
     if (*dst) {

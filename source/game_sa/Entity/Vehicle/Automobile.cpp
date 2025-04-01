@@ -1990,23 +1990,23 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
         };
     
         if (!CCamera::m_bUseMouse3rdPerson || !m_bEnableMouseSteering) {
-            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), KEYBOARD };
+            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), eControllerType::KEYBOARD };
         }
 
-        if (CPad::NewMouseControllerState.m_AmountMoved.x == 0.f && (m_nLastControlInput != MOUSE || plyrpad->GetSteeringLeftRight() != 0)) { // Simplified `if` here
-            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), KEYBOARD };
+        if (CPad::NewMouseControllerState.m_AmountMoved.x == 0.f && (m_nLastControlInput != eControllerType::MOUSE || plyrpad->GetSteeringLeftRight() != 0)) { // Simplified `if` here
+            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), eControllerType::KEYBOARD };
         }
 
         if (CPad::NewMouseControllerState.m_AmountMoved.x != 0.f || m_fRawSteerAngle != 0.f) {
             if (!plyrpad->NewState.m_bVehicleMouseLook) {
-                return { m_fRawSteerAngle - CPad::NewMouseControllerState.m_AmountMoved.x * 0.0035f, MOUSE };
+                return { m_fRawSteerAngle - CPad::NewMouseControllerState.m_AmountMoved.x * 0.0035f, eControllerType::MOUSE };
             }
 
             if (plyrpad->NewState.m_bVehicleMouseLook || std::abs(m_fRawSteerAngle) <= 0.7f) { // Slowly steer back to 0
-                return { m_fRawSteerAngle * std::pow(0.975f, CTimer::GetTimeStep()), MOUSE };
+                return { m_fRawSteerAngle * std::pow(0.975f, CTimer::GetTimeStep()), eControllerType::MOUSE };
             }
 
-            return { m_fRawSteerAngle, MOUSE };
+            return { m_fRawSteerAngle, eControllerType::MOUSE };
         }
 
         return { m_fRawSteerAngle, m_nLastControlInput }; // No change

@@ -13,8 +13,7 @@ void CMouseControllerState::InjectHooks() {
 
 // 0x53F220
 CMouseControllerState::CMouseControllerState() {
-    m_AmountMoved.x = 0.0f;
-    m_AmountMoved.y = 0.0f;
+    m_AmountMoved.Set(0.0f, 0.0f);
     Clear();
 }
 

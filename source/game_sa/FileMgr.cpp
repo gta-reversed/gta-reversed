@@ -9,6 +9,7 @@
 #include <ShlObj.h>
 
 #include "FileMgr.h"
+#include <filesystem>
 
 #include "HookSystem.h"
 
@@ -23,85 +24,93 @@ constexpr size_t PATH_SIZE = 256;
 
 inline void createDirectory(const wchar_t* path)
 {
-    HANDLE folderHandle = CreateFileW(
-        path,
-        GENERIC_READ,
-        FILE_SHARE_READ,
-        nullptr,
-        OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS | FILE_ATTRIBUTE_NORMAL,
-        nullptr
-    );
-    if (folderHandle == INVALID_HANDLE_VALUE)
-        CreateDirectoryW(path, nullptr);
-    else
-        CloseHandle(folderHandle);
+    std::filesystem::path fsPath(path);
+    if (!std::filesystem::exists(fsPath)) {
+        std::filesystem::create_directories(fsPath);
+    }
 }
 
 // 0x744FB0
+// NOTSA: Modern cross-platform implementation using std::filesystem
 char* InitUserDirectories()
 {
     if (gta_user_dir_path[0] != '\0')
         return gta_user_dir_path;
 
-    // MikuAuahDark: Let's improve the function
-    // to use wide char
+    std::filesystem::path documentsPath;
+    std::filesystem::path userFilesPath;
+    std::filesystem::path galleryPath;
+    std::filesystem::path userTracksPath;
 
-    static std::array<wchar_t, MAX_PATH> gtaUserDirWide;
+    // Get documents folder in a platform-independent way
+    #if defined(_WIN32)
+        static std::array<wchar_t, MAX_PATH> documentsPathBuffer;
+        if (SHGetFolderPathW(nullptr, CSIDL_PERSONAL, nullptr, SHGFP_TYPE_CURRENT, documentsPathBuffer.data()) == S_OK) {
+            documentsPath = documentsPathBuffer.data();
+        } else {
+            documentsPath = "."; // Fallback to current directory
+        }
+    #else
+        // On Unix-like systems, use $HOME/Documents as the default
+        const char* homeDir = getenv("HOME");
+        if (homeDir) {
+            documentsPath = std::filesystem::path(homeDir) / "Documents";
+        } else {
+            documentsPath = ".";
+        }
+    #endif
 
-    if (SHGetFolderPathW(nullptr, CSIDL_PERSONAL, nullptr, SHGFP_TYPE_CURRENT, gtaUserDirWide.data()) != S_OK) {
-        strcpy_s(gta_user_dir_path, std::size("data"), "data"); // 2nd param is required or game won't be able to find files!
-        return gta_user_dir_path;
+    // Create base directory
+    userFilesPath = documentsPath / "GTA San Andreas User Files";
+    try {
+        std::filesystem::create_directories(userFilesPath);
+    } catch (const std::filesystem::filesystem_error&) {
+        userFilesPath = ".";
     }
 
-    constexpr const wchar_t* USERFILES = L"\\GTA San Andreas User Files";
-    constexpr const wchar_t* GALLERY = L".\\Gallery";
-    constexpr const wchar_t* USERTRACKS = L".\\User Tracks";
-    static std::array<wchar_t, MAX_PATH> userGalleryDirWide;
-    static std::array<wchar_t, MAX_PATH> userTracksDirWide;
+    // Create subdirectories
+    galleryPath = userFilesPath / "Gallery";
+    userTracksPath = userFilesPath / "User Tracks";
 
-    // Base GTASA User Files
-    if ((wcslen(gtaUserDirWide.data()) + wcslen(USERFILES)) >= MAX_PATH)
-        wcscpy_s(gtaUserDirWide.data(), gtaUserDirWide.size(), L".");
-    else
-        wcscat_s(gtaUserDirWide.data(), gtaUserDirWide.size(), USERFILES);
-    createDirectory(gtaUserDirWide.data());
+    try {
+        std::filesystem::create_directories(galleryPath);
+        std::filesystem::create_directories(userTracksPath);
+    } catch (const std::filesystem::filesystem_error&) {
+        // On error, fall back to local directories
+        if (!std::filesystem::exists(galleryPath)) galleryPath = "./Gallery";
+        if (!std::filesystem::exists(userTracksPath)) userTracksPath = "./User Tracks";
+    }
 
-    size_t userDirLen = wcslen(gtaUserDirWide.data());
-    wcscpy_s(userGalleryDirWide.data(), userGalleryDirWide.size(), gtaUserDirWide.data());
-    wcscpy_s(userTracksDirWide.data(), userTracksDirWide.size(), gtaUserDirWide.data());
+    // Convert paths to strings with proper handling
+    std::string userFilesStr;
+    std::string galleryStr;
+    std::string userTracksStr;
 
-    // Gallery
-    if ((userDirLen + wcslen(GALLERY + 1)) >= PATH_SIZE)
-        wcscpy_s(userGalleryDirWide.data(), userGalleryDirWide.size(), GALLERY);
-    else
-        wcscat_s(userGalleryDirWide.data(), userGalleryDirWide.size(), GALLERY + 1);
-    createDirectory(userGalleryDirWide.data());
+    #if defined(_WIN32) && (WindowsCharset != CP_UTF8)
+        userFilesStr = UnicodeToUTF8(userFilesPath.wstring().c_str());
+        galleryStr = UnicodeToUTF8(galleryPath.wstring().c_str());
+        userTracksStr = UnicodeToUTF8(userTracksPath.wstring().c_str());
+    #else
+        userFilesStr = userFilesPath.string();
+        galleryStr = galleryPath.string();
+        userTracksStr = userTracksPath.string();
+    #endif
 
-    // User Tracks
-    if ((userDirLen + wcslen(USERTRACKS + 1)) >= PATH_SIZE)
-        wcscpy_s(userTracksDirWide.data(), userTracksDirWide.size(), USERTRACKS);
-    else
-        wcscat_s(userTracksDirWide.data(), userTracksDirWide.size(), USERTRACKS + 1);
-    createDirectory(userTracksDirWide.data());
-
-    std::string temp = UnicodeToUTF8(gtaUserDirWide.data());
-    if (temp.length() >= PATH_SIZE)
+    // Copy to output buffers with size checks
+    if (userFilesStr.length() >= PATH_SIZE)
         strcpy_s(gta_user_dir_path, ".");
     else
-        strcpy_s(gta_user_dir_path, temp.c_str());
+        strcpy_s(gta_user_dir_path, userFilesStr.c_str());
 
-    temp = UnicodeToUTF8(userGalleryDirWide.data());
-    if (temp.length() >= PATH_SIZE)
-        strcpy_s(user_gallery_dir_path, ".\\Gallery");
+    if (galleryStr.length() >= PATH_SIZE)
+        strcpy_s(user_gallery_dir_path, "./Gallery");
     else
-        strcpy_s(user_gallery_dir_path, temp.c_str());
+        strcpy_s(user_gallery_dir_path, galleryStr.c_str());
 
-    temp = UnicodeToUTF8(userTracksDirWide.data());
-    if (temp.length() >= PATH_SIZE)
-        strcpy_s(user_tracks_dir_path, ".\\User Tracks");
+    if (userTracksStr.length() >= PATH_SIZE)
+        strcpy_s(user_tracks_dir_path, "./User Tracks");
     else
-        strcpy_s(user_tracks_dir_path, temp.c_str());
+        strcpy_s(user_tracks_dir_path, userTracksStr.c_str());
 
     return gta_user_dir_path;
 }

@@ -151,6 +151,7 @@ void diPadInit() {
         WIN_FCHECK(diPadSetRanges(dev, padNum));
         diPadSetPIDVID(dev, padNum);
         PadConfigs[padNum].present  = true;
+        ControlsManager.InitDefaultControlConfigJoyPad(36u);
     };
     InitializePad(PSGLOBAL(diDevice1), 0);
     InitializePad(PSGLOBAL(diDevice2), 1);
@@ -198,8 +199,7 @@ CMouseControllerState GetMouseState() {
 
     if (PSGLOBAL(diMouse)) {
         if (SUCCEEDED(PSGLOBAL(diMouse)->GetDeviceState(sizeof(DIMOUSESTATE2), &mouseState))) {
-            state.m_AmountMoved.x     = static_cast<float>(mouseState.lX);
-            state.m_AmountMoved.y     = static_cast<float>(mouseState.lY);
+            state.m_AmountMoved = CVector2D(static_cast<float>(mouseState.lX), static_cast<float>(mouseState.lY));
             state.m_bWheelMovedUp = (mouseState.lZ > 0);
             state.m_bWheelMovedDown = (mouseState.lZ < 0);
             state.m_bLeftButton = mouseState.rgbButtons[0] & 0x80;

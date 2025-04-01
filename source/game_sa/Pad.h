@@ -295,46 +295,25 @@ public:
     // PAD END
 
     // MOUSE
-    static bool GetLeftMouseJustDown() noexcept             { return !!(NewMouseControllerState.m_bLeftButton && !OldMouseControllerState.m_bLeftButton); } // 0x4D5A00  // Alias for GetLeftMouseJustDown
-    static bool GetRightMouseJustDown() noexcept            { return !!(NewMouseControllerState.m_bRightButton && !OldMouseControllerState.m_bRightButton); } // 0x572E70  // Alias for GetRightMouseJustDown
-    static bool GetMiddleMouseJustDown() noexcept           { return !!(NewMouseControllerState.m_bMiddleButton && !OldMouseControllerState.m_bMiddleButton); } // 0x57C3E0  // Alias for IsMouseMButtonPressed
-    static bool GetMouseWheelUpJustDown() noexcept          { return !!(NewMouseControllerState.m_bWheelMovedUp && !OldMouseControllerState.m_bWheelMovedUp); } // 0x57C400  // Alias for IsMouseWheelUpPressed
-    static bool GetMouseWheelDownJustDown() noexcept        { return !!(NewMouseControllerState.m_bWheelMovedDown && !OldMouseControllerState.m_bWheelMovedDown);} // 0x57C420  // Alias for IsMouseWheelDownPressed
-    static bool GetMouseX1JustDown() noexcept               { return !!(NewMouseControllerState.m_bMsFirstXButton && !OldMouseControllerState.m_bMsFirstXButton); } // 0x57C440  // Alias for IsMouseBmx1Pressed
-    static bool GetMouseX2JustDown() noexcept               { return !!(NewMouseControllerState.m_bMsSecondXButton && !OldMouseControllerState.m_bMsSecondXButton); } // 0x57C460  // Alias for IsMouseBmx2Pressed
-
-    static bool GetLeftMouseJustUp() noexcept               { return !!(!NewMouseControllerState.m_bLeftButton && OldMouseControllerState.m_bLeftButton); } // 0x57C3C0  // Alias for f0x57C3C0
-    static bool GetRightMouseJustUp() noexcept              { return !!(!NewMouseControllerState.m_bRightButton && OldMouseControllerState.m_bRightButton); } 
-    static bool GetMiddleMouseJustUp() noexcept             { return !!(!NewMouseControllerState.m_bMiddleButton && OldMouseControllerState.m_bMiddleButton); }
-    static bool GetMouseWheelUpJustUp() noexcept            { return !!(!NewMouseControllerState.m_bWheelMovedUp && OldMouseControllerState.m_bWheelMovedUp); }
-    static bool GetMouseWheelDownJustUp() noexcept          { return !!(!NewMouseControllerState.m_bWheelMovedDown && OldMouseControllerState.m_bWheelMovedDown); }
-    static bool GetMouseX1JustUp() noexcept                 { return !!(!NewMouseControllerState.m_bMsFirstXButton && OldMouseControllerState.m_bMsFirstXButton); }
-    static bool GetMouseX2JustUp() noexcept                 { return !!(!NewMouseControllerState.m_bMsSecondXButton && OldMouseControllerState.m_bMsSecondXButton); }
-
-    static bool GetLeftMouse() noexcept                     { return NewMouseControllerState.m_bLeftButton; } // 0x45AF70  // Alias for IsMouseLButton
-    static bool GetRightMouse() noexcept                    { return NewMouseControllerState.m_bRightButton; } // 0x45AF80  // Alias for IsMouseRButton
-    static bool GetMiddleMouse() noexcept                   { return NewMouseControllerState.m_bMiddleButton; }
-    static bool GetMouseWheelUp() noexcept                  { return NewMouseControllerState.m_bWheelMovedUp; }
-    static bool GetMouseWheelDown() noexcept                { return NewMouseControllerState.m_bWheelMovedDown; }
-    static bool GetMouseX1() noexcept                       { return NewMouseControllerState.m_bMsFirstXButton; }
-    static bool GetMouseX2() noexcept                       { return NewMouseControllerState.m_bMsSecondXButton; }
-
-    static bool GetLeftMouseUp() noexcept                   { return !OldMouseControllerState.m_bLeftButton; }
-    static bool GetRightMouseUp() noexcept                  { return !OldMouseControllerState.m_bRightButton; }
-    static bool GetMiddleMouseUp() noexcept                 { return !OldMouseControllerState.m_bMiddleButton; }
-    static bool GetMouseWheelUpUp() noexcept                { return !OldMouseControllerState.m_bWheelMovedUp; }
-    static bool GetMouseWheelDownUp() noexcept              { return !OldMouseControllerState.m_bWheelMovedDown; }
-    static bool GetMouseX1Up() noexcept                     { return !OldMouseControllerState.m_bMsFirstXButton; }
-    static bool GetMouseX2Up() noexcept                     { return !OldMouseControllerState.m_bMsSecondXButton; }
-
-    static float GetMouseX() noexcept                       { return NewMouseControllerState.m_AmountMoved.x; }
-    static float GetMouseY() noexcept                       { return NewMouseControllerState.m_AmountMoved.y; }
+    static bool f0x57C3C0() noexcept               { return !NewMouseControllerState.m_bLeftButton && OldMouseControllerState.m_bLeftButton; }          // 0x57C3C0
+    static bool IsMouseLButtonPressed() noexcept   { return MOUSE_IS_PRESSED(m_bLeftButton); }                                                // 0x4D5A00
+    static bool IsMouseRButtonPressed() noexcept   { return MOUSE_IS_PRESSED(m_bRightButton); }                                                // 0x572E70
+    static bool IsMouseMButtonPressed() noexcept   { return MOUSE_IS_PRESSED(m_bMiddleButton); }                                                // 0x57C3E0
+    static bool IsMouseWheelUpPressed() noexcept   { return MOUSE_IS_PRESSED(m_bWheelMovedUp); }                                            // 0x57C400
+    static bool IsMouseWheelDownPressed() noexcept { return MOUSE_IS_PRESSED(m_bWheelMovedDown); }                                          // 0x57C420
+    static bool IsMouseBmx1Pressed() noexcept      { return MOUSE_IS_PRESSED(m_bMsFirstXButton); }                                               // 0x57C440
+    static bool IsMouseBmx2Pressed() noexcept      { return MOUSE_IS_PRESSED(m_bMsSecondXButton); }                                               // 0x57C460
+    static bool IsMouseLButton() noexcept          { return MOUSE_IS_DOWN(m_bLeftButton); }                                                   // 0x45AF70
+    static bool IsMouseRButton() noexcept          { return MOUSE_IS_DOWN(m_bRightButton); }                                                   // 0x45AF80
+    static bool IsMouseMButton() noexcept          { return MOUSE_IS_DOWN(m_bMiddleButton); }                                                   // 
+    static bool IsMouseWheelUp() noexcept          { return MOUSE_IS_DOWN(m_bWheelMovedUp); }                                               // 0x572E60
+    static bool IsMouseWheelDown() noexcept        { return MOUSE_IS_DOWN(m_bWheelMovedDown); }                                             // 0x572E50
+    static bool IsMouseBmx1() noexcept             { return MOUSE_IS_DOWN(m_bMsFirstXButton); }                                                  // 
+    static bool IsMouseBmx2() noexcept             { return MOUSE_IS_DOWN(m_bMsSecondXButton); }                                                  // 
     // MOUSE END
-    
-    //int16 sub_540BD0(CPed* entity) noexcept;
-    //int16 sub_540CC0(CPed* ped) noexcept;
-    //bool sub_541170() const noexcept;
-    //bool sub_541150() const noexcept;
+
+    int16 LookAroundLeftRight(CPed* entity) noexcept;
+    int16 LookAroundUpDown(CPed* ped) noexcept;
 
     int32 sub_541320() { return AverageWeapon / AverageEntries; } // 0x541320
     int32 sub_541290();
