@@ -494,7 +494,7 @@
 
 #include "platform/win/VideoPlayer/VideoPlayer.h"
 #include "platform/win/VideoMode.h"
-#include "platform/win/Platform.h"
+#include "platform/win/WinPlatform.h"
 
 #include "app/app.h"
 #include <RealTimeShadowManager.h>

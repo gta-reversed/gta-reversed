@@ -1,6 +1,6 @@
 #include "StdInc.h"
 
-#include <platform/win/platform.h>
+#include <platform/win/WinPlatform.h>
 #include <platform/platform.h>
 #include <ddraw.h>
 #include <dsound.h>
