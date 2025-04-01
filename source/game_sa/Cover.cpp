@@ -262,7 +262,7 @@ bool CCover::DoesCoverPointStillProvideCover(CCoverPoint* cpt, CVector pos) {
     case CCoverPoint::eType::NONE:
         return false;
     case CCoverPoint::eType::POINTONMAP: {
-        if (FindVectorFromDir(cpt->GetDir().GetUnderlying()).Dot(pos - cpt->GetPointOnMap()) > 0.f) {
+        if (FindVectorFromDir(cpt->GetDir()).Dot(pos - cpt->GetPointOnMap()) > 0.f) {
             return true;
         }
         return false;
@@ -330,14 +330,13 @@ void CCover::FindCoverPointsForThisBuilding(CBuilding* building) {
 }
 
 // 0x698D40 - unused
-uint8 CCover::FindDirFromVector(CVector dir) {
-    return (uint8)(atan2(-dir.x, dir.y) * 255.f / TWO_PI);
+CCoverPoint::Dir CCover::FindDirFromVector(CVector dir) {
+    return atan2(-dir.x, dir.y);
 }
 
 // 0x698D60
-CVector CCover::FindVectorFromDir(uint8 direction) {
-    const auto angle = direction / (256.f / TWO_PI);
-    return CVector{ std::sin(angle), std::cos(angle), 0.f };
+CVector CCover::FindVectorFromDir(CCoverPoint::Dir direction) {
+    return CVector{ std::sin(direction), std::cos(direction), 0.f };
 }
 
 // unused

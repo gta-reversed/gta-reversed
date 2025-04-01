@@ -1,4 +1,3 @@
-cmake_policy(VERSION 3.5...4.0) # To fix Ogg/Vorbis dependencies having old CMakeLists
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 set(CMAKE_CXX_STANDARD 23)

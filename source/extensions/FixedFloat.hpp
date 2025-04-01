@@ -33,8 +33,6 @@ public:
         value = round ? static_cast<T>(v * CompressValue + 0.5f) : static_cast<T>(v * CompressValue);
     }
 
-    constexpr T GetUnderlying() const { return value; }
-
     // Implementations of (basic) arithmetic ops. Necessary to avoid unnecessary int <=> float conversions
     // (That would otherwise occur when doing arithmetic between 2 FixedFloat instances)
 #define IMPLEMENT_FIXED_OPERATOR(_op) \
