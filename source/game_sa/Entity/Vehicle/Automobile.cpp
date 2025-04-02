@@ -5331,11 +5331,9 @@ inline void CAutomobile::ProcessPedInVehicleBuoyancy(CPed* ped, bool bIsDriver) 
             ped->GetEventGroup().Add(&damageEvent, false);
         }
     } else {
-        auto vecCollisionImpact = m_vecMoveSpeed * -1.0F; // TODO: -m_vecMoveSpeed.Normalized()
-        vecCollisionImpact.Normalise();
         auto fDamageIntensity = m_vecMoveSpeed.Magnitude() * m_fMass; // TODO: It's "force"
 
-        auto knockOffBikeEvent = CEventKnockOffBike(this, &m_vecMoveSpeed, &vecCollisionImpact, fDamageIntensity,
+        auto knockOffBikeEvent = CEventKnockOffBike(this, m_vecMoveSpeed, (-m_vecMoveSpeed).Normalized(), fDamageIntensity,
             0.0F, KNOCK_OFF_TYPE_FALL, 0, 0, nullptr, false, false);
 
         ped->GetEventGroup().Add(&knockOffBikeEvent, false);
@@ -6276,15 +6274,12 @@ void CAutomobile::SetDoorDamage(eDoors doorIdx, bool withoutVisualEffect)
 }
 
 // 0x6B3F70
-bool CAutomobile::RcbanditCheck1CarWheels(CPtrList& ptrList)
+bool CAutomobile::RcbanditCheck1CarWheels(CPtrListDoubleLink<CVehicle*>& ptrList)
 {
     CColModel* colModel = GetVehicleModelInfo()->GetColModel();
 
-    CPtrNode* next = nullptr;
-    for (CPtrNode* node = ptrList.m_node; node; node = next) {
-        next = node->m_next;
-        auto* vehicle = (CAutomobile*)node->m_item;
-        if (node->m_item == this || !vehicle->IsAutomobile())
+    for (auto* const vehicle : ptrList) {
+        if (vehicle == this || !vehicle->IsAutomobile())
             continue;
 
         if (!ModelIndices::IsRCBandit(vehicle->m_nModelIndex) && vehicle->m_nScanCode != GetCurrentScanCode())
@@ -6329,7 +6324,7 @@ bool CAutomobile::RcbanditCheckHitWheels() {
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            if (RcbanditCheck1CarWheels(repeatSector->GetList(REPEATSECTOR_VEHICLES)))
+            if (RcbanditCheck1CarWheels(repeatSector->Vehicles))
                 break;
         }
     }

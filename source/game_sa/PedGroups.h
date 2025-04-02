@@ -6,6 +6,8 @@
 */
 #pragma once
 
+#include "Base.h"
+
 class CPed;
 class CPedGroup;
 

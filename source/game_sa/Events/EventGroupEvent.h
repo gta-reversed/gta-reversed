@@ -17,7 +17,7 @@ public:
     eEventType GetEventType() const override { return EVENT_GROUP_EVENT; }
     int32 GetEventPriority() const override { return 41; }
     int32 GetLifeTime() override { return 0; }
-    CEvent* Clone() override;
+    CEvent* Clone() const noexcept override { return new CEventGroupEvent(m_ped, m_event->Clone()); } // 0x4B6EE0
     bool AffectsPed(CPed* ped) override { return false; }
     bool AffectsPedGroup(CPedGroup* pedGroup) override { return pedGroup->GetMembership().IsMember(m_ped); }
     float GetLocalSoundLevel() override { return 100.0f; }

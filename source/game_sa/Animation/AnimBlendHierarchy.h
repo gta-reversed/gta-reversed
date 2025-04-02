@@ -7,6 +7,7 @@
 #pragma once
 
 #include "AnimBlendSequence.h"
+#undef MoveMemory
 
 /*!
  * @brief The animation object.
@@ -50,6 +51,7 @@ public:
     CAnimBlendSequence* FindSequence(const char* name) const;
     void* GetSequenceBlock() const;
     void CompressKeyframes() const;
+
     void MoveMemory();
     void Print();
 

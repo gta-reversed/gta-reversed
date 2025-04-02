@@ -21,6 +21,6 @@ public:
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override;
     CEntity* GetSourceEntity() const override { return m_SexyPed; }
-    CEventEditableResponse* CloneEditable() override { return new CEventSexyPed(m_SexyPed); }
+    CEventEditableResponse* CloneEditable() const noexcept override { return new CEventSexyPed(m_SexyPed); }
 };
 VALIDATE_SIZE(CEventSexyPed, 0x18);

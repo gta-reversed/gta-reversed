@@ -30,7 +30,7 @@ void CGlass::InjectHooks() {
     RH_ScopedInstall(GeneratePanesForWindow, 0x71B620);
     RH_ScopedInstall(Update, 0x71B0D0);
     RH_ScopedInstall(Render, 0x71CE20);
-    RH_ScopedInstall(FindWindowSectorList, 0x71AFC0);
+    RH_ScopedInstall(FindWindowSectorList<CPtrListSingleLink<CPhysical*>>, 0x71AFC0);
     RH_ScopedInstall(RenderReflectionPolys, 0x71AED0);
     RH_ScopedInstall(RenderShatteredPolys, 0x71AE30);
     RH_ScopedInstall(RenderHiLightPolys, 0x71ADA0);
@@ -70,7 +70,7 @@ bool CGlass::HasGlassBeenShatteredAtCoors(CVector point) {
     CEntity* entity{};
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            FindWindowSectorList(GetRepeatSector(sectorX, sectorY)->GetList(REPEATSECTOR_OBJECTS), maxDist, entity, point);
+            FindWindowSectorList(GetRepeatSector(sectorX, sectorY)->Objects, maxDist, entity, point);
             FindWindowSectorList(GetSector(sectorX, sectorY)->m_dummies, maxDist, entity, point);
         }
     }
@@ -402,14 +402,12 @@ void CGlass::Render() {
 
 // (..., CEntity**, float, float, float)
 // 0x71AFC0
-void CGlass::FindWindowSectorList(CPtrList& objList, float& outDist, CEntity*& outEntity, CVector point) {
+template<typename PtrListType>
+void CGlass::FindWindowSectorList(PtrListType& objList, float& outDist, CEntity*& outEntity, CVector point) {
     if (!objList.GetNode())
         return;
 
-    for (CPtrNode* it = objList.GetNode(); it;) {
-        const auto entity = static_cast<CEntity*>(it->m_item);
-        it = it->GetNext();
-
+    for (auto* const entity : objList) {
         if (entity->IsScanCodeCurrent())
             continue;
 
