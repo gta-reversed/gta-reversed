@@ -6,7 +6,7 @@ void CPedGroups::InjectHooks() {
     RH_ScopedClass(CPedGroups);
     RH_ScopedCategoryGlobal();
 
-
+    RH_ScopedInstall(RemoveGroup, 0x5FB870);
 }
 
 #ifdef ANDROID
