@@ -2,13 +2,13 @@
 #include "Formation.h"
 
 // 0x699F50
-void CFormation::ReturnTargetPedForPed(CPed* a1, CPed** a2) {
-    return plugin::Call<0x699F50, CPed*, CPed**>(a1, a2);
+void CFormation::ReturnTargetPedForPed(CPed* ped, CPed** pOutTargetPed) {
+    return plugin::Call<0x699F50, CPed*, CPed**>(ped, pOutTargetPed);
 }
 
 // 0x699FA0
-bool CFormation::ReturnDestinationForPed(CPed* ped, CVector& dest) {
-    return plugin::CallAndReturn<bool, 0x699FA0>(ped, &dest);
+bool CFormation::ReturnDestinationForPed(CPed* ped, CVector* out) {
+    return plugin::CallAndReturn<bool, 0x699FA0>(ped, out);
 }
 
 // 0x699FF0

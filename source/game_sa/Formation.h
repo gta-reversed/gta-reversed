@@ -25,9 +25,9 @@ public:
 
     static void InjectHooks();
 
-    static void DistributeDestinations(CPedList* pedlist);
-    static void DistributeDestinations_CoverPoints(CPedList* pedlist, CVector pos);
-    static void DistributeDestinations_PedsToAttack(CPedList* pedlist);
+    static void DistributeDestinations(CPedList& pedlist);
+    static void DistributeDestinations_CoverPoints(const CPedList& pedlist, CVector pos);
+    static void DistributeDestinations_PedsToAttack(const CPedList& pedlist);
     static void FindCoverPoints(CVector pos, float radius);
     static void FindCoverPointsBehindBox(
         CPointList*    outPoints,
@@ -38,9 +38,8 @@ public:
         const CVector& bbMax,
         float          cutoffDist
     );
-    static int32 FindNearestAvailableDestination(CVector pos, float* pOutDistance);
-    static void GenerateGatherDestinations(CPedList* pedList, CPed* ped);
-    static void GenerateGatherDestinations_AroundCar(CPedList* pedlist, CVehicle* vehicle);
-    static bool ReturnDestinationForPed(CPed* ped, CVector* pos);
-    static int32 ReturnTargetPedForPed(CPed* ped, CPed** pOutTargetPed);
+    static void GenerateGatherDestinations(CPedList& pedList, CPed* ped);
+    static void GenerateGatherDestinations_AroundCar(CPedList& pedlist, CVehicle* vehicle);
+    static bool ReturnDestinationForPed(CPed* ped, CVector* out);
+    static void ReturnTargetPedForPed(CPed* ped, CPed** pOutTargetPed);
 };
