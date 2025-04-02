@@ -149,7 +149,7 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         if (   Windowed
             || ControlsManager.GetJoyButtonJustDown()
             || pad->NewState.CheckForInput()
-            || CPad::IsMouseLButtonPressed()
+            || CPad::GetLeftMouseJustDown()
             || CPad::IsEnterJustPressed()
             || pad->IsStandardKeyJustPressed(VK_SPACE)
             || CPad::IsMenuKeyJustPressed()
@@ -344,7 +344,7 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     // 0x7487CF
     VERIFY(WinInput::Initialise());
 
-    ControlsManager.InitDefaultControlConfigMouse(WinInput::GetMouseState(), !FrontEndMenuManager.m_nController);
+    ControlsManager.ReinitControls();
 
     // 0x748847
     if (RsEventHandler(rsRWINITIALIZE, PSGLOBAL(window)) == rsEVENTERROR) {
@@ -379,7 +379,12 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
 
     // 0x748995
     CFileMgr::SetDirMyDocuments();
+
+#ifdef NOTSA_INI_SETTINGS
+    if (auto* file = CFileMgr::OpenFile("gta_sa_controls.ini", "rb")) {
+#else
     if (auto* file = CFileMgr::OpenFile("gta_sa.set", "rb")) {
+#endif
         if (!ControlsManager.LoadSettings(file)) {
             ControlsManager.ReinitControls();
         }

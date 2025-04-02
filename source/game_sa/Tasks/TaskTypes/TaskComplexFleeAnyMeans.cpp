@@ -60,9 +60,9 @@ CTaskComplexFleeAnyMeans::CTaskComplexFleeAnyMeans(const CTaskComplexFleeAnyMean
 
 // 0x65CD10
 CTaskComplexFleeAnyMeans::~CTaskComplexFleeAnyMeans() {
-#ifdef FIX_BUGS
-    CEntity::SafeCleanUpRef(m_stealVeh);
-#endif
+    if (notsa::IsFixBugs()) {
+        CEntity::SafeCleanUpRef(m_stealVeh);
+    }
     /* Fleed entity is claned up in SmartFlee already */
 }
 

@@ -1300,14 +1300,14 @@ void CVehicleModelInfo::LoadVehicleColours()
         if (iLastMode == eCarColLineType::GLOBAL_RGB) {
             uint32 red{}, green{}, blue{};
             const auto read = sscanf_s(buffer, "%d %d %d", &red, &green, &blue);
-#ifdef FIX_BUGS
-            if (read != 3) {
-                // there is a typo in carcols.dat:
-                // "77.93,96			# 98 malachite poly			blue"
-                //    ^~~ should've be a comma.
-                VERIFY(sscanf_s(buffer, "%d.%d %d", &red, &green, &blue) == 3);
+            if (notsa::IsFixBugs()) {
+                if (read != 3) {
+                    // there is a typo in carcols.dat:
+                    // "77.93,96			# 98 malachite poly			blue"
+                    //    ^~~ should've be a comma.
+                    VERIFY(sscanf_s(buffer, "%d.%d %d", &red, &green, &blue) == 3);
+                }
             }
-#endif
             curColor->Set(red, green, blue, 255);
             auto pLineEnd = pLineStart;
             while (*pLineEnd != '#') // Seems redundant(?)

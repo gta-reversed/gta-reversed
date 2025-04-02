@@ -420,9 +420,9 @@ void CTaskComplexGangLeader::ScanForStuff(CPed* ped) {
             m_scanTimer.Start(60'000);
 
             // 0x65E3E8
-#ifdef FIX_BUGS
-            break;
-#endif
+            if (notsa::IsFixBugs()) {
+                break;
+            }
         }
     } else if (rndChance == 20) { // 1% chance
         // Try recruiting one nearby ped to the gang
@@ -444,14 +444,20 @@ void CTaskComplexGangLeader::ScanForStuff(CPed* ped) {
             }
 
             // Can it join a gang at all?
-#ifdef FIX_BUGS
-            if (const auto wander = scannedPed.GetTaskManager().Find<CTaskComplexWander>()) { // 0x65E4BE
-#else
-            if (const auto wander = ped->GetTaskManager().Find<CTaskComplexWander>()) {
-#endif
-                if (wander->GetWanderType() == WANDER_TYPE_GANG) {
-                    if (!static_cast<CTaskComplexWanderGang*>(wander)->CanJoinGang()) {
-                        continue;
+            if (notsa::IsFixBugs()) {
+                if (const auto wander = scannedPed.GetTaskManager().Find<CTaskComplexWander>()) { // 0x65E4BE
+                    if (wander->GetWanderType() == WANDER_TYPE_GANG) {
+                        if (!static_cast<CTaskComplexWanderGang*>(wander)->CanJoinGang()) {
+                            continue;
+                        }
+                    }
+                }
+            } else {
+                if (const auto wander = ped->GetTaskManager().Find<CTaskComplexWander>()) {
+                    if (wander->GetWanderType() == WANDER_TYPE_GANG) {
+                        if (!static_cast<CTaskComplexWanderGang*>(wander)->CanJoinGang()) {
+                            continue;
+                        }
                     }
                 }
             }

@@ -13,9 +13,7 @@ void CMouseControllerState::InjectHooks() {
 
 // 0x53F220
 CMouseControllerState::CMouseControllerState() {
-    Z = 0.0f;
-    X = 0.0f;
-    Y = 0.0f;
+    m_AmountMoved.Set(0.0f, 0.0f);
     Clear();
 }
 
@@ -26,26 +24,26 @@ CMouseControllerState* CMouseControllerState::Constructor() {
 
 // 0x53F250
 void CMouseControllerState::Clear() {
-    lmb = 0;
-    rmb = 0;
-    mmb = 0;
-    wheelUp = 0;
-    wheelDown = 0;
-    bmx1 = 0;
-    bmx2 = 0;
+    m_bLeftButton = 0;
+    m_bRightButton = 0;
+    m_bMiddleButton = 0;
+    m_bWheelMovedUp = 0;
+    m_bWheelMovedDown = 0;
+    m_bMsFirstXButton = 0;
+    m_bMsSecondXButton = 0;
 }
 
 // 0x53F270
 bool CMouseControllerState::CheckForInput() const {
     return (
-        lmb
-        || rmb
-        || mmb
-        || wheelUp
-        || wheelDown
-        || bmx1
-        || bmx2
-        || X != 0.0f
-        || Y != 0.0f
+        m_bLeftButton
+        || m_bRightButton
+        || m_bMiddleButton
+        || m_bWheelMovedUp
+        || m_bWheelMovedDown
+        || m_bMsFirstXButton
+        || m_bMsSecondXButton
+        || m_AmountMoved.x != 0.0f
+        || m_AmountMoved.y != 0.0f
     );
 }

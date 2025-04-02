@@ -943,11 +943,8 @@ void CRenderer::ConstructRenderList() {
     const auto& camPos = TheCamera.GetPosition();
 
     eZoneAttributes zoneAttributes = CCullZones::FindTunnelAttributesForCoors(camPos);
-    ms_bRenderTunnels = (zoneAttributes & (eZoneAttributes::UNKNOWN_2 | eZoneAttributes::UNKNOWN_1)) != 0;
-    if ((zoneAttributes & eZoneAttributes::UNKNOWN_1) || !(zoneAttributes & eZoneAttributes::UNKNOWN_2))
-        ms_bRenderOutsideTunnels = true;
-    else
-        ms_bRenderOutsideTunnels = false;
+    ms_bRenderTunnels = (zoneAttributes & (eZoneAttributes::ZONE_ATTRIBUTE_UNKNOWN_2 | eZoneAttributes::ZONE_ATTRIBUTE_UNKNOWN_1)) != 0;
+    ms_bRenderOutsideTunnels = ((zoneAttributes & eZoneAttributes::ZONE_ATTRIBUTE_UNKNOWN_1) || !(zoneAttributes & eZoneAttributes::ZONE_ATTRIBUTE_UNKNOWN_2)) ? true : false;
 
     ms_lowLodDistScale = 1.0f;
     ms_bInTheSky = false;

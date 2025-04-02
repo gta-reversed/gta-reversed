@@ -151,7 +151,7 @@ int32 CEventKnockOffBike::CalcForcesAndAnims(CPed* ped)
     if (m_vehicle->IsBike())
         numContactWheels = m_vehicle->AsBike()->m_nNoOfContactWheels;
     else if (m_vehicle->IsAutomobile())
-        numContactWheels = m_vehicle->AsAutomobile()->m_nNumContactWheels;
+        numContactWheels = m_vehicle->AsAutomobile()->m_nNoOfContactWheels;
 
     switch (m_knockOffType)
     {

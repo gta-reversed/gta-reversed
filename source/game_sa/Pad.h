@@ -168,6 +168,9 @@ public:
     int32 GetWeapon(CPed* ped) const;
     int16 AimWeaponLeftRight(CPed* ped) const;
     int16 AimWeaponUpDown(CPed* ped) const;
+    // int16 LookAroundLeftRight(CPed* ped) const;
+    // int16 LookAroundUpDown(CPed* ped) const;
+
 
     static CPad* GetPad(int32 nPadNumber = 0)                               { return &Pads[nPadNumber]; }                                                                    // 0x53FB70
 
@@ -232,8 +235,8 @@ public:
     // KEYBOARD END
 
     // PAD
-    [[nodiscard]] bool f0x57C3A0() const noexcept                           { return !NewState.ButtonCross && OldState.ButtonCross; }                                        // 0x57C3A0
     [[nodiscard]] bool IsCrossPressed() const noexcept                      { return BUTTON_IS_PRESSED(ButtonCross); }                                                       // 0x4D59E0
+    [[nodiscard]] bool f0x57C3A0() const noexcept                           { return !NewState.ButtonCross && OldState.ButtonCross; }                                        // 0x57C3A0
     [[nodiscard]] bool IsCirclePressed() const noexcept                     { return BUTTON_IS_PRESSED(ButtonCircle); }                                                      // 0x53EF60
     [[nodiscard]] bool IsTrianglePressed() const noexcept                   { return BUTTON_IS_PRESSED(ButtonTriangle); }                                                    // 0x53EF40
     [[nodiscard]] bool IsSquarePressed() const noexcept                     { return BUTTON_IS_PRESSED(ButtonSquare); }                                                      // 0x53EF20
@@ -280,7 +283,6 @@ public:
     [[nodiscard]] bool IsRightShoulder2Pressed() const noexcept             { return BUTTON_IS_PRESSED(RightShoulder2); }                                                    //
     [[nodiscard]] bool IsRightShoulder2JustUp() const noexcept              { return BUTTON_JUST_UP(RightShoulder2); }                                                       // 0x53EE40
 
-    // returns angle in degrees
     [[nodiscard]] int16 GetLeftStickX() const noexcept                      { return BUTTON_IS_DOWN(LeftStickX); }
     [[nodiscard]] int16 GetLeftStickY() const noexcept                      { return BUTTON_IS_DOWN(LeftStickY); }
     [[nodiscard]] int16 GetRightStickX() const noexcept                     { return BUTTON_IS_DOWN(RightStickX); }
@@ -291,32 +293,35 @@ public:
     // PAD END
 
     // MOUSE
-    static bool f0x57C3C0() noexcept               { return !NewMouseControllerState.lmb && OldMouseControllerState.lmb; }          // 0x57C3C0
-    static bool IsMouseLButtonPressed() noexcept   { return MOUSE_IS_PRESSED(lmb); }                                                // 0x4D5A00
-    static bool IsMouseRButtonPressed() noexcept   { return MOUSE_IS_PRESSED(rmb); }                                                // 0x572E70
-    static bool IsMouseMButtonPressed() noexcept   { return MOUSE_IS_PRESSED(mmb); }                                                // 0x57C3E0
-    static bool IsMouseWheelUpPressed() noexcept   { return MOUSE_IS_PRESSED(wheelUp); }                                            // 0x57C400
-    static bool IsMouseWheelDownPressed() noexcept { return MOUSE_IS_PRESSED(wheelDown); }                                          // 0x57C420
-    static bool IsMouseBmx1Pressed() noexcept      { return MOUSE_IS_PRESSED(bmx1); }                                               // 0x57C440
-    static bool IsMouseBmx2Pressed() noexcept      { return MOUSE_IS_PRESSED(bmx2); }                                               // 0x57C460
-    static bool IsMouseLButton() noexcept          { return MOUSE_IS_DOWN(lmb); }                                                   // 0x45AF70
-    static bool IsMouseRButton() noexcept          { return MOUSE_IS_DOWN(rmb); }                                                   // 0x45AF80
+    static bool f0x57C3C0() noexcept               { return !NewMouseControllerState.m_bLeftButton && OldMouseControllerState.m_bLeftButton; }          // 0x57C3C0
+    static bool IsMouseLButtonPressed() noexcept   { return MOUSE_IS_PRESSED(m_bLeftButton); }                                                // 0x4D5A00
+    static bool IsMouseRButtonPressed() noexcept   { return MOUSE_IS_PRESSED(m_bRightButton); }                                                // 0x572E70
+    static bool IsMouseMButtonPressed() noexcept   { return MOUSE_IS_PRESSED(m_bMiddleButton); }                                                // 0x57C3E0
+    static bool IsMouseWheelUpPressed() noexcept   { return MOUSE_IS_PRESSED(m_bWheelMovedUp); }                                            // 0x57C400
+    static bool IsMouseWheelDownPressed() noexcept { return MOUSE_IS_PRESSED(m_bWheelMovedDown); }                                          // 0x57C420
+    static bool IsMouseBmx1Pressed() noexcept      { return MOUSE_IS_PRESSED(m_bMsFirstXButton); }                                               // 0x57C440
+    static bool IsMouseBmx2Pressed() noexcept      { return MOUSE_IS_PRESSED(m_bMsSecondXButton); }                                               // 0x57C460
+    static bool IsMouseLButton() noexcept          { return MOUSE_IS_DOWN(m_bLeftButton); }                                                   // 0x45AF70
+    static bool IsMouseRButton() noexcept          { return MOUSE_IS_DOWN(m_bRightButton); }                                                   // 0x45AF80
+    static bool IsMouseMButton() noexcept          { return MOUSE_IS_DOWN(m_bMiddleButton); }                                                   // 
+    static bool IsMouseWheelUp() noexcept          { return MOUSE_IS_DOWN(m_bWheelMovedUp); }                                               // 0x572E60
+    static bool IsMouseWheelDown() noexcept        { return MOUSE_IS_DOWN(m_bWheelMovedDown); }                                             // 0x572E50
+    static bool IsMouseBmx1() noexcept             { return MOUSE_IS_DOWN(m_bMsFirstXButton); }                                                  // 
+    static bool IsMouseBmx2() noexcept             { return MOUSE_IS_DOWN(m_bMsSecondXButton); }                                                  // 
     // MOUSE END
 
-    int16 sub_540BD0(CPed* entity) noexcept;
-    int16 sub_540CC0(CPed* ped) noexcept;
+    int16 LookAroundLeftRight(CPed* entity) noexcept;
+    int16 LookAroundUpDown(CPed* ped) noexcept;
 
     int32 sub_541320() { return AverageWeapon / AverageEntries; } // 0x541320
     int32 sub_541290();
-    bool sub_541170() const noexcept;
-    bool sub_541150() const noexcept;
     static bool sub_540A40();
     static bool sub_540A10();
     static bool GetAnaloguePadLeft();
     static bool GetAnaloguePadUp();
     static bool GetAnaloguePadRight();
     static bool GetAnaloguePadDown();
-    bool sub_540530() const noexcept;
+    bool CycleCameraModeJustDown() const noexcept;
     bool sub_5404F0() const noexcept { return Mode != 1 ? 0 : IsDPadDownPressed(); } // 0x5404F0
     bool IsPhaseEqual11() const noexcept { return Phase == 11; } // 0x53FB60
 
@@ -328,7 +333,7 @@ public:
     bool DebugMenuJustPressed();
 };
 
-VALIDATE_SIZE(CPad, 0x134);
+// VALIDATE_SIZE(CPad, 0x134);
 
 // return pressed key, in order of CKeyboardState
 int GetCurrentKeyPressed(RsKeyCodes& keys);

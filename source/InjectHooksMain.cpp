@@ -165,6 +165,7 @@
 #include "PedIK.h"
 #include "HandShaker.h"
 #include "TempColModels.h"
+#include "ControllerConfigManager.h"
 
 // Plant
 #include "PlantMgr.h"
@@ -757,6 +758,7 @@ void InjectHooksMain() {
     CLocalisation::InjectHooks();
     CSimpleVariablesSaveStructure::InjectHooks();
     CPedGeometryAnalyser::InjectHooks();
+    CControllerConfigManager::InjectHooks();
 
     NodeNamePlugin::InjectHooks();
     JPegPlugin::InjectHooks();

@@ -30,6 +30,10 @@ constexpr auto DEFAULT_SCREEN_HEIGHT_NTSC = 448.0f;
 constexpr auto DEFAULT_ASPECT_RATIO       = 4.0f / 3.0f;
 constexpr auto DEFAULT_VIEW_WINDOW        = 0.7f;
 
+constexpr auto METERS_PER_SECOND = 50;
+constexpr auto FRAMES_PER_SECOND  = 30;
+constexpr auto METERS_PER_UNIT = METERS_PER_SECOND / FRAMES_PER_SECOND; // NOTSA 
+
 // game uses maximumWidth/Height, but this probably won't work
 // with RW windowed mode
 #define SCREEN_WIDTH ((float)RsGlobal.maximumWidth)
@@ -113,8 +117,6 @@ constexpr float SQRT_3          = 1.73205f;          // √3
 constexpr float TWO_PI          = 6.28318f;          // τ (TAU)
 constexpr float TWO_PI_OVER_256 = TWO_PI / 256.0F;   // Here because the compiler shits itself when this it put into FixedFloat's template
 constexpr float DEG_TO_RAD     = 0.01745329252f;    // π / 180
-
-
 constexpr float COS_45         = SQRT_2 / 2.f;      // cos(45°)
 
 template<typename T>

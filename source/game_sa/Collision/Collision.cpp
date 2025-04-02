@@ -192,10 +192,10 @@ bool CCollision::ProcessSphereBox(CColSphere const& sph, CColBox const& box, CCo
                             diskColPoint.m_vecPoint = boxCP.m_vecPoint - boxCP.m_vecNormal * sphere.m_fRadius;
                             diskColPoint.m_fDepth = boxCP.m_fDepth;
 
-                            diskColPoint.m_nLightingA = sphere.ligthing;
+                            diskColPoint.m_nLightingA = sphere.lighting;
                             diskColPoint.m_nSurfaceTypeA = sphere.m_nMaterial;
 
-                            diskColPoint.m_nLightingB = bb.ligthing;
+                            diskColPoint.m_nLightingB = bb.lighting;
                             diskColPoint.m_nSurfaceTypeB = bb.m_nMaterial;
 
                             maxTouchDistance = 0.f;
@@ -1836,7 +1836,7 @@ bool CCollision::ProcessVerticalLine(
     cp.m_vecPoint  = transform.TransformPoint(cp.m_vecPoint);
     cp.m_vecNormal = transform.TransformVector(cp.m_vecNormal);
 
-    if (outColPoly && storedColPoly.valid) {
+    if (outColPoly && storedColPoly.bValidPolyStored) {
         for (auto& vtx : storedColPoly.verts) {
             vtx = transform.TransformPoint(vtx); // Transform back from object space
         }
@@ -2097,7 +2097,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
                 if (ProcessSphereBox(sphereA, bb, cp, minTouchDist)) {
                     cp.m_nSurfaceTypeA = bb.m_Surface.m_nMaterial;
                     cp.m_nPieceTypeA = bb.m_Surface.m_nPiece;
-                    cp.m_nLightingA = bb.m_Surface.ligthing;
+                    cp.m_nLightingA = bb.m_Surface.lighting;
 
                     if (bReturnAllCollisions && sphereA.m_Surface.m_nPiece <= 2 && nNumSphereCPs < std::size(sphereCPs)) {
                         advanceColPointIdx = false;
@@ -2276,11 +2276,11 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
                 if (ProcessSphereBox(sphere, bb, cp, minTouchDist)) {
                     cp.m_nSurfaceTypeA = bb.m_Surface.m_nMaterial;
                     cp.m_nPieceTypeA = bb.m_Surface.m_nPiece;
-                    cp.m_nLightingA = bb.m_Surface.ligthing;
+                    cp.m_nLightingA = bb.m_Surface.lighting;
 
                     cp.m_nSurfaceTypeB = sphere.m_Surface.m_nMaterial;
                     cp.m_nPieceTypeB = sphere.m_Surface.m_nPiece;
-                    cp.m_nLightingB = sphere.m_Surface.ligthing;
+                    cp.m_nLightingB = sphere.m_Surface.lighting;
 
                     cp.m_vecNormal *= -1.f; // Invert direction
 
@@ -2319,7 +2319,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
 bool CCollision::IsStoredPolyStillValidVerticalLine(const CVector& lineOrigin, float lnMag, CColPoint& colPoint, CStoredCollPoly* collPoly) {
     ZoneScoped;
 
-    if (!collPoly->valid) {
+    if (!collPoly->bValidPolyStored) {
         return false;
     }
 
