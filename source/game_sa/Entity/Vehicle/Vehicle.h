@@ -751,6 +751,17 @@ public: // NOTSA functions
     /// Is there enough space for at least one more passenger - TODO: -1 is only for buses
     [[nodiscard]] bool HasSpaceForAPassenger() const { return m_nMaxPassengers -1 > m_nNumPassengers; }
 
+    void ForEachOccupant(auto&& Callback) {
+        if (m_pDriver) {
+            Callback(m_pDriver);
+        }
+        for (auto& p : GetPassengers()) {
+            if (p) {
+                Callback(p);
+            }
+        }
+    }
+
 private:
     friend void InjectHooksMain();
     static void InjectHooks();

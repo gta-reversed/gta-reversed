@@ -22,6 +22,7 @@
 #include "AnimBlendAssociation.h"
 #include "Fire.h"
 #include "PedGroups.h"
+#include "PedStats.h"
 
 #include <Audio/Enums/PedSpeechContexts.h>
 #include "AnimationEnums.h"

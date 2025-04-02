@@ -104,7 +104,7 @@ bool CTaskSimplePlayerOnFoot::ProcessPed(CPed* ped) {
         bool bPedMoving = player->m_nMoveState >= PEDMOVE_WALK;
         if (player->GetActiveWeapon().m_Type == WEAPON_CHAINSAW) {
             if (const auto fightingTask = intelligence->GetTaskFighting()) {
-                if (fightingTask->m_nCurrentMove == FIGHT_ATTACK_FIGHTIDLE) {
+                if (fightingTask->GetMove() == eMeleeMove::MOVING) {
                     bPedMoving = true;
                 }
             }
@@ -205,11 +205,11 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
     bool handleFighting = false;
     CTaskSimpleUseGun* newSimpleUseGunTask = nullptr;
     if (weaponInfo->m_nWeaponFire == WEAPON_FIRE_MELEE) {
-        int32 fightCommand = 0;
+        eMeleeCommand fightCommand = eMeleeCommand::IDLE;
         bool executeMeleeAttack = false;
         if (!player->m_pTargetedObject && !pad->GetTarget() && !taskManager->GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
             if (pad->MeleeAttackJustDown(false)) {
-                fightCommand = 11;
+                fightCommand = eMeleeCommand::ATTACK_1;
             }
 
             CAnimBlendAssociation* animAssoc = RpAnimBlendClumpGetAssociation(player->m_pRwClump, ANIM_ID_KILL_PARTIAL);
@@ -217,13 +217,13 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                 animAssoc->m_BlendAmount = -2.0f;
             }
 
-            if (fightCommand == 0) {
+            if (fightCommand == eMeleeCommand::IDLE) {
                 handleFighting = true;
-            } // fightCommand cannot be 19 here, so we don't need the code here.
-            else if (fightCommand == 19) {
+            } // fightCommand cannot be STEALTH_KILL here, so we don't need the code here.
+            else if (fightCommand == eMeleeCommand::STEALTH_KILL) {
                 // Just in case, if this executes somehow, then we probably need to add the code.
                 // But It won't.
-                assert(fightCommand != 19);
+                assert(fightCommand != eMeleeCommand::STEALTH_KILL);
                 // LAB_00685c62:
             } else {
                 executeMeleeAttack = true;
@@ -284,24 +284,24 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
             } else {
                 switch (meleeAttackJustDown) {
                 case 1: {
-                    fightCommand = 11;
+                    fightCommand = eMeleeCommand::ATTACK_1;
                     break;
                 }
                 case 4: {
                     if (!CWeaponInfo::GetWeaponInfo(player->GetActiveWeapon().m_Type, eWeaponSkill::STD)->flags.bHeavy) {
-                        fightCommand = 12;
+                        fightCommand = eMeleeCommand::ATTACK_2;
                     } else {
-                        fightCommand = 11;
+                        fightCommand = eMeleeCommand::ATTACK_1;
                     }
                     break;
                 }
                 case 3: {
-                    fightCommand = 2;
+                    fightCommand = eMeleeCommand::BLOCK;
                     break;
                 }
                 default: {
                     if (pad->GetMeleeAttack(false) && player->GetActiveWeapon().m_Type == WEAPON_CHAINSAW && taskManager->GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
-                        fightCommand = 11;
+                        fightCommand = eMeleeCommand::ATTACK_1;
                     } else {
                         handleFighting = true;
                     }
@@ -438,12 +438,12 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
         if (intelligence->GetTaskFighting()) {
             auto taskSimpleFight = static_cast<CTaskSimpleFight*>(taskManager->GetTaskSecondary(TASK_SECONDARY_ATTACK));
             if (player->m_nMoveState == PEDMOVE_STILL && pad->GetSprint()) {
-                taskSimpleFight->ControlFight(player->m_pTargetedObject, 15);
+                taskSimpleFight->ControlFight(player->m_pTargetedObject, eMeleeCommand::END_QUICK);
             } else {
                 if (playerData->m_nChosenWeapon == player->m_nActiveWeaponSlot)
-                    taskSimpleFight->ControlFight(player->m_pTargetedObject, 0);
+                    taskSimpleFight->ControlFight(player->m_pTargetedObject, eMeleeCommand::IDLE);
                 else
-                    taskSimpleFight->ControlFight(player->m_pTargetedObject, 1);
+                    taskSimpleFight->ControlFight(player->m_pTargetedObject, eMeleeCommand::END_SLOW);
             }
         }
     }
@@ -483,13 +483,12 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
         if (!pad->GetTarget() && !player->m_pAttachedTo || player->m_pPlayerData->m_nChosenWeapon != player->m_nActiveWeaponSlot || player->m_nMoveState == PEDMOVE_SPRINT ||
             !TheCamera.Using1stPersonWeaponMode()) {
             if ((player->m_pTargetedObject || player->m_pPlayerData->m_bFreeAiming) && intelligence->GetTaskFighting()) {
-                if (playerData->m_vecFightMovement.y >= -0.5) {
-                    fightCommand = 15;
-                } else {
-                    fightCommand = 16;
-                }
-                CTaskSimpleFight* taskSimpleFight = intelligence->GetTaskFighting();
-                taskSimpleFight->ControlFight(nullptr, fightCommand);
+                intelligence->GetTaskFighting()->ControlFight(
+                    nullptr,
+                    playerData->m_vecFightMovement.y >= -0.5
+                        ? eMeleeCommand::END_QUICK
+                        : eMeleeCommand::END_RUNAWAY
+                );
             }
             if (intelligence->GetTaskUseGun()) {
                 if (pad->GetWeapon(nullptr) || (float)pad->GetPedWalkUpDown() <= 50.0f && (float)pad->GetPedWalkUpDown() >= -50.0f && (float)pad->GetPedWalkLeftRight() <= 50.0f &&

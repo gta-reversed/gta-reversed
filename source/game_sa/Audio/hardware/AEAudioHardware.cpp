@@ -104,9 +104,9 @@ bool CAEAudioHardware::Initialise() {
     m_dsCaps.dwSize = 96;
     m_pDSDevice->GetCaps(&m_dsCaps);
 
-    if (FAILED(m_pDSDevice->SetCooperativeLevel(PSGLOBAL(window), DSSCL_PRIORITY))
-        || !InitDirectSoundListener(2, 48'000, 16))
+    if (FAILED(m_pDSDevice->SetCooperativeLevel(PSGLOBAL(window), DSSCL_PRIORITY)) || !InitDirectSoundListener(2, 48'000, 16)) {
         return false;
+    }
 
     m_pDSDevice->GetSpeakerConfig((LPDWORD)&m_nSpeakerConfig);
 
@@ -119,7 +119,7 @@ bool CAEAudioHardware::Initialise() {
         AESmoothFadeThread.m_nNumAvailableBuffers = 48;
         field_4 = 0;
     } else {
-        m_nNumChannels = (uint16)std::min(freeHw3DAllBuffers, 64u) - 7;
+        m_nNumChannels = (uint16)(std::min(freeHw3DAllBuffers, 64u) - 7u);
         field_4 = 1;
         AESmoothFadeThread.m_nNumAvailableBuffers = 7;
     }
