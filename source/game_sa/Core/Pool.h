@@ -210,7 +210,7 @@ public:
 
         S* ptr = reinterpret_cast<S*>(&m_Storage[m_FirstFreeSlot]);
         DoFill(CLEANLAND_FILL, ptr);
-        return ptr;
+        return reinterpret_cast<T*>(ptr);
     }
 
     /*!
@@ -248,11 +248,11 @@ public:
             return;
         }
 #endif
-        int32 index               = GetIndex(obj);
-        m_SlotState[index].IsEmpty = true;
-        if (index < m_FirstFreeSlot) {
-            m_FirstFreeSlot = index;
-        }
+        assert(!IsFreeSlotAtIndex(GetIndex(obj)) && "Can't delete an already deleted object");
+
+        const auto idx = GetIndex(obj);
+        m_SlotState[idx].IsEmpty = true;
+        m_FirstFreeSlot          = std::min(m_FirstFreeSlot, idx);
         DoFill(DEADLAND_FILL, (S*)(obj));
     }
 
