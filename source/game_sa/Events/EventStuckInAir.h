@@ -17,7 +17,7 @@ public:
     eEventType GetEventType() const override { return EVENT_STUCK_IN_AIR; }
     int32 GetEventPriority() const override;
     int32 GetLifeTime() override { return 0; }
-    CEvent* Clone() override { return new CEventStuckInAir(m_ped); }
+    CEvent* Clone() const noexcept override { return new CEventStuckInAir(m_ped); }
     bool AffectsPed(CPed* ped) override;
     bool TakesPriorityOver(const CEvent& refEvent) override;
     bool CanBeInterruptedBySameEvent() override { return true; }

@@ -1756,7 +1756,7 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
             const auto veh = entity->AsVehicle();
 
             if (auto driver = veh->m_pDriver;  veh->IsSubBMX() && driver) {
-                CEventKnockOffBike event{ veh, &veh->m_vecMoveSpeed, &impactVelocity, 0.f, 0.f, KNOCK_OFF_TYPE_EXPLOSION, 0, 0, nullptr, true, false };
+                CEventKnockOffBike event{ veh, veh->m_vecMoveSpeed, impactVelocity, 0.f, 0.f, KNOCK_OFF_TYPE_EXPLOSION, 0, 0, nullptr, true, false };
                 driver->GetIntelligence()->m_eventGroup.Add(&event, false);
 
                 CWeapon::GenerateDamageEvent(

@@ -1,7 +1,6 @@
 #include <StdInc.h>
 
-#include "Commands.hpp"
-#include <CommandParser/Parser.hpp>
+#include "CLEOCommands.hpp"
 
 #include "app_debug.h"
 #include "CommandParser/Parser.hpp"

@@ -6,7 +6,7 @@
 
 #include "WndProc.h"
 #include "WinMain.h"
-#include "Input.h"
+#include "WinInput.h"
 
 #include "Gamma.h"
 

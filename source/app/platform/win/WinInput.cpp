@@ -1,8 +1,8 @@
 #include "StdInc.h"
 
-#include "Input.h"
+#include "WinInput.h"
 #include "ControllerConfigManager.h"
-#include "Platform.h"
+#include "WinPlatform.h"
 #include "VideoMode.h"
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")

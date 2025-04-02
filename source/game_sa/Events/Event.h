@@ -1,6 +1,7 @@
 #pragma once
 
 #include "eEventType.h"
+#include "Base.h"
 
 class CPed;
 class CEntity;
@@ -20,7 +21,7 @@ public:
     virtual eEventType GetEventType() const = 0;
     virtual int32 GetEventPriority() const = 0;
     virtual int32 GetLifeTime() = 0;
-    virtual CEvent* Clone() = 0;
+    virtual CEvent* Clone() const noexcept = 0;
     virtual bool AffectsPed(CPed* ped) { return true; };
     virtual bool AffectsPedGroup(CPedGroup* pedGroup) { return true; };
     virtual bool IsCriminalEvent() { return false; }

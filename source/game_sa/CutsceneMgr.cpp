@@ -5,7 +5,7 @@
     Do not delete this comment block. Respect others' work!
 */
 #include "StdInc.h"
-#include <platform/win/Platform.h>
+#include <platform/win/WinPlatform.h>
 #include <extensions/ci_string.hpp>
 
 #include "Fx.h"

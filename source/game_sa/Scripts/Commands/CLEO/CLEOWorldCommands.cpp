@@ -1,7 +1,6 @@
 #include <StdInc.h>
 
-#include "Commands.hpp"
-#include <CommandParser/Parser.hpp>
+#include "CLEOCommands.hpp"
 
 #include "Radar.h"
 #include "MenuManager.h"

@@ -60,6 +60,6 @@ bool CEventGunAimedAt::TakesPriorityOver(const CEvent& refEvent) {
 }
 
 // 0x4B7630
-CEventEditableResponse* CEventGunAimedAt::CloneEditable() {
+CEventEditableResponse* CEventGunAimedAt::CloneEditable() const noexcept {
     return new CEventGunAimedAt(m_AimedBy);
 }

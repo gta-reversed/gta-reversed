@@ -454,15 +454,14 @@ void CEntity::PreRender()
                 RpGeometryForAllMaterials(RpAtomicGetGeometry(ami->m_pRwAtomic), MaterialUpdateUVAnimCB, nullptr);
             }
         }
-
+        
         mi->IncreaseAlpha();
 
         // PC Only
         if (ami) {
             CCustomBuildingDNPipeline::PreRenderUpdate(ami->m_pRwAtomic, false);
-        }
-        else if (mi->GetModelType() == MODEL_INFO_CLUMP) {
-            RpClumpForAllAtomics(mi->m_pRwClump, CCustomBuildingDNPipeline::PreRenderUpdateRpAtomicCB, reinterpret_cast<void*>(false));
+        } else if (mi->GetModelType() == MODEL_INFO_CLUMP) {
+            CCustomBuildingDNPipeline::PreRenderUpdate(ami->m_pRwClump, false);
         }
         // PC Only
     }

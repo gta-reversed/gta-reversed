@@ -131,7 +131,7 @@ bool CTaskSimpleBikeJacked::ProcessPed(CPed* ped) {
     CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, m_secondAnimId);
 
     // event.m_flags |= 2; => event.m_forceKnockOff = true => Already set by ctor
-    ped->GetEventGroup().Add(CEventKnockOffBike{ m_vehicle, &m_vehicle->GetMoveSpeed(), &m_vehicle->m_vecLastCollisionImpactVelocity, 0.f, 0.f, 55u, 0u, (int32)m_time, m_jacker, m_isVictimDriver, true }, true);
+    ped->GetEventGroup().Add(CEventKnockOffBike{ m_vehicle, m_vehicle->GetMoveSpeed(), m_vehicle->m_vecLastCollisionImpactVelocity, 0.f, 0.f, 55u, 0u, (int32)m_time, m_jacker, m_isVictimDriver, true }, true);
 
     m_secondAnimId = ANIM_ID_NO_ANIMATION_SET;
 
