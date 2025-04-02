@@ -186,31 +186,42 @@ public:
     * @brief Allocates object
     */
     T* New() {
-        bool bReachedTop = false;
-        do {
-            if (++m_FirstFreeSlot >= m_Capacity) {
-                if (bReachedTop) {
-                    m_FirstFreeSlot = -1;
-                    if (CanDealWithNoMemory()) {
-                        DEV_LOG("Allocation failed!");
-                    } else {
-                        NOTSA_DEBUG_BREAK();
-                    }
-                    return nullptr;
+        // Try finding a free slot, starting at the last free one
+        // testing at most `m_Capacity` slots by wrapping around once if necesary
+        // Original logic had rechecked all slots after wrapping around,
+        // but that's not necessary and is bad performance-wise
+        const auto lastFreeSlot = m_FirstFreeSlot;
+        bool       wrapped      = false;
+        while (!m_SlotState[++m_FirstFreeSlot].IsEmpty) {
+            if (wrapped) { // [0, lastFreeSlot)
+                if (m_FirstFreeSlot < lastFreeSlot) {
+                    continue;
                 }
-                bReachedTop     = true;
+                m_FirstFreeSlot = -1;
+                if (CanDealWithNoMemory()) {
+                    DEV_LOG("Allocation failed for type {:?}", typeid(T).name());
+                } else {
+                    NOTSA_DEBUG_BREAK();
+                }
+                return nullptr;
+            } else { // [lastFreeSlot, m_Capacity)
+                if (m_FirstFreeSlot < m_Capacity) {
+                    continue;
+                }
+                wrapped         = true;
                 m_FirstFreeSlot = 0;
             }
-        } while (!m_SlotState[m_FirstFreeSlot].IsEmpty);
+        }
+        assert(m_FirstFreeSlot >= 0 && m_FirstFreeSlot < m_Capacity);
 
-        assert(m_FirstFreeSlot >= 0);
+        auto* const state = &m_SlotState[m_FirstFreeSlot];
+        const auto isFirstAllocation = state->Ref == 0; // First allocation of this slot?
+        state->IsEmpty = false;
+        state->Ref++;
 
-        m_SlotState[m_FirstFreeSlot].IsEmpty = false;
-        ++m_SlotState[m_FirstFreeSlot].Ref;
-
-        S* ptr = reinterpret_cast<S*>(&m_Storage[m_FirstFreeSlot]);
+        StorageType* ptr = reinterpret_cast<StorageType*>(&m_Storage[m_FirstFreeSlot]);
         DoFill(CLEANLAND_FILL, ptr);
-        return ptr;
+        return (T*)(void*)(ptr);
     }
 
     /*!
