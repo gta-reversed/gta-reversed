@@ -20,7 +20,7 @@ public:
     // 0x5F6B40
     void AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override {
         const auto leader = pedGroup->GetMembership().GetLeader();
-        for (auto&& [i, tp] : notsa::enumerate(pedGroup->GetIntelligence().GetDefaultPedTaskPairs())) {
+        for (auto&& [i, tp] : rngv::enumerate(pedGroup->GetIntelligence().GetDefaultPedTaskPairs())) {
             if (!tp.m_Ped) {
                 continue;
             }

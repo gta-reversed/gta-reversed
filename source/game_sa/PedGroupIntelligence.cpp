@@ -157,7 +157,7 @@ void CPedGroupIntelligence::Process() {
     }
 
     bool hasMemberListChanged{};
-    for (auto&& [i, mem] : notsa::enumerate(m_pPedGroup->GetMembership().GetMembers())) {
+    for (auto&& [i, mem] : rngv::enumerate(m_pPedGroup->GetMembership().GetMembers())) {
         if (m_PedTaskPairs[i].m_Ped == mem) {
             continue;
         }

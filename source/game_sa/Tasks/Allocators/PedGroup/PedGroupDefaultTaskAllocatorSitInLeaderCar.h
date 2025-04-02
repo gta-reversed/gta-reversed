@@ -40,7 +40,7 @@ public:
             new CTaskSimpleCarDrive{veh} // 0x5F7074
         });
         size_t seat{};
-        for (auto&& [i, mem] : notsa::enumerate(pedGroup->GetMembership().GetFollowers())) {
+        for (auto&& [i, mem] : rngv::enumerate(pedGroup->GetMembership().GetFollowers())) {
             if (seat >= veh->m_nMaxPassengers) {
                 break;
             }
