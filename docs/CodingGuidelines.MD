@@ -16,6 +16,8 @@
 * Use `ranges` versions of `std` functions as much as possible.
 * Use `rng::` instead of `std::ranges` and `rngv::` instead of `std::views`.
 * We encourage you to write modern C++, but if that's not your style, please keep the following in mind:
+* Use `ranges` versions of `std` functions as much as possible.
+* Use `rng::` instead of `std::ranges` and `rngv::` instead of `std::views`.
 ```cpp
 for (auto& element : array); // <-- GOOD
 

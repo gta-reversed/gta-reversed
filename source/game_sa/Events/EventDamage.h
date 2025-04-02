@@ -1,7 +1,6 @@
 #pragma once
 
 #include "PedDamageResponse.h"
-#include "Entity.h"
 #include "Enums/eWeaponType.h"
 #include "Enums/eEventType.h"
 #include "Event.h"
