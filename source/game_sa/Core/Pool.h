@@ -244,10 +244,10 @@ public:
     T* NewAt(int32 ref) {
         const auto idx = GetIndexFromRef(ref);
         assert(IsFreeSlotAtIndex(idx));
-        S* ptr = reinterpret_cast<S*>(&m_Storage[idx]);
+        StorageType* ptr = &m_Storage[idx];
         CreateAtRef(ref);
         DoFill(CLEANLAND_FILL, ptr);
-        return static_cast<T*>(ptr);
+        return (T*)(void*)(ptr);
     }
 
     /*!
@@ -315,7 +315,8 @@ public:
 
     // Helper so we don't write memcpy manually
     void CopyItem(T* dest, T* src) {
-        *reinterpret_cast<S*>(dest) = *reinterpret_cast<S*>(src);
+        memcpy(dest, src, sizeof(S));
+        //*reinterpret_cast<StorageType*>(dest) = *reinterpret_cast<StorageType*>(src);
     }
 
     //
@@ -349,39 +350,29 @@ public:
     void SetDealWithNoMemory(bool enabled) { m_DealWithNoMemory = enabled; }
     bool CanDealWithNoMemory() const { return m_DealWithNoMemory; }
 
-    // NOTSA - Get all valid objects - Useful for iteration
-    template<typename R = T&>
-    auto GetAllValid() {
-        return std::span{ reinterpret_cast<S*>(m_Storage), (size_t)(m_Capacity) }
-            | rngv::filter([this](auto&& obj) {
-                return !IsFreeSlotAtIndex(GetIndex(&obj));
-            }) // Filter only slots in use
-            | rngv::transform([](auto&& obj) -> R {
-                if constexpr (std::is_pointer_v<R>) { // For pointers we also do an address-of
-                    return static_cast<R>(&obj);
-                } else {
-                    return static_cast<R>(obj);
-                }
-            });
-    }
-
-    /*!
-    * @brief Similar to above, but gives back a pair [index, object]
-    */
+    // NOTSA - Get all valid objects with their index - Useful for iteration
     template<typename R = T>
     auto GetAllValidWithIndex() {
-        return GetAllValid<R&>()
-            | rng::views::transform([this](auto&& obj) {
-                   return std::make_pair(GetIndex(&obj), std::ref(obj));
-               });
+        return std::span{ reinterpret_cast<StorageType*>(m_Storage), (size_t)(m_Capacity) }
+            | rngv::transform([this](auto&& obj) -> R* { return (R*)(void*)(&obj); })                                          // Convert to object pointer
+            | rngv::enumerate                                                                                                  // Add index to non-filtered range
+            | rngv::filter([this](auto&& p) { return !IsFreeSlotAtIndex(std::get<0>(p)); })                              // Filter out free slots
+            | rngv::transform([](auto&& p) -> std::tuple<int32, R&> { return { std::get<0>(p), *std::get<1>(p) }; }); // Convert obj pointer to ref 
+    }
+
+    // NOTSA - Get all valid objects - Useful for iteration
+    template<typename R = T>
+    auto GetAllValid() {
+        return GetAllValidWithIndex<R>()
+            | rngv::transform([](auto&& p) -> R& { return std::get<1>(p); });
     }
 
 protected:
-    void DoFill(byte fill, void* at = nullptr) {
+    void DoFill(byte fill, StorageType* at = nullptr) {
         if (at) {
-            memset(at, fill, sizeof(S)); /* One object */
+            memset(at, fill, sizeof(StorageType)); /* One object */
         } else {
-            memset(m_Storage, fill, sizeof(S) * m_Capacity); /* Whole storage */
+            memset(m_Storage, fill, sizeof(StorageType) * m_Capacity); /* Whole storage */
         }
     }
 
