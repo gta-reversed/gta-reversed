@@ -74,7 +74,7 @@ CTask* CTaskManager::GetActiveTask() {
 }
 
 size_t CTaskManager::GetActiveTaskIndex() const {
-    for (auto&& [i, task] : notsa::enumerate(m_aPrimaryTasks)) {
+    for (auto&& [i, task] : rngv::enumerate(m_aPrimaryTasks)) {
         if (task) {
             return (size_t)i;
         }

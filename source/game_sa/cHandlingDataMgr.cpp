@@ -224,7 +224,7 @@ void cHandlingDataMgr::LoadHandlingData() {
             NOTSA_UNREACHABLE("Failed to process handling. [Line: {}; #Tokens Read: {}]", nline, ret);
         }
     }
-    DEV_LOG("Successfully loaded {}x handlings for {}x vehicles!", nLoadedHandlings, nLoadedVehHandlings);
+    NOTSA_LOG_DEBUG("Successfully loaded {}x handlings for {}x vehicles!", nLoadedHandlings, nLoadedVehHandlings);
 }
 
 // 0x005BF3D0
@@ -275,7 +275,7 @@ bool cHandlingDataMgr::HasRearWheelDrive(uint8 handlingId) {
 // get handling id by name
 // 0x6F4FD0
 int32 cHandlingDataMgr::GetHandlingId(const char* nameToFind) {
-    for (auto [id, name] : notsa::enumerate(VehicleNames)) {
+    for (auto [id, name] : rngv::enumerate(VehicleNames)) {
         if (!strcmp(name, nameToFind)) {
             return id;
         }
@@ -368,6 +368,6 @@ int32 cHandlingDataMgr::FindExactWord(const char* name, const char* nameTable, u
             return i;
         }
     }
-    DEV_LOG("Vehicle name not found in table: {}", name);
+    NOTSA_LOG_DEBUG("Vehicle name not found in table: {}", name);
     return -1;
 }

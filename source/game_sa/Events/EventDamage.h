@@ -1,7 +1,8 @@
 #pragma once
 
 #include "PedDamageResponse.h"
-#include "Enums\eWeaponType.h"
+#include "Enums/eWeaponType.h"
+#include "Enums/eEventType.h"
 #include "Event.h"
 #include "EventEditableResponse.h"
 

@@ -121,7 +121,7 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     CPools::MakeSureSlotInObjectPoolIsEmpty(slotIndex);
     object = new (slotIndex << 8) CObject(m_nModelIndex, false);
     if (!object) {
-        DEV_LOG("NO OBJECT ALLOCATED WHAT THE FUCK");
+        NOTSA_LOG_DEBUG("NO OBJECT ALLOCATED WHAT THE FUCK");
         return;
     }
 

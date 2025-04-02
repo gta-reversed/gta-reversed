@@ -1,6 +1,6 @@
 #include <StdInc.h>
 
-#include "./Commands.hpp"
+#include "Commands.hpp"
 #include <CommandParser/Parser.hpp>
 #include <extensions/Shapes/AngledRect.hpp>
 #include "Utility.h"
@@ -1305,7 +1305,7 @@ auto GetCharModel(CPed& ped) {
 
 // SET_CURRENT_CHAR_WEAPON
 void SetCurrentCharWeapon(CPed& ped, eWeaponType weaponType) {
-    for (auto&& [slot, weapon] : notsa::enumerate(ped.m_aWeapons)) {
+    for (auto&& [slot, weapon] : rngv::enumerate(ped.m_aWeapons)) {
         if (weapon.m_Type != weaponType)
             continue;
 

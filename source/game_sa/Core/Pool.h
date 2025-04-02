@@ -192,7 +192,7 @@ public:
                 if (bReachedTop) {
                     m_FirstFreeSlot = -1;
                     if (CanDealWithNoMemory()) {
-                        DEV_LOG("Allocation failed!");
+                        NOTSA_LOG_DEBUG("Allocation failed!");
                     } else {
                         NOTSA_DEBUG_BREAK();
                     }

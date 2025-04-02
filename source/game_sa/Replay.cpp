@@ -437,7 +437,7 @@ void CReplay::PlayReplayFromHD() {
         CFileMgr::Read(file, gString, 8u);
 
         if (strncmp(gString, "GtaSA29", 8u) != 0) {
-            DEV_LOG("Invalid replay file data, header unmatch (='{}')", std::string_view{gString, 8u});
+            NOTSA_LOG_DEBUG("Invalid replay file data, header unmatch (='{}')", std::string_view{gString, 8u});
         } else {
             auto bufferIdx = 0u;
             for (; bufferIdx < NUM_REPLAY_BUFFERS && CFileMgr::Read(file, Buffers[bufferIdx].buffer.data(), sizeof(tReplayBuffer)); bufferIdx++) {
@@ -985,7 +985,7 @@ void CReplay::RecordThisFrame() {
         }
     }
 
-    for (auto&& [i, trace] : notsa::enumerate(CBulletTraces::aTraces)) {
+    for (auto&& [i, trace] : rngv::enumerate(CBulletTraces::aTraces)) {
         if (!trace.m_bExists)
             continue;
 
@@ -1539,7 +1539,7 @@ void CReplay::TriggerPlayback(eReplayCamMode mode, CVector fixedCamPos, bool loa
 
     // TODO: refactor
     auto idx = 7;
-    for (auto&& [i, status] : notsa::enumerate(BufferStatus)) {
+    for (auto&& [i, status] : rngv::enumerate(BufferStatus)) {
         if (status == REPLAYBUFFER_IN_USE) {
             idx = i;
             break;

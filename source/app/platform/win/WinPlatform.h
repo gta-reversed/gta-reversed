@@ -5,7 +5,7 @@
 //! Win32 fail check (returns from function automagically)
 #define WIN_FCHECK(x) do { \
         if (HRESULT hr = (x); FAILED(hr)) { \
-	        DEV_LOG(TEXT("FAILED(hr=0x{:x}) in ") TEXT(#x) TEXT("\n"), (size_t)(hr)); \
+	        NOTSA_LOG_DEBUG(TEXT("FAILED(hr=0x{:x}) in ") TEXT(#x) TEXT("\n"), (size_t)(hr)); \
             return; \
         } \
     } while (0) \

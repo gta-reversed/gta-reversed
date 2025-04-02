@@ -62,7 +62,7 @@ void CPools::Initialise() {
 void CPools::ShutDown() {
     plugin::Call<0x5519F0>();
     /*
-    DEV_LOG("Shutdown pool started");
+    NOTSA_LOG_DEBUG("Shutdown pool started");
     delete ms_pPtrNodeSingleLinkPool;
     delete ms_pPtrNodeDoubleLinkPool;
     delete ms_pEntryInfoNodePool;
@@ -80,7 +80,7 @@ void CPools::ShutDown() {
     delete ms_pTaskAllocatorPool;
     delete ms_pPedIntelligencePool;
     delete ms_pPedAttractorPool;
-    DEV_LOG("Shutdown pool done");
+    NOTSA_LOG_DEBUG("Shutdown pool done");
     */
 }
 
@@ -100,9 +100,9 @@ void CPools::CheckPoolsEmpty() {
             continue;
 
         const auto& objPos = obj->GetPosition();
-        DEV_LOG("Offending object: MI: {} Coors:{} {} {}", obj->m_nModelIndex, objPos.x, objPos.y, objPos.z);
+        NOTSA_LOG_DEBUG("Offending object: MI: {} Coors:{} {} {}", obj->m_nModelIndex, objPos.x, objPos.y, objPos.z);
     }
-    DEV_LOG("Pools have been cleared!");
+    NOTSA_LOG_DEBUG("Pools have been cleared!");
 }
 
 // 0x550050

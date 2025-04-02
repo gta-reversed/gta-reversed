@@ -612,7 +612,7 @@ void CWorld::ShutDown() {
                 sprintf_s(gString, "%s overlap list %d,%d not empty\n", listName, x, y);
                 list.Flush();
             #ifdef _DEBUG
-                DEV_LOG(gString); // Lets also print this string
+                NOTSA_LOG_DEBUG(gString); // Lets also print this string
             #endif
             }
         };
@@ -1304,7 +1304,7 @@ void CWorld::PrintCarChanges() {
 
         auto prevModelIndex = s_aModelIndexes[poolSize];
         if (modelIndex != prevModelIndex) {
-            DEV_LOG("Car ModelIndex (slot: {}) has changed from {} into {}", poolSize, prevModelIndex, modelIndex);
+            NOTSA_LOG_DEBUG("Car ModelIndex (slot: {}) has changed from {} into {}", poolSize, prevModelIndex, modelIndex);
             s_aModelIndexes[poolSize] = modelIndex;
         }
     }
@@ -2115,7 +2115,7 @@ void CWorld::Process() {
 
     CMessages::Process();
 
-    for (auto&& [i, p] : notsa::enumerate(Players)) {
+    for (auto&& [i, p] : rngv::enumerate(Players)) {
         if (p.m_pPed) {
             p.Process((uint32)i);
         }
@@ -2343,7 +2343,7 @@ float CWorld::FindRoofZFor3DCoord(float x, float y, float z, bool* outResult) {
         if (outResult)
             *outResult = false;
         else
-            DEV_LOG("THERE IS NO MAP BELOW THE FOLLOWING COORS:{} {} {}. (FindGroundZFor3DCoord)", x, y, z); // R* triggered
+            NOTSA_LOG_DEBUG("THERE IS NO MAP BELOW THE FOLLOWING COORS:{} {} {}. (FindGroundZFor3DCoord)", x, y, z); // R* triggered
         return 20.0f;
     }
 }

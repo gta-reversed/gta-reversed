@@ -6,8 +6,6 @@
 */
 #include "StdInc.h"
 
-#include <extensions/enumerate.hpp>
-
 #include "Garages.h"
 #include "GangWars.h"
 #include "GangWarsSaveStructure.h"
@@ -1029,7 +1027,7 @@ void CGangWars::UpdateTerritoryUnderControlPercentage() {
         };
         std::sort(ranking, ranking + 3, [&](GangRanking a, GangRanking b) { return a.controlled > b.controlled; });
 
-        for (auto&& [i, e] : notsa::enumerate(ranking)) {
+        for (auto&& [i, e] : rngv::enumerate(ranking)) {
             GangRatings[e.gang] = i;
             GangRatingStrength[i] = e.controlled;
         }
