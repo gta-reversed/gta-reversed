@@ -77,5 +77,5 @@ public:
     static CRegisteredCorona* GetFree();
 };
 
-inline auto& gpCoronaTexture = StaticRef<std::array<RwTexture*, eCoronaType::CORONATYPE_COUNT - 1>>(0xC3E000);
+inline auto& gpCoronaTexture = StaticRef<std::array<RwTexture*, eCoronaType::CORONATYPE_COUNT>>(0xC3E000);
 
