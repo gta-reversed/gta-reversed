@@ -13,7 +13,7 @@ public:
     eEventType GetEventType() const override { return EVENT_PLAYER_COMMAND_TO_GROUP; }
     int32 GetEventPriority() const override { return 44; }
     bool AffectsPedGroup(CPedGroup* pedGroup) override;
-    CEventPlayerCommandToGroupAttack* CloneEditable() override { return new CEventPlayerCommandToGroupAttack(m_target); }
+    CEventPlayerCommandToGroupAttack* CloneEditable() const noexcept override { return new CEventPlayerCommandToGroupAttack(m_target); }
 
 private:
     CEventPlayerCommandToGroupAttack* Constructor(CPed* target);

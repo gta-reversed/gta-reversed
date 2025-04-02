@@ -24,10 +24,10 @@ class CFire;
 
 class NOTSA_EXPORT_VTABLE CObject : public CPhysical {
 public:
-    CPtrNodeDoubleLink* m_pControlCodeList;
-    uint8               m_nObjectType; // see enum eObjectType
-    uint8               m_nBonusValue;
-    uint16              m_wCostValue;
+    CPtrNodeDoubleLink<CObject*>* m_pControlCodeList;
+    uint8                         m_nObjectType; // see enum eObjectType
+    uint8                         m_nBonusValue;
+    uint16                        m_wCostValue;
     union {
         struct {
             uint32 bIsPickup : 1;               // 0x1

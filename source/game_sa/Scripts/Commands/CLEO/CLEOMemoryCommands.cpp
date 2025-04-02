@@ -1,6 +1,6 @@
 #include <StdInc.h>
 
-#include "./Commands.hpp"
+#include "CLEOCommands.hpp"
 #include <CommandParser/Parser.hpp>
 
 #include "app_debug.h"
@@ -76,7 +76,7 @@ OpcodeResult CRunningScript::ProcessCommand<COMMAND_CALL_METHOD_RETURN>() { // 0
 
 const char* GetScriptStructNamed(CRunningScript* S) {
     NOTSA_UNREACHABLE("Not implemented!");
-    S->m_bCondResult = false;
+    S->m_CondResult = false;
 
     return nullptr;
 }

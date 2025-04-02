@@ -118,11 +118,11 @@ void CCover::Update() {
     /* Process buildings too */
     if (CTimer::GetFrameCounter() % 8 == 5) { // 0x699A71
         // BUG:
-        // This implementation may've accessed objects after they've been destoryed (use-after-free
-        // I've modified it so that it uses refernces that get null'd automatically
-        for (CPtrNodeDoubleLink *it = m_ListOfProcessedBuildings.GetNode(), *next{}; it; it = next) {
-            next            = it->GetNext();
-            auto* const obj = it->GetItem<CBuilding>();
+        // This implementation may've accessed objects after they've been destroyed (use-after-free
+        // I've modified it so that it uses references that get null'd automatically
+        for (CPtrNodeDoubleLink<CBuilding*> *it = m_ListOfProcessedBuildings.GetNode(), *next{}; it; it = next) {
+            next            = it->Next;
+            auto* const obj = it->Item;
 
             if (!notsa::IsFixBugs() || obj) { // If fixbugs the reference may've got cleared
                 if (ShouldThisBuildingHaveItsCoverPointsCreated(obj)) {
@@ -130,7 +130,7 @@ void CCover::Update() {
                 }
                 RemoveCoverPointsForThisEntity(obj);
                 if (notsa::IsFixBugs()) { // FIXBUGS: Use-after-free
-                    CEntity::SafeCleanUpRef(reinterpret_cast<CEntity*&>(it->m_item));
+                    CEntity::SafeCleanUpRef(reinterpret_cast<CEntity*&>(it->Item));
                 }
             }
             m_ListOfProcessedBuildings.DeleteNode(it);
@@ -139,10 +139,7 @@ void CCover::Update() {
         if (!FindPlayerVehicle()) { // 0x699AE1
             CWorld::IncrementCurrentScanCode();
             CWorld::IterateSectorsOverlappedByRect(CRect{ FindPlayerCoors(), 30.f }, [&](int32 x, int32 y) {
-                for (CPtrNodeDoubleLink* it = GetSector(x, y)->m_buildings.GetNode(), *next{}; it; it = next) {
-                    next            = it->GetNext();
-                    auto* const obj = it->GetItem<CBuilding>();
-
+                for (auto* const obj : GetSector(x, y)->m_buildings) {
                     if (obj->IsScanCodeCurrent()) {
                         continue;
                     }
@@ -156,7 +153,7 @@ void CCover::Update() {
                     FindCoverPointsForThisBuilding(obj);
                     auto* const link = m_ListOfProcessedBuildings.AddItem(obj);
                     if (notsa::IsFixBugs()) { // FIXBUGS: Use-after-free
-                        CEntity::SafeRegisterRef(reinterpret_cast<CEntity*&>(link->m_item));
+                        CEntity::SafeRegisterRef(reinterpret_cast<CEntity*&>(link->Item));
                     }
                 }
                 return true;

@@ -157,40 +157,25 @@ void CEntity::Add(const CRect& rect)
                 pLodListEntry.AddItem(this);
             }
         }
-    }
-    else {
+    } else {
         int32 startSectorX = CWorld::GetSectorX(usedRect.left);
         int32 startSectorY = CWorld::GetSectorY(usedRect.bottom);
         int32 endSectorX = CWorld::GetSectorX(usedRect.right);
         int32 endSectorY = CWorld::GetSectorY(usedRect.top);
         for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
             for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-                CPtrListDoubleLink* list = nullptr;
-                auto repeatSector = GetRepeatSector(sectorX, sectorY);
-                auto sector = GetSector(sectorX, sectorY);
-
-                if (IsBuilding()) { //Buildings are treated as single link here, needs checking if the list is actually single or double
-                    reinterpret_cast<CPtrListSingleLink*>(&sector->m_buildings)->AddItem(this);
-                    continue;
+                auto* const s = GetSector(sectorX, sectorY);
+                auto* const rs = GetRepeatSector(sectorX, sectorY);
+                const auto ProcessAddItem = [this]<typename PtrListType>(PtrListType& list) {
+                    list.AddItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
+                };
+                switch (m_nType) {
+                case ENTITY_TYPE_DUMMY:    ProcessAddItem(s->m_dummies);   break;
+                case ENTITY_TYPE_VEHICLE:  ProcessAddItem(rs->Vehicles);   break;
+                case ENTITY_TYPE_PED:      ProcessAddItem(rs->Peds);       break;
+                case ENTITY_TYPE_OBJECT:   ProcessAddItem(rs->Objects);    break;
+                case ENTITY_TYPE_BUILDING: ProcessAddItem(s->m_buildings); break;
                 }
-
-                switch (m_nType)
-                {
-                case ENTITY_TYPE_DUMMY:
-                    list = &sector->m_dummies;
-                    break;
-                case ENTITY_TYPE_VEHICLE:
-                    list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
-                    break;
-                case ENTITY_TYPE_PED:
-                    list = &repeatSector->GetList(REPEATSECTOR_PEDS);
-                    break;
-                case ENTITY_TYPE_OBJECT:
-                    list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
-                    break;
-                }
-
-                list->AddItem(this);
             }
         }
     }
@@ -224,40 +209,25 @@ void CEntity::Remove()
                 list.DeleteItem(this);
             }
         }
-    }
-    else {
+    } else {
         int32 startSectorX = CWorld::GetSectorX(usedRect.left);
         int32 startSectorY = CWorld::GetSectorY(usedRect.bottom);
         int32 endSectorX = CWorld::GetSectorX(usedRect.right);
         int32 endSectorY = CWorld::GetSectorY(usedRect.top);
         for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
             for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-                CPtrListDoubleLink* list = nullptr;
-                auto sector = GetSector(sectorX, sectorY);
-                auto repeatSector = GetRepeatSector(sectorX, sectorY);
-
-                if (IsBuilding()) { //Buildings are treated as single link here
-                    reinterpret_cast<CPtrListSingleLink*>(&sector->m_buildings)->DeleteItem(this);
-                    continue;
+                auto* const s = GetSector(sectorX, sectorY);
+                auto* const rs = GetRepeatSector(sectorX, sectorY);
+                const auto ProcessDeleteItem = [this]<typename PtrListType>(PtrListType& list) {
+                    list.DeleteItem(static_cast<typename PtrListType::ItemType>(this)); // TODO: notsa::cast
+                };
+                switch (m_nType) {
+                case ENTITY_TYPE_DUMMY:    ProcessDeleteItem(s->m_dummies);   break;
+                case ENTITY_TYPE_VEHICLE:  ProcessDeleteItem(rs->Vehicles);   break;
+                case ENTITY_TYPE_PED:      ProcessDeleteItem(rs->Peds);       break;
+                case ENTITY_TYPE_OBJECT:   ProcessDeleteItem(rs->Objects);    break;
+                case ENTITY_TYPE_BUILDING: ProcessDeleteItem(s->m_buildings); break;
                 }
-
-                switch (m_nType)
-                {
-                case ENTITY_TYPE_DUMMY:
-                    list = &sector->m_dummies;
-                    break;
-                case ENTITY_TYPE_VEHICLE:
-                    list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
-                    break;
-                case ENTITY_TYPE_PED:
-                    list = &repeatSector->GetList(REPEATSECTOR_PEDS);
-                    break;
-                case ENTITY_TYPE_OBJECT:
-                    list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
-                    break;
-                }
-
-                list->DeleteItem(this);
             }
         }
     }
@@ -336,7 +306,7 @@ void CEntity::CreateRwObject()
             obj->SetIsStatic(false);
         }
         else {
-            CWorld::ms_listMovingEntityPtrs.AddItem(this);
+            CWorld::ms_listMovingEntityPtrs.AddItem(AsPhysical());
         }
 
         if (m_pLod && m_pLod->m_pRwObject && RwObjectGetType(m_pLod->m_pRwObject) == rpCLUMP) {
@@ -396,7 +366,7 @@ void CEntity::DeleteRwObject()
         --gBuildings;
 
     if (mi->GetModelType() == MODEL_INFO_CLUMP && mi->IsRoad() && !IsObject()) {
-        CWorld::ms_listMovingEntityPtrs.DeleteItem(this);
+        CWorld::ms_listMovingEntityPtrs.DeleteItem(AsPhysical());
     }
 
     CEntity::DestroyEffects();
@@ -484,15 +454,14 @@ void CEntity::PreRender()
                 RpGeometryForAllMaterials(RpAtomicGetGeometry(ami->m_pRwAtomic), MaterialUpdateUVAnimCB, nullptr);
             }
         }
-
+        
         mi->IncreaseAlpha();
 
         // PC Only
         if (ami) {
             CCustomBuildingDNPipeline::PreRenderUpdate(ami->m_pRwAtomic, false);
-        }
-        else if (mi->GetModelType() == MODEL_INFO_CLUMP) {
-            RpClumpForAllAtomics(mi->m_pRwClump, CCustomBuildingDNPipeline::PreRenderUpdateRpAtomicCB, reinterpret_cast<void*>(false));
+        } else if (mi->GetModelType() == MODEL_INFO_CLUMP) {
+            CCustomBuildingDNPipeline::PreRenderUpdate(ami->m_pRwClump, false);
         }
         // PC Only
     }
@@ -1281,7 +1250,7 @@ void CEntity::AttachToRwObject(RwObject* object, bool updateEntityMatrix)
             SetIsStatic(false);
         }
         else {
-            CWorld::ms_listMovingEntityPtrs.AddItem(this);
+            CWorld::ms_listMovingEntityPtrs.AddItem(AsPhysical());
         }
     }
 
@@ -1305,7 +1274,7 @@ void CEntity::DetachFromRwObject()
         && mi->IsRoad()
         && !IsObject()
     ) {
-        CWorld::ms_listMovingEntityPtrs.DeleteItem(this);
+        CWorld::ms_listMovingEntityPtrs.DeleteItem(AsPhysical());
     }
 
     DestroyEffects();

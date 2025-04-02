@@ -19,11 +19,11 @@ auto& PoolOf<CColModel>() { return *GetColModelPool(); }
 template<>
 auto& PoolOf<CPedIntelligence>() { return *GetPedIntelligencePool(); }
 
-template<>
-auto& PoolOf<CPtrNodeSingleLink>() { return *GetPtrNodeSingleLinkPool(); }
-
-template<>
-auto& PoolOf<CPtrNodeDoubleLink>() { return *GetPtrNodeDoubleLinkPool(); }
+//template<>
+//auto& PoolOf<CPtrNodeSingleLink>() { return *GetPtrNodeSingleLinkPool(); }
+//
+//template<>
+//auto& PoolOf<CPtrNodeDoubleLink>() { return *GetPtrNodeDoubleLinkPool(); }
 
 template<>
 auto& PoolOf<CEntryInfoNode>() { return *GetEntryInfoNodePool(); }
