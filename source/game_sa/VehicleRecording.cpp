@@ -147,13 +147,10 @@ void CVehicleRecording::RemoveRecordingFile(int32 fileNumber) {
 
 // 0x45A020
 void CVehicleRecording::RequestRecordingFile(int32 fileNumber) {
-    auto index = 0;
-    if (const auto recording = FindRecording(fileNumber)) {
-        index = recording->GetIndex();
-        recording->Remove();
+    if (const auto rec = FindRecording(fileNumber)) {
+        CStreaming::RequestModel(RRRToModelId(rec->GetIndex()), STREAMING_KEEP_IN_MEMORY | STREAMING_MISSION_REQUIRED);
+        rec->Remove();
     }
-
-    CStreaming::RequestModel(RRRToModelId(index), STREAMING_KEEP_IN_MEMORY | STREAMING_MISSION_REQUIRED);
 }
 
 // 0x459440

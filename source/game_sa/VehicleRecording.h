@@ -135,7 +135,7 @@ public:
     }
 
     static int32 FindVehicleRecordingIndex(CVehicle* vehicle) {
-        for (auto i : GetActivePlaybackIndices()) {
+        for (const auto i : GetActivePlaybackIndices()) {
             if (pVehicleForPlayback[i] == vehicle) {
                 return i;
             }

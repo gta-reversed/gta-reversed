@@ -242,7 +242,7 @@ void CTxdStore::RemoveTxdSlot(int32 index) {
 // remove txd
 // 0x731E90
 void CTxdStore::RemoveTxd(int32 index) {
-    NOTSA_LOG_DEBUG("CTxdStore::RemoveTxd({})", index);
+    NOTSA_LOG_TRACE("CTxdStore::RemoveTxd({})", index);
     TxdDef* txd = ms_pTxdPool->GetAt(index);
     if (!txd)
         return;

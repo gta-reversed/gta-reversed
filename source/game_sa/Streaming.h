@@ -78,18 +78,16 @@ enum class eModelType {
 };
 
 // Helper functions to deal with modelID's
+constexpr bool IsModelDFF(int32 model) { return RESOURCE_ID_DFF <= model && model < RESOURCE_ID_TXD; }
+constexpr bool IsModelTXD(int32 model) { return RESOURCE_ID_TXD <= model && model < RESOURCE_ID_COL; }
+constexpr bool IsModelCOL(int32 model) { return RESOURCE_ID_COL <= model && model < RESOURCE_ID_IPL; }
+constexpr bool IsModelIPL(int32 model) { return RESOURCE_ID_IPL <= model && model < RESOURCE_ID_DAT; }
+constexpr bool IsModelDAT(int32 model) { return RESOURCE_ID_DAT <= model && model < RESOURCE_ID_IFP; }
+constexpr bool IsModelIFP(int32 model) { return RESOURCE_ID_IFP <= model && model < RESOURCE_ID_RRR; }
+constexpr bool IsModelRRR(int32 model) { return RESOURCE_ID_RRR <= model && model < RESOURCE_ID_SCM; }
+constexpr bool IsModelSCM(int32 model) { return RESOURCE_ID_SCM <= model && model < RESOURCE_ID_LOADED_LIST_START; }
 
-
-inline bool IsModelDFF(int32 model) { return RESOURCE_ID_DFF <= model && model < RESOURCE_ID_TXD; }
-inline bool IsModelTXD(int32 model) { return RESOURCE_ID_TXD <= model && model < RESOURCE_ID_COL; }
-inline bool IsModelCOL(int32 model) { return RESOURCE_ID_COL <= model && model < RESOURCE_ID_IPL; }
-inline bool IsModelIPL(int32 model) { return RESOURCE_ID_IPL <= model && model < RESOURCE_ID_DAT; }
-inline bool IsModelDAT(int32 model) { return RESOURCE_ID_DAT <= model && model < RESOURCE_ID_IFP; }
-inline bool IsModelIFP(int32 model) { return RESOURCE_ID_IFP <= model && model < RESOURCE_ID_RRR; }
-inline bool IsModelRRR(int32 model) { return RESOURCE_ID_RRR <= model && model < RESOURCE_ID_SCM; }
-inline bool IsModelSCM(int32 model) { return RESOURCE_ID_SCM <= model && model < RESOURCE_ID_LOADED_LIST_START; }
-
-inline eModelType GetModelType(int32 model) {
+constexpr eModelType GetModelType(int32 model) {
     if (IsModelDFF(model))
         return eModelType::DFF;
 
@@ -121,24 +119,24 @@ inline eModelType GetModelType(int32 model) {
 }
 
 // Turn relative IDs into absolute ones.
-inline int32 DFFToModelId(int32 relativeId) { return RESOURCE_ID_DFF + relativeId; }
-inline int32 TXDToModelId(int32 relativeId) { return RESOURCE_ID_TXD + relativeId; }
-inline int32 COLToModelId(int32 relativeId) { return RESOURCE_ID_COL + relativeId; }
-inline int32 IPLToModelId(int32 relativeId) { return RESOURCE_ID_IPL + relativeId; }
-inline int32 DATToModelId(size_t relativeId) { return (size_t)RESOURCE_ID_DAT + relativeId; }
-inline int32 IFPToModelId(int32 relativeId) { return RESOURCE_ID_IFP + relativeId; }
-inline int32 RRRToModelId(int32 relativeId) { return RESOURCE_ID_RRR + relativeId; }
-inline int32 SCMToModelId(int32 relativeId) { return RESOURCE_ID_SCM + relativeId; }
+constexpr int32 DFFToModelId(int32 relativeId) { return RESOURCE_ID_DFF + relativeId; }
+constexpr int32 TXDToModelId(int32 relativeId) { return RESOURCE_ID_TXD + relativeId; }
+constexpr int32 COLToModelId(int32 relativeId) { return RESOURCE_ID_COL + relativeId; }
+constexpr int32 IPLToModelId(int32 relativeId) { return RESOURCE_ID_IPL + relativeId; }
+constexpr int32 DATToModelId(size_t relativeId) { return (size_t)RESOURCE_ID_DAT + relativeId; }
+constexpr int32 IFPToModelId(int32 relativeId) { return RESOURCE_ID_IFP + relativeId; }
+constexpr int32 RRRToModelId(int32 relativeId) { return RESOURCE_ID_RRR + relativeId; }
+constexpr int32 SCMToModelId(int32 relativeId) { return RESOURCE_ID_SCM + relativeId; }
 
 // Turn absolute IDs into relative ones
-inline int32 ModelIdToDFF(int32 absId) { return absId - RESOURCE_ID_DFF; }
-inline int32 ModelIdToTXD(int32 absId) { return absId - RESOURCE_ID_TXD; }
-inline int32 ModelIdToCOL(int32 absId) { return absId - RESOURCE_ID_COL; }
-inline int32 ModelIdToIPL(int32 absId) { return absId - RESOURCE_ID_IPL; }
-inline int32 ModelIdToDAT(int32 absId) { return absId - RESOURCE_ID_DAT; }
-inline int32 ModelIdToIFP(int32 absId) { return absId - RESOURCE_ID_IFP; }
-inline int32 ModelIdToRRR(int32 absId) { return absId - RESOURCE_ID_RRR; }
-inline int32 ModelIdToSCM(int32 absId) { return absId - RESOURCE_ID_SCM; }
+constexpr int32 ModelIdToDFF(int32 absId) { return absId - RESOURCE_ID_DFF; }
+constexpr int32 ModelIdToTXD(int32 absId) { return absId - RESOURCE_ID_TXD; }
+constexpr int32 ModelIdToCOL(int32 absId) { return absId - RESOURCE_ID_COL; }
+constexpr int32 ModelIdToIPL(int32 absId) { return absId - RESOURCE_ID_IPL; }
+constexpr int32 ModelIdToDAT(int32 absId) { return absId - RESOURCE_ID_DAT; }
+constexpr int32 ModelIdToIFP(int32 absId) { return absId - RESOURCE_ID_IFP; }
+constexpr int32 ModelIdToRRR(int32 absId) { return absId - RESOURCE_ID_RRR; }
+constexpr int32 ModelIdToSCM(int32 absId) { return absId - RESOURCE_ID_SCM; }
 
 struct tRwStreamInitializeData {
     uint8* m_pBuffer;
