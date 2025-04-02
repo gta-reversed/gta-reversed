@@ -323,7 +323,7 @@ void CFire::ProcessFire() {
     }
 
     if (CGeneral::GetRandomNumber() % 32 == 0) {
-        for (auto i = GetVehiclePool()->GetSize() - 1; i >= 0; i--) { /* backwards loop, like original code */
+        for (auto i = GetVehiclePool()->GetSize(); i --> 0;) { /* backwards loop, like original code */
             CVehicle* vehicle = GetVehiclePool()->GetAt(i);
             if (!vehicle)
                 continue;
