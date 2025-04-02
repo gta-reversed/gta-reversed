@@ -51,7 +51,7 @@ jobs:
                 shell: cmd
                 run: |
                     conan profile detect
-                    python install.py --buildconf ${{ matrix.conf }} ${{ matrix.preset == 'NoUnity' && '--no-unity-build' || '' }}
+                    python setup.py --buildconf ${{ matrix.conf }} ${{ matrix.preset == 'NoUnity' && '--no-unity-build' || '' }}
 
             -   name: Build ${{ matrix.conf }}-${{ matrix.arch }}
                 shell: cmd
