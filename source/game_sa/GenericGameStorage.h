@@ -93,6 +93,7 @@ public:
     static bool OpenFileForReading(const char* fileName, int32 slot);
     static bool CheckDataNotCorrupt(int32 slot, const char* fileName);
     static bool RestoreForStartLoad();
+    inline GxtChar* GetNameOfSavedGame(int SlotNumber) { return CGenericGameStorage::ms_SlotFileName[SlotNumber]; }
 
     // NOTSA
     template<typename T>
@@ -108,4 +109,3 @@ private:
 };
 
 const GxtChar* GetSavedGameDateAndTime(int32 slot);
-

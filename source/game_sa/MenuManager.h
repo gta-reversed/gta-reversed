@@ -165,7 +165,7 @@ public:
     bool  m_bTexturesLoaded;
     eMenuScreen m_nCurrentScreen;
     eMenuScreen m_nPrevScreen; // Used only in SwitchToNewScreen
-    uint8 m_bSelectedSaveGame;
+    uint8 m_bSelectedSaveGame; // boolean? wtf
     uint8 m_nMissionPackGameId;
     MPack m_MissionPacks[25];
     bool  m_bDoVideoModeUpdate;
@@ -281,7 +281,7 @@ public:
     void DrawFrontEnd();
     void DrawBuildInfo();
     void DrawBackground();
-    void DrawStandardMenus(uint8);
+    void DrawStandardMenus(bool);
     void DrawWindow(const CRect& coords, const char* key, uint8 color, CRGBA backColor, bool unused, bool background);
     void DrawWindowedText(float x, float y, float wrap, const char* title, const char* message, eFontAlignment alignment);
     void DrawQuitGameScreen();
@@ -338,7 +338,7 @@ public:
     void Process();
     void ProcessStreaming(bool streamAll);
     void ProcessFileActions();
-    void ProcessUserInput(bool downPressed, bool upPressed, bool acceptPressed, bool cancelPressed, int8 pressedLR);
+    void ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMenuOption, bool GoBackOneMenu, int8 LeftRight);
     void ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool acceptPressed);
     bool ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed);
     void ProcessMissionPackNewGame();

@@ -9,9 +9,10 @@
 
 #include "extensions/Configs/FastLoader.hpp"
 
+
 /*!
- * @addr 0x57FD70
- */
+* @addr 0x57FD70
+*/ 
 void CMenuManager::UserInput() {
     { // NOTSA
     const auto pad = CPad::GetPad();
@@ -20,15 +21,117 @@ void CMenuManager::UserInput() {
         ReversibleHooks::SwitchHook("DisplaySlider");
     }
     }
-
     plugin::CallMethod<0x57FD70, CMenuManager*>(this);
 }
 
 /*!
  * @addr 0x57B480
  */
-void CMenuManager::ProcessUserInput(bool downPressed, bool upPressed, bool acceptPressed, bool cancelPressed, int8 pressedLR) {
-    plugin::CallMethod<0x57B480, CMenuManager*, bool, bool, bool, bool, int8>(this, downPressed, upPressed, acceptPressed, cancelPressed, pressedLR);
+void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMenuOption, bool GoBackOneMenu, int8 LeftRight) {
+    if (m_nCurrentScreen == SCREEN_EMPTY || CheckRedefineControlInput()) {
+        return;
+    }
+
+    // Handle down navigation
+    if (GetNumberOfMenuOptions() > 1 && GoDownMenu) {
+        if (m_nCurrentScreen != SCREEN_MAP) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
+        }
+
+        auto screenIdx = m_nCurrentScreen;
+        m_nCurrentScreenItem++;
+        
+        // Skip entries marked as SKIP_THIS_ENTRY
+        if (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == 20) {
+            do {
+                m_nCurrentScreenItem++;
+            } while (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == 20);
+        }
+        
+        // Wrap around if reached end or empty item
+        if (m_nCurrentScreenItem >= 12 || !aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType) {
+            m_nCurrentScreenItem = (aScreens[screenIdx].m_aItems[0].m_nActionType == 1) ? 1 : 0;
+        }
+    }
+
+    // Handle up navigation
+    if (GetNumberOfMenuOptions() > 1 && GoUpMenu) {
+        if (m_nCurrentScreen != SCREEN_MAP) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
+        }
+
+        auto screenIdx = m_nCurrentScreen;
+        auto firstItemSpecial = (aScreens[screenIdx].m_aItems[0].m_nActionType == 1);
+
+        if (m_nCurrentScreenItem <= (firstItemSpecial ? 1 : 0)) {
+            // Wrap to end
+            if (m_nCurrentScreenItem < 11) {
+                do {
+                    if (!aScreens[screenIdx].m_aItems[m_nCurrentScreenItem + 1].m_nActionType)
+                        break;
+                    m_nCurrentScreenItem++;
+                } while (m_nCurrentScreenItem < 11);
+            }
+
+            // Skip entries marked as SKIP_THIS_ENTRY (backwards)
+            if (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == 20) {
+                do {
+                    m_nCurrentScreenItem--;
+                } while (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == 20);
+            }
+        } else {
+            // Move to previous item
+            m_nCurrentScreenItem--;
+
+            // Skip entries marked as SKIP_THIS_ENTRY (backwards)
+            if (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == 20) {
+                do {
+                    m_nCurrentScreenItem--;
+                } while (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == 20);
+            }
+        }
+    }
+
+    // Handle accept action
+    if (EnterMenuOption) {
+        if (m_nCurrentScreen == SCREEN_CONTROLS_DEFINITION) {
+            m_EditingControlOptions = true;
+            m_bJustOpenedControlRedefWindow = true;
+            m_pPressedKey = &m_KeyPressedCode;
+            m_MouseInBounds = 16;
+        }
+
+        ProcessMenuOptions(0, GoBackOneMenu, EnterMenuOption);
+
+        if (!GoBackOneMenu) {
+            uint8 menuType = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType;
+            
+            // Audio feedback based on menu type and status
+            if (field_F4 || menuType < 1 || menuType > 8 || !dword_C16EB8[m_nCurrentScreenItem]) {
+                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);
+            } else {
+                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR, 0.0, 1.0);
+            }
+        }
+    }
+
+    // Handle slider movement with wheel input
+    if (LeftRight) {
+        if (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType == 12) {
+            ProcessMenuOptions(LeftRight, GoBackOneMenu, 0);
+            CheckSliderMovement(LeftRight);
+        }
+    }
+
+    // Handle cancel/back action
+    if (GoBackOneMenu) {
+        if (m_bRadioAvailable) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
+            SwitchToNewScreen(eMenuScreen(-2)); // Go back one screen
+        } else {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
+        }
+    }
 }
 
 /*!

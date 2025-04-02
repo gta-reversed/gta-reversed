@@ -50,7 +50,7 @@ void CMenuManager::InjectHooks() {
 
     RH_ScopedInstall(DrawFrontEnd, 0x57C290);
     RH_ScopedInstall(DrawBackground, 0x57B750);
-    RH_ScopedInstall(DrawStandardMenus, 0x5794A0, { .reversed = false });
+    RH_ScopedInstall(DrawStandardMenus, 0x5794A0);
     RH_ScopedInstall(DrawWindow, 0x573EE0);
     RH_ScopedInstall(DrawWindowedText, 0x578F50);
     RH_ScopedInstall(DrawQuitGameScreen, 0x57D860);
@@ -94,7 +94,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(Process, 0x57B440);
     RH_ScopedInstall(ProcessStreaming, 0x573CF0);
     RH_ScopedInstall(ProcessFileActions, 0x578D60);
-    RH_ScopedInstall(ProcessUserInput, 0x57B480, { .reversed = false });
+    RH_ScopedInstall(ProcessUserInput, 0x57B480);
     RH_ScopedInstall(ProcessMenuOptions, 0x576FE0);
     RH_ScopedInstall(ProcessPCMenuOptions, 0x57CD50);
     RH_ScopedInstall(ProcessMissionPackNewGame, 0x57D520);
