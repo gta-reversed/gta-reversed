@@ -1,6 +1,7 @@
 option(${RE_PROJECT}_UNITY_BUILD "Use Unity/Jumbo build" OFF)
 option(${RE_PROJECT}_WITH_SANITIZERS "Use Sanitizers (better crash log)" OFF)
-option(${RE_PROJECT}_WITH_LTO "Use Link Time Optimization" OFF)
+option(${RE_PROJECT}_WITH_SCRIPT_COMMAND_HOOKS "Create script command hooks in the UI (Command hooks are installed regardless)" OFF)
+option(${RE_PROJECT}_WITH_CLEO_COMMANDS "Enable CLEO script commands" OFF)
 
 file(
     GLOB_RECURSE SOURCE_FILES_LIST
@@ -70,6 +71,7 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     dsound
     d3d9
     nlohmann_json::nlohmann_json
+    libjpeg-turbo::libjpeg-turbo
 )
 
 if(WIN32) 
@@ -136,6 +138,11 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
 
     oswrapper
 )
+
+target_sources(${RE_PROJECT_LIB_NAME} PRIVATE
+    notsa.natvis
+)
+
 target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
     _CRT_SECURE_NO_WARNINGS
     NOMINMAX

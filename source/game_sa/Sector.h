@@ -10,12 +10,7 @@
 
 class CSector {
 public:
-    CPtrListDoubleLink m_buildings;
-    CPtrListDoubleLink m_dummies;
-
-public:
-    CSector() = default; // 0x564040
-    ~CSector() = default; // 0x563130
+    CPtrListSingleLink<CBuilding*> m_buildings{}; //!< Buildings in this sector [Yes, it's single-link]
+    CPtrListDoubleLink<CDummy*>    m_dummies{};   //!< Dummies in this sector
 };
-
 VALIDATE_SIZE(CSector, 8);

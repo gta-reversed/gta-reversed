@@ -14,7 +14,7 @@ public:
     eEventType GetEventType() const override { return EVENT_DEATH; }
     int32 GetEventPriority() const override { return 73; }
     int32 GetLifeTime() override { return 0; }
-    CEvent* Clone() override;
+    CEvent* Clone() const noexcept override { return new CEventDeath(m_bDrowning, m_deathTimeInMs); } // 0x4B6E30
     bool AffectsPed(CPed* ped) override { return true; }
 
     auto GetDeathTime() const { return m_deathTimeInMs; }

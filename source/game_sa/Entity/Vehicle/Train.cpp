@@ -75,7 +75,7 @@ void CTrain::InjectHooks() {
     RH_ScopedGlobalInstall(ProcessTrainAnnouncements, 0x6F5910);
     RH_ScopedGlobalInstall(PlayAnnouncement, 0x6F5920);
     RH_ScopedGlobalInstall(MarkSurroundingEntitiesForCollisionWithTrain, 0x6F6640);
-    RH_ScopedGlobalInstall(TrainHitStuff, 0x6F5CF0, { .reversed = false });
+    RH_ScopedGlobalInstall(TrainHitStuff<CPtrListSingleLink<CPhysical*>>, 0x6F5CF0, { .reversed = false });
 }
 
 // 0x6F6030
@@ -144,7 +144,7 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     m_pNextCarriage = nullptr;
     m_nStatus = STATUS_TRAIN_MOVING;
     m_autoPilot.m_speed = 0.0f;
-    m_autoPilot.m_nCruiseSpeed = 0;
+    m_autoPilot.SetCruiseSpeed(0);
     m_vehicleAudio.Initialise(this);
 }
 
@@ -284,7 +284,7 @@ void CTrain::SetTrainSpeed(CTrain* train, float speed) {
 
 // 0x6F5E50
 void CTrain::SetTrainCruiseSpeed(CTrain* train, float speed) {
-    train->m_autoPilot.m_nCruiseSpeed = (uint8)speed;
+    train->m_autoPilot.SetCruiseSpeed((uint8)speed);
 }
 
 // 0x6F5E70
@@ -332,18 +332,19 @@ void MarkSurroundingEntitiesForCollisionWithTrain(CVector pos, float radius, CEn
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            TrainHitStuff(repeatSector->GetList(REPEATSECTOR_VEHICLES), entity);
+            TrainHitStuff(repeatSector->Vehicles, entity);
             if (!bOnlyVehicles) {
-                TrainHitStuff(repeatSector->GetList(REPEATSECTOR_PEDS), entity);
-                TrainHitStuff(repeatSector->GetList(REPEATSECTOR_OBJECTS), entity);
+                TrainHitStuff(repeatSector->Peds, entity);
+                TrainHitStuff(repeatSector->Objects, entity);
             }
         }
     }
 }
 
 // 0x6F5CF0
-void TrainHitStuff(CPtrList& ptrList, CEntity* entity) {
-    ((void(__cdecl*)(CPtrList&, CEntity*))0x6F5CF0)(ptrList, entity);
+template<typename PtrListType>
+void TrainHitStuff(PtrListType& ptrList, CEntity* entity) {
+    ((void(__cdecl*)(PtrListType&, CEntity*))0x6F5CF0)(ptrList, entity);
 }
 
 // 0x6F6850

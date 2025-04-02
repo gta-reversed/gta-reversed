@@ -16,7 +16,7 @@
 
 #include "extensions/File.hpp"
 
-static inline bool gAllowScriptedFixedCameraCollision = false;
+static inline auto& ScriptsArray = *(std::array<CRunningScript, MAX_NUM_SCRIPTS>*)0xA8B430;
 
 void CTheScripts::InjectHooks() {
     // Has to have these, because there seems to be something going on with the variable init order
@@ -579,7 +579,7 @@ void CTheScripts::CleanUpThisPed(CPed* ped) {
     if (auto* veh = ped->GetVehicleIfInOne(); veh && veh->IsDriver(ped)) {
         const auto FixMission = [veh](eCarMission fix) {
             auto& mis = veh->m_autoPilot.m_nCarMission;
-            if (mis != MISSION_CRASH_PLANE_AND_BURN && mis != MISSION_CRASH_HELI_AND_BURN) {
+            if (mis != MISSION_PLANE_CRASH_AND_BURN && mis != MISSION_HELI_CRASH_AND_BURN) {
                 mis = fix;
             }
         };
@@ -819,7 +819,7 @@ int32 CTheScripts::GetActualScriptThingIndex(int32 ref, eScriptThingType type) {
         break;
     case SCRIPT_THING_DECISION_MAKER:
         CDecisionMakerTypes::GetInstance();
-        if (CDecisionMakerTypes::m_bIsActive[idx] && CDecisionMakerTypes::ScriptReferenceIndex[idx] == id) {
+        if (CDecisionMakerTypes::m_IsActive[idx] && CDecisionMakerTypes::ScriptReferenceIndex[idx] == id) {
             return idx;
         }
         break;
@@ -1341,14 +1341,14 @@ void CTheScripts::Save() {
     auto* lastScript           = pActiveScripts;
     for (auto* s = pActiveScripts; s; s = s->m_pNext) {
         lastScript = s;
-        if (!s->m_bIsExternal && s->m_nExternalType == -1) {
+        if (!s->m_IsExternal && s->m_ExternalType == -1) {
             numNonExternalScripts++;
         }
     }
     CGenericGameStorage::SaveDataToWorkBuffer(numNonExternalScripts);
 
     for (auto* s = lastScript; s; s = s->m_pPrev) {
-        if (s->m_bIsExternal || s->m_nExternalType != -1) {
+        if (s->m_IsExternal || s->m_ExternalType != -1) {
             continue;
         }
 
@@ -1426,15 +1426,12 @@ void CTheScripts::Process() {
 
     CLoadingScreen::NewChunkLoaded();
 
-    for (auto it = pActiveScripts; it;) {
-        const auto next = it->m_pNext;
+    for (CRunningScript* it = pActiveScripts, *next{}; it; it = next) {
+        next = it->m_pNext;
 
-        for (auto& t : it->m_anTimers) {
-            t += timeStepMS;
-        }
+        it->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
+        it->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
         it->Process();
-
-        it = next;
     }
 
     CLoadingScreen::NewChunkLoaded();
@@ -1732,9 +1729,10 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
         if (rt.m_bDrawBeforeFade != drawBeforeFade) {
             continue;
         }
-
         switch (rt.m_nType) {
-        case eScriptRectangleType::TYPE_1:
+        case eScriptRectangleType::INACTIVE:
+            break;
+        case eScriptRectangleType::TITLE_AND_MESSAGE:
             FrontEndMenuManager.DrawWindowedText(
                 rt.cornerA.x, rt.cornerA.y,
                 rt.cornerB.x, // ?
@@ -1743,7 +1741,7 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
                 rt.m_Alignment
             );
             break;
-        case eScriptRectangleType::TYPE_2:
+        case eScriptRectangleType::TEXT:
             FrontEndMenuManager.DrawWindow(
                 CRect{ rt.cornerA, rt.cornerB },
                 rt.gxt1,
@@ -1753,19 +1751,19 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
                 true
             );
             break;
-        case eScriptRectangleType::TYPE_3:
+        case eScriptRectangleType::MONOCOLOR:
             CSprite2d::DrawRect(
                 CRect{ rt.cornerA, rt.cornerB },
                 rt.m_nTransparentColor
             );
             break;
-        case eScriptRectangleType::TYPE_4:
+        case eScriptRectangleType::TEXTURED:
             ScriptSprites[rt.m_nTextureId].Draw(
                 CRect{ rt.cornerA, rt.cornerB },
                 rt.m_nTransparentColor
             );
             break;
-        case eScriptRectangleType::TYPE_5: {
+        case eScriptRectangleType::MONOCOLOR_ANGLED: {
             // mid: Vector that points to the middle of line A-B from A.
             // vAM: A to mid.
             const auto mid = (rt.cornerA + rt.cornerB) / 2.0f;
@@ -1789,7 +1787,7 @@ void CTheScripts::DrawScriptSpritesAndRectangles(bool drawBeforeFade) {
             break;
         }
         default:
-            break;
+            NOTSA_UNREACHABLE("Unknown script-rect type ({})", (int32)(rt.m_nType));
         }
     }
 }

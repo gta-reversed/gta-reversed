@@ -5,5 +5,14 @@
         "minor": 23,
         "patch": 0
     },
-    "include": ["./ConanPresets.json"]
+    "include": ["./ConanPresets.json"],
+    "configurePresets": [
+        {
+            "name": "conan-default-unity",
+            "inherits": "conan-default",
+            "cacheVariables": {
+                "GTASA_UNITY_BUILD": "ON"
+            }
+        }
+    ]
 }

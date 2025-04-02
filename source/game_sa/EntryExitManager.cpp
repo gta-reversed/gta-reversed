@@ -38,7 +38,7 @@ void CEntryExitManager::Init() {
     ms_bBurglaryHousesEnabled = false;
 
     mp_poolEntryExits = new CEntryExitsPool(400u, "Entry exits");
-    mp_poolEntryExits->m_bIsLocked = true;
+    mp_poolEntryExits->SetDealWithNoMemory(true);
 }
 
 // 0x440B90
@@ -92,17 +92,17 @@ void CEntryExitManager::Update() {
       || CEntryExitManager::ms_bDisabled;
 
     if (!bDontShowMarkers && ms_exitEnterState == 0) { // Moved `bDontShowMarkers` here from inner loop
-        CPtrListSingleLink matches{};
+        CPtrListSingleLink<void*> matches{};
 
         auto x = TheCamera.m_mCameraMatrix.GetForward().x * 30.0f + TheCamera.GetPosition().x;
         auto y = TheCamera.m_mCameraMatrix.GetForward().y * 30.0f + TheCamera.GetPosition().y;
         CRect rect(x - 30.0f, y - 30.0f, x + 30.0f, y + 30.0f);
         mp_QuadTree->GetAllMatching(rect, matches);
 
-        for (CPtrNode* it = matches.m_node, *next{}; it; it = next) {
-            next = it->GetNext();
+        for (CPtrListSingleLink<void*>::NodeType* it = matches.m_node, *next{}; it; it = next) {
+            next = it->Next;
 
-            auto* enex = it->ItemAs<CEntryExit>();
+            auto* enex = static_cast<CEntryExit*>(it->Item);
             if (enex->bEnableAccess) {
                 if (   enex->m_pLink && enex->m_nArea == CGame::currArea  // Has link and link is in current area
                     || !enex->m_pLink && enex->m_nArea != CGame::currArea // Has no link, and is not in current area
@@ -133,14 +133,14 @@ void CEntryExitManager::Update() {
     } else {
         const auto& playerPos = FindPlayerEntity()->GetPosition();
         const auto pos = CVector2D{ playerPos.x, playerPos.y }; // todo: refactor
-        CPtrListSingleLink matches{};
+        CPtrListSingleLink<void*> matches{};
         mp_QuadTree->GetAllMatching(pos, matches);
 
         bool wasAnyMarkerInArea{};
-        for (CPtrNode* it = matches.m_node, *next{}; it; it = next) {
-            next = it->GetNext();
+        for (CPtrListSingleLink<void*>::NodeType* it = matches.m_node, *next{}; it; it = next) {
+            next = it->Next;
 
-            auto* enex = it->ItemAs<CEntryExit>();
+            auto* enex = static_cast<CEntryExit*>(it->Item);
             if (enex->bEnableAccess && enex->IsInArea(playerPos)) {
                 wasAnyMarkerInArea = true;
                 if (!bDontShowMarkers && enex->TransitionStarted(player)) {
@@ -265,15 +265,15 @@ CObject* CEntryExitManager::FindNearestDoor(CEntryExit const& exit, float radius
 
 // 0x43F4B0
 int32 CEntryExitManager::FindNearestEntryExit(const CVector2D& position, float range, int32 ignoreArea) {
-    CPtrListSingleLink enexInRange{};
+    CPtrListSingleLink<void*> enexInRange{};
     mp_QuadTree->GetAllMatching(CRect{ position, range }, enexInRange);
 
     float closestDist2D{ 2.f * range };
     CEntryExit* closest{};
-    for (CPtrNode* it = enexInRange.m_node, *next{}; it; it = next) {
-        next = it->GetNext();
+    for (CPtrListSingleLink<void*>::NodeType* it = enexInRange.m_node, *next{}; it; it = next) {
+        next = it->Next;
 
-        auto* enex = it->ItemAs<CEntryExit>();
+        auto* enex = static_cast<CEntryExit*>(it->Item);
         if (enex->GetLinkedOrThis()->GetArea() == ignoreArea) {
             continue;
         }

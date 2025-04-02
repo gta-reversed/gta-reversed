@@ -6,7 +6,6 @@
 class CVehicle;
 class CEntity;
 class CObject;
-class CPtrList;
 class CFallingGlassPane;
 
 enum class ePaneType : uint32 {
@@ -44,7 +43,8 @@ public:
                                        bool bShatter, bool numSectionsMax1, int32 numSections, bool unk);
     static void Update();
     static void Render();
-    static void FindWindowSectorList(CPtrList& objList, float& outDist, CEntity*& outEntity, CVector point);
+    template<typename PtrListType>
+    static void FindWindowSectorList(PtrListType& objList, float& outDist, CEntity*& outEntity, CVector point);
     static void RenderReflectionPolys();
     static void RenderShatteredPolys();
     static void RenderHiLightPolys();

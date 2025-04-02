@@ -157,6 +157,7 @@
 #include "Birds.h"
 #include "Hud.h"
 #include "CarFXRenderer.h"
+#include "Curves.h"
 #include "ProcObjectMan.h"
 #include "ProcSurfaceInfo.h"
 #include "Pickup.h"
@@ -190,6 +191,7 @@
 #include <Tasks/Allocators/TaskAllocatorPlayerCommandAttack.h>
 
 // Tasks
+#include "TaskSimpleKillPedWithCar.h"
 #include "TaskComplexSitDownThenIdleThenStandUp.h"
 #include "TaskComplexLeaveCarAsPassengerWait.h"
 #include "TaskComplexInvestigateDeadPed.h"
@@ -218,6 +220,7 @@
 #include "TaskComplexDestroyCarArmed.h"
 #include "TaskSimpleAbseil.h"
 #include "TaskComplexWanderCop.h"
+#include "TaskComplexEnterCarAsPassengerTimed.h"
 #include "TaskSimpleWaitUntilPedIsInCar.h"
 #include "TaskComplexUseMobilePhone.h"
 #include "TaskSimpleStandStill.h"
@@ -288,6 +291,8 @@
 #include "TaskSimpleSwim.h"
 #include "TaskComplexWalkRoundObject.h"
 #include "TaskSimplePause.h"
+#include "TaskComplexShuffleSeats.h"
+#include "TaskSimpleCarShuffle.h"
 #include "TaskSimpleHurtPedWithCar.h"
 #include "TaskComplexPassObject.h"
 #include "TaskComplexEnterCarAsPassenger.h"
@@ -498,12 +503,13 @@
 #include "EventLeaderQuitEnteringCarAsDriver.h"
 #include "EventAreaCodes.h"
 #include "EventLeaderEntryExit.h"
+#include "Formation.h"
 
 #include "Plugins/BreakablePlugin/BreakablePlugin.h"
 
 #include "platform/win/VideoPlayer/VideoPlayer.h"
 #include "platform/win/VideoMode.h"
-#include "platform/win/Platform.h"
+#include "platform/win/WinPlatform.h"
 
 #include "app/app.h"
 #include <RealTimeShadowManager.h>
@@ -561,6 +567,7 @@ void InjectHooksMain() {
     CRopes::InjectHooks();
     CWeaponInfo::InjectHooks();
     CCurrentVehicle::InjectHooks();
+    CCurves::InjectHooks();
     CPlaceName::InjectHooks();
     CUserDisplay::InjectHooks();
     COnscreenTimer::InjectHooks();
@@ -587,7 +594,6 @@ void InjectHooksMain() {
     CCivilianPed::InjectHooks();
     CDamageManager::InjectHooks();
     CCreepingFire::InjectHooks();
-    CPtrList::InjectHooks();
     BreakManager_c::InjectHooks();
     BreakObject_c::InjectHooks();
     CFireManager::InjectHooks();
@@ -611,10 +617,15 @@ void InjectHooksMain() {
     CMatrixLinkList::InjectHooks();
     CEntryInfoNode::InjectHooks();
     CEntryInfoList::InjectHooks();
-    CPtrNodeDoubleLink::InjectHooks();
-    CPtrListDoubleLink::InjectHooks();
-    CPtrNodeSingleLink::InjectHooks();
-    CPtrListSingleLink::InjectHooks();
+
+    //CPtrList::InjectHooks();
+
+    //CPtrNodeDoubleLink::InjectHooks();
+    //CPtrListDoubleLink::InjectHooks();
+    //
+    //CPtrNodeSingleLink::InjectHooks();
+    //CPtrListSingleLink::InjectHooks();
+
     CReferences::InjectHooks();
     CPopulation::InjectHooks();
     CModelInfo::InjectHooks();
@@ -938,7 +949,7 @@ void InjectHooksMain() {
         CTaskComplexDragPedFromCar__InjectHooks();
         CTaskComplexDrivePointRoute::InjectHooks();
         CTaskComplexEnterCarAsDriverTimed::InjectHooks();
-        // CTaskComplexEnterCarAsPassengerTimed::InjectHooks();
+        CTaskComplexEnterCarAsPassengerTimed::InjectHooks();
         // CTaskComplexEnterCarAsPassengerWait::InjectHooks();
         // CTaskComplexEvasiveCower::InjectHooks();
         // CTaskComplexEvasiveDiveAndGetUp::InjectHooks();
@@ -1014,7 +1025,7 @@ void InjectHooksMain() {
 
         // CTaskComplexSeekEntityAiming::InjectHooks();
         CTaskComplexSeekEntityAnyMeansXYOffset::InjectHooks();
-        // CTaskComplexShuffleSeats::InjectHooks();
+        CTaskComplexShuffleSeats::InjectHooks();
         CTaskComplexSignalAtPed::InjectHooks();
         CTaskComplexSitDownThenIdleThenStandUp::InjectHooks();
         CTaskComplexSmartFleeEntity::InjectHooks();
@@ -1095,8 +1106,8 @@ void InjectHooksMain() {
         CTaskSimpleHitFromLeft::InjectHooks();
         CTaskSimpleHitFromRight::InjectHooks();
         CTaskSimpleHitWall::InjectHooks();
+        CTaskSimpleKillPedWithCar::InjectHooks();
         CTaskSimpleHurtPedWithCar::InjectHooks();
-        // CTaskSimpleKillPedWithCar::InjectHooks();
         CTaskSimpleLookAbout::InjectHooks();
         // CTaskSimpleOnEscalator::InjectHooks();
         CTaskSimplePickUpBike::InjectHooks();
@@ -1208,7 +1219,7 @@ void InjectHooksMain() {
         CTaskSimplePlayHandSignalAnim::InjectHooks();
         CTaskComplexCarDrive::InjectHooks();
         CTaskComplexCarDriveMission::InjectHooks();
-        // CTaskComplexKillPedFromBoat::InjectHooks();
+        CTaskComplexKillPedFromBoat::InjectHooks();
         // CTaskComplexLeaveCar::InjectHooks();
         CTaskComplexTreatAccident::InjectHooks();
         CTaskComplexGoToPointAndStandStillTimed::InjectHooks();

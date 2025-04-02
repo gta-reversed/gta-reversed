@@ -2,6 +2,7 @@
 
 #include "UIRenderer.h"
 #include "TaskComplexDestroyCarMelee.h"
+#include <TaskComplexEnterCarAsPassengerTimed.h>
 #include "TaskComplexWalkAlongsidePed.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
 #include "TaskComplexFollowNodeRoute.h"
@@ -15,9 +16,9 @@
 #include "imgui_impl_dx9.h"
 #include <imgui_stdlib.h>
 #include <imgui_internal.h>
+#include <Curves.h>
 
 #include <Windows.h>
-#include <extensions/ScriptCommands.h>
 #include "DebugModules/DebugModules.h"
 
 namespace notsa {

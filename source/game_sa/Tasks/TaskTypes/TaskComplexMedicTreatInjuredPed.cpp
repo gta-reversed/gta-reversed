@@ -35,9 +35,9 @@ CTaskComplexMedicTreatInjuredPed* CTaskComplexMedicTreatInjuredPed::Constructor(
 }
 
 // 0x658BA0
-CTaskComplexMedicTreatInjuredPed::CTaskComplexMedicTreatInjuredPed(CVehicle* vehicle, CPed* ped, bool isDriver) : CTaskComplex() {
+CTaskComplexMedicTreatInjuredPed::CTaskComplexMedicTreatInjuredPed(CVehicle* vehicle, CPed* partner, bool isDriver) : CTaskComplex() {
     m_pVehicle      = vehicle;
-    m_pPartnerMedic = ped;
+    m_pPartnerMedic = partner;
     m_bIsDriver     = isDriver;
     m_pAccident     = nullptr;
     m_bLeftCarOnce  = false;

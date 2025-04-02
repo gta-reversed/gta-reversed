@@ -23,16 +23,24 @@ public:
     static inline auto& m_DestinationPeds             = StaticRef<CPedList>(0xC1A458);
     static inline auto& m_Peds                        = StaticRef<CPedList>(0xC1A4D8);
 
-public:
     static void InjectHooks();
 
-    static void ReturnTargetPedForPed(CPed* a1, CPed** a2);
-    static bool ReturnDestinationForPed(CPed* ped, CVector& dest);
-    static void FindCoverPointsBehindBox(CPointList& points, CVector target, const CMatrix& mat, const CVector& bbOffset, const CVector& bbMin, const CVector& bbMax, float radius);
-    static void GenerateGatherDestinations(CPedList& pedList, CPed* ped);
-    static void GenerateGatherDestinations_AroundCar(CPedList& pedList, CVehicle* veh);
-    static void DistributeDestinations(CPedList& pedList);
-    static void DistributeDestinations_CoverPoints(const CPedList& pedlist, CVector pos);
-    static void DistributeDestinations_PedsToAttack(const CPedList& pedList);
+    static void DistributeDestinations(CPedList* pedlist);
+    static void DistributeDestinations_CoverPoints(CPedList* pedlist, CVector pos);
+    static void DistributeDestinations_PedsToAttack(CPedList* pedlist);
     static void FindCoverPoints(CVector pos, float radius);
+    static void FindCoverPointsBehindBox(
+        CPointList*    outPoints,
+        CVector        target,
+        CMatrix*       mat,
+        const CVector& center, //!< Unused
+        const CVector& bbMin,
+        const CVector& bbMax,
+        float          cutoffDist
+    );
+    static int32 FindNearestAvailableDestination(CVector pos, float* pOutDistance);
+    static void GenerateGatherDestinations(CPedList* pedList, CPed* ped);
+    static void GenerateGatherDestinations_AroundCar(CPedList* pedlist, CVehicle* vehicle);
+    static bool ReturnDestinationForPed(CPed* ped, CVector* pos);
+    static int32 ReturnTargetPedForPed(CPed* ped, CPed** pOutTargetPed);
 };

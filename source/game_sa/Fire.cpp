@@ -277,7 +277,7 @@ void CFire::ProcessFire() {
                     vehicle->m_fHealth = 75.0f;
                 }
             } else if (!targetPed->IsPlayer() && !targetPed->IsAlive()) {
-                targetPed->physicalFlags.bDestroyed = true;
+                targetPed->physicalFlags.bRenderScorched = true;
             }
 
             break;
@@ -342,7 +342,7 @@ void CFire::ProcessFire() {
     }
 
     if (CGeneral::GetRandomNumber() % 4 == 0) {
-        for (auto i = GetObjectPool()->GetSize() - 1; i >= 0; i--) { /* backwards loop, like original code */
+        for (auto i = GetObjectPool()->GetSize(); i --> 0;) { /* backwards loop, like original code */
             CObject* obj = GetObjectPool()->GetAt(i);
             if (!obj)
                 continue;
