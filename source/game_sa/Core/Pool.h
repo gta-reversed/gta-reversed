@@ -220,6 +220,10 @@ public:
         state->Ref++;
 
         StorageType* ptr = reinterpret_cast<StorageType*>(&m_Storage[m_FirstFreeSlot]);
+        // NOTE/TODO: Works, and does find bugs (...that I'm lazy to fix right now)
+        //if (!isFirstAllocation) {
+        //    CheckFill(DEADLAND_FILL, ptr); // Theoritically `isFirstAllocation ? NOMANSLAND_FILL : DEADLAND_FILL` would work, but we don't have every and all constructor of this class hooked
+        //}
         DoFill(CLEANLAND_FILL, ptr);
         return (T*)(void*)(ptr);
     }
@@ -373,6 +377,14 @@ protected:
             memset(at, fill, sizeof(StorageType)); /* One object */
         } else {
             memset(m_Storage, fill, sizeof(StorageType) * m_Capacity); /* Whole storage */
+        }
+    }
+
+    void CheckFill(byte expected, StorageType* at) {
+        StorageType fill;
+        std::memset(&fill, expected, sizeof(fill));
+        if (std::memcmp(at, &fill, sizeof(fill)) != 0) {
+            NOTSA_UNREACHABLE("Use-after-free or buffer over/underflow detected at 0x{:x} (Expected fill was 0x{:x})", LOG_PTR(at), expected);
         }
     }
 
