@@ -218,7 +218,7 @@ public:
     }
 };
 
-class CTaskAllocatorPool : public CPool<CTaskAllocator, CTaskAllocator> {
+class CTaskAllocatorPool : public CPool<CTaskAllocator, char[32]> { // char[32] == CTaskAllocatorPlayerCommandAttack
 public:
     static void InjectHooks() {
         RH_ScopedClass(CTaskAllocatorPool);
