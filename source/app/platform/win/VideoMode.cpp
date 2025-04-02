@@ -7,7 +7,7 @@
 // todo: "2014/12/07 [nick7]: is it related to streaming memory (45M default?)?"
 #define GAME_FREE_VIDEO_MEM_REQUIRED (45 * 1024 * 1024)
 
-#ifdef VIDEO_MODE_LOGS
+#ifdef NOTSA_VIDEO_MODE_LOGS
     #define VIDEO_MODE_LOG(...) NOTSA_LOG_DEBUG(__VA_ARGS__)
 #else
     #define VIDEO_MODE_LOG(...)
