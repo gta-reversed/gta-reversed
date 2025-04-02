@@ -3546,6 +3546,13 @@ bool CPed::IsInVehicleThatHasADriver() {
 /*!
 * @notsa
 */
+CPedGroup* CPed::GetGroup() const {
+    return CPedGroups::GetPedsGroup(this);
+}
+
+/*!
+* @notsa
+*/
 int32 CPed::GetGroupId() {
     return GetGroup()
         ? GetGroup()->GetId()

@@ -7,9 +7,9 @@
 #pragma once
 
 #include "Base.h"
+#include "PedGroup.h"
 
 class CPed;
-class CPedGroup;
 
 class CPedGroups {
 public:
@@ -44,4 +44,10 @@ public:
 
     // inlined
     static CPedGroup& GetGroup(int32 groupId);
+
+    static auto GetActiveGroupsWithIDs() {
+        return ms_groups
+            | rngv::enumerate
+            | rngv::filter([](auto&& p) { return ms_activeGroups[std::get<0>(p)]; });
+    }
 };

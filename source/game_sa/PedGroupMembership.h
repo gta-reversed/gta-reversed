@@ -9,7 +9,8 @@
 #include <ranges>
 #include <concepts>
 
-class CPed;
+#include "Ped.h"
+
 class CPedGroup;
 
 const int32 TOTAL_PED_GROUP_MEMBERS = 8;
