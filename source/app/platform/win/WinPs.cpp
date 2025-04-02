@@ -396,7 +396,7 @@ auto GetNativeResolutionOfCurrentSubsystem() {
     D3DDISPLAYMODE nativeRes;
     d3d->GetAdapterDisplayMode(RwEngineGetCurrentSubSystem(), &nativeRes);
 
-    DEV_LOG("Got native resolution from RW subsystem ({}): {} x {}", RwEngineGetCurrentSubSystem(), nativeRes.Width, nativeRes.Height);
+    NOTSA_LOG_DEBUG("Got native resolution from RW subsystem ({}): {} x {}", RwEngineGetCurrentSubSystem(), nativeRes.Width, nativeRes.Height);
 
     return std::make_pair(nativeRes.Width, nativeRes.Height);
 }
@@ -490,7 +490,7 @@ bool psSelectDevice() {
     if (!UseDefaultVM) {
         GnumSubSystems = RwEngineGetNumSubSystems();
         if (!GnumSubSystems) {
-            DEV_LOG("No SubSystems to select from!");
+            NOTSA_LOG_DEBUG("No SubSystems to select from!");
             return FALSE;
         }
 
@@ -517,11 +517,11 @@ bool psSelectDevice() {
 
     // Set selected subsystem
     if (!RwEngineSetSubSystem(GcurSelSS)) {
-        DEV_LOG("Failed: RwEngineSetSubSystem({})", GcurSelSS);
+        NOTSA_LOG_DEBUG("Failed: RwEngineSetSubSystem({})", GcurSelSS);
         return FALSE;
     }
 
-    DEV_LOG("GcurSelSS={}", GcurSelSS);
+    NOTSA_LOG_DEBUG("GcurSelSS={}", GcurSelSS);
 
     if (!UseDefaultVM && !MultipleSubSystems) {
         const auto vmDisplay = FrontEndMenuManager.m_nDisplayVideoMode;
@@ -538,17 +538,17 @@ bool psSelectDevice() {
 
     // Set selected videomode
     if (!RwEngineSetVideoMode(GcurSelVM)) {
-        DEV_LOG("Failed: RwEngineSetVideoMode({})", GcurSelVM);
+        NOTSA_LOG_DEBUG("Failed: RwEngineSetVideoMode({})", GcurSelVM);
         return FALSE;
     }
 
-    DEV_LOG("GcurSelVM={}", GcurSelVM);
+    NOTSA_LOG_DEBUG("GcurSelVM={}", GcurSelVM);
 
     RwVideoMode vmi;
     RwEngineGetVideoModeInfo(&vmi, GcurSelVM);
     if (vmi.flags & rwVIDEOMODEEXCLUSIVE) {
         if (const auto rr = GetBestRefreshRate(vmi.width, vmi.height, vmi.depth); rr != -1) {
-            DEV_LOG("Refresh Rate: {} Hz", rr);
+            NOTSA_LOG_DEBUG("Refresh Rate: {} Hz", rr);
             RwD3D9EngineSetRefreshRate(rr);
         }
 

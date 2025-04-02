@@ -98,7 +98,7 @@ void CPopCycle::Initialise() {
             }
         }
     }
-    DEV_LOG("POPCYCLE.DAT has been loaded successfully!");
+    NOTSA_LOG_DEBUG("POPCYCLE.DAT has been loaded successfully!");
 }
 
 // 0x60FBD0

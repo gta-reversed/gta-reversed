@@ -108,7 +108,7 @@ bool CWaterLevel::LoadDataFile() {
 
         // Check if we have enough vertices
         if (nvertices < 3) {
-            DEV_LOG("[Warning]: Not enough vertices, got {}, expected 3 or 4. [Line: {}]", nvertices, nline);
+            NOTSA_LOG_DEBUG("[Warning]: Not enough vertices, got {}, expected 3 or 4. [Line: {}]", nvertices, nline);
             continue;
             //return false; // Just stop here, this parser is way too primitive to be able to recover from errors
         }
@@ -143,7 +143,7 @@ bool CWaterLevel::LoadDataFile() {
         }
         #undef ArgUnpack
     }
-    DEV_LOG("Successfully loaded! [Quads: {}; Tris: {}]", nquad, ntri);
+    NOTSA_LOG_DEBUG("Successfully loaded! [Quads: {}; Tris: {}]", nquad, ntri);
     return true;
 }
 

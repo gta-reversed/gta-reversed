@@ -335,7 +335,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
         const auto delta = static_cast<float>(CTimer::GetTimeInMS() - CTimer::m_snPPPPreviousTimeInMilliseconds);
         const auto step = delta * PlaybackSpeed[i] / 4.0f;
         if (step > 500.0f) {
-            DEV_LOG("That's a really big step (={:2f})\n", step);
+            NOTSA_LOG_DEBUG("That's a really big step (={:2f})\n", step);
         }
         PlaybackRunningTime[i] += step;
 

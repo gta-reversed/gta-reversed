@@ -25,7 +25,7 @@ VALIDATE_SIZE(CVehicleStateEachFrame, 0x20);
 constexpr auto TOTAL_VEHICLE_RECORDS = 16;
 
 #ifdef EXTRA_CARREC_LOGS
-#define CARREC_DEV_LOG(...) DEV_LOG(__VA_ARGS__)
+#define CARREC_DEV_LOG(...) NOTSA_LOG_DEBUG(__VA_ARGS__)
 #else
 #define CARREC_DEV_LOG(...)
 #endif

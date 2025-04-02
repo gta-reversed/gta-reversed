@@ -11,14 +11,14 @@
 void WriteMemory(uint32 address, uint32 size, uint32 value, bool virtualProtect) {
     UNUSED(virtualProtect);
 
-    DEV_LOG("WriteMemory(addr={}, size={}, value={} ,virtual_protect={})", address, size, value, virtualProtect);
+    NOTSA_LOG_DEBUG("WriteMemory(addr={}, size={}, value={} ,virtual_protect={})", address, size, value, virtualProtect);
     memcpy(reinterpret_cast<void*>(address), &value, size);
 }
 
 uint32 ReadMemory(uint32 address, uint32 size, bool virtualProtect) {
     UNUSED(virtualProtect);
 
-    DEV_LOG("ReadMemory(addr={}, size={}, virtual_protect={})", address, size, virtualProtect);
+    NOTSA_LOG_DEBUG("ReadMemory(addr={}, size={}, virtual_protect={})", address, size, virtualProtect);
     if (size != 4 && size != 2) {
         size = 1; // just to be sure not to write anything stupid.
     }
