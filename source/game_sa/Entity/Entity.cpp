@@ -461,7 +461,7 @@ void CEntity::PreRender()
         if (ami) {
             CCustomBuildingDNPipeline::PreRenderUpdate(ami->m_pRwAtomic, false);
         } else if (mi->GetModelType() == MODEL_INFO_CLUMP) {
-            CCustomBuildingDNPipeline::PreRenderUpdate(ami->m_pRwClump, false);
+            CCustomBuildingDNPipeline::PreRenderUpdate(mi->m_pRwClump, false);
         }
         // PC Only
     }
@@ -469,10 +469,7 @@ void CEntity::PreRender()
     if (!m_bHasPreRenderEffects)
         return;
 
-    if (   ami
-        && ami->SwaysInWind()
-        && (!IsObject() || !AsObject()->objectFlags.bIsExploded)
-    ) {
+    if (ami && ami->SwaysInWind() && (!IsObject() || !AsObject()->objectFlags.bIsExploded)) {
         auto fDist = DistanceBetweenPoints2D(GetPosition(), TheCamera.GetPosition());
         CObject::fDistToNearestTree = std::min(CObject::fDistToNearestTree, fDist);
         ModifyMatrixForTreeInWind();
