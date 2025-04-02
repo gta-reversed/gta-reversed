@@ -187,6 +187,9 @@ void CPedGroupIntelligence::Process() {
     if (m_HighestPriorityEvent) { // 0x5FC6A2
         if (ShouldSetHighestPriorityEventAsCurrent()) {
             delete std::exchange(m_CurrentEvent, std::exchange(m_HighestPriorityEvent, nullptr));
+            if (m_PrimaryTaskAllocator == m_EventResponseTaskAllocator) {
+                m_PrimaryTaskAllocator = nullptr;
+            }
             delete std::exchange(m_EventResponseTaskAllocator, ComputeEventResponseTasks());
         } else if ( // 0x5FC6F6
                m_HighestPriorityEvent->GetEvent().GetEventType() == m_CurrentEvent->GetEvent().GetEventType()
