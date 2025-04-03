@@ -217,6 +217,10 @@ struct tEffectInterior {
     uint8 m_seed;
     uint8 m_status; // AKA wealth
     float m_rot;
+
+    float GetWidth() const { return static_cast<float>(m_width); }
+    float GetHeight() const { return static_cast<float>(m_height); }
+    float GetDepth() const { return static_cast<float>(m_depth); }
 };
 VALIDATE_SIZE(tEffectInterior, 0x34 - 0x10);
 

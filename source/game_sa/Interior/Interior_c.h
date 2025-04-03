@@ -103,7 +103,7 @@ public:
     void CalcMatrix(const CVector& pos);
     void AddGotoPt(int32 tileX, int32 tileY, float offsetX, float offsetY);
     void CalcExitPts();
-    bool AddInteriorInfo(eInteriorInfoTypeS32 actionType, float offsetX, float offsetY, int32 direction, CEntity* entityIgnoredCollision);
+    bool AddInteriorInfo(eInteriorInfoTypeS32 actionType, float offsetX, float offsetY, eWall wall, CEntity* entityIgnoredCollision);
     void AddPickups();
     bool IsVisible();
     auto GetDoorNodeAddress() const { return m_DoorAddr; }
@@ -124,20 +124,20 @@ public:
     // Lounge
     //
     void FurnishLounge();
-    CObject* Lounge_AddTV(int32 a2, int32 a3, int32 a4, int32 a5);
-    CObject* Lounge_AddHifi(int32 a2, int32 a3, int32 a4, int32 a5);
-    void Lounge_AddChairInfo(int32 a2, int32 a3, CEntity* entityIgnoredCollision);
+    void Lounge_AddTV(eWall wallId, int32 x, int32 y, int32 depth);
+    void Lounge_AddHifi(eWall wallId, int32 x, int32 y, int32 depth);
+    void Lounge_AddChairInfo(eWall wallId, int32 pos, CEntity* entityIgnoredCollision);
     void Lounge_AddSofaInfo(int32 sitType, int32 offsetX, CEntity* entityIgnoredCollision);
 
     //
     // Office
     //
     void FurnishOffice();
-    bool Office_PlaceEdgeFillers(int32 arg0, int32 a2, int32 a3, int32 a6, int32);
-    int32 Office_PlaceDesk(int32 a3, int32 arg4, int32 offsetY, int32 a5, uint8 a6, int32 b);
-    int32 Office_PlaceEdgeDesks(int32 a2, int32 a3, int32 a4, int32 a5, int32 a6);
+    bool Office_PlaceEdgeFillers(int32 type, int32 x, int32 y, int32 dir, int32 wall);
+    int32 Office_PlaceDesk(int32 tileX, int32 tileY, int32 dir, int32 pedChance, bool lShaped, int32 type);
+    int32 Office_PlaceEdgeDesks(int32 type, int32 x, int32 y, int32 dir, int32 wall);
     void Office_FurnishEdges();
-    int32 Office_PlaceDeskQuad(int32 a2, int32 a3, int32 a4, int32 a5);
+    int32 Office_PlaceDeskQuad(int32 formation, int32 tileX, int32 tileY, int32 type);
     int32 Office_FurnishCenter();
 
     //
@@ -146,17 +146,17 @@ public:
     void FurnishShop(eInteriorTypeS32 intType);
     void Shop_FurnishEdges();
     void Shop_FurnishAisles();
-    int8 Shop_Place3PieceUnit(int32 a2, int32 a3, int32 a4, int32 a5, int32 a6);
-    int32 Shop_PlaceEdgeUnits(int32 a2, int32 a3, int32 a4, int32 a5);
-    int32 Shop_PlaceCounter(uint8 a2);
+    int8  Shop_Place3PieceUnit(int32 type, int32 x, int32 y, int32 dir, int32 len);
+    int32 Shop_PlaceEdgeUnits(int32 type, int32 x, int32 y, int32 dir);
+    int32 Shop_PlaceCounter(bool left);
     void Shop_PlaceFixedUnits();
     void Shop_FurnishCeiling();
-    void Shop_AddShelfInfo(int32 a2, int32 a3, int32 a5);
+    void  Shop_AddShelfInfo(int32 tileX, int32 tileY, int32 direction);
 
     //
     // Furnitures
     //
-    void PlaceFurniture(Furniture_c* a1, int32 a2, int32 a3, float a4, int32 a5, int32 a6, int32* a7, int32* a8, uint8 a9);
+    void PlaceFurniture(Furniture_c* furniture, int32 x, int32 y, float z, int32 height, int32 dir, int32* w, int32* d, bool force);
     CObject* PlaceFurnitureOnWall(
         eInteriorGroupIdS32 interior,
         eInteriorSubGroupId subGroup,
@@ -173,8 +173,7 @@ public:
         int32*              w = nullptr,
         int32*              d = nullptr
     );
-    void PlaceFurnitureInCorner(int32 furnitureGroupId, int32 furnitureSubgroupId, int32 id, float a4, int32 a5, int32 a6, int32 a2, int32* a9, int32* a10, int32* a11, int32* a12,
-                                int32* a13);
+    void PlaceFurnitureInCorner(int32 furnitureGroupId, int32 furnitureSubgroupId, int32 type, float z, int32 heightInfo, int32 wallId, uint32 offset, int32 *retWallId, int32 *x, int32 *y, int32 *w, int32 *d);
     CObject* PlaceObject(uint8 isStealable, Furniture_c* furniture, float offsetX, float offsetY, float offsetZ, float rotationZ);
     FurnitureEntity_c* GetFurnitureEntity(CEntity*);
 
@@ -182,37 +181,55 @@ public:
     // Tiles
     //
     void ResetTiles();
-    int8 CheckTilesEmpty(int32 a1, int32 a2, int32 a3, int32 a4, uint8 a5);
+    int8 CheckTilesEmpty(int32 x, int32 y, int32 w, int32 d, bool canPlaceOnWindow);
     void SetTilesStatus(int32 x, int32 y, int32 w, int32 d, eTileStatusS32 status, bool force = false);
     void SetTileStatus(int32 x, int32 y, eTileStatus status); // notsa
-    void SetCornerTiles(int32 a4, int32 a3, int32 a5, uint8 a6);
+    void SetCornerTiles(int32 wallId, int32 size, int32 status, bool force);
     eTileStatusS32 GetTileStatus(int32 x, int32 y) const;
-    int32 GetNumEmptyTiles(int32 a2, int32 a3, int32 a4, int32 a5);
-    int32 GetRandomTile(int32 a2, int32* a3, int32* a4);
+    int32 GetNumEmptyTiles(int32 x, int32 y, int32 dir, int32 size);
+    int32 GetRandomTile(int32 status, int32* x, int32* y);
     void GetTileCentre_OG(float offsetX, float offsetY, CVector* outPos) const;
     CVector GetTileCentre(float offsetX, float offsetY) const;
-    bool FindEmptyTiles(int32 a3, int32 a4, int32* arg8, int32* a5);
+    bool FindEmptyTiles(int32 w, int32 h, int32* x, int32* y);
+
+    inline float GetRotationOfWall(eWall wallId) {
+        const auto wall = std::to_underlying(wallId);
+
+        // Euclidean modulus 4 with `x & 3`
+        return static_cast<float>(wall & 3) * 90.0f;
+    }
+
+    // Inlined in code `(wallId - 2) & 3`
+    inline eWall GetOpposingWall(eWall wallId) {
+        switch (wallId) {
+        case eWall::X_A: return eWall::X_B;
+        case eWall::Y_A: return eWall::Y_B;
+        case eWall::X_B: return eWall::X_A;
+        case eWall::Y_B: return eWall::Y_A;
+        default: NOTSA_UNREACHABLE();
+        }
+    }
 
 public:
-    int32                                                         m_ID{};                  // 0x8
-    InteriorGroup_c*                                              m_Group{};               // 0xC
-    int32                                                         m_AreaCode{};            // 0x10
-    tEffectInterior*                                              m_Props{};               // 0x14
-    RwMatrix                                                      m_Mat{};                 // 0x18
-    float                                                         m_DistSq{};              // 0x58
-    TList_c<FurnitureEntity_c>                                    m_FurnitureEntityList{}; // 0x5C
-    Tiles<eTileStatusS8>                                          m_Tiles{};               // 0x68
-    CNodeAddress                                                  m_ExitAddr{};            // 0x3EC
-    CNodeAddress                                                  m_DoorAddr{};            // 0x3F0
-    CVector                                                       m_ExitPos{};             // 0x3F4
-    CVector                                                       m_DoorPos{};             // 0x400
-    uint8                                                         m_NumGoToPts{};          // 0x40C
-    uint8                                                         m_NumIntInfo{};          // 0x40D
-    GoToPt_t                                                      m_GoToPts[16]{};         // 0x410
-    GoToPt_t                                                      m_ExitPts[8]{};          // 0x510
-    InteriorInfo_t                                                m_IntInfos[16]{};        // 0x590
-    int8                                                          m_ShopSubType{};         // 0x790
-    int8                                                          m_StyleA{};              // 0x791
-    int8                                                          m_StyleB{};              // 0x792
+    int32                      m_ID{};                  // 0x8
+    InteriorGroup_c*           m_Group{};               // 0xC
+    int32                      m_AreaCode{};            // 0x10
+    tEffectInterior*           m_Props{};               // 0x14
+    RwMatrix                   m_Mat{};                 // 0x18
+    float                      m_DistSq{};              // 0x58
+    TList_c<FurnitureEntity_c> m_FurnitureEntityList{}; // 0x5C
+    Tiles<eTileStatusS8>       m_Tiles{};               // 0x68
+    CNodeAddress               m_ExitAddr{};            // 0x3EC
+    CNodeAddress               m_DoorAddr{};            // 0x3F0
+    CVector                    m_ExitPos{};             // 0x3F4
+    CVector                    m_DoorPos{};             // 0x400
+    uint8                      m_NumGoToPts{};          // 0x40C
+    uint8                      m_NumIntInfo{};          // 0x40D
+    GoToPt_t                   m_GoToPts[16]{};         // 0x410
+    GoToPt_t                   m_ExitPts[8]{};          // 0x510
+    InteriorInfo_t             m_IntInfos[16]{};        // 0x590
+    int8                       m_ShopSubType{};         // 0x790
+    int8                       m_StyleA{};              // 0x791
+    int8                       m_StyleB{};              // 0x792
 };
 VALIDATE_SIZE(Interior_c, 0x794);
