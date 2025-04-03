@@ -265,7 +265,7 @@ void CTheScripts::ReadObjectNamesFromScript() {
     NumberOfUsedObjects = usedObjs->m_NumberOfUsedObjects;
     assert(NumberOfUsedObjects < std::size(UsedObjectArray));
 
-    for (auto&& [i, name] : notsa::enumerate(usedObjs->GetObjectNames())) {
+    for (auto&& [i, name] : rngv::enumerate(usedObjs->GetObjectNames())) {
         UsedObjectArray[i].nModelIndex = 0; // To be updated via UpdateObjectIndices.
         std::memcpy(UsedObjectArray[i].szModelName, name, sizeof(name));
 
@@ -297,7 +297,7 @@ void CTheScripts::ReadMultiScriptFileOffsetsFromScript() {
     NumberOfMissionScripts                     = sfi->m_NumberOfMissionScripts;
     LargestNumberOfMissionScriptLocalVariables = sfi->m_LargestNumberOfMissionScriptLocalVars;
 
-    for (const auto&& [i, missionOffset] : notsa::enumerate(sfi->GetMissionOffsets())) {
+    for (const auto&& [i, missionOffset] : rngv::enumerate(sfi->GetMissionOffsets())) {
         MultiScriptArray[i] = missionOffset;
     }
 }
@@ -1426,15 +1426,12 @@ void CTheScripts::Process() {
 
     CLoadingScreen::NewChunkLoaded();
 
-    for (auto it = pActiveScripts; it;) {
-        const auto next = it->m_pNext;
+    for (CRunningScript* it = pActiveScripts, *next{}; it; it = next) {
+        next = it->m_pNext;
 
-        for (auto& t : it->m_Timers) {
-            t += timeStepMS;
-        }
+        it->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
+        it->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
         it->Process();
-
-        it = next;
     }
 
     CLoadingScreen::NewChunkLoaded();
@@ -1955,7 +1952,7 @@ void CTheScripts::RenderTheScriptDebugLines() {
 void CTheScripts::RenderAllSearchLights() {
     ZoneScoped;
 
-    for (const auto&& [i, light] : notsa::enumerate(ScriptSearchLightArray)) {
+    for (const auto&& [i, light] : rngv::enumerate(ScriptSearchLightArray)) {
         if (!light.IsActive()) {
             continue;
         }

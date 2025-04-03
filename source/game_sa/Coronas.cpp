@@ -363,7 +363,7 @@ void CCoronas::RenderReflections() {
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(RwTextureGetRaster(gpCoronaTexture[3])));
 
     const auto camPos = TheCamera.GetPosition();
-    for (auto&& [i, c] : notsa::enumerate(aCoronas)) {
+    for (auto&& [i, c] : rngv::enumerate(aCoronas)) {
         const auto covidPos = c.GetPosition();
         if (!c.m_bHasValidHeightAboveGround || ((i & 0xFF) + (CTimer::GetFrameCounter() & 0xFF) % 16) == 0) { //< Simplified code
             bool bGroundFound;

@@ -15,11 +15,6 @@ CEventGroupEvent::~CEventGroupEvent() {
     delete m_event;
 }
 
-// 0x4B6EE0
-CEvent* CEventGroupEvent::Clone() {
-    return new CEventGroupEvent(m_ped, m_event->Clone());
-}
-
 // NOTSA, inlined
 bool CEventGroupEvent::IsPriorityEvent() const {
     switch (m_event->GetEventType()) {

@@ -9,6 +9,7 @@
 #include "eStats.h"
 #include "eStatModAbilities.h"
 #include "eStatsReactions.h"
+#include "Text/Text.h"
 
 enum eStatUpdateState : uint8 {
     STAT_UPDATE_DECREASE = 0,

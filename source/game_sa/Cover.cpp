@@ -19,8 +19,8 @@ void CCover::InjectHooks() {
     RH_ScopedInstall(FindAndReserveCoverPoint, 0x6992B0);
     RH_ScopedInstall(FindCoordinatesCoverPoint, 0x699570);
     RH_ScopedInstall(FindCoverPointsForThisBuilding, 0x699120);
-    RH_ScopedInstall(FindDirFromVector, 0x698D40);
-    RH_ScopedInstall(FindVectorFromDir, 0x698D60);
+    RH_ScopedInstall(FindDirFromVector, 0x698D40, {.locked = true});
+    RH_ScopedInstall(FindVectorFromDir, 0x698D60, {.locked = true});
     RH_ScopedInstall(FindVectorFromFirstToMissingVertex, 0x698790);
 }
 
@@ -120,9 +120,9 @@ void CCover::Update() {
         // BUG:
         // This implementation may've accessed objects after they've been destroyed (use-after-free
         // I've modified it so that it uses references that get null'd automatically
-        for (CPtrNodeDoubleLink *it = m_ListOfProcessedBuildings.GetNode(), *next{}; it; it = next) {
-            next            = it->GetNext();
-            auto* const obj = it->GetItem<CBuilding>();
+        for (CPtrNodeDoubleLink<CBuilding*> *it = m_ListOfProcessedBuildings.GetNode(), *next{}; it; it = next) {
+            next            = it->Next;
+            auto* const obj = it->Item;
 
             if (!notsa::IsFixBugs() || obj) { // If fixbugs the reference may've got cleared
                 if (ShouldThisBuildingHaveItsCoverPointsCreated(obj)) {
@@ -130,7 +130,7 @@ void CCover::Update() {
                 }
                 RemoveCoverPointsForThisEntity(obj);
                 if (notsa::IsFixBugs()) { // FIXBUGS: Use-after-free
-                    CEntity::SafeCleanUpRef(reinterpret_cast<CEntity*&>(it->m_item));
+                    CEntity::SafeCleanUpRef(reinterpret_cast<CEntity*&>(it->Item));
                 }
             }
             m_ListOfProcessedBuildings.DeleteNode(it);
@@ -139,10 +139,7 @@ void CCover::Update() {
         if (!FindPlayerVehicle()) { // 0x699AE1
             CWorld::IncrementCurrentScanCode();
             CWorld::IterateSectorsOverlappedByRect(CRect{ FindPlayerCoors(), 30.f }, [&](int32 x, int32 y) {
-                for (CPtrNodeDoubleLink* it = GetSector(x, y)->m_buildings.GetNode(), *next{}; it; it = next) {
-                    next            = it->GetNext();
-                    auto* const obj = it->GetItem<CBuilding>();
-
+                for (auto* const obj : GetSector(x, y)->m_buildings) {
                     if (obj->IsScanCodeCurrent()) {
                         continue;
                     }
@@ -156,7 +153,7 @@ void CCover::Update() {
                     FindCoverPointsForThisBuilding(obj);
                     auto* const link = m_ListOfProcessedBuildings.AddItem(obj);
                     if (notsa::IsFixBugs()) { // FIXBUGS: Use-after-free
-                        CEntity::SafeRegisterRef(reinterpret_cast<CEntity*&>(link->m_item));
+                        CEntity::SafeRegisterRef(reinterpret_cast<CEntity*&>(link->Item));
                     }
                 }
                 return true;
@@ -333,14 +330,13 @@ void CCover::FindCoverPointsForThisBuilding(CBuilding* building) {
 }
 
 // 0x698D40 - unused
-uint8 CCover::FindDirFromVector(CVector dir) {
-    return (uint8)(atan2(-dir.x, dir.y) * 255.f / TWO_PI);
+CCoverPoint::Dir CCover::FindDirFromVector(CVector dir) {
+    return atan2(-dir.x, dir.y);
 }
 
 // 0x698D60
-CVector CCover::FindVectorFromDir(uint8 direction) {
-    const auto angle = direction / (256.f / TWO_PI);
-    return CVector{ std::sin(angle), std::cos(angle), 0.f };
+CVector CCover::FindVectorFromDir(CCoverPoint::Dir direction) {
+    return CVector{ std::sin(direction), std::cos(direction), 0.f };
 }
 
 // unused
