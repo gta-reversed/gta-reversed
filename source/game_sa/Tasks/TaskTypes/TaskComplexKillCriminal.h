@@ -45,14 +45,14 @@ private: // Wrappers for hooks
     }
 
 private:
-    notsa::EntityRef<CPed>    m_criminal{};
-    notsa::EntityRef<CCopPed> m_cop{};
-    float                     m_timeToGetOutOfCar{ 3.f };
-    bool                      m_randomize{};
-    bool                      m_finished{};
-    bool                      m_cantGetInCar{};
-    int8                      m_origDrivingMode{};
-    int8                      m_origMission{};
-    uint8                     m_origCruiseSpeed{};
-    bool                      m_isSetUp{};
+    notsa::EntityRef<CPed>    m_Criminal{};
+    notsa::EntityRef<CCopPed> m_Cop{};
+    float                     m_TimeToGetOutOfCar{ 3.f };
+    bool                      m_Randomize{};
+    bool                      m_HasFinished{};
+    bool                      m_CantGetInCar{};
+    int8                      m_OrigDrivingMode{};
+    int8                      m_OrigMission{};
+    uint8                     m_OrigCruiseSpeed{};
+    bool                      m_IsSetUp{};
 };

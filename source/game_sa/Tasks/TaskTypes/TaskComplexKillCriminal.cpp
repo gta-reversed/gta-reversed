@@ -37,44 +37,40 @@ bool NoPedOrNoHp(CPed* ped) {
 
 // 0x68BE70
 CTaskComplexKillCriminal::CTaskComplexKillCriminal(CPed* criminal, bool randomize) :
-    m_randomize{randomize},
-    m_criminal{criminal}
+    m_Randomize{randomize},
+    m_Criminal{criminal}
 {
-    if (   !m_criminal
-        || m_criminal->IsPlayer()
-        || m_criminal->IsCreatedByMission()
-        || notsa::contains({ PED_TYPE_COP, PED_TYPE_MEDIC, PED_TYPE_FIREMAN, PED_TYPE_MISSION1 }, m_criminal->m_nPedType)
+    if (   !m_Criminal
+        || m_Criminal->IsPlayer()
+        || m_Criminal->IsCreatedByMission()
+        || notsa::contains({ PED_TYPE_COP, PED_TYPE_MEDIC, PED_TYPE_FIREMAN, PED_TYPE_MISSION1 }, m_Criminal->m_nPedType)
     ) {
-        m_criminal = nullptr;
+        m_Criminal = nullptr;
     }
 }
 
 // NOTSA (For 0x68CE50)
 CTaskComplexKillCriminal::CTaskComplexKillCriminal(const CTaskComplexKillCriminal&) :
-    CTaskComplexKillCriminal{m_criminal, false}
+    CTaskComplexKillCriminal{m_Criminal, false}
 {
 }
 
 // 0x68BF30
 CTaskComplexKillCriminal::~CTaskComplexKillCriminal() {
-    CEntity::SafeCleanUpRef(m_Criminal);
-
     if (m_Cop) {
-        CEntity::SafeCleanUpRef(m_Cop);
-
         m_Cop->m_nTimeTillWeNeedThisPed = CTimer::GetTimeInMS();
         m_Cop->bCullExtraFarAway = false;
         m_Cop->m_fRemovalDistMultiplier = 1.f;
-        if (const auto v = m_Cop->m_pVehicle) {
-            v->m_nExtendedRemovalRange = false;
-            v->vehicleFlags.bNeverUseSmallerRemovalRange = false;
-            if (v->IsDriver(m_Cop)) {
-                const auto ap = &v->m_autoPilot;
+        if (const auto veh = m_Cop->m_pVehicle) {
+            veh->m_nExtendedRemovalRange = false;
+            veh->vehicleFlags.bNeverUseSmallerRemovalRange = false;
+            if (veh->IsDriver(m_Cop)) {
+                const auto ap = &veh->m_autoPilot;
                 ap->SetCarMission(MISSION_CRUISE);
                 ap->SetDrivingStyle(DRIVING_STYLE_AVOID_CARS);
                 ap->SetCruiseSpeed(10);
-                if (v->GetStatus() != STATUS_SIMPLE) {
-                    CCarCtrl::JoinCarWithRoadSystem(v);
+                if (veh->GetStatus() != STATUS_SIMPLE) {
+                    CCarCtrl::JoinCarWithRoadSystem(veh);
                 }
                 veh->vehicleFlags.bSirenOrAlarm = false;
             }
@@ -92,17 +88,17 @@ CTask* CTaskComplexKillCriminal::CreateSubTask(eTaskType tt, CPed* ped, bool for
     switch (tt) {
     case TASK_COMPLEX_KILL_PED_ON_FOOT: {
         ped->SetCurrentWeapon(WEAPON_PISTOL);
-        return new CTaskComplexKillPedOnFoot{ m_criminal };
+        return new CTaskComplexKillPedOnFoot{ m_Criminal };
     }
     case TASK_FINISHED: {
-        if (m_criminal) {
-            m_criminal->SetPedDefaultDecisionMaker();
+        if (m_Criminal) {
+            m_Criminal->SetPedDefaultDecisionMaker();
         }
         return nullptr;
     }
     case TASK_SIMPLE_GANG_DRIVEBY:
         return new CTaskSimpleGangDriveBy{
-            m_criminal,
+            m_Criminal,
             nullptr,
             70.f,
             70,
@@ -133,16 +129,16 @@ CTask* CTaskComplexKillCriminal::CreateSubTask(eTaskType tt, CPed* ped, bool for
             };
         };
 
-        if (const auto cveh = m_criminal->GetVehicleIfInOne()) {
+        if (const auto cveh = m_Criminal->GetVehicleIfInOne()) {
             return CreateDriveMission(
                 oveh->IsBike()
                     ? MISSION_FOLLOWCAR_CLOSE
                     : MISSION_BLOCKCAR_CLOSE,
-                (float)(m_criminal->m_pVehicle->m_autoPilot.m_nCruiseSpeed) + 10.f,
+                (float)(m_Criminal->m_pVehicle->m_autoPilot.m_nCruiseSpeed) + 10.f,
                 cveh
             );
         } else {
-            return CreateDriveMission(MISSION_KILLPED_CLOSE, 20.f, m_criminal);
+            return CreateDriveMission(MISSION_KILLPED_CLOSE, 20.f, m_Criminal);
         }
     }
     default:
@@ -153,11 +149,11 @@ CTask* CTaskComplexKillCriminal::CreateSubTask(eTaskType tt, CPed* ped, bool for
 // 0x68C3C0
 CPed* CTaskComplexKillCriminal::FindNextCriminalToKill(CPed* ped, bool any) {
     const auto [closest, distSq] = notsa::SpatialQuery(
-        m_cop->m_apCriminalsToKill | rng::views::filter(notsa::Not(NoPedOrNoHp)),
-        m_cop->GetPosition(),
-        m_criminal.Get(),
-        !any && NoPedOrNoHp(m_criminal)
-            ? m_criminal.Get()
+        m_Cop->m_apCriminalsToKill | rng::views::filter(notsa::Not(NoPedOrNoHp)),
+        m_Cop->GetPosition(),
+        m_Criminal.Get(),
+        !any && NoPedOrNoHp(m_Criminal)
+            ? m_Criminal.Get()
             : nullptr
     );
     return closest;
@@ -165,7 +161,7 @@ CPed* CTaskComplexKillCriminal::FindNextCriminalToKill(CPed* ped, bool any) {
 
 // 0x68C6E0
 bool CTaskComplexKillCriminal::ChangeTarget(CPed* newTarget) { // TODO: Figure out if `newTarget` is actually the new target, or it's just he ped that is the owner of this task
-    if (newTarget == m_criminal) {
+    if (newTarget == m_Criminal) {
         return true;
     }
 
@@ -173,7 +169,7 @@ bool CTaskComplexKillCriminal::ChangeTarget(CPed* newTarget) { // TODO: Figure o
         return false;
     }
 
-    if (m_criminal && m_criminal->bInVehicle) {
+    if (m_Criminal && m_Criminal->bInVehicle) {
         return false;
     }
 
@@ -181,14 +177,14 @@ bool CTaskComplexKillCriminal::ChangeTarget(CPed* newTarget) { // TODO: Figure o
         return false;
     }
 
-    if (!notsa::contains(m_cop->m_apCriminalsToKill, newTarget)) { // 0x68c760
+    if (!notsa::contains(m_Cop->m_apCriminalsToKill, newTarget)) { // 0x68c760
         return false;
     }
 
-    m_criminal = newTarget;
+    m_Criminal = newTarget;
 
     // Propagate change to partner
-    if (const auto partner = m_cop->m_pCopPartner) {
+    if (const auto partner = m_Cop->m_pCopPartner) {
         if (partner->bInVehicle) {
             if (const auto partnersTask = partner->GetTaskManager().Find<CTaskComplexKillCriminal>(false)) {
                 notsa::cast<CTaskComplexKillCriminal>(partnersTask)->ChangeTarget(newTarget);
@@ -196,7 +192,7 @@ bool CTaskComplexKillCriminal::ChangeTarget(CPed* newTarget) { // TODO: Figure o
         }
     }
 
-    m_finished = false;
+    m_HasFinished = false;
 
     return true;
 }
@@ -220,18 +216,18 @@ bool CTaskComplexKillCriminal::MakeAbortable(CPed* ped, eAbortPriority priority,
         case EVENT_GUN_AIMED_AT:
         case EVENT_SHOT_FIRED: {
             const auto evSrc  = event->GetSourceEntity();
-            if (m_criminal && evSrc == m_criminal) {
+            if (m_Criminal && evSrc == m_Criminal) {
                 return false; // As per 0x68DB32
             }
             if (!evSrc || !evSrc->IsPed() || evSrc->AsPed()->IsPlayer()) {
                 return false;
             }
             const auto evSrcPed = evSrc->AsPed();
-            if (!m_cop || m_cop->AddCriminalToKill(evSrcPed) == (notsa::IsFixBugs() ? -1 : 0)) {
+            if (!m_Cop || m_Cop->AddCriminalToKill(evSrcPed) == (notsa::IsFixBugs() ? -1 : 0)) {
                 return false;
             }
             if (notsa::contains({ EVENT_DAMAGE, EVENT_VEHICLE_DAMAGE_WEAPON }, evType)) { // Change target immediately
-                if (!m_criminal || (m_criminal->GetPosition() - ped->GetPosition()).SquaredMagnitude() <= sq(25.f)) {
+                if (!m_Criminal || (m_Criminal->GetPosition() - ped->GetPosition()).SquaredMagnitude() <= sq(25.f)) {
                     ChangeTarget(evSrcPed);
                 }
             }
@@ -252,29 +248,29 @@ CTask* CTaskComplexKillCriminal::CreateNextSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_GANG_DRIVEBY:
         return CreateSubTask(
-            m_cop->m_isTheDriver
+            m_Cop->m_isTheDriver
                 ? TASK_COMPLEX_CAR_DRIVE_MISSION
                 : TASK_SIMPLE_CAR_DRIVE,
             ped
         );
     case TASK_COMPLEX_KILL_PED_ON_FOOT: { // Try finding the next criminal, if none, set `m_finished` and get into *the* car (if possible)
-        CPed* const nextCriminal = NoPedOrNoHp(m_criminal)
+        CPed* const nextCriminal = NoPedOrNoHp(m_Criminal)
             ? FindNextCriminalToKill(ped, true)
-            : m_criminal.Get();
+            : m_Criminal.Get();
         if (nextCriminal && ChangeTarget(nextCriminal)) {
             return CreateSubTask(TASK_COMPLEX_KILL_PED_ON_FOOT, ped, true);
         }
 
         // No criminal, or can't target it, so just bail, so try getting back into the car
-        m_finished = true;
-        if (m_cantGetInCar || !ped->m_pVehicle) {
+        m_HasFinished = true;
+        if (m_CantGetInCar || !ped->m_pVehicle) {
             return CreateSubTask(TASK_FINISHED, ped);
         }
 
-        if (!m_cop->m_isTheDriver) {
-            if (NoPedOrNoHp(m_cop->m_pCopPartner)) { // Partner is dead, we get in as the driver
-                m_cop->m_isTheDriver = true;
-                m_cop->SetPartner(nullptr);
+        if (!m_Cop->m_isTheDriver) {
+            if (NoPedOrNoHp(m_Cop->m_pCopPartner)) { // Partner is dead, we get in as the driver
+                m_Cop->m_isTheDriver = true;
+                m_Cop->SetPartner(nullptr);
             } else {
                 return CreateSubTask(TASK_COMPLEX_ENTER_CAR_AS_PASSENGER, ped);
             }
@@ -285,16 +281,16 @@ CTask* CTaskComplexKillCriminal::CreateNextSubTask(CPed* ped) {
     case TASK_COMPLEX_ENTER_CAR_AS_DRIVER: { // 0x68E533
         if (!ped->bInVehicle) {
             return CreateSubTask(
-                m_finished || NoPedOrNoHp(m_criminal)
+                m_HasFinished || NoPedOrNoHp(m_Criminal)
                     ? TASK_FINISHED
                     : TASK_COMPLEX_KILL_PED_ON_FOOT,
                 ped
             );
         }
-        const auto copPartnerNoneOrInVeh = NoPedOrNoHp(m_cop->m_pCopPartner) || m_cop->m_pCopPartner->bInVehicle;
-        if (!m_finished && !NoPedOrNoHp(m_criminal) && !m_criminal->IsInVehicle()) {
+        const auto copPartnerNoneOrInVeh = NoPedOrNoHp(m_Cop->m_pCopPartner) || m_Cop->m_pCopPartner->bInVehicle;
+        if (!m_HasFinished && !NoPedOrNoHp(m_Criminal) && !m_Criminal->IsInVehicle()) {
             return CreateSubTask(
-                !ped->m_pVehicle || m_criminal->IsEntityInRange(ped->m_pVehicle, 25.f) // 0x68E5D8
+                !ped->m_pVehicle || m_Criminal->IsEntityInRange(ped->m_pVehicle, 25.f) // 0x68E5D8
                     ? TASK_COMPLEX_KILL_PED_ON_FOOT
                     : copPartnerNoneOrInVeh // otherwise if criminal is too far chase them with the car
                         ? TASK_COMPLEX_CAR_DRIVE_MISSION
@@ -318,7 +314,7 @@ CTask* CTaskComplexKillCriminal::CreateNextSubTask(CPed* ped) {
     }
     case TASK_COMPLEX_LEAVE_CAR: // 0x68E77F
         return CreateSubTask(
-            m_finished || !ped->bInVehicle || m_cantGetInCar || (!NoPedOrNoHp(m_criminal) && !m_criminal->IsInVehicle() && m_criminal->IsEntityInRange(ped, 25.f))
+            m_HasFinished || !ped->bInVehicle || m_CantGetInCar || (!NoPedOrNoHp(m_Criminal) && !m_Criminal->IsInVehicle() && m_Criminal->IsEntityInRange(ped, 25.f))
                 ? TASK_COMPLEX_KILL_PED_ON_FOOT     // Criminal can be killed on foot
                 : TASK_COMPLEX_ENTER_CAR_AS_DRIVER, // We have to chase the criminal with a vehicle
             ped
