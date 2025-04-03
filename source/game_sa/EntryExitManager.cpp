@@ -43,10 +43,8 @@ void CEntryExitManager::Init() {
 
 // 0x440B90
 void CEntryExitManager::Shutdown() {
-    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
-        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
-            mp_QuadTree->DeleteItem(enex);
-        }
+    for (auto& enex : mp_poolEntryExits->GetAllValid()) {
+        mp_QuadTree->DeleteItem(&enex);
     }
 
     delete mp_poolEntryExits; // Flush() called in destructor
@@ -60,12 +58,10 @@ void CEntryExitManager::Shutdown() {
 
 // 0x440C40
 void CEntryExitManager::ShutdownForRestart() {
-    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
-        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
-            enex->bEnableAccess = true;
-            if (enex->bDeleteEnex) {
-                DeleteOne(i);
-            }
+    for (auto&& [i, enex] : mp_poolEntryExits->GetAllValidWithIndex()) {
+        enex.bEnableAccess = true;
+        if (enex.bDeleteEnex) {
+            DeleteOne(i);
         }
     }
 
@@ -293,10 +289,8 @@ int32 CEntryExitManager::FindNearestEntryExit(const CVector2D& position, float r
 // 0x43F180
 void CEntryExitManager::EnableBurglaryHouses(bool enable) {
     ms_bBurglaryHousesEnabled = enable;
-    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
-        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
-            enex->bBurglaryAccess = enable;
-        }
+    for (auto& enex : mp_poolEntryExits->GetAllValid()) {
+        enex.bBurglaryAccess = enable;
     }
 }
 
@@ -309,11 +303,9 @@ void CEntryExitManager::GetPositionRelativeToOutsideWorld(CVector& pos) {
 
 // 0x43F0A0
 void CEntryExitManager::PostEntryExitsCreation() {
-    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
-        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
-            if (enex->bCreateLinkedPair && !enex->m_pLink) {
-                LinkEntryExit(enex);
-            }
+    for (auto& enex : mp_poolEntryExits->GetAllValid()) {
+        if (enex.bCreateLinkedPair && !enex.m_pLink) {
+            LinkEntryExit(&enex);
         }
     }
 }
@@ -342,15 +334,12 @@ void CEntryExitManager::LinkEntryExit(CEntryExit* enex) {
 
 // 0x43EFD0
 int32 CEntryExitManager::GetEntryExitIndex(const char* name, uint16 enabledFlags, uint16 disabledFlags) {
-    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
-        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
-            // Remember: cast to `uint8` == mask by 0xFF
-            if (   (uint8)(enex->m_nFlags & enabledFlags) == (uint8)enabledFlags
-                && (uint8)(enex->m_nFlags & disabledFlags) == 0
-            ) {
-                if (!_strnicmp(enex->m_szName, name, std::size(enex->m_szName))) {
-                    return i;
-                }
+    for (auto&& [i, enex] : mp_poolEntryExits->GetAllValidWithIndex()) {
+        // Remember: cast to `uint8` == mask by 0xFF
+        if ((uint8)(enex.m_nFlags & enabledFlags) == (uint8)enabledFlags
+            && (uint8)(enex.m_nFlags & disabledFlags) == 0) {
+            if (!_strnicmp(enex.m_szName, name, std::size(enex.m_szName))) {
+                return i;
             }
         }
     }
@@ -464,20 +453,18 @@ bool CEntryExitManager::Save() {
     }
 
     // Save entry exits
-    for (int16 i = 0; i < mp_poolEntryExits->GetSize(); i++) {
-        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
-            int16 data = -1;
-            if (enex->m_pLink) {
-                // Make sure the link reference is valid
-                auto linkIndex = mp_poolEntryExits->GetIndex(enex->m_pLink);
-                if (mp_poolEntryExits->IsIndexInBounds(linkIndex)) {
-                    data = linkIndex;
-                }
+    for (auto&& [i, enex] : mp_poolEntryExits->GetAllValidWithIndex()) {
+        int16 data = -1;
+        if (enex.m_pLink) {
+            // Make sure the link reference is valid
+            auto linkIndex = mp_poolEntryExits->GetIndex(enex.m_pLink);
+            if (mp_poolEntryExits->IsIndexInBounds(linkIndex)) {
+                data = linkIndex;
             }
-            CGenericGameStorage::SaveDataToWorkBuffer(i); // Enex idx in pool
-            CGenericGameStorage::SaveDataToWorkBuffer(enex->m_nFlags);
-            CGenericGameStorage::SaveDataToWorkBuffer(data); // Linked enex idx in pool
         }
+        CGenericGameStorage::SaveDataToWorkBuffer(i); // Enex idx in pool
+        CGenericGameStorage::SaveDataToWorkBuffer(enex.m_nFlags);
+        CGenericGameStorage::SaveDataToWorkBuffer(data); // Linked enex idx in pool
     }
 
     // Mark the end of ENEX table

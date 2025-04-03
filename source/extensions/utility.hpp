@@ -134,22 +134,6 @@ T ston(std::string_view str, std::chars_format fmt = std::chars_format::general,
 }
 
 /*
-* Parse a string into a 3D vector. The format is `X Y Z` (There might be multiple spaces, they're ignored)
-* [On failure asserts in debug]
-*/
-CVector stov3d(std::string_view str, std::chars_format fmt = std::chars_format::general) {
-    CVector v3d;
-    for (auto i = 0; i < 3; i++) {
-        const char* end;
-        v3d[i] = ston<float>(str, fmt, &end);
-        if (i < 2) {
-            str = str.substr(end - str.data() + 1);
-        }
-    }
-    return v3d;
-}
-
-/*
 * Want to know something funny?
 * `std::initializer_list` is just a proxy object for a stack allocated array.
 * So, if you return one from a function you're dommed to be fucked :)

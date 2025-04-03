@@ -94,7 +94,7 @@ void CInterestingEvents::Add(CInterestingEvents::EType type, CEntity* entity) {
     if (!m_b1 || !entity)
         return;
 
-    DEV_LOG("type={}, model={}", (int32)(type), entity->m_nModelIndex);
+    NOTSA_LOG_DEBUG("type={}, model={}", (int32)(type), entity->m_nModelIndex);
 
     const auto& camPos = CCamera::GetActiveCamera().m_vecSource;
     if (m_nLastFrameUpdate != CTimer::GetFrameCounter()) {

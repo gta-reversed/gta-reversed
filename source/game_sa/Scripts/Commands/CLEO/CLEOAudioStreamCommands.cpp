@@ -1,7 +1,7 @@
 #include <StdInc.h>
 
 #include "CLEOCommands.hpp"
-#include <CommandParser/Parser.hpp>
+#include "CommandParser/Parser.hpp"
 
 /*!
 * Various CLEO audio commands

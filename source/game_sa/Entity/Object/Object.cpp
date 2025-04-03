@@ -1245,11 +1245,10 @@ void CObject::TryToFreeUpTempObjects(int32 numObjects) {
     if (numObjects <= 0)
         return;
 
-    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i) {
-        auto* obj = GetObjectPool()->GetAt(i);
-        if (obj && obj->IsTemporary() && !obj->IsVisible()) {
-            CWorld::Remove(obj);
-            delete obj;
+    for (auto& obj : GetObjectPool()->GetAllValid()) {
+        if (obj.IsTemporary() && !obj.IsVisible()) {
+            CWorld::Remove(&obj);
+            delete &obj;
             --numObjects;
         }
     }
@@ -1257,36 +1256,33 @@ void CObject::TryToFreeUpTempObjects(int32 numObjects) {
 
 // 0x5A18B0
 void CObject::DeleteAllTempObjects() {
-    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i) {
-        auto* obj = GetObjectPool()->GetAt(i);
-        if (obj && obj->IsTemporary()) {
-            CWorld::Remove(obj);
-            delete obj;
+    for (auto& obj : GetObjectPool()->GetAllValid()) {
+        if (obj.IsTemporary()) {
+            CWorld::Remove(&obj);
+            delete &obj;
         }
     }
 }
 
 // 0x5A1910
 void CObject::DeleteAllMissionObjects() {
-    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i)  {
-        auto* obj = GetObjectPool()->GetAt(i);
-        if (obj && obj->IsMissionObject()) {
-            CWorld::Remove(obj);
-            delete obj;
+    for (auto& obj : GetObjectPool()->GetAllValid())  {
+        if (obj.IsMissionObject()) {
+            CWorld::Remove(&obj);
+            delete &obj;
         }
     }
 }
 
 // 0x5A1980
 void CObject::DeleteAllTempObjectsInArea(CVector point, float radius) {
-    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i) {
-        auto* obj = GetObjectPool()->GetAt(i);
-        if (!obj || !obj->IsTemporary())
+    for (auto& obj : GetObjectPool()->GetAllValid()) {
+        if (!obj.IsTemporary())
             continue;
 
-        if (DistanceBetweenPointsSquared(obj->GetPosition(), point) < sq(radius)) {
-            CWorld::Remove(obj);
-            delete obj;
+        if (DistanceBetweenPointsSquared(obj.GetPosition(), point) < sq(radius)) {
+            CWorld::Remove(&obj);
+            delete &obj;
         }
     }
 }

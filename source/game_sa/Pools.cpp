@@ -62,7 +62,7 @@ void CPools::Initialise() {
 void CPools::ShutDown() {
     plugin::Call<0x5519F0>();
     /*
-    DEV_LOG("Shutdown pool started");
+    NOTSA_LOG_DEBUG("Shutdown pool started");
     delete ms_pPtrNodeSingleLinkPool;
     delete ms_pPtrNodeDoubleLinkPool;
     delete ms_pEntryInfoNodePool;
@@ -80,7 +80,7 @@ void CPools::ShutDown() {
     delete ms_pTaskAllocatorPool;
     delete ms_pPedIntelligencePool;
     delete ms_pPedAttractorPool;
-    DEV_LOG("Shutdown pool done");
+    NOTSA_LOG_DEBUG("Shutdown pool done");
     */
 }
 
@@ -91,18 +91,14 @@ int32 CPools::CheckBuildingAtomics() {
 
 // 0x551950
 void CPools::CheckPoolsEmpty() {
-    for (auto i = 0; i < ms_pObjectPool->GetSize(); i++) {
-        const auto obj = ms_pObjectPool->GetAt(i);
-        if (!obj)
+    for (auto& obj : ms_pObjectPool->GetAllValid()) {
+        if (obj.m_nObjectType != OBJECT_TYPE_DECORATION)
             continue;
 
-        if (obj->m_nObjectType != OBJECT_TYPE_DECORATION)
-            continue;
-
-        const auto& objPos = obj->GetPosition();
-        DEV_LOG("Offending object: MI: {} Coors:{} {} {}", obj->m_nModelIndex, objPos.x, objPos.y, objPos.z);
+        const auto& objPos = obj.GetPosition();
+        NOTSA_LOG_DEBUG("Offending object: MI: {} Coors:{} {} {}", obj.m_nModelIndex, objPos.x, objPos.y, objPos.z);
     }
-    DEV_LOG("Pools have been cleared!");
+    NOTSA_LOG_DEBUG("Pools have been cleared!");
 }
 
 // 0x550050

@@ -1,10 +1,10 @@
 #include "StdInc.h"
 
 #include "TaskComplexKillPedOnFootArmed.h"
-#include "./TaskSimpleGoToPoint.h"
-#include "./TaskSimpleDuck.h"
-#include "./TaskSimpleGunControl.h"
-#include "./TaskSimpleUseGun.h"
+#include "TaskSimpleGoToPoint.h"
+#include "TaskSimpleDuck.h"
+#include "TaskSimpleGunControl.h"
+#include "TaskSimpleUseGun.h"
 #include <extensions/utility.hpp>
 
 void CTaskComplexKillPedOnFootArmed::InjectHooks() {

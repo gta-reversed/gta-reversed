@@ -31,7 +31,7 @@ void cTransmission::DisplayGearRatios()
     for (size_t i = 0; i <= m_nNumberOfGears; i++)
     {
         tTransmissionGear& gear = m_aGears[i];
-        DEV_LOG(
+        NOTSA_LOG_DEBUG(
             "{} => max v = {:03.2f}, up at = {:03.2f}, down at = {:03.2f}",
             i,
             gear.m_maxVelocity / magic,
