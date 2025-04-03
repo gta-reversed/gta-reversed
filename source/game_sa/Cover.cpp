@@ -19,8 +19,8 @@ void CCover::InjectHooks() {
     RH_ScopedInstall(FindAndReserveCoverPoint, 0x6992B0);
     RH_ScopedInstall(FindCoordinatesCoverPoint, 0x699570);
     RH_ScopedInstall(FindCoverPointsForThisBuilding, 0x699120);
-    RH_ScopedInstall(FindDirFromVector, 0x698D40);
-    RH_ScopedInstall(FindVectorFromDir, 0x698D60);
+    RH_ScopedInstall(FindDirFromVector, 0x698D40, {.locked = true});
+    RH_ScopedInstall(FindVectorFromDir, 0x698D60, {.locked = true});
     RH_ScopedInstall(FindVectorFromFirstToMissingVertex, 0x698790);
 }
 
