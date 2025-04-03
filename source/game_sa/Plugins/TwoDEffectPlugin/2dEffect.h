@@ -60,7 +60,7 @@ enum e2dCoronaFlashType : uint8 {
 };
 
 struct tEffectLight {
-    static inline constexpr e2dEffectType FxType = EFFECT_LIGHT;
+    static inline constexpr e2dEffectType Type = EFFECT_LIGHT;
 
     RwRGBA m_color;
     float  m_fCoronaFarClip;
@@ -102,14 +102,14 @@ struct tEffectLight {
 VALIDATE_SIZE(tEffectLight, 0x30);
 
 struct tEffectParticle {
-    static inline constexpr e2dEffectType FxType = EFFECT_PARTICLE;
+    static inline constexpr e2dEffectType Type = EFFECT_PARTICLE;
 
     char m_szName[24];
 };
 VALIDATE_SIZE(tEffectParticle, 0x18);
 
 struct tEffectPedAttractor {
-    static inline constexpr e2dEffectType FxType = EFFECT_ATTRACTOR;
+    static inline constexpr e2dEffectType Type = EFFECT_ATTRACTOR;
 
     RwV3d             m_vecQueueDir;
     RwV3d             m_vecUseDir;
@@ -123,7 +123,7 @@ struct tEffectPedAttractor {
 VALIDATE_SIZE(tEffectPedAttractor, 0x30);
 
 struct tEffectEnEx {
-    static inline constexpr e2dEffectType FxType = EFFECT_ENEX;
+    static inline constexpr e2dEffectType Type = EFFECT_ENEX;
 
     float m_fEnterAngle;
     RwV2d m_vecRadius;
@@ -154,7 +154,7 @@ struct CRoadsignAttrFlags {
 VALIDATE_SIZE(CRoadsignAttrFlags, 0x2);
 
 struct tEffectRoadsign {
-    static inline constexpr e2dEffectType FxType = EFFECT_ROADSIGN;
+    static inline constexpr e2dEffectType Type = EFFECT_ROADSIGN;
 
     RwV2d              m_vecSize;
     RwV3d              m_vecRotation;
@@ -165,14 +165,14 @@ struct tEffectRoadsign {
 VALIDATE_SIZE(tEffectRoadsign, 0x20);
 
 struct tEffectSlotMachineWheel {
-    static inline constexpr e2dEffectType FxType = EFFECT_TRIGGER_POINT;
+    static inline constexpr e2dEffectType Type = EFFECT_TRIGGER_POINT;
 
     int32 m_nId;
 };
 VALIDATE_SIZE(tEffectSlotMachineWheel, 0x4);
 
 struct tEffectCoverPoint {
-    static inline constexpr e2dEffectType FxType = EFFECT_COVER_POINT;
+    static inline constexpr e2dEffectType Type = EFFECT_COVER_POINT;
 
     RwV2d               m_DirOfCover;
     CCoverPoint::eUsage m_Usage;
@@ -180,7 +180,7 @@ struct tEffectCoverPoint {
 VALIDATE_SIZE(tEffectCoverPoint, 0xC);
 
 struct tEffectEscalator {
-    static inline constexpr e2dEffectType FxType = EFFECT_ESCALATOR;
+    static inline constexpr e2dEffectType Type = EFFECT_ESCALATOR;
 
     RwV3d m_vecBottom;
     RwV3d m_vecTop;
@@ -190,7 +190,7 @@ struct tEffectEscalator {
 VALIDATE_SIZE(tEffectEscalator, 0x28);
 
 struct tEffectInterior {
-    static inline constexpr e2dEffectType FxType = EFFECT_INTERIOR;
+    static inline constexpr e2dEffectType Type = EFFECT_INTERIOR;
 
     eInteriorTypeS8 m_IntType;
     int8  m_groupId;
