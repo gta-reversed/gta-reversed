@@ -3,6 +3,7 @@
 #include "PedGroupIntelligence.h"
 #include "Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocator.h"
 #include "Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocators.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedClass(CPedGroupIntelligence);
@@ -187,8 +188,10 @@ void CPedGroupIntelligence::Process() {
     if (m_HighestPriorityEvent) { // 0x5FC6A2
         if (ShouldSetHighestPriorityEventAsCurrent()) {
             delete std::exchange(m_CurrentEvent, std::exchange(m_HighestPriorityEvent, nullptr));
-            if (m_PrimaryTaskAllocator == m_EventResponseTaskAllocator) {
-                m_PrimaryTaskAllocator = nullptr;
+            if (notsa::bugfixes::GenericUB) {
+                if (m_PrimaryTaskAllocator == m_EventResponseTaskAllocator) {
+                    m_PrimaryTaskAllocator = nullptr;
+                }
             }
             delete std::exchange(m_EventResponseTaskAllocator, ComputeEventResponseTasks());
         } else if ( // 0x5FC6F6
@@ -221,6 +224,11 @@ void CPedGroupIntelligence::Process() {
 
 // 0x5F7410
 void CPedGroupIntelligence::SetPrimaryTaskAllocator(CTaskAllocator* ta) {
+    if (notsa::bugfixes::GenericUB) {
+        if (m_EventResponseTaskAllocator == m_PrimaryTaskAllocator) {
+            m_EventResponseTaskAllocator = nullptr;
+        }
+    }
     delete std::exchange(m_PrimaryTaskAllocator, ta);
 }
 
