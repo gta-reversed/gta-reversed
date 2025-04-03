@@ -50,8 +50,8 @@ CTaskComplexKillCriminal::CTaskComplexKillCriminal(CPed* criminal, bool randomiz
 }
 
 // NOTSA (For 0x68CE50)
-CTaskComplexKillCriminal::CTaskComplexKillCriminal(const CTaskComplexKillCriminal&) :
-    CTaskComplexKillCriminal{m_Criminal, false}
+CTaskComplexKillCriminal::CTaskComplexKillCriminal(const CTaskComplexKillCriminal& o) :
+    CTaskComplexKillCriminal{o.m_Criminal, false}
 {
 }
 
