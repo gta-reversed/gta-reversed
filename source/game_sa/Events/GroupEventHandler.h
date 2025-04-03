@@ -4,6 +4,7 @@ class CPed;
 class CEvent;
 class CEventGroupEvent;
 class CTaskAllocator;
+class CPedGroup;
 
 class CEventVehicleDamage;
 class CEventGunShot;

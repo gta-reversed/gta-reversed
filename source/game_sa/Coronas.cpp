@@ -1,5 +1,5 @@
 #include "StdInc.h"
-
+#include <reversiblebugfixes/Bugs.hpp>
 #include "Coronas.h"
 
 //bool& CCoronas::SunBlockedByClouds = *(bool*)0x0;
@@ -123,7 +123,11 @@ void CCoronas::Init() {
 // Terminates coronas
 // 0x6FAB00
 void CCoronas::Shutdown() {
-    rng::for_each(gpCoronaTexture, RwTextureDestroy);
+    for (auto& t : gpCoronaTexture) {
+        if (t) {
+            RwTextureDestroy(std::exchange(t, nullptr));
+        }
+    }
 }
 
 // Updates coronas
@@ -359,7 +363,7 @@ void CCoronas::RenderReflections() {
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(RwTextureGetRaster(gpCoronaTexture[3])));
 
     const auto camPos = TheCamera.GetPosition();
-    for (auto&& [i, c] : notsa::enumerate(aCoronas)) {
+    for (auto&& [i, c] : rngv::enumerate(aCoronas)) {
         const auto covidPos = c.GetPosition();
         if (!c.m_bHasValidHeightAboveGround || ((i & 0xFF) + (CTimer::GetFrameCounter() & 0xFF) % 16) == 0) { //< Simplified code
             bool bGroundFound;
@@ -396,7 +400,7 @@ void CCoronas::RenderReflections() {
             return (uint8)((uint16)((float)cc * t) >> 8 & 0xFF); // divide by 256
         };
         CSprite::RenderBufferedOneXLUSprite(
-            { onScrPos.x, onScrPos.y, notsa::IsFixBugs() ? onScrPos.z : RwIm2DGetNearScreenZMacro() },
+            { onScrPos.x, onScrPos.y, notsa::bugfixes::PS2CoronaRendering ? onScrPos.z : RwIm2DGetNearScreenZMacro() },
             onScrSize * CVector2D{0.75f, 2.f} * c.m_fSize,
             LerpColorC(c.m_Color.r),
             LerpColorC(c.m_Color.g),
@@ -549,7 +553,7 @@ void CCoronas::DoSunAndMoon() {
                 (uint8)cc.m_nSunCoreGreen,
                 (uint8)cc.m_nSunCoreBlue,
                 255u,
-                &coronaPos,
+                coronaPos,
                 cc.m_fSunSize * radiusMult,
                 999999.88f,
                 gpCoronaTexture[0],

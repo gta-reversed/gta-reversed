@@ -23,6 +23,7 @@
 #include "Fire.h"
 #include "PedGroups.h"
 
+#include <Audio/Enums/PedSpeechContexts.h>
 #include "AnimationEnums.h"
 #include "eWeaponType.h"
 #include "eWeaponSkill.h"
@@ -64,14 +65,16 @@ enum ePedNode : int32 {
 };
 
 enum ePedPieceTypes {
-    PED_PIECE_UNKNOWN = 0,
-    PED_PIECE_TORSO = 3,
-    PED_PIECE_ASS = 4,
-    PED_PIECE_LEFT_ARM = 5,
-    PED_PIECE_RIGHT_ARM = 6,
-    PED_PIECE_LEFT_LEG = 7,
-    PED_PIECE_RIGHT_LEG = 8,
-    PED_PIECE_HEAD = 9
+    PED_COL_SPHERE_LEG  = 0,
+    PED_COL_SPHERE_MID  = 1,
+    PED_COL_SPHERE_HEAD = 2,
+    PED_PIECE_TORSO     = 3, // AKA CHEST 
+    PED_PIECE_ASS       = 4, // AKA MIDSECTION 
+    PED_PIECE_LEFT_ARM  = 5, // AKA UPPERARM_L 
+    PED_PIECE_RIGHT_ARM = 6, // AKA UPPERARM_R 
+    PED_PIECE_LEFT_LEG  = 7, // AKA LEG_L 
+    PED_PIECE_RIGHT_LEG = 8, // AKA LEG_R 
+    PED_PIECE_HEAD      = 9 
 };
 
 enum ePedCreatedBy : uint8 {
@@ -102,9 +105,11 @@ public:
 
     static inline int16 m_sGunFlashBlendStart = 10'000; // 0x8D1370
 
+protected: // Use accessors
     CAEPedAudioEntity       m_pedAudio;
     CAEPedSpeechAudioEntity m_pedSpeech;
     CAEPedWeaponAudioEntity m_weaponAudio;
+public:
     char                    field_43C[36];
     CPed*                   m_roadRageWith;
     char                    field_464[4];
@@ -286,7 +291,7 @@ public:
     CVector             field_578;
     CEntity*            m_pContactEntity;
     float               field_588;
-    CVehicle*           m_pVehicle;
+    CVehicle*           m_pVehicle;         // Ped's vehicle - Only physically in it if `bInVehicle` is `true`.
     CVehicle*           m_VehDeadInFrontOf; // Set if `bDeadPedInFrontOfCar` 
     int32               field_594;
     ePedType            m_nPedType;
@@ -318,8 +323,8 @@ public:
     char                m_nBodypartToRemove;
     char                field_755;
     int16               m_nMoneyCount; // Used for money pickup when ped is killed
-    float               field_758;
-    float               field_75C;
+    float               m_Wobble;
+    float               m_WobbleSpeed;
     char                m_nLastWeaponDamage; // See eWeaponType
     CEntity*            m_pLastEntityDamage;
     int32               field_768;
@@ -335,7 +340,7 @@ public:
     CCoverPoint*        m_pCoverPoint;
     CEntryExit*         m_pEnex; // CEnEx *
     float               m_fRemovalDistMultiplier;
-    int16               m_nSpecialModelIndex;
+    int16               m_StreamedScriptBrainToLoad;
     int32               field_798;
 
 public:
@@ -448,7 +453,8 @@ public:
     void ClearLook();
     bool TurnBody();
     bool IsPointerValid();
-    void GetBonePosition(RwV3d& outPosition, eBoneTag boneId, bool updateSkinBones = false);
+    CVector GetBonePosition(eBoneTag boneId, bool updateSkinBones = false);
+    void GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones);
     void GiveObjectToPedToHold(int32 modelIndex, uint8 replace);
     void SetPedState(ePedState pedState);
     ePedState GetPedState() { return m_nPedState; }
@@ -494,16 +500,17 @@ public:
     void EnablePedSpeech();
     void DisablePedSpeechForScriptSpeech(bool stopCurrentSpeech);
     void EnablePedSpeechForScriptSpeech();
-    bool CanPedHoldConversation();
-    void SayScript(int32 arg0, uint8 arg1, uint8 arg2, uint8 arg3);
-    int16 Say(uint16 phraseId, uint32 offset = 0, float arg2 = 1.0f, uint8 arg3 = 0, uint8 arg4 = 0, uint8 arg5 = 0);
+    bool CanPedHoldConversation() const;
+    void SayScript(eAudioEvents scriptID, bool overrideSilence, bool isForceAudible, bool isFrontEnd);
+    int16 Say(eGlobalSpeechContext gCtx, uint32 startTimeDelay = 0, float probability = 1.f, bool overrideSilence = false, bool isForceAudible = false, bool isFrontEnd = false);
     void RemoveBodyPart(ePedNode pedNode, char localDir);
     void SpawnFlyingComponent(int32 arg0, char arg1);
     uint8 DoesLOSBulletHitPed(CColPoint& colPoint);
     void RemoveWeaponAnims(int32 likeUnused, float blendDelta);
     bool IsPedHeadAbovePos(float zPos);
     void KillPedWithCar(CVehicle* car, float fDamageIntensity, bool bPlayDeadAnimation);
-    void MakeTyresMuddySectorList(CPtrList& ptrList);
+    template<typename PtrListType>
+    void MakeTyresMuddySectorList(PtrListType& ptrList);
     void DeadPedMakesTyresBloody();
     bool IsInVehicleThatHasADriver();
     void SetStayInSamePlace(bool enable) { bStayInSamePlace = enable; }
@@ -557,15 +564,18 @@ public:
     CPlayerPed*    AsPlayer()    { return reinterpret_cast<CPlayerPed*>(this); }
 
     bool IsFollowerOfGroup(const CPedGroup& group) const;
-    RwMatrix& GetBoneMatrix(eBoneTag bone) const;
+    RwMatrix* GetBoneMatrix(eBoneTag bone) const;
     void CreateDeadPedPickupCoors(CVector& pickupPos);
     RpHAnimHierarchy& GetAnimHierarchy() const;
     CAnimBlendClumpData& GetAnimBlendData() const;
     bool IsInVehicle() const { return bInVehicle && m_pVehicle; }
     bool IsInVehicle(const CVehicle* veh) const { return bInVehicle && m_pVehicle == veh; }
-    CVector GetBonePosition(eBoneTag boneId, bool updateSkinBones = false);
     int32 GetPadNumber() const;
     bool IsCurrentlyUnarmed() { return GetActiveWeapon().m_Type == WEAPON_UNARMED; }
+
+    auto&& GetAE(this auto&& self)    { return self.m_pedAudio; }
+    auto&& GetSpeechAE(this auto&& self) { return self.m_pedSpeech; }
+    auto&& GetWeaponAE(this auto&& self) { return self.m_weaponAudio; }
 
     /*!
      * @notsa

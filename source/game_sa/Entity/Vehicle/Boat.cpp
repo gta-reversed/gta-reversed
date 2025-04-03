@@ -148,7 +148,7 @@ void CBoat::DebugCode() {
 // 0x6F0D90
 void CBoat::PrintThrustAndRudderInfo() {
     char cBuffer[64]{};
-    std::format_to(cBuffer, "Thrust {:3.2f}", m_pHandlingData->m_transmissionData.m_fEngineAcceleration * m_pHandlingData->m_fMass);
+    std::format_to(cBuffer, "Thrust {:3.2f}", m_pHandlingData->m_transmissionData.m_EngineAcceleration * m_pHandlingData->m_fMass);
     std::format_to(cBuffer, "Rudder Angle  {:3.2f}", m_pHandlingData->m_fSteeringLock);
 }
 
@@ -411,12 +411,11 @@ void CBoat::FillBoatList() {
     vecCamDir.Normalise();
 
     auto iCurBoat = 0u;
-    for (int32 iInd = 0; iInd < GetVehiclePool()->GetSize(); ++iInd) {
-        auto vehicle = GetVehiclePool()->GetAt(iInd);
-        if (!vehicle || !vehicle->IsBoat())
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (!vehicle.IsBoat())
             continue;
 
-        auto boat = vehicle->AsBoat();
+        auto boat = vehicle.AsBoat();
         if (!boat->m_nNumWaterTrailPoints)
             continue;
 
@@ -469,7 +468,7 @@ void CBoat::ProcessControl() {
     PruneWakeTrail();
     CVehicle::ProcessDelayedExplosion();
     auto fMassCheck = (m_fMass * 0.008F * 100.0F) / 125.0F;
-    if (physicalFlags.bDestroyed && fMassCheck < m_fBuoyancyConstant)
+    if (physicalFlags.bRenderScorched && fMassCheck < m_fBuoyancyConstant)
         m_fBuoyancyConstant -= ((m_fMass * 0.001F) * 0.008F);
 
     auto wanted = FindPlayerWanted();
@@ -477,7 +476,7 @@ void CBoat::ProcessControl() {
         auto vehicle = FindPlayerVehicle();
         if (vehicle && vehicle->GetVehicleAppearance() == eVehicleAppearance::VEHICLE_APPEARANCE_BOAT) {
             auto iCarMission = m_autoPilot.m_nCarMission;
-            if (iCarMission == eCarMission::MISSION_ATTACKPLAYER ||
+            if (iCarMission == eCarMission::MISSION_BOAT_ATTACKPLAYER ||
                 (iCarMission >= eCarMission::MISSION_RAMPLAYER_FARAWAY && iCarMission <= eCarMission::MISSION_BLOCKPLAYER_CLOSE)
             ) {
                 if (CTimer::GetTimeInMS() > m_nAttackPlayerTime) {
@@ -573,7 +572,7 @@ void CBoat::ProcessControl() {
                 fGivenDamage /= 2.0F;
         } else {
             if (fGivenDamage > 60.0F && m_pDriver) {
-                m_pDriver->Say(68);
+                m_pDriver->Say(CTX_GLOBAL_CRASH_GENERIC);
             }
 
             fGivenDamage -= 25.0F;
@@ -606,7 +605,7 @@ void CBoat::ProcessControl() {
             if (m_fHealth < 250.0F) {
                 auto modellingMat = GetModellingMatrix();
                 if (!m_pFireParticle && modellingMat) {
-                    m_pFireParticle = g_fxMan.CreateFxSystem("fire_car", &vecFirePos, modellingMat, false);
+                    m_pFireParticle = g_fxMan.CreateFxSystem("fire_car", vecFirePos, modellingMat, false);
                     if (m_pFireParticle) {
                         m_pFireParticle->Play();
                         CEventVehicleOnFire vehOnFireEvent(this);
@@ -738,7 +737,7 @@ void CBoat::PreRender() {
             RwV3dAssign(RwMatrixGetPos(splashMat), RwMatrixGetPos(RwFrameGetLTM(prop)));
             RwMatrixUpdate(splashMat);
             auto vecPoint = CVector(0.0F, 0.0F, 0.0F);
-            splashFx = g_fxMan.CreateFxSystem("boat_prop", &vecPoint, splashMat, false);
+            splashFx = g_fxMan.CreateFxSystem("boat_prop", vecPoint, splashMat, false);
             if (splashFx) {
                 m_apPropSplashFx[iCounter] = splashFx;
                 splashFx->Play();
@@ -964,7 +963,7 @@ void CBoat::BlowUpCar(CEntity* damager, bool bHideExplosion) {
     if (!vehicleFlags.bCanBeDamaged)
         return;
 
-    physicalFlags.bDestroyed = true;
+    physicalFlags.bRenderScorched = true;
     m_nStatus = eEntityStatus::STATUS_WRECKED;
     CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_IS_BLOWN_UP);
     m_vecMoveSpeed.z += 0.13F;

@@ -112,14 +112,14 @@ struct tRadioIndexHistory {
 static_assert(sizeof(tRadioIndexHistory<int32, 1>) == sizeof(int32)); // No VALIDATE_SIZE because the preprocessor is dumb
 
 enum class eRadioTrackMode {
-    UNK_0,
-    UNK_1,
-    UNK_2,
-    GAME_PAUSED, // ?
-    UNK_4,
-    UNK_5,
-    UNK_6,
-    UNK_7
+    RADIO_STARTING,
+    RADIO_WAITING_TO_PLAY,
+    RADIO_PLAYING,
+    RADIO_STOPPING, // ?
+    RADIO_STOPPING_SILENCED,
+    RADIO_STOPPING_CHANNELS_STOPPED,
+    RADIO_WAITING_TO_STOP,
+    RADIO_STOPPED
 };
 
 class CAERadioTrackManager {
@@ -142,7 +142,7 @@ public:
     uint32          m_nRetuneStartedTime;
     uint32          field_60{0};
     int32           m_HwClientHandle;
-    eRadioTrackMode m_nMode{eRadioTrackMode::UNK_7};
+    eRadioTrackMode m_nMode{eRadioTrackMode::RADIO_STOPPED};
     int32           m_nStationsListed{0};
     int32           m_nStationsListDown{0};
     int32           m_nSavedRadioStationId{-1};         // TODO: convert to eRadioID after finished reversing

@@ -25,7 +25,7 @@ void FxInfoGroundCollide_c::GetValue(float currentTime, float mult, float totalT
     auto diff = movement.m_Pos.z - movement.m_Vel.z;
     CColPoint colPoint;
     CEntity* colEntity;
-    if (!CWorld::ProcessVerticalLine(&origin, diff, colPoint, colEntity, true))
+    if (!CWorld::ProcessVerticalLine(origin, diff, colPoint, colEntity, true))
         return;
 
     if (colPoint.m_vecPoint.z > origin.z || movement.m_Pos.z >= colPoint.m_vecPoint.z)

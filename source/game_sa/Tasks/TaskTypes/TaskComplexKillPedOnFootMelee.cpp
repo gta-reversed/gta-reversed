@@ -1,15 +1,15 @@
 #include "StdInc.h"
 #include "TaskComplexKillPedOnFootMelee.h"
 #include <InterestingEvents.h>
-#include "./TaskSimpleFight.h"
-#include "./SeekEntity/PosCalculators/EntitySeekPosCalculatorStandard.h"
-#include "./SeekEntity/TaskComplexSeekEntity.h"
-#include "./TaskSimpleFightingControl.h"
-#include "./TaskSimplePause.h"
-#include "./TaskSimpleStandStill.h"
-#include "./TaskComplexSequence.h"
-#include "./TaskComplexTurnToFaceEntityOrCoord.h"
-#include "./TaskSimpleShakeFist.h"
+#include "TaskSimpleFight.h"
+#include "SeekEntity/PosCalculators/EntitySeekPosCalculatorStandard.h"
+#include "SeekEntity/TaskComplexSeekEntity.h"
+#include "TaskSimpleFightingControl.h"
+#include "TaskSimplePause.h"
+#include "TaskSimpleStandStill.h"
+#include "TaskComplexSequence.h"
+#include "TaskComplexTurnToFaceEntityOrCoord.h"
+#include "TaskSimpleShakeFist.h"
 
 void CTaskComplexKillPedOnFootMelee::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexKillPedOnFootMelee, 0x86d8ec, 11);
@@ -169,7 +169,7 @@ CTask* CTaskComplexKillPedOnFootMelee::CreateFirstSubTask(CPed* ped) {
 
 // 0x626D90
 CTask* CTaskComplexKillPedOnFootMelee::ControlSubTask(CPed* ped) {
-    ped->Say(89);
+    ped->Say(CTX_GLOBAL_FIGHT);
 
     if (m_bNewTarget) {
         return CreateFirstSubTask(ped);

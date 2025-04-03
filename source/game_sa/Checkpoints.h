@@ -18,7 +18,7 @@ public:
     static void Shutdown();
     static void SetHeading(uint32 id, float angle);
     static void Update();
-    static CCheckpoint* PlaceMarker(uint32 id, notsa::WEnumU16<eCheckpointType> type, const CVector& posn, const CVector& direction, float size, uint8 red, uint8 green, uint8 blue, uint8 alpha, uint16 pulsePeriod, float pulseFraction, int16 rotateRate);
+    static CCheckpoint* PlaceMarker(uint32 id, eCheckpointTypeU16 type, const CVector& posn, const CVector& direction, float size, CRGBA color, uint16 pulsePeriod, float pulseFraction, int16 rotateRate);
     /*!
      * @brief Set the position of a checkpoint with the given `id`
      * @param id ID of the checkpoint

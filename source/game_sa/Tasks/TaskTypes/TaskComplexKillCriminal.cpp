@@ -30,7 +30,7 @@ CTaskComplexKillCriminal::CTaskComplexKillCriminal(CPed* criminal, bool randomiz
     if (m_Criminal) {
         if (m_Criminal->IsPlayer() || notsa::contains({ PED_TYPE_COP, PED_TYPE_MEDIC, PED_TYPE_FIREMAN, PED_TYPE_MISSION1 }, m_Criminal->m_nPedType) || m_Criminal->IsCreatedByMission()) {
             m_Criminal = nullptr; // Interesting solution, but okay
-            DEV_LOG("Ped can't be a criminal, aborting");
+            NOTSA_LOG_DEBUG("Ped can't be a criminal, aborting");
         } else {
             CEntity::SafeRegisterRef(m_Criminal);
         }
@@ -63,7 +63,7 @@ CTaskComplexKillCriminal::~CTaskComplexKillCriminal() {
                 const auto ap = &v->m_autoPilot;
                 ap->SetCarMission(MISSION_CRUISE);
                 ap->SetDrivingStyle(DRIVING_STYLE_AVOID_CARS);
-                ap->SetCruisingSpeed(10);
+                ap->SetCruiseSpeed(10);
                 if (v->GetStatus() != STATUS_SIMPLE) {
                     CCarCtrl::JoinCarWithRoadSystem(v);
                 }

@@ -24,10 +24,10 @@ class CFire;
 
 class NOTSA_EXPORT_VTABLE CObject : public CPhysical {
 public:
-    CPtrNodeDoubleLink* m_pControlCodeList;
-    uint8               m_nObjectType; // see enum eObjectType
-    uint8               m_nBonusValue;
-    uint16              m_wCostValue;
+    CPtrNodeDoubleLink<CObject*>* m_pControlCodeList;
+    uint8                         m_nObjectType; // see enum eObjectType
+    uint8                         m_nBonusValue;
+    uint16                        m_wCostValue;
     union {
         struct {
             uint32 bIsPickup : 1;               // 0x1
@@ -52,8 +52,7 @@ public:
             uint32 bIsScaled : 1;
             uint32 bCanBeAttachedToMagnet : 1;
             uint32 bDamaged : 1;
-            uint32 b0x100000 : 1;
-            uint32 b0x200000 : 1;
+            uint32 b0x100000_0x200000 : 2; // something something scripts for brains
             uint32 bFadingIn : 1; // works only for objects with type 2 (OBJECT_MISSION)
             uint32 bAffectedByColBrightness : 1;
 
@@ -82,7 +81,7 @@ public:
     float         m_fScale;
     CObjectData*  m_pObjectInfo;
     CFire*        m_pFire;
-    int16         m_wScriptTriggerIndex;
+    int16         m_nStreamedScriptBrainToLoad;
     int16         m_wRemapTxd;     // this is used for detached car parts
     RwTexture*    m_pRemapTexture; // this is used for detached car parts
     CDummyObject* m_pDummyObject;  // used for dynamic objects like garage doors, train crossings etc.

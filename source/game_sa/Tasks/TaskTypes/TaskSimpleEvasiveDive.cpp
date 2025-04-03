@@ -24,7 +24,7 @@ bool CTaskSimpleEvasiveDive::MakeAbortable(CPed* ped, eAbortPriority priority, c
         }
         return true;
     }
-    if (const auto eDmg = CEvent::DynCast<const CEventDamage>(event)) {
+    if (const auto eDmg = notsa::dyn_cast_if_present<const CEventDamage>(event)) {
         if (eDmg->m_pSourceEntity && eDmg->m_pSourceEntity->IsVehicle()) {
             switch (eDmg->m_weaponType) {
             case WEAPON_RAMMEDBYCAR:
@@ -49,7 +49,7 @@ bool CTaskSimpleEvasiveDive::ProcessPed(CPed* ped) {
 
 // 0x655F20
 void CTaskSimpleEvasiveDive::StartAnim(CPed* ped) {
-    ped->Say(74u);
+    ped->Say(CTX_GLOBAL_DODGE);
 
     m_DiveAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, ANIM_ID_EV_DIVE, 8.0f);
     m_DiveAnim->SetFinishCallback(FinishAnimEvasiveDiveCB, this);
@@ -58,14 +58,14 @@ void CTaskSimpleEvasiveDive::StartAnim(CPed* ped) {
         if (m_EvadeVeh->m_pDriver && m_EvadeVeh->m_pDriver->IsPlayer()) {
             const auto wanted = FindPlayerWanted();
             wanted->RegisterCrime_Immediately(CRIME_VEHICLE_DAMAGE, ped->GetPosition(), ped, 0);
-            wanted->RegisterCrime_Immediately(CRIME_TYPE_9, ped->GetPosition(), ped, 0);
+            wanted->RegisterCrime_Immediately(CRIME_SPEEDING, ped->GetPosition(), ped, 0);
         }
     }
 }
 
 // 0x6536A0
 void CTaskSimpleEvasiveDive::FinishAnimEvasiveDiveCB(CAnimBlendAssociation* assoc, void* data) {
-    const auto self = CTask::Cast<CTaskSimpleEvasiveDive>(static_cast<CTask*>(data));
+    const auto self = notsa::cast<CTaskSimpleEvasiveDive>(static_cast<CTask*>(data));
 
     self->m_bFinished = true;
     self->m_DiveAnim  = nullptr;

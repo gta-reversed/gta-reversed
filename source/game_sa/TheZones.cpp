@@ -88,10 +88,10 @@ bool CTheZones::GetCurrentZoneLockedOrUnlocked(CVector2D pos) {
 // 0x572180
 void CTheZones::AssignZoneInfoForThisZone(int16 newZoneIndex) {
     auto& zone = NavigationZoneArray[newZoneIndex];
-    zone.m_nZoneExtraIndexInfo = [&]{
-        for (const auto& [i, zoneInfo] : notsa::enumerate(GetNavigationZones())) {
+    zone.m_ZoneInfoIndex = [&]{
+        for (const auto& [i, zoneInfo] : rngv::enumerate(GetNavigationZones())) {
             if (i != newZoneIndex && zoneInfo.GetInfoLabel() == zone.GetInfoLabel()) {
-                return zoneInfo.m_nZoneExtraIndexInfo;
+                return zoneInfo.m_ZoneInfoIndex;
             }
         }
         return TotalNumberOfZoneInfos++;
@@ -165,23 +165,23 @@ CZoneInfo* CTheZones::GetZoneInfo(const CVector& point, CZone** outZone) {
     if (outZone) {
         *outZone = z ? z : &NavigationZoneArray[0]; // Zone 0 is always SAN_AND
     }
-    return &ZoneInfoArray[z ? z->m_nZoneExtraIndexInfo : 0];
+    return &ZoneInfoArray[z ? z->m_ZoneInfoIndex : 0];
 }
 
 // 0x572440
 void CTheZones::FillZonesWithGangColours(bool disableRadarGangColors) {
     for (auto& z : GetZoneInfos()) {
-        const auto gdSum = z.GangDensity[GANG_BALLAS] + z.GangDensity[GANG_GROVE] + z.GangDensity[GANG_VAGOS];
+        const auto gdSum = z.GangStrength[GANG_BALLAS] + z.GangStrength[GANG_GROVE] + z.GangStrength[GANG_VAGOS];
 
         uint8 color[3];
         for (auto i = 0; i < 3; i++) {
             const auto GetVW = [&](eGangID g) {
-                return WeightedValue<uint32, uint32>{ gaGangColors[g].components[i], z.GangDensity[g] };
+                return WeightedValue<uint32, uint32>{ gaGangColors[g].components[i], z.GangStrength[g] };
             };
-            color[i] = (uint8)multiply_weighted({ GetVW(GANG_BALLAS), GetVW(GANG_GROVE), GetVW(GANG_VAGOS) }) / std::max(1, gdSum);
+            color[i] = (uint8)(multiply_weighted({ GetVW(GANG_BALLAS), GetVW(GANG_GROVE), GetVW(GANG_VAGOS) }) / std::max(1, gdSum));
         }
 
-        z.radarMode = gdSum && !disableRadarGangColors && CGangWars::CanPlayerStartAGangWarHere(&z)
+        z.RadarMode = gdSum && !disableRadarGangColors && CGangWars::CanPlayerStartAGangWarHere(&z)
             ? 1
             : 0;
 
@@ -336,7 +336,7 @@ bool CTheZones::FindZone(const CVector& point, std::string_view name, eZoneType 
 int16 CTheZones::FindZoneByLabel(const char* name, eZoneType type) {
     assert(type == eZoneType::ZONE_TYPE_INFO); // Originally an `if` returning `-1`, but let's be safe
 
-    for (auto&& [i, v] : notsa::enumerate(GetNavigationZones())) {
+    for (auto&& [i, v] : rngv::enumerate(GetNavigationZones())) {
         if (name == v.GetInfoLabel()) {
             return (int16)i;
         }
@@ -346,8 +346,8 @@ int16 CTheZones::FindZoneByLabel(const char* name, eZoneType type) {
 
 // 0x572cc0
 void CTheZones::SetZoneRadarColours(int16 index, char radarMode, uint8 red, uint8 green, uint8 blue) {
-    const auto zone = &ZoneInfoArray[NavigationZoneArray[index].m_nZoneExtraIndexInfo];
-    zone->radarMode = radarMode;
+    const auto zone = &ZoneInfoArray[NavigationZoneArray[index].m_ZoneInfoIndex];
+    zone->RadarMode = radarMode;
     zone->ZoneColor = { red, green, blue, 255 };
 }
 
@@ -377,25 +377,25 @@ void CTheZones::Update() {
 // Save CTheZones info
 // 0x5D2E60
 void CTheZones::Save() {
-    CGenericGameStorage::SaveDataToWorkBuffer(&m_CurrLevel, 4);
-    CGenericGameStorage::SaveDataToWorkBuffer(&TotalNumberOfNavigationZones, 2);
-    CGenericGameStorage::SaveDataToWorkBuffer(&TotalNumberOfZoneInfos, 2);
-    CGenericGameStorage::SaveDataToWorkBuffer(&TotalNumberOfMapZones, 2);
+    CGenericGameStorage::SaveDataToWorkBuffer((uint32)m_CurrLevel);
+    CGenericGameStorage::SaveDataToWorkBuffer(TotalNumberOfNavigationZones);
+    CGenericGameStorage::SaveDataToWorkBuffer(TotalNumberOfZoneInfos);
+    CGenericGameStorage::SaveDataToWorkBuffer(TotalNumberOfMapZones);
 
     for (int32 i = 0; i < TotalNumberOfNavigationZones; i++) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&NavigationZoneArray[i], 0x20);
+        CGenericGameStorage::SaveDataToWorkBuffer(NavigationZoneArray[i]);
     }
 
     for (int32 i = 0; i < TotalNumberOfZoneInfos; i++) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&ZoneInfoArray[i], 0x11);
+        CGenericGameStorage::SaveDataToWorkBuffer(ZoneInfoArray[i]);
     }
 
     for (int32 i = 0; i < TotalNumberOfMapZones; i++) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&MapZoneArray[i], 0x20);
+        CGenericGameStorage::SaveDataToWorkBuffer(MapZoneArray[i]);
     }
 
-    SaveDataToWorkBuffer(ZonesVisited);
-    CGenericGameStorage::SaveDataToWorkBuffer(&ZonesRevealed, 4);
+    CGenericGameStorage::SaveDataToWorkBuffer(ZonesVisited);
+    CGenericGameStorage::SaveDataToWorkBuffer(ZonesRevealed);
 }
 
 // Load CTheZones info
@@ -403,24 +403,24 @@ void CTheZones::Save() {
 void CTheZones::Load() {
     Init();
 
-    CGenericGameStorage::LoadDataFromWorkBuffer(&m_CurrLevel, 4);
-    CGenericGameStorage::LoadDataFromWorkBuffer(&TotalNumberOfNavigationZones, 2);
-    CGenericGameStorage::LoadDataFromWorkBuffer(&TotalNumberOfZoneInfos, 2);
-    CGenericGameStorage::LoadDataFromWorkBuffer(&TotalNumberOfMapZones, 2);
+    m_CurrLevel = static_cast<eLevelName>(CGenericGameStorage::LoadDataFromWorkBuffer<uint32>());
+    CGenericGameStorage::LoadDataFromWorkBuffer(TotalNumberOfNavigationZones);
+    CGenericGameStorage::LoadDataFromWorkBuffer(TotalNumberOfZoneInfos);
+    CGenericGameStorage::LoadDataFromWorkBuffer(TotalNumberOfMapZones);
 
     for (int32 i = 0; i < TotalNumberOfNavigationZones; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&NavigationZoneArray[i], 0x20u);
+        CGenericGameStorage::LoadDataFromWorkBuffer(NavigationZoneArray[i]);
     }
 
     for (int32 i = 0; i < TotalNumberOfZoneInfos; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&ZoneInfoArray[i], 0x11u);
+        CGenericGameStorage::LoadDataFromWorkBuffer(ZoneInfoArray[i]);
     }
 
     for (int32 i = 0; i < TotalNumberOfMapZones; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&MapZoneArray[i], 0x20u);
+        CGenericGameStorage::LoadDataFromWorkBuffer(MapZoneArray[i]);
     }
-    LoadDataFromWorkBuffer(ZonesVisited);
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ZonesRevealed, 4u);
+    CGenericGameStorage::LoadDataFromWorkBuffer(ZonesVisited);
+    CGenericGameStorage::LoadDataFromWorkBuffer(ZonesRevealed);
 }
 
 // dummy function

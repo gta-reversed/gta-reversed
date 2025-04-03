@@ -6,8 +6,6 @@
 */
 #include "StdInc.h"
 
-#include <extensions/enumerate.hpp>
-
 #include "MenuManager.h"
 #include "MenuManager_Internal.h"
 #include "MenuSystem.h"
@@ -30,6 +28,8 @@ void CMenuManager::InjectHooks() {
     RH_ScopedClass(CMenuManager);
     RH_ScopedCategoryGlobal();
 
+    RH_ScopedInstall(Constructor, 0x574350);
+    RH_ScopedInstall(Destructor, 0x579440);
     RH_ScopedInstall(Initialise, 0x5744D0);
     RH_ScopedInstall(LoadAllTextures, 0x572EC0);
     RH_ScopedInstall(SwapTexturesRound, 0x5730A0);
@@ -38,7 +38,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(HasLanguageChanged, 0x573CD0);
     RH_ScopedInstall(DoSettingsBeforeStartingAGame, 0x573330);
     RH_ScopedInstall(StretchX, 0x5733E0);
-    RH_ScopedInstall(StretchY, 0x573410, { .reversed = false });
+    RH_ScopedInstall(StretchY, 0x573410);
     RH_ScopedInstall(SwitchToNewScreen, 0x573680);
     RH_ScopedInstall(ScrollRadioStations, 0x573A00);
     RH_ScopedInstall(SetFrontEndRenderStates, 0x573A60);
@@ -79,7 +79,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(MessageScreen, 0x579330);
     RH_ScopedInstall(SmallMessageScreen, 0x574010);
 
-    RH_ScopedInstall(PrintMap, 0x575130, { .reversed = false });
+    RH_ScopedInstall(PrintMap, 0x575130);
     RH_ScopedInstall(PrintStats, 0x574900, { .reversed = false });
     RH_ScopedInstall(PrintBriefs, 0x576320);
     RH_ScopedInstall(PrintRadioStationList, 0x5746F0);
@@ -100,7 +100,67 @@ void CMenuManager::InjectHooks() {
 
 // 0x574350
 CMenuManager::CMenuManager() {
-    plugin::CallMethod<0x574350>(this);
+    m_apRadioSprites->Constructor();
+    m_nPlayerNumber          = 0;
+    m_bDoVideoModeUpdate     = false;
+    m_DeleteAllNextDefine    = false;
+    m_DeleteAllBoundControls = false;
+    m_nCurrentRwSubsystem    = 0;
+    SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
+    SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
+    field_EC                      = 0;
+    m_pPressedKey                 = 0;
+    m_MenuIsAbleToQuit            = false;
+    m_nTitleLanguage              = 9;
+    m_nUserTrackIndex             = 0;
+    m_nController                 = 0;
+    CCamera::m_bUseMouse3rdPerson = 1;
+    m_nMousePosX                  = m_nMousePosWinX;
+    m_ListSelection               = 0;
+    m_bMainMenuSwitch             = true;
+    m_nMousePosY                  = m_nMousePosWinY;
+    m_nOldMousePosX               = 0;
+    m_nOldMousePosY               = 0;
+    m_bDrawMouse                  = false;
+    m_MouseInBounds               = 16;
+    m_nTargetBlipIndex            = 0;
+    m_bMenuAccessWidescreen       = false;
+    SetDefaultPreferences(SCREEN_AUDIO_SETTINGS);
+    SetDefaultPreferences(SCREEN_DISPLAY_SETTINGS);
+    m_nRadioStation            = CAEAudioUtility::GetRandomRadioStation();
+    m_bStreamingDisabled       = false;
+    m_bAllStreamingStuffLoaded = false;
+
+    m_bLanguageChanged  = false;
+    m_nPrefsLanguage    = eLanguage::AMERICAN;
+    m_nTextLanguage     = 0;
+    m_nPreviousLanguage = eLanguage::AMERICAN;
+    m_SystemLanguage    = 0;
+
+    m_DisplayControllerOnFoot = false;
+    m_bDontDrawFrontEnd       = false;
+    m_bActivateMenuNextFrame  = false;
+    m_bMenuActive             = false;
+    m_bIsSaveDone             = false;
+    m_bLoadingData            = false;
+    field_F4                  = false;
+    m_fStatsScrollSpeed       = 150.0f;
+    m_nStatsScrollDirection   = 1;
+    m_KeyPressedCode          = (RsKeyCodes)-1;
+    m_PrefsUseVibration       = true;
+    m_fMapZoom                = 300.0f;
+    m_vMapOrigin.x            = APP_MINIMAL_WIDTH / 2;
+    m_vMapOrigin.y            = APP_MINIMAL_HEIGHT / 2;
+}
+
+CMenuManager* CMenuManager::Constructor() {
+    this->CMenuManager::CMenuManager();
+    return this;
+}
+
+CMenuManager* CMenuManager::Destructor() {
+    this->CMenuManager::~CMenuManager();
+    return this;
 }
 
 // 0x579440
@@ -148,8 +208,8 @@ void CMenuManager::Initialise() {
     if (!field_F4) {
         m_nCurrentScreen = SCREEN_INITIAL;
         m_bMapLoaded = true;
-        field_1AF8 = 0;
-        field_1AFC = 0;
+        m_nOldMousePosX = 0;
+        m_nOldMousePosY = 0;
         m_bDrawMouse = false;
     }
     m_nRadioStation = AudioEngine.GetCurrentRadioStationID();
@@ -276,7 +336,7 @@ void CMenuManager::InitialiseChangedLanguageSettings(bool reinitControls) {
 
     CTimer::Update();
 
-    auto lang88 = static_cast<eLanguage>(m_nLanguageF0x88);
+    auto lang88 = static_cast<eLanguage>(m_SystemLanguage);
     if (lang88 != eLanguage::FRENCH && lang88 != eLanguage::GERMAN) {
         switch (m_nPrefsLanguage) {
         case eLanguage::AMERICAN:

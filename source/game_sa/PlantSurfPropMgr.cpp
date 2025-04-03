@@ -17,7 +17,7 @@ bool CPlantSurfPropMgr::Initialise() {
     m_countSurfPropsAllocated = 0;
     rng::fill(m_SurfPropPtrTab, nullptr);
     for (auto& props : m_SurfPropTab) {
-        rng::fill(props.m_Plants, Plant{});
+        rng::fill(props.m_Plants, CPlantSurfPropPlantData{});
     }
 
     return LoadPlantsDat("PLANTS.DAT");
@@ -28,7 +28,7 @@ void CPlantSurfPropMgr::Shutdown() {
 }
 
 // 0x5DD370
-tSurfPropTab* CPlantSurfPropMgr::AllocSurfProperties(uint16 surfaceId, bool clearAllocCount) {
+CPlantSurfProp* CPlantSurfPropMgr::AllocSurfProperties(uint16 surfaceId, bool clearAllocCount) {
     if (clearAllocCount) {
         m_countSurfPropsAllocated = 0;
         return nullptr;
@@ -43,7 +43,7 @@ tSurfPropTab* CPlantSurfPropMgr::AllocSurfProperties(uint16 surfaceId, bool clea
 }
 
 // 0x6F9DE0
-tSurfPropTab* CPlantSurfPropMgr::GetSurfProperties(uint16 index) {
+CPlantSurfProp* CPlantSurfPropMgr::GetSurfProperties(uint16 index) {
     return index < MAX_SURFACE_PTR_PROPERTIES ? m_SurfPropPtrTab[index] : nullptr;
 }
 
@@ -66,11 +66,11 @@ bool CPlantSurfPropMgr::LoadPlantsDat(const char* filename) {
             continue;
 
         ePlantField field = ePlantField::NAME;
-        tSurfPropTab* surfProperties = nullptr;
+        CPlantSurfProp* surfProperties = nullptr;
         char* lastToken{};
         char* surfaceName = strtok_s(line, " \t", &lastToken);
 
-        Plant* plant = nullptr;
+        CPlantSurfPropPlantData* plant = nullptr;
         do {
             switch (field) {
             case ePlantField::NAME:

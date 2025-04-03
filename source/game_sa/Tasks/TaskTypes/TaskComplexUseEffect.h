@@ -3,12 +3,11 @@
 #include "TaskComplex.h"
 #include "Enums/eMoveState.h"
 
-class C2dEffectBase;
+struct C2dEffectPedAttractor;
 class CEntity;
 class CPedAttractor;
 class CEvent;
 class CPed;
-class C2dEffectBase;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexUseEffect : public CTaskComplex {
 public:
@@ -16,7 +15,7 @@ public:
 
     static void InjectHooks();
 
-    CTaskComplexUseEffect(C2dEffectBase* fx, CEntity* entity);
+    CTaskComplexUseEffect(C2dEffectPedAttractor* fx, CEntity* entity);
     CTaskComplexUseEffect(const CTaskComplexUseEffect&);
     ~CTaskComplexUseEffect() override;
 
@@ -29,7 +28,7 @@ public:
 
 private: // Wrappers for hooks
     // 0x6321F0
-    CTaskComplexUseEffect* Constructor(C2dEffectBase* fx, CEntity* entity) {
+    CTaskComplexUseEffect* Constructor(C2dEffectPedAttractor* fx, CEntity* entity) {
         this->CTaskComplexUseEffect::CTaskComplexUseEffect(fx, entity);
         return this;
     }
@@ -41,10 +40,10 @@ private: // Wrappers for hooks
     }
 
 public:
-    C2dEffectBase* m_2dFx{};
-    CEntity*       m_Entity{};
-    CPedAttractor* m_PedAttractor{};
-    CPed*          m_Ped{};
-    eMoveState     m_MoveState{eMoveState::PEDMOVE_WALK};
-    bool           m_bAbort{};
+    C2dEffectPedAttractor* m_2dFx{};
+    CEntity*               m_Entity{};
+    CPedAttractor*         m_PedAttractor{};
+    CPed*                  m_Ped{};
+    eMoveState             m_MoveState{ eMoveState::PEDMOVE_WALK };
+    bool                   m_bAbort{};
 };

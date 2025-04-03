@@ -9,8 +9,8 @@
 #include "InteriorInfo_t.h"
 #include "List_c.h"
 #include "ListItem_c.h"
-#include "./FurnitureEntity_c.h"
-#include "./InteriorGroup_c.h"
+#include "FurnitureEntity_c.h"
+#include "InteriorGroup_c.h"
 
 class CEntity;
 class CObject;

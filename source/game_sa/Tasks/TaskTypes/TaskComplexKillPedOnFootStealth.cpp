@@ -1,10 +1,10 @@
 #include "StdInc.h"
 #include "TaskComplexKillPedOnFootStealth.h"
-#include "./TaskComplexInvestigateDisturbance.h"
-#include "./TaskComplexSequence.h"
-#include "./TaskSimpleStandStill.h"
-#include "./TaskSimpleRunAnim.h"
-#include "./TaskSimpleScratchHead.h"
+#include "TaskComplexInvestigateDisturbance.h"
+#include "TaskComplexSequence.h"
+#include "TaskSimpleStandStill.h"
+#include "TaskSimpleRunAnim.h"
+#include "TaskSimpleScratchHead.h"
 
 void CTaskComplexKillPedOnFootStealth::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexKillPedOnFootStealth, 0x86d8c0, 11);
@@ -46,7 +46,7 @@ CTask* CTaskComplexKillPedOnFootStealth::CreateNextSubTask(CPed* ped) {
 
 // 0x62B810
 CTask* CTaskComplexKillPedOnFootStealth::CreateFirstSubTask(CPed* ped) {
-    ped->Say(205);
+    ped->Say(CTX_GLOBAL_STEALTH_DEF_SIGHTING);
     return CTaskComplexKillPedOnFoot::CreateFirstSubTask(ped);
 }
 
@@ -94,7 +94,7 @@ CTask* CTaskComplexKillPedOnFootStealth::ControlSubTask(CPed* ped) {
         return m_pSubTask;
     }
 
-    ped->Say(206);
+    ped->Say(CTX_GLOBAL_STEALTH_NOTHING_THERE);
 
     if (!m_pSubTask) {
         return nullptr;

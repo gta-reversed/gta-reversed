@@ -34,7 +34,7 @@ CTaskComplexSmartFleeEntity::CTaskComplexSmartFleeEntity(
     eMoveState moveState
 )  :
 
-    fleeFrom{fleeFrom},
+    m_fleeFrom{fleeFrom},
     m_pedScream{scream},
     m_safeDistance{safeDistance},
     m_time{fleeTime},
@@ -42,17 +42,17 @@ CTaskComplexSmartFleeEntity::CTaskComplexSmartFleeEntity(
     m_posChangeTolerance{posChangeTolerance},
     m_moveState{moveState}
 {
-    CEntity::SafeRegisterRef(fleeFrom);
+    CEntity::SafeRegisterRef(m_fleeFrom);
 }
 
 CTaskComplexSmartFleeEntity::CTaskComplexSmartFleeEntity(const CTaskComplexSmartFleeEntity& o) :
-    CTaskComplexSmartFleeEntity{ o.fleeFrom, o.m_pedScream, o.m_safeDistance, o.m_time, o.m_posCheckPeriod, o.m_posChangeTolerance }
+    CTaskComplexSmartFleeEntity{ o.m_fleeFrom, o.m_pedScream, o.m_safeDistance, o.m_time, o.m_posCheckPeriod, o.m_posChangeTolerance }
 {
 }
 
 // 0x65C4D0
 CTaskComplexSmartFleeEntity::~CTaskComplexSmartFleeEntity() {
-    CEntity::SafeCleanUpRef(fleeFrom);
+    CEntity::SafeCleanUpRef(m_fleeFrom);
 }
 
 // 0x65C680
@@ -75,7 +75,7 @@ CTask* CTaskComplexSmartFleeEntity::CreateNextSubTask(CPed* ped) {
 
 // 0x65C6F0
 CTask* CTaskComplexSmartFleeEntity::CreateFirstSubTask(CPed* ped) {
-    if (!fleeFrom) {
+    if (!m_fleeFrom) {
         return nullptr;
     }
 
@@ -85,9 +85,9 @@ CTask* CTaskComplexSmartFleeEntity::CreateFirstSubTask(CPed* ped) {
         g_ikChainMan.LookAt(
             "TaskSmartFleeEntity",
             ped,
-            fleeFrom,
+            m_fleeFrom,
             3000,
-            fleeFrom->m_nStatus == STATUS_PHYSICS
+            m_fleeFrom->m_nStatus == STATUS_PHYSICS
                 ? BONE_HEAD
                 : BONE_UNKNOWN,
             nullptr,
@@ -104,15 +104,15 @@ CTask* CTaskComplexSmartFleeEntity::CreateFirstSubTask(CPed* ped) {
 
 // 0x65C780
 CTask* CTaskComplexSmartFleeEntity::ControlSubTask(CPed* ped) {
-    if (fleeFrom) {
-        if (const auto fleePointTask = CTask::DynCast<CTaskComplexSmartFleePoint>(m_pSubTask)) {
+    if (m_fleeFrom) {
+        if (const auto fleePointTask = notsa::dyn_cast_if_present<CTaskComplexSmartFleePoint>(m_pSubTask)) {
             fleePointTask->m_moveState = m_moveState;
 
             // Check if position update timer is out of time, if so, update position (if still outside tolerance)
             if (m_posCheckTimer.IsOutOfTime()) {
                 m_posCheckTimer.Start(m_posCheckPeriod);
 
-                const auto& currPos = fleeFrom->GetPosition();
+                const auto& currPos = m_fleeFrom->GetPosition();
                 if ((currPos - m_pos).SquaredMagnitude() >= sq(m_posChangeTolerance)) {
                     m_pos = currPos;
                     fleePointTask->SetFleePosition(m_pos, m_safeDistance, m_pedScream);
@@ -143,7 +143,7 @@ CTask* CTaskComplexSmartFleeEntity::CreateSubTask(eTaskType taskType) {
     */
     case TASK_COMPLEX_SMART_FLEE_POINT: {
         m_posCheckTimer.Start(m_posCheckPeriod);
-        m_pos = fleeFrom->GetPosition();
+        m_pos = m_fleeFrom->GetPosition();
         return new CTaskComplexSmartFleePoint{
             m_pos,
             m_pedScream,

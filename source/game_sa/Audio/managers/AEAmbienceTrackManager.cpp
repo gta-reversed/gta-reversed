@@ -99,9 +99,7 @@ void CAEAmbienceTrackManager::UpdateAmbienceTrackAndVolume() {
         }
 
         const auto GetVolumeByAuZoDist = [&] {
-            CVector relPos;
-            CAEAudioEnvironment::GetPositionRelativeToCamera(&relPos, &activeAuZoPos);
-            return CAEAudioEnvironment::GetDistanceAttenuation(relPos.Magnitude() * 0.2f) - 6.f;
+            return CAEAudioEnvironment::GetDistanceAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(activeAuZoPos).Magnitude() * 0.2f) - 6.f;
         };
 
         switch (activeAuZoIdx) {

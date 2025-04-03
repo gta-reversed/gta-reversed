@@ -134,22 +134,6 @@ T ston(std::string_view str, std::chars_format fmt = std::chars_format::general,
 }
 
 /*
-* Parse a string into a 3D vector. The format is `X Y Z` (There might be multiple spaces, they're ignored)
-* [On failure asserts in debug]
-*/
-CVector stov3d(std::string_view str, std::chars_format fmt = std::chars_format::general) {
-    CVector v3d;
-    for (auto i = 0; i < 3; i++) {
-        const char* end;
-        v3d[i] = ston<float>(str, fmt, &end);
-        if (i < 2) {
-            str = str.substr(end - str.data() + 1);
-        }
-    }
-    return v3d;
-}
-
-/*
 * Want to know something funny?
 * `std::initializer_list` is just a proxy object for a stack allocated array.
 * So, if you return one from a function you're dommed to be fucked :)
@@ -184,9 +168,14 @@ constexpr auto IsFixBugs() {
 }
 
 /// Predicate to check if `value` is null
-template<typename T>
-    requires(std::is_pointer_v<T>)
-bool IsNull(T value) { return value == nullptr; }
+struct IsNull {
+    template<typename T>
+        requires(std::is_pointer_v<T>)
+    bool operator()(T ptr) { return ptr == nullptr; }
+};
+//template<typename T>
+//    requires(std::is_pointer_v<T>)
+//bool IsNull(T value) { return value == nullptr; }
 
 /// Negate another predicate function
 template<typename T>
@@ -358,10 +347,15 @@ inline constexpr bool is_standard_integer = std::is_integral_v<T> && !is_any_of_
 //! NOTE: Not a complete replacement for std::format_to,
 //! e.g. it doesn't use output iterators. i don't care.
 template<size_t N, class... Args>
-void format_to_sz(char (&out)[N], std::string_view fmt, Args&&... args) {
+void format_to_sz(char(&out)[N], std::string_view fmt, Args&&... args) {
     *std::vformat_to(out, fmt, std::make_format_args(args...)) = '\0';
 }
 
+//! Reads a pointer as specified type.
+template<typename T> requires std::is_trivially_constructible_v<T>
+T ReadAs(void* ptr) {
+    return *static_cast<T*>(ptr);
+}
 //! Safe C string copying, use this instead of strcpy.
 inline void string_copy(char* out, const char* from, size_t size) {
     std::snprintf(out, size, "%s", from);
@@ -373,4 +367,12 @@ void string_copy(char (&out)[N], const char* from) {
     std::snprintf(out, N, "%s", from);
 }
 
+// Like clamp, but wraps the number - https://stackoverflow.com/a/64273069/15363969
+template<std::floating_point F>
+F wrap(F x, F min, F max) {
+    if (min > max) {
+        std::swap(min, max);
+    }
+    return (x < 0 ? max : min) + std::fmod(x, max - min);
+}
 };

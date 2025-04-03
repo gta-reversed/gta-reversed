@@ -5,6 +5,10 @@
 #include "ReadArg.hpp"
 #include "RunningScript.h"
 
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
+#include <ScriptCommand.h>
+#endif
+
 class CRunningScript;
 
 namespace notsa {
@@ -62,13 +66,14 @@ inline OpcodeResult CollectArgsAndCall(CRunningScript* S, eScriptCommands comman
 //! That is, ones that aren't used anywhere.
 //! If this ever gets called, that means that the command is used after all, and shouldn't be hooked as unimplemented.
 inline auto NotImplemented(CRunningScript& S, eScriptCommands cmd) {
-    DEV_LOG("[{}][IP: {:#x} + {:#x}]: Unimplemented command has been called! [ID: {:04X}; Name: {}]", S.m_szName, LOG_PTR(S.m_pBaseIP), LOG_PTR(S.m_IP - S.m_pBaseIP), (unsigned)(cmd), GetScriptCommandName(cmd));
+    NOTSA_LOG_DEBUG("[{}][IP: {:#x} + {:#x}]: Unimplemented command has been called! [ID: {:04X}; Name: {}]", S.m_szName, LOG_PTR(S.m_BaseIP), LOG_PTR(S.m_IP - S.m_BaseIP), (unsigned)(cmd), GetScriptCommandName(cmd));
     NOTSA_DEBUGBREAK(); // Something went horribly wrong here, and the game will crash after this [if the function is supposed to take/return any arguments], so better stop here.
     return OR_INTERRUPT; // Vanilla SA behavior
 }
 
 template<eScriptCommands Command, auto* CommandFn>
 inline OpcodeResult CommandParser(CRunningScript* S) {
+    CRunningScript::ScriptArgCharNextFreeBuffer = 0;
     return detail::CollectArgsAndCall(S, Command, CommandFn);
 } 
 
@@ -102,15 +107,29 @@ constexpr inline auto AddressOfFunction(T fn) {
 };
 
 //! Register a custom command handler
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
+//! Use this before calling any of the 
+#define REGISTER_COMMAND_HANDLER_BEGIN(_namespace) \
+    RH_ScopedCategory("Scripts/Commands") \
+    RH_ScopedNamespaceName(_namespace)
+#define REGISTER_COMMAND_HANDLER(cmd, fn) \
+    do { \
+        ::notsa::script::detail::AddCommandHandler<cmd, ::notsa::detail::AddressOfFunction(fn)>(); \
+        RH_ScopedInstallScriptCommand(cmd); \
+    } while (0)
+#else
+#define REGISTER_COMMAND_HANDLER_BEGIN(_namespace) \
+    ((void)(_namespace))
 #define REGISTER_COMMAND_HANDLER(cmd, fn) \
     ::notsa::script::detail::AddCommandHandler<cmd, ::notsa::detail::AddressOfFunction(fn)>()
+#endif
 
 //! Register a command handler for an unimplemented command (That is, a command that wasn't implemented in the game either)
 #define REGISTER_COMMAND_UNIMPLEMENTED(cmd) \
     REGISTER_COMMAND_HANDLER(cmd, ::notsa::script::detail::NotImplemented)
 
 #ifdef IMPLEMENT_UNSUPPORTED_OPCODES
-//! Register a custom command handler for an unimplmented command. (Won't be implemented if IMPLEMENT_UNSUPPORTED_OPCODES is not defined.)
+//! Register a custom command handler for an un-implemented command. (Won't be implemented if IMPLEMENT_UNSUPPORTED_OPCODES is not defined.)
 #define REGISTER_UNSUPPORTED_COMMAND_HANDLER(cmd, fn) \
     REGISTER_COMMAND_HANDLER(cmd, fn)
 #else

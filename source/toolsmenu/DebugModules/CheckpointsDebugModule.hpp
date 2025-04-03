@@ -6,8 +6,10 @@ namespace notsa {
 namespace debugmodules {
 class CheckpointsDebugModule final : public DebugModule {
 public:
-    void RenderWindow() override;
-    void RenderMenuEntry() override; 
+    void RenderWindow() final override;
+    void RenderMenuEntry() final override; 
+
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(CheckpointsDebugModule, m_IsOpen, m_SelectedTypeIdx, m_CurrentID, m_Pos, m_UsePlayersPosition, m_UsePlayersDir, m_Size, m_Color, m_PulsePeriod, m_PulseFraction, m_RotateRate, m_PlaceOneRandom);
 
 private:
     bool       m_IsOpen{};
@@ -26,4 +28,3 @@ private:
 };
 }; // namespace debugmodules
 }; // namespace notsa
-

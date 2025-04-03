@@ -73,7 +73,7 @@ CTask* CTaskComplexLeaveCarAndWander::CreateNextSubTask(CPed* ped) {
 
     // Make sure ped's default task is `ComplexWander`
     if (const auto defaultPrimary = ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT)) {
-        if (!CTask::IsA<TASK_COMPLEX_WANDER>(defaultPrimary)) {
+        if (!notsa::isa<CTaskComplexWander>(defaultPrimary)) {
             ped->GetTaskManager().SetTask(CTaskComplexWander::GetWanderTaskByPedType(ped), TASK_PRIMARY_DEFAULT);
         }
     }

@@ -80,10 +80,10 @@ CTask* CTaskComplexStealCar::CreateNextSubTask(CPed* ped) {
         case TASK_COMPLEX_ENTER_CAR_AS_DRIVER: {
             if (ped->IsInVehicle()) {
                 if (ped->m_nPedType == PED_TYPE_CRIMINAL) {
-                    ped->Say(146);
+                    ped->Say(CTX_GLOBAL_MUGGING);
                 }
                 if (m_originalriver && !m_originalriver->IsPlayer()) {
-                    m_originalriver->Say(145);
+                    m_originalriver->Say(CTX_GLOBAL_MUGGED);
                 }
                 return TASK_SIMPLE_SET_PED_AS_AUTO_DRIVER;
             }
@@ -98,7 +98,8 @@ CTask* CTaskComplexStealCar::CreateNextSubTask(CPed* ped) {
         }
         case TASK_COMPLEX_CAR_DRIVE_MISSION_FLEE_SCENE: {
             if (ped->bInVehicle) {
-                ped->m_pVehicle->m_autoPilot.SetCarMission(MISSION_CRUISE, 10);
+                ped->m_pVehicle->m_autoPilot.SetCarMission(MISSION_CRUISE);
+                ped->m_pVehicle->m_autoPilot.SetCruiseSpeed(10);
             }
             return TASK_FINISHED;
         }
@@ -123,7 +124,7 @@ CTask* CTaskComplexStealCar::CreateFirstSubTask(CPed* ped) {
 
 // 0x644250
 CTask* CTaskComplexStealCar::ControlSubTask(CPed* ped) {
-    if (const auto enter = CTask::DynCast<CTaskComplexEnterCarAsDriver>(m_pSubTask)) {
+    if (const auto enter = notsa::dyn_cast_if_present<CTaskComplexEnterCarAsDriver>(m_pSubTask)) {
         if (m_enterTimer.IsOutOfTime()) {
             if (m_pSubTask->MakeAbortable(ped)) {
                 return CreateSubTask(TASK_SIMPLE_PAUSE, ped);

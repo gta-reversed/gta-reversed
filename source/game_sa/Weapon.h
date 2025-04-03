@@ -86,7 +86,7 @@ public:
     * @param owner Camera owner - unused.
     * @param point Pos of the camflash effect
     */
-    bool TakePhotograph(CEntity* owner, CVector* point);
+    bool TakePhotograph(CEntity* owner, const CVector* point);
     void SetUpPelletCol(int32 numPellets, CEntity* owner, CEntity* victim, CVector& point, CColPoint& colPoint, CMatrix& outMatrix);
     bool CanBeUsedFor2Player();
 
@@ -118,7 +118,7 @@ public:
     static void DoDoomAiming(CEntity* owner, CVector* start, CVector* end);
     static void DoTankDoomAiming(CEntity* vehicle, CEntity* owner, CVector* startPoint, CVector* endPoint);
     static void DoDriveByAutoAiming(CEntity* owner, CVehicle* vehicle, CVector* startPoint, CVector* endPoint, bool canAimVehicles);
-    static CEntity* FindNearestTargetEntityWithScreenCoors(float screenX, float screenY, float range, CVector point, float* outX, float* outY);
+    static CEntity* FindNearestTargetEntityWithScreenCoors(float screenX, float screenY, float range, CVector point, float* outX = nullptr, float* outY = nullptr);
     static float EvaluateTargetForHeatSeekingMissile(CEntity* potentialTarget, const CVector& origin, const CVector& aimingDir, float tolerance, bool arePlanesPriority, CEntity* preferredExistingTarget);
     static bool CheckForShootingVehicleOccupant(CEntity** pCarEntity, CColPoint* colPoint, eWeaponType weaponType, const CVector& origin, const CVector& target);
     static CEntity* PickTargetForHeatSeekingMissile(CVector origin, CVector direction, float distanceMultiplier, CEntity* ignoreEntity, bool arePlanesPriority, CEntity* preferredExistingTarget);

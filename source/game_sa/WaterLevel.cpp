@@ -21,7 +21,7 @@ void CWaterLevel::InjectHooks() {
     RH_ScopedGlobalInstall(RenderFlatWaterRectangle, 0x6EBEC0);
 
     RH_ScopedGlobalInstall(SplitWaterRectangleAlongXLine, 0x6E73A0);
-    RH_ScopedGlobalInstall(SplitWaterRectangleAlongYLine, 0x6ED6D0, { .enabled = false }); // Disbled by default because in some occasions it causes a visual glitch
+    RH_ScopedGlobalInstall(SplitWaterRectangleAlongYLine, 0x6ED6D0);
 
     RH_ScopedGlobalInstall(PreRenderWater, 0x6EB710);
     RH_ScopedGlobalInstall(MarkQuadsAndPolysToBeRendered, 0x6E5810);
@@ -33,7 +33,7 @@ void CWaterLevel::InjectHooks() {
     // no clue what is the issue
     // one quad that doesn't load can be seen from -1610, 168
     // it's at water.dat:252
-    RH_ScopedGlobalInstall(AddWaterLevelQuad, 0x6E7EF0, {.reversed = false});
+    RH_ScopedGlobalInstall(AddWaterLevelQuad, 0x6E7EF0);
     RH_ScopedGlobalInstall(AddWaterLevelTriangle, 0x6E7D40);
     RH_ScopedGlobalInstall(AddWaterLevelVertex, 0x6E5A40);
 
@@ -108,7 +108,7 @@ bool CWaterLevel::LoadDataFile() {
 
         // Check if we have enough vertices
         if (nvertices < 3) {
-            DEV_LOG("[Warning]: Not enough vertices, got {}, expected 3 or 4. [Line: {}]", nvertices, nline);
+            NOTSA_LOG_DEBUG("[Warning]: Not enough vertices, got {}, expected 3 or 4. [Line: {}]", nvertices, nline);
             continue;
             //return false; // Just stop here, this parser is way too primitive to be able to recover from errors
         }
@@ -143,7 +143,7 @@ bool CWaterLevel::LoadDataFile() {
         }
         #undef ArgUnpack
     }
-    DEV_LOG("Successfully loaded! [Quads: {}; Tris: {}]", nquad, ntri);
+    NOTSA_LOG_DEBUG("Successfully loaded! [Quads: {}; Tris: {}]", nquad, ntri);
     return true;
 }
 
@@ -527,14 +527,14 @@ void CWaterLevel::SplitWaterRectangleAlongXLine(int32 splitAtX, int32 minX, int3
     RenderWaterRectangle(
         minX, splitAtX,
         Y1, Y2,
-        P1, P12, P34, P4
+        P1, P12, P3, P34
     );
 
     // Right
     RenderWaterRectangle(
         splitAtX, maxX,
         Y1, Y2,
-        P12, P2, P3, P34
+        P12, P2, P34, P4
     );
 }
 
@@ -544,27 +544,21 @@ void CWaterLevel::SplitWaterRectangleAlongYLine(int32 splitAtY, int32 minX, int3
 
     const auto t = (float)(splitAtY - minY) / (float)(maxY - minY);
 
-    const auto P14 = lerp(P1, P4, t);
-    const auto P23 = lerp(P2, P3, t);
-
-    // Pirulax:
-    // There's a visual glitch caused by (presumeably) bad interpolation of P's
-    // Original code seemingly does it a little differently (IIRC they use P13 (Instead of P14) and P24 (instead of P23))
-    // It doesn't make a lot of sense so I did it this way
-    // (And the visual glitch is presumeably because they fucked it up somewhere else too, so it looked correct)
+    const auto P13 = lerp(P1, P3, t);
+    const auto P24 = lerp(P2, P4, t);
 
     // Top
     RenderWaterRectangle(
         minX, maxX,
         Y1, splitAtY,
-        P1, P2, P23, P14
+        P1, P2, P13, P24
     );
 
     // Bottom
     RenderWaterRectangle(
         minX,     maxX,
         splitAtY, Y2,
-        P14, P23, P3, P4
+        P13, P24, P3, P4
     );
 }
 
@@ -669,8 +663,8 @@ void CWaterLevel::RenderWaterFog() {
 // 0x6E6EF0
 void CWaterLevel::CalculateWavesOnlyForCoordinate(
     int32 x, int32 y,
-    float lowFreqMult,
-    float midHighFreqMult,
+    float bigWavesAmplitude,
+    float smallWavesAmplitude,
     float& outWave,
     float& colorMult,
     float& glare,
@@ -679,58 +673,53 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate(
 {
     x = std::abs(x);
     y = std::abs(y);
-    vecNormal = CVector{};
+    vecNormal = CVector(0.f, 0.f, 1.f);
 
-    constexpr auto tauToChar = 256.0f / TWO_PI;
-    float waveMult = faWaveMultipliersX[(x / 2) % 8] * faWaveMultipliersX[(y / 2) % 8] * CWeather::Wavyness;
+    const float waveMult = faWaveMultipliersX[(x / 2) % 8] * faWaveMultipliersY[(y / 2) % 8] * CWeather::Wavyness;
     float fX = (float)x, fY = (float)y;
 
     // literal AIDS code
-    const auto CalculateWave = [&](int32 offset, float angularFreqX, float angularFreqY) {
+    const auto CalculateWave = [&](int32 offset, float angularFreqX, float angularFreqY, float amplitude) {
         const float freqOffsetMult = TWO_PI / static_cast<float>(offset);
-        const CVector2D w{ TWO_PI * angularFreqX, TWO_PI * angularFreqY }; // w = angular frequency
+        const CVector2D waveVector{ TWO_PI * angularFreqX, TWO_PI * angularFreqY }; // w = angular frequency
 
+        const auto step  = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
+        const auto wavePhase = step * freqOffsetMult + fX * waveVector.x + fY * waveVector.y;
+
+        const auto sinPhase = CMaths::GetSinFast(wavePhase);
+        const auto cosPhase = CMaths::GetCosFast(wavePhase);
+        outWave += sinPhase * waveMult * amplitude;
+
+        // Wave normal calculation - seems broken but maybe R* just knows something that we don't :D
+        // Normal generation is completely skipped on later releases of the game (android / definitive)
         switch (offset) {
         case 5000: {
-            auto step = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
-            auto index = (step * freqOffsetMult + fX * w.x + fY * w.y) * tauToChar;
-
-            outWave += CMaths::ms_SinTable[static_cast<uint8>(index) + 1] * 2.0f * waveMult * lowFreqMult;
-            auto outNext = -(CMaths::ms_SinTable[static_cast<uint8>(index + 64.0f) + 1] * 2.0f * waveMult * lowFreqMult * w.x);
-            vecNormal += { outNext, outNext, 1.0f };
+            const auto normalDerivative = -cosPhase * waveMult * amplitude * waveVector.x;
+            vecNormal += { normalDerivative, normalDerivative, 0.0f };
             break;
         }
         case 3500: {
-            auto step = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
-            auto index = (step * freqOffsetMult + fX * w.x + fY * w.y) * tauToChar;
-
-            outWave += CMaths::ms_SinTable[static_cast<uint8>(index) + 1] * 1.0f * waveMult * midHighFreqMult;
-            auto outNext = CMaths::ms_SinTable[static_cast<uint8>(index + 64.0f) + 1];
-            auto vAdd = outNext * waveMult * w.x * w.x;
-            vecNormal += { vAdd, vAdd, 0.0f };
+            const auto normalDerivative = cosPhase * waveMult * amplitude * waveVector.x;
+            vecNormal += { normalDerivative, normalDerivative, 0.0f };
             break;
         }
         case 3000: {
-            auto step = (CTimer::GetTimeInMS() - m_nWaterTimeOffset) % offset;
-            auto index = (step * freqOffsetMult + fX * w.x + fY * w.y) * tauToChar;
-
-            outWave += CMaths::ms_SinTable[static_cast<uint8>(index) + 1] * 0.5f * waveMult * midHighFreqMult;
-            auto outNext = CMaths::ms_SinTable[static_cast<uint8>(index + 64.0f) + 1];
-            vecNormal.x += waveMult * (outNext / 2.0f) * midHighFreqMult * (PI / 10.0f);
+            const auto normalDerivative = cosPhase * waveMult * amplitude * (PI / 10.0f);
+            vecNormal += { normalDerivative, 0.0f, 0.0f };
             break;
         }
         }
     };
 
-    CalculateWave(5000, 1.f / 64.0f, 1.f / 64.0f);
-    CalculateWave(3500, 1.f / 26.0f, 1.f / 52.0f);
-    CalculateWave(3000, 0.0f,        1.f / 20.0f);
+    CalculateWave(5000, 1.f / 64.0f, 1.f / 64.0f, 2.0f * bigWavesAmplitude);
+    CalculateWave(3500, 1.f / 26.0f, 1.f / 52.0f, 1.0f * smallWavesAmplitude);
+    CalculateWave(3000, 0.0f,        1.f / 20.0f, 0.5f * smallWavesAmplitude);
 
     vecNormal.Normalise();
-    auto v17 = (vecNormal.x + vecNormal.y + vecNormal.z) * 0.57700002f;
+    const auto glareLevel = (vecNormal.x + vecNormal.y + vecNormal.z) * E_CONST;
 
-    colorMult = std::max(v17, 0.0f) * 0.65f + 0.27f;
-    glare = std::clamp(8.0f * v17 - 5.0f, 0.0f, 0.99f) * CWeather::SunGlare;
+    colorMult = std::max(glareLevel, 0.0f) * 0.65f + 0.27f;
+    glare = std::clamp(8.0f * glareLevel - 5.0f, 0.0f, 0.99f) * CWeather::SunGlare;
 }
 
 // 0x6E5810
@@ -781,9 +770,12 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate2( // TODO: Original name didn'
 void CWaterLevel::BlockHit(int32 blockX, int32 blockY) {
     if (blockX >= 0 && blockX < NUM_WATER_BLOCKS_ROWCOL && blockY >= 0 && blockY < NUM_WATER_BLOCKS_ROWCOL) {
         MarkQuadsAndPolysToBeRendered(blockX, blockY, CGame::currArea != AREA_CODE_NORMAL_WORLD);
-    } else { // Original check was: `blockX <= 0 || blockX >= 11 || blockY <= 0 || blockY >= 11`, but that's erronous (because of `<= 0`)
+    }
+
+    // Blocks at the edge of the world (index 0 and 11) need to be handled both ways, the quads and polys are to be rendered, but also the general ocean plane needs to be rendered on them
+    if (blockX <= 0 || blockX >= (NUM_WATER_BLOCKS_ROWCOL - 1) || blockY <= 0 || blockY >= (NUM_WATER_BLOCKS_ROWCOL - 1)) {
         if (m_NumBlocksOutsideWorldToBeRendered < (uint32)m_MaxNumBlocksOutsideWorldToBeRendered) {
-            const auto idx = m_NumBlocksOutsideWorldToBeRendered++;
+            const auto idx                         = m_NumBlocksOutsideWorldToBeRendered++;
             m_BlocksToBeRenderedOutsideWorldX[idx] = blockX;
             m_BlocksToBeRenderedOutsideWorldY[idx] = blockY;
         }
@@ -838,7 +830,7 @@ uint32 CWaterLevel::AddWaterLevelVertex(int32 X, int32 Y, CRenPar P) {
     }
 
     // Try finding a vertex with the same coords, and use that
-    for (auto&& [id, vtx] : notsa::enumerate(m_aVertices | rng::views::take(NumWaterVertices))) {
+    for (auto&& [id, vtx] : rngv::enumerate(m_aVertices | rng::views::take(NumWaterVertices))) {
         if (vtx.x == X && vtx.y == Y && vtx.rp.z == P.z) {
             return id;
         }
@@ -865,54 +857,37 @@ struct SortableVtx {
 //! Sort vertices in clockwise order (With a few assumptions)
 template<size_t N>
 auto DoVtxSortAndGetRange(SortableVtx (&verts)[N]) {
-    // Center point
-    int32 cx{}, cy{};
-    for (auto& v : verts) {
-        cx += v.x; cy += v.y;
-    }
-    cx /= (int32)N; cy /= (int32)N;
-
-    // Based on https://stackoverflow.com/a/6989383
-    const auto CWCompare = [&](SortableVtx& a, SortableVtx& b) {
-        // Computes the quadrant for a and b (0-3):
-        //     
-        //   0 | 1
-        //  ---+-->
-        //   3 | 2
-        //
-        const auto QuadrantOf = [&](int32 x, int32 y) {
-            const uint8 dx = x < cx; // 1 = left, 0 = right
-            const uint8 dy = y > cy; // 1 = top,  0 = bottom
-            return ((!dy) << 1) | ((dy & !dx) | (dx & !dy));
-        };
-
-        const auto qa = QuadrantOf(a.x, a.y), qb = QuadrantOf(b.x, b.y);
-
-        if (qa == qb) {
-            return (b.x - cx) * (a.y - cy) > (b.y - cy) * (a.x - cx);
-        } else {
-            return qa < qb;
+    const auto VertexComparator = [&](SortableVtx& a, SortableVtx& b) {
+        if (a.y == b.y) {
+            return a.x < b.x; // Sort by x if y is the same
         }
+        return a.y < b.y; // Otherwise, sort by y
     };
-    
-    // Sort array to be clockwise
-    rng::sort(verts, CWCompare);
+
+    rng::sort(verts, VertexComparator);
 
     // Return a range of vertex indices that can be passed to the constructor of `CWaterPolygon`
-    return verts | rng::views::transform([](auto& vtx) { return vtx.idx; });
+    return verts | rng::views::transform([](auto& vtx) {
+               return vtx.idx;
+           });
 }
 
 // 0x6E7EF0
 void CWaterLevel::AddWaterLevelQuad(int32 X1, int32 Y1, CRenPar P1, int32 X2, int32 Y2, CRenPar P2, int32 X3, int32 Y3, CRenPar P3, int32 X4, int32 Y4, CRenPar P4, uint32 Flags) {
-    if ((X1 == X2 && X1 == X3 && X1 == X4) && (Y1 == Y2 && Y1 == Y3 && Y1 == Y4)) {
+    if ((X1 == X2 && X1 == X3 && X1 == X4) || (Y1 == Y2 && Y1 == Y3 && Y1 == Y4)) {
         return;
     }
-    
+
+    // Seemingly only axis aligned rectangles can be used as quads
+    // NOTSA: to verify the above.
+    assert(X1 == X2 || X1 == X3 || X1 == X4 || X2 == X3 || X2 == X4 || X3 == X4);
+    assert(Y1 == Y2 || Y1 == Y3 || Y1 == Y4 || Y2 == Y3 || Y2 == Y4 || Y3 == Y4);
+
     SortableVtx verts[]{
-        {X1, Y1, P1},
-        {X2, Y2, P2},
-        {X3, Y3, P3},
-        {X4, Y4, P4},
+        {X1,  Y1, P1},
+        { X2, Y2, P2},
+        { X3, Y3, P3},
+        { X4, Y4, P4},
     };
 
     // Now actually create the quad
@@ -925,21 +900,57 @@ void CWaterLevel::AddWaterLevelQuad(int32 X1, int32 Y1, CRenPar P1, int32 X2, in
 
 // 0x6E7D40
 void CWaterLevel::AddWaterLevelTriangle(int32 X1, int32 Y1, CRenPar P1, int32 X2, int32 Y2, CRenPar P2, int32 X3, int32 Y3, CRenPar P3, uint32 Flags) {
-    if ((X1 == X2 && X1 == X3) && (Y1 == Y2 && Y1 == Y3)) {
+    if ((X1 == X2 && X1 == X3) || (Y1 == Y2 && Y1 == Y3)) {
         return;
     }
 
+    // Sorting seemingly always cares about only 2 of 3 vertices, looking at water.dat, in every single case 2 of 3 vertices have the same y coordinate,
+    // I assume that's a limitation, and at least 2 of 3 vertices need to fall on the same x/y axis.
+    // NOTSA: to verify the above.
+    assert(X1 == X2 || X1 == X3 || X2 == X3);
+    assert(Y1 == Y2 || Y1 == Y3 || Y2 == Y3);
+
     SortableVtx verts[]{
-        {X1, Y1, P1},
-        {X2, Y2, P2},
-        {X3, Y3, P3},
+        {X1,  Y1, P1},
+        { X2, Y2, P2},
+        { X3, Y3, P3},
     };
+
+    int16_t indices[3];
+    if (verts[0].y == verts[1].y) {
+        if (verts[0].x < verts[1].x) {
+            indices[0] = verts[0].idx;
+            indices[1] = verts[1].idx;
+        } else {
+            indices[0] = verts[1].idx;
+            indices[1] = verts[0].idx;
+        }
+        indices[2] = verts[2].idx;
+    } else if (verts[0].y == verts[2].y) {
+        if (verts[0].x >= verts[2].x) {
+            indices[0] = verts[2].idx;
+            indices[1] = verts[0].idx;
+        } else {
+            indices[0] = verts[0].idx;
+            indices[1] = verts[2].idx;
+        }
+        indices[2] = verts[1].idx;
+    } else {
+        if (verts[1].x >= verts[2].x) {
+            indices[0] = verts[2].idx;
+            indices[1] = verts[1].idx;
+        } else {
+            indices[0] = verts[1].idx;
+            indices[1] = verts[2].idx;
+        }
+        indices[2] = verts[0].idx;
+    }
 
     // Now actually create the triangle
     WaterTriangles[NumWaterTriangles++] = CWaterTriangle{
         (Flags & 1) == 0,
         (Flags & 2) != 0,
-        DoVtxSortAndGetRange(verts)
+        indices | rng::views::all
     };
 }
 

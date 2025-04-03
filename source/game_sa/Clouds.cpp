@@ -145,7 +145,7 @@ void CClouds::MovingFog_Create(CVector* posn) {
         CGeneral::GetRandomNumberInRange(-58.0f, 58.0f),
         CGeneral::GetRandomNumberInRange(-5.0f,  5.0f)
     };
-    ms_mf.m_vecPosn[slotId] += posn;
+    ms_mf.m_vecPosn[slotId] += *posn;
     ms_mf.m_fSize[slotId] = CGeneral::GetRandomNumberInRange(4.0f, 10.0f);
     ms_mf.m_fIntensity[slotId] = 1.0f;
     ms_mf.m_fMaxIntensity[slotId] = CGeneral::GetRandomNumberInRange(8.0f, 20.0f);

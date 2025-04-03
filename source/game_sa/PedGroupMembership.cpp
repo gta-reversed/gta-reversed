@@ -82,7 +82,7 @@ int32 CPedGroupMembership::CountMembersExcludingLeader() {
 
 // 0x5FB160
 void CPedGroupMembership::Flush() {
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (mem) {
             RemoveMember(i);
         }
@@ -99,7 +99,7 @@ CPed* CPedGroupMembership::GetMember(int32 memberId) {
 }
 
 int32 CPedGroupMembership::GetMemberId(const CPed* ped) const {
-    for (auto&& [id, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [id, mem] : rngv::enumerate(m_members)) {
         if (mem == ped) {
             return id;
         }
@@ -125,7 +125,7 @@ bool CPedGroupMembership::IsMember(const CPed* ped) const {
 // 0x5FBA60
 void CPedGroupMembership::Process() {
     // Remove dead members (except player ped)
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (!mem || mem->IsAlive()) {
             continue;
         }
@@ -145,7 +145,7 @@ void CPedGroupMembership::Process() {
 
     // Now that we have a leader, check for separation distance and remove members further than it
     const auto& leaderPos = GetLeader()->GetPosition();
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (!mem || mem->bNeverLeavesGroup) {
             continue;
         }
@@ -161,8 +161,8 @@ void CPedGroupMembership::Process() {
 
 // 0x5FB190
 void CPedGroupMembership::RemoveAllFollowers(bool bCreatedByMissionOnly) {
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
-        if (IsLeader(mem)) { // Leader isn't a follower
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
+        if (!mem || IsLeader(mem)) { // Leader isn't a follower
             continue;
         }
         if (bCreatedByMissionOnly && mem->IsCreatedBy(PED_MISSION)) {
@@ -177,7 +177,7 @@ void CPedGroupMembership::RemoveNFollowers(size_t count) {
     if (count == 0) { // Nothing to do
         return;
     }
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (IsLeader(mem)) { // Leader isn't a follower
             continue;
         }
@@ -248,6 +248,16 @@ auto CPedGroupMembership::FindClosestFollowerToLeader() -> FindClosestMemberResu
     return { nullptr, 0.f }; // We return 0.f here, `GetMemberClosestTo` returns FLT_MAX, but it should be ignored anyways, because the CPed* is nullptr
 }
 
+// NOTSA
+CPed* CPedGroupMembership::GetFirstAvailableMember() {
+    for (const auto m : m_members) {
+        if (m) {
+            return m;
+        }
+    }
+    return nullptr;
+}
+
 // 0x5F6950
 eModelID CPedGroupMembership::GetObjectForPedToHold() {
     using namespace ModelIndices;
@@ -256,7 +266,7 @@ eModelID CPedGroupMembership::GetObjectForPedToHold() {
 
 // NOTSA
 int32 CPedGroupMembership::FindNewLeaderToAppoint() const {
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (mem) {
             return i;
         }
@@ -266,7 +276,7 @@ int32 CPedGroupMembership::FindNewLeaderToAppoint() const {
 
 // NOTSA
 int32 CPedGroupMembership::FindIdForNewMember() const {
-    for (auto&& [i, mem] : notsa::enumerate(m_members)) {
+    for (auto&& [i, mem] : rngv::enumerate(m_members)) {
         if (!mem) {
             return i;
         }

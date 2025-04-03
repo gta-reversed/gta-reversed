@@ -505,10 +505,10 @@ void CMatrix::ConvertFromEulerAngles(float x, float y, float z, uint32 uiFlags)
     m_up.Set     (fArr[2][0], fArr[2][1], fArr[2][2]);
 }
 
-void CMatrix::operator=(const CMatrix& rvalue)
-{
-    CMatrix::CopyOnlyMatrix(rvalue);
-    CMatrix::UpdateRW();
+void CMatrix::operator=(const CMatrix& other) {
+    m_pAttachMatrix = other.m_pAttachMatrix;
+    CopyOnlyMatrix(other);
+    UpdateRW();
 }
 
 void CMatrix::operator+=(const CMatrix& rvalue)

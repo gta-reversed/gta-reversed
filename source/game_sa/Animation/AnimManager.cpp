@@ -184,7 +184,7 @@ const char* CAnimManager::GetAnimBlockName(AssocGroupId groupId) {
 
 // NOTSA
 AssocGroupId CAnimManager::GetAnimationGroupIdByName(notsa::ci_string_view name) {
-    for (const auto& [i, gd] : notsa::enumerate(GetAssocGroupDefs())) {
+    for (const auto& [i, gd] : rngv::enumerate(GetAssocGroupDefs())) {
         if (gd.GroupName == name) {
             return (AssocGroupId)i;
         }
@@ -296,7 +296,7 @@ void CAnimManager::AddAnimToAssocDefinition(AnimAssocDefinition* def, const char
 
 // 0x4D3CC0
 void CAnimManager::CreateAnimAssocGroups() {
-    for (auto&& [i, group] : notsa::enumerate(GetAssocGroups())) {
+    for (auto&& [i, group] : rngv::enumerate(GetAssocGroups())) {
         const auto def   = &ms_aAnimAssocDefinitions[i];
         const auto block = GetAnimationBlock(def->BlockName);
         if (block == nullptr || !block->IsLoaded || group.m_Anims) {
@@ -443,12 +443,16 @@ CAnimBlendAssociation* CAnimManager::BlendAnimation(RpClump* clump, CAnimBlendHi
         assert(a->m_BlendHier);
         if (a->m_BlendHier && a->m_BlendHier == toBlendHier) { // Found an instance of this anim running
             running = a;
-        } else if (((toBlendFlags & ANIMATION_IS_PARTIAL) == 0) == a->IsPartial()) {
+        } else if (((toBlendFlags & ANIMATION_IS_PARTIAL) != 0) == a->IsPartial()) {
             if (a->m_BlendAmount <= 0.f) {
                 a->m_BlendDelta = -1.f;
-            } else if (const auto bd = a->GetBlendAmount() * -blendDelta; (bd >= a->GetBlendDelta() && (toBlendFlags & ANIMATION_IS_PARTIAL)) || (a->m_BlendHier->m_nAnimBlockId && a->m_BlendHier->m_nAnimBlockId == toBlendHier->m_nAnimBlockId)) {
-                a->m_BlendDelta = std::min(-0.05f, bd);
+            } else {
+                const auto bd = a->GetBlendAmount() * -blendDelta;
+                if ((toBlendFlags & ANIMATION_IS_PARTIAL) == 0 || bd <= a->GetBlendDelta() || (a->m_BlendHier->m_nAnimBlockId && a->m_BlendHier->m_nAnimBlockId == toBlendHier->m_nAnimBlockId)) {
+                    a->m_BlendDelta = std::min(-0.05f, bd);
+                }
             }
+            
             a->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
             bFadeThisOut = true;
         }
@@ -456,7 +460,7 @@ CAnimBlendAssociation* CAnimManager::BlendAnimation(RpClump* clump, CAnimBlendHi
 
     // If already running just re-adjust blend delta (and re-start it if it has finished)
     if (running) {
-        running->SetBlendDelta((1.f - running->GetBlendAmount()) * blendDelta);
+        running->SetBlendDelta((1.f - running->m_BlendAmount) * blendDelta);
         if (running->HasFinished()) {
             running->Start();
         }
@@ -465,7 +469,7 @@ CAnimBlendAssociation* CAnimManager::BlendAnimation(RpClump* clump, CAnimBlendHi
     }
 
     // Otherwise create new instance
-    const auto a = new CAnimBlendAssociation{clump, toBlendHier};    
+    const auto a = new CAnimBlendAssociation{clump, toBlendHier};
     a->m_Flags = toBlendFlags;
     a->ReferenceAnimBlock();
     UncompressAnimation(a->m_BlendHier);
@@ -577,32 +581,40 @@ void CAnimManager::LoadAnimFiles() {
 
 struct IFPSectionHeader {
     union {
-        char   IDFourCC[4];
         uint32 ID;
+        char   IDFourCC[4];
     };
     uint32 Size;
 };
 
 //! @notsa - Helper
 auto CAnimManager::GetOrCreateAnimBlock(const char* name, uint32 numAnims) {
-    CAnimBlock* ablock;
-    if (ablock = GetAnimationBlock(name)) { // Block already exists
-        if (!ablock->NumAnims) {
-            ablock->NumAnims = numAnims;
-            ablock->FirstAnimIdx = ms_numAnimations;
+    CAnimBlock* ab;
+    if (ab = GetAnimationBlock(name)) { // Block already exists, initialize it if necessary
+        if (!ab->NumAnims) {
+            ab->NumAnims     = numAnims;
+            ab->FirstAnimIdx = ms_numAnimations;
+
+            NOTSA_LOG_TRACE(
+                "Initialized AnimBlock (Name: {}; NumAnims: {}; FirstAnimIdx: {}; GroupId: {})",
+                ab->Name, ab->NumAnims, ab->FirstAnimIdx, (int32)ab->GroupId
+            );
         }
     } else { // Create block
-        const auto id = ms_numAnimations++;
+        ab = &ms_aAnimBlocks[ms_numAnimBlocks++];
 
-        ablock = &ms_aAnimBlocks[id];
+        VERIFY(strncpy_s(ab->Name, name, MAX_ANIM_BLOCK_NAME) == 0);
+        ab->NumAnims     = numAnims;
+        ab->FirstAnimIdx = ms_numAnimations;
+        ab->GroupId      = GetFirstAssocGroup(ab->Name);
 
-        VERIFY(strncpy_s(ablock->Name, name, MAX_ANIM_BLOCK_NAME) == 0);
-        ablock->NumAnims = numAnims;
-        ablock->FirstAnimIdx = ms_numAnimations;
-        ablock->GroupId = GetFirstAssocGroup(ablock->Name);
+        NOTSA_LOG_TRACE(
+            "Created AnimBlock (Name: {}; NumAnims: {}; FirstAnimIdx: {}; GroupId: {})",
+            ab->Name, ab->NumAnims, ab->FirstAnimIdx, (int32)ab->GroupId
+        );
     }
-    ablock->IsLoaded = true;
-    return std::make_tuple(ablock, GetAnimationBlockIndex(ablock));
+    ab->IsLoaded = true;
+    return std::make_tuple(ab, GetAnimationBlockIndex(ab));
 }
 
 // 0x4D47F0
@@ -655,26 +667,29 @@ namespace ANPK {
 inline void CAnimManager::LoadAnimFile_ANPK(RwStream* s, const IFPSectionHeader& h, bool bLoadCompressed, const char (*pLoadUncompressed)[32]) {
     using namespace ANPK;
 
-    const auto hBlockInfo = RwStreamRead<IFPSectionHeader>(s);
-    const auto blockInfo = RwStreamRead<Info<MAX_ANIM_BLOCK_NAME>>(s, RoundTo4(hBlockInfo.Size));
+    // Read ANPK section
+    const auto hANPK    = RwStreamRead<IFPSectionHeader>(s);
+    const auto infoAnim = RwStreamRead<Info<MAX_ANIM_BLOCK_NAME>>(s, RoundTo4(hANPK.Size)); // information : INFO<TAnimation>
 
-    const auto [ablock, ablockIdx] = GetOrCreateAnimBlock(blockInfo.Name, blockInfo.Num);
-
-    /** TAnimation - Each entry represents an animation
-    * AnimName : NAME
-    * AnimData : DGAN
-    **/
+    const auto [ablock, ablockIdx] = GetOrCreateAnimBlock(infoAnim.Name, infoAnim.Num);
 
     // Read TAnimation's for this block
-    for (size_t animN = 0; animN < blockInfo.Num; animN++) {
+    for (size_t animN = 0; animN < infoAnim.Num; animN++) {
         const auto hier = &ms_aAnimations[ablock->FirstAnimIdx + animN];
 
-        // Read and set name
+        /** TAnimation - Each entry represents an in-game animation
+        * AnimName : NAME
+        * AnimData : DGAN
+        **/
+
+        //
+        // Read `TAnimation::AnimName`
+        //
         {
             char name[64];
-            const auto header = RwStreamRead<IFPSectionHeader>(s);
-            assert(header.ID == MakeFourCC("NAME"));
-            RwStreamRead(s, name, RoundTo4(header.Size));
+            const auto hAnimName = RwStreamRead<IFPSectionHeader>(s);
+            assert(hAnimName.ID == MakeFourCC("NAME"));
+            RwStreamRead(s, name, RoundTo4(hAnimName.Size));
             hier->SetName(name);
             NOTSA_LOG_DEBUG("Reading animation {}", name);
         }
@@ -691,90 +706,107 @@ inline void CAnimManager::LoadAnimFile_ANPK(RwStream* s, const IFPSectionHeader&
         hier->m_bIsCompressed   = isCompressed;
         hier->m_bKeepCompressed = false;
 
-        // Read DGAN header
-        const auto hDGAN = RwStreamRead<IFPSectionHeader>(s);
-        assert(hDGAN.ID == MakeFourCC("DGAN"));
+        //
+        // Read `TAnimation::AnimData`
+        //
 
-        // Read DGAN struct
-        const auto hInfoCPAN = RwStreamRead<IFPSectionHeader>(s); // INFO<CPAN> header
-        assert(hInfoCPAN.ID == MakeFourCC("CPAN"));
+        /** DGAN
+        * AnimInfo : INFO<CPAN>
+        **/
 
-        const auto infoCPAN  = RwStreamRead<Info<64>>(s, RoundTo4(hInfoCPAN.Size));  // INFO<CPAN>
+        const auto hAnimData = RwStreamRead<IFPSectionHeader>(s); // DGAN header
+        assert(hAnimData.ID == MakeFourCC("DGAN"));
 
-        hier->m_nSeqCount  = infoCPAN.Num;
+        //
+        // Read `DGAN::AnimInfo`
+        //
+        const auto hAnimInfo = RwStreamRead<IFPSectionHeader>(s); // INFO header
+        assert(hAnimInfo.ID == MakeFourCC("INFO"));
+        const auto animInfo = RwStreamRead<Info<64>>(s, RoundTo4(hAnimInfo.Size)); // INFO data
+
+        hier->m_nSeqCount  = animInfo.Num;
         hier->m_pSequences = new CAnimBlendSequence[hier->m_nSeqCount]; // Yes, they used `new`
 
-        // Read `INFO<CPAN>` entries (The Sequences)
-        for (size_t seqN = 0; seqN < infoCPAN.Num; seqN++) {
+        // Read `DGAN::AnimInfo` (CPAN) entries (The sequences of the animation)
+        for (size_t seqN = 0; seqN < animInfo.Num; seqN++) {
             const auto seq = &hier->m_pSequences[seqN];
 
-            const auto hCPAN = RwStreamRead<IFPSectionHeader>(s); // CPAN header
-            assert(hCPAN.ID == MakeFourCC("CPAN"));
+            /** CPAN
+            * ObjectInfo : ANIM
+            **/
 
-            // Read the anim data
+            const auto hObjectInfo = RwStreamRead<IFPSectionHeader>(s); // CPAN header
+            assert(hObjectInfo.ID == MakeFourCC("CPAN"));
+
+            //
+            // Read `CPAN::ObjectInfo`
+            //
+
+            /** ANIM
+            * ObjectName : TString            // Also the name of the bone (Because of this fact that this string uses 28 bytes by default.)
+            * Frames     : INT32              // Number of frames
+            * Unknown    : INT32              // Usually 0
+            * Next       : INT32              // Next sibling
+            * Prev       : INT32              // Previous sibling
+            * FrameData  : KRTS / KRT0 / KR00 // Key frames
+            **/
+
             struct Anim {
-                char       Name[28];    // 00 - Name of this sequence
+                char       ObjName[28]; // 00 - Name of this sequence
                 uint32     NumFrames;   // 28 - Number of (key)frames
                 uint32     Next;        // 32 - Next sibling
                 uint32     Prev;        // 36 - Previous sibling
                 eBoneTag32 BoneTag;     // 40 - Only present if `Header.Size == 44`
             };
-            const auto [anim, hAnim] = ReadSection<Anim>(s);
-            assert(hAnim.ID == MakeFourCC("ANIM"));
+            const auto [objInfo, hObjInfo] = ReadSection<Anim>(s);
+            assert(hObjInfo.ID == MakeFourCC("ANIM"));
 
             // Set sequence name
-            seq->SetName(anim.Name);
+            seq->SetName(objInfo.ObjName);
 
             // Set bone tag if available
-            if (hAnim.Size == sizeof(Anim)) {
-                seq->SetBoneTag(anim.BoneTag);
+            if (hObjInfo.Size == sizeof(Anim)) {
+                seq->SetBoneTag(objInfo.BoneTag);
             }
 
             //
-            // Read frames now (if any)
+            // Read `ANIM::FrameData` (If any)
             //
 
-            if (!anim.NumFrames) {
+            if (!objInfo.NumFrames) {
                 continue;
             }
 
-            // Frame data header
-            const auto hKfrm = RwStreamRead<IFPSectionHeader>(s);
-            assert(hKfrm.ID == MakeFourCC("KFRM"));
+            /** KR00
+            * DeltaTime : FLOAT
+            * Rot       : CQuaternion
+            **/
 
-            // NOTE: Only KR00, KRT0, KRTS are valid, other combinations are not.
-            switch (hKfrm.ID) {
-            case MakeFourCC("KRTS"):
-            case MakeFourCC("KRT0"):
-            case MakeFourCC("KR00"):
-                break;
-            default:
-                NOTSA_UNREACHABLE("Invalid ({}) kf type!", hKfrm.ID);
-            }
+            /** KRT0 : KR00
+            * Pos : CVector
+            **/
+            
+            /** KRTS : KRT0
+            * Scale : CVector // Read, but ignored
+            **/
+            
+            // Frame data header ("KFRM" -> Key Frame)
+            const auto hKFRM = RwStreamRead<IFPSectionHeader>(s);
+            assert(notsa::contains({MakeFourCC("KRTS"), MakeFourCC("KRT0"), MakeFourCC("KR00")}, hKFRM.ID));
 
             // Frame properties
-            const auto hasRotation    = hKfrm.IDFourCC[1] == 'R';
-            const auto hasTranslation = hKfrm.IDFourCC[2] == 'T';
-            const auto hasScale       = hKfrm.IDFourCC[3] == 'S';
-
-            /* Frame data layout (In stream):
-            * float      DeltaTime;
-            * CQuaterion Rot;
-            * 
-            * if hasTranslate:
-            *     CVector Translate;
-            * 
-            *     if hasScale:
-            *         CVector Scale;
-            */
+            const auto hasRotation    = hKFRM.IDFourCC[1] == 'R';
+            const auto hasTranslation = hKFRM.IDFourCC[2] == 'T';
+            const auto hasScale       = hKFRM.IDFourCC[3] == 'S';
+            
+            assert(hasRotation); // Rotation must always be present
 
             // Allocate frame data
-            seq->SetNumFrames(anim.NumFrames, hasRotation, isCompressed, nullptr);
+            seq->SetNumFrames(objInfo.NumFrames, hasTranslation, isCompressed, nullptr);
 
             // Read frame data from the stream
-            for (size_t kfN = 0; kfN < anim.NumFrames; kfN++) {
+            for (size_t kfN = 0; kfN < objInfo.NumFrames; kfN++) {
                 const auto SetKF = [&](auto* kf) {
-                    kf->SetDeltaTime(RwStreamRead<float>(s));
                     kf->Rot = RwStreamRead<CQuaternion>(s).Conjugated();
                     if (hasTranslation) {
                         kf->Trans = RwStreamRead<CVector>(s);
@@ -782,6 +814,7 @@ inline void CAnimManager::LoadAnimFile_ANPK(RwStream* s, const IFPSectionHeader&
                             RwStreamSkip(s, sizeof(CVector)); // Scale ignored
                         }
                     }
+                    kf->DeltaTime = RwStreamRead<float>(s);
                 };
                 if (isCompressed) {
                     SetKF(seq->GetCKeyFrame(kfN));
@@ -789,9 +822,15 @@ inline void CAnimManager::LoadAnimFile_ANPK(RwStream* s, const IFPSectionHeader&
                     SetKF(seq->GetUKeyFrame(kfN));
                 }
             }
+
+        }
+
+        if (!hier->m_bIsCompressed) {
+            hier->RemoveQuaternionFlips();
+            hier->CalcTotalTime();
         }
     }
-    ms_numAnimations = std::max<int32>(ablock->FirstAnimIdx + blockInfo.Num, ms_numAnimations);
+    ms_numAnimations = std::max<int32>(ablock->FirstAnimIdx + infoAnim.Num, ms_numAnimations);
 }
 
 // NOTE:
@@ -861,16 +900,11 @@ inline void CAnimManager::LoadAnimFile_ANP23(RwStream* s, const IFPSectionHeader
             };
 
             switch (frameType) {
-            case 1:
-                ReadFrames(sizeof(KeyFrame), false, false); break;
-            case 2:
-                ReadFrames(sizeof(KeyFrameTrans), true, false); break;
-            case 3:
-                ReadFrames(sizeof(KeyFrameCompressed), false, true); break;
-            case 4:
-                ReadFrames(sizeof(KeyFrameTransCompressed), true, true); break;
-            default:
-                NOTSA_UNREACHABLE("Invalid FrameType ({})", frameType);
+            case 1:  ReadFrames(sizeof(KeyFrame), false, false); break;
+            case 2:  ReadFrames(sizeof(KeyFrameTrans), true, false); break;
+            case 3:  ReadFrames(sizeof(KeyFrameCompressed), false, true); break;
+            case 4:  ReadFrames(sizeof(KeyFrameTransCompressed), true, true); break;
+            default: NOTSA_UNREACHABLE("Invalid FrameType ({})", frameType);
             }
 
             if (isANP3) {

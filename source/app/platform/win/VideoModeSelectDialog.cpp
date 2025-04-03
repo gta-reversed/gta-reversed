@@ -51,7 +51,8 @@ void SetSelectedVM(HWND hDlg, RwInt32 vm) {
 void FillAvailableVMs(HWND hVMSel) {
     const auto numVM = RwEngineGetNumVideoModes();
     for (auto i = 0; i < numVM; i++) {
-        const auto vmi = RwEngineGetVideoModeInfo(i);
+        RwVideoMode vmi;
+        RwEngineGetVideoModeInfo(&vmi, i);
 
         if ((vmi.flags & rwVIDEOMODEEXCLUSIVE) == 0 || vmi.width < APP_MINIMAL_WIDTH || vmi.height < APP_MINIMAL_HEIGHT) {
             continue;
@@ -70,7 +71,7 @@ void FillAvailableVMs(HWND hVMSel) {
             const auto idx = SendMessage(hVMSel, CB_ADDSTRING, NULL, (LPARAM)vmName); // Add entry, and get it's index
             SendMessage(hVMSel, CB_SETITEMDATA, idx, i);                              // Set index of that entry to correspond to `i`
         } else {
-            DEV_LOG("Not listing video mode ({}) to device select! [{} x {} ({}:{})]", i, vmi.width, vmi.height, ratioW, ratioH);
+            NOTSA_LOG_DEBUG("Not listing video mode ({}) to device select! [{} x {} ({}:{})]", i, vmi.width, vmi.height, ratioW, ratioH);
         }
     }
 }

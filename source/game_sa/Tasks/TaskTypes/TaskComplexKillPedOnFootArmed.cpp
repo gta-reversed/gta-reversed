@@ -1,10 +1,10 @@
 #include "StdInc.h"
 
 #include "TaskComplexKillPedOnFootArmed.h"
-#include "./TaskSimpleGoToPoint.h"
-#include "./TaskSimpleDuck.h"
-#include "./TaskSimpleGunControl.h"
-#include "./TaskSimpleUseGun.h"
+#include "TaskSimpleGoToPoint.h"
+#include "TaskSimpleDuck.h"
+#include "TaskSimpleGunControl.h"
+#include "TaskSimpleUseGun.h"
 #include <extensions/utility.hpp>
 
 void CTaskComplexKillPedOnFootArmed::InjectHooks() {
@@ -192,7 +192,7 @@ CTask* CTaskComplexKillPedOnFootArmed::CreateSubTask(eTaskType taskType, CPed* p
 bool CTaskComplexKillPedOnFootArmed::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     switch (priority) {
     case ABORT_PRIORITY_URGENT: {
-        if (const auto aimedAtEvent = CEvent::DynCast<const CEventGunAimedAt>(event)) {
+        if (const auto aimedAtEvent = notsa::dyn_cast_if_present<const CEventGunAimedAt>(event)) {
             if (aimedAtEvent->m_AimedBy == m_target) {
                 return false;
             }
@@ -230,22 +230,24 @@ CTask* CTaskComplexKillPedOnFootArmed::CreateFirstSubTask(CPed* ped) {
         && (targetToOurPedDistSq >= sq(30.f) || targetToOurPedDistSq >= sq(6.f) && !m_target->GetActiveWeapon().IsTypeMelee()) 
     ) {
         ped->ReleaseCoverPoint();
-        ped->m_pCoverPoint = CCover::FindAndReserveCoverPoint(ped, targetPos, false);
-        if (ped->m_pCoverPoint) {
+        if (ped->m_pCoverPoint = CCover::FindAndReserveCoverPoint(ped, targetPos, false)) {
             CVector coverPos{};
-            VERIFY(CCover::FindCoordinatesCoverPoint(ped->m_pCoverPoint, ped, targetPos, coverPos));
-            if (CWorld::GetIsLineOfSightClear(coverPos, ourPos, true, true, false, false, false, false, false)) {
-                ped->GetIntelligence()->SetTaskDuckSecondary(6000);
-                if (const auto task = new CTaskSimpleGoToPoint{
-                    PEDMOVE_RUN,
-                    coverPos,
-                    0.5f,
-                    true
-                }) { // I can't believe my eyes.... error handling?
-                    return task;
+            if (!notsa::IsFixBugs() || CCover::FindCoordinatesCoverPoint(*ped->m_pCoverPoint, ped, targetPos, coverPos)) {
+                if (CWorld::GetIsLineOfSightClear(coverPos, ourPos, true, true, false, false, false, false, false)) {
+                    ped->GetIntelligence()->SetTaskDuckSecondary(6000);
+                    if (const auto task = new CTaskSimpleGoToPoint{
+                        PEDMOVE_RUN,
+                        coverPos,
+                        0.5f,
+                        true
+                    }) { // I can't believe my eyes.... error handling?
+                        return task;
+                    }
+                } else {
+                    ped->ReleaseCoverPoint();
                 }
             } else {
-                ped->ReleaseCoverPoint();
+                NOTSA_LOG_WARN("Can't find cover point's coordinates!"); // Originally the game has left `coverPos` uninitialized in this case
             }
         }
     }
@@ -345,7 +347,7 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
             return CreateSubTask(TASK_SIMPLE_GUN_CTRL, ped);
         } else {
             if (ped->GetGroup()) {
-                ped->Say(65);
+                ped->Say(CTX_GLOBAL_COVER_ME);
             }
         }
         break;
@@ -356,7 +358,7 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
             || targetToOurPedDistSq >= sq(4.f) && !ped->bStayInSamePlace && CTimer::GetTimeInMS() >= m_shootTimer
             || !LineOfSightClearForAttack(ped)
         ) {
-            const auto gctrl = CTask::Cast<CTaskSimpleGunControl>(m_pSubTask);
+            const auto gctrl = notsa::cast<CTaskSimpleGunControl>(m_pSubTask);
             if (gctrl->m_firingTask != eGunCommand::END_LEISURE) {
                 gctrl->m_nextAtkTimeMs = 0;
                 gctrl->m_firingTask    = eGunCommand::END_LEISURE;
@@ -369,7 +371,7 @@ CTask* CTaskComplexKillPedOnFootArmed::ControlSubTask(CPed* ped) {
         }
 
         if (ped->GetGroup()) {
-            ped->Say(207);
+            ped->Say(CTX_GLOBAL_SURROUNDED);
         }
 
         //> 0x62CF88

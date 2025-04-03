@@ -52,7 +52,7 @@ CTaskSimpleInAir::~CTaskSimpleInAir()
 // 0x680600
 bool CTaskSimpleInAir::ProcessPed(CPed* ped)
 {
-    CColPoint colPoint{}; // default initialization is NOTSA
+    CColPoint colPoint{};
     CEntity* colEntity;
 
     CVector originalPosn = ped->m_matrix->GetPosition();
@@ -61,14 +61,12 @@ bool CTaskSimpleInAir::ProcessPed(CPed* ped)
     if (m_timer.IsOutOfTime()
         && ped->m_nPedState != PEDSTATE_ABSEIL_FROM_HELI
         && ped->m_vecMoveSpeed.z * 50.0F <= -20.0F
-        )
-    {
-        ped->Say(ped->IsPlayer() ? 358 : 346, 0, 1.0F, false, false, false);
+    ) {
+        ped->Say(ped->IsPlayer() ? CTX_GLOBAL_PAIN_CJ_HIGH_FALL : CTX_GLOBAL_PAIN_ON_FIRE);
         m_timer.m_bStarted = false;
     }
 
-    if (!m_pAnim)
-    {
+    if (!m_pAnim) {
         ped->bIsInTheAir = true;
         if (m_bUsingJumpGlide)
         {
@@ -187,17 +185,14 @@ bool CTaskSimpleInAir::ProcessPed(CPed* ped)
         && ped->m_vecMoveSpeed.z > -0.2F
         && ped->m_vecMoveSpeed.Magnitude2D() > 0.05F)
     {
-        if (!(
-            m_Parent
-            && m_Parent->GetTaskType() == TASK_COMPLEX_IN_AIR_AND_LAND
-            && reinterpret_cast<CTaskComplexInAirAndLand*>(m_Parent)->m_bInvalidClimb
-            ))
-        {
+        const auto tInAirLand = notsa::dyn_cast<CTaskComplexInAirAndLand>(m_Parent);
+        if (!tInAirLand || !tInAirLand->m_bInvalidClimb) {
             m_pClimbEntity = CTaskSimpleClimb::TestForClimb(ped, m_vecPosn, m_fAngle, m_nSurfaceType, false);
-            if (m_pClimbEntity)
+            if (m_pClimbEntity) {
                 m_pClimbEntity->RegisterReference(&m_pClimbEntity);
-            else if (m_fAngle < -1000.0F && m_Parent)
-                reinterpret_cast<CTaskComplexInAirAndLand*>(m_Parent)->m_bInvalidClimb = true;
+            } else if (m_fAngle < -1000.0F && tInAirLand) {
+                tInAirLand->m_bInvalidClimb = true;
+            }
         }
     }
 

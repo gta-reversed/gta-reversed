@@ -1,6 +1,4 @@
 #include "StdInc.h"
-
-#include <extensions/enumerate.hpp>
 #include "BulletTraces.h"
 
 CBulletTrace (&CBulletTraces::aTraces)[16] = *(CBulletTrace(*)[16])0xC7C748;
@@ -154,8 +152,8 @@ void CBulletTraces::AddTrace(const CVector& posMuzzle, const CVector& posBulletH
     CVector to = from + dir * fRadius;
 
     AddTrace(
-        &from,
-        &to,
+        from,
+        to,
         0.01f,
         300,
         70
@@ -207,7 +205,7 @@ void CBulletTraces::Render() {
                 trace.m_vecEnd - sizeVec,
             };
 
-            for (const auto& [idx, pos] : notsa::enumerate(vertPositions)) {
+            for (const auto& [idx, pos] : rngv::enumerate(vertPositions)) {
                 RwV3dAssign(RwIm3DVertexGetPos(&verts[idx]), &pos);
             }
         }
