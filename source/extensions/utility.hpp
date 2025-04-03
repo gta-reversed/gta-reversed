@@ -62,14 +62,6 @@ auto make_mapping(std::pair<const K, const V> (&&m)[N]) {
     }
 }
 
-/*
-* Want to know something funny?
-* `std::initializer_list` is just a proxy object for a stack allocated array.
-* So, if you return one from a function you're dommed to be fucked :)
-* And best thing, it does allow copying, it has a fucking copy constructor for whatever reason
-* Lesson: Don't return `initializer_list`'s from functions
-*/
-
 /*!
 * @brief Helper function to get kv-mapping value from a key.
 * @brief Unlike `.find()`, this returns the value directly
