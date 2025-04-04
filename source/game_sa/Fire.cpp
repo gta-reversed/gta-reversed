@@ -247,9 +247,10 @@ void CFire::Extinguish() {
 // 0x53A570
 void CFire::ProcessFire() {
     {
-        const float fNewStrength = std::min(3.0f, m_fStrength + CTimer::GetTimeStep() / 500.0f); // Limited to 3.0f
-        if ((uint32)m_fStrength == (uint32)fNewStrength)
-            m_fStrength = fNewStrength; // Not sure why they do this, probably just some hack
+        const float newStrength = std::min(3.0f, m_fStrength + CTimer::GetTimeStep() / 500.0f);
+        if ((uint32)(m_fStrength) != (uint32)(newStrength)) {
+            m_fStrength = newStrength; // Not sure why they do this, probably just some hack
+        }
     }
 
     if (m_pEntityTarget) {
