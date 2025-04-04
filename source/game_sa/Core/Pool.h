@@ -195,7 +195,8 @@ public:
             }
             return nullptr;
         }
-        assert(i >= 0 && i < m_Capacity);
+        assert(IsIndexInBounds(i) && "Free slot index is out-of-bounds");
+        assert(IsFreeSlotAtIndex(i) && "Can't allocate an object at a non-free slot");
 
         auto* const state = &m_SlotState[i];
         const auto isFirstAllocation = state->Ref == 0; // First allocation of this slot?
