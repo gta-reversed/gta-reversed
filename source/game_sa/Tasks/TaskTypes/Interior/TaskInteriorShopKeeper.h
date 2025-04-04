@@ -3,9 +3,9 @@
 #include "TaskComplex.h"
 
 class CPed;
-struct InteriorGroup_c;
+class InteriorGroup_c;
+class Interior_c;
 struct InteriorInfo_t;
-struct Interior_c;
 
 class NOTSA_EXPORT_VTABLE CTaskInteriorShopKeeper : public CTaskComplex {
 public:

@@ -1,6 +1,6 @@
 #pragma once
 
-class C2dEffect;
+struct C2dEffect;
 
 struct CScriptedEffectPair {
     int32 dword0;

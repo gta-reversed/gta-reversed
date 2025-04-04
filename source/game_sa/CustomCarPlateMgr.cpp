@@ -302,7 +302,7 @@ RwTexture* CCustomCarPlateMgr::CreatePlateTexture(const char* text, uint8 plateT
 
 // 0x6FDF50
 RpMaterial* CCustomCarPlateMgr::MaterialUpgradeSetCarplateTextureCB(RpMaterial* material, void* geometry) {
-    //printf("[Debug - Trace]: MaterialUpgradeSetCarplateTextureCB");
+    //NOTSA_LOG_DEBUG("[Debug - Trace]: MaterialUpgradeSetCarplateTextureCB");
 
     assert(material);
     assert(geometry);
