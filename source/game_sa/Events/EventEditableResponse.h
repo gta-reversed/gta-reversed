@@ -10,9 +10,9 @@ public:
     CEventEditableResponse(eTaskType taskType = TASK_NONE/*notsa*/);
     ~CEventEditableResponse() override = default; // 0x4AC480
 
-    CEvent* Clone() override;
+    CEvent* Clone() const noexcept override;
     bool HasEditableResponse() const override { return true; } // 0x420EF0;
-    virtual CEventEditableResponse* CloneEditable() = 0;
+    virtual CEventEditableResponse* CloneEditable() const noexcept = 0;
 
     bool WillRespond() const;
     void InformVehicleOccupants(CPed* ped);

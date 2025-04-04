@@ -8,7 +8,6 @@
 #include "StdInc.h"
 #include "IplStore.h"
 #include "tBinaryIplFile.h"
-#include "extensions/enumerate.hpp"
 #include "TheCarGenerators.h"
 
 int32& ms_currentIPLAreaCode = *(int32*)0x8E3EF8;
@@ -80,10 +79,8 @@ void CIplStore::Initialise() {
  */
 void CIplStore::Shutdown() {
     RemoveAllIpls();
-    for (auto i = 0; i < ms_pPool->GetSize(); i++) {
-        if (!ms_pPool->IsFreeSlotAtIndex(i)) {
-            RemoveIplSlot(i);
-        }
+    for (auto&& [i, _] : ms_pPool->GetAllValidWithIndex()) {
+        RemoveIplSlot(i);
     }
     delete ms_pPool;
     ms_pPool = nullptr;
@@ -729,12 +726,12 @@ bool ExtractIPLNameFromPath(const char* iplFilePath, char(&out)[N]) {
     // Extract name of IPL from path
     const auto fileNameWithExt = strrchr(iplFilePath, '\\');
     if (!fileNameWithExt) {
-        DEV_LOG("Failed to extract ipl name from path ({}) [No path separator]", iplFilePath);
+        NOTSA_LOG_DEBUG("Failed to extract ipl name from path ({}) [No path separator]", iplFilePath);
         return false;
     }
     const auto dot = strchr(fileNameWithExt, '.');
     if (!dot) {
-        DEV_LOG("Failed to extract ipl name from path ({}) [No file ext]", iplFilePath);
+        NOTSA_LOG_DEBUG("Failed to extract ipl name from path ({}) [No file ext]", iplFilePath);
         return false;
     }
     memcpy_s(out, rng::size(out), fileNameWithExt + 1, dot - (fileNameWithExt + 1)); // They used a manual loop, but this is better.
@@ -791,7 +788,7 @@ int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** p
 bool CIplStore::Save() {
     const auto num = ms_pPool->GetSize();
     CGenericGameStorage::SaveDataToWorkBuffer(num);
-    for (auto i = 1; i < num; i++) { // skips 1st
+    for (auto i = 1u; i < num; i++) { // skips 1st
         const auto ipl = ms_pPool->GetAt(i);
         CGenericGameStorage::SaveDataToWorkBuffer(ipl && ipl->loaded && ipl->disableDynamicStreaming);
     }

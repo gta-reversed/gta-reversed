@@ -1,16 +1,18 @@
 #pragma once
 
-class CPtrListDoubleLink;
-class CPtrNodeDoubleLink;
+#include "PtrListDoubleLink.h"
+#include "PtrNodeDoubleLink.h"
+
 class CRepeatSector;
+class CPhysical;
 
 class CEntryInfoNode {
 public:
-    CPtrListDoubleLink* m_doubleLinkList;
-    CPtrNodeDoubleLink* m_doubleLink;
-    CRepeatSector*      m_repeatSector;
-    CEntryInfoNode*     m_previous;
-    CEntryInfoNode*     m_next;
+    CPtrListDoubleLink<CPhysical*>* m_doubleLinkList;
+    CPtrNodeDoubleLink<CPhysical*>* m_doubleLink;
+    CRepeatSector*                  m_repeatSector;
+    CEntryInfoNode*                 m_previous;
+    CEntryInfoNode*                 m_next;
 
 public:
     static void InjectHooks();
@@ -20,5 +22,4 @@ public:
 
     void         AddToList(CEntryInfoNode* pNext); // Fully inlined in final game
 };
-
 VALIDATE_SIZE(CEntryInfoNode, 0x14);

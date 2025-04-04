@@ -19,11 +19,11 @@ public:
     eEventType GetEventType() const override { return Type; }
     int32 GetEventPriority() const override;
     int32 GetLifeTime() override { return 0; }
-    CEvent* Clone() override;
+    CEvent* Clone() const noexcept override { return new CEventScriptCommand(m_primaryTaskIndex, CloneScriptTask(), m_affectsDeadPeds); } // 0x4B6490
     bool AffectsPed(CPed* ped) override;
     bool TakesPriorityOver(const CEvent& refEvent) override;
     bool IsValid(CPed* ped) override;
-    virtual CTask* CloneScriptTask();
+    virtual CTask* CloneScriptTask() const;
 
 private:
     friend void InjectHooksMain();

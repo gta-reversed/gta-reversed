@@ -28,7 +28,7 @@ void CFormation::FindCoverPointsBehindBox(
 
     // 0x69A128 - Calculate side's lengths
     float sides[4]{}; // left, top, right, bottom
-    for (auto&& [i, corner] : notsa::enumerate(corners)) {
+    for (auto&& [i, corner] : rngv::enumerate(corners)) {
         sides[i] = CVector2D::DistSqr(corners[i], corners[(i + 1) % 4]);
     }
 
@@ -36,7 +36,7 @@ void CFormation::FindCoverPointsBehindBox(
     auto shortestSideIdx = std::distance(sides, rng::min_element(sides));
 
     // 0x69A325
-    for (auto&& [i, corner] : notsa::enumerate(corners)) {
+    for (auto&& [i, corner] : rngv::enumerate(corners)) {
         if (i == shortestSideIdx) {
             continue;
         }

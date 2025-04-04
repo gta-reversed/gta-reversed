@@ -268,7 +268,7 @@ inline void CBike::ProcessPedInVehicleBuoyancy(CPed* ped, bool bIsDriver) {
             ped->GetEventGroup().Add(&damageEvent, false);
         }
     } else {
-        auto knockOffBikeEvent = CEventKnockOffBike(this, &m_vecMoveSpeed, &m_vecLastCollisionImpactVelocity, m_fDamageIntensity, 0.0F, KNOCK_OFF_TYPE_FALL, 0, 0, nullptr, bIsDriver, false);
+        auto knockOffBikeEvent = CEventKnockOffBike(this, m_vecMoveSpeed, m_vecLastCollisionImpactVelocity, m_fDamageIntensity, 0.0F, KNOCK_OFF_TYPE_FALL, 0, 0, nullptr, bIsDriver, false);
         ped->GetEventGroup().Add(&knockOffBikeEvent);
         if (bIsDriver) {
             vehicleFlags.bEngineOn = false;
@@ -621,7 +621,7 @@ void CBike::GetComponentWorldPosition(int32 componentId, CVector& outPos) {
     if (IsComponentPresent(componentId))
         outPos = RwFrameGetLTM(m_aBikeNodes[componentId])->pos;
     else
-        DEV_LOG("BikeNode missing: model={}, nodeIdx={}", m_nModelIndex, componentId);
+        NOTSA_LOG_DEBUG("BikeNode missing: model={}, nodeIdx={}", m_nModelIndex, componentId);
 }
 
 // 0x6B58D0
