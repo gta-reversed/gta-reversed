@@ -199,7 +199,7 @@ public:
                 }
                 m_FirstFreeSlot = -1;
                 if (CanDealWithNoMemory()) {
-                    DEV_LOG("Allocation failed for type {:?}", typeid(T).name());
+                    NOTSA_LOG_ERR("Allocation failed for type {:?}", typeid(T).name());
                 } else {
                     NOTSA_DEBUG_BREAK();
                 }
