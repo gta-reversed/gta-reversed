@@ -1813,7 +1813,7 @@ void CVehicle::ExtinguishCarFire() {
     }
 
     if (m_pFire) {
-        m_pFire->createdByScript = false;
+        m_pFire->SetIsScript(false);
         m_pFire->Extinguish();
         m_pFire = nullptr;
     }

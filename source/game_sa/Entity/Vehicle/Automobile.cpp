@@ -6337,7 +6337,7 @@ void CAutomobile::FireTruckControl(CFire* fire) {
         if (m_nStatus != STATUS_PHYSICS || !fire)
             return;
 
-        CVector2D distance = fire->m_vecPosition - GetPosition();
+        CVector2D distance = fire->GetPosition() - GetPosition();
         float shootDir = std::atan2(-distance.x, distance.y);
         float heading = GetHeading();
         if (shootDir > heading + PI)

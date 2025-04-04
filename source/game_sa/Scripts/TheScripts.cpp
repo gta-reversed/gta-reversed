@@ -808,7 +808,7 @@ int32 CTheScripts::GetActualScriptThingIndex(int32 ref, eScriptThingType type) {
         }
         break;
     case SCRIPT_THING_FIRE:
-        if (const auto& f = gFireManager.Get(idx); f.IsScript() && f.m_nScriptReferenceIndex == id) {
+        if (const auto& f = gFireManager.Get(idx); f.IsScript() && f.GetId() == id) {
             return idx;
         }
         break;
@@ -860,7 +860,7 @@ int32 CTheScripts::GetNewUniqueScriptThingIndex(int32 index, eScriptThingType ty
         ScriptSequenceTaskArray[index].m_bUsed = true;
         return NewUniqueId(ScriptSequenceTaskArray[index].m_nId);
     case eScriptThingType::SCRIPT_THING_FIRE:
-        return NewUniqueId(gFireManager.m_aFires[index].m_nScriptReferenceIndex);
+        return NewUniqueId(gFireManager.m_aFires[index].GetId());
     case eScriptThingType::SCRIPT_THING_2D_EFFECT:
         return NewUniqueId(CScripted2dEffects::ScriptReferenceIndex[index]);
     case eScriptThingType::SCRIPT_THING_DECISION_MAKER:
