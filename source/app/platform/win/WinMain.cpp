@@ -10,8 +10,8 @@
 
 #include "VideoPlayer.h"
 #include "VideoMode.h"
-#include "Input.h"
-#include "Platform.h"
+#include "WinInput.h"
+#include "WinPlatform.h"
 #include "WndProc.h"
 
 #include "extensions/Configs/FastLoader.hpp"
@@ -184,7 +184,7 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         }
         CGame::InitialiseCoreDataAfterRW();
         ChangeGameStateTo(GAME_STATE_FRONTEND_LOADED);
-        anisotropySupportedByGFX = (RwD3D9GetCaps()->RasterCaps & D3DPRASTERCAPS_ANISOTROPY) != 0; // todo: func
+        anisotropySupportedByGFX = (((const D3DCAPS9*)RwD3D9GetCaps())->RasterCaps & D3DPRASTERCAPS_ANISOTROPY) != 0; // todo: func
         break;
     }
     case GAME_STATE_FRONTEND_LOADED: {

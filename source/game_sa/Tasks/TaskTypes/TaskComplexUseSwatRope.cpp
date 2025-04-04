@@ -46,16 +46,16 @@ CTaskComplexUseSwatRope::CTaskComplexUseSwatRope(uint32 ropeId) : CTaskComplex()
 
 // 0x65A3C0
 CTaskComplexUseSwatRope::~CTaskComplexUseSwatRope() {
-    if (m_bIsOnHeli)
-        m_pHeli->CleanUpOldReference(reinterpret_cast<CEntity**>(&m_pHeli));
+    if (m_bIsOnHeli) {
+        CEntity::SafeCleanUpRef(m_pHeli);
+    }
 }
 
 // 0x659C30
 CTask* CTaskComplexUseSwatRope::Clone() const {
-    if (m_bIsOnHeli)
-        return new CTaskComplexUseSwatRope(m_nRopeId, m_pHeli);
-    else
-        return new CTaskComplexUseSwatRope(m_nRopeId);
+    return m_bIsOnHeli
+        ? new CTaskComplexUseSwatRope(m_nRopeId, m_pHeli)
+        : new CTaskComplexUseSwatRope(m_nRopeId);
 }
 
 // 0x659530
@@ -106,7 +106,7 @@ CTask* CTaskComplexUseSwatRope::ControlSubTask(CPed* ped) {
     if (   m_bIsOnHeli
         && (
                !m_pHeli
-               || m_pHeli->m_autoPilot.m_nCarMission == MISSION_CRASH_HELI_AND_BURN
+               || m_pHeli->m_autoPilot.m_nCarMission == MISSION_HELI_CRASH_AND_BURN
                || m_pHeli->m_fHealth <= 0.0F
            )
         && m_pSubTask->MakeAbortable(ped)

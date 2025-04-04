@@ -21,6 +21,28 @@
 class CRect {
 public:
     // Init in flipped state
+    //union {
+    //    struct {
+    //        CVector2D tl{1000000.0F, -1000000.0F};
+    //    }
+    //    struct {
+    //        float left, top;
+    //    };
+    //    struct {
+    //        float x1, y1;
+    //    };
+    //};
+    //union {
+    //    struct {
+    //        CVector2D br{-1000000.0F, 1000000.0F};
+    //    };
+    //    struct {
+    //        float right, bottom;
+    //    };
+    //    struct {
+    //        float x2, y2;
+    //    };
+    //};
     float left      =  1000000.0F; // x1
     float top       = -1000000.0F; // y1
     float right     = -1000000.0F; // x2
@@ -29,25 +51,32 @@ public:
 public:
     static void InjectHooks();
 
-    CRect() = default; // 0x4041C0 - TODO: Fix retarded argument order to be: left, top, right, bottom
+    CRect() = default; // 0x4041C0 - TODO: Fix retarded argument order to be: (left, top), (right, bottom) - This shit comes from the fact that the original struct had incorrect naming
 
-    constexpr CRect(float left, float bottom, float right, float top) :
+    constexpr CRect(float left, float bottom, float right, float top) : // minX, minY, maxX, maxY
         left{ left },
         bottom{ bottom },
         right{ right },
         top{ top }
     {
+        // If you're here because one of the scripted video games...
+        // Just uncomment this check and they'll work
+        // Explanation:
+        // The positions in tScriptRectangle are supposed to be min x, y max x, y
+        // Well, guess what... they aren't
+        // So shit works as expected (cause the GPU doesn't really care, it's gonna draw it),
+        // but the rectangles are flipped, hence the assert is hit
         assert(!IsFlipped());
     }
 
-    constexpr CRect(const CVector2D& bottomLeft, const CVector2D& topRight) :
-        CRect{bottomLeft.x, bottomLeft.y, topRight.x, topRight.y}
+    constexpr CRect(const CVector2D& min, const CVector2D& max) : // top-left (min x, y), bottom-right (max x, y)
+        CRect{min.x, min.y, max.x, max.y}
     {
     }
 
-    /// A rect that can fit a circle of `radius` inside with `pos` being the center
-    constexpr CRect(const CVector2D& pos, float radius) :
-        CRect{ pos.x - radius, pos.y - radius, pos.x + radius, pos.y + radius }
+    /// A rect that can fit a circle of `radius` inside with `center` being the center
+    constexpr CRect(const CVector2D& center, float radius) :
+        CRect{ center.x - radius, center.y - radius, center.x + radius, center.y + radius }
     {
     }
 

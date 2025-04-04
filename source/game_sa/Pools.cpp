@@ -21,7 +21,7 @@ void CPools::InjectHooks() {
     RH_ScopedInstall(GetVehicleRef, 0x54FFC0);
     RH_ScopedInstall(Load, 0x5D0890);
     RH_ScopedInstall(LoadObjectPool, 0x5D4A40);
-    RH_ScopedInstall(LoadPedPool, 0x5D2D70, { .reversed = false });
+    RH_ScopedInstall(LoadPedPool, 0x5D2D70);
     RH_ScopedInstall(LoadVehiclePool, 0x5D2A20);
     RH_ScopedInstall(MakeSureSlotInObjectPoolIsEmpty, 0x550080);
     RH_ScopedInstall(Save, 0x5D0880);
@@ -62,7 +62,7 @@ void CPools::Initialise() {
 void CPools::ShutDown() {
     plugin::Call<0x5519F0>();
     /*
-    DEV_LOG("Shutdown pool started");
+    NOTSA_LOG_DEBUG("Shutdown pool started");
     delete ms_pPtrNodeSingleLinkPool;
     delete ms_pPtrNodeDoubleLinkPool;
     delete ms_pEntryInfoNodePool;
@@ -80,7 +80,7 @@ void CPools::ShutDown() {
     delete ms_pTaskAllocatorPool;
     delete ms_pPedIntelligencePool;
     delete ms_pPedAttractorPool;
-    DEV_LOG("Shutdown pool done");
+    NOTSA_LOG_DEBUG("Shutdown pool done");
     */
 }
 
@@ -91,18 +91,14 @@ int32 CPools::CheckBuildingAtomics() {
 
 // 0x551950
 void CPools::CheckPoolsEmpty() {
-    for (auto i = 0; i < ms_pObjectPool->GetSize(); i++) {
-        const auto obj = ms_pObjectPool->GetAt(i);
-        if (!obj)
+    for (auto& obj : ms_pObjectPool->GetAllValid()) {
+        if (obj.m_nObjectType != OBJECT_TYPE_DECORATION)
             continue;
 
-        if (obj->m_nObjectType != OBJECT_TYPE_DECORATION)
-            continue;
-
-        const auto& objPos = obj->GetPosition();
-        DEV_LOG("Offending object: MI: {} Coors:{} {} {}", obj->m_nModelIndex, objPos.x, objPos.y, objPos.z);
+        const auto& objPos = obj.GetPosition();
+        NOTSA_LOG_DEBUG("Offending object: MI: {} Coors:{} {} {}", obj.m_nModelIndex, objPos.x, objPos.y, objPos.z);
     }
-    DEV_LOG("Pools have been cleared!");
+    NOTSA_LOG_DEBUG("Pools have been cleared!");
 }
 
 // 0x550050
@@ -146,13 +142,11 @@ bool CPools::Load() {
 
 // 0x5D4A40
 bool CPools::LoadObjectPool() {
-    int32 iNumObjects = 0;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&iNumObjects, 4);
+    auto iNumObjects = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
     for (int32 i = 0; i < iNumObjects; ++i)
     {
-        int32 iPoolRef = 0, iModelId = 0;
-        CGenericGameStorage::LoadDataFromWorkBuffer(&iPoolRef, 4);
-        CGenericGameStorage::LoadDataFromWorkBuffer(&iModelId, 4);
+        auto iPoolRef = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
+        auto iModelId = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
 
         auto* objInPool = GetObjectPool()->GetAtRefNoChecks(iPoolRef);
         if (objInPool)
@@ -168,24 +162,15 @@ bool CPools::LoadObjectPool() {
 
 // 0x5D2D70
 bool CPools::LoadPedPool() {
-    return plugin::CallAndReturn<bool, 0x5D2D70>();
-
-    // unfortunately doesn't work'
-    int32 pedCount;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&pedCount, 4);
-
+    const auto pedCount = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
     for (auto i = 0; i < pedCount; i++) {
-        int32 pedType;
-        int32 model;
-        int32 ref;
-
-        CGenericGameStorage::LoadDataFromWorkBuffer(&pedType, 4);
-        CGenericGameStorage::LoadDataFromWorkBuffer(&model, 4);
-        CGenericGameStorage::LoadDataFromWorkBuffer(&ref, 4);
+        const auto poolRef = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
+        const auto model   = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
+        const auto pedType = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
 
         CPlayerPed* playerPed = nullptr;
-        if (!ref) {
-            playerPed = new CPlayerPed(0, false);
+        if (pedType == PED_TYPE_PLAYER1) {
+            playerPed = new(poolRef) CPlayerPed(0, false);
             playerPed->SetWeaponAccuracy(100);
             CWorld::Players[0].m_pPed = playerPed;
         }
@@ -304,3 +289,4 @@ bool CPools::SavePedPool() {
 bool CPools::SaveVehiclePool() {
     return plugin::CallAndReturn<bool, 0x5D4800>();
 }
+

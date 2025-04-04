@@ -1,5 +1,6 @@
 #pragma once
 
+static constexpr auto NUM_HANDSHAKERS = 6;
 class CHandShaker {
 public:
   CVector m_ang;
@@ -26,4 +27,4 @@ public:
 
 VALIDATE_SIZE(CHandShaker, 0x94);
 
-extern CHandShaker*& gHandShaker;
+static inline std::array<CHandShaker, NUM_HANDSHAKERS>& gHandShaker = StaticRef<std::array<CHandShaker, NUM_HANDSHAKERS>>(0xB6ECA0);

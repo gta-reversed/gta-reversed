@@ -7,7 +7,6 @@
 #pragma once
 
 #include "Text/Text.h"
-#include "RunningScript.h"
 #include "Ped.h"
 #include "Vehicle.h"
 #include "Object.h"
@@ -19,9 +18,12 @@
 #include "StuckCarCheck.h"
 #include "UpsideDownCarCheck.h"
 #include "ScriptsForBrains.h"
+#include "ScriptParam.h"
+#include "Font.h"
 
 #include "SCMChunks.hpp"
 
+class CRunningScript;
 class CCheckpoint;
 enum class eCheckpointType : uint32;
 
@@ -128,38 +130,37 @@ struct tScriptSequence {
 VALIDATE_SIZE(tScriptSequence, 0x4);
 
 struct tScriptText {
-    // values from 0x4690A8
-    float     m_fLetterWidth{ 0.48f };
-    float     m_fLetterHeight{ 1.12f };
-    CRGBA     m_Color{ 225, 225, 225, 255 };
-    bool      m_bJustify{ false };
-    bool      m_bCentered{ false };
-    bool      m_bWithBackground{ false };
-    bool      m_bUnk{ false };
-    float     m_fLineHeight{ SCREEN_HEIGHT };
-    float     m_fLineWidth{ SCREEN_WIDTH };
-    CRGBA     m_BackgroundBoxColor{ 128, 128, 128, 128 };
-    bool      m_bProportional{ true };
-    CRGBA     m_BackgroundColor{ 0, 0, 0, 255 };
-    int8      m_nShadowType{ 2 };
-    int8      m_nOutlineType{ 0 };
-    bool      m_bDrawBeforeFade{ false };
-    bool      m_bRightJustify{ false };
-    int32     m_nFont{ 1 };
-    CVector2D m_Pos{};
-    char      m_szGxtEntry[8]{};
-    int32     param1{ -1 };
-    int32     param2{ -1 };
+    // Values from 0x4690A8
+    CVector2D     Scale{ 0.48f, 1.12f };
+    CRGBA         Color{ 225, 225, 225, 255 };
+    bool          Justify{ false };
+    bool          IsCentered{ false }; //!< `HasRightJustify` takes precedence over it. If true, uses `eFontAlignment::ALIGN_CENTER` otherwise `eFontAlignment::ALIGN_LEFT`.
+    bool          HasBg{ false };
+    bool          HasBgTextOnly{ false }; //!< Unused
+    float         WrapX{ SCREEN_HEIGHT };
+    float         CentreSize{ SCREEN_WIDTH };
+    CRGBA         BgColor{ 128, 128, 128, 128 };
+    bool          IsProportional{ true };
+    CRGBA         DropShadowColor{ 0, 0, 0, 255 };
+    int8          DropShadow{ 2 };
+    int8          TextEdge{ 0 };
+    bool          IsDrawBeforeFade{ false };
+    bool          HasRightJustify{ false }; //!< Takes priority over `IsCentered`. If true `eFontAlignment::ALIGN_RIGHT` is used.
+    eFontStyleS32 FontStyle{ FONT_SUBTITLES };
+    CVector2D     Pos{};
+    char          GXTKey[8]{};
+    int32         NumberToInsert1{ -1 };
+    int32         NumberToInsert2{ -1 };
 };
 VALIDATE_SIZE(tScriptText, 0x44);
 
 enum class eScriptRectangleType : int32 {
-    TYPE_0,
-    TYPE_1,
-    TYPE_2,
-    TYPE_3,
-    TYPE_4,
-    TYPE_5,
+    INACTIVE,           //!< This entry is inactive (Not drawn)
+    TITLE_AND_MESSAGE,
+    TEXT,
+    MONOCOLOR,          //!< Mono-color rect
+    TEXTURED,           //!< Textured rect (basically a sprite)
+    MONOCOLOR_ANGLED,   //!< Angled mono-color rect
 };
 
 struct tScriptRectangle {
@@ -167,8 +168,8 @@ struct tScriptRectangle {
     bool                 m_bDrawBeforeFade;
     char                 field_5;
     int16                m_nTextureId;
-    CVector2D            cornerA;
-    CVector2D            cornerB;
+    CVector2D            cornerA; //!< Supposed to be: Top left corner (min x, y) - Sometimes this isn't the case though, for example in scripted videogames...
+    CVector2D            cornerB; //!< Supposed to be: Bottom right corner (max x, y) - Sometimes this isn't the case though, for example in scripted videogames...
     float                m_nAngle;
     CRGBA                m_nTransparentColor;
     char                 gxt1[8];
@@ -179,7 +180,7 @@ struct tScriptRectangle {
     uint32               m_nTextboxStyle;
 
     tScriptRectangle() { // 0x4691C8
-        m_nType             = eScriptRectangleType::TYPE_0;
+        m_nType             = eScriptRectangleType::INACTIVE;
         m_bDrawBeforeFade   = false;
         m_nTextureId        = -1;
         cornerA             = CVector2D();
@@ -224,11 +225,11 @@ struct tScriptSearchlight {
     CVector                 m_PathCoord1{};
     CVector                 m_PathCoord2{};
     float                   m_fPathSpeed{};
-    CEntity::Ref            m_AttachedEntity{};
-    CEntity::Ref            m_FollowingEntity{};
-    CEntity::Ref            m_Tower{};
-    CEntity::Ref            m_Housing{};
-    CEntity::Ref            m_Bulb{};
+    notsa::EntityRef<>      m_AttachedEntity{};
+    notsa::EntityRef<>      m_FollowingEntity{};
+    notsa::EntityRef<>      m_Tower{};
+    notsa::EntityRef<>      m_Housing{};
+    notsa::EntityRef<>      m_Bulb{};
     CVector                 m_TargetSpot{};
     CVector                 vf64{};
     CVector                 vf70{};
@@ -282,9 +283,9 @@ struct tStoredLine {
 VALIDATE_SIZE(tStoredLine, 0x20);
 
 struct tScriptBrainWaitEntity {
-    CEntity::Ref m_pEntity{};
-    int16        m_ScriptBrainIndex{ -1 };
-    int16        field_6{};
+    notsa::EntityRef<> m_pEntity{};
+    int16              m_ScriptBrainIndex{ -1 };
+    int16              field_6{};
 
     tScriptBrainWaitEntity() = default; // 0x468E12
 
@@ -334,15 +335,17 @@ enum {
 
 enum class ScriptSavedObjectType : uint32 {
     NONE = 0,
-    NOP = 1, // ?
+    INVISIBLE = 1, // ?
     BUILDING = 2,
     OBJECT = 3,
     DUMMY = 4,
 };
 
 static constexpr uint32 SCRIPT_VAR_TIMERA = 32, SCRIPT_VAR_TIMERB = 33;
-
 static constexpr uint32 MISSION_SCRIPT_SIZE = 69000;
+
+static inline bool gAllowScriptedFixedCameraCollision = false;
+
 class CTheScripts {
 public:
     static constexpr uint32 MAIN_SCRIPT_SIZE         = 200'000;
@@ -380,7 +383,6 @@ public:
     static inline uint16& NumberOfUsedObjects = *reinterpret_cast<uint16*>(0xA44B6C);
 
     static inline auto&   EntitiesWaitingForScriptBrain   = *(std::array<tScriptBrainWaitEntity, MAX_NUM_ENTITIES_WAITING_FOR_SCRIPT_BRAIN>*)0xA476B0;
-    static inline auto&   ScriptsArray                    = *(std::array<CRunningScript, MAX_NUM_SCRIPTS>*)0xA8B430;
     static inline auto&   IntroTextLines                  = *(std::array<tScriptText, MAX_NUM_INTRO_TEXT_LINES>*)0xA913E8;
     static inline uint16& NumberOfIntroTextLinesThisFrame = *reinterpret_cast<uint16*>(0xA44B68);
 
@@ -488,7 +490,7 @@ public:
     static void AddToWaitingForScriptBrainArray(CEntity* entity, int16 arg2);
 
     static void AttachSearchlightToSearchlightObject(int32 searchLightId, CObject* tower, CObject* housing, CObject* bulb, CVector offset);
-    static bool CheckStreamedScriptVersion(RwStream* stream, char* arg2);
+    static bool CheckStreamedScriptVersion(RwStream* stream, const char* filename);
     static void CleanUpThisObject(CObject* obj);
     static void CleanUpThisPed(CPed* ped);
     static void CleanUpThisVehicle(CVehicle* vehicle);
@@ -629,14 +631,6 @@ public:
         auto* text = TheText.Get((const char*)&ScriptSpace[*ip]);
         ip += KEY_LENGTH_IN_SCRIPT;
         return text;
-    }
-
-    static CVector2D& ReadCVector2DFromScript(uint8 offset) {
-        return *reinterpret_cast<CVector2D*>(&ScriptParams[offset]);
-    }
-
-    static CVector& ReadCVectorFromScript(uint8 offset) {
-        return *reinterpret_cast<CVector*>(&ScriptParams[offset]);
     }
 
     static uint32 GetSizeOfVariableSpace() {

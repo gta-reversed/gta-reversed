@@ -23,8 +23,7 @@ bool CInformGroupEventQueue::Add(CPed* ped, CPedGroup* pedGroup, CEventEditableR
     for (auto& e : ms_informGroupEvents) {
         if (e.m_Ped == ped) {
             if (event->GetEventType() == e.m_Event->GetEventType()) {
-                // Already added
-                return false;
+                return false; // Already added
             }
         } else if (!freeField && !e.m_Event) {
             freeField = &e;
@@ -43,7 +42,7 @@ bool CInformGroupEventQueue::Add(CPed* ped, CPedGroup* pedGroup, CEventEditableR
         event->ComputeResponseTaskType(pedGroup);
         if (FindPlayerPed()->GetPlayerGroup().GetMembership().IsMember(ped) ||
             ped->IsCreatedByMission() || !static_cast<CEventAcquaintancePed*>(event)->m_AcquaintancePed->bInVehicle ||
-            event->m_taskId == TASK_NONE) {
+            event->m_TaskId == TASK_NONE) {
             return 0;
         }
 
@@ -72,4 +71,3 @@ void CInformGroupEventQueue::Flush() {
 void CInformGroupEventQueue::Process() {
     rng::for_each(ms_informGroupEvents, &CInformGroupEvent::Process);
 }
-

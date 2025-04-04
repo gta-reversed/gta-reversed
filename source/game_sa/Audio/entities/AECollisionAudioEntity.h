@@ -51,7 +51,7 @@ public:
     void ReportWaterSplash(CVector posn, float volume);
     void ReportWaterSplash(CPhysical* physical, float height, bool splashMoreThanOnce);
     void ReportObjectDestruction(CEntity* entity);
-    void ReportCollision(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, CVector& colPoint, CVector* normal, float collisionImpact1, float collisionImpact2, bool bOnlyPlayOneShotCollisionSound, bool unknown);
+    void ReportCollision(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, const CVector& pos, const CVector* normal, float collisionImpact1, float collisionImpact2, bool bOnlyPlayOneShotCollisionSound, bool unknown);
     void ReportBulletHit(CEntity* entity, eSurfaceType surface, const CVector& posn, float angleWithColPointNorm);
 
     void Service();

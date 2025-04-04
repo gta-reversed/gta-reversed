@@ -309,11 +309,8 @@ void CCheat::BlackCarsCheat() {
 
 // 0x439d80
 void CCheat::BlowUpCarsCheat() {
-    for (int32 index = 0; index < GetVehiclePool()->m_nSize; index++) {
-        CVehicle* vehicle = GetVehiclePool()->GetAt(index);
-        if (vehicle) {
-            vehicle->BlowUpCar(nullptr, false);
-        }
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        veh.BlowUpCar(nullptr, false);
     }
 }
 
@@ -389,17 +386,16 @@ void CCheat::ElvisLivesCheat() {
 void CCheat::EverybodyAttacksPlayerCheat() {
     Toggle(CHEAT_HAVE_ABOUNTY_ON_YOUR_HEAD);
     if (IsActive(CHEAT_HAVE_ABOUNTY_ON_YOUR_HEAD)) {
-        auto player = FindPlayerPed();
-        for (auto i = 0; i < GetPedPool()->m_nSize; i++) {
-            auto ped = GetPedPool()->GetAt(i);
-            if (!ped || ped->IsPlayer())
+        auto* const player = FindPlayerPed();
+        for (auto& ped : GetPedPool()->GetAllValid()) {
+            if (ped.IsPlayer())
                 continue;
 
-            ped->GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PED_TYPE_PLAYER1));
+            ped.GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PED_TYPE_PLAYER1));
 
             CEventAcquaintancePedHate event(player);
-            event.m_taskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
-            ped->GetEventGroup().Add(&event, false);
+            event.m_TaskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
+            ped.GetEventGroup().Add(&event, false);
         }
     }
 }
@@ -565,7 +561,7 @@ void CCheat::MayhemCheat() {
             }
             if (CPed* closestPed = ped.GetIntelligence()->GetPedScanner().GetClosestPedInRange()) {
                 CEventAcquaintancePedHate event(closestPed);
-                event.m_taskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
+                event.m_TaskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
                 ped.GetEventGroup().Add(&event, false);
             }
         }
@@ -580,7 +576,7 @@ void CCheat::MayhemCheat() {
 
             if (CPed* closestPed = ped.GetIntelligence()->GetPedScanner().GetClosestPedInRange()) {
                 CEventAcquaintancePedHate event(closestPed);
-                event.m_taskId = TASK_NONE;
+                event.m_TaskId = TASK_NONE;
                 ped.GetEventGroup().Remove(&event);
             }
         }

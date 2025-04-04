@@ -97,6 +97,6 @@ bool CEventGunShot::TakesPriorityOver(const CEvent& refEvent) {
 }
 
 // 0x4B6B20
-CEventEditableResponse* CEventGunShot::CloneEditable() {
+CEventEditableResponse* CEventGunShot::CloneEditable() const noexcept {
     return new CEventGunShot(m_firedBy, m_startPoint, m_endPoint, m_bHasNoSound);
 }

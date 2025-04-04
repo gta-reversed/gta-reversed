@@ -73,7 +73,7 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(InitialiseEssentialsAfterRW, 0x5BA160);
     RH_ScopedInstall(InitialiseOnceBeforeRW, 0x53BB50);
     RH_ScopedInstall(InitialiseRenderWare, 0x5BD600);
-    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680);
+    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.enabled = false});
     RH_ScopedInstall(Process, 0x53BEE0);
     RH_ScopedInstall(ReInitGameObjectVariables, 0x53BCF0);
     RH_ScopedInstall(ReloadIPLs, 0x53BED0);
@@ -261,15 +261,7 @@ bool CGame::Shutdown() {
     col1[1].m_boundBox.m_vecMin.z = 0.0f;
     col1[0].m_pColData = nullptr;
     CTaskSimpleClimb::Shutdown();
-
-    { // todo: move to CPedAttractor::Shutdown() or something
-        // delete CPedAttractor::ms_tasks.First;
-        // CPedAttractor::ms_tasks.First = 0;
-        // CPedAttractor::ms_tasks.Last = 0;
-        // CPedAttractor::ms_tasks.End = 0;
-        CPedAttractor::ms_tasks = {};
-    }
-
+    CPedAttractor::Shutdown();
     CTheScripts::RemoveScriptTextureDictionary();
     CMBlur::MotionBlurClose();
     CdStreamRemoveImages();
@@ -448,7 +440,7 @@ bool CGame::Init2(const char* datFile) {
     CDraw::ms_fLODDistance = 0.0f;
 
     if (!CCustomCarPlateMgr::Initialise()) {
-        DEV_LOG("[CGame::Init2] CCustomCarPlateMgr::Initialise() failed");
+        NOTSA_LOG_DEBUG("[CGame::Init2] CCustomCarPlateMgr::Initialise() failed");
         return false;
     }
 

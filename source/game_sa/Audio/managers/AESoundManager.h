@@ -43,7 +43,7 @@ public:
 
     struct tSoundPlayParams {
         int16           BankSlotID;               //!< The slot to play the sound from (From the currently loaded bank (?))
-        tSoundID        SoundID;                  //!< The sound ID to play (From the specified bank slot)
+        eSoundID        SoundID;                  //!< The sound ID to play (From the specified bank slot)
         CAEAudioEntity* AudioEntity;              //!< The audio entity that requested this sound
         CVector         Pos;                      //!< The position
         float           Volume;                   //!< The volume (in dB)

@@ -55,7 +55,7 @@ CControllerConfigManager* CControllerConfigManager::Constructor() {
 
 // 0x52F510
 void CControllerConfigManager::StoreJoyButtonStates() { // Name unknown (I made it up)
-    for (auto&& [idx, bs] : notsa::enumerate(m_ButtonStates)) {
+    for (auto&& [idx, bs] : rngv::enumerate(m_ButtonStates)) {
         bs = m_NewJoyState.rgbButtons[idx] >> 7;
     }
 }
@@ -361,7 +361,7 @@ void CControllerConfigManager::GetDefinedKeyByGxtName(uint16 actionId, char* buf
 
 // NOTSA
 uint16 CControllerConfigManager::GetActionIDByName(std::string_view name) {
-    for (auto&& [i, actionName] : notsa::enumerate(m_arrControllerActionName)) {
+    for (auto&& [i, actionName] : rngv::enumerate(m_arrControllerActionName)) {
         if (std::string_view{ actionName } == name) {
             return i;
         }

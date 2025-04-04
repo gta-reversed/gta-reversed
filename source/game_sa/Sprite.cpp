@@ -23,7 +23,7 @@ void CSprite::InjectHooks() {
     RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Aspect, 0x70E780, { .reversed = false });
     RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_Dimension, 0x70EAB0, { .reversed = false });
     RH_ScopedInstall(RenderBufferedOneXLUSprite_Rotate_2Colours, 0x70EDE0, { .reversed = false });
-    RH_ScopedInstall(RenderBufferedOneXLUSprite2D, 0x70F440, { .reversed = false });
+    RH_ScopedInstall(RenderBufferedOneXLUSprite2D, 0x70F440);
 }
 
 // 0x70CE10
@@ -122,13 +122,13 @@ void CSprite::Set4Vertices2D(RwIm2DVertex* verts, const CRect& rt, const CRGBA& 
         vert.rhw = m_fRecipNearClipPlane;
 
         vert.emissiveColor = [&] {
-            switch (i) {
+        switch (i) {
             case 0: return bottomLeftColor.ToIntARGB();
             case 1: return bottomRightColor.ToIntARGB();
             case 2: return topRightColor.ToIntARGB();
             case 3: return topLeftColor.ToIntARGB();
             default: NOTSA_UNREACHABLE();
-            }
+        }
         }();
     }
 }
@@ -216,7 +216,30 @@ void CSprite::RenderBufferedOneXLUSprite_Rotate_2Colours(float, float, float, fl
 
 // 0x70F440
 void CSprite::RenderBufferedOneXLUSprite2D(CVector2D pos, CVector2D size, const RwRGBA& color, int16 intensity, uint8 alpha) {
-    plugin::Call<0x70F440>(pos, size, &color, intensity, alpha);
+    m_bFlushSpriteBufferSwitchZTest = true;
+    const CRect rect(pos, size.x);
+    const CRGBA scaledColor(
+        (color.red * intensity) >> 8,
+        (color.green * intensity) >> 8,
+        (color.blue * intensity) >> 8,
+        alpha
+    );
+    RwD3D9Vertex* vertices = &TempBufferVertices.m_2d[4 * nSpriteBufferIndex];
+    Set4Vertices2D(
+        vertices, rect, scaledColor, scaledColor, scaledColor, scaledColor
+    );
+
+    auto* indices = &aTempBufferIndices[6 * nSpriteBufferIndex];
+    indices[0] = 4 * nSpriteBufferIndex;
+    indices[1] = 4 * nSpriteBufferIndex + 1;
+    indices[2] = 4 * nSpriteBufferIndex + 2;
+    indices[3] = 4 * nSpriteBufferIndex + 2;
+    indices[4] = 4 * nSpriteBufferIndex;
+    indices[5] = 4 * nSpriteBufferIndex + 3;
+    nSpriteBufferIndex++;
+    if (nSpriteBufferIndex >= 384) {
+        CSprite::FlushSpriteBuffer();
+    }
 }
 
 // unused

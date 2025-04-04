@@ -6,7 +6,7 @@
 
 #include "imgui_impl_win32.h"
 
-#include <windows.h>
+#include "winincl.h"
 #include <rwplcore.h>
 #include <Dbt.h>
 #include <dshow.h>
@@ -16,11 +16,15 @@
 #include "AEAudioHardware.h"
 #include "VideoMode.h"
 #include "VideoPlayer.h"
-#include "Input.h"
+#include "WinInput.h"
+#include "WinPlatform.h"
 #include "Gamma.h"
 
 // Dear ImGui said I have to copy this here
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#define SHIFTED 0x8000
+#define KEY_DOWN(keystate) ((keystate & SHIFTED) != 0)
+#define KEY_UP(keystate) ((keystate & SHIFTED) == 0)
 
 // 0x747820
 BOOL GTATranslateKey(RsKeyCodes* ck, LPARAM lParam, UINT vk) {
@@ -109,23 +113,22 @@ BOOL GTATranslateShiftKey(RsKeyCodes*) { // The in keycode is ignored, so we won
         return false; // Already handled by `GTATranslateKey`
     }
 
-    constexpr struct { RsKeyCodes ck; INT vk; } Keys[]{
-        {rsLSHIFT, VK_LSHIFT},
-        {rsRSHIFT, VK_RSHIFT},
-    };
-
-    for (auto shouldBeDown : { false, true }) {
-        for (auto [ck, vk] : Keys) {
-            // GetKeyState reads from the message queue,
-            // so we must call it like the og code
-            const auto isDown = (HIWORD(GetKeyState(vk)) & 0x80) == 1; // Check is key pressed
-            if (isDown == shouldBeDown) {
-                RsEventHandler(
-                    isDown ? rsKEYDOWN : rsKEYUP,
-                    &ck
-                );
-            }
-        }
+    RsKeyCodes keyCode = rsNULL;
+    if (KEY_DOWN(GetKeyState(VK_LSHIFT))) {
+        keyCode = rsLSHIFT;
+        RsKeyboardEventHandler(rsKEYDOWN, &keyCode);
+    }
+    if (KEY_DOWN(GetKeyState(VK_RSHIFT))) {
+        keyCode = rsRSHIFT;
+        RsKeyboardEventHandler(rsKEYDOWN, &keyCode);
+    }
+    if (KEY_UP(GetKeyState(VK_LSHIFT))) {
+        keyCode = rsLSHIFT;
+        RsKeyboardEventHandler(rsKEYUP, &keyCode);
+    }
+    if (KEY_UP(GetKeyState(VK_RSHIFT))) {
+        keyCode = rsRSHIFT;
+        RsKeyboardEventHandler(rsKEYUP, &keyCode);
     }
 
     return true;
@@ -216,7 +219,7 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
         //> 0x748087 - Set gamma (If changed)
         if (gbGammaChanged) {
-            if (const auto dev = RwD3D9GetCurrentD3DDevice()) {
+            if (const auto dev = (IDirect3DDevice9*)RwD3D9GetCurrentD3DDevice()) {
                 dev->SetGammaRamp(9, 0, wndBeingActivated ? &CGamma::ms_GammaTable : &CGamma::ms_SavedGamma);
             }
         }
@@ -374,7 +377,7 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         if (dvletter < 'A' || (idev->dbcv_unitmask & (1 << dvletter)) == 0) {
             break;
         }
-        DEV_LOG("About to check CD drive");
+        NOTSA_LOG_DEBUG("About to check CD drive");
         CTimer::SetCodePause(true);
         if (CCutsceneMgr::IsRunning()) {
             CCutsceneMgr::SkipCutscene();
@@ -382,11 +385,11 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         while (!AEAudioHardware.CheckDVD()) {
             FrontEndMenuManager.NoDiskInDriveMessage();
             if (FrontEndMenuManager.m_bQuitGameNoDVD) {
-                DEV_LOG("Exiting game as Audio CD was not inserted");
+                NOTSA_LOG_DEBUG("Exiting game as Audio CD was not inserted");
                 break;
             }
         }
-        DEV_LOG("GTA Audio DVD has been inserted");
+        NOTSA_LOG_DEBUG("GTA Audio DVD has been inserted");
         CTimer::SetCodePause(false);
         break;
     }

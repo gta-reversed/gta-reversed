@@ -4,7 +4,6 @@
 #include "Garages.h"
 #include "PedClothesDesc.h"
 #include "PostEffects.h"
-#include <extensions/enumerate.hpp>
 
 void CGameLogic::InjectHooks() {
     RH_ScopedClass(CGameLogic);
@@ -201,7 +200,7 @@ bool CGameLogic::IsPlayerUse2PlayerControls(CPed* ped) {
 
 // 0x4416E0
 bool CGameLogic::IsPointWithinLineArea(const CVector* points, uint32 numPoints, float x, float y) {
-    for (auto&& [i, point] : notsa::enumerate(std::span{points, numPoints})) {
+    for (auto&& [i, point] : rngv::enumerate(std::span{points, numPoints})) {
         const auto nextPoint = (i != numPoints - 1) ? points[i + 1] : points[0];
         if (CCollision::Test2DLineAgainst2DLine(x, y, 1'000'000.0f, 0.0f, point.x, point.y, nextPoint.x - point.x, nextPoint.y - point.y))
             return true;
@@ -244,28 +243,28 @@ bool CGameLogic::LaRiotsActiveHere() {
 
 // 0x5D33C0
 void CGameLogic::Save() {
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::NumAfterDeathStartPoints,                sizeof(int32));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::bPenaltyForDeathApplies,                 sizeof(bool));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::bPenaltyForArrestApplies,                sizeof(bool));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::GameState,                               sizeof(eGameState));
-    CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::TimeOfLastEvent,                         sizeof(uint32));
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::NumAfterDeathStartPoints);
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::bPenaltyForDeathApplies);
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::bPenaltyForArrestApplies);
+    CGenericGameStorage::SaveDataToWorkBuffer(static_cast<uint8>(CGameLogic::GameState));
+    CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::TimeOfLastEvent);
 
     for (int32 i = 0; i < NumAfterDeathStartPoints; i++) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::AfterDeathStartPoints[i],            sizeof(CVector));
-        CGenericGameStorage::SaveDataToWorkBuffer(&CGameLogic::AfterDeathStartPointOrientations[i], sizeof(float));
+        CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::AfterDeathStartPoints[i]);
+        CGenericGameStorage::SaveDataToWorkBuffer(CGameLogic::AfterDeathStartPointOrientations[i]);
     }
 }
 
 // 0x5D3440
 void CGameLogic::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::NumAfterDeathStartPoints,                sizeof(int32));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::bPenaltyForDeathApplies,                 sizeof(bool));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::bPenaltyForArrestApplies,                sizeof(bool));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::GameState,                               sizeof(eGameState));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::TimeOfLastEvent,                         sizeof(uint32));
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::NumAfterDeathStartPoints);
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::bPenaltyForDeathApplies);
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::bPenaltyForArrestApplies);
+    CGameLogic::GameState = static_cast<eGameLogicState>(CGenericGameStorage::LoadDataFromWorkBuffer<uint8>());
+    CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::TimeOfLastEvent);
     for (int32 i = 0; i < NumAfterDeathStartPoints; ++i) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::AfterDeathStartPoints[i],            sizeof(CVector));
-        CGenericGameStorage::LoadDataFromWorkBuffer(&CGameLogic::AfterDeathStartPointOrientations[i], sizeof(float));
+        CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::AfterDeathStartPoints[i]);
+        CGenericGameStorage::LoadDataFromWorkBuffer(CGameLogic::AfterDeathStartPointOrientations[i]);
     }
 }
 
@@ -321,7 +320,7 @@ void CGameLogic::ResetStuffUponResurrection() {
     RestorePlayerStuffDuringResurrection(playerPed, playerPed->GetPosition(), playerPed->m_fCurrentRotation * RadiansToDegrees(1.0f));
     SortOutStreamingAndMemory(playerPed->GetPosition(), playerPed->GetHeading());
     TheCamera.m_fCamShakeForce = 0.0f;
-    TheCamera.SetMotionBlur(0, 0, 0, 0, 0);
+    TheCamera.SetMotionBlur(0, 0, 0, 0, eMotionBlurType::NONE);
     CPad::GetPad(PED_TYPE_PLAYER1)->StopShaking(0);
     CReferences::RemoveReferencesToPlayer();
     CCarCtrl::CountDownToCarsAtStart = 10;
@@ -361,7 +360,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     auto playerData = player->m_pPlayerData;
     auto playerInfo = player->GetPlayerInfoForThisPlayerPed();
 
-    player->physicalFlags.bDestroyed = false;
+    player->physicalFlags.bRenderScorched = false;
     player->m_fArmour = 0.0f;
     player->m_fHealth = static_cast<float>(playerInfo->m_nMaxHealth);
     player->m_bIsVisible = true;
@@ -416,7 +415,7 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     CWorld::Add(player);
     CHud::ResetWastedText();
     CStreaming::StreamZoneModels(posn);
-    CPostEffects::m_smokeyEnable = false;
+    CPostEffects::m_waterEnable = false;
     CTimeCycle::StopExtraColour(0);
     CPostEffects::ScriptResetForEffects();
 
@@ -619,7 +618,7 @@ void CGameLogic::Update() {
             SortOutStreamingAndMemory(player1Ped->GetPosition(), player1Ped->GetHeading());
 
             TheCamera.m_fCamShakeForce = 0.0f;
-            TheCamera.SetMotionBlur(0, 0, 0, 0, 0); // todo: eBlurType enum
+            TheCamera.SetMotionBlur(0, 0, 0, 0, eMotionBlurType::NONE);
             CPad::GetPad(PED_TYPE_PLAYER1)->StopShaking(0);
             CReferences::RemoveReferencesToPlayer();
             CCarCtrl::CountDownToCarsAtStart = 10;

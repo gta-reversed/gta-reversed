@@ -316,7 +316,7 @@ void CTaskSimpleJetPack::ProcessControlInput(CPlayerPed* player) {
     const auto wi  = &player->GetActiveWeapon().GetWeaponInfo(player);
 
     if (wi->m_nWeaponFire == WEAPON_FIRE_INSTANT_HIT && wi->flags.bAimWithArm) { // 0x67E7E5
-        if (const auto tPlayerOnFoot = CTask::DynCast<CTaskSimplePlayerOnFoot>(player->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT))) {
+        if (const auto tPlayerOnFoot = notsa::dyn_cast_if_present<CTaskSimplePlayerOnFoot>(player->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT))) {
             tPlayerOnFoot->ProcessPlayerWeapon(player);
         }
     }

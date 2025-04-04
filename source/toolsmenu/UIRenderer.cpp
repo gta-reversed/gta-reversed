@@ -1,7 +1,8 @@
 #include "StdInc.h"
 
 #include "UIRenderer.h"
-#include "TaskSimpleAchieveHeading.h"
+#include "TaskComplexDestroyCarMelee.h"
+#include <TaskComplexEnterCarAsPassengerTimed.h>
 #include "TaskComplexWalkAlongsidePed.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
 #include "TaskComplexFollowNodeRoute.h"
@@ -9,15 +10,15 @@
 #include "TaskComplexStealCar.h"
 #include "TaskComplexFleeAnyMeans.h"
 #include "TaskComplexDriveWander.h"
-
+#include "TaskComplexCarSlowBeDraggedOut.h"
 #include <imgui.h>
-#include <imgui_impl_win32.h>
-#include <imgui_impl_dx9.h>
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx9.h"
 #include <imgui_stdlib.h>
 #include <imgui_internal.h>
+#include <Curves.h>
 
 #include <Windows.h>
-#include <extensions/ScriptCommands.h>
 #include "DebugModules/DebugModules.h"
 
 namespace notsa {
@@ -35,7 +36,7 @@ UIRenderer::UIRenderer() :
     ImGui_ImplWin32_Init(PSGLOBAL(window));
     ImGui_ImplDX9_Init(GetD3DDevice());
 
-    DEV_LOG("I say hello!");
+    NOTSA_LOG_DEBUG("I say hello!");
 }
 
 UIRenderer::~UIRenderer() {
@@ -43,7 +44,7 @@ UIRenderer::~UIRenderer() {
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext(m_ImCtx);
 
-    //DEV_LOG("Good bye!");
+    //NOTSA_LOG_DEBUG("Good bye!");
 }
 
 void UIRenderer::PreRenderUpdate() {
@@ -141,7 +142,7 @@ void UIRenderer::DebugCode() {
             },
             TASK_PRIMARY_PRIMARY
         );
-        DEV_LOG("GOING!");
+        NOTSA_LOG_DEBUG("GOING!");
         //CPointRoute route{};
         //
         //const auto r = 10.f;
@@ -184,7 +185,7 @@ void UIRenderer::DebugCode() {
     }
     if (pad->IsStandardKeyJustDown('8')) {
         TheCamera.AddShakeSimple(10000.f, 1, 10.f);
-        DEV_LOG("Hey");
+        NOTSA_LOG_DEBUG("Hey");
     }
     if (pad->IsStandardKeyJustPressed('5')) {
         if (const auto veh = FindPlayerVehicle()) {
@@ -199,10 +200,7 @@ void UIRenderer::DebugCode() {
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {
-        player->GetTaskManager().SetTask(
-            new CTaskSimpleAchieveHeading{PI/2.f},
-            TASK_PRIMARY_PRIMARY
-        );
+        CCurves::TestCurves();
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {

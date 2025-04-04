@@ -55,7 +55,7 @@ bool CAESoundManager::Initialise() {
     m_nPauseUpdateTime = 0;
     m_bManuallyPaused = false;
 
-    DEV_LOG("Initialised SoundManager");
+    NOTSA_LOG_DEBUG("Initialised SoundManager");
     return true;
 }
 
@@ -115,7 +115,7 @@ void CAESoundManager::Service() {
     AEAudioHardware.GetVirtualChannelSoundLoopStartTimes(m_aSoundLoopStartTimes);
 
     // Initialize sounds that are using percentage specified start positions 0x4F011C
-    for (auto&& [i, sound] : notsa::enumerate(m_aSounds)) {
+    for (auto&& [i, sound] : rngv::enumerate(m_aSounds)) {
         if (!sound.IsUsed() || !sound.WasServiced() || !sound.GetStartPercentage())
             continue;
 
@@ -140,7 +140,7 @@ void CAESoundManager::Service() {
     }
 
     // Update sounds playtime
-    for (auto&& [i, sound] : notsa::enumerate(m_aSounds)) {
+    for (auto&& [i, sound] : rngv::enumerate(m_aSounds)) {
         if (!sound.IsUsed() || !sound.WasServiced() || sound.m_nIgnoredServiceCycles)
             continue;
 
@@ -181,7 +181,7 @@ void CAESoundManager::Service() {
     }
 
     // Mark some more songs as uncancellable under specific conditions
-    for (auto&& [i, sound] : notsa::enumerate(m_aSounds)) {
+    for (auto&& [i, sound] : rngv::enumerate(m_aSounds)) {
         if (!sound.IsUsed() || (sound.m_nHasStarted && sound.GetUncancellable()) || sound.m_nIgnoredServiceCycles)
             continue;
 
@@ -225,32 +225,31 @@ void CAESoundManager::Service() {
     }
 
     // Play sounds that require that
-    for (auto i = 0, curSound = 0; i < m_nNumAvailableChannels; ++i, ++curSound) {
-        const auto uncancell = m_aChannelSoundUncancellable[i];
-        if (uncancell == -1)
+    for (auto i = 0, chN = 0; i < m_nNumAvailableChannels; ++i, ++chN) {
+        const auto soundN = m_aChannelSoundUncancellable[i];
+        if (soundN == -1) {
             continue;
+        }
 
-        while (m_aChannelSoundTable[curSound] != -1 && curSound < m_nNumAvailableChannels)
-            ++curSound;
+        while (m_aChannelSoundTable[chN] != -1 && ++chN < m_nNumAvailableChannels);
+        if (chN >= m_nNumAvailableChannels) {
+            continue; // TODO: Probably want to `break` here instead?
+        }
 
-        if (curSound >= m_nNumAvailableChannels)
-            continue;
+        m_aChannelSoundTable[chN] = soundN;
+        auto& sound               = m_aSounds[soundN];
+        sound.m_nHasStarted       = true;
 
-        m_aChannelSoundTable[curSound] = uncancell;
-        auto& sound = m_aSounds[uncancell];
-        sound.m_nHasStarted = 1;
-
-        auto freq = sound.GetRelativePlaybackFrequencyWithDoppler();
+        auto freq        = sound.GetRelativePlaybackFrequencyWithDoppler();
         auto slomoFactor = sound.GetSlowMoFrequencyScalingFactor();
 
         CAEAudioHardwarePlayFlags flags{};
         flags.CopyFromAESound(sound);
 
-        AEAudioHardware.PlaySound(m_nChannel, curSound, sound.m_nSoundIdInSlot, sound.m_nBankSlotId, sound.m_nCurrentPlayPosition, flags.m_nFlags, sound.m_fSpeed);
-        AEAudioHardware.SetChannelVolume(m_nChannel, curSound, sound.m_fFinalVolume, 0);
-
-        AEAudioHardware.SetChannelPosition(m_nChannel, curSound, sound.GetRelativePosition(), 0);
-        AEAudioHardware.SetChannelFrequencyScalingFactor(m_nChannel, curSound, freq * slomoFactor);
+        AEAudioHardware.PlaySound(m_nChannel, chN, sound.m_nSoundIdInSlot, sound.m_nBankSlotId, sound.m_nCurrentPlayPosition, flags.m_nFlags, sound.m_fSpeed);
+        AEAudioHardware.SetChannelVolume(m_nChannel, chN, sound.m_fFinalVolume, 0);
+        AEAudioHardware.SetChannelPosition(m_nChannel, chN, sound.GetRelativePosition(), 0);
+        AEAudioHardware.SetChannelFrequencyScalingFactor(m_nChannel, chN, freq * slomoFactor);
     }
 
     for (auto i = 0; i < m_nNumAvailableChannels; ++i) {
@@ -433,7 +432,7 @@ int16 CAESoundManager::GetVirtualChannelForPhysicalChannel(int16 physicalChannel
 
 // NOTSA
 CAESound* CAESoundManager::GetFreeSound(size_t* outIdx) {
-    for (auto&& [i, s] : notsa::enumerate(m_aSounds)) {
+    for (auto&& [i, s] : rngv::enumerate(m_aSounds)) {
         if (!s.IsUsed()) {
             if (outIdx) {
                 *outIdx = (size_t)i;

@@ -143,9 +143,8 @@ CBike::CBike(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     mi->m_pColModel->m_pColData->m_pLines[0].m_vecStart.z = 99'999.99f;
     CBike::SetupSuspensionLines();
 
-    m_autoPilot.m_nCarMission = MISSION_NONE;
-    m_autoPilot.m_nTempAction = 0;
-    m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
+    m_autoPilot.m_nTempAction = TEMPACT_NONE;
+    m_autoPilot.SetCarMission(MISSION_NONE, 0);
     m_autoPilot.carCtrlFlags.bAvoidLevelTransitions = false;
 
     m_nStatus = STATUS_SIMPLE;
@@ -269,7 +268,7 @@ inline void CBike::ProcessPedInVehicleBuoyancy(CPed* ped, bool bIsDriver) {
             ped->GetEventGroup().Add(&damageEvent, false);
         }
     } else {
-        auto knockOffBikeEvent = CEventKnockOffBike(this, &m_vecMoveSpeed, &m_vecLastCollisionImpactVelocity, m_fDamageIntensity, 0.0F, KNOCK_OFF_TYPE_FALL, 0, 0, nullptr, bIsDriver, false);
+        auto knockOffBikeEvent = CEventKnockOffBike(this, m_vecMoveSpeed, m_vecLastCollisionImpactVelocity, m_fDamageIntensity, 0.0F, KNOCK_OFF_TYPE_FALL, 0, 0, nullptr, bIsDriver, false);
         ped->GetEventGroup().Add(&knockOffBikeEvent);
         if (bIsDriver) {
             vehicleFlags.bEngineOn = false;
@@ -622,7 +621,7 @@ void CBike::GetComponentWorldPosition(int32 componentId, CVector& outPos) {
     if (IsComponentPresent(componentId))
         outPos = RwFrameGetLTM(m_aBikeNodes[componentId])->pos;
     else
-        DEV_LOG("BikeNode missing: model={}, nodeIdx={}", m_nModelIndex, componentId);
+        NOTSA_LOG_DEBUG("BikeNode missing: model={}, nodeIdx={}", m_nModelIndex, componentId);
 }
 
 // 0x6B58D0

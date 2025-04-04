@@ -243,16 +243,17 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(EmissionInfo_t* emissionInfo, RwMatr
     if (velOverride) {
         particle->m_Velocity = *velOverride;
     } else {
-        auto index = CGeneral::GetRandomNumberInRange(0.0f, TWO_PI);
+        auto randomAngle = CGeneral::GetRandomNumberInRange(0.0f, TWO_PI);
         auto minAngle = DegreesToRadians(emissionInfo->m_fAngleMin);
         auto maxAngle = DegreesToRadians(emissionInfo->m_fAngleMax);
 
-        auto sinY = (CGeneral::GetRandomNumberInRange(0.0f, 1.0f) * (maxAngle - minAngle) + minAngle) * 40.743664f;
+        auto randomAngleBetweenMinMax = lerp(minAngle, maxAngle, CGeneral::GetRandomNumberInRange(0.0f, 1.0f));
 
-        CVector v37;
-        v37.x = CMaths::ms_SinTable[(uint8)((index * 40.743664f) + 64.0f) + 1] * CMaths::ms_SinTable[(uint8)sinY + 1];
-        v37.y = CMaths::ms_SinTable[(uint8)(sinY + 64.0f) + 1];
-        v37.z = CMaths::ms_SinTable[(uint8)(index * 40.743664f) + 1] * CMaths::ms_SinTable[(uint8)sinY + 1];
+        CVector randomizedAngleVec{
+            CMaths::GetCosFast(randomAngle) * CMaths::GetSinFast(randomAngleBetweenMinMax),
+            CMaths::GetCosFast(randomAngleBetweenMinMax),
+            CMaths::GetSinFast(randomAngle) * CMaths::GetSinFast(randomAngleBetweenMinMax)
+        };
 
         CVector vectorsIn;
         CVector vectorsOut;
@@ -264,7 +265,7 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(EmissionInfo_t* emissionInfo, RwMatr
         }
         RwV3dTransformVectors(&vectorsOut, &vectorsIn, 1, wldMat);
         CVector v38;
-        RotateVecIntoVec(&v38, &v37, &vectorsOut);
+        RotateVecIntoVec(&v38, &randomizedAngleVec, &vectorsOut);
         particle->m_Velocity = v38 * ((CGeneral::GetRandomNumberInRange(0.0f, 2.0f) - 1.0f) * emissionInfo->m_fSpeedBias + emissionInfo->m_fSpeed);
     }
 

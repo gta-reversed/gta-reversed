@@ -8,7 +8,6 @@
 #include "StdInc.h"
 #include "IplStore.h"
 #include "tBinaryIplFile.h"
-#include "extensions/enumerate.hpp"
 #include "TheCarGenerators.h"
 
 int32& ms_currentIPLAreaCode = *(int32*)0x8E3EF8;
@@ -33,8 +32,8 @@ void CIplStore::InjectHooks() {
     RH_ScopedInstall(RemoveAllIpls, 0x405720);
     RH_ScopedInstall(HaveIplsLoaded, 0x405600);
     RH_ScopedInstall(RequestIpls, 0x405520);
-    RH_ScopedInstall(Load, 0x5D54A0, { .reversed = false });
-    RH_ScopedInstall(Save, 0x5D5420, { .reversed = false });
+    RH_ScopedInstall(Load, 0x5D54A0);
+    RH_ScopedInstall(Save, 0x5D5420);
     RH_ScopedInstall(EnsureIplsAreInMemory, 0x4053F0);
     RH_ScopedInstall(RemoveRelatedIpls, 0x405110);
     RH_ScopedInstall(SetupRelatedIpls, 0x404DE0, { .reversed = false });
@@ -80,10 +79,8 @@ void CIplStore::Initialise() {
  */
 void CIplStore::Shutdown() {
     RemoveAllIpls();
-    for (auto i = 0; i < ms_pPool->GetSize(); i++) {
-        if (!ms_pPool->IsFreeSlotAtIndex(i)) {
-            RemoveIplSlot(i);
-        }
+    for (auto&& [i, _] : ms_pPool->GetAllValidWithIndex()) {
+        RemoveIplSlot(i);
     }
     delete ms_pPool;
     ms_pPool = nullptr;
@@ -125,7 +122,7 @@ void CIplStore::ClearIplsNeededAtPosn() {
  * @addr 0x404D30
  */
 void CIplStore::EnableDynamicStreaming(int32 iplSlotIndex, bool enable) {
-    GetInSlot(iplSlotIndex)->ignore = !enable;
+    GetInSlot(iplSlotIndex)->disableDynamicStreaming = !enable;
 }
 
 eAreaCodes ResolveAreaCode(int32 ec) {
@@ -159,7 +156,7 @@ void CIplStore::EnsureIplsAreInMemory(const CVector& posn) {
             continue;
         }
 
-        if (def->ignore || !def->required) {
+        if (def->disableDynamicStreaming || !def->loadRequested) {
             continue;
         }
 
@@ -179,7 +176,7 @@ void CIplStore::EnsureIplsAreInMemory(const CVector& posn) {
         CStreaming::LoadAllRequestedModels(true);
         CTimer::Resume();
 
-        def->required = false;
+        def->loadRequested = false;
     }
 }
 
@@ -241,13 +238,13 @@ bool CIplStore::HaveIplsLoaded(const CVector& coords, int32 /*playerNumber*/) {
         if (!def) {
             continue;
         }
-        if (!def->required) {
+        if (!def->loadRequested) {
             continue;
         }
-        if (def->bb.IsPointInside(coords, -190.f) && !def->loaded && !def->ignore) {
+        if (def->bb.IsPointInside(coords, -190.f) && !def->loaded && !def->disableDynamicStreaming) {
             ret = false;
         }
-        def->required = false;
+        def->loadRequested = false;
     }
     return ret;
 }
@@ -534,18 +531,18 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
 
     for (auto slot = ms_pPool->GetSize(); slot-- > 1;) { // skips 1st
         const auto def = ms_pPool->GetAt(slot);
-        if (!def || def->ignore) {
+        if (!def || def->disableDynamicStreaming) {
             continue;
         }
-        if (def->required) {
+        if (def->loadRequested) {
             if (!def->loaded) {
                 CStreaming::RequestModel(IPLToModelId(slot), STREAMING_PRIORITY_REQUEST | STREAMING_KEEP_IN_MEMORY);
             }
-            def->required = false;
+            def->loadRequested = false;
         } else if (def->loaded) {
             CStreaming::RemoveModel(IPLToModelId(slot));
             if (def->ignoreWhenDeleted) {
-                def->ignore = true;
+                def->disableDynamicStreaming = true;
             }
         }
     }
@@ -614,7 +611,7 @@ void CIplStore::RemoveIplAndIgnore(int32 iplSlotIndex) {
 
     CStreaming::RemoveModel(IPLToModelId(iplSlotIndex));
 
-    def.ignore = true;
+    def.disableDynamicStreaming = true;
     def.ignoreWhenDeleted = false;
 }
 
@@ -635,7 +632,7 @@ void CIplStore::RemoveIplSlot(int32 iplSlotIndex) {
  */
 void CIplStore::RemoveIplWhenFarAway(int32 iplSlotIndex) {
     auto def = ms_pPool->GetAt(iplSlotIndex);
-    def->ignore = false;
+    def->disableDynamicStreaming = false;
     def->ignoreWhenDeleted = true;
 }
 
@@ -656,7 +653,7 @@ void CIplStore::RemoveRelatedIpls(int32 iplSlotIndex) {
 void CIplStore::RequestIplAndIgnore(int32 iplSlotIndex) {
     auto& def = *ms_pPool->GetAt(iplSlotIndex);
     CStreaming::RequestModel(IPLToModelId(iplSlotIndex), STREAMING_KEEP_IN_MEMORY);
-    def.ignore = true;
+    def.disableDynamicStreaming = true;
     def.ignoreWhenDeleted = false;
 }
 
@@ -670,11 +667,11 @@ void CIplStore::RequestIpls(const CVector& posn, int32 playerNumber) {
             continue;
         }
 
-        if (def->required) {
+        if (def->loadRequested) {
             if (def->bb.IsPointInside(posn, -190.f)) {
                 CStreaming::RequestModel(IPLToModelId(slot), STREAMING_PRIORITY_REQUEST | STREAMING_KEEP_IN_MEMORY);
             }
-            def->required = false;
+            def->loadRequested = false;
         }
     }
 }
@@ -729,12 +726,12 @@ bool ExtractIPLNameFromPath(const char* iplFilePath, char(&out)[N]) {
     // Extract name of IPL from path
     const auto fileNameWithExt = strrchr(iplFilePath, '\\');
     if (!fileNameWithExt) {
-        DEV_LOG("Failed to extract ipl name from path ({}) [No path separator]", iplFilePath);
+        NOTSA_LOG_DEBUG("Failed to extract ipl name from path ({}) [No path separator]", iplFilePath);
         return false;
     }
     const auto dot = strchr(fileNameWithExt, '.');
     if (!dot) {
-        DEV_LOG("Failed to extract ipl name from path ({}) [No file ext]", iplFilePath);
+        NOTSA_LOG_DEBUG("Failed to extract ipl name from path ({}) [No file ext]", iplFilePath);
         return false;
     }
     memcpy_s(out, rng::size(out), fileNameWithExt + 1, dot - (fileNameWithExt + 1)); // They used a manual loop, but this is better.
@@ -744,9 +741,9 @@ bool ExtractIPLNameFromPath(const char* iplFilePath, char(&out)[N]) {
 /*!
  * @addr 0x404DE0
  */
-int32 CIplStore::SetupRelatedIpls(const char* iplFilePath, int32 entityArraysIndex, CEntity** pIPLInsts) {
+int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** ppLoadedBuildingsArray) {
     char iplName[1024]{}; // OG Size: 32
-    if (!ExtractIPLNameFromPath(iplFilePath, iplName)) {
+    if (!ExtractIPLNameFromPath(filename, iplName)) {
         return 0;
     }
     const auto isIPLAnInterior = IsIPLAnInterior(iplName);
@@ -754,7 +751,7 @@ int32 CIplStore::SetupRelatedIpls(const char* iplFilePath, int32 entityArraysInd
     strcat_s(iplName, "_stream");
     const auto iplNameLen = strlen(iplName);
 
-    ppCurrIplInstance = pIPLInsts;
+    ppCurrIplInstance = ppLoadedBuildingsArray;
 
     if (CColAccel::isCacheLoading()) { // NOTSA: Inverted conditional
         for (auto&& [slot, def] : ms_pPool->GetAllValidWithIndex()) {
@@ -762,7 +759,7 @@ int32 CIplStore::SetupRelatedIpls(const char* iplFilePath, int32 entityArraysInd
                 continue;
             }
             def = CColAccel::getIplDef(slot);
-            def.staticIdx = entityArraysIndex;
+            def.staticIdx = index;
             def.isInterior = isIPLAnInterior;
             def.loaded = false;
             ms_pQuadTree->AddItem(&def, def.bb);
@@ -772,17 +769,17 @@ int32 CIplStore::SetupRelatedIpls(const char* iplFilePath, int32 entityArraysInd
             if (_strnicmp(iplName, def.name, iplNameLen)) {
                 continue;
             }
-            def.staticIdx = entityArraysIndex;
+            def.staticIdx = index;
             def.isInterior = isIPLAnInterior;
-            def.ignore = false; // NOTE: Inlined function was used to set this.
+            def.disableDynamicStreaming = false; // NOTE: Inlined function was used to set this.
             CStreaming::RequestModel(IPLToModelId(slot), STREAMING_KEEP_IN_MEMORY);
         }
         CStreaming::LoadAllRequestedModels(false);
     }
 
-    const auto ret = ppCurrIplInstance - pIPLInsts; // NOTE: `ppCurrIplInstance` is set to `pIPLInsts` at the beginning.. And I doubt it's changed in-between. But who knows.
+    const auto numRelatedIPLs = ppCurrIplInstance - ppLoadedBuildingsArray;
     ppCurrIplInstance = nullptr;
-    return ret;
+    return numRelatedIPLs;
 }
 
 /*!
@@ -790,10 +787,10 @@ int32 CIplStore::SetupRelatedIpls(const char* iplFilePath, int32 entityArraysInd
  */
 bool CIplStore::Save() {
     const auto num = ms_pPool->GetSize();
-    SaveDataToWorkBuffer<false>(num);
-    for (auto i = 1; i < num; i++) { // skips 1st
+    CGenericGameStorage::SaveDataToWorkBuffer(num);
+    for (auto i = 1u; i < num; i++) { // skips 1st
         const auto ipl = ms_pPool->GetAt(i);
-        SaveDataToWorkBuffer<false>(ipl && ipl->loaded && ipl->ignore);
+        CGenericGameStorage::SaveDataToWorkBuffer(ipl && ipl->loaded && ipl->disableDynamicStreaming);
     }
     return true;
 }
@@ -802,16 +799,18 @@ bool CIplStore::Save() {
  * @addr 0x5D54A0
  */
 bool CIplStore::Load() {
-    const auto num = LoadDataFromWorkBuffer<int32>();
+    const auto num = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
     assert(num == ms_pPool->GetSize());
     for (auto i = 1; i < num; i++) { // skips 1st
         const auto ipl = ms_pPool->GetAt(i);
+
+        auto requestIpl = CGenericGameStorage::LoadDataFromWorkBuffer<bool>();
         if (!ipl) {
             continue;
         }
-        if (LoadDataFromWorkBuffer<bool>()) { // Was loaded
+        if (requestIpl) {
             RequestIplAndIgnore(i);
-        } else {
+        } else if (ipl->loaded && ipl->disableDynamicStreaming) {
             RemoveIplAndIgnore(i);
         }
     }
@@ -830,11 +829,11 @@ void SetIfInteriorIplIsRequired(const CVector2D& posn, void* data) {
             return;
         }
         if (def.bb.IsPointInside(posn, -140.f)) {
-            def.required = true;
+            def.loadRequested = true;
         }
     } else {
         if (def.bb.IsPointInside(posn)) {
-            def.required = true;
+            def.loadRequested = true;
         }
     }
 }
@@ -847,7 +846,7 @@ void SetIfIplIsRequired(const CVector2D& posn, void* data) {
     auto& def = *static_cast<IplDef*>(data);
 
     if (def.isInterior && def.bb.IsPointInside(posn, -140.f)) {
-        def.required = true;
+        def.loadRequested = true;
     }
 }
 
@@ -866,6 +865,6 @@ void SetIfIplIsRequiredReducedBB(const CVector2D& posn, void* data) {
         } else if (def.isInterior) {
             return;
         }
-        def.required = true;
+        def.loadRequested = true;
     }
 }

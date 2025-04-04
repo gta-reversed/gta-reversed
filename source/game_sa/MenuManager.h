@@ -58,14 +58,14 @@ public:
     eRadarMode m_nRadarMode;
     char      field_28[4];
     int32     m_nTargetBlipIndex; // blip script handle
-    uint8     m_nSysMenu; // CMenuSystem
-    char      field_31;
+    int8      m_nSysMenu; // CMenuSystem
+    bool      m_DisplayControllerOnFoot;
     bool      m_bDontDrawFrontEnd;
     bool      m_bActivateMenuNextFrame;
     bool      m_bMenuAccessWidescreen;
     char      field_35;
     char      field_36[2];
-    RsKeyCodes field_38;
+    RsKeyCodes m_KeyPressedCode;
     int32     m_PrefsBrightness;
     float     m_fDrawDistance;
 
@@ -101,7 +101,7 @@ public:
     bool      m_bMenuActive;
     bool      m_bStartGameLoading;
     int8      m_nGameState;
-    char      m_bIsSaveDone;
+    bool      m_bIsSaveDone;
     bool      m_bLoadingData;
     float     m_fMapZoom;
     CVector2D m_vMapOrigin;
@@ -112,11 +112,11 @@ public:
     int32     m_nTextLanguage; // TODO: Change to `eLanguage`
     eLanguage m_nPrefsLanguage;
     eLanguage m_nPreviousLanguage;
-    int32     m_nLanguageF0x88;
+    int32     m_SystemLanguage;
     bool      field_8C;
-    int32     field_90;      // controller related
+    int32     m_ListSelection;      // controller related
     int32     field_94;      // unused
-    char*     m_pJPegBuffer; //!< +0x98  \see JPegCompress file
+    uint8*    m_GalleryImgBuffer;   //!< +0x98  \see JPegCompress file
     char      field_9C[16];
     int32     m_nUserTrackIndex;
     int8      m_nRadioMode;
@@ -171,7 +171,7 @@ public:
     bool  m_bDoVideoModeUpdate;
     RsKeyCodes m_nPressedMouseButton; // used in redefine controls
     int32 m_nJustDownJoyButton; // used in redefine controls; set via CControllerConfigManager::GetJoyButtonJustDown
-    char  field_1AE8;
+    bool  m_MenuIsAbleToQuit;
     bool  m_bRadioAvailable;
     uint8 m_nControllerError;
     bool  m_bScanningUserTracks;
@@ -181,14 +181,14 @@ public:
     char  field_1AF2;
     char  field_1AF3;
     int32 field_1AF4;
-    int32 field_1AF8; // m_nOldMousePosX
-    int32 field_1AFC; // m_nOldMousePosY ?
-    int32 field_1B00;
+    int32 m_nOldMousePosX;
+    int32 m_nOldMousePosY;
+    int32 m_MouseInBounds;
     int32 field_1B04;
     char  m_bJustOpenedControlRedefWindow;
     char  field_1B09; // controller
-    char  field_1B0A;
-    char  field_1B0B;
+    bool  m_DeleteAllBoundControls;
+    bool  m_DeleteAllNextDefine;
     int32 field_1B0C;
     char  field_1B10;
     char  field_1B11;
@@ -204,10 +204,10 @@ public:
     uint8  m_nNumberOfMenuOptions;
     int16  field_1B22;
     int32  field_1B24;
-    char   field_1B28;
+    bool   m_bViewRadar;
     char   field_1B29;
     int16  field_1B2A;
-    int32  field_1B2C;
+    int32  m_iRadarVisibilityChangeTime;
     uint32 m_nBriefsArrowBlinkTimeMs;
     int16  field_1B34; // CPad::DisablePlayerControls
     int16  field_1B36;
@@ -255,6 +255,8 @@ public:
 
     CMenuManager();
     ~CMenuManager();
+    CMenuManager* Constructor();
+    CMenuManager* Destructor();
 
     void Initialise();
 

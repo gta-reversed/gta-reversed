@@ -12,7 +12,6 @@
 #include <string_view>
 #include <chrono>
 #include "Radar.h"
-#include "extensions/enumerate.hpp"
 
 using namespace ImGui;
 
@@ -159,7 +158,7 @@ void TeleportDebugModule::RenderSavedPositions() {
     EndTable();
 
     // Selected item deletion
-    if (GetIO().KeysDown[VK_DELETE]) {
+    if (ImGui::IsKeyChordPressed(ImGuiKey_Delete)) {
         const auto [b, e] = rng::remove_if(visibleItems, [](auto& l) { return l.IsSelected; });
         m_SavedLocations.erase(b.base(), e.base());
     }
@@ -241,7 +240,7 @@ void TeleportDebugModule::RenderTeleporterWindow() {
         const auto nameToSave{ m_Input.Name[0] ? m_Input.Name : ((areaToSave == AREA_CODE_NORMAL_WORLD) ? GxtCharToUTF8(CTheZones::GetZoneName(posToSave)) : "<Unnamed>")};
 
         // Either use given name or current zone name
-        m_SavedLocations.emplace(m_SavedLocations.begin(), nameToSave, posToSave, areaToSave, m_FindGroundZ);
+        m_SavedLocations.emplace_back(nameToSave, posToSave, areaToSave, m_FindGroundZ);
 
         if (!GetIO().KeyAlt) {
             m_Input.Name[0] = 0; // Clear input
@@ -290,7 +289,7 @@ void TeleportDebugModule::ProcessShortcuts() {
         }
 
         // Find `i`th visible element and teleport to it
-        for (auto&& [itemIdx, loc] : notsa::enumerate(GetVisibleItems())) {
+        for (auto&& [itemIdx, loc] : rngv::enumerate(GetVisibleItems())) {
             if (k == itemIdx) {
                 DoTeleportTo(loc.FindGroundZ ? GetPositionWithGroundHeight(loc.Pos) : loc.Pos, loc.AreaCode);
                 break;

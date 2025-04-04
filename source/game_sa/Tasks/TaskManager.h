@@ -6,10 +6,11 @@
 */
 #pragma once
 
-#include "Base.h"
+#include <Base.h>
 #include <initializer_list>
 #include "Task.h"
 #include <algorithm>
+#include <extensions/utility.hpp>
 
 enum ePrimaryTasks // array indices
 {
@@ -250,7 +251,7 @@ public:
     */
     template<Task T>
     T* GetSimplestActiveTaskAs() {
-        return CTask::DynCast<T>(GetSimplestActiveTask());
+        return notsa::dyn_cast_if_present<T>(GetSimplestActiveTask());
     }
 
     /*!

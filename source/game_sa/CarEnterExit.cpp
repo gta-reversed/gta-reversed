@@ -246,7 +246,7 @@ int32 CCarEnterExit::ComputeTargetDoorToExit(const CVehicle* vehicle, const CPed
 // 0x6528F0
 bool CCarEnterExit::GetNearestCarDoor(const CPed* ped, const CVehicle* vehicle, CVector& outPos, int32& doorId) {
     auto driverDraggedOutOffset = vehicle->m_pDriver ? &ms_vecPedQuickDraggedOutCarAnimOffset : nullptr;
-    auto psgrDraggedOutOffset = vehicle->m_apPassengers[0] ? &ms_vecPedQuickDraggedOutCarAnimOffset : nullptr;
+    auto psgrDraggedOutOffset   = vehicle->HasPassengerAtSeat(0) ? &ms_vecPedQuickDraggedOutCarAnimOffset : nullptr;
 
     if ((vehicle->IsBike() && !vehicle->IsSubBMX()) || vehicle->IsSubQuad()) {
         driverDraggedOutOffset = nullptr;
@@ -284,7 +284,7 @@ bool CCarEnterExit::GetNearestCarDoor(const CPed* ped, const CVehicle* vehicle, 
     CVector2D pedPos2D = ped->GetPosition();
     CVector2D dir2DToDoorFLeft = posDoorFLeft - pedPos2D, dir2DToDoorFRight = posDoorFRight - pedPos2D;
 
-    if (vehicle->m_pTrailer) {
+    if (vehicle->m_pVehicleBeingTowed) {
         if (dir2DToDoorFLeft.SquaredMagnitude() < dir2DToDoorFRight.SquaredMagnitude()) {
             if (IsPathToDoorBlockedByVehicleCollisionModel(ped, vehicle, posDoorFRight)) {
                 dir2DToDoorFRight = { 999.90002f, 999.90002f };
@@ -352,7 +352,7 @@ bool CCarEnterExit::GetNearestCarDoor(const CPed* ped, const CVehicle* vehicle, 
         } else {
             if (IsRoomForPedToLeaveCar(vehicle, CAR_DOOR_RF, driverDraggedOutOffset)) {
                 if ((
-                           vehicle->m_apPassengers[0]
+                        vehicle->HasPassengerAtSeat(0)
                         && !vehicle->IsBike()
                         && !vehicle->m_pHandlingData->m_bTandemSeats
                         && (CPedGroups::AreInSameGroup(vehicle->m_apPassengers[0], ped) || vehicle->m_apPassengers[0]->bDontDragMeOutCar || vehicle->IsMissionVehicle())
@@ -440,10 +440,10 @@ bool CCarEnterExit::IsCarSlowJackRequired(const CVehicle* vehicle, int32 doorId)
         case 8:
         case 10:
         case 18:
-            return vehicle->m_pDriver != nullptr;
+            return vehicle->HasDriver();
         case 9:
         case 11:
-            return vehicle->m_apPassengers[0] != nullptr;
+            return vehicle->HasPassengerAtSeat(0);
         default:
             return false;
         }
@@ -455,18 +455,18 @@ bool CCarEnterExit::IsCarSlowJackRequired(const CVehicle* vehicle, int32 doorId)
         case 8:
             return false;
         case 10:
-            return vehicle->m_pDriver != nullptr;
+            return vehicle->HasDriver();
         }
     } else {
         switch (doorId) {
         case 8:
-            return vehicle->m_apPassengers[0] != nullptr;
+            return vehicle->HasPassengerAtSeat(0);
         case 9:
-            return vehicle->m_apPassengers[2] != nullptr;
+            return vehicle->HasPassengerAtSeat(2);
         case 10:
-            return vehicle->m_pDriver != nullptr;
+            return vehicle->HasDriver();
         case 11:
-            return vehicle->m_apPassengers[1] != nullptr;
+            return vehicle->HasPassengerAtSeat(1);
         default:
             return false;
         }
@@ -515,8 +515,8 @@ bool CCarEnterExit::IsPlayerToQuitCarEnter(const CPed* ped, const CVehicle* vehi
 }
 
 // 0x6504C0
-bool CCarEnterExit::IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId, CVector* pos) {
-    return plugin::CallAndReturn<bool, 0x6504C0, const CVehicle*, int32, CVector*>(vehicle, doorId, pos);
+bool CCarEnterExit::IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId, const CVector* pos) {
+    return plugin::CallAndReturn<bool, 0x6504C0>(vehicle, doorId, pos);
 }
 
 // 0x64EEC0
