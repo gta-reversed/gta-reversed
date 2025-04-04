@@ -116,7 +116,7 @@ public:
             delete[] std::exchange(m_SlotState, nullptr);
         }
         m_Capacity         = 0;
-        m_LastFreeSlot    = -1;
+        m_LastFreeSlot     = -1;
         m_OwnsAllocations  = false;
         m_DealWithNoMemory = false;
     }
@@ -146,7 +146,7 @@ public:
     * @brief Returns slot index for this object
     */
     auto GetIndex(const T* obj) const {
-        assert(IsFromObjectArray(obj));
+        assert(IsPtrFromPool(obj));
         return (StorageType*)(obj) - (StorageType*)(m_Storage);
     }
 
@@ -215,10 +215,12 @@ public:
     * @brief Allocates object at a specific index from a SCM handle (ref) (0x59F610)
     */
     void CreateAtRef(int32 ref) {
-        const auto idx          = GetIndexFromRef(ref); // GetIndexFromRef asserts if idx out of range
+        const auto idx           = GetIndexFromRef(ref); // GetIndexFromRef asserts if idx out of range
+        assert(IsFreeSlotAtIndex(idx) && "Can't create an object at a non-free slot");
+
         m_SlotState[idx].IsEmpty = false;
-        m_SlotState[idx].Ref    = ref & 0x7F;
-        m_LastFreeSlot         = 0;
+        m_SlotState[idx].Ref     = ref & 0x7F;
+        m_LastFreeSlot           = 0;
         while (!m_SlotState[m_LastFreeSlot].IsEmpty) { // Find next free
             ++m_LastFreeSlot;
         }
@@ -230,7 +232,8 @@ public:
     */
     T* NewAt(int32 ref) {
         const auto idx = GetIndexFromRef(ref);
-        assert(IsFreeSlotAtIndex(idx));
+        assert(IsFreeSlotAtIndex(idx) && "Can't create an object at a non-free slot");
+
         StorageType* ptr = &m_Storage[idx];
         CreateAtRef(ref);
         DoFill(CLEANLAND_FILL, ptr);
@@ -297,18 +300,8 @@ public:
 
     // 0x5A1CD0
     bool IsObjectValid(const T* obj) const {
-        return IsFromObjectArray(obj) && !IsFreeSlotAtIndex(GetIndex(obj));
+        return IsPtrFromPool(obj) && !IsFreeSlotAtIndex(GetIndex(obj));
     }
-
-    // Helper so we don't write memcpy manually
-    void CopyItem(T* dest, T* src) {
-        memcpy(dest, src, sizeof(S));
-        //*reinterpret_cast<StorageType*>(dest) = *reinterpret_cast<StorageType*>(src);
-    }
-
-    //
-    // NOTSA section
-    //
 
     /*!
     * @brief Check if index is in array bounds
@@ -318,10 +311,10 @@ public:
     }
 
     /*!
-    * @brief Check if object pointer is inside object array (e.g.: It's index is in the bounds of the array)
+    * @brief Check if the pointer is from this pool 
     */
-    bool IsFromObjectArray(const T* obj) const {
-        return m_Storage <= (StorageType*)(obj) && (StorageType*)(obj) < m_Storage + m_Capacity;
+    bool IsPtrFromPool(const T* ptr) const {
+        return m_Storage <= (StorageType*)(ptr) && (StorageType*)(ptr) < m_Storage + m_Capacity;
     }
 
     /*!
@@ -341,9 +334,9 @@ public:
     template<typename R = T>
     auto GetAllValidWithIndex() {
         return std::span{ reinterpret_cast<StorageType*>(m_Storage), (size_t)(m_Capacity) }
-            | rngv::transform([this](auto&& obj) -> R* { return (R*)(void*)(&obj); })                                          // Convert to object pointer
-            | rngv::enumerate                                                                                                  // Add index to non-filtered range
-            | rngv::filter([this](auto&& p) { return !IsFreeSlotAtIndex(std::get<0>(p)); })                              // Filter out free slots
+            | rngv::transform([this](auto&& obj) -> R* { return (R*)(void*)(&obj); })                                 // Convert to object pointer
+            | rngv::enumerate                                                                                         // Add index to non-filtered range
+            | rngv::filter([this](auto&& p) { return !IsFreeSlotAtIndex(std::get<0>(p)); })                           // Filter out free slots
             | rngv::transform([](auto&& p) -> std::tuple<int32, R&> { return { std::get<0>(p), *std::get<1>(p) }; }); // Convert obj pointer to ref 
     }
 
