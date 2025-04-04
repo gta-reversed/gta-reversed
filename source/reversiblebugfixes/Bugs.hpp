@@ -20,6 +20,11 @@ inline const ReversibleBugFix GenericCrashing{
     .Description = "Fixes bugs that cause null ptr access, and similar anomalies crashing the game",
     .Credit      = "Contributors"
 };
+inline const ReversibleBugFix GenericUB{
+    .Name        = "Generic undefined behaviour (Use-after-free, etc)",
+    .Description = "Fixes game crashes/bugs",
+    .Credit      = "Contributors"
+};
 inline const ReversibleBugFix GenericOOB{
     .Name        = "Generic out-of-bounds bugs",
     .Description = "Fixes generic out-of-bounds bugs across the codebase",

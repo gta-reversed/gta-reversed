@@ -60,7 +60,7 @@ CPed* CTaskComplexSeekCoverUntilTargetDead::GetCoverPed(CPed* ped) {
 }
 
 // 0x622CC0
-CPed* CTaskComplexSeekCoverUntilTargetDead::GetTargetPed() {
+CPed* CTaskComplexSeekCoverUntilTargetDead::GetTargetPed() const {
     if (m_groupId == -1) { // No group
         return m_targetPed && m_targetPed->IsAlive()
             ? m_targetPed
@@ -78,8 +78,8 @@ CPed* CTaskComplexSeekCoverUntilTargetDead::GetTargetPed() {
     }
 
     for (auto& mem : group.GetMembership().GetMembers()) {
-        if (mem.IsAlive()) {
-            return &mem;
+        if (mem->IsAlive()) {
+            return mem;
         }
     }
 
