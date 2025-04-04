@@ -323,34 +323,26 @@ void CFire::ProcessFire() {
     }
 
     if (CGeneral::GetRandomNumber() % 32 == 0) {
-        for (auto i = GetVehiclePool()->GetSize(); i --> 0;) { /* backwards loop, like original code */
-            CVehicle* vehicle = GetVehiclePool()->GetAt(i);
-            if (!vehicle)
+        for (auto& veh : GetVehiclePool()->GetAllValid()) { // NOTSA: Original loop was backwards [not that it matters]
+            if (DistanceBetweenPoints(m_vecPosition, veh.GetPosition()) >= 2.0f)
                 continue;
 
-            if (DistanceBetweenPoints(m_vecPosition, vehicle->GetPosition()) >= 2.0f)
-                continue;
-
-            if (vehicle->IsSubBMX()) {
+            if (veh.IsSubBMX()) {
                 player->DoStuffToGoOnFire();
                 gFireManager.StartFire(player, m_pEntityCreator, 0.8f, true, 7000, 100);
-                vehicle->BurstTyre(vehicle->FindTyreNearestPoint(m_vecPosition) + 13, false); // TODO: What's this 13?
+                veh.BurstTyre(veh.FindTyreNearestPoint(m_vecPosition) + CAR_PIECE_WHEEL_LF, false);
             } else {
-                gFireManager.StartFire(vehicle, m_pEntityCreator, 0.8f, true, 7000, 100);
+                gFireManager.StartFire(&veh, m_pEntityCreator, 0.8f, true, 7000, 100);
             }
         }
     }
 
     if (CGeneral::GetRandomNumber() % 4 == 0) {
-        for (auto i = GetObjectPool()->GetSize(); i --> 0;) { /* backwards loop, like original code */
-            CObject* obj = GetObjectPool()->GetAt(i);
-            if (!obj)
+        for (auto& obj : GetObjectPool()->GetAllValid()) { // NOTSA: Original loop was backwards [not that it matters]
+            if (DistanceBetweenPoints(m_vecPosition, obj.GetPosition()) >= 3.0f)
                 continue;
 
-            if (DistanceBetweenPoints(m_vecPosition, obj->GetPosition()) >= 3.0f)
-                continue;
-
-            obj->ObjectFireDamage(CTimer::GetTimeStep() * 8.0f, m_pEntityCreator);
+            obj.ObjectFireDamage(CTimer::GetTimeStep() * 8.0f, m_pEntityCreator);
         }
     }
 
