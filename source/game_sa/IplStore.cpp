@@ -79,10 +79,8 @@ void CIplStore::Initialise() {
  */
 void CIplStore::Shutdown() {
     RemoveAllIpls();
-    for (auto i = 0; i < ms_pPool->GetSize(); i++) {
-        if (!ms_pPool->IsFreeSlotAtIndex(i)) {
-            RemoveIplSlot(i);
-        }
+    for (auto&& [i, _] : ms_pPool->GetAllValidWithIndex()) {
+        RemoveIplSlot(i);
     }
     delete ms_pPool;
     ms_pPool = nullptr;
@@ -790,7 +788,7 @@ int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** p
 bool CIplStore::Save() {
     const auto num = ms_pPool->GetSize();
     CGenericGameStorage::SaveDataToWorkBuffer(num);
-    for (auto i = 1; i < num; i++) { // skips 1st
+    for (auto i = 1u; i < num; i++) { // skips 1st
         const auto ipl = ms_pPool->GetAt(i);
         CGenericGameStorage::SaveDataToWorkBuffer(ipl && ipl->loaded && ipl->disableDynamicStreaming);
     }

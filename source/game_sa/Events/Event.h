@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "eEventType.h"
 #include "Base.h"
 

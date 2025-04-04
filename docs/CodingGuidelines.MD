@@ -6,10 +6,15 @@
 ### Code style
 * 4 space indentation, LF line endings
 * No hungarian notation [It's useless]
+* In classes, use `m_` prefix to nonstatic member variables and `ms_` for static members. Do not use a prefix in structs.
+* Use `s_` for global variables that are only used in one source file, otherwise use `g_`.
 * If some rule about something is not specified here, refer to how it's done in the code
 * Some classes may have *helper* functions to make code more readable. (Denoted by *NOTSA*) - Try adding new ones, or looking for and using them.
+* If you made *helper* functions in a source file, mark them as `static`.
 * Prefer `get`-ters/`set`-ters over raw member access
 * Use range-based for loops as much as possible.
+* Use `ranges` versions of `std` functions as much as possible.
+* Use `rng::` instead of `std::ranges` and `rngv::` instead of `std::views`.
 * We encourage you to write modern C++, but if that's not your style, please keep the following in mind:
 * Use `ranges` versions of `std` functions as much as possible.
 * Use `rng::` instead of `std::ranges` and `rngv::` instead of `std::views`.
@@ -58,7 +63,7 @@ class Foo {
 * Try to use SA types over RW as much as possible, **except** `RwMatrix`. (e.g. `CVector` for `RwV3d`, `CRGBA` for `RwRGBA`)
 * Use fixed width integer types (e.g. `uint8`, `int32`).
 * Do not use Win32 integer types. [Except for Win32 exclusive code] (e.g. `DWORD` -> `uint32`)
-* For array sizes, etc.. prefer using `unsigned` types over `signed` ones
+* For array sizes, etc... prefer using `unsigned` types over `signed` ones
 * Whenever possible use `std::array` over `C-Style` array [as the former has bounds checking in debug mode, and can help us discover many bugs]
 
 #### Fixing bugs
@@ -73,7 +78,7 @@ If that's not possible [due to code complexity], then wrap into an `#ifdef`:
 
 ### Handling translated (GXT) text
 * GXT code page is a partial superset of ASCII, it's one-to-one except for `^`, `[` and `]`. (translated to [`¡`](https://en.wikipedia.org/wiki/Inverted_question_and_exclamation_marks), `<` and `>` respectively)
-* GXT encoded strings are 1-byte long and null-terminated. They can be used in C copy-compare functions.
+* GXT encoded characters are 1-byte long and strings are null-terminated. They can be used in `char` typed C copy/compare functions.
 * Do not assume anything other than above for GXT strings.
 * Use `AsciiToGxtChar` and `GxtCharToUTF8` for safely converting. UTF-8 strings should be safe to print and manipulate in general.
 * Use `AsciiFromGxtChar` (or `""_gxt` for literals) and `GxtCharFromAscii` for implicitly converting. You **must** be sure that all characters are ASCII.

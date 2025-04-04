@@ -332,6 +332,7 @@
 #include "TaskComplexLeaveCarAndWander.h"
 #include "TaskComplexMedicTreatInjuredPed.h"
 #include "TaskComplexDiveFromAttachedEntityAndGetUp.h"
+#include "TaskComplexKillCriminal.h"
 #include "SeekEntity/TaskComplexSeekEntityRadiusAngleOffset.h"
 #include "SeekEntity/TaskComplexSeekEntityXYOffset.h"
 #include "SeekEntity/TaskComplexSeekEntityStandard.h"
@@ -985,14 +986,13 @@ void InjectHooksMain() {
         CTaskComplexInvestigateDeadPed::InjectHooks();
         CTaskComplexInvestigateDisturbance::InjectHooks();
         // CTaskComplexKillAllThreats::InjectHooks();
-        // CTaskComplexKillCriminal::InjectHooks();
+        CTaskComplexKillCriminal::InjectHooks();
 
         CTaskComplexKillPedOnFootArmed::InjectHooks();
         CTaskComplexKillPedGroupOnFoot::InjectHooks();
         CTaskComplexKillPedOnFootMelee::InjectHooks();
         CTaskComplexKillPedOnFootStealth::InjectHooks();
 
-        CTaskSimpleWaitUntilLeaderAreaCodesMatch::InjectHooks();
         CTaskComplexLeaveCarAndDie::InjectHooks();
         CTaskComplexLeaveBoat::InjectHooks();
         CTaskComplexLeaveCarAndFlee::InjectHooks();
@@ -1133,7 +1133,7 @@ void InjectHooksMain() {
         CTaskSimpleWaitForBus::InjectHooks();
         // CTaskSimpleWaitForPizza::InjectHooks();
         CTaskSimpleWaitUntilAreaCodesMatch::InjectHooks();
-        // CTaskSimpleWaitUntilLeaderAreaCodesMatch::InjectHooks();
+        CTaskSimpleWaitUntilLeaderAreaCodesMatch::InjectHooks();
         CTaskSimpleWaitUntilPedIsInCar::InjectHooks();
         CTaskComplexAvoidEntity::InjectHooks();
         CTaskSimpleWaitUntilPedIsOutCar::InjectHooks();

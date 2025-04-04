@@ -5,7 +5,7 @@
 #include "Ped.h"
 
 class CPed;
-class C2dEffect;
+struct C2dEffect;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexUseClosestFreeScriptedAttractor : public CTaskComplex {
 public:

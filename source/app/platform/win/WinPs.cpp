@@ -8,19 +8,14 @@
 #include "VideoModeSelectDialog.h"
 #include "LoadingScreen.h"
 #include "C_PcSave.h"
-#include <windows.h>
-
-
-// NOTE: This macro doesn't do a whole lot. Leaving it here for completeness sake
-#define USE_D3D9
+#include "winincl.h"
+#include "intrin.h"
 
 static auto& PsGlobal = StaticRef<psGlobalType, 0xC8CF88>();
-
-//! Disable "This function was depracated"
-#pragma warning (disable : 28159 4996)
+static inline char gCpuVendor[13] = "GTAReversed!"; // = "UnknownVendr";
 
 // 0x7455E0 - Get available videomem
-HRESULT GetVideoMemInfo(LPDWORD total, LPDWORD available) {
+static HRESULT GetVideoMemInfo(LPDWORD total, LPDWORD available) {
 	LPDIRECTDRAW7 dd;
 
     if (HRESULT hr = DirectDrawCreateEx(NULL, (LPVOID*)&dd, IID_IDirectDraw7, NULL); FAILED(hr)) {
@@ -37,7 +32,7 @@ HRESULT GetVideoMemInfo(LPDWORD total, LPDWORD available) {
 }
 
 //! Check if D3D9 can be loaded (Originally this checked for versions 7 => 9, but GTA can only run with 9, so... :D
-BOOL CheckDirectX() {
+static BOOL CheckDirectX() {
     const auto hD3D9DLL = LoadLibrary("D3D9.DLL");
     if (hD3D9DLL == NULL) {
         return FALSE;
@@ -47,7 +42,7 @@ BOOL CheckDirectX() {
 }
 
 //! 0x745840 - Check if DirectSound can be loaded
-BOOL CheckDirectSound() {
+static BOOL CheckDirectSound() {
     LPDIRECTSOUND ds;
 
     if (FAILED(DirectSoundCreate(NULL, &ds, NULL))) {
@@ -63,9 +58,7 @@ BOOL CheckDirectSound() {
 }
 
 // 0x7465B0
-void InitialiseLanguage() {
-//#pragma warning (disable : 4302) // "Type truncation from HKL to 
-
+static void InitialiseLanguage() {
     // TODO: Use `GetLocaleInfoEx`
     const auto sysDefaultLCID = PRIMARYLANGID(GetSystemDefaultLCID());
 	const auto usrDefaultLCID = PRIMARYLANGID(GetUserDefaultLCID());
@@ -116,7 +109,13 @@ RwBool psInitialize() {
 
     gGameState = GAME_STATE_INITIAL;
 
-    // TODO: Load vendor from CPUID
+    int regs[4]{};
+    __cpuid(regs, 0); // EAX=0: Highest Function Parameter and Manufacturer ID
+    std::memcpy(gCpuVendor, &regs[1], 4);
+    std::memcpy(gCpuVendor + 4, &regs[3], 4);
+    std::memcpy(gCpuVendor + 8, &regs[2], 4);
+    gCpuVendor[12] = '\0';
+    NOTSA_LOG_DEBUG("CPU vendor: {}", gCpuVendor);
 
     // Figure out Windows version (TODO: Use `IsWindowsVersion*` from VersionHelpers.h instead)
     s_OSStatus.OSVer = [&] {
@@ -384,7 +383,7 @@ bool psAlwaysOnTop(bool alwaysOnTop) {
 }
 
 // NOTSA
-auto GetNativeResolutionOfCurrentSubsystem() {
+static auto GetNativeResolutionOfCurrentSubsystem() {
 #ifdef USE_D3D9
     const auto d3d = Direct3DCreate9(D3D_SDK_VERSION);
 #else
@@ -401,7 +400,7 @@ auto GetNativeResolutionOfCurrentSubsystem() {
     return std::make_pair(nativeRes.Width, nativeRes.Height);
 }
 
-BOOL CheckDefaultVideoModeSupported() {
+static BOOL CheckDefaultVideoModeSupported() {
     // IMPROVEMENT/FIX_BUGS: The game will now default to native adapter
     // resolution instead of 800x600.
 
@@ -435,7 +434,7 @@ BOOL CheckDefaultVideoModeSupported() {
 }
 
 // 0x7460A0
-RwUInt32 GetBestRefreshRate(RwUInt32 width, RwUInt32 height, RwUInt32 depth) {
+static RwUInt32 GetBestRefreshRate(RwUInt32 width, RwUInt32 height, RwUInt32 depth) {
 #ifdef USE_D3D9
     const auto d3d = Direct3DCreate9(D3D_SDK_VERSION);
 #else
@@ -445,7 +444,7 @@ RwUInt32 GetBestRefreshRate(RwUInt32 width, RwUInt32 height, RwUInt32 depth) {
 
     assert(d3d != NULL);
 
-    RwUInt32 refreshRate = INT_MAX;
+    RwUInt32 refreshRate = UINT_MAX;
 
     const auto format = depth == 32
         ? D3DFMT_X8R8G8B8
