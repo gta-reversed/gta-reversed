@@ -71,9 +71,9 @@ public:
 
     static void UpdateCoronaCoors(uint32 id, const CVector& posn, float farClip, float angle);
     static void DoSunAndMoon();
-    // NOTSA
+    // Inlined
     static CRegisteredCorona* GetCoronaByID(int32 id);
-    // NOTSA
+    // Inlined
     static CRegisteredCorona* GetFree();
 };
 

@@ -654,7 +654,7 @@ void CCoronas::DoSunAndMoon() {
     */
 }
 
-// NOTSA, code from 0x6FC524 to 0x6FC53C
+// Inlined, code from 0x6FC524 to 0x6FC53C
 CRegisteredCorona* CCoronas::GetCoronaByID(int32 id) {
     for (auto& corona : aCoronas) {
         if (corona.m_dwId == id) {
@@ -664,7 +664,7 @@ CRegisteredCorona* CCoronas::GetCoronaByID(int32 id) {
     return nullptr;
 }
 
-// NOTSA, code from 0x6FC309 to 0x6FC31E
+// Inlined, code from 0x6FC309 to 0x6FC31E
 CRegisteredCorona* CCoronas::GetFree() {
     for (auto& corona : aCoronas) {
         if (!corona.IsActive()) {
