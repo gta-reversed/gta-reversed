@@ -116,7 +116,7 @@ public:
             delete[] std::exchange(m_SlotState, nullptr);
         }
         m_Capacity         = 0;
-        m_FirstFreeSlot    = -1;
+        m_LastFreeSlot    = -1;
         m_OwnsAllocations  = false;
         m_DealWithNoMemory = false;
     }
@@ -186,43 +186,26 @@ public:
     * @brief Allocates object
     */
     T* New() {
-        // Try finding a free slot, starting at the last free one
-        // testing at most `m_Capacity` slots by wrapping around once if necesary
-        // Original logic had rechecked all slots after wrapping around,
-        // but that's not necessary and is bad performance-wise
-        const auto lastFreeSlot = m_FirstFreeSlot;
-        bool       wrapped      = false;
-        while (!m_SlotState[++m_FirstFreeSlot].IsEmpty) {
-            if (wrapped) { // [0, lastFreeSlot)
-                if (m_FirstFreeSlot < lastFreeSlot) {
-                    continue;
-                }
-                m_FirstFreeSlot = -1;
-                if (CanDealWithNoMemory()) {
-                    NOTSA_LOG_ERR("Allocation failed for type {:?}", typeid(T).name());
-                } else {
-                    NOTSA_DEBUG_BREAK();
-                }
-                return nullptr;
-            } else { // [lastFreeSlot, m_Capacity)
-                if (m_FirstFreeSlot < m_Capacity) {
-                    continue;
-                }
-                wrapped         = true;
-                m_FirstFreeSlot = 0;
+        const auto i = m_LastFreeSlot = FindFreeSlot();
+        if (i == -1) {
+            if (CanDealWithNoMemory()) {
+                NOTSA_LOG_ERR("Allocation failed for type {:?}", typeid(T).name());
+            } else {
+                NOTSA_DEBUG_BREAK();
             }
+            return nullptr;
         }
-        assert(m_FirstFreeSlot >= 0 && m_FirstFreeSlot < m_Capacity);
+        assert(i >= 0 && i < m_Capacity);
 
-        auto* const state = &m_SlotState[m_FirstFreeSlot];
+        auto* const state = &m_SlotState[i];
         const auto isFirstAllocation = state->Ref == 0; // First allocation of this slot?
         state->IsEmpty = false;
         state->Ref++;
 
-        StorageType* ptr = reinterpret_cast<StorageType*>(&m_Storage[m_FirstFreeSlot]);
+        StorageType* ptr = &m_Storage[i];
         // NOTE/TODO: Works, and does find bugs (...that I'm lazy to fix right now)
         //if (!isFirstAllocation) {
-        //    CheckFill(DEADLAND_FILL, ptr); // Theoritically `isFirstAllocation ? NOMANSLAND_FILL : DEADLAND_FILL` would work, but we don't have every and all constructor of this class hooked
+        //    CheckFill(DEADLAND_FILL, ptr); // Theoretically `isFirstAllocation ? NOMANSLAND_FILL : DEADLAND_FILL` would work, but we don't have every and all constructor of this class hooked
         //}
         DoFill(CLEANLAND_FILL, ptr);
         return (T*)(void*)(ptr);
@@ -235,9 +218,9 @@ public:
         const auto idx          = GetIndexFromRef(ref); // GetIndexFromRef asserts if idx out of range
         m_SlotState[idx].IsEmpty = false;
         m_SlotState[idx].Ref    = ref & 0x7F;
-        m_FirstFreeSlot         = 0;
-        while (!m_SlotState[m_FirstFreeSlot].IsEmpty) { // Find next free
-            ++m_FirstFreeSlot;
+        m_LastFreeSlot         = 0;
+        while (!m_SlotState[m_LastFreeSlot].IsEmpty) { // Find next free
+            ++m_LastFreeSlot;
         }
     }
 
@@ -267,7 +250,7 @@ public:
 
         const auto idx = GetIndex(obj);
         m_SlotState[idx].IsEmpty = true;
-        m_FirstFreeSlot          = std::min(m_FirstFreeSlot, idx);
+        m_LastFreeSlot          = std::min(m_LastFreeSlot, idx);
         DoFill(DEADLAND_FILL, (StorageType*)(obj));
     }
 
@@ -388,11 +371,33 @@ protected:
         }
     }
 
+    int32 FindFreeSlot() const {
+        const auto last = m_LastFreeSlot != -1 ? m_LastFreeSlot : 0;
+        const auto cap  = m_Capacity;
+
+        // Try [last, cap)
+        for (auto i = last; i < cap; i++) {
+            if (m_SlotState[i].IsEmpty) {
+                return i;
+            }
+        }
+
+        // Try [0, last)
+        for (auto i = 0; i < last; i++) {
+            if (m_SlotState[i].IsEmpty) {
+                return i;
+            }
+        }
+
+        // No free slots
+        return -1;
+    }
+
 private:
     StorageType* m_Storage{};           //!< Storage
     SlotState*   m_SlotState{};         //!< States of each slot
     size_t       m_Capacity{};          //!< Max no. of allocated objects (AKA Size)
-    int32        m_FirstFreeSlot{ -1 }; //!< First free slot in the storagea
+    int32        m_LastFreeSlot{ -1 };  //!< Last free slot in the storage
     bool         m_OwnsAllocations{};   //!< If the allocated arrays (`m_Storage` and `m_SlotState` is owned by, if so, we need to free them)
     bool         m_DealWithNoMemory{};  //!< If the caller is expected to be able to handle out-of-memory situations (Used for debugging) (AKA m_bIsLocked)
 };
