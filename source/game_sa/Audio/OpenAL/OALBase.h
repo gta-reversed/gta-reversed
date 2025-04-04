@@ -1,8 +1,9 @@
 #pragma once
-#ifdef USE_OPENAL
-#include "extensions/HeapPtrArray.hpp"
 
-// This class has to be heap allocated! (with  new`)
+template<typename T, typename Deleter = std::default_delete<T>, typename Alloc = std::allocator<T>>
+using HeapPtrArray = std::vector<std::unique_ptr<T, Deleter>, Alloc>;
+
+// This class has to be heap allocated! (with `new`)
 class OALBase {
 public:
     // Number of living `OALBase` object instances.
@@ -26,4 +27,3 @@ public:
 
 bool OALCheckErrors(std::string_view file, int32 line);
 #define OAL_CHECKED(c) (c, OALCheckErrors(__FILE__, __LINE__))
-#endif

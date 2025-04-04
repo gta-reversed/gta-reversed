@@ -12,6 +12,6 @@ public:
     int32 GetEventPriority() const override { return 52; }
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override { return true; }
-    CEventSpecial* CloneEditable() override { return new CEventSpecial(); }
+    CEventSpecial* CloneEditable() const noexcept override { return new CEventSpecial(); }
 };
 VALIDATE_SIZE(CEventSpecial, 0x14);

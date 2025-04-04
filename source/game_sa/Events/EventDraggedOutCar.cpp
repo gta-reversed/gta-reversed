@@ -28,6 +28,6 @@ bool CEventDraggedOutCar::AffectsPedGroup(CPedGroup* pedGroup) {
 }
 
 // 0x4B6DC0
-CEventEditableResponse* CEventDraggedOutCar::CloneEditable() {
+CEventEditableResponse* CEventDraggedOutCar::CloneEditable() const noexcept {
     return new CEventDraggedOutCar(m_Vehicle, m_CarJacker, m_IsDriverSeat);
 }

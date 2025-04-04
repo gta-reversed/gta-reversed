@@ -90,9 +90,9 @@ void CStreaming::InjectHooks() {
     RH_ScopedInstall(DeleteLeastUsedEntityRwObject, 0x409760);
     RH_ScopedInstall(DeleteRwObjectsAfterDeath, 0x409210);
     RH_ScopedInstall(DeleteRwObjectsBehindCamera, 0x40D7C0);
-    RH_ScopedInstall(DeleteRwObjectsBehindCameraInSectorList, 0x409940);
-    RH_ScopedInstall(DeleteRwObjectsInSectorList, 0x407A70);
-    RH_ScopedInstall(DeleteRwObjectsNotInFrustumInSectorList, 0x4099E0);
+    RH_ScopedInstall(DeleteRwObjectsBehindCameraInSectorList<CPtrListSingleLink<CEntity*>>, 0x409940);
+    RH_ScopedInstall(DeleteRwObjectsInSectorList<CPtrListSingleLink<CEntity*>>, 0x407A70);
+    RH_ScopedInstall(DeleteRwObjectsNotInFrustumInSectorList<CPtrListSingleLink<CEntity*>>, 0x4099E0);
     RH_ScopedInstall(RemoveReferencedTxds, 0x40D2F0);
     RH_ScopedInstall(DisableCopBikes, 0x407D10);
     RH_ScopedInstall(IsVeryBusy, 0x4076A0);
@@ -139,7 +139,7 @@ void CStreaming::InjectHooks() {
     RH_ScopedInstall(RemoveModel, 0x4089A0);
     RH_ScopedInstall(RemoveTxdModel, 0x40C180);
     RH_ScopedInstall(MakeSpaceFor, 0x40E120);
-    RH_ScopedOverloadedInstall(ProcessEntitiesInSectorList, "", 0x40C270, void(*)(CPtrList&, float, float, float, float, float, float, float, int32));
+    RH_ScopedOverloadedInstall(ProcessEntitiesInSectorList<CPtrListSingleLink<CEntity*>>, "", 0x40C270, void(*)(CPtrListSingleLink<CEntity*>&, float, float, float, float, float, float, float, int32));
     RH_ScopedInstall(RetryLoadFile, 0x4076C0);
     RH_ScopedInstall(LoadRequestedModels, 0x40E3A0);
     RH_ScopedInstall(FlushRequestList, 0x40E4E0);
@@ -271,12 +271,12 @@ void CStreaming::AddModelsToRequestList(const CVector& point, int32 streamingFla
 
             if (pointSectorDistSq <= radiusInnerSq) {
                 ProcessEntitiesInSectorList(sector->m_buildings, streamingFlags);
-                ProcessEntitiesInSectorList(repeatSector->GetList(REPEATSECTOR_PEDS), streamingFlags);
+                ProcessEntitiesInSectorList(repeatSector->Peds, streamingFlags);
                 ProcessEntitiesInSectorList(sector->m_dummies, streamingFlags);
             } else {
                 if (pointSectorDistSq <= radiusOuterSq) {
                     ProcessEntitiesInSectorList(sector->m_buildings, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
-                    ProcessEntitiesInSectorList(repeatSector->GetList(REPEATSECTOR_PEDS), point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
+                    ProcessEntitiesInSectorList(repeatSector->Peds, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
                     ProcessEntitiesInSectorList(sector->m_dummies, point.x, point.y, min.x, min.y, max.x, max.y, fRadius, streamingFlags);
                 }
             }
@@ -720,11 +720,8 @@ bool CStreaming::ConvertBufferToObject(uint8* fileBuffer, int32 modelId) {
 
 // 0x4090A0
 void CStreaming::DeleteAllRwObjects() {
-    auto DeleteRwObjectsInList = [](CPtrListDoubleLink& list) {
-        for (CPtrNode *it = list.m_node, *next{}; it; it = next) {
-            next = it->GetNext();
-
-            auto* entity = reinterpret_cast<CEntity*>(it->m_item);
+    auto DeleteRwObjectsInList = []<typename PtrListType>(PtrListType& list) {
+        for (auto* const entity : list) {
             if (!entity->m_bImBeingRendered && !entity->m_bStreamingDontDelete) {
                 entity->DeleteRwObject();
             }
@@ -741,7 +738,7 @@ void CStreaming::DeleteAllRwObjects() {
             CRepeatSector* repeatSector = GetRepeatSector(sx, sy);
             CSector* sector = GetSector(sx, sy);
             DeleteRwObjectsInList(sector->m_buildings);
-            DeleteRwObjectsInList(repeatSector->GetList(REPEATSECTOR_OBJECTS));
+            DeleteRwObjectsInList(repeatSector->Objects);
             DeleteRwObjectsInList(sector->m_dummies);
         }
     }
@@ -805,7 +802,7 @@ void CStreaming::DeleteRwObjectsAfterDeath(const CVector& point) {
                     CRepeatSector* repeatSector = GetRepeatSector(sx, sy);
                     CSector* sector = GetSector(sx, sy);
                     DeleteRwObjectsInSectorList(sector->m_buildings);
-                    DeleteRwObjectsInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS));
+                    DeleteRwObjectsInSectorList(repeatSector->Objects);
                     DeleteRwObjectsInSectorList(sector->m_dummies);
                 }
             }
@@ -850,7 +847,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -874,7 +871,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsNotInFrustumInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsNotInFrustumInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -888,7 +885,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -917,7 +914,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -940,7 +937,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsNotInFrustumInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsNotInFrustumInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsNotInFrustumInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -957,7 +954,7 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
                 CSector* sector = GetSector(sectorX, sectorY);
                 if (DeleteRwObjectsBehindCameraInSectorList(sector->m_buildings, memoryToCleanInBytes) ||
                     DeleteRwObjectsBehindCameraInSectorList(sector->m_dummies, memoryToCleanInBytes) ||
-                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS), memoryToCleanInBytes)
+                    DeleteRwObjectsBehindCameraInSectorList(repeatSector->Objects, memoryToCleanInBytes)
                 ) {
                     return;
                 }
@@ -973,11 +970,9 @@ void CStreaming::DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes) {
 }
 
 // 0x409940
-bool CStreaming::DeleteRwObjectsBehindCameraInSectorList(CPtrList& list, size_t memoryToCleanInBytes) {
-    for (CPtrNode* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-
-        auto* entity = static_cast<CEntity*>(node->m_item);
+template<typename PtrListType>
+bool CStreaming::DeleteRwObjectsBehindCameraInSectorList(PtrListType& list, size_t memoryToCleanInBytes) {
+    for (auto* const entity : list) {
         if (entity->IsScanCodeCurrent())
             continue;
 
@@ -1001,11 +996,9 @@ bool CStreaming::DeleteRwObjectsBehindCameraInSectorList(CPtrList& list, size_t 
 }
 
 // 0x407A70
-void CStreaming::DeleteRwObjectsInSectorList(CPtrList& list, int32 sectorX, int32 sectorY) {
-    for (CPtrNode* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
+template<typename PtrListType>
+void CStreaming::DeleteRwObjectsInSectorList(PtrListType& list, int32 sectorX, int32 sectorY) {
+    for (auto* const entity : list) {
         if (sectorX < 0 || entity->LivesInThisNonOverlapSector(sectorX, sectorY)) {
             if (!entity->m_bImBeingRendered && !entity->m_bStreamingDontDelete)
                 entity->DeleteRwObject();
@@ -1014,11 +1007,9 @@ void CStreaming::DeleteRwObjectsInSectorList(CPtrList& list, int32 sectorX, int3
 }
 
 // 0x4099E0
-bool CStreaming::DeleteRwObjectsNotInFrustumInSectorList(CPtrList& list, size_t memoryToCleanInBytes) {
-    for (CPtrNode* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
+template<typename PtrListType>
+bool CStreaming::DeleteRwObjectsNotInFrustumInSectorList(PtrListType& list, size_t memoryToCleanInBytes) {
+    for (auto* const entity : list) {
         if (entity->IsScanCodeCurrent())
             continue;
 
@@ -2563,12 +2554,9 @@ void CStreaming::MakeSpaceFor(size_t memoryToCleanInBytes) {
 // Similar to the other overload but also checks if model is:
 // - In the rectangle defined by `minX, minY`, `maxX, maxY`
 // - In the radius of min(radius, <model draw distance> * <cam lod dist multiplier>)
-void CStreaming::ProcessEntitiesInSectorList(CPtrList& list, float posX, float posY, float minX, float minY, float maxX, float maxY, float radius, int32 streamingflags) {
-    for (CPtrNode* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
-
+template<typename PtrListType>
+void CStreaming::ProcessEntitiesInSectorList(PtrListType& list, float posX, float posY, float minX, float minY, float maxX, float maxY, float radius, int32 streamingflags) {
+    for (auto* const entity : list) {
         if (entity->IsScanCodeCurrent())
             continue;
         entity->SetCurrentScanCode() ;
@@ -2608,11 +2596,9 @@ void CStreaming::ProcessEntitiesInSectorList(CPtrList& list, float posX, float p
 // Load all required models in the given sector list
 // unlike the above function (other overload) this one doesn't do radius checks
 // just requests all models necessary (if they meet the conditions).
-void CStreaming::ProcessEntitiesInSectorList(CPtrList& list, int32 streamingFlags) {
-    for (CPtrNode* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
+template<typename PtrListType>
+void CStreaming::ProcessEntitiesInSectorList(PtrListType& list, int32 streamingFlags) {
+    for (auto* const entity : list) {
         if (entity->IsScanCodeCurrent())
             continue;
         entity->SetCurrentScanCode() ;
@@ -2642,7 +2628,7 @@ void CStreaming::ProcessEntitiesInSectorList(CPtrList& list, int32 streamingFlag
 
 // 0x4076C0
 void CStreaming::RetryLoadFile(int32 chIdx) {
-    DEV_LOG("CStreaming::RetryLoadFile called!"); // NOTSA
+    NOTSA_LOG_DEBUG("CStreaming::RetryLoadFile called!"); // NOTSA
 
     if (ms_channelError == -1)
         return CLoadingScreen::Continue();
@@ -2983,16 +2969,15 @@ void CStreaming::InstanceLoadedModels(const CVector& point) {
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
             CSector* sector = GetSector(sectorX, sectorY);
             InstanceLoadedModelsInSectorList(sector->m_buildings);
-            InstanceLoadedModelsInSectorList(repeatSector->GetList(REPEATSECTOR_OBJECTS));
+            InstanceLoadedModelsInSectorList(repeatSector->Objects);
             InstanceLoadedModelsInSectorList(sector->m_dummies);
         }
     }
 }
 
-void CStreaming::InstanceLoadedModelsInSectorList(CPtrList& list) {
-    for (CPtrNode* node = list.GetNode(), *next{}; node; node = next) {
-        next = node->GetNext();
-        auto* entity = reinterpret_cast<CEntity*>(node->m_item);
+template<typename PtrListType>
+void CStreaming::InstanceLoadedModelsInSectorList(PtrListType& list) {
+    for (auto* const entity : list) {
         if (entity->IsInCurrentAreaOrBarberShopInterior() && !entity->m_pRwObject) {
             entity->CreateRwObject();
         }

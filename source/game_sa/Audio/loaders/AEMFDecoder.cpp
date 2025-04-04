@@ -12,6 +12,7 @@
 
 #include <mfidl.h>
 #include <mfapi.h>
+#include <VersionHelpers.h>
 
 #include "oswrapper.h"
 
@@ -307,7 +308,7 @@ bool CAEMFDecoder::InitLibrary() {
     // If user is running < Windows 7, don't bother.
     // Despite all APIs used are supported in Vista,
     // AAC decoding is only supported in Windows 7 or later
-    if (IsWin7OrGreater()) {
+    if (IsWindows7OrGreater()) {
         // Load MediaFoundation libraries
         mfPlatModule = LoadLibraryA("mfplat.dll");
         if (mfPlatModule == nullptr)
