@@ -44,8 +44,8 @@ void CPools::InjectHooks() {
     RH_ScopedClass(CPools);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Initialise, 0x550F10, { .reversed = false });
-    RH_ScopedInstall(ShutDown, 0x5519F0, { .reversed = false });
+    RH_ScopedInstall(Initialise, 0x550F10);
+    RH_ScopedInstall(ShutDown, 0x5519F0);
     RH_ScopedInstall(CheckBuildingAtomics, 0x550170);
     RH_ScopedInstall(CheckPoolsEmpty, 0x551950);
     RH_ScopedInstall(GetObject, 0x550050);
@@ -69,9 +69,6 @@ void CPools::InjectHooks() {
 void CPools::Initialise() {
     ZoneScoped;
 
-    plugin::Call<0x550F10>();
-    /*
-    CMemoryMgr::PushMemId(MEM_POOLS);
     ms_pPtrNodeSingleLinkPool = new CPtrNodeSingleLinkPool(70000, "PtrNode Single");
     ms_pPtrNodeDoubleLinkPool = new CPtrNodeDoubleLinkPool(3200, "PtrNode Double");
     ms_pEntryInfoNodePool     = new CEntryInfoNodePool(500, "EntryInfoNode");
@@ -89,34 +86,29 @@ void CPools::Initialise() {
     ms_pTaskAllocatorPool     = new CTaskAllocatorPool(16, "TaskAllocator");
     ms_pPedIntelligencePool   = new CPedIntelligencePool(140, "PedIntelligence");
     ms_pPedAttractorPool      = new CPedAttractorPool(64, "PedAttractors");
-    CMemoryMgr::PopMemId();
-    */
 }
 
 // 0x5519F0
 void CPools::ShutDown() {
-    plugin::Call<0x5519F0>();
-    /*
     NOTSA_LOG_DEBUG("Shutdown pool started");
-    delete ms_pPtrNodeSingleLinkPool;
-    delete ms_pPtrNodeDoubleLinkPool;
-    delete ms_pEntryInfoNodePool;
-    delete ms_pPedPool;
-    delete ms_pVehiclePool;
-    delete ms_pBuildingPool;
-    delete ms_pObjectPool;
-    delete ms_pDummyPool;
-    delete ms_pColModelPool;
-    delete ms_pTaskPool;
-    delete ms_pEventPool;
-    delete ms_pPointRoutePool;
-    delete ms_pPatrolRoutePool;
-    delete ms_pNodeRoutePool;
-    delete ms_pTaskAllocatorPool;
-    delete ms_pPedIntelligencePool;
-    delete ms_pPedAttractorPool;
+    delete std::exchange(ms_pPtrNodeSingleLinkPool, nullptr);
+    delete std::exchange(ms_pPtrNodeDoubleLinkPool, nullptr);
+    delete std::exchange(ms_pEntryInfoNodePool, nullptr);
+    delete std::exchange(ms_pPedPool, nullptr);
+    delete std::exchange(ms_pVehiclePool, nullptr);
+    delete std::exchange(ms_pBuildingPool, nullptr);
+    delete std::exchange(ms_pObjectPool, nullptr);
+    delete std::exchange(ms_pDummyPool, nullptr);
+    delete std::exchange(ms_pColModelPool, nullptr);
+    delete std::exchange(ms_pTaskPool, nullptr);
+    delete std::exchange(ms_pEventPool, nullptr);
+    delete std::exchange(ms_pPointRoutePool, nullptr);
+    delete std::exchange(ms_pPatrolRoutePool, nullptr);
+    delete std::exchange(ms_pNodeRoutePool, nullptr);
+    delete std::exchange(ms_pTaskAllocatorPool, nullptr);
+    delete std::exchange(ms_pPedIntelligencePool, nullptr);
+    delete std::exchange(ms_pPedAttractorPool, nullptr);
     NOTSA_LOG_DEBUG("Shutdown pool done");
-    */
 }
 
 // 0x550170

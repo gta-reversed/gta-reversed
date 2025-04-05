@@ -11,4 +11,7 @@ public:
 
         RH_ScopedInstall(New, 0x00532630);
     }
+
+public:
+    using CPool::CPool;
 };

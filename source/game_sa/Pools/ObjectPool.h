@@ -12,4 +12,7 @@ public:
         RH_ScopedInstall(GetAt, 0x404870);
         RH_ScopedInstall(New, 0x005A1C20);
     }
+
+public:
+    using CPool::CPool;
 };

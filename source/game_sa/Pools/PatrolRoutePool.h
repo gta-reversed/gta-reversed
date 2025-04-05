@@ -11,4 +11,7 @@ class CPatrolRoutePool : public CPool<void*> {
 //
 //        RH_ScopedInstall(New, 0x41B660);
 //    }
+
+public:
+    using CPool::CPool;
 };
