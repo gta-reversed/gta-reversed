@@ -285,7 +285,7 @@ public:
     void DrawWindow(const CRect& coords, const char* key, uint8 color, CRGBA backColor, bool unused, bool background);
     void DrawWindowedText(float x, float y, float wrap, const char* title, const char* message, eFontAlignment alignment);
     void DrawQuitGameScreen();
-    void DrawControllerScreenExtraText(int32); // Original name was 'DrawContollerScreenExtraText' (missing 'r').
+    void DrawControllerScreenExtraText(int32);
     void DrawControllerBound(uint16, bool);
     void DrawControllerSetupScreen();
 #ifdef USE_GALLERY
