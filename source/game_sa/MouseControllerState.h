@@ -2,14 +2,14 @@
 
 class CMouseControllerState {
 public:
-    bool m_bLeftButton; // LMB
-    bool m_bRightButton; // RMB
-    bool m_bMiddleButton; // MMB
-    bool m_bWheelMovedUp; // Wheel up
-    bool m_bWheelMovedDown; // Wheel down
-    bool m_bMsFirstXButton; // BMX1
-    bool m_bMsSecondXButton; // BMX2
-    float m_fWheelMoved; // Wheel movement
+    bool LeftButton; // LMB
+    bool RightButton; // RMB
+    bool MiddleButton; // MMB
+    bool WheelMovedUp; // Wheel up
+    bool WheelMovedDown; // Wheel down
+    bool MsFirstXButton; // BMX1
+    bool MsSecondXButton; // BMX2
+    float WheelMoved; // Wheel movement
     CVector2D m_AmountMoved; // Mouse movement
   
 public:

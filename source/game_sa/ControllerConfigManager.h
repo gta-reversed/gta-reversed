@@ -127,13 +127,15 @@ enum eJOY_BUTTONS {
 
 struct CControllerKey {
     using KeyCode = uint32;
+    //! `RsKeyCodes` (and ASCII chars) for keyboards (`rsNULL` -> unset)
+    //! `ePadButton` for mouse/joystick/pad (`0` -> unset)
+    KeyCode Key{};
 
-    KeyCode m_uiActionInitiator{};   //!< `RsKeyCodes` (and ASCII chars) for keyboards (`rsNULL` -> unset)
-                      //!< `ePadButton` for mouse/joystick/pad (`0` -> unset)
-    eContSetOrder m_uiSetOrder{}; //!< m_uiSetOrder in which this key/button was defined,
-                      //!< - If set, [1, CONTROLLER_NUM],
-                      //!< - `0` used if this key is not set,
-                      //!< - -1 for disabling (?)
+    //! m_uiSetOrder in which this key/button was defined,
+    //! - If set, [1, CONTROLLER_NUM],
+    //! - `0` used if this key is not set,
+    //! - -1 for disabling (?)
+    eContSetOrder Order{};
 };
 
 struct CControllerAction {

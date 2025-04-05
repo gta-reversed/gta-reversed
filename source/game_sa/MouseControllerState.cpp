@@ -24,25 +24,25 @@ CMouseControllerState* CMouseControllerState::Constructor() {
 
 // 0x53F250
 void CMouseControllerState::Clear() {
-    m_bLeftButton = 0;
-    m_bRightButton = 0;
-    m_bMiddleButton = 0;
-    m_bWheelMovedUp = 0;
-    m_bWheelMovedDown = 0;
-    m_bMsFirstXButton = 0;
-    m_bMsSecondXButton = 0;
+    LeftButton = false;
+    RightButton = false;
+    MiddleButton = false;
+    WheelMovedUp = false;
+    WheelMovedDown = false;
+    MsFirstXButton = false;
+    MsSecondXButton = false;
 }
 
 // 0x53F270
 bool CMouseControllerState::CheckForInput() const {
     return (
-        m_bLeftButton
-        || m_bRightButton
-        || m_bMiddleButton
-        || m_bWheelMovedUp
-        || m_bWheelMovedDown
-        || m_bMsFirstXButton
-        || m_bMsSecondXButton
+        LeftButton
+        || RightButton
+        || MiddleButton
+        || WheelMovedUp
+        || WheelMovedDown
+        || MsFirstXButton
+        || MsSecondXButton
         || !m_AmountMoved.IsZero()
     );
 }

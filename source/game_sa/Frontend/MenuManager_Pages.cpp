@@ -54,7 +54,7 @@ void CMenuManager::RadarZoomIn() {
     auto pressed = ( // todo:
            pad->NewState.LeftShoulder2
         && !pad->NewState.RightShoulder2
-        && CPad::NewMouseControllerState.m_bWheelMovedUp
+        && CPad::NewMouseControllerState.WheelMovedUp
         && CPad::NewKeyState.pgup
     );
     if (!pressed)
@@ -74,7 +74,7 @@ void CMenuManager::RadarZoomIn() {
         m_fMapZoom = FRONTEND_MAP_RANGE_MAX;
     } else {
         m_fMapZoom += 7.0f;
-        if (CPad::NewMouseControllerState.m_bWheelMovedUp) {
+        if (CPad::NewMouseControllerState.WheelMovedUp) {
             m_fMapZoom += 21.0f;
         }
         m_vMapOrigin.x -= (x * m_fMapZoom - v103);
@@ -311,7 +311,7 @@ void CMenuManager::PrintMap() {
     if (FrontEndMenuManager.m_bViewRadar) {
         if (CTheZones::ZonesRevealed >= 80
             || CTheZones::GetCurrentZoneLockedOrUnlocked(m_vMousePos)
-                && !pad->NewMouseControllerState.m_bLeftButton)
+                && !pad->NewMouseControllerState.LeftButton)
         {
             CPlaceName placeName;
             CFont::SetFontStyle(FONT_PRICEDOWN);

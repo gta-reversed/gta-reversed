@@ -10,8 +10,6 @@
 #undef InsertMenu
 #endif
 
-int32 (&dword_C16EB8)[9] = *(int32(*)[9])0xC16EB8;
-
 typedef uint8 MenuId;
 
 class CMenuSystem {

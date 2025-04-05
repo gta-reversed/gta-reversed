@@ -50,7 +50,7 @@ void CMenuManager::InjectHooks() {
 
     RH_ScopedInstall(DrawFrontEnd, 0x57C290);
     RH_ScopedInstall(DrawBackground, 0x57B750);
-    RH_ScopedInstall(DrawStandardMenus, 0x5794A0, {.reversed = false});
+    RH_ScopedInstall(DrawStandardMenus, 0x5794A0, { .reversed = false });
     RH_ScopedInstall(DrawWindow, 0x573EE0);
     RH_ScopedInstall(DrawWindowedText, 0x578F50);
     RH_ScopedInstall(DrawQuitGameScreen, 0x57D860);
@@ -59,7 +59,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(DrawControllerSetupScreen, 0x57F300);
 
     RH_ScopedInstall(CentreMousePointer, 0x57C520);
-    RH_ScopedInstall(LoadSettings, 0x57C8F0, {.reversed = false});
+    RH_ScopedInstall(LoadSettings, 0x57C8F0);
     RH_ScopedInstall(SaveSettings, 0x57C660);
     RH_ScopedInstall(SaveStatsToFile, 0x57DDE0);
     RH_ScopedInstall(SaveLoadFileError_SetUpErrorScreen, 0x57C490);

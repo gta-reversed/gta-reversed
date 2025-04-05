@@ -281,7 +281,7 @@ public:
     void DrawFrontEnd();
     void DrawBuildInfo();
     void DrawBackground();
-    void DrawStandardMenus(bool);
+    void DrawStandardMenus(uint8);
     void DrawWindow(const CRect& coords, const char* key, uint8 color, CRGBA backColor, bool unused, bool background);
     void DrawWindowedText(float x, float y, float wrap, const char* title, const char* message, eFontAlignment alignment);
     void DrawQuitGameScreen();

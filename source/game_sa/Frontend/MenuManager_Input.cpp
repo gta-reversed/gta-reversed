@@ -12,7 +12,7 @@
 
 /*!
  * @addr 0x57FD70
- */ 
+ */
 void CMenuManager::UserInput() {
     { // NOTSA
     const auto pad = CPad::GetPad();
@@ -106,7 +106,8 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
 
         if (!GoBackOneMenu) {
             uint8 menuType = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType;
-            
+            static auto& dword_C16EB8 = StaticRef<std::array<int32, 9>, 0xC16EB8>(); // TODO: inlined
+
             // Audio feedback based on menu type and status
             if (field_F4 || menuType < 1 || menuType > 8 || !dword_C16EB8[m_nCurrentScreenItem]) {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);

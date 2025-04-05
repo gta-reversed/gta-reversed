@@ -612,7 +612,7 @@ void CReplay::ProcessLookAroundCam() {
             playerCameraDirAngle += steer.x;
             FramesActiveLookAroundCam--;
 
-            if (pad->NewMouseControllerState.m_bLeftButton && pad->NewMouseControllerState.m_bRightButton) {
+            if (pad->NewMouseControllerState.LeftButton && pad->NewMouseControllerState.RightButton) {
                 playerCameraDistance = std::clamp(playerCameraDistance + 2.0f * steer.y, 3.0f, 15.0f);
             } else {
                 viewAngle = std::clamp(viewAngle + steer.y, 0.1f, 1.5f); // probably some kind of cheap clamping between [0, pi/2].
