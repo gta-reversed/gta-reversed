@@ -46,6 +46,7 @@ void CEscalator::AddThisOne(const CVector& vecStart, const CVector& vecBottom, c
     m_vTop    = vecTop - z;
     m_vEnd    = vecEnd - z;
 
+// 0x717A14
     m_nNumIntermediatePlanes = 1 + static_cast<int32>(DistanceBetweenPoints(m_vBottom, m_vTop) * 2.5f);
     m_nNumBottomPlanes       = 1 + static_cast<int32>(DistanceBetweenPoints(m_vBottom, m_vStart) / 3.2f);
     m_nNumTopPlanes          = 1 + static_cast<int32>(DistanceBetweenPoints(m_vEnd, m_vTop) / 3.2f);
@@ -67,7 +68,7 @@ void CEscalator::AddThisOne(const CVector& vecStart, const CVector& vecBottom, c
 void CEscalator::Update() {
     ZoneScoped;
 
-    constexpr float EXTRA_DIST_TO_RENDER = 20.0f;
+    constexpr float EXTRA_DIST_TO_RENDER = 20.0f; // 0x858BA4
 
     if (!m_nStepObjectsCreated) {
         if (m_Bounding.m_fRadius + EXTRA_DIST_TO_RENDER > DistanceBetweenPoints(m_Bounding.m_vecCenter, TheCamera.GetPosition())) {
@@ -92,7 +93,7 @@ void CEscalator::Update() {
 
     if (!m_nStepObjectsCreated) {
         // still not created after all that effort!
-        return;
+        return; // 0x717F70 - Invert
     }
 
     const auto posStep = [&] {
@@ -132,7 +133,7 @@ void CEscalator::Update() {
     }
 
     // Out of sight
-    if (m_Bounding.m_fRadius + EXTRA_DIST_TO_RENDER < DistanceBetweenPoints(m_Bounding.m_vecCenter, TheCamera.GetPosition())) {
+    if (m_Bounding.m_fRadius + EXTRA_DIST_TO_RENDER + 3.f < DistanceBetweenPoints(m_Bounding.m_vecCenter, TheCamera.GetPosition())) {
         SwitchOff();
     }
 }
