@@ -23,7 +23,7 @@ void* FxSphere_c::operator new(uint32 size, bool32 bUseGlobalHeep) {
     if (bUseGlobalHeep)
         return CMemoryMgr::Malloc(size);
     else
-        return g_fxMan.CPools::GetMemPool().GetMem(size);
+        return g_fxMan.GetMemPool().GetMem(size);
 }
 
 // 0x4A9FB0

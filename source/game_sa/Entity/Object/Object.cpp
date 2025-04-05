@@ -1287,6 +1287,15 @@ void CObject::DeleteAllTempObjectsInArea(CVector point, float radius) {
     }
 }
 
+bool CObject::IsCraneMovingPart() const {
+    return notsa::contains<eModelID>({
+        ModelIndices::MI_CRANE_MAGNET,
+        ModelIndices::MI_CRANE_HARNESS,
+        ModelIndices::MI_MINI_MAGNET,
+        ModelIndices::MI_WRECKING_BALL,
+    }, GetModelID());
+}
+
 // 0x5A1AB0
 void CObject::GrabObjectToCarryWithRope(CPhysical* attachTo) {
     const auto iRopeInd = CRopes::FindRope(reinterpret_cast<uint32>(this));

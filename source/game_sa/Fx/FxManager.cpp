@@ -159,7 +159,7 @@ bool FxManager_c::LoadFxProject(const char* path) {
 
     CFileMgr::CloseFile(file);
     CTxdStore::PopCurrentTxd();
-    CPools::GetMemPool().Optimise();
+    GetMemPool().Optimise();
     return true;
 }
 
@@ -169,7 +169,7 @@ void FxManager_c::UnloadFxProject() {
 
     DestroyAllFxSystems();
     m_FxSystemBPs.RemoveAll();
-    CPools::GetMemPool().Reset();
+    GetMemPool().Reset();
     m_FxEmitterParticles.RemoveAll();
 
     m_FxEmitters = new FxEmitterPrt_c[FX_MANAGER_NUM_EMITTERS];

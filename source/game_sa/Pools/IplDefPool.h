@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Pool.h"
+#include <IplDef.h>
 
 class CIplDefPool : public CPool<IplDef> {
 public:

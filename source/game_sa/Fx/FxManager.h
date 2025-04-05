@@ -73,13 +73,13 @@ public:
     FxSystem_c* CreateFxSystem(FxSystemBP_c* systemBP, const CVector& point, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
     FxSystem_c* CreateFxSystem(FxSystemBP_c* systemBP, const RwMatrix& transform, RwMatrix* objectMatrix, bool ignoreBoundingChecks = false);
 
-    FxMemoryPool_c& CPools::GetMemPool() { return m_Pool; }
+    FxMemoryPool_c& GetMemPool() { return m_Pool; }
 
     template <typename Type>
     Type* Allocate(int32 count) {
         const auto size = sizeof(Type) * count;
         const auto align = std::min(sizeof(Type), sizeof(int32));
-        return (Type*)CPools::GetMemPool().GetMem(size, align);
+        return (Type*)GetMemPool().GetMem(size, align);
     }
 };
 

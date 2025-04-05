@@ -4556,7 +4556,7 @@ bool IsValidModForVehicle(uint32 modelId, CVehicle* vehicle) {
 
 // 0x6E38F0
 bool IsVehiclePointerValid(CVehicle* vehicle) {
-    const auto* const pool = CPools::ms_pVehiclePool;
+    const auto* const pool = CPools::GetVehiclePool();
     assert(pool);
     return pool->IsObjectValid(vehicle) && (vehicle->m_nVehicleType == VEHICLE_TYPE_FPLANE || !vehicle->m_pCollisionList.IsEmpty());
 }

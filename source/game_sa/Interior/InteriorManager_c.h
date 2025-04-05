@@ -35,7 +35,7 @@ public:
     * @addr 0x5984A0
     * @returns An interior from the free list
     */
-    Interior_c* CPools::GetInteriorFromPool();
+    Interior_c* GetInteriorFromPool();
 
     /*!
     * @addr 0x5983D0

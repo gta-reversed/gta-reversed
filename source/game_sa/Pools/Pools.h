@@ -12,6 +12,24 @@ class CObject;
 class CPed;
 class CVehicle;
 
+class CPedPool;
+class CVehiclePool;
+class CBuildingPool;
+class CObjectPool;
+class CDummyPool;
+class CColModelPool;
+class CTaskPool;
+class CPedIntelligencePool;
+class CPtrNodeSingleLinkPool;
+class CPtrNodeDoubleLinkPool;
+class CEntryInfoNodePool;
+class CPointRoutePool;
+class CPatrolRoutePool;
+class CEventPool;
+class CNodeRoutePool;
+class CTaskAllocatorPool;
+class CPedAttractorPool;
+
 class CPools {
 public:
     static void InjectHooks();
@@ -40,30 +58,21 @@ public:
     static bool SavePedPool();
     static bool SaveVehiclePool();
 
-    static auto& GetPedPool();
-    static auto& GetVehiclePool();
-    static auto& GetBuildingPool();
-    static auto& GetObjectPool();
-    static auto& GetDummyPool();
-    static auto& GetColModelPool();
-    static auto& GetTaskPool();
-    static auto& GetPedIntelligencePool();
-    static auto& GetPtrNodeSingleLinkPool();
-    static auto& GetPtrNodeDoubleLinkPool();
-    static auto& GetEntryInfoNodePool();
-    static auto& GetPointRoutePool();
-    static auto& GetPatrolRoutePool();
-    static auto& GetEventPool();
-    static auto& GetNodeRoutePool();
-    static auto& GetTaskAllocatorPool();
-    static auto& GetPedAttractorPool();
+    static CPedPool*               GetPedPool();
+    static CVehiclePool*           GetVehiclePool();
+    static CBuildingPool*          GetBuildingPool();
+    static CObjectPool*            GetObjectPool();
+    static CDummyPool*             GetDummyPool();
+    static CColModelPool*          GetColModelPool();
+    static CTaskPool*              GetTaskPool();
+    static CPedIntelligencePool*   GetPedIntelligencePool();
+    static CPtrNodeSingleLinkPool* GetPtrNodeSingleLinkPool();
+    static CPtrNodeDoubleLinkPool* GetPtrNodeDoubleLinkPool();
+    static CEntryInfoNodePool*     GetEntryInfoNodePool();
+    static CPointRoutePool*        GetPointRoutePool();
+    static CPatrolRoutePool*       GetPatrolRoutePool();
+    static CEventPool*             GetEventPool();
+    static CNodeRoutePool*         GetNodeRoutePool();
+    static CTaskAllocatorPool*     GetTaskAllocatorPool();
+    static CPedAttractorPool*      GetPedAttractorPool();
 };
-
-/*
-GetPoolObj(int32)
-GetPoolPed(int32)
-GetPoolVehicle(int32)
-GettPoolObjRef(CObject* object)
-GettPoolPedRef(CPed* ped)
-GettPoolVehicleRef(CVehicle* vehicle)
-*/

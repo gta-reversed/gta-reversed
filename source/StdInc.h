@@ -24,13 +24,6 @@
 #include <format>
 #include "app/platform/win/winincl.h"
 
-#include <ranges>
-namespace rng = std::ranges;
-namespace rngv = std::views;
-
-#include <filesystem>
-namespace fs = std::filesystem;
-
 #include "Base.h"
 #include "config.h"
 
@@ -88,7 +81,6 @@ namespace fs = std::filesystem;
 #include "Matrix.h"
 #include "MatrixLink.h"
 #include "MatrixLinkList.h"
-#include "Pool.h"
 #include "PtrNode.h"
 #include "PtrNodeDoubleLink.h"
 #include "PtrNodeSingleLink.h"
@@ -104,6 +96,27 @@ namespace fs = std::filesystem;
 #include "ListItem_c.h"
 #include "List_c.h"
 #include "SArray.h"
+
+#include "Pool.h"
+#include "Pools/Pools.h"
+#include <Pools/IplDefPool.h>
+#include <Pools/PedPool.h>
+#include <Pools/VehiclePool.h>
+#include <Pools/BuildingPool.h>
+#include <Pools/ObjectPool.h>
+#include <Pools/DummyPool.h>
+#include <Pools/ColModelPool.h>
+#include <Pools/TaskPool.h>
+#include <Pools/PedIntelligencePool.h>
+#include <Pools/PtrNodeSingleLinkPool.h>
+#include <Pools/PtrNodeDoubleLinkPool.h>
+#include <Pools/EntryInfoNodePool.h>
+#include <Pools/PointRoutePool.h>
+#include <Pools/PatrolRoutePool.h>
+#include <Pools/EventPool.h>
+#include <Pools/NodeRoutePool.h>
+#include <Pools/TaskAllocatorPool.h>
+#include <Pools/PedAttractorPool.h>
 
 #include "GxtChar.h"
 #include "RwHelper.h"
@@ -305,7 +318,6 @@ namespace fs = std::filesystem;
 #include "PointLights.h"
 #include "PointList.h"
 #include "PolyBunch.h"
-#include "Pools/Pools.h"
 #include "PopCycle.h"
 #include "Population.h"
 #include "ProjectileInfo.h"

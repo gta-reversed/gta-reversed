@@ -6,6 +6,8 @@
 */
 #pragma once
 
+#include <common.h> // lerp
+
 struct RwRGBA;
 
 class CRGBA {

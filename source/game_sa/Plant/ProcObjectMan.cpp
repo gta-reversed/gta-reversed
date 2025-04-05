@@ -93,7 +93,7 @@ void ProcObjectMan_c::LoadDataFile() {
 }
 
 // 0x5A3120
-ProcObjectListItem* ProcObjectMan_c::CPools::GetEntityFromPool() {
+ProcObjectListItem* ProcObjectMan_c::GetEntityFromPool() {
     return m_ObjectsList.RemoveHead();
 }
 

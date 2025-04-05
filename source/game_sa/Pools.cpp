@@ -3,6 +3,25 @@
 #include <Pools/Pools.h>
 #include "CarCtrl.h"
 
+#include <Pools/IplDefPool.h>
+#include <Pools/PedPool.h>
+#include <Pools/VehiclePool.h>
+#include <Pools/BuildingPool.h>
+#include <Pools/ObjectPool.h>
+#include <Pools/DummyPool.h>
+#include <Pools/ColModelPool.h>
+#include <Pools/TaskPool.h>
+#include <Pools/PedIntelligencePool.h>
+#include <Pools/PtrNodeSingleLinkPool.h>
+#include <Pools/PtrNodeDoubleLinkPool.h>
+#include <Pools/EntryInfoNodePool.h>
+#include <Pools/PointRoutePool.h>
+#include <Pools/PatrolRoutePool.h>
+#include <Pools/EventPool.h>
+#include <Pools/NodeRoutePool.h>
+#include <Pools/TaskAllocatorPool.h>
+#include <Pools/PedAttractorPool.h>
+
 auto& ms_pPedPool               = StaticRef<CPedPool*>(0xB74490);
 auto& ms_pVehiclePool           = StaticRef<CVehiclePool*>(0xB74494);
 auto& ms_pBuildingPool          = StaticRef<CBuildingPool*>(0xB74498);
@@ -307,86 +326,86 @@ bool CPools::SaveVehiclePool() {
 }
 
 // 0x404550
-auto& CPools::CPools::GetPedPool() {
+CPedPool* CPools::GetPedPool() {
     return ms_pPedPool;
 }
 
 // 0x404560
-auto& CPools::CPools::GetVehiclePool() {
+CVehiclePool* CPools::GetVehiclePool() {
     return ms_pVehiclePool;
 }
 
 // 0x403DF0
-auto& CPools::CPools::GetBuildingPool() {
+CBuildingPool* CPools::GetBuildingPool() {
     return ms_pBuildingPool;
 }
 
 // 0x404570
-auto& CPools::CPools::GetObjectPool() {
+CObjectPool* CPools::GetObjectPool() {
     return ms_pObjectPool;
 }
 
 // 0x404580
-auto& CPools::CPools::GetDummyPool() {
+CDummyPool* CPools::GetDummyPool() {
     return ms_pDummyPool;
 }
 
 // 0x40F000
-auto& CPools::CPools::GetColModelPool() {
+CColModelPool* CPools::GetColModelPool() {
     return ms_pColModelPool;
 }
 
 // 0x61A330
-auto& CPools::CPools::GetTaskPool() {
+CTaskPool* CPools::GetTaskPool() {
     return ms_pTaskPool;
 }
 
 // 0x5FF930
-auto& CPools::CPools::GetPedIntelligencePool() {
+CPedIntelligencePool* CPools::GetPedIntelligencePool() {
     return ms_pPedIntelligencePool;
 }
 
 // 0x552190
-auto& CPools::CPools::GetPtrNodeSingleLinkPool() {
+CPtrNodeSingleLinkPool* CPools::GetPtrNodeSingleLinkPool() {
     return ms_pPtrNodeSingleLinkPool;
 }
 
 // 0x5521A0
-auto& CPools::CPools::GetPtrNodeDoubleLinkPool() {
+CPtrNodeDoubleLinkPool* CPools::GetPtrNodeDoubleLinkPool() {
     return ms_pPtrNodeDoubleLinkPool;
 }
 
 // 0x536C80
-auto& CPools::CPools::GetEntryInfoNodePool() {
+CEntryInfoNodePool* CPools::GetEntryInfoNodePool() {
     return ms_pEntryInfoNodePool;
 }
 
 // 0x41B400
-auto& CPools::CPools::GetPointRoutePool() {
+CPointRoutePool* CPools::GetPointRoutePool() {
     return ms_pPointRoutePool;
 }
 
 // 0x41B410
-auto& CPools::CPools::GetPatrolRoutePool() {
+CPatrolRoutePool* CPools::GetPatrolRoutePool() {
     return ms_pPatrolRoutePool;
 }
 
 // 0x4ABF80
-auto& CPools::CPools::GetEventPool() {
+CEventPool* CPools::GetEventPool() {
     return ms_pEventPool;
 }
 
 // 0x41B420
-auto& CPools::CPools::GetNodeRoutePool() {
+CNodeRoutePool* CPools::GetNodeRoutePool() {
     return ms_pNodeRoutePool;
 }
 
 // 0x69BB70
-auto& CPools::CPools::GetTaskAllocatorPool() {
+CTaskAllocatorPool* CPools::GetTaskAllocatorPool() {
     return ms_pTaskAllocatorPool;
 }
 
 // 0x5E95A0
-auto& CPools::CPools::GetPedAttractorPool() {
+CPedAttractorPool* CPools::GetPedAttractorPool() {
     return ms_pPedAttractorPool;
 }

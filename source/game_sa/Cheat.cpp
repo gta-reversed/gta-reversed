@@ -740,7 +740,7 @@ CVehicle* CCheat::VehicleCheat(eModelID modelId) {
     }
 
     //    for (auto i = 0; i < 50; ++i) {
-    //        auto vehicle = CPools::ms_pVehiclePool->GetAtRef(i);
+    //        auto vehicle = CPools::GetVehiclePool()->GetAtRef(i);
     //        if (vehicle)
     //    }
 
