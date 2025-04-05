@@ -279,37 +279,26 @@ int32 CControllerConfigManager::GetMouseButtonAssociatedWithAction(eControllerAc
 
 // 0x52FAB0
 eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
-    const auto CheckAndSetStick = [&](eControllerAction action, int16& stickValue, bool& stickFlag, int16 value) {
-        if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
-            if (stickFlag || (stickValue != 0 && stickValue != value)) {
-                stickValue = 0;
-                stickFlag  = true;
-            } else {
-                stickValue = value;
-            }
-        }
-    };
-
     CheckAndSetButton(eControllerAction::PED_FIRE_WEAPON, type, button, state->ButtonCircle);   
     CheckAndSetButton(eControllerAction::PED_FIRE_WEAPON_ALT, type, button, state->LeftShoulder1);  
     CheckAndSetButton(eControllerAction::PED_LOCK_TARGET, type, button, state->RightShoulder1);
 
-    CheckAndSetStick(eControllerAction::GO_FORWARD, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], -128);   
-    CheckAndSetStick(eControllerAction::GO_BACK, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], 128);    
-    CheckAndSetStick(eControllerAction::GO_LEFT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], -128);
-    CheckAndSetStick(eControllerAction::GO_RIGHT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], 128); 
+    CheckAndSetStick_FirstThirdPerson(eControllerAction::GO_FORWARD, type, button, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], -128);   
+    CheckAndSetStick_FirstThirdPerson(eControllerAction::GO_BACK, type, button, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], 128);    
+    CheckAndSetStick_FirstThirdPerson(eControllerAction::GO_LEFT, type, button, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], -128);
+    CheckAndSetStick_FirstThirdPerson(eControllerAction::GO_RIGHT, type, button, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], 128); 
 
     CheckAndSetButton(eControllerAction::PED_WALK, type, button, state->m_bPedWalk);
 
     CheckAndSetPad(eControllerAction::GROUP_CONTROL_FWD, type, button, state->DPadUp, state->DPadDown);
     CheckAndSetPad(eControllerAction::GROUP_CONTROL_BWD, type, button, state->DPadDown, state->DPadUp);    
 
-    CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_LEFT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128); 
-    CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_RIGHT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);  
+    CheckAndSetStick_FirstThirdPerson(eControllerAction::PED_1RST_PERSON_LOOK_LEFT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128); 
+    CheckAndSetStick_FirstThirdPerson(eControllerAction::PED_1RST_PERSON_LOOK_RIGHT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);  
 
     if (FrontEndMenuManager.m_ControlMethod) {
-        CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_UP, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128); 
-        CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_DOWN, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
+        CheckAndSetStick_FirstThirdPerson(eControllerAction::PED_1RST_PERSON_LOOK_UP, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128); 
+        CheckAndSetStick_FirstThirdPerson(eControllerAction::PED_1RST_PERSON_LOOK_DOWN, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
     }
 
     return type;
@@ -352,29 +341,13 @@ int32 CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstPersonOn
 
 // 0x52FD40
 int32 CControllerConfigManager::HandleButtonRelease(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
-    const auto CheckAndReset = [&](eControllerAction action, int16& stateFlag) {
-        if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
-            stateFlag = 0;
-        }
-    };
-    CheckAndReset(eControllerAction::NETWORK_TALK, state->m_bChatIndicated);
-    CheckAndReset(eControllerAction::VEHICLE_MOUSELOOK, state->m_bVehicleMouseLook);
+    CheckAndResetButtonState(eControllerAction::NETWORK_TALK, type, button, state->m_bChatIndicated);
+    CheckAndResetButtonState(eControllerAction::VEHICLE_MOUSELOOK, type, button, state->m_bVehicleMouseLook);
     return button;
 }
 
 // 0x52F7B0
 eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Driving(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
-    const auto CheckAndSetStick = [&](eControllerAction action, int16& stickValue, bool& stickFlag, int16 value) {
-        if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
-            if (stickFlag) {
-                stickValue = 0;
-                stickFlag  = true;
-            } else {
-                stickValue = value;
-            }
-        }
-    };
-    
     CheckAndSetButton(eControllerAction::VEHICLE_FIRE_WEAPON, type, button, state->ButtonCircle);
     CheckAndSetButton(eControllerAction::VEHICLE_FIRE_WEAPON_ALT, type, button, state->LeftShoulder1);
 
@@ -389,18 +362,18 @@ eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Dri
     CheckAndSetButton(eControllerAction::VEHICLE_HANDBRAKE, type, button, state->RightShoulder1);
     CheckAndSetButton(eControllerAction::VEHICLE_ACCELERATE, type, button, state->ButtonCross);
     CheckAndSetButton(eControllerAction::VEHICLE_BRAKE, type, button, state->ButtonSquare);
-    CheckAndSetStick(eControllerAction::VEHICLE_STEER_UP, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], -128);
-    CheckAndSetStick(eControllerAction::VEHICLE_STEER_DOWN, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], 128);
-    CheckAndSetStick(eControllerAction::VEHICLE_STEER_LEFT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], -128);
-    CheckAndSetStick(eControllerAction::VEHICLE_STEER_RIGHT, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], 128);
+    CheckAndSetStick_Driving(eControllerAction::VEHICLE_STEER_UP, type, button, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], -128);
+    CheckAndSetStick_Driving(eControllerAction::VEHICLE_STEER_DOWN, type, button, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[type], 128);
+    CheckAndSetStick_Driving(eControllerAction::VEHICLE_STEER_LEFT, type, button, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], -128);
+    CheckAndSetStick_Driving(eControllerAction::VEHICLE_STEER_RIGHT, type, button, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[type], 128);
     CheckAndSetButton(eControllerAction::VEHICLE_RADIO_STATION_UP, type, button, state->DPadUp);
     CheckAndSetButton(eControllerAction::VEHICLE_RADIO_STATION_DOWN, type, button, state->DPadDown);
     CheckAndSetButton(eControllerAction::VEHICLE_RADIO_TRACK_SKIP, type, button, state->m_bRadioTrackSkip);
     CheckAndSetButton(eControllerAction::TOGGLE_SUBMISSIONS, type, button, state->ShockButtonR);
-    CheckAndSetStick(eControllerAction::VEHICLE_TURRETLEFT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128);
-    CheckAndSetStick(eControllerAction::VEHICLE_TURRETRIGHT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);
-    CheckAndSetStick(eControllerAction::VEHICLE_TURRETUP, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128);
-    CheckAndSetStick(eControllerAction::VEHICLE_TURRETDOWN, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
+    CheckAndSetStick_Driving(eControllerAction::VEHICLE_TURRETLEFT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128);
+    CheckAndSetStick_Driving(eControllerAction::VEHICLE_TURRETRIGHT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);
+    CheckAndSetStick_Driving(eControllerAction::VEHICLE_TURRETUP, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128);
+    CheckAndSetStick_Driving(eControllerAction::VEHICLE_TURRETDOWN, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
     return type;
 }
 
@@ -1965,27 +1938,26 @@ bool CControllerConfigManager::CheckMouseButtonJustUpState(CControllerKey::KeyCo
 }
 
 // NOTSA
-bool CControllerConfigManager::IsCheckSpecificGamepad()
-{
+bool CControllerConfigManager::IsCheckSpecificGamepad() {
     // TODO: Reverse CPadConfig
     return (PadConfigs[0].vendorId == 0x3427 && PadConfigs[0].productId == 0x1190);
 }
 
-// NOTSA
+// iniline
 void CControllerConfigManager::CheckAndClear(eControllerAction action, eControllerType type, CControllerKey::KeyCode button) {
     if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
         ClearSettingsAssociatedWithAction(action, type);
     }
 };
 
-// NOTSA
+// iniline
 void CControllerConfigManager::CheckAndSetButton(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stateButton) {
     if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
         stateButton = 255;
     }
 }
 
-// NOTSA
+// iniline
 void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& dpad, int16& oppositeDpad) {
     if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
         if (dpad) {
@@ -1993,6 +1965,37 @@ void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControl
             oppositeDpad = 0;
         } else {
             dpad = 255;
+        }
+    }
+}
+
+// iniline
+void CControllerConfigManager::CheckAndSetStick_FirstThirdPerson(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stickValue, bool& stickFlag, int16 value) {
+    if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
+        if (stickFlag || (stickValue != 0 && stickValue != value)) {
+            stickValue = 0;
+            stickFlag  = true;
+        } else {
+            stickValue = value;
+        }
+    }
+}
+
+// iniline
+void CControllerConfigManager::CheckAndResetButtonState(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stateFlag) {
+    if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
+        stateFlag = 0;
+    }
+}
+
+// iniline
+void CControllerConfigManager::CheckAndSetStick_Driving(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stickValue, bool& stickFlag, int16 value) {
+    if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
+        if (stickFlag) {
+            stickValue = 0;
+            stickFlag  = true;
+        } else {
+            stickValue = value;
         }
     }
 }
@@ -2015,8 +2018,8 @@ CControllerState& CControllerConfigManager::GetControllerState(CPad& pad, eContr
     switch (ctrl) {
     case eControllerType::KEYBOARD:
     case eControllerType::OPTIONAL_EXTRA_KEY: return pad.PCTempKeyState;
-    case eControllerType::MOUSE:     return pad.PCTempMouseState;
-    case eControllerType::JOY_STICK:       return pad.PCTempJoyState;
-    default:                   NOTSA_UNREACHABLE();
+    case eControllerType::MOUSE:              return pad.PCTempMouseState;
+    case eControllerType::JOY_STICK:          return pad.PCTempJoyState;
+    default:                                  NOTSA_UNREACHABLE();
     }
 }

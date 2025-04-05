@@ -234,19 +234,22 @@ public:
 
     const GxtChar* GetDefinedKeyByGxtName(eControllerAction action);
 
-    // NOTSA
-    eControllerAction GetActionIDByName(std::string_view name);
-
 private:
+    // NOTSA region
+    eControllerAction GetActionIDByName(std::string_view name);
     bool CheckMouseButtonState(CControllerKey::KeyCode button);
     bool CheckMouseButtonJustUpState(CControllerKey::KeyCode button);
     bool IsCheckSpecificGamepad();
     void CheckAndClear(eControllerAction action, eControllerType type, CControllerKey::KeyCode button);
     void CheckAndSetButton(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& state);
     void CheckAndSetPad(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& dpad, int16& oppositeDpad);
-    static bool UseDrivingControls();
-    static bool UseFirstPersonControls();
-    static CControllerState& GetControllerState(CPad& pad, eControllerType ctrl);
+    bool UseDrivingControls();
+    bool UseFirstPersonControls();
+    CControllerState& GetControllerState(CPad& pad, eControllerType ctrl);
+    void CheckAndSetStick_FirstThirdPerson(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stickValue, bool& stickFlag, int16 value);
+    void CheckAndResetButtonState(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stateFlag);
+    void CheckAndSetStick_Driving(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stickValue, bool& stickFlag, int16 value);
+    void SetActionNameInternal(eControllerAction action, const GxtChar* name);
 
 private:
     CControllerConfigManager* Constructor() {
