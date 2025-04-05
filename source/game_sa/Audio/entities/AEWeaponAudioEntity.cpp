@@ -879,7 +879,10 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     }
     case AE_WEAPON_SOUND_CAT_FLAME: { // 0x504BC3
         if (m_LastFlameThrowerFireTimeMs + 300 >= CTimer::GetTimeInMS()) {
-            sound->m_fVolume = std::max(GetDefaultVolume(AE_WEAPON_FIRE), sound->m_fVolume + 2.f); // TODO: Use TimeStep
+            const float targetMaxVolume = GetDefaultVolume(AE_WEAPON_FIRE) - 14.f;
+            if (sound->m_fVolume < targetMaxVolume) {
+                sound->m_fVolume = std::min(targetMaxVolume, sound->m_fVolume + 2.f); // TODO: Use TimeStep
+            }
         } else {
             sound->StopSoundAndForget();
             m_LastFlameThrowerFireTimeMs = 0;
@@ -895,7 +898,7 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     }
     case AE_WEAPON_SOUND_CAT_EXT: { // 0x504C5F
         if (m_LastFireExtFireTimeMs + 300 >= CTimer::GetTimeInMS()) {
-            sound->m_fSpeed = (sound->m_fSpeed < 0.85f) ? std::min(sound->m_fSpeed + 0.01f, 0.85f) : sound->m_fSpeed; // TODO: Use TimeStep
+            sound->m_fSpeed = std::min(0.85f, sound->m_fSpeed + 0.01f); // TODO: Use TimeStep
         } else {
             sound->StopSoundAndForget();
             m_LastFireExtFireTimeMs = 0;
@@ -988,7 +991,9 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
         break;
     }
     default: { // 0x504ECD
-        sound->m_fVolume = std::max(0.f, sound->m_fVolume - 2.5f);
+        if (sound->m_fVolume > 0.0f) {
+            sound->m_fVolume = std::max(0.0f, sound->m_fVolume - 2.5f);
+        }
         break;
     }
     }
