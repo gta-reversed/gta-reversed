@@ -988,9 +988,7 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
         break;
     }
     default: { // 0x504ECD
-        if (sound->m_fVolume > 0.0f) {
-            sound->m_fVolume = std::max(0.0f, sound->m_fVolume - 2.5f);
-        }
+        sound->m_fVolume = std::max(sound->m_fVolume - 2.5f, std::min(sound->m_fVolume, 0.0f));
         break;
     }
     }
