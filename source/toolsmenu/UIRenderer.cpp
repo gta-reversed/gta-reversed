@@ -236,10 +236,6 @@ void UIRenderer::DebugCode() {
         FindPlayerPed()->Say(CTX_GLOBAL_JACKED_CAR);
     }
 
-    if (pad->IsStandardKeyJustPressed('T')) {
-        CCurves::TestCurves();
-    }
-
     //if (pad->IsStandardKeyJustPressed('T')) {
     //    const auto ped = new CPed(ePedType::PED_TYPE_GANG1);
     //    ped->SetCreatedBy(PED_GAME);

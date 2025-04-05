@@ -3,6 +3,7 @@
 #include "WindowedMode.hpp"
 #include <HookSystem.h>
 
+#include "winincl.h"
 #include <SDL3/SDL.h>
 #include <bindings/imgui_impl_dx9.h>
 

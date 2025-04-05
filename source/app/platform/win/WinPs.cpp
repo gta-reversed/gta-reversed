@@ -14,8 +14,6 @@
 #include <SDL3/SDL.h>
 #endif
 
-// NOTE: This macro doesn't do a whole lot. Leaving it here for completeness sake
-#define USE_D3D9
 #include "winincl.h"
 #include "intrin.h"
 
