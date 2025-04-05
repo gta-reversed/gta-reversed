@@ -11,11 +11,11 @@ class CTask;
 
 class CPedTaskPair {
 public:
-    CPed*  m_Ped{};
-    CTask* m_Task{};
-    int32  m_Slot{-1};
-    int32  m_MatchID{};
-    int8   m_bUsedTask{};
+    CPed*          m_Ped{};
+    CTask*         m_Task{};
+    eSecondaryTask m_Slot{ TASK_SECONDARY_INVALID };
+    int32          m_MatchID{};
+    int8           m_bUsedTask{};
 
 public:
     static void InjectHooks();
