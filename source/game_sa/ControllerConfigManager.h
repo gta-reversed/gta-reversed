@@ -234,9 +234,11 @@ public:
 
     const GxtChar* GetDefinedKeyByGxtName(eControllerAction action);
 
+    // NOTSA
+    eControllerAction GetActionIDByName(std::string_view name);
+
 private:
     // NOTSA region
-    eControllerAction GetActionIDByName(std::string_view name);
     bool CheckMouseButtonState(CControllerKey::KeyCode button);
     bool CheckMouseButtonJustUpState(CControllerKey::KeyCode button);
     bool IsCheckSpecificGamepad();

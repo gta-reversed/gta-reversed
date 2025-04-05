@@ -202,11 +202,11 @@ CMouseControllerState GetMouseState() {
             state.m_AmountMoved = CVector2D(static_cast<float>(mouseState.lX), static_cast<float>(mouseState.lY));
             state.m_bWheelMovedUp = (mouseState.lZ > 0);
             state.m_bWheelMovedDown = (mouseState.lZ < 0);
-            state.m_bLeftButton = mouseState.rgbButtons[0] & 0x80;
-            state.m_bRightButton = mouseState.rgbButtons[1] & 0x80;
-            state.m_bMiddleButton = mouseState.rgbButtons[2] & 0x80;
-            state.m_bMsFirstXButton = mouseState.rgbButtons[3] & 0x80;
-            state.m_bMsSecondXButton = mouseState.rgbButtons[4] & 0x80;
+            state.m_bLeftButton = mouseState.rgbButtons[0] & 128;
+            state.m_bRightButton = mouseState.rgbButtons[1] & 128;
+            state.m_bMiddleButton = mouseState.rgbButtons[2] & 128;
+            state.m_bMsFirstXButton = mouseState.rgbButtons[3] & 128;
+            state.m_bMsSecondXButton = mouseState.rgbButtons[4] & 128;
         }
     } else {
 		diMouseInit(!FrontEndMenuManager.m_bMenuActive && IsVideoModeExclusive());

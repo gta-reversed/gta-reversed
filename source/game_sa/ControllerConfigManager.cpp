@@ -71,7 +71,7 @@ void CControllerConfigManager::InjectHooks() {
 
 // 0x531EE0
 CControllerConfigManager::CControllerConfigManager() {
-    /* Member variable init done in header */
+    // Member variable init done in header
 
     MakeControllerActionsBlank();
     InitDefaultControlConfiguration();
@@ -192,7 +192,7 @@ void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction actio
 // 0x52F510
 void CControllerConfigManager::StoreJoyButtonStates() {
     for (auto&& [idx, bs] : notsa::enumerate(m_ButtonStates)) {
-        bs = (m_NewJoyState.rgbButtons[idx] & 0x80) != 0;
+        bs = (m_NewJoyState.rgbButtons[idx] & 128) != 0;
     }
 }
 
@@ -1302,7 +1302,6 @@ bool CControllerConfigManager::GetIsMouseButtonJustUp(CControllerKey::KeyCode ke
     return CheckMouseButtonJustUpState(key);
 }
 
-// unused
 // 0x52F2A0
 bool CControllerConfigManager::GetIsKeyBlank(CControllerKey::KeyCode key, eControllerType type) {
     switch (type) {
@@ -1449,15 +1448,10 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
             const auto key = m_Actions[i].Keys[type].m_uiActionInitiator;
 
             if (GetIsKeyboardKeyDown(key) && inMenu && key != rsNULL) {
-                bool useFirstPersonControls = false;
                 CPad* pad = CPad::GetPad(0);
 
-                bool useDrivingControls = CControllerConfigManager::UseDrivingControls();
-                auto& cameraMode = TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode;
-                if (notsa::contains({ MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_CAMERA }, cameraMode)) {
-                    useFirstPersonControls = true;
-                }
-
+                bool useDrivingControls = UseDrivingControls();
+                bool useFirstPersonControls = UseFirstPersonControls();
                 if (pad) {
                     CControllerState* state = &pad->PCTempKeyState;
 
@@ -1513,7 +1507,7 @@ void CControllerConfigManager::AffectPadFromMouse() {
     for (auto& action : m_Actions) {
         const auto button = action.Keys[MOUSE].m_uiActionInitiator;
 
-        if (CControllerConfigManager::GetIsMouseButtonDown(button)) {
+        if (GetIsMouseButtonDown(button)) {
             if (controlsEnabled && button && pad) {
                 if (UseDrivingControls()) {
                     AffectControllerStateOn_ButtonDown_Driving(button, MOUSE, state);

@@ -11,8 +11,8 @@
 
 
 /*!
-* @addr 0x57FD70
-*/ 
+ * @addr 0x57FD70
+ */ 
 void CMenuManager::UserInput() {
     { // NOTSA
     const auto pad = CPad::GetPad();
@@ -21,6 +21,7 @@ void CMenuManager::UserInput() {
         ReversibleHooks::SwitchHook("DisplaySlider");
     }
     }
+
     plugin::CallMethod<0x57FD70, CMenuManager*>(this);
 }
 
@@ -127,7 +128,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
     if (GoBackOneMenu) {
         if (m_bRadioAvailable) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
-            SwitchToNewScreen(eMenuScreen(-2)); // Go back one screen
+            SwitchToNewScreen(SCREEN_GO_BACK);
         } else {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
         }

@@ -10,8 +10,7 @@
 #undef InsertMenu
 #endif
 
-// static int& dword_C16EB8 = *reinterpret_cast<int*>(0xC16EB8);
-static int dword_C16EB8[12];
+int32 (&dword_C16EB8)[9] = *(int32(*)[9])0xC16EB8;
 
 typedef uint8 MenuId;
 
