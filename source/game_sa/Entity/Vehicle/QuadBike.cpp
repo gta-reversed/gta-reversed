@@ -256,7 +256,7 @@ void CQuadBike::ProcessControlInputs(uint8 playerNum) {
     if (!CCamera::m_bUseMouse3rdPerson || !m_bEnableMouseSteering) {
         m_sRideAnimData.m_fLeanFwd += (float(-pad->GetSteeringUpDown()) / 128.0f - m_sRideAnimData.m_fLeanFwd) * CTimer::GetTimeStep() / 5.0f;
     } else {
-        if (CPad::NewMouseControllerState.m_AmountMoved.x == 0.0f && CPad::NewMouseControllerState.m_AmountMoved.y == 0.0f && // todo: Use CPad::? func
+        if (CPad::NewMouseControllerState.m_AmountMoved.IsZero() && // todo: Use CPad::? func
             (std::fabs(m_fRawSteerAngle) <= 0.0f || m_nLastControlInput != eControllerType::MOUSE || pad->IsSteeringInAnyDirection())
         ) {
             if (pad->GetSteeringUpDown() || m_nLastControlInput != eControllerType::MOUSE) {
