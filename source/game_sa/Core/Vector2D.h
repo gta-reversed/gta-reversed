@@ -113,6 +113,10 @@ public:
         y = Y;
     }
 
+    void Reset() {
+        Set(0.f, 0.f);
+    }
+
     //! Heading of the vector
     //! Tip: atan2(x, -y) is off by 180deg clockwise
     float Heading() const {
