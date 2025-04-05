@@ -50,7 +50,8 @@ void Print(const char* key, uint32 time, uint32 flags) {
     CTheScripts::bAddNextMessageToPreviousBriefs = true;
 }
 
-void PrintNow(const char* key, uint32 time, uint32 flags) {
+void PrintNow(const char* key, int32 time, uint32 flags) {
+    NOTSA_LOG_DEBUG("PrintNow({:?})", key);
     const auto text = TheText.Get(key);
     if (!text || strncmp(AsciiFromGxtChar(text), "~z~", 3u) != 0 || FrontEndMenuManager.m_bShowSubtitles) {
         CMessages::AddMessageJump(text, time, flags, CTheScripts::bAddNextMessageToPreviousBriefs);

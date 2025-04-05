@@ -21,6 +21,14 @@ class saRecipe(ConanFile):
         "libjpeg-turbo/3.1.0",
     ]
 
+    default_options = {
+        "with_command_hooks": False,
+    }
+
+    options = {
+        "with_command_hooks": [True, False],
+    }
+
     def layout(self):
         cmake_layout(self)
     
@@ -29,6 +37,8 @@ class saRecipe(ConanFile):
         deps.generate()
         tc = CMakeToolchain(self)
         tc.user_presets_path = 'ConanPresets.json'
+        if self.options['with_command_hooks']:
+            tc.cache_variables["GTASA_WITH_SCRIPT_COMMAND_HOOKS"] = "ON"
         tc.generate()
 
         copy(self, "*win32*", os.path.join(self.dependencies["imgui"].package_folder,
@@ -38,3 +48,4 @@ class saRecipe(ConanFile):
         
         copy(self, "imgui_stdlib.*", os.path.join(self.dependencies["imgui"].package_folder,
             "res", "misc", "cpp"), os.path.join(self.source_folder, "source", "app"))
+
