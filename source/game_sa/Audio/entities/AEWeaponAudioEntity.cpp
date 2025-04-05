@@ -879,10 +879,7 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     }
     case AE_WEAPON_SOUND_CAT_FLAME: { // 0x504BC3
         if (m_LastFlameThrowerFireTimeMs + 300 >= CTimer::GetTimeInMS()) {
-            const float targetMaxVolume = GetDefaultVolume(AE_WEAPON_FIRE) - 14.f;
-            if (sound->m_fVolume < targetMaxVolume) {
-                sound->m_fVolume = std::min(targetMaxVolume, sound->m_fVolume + 2.f); // TODO: Use TimeStep
-            }
+            sound->m_fVolume = std::min(GetDefaultVolume(AE_WEAPON_FIRE) - 14.f, sound->m_fVolume + 2.f); // TODO: Use TimeStep
         } else {
             sound->StopSoundAndForget();
             m_LastFlameThrowerFireTimeMs = 0;
