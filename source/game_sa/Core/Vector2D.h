@@ -108,6 +108,10 @@ public:
         y /= divisor;
     }
 
+    void Reset() {
+        Set(0.f, 0.f);
+    }
+
     inline void Set(float X, float Y) {
         x = X;
         y = Y;
