@@ -13,6 +13,6 @@ public:
 
     static void Shutdown();
     static void Init();
-    static void AddOne(const CVector& vecStart, const CVector& vecBottom, const CVector& vecEnd, const CVector& vecTop, bool bMoveDown, CEntity* entity);
+    static void AddOne(const CVector& vecStart, const CVector& vecBottom, const CVector& vecTop, const CVector& vecEnd, bool moveDown, CEntity* entity);
     static void Update();
 };

@@ -11,7 +11,7 @@ void CEscalator::InjectHooks() {
 
     RH_ScopedInstall(SwitchOff, 0x717860);
     RH_ScopedInstall(AddThisOne, 0x717970);
-    RH_ScopedInstall(Update, 0x717D30, { .reversed = false });
+    RH_ScopedInstall(Update, 0x717D30);
 }
 
 // 0x717860
@@ -19,11 +19,11 @@ void CEscalator::SwitchOff() {
     // debug leftover
     // static bool& deletingEscalator = StaticRef<bool>(0xC6E98C);
 
-    if (!m_nObjectsCreated) {
+    if (!m_nStepObjectsCreated) {
         return;
     }
 
-    for (auto* object : m_pObjects | rngv::take(m_nNumTopPlanes + m_nNumBottomPlanes + m_nNumIntermediatePlanes)) {
+    for (auto* object : m_pStepObjects | rngv::take(m_nNumTopPlanes + m_nNumBottomPlanes + m_nNumIntermediatePlanes)) {
         if (!object) {
             continue;
         }
@@ -33,7 +33,7 @@ void CEscalator::SwitchOff() {
         delete std::exchange(object, nullptr);
         // deletingEscalator = false;
     }
-    m_nObjectsCreated = 0;
+    m_nStepObjectsCreated = 0;
 }
 
 // 0x717970
@@ -65,5 +65,74 @@ void CEscalator::AddThisOne(const CVector& vecStart, const CVector& vecBottom, c
 
 // 0x717D30
 void CEscalator::Update() {
-    plugin::CallMethod<0x717D30, CEscalator*>(this);
+    ZoneScoped;
+
+    constexpr float EXTRA_DIST_TO_RENDER = 20.0f;
+
+    if (!m_nStepObjectsCreated) {
+        if (m_Bounding.m_fRadius + EXTRA_DIST_TO_RENDER > DistanceBetweenPoints(m_Bounding.m_vecCenter, TheCamera.GetPosition())) {
+            const auto allValidObjects = rng::distance(GetObjectPool()->GetAllValid());
+
+            if (GetObjectPool()->GetSize() - allValidObjects > m_nNumIntermediatePlanes + m_nNumBottomPlanes + m_nNumTopPlanes + 10) {
+                m_nStepObjectsCreated  = true;
+                m_nCurrentPosition = 0.0f;
+
+                for (auto i = 0u; i < m_nNumIntermediatePlanes + m_nNumBottomPlanes + m_nNumTopPlanes; i++) {
+                    auto& obj = m_pStepObjects[i];
+                    obj       = new CObject((i < m_nNumIntermediatePlanes) ? ModelIndices::MI_ESCALATORSTEP : ModelIndices::MI_ESCALATORSTEP8, true);
+                    obj->SetPosn(m_vBottom);
+                    CWorld::Add(obj);
+                    obj->m_nObjectType = OBJECT_TYPE_DECORATION;
+                }
+            } else {
+                NOTSA_LOG_WARN("Too many shit in the object pool now we can't create escalators!");
+            }
+        }
+    }
+
+    if (!m_nStepObjectsCreated) {
+        // still not created after all that effort!
+        return;
+    }
+
+    const auto posStep = [&] {
+        if (m_bMoveDown) {
+            return m_nCurrentPosition - CTimer::GetTimeStep() / 25.0f + 1.0f;
+        } else {
+            return m_nCurrentPosition + CTimer::GetTimeStep() / 25.0f;
+        }
+    }();
+    m_nCurrentPosition = posStep - std::floor(posStep);
+
+    for (auto i = 0u; i < m_nNumIntermediatePlanes + m_nNumBottomPlanes + m_nNumTopPlanes; i++) {
+        auto* obj = m_pStepObjects[i];
+        if (!obj) {
+            continue;
+        }
+
+        const auto [t, dir, beg] = [&] {
+            if (i < m_nNumIntermediatePlanes) {
+                // intermediate
+                return std::make_tuple(((float)i - m_nCurrentPosition + 1.0f) / 2.5f, (m_vBottom - m_vTop).Normalized(), m_vTop);
+            } else if (i < m_nNumIntermediatePlanes + m_nNumBottomPlanes) {
+                // bottom
+                return std::make_tuple(((float)(8 * (i - m_nNumIntermediatePlanes) + 4) + m_nCurrentPosition) / 2.5f, (m_vBottom - m_vStart).Normalized(), m_vStart);
+            } else {
+                // top
+                return std::make_tuple(((float)(8 * (i - m_nNumIntermediatePlanes - m_nNumBottomPlanes) + 4) + m_nCurrentPosition) / 2.5f, (m_vEnd - m_vTop).Normalized(), m_vTop);
+            }
+        }();
+
+        obj->GetMatrix() = m_mRotation;
+        obj->SetPosn(beg + dir * t);
+        obj->GetMoveSpeed() = (i < m_nNumIntermediatePlanes ? -dir : dir) * 0.016f * (m_bMoveDown ? -1.0f : 1.0f);
+        obj->UpdateRW();
+        obj->UpdateRwFrame();
+        obj->RemoveAndAdd();
+    }
+
+    // Out of sight
+    if (m_Bounding.m_fRadius + EXTRA_DIST_TO_RENDER < DistanceBetweenPoints(m_Bounding.m_vecCenter, TheCamera.GetPosition())) {
+        SwitchOff();
+    }
 }

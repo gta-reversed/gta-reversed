@@ -21,16 +21,16 @@ public:
     CVector                  m_vEnd;
     CMatrix                  m_mRotation{};
     bool                     m_bExist;
-    uint8                    m_nObjectsCreated{}; // todo: check offset and size
+    uint8                    m_nStepObjectsCreated{}; // todo: check offset and size
     bool                     m_bMoveDown;
-    int32                    m_nNumIntermediatePlanes;
-    int32                    m_nNumBottomPlanes;
-    int32                    m_nNumTopPlanes;
+    uint32                   m_nNumIntermediatePlanes;
+    uint32                   m_nNumBottomPlanes;
+    uint32                   m_nNumTopPlanes;
     char                     _unused[8];
     CSphere                  m_Bounding;
     float                    m_nCurrentPosition;
     CEntity*                 m_pEntity;
-    std::array<CObject*, 42> m_pObjects{};
+    std::array<CObject*, 42> m_pStepObjects{};
 
 private:
     friend void InjectHooksMain();
