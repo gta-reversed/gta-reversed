@@ -50,7 +50,7 @@ public:
     static bool IsPathToDoorBlockedByVehicleCollisionModel(const CPed* ped, const CVehicle* vehicle, const CVector& pos);
     static bool IsPedHealthy(CPed* vehicle);
     static bool IsPlayerToQuitCarEnter(const CPed* ped, const CVehicle* vehicle, int32 startTime, CTask* task);
-    static bool IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId, CVector* pos = nullptr);
+    static bool IsRoomForPedToLeaveCar(const CVehicle* vehicle, int32 doorId, const CVector* pos = nullptr);
     static bool IsVehicleHealthy(const CVehicle* vehicle);
     static bool IsVehicleStealable(const CVehicle* vehicle, const CPed* ped);
     static void MakeUndraggedDriverPedLeaveCar(const CVehicle* vehicle, const CPed* ped);

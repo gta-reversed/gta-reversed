@@ -37,10 +37,13 @@ typedef CPool<CQuadTreeNode> CQuadTreeNodePool;
 
 class CQuadTreeNode {
 public:
-    CRect              m_Rect;
-    CPtrListSingleLink m_ItemList;
-    CQuadTreeNode*     m_apChildren[4];
-    uint32             m_nLevel; // 0 - last level
+    using ListType = CPtrListSingleLink<void*>;
+
+public:
+    CRect          m_Rect;
+    ListType       m_ItemList;
+    CQuadTreeNode* m_apChildren[4];
+    uint32         m_nLevel; // 0 - last level
 
     static CQuadTreeNodePool*& ms_pQuadTreeNodePool;
 
@@ -63,9 +66,9 @@ public:
     int32 FindSector(const CVector2D& posn);
     void ForAllMatching(const CRect& rect, CQuadTreeNodeRectCallBack callback);
     void ForAllMatching(const CVector2D& posn, CQuadTreeNodeVec2DCallBack callback);
-    void GetAll(CPtrListSingleLink& list);
-    void GetAllMatching(const CRect& rect, CPtrListSingleLink& list);
-    void GetAllMatching(const CVector2D& posn, CPtrListSingleLink& list);
+    void GetAll(ListType& list);
+    void GetAllMatching(const CRect& rect, ListType& list);
+    void GetAllMatching(const CVector2D& posn, ListType& list);
     bool InSector(const CRect& rect, int32 sector) const;
 
 // Helpers

@@ -40,7 +40,7 @@ void InteriorManager_c::Init() {
     for (auto& i : m_Interiors) {
         m_InteriorPool.AddItem(&i);
     }
-    for (auto&& [i, g] : notsa::enumerate(m_InteriorGroups)) {
+    for (auto&& [i, g] : rngv::enumerate(m_InteriorGroups)) {
         g.m_id = (uint8)i;
         m_InteriorGroupPool.AddItem(&g);
     }
@@ -194,7 +194,7 @@ void InteriorManager_c::AddSameGroupEffectInfos(InteriorEffectInfo_t* ifxi, int3
             continue;
         }
 
-        const auto fx = C2dEffect::DynCast<C2dEffectInterior>(mi->Get2dEffect(i));
+        const auto fx = notsa::dyn_cast_if_present<C2dEffectInterior>(mi->Get2dEffect(i));
         if (!fx || ifxi->Effects[0]->m_groupId != fx->m_groupId) {
             continue;
         }
@@ -251,7 +251,7 @@ size_t InteriorManager_c::GetVisibleEffects(InteriorEffectInfo_t* intFxInfos, ui
 
         const auto mi = e->GetModelInfo();
         for (size_t i = 0; i < mi->m_n2dfxCount; i++) {
-            const auto ifx = C2dEffect::DynCast<C2dEffectInterior>(mi->Get2dEffect((int32)i));
+            const auto ifx = notsa::dyn_cast_if_present<C2dEffectInterior>(mi->Get2dEffect((int32)i));
 
             // We only care about visible interior effects
             if (!ifx || !IsInteriorEffectVisible(ifx, e)) {
@@ -362,7 +362,7 @@ void InteriorManager_c::SetStealableObjectStolen(CEntity* entity, uint8 isStolen
 
 // 0x598360
 int32 InteriorManager_c::FindStealableObjectId(CEntity* entity) const {
-    for (auto&& [i, v] : notsa::enumerate(GetObjects())) {
+    for (auto&& [i, v] : rngv::enumerate(GetObjects())) {
         if (v.entity == entity) {
             return i;
         }
@@ -372,7 +372,7 @@ int32 InteriorManager_c::FindStealableObjectId(CEntity* entity) const {
 
 // 0x5982F0
 int32 InteriorManager_c::FindStealableObjectId(int32 interiorId, int32 modelId, CVector point) const {
-    for (auto&& [i, v] : notsa::enumerate(GetObjects())) {
+    for (auto&& [i, v] : rngv::enumerate(GetObjects())) {
         if (v.interiorId == interiorId && v.modelId == modelId && v.pos == point) {
             return i;
         }

@@ -6,7 +6,7 @@
 */
 
 #include "StdInc.h"
-
+#include <reversiblebugfixes/Bugs.hpp>
 #include "AESound.h"
 
 #include "AEAudioEnvironment.h"
@@ -193,7 +193,7 @@ void CAESound::UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 play
     // Avoid division by 0
     // This seems to have been fixed the same way in Android
     // The cause is/can be missing audio files, but I'm lazy to fix it, so this is gonna be fine for now
-    m_nCurrentPlayPosition = !notsa::IsFixBugs() || soundLength > 0
+    m_nCurrentPlayPosition = !notsa::bugfixes::AESound_UpdatePlayTime_DivisionByZero || soundLength > 0
         ? loopStartTime + (m_nCurrentPlayPosition % soundLength)
         : loopStartTime;
 }
@@ -207,7 +207,9 @@ CVector CAESound::GetRelativePosition() const {
 
 // 0x4EF350 - Matches the original calling convention, to be used by reversible hooks, use the version returning CVector instead in our code
 void CAESound::GetRelativePosition(CVector* outVec) const {
-    *outVec = GetFrontEnd() ? m_vecCurrPosn : CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
+    *outVec = GetFrontEnd()
+        ? m_vecCurrPosn
+        : CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
 }
 
 // 0x4EF390
@@ -300,10 +302,9 @@ void CAESound::CalculateVolume() {
     if (GetFrontEnd())
         m_fFinalVolume = m_fVolume - m_fSoundHeadRoom;
     else {
-        const auto relativePos = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
-        const auto fDist = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn).Magnitude() / m_fSoundDistance;
-        const auto fAttenuation = CAEAudioEnvironment::GetDistanceAttenuation(fDist);
-        m_fFinalVolume = CAEAudioEnvironment::GetDirectionalMikeAttenuation(relativePos) + fAttenuation + m_fVolume - m_fSoundHeadRoom;
+        const auto relativeToCamPos = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
+        const auto attenuation      = CAEAudioEnvironment::GetDistanceAttenuation(relativeToCamPos.Magnitude() / m_fSoundDistance);
+        m_fFinalVolume              = CAEAudioEnvironment::GetDirectionalMikeAttenuation(relativeToCamPos) + attenuation + m_fVolume - m_fSoundHeadRoom;
     }
 }
 

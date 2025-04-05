@@ -2,7 +2,7 @@
 
 #include "EventGroup.h"
 
-#include "EventGroup.h"
+class CPedGroup;
 
 class NOTSA_EXPORT_VTABLE CEventGlobalGroup : public CEventGroup {
 public:

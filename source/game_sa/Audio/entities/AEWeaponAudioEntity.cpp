@@ -291,7 +291,7 @@ void CAEWeaponAudioEntity::WeaponReload(eWeaponType type, CPhysical* entity, eAu
         return;
     }
 
-    const auto PlaySound = [&](tSoundID soundID, float volumeOffsetdB = 0.f) {
+    const auto PlaySound = [&](eSoundID soundID, float volumeOffsetdB = 0.f) {
         CAESound s;
         s.Initialise(
             5,
@@ -504,7 +504,7 @@ void CAEWeaponAudioEntity::ReportStealthKill(eWeaponType type, CPhysical* entity
         return;
     }
 
-    const auto PlayStealthKillSound = [&](int16 bankSlotID, tSoundID soundID, float volumeOffsetdB, int32 eventID) {
+    const auto PlayStealthKillSound = [&](int16 bankSlotID, eSoundID soundID, float volumeOffsetdB, int32 eventID) {
         AESoundManager.PlaySound({
             .BankSlotID         = bankSlotID,
             .SoundID            = soundID,
@@ -879,7 +879,7 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     }
     case AE_WEAPON_SOUND_CAT_FLAME: { // 0x504BC3
         if (m_LastFlameThrowerFireTimeMs + 300 >= CTimer::GetTimeInMS()) {
-            sound->m_fVolume = std::max(GetDefaultVolume(AE_WEAPON_FIRE), sound->m_fVolume + 2.f); // TODO: Use TimeStep
+            sound->m_fVolume = std::min(GetDefaultVolume(AE_WEAPON_FIRE) - 14.f, sound->m_fVolume + 2.f); // TODO: Use TimeStep
         } else {
             sound->StopSoundAndForget();
             m_LastFlameThrowerFireTimeMs = 0;
@@ -895,7 +895,7 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     }
     case AE_WEAPON_SOUND_CAT_EXT: { // 0x504C5F
         if (m_LastFireExtFireTimeMs + 300 >= CTimer::GetTimeInMS()) {
-            sound->m_fSpeed = std::max(0.85f, sound->m_fSpeed + 0.01f); // TODO: Use TimeStep
+            sound->m_fSpeed = std::min(0.85f, sound->m_fSpeed + 0.01f); // TODO: Use TimeStep
         } else {
             sound->StopSoundAndForget();
             m_LastFireExtFireTimeMs = 0;
@@ -988,7 +988,9 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
         break;
     }
     default: { // 0x504ECD
-        sound->m_fVolume = std::max(0.f, sound->m_fVolume - 2.5f);
+        if (sound->m_fVolume > 0.0f) {
+            sound->m_fVolume = std::max(0.0f, sound->m_fVolume - 2.5f);
+        }
         break;
     }
     }

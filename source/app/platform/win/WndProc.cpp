@@ -7,7 +7,7 @@
 #ifndef NOTSA_USE_SDL3
 #include <libs/imgui/bindings/imgui_impl_win32.h>
 
-#include <windows.h>
+#include "winincl.h"
 #include <rwplcore.h>
 #include <Dbt.h>
 #include <dshow.h>
@@ -17,7 +17,8 @@
 #include "AEAudioHardware.h"
 #include "VideoMode.h"
 #include "VideoPlayer.h"
-#include "Input.h"
+#include "WinInput.h"
+#include "WinPlatform.h"
 #include "Gamma.h"
 
 // Dear ImGui said I have to copy this here
@@ -377,7 +378,7 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         if (dvletter < 'A' || (idev->dbcv_unitmask & (1 << dvletter)) == 0) {
             break;
         }
-        DEV_LOG("About to check CD drive");
+        NOTSA_LOG_DEBUG("About to check CD drive");
         CTimer::SetCodePause(true);
         if (CCutsceneMgr::IsRunning()) {
             CCutsceneMgr::SkipCutscene();
@@ -385,11 +386,11 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         while (!AEAudioHardware.CheckDVD()) {
             FrontEndMenuManager.NoDiskInDriveMessage();
             if (FrontEndMenuManager.m_bQuitGameNoDVD) {
-                DEV_LOG("Exiting game as Audio CD was not inserted");
+                NOTSA_LOG_DEBUG("Exiting game as Audio CD was not inserted");
                 break;
             }
         }
-        DEV_LOG("GTA Audio DVD has been inserted");
+        NOTSA_LOG_DEBUG("GTA Audio DVD has been inserted");
         CTimer::SetCodePause(false);
         break;
     }

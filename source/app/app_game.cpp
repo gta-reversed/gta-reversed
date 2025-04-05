@@ -71,7 +71,7 @@ void InitialiseGame() {
 // unused
 // 0x53DF10
 void TheGame() {
-    printf("Into TheGame!!!\n");
+    NOTSA_LOG_DEBUG("Into TheGame!!!\n");
     CTimer::Initialise();
     CGame::Initialise(GAME_LEVEL_FILE);
     CLoadingScreen::SetLoadingBarMsg("Starting Game", nullptr);
@@ -355,7 +355,7 @@ void Idle(void* param) {
         CVisibilityPlugins::RenderWeaponPedsForPC();
         CVisibilityPlugins::ms_weaponPedsForPC.Clear();
         RenderEffects();
-        if (TheCamera.m_nBlurType == MOTION_BLUR_NONE || TheCamera.m_nBlurType == MOTION_BLUR_LIGHT_SCENE) {
+        if (TheCamera.m_nBlurType == eMotionBlurType::NONE || TheCamera.m_nBlurType == eMotionBlurType::LIGHT_SCENE) {
             if (TheCamera.m_fScreenReductionPercentage > 0.0f) {
                 TheCamera.SetMotionBlurAlpha(150);
             }

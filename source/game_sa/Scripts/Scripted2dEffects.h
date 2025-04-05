@@ -1,6 +1,6 @@
 #pragma once
 
-class C2dEffect;
+struct C2dEffect;
 
 struct CScriptedEffectPair {
     int32 dword0;
@@ -82,7 +82,7 @@ public:
 
     // NOTSA
     static int32 FindFreeSlot() {
-        for (auto&& [i, activated] : notsa::enumerate(ms_activated)) {
+        for (auto&& [i, activated] : rngv::enumerate(ms_activated)) {
             if (!activated) {
                 return (int32)i;
             }

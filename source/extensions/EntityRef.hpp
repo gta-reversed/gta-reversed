@@ -1,9 +1,12 @@
 #pragma once
 
+// We can't include this header, because it creates a circular dependency with it.
+// Wherever this is included has to include the entity they want to use the `Ref` of anyways...
 #include <Entity.h>
+
 namespace notsa {
 //! Wrapper for entity references, avoids manual usage of `CleanupOldRef` and `RegisterRef`
-template<typename T>
+template<typename T = CEntity>
 struct EntityRef {
     EntityRef(T* ptr = nullptr) noexcept :
         m_Ptr{ ptr }
@@ -30,8 +33,7 @@ struct EntityRef {
         if (m_Ptr) {
             m_Ptr->CleanUpOldReference(reinterpret_cast<CEntity**>(&m_Ptr));
         }
-        m_Ptr = ptr;
-        if (m_Ptr) {
+        if (m_Ptr = ptr) {
             m_Ptr->RegisterReference(reinterpret_cast<CEntity**>(&m_Ptr));
         }
         return *this;
@@ -50,6 +52,12 @@ struct EntityRef {
 
     T* operator&()  const noexcept { return m_Ptr; }
     T* operator&()        noexcept { return m_Ptr; }
+
+    //auto operator==(const EntityRef<T>& o) const noexcept { return m_Ptr == o.m_Ptr; }
+    //auto operator!=(const EntityRef<T>& o) const noexcept { return !(*this == o); }
+    //
+    //auto operator==(const T* o) const noexcept { return m_Ptr == o; }
+    //auto operator!=(const T* o) const noexcept { return !(*this == o); }
 
 private:
     T* m_Ptr;

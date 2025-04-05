@@ -1,7 +1,8 @@
 #include "StdInc.h"
 
 #include "UIRenderer.h"
-#include "TaskSimpleAchieveHeading.h"
+#include "TaskComplexDestroyCarMelee.h"
+#include <TaskComplexEnterCarAsPassengerTimed.h>
 #include "TaskComplexWalkAlongsidePed.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
 #include "TaskComplexFollowNodeRoute.h"
@@ -9,6 +10,7 @@
 #include "TaskComplexStealCar.h"
 #include "TaskComplexFleeAnyMeans.h"
 #include "TaskComplexDriveWander.h"
+#include "TaskComplexCarSlowBeDraggedOut.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -23,7 +25,6 @@
 #include <libs/imgui/bindings/imgui_impl_dx9.h>
 
 #include <Windows.h>
-#include <extensions/ScriptCommands.h>
 #include "DebugModules/DebugModules.h"
 
 namespace notsa {
@@ -49,7 +50,7 @@ UIRenderer::UIRenderer() :
 
     SetIsActive(false);
 
-    DEV_LOG("I say hello!");
+    NOTSA_LOG_DEBUG("I say hello!");
 }
 
 UIRenderer::~UIRenderer() {
@@ -61,7 +62,7 @@ UIRenderer::~UIRenderer() {
 #endif
     ImGui::DestroyContext(m_ImCtx);
 
-    //DEV_LOG("Good bye!");
+    //NOTSA_LOG_DEBUG("Good bye!");
 }
 
 void UIRenderer::SetIsActive(bool active) {
@@ -178,7 +179,7 @@ void UIRenderer::DebugCode() {
             },
             TASK_PRIMARY_PRIMARY
         );
-        DEV_LOG("GOING!");
+        NOTSA_LOG_DEBUG("GOING!");
         //CPointRoute route{};
         //
         //const auto r = 10.f;
@@ -221,7 +222,7 @@ void UIRenderer::DebugCode() {
     }
     if (pad->IsStandardKeyJustDown('8')) {
         TheCamera.AddShakeSimple(10000.f, 1, 10.f);
-        DEV_LOG("Hey");
+        NOTSA_LOG_DEBUG("Hey");
     }
     if (pad->IsStandardKeyJustPressed('5')) {
         if (const auto veh = FindPlayerVehicle()) {
@@ -233,6 +234,10 @@ void UIRenderer::DebugCode() {
     }
     if (pad->IsStandardKeyJustPressed('6')) {
         FindPlayerPed()->Say(CTX_GLOBAL_JACKED_CAR);
+    }
+
+    if (pad->IsStandardKeyJustPressed('T')) {
+        CCurves::TestCurves();
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {

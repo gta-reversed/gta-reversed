@@ -18,7 +18,7 @@ public:
     eEventType GetEventType() const override { return EVENT_VEHICLE_TO_STEAL; }
     int32 GetEventPriority() const override { return 7; }
     int32 GetLifeTime() override { return 0; }
-    CEvent* Clone() override { return new CEventVehicleToSteal(m_vehicle); }
+    CEvent* Clone() const noexcept override { return new CEventVehicleToSteal(m_vehicle); }
     bool AffectsPed(CPed* ped) override;
 
 private:

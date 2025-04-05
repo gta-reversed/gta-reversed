@@ -14,7 +14,6 @@
 #include "ColHelpers.h"
 #include "PedModelInfo.h"
 #include "TaskSimpleHoldEntity.h"
-#include "extensions/enumerate.hpp"
 
 #include "TaskComplexEnterCarAsDriver.h"
 #include "TaskComplexEnterCarAsPassenger.h"
@@ -1697,7 +1696,7 @@ bool CCollision::TestLineOfSight(
     CalculateTrianglePlanes(cd);
     const auto verts = cd->GetTriVerts();
     const auto pls   = cd->GetTriPlanes();
-    for (const auto&& [idx, tri] : notsa::enumerate(cd->GetTris())) { // TODO: rng::zip
+    for (const auto&& [idx, tri] : rngv::enumerate(cd->GetTris())) { // TODO: rng::zip
         if (ShouldTest(tri.GetSurfaceType()) && TestLineTriangle(lnos, verts, tri, pls[idx])) {
             return true;
         }
@@ -1821,7 +1820,7 @@ bool CCollision::ProcessVerticalLine(
     CStoredCollPoly storedColPoly{};
     const auto verts = cd->GetTriVerts();
     const auto pls   = cd->GetTriPlanes();
-    for (const auto&& [idx, tri] : notsa::enumerate(cd->GetTris())) { // TODO: rng::zip
+    for (const auto&& [idx, tri] : rngv::enumerate(cd->GetTris())) { // TODO: rng::zip
         if (ShouldTest(tri.GetSurfaceType())) {
             ProcessLineTriangle(lnos, verts, tri, pls[idx], cp, localMaxTouchDist, &storedColPoly);
         }
@@ -1965,7 +1964,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
 
     // Test `spheres` against bounding bb `bb` and store all colliding sphere's indices in `collidedIdxs`
     const auto TestSpheresAgainstBB = []<size_t n>(auto&& spheres, const auto& bb, uint32& numCollided, uint32(&collidedIdxs)[n]) {
-        for (const auto& [triIdx, sp] : notsa::enumerate(spheres)) {
+        for (const auto& [triIdx, sp] : rngv::enumerate(spheres)) {
             if (TestSphereBox(sp, bb)) {
                 assert(numCollided < n); // Avoid out-of-bounds (Game originally didn'maxTouchDist check)
                 collidedIdxs[numCollided++] = (uint32)triIdx;
@@ -2010,7 +2009,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
     // Test B's boxes against A's bounding sphere
     static uint32 collBoxB[MAX_BOXES]; // Indices of B's boxes colliding with A's bounding sphere
     uint32 numCollBoxB{};
-    for (auto&& [triIdx, bb] : notsa::enumerate(cdB.GetBoxes())) {
+    for (auto&& [triIdx, bb] : rngv::enumerate(cdB.GetBoxes())) {
         if (TestSphereBox(colABoundSphereSpaceB, bb)) {
             collBoxB[numCollBoxB++] = triIdx;
             if (numCollBoxB >= MAX_BOXES) {
@@ -2404,11 +2403,7 @@ bool CCollision::CheckCameraCollisionPeds(
     bool addedAny = false;
 
     const auto& sector = GetRepeatSector(sectorX, sectorY);
-    for (CPtrNodeDoubleLink* it = sector->GetList(REPEATSECTOR_PEDS).GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-        
-        const auto ped = it->GetItem<CPed>();
-
+    for (auto* const ped : sector->Peds) {
         if (ped->IsScanCodeCurrent()) {
             continue;
         }
@@ -2816,7 +2811,7 @@ bool CCollision::SphereCastVsEntity(
     };
 
     // Process spheres
-    for (auto&& [idx, sp] : notsa::enumerate(ecd->GetSpheres())) {
+    for (auto&& [idx, sp] : rngv::enumerate(ecd->GetSpheres())) {
         if (!SphereCastVsSphere(spAos, spBos, sp)) {
             continue;
         }
@@ -2877,7 +2872,7 @@ bool CCollision::SphereCastVsEntity(
     }
 
     // Process boxes
-    for (auto&& [idx, bb] : notsa::enumerate(ecd->GetBoxes())) {
+    for (auto&& [idx, bb] : rngv::enumerate(ecd->GetBoxes())) {
         if (SphereCastVsBBox(spAos, spBos, bb)) {
             if (AddEntryToColCache(BOX, idx)) {
                 return true;
@@ -2903,10 +2898,7 @@ bool CCollision::CheckCameraCollisionBuildings(
     const auto checkFlyerCollision = plyrVeh && plyrVeh->physicalFlags.bDontCollideWithFlyers;
 
     bool anyCollided = false;
-    for (CPtrNodeDoubleLink* it = GetSector(X, Y)->m_buildings.GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-
-        const auto entity = it->GetItem<CBuilding>();
+    for (auto* const entity : GetSector(X, Y)->m_buildings) {
         if (!entity->ProcessScan()) {
             continue;
         }
@@ -2940,11 +2932,7 @@ bool CCollision::CheckCameraCollisionVehicles(
     static auto& gpLastSittingOnEntity   = StaticRef<CEntity*, 0x9689D8>();
 
     bool anyCollided = false;
-    for (CPtrNodeDoubleLink* it = GetRepeatSector(X, Y)->GetList(REPEATSECTOR_VEHICLES).GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-
-        const auto entity = it->GetItem<CVehicle>();
-
+    for (auto* const entity : GetRepeatSector(X, Y)->Vehicles) {
         if (!entity->ProcessScan()) {
             continue;
         }
@@ -2995,10 +2983,7 @@ bool CCollision::CheckCameraCollisionObjects(
     // Pirulax: At this point I'm certain R* devs were paid by lines written
 
     bool anyCollided = false;
-    for (CPtrNodeDoubleLink* it = GetRepeatSector(X, Y)->GetList(REPEATSECTOR_OBJECTS).GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-
-        const auto entity = it->GetItem<CObject>();
+    for (auto* const entity : GetRepeatSector(X, Y)->Objects) {
         if (!entity->ProcessScan()) {
             continue;
         }

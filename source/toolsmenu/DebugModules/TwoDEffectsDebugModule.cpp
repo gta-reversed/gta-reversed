@@ -136,14 +136,14 @@ void TwoDEffectsDebugModule::UpdateEntitiesAndEffectsInRange() {
     m_FxInRange.clear();
     m_FxInRange.reserve(m_EntitiesInRange.size() * 2);
     for (size_t eN = 0; eN < m_EntitiesInRange.size(); eN++) {
-        auto* const       e  = m_EntitiesInRange[eN];
-        const auto* const mi = e->GetModelInfo();
+        auto* const       entity = m_EntitiesInRange[eN];
+        const auto* const mi     = entity->GetModelInfo();
         for (size_t fxN = 0; fxN < mi->m_n2dfxCount; fxN++) {
             auto* const fx    = mi->Get2dEffect(fxN);
-            const auto  fxPos = e->GetMatrix().TransformPoint(fx->m_Pos);
-            const auto  hash  = ImHashData(&fx, sizeof(&fx), ImHashData(&e, sizeof(&e)));
+            const auto  fxPos = entity->GetMatrix().TransformPoint(fx->m_Pos);
+            const auto  hash  = ImHashData(&fx, sizeof(&fx), ImHashData(&entity, sizeof(&entity)));
             const auto& entry = m_FxInRange.emplace_back(
-                e,
+                entity,
                 fx,
                 fxPos,
                 CVector::Dist(fxPos, FindPlayerCoors()),
@@ -251,7 +251,7 @@ void TwoDEffectsDebugModule::RenderSelectedEffectDetails() {
 
     ig::Text("%-15s %s", "Type:", s_2DEffectTypeNames[selFx.Fx->m_Type]);
     ig::Text("%-15s %.3f", "Distance:", selFx.DistToPlayer);
-    if (auto* const attr = C2dEffect::DynCast<C2dEffectPedAttractor>(selFx.Fx)) {
+    if (auto* const attr = notsa::dyn_cast<C2dEffectPedAttractor>(selFx.Fx)) {
         ig::Text("%-15s %s", "Attractor Type:", s_PedAttractorTypeNames[attr->m_nAttractorType]);
         ig::Text("%-15s %s", "Script Name:", attr->m_szScriptName);
         ig::Text("%-15s 0x%X", "Flags:", (uint32)attr->m_nFlags);
@@ -294,7 +294,7 @@ void TwoDEffectsDebugModule::RenderEffectBB(const InRange2DFx& fx) {
 void TwoDEffectsDebugModule::RenderSelectedEffectDetails3D() {
     const auto& selFx = *m_SelectedFx;
 
-    if (auto* const attr = C2dEffect::DynCast<C2dEffectPedAttractor>(selFx.Fx)) {
+    if (auto* const attr = notsa::dyn_cast<C2dEffectPedAttractor>(selFx.Fx)) {
         const auto attrPos = CPedAttractorManager::ComputeEffectPos(attr, selFx.Entity->GetMatrix());
         const auto RenderDirectionVector = [&](CVector dir, auto dirID) {
             CLines::RenderLineNoClipping(

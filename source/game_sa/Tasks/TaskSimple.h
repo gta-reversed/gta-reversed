@@ -23,7 +23,7 @@ public:
     *
     * @param ped The ped this task belongs to
     * 
-    * @return `true` if the task has finished, `false` otheriwse.
+    * @return `true` if the task has finished, `false` otherwise.
     */
     virtual bool ProcessPed(CPed* ped) = 0;
 

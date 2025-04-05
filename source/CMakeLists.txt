@@ -1,6 +1,17 @@
+#--------------------------------------------------------------------
+# Game features
+#--------------------------------------------------------------------
+option(${RE_PROJECT}_WITH_OPENAL "Use OpenAL" OFF)
+
+
+#--------------------------------------------------------------------
+# Build options
+#--------------------------------------------------------------------
 option(${RE_PROJECT}_UNITY_BUILD "Use Unity/Jumbo build" OFF)
 option(${RE_PROJECT}_WITH_SANITIZERS "Use Sanitizers (better crash log)" OFF)
 option(${RE_PROJECT}_WITH_LTO "Use Link Time Optimization" OFF)
+option(${RE_PROJECT}_WITH_SCRIPT_COMMAND_HOOKS "Create script command hooks in the UI (Command hooks are installed regardless)" OFF)
+option(${RE_PROJECT}_WITH_CLEO_COMMANDS "Enable CLEO script commands" OFF)
 
 file(
     GLOB_RECURSE SOURCE_FILES_LIST
@@ -11,23 +22,33 @@ file(
 )
 list(APPEND SOURCE_FILES_LIST StdInc.cpp)
 
+#--------------------------------------------------------------------
+# Remove unused sources
+#--------------------------------------------------------------------
+if (NOT WIN32 AND NOT ${RE_PROJECT}_WITH_OPENAL)
+    set(${RE_PROJECT}_WITH_OPENAL ON)
+endif()
+
+if (${RE_PROJECT}_WITH_OPENAL)
+    # TODO: Remove dsound specific sources
+else()
+    file(
+        GLOB_RECURSE OPENAL_FILES
+        LIST_DIRECTORIES false
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/game_sa/Audio/OpenAL/*.c*"
+        "${CMAKE_CURRENT_SOURCE_DIR}/game_sa/Audio/OpenAL/*.h*"
+    )
+    list(REMOVE_ITEM SOURCE_FILES_LIST ${OPENAL_FILES})
+endif()
+
+
 add_library(${RE_PROJECT_LIB_NAME} MODULE ${SOURCE_FILES_LIST})
 
 target_compile_options(${RE_PROJECT_LIB_NAME} PRIVATE
-    "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/wd26812;/wd26495>"
+    "$<$<CXX_COMPILER_ID:MSVC>:/MP;/Zc:preprocessor;/W3;/wd4251;/wd4275;/wd4996;/wd26495;/wd26812;/wd28159>"
     "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wall;>"
 )
-
-function(supress_deps_warnings targets)
-    foreach (target ${targets})
-        add_compile_options(${target} PRIVATE
-            "$<$<CXX_COMPILER_ID:MSVC>:-w>"
-            "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wno-everything>"
-        )
-    endforeach()
-endfunction()
-supress_deps_warnings(ogg imgui vorbisfile spdlog nlohmann_json sdl3)
-
 set_target_properties(${RE_PROJECT_LIB_NAME}
     PROPERTIES
     SUFFIX ".asi"
@@ -36,52 +57,48 @@ set_target_properties(${RE_PROJECT_LIB_NAME}
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/"
     COMPILE_WARNING_AS_ERROR ON
 )
-if (${RE_PROJECT}_UNITY_BUILD)
-    set_target_properties(${RE_PROJECT_LIB_NAME}
-        PROPERTIES
-        UNITY_BUILD TRUE
-        UNITY_BUILD_MODE BATCH
-        UNITY_BUILD_BATCH_SIZE 16
-    )
-endif()
-
-if (${RE_PROJECT}_WITH_LTO)
-    message(STATUS "Configuring Link Time Optimization")
-    set_target_properties(${RE_PROJECT_LIB_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
-
-if (${RE_PROJECT}_WITH_SANITIZERS)
-    message(STATUS "Configuring sanitizers")
-    # add_sanitizers(${RE_PROJECT_LIB_NAME})
-endif()
-
 target_link_options(${RE_PROJECT_LIB_NAME} PRIVATE "/SUBSYSTEM:WINDOWS")
 
+#--------------------------------------------------------------------
+# Add dependencies
+#--------------------------------------------------------------------
+macro(add_dependency)
+    foreach (target ${ARGV})
+        find_package(${target} REQUIRED)
+
+        add_compile_options(${target} PRIVATE
+            "$<$<CXX_COMPILER_ID:MSVC>:-w>"
+            "$<$<OR:$<CXX_COMPILER_ID:Clang,GCC>,$<CXX_COMPILER_ID:GNU>>:-Wno-everything>"
+        )
+    endforeach()
+endmacro()
+add_dependency(
+    nlohmann_json
+    Ogg
+    spdlog
+    Tracy
+    Vorbis
+    imgui
+    libjpeg-turbo
+    SDL3
+)
+
 target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
+    nlohmann_json::nlohmann_json
     Ogg::ogg
-    vorbis::vorbis
-    imgui::imgui
     spdlog::spdlog
     Tracy::TracyClient
+    vorbis::vorbis
+    imgui::imgui
+    libjpeg-turbo::libjpeg-turbo
     ddraw
     Winmm
     dxguid
     strmiids
-    dsound
     d3d9
-    nlohmann_json::nlohmann_json
     SDL3::SDL3
 )
 
-if(WIN32) 
-    if(MSVC) # MSVC knows how to find dbghelp on it's own
-        target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
-            dbghelp
-        )
-    else()
-        message(FATAL_ERROR "Need to link dbghelp lib for win32")
-    endif()
-endif()
 
 target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     /
@@ -140,6 +157,11 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
 
     libs/imgui
 )
+
+target_sources(${RE_PROJECT_LIB_NAME} PRIVATE
+    notsa.natvis
+)
+
 target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
     _CRT_SECURE_NO_WARNINGS
     NOMINMAX
@@ -147,9 +169,67 @@ target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
     EXTRA_DEBUG_FEATURES
     FIX_BUGS
     SA_SKINNED_PEDS
+
+    USE_D3D9 # TODO
 )
 target_compile_features(${RE_PROJECT_LIB_NAME} PRIVATE cxx_std_23)
 target_precompile_headers(${RE_PROJECT_LIB_NAME} PRIVATE StdInc.cpp)
+
+#--------------------------------------------------------------------
+# Configure build options
+#--------------------------------------------------------------------
+if (${RE_PROJECT}_UNITY_BUILD)
+    set_target_properties(${RE_PROJECT_LIB_NAME}
+        PROPERTIES
+        UNITY_BUILD TRUE
+        UNITY_BUILD_MODE BATCH
+        UNITY_BUILD_BATCH_SIZE 16
+    )
+endif()
+
+if (${RE_PROJECT}_WITH_LTO)
+    message(STATUS "Configuring Link Time Optimization")
+    set_target_properties(${RE_PROJECT_LIB_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
+if (${RE_PROJECT}_WITH_SANITIZERS)
+    message(STATUS "Configuring sanitizers")
+    # add_sanitizers(${RE_PROJECT_LIB_NAME})
+endif()
+
+
+#--------------------------------------------------------------------
+# Configure the Audio API
+#--------------------------------------------------------------------
+if (${RE_PROJECT}_WITH_OPENAL)
+    target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE USE_OPENAL)
+
+    target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
+        game_sa/Audio/OpenAL
+    )
+else()
+    target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE USE_DSOUND)
+
+    target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE dsound)
+endif()
+
+
+#--------------------------------------------------------------------
+# Configure misc. dependencies for Windows
+#--------------------------------------------------------------------
+if(WIN32)
+    if(MSVC)
+        # MSVC knows how to find dbghelp on it's own
+        target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
+            dbghelp
+        )
+
+        target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE DIRECTINPUT_VERSION=0x0800)
+    else()
+        message(FATAL_ERROR "Need to link dbghelp lib for win32")
+    endif()
+endif()
+
 
 #--------------------------------------------------------------------
 # Install

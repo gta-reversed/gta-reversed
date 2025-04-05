@@ -150,8 +150,8 @@ CObject::~CObject() {
 
     RemoveFromControlCodeList();
     if (m_nModelIndex == ModelIndices::MI_TRAINCROSSING1) {
-        const auto& dummyPos = m_pDummyObject->GetPosition();
-        ThePaths.SetLinksBridgeLights(dummyPos.x - 12.0F, dummyPos.x + 12.0F, dummyPos.y - 12.0F, dummyPos.y + 12.0F, false);
+        const auto& p = m_pDummyObject->GetPosition();
+        ThePaths.SetLinksBridgeLights(p.x - 12.0F, p.x + 12.0F, p.y - 12.0F, p.y + 12.0F, false);
     }
 
     if (m_pFire)
@@ -577,7 +577,7 @@ void CObject::Render() {
 
 // 0x554FA0
 bool CObject::SetupLighting() {
-    if (physicalFlags.bDestroyed) {
+    if (physicalFlags.bRenderScorched) {
         WorldReplaceNormalLightsWithScorched(Scene.m_pRpWorld, 0.18F);
         return true;
     }
@@ -595,7 +595,7 @@ void CObject::RemoveLighting(bool bRemove) {
     if (!bRemove)
         return;
 
-    if (!physicalFlags.bDestroyed)
+    if (!physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 
     SetAmbientColours();
@@ -1245,11 +1245,10 @@ void CObject::TryToFreeUpTempObjects(int32 numObjects) {
     if (numObjects <= 0)
         return;
 
-    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i) {
-        auto* obj = GetObjectPool()->GetAt(i);
-        if (obj && obj->IsTemporary() && !obj->IsVisible()) {
-            CWorld::Remove(obj);
-            delete obj;
+    for (auto& obj : GetObjectPool()->GetAllValid()) {
+        if (obj.IsTemporary() && !obj.IsVisible()) {
+            CWorld::Remove(&obj);
+            delete &obj;
             --numObjects;
         }
     }
@@ -1257,36 +1256,33 @@ void CObject::TryToFreeUpTempObjects(int32 numObjects) {
 
 // 0x5A18B0
 void CObject::DeleteAllTempObjects() {
-    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i) {
-        auto* obj = GetObjectPool()->GetAt(i);
-        if (obj && obj->IsTemporary()) {
-            CWorld::Remove(obj);
-            delete obj;
+    for (auto& obj : GetObjectPool()->GetAllValid()) {
+        if (obj.IsTemporary()) {
+            CWorld::Remove(&obj);
+            delete &obj;
         }
     }
 }
 
 // 0x5A1910
 void CObject::DeleteAllMissionObjects() {
-    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i)  {
-        auto* obj = GetObjectPool()->GetAt(i);
-        if (obj && obj->IsMissionObject()) {
-            CWorld::Remove(obj);
-            delete obj;
+    for (auto& obj : GetObjectPool()->GetAllValid())  {
+        if (obj.IsMissionObject()) {
+            CWorld::Remove(&obj);
+            delete &obj;
         }
     }
 }
 
 // 0x5A1980
 void CObject::DeleteAllTempObjectsInArea(CVector point, float radius) {
-    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i) {
-        auto* obj = GetObjectPool()->GetAt(i);
-        if (!obj || !obj->IsTemporary())
+    for (auto& obj : GetObjectPool()->GetAllValid()) {
+        if (!obj.IsTemporary())
             continue;
 
-        if (DistanceBetweenPointsSquared(obj->GetPosition(), point) < sq(radius)) {
-            CWorld::Remove(obj);
-            delete obj;
+        if (DistanceBetweenPointsSquared(obj.GetPosition(), point) < sq(radius)) {
+            CWorld::Remove(&obj);
+            delete &obj;
         }
     }
 }
@@ -1329,9 +1325,9 @@ bool CObject::CanBeUsedToTakeCoverBehind() {
 
 // 0x5A1F60
 CObject* CObject::Create(int32 modelIndex, bool bUnused) {
-    GetObjectPool()->m_bIsLocked = true;
+    GetObjectPool()->SetDealWithNoMemory(true);
     auto* obj = new CObject(modelIndex, false); //BUG? most likely the unused parameter was supposed to be passed to the constructor
-    GetObjectPool()->m_bIsLocked = false;
+    GetObjectPool()->SetDealWithNoMemory(false);
 
     if (obj)
         return obj;
@@ -1344,9 +1340,9 @@ CObject* CObject::Create(int32 modelIndex, bool bUnused) {
 
 // 0x5A2070
 CObject* CObject::Create(CDummyObject* dummyObject) {
-    GetObjectPool()->m_bIsLocked = true;
+    GetObjectPool()->SetDealWithNoMemory(true);
     auto* obj = new CObject(dummyObject);
-    GetObjectPool()->m_bIsLocked = false;
+    GetObjectPool()->SetDealWithNoMemory(false);
 
     if (obj)
         return obj;

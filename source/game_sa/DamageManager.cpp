@@ -486,7 +486,7 @@ bool CDamageManager::IsDoorDamaged(eDoors door) const {
 
 /*!
 * @notsa
-* @brief Sets door open. Shouldn't be called if door isn't present (will assert in debug).
+* @brief Sets door open, unless it's missing (In which case nothing's done)
 */
 void CDamageManager::SetDoorOpen(eDoors door) {
     switch (GetDoorStatus(door)) {
@@ -497,14 +497,13 @@ void CDamageManager::SetDoorOpen(eDoors door) {
         SetDoorStatus(door, eDoorStatus::DAMSTATE_OPENED_DAMAGED);
         break;
     case eDoorStatus::DAMSTATE_NOTPRESENT:
-        //assert(0 && "Door should be present @ SetDoorOpen");
-        break;
+        break; /* do nothing */
     }
 }
 
 /*!
 * @notsa
-* @brief Sets door open. Shouldn't be called if door isn't present (will assert in debug).
+* @brief Sets door open, unless it's missing (In which case nothing's done)
 */
 void CDamageManager::SetDoorOpen_Component(tComponent door) {
     switch (GetDoorStatus_Component(door)) {
@@ -515,14 +514,13 @@ void CDamageManager::SetDoorOpen_Component(tComponent door) {
         SetDoorStatus_Component(door, eDoorStatus::DAMSTATE_OPENED_DAMAGED);
         break;
     case eDoorStatus::DAMSTATE_NOTPRESENT:
-        //assert(0 && "Door should be present @ SetDoorOpen_Component");
-        break;
+        break; /* do nothing */
     }
 }
 
 /*!
 * @notsa
-* @brief Sets door closed. Shouldn't be called if door isn't present (will assert in debug).
+* @brief Sets door closed, unless it's missing (In which case nothing's done)
 */
 void CDamageManager::SetDoorClosed(eDoors door) {
     switch (GetDoorStatus(door)) {
@@ -533,8 +531,24 @@ void CDamageManager::SetDoorClosed(eDoors door) {
         SetDoorStatus(door, eDoorStatus::DAMSTATE_DAMAGED);
         break;
     case eDoorStatus::DAMSTATE_NOTPRESENT:
-        //assert(0 && "Door should be present @ SetDoorClosed");
+        break; /* do nothing */
+    }
+}
+
+/*!
+* @notsa
+* @brief Sets door closed, unless it's missing (In which case nothing's done)
+*/
+void CDamageManager::SetDoorClosed_Component(tComponent door) {
+    switch (GetDoorStatus_Component(door)) {
+    case eDoorStatus::DAMSTATE_OPENED:
+        SetDoorStatus_Component(door, eDoorStatus::DAMSTATE_OK);
         break;
+    case eDoorStatus::DAMSTATE_OPENED_DAMAGED:
+        SetDoorStatus_Component(door, eDoorStatus::DAMSTATE_DAMAGED);
+        break;
+    case eDoorStatus::DAMSTATE_NOTPRESENT:
+        break; /* do nothing */
     }
 }
 

@@ -66,7 +66,7 @@ bool CEventAttractor::AffectsPed(CPed* ped) {
 }
 
 // 0x4B7440
-CEventEditableResponse* CEventAttractor::CloneEditable()
+CEventEditableResponse* CEventAttractor::CloneEditable() const noexcept
 {
     return new CEventAttractor(m_2dEffect, m_entity, m_bAvoidLookingAtAttractor);
 }
@@ -75,7 +75,7 @@ CEventEditableResponse* CEventAttractor::CloneEditable()
 bool CEventAttractor::IsEffectActive(CEntity* entity, const C2dEffectPedAttractor* effect) {
     auto mi = CModelInfo::GetModelInfo(entity->m_nModelIndex);
     for (int32 i = 0; i < mi->m_n2dfxCount; i++) {
-        if (effect == C2dEffect::DynCast<C2dEffectPedAttractor>(mi->Get2dEffect(i))) {
+        if (effect == notsa::dyn_cast_if_present<C2dEffectPedAttractor>(mi->Get2dEffect(i))) {
             return true;
         }
     }

@@ -36,7 +36,7 @@ CEventEditableResponse* CEventEditableResponse::Constructor() {
 }
 
 // 0x420ED0
-CEvent* CEventEditableResponse::Clone() {
+CEvent* CEventEditableResponse::Clone() const noexcept {
     CEventEditableResponse* clone = CloneEditable();
     clone->m_TaskId               = m_TaskId;
     clone->m_FacialExpressionType = m_FacialExpressionType;

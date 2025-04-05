@@ -186,7 +186,7 @@ void* OS_ThreadLaunch(OS_ThreadRoutine pfnStart, void* param, uint32 nFlags, con
         break;
     }
 
-    DEV_LOG("OS: Thread {} ({}) created", dwThreadID, name);
+    NOTSA_LOG_DEBUG("OS: Thread {} ({}) created", dwThreadID, name);
 
     return hThread;
 }
@@ -211,25 +211,4 @@ double OS_TimeAccurate() {
 
 uint32 OS_TimeMS() {
     return uint32(GetOSWPerformanceTime() / GetOSWPerformanceFrequency());
-}
-
-bool IsWin7OrGreater() {
-#ifdef _WIN32
-    OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
-    DWORDLONG        const dwlConditionMask = VerSetConditionMask(
-            VerSetConditionMask(
-                    VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL),
-                    VER_MINORVERSION, VER_GREATER_EQUAL
-            ),
-            VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL
-    );
-
-    osvi.dwMajorVersion = HIBYTE(_WIN32_WINNT_WIN7);
-    osvi.dwMinorVersion = LOBYTE(_WIN32_WINNT_WIN7);
-    osvi.wServicePackMajor = 0;
-
-    return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR, dwlConditionMask) != FALSE;
-#else
-    return false;
-#endif
 }

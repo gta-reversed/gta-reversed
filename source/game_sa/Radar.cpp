@@ -8,7 +8,6 @@
 
 #include "Radar.h"
 #include "EntryExitManager.h"
-#include <extensions/enumerate.hpp>
 
 constexpr std::array<airstrip_info, NUM_AIRSTRIPS> airstrip_table = { // 0x8D06E0
     airstrip_info{ { +1750.0f,  -2494.0f }, 180.0f, 1000.0f }, // AIRSTRIP_LS_AIRPORT
@@ -18,6 +17,7 @@ constexpr std::array<airstrip_info, NUM_AIRSTRIPS> airstrip_table = { // 0x8D06E
 };
 
 // Array of TXD slot indices for each radar section's texture
+// Index using y, x (In that order)
 static std::array<std::array<int32, MAX_RADAR_WIDTH_TILES>, MAX_RADAR_HEIGHT_TILES>& gRadarTextures = *(std::array<std::array<int32, MAX_RADAR_WIDTH_TILES>, MAX_RADAR_HEIGHT_TILES>*)0xBA8478;
 
 // 0x8D0720
@@ -1309,7 +1309,7 @@ void CRadar::Draw3dMarkers() {
         C3dMarkers::PlaceMarkerCone(id, pos, size, color.r, color.g, color.b, 255, 1024u, 0.2f, 5, true);
     };
 
-    for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) {
+    for (auto&& [i, trace] : rngv::enumerate(ms_RadarTrace)) {
         if (!trace.m_bTrackingBlip) {
             continue;
         }
@@ -1441,7 +1441,7 @@ void CRadar::DrawRadarSection(int32 x, int32 y) {
         GetTextureCorners(x, y, corners);
 
         CVector2D rotated[8]{};
-        for (auto&& [i, corner] : notsa::enumerate(corners)) {
+        for (auto&& [i, corner] : rngv::enumerate(corners)) {
             rotated[i] = CachedRotateClockwise((corner - vec2DRadarOrigin) / m_radarRange);
         }
         return ClipRadarPoly(clipped, rotated);
@@ -1450,39 +1450,26 @@ void CRadar::DrawRadarSection(int32 x, int32 y) {
     CVector2D texCoords[8]{};
     CVector2D verts[8]{};
     for (auto i = 0; i < numVerts; i++) {
-        const auto coord = CachedRotateCounterclockwise(clipped[i]) * m_radarRange + vec2DRadarOrigin;
-
-        texCoords[i] = TransformRealWorldToTexCoordSpace(coord, x, y);
-        verts[i] = TransformRadarPointToScreenSpace(clipped[i]);
+        texCoords[i] = TransformRealWorldToTexCoordSpace(vec2DRadarOrigin + CachedRotateCounterclockwise(clipped[i]) * m_radarRange, x, y);
+        verts[i]     = TransformRadarPointToScreenSpace(clipped[i]);
     }
 
-    if (!IsMapSectionInBounds(x, y)) {
-        // there is no land here, draw the sea.
-        const CRGBA seaColor{111, 137, 170, 255};
-
+    if (!IsMapSectionInBounds(x, y)) { // there is no land here, draw the sea.
         RwRenderStateSet(rwRENDERSTATETEXTURERASTER, nullptr);
-        CSprite2d::SetVertices(numVerts, verts, seaColor);
-    } else {
-        if (CTheScripts::bPlayerIsOffTheMap) {
-            const CRGBA blankColor{204, 204, 204, 255};
-
-            RwRenderStateSet(rwRENDERSTATETEXTURERASTER, nullptr);
-            CSprite2d::SetVertices(numVerts, verts, blankColor);
-        } else {
-            RwTexture* texture = nullptr;
-            if (const auto txdIndex = gRadarTextures[y][x]) {
-                if (const auto txd = CTxdStore::GetTxd(txdIndex)) {
-                    texture = GetFirstTexture(txd);
-                }
-            }
-            if (texture) {
-                const CRGBA bg{255, 255, 255, 255};
-
-                RwRenderStateSet(rwRENDERSTATETEXTURERASTER, texture->raster);
-                CSprite2d::SetVertices(numVerts, verts, texCoords, bg);
+        CSprite2d::SetVertices(numVerts, verts, texCoords, { 111, 137, 170, 255 });
+    } else if (CTheScripts::bPlayerIsOffTheMap) { // Draw blank
+        RwRenderStateSet(rwRENDERSTATETEXTURERASTER, nullptr);
+        CSprite2d::SetVertices(numVerts, verts, texCoords, { 204, 204, 204, 255 });
+    } else if (const auto txdIndex = gRadarTextures[y][x]) { // Or if it has a txture, draw that
+        if (const auto txd = CTxdStore::GetTxd(txdIndex)) {
+            if (RwTexture* const texture = GetFirstTexture(txd)) {
+                RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RwTextureGetRaster(texture));
+                CSprite2d::SetVertices(numVerts, verts, texCoords, { 255, 255, 255, 255 });
             }
         }
     }
+
+    // Now draw what we have
     if (numVerts > 2) {
         RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, CSprite2d::maVertices, numVerts);
     }
@@ -1524,13 +1511,13 @@ void CRadar::DrawRadarGangOverlay(bool inMenu) {
     for (auto& zone : CTheZones::GetNavigationZones()) {
         const auto info = CTheZones::GetZoneInfo(&zone);
 
-        if (!info || !info->radarMode || !CGangWars::CanPlayerStartAGangWarHere(info))
+        if (!info || !info->RadarMode || !CGangWars::CanPlayerStartAGangWarHere(info))
             continue;
 
         g_RadarGangOverlay = zone.GetRect();
 
         // todo: enum
-        switch (info->radarMode) {
+        switch (info->RadarMode) {
         case 1:
             DrawAreaOnRadar(g_RadarGangOverlay, info->ZoneColor, inMenu);
             break;
@@ -1823,7 +1810,7 @@ void CRadar::SetupAirstripBlips() {
         // NOTSA, effectively the same thing though.
         const auto location = [veh] {
             float distances[NUM_AIRSTRIPS]{};
-            for (auto&& [i, table] : notsa::enumerate(airstrip_table)) {
+            for (auto&& [i, table] : rngv::enumerate(airstrip_table)) {
                 distances[i] = DistanceBetweenPoints2D(table.position, veh->GetPosition());
             }
 
@@ -1909,7 +1896,7 @@ void CRadar::DrawBlips() {
     // we first do whole thing with isSprite = true, then = false... yeah.
     for (const auto isSprite : {false, true}) {
         for (auto priority = 1; priority < 4; priority++) {
-            for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) { // todo: check if looping all
+            for (auto&& [i, trace] : rngv::enumerate(ms_RadarTrace)) { // todo: check if looping all
                 if (!trace.m_bTrackingBlip)
                     continue;
 
@@ -1940,7 +1927,7 @@ void CRadar::DrawBlips() {
             }
         }
 
-        for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) { // todo: check if looping all, same thing with above.
+        for (auto&& [i, trace] : rngv::enumerate(ms_RadarTrace)) { // todo: check if looping all, same thing with above.
             if (!trace.m_bTrackingBlip)
                 continue;
 
@@ -2153,7 +2140,7 @@ const GxtChar* CRadar::GetBlipName(eRadarSprite blipType) {
  * @brief Returns the first index in `ms_RadarTrace` that is not a tracking blip.
  */
 int32 CRadar::FindTraceNotTrackingBlipIndex() {
-    for (auto&& [i, v] : notsa::enumerate(ms_RadarTrace)) {
+    for (auto&& [i, v] : rngv::enumerate(ms_RadarTrace)) {
         if (!v.m_bTrackingBlip) {
             return (int32)i;
         }

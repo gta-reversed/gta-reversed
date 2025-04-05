@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Plugins\TwoDEffectPlugin\2dEffect.h"
+#include "Plugins/TwoDEffectPlugin/2dEffect.h"
 #include "PedTaskPair.h"
 #include "SArray.h"
 #include <Enums/eMoveState.h>
@@ -12,7 +12,7 @@ class CTask;
 class NOTSA_EXPORT_VTABLE CPedAttractor {
 public:
     C2dEffectPedAttractor* m_Fx{};
-    CEntity::Ref           m_Entity{};
+    notsa::EntityRef<>     m_Entity{};
     SArray<CPed*>          m_AttractPeds{};
     SArray<CPed*>          m_ArrivedPeds{}; // AKA queue
     SArray<CPedTaskPair>   m_PedTaskPairs{};
@@ -92,7 +92,10 @@ public:
 
     void AbortPedTasks();
 
-
+public:
+    // Casting.hpp support //
+    template<typename From, typename Self>
+    static constexpr bool classof(const From* f) { return f->GetType() == Self::Type; }
 
 private:
     auto* Constructor(C2dEffectPedAttractor* fx, CEntity* entity, eMoveState moveState, size_t maxNoOfPeds, float spacing, float achieveQueueTime, float achieveQueueShuffleTime, float arriveRange, float headingRange, float deltaPos, float deltaHeading) {

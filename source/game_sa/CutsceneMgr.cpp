@@ -5,7 +5,7 @@
     Do not delete this comment block. Respect others' work!
 */
 #include "StdInc.h"
-#include <platform/win/Platform.h>
+#include <platform/win/WinPlatform.h>
 #include <extensions/ci_string.hpp>
 
 #include "Fx.h"
@@ -278,7 +278,7 @@ void CCutsceneMgr::HideRequestedObjects() {
     for (const auto& cr : ms_crToHideItems | rngv::take(ms_iNumHiddenEntities)) {
         int32 modelId;
         if (!CModelInfo::GetModelInfo(cr.m_szObjectName, &modelId)) {
-            DEV_LOG("Invalid model name(\"{}\")", cr.m_szObjectName);
+            NOTSA_LOG_DEBUG("Invalid model name(\"{}\")", cr.m_szObjectName);
             continue;
         }
 
@@ -321,7 +321,7 @@ bool CCutsceneMgr::IsCutsceneSkipButtonBeingPressed() {
 
 // 0x4D5AB0
 void CCutsceneMgr::LoadAnimationUncompressed(const char* animName) {
-    DEV_LOG("Loading uncompressed anim (\"{}\")", animName);
+    NOTSA_LOG_DEBUG("Loading uncompressed anim (\"{}\")", animName);
 
     strcpy_s(ms_aUncompressedCutsceneAnims[ms_numUncompressedCutsceneAnims++], animName);
     ms_aUncompressedCutsceneAnims[ms_numUncompressedCutsceneAnims][0] = 0; // Null terminate next
@@ -329,7 +329,7 @@ void CCutsceneMgr::LoadAnimationUncompressed(const char* animName) {
 
 // 0x4D5E80
 void CCutsceneMgr::LoadCutsceneData(const char* cutsceneName) {
-    DEV_LOG("Loading cutscene data (\"{}\")", cutsceneName);
+    NOTSA_LOG_DEBUG("Loading cutscene data (\"{}\")", cutsceneName);
 
     const auto plyr = FindPlayerPed(-1);
 
@@ -397,7 +397,7 @@ void CCutsceneMgr::LoadCutsceneData_loading() {
             if (const auto frame = CClumpModelInfo::GetFrameFromName(csobj->m_pRwClump, csfx.m_szObjectPart)) {
                 return RwFrameGetMatrix(frame);
             } else {
-                DEV_LOG("Part(\"{}\") of object not found", csfx.m_szObjectPart);
+                NOTSA_LOG_DEBUG("Part(\"{}\") of object not found", csfx.m_szObjectPart);
             }
 
             // Otherwise we're fucked
@@ -416,7 +416,7 @@ void CCutsceneMgr::LoadCutsceneData_loading() {
 
 // 0x5B13F0
 void CCutsceneMgr::LoadCutsceneData_overlay(const char* cutsceneName) {
-    DEV_LOG("LoadCutsceneData_overlay(\"{}\")", cutsceneName);
+    NOTSA_LOG_DEBUG("LoadCutsceneData_overlay(\"{}\")", cutsceneName);
 
     CTimer::Suspend();
 
@@ -455,14 +455,16 @@ void CCutsceneMgr::LoadCutsceneData_postload() {
 
         char csIFPFile[1024];
         *std::format_to(csIFPFile, "{}.IFP", ms_cutsceneName) = 0;
-        
-        if (uint32 streamOffset, streamSz; ms_animLoaded = ms_pCutsceneDir->FindItem(csIFPFile, streamOffset, streamSz)) {
-            CStreaming::MakeSpaceFor(streamSz * STREAMING_SECTOR_SIZE / 2); // Not sure why it's only half, but okay
+
+        uint32 size;
+        CdStreamPos pos;
+        if (ms_animLoaded = ms_pCutsceneDir->FindItem(csIFPFile, pos, size)) {
+            CStreaming::MakeSpaceFor(size * STREAMING_SECTOR_SIZE / 2); // Not sure why it's only half, but okay
 
             CStreaming::ImGonnaUseStreamingMemory();
 
             // Load ifp file
-            RwStreamSkip(stream, streamOffset * STREAMING_SECTOR_SIZE);
+            RwStreamSkip(stream, pos.Offset * STREAMING_SECTOR_SIZE);
             CAnimManager::LoadAnimFile(stream, 1, ms_aUncompressedCutsceneAnims.data());
 
             // Now create the anims in memory
@@ -487,12 +489,14 @@ void CCutsceneMgr::LoadCutsceneData_postload() {
         const auto raii = notsa::ScopeGuard{ [&] { CFileMgr::CloseFile(img); } };
         
         char csSplinesFile[1024];
-        *std::format_to(csSplinesFile, "{}.DAT", ms_cutsceneName) = 0;
+        notsa::format_to_sz(csSplinesFile, "{}.DAT", ms_cutsceneName);
 
-        if (uint32 streamOffset, streamSz; dataFileLoaded = ms_pCutsceneDir->FindItem(csSplinesFile, streamOffset, streamSz)) {
+        uint32      size;
+        CdStreamPos pos;
+        if (dataFileLoaded = ms_pCutsceneDir->FindItem(csSplinesFile, pos, size)) {
             CStreaming::ImGonnaUseStreamingMemory();
 
-            CFileMgr::Seek(img, streamOffset * STREAMING_SECTOR_SIZE, SEEK_SET);
+            CFileMgr::Seek(img, pos.Offset * STREAMING_SECTOR_SIZE, SEEK_SET);
             TheCamera.LoadPathSplines(img);
 
             CStreaming::IHaveUsedStreamingMemory();
@@ -509,14 +513,15 @@ void CCutsceneMgr::LoadCutsceneData_postload() {
 //! NOTSA: Code from at 0x5B0794
 //! @param csFileName cutscene file name in the CUTS.IMG archive
 bool CCutsceneMgr::LoadCutSceneFile(const char* csFileName) {
-    DEV_LOG("LoadCutSceneFile(\"{}\")", csFileName);
+    NOTSA_LOG_DEBUG("LoadCutSceneFile(\"{}\")", csFileName);
 
-    uint32 csFileOffsetBytes, csFileSzBytes;
-    if (!ms_pCutsceneDir->FindItem(csFileName, csFileOffsetBytes, csFileSzBytes)) {
+    uint32      csFileSzBytes;
+    CdStreamPos pos;
+    if (!ms_pCutsceneDir->FindItem(csFileName, pos, csFileSzBytes)) {
+        NOTSA_LOG_WARN("Cutscene file (`{}`) not found", csFileName);
         return false;
     }
-    csFileOffsetBytes *= STREAMING_SECTOR_SIZE;
-    csFileSzBytes     *= STREAMING_SECTOR_SIZE;
+    csFileSzBytes  *= STREAMING_SECTOR_SIZE;
 
     // Allocate data for the file
     auto csFileData{ std::make_unique<char[]>(csFileSzBytes * STREAMING_SECTOR_SIZE) };
@@ -524,7 +529,7 @@ bool CCutsceneMgr::LoadCutSceneFile(const char* csFileName) {
     // Load cutscene data
     {
         const auto s = RwStreamOpen(rwSTREAMFILENAME, rwSTREAMREAD, "ANIM\\CUTS.IMG");
-        RwStreamSkip(s, csFileOffsetBytes); // Skip to beginning of it
+        RwStreamSkip(s, pos.Offset * STREAMING_SECTOR_SIZE); // Skip to beginning of it
         RwStreamRead(s, csFileData.get(), csFileSzBytes);
         RwStreamClose(s, nullptr);
     }
@@ -784,7 +789,7 @@ void CCutsceneMgr::LoadCutsceneData_preload() {
     char csFileName[1024];
     *std::format_to(csFileName, "{}.CUT", ms_cutsceneName) = 0;
     if (!LoadCutSceneFile(csFileName)) {
-        DEV_LOG("Failed loading cutscene(\"{}\") def", ms_cutsceneName);
+        NOTSA_LOG_DEBUG("Failed loading cutscene(\"{}\") def", ms_cutsceneName);
         LoadCutsceneData_postload();
         return;
     }
@@ -872,7 +877,7 @@ void CCutsceneMgr::RemoveEverythingBecauseCutsceneDoesntFitInMemory() {
 void CCutsceneMgr::SetCutsceneAnim(const char* animName, CObject* object) {
     const auto theAnim = ms_cutsceneAssociations.GetAnimation(animName);
     if (!theAnim) {
-        DEV_LOG("Animation (\"{}\") not found!", animName);
+        NOTSA_LOG_DEBUG("Animation (\"{}\") not found!", animName);
         return;
     }
 

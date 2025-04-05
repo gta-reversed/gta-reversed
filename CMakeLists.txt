@@ -44,14 +44,6 @@ set(CMAKE_INSTALL_BINDIR .)
 set(CMAKE_INSTALL_LIBDIR ${RE_PROJECT_LIB_NAME}/lib)
 set(CMAKE_INSTALL_INCLUDEDIR ${RE_PROJECT_LIB_NAME}/include)
 
-find_package(nlohmann_json REQUIRED)
-find_package(Ogg REQUIRED)
-find_package(spdlog REQUIRED)
-find_package(Tracy REQUIRED)
-find_package(Vorbis REQUIRED)
-find_package(imgui REQUIRED)
-find_package(SDL3 REQUIRED)
-
 add_subdirectory(source)
 
 function(create_source_group target)
