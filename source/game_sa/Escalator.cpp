@@ -6,20 +6,34 @@ void CEscalator::InjectHooks() {
     RH_ScopedClass(CEscalator);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(SwitchOff, 0x717860, { .reversed = false });
+    RH_ScopedInstall(Constructor, 0x717110);
+    RH_ScopedInstall(Destructor, 0x717130);
+
+    RH_ScopedInstall(SwitchOff, 0x717860);
     RH_ScopedInstall(AddThisOne, 0x717970, { .reversed = false });
     RH_ScopedInstall(Update, 0x717D30, { .reversed = false });
 }
 
-// 0x717110
-CEscalator::CEscalator() {
-    m_nObjectsCreated = 0;
-    std::ranges::fill(m_pObjects, nullptr);
-}
-
 // 0x717860
 void CEscalator::SwitchOff() {
-    plugin::CallMethod<0x717860, CEscalator*>(this);
+    // debug leftover
+    // static bool& deletingEscalator = StaticRef<bool>(0xC6E98C);
+
+    if (!m_nObjectsCreated) {
+        return;
+    }
+
+    for (auto* object : m_pObjects | rngv::take(m_nNumTopPlanes + m_nNumBottomPlanes + m_nNumIntermediatePlanes)) {
+        if (!object) {
+            continue;
+        }
+
+        CWorld::Remove(object);
+        // deletingEscalator = true;
+        delete std::exchange(object, nullptr);
+        // deletingEscalator = false;
+    }
+    m_nObjectsCreated = 0;
 }
 
 // 0x717970

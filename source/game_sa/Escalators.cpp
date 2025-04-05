@@ -3,8 +3,6 @@
 #include "Escalators.h"
 #include "Escalator.h"
 
-CEscalator(&CEscalators::aEscalators)[NUM_ESCALATORS] = *(CEscalator(*)[NUM_ESCALATORS])0xC6E9A8;
-
 void CEscalators::InjectHooks() {
     RH_ScopedClass(CEscalators);
     RH_ScopedCategoryGlobal();
