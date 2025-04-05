@@ -46,6 +46,8 @@ T GetStat(eStats stat) {
 };
 
 void notsa::script::commands::stat::RegisterHandlers() {
+    REGISTER_COMMAND_HANDLER_BEGIN("Stat");
+
     REGISTER_COMMAND_HANDLER(COMMAND_INCREMENT_INT_STAT, IncrementStat<int32>);
     REGISTER_COMMAND_HANDLER(COMMAND_INCREMENT_FLOAT_STAT, IncrementStat<float>);
 
