@@ -895,7 +895,7 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     }
     case AE_WEAPON_SOUND_CAT_EXT: { // 0x504C5F
         if (m_LastFireExtFireTimeMs + 300 >= CTimer::GetTimeInMS()) {
-            sound->m_fSpeed = std::max(0.85f, sound->m_fSpeed + 0.01f); // TODO: Use TimeStep
+            sound->m_fSpeed = (sound->m_fSpeed < 0.85f) ? std::min(sound->m_fSpeed + 0.01f, 0.85f) : sound->m_fSpeed; // TODO: Use TimeStep
         } else {
             sound->StopSoundAndForget();
             m_LastFireExtFireTimeMs = 0;
