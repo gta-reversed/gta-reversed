@@ -286,7 +286,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
             ObjectWaterLevelCheck(0.6f);
 
             bool isAnyVehicleTouching = false;
-            for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+            for (auto& vehicle : CPools::GetVehiclePool()->GetAllValid()) {
                 if (vehicle.IsSphereTouchingVehicle(m_pObject->GetPosition(), 2.0f)) {
                     isAnyVehicleTouching = true;
                     // break?
@@ -306,7 +306,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
 
         case PICKUP_MINE_ARMED: {
             bool explode = CTimer::GetTimeInMS() > m_nRegenerationTime;
-            for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+            for (auto& vehicle : CPools::GetVehiclePool()->GetAllValid()) {
                 if (vehicle.IsSphereTouchingVehicle(m_pObject->GetPosition(), 1.5f)) {
                     explode = true;
                     // break?

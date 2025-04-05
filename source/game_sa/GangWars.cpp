@@ -114,7 +114,7 @@ void CGangWars::AddKillToProvocation(ePedType pedType) {
 bool CGangWars::AttackWaveOvercome() {
     auto pedsNearPlayer = 0u, pedsLiving = 0u;
 
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         if (!ped.bPartOfAttackWave)
             continue;
 
@@ -192,7 +192,7 @@ void CGangWars::ClearSpecificZonesToTriggerGangWar() {
 
 // 0x4444B0
 void CGangWars::ClearTheStreets() {
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         if (ped.IsPlayer() || !ped.IsCivilian())
             continue;
 
@@ -511,7 +511,7 @@ bool CGangWars::PickZoneToAttack() {
 
 // 0x445E20
 void CGangWars::ReleaseCarsInAttackWave() {
-    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+    for (auto& vehicle : CPools::GetVehiclePool()->GetAllValid()) {
         if (vehicle.vehicleFlags.bPartOfAttackWave) {
             vehicle.vehicleFlags.bPartOfAttackWave = false;
             vehicle.SetVehicleCreatedBy(eVehicleCreatedBy::RANDOM_VEHICLE);
@@ -524,7 +524,7 @@ void CGangWars::ReleaseCarsInAttackWave() {
 uint32 CGangWars::ReleasePedsInAttackWave(bool isEndOfWar, bool restoreGangPedsAcquaintance) {
     auto numReleasedPeds = 0u;
 
-    for (auto&& [i, ped] : GetPedPool()->GetAllValidWithIndex()) {
+    for (auto&& [i, ped] : CPools::GetPedPool()->GetAllValidWithIndex()) {
         if (ped.bPartOfAttackWave) {
             ped.bPartOfAttackWave = false;
             ped.SetCharCreatedBy(PED_GAME);
@@ -678,7 +678,7 @@ void CGangWars::SwitchGangWarsActive() {
 void CGangWars::TellGangMembersTo(bool isGangWarEnding) {
     // return plugin::Call<0x444530, bool>(isGangWarEnding);
 
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         if (ped.IsPlayer())
             continue;
 

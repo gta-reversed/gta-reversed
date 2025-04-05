@@ -79,7 +79,7 @@ void CCover::Update() {
     /* Add new cover points for vehicles/objects */
     switch (CTimer::GetFrameCounter() % 32) {
     case 26: { // 0x6998B5
-        for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
             if (!veh.IsAutomobile()) {
                 continue;
             }
@@ -98,7 +98,7 @@ void CCover::Update() {
         return;
     }
     case 28: { // 0x6999B5
-        for (auto& obj : GetObjectPool()->GetAllValid()) {
+        for (auto& obj : CPools::GetObjectPool()->GetAllValid()) {
             if (obj.GetUp().z <= 0.95f) {
                 continue;
             }

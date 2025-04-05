@@ -30,9 +30,9 @@ bool WaterCreature_c::Init(int32 nType, CVector* vecPos, WaterCreature_c* parent
         vecPos->z = CGeneral::GetRandomNumberInRange(fMinZ, fMaxZ);
     }
 
-    GetObjectPool()->SetDealWithNoMemory(true);
+    CPools::GetObjectPool()->SetDealWithNoMemory(true);
     m_pObject = new CObject(*info.m_pModelId, false);
-    GetObjectPool()->SetDealWithNoMemory(false);
+    CPools::GetObjectPool()->SetDealWithNoMemory(false);
 
     if (!m_pObject)
         return false;

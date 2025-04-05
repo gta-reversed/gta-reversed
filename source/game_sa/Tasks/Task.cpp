@@ -10,12 +10,12 @@
 
 // 0x61A5A0
 void* CTask::operator new(size_t size) {
-    return GetTaskPool()->New();
+    return CPools::GetTaskPool()->New();
 }
 
 // 0x61A5B0
 void CTask::operator delete(void* object) {
-    GetTaskPool()->Delete(static_cast<CTask*>(object));
+    CPools::GetTaskPool()->Delete(static_cast<CTask*>(object));
 }
 
 // 0x421180

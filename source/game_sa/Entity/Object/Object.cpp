@@ -137,7 +137,7 @@ CObject::~CObject() {
         CColStore::RemoveRef(colModel->m_nColSlot);
     }
 
-    CRadar::ClearBlipForEntity(eBlipType::BLIP_OBJECT, GetObjectPool()->GetRef(this));
+    CRadar::ClearBlipForEntity(eBlipType::BLIP_OBJECT, CPools::GetObjectPool()->GetRef(this));
 
     if (m_nRefModelIndex != -1)
         CModelInfo::GetModelInfo(m_nRefModelIndex)->RemoveRef();
@@ -160,22 +160,22 @@ CObject::~CObject() {
 
 // 0x5A1EE0
 void* CObject::operator new(size_t size) {
-    return GetObjectPool()->New();
+    return CPools::GetObjectPool()->New();
 }
 
 // 0x5A1EF0
 void* CObject::operator new(size_t size, int32 poolRef) {
-    return GetObjectPool()->NewAt(poolRef);
+    return CPools::GetObjectPool()->NewAt(poolRef);
 }
 
 // 0x5A1F20
 void CObject::operator delete(void* obj) {
-    GetObjectPool()->Delete(static_cast<CObject*>(obj));
+    CPools::GetObjectPool()->Delete(static_cast<CObject*>(obj));
 }
 
 // NOTSA
 void CObject::operator delete(void* obj, int32 poolRef) {
-    GetObjectPool()->Delete(static_cast<CObject*>(obj));
+    CPools::GetObjectPool()->Delete(static_cast<CObject*>(obj));
 }
 
 // 0x5A0760
@@ -1245,7 +1245,7 @@ void CObject::TryToFreeUpTempObjects(int32 numObjects) {
     if (numObjects <= 0)
         return;
 
-    for (auto& obj : GetObjectPool()->GetAllValid()) {
+    for (auto& obj : CPools::GetObjectPool()->GetAllValid()) {
         if (obj.IsTemporary() && !obj.IsVisible()) {
             CWorld::Remove(&obj);
             delete &obj;
@@ -1256,7 +1256,7 @@ void CObject::TryToFreeUpTempObjects(int32 numObjects) {
 
 // 0x5A18B0
 void CObject::DeleteAllTempObjects() {
-    for (auto& obj : GetObjectPool()->GetAllValid()) {
+    for (auto& obj : CPools::GetObjectPool()->GetAllValid()) {
         if (obj.IsTemporary()) {
             CWorld::Remove(&obj);
             delete &obj;
@@ -1266,7 +1266,7 @@ void CObject::DeleteAllTempObjects() {
 
 // 0x5A1910
 void CObject::DeleteAllMissionObjects() {
-    for (auto& obj : GetObjectPool()->GetAllValid())  {
+    for (auto& obj : CPools::GetObjectPool()->GetAllValid())  {
         if (obj.IsMissionObject()) {
             CWorld::Remove(&obj);
             delete &obj;
@@ -1276,7 +1276,7 @@ void CObject::DeleteAllMissionObjects() {
 
 // 0x5A1980
 void CObject::DeleteAllTempObjectsInArea(CVector point, float radius) {
-    for (auto& obj : GetObjectPool()->GetAllValid()) {
+    for (auto& obj : CPools::GetObjectPool()->GetAllValid()) {
         if (!obj.IsTemporary())
             continue;
 
@@ -1325,9 +1325,9 @@ bool CObject::CanBeUsedToTakeCoverBehind() {
 
 // 0x5A1F60
 CObject* CObject::Create(int32 modelIndex, bool bUnused) {
-    GetObjectPool()->SetDealWithNoMemory(true);
+    CPools::GetObjectPool()->SetDealWithNoMemory(true);
     auto* obj = new CObject(modelIndex, false); //BUG? most likely the unused parameter was supposed to be passed to the constructor
-    GetObjectPool()->SetDealWithNoMemory(false);
+    CPools::GetObjectPool()->SetDealWithNoMemory(false);
 
     if (obj)
         return obj;
@@ -1340,9 +1340,9 @@ CObject* CObject::Create(int32 modelIndex, bool bUnused) {
 
 // 0x5A2070
 CObject* CObject::Create(CDummyObject* dummyObject) {
-    GetObjectPool()->SetDealWithNoMemory(true);
+    CPools::GetObjectPool()->SetDealWithNoMemory(true);
     auto* obj = new CObject(dummyObject);
-    GetObjectPool()->SetDealWithNoMemory(false);
+    CPools::GetObjectPool()->SetDealWithNoMemory(false);
 
     if (obj)
         return obj;
@@ -1408,12 +1408,12 @@ void CObject::ProcessControlLogic() {
 
 // 0x5A2B90
 bool IsObjectPointerValid_NotInWorld(CObject* object) {
-    return GetObjectPool()->IsObjectValid(object);
+    return CPools::GetObjectPool()->IsObjectValid(object);
 }
 
 // 0x5A2C20
 bool IsObjectPointerValid(CObject* object) {
-    if (!GetObjectPool()->IsObjectValid(object))
+    if (!CPools::GetObjectPool()->IsObjectValid(object))
         return false;
 
     if (object->m_bIsBIGBuilding)

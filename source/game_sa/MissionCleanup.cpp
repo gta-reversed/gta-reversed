@@ -59,28 +59,28 @@ void CMissionCleanup::CheckIfCollisionHasLoadedForMissionObjects() {
 
 // NOTSA
 void CMissionCleanup::AddEntityToList(CObject& obj) {
-    return AddEntityToList(GetObjectPool()->GetRef(&obj), MISSION_CLEANUP_ENTITY_TYPE_OBJECT);
+    return AddEntityToList(CPools::GetObjectPool()->GetRef(&obj), MISSION_CLEANUP_ENTITY_TYPE_OBJECT);
 }
 
 // NOTSA
 void CMissionCleanup::AddEntityToList(CPed& ped) {
-    return AddEntityToList(GetPedPool()->GetRef(&ped), MISSION_CLEANUP_ENTITY_TYPE_PED);
+    return AddEntityToList(CPools::GetPedPool()->GetRef(&ped), MISSION_CLEANUP_ENTITY_TYPE_PED);
 }
 
 // NOTSA
 void CMissionCleanup::AddEntityToList(CVehicle& veh) {
-    return AddEntityToList(GetVehiclePool()->GetRef(&veh), MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
+    return AddEntityToList(CPools::GetVehiclePool()->GetRef(&veh), MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
 }
 
 // NOTSA
 void CMissionCleanup::RemoveEntityFromList(CObject& obj) {
-    return RemoveEntityFromList(GetObjectPool()->GetRef(&obj), MISSION_CLEANUP_ENTITY_TYPE_OBJECT);
+    return RemoveEntityFromList(CPools::GetObjectPool()->GetRef(&obj), MISSION_CLEANUP_ENTITY_TYPE_OBJECT);
 }
 
 void CMissionCleanup::RemoveEntityFromList(CPed& ped) {
-    return RemoveEntityFromList(GetPedPool()->GetRef(&ped), MISSION_CLEANUP_ENTITY_TYPE_PED);
+    return RemoveEntityFromList(CPools::GetPedPool()->GetRef(&ped), MISSION_CLEANUP_ENTITY_TYPE_PED);
 }
 
 void CMissionCleanup::RemoveEntityFromList(CVehicle& veh) {
-    return RemoveEntityFromList(GetVehiclePool()->GetRef(&veh), MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
+    return RemoveEntityFromList(CPools::GetVehiclePool()->GetRef(&veh), MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
 }

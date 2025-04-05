@@ -231,7 +231,7 @@ void CRunningScript::ShutdownThisScript() {
         const auto pedRef = m_bIsMission
             ? CTheScripts::LocalVariablesForCurrentMission.front().iParam
             : m_aLocalVars[0].iParam;
-        if (const auto ped = GetPedPool()->GetAtRef(pedRef)) {
+        if (const auto ped = CPools::GetPedPool()->GetAtRef(pedRef)) {
             ped->bHasAScriptBrain = false;
             if (m_nExternalType == 5) {
                 CScriptedBrainTaskStore::SetTask(ped, new CTaskSimpleFinishBrain{});
@@ -250,14 +250,14 @@ void CRunningScript::GivePedScriptedTask(int32 pedHandle, CTask* task, int32 opc
         return;
     }
 
-    CPed* ped = GetPedPool()->GetAtRef(pedHandle);
+    CPed* ped = CPools::GetPedPool()->GetAtRef(pedHandle);
     assert(ped);
     CPedGroup* pedGroup = CPedGroups::GetPedsGroup(ped);
 
     CPed* otherPed = nullptr;
     if (m_ExternalType == 5 || m_ExternalType == 2 || !m_ExternalType || m_ExternalType == 3) {
         auto* localVariable = reinterpret_cast<int32*>(GetPointerToLocalVariable(0));
-        otherPed = GetPedPool()->GetAtRef(*localVariable);
+        otherPed = CPools::GetPedPool()->GetAtRef(*localVariable);
     }
 
     if (ped->bHasAScriptBrain && otherPed != ped) {
@@ -284,7 +284,7 @@ void CRunningScript::GivePedScriptedTask(int32 pedHandle, CTask* task, int32 opc
 }
 
 void CRunningScript::GivePedScriptedTask(CPed* ped, CTask* task, int32 opcode) {
-    GivePedScriptedTask(GetPedPool()->GetRef(ped), task, opcode); // Must do it like this, otherwise unhooking of the original `GivePedScriptedTask` will do nothing
+    GivePedScriptedTask(CPools::GetPedPool()->GetRef(ped), task, opcode); // Must do it like this, otherwise unhooking of the original `GivePedScriptedTask` will do nothing
 }
 
 // 0x470150

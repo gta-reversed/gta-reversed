@@ -363,7 +363,7 @@ CVehicle::~CVehicle() {
     CReplay::RecordVehicleDeleted(this);
     m_nAlarmState = 0;
     DeleteRwObject(); // V1053 Calling the 'DeleteRwObject' virtual function in the destructor may lead to unexpected result at runtime.
-    CRadar::ClearBlipForEntity(eBlipType::BLIP_CAR, GetVehiclePool()->GetRef(this));
+    CRadar::ClearBlipForEntity(eBlipType::BLIP_CAR, CPools::GetVehiclePool()->GetRef(this));
 
     if (m_pDriver) {
         m_pDriver->FlagToDestroyWhenNextProcessed();
@@ -420,19 +420,19 @@ CVehicle::~CVehicle() {
 }
 
 void* CVehicle::operator new(unsigned size) {
-    return GetVehiclePool()->New();
+    return CPools::GetVehiclePool()->New();
 }
 
 void CVehicle::operator delete(void* data) {
-    GetVehiclePool()->Delete(static_cast<CVehicle*>(data));
+    CPools::GetVehiclePool()->Delete(static_cast<CVehicle*>(data));
 }
 
 void* CVehicle::operator new(unsigned size, int32 poolRef) {
-    return GetVehiclePool()->NewAt(poolRef);
+    return CPools::GetVehiclePool()->NewAt(poolRef);
 }
 
 void CVehicle::operator delete(void* data, int32 poolRef) {
-    GetVehiclePool()->Delete(static_cast<CVehicle*>(data));
+    CPools::GetVehiclePool()->Delete(static_cast<CVehicle*>(data));
 }
 
 // 0x6D6A40
@@ -3331,7 +3331,7 @@ void CVehicle::InflictDamage(CEntity* damager, eWeaponType weapon, float intensi
 
 // 0x6D82F0
 void CVehicle::KillPedsGettingInVehicle() {
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         if (ped.bInVehicle || ped.bIsStanding) {
             continue;
         }

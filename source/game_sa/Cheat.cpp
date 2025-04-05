@@ -309,7 +309,7 @@ void CCheat::BlackCarsCheat() {
 
 // 0x439d80
 void CCheat::BlowUpCarsCheat() {
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         veh.BlowUpCar(nullptr, false);
     }
 }
@@ -387,7 +387,7 @@ void CCheat::EverybodyAttacksPlayerCheat() {
     Toggle(CHEAT_HAVE_ABOUNTY_ON_YOUR_HEAD);
     if (IsActive(CHEAT_HAVE_ABOUNTY_ON_YOUR_HEAD)) {
         auto* const player = FindPlayerPed();
-        for (auto& ped : GetPedPool()->GetAllValid()) {
+        for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
             if (ped.IsPlayer())
                 continue;
 
@@ -552,7 +552,7 @@ void CCheat::MayhemCheat() {
             CPedType::SetPedTypeAsAcquaintance(ACQUAINTANCE_HATE, static_cast<ePedType>(pedType), 0xFFFFF);
         }
 
-        for (auto& ped : GetPedPool()->GetAllValid()) {
+        for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
             if (ped.IsPlayer())
                 continue;
 
@@ -570,7 +570,7 @@ void CCheat::MayhemCheat() {
         // todo: currently fixes only save game
         std::swap(CPedType::ms_apPedTypes, CPedType::ms_apPedTypesOld); // straightforward solution
 
-        for (auto& ped : GetPedPool()->GetAllValid()) {
+        for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
             if (ped.IsPlayer())
                 continue;
 

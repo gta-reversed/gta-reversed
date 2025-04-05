@@ -530,7 +530,7 @@ void CGlass::BreakGlassPhysically(CVector point, float radius) {
     if (CTimer::GetTimeInMS() < LastColCheckMS + 1000 && CTimer::GetTimeInMS() >= LastColCheckMS)
         return;
 
-    for (auto& object : GetObjectPool()->GetAllValid()) {
+    for (auto& object : CPools::GetObjectPool()->GetAllValid()) {
         if (!IsGlassObjectWithCol(&object))
             continue;
 

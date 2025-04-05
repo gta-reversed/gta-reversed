@@ -13,12 +13,12 @@ void CEvent::InjectHooks() {
 
 // 0x4B5620
 void* CEvent::operator new(unsigned) {
-    return GetEventPool()->New();
+    return CPools::GetEventPool()->New();
 }
 
 // 0x4B5630
 void CEvent::operator delete(void* object) {
-    GetEventPool()->Delete(static_cast<CEvent*>(object));
+    CPools::GetEventPool()->Delete(static_cast<CEvent*>(object));
 }
 
 // 0x4ABFC0

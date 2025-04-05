@@ -13,12 +13,12 @@ void CEntryInfoNode::InjectHooks()
 
 void* CEntryInfoNode::operator new(unsigned size)
 {
-    return GetEntryInfoNodePool()->New();
+    return CPools::GetEntryInfoNodePool()->New();
 }
 
 void CEntryInfoNode::operator delete(void* ptr, size_t sz)
 {
-    GetEntryInfoNodePool()->Delete(reinterpret_cast<CEntryInfoNode*>(ptr));
+    CPools::GetEntryInfoNodePool()->Delete(reinterpret_cast<CEntryInfoNode*>(ptr));
 }
 
 void CEntryInfoNode::AddToList(CEntryInfoNode* next)

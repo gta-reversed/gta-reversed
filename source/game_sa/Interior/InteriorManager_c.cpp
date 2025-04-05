@@ -337,7 +337,7 @@ void InteriorManager_c::ReturnInteriorToPool(Interior_c* interior) {
 }
 
 // 0x5984A0
-Interior_c* InteriorManager_c::GetInteriorFromPool() {
+Interior_c* InteriorManager_c::CPools::GetInteriorFromPool() {
     return m_InteriorPool.RemoveHead();
 }
 

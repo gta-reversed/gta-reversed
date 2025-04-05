@@ -11,12 +11,12 @@ void CDummy::InjectHooks() {
 
 // 0x5326E0
 void* CDummy::operator new(size_t size) {
-    return GetDummyPool()->New();
+    return CPools::GetDummyPool()->New();
 }
 
 // 0x5326F0
 void CDummy::operator delete(void* obj) {
-    GetDummyPool()->Delete(static_cast<CDummy*>(obj));
+    CPools::GetDummyPool()->Delete(static_cast<CDummy*>(obj));
 }
 
 // 0x532540
@@ -25,5 +25,5 @@ CDummy::CDummy() : CEntity() {
 }
 
 bool IsDummyPointerValid(CDummy* dummy) {
-    return GetDummyPool()->IsObjectValid(dummy);
+    return CPools::GetDummyPool()->IsObjectValid(dummy);
 }

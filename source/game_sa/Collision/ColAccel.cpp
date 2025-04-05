@@ -41,7 +41,7 @@ bool CColAccel::isCacheLoading() {
 void CColAccel::startCache() {
     ZoneScoped;
 
-    m_iCachingColSize = GetColModelPool()->GetSize();
+    m_iCachingColSize = CPools::GetColModelPool()->GetSize();
     m_iSectionSize    = new int32[64];
     m_iplDefs         = new IplDef[TOTAL_IPL_MODEL_IDS]();
     m_colBounds       = new CColAccelColBound[TOTAL_IPL_MODEL_IDS]();

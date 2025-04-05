@@ -711,8 +711,8 @@ void CWorld::CastShadow(float x1, float y1, float x2, float y2) {
 
 // 0x5647F0
 void CWorld::ProcessAttachedEntities() {
-    for (int32 i = GetVehiclePool()->GetSize(); i; i--) {
-        if (CVehicle* veh = GetVehiclePool()->GetAt(i - 1)) {
+    for (int32 i = CPools::GetVehiclePool()->GetSize(); i; i--) {
+        if (CVehicle* veh = CPools::GetVehiclePool()->GetAt(i - 1)) {
             if (const auto attachedTo = veh->m_pAttachedTo) {
                 veh->m_pEntityIgnoredCollision = attachedTo;
                 veh->PositionAttachedEntity();
@@ -722,8 +722,8 @@ void CWorld::ProcessAttachedEntities() {
         }
     }
 
-    for (int32 i = GetObjectPool()->GetSize(); i; i--) {
-        if (CObject* obj = GetObjectPool()->GetAt(i - 1)) {
+    for (int32 i = CPools::GetObjectPool()->GetSize(); i; i--) {
+        if (CObject* obj = CPools::GetObjectPool()->GetAt(i - 1)) {
             if (const auto attachedTo = obj->m_pAttachedTo) {
                 Remove(obj);
 
@@ -993,8 +993,8 @@ void CWorld::FindNearestObjectOfTypeSectorList(int32 modelId, PtrListType& ptrLi
 
 // 0x565510
 void CWorld::RemoveReferencesToDeletedObject(CEntity* entity) {
-    for (int32 i = GetPedPool()->GetSize(); i; i--) {
-        if (CPed* ped = GetPedPool()->GetAt(i - 1)) {
+    for (int32 i = CPools::GetPedPool()->GetSize(); i; i--) {
+        if (CPed* ped = CPools::GetPedPool()->GetAt(i - 1)) {
             if (ped != entity) {
                 ped->RemoveRefsToEntity(entity);
                 if (ped->m_standingOnEntity == entity)
@@ -1003,8 +1003,8 @@ void CWorld::RemoveReferencesToDeletedObject(CEntity* entity) {
         }
     }
 
-    for (int32 i = GetVehiclePool()->GetSize(); i; i--) {
-        if (CVehicle* veh = GetVehiclePool()->GetAt(i - 1)) {
+    for (int32 i = CPools::GetVehiclePool()->GetSize(); i; i--) {
+        if (CVehicle* veh = CPools::GetVehiclePool()->GetAt(i - 1)) {
             if (veh != entity) {
                 veh->RemoveRefsToEntity(entity);
                 veh->RemoveRefsToVehicle(entity);
@@ -1012,8 +1012,8 @@ void CWorld::RemoveReferencesToDeletedObject(CEntity* entity) {
         }
     }
 
-    for (int32 i = GetObjectPool()->GetSize(); i; i--) {
-        if (CObject* obj = GetObjectPool()->GetAt(i - 1)) {
+    for (int32 i = CPools::GetObjectPool()->GetSize(); i; i--) {
+        if (CObject* obj = CPools::GetObjectPool()->GetAt(i - 1)) {
             if (obj != entity) {
                 obj->RemoveRefsToEntity(entity);
             }
@@ -1025,8 +1025,8 @@ void CWorld::RemoveReferencesToDeletedObject(CEntity* entity) {
 // NOTE: Radius is treated as a cuboid with the height of 10, width and length of 2 * radius
 //       Radius for `fireCreator` ped is halved
 void CWorld::SetPedsOnFire(float x, float y, float z, float radius, CEntity* fireCreator) {
-    for (int32 i = GetPedPool()->GetSize(); i; i--) {
-        if (CPed* ped = GetPedPool()->GetAt(i - 1)) {
+    for (int32 i = CPools::GetPedPool()->GetSize(); i; i--) {
+        if (CPed* ped = CPools::GetPedPool()->GetAt(i - 1)) {
             float radiusForThisPed = ped == fireCreator ? radius / 2.f : radius;
 
             // NOTSA - Originally it was some abs() macro crap, we ain't gonna do it like that
@@ -1064,8 +1064,8 @@ void CWorld::SetPedsChoking(float x, float y, float z, float radius, CEntity* ga
         {x + radius, y + radius, z + 5.f}
     };
 
-    for (int32 i = GetPedPool()->GetSize(); i; i--) {
-        if (CPed* ped = GetPedPool()->GetAt(i - 1)) {
+    for (int32 i = CPools::GetPedPool()->GetSize(); i; i--) {
+        if (CPed* ped = CPools::GetPedPool()->GetAt(i - 1)) {
             if (    ped->m_nPedState != PEDSTATE_DEAD
                 && !ped->bInVehicle
                 && !ped->physicalFlags.bFireProof
@@ -1094,8 +1094,8 @@ void CWorld::SetCarsOnFire(float x, float y, float z, float radius, CEntity* fir
         {x - radius, y - radius, z - 5.f},
         {x + radius, y + radius, z + 5.f}
     };
-    for (int32 i = GetVehiclePool()->GetSize(); i; i--) {
-        if (CVehicle* vehicle = GetVehiclePool()->GetAt(i - 1)) {
+    for (int32 i = CPools::GetVehiclePool()->GetSize(); i; i--) {
+        if (CVehicle* vehicle = CPools::GetVehiclePool()->GetAt(i - 1)) {
             if (vehicle->m_nStatus == eEntityStatus::STATUS_WRECKED)
                 continue;
 
@@ -1152,8 +1152,8 @@ int32 CWorld::SprayPaintWorld(CVector& posn, CVector& outDir, float radius, bool
 
 // 0x565CB0
 void CWorld::RemoveFallenPeds() {
-    for (int32 i = GetPedPool()->GetSize(); i; i--) {
-        CPed* ped = GetPedPool()->GetAt(i - 1);
+    for (int32 i = CPools::GetPedPool()->GetSize(); i; i--) {
+        CPed* ped = CPools::GetPedPool()->GetAt(i - 1);
         if (!ped)
             continue;
 
@@ -1176,8 +1176,8 @@ void CWorld::RemoveFallenPeds() {
 
 // 0x565E80
 void CWorld::RemoveFallenCars() {
-    for (int32 i = GetVehiclePool()->GetSize(); i; i--) {
-        CVehicle* vehicle = GetVehiclePool()->GetAt(i - 1);
+    for (int32 i = CPools::GetVehiclePool()->GetSize(); i; i--) {
+        CVehicle* vehicle = CPools::GetVehiclePool()->GetAt(i - 1);
         if (!vehicle)
             continue;
 
@@ -1219,7 +1219,7 @@ void CWorld::RemoveFallenCars() {
 
 // 0x5660B0
 void CWorld::UseDetonator(CPed* creator) {
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         if (veh.m_nBombOnBoard != 3) {
             continue;
         }
@@ -1290,9 +1290,9 @@ CEntity* CWorld::TestSphereAgainstSectorList(PtrListType& ptrList, CVector spher
 void CWorld::PrintCarChanges() {
     static int32 s_aModelIndexes[110];
 
-    const auto poolSize = GetVehiclePool()->GetSize();
+    const auto poolSize = CPools::GetVehiclePool()->GetSize();
     for (auto i = 0u; i < poolSize; i++) {
-        const auto vehicle = GetVehiclePool()->GetAt(i);
+        const auto vehicle = CPools::GetVehiclePool()->GetAt(i);
 
         uint16 modelIndex;
         if (!vehicle || vehicle->m_nVehicleType) {
@@ -1349,7 +1349,7 @@ void CWorld::TestForUnusedModels() {
 // 0x566610
 void CWorld::ClearCarsFromArea(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
     CBoundingBox box{ {minX, minY, minZ}, {maxX, maxY, maxZ} }; // NOTSA, but makes code cleaner
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         if (veh.IsBoat() && FindPlayerPed()->m_pContactEntity == &veh)
             continue;
 
@@ -1366,7 +1366,7 @@ void CWorld::ClearCarsFromArea(float minX, float minY, float minZ, float maxX, f
 // 0x5667F0
 void CWorld::ClearPedsFromArea(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
     CBoundingBox box{ {minX, minY, minZ}, {maxX, maxY, maxZ} }; // NOTSA, but makes code cleaner
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         if (!ped.IsPlayer() && ped.CanBeDeleted()) {
             if (box.IsPointWithin(ped.GetPosition())) {
                 CPopulation::RemovePed(&ped);
@@ -1377,14 +1377,14 @@ void CWorld::ClearPedsFromArea(float minX, float minY, float minZ, float maxX, f
 
 // 0x5668F0
 void CWorld::SetAllCarsCanBeDamaged(bool enable) {
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         veh.vehicleFlags.bCanBeDamaged = enable;
     }
 }
 
 // 0x566950
 void CWorld::ExtinguishAllCarFiresInArea(CVector point, float radius) {
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         if (DistanceBetweenPointsSquared(point, veh.GetPosition()) <= sq(radius)) {
             veh.ExtinguishCarFire();
         }
@@ -1408,7 +1408,7 @@ void CWorld::CallOffChaseForArea(float minX, float minY, float maxX, float maxY)
 
 // 0x566C10
 void CWorld::StopAllLawEnforcersInTheirTracks() {
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         if (veh.vehicleFlags.bIsLawEnforcer) {
             veh.m_vecMoveSpeed = CVector{};
         }
@@ -1419,7 +1419,7 @@ void CWorld::StopAllLawEnforcersInTheirTracks() {
 CVehicle* CWorld::FindUnsuspectingTargetCar(CVector point, CVector playerPosn) {
     float nearestDist2D = std::numeric_limits<float>::max();
     CVehicle* nearestVeh{};
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         if (!veh.IsCreatedBy(eVehicleCreatedBy::RANDOM_VEHICLE) || !veh.IsSubAutomobile())
             continue;
 
@@ -1448,7 +1448,7 @@ CVehicle* CWorld::FindUnsuspectingTargetCar(CVector point, CVector playerPosn) {
 CPed* CWorld::FindUnsuspectingTargetPed(CVector point, CVector playerPosn) {
     float nearestDist2D = std::numeric_limits<float>::max();
     CPed* nearestPed{};
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         if (!ped.IsCreatedBy(ePedCreatedBy::PED_GAME) || !ped.IsAlive())
             continue;
 
@@ -2477,7 +2477,7 @@ void CWorld::ClearExcitingStuffFromArea(const CVector& point, float radius, uint
     const auto playerGroup = CPedGroups::GetPedsGroup(playerPed);
 
     // Remove all peds in radius who aren't followers of the p's group
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         if (!ped.IsPlayer() && ped.CanBeDeleted()) {
             if (DistanceBetweenPointsSquared2D(point, ped.GetPosition()) < radius * radius) {
                 if (!playerGroup || !ped.IsFollowerOfGroup(*playerGroup)) {
@@ -2488,7 +2488,7 @@ void CWorld::ClearExcitingStuffFromArea(const CVector& point, float radius, uint
     }
 
     // Remove all vehicles in radius in which there are no peds who're follower's of the p's group
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         if (playerGroup && veh.AreAnyOfPassengersFollowerOfGroup(*playerGroup))
             continue;
 
@@ -2759,8 +2759,8 @@ void CWorld::SetWorldOnFire(float x, float y, float z, float radius, CEntity* fi
 
 // 0x56B9C0
 void CWorld::RepositionCertainDynamicObjects() {
-    for (int32 i = GetDummyPool()->GetSize(); i; i--) {
-        if (CDummy* dummy = GetDummyPool()->GetAt(i - 1)) {
+    for (int32 i = CPools::GetDummyPool()->GetSize(); i; i--) {
+        if (CDummy* dummy = CPools::GetDummyPool()->GetAt(i - 1)) {
             RepositionOneObject(dummy);
         }
     }

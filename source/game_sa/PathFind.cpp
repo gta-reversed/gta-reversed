@@ -755,7 +755,7 @@ void CPathFind::UpdateStreaming(bool bForceStreaming) {
     }
 
     // Mark paths around some specific mission vehicles
-    for (const auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (const auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         if (!veh.IsMissionVehicle()) {
             continue;
         }

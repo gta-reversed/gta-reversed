@@ -411,7 +411,7 @@ void CBoat::FillBoatList() {
     vecCamDir.Normalise();
 
     auto iCurBoat = 0u;
-    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+    for (auto& vehicle : CPools::GetVehiclePool()->GetAllValid()) {
         if (!vehicle.IsBoat())
             continue;
 

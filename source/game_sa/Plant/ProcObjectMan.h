@@ -35,7 +35,7 @@ public:
     void Exit();
     void LoadDataFile();
 
-    ProcObjectListItem* GetEntityFromPool();
+    ProcObjectListItem* CPools::GetEntityFromPool();
     void ReturnEntityToPool(ProcObjectListItem* item);
 
     int32 ProcessTriangleAdded(CPlantLocTri* plant);

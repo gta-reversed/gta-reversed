@@ -1719,7 +1719,7 @@ void CEntity::RegisterReference(CEntity** entity)
     }
 
     if (!m_pReferences && !CReferences::pEmptyList) {
-        for (auto& ped : GetPedPool()->GetAllValid()) {
+        for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
             ped.PruneReferences();
             if (CReferences::pEmptyList) {
                 break;
@@ -1727,7 +1727,7 @@ void CEntity::RegisterReference(CEntity** entity)
         }
 
         if (!CReferences::pEmptyList) {
-            for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+            for (auto& vehicle : CPools::GetVehiclePool()->GetAllValid()) {
                 vehicle.PruneReferences();
                 if (CReferences::pEmptyList) {
                     break;
@@ -1736,7 +1736,7 @@ void CEntity::RegisterReference(CEntity** entity)
         }
 
         if (!CReferences::pEmptyList) {
-            for (auto& obj : GetObjectPool()->GetAllValid()) {
+            for (auto& obj : CPools::GetObjectPool()->GetAllValid()) {
                 obj.PruneReferences();
                 if (CReferences::pEmptyList) {
                     break;

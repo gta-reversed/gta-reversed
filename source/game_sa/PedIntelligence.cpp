@@ -1003,12 +1003,12 @@ void CPedIntelligence::IncrementAngerAtPlayer(uint8 anger) {
 
 // 0x6074A0
 void* CPedIntelligence::operator new(unsigned size) {
-    return GetPedIntelligencePool()->New();
+    return CPools::GetPedIntelligencePool()->New();
 }
 
 // 0x6074E0
 void CPedIntelligence::operator delete(void* object) {
-    GetPedIntelligencePool()->Delete(static_cast<CPedIntelligence*>(object));
+    CPools::GetPedIntelligencePool()->Delete(static_cast<CPedIntelligence*>(object));
 }
 
 // NOTSA

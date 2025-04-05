@@ -71,11 +71,11 @@ tReplayTrainBlock tReplayTrainBlock::MakeTrainUpdateData(CTrain& train, int32 po
     ret.prevCarriageRef = ret.nextCarriageRef = 0;
 
     if (auto carriage = train.m_pPrevCarriage) {
-        ret.prevCarriageRef = GetVehiclePool()->GetIndex(carriage->AsVehicle()) + 1;
+        ret.prevCarriageRef = CPools::GetVehiclePool()->GetIndex(carriage->AsVehicle()) + 1;
     }
 
     if (auto carriage = train.m_pNextCarriage) {
-        ret.nextCarriageRef = GetVehiclePool()->GetIndex(carriage->AsVehicle()) + 1;
+        ret.nextCarriageRef = CPools::GetVehiclePool()->GetIndex(carriage->AsVehicle()) + 1;
     }
     return ret;
 }
@@ -201,14 +201,14 @@ void tReplayTrainBlock::ExtractTrainUpdateData(CTrain& train, float interpolatio
     if (auto prevCarriage = prevCarriageRef) {
         CEntity::SafeCleanUpRef(train.m_pPrevCarriage);
 
-        train.m_pPrevCarriage = GetVehiclePool()->GetAt(CReplay::FindPoolIndexForVehicle(prevCarriage - 1))->AsTrain();
+        train.m_pPrevCarriage = CPools::GetVehiclePool()->GetAt(CReplay::FindPoolIndexForVehicle(prevCarriage - 1))->AsTrain();
         CEntity::SafeRegisterRef(train.m_pPrevCarriage);
     }
 
     if (auto nextCarriage = nextCarriageRef) {
         CEntity::SafeCleanUpRef(train.m_pNextCarriage);
 
-        train.m_pNextCarriage = GetVehiclePool()->GetAt(CReplay::FindPoolIndexForVehicle(nextCarriage - 1))->AsTrain();
+        train.m_pNextCarriage = CPools::GetVehiclePool()->GetAt(CReplay::FindPoolIndexForVehicle(nextCarriage - 1))->AsTrain();
         CEntity::SafeRegisterRef(train.m_pNextCarriage);
     }
 }

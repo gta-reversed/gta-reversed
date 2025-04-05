@@ -257,13 +257,13 @@ void CIplStore::IncludeEntity(int32 iplSlotIndex, CEntity* entity) {
 
     switch (entity->GetType()) {
     case ENTITY_TYPE_BUILDING: {
-        const auto buildingId = GetBuildingPool()->GetIndex(entity->AsBuilding());
+        const auto buildingId = CPools::GetBuildingPool()->GetIndex(entity->AsBuilding());
         ipldef->firstBuilding = std::min(ipldef->firstBuilding, (int16)buildingId);
         ipldef->lastBuilding = std::max(ipldef->firstBuilding, (int16)buildingId);
         break;
     }
     case ENTITY_TYPE_DUMMY: {
-        const auto dummyId = GetDummyPool()->GetIndex(entity->AsDummy());
+        const auto dummyId = CPools::GetDummyPool()->GetIndex(entity->AsDummy());
         ipldef->firstDummy = std::min(ipldef->firstDummy, (int16)dummyId);
         ipldef->lastDummy = std::max(ipldef->lastDummy, (int16)dummyId);
         break;
@@ -506,7 +506,7 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
     for (auto& mce : CTheScripts::MissionCleanUp.m_Objects) {
         switch (mce.type) {
         case MISSION_CLEANUP_ENTITY_TYPE_PED: {
-            const auto ped = GetPedPool()->GetAtRef(mce.handle);
+            const auto ped = CPools::GetPedPool()->GetAtRef(mce.handle);
             assert(ped);
             if (ped->IsStateDying()) {
                 continue;
@@ -515,7 +515,7 @@ void CIplStore::LoadIpls(CVector posn, bool bAvoidLoadInPlayerVehicleMovingDirec
             break;
         }
         case MISSION_CLEANUP_ENTITY_TYPE_VEHICLE: {
-            const auto veh = GetVehiclePool()->GetAtRef(mce.handle);
+            const auto veh = CPools::GetVehiclePool()->GetAtRef(mce.handle);
             assert(veh);
             switch (veh->GetStatus()) {
             case STATUS_PHYSICS:
@@ -596,9 +596,9 @@ void CIplStore::RemoveIpl(int32 iplSlotIndex) {
     };
 
     // In same order as originally
-    ProcessPool(*GetBuildingPool(), def->firstBuilding, def->lastBuilding);
-    ProcessPool(*GetObjectPool(),   0,                     GetObjectPool()->GetSize());
-    ProcessPool(*GetDummyPool(),    def->firstDummy,    def->lastDummy);
+    ProcessPool(*CPools::GetBuildingPool(), def->firstBuilding, def->lastBuilding);
+    ProcessPool(*CPools::GetObjectPool(),   0,                     CPools::GetObjectPool()->GetSize());
+    ProcessPool(*CPools::GetDummyPool(),    def->firstDummy,    def->lastDummy);
 
     CTheCarGenerators::RemoveCarGenerators((uint8)iplSlotIndex);
 }

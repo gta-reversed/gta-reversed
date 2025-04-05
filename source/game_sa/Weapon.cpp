@@ -813,7 +813,7 @@ bool CWeapon::TakePhotograph(CEntity* owner, const CVector* point) {
         return true;
     };
 
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         if (IsPosInRange(ped.GetPosition())) {
             continue;
         }
@@ -832,7 +832,7 @@ bool CWeapon::TakePhotograph(CEntity* owner, const CVector* point) {
         }
     }
 
-    for (auto& obj : GetObjectPool()->GetAllValid()) {
+    for (auto& obj : CPools::GetObjectPool()->GetAllValid()) {
         const auto& objPos = obj.GetPosition();
 
         if (!IsPosInRange(objPos) || !IsPosInCamFrame(objPos)) {
@@ -1160,7 +1160,7 @@ CEntity* CWeapon::FindNearestTargetEntityWithScreenCoors(float screenX, float sc
         }
     };
 
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         if (ped.IsStateDead() || ped.bInVehicle) {
             continue;
         }
@@ -1170,7 +1170,7 @@ CEntity* CWeapon::FindNearestTargetEntityWithScreenCoors(float screenX, float sc
         ProcessEntity(&ped);
     }
 
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         if (&veh == FindPlayerVehicle()) {
             continue;
         }
@@ -1336,7 +1336,7 @@ CEntity* CWeapon::PickTargetForHeatSeekingMissile(CVector origin, CVector direct
     float minRating  = FLT_MAX;
     CEntity* minRated{};
     const auto point = origin + direction * 5.f;
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         if (&veh == ignoreEntity) {
             continue;
         }

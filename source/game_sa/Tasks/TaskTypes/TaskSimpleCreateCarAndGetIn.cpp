@@ -110,6 +110,6 @@ bool CTaskSimpleCreateCarAndGetIn::ProcessPed(CPed* ped) {
 // NOTSA
 void CTaskSimpleCreateCarAndGetIn::CleanupCreatedVehicle() {
     CTheScripts::CleanUpThisVehicle(m_CreatedVeh);
-    CTheScripts::MissionCleanUp.RemoveEntityFromList(GetVehiclePool()->GetRef(m_CreatedVeh), MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
+    CTheScripts::MissionCleanUp.RemoveEntityFromList(CPools::GetVehiclePool()->GetRef(m_CreatedVeh), MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
     m_CreatedVeh = nullptr;
 }

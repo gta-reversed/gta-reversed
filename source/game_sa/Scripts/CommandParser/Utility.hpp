@@ -14,65 +14,65 @@ template<typename T>
 auto& PoolOf() = delete;
 
 template<>
-auto& PoolOf<CColModel>() { return *GetColModelPool(); }
+auto& PoolOf<CColModel>() { return *CPools::GetColModelPool(); }
 
 template<>
-auto& PoolOf<CPedIntelligence>() { return *GetPedIntelligencePool(); }
+auto& PoolOf<CPedIntelligence>() { return *CPools::GetPedIntelligencePool(); }
 
 //template<>
-//auto& PoolOf<CPtrNodeSingleLink>() { return *GetPtrNodeSingleLinkPool(); }
+//auto& PoolOf<CPtrNodeSingleLink>() { return *CPools::GetPtrNodeSingleLinkPool(); }
 //
 //template<>
-//auto& PoolOf<CPtrNodeDoubleLink>() { return *GetPtrNodeDoubleLinkPool(); }
+//auto& PoolOf<CPtrNodeDoubleLink>() { return *CPools::GetPtrNodeDoubleLinkPool(); }
 
 template<>
-auto& PoolOf<CEntryInfoNode>() { return *GetEntryInfoNodePool(); }
+auto& PoolOf<CEntryInfoNode>() { return *CPools::GetEntryInfoNodePool(); }
 
 template<>
-auto& PoolOf<CPointRoute>() { return *GetPointRoutePool(); }
+auto& PoolOf<CPointRoute>() { return *CPools::GetPointRoutePool(); }
 
 //template<>
-//auto& PoolOf<CPatrolRoute>() { return *GetPatrolRoutePool(); }
+//auto& PoolOf<CPatrolRoute>() { return *CPools::GetPatrolRoutePool(); }
 
 template<>
-auto& PoolOf<CNodeRoute>() { return *GetNodeRoutePool(); }
+auto& PoolOf<CNodeRoute>() { return *CPools::GetNodeRoutePool(); }
 
 template<>
-auto& PoolOf<CTaskAllocator>() { return *GetTaskAllocatorPool(); }
+auto& PoolOf<CTaskAllocator>() { return *CPools::GetTaskAllocatorPool(); }
 
 template<>
-auto& PoolOf<CPedAttractor>() { return *GetPedAttractorPool(); }
+auto& PoolOf<CPedAttractor>() { return *CPools::GetPedAttractorPool(); }
 
 /*
 * Pools of derived types
 */
 template<typename T>
     requires std::is_base_of_v<CPed, T>
-auto& PoolOf() { return *GetPedPool(); }
+auto& PoolOf() { return *CPools::GetPedPool(); }
 
 template<typename T>
     requires std::is_base_of_v<CVehicle, T>
-auto& PoolOf() { return *GetVehiclePool(); }
+auto& PoolOf() { return *CPools::GetVehiclePool(); }
 
 template<typename T>
     requires std::is_base_of_v<CBuilding, T>
-auto& PoolOf() { return *GetBuildingPool(); }
+auto& PoolOf() { return *CPools::GetBuildingPool(); }
 
 template<typename T>
     requires std::is_base_of_v<CObject, T>
-auto& PoolOf() { return *GetObjectPool(); }
+auto& PoolOf() { return *CPools::GetObjectPool(); }
 
 template<typename T>
     requires std::is_base_of_v<CDummy, T>
-auto& PoolOf() { return *GetDummyPool(); }
+auto& PoolOf() { return *CPools::GetDummyPool(); }
 
 template<typename T>
     requires std::is_base_of_v<CTask, T>
-auto& PoolOf() { return *GetTaskPool(); }
+auto& PoolOf() { return *CPools::GetTaskPool(); }
 
 template<typename T>
     requires std::is_base_of_v<CEvent, T>
-auto& PoolOf() { return *GetEventPool(); }
+auto& PoolOf() { return *CPools::GetEventPool(); }
 }; // detail
 
 /*!

@@ -162,7 +162,7 @@ void CReplay::StorePedAnimation(CPed* ped, CStoredAnimationState& state) {
 void CReplay::StorePedUpdate(CPed* ped, uint8 index) {
     auto vehicleIdx = [ped]() {
         if (ped->IsInVehicle()) {
-            return GetVehiclePool()->GetIndex(ped->GetVehicleIfInOne()) + 1;
+            return CPools::GetVehiclePool()->GetIndex(ped->GetVehicleIfInOne()) + 1;
         } else {
             return 0;
         }
@@ -272,11 +272,11 @@ void CReplay::Display() {
 
 // 0x45D430
 void CReplay::MarkEverythingAsNew() {
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         ped.bHasAlreadyBeenRecorded = false;
     }
 
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         veh.vehicleFlags.bHasAlreadyBeenRecorded = false;
     }
 }
@@ -295,11 +295,11 @@ void CReplay::EmptyReplayBuffer() {
 
 // 0x45D390
 void CReplay::EmptyPedsAndVehiclePools_NoDestructors() {
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         CWorld::Remove(&veh);
     }
 
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         CWorld::Remove(&ped);
 
         if (auto* const shadow = ped.m_pShadowData) {
@@ -329,7 +329,7 @@ void CReplay::RecordVehicleDeleted(CVehicle* vehicle) {
         GoToNextBlock();
     }
 
-    Record.Write<tReplayDeletedVehicleBlock>({.poolRef = (int16)GetVehiclePool()->GetIndex(vehicle)});
+    Record.Write<tReplayDeletedVehicleBlock>({.poolRef = (int16)CPools::GetVehiclePool()->GetIndex(vehicle)});
     Record.Write<tReplayEndBlock>();
 }
 
@@ -342,7 +342,7 @@ void CReplay::RecordPedDeleted(CPed* ped) {
         GoToNextBlock();
     }
 
-    Record.Write<tReplayDeletedPedBlock>({.poolRef = (int16)GetPedPool()->GetIndex(ped)});
+    Record.Write<tReplayDeletedPedBlock>({.poolRef = (int16)CPools::GetPedPool()->GetIndex(ped)});
     Record.Write<tReplayEndBlock>();
 }
 
@@ -350,8 +350,8 @@ void CReplay::RecordPedDeleted(CPed* ped) {
 void CReplay::InitialiseVehiclePoolConversionTable() {
     rng::fill(m_VehiclePoolConversion, -1);
     auto convIdx = 0u;
-    for (auto poolIdx = 0u; poolIdx < GetVehiclePool()->GetSize(); poolIdx++) {
-        if (GetVehiclePool()->GetAt(poolIdx))
+    for (auto poolIdx = 0u; poolIdx < CPools::GetVehiclePool()->GetSize(); poolIdx++) {
+        if (CPools::GetVehiclePool()->GetAt(poolIdx))
             continue;
 
         if (!IsThisVehicleUsedInRecording(convIdx)) {
@@ -370,8 +370,8 @@ void CReplay::InitialiseVehiclePoolConversionTable() {
 void CReplay::InitialisePedPoolConversionTable() {
     rng::fill(m_PedPoolConversion, -1);
     auto convIdx = 0u;
-    for (auto poolIdx = 0u; poolIdx < GetPedPool()->GetSize(); poolIdx++) {
-        if (GetPedPool()->GetAt(poolIdx))
+    for (auto poolIdx = 0u; poolIdx < CPools::GetPedPool()->GetSize(); poolIdx++) {
+        if (CPools::GetPedPool()->GetAt(poolIdx))
             continue;
 
         if (!IsThisPedUsedInRecording(convIdx)) {
@@ -489,8 +489,8 @@ void CReplay::ProcessPedUpdate(CPed* ped, float interpValue, CAddressInReplayBuf
         CEntity::SafeCleanUpRef(ped->m_pVehicle);
         vehicle = nullptr;
 
-        if (auto poolRef = FindPoolIndexForVehicle(vehIdx - 1); !GetVehiclePool()->IsFreeSlotAtIndex(poolRef)) {
-            vehicle = GetVehiclePool()->GetAt(poolRef);
+        if (auto poolRef = FindPoolIndexForVehicle(vehIdx - 1); !CPools::GetVehiclePool()->IsFreeSlotAtIndex(poolRef)) {
+            vehicle = CPools::GetVehiclePool()->GetAt(poolRef);
             vehicle->RegisterReference(vehicle);
             ped->bInVehicle = true;
         }
@@ -734,7 +734,7 @@ void CReplay::StoreStuffInMem() {
 
 // 0x45ECD0
 void CReplay::RestoreStuffFromMem() {
-    for (auto& ped : GetPedPool()->GetAllValid()) {
+    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
         if (ped.bUsedForReplay) {
             if (auto playerData = ped.m_pPlayerData) {
                 playerData->DeAllocateData();
@@ -746,7 +746,7 @@ void CReplay::RestoreStuffFromMem() {
         }
     }
 
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         if (veh.vehicleFlags.bUsedForReplay) {
             CWorld::Remove(&veh);
             delete &veh;
@@ -832,7 +832,7 @@ void CReplay::FinishPlayback() {
 void CReplay::RecordThisFrame() {
     // Calculate the frame size beforehand.
     auto framePacketSize = 116u;
-    for (const auto& veh : GetVehiclePool()->GetAllValid()) {
+    for (const auto& veh : CPools::GetVehiclePool()->GetAllValid()) {
         if (veh.m_pRwObject) {
             switch (veh.m_nVehicleSubType) {
             case VEHICLE_TYPE_AUTOMOBILE:
@@ -859,7 +859,7 @@ void CReplay::RecordThisFrame() {
         }
     }
 
-    for (const auto& ped : GetPedPool()->GetAllValid()) {
+    for (const auto& ped : CPools::GetPedPool()->GetAllValid()) {
         if (ped.m_pRwObject) {
             if (!ped.bHasAlreadyBeenRecorded) {
                 // New ped!
@@ -903,7 +903,7 @@ void CReplay::RecordThisFrame() {
 
     Record.Write<tReplayTimerBlock>({.timeInMS = CTimer::GetTimeInMS()});
 
-    for (auto&& [i, veh] : GetVehiclePool()->GetAllValidWithIndex()) {
+    for (auto&& [i, veh] : CPools::GetVehiclePool()->GetAllValidWithIndex()) {
         if (veh.m_pRwObject) {
             switch (veh.m_nVehicleSubType) {
             case VEHICLE_TYPE_AUTOMOBILE:
@@ -949,7 +949,7 @@ void CReplay::RecordThisFrame() {
         }
     }
 
-    for (auto&& [i, ped] : GetPedPool()->GetAllValidWithIndex()) {
+    for (auto&& [i, ped] : CPools::GetPedPool()->GetAllValidWithIndex()) {
         if (ped.m_pRwObject) {
             if (!ped.bHasAlreadyBeenRecorded) {
                 // New ped!
@@ -1022,7 +1022,7 @@ void CReplay::RestoreClothesDesc(CPedClothesDesc& desc, tReplayClothesBlock& pac
 CPed* CReplay::DealWithNewPedPacket(const tReplayPedHeaderBlock& pedPacket, bool loadModel, tReplayClothesBlock* clothesPacket) {
     assert(pedPacket.type == REPLAY_PACKET_PED_HEADER);
 
-    if (GetPedPool()->GetAt(FindPoolIndexForPed(pedPacket.poolRef)))
+    if (CPools::GetPedPool()->GetAt(FindPoolIndexForPed(pedPacket.poolRef)))
         return nullptr;
 
     if (pedPacket.pedType == PED_TYPE_PLAYER1 && loadModel) {
@@ -1092,7 +1092,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             const auto modelId = vehiclePacket.modelId;
             const auto poolIdx = FindPoolIndexForVehicle(vehiclePacket.poolRef);
 
-            if (!GetVehiclePool()->GetAt(poolIdx)) {
+            if (!CPools::GetVehiclePool()->GetAt(poolIdx)) {
                 if (CStreaming::IsModelLoaded(modelId)) {
                     auto created = [&]() -> CVehicle* {
                         switch (vehiclePacket.vehicleSubType) {
@@ -1118,7 +1118,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
                     CStreaming::RequestModel(modelId, STREAMING_DEFAULT);
                 }
             } else {
-                vehiclePacket.ExtractVehicleUpdateData(*GetVehiclePool()->GetAt(poolIdx), interpolation);
+                vehiclePacket.ExtractVehicleUpdateData(*CPools::GetVehiclePool()->GetAt(poolIdx), interpolation);
             }
             break;
         }
@@ -1127,14 +1127,14 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             const auto modelId = bikePacket.modelId;
             const auto poolIdx = FindPoolIndexForVehicle(bikePacket.poolRef);
 
-            if (!GetVehiclePool()->GetAt(poolIdx)) {
+            if (!CPools::GetVehiclePool()->GetAt(poolIdx)) {
                 if (CStreaming::IsModelLoaded(modelId)) {
                     SetupVehicle(bikePacket, new (poolIdx << 8) CBike(modelId, MISSION_VEHICLE));
                 } else {
                     CStreaming::RequestModel(modelId, STREAMING_DEFAULT);
                 }
             } else {
-                bikePacket.ExtractBikeUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsBike(), interpolation);
+                bikePacket.ExtractBikeUpdateData(*CPools::GetVehiclePool()->GetAt(poolIdx)->AsBike(), interpolation);
             }
             break;
         }
@@ -1143,7 +1143,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             break;
         case REPLAY_PACKET_PED_UPDATE: {
             const auto poolIdx = FindPoolIndexForPed(buffer.Read<tReplayPedUpdateBlock>().poolRef);
-            ProcessPedUpdate(GetPedPool()->GetAt(poolIdx), interpolation, buffer);
+            ProcessPedUpdate(CPools::GetPedPool()->GetAt(poolIdx), interpolation, buffer);
             continue; // ProcessPedUpdate increments the offset by itself already.
         }
         case REPLAY_PACKET_GENERAL: {
@@ -1208,7 +1208,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
                 break;
 
             const auto idx = FindPoolIndexForVehicle(deletedVehPacket.poolRef);
-            if (auto vehicle = GetVehiclePool()->GetAt(idx)) {
+            if (auto vehicle = CPools::GetVehiclePool()->GetAt(idx)) {
                 CWorld::Remove(vehicle);
                 delete vehicle;
             }
@@ -1220,7 +1220,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
                 break;
 
             const auto idx = FindPoolIndexForPed(deletedPedPacket.poolRef);
-            if (auto ped = GetPedPool()->GetAt(idx)) {
+            if (auto ped = CPools::GetPedPool()->GetAt(idx)) {
                 CWorld::Remove(ped);
                 delete ped;
             }
@@ -1231,7 +1231,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             const auto modelId = bmxPacket.modelId;
             const auto poolIdx = FindPoolIndexForVehicle(bmxPacket.poolRef);
 
-            if (!GetVehiclePool()->GetAt(poolIdx)) {
+            if (!CPools::GetVehiclePool()->GetAt(poolIdx)) {
                 if (CStreaming::IsModelLoaded(modelId)) {
                     SetupVehicle(bmxPacket, new (poolIdx << 8) CBmx(modelId, MISSION_VEHICLE));
                 } else {
@@ -1240,7 +1240,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             } else {
                 // Originally BMX has an exclusive extractor for itself but it's exactly the
                 // same with bike extractor, so it's fine to use bike one here.
-                bmxPacket.As<tReplayBikeBlock>()->ExtractBikeUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsBike(), interpolation);
+                bmxPacket.As<tReplayBikeBlock>()->ExtractBikeUpdateData(*CPools::GetVehiclePool()->GetAt(poolIdx)->AsBike(), interpolation);
             }
             break;
         }
@@ -1249,14 +1249,14 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             const auto modelId = heliPacket.modelId;
             const auto poolIdx = FindPoolIndexForVehicle(heliPacket.poolRef);
 
-            if (!GetVehiclePool()->GetAt(poolIdx)) {
+            if (!CPools::GetVehiclePool()->GetAt(poolIdx)) {
                 if (CStreaming::IsModelLoaded(modelId)) {
                     SetupVehicle(heliPacket, new (poolIdx << 8) CHeli(modelId, MISSION_VEHICLE));
                 } else {
                     CStreaming::RequestModel(modelId, STREAMING_DEFAULT);
                 }
             } else {
-                auto vehicle = GetVehiclePool()->GetAt(poolIdx);
+                auto vehicle = CPools::GetVehiclePool()->GetAt(poolIdx);
 
                 heliPacket.ExtractVehicleUpdateData(*vehicle, interpolation);
                 vehicle->AsHeli()->m_fHeliRotorSpeed = heliPacket.rotorSpeed;
@@ -1268,14 +1268,14 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             const auto modelId = planePacket.modelId;
             const auto poolIdx = FindPoolIndexForVehicle(planePacket.poolRef);
 
-            if (!GetVehiclePool()->GetAt(poolIdx)) {
+            if (!CPools::GetVehiclePool()->GetAt(poolIdx)) {
                 if (CStreaming::IsModelLoaded(modelId)) {
                     SetupVehicle(planePacket, new (poolIdx << 8) CPlane(modelId, MISSION_VEHICLE));
                 } else {
                     CStreaming::RequestModel(modelId, STREAMING_DEFAULT);
                 }
             } else {
-                auto vehicle = GetVehiclePool()->GetAt(poolIdx);
+                auto vehicle = CPools::GetVehiclePool()->GetAt(poolIdx);
 
                 planePacket.ExtractVehicleUpdateData(*vehicle, interpolation);
                 vehicle->AsPlane()->field_9C8 = planePacket.field_9C8;
@@ -1288,14 +1288,14 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             const auto modelId = trainPacket.modelId;
             const auto poolIdx = FindPoolIndexForVehicle(trainPacket.poolRef);
 
-            if (!GetVehiclePool()->GetAt(poolIdx)) {
+            if (!CPools::GetVehiclePool()->GetAt(poolIdx)) {
                 if (CStreaming::IsModelLoaded(modelId)) {
                     SetupVehicle(trainPacket, new (poolIdx << 8) CTrain(modelId, MISSION_VEHICLE));
                 } else {
                     CStreaming::RequestModel(modelId, STREAMING_DEFAULT);
                 }
             } else {
-                trainPacket.ExtractTrainUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsTrain(), interpolation);
+                trainPacket.ExtractTrainUpdateData(*CPools::GetVehiclePool()->GetAt(poolIdx)->AsTrain(), interpolation);
             }
             break;
         }
@@ -1489,7 +1489,7 @@ CPlayerPed* CReplay::CreatePlayerPed() {
                 }
                 break;
             case REPLAY_PACKET_PED_UPDATE:
-                if (player && player == GetPedPool()->GetAt(FindPoolIndexForPed(packet.As<tReplayPedUpdateBlock>()->poolRef))) {
+                if (player && player == CPools::GetPedPool()->GetAt(FindPoolIndexForPed(packet.As<tReplayPedUpdateBlock>()->poolRef))) {
                     CAddressInReplayBuffer address(buffer, i, offset); // m_bSlot definition (i) is NOTSA
                     ProcessPedUpdate(player, 1.0f, address);
                     return player;
