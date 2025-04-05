@@ -1,9 +1,25 @@
 #include "StdInc.h"
 
-#include "Pools.h"
+#include <Pools/Pools.h>
 #include "CarCtrl.h"
 
-// #include "PointRoute.h"
+auto& ms_pPedPool               = StaticRef<CPedPool*>(0xB74490);
+auto& ms_pVehiclePool           = StaticRef<CVehiclePool*>(0xB74494);
+auto& ms_pBuildingPool          = StaticRef<CBuildingPool*>(0xB74498);
+auto& ms_pObjectPool            = StaticRef<CObjectPool*>(0xB7449C);
+auto& ms_pDummyPool             = StaticRef<CDummyPool*>(0xB744A0);
+auto& ms_pColModelPool          = StaticRef<CColModelPool*>(0xB744A4);
+auto& ms_pTaskPool              = StaticRef<CTaskPool*>(0xB744A8);
+auto& ms_pPedIntelligencePool   = StaticRef<CPedIntelligencePool*>(0xB744C0);
+auto& ms_pPtrNodeSingleLinkPool = StaticRef<CPtrNodeSingleLinkPool*>(0xB74484);
+auto& ms_pPtrNodeDoubleLinkPool = StaticRef<CPtrNodeDoubleLinkPool*>(0xB74488);
+auto& ms_pEntryInfoNodePool     = StaticRef<CEntryInfoNodePool*>(0xB7448C);
+auto& ms_pPointRoutePool        = StaticRef<CPointRoutePool*>(0xB744B0);
+auto& ms_pPatrolRoutePool       = StaticRef<CPatrolRoutePool*>(0xB744B4);
+auto& ms_pEventPool             = StaticRef<CEventPool*>(0xB744AC);
+auto& ms_pNodeRoutePool         = StaticRef<CNodeRoutePool*>(0xB744B8);
+auto& ms_pTaskAllocatorPool     = StaticRef<CTaskAllocatorPool*>(0xB744BC);
+auto& ms_pPedAttractorPool      = StaticRef<CPedAttractorPool*>(0xB744C4);
 
 void CPools::InjectHooks() {
     RH_ScopedClass(CPools);
@@ -290,3 +306,87 @@ bool CPools::SaveVehiclePool() {
     return plugin::CallAndReturn<bool, 0x5D4800>();
 }
 
+// 0x404550
+auto& CPools::GetPedPool() {
+    return ms_pPedPool;
+}
+
+// 0x404560
+auto& CPools::GetVehiclePool() {
+    return ms_pVehiclePool;
+}
+
+// 0x403DF0
+auto& CPools::GetBuildingPool() {
+    return ms_pBuildingPool;
+}
+
+// 0x404570
+auto& CPools::GetObjectPool() {
+    return ms_pObjectPool;
+}
+
+// 0x404580
+auto& CPools::GetDummyPool() {
+    return ms_pDummyPool;
+}
+
+// 0x40F000
+auto& CPools::GetColModelPool() {
+    return ms_pColModelPool;
+}
+
+// 0x61A330
+auto& CPools::GetTaskPool() {
+    return ms_pTaskPool;
+}
+
+// 0x5FF930
+auto& CPools::GetPedIntelligencePool() {
+    return ms_pPedIntelligencePool;
+}
+
+// 0x552190
+auto& CPools::GetPtrNodeSingleLinkPool() {
+    return ms_pPtrNodeSingleLinkPool;
+}
+
+// 0x5521A0
+auto& CPools::GetPtrNodeDoubleLinkPool() {
+    return ms_pPtrNodeDoubleLinkPool;
+}
+
+// 0x536C80
+auto& CPools::GetEntryInfoNodePool() {
+    return ms_pEntryInfoNodePool;
+}
+
+// 0x41B400
+auto& CPools::GetPointRoutePool() {
+    return ms_pPointRoutePool;
+}
+
+// 0x41B410
+auto& CPools::GetPatrolRoutePool() {
+    return ms_pPatrolRoutePool;
+}
+
+// 0x4ABF80
+auto& CPools::GetEventPool() {
+    return ms_pEventPool;
+}
+
+// 0x41B420
+auto& CPools::GetNodeRoutePool() {
+    return ms_pNodeRoutePool;
+}
+
+// 0x69BB70
+auto& CPools::GetTaskAllocatorPool() {
+    return ms_pTaskAllocatorPool;
+}
+
+// 0x5E95A0
+auto& CPools::GetPedAttractorPool() {
+    return ms_pPedAttractorPool;
+}
