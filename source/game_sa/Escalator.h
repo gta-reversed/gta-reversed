@@ -11,7 +11,7 @@ public:
     ~CEscalator() = default; // 0x717130
 
     void SwitchOff();
-    void AddThisOne(const CVector& vecStart, const CVector& vecBottom, const CVector& vecEnd, const CVector& vecTop, bool bMoveDown, CEntity* entity);
+    void AddThisOne(const CVector& vecStart, const CVector& vecBottom, const CVector& vecTop, const CVector& vecEnd, bool moveDown, CEntity* entity);
     void Update();
 
 public:
@@ -24,12 +24,12 @@ public:
     uint8                    m_nObjectsCreated{}; // todo: check offset and size
     bool                     m_bMoveDown;
     int32                    m_nNumIntermediatePlanes;
-    uint32                   m_nNumBottomPlanes;
-    uint32                   m_nNumTopPlanes;
+    int32                    m_nNumBottomPlanes;
+    int32                    m_nNumTopPlanes;
     char                     _unused[8];
     CSphere                  m_Bounding;
     float                    m_nCurrentPosition;
-    void*                    m_pEntity;
+    CEntity*                 m_pEntity;
     std::array<CObject*, 42> m_pObjects{};
 
 private:
