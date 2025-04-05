@@ -35,7 +35,7 @@ void ProcessEvents() {
             continue;
         }
 
-        NOTSA_LOG_DEBUG("SDL: Unprocessed event: {}", e.type);
+        //NOTSA_LOG_DEBUG("SDL: Unprocessed event: {}", e.type);
     }
 }
 }; // namespace SDLWrapper

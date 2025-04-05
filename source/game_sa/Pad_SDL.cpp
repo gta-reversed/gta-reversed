@@ -48,7 +48,7 @@ bool CPad::ProcessKeyboardEvent(const SDL_Event& e, CKeyboardState& ks) {
             return true;
         }
 
-        NOTSA_LOG_DEBUG("SDL: Key ({}): {}", (char)(e.key.key), e.key.down);
+        //NOTSA_LOG_DEBUG("SDL: Key ({}): {}", (char)(e.key.key), e.key.down);
 
         const auto s = e.key.down ? 255 : 0;
 
@@ -169,9 +169,6 @@ bool CPad::ProcessJoyStickEvent(const SDL_Event& e, CControllerState& cs) {
 }
 
 bool CPad::ProcessEvent(const SDL_Event& e, bool ignoreMouseEvents, bool ignoreKeyboardEvents) {
-    NOTSA_LOG_DEBUG("ignoreKeyboardEvents: {}", ignoreKeyboardEvents);
-    NOTSA_LOG_DEBUG("ignoreMouseEvents: {}", ignoreMouseEvents);
-
     // Mouse/keyboard events are meant to be handled by Pad 0
     if (!ignoreMouseEvents && GetPad(0)->ProcessMouseEvent(e, TempMouseControllerState)) {
         return true;
