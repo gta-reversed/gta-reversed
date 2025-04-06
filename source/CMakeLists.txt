@@ -176,6 +176,7 @@ target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
     USE_GTASA_ALLOCATOR
     EXTRA_DEBUG_FEATURES
     FIX_BUGS
+    NOTSA_WINDOWED_MODE # NOTE: This is a workaround for the game to run in windowed mode, and it must be enabled, otherwise shit's gonna crash
     SA_SKINNED_PEDS
 
     USE_D3D9 # TODO

@@ -46,7 +46,7 @@ class saRecipe(ConanFile):
         if self.options['with_command_hooks']:
             tc.cache_variables["GTASA_WITH_SCRIPT_COMMAND_HOOKS"] = "ON"
         if self.options['use_sdl3']:
-            tc.cache_variables["GTASA_USE_SDL3"] = "ON"
+            tc.cache_variables["GTASA_WITH_SDL3"] = "ON"
         tc.generate()
 
         # Copy ImGui bindings
