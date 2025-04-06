@@ -352,7 +352,7 @@ bool CGame::Init1(char const *datFile) {
     CGangWars::InitAtStartOfGame();
     CConversations::Clear();
     CPedToPlayerConversations::Clear();
-    CQuadTreeNode::InitPool();
+    CQuadTreeNode<void*>::InitPool();
 
     if (!CPlantMgr::Initialise() || !CCustomRoadsignMgr::Initialise()) {
         return false;

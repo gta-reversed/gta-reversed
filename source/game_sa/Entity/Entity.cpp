@@ -1121,9 +1121,10 @@ void CEntity::CreateEffects()
             );
 
             if (iEnExId != -1) {
-                auto addedEffect = CEntryExitManager::mp_poolEntryExits->GetAt(iEnExId);
-                if (addedEffect->m_pLink && !addedEffect->m_pLink->bEnableAccess)
-                    addedEffect->bEnableAccess = false;
+                if (auto* const enex = CEntryExitManager::GetInSlot(iEnExId)) {
+                    if (enex->m_pLink && !enex->m_pLink->bEnableAccess)
+                        enex->bEnableAccess = false;
+                }
             }
             break;
         }
@@ -1197,7 +1198,7 @@ void CEntity::DestroyEffects()
             auto vecWorld = TransformFromObjectSpace(effect->m_Pos);
             auto iNearestEnex = CEntryExitManager::FindNearestEntryExit(vecWorld, 1.5F, -1);
             if (iNearestEnex != -1) {
-                auto enex = CEntryExitManager::mp_poolEntryExits->GetAt(iNearestEnex);
+                auto enex = CEntryExitManager::GetInSlot(iNearestEnex);
                 if (enex->bEnteredWithoutExit)
                     enex->bDeleteEnex = true;
                 else

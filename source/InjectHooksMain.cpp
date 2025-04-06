@@ -652,7 +652,7 @@ void InjectHooksMain() {
     CBox::InjectHooks();
     CColModel::InjectHooks();
     CCollisionData::InjectHooks();
-    CQuadTreeNode::InjectHooks();
+    CQuadTreeNode<void*>::InjectHooks();
     CColStore::InjectHooks();
     CColAccel::InjectHooks();
     CTrafficLights::InjectHooks();
