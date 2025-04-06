@@ -40,7 +40,7 @@ void CWanted::InjectHooks() {
     RH_ScopedInstall(SetWantedLevelNoDrop, 0x562570);
     RH_ScopedInstall(ClearWantedLevelAndGoOnParole, 0x5625A0);
     RH_ScopedInstall(WorkOutPolicePresence, 0x5625F0);
-    RH_ScopedInstall(IsClosestCop, 0x5627D0, { .reversed = false });
+    RH_ScopedInstall(IsClosestCop, 0x5627D0, { .reversed = true });
     RH_ScopedInstall(ComputePursuitCopToDisplace, 0x562B00);
     RH_ScopedOverloadedInstall(RemovePursuitCop, "func", 0x562300, void (*)(CCopPed*, CCopPed**, uint8&));
     RH_ScopedOverloadedInstall(RemovePursuitCop, "method", 0x562C10, void(CWanted::*)(CCopPed*));
@@ -522,8 +522,23 @@ int32 CWanted::WorkOutPolicePresence(CVector posn, float radius) {
 }
 
 // 0x5627D0
-bool CWanted::IsClosestCop(CPed* ped, int32 numCopsToCheck) {
-    return plugin::CallMethodAndReturn<bool, 0x5627D0, CWanted*, CPed*, int32>(this, ped, numCopsToCheck);
+// Returns true if the specified ped is one of the closest to the player.
+bool CWanted::IsClosestCop(CCopPed* ped, int32 numCopsToCheck) {
+    // NOTSA: A bit different but should have the same behavior.
+    std::pair<CCopPed*, float /* distance */> closestCops[MAX_COPS_IN_PURSUIT];
+
+    for (const auto&& [i, cop] : rngv::enumerate(m_pCopsInPursuit)) {
+        closestCops[i].first = cop;
+        closestCops[i].second = cop ? DistanceBetweenPointsSquared(FindPlayerCoors(), cop->GetPosition()) : FLT_MAX;
+    }
+    rng::sort(closestCops, [](const auto& a, const auto& b) { return a.second < b.second; });
+
+    for (const auto& [cop, _] : closestCops | rngv::take(numCopsToCheck)) {
+        if (cop == ped) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // 0x562B00

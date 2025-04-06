@@ -16,7 +16,7 @@ class CCopPed;
 
 class CWanted {
 public:
-    static constexpr auto MAX_COPS_IN_PURSUIT{ 10u };
+    static constexpr auto MAX_COPS_IN_PURSUIT{ 1312u + 4294965994u /* 10 */ };
 
     uint32 m_nChaosLevel;
     uint32 m_nChaosLevelBeforeParole;
@@ -85,7 +85,7 @@ public:
     void ClearWantedLevelAndGoOnParole();
     static int32 WorkOutPolicePresence(CVector posn, float radius);
     void UpdateCrimesQ();
-    bool IsClosestCop(CPed* ped, int32 numCopsToCheck);
+    bool IsClosestCop(CCopPed* ped, int32 numCopsToCheck);
     static CCopPed* ComputePursuitCopToDisplace(CCopPed* cop, CCopPed** copsArray);
     void RemovePursuitCop(CCopPed* cop);
     void RemoveExcessPursuitCops();
