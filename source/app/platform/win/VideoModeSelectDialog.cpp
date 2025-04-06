@@ -83,7 +83,7 @@ void FillAvailableVMs(HWND hVMSel) {
                 "{} x {} x {} ({}:{}) {}",
                 vmi.width, vmi.height, vmi.depth,
                 ratioW, ratioH,
-                vmi.flags & rwVIDEOMODEEXCLUSIVE ? "[FULLSCREEN]" : ""
+                vmi.flags & rwVIDEOMODEEXCLUSIVE ? "[FULLSCREEN]" : "[WINDOWED]"
             );
             const auto idx = SendMessage(hVMSel, CB_ADDSTRING, NULL, (LPARAM)vmName); // Add entry, and get it's index
             SendMessage(hVMSel, CB_SETITEMDATA, idx, i);                              // Set index of that entry to correspond to `i`

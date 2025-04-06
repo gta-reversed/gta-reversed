@@ -12,8 +12,8 @@
 
 #ifdef NOTSA_USE_SDL3
 #include <SDL3/SDL.h>
+#include "WindowedMode.hpp"
 #endif
-
 #include "winincl.h"
 #include "intrin.h"
 

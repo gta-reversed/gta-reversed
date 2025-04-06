@@ -4,6 +4,8 @@
 #include <SDL3/SDL.h>
 #include "SDLWrapper.hpp"
 #include <bindings/imgui_impl_sdl3.h>
+#include <WindowedMode.hpp>
+#include "PostEffects.h"
 
 namespace notsa {
 namespace SDLWrapper {
@@ -27,6 +29,17 @@ void ProcessEvents() {
         switch (e.type) {
         case SDL_EVENT_QUIT: {
             RsGlobal.quit = true;
+            continue;
+        }
+        case SDL_EVENT_WINDOW_RESIZED: {
+            const auto w = e.window.data1,
+                       h = e.window.data2;
+
+            NOTSA_LOG_DEBUG(
+                "SDL: Window resized: {} x {}",
+                w, h
+            );
+
             continue;
         }
         }

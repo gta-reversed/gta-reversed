@@ -4,7 +4,6 @@ namespace notsa {
 void InjectWindowedModeHooks();
 
 namespace WindowedMode {
-void AdjustPresentParams(D3DPRESENT_PARAMETERS* pp);
-void AdjustGameToWindowSize();
+void AdjustVideoModeOnResize(int32 w, int32 h);
 };
 };

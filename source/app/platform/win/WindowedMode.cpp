@@ -1,7 +1,10 @@
 
 #include "StdInc.h"
+#ifdef NOTSA_WINDOWED_MODE
+
 #include "WindowedMode.hpp"
 #include <HookSystem.h>
+#include "PostEffects.h"
 
 #include "winincl.h"
 #include <SDL3/SDL.h>
@@ -90,6 +93,14 @@ struct _rwD3D9FormatInfo
     RwUInt16 rwFormat;
 };
 
+typedef struct _rxD3D9DisplayMode _rxD3D9DisplayMode;
+struct _rxD3D9DisplayMode
+{
+    D3DDISPLAYMODE      mode;
+    RwInt32             flags;
+};
+
+
 
 auto& _RwD3D9RasterExtOffset             = StaticRef<RwInt32>(0xB4E9E0); /* Raster extension offset */
 auto& StencilClearValue                  = StaticRef<RwUInt32>(0xC97C44);
@@ -107,7 +118,8 @@ auto& FullScreenRefreshRateInHz          = StaticRef<RwUInt32>(0x8E243C);
 auto& _RwD3D9ZBufferDepth                = StaticRef<RwInt32>(0xC9BEFC);
 auto& SelectedMultisamplingLevels        = StaticRef<RwUInt32>(0x8E2430);
 auto& SelectedMultisamplingLevelsNonMask = StaticRef<RwUInt32>(0x8E2438);
-auto& DisplayModes                       = StaticRef<RwVideoMode*>(0xC97C48);
+auto& DisplayModes                       = StaticRef<_rxD3D9DisplayMode*>(0xC97C48);
+auto& NumDisplayModes                    = StaticRef<RwInt32>(0xC97C40);
 auto& dgGGlobals                         = StaticRef<RwRwDeviceGlobals>(0xC9BCC0);
 auto& _RwD3D9D3D9ViewTransform           = StaticRef<D3DMATRIX>(0xC9BC80);
 auto& _RwD3D9D3D9ProjTransform           = StaticRef<D3DMATRIX>(0x8E2458);
@@ -165,6 +177,7 @@ void MainCameraRebuildRaster(void* camera) {
     if (cam != Scene.m_pRwCamera) {
         return;
     }
+    return;
     IDirect3DSurface9* pSurface;
     D3DSURFACE_DESC stSurfaceDesc;
     if (!GetD3D9Device()) {
@@ -175,71 +188,70 @@ void MainCameraRebuildRaster(void* camera) {
     pSurface->GetDesc(&stSurfaceDesc);
     pSurface->Release();
 
-    RwVideoMode* pVM = &DisplayModes[RwEngineGetCurrentVideoMode()];
-    if (pVM->width != (int)stSurfaceDesc.Width || pVM->height != (int)stSurfaceDesc.Height)
-    {
-        pVM->width = (int)stSurfaceDesc.Width;
-        pVM->height = (int)stSurfaceDesc.Height;
+    //_rxD3D9DisplayMode* pVM = &DisplayModes[RwEngineGetCurrentVideoMode()];
+    //if (pVM->width != (int)stSurfaceDesc.Width || pVM->height != (int)stSurfaceDesc.Height)
+    //{
+    //    pVM->width = (int)stSurfaceDesc.Width;
+    //    pVM->height = (int)stSurfaceDesc.Height;
+    //}
+    //
+    //int nGameWidth = pVM->width;
+    //int nGameHeight = pVM->height;
+    //
+    //_RwD3D9AdapterInformation.mode.Width = nGameWidth;
+    //_RwD3D9AdapterInformation.mode.Height = nGameHeight;
+    //
+    //if (cam->frameBuffer && (cam->frameBuffer->width != nGameWidth || cam->frameBuffer->height != nGameHeight))
+    //{
+    //    RwRasterDestroy(cam->frameBuffer);
+    //    cam->frameBuffer = NULL;
+    //}
+    //
+    //if (!cam->frameBuffer)
+    //{
+    //    cam->frameBuffer = RwRasterCreate(nGameWidth, nGameHeight, 32, rwRASTERTYPECAMERA | rwRASTERDONTALLOCATE);
+    //}
+    //assert(cam->frameBuffer);
+    //
+    //if (cam->zBuffer && (cam->zBuffer->width != nGameWidth || cam->zBuffer->height != nGameHeight))
+    //{
+    //    RwRasterDestroy(cam->zBuffer);
+    //    cam->zBuffer = NULL;
+    //}
+    //
+    //if (!cam->zBuffer)
+    //{
+    //    cam->zBuffer = RwRasterCreate(nGameWidth, nGameHeight, 0, rwRASTERTYPEZBUFFER);
+    //}
+}   
 
-    }
-
-    int nGameWidth = pVM->width;
-    int nGameHeight = pVM->height;
-
-    _RwD3D9AdapterInformation.mode.Width = nGameWidth;
-    _RwD3D9AdapterInformation.mode.Height = nGameHeight;
-
-    if (cam->frameBuffer && (cam->frameBuffer->width != nGameWidth || cam->frameBuffer->height != nGameHeight))
-    {
-        RwRasterDestroy(cam->frameBuffer);
-        cam->frameBuffer = NULL;
-    }
-
-    if (!cam->frameBuffer)
-    {
-        cam->frameBuffer = RwRasterCreate(nGameWidth, nGameHeight, 32, rwRASTERTYPECAMERA);
-    }
-    assert(cam->frameBuffer);
-
-    if (cam->zBuffer && (cam->zBuffer->width != nGameWidth || cam->zBuffer->height != nGameHeight))
-    {
-        RwRasterDestroy(cam->zBuffer);
-        cam->zBuffer = NULL;
-    }
-
-    if (!cam->zBuffer)
-    {
-        cam->zBuffer = RwRasterCreate(nGameWidth, nGameHeight, 0, rwRASTERTYPEZBUFFER);
-    }
-}
-
-void AdjustGameToWindowSize() {
-    RECT rcClient;
-    GetClientRect(WindowHandle, &rcClient);
-
-    int nModeIndex = RwEngineGetCurrentVideoMode();
-    if (DisplayModes) {
-        bool bSizeChanged = (DisplayModes[nModeIndex].width != rcClient.right || DisplayModes[nModeIndex].height != rcClient.bottom);
-        if (bSizeChanged) {
-            DisplayModes[nModeIndex].width  = rcClient.right;
-            DisplayModes[nModeIndex].height = rcClient.bottom;
-
-            if (Scene.m_pRwCamera) {
-                RwCameraClear(Scene.m_pRwCamera, &gColourTop, rwCAMERACLEARZ);
-            }
-        }
-
-        if (!bFullMode) {
-            RECT rcWindow;
-            GetWindowRect(WindowHandle, &rcWindow);
-
-            if (rcWindow.left != 0 && rcWindow.top != 0) {
-                nNonFullPosX = rcWindow.left;
-                nNonFullPosY = rcWindow.top;
-            }
-        }
-    }
-}
+//void AdjustGameToWindowSize() {
+//    RECT rcClient;
+//    GetClientRect(WindowHandle, &rcClient);
+//
+//    int nModeIndex = RwEngineGetCurrentVideoMode();
+//    if (DisplayModes) {
+//        bool bSizeChanged = (DisplayModes[nModeIndex].width != rcClient.right || DisplayModes[nModeIndex].height != rcClient.bottom);
+//        if (bSizeChanged) {
+//            DisplayModes[nModeIndex].width  = rcClient.right;
+//            DisplayModes[nModeIndex].height = rcClient.bottom;
+//
+//            if (Scene.m_pRwCamera) {
+//                RwCameraClear(Scene.m_pRwCamera, &gColourTop, rwCAMERACLEARZ);
+//            }
+//        }
+//
+//        if (!bFullMode) {
+//            RECT rcWindow;
+//            GetWindowRect(WindowHandle, &rcWindow);
+//
+//            if (rcWindow.left != 0 && rcWindow.top != 0) {
+//                nNonFullPosX = rcWindow.left;
+//                nNonFullPosY = rcWindow.top;
+//            }
+//        }
+//    }
+//}
 
 void AdjustPresentParams(D3DPRESENT_PARAMETERS* pp) {
     if (!pp) {
@@ -350,8 +362,8 @@ struct D3D9ProxyDevice {
 
         if (SUCCEEDED(hr)) {
             auto& vm  = DisplayModes[RwEngineGetCurrentVideoMode()];
-            vm.width  = pp->BackBufferWidth;
-            vm.height = pp->BackBufferHeight;
+            vm.mode.Width  = pp->BackBufferWidth;
+            vm.mode.Height = pp->BackBufferHeight;
         } else {
             NOTSA_DEBUGBREAK();
         }
@@ -449,6 +461,28 @@ void __declspec(naked) HookDirect3DDeviceReplacerSA() noexcept {
 
 #undef STACK_PUSH
 #undef STACK_POP
+
+//bool s_IsWindowed = false;
+//void SetWindowedMode(bool windowed) {
+//    //if (!std::exchange(s_IsWindowed, windowed) == windowed) {
+//    //    return;
+//    //}
+//
+//    for (auto i = 0; i < NumDisplayModes; i++) {
+//        auto* vm = &DisplayModes[i];
+//
+//        vm->flags = windowed
+//            ? (RwVideoModeFlag)(vm->flags & ~rwVIDEOMODEEXCLUSIVE)
+//            : (RwVideoModeFlag)(vm->flags | rwVIDEOMODEEXCLUSIVE);
+//    }
+//}
+void AdjustVideoModeOnResize(int32 w, int32 h) {
+    auto* vm   = &DisplayModes[RwEngineGetCurrentVideoMode()];
+    vm->mode.Width  = w;
+    vm->mode.Height = h;
+
+    CPostEffects::SetupBackBufferVertex();
+}
 };
 
 namespace RenderWare {
@@ -1859,3 +1893,4 @@ void notsa::InjectWindowedModeHooks() {
 
     RH_ScopedGlobalInstall(RenderWare::_rwD3D9CameraBeginUpdate, 0x7F8F20);
 }
+#endif

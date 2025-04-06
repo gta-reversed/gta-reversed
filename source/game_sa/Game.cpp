@@ -608,11 +608,14 @@ bool CGame::InitialiseRenderWare() {
 
     const auto frame = RwFrameCreate();
     rwObjectHasFrameSetFrame(&camera->object.object, frame);
-    camera->frameBuffer = RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPECAMERA);
-    assert(camera->frameBuffer);
-    camera->zBuffer = RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPEZBUFFER);
-    assert(camera->zBuffer);
-    if (!camera->object.object.parent) {
+
+    RwCameraSetRaster(camera, RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPECAMERA));
+    assert(RwCameraGetRaster(camera));
+
+    RwCameraSetZRaster(camera, RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPEZBUFFER));
+    assert(RwCameraGetZRaster(camera));
+
+    if (!RwCameraGetFrame(camera)) {
         CameraDestroy(camera);
         return false;
     }
