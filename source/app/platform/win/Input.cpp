@@ -199,9 +199,9 @@ CMouseControllerState GetMouseState() {
 
     if (PSGLOBAL(diMouse)) {
         if (SUCCEEDED(PSGLOBAL(diMouse)->GetDeviceState(sizeof(DIMOUSESTATE2), &mouseState))) {
-            state.m_AmountMoved = CVector2D(static_cast<float>(mouseState.lX), static_cast<float>(mouseState.lY));
-            state.WheelMovedUp = (mouseState.lZ > 0);
-            state.WheelMovedDown = (mouseState.lZ < 0);
+            state.m_AmountMoved = CVector2D(mouseState.lX, mouseState.lY);
+            state.WheelMovedUp = mouseState.lZ > 0;
+            state.WheelMovedDown = mouseState.lZ < 0;
             state.LeftButton = mouseState.rgbButtons[0] & 128;
             state.RightButton = mouseState.rgbButtons[1] & 128;
             state.MiddleButton = mouseState.rgbButtons[2] & 128;

@@ -91,7 +91,6 @@ enum eControllerAction {
     SHOW_MOUSE_POINTER_TOGGLE = 57,
     SWITCH_CAM_DEBUG_MENU = 58,
 
-    // notsa
     NUM_OF_MAX_CONTROLLER_ACTIONS,
     NUM_OF_MIN_CONTROLLER_ACTIONS = 0,
 };
@@ -123,6 +122,8 @@ enum eJOY_BUTTONS {
     JOYBUTTON_FOURTEEN = 14,
     JOYBUTTON_FIFTHTEEN = 15,
     JOYBUTTON_SIXTEEN = 16,
+
+    NUM_OF_MAX_JOYBUTTON
 };
 
 struct CControllerKey {
@@ -164,7 +165,7 @@ public:
     DIJOYSTATE2                                              m_OldJoyState{};
     DIJOYSTATE2                                              m_NewJoyState{};
     std::array<GxtChar[40], NUM_OF_MAX_CONTROLLER_ACTIONS>   m_ControllerActionName{};
-    bool                                                     m_ButtonStates[17]{};     // True if down, false if up or missing, enum ePadButton?
+    bool                                                     m_ButtonStates[NUM_OF_MAX_JOYBUTTON]{};     // True if down, false if up or missing, enum ePadButton?
     std::array<CControllerAction, NUM_OF_MAX_CONTROLLER_ACTIONS> m_Actions;
     bool                                                     m_bStickL_X_Rgh_Lft_MovementBothDown[CONTROLLER_NUM];
     bool                                                     m_bStickL_Up_Dwn_MovementBothDown[CONTROLLER_NUM];
@@ -253,7 +254,6 @@ private:
     void CheckAndSetStick_FirstThirdPerson(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stickValue, bool& stickFlag, int16 value);
     void CheckAndResetButtonState(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stateFlag);
     void CheckAndSetStick_Driving(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stickValue, bool& stickFlag, int16 value);
-    void SetActionNameInternal(eControllerAction action, const GxtChar* name);
 
 private:
     CControllerConfigManager* Constructor() {

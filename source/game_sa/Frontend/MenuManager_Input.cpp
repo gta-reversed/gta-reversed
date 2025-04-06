@@ -158,6 +158,7 @@ bool CMenuManager::CheckRedefineControlInput() {
         if (m_bJustOpenedControlRedefWindow) {
             m_bJustOpenedControlRedefWindow = false;
         } else {
+            // 0x57E508
             GetCurrentKeyPressed(*m_pPressedKey);
             m_nPressedMouseButton = (RsKeyCodes)0;
             m_nJustDownJoyButton = 0;
@@ -181,7 +182,7 @@ bool CMenuManager::CheckRedefineControlInput() {
             m_nJustDownJoyButton = ControlsManager.GetJoyButtonJustDown();
 
             auto TypeOfControl = eControllerType::KEYBOARD;
-			if (m_nJustDownJoyButton)
+			if (!m_nJustDownJoyButton)
 				TypeOfControl = eControllerType::JOY_STICK;
 			if (m_nPressedMouseButton)
 				TypeOfControl = eControllerType::MOUSE;

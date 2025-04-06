@@ -467,84 +467,69 @@ void CMenuManager::DrawQuitGameScreen() {
     RsEventHandler(rsQUITAPP, nullptr);
 }
 
+// NOTE: Now all elements are a bit higher than they should be, maybe it's a StretchY problem, or maybe it's in the current code
 // 0x57D8D0
 void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
-    eControllerAction maxActions = eControllerAction::NUM_OF_MIN_CONTROLLER_ACTIONS;
-    uint8 verticalSpacing;
+    const auto verticalSpacing = m_RedefiningControls
+        ? (m_RedefiningControls ? 13u : StartingYPos)
+        : (4u * (!m_ControlMethod) + 11u);
 
-    if (m_RedefiningControls == 1) {
-        maxActions = eControllerAction::VEHICLE_BRAKE;
-        verticalSpacing = 13;
-    } else {
-        if (m_ControlMethod) {
-            verticalSpacing = 11;
-            maxActions = eControllerAction::VEHICLE_RADIO_TRACK_SKIP;
-        } else {
-            verticalSpacing = 15;
-            maxActions = eControllerAction::VEHICLE_STEER_UP;
-        }
-    }
+    const auto maxActions = m_RedefiningControls
+        ? (m_RedefiningControls ? 25u : 0u)
+        : (m_ControlMethod ? 28u : 22u);
 
-    if (maxActions > 0) {
-        float posX = 0.0f;
-        
-        for (auto actionIndex : std::views::iota(static_cast<int>(eControllerAction::NUM_OF_MIN_CONTROLLER_ACTIONS), static_cast<int>(maxActions))) {
-            posX = StretchX(240.0f);
-            float posY = StretchY(float(StartingYPos));
-            
+    if (maxActions) {
+        for (auto actionIndex = 0u; actionIndex < maxActions; actionIndex++) {
+            float posX = StretchX(240.0f);
             for (const auto order : {eContSetOrder::FIRST, eContSetOrder::SECOND, eContSetOrder::THIRD, eContSetOrder::FOURTH}) {
-                const auto buttonText = ControlsManager.GetControllerSettingText(static_cast<eControllerAction>(actionIndex), order);
+                const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)actionIndex, order);
                 if (buttonText) {
-                    CFont::PrintString(posX, posY, buttonText);
+                    CFont::PrintString(posX, StretchX(StartingYPos), buttonText);
                     posX += StretchX(75.0f);
                 }
             }
-            
-            if (static_cast<eControllerAction>(actionIndex) == m_ListSelection) {
-                if (m_EditingControlOptions) {
-                    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.LastFlash > 150) {
-                        FrontEndMenuManager.ColourSwitch = (FrontEndMenuManager.ColourSwitch) ? false : true;
-                        FrontEndMenuManager.LastFlash  = CTimer::m_snTimeInMillisecondsPauseMode;
-                    }
+
+            // 0x57D9CF
+            if ((eControllerAction)actionIndex == m_nCurrentScreenItem && m_EditingControlOptions) {
+                if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.LastFlash > 150) {
+                    FrontEndMenuManager.ColourSwitch = !FrontEndMenuManager.ColourSwitch;
+                    FrontEndMenuManager.LastFlash = CTimer::m_snTimeInMillisecondsPauseMode;
+                }
                     
-                    if (FrontEndMenuManager.ColourSwitch) {
-                        CFont::SetColor({0, 0, 0, 255});
-                        CFont::PrintString(posX, posY, TheText.Get("FEC_QUE"));
-                        CFont::SetColor({74, 90, 107, 255});
-                    }
+                if (FrontEndMenuManager.ColourSwitch) {
+                    CFont::SetColor({0, 0, 0, 255});
+                    CFont::PrintString(posX, StartingYPos, TheText.Get("FEC_QUE")); // ???
+                    CFont::SetColor({74, 90, 107, 255});
                 }
             }
             
             StartingYPos += verticalSpacing;
         }
-        
-        /*/ Handle combo text display - Dummy function deprecated
-        if (DEPRECATEDCOMBO) {
-            auto comboText = CControllerConfigManager::GetButtonComboText(m_ListSelection);
-            if (comboText) {
-                CFont::SetColor({200, 50, 50, 255});
-                CFont::PrintString(posX, StretchY(float(a2 + 10)), comboText);
-                }
-                }*/
-            }
+    }
+    /*
+    // 0x57DA95
+    // Handle combo text display - Dummy function deprecated
+    if (DEPRECATEDCOMBO) {
+        auto comboText = CControllerConfigManager::GetButtonComboText(m_ListSelection);
+        if (comboText) {
+            CFont::SetColor({200, 50, 50, 255});
+            CFont::PrintString(posX, StretchY(float(a2 + 10)), comboText);
         }
-        
+    }
+    */
+}
+
 // 0x57E6E0
 void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScreen) {
-    int   controllerAction;
-    int   actionIndex = 0;
-    float currentY;
-    int   currentX;
-    bool  hasControl;
-
-    const uint8 verticalSpacing = m_RedefiningControls ? 13 : (4 * ~m_ControlMethod + 11);
-    const uint8 maxActions      = m_RedefiningControls ? 25 : (m_ControlMethod ? 28 : 22);
+    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * !m_ControlMethod + 11u);
+    const auto maxActions      = m_RedefiningControls ? 25u : (m_ControlMethod ? 28u : 22u);
 
     struct ControlActionMapping {
         eControllerAction actionToTest;
         int controllerAction;
     };
 
+    // TODO: review this value, maybe fix values
     static constexpr ControlActionMapping CarActionMappings[] = {
         { eControllerAction::PED_CYCLE_WEAPON_RIGHT,            -1 },
         { eControllerAction::PED_CYCLE_WEAPON_LEFT,             -1 },
@@ -588,7 +573,6 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::VEHICLE_LOOKBEHIND,                34 },
         { eControllerAction::VEHICLE_MOUSELOOK,                 35 },
     };
-
     static constexpr ControlActionMapping PedActionMappings[] = {
         { eControllerAction::PED_FIRE_WEAPON,                   0  },
         { eControllerAction::VEHICLE_RADIO_TRACK_SKIP,          0  },
@@ -643,19 +627,20 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::PED_LOCK_TARGET,                   14 },
     };
 
-    currentY = StretchY(float(verticalOffset));
+    auto currentY = StretchY(float(verticalOffset));
 
     // Main loop - process each action
+    auto actionIndex = 0u;
     while (actionIndex < maxActions) {
-        currentX         = StretchX(270.0f);
-        hasControl       = false;
-        controllerAction = 0;
+        auto currentX = StretchX(270.0f);
+        bool buttonsDrawn = false;
+        auto controllerAction = -1;
 
         // Set default text color
         CFont::SetColor({ 255, 255, 255, 255 });
 
         // Map action index to controller action
-        if (m_RedefiningControls == 1) {
+        if (m_RedefiningControls) {
             for (auto& mapping : CarActionMappings) {
                 if (mapping.actionToTest == ControllerActionsAvailableInCar[actionIndex]) {
                     controllerAction = mapping.controllerAction;
@@ -665,7 +650,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         } else {
             for (auto& mapping : PedActionMappings) {
                 if (mapping.actionToTest == actionIndex) {
-                    controllerAction = !(m_ControlMethod == 0 && notsa::contains({ eControllerAction::VEHICLE_STEER_UP, eControllerAction::CONVERSATION_YES, eControllerAction::VEHICLE_STEER_DOWN, eControllerAction::CONVERSATION_NO }, mapping.actionToTest)) ? mapping.controllerAction : -1;
+                    controllerAction = !(!m_ControlMethod && notsa::contains({ eControllerAction::VEHICLE_STEER_UP, eControllerAction::CONVERSATION_YES, eControllerAction::VEHICLE_STEER_DOWN, eControllerAction::CONVERSATION_NO }, mapping.actionToTest)) ? mapping.controllerAction : -1;
                     break;
                 }
             }
@@ -676,9 +661,9 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
             CSprite2d::DrawRect(
                 CRect(
                     StretchX(260.0f),
-                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.0f),
+                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1),
                     SCREEN_WIDTH - StretchX(20.0f),
-                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.0f + 10.0f)
+                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1 + 10)
                 ),
                 { 172, 203, 241, 255 }
             );
@@ -693,46 +678,40 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 
         // Draw control bindings
         int controlOrderIndex = 1;
-        hasControl = false;
-        if (controllerAction != -1) {
+        if (controllerAction != -1 && controllerAction != -2) {
             while (controlOrderIndex <= 4) {
                 if (m_DeleteAllNextDefine && m_ListSelection == actionIndex) {
                     break;
                 }
-                const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)controllerAction, (eContSetOrder)controlOrderIndex);
-                if (buttonText) {
+                if (auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)controllerAction, (eContSetOrder)controlOrderIndex)) {
+                    buttonsDrawn = true;
                     if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, buttonText);
                     }
-                    currentX += StretchX(75.0f);
-                    hasControl = true;
+                    currentX = StretchX(75.0f) + currentX;
                 }
                 controlOrderIndex++;
             }
         }
 
         // Handle unbound controls or special cases
-        if (!hasControl) {
-            if (controllerAction != -2) {
-                m_bRadioAvailable = 0;
-                CFont::SetColor({ 200, 50, 50, 255 });
-                if (!isOppositeScreen) {
-                    CFont::PrintString(currentX, currentY, TheText.Get("FEC_UNB"));
-                }
-            } else {
-                CFont::SetColor({ 0, 0, 0, 255 });
-                if (!isOppositeScreen) {
-                    CFont::PrintString(currentX, currentY, TheText.Get("FEC_CMP"));
-                }
+        if (!buttonsDrawn && controllerAction != -2) {
+            m_bRadioAvailable = 0;
+            CFont::SetColor({ 200, 50, 50, 255 });
+            if (!isOppositeScreen) {
+                CFont::PrintString(currentX, currentY, TheText.Get("FEC_UNB")); // "UNBOUND"
+            }
+        } else if (controllerAction == -2) {
+            CFont::SetColor({ 0, 0, 0, 255 });
+            if (!isOppositeScreen) {
+                CFont::PrintString(currentX, currentY, TheText.Get("FEC_CMP")); // "COMPLETED"
             }
         }
 
         // Handle selected action special behaviors
         if (actionIndex == m_ListSelection) {
             if (controllerAction == -1 || controllerAction == -2) {
-                if (actionIndex == m_ListSelection) {
-                    DisplayHelperText("FET_EIG");
-                }
+                DisplayHelperText("FET_EIG"); // "Cannot change this key."
             } else {
                 m_OptionToChange = (eControllerAction)controllerAction;
                 if (m_EditingControlOptions) {
@@ -749,13 +728,13 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                     }
 
                     if (m_DeleteAllBoundControls) {
-                        DisplayHelperText("FET_CIG");
+                        DisplayHelperText("FET_CIG"); // "Press key or button for..."
                     } else {
-                        DisplayHelperText("FET_RIG");
+                        DisplayHelperText("FET_RIG"); // "Press ESCAPE to cancel..."
                     }
                     m_CanBeDefined = true;
                 } else {
-                    DisplayHelperText("FET_CIG");
+                    DisplayHelperText("FET_CIG"); // "Press key or button for..."
                     m_CanBeDefined = false;
                     m_DeleteAllBoundControls = false;
                 }
@@ -763,8 +742,8 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         }
 
         // Move to next line and action
-        currentY = StretchY(float(verticalOffset + (actionIndex + 1) * verticalSpacing));
         actionIndex++;
+        currentY = StretchY(verticalOffset + actionIndex * verticalSpacing);
     }
 }
 
@@ -785,13 +764,21 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
     CFont::PrintString(
-        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_ControlMethod ? "FET_CCN" : "FET_SCN")
+        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f),
+        TheText.Get(m_ControlMethod ? "FET_CCN" : "FET_SCN")
     );
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::PrintString(
-        StretchX(48.0f), StretchY(11.0f), TheText.Get(m_RedefiningControls ? "FET_CCR" : "FET_CFT")
+        StretchX(48.0f), StretchY(11.0f),
+        TheText.Get(m_RedefiningControls ? "FET_CCR" : "FET_CFT")
     );
-    CSprite2d::DrawRect({ StretchX(20.0f), StretchY(50.0f), SCREEN_WIDTH - StretchX(20.0f), SCREEN_HEIGHT - StretchY(50.0f) }, { 49, 101, 148, 100 });
+    CSprite2d::DrawRect(
+        { StretchX(20.0f),
+          StretchY(50.0f),
+          SCREEN_WIDTH - StretchX(20.0f),
+          SCREEN_HEIGHT - StretchY(50.0f) },
+        { 49, 101, 148, 100 }
+    );
 
     // 0x57F8C0
     for (auto i = 0u; i < maxControlActions; i++) {
@@ -816,7 +803,10 @@ void CMenuManager::DrawControllerSetupScreen() {
         CFont::SetScale(StretchX(0.4f), StretchY(0.6f));
         CFont::SetFontStyle(FONT_MENU);
         CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
-        CFont::PrintString(StretchX(40.0f), StretchY(i * verticalSpacing + 69.0f), TheText.Get(keys[m_RedefiningControls ? ControllerActionsAvailableInCar[i] : ControllerActionsAvailableOnFoot[i]]));
+        CFont::PrintString(
+            StretchX(40.0f), StretchY(i * verticalSpacing + 69.0f),
+            TheText.Get(keys[m_RedefiningControls ? ControllerActionsAvailableInCar[i] : ControllerActionsAvailableOnFoot[i]])
+        );
     }
 
     // 0x57FAF9
