@@ -23,7 +23,7 @@ struct SHook
 VALIDATE_SIZE(SHook, 0x34);
 
 template<typename T>
-void *FunctionToVoidPtr(T func)
+void* FunctionToVoidPtr(T func)
 {
     union
     {
