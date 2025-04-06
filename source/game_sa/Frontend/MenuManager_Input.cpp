@@ -16,10 +16,10 @@
 void CMenuManager::UserInput() {
     { // NOTSA
     const auto pad = CPad::GetPad();
-    if (pad->IsStandardKeyJustPressed('q') || pad->IsStandardKeyJustPressed('Q')) {
-        CFont::PrintString(50, 250, "switched"_gxt);
-        ReversibleHooks::SwitchHook("DisplaySlider");
-    }
+        if (pad->IsStandardKeyJustPressed('q') || pad->IsStandardKeyJustPressed('Q')) {
+            CFont::PrintString(50, 250, "switched"_gxt);
+            ReversibleHooks::SwitchHook("DisplaySlider");
+        }
     }
 
     plugin::CallMethod<0x57FD70, CMenuManager*>(this);
@@ -261,14 +261,12 @@ void CMenuManager::CheckForMenuClosing() {
                     pad->ClearKeyBoardHistory();
                     pad->ClearMouseHistory();
 
-#ifdef NOTSA_USE_SDL3
-                    SDL_SetWindowRelativeMouseMode((SDL_Window*)(PSGLOBAL(sdlWindow)), false);
-#else
+#ifndef NOTSA_USE_SDL3
                     if (IsVideoModeExclusive()) {
                         DIReleaseMouse();
                         InitialiseMouse(false);
                     }
-#endif // NOTSA_USE_DINPUT
+#endif // NOTSA_USE_SDL3
 
                     Initialise();
                     LoadAllTextures();
@@ -289,9 +287,7 @@ void CMenuManager::CheckForMenuClosing() {
                 pad->ClearKeyBoardHistory();
                 pad->ClearMouseHistory();
 
-#ifdef NOTSA_USE_SDL3
-                SDL_SetWindowRelativeMouseMode((SDL_Window*)(PSGLOBAL(sdlWindow)), true);
-#else
+#ifndef NOTSA_USE_SDL3
                 if (IsVideoModeExclusive()) {
                     DIReleaseMouse();
 #ifdef FIX_BUGS // Causes the retarded fucktard code to not dispatch mouse input to WndProc => ImGUI mouse not working. Amazing piece of technology.
@@ -300,7 +296,7 @@ void CMenuManager::CheckForMenuClosing() {
                     InitialiseMouse(true);
 #endif // !FIX_BUGS
                 }
-#endif // NOTSA_USE_DINPUT
+#endif // NOTSA_USE_SDL3
 
                 m_fStatsScrollSpeed = 150.0f;
                 SaveSettings();
@@ -364,7 +360,7 @@ void CMenuManager::CheckForMenuClosing() {
             DIReleaseMouse();
             InitialiseMouse(false);
         }
-#endif // NOTSA_USE_DINPUT
+#endif // NOTSA_USE_SDL3
 
         Initialise();
         LoadAllTextures();
