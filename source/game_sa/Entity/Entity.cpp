@@ -454,7 +454,7 @@ void CEntity::PreRender() {
                 RpGeometryForAllMaterials(RpAtomicGetGeometry(ami->m_pRwAtomic), MaterialUpdateUVAnimCB, nullptr);
             }
         }
-
+        
         mi->IncreaseAlpha();
 
         // PC Only

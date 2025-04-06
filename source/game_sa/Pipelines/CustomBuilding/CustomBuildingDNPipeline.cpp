@@ -197,7 +197,7 @@ void CCustomBuildingDNPipeline::DestroyPipe() {
     }
 }
 
-// sub_5D63E0
+// 0x5D63E0
 RwBool CCustomBuildingDNPipeline::CustomPipeInstanceCB(void* object, RwResEntry* resEntry, RxD3D9AllInOneInstanceCallBack instanceCallback) {
     if (instanceCallback) {
         auto entry = *reinterpret_cast<RwResEntrySA*>(resEntry);
