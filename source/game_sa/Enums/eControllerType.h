@@ -1,9 +1,13 @@
 #pragma once
 
 enum eControllerType {
-    KEYBOARD,
-    OPTIONAL_EXTRA_KEY,
-    MOUSE,
-    JOY_STICK,
+    KEYBOARD = 0,
+    OPTIONAL_EXTRA_KEY = 1,
+    MOUSE = 2,
+    JOY_STICK = 3,
+
     CONTROLLER_NUM
 };
+
+constexpr eControllerType CONTROLLER_TYPES_ALL[CONTROLLER_NUM] = { KEYBOARD, OPTIONAL_EXTRA_KEY, MOUSE, JOY_STICK };
+constexpr eControllerType CONTROLLER_TYPES_KEYBOARD[] = { KEYBOARD, OPTIONAL_EXTRA_KEY };

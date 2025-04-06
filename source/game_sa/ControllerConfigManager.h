@@ -102,7 +102,11 @@ enum eContSetOrder {
     SECOND = 2,
     THIRD = 3,
     FOURTH = 4,
+
+    ORDER_NUM
 };
+
+constexpr eContSetOrder CONTROLLER_ORDERS_VALID[] = { FIRST, SECOND, THIRD, FOURTH }; // NOTSA
 
 enum eJOY_BUTTONS {
     NO_JOYBUTTONS = 0,        
@@ -125,6 +129,26 @@ enum eJOY_BUTTONS {
 
     NUM_OF_MAX_JOYBUTTON
 };
+
+constexpr eJOY_BUTTONS CONTROLLER_JOY_ALL[NUM_OF_MAX_JOYBUTTON] = {
+    NO_JOYBUTTONS,
+    JOYBUTTON_ONE,
+    JOYBUTTON_TWO,
+    JOYBUTTON_THREE,
+    JOYBUTTON_FOUR,
+    JOYBUTTON_FIVE,
+    JOYBUTTON_SIX,
+    JOYBUTTON_SEVEN,
+    JOYBUTTON_EIGHT,
+    JOYBUTTON_NINE,
+    JOYBUTTON_TEN,
+    JOYBUTTON_ELEVEN,
+    JOYBUTTON_TWELVE,
+    JOYBUTTON_THIRTEEN,
+    JOYBUTTON_FOURTEEN,
+    JOYBUTTON_FIFTHTEEN,
+    JOYBUTTON_SIXTEEN
+}; // NOTSA
 
 struct CControllerKey {
     using KeyCode = uint32;
@@ -180,7 +204,7 @@ public:
 
     void ClearPedMappings(eControllerAction action, CControllerKey::KeyCode button, eControllerType controllerType);
     void ClearCommonMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type);
-    bool SetControllerKeyAssociatedWithAction(eControllerAction action, CControllerKey::KeyCode button, eControllerType type);
+    void SetControllerKeyAssociatedWithAction(eControllerAction action, CControllerKey::KeyCode button, eControllerType type);
     void ClearVehicleMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type);
     void Clear1st3rdPersonMappings(eControllerAction action, CControllerKey::KeyCode button, eControllerType type);
     void StoreJoyButtonStates();
@@ -201,7 +225,7 @@ public:
     void ResetSettingOrder(eControllerAction action);
     void HandleJoyButtonUpDown(int32 joyNo, bool isDown);
     bool LoadSettings(FILESTREAM file);
-    int32 SaveSettings(FILESTREAM file);
+    bool SaveSettings(FILESTREAM file);
     void InitDefaultControlConfigJoyPad(uint32 buttonCount);
     void InitDefaultControlConfiguration();
     void InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller);

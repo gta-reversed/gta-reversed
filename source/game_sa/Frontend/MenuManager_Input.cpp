@@ -9,7 +9,6 @@
 
 #include "extensions/Configs/FastLoader.hpp"
 
-
 /*!
  * @addr 0x57FD70
  */
