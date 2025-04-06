@@ -326,7 +326,7 @@ void Idle(void* param) {
 
     if (!FrontEndMenuManager.m_bMenuActive && TheCamera.GetScreenFadeStatus() != eNameState::NAME_FADE_IN) {
 
-        // SDL already constraines the mouse pointer using relative mode
+        // SDL already constraints the mouse pointer using relative mode
 #ifndef NOTSA_USE_SDL3
         if (!notsa::ui::UIRenderer::GetSingleton().IsActive()) {
             FrontEndMenuManager.CentreMousePointer();
