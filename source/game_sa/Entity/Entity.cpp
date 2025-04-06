@@ -2250,15 +2250,11 @@ void CEntity::ProcessLightsForEntity()
 // 0x717900
 void CEntity::RemoveEscalatorsForEntity()
 {
-    for (auto& escalator : CEscalators::aEscalators) {
-        if (!escalator.m_bExist)
-            continue;
-
-        if (escalator.m_pEntity != this)
-            continue;
-
-        escalator.SwitchOff();
-        escalator.m_bExist = false;
+    for (auto& escalator : CEscalators::GetAllExists()) {
+        if (escalator.GetEntity() == this) {
+            escalator.Remove();
+            return;
+        }
     }
 }
 

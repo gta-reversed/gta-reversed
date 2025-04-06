@@ -15,25 +15,19 @@ void CEscalators::InjectHooks() {
 
 // 0x717940
 void CEscalators::Shutdown() {
-    for (CEscalator& escalator : aEscalators) {
-        escalator.SwitchOff();
-        escalator.m_bExist = false;
-    }
+    rng::for_each(aEscalators, &CEscalator::Remove);
 }
 
 // 0x717C50
 void CEscalators::Init() {
     Shutdown();
-
-    for (CEscalator& escalator : aEscalators) {
-        escalator.SwitchOff();
-    }
+    rng::for_each(aEscalators, &CEscalator::SwitchOff);
 }
 
 // 0x717C90
 void CEscalators::AddOne(const CVector& vecStart, const CVector& vecBottom, const CVector& vecTop, const CVector& vecEnd, bool moveDown, CEntity* entity) {
     for (CEscalator& escalator : aEscalators) {
-        if (!escalator.m_bExist) {
+        if (!escalator.m_Exist) {
             escalator.AddThisOne(vecStart, vecBottom, vecTop, vecEnd, moveDown, entity);
             break;
         }
@@ -43,9 +37,6 @@ void CEscalators::AddOne(const CVector& vecStart, const CVector& vecBottom, cons
 // 0x718580
 void CEscalators::Update() {
     if (CReplay::Mode != MODE_PLAYBACK) {
-        for (CEscalator& escalator : aEscalators) {
-            if (escalator.m_bExist)
-                escalator.Update();
-        }
+        rng::for_each(GetAllExists(), &CEscalator::Update);
     }
 }

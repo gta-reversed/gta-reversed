@@ -19,11 +19,11 @@ void CEscalator::SwitchOff() {
     // debug leftover
     // static bool& deletingEscalator = StaticRef<bool>(0xC6E98C);
 
-    if (!m_nStepObjectsCreated) {
+    if (!m_StepObjectsCreated) {
         return;
     }
 
-    for (auto* object : m_pStepObjects | rngv::take(m_nNumTopPlanes + m_nNumBottomPlanes + m_nNumIntermediatePlanes)) {
+    for (auto* object : m_StepObjects | rngv::take(m_NumTopPlanes + m_NumBottomPlanes + m_NumIntermediatePlanes)) {
         if (!object) {
             continue;
         }
@@ -33,34 +33,34 @@ void CEscalator::SwitchOff() {
         delete std::exchange(object, nullptr);
         // deletingEscalator = false;
     }
-    m_nStepObjectsCreated = 0;
+    m_StepObjectsCreated = 0;
 }
 
 // 0x717970
 void CEscalator::AddThisOne(const CVector& vecStart, const CVector& vecBottom, const CVector& vecTop, const CVector& vecEnd, bool moveDown, CEntity* entity) {
-    m_bExist = true;
+    m_Exist = true;
 
     const CVector z = { 0.0f, 0.0f, CModelInfo::GetModelInfo(ModelIndices::MI_ESCALATORSTEP)->GetColModel()->GetBoundingBox().m_vecMax.z };
-    m_vStart  = vecStart - z;
-    m_vBottom = vecBottom - z;
-    m_vTop    = vecTop - z;
-    m_vEnd    = vecEnd - z;
+    m_Start  = vecStart - z;
+    m_Bottom = vecBottom - z;
+    m_Top    = vecTop - z;
+    m_End    = vecEnd - z;
 
     // 0x717A14
-    m_nNumIntermediatePlanes = 1 + static_cast<int32>(DistanceBetweenPoints(m_vBottom, m_vTop) * 2.5f);
-    m_nNumBottomPlanes       = 1 + static_cast<int32>(DistanceBetweenPoints(m_vBottom, m_vStart) / 3.2f);
-    m_nNumTopPlanes          = 1 + static_cast<int32>(DistanceBetweenPoints(m_vEnd, m_vTop) / 3.2f);
+    m_NumIntermediatePlanes = 1 + static_cast<int32>(DistanceBetweenPoints(m_Bottom, m_Top) * 2.5f);
+    m_NumBottomPlanes       = 1 + static_cast<int32>(DistanceBetweenPoints(m_Bottom, m_Start) / 3.2f);
+    m_NumTopPlanes          = 1 + static_cast<int32>(DistanceBetweenPoints(m_End, m_Top) / 3.2f);
 
     const auto dir = CVector2D{vecStart - vecBottom}.Normalized();
-    m_mRotation.GetRight().Set(dir.y, -dir.x, 0.0f);
-    m_mRotation.GetForward().Set(dir.x, dir.y, 0.0f);
-    m_mRotation.GetUp().Set(0.0f, 0.0f, 1.0f);
-    m_mRotation.GetPosition().Reset();
-    m_bMoveDown = moveDown;
-    m_pEntity   = entity;
+    m_Rotation.GetRight().Set(dir.y, -dir.x, 0.0f);
+    m_Rotation.GetForward().Set(dir.x, dir.y, 0.0f);
+    m_Rotation.GetUp().Set(0.0f, 0.0f, 1.0f);
+    m_Rotation.GetPosition().Reset();
+    m_MoveDown = moveDown;
+    m_Entity   = entity;
 
-    m_Bounding.m_vecCenter = CVector::Centroid({ m_vStart, m_vEnd });
-    m_Bounding.m_fRadius   = DistanceBetweenPoints(m_Bounding.m_vecCenter, m_vStart);
+    m_Bounding.m_vecCenter = CVector::Centroid({ m_Start, m_End });
+    m_Bounding.m_fRadius   = DistanceBetweenPoints(m_Bounding.m_vecCenter, m_Start);
 }
 
 // 0x717D30
@@ -69,16 +69,16 @@ void CEscalator::Update() {
 
     constexpr float EXTRA_DIST_TO_RENDER = 20.0f; // 0x858BA4
 
-    if (!m_nStepObjectsCreated) {
+    if (!m_StepObjectsCreated) {
         if (m_Bounding.m_fRadius + EXTRA_DIST_TO_RENDER > DistanceBetweenPoints(m_Bounding.m_vecCenter, TheCamera.GetPosition())) {
-            if (GetObjectPool()->GetNoOfFreeSpaces() > m_nNumIntermediatePlanes + m_nNumBottomPlanes + m_nNumTopPlanes + 10) {
-                m_nStepObjectsCreated  = true;
-                m_nCurrentPosition = 0.0f;
+            if (GetObjectPool()->GetNoOfFreeSpaces() > m_NumIntermediatePlanes + m_NumBottomPlanes + m_NumTopPlanes + 10) {
+                m_StepObjectsCreated  = true;
+                m_CurrentPosition = 0.0f;
 
-                for (auto i = 0u; i < m_nNumIntermediatePlanes + m_nNumBottomPlanes + m_nNumTopPlanes; i++) {
-                    auto& obj = m_pStepObjects[i];
-                    obj       = new CObject((i < m_nNumIntermediatePlanes) ? ModelIndices::MI_ESCALATORSTEP : ModelIndices::MI_ESCALATORSTEP8, true);
-                    obj->SetPosn(m_vBottom);
+                for (auto i = 0u; i < m_NumIntermediatePlanes + m_NumBottomPlanes + m_NumTopPlanes; i++) {
+                    auto& obj = m_StepObjects[i];
+                    obj       = new CObject((i < m_NumIntermediatePlanes) ? ModelIndices::MI_ESCALATORSTEP : ModelIndices::MI_ESCALATORSTEP8, true);
+                    obj->SetPosn(m_Bottom);
                     CWorld::Add(obj);
                     obj->m_nObjectType = OBJECT_TYPE_DECORATION;
                 }
@@ -88,39 +88,39 @@ void CEscalator::Update() {
         }
     }
 
-    if (!m_nStepObjectsCreated) {
+    if (!m_StepObjectsCreated) {
         // still not created after all that effort!
         return; // 0x717F70 - Invert
     }
 
-    const auto posStep = m_bMoveDown
-        ? m_nCurrentPosition - CTimer::GetTimeStep() / 25.0f + 1.0f
-        : m_nCurrentPosition + CTimer::GetTimeStep() / 25.0f;
+    const auto posStep = m_MoveDown
+        ? m_CurrentPosition - CTimer::GetTimeStep() / 25.0f + 1.0f
+        : m_CurrentPosition + CTimer::GetTimeStep() / 25.0f;
 
-    m_nCurrentPosition = posStep - std::floor(posStep);
+    m_CurrentPosition = posStep - std::floor(posStep);
 
-    for (auto i = 0u; i < m_nNumIntermediatePlanes + m_nNumBottomPlanes + m_nNumTopPlanes; i++) {
-        auto* obj = m_pStepObjects[i];
+    for (auto i = 0u; i < m_NumIntermediatePlanes + m_NumBottomPlanes + m_NumTopPlanes; i++) {
+        auto* obj = m_StepObjects[i];
         if (!obj) {
             continue;
         }
 
         const auto [t, dir, beg] = [&] {
-            if (i < m_nNumIntermediatePlanes) {
+            if (i < m_NumIntermediatePlanes) {
                 // intermediate
-                return std::make_tuple(((float)i - m_nCurrentPosition + 1.0f) / 2.5f, (m_vBottom - m_vTop).Normalized(), m_vTop);
-            } else if (i < m_nNumIntermediatePlanes + m_nNumBottomPlanes) {
+                return std::make_tuple(((float)i - m_CurrentPosition + 1.0f) / 2.5f, (m_Bottom - m_Top).Normalized(), m_Top);
+            } else if (i < m_NumIntermediatePlanes + m_NumBottomPlanes) {
                 // bottom
-                return std::make_tuple(((float)(8 * (i - m_nNumIntermediatePlanes) + 4) + m_nCurrentPosition) / 2.5f, (m_vBottom - m_vStart).Normalized(), m_vStart);
+                return std::make_tuple(((float)(8 * (i - m_NumIntermediatePlanes) + 4) + m_CurrentPosition) / 2.5f, (m_Bottom - m_Start).Normalized(), m_Start);
             } else {
                 // top
-                return std::make_tuple(((float)(8 * (i - m_nNumIntermediatePlanes - m_nNumBottomPlanes) + 4) + m_nCurrentPosition) / 2.5f, (m_vEnd - m_vTop).Normalized(), m_vTop);
+                return std::make_tuple(((float)(8 * (i - m_NumIntermediatePlanes - m_NumBottomPlanes) + 4) + m_CurrentPosition) / 2.5f, (m_End - m_Top).Normalized(), m_Top);
             }
         }();
 
-        obj->GetMatrix() = m_mRotation;
+        obj->GetMatrix() = m_Rotation;
         obj->SetPosn(beg + dir * t);
-        obj->GetMoveSpeed() = (i < m_nNumIntermediatePlanes ? -dir : dir) * 0.016f * (m_bMoveDown ? -1.0f : 1.0f);
+        obj->GetMoveSpeed() = (i < m_NumIntermediatePlanes ? -dir : dir) * 0.016f * (m_MoveDown ? -1.0f : 1.0f);
         obj->UpdateRW();
         obj->UpdateRwFrame();
         obj->RemoveAndAdd();
