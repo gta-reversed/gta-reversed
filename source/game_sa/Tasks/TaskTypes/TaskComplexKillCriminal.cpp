@@ -312,6 +312,16 @@ CTask* CTaskComplexKillCriminal::CreateNextSubTask(CPed* ped) {
             ped
         );
     }
+    case TASK_COMPLEX_ENTER_CAR_AS_PASSENGER: { // 0x68E6FA
+        if (ped->bInVehicle) { // (Inverted)
+            return CreateSubTask(TASK_SIMPLE_CAR_DRIVE, ped);
+        }
+        m_CantGetInCar = true;
+        if (m_HasFinished || NoPedOrNoHp(m_Criminal)) {
+            return CreateSubTask(TASK_FINISHED, ped);
+        } 
+        return CreateSubTask(TASK_COMPLEX_KILL_PED_ON_FOOT, ped);
+    }
     case TASK_COMPLEX_LEAVE_CAR: // 0x68E77F
         return CreateSubTask(
             m_HasFinished || !ped->bInVehicle || m_CantGetInCar || (!NoPedOrNoHp(m_Criminal) && !m_Criminal->IsInVehicle() && m_Criminal->IsEntityInRange(ped, 25.f))
