@@ -153,7 +153,8 @@ public:
     }
 
     //! Calculate the center of all provided vectors. Same operation as averaging.
-    template<rng::input_range R = std::initializer_list<CVector>> requires rng::sized_range<R>
+    template<rng::input_range R = std::initializer_list<CVector>>
+        requires rng::sized_range<R>
     static CVector Centroid(R&& rng) {
         return rng::fold_left(rng, CVector{}, std::plus{}) / std::size(rng);
     }

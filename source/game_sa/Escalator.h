@@ -4,6 +4,7 @@
 
 #include "Vector.h"
 #include "Matrix.h"
+#include "extensions/EntityRef.hpp"
 
 class CEscalator {
 public:
@@ -29,7 +30,7 @@ public:
     char                     _unused[8];
     CSphere                  m_Bounding;
     float                    m_nCurrentPosition;
-    CEntity*                 m_pEntity;
+    notsa::EntityRef<>       m_pEntity;
     std::array<CObject*, 42> m_pStepObjects{};
 
 private:

@@ -46,7 +46,7 @@ void CEscalator::AddThisOne(const CVector& vecStart, const CVector& vecBottom, c
     m_vTop    = vecTop - z;
     m_vEnd    = vecEnd - z;
 
-// 0x717A14
+    // 0x717A14
     m_nNumIntermediatePlanes = 1 + static_cast<int32>(DistanceBetweenPoints(m_vBottom, m_vTop) * 2.5f);
     m_nNumBottomPlanes       = 1 + static_cast<int32>(DistanceBetweenPoints(m_vBottom, m_vStart) / 3.2f);
     m_nNumTopPlanes          = 1 + static_cast<int32>(DistanceBetweenPoints(m_vEnd, m_vTop) / 3.2f);
@@ -61,7 +61,6 @@ void CEscalator::AddThisOne(const CVector& vecStart, const CVector& vecBottom, c
 
     m_Bounding.m_vecCenter = CVector::Centroid({ m_vStart, m_vEnd });
     m_Bounding.m_fRadius   = DistanceBetweenPoints(m_Bounding.m_vecCenter, m_vStart);
-    CEntity::RegisterReference(m_pEntity);
 }
 
 // 0x717D30
@@ -72,9 +71,7 @@ void CEscalator::Update() {
 
     if (!m_nStepObjectsCreated) {
         if (m_Bounding.m_fRadius + EXTRA_DIST_TO_RENDER > DistanceBetweenPoints(m_Bounding.m_vecCenter, TheCamera.GetPosition())) {
-            const auto allValidObjects = rng::distance(GetObjectPool()->GetAllValid());
-
-            if (GetObjectPool()->GetSize() - allValidObjects > m_nNumIntermediatePlanes + m_nNumBottomPlanes + m_nNumTopPlanes + 10) {
+            if (GetObjectPool()->GetNoOfFreeSpaces() > m_nNumIntermediatePlanes + m_nNumBottomPlanes + m_nNumTopPlanes + 10) {
                 m_nStepObjectsCreated  = true;
                 m_nCurrentPosition = 0.0f;
 
@@ -96,13 +93,10 @@ void CEscalator::Update() {
         return; // 0x717F70 - Invert
     }
 
-    const auto posStep = [&] {
-        if (m_bMoveDown) {
-            return m_nCurrentPosition - CTimer::GetTimeStep() / 25.0f + 1.0f;
-        } else {
-            return m_nCurrentPosition + CTimer::GetTimeStep() / 25.0f;
-        }
-    }();
+    const auto posStep = m_bMoveDown
+        ? m_nCurrentPosition - CTimer::GetTimeStep() / 25.0f + 1.0f
+        : m_nCurrentPosition + CTimer::GetTimeStep() / 25.0f;
+
     m_nCurrentPosition = posStep - std::floor(posStep);
 
     for (auto i = 0u; i < m_nNumIntermediatePlanes + m_nNumBottomPlanes + m_nNumTopPlanes; i++) {
@@ -133,7 +127,7 @@ void CEscalator::Update() {
     }
 
     // Out of sight
-    if (m_Bounding.m_fRadius + EXTRA_DIST_TO_RENDER + 3.f < DistanceBetweenPoints(m_Bounding.m_vecCenter, TheCamera.GetPosition())) {
+    if (m_Bounding.m_fRadius + EXTRA_DIST_TO_RENDER + 3.0f < DistanceBetweenPoints(m_Bounding.m_vecCenter, TheCamera.GetPosition())) {
         SwitchOff();
     }
 }
