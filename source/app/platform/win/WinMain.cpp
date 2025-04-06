@@ -253,10 +253,6 @@ bool ProcessGameLogic(INT nCmdShow) {
 
         AudioEngine.InitialisePostLoading();
 
-#ifdef NOTSA_WINDOWED_MODE
-        notsa::WindowedMode::AdjustPresentParams(nullptr);
-#endif
-
         break;
     }
     case GAME_STATE_IDLE: {
