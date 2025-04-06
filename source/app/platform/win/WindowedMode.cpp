@@ -9,6 +9,8 @@
 
 #define MINZBUFFERVALUE 0.0f
 #define MAXZBUFFERVALUE 1.0f
+#define NUMPIXELFORMATS     11
+#define MAX_PIXEL_FORMATS   128
 
 
 HRESULT DXCHECK(HRESULT hr) {
@@ -29,6 +31,7 @@ HRESULT DXCHECK(HRESULT hr) {
 #define RWASSERT assert
 #define RWRETURN(ret) return (ret)
 #define RWRETURNVOID() return
+#define FLOATASDWORD(fvariable) (*((const DWORD *)&(fvariable)))
 
 typedef struct _rwD3D9AdapterInformation _rwD3D9AdapterInformation;
 struct _rwD3D9AdapterInformation
@@ -46,6 +49,14 @@ struct _rwD3D9Palette
     PALETTEENTRY    entries[256];
     RwInt32     globalindex;
 };
+
+typedef struct RxD3D9Light RxD3D9Light;
+struct RxD3D9Light
+{
+    D3DLIGHT9   light;
+    RwBool      enabled;
+};
+
 
 typedef LPDIRECT3DSURFACE9 LPSURFACE;
 typedef LPDIRECT3DTEXTURE9 LPTEXTURE;
@@ -66,6 +77,20 @@ struct _rwD3D9RasterExt
     HWND                    window;
 };
 
+struct RwRwDeviceGlobals {
+    RwCamera*          curCamera;
+    RwMemoryFunctions* memFuncs;
+};
+
+typedef struct _rwD3D9FormatInfo _rwD3D9FormatInfo;
+struct _rwD3D9FormatInfo
+{
+    RwUInt8 alpha;
+    RwUInt8 depth;
+    RwUInt16 rwFormat;
+};
+
+
 auto& _RwD3D9RasterExtOffset             = StaticRef<RwInt32>(0xB4E9E0); /* Raster extension offset */
 auto& StencilClearValue                  = StaticRef<RwUInt32>(0xC97C44);
 auto& WindowHandle                       = StaticRef<HWND>(0xC97C1C);
@@ -83,6 +108,18 @@ auto& _RwD3D9ZBufferDepth                = StaticRef<RwInt32>(0xC9BEFC);
 auto& SelectedMultisamplingLevels        = StaticRef<RwUInt32>(0x8E2430);
 auto& SelectedMultisamplingLevelsNonMask = StaticRef<RwUInt32>(0x8E2438);
 auto& DisplayModes                       = StaticRef<RwVideoMode*>(0xC97C48);
+auto& dgGGlobals                         = StaticRef<RwRwDeviceGlobals>(0xC9BCC0);
+auto& _RwD3D9D3D9ViewTransform           = StaticRef<D3DMATRIX>(0xC9BC80);
+auto& _RwD3D9D3D9ProjTransform           = StaticRef<D3DMATRIX>(0x8E2458);
+auto& _RwD3D9ActiveViewProjTransform     = StaticRef<D3DMATRIX*>(0xC97C64);
+auto& NeedToCopyFromBackBuffer           = StaticRef<RwBool>(0xC97C34);
+auto& InsideScene                        = StaticRef<RwBool>(0xC97C54);
+auto& LightsCache                        = StaticRef<RxD3D9Light*>(0xC98088);
+auto& MaxNumLights                       = StaticRef<RwInt32>(0xC98084);
+auto& D3D9RestoreDeviceCallback          = StaticRef<rwD3D9DeviceRestoreCallBack>(0xC980B0);
+
+//auto& _rwD3D9PixelFormatInfo             = StaticRef<_rwD3D9FormatInfo[MAX_PIXEL_FORMATS]>(0xB4E7E0);
+
 
 static RwBool EnableFullScreenDialogBoxMode = FALSE;
 
@@ -90,7 +127,6 @@ static RwBool EnableFullScreenDialogBoxMode = FALSE;
 const auto D3D9DeviceReleaseVideoMemory  = plugin::CallAndReturn<RwBool, 0x7F7F70>;
 const auto _rwD3D9SetDepthStencilSurface = plugin::Call<0x7F5EF0, LPSURFACE>;
 const auto _rwD3D9SetRenderTarget        = plugin::CallAndReturn<RwBool, 0x7F5F20, RwUInt32, LPSURFACE>;
-const auto D3D9DeviceRestoreVideoMemory  = plugin::CallAndReturn<RwBool, 0x7F7F70>;
 
 namespace notsa::WindowedMode {
 bool bWindowed        = true;
@@ -453,6 +489,229 @@ D3D9FindDepth(D3DFORMAT format)
 }
 
 /****************************************************************************
+_rxD3D9VideoMemoryRasterListRestore
+
+Release all the video memory
+
+*/
+const auto _rxD3D9VideoMemoryRasterListRestore = plugin::CallAndReturn<RwBool, 0x4CC970>;
+
+/****************************************************************************
+_rwD3D9DynamicVertexBufferRestore
+
+Purpose:   Restore all video memory Dinamic vertex buffers
+
+*/
+const auto _rwD3D9DynamicVertexBufferRestore = plugin::CallAndReturn<RwBool, 0x7F58D0>;
+
+
+/****************************************************************************
+_rwD3D9RenderStateReset
+
+On entry   :
+On exit    :
+*/
+const auto _rwD3D9RenderStateReset = plugin::Call<0x7FD100>;
+
+/****************************************************************************
+D3D9RestoreCacheLights
+
+On entry   : none
+
+On exit    : The Matrix pointers are cleared.
+*/
+static RwBool
+D3D9RestoreCacheLights(void)
+{
+    HRESULT             hr = D3D_OK;
+    RwInt32             i;
+
+    RWFUNCTION(RWSTRING("D3D9RestoreCacheLights"));
+
+#if defined(RWDEBUG)
+    if (MaxNumLights)
+    {
+        RwChar              buffer[256];
+
+        rwsprintf(buffer, "Num Lights Updated: %d", MaxNumLights);
+
+        RwDebugSendMessage(rwDEBUGMESSAGE, "D3D9RestoreCacheLights",
+            buffer);
+    }
+#endif
+
+    for (i = 0; i < MaxNumLights; ++i)
+    {
+        hr = DXCHECK(IDirect3DDevice9_SetLight
+        (_RwD3DDevice, i, &(LightsCache[i].light)));
+
+        hr = DXCHECK(IDirect3DDevice9_LightEnable
+        (_RwD3DDevice, i, LightsCache[i].enabled));
+    }
+
+    RWRETURN(SUCCEEDED(hr));
+}
+
+/****************************************************************************
+_rwD3D9Im2DRenderOpen
+
+On exit    : TRUE on succes
+*/
+const auto _rwD3D9Im2DRenderOpen = plugin::CallAndReturn<RwBool, 0x7FB480>;
+
+/****************************************************************************
+_rwD3D9Im3DRenderOpen
+
+On entry   :
+On exit    :
+*/
+const auto _rwD3D9Im3DRenderOpen = plugin::CallAndReturn<RwBool, 0x80E020>;
+
+/****************************************************************************
+rwD3D9DeviceRestoreVideoMemory
+
+On entry   :
+On exit    :
+*/
+static RwBool
+D3D9DeviceRestoreVideoMemory(void)
+{
+    bool rv;
+
+    RWFUNCTION(RWSTRING("D3D9DeviceRestoreVideoMemory"));
+
+#if defined(RWDEBUG)
+    RwDebugSendMessage(rwDEBUGMESSAGE, "D3D9DeviceRestoreVideoMemory",
+        "Restoring video memory");
+#endif
+
+    /* Get the render surface */
+    DXCHECK(IDirect3DDevice9_GetRenderTarget(_RwD3DDevice,
+        0, &_RwD3D9RenderSurface));
+    IDirect3DSurface9_Release(_RwD3D9RenderSurface);
+
+    /* Get the depth/stencil surface */
+    DXCHECK(IDirect3DDevice9_GetDepthStencilSurface
+    (_RwD3DDevice, &_RwD3D9DepthStencilSurface));
+    IDirect3DSurface9_Release(_RwD3D9DepthStencilSurface);
+
+    rv = _rxD3D9VideoMemoryRasterListRestore();
+
+    rv = rv && _rwD3D9DynamicVertexBufferRestore();
+
+    if (rv)
+    {
+        _rwD3D9RenderStateReset();
+    }
+
+    rv = rv && D3D9RestoreCacheLights();
+
+    rv = rv && _rwD3D9Im2DRenderOpen();
+
+    rv = rv && _rwD3D9Im3DRenderOpen();
+
+    if (D3D9RestoreDeviceCallback != NULL)
+    {
+        D3D9RestoreDeviceCallback();
+    }
+
+    RWRETURN(rv);
+}
+
+/****************************************************************************
+_rwD3D9TestState
+
+On exit    : TRUE on success
+*/
+RwBool
+_rwD3D9TestState(void)
+{
+    HRESULT hr;
+
+    RWFUNCTION(RWSTRING("_rwD3D9TestState"));
+
+    hr = IDirect3DDevice9_TestCooperativeLevel(_RwD3DDevice);
+
+    if (hr == D3DERR_DEVICENOTRESET)
+    {
+#if defined(RWDEBUG)
+        RwDebugSendMessage(rwDEBUGMESSAGE, "_rwD3D9TestState", "DEVICE LOST");
+#endif
+
+        D3D9DeviceReleaseVideoMemory();
+
+        hr = DXCHECK(IDirect3DDevice9_Reset(_RwD3DDevice, &Present));
+
+        if (hr == D3DERR_INVALIDCALL)
+        {
+            /* Check to see if the desktop has changed its depth */
+            if (Present.Windowed)
+            {
+                D3DDISPLAYMODE      adapterDisplayMode;
+
+                IDirect3D9_GetAdapterDisplayMode(_RwDirect3DObject,
+                    _RwD3DAdapterIndex,
+                    &adapterDisplayMode);
+
+                Present.BackBufferFormat =
+                    _RwD3D9AdapterInformation.mode.Format =
+                    adapterDisplayMode.Format;
+
+                _RwD3D9AdapterInformation.displayDepth =
+                    D3D9FindDepth(_RwD3D9AdapterInformation.mode.Format);
+
+                hr = DXCHECK(IDirect3DDevice9_Reset(_RwD3DDevice, &Present));
+            }
+            else
+            {
+                /* Ops!!! really bad situation */
+            }
+        }
+
+        if (SUCCEEDED(hr))
+        {
+            D3D9DeviceRestoreVideoMemory();
+        }
+    }
+
+
+    RWRETURN(SUCCEEDED(hr));
+}
+
+/****************************************************************************
+_rwD3D9BeginScene
+
+On exit    : TRUE on success
+*/
+RwBool
+_rwD3D9BeginScene(void)
+{
+    RWFUNCTION(RWSTRING("_rwD3D9BeginScene"));
+
+    if (_rwD3D9TestState())
+    {
+        if (!InsideScene)
+        {
+            HRESULT hr;
+
+            hr = DXCHECK(IDirect3DDevice9_BeginScene(_RwD3DDevice));
+
+            if (SUCCEEDED(hr))
+            {
+                InsideScene = TRUE;
+            }
+        }
+    }
+    else
+    {
+        InsideScene = FALSE;
+    }
+
+    RWRETURN(InsideScene);
+}
+
+
+/****************************************************************************
  _rwD3D9CameraClear
 
  On entry   : Camera
@@ -488,7 +747,7 @@ _rwD3D9CameraClear(void *camera, void *color, RwInt32 clearFlags)
     RWASSERT(camera);
     RWASSERT(color);
 
-    notsa::WindowedMode::MainCameraRebuildRaster(camera);
+    //notsa::WindowedMode::MainCameraRebuildRaster(camera);
 
     /* The clear color */
     if (rwCAMERACLEARIMAGE & clearFlags)
@@ -880,6 +1139,394 @@ _rwD3D9CameraClear(void *camera, void *color, RwInt32 clearFlags)
 }
 
 /****************************************************************************
+_rwD3D9CameraBeginUpdate
+
+Start update to camera
+
+On entry   : NULL
+: pCamera - camera to start update to
+: 0
+On exit    : TRUE on success
+*/
+RwBool
+_rwD3D9CameraBeginUpdate(void *out __RWUNUSED__,
+    void *cameraIn, RwInt32 in __RWUNUSED__)
+{
+    RwCamera            *camera;
+    const RwMatrix      *camLTM;
+    RwRaster            *raster;
+    RwRaster           *topRaster;
+    _rwD3D9RasterExt   *topRasterExt;
+    RwRaster           *zRaster;
+    RwRaster           *zTopRaster;
+    const _rwD3D9RasterExt   *zRasterExt;
+    D3DVIEWPORT9        viewport;
+    HRESULT             hr;
+    RECT                rect;
+
+    RWFUNCTION(RWSTRING("_rwD3D9CameraBeginUpdate"));
+
+#if !defined( NOASM )
+
+    /* set the FPU to single precision */
+    //_rwProcessorForceSinglePrecision();
+
+#endif /* !defined( NOASM ) */
+
+    /*
+    * Save the camera pointer
+    */
+    camera = (RwCamera *) cameraIn;
+    dgGGlobals.curCamera = camera;
+
+    /*
+    * View matrix - (camera matrix)
+    */
+    camLTM = RwFrameGetLTM(RwCameraGetFrame(camera));
+
+    RwMatrixInvert((RwMatrix *)&_RwD3D9D3D9ViewTransform, camLTM);
+
+    _RwD3D9D3D9ViewTransform.m[0][0] = -_RwD3D9D3D9ViewTransform.m[0][0];
+    _RwD3D9D3D9ViewTransform.m[0][3] = 0.0f;
+
+    _RwD3D9D3D9ViewTransform.m[1][0] = -_RwD3D9D3D9ViewTransform.m[1][0];
+    _RwD3D9D3D9ViewTransform.m[1][3] = 0.0f;
+
+    _RwD3D9D3D9ViewTransform.m[2][0] = -_RwD3D9D3D9ViewTransform.m[2][0];
+    _RwD3D9D3D9ViewTransform.m[2][3] = 0.0f;
+
+    _RwD3D9D3D9ViewTransform.m[3][0] = -_RwD3D9D3D9ViewTransform.m[3][0];
+    _RwD3D9D3D9ViewTransform.m[3][3] = 1.0f;
+
+    RwD3D9SetTransform(D3DTS_VIEW, &_RwD3D9D3D9ViewTransform);
+
+    /*
+    * Projection matrix
+    */
+    _RwD3D9D3D9ProjTransform.m[0][0] = camera->recipViewWindow.x;
+    _RwD3D9D3D9ProjTransform.m[1][1] = camera->recipViewWindow.y;
+
+    /* Shear X, Y by view offset with Z invariant */
+    _RwD3D9D3D9ProjTransform.m[2][0] =
+        camera->recipViewWindow.x * camera->viewOffset.x;
+    _RwD3D9D3D9ProjTransform.m[2][1] =
+        camera->recipViewWindow.y * camera->viewOffset.y;
+
+    /* Translate to shear origin */
+    _RwD3D9D3D9ProjTransform.m[3][0] =
+        -camera->recipViewWindow.x * camera->viewOffset.x;
+
+    _RwD3D9D3D9ProjTransform.m[3][1] =
+        -camera->recipViewWindow.y * camera->viewOffset.y;
+
+    /* Projection type */
+    if (camera->projectionType == rwPARALLEL)
+    {
+        _RwD3D9D3D9ProjTransform.m[2][2] =
+            1.0f / (camera->farPlane - camera->nearPlane);
+        _RwD3D9D3D9ProjTransform.m[2][3] = 0.0f;
+        _RwD3D9D3D9ProjTransform.m[3][3] = 1.0f;
+    }
+    else
+    {
+        _RwD3D9D3D9ProjTransform.m[2][2] =
+            camera->farPlane / (camera->farPlane - camera->nearPlane);
+        _RwD3D9D3D9ProjTransform.m[2][3] = 1.0f;
+        _RwD3D9D3D9ProjTransform.m[3][3] = 0.0f;
+    }
+
+    _RwD3D9D3D9ProjTransform.m[3][2] = -_RwD3D9D3D9ProjTransform.m[2][2] * camera->nearPlane;
+
+    RwD3D9SetTransform(D3DTS_VIEW, &_RwD3D9D3D9ViewTransform);
+
+    RwD3D9SetTransform(D3DTS_PROJECTION, &_RwD3D9D3D9ProjTransform);
+
+    /*
+    * Prepare Composed matrix useful for vertex shaders
+    */
+    _RwD3D9ActiveViewProjTransform = NULL;
+
+    /*
+    * Set the render target
+    */
+    raster = RwCameraGetRaster(camera);
+
+    /*
+    * Got to get the top level raster as this is the only one with a
+    * texture surface
+    */
+    topRaster = RwRasterGetParent(raster);
+
+    topRasterExt = RASTEREXTFROMRASTER(topRaster);
+
+    if (topRasterExt->swapChain)
+    {
+        GetClientRect(topRasterExt->window, &rect);
+
+        if (!rect.right || !rect.bottom)
+        {
+            RWRETURN(FALSE);
+        }
+        else
+        {
+            if (rect.right != topRaster->originalWidth ||
+                rect.bottom != topRaster->originalHeight)
+            {
+                if (raster == topRaster)
+                {
+                    RwD3D9CameraAttachWindow(camera, topRasterExt->window);
+
+                    /* Update raster pointers */
+                    raster = RwCameraGetRaster(camera);
+                    topRaster = RwRasterGetParent(raster);
+                    topRasterExt = RASTEREXTFROMRASTER(topRaster);
+                }
+
+                zRaster = RwCameraGetZRaster((RwCamera *) camera);
+            }
+            else
+            {
+                zRaster = RwCameraGetZRaster((RwCamera *) camera);
+
+                if (zRaster && zRaster == RwRasterGetParent(zRaster))
+                {
+                    if (rect.right != zRaster->width ||
+                        rect.bottom != zRaster->height)
+                    {
+                        (void)RwCameraSetZRaster(camera, NULL);
+
+                        RwRasterDestroy(zRaster);
+
+                        zRaster =
+                            RwRasterCreate(rect.right, rect.bottom, 0,
+                                rwRASTERTYPEZBUFFER);
+
+                        if (zRaster)
+                        {
+                            RwCameraSetZRaster(camera, zRaster);
+                        }
+                    }
+                }
+            }
+
+            _rwD3D9SetRenderTarget(0, (LPSURFACE)topRasterExt->texture);
+
+            if (zRaster)
+            {
+                zTopRaster = RwRasterGetParent(zRaster);
+
+                zRasterExt = RASTEREXTFROMCONSTRASTER(zTopRaster);
+
+                _rwD3D9SetDepthStencilSurface((LPSURFACE)zRasterExt->texture);
+            }
+            else
+            {
+                _rwD3D9SetDepthStencilSurface(NULL);
+            }
+        }
+    }
+    else
+    {
+        /* Check if the main window has changed its size */
+        GetClientRect(WindowHandle, &rect);
+
+        if (!rect.right || !rect.bottom || IsIconic(WindowHandle))
+        {
+            RWRETURN(FALSE);
+        }
+        else if ((RwUInt32) rect.right !=
+            _RwD3D9AdapterInformation.mode.Width
+            || (RwUInt32) rect.bottom !=
+            _RwD3D9AdapterInformation.mode.Height)
+        {
+            D3D9DeviceReleaseVideoMemory();
+
+            hr = IDirect3DDevice9_TestCooperativeLevel(_RwD3DDevice);
+
+            if (SUCCEEDED(hr) && Present.Windowed)
+            {
+                Present.BackBufferWidth = rect.right;
+                Present.BackBufferHeight = rect.bottom;
+            }
+
+            hr = DXCHECK(IDirect3DDevice9_Reset(_RwD3DDevice, &Present));
+
+            if (SUCCEEDED(hr))
+            {
+                if (!D3D9DeviceRestoreVideoMemory())
+                {
+                    D3D9DeviceReleaseVideoMemory();
+
+                    hr = E_FAIL;
+                }
+            }
+
+            if (FAILED(hr))
+            {
+                if (Present.Windowed)
+                {
+#if defined(RWDEBUG)
+                    RwChar              buffer[256];
+
+                    rwsprintf(buffer, "Not enough memory to resize the window to %dx%d."
+                        "Switching back to %dx%d",
+                        rect.right, rect.bottom,
+                        _RwD3D9AdapterInformation.mode.Width,
+                        _RwD3D9AdapterInformation.mode.Height);
+
+                    RwDebugSendMessage(rwDEBUGMESSAGE, "_rwD3D9CameraBeginUpdate",
+                        buffer);
+#endif
+
+                    Present.BackBufferWidth = _RwD3D9AdapterInformation.mode.Width;
+                    Present.BackBufferHeight = _RwD3D9AdapterInformation.mode.Height;
+
+                    hr = DXCHECK(IDirect3DDevice9_Reset(_RwD3DDevice, &Present));
+
+                    if (FAILED(hr))
+                    {
+                        RWRETURN(FALSE);
+                    }
+
+                    /* Change window size */
+                    rect.right = rect.left + _RwD3D9AdapterInformation.mode.Width;
+                    rect.bottom = rect.top + _RwD3D9AdapterInformation.mode.Height;
+
+                    if (GetWindowLong(WindowHandle, GWL_STYLE) & WS_MAXIMIZE)
+                    {
+                        SetWindowLong(WindowHandle, GWL_STYLE, GetWindowLong(WindowHandle, GWL_STYLE) & ~WS_MAXIMIZE);
+                    }
+
+                    AdjustWindowRectEx(&rect,
+                        GetWindowLong(WindowHandle, GWL_STYLE),
+                        (GetMenu(WindowHandle)!=NULL),
+                        GetWindowLong(WindowHandle, GWL_EXSTYLE));
+
+                    SetWindowPos(WindowHandle, 0,
+                        rect.left, rect.bottom,
+                        rect.right-rect.left,
+                        rect.bottom-rect.top,
+                        SWP_NOMOVE | SWP_NOZORDER);
+
+                    D3D9DeviceRestoreVideoMemory();
+                }
+                else
+                {
+                    RWRETURN(FALSE);
+                }
+            }
+            else
+            {
+                _RwD3D9AdapterInformation.mode.Width = rect.right;
+                _RwD3D9AdapterInformation.mode.Height = rect.bottom;
+            }
+        }
+
+        /* Check if it's a camera texture */
+        if (rwRASTERTYPECAMERATEXTURE == topRaster->cType)
+        {
+            LPSURFACE           surfaceLevel;
+            D3DSURFACE_DESC     d3d9Desc;
+
+            /* Set the render & depth/stencil surface */
+            if (topRasterExt->cube)
+            {
+                IDirect3DCubeTexture9_GetCubeMapSurface((LPDIRECT3DCUBETEXTURE9)topRasterExt->texture,
+                    (D3DCUBEMAP_FACES)topRasterExt->face,
+                    0,
+                    &surfaceLevel);
+            }
+            else
+            {
+                IDirect3DTexture9_GetSurfaceLevel(topRasterExt->texture, 0,
+                    &surfaceLevel);
+            }
+
+            IDirect3DSurface9_GetDesc(surfaceLevel, &d3d9Desc);
+
+            if (d3d9Desc.Usage & D3DUSAGE_RENDERTARGET)
+            {
+                _rwD3D9SetRenderTarget(0, surfaceLevel);
+
+                zRaster = RwCameraGetZRaster((RwCamera *) camera);
+                if (zRaster)
+                {
+                    /*
+                    * Got to get the top level raster as this is the only one with a
+                    * texture surface
+                    */
+                    zTopRaster = RwRasterGetParent(zRaster);
+
+                    zRasterExt = RASTEREXTFROMCONSTRASTER(zTopRaster);
+
+                    if ( (RwRasterGetType(zTopRaster) & rwRASTERTYPEMASK) == rwRASTERTYPEZBUFFER )
+                    {
+                        _rwD3D9SetDepthStencilSurface((LPSURFACE)zRasterExt->texture);
+                    }
+                    else
+                    {
+                        LPSURFACE   surfaceLevelZ;
+
+                        IDirect3DTexture9_GetSurfaceLevel(zRasterExt->texture, 0,
+                            &surfaceLevelZ);
+
+                        _rwD3D9SetDepthStencilSurface(surfaceLevelZ);
+
+                        IDirect3DSurface9_Release(surfaceLevelZ);
+                    }
+                }
+                else
+                {
+                    _rwD3D9SetDepthStencilSurface(NULL);
+                }
+
+                hr = D3D_OK;
+            }
+            else
+            {
+                hr = E_FAIL;
+            }
+
+            if (FAILED(hr))
+            {
+                NeedToCopyFromBackBuffer = TRUE;
+
+                _rwD3D9SetRenderTarget(0, _RwD3D9RenderSurface);
+                _rwD3D9SetDepthStencilSurface(_RwD3D9DepthStencilSurface);
+            }
+
+            IDirect3DSurface9_Release(surfaceLevel);
+        }
+        else
+        {
+            _rwD3D9SetRenderTarget(0, _RwD3D9RenderSurface);
+            _rwD3D9SetDepthStencilSurface(_RwD3D9DepthStencilSurface);
+        }
+    }
+
+    /*
+    * Set the viewport
+    */
+    viewport.X = raster->nOffsetX;
+    viewport.Y = raster->nOffsetY;
+    viewport.Width = raster->width;
+    viewport.Height = raster->height;
+    viewport.MinZ = MINZBUFFERVALUE;
+    viewport.MaxZ = MAXZBUFFERVALUE;
+
+    DXCHECK(IDirect3DDevice9_SetViewport(_RwD3DDevice, &viewport));
+
+    /* Update fog range */
+    RwD3D9SetRenderState(D3DRS_FOGSTART, FLOATASDWORD(camera->fogPlane));
+    RwD3D9SetRenderState(D3DRS_FOGEND, FLOATASDWORD(camera->farPlane));
+
+    /*
+    * Begin a scene and exit
+    */
+    RWRETURN(_rwD3D9BeginScene());
+}
+
+/****************************************************************************
 D3D9SetPresentParameters
 
 On entry   :
@@ -1206,7 +1853,9 @@ void notsa::InjectWindowedModeHooks() {
     RH_ScopedGlobalInstall(notsa::WindowedMode::HookDirect3DDeviceReplacerSA, 0x7F6781);
     //RH_ScopedGlobalInstall(notsa::WindowedMode::HookDxCamFix, 0x7F7C41);
 
-
+    // Something in this function causes the floor in CJ's house not to be reflective
     RH_ScopedGlobalInstall(RenderWare::_rwD3D9CameraClear, 0x7F7730);
     //RH_ScopedGlobalInstall(RenderWare::D3D9SetPresentParameters, 0x7F6CB0);
+
+    RH_ScopedGlobalInstall(RenderWare::_rwD3D9CameraBeginUpdate, 0x7F8F20);
 }
