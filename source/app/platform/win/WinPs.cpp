@@ -18,7 +18,7 @@
 #include "intrin.h"
 
 //! Disable "This function was depracated"
-#pragma warning (disable : 28159 4996)
+//#pragma warning (disable : 28159 4996)
 
 static inline char gCpuVendor[13] = "GTAReversed!"; // = "UnknownVendr";
 
