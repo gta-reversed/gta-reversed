@@ -489,8 +489,8 @@ void CPostEffects::UnderWaterRippleFadeToFX() {
 // 0x701450
 void CPostEffects::HeatHazeFXInit() {
     // m_HeatHazeFXType always HEAT_HAZE_0
-    //if (m_HeatHazeFXType == m_HeatHazeFXTypeLast)
-    //    return;
+    if (m_HeatHazeFXType == m_HeatHazeFXTypeLast)
+        return;
 
     switch (m_HeatHazeFXType) {
     case HEAT_HAZE_0:
