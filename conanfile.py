@@ -5,8 +5,6 @@ from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
 from conan.tools.files import copy
 
-USE_SDL3 = True # TODO: Add an CLi option to toggle this
-
 class saRecipe(ConanFile):
     name = "gta-reversed"
     version = "0.0"
@@ -25,6 +23,16 @@ class saRecipe(ConanFile):
         "libjpeg-turbo/3.1.0",
     ]
 
+    default_options = {
+        "with_command_hooks": False,
+        "use_sdl3": True
+    }
+
+    options = {
+        "with_command_hooks": [True, False],
+        "use_sdl3": [True, False], # Use SDL3 or DInput
+    }
+
     def layout(self):
         cmake_layout(self)
     
@@ -34,9 +42,11 @@ class saRecipe(ConanFile):
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
-        if USE_SDL3:
-            tc.preprocessor_definitions['NOTSA_USE_SDL3'] = 1
         tc.user_presets_path = 'ConanPresets.json'
+        if self.options['with_command_hooks']:
+            tc.cache_variables["GTASA_WITH_SCRIPT_COMMAND_HOOKS"] = "ON"
+        if self.options['use_sdl3']:
+            tc.cache_variables["GTASA_USE_SDL3"] = "ON"
         tc.generate()
 
         # Copy ImGui bindings
