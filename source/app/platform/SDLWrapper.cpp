@@ -42,6 +42,13 @@ void ProcessEvents() {
 
             continue;
         }
+        case SDL_EVENT_MOUSE_MOTION: {
+            if (FrontEndMenuManager.m_bMenuActive) {
+                FrontEndMenuManager.m_nMousePosWinX = (int32)(e.motion.x);
+                FrontEndMenuManager.m_nMousePosWinY = (int32)(e.motion.y);
+            }
+            break;
+        }
         }
 
         if (CPad::ProcessEvent(e, imIO && imIO->WantCaptureMouse, imIO && imIO->WantCaptureKeyboard)) {
