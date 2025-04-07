@@ -194,7 +194,7 @@ CTask* CTaskComplexArrestPed::ControlSubTask(CPed* ped) {
         }
 
         if (!ped->GetActiveWeapon().IsTypeMelee()) {
-            if (!FindPlayerWanted()->IsClosestCop(ped->AsCop(), 2)) { // TODO: Convert ped to CCopPed
+            if (!FindPlayerWanted()->IsClosestCop(ped->AsCop(), 2)) {
                 return DoDestroyCarTask();
             }
         }

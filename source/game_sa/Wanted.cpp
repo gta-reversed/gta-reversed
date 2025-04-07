@@ -29,7 +29,7 @@ void CWanted::InjectHooks() {
     RH_ScopedInstall(ResetPolicePursuit, 0x561FD0);
     RH_ScopedInstall(UpdateCrimesQ, 0x562760);
     RH_ScopedInstall(ClearQdCrimes, 0x561FE0);
-    RH_ScopedInstall(AddCrimeToQ, 0x562000, { .reversed = true });
+    RH_ScopedInstall(AddCrimeToQ, 0x562000);
     RH_ScopedInstall(ReportCrimeNow, 0x562120);
     RH_ScopedInstall(IsInPursuit, 0x562330);
     RH_ScopedInstall(UpdateEachFrame, 0x562360);
@@ -40,7 +40,7 @@ void CWanted::InjectHooks() {
     RH_ScopedInstall(SetWantedLevelNoDrop, 0x562570);
     RH_ScopedInstall(ClearWantedLevelAndGoOnParole, 0x5625A0);
     RH_ScopedInstall(WorkOutPolicePresence, 0x5625F0);
-    RH_ScopedInstall(IsClosestCop, 0x5627D0, { .reversed = true });
+    RH_ScopedInstall(IsClosestCop, 0x5627D0);
     RH_ScopedInstall(ComputePursuitCopToDisplace, 0x562B00);
     RH_ScopedOverloadedInstall(RemovePursuitCop, "func", 0x562300, void (*)(CCopPed*, CCopPed**, uint8&));
     RH_ScopedOverloadedInstall(RemovePursuitCop, "method", 0x562C10, void(CWanted::*)(CCopPed*));
@@ -602,10 +602,6 @@ void CWanted::RemovePursuitCop(CCopPed* cop) {
 
 // 0x562C40
 void CWanted::RemoveExcessPursuitCops() {
-    if (m_nCopsInPursuit <= m_nMaxCopsInPursuit) {
-        return;
-    }
-
     while (m_nCopsInPursuit > m_nMaxCopsInPursuit) {
         RemovePursuitCop(ComputePursuitCopToDisplace(nullptr, m_pCopsInPursuit));
     }
