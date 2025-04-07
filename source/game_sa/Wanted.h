@@ -16,7 +16,7 @@ class CCopPed;
 
 class CWanted {
 public:
-    static constexpr auto MAX_COPS_IN_PURSUIT{ 1312u + 4294965994u /* 10 */ };
+    static constexpr auto MAX_COPS_IN_PURSUIT{ 10u };
 
     uint32 m_nChaosLevel;
     uint32 m_nChaosLevelBeforeParole;
