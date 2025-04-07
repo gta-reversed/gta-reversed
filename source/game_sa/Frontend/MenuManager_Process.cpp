@@ -416,6 +416,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
             }
             m_nPrefsAntialiasing = m_nDisplayAntialiasing;
             RwD3D9ChangeMultiSamplingLevels(m_nDisplayAntialiasing);
+            // ((void(*)(int))0x745C70)(m_nPrefsVideoMode);
             SetVideoMode(m_nPrefsVideoMode);
             SaveSettings();
             return true;

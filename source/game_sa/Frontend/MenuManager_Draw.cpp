@@ -88,7 +88,7 @@ void CMenuManager::DrawFrontEnd() {
         m_nCurrentScreen = m_bMainMenuSwitch ? SCREEN_MAIN_MENU : SCREEN_PAUSE_MENU;
     }
 
-    if (m_nCurrentScreenItem == 0 && aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == MENU_ACTION_TEXT) {
+    if (m_nCurrentScreenItem == 0 && aScreensX[m_nCurrentScreen].m_aItems[0].m_nActionType == MENU_ACTION_TEXT) {
         m_nCurrentScreenItem = 1;
     }
 
@@ -391,9 +391,11 @@ void CMenuManager::DrawBackground() {
 }
 
 // 0x5794A0
+/*
 void CMenuManager::DrawStandardMenus(bool drawTitle) {
     CRGBA color;
     float buttonTextPosY   = 0.0f;
+    int buttonOffset = 0;
 
     // Font alignment setup
     CFont::SetBackground(0, 0);
@@ -404,13 +406,13 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     CFont::SetCentreSize(RsGlobal.maximumWidth);
 
     // Special case screens
-    if (this->m_nCurrentScreen == SCREEN_STATS) {
+    if (m_nCurrentScreen == SCREEN_STATS) {
         CMenuManager::PrintStats();
 DRAW_TITLE:
         if (drawTitle) {
-            eMenuScreen currentScreen = this->m_nCurrentScreen;
-            if (aScreens[currentScreen].m_szTitleName[0]) {
-                if (currentScreen != SCREEN_MAP || !this->m_bMapLoaded) {
+            eMenuScreen currentScreen = m_nCurrentScreen;
+            if (aScreensX[currentScreen].m_szTitleName[0]) {
+                if (currentScreen != SCREEN_MAP || !m_bMapLoaded) {
                     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
                     CFont::SetFontStyle(FONT_GOTHIC);
                     float h;
@@ -440,18 +442,18 @@ DRAW_TITLE:
                     } else {
                         text = RsGlobal.maximumWidth * 0.0625;
                     }
-                    const char* titleText = TheText.Get(aScreens[this->m_nCurrentScreen].m_szTitleName);
+                    const GxtChar* titleText = TheText.Get(aScreensX[m_nCurrentScreen].m_szTitleName);
                     CFont::PrintString(text, ya, titleText);
                 }
             }
         }
         goto LABEL_25;
     }
-    if (this->m_nCurrentScreen == SCREEN_BRIEF) {
+    if (m_nCurrentScreen == SCREEN_BRIEF) {
       CMenuManager::PrintBriefs();
       goto DRAW_TITLE;
     }
-    if (this->m_nCurrentScreen != SCREEN_AUDIO_SETTINGS) {
+    if (m_nCurrentScreen != SCREEN_AUDIO_SETTINGS) {
         goto DRAW_TITLE;
     }
     if (drawTitle) {
@@ -461,7 +463,7 @@ DRAW_TITLE:
 LABEL_25:
 
     // Draw screen description text
-    if (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == MENU_ACTION_TEXT) {
+    if (aScreensX[m_nCurrentScreen].m_aItems[0].m_nActionType == MENU_ACTION_TEXT) {
         CFont::SetWrapx(RsGlobal.maximumWidth - 40.0f);
         CFont::SetFontStyle(FONT_SUBTITLES);
 
@@ -477,8 +479,8 @@ LABEL_25:
         float descPosY = (RsGlobal.maximumHeight == 448) ? 97.0f : RsGlobal.maximumHeight * 0.2165f;
         float descPosX = (RsGlobal.maximumWidth == 640) ? 60.0f : RsGlobal.maximumWidth * 0.09375f;
 
-        const auto textKey = aScreens[m_nCurrentScreen].m_aItems[0].m_szName;
-        const char* descText = nullptr;
+        const auto textKey = aScreensX[m_nCurrentScreen].m_aItems[0].m_szName;
+        const GxtChar* descText = nullptr;
 
         // Handle special screen text cases
         switch (m_nCurrentScreen) {
@@ -534,16 +536,16 @@ LABEL_25:
     }
 
     // Process all menu items
-    bool hasTextActionType = (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == MENU_ACTION_TEXT);
+    bool hasTextActionType = (aScreensX[m_nCurrentScreen].m_aItems[0].m_nActionType == MENU_ACTION_TEXT);
 
     for (int buttonIndex = 0; buttonIndex < 12; buttonIndex++) {
-        const char* buttonText = nullptr;
-        const char* prefSwitch = nullptr;
+        const GxtChar* buttonText = nullptr;
+        const GxtChar* prefSwitch = nullptr;
         float buttonPosX = 0.0f;
         float buttonPosY = 0.0f;
 
+        int buttonType = aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_szName[8];
         int currentButtonIndex = buttonIndex;
-        int buttonType = aScreens[m_nCurrentScreen].m_aItems[buttonIndex].m_szName[8];
         int xOffset = (buttonType == 9) ? 20 : 30;
 
         // Set font style based on button type
@@ -570,7 +572,7 @@ LABEL_25:
         }
 
         // Set text alignment
-        int alignType = aScreens[m_nCurrentScreen].m_aItems[currentButtonIndex].m_nAlign;
+        int alignType = aScreensX[m_nCurrentScreen].m_aItems[currentButtonIndex].m_nAlign;
         if (alignType == 1) {
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
         } else if (alignType == 2) {
@@ -580,20 +582,20 @@ LABEL_25:
         }
 
         // Initialize position if not set
-        if (aScreens[m_nCurrentScreen].m_aItems[currentButtonIndex].m_X == 0 && aScreens[m_nCurrentScreen].m_aItems[currentButtonIndex].m_Y == 0 || buttonType == 9) {
+        if (aScreensX[m_nCurrentScreen].m_aItems[currentButtonIndex].m_X == 0 && aScreensX[m_nCurrentScreen].m_aItems[currentButtonIndex].m_Y == 0 || buttonType == 9) {
             if (buttonIndex == 0 || (buttonIndex == 1 && hasTextActionType)) {
-                aScreens[m_nCurrentScreen].m_aItems[currentButtonIndex].m_X = 320;
-                aScreens[m_nCurrentScreen].m_aItems[currentButtonIndex].m_Y = 130;
+                aScreensX[m_nCurrentScreen].m_aItems[currentButtonIndex].m_X = 320;
+                aScreensX[m_nCurrentScreen].m_aItems[currentButtonIndex].m_Y = 130;
             } else {
                 // Default positions based on button index
-                aScreens[m_nCurrentScreen].m_aItems[currentButtonIndex].m_X = 320;
-                aScreens[m_nCurrentScreen].m_aItems[currentButtonIndex].m_Y = xOffset + 130 + (buttonIndex * 25);
+                aScreensX[m_nCurrentScreen].m_aItems[currentButtonIndex].m_X = 320;
+                aScreensX[m_nCurrentScreen].m_aItems[currentButtonIndex].m_Y = xOffset + 130 + (buttonIndex * 25);
             }
         }
 
         // Skip empty or text-only items
-        int actionType = aScreens[m_nCurrentScreen].m_aItems[currentButtonIndex].m_nActionType;
-        if (actionType == MENU_ACTION_TEXT || !aScreens[m_nCurrentScreen].m_aItems[buttonIndex].m_szName[0]) {
+        int actionType = aScreensX[m_nCurrentScreen].m_aItems[currentButtonIndex].m_nActionType;
+        if (actionType == MENU_ACTION_TEXT || !aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_szName[0]) {
             continue;
         }
 
@@ -607,21 +609,21 @@ LABEL_25:
                     strcpy(tempStr, (char*)(statsScrollDirectionPtr - 168));
                     GxtChar gxtStr[256];
                     AsciiToGxtChar(tempStr, gxtStr);
-                    buttonText = (const char*)gxtStr;
-                    aScreens[m_nCurrentScreen].m_aItems[buttonIndex].m_nActionType = MENU_ACTION_MPACK;
+                    buttonText                                                     = (const GxtChar*)gxtStr;
+                    aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_nActionType = MENU_ACTION_MPACK;
                 } else {
-                    aScreens[m_nCurrentScreen].m_aItems[buttonIndex].m_nActionType = (eMenuAction)20;
+                    aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_nActionType = (eMenuAction)20;
                     buttonText = nullptr;
-                    aScreens[m_nCurrentScreen].m_aItems[buttonIndex].m_Y = aScreens[m_nCurrentScreen].m_szTitleName[18 * buttonIndex + 6];
+                    aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_Y = aScreensX[m_nCurrentScreen].m_szTitleName[18 * buttonIndex + 6];
                 }
             } else if (buttonType == 10) {
                 buttonText = m_ControlMethod ? TheText.Get("FEJ_TIT") : TheText.Get("FEC_MOU");
             } else {
-                buttonText = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[buttonIndex].m_szName);
+                buttonText = TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_szName);
             }
         } else {
             // Save game slots handling
-            aScreens[m_nCurrentScreen].m_aItems[buttonIndex].m_X = 80;
+            aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_X = 80;
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
 
             int saveGameStatus = (int)CGenericGameStorage::ms_Slots[buttonIndex];
@@ -630,7 +632,7 @@ LABEL_25:
                 char slotStr[32];
                 sprintf(slotStr, "FEM_SL%d", buttonIndex);
                 CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
-                aScreens[m_nCurrentScreen].m_aItems[buttonIndex].m_X = 320;
+                aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_X = 320;
                 buttonText                                           = TheText.Get(slotStr);
                 buttonPosX                                           = (RsGlobal.maximumWidth == 640) ? 40 : (int)(RsGlobal.maximumWidth * 0.0625f);
             } else {
@@ -835,7 +837,7 @@ LABEL_25:
 
         if (buttonText) {
             int currentScreen = m_nCurrentScreen;
-            int buttonPosY    = aScreens[currentScreen].m_aItems[currentButtonIndex].m_Y;
+            int buttonPosY    = aScreensX[currentScreen].m_aItems[currentButtonIndex].m_Y;
             int buttonOffsetY = currentButtonIndex * 18 + currentScreen * 226;
             buttonPosYFloat   = buttonPosY;
             if (RsGlobal.maximumHeight == 448) {
@@ -843,7 +845,7 @@ LABEL_25:
             } else {
                 buttonPosYScaled = RsGlobal.maximumHeight * buttonPosYFloat * 0.002232143;
             }
-            float buttonPosXFloat = *(&aScreens[0].m_aItems[0].m_X + buttonOffsetY);
+            float buttonPosXFloat = *(&aScreensX[0].m_aItems[0].m_X + buttonOffsetY);
             if (RsGlobal.maximumWidth == 640) {
                 buttonPosXScaled = buttonPosXFloat;
             } else {
@@ -856,7 +858,7 @@ LABEL_25:
             CFont::SetEdge(1);
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
             int  currentScreen = m_nCurrentScreen;
-            char buttonType    = aScreens[currentScreen].m_aItems[currentButtonIndex].m_nType;
+            char buttonType    = aScreensX[currentScreen].m_aItems[currentButtonIndex].m_nType;
             if (buttonType < 1 || buttonType > 8) {
                 if (currentScreen == SCREEN_AUDIO_SETTINGS && buttonIndex == 5) {
                     float audioSettingsFontHeight;
@@ -904,7 +906,7 @@ LABEL_25:
                     CFont::SetScale(buttonFontWidth, buttonFontHeight);
                 }
             }
-            buttonPosYFloat = aScreens[m_nCurrentScreen].m_aItems[currentButtonIndex].m_Y;
+            buttonPosYFloat = aScreensX[m_nCurrentScreen].m_aItems[currentButtonIndex].m_Y;
             if (RsGlobal.maximumHeight == 448) {
                 buttonPosYScaled = buttonPosYFloat;
             } else {
@@ -924,21 +926,21 @@ LABEL_25:
                 int currentScreen = m_nCurrentScreen;
                 if (currentScreen != SCREEN_MAP && currentScreen != SCREEN_BRIEF) {
                     if (!buttonPosXFloat) {
-                        int buttonOffset = 226 * currentScreen + currentButtonIndex * 18;
-                        if (*(&aScreens[0].m_aItems[0].m_nAlign + buttonOffset) == 1) {
-                            float buttonPosXFloat  = *(&aScreens[0].m_aItems[0].m_X + buttonOffset) * (RsGlobal.maximumWidth * 0.0015625);
+                        buttonOffset = 226 * currentScreen + currentButtonIndex * 18;
+                        if (*(&aScreensX[0].m_aItems[0].m_nAlign + buttonOffset) == 1) {
+                            float buttonPosXFloat  = *(&aScreensX[0].m_aItems[0].m_X + buttonOffset) * (RsGlobal.maximumWidth * 0.0015625);
                             float buttonPosXScaled = buttonPosXFloat - CMenuManager::StretchX(40.0);
-                        } else if (*(&aScreens[0].m_aItems[0].m_nAlign + buttonOffset) == 2) {
-                            float buttonPosXScaled = CMenuManager::StretchX(40.0) + *(&aScreens[0].m_aItems[0].m_X + buttonOffset) * (RsGlobal.maximumWidth * 0.0015625);
+                        } else if (*(&aScreensX[0].m_aItems[0].m_nAlign + buttonOffset) == 2) {
+                            float buttonPosXScaled = CMenuManager::StretchX(40.0) + *(&aScreensX[0].m_aItems[0].m_X + buttonOffset) * (RsGlobal.maximumWidth * 0.0015625);
                         } else {
-                            float buttonPosXFloat  = *(&aScreens[0].m_aItems[0].m_X + buttonOffset) * (RsGlobal.maximumWidth * 0.0015625);
+                            float buttonPosXFloat  = *(&aScreensX[0].m_aItems[0].m_X + buttonOffset) * (RsGlobal.maximumWidth * 0.0015625);
                             float buttonPosXScaled = buttonPosXFloat - CMenuManager::StretchX(40.0) - CFont::GetStringWidth(buttonText, 1, 0) * 0.5;
                         }
                     }
                     if (m_bMapLoaded) {
                         int currentScreen = m_nCurrentScreen;
                         if (currentScreen != SCREEN_LOAD_FIRST_SAVE && currentScreen != SCREEN_DELETE_FINISHED && currentScreen != SCREEN_SAVE_DONE_1) {
-                            int   buttonPosY       = aScreens[currentScreen].m_aItems[currentButtonIndex].m_Y;
+                            int   buttonPosY       = aScreensX[currentScreen].m_aItems[currentButtonIndex].m_Y;
                             float buttonPosXScaled = buttonPosY;
                             CRect rect;
                             rect.left              = buttonPosXScaled;
@@ -952,22 +954,22 @@ LABEL_25:
                 }
             }
         }
-        if (m_nDisplayVideoMode == m_nPrefsVideoMode && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES") && m_nHelperText == FET_APP) {
+        if (m_nDisplayVideoMode == m_nPrefsVideoMode && !strcmp(aScreensX[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES") && m_nHelperText == FET_APP) {
             CMenuManager::ResetHelperText();
         }
-        if (m_nDisplayAntialiasing == m_nPrefsAntialiasing && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS") && m_nHelperText == FET_APP) {
+        if (m_nDisplayAntialiasing == m_nPrefsAntialiasing && !strcmp(aScreensX[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS") && m_nHelperText == FET_APP) {
             CMenuManager::ResetHelperText();
         }
-        if (m_nDisplayVideoMode != m_nPrefsVideoMode && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
+        if (m_nDisplayVideoMode != m_nPrefsVideoMode && !strcmp(aScreensX[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
             CMenuManager::SetHelperText(eHelperText::FET_APP);
         }
-        if (m_nDisplayAntialiasing != m_nPrefsAntialiasing && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
+        if (m_nDisplayAntialiasing != m_nPrefsAntialiasing && !strcmp(aScreensX[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
             CMenuManager::SetHelperText(eHelperText::FET_APP);
         }
         m_nPrefsAntialiasing = m_nPrefsAntialiasing;
         if (m_nDisplayAntialiasing != m_nPrefsAntialiasing) {
             int currentScreen = m_nCurrentScreen;
-            if (strcmp(aScreens[currentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
+            if (strcmp(aScreensX[currentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
                 if (currentScreen == SCREEN_DISPLAY_SETTINGS || currentScreen == SCREEN_DISPLAY_ADVANCED) {
                     m_nDisplayAntialiasing = m_nPrefsAntialiasing;
                     CMenuManager::SetHelperText(eHelperText::FET_RSO);
@@ -977,14 +979,14 @@ LABEL_25:
         m_nPrefsVideoMode = m_nPrefsVideoMode;
         if (m_nDisplayVideoMode != m_nPrefsVideoMode) {
             int currentScreen = m_nCurrentScreen;
-            if (strcmp(aScreens[currentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
+            if (strcmp(aScreensX[currentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
                 if (currentScreen == SCREEN_DISPLAY_SETTINGS || currentScreen == SCREEN_DISPLAY_ADVANCED) {
                     m_nDisplayVideoMode = m_nPrefsVideoMode;
                     CMenuManager::SetHelperText(eHelperText::FET_RSO);
                 }
             }
         }
-        switch (aScreens[m_nCurrentScreen].m_aItems[currentButtonIndex].m_nActionType) {
+        switch (aScreensX[m_nCurrentScreen].m_aItems[currentButtonIndex].m_nActionType) {
         case 27:
             float sliderWidth;
             float sliderPosX;
@@ -1100,7 +1102,7 @@ LABEL_25:
                         if (CMenuManager::StretchX(500.0) <= m_nMousePosX) {
                             m_nMousePosY = m_nMousePosY;
                             if (CMenuManager::StretchY(95.0) <= m_nMousePosY) {
-                                if (this->StretchY(120.0) < m_nMousePosY) {
+                                if (StretchY(120.0) < m_nMousePosY) {
                                     m_MouseInBounds = 16;
                                     break;
                                 }
@@ -1169,7 +1171,7 @@ LABEL_25:
                         break;
                     }
                     m_nMousePosY = m_nMousePosY;
-                    if (this->StretchY(125.0f) > m_nMousePosY) {
+                    if (StretchY(125.0f) > m_nMousePosY) {
                         m_MouseInBounds = 16;
                         break;
                     }
@@ -1232,7 +1234,7 @@ LABEL_25:
                         break;
                     }
                     m_nMousePosY = m_nMousePosY;
-                    if (this->StretchY(125.0) > m_nMousePosY) {
+                    if (StretchY(125.0) > m_nMousePosY) {
                         m_MouseInBounds = 16;
                         break;
                     }
@@ -1309,10 +1311,1811 @@ LABEL_25:
         if (buttonText) {
             buttonTextPosY = (29 * CFont::ProcessCurrentString(0, 60.0, buttonTextPosY, buttonText)) + buttonTextPosY;
         }
-        screenOffset = 226 * m_nCurrentScreen;
-        if (*(&aScreens[0].m_aItems[buttonIndex].m_nActionType + screenOffset) == 32) {
+        buttonOffset = 226 * m_nCurrentScreen;
+        if (*(&aScreensX[0].m_aItems[buttonIndex].m_nActionType + buttonOffset) == 32) {
             buttonTextPosY = buttonTextPosY + 70.0;
         }
+    }
+}*/
+
+/// module:
+enum eMenuPage : __int32
+{
+  MENUPAGE_STATUS = 0x0,
+  MENUPAGE_LOADING_GAME = 0x1,
+  MENUPAGE_RESUME = 0x2,
+  MENUPAGE_SOUND_SETUP = 0x3,
+  MENUPAGE_DISPLAY_SETUP = 0x4,
+  MENUPAGE_MAP = 0x5,
+  MENUPAGE_NEW_GAME_ASK = 0x6,
+  MENUPAGE_SELECT_GAME = 0x7,
+  MENUPAGE_MISSIONPACK_LOADING_ASK = 0x8,
+  MENUPAGE_LOAD_GAME = 0x9,
+  MENUPAGE_DELETE_GAME = 0xA,
+  MENUPAGE_LOAD_SAVE_ASK = 0xB,
+  MENUPAGE_DELETE_SAVE_ASK = 0xC,
+  MENUPAGE_LOAD_FIRST_SAVE = 0xD,
+  MENUPAGE_DELETE_FINISHED_1 = 0xE,
+  MENUPAGE_DELETE_FINISHED_2 = 0xF,
+  MENUPAGE_GAME_SAVE = 0x10,
+  MENUPAGE_SAVE_WRITE_ASK = 0x11,
+  MENUPAGE_SAVE_DONE_1 = 0x12,
+  MENUPAGE_SAVE_DONE_2 = 0x13,
+  MENUPAGE_GAME_SAVED = 0x14,
+  MENUPAGE_GAME_LOADED = 0x15,
+  MENUPAGE_GAME_WARNING_DONT_SAVE = 0x16,
+  MENUPAGE_SHOW_DEFAULT_SETS = 0x17,
+  MENUPAGE_AUDIO_SETS_DEFAULT = 0x18,
+  MENUPAGE_CONTROLLER_SETS_DEFAULT = 0x19,
+  MENUPAGE_USER_TRACKS = 0x1A,
+  MENUPAGE_DISPLAY_ADVANCED = 0x1B,
+  MENUPAGE_LANGUAGE = 0x1C,
+  MENUPAGE_SAVE_GAME_DONE = 0x1D,
+  MENUPAGE_SAVE_GAME_FAILED = 0x1E,
+  MENUPAGE_SAVE_WRITE_FAILED = 0x1F,
+  MENUPAGE_SAVE_FAILED_FILE_ERROR = 0x20,
+  MENUPAGE_OPTIONS = 0x21,
+  MENUPAGE_MAIN_MENU = 0x22,
+  MENUPAGE_QUIT_GAME = 0x23,
+  MENUPAGE_CONTROLLER_SETUP = 0x24,
+  MENUPAGE_REDEFINE_CONTROLS = 0x25,
+  MENUPAGE_CONTROLS_VEHICLE_ONFOOT = 0x26,
+  MENUPAGE_MOUSE_SETUP = 0x27,
+  MENUPAGE_JOYPAD_SETUP = 0x28,
+  MENUPAGE_MAIN_MENU_CONTROLS = 0x29,
+  MENUPAGE_QUIT_GAME_2 = 0x2A,
+  MENUPAGE_EMPTY = 0x2B,
+};
+
+/*
+void CMenuManager::DrawStandardMenus(bool drawTitle)
+{
+    // HEADER
+    CFont::SetBackground(0, 0);
+    CFont::SetProportional(1);
+    CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+    CFont::SetWrapx((RsGlobal.maximumWidth - 10));
+    CFont::SetRightJustifyWrap(10.0);
+    CFont::SetCentreSize(RsGlobal.maximumWidth);
+    
+    if (m_nCurrentScreen == SCREEN_STATS)
+        PrintStats();
+    else if (m_nCurrentScreen == SCREEN_BRIEF)
+        PrintBriefs();
+    else if (m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && drawTitle)
+        PrintRadioStationList();
+    
+    // Draw title if specified
+    if (drawTitle && aScreensX[m_nCurrentScreen].m_szTitleName[0])
+    {
+        if (m_nCurrentScreen != SCREEN_MAP || !m_bMapLoaded)
+        {
+            CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+            CFont::SetFontStyle(FONT_GOTHIC);
+            CFont::SetScale(StretchX(1.3), StretchY(2.1));
+            CFont::SetEdge(1);
+            CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
+            CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
+            CFont::PrintString(StretchX(28.0), StretchY(40.0), TheText.Get(aScreensX[m_nCurrentScreen].m_szTitleName));
+        }
+    }
+    
+    // CSprite2d::DrawRect(CRect(StretchX(-1), StretchY(-1), RsGlobal.maximumWidth, StretchY(60)), CRGBA(0, 0, 0, 230));
+    // CSprite2d::DrawRect(CRect(-1, RsGlobal.maximumHeight - StretchY(60.0f), RsGlobal.maximumWidth, RsGlobal.maximumHeight), CRGBA(0, 0, 0, 230));
+    
+    // Main Menu on Top
+    float MultRes = 1;
+    CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
+    CFont::SetFontStyle(FONT_MENU);
+    CFont::SetScale(StretchX(0.6), StretchY(0.65));
+    float Resfac = ((float)RsGlobal.maximumWidth / (float)RsGlobal.maximumHeight);
+    if (Resfac <= 1.63f)
+    {
+        CFont::SetScale(StretchX(0.45), StretchY(0.45));
+        MultRes = 0.8;
+        if (Resfac <= 1.5f)
+            MultRes = 0.6;
+    }
+    
+    CFont::SetEdge(1);
+    CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
+
+    for (int i = 0; i < 12; i++) {
+        if (aScreensX[m_nCurrentScreen].m_aItems[i].m_szName[0]) {
+            if (aScreensX[m_nCurrentScreen].m_aItems[i].m_nTargetMenu == m_nCurrentScreen) {
+                CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
+                CFont::PrintString(StretchX(aScreensX[m_nCurrentScreen].m_aItems[i].m_X * MultRes), StretchY(aScreensX[m_nCurrentScreen].m_aItems[i].m_Y), TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[i].m_szName));
+
+                if (i != 0) {
+                    CSprite2d::DrawRect(CRect(
+                        StretchX(aScreensX[m_nCurrentScreen].m_aItems[i].m_X - 46.5) * MultRes, // smaller value for left
+                        StretchY(45),
+                        StretchX(aScreensX[m_nCurrentScreen].m_aItems[i].m_X - 46.0) * MultRes, // larger value for right
+                        StretchY(60)
+                    ), CRGBA(200, 200, 200, 100));
+                }
+            }
+        }
+
+        // Handle question text
+        if (aScreensX[m_nCurrentScreen].m_aItems[0].m_nActionType == MENU_ACTION_TEXT) {
+            const GxtChar* pText;
+            CFont::SetFontStyle(FONT_SUBTITLES);
+            CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+            CFont::SetScale(StretchX(0.5f), StretchY(0.8f));
+            CFont::SetEdge(1);
+            CFont::SetColor(CRGBA(255, 255, 255, 255));
+            CFont::SetDropColor(CRGBA(0, 0, 0, 255));
+
+            switch (m_nCurrentScreen) {
+            case SCREEN_NEW_GAME_ASK:
+                pText = TheText.Get(m_bMainMenuSwitch ? "FESZ_QQ" : aScreensX[m_nCurrentScreen].m_aItems[0].m_szName);
+                break;
+            case SCREEN_LOAD_GAME:
+                pText = TheText.Get(m_bMainMenuSwitch ? "FES_LCG" : aScreensX[m_nCurrentScreen].m_aItems[0].m_szName);
+                break;
+            case SCREEN_SAVE_WRITE_ASK: {
+                if (m_bSelectedSaveGame)
+                    pText = TheText.Get(m_bSelectedSaveGame == 2 ? "FESZ_QC" : aScreensX[m_nCurrentScreen].m_aItems[0].m_szName);
+                else
+                    pText = TheText.Get("FESZ_QO");
+                break;
+            }
+        case SCREEN_QUIT_GAME_ASK:
+            pText = TheText.Get("FEQ_SRW");
+            break;
+        default:
+            pText = TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[0].m_szName);
+            break;
+        }
+        CFont::PrintString(RsGlobal.maximumWidth / 2 - StretchX(200), RsGlobal.maximumHeight / 2 - StretchY(80), pText);
+    }
+
+    // Process menu items
+    for (int i = 0; i < 12; i++)
+    {
+        CFont::SetFontStyle(FONT_MENU);
+        CFont::SetEdge(1);
+        CFont::SetScale(StretchX(0.6f), StretchY(0.6f));
+        CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+        if (aScreensX[m_nCurrentScreen].m_aItems[i].m_nActionType != MENU_ACTION_TEXT && aScreensX[m_nCurrentScreen].m_aItems[i].m_szName[0])
+        {
+            const GxtChar* LeftColumn = nullptr;
+            const GxtChar* RightColumn = nullptr;
+            GxtChar ReservedSpace[64];
+
+            if (aScreensX[m_nCurrentScreen].m_aItems[i].m_nType >= 1 && aScreensX[m_nCurrentScreen].m_aItems[i].m_nType <= 8)
+            {
+                if (CGenericGameStorage::ms_Slots[i] == (eSlotState)0) {
+                    LeftColumn = plugin::CallAndReturn<const GxtChar*, 0x5D0F40>(i - 1);
+                } else if (CGenericGameStorage::ms_Slots[i] == (eSlotState)2) {
+                        LeftColumn = TheText.Get("FESZ_CS");
+                }
+                if (!LeftColumn || !LeftColumn[0])
+                {
+                    sprintf(gString, "FEM_SL%X", i);
+                    LeftColumn = TheText.Get(gString);
+                }
+            }
+            else if (aScreensX[m_nCurrentScreen].m_aItems[i].m_nType == 9)
+            {
+                // MENU_ENTRY_MISSIONPACK handling
+            }
+            else if (aScreensX[m_nCurrentScreen].m_aItems[i].m_nType == 10)
+            {
+                LeftColumn = TheText.Get(m_ControlMethod ? "FEJ_TIT" : "FEC_MOU");
+            }
+            else
+            {
+                LeftColumn = TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[i].m_szName);
+            }
+
+            CAERadioTrackManager RadioEntity;
+
+            switch (aScreensX[m_nCurrentScreen].m_aItems[i].m_nActionType) {
+            case 30: // MENU_ACTION_RADIOEQ
+                RightColumn = TheText.Get(m_bRadioEq ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 31: // MENU_ACTION_RADIOAUTOTUNE
+                RightColumn = TheText.Get(m_bRadioAutoSelect ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 32: // MENU_ACTION_RADIOSTATION
+                RightColumn = AudioEngine.GetRadioStationName((eRadioID)m_nRadioStation);
+                break;
+            case 33: // MENU_ACTION_MAPLEGEND
+                RightColumn = TheText.Get(m_bMapLegend ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 25: // MENU_ACTION_SUBTITLE
+                RightColumn = TheText.Get(m_bShowSubtitles ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 26: // MENU_ACTION_WIDESCREEN
+                RightColumn = TheText.Get(m_bWidescreenOn ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 34: // MENU_ACTION_RADARMODE
+                switch (m_nRadarMode) {
+                case 0:
+                    RightColumn = TheText.Get("FED_RDM");
+                    break;
+                case 1:
+                    RightColumn = TheText.Get("FED_RDB");
+                    break;
+                case 2:
+                    RightColumn = TheText.Get("FEM_OFF");
+                    break;
+                }
+                break;
+            case 35: // MENU_ACTION_HUD
+                RightColumn = TheText.Get(m_bHudOn ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 65: // MENU_ACTION_SAVEGALLERYPHOTOS
+                RightColumn = TheText.Get(m_bSavePhotos ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 63: // MENU_ACTION_USERTRACKSPLAYMODE
+                switch (m_nRadioMode) {
+                case 0:
+                    RightColumn = TheText.Get("FEA_PR1");
+                    break;
+                case 1:
+                    RightColumn = TheText.Get("FEA_PR2");
+                    break;
+                case 2:
+                    RightColumn = TheText.Get("FEA_PR3");
+                    break;
+                }
+                break;
+            case 24: // MENU_ACTION_FRAMELIMIT
+                RightColumn = TheText.Get(m_bPrefsFrameLimiter ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 43: // MENU_ACTION_MIPMAPS
+                RightColumn = TheText.Get(m_bPrefsMipMapping ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 64: // MENU_ACTION_USERTRACKSAUTOMATICSCAN
+                RightColumn = TheText.Get(m_bTracksAutoScan ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 46: // MENU_ACTION_INVERTMOUSE
+                RightColumn = TheText.Get(!bInvertMouseY ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 47: // MENU_ACTION_INVERTLEFTSTICKX
+                RightColumn = TheText.Get(m_bInvertPadX1 ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 48: // MENU_ACTION_INVERTLEFTSTICKY
+                RightColumn = TheText.Get(m_bInvertPadY1 ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 49: // MENU_ACTION_INVERTRICHTSTICKX
+                RightColumn = TheText.Get(m_bInvertPadX2 ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 50: // MENU_ACTION_INVERTRIGHTSTICKY
+                RightColumn = TheText.Get(m_bInvertPadY2 ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 51: // MENU_ACTION_INVERTLEFTAXIS
+                RightColumn = TheText.Get(m_bSwapPadAxis1 ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 52: // MENU_ACTION_INVERTRIGHTAXIS
+                RightColumn = TheText.Get(m_bSwapPadAxis2 ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 59: // MENU_ACTION_STEERWITHMOUSE
+                RightColumn = TheText.Get(CVehicle::m_bEnableMouseSteering ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 60: // MENU_ACTION_FLYWITHMOUSE
+                RightColumn = TheText.Get(CVehicle::m_bEnableMouseFlying ? "FEM_ON" : "FEM_OFF");
+                break;
+            case 56: // MENU_ACTION_RESOLUTION
+                {
+                    auto Videomodes = GetVideoModeList();
+                    AsciiToGxtChar(Videomodes[m_nDisplayVideoMode], (GxtChar *)ReservedSpace);
+                    RightColumn = ReservedSpace;
+                }
+                break;
+            case 44: // MENU_ACTION_ANTIALIASING
+                if (m_nDisplayAntialiasing <= 1)
+                    RightColumn = TheText.Get("FEM_OFF");
+                else {
+                    switch (m_nDisplayAntialiasing) {
+                    case 2:
+                        RightColumn = TheText.Get("FED_AA1");
+                        break;
+                    case 3:
+                        RightColumn = TheText.Get("FED_AA2");
+                        break;
+                    case 4:
+                        RightColumn = TheText.Get("FED_AA3");
+                        break;
+                    }
+                }
+                break;
+            case 42: // MENU_ACTION_VISUALFX
+            switch (g_fx.GetFxQuality()) {
+                case 0:
+                    RightColumn = TheText.Get("FED_FXL");
+                    break;
+                case 1:
+                    RightColumn = TheText.Get("FED_FXM");
+                    break;
+                case 2:
+                    RightColumn = TheText.Get("FED_FXH");
+                    break;
+                case 3:
+                    RightColumn = TheText.Get("FED_FXV");
+                    break;
+                }
+                break;
+            case 58: // MENU_ACTION_CHANGEINPUTDEVICE
+                RightColumn = TheText.Get(m_ControlMethod ? "FET_CCN" : "FET_SCN");
+                break;
+            }
+
+            // Set position for menu items
+            if (aScreensX[m_nCurrentScreen].m_aItems[i].m_Y == 0 && i > 0)
+                aScreensX[m_nCurrentScreen].m_aItems[i].m_Y = aScreensX[m_nCurrentScreen].m_aItems[i - 1].m_Y + 26;
+
+            if (aScreensX[m_nCurrentScreen].m_aItems[i].m_X == 0)
+                aScreensX[m_nCurrentScreen].m_aItems[i].m_X = aScreensX[m_nCurrentScreen].m_aItems[0].m_X;
+
+            float PosX = StretchX(aScreensX[m_nCurrentScreen].m_aItems[i].m_X);
+            float PosY = StretchY(aScreensX[m_nCurrentScreen].m_aItems[i].m_Y);
+
+            CFont::SetColor(CRGBA(255, 255, 255, 255));
+            if (i == m_nCurrentScreenItem)
+            {
+                CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
+            }
+            
+            // Print left column
+            CFont::SetDropColor(CRGBA(0, 0, 0, 255));
+            CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+            CFont::PrintString(PosX, PosY, LeftColumn);
+
+            // Print right column
+            if (RightColumn) {
+                float width = CFont::GetStringWidth(RightColumn, true, false);
+                CFont::SetEdge(1);
+                CFont::SetScale(StretchX(0.6f), StretchY(0.6f));
+                if (width > StretchX(200.0f))
+                    CFont::SetScale(StretchX(0.6f * StretchX(200.0f) / width), StretchY(0.6f));
+
+                CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+                CFont::PrintString(RsGlobal.maximumWidth - StretchX(300), PosY, RightColumn);
+            }
+
+            // Handle sliders
+            float SliderPosX = StretchX(500);
+            float SliderPosY = StretchY(125.0f);
+            float SliderHeight = StretchY(4.0f);
+            float SliderHeight2 = StretchY(20.0f);
+            float SliderWidth = StretchX(100.0f);
+            float SliderSpacing = StretchX(3.0);
+            float v169 = 1.0f;
+            float SliderField = 0.0f;
+            float SilerMode = 0.0f;
+            switch (aScreensX[m_nCurrentScreen].m_aItems[i].m_nActionType) {
+            case 27: {
+                SliderPosY = StretchY(125.0);
+                SilerMode = m_PrefsBrightness * 0.0026041667f;
+                SliderField = DisplaySlider(SliderPosX, SliderPosY, SliderHeight, SliderHeight2, SliderWidth, SilerMode, SliderSpacing);
+                if (i == m_nCurrentScreenItem && v169) {
+                    if (CheckHover(0, SliderField - CMenuManager::StretchX(3.0f), SliderPosY - SliderHeight, SliderPosY + SliderHeight)) {
+                        m_MouseInBounds = 7;
+                    } else if (CheckHover(SliderField + CMenuManager::StretchX(3.0f), RsGlobal.maximumWidth, SliderPosY - SliderHeight, SliderPosY + SliderHeight)) {
+                        m_MouseInBounds = 6;
+                    } else {
+                        m_MouseInBounds = 16;
+                    }
+                }
+                break;
+            }
+            case 28: {
+                SliderPosY = StretchY(95.0);
+                SilerMode = m_nRadioVolume * 0.015625;
+                SliderField = DisplaySlider(SliderPosX, SliderPosY, SliderHeight, SliderHeight2, SliderWidth, SilerMode, SliderSpacing);
+                if (i == m_nCurrentScreenItem && v169) {
+                    if (CheckHover(0, SliderField - CMenuManager::StretchX(3.0f), SliderPosY - SliderHeight, SliderPosY + SliderHeight)) {
+                        m_MouseInBounds = 11;
+                    } else if (CheckHover(SliderField + CMenuManager::StretchX(3.0f), RsGlobal.maximumWidth, SliderPosY - SliderHeight, SliderPosY + SliderHeight)) {
+                        m_MouseInBounds = 10;
+                    } else {
+                        m_MouseInBounds = 16;
+                    }
+                }
+                break;
+            }
+            case 29: {
+                SliderPosY = StretchY(125.0);
+                SilerMode = m_nSfxVolume * 0.015625;
+                SliderField = DisplaySlider(SliderPosX, SliderPosY, SliderHeight, SliderHeight2, SliderWidth, SilerMode, SliderSpacing);
+                if (i == m_nCurrentScreenItem && v169) {
+                    if (CheckHover(0, SliderField - CMenuManager::StretchX(3.0f), SliderPosY - SliderHeight, SliderPosY + SliderHeight)) {
+                        m_MouseInBounds = 13;
+                    } else if (CheckHover(SliderField + CMenuManager::StretchX(3.0f), RsGlobal.maximumWidth, SliderPosY - SliderHeight, SliderPosY + SliderHeight)) {
+                        m_MouseInBounds = 12;
+                    } else {
+                        m_MouseInBounds = 16;
+                    }
+                }
+                break;
+            }
+            case 61: {
+                SliderPosY = StretchY(125.0);
+                SliderWidth = StretchX(100.0f);
+                SilerMode = (m_fDrawDistance - 0.92500001) * 1.1428572;
+                SliderField = DisplaySlider(SliderPosX, SliderPosY, SliderHeight, SliderHeight2, SliderWidth, SilerMode, SliderSpacing);
+                if (i == m_nCurrentScreenItem && v169) {
+                    if (CheckHover(0, SliderField - CMenuManager::StretchX(3.0f), SliderPosY - SliderHeight, SliderPosY + SliderHeight)) {
+                        m_MouseInBounds = 9;
+                    } else if (CheckHover(SliderField + CMenuManager::StretchX(3.0f), RsGlobal.maximumWidth, SliderPosY - SliderHeight, SliderPosY + SliderHeight)) {
+                        m_MouseInBounds = 8;
+                    } else {
+                        m_MouseInBounds = 16;
+                    }
+                }
+                break;
+            }
+            case 62: {
+                SliderPosY = StretchY(125.0);
+                SliderWidth = StretchX(100.0f);
+                SilerMode = CCamera::m_fMouseAccelHorzntl / 0.0049999999;
+                SliderField = DisplaySlider(SliderPosX, SliderPosY, SliderHeight, SliderHeight2, SliderWidth, SilerMode, SliderSpacing);
+                if (i == m_nCurrentScreenItem && v169) {
+                    if (CheckHover(0, SliderField - CMenuManager::StretchX(3.0f), SliderPosY - SliderHeight, SliderPosY + SliderHeight)) {
+                        m_MouseInBounds = 15;
+                    } else if (CheckHover(SliderField + CMenuManager::StretchX(3.0f), RsGlobal.maximumWidth, SliderPosY - SliderHeight, SliderPosY + SliderHeight)) {
+                        m_MouseInBounds = 14;
+                    } else {
+                        m_MouseInBounds = 16;
+                    }
+                }
+                break;
+            }
+            default:
+                break;
+            }
+                        
+
+            
+        }
+    }
+    }
+}
+*/
+void CMenuManager::DrawStandardMenus(bool drawTitle) {
+    const GxtChar *v6;                     // eax
+    const GxtChar* textOne;                // eax
+    eSlotState v10;                      // ecx
+    int i;                      // edi
+    //const GxtChar  v13;                      // al
+    const GxtChar* textTwo;      // esi
+    GxtChar* v19;                                       // edx
+    //const GxtChar  v20;                                       // cl
+    int v21;                      // eax
+    const GxtChar* NameOfSavedGame;                           // ebx
+    //int8 *v23;                    // eax
+    const GxtChar* v24;                    // eax
+    bool preferenceOne;           // al
+    const GxtChar* preferenceThree;        // eax
+    __int32 v29;                  // eax
+    const GxtChar* v30;               // eax
+    const GxtChar *v32;                    // eax
+    const GxtChar *v34;                    // eax
+    const GxtChar **VideoModeList;         // eax
+    int v37;                      // eax
+    //const GxtChar*  v39;                   // edi
+    double v44;                   // st7
+    double v45;                   // st7
+    char m_nType;                 // al
+    double v48;                   // st7
+    double v49;                   // st7
+    //eMenuScreen m_nCurrentScreen;              // al
+    int v51;                      // eax
+    double v52;                   // st7
+    double v53;                   // st7
+    int v54 = 0; //// ?????                      // eax
+    //eMenuScreen m_nCurrentScreen;              // al
+    CRGBA *v56;                   // eax
+    eMenuScreen v58;              // dl
+    eMenuScreen v60;              // dl
+    double v61;                   // st7
+    double v62;                   // st7
+    double maximumHeight;         // st6
+    int v64;                      // eax
+    double v65;                   // st7
+    double v66;                   // st7
+    double v68;                   // st7
+    bool v69;                     // c0
+    bool v70;                     // c3
+    double v71;                   // st7
+    double v72;                   // st7
+    double v73;                   // st6
+    int v74;                      // eax
+    double v75;                   // st7
+    double v76;                   // st7
+    double v77;                   // st7
+    double v78;                   // st7
+    double v79;                   // st7
+    double v80;                   // st7
+    double v81;                   // st6
+    int v82;                      // eax
+    double v83;                   // st7
+    double v84;                   // st7
+    double v85;                   // st7
+    double v86;                   // st7
+    double v87;                   // st7
+    double v88;                   // st7
+    double v89;                   // st6
+    //int v155;                      // eax
+    double v91;                   // st7
+    double v92;                   // st7
+    double v93;                   // st7
+    double v94;                   // st7
+    double v95;                   // st7
+    double v96;                   // st7
+    double v97;                   // st6
+    //int v155;                      // eax
+    double v99;                   // st7
+    double v100;                  // st7
+    double v101;                  // st7
+    float v102;                   // [esp+0h] [ebp-13Ch]
+    float v103;                   // [esp+0h] [ebp-13Ch]
+    int32 v104;                   // [esp+0h] [ebp-13Ch]
+    float v105;                   // [esp+0h] [ebp-13Ch]
+    int32 v106;                   // [esp+0h] [ebp-13Ch]
+    float v107;                   // [esp+0h] [ebp-13Ch]
+    int32 v108;                   // [esp+0h] [ebp-13Ch]
+    float v109;                   // [esp+0h] [ebp-13Ch]
+    int32 v110;                   // [esp+0h] [ebp-13Ch]
+    float v111;                   // [esp+0h] [ebp-13Ch]
+    int32 v112;                   // [esp+0h] [ebp-13Ch]
+    float v113;                   // [esp+4h] [ebp-138h]
+    int32 v114;                   // [esp+4h] [ebp-138h]
+    int32 v115;                   // [esp+4h] [ebp-138h]
+    float v116;                   // [esp+4h] [ebp-138h]
+    int32 v117;                   // [esp+4h] [ebp-138h]
+    int32 v118;                   // [esp+4h] [ebp-138h]
+    float v119;                   // [esp+4h] [ebp-138h]
+    int32 v120;                   // [esp+4h] [ebp-138h]
+    int32 v121;                   // [esp+4h] [ebp-138h]
+    float v122;                   // [esp+4h] [ebp-138h]
+    int32 v123;                   // [esp+4h] [ebp-138h]
+    int32 v124;                   // [esp+4h] [ebp-138h]
+    float v125;                   // [esp+4h] [ebp-138h]
+    int32 v126;                   // [esp+4h] [ebp-138h]
+    int32 v127;                   // [esp+4h] [ebp-138h]
+    float v128;                   // [esp+8h] [ebp-134h]
+    float maximumWidth;           // [esp+8h] [ebp-134h]
+    float v131;                   // [esp+8h] [ebp-134h]
+    int32 v134;                   // [esp+8h] [ebp-134h]
+    int32 v135;                   // [esp+8h] [ebp-134h]
+    int32 v136;                   // [esp+8h] [ebp-134h]
+    int32 v137;                   // [esp+8h] [ebp-134h]
+    int32 v138;                   // [esp+8h] [ebp-134h]
+    int32 v139;                   // [esp+8h] [ebp-134h]
+    int32 v140;                   // [esp+8h] [ebp-134h]
+    int32 v141;                   // [esp+8h] [ebp-134h]
+    int32 v142;                   // [esp+8h] [ebp-134h]
+    int32 v143;                   // [esp+8h] [ebp-134h]
+
+    float v145;                   // [esp+1Ch] [ebp-120h]
+    float v146;                   // [esp+1Ch] [ebp-120h]
+    float v147;                   // [esp+1Ch] [ebp-120h]
+    float v148;                   // [esp+1Ch] [ebp-120h]
+    float v150;                   // [esp+1Ch] [ebp-120h]
+    float v151;                   // [esp+1Ch] [ebp-120h]
+    float v152;                   // [esp+1Ch] [ebp-120h]
+    float v153;                   // [esp+1Ch] [ebp-120h]
+    float v154;                   // [esp+1Ch] [ebp-120h]
+    float v155;                   // [esp+1Ch] [ebp-120h]
+    __int16 x;                    // [esp+20h] [ebp-11Ch]
+    float xa;                     // [esp+20h] [ebp-11Ch]
+    float xb;                     // [esp+20h] [ebp-11Ch]
+    float xc;                     // [esp+20h] [ebp-11Ch]
+    float xd;                     // [esp+20h] [ebp-11Ch]
+    float xe;                     // [esp+20h] [ebp-11Ch]
+    int xf;                       // [esp+20h] [ebp-11Ch]
+    float xg;                     // [esp+20h] [ebp-11Ch]
+    float xh;                     // [esp+20h] [ebp-11Ch]
+    float xi;                     // [esp+20h] [ebp-11Ch]
+    float xj;                     // [esp+20h] [ebp-11Ch]
+    float xk;                     // [esp+20h] [ebp-11Ch]
+    float xl;                     // [esp+20h] [ebp-11Ch]
+    int v169;                   // [esp+27h] [ebp-115h]
+    float textb;                  // [esp+28h] [ebp-114h]
+    float text;                   // [esp+28h] [ebp-114h]
+    float textc;                  // [esp+28h] [ebp-114h]
+    float textd;                  // [esp+28h] [ebp-114h]
+    GxtChar* textThree = nullptr;              // [esp+28h] [ebp-114h]
+    float h;                      // [esp+2Ch] [ebp-110h]
+    float ya;                     // [esp+2Ch] [ebp-110h]
+    float yb;                     // [esp+2Ch] [ebp-110h]
+    float yc = 0; ///???????                     // [esp+2Ch] [ebp-110h]
+    int yd = 0; ///???????                       // [esp+2Ch] [ebp-110h]
+    float v181;                   // [esp+34h] [ebp-108h]
+    float buttonTextPosY;         // [esp+38h] [ebp-104h]
+    RwRGBA color;                 // [esp+3Ch] [ebp-100h] BYREF
+    float y;                      // [esp+40h] [ebp-FCh]
+    float v185;                   // [esp+44h] [ebp-F8h]
+    float v186;                   // [esp+48h] [ebp-F4h]
+    float scaleX;                 // [esp+4Ch] [ebp-F0h]
+    float v188;                   // [esp+50h] [ebp-ECh]
+    float v189;                   // [esp+54h] [ebp-E8h]
+    float v190;                   // [esp+58h] [ebp-E4h]
+    float v191;                   // [esp+5Ch] [ebp-E0h]
+    float v192;                   // [esp+60h] [ebp-DCh]
+    float v193;                   // [esp+64h] [ebp-D8h]
+    float v194;                   // [esp+68h] [ebp-D4h]
+    float v195;                   // [esp+6Ch] [ebp-D0h]
+    float v196;                   // [esp+70h] [ebp-CCh]
+    float v197;                   // [esp+74h] [ebp-C8h]
+    float v198;                   // [esp+78h] [ebp-C4h]
+    float v199;                   // [esp+7Ch] [ebp-C0h]
+    float v200;                   // [esp+80h] [ebp-BCh]
+    float v201;                   // [esp+84h] [ebp-B8h]
+    float v202;                   // [esp+88h] [ebp-B4h]
+    float v203;                   // [esp+8Ch] [ebp-B0h]
+    float v204;                   // [esp+90h] [ebp-ACh]
+    float v205;                   // [esp+94h] [ebp-A8h]
+    float v206;                   // [esp+98h] [ebp-A4h]
+    float v207;                   // [esp+9Ch] [ebp-A0h]
+    float scaleY;                 // [esp+A0h] [ebp-9Ch]
+    float v209;                   // [esp+A4h] [ebp-98h]
+    float v210;                   // [esp+A8h] [ebp-94h]
+    float v211;                   // [esp+ACh] [ebp-90h]
+    float v212;                   // [esp+B0h] [ebp-8Ch]
+    float v213;                   // [esp+B4h] [ebp-88h]
+    float v214;                   // [esp+B8h] [ebp-84h]
+    float v215;                   // [esp+BCh] [ebp-80h]
+    float v216;                   // [esp+C0h] [ebp-7Ch]
+    float v217;                   // [esp+C4h] [ebp-78h]
+    float v218;                   // [esp+C8h] [ebp-74h]
+    CRect rect;                   // [esp+CCh] [ebp-70h] BYREF
+    RwRGBA color_1;               // [esp+F4h] [ebp-48h] BYREF
+    CRGBA v227;                   // [esp+F8h] [ebp-44h] BYREF
+    GxtChar  v228[64];              // [esp+FCh] [ebp-40h] BYREF
+    //const GxtChar* textTwo;
+    buttonTextPosY = 0.0;
+    v169 = 1;
+    CFont::SetBackground(0, 0);
+    CFont::SetProportional(1);
+    CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+    v128 = (RsGlobal.maximumWidth - 10);
+    CFont::SetWrapx(v128);
+    CFont::SetRightJustifyWrap(10.0);
+    maximumWidth = RsGlobal.maximumWidth;
+    CFont::SetCentreSize(maximumWidth);
+
+    if (m_nCurrentScreen == SCREEN_STATS) {
+        CMenuManager::PrintStats();
+    }    
+    if (m_nCurrentScreen == MENUPAGE_RESUME) {
+        CMenuManager::PrintBriefs();
+    }
+
+    if (m_nCurrentScreen == MENUPAGE_SOUND_SETUP && drawTitle) {
+        CMenuManager::PrintRadioStationList();
+    }
+
+        
+    if (drawTitle) {
+        if (aScreensX[m_nCurrentScreen].m_szTitleName[0]) {
+            if (m_nCurrentScreen != MENUPAGE_MAP || !m_bMapLoaded) {
+                CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+                CFont::SetFontStyle(FONT_GOTHIC);
+                if (RsGlobal.maximumHeight == 448) {
+                    h = 2.0999999;
+                } else {
+                    h = RsGlobal.maximumHeight * 0.0046874997;
+                }    
+                if (RsGlobal.maximumWidth == 640) {
+                    CFont::SetScale(1.3, h);
+                } else {
+                    textb = RsGlobal.maximumWidth * 0.0020312499;
+                    CFont::SetScale(textb, h);
+                }    
+                CFont::SetEdge(1);
+                CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
+                CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
+                if (RsGlobal.maximumHeight == 448) {
+                    ya = 28.0;
+                } else {
+                    ya = RsGlobal.maximumHeight * 0.0625;
+                }    
+                if (RsGlobal.maximumWidth == 640) {
+                    text = 40.0;
+                } else {
+                    text = RsGlobal.maximumWidth * 0.0625;
+                }    
+                v6 = TheText.Get(aScreensX[m_nCurrentScreen].m_szTitleName);
+                CFont::PrintString(text, ya, v6);
+            }    
+        }    
+    }    
+
+    if (aScreensX[m_nCurrentScreen].m_aItems[0].m_nActionType == 1) {
+        CFont::SetWrapx(RsGlobal.maximumWidth - 40);
+        CFont::SetFontStyle(FONT_SUBTITLES);
+        if (RsGlobal.maximumHeight == 448) {
+            yb = 1.2;
+        } else {
+            yb = RsGlobal.maximumHeight * 0.0026785715;
+        }
+        if (RsGlobal.maximumWidth == 640) {
+            CFont::SetScaleForCurrentLanguage(0.48999998, yb);
+        } else {
+            textc = RsGlobal.maximumWidth * 0.00076562498;
+            CFont::SetScaleForCurrentLanguage(textc, yb);
+        }
+        CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+        CFont::SetEdge(2);
+        CFont::SetDropColor(CRGBA(0, 0, 0, 0xFFu));
+        CFont::SetColor(CRGBA(0x4Au, 0x5Au, 0x6Bu, 0xFFu));
+        switch (m_nCurrentScreen) {
+        case MENUPAGE_NEW_GAME_ASK:
+            if (!m_bMainMenuSwitch) {
+                textOne = TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[0].m_szName);
+                break;
+            }
+            textOne = TheText.Get("FESZ_QQ");
+            break;
+        case MENUPAGE_LOAD_SAVE_ASK:
+            if (!m_bMainMenuSwitch) {
+                textOne = TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[0].m_szName);
+                break;
+            }
+            textOne = TheText.Get("FES_LCG");
+            break;
+        case MENUPAGE_SAVE_WRITE_ASK:
+            v10 = CGenericGameStorage::ms_Slots[m_bSelectedSaveGame];
+            if ((int)v10) {
+                if (v10 != (eSlotState)2) {
+                    textOne = TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[0].m_szName);
+                    break;
+                }
+                textOne = TheText.Get("FESZ_QC");
+            } else {
+                textOne = TheText.Get("FESZ_QO");
+            }
+            break;
+        case MENUPAGE_QUIT_GAME:
+            if (!m_bMainMenuSwitch) {
+                textOne = TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[0].m_szName);
+                break;
+            }
+            textOne = TheText.Get("FEQ_SRW");
+            break;
+        default:
+            textOne = TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[0].m_szName);
+            break;
+        }
+        if (RsGlobal.maximumHeight == 448) {
+            yc = 97.0;
+        } else {
+            yc = RsGlobal.maximumHeight * 0.21651785;
+        }
+        if (RsGlobal.maximumWidth == 640) {
+            CFont::PrintString(60.0, yc, textOne);
+        } else {
+            textd = RsGlobal.maximumWidth * 0.09375;
+            CFont::PrintString(textd, yc, textOne);
+        }
+        v131 = (RsGlobal.maximumWidth - 10);
+        CFont::SetWrapx(v131);
+        CFont::SetRightJustifyWrap(10.0);
+    }
+    if (m_nCurrentScreen == MENUPAGE_CONTROLS_VEHICLE_ONFOOT) {
+        if (m_EditingControlOptions) {
+            v169 = 0;
+        }
+        CMenuManager::DrawControllerScreenExtraText(-8);
+    }
+
+    i = 0;
+    // color = (aScreensX[(226 * m_nCurrentScreen) / 226].m_aItems[0].m_nActionType == 1);
+    bool weHaveLabel = aScreensX[m_nCurrentScreen].m_aItems[0].m_nActionType == 1;
+
+    for (i = 0; i < 12; i++) {
+        // v13 = aScreensX[0].m_aItems[i].m_szName[(226 * m_nCurrentScreen) + 8];
+        auto v13 = aScreensX[m_nCurrentScreen].m_aItems[i].m_nType; // ??????????????
+        textTwo = 0;
+        int MENU_DEFAULT_LINE_HEIGHT = v13 == 9 ? 20 : 30;
+        if (v13 < 1 || v13 > 8) {
+            CFont::SetFontStyle(FONT_MENU);
+            if (RsGlobal.maximumHeight == 448) {
+                v210 = 1.0;
+            } else {
+                v210 = RsGlobal.maximumHeight * 0.002232143;
+            }
+            if (RsGlobal.maximumWidth == 640) {
+                v206 = 0.69999999;
+            } else {
+                v206 = RsGlobal.maximumWidth * 0.00109375;
+            }
+            CFont::SetScale(v206, v210);
+            CFont::SetEdge(2);
+            // p_color_1 = &color_1;
+        } else {
+            CFont::SetFontStyle(FONT_MENU);
+            CFont::SetEdge(1);
+            if (RsGlobal.maximumHeight == 448) {
+                scaleY = 0.94999999;
+            } else {
+                scaleY = RsGlobal.maximumHeight * 0.0021205356;
+            }
+            if (RsGlobal.maximumWidth == 640) {
+                scaleX = 0.42000002;
+            } else {
+                scaleX = RsGlobal.maximumWidth * 0.00065625005;
+            }
+            CFont::SetScale(scaleX, scaleY);
+            // p_color_1 = &v220;
+        }
+        CFont::SetDropColor(CRGBA(0, 0, 0, 0xFFu));
+        if (i == m_nCurrentScreenItem && m_bMapLoaded) {
+            CFont::SetColor(CRGBA(0xACu, 0xCBu, 0xF1u, 0xFFu));
+        } else {
+            CFont::SetColor(CRGBA(0x4Au, 0x5Au, 0x6Bu, 0xFFu));
+        }
+        if (aScreensX[m_nCurrentScreen].m_aItems[i].m_nAlign == 1) {
+            CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+        } else if (aScreensX[m_nCurrentScreen].m_aItems[i].m_nAlign == 2) {
+            CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
+        } else {
+            CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
+        }
+        // if (!*(&aScreensX[0].m_aItems[0].m_X + 226 * m_nCurrentScreen + i * 18) && !*(&aScreensX[0].m_aItems[0].m_Y + 226 * m_nCurrentScreen + i * 18) || aScreensX[0].m_aItems[0].m_szName[226 * m_nCurrentScreen + i * 18 + 8] == 9) {
+        //     if (!i || i == 1 && color == 1) {
+        //         *(&aScreensX[0].m_aItems[0].m_X + 226 * m_nCurrentScreen + i * 18) = 320;
+        //         aScreensX[m_nCurrentScreen].m_aItems[i].m_Y = 130;
+        //     } else {
+        //         *(&aScreensX[0].m_aItems[0].m_X + 226 * m_nCurrentScreen + i * 18) = *(226 * m_nCurrentScreen + i * 18 + 0x8CE00C);
+        //         *(&aScreensX[0].m_aItems[0].m_Y + 226 * m_nCurrentScreen + i * 18) = x + *(226 * m_nCurrentScreen + i * 18 + 0x8CE00E);
+        //     }
+        // }
+
+        #define MENU_DEFAULT_CONTENT_X 320.0f
+        #define MENU_DEFAULT_CONTENT_Y 130.0f
+
+        if (!aScreensX[m_nCurrentScreen].m_aItems[i].m_X && !aScreensX[m_nCurrentScreen].m_aItems[i].m_Y) {
+            if (i == 0 || (i == 1 && weHaveLabel)) {
+                aScreensX[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
+                aScreensX[m_nCurrentScreen].m_aItems[i].m_Y = MENU_DEFAULT_CONTENT_Y;
+            } else {
+                aScreensX[m_nCurrentScreen].m_aItems[i].m_X = aScreensX[m_nCurrentScreen].m_aItems[i-1].m_X;
+                aScreensX[m_nCurrentScreen].m_aItems[i].m_Y = aScreensX[m_nCurrentScreen].m_aItems[i-1].m_Y + MENU_DEFAULT_LINE_HEIGHT;
+            }
+        }
+
+
+        // // for (int i = 0; i2 < 12; i++)
+        // // {
+        //     if (aScreensX[m_nCurrentScreen].m_aItems[i].m_szName[0])
+        //     {
+    
+        //         CFont::PrintString(StretchX(aScreensX[m_nCurrentScreen].m_aItems[i].m_X + MENU_DEFAULT_LINE_HEIGHT),
+        //             StretchY(aScreensX[m_nCurrentScreen].m_aItems[i].m_Y),
+        //             TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[i].m_szName));
+    
+        //             if (i != 0) {
+        //                 CSprite2d::DrawRect(CRect(
+        //                     StretchX(aScreensX[m_nCurrentScreen].m_aItems[i].m_X - 46.5) * MultRes, // smaller value for left
+        //                     StretchY(45),
+        //                     StretchX(aScreensX[m_nCurrentScreen].m_aItems[i].m_X - 46.0) * MultRes, // larger value for right
+        //                     StretchY(60)
+        //                 ), CRGBA(200, 200, 200, 100));
+        //             }
+        
+        //     }
+        // // }
+
+        // v19 = &aScreensX[0].m_aItems[i].m_nActionType + (226 * m_nCurrentScreen);
+
+        // if (*v19 == 1 || !aScreensX[0].m_aItems[i].m_szName[(226 * m_nCurrentScreen)]) {
+
+        if (!(aScreensX[m_nCurrentScreen].m_aItems[i].m_nActionType != 1 && aScreensX[m_nCurrentScreen].m_aItems[i].m_szName[0] != '\0')) {
+            i++;
+            continue;
+        }
+
+        // old gta 3 /vc code
+
+        /*if (aScreensX[m_nCurrentScreen].m_aEntries[i].m_nType >= MENU_ENTRY_SAVE_1 && aScreensX[m_nCurrScreen].m_aEntries[i].m_nType <= MENU_ENTRY_SAVE_8) {
+            yd = 0;
+
+            leftText = nullptr;
+            if (Slots[i] == SLOT_OK) {
+                leftText = GetNameOfSavedGame(i);
+                rightText = GetSavedGameDateAndTime(i);
+            }
+
+            if (!leftText || leftText[0] == '\0') {
+                sprintf(gString, "FEM_SL%d", i + 1);
+                leftText = TheText.Get(gString);
+            }
+        } else {
+            leftText = TheText.Get(aScreensX[m_nCurrScreen].m_aEntries[i].m_EntryName);
+        }*/
+
+        int v20 = aScreensX[m_nCurrentScreen].m_aItems[i].m_nType;
+        yd = 0;
+        if (v20 < 1 || v20 > 8) {
+            if (v20 == 9) {
+                // auto v23 = &m_nStatsScrollDirection + 261 * i;
+                auto v23 = &m_nStatsScrollDirection + 261 * i;
+                if (*(v23 - 169)) {
+                    AsciiToGxtChar((const char*)v23 - 168, gGxtString);
+                    NameOfSavedGame = gGxtString;
+                    aScreensX[m_nCurrentScreen].m_aItems[i].m_nActionType = (eMenuAction)11;
+                } else {
+                    //*v19 = 20;
+                    NameOfSavedGame = 0;
+                    aScreensX[m_nCurrentScreen].m_aItems[i].m_Y = *&aScreensX[m_nCurrentScreen].m_szTitleName[18 * i + 6];
+                }
+            } else {
+                if (v20 == 10) {
+                    if (m_ControlMethod) {
+                        v24 = TheText.Get("FEJ_TIT");
+                    } else {
+                        v24 = TheText.Get("FEC_MOU");
+                    }
+                } else {
+                    v24 = TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[i].m_szName);
+                }
+                NameOfSavedGame = v24;
+            }
+            textThree = (GxtChar *)NameOfSavedGame;
+        } else {
+            *(&aScreensX[0].m_aItems[i].m_X + (226 * m_nCurrentScreen)) = 80;
+            CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+            v21 = dword_C16EB8[i];
+            if (v21) {
+                if (v21 != 2) {
+                    sprintf(gString, "FEM_SL%d", i);
+                    CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
+                    aScreensX[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
+                    NameOfSavedGame = TheText.Get(gString);
+                    textThree = (GxtChar *)NameOfSavedGame;
+                    if (RsGlobal.maximumWidth == 640) {
+                        yd = 40.0;
+                    } else {
+                        yd = (RsGlobal.maximumWidth * 0.0625);
+                    }
+                }
+                NameOfSavedGame = TheText.Get("FESZ_CS");
+                textThree = (GxtChar *)NameOfSavedGame;
+            } else {
+                NameOfSavedGame = CGenericGameStorage::ms_SlotFileName[i - 1];
+                textThree       = (GxtChar*)NameOfSavedGame;
+                if (GxtCharStrlen(NameOfSavedGame) >= 254) {
+                    AsciiToGxtChar("...", gGxtString2);
+                    GxtCharStrcat((GxtChar *)NameOfSavedGame, gGxtString2);
+                }
+                textTwo = GetSavedGameDateAndTime(i - 1);
+            }
+            if (!NameOfSavedGame || !*NameOfSavedGame) {
+                sprintf(gString, "FEM_SL%d", i);
+                CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
+                aScreensX[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
+                NameOfSavedGame = TheText.Get(gString);
+                textThree = (GxtChar *)NameOfSavedGame;
+                if (RsGlobal.maximumWidth == 640) {
+                    yd = 40.0;
+                } else {
+                    yd = (RsGlobal.maximumWidth * 0.0625);
+                }
+            }
+        }
+
+                // // Get button text based on type
+                // if (buttonType < 1 || buttonType > 8) {
+                //     if (buttonType == 9) {
+                //         // Handle stats scroll
+                //         int8* statsScrollDirectionPtr = &m_nStatsScrollDirection + 261 * buttonIndex;
+                //         if (*(statsScrollDirectionPtr - 169)) {
+                //             char tempStr[256];
+                //             strcpy(tempStr, (char*)(statsScrollDirectionPtr - 168));
+                //             GxtChar gxtStr[256];
+                //             AsciiToGxtChar(tempStr, gxtStr);
+                //             buttonText                                                     = (const GxtChar*)gxtStr;
+                //             aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_nActionType = MENU_ACTION_MPACK;
+                //         } else {
+                //             aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_nActionType = (eMenuAction)20;
+                //             buttonText = nullptr;
+                //             aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_Y = aScreensX[m_nCurrentScreen].m_szTitleName[18 * buttonIndex + 6];
+                //         }
+                //     } else if (buttonType == 10) {
+                //         buttonText = m_ControlMethod ? TheText.Get("FEJ_TIT") : TheText.Get("FEC_MOU");
+                //     } else {
+                //         buttonText = TheText.Get(aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_szName);
+                //     }
+                // } else {
+                //     // Save game slots handling
+                //     aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_X = 80;
+                //     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+        
+                //     int saveGameStatus = (int)CGenericGameStorage::ms_Slots[buttonIndex];
+                //     if (saveGameStatus == 0 || saveGameStatus == 2) {
+                //         // Empty slot or corrupted
+                //         char slotStr[32];
+                //         sprintf(slotStr, "FEM_SL%d", buttonIndex);
+                //         CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
+                //         aScreensX[m_nCurrentScreen].m_aItems[buttonIndex].m_X = 320;
+                //         buttonText                                           = TheText.Get(slotStr);
+                //         buttonPosX                                           = (RsGlobal.maximumWidth == 640) ? 40 : (int)(RsGlobal.maximumWidth * 0.0625f);
+                //     } else {
+                //         // Valid saved game
+                //         const GxtChar* saveName = CGenericGameStorage::ms_SlotFileName[buttonIndex - 1];
+                //         if (saveName != nullptr && GxtCharStrlen(saveName) < 254) {
+                //             buttonText = (const GxtChar*)saveName;
+                //         } else {
+                //             // Truncate or handle invalid name
+                //             GxtChar tempName[256];
+                //             strcpy((char*)tempName, (const char*)saveName);
+                //             if (GxtCharStrlen(saveName) >= 254) {
+                //                 GxtChar ellipsis[4];
+                //                 AsciiToGxtChar("...", ellipsis);
+                //                 GxtCharStrcat(tempName, ellipsis);
+                //             }
+                //             buttonText = (const GxtChar*)tempName;
+                //         }
+                //     }
+                // }
+        
+        switch (aScreensX[m_nCurrentScreen].m_aItems[i].m_nActionType) {
+        case 32:
+            preferenceThree = AudioEngine.GetRadioStationName(m_nRadioStation);
+            textTwo = preferenceThree;
+            break;
+        case 24:
+            preferenceOne = m_bPrefsFrameLimiter;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 25:
+            preferenceOne = m_bShowSubtitles;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 26:
+            preferenceOne = m_bWidescreenOn;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 30:
+            preferenceOne = m_bRadioEq;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 31:
+            preferenceOne = m_bRadioAutoSelect;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 33:
+            preferenceOne = m_bMapLegend;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 35:
+            preferenceOne = m_bHudOn;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 47:
+            preferenceOne = m_bInvertPadX1;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 48:
+            preferenceOne = m_bInvertPadY1;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 49:
+            preferenceOne = m_bInvertPadX2;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 50:
+            preferenceOne = m_bInvertPadY2;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 51:
+            preferenceOne = m_bSwapPadAxis1;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 52:
+            preferenceOne = m_bSwapPadAxis2;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 64:
+            preferenceOne = m_bTracksAutoScan;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 65:
+            preferenceOne = m_bSavePhotos;
+            preferenceThree = (!preferenceOne) ? TheText.Get("FEM_OFF") : TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 34:
+            m_nRadarMode = m_nRadarMode;
+            if (m_nRadarMode) {
+                v29 = m_nRadarMode - 1;
+                if (v29) {
+                    if (v29 != 1) {
+                        break;
+                    }
+                    preferenceThree = TheText.Get("FEM_OFF");
+                } else {
+                    preferenceThree = TheText.Get("FED_RDB");
+                }
+            } else {
+                preferenceThree = TheText.Get("FED_RDM");
+            }
+            textTwo = preferenceThree;
+            break;
+
+        case 36:
+            switch ((int)m_nPrefsLanguage) {
+            case 0u:
+                m_nPrefsLanguage = m_nPrefsLanguage;
+                preferenceThree = TheText.Get("FEL_ENG");
+                textTwo = preferenceThree;
+            break;
+
+            case 1u:
+                preferenceThree = TheText.Get("FEL_FRE");
+                textTwo = preferenceThree;
+            break;
+
+            case 2u:
+                preferenceThree = TheText.Get("FEL_GER");
+                textTwo = preferenceThree;
+            break;
+
+            case 3u:
+                preferenceThree = TheText.Get("FEL_ITA");
+                textTwo = preferenceThree;
+            break;
+
+            case 4u:
+                preferenceThree = TheText.Get("FEL_SPA");
+                textTwo = preferenceThree;
+            break;
+
+            default:
+                break;
+            }
+            break;
+        case 42:
+            switch (g_fx.GetFxQuality()) {
+            case 0u:
+                preferenceThree = TheText.Get("FED_FXL");
+                textTwo = preferenceThree;
+            break;
+
+            case 1u:
+                preferenceThree = TheText.Get("FED_FXM");
+                textTwo = preferenceThree;
+            break;
+
+            case 2u:
+                preferenceThree = TheText.Get("FED_FXH");
+                textTwo = preferenceThree;
+            break;
+
+            case 3u:
+                preferenceThree = TheText.Get("FED_FXV");
+                textTwo = preferenceThree;
+            break;
+
+            default:
+                break;
+            }
+            break;
+        case 43:
+            if (m_bPrefsMipMapping) {
+                v30 = TheText.Get("FEM_ON");
+            } else {
+                v30 = TheText.Get("FEM_OFF");
+            }
+            textTwo = v30;
+            if (!m_bMainMenuSwitch) {
+                CFont::SetColor(CRGBA(0xEu, 0x1Eu, 0x2Fu, 0xFFu));
+            }
+            break;
+        case 44: {
+            auto* antialiasingBuffer = CMemoryMgr::Calloc(0x64u, 1u);
+            try {
+                if (m_nDisplayAntialiasing <= 1) {
+                    preferenceThree = TheText.Get("FEM_OFF");
+                } else {
+                    char antialiasingBuffer[64];
+                    snprintf(antialiasingBuffer, sizeof(antialiasingBuffer), "%d", m_nDisplayAntialiasing - 1);
+                    GxtChar v227[64];
+                    AsciiToGxtChar(antialiasingBuffer, v227);
+                    preferenceThree = v227;
+                }
+                textTwo = preferenceThree;
+            } catch (...) {
+                CMemoryMgr::Free(antialiasingBuffer);
+                throw;
+            }
+            CMemoryMgr::Free(antialiasingBuffer);
+            break;
+        }
+        case 46:
+            if (bInvertMouseY) {
+                preferenceThree = TheText.Get("FEM_OFF");
+                break;
+            }
+            preferenceThree = TheText.Get("FEM_ON");
+            textTwo = preferenceThree;
+            break;
+        case 56:
+            {
+                auto* videoModeBuffer = CMemoryMgr::Calloc(0x64u, 1u);
+                try {
+                    auto Videomodes = GetVideoModeList();
+                    GxtChar v227[64];
+                    AsciiToGxtChar(Videomodes[m_nDisplayVideoMode], v227);
+                    textTwo = v227;
+                } catch (...) {
+                    CMemoryMgr::Free(videoModeBuffer);
+                    throw;
+                }
+                CMemoryMgr::Free(videoModeBuffer);
+            }
+            break;
+        case 58:
+            if (m_ControlMethod) {
+                if (m_ControlMethod != 1) {
+                    break;
+                }
+                preferenceThree = TheText.Get("FET_CCN");
+            } else {
+                preferenceThree = TheText.Get("FET_SCN");
+            }
+            textTwo = preferenceThree;
+            break;
+
+        case 59:
+            if (CVehicle::m_bEnableMouseSteering) {
+                v32 = TheText.Get("FEM_ON");
+            } else {
+                v32 = TheText.Get("FEM_OFF");
+            }
+            textTwo = v32;
+            if (m_ControlMethod == 1) {
+                CFont::SetColor(CRGBA(0xEu, 0x1Eu, 0x2Fu, 0xFFu));
+            }
+            break;
+        case 60:
+            if (CVehicle::m_bEnableMouseFlying) {
+                v34 = TheText.Get("FEM_ON");
+            } else {
+                v34 = TheText.Get("FEM_OFF");
+            }
+            textTwo = v34;
+            if (m_ControlMethod == 1) {
+                CFont::SetColor(CRGBA(0xEu, 0x1Eu, 0x2Fu, 0xFFu));
+            }
+            break;
+        case 63:
+            if (m_nRadioMode) {
+                if (m_nRadioMode == 1) {
+                    preferenceThree = TheText.Get("FEA_PR2");
+                } else {
+                    if (m_nRadioMode != 2) {
+                        break;
+                    }
+                    preferenceThree = TheText.Get("FEA_PR3");
+                }
+            } else {
+                preferenceThree = TheText.Get("FEA_PR1");
+            }
+            textTwo = preferenceThree;
+            break;
+
+        default:
+            break;
+        }
+
+        if (NameOfSavedGame) {
+            v44 = aScreensX[m_nCurrentScreen].m_aItems[i].m_Y;
+            if (RsGlobal.maximumHeight == 448) {
+                y = v44;
+            } else {
+                y = RsGlobal.maximumHeight * v44 * 0.002232143;
+            }
+            v45 = aScreensX[m_nCurrentScreen].m_aItems[i].m_X;
+            if (RsGlobal.maximumWidth == 640) {
+                xa = v45;
+            } else {
+                xa = RsGlobal.maximumWidth * v45 * 0.0015625;
+            }
+            CFont::PrintString(xa, y, NameOfSavedGame);
+        }
+        if (textTwo) {
+            CFont::SetFontStyle(FONT_MENU);
+            CFont::SetEdge(1);
+            CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
+            m_nType = aScreensX[m_nCurrentScreen].m_aItems[i].m_nType;
+            if (m_nType < 1 || m_nType > 8) {
+                if (m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && i == 5) {
+                    if (RsGlobal.maximumHeight == 448) {
+                        v209 = 1.0;
+                    } else {
+                        v209 = RsGlobal.maximumHeight * 0.002232143;
+                    }
+                    if (RsGlobal.maximumWidth == 640) {
+                        v191 = 0.56;
+                        CFont::SetScale(0.56, v209);
+                    } else {
+                        v191 = RsGlobal.maximumWidth * 0.00087500003;
+                        CFont::SetScale(v191, v209);
+                    }
+                } else {
+                    if (RsGlobal.maximumHeight == 448) {
+                        v217 = 1.0;
+                    } else {
+                        v217 = RsGlobal.maximumHeight * 0.002232143;
+                    }
+                    if (RsGlobal.maximumWidth == 640) {
+                        v193 = 0.69999999;
+                    } else {
+                        v193 = RsGlobal.maximumWidth * 0.00109375;
+                    }
+                    CFont::SetScale(v193, v217);
+                }
+            } else {
+                if (RsGlobal.maximumHeight == 448) {
+                    v215 = 0.94999999;
+                } else {
+                    v215 = RsGlobal.maximumHeight * 0.0021205356;
+                }
+                if (RsGlobal.maximumWidth == 640) {
+                    v189 = 0.34999999;
+                    CFont::SetScale(0.34999999, v215);
+                } else {
+                    v189 = RsGlobal.maximumWidth * 0.000546875;
+                    CFont::SetScale(v189, v215);
+                }
+            }
+            v48 = aScreensX[m_nCurrentScreen].m_aItems[i].m_Y;
+            if (RsGlobal.maximumHeight == 448) {
+                xb = v48;
+            } else {
+                xb = RsGlobal.maximumHeight * v48 * 0.002232143;
+            }
+            if (RsGlobal.maximumWidth == 640) {
+                v49 = 40.0;
+            } else {
+                v49 = RsGlobal.maximumWidth * 0.0625;
+            }
+            v102 = RsGlobal.maximumWidth - v49;
+            CFont::PrintString(v102, xb, textTwo);
+        }
+
+        // Check if text was properly initialized and we're on the current selection
+        if (NameOfSavedGame) {
+            if (i == m_nCurrentScreenItem) {
+                if (m_nCurrentScreen != SCREEN_MAP && m_nCurrentScreen != SCREEN_BRIEF) {
+                    // Calculate X position for highlighted item if not already done
+                    if (!yd) {
+                        int align = aScreensX[m_nCurrentScreen].m_aItems[i].m_nAlign;
+
+                        float scaledPosX = aScreensX[m_nCurrentScreen].m_aItems[i].m_X * (RsGlobal.maximumWidth * 0.0015625f);
+                        
+                        if (align == 1) { // Left alignment
+                            yd = scaledPosX - CMenuManager::StretchX(40.0f);
+                        } 
+                        else if (align == 2) { // Right alignment
+                            yd = CMenuManager::StretchX(40.0f) + scaledPosX;
+                        } 
+                        else { // Center alignment
+                            yd = scaledPosX - CMenuManager::StretchX(40.0f) - CFont::GetStringWidth(NameOfSavedGame, 1, 0) * 0.5f;
+                        }
+                    }
+
+                    // Draw highlight rectangle for selected item if map is loaded
+                    if (m_bMapLoaded) {
+                        if (m_nCurrentScreen != SCREEN_LOAD_FIRST_SAVE && 
+                            m_nCurrentScreen != SCREEN_DELETE_FINISHED && 
+                            m_nCurrentScreen != SCREEN_SAVE_DONE_1) {
+                            
+                            float y = yd;
+                            float buttonPosY = aScreensX[m_nCurrentScreen].m_aItems[i].m_Y;
+                            float buttonPosYScaled = buttonPosY * (RsGlobal.maximumHeight * 0.002232143f);
+                            
+                            CRect rect;
+                            rect.left = y;
+                            rect.top = buttonPosYScaled + CMenuManager::StretchX(47.0f);
+                            rect.right = y + CMenuManager::StretchX(32.0f);
+                            rect.bottom = buttonPosYScaled - CMenuManager::StretchX(5.0f);
+                            
+                            m_aFrontEndSprites[0].Draw(rect, CRGBA(255, 255, 255, 255));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Check for video mode changes
+        if (m_nDisplayVideoMode == m_nPrefsVideoMode && 
+            !strcmp(aScreensX[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES") && m_nHelperText == FET_APP) {
+            CMenuManager::ResetHelperText();
+        }
+        if (m_nDisplayAntialiasing == m_nPrefsAntialiasing && !strcmp(aScreensX[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS") && m_nHelperText == FET_APP) {
+            CMenuManager::ResetHelperText();
+        }
+        if (m_nDisplayVideoMode != m_nPrefsVideoMode && !strcmp(aScreensX[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
+            CMenuManager::SetHelperText(eHelperText::FET_APP);
+        }
+        if (m_nDisplayAntialiasing != m_nPrefsAntialiasing && !strcmp(aScreensX[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
+            CMenuManager::SetHelperText(eHelperText::FET_APP);
+        }
+        if (m_nDisplayAntialiasing != m_nPrefsAntialiasing) {
+            if (strcmp(aScreensX[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
+                if (m_nCurrentScreen == SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == SCREEN_DISPLAY_ADVANCED) {
+                    m_nDisplayAntialiasing = m_nPrefsAntialiasing;
+                    CMenuManager::SetHelperText(eHelperText::FET_RSO);
+                }
+            }
+        }
+        if (m_nDisplayVideoMode != m_nPrefsVideoMode) {
+            if (strcmp(aScreensX[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
+                if (m_nCurrentScreen == SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == SCREEN_DISPLAY_ADVANCED) {
+                    m_nDisplayVideoMode = m_nPrefsVideoMode;
+                    CMenuManager::SetHelperText(eHelperText::FET_RSO);
+                }
+            }
+        }
+        
+        // Handle sliders
+        switch (aScreensX[m_nCurrentScreen].m_aItems[i].m_nActionType) {
+        case 27: { // Brightness slider
+            float sliderWidth, sliderPosX;
+            if (RsGlobal.maximumWidth == 640) {
+                sliderWidth = 3.0;
+                sliderPosX = 100.0;
+            } else {
+                float maximumWidth = RsGlobal.maximumWidth;
+                sliderWidth = maximumWidth * 0.0046875002;
+                sliderPosX = maximumWidth * 0.15625;
+            }
+            
+            float sliderHeight, sliderEdge, sliderPosY;
+            if (RsGlobal.maximumHeight == 448) {
+                sliderHeight = 20.0;
+                sliderEdge = 4.0;
+                sliderPosY = 125.0;
+            } else {
+                float maximumHeight = RsGlobal.maximumHeight;
+                sliderHeight = 0.044642858 * maximumHeight;
+                sliderEdge = 0.0089285718 * maximumHeight;
+                sliderPosY = maximumHeight * 0.27901787;
+            }
+            
+            float sliderMaxWidth;
+            if (RsGlobal.maximumWidth == 640) {
+                sliderMaxWidth = 500.0;
+            } else {
+                sliderMaxWidth = RsGlobal.maximumWidth * 0.78125;
+            }
+            
+            float sliderValue = m_PrefsBrightness * 0.0026041667;
+            float sliderFieldPos = DisplaySlider(sliderMaxWidth, sliderPosY, sliderEdge, sliderHeight, sliderPosX, sliderValue, sliderWidth);
+            
+            if (i == m_nCurrentScreenItem) {
+                int sliderHoverPosY = CMenuManager::StretchY(150.0);
+                int sliderHoverEdge = CMenuManager::StretchY(125.0);
+                float sliderLeftBound = sliderFieldPos - CMenuManager::StretchX(3.0);
+                
+                if (CheckHover(0, sliderLeftBound, sliderHoverEdge, sliderHoverPosY)) {
+                    m_MouseInBounds = 7;
+                } else {
+                    int maxPosY = CMenuManager::StretchY(150.0);
+                    int minPosY = CMenuManager::StretchY(125.0);
+                    int maxScreenX = CMenuManager::StretchX(RsGlobal.maximumWidth);
+                    float sliderRightBound = CMenuManager::StretchX(3.0) + sliderFieldPos;
+                    
+                    if (CheckHover(sliderRightBound, maxScreenX, minPosY, maxPosY)) {
+                        m_MouseInBounds = 6;
+                        float xPos = m_nMousePosX;
+                        float sliderMaxX = CMenuManager::StretchX(500.0);
+                        
+                        if (!(sliderMaxX < xPos) && !(sliderMaxX == xPos)) {
+                            m_MouseInBounds = 16;
+                        } else if (CMenuManager::StretchY(125.0) > m_nMousePosY || 
+                                    CMenuManager::StretchY(150.0) < m_nMousePosY) {
+                            m_MouseInBounds = 16;
+                        }
+                    } else {
+                        m_MouseInBounds = 16;
+                    }
+                }
+            }
+            break;
+        }
+        case 28: { // Radio volume slider
+            float sliderWidth, sliderPosX;
+            if (RsGlobal.maximumWidth == 640) {
+                sliderWidth = 3.0;
+                sliderPosX = 100.0;
+            } else {
+                float maximumWidth = RsGlobal.maximumWidth;
+                sliderWidth = maximumWidth * 0.0046875002;
+                sliderPosX = maximumWidth * 0.15625;
+            }
+            
+            float sliderHeight, sliderEdge, sliderPosY;
+            if (RsGlobal.maximumHeight == 448) {
+                sliderHeight = 20.0;
+                sliderEdge = 4.0;
+                sliderPosY = 95.0;
+            } else {
+                float maximumHeight = RsGlobal.maximumHeight;
+                sliderHeight = 0.044642858 * maximumHeight;
+                sliderEdge = 0.0089285718 * maximumHeight;
+                sliderPosY = maximumHeight * 0.21205357;
+            }
+            
+            float sliderMaxWidth;
+            if (RsGlobal.maximumWidth == 640) {
+                sliderMaxWidth = 500.0;
+            } else {
+                sliderMaxWidth = RsGlobal.maximumWidth * 0.78125;
+            }
+            
+            float sliderValue = m_nRadioVolume * 0.015625;
+            float sliderFieldPos = DisplaySlider(sliderMaxWidth, sliderPosY, sliderEdge, sliderHeight, sliderPosX, sliderValue, sliderWidth);
+            
+            if (i == m_nCurrentScreenItem) {
+                int sliderHoverPosY = CMenuManager::StretchY(120.0);
+                int sliderHoverEdge = CMenuManager::StretchY(95.0);
+                float sliderLeftBound = sliderFieldPos - CMenuManager::StretchX(3.0);
+                
+                if (CheckHover(0, sliderLeftBound, sliderHoverEdge, sliderHoverPosY)) {
+                    m_MouseInBounds = 11;
+                } else {
+                    int maxPosY = CMenuManager::StretchY(120.0);
+                    int minPosY = CMenuManager::StretchY(95.0);
+                    int maxScreenX = CMenuManager::StretchX(RsGlobal.maximumWidth);
+                    float sliderRightBound = CMenuManager::StretchX(3.0) + sliderFieldPos;
+                    
+                    if (CheckHover(sliderRightBound, maxScreenX, minPosY, maxPosY)) {
+                        m_MouseInBounds = 10;
+                        float xPos = m_nMousePosX;
+                        
+                        if (CMenuManager::StretchX(500.0) <= xPos) {
+                            if (CMenuManager::StretchY(95.0) <= m_nMousePosY && 
+                                CMenuManager::StretchY(120.0) >= m_nMousePosY) {
+                                // Valid bounds
+                            } else {
+                                m_MouseInBounds = 16;
+                            }
+                        } else {
+                            m_MouseInBounds = 16;
+                        }
+                    } else {
+                        m_MouseInBounds = 16;
+                    }
+                }
+            }
+            break;
+        }
+        case 29: { // SFX volume slider
+            float sliderWidth, sliderPosX;
+            if (RsGlobal.maximumWidth == 640) {
+                sliderWidth = 3.0;
+                sliderPosX = 100.0;
+            } else {
+                float maximumWidth = RsGlobal.maximumWidth;
+                sliderWidth = maximumWidth * 0.0046875002;
+                sliderPosX = maximumWidth * 0.15625;
+            }
+            
+            float sliderHeight, sliderEdge, sliderPosY;
+            if (RsGlobal.maximumHeight == 448) {
+                sliderHeight = 20.0;
+                sliderEdge = 4.0;
+                sliderPosY = 125.0;
+            } else {
+                float maximumHeight = RsGlobal.maximumHeight;
+                sliderHeight = 0.044642858 * maximumHeight;
+                sliderEdge = 0.0089285718 * maximumHeight;
+                sliderPosY = maximumHeight * 0.27901787;
+            }
+            
+            float sliderMaxWidth;
+            if (RsGlobal.maximumWidth == 640) {
+                sliderMaxWidth = 500.0;
+            } else {
+                sliderMaxWidth = RsGlobal.maximumWidth * 0.78125;
+            }
+            
+            float sliderValue = m_nSfxVolume * 0.015625;
+            float sliderFieldPos = DisplaySlider(sliderMaxWidth, sliderPosY, sliderEdge, sliderHeight, sliderPosX, sliderValue, sliderWidth);
+            
+            if (i == m_nCurrentScreenItem) {
+                int sliderHoverPosY = CMenuManager::StretchY(150.0);
+                int sliderHoverEdge = CMenuManager::StretchY(125.0);
+                float sliderLeftBound = sliderFieldPos - CMenuManager::StretchX(3.0);
+                
+                if (CheckHover(0, sliderLeftBound, sliderHoverEdge, sliderHoverPosY)) {
+                    m_MouseInBounds = 13;
+                } else {
+                    int maxPosY = CMenuManager::StretchY(150.0);
+                    int minPosY = CMenuManager::StretchY(125.0);
+                    int maxScreenX = CMenuManager::StretchX(RsGlobal.maximumWidth);
+                    float sliderRightBound = CMenuManager::StretchX(3.0) + sliderFieldPos;
+                    
+                    if (CheckHover(sliderRightBound, maxScreenX, minPosY, maxPosY)) {
+                        m_MouseInBounds = 12;
+                        float xPos = m_nMousePosX;
+                        float sliderMaxX = CMenuManager::StretchX(500.0);
+                        
+                        if (!(sliderMaxX < xPos) && !(sliderMaxX == xPos)) {
+                            m_MouseInBounds = 16;
+                        } else if (CMenuManager::StretchY(125.0) > m_nMousePosY || 
+                                    CMenuManager::StretchY(150.0) < m_nMousePosY) {
+                            m_MouseInBounds = 16;
+                        }
+                    } else {
+                        m_MouseInBounds = 16;
+                    }
+                }
+            }
+            break;
+        }
+        case 61: { // Draw distance slider
+            float sliderWidth, sliderPosX;
+            if (RsGlobal.maximumWidth == 640) {
+                sliderWidth = 3.0;
+                sliderPosX = 100.0;
+            } else {
+                float maximumWidth = RsGlobal.maximumWidth;
+                sliderWidth = maximumWidth * 0.0046875002;
+                sliderPosX = maximumWidth * 0.15625;
+            }
+            
+            float sliderHeight, sliderEdge, sliderPosY;
+            if (RsGlobal.maximumHeight == 448) {
+                sliderHeight = 20.0;
+                sliderEdge = 4.0;
+                sliderPosY = 125.0;
+            } else {
+                float maximumHeight = RsGlobal.maximumHeight;
+                sliderHeight = 0.044642858 * maximumHeight;
+                sliderEdge = 0.0089285718 * maximumHeight;
+                sliderPosY = maximumHeight * 0.27901787;
+            }
+            
+            float sliderMaxWidth;
+            if (RsGlobal.maximumWidth == 640) {
+                sliderMaxWidth = 500.0;
+            } else {
+                sliderMaxWidth = RsGlobal.maximumWidth * 0.78125;
+            }
+            
+            float sliderValue = (m_fDrawDistance - 0.92500001) * 1.1428572;
+            float sliderFieldPos = DisplaySlider(sliderMaxWidth, sliderPosY, sliderEdge, sliderHeight, sliderPosX, sliderValue, sliderWidth);
+            
+            if (i == m_nCurrentScreenItem) {
+                int sliderHoverPosY = CMenuManager::StretchY(150.0);
+                int sliderHoverEdge = CMenuManager::StretchY(125.0);
+                float sliderLeftBound = sliderFieldPos - CMenuManager::StretchX(3.0);
+                
+                if (CheckHover(0, sliderLeftBound, sliderHoverEdge, sliderHoverPosY)) {
+                    m_MouseInBounds = 9;
+                } else {
+                    int maxPosY = CMenuManager::StretchY(150.0);
+                    int minPosY = CMenuManager::StretchY(125.0);
+                    int maxScreenX = CMenuManager::StretchX(RsGlobal.maximumWidth);
+                    float sliderRightBound = CMenuManager::StretchX(3.0) + sliderFieldPos;
+                    
+                    if (CheckHover(sliderRightBound, maxScreenX, minPosY, maxPosY)) {
+                        m_MouseInBounds = 8;
+                        float xPos = m_nMousePosX;
+                        float sliderMaxX = CMenuManager::StretchX(500.0);
+                        
+                        if (!(sliderMaxX < xPos) && !(sliderMaxX == xPos)) {
+                            m_MouseInBounds = 16;
+                        } else if (CMenuManager::StretchY(125.0) > m_nMousePosY || 
+                                    CMenuManager::StretchY(150.0) < m_nMousePosY) {
+                            m_MouseInBounds = 16;
+                        }
+                    } else {
+                        m_MouseInBounds = 16;
+                    }
+                }
+            }
+            break;
+        }
+        case 62: { // Mouse sensitivity slider
+            float sliderWidth, sliderPosX;
+            if (RsGlobal.maximumWidth == 640) {
+                sliderWidth = 3.0;
+                sliderPosX = 100.0;
+            } else {
+                float maximumWidth = RsGlobal.maximumWidth;
+                sliderWidth = maximumWidth * 0.0046875002;
+                sliderPosX = maximumWidth * 0.15625;
+            }
+            
+            float sliderHeight, sliderEdge, sliderPosY;
+            if (RsGlobal.maximumHeight == 448) {
+                sliderHeight = 20.0;
+                sliderEdge = 4.0;
+                sliderPosY = 125.0;
+            } else {
+                float maximumHeight = RsGlobal.maximumHeight;
+                sliderHeight = 0.044642858 * maximumHeight;
+                sliderEdge = 0.0089285718 * maximumHeight;
+                sliderPosY = maximumHeight * 0.27901787;
+            }
+            
+            float sliderMaxWidth;
+            if (RsGlobal.maximumWidth == 640) {
+                sliderMaxWidth = 500.0;
+            } else {
+                sliderMaxWidth = RsGlobal.maximumWidth * 0.78125;
+            }
+            
+            float sliderValue = CCamera::m_fMouseAccelHorzntl / 0.0049999999;
+            float sliderFieldPos = DisplaySlider(sliderMaxWidth, sliderPosY, sliderEdge, sliderHeight, sliderPosX, sliderValue, sliderWidth);
+            
+            if (i == m_nCurrentScreenItem) {
+                int sliderHoverPosY = CMenuManager::StretchY(150.0);
+                int sliderHoverEdge = CMenuManager::StretchY(125.0);
+                float sliderLeftBound = sliderFieldPos - CMenuManager::StretchX(3.0);
+                
+                if (CheckHover(0, sliderLeftBound, sliderHoverEdge, sliderHoverPosY)) {
+                    m_MouseInBounds = 15;
+                } else {
+                    int maxPosY = CMenuManager::StretchY(150.0);
+                    int minPosY = CMenuManager::StretchY(125.0);
+                    int maxScreenX = CMenuManager::StretchX(RsGlobal.maximumWidth);
+                    float sliderRightBound = CMenuManager::StretchX(3.0) + sliderFieldPos;
+                    
+                    if (CheckHover(sliderRightBound, maxScreenX, minPosY, maxPosY)) {
+                        m_MouseInBounds = 14;
+                        float xPos = m_nMousePosX;
+                        
+                        if (CMenuManager::StretchX(500.0) > xPos) {
+                            m_MouseInBounds = 16;
+                        }
+                    } else {
+                        m_MouseInBounds = 16;
+                    }
+                }
+            }
+            break;
+        }
+        default:
+            break;
+        }
+
+        if (textThree && textThree != nullptr) {
+            buttonTextPosY = (29 * CFont::GetNumberLinesNoPrint(60.0, buttonTextPosY, (const GxtChar*)textThree)) + buttonTextPosY;
+        }
+        if (aScreensX[m_nCurrentScreen].m_aItems[i].m_nActionType == 32) {
+            buttonTextPosY = buttonTextPosY + 70.0;
+        }
+    } 
+    switch (m_nCurrentScreen) {
+    case 0:
+    case 3:
+    case 4:
+    case 26:
+    case 27:
+    case 36:
+    case 39:
+    case 40:
+        CMenuManager::DisplayHelperText(0);
+        break;
+    default:
+        return;
     }
 }
 
@@ -1389,7 +3192,7 @@ void CMenuManager::DrawQuitGameScreen() {
 }
 
 // 0x57D8D0
-void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
+void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
     eControllerAction maxActions = eControllerAction::NUM_OF_MIN_CONTROLLER_ACTIONS;
     uint8 verticalSpacing;
 
@@ -1411,7 +3214,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
         
         for (auto actionIndex : std::views::iota(static_cast<int>(eControllerAction::NUM_OF_MIN_CONTROLLER_ACTIONS), static_cast<int>(maxActions))) {
             posX = StretchX(240.0f);
-            float posY = StretchY(float(StartingYPos));
+            float posY = StretchY(float(startingYPos));
             
             for (const auto order : {eContSetOrder::FIRST, eContSetOrder::SECOND, eContSetOrder::THIRD, eContSetOrder::FOURTH}) {
                 const auto buttonText = ControlsManager.GetControllerSettingText(static_cast<eControllerAction>(actionIndex), order);
@@ -1436,7 +3239,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
                 }
             }
             
-            StartingYPos += verticalSpacing;
+            startingYPos += verticalSpacing;
         }
         
         /*/ Handle combo text display - Dummy function deprecated
@@ -1444,7 +3247,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 StartingYPos) {
             auto comboText = CControllerConfigManager::GetButtonComboText(m_ListSelection);
             if (comboText) {
                 CFont::SetColor({200, 50, 50, 255});
-                CFont::PrintString(posX, StretchY(float(a2 + 10)), comboText);
+                CFont::PrintString(posX, StretchY(float(drawTitle + 10)), comboText);
                 }
                 }*/
             }
