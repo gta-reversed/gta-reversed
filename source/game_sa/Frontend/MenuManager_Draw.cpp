@@ -2208,7 +2208,6 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         // if (*v19 == 1 || !aScreensX[0].m_aItems[i].m_szName[(226 * m_nCurrentScreen)]) {
 
         if (!(aScreensX[m_nCurrentScreen].m_aItems[i].m_nActionType != 1 && aScreensX[m_nCurrentScreen].m_aItems[i].m_szName[0] != '\0')) {
-            i++;
             continue;
         }
 
