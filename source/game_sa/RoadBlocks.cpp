@@ -1,12 +1,13 @@
 #include "StdInc.h"
 
 #include "RoadBlocks.h"
+#include <extensions/File.hpp>
 
 void CRoadBlocks::InjectHooks() {
     RH_ScopedClass(CRoadBlocks);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Init, 0x461100, { .reversed = false });
+    RH_ScopedInstall(Init, 0x461100);
     RH_ScopedInstall(ClearScriptRoadBlocks, 0x460EC0, { .reversed = false });
     RH_ScopedInstall(ClearSpaceForRoadBlockObject, 0x461020, { .reversed = false });
     RH_ScopedInstall(CreateRoadBlockBetween2Points, 0x4619C0, { .reversed = false });
@@ -18,7 +19,16 @@ void CRoadBlocks::InjectHooks() {
 
 // 0x461100
 void CRoadBlocks::Init() {
-    plugin::Call<0x461100>();
+    rng::fill(InOrOut, true);
+    GenerateDynamicRoadBlocks = false;
+
+    if (notsa::File rbx("data\\paths\\roadblox.dat", "rb"); rbx) {
+        rbx.Read(&NumRoadBlocks, sizeof(int32));
+        rbx.Read(RoadBlockNodes.data(), RoadBlockNodes.size() * sizeof(CNodeAddress));
+    } else {
+        NOTSA_UNREACHABLE("roadblox.dat couldn't be opened!");
+    }
+    ClearScriptRoadBlocks();
 }
 
 // 0x460EC0
