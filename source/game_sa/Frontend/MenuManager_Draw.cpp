@@ -392,27 +392,26 @@ void CMenuManager::DrawBackground() {
 
 // 0x5794A0
 void CMenuManager::DrawStandardMenus(bool drawTitle) {
-
     constexpr float MENU_DEFAULT_CONTENT_X = 320.0f;
     constexpr float MENU_DEFAULT_CONTENT_Y = 130.0f;
 
-    int i;                               // counter for loops
-    const GxtChar *pTextToShow_RightColumn; // text for right column
-    float buttonTextPosY;                // tracks text position
-    float yd = 0;                        // position for highlighted items
-    GxtChar* pTextToShow = nullptr;      // text to display
-    float h;                             // height for font scaling
-    float ya;                            // y position for title
-    float yb;                            // y scaling
-    float yc;                            // y position for text items
-    float text;                          // x position for text
-    float textb;                         // x scaling
-    float textc;                         // x scaling for current language
-    float textd;                         // x position adjustment
-    float scaleX;                        // x scale for font
-    float scaleY;                        // y scale for font
+    int            i;                       // counter for loops
+    const GxtChar* pTextToShow_RightColumn; // text for right column
+    float          buttonTextPosY;          // tracks text position
+    float          yd          = 0;         // position for highlighted items
+    GxtChar*       pTextToShow = nullptr;   // text to display
+    float          h;                       // height for font scaling
+    float          ya;                      // y position for title
+    float          yb;                      // y scaling
+    float          yc;                      // y position for text items
+    float          text;                    // x position for text
+    float          textb;                   // x scaling
+    float          textc;                   // x scaling for current language
+    float          textd;                   // x position adjustment
+    float          scaleX;                  // x scale for font
+    float          scaleY;                  // y scale for font
 
-    buttonTextPosY = 0.0;
+    buttonTextPosY               = 0.0;
     bool shouldDrawStandardItems = true;
     CFont::SetBackground(0, 0);
     CFont::SetProportional(1);
@@ -423,7 +422,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
     if (m_nCurrentScreen == eMenuScreen::SCREEN_STATS) {
         CMenuManager::PrintStats();
-    }    
+    }
     if (m_nCurrentScreen == eMenuScreen::SCREEN_BRIEF) {
         CMenuManager::PrintBriefs();
     }
@@ -431,7 +430,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     if (m_nCurrentScreen == eMenuScreen::SCREEN_AUDIO_SETTINGS && drawTitle) {
         CMenuManager::PrintRadioStationList();
     }
-        
+
     if (drawTitle && aScreens[m_nCurrentScreen].m_szTitleName[0]) {
         if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP || !m_bMapLoaded) {
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
@@ -440,13 +439,13 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 h = 2.0999999;
             } else {
                 h = RsGlobal.maximumHeight * 0.0046874997;
-            }    
+            }
             if (RsGlobal.maximumWidth == 640) {
                 CFont::SetScale(1.3, h);
             } else {
                 textb = RsGlobal.maximumWidth * 0.0020312499;
                 CFont::SetScale(textb, h);
-            }    
+            }
             CFont::SetEdge(1);
             CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
             CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
@@ -454,15 +453,15 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 ya = 28.0;
             } else {
                 ya = RsGlobal.maximumHeight * 0.0625;
-            }    
+            }
             if (RsGlobal.maximumWidth == 640) {
                 text = 40.0;
             } else {
                 text = RsGlobal.maximumWidth * 0.0625;
-            }    
+            }
             CFont::PrintString(text, ya, TheText.Get(aScreens[m_nCurrentScreen].m_szTitleName));
-        }    
-    }    
+        }
+    }
 
     if (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == 1) {
         CFont::SetWrapx(RsGlobal.maximumWidth - 40);
@@ -533,12 +532,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         CMenuManager::DrawControllerScreenExtraText(-8);
     }
 
-    i = 0;
+    i                = 0;
     bool weHaveLabel = aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == 1;
 
     for (i = 0; i < 12; i++) {
-        auto itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
-        pTextToShow_RightColumn = 0;
+        auto itemType                = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
+        pTextToShow_RightColumn      = 0;
         int MENU_DEFAULT_LINE_HEIGHT = itemType == 9 ? 20 : 30;
         if (itemType < 1 || itemType > 8) {
             CFont::SetFontStyle(FONT_MENU);
@@ -581,61 +580,62 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         if (!(aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType != 1 && aScreens[m_nCurrentScreen].m_aItems[i].m_szName[0] != '\0')) {
             continue;
         }
-        
+
         itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
-        yd = 0;
+        yd       = 0;
 
         if (itemType < eMenuEntryType::MENU_ENTRY_SAVE_1 || itemType > eMenuEntryType::MENU_ENTRY_SAVE_8) {
-            if (itemType == 9) {
+            if (itemType == eMenuEntryType::MENU_ENTRY_MPACK) {
                 // if (.../) { // HELP NEED
                 //     AsciiToGxtChar(.../, (GxtChar*)gString);
                 //     pTextToShow                                    = (GxtChar*)gString;
                 //     aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = MENU_ACTION_MPACK;
                 // } else {
-                    aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = MENU_ACTION_SKIP;
-                    pTextToShow = nullptr;
+                aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = MENU_ACTION_SKIP;
+                pTextToShow                                          = nullptr;
                 // }
-            } else if (itemType == 10) {
-                if (m_ControlMethod) {
-                    pTextToShow = (GxtChar*)TheText.Get("FEJ_TIT");
-                } else {
-                    pTextToShow = (GxtChar*)TheText.Get("FEC_MOU");
-                }
+            } else if (itemType == eMenuEntryType::MENU_ENTRY_JOY_MOUSE) {
+                pTextToShow = (GxtChar*)TheText.Get((m_ControlMethod == 1) ? "FEJ_TIT" : "FEC_MOU");
             } else {
                 pTextToShow = (GxtChar*)TheText.Get(aScreens[m_nCurrentScreen].m_aItems[i].m_szName);
             }
         } else {
             aScreens[m_nCurrentScreen].m_aItems[i].m_X = 80;
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-            int saveSlotState = (int)CGenericGameStorage::ms_Slots[i - 1];
-            
-            if (saveSlotState == 0) {
+
+            switch (CGenericGameStorage::ms_Slots[i - 1]) {
+            case eSlotState::SLOT_FILLED: { // Valid save
                 auto saveName = CGenericGameStorage::ms_SlotFileName[i - 1];
-                sprintf(gString, "%s", saveName);
-                AsciiToGxtChar(gString, gGxtString);
+                std::string formattedString = (char*)saveName;
+                AsciiToGxtChar(formattedString.c_str(), gGxtString);
                 pTextToShow = gGxtString;
-                
+
                 if (GxtCharStrlen(gGxtString) >= 254) {
                     AsciiToGxtChar("...", gGxtString2);
                     GxtCharStrcat(gGxtString, gGxtString2);
                 }
-                
+
                 pTextToShow_RightColumn = GetSavedGameDateAndTime(i - 1);
-            } else if (saveSlotState == 2) {
+                break;
+            }
+            case eSlotState::SLOT_CORRUPTED: { // Corrupted save
                 pTextToShow = (GxtChar*)TheText.Get("FESZ_CS");
                 if (!pTextToShow) {
-                    sprintf(gString, "FEM_SL%d", i);
                     CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
                     aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
-                    pTextToShow                                = (GxtChar*)TheText.Get((const char*)gGxtString);
+                    pTextToShow = (GxtChar*)TheText.Get(std::format("FEM_SL{}", i).c_str());
                     yd = CMenuManager::StretchX(40.0);
                 }
-            } else {
-                sprintf((char*)gGxtString, "FEM_SL%d", i);
+                break;
+            }
+            default: { // Empty slot
+                AsciiToGxtChar(std::format("FEM_SL{}", i).c_str(), gGxtString);
                 CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
                 aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
-                pTextToShow                                = (GxtChar*)TheText.Get((const char*)gGxtString);
+                pTextToShow = (GxtChar*)TheText.Get((const char*)gGxtString);
                 yd = CMenuManager::StretchX(40.0);
+                break;
+            }
             }
         }
 
@@ -689,7 +689,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             pTextToShow_RightColumn = (m_bSavePhotos) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
         case eMenuAction::MENU_ACTION_RADAR_MODE: {
-            __int32 v29;                  // eax
+            __int32 v29; // eax
 
             if (m_nRadarMode) {
                 v29 = m_nRadarMode - 1;
@@ -769,12 +769,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             pTextToShow_RightColumn = (bInvertMouseY) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF"); // NOSTA FIX
             break;
         case eMenuAction::MENU_ACTION_RESOLUTION: {
-                GxtChar tmpBuffer[1024];
-                auto Videomodes = GetVideoModeList();
-                AsciiToGxtChar(std::format("{}", Videomodes[m_nDisplayVideoMode]).c_str(), tmpBuffer);                
-                pTextToShow_RightColumn = tmpBuffer;
-                break;
-            }
+            GxtChar tmpBuffer[1'024];
+            auto    Videomodes = GetVideoModeList();
+            AsciiToGxtChar(std::format("{}", Videomodes[m_nDisplayVideoMode]).c_str(), tmpBuffer);
+            pTextToShow_RightColumn = tmpBuffer;
+            break;
+        }
         case eMenuAction::MENU_ACTION_CONTROL_TYPE:
             pTextToShow_RightColumn = (m_ControlMethod) ? ((m_ControlMethod != 1) ? nullptr : TheText.Get("FET_CCN")) : TheText.Get("FET_SCN");
             break;
@@ -812,7 +812,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         if (pTextToShow) {
             if ((int)CGenericGameStorage::ms_Slots[i - 1] > 0 || itemType < eMenuEntryType::MENU_ENTRY_SAVE_1 || itemType > eMenuEntryType::MENU_ENTRY_SAVE_8) {
                 CFont::PrintString(CMenuManager::StretchX(aScreens[m_nCurrentScreen].m_aItems[i].m_X), CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
-            // v1.01 + 
+                // v1.01 +
             } else {
                 CFont::PrintString(CMenuManager::StretchX(25.0 + aScreens[m_nCurrentScreen].m_aItems[i].m_X), CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
                 sprintf(gString, "%d:", i);
@@ -830,7 +830,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             } else {
                 CFont::SetScale(CMenuManager::StretchX(0.35f), CMenuManager::StretchY(0.95f));
             }
-            
+
             // Calculate position using screen macros
             float yPos = CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y);
             float xPos = SCREEN_STRETCH_FROM_RIGHT(40.0f);
@@ -844,41 +844,35 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 int align = aScreens[m_nCurrentScreen].m_aItems[i].m_nAlign;
 
                 const float scaledPosX = CMenuManager::StretchX(aScreens[m_nCurrentScreen].m_aItems[i].m_X);
-                yd = [&]() -> float {
+                yd                     = [&]() -> float {
                     switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nAlign) {
-                        case eMenuAlign::MENU_ALIGN_LEFT:
-                            return scaledPosX - CMenuManager::StretchX(40.0f);
-                        case eMenuAlign::MENU_ALIGN_RIGHT:
-                            return CMenuManager::StretchX(40.0f) + scaledPosX;
-                        default:
-                            return scaledPosX - CMenuManager::StretchX(40.0f) - CFont::GetStringWidth(pTextToShow, 1, 0) * 0.5f;
+                    case eMenuAlign::MENU_ALIGN_LEFT:
+                        return scaledPosX - CMenuManager::StretchX(40.0f);
+                    case eMenuAlign::MENU_ALIGN_RIGHT:
+                        return CMenuManager::StretchX(40.0f) + scaledPosX;
+                    default:
+                        return scaledPosX - CMenuManager::StretchX(40.0f) - CFont::GetStringWidth(pTextToShow, 1, 0) * 0.5f;
                     }
                 }();
             }
 
             // Draw highlight rectangle for selected item if map is loaded
             if (m_bMapLoaded) {
-                if (m_nCurrentScreen != eMenuScreen::SCREEN_LOAD_FIRST_SAVE && 
-                    m_nCurrentScreen != eMenuScreen::SCREEN_DELETE_FINISHED && 
-                    m_nCurrentScreen != eMenuScreen::SCREEN_SAVE_DONE_1) {
+                if (m_nCurrentScreen != eMenuScreen::SCREEN_LOAD_FIRST_SAVE && m_nCurrentScreen != eMenuScreen::SCREEN_DELETE_FINISHED && m_nCurrentScreen != eMenuScreen::SCREEN_SAVE_DONE_1) {
                     float buttonPosY = CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y);
                     CRect rect(
                         yd,                                        // left
-                        buttonPosY - CMenuManager::StretchX(5.0f),  // top
+                        buttonPosY - CMenuManager::StretchX(5.0f), // top
                         yd + CMenuManager::StretchX(32.0f),        // right
-                        buttonPosY + CMenuManager::StretchX(47.0f)  // bottom
+                        buttonPosY + CMenuManager::StretchX(47.0f) // bottom
                     );
                     m_aFrontEndSprites[0].Draw(rect, CRGBA(255, 255, 255, 255));
-
-
-
                 }
             }
         }
 
         // Check for video mode changes
-        if (m_nDisplayVideoMode == m_nPrefsVideoMode && 
-            !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES") && m_nHelperText == FET_APP) {
+        if (m_nDisplayVideoMode == m_nPrefsVideoMode && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES") && m_nHelperText == FET_APP) {
             CMenuManager::ResetHelperText();
         }
         if (m_nDisplayAntialiasing == m_nPrefsAntialiasing && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS") && m_nHelperText == FET_APP) {
@@ -906,74 +900,77 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 }
             }
         }
-        
+
         // Handle sliders
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
         case eMenuAction::MENU_ACTION_BRIGHTNESS: { // Brightness slider
             const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_PrefsBrightness * 0.0026041667f, StretchX(3.0f));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                    if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
-                        m_MouseInBounds = 7;
-                    } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
-                        m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 6;
-                    } else {
-                        m_MouseInBounds = 16;
-                    }
+                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = 7;
+                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16
+                                                                                                                                                  : 6;
+                } else {
+                    m_MouseInBounds = 16;
                 }
-                break;
             }
-            case eMenuAction::MENU_ACTION_RADIO_VOL: { // Radio volume slider
-                const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(95.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nRadioVolume * 0.015625f, StretchX(3.0f));
-                if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                    if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(95.0f), StretchY(120.0f))) {
-                        m_MouseInBounds = 11;
-                    } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(95.0f), StretchY(120.0f))) {
-                        m_MouseInBounds = StretchX(500.0f) <= m_nMousePosX && StretchY(95.0f) <= m_nMousePosY && StretchY(120.0f) >= m_nMousePosY ? 10 : 16;
-                    } else {
-                        m_MouseInBounds = 16;
-                    }
+            break;
+        }
+        case eMenuAction::MENU_ACTION_RADIO_VOL: { // Radio volume slider
+            const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(95.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nRadioVolume * 0.015625f, StretchX(3.0f));
+            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
+                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(95.0f), StretchY(120.0f))) {
+                    m_MouseInBounds = 11;
+                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(95.0f), StretchY(120.0f))) {
+                    m_MouseInBounds = StretchX(500.0f) <= m_nMousePosX && StretchY(95.0f) <= m_nMousePosY && StretchY(120.0f) >= m_nMousePosY ? 10 : 16;
+                } else {
+                    m_MouseInBounds = 16;
                 }
-                break;
             }
-            case eMenuAction::MENU_ACTION_SFX_VOL: { // SFX volume slider
-                const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nSfxVolume * 0.015625f, StretchX(3.0f));
-                if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                    if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
-                        m_MouseInBounds = 13;
-                    } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
-                        m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 12;
-                    } else {
-                        m_MouseInBounds = 16;
-                    }
+            break;
+        }
+        case eMenuAction::MENU_ACTION_SFX_VOL: { // SFX volume slider
+            const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nSfxVolume * 0.015625f, StretchX(3.0f));
+            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
+                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = 13;
+                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16
+                                                                                                                                                  : 12;
+                } else {
+                    m_MouseInBounds = 16;
                 }
-                break;
             }
-            case eMenuAction::MENU_ACTION_DRAW_DIST: { // Draw distance slider
-                const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), (m_fDrawDistance - 0.92500001f) * 1.1428572f, StretchX(3.0f));
-                if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                    if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
-                        m_MouseInBounds = 9;
-                    } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
-                        m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 8;
-                    } else {
-                        m_MouseInBounds = 16;
-                    }
+            break;
+        }
+        case eMenuAction::MENU_ACTION_DRAW_DIST: { // Draw distance slider
+            const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), (m_fDrawDistance - 0.92500001f) * 1.1428572f, StretchX(3.0f));
+            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
+                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = 9;
+                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16
+                                                                                                                                                  : 8;
+                } else {
+                    m_MouseInBounds = 16;
                 }
-                break;
             }
-            case eMenuAction::MENU_ACTION_MOUSE_SENS: { // Mouse sensitivity slider
-                const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), CCamera::m_fMouseAccelHorzntl / 0.0049999999, StretchX(3.0f));
-                if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                    if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
-                        m_MouseInBounds = 15;
-                    } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
-                        m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : 14;
-                    } else {
-                        m_MouseInBounds = 16;
-                    }
+            break;
+        }
+        case eMenuAction::MENU_ACTION_MOUSE_SENS: { // Mouse sensitivity slider
+            const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), CCamera::m_fMouseAccelHorzntl / 0.0049999999, StretchX(3.0f));
+            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
+                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = 15;
+                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : 14;
+                } else {
+                    m_MouseInBounds = 16;
                 }
-                break;
             }
+            break;
+        }
         default:
             break;
         }
@@ -984,7 +981,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         if (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType == 32) {
             buttonTextPosY = buttonTextPosY + 70.0;
         }
-    } 
+    }
     switch (m_nCurrentScreen) {
     case eMenuScreen::SCREEN_STATS:
     case eMenuScreen::SCREEN_AUDIO_SETTINGS:
