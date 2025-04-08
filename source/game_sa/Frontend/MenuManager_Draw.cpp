@@ -445,170 +445,21 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     constexpr float MENU_DEFAULT_CONTENT_Y = 130.0f;
 
     eSlotState v10;                      // ecx
-    int i;                      // edi
-    GxtChar* v19;                                       // edx
-    int v21;                      // eax
-    const GxtChar* v24;                    // eax
-    __int32 v29;                  // eax
-    const GxtChar *pTextToShow_RightColumn;                    // eax
-    const GxtChar **VideoModeList;         // eax
-    int v37;                      // eax
-    char m_nType;                 // al
-    double v48;                   // st7
-    double v49;                   // st7
-    int v51;                      // eax
-    double v52;                   // st7
-    double v53;                   // st7
-    int v54 = 0; //// ?????                      // eax
-    CRGBA *v56;                   // eax
-    eMenuScreen v58;              // dl
-    eMenuScreen v60;              // dl
-    double v61;                   // st7
-    double v62;                   // st7
-    double maximumHeight;         // st6
-    int v64;                      // eax
-    double v65;                   // st7
-    double v66;                   // st7
-    double v68;                   // st7
-    bool v69;                     // c0
-    bool v70;                     // c3
-    double v71;                   // st7
-    double v72;                   // st7
-    double v73;                   // st6
-    int v74;                      // eax
-    double v75;                   // st7
-    double v76;                   // st7
-    double v77;                   // st7
-    double v78;                   // st7
-    double v79;                   // st7
-    double v80;                   // st7
-    double v81;                   // st6
-    int v82;                      // eax
-    double v83;                   // st7
-    double v84;                   // st7
-    double v85;                   // st7
-    double v86;                   // st7
-    double v87;                   // st7
-    double v88;                   // st7
-    double v89;                   // st6
-    //int v155;                      // eax
-    double v91;                   // st7
-    double v92;                   // st7
-    double v93;                   // st7
-    double v94;                   // st7
-    double v95;                   // st7
-    double v96;                   // st7
-    double v97;                   // st6
-    //int v155;                      // eax
-    double v99;                   // st7
-    double v100;                  // st7
-    double v101;                  // st7
-    float v102;                   // [esp+0h] [ebp-13Ch]
-    float v103;                   // [esp+0h] [ebp-13Ch]
-    int32 v104;                   // [esp+0h] [ebp-13Ch]
-    float v105;                   // [esp+0h] [ebp-13Ch]
-    int32 v106;                   // [esp+0h] [ebp-13Ch]
-    float v107;                   // [esp+0h] [ebp-13Ch]
-    int32 v108;                   // [esp+0h] [ebp-13Ch]
-    float v109;                   // [esp+0h] [ebp-13Ch]
-    int32 v110;                   // [esp+0h] [ebp-13Ch]
-    float v111;                   // [esp+0h] [ebp-13Ch]
-    int32 v112;                   // [esp+0h] [ebp-13Ch]
-    float v113;                   // [esp+4h] [ebp-138h]
-    int32 v114;                   // [esp+4h] [ebp-138h]
-    int32 v115;                   // [esp+4h] [ebp-138h]
-    float v116;                   // [esp+4h] [ebp-138h]
-    int32 v117;                   // [esp+4h] [ebp-138h]
-    int32 v118;                   // [esp+4h] [ebp-138h]
-    float v119;                   // [esp+4h] [ebp-138h]
-    int32 v120;                   // [esp+4h] [ebp-138h]
-    int32 v121;                   // [esp+4h] [ebp-138h]
-    float v122;                   // [esp+4h] [ebp-138h]
-    int32 v123;                   // [esp+4h] [ebp-138h]
-    int32 v124;                   // [esp+4h] [ebp-138h]
-    float v125;                   // [esp+4h] [ebp-138h]
-    int32 v126;                   // [esp+4h] [ebp-138h]
-    int32 v127;                   // [esp+4h] [ebp-138h]
-    // float maximumWidth;           // [esp+8h] [ebp-134h]
-    int32 v134;                   // [esp+8h] [ebp-134h]
-    int32 v135;                   // [esp+8h] [ebp-134h]
-    int32 v136;                   // [esp+8h] [ebp-134h]
-    int32 v137;                   // [esp+8h] [ebp-134h]
-    int32 v138;                   // [esp+8h] [ebp-134h]
-    int32 v139;                   // [esp+8h] [ebp-134h]
-    int32 v140;                   // [esp+8h] [ebp-134h]
-    int32 v141;                   // [esp+8h] [ebp-134h]
-    int32 v142;                   // [esp+8h] [ebp-134h]
-    int32 v143;                   // [esp+8h] [ebp-134h]
-
-    float v145;                   // [esp+1Ch] [ebp-120h]
-    float v146;                   // [esp+1Ch] [ebp-120h]
-    float v147;                   // [esp+1Ch] [ebp-120h]
-    float v148;                   // [esp+1Ch] [ebp-120h]
-    float v150;                   // [esp+1Ch] [ebp-120h]
-    float v151;                   // [esp+1Ch] [ebp-120h]
-    float v152;                   // [esp+1Ch] [ebp-120h]
-    float v153;                   // [esp+1Ch] [ebp-120h]
-    float v154;                   // [esp+1Ch] [ebp-120h]
-    float v155;                   // [esp+1Ch] [ebp-120h]
-    __int16 x;                    // [esp+20h] [ebp-11Ch]
-    float xa;                     // [esp+20h] [ebp-11Ch]
-    float xb;                     // [esp+20h] [ebp-11Ch]
-    float xc;                     // [esp+20h] [ebp-11Ch]
-    float xd;                     // [esp+20h] [ebp-11Ch]
-    float xe;                     // [esp+20h] [ebp-11Ch]
-    int xf;                       // [esp+20h] [ebp-11Ch]
-    float xg;                     // [esp+20h] [ebp-11Ch]
-    float xh;                     // [esp+20h] [ebp-11Ch]
-    float xi;                     // [esp+20h] [ebp-11Ch]
-    float xj;                     // [esp+20h] [ebp-11Ch]
-    float xk;                     // [esp+20h] [ebp-11Ch]
-    float xl;                     // [esp+20h] [ebp-11Ch]
-    float textb;                  // [esp+28h] [ebp-114h]
-    float text;                   // [esp+28h] [ebp-114h]
-    float textc;                  // [esp+28h] [ebp-114h]
-    float textd;                  // [esp+28h] [ebp-114h]
-    GxtChar* pTextToShow = nullptr;              // [esp+28h] [ebp-114h]
-    float h;                      // [esp+2Ch] [ebp-110h]
-    float ya;                     // [esp+2Ch] [ebp-110h]
-    float yb;                     // [esp+2Ch] [ebp-110h]
-    float yc = 0; ///???????                     // [esp+2Ch] [ebp-110h]
-    float yd = 0; ///???????                       // [esp+2Ch] [ebp-110h]
-    float v181;                   // [esp+34h] [ebp-108h]
-    float buttonTextPosY;         // [esp+38h] [ebp-104h]
-    RwRGBA color;                 // [esp+3Ch] [ebp-100h] BYREF
-    float y;                      // [esp+40h] [ebp-FCh]
-    float v185;                   // [esp+44h] [ebp-F8h]
-    float v186;                   // [esp+48h] [ebp-F4h]
-    float scaleX;                 // [esp+4Ch] [ebp-F0h]
-    float v188;                   // [esp+50h] [ebp-ECh]
-    float v189;                   // [esp+54h] [ebp-E8h]
-    float v190;                   // [esp+58h] [ebp-E4h]
-    float v191;                   // [esp+5Ch] [ebp-E0h]
-    float v192;                   // [esp+60h] [ebp-DCh]
-    float v193;                   // [esp+64h] [ebp-D8h]
-    float v194;                   // [esp+68h] [ebp-D4h]
-    float v195;                   // [esp+6Ch] [ebp-D0h]
-    float v196;                   // [esp+70h] [ebp-CCh]
-    float v197;                   // [esp+74h] [ebp-C8h]
-    float v198;                   // [esp+78h] [ebp-C4h]
-    float v199;                   // [esp+7Ch] [ebp-C0h]
-    float v200;                   // [esp+80h] [ebp-BCh]
-    float v201;                   // [esp+84h] [ebp-B8h]
-    float v202;                   // [esp+88h] [ebp-B4h]
-    float v203;                   // [esp+8Ch] [ebp-B0h]
-    float v204;                   // [esp+90h] [ebp-ACh]
-    float v205;                   // [esp+94h] [ebp-A8h]
-    float v207;                   // [esp+9Ch] [ebp-A0h]
-    float scaleY;                 // [esp+A0h] [ebp-9Ch]
-    float v209;                   // [esp+A4h] [ebp-98h]
-    float v211;                   // [esp+ACh] [ebp-90h]
-    float v212;                   // [esp+B0h] [ebp-8Ch]
-    float v213;                   // [esp+B4h] [ebp-88h]
-    float v214;                   // [esp+B8h] [ebp-84h]
-    float v215;                   // [esp+BCh] [ebp-80h]
-    float v216;                   // [esp+C0h] [ebp-7Ch]
-    float v217;                   // [esp+C4h] [ebp-78h]
+    int i;                               // counter for loops
+    const GxtChar *pTextToShow_RightColumn; // text for right column
+    float buttonTextPosY;                // tracks text position
+    float yd = 0;                        // position for highlighted items
+    GxtChar* pTextToShow = nullptr;      // text to display
+    float h;                             // height for font scaling
+    float ya;                            // y position for title
+    float yb;                            // y scaling
+    float yc;                            // y position for text items
+    float text;                          // x position for text
+    float textb;                         // x scaling
+    float textc;                         // x scaling for current language
+    float textd;                         // x position adjustment
+    float scaleX;                        // x scale for font
+    float scaleY;                        // y scale for font
 
     buttonTextPosY = 0.0;
     bool shouldDrawStandardItems = true;
@@ -900,7 +751,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         case 65:
             pTextToShow_RightColumn = (m_bSavePhotos) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 34:
+        case 34: {
+            __int32 v29;                  // eax
+
             if (m_nRadarMode) {
                 v29 = m_nRadarMode - 1;
                 if (v29) {
@@ -915,7 +768,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 pTextToShow_RightColumn = TheText.Get("FED_RDM");
             }
             break;
-
+        }
         case 36:
             switch ((int)m_nPrefsLanguage) {
             case 0u:
@@ -1040,8 +893,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             CFont::SetFontStyle(FONT_MENU);
             CFont::SetEdge(1);
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-            m_nType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
-            if (m_nType < 1 || m_nType > 8) {
+            if (itemType < 1 || itemType > 8) {
                 CFont::SetScale(CMenuManager::StretchX((m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && i == 5) ? 0.56f : 0.7f), CMenuManager::StretchY(1.0f));
             } else {
                 CFont::SetScale(CMenuManager::StretchX(0.35f), CMenuManager::StretchY(0.95f));
