@@ -539,7 +539,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         auto itemType                = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
         pTextToShow_RightColumn      = 0;
         int MENU_DEFAULT_LINE_HEIGHT = itemType == 9 ? 20 : 30;
-        if (itemType < 1 || itemType > 8) {
+        if (itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
             CFont::SetFontStyle(FONT_MENU);
             scaleY = CMenuManager::StretchY(1.0);
             scaleX = CMenuManager::StretchX(0.7);
@@ -584,8 +584,8 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
         yd       = 0;
 
-        if (itemType < eMenuEntryType::MENU_ENTRY_SAVE_1 || itemType > eMenuEntryType::MENU_ENTRY_SAVE_8) {
-            if (itemType == eMenuEntryType::MENU_ENTRY_MPACK) {
+        if (itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
+            if (itemType == eMenuEntryType::TI_MPACK) {
                 // if (.../) { // HELP NEED
                 //     AsciiToGxtChar(.../, (GxtChar*)gString);
                 //     pTextToShow                                    = (GxtChar*)gString;
@@ -594,7 +594,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = MENU_ACTION_SKIP;
                 pTextToShow                                          = nullptr;
                 // }
-            } else if (itemType == eMenuEntryType::MENU_ENTRY_JOY_MOUSE) {
+            } else if (itemType == eMenuEntryType::TI_MOUSEJOYPAD) {
                 pTextToShow = (GxtChar*)TheText.Get((m_ControlMethod == 1) ? "FEJ_TIT" : "FEC_MOU");
             } else {
                 pTextToShow = (GxtChar*)TheText.Get(aScreens[m_nCurrentScreen].m_aItems[i].m_szName);
@@ -810,7 +810,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
 
         if (pTextToShow) {
-            if ((int)CGenericGameStorage::ms_Slots[i - 1] > 0 || itemType < eMenuEntryType::MENU_ENTRY_SAVE_1 || itemType > eMenuEntryType::MENU_ENTRY_SAVE_8) {
+            if ((int)CGenericGameStorage::ms_Slots[i - 1] > 0 || itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
                 CFont::PrintString(CMenuManager::StretchX(aScreens[m_nCurrentScreen].m_aItems[i].m_X), CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
                 // v1.01 +
             } else {
@@ -825,7 +825,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             CFont::SetFontStyle(FONT_MENU);
             CFont::SetEdge(1);
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-            if (itemType < eMenuEntryType::MENU_ENTRY_SAVE_1 || itemType > eMenuEntryType::MENU_ENTRY_SAVE_8) {
+            if (itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
                 CFont::SetScale(CMenuManager::StretchX((m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && i == 5) ? 0.56f : 0.7f), CMenuManager::StretchY(1.0f));
             } else {
                 CFont::SetScale(CMenuManager::StretchX(0.35f), CMenuManager::StretchY(0.95f));
