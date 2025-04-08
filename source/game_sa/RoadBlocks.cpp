@@ -8,7 +8,7 @@ void CRoadBlocks::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Init, 0x461100);
-    RH_ScopedInstall(ClearScriptRoadBlocks, 0x460EC0, { .reversed = false });
+    RH_ScopedInstall(ClearScriptRoadBlocks, 0x460EC0);
     RH_ScopedInstall(ClearSpaceForRoadBlockObject, 0x461020, { .reversed = false });
     RH_ScopedInstall(CreateRoadBlockBetween2Points, 0x4619C0, { .reversed = false });
     RH_ScopedInstall(GenerateRoadBlockCopsForCar, 0x461170, { .reversed = false });
@@ -33,7 +33,9 @@ void CRoadBlocks::Init() {
 
 // 0x460EC0
 void CRoadBlocks::ClearScriptRoadBlocks() {
-    plugin::Call<0x460EC0>();
+    for (auto& srb : aScriptRoadBlocks) {
+        srb.IsActive = false;
+    }
 }
 
 // 0x461020
