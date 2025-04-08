@@ -7,7 +7,11 @@
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
 
+#include "SDL3\SDL.h"
+#pragma comment(lib, "C:/Users/franc/Documents/GitHub/gta-reversed-keys/source/app/platform/win/SDL3.lib")
+
 namespace WinInput {
+
 // 0x746990
 HRESULT CreateInput() {
     if (PSGLOBAL(diInterface)) {
@@ -129,10 +133,12 @@ void diPadSetPIDVID(LPDIRECTINPUTDEVICE8 dev, DWORD padNum) {
 
 // 0x7469A0
 void diMouseInit(bool exclusive) {
+    #if 0 == 1
     WIN_FCHECK(PSGLOBAL(diInterface)->CreateDevice(GUID_SysMouse, &PSGLOBAL(diMouse), 0));
     WIN_FCHECK(PSGLOBAL(diMouse)->SetDataFormat(&c_dfDIMouse2));
     WIN_FCHECK(PSGLOBAL(diMouse)->SetCooperativeLevel(PSGLOBAL(window), DISCL_FOREGROUND | (exclusive ? DISCL_EXCLUSIVE : DISCL_NONEXCLUSIVE)));
     WIN_FCHECK(PSGLOBAL(diMouse)->Acquire());
+    #endif
 }
 
 // 0x7485C0
@@ -191,9 +197,15 @@ BOOL CALLBACK EnumDevicesCallback(LPCDIDEVICEINSTANCEA inst, LPVOID) {
     return snJoyCount != 2; // todo: CJoySticks, JOYPAD_COUNT
 }
 
+// Mouse state using SDL3
+static bool s_sdlInitialized = false;
+static float s_lastWheelY = 0.0f;
+
 // 0x53F2D0
 // NOTSA(Grinch_): Directly returning CMouseControllerState
 CMouseControllerState GetMouseState() {
+    #if 0 == 1
+
     DIMOUSESTATE2 mouseState;
     CMouseControllerState state;
 
@@ -213,6 +225,93 @@ CMouseControllerState GetMouseState() {
     }
 
 	return state;
+    #else
+    CMouseControllerState state;
+
+    if (!s_sdlInitialized && WinInput::g_windowHandle != nullptr) {
+        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+            SDL_PropertiesID props = SDL_CreateProperties();
+            if (props == 0) {
+                // assert(false);
+                return state;
+            }
+            
+            SDL_SetPointerProperty(props, SDL_PROP_WINDOW_CREATE_WIN32_HWND_POINTER, WinInput::g_windowHandle);
+
+            // assert(false);
+            SDL_Window* window = SDL_CreateWindowWithProperties(props);
+            SDL_RaiseWindow(window);
+            SDL_DestroyProperties(props);
+    
+            if (window) {
+                SDL_SetWindowRelativeMouseMode(window, true);
+                s_sdlInitialized = true;
+            } else {
+                assert(false);
+            }
+        }
+    }
+    
+    // DIMOUSESTATE2 mouseState;
+    // if (PSGLOBAL(diMouse)) {
+        // if (SUCCEEDED(PSGLOBAL(diMouse)->GetDeviceState(sizeof(DIMOUSESTATE2), &mouseState))) {
+            // state.X = static_cast<float>(mouseState.lX);
+            // state.Y = static_cast<float>(mouseState.lY);
+            // state.Z = static_cast<float>(mouseState.lZ);
+            // state.wheelUp = (mouseState.lZ > 0);
+            // state.wheelDown = (mouseState.lZ < 0);
+            // state.lmb = mouseState.rgbButtons[0] & 0x80;
+            // state.rmb = mouseState.rgbButtons[1] & 0x80;
+            // state.mmb = mouseState.rgbButtons[2] & 0x80;
+            // state.bmx1 = mouseState.rgbButtons[3] & 0x80;
+            // state.bmx2 = mouseState.rgbButtons[4] & 0x80;
+
+            float mouseX, mouseY;
+            uint32_t buttons = SDL_GetMouseState(&mouseX, &mouseY);
+
+            // Get relative mouse motion
+            float relX, relY;
+            SDL_GetRelativeMouseState(&relX, &relY);
+            //DEV_LOG("Mouse X: {}, Y: {}, Buttons: {}", mouseX, mouseY, buttons);
+            
+            state.m_AmountMoved.x = static_cast<float>(relX);
+            state.m_AmountMoved.y = static_cast<float>(relY);
+            
+            // Handle mouse wheel via events
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_EVENT_MOUSE_WHEEL) {
+                    s_lastWheelY = event.wheel.y;
+                }
+            }
+            
+            state.isMouseWheelMovedUp = s_lastWheelY > 0;
+            state.isMouseWheelMovedDown = s_lastWheelY < 0;
+            s_lastWheelY = 0; // Reset for next frame
+            
+            // Map SDL mouse buttons to state
+            state.isMouseLeftButtonPressed = (buttons & SDL_BUTTON_LMASK) != 0;
+            state.isMouseRightButtonPressed = (buttons & SDL_BUTTON_RMASK) != 0;
+            state.isMouseMiddleButtonPressed = (buttons & SDL_BUTTON_MMASK) != 0;
+            state.isMouseFirstXPressed = (buttons & SDL_BUTTON_X1MASK) != 0;
+            state.isMouseSecondXPressed = (buttons & SDL_BUTTON_X2MASK) != 0;
+
+            // state.m_AmountMoved = CVector2D(static_cast<float>(mouseState.lX), static_cast<float>(mouseState.lY));
+            // state.isMouseWheelMovedUp = (mouseState.lZ > 0);
+            // state.isMouseWheelMovedDown = (mouseState.lZ < 0);
+            // state.isMouseLeftButtonPressed = mouseState.rgbButtons[0] & 0x80;
+            // state.isMouseRightButtonPressed = mouseState.rgbButtons[1] & 0x80;
+            // state.isMouseMiddleButtonPressed = mouseState.rgbButtons[2] & 0x80;
+            // state.isMouseFirstXPressed = mouseState.rgbButtons[3] & 0x80;
+            // state.isMouseSecondXPressed = mouseState.rgbButtons[4] & 0x80;
+
+        // }
+    // } else {
+	// 	diMouseInit(!FrontEndMenuManager.m_bMenuActive && IsVideoModeExclusive());
+    // }
+
+	return state;
+    #endif
 }
 
 void InjectHooks() {
