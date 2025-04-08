@@ -225,8 +225,8 @@ void CPad::UpdatePads() {
     ControlsManager.ClearSimButtonPressCheckers();
 
     if (!ImIONavActive) {
-        ControlsManager.ProcessKeyboardInput();
-        ControlsManager.ProcessMouseInput();
+        ControlsManager.AffectPadFromKeyBoard();
+        ControlsManager.AffectPadFromMouse();
         GetPad(PAD1)->Update(PAD1);
         GetPad(PAD2)->Update(PAD2);
     }

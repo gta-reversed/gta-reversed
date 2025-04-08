@@ -423,7 +423,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
     const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * !m_bController + 11u);
     const auto maxActions      = m_RedefiningControls ? 25u : (m_bController ? 28u : 22u);
 
-    const auto getControllerAction = [&](int32 index) -> eControllerAction {
+    const auto getControllerAction = [&](int32 index) -> int32 {
         if (m_RedefiningControls) {
             switch (dword_865608[index]) {
             case 0: return CA_VEHICLE_FIRE_WEAPON;
@@ -451,7 +451,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
             case 35: return CA_VEHICLE_MOUSE_LOOK;
             case 36: return CA_VEHICLE_LOOK_LEFT;
             case 37: return CA_VEHICLE_LOOK_RIGHT;
-            default: return CA_INVALID;
+            default: return -1;
             }
         } else {
             switch (index) {
@@ -487,15 +487,15 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
             case 21:
             case 45: return CA_PED_LOOKBEHIND;
             case 22:
-            case 47: return m_bController ? CA_PED_1RST_PERSON_LOOK_LEFT : CA_INVALID;
+            case 47: return m_bController ? CA_PED_1RST_PERSON_LOOK_LEFT : -1;
             case 23:
-            case 48: return m_bController ? CA_PED_1RST_PERSON_LOOK_RIGHT : CA_INVALID;
+            case 48: return m_bController ? CA_PED_1RST_PERSON_LOOK_RIGHT : -1;
             case 24: return CA_PED_1RST_PERSON_LOOK_UP;
             case 25: return CA_PED_1RST_PERSON_LOOK_DOWN;
             case 26: return CA_PED_CENTER_CAMERA_BEHIND_PLAYER;
             case 27:
             case 29: return CA_PED_FIRE_WEAPON_ALT;
-            default: return CA_INVALID;
+            default: return -1;
             }
         }
     };
@@ -524,7 +524,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
                 if (m_DeleteAllNextDefine && m_ListSelection == actionIndex) {
                     break;
                 }
-                const auto buttonText = ControlsManager.GetControllerSettingText(controllerAction, order);
+                const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)controllerAction, (eContSetOrder)order);
                 if (buttonText) {
                     if (!isRedefining) {
                         CFont::PrintString(currentX, currentY, buttonText);
@@ -536,7 +536,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
         }
 
         if (!isControlPrinted) {
-            if (controllerAction != static_cast<eControllerAction>(-2)) {
+            if (controllerAction != (eControllerAction)-2) {
                 m_bRadioAvailable = 0;
                 CFont::SetColor({ 200, 50, 50, 255 });
 
@@ -552,7 +552,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
         }
 
         if (actionIndex == m_ListSelection) {
-            if (controllerAction == CA_INVALID || controllerAction == static_cast<eControllerAction>(-2)) {
+            if (controllerAction == CA_INVALID || controllerAction == (eControllerAction)-2) {
                 if (actionIndex == m_ListSelection) {
                     CMenuManager::DisplayHelperText("FET_EIG");
                 }
@@ -582,7 +582,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
                 }
             }
         }
-        currentY = StretchY(float(verticalOffset + (actionIndex + 1) * verticalSpacing));
+        currentY = StretchY(verticalOffset + (actionIndex + 1) * verticalSpacing);
     }
 }
 
