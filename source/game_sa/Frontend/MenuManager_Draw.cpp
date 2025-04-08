@@ -391,54 +391,6 @@ void CMenuManager::DrawBackground() {
 }
 
 // 0x5794A0
-enum eMenuPage : __int32
-{
-  MENUPAGE_STATUS = 0x0,
-  MENUPAGE_LOADING_GAME = 0x1,
-  MENUPAGE_RESUME = 0x2,
-  MENUPAGE_SOUND_SETUP = 0x3,
-  MENUPAGE_DISPLAY_SETUP = 0x4,
-  MENUPAGE_MAP = 0x5,
-  MENUPAGE_NEW_GAME_ASK = 0x6,
-  MENUPAGE_SELECT_GAME = 0x7,
-  MENUPAGE_MISSIONPACK_LOADING_ASK = 0x8,
-  MENUPAGE_LOAD_GAME = 0x9,
-  MENUPAGE_DELETE_GAME = 0xA,
-  MENUPAGE_LOAD_SAVE_ASK = 0xB,
-  MENUPAGE_DELETE_SAVE_ASK = 0xC,
-  MENUPAGE_LOAD_FIRST_SAVE = 0xD,
-  MENUPAGE_DELETE_FINISHED_1 = 0xE,
-  MENUPAGE_DELETE_FINISHED_2 = 0xF,
-  MENUPAGE_GAME_SAVE = 0x10,
-  MENUPAGE_SAVE_WRITE_ASK = 0x11,
-  MENUPAGE_SAVE_DONE_1 = 0x12,
-  MENUPAGE_SAVE_DONE_2 = 0x13,
-  MENUPAGE_GAME_SAVED = 0x14,
-  MENUPAGE_GAME_LOADED = 0x15,
-  MENUPAGE_GAME_WARNING_DONT_SAVE = 0x16,
-  MENUPAGE_SHOW_DEFAULT_SETS = 0x17,
-  MENUPAGE_AUDIO_SETS_DEFAULT = 0x18,
-  MENUPAGE_CONTROLLER_SETS_DEFAULT = 0x19,
-  MENUPAGE_USER_TRACKS = 0x1A,
-  MENUPAGE_DISPLAY_ADVANCED = 0x1B,
-  MENUPAGE_LANGUAGE = 0x1C,
-  MENUPAGE_SAVE_GAME_DONE = 0x1D,
-  MENUPAGE_SAVE_GAME_FAILED = 0x1E,
-  MENUPAGE_SAVE_WRITE_FAILED = 0x1F,
-  MENUPAGE_SAVE_FAILED_FILE_ERROR = 0x20,
-  MENUPAGE_OPTIONS = 0x21,
-  MENUPAGE_MAIN_MENU = 0x22,
-  MENUPAGE_QUIT_GAME = 0x23,
-  MENUPAGE_CONTROLLER_SETUP = 0x24,
-  MENUPAGE_REDEFINE_CONTROLS = 0x25,
-  MENUPAGE_CONTROLS_VEHICLE_ONFOOT = 0x26,
-  MENUPAGE_MOUSE_SETUP = 0x27,
-  MENUPAGE_JOYPAD_SETUP = 0x28,
-  MENUPAGE_MAIN_MENU_CONTROLS = 0x29,
-  MENUPAGE_QUIT_GAME_2 = 0x2A,
-  MENUPAGE_EMPTY = 0x2B,
-};
-
 void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
     constexpr float MENU_DEFAULT_CONTENT_X = 320.0f;
@@ -473,46 +425,43 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     if (m_nCurrentScreen == SCREEN_STATS) {
         CMenuManager::PrintStats();
     }    
-    if (m_nCurrentScreen == MENUPAGE_RESUME) {
+    if (m_nCurrentScreen == SCREEN_BRIEF) {
         CMenuManager::PrintBriefs();
     }
 
-    if (m_nCurrentScreen == MENUPAGE_SOUND_SETUP && drawTitle) {
+    if (m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && drawTitle) {
         CMenuManager::PrintRadioStationList();
     }
-
         
-    if (drawTitle) {
-        if (aScreens[m_nCurrentScreen].m_szTitleName[0]) {
-            if (m_nCurrentScreen != MENUPAGE_MAP || !m_bMapLoaded) {
-                CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-                CFont::SetFontStyle(FONT_GOTHIC);
-                if (RsGlobal.maximumHeight == 448) {
-                    h = 2.0999999;
-                } else {
-                    h = RsGlobal.maximumHeight * 0.0046874997;
-                }    
-                if (RsGlobal.maximumWidth == 640) {
-                    CFont::SetScale(1.3, h);
-                } else {
-                    textb = RsGlobal.maximumWidth * 0.0020312499;
-                    CFont::SetScale(textb, h);
-                }    
-                CFont::SetEdge(1);
-                CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
-                CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
-                if (RsGlobal.maximumHeight == 448) {
-                    ya = 28.0;
-                } else {
-                    ya = RsGlobal.maximumHeight * 0.0625;
-                }    
-                if (RsGlobal.maximumWidth == 640) {
-                    text = 40.0;
-                } else {
-                    text = RsGlobal.maximumWidth * 0.0625;
-                }    
-                CFont::PrintString(text, ya, TheText.Get(aScreens[m_nCurrentScreen].m_szTitleName));
+    if (drawTitle && aScreens[m_nCurrentScreen].m_szTitleName[0]) {
+        if (m_nCurrentScreen != SCREEN_MAP || !m_bMapLoaded) {
+            CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+            CFont::SetFontStyle(FONT_GOTHIC);
+            if (RsGlobal.maximumHeight == 448) {
+                h = 2.0999999;
+            } else {
+                h = RsGlobal.maximumHeight * 0.0046874997;
             }    
+            if (RsGlobal.maximumWidth == 640) {
+                CFont::SetScale(1.3, h);
+            } else {
+                textb = RsGlobal.maximumWidth * 0.0020312499;
+                CFont::SetScale(textb, h);
+            }    
+            CFont::SetEdge(1);
+            CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
+            CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
+            if (RsGlobal.maximumHeight == 448) {
+                ya = 28.0;
+            } else {
+                ya = RsGlobal.maximumHeight * 0.0625;
+            }    
+            if (RsGlobal.maximumWidth == 640) {
+                text = 40.0;
+            } else {
+                text = RsGlobal.maximumWidth * 0.0625;
+            }    
+            CFont::PrintString(text, ya, TheText.Get(aScreens[m_nCurrentScreen].m_szTitleName));
         }    
     }    
 
@@ -538,21 +487,21 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         const GxtChar* textOne;
 
         switch (m_nCurrentScreen) {
-        case MENUPAGE_NEW_GAME_ASK:
+        case SCREEN_NEW_GAME_ASK:
             if (!m_bMainMenuSwitch) {
                 textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
                 break;
             }
             textOne = TheText.Get("FESZ_QQ");
             break;
-        case MENUPAGE_LOAD_SAVE_ASK:
+        case SCREEN_LOAD_GAME_ASK:
             if (!m_bMainMenuSwitch) {
                 textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
                 break;
             }
             textOne = TheText.Get("FES_LCG");
             break;
-        case MENUPAGE_SAVE_WRITE_ASK:
+        case SCREEN_SAVE_WRITE_ASK:
             v10 = CGenericGameStorage::ms_Slots[m_bSelectedSaveGame];
             if ((int)v10) {
                 if (v10 != (eSlotState)2) {
@@ -564,7 +513,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 textOne = TheText.Get("FESZ_QO");
             }
             break;
-        case MENUPAGE_QUIT_GAME:
+        case SCREEN_QUIT_GAME_ASK:
             if (!m_bMainMenuSwitch) {
                 textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
                 break;
@@ -589,7 +538,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         CFont::SetWrapx(RsGlobal.maximumWidth - 10);
         CFont::SetRightJustifyWrap(10.0);
     }
-    if (m_nCurrentScreen == MENUPAGE_CONTROLS_VEHICLE_ONFOOT) {
+    if (m_nCurrentScreen == SCREEN_CONTROLS_DEFINITION) {
         if (m_EditingControlOptions) {
             shouldDrawStandardItems = false;
         }
