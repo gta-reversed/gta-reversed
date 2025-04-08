@@ -103,7 +103,71 @@ void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a1, CVector a2, uint32 a
 
 // 0x461170
 void CRoadBlocks::GenerateRoadBlockCopsForCar(CVehicle* vehicle, int32 pedsPositionsType, ePedType type) {
-    plugin::Call<0x461170, CVehicle*, int32, ePedType>(vehicle, pedsPositionsType, type);
+    eCopType copType{ COP_TYPE_CITYCOP };
+    eModelID pedModel{ MODEL_INVALID };
+    bool     isSpecialCop{};
+
+    if (type == PED_TYPE_COP) {
+        switch (vehicle->GetModelID()) {
+        case MODEL_ENFORCER:
+            copType      = COP_TYPE_SWAT1;
+            pedModel     = MODEL_SWAT;
+            isSpecialCop = true;
+            break;
+        case MODEL_BARRACKS:
+            copType      = COP_TYPE_ARMY;
+            pedModel     = MODEL_ARMY;
+            isSpecialCop = true;
+            break;
+        case MODEL_FBIRANCH:
+            copType      = COP_TYPE_FBI;
+            pedModel     = MODEL_FBI;
+            isSpecialCop = true;
+            break;
+        case MODEL_COPCARRU:
+            isSpecialCop = true;
+            [[fallthrough]];
+        default:
+            copType = COP_TYPE_CITYCOP;
+            break;
+        }
+    } else {
+        if (type >= PED_TYPE_GANG1 && type <= PED_TYPE_GANG10) {
+            bool found{};
+            for (auto i = 0; i < TOTAL_GANGS; i++) {
+                if (CPopCycle::m_pCurrZoneInfo->GangStrength[i]) {
+                    pedModel = CGangs::ChooseGangPedModel((eGangID)i);
+                    if (pedModel != MODEL_INVALID) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!found) {
+                return;
+            }
+        }
+    }
+
+    static constexpr CVector PLACEMENTS[] = {
+        { -1.5, +1.9, 0.0 },
+        { -1.5, -2.6, 0.0 },
+        { +1.5, +1.9, 0.0 },
+        { +1.5, -2.6, 0.0 },
+        { -1.5,  0.0, 0.0 },
+        { +1.5,  0.0, 0.0 },
+        {  0.0, +3.2, 0.0 },
+        { +1.5, -1.8, 0.0 },
+        {  0.0, +3.2, 0.0 },
+        { -1.5, -1.8, 0.0 },
+        { -1.5,  0.0, 0.0 },
+        { +1.5,  0.0, 0.0 } 
+    };
+
+    for (auto i = 0u; i < vehicle->m_nNumPedsForRoadBlock; i++) {
+        // ...
+    }
 }
 
 // 0x4629E0

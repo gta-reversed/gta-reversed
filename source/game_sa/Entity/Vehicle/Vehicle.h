@@ -352,7 +352,7 @@ public:
     uint8            m_nAmmoInClip;                   // Used to make the guns on boat do a reload (20 by default).
     uint8            m_nPacMansCollected;             // initialised, but not used?
     uint8            m_nPedsPositionForRoadBlock;     // 0, 1 or 2
-    uint8            m_nNumCopsForRoadBlock;
+    uint8            m_nNumPedsForRoadBlock;
     float            m_fDirtLevel; // Dirt level of vehicle body texture: 0.0f=fully clean, 15.0f=maximum dirt visible
     uint8            m_nCurrentGear;
     float            m_fGearChangeCount; // used as parameter for cTransmission::CalculateDriveAcceleration, but doesn't change
