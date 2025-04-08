@@ -14,7 +14,7 @@ void CRoadBlocks::InjectHooks() {
     RH_ScopedInstall(GenerateRoadBlockCopsForCar, 0x461170, { .reversed = false });
     RH_ScopedInstall(GenerateRoadBlocks, 0x4629E0, { .reversed = false });
     RH_ScopedInstall(GetRoadBlockNodeInfo, 0x460EE0, { .reversed = false });
-    RH_ScopedInstall(RegisterScriptRoadBlock, 0x460DF0, { .reversed = false });
+    RH_ScopedInstall(RegisterScriptRoadBlock, 0x460DF0);
 }
 
 // 0x461100
@@ -66,6 +66,16 @@ bool CRoadBlocks::GetRoadBlockNodeInfo(CNodeAddress a1, float& a2, CVector& a3) 
 }
 
 // 0x460DF0
-void CRoadBlocks::RegisterScriptRoadBlock(CVector a1, CVector a2, bool a3) {
-    plugin::Call<0x460DF0, CVector, CVector, bool>(a1, a2, a3);
+void CRoadBlocks::RegisterScriptRoadBlock(CVector cornerA, CVector cornerB, bool isGangRoute) {
+    auto free = rng::find_if(aScriptRoadBlocks, [](const auto& srb) { return !srb.IsActive; });
+    if (free == aScriptRoadBlocks.end()) {
+        // No free script roadblock found
+        return;
+    }
+
+    free->CornerA     = cornerA;
+    free->CornerB     = cornerB;
+    free->IsActive    = true;
+    free->IsCreated   = true;
+    free->IsGangRoute = isGangRoute;
 }
