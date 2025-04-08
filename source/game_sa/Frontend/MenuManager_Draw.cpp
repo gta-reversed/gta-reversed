@@ -774,11 +774,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     }
 
     i = 0;
-    // color = (aScreens[(226 * m_nCurrentScreen) / 226].m_aItems[0].m_nActionType == 1);
     bool weHaveLabel = aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == 1;
 
     for (i = 0; i < 12; i++) {
-        // itemType = aScreens[0].m_aItems[i].m_szName[(226 * m_nCurrentScreen) + 8];
         auto itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType; // ??????????????
         pTextToShow_RightColumn = 0;
         int MENU_DEFAULT_LINE_HEIGHT = itemType == 9 ? 20 : 30;
@@ -827,7 +825,6 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
         yd = 0;
 
-        // Manejar tipos de elementos especiales
         if (itemType < 1 || itemType > 8) {
             if (itemType == 9) {
                 // if (.../) {
@@ -850,7 +847,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         } else {
             aScreens[m_nCurrentScreen].m_aItems[i].m_X = 80;
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-            int saveSlotState = (int)CGenericGameStorage::ms_Slots[i-1]; // Or...
+            int saveSlotState = (int)CGenericGameStorage::ms_Slots[i-1];
             
             if (saveSlotState == 0) {
                 auto saveName = CGenericGameStorage::ms_SlotFileName[i - 1];
@@ -1164,13 +1161,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 }
                 CFont::PrintString(xa, y, pTextToShow);
             } else {
-                // Posicionamiento para elementos numerados
                 float yPos = CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y); //word_940A40[226 * m_currentMenuPage + itemOffset]);
                 float xPos = CMenuManager::StretchX(25.0 + aScreens[m_nCurrentScreen].m_aItems[i].m_X);
                 
                 CFont::PrintString(xPos, yPos, pTextToShow);
                 
-                // Dibujar número de slot
+                // Slot num
                 sprintf(gString, "%d:", i);
                 AsciiToGxtChar(gString, gGxtString);
                 
@@ -1188,58 +1184,62 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             m_nType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
             if (m_nType < 1 || m_nType > 8) {
                 if (m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && i == 5) {
-                    if (RsGlobal.maximumHeight == 448) {
-                        v209 = 1.0;
-                    } else {
-                        v209 = RsGlobal.maximumHeight * 0.002232143;
-                    }
-                    if (RsGlobal.maximumWidth == 640) {
-                        v191 = 0.56;
-                        CFont::SetScale(0.56, v209);
-                    } else {
-                        v191 = RsGlobal.maximumWidth * 0.00087500003;
-                        CFont::SetScale(v191, v209);
-                    }
+                    // Use scale macros for consistency
+                    CFont::SetScale(SCREEN_STRETCH_X(0.56f), SCREEN_STRETCH_Y(1.0f));
                 } else {
-                    if (RsGlobal.maximumHeight == 448) {
-                        v217 = 1.0;
-                    } else {
-                        v217 = RsGlobal.maximumHeight * 0.002232143;
-                    }
-                    if (RsGlobal.maximumWidth == 640) {
-                        v193 = 0.69999999;
-                    } else {
-                        v193 = RsGlobal.maximumWidth * 0.00109375;
-                    }
-                    CFont::SetScale(v193, v217);
+                    CFont::SetScale(SCREEN_STRETCH_X(0.7f), SCREEN_STRETCH_Y(1.0f));
                 }
             } else {
-                if (RsGlobal.maximumHeight == 448) {
-                    v215 = 0.94999999;
-                } else {
-                    v215 = RsGlobal.maximumHeight * 0.0021205356;
+                CFont::SetScale(SCREEN_STRETCH_X(0.35f), SCREEN_STRETCH_Y(0.95f));
+            }
+            
+            // Calculate position using screen macros
+            float yPos = SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y);
+            float xPos = SCREEN_STRETCH_FROM_RIGHT(40.0f);
+            CFont::PrintString(xPos, yPos, pTextToShow_RightColumn);
+        }
+
+        // Check if text was properly initialized and we're on the current selection
+        if (pTextToShow) {
+            if (i == m_nCurrentScreenItem) {
+                if (m_nCurrentScreen != SCREEN_MAP && m_nCurrentScreen != SCREEN_BRIEF) {
+                    // Calculate X position for highlighted item if not already done
+                    if (!yd) {
+                        int align = aScreens[m_nCurrentScreen].m_aItems[i].m_nAlign;
+
+                        float scaledPosX = SCREEN_STRETCH_X(aScreens[m_nCurrentScreen].m_aItems[i].m_X);
+                        
+                        if (align == 1) { // Left alignment
+                            yd = scaledPosX - SCREEN_STRETCH_X(40.0f);
+                        } 
+                        else if (align == 2) { // Right alignment
+                            yd = SCREEN_STRETCH_X(40.0f) + scaledPosX;
+                        } 
+                        else { // Center alignment
+                            yd = scaledPosX - SCREEN_STRETCH_X(40.0f) - CFont::GetStringWidth(pTextToShow, 1, 0) * 0.5f;
+                        }
+                    }
+
+                    // Draw highlight rectangle for selected item if map is loaded
+                    if (m_bMapLoaded) {
+                        if (m_nCurrentScreen != SCREEN_LOAD_FIRST_SAVE && 
+                            m_nCurrentScreen != SCREEN_DELETE_FINISHED && 
+                            m_nCurrentScreen != SCREEN_SAVE_DONE_1) {
+                            
+                            float y = yd;
+                            float buttonPosY = SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y);
+                            
+                            CRect rect;
+                            rect.left = y;
+                            rect.top = buttonPosY + SCREEN_STRETCH_X(47.0f);
+                            rect.right = y + SCREEN_STRETCH_X(32.0f);
+                            rect.bottom = buttonPosY - SCREEN_STRETCH_X(5.0f);
+                            
+                            m_aFrontEndSprites[0].Draw(rect, CRGBA(255, 255, 255, 255));
+                        }
+                    }
                 }
-                if (RsGlobal.maximumWidth == 640) {
-                    v189 = 0.34999999;
-                    CFont::SetScale(0.34999999, v215);
-                } else {
-                    v189 = RsGlobal.maximumWidth * 0.000546875;
-                    CFont::SetScale(v189, v215);
-                }
             }
-            v48 = aScreens[m_nCurrentScreen].m_aItems[i].m_Y;
-            if (RsGlobal.maximumHeight == 448) {
-                xb = v48;
-            } else {
-                xb = RsGlobal.maximumHeight * v48 * 0.002232143;
-            }
-            if (RsGlobal.maximumWidth == 640) {
-                v49 = 40.0;
-            } else {
-                v49 = RsGlobal.maximumWidth * 0.0625;
-            }
-            v102 = RsGlobal.maximumWidth - v49;
-            CFont::PrintString(v102, xb, pTextToShow_RightColumn);
         }
 
         // Check if text was properly initialized and we're on the current selection
@@ -1320,324 +1320,74 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         // Handle sliders
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
         case 27: { // Brightness slider
-            float sliderWidth, sliderPosX;
-            if (RsGlobal.maximumWidth == 640) {
-                sliderWidth = 3.0;
-                sliderPosX = 100.0;
-            } else {
-                float maximumWidth = RsGlobal.maximumWidth;
-                sliderWidth = maximumWidth * 0.0046875002;
-                sliderPosX = maximumWidth * 0.15625;
-            }
-            
-            float sliderHeight, sliderEdge, sliderPosY;
-            if (RsGlobal.maximumHeight == 448) {
-                sliderHeight = 20.0;
-                sliderEdge = 4.0;
-                sliderPosY = 125.0;
-            } else {
-                float maximumHeight = RsGlobal.maximumHeight;
-                sliderHeight = 0.044642858 * maximumHeight;
-                sliderEdge = 0.0089285718 * maximumHeight;
-                sliderPosY = maximumHeight * 0.27901787;
-            }
-            
-            float sliderMaxWidth;
-            if (RsGlobal.maximumWidth == 640) {
-                sliderMaxWidth = 500.0;
-            } else {
-                sliderMaxWidth = RsGlobal.maximumWidth * 0.78125;
-            }
-            
-            float sliderValue = m_PrefsBrightness * 0.0026041667;
-            float sliderFieldPos = DisplaySlider(sliderMaxWidth, sliderPosY, sliderEdge, sliderHeight, sliderPosX, sliderValue, sliderWidth);
-            
-            if (i == m_nCurrentScreenItem) {
-                int sliderHoverPosY = CMenuManager::StretchY(150.0);
-                int sliderHoverEdge = CMenuManager::StretchY(125.0);
-                float sliderLeftBound = sliderFieldPos - CMenuManager::StretchX(3.0);
-                
-                if (CheckHover(0, sliderLeftBound, sliderHoverEdge, sliderHoverPosY)) {
-                    m_MouseInBounds = 7;
-                } else {
-                    int maxPosY = CMenuManager::StretchY(150.0);
-                    int minPosY = CMenuManager::StretchY(125.0);
-                    int maxScreenX = CMenuManager::StretchX(RsGlobal.maximumWidth);
-                    float sliderRightBound = CMenuManager::StretchX(3.0) + sliderFieldPos;
-                    
-                    if (CheckHover(sliderRightBound, maxScreenX, minPosY, maxPosY)) {
-                        m_MouseInBounds = 6;
-                        float xPos = m_nMousePosX;
-                        float sliderMaxX = CMenuManager::StretchX(500.0);
-                        
-                        if (!(sliderMaxX < xPos) && !(sliderMaxX == xPos)) {
-                            m_MouseInBounds = 16;
-                        } else if (CMenuManager::StretchY(125.0) > m_nMousePosY || 
-                                    CMenuManager::StretchY(150.0) < m_nMousePosY) {
-                            m_MouseInBounds = 16;
-                        }
+                const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_PrefsBrightness * 0.0026041667f, StretchX(3.0f));
+                if (i == m_nCurrentScreenItem) {
+                    if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                        m_MouseInBounds = 7;
+                    } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
+                        m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : 
+                                (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 6;
                     } else {
                         m_MouseInBounds = 16;
                     }
                 }
+                break;
             }
-            break;
-        }
-        case 28: { // Radio volume slider
-            float sliderWidth, sliderPosX;
-            if (RsGlobal.maximumWidth == 640) {
-                sliderWidth = 3.0;
-                sliderPosX = 100.0;
-            } else {
-                float maximumWidth = RsGlobal.maximumWidth;
-                sliderWidth = maximumWidth * 0.0046875002;
-                sliderPosX = maximumWidth * 0.15625;
-            }
-            
-            float sliderHeight, sliderEdge, sliderPosY;
-            if (RsGlobal.maximumHeight == 448) {
-                sliderHeight = 20.0;
-                sliderEdge = 4.0;
-                sliderPosY = 95.0;
-            } else {
-                float maximumHeight = RsGlobal.maximumHeight;
-                sliderHeight = 0.044642858 * maximumHeight;
-                sliderEdge = 0.0089285718 * maximumHeight;
-                sliderPosY = maximumHeight * 0.21205357;
-            }
-            
-            float sliderMaxWidth;
-            if (RsGlobal.maximumWidth == 640) {
-                sliderMaxWidth = 500.0;
-            } else {
-                sliderMaxWidth = RsGlobal.maximumWidth * 0.78125;
-            }
-            
-            float sliderValue = m_nRadioVolume * 0.015625;
-            float sliderFieldPos = DisplaySlider(sliderMaxWidth, sliderPosY, sliderEdge, sliderHeight, sliderPosX, sliderValue, sliderWidth);
-            
-            if (i == m_nCurrentScreenItem) {
-                int sliderHoverPosY = CMenuManager::StretchY(120.0);
-                int sliderHoverEdge = CMenuManager::StretchY(95.0);
-                float sliderLeftBound = sliderFieldPos - CMenuManager::StretchX(3.0);
-                
-                if (CheckHover(0, sliderLeftBound, sliderHoverEdge, sliderHoverPosY)) {
-                    m_MouseInBounds = 11;
-                } else {
-                    int maxPosY = CMenuManager::StretchY(120.0);
-                    int minPosY = CMenuManager::StretchY(95.0);
-                    int maxScreenX = CMenuManager::StretchX(RsGlobal.maximumWidth);
-                    float sliderRightBound = CMenuManager::StretchX(3.0) + sliderFieldPos;
-                    
-                    if (CheckHover(sliderRightBound, maxScreenX, minPosY, maxPosY)) {
-                        m_MouseInBounds = 10;
-                        float xPos = m_nMousePosX;
-                        
-                        if (CMenuManager::StretchX(500.0) <= xPos) {
-                            if (CMenuManager::StretchY(95.0) <= m_nMousePosY && 
-                                CMenuManager::StretchY(120.0) >= m_nMousePosY) {
-                                // Valid bounds
-                            } else {
-                                m_MouseInBounds = 16;
-                            }
-                        } else {
-                            m_MouseInBounds = 16;
-                        }
+            case 28: { // Radio volume slider
+                const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(95.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nRadioVolume * 0.015625f, StretchX(3.0f));
+                if (i == m_nCurrentScreenItem) {
+                    if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(95.0f), StretchY(120.0f))) {
+                        m_MouseInBounds = 11;
+                    } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(95.0f), StretchY(120.0f))) {
+                        m_MouseInBounds = StretchX(500.0f) <= m_nMousePosX && 
+                                    StretchY(95.0f) <= m_nMousePosY && 
+                                    StretchY(120.0f) >= m_nMousePosY ? 10 : 16;
                     } else {
                         m_MouseInBounds = 16;
                     }
                 }
+                break;
             }
-            break;
-        }
-        case 29: { // SFX volume slider
-            float sliderWidth, sliderPosX;
-            if (RsGlobal.maximumWidth == 640) {
-                sliderWidth = 3.0;
-                sliderPosX = 100.0;
-            } else {
-                float maximumWidth = RsGlobal.maximumWidth;
-                sliderWidth = maximumWidth * 0.0046875002;
-                sliderPosX = maximumWidth * 0.15625;
-            }
-            
-            float sliderHeight, sliderEdge, sliderPosY;
-            if (RsGlobal.maximumHeight == 448) {
-                sliderHeight = 20.0;
-                sliderEdge = 4.0;
-                sliderPosY = 125.0;
-            } else {
-                float maximumHeight = RsGlobal.maximumHeight;
-                sliderHeight = 0.044642858 * maximumHeight;
-                sliderEdge = 0.0089285718 * maximumHeight;
-                sliderPosY = maximumHeight * 0.27901787;
-            }
-            
-            float sliderMaxWidth;
-            if (RsGlobal.maximumWidth == 640) {
-                sliderMaxWidth = 500.0;
-            } else {
-                sliderMaxWidth = RsGlobal.maximumWidth * 0.78125;
-            }
-            
-            float sliderValue = m_nSfxVolume * 0.015625;
-            float sliderFieldPos = DisplaySlider(sliderMaxWidth, sliderPosY, sliderEdge, sliderHeight, sliderPosX, sliderValue, sliderWidth);
-            
-            if (i == m_nCurrentScreenItem) {
-                int sliderHoverPosY = CMenuManager::StretchY(150.0);
-                int sliderHoverEdge = CMenuManager::StretchY(125.0);
-                float sliderLeftBound = sliderFieldPos - CMenuManager::StretchX(3.0);
-                
-                if (CheckHover(0, sliderLeftBound, sliderHoverEdge, sliderHoverPosY)) {
-                    m_MouseInBounds = 13;
-                } else {
-                    int maxPosY = CMenuManager::StretchY(150.0);
-                    int minPosY = CMenuManager::StretchY(125.0);
-                    int maxScreenX = CMenuManager::StretchX(RsGlobal.maximumWidth);
-                    float sliderRightBound = CMenuManager::StretchX(3.0) + sliderFieldPos;
-                    
-                    if (CheckHover(sliderRightBound, maxScreenX, minPosY, maxPosY)) {
-                        m_MouseInBounds = 12;
-                        float xPos = m_nMousePosX;
-                        float sliderMaxX = CMenuManager::StretchX(500.0);
-                        
-                        if (!(sliderMaxX < xPos) && !(sliderMaxX == xPos)) {
-                            m_MouseInBounds = 16;
-                        } else if (CMenuManager::StretchY(125.0) > m_nMousePosY || 
-                                    CMenuManager::StretchY(150.0) < m_nMousePosY) {
-                            m_MouseInBounds = 16;
-                        }
+            case 29: { // SFX volume slider
+                const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nSfxVolume * 0.015625f, StretchX(3.0f));
+                if (i == m_nCurrentScreenItem) {
+                    if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                        m_MouseInBounds = 13;
+                    } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
+                        m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 12;
                     } else {
                         m_MouseInBounds = 16;
                     }
                 }
+                break;
             }
-            break;
-        }
-        case 61: { // Draw distance slider
-            float sliderWidth, sliderPosX;
-            if (RsGlobal.maximumWidth == 640) {
-                sliderWidth = 3.0;
-                sliderPosX = 100.0;
-            } else {
-                float maximumWidth = RsGlobal.maximumWidth;
-                sliderWidth = maximumWidth * 0.0046875002;
-                sliderPosX = maximumWidth * 0.15625;
-            }
-            
-            float sliderHeight, sliderEdge, sliderPosY;
-            if (RsGlobal.maximumHeight == 448) {
-                sliderHeight = 20.0;
-                sliderEdge = 4.0;
-                sliderPosY = 125.0;
-            } else {
-                float maximumHeight = RsGlobal.maximumHeight;
-                sliderHeight = 0.044642858 * maximumHeight;
-                sliderEdge = 0.0089285718 * maximumHeight;
-                sliderPosY = maximumHeight * 0.27901787;
-            }
-            
-            float sliderMaxWidth;
-            if (RsGlobal.maximumWidth == 640) {
-                sliderMaxWidth = 500.0;
-            } else {
-                sliderMaxWidth = RsGlobal.maximumWidth * 0.78125;
-            }
-            
-            float sliderValue = (m_fDrawDistance - 0.92500001) * 1.1428572;
-            float sliderFieldPos = DisplaySlider(sliderMaxWidth, sliderPosY, sliderEdge, sliderHeight, sliderPosX, sliderValue, sliderWidth);
-            
-            if (i == m_nCurrentScreenItem) {
-                int sliderHoverPosY = CMenuManager::StretchY(150.0);
-                int sliderHoverEdge = CMenuManager::StretchY(125.0);
-                float sliderLeftBound = sliderFieldPos - CMenuManager::StretchX(3.0);
-                
-                if (CheckHover(0, sliderLeftBound, sliderHoverEdge, sliderHoverPosY)) {
-                    m_MouseInBounds = 9;
-                } else {
-                    int maxPosY = CMenuManager::StretchY(150.0);
-                    int minPosY = CMenuManager::StretchY(125.0);
-                    int maxScreenX = CMenuManager::StretchX(RsGlobal.maximumWidth);
-                    float sliderRightBound = CMenuManager::StretchX(3.0) + sliderFieldPos;
-                    
-                    if (CheckHover(sliderRightBound, maxScreenX, minPosY, maxPosY)) {
-                        m_MouseInBounds = 8;
-                        float xPos = m_nMousePosX;
-                        float sliderMaxX = CMenuManager::StretchX(500.0);
-                        
-                        if (!(sliderMaxX < xPos) && !(sliderMaxX == xPos)) {
-                            m_MouseInBounds = 16;
-                        } else if (CMenuManager::StretchY(125.0) > m_nMousePosY || 
-                                    CMenuManager::StretchY(150.0) < m_nMousePosY) {
-                            m_MouseInBounds = 16;
-                        }
+            case 61: { // Draw distance slider
+                const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), (m_fDrawDistance - 0.92500001f) * 1.1428572f, StretchX(3.0f));
+                if (i == m_nCurrentScreenItem) {
+                    if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                        m_MouseInBounds = 9;
+                    } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
+                        m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : 
+                                (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 8;
                     } else {
                         m_MouseInBounds = 16;
                     }
                 }
+                break;
             }
-            break;
-        }
-        case 62: { // Mouse sensitivity slider
-            float sliderWidth, sliderPosX;
-            if (RsGlobal.maximumWidth == 640) {
-                sliderWidth = 3.0;
-                sliderPosX = 100.0;
-            } else {
-                float maximumWidth = RsGlobal.maximumWidth;
-                sliderWidth = maximumWidth * 0.0046875002;
-                sliderPosX = maximumWidth * 0.15625;
-            }
-            
-            float sliderHeight, sliderEdge, sliderPosY;
-            if (RsGlobal.maximumHeight == 448) {
-                sliderHeight = 20.0;
-                sliderEdge = 4.0;
-                sliderPosY = 125.0;
-            } else {
-                float maximumHeight = RsGlobal.maximumHeight;
-                sliderHeight = 0.044642858 * maximumHeight;
-                sliderEdge = 0.0089285718 * maximumHeight;
-                sliderPosY = maximumHeight * 0.27901787;
-            }
-            
-            float sliderMaxWidth;
-            if (RsGlobal.maximumWidth == 640) {
-                sliderMaxWidth = 500.0;
-            } else {
-                sliderMaxWidth = RsGlobal.maximumWidth * 0.78125;
-            }
-            
-            float sliderValue = CCamera::m_fMouseAccelHorzntl / 0.0049999999;
-            float sliderFieldPos = DisplaySlider(sliderMaxWidth, sliderPosY, sliderEdge, sliderHeight, sliderPosX, sliderValue, sliderWidth);
-            
-            if (i == m_nCurrentScreenItem) {
-                int sliderHoverPosY = CMenuManager::StretchY(150.0);
-                int sliderHoverEdge = CMenuManager::StretchY(125.0);
-                float sliderLeftBound = sliderFieldPos - CMenuManager::StretchX(3.0);
-                
-                if (CheckHover(0, sliderLeftBound, sliderHoverEdge, sliderHoverPosY)) {
-                    m_MouseInBounds = 15;
-                } else {
-                    int maxPosY = CMenuManager::StretchY(150.0);
-                    int minPosY = CMenuManager::StretchY(125.0);
-                    int maxScreenX = CMenuManager::StretchX(RsGlobal.maximumWidth);
-                    float sliderRightBound = CMenuManager::StretchX(3.0) + sliderFieldPos;
-                    
-                    if (CheckHover(sliderRightBound, maxScreenX, minPosY, maxPosY)) {
-                        m_MouseInBounds = 14;
-                        float xPos = m_nMousePosX;
-                        
-                        if (CMenuManager::StretchX(500.0) > xPos) {
-                            m_MouseInBounds = 16;
-                        }
+            case 62: { // Mouse sensitivity slider
+                const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), CCamera::m_fMouseAccelHorzntl / 0.0049999999, StretchX(3.0f));
+                if (i == m_nCurrentScreenItem) {
+                    if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                        m_MouseInBounds = 15;
+                    } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
+                        m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : 14;
                     } else {
                         m_MouseInBounds = 16;
                     }
                 }
+                break;
             }
-            break;
-        }
         default:
             break;
         }

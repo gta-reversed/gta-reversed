@@ -134,9 +134,9 @@ CMenuManager::CMenuManager() {
     m_bAllStreamingStuffLoaded = false;
 
     m_bLanguageChanged  = false;
-    m_nPrefsLanguage    = eLanguage::AMERICAN;
+    m_nPrefsLanguage    = eLanguage::ENGLISH;
     m_nTextLanguage     = 0;
-    m_nPreviousLanguage = eLanguage::AMERICAN;
+    m_nPreviousLanguage = eLanguage::ENGLISH;
     m_SystemLanguage    = 0;
 
     m_DisplayControllerOnFoot = false;
@@ -341,7 +341,7 @@ void CMenuManager::InitialiseChangedLanguageSettings(bool reinitControls) {
     auto lang88 = static_cast<eLanguage>(m_SystemLanguage);
     if (lang88 != eLanguage::FRENCH && lang88 != eLanguage::GERMAN) {
         switch (m_nPrefsLanguage) {
-        case eLanguage::AMERICAN:
+        case eLanguage::ENGLISH:
         case eLanguage::GERMAN:
         case eLanguage::ITALIAN:
         case eLanguage::SPANISH:
@@ -879,7 +879,7 @@ void CMenuManager::LoadSettings() {
             SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
             SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
             m_nCurrentRwSubsystem = 0;
-            m_nPrefsLanguage = eLanguage::AMERICAN;
+            m_nPrefsLanguage = eLanguage::ENGLISH;
             m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
         }
     }
@@ -890,7 +890,7 @@ void CMenuManager::LoadSettings() {
         SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
         SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
         m_nCurrentRwSubsystem = 0;
-        m_nPrefsLanguage = eLanguage::AMERICAN;
+        m_nPrefsLanguage = eLanguage::ENGLISH;
         m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
         
         // Log error message
