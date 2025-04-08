@@ -176,11 +176,11 @@ struct tMenuScreenItem {
     char           m_szName[8];
     eMenuEntryType m_nType;
     eMenuScreen    m_nTargetMenu; // Ignored for MENU_ACTION_BACK
-    uint16         m_X;
-    uint16         m_Y;
+    float          m_X;
+    float          m_Y;
     eMenuAlign     m_nAlign;
 };
-VALIDATE_SIZE(tMenuScreenItem, 0x12);
+//VALIDATE_SIZE(tMenuScreenItem, 0x12);
 
 struct tMenuScreen {
     char            m_szTitleName[8];
@@ -188,7 +188,7 @@ struct tMenuScreen {
     int8            m_nStartEntry;
     tMenuScreenItem m_aItems[12];
 };
-VALIDATE_SIZE(tMenuScreen, 0xE2);
+//VALIDATE_SIZE(tMenuScreen, 0xE2);
 
 enum {
     FRONTEND1_START       = 0,

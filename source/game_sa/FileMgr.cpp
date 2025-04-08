@@ -4,8 +4,7 @@
 #include <cstring>
 #include <direct.h>
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include "winincl.h"
 #include <ShlObj.h>
 
 #include "FileMgr.h"

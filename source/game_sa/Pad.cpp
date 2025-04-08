@@ -7,11 +7,11 @@
 #include "StdInc.h"
 
 #include "Pad.h"
-#include "platform/win/Input.h"
+#include "platform/win/WinInput.h"
 #include "UIRenderer.h"
 #include "ControllerConfigManager.h"
 #include "app.h"
-#include "platform/win/Platform.h"
+#include "platform/win/WinPlatform.h"
 
 // mouse states
 CMouseControllerState& CPad::PCTempMouseControllerState = *(CMouseControllerState*)0xB73404;

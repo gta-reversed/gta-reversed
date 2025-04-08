@@ -74,7 +74,7 @@ void CAudioZones::Update(bool forceUpdate, CVector posn) {
     LastUpdateCoors = posn;
     m_NumActiveSpheres = m_NumActiveBoxes = 0;
 
-    for (auto&& [idx, sphere] : notsa::enumerate(GetAvailableSpheres())) {
+    for (auto&& [idx, sphere] : rngv::enumerate(GetAvailableSpheres())) {
         // Do not add more to list if it's filled.
         if (m_NumActiveSpheres >= std::size(m_aActiveSpheres))
             break;
@@ -86,7 +86,7 @@ void CAudioZones::Update(bool forceUpdate, CVector posn) {
             m_aActiveSpheres[m_NumActiveSpheres++] = idx;
     }
 
-    for (auto&& [idx, box] : notsa::enumerate(GetAvailableBoxes())) {
+    for (auto&& [idx, box] : rngv::enumerate(GetAvailableBoxes())) {
         // Do not add more to list if it's filled.
         if (m_NumActiveBoxes >= std::size(m_aActiveBoxes))
             break;

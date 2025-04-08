@@ -112,11 +112,11 @@ void CMenuManager::DrawBuildInfo() {
     strcpy_s(buf + strlen(buf), 32u - strlen(buf), version);
 
     CFont::SetProportional(true);
-    CFont::SetScale(StretchX(0.25f), StretchY(0.5f));
+    CFont::SetScale(SCREEN_STRETCH_X(0.25f), SCREEN_STRETCH_Y(0.5f));
     CFont::SetColor({ 255, 255, 255, 100 });
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
     CFont::SetFontStyle(eFontStyle::FONT_SUBTITLES);
-    CFont::PrintStringFromBottom(SCREEN_WIDTH - StretchX(10.0f), SCREEN_HEIGHT - StretchY(10.0f), GxtCharFromAscii(buf));
+    CFont::PrintStringFromBottom(SCREEN_WIDTH - SCREEN_STRETCH_X(10.0f), SCREEN_HEIGHT - SCREEN_STRETCH_Y(10.0f), GxtCharFromAscii(buf));
 }
 
 // 0x57B750
@@ -161,39 +161,39 @@ void CMenuManager::DrawBackground() {
         case SCREEN_LOAD_FIRST_SAVE:
         case SCREEN_SAVE_DONE_1:
             return {
-                SCREEN_WIDTH - StretchX(256.0f),
+                SCREEN_WIDTH - SCREEN_STRETCH_X(256.0f),
                 0.0f,
                 SCREEN_WIDTH,
-                StretchY(256.0f),
+                SCREEN_STRETCH_Y(256.0f),
             };
         case SCREEN_DELETE_FINISHED:
             return {
-                SCREEN_WIDTH - StretchX(256.0f),
+                SCREEN_WIDTH - SCREEN_STRETCH_X(256.0f),
                 0.0f,
                 SCREEN_WIDTH,
-                StretchY(256.0f),
+                SCREEN_STRETCH_Y(256.0f),
             };
         case SCREEN_DELETE_SUCCESSFUL:
         case SCREEN_SAVE_WRITE_ASK:
             return {
-                SCREEN_WIDTH - StretchX(256.0f),
+                SCREEN_WIDTH - SCREEN_STRETCH_X(256.0f),
                 0.0f,
                 SCREEN_WIDTH,
-                StretchY(256.0f),
+                SCREEN_STRETCH_Y(256.0f),
             };
         case SCREEN_GAME_SAVE:
             return {
-                SCREEN_WIDTH / 2.0f - StretchX(128.0f),
+                SCREEN_WIDTH / 2.0f - SCREEN_STRETCH_X(128.0f),
                 0.0f,
-                StretchX(128.0f) + SCREEN_WIDTH / 2.0f,
-                StretchY(256.0f),
+                SCREEN_STRETCH_X(128.0f) + SCREEN_WIDTH / 2.0f,
+                SCREEN_STRETCH_Y(256.0f),
             };
         case SCREEN_SAVE_DONE_2:
             return {
-                SCREEN_WIDTH - StretchX(300.0f),
+                SCREEN_WIDTH - SCREEN_STRETCH_X(300.0f),
                 0.0f,
                 SCREEN_WIDTH,
-                StretchY(200.0f),
+                SCREEN_STRETCH_Y(200.0f),
             };
         default:
             assert(true); // Bad R*
@@ -301,20 +301,20 @@ void CMenuManager::DrawBackground() {
 
         CSprite2d::DrawRect(
             CRect(
-                StretchX(float(DEFAULT_SCREEN_WIDTH / 2 - 50)),
-                StretchY(245.0f),
-                StretchX(float(DEFAULT_SCREEN_WIDTH / 2 + 50 + 5)),
-                StretchY(250.0f)
+                SCREEN_STRETCH_X(float(DEFAULT_SCREEN_WIDTH / 2 - 50)),
+                SCREEN_STRETCH_Y(245.0f),
+                SCREEN_STRETCH_X(float(DEFAULT_SCREEN_WIDTH / 2 + 50 + 5)),
+                SCREEN_STRETCH_Y(250.0f)
             ),
             { 50, 50, 50, 255 }
         );
 
         CSprite2d::DrawRect(
             CRect(
-                StretchX(float(s_ProgressPosition)),
-                StretchY(245.0f),
-                StretchX(float(s_ProgressPosition + 5)),
-                StretchY(250.0f)
+                SCREEN_STRETCH_X(float(s_ProgressPosition)),
+                SCREEN_STRETCH_Y(245.0f),
+                SCREEN_STRETCH_X(float(s_ProgressPosition + 5)),
+                SCREEN_STRETCH_Y(250.0f)
             ),
             { 225, 225, 225, 255 }
         );
@@ -367,20 +367,20 @@ void CMenuManager::DrawBackground() {
         const auto DrawCursor = [=](auto spriteId) {
             CRect rect;
 
-            rect.left   = x + StretchX(6.0f);
-            rect.bottom    = y + StretchY(3.0f);
-            rect.right  = x + CMenuManager::StretchX(24.0f);
+            rect.left   = x + SCREEN_STRETCH_X(6.0f);
+            rect.bottom    = y + SCREEN_STRETCH_Y(3.0f);
+            rect.right  = x + SCREEN_STRETCH_X(24.0f);
             rect.top = y + SCREEN_SCALE_Y(21.0f);
             m_aFrontEndSprites[spriteId].Draw(rect, { 100, 100, 100, 50 }); // shadow
 
             rect.left   = x;
             rect.bottom    = y;
-            rect.right  = x + CMenuManager::StretchX(18.0f);
+            rect.right  = x + SCREEN_STRETCH_X(18.0f);
             rect.top = y + SCREEN_SCALE_Y(18.0f);
             m_aFrontEndSprites[spriteId].Draw(rect, { 255, 255, 255, 255 });
         };
 
-        CRect mapRect(StretchX(60.0f), StretchY(60.0f), SCREEN_WIDTH - StretchX(60.0f), SCREEN_HEIGHT - StretchY(60.0f));
+        CRect mapRect(SCREEN_STRETCH_X(60.0f), SCREEN_STRETCH_Y(60.0f), SCREEN_WIDTH - SCREEN_STRETCH_X(60.0f), SCREEN_HEIGHT - SCREEN_STRETCH_Y(60.0f));
 
         if (m_nCurrentScreen == SCREEN_MAP && CPad::NewMouseControllerState .isMouseLeftButtonPressed && mapRect.IsPointInside(CVector2D(x, y))) {
             DrawCursor(FRONTEND_SPRITE_CROSS_HAIR);
@@ -416,9 +416,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     CFont::SetBackground(0, 0);
     CFont::SetProportional(1);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-    CFont::SetWrapx(RsGlobal.maximumWidth - 10);
+    CFont::SetWrapx(SCREEN_WIDTH - 10);
     CFont::SetRightJustifyWrap(10.0);
-    CFont::SetCentreSize(RsGlobal.maximumWidth);
+    CFont::SetCentreSize(SCREEN_WIDTH);
 
     if (m_nCurrentScreen == eMenuScreen::SCREEN_STATS) {
         CMenuManager::PrintStats();
@@ -435,46 +435,46 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP || !m_bMapLoaded) {
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
             CFont::SetFontStyle(eFontStyle::FONT_GOTHIC);
-            if (RsGlobal.maximumHeight == 448) {
-                h = 2.0999999;
+            if (SCREEN_HEIGHT == 448) {
+                h = 2.0999999f;
             } else {
-                h = RsGlobal.maximumHeight * 0.0046874997;
+                h = SCREEN_HEIGHT * 0.0046874997f;
             }
-            if (RsGlobal.maximumWidth == 640) {
-                CFont::SetScale(1.3, h);
+            if (SCREEN_WIDTH == 640) {
+                CFont::SetScale(1.3f, h);
             } else {
-                textb = RsGlobal.maximumWidth * 0.0020312499;
+                textb = SCREEN_WIDTH * 0.0020312499f;
                 CFont::SetScale(textb, h);
             }
             CFont::SetEdge(1);
             CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
             CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
-            if (RsGlobal.maximumHeight == 448) {
+            if (SCREEN_HEIGHT == 448) {
                 ya = 28.0;
             } else {
-                ya = RsGlobal.maximumHeight * 0.0625;
+                ya = SCREEN_HEIGHT * 0.0625f;
             }
-            if (RsGlobal.maximumWidth == 640) {
+            if (SCREEN_WIDTH == 640.0f) {
                 text = 40.0;
             } else {
-                text = RsGlobal.maximumWidth * 0.0625;
+                text = SCREEN_WIDTH * 0.0625f;
             }
             CFont::PrintString(text, ya, TheText.Get(aScreens[m_nCurrentScreen].m_szTitleName));
         }
     }
 
     if (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == 1) {
-        CFont::SetWrapx(RsGlobal.maximumWidth - 40);
+        CFont::SetWrapx(SCREEN_WIDTH - 40);
         CFont::SetFontStyle(FONT_SUBTITLES);
-        if (RsGlobal.maximumHeight == 448) {
-            yb = 1.2;
+        if (SCREEN_HEIGHT == 448.0f) {
+            yb = 1.2f;
         } else {
-            yb = RsGlobal.maximumHeight * 0.0026785715;
+            yb = SCREEN_HEIGHT * 0.0026785715f;
         }
-        if (RsGlobal.maximumWidth == 640) {
-            CFont::SetScaleForCurrentLanguage(0.48999998, yb);
+        if (SCREEN_WIDTH == 640.0f) {
+            CFont::SetScaleForCurrentLanguage(0.48999998f, yb);
         } else {
-            textc = RsGlobal.maximumWidth * 0.00076562498;
+            textc = SCREEN_WIDTH * 0.00076562498f;
             CFont::SetScaleForCurrentLanguage(textc, yb);
         }
         CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
@@ -511,19 +511,19 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
             break;
         }
-        if (RsGlobal.maximumHeight == 448) {
+        if (SCREEN_HEIGHT == 448.0f) {
             yc = 97.0;
         } else {
-            yc = RsGlobal.maximumHeight * 0.21651785;
+            yc = SCREEN_HEIGHT * 0.21651785f;
         }
-        if (RsGlobal.maximumWidth == 640) {
-            CFont::PrintString(60.0, yc, textOne);
+        if (SCREEN_WIDTH == 640.0f) {
+            CFont::PrintString(60.0f, yc, textOne);
         } else {
-            textd = RsGlobal.maximumWidth * 0.09375;
+            textd = SCREEN_WIDTH * 0.09375f;
             CFont::PrintString(textd, yc, textOne);
         }
-        CFont::SetWrapx(RsGlobal.maximumWidth - 10);
-        CFont::SetRightJustifyWrap(10.0);
+        CFont::SetWrapx(SCREEN_WIDTH - 10);
+        CFont::SetRightJustifyWrap(10.0f);
     }
     if (m_nCurrentScreen == SCREEN_CONTROLS_DEFINITION) {
         if (m_EditingControlOptions) {
@@ -541,16 +541,16 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         int MENU_DEFAULT_LINE_HEIGHT = itemType == 9 ? 20 : 30;
         if (itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
             CFont::SetFontStyle(FONT_MENU);
-            scaleY = CMenuManager::StretchY(1.0);
-            scaleX = CMenuManager::StretchX(0.7);
+            scaleY = SCREEN_STRETCH_Y(1.0f);
+            scaleX = SCREEN_STRETCH_X(0.7f);
             CFont::SetScale(scaleX, scaleY);
             CFont::SetEdge(2);
             CFont::SetDropColor(CRGBA(0, 0, 0, 255));
         } else {
             CFont::SetFontStyle(FONT_MENU);
             CFont::SetEdge(1);
-            scaleY = CMenuManager::StretchY(0.95);
-            scaleX = CMenuManager::StretchX(0.42);
+            scaleY = SCREEN_STRETCH_Y(0.95f);
+            scaleX = SCREEN_STRETCH_X(0.42f);
             CFont::SetScale(scaleX, scaleY);
             CFont::SetDropColor(CRGBA(0, 0, 0, 255));
         }
@@ -624,7 +624,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                     CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
                     aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
                     pTextToShow = (GxtChar*)TheText.Get(std::format("FEM_SL{}", i).c_str());
-                    yd = CMenuManager::StretchX(40.0);
+                    yd = SCREEN_STRETCH_X(40.0);
                 }
                 break;
             }
@@ -633,7 +633,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
                 aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
                 pTextToShow = (GxtChar*)TheText.Get((const char*)gGxtString);
-                yd = CMenuManager::StretchX(40.0);
+                yd = SCREEN_STRETCH_X(40.0);
                 break;
             }
             }
@@ -811,13 +811,13 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
         if (pTextToShow) {
             if ((int)CGenericGameStorage::ms_Slots[i - 1] > 0 || itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
-                CFont::PrintString(CMenuManager::StretchX(aScreens[m_nCurrentScreen].m_aItems[i].m_X), CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
+                CFont::PrintString(SCREEN_STRETCH_X(aScreens[m_nCurrentScreen].m_aItems[i].m_X), SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
                 // v1.01 +
             } else {
-                CFont::PrintString(CMenuManager::StretchX(25.0 + aScreens[m_nCurrentScreen].m_aItems[i].m_X), CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
+                CFont::PrintString(SCREEN_STRETCH_X(25.0f + aScreens[m_nCurrentScreen].m_aItems[i].m_X), SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
                 sprintf(gString, "%d:", i);
                 AsciiToGxtChar(gString, gGxtString);
-                CFont::PrintString(CMenuManager::StretchX(aScreens[m_nCurrentScreen].m_aItems[i].m_X), CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), gGxtString);
+                CFont::PrintString(SCREEN_STRETCH_X(aScreens[m_nCurrentScreen].m_aItems[i].m_X), SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), gGxtString);
             }
         }
 
@@ -826,13 +826,13 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             CFont::SetEdge(1);
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
             if (itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
-                CFont::SetScale(CMenuManager::StretchX((m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && i == 5) ? 0.56f : 0.7f), CMenuManager::StretchY(1.0f));
+                CFont::SetScale(SCREEN_STRETCH_X((m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && i == 5) ? 0.56f : 0.7f), SCREEN_STRETCH_Y(1.0f));
             } else {
-                CFont::SetScale(CMenuManager::StretchX(0.35f), CMenuManager::StretchY(0.95f));
+                CFont::SetScale(SCREEN_STRETCH_X(0.35f), SCREEN_STRETCH_Y(0.95f));
             }
 
             // Calculate position using screen macros
-            float yPos = CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y);
+            float yPos = SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y);
             float xPos = SCREEN_STRETCH_FROM_RIGHT(40.0f);
             CFont::PrintString(xPos, yPos, pTextToShow_RightColumn);
         }
@@ -843,15 +843,15 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             if (!yd) {
                 int align = aScreens[m_nCurrentScreen].m_aItems[i].m_nAlign;
 
-                const float scaledPosX = CMenuManager::StretchX(aScreens[m_nCurrentScreen].m_aItems[i].m_X);
+                const float scaledPosX = SCREEN_STRETCH_X(aScreens[m_nCurrentScreen].m_aItems[i].m_X);
                 yd                     = [&]() -> float {
                     switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nAlign) {
                     case eMenuAlign::MENU_ALIGN_LEFT:
-                        return scaledPosX - CMenuManager::StretchX(40.0f);
+                        return scaledPosX - SCREEN_STRETCH_X(40.0f);
                     case eMenuAlign::MENU_ALIGN_RIGHT:
-                        return CMenuManager::StretchX(40.0f) + scaledPosX;
+                        return SCREEN_STRETCH_X(40.0f) + scaledPosX;
                     default:
-                        return scaledPosX - CMenuManager::StretchX(40.0f) - CFont::GetStringWidth(pTextToShow, 1, 0) * 0.5f;
+                        return scaledPosX - SCREEN_STRETCH_X(40.0f) - CFont::GetStringWidth(pTextToShow, 1, 0) * 0.5f;
                     }
                 }();
             }
@@ -859,12 +859,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             // Draw highlight rectangle for selected item if map is loaded
             if (m_bMapLoaded) {
                 if (m_nCurrentScreen != eMenuScreen::SCREEN_LOAD_FIRST_SAVE && m_nCurrentScreen != eMenuScreen::SCREEN_DELETE_FINISHED && m_nCurrentScreen != eMenuScreen::SCREEN_SAVE_DONE_1) {
-                    float buttonPosY = CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y);
+                    float buttonPosY = SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y);
                     CRect rect(
                         yd,                                        // left
-                        buttonPosY - CMenuManager::StretchX(5.0f), // top
-                        yd + CMenuManager::StretchX(32.0f),        // right
-                        buttonPosY + CMenuManager::StretchX(47.0f) // bottom
+                        buttonPosY - SCREEN_STRETCH_X(5.0f), // top
+                        yd + SCREEN_STRETCH_X(32.0f),        // right
+                        buttonPosY + SCREEN_STRETCH_X(47.0f) // bottom
                     );
                     m_aFrontEndSprites[0].Draw(rect, CRGBA(255, 255, 255, 255));
                 }
@@ -904,12 +904,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         // Handle sliders
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
         case eMenuAction::MENU_ACTION_BRIGHTNESS: { // Brightness slider
-            const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_PrefsBrightness * 0.0026041667f, StretchX(3.0f));
+            const float sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), m_PrefsBrightness * 0.0026041667f, SCREEN_STRETCH_X(3.0f));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                if (CheckHover(0, sliderFieldPos - SCREEN_STRETCH_X(3.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
                     m_MouseInBounds = 7;
-                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16
+                } else if (CheckHover(SCREEN_STRETCH_X(3.0f) + sliderFieldPos, SCREEN_STRETCH_X(SCREEN_WIDTH), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < SCREEN_STRETCH_X(500.0f) ? 16 : (m_nMousePosY < SCREEN_STRETCH_Y(125.0f) || m_nMousePosY > SCREEN_STRETCH_Y(150.0f)) ? 16
                                                                                                                                                   : 6;
                 } else {
                     m_MouseInBounds = 16;
@@ -918,12 +918,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_RADIO_VOL: { // Radio volume slider
-            const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(95.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nRadioVolume * 0.015625f, StretchX(3.0f));
+            const float sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(95.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), m_nRadioVolume * 0.015625f, SCREEN_STRETCH_X(3.0f));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(95.0f), StretchY(120.0f))) {
+                if (CheckHover(0, sliderFieldPos - SCREEN_STRETCH_X(3.0f), SCREEN_STRETCH_Y(95.0f), SCREEN_STRETCH_Y(120.0f))) {
                     m_MouseInBounds = 11;
-                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(95.0f), StretchY(120.0f))) {
-                    m_MouseInBounds = StretchX(500.0f) <= m_nMousePosX && StretchY(95.0f) <= m_nMousePosY && StretchY(120.0f) >= m_nMousePosY ? 10 : 16;
+                } else if (CheckHover(SCREEN_STRETCH_X(3.0f) + sliderFieldPos, SCREEN_STRETCH_X(SCREEN_WIDTH), SCREEN_STRETCH_Y(95.0f), SCREEN_STRETCH_Y(120.0f))) {
+                    m_MouseInBounds = SCREEN_STRETCH_X(500.0f) <= m_nMousePosX && SCREEN_STRETCH_Y(95.0f) <= m_nMousePosY && SCREEN_STRETCH_Y(120.0f) >= m_nMousePosY ? 10 : 16;
                 } else {
                     m_MouseInBounds = 16;
                 }
@@ -931,12 +931,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_SFX_VOL: { // SFX volume slider
-            const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nSfxVolume * 0.015625f, StretchX(3.0f));
+            const float sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), m_nSfxVolume * 0.015625f, SCREEN_STRETCH_X(3.0f));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                if (CheckHover(0, sliderFieldPos - SCREEN_STRETCH_X(3.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
                     m_MouseInBounds = 13;
-                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16
+                } else if (CheckHover(SCREEN_STRETCH_X(3.0f) + sliderFieldPos, SCREEN_STRETCH_X(SCREEN_WIDTH), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < SCREEN_STRETCH_X(500.0f) ? 16 : (m_nMousePosY < SCREEN_STRETCH_Y(125.0f) || m_nMousePosY > SCREEN_STRETCH_Y(150.0f)) ? 16
                                                                                                                                                   : 12;
                 } else {
                     m_MouseInBounds = 16;
@@ -945,12 +945,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_DRAW_DIST: { // Draw distance slider
-            const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), (m_fDrawDistance - 0.92500001f) * 1.1428572f, StretchX(3.0f));
+            const float sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), (m_fDrawDistance - 0.92500001f) * 1.1428572f, SCREEN_STRETCH_X(3.0f));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                if (CheckHover(0, sliderFieldPos - SCREEN_STRETCH_X(3.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
                     m_MouseInBounds = 9;
-                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16
+                } else if (CheckHover(SCREEN_STRETCH_X(3.0f) + sliderFieldPos, SCREEN_STRETCH_X(SCREEN_WIDTH), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < SCREEN_STRETCH_X(500.0f) ? 16 : (m_nMousePosY < SCREEN_STRETCH_Y(125.0f) || m_nMousePosY > SCREEN_STRETCH_Y(150.0f)) ? 16
                                                                                                                                                   : 8;
                 } else {
                     m_MouseInBounds = 16;
@@ -959,12 +959,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_MOUSE_SENS: { // Mouse sensitivity slider
-            const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), CCamera::m_fMouseAccelHorzntl / 0.0049999999, StretchX(3.0f));
+            const float sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), CCamera::m_fMouseAccelHorzntl / 0.0049999999f, SCREEN_STRETCH_X(3.0f));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                if (CheckHover(0, sliderFieldPos - SCREEN_STRETCH_X(3.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
                     m_MouseInBounds = 15;
-                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(RsGlobal.maximumWidth), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : 14;
+                } else if (CheckHover(SCREEN_STRETCH_X(3.0f) + sliderFieldPos, SCREEN_STRETCH_X(SCREEN_WIDTH), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < SCREEN_STRETCH_X(500.0f) ? 16 : 14;
                 } else {
                     m_MouseInBounds = 16;
                 }
@@ -979,7 +979,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             buttonTextPosY = (29 * CFont::GetNumberLinesNoPrint(60.0, buttonTextPosY, (const GxtChar*)pTextToShow)) + buttonTextPosY;
         }
         if (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType == 32) {
-            buttonTextPosY = buttonTextPosY + 70.0;
+            buttonTextPosY = buttonTextPosY + 70.0f;
         }
     }
     switch (m_nCurrentScreen) {
@@ -1023,41 +1023,41 @@ void CMenuManager::DrawWindow(const CRect& coords, const char* key, uint8 color,
 void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* title, const char* message, eFontAlignment alignment) {
     // return plugin::CallMethod<0x578F50, CMenuManager*, float, float, float, Const char*, Const char*, eFontAlignment>(this, x, y, a4, str, message, alignment);
 
-    CFont::SetWrapx(x + wrap - StretchX(10.0f));
-    CFont::SetRightJustifyWrap(StretchX(10.0f) + wrap);
-    CFont::SetCentreSize(wrap - 2.0f * StretchX(10.0f));
+    CFont::SetWrapx(x + wrap - SCREEN_STRETCH_X(10.0f));
+    CFont::SetRightJustifyWrap(SCREEN_STRETCH_X(10.0f) + wrap);
+    CFont::SetCentreSize(wrap - 2.0f * SCREEN_STRETCH_X(10.0f));
     CFont::SetFontStyle(FONT_SUBTITLES);
     CFont::SetOrientation(alignment);
-    CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
+    CFont::SetScale(SCREEN_STRETCH_X(0.7f), SCREEN_STRETCH_Y(1.0f));
 
     CRect rt;
     CFont::GetTextRect(&rt, x, y, TheText.Get(message));
     rt.left -= 4.0f;
-    rt.bottom  += StretchY(22.0f);
+    rt.bottom  += SCREEN_STRETCH_Y(22.0f);
     CSprite2d::DrawRect(rt, {0, 0, 0, 255});
     CFont::SetColor({225, 225, 225, 255});
     CFont::SetDropColor({0, 0, 0, 255});
     CFont::SetEdge(2);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetFontStyle(FONT_GOTHIC);
-    CFont::SetScaleForCurrentLanguage(StretchX(1.1f), StretchY(1.4f));
+    CFont::SetScaleForCurrentLanguage(SCREEN_STRETCH_X(1.1f), SCREEN_STRETCH_Y(1.4f));
     CFont::SetWrapx(rt.right);
 
     if (title && *title) {
-        CFont::PrintString(rt.left + StretchX(20.0f), rt.top - StretchY(16.0f), TheText.Get(title));
+        CFont::PrintString(rt.left + SCREEN_STRETCH_X(20.0f), rt.top - SCREEN_STRETCH_Y(16.0f), TheText.Get(title));
     }
 
     if (message && *message) {
-        CFont::SetWrapx(x + wrap - StretchX(10.0f));
-        CFont::SetRightJustifyWrap(StretchX(10.0f) + wrap);
-        CFont::SetCentreSize(wrap - 2.0f * StretchX(10.0f));
+        CFont::SetWrapx(x + wrap - SCREEN_STRETCH_X(10.0f));
+        CFont::SetRightJustifyWrap(SCREEN_STRETCH_X(10.0f) + wrap);
+        CFont::SetCentreSize(wrap - 2.0f * SCREEN_STRETCH_X(10.0f));
         CFont::SetFontStyle(FONT_SUBTITLES);
         CFont::SetOrientation(alignment);
-        CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
+        CFont::SetScale(SCREEN_STRETCH_X(0.7f), SCREEN_STRETCH_Y(1.0f));
 
         CFont::SetDropShadowPosition(2);
         CFont::SetDropColor({ 0, 0, 0, 255 });
-        CFont::PrintString(x, y + StretchY(15.0f), TheText.Get(message));
+        CFont::PrintString(x, y + SCREEN_STRETCH_Y(15.0f), TheText.Get(message));
     }
 }
 
@@ -1092,14 +1092,14 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
         float posX = 0.0f;
         
         for (auto actionIndex : std::views::iota(static_cast<int>(eControllerAction::NUM_OF_MIN_CONTROLLER_ACTIONS), static_cast<int>(maxActions))) {
-            posX = StretchX(240.0f);
-            float posY = StretchY(float(startingYPos));
+            posX = SCREEN_STRETCH_X(240.0f);
+            float posY = SCREEN_STRETCH_Y(float(startingYPos));
             
             for (const auto order : {eContSetOrder::FIRST, eContSetOrder::SECOND, eContSetOrder::THIRD, eContSetOrder::FOURTH}) {
                 const auto buttonText = ControlsManager.GetControllerSettingText(static_cast<eControllerAction>(actionIndex), order);
                 if (buttonText) {
                     CFont::PrintString(posX, posY, buttonText);
-                    posX += StretchX(75.0f);
+                    posX += SCREEN_STRETCH_X(75.0f);
                 }
             }
             
@@ -1126,7 +1126,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
             auto comboText = CControllerConfigManager::GetButtonComboText(m_ListSelection);
             if (comboText) {
                 CFont::SetColor({200, 50, 50, 255});
-                CFont::PrintString(posX, StretchY(float(drawTitle + 10)), comboText);
+                CFont::PrintString(posX, SCREEN_STRETCH_Y(float(drawTitle + 10)), comboText);
                 }
                 }*/
             }
@@ -1137,7 +1137,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
     int   controllerAction;
     int   actionIndex = 0;
     float currentY;
-    int   currentX;
+    float currentX;
     bool  hasControl;
 
     const uint8 verticalSpacing = m_RedefiningControls == 1 ? 13 : (( m_ControlMethod == 1 ) ? 11 : 15);
@@ -1246,11 +1246,11 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::PED_LOCK_TARGET,                   14 },
     };
 
-    currentY = StretchY(float(verticalOffset));
+    currentY = SCREEN_STRETCH_Y(float(verticalOffset));
 
     // Main loop - process each action
     while (actionIndex < maxActions) {
-        currentX         = StretchX(270.0f);
+        currentX         = SCREEN_STRETCH_X(270.0f);
         hasControl       = false;
         controllerAction = 0;
 
@@ -1278,10 +1278,10 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         if (m_ListSelection == actionIndex && !isOppositeScreen) {
             CSprite2d::DrawRect(
                 CRect(
-                    StretchX(260.0f),
-                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.0f),
-                    SCREEN_WIDTH - StretchX(20.0f),
-                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.0f + 10.0f)
+                    SCREEN_STRETCH_X(260.0f),
+                    SCREEN_STRETCH_Y(actionIndex * verticalSpacing + verticalOffset + 1.0f),
+                    SCREEN_WIDTH - SCREEN_STRETCH_X(20.0f),
+                    SCREEN_STRETCH_Y(actionIndex * verticalSpacing + verticalOffset + 1.0f + 10.0f)
                 ),
                 { 172, 203, 241, 255 }
             );
@@ -1290,9 +1290,9 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 
         // Set text properties
         CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-        CFont::SetScale(StretchX(0.3f), StretchY(0.6f));
+        CFont::SetScale(SCREEN_STRETCH_X(0.3f), SCREEN_STRETCH_Y(0.6f));
         CFont::SetFontStyle(FONT_SUBTITLES);
-        CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
+        CFont::SetWrapx(SCREEN_STRETCH_X(100.0f) + SCREEN_WIDTH);
 
         // Draw control bindings
         int controlOrderIndex = 1;
@@ -1307,7 +1307,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                     if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, buttonText);
                     }
-                    currentX += StretchX(75.0f);
+                    currentX += SCREEN_STRETCH_X(75.0f);
                     hasControl = true;
                 }
                 controlOrderIndex++;
@@ -1366,7 +1366,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         }
 
         // Move to next line and action
-        currentY = StretchY(float(verticalOffset + (actionIndex + 1) * verticalSpacing));
+        currentY = SCREEN_STRETCH_Y(float(verticalOffset + (actionIndex + 1) * verticalSpacing));
         actionIndex++;
     }
 }
@@ -1383,24 +1383,24 @@ void CMenuManager::DrawControllerSetupScreen() {
 
     // 0x57F68E
     CFont::SetFontStyle(FONT_GOTHIC);
-    CFont::SetScale(StretchX(0.9f), StretchY(1.7f));
+    CFont::SetScale(SCREEN_STRETCH_X(0.9f), SCREEN_STRETCH_Y(1.7f));
     CFont::SetEdge(0);
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
     CFont::PrintString(
-        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_ControlMethod ? "FET_CCN" : "FET_SCN")
+        SCREEN_WIDTH - SCREEN_STRETCH_X(48.0f), SCREEN_STRETCH_Y(11.0f), TheText.Get(m_ControlMethod ? "FET_CCN" : "FET_SCN")
     );
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::PrintString(
-        StretchX(48.0f), StretchY(11.0f), TheText.Get(m_RedefiningControls ? "FET_CCR" : "FET_CFT")
+        SCREEN_STRETCH_X(48.0f), SCREEN_STRETCH_Y(11.0f), TheText.Get(m_RedefiningControls ? "FET_CCR" : "FET_CFT")
     );
-    CSprite2d::DrawRect({ StretchX(20.0f), StretchY(50.0f), SCREEN_WIDTH - StretchX(20.0f), SCREEN_HEIGHT - StretchY(50.0f) }, { 49, 101, 148, 100 });
+    CSprite2d::DrawRect({ SCREEN_STRETCH_X(20.0f), SCREEN_STRETCH_Y(50.0f), SCREEN_WIDTH - SCREEN_STRETCH_X(20.0f), SCREEN_HEIGHT - SCREEN_STRETCH_Y(50.0f) }, { 49, 101, 148, 100 });
 
     // 0x57F8C0
     for (auto i = 0u; i < maxControlActions; i++) {
         if (!m_EditingControlOptions) {
-            if (StretchX(20.0f) < m_nMousePosX && StretchX(600.0f) > m_nMousePosX) {
-                if (StretchY(i * verticalSpacing + 69.0f) < m_nMousePosY && StretchY(verticalSpacing * (i + 1) + 69.0f) > m_nMousePosY) {
+            if (SCREEN_STRETCH_X(20.0f) < m_nMousePosX && SCREEN_STRETCH_X(600.0f) > m_nMousePosX) {
+                if (SCREEN_STRETCH_Y(i * verticalSpacing + 69.0f) < m_nMousePosY && SCREEN_STRETCH_Y(verticalSpacing * (i + 1) + 69.0f) > m_nMousePosY) {
                     m_CurrentMouseOption = i;
                     if (m_nOldMousePosX != m_nMousePosX || m_nOldMousePosY != m_nMousePosY) {
                         m_ListSelection = i;
@@ -1416,27 +1416,27 @@ void CMenuManager::DrawControllerSetupScreen() {
         }
         // 0x57F9E1
         CFont::SetColor({ 74, 90, 107, 255 });
-        CFont::SetScale(StretchX(0.4f), StretchY(0.6f));
+        CFont::SetScale(SCREEN_STRETCH_X(0.4f), SCREEN_STRETCH_Y(0.6f));
         CFont::SetFontStyle(FONT_MENU);
-        CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
-        CFont::PrintString(StretchX(40.0f), StretchY(i * verticalSpacing + 69.0f), TheText.Get(keys[m_RedefiningControls ? ControllerActionsAvailableInCar[i] : ControllerActionsAvailableOnFoot[i]]));
+        CFont::SetWrapx(SCREEN_STRETCH_X(100.0f) + SCREEN_WIDTH);
+        CFont::PrintString(SCREEN_STRETCH_X(40.0f), SCREEN_STRETCH_Y(i * verticalSpacing + 69.0f), TheText.Get(keys[m_RedefiningControls ? ControllerActionsAvailableInCar[i] : ControllerActionsAvailableOnFoot[i]]));
     }
 
     // 0x57FAF9
     DrawControllerBound(0x45u, false);
     if (!m_EditingControlOptions) {
-        CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
-        const auto color = StretchX(
+        CFont::SetScale(SCREEN_STRETCH_X(0.7f), SCREEN_STRETCH_Y(1.0f));
+        const auto color = SCREEN_STRETCH_X(
             CFont::GetStringWidth(TheText.Get("FEDS_TB"), true, false)
         );
-        if (StretchX(35.0f) + color <= m_nMousePosX
-            || StretchX(15.0f) >= m_nMousePosX
-            || SCREEN_HEIGHT - StretchY(33.0f) >= m_nMousePosY
-            || SCREEN_HEIGHT - StretchY(10.0f) <= m_nMousePosY) {
-            if (StretchX(20.0f) >= m_nMousePosX
-                || StretchX(600.0f) <= m_nMousePosX
-                || StretchY(48.0f) >= m_nMousePosY
-                || SCREEN_HEIGHT - StretchY(33.0f) <= m_nMousePosY) {
+        if (SCREEN_STRETCH_X(35.0f) + color <= m_nMousePosX
+            || SCREEN_STRETCH_X(15.0f) >= m_nMousePosX
+            || SCREEN_HEIGHT - SCREEN_STRETCH_Y(33.0f) >= m_nMousePosY
+            || SCREEN_HEIGHT - SCREEN_STRETCH_Y(10.0f) <= m_nMousePosY) {
+            if (SCREEN_STRETCH_X(20.0f) >= m_nMousePosX
+                || SCREEN_STRETCH_X(600.0f) <= m_nMousePosX
+                || SCREEN_STRETCH_Y(48.0f) >= m_nMousePosY
+                || SCREEN_HEIGHT - SCREEN_STRETCH_Y(33.0f) <= m_nMousePosY) {
                 m_MouseInBounds = 16;
             } else {
                 m_MouseInBounds = 4;
@@ -1448,13 +1448,13 @@ void CMenuManager::DrawControllerSetupScreen() {
 
     // 0x57FCC4
     CFont::SetFontStyle(FONT_MENU);
-    CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
+    CFont::SetScale(SCREEN_STRETCH_X(0.7f), SCREEN_STRETCH_Y(1.0f));
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetEdge(0);
     CFont::SetColor({ 74, 90, 107, 255 });
     CFont::PrintString(
-        StretchX(33.0f),
-        SCREEN_HEIGHT - StretchY(38.0f),
+        SCREEN_STRETCH_X(33.0f),
+        SCREEN_HEIGHT - SCREEN_STRETCH_Y(38.0f),
         TheText.Get("FEDS_TB")
     );
 }
@@ -1472,8 +1472,8 @@ void CMenuManager::DrawControllerSetupScreen() {
  * @see Audio Setup -> Radio or SFX volume
  * @addr 0x576860
  */
-int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing) {
-    // return plugin::CallMethodAndReturn<int32, 0x576860, CMenuManager*, float, float, float, float, float, float, int32>(this, x, y, h1, h2, length, value, size);
+float CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, float spacing) {
+    // return plugin::CallMethodAndReturn<int32, 0x576860, CMenuManager*, float, float, float, float, float, float, float>(this, x, y, h1, h2, length, value, size);
 
     const auto BARS = 16;
     const auto COLOR_ON  = CRGBA(172, 203, 241, 255); // Fresh Air
@@ -1482,7 +1482,7 @@ int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float le
 
     CRGBA color;
 
-    auto lastActiveBarX = 0;
+    auto lastActiveBarX = 0.0f;
     for (auto i = 0; i < BARS; i++) {
         const auto fi = float(i);
 
@@ -1490,7 +1490,7 @@ int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float le
 
         if (fi / (float)BARS + 1 / (BARS * 2.f) < value) {
             color = COLOR_ON;
-            lastActiveBarX = (int32)curBarX;
+            lastActiveBarX = (float)curBarX;
         } else {
             color = COLOR_OFF;
         }
@@ -1504,7 +1504,7 @@ int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float le
         float bottom = y + maxBarHeight;
 
         // Useless shadow for stripe. Drawing black on black = nothing. Change color to CRGBA(40, 40, 40, 200) to test
-        CSprite2d::DrawRect(CRect(left + StretchX(2.0f), top + StretchY(2.0f), right + StretchX(2.0f), bottom + StretchY(2.0f)), COLOR_SHADOW);
+        CSprite2d::DrawRect(CRect(left + SCREEN_STRETCH_X(2.0f), top + SCREEN_STRETCH_Y(2.0f), right + SCREEN_STRETCH_X(2.0f), bottom + SCREEN_STRETCH_Y(2.0f)), COLOR_SHADOW);
         CSprite2d::DrawRect(CRect(left, top, right, bottom), color);
     }
     return lastActiveBarX;
