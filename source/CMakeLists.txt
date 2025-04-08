@@ -2,7 +2,7 @@
 # Game features
 #--------------------------------------------------------------------
 option(${RE_PROJECT}_WITH_OPENAL "Use OpenAL" OFF)
-option(${RE_PROJECT}_WITH_SDL3 "Use SDL3 instead of DInput" OFF)
+option(${RE_PROJECT}_WITH_SDL3 "Use SDL3" OFF)
 
 if (${RE_PROJECT}_WITH_SDL3)
     add_compile_definitions(NOTSA_USE_SDL3)
