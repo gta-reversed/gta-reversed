@@ -202,9 +202,9 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
             auto slot = CGenericGameStorage::ms_Slots[m_nCurrentScreenItem - 1];
             m_bSelectedSaveGame = m_nCurrentScreenItem - 1;
 
-            if (m_nCurrentScreen == SCREEN_DELETE_GAME && slot != eSlotState::EMPTY) {
+            if (m_nCurrentScreen == SCREEN_DELETE_GAME && slot != eSlotState::SLOT_FREE) {
                 SwitchToNewScreen(SCREEN_DELETE_GAME_ASK);
-            } else if (slot == eSlotState::IN_USE) {
+            } else if (slot == eSlotState::SLOT_FILLED) {
                 SwitchToNewScreen(SCREEN_LOAD_GAME_ASK);
             }
         }

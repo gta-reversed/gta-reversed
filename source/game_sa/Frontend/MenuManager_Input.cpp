@@ -107,7 +107,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
             uint8 menuType = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType;
             
             // Audio feedback based on menu type and status
-            if (field_F4 || menuType < 1 || menuType > 8 || !dword_C16EB8[m_nCurrentScreenItem]) {
+            if (field_F4 || menuType < 1 || menuType > 8 || CGenericGameStorage::ms_Slots[m_nCurrentScreenItem - 1] == eSlotState::SLOT_FILLED) {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);
             } else {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR, 0.0, 1.0);

@@ -10,9 +10,6 @@
 #undef InsertMenu
 #endif
 
-// static int& dword_C16EB8 = *reinterpret_cast<int*>(0xC16EB8);
-static int dword_C16EB8[12];
-
 typedef uint8 MenuId;
 
 class CMenuSystem {
