@@ -41,14 +41,14 @@ void CRoadBlocks::ClearScriptRoadBlocks() {
 // 0x461020
 // Returns true if cleared successfully.
 bool CRoadBlocks::ClearSpaceForRoadBlockObject(CVector cornerA, CVector cornerB){
-    int16 numObjects{};
-    CObject* objects[2]{};
+    int16 numEntities{};
+    CEntity* entities[2]{};
     CWorld::FindObjectsIntersectingCube(
         cornerA,
         cornerB,
-        &numObjects,
-        2,
-        reinterpret_cast<CEntity**>(objects),
+        &numEntities,
+        std::size(entities),
+        entities,
         false,
         true,
         true,
@@ -56,8 +56,8 @@ bool CRoadBlocks::ClearSpaceForRoadBlockObject(CVector cornerA, CVector cornerB)
         false
     );
 
-    if (numObjects > 2 || numObjects <= 0) {
-        return numObjects <= 0;
+    if (numEntities > std::size(entities) || numEntities <= 0) {
+        return numEntities <= 0;
     }
 
     const auto Remove = [](CEntity* e) {
@@ -65,25 +65,25 @@ bool CRoadBlocks::ClearSpaceForRoadBlockObject(CVector cornerA, CVector cornerB)
         delete e;
     };
 
-    for (auto* obj : objects | rngv::take(numObjects)) {
-        switch (obj->GetType()) {
+    for (auto* entity : entities | rngv::take(numEntities)) {
+        switch (entity->GetType()) {
         case ENTITY_TYPE_VEHICLE:
-            if (auto* v = obj->AsVehicle(); !v->CanBeDeleted()) {
+            if (auto* v = entity->AsVehicle(); !v->CanBeDeleted()) {
                 return false;
             } else if (!v->vehicleFlags.bCreateRoadBlockPeds) {
                 Remove(v);
             }
             break;
         case ENTITY_TYPE_PED:
-            if (auto* p = obj->AsPed(); p->CanBeDeleted()) {
+            if (auto* p = entity->AsPed(); p->CanBeDeleted()) {
                 Remove(p);
             } else {
                 return false;
             }
             break;
         case ENTITY_TYPE_OBJECT:
-            if (obj->CanBeDeleted() && obj->m_nObjectType != OBJECT_GAME) {
-                Remove(obj);
+            if (auto* o = entity->AsObject(); o->CanBeDeleted() && o->m_nObjectType != OBJECT_GAME) {
+                Remove(o);
             } else {
                 return false;
             }
@@ -132,7 +132,7 @@ void CRoadBlocks::GenerateRoadBlockCopsForCar(CVehicle* vehicle, int32 pedsPosit
             break;
         }
     } else {
-        if (type >= PED_TYPE_GANG1 && type <= PED_TYPE_GANG10) {
+        if (IsPedTypeGang(type)) {
             bool found{};
             for (auto i = 0; i < TOTAL_GANGS; i++) {
                 if (CPopCycle::m_pCurrZoneInfo->GangStrength[i]) {
@@ -151,18 +151,18 @@ void CRoadBlocks::GenerateRoadBlockCopsForCar(CVehicle* vehicle, int32 pedsPosit
     }
 
     static constexpr CVector PLACEMENTS[] = {
-        { -1.5, +1.9, 0.0 },
-        { -1.5, -2.6, 0.0 },
-        { +1.5, +1.9, 0.0 },
-        { +1.5, -2.6, 0.0 },
-        { -1.5,  0.0, 0.0 },
-        { +1.5,  0.0, 0.0 },
-        {  0.0, +3.2, 0.0 },
-        { +1.5, -1.8, 0.0 },
-        {  0.0, +3.2, 0.0 },
-        { -1.5, -1.8, 0.0 },
-        { -1.5,  0.0, 0.0 },
-        { +1.5,  0.0, 0.0 } 
+        { -1.5f, +1.9f, 0.0f },
+        { -1.5f, -2.6f, 0.0f },
+        { +1.5f, +1.9f, 0.0f },
+        { +1.5f, -2.6f, 0.0f },
+        { -1.5f,  0.0f, 0.0f },
+        { +1.5f,  0.0f, 0.0f },
+        {  0.0f, +3.2f, 0.0f },
+        { +1.5f, -1.8f, 0.0f },
+        {  0.0f, +3.2f, 0.0f },
+        { -1.5f, -1.8f, 0.0f },
+        { -1.5f,  0.0f, 0.0f },
+        { +1.5f,  0.0f, 0.0f }
     };
 
     for (auto i = 0u; i < vehicle->m_nNumPedsForRoadBlock; i++) {
