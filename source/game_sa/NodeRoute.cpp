@@ -10,9 +10,9 @@ void CNodeRoute::InjectHooks() {
 }
 
 void* CNodeRoute::operator new(uint32 size) {
-    return CPools::GetNodeRoutePool()->New();
+    return GetNodeRoutePool()->New();
 }
 
 void CNodeRoute::operator delete(void* ptr, size_t sz) {
-    CPools::GetNodeRoutePool()->Delete(reinterpret_cast<CNodeRoute*>(ptr));
+    GetNodeRoutePool()->Delete(reinterpret_cast<CNodeRoute*>(ptr));
 }

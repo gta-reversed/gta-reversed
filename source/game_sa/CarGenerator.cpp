@@ -335,7 +335,7 @@ void CCarGenerator::DoInternalProcessing()
         m_nSecondaryColor = vehicle->m_nSecondaryColor;
     }
     CVisibilityPlugins::SetClumpAlpha(vehicle->m_pRwClump, 0);
-    m_nVehicleHandle = CPools::GetVehiclePool()->GetRef(vehicle);
+    m_nVehicleHandle = GetVehiclePool()->GetRef(vehicle);
 
     // Originally, R* did a signed comparison between unsigned \r m_nGenerateCount and signed 32bit constant -1.
     // This made the generated code to always skip the decrementation.
@@ -367,7 +367,7 @@ void CCarGenerator::Process()
 
     if (m_nVehicleHandle != -1)
     {
-        auto vehicle = CPools::GetVehiclePool()->GetAtRef(m_nVehicleHandle);
+        auto vehicle = GetVehiclePool()->GetAtRef(m_nVehicleHandle);
         if (!vehicle)
             m_nVehicleHandle = -1;
         else if (vehicle->m_nStatus == eEntityStatus::STATUS_PLAYER)

@@ -850,8 +850,8 @@ CPed* CPlayerPed::FindPedToAttack() {
     float closestDistance = std::numeric_limits<float>::max();
 
     CPedGroupMembership& membership = GetPlayerGroup().GetMembership();
-    for (int i = 0; CPools::GetPedPool()->GetSize(); i++) {
-        CPed* ped = CPools::GetPedPool()->GetAt(i);
+    for (int i = 0; GetPedPool()->GetSize(); i++) {
+        CPed* ped = GetPedPool()->GetAt(i);
         if (!ped)
             continue;
         if (ped->IsPlayer())

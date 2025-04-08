@@ -1324,7 +1324,7 @@ void CRadar::Draw3dMarkers() {
 
         switch (trace.m_nBlipType) {
         case BLIP_CAR: {
-            const auto vehicle = CPools::GetVehiclePool()->GetAtRef(trace.m_nEntityHandle);
+            const auto vehicle = GetVehiclePool()->GetAtRef(trace.m_nEntityHandle);
             assert(vehicle); // NOTSA
 
             const auto posn = [vehicle] {
@@ -1340,7 +1340,7 @@ void CRadar::Draw3dMarkers() {
             break;
         }
         case BLIP_CHAR: {
-            const auto ped = CPools::GetPedPool()->GetAtRef(trace.m_nEntityHandle);
+            const auto ped = GetPedPool()->GetAtRef(trace.m_nEntityHandle);
             assert(ped); // NOTSA
 
             PutMarkerCone(coneHandle, ped->GetRealPosition() + CVector{0.0f, 0.0f, 2.7f}, 1.2f, color);
@@ -1351,7 +1351,7 @@ void CRadar::Draw3dMarkers() {
             const auto posn = [&trace]() {
                 CVector ret{};
                 if (trace.m_nBlipType == BLIP_OBJECT) {
-                    if (const auto obj = CPools::GetObjectPool()->GetAtRef(trace.m_nEntityHandle)) {
+                    if (const auto obj = GetObjectPool()->GetAtRef(trace.m_nEntityHandle)) {
                         const auto bbMaxZ = obj->GetColModel()->GetBoundingBox().m_vecMax.z;
                         ret = obj->GetPosition() + CVector{0.0f, 0.0f, bbMaxZ};
                     } else {
@@ -1398,11 +1398,11 @@ void CRadar::SetRadarMarkerState(int32 counter, bool flag) {
         const auto handle = ms_RadarTrace[counter].m_nEntityHandle;
         switch (ms_RadarTrace[counter].m_nBlipType) {
         case BLIP_CAR:
-            return CPools::GetVehiclePool()->GetAt(handle);
+            return GetVehiclePool()->GetAt(handle);
         case BLIP_CHAR:
-            return CPools::GetPedPool()->GetAt(handle);
+            return GetPedPool()->GetAt(handle);
         case BLIP_OBJECT:
-            return CPools::GetObjectPool()->GetAt(handle);
+            return GetObjectPool()->GetAt(handle);
         default:
             return nullptr;
         }
@@ -1774,7 +1774,7 @@ void CRadar::ClearBlipForEntity(eBlipType blipType, int32 entityHandle) {
 }
 
 void CRadar::ClearBlipForEntity(CPed* ped) {
-    ClearBlipForEntity(BLIP_CHAR, CPools::GetPedPool()->GetIndex(ped));
+    ClearBlipForEntity(BLIP_CHAR, GetPedPool()->GetIndex(ped));
 }
 
 /*

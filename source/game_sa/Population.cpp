@@ -793,7 +793,7 @@ int32 CPopulation::FindNumberOfPedsWeCanPlaceOnBenches() {
 
 // 0x6122C0
 void CPopulation::RemoveAllRandomPeds() {
-    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
+    for (auto& ped : GetPedPool()->GetAllValid()) {
         if (ped.CanBeDeleted()) {
             RemovePed(&ped);
         }
@@ -1478,7 +1478,7 @@ bool CPopulation::AddPedAtAttractor(eModelID modelIndex, C2dEffectPedAttractor* 
 // NOTSA: Added option to use `ePedType::NONE` as valid value to ignore the ped type (this way you can get the distance of the nearest ped of any type)
 float CPopulation::FindDistanceToNearestPedOfType(ePedType pedType, CVector posn) {
     float closest3DSq = sq(10'000'000.f);
-    for (CPed& ped : CPools::GetPedPool()->GetAllValid()) {
+    for (CPed& ped : GetPedPool()->GetAllValid()) {
         if (pedType != PED_TYPE_NONE /*notsa*/ && ped.m_nPedType != pedType) {
             continue;
         }
@@ -1488,7 +1488,7 @@ float CPopulation::FindDistanceToNearestPedOfType(ePedType pedType, CVector posn
 
     /* Which is more readable? Really trying to love `ranges`, but man... (Above is also twice as fast :D, because the transform isn't invoked every time)
     * 
-    auto peds = CPools::GetPedPool()->GetAllValid()
+    auto peds = GetPedPool()->GetAllValid()
         | rng::views::filter([&](CPed& ped) { return ped.m_nPedType == pedType; })
         | rng::views::transform([&](CPed& ped) { return (ped.GetPosition() - pos).SquaredMagnitude(); });
     return rng::empty(peds)
@@ -1499,7 +1499,7 @@ float CPopulation::FindDistanceToNearestPedOfType(ePedType pedType, CVector posn
     ** there's also the 3rd option: **
     * 
     return std::sqrt(notsa::min_default(
-          CPools::GetPedPool()->GetAllValid()
+          GetPedPool()->GetAllValid()
         | rng::views::filter([&](CPed& ped) { return ped.m_nPedType == pedType; })
         | rng::views::transform([&](CPed& ped) { return (ped.GetPosition() - pos).SquaredMagnitude(); }),
         sq(10'000'000.f)
@@ -1768,13 +1768,13 @@ void CPopulation::ManageAllPopulation() {
 
     const auto& center = FindPlayerCentreOfWorld();
 
-    for (auto& obj : CPools::GetObjectPool()->GetAllValid()) {
+    for (auto& obj : GetObjectPool()->GetAllValid()) {
         if (&obj != objPlyrIsHolding) {
             ManageObject(&obj, center);
         }
     }
 
-    for (auto& dummy : CPools::GetDummyPool()->GetAllValid()) {
+    for (auto& dummy : GetDummyPool()->GetAllValid()) {
         ManageDummy(&dummy, center);
     }
 }
@@ -1789,19 +1789,19 @@ void CPopulation::ManagePopulation() {
     const auto& center = FindPlayerCentreOfWorld();
     {
         ZoneScopedN("Manage Objects");
-        for (auto& obj : CPools::GetObjectPool()->GetAllValid()) {
+        for (auto& obj : GetObjectPool()->GetAllValid()) {
             ManageObject(&obj, center);
         }
     }
     {
         ZoneScopedN("Manage Dummies");
-        for (auto& dummy : CPools::GetDummyPool()->GetAllValid()) {
+        for (auto& dummy : GetDummyPool()->GetAllValid()) {
             ManageDummy(&dummy, center);
         }
     }
     {
         ZoneScopedN("Manage Peds");
-        for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
+        for (auto& ped : GetPedPool()->GetAllValid()) {
             ManagePed(&ped, center);
         }
     }
@@ -1814,11 +1814,11 @@ void CPopulation::RemovePedsIfThePoolGetsFull() {
     if (CTimer::GetFrameCounter() % 8 != 5) {
         return;
     }
-    if (CPools::GetPedPool()->GetNoOfFreeSpaces() >= 8) {
+    if (GetPedPool()->GetNoOfFreeSpaces() >= 8) {
         return;
     }
     const auto closest = rng::min( // It's guaranteed there to be a ped
-        CPools::GetPedPool()->GetAllValid<CPed*>(),
+        GetPedPool()->GetAllValid<CPed*>(),
         {},
         [campos = TheCamera.GetPosition()](CPed* ped) { return (ped->GetPosition() - campos).SquaredMagnitude(); }
     );
@@ -1827,7 +1827,7 @@ void CPopulation::RemovePedsIfThePoolGetsFull() {
 
 // 0x616420
 void CPopulation::ConvertAllObjectsToDummyObjects() {
-    for (auto& obj : CPools::GetObjectPool()->GetAllValid()) {
+    for (auto& obj : GetObjectPool()->GetAllValid()) {
         if (obj.m_nObjectType != OBJECT_GAME) {
             continue;
         }

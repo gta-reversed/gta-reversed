@@ -157,9 +157,9 @@ void CColModel::RemoveTrianglePlanes() {
 }
 
 void* CColModel::operator new(unsigned size) {
-    return CPools::GetColModelPool()->New();
+    return GetColModelPool()->New();
 }
 
 void CColModel::operator delete(void* data) {
-    CPools::GetColModelPool()->Delete(static_cast<CColModel*>(data));
+    GetColModelPool()->Delete(static_cast<CColModel*>(data));
 }

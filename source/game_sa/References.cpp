@@ -55,7 +55,7 @@ void CReferences::RemoveReferencesToPlayer() {
 }
 
 void CReferences::PruneAllReferencesInWorld() {
-    rng::for_each(CPools::GetPedPool()->GetAllValid(), &CEntity::PruneReferences);
-    rng::for_each(CPools::GetVehiclePool()->GetAllValid(), &CEntity::PruneReferences);
-    rng::for_each(CPools::GetObjectPool()->GetAllValid(), &CEntity::PruneReferences);
+    rng::for_each(GetPedPool()->GetAllValid(), &CEntity::PruneReferences);
+    rng::for_each(GetVehiclePool()->GetAllValid(), &CEntity::PruneReferences);
+    rng::for_each(GetObjectPool()->GetAllValid(), &CEntity::PruneReferences);
 }

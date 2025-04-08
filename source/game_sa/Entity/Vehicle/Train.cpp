@@ -354,7 +354,7 @@ void CTrain::RemoveRandomPassenger() {
 
 // 0x6F6A20
 void CTrain::RemoveMissionTrains() {
-    for (auto& vehicle : CPools::GetVehiclePool()->GetAllValid()) {
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
         if (vehicle.IsTrain() &&
             &vehicle != FindPlayerVehicle() &&
             vehicle.AsTrain()->trainFlags.bMissionTrain
@@ -372,7 +372,7 @@ void CTrain::RemoveAllTrains() {
 
 // 0x6F6B60
 void CTrain::ReleaseMissionTrains() {
-    for (auto& vehicle : CPools::GetVehiclePool()->GetAllValid()) {
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
         if (vehicle.IsTrain() && &vehicle != FindPlayerVehicle()) {
             vehicle.AsTrain()->trainFlags.bMissionTrain = false;
         }

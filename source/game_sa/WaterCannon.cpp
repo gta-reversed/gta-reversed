@@ -88,7 +88,7 @@ void CWaterCannon::PushPeds() {
         bbox.m_vecMax.z = std::max(bbox.m_vecMax.z, secPos.z);
     }
 
-    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
+    for (auto& ped : GetPedPool()->GetAllValid()) {
         CVector pedPosn = ped.GetPosition();
         if (!bbox.IsPointWithin(pedPosn))
             continue;

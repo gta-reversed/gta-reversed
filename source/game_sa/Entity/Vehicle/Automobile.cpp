@@ -5042,9 +5042,9 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
         return nullptr; // No atomic means there's nothing to render :D
     }
 
-    CPools::GetObjectPool()->SetDealWithNoMemory(true);
+    GetObjectPool()->SetDealWithNoMemory(true);
     auto obj = new CObject;
-    CPools::GetObjectPool()->SetDealWithNoMemory(false);
+    GetObjectPool()->SetDealWithNoMemory(false);
 
     if (!obj) {
         return nullptr;
@@ -5356,8 +5356,8 @@ void CAutomobile::ProcessHarvester()
     if (m_vecMoveSpeed.Magnitude2D() > 0.01f) {
         if ((CTimer::GetFrameCounter() & 1) != 0)
         {
-            for (int32 i = CPools::GetPedPool()->GetSize() - 1; i >= 0; i--) {
-                CPed* ped = CPools::GetPedPool()->GetAt(i);
+            for (int32 i = GetPedPool()->GetSize() - 1; i >= 0; i--) {
+                CPed* ped = GetPedPool()->GetAt(i);
                 if (!ped)
                     continue;
 
@@ -5381,8 +5381,8 @@ void CAutomobile::ProcessHarvester()
         }
         else
         {
-            for (int32 i = CPools::GetObjectPool()->GetSize() - 1; i >= 0; i--) {
-                CObject* object = CPools::GetObjectPool()->GetAt(i);
+            for (int32 i = GetObjectPool()->GetSize() - 1; i >= 0; i--) {
+                CObject* object = GetObjectPool()->GetAt(i);
                 if (!object)
                     continue;
 

@@ -62,23 +62,23 @@ void PoolsDebugModule::RenderWindow() {
     };
 
     // CPools
-    Draw(CPools::GetPedPool(), "Ped");
-    Draw(CPools::GetVehiclePool(), "Vehicle");
-    Draw(CPools::GetBuildingPool(), "Building");
-    Draw(CPools::GetObjectPool(), "Object");
-    Draw(CPools::GetDummyPool(), "Dummy");
-    Draw(CPools::GetColModelPool(), "Col Model");
-    Draw(CPools::GetTaskPool(), "Task");
-    Draw(CPools::GetPedIntelligencePool(), "Ped Intelligence");
-    Draw(CPools::GetPtrNodeSingleLinkPool(), "Ptr Node Single Link");
-    Draw(CPools::GetPtrNodeDoubleLinkPool(), "Ptr Node Double Link");
-    Draw(CPools::GetEntryInfoNodePool(), "Entry Info Node");
-    Draw(CPools::GetPointRoutePool(), "Point Route");
-    Draw(CPools::GetPatrolRoutePool(), "Patrol Route");
-    Draw(CPools::GetEventPool(), "Event");
-    Draw(CPools::GetNodeRoutePool(), "Node Route");
-    Draw(CPools::GetTaskAllocatorPool(), "Task Allocator");
-    Draw(CPools::GetPedAttractorPool(), "Ped Attractor");
+    Draw(GetPedPool(), "Ped");
+    Draw(GetVehiclePool(), "Vehicle");
+    Draw(GetBuildingPool(), "Building");
+    Draw(GetObjectPool(), "Object");
+    Draw(GetDummyPool(), "Dummy");
+    Draw(GetColModelPool(), "Col Model");
+    Draw(GetTaskPool(), "Task");
+    Draw(GetPedIntelligencePool(), "Ped Intelligence");
+    Draw(GetPtrNodeSingleLinkPool(), "Ptr Node Single Link");
+    Draw(GetPtrNodeDoubleLinkPool(), "Ptr Node Double Link");
+    Draw(GetEntryInfoNodePool(), "Entry Info Node");
+    Draw(GetPointRoutePool(), "Point Route");
+    Draw(GetPatrolRoutePool(), "Patrol Route");
+    Draw(GetEventPool(), "Event");
+    Draw(GetNodeRoutePool(), "Node Route");
+    Draw(GetTaskAllocatorPool(), "Task Allocator");
+    Draw(GetPedAttractorPool(), "Ped Attractor");
 
     // Other pools
     Draw(CTxdStore::ms_pTxdPool, "TXD");

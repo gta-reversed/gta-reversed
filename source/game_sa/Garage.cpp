@@ -54,7 +54,7 @@ void CGarage::StoreAndRemoveCarsForThisHideOut(CStoredCar* storedCars, int32 max
     for (auto i = 0; i < NUM_GARAGE_STORED_CARS; i++)
         storedCars[i].Clear();
 
-    auto pool = CPools::GetVehiclePool();
+    auto pool = GetVehiclePool();
     auto storedCarIdx{0u};
     for (auto i = pool->GetSize(); i; i--) {
         if (auto vehicle = pool->GetAt(i - 1)) {

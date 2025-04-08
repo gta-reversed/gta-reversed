@@ -458,7 +458,7 @@ void CWanted::ClearWantedLevelAndGoOnParole() {
 int32 CWanted::WorkOutPolicePresence(CVector posn, float radius) {
     auto numCops = 0;
 
-    auto pedPool = CPools::GetPedPool();
+    auto pedPool = GetPedPool();
     for (auto i = pedPool->GetSize(); i; i--) {
         if (auto ped = pedPool->GetAt(i - 1)) {
             if (ped->m_nPedType != PED_TYPE_COP || !ped->IsAlive())
@@ -469,7 +469,7 @@ int32 CWanted::WorkOutPolicePresence(CVector posn, float radius) {
         }
     }
 
-    auto vehPool = CPools::GetVehiclePool();
+    auto vehPool = GetVehiclePool();
     for (auto i = vehPool->GetSize(); i; i--) {
         if (auto veh = vehPool->GetAt(i - 1)) {
             bool isCopVehicle = veh->vehicleFlags.bIsLawEnforcer || veh->m_nModelIndex == MODEL_POLMAV;

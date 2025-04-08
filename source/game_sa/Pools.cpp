@@ -175,7 +175,7 @@ bool CPools::LoadObjectPool() {
         auto iPoolRef = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
         auto iModelId = CGenericGameStorage::LoadDataFromWorkBuffer<int32>();
 
-        auto* objInPool = CPools::GetObjectPool()->GetAtRefNoChecks(iPoolRef);
+        auto* objInPool = GetObjectPool()->GetAtRefNoChecks(iPoolRef);
         if (objInPool)
             CPopulation::ConvertToDummyObject(objInPool);
 
@@ -269,10 +269,10 @@ bool CPools::LoadVehiclePool() {
 
 // 0x550080
 void CPools::MakeSureSlotInObjectPoolIsEmpty(int32 slot) {
-    if (CPools::GetObjectPool()->IsFreeSlotAtIndex(slot))
+    if (GetObjectPool()->IsFreeSlotAtIndex(slot))
         return;
 
-    auto* obj = CPools::GetObjectPool()->GetAt(slot);
+    auto* obj = GetObjectPool()->GetAt(slot);
     if (obj->IsTemporary())
     {
         CWorld::Remove(obj);
@@ -282,7 +282,7 @@ void CPools::MakeSureSlotInObjectPoolIsEmpty(int32 slot) {
     {
         auto newObj = new CObject(obj->m_nModelIndex, false);
         CWorld::Remove(obj);
-        CPools::GetObjectPool()->CopyItem(newObj, obj);
+        GetObjectPool()->CopyItem(newObj, obj);
         CWorld::Add(newObj);
 
         obj->m_pRwObject = nullptr;
@@ -318,86 +318,86 @@ bool CPools::SaveVehiclePool() {
 }
 
 // 0x404550
-CPedPool* CPools::GetPedPool() {
+CPedPool* GetPedPool() {
     return ms_pPedPool;
 }
 
 // 0x404560
-CVehiclePool* CPools::GetVehiclePool() {
+CVehiclePool* GetVehiclePool() {
     return ms_pVehiclePool;
 }
 
 // 0x403DF0
-CBuildingPool* CPools::GetBuildingPool() {
+CBuildingPool* GetBuildingPool() {
     return ms_pBuildingPool;
 }
 
 // 0x404570
-CObjectPool* CPools::GetObjectPool() {
+CObjectPool* GetObjectPool() {
     return ms_pObjectPool;
 }
 
 // 0x404580
-CDummyPool* CPools::GetDummyPool() {
+CDummyPool* GetDummyPool() {
     return ms_pDummyPool;
 }
 
 // 0x40F000
-CColModelPool* CPools::GetColModelPool() {
+CColModelPool* GetColModelPool() {
     return ms_pColModelPool;
 }
 
 // 0x61A330
-CTaskPool* CPools::GetTaskPool() {
+CTaskPool* GetTaskPool() {
     return ms_pTaskPool;
 }
 
 // 0x5FF930
-CPedIntelligencePool* CPools::GetPedIntelligencePool() {
+CPedIntelligencePool* GetPedIntelligencePool() {
     return ms_pPedIntelligencePool;
 }
 
 // 0x552190
-CPtrNodeSingleLinkPool* CPools::GetPtrNodeSingleLinkPool() {
+CPtrNodeSingleLinkPool* GetPtrNodeSingleLinkPool() {
     return ms_pPtrNodeSingleLinkPool;
 }
 
 // 0x5521A0
-CPtrNodeDoubleLinkPool* CPools::GetPtrNodeDoubleLinkPool() {
+CPtrNodeDoubleLinkPool* GetPtrNodeDoubleLinkPool() {
     return ms_pPtrNodeDoubleLinkPool;
 }
 
 // 0x536C80
-CEntryInfoNodePool* CPools::GetEntryInfoNodePool() {
+CEntryInfoNodePool* GetEntryInfoNodePool() {
     return ms_pEntryInfoNodePool;
 }
 
 // 0x41B400
-CPointRoutePool* CPools::GetPointRoutePool() {
+CPointRoutePool* GetPointRoutePool() {
     return ms_pPointRoutePool;
 }
 
 // 0x41B410
-CPatrolRoutePool* CPools::GetPatrolRoutePool() {
+CPatrolRoutePool* GetPatrolRoutePool() {
     return ms_pPatrolRoutePool;
 }
 
 // 0x4ABF80
-CEventPool* CPools::GetEventPool() {
+CEventPool* GetEventPool() {
     return ms_pEventPool;
 }
 
 // 0x41B420
-CNodeRoutePool* CPools::GetNodeRoutePool() {
+CNodeRoutePool* GetNodeRoutePool() {
     return ms_pNodeRoutePool;
 }
 
 // 0x69BB70
-CTaskAllocatorPool* CPools::GetTaskAllocatorPool() {
+CTaskAllocatorPool* GetTaskAllocatorPool() {
     return ms_pTaskAllocatorPool;
 }
 
 // 0x5E95A0
-CPedAttractorPool* CPools::GetPedAttractorPool() {
+CPedAttractorPool* GetPedAttractorPool() {
     return ms_pPedAttractorPool;
 }

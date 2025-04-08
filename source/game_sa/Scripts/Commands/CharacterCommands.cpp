@@ -204,10 +204,10 @@ auto IsCharInArea3D(CRunningScript& S, CPed& ped, CVector a, CVector b, bool hig
 auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
     const auto veh = ped.GetVehicleIfInOne();
 
-    if (CPools::GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_UsesMissionCleanup) {
+    if (GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_UsesMissionCleanup) {
         // Unstore previous (If it still exists)
         if (CTheScripts::StoreVehicleIndex != -1) { // NOTSA: Bugfix
-            if (const auto stored = CPools::GetVehiclePool()->GetAt(CTheScripts::StoreVehicleIndex)) {
+            if (const auto stored = GetVehiclePool()->GetAt(CTheScripts::StoreVehicleIndex)) {
                 CCarCtrl::RemoveFromInterestingVehicleList(stored);
                 if (stored->IsMissionVehicle() && CTheScripts::StoreVehicleWasRandom) {
                     stored->SetVehicleCreatedBy(RANDOM_VEHICLE);
@@ -218,7 +218,7 @@ auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
         }
 
         // Now store this vehicle
-        CTheScripts::StoreVehicleIndex = CPools::GetVehiclePool()->GetRef(veh);
+        CTheScripts::StoreVehicleIndex = GetVehiclePool()->GetRef(veh);
         switch (veh->GetCreatedBy()) {
         case RANDOM_VEHICLE:
         case PARKED_VEHICLE: {
@@ -711,8 +711,8 @@ auto IsCurrentCharWeapon(CPed& ped, eWeaponType wep) {
 // GET_RANDOM_CHAR_IN_ZONE
 auto GetRandomCharInZone(CRunningScript& S, std::string_view zoneName, bool civilian, bool gang, bool criminal) -> CPed* { // 0x04802D0
     const auto playerPosZ = FindPlayerCoors().z;
-    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
-        const auto pedHandle = CPools::GetPedPool()->GetRef(&ped);
+    for (auto& ped : GetPedPool()->GetAllValid()) {
+        const auto pedHandle = GetPedPool()->GetRef(&ped);
         if (   pedHandle == CTheScripts::LastRandomPedId
             || !ped.IsCreatedBy(PED_GAME)
             || ped.m_bRemoveFromWorld
@@ -1319,7 +1319,7 @@ void SetCurrentCharWeapon(CPed& ped, eWeaponType weaponType) {
 
 // MARK_CHAR_AS_NO_LONGER_NEEDED
 void MarkCharAsNoLongerNeeded(CRunningScript& S, int32 handle) { // TODO: Some way to get a CPed* and it's handle too (As this function seems to be called even if the handle is not pointing to a ped anymore)
-    const auto ped = CPools::GetPedPool()->GetAtRef(handle); // This might be null, but we need the handle even if it is, so we can't take `CPed*` either...
+    const auto ped = GetPedPool()->GetAtRef(handle); // This might be null, but we need the handle even if it is, so we can't take `CPed*` either...
     CTheScripts::CleanUpThisPed(ped);
     if (S.m_UsesMissionCleanup) {
         CTheScripts::MissionCleanUp.RemoveEntityFromList(handle, MISSION_CLEANUP_ENTITY_TYPE_PED);

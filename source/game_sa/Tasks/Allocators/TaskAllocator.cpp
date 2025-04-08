@@ -4,12 +4,12 @@
 
 // 0x69D980
 void* CTaskAllocator::operator new(size_t size) {
-    return CPools::GetTaskAllocatorPool()->New();
+    return GetTaskAllocatorPool()->New();
 }
 
 // 0x69D990
 void CTaskAllocator::operator delete(void* obj) {
-    CPools::GetTaskAllocatorPool()->Delete(static_cast<CTaskAllocator*>(obj));
+    GetTaskAllocatorPool()->Delete(static_cast<CTaskAllocator*>(obj));
 }
 
 CTaskAllocator::CTaskAllocator(CPed* ped) {

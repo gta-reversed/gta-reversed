@@ -149,7 +149,7 @@ void ProcessPed(CPed& ped) {
             entity->ApplyMoveForce(entity->GetUpVector() * 10000.f);
         }
 
-        Text("Pool ID: %d", CPools::GetPedPool()->GetIndex(&ped));
+        Text("Pool ID: %d", GetPedPool()->GetIndex(&ped));
         Text("Skin Model: %d", ped.m_nModelIndex);
 
         const auto& pos = ped.GetPosition();
@@ -288,10 +288,10 @@ void PedDebugModule::RenderWindow() {
         return std::vector<elem_t>{r.begin(), r.end()};
     };
 
-    if (!CPools::GetPedPool()) return;
+    if (!GetPedPool()) return;
 
     auto peds = to_vector(
-            CPools::GetPedPool()->GetAllValid()
+            GetPedPool()->GetAllValid()
         | rng::views::transform([this](CPed& ped) -> std::optional<PedInfo> {
             if (!ped.GetIsOnScreen()) {
                 return std::nullopt;

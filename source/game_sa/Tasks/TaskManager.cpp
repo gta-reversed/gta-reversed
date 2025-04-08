@@ -197,7 +197,7 @@ void CTaskManager::AddSubTasks(CTask* toTask) {
 
     for (auto task = toTask; !task->IsSimple();) {
         const auto ctask = task->AsComplex();
-        assert(CPools::GetTaskPool()->IsObjectValid(task)); // Sometimes tasks seem to get deleted which causes pure virtual calls (because of destructcors setting the VMT to their's)
+        assert(GetTaskPool()->IsObjectValid(task)); // Sometimes tasks seem to get deleted which causes pure virtual calls (because of destructcors setting the VMT to their's)
         if (const auto sub = ctask->CreateFirstSubTask(m_pPed)) {
             ctask->SetSubTask(sub);
             task = sub; // Go on creating the subtask of the created task

@@ -33,12 +33,12 @@ void CPedAttractor::InjectHooks() {
 
 // 0x5EAFD0
 void* CPedAttractor::operator new(unsigned size) {
-    return CPools::GetPedAttractorPool()->New();
+    return GetPedAttractorPool()->New();
 }
 
 // 0x5EAFE0
 void CPedAttractor::operator delete(void* object) {
-    CPools::GetPedAttractorPool()->Delete(static_cast<CPedAttractor*>(object));
+    GetPedAttractorPool()->Delete(static_cast<CPedAttractor*>(object));
 }
 
 // 0x5EDFB0

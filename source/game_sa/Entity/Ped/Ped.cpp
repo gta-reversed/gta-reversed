@@ -329,7 +329,7 @@ CPed::~CPed() {
     }
 
     CWorld::Remove(this);
-    CRadar::ClearBlipForEntity(BLIP_CHAR, CPools::GetPedPool()->GetRef(this));
+    CRadar::ClearBlipForEntity(BLIP_CHAR, GetPedPool()->GetRef(this));
     CConversations::RemoveConversationForPed(this);
 
     ClearReference(m_pVehicle);
@@ -360,26 +360,26 @@ CPed::~CPed() {
 * @addr 0x5E4720
 */
 void* CPed::operator new(unsigned size) {
-    return CPools::GetPedPool()->New();
+    return GetPedPool()->New();
 }
 
 /*!
 * @addr 0x5E4730
 */
 void* CPed::operator new(unsigned size, int32 poolRef) {
-    return CPools::GetPedPool()->NewAt(poolRef);
+    return GetPedPool()->NewAt(poolRef);
 }
 
 /*!
 * @addr 0x5E4760
 */
 void CPed::operator delete(void* data) {
-    CPools::GetPedPool()->Delete((CPed*)data);
+    GetPedPool()->Delete((CPed*)data);
 }
 
 // NOTSA
 void CPed::operator delete(void* data, int poolRef) {
-    CPools::GetPedPool()->Delete((CPed*)data);
+    GetPedPool()->Delete((CPed*)data);
 }
 
 /*!
@@ -2006,7 +2006,7 @@ bool CPed::TurnBody() {
 * @brief Check if `this` is valid. Probably used by scripts?
 */
 bool CPed::IsPointerValid() {
-    return CPools::GetPedPool()->IsObjectValid(this) && (!m_pCollisionList.IsEmpty() || this == FindPlayerPed());
+    return GetPedPool()->IsObjectValid(this) && (!m_pCollisionList.IsEmpty() || this == FindPlayerPed());
 }
 
 /*!
@@ -2093,7 +2093,7 @@ void CPed::SetPedState(ePedState pedState) {
     if (!IsAlive()) {
         ReleaseCoverPoint();
         if (bClearRadarBlipOnDeath) {
-            CRadar::ClearBlipForEntity(BLIP_CHAR, CPools::GetPedPool()->GetRef(this));
+            CRadar::ClearBlipForEntity(BLIP_CHAR, GetPedPool()->GetRef(this));
             // TODO: Shouldn't we `bClearRadarBlipOnDeath = false` here?
         }
     }

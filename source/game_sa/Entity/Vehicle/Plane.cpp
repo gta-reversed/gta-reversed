@@ -336,7 +336,7 @@ void CPlane::SetGearDown() {
 // 0x6CCA50
 uint32 CPlane::CountPlanesAndHelis() {
     uint32 counter = 0;
-    for (auto& vehicle : CPools::GetVehiclePool()->GetAllValid()) {
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
         if (vehicle.IsSubHeli() || vehicle.IsSubPlane()) {
             counter++;
         }

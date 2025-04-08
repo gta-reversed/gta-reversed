@@ -320,13 +320,13 @@ void CColStore::LoadCollision(CVector pos, bool bIgnorePlayerVeh)
         CEntity* entity = nullptr;
         if (obj.type == MissionCleanUpEntityType::MISSION_CLEANUP_ENTITY_TYPE_VEHICLE)
         {
-            entity = CPools::GetVehiclePool()->GetAtRef(obj.handle);
+            entity = GetVehiclePool()->GetAtRef(obj.handle);
             if (!entity || entity->m_nStatus == eEntityStatus::STATUS_WRECKED)
                 continue;
         }
         else if (obj.type == MissionCleanUpEntityType::MISSION_CLEANUP_ENTITY_TYPE_PED)
         {
-            entity = CPools::GetPedPool()->GetAtRef(obj.handle);
+            entity = GetPedPool()->GetAtRef(obj.handle);
             if (!entity || entity->AsPed()->m_nPedState == PEDSTATE_DIE || entity->AsPed()->m_nPedState == PEDSTATE_DEAD)
                 continue;
         }

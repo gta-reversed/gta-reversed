@@ -389,7 +389,7 @@ float CCarAI::GetCarToParkAtCoors(CVehicle* veh, const CVector& coors) {
 void CCarAI::MakeWayForCarWithSiren(CVehicle* carWithSiren) {
     float      carWithSirenSpeed2D;
     const auto carWithSirenMoveDir2D = CVector2D{ carWithSiren->GetMoveSpeed() }.Normalized(&carWithSirenSpeed2D);
-    for (auto& v : CPools::GetVehiclePool()->GetAllValid()) {
+    for (auto& v : GetVehiclePool()->GetAllValid()) {
         if (!v.IsAutomobile() && !v.IsBike()) {
             continue;
         }
@@ -1320,7 +1320,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
         if (notsa::contains({ STATUS_SIMPLE, STATUS_PHYSICS }, veh->GetStatus()) && ap->m_nCarMission == MISSION_CRUISE && veh->IsSubAutomobile()) {
             if (CPopCycle::m_bCurrentZoneIsGangArea) {
                 ap->SetCruiseSpeed(10); // Start at 10, go down to min 1
-                for (auto& p : CPools::GetPedPool()->GetAllValid()) {
+                for (auto& p : GetPedPool()->GetAllValid()) {
                     if (!IsPedTypeGang(p.m_nPedType) && p.m_nPedType != PED_TYPE_DEALER) {
                         continue;
                     }

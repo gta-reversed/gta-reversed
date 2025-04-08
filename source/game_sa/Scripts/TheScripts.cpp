@@ -444,7 +444,7 @@ void CTheScripts::AddToInvisibilitySwapArray(CEntity* entity, bool visible) {
 
 // 0x470980
 void CTheScripts::AddToListOfConnectedLodObjects(CObject* obj1, CObject* obj2) {
-    const auto idx1 = CPools::GetObjectPool()->GetRef(obj1), idx2 = CPools::GetObjectPool()->GetRef(obj2);
+    const auto idx1 = GetObjectPool()->GetRef(obj1), idx2 = GetObjectPool()->GetRef(obj2);
 
     const auto lod = rng::find_if(ScriptConnectLodsObjects, [idx1, idx2](auto& lod) {
         return lod.a == idx1 && lod.b == idx2;
@@ -1137,7 +1137,7 @@ void CTheScripts::Load() {
         case ScriptSavedObjectType::INVISIBLE:
             break;
         case ScriptSavedObjectType::BUILDING:
-            bswap.m_pCBuilding = CPools::GetBuildingPool()->GetAt(poolRef);
+            bswap.m_pCBuilding = GetBuildingPool()->GetAt(poolRef);
             break;
         default:
             NOTSA_UNREACHABLE();
@@ -1167,7 +1167,7 @@ void CTheScripts::Load() {
             break;
         case ScriptSavedObjectType::BUILDING:
             is = nullptr;
-            if (auto* obj = CPools::GetBuildingPool()->GetAt(poolRef)) {
+            if (auto* obj = GetBuildingPool()->GetAt(poolRef)) {
                 is                   = obj;
                 is->m_bUsesCollision = false;
                 is->m_bIsVisible     = false;
@@ -1175,7 +1175,7 @@ void CTheScripts::Load() {
             break;
         case ScriptSavedObjectType::OBJECT:
             is = nullptr;
-            if (auto* obj = CPools::GetObjectPool()->GetAt(poolRef)) {
+            if (auto* obj = GetObjectPool()->GetAt(poolRef)) {
                 is                   = obj;
                 is->m_bUsesCollision = false;
                 is->m_bIsVisible     = false;
@@ -1183,7 +1183,7 @@ void CTheScripts::Load() {
             break;
         case ScriptSavedObjectType::DUMMY:
             is = nullptr;
-            if (auto* obj = CPools::GetDummyPool()->GetAt(poolRef)) {
+            if (auto* obj = GetDummyPool()->GetAt(poolRef)) {
                 is                   = obj;
                 is->m_bUsesCollision = false;
                 is->m_bIsVisible     = false;
@@ -1277,7 +1277,7 @@ void CTheScripts::Save() {
             CGenericGameStorage::SaveDataToWorkBuffer(ScriptSavedObjectType::BUILDING);
 
             // Add 1 to the index because 0 is considered invalid and index can be 0.
-            CGenericGameStorage::SaveDataToWorkBuffer(CPools::GetBuildingPool()->GetIndex(b) + 1);
+            CGenericGameStorage::SaveDataToWorkBuffer(GetBuildingPool()->GetIndex(b) + 1);
         } else {
             CGenericGameStorage::SaveDataToWorkBuffer(ScriptSavedObjectType::NONE);
             CGenericGameStorage::SaveDataToWorkBuffer(0);
@@ -1301,15 +1301,15 @@ void CTheScripts::Save() {
             break;
         case ENTITY_TYPE_BUILDING:
             CGenericGameStorage::SaveDataToWorkBuffer(ScriptSavedObjectType::BUILDING);
-            CGenericGameStorage::SaveDataToWorkBuffer(CPools::GetBuildingPool()->GetIndex(is->AsBuilding()) + 1);
+            CGenericGameStorage::SaveDataToWorkBuffer(GetBuildingPool()->GetIndex(is->AsBuilding()) + 1);
             break;
         case ENTITY_TYPE_OBJECT:
             CGenericGameStorage::SaveDataToWorkBuffer(ScriptSavedObjectType::OBJECT);
-            CGenericGameStorage::SaveDataToWorkBuffer(CPools::GetObjectPool()->GetIndex(is->AsObject()) + 1);
+            CGenericGameStorage::SaveDataToWorkBuffer(GetObjectPool()->GetIndex(is->AsObject()) + 1);
             break;
         case ENTITY_TYPE_DUMMY:
             CGenericGameStorage::SaveDataToWorkBuffer(ScriptSavedObjectType::DUMMY);
-            CGenericGameStorage::SaveDataToWorkBuffer(CPools::GetDummyPool()->GetIndex(is->AsDummy()) + 1);
+            CGenericGameStorage::SaveDataToWorkBuffer(GetDummyPool()->GetIndex(is->AsDummy()) + 1);
             break;
         default:
             NOTSA_UNREACHABLE();
@@ -1436,7 +1436,7 @@ void CTheScripts::Process() {
 
     CLoadingScreen::NewChunkLoaded();
 
-    for (auto& ped : CPools::GetPedPool()->GetAllValid()) {
+    for (auto& ped : GetPedPool()->GetAllValid()) {
         if (ped.IsCreatedByMission()) {
             ped.GetIntelligence()->RecordEventForScript(0, 0);
         }
@@ -1999,7 +1999,7 @@ bool CTheScripts::ScriptAttachAnimGroupToCharModel(int32 modelId, const char* if
 
 // 0x470A20
 void CTheScripts::ScriptConnectLodsFunction(int32 lodRef1, int32 lodRef2) {
-    auto obj1 = CPools::GetObjectPool()->GetAtRef(lodRef1), obj2 = CPools::GetObjectPool()->GetAtRef(lodRef2);
+    auto obj1 = GetObjectPool()->GetAtRef(lodRef1), obj2 = GetObjectPool()->GetAtRef(lodRef2);
 
     obj1->m_pLod = obj2;
     ++obj2->m_nNumLodChildren;

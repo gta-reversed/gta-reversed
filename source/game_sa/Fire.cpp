@@ -324,7 +324,7 @@ void CFire::ProcessFire() {
     }
 
     if (CGeneral::GetRandomNumber() % 32 == 0) {
-        for (auto& veh : CPools::GetVehiclePool()->GetAllValid()) { // NOTSA: Original loop was backwards [not that it matters]
+        for (auto& veh : GetVehiclePool()->GetAllValid()) { // NOTSA: Original loop was backwards [not that it matters]
             if (DistanceBetweenPoints(m_Position, veh.GetPosition()) >= 2.0f)
                 continue;
 
@@ -339,7 +339,7 @@ void CFire::ProcessFire() {
     }
 
     if (CGeneral::GetRandomNumber() % 4 == 0) {
-        for (auto& obj : CPools::GetObjectPool()->GetAllValid()) { // NOTSA: Original loop was backwards [not that it matters]
+        for (auto& obj : GetObjectPool()->GetAllValid()) { // NOTSA: Original loop was backwards [not that it matters]
             if (DistanceBetweenPoints(m_Position, obj.GetPosition()) >= 3.0f)
                 continue;
 
