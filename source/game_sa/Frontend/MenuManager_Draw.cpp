@@ -382,7 +382,7 @@ void CMenuManager::DrawBackground() {
 
         CRect mapRect(StretchX(60.0f), StretchY(60.0f), SCREEN_WIDTH - StretchX(60.0f), SCREEN_HEIGHT - StretchY(60.0f));
 
-        if (m_nCurrentScreen == SCREEN_MAP && CPad::NewMouseControllerState.isMouseLeftButtonPressed && mapRect.IsPointInside(CVector2D(x, y))) {
+        if (m_nCurrentScreen == SCREEN_MAP && CPad::NewMouseControllerState .isMouseLeftButtonPressed && mapRect.IsPointInside(CVector2D(x, y))) {
             DrawCursor(FRONTEND_SPRITE_CROSS_HAIR);
         } else {
             DrawCursor(FRONTEND_SPRITE_MOUSE);
@@ -1359,8 +1359,8 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
     int   currentX;
     bool  hasControl;
 
-    const uint8 verticalSpacing = m_RedefiningControls ? 13 : (4 * ~m_ControlMethod + 11);
-    const uint8 maxActions      = m_RedefiningControls ? 25 : (m_ControlMethod ? 28 : 22);
+    const uint8 verticalSpacing = m_RedefiningControls == 1 ? 13 : (( m_ControlMethod == 1 ) ? 11 : 15);
+    const uint8 maxActions      = m_RedefiningControls ? 25 : (m_ControlMethod == 1 ? 28 : 22);
 
     struct ControlActionMapping {
         eControllerAction actionToTest;
