@@ -203,7 +203,7 @@ public:
     void InitDefaultControlConfiguration();
     void InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller);
     void InitialiseControllerActionNameArray();
-    bool ReinitControls();
+    void ReinitControls();
     int8 SetMouseButtonAssociatedWithAction(eControllerAction action, CControllerKey::KeyCode button);
     void StoreMouseButtonState(eMouseButtons button, bool state);
     void UpdateJoyInConfigMenus_ButtonDown(CControllerKey::KeyCode button, int32 padNumber);

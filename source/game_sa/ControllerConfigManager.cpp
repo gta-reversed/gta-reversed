@@ -1,4 +1,5 @@
 #include "StdInc.h"
+#include "WinInput.h" // Ensure the correct header file is included for WinInput
 
 #include "ControllerConfigManager.h"
 //#include "Input.h"
@@ -864,19 +865,13 @@ void CControllerConfigManager::InitialiseControllerActionNameArray() {
     SetActionName(eControllerAction::TAKE_SCREEN_SHOT, "TAKE_SCREEN_SHOT"_gxt);
 }
 
-// 0x531F20
-#define LEGACY_WININPUT 0
-
-bool CControllerConfigManager::ReinitControls() {
+void CControllerConfigManager::ReinitControls() {
     CMouseControllerState MouseSetUp;
     ControlsManager.MakeControllerActionsBlank();
     ControlsManager.InitDefaultControlConfiguration();
-#if LEGACY_WININPUT
-    auto mouseState = GetMouseState();
-#endif
-    //ControlsManager.InitDefaultControlConfigMouse(mouseState, !FrontEndMenuManager.m_ControlMethod);
-    // ControlsManager.InitDefaultControlConfigJoyPad(44u);
-    return 0;
+    auto mouseState = WinInput::GetMouseState();
+    ControlsManager.InitDefaultControlConfigMouse(mouseState, !FrontEndMenuManager.m_ControlMethod);
+    // ControlsManager.InitDefaultControlConfigJoyPad(44u); // NOTSA
 }
 
 // 0x52F590
