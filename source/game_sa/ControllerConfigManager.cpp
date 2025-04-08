@@ -776,20 +776,20 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
 
 // 0x52F6F0
 void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller) {
-    if (state.m_bLeftButton) {
+    if (state.isMouseLeftButtonPressed) {
         m_MouseFoundInitSet = true;
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON);
     }
-    if (state.m_bRightButton) {                                                      
+    if (state.isMouseRightButtonPressed) {                                                      
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_MOUSELOOK,          rsMOUSE_RIGHT_BUTTON);
     }
-    if (state.m_bMiddleButton) {                                                      
+    if (state.isMouseMiddleButtonPressed) {                                                      
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON);
     }
-    if (state.m_bWheelMovedUp || state.m_bWheelMovedDown) {
+    if (state.isMouseWheelMovedUp || state.isMouseWheelMovedDown) {
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON);
@@ -894,13 +894,13 @@ int8 CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAct
 // 0x52DA30
 void CControllerConfigManager::StoreMouseButtonState(eMouseButtons button, bool state) {
     switch (button) {
-    case MOUSE_BUTTON_LEFT:           CPad::PCTempMouseControllerState.m_bLeftButton = state; break;
-    case MOUSE_BUTTON_MIDDLE:         CPad::PCTempMouseControllerState.m_bMiddleButton = state; break;
-    case MOUSE_BUTTON_RIGHT:          CPad::PCTempMouseControllerState.m_bRightButton = state; break;
-    case MOUSE_BUTTON_WHEEL_UP:       CPad::PCTempMouseControllerState.m_bWheelMovedUp = state; break;
-    case MOUSE_BUTTON_WHEEL_DOWN:     CPad::PCTempMouseControllerState.m_bWheelMovedDown = state; break;
-    case MOUSE_BUTTON_WHEEL_XBUTTON1: CPad::PCTempMouseControllerState.m_bMsFirstXButton = state; break;
-    case MOUSE_BUTTON_WHEEL_XBUTTON2: CPad::PCTempMouseControllerState.m_bMsSecondXButton = state; break;
+    case MOUSE_BUTTON_LEFT:           CPad::PCTempMouseControllerState.isMouseLeftButtonPressed = state; break;
+    case MOUSE_BUTTON_MIDDLE:         CPad::PCTempMouseControllerState.isMouseMiddleButtonPressed = state; break;
+    case MOUSE_BUTTON_RIGHT:          CPad::PCTempMouseControllerState.isMouseRightButtonPressed = state; break;
+    case MOUSE_BUTTON_WHEEL_UP:       CPad::PCTempMouseControllerState.isMouseWheelMovedUp = state; break;
+    case MOUSE_BUTTON_WHEEL_DOWN:     CPad::PCTempMouseControllerState.isMouseWheelMovedDown = state; break;
+    case MOUSE_BUTTON_WHEEL_XBUTTON1: CPad::PCTempMouseControllerState.isMouseFirstXPressed = state; break;
+    case MOUSE_BUTTON_WHEEL_XBUTTON2: CPad::PCTempMouseControllerState.isMouseSecondXPressed = state; break;
     }
 }
 

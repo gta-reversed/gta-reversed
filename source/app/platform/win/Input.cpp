@@ -200,13 +200,13 @@ CMouseControllerState GetMouseState() {
     if (PSGLOBAL(diMouse)) {
         if (SUCCEEDED(PSGLOBAL(diMouse)->GetDeviceState(sizeof(DIMOUSESTATE2), &mouseState))) {
             state.m_AmountMoved = CVector2D(static_cast<float>(mouseState.lX), static_cast<float>(mouseState.lY));
-            state.m_bWheelMovedUp = (mouseState.lZ > 0);
-            state.m_bWheelMovedDown = (mouseState.lZ < 0);
-            state.m_bLeftButton = mouseState.rgbButtons[0] & 0x80;
-            state.m_bRightButton = mouseState.rgbButtons[1] & 0x80;
-            state.m_bMiddleButton = mouseState.rgbButtons[2] & 0x80;
-            state.m_bMsFirstXButton = mouseState.rgbButtons[3] & 0x80;
-            state.m_bMsSecondXButton = mouseState.rgbButtons[4] & 0x80;
+            state.isMouseWheelMovedUp = (mouseState.lZ > 0);
+            state.isMouseWheelMovedDown = (mouseState.lZ < 0);
+            state.isMouseLeftButtonPressed = mouseState.rgbButtons[0] & 0x80;
+            state.isMouseRightButtonPressed = mouseState.rgbButtons[1] & 0x80;
+            state.isMouseMiddleButtonPressed = mouseState.rgbButtons[2] & 0x80;
+            state.isMouseFirstXPressed = mouseState.rgbButtons[3] & 0x80;
+            state.isMouseSecondXPressed = mouseState.rgbButtons[4] & 0x80;
         }
     } else {
 		diMouseInit(!FrontEndMenuManager.m_bMenuActive && IsVideoModeExclusive());

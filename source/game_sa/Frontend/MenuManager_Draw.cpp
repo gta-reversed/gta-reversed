@@ -382,7 +382,7 @@ void CMenuManager::DrawBackground() {
 
         CRect mapRect(StretchX(60.0f), StretchY(60.0f), SCREEN_WIDTH - StretchX(60.0f), SCREEN_HEIGHT - StretchY(60.0f));
 
-        if (m_nCurrentScreen == SCREEN_MAP && CPad::NewMouseControllerState.m_bLeftButton && mapRect.IsPointInside(CVector2D(x, y))) {
+        if (m_nCurrentScreen == SCREEN_MAP && CPad::NewMouseControllerState.isMouseLeftButtonPressed && mapRect.IsPointInside(CVector2D(x, y))) {
             DrawCursor(FRONTEND_SPRITE_CROSS_HAIR);
         } else {
             DrawCursor(FRONTEND_SPRITE_MOUSE);
