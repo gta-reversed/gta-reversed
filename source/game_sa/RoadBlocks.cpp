@@ -9,7 +9,7 @@ void CRoadBlocks::InjectHooks() {
 
     RH_ScopedInstall(Init, 0x461100);
     RH_ScopedInstall(ClearScriptRoadBlocks, 0x460EC0);
-    RH_ScopedInstall(ClearSpaceForRoadBlockObject, 0x461020, { .reversed = false });
+    RH_ScopedInstall(ClearSpaceForRoadBlockObject, 0x461020);
     RH_ScopedInstall(CreateRoadBlockBetween2Points, 0x4619C0, { .reversed = false });
     RH_ScopedInstall(GenerateRoadBlockCopsForCar, 0x461170, { .reversed = false });
     RH_ScopedInstall(GenerateRoadBlocks, 0x4629E0, { .reversed = false });
@@ -39,8 +39,61 @@ void CRoadBlocks::ClearScriptRoadBlocks() {
 }
 
 // 0x461020
-void CRoadBlocks::ClearSpaceForRoadBlockObject(CVector a1, CVector a2) {
-    plugin::Call<0x461020, CVector, CVector>(a1, a2);
+// Returns true if cleared successfully.
+bool CRoadBlocks::ClearSpaceForRoadBlockObject(CVector cornerA, CVector cornerB){
+    int16 numObjects{};
+    CObject* objects[2]{};
+    CWorld::FindObjectsIntersectingCube(
+        cornerA,
+        cornerB,
+        &numObjects,
+        2,
+        reinterpret_cast<CEntity**>(objects),
+        false,
+        true,
+        true,
+        true,
+        false
+    );
+
+    if (numObjects > 2 || numObjects <= 0) {
+        return numObjects <= 0;
+    }
+
+    const auto Remove = [](CEntity* e) {
+        CWorld::Remove(e);
+        delete e;
+    };
+
+    for (auto* obj : objects | rngv::take(numObjects)) {
+        switch (obj->GetType()) {
+        case ENTITY_TYPE_VEHICLE:
+            if (auto* v = obj->AsVehicle(); !v->CanBeDeleted()) {
+                return false;
+            } else if (!v->vehicleFlags.bCreateRoadBlockPeds) {
+                Remove(v);
+            }
+            break;
+        case ENTITY_TYPE_PED:
+            if (auto* p = obj->AsPed(); p->CanBeDeleted()) {
+                Remove(p);
+            } else {
+                return false;
+            }
+            break;
+        case ENTITY_TYPE_OBJECT:
+            if (obj->CanBeDeleted() && obj->m_nObjectType != OBJECT_GAME) {
+                Remove(obj);
+            } else {
+                return false;
+            }
+            break;
+        default:
+            NOTSA_UNREACHABLE();
+        }
+    }
+
+    return true;
 }
 
 // 0x4619C0
@@ -61,8 +114,8 @@ void CRoadBlocks::GenerateRoadBlocks() {
 }
 
 // 0x460EE0
-bool CRoadBlocks::GetRoadBlockNodeInfo(CNodeAddress a1, float& a2, CVector& a3) {
-    return plugin::CallAndReturn<bool, 0x460EE0, CNodeAddress, float, CVector>(a1, a2, a3);
+bool CRoadBlocks::GetRoadBlockNodeInfo(CNodeAddress address, float& width, CVector& vec) {
+    return false;
 }
 
 // 0x460DF0

@@ -24,11 +24,11 @@ public:
 
     static void Init();
     static void ClearScriptRoadBlocks();
-    static void ClearSpaceForRoadBlockObject(CVector a1, CVector a2);
+    static bool ClearSpaceForRoadBlockObject(CVector cornerA, CVector cornerB);
     static void CreateRoadBlockBetween2Points(CVector a1, CVector a2, uint32 a3);
     static void GenerateRoadBlockCopsForCar(CVehicle* vehicle, int32 a2, ePedType pedType);
     static void GenerateRoadBlocks();
-    static bool GetRoadBlockNodeInfo(CNodeAddress a1, float& a2, CVector& a3);
+    static bool GetRoadBlockNodeInfo(CNodeAddress address, float& width, CVector& vec);
     static void RegisterScriptRoadBlock(CVector cornerA, CVector cornerB, bool isGangRoute);
 
 public:

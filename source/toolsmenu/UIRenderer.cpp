@@ -196,7 +196,10 @@ void UIRenderer::DebugCode() {
         }
     }
     if (pad->IsStandardKeyJustPressed('6')) {
-        FindPlayerPed()->Say(CTX_GLOBAL_JACKED_CAR);
+        FindPlayerPed()->SetWantedLevel(4);
+        CCheat::VehicleCheat(MODEL_SANCHEZ);
+        CCheat::MoneyArmourHealthCheat();
+        CCheat::HealthCheat();
     }
 
     if (pad->IsStandardKeyJustPressed('T')) {
