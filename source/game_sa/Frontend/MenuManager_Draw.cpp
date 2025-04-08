@@ -396,7 +396,6 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     constexpr float MENU_DEFAULT_CONTENT_X = 320.0f;
     constexpr float MENU_DEFAULT_CONTENT_Y = 130.0f;
 
-    eSlotState v10;                      // ecx
     int i;                               // counter for loops
     const GxtChar *pTextToShow_RightColumn; // text for right column
     float buttonTextPosY;                // tracks text position
@@ -422,21 +421,21 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     CFont::SetRightJustifyWrap(10.0);
     CFont::SetCentreSize(RsGlobal.maximumWidth);
 
-    if (m_nCurrentScreen == SCREEN_STATS) {
+    if (m_nCurrentScreen == eMenuScreen::SCREEN_STATS) {
         CMenuManager::PrintStats();
     }    
-    if (m_nCurrentScreen == SCREEN_BRIEF) {
+    if (m_nCurrentScreen == eMenuScreen::SCREEN_BRIEF) {
         CMenuManager::PrintBriefs();
     }
 
-    if (m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && drawTitle) {
+    if (m_nCurrentScreen == eMenuScreen::SCREEN_AUDIO_SETTINGS && drawTitle) {
         CMenuManager::PrintRadioStationList();
     }
         
     if (drawTitle && aScreens[m_nCurrentScreen].m_szTitleName[0]) {
-        if (m_nCurrentScreen != SCREEN_MAP || !m_bMapLoaded) {
+        if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP || !m_bMapLoaded) {
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-            CFont::SetFontStyle(FONT_GOTHIC);
+            CFont::SetFontStyle(eFontStyle::FONT_GOTHIC);
             if (RsGlobal.maximumHeight == 448) {
                 h = 2.0999999;
             } else {
@@ -487,24 +486,16 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         const GxtChar* textOne;
 
         switch (m_nCurrentScreen) {
-        case SCREEN_NEW_GAME_ASK:
-            if (!m_bMainMenuSwitch) {
-                textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
-                break;
-            }
-            textOne = TheText.Get("FESZ_QQ");
+        case eMenuScreen::SCREEN_NEW_GAME_ASK:
+            textOne = (!m_bMainMenuSwitch) ? TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName) : TheText.Get("FESZ_QQ");
             break;
         case SCREEN_LOAD_GAME_ASK:
-            if (!m_bMainMenuSwitch) {
-                textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
-                break;
-            }
-            textOne = TheText.Get("FES_LCG");
+            textOne = (!m_bMainMenuSwitch) ? TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName) : TheText.Get("FES_LCG");
             break;
-        case SCREEN_SAVE_WRITE_ASK:
-            v10 = CGenericGameStorage::ms_Slots[m_bSelectedSaveGame];
-            if ((int)v10) {
-                if (v10 != (eSlotState)2) {
+        case eMenuScreen::SCREEN_SAVE_WRITE_ASK: {
+            eSlotState slotToCheck = CGenericGameStorage::ms_Slots[m_bSelectedSaveGame];
+            if (eSlotState::SLOT_FILLED != slotToCheck) {
+                if (slotToCheck != eSlotState::SLOT_CORRUPTED) {
                     textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
                     break;
                 }
@@ -513,12 +504,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 textOne = TheText.Get("FESZ_QO");
             }
             break;
-        case SCREEN_QUIT_GAME_ASK:
-            if (!m_bMainMenuSwitch) {
-                textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
-                break;
-            }
-            textOne = TheText.Get("FEQ_SRW");
+        }
+        case eMenuScreen::SCREEN_QUIT_GAME_ASK:
+            textOne = (!m_bMainMenuSwitch) ? TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName) : TheText.Get("FEQ_SRW");
             break;
         default:
             textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
@@ -597,9 +585,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
         yd = 0;
 
-        if (itemType < 1 || itemType > 8) {
+        if (itemType < eMenuEntryType::MENU_ENTRY_SAVE_1 || itemType > eMenuEntryType::MENU_ENTRY_SAVE_8) {
             if (itemType == 9) {
-                // if (.../) {
+                // if (.../) { // HELP NEED
                 //     AsciiToGxtChar(.../, (GxtChar*)gString);
                 //     pTextToShow                                    = (GxtChar*)gString;
                 //     aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = MENU_ACTION_MPACK;
@@ -652,55 +640,55 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
 
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
-        case 32:
+        case eMenuAction::MENU_ACTION_RADIO_STATION:
             pTextToShow_RightColumn = AudioEngine.GetRadioStationName(m_nRadioStation);
             break;
-        case 24:
+        case eMenuAction::MENU_ACTION_FRAME_LIMITER:
             pTextToShow_RightColumn = (m_bPrefsFrameLimiter) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 25:
+        case eMenuAction::MENU_ACTION_SUBTITLES:
             pTextToShow_RightColumn = (m_bShowSubtitles) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 26:
+        case eMenuAction::MENU_ACTION_WIDESCREEN:
             pTextToShow_RightColumn = (m_bWidescreenOn) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 30:
+        case eMenuAction::MENU_ACTION_RADIO_EQ:
             pTextToShow_RightColumn = (m_bRadioEq) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 31:
+        case eMenuAction::MENU_ACTION_RADIO_RETUNE:
             pTextToShow_RightColumn = (m_bRadioAutoSelect) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 33:
+        case eMenuAction::MENU_ACTION_SHOW_LEGEND:
             pTextToShow_RightColumn = (m_bMapLegend) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 35:
+        case eMenuAction::MENU_ACTION_HUD_MODE:
             pTextToShow_RightColumn = (m_bHudOn) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 47:
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_X:
             pTextToShow_RightColumn = (m_bInvertPadX1) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 48:
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_Y:
             pTextToShow_RightColumn = (m_bInvertPadY1) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 49:
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_X2:
             pTextToShow_RightColumn = (m_bInvertPadX2) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 50:
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_Y2:
             pTextToShow_RightColumn = (m_bInvertPadY2) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 51:
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_SWAP_AXIS1:
             pTextToShow_RightColumn = (m_bSwapPadAxis1) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 52:
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_SWAP_AXIS2:
             pTextToShow_RightColumn = (m_bSwapPadAxis2) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 64:
+        case eMenuAction::MENU_ACTION_USER_TRACKS_AUTO_SCAN:
             pTextToShow_RightColumn = (m_bTracksAutoScan) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 65:
+        case eMenuAction::MENU_ACTION_STORE_PHOTOS:
             pTextToShow_RightColumn = (m_bSavePhotos) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             break;
-        case 34: {
+        case eMenuAction::MENU_ACTION_RADAR_MODE: {
             __int32 v29;                  // eax
 
             if (m_nRadarMode) {
@@ -718,47 +706,42 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             }
             break;
         }
-        case 36:
-            switch ((int)m_nPrefsLanguage) {
-            case 0u:
+        case eMenuAction::MENU_ACTION_LANGUAGE:
+            switch (m_nPrefsLanguage) {
+            case eLanguage::ENGLISH:
                 pTextToShow_RightColumn = TheText.Get("FEL_ENG");
                 break;
-
-            case 1u:
+            case eLanguage::FRENCH:
                 pTextToShow_RightColumn = TheText.Get("FEL_FRE");
                 break;
-
-            case 2u:
+            case eLanguage::GERMAN:
                 pTextToShow_RightColumn = TheText.Get("FEL_GER");
                 break;
-
-            case 3u:
+            case eLanguage::ITALIAN:
                 pTextToShow_RightColumn = TheText.Get("FEL_ITA");
                 break;
-
-            case 4u:
+            case eLanguage::SPANISH:
                 pTextToShow_RightColumn = TheText.Get("FEL_SPA");
                 break;
-
             default:
                 break;
             }
             break;
-        case 42:
+        case eMenuAction::MENU_ACTION_FX_QUALITY:
             switch (g_fx.GetFxQuality()) {
-            case 0u:
+            case FxQuality_e::FX_QUALITY_LOW:
                 pTextToShow_RightColumn = TheText.Get("FED_FXL");
                 break;
 
-            case 1u:
+            case FxQuality_e::FX_QUALITY_MEDIUM:
                 pTextToShow_RightColumn = TheText.Get("FED_FXM");
                 break;
 
-            case 2u:
+            case FxQuality_e::FX_QUALITY_HIGH:
                 pTextToShow_RightColumn = TheText.Get("FED_FXH");
                 break;
 
-            case 3u:
+            case FxQuality_e::FX_QUALITY_VERY_HIGH:
                 pTextToShow_RightColumn = TheText.Get("FED_FXV");
                 break;
 
@@ -766,13 +749,13 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 break;
             }
             break;
-        case 43:
+        case eMenuAction::MENU_ACTION_MIP_MAPPING:
             pTextToShow_RightColumn = m_bPrefsMipMapping ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             if (!m_bMainMenuSwitch) {
                 CFont::SetColor(CRGBA(0xEu, 0x1Eu, 0x2Fu, 0xFFu));
             }
             break;
-        case 44: {
+        case eMenuAction::MENU_ACTION_ANTIALIASING: {
             if (m_nDisplayAntialiasing <= 1) {
                 pTextToShow_RightColumn = TheText.Get("FEM_OFF");
             } else {
@@ -782,32 +765,32 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             }
             break;
         }
-        case 46:
+        case eMenuAction::MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
             pTextToShow_RightColumn = (bInvertMouseY) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF"); // NOSTA FIX
             break;
-        case 56: {
+        case eMenuAction::MENU_ACTION_RESOLUTION: {
                 GxtChar tmpBuffer[1024];
                 auto Videomodes = GetVideoModeList();
                 AsciiToGxtChar(std::format("{}", Videomodes[m_nDisplayVideoMode]).c_str(), tmpBuffer);                
                 pTextToShow_RightColumn = tmpBuffer;
                 break;
             }
-        case 58:
+        case eMenuAction::MENU_ACTION_CONTROL_TYPE:
             pTextToShow_RightColumn = (m_ControlMethod) ? ((m_ControlMethod != 1) ? nullptr : TheText.Get("FET_CCN")) : TheText.Get("FET_SCN");
             break;
-        case 59:
+        case eMenuAction::MENU_ACTION_MOUSE_STEERING:
             pTextToShow_RightColumn = (CVehicle::m_bEnableMouseSteering) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             if (m_ControlMethod == 1) {
                 CFont::SetColor(CRGBA(0xEu, 0x1Eu, 0x2Fu, 0xFFu));
             }
             break;
-        case 60:
+        case eMenuAction::MENU_ACTION_MOUSE_FLY:
             pTextToShow_RightColumn = (CVehicle::m_bEnableMouseFlying) ? TheText.Get("FEM_ON") : TheText.Get("FEM_OFF");
             if (m_ControlMethod == 1) {
                 CFont::SetColor(CRGBA(0xEu, 0x1Eu, 0x2Fu, 0xFFu));
             }
             break;
-        case 63:
+        case eMenuAction::MENU_ACTION_USER_TRACKS_PLAY_MODE:
             if (m_nRadioMode) {
                 if (m_nRadioMode == 1) {
                     pTextToShow_RightColumn = TheText.Get("FEA_PR2");
@@ -827,7 +810,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
 
         if (pTextToShow) {
-            if ((int)CGenericGameStorage::ms_Slots[i - 1] > 0 || itemType < 1 || itemType > 8) {
+            if ((int)CGenericGameStorage::ms_Slots[i - 1] > 0 || itemType < eMenuEntryType::MENU_ENTRY_SAVE_1 || itemType > eMenuEntryType::MENU_ENTRY_SAVE_8) {
                 CFont::PrintString(CMenuManager::StretchX(aScreens[m_nCurrentScreen].m_aItems[i].m_X), CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
             // v1.01 + 
             } else {
@@ -842,7 +825,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             CFont::SetFontStyle(FONT_MENU);
             CFont::SetEdge(1);
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-            if (itemType < 1 || itemType > 8) {
+            if (itemType < eMenuEntryType::MENU_ENTRY_SAVE_1 || itemType > eMenuEntryType::MENU_ENTRY_SAVE_8) {
                 CFont::SetScale(CMenuManager::StretchX((m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && i == 5) ? 0.56f : 0.7f), CMenuManager::StretchY(1.0f));
             } else {
                 CFont::SetScale(CMenuManager::StretchX(0.35f), CMenuManager::StretchY(0.95f));
@@ -875,9 +858,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
             // Draw highlight rectangle for selected item if map is loaded
             if (m_bMapLoaded) {
-                if (m_nCurrentScreen != SCREEN_LOAD_FIRST_SAVE && 
-                    m_nCurrentScreen != SCREEN_DELETE_FINISHED && 
-                    m_nCurrentScreen != SCREEN_SAVE_DONE_1) {
+                if (m_nCurrentScreen != eMenuScreen::SCREEN_LOAD_FIRST_SAVE && 
+                    m_nCurrentScreen != eMenuScreen::SCREEN_DELETE_FINISHED && 
+                    m_nCurrentScreen != eMenuScreen::SCREEN_SAVE_DONE_1) {
                     float buttonPosY = CMenuManager::StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y);
                     CRect rect(
                         yd,                                        // left
@@ -926,7 +909,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         
         // Handle sliders
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
-        case 27: { // Brightness slider
+        case eMenuAction::MENU_ACTION_BRIGHTNESS: { // Brightness slider
             const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_PrefsBrightness * 0.0026041667f, StretchX(3.0f));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                     if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
@@ -939,7 +922,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 }
                 break;
             }
-            case 28: { // Radio volume slider
+            case eMenuAction::MENU_ACTION_RADIO_VOL: { // Radio volume slider
                 const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(95.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nRadioVolume * 0.015625f, StretchX(3.0f));
                 if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                     if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(95.0f), StretchY(120.0f))) {
@@ -952,7 +935,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 }
                 break;
             }
-            case 29: { // SFX volume slider
+            case eMenuAction::MENU_ACTION_SFX_VOL: { // SFX volume slider
                 const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nSfxVolume * 0.015625f, StretchX(3.0f));
                 if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                     if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
@@ -965,7 +948,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 }
                 break;
             }
-            case 61: { // Draw distance slider
+            case eMenuAction::MENU_ACTION_DRAW_DIST: { // Draw distance slider
                 const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), (m_fDrawDistance - 0.92500001f) * 1.1428572f, StretchX(3.0f));
                 if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                     if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
@@ -978,7 +961,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 }
                 break;
             }
-            case 62: { // Mouse sensitivity slider
+            case eMenuAction::MENU_ACTION_DRAW_DIST: { // Mouse sensitivity slider
                 const float sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), CCamera::m_fMouseAccelHorzntl / 0.0049999999, StretchX(3.0f));
                 if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                     if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
@@ -1003,14 +986,14 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
     } 
     switch (m_nCurrentScreen) {
-    case 0:
-    case 3:
-    case 4:
-    case 26:
-    case 27:
-    case 36:
-    case 39:
-    case 40:
+    case eMenuScreen::SCREEN_STATS:
+    case eMenuScreen::SCREEN_AUDIO_SETTINGS:
+    case eMenuScreen::SCREEN_DISPLAY_SETTINGS:
+    case eMenuScreen::SCREEN_USER_TRACKS_OPTIONS:
+    case eMenuScreen::SCREEN_DISPLAY_ADVANCED:
+    case eMenuScreen::SCREEN_CONTROLLER_SETUP:
+    case eMenuScreen::SCREEN_MOUSE_SETTINGS:
+    case eMenuScreen::SCREEN_JOYPAD_SETTINGS:
         CMenuManager::DisplayHelperText(0);
         break;
     default:
