@@ -35,7 +35,6 @@ enum eActionType {
 };
 
 enum eControllerAction {
-    CA_INVALID = -1,
     CA_PED_FIRE_WEAPON,
     CA_PED_FIRE_WEAPON_ALT,
     CA_PED_CYCLE_WEAPON_RIGHT,
@@ -97,8 +96,7 @@ enum eControllerAction {
     CA_SWITCH_CAM_DEBUG_MENU,
 
 
-    NUM_OF_MAX_CONTROLLER_ACTIONS,
-    NUM_OF_MIN_CONTROLLER_ACTIONS = 0
+    NUM_OF_MAX_CONTROLLER_ACTIONS
 };
 
 enum eContSetOrder {
@@ -183,9 +181,9 @@ public:
     int32 UpdatePadStateOnActions(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
     bool GetIsActionAButtonCombo(eControllerAction action);
     int32 GetControllerKeyAssociatedWithAction(eControllerAction action, eControllerType type);
-    int32 Handle1stPersonCameraActions(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
-    int32 AffectControllerStateOn_ButtonUp_All_Player_States(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
-    eControllerType HandleButtonPress(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
+    void Handle1stPersonCameraActions(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
+    void AffectControllerStateOn_ButtonUp_All_Player_States(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
+    void HandleButtonPress(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
     void ResetSettingOrder(eControllerAction action);
     void HandleJoyButtonUpDown(int32 joyNo, bool isDown);
     bool LoadSettings(FILESTREAM file);

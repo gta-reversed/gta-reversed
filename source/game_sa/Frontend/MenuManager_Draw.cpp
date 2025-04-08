@@ -519,7 +519,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
         CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
 
         bool isControlPrinted = false;
-        if (controllerAction != CA_INVALID) {
+        if (controllerAction != (eControllerAction)-1) {
             for (auto order = 1; order <= CONTROLLER_NUM; ++order) {
                 if (m_DeleteAllNextDefine && m_ListSelection == actionIndex) {
                     break;
@@ -552,7 +552,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
         }
 
         if (actionIndex == m_ListSelection) {
-            if (controllerAction == CA_INVALID || controllerAction == (eControllerAction)-2) {
+            if (controllerAction == (eControllerAction)-1 || controllerAction == (eControllerAction)-2) {
                 if (actionIndex == m_ListSelection) {
                     CMenuManager::DisplayHelperText("FET_EIG");
                 }
