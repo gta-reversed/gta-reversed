@@ -567,7 +567,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         CCamera::m_bUseMouse3rdPerson    = true;
         CVehicle::m_bEnableMouseFlying   = true;
         CVehicle::m_bEnableMouseSteering = false;
-        bInvertMouseY                    = true; // NOTSA Fix: The mouse's inversion is the opposite of that of the joysticks. It's easier to set the value to true.
+        bInvertMouseY                    = false;
         m_bInvertPadX1                   = false;
         m_bInvertPadY1                   = false;
         m_bInvertPadX2                   = false;
@@ -655,7 +655,7 @@ void CMenuManager::LoadSettings() {
     FILE* file = nullptr;
     FILE* fileController = nullptr;
     eLanguage prevLanguage = m_nPrefsLanguage;
-    bInvertMouseY = true;
+    // bInvertMouseY = true; // NOTSA Fix
     
     try {
         // Open configuration files
@@ -1034,7 +1034,7 @@ void CMenuManager::LoadSettings() {
     CFileMgr::SetDirMyDocuments();
     FILE* file = nullptr;
     eLanguage prevLanguage = m_nPrefsLanguage;
-    bInvertMouseY = true;
+    // bInvertMouseY = true; // NOSTA FIX
     
     try {
         file = CFileMgr::OpenFile("gta_sa.set", "rb");

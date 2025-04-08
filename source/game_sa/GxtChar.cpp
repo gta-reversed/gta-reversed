@@ -5,11 +5,9 @@
 // 0x718600
 void AsciiToGxtChar(const char* src, GxtChar* dst) {
     assert(src && dst);
-    auto i = 0u;
-    for (; src[i]; ++i) {
-        dst[i] = src[i];
-    }
-    dst[i] = 0;
+    std::string_view sv(src);
+    std::copy(sv.begin(), sv.end(), dst);
+    dst[sv.size()] = 0;
 }
 
 // NOTSA -- Derived from GxtCharToAscii (0x69F7E0)

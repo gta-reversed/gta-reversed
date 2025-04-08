@@ -244,7 +244,7 @@ void CPad::UpdateMouse() {
         int32_t invertX, invertY;
 
         invertX = FrontEndMenuManager.bInvertMouseX ? -1 : 1;
-        invertY = FrontEndMenuManager.bInvertMouseY ? -1 : 1;
+        invertY = FrontEndMenuManager.bInvertMouseY ? 1 : -1; // NOSTA FIX
 
         CMouseControllerState state = WinInput::GetMouseState();
         if (state.CheckForInput()) {

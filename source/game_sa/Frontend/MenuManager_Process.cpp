@@ -440,7 +440,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         m_pPressedKey = &m_KeyPressedCode;
         return true;
     case MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
-        bInvertMouseY = bInvertMouseY == 0;
+        bInvertMouseY ^= true;
         SaveSettings();
         return true;
     case MENU_ACTION_CONTROLS_JOY_INVERT_X:
