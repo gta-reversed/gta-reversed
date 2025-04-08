@@ -226,7 +226,7 @@ public:
     uint8                      m_NumGoToPts{};          // 0x40C
     uint8                      m_NumIntInfo{};          // 0x40D
     GoToPt_t                   m_GoToPts[16]{};         // 0x410
-    GoToPt_t                   m_ExitPts[8]{};          // 0x510
+    GoToPt_t                   m_ExitPts[4][2]{};       // 0x510 - 1 for each wall, entry exit + door positions
     InteriorInfo_t             m_IntInfos[16]{};        // 0x590
     int8                       m_ShopSubType{};         // 0x790
     int8                       m_StyleA{};              // 0x791

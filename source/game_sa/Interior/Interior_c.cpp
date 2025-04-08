@@ -20,7 +20,7 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(AddGotoPt, 0x591D20);
     RH_ScopedInstall(AddInteriorInfo, 0x591E40);
     RH_ScopedInstall(AddPickups, 0x591F90);
-    RH_ScopedInstall(CalcExitPts, 0x5924A0, { .reversed = false });
+    RH_ScopedInstall(CalcExitPts, 0x5924A0);
     RH_ScopedInstall(IsVisible, 0x5929F0);
     
     //
@@ -302,9 +302,9 @@ void Interior_c::AddGotoPt(int32 tileX, int32 tileY, float offsetX, float offset
         return;
     }
     m_GoToPts[m_NumGoToPts++] = {
-        .TileX = (int8)tileX,
-        .TileY = (int8)tileY,
-        .Pos   = GetTileCentre((float)tileX + offsetX, (float)tileY + offsetY)
+        .TileX = (int8)(tileX),
+        .TileY = (int8)(tileY),
+        .Pos   = GetTileCentre((float)(tileX) + offsetX, (float)(tileY) + offsetY)
     };
     switch (GetTileStatus(tileX, tileY)) {
     case eTileStatus::STATE_3:
@@ -401,7 +401,156 @@ void Interior_c::AddPickups() {
 
 // 0x5924A0
 void Interior_c::CalcExitPts() {
-    plugin::CallMethod<0x5924A0, Interior_c*>(this);
+    // 0x5924B1
+    if (m_Props->m_door >= 0) {
+        const auto posX = (float)(m_Props->m_door) - 0.5f;
+        const auto posY = m_NumGoToPts <= 2
+            ? 0.f
+            : (float)(m_GoToPts[0].TileY) - 0.25f;
+
+        auto* const pt = &m_ExitPts[0][0];
+        auto* const door = &m_ExitPts[0][1];
+
+        if (m_NumGoToPts <= 2) { // 0x5924D5
+            pt->Prev = -1;
+            pt->Next = -1;
+        } else { // 0x5924DE
+            uint32 i = 0;
+            for (; i < m_NumGoToPts; i += 2) {
+                if ((float)(m_GoToPts[i].TileX) > posX) {
+                    break;
+                }
+            }
+            if (i == 0) { // 0x59251B (inverted)
+                pt->Prev = 0;
+                pt->Next = -1;
+            } else if (i == m_NumGoToPts) { // 0x59252D
+                pt->Prev = m_NumGoToPts - 2;
+                pt->Next = -1;
+            } else { // 0x592541
+                pt->Prev = i;
+                pt->Next = i - 2;
+            }
+        }
+
+        // 0x59258C
+        pt->Pos   = GetTileCentre(posX, posY);
+        door->Pos = GetTileCentre(posX, -0.25f);
+    }
+
+    // 0x5925E8
+    if (m_Props->m_lDoorStart >= 0) { // 0x5925E8
+        assert(m_Props->m_lDoorEnd >= 0);
+
+        const auto posX = m_NumGoToPts <= 2
+            ? 0.f
+            : (float)(m_GoToPts[0].TileX) - 0.25f;
+        const auto posY = lerp(
+            (float)(m_Props->m_lDoorStart),
+            (float)(m_Props->m_lDoorEnd),
+            0.5f
+        ) - 0.5f;
+
+        auto* const pt = &m_ExitPts[1][0];
+        auto* const door = &m_ExitPts[1][1];
+
+        if (m_NumGoToPts <= 2) { // 0x5926A5
+            pt->Next = -1;
+            pt->Prev = -1;
+        } else if (m_GoToPts[0].TileY > posY) { // 0x59263F (inverted)
+            pt->Prev = 0;
+            pt->Next = -1;
+        } else if (m_GoToPts[1].TileY > posY) { // 0x592672
+            pt->Prev = 0;
+            pt->Next = 1;
+        } else { // 0x592662
+            pt->Prev = 1;
+            pt->Next = -1;
+        }
+
+        // 0x5926A3
+        pt->Pos   = GetTileCentre(posX, posY);
+        door->Pos = GetTileCentre(-0.25f, posY);
+    }
+
+    // 0x592717
+    if (m_Props->m_tDoorStart >= 0) {
+        assert(m_Props->m_tDoorEnd >= 0);
+
+        const auto posX = lerp(
+            (float)(m_Props->m_tDoorStart),
+            (float)(m_Props->m_tDoorEnd),
+            0.5f
+        ) - 0.5f;
+        const auto posY = m_NumGoToPts <= 2
+            ? (float)(m_Props->m_depth - 1)
+            : (float)(m_GoToPts[1].TileY) + 0.25f;
+
+        auto* const pt = &m_ExitPts[2][0];
+        auto* const door = &m_ExitPts[2][1];
+
+        if (m_NumGoToPts <= 2) {
+            pt->Prev = -1;
+            pt->Next = -1;
+        } else {
+            // 0x592786
+            uint32 i = 1;
+            for (; i < m_NumGoToPts; i += 2) {
+                if ((float)(m_GoToPts[i].TileX) > posX) {
+                    break;
+                }
+            }
+            if (i == 0) { // 0x59279B (inverted)
+                pt->Prev = 1;
+                pt->Next = -1;
+            } else if (i == m_NumGoToPts) { // 0x5927B1
+                pt->Prev = m_NumGoToPts - 1;
+                pt->Next = -1;
+            } else { // 0x5927C9
+                pt->Prev = i;
+                pt->Next = i - 2;
+            }
+        }
+
+        // 0x592811
+        pt->Pos   = GetTileCentre(posX, posY);
+        door->Pos = GetTileCentre(posX, (float)(m_Props->m_depth - 1) + 0.25f);
+    }
+
+    // 0x592879
+    if (m_Props->m_rDoorStart >= 0) {
+        assert(m_Props->m_rDoorEnd >= 0);
+
+        const auto posX = m_NumGoToPts <= 2
+            ? (float)(m_Props->m_width - 1)
+            : (float)(m_GoToPts[1].TileX) + 0.25f;
+        const auto posY = lerp(
+            (float)(m_Props->m_rDoorStart),
+            (float)(m_Props->m_rDoorEnd),
+            0.5f
+        ) - 0.5f;
+
+        auto* const pt = &m_ExitPts[3][0];
+        auto* const door = &m_ExitPts[3][1];
+
+        if (m_NumGoToPts <= 2) { // 0x59294F
+            pt->Next = -1;
+            pt->Prev = -1;
+        } else if (m_GoToPts[2].TileY > posY) { // 0x5928E8 (inverted)
+            pt->Prev = m_NumGoToPts - 2;
+            pt->Next = -1;
+        } else if (m_GoToPts[3].TileY < posY) { // 0x592913 (inverted)
+            pt->Prev = m_NumGoToPts - 1;
+            pt->Next = -1;
+        } else { // 0x59292F
+            pt->Prev = m_NumGoToPts - 1;
+            pt->Next = m_NumGoToPts - 2;
+        }
+
+        // 0x59297A
+        pt->Pos   = GetTileCentre(posX, posY);
+        door->Pos = GetTileCentre((float)(m_Props->m_width - 1) + 0.25f, posY);
+    }
 }
 
 // 0x5929F0
