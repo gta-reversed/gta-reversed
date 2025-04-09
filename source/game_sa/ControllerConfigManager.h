@@ -96,7 +96,8 @@ enum eControllerAction {
     CA_SWITCH_CAM_DEBUG_MENU,
 
 
-    NUM_OF_MAX_CONTROLLER_ACTIONS
+    NUM_OF_MAX_CONTROLLER_ACTIONS,
+    NUM_OF_MIN_CONTROLLER_ACTIONS = 0
 };
 
 enum eContSetOrder {
@@ -192,7 +193,7 @@ public:
     void InitDefaultControlConfiguration();
     void InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller);
     void InitialiseControllerActionNameArray();
-    bool ReinitControls();
+    void ReinitControls();
     void SetMouseButtonAssociatedWithAction(eControllerAction action, CControllerKey::KeyCode button);
     void StoreMouseButtonState(eMouseButtons button, bool state);
     void UpdateJoyInConfigMenus_ButtonDown(CControllerKey::KeyCode button, int32 padNumber);

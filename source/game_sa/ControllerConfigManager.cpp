@@ -12,8 +12,8 @@ void CControllerConfigManager::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Constructor, 0x531EE0);
-    RH_ScopedInstall(ReinitControls, 0x531F20, { .reversed = false });
-    RH_ScopedInstall(ResetSettingOrder, 0x52F5F0, { .reversed = false });
+    RH_ScopedInstall(ReinitControls, 0x531F20);
+    RH_ScopedInstall(ResetSettingOrder, 0x52F5F0);
 
     RH_ScopedInstall(SaveSettings, 0x52D200, { .reversed = false });
     RH_ScopedInstall(LoadSettings, 0x530530);
@@ -100,13 +100,13 @@ void CControllerConfigManager::UnmapPedKey(eControllerAction action, CController
     CheckAndClear(CA_PED_LOOKBEHIND, type, button);
     CheckAndClear(CA_PED_DUCK, type, button);
 
-    if (action != CA_PED_FIRE_WEAPON_ALT) {
+    if (action != CA_PED_FIRE_WEAPON_ALT && FrontEndMenuManager.m_nController == 1 || !FrontEndMenuManager.m_nController) {
         CheckAndClear(CA_PED_ANSWER_PHONE, type, button);
     }
 
     CheckAndClear(CA_PED_WALK, type, button);
 
-    if (FrontEndMenuManager.m_bController) {
+    if (FrontEndMenuManager.m_nController == 1) {
         CheckAndClear(CA_PED_CENTER_CAMERA_BEHIND_PLAYER, type, button);
     }
 }
@@ -172,7 +172,7 @@ void CControllerConfigManager::DeleteMatching1rst3rdPersonControls(eControllerAc
     if (GetIsKeyBlank(button, type)) {
         return;
     }
-    if (action != CA_PED_ANSWER_PHONE) {
+    if (action != CA_PED_ANSWER_PHONE && FrontEndMenuManager.m_nController == 1 || !FrontEndMenuManager.m_nController) {
         CheckAndClear(CA_PED_FIRE_WEAPON_ALT, type, button);
     }
 
@@ -181,7 +181,7 @@ void CControllerConfigManager::DeleteMatching1rst3rdPersonControls(eControllerAc
     CheckAndClear(CA_GO_FORWARD, type, button);
     CheckAndClear(CA_GO_BACK, type, button);
 
-    if (FrontEndMenuManager.m_bController) {
+    if (FrontEndMenuManager.m_nController == 1) {
         CheckAndClear(CA_PED_1RST_PERSON_LOOK_LEFT, type, button);
         CheckAndClear(CA_PED_1RST_PERSON_LOOK_RIGHT, type, button);
         CheckAndClear(CA_PED_1RST_PERSON_LOOK_DOWN, type, button);
@@ -299,7 +299,7 @@ eControllerType CControllerConfigManager::UpdateControllerStateOnAction(CControl
     CheckAndSetStick_FirstThirdPerson(CA_PED_1RST_PERSON_LOOK_LEFT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128);
     CheckAndSetStick_FirstThirdPerson(CA_PED_1RST_PERSON_LOOK_RIGHT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);  
 
-    if (FrontEndMenuManager.m_bController) {
+    if (FrontEndMenuManager.m_nController == 1) {
         CheckAndSetStick_FirstThirdPerson(CA_PED_1RST_PERSON_LOOK_UP, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128);
         CheckAndSetStick_FirstThirdPerson(CA_PED_1RST_PERSON_LOOK_DOWN, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
     }
@@ -317,7 +317,7 @@ int32 CControllerConfigManager::UpdatePadStateOnActions(CControllerKey::KeyCode 
     CheckAndSetButton(CA_PED_SPRINT, type, button, state->ButtonCross);
     CheckAndSetButton(CA_PED_DUCK, type, button, state->ShockButtonL);
 
-    if (FrontEndMenuManager.m_bController) {
+    if (FrontEndMenuManager.m_nController == 1) {
         CheckAndSetButton(CA_PED_CENTER_CAMERA_BEHIND_PLAYER, type, button, state->LeftShoulder1);
     }
     return button;
@@ -378,45 +378,43 @@ void CControllerConfigManager::HandleButtonPress(CControllerKey::KeyCode button,
 }
 
 // 0x52F5F0
-void CControllerConfigManager::ResetSettingOrder(eControllerAction ctrlAction) {
-    //auto& action = m_Actions[ctrlAction];
-    rng::sort(m_Actions[ctrlAction].Keys, [](auto&& a, auto&& b) {
-        return b.Order != -1 && a.Order < b.Order;
-    });
+void CControllerConfigManager::ResetSettingOrder(eControllerAction action) {
+    eControllerType result = CONTROLLER_KEYBOARD1;
 
+    for (const auto& order : CONTROLLER_ORDERS_VALID) {
+        // Check if any key already has this priority level
+        bool priorityExists = false;
 
-    //for (auto order = 1; order <= CONTROLLER_NUM; ++order) {
-    //    if (rng::find(m_Actions[ctrlAction].Keys, order, &CControllerKey::Order)) {
-    //        continue;
-    //    }
-    //    auto it = rng::max_element(
-    //        action.Keys,
-    //        [](uint32 a, uint32 b) {
-    //            return b != -1 && a < b;
-    //        },
-    //        &CControllerKey::Order
-    //    );
-    //    if (it == rng::end(action.Keys) || it->Order == -1) {
-    //        continue;
-    //    }
-    //    it->Order = order;
-    //    return (eControllerType)(it - std::begin(action.Keys));
-    //
-    //    //ePriority minPriority = PRIORITY_NONE;
-    //    //for (int32 controller = CONTROLLER_FIRST; controller <= CONTROLLER_LAST; ++controller) {
-    //    //    ePriority currentPriority = m_Actions[ctrlAction].Keys[controller].Priority;
-    //    //    if (currentPriority > (ePriority)priority && currentPriority != PRIORITY_DISABLE) {
-    //    //        if (minPriority == PRIORITY_NONE || currentPriority < m_Actions[ctrlAction].Keys[type].Priority) {
-    //    //            minPriority = currentPriority;
-    //    //            type = (eControllerType)(controller);
-    //    //        }
-    //    //    }
-    //    //}
-    //    //if (minPriority != PRIORITY_NONE) {
-    //    //    m_Actions[ctrlAction].Keys[type].Priority = (ePriority)(priority);
-    //    //}
-    //}
-    //return CONTROLLER_KEYBOARD1;
+        for (const auto& type : CONTROLLER_TYPES_ALL) {
+            if (m_Actions[action].Keys[type].Order == order) {
+                priorityExists = true;
+                break;
+            }
+        }
+
+        if (!priorityExists) {
+            // No key has this priority, find the one with lowest priority > priorityLevel
+            bool found = false;
+
+            for (const auto& type : CONTROLLER_TYPES_ALL) {
+                const auto keyPriority = m_Actions[action].Keys[type].Order;
+
+                // Only consider keys with priority > priorityLevel and not 0 (unset)
+                if (keyPriority > order && keyPriority != 0) {
+                    // If no key found yet or this key has lower priority than current best
+                    if (!found || keyPriority < m_Actions[action].Keys[result].Order) {
+                        result = type;
+                        found  = true;
+                    }
+                }
+            }
+
+            // If we found a key with higher priority, adjust it to the current level
+            if (found) {
+                m_Actions[action].Keys[result].Order = order;
+            }
+        }
+    }
 }
 
 // NOTSA [Code combined from 0x7448B0 and 0x744930]
@@ -729,8 +727,11 @@ void CControllerConfigManager::InitialiseControllerActionNameArray() {
 }
 
 // 0x531F20
-bool CControllerConfigManager::ReinitControls() {
-    return 0;
+void CControllerConfigManager::ReinitControls() {
+    ControlsManager.MakeControllerActionsBlank();
+    ControlsManager.InitDefaultControlConfiguration();
+    const auto MouseSetUp = WinInput::GetMouseState();
+    ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, !FrontEndMenuManager.m_nController);
 }
 
 // 0x52F590
@@ -1439,14 +1440,14 @@ const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction ac
 
 // 0x5303D0
 const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerAction action) {
-    // TODO: replace to swith good idea?
-    if (FrontEndMenuManager.m_bController) {
+    if (FrontEndMenuManager.m_nController == 1) {
         if (const auto keyCode = m_Actions[action].Keys[CONTROLLER_PAD].Key) {
             CMessages::InsertNumberInString(TheText.Get("FEC_JBO"), keyCode, -1, -1, -1, -1, -1, NewStringWithNumber); // JOY~1~
             return NewStringWithNumber;
         }
     }
 
+    // TODO: replace to swith good idea?
     if (const auto keyText = GetControllerSettingTextMouse(action)) {
         return keyText;
     }

@@ -420,8 +420,8 @@ void CMenuManager::DrawControllerScreenExtraText(int32 a1) {
 // 0x57E6E0
 void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining) {
     // TODO: Magic number
-    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * !m_bController + 11u);
-    const auto maxActions      = m_RedefiningControls ? 25u : (m_bController ? 28u : 22u);
+    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * !m_nController + 11u);
+    const auto maxActions      = m_RedefiningControls ? 25u : (m_nController ? 28u : 22u);
 
     const auto getControllerAction = [&](int32 index) -> int32 {
         if (m_RedefiningControls) {
@@ -487,9 +487,9 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
             case 21:
             case 45: return CA_PED_LOOKBEHIND;
             case 22:
-            case 47: return m_bController ? CA_PED_1RST_PERSON_LOOK_LEFT : -1;
+            case 47: return m_nController != 0 ? CA_PED_1RST_PERSON_LOOK_LEFT : -1;
             case 23:
-            case 48: return m_bController ? CA_PED_1RST_PERSON_LOOK_RIGHT : -1;
+            case 48: return m_nController != 0 ? CA_PED_1RST_PERSON_LOOK_RIGHT : -1;
             case 24: return CA_PED_1RST_PERSON_LOOK_UP;
             case 25: return CA_PED_1RST_PERSON_LOOK_DOWN;
             case 26: return CA_PED_CENTER_CAMERA_BEHIND_PLAYER;
@@ -589,8 +589,8 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining)
 // 0x57F300
 void CMenuManager::DrawControllerSetupScreen() {
     // TODO: Magic number
-    const auto v51 = m_RedefiningControls ? 13u : (4u * (!m_bController) + 11u);
-    const auto max = m_RedefiningControls ? 25u : (m_bController ? 28u : 22u);
+    const auto v51 = m_RedefiningControls ? 13u : (4u * m_nController == 0 + 11u);
+    const auto max = m_RedefiningControls ? 25u : (m_nController != 0 ? 28u : 22u);
 
     const char* keys[]{
         "FEC_FIR", "FEC_FIA", "FEC_NWE", "FEC_PWE", m_RedefiningControls ? "FEC_ACC" : "FEC_FOR", m_RedefiningControls ? "FEC_BRA" : "FEC_BAC", "FEC_LEF", "FEC_RIG", "FEC_PLU", "FEC_PLD", m_RedefiningControls ? "FEC_TSK" : "FEC_COY", "FEC_CON", "FEC_GPF", "FEC_GPB", "FEC_ZIN", "FEC_ZOT", "FEC_EEX", "FEC_RSC", "FEC_RSP", "FEC_RTS", "FEC_HRN", "FEC_SUB", "FEC_CMR", "FEC_JMP", "FEC_SPN", "FEC_HND", "FEC_TAR", "FEC_CRO", "FEC_ANS", "FEC_PDW", "FEC_TFL", "FEC_TFR", "FEC_TFU", "FEC_TFD", "FEC_LBA", "FEC_VML", "FEC_LOL", "FEC_LOR", "FEC_LDU", "FEC_LUD", "", "", "FEC_CEN", nullptr
@@ -603,7 +603,7 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
     CFont::PrintString(
-        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_bController ? "FET_CCN" : "FET_SCN")
+        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_nController ? "FET_CCN" : "FET_SCN")
     );
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::PrintString(
