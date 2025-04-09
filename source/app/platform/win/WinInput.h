@@ -2,7 +2,6 @@
 
 #include "winincl.h"
 #include <dinput.h>
-#include <windows.h>
 
 namespace WinInput {
 
@@ -19,6 +18,5 @@ bool IsKeyDown(unsigned int keyCode);
 bool IsKeyPressed(unsigned int keyCode);
 
 HRESULT Shutdown();
-static inline HWND g_windowHandle = nullptr;
 
 }; // namespace WinInput

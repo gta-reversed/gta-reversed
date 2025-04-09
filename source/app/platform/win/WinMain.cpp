@@ -14,7 +14,6 @@
 #include "WinPlatform.h"
 #include "WndProc.h"
 
-#include "WinInput.h"
 #include "extensions/Configs/FastLoader.hpp"
 
 constexpr auto NO_FOREGROUND_PAUSE = true;
@@ -54,7 +53,7 @@ HWND InitInstance(HINSTANCE hInstance) {
     RECT rect = { 0, 0, RsGlobal.maximumWidth, RsGlobal.maximumHeight };
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 
-    WinInput::g_windowHandle = CreateWindowEx(
+    return CreateWindowEx(
         0,
         APP_CLASS,
         RsGlobal.appName,
@@ -68,8 +67,6 @@ HWND InitInstance(HINSTANCE hInstance) {
         hInstance,
         nullptr
     );
-
-    return WinInput::g_windowHandle;
 }
 
 // 0x7468E0
