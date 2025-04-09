@@ -176,11 +176,11 @@ struct tMenuScreenItem {
     char           m_szName[8];
     eMenuEntryType m_nType;
     eMenuScreen    m_nTargetMenu; // Ignored for MENU_ACTION_BACK
-    float          m_X;
-    float          m_Y;
+    uint16         m_X;
+    uint16         m_Y;
     eMenuAlign     m_nAlign;
 };
-//VALIDATE_SIZE(tMenuScreenItem, 0x12);
+VALIDATE_SIZE(tMenuScreenItem, 0x12);
 
 struct tMenuScreen {
     char            m_szTitleName[8];
@@ -188,7 +188,7 @@ struct tMenuScreen {
     int8            m_nStartEntry;
     tMenuScreenItem m_aItems[12];
 };
-//VALIDATE_SIZE(tMenuScreen, 0xE2);
+VALIDATE_SIZE(tMenuScreen, 0xE2);
 
 enum {
     FRONTEND1_START       = 0,
@@ -231,6 +231,6 @@ enum {
     FRONTEND_SPRITE_CROSS_HAIR,
 };
 
-static inline tMenuScreen (&aScreens)[43] = *(tMenuScreen(*)[43])0x8CE008;
+// static inline tMenuScreen (&aScreens)[43] = *(tMenuScreen(*)[43])0x8CE008;
 extern SpriteFileName FrontEndFilenames[];
-extern tMenuScreen aScreensX[];
+extern tMenuScreen aScreens[];

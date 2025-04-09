@@ -392,8 +392,8 @@ void CMenuManager::DrawBackground() {
 
 // 0x5794A0
 void CMenuManager::DrawStandardMenus(bool drawTitle) {
-    constexpr float MENU_DEFAULT_CONTENT_X = 320.0f;
-    constexpr float MENU_DEFAULT_CONTENT_Y = 130.0f;
+    constexpr uint16 MENU_DEFAULT_CONTENT_X = 320;
+    constexpr uint16 MENU_DEFAULT_CONTENT_Y = 130;
 
     int            i;                       // counter for loops
     const GxtChar* pTextToShow_RightColumn; // text for right column
