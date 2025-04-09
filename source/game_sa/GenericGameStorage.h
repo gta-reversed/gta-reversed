@@ -71,8 +71,7 @@ public:
     static inline const char ms_BlockTagName[] = "BLOCK";
     static inline tSlotSaveDate(&ms_SlotSaveDate)[MAX_SAVEGAME_SLOTS] = *(tSlotSaveDate(*)[MAX_SAVEGAME_SLOTS])0xC16138;
     static inline tSlotFileName(&ms_SlotFileName)[MAX_SAVEGAME_SLOTS] = *(tSlotFileName(*)[MAX_SAVEGAME_SLOTS])0xC16368;
-    // static inline eSlotState ms_Slots[MAX_SAVEGAME_SLOTS]; //= *(eSlotState(*)[MAX_SAVEGAME_SLOTS])0xC16EBC;
-    static inline eSlotState(&ms_Slots)[MAX_SAVEGAME_SLOTS] = *(eSlotState(*)[MAX_SAVEGAME_SLOTS])0xC16EBC;
+    static inline std::array<eSlotState, MAX_SAVEGAME_SLOTS>& ms_Slots = StaticRef<std::array<eSlotState, MAX_SAVEGAME_SLOTS>, 0xC16EBC>();
 public:
     static void InjectHooks();
 

@@ -804,16 +804,16 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 pTextToShow_RightColumn = TheText.Get("FEA_PR1");
             }
             break;
-
         default:
             break;
         }
 
         if (pTextToShow) {
-            if ((int)CGenericGameStorage::ms_Slots[i - 1] > 0 || itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
+            const bool shouldPrintDoublePoint = (itemType >= eMenuEntryType::TI_SLOT1 && itemType <= eMenuEntryType::TI_SLOT8) ? true : false;
+            if (shouldPrintDoublePoint && CGenericGameStorage::ms_Slots[itemType - 1] != eSlotState::SLOT_FILLED || !shouldPrintDoublePoint) {
                 CFont::PrintString(SCREEN_STRETCH_X(aScreens[m_nCurrentScreen].m_aItems[i].m_X), SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
                 // v1.01 +
-            } else {
+            } else if (shouldPrintDoublePoint && CGenericGameStorage::ms_Slots[itemType - 1] == eSlotState::SLOT_FILLED) {
                 CFont::PrintString(SCREEN_STRETCH_X(25.0f + aScreens[m_nCurrentScreen].m_aItems[i].m_X), SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
                 sprintf(gString, "%d:", i);
                 AsciiToGxtChar(gString, gGxtString);

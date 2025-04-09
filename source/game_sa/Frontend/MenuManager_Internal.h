@@ -231,6 +231,8 @@ enum {
     FRONTEND_SPRITE_CROSS_HAIR,
 };
 
-// static inline tMenuScreen (&aScreens)[43] = *(tMenuScreen(*)[43])0x8CE008;
 extern SpriteFileName FrontEndFilenames[];
+/*
+static inline tMenuScreen (&aScreens)[43] = *(tMenuScreen(*)[43])0x8CE008;
+*/ 
 extern tMenuScreen aScreens[];
