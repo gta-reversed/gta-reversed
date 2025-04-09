@@ -809,14 +809,13 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
 
         if (pTextToShow) {
-            const bool shouldPrintDoublePoint = (itemType >= eMenuEntryType::TI_SLOT1 && itemType <= eMenuEntryType::TI_SLOT8) ? true : false;
-            if (shouldPrintDoublePoint && CGenericGameStorage::ms_Slots[itemType - 1] != eSlotState::SLOT_FILLED || !shouldPrintDoublePoint) {
+            const bool isSlot = (itemType >= eMenuEntryType::TI_SLOT1 && itemType <= eMenuEntryType::TI_SLOT8) ? true : false;
+            if ((isSlot && CGenericGameStorage::ms_Slots[itemType - 1] != eSlotState::SLOT_FILLED) || !isSlot) {
                 CFont::PrintString(SCREEN_STRETCH_X(aScreens[m_nCurrentScreen].m_aItems[i].m_X), SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
                 // v1.01 +
-            } else if (shouldPrintDoublePoint && CGenericGameStorage::ms_Slots[itemType - 1] == eSlotState::SLOT_FILLED) {
+            } else if (isSlot && CGenericGameStorage::ms_Slots[itemType - 1] == eSlotState::SLOT_FILLED) {
                 CFont::PrintString(SCREEN_STRETCH_X(25.0f + aScreens[m_nCurrentScreen].m_aItems[i].m_X), SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), pTextToShow);
-                sprintf(gString, "%d:", i);
-                AsciiToGxtChar(gString, gGxtString);
+                AsciiToGxtChar(std::format("{}:", i).c_str(), gGxtString);
                 CFont::PrintString(SCREEN_STRETCH_X(aScreens[m_nCurrentScreen].m_aItems[i].m_X), SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y), gGxtString);
             }
         }
