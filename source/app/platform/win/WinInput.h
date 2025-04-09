@@ -1,7 +1,6 @@
 #pragma once
 
 #ifndef NOTSA_USE_SDL3
-#include <Windows.h>
 #include <dinput.h>
 #include "winincl.h"
 
