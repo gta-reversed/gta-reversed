@@ -516,10 +516,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             continue;
         }
 
+        const bool isSlot = (itemType >= eMenuEntryType::TI_SLOT1 && itemType <= eMenuEntryType::TI_SLOT8) ? true : false;
+
         itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
         float xOffset = 0;
 
-        if (itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
+        if (!isSlot) {
             if (itemType == eMenuEntryType::TI_MPACK) {
                 /*
                 if (.../) { // HELP NEED
@@ -717,7 +719,6 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         const auto scaledPosY = SCREEN_STRETCH_Y(aScreens[m_nCurrentScreen].m_aItems[i].m_Y);
 
         if (pTextToShow) {
-            const bool isSlot = (itemType >= eMenuEntryType::TI_SLOT1 && itemType <= eMenuEntryType::TI_SLOT8) ? true : false;
             if ((isSlot && GetSavedGameState(itemType - 1) != eSlotState::SLOT_FILLED) || !isSlot) {
                 CFont::PrintString(scaledPosX, scaledPosY, pTextToShow);
             // v1.01 +
@@ -732,7 +733,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             CFont::SetFontStyle(FONT_MENU);
             CFont::SetEdge(1);
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-            if (itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
+            if (!isSlot) {
                 CFont::SetScale(SCREEN_STRETCH_X((m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && i == 5) ? 0.56f : 0.7f), SCREEN_STRETCH_Y(1.0f));
             } else {
                 CFont::SetScale(SCREEN_STRETCH_X(0.35f), SCREEN_STRETCH_Y(0.95f));
