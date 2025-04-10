@@ -124,7 +124,7 @@ void CControllerConfigManager::ClearCommonMappings(eControllerAction nop, KeyCod
 }
 
 // 0x530490
-bool CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerAction action, KeyCode button, eControllerType type) {
+void CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerAction action, KeyCode button, eControllerType type) {
     ResetSettingOrder(action);
     auto existingMappings = 0u;
     for (auto i = 0u; i < eControllerType::CONTROLLER_NUM; ++i) {
@@ -134,7 +134,6 @@ bool CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerA
     }
     m_Actions[action].Keys[type].m_uiActionInitiator  = button;
     m_Actions[action].Keys[type].m_uiSetOrder = (eContSetOrder)existingMappings++;
-    return true;
 }
 
 // 0x5319D0

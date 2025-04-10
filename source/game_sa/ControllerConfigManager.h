@@ -172,7 +172,7 @@ public:
 
     void ClearPedMappings(eControllerAction action, KeyCode button, eControllerType controllerType);
     void ClearCommonMappings(eControllerAction nop, KeyCode button, eControllerType type);
-    bool SetControllerKeyAssociatedWithAction(eControllerAction action, KeyCode button, eControllerType type);
+    void SetControllerKeyAssociatedWithAction(eControllerAction action, KeyCode button, eControllerType type);
     void ClearVehicleMappings(eControllerAction nop, KeyCode button, eControllerType type);
     void Clear1st3rdPersonMappings(eControllerAction action, KeyCode button, eControllerType type);
     void StoreJoyButtonStates();
