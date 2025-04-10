@@ -125,19 +125,15 @@ enum eJOY_BUTTONS {
     JOYBUTTON_SIXTEEN = 16,
 };
 
-struct CControllerKey {
-    using KeyCode = uint32;
+using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
 
-    KeyCode m_uiActionInitiator{};   //!< `RsKeyCodes` (and ASCII chars) for keyboards (`rsNULL` -> unset)
-                      //!< `ePadButton` for mouse/joystick/pad (`0` -> unset)
-    eContSetOrder m_uiSetOrder{}; //!< m_uiSetOrder in which this key/button was defined,
-                      //!< - If set, [1, CONTROLLER_NUM],
-                      //!< - `0` used if this key is not set,
-                      //!< - -1 for disabling (?)
+struct CControllerKey {
+    KeyCode m_uiActionInitiator{};
+    eContSetOrder m_uiSetOrder{};
 };
 
 struct CControllerAction {
-    CControllerKey Keys[CONTROLLER_NUM]{};
+    CControllerKey Keys[eControllerType::CONTROLLER_NUM]{};
 };
 
 struct CPadConfig {
@@ -164,10 +160,10 @@ public:
     std::array<GxtChar[40], NUM_OF_MAX_CONTROLLER_ACTIONS>   m_ControllerActionName{};
     bool                                                     m_ButtonStates[17]{};     // True if down, false if up or missing, enum ePadButton?
     std::array<CControllerAction, NUM_OF_MAX_CONTROLLER_ACTIONS> m_Actions;
-    bool                                                     m_bStickL_X_Rgh_Lft_MovementBothDown[CONTROLLER_NUM];
-    bool                                                     m_bStickL_Up_Dwn_MovementBothDown[CONTROLLER_NUM];
-    bool                                                     m_bStickR_X_Rgh_Lft_MovementBothDown[CONTROLLER_NUM];
-    bool                                                     m_bStickR_Up_Dwn_MovementBothDown[CONTROLLER_NUM];
+    bool                                                     m_bStickL_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool                                                     m_bStickL_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool                                                     m_bStickR_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool                                                     m_bStickR_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
     bool                                                     m_MouseFoundInitSet;
 
 public:
@@ -198,7 +194,7 @@ public:
     void ResetSettingOrder(eControllerAction action);
     void HandleJoyButtonUpDown(int32 joyNo, bool isDown);
     bool LoadSettings(FILESTREAM file);
-    int32 SaveSettings(FILESTREAM file);
+    bool SaveSettings(FILESTREAM file);
     void InitDefaultControlConfigJoyPad(uint32 buttonCount);
     void InitDefaultControlConfiguration();
     void InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller);

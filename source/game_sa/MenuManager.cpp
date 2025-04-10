@@ -542,13 +542,13 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_PrefsBrightness                = 256;
         m_fDrawDistance                  = 1.2f;
         CRenderer::ms_lodDistScale       = 1.2f;
-        m_bPrefsFrameLimiter             = false; // NOTSA
+        m_bPrefsFrameLimiter             = true;
         m_bHudOn                         = true;
         m_bSavePhotos                    = true;
         m_bPrefsMipMapping               = true;
         m_nPrefsAntialiasing             = 1;
         m_nDisplayAntialiasing           = 1;
-        m_bWidescreenOn                  = true; // NOTSA
+        m_bWidescreenOn                  = false;
         m_bMapLegend                     = false;
         m_nRadarMode                     = eRadarMode::MAPS_AND_BLIPS;
         m_nDisplayVideoMode              = m_nPrefsVideoMode;
@@ -565,7 +565,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         CCamera::m_bUseMouse3rdPerson    = true;
         CVehicle::m_bEnableMouseFlying   = true;
         CVehicle::m_bEnableMouseSteering = false;
-        bInvertMouseY                    = false;
+        bInvertMouseY                    = false; // NOSTA FIX
         m_bInvertPadX1                   = false;
         m_bInvertPadY1                   = false;
         m_bInvertPadX2                   = false;

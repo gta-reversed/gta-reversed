@@ -128,7 +128,7 @@ void CControllerConfigManager::ClearCommonMappings(eControllerAction nop, CContr
 bool CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerAction action, CControllerKey::KeyCode button, eControllerType type) {
     ResetSettingOrder(action);
     auto existingMappings = 0u;
-    for (auto i = 0u; i < CONTROLLER_NUM; ++i) {
+    for (auto i = 0u; i < eControllerType::CONTROLLER_NUM; ++i) {
         if (m_Actions[action].Keys[i].m_uiActionInitiator != rsNULL) {
             existingMappings++;
         }
@@ -214,7 +214,7 @@ const GxtChar* CControllerConfigManager::GetActionKeyName(eControllerAction acti
 
 // 0x531E20
 const GxtChar* CControllerConfigManager::GetControllerSettingText(eControllerAction action, eContSetOrder priority) {
-    for (auto type = 0u; type < CONTROLLER_NUM; ++type) {
+    for (auto type = 0u; type < eControllerType::CONTROLLER_NUM; ++type) {
         if (m_Actions[action].Keys[type].m_uiSetOrder == priority) {
             switch (type) {
             case eControllerType::KEYBOARD:
@@ -522,7 +522,7 @@ bool CControllerConfigManager::LoadSettings(FILE* file) {
     // NOTSA: Check if there's at least one valid assignment for each action
     for (int32 i = 0; i < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; i++) {
         bool hasAssignment = false;
-        for (int32 j = 0; j < CONTROLLER_NUM; j++) {
+        for (int32 j = 0; j < eControllerType::CONTROLLER_NUM; j++) {
             if (!GetIsKeyBlank(m_Actions[i].Keys[j].m_uiActionInitiator, (eControllerType)j)) {
                 hasAssignment = true;
                 break;
@@ -537,7 +537,7 @@ bool CControllerConfigManager::LoadSettings(FILE* file) {
 }
 
 // 0x52D200
-int32 CControllerConfigManager::SaveSettings(FILE* file) {
+bool CControllerConfigManager::SaveSettings(FILE* file) {
     if (!file) {
         return 0;
     }
@@ -552,7 +552,7 @@ int32 CControllerConfigManager::SaveSettings(FILE* file) {
         }
     }
 
-    return 1;
+    return true;
 }
 
 // 0x530640
@@ -1142,7 +1142,7 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonUp_DebugStuff(int32
 
 // 0x52DD90
 void CControllerConfigManager::ClearSimButtonPressCheckers() {
-    for (auto i = 0u; i < CONTROLLER_NUM; ++i) {
+    for (auto i = 0u; i < eControllerType::CONTROLLER_NUM; ++i) {
         m_bStickL_Up_Dwn_MovementBothDown[i]    = false;
         m_bStickL_X_Rgh_Lft_MovementBothDown[i] = false;
         m_bStickR_Up_Dwn_MovementBothDown[i]    = false;
@@ -1448,7 +1448,7 @@ const GxtChar* CControllerConfigManager::GetControllerSettingTextJoystick(eContr
 
 // 0x530500
 void CControllerConfigManager::MakeControllerActionsBlank() {
-    for (auto i = 0u; i < CONTROLLER_NUM; ++i) {
+    for (auto i = 0u; i < eControllerType::CONTROLLER_NUM; ++i) {
         for (auto j = 0u; j < NUM_OF_MAX_CONTROLLER_ACTIONS; ++j) {
             ClearSettingsAssociatedWithAction((eControllerAction)(j), (eControllerType)(i));
         }

@@ -5,5 +5,5 @@ enum eControllerType {
     OPTIONAL_EXTRA_KEY,
     MOUSE,
     JOY_STICK,
-    CONTROLLER_NUM
+    CONTROLLER_NUM // NOTSA
 };
