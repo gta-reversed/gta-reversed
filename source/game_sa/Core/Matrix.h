@@ -162,6 +162,7 @@ public:
     /*!
      * @notsa
      * @brief Transform a direction vector - will not take into account translation part of the Matrix.
+     * @brief Use instead of `Multiply3x3` (0x59C790)
      * @param pt The vector (direction) to transform
      */
     CVector TransformVector(CVector v) const {

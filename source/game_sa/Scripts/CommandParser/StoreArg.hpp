@@ -5,7 +5,7 @@
 #include "ReadArg.hpp" // TODO: We only use `PooledType` from here, so move that out to somewhere common between the 2 headers (because including this here is ugly)
 #include "TheScripts.h"
 #include "RunningScript.h" // ScriptParams
-#include "Pools.h"
+#include <Pools/Pools.h>
 
 namespace notsa {
 namespace script {
@@ -14,7 +14,7 @@ namespace script {
 * TODO: Actually verify this theory.
 */
 template<typename T>
-    requires std::is_same_v<T, bool> // Must do it like this to avoid erronous implicit conversions to bool
+    requires std::is_same_v<T, bool> // Must do it like this to avoid erroneous implicit conversions to bool
 inline void StoreArg(CRunningScript* S, T arg) {
     S->UpdateCompareFlag(arg);
 }
@@ -28,38 +28,31 @@ inline void StoreArg(CRunningScript* S, T arg) {
 template<typename T>
     requires (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
 inline void StoreArg(CRunningScript* S, const T& arg) { // Add requirements to filter out possible mistakes (Like returning an unsupported type)
-    tScriptParam* dest = [&] {
-        const auto GetFromArray = [S](auto&& GetArrayElement) {
-            uint16 base{};
-            int32 idx{};
-            S->ReadArrayInformation(true, &base, &idx);
-            return std::invoke(GetArrayElement, S, base, idx, 1);
-        };
-
-        switch (const auto t = S->ReadAtIPAs<int8>()) {
+    T& dst = [&]() -> T& {
+        switch (const auto t = S->GetAtIPAs<int8>()) {
         case SCRIPT_PARAM_GLOBAL_NUMBER_VARIABLE:
-            return S->GetPointerToGlobalVariable(S->ReadAtIPAs<uint16>());
+            return S->GetGlobal<T>(S->GetAtIPAs<uint16>());
         case SCRIPT_PARAM_LOCAL_NUMBER_VARIABLE:
-            return S->GetPointerToLocalVariable(S->ReadAtIPAs<uint16>());
+            return S->GetLocal<T>(S->GetAtIPAs<uint16>());
         case SCRIPT_PARAM_GLOBAL_NUMBER_ARRAY:
-            return GetFromArray(&CRunningScript::GetPointerToGlobalArrayElement);
+            return S->GetAtIPFromArray<T>(true);
         case SCRIPT_PARAM_LOCAL_NUMBER_ARRAY:
-            return GetFromArray(&CRunningScript::GetPointerToLocalArrayElement);
+            return S->GetAtIPFromArray<T>(false);
         default:
             NOTSA_UNREACHABLE("Variable type unknown ={:x}", t);
         }
     }();
-    static_assert(sizeof(arg) <= sizeof(tScriptParam)); // Otherwise we'd be overwriting the script => bad
+    static_assert(sizeof(dst) <= sizeof(tScriptParam)); // Otherwise we'd be overwriting the script => bad
 
-    memset((void*)dest, 0, sizeof(tScriptParam));  // Zero it all out
-    memcpy((void*)dest, (void*)&arg, sizeof(arg)); // Now copy the value to it (Which might be less than 4 bytes)
+    memset((void*)&dst, 0, sizeof(tScriptParam));  // Zero it all out
+    memcpy((void*)&dst, (void*)&arg, sizeof(arg)); // Now copy the value to it (Which might be less than 4 bytes)
 }
 
 // Vector overloads
 
-inline void StoreArg(CRunningScript* script, const CVector& v3) {
+inline void StoreArg(CRunningScript* S, const CVector& v3) {
     for (auto&& c : v3.GetComponents()) {
-        StoreArg(script, c);
+        StoreArg(S, c);
     }
 }
 

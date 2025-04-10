@@ -1,10 +1,12 @@
 #pragma once
 
-
 #include "eEventType.h"
+#include <Vector.h>
+#include "Base.h"
 
 class CPed;
 class CEntity;
+class CPedGroup;
 
 class NOTSA_EXPORT_VTABLE CEvent {
 public:
@@ -21,7 +23,7 @@ public:
     virtual eEventType GetEventType() const = 0;
     virtual int32 GetEventPriority() const = 0;
     virtual int32 GetLifeTime() = 0;
-    virtual CEvent* Clone() = 0;
+    virtual CEvent* Clone() const noexcept = 0;
     virtual bool AffectsPed(CPed* ped) { return true; };
     virtual bool AffectsPedGroup(CPedGroup* pedGroup) { return true; };
     virtual bool IsCriminalEvent() { return false; }
@@ -39,17 +41,6 @@ public:
 
     void UnTick() { m_nTimeActive--; }
     void Tick() { m_nTimeActive++; }
-
-    /// Works like `dynamic_cast` => Checks if the event if ofthe required type, if so, returns it, otherwise nullptr
-    template<std::derived_from<CEvent> T>
-    static T* DynCast(auto event) {
-        if (event) {
-            if (event->GetEventType() == T::Type) {
-                return static_cast<T*>(event);
-            }
-        }
-        return nullptr;
-    }
 
 public: // Casting.hpp support //
     template<typename From, typename Self>

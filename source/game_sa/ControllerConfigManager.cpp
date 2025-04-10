@@ -934,6 +934,65 @@ int32 CControllerConfigManager::GetJoyButtonJustDown() {
     return v1 + 1;
 }
 
+bool IsKeyboardKeyDownInState(CKeyboardState& state, RsKeyCodes key) {
+    if (key >= 0 && key < 0xFF) {
+        return state.standardKeys[key] != 0;
+    }
+
+    if (key >= rsF1 && key <= rsF12) {
+        return state.FKeys[key - rsF1];
+    }
+
+    switch (key) {
+    case rsESC: return state.esc;
+    case rsINS: return state.insert;
+    case rsDEL: return state.del;
+    case rsHOME: return state.home;
+    case rsEND: return state.end;
+    case rsPGUP: return state.pgup;
+    case rsPGDN: return state.pgdn;
+    case rsUP: return state.up;
+    case rsDOWN: return state.down;
+    case rsLEFT: return state.left;
+    case rsRIGHT: return state.right;
+    case rsDIVIDE: return state.div;
+    case rsTIMES: return state.mul;
+    case rsPLUS: return state.add;
+    case rsMINUS: return state.sub;
+    case rsPADDEL: return state.decimal;
+    case rsPADEND: return state.num1;
+    case rsPADDOWN: return state.num2;
+    case rsPADPGDN: return state.num3;
+    case rsPADLEFT: return state.num4;
+    case rsPAD5: return state.num5;
+    case rsNUMLOCK: return state.numlock;
+    case rsPADRIGHT: return state.num6;
+    case rsPADHOME: return state.num7;
+    case rsPADUP: return state.num8;
+    case rsPADPGUP: return state.num9;
+    case rsPADINS: return state.num0;
+    case rsPADENTER: return state.enter;
+    case rsSCROLL: return state.scroll;
+    case rsPAUSE: return state.pause;
+    case rsBACKSP: return state.back;
+    case rsTAB: return state.tab;
+    case rsCAPSLK: return state.capslock;
+    case rsENTER: return state.extenter;
+    case rsLSHIFT: return state.lshift;
+    case rsRSHIFT: return state.rshift;
+    case rsSHIFT: return state.shift;
+    case rsLCTRL: return state.lctrl;
+    case rsRCTRL: return state.rctrl;
+    case rsLALT: return state.lalt;
+    case rsRALT: return state.ralt;
+    case rsLWIN: return state.lwin;
+    case rsRWIN: return state.rwin;
+    case rsAPPS: return state.apps;
+    }
+
+    return false;
+}
+
 // 0x52DDB0
 bool CControllerConfigManager::GetIsKeyboardKeyDown(CControllerKey::KeyCode key) {
     CPad* pad = CPad::GetPad();

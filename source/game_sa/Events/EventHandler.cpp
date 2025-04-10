@@ -1610,7 +1610,7 @@ void CEventHandler::ComputePedEnteredVehicleResponse(CEventPedEnteredMyVehicle* 
             return new CTaskComplexScreamInCarThenLeave{ e->m_Vehicle, e->m_TargetDoor };
         }
         case TASK_COMPLEX_LEAVE_CAR: // 0x4C16CE
-            return new CTaskComplexLeaveCar{ e->m_Vehicle, e->m_TargetDoor, CGeneral::GetRandomNumberInRange(300, 600), false, true };
+            return new CTaskComplexLeaveCar{ e->m_Vehicle, (int32)e->m_TargetDoor, CGeneral::GetRandomNumberInRange(300, 600), false, true };
         case TASK_COMPLEX_LEAVE_CAR_AND_FLEE: // 0x4C18C9
             return LeaveCarAndFlee();
         case TASK_COMPLEX_LEAVE_CAR_AND_WANDER: // 0x4C1744
@@ -2127,7 +2127,7 @@ void CEventHandler::ComputeReviveResponse(CEventRevived* e, CTask* tactive, CTas
         m_Ped->bKnockedUpIntoAir        = false;
         m_Ped->bKnockedOffBike          = false;
         m_Ped->bKilledByStealth         = false;
-        m_Ped->physicalFlags.bDestroyed = false;
+        m_Ped->physicalFlags.bRenderScorched = false;
 
         m_Ped->SetPedState(PEDSTATE_IDLE);
         m_Ped->RestartNonPartialAnims();
@@ -2612,7 +2612,7 @@ void CEventHandler::ComputeVehicleDiedResponse(CEventVehicleDied* e, CTask* tact
         if (!e->m_vehicle) {
             return nullptr;
         }
-        m_Ped->physicalFlags.bDestroyed = true;
+        m_Ped->physicalFlags.bRenderScorched = true;
         m_Ped->m_fHealth = 0.f;
         if (m_Ped->IsInVehicle() && (m_Ped->m_pVehicle->IsBike() || m_Ped->m_pVehicle->IsSubQuad())) {
             ComputeKnockOffBikeResponse(e, tactive, tsimplest);
@@ -2862,7 +2862,7 @@ void CEventHandler::ComputeEventResponseTask(CEvent* e, CTask* pAbortedTaskEvent
         ? m_Ped->GetTaskManager().GetSimplestActiveTask()
         : nullptr;
     
-    //DEV_LOG("event: {} tactive: {} tsimplest: {}", (int32)event->GetEventType(), (int32)tactive->GetTaskType(), (int32)tsimplest->GetTaskType()); // NOTSA
+    //NOTSA_LOG_DEBUG("event: {} tactive: {} tsimplest: {}", (int32)event->GetEventType(), (int32)tactive->GetTaskType(), (int32)tsimplest->GetTaskType()); // NOTSA
 
     switch (e->GetEventType()) {
     case EVENT_VEHICLE_COLLISION:

@@ -2,7 +2,9 @@
 
 #include <windows.h>
 #include <skeleton.h>
+#include "winincl.h"
 
-LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+#ifndef NOTSA_USE_SDL3
 BOOL GTATranslateShiftKey(RsKeyCodes*);
 void InjectHooksWndProcStuff();
+#endif

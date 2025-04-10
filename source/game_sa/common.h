@@ -10,7 +10,7 @@
 #include <string>
 #include <initializer_list>
 #include <RenderWare.h>
-
+#include <GxtChar.h>
 #include "AnimationEnums.h"
 #include "Vector.h"
 #include "Vector2D.h"
@@ -206,6 +206,16 @@ T lerp(const T& from, const T& to, float t) {
     return static_cast<T>(to * t + from * (1.f - t));
 }
 
+template<>
+inline RwRGBA lerp<RwRGBA>(const RwRGBA& from, const RwRGBA& to, float t) {
+    return RwRGBA{
+        .red   = lerp(from.red, to.red, t),
+        .green = lerp(from.green, to.green, t),
+        .blue  = lerp(from.blue, to.blue, t),
+        .alpha = lerp(from.alpha, to.alpha, t),
+    };
+}
+
 constexpr float invLerp(float fMin, float fMax, float fVal) {
     return (fVal - fMin) / (fMax - fMin);
 }
@@ -222,26 +232,18 @@ inline bool approxEqual2(float f1, float f2, float epsilon = 0.01F)
 }
 
 // shit
-extern constexpr bool make_fourcc3(const char* line, const char abc[3]) {
-    return line[0] == abc[0] &&
-           line[1] == abc[1] &&
-           line[2] == abc[2];
+constexpr bool make_fourcc3(const char* line, const char abc[3]) {
+    return line[0] == abc[0] && line[1] == abc[1] && line[2] == abc[2];
 }
 
 // shit
-extern constexpr bool make_fourcc4(const char* line, const char abcd[4]) {
-    return line[0] == abcd[0] &&
-           line[1] == abcd[1] &&
-           line[2] == abcd[2] &&
-           line[3] == abcd[3];
+constexpr bool make_fourcc4(const char* line, const char abcd[4]) {
+    return line[0] == abcd[0] && line[1] == abcd[1] && line[2] == abcd[2] && line[3] == abcd[3];
 }
 
 // shit
-inline constexpr uint32 MakeFourCC(const char fourcc[4]) {
-    return fourcc[0] << 0 |
-           fourcc[1] << 8 |
-           fourcc[2] << 16 |
-           fourcc[3] << 24;
+constexpr uint32 MakeFourCC(const char fourcc[4]) {
+    return fourcc[0] << 0 | fourcc[1] << 8 | fourcc[2] << 16 | fourcc[3] << 24;
 }
 
 char* MakeUpperCase(char *dest, const char *src);

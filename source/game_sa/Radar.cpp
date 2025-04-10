@@ -8,7 +8,6 @@
 
 #include "Radar.h"
 #include "EntryExitManager.h"
-#include <extensions/enumerate.hpp>
 
 constexpr std::array<airstrip_info, NUM_AIRSTRIPS> airstrip_table = { // 0x8D06E0
     airstrip_info{ { +1750.0f,  -2494.0f }, 180.0f, 1000.0f }, // AIRSTRIP_LS_AIRPORT
@@ -1310,7 +1309,7 @@ void CRadar::Draw3dMarkers() {
         C3dMarkers::PlaceMarkerCone(id, pos, size, color.r, color.g, color.b, 255, 1024u, 0.2f, 5, true);
     };
 
-    for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) {
+    for (auto&& [i, trace] : rngv::enumerate(ms_RadarTrace)) {
         if (!trace.m_bTrackingBlip) {
             continue;
         }
@@ -1442,7 +1441,7 @@ void CRadar::DrawRadarSection(int32 x, int32 y) {
         GetTextureCorners(x, y, corners);
 
         CVector2D rotated[8]{};
-        for (auto&& [i, corner] : notsa::enumerate(corners)) {
+        for (auto&& [i, corner] : rngv::enumerate(corners)) {
             rotated[i] = CachedRotateClockwise((corner - vec2DRadarOrigin) / m_radarRange);
         }
         return ClipRadarPoly(clipped, rotated);
@@ -1512,13 +1511,13 @@ void CRadar::DrawRadarGangOverlay(bool inMenu) {
     for (auto& zone : CTheZones::GetNavigationZones()) {
         const auto info = CTheZones::GetZoneInfo(&zone);
 
-        if (!info || !info->radarMode || !CGangWars::CanPlayerStartAGangWarHere(info))
+        if (!info || !info->RadarMode || !CGangWars::CanPlayerStartAGangWarHere(info))
             continue;
 
         g_RadarGangOverlay = zone.GetRect();
 
         // todo: enum
-        switch (info->radarMode) {
+        switch (info->RadarMode) {
         case 1:
             DrawAreaOnRadar(g_RadarGangOverlay, info->ZoneColor, inMenu);
             break;
@@ -1811,7 +1810,7 @@ void CRadar::SetupAirstripBlips() {
         // NOTSA, effectively the same thing though.
         const auto location = [veh] {
             float distances[NUM_AIRSTRIPS]{};
-            for (auto&& [i, table] : notsa::enumerate(airstrip_table)) {
+            for (auto&& [i, table] : rngv::enumerate(airstrip_table)) {
                 distances[i] = DistanceBetweenPoints2D(table.position, veh->GetPosition());
             }
 
@@ -1897,7 +1896,7 @@ void CRadar::DrawBlips() {
     // we first do whole thing with isSprite = true, then = false... yeah.
     for (const auto isSprite : {false, true}) {
         for (auto priority = 1; priority < 4; priority++) {
-            for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) { // todo: check if looping all
+            for (auto&& [i, trace] : rngv::enumerate(ms_RadarTrace)) { // todo: check if looping all
                 if (!trace.m_bTrackingBlip)
                     continue;
 
@@ -1928,7 +1927,7 @@ void CRadar::DrawBlips() {
             }
         }
 
-        for (auto&& [i, trace] : notsa::enumerate(ms_RadarTrace)) { // todo: check if looping all, same thing with above.
+        for (auto&& [i, trace] : rngv::enumerate(ms_RadarTrace)) { // todo: check if looping all, same thing with above.
             if (!trace.m_bTrackingBlip)
                 continue;
 
@@ -2008,7 +2007,7 @@ bool CRadar::Load() {
     for (auto& trace : ms_RadarTrace) {
         CGenericGameStorage::LoadDataFromWorkBuffer(trace);
         if (trace.m_EntryExitPoolInd) {
-            trace.m_pEntryExit = CEntryExitManager::mp_poolEntryExits->GetAt(trace.m_EntryExitPoolInd - 1);
+            trace.m_pEntryExit = CEntryExitManager::GetInSlot(trace.m_EntryExitPoolInd - 1);
         }
     }
 
@@ -2023,8 +2022,8 @@ bool CRadar::Save() {
     for (auto& trace : ms_RadarTrace) {
         CEntryExit* savedEnex = nullptr;
         if (trace.m_pEntryExit) {
-            const auto index = CEntryExitManager::mp_poolEntryExits->GetIndex(trace.m_pEntryExit);
-            if (CEntryExitManager::mp_poolEntryExits->IsIndexInBounds(index) && !CEntryExitManager::mp_poolEntryExits->IsFreeSlotAtIndex(index)) {
+            const auto index = CEntryExitManager::GetPool()->GetIndex(trace.m_pEntryExit);
+            if (CEntryExitManager::GetPool()->IsIndexInBounds(index) && !CEntryExitManager::GetPool()->IsFreeSlotAtIndex(index)) {
                 savedEnex = trace.m_pEntryExit;
                 trace.m_EntryExitPoolInd = index + 1; // Assign the pool index for save duration, restore it later
             }
@@ -2141,7 +2140,7 @@ const GxtChar* CRadar::GetBlipName(eRadarSprite blipType) {
  * @brief Returns the first index in `ms_RadarTrace` that is not a tracking blip.
  */
 int32 CRadar::FindTraceNotTrackingBlipIndex() {
-    for (auto&& [i, v] : notsa::enumerate(ms_RadarTrace)) {
+    for (auto&& [i, v] : rngv::enumerate(ms_RadarTrace)) {
         if (!v.m_bTrackingBlip) {
             return (int32)i;
         }

@@ -39,7 +39,7 @@ public:
     FixedFloat<int16, 4.f> m_Width;
     FixedFloat<int16, 4.f> m_Height;
 
-    FixedVector<uint8, TWO_PI_OVER_256> m_Rot{};
+    FixedVector<uint8, 256.f / TWO_PI> m_Rot{};
     
     struct {
         int16 m_NextIndex : 15;

@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include <imgui.h>
-#include <imgui_stdlib.h>
+#include <libs/imgui/misc/cpp/imgui_stdlib.h>
 #include <imgui_internal.h>
 #include <extensions/random.hpp>
 
@@ -301,7 +301,7 @@ void Initialise() {
     m_pedToolInput.Initialise(256, &m_pedsMap);
 }
 
-void SpawnPed(int32 modelId, CVector position) {
+CPed* SpawnPed(int32 modelId, CVector position) {
     CStreaming::RequestModel(modelId, STREAMING_MISSION_REQUIRED | STREAMING_KEEP_IN_MEMORY);
     CStreaming::LoadAllRequestedModels(false);
     CPed* ped = new CCivilianPed(CPopulation::IsFemale((eModelID)modelId) ? PED_TYPE_CIVFEMALE : PED_TYPE_CIVMALE, modelId);
@@ -309,6 +309,7 @@ void SpawnPed(int32 modelId, CVector position) {
     ped->SetPosn(position);
     CWorld::Add(ped);
     ped->PositionAnyPedOutOfCollision();
+    return ped;
 }
 
 void SpawnRandomPed() {

@@ -21,7 +21,7 @@ static inline int32& gGameState = *(int32*)0xC8D4C0;
 //! NOTSA (We wanna have this wrapper for debugging)
 inline void ChangeGameStateTo(eGameState newgs) {
     if (gGameState != newgs) {
-        DEV_LOG("GS Change: `{}` to `{}`", EnumToString((eGameState)gGameState), EnumToString(newgs));
+        NOTSA_LOG_DEBUG("GS Change: `{}` to `{}`", EnumToString((eGameState)gGameState), EnumToString(newgs));
         gGameState = newgs;
     }
 };
@@ -130,5 +130,4 @@ float GetDayNightBalance();
 
 // 0x746870
 void MessageLoop();
-
 char* getDvdGamePath();

@@ -97,7 +97,7 @@ void CVehicle::InjectHooks() {
 
     RH_ScopedOverloadedInstall(IsPassenger, "Ped", 0x6D1BD0, bool(CVehicle::*)(CPed*) const);
     RH_ScopedOverloadedInstall(IsPassenger, "ModelID", 0x6D1C00, bool(CVehicle::*)(int32) const);
-    RH_ScopedOverloadedInstall(IsDriver, "Ped", 0x6D1C40, bool(CVehicle::*)(CPed*) const);
+    RH_ScopedOverloadedInstall(IsDriver, "Ped", 0x6D1C40, bool(CVehicle::*)(const CPed*) const);
     RH_ScopedOverloadedInstall(IsDriver, "ModelID", 0x6D1C60, bool(CVehicle::*)(int32) const);
     RH_ScopedInstall(Shutdown, 0x6D0B40);
     RH_ScopedInstall(GetRemapIndex, 0x6D0B70);
@@ -196,7 +196,7 @@ void CVehicle::InjectHooks() {
     RH_ScopedInstall(UsesSiren, 0x6D8470);
     RH_ScopedInstall(IsSphereTouchingVehicle, 0x6D84D0);
     // RH_ScopedInstall(FlyingControl, 0x6D85F0);
-    RH_ScopedInstall(BladeColSectorList, 0x6DAF00);
+    RH_ScopedInstall(BladeColSectorList<CPtrListSingleLink<CEntity*>>, 0x6DAF00);
     RH_ScopedInstall(SetComponentRotation, 0x6DBA30);
     RH_ScopedInstall(SetTransmissionRotation, 0x6DBBB0);
     RH_ScopedInstall(DoBoatSplashes, 0x6DD130);
@@ -318,8 +318,8 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     m_nRandomIdRelatedToSiren = 0;
     m_nCarHornTimer = 0;
     field_4EC = 0;
-    m_pTractor = nullptr;
-    m_pTrailer = nullptr;
+    m_pTowingVehicle = nullptr;
+    m_pVehicleBeingTowed = nullptr;
     m_nTimeTillWeNeedThisCar = 0;
     m_nAlarmState = 0;
     m_nDoorLock = eCarLock::CARLOCK_UNLOCKED;
@@ -337,9 +337,8 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     m_RearCollPoly.valid = false;
     m_pHandlingData = nullptr;
     m_nHandlingFlagsIntValue = static_cast<eVehicleHandlingFlags>(0);
-    m_autoPilot.m_nCarMission = MISSION_NONE;
-    m_autoPilot.m_nTempAction = 0;
-    m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
+    m_autoPilot.m_nTempAction = TEMPACT_NONE;
+    m_autoPilot.SetCarMission(MISSION_NONE, 0);
     m_autoPilot.carCtrlFlags.bAvoidLevelTransitions = false;
     m_nRemapTxd = -1;
     m_nPreviousRemapTxd = -1;
@@ -415,7 +414,7 @@ CVehicle::~CVehicle() {
         CRopes::GetRope(iRopeInd).Remove();
     }
 
-    if (!physicalFlags.bDestroyed && m_fHealth < 250.0F) {
+    if (!physicalFlags.bRenderScorched && m_fHealth < 250.0F) {
         CDarkel::RegisterCarBlownUpByPlayer(*this, 0);
     }
 }
@@ -610,7 +609,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
         return;
     }
 
-    if (colPhysical == m_pTractor || colPhysical == m_pTrailer) {
+    if (colPhysical == m_pTowingVehicle || colPhysical == m_pVehicleBeingTowed) {
         bThisOrCollidedEntityStuck = true;
         physicalFlags.bSkipLineCol = true;
         return;
@@ -695,7 +694,7 @@ bool CVehicle::SetupLighting() {
 
 // 0x5533D0
 void CVehicle::RemoveLighting(bool bRemove) {
-    if (!physicalFlags.bDestroyed)
+    if (!physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 
     SetAmbientColours();
@@ -1641,7 +1640,7 @@ bool CVehicle::IsPedOfModelInside(eModelID model) const {
     return IsDriver(model) || IsPassenger(model);
 }
 
-bool CVehicle::IsDriver(CPed* ped) const {
+bool CVehicle::IsDriver(const CPed* ped) const {
     return ped && ped == m_pDriver;
 }
 
@@ -1814,7 +1813,7 @@ void CVehicle::ExtinguishCarFire() {
     }
 
     if (m_pFire) {
-        m_pFire->createdByScript = false;
+        m_pFire->SetIsScript(false);
         m_pFire->Extinguish();
         m_pFire = nullptr;
     }
@@ -3445,7 +3444,8 @@ void CVehicle::FlyingControl(eFlightModel flightModel, float leftRightSkid, floa
 
 // 0x6DAF00
 // always returns `false`, and `rotorType` is always `-3`
-bool CVehicle::BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult) {
+template<typename PtrListType>
+bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult) {
     if (ptrList.IsEmpty()) {
         return false;
     }
@@ -3472,34 +3472,31 @@ bool CVehicle::BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, 
     const auto colModelCenter         = matrix.TransformPoint(colModel.GetBoundCenter());
     const auto& thisPosn              = GetPosition();
 
-    for (CPtrNode* it = ptrList.GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-        auto& entity = *reinterpret_cast<CEntity*>(it->m_item);
-
-        if (&entity == this || !entity.m_bUsesCollision) {
+    for (auto* entity : ptrList) {
+        if (static_cast<CEntity*>(entity) == static_cast<CEntity*>(this) || !entity->m_bUsesCollision) {
             continue;
         }
 
-        if (entity.IsScanCodeCurrent()) {
+        if (entity->IsScanCodeCurrent()) {
             continue;
         }
-        entity.SetCurrentScanCode();
+        entity->SetCurrentScanCode();
 
-        auto entityCM = entity.IsPed()
-            ? entity.GetModelInfo()->AsPedModelInfoPtr()->AnimatePedColModelSkinned(entity.m_pRwClump)
-            : entity.GetColModel();
+        auto entityCM = entity->IsPed()
+            ? entity->GetModelInfo()->AsPedModelInfoPtr()->AnimatePedColModelSkinned(entity->m_pRwClump)
+            : entity->GetColModel();
 
         if (!entityCM) {
             continue;
         }
 
-        if (entity.IsObject() && entity.AsObject()->m_nObjectType == eObjectType::OBJECT_TEMPORARY) {
+        if (entity->IsObject() && entity->AsObject()->m_nObjectType == eObjectType::OBJECT_TEMPORARY) {
             continue;
         }
 
         const auto numColls = CCollision::ProcessColModels(
             matrix, colModel,
-            entity.GetMatrix(), *entityCM,
+            entity->GetMatrix(), *entityCM,
             CWorld::m_aTempColPts,
             nullptr,
             nullptr,
@@ -3509,8 +3506,8 @@ bool CVehicle::BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, 
             continue;
         }
 
-        if (entity.IsPed()) { // 0x6DB207
-            auto& ped = *entity.AsPed();
+        if (entity->IsPed()) { // 0x6DB207
+            auto& ped = *entity->AsPed();
 
             const auto dirToPed = Normalized(GetPosition() - ped.GetPosition());
 
@@ -3544,7 +3541,7 @@ bool CVehicle::BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, 
                     );
                 }
             }
-        } else if (entity.m_nModelIndex != eModelID::MODEL_MISSILE) { // 0x6DB44F
+        } else if (entity->m_nModelIndex != eModelID::MODEL_MISSILE) { // 0x6DB44F
             bool  wasAnyCPValid{};
             float automobileCollisionDmgIntensity{};
             CVector cpOnRotor{}; //!< Col point on the rotor
@@ -3584,7 +3581,7 @@ bool CVehicle::BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, 
                             au->m_fHeliRotorSpeed *= -1.f;
                         }
                     } else {
-                        ApplySoftCollision(&entity, cp, automobileCollisionDmgIntensity);
+                        ApplySoftCollision(entity, cp, automobileCollisionDmgIntensity);
                         ApplyTurnForce(colForceDir * (m_fTurnMass * -0.0005f), cpOnRotor - colModelCenter);
                         au->m_fHeliRotorSpeed = 0.15f;
                     }
@@ -3592,18 +3589,18 @@ bool CVehicle::BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, 
 
                 SetDamagedPieceRecord(
                     std::max(automobileCollisionDmgIntensity, 100.f * m_fMass / 3000.f),
-                    &entity,
+                    entity,
                     cp,
                     1.f
                 );
             }
 
             if (wasAnyCPValid) {
-                if (entity.IsPed() && !CTimer::IsTimeInRange(planeRotorDmgTimeMS - 2000, planeRotorDmgTimeMS)) {
+                if (entity->IsPed() && !CTimer::IsTimeInRange(planeRotorDmgTimeMS - 2000, planeRotorDmgTimeMS)) {
                     const auto ReportCollision = [&](CVector pos) {
                         AudioEngine.ReportCollision(
                             this,
-                            &entity,
+                            entity,
                             SURFACE_CAR_PANEL,
                             SURFACE_CAR,
                             pos,
@@ -4516,17 +4513,15 @@ bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, f
 
     CWorld::IncrementCurrentScanCode();
     CWorld::IterateSectorsOverlappedByRect(CRect{ m_matrix->TransformPoint(pos), radius }, [&](int32 x, int32 y) {
-        const auto ProcessSector = [&](const CPtrList& list, float damage) {
+        const auto ProcessSector = [&]<typename PtrListType>(PtrListType& list, float damage) {
             return BladeColSectorList(list, s_TestBladeCol, matrix, rotorType, damage);
         };
-
-        const auto* const s = GetSector(x, y);
-        const auto* const rs = GetRepeatSector(x, y);
-
+        auto* const s = GetSector(x, y);
+        auto* const rs = GetRepeatSector(x, y);
         collided |= ProcessSector(s->m_buildings, damageMult);
-        collided |= ProcessSector(rs->GetList(REPEATSECTOR_VEHICLES), damageMult);
-        collided |= ProcessSector(rs->GetList(REPEATSECTOR_PEDS), 0.0);
-        collided |= ProcessSector(rs->GetList(REPEATSECTOR_OBJECTS), damageMult);
+        collided |= ProcessSector(rs->Vehicles, damageMult);
+        collided |= ProcessSector(rs->Peds, 0.0);
+        collided |= ProcessSector(rs->Objects, damageMult);
         return 1;
     });
 
@@ -4561,7 +4556,7 @@ bool IsValidModForVehicle(uint32 modelId, CVehicle* vehicle) {
 
 // 0x6E38F0
 bool IsVehiclePointerValid(CVehicle* vehicle) {
-    const auto* const pool = CPools::ms_pVehiclePool;
+    const auto* const pool = GetVehiclePool();
     assert(pool);
     return pool->IsObjectValid(vehicle) && (vehicle->m_nVehicleType == VEHICLE_TYPE_FPLANE || !vehicle->m_pCollisionList.IsEmpty());
 }

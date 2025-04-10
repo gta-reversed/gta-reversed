@@ -15,7 +15,7 @@ public:
     CTaskTimer m_Timer1;
     CTaskTimer m_Timer2;
 
-    uint8 m_bSuspectDeadOrLost : 1; // 0st bit - Seems to be related to cop1's existence, something like `isCop1Alive`
+    uint8 m_IsDriver : 1;           // 0st bit - Is this ped the driver of the vehicle they're in
     uint8 m_flag0x2 : 1;            // 1nd bit
     uint8 m_flag0x4 : 1;            // 2rd bit
     uint8 m_bIsSuspectInCar : 1;    // 3th bit
@@ -23,7 +23,7 @@ public:
 public:
     static constexpr auto Type = TASK_COMPLEX_COP_IN_CAR;
 
-    CTaskComplexCopInCar(CVehicle* vehicle, CPed* cop1, CPed* cop2, bool bSuspectDeadOrLost);
+    CTaskComplexCopInCar(CVehicle* vehicle, CPed* partnerCop, CPed* suspect, bool bSuspectDeadOrLost);
     ~CTaskComplexCopInCar() override;
 
     CTask* CreateSubTask(eTaskType taskType, CPed* copPed);

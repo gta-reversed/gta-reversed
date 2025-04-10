@@ -71,7 +71,7 @@ void InitialiseGame() {
 // unused
 // 0x53DF10
 void TheGame() {
-    printf("Into TheGame!!!\n");
+    NOTSA_LOG_DEBUG("Into TheGame!!!\n");
     CTimer::Initialise();
     CGame::Initialise(GAME_LEVEL_FILE);
     CLoadingScreen::SetLoadingBarMsg("Starting Game", nullptr);
@@ -325,9 +325,13 @@ void Idle(void* param) {
     }
 
     if (!FrontEndMenuManager.m_bMenuActive && TheCamera.GetScreenFadeStatus() != eNameState::NAME_FADE_IN) {
-        if (!notsa::ui::UIRenderer::GetSingleton().GetImIO()->NavActive) { // If imgui nav is active don't center the cursor
+
+        // SDL already constraints the mouse pointer using relative mode
+#ifndef NOTSA_USE_SDL3
+        if (!notsa::ui::UIRenderer::GetSingleton().IsActive()) {
             FrontEndMenuManager.CentreMousePointer();
         }
+#endif
 
         CRenderer::ConstructRenderList();
         CRenderer::PreRender();
@@ -355,7 +359,7 @@ void Idle(void* param) {
         CVisibilityPlugins::RenderWeaponPedsForPC();
         CVisibilityPlugins::ms_weaponPedsForPC.Clear();
         RenderEffects();
-        if (TheCamera.m_nBlurType == MOTION_BLUR_NONE || TheCamera.m_nBlurType == MOTION_BLUR_LIGHT_SCENE) {
+        if (TheCamera.m_nBlurType == eMotionBlurType::NONE || TheCamera.m_nBlurType == eMotionBlurType::LIGHT_SCENE) {
             if (TheCamera.m_fScreenReductionPercentage > 0.0f) {
                 TheCamera.SetMotionBlurAlpha(150);
             }

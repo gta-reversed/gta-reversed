@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include <imgui.h>
-#include <imgui_stdlib.h>
+#include <libs/imgui/misc/cpp/imgui_stdlib.h>
 #include <imgui_internal.h>
 
 #include "VehicleSpawner.h"
@@ -252,7 +252,7 @@ static void Spawn_RC_Cars() {
         CRemote::GivePlayerRemoteControlledCar(pos, player->GetHeading(), vehicleId);
         CVehicle::bDisableRemoteDetonation = true;
         CVehicle::bDisableRemoteDetonationOnContact = true;
-        printf("spawned rc car\n");
+        NOTSA_LOG_DEBUG("spawned rc car\n");
     }
 }
 
