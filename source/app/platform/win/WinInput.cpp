@@ -1,5 +1,8 @@
 #include "StdInc.h"
 
+#ifndef NOTSA_USE_SDL3
+
+#include "Input.h"
 #include "WinInput.h"
 #include "ControllerConfigManager.h"
 #include "WinPlatform.h"
@@ -235,3 +238,5 @@ bool IsKeyDown(unsigned int keyCode) {
     return GetAsyncKeyState(keyCode) >> 0x8;
 }
 } // namespace WinInput
+
+#endif // NOTSA_USE_DINPUT

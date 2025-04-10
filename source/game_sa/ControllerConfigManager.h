@@ -165,7 +165,6 @@ public:
     bool                                                     m_bStickR_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
     bool                                                     m_bStickR_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
     bool                                                     m_MouseFoundInitSet;
-
 public:
     static void InjectHooks();
 
