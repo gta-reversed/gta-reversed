@@ -71,7 +71,7 @@ void InitialiseGame() {
 // unused
 // 0x53DF10
 void TheGame() {
-    NOTSA_LOG_DEBUG("Into TheGame!!!\n");
+    printf("Into TheGame!!!\n");
     CTimer::Initialise();
     CGame::Initialise(GAME_LEVEL_FILE);
     CLoadingScreen::SetLoadingBarMsg("Starting Game", nullptr);

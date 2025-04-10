@@ -272,12 +272,16 @@ void CReplay::Display() {
 
 // 0x45D430
 void CReplay::MarkEverythingAsNew() {
-    for (auto& ped : GetPedPool()->GetAllValid()) {
-        ped.bHasAlreadyBeenRecorded = false;
+    for (auto i = 0; i < GetPedPool()->GetSize(); i++) {
+        if (auto ped = GetPedPool()->GetAt(i)) {
+            ped->bHasAlreadyBeenRecorded = false;
+        }
     }
 
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
-        veh.vehicleFlags.bHasAlreadyBeenRecorded = false;
+    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
+        if (auto vehicle = GetVehiclePool()->GetAt(i)) {
+            vehicle->vehicleFlags.bHasAlreadyBeenRecorded = false;
+        }
     }
 }
 
@@ -295,15 +299,19 @@ void CReplay::EmptyReplayBuffer() {
 
 // 0x45D390
 void CReplay::EmptyPedsAndVehiclePools_NoDestructors() {
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
-        CWorld::Remove(&veh);
+    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
+        if (auto vehicle = GetVehiclePool()->GetAt(i)) {
+            CWorld::Remove(vehicle);
+        }
     }
 
-    for (auto& ped : GetPedPool()->GetAllValid()) {
-        CWorld::Remove(&ped);
+    for (auto i = 0; i < GetPedPool()->GetSize(); i++) {
+        if (auto ped = GetPedPool()->GetAt(i)) {
+            CWorld::Remove(ped);
 
-        if (auto* const shadow = ped.m_pShadowData) {
-            g_realTimeShadowMan.ReturnRealTimeShadow(shadow);
+            if (auto shadow = ped->m_pShadowData) {
+                g_realTimeShadowMan.ReturnRealTimeShadow(shadow);
+            }
         }
     }
 }
@@ -350,7 +358,7 @@ void CReplay::RecordPedDeleted(CPed* ped) {
 void CReplay::InitialiseVehiclePoolConversionTable() {
     rng::fill(m_VehiclePoolConversion, -1);
     auto convIdx = 0u;
-    for (auto poolIdx = 0u; poolIdx < GetVehiclePool()->GetSize(); poolIdx++) {
+    for (auto poolIdx = 0; poolIdx < GetVehiclePool()->GetSize(); poolIdx++) {
         if (GetVehiclePool()->GetAt(poolIdx))
             continue;
 
@@ -362,7 +370,7 @@ void CReplay::InitialiseVehiclePoolConversionTable() {
                 break;
         }
 
-        m_VehiclePoolConversion[convIdx++] = static_cast<int32>(poolIdx);
+        m_VehiclePoolConversion[convIdx++] = poolIdx;
     }
 }
 
@@ -370,7 +378,7 @@ void CReplay::InitialiseVehiclePoolConversionTable() {
 void CReplay::InitialisePedPoolConversionTable() {
     rng::fill(m_PedPoolConversion, -1);
     auto convIdx = 0u;
-    for (auto poolIdx = 0u; poolIdx < GetPedPool()->GetSize(); poolIdx++) {
+    for (auto poolIdx = 0; poolIdx < GetPedPool()->GetSize(); poolIdx++) {
         if (GetPedPool()->GetAt(poolIdx))
             continue;
 
@@ -382,7 +390,7 @@ void CReplay::InitialisePedPoolConversionTable() {
                 break;
         }
 
-        m_PedPoolConversion[convIdx++] = static_cast<int32>(poolIdx);
+        m_PedPoolConversion[convIdx++] = poolIdx;
     }
 }
 
@@ -429,7 +437,7 @@ void CReplay::PlayReplayFromHD() {
         CFileMgr::Read(file, gString, 8u);
 
         if (strncmp(gString, "GtaSA29", 8u) != 0) {
-            NOTSA_LOG_DEBUG("Invalid replay file data, header unmatch (='{}')", std::string_view{gString, 8u});
+            DEV_LOG("Invalid replay file data, header unmatch (='{}')", std::string_view{gString, 8u});
         } else {
             auto bufferIdx = 0u;
             for (; bufferIdx < NUM_REPLAY_BUFFERS && CFileMgr::Read(file, Buffers[bufferIdx].buffer.data(), sizeof(tReplayBuffer)); bufferIdx++) {
@@ -734,24 +742,28 @@ void CReplay::StoreStuffInMem() {
 
 // 0x45ECD0
 void CReplay::RestoreStuffFromMem() {
-    for (auto& ped : GetPedPool()->GetAllValid()) {
-        if (ped.bUsedForReplay) {
-            if (auto playerData = ped.m_pPlayerData) {
-                playerData->DeAllocateData();
+    for (auto poolIdx = 0; poolIdx < GetPedPool()->GetSize(); poolIdx++) {
+        if (auto ped = GetPedPool()->GetAt(poolIdx)) {
+            if (ped->bUsedForReplay) {
+                if (auto playerData = ped->m_pPlayerData) {
+                    playerData->DeAllocateData();
+                }
+                CWorld::Remove(ped);
+                delete ped;
+            } else { // if not, restore it
+                CWorld::Add(ped);
             }
-            CWorld::Remove(&ped);
-            delete &ped;
-        } else { // if not, restore it
-            CWorld::Add(&ped);
         }
     }
 
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
-        if (veh.vehicleFlags.bUsedForReplay) {
-            CWorld::Remove(&veh);
-            delete &veh;
-        } else { // if not, restore it
-            CWorld::Add(&veh);
+    for (auto poolIdx = 0; poolIdx < GetVehiclePool()->GetSize(); poolIdx++) {
+        if (auto veh = GetVehiclePool()->GetAt(poolIdx)) {
+            if (veh->vehicleFlags.bUsedForReplay) {
+                CWorld::Remove(veh);
+                delete veh;
+            } else { // if not, restore it
+                CWorld::Add(veh);
+            }
         }
     }
 
@@ -832,9 +844,9 @@ void CReplay::FinishPlayback() {
 void CReplay::RecordThisFrame() {
     // Calculate the frame size beforehand.
     auto framePacketSize = 116u;
-    for (const auto& veh : GetVehiclePool()->GetAllValid()) {
-        if (veh.m_pRwObject) {
-            switch (veh.m_nVehicleSubType) {
+    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
+        if (auto vehicle = GetVehiclePool()->GetAt(i); vehicle && vehicle->m_pRwObject) {
+            switch (vehicle->m_nVehicleSubType) {
             case VEHICLE_TYPE_AUTOMOBILE:
             case VEHICLE_TYPE_MTRUCK:
             case VEHICLE_TYPE_QUAD:
@@ -859,12 +871,12 @@ void CReplay::RecordThisFrame() {
         }
     }
 
-    for (const auto& ped : GetPedPool()->GetAllValid()) {
-        if (ped.m_pRwObject) {
-            if (!ped.bHasAlreadyBeenRecorded) {
+    for (auto i = 0; i < GetPedPool()->GetSize(); i++) {
+        if (auto ped = GetPedPool()->GetAt(i); ped && ped->m_pRwObject) {
+            if (!ped->bHasAlreadyBeenRecorded) {
                 // New ped!
                 framePacketSize += FindSizeOfPacket(REPLAY_PACKET_PED_HEADER);
-                if (ped.IsPlayer()) {
+                if (ped->IsPlayer()) {
                     framePacketSize += FindSizeOfPacket(REPLAY_PACKET_CLOTHES);
                 }
             }
@@ -903,45 +915,45 @@ void CReplay::RecordThisFrame() {
 
     Record.Write<tReplayTimerBlock>({.timeInMS = CTimer::GetTimeInMS()});
 
-    for (auto&& [i, veh] : GetVehiclePool()->GetAllValidWithIndex()) {
-        if (veh.m_pRwObject) {
-            switch (veh.m_nVehicleSubType) {
+    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
+        if (auto vehicle = GetVehiclePool()->GetAt(i); vehicle && vehicle->m_pRwObject) {
+            switch (vehicle->m_nVehicleSubType) {
             case VEHICLE_TYPE_AUTOMOBILE:
             case VEHICLE_TYPE_MTRUCK:
             case VEHICLE_TYPE_QUAD:
             case VEHICLE_TYPE_BOAT:
             case VEHICLE_TYPE_TRAILER:
-                Record.Write(tReplayVehicleBlock::MakeVehicleUpdateData(veh, i));
+                Record.Write(tReplayVehicleBlock::MakeVehicleUpdateData(vehicle, i));
                 break;
             case VEHICLE_TYPE_HELI: {
                 tReplayHeliBlock packet{};
-                *packet.As<tReplayVehicleBlock>() = tReplayVehicleBlock::MakeVehicleUpdateData(veh, i);
+                *packet.As<tReplayVehicleBlock>() = tReplayVehicleBlock::MakeVehicleUpdateData(vehicle, i);
 
                 packet.type = REPLAY_PACKET_HELI;
-                packet.rotorSpeed = veh.AsHeli()->m_fHeliRotorSpeed;
+                packet.rotorSpeed = vehicle->AsHeli()->m_fHeliRotorSpeed;
                 Record.Write(packet);
                 break;
             }
             case VEHICLE_TYPE_PLANE: {
                 tReplayPlaneBlock packet{};
-                *packet.As<tReplayVehicleBlock>() = tReplayVehicleBlock::MakeVehicleUpdateData(veh, i);
+                *packet.As<tReplayVehicleBlock>() = tReplayVehicleBlock::MakeVehicleUpdateData(vehicle, i);
 
                 packet.type = REPLAY_PACKET_PLANE;
-                packet.field_9C8 = veh.AsPlane()->field_9C8;
-                packet.propSpeed = veh.AsPlane()->m_fPropSpeed;
+                packet.field_9C8 = vehicle->AsPlane()->field_9C8;
+                packet.propSpeed = vehicle->AsPlane()->m_fPropSpeed;
                 Record.Write(packet);
                 break;
             }
             case VEHICLE_TYPE_TRAIN:
-                Record.Write(tReplayTrainBlock::MakeTrainUpdateData(*veh.AsTrain(), i));
+                Record.Write(tReplayTrainBlock::MakeTrainUpdateData(vehicle->AsTrain(), i));
                 break;
 
             case VEHICLE_TYPE_BIKE:
-                Record.Write(tReplayBikeBlock::MakeBikeUpdateData(*veh.AsBike(), i));
+                Record.Write(tReplayBikeBlock::MakeBikeUpdateData(vehicle->AsBike(), i));
                 break;
 
             case VEHICLE_TYPE_BMX:
-                Record.Write(tReplayBmxBlock::MakeBmxUpdateData(*veh.AsBmx(), i));
+                Record.Write(tReplayBmxBlock::MakeBmxUpdateData(vehicle->AsBmx(), i));
                 break;
             default:
                 break;
@@ -949,31 +961,31 @@ void CReplay::RecordThisFrame() {
         }
     }
 
-    for (auto&& [i, ped] : GetPedPool()->GetAllValidWithIndex()) {
-        if (ped.m_pRwObject) {
-            if (!ped.bHasAlreadyBeenRecorded) {
+    for (auto i = 0; i < GetPedPool()->GetSize(); i++) {
+        if (auto ped = GetPedPool()->GetAt(i); ped && ped->m_pRwObject) {
+            if (!ped->bHasAlreadyBeenRecorded) {
                 // New ped!
-                const auto modelId = ped.m_nModelIndex;
+                const auto modelId = ped->m_nModelIndex;
 
                 Record.Write<tReplayPedHeaderBlock>({
                     .poolRef = (uint8)i,
                     .modelId = (int16)((modelId >= MODEL_SPECIAL01 && modelId <= MODEL_CUTOBJ01) ? MODEL_MALE01 : modelId),
-                    .pedType = (uint8)ped.m_nPedType
+                    .pedType = (uint8)ped->m_nPedType
                 });
 
-                if (ped.IsPlayer()) {
+                if (ped->IsPlayer()) {
                     tReplayClothesBlock clothesData{};
-                    StoreClothesDesc(*ped.AsPlayer()->GetClothesDesc(), clothesData);
+                    StoreClothesDesc(*ped->AsPlayer()->GetClothesDesc(), clothesData);
                     Record.Write(clothesData);
                 }
 
-                ped.bHasAlreadyBeenRecorded = true;
+                ped->bHasAlreadyBeenRecorded = true;
             }
-            StorePedUpdate(&ped, i);
+            StorePedUpdate(ped, i);
         }
     }
 
-    for (auto&& [i, trace] : rngv::enumerate(CBulletTraces::aTraces)) {
+    for (auto&& [i, trace] : notsa::enumerate(CBulletTraces::aTraces)) {
         if (!trace.m_bExists)
             continue;
 
@@ -1118,7 +1130,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
                     CStreaming::RequestModel(modelId, STREAMING_DEFAULT);
                 }
             } else {
-                vehiclePacket.ExtractVehicleUpdateData(*GetVehiclePool()->GetAt(poolIdx), interpolation);
+                vehiclePacket.ExtractVehicleUpdateData(GetVehiclePool()->GetAt(poolIdx), interpolation);
             }
             break;
         }
@@ -1134,7 +1146,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
                     CStreaming::RequestModel(modelId, STREAMING_DEFAULT);
                 }
             } else {
-                bikePacket.ExtractBikeUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsBike(), interpolation);
+                bikePacket.ExtractBikeUpdateData(GetVehiclePool()->GetAt(poolIdx)->AsBike(), interpolation);
             }
             break;
         }
@@ -1240,7 +1252,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             } else {
                 // Originally BMX has an exclusive extractor for itself but it's exactly the
                 // same with bike extractor, so it's fine to use bike one here.
-                bmxPacket.As<tReplayBikeBlock>()->ExtractBikeUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsBike(), interpolation);
+                bmxPacket.As<tReplayBikeBlock>()->ExtractBikeUpdateData(GetVehiclePool()->GetAt(poolIdx)->AsBike(), interpolation);
             }
             break;
         }
@@ -1258,7 +1270,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             } else {
                 auto vehicle = GetVehiclePool()->GetAt(poolIdx);
 
-                heliPacket.ExtractVehicleUpdateData(*vehicle, interpolation);
+                heliPacket.ExtractVehicleUpdateData(vehicle, interpolation);
                 vehicle->AsHeli()->m_fHeliRotorSpeed = heliPacket.rotorSpeed;
             }
             break;
@@ -1277,7 +1289,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
             } else {
                 auto vehicle = GetVehiclePool()->GetAt(poolIdx);
 
-                planePacket.ExtractVehicleUpdateData(*vehicle, interpolation);
+                planePacket.ExtractVehicleUpdateData(vehicle, interpolation);
                 vehicle->AsPlane()->field_9C8 = planePacket.field_9C8;
                 vehicle->AsPlane()->m_fPropSpeed = planePacket.propSpeed;
             }
@@ -1295,7 +1307,7 @@ bool CReplay::PlayBackThisFrameInterpolation(CAddressInReplayBuffer& buffer, flo
                     CStreaming::RequestModel(modelId, STREAMING_DEFAULT);
                 }
             } else {
-                trainPacket.ExtractTrainUpdateData(*GetVehiclePool()->GetAt(poolIdx)->AsTrain(), interpolation);
+                trainPacket.ExtractTrainUpdateData(GetVehiclePool()->GetAt(poolIdx)->AsTrain(), interpolation);
             }
             break;
         }
@@ -1527,7 +1539,7 @@ void CReplay::TriggerPlayback(eReplayCamMode mode, CVector fixedCamPos, bool loa
 
     // TODO: refactor
     auto idx = 7;
-    for (auto&& [i, status] : rngv::enumerate(BufferStatus)) {
+    for (auto&& [i, status] : notsa::enumerate(BufferStatus)) {
         if (status == REPLAYBUFFER_IN_USE) {
             idx = i;
             break;

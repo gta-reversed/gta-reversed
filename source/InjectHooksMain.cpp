@@ -317,7 +317,6 @@
 #include "TaskComplexLeaveCarAndWander.h"
 #include "TaskComplexMedicTreatInjuredPed.h"
 #include "TaskComplexDiveFromAttachedEntityAndGetUp.h"
-#include "TaskComplexKillCriminal.h"
 #include "SeekEntity/TaskComplexSeekEntityRadiusAngleOffset.h"
 #include "SeekEntity/TaskComplexSeekEntityXYOffset.h"
 #include "SeekEntity/TaskComplexSeekEntityStandard.h"
@@ -495,7 +494,7 @@
 
 #include "platform/win/VideoPlayer/VideoPlayer.h"
 #include "platform/win/VideoMode.h"
-#include "platform/win/WinPlatform.h"
+#include "platform/win/Platform.h"
 
 #include "app/app.h"
 #include <RealTimeShadowManager.h>
@@ -653,7 +652,7 @@ void InjectHooksMain() {
     CBox::InjectHooks();
     CColModel::InjectHooks();
     CCollisionData::InjectHooks();
-    CQuadTreeNode<void*>::InjectHooks();
+    CQuadTreeNode::InjectHooks();
     CColStore::InjectHooks();
     CColAccel::InjectHooks();
     CTrafficLights::InjectHooks();
@@ -723,7 +722,6 @@ void InjectHooksMain() {
     CClock::InjectHooks();
     CClouds::InjectHooks();
     CCoronas::InjectHooks();
-    CRegisteredCorona::InjectHooks();
     CCustomCarPlateMgr::InjectHooks();
     CDraw::InjectHooks();
     CEntryExitManager::InjectHooks();
@@ -951,13 +949,14 @@ void InjectHooksMain() {
         CTaskComplexInvestigateDeadPed::InjectHooks();
         CTaskComplexInvestigateDisturbance::InjectHooks();
         // CTaskComplexKillAllThreats::InjectHooks();
-        CTaskComplexKillCriminal::InjectHooks();
+        // CTaskComplexKillCriminal::InjectHooks();
 
         CTaskComplexKillPedOnFootArmed::InjectHooks();
         CTaskComplexKillPedGroupOnFoot::InjectHooks();
         CTaskComplexKillPedOnFootMelee::InjectHooks();
         CTaskComplexKillPedOnFootStealth::InjectHooks();
 
+        CTaskSimpleWaitUntilLeaderAreaCodesMatch::InjectHooks();
         CTaskComplexLeaveCarAndDie::InjectHooks();
         CTaskComplexLeaveBoat::InjectHooks();
         CTaskComplexLeaveCarAndFlee::InjectHooks();
@@ -1098,7 +1097,7 @@ void InjectHooksMain() {
         CTaskSimpleWaitForBus::InjectHooks();
         // CTaskSimpleWaitForPizza::InjectHooks();
         CTaskSimpleWaitUntilAreaCodesMatch::InjectHooks();
-        CTaskSimpleWaitUntilLeaderAreaCodesMatch::InjectHooks();
+        // CTaskSimpleWaitUntilLeaderAreaCodesMatch::InjectHooks();
         CTaskSimpleWaitUntilPedIsInCar::InjectHooks();
         CTaskComplexAvoidEntity::InjectHooks();
         CTaskSimpleWaitUntilPedIsOutCar::InjectHooks();

@@ -43,7 +43,7 @@ void CTimeCycle::Initialise() {
     CFileMgr::SetDir("");
 
     if (!file) { // NOTSA
-        NOTSA_LOG_DEBUG("[CTimeCycle] Failed to open TIMECYC.DAT");
+        DEV_LOG("[CTimeCycle] Failed to open TIMECYC.DAT");
         CFileMgr::CloseFile(file);
         return;
     }

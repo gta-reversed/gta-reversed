@@ -438,13 +438,13 @@ uint8 CEntity::SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSett
 }
 
 // 0x535FA0
-void CEntity::PreRender() {
-    auto mi  = CModelInfo::GetModelInfo(m_nModelIndex);
+void CEntity::PreRender()
+{
+    auto mi = CModelInfo::GetModelInfo(m_nModelIndex);
     auto ami = mi->AsAtomicModelInfoPtr();
 
-    if (mi->m_n2dfxCount) {
+    if (mi->m_n2dfxCount)
         ProcessLightsForEntity();
-    }
 
     if (!mi->HasBeenPreRendered()) {
         mi->SetHasBeenPreRendered(true);
@@ -454,39 +454,40 @@ void CEntity::PreRender() {
                 RpGeometryForAllMaterials(RpAtomicGetGeometry(ami->m_pRwAtomic), MaterialUpdateUVAnimCB, nullptr);
             }
         }
-        
+
         mi->IncreaseAlpha();
 
         // PC Only
         if (ami) {
             CCustomBuildingDNPipeline::PreRenderUpdate(ami->m_pRwAtomic, false);
-        } else if (mi->GetModelType() == MODEL_INFO_CLUMP) {
-            CCustomBuildingDNPipeline::PreRenderUpdate(mi->m_pRwClump, false);
+        }
+        else if (mi->GetModelType() == MODEL_INFO_CLUMP) {
+            RpClumpForAllAtomics(mi->m_pRwClump, CCustomBuildingDNPipeline::PreRenderUpdateRpAtomicCB, reinterpret_cast<void*>(false));
         }
         // PC Only
     }
 
-    if (!m_bHasPreRenderEffects) {
+    if (!m_bHasPreRenderEffects)
         return;
-    }
 
-    if (ami && ami->SwaysInWind() && (!IsObject() || !AsObject()->objectFlags.bIsExploded)) {
-        auto fDist                  = DistanceBetweenPoints2D(GetPosition(), TheCamera.GetPosition());
+    if (   ami
+        && ami->SwaysInWind()
+        && (!IsObject() || !AsObject()->objectFlags.bIsExploded)
+    ) {
+        auto fDist = DistanceBetweenPoints2D(GetPosition(), TheCamera.GetPosition());
         CObject::fDistToNearestTree = std::min(CObject::fDistToNearestTree, fDist);
         ModifyMatrixForTreeInWind();
     }
 
     if (IsBuilding()) {
-        if (ami && ami->IsCrane()) {
+        if (ami && ami->IsCrane())
             ModifyMatrixForCrane();
-        }
 
         return;
     }
 
-    if (!IsObject() && !IsDummy()) {
+    if (!IsObject() && !IsDummy())
         return;
-    }
 
     if (IsObject()) {
         auto obj = AsObject();
@@ -494,22 +495,26 @@ void CEntity::PreRender() {
             CPickups::DoCollectableEffects(this);
             UpdateRW();
             UpdateRwFrame();
-        } else if (m_nModelIndex == ModelIndices::MI_MONEY) {
+        }
+        else if (m_nModelIndex == ModelIndices::MI_MONEY) {
             CPickups::DoMoneyEffects(this);
             UpdateRW();
             UpdateRwFrame();
-        } else if (m_nModelIndex == ModelIndices::MI_CARMINE
-                   || m_nModelIndex == ModelIndices::MI_NAUTICALMINE
-                   || m_nModelIndex == ModelIndices::MI_BRIEFCASE) {
+        }
+        else if (m_nModelIndex == ModelIndices::MI_CARMINE
+            || m_nModelIndex == ModelIndices::MI_NAUTICALMINE
+            || m_nModelIndex == ModelIndices::MI_BRIEFCASE) {
+
             if (obj->objectFlags.bIsPickup) {
                 CPickups::DoMineEffects(this);
                 UpdateRW();
                 UpdateRwFrame();
             }
-        } else if (m_nModelIndex == MODEL_MISSILE) {
+        }
+        else if (m_nModelIndex == MODEL_MISSILE) {
             if (CReplay::Mode != MODE_PLAYBACK) {
                 CVector vecPos = GetPosition();
-                auto    fRand  = static_cast<float>(CGeneral::GetRandomNumber() % 16) / 16.0F;
+                auto fRand = static_cast<float>(CGeneral::GetRandomNumber() % 16) / 16.0F;
                 CShadows::StoreShadowToBeRendered(
                     eShadowTextureType::SHADOW_TEX_PED,
                     gpShadowExplosionTex,
@@ -552,7 +557,7 @@ void CEntity::PreRender() {
                     vecPos,
                     fRand * 6.0F,
                     300.0F,
-                    gpCoronaTexture[CORONATYPE_SHINYSTAR],
+                    gpCoronaTexture[0],
                     eCoronaFlareType::FLARETYPE_NONE,
                     true,
                     false,
@@ -566,10 +571,11 @@ void CEntity::PreRender() {
                     false
                 );
             }
-        } else if (m_nModelIndex == ModelIndices::MI_FLARE) {
+        }
+        else if (m_nModelIndex == ModelIndices::MI_FLARE) {
             CVector vecPos = GetPosition();
-            auto    fRand  = static_cast<float>(CGeneral::GetRandomNumber() % 16) / 16.0F;
-            fRand          = std::max(fRand, 0.5F);
+            auto fRand = static_cast<float>(CGeneral::GetRandomNumber() % 16) / 16.0F;
+            fRand = std::max(fRand, 0.5F);
             CShadows::StoreShadowToBeRendered(
                 eShadowTextureType::SHADOW_TEX_PED,
                 gpShadowExplosionTex,
@@ -612,7 +618,7 @@ void CEntity::PreRender() {
                 vecPos,
                 fRand * 6.0F,
                 300.0F,
-                gpCoronaTexture[CORONATYPE_SHINYSTAR],
+                gpCoronaTexture[0],
                 eCoronaFlareType::FLARETYPE_NONE,
                 true,
                 false,
@@ -625,32 +631,37 @@ void CEntity::PreRender() {
                 false,
                 false
             );
-        } else if (IsGlassModel(this)) {
+        }
+        else if (IsGlassModel(this)) {
             PreRenderForGlassWindow();
-        } else if (obj->objectFlags.bIsPickup) {
+        }
+        else if (obj->objectFlags.bIsPickup) {
             CPickups::DoPickUpEffects(this);
             UpdateRW();
             UpdateRwFrame();
-        } else if (m_nModelIndex == MODEL_GRENADE) {
-            const auto& vecPos         = GetPosition();
-            auto        vecScaledCam   = TheCamera.m_mCameraMatrix.GetRight() * 0.07F;
-            auto        vecStreakStart = vecPos - vecScaledCam;
-            auto        vecStreakEnd   = vecPos + vecScaledCam;
+        }
+        else if (m_nModelIndex == MODEL_GRENADE) {
+            auto const& vecPos = GetPosition();
+            auto vecScaledCam = TheCamera.m_mCameraMatrix.GetRight() * 0.07F;
+            auto vecStreakStart = vecPos - vecScaledCam;
+            auto vecStreakEnd = vecPos + vecScaledCam;
             if (CVector2D(obj->m_vecMoveSpeed).Magnitude() > 0.03F) {
                 CMotionBlurStreaks::RegisterStreak(reinterpret_cast<uint32>(this), 100, 100, 100, 255, vecStreakStart, vecStreakEnd);
             }
-        } else if (m_nModelIndex == MODEL_MOLOTOV) {
-            const auto& vecPos         = GetPosition();
-            auto        vecScaledCam   = TheCamera.m_mCameraMatrix.GetRight() * 0.07F;
-            auto        vecStreakStart = vecPos - vecScaledCam;
-            auto        vecStreakEnd   = vecPos + vecScaledCam;
+        }
+        else if (m_nModelIndex == MODEL_MOLOTOV) {
+            auto const& vecPos = GetPosition();
+            auto vecScaledCam = TheCamera.m_mCameraMatrix.GetRight() * 0.07F;
+            auto vecStreakStart = vecPos - vecScaledCam;
+            auto vecStreakEnd = vecPos + vecScaledCam;
             if (CVector2D(obj->m_vecMoveSpeed).Magnitude() > 0.03F) {
                 float fWaterLevel;
                 if (!CWaterLevel::GetWaterLevelNoWaves(vecPos, &fWaterLevel, nullptr, nullptr) || vecPos.z > fWaterLevel) {
                     CMotionBlurStreaks::RegisterStreak(reinterpret_cast<uint32>(this), 255, 160, 100, 255, vecStreakStart, vecStreakEnd);
                 }
             }
-        } else if (m_nModelIndex == ModelIndices::MI_BEACHBALL) {
+        }
+        else if (m_nModelIndex == ModelIndices::MI_BEACHBALL) {
             if (DistanceBetweenPoints(GetPosition(), TheCamera.GetPosition()) < 50.0F) {
                 auto ucShadowStrength = static_cast<uint8>(CTimeCycle::m_CurrentColours.m_nShadowStrength);
                 CShadows::StoreShadowToBeRendered(
@@ -672,11 +683,13 @@ void CEntity::PreRender() {
                     false
                 );
             }
-        } else if (m_nModelIndex == ModelIndices::MI_MAGNOCRANE_HOOK
-                   || m_nModelIndex == ModelIndices::MI_WRECKING_BALL
-                   || m_nModelIndex == ModelIndices::MI_CRANE_MAGNET
-                   || m_nModelIndex == ModelIndices::MI_MINI_MAGNET
-                   || m_nModelIndex == ModelIndices::MI_CRANE_HARNESS) {
+        }
+        else if (m_nModelIndex == ModelIndices::MI_MAGNOCRANE_HOOK
+            || m_nModelIndex == ModelIndices::MI_WRECKING_BALL
+            || m_nModelIndex == ModelIndices::MI_CRANE_MAGNET
+            || m_nModelIndex == ModelIndices::MI_MINI_MAGNET
+            || m_nModelIndex == ModelIndices::MI_CRANE_HARNESS) {
+
             if (DistanceBetweenPoints(GetPosition(), TheCamera.GetPosition()) < 100.0F) {
                 CShadows::StoreShadowToBeRendered(
                     eShadowType::SHADOW_DEFAULT,
@@ -697,7 +710,8 @@ void CEntity::PreRender() {
                     false
                 );
             }
-        } else if (m_nModelIndex == ModelIndices::MI_WINDSOCK) {
+        }
+        else if (m_nModelIndex == ModelIndices::MI_WINDSOCK) {
             ModifyMatrixForPoleInWind();
         }
     }
@@ -705,28 +719,32 @@ void CEntity::PreRender() {
     if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS) {
         CTrafficLights::DisplayActualLight(this);
         CShadows::StoreShadowForPole(this, 2.957F, 0.147F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_VERTICAL) {
+    }
+    else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_VERTICAL)
         CTrafficLights::DisplayActualLight(this);
-    } else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_MIAMI) {
+    else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_MIAMI) {
         CTrafficLights::DisplayActualLight(this);
         CShadows::StoreShadowForPole(this, 4.81F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_TWOVERTICAL) {
+    }
+    else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_TWOVERTICAL) {
         CTrafficLights::DisplayActualLight(this);
         CShadows::StoreShadowForPole(this, 7.503F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
     } else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_3
-               || m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_4
-               || m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_5
-               || m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_GAY) {
+        || m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_4
+        || m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_5
+        || m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_GAY
+    ) {
         CTrafficLights::DisplayActualLight(this);
-    } else if (m_nModelIndex == ModelIndices::MI_SINGLESTREETLIGHTS1) {
+    }
+    else if (m_nModelIndex == ModelIndices::MI_SINGLESTREETLIGHTS1)
         CShadows::StoreShadowForPole(this, 7.744F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_SINGLESTREETLIGHTS2) {
+    else if (m_nModelIndex == ModelIndices::MI_SINGLESTREETLIGHTS2)
         CShadows::StoreShadowForPole(this, 0.043F, 0.0F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_SINGLESTREETLIGHTS3) {
+    else if (m_nModelIndex == ModelIndices::MI_SINGLESTREETLIGHTS3)
         CShadows::StoreShadowForPole(this, 1.143F, 0.145F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_DOUBLESTREETLIGHTS) {
+    else if (m_nModelIndex == ModelIndices::MI_DOUBLESTREETLIGHTS)
         CShadows::StoreShadowForPole(this, 0.0F, -0.048F, 0.0F, 16.0F, 0.4F, 0);
-    } else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_VEGAS) {
+    else if (m_nModelIndex == ModelIndices::MI_TRAFFICLIGHTS_VEGAS) {
         CTrafficLights::DisplayActualLight(this);
         CShadows::StoreShadowForPole(this, 7.5F, 0.2F, 0.0F, 16.0F, 0.4F, 0);
     }
@@ -1121,10 +1139,9 @@ void CEntity::CreateEffects()
             );
 
             if (iEnExId != -1) {
-                if (auto* const enex = CEntryExitManager::GetInSlot(iEnExId)) {
-                    if (enex->m_pLink && !enex->m_pLink->bEnableAccess)
-                        enex->bEnableAccess = false;
-                }
+                auto addedEffect = CEntryExitManager::mp_poolEntryExits->GetAt(iEnExId);
+                if (addedEffect->m_pLink && !addedEffect->m_pLink->bEnableAccess)
+                    addedEffect->bEnableAccess = false;
             }
             break;
         }
@@ -1198,7 +1215,7 @@ void CEntity::DestroyEffects()
             auto vecWorld = TransformFromObjectSpace(effect->m_Pos);
             auto iNearestEnex = CEntryExitManager::FindNearestEntryExit(vecWorld, 1.5F, -1);
             if (iNearestEnex != -1) {
-                auto enex = CEntryExitManager::GetInSlot(iNearestEnex);
+                auto enex = CEntryExitManager::mp_poolEntryExits->GetAt(iNearestEnex);
                 if (enex->bEnteredWithoutExit)
                     enex->bDeleteEnex = true;
                 else
@@ -1720,27 +1737,38 @@ void CEntity::RegisterReference(CEntity** entity)
     }
 
     if (!m_pReferences && !CReferences::pEmptyList) {
-        for (auto& ped : GetPedPool()->GetAllValid()) {
-            ped.PruneReferences();
-            if (CReferences::pEmptyList) {
-                break;
+        auto iPedsSize = GetPedPool()->GetSize();
+        for (int32 i = 0; i < iPedsSize; ++i) {
+            auto ped = GetPedPool()->GetAt(i);
+            if (ped) {
+                ped->PruneReferences();
+                if (CReferences::pEmptyList)
+                    break;
             }
+
         }
 
         if (!CReferences::pEmptyList) {
-            for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
-                vehicle.PruneReferences();
-                if (CReferences::pEmptyList) {
-                    break;
+            auto iVehsSize = GetVehiclePool()->GetSize();
+            for (int32 i = 0; i < iVehsSize; ++i) {
+                auto vehicle = GetVehiclePool()->GetAt(i);
+                if (vehicle) {
+                    vehicle->PruneReferences();
+                    if (CReferences::pEmptyList)
+                        break;
                 }
+
             }
         }
 
         if (!CReferences::pEmptyList) {
-            for (auto& obj : GetObjectPool()->GetAllValid()) {
-                obj.PruneReferences();
-                if (CReferences::pEmptyList) {
-                    break;
+            auto iObjectsSize = GetObjectPool()->GetSize();
+            for (int32 i = 0; i < iObjectsSize; ++i) {
+                auto obj = GetObjectPool()->GetAt(i);
+                if (obj) {
+                    obj->PruneReferences();
+                    if (CReferences::pEmptyList)
+                        break;
                 }
             }
         }
@@ -1814,7 +1842,7 @@ void CEntity::ProcessLightsForEntity()
                 vecEffPos,
                 fRadius,
                 120.0F,
-                gpCoronaTexture[CORONATYPE_SHINYSTAR],
+                gpCoronaTexture[0],
                 eCoronaFlareType::FLARETYPE_NONE,
                 false,
                 false,
@@ -2251,11 +2279,15 @@ void CEntity::ProcessLightsForEntity()
 // 0x717900
 void CEntity::RemoveEscalatorsForEntity()
 {
-    for (auto& escalator : CEscalators::GetAllExists()) {
-        if (escalator.GetEntity() == this) {
-            escalator.Remove();
-            return;
-        }
+    for (auto& escalator : CEscalators::aEscalators) {
+        if (!escalator.m_bExist)
+            continue;
+
+        if (escalator.m_pEntity != this)
+            continue;
+
+        escalator.SwitchOff();
+        escalator.m_bExist = false;
     }
 }
 

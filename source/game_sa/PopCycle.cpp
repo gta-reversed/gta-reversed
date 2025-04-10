@@ -98,7 +98,7 @@ void CPopCycle::Initialise() {
             }
         }
     }
-    NOTSA_LOG_DEBUG("POPCYCLE.DAT has been loaded successfully!");
+    DEV_LOG("POPCYCLE.DAT has been loaded successfully!");
 }
 
 // 0x60FBD0
@@ -285,7 +285,7 @@ ePopcycleGroup CPopCycle::PickARandomGroupOfOtherPeds() {
         100
 #endif
     );
-    for (auto [grpIdx, grpPerc] : rngv::enumerate(percs)) {
+    for (auto [grpIdx, grpPerc] : notsa::enumerate(percs)) {
         if ((int32)(grpPerc) >= rndPerc) {
             return (ePopcycleGroup)grpIdx;
         }

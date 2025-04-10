@@ -43,7 +43,7 @@ void COnscreenTimerEntry::Process() {
     }
 /*
 #ifndef NDEBUG
-    NOTSA_LOG_DEBUG("[COnscreenTimerEntry::Process] timerPtr: {}", timerPtr);
+    DEV_LOG("[COnscreenTimerEntry::Process] timerPtr: {}", timerPtr);
 #endif
 */
 }

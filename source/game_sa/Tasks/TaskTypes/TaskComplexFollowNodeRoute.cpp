@@ -314,7 +314,7 @@ void CTaskComplexFollowNodeRoute::ComputePathNodes(CPed const* ped) {
         }
     } else {
         // Make the route as short as possible by "cutting" down excess nodes
-        for (const auto& [i, node] : rngv::enumerate(m_NodeRoute->GetAll())) {
+        for (const auto& [i, node] : notsa::enumerate(m_NodeRoute->GetAll())) {
             assert(node); // Original code checks for this too, but I don't think this is possible
 
             CVector nodePos;

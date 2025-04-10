@@ -5,8 +5,9 @@
 #include <optional>
 #include <format>
 
+#include "extensions/enumerate.hpp"
 #include "PedDebugModule.h"
-#include <Pools/Pools.h>
+#include "Pools.h"
 #include "TaskManager.h"
 #include "Hud.h"
 #include "Lines.h"
@@ -186,7 +187,7 @@ void ProcessTask(CTask* task, std::optional<size_t> idx) {
 //! Process category, eg.: secondary or primary
 void ProcessTaskCategory(const char* label, const auto& tasks) {
     if (TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen)) {
-        for (const auto& [idx, task] : rngv::enumerate(tasks)) {
+        for (const auto& [idx, task] : notsa::enumerate(tasks)) {
             if (task) {
                 ProcessTask(task, idx);
             }
@@ -303,7 +304,7 @@ void PedDebugModule::RenderWindow() {
             };
 
             if (!CalcScreenCoors(ped.GetBonePosition(BONE_HEAD) + ped.GetRightVector() * 0.5f, pi.posScreen)) {
-                NOTSA_LOG_DEBUG("Failed to calculate on-screen coords of ped");
+                DEV_LOG("Failed to calculate on-screen coords of ped");
                 return std::nullopt;
             }
                

@@ -80,9 +80,9 @@ ProcObjectListItem* ProcSurfaceInfo_c::AddObject(CVector pos, CVector normal, tC
     auto modelInfo  = CModelInfo::GetModelInfo(m_ModelIndex);
     bool isBuilding = modelInfo->m_nObjectInfoIndex == -1;
     if (isBuilding) {
-        GetBuildingPool()->SetDealWithNoMemory(true);
+        CPools::ms_pBuildingPool->SetDealWithNoMemory(true);
         head->m_Obj                           = new CBuilding();
-        GetBuildingPool()->SetDealWithNoMemory(false);
+        CPools::ms_pBuildingPool->SetDealWithNoMemory(false);
         if (!head->m_Obj) {
             return nullptr;
         }
@@ -93,9 +93,9 @@ ProcObjectListItem* ProcSurfaceInfo_c::AddObject(CVector pos, CVector normal, tC
             return nullptr;
         }
 
-        GetObjectPool()->SetDealWithNoMemory(true);
+        CPools::ms_pObjectPool->SetDealWithNoMemory(true);
         head->m_Obj                         = new CObject(m_ModelIndex, false);
-        GetObjectPool()->SetDealWithNoMemory(false);
+        CPools::ms_pObjectPool->SetDealWithNoMemory(false);
         if (!head->m_Obj) {
             return nullptr;
         }

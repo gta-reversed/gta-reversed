@@ -323,7 +323,8 @@ void CMirrors::BeforeConstructRenderList() {
 
         return rng::any_of(Screens8Track, [](const auto& track) {
             TheCamera.m_bMirrorActive = false;
-            return TheCamera.IsSphereVisible(CVector::Centroid(track), 8.0f);
+            const auto origin = CVector::AverageN(std::begin(track), 4);
+            return TheCamera.IsSphereVisible(origin, 8.0f);
         });
     }();
 

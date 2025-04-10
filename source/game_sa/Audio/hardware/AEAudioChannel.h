@@ -4,6 +4,7 @@
 
 #include "Vector.h"
 
+#define USE_DSOUND
 
 #pragma pack(push, 1)
 class NOTSA_EXPORT_VTABLE CAEAudioChannel {

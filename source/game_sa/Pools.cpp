@@ -1,51 +1,16 @@
 #include "StdInc.h"
 
-#include <Pools/Pools.h>
+#include "Pools.h"
 #include "CarCtrl.h"
 
-#include <Pools/IplDefPool.h>
-#include <Pools/PedPool.h>
-#include <Pools/VehiclePool.h>
-#include <Pools/BuildingPool.h>
-#include <Pools/ObjectPool.h>
-#include <Pools/DummyPool.h>
-#include <Pools/ColModelPool.h>
-#include <Pools/TaskPool.h>
-#include <Pools/PedIntelligencePool.h>
-#include <Pools/PtrNodeSingleLinkPool.h>
-#include <Pools/PtrNodeDoubleLinkPool.h>
-#include <Pools/EntryInfoNodePool.h>
-#include <Pools/PointRoutePool.h>
-#include <Pools/PatrolRoutePool.h>
-#include <Pools/EventPool.h>
-#include <Pools/NodeRoutePool.h>
-#include <Pools/TaskAllocatorPool.h>
-#include <Pools/PedAttractorPool.h>
-
-auto& ms_pPedPool               = StaticRef<CPedPool*>(0xB74490);
-auto& ms_pVehiclePool           = StaticRef<CVehiclePool*>(0xB74494);
-auto& ms_pBuildingPool          = StaticRef<CBuildingPool*>(0xB74498);
-auto& ms_pObjectPool            = StaticRef<CObjectPool*>(0xB7449C);
-auto& ms_pDummyPool             = StaticRef<CDummyPool*>(0xB744A0);
-auto& ms_pColModelPool          = StaticRef<CColModelPool*>(0xB744A4);
-auto& ms_pTaskPool              = StaticRef<CTaskPool*>(0xB744A8);
-auto& ms_pPedIntelligencePool   = StaticRef<CPedIntelligencePool*>(0xB744C0);
-auto& ms_pPtrNodeSingleLinkPool = StaticRef<CPtrNodeSingleLinkPool*>(0xB74484);
-auto& ms_pPtrNodeDoubleLinkPool = StaticRef<CPtrNodeDoubleLinkPool*>(0xB74488);
-auto& ms_pEntryInfoNodePool     = StaticRef<CEntryInfoNodePool*>(0xB7448C);
-auto& ms_pPointRoutePool        = StaticRef<CPointRoutePool*>(0xB744B0);
-auto& ms_pPatrolRoutePool       = StaticRef<CPatrolRoutePool*>(0xB744B4);
-auto& ms_pEventPool             = StaticRef<CEventPool*>(0xB744AC);
-auto& ms_pNodeRoutePool         = StaticRef<CNodeRoutePool*>(0xB744B8);
-auto& ms_pTaskAllocatorPool     = StaticRef<CTaskAllocatorPool*>(0xB744BC);
-auto& ms_pPedAttractorPool      = StaticRef<CPedAttractorPool*>(0xB744C4);
+// #include "PointRoute.h"
 
 void CPools::InjectHooks() {
     RH_ScopedClass(CPools);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Initialise, 0x550F10);
-    RH_ScopedInstall(ShutDown, 0x5519F0);
+    RH_ScopedInstall(Initialise, 0x550F10, { .reversed = false });
+    RH_ScopedInstall(ShutDown, 0x5519F0, { .reversed = false });
     RH_ScopedInstall(CheckBuildingAtomics, 0x550170);
     RH_ScopedInstall(CheckPoolsEmpty, 0x551950);
     RH_ScopedInstall(GetObject, 0x550050);
@@ -69,6 +34,9 @@ void CPools::InjectHooks() {
 void CPools::Initialise() {
     ZoneScoped;
 
+    plugin::Call<0x550F10>();
+    /*
+    CMemoryMgr::PushMemId(MEM_POOLS);
     ms_pPtrNodeSingleLinkPool = new CPtrNodeSingleLinkPool(70000, "PtrNode Single");
     ms_pPtrNodeDoubleLinkPool = new CPtrNodeDoubleLinkPool(3200, "PtrNode Double");
     ms_pEntryInfoNodePool     = new CEntryInfoNodePool(500, "EntryInfoNode");
@@ -86,29 +54,34 @@ void CPools::Initialise() {
     ms_pTaskAllocatorPool     = new CTaskAllocatorPool(16, "TaskAllocator");
     ms_pPedIntelligencePool   = new CPedIntelligencePool(140, "PedIntelligence");
     ms_pPedAttractorPool      = new CPedAttractorPool(64, "PedAttractors");
+    CMemoryMgr::PopMemId();
+    */
 }
 
 // 0x5519F0
 void CPools::ShutDown() {
-    NOTSA_LOG_DEBUG("Shutdown pool started");
-    delete std::exchange(ms_pPtrNodeSingleLinkPool, nullptr);
-    delete std::exchange(ms_pPtrNodeDoubleLinkPool, nullptr);
-    delete std::exchange(ms_pEntryInfoNodePool, nullptr);
-    delete std::exchange(ms_pPedPool, nullptr);
-    delete std::exchange(ms_pVehiclePool, nullptr);
-    delete std::exchange(ms_pBuildingPool, nullptr);
-    delete std::exchange(ms_pObjectPool, nullptr);
-    delete std::exchange(ms_pDummyPool, nullptr);
-    delete std::exchange(ms_pColModelPool, nullptr);
-    delete std::exchange(ms_pTaskPool, nullptr);
-    delete std::exchange(ms_pEventPool, nullptr);
-    delete std::exchange(ms_pPointRoutePool, nullptr);
-    delete std::exchange(ms_pPatrolRoutePool, nullptr);
-    delete std::exchange(ms_pNodeRoutePool, nullptr);
-    delete std::exchange(ms_pTaskAllocatorPool, nullptr);
-    delete std::exchange(ms_pPedIntelligencePool, nullptr);
-    delete std::exchange(ms_pPedAttractorPool, nullptr);
-    NOTSA_LOG_DEBUG("Shutdown pool done");
+    plugin::Call<0x5519F0>();
+    /*
+    DEV_LOG("Shutdown pool started");
+    delete ms_pPtrNodeSingleLinkPool;
+    delete ms_pPtrNodeDoubleLinkPool;
+    delete ms_pEntryInfoNodePool;
+    delete ms_pPedPool;
+    delete ms_pVehiclePool;
+    delete ms_pBuildingPool;
+    delete ms_pObjectPool;
+    delete ms_pDummyPool;
+    delete ms_pColModelPool;
+    delete ms_pTaskPool;
+    delete ms_pEventPool;
+    delete ms_pPointRoutePool;
+    delete ms_pPatrolRoutePool;
+    delete ms_pNodeRoutePool;
+    delete ms_pTaskAllocatorPool;
+    delete ms_pPedIntelligencePool;
+    delete ms_pPedAttractorPool;
+    DEV_LOG("Shutdown pool done");
+    */
 }
 
 // 0x550170
@@ -118,14 +91,18 @@ int32 CPools::CheckBuildingAtomics() {
 
 // 0x551950
 void CPools::CheckPoolsEmpty() {
-    for (auto& obj : ms_pObjectPool->GetAllValid()) {
-        if (obj.m_nObjectType != OBJECT_TYPE_DECORATION)
+    for (auto i = 0; i < ms_pObjectPool->GetSize(); i++) {
+        const auto obj = ms_pObjectPool->GetAt(i);
+        if (!obj)
             continue;
 
-        const auto& objPos = obj.GetPosition();
-        NOTSA_LOG_DEBUG("Offending object: MI: {} Coors:{} {} {}", obj.m_nModelIndex, objPos.x, objPos.y, objPos.z);
+        if (obj->m_nObjectType != OBJECT_TYPE_DECORATION)
+            continue;
+
+        const auto& objPos = obj->GetPosition();
+        DEV_LOG("Offending object: MI: {} Coors:{} {} {}", obj->m_nModelIndex, objPos.x, objPos.y, objPos.z);
     }
-    NOTSA_LOG_DEBUG("Pools have been cleared!");
+    DEV_LOG("Pools have been cleared!");
 }
 
 // 0x550050
@@ -273,13 +250,16 @@ void CPools::MakeSureSlotInObjectPoolIsEmpty(int32 slot) {
         return;
 
     auto* obj = GetObjectPool()->GetAt(slot);
-    if (obj->IsTemporary()) {
+    if (obj->IsTemporary())
+    {
         CWorld::Remove(obj);
         delete obj;
-    } else if (CProjectileInfo::RemoveIfThisIsAProjectile(obj)) {
+    }
+    else if (CProjectileInfo::RemoveIfThisIsAProjectile(obj))
+    {
         auto newObj = new CObject(obj->m_nModelIndex, false);
         CWorld::Remove(obj);
-        *newObj = *obj;
+        GetObjectPool()->CopyItem(newObj, obj);
         CWorld::Add(newObj);
 
         obj->m_pRwObject = nullptr;
@@ -314,87 +294,3 @@ bool CPools::SaveVehiclePool() {
     return plugin::CallAndReturn<bool, 0x5D4800>();
 }
 
-// 0x404550
-CPedPool* GetPedPool() {
-    return ms_pPedPool;
-}
-
-// 0x404560
-CVehiclePool* GetVehiclePool() {
-    return ms_pVehiclePool;
-}
-
-// 0x403DF0
-CBuildingPool* GetBuildingPool() {
-    return ms_pBuildingPool;
-}
-
-// 0x404570
-CObjectPool* GetObjectPool() {
-    return ms_pObjectPool;
-}
-
-// 0x404580
-CDummyPool* GetDummyPool() {
-    return ms_pDummyPool;
-}
-
-// 0x40F000
-CColModelPool* GetColModelPool() {
-    return ms_pColModelPool;
-}
-
-// 0x61A330
-CTaskPool* GetTaskPool() {
-    return ms_pTaskPool;
-}
-
-// 0x5FF930
-CPedIntelligencePool* GetPedIntelligencePool() {
-    return ms_pPedIntelligencePool;
-}
-
-// 0x552190
-CPtrNodeSingleLinkPool* GetPtrNodeSingleLinkPool() {
-    return ms_pPtrNodeSingleLinkPool;
-}
-
-// 0x5521A0
-CPtrNodeDoubleLinkPool* GetPtrNodeDoubleLinkPool() {
-    return ms_pPtrNodeDoubleLinkPool;
-}
-
-// 0x536C80
-CEntryInfoNodePool* GetEntryInfoNodePool() {
-    return ms_pEntryInfoNodePool;
-}
-
-// 0x41B400
-CPointRoutePool* GetPointRoutePool() {
-    return ms_pPointRoutePool;
-}
-
-// 0x41B410
-CPatrolRoutePool* GetPatrolRoutePool() {
-    return ms_pPatrolRoutePool;
-}
-
-// 0x4ABF80
-CEventPool* GetEventPool() {
-    return ms_pEventPool;
-}
-
-// 0x41B420
-CNodeRoutePool* GetNodeRoutePool() {
-    return ms_pNodeRoutePool;
-}
-
-// 0x69BB70
-CTaskAllocatorPool* GetTaskAllocatorPool() {
-    return ms_pTaskAllocatorPool;
-}
-
-// 0x5E95A0
-CPedAttractorPool* GetPedAttractorPool() {
-    return ms_pPedAttractorPool;
-}

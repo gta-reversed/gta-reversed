@@ -121,7 +121,7 @@ void CPickup::GiveUsAPickUpObject(CObject** obj, int32 slotIndex) {
     CPools::MakeSureSlotInObjectPoolIsEmpty(slotIndex);
     object = new (slotIndex << 8) CObject(m_nModelIndex, false);
     if (!object) {
-        NOTSA_LOG_DEBUG("NO OBJECT ALLOCATED WHAT THE FUCK");
+        DEV_LOG("NO OBJECT ALLOCATED WHAT THE FUCK");
         return;
     }
 
@@ -286,8 +286,13 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
             ObjectWaterLevelCheck(0.6f);
 
             bool isAnyVehicleTouching = false;
-            for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
-                if (vehicle.IsSphereTouchingVehicle(m_pObject->GetPosition(), 2.0f)) {
+            for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
+                auto vehicle = GetVehiclePool()->GetAt(i);
+
+                if (!vehicle)
+                    continue;
+
+                if (vehicle->IsSphereTouchingVehicle(m_pObject->GetPosition(), 2.0f)) {
                     isAnyVehicleTouching = true;
                     // break?
                 }
@@ -306,8 +311,13 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
 
         case PICKUP_MINE_ARMED: {
             bool explode = CTimer::GetTimeInMS() > m_nRegenerationTime;
-            for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
-                if (vehicle.IsSphereTouchingVehicle(m_pObject->GetPosition(), 1.5f)) {
+            for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
+                auto vehicle = GetVehiclePool()->GetAt(i);
+
+                if (!vehicle)
+                    continue;
+
+                if (vehicle->IsSphereTouchingVehicle(m_pObject->GetPosition(), 1.5f)) {
                     explode = true;
                     // break?
                 }

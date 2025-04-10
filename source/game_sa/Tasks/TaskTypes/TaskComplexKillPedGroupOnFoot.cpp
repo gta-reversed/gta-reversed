@@ -1,8 +1,8 @@
 #include "StdInc.h"
-#include "TaskComplexKillPedGroupOnFoot.h"
-#include "TaskComplexKillPedOnFoot.h"
-#include "TaskSimpleLookAbout.h"
-#include "TaskSimpleNone.h"
+#include "./TaskComplexKillPedGroupOnFoot.h"
+#include "./TaskComplexKillPedOnFoot.h"
+#include "./TaskSimpleLookAbout.h"
+#include "./TaskSimpleNone.h"
 
 void CTaskComplexKillPedGroupOnFoot::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexKillPedGroupOnFoot, 0x86da48, 11);

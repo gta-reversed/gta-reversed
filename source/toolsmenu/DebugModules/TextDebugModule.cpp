@@ -9,16 +9,6 @@ TextDebugModule::TextDebugModule() :
 }
 
 void TextDebugModule::RenderMainWindow() {
-    ImGui::InputText("Key/Hash (Exact)", m_KeyFilter, sizeof(m_KeyFilter));
-    if (m_KeyFilter[0]) {
-        const auto n = std::strtoul(m_KeyFilter, nullptr, 16);
-        m_KeyFilterHash = n != 0
-            ? n
-            : CKeyGen::GetUppercaseKey(m_KeyFilter);
-    } else {
-        m_KeyFilterHash = 0;
-    }
-
     if (!ImGui::BeginTable("TextDebugModule_Table", 3, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_ContextMenuInBody)) {
         return;
     }
@@ -28,40 +18,28 @@ void TextDebugModule::RenderMainWindow() {
     ImGui::TableSetupColumn("String");
     ImGui::TableHeadersRow();
 
-    auto WriteRow = [&, i = 0](const auto& entry, const auto& table) mutable {
-        if (i > 100) {
-            return false;
-        }
-        if (!m_KeyFilterHash || m_KeyFilterHash == entry.hash)  {
-            ImGui::TableNextRow();
-            ImGui::PushID(i++);
+    const auto WriteRow = [](const auto& entry, const auto& tabl) {
+        ImGui::TableNextRow();
+        ImGui::PushID(&entry);
 
-            if (!ImGui::TableNextColumn()) {
-                return false;
-            }
-            ImGui::TextUnformatted(table);
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(tabl);
 
-            ImGui::TableNextColumn();
-            ImGui::Text("%08X", entry.hash);
+        ImGui::TableNextColumn();
+        ImGui::Text("%08X", entry.hash);
 
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted(GxtCharToUTF8(entry.string));
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(GxtCharToUTF8(entry.string));
 
-            ImGui::PopID();
-        }
-        return true;
+        ImGui::PopID();
     };
-    
-    for (const auto& entry : TheText.GetMissionKeys()) {
-        if (!WriteRow(entry, TheText.GetMissionName())) {
-            break;
-        }
+
+    for (const auto& entry : TheText.GetMissionKeys() | rngv::take(1'000)) {
+        WriteRow(entry, TheText.GetMissionName());
     }
 
-    for (const auto& entry : TheText.GetKeys()) {
-        if (!WriteRow(entry, "MAIN")) {
-            break;
-        }
+    for (const auto& entry : TheText.GetKeys() | rngv::take(1'000)) {
+        WriteRow(entry, "MAIN");
     }
 
     ImGui::EndTable();

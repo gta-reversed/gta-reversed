@@ -2,38 +2,40 @@
 
 #include "TaskComplex.h"
 
-#include <extensions/EntityRef.hpp>
+#include "Enums/eCarDrivingStyle.h"
+#include "Enums/eCarMission.h"
 
-class CTaskComplexKillCriminal;
-class CEvent;
 class CTask;
+class CTaskComplexKillCriminal;
 class CCopPed;
 class CPed;
+class CEvent;
+
 
 class NOTSA_EXPORT_VTABLE CTaskComplexKillCriminal : public CTaskComplex {
 public:
-    static void InjectHooks();
-
     static constexpr auto Type = eTaskType::TASK_COMPLEX_KILL_CRIMINAL;
+
+    static void InjectHooks();
 
     CTaskComplexKillCriminal(CPed* criminal, bool randomize = false);
     CTaskComplexKillCriminal(const CTaskComplexKillCriminal&);
     ~CTaskComplexKillCriminal();
 
-    CTask* CreateSubTask(eTaskType tt, CPed* ped, bool force = false);
-    CPed* FindNextCriminalToKill(CPed* ped, bool any);
-    bool ChangeTarget(CPed* ped);
+    CTask* CreateSubTask(eTaskType tt, CPed* ped, bool force);
+    CPed*  FindNextCriminalToKill(CPed* ped, bool any);
+    int8   ChangeTarget(CPed* newTarget);
 
-    CTask*    Clone() const override { return new CTaskComplexKillCriminal{ *this }; } // 0x68CE50
-    eTaskType GetTaskType() const override { return Type; } // 0x68BF20
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
+    CTask*    Clone() const override { return new CTaskComplexKillCriminal{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, CEvent const* event = nullptr) override;
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
 
 private: // Wrappers for hooks
     // 0x68BE70
-    CTaskComplexKillCriminal* Constructor(CPed* criminal, bool randomize) {
+    CTaskComplexKillCriminal* Constructor(CPed * criminal, bool randomize) {
         this->CTaskComplexKillCriminal::CTaskComplexKillCriminal(criminal, randomize);
         return this;
     }
@@ -45,14 +47,14 @@ private: // Wrappers for hooks
     }
 
 private:
-    notsa::EntityRef<CPed>    m_Criminal{};
-    notsa::EntityRef<CCopPed> m_Cop{};
-    float                     m_TimeToGetOutOfCar{ 3.f };
-    bool                      m_Randomize{};
-    bool                      m_HasFinished{};
-    bool                      m_CantGetInCar{};
-    int8                      m_OrigDrivingMode{};
-    int8                      m_OrigMission{};
-    uint8                     m_OrigCruiseSpeed{};
-    bool                      m_IsSetUp{};
+    CPed*            m_Criminal{}; 
+    CCopPed*         m_Cop{}; 
+    float            m_TimeToGetOutOfCar{3.f};
+    bool             m_Randomize{}; 
+    bool             m_Finished{}; 
+    bool             m_CantGetInCar{}; 
+    eCarDrivingStyle m_OrigDrivingStyle{}; 
+    eCarMission      m_OrigMission{}; 
+    uint8            m_OrigCruiseSpeed{}; 
+    bool             m_IsSetUp{}; 
 };

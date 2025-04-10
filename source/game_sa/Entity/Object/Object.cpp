@@ -1245,10 +1245,11 @@ void CObject::TryToFreeUpTempObjects(int32 numObjects) {
     if (numObjects <= 0)
         return;
 
-    for (auto& obj : GetObjectPool()->GetAllValid()) {
-        if (obj.IsTemporary() && !obj.IsVisible()) {
-            CWorld::Remove(&obj);
-            delete &obj;
+    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i) {
+        auto* obj = GetObjectPool()->GetAt(i);
+        if (obj && obj->IsTemporary() && !obj->IsVisible()) {
+            CWorld::Remove(obj);
+            delete obj;
             --numObjects;
         }
     }
@@ -1256,44 +1257,38 @@ void CObject::TryToFreeUpTempObjects(int32 numObjects) {
 
 // 0x5A18B0
 void CObject::DeleteAllTempObjects() {
-    for (auto& obj : GetObjectPool()->GetAllValid()) {
-        if (obj.IsTemporary()) {
-            CWorld::Remove(&obj);
-            delete &obj;
+    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i) {
+        auto* obj = GetObjectPool()->GetAt(i);
+        if (obj && obj->IsTemporary()) {
+            CWorld::Remove(obj);
+            delete obj;
         }
     }
 }
 
 // 0x5A1910
 void CObject::DeleteAllMissionObjects() {
-    for (auto& obj : GetObjectPool()->GetAllValid())  {
-        if (obj.IsMissionObject()) {
-            CWorld::Remove(&obj);
-            delete &obj;
+    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i)  {
+        auto* obj = GetObjectPool()->GetAt(i);
+        if (obj && obj->IsMissionObject()) {
+            CWorld::Remove(obj);
+            delete obj;
         }
     }
 }
 
 // 0x5A1980
 void CObject::DeleteAllTempObjectsInArea(CVector point, float radius) {
-    for (auto& obj : GetObjectPool()->GetAllValid()) {
-        if (!obj.IsTemporary())
+    for (auto i = 0; i < GetObjectPool()->GetSize(); ++i) {
+        auto* obj = GetObjectPool()->GetAt(i);
+        if (!obj || !obj->IsTemporary())
             continue;
 
-        if (DistanceBetweenPointsSquared(obj.GetPosition(), point) < sq(radius)) {
-            CWorld::Remove(&obj);
-            delete &obj;
+        if (DistanceBetweenPointsSquared(obj->GetPosition(), point) < sq(radius)) {
+            CWorld::Remove(obj);
+            delete obj;
         }
     }
-}
-
-bool CObject::IsCraneMovingPart() const {
-    return notsa::contains<eModelID>({
-        ModelIndices::MI_CRANE_MAGNET,
-        ModelIndices::MI_CRANE_HARNESS,
-        ModelIndices::MI_MINI_MAGNET,
-        ModelIndices::MI_WRECKING_BALL,
-    }, GetModelID());
 }
 
 // 0x5A1AB0

@@ -5,7 +5,7 @@
 #include "ReadArg.hpp" // TODO: We only use `PooledType` from here, so move that out to somewhere common between the 2 headers (because including this here is ugly)
 #include "TheScripts.h"
 #include "RunningScript.h" // ScriptParams
-#include <Pools/Pools.h>
+#include "Pools.h"
 
 namespace notsa {
 namespace script {

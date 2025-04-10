@@ -34,7 +34,7 @@ void CStencilShadows::Init() {
     pFirstAvailableStencilShadowObject = m_StencilShadowObjects.data();
     pFirstActiveStencilShadowObject = nullptr;
 
-    for (auto&& [i, obj] : rngv::enumerate(m_StencilShadowObjects)) {
+    for (auto&& [i, obj] : notsa::enumerate(m_StencilShadowObjects)) {
         obj.m_pOwner                = nullptr;
         obj.m_NumShadowFaces        = 0;
         obj.m_Type                  = eStencilShadowObjType::NONE;

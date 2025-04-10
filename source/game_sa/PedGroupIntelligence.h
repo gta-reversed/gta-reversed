@@ -7,9 +7,9 @@
 #pragma once
 
 #include <concepts>
-#include <PedGroup.h>
+
 #include "PedTaskPair.h"
-#include <TaskManager.h>
+
 #include "Tasks/TaskTypes/TaskSimpleNone.h"
 
 class CPed;

@@ -2,11 +2,6 @@
 
 #include "EntryExitManager.h"
 
-using EntryExitTreeNode = CQuadTreeNode<CEntryExit*>;
-auto& mp_QuadTree       = StaticRef<EntryExitTreeNode*>(0x96A7D0);
-
-auto& mp_poolEntryExits = StaticRef<CEntryExitsPool*>(0x96A7D8);
-
 void CEntryExitManager::InjectHooks() {
     RH_ScopedClass(CEntryExitManager);
     RH_ScopedCategoryGlobal();
@@ -35,7 +30,7 @@ void CEntryExitManager::InjectHooks() {
 void CEntryExitManager::Init() {
     ZoneScoped;
 
-    mp_QuadTree = new EntryExitTreeNode(WORLD_BOUNDS, 4);
+    mp_QuadTree = new CQuadTreeNode(WORLD_BOUNDS, 4);
 
     ms_exitEnterState = 0;
     ms_bDisabled = false;
@@ -48,8 +43,10 @@ void CEntryExitManager::Init() {
 
 // 0x440B90
 void CEntryExitManager::Shutdown() {
-    for (auto& enex : mp_poolEntryExits->GetAllValid()) {
-        mp_QuadTree->DeleteItem(&enex);
+    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
+        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
+            mp_QuadTree->DeleteItem(enex);
+        }
     }
 
     delete mp_poolEntryExits; // Flush() called in destructor
@@ -63,10 +60,12 @@ void CEntryExitManager::Shutdown() {
 
 // 0x440C40
 void CEntryExitManager::ShutdownForRestart() {
-    for (auto&& [i, enex] : mp_poolEntryExits->GetAllValidWithIndex()) {
-        enex.bEnableAccess = true;
-        if (enex.bDeleteEnex) {
-            DeleteOne(i);
+    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
+        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
+            enex->bEnableAccess = true;
+            if (enex->bDeleteEnex) {
+                DeleteOne(i);
+            }
         }
     }
 
@@ -93,13 +92,17 @@ void CEntryExitManager::Update() {
       || CEntryExitManager::ms_bDisabled;
 
     if (!bDontShowMarkers && ms_exitEnterState == 0) { // Moved `bDontShowMarkers` here from inner loop
-        EntryExitTreeNode::ListType matches{};
-        mp_QuadTree->GetAllMatching(
-            CRect{ TheCamera.GetPosition() + TheCamera.m_mCameraMatrix.GetForward() * 30.f, 30.f },
-            matches
-        );
+        CPtrListSingleLink<void*> matches{};
 
-        for (auto* const enex : matches) {
+        auto x = TheCamera.m_mCameraMatrix.GetForward().x * 30.0f + TheCamera.GetPosition().x;
+        auto y = TheCamera.m_mCameraMatrix.GetForward().y * 30.0f + TheCamera.GetPosition().y;
+        CRect rect(x - 30.0f, y - 30.0f, x + 30.0f, y + 30.0f);
+        mp_QuadTree->GetAllMatching(rect, matches);
+
+        for (CPtrListSingleLink<void*>::NodeType* it = matches.m_node, *next{}; it; it = next) {
+            next = it->Next;
+
+            auto* enex = static_cast<CEntryExit*>(it->Item);
             if (enex->bEnableAccess) {
                 if (   enex->m_pLink && enex->m_nArea == CGame::currArea  // Has link and link is in current area
                     || !enex->m_pLink && enex->m_nArea != CGame::currArea // Has no link, and is not in current area
@@ -130,12 +133,14 @@ void CEntryExitManager::Update() {
     } else {
         const auto& playerPos = FindPlayerEntity()->GetPosition();
         const auto pos = CVector2D{ playerPos.x, playerPos.y }; // todo: refactor
-
-        EntryExitTreeNode::ListType matches{};
+        CPtrListSingleLink<void*> matches{};
         mp_QuadTree->GetAllMatching(pos, matches);
 
         bool wasAnyMarkerInArea{};
-        for (auto* const enex : matches) {
+        for (CPtrListSingleLink<void*>::NodeType* it = matches.m_node, *next{}; it; it = next) {
+            next = it->Next;
+
+            auto* enex = static_cast<CEntryExit*>(it->Item);
             if (enex->bEnableAccess && enex->IsInArea(playerPos)) {
                 wasAnyMarkerInArea = true;
                 if (!bDontShowMarkers && enex->TransitionStarted(player)) {
@@ -260,12 +265,15 @@ CObject* CEntryExitManager::FindNearestDoor(CEntryExit const& exit, float radius
 
 // 0x43F4B0
 int32 CEntryExitManager::FindNearestEntryExit(const CVector2D& position, float range, int32 ignoreArea) {
-    EntryExitTreeNode::ListType matches;
-    mp_QuadTree->GetAllMatching(CRect{ position, range }, matches);
+    CPtrListSingleLink<void*> enexInRange{};
+    mp_QuadTree->GetAllMatching(CRect{ position, range }, enexInRange);
 
     float closestDist2D{ 2.f * range };
     CEntryExit* closest{};
-    for (auto* const enex : matches) {
+    for (CPtrListSingleLink<void*>::NodeType* it = enexInRange.m_node, *next{}; it; it = next) {
+        next = it->Next;
+
+        auto* enex = static_cast<CEntryExit*>(it->Item);
         if (enex->GetLinkedOrThis()->GetArea() == ignoreArea) {
             continue;
         }
@@ -285,8 +293,10 @@ int32 CEntryExitManager::FindNearestEntryExit(const CVector2D& position, float r
 // 0x43F180
 void CEntryExitManager::EnableBurglaryHouses(bool enable) {
     ms_bBurglaryHousesEnabled = enable;
-    for (auto& enex : mp_poolEntryExits->GetAllValid()) {
-        enex.bBurglaryAccess = enable;
+    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
+        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
+            enex->bBurglaryAccess = enable;
+        }
     }
 }
 
@@ -299,9 +309,11 @@ void CEntryExitManager::GetPositionRelativeToOutsideWorld(CVector& pos) {
 
 // 0x43F0A0
 void CEntryExitManager::PostEntryExitsCreation() {
-    for (auto& enex : mp_poolEntryExits->GetAllValid()) {
-        if (enex.bCreateLinkedPair && !enex.m_pLink) {
-            LinkEntryExit(&enex);
+    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
+        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
+            if (enex->bCreateLinkedPair && !enex->m_pLink) {
+                LinkEntryExit(enex);
+            }
         }
     }
 }
@@ -330,12 +342,15 @@ void CEntryExitManager::LinkEntryExit(CEntryExit* enex) {
 
 // 0x43EFD0
 int32 CEntryExitManager::GetEntryExitIndex(const char* name, uint16 enabledFlags, uint16 disabledFlags) {
-    for (auto&& [i, enex] : mp_poolEntryExits->GetAllValidWithIndex()) {
-        // Remember: cast to `uint8` == mask by 0xFF
-        if ((uint8)(enex.m_nFlags & enabledFlags) == (uint8)enabledFlags
-            && (uint8)(enex.m_nFlags & disabledFlags) == 0) {
-            if (!_strnicmp(enex.m_szName, name, std::size(enex.m_szName))) {
-                return i;
+    for (auto i = 0; i < mp_poolEntryExits->GetSize(); i++) {
+        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
+            // Remember: cast to `uint8` == mask by 0xFF
+            if (   (uint8)(enex->m_nFlags & enabledFlags) == (uint8)enabledFlags
+                && (uint8)(enex->m_nFlags & disabledFlags) == 0
+            ) {
+                if (!_strnicmp(enex->m_szName, name, std::size(enex->m_szName))) {
+                    return i;
+                }
             }
         }
     }
@@ -449,29 +464,23 @@ bool CEntryExitManager::Save() {
     }
 
     // Save entry exits
-    for (auto&& [i, enex] : mp_poolEntryExits->GetAllValidWithIndex()) {
-        int16 data = -1;
-        if (enex.m_pLink) {
-            // Make sure the link reference is valid
-            auto linkIndex = mp_poolEntryExits->GetIndex(enex.m_pLink);
-            if (mp_poolEntryExits->IsIndexInBounds(linkIndex)) {
-                data = linkIndex;
+    for (int16 i = 0; i < mp_poolEntryExits->GetSize(); i++) {
+        if (const auto enex = mp_poolEntryExits->GetAt(i)) {
+            int16 data = -1;
+            if (enex->m_pLink) {
+                // Make sure the link reference is valid
+                auto linkIndex = mp_poolEntryExits->GetIndex(enex->m_pLink);
+                if (mp_poolEntryExits->IsIndexInBounds(linkIndex)) {
+                    data = linkIndex;
+                }
             }
+            CGenericGameStorage::SaveDataToWorkBuffer(i); // Enex idx in pool
+            CGenericGameStorage::SaveDataToWorkBuffer(enex->m_nFlags);
+            CGenericGameStorage::SaveDataToWorkBuffer(data); // Linked enex idx in pool
         }
-        CGenericGameStorage::SaveDataToWorkBuffer(i); // Enex idx in pool
-        CGenericGameStorage::SaveDataToWorkBuffer(enex.m_nFlags);
-        CGenericGameStorage::SaveDataToWorkBuffer(data); // Linked enex idx in pool
     }
 
     // Mark the end of ENEX table
     CGenericGameStorage::SaveDataToWorkBuffer((int16)-1);
     return true;
-}
-
-CEntryExit* CEntryExitManager::GetInSlot(int32 slot) {
-    return mp_poolEntryExits->GetAt(slot);
-}
-
-CEntryExitsPool* CEntryExitManager::GetPool() {
-    return mp_poolEntryExits;
 }

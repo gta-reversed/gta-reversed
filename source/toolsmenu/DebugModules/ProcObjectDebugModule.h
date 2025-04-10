@@ -1,7 +1,7 @@
 #pragma once
 #include "DebugModule.h"
-class CPlantLocTri;
-class CPlantColEntEntry;
+struct CPlantLocTri;
+struct CPlantColEntEntry;
 
 class ProcObjectDebugModule final : public DebugModule {
 public:

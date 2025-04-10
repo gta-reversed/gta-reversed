@@ -506,6 +506,7 @@ void CMatrix::ConvertFromEulerAngles(float x, float y, float z, uint32 uiFlags)
 }
 
 void CMatrix::operator=(const CMatrix& other) {
+    m_pAttachMatrix = other.m_pAttachMatrix;
     CopyOnlyMatrix(other);
     UpdateRW();
 }

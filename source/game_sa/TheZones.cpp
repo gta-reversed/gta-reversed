@@ -89,7 +89,7 @@ bool CTheZones::GetCurrentZoneLockedOrUnlocked(CVector2D pos) {
 void CTheZones::AssignZoneInfoForThisZone(int16 newZoneIndex) {
     auto& zone = NavigationZoneArray[newZoneIndex];
     zone.m_ZoneInfoIndex = [&]{
-        for (const auto& [i, zoneInfo] : rngv::enumerate(GetNavigationZones())) {
+        for (const auto& [i, zoneInfo] : notsa::enumerate(GetNavigationZones())) {
             if (i != newZoneIndex && zoneInfo.GetInfoLabel() == zone.GetInfoLabel()) {
                 return zoneInfo.m_ZoneInfoIndex;
             }
@@ -336,7 +336,7 @@ bool CTheZones::FindZone(const CVector& point, std::string_view name, eZoneType 
 int16 CTheZones::FindZoneByLabel(const char* name, eZoneType type) {
     assert(type == eZoneType::ZONE_TYPE_INFO); // Originally an `if` returning `-1`, but let's be safe
 
-    for (auto&& [i, v] : rngv::enumerate(GetNavigationZones())) {
+    for (auto&& [i, v] : notsa::enumerate(GetNavigationZones())) {
         if (name == v.GetInfoLabel()) {
             return (int16)i;
         }

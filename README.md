@@ -11,7 +11,7 @@ Building this project will result in a DLL file that can be injected into GTA:SA
 ## Progress
 The progress of reversed classes can be tracked [here](docs/ReversedClasses.MD). (needs to be updated)
 We currently estimate that about 50-60% of the code is done.
-Since this project is done as a hobby, and worked on at irregular intervals, **there's no time estimate on when it'll be finished.**
+Since this project is done as a hobby, and worked on at irregular intervals, there's no ***time estimate*** on when it'll be finished.
 
 ## Build Instructions
 #### 0. Requirements/Prerequisites
@@ -26,44 +26,41 @@ Since this project is done as a hobby, and worked on at irregular intervals, **t
 * If you are installing Conan for the first time, also run `conan profile detect`
 
 #### 2. Setting up VS
-0) Run the setup script with `python setup.py`. Use `--help` for more info.
-1) Open the generated VS solution at `build/GTASA.sln`, alternatively you can open the root folder with VS's native CMake integration but it isn't as good as the generated sln solution as for now.
-2) You can also type `cmake --build build` to build in command line.
+0) Run: `install` depending on the environment with the `Debug` argument (Or any of `Debug`, `Release`, `RelWithDebInfo`) (e.g. `install.bat Debug`)
+1) Open the folder with VS
+2) Select `conan-debug (conan-default-conan-debug)` or `conan-release (conan-default-conan-release)` (Depending on what you've spcified in the command above), other builds will result in CMake errors [TODO: Fix this somehow... We aren't proeficient with Conan/CMake sadly]
+3) Alternatively you can type `cmake --preset conan-debug/release` and build with `cmake --build build` in CLI.
 
 ### 3. Set up the game and ASI
-0. GTA SA ***Compact exe***: Our code requires you to use this exe, otherwise you will experience random crashes. **You must own the original game and assets for this to work.**
+0. GTA SA ***Compact exe***: Our code requires you to use this exe, otherwise you will experience random crashes. You must own the original game and assets for this to work.
 
 > [!IMPORTANT]
 > GTA SA ***Compact exe*** is not the same as ***1.0 US exe***, so check that your executable is exactly `5'189'632 bytes` (4.94 MiB).
 
-1. To install all the necessary files (after building the project!), run `contrib/install.py` with **__administrator privileges__** [Necessary to create symlinks on Windows] in the root directory.
+1. To install all the necessary files (after building the project!), run `install.py` with **__administrator privileges__** [Necessary to create symlinks on Windows] in the root directory.
 Alternatively, you can install them by yourself:
     * [ASI Loader](https://gtaforums.com/topic/523982-relopensrc-silents-asi-loader/)
     * [III.VC.SA.WindowedMode.asi](https://github.com/ThirteenAG/III.VC.SA.WindowedMode)
-    * Mouse Fix (**dinput8.dll**) [Can be found in the zip in the `contrib` folder]
+    * Mouse Fix (**dinput8.dll**) [Can be found in the zip in `./contrib`]
 
     You can download them in a single [archive](https://github.com/gta-reversed/gta-reversed-modern/blob/master/contrib/plugins.zip).
+
+### Debugging
+0) Make sure the latest DLL is in the `scripts` folder of your GTASA installation - Skip this step if you've used `install.py` (As it uses symlinks!)
+1) Launch the game
+2) Attch using the [ReAttach plugin](https://marketplace.visualstudio.com/items?itemName=ErlandR.ReAttach) to make your life easier
 
 ### Other plugins
 Using other (than the ones we've tested) plugins is strongly discouraged and we provide __**no support**__.
 
 ## Contributing
 
-### Coding/Contributing Guidelines
-Before you start writing code, please make sure to read the [coding guidelines](docs/CodingGuidelines.MD) for this project. Consider these points before opening a PR:
-
-* Follow the coding guidelines, it exists for a reason.
-* Try to focus your changes onto single subject, do not create PRs that cover many things at once. This is because it's hard to properly test and review such PRs.
-* If you intend to add non-vanilla features please first consult with us, so you don't waste your time.
+### Coding Guidelines 
+Before you start writing code, please make sure to read the [coding guidelines](docs/CodingGuidelines.MD) for this project.
 
 ### What to work on?
 Check out [this discussion](https://github.com/gta-reversed/gta-reversed-modern/discussions/402) for some inspiration ;)
-
-### Debugging
-0) Make sure the latest DLL is in the `scripts` folder of your GTASA installation - Skip this step if you've used `contrib/install.py` (As it uses symlinks!)
-1) Launch the game
-2) Attach using the [ReAttach plugin](https://marketplace.visualstudio.com/items?itemName=ErlandR.ReAttach) to make your life easier
-
+    
 # Credits
 - All contributors of the [plugin-sdk](https://github.com/DK22Pac/plugin-sdk) project.
 - All contributors of the [original project](https://github.com/codenulls/gta-reversed).

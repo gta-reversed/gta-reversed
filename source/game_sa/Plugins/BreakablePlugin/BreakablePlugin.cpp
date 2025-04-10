@@ -18,14 +18,14 @@ void BreakablePlugin::InjectHooks() {
 bool BreakablePluginAttach() {
     g_BreakablePlugin = RpGeometryRegisterPlugin(sizeof(BreakablePlugin), rwID_BREAKABLEPLUGIN, BreakableConstructor, BreakableDestructor, nullptr);
     if (g_BreakablePlugin == -1) {
-        NOTSA_LOG_DEBUG("Failed to register Breakable Plugin");
+        DEV_LOG("Failed to register Breakable Plugin");
         return false;
     }
 
     auto registerResult = RpGeometryRegisterPluginStream(rwID_BREAKABLEPLUGIN, BreakableStreamRead, BreakableStreamWrite, BreakableStreamGetSize);
     if (registerResult < 0) {
         g_BreakablePlugin = -1;
-        NOTSA_LOG_DEBUG("Failed to register Breakable Plugin Stream");
+        DEV_LOG("Failed to register Breakable Plugin Stream");
         return false;
     }
 

@@ -309,8 +309,11 @@ void CCheat::BlackCarsCheat() {
 
 // 0x439d80
 void CCheat::BlowUpCarsCheat() {
-    for (auto& veh : GetVehiclePool()->GetAllValid()) {
-        veh.BlowUpCar(nullptr, false);
+    for (int32 index = 0; index < GetVehiclePool()->GetSize(); index++) {
+        CVehicle* vehicle = GetVehiclePool()->GetAt(index);
+        if (vehicle) {
+            vehicle->BlowUpCar(nullptr, false);
+        }
     }
 }
 
@@ -386,16 +389,17 @@ void CCheat::ElvisLivesCheat() {
 void CCheat::EverybodyAttacksPlayerCheat() {
     Toggle(CHEAT_HAVE_ABOUNTY_ON_YOUR_HEAD);
     if (IsActive(CHEAT_HAVE_ABOUNTY_ON_YOUR_HEAD)) {
-        auto* const player = FindPlayerPed();
-        for (auto& ped : GetPedPool()->GetAllValid()) {
-            if (ped.IsPlayer())
+        auto player = FindPlayerPed();
+        for (auto i = 0; i < GetPedPool()->GetSize(); i++) {
+            auto ped = GetPedPool()->GetAt(i);
+            if (!ped || ped->IsPlayer())
                 continue;
 
-            ped.GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PED_TYPE_PLAYER1));
+            ped->GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PED_TYPE_PLAYER1));
 
             CEventAcquaintancePedHate event(player);
             event.m_TaskId = TASK_COMPLEX_KILL_PED_ON_FOOT;
-            ped.GetEventGroup().Add(&event, false);
+            ped->GetEventGroup().Add(&event, false);
         }
     }
 }
@@ -740,7 +744,7 @@ CVehicle* CCheat::VehicleCheat(eModelID modelId) {
     }
 
     //    for (auto i = 0; i < 50; ++i) {
-    //        auto vehicle = CPools::GetVehiclePool()->GetAtRef(i);
+    //        auto vehicle = CPools::ms_pVehiclePool->GetAtRef(i);
     //        if (vehicle)
     //    }
 

@@ -64,7 +64,7 @@ void CullZonesDebugModule::Render3D() {
         auto&       outCurrdIx
     ) {
         if (render) {
-            for (auto&& [idx, cull] : rngv::enumerate(culls | rng::views::take(cullCount))) {
+            for (auto&& [idx, cull] : notsa::enumerate(culls | rng::views::take(cullCount))) {
                 if (cull.zoneDef.IsPointWithin(camPos)) {
                     outCurrCull = &cull;
                     outCurrdIx  = idx;

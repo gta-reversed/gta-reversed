@@ -24,16 +24,28 @@ VALIDATE_SIZE(CVehicleStateEachFrame, 0x20);
 
 constexpr auto TOTAL_VEHICLE_RECORDS = 16;
 
+#ifdef EXTRA_CARREC_LOGS
+#define CARREC_DEV_LOG(...) DEV_LOG(__VA_ARGS__)
+#else
+#define CARREC_DEV_LOG(...)
+#endif
+
 class CPath {
 public:
     int32                   m_nNumber;
     CVehicleStateEachFrame* m_pData;
-    int32                   m_nSize; // Byte size, use ::Size() to get number of elements!
+    int32                   m_nSize; // Byte size, use ::Size() for getting the element size!
     int8                    m_nRefCount;
 
     uint32 GetIndex() const;
-    void   AddRef();
-    void   RemoveRef();
+
+    size_t Size() const {
+        return m_nSize / sizeof(CVehicleStateEachFrame);
+    }
+
+    auto GetFrames() {
+        return std::span{m_pData, Size()};
+    }
 
     void Remove() {
         if (m_pData) {
@@ -43,12 +55,16 @@ public:
         }
     }
 
-    size_t Size() const {
-        return m_nSize / sizeof(CVehicleStateEachFrame);
+    void AddRef() {
+        CARREC_DEV_LOG("Ref added for path {} (number= {}, size= {}, ptr= {})", GetIndex(), m_nNumber, m_nSize, LOG_PTR(m_pData));
+        m_nRefCount++;
     }
 
-    auto GetFrames() {
-        return std::span{m_pData, Size()};
+    void RemoveRef() {
+        CARREC_DEV_LOG("Ref removed for path {} (number= {}, size= {}, ptr= {})", GetIndex(), m_nNumber, m_nSize, LOG_PTR(m_pData));
+        if (!--m_nRefCount) {
+            Remove();
+        }
     }
 };
 VALIDATE_SIZE(CPath, 0x10);
@@ -135,7 +151,7 @@ public:
     }
 
     static int32 FindVehicleRecordingIndex(CVehicle* vehicle) {
-        for (const auto i : GetActivePlaybackIndices()) {
+        for (auto i : GetActivePlaybackIndices()) {
             if (pVehicleForPlayback[i] == vehicle) {
                 return i;
             }

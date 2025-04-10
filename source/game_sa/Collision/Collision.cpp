@@ -14,6 +14,7 @@
 #include "ColHelpers.h"
 #include "PedModelInfo.h"
 #include "TaskSimpleHoldEntity.h"
+#include "extensions/enumerate.hpp"
 
 #include "TaskComplexEnterCarAsDriver.h"
 #include "TaskComplexEnterCarAsPassenger.h"
@@ -1696,7 +1697,7 @@ bool CCollision::TestLineOfSight(
     CalculateTrianglePlanes(cd);
     const auto verts = cd->GetTriVerts();
     const auto pls   = cd->GetTriPlanes();
-    for (const auto&& [idx, tri] : rngv::enumerate(cd->GetTris())) { // TODO: rng::zip
+    for (const auto&& [idx, tri] : notsa::enumerate(cd->GetTris())) { // TODO: rng::zip
         if (ShouldTest(tri.GetSurfaceType()) && TestLineTriangle(lnos, verts, tri, pls[idx])) {
             return true;
         }
@@ -1820,7 +1821,7 @@ bool CCollision::ProcessVerticalLine(
     CStoredCollPoly storedColPoly{};
     const auto verts = cd->GetTriVerts();
     const auto pls   = cd->GetTriPlanes();
-    for (const auto&& [idx, tri] : rngv::enumerate(cd->GetTris())) { // TODO: rng::zip
+    for (const auto&& [idx, tri] : notsa::enumerate(cd->GetTris())) { // TODO: rng::zip
         if (ShouldTest(tri.GetSurfaceType())) {
             ProcessLineTriangle(lnos, verts, tri, pls[idx], cp, localMaxTouchDist, &storedColPoly);
         }
@@ -1964,7 +1965,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
 
     // Test `spheres` against bounding bb `bb` and store all colliding sphere's indices in `collidedIdxs`
     const auto TestSpheresAgainstBB = []<size_t n>(auto&& spheres, const auto& bb, uint32& numCollided, uint32(&collidedIdxs)[n]) {
-        for (const auto& [triIdx, sp] : rngv::enumerate(spheres)) {
+        for (const auto& [triIdx, sp] : notsa::enumerate(spheres)) {
             if (TestSphereBox(sp, bb)) {
                 assert(numCollided < n); // Avoid out-of-bounds (Game originally didn'maxTouchDist check)
                 collidedIdxs[numCollided++] = (uint32)triIdx;
@@ -2009,7 +2010,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
     // Test B's boxes against A's bounding sphere
     static uint32 collBoxB[MAX_BOXES]; // Indices of B's boxes colliding with A's bounding sphere
     uint32 numCollBoxB{};
-    for (auto&& [triIdx, bb] : rngv::enumerate(cdB.GetBoxes())) {
+    for (auto&& [triIdx, bb] : notsa::enumerate(cdB.GetBoxes())) {
         if (TestSphereBox(colABoundSphereSpaceB, bb)) {
             collBoxB[numCollBoxB++] = triIdx;
             if (numCollBoxB >= MAX_BOXES) {
@@ -2811,7 +2812,7 @@ bool CCollision::SphereCastVsEntity(
     };
 
     // Process spheres
-    for (auto&& [idx, sp] : rngv::enumerate(ecd->GetSpheres())) {
+    for (auto&& [idx, sp] : notsa::enumerate(ecd->GetSpheres())) {
         if (!SphereCastVsSphere(spAos, spBos, sp)) {
             continue;
         }
@@ -2872,7 +2873,7 @@ bool CCollision::SphereCastVsEntity(
     }
 
     // Process boxes
-    for (auto&& [idx, bb] : rngv::enumerate(ecd->GetBoxes())) {
+    for (auto&& [idx, bb] : notsa::enumerate(ecd->GetBoxes())) {
         if (SphereCastVsBBox(spAos, spBos, bb)) {
             if (AddEntryToColCache(BOX, idx)) {
                 return true;

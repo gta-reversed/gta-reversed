@@ -91,28 +91,29 @@ void CRunningScript::InjectCustomCommandHooks() {
     // Uncommenting any call will prevent it from being hooked, so
     // feel free to do so when debugging (Just don't forget to undo the changes!)
 
-    namespace c = ::notsa::script::commands;
-    c::basic::RegisterHandlers();
-    c::camera::RegisterHandlers();
-    c::character::RegisterHandlers();
-    c::clock::RegisterHandlers();
-    c::comparasion::RegisterHandlers();
-    c::game::RegisterHandlers();
-    c::generic::RegisterHandlers();
-    c::math::RegisterHandlers();
-    c::mission::RegisterHandlers();
-    c::object::RegisterHandlers();
-    c::pad::RegisterHandlers();
-    c::ped::RegisterHandlers();
-    c::player::RegisterHandlers();
-    c::script::RegisterHandlers();
-    c::sequence::RegisterHandlers();
-    c::text::RegisterHandlers();
-    c::unused::RegisterHandlers();
-    c::utility::RegisterHandlers();
-    c::vehicle::RegisterHandlers();
-    c::zone::RegisterHandlers();
-    c::stat::RegisterHandlers();
+    using namespace ::notsa::script::commands;
+
+    basic::RegisterHandlers();
+    camera::RegisterHandlers();
+    character::RegisterHandlers();
+    clock::RegisterHandlers();
+    comparasion::RegisterHandlers();
+    game::RegisterHandlers();
+    generic::RegisterHandlers();
+    math::RegisterHandlers();
+    mission::RegisterHandlers();
+    object::RegisterHandlers();
+    pad::RegisterHandlers();
+    ped::RegisterHandlers();
+    player::RegisterHandlers();
+    script::RegisterHandlers();
+    sequence::RegisterHandlers();
+    text::RegisterHandlers();
+    unused::RegisterHandlers();
+    utility::RegisterHandlers();
+    vehicle::RegisterHandlers();
+    zone::RegisterHandlers();
+    ::notsa::script::commands::stat::RegisterHandlers();
 
 #ifdef NOTSA_WITH_CLEO_SCRIPT_COMMANDS
     cleo::audiostream::RegisterHandlers();
@@ -134,17 +135,29 @@ void CRunningScript::InjectCustomCommandHooks() {
     cleo::extensions::intoperations::RegisterHandlers();
 #endif
 
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
+    // After injecting all hooks, we can create their reversible hook
+    for (auto&& [idx, cmd] : notsa::enumerate(s_CustomCommandHandlerTable)) {
+        const auto id = (eScriptCommands)(idx);
+
+        ReversibleHooks::AddItemToCategory(
+            "Scripts/Commands",
+            std::make_shared<ReversibleHooks::ReversibleHook::ScriptCommand>(id)
+        );
+    }
+#endif
+
 #ifdef DUMP_CUSTOM_COMMAND_HANDLERS_TO_FILE
     auto reversed{0}, total{0};
     std::ofstream ofsrev{ "reversed_script_command_handlers.txt" }, ofsnotrev{ "NOT_reversed_script_command_handlers.txt" };
-    for (auto&& [idx, handler] : rngv::enumerate(s_CustomCommandHandlerTable)) {
+    for (auto&& [idx, handler] : notsa::enumerate(s_CustomCommandHandlerTable)) {
         const auto id = (eScriptCommands)(idx);
         ++total;
         if (handler) ++reversed;
         (handler ? ofsrev : ofsnotrev) << ::notsa::script::GetScriptCommandName(id) << '\n';
     }
-    NOTSA_LOG_DEBUG("Script cmds dumped! Find them in `<GTA Directory>/Scripts`!");
-    NOTSA_LOG_DEBUG("Script cmds reverse progress: {}/{} ({:.2f}% done)", reversed, total, 100.0f * ((float)reversed / (float)total));
+    DEV_LOG("Script cmds dumped! Find them in `<GTA Directory>/Scripts`!");
+    DEV_LOG("Script cmds reverse progress: {}/{} ({:.2f}% done)", reversed, total, 100.0f * ((float)reversed / (float)total));
 #endif
 }
 

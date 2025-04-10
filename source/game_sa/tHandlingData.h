@@ -10,7 +10,6 @@
 #include "Vector.h"
 #include "eVehicleHandlingModelFlags.h"
 #include "eVehicleHandlingFlags.h"
-#include <Enums/AnimationEnums.h>
 
 enum eVehicleLightsSize : uint8 {
     LIGHTS_LONG,

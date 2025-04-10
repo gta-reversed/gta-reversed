@@ -252,7 +252,7 @@ static void Spawn_RC_Cars() {
         CRemote::GivePlayerRemoteControlledCar(pos, player->GetHeading(), vehicleId);
         CVehicle::bDisableRemoteDetonation = true;
         CVehicle::bDisableRemoteDetonationOnContact = true;
-        NOTSA_LOG_DEBUG("spawned rc car\n");
+        printf("spawned rc car\n");
     }
 }
 

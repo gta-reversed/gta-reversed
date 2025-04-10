@@ -10,7 +10,6 @@
 #include "eStatModAbilities.h"
 #include "eStatsReactions.h"
 #include "Text/Text.h"
-#include <Enums/eRadioID.h>
 
 enum eStatUpdateState : uint8 {
     STAT_UPDATE_DECREASE = 0,

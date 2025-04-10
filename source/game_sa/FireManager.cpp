@@ -60,7 +60,7 @@ void CFireManager::Init() {
 // 0x539DD0
 void CFireManager::Shutdown() {
     for (CFire& fire : m_aFires) {
-        fire.SetIsScript(false);
+        fire.createdByScript = false;
         if (fire.IsActive()) {
             fire.Extinguish();
         }
@@ -100,10 +100,10 @@ CFire* CFireManager::FindNearestFire(const CVector& point, bool bCheckIsBeingExt
         if (bCheckIsBeingExtinguished && fire.IsBeingExtinguished())
             continue;
 
-        if (fire.GetEntityOnFire() && fire.GetEntityOnFire()->IsPed())
+        if (fire.m_pEntityTarget && fire.m_pEntityTarget->IsPed())
             continue;
 
-        const float fDist2DSq = (fire.GetPosition() - point).SquaredMagnitude2D();
+        const float fDist2DSq = (fire.m_vecPosition - point).SquaredMagnitude2D();
         if (fDist2DSq < fNearestDist2DSq) {
             fNearestDist2DSq = fDist2DSq;
             nearestFire = &fire;
@@ -130,10 +130,10 @@ void CFireManager::ExtinguishPoint(CVector point, float fRadius) {
         if (!fire.IsActive())
             continue;
 
-        if ((fire.GetPosition() - point).SquaredMagnitude() > fRadius * fRadius)
+        if ((fire.m_vecPosition - point).SquaredMagnitude() > fRadius * fRadius)
             continue;
 
-        fire.SetIsScript(false);
+        fire.createdByScript = false;
         fire.Extinguish();
     }
 }
@@ -145,7 +145,7 @@ bool CFireManager::ExtinguishPointWithWater(CVector point, float fRadius, float 
         if (!fire.IsActive())
             continue;
 
-        if ((fire.GetPosition() - point).SquaredMagnitude() > fRadius * fRadius)
+        if ((fire.m_vecPosition - point).SquaredMagnitude() > fRadius * fRadius)
             continue;
 
         fire.ExtinguishWithWater(fWaterStrength);
@@ -163,7 +163,7 @@ bool CFireManager::IsScriptFireExtinguished(int16 id) {
 void CFireManager::RemoveScriptFire(uint16_t fireID) {
     CFire& fire = Get(fireID);
     if (fire.IsScript()) {
-        fire.SetIsScript(false);
+        fire.createdByScript = false;
         fire.Extinguish();
     }
 }
@@ -172,7 +172,7 @@ void CFireManager::RemoveScriptFire(uint16_t fireID) {
 void CFireManager::RemoveAllScriptFires() {
     for (CFire& fire : m_aFires) {
         if (fire.IsScript()) {
-            fire.SetIsScript(false);
+            fire.createdByScript = false;
             fire.Extinguish();
         }
     }
@@ -181,18 +181,18 @@ void CFireManager::RemoveAllScriptFires() {
 // 0x5397A0
 void CFireManager::ClearAllScriptFireFlags() {
     for (CFire& fire : m_aFires) {
-        fire.SetIsScript(false);
+        fire.createdByScript = false;
     }
 }
 
 // 0x5397B0
-void CFireManager::SetScriptFireAudio(int16 fireID, bool makesNoise) {
-    Get(fireID).SetMakesNoise(makesNoise);
+void CFireManager::SetScriptFireAudio(int16 fireID, bool bFlag) {
+    Get(fireID).makesNoise = bFlag;
 }
 
 // 0x5397E0
 const CVector& CFireManager::GetScriptFireCoords(int16 fireID) {
-    return Get(fireID).GetPosition();
+    return Get(fireID).m_vecPosition;
 }
 
 // 0x5397F0
@@ -200,7 +200,7 @@ uint32 CFireManager::GetNumFiresInRange(const CVector& point, float fRadius) {
     uint32 c = 0;
     for (CFire& fire : m_aFires) {
         if (fire.IsActive() && !fire.IsScript()) {
-            if ((fire.GetPosition() - point).Magnitude2D() <= fRadius) {
+            if ((fire.m_vecPosition - point).Magnitude2D() <= fRadius) {
                 c++;
             }
         }
@@ -217,7 +217,7 @@ uint32 CFireManager::GetNumFiresInArea(float minX, float minY, float minZ, float
     uint32 c = 0;
     for (CFire& fire : m_aFires) {
         if (fire.IsActive() && !fire.IsScript()) {
-            if (boundingBox.IsPointWithin(fire.GetPosition())) {
+            if (boundingBox.IsPointWithin(fire.m_vecPosition)) {
                 c++;
             }
         }
@@ -238,7 +238,7 @@ void CFireManager::DestroyAllFxSystems() {
 void CFireManager::CreateAllFxSystems() {
     for (CFire& fire : m_aFires) {
         if (fire.IsActive()) {
-            fire.CreateFxSysForStrength(fire.GetPosition(), nullptr);
+            fire.CreateFxSysForStrength(fire.m_vecPosition, nullptr);
         }
     }
 }
@@ -258,7 +258,7 @@ CFire* CFireManager::GetNextFreeFire(bool bMayExtinguish) {
     // So try to extinguish a script / first generation fire
     for (CFire& fire : m_aFires) {
         if (fire.IsFirstGen() || fire.IsScript()) {
-            fire.SetIsScript(false);
+            fire.createdByScript = false;
             fire.Extinguish();
             return &fire;
         }
@@ -325,7 +325,7 @@ int32 CFireManager::StartScriptFire(const CVector& pos, CEntity* target, float _
         /* Extinguish current fire (if any) of target */
         const auto StopFire = [](CFire* fire) {
             fire->Extinguish();
-            fire->SetIsScript(false);
+            fire->createdByScript = false;
         };
         switch (target->m_nType) {
         case ENTITY_TYPE_PED: {
@@ -414,7 +414,7 @@ void CFireManager::Update() {
             CFire& fire = m_aFires[i];
             if (firesVisited[i] || !fire.IsActive())
                 continue;
-            if (!strongest || strongest->GetStrength() < fire.GetStrength())
+            if (!strongest || strongest->m_fStrength < fire.m_fStrength)
                 strongest = &fire;
         }
 
@@ -426,9 +426,9 @@ void CFireManager::Update() {
             if (firesVisited[i] || !fire.IsActive())
                 continue;
 
-            if ((fire.GetPosition() - strongest->GetPosition()).Magnitude2D() < 6.0f) {
-                fCombinedStrength += fire.GetStrength();
-                nCombinedCeilStrength += (int32)std::ceil(fire.GetStrength());
+            if ((fire.m_vecPosition - strongest->m_vecPosition).Magnitude2D() < 6.0f) {
+                fCombinedStrength += fire.m_fStrength;
+                nCombinedCeilStrength += (int32)std::ceil(fire.m_fStrength);
                 nFires--;
                 firesVisited[i] = true;
 
@@ -444,7 +444,7 @@ void CFireManager::Update() {
 
             const float fDir = std::min(7.0f, fCombinedStrength - 6.0f + 3.0f);
 
-            CVector shdwPos = strongest->GetPosition();
+            CVector shdwPos = strongest->m_vecPosition;
             shdwPos.z += 5.0f;
             const float fColorMult = CGeneral::GetRandomNumberInRange(0.6f, 1.0f);
             {
@@ -475,7 +475,7 @@ void CFireManager::Update() {
                 // Keep in mind, the right line's end is always pointing towards the camera,
                 // so what you see is more like |
 
-                CVector point = strongest->GetPosition()
+                CVector point = strongest->m_vecPosition
                     + CVector{ 0.0f, 0.0f, 2.6f }
                     + (TheCamera.GetPosition() - point).Normalized() * 3.5f;
 

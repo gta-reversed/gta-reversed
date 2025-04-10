@@ -75,3 +75,5 @@ OSWAPI uint32    OS_TimeMS();
 
 uint64 GetOSWPerformanceTime();
 int64 GetOSWPerformanceFrequency();
+
+bool IsWin7OrGreater();

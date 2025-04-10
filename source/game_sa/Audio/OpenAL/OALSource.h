@@ -1,6 +1,7 @@
 #pragma once
 #include "OALBase.h"
 
+#ifdef USE_OPENAL
 class OALBuffer;
 
 enum class OALSourceType {
@@ -45,3 +46,4 @@ public:
 
     void Update();
 };
+#endif

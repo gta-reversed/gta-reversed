@@ -5,7 +5,7 @@
 //#define COL_EXTRA_DEBUG
 
 #ifdef COL_DEBUG
-#define DEV_LOG_COL(...) NOTSA_LOG_DEBUG(__VA_ARGS__)
+#define DEV_LOG_COL(...) DEV_LOG(__VA_ARGS__)
 #else
 #define DEV_LOG_COL(...)
 #endif

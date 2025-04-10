@@ -8,9 +8,9 @@
 
 #include "Vector.h"
 #include "PtrListDoubleLink.h"
-#include "CoverPoint.h"
 
 class CEntity;
+class CCoverPoint;
 class CColTriangle;
 class CBuilding;
 class CPed;
@@ -40,8 +40,8 @@ public:
     static CCoverPoint* FindAndReserveCoverPoint(CPed* ped, const CVector& position, bool isForAttack);
     static bool FindCoordinatesCoverPoint(const CCoverPoint& point, CPed* ped, const CVector& position, CVector& outCoordinates);
     static void FindCoverPointsForThisBuilding(CBuilding* building);
-    static CCoverPoint::Dir FindDirFromVector(CVector dir);
-    static CVector FindVectorFromDir(CCoverPoint::Dir direction);
+    static uint8 FindDirFromVector(CVector dir);
+    static CVector FindVectorFromDir(uint8 direction);
     static CVector FindVectorFromFirstToMissingVertex(CColTriangle* triangle, int32* a3, CVector* vertPositions);
 
     static auto& GetCoverPoints() { return m_Points; }

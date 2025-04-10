@@ -53,7 +53,7 @@ int32 CStreamedScripts::FindStreamedScript(const char* scriptName) {
 
 // 0x4706F0 -- inlined
 int32 CStreamedScripts::FindStreamedScriptQuiet(const char* scriptName) {
-    for (const auto&& [i, scr] : rngv::enumerate(GetActiveScripts())) {
+    for (const auto&& [i, scr] : notsa::enumerate(GetActiveScripts())) {
         if (notsa::ci_string_view{ scr.m_Filename } == scriptName) {
             return i;
         }
@@ -63,7 +63,7 @@ int32 CStreamedScripts::FindStreamedScriptQuiet(const char* scriptName) {
 
 // 0x470810
 int16 CStreamedScripts::GetProperIndexFromIndexUsedByScript(int16 scmIndex) {
-    for (const auto&& [i, scr] : rngv::enumerate(GetActiveScripts())) {
+    for (const auto&& [i, scr] : notsa::enumerate(GetActiveScripts())) {
         if (scr.m_IndexUsedByScriptFile == scmIndex) {
             return i;
         }
@@ -129,7 +129,7 @@ int32 CStreamedScripts::RegisterScript(const char* scriptName) {
 // 0x470910
 uint32 CStreamedScripts::GetStreamedScriptWithThisStartAddress(uint8* dataPtr)
 {
-    for (const auto&& [i, scr] : rngv::enumerate(m_aScripts)) {
+    for (const auto&& [i, scr] : notsa::enumerate(m_aScripts)) {
         if (scr.m_StreamedScriptMemory == dataPtr) {
             return i;
         }

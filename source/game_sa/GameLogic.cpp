@@ -4,6 +4,7 @@
 #include "Garages.h"
 #include "PedClothesDesc.h"
 #include "PostEffects.h"
+#include <extensions/enumerate.hpp>
 
 void CGameLogic::InjectHooks() {
     RH_ScopedClass(CGameLogic);
@@ -200,7 +201,7 @@ bool CGameLogic::IsPlayerUse2PlayerControls(CPed* ped) {
 
 // 0x4416E0
 bool CGameLogic::IsPointWithinLineArea(const CVector* points, uint32 numPoints, float x, float y) {
-    for (auto&& [i, point] : rngv::enumerate(std::span{points, numPoints})) {
+    for (auto&& [i, point] : notsa::enumerate(std::span{points, numPoints})) {
         const auto nextPoint = (i != numPoints - 1) ? points[i + 1] : points[0];
         if (CCollision::Test2DLineAgainst2DLine(x, y, 1'000'000.0f, 0.0f, point.x, point.y, nextPoint.x - point.x, nextPoint.y - point.y))
             return true;
@@ -372,9 +373,10 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     playerData->m_nDrugLevel = 0;
     player->ClearAdrenaline();
     player->ResetSprintEnergy();
-    if (auto* const fire = std::exchange(player->m_pFire, nullptr)) {
-        fire->SetIsScript(false);
+    if (auto& fire = player->m_pFire) {
+        fire->createdByScript = false;
         fire->Extinguish();
+        fire = nullptr;
     }
     player->GetAE().TurnOffJetPack();
     player->bInVehicle = false;

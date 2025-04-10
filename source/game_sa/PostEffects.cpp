@@ -463,15 +463,16 @@ void CPostEffects::UnderWaterRipple(CRGBA color, float xoffset, float yoffset, f
         uiTempBufferVerticesStored += 2;
     };
 
+    //EmitVertex(std::sin(freq * float(y) + speed * CTimer::GetTimeInMS()) * xoffset, float(y) * yoffset);
     if (rasterHeight > 0) {
         auto y = 0;
-        for (; y < rasterHeight; y = int32((float)y + yoffset)) {
-            EmitVertex(std::sin(freq * (float)y + speed * (float)CTimer::GetTimeInMS()) * xoffset, y);
+        for (; y < rasterHeight; y = int32(float(y) + yoffset)) {
+            EmitVertex(std::sin(freq * float(y) + speed * CTimer::GetTimeInMS()) * xoffset, y);
         }
-        EmitVertex(std::sin(freq * (float)y + speed * (float)CTimer::GetTimeInMS()) * xoffset, y);
+        EmitVertex(std::sin(freq * float(y) + speed * CTimer::GetTimeInMS()) * xoffset, y);
     } else {
         // unexpected path?
-        EmitVertex(std::sin(speed * (float)CTimer::GetTimeInMS()) * xoffset, 0);
+        EmitVertex(std::sin(speed * CTimer::GetTimeInMS()) * xoffset, 0.0f);
     }
 
     if (uiTempBufferVerticesStored > 2) {

@@ -1,11 +1,16 @@
 #include "StdInc.h"
+#include <span>
+
 #include "VehicleRecording.h"
 
-#ifdef EXTRA_CARREC_LOGS
-    #define CARREC_LOG(...) NOTSA_LOG_DEBUG(__VA_ARGS__)
-#else
-    #define CARREC_LOG(...)
-#endif
+#include "extensions\enumerate.hpp"
+
+uint32 CPath::GetIndex() const {
+    const auto index = this - CVehicleRecording::StreamingArray.data();
+    assert(index >= 0 && static_cast<size_t>(index) < CVehicleRecording::StreamingArray.size());
+
+    return index;
+}
 
 // VehicleRecording naming convention:
 //
@@ -18,6 +23,41 @@
 // `pPlaybackBuffer` contains 16 'recordings' that can be played
 // simultaneously.
 // It's incides are named `playbackId`
+
+void CVehicleRecording::InjectHooks() {
+    RH_ScopedClass(CVehicleRecording);
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedInstall(Init, 0x459390);
+    RH_ScopedInstall(InitAtStartOfGame, 0x45A1B0);
+    RH_ScopedInstall(ShutDown, 0x459400);
+    RH_ScopedInstall(Render, 0x459F70, {.locked = true});
+    RH_ScopedInstall(ChangeCarPlaybackToUseAI, 0x45A360);
+    RH_ScopedInstall(FindIndexWithFileNameNumber, 0x459FF0);
+    RH_ScopedInstall(InterpolateInfoForCar, 0x459B30);
+    RH_ScopedInstall(HasRecordingFileBeenLoaded, 0x45A060);
+    RH_ScopedInstall(Load, 0x45A8F0);
+    RH_ScopedInstall(SmoothRecording, 0x45A0F0);
+    RH_ScopedInstall(RegisterRecordingFile, 0x459F80);
+    RH_ScopedInstall(RemoveRecordingFile, 0x45A0A0);
+    RH_ScopedInstall(RequestRecordingFile, 0x45A020);
+    RH_ScopedInstall(StopPlaybackWithIndex, 0x459440);
+    RH_ScopedInstall(StartPlaybackRecordedCar, 0x45A980);
+    RH_ScopedInstall(StopPlaybackRecordedCar, 0x45A280);
+    RH_ScopedInstall(PausePlaybackRecordedCar, 0x459740);
+    RH_ScopedInstall(UnpausePlaybackRecordedCar, 0x459850);
+    RH_ScopedInstall(SetPlaybackSpeed, 0x459660);
+    RH_ScopedInstall(RenderLineSegment, 0x459F00);
+    RH_ScopedInstall(RemoveAllRecordingsThatArentUsed, 0x45A160);
+    RH_ScopedInstall(RestoreInfoForCar, 0x459A30);
+    RH_ScopedInstall(RestoreInfoForMatrix, 0x459960);
+    RH_ScopedInstall(SaveOrRetrieveDataForThisFrame, 0x45A610);
+    RH_ScopedInstall(SetRecordingToPointClosestToCoors, 0x45A1E0);
+    RH_ScopedInstall(IsPlaybackGoingOnForCar, 0x4594C0);
+    RH_ScopedInstall(IsPlaybackPausedForCar, 0x4595A0);
+    RH_ScopedInstall(SkipForwardInRecording, 0x459D10);
+    RH_ScopedInstall(SkipToEndAndStopPlaybackRecordedCar, 0x45A4A0);
+}
 
 // 0x459390
 void CVehicleRecording::Init() {
@@ -49,6 +89,8 @@ void CVehicleRecording::ShutDown() {
 
 // 0x459F70 hook not needed
 void CVehicleRecording::Render() {
+    ZoneScoped;
+
 }
 
 // 0x45A360
@@ -67,7 +109,7 @@ void CVehicleRecording::ChangeCarPlaybackToUseAI(CVehicle* vehicle) {
 // inlined
 // 0x459FF0
 uint32 CVehicleRecording::FindIndexWithFileNameNumber(int32 fileNumber) {
-    for (auto&& [i, recording] : rngv::enumerate(GetRecordings())) {
+    for (auto&& [i, recording] : notsa::enumerate(GetRecordings())) {
         if (recording.m_nNumber == fileNumber) {
             return i;
         }
@@ -98,13 +140,13 @@ void CVehicleRecording::Load(RwStream* stream, int32 recordId, int32 totalSize) 
     StreamingArray[recordId].m_nSize = size;
     RwStreamClose(stream, nullptr);
 
-    CARREC_LOG("Load carrec to streaming slot idx:{} (size={})", recordId, totalSize);
+    CARREC_DEV_LOG("Load carrec to streaming slot idx:{} (size={})", recordId, totalSize);
 
-    for (auto&& [i, frame] : rngv::enumerate(StreamingArray[recordId].GetFrames())) {
+    for (auto&& [i, frame] : notsa::enumerate(StreamingArray[recordId].GetFrames())) {
         if (i != 0 && frame.m_nTime == 0) {
             // no valid frame that is not zeroth can have zero as a time.
             // so we count them as invalid and prune the following including itself.
-            CARREC_LOG("\tRecording pruned at index {}", i);
+            CARREC_DEV_LOG("\tRecording pruned at index {}", i);
 
             StreamingArray[recordId].m_nSize = i * sizeof(CVehicleStateEachFrame);
             break;
@@ -129,7 +171,7 @@ int32 CVehicleRecording::RegisterRecordingFile(const char* name) {
         VERIFY(sscanf_s(name, "CARREC%d", &fileNumber) == 1);
     }
 
-    CARREC_LOG("Registering carrec file '{}', (streamIdx={})", name, NumPlayBackFiles);
+    CARREC_DEV_LOG("Registering carrec file '{}', (streamIdx={})", name, NumPlayBackFiles);
 
     StreamingArray[NumPlayBackFiles].m_nNumber = fileNumber;
     StreamingArray[NumPlayBackFiles].m_pData = nullptr;
@@ -147,10 +189,13 @@ void CVehicleRecording::RemoveRecordingFile(int32 fileNumber) {
 
 // 0x45A020
 void CVehicleRecording::RequestRecordingFile(int32 fileNumber) {
-    if (const auto rec = FindRecording(fileNumber)) {
-        CStreaming::RequestModel(RRRToModelId(rec->GetIndex()), STREAMING_KEEP_IN_MEMORY | STREAMING_MISSION_REQUIRED);
-        rec->Remove();
+    auto index = 0;
+    if (const auto recording = FindRecording(fileNumber)) {
+        index = recording->GetIndex();
+        recording->Remove();
     }
+
+    CStreaming::RequestModel(RRRToModelId(index), STREAMING_KEEP_IN_MEMORY | STREAMING_MISSION_REQUIRED);
 }
 
 // 0x459440
@@ -245,7 +290,7 @@ void CVehicleRecording::RenderLineSegment(int32& numVertices) {
 
 // 0x45A160
 void CVehicleRecording::RemoveAllRecordingsThatArentUsed() {
-    for (auto&& [i, recording] : rngv::enumerate(GetRecordings())) {
+    for (auto&& [i, recording] : notsa::enumerate(GetRecordings())) {
         if (recording.m_nNumber == i && recording.m_pData && !recording.m_nRefCount) {
             recording.Remove();
         }
@@ -280,7 +325,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
     if (CReplay::Mode == MODE_PLAYBACK)
         return;
 
-    for (const auto i : GetActivePlaybackIndices()) {
+    for (auto i : GetActivePlaybackIndices()) {
         auto vehicle = pVehicleForPlayback[i];
 
         if (!vehicle || vehicle->physicalFlags.bRenderScorched) {
@@ -293,7 +338,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
         const auto delta = static_cast<float>(CTimer::GetTimeInMS() - CTimer::m_snPPPPreviousTimeInMilliseconds);
         const auto step = delta * PlaybackSpeed[i] / 4.0f;
         if (step > 500.0f) {
-            NOTSA_LOG_DEBUG("That's a really big step (={:2f})\n", step);
+            DEV_LOG("That's a really big step (={:2f})\n", step);
         }
         PlaybackRunningTime[i] += step;
 
@@ -342,7 +387,7 @@ void CVehicleRecording::SaveOrRetrieveDataForThisFrame() {
 // 0x45A1E0
 void CVehicleRecording::SetRecordingToPointClosestToCoors(int32 playbackId, CVector posn) {
     auto minDist = 1'000'000.0f; // FLT_MAX
-    for (auto&& [i, frame] : rngv::enumerate(GetFramesFromPlaybackBuffer(playbackId))) {
+    for (auto&& [i, frame] : notsa::enumerate(GetFramesFromPlaybackBuffer(playbackId))) {
         if (const auto d = DistanceBetweenPoints(frame.m_vecPosn, posn); d < minDist) {
             PlaybackIndex[playbackId] = i;
             minDist = d;
@@ -405,59 +450,5 @@ void CVehicleRecording::SkipToEndAndStopPlaybackRecordedCar(CVehicle* vehicle) {
         vehicle->m_autoPilot.m_vehicleRecordingId = -1;
 
         StreamingArray[PlayBackStreamingIndex[i]].RemoveRef();
-    }
-}
-
-void CVehicleRecording::InjectHooks() {
-    RH_ScopedClass(CVehicleRecording);
-    RH_ScopedCategoryGlobal();
-
-    RH_ScopedInstall(Init, 0x459390);
-    RH_ScopedInstall(InitAtStartOfGame, 0x45A1B0);
-    RH_ScopedInstall(ShutDown, 0x459400);
-    RH_ScopedInstall(Render, 0x459F70, {.locked = true});
-    RH_ScopedInstall(ChangeCarPlaybackToUseAI, 0x45A360);
-    RH_ScopedInstall(FindIndexWithFileNameNumber, 0x459FF0);
-    RH_ScopedInstall(InterpolateInfoForCar, 0x459B30);
-    RH_ScopedInstall(HasRecordingFileBeenLoaded, 0x45A060);
-    RH_ScopedInstall(Load, 0x45A8F0);
-    RH_ScopedInstall(SmoothRecording, 0x45A0F0);
-    RH_ScopedInstall(RegisterRecordingFile, 0x459F80);
-    RH_ScopedInstall(RemoveRecordingFile, 0x45A0A0);
-    RH_ScopedInstall(RequestRecordingFile, 0x45A020);
-    RH_ScopedInstall(StopPlaybackWithIndex, 0x459440);
-    RH_ScopedInstall(StartPlaybackRecordedCar, 0x45A980);
-    RH_ScopedInstall(StopPlaybackRecordedCar, 0x45A280);
-    RH_ScopedInstall(PausePlaybackRecordedCar, 0x459740);
-    RH_ScopedInstall(UnpausePlaybackRecordedCar, 0x459850);
-    RH_ScopedInstall(SetPlaybackSpeed, 0x459660);
-    RH_ScopedInstall(RenderLineSegment, 0x459F00);
-    RH_ScopedInstall(RemoveAllRecordingsThatArentUsed, 0x45A160);
-    RH_ScopedInstall(RestoreInfoForCar, 0x459A30);
-    RH_ScopedInstall(RestoreInfoForMatrix, 0x459960);
-    RH_ScopedInstall(SaveOrRetrieveDataForThisFrame, 0x45A610);
-    RH_ScopedInstall(SetRecordingToPointClosestToCoors, 0x45A1E0);
-    RH_ScopedInstall(IsPlaybackGoingOnForCar, 0x4594C0);
-    RH_ScopedInstall(IsPlaybackPausedForCar, 0x4595A0);
-    RH_ScopedInstall(SkipForwardInRecording, 0x459D10);
-    RH_ScopedInstall(SkipToEndAndStopPlaybackRecordedCar, 0x45A4A0);
-}
-
-uint32 CPath::GetIndex() const {
-    const auto index = this - CVehicleRecording::StreamingArray.data();
-    assert(index >= 0 && static_cast<size_t>(index) < CVehicleRecording::StreamingArray.size());
-
-    return index;
-}
-
-void CPath::AddRef() {
-    CARREC_LOG("Ref added for path {} (number= {}, size= {}, ptr= {})", GetIndex(), m_nNumber, m_nSize, LOG_PTR(m_pData));
-    m_nRefCount++;
-}
-
-void CPath::RemoveRef() {
-    CARREC_LOG("Ref removed for path {} (number= {}, size= {}, ptr= {})", GetIndex(), m_nNumber, m_nSize, LOG_PTR(m_pData));
-    if (!--m_nRefCount) {
-        Remove();
     }
 }

@@ -330,7 +330,7 @@ public:
 
     //! Get value from global array
     template<typename T>
-    T& GetArrayGlobal(scm::VarLoc base, size_t idx, size_t elemSizeInDWords = std::max<size_t>(1, sizeof(T) / sizeof(int32))) {
+    T& GetArrayGlobal(scm::VarLoc base, size_t idx, size_t elemSizeInDWords = std::min<size_t>(1, sizeof(T) / sizeof(int32))) {
         return GetGlobal<T>((scm::VarLoc)(base + idx * elemSizeInDWords * sizeof(int32)));
     }
 

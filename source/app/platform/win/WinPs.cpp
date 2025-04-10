@@ -1,6 +1,6 @@
 #include "StdInc.h"
 
-#include <platform/win/WinPlatform.h>
+#include <platform/win/platform.h>
 #include <platform/platform.h>
 #include <ddraw.h>
 #include <dsound.h>
@@ -8,14 +8,19 @@
 #include "VideoModeSelectDialog.h"
 #include "LoadingScreen.h"
 #include "C_PcSave.h"
-#include "winincl.h"
-#include "intrin.h"
+#include <windows.h>
+
+
+// NOTE: This macro doesn't do a whole lot. Leaving it here for completeness sake
+#define USE_D3D9
 
 static auto& PsGlobal = StaticRef<psGlobalType, 0xC8CF88>();
-static inline char gCpuVendor[13] = "GTAReversed!"; // = "UnknownVendr";
+
+//! Disable "This function was depracated"
+#pragma warning (disable : 28159 4996)
 
 // 0x7455E0 - Get available videomem
-static HRESULT GetVideoMemInfo(LPDWORD total, LPDWORD available) {
+HRESULT GetVideoMemInfo(LPDWORD total, LPDWORD available) {
 	LPDIRECTDRAW7 dd;
 
     if (HRESULT hr = DirectDrawCreateEx(NULL, (LPVOID*)&dd, IID_IDirectDraw7, NULL); FAILED(hr)) {
@@ -32,7 +37,7 @@ static HRESULT GetVideoMemInfo(LPDWORD total, LPDWORD available) {
 }
 
 //! Check if D3D9 can be loaded (Originally this checked for versions 7 => 9, but GTA can only run with 9, so... :D
-static BOOL CheckDirectX() {
+BOOL CheckDirectX() {
     const auto hD3D9DLL = LoadLibrary("D3D9.DLL");
     if (hD3D9DLL == NULL) {
         return FALSE;
@@ -42,7 +47,7 @@ static BOOL CheckDirectX() {
 }
 
 //! 0x745840 - Check if DirectSound can be loaded
-static BOOL CheckDirectSound() {
+BOOL CheckDirectSound() {
     LPDIRECTSOUND ds;
 
     if (FAILED(DirectSoundCreate(NULL, &ds, NULL))) {
@@ -58,7 +63,9 @@ static BOOL CheckDirectSound() {
 }
 
 // 0x7465B0
-static void InitialiseLanguage() {
+void InitialiseLanguage() {
+//#pragma warning (disable : 4302) // "Type truncation from HKL to 
+
     // TODO: Use `GetLocaleInfoEx`
     const auto sysDefaultLCID = PRIMARYLANGID(GetSystemDefaultLCID());
 	const auto usrDefaultLCID = PRIMARYLANGID(GetUserDefaultLCID());
@@ -109,13 +116,7 @@ RwBool psInitialize() {
 
     gGameState = GAME_STATE_INITIAL;
 
-    int regs[4]{};
-    __cpuid(regs, 0); // EAX=0: Highest Function Parameter and Manufacturer ID
-    std::memcpy(gCpuVendor, &regs[1], 4);
-    std::memcpy(gCpuVendor + 4, &regs[3], 4);
-    std::memcpy(gCpuVendor + 8, &regs[2], 4);
-    gCpuVendor[12] = '\0';
-    NOTSA_LOG_DEBUG("CPU vendor: {}", gCpuVendor);
+    // TODO: Load vendor from CPUID
 
     // Figure out Windows version (TODO: Use `IsWindowsVersion*` from VersionHelpers.h instead)
     s_OSStatus.OSVer = [&] {
@@ -383,7 +384,7 @@ bool psAlwaysOnTop(bool alwaysOnTop) {
 }
 
 // NOTSA
-static auto GetNativeResolutionOfCurrentSubsystem() {
+auto GetNativeResolutionOfCurrentSubsystem() {
 #ifdef USE_D3D9
     const auto d3d = Direct3DCreate9(D3D_SDK_VERSION);
 #else
@@ -395,12 +396,12 @@ static auto GetNativeResolutionOfCurrentSubsystem() {
     D3DDISPLAYMODE nativeRes;
     d3d->GetAdapterDisplayMode(RwEngineGetCurrentSubSystem(), &nativeRes);
 
-    NOTSA_LOG_DEBUG("Got native resolution from RW subsystem ({}): {} x {}", RwEngineGetCurrentSubSystem(), nativeRes.Width, nativeRes.Height);
+    DEV_LOG("Got native resolution from RW subsystem ({}): {} x {}", RwEngineGetCurrentSubSystem(), nativeRes.Width, nativeRes.Height);
 
     return std::make_pair(nativeRes.Width, nativeRes.Height);
 }
 
-static BOOL CheckDefaultVideoModeSupported() {
+BOOL CheckDefaultVideoModeSupported() {
     // IMPROVEMENT/FIX_BUGS: The game will now default to native adapter
     // resolution instead of 800x600.
 
@@ -434,7 +435,7 @@ static BOOL CheckDefaultVideoModeSupported() {
 }
 
 // 0x7460A0
-static RwUInt32 GetBestRefreshRate(RwUInt32 width, RwUInt32 height, RwUInt32 depth) {
+RwUInt32 GetBestRefreshRate(RwUInt32 width, RwUInt32 height, RwUInt32 depth) {
 #ifdef USE_D3D9
     const auto d3d = Direct3DCreate9(D3D_SDK_VERSION);
 #else
@@ -444,7 +445,7 @@ static RwUInt32 GetBestRefreshRate(RwUInt32 width, RwUInt32 height, RwUInt32 dep
 
     assert(d3d != NULL);
 
-    RwUInt32 refreshRate = UINT_MAX;
+    RwUInt32 refreshRate = INT_MAX;
 
     const auto format = depth == 32
         ? D3DFMT_X8R8G8B8
@@ -489,7 +490,7 @@ bool psSelectDevice() {
     if (!UseDefaultVM) {
         GnumSubSystems = RwEngineGetNumSubSystems();
         if (!GnumSubSystems) {
-            NOTSA_LOG_DEBUG("No SubSystems to select from!");
+            DEV_LOG("No SubSystems to select from!");
             return FALSE;
         }
 
@@ -516,11 +517,11 @@ bool psSelectDevice() {
 
     // Set selected subsystem
     if (!RwEngineSetSubSystem(GcurSelSS)) {
-        NOTSA_LOG_DEBUG("Failed: RwEngineSetSubSystem({})", GcurSelSS);
+        DEV_LOG("Failed: RwEngineSetSubSystem({})", GcurSelSS);
         return FALSE;
     }
 
-    NOTSA_LOG_DEBUG("GcurSelSS={}", GcurSelSS);
+    DEV_LOG("GcurSelSS={}", GcurSelSS);
 
     if (!UseDefaultVM && !MultipleSubSystems) {
         const auto vmDisplay = FrontEndMenuManager.m_nDisplayVideoMode;
@@ -537,17 +538,17 @@ bool psSelectDevice() {
 
     // Set selected videomode
     if (!RwEngineSetVideoMode(GcurSelVM)) {
-        NOTSA_LOG_DEBUG("Failed: RwEngineSetVideoMode({})", GcurSelVM);
+        DEV_LOG("Failed: RwEngineSetVideoMode({})", GcurSelVM);
         return FALSE;
     }
 
-    NOTSA_LOG_DEBUG("GcurSelVM={}", GcurSelVM);
+    DEV_LOG("GcurSelVM={}", GcurSelVM);
 
     RwVideoMode vmi;
     RwEngineGetVideoModeInfo(&vmi, GcurSelVM);
     if (vmi.flags & rwVIDEOMODEEXCLUSIVE) {
         if (const auto rr = GetBestRefreshRate(vmi.width, vmi.height, vmi.depth); rr != -1) {
-            NOTSA_LOG_DEBUG("Refresh Rate: {} Hz", rr);
+            DEV_LOG("Refresh Rate: {} Hz", rr);
             RwD3D9EngineSetRefreshRate(rr);
         }
 

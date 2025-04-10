@@ -1,6 +1,6 @@
 #pragma once
 
-#include "winincl.h"
+#include <Windows.h>
 #include "Queue.h"
 
 enum class eCdStreamStatus : int32 {

@@ -8,10 +8,6 @@
 
 #include "TaskSimple.h"
 #include "TaskTimer.h"
-#include <Enums/AnimationEnums.h>
-#include <TaskTimer.h>
-
-class CPed;
 
 enum class eFacialExpression {
     NONE = -1,

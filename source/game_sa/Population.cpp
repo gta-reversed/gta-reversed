@@ -23,11 +23,11 @@
 #include <Events/EventSexyPed.h>
 #include "Events/EventAcquaintancePedHate.h"
 
-//! Define this to have extra NOTSA_LOG_DEBUG's of CPopulation
+//! Define this to have extra DEV_LOG's of CPopulation
 #define EXTRA_DEBUG_LOGS
 
 #ifdef EXTRA_DEBUG_LOGS
-#define POP_LOG_DEBUG NOTSA_LOG_DEBUG
+#define POP_LOG_DEBUG DEV_LOG
 #else
 #define POP_LOG_DEBUG(...)
 #endif
@@ -204,7 +204,7 @@ void LoadGroup(const char* fileName, auto& outModelsInGroup, auto& outNumOfModel
                 assert(pedModelIdx != MODEL_PLAYER);
                 outModelsInGroup[currGrpIdx][npeds++] = pedModelIdx;
             } else {
-                NOTSA_LOG_DEBUG("Model ({}) doesn't exist! [Group ID: {}; Line: {}]", modelName, currGrpIdx, lineno);
+                DEV_LOG("Model ({}) doesn't exist! [Group ID: {}; Line: {}]", modelName, currGrpIdx, lineno);
             }
         }
         
@@ -231,7 +231,7 @@ void LoadGroup(const char* fileName, auto& outModelsInGroup, auto& outNumOfModel
     };
 
     if (currGrpIdx == outModelsInGroup.size()) {
-        NOTSA_LOG_DEBUG("{} has been loaded successfully! [#Groups Loaded: {}]", fileName, currGrpIdx);
+        DEV_LOG("{} has been loaded successfully! [#Groups Loaded: {}]", fileName, currGrpIdx);
     } else {
         NOTSA_UNREACHABLE("Missing group data in {}! [#Groups Loaded: {}/{}]", fileName, currGrpIdx, outModelsInGroup.size());
     }
@@ -967,7 +967,7 @@ CPed* CPopulation::AddDeadPedInFrontOfCar(const CVector& createPedAt, CVehicle* 
     }
 
     if (!CModelInfo::GetModelInfo(MODEL_MALE01)->m_pRwObject) {
-        NOTSA_LOG_DEBUG("Didn't create ped, because `MODEL_MALE01` has no RW object!");
+        DEV_LOG("Didn't create ped, because `MODEL_MALE01` has no RW object!");
         return nullptr;
     }
 

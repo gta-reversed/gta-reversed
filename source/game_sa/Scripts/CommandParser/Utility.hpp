@@ -2,7 +2,7 @@
 
 #include <tuple> // tuple
 
-#include <Pools/Pools.h>
+#include "Pools.h"
 
 class CRunningScript;
 class CPhysical;
@@ -31,8 +31,8 @@ auto& PoolOf<CEntryInfoNode>() { return *GetEntryInfoNodePool(); }
 template<>
 auto& PoolOf<CPointRoute>() { return *GetPointRoutePool(); }
 
-//template<>
-//auto& PoolOf<CPatrolRoute>() { return *GetPatrolRoutePool(); }
+template<>
+auto& PoolOf<CPatrolRoute>() { return *GetPatrolRoutePool(); }
 
 template<>
 auto& PoolOf<CNodeRoute>() { return *GetNodeRoutePool(); }

@@ -284,7 +284,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseNewGangMember(const CEventNew
 // 0x5F90A0
 CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderExitedCar(const CEventEditableResponse&, CPedGroup* pg, CPed* originator) {
     const auto leader = pg->GetMembership().GetLeader();
-    for (auto&& [i, m] : rngv::enumerate(pg->GetMembership().GetFollowers())) {
+    for (auto&& [i, m] : notsa::enumerate(pg->GetMembership().GetFollowers())) {
         if (m.m_pVehicle && m.bInVehicle && m.m_pVehicle == leader->m_pVehicle) { // Already in the leader's vehicle
             continue; 
         }

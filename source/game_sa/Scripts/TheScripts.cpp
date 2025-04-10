@@ -265,7 +265,7 @@ void CTheScripts::ReadObjectNamesFromScript() {
     NumberOfUsedObjects = usedObjs->m_NumberOfUsedObjects;
     assert(NumberOfUsedObjects < std::size(UsedObjectArray));
 
-    for (auto&& [i, name] : rngv::enumerate(usedObjs->GetObjectNames())) {
+    for (auto&& [i, name] : notsa::enumerate(usedObjs->GetObjectNames())) {
         UsedObjectArray[i].nModelIndex = 0; // To be updated via UpdateObjectIndices.
         std::memcpy(UsedObjectArray[i].szModelName, name, sizeof(name));
 
@@ -297,7 +297,7 @@ void CTheScripts::ReadMultiScriptFileOffsetsFromScript() {
     NumberOfMissionScripts                     = sfi->m_NumberOfMissionScripts;
     LargestNumberOfMissionScriptLocalVariables = sfi->m_LargestNumberOfMissionScriptLocalVars;
 
-    for (const auto&& [i, missionOffset] : rngv::enumerate(sfi->GetMissionOffsets())) {
+    for (const auto&& [i, missionOffset] : notsa::enumerate(sfi->GetMissionOffsets())) {
         MultiScriptArray[i] = missionOffset;
     }
 }
@@ -808,7 +808,7 @@ int32 CTheScripts::GetActualScriptThingIndex(int32 ref, eScriptThingType type) {
         }
         break;
     case SCRIPT_THING_FIRE:
-        if (const auto& f = gFireManager.Get(idx); f.IsScript() && f.GetId() == id) {
+        if (const auto& f = gFireManager.Get(idx); f.IsScript() && f.m_nScriptReferenceIndex == id) {
             return idx;
         }
         break;
@@ -860,7 +860,7 @@ int32 CTheScripts::GetNewUniqueScriptThingIndex(int32 index, eScriptThingType ty
         ScriptSequenceTaskArray[index].m_bUsed = true;
         return NewUniqueId(ScriptSequenceTaskArray[index].m_nId);
     case eScriptThingType::SCRIPT_THING_FIRE:
-        return NewUniqueId(gFireManager.m_aFires[index].GetId());
+        return NewUniqueId(gFireManager.m_aFires[index].m_nScriptReferenceIndex);
     case eScriptThingType::SCRIPT_THING_2D_EFFECT:
         return NewUniqueId(CScripted2dEffects::ScriptReferenceIndex[index]);
     case eScriptThingType::SCRIPT_THING_DECISION_MAKER:
@@ -1952,7 +1952,7 @@ void CTheScripts::RenderTheScriptDebugLines() {
 void CTheScripts::RenderAllSearchLights() {
     ZoneScoped;
 
-    for (const auto&& [i, light] : rngv::enumerate(ScriptSearchLightArray)) {
+    for (const auto&& [i, light] : notsa::enumerate(ScriptSearchLightArray)) {
         if (!light.IsActive()) {
             continue;
         }

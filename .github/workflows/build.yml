@@ -27,7 +27,7 @@ jobs:
                 os: [ windows-2025 ]
                 arch: [ x86 ]
                 conf: [ Debug, Release ]
-                preset: [ NoUnity, Unity ]
+                preset: [ conan-default, conan-default-unity ]
 
         steps:
             -   name: Checkout
@@ -47,11 +47,15 @@ jobs:
                     python -m pip install --upgrade pip
                     python -m pip install conan
 
-            -   name: Setup ${{ matrix.conf }}-${{ matrix.arch }}
+            -   name: Setup Conan for ${{ matrix.conf }}-${{ matrix.arch }}
                 shell: cmd
                 run: |
                     conan profile detect
-                    python setup.py --buildconf ${{ matrix.conf }} ${{ matrix.preset == 'NoUnity' && '--no-unity-build' || '' }}
+                    conan install . --build missing -s build_type=${{ matrix.conf }} --profile conanprofile.txt
+
+            -   name: Configure ${{ matrix.conf }}-${{ matrix.arch }}
+                shell: cmd
+                run: cmake --preset ${{ matrix.preset }}
 
             -   name: Build ${{ matrix.conf }}-${{ matrix.arch }}
                 shell: cmd

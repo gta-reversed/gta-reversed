@@ -130,8 +130,8 @@ public:
 
     bool      m_RedefiningControls;
     bool      m_bDrawMouse; // m_bMouseMoved
-    float     m_nMousePosX;
-    float     m_nMousePosY;
+    int32     m_nMousePosX;
+    int32     m_nMousePosY;
     bool      m_bPrefsMipMapping;
     bool      m_bTracksAutoScan;
     int32     m_nPrefsAntialiasing;
@@ -141,8 +141,8 @@ public:
     int32     m_nDisplayVideoMode;
     int32     m_nCurrentRwSubsystem; // initialized | not used
 
-    float     m_nMousePosWinX; // xPos = GET_X_LPARAM(lParam); 0x748323
-    float     m_nMousePosWinY; // yPos = GET_Y_LPARAM(lParam);
+    int32     m_nMousePosWinX; // xPos = GET_X_LPARAM(lParam); 0x748323
+    int32     m_nMousePosWinY; // yPos = GET_Y_LPARAM(lParam);
 
     bool      m_bSavePhotos;
     bool      m_bMainMenuSwitch;
@@ -306,11 +306,11 @@ public:
     [[nodiscard]] bool CheckFrontEndLeftInput() const;
     [[nodiscard]] bool CheckFrontEndRightInput() const;
     void CheckForMenuClosing();
-    [[nodiscard]] bool CheckHover(float left, float right, float top, float bottom) const;
+    [[nodiscard]] bool CheckHover(int32 left, int32 right, int32 top, int32 bottom) const;
     bool CheckMissionPackValidMenu();
     void CheckCodesForControls(eControllerType type);
 
-    float DisplaySlider(float x, float y, float h1, float h2, float length, float value, float spacing);
+    int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing);
 
     void DisplayHelperText(const char* key);
     void SetHelperText(eHelperText messageId);

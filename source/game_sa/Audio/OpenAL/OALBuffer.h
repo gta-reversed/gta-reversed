@@ -1,6 +1,7 @@
 #pragma once
 #include "OALBase.h"
 
+#ifdef USE_OPENAL
 class OALBuffer final : public OALBase {
 public:
     ALuint m_bufferId{};
@@ -15,3 +16,4 @@ public:
     // NOTSA
     OALBuffer(const OALBuffer&) = delete;
 };
+#endif

@@ -19,12 +19,12 @@ void CAEStaticChannel::InjectHooks() {
     RH_ScopedInstall(SetAudioBuffer, 0x4F0C40, {.reversed = false});
 }
 
-CAEStaticChannel::CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId, bool hardwareMixAvailable, uint32 samplesPerSec, uint16 bitsPerSample) :
-    CAEAudioChannel(pDirectSound, channelId, samplesPerSec, bitsPerSample),
-    m_bNeedData(false),
-    m_bNeedsSynch(false),
-    m_IsHardwareMixAvailable(hardwareMixAvailable)
+CAEStaticChannel::CAEStaticChannel(IDirectSound* pDirectSound, uint16 channelId, bool arg3, uint32 samplesPerSec, uint16 bitsPerSample)
+    : CAEAudioChannel(pDirectSound, channelId, samplesPerSec, bitsPerSample)
 {
+    m_bNeedData = false;
+    m_bNeedsSynch = false;
+    field_8A = arg3;
 }
 
 // 0x4F10D0

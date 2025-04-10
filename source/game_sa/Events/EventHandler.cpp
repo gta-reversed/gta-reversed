@@ -2862,7 +2862,7 @@ void CEventHandler::ComputeEventResponseTask(CEvent* e, CTask* pAbortedTaskEvent
         ? m_Ped->GetTaskManager().GetSimplestActiveTask()
         : nullptr;
     
-    //NOTSA_LOG_DEBUG("event: {} tactive: {} tsimplest: {}", (int32)event->GetEventType(), (int32)tactive->GetTaskType(), (int32)tsimplest->GetTaskType()); // NOTSA
+    //DEV_LOG("event: {} tactive: {} tsimplest: {}", (int32)event->GetEventType(), (int32)tactive->GetTaskType(), (int32)tsimplest->GetTaskType()); // NOTSA
 
     switch (e->GetEventType()) {
     case EVENT_VEHICLE_COLLISION:

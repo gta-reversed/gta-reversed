@@ -6,7 +6,7 @@
 
 #include "imgui_impl_win32.h"
 
-#include "winincl.h"
+#include <windows.h>
 #include <rwplcore.h>
 #include <Dbt.h>
 #include <dshow.h>
@@ -16,8 +16,7 @@
 #include "AEAudioHardware.h"
 #include "VideoMode.h"
 #include "VideoPlayer.h"
-#include "WinInput.h"
-#include "WinPlatform.h"
+#include "Input.h"
 #include "Gamma.h"
 
 // Dear ImGui said I have to copy this here
@@ -176,8 +175,8 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         return 0;
     }
     case WM_MOUSEMOVE: { //< 0x748323
-        FrontEndMenuManager.m_nMousePosWinX = (float)GET_X_LPARAM(lParam);
-        FrontEndMenuManager.m_nMousePosWinY = (float)GET_Y_LPARAM(lParam);
+        FrontEndMenuManager.m_nMousePosWinX = GET_X_LPARAM(lParam);
+        FrontEndMenuManager.m_nMousePosWinY = GET_Y_LPARAM(lParam);
         break;
     }
     case WM_LBUTTONDOWN:
@@ -377,7 +376,7 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         if (dvletter < 'A' || (idev->dbcv_unitmask & (1 << dvletter)) == 0) {
             break;
         }
-        NOTSA_LOG_DEBUG("About to check CD drive");
+        DEV_LOG("About to check CD drive");
         CTimer::SetCodePause(true);
         if (CCutsceneMgr::IsRunning()) {
             CCutsceneMgr::SkipCutscene();
@@ -385,11 +384,11 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         while (!AEAudioHardware.CheckDVD()) {
             FrontEndMenuManager.NoDiskInDriveMessage();
             if (FrontEndMenuManager.m_bQuitGameNoDVD) {
-                NOTSA_LOG_DEBUG("Exiting game as Audio CD was not inserted");
+                DEV_LOG("Exiting game as Audio CD was not inserted");
                 break;
             }
         }
-        NOTSA_LOG_DEBUG("GTA Audio DVD has been inserted");
+        DEV_LOG("GTA Audio DVD has been inserted");
         CTimer::SetCodePause(false);
         break;
     }

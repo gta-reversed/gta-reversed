@@ -6,6 +6,8 @@
 */
 #include "StdInc.h"
 
+#include "extensions/enumerate.hpp"
+
 #include "Pickups.h"
 #include "Garages.h"
 #include "tPickupMessage.h"
@@ -462,7 +464,7 @@ void CPickups::PictureTaken() {
     std::optional<size_t> capturedPickup{};
     auto lastFoundDist = 999'999.88f; // maybe FLT_MAX
 
-    for (auto&& [i, pickup] : rngv::enumerate(aPickUps)) {
+    for (auto&& [i, pickup] : notsa::enumerate(aPickUps)) {
         if (pickup.m_nPickupType != PICKUP_SNAPSHOT)
             continue;
 
@@ -510,7 +512,7 @@ bool CPickups::PlayerCanPickUpThisWeaponTypeAtThisMoment(eWeaponType weaponType)
 
 // 0x456DE0
 void CPickups::RemoveMissionPickUps() {
-    for (auto&& [i, pickup] : rngv::enumerate(aPickUps)) {
+    for (auto&& [i, pickup] : notsa::enumerate(aPickUps)) {
         switch (pickup.m_nPickupType) {
         case PICKUP_ONCE_FOR_MISSION: {
             CRadar::ClearBlipForEntity(BLIP_PICKUP, GetUniquePickupIndex(i).num);

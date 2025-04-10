@@ -92,8 +92,6 @@ public:
     void AddTaskEventResponseTemp(CTask* task, int32 unUsed);
     void AddTaskEventResponseNonTemp(CTask* task, int32 unUsed);
     void AddTaskPrimaryMaybeInGroup(CTask* task, bool bAffectsPed);
-
-    //!< Can be replaced using `CTaskManager::Find<T>(false);`
     CTask* FindTaskByType(eTaskType taskId);
     CTaskSimpleFight* GetTaskFighting();
     CTaskSimpleUseGun* GetTaskUseGun();

@@ -12,8 +12,13 @@
 
 class CEntity;
 
-using CIplPool = CPool<IplDef>;
+typedef CPool<IplDef> CIplPool;
+
 class CIplStore {
+public:
+    static inline CQuadTreeNode*& ms_pQuadTree = *(CQuadTreeNode**)0x8E3FAC;
+    static inline CIplPool*&      ms_pPool     = *(CIplPool**)0x8E3FB0;
+
 public:
     static void InjectHooks();
 
@@ -52,8 +57,8 @@ public:
 
     inline static bool HasDynamicStreamingDisabled(int32 iplSlotIndex) { return GetInSlot(iplSlotIndex)->disableDynamicStreaming; } // 0x59EB20
 
-    static IplDef* GetInSlot(int32 slot);
-    static CIplPool* GetPool();
+    // NOTSA
+    static IplDef* GetInSlot(int32 slot) { return ms_pPool->GetAt(slot); }
 };
 
 static inline auto& ppCurrIplInstance = StaticRef<CEntity**>(0x8E3EFC);
@@ -64,4 +69,7 @@ static inline auto& gvecIplsNeededAtPosn = StaticRef<CVector>(0x8E3FD0);
 static inline auto& gNumLoadedBuildings = StaticRef<uint32>(0xBCC0D8);
 static inline auto& gpLoadedBuildings = StaticRef<std::array<CEntity*, 4'096>>(0xBCC0E0);
 
+void SetIfInteriorIplIsRequired(const CVector2D& posn, void* data);
+void SetIfIplIsRequired(const CVector2D& posn, void* data);
+void SetIfIplIsRequiredReducedBB(const CVector2D& posn, void* data);
 inline auto GetLoadedBuildings() { return gpLoadedBuildings | rng::views::take(gNumLoadedBuildings); }

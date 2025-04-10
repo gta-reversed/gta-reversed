@@ -59,7 +59,7 @@ void CDirectory::AddItem(const DirectoryInfo& dirInfo) {
 #endif
         m_pEntries[m_nNumEntries++] = dirInfo;
     } else {
-        NOTSA_LOG_DEBUG("Too many objects without modelinfo structures");
+        DEV_LOG("Too many objects without modelinfo structures");
     }
 }
 

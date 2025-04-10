@@ -12,13 +12,6 @@
 
 using json = nlohmann::json;
 
-#include <ranges>
-namespace rng = std::ranges;
-namespace rngv = std::views;
-
-#include <filesystem>
-namespace fs = std::filesystem;
-
 #define PLUGIN_API
 
 #define VALIDATE_SIZE(struc, size) static_assert(sizeof(struc) == size, "Invalid structure size of " #struc)

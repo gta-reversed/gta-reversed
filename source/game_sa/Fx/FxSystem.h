@@ -10,10 +10,6 @@
 #include "RenderWare.h"
 #include "Vector.h"
 #include "AEFireAudioEntity.h"
-#include <Enums/eBoneTag.h>
-
-class CPedGroup;
-class CPed;
 
 enum eFxSystemKillStatus : uint8 {
     FX_NOT_KILLED    = 0,

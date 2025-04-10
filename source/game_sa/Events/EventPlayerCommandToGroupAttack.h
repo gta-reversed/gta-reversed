@@ -3,9 +3,6 @@
 #include "EventPlayerCommandToGroup.h"
 #include "EventEditableResponse.h"
 
-class CPedGroup;
-class CPed;
-
 class NOTSA_EXPORT_VTABLE CEventPlayerCommandToGroupAttack : public CEventPlayerCommandToGroup {
 public:
     static void InjectHooks();

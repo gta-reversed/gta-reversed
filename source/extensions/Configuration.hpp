@@ -72,12 +72,12 @@ private:
                 StripText(key);
                 StripText(value);
 
-                NOTSA_LOG_DEBUG("key: {} value: {}", key, value);
+                DEV_LOG("key: {} value: {}", key, value);
                 ini[sectionName][std::move(key)] = std::move(value);
                 continue;
             }
 
-            NOTSA_LOG_DEBUG("err: something wrong!");
+            DEV_LOG("err: something wrong!");
             break;
         }
     }

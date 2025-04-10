@@ -56,8 +56,7 @@ bool CCreepingFire::TryToStartFireAtCoors(CVector pos, uint8 nGenerations, bool 
     if (!fire)
         return false;
 
-    fire->SetIsFirstGen(false);
-    fire->SetIsScript(bScriptFire);
-
+    fire->firstGeneration = false;
+    fire->createdByScript = bScriptFire;
     return true;
 }

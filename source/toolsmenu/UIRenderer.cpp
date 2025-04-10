@@ -36,7 +36,7 @@ UIRenderer::UIRenderer() :
     ImGui_ImplWin32_Init(PSGLOBAL(window));
     ImGui_ImplDX9_Init(GetD3DDevice());
 
-    NOTSA_LOG_DEBUG("I say hello!");
+    DEV_LOG("I say hello!");
 }
 
 UIRenderer::~UIRenderer() {
@@ -44,7 +44,7 @@ UIRenderer::~UIRenderer() {
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext(m_ImCtx);
 
-    //NOTSA_LOG_DEBUG("Good bye!");
+    //DEV_LOG("Good bye!");
 }
 
 void UIRenderer::PreRenderUpdate() {
@@ -142,7 +142,7 @@ void UIRenderer::DebugCode() {
             },
             TASK_PRIMARY_PRIMARY
         );
-        NOTSA_LOG_DEBUG("GOING!");
+        DEV_LOG("GOING!");
         //CPointRoute route{};
         //
         //const auto r = 10.f;
@@ -185,7 +185,7 @@ void UIRenderer::DebugCode() {
     }
     if (pad->IsStandardKeyJustDown('8')) {
         TheCamera.AddShakeSimple(10000.f, 1, 10.f);
-        NOTSA_LOG_DEBUG("Hey");
+        DEV_LOG("Hey");
     }
     if (pad->IsStandardKeyJustPressed('5')) {
         if (const auto veh = FindPlayerVehicle()) {

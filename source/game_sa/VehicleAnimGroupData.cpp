@@ -260,7 +260,7 @@ int32 CVehicleAnimGroup::InitFromData(const char* line) {
 
     // Actually build the flags value from it
     int32 animFlags{};
-    for (auto [i, flag] : rngv::enumerate(flags)) {
+    for (auto [i, flag] : notsa::enumerate(flags)) {
         animFlags |= (int32)flag << (int32)i;
     }
 

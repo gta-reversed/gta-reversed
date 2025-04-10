@@ -8,8 +8,4 @@ public:
 
     void RenderMainWindow() override final;
     void RenderMenuEntry() override final;
-
-private:
-    char   m_KeyFilter[64]{};
-    uint32 m_KeyFilterHash{};
 };

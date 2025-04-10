@@ -178,7 +178,7 @@ RpGeometry* BlendGeometry(RpClump* clump, std::pair<const char*, float> (&&frame
         float            r; // Blend ratio
     } fds[N];
     auto& out = fds[0];
-    for (auto&& [i, v] : rngv::enumerate(frameNamesRatios)) {
+    for (auto&& [i, v] : notsa::enumerate(frameNamesRatios)) {
         const auto a  = GetAtomicWithName(clump, v.first);
         const auto g  = RpAtomicGetGeometry(a);
         const auto s  = RpSkinGeometryGetSkin(g);
@@ -297,7 +297,7 @@ void CClothesBuilder::DestroySkinArrays(RwMatrixWeights* weights, RwUInt32* bone
 
 // 0x5A56E0
 void CClothesBuilder::BuildBoneIndexConversionTable(uint8* pTable, RpHAnimHierarchy* hier, int32 index) {
-    for (const auto [tableIdx, boneId] : rngv::enumerate(gBoneIndices[index])) {
+    for (const auto [tableIdx, boneId] : notsa::enumerate(gBoneIndices[index])) {
         if (boneId == -1) {
             break;
         }

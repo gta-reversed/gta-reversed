@@ -621,7 +621,7 @@ void CBike::GetComponentWorldPosition(int32 componentId, CVector& outPos) {
     if (IsComponentPresent(componentId))
         outPos = RwFrameGetLTM(m_aBikeNodes[componentId])->pos;
     else
-        NOTSA_LOG_DEBUG("BikeNode missing: model={}, nodeIdx={}", m_nModelIndex, componentId);
+        DEV_LOG("BikeNode missing: model={}, nodeIdx={}", m_nModelIndex, componentId);
 }
 
 // 0x6B58D0

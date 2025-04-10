@@ -429,7 +429,7 @@ void CAEPedAudioEntity::HandleSwimSplash(eAudioEvents event) {
     }
 
     const auto volume = GetDefaultVolume(event);
-    m_nSfxId = (m_nSfxId + 1) % 4;
+    m_nSfxId = std::max(0, m_nSfxId + 1);
     m_tempSound.Initialise(32, m_nSfxId, this, m_pPed->GetPosition(), volume, 1.0f, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.0f, 0);
     m_tempSound.m_fSpeedVariability = 0.0588f;
     m_tempSound.SetIndividualEnvironment(SOUND_PLAY_PHYSICALLY | SOUND_START_PERCENTAGE | SOUND_UNDUCKABLE, true);

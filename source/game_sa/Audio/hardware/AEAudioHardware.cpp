@@ -18,7 +18,7 @@ void CAEAudioHardware::InjectHooks() {
 
     RH_ScopedInstall(AllocateChannels, 0x5B9340);
     RH_ScopedInstall(RequestVirtualChannelSoundInfo, 0x4D8E60);
-    RH_ScopedInstall(Query3DSoundEffects, 0x4D8490);
+    RH_ScopedInstall(Query3DSoundEffects, 0x4D8490, { .reversed = false });
     RH_ScopedInstall(GetNumAvailableChannels, 0x4D8810);
     RH_ScopedInstall(GetChannelPlayTimes, 0x4D8820);
     RH_ScopedInstall(SetChannelVolume, 0x4D8870);
@@ -67,12 +67,13 @@ void CAEAudioHardware::InjectHooks() {
     RH_ScopedInstall(InitDirectSoundListener, 0x4D9640);
     RH_ScopedInstall(Terminate, 0x4D97A0);
     RH_ScopedInstall(Service, 0x4D9870);
-    RH_ScopedInstall(Initialise, 0x4D9930);
+    RH_ScopedInstall(Initialise, 0x4D9930, { .reversed = false });
 }
 
 // 0x4D83E0
 CAEAudioHardware::CAEAudioHardware() {
-    rng::fill(m_afChannelVolumes, -1000.0f);
+    rng::fill(m_afChannelVolumes, -1000.f);
+    // Rest done using member initializers
 }
 
 // 0x4D9930
@@ -100,7 +101,7 @@ bool CAEAudioHardware::Initialise() {
     if (FAILED(DirectSoundCreate8(&DSDEVID_DefaultPlayback, &m_pDSDevice, 0)))
         return false;
 
-    m_dsCaps.dwSize = sizeof(DSCAPS);
+    m_dsCaps.dwSize = 96;
     m_pDSDevice->GetCaps(&m_dsCaps);
 
     if (FAILED(m_pDSDevice->SetCooperativeLevel(PSGLOBAL(window), DSSCL_PRIORITY))
@@ -112,20 +113,20 @@ bool CAEAudioHardware::Initialise() {
     m_pStreamingChannel = new CAEStreamingChannel(m_pDSDevice, 0);
     m_pStreamingChannel->Initialise();
 
-    const uint32 numFree3dBuffers = m_dsCaps.dwFreeHw3DAllBuffers;
-    if (numFree3dBuffers < 24) {
+    const uint32 freeHw3DAllBuffers = m_dsCaps.dwFreeHw3DAllBuffers;
+    if (freeHw3DAllBuffers < 24) {
         m_nNumChannels = 48;
         AESmoothFadeThread.m_nNumAvailableBuffers = 48;
-        m_IsHardwareMixAvailable = false;
+        field_4 = 0;
     } else {
-        m_nNumChannels = (uint16)std::min(numFree3dBuffers, 64u) - 7;
-        m_IsHardwareMixAvailable = true;
+        m_nNumChannels = (uint16)std::min(freeHw3DAllBuffers, 64u) - 7;
+        field_4 = 1;
         AESmoothFadeThread.m_nNumAvailableBuffers = 7;
     }
 
     m_aChannels[0] = m_pStreamingChannel;
     for (auto i = 1u; i < m_nNumChannels; i++) {
-        m_aChannels[i] = new CAEStaticChannel(m_pDSDevice, i, m_IsHardwareMixAvailable, 44'100, 16);
+        m_aChannels[i] = new CAEStaticChannel(m_pDSDevice, i, field_4, 44'100, 16);
     }
 
     m_pStreamingChannel->SetVolume(-100.0f);
@@ -136,7 +137,7 @@ bool CAEAudioHardware::Initialise() {
 
         // Wait other threads until scanning is done.
         auto& state = AEUserRadioTrackManager.m_nUserTracksScanState;
-        while (state == USER_TRACK_SCAN_IN_PROGRESS) {
+        while (state != USER_TRACK_SCAN_IN_PROGRESS) {
             switch (state) {
             case USER_TRACK_SCAN_COMPLETE:
             case USER_TRACK_SCAN_ERROR:

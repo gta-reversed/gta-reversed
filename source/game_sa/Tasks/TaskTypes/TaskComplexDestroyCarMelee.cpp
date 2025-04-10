@@ -1,9 +1,9 @@
 #include "StdInc.h"
 
 #include "TaskComplexDestroyCarMelee.h"
-#include "SeekEntity/TaskComplexSeekEntity.h"
-#include "TaskSimplePause.h"
-#include "TaskSimpleFightingControl.h"
+#include "./SeekEntity/TaskComplexSeekEntity.h"
+#include "./TaskSimplePause.h"
+#include "./TaskSimpleFightingControl.h"
 
 void CTaskComplexDestroyCarMelee::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexDestroyCarMelee, 0x86d994, 11);

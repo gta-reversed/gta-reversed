@@ -8,19 +8,21 @@
 
 class CDate {
 public:
-    int32 seconds{};
-    int32 minutes{};
-    int32 hours{};
-    int32 day{};
-    int32 month{};
-    int32 year{};
+    int32 seconds;
+    int32 minutes;
+    int32 hours;
+    int32 day;
+    int32 month;
+    int32 year;
 
 public:
-    constexpr CDate() = default;
+    CDate();
 
-    constexpr std::strong_ordering operator<=>(const CDate& o);
+    bool operator<(const CDate& rhs);
+    bool operator==(const CDate& rhs);
+    bool operator>(const CDate& rhs);
 
-    constexpr void PopulateDateFields(const uint8& seconds, const uint8& minutes, const uint8& hours, const uint8& day, const uint8& month, int16 year);
+    void PopulateDateFields(const char& seconds, const char& minutes, const char& hours, const char& day, const char& month, int16 year);
 };
 
 VALIDATE_SIZE(CDate, 0x18);

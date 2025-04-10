@@ -12,6 +12,28 @@ class FxSystem_c;
 
 class CFire {
 public:
+    union {
+        struct {
+            bool active : 1;
+            bool createdByScript : 1;
+            bool makesNoise : 1;
+            bool beingExtinguished : 1;
+            bool firstGeneration : 1;
+        };
+        uint8 m_nFlags;
+    };
+    char        _pad0;
+    int16       m_nScriptReferenceIndex;
+    CVector     m_vecPosition;
+    CEntity*    m_pEntityTarget;
+    CEntity*    m_pEntityCreator;
+    uint32      m_nTimeToBurn;
+    float       m_fStrength;
+    uint8       m_nNumGenerationsAllowed;
+    uint8       m_nRemovalDist;
+    FxSystem_c* m_pFxSystem;
+
+public:
     static void InjectHooks();
 
     CFire();
@@ -28,51 +50,23 @@ public:
     void ProcessFire();
 
     // Inlined
-    bool IsScript() const { return m_IsCreatedByScript; }
-    void SetIsScript(bool b) { m_IsCreatedByScript = b; }
-
-    bool IsFirstGen() const { return m_IsFirstGeneration; }
-    void SetIsFirstGen(bool b) { m_IsFirstGeneration = b; }
-
-    bool IsActive() const { return m_IsActive; }
-    bool IsBeingExtinguished() const { return m_IsBeingExtinguished; }
-
-    bool MakesNoise() const { return m_MakesNoise; }
-    void SetMakesNoise(bool b) { m_MakesNoise = b; }
-
-    auto GetStrength() const { return m_Strength; }
+    bool IsActive() const { return active; }
+    bool IsScript() const { return createdByScript; }
+    bool IsFirstGen() const { return firstGeneration; }
+    bool IsBeingExtinguished() const { return beingExtinguished; }
 
     // NOTSA funcs:
     auto GetFireParticleNameForStrength() const;
     void DestroyFx();
-
-    auto GetEntityOnFire() const { return m_EntityOnFire; }
-    void SetEntityOnFire(CEntity* target);
-
-    auto GetEntityStartedFire() const { return m_EntityStartedFire; }
-    void SetEntityStartedFire(CEntity* creator);
+    void SetTarget(CEntity* target);
+    void SetCreator(CEntity* creator);
 
     bool HasTimeToBurn() const;
     bool IsNotInRemovalDistance() const;
-    auto& GetPosition() const { return m_Position; }
+    auto& GetPosition() const { return m_vecPosition; }
 
     //! Script thing ID
-    auto& GetId(this auto&& self) { return self.m_ScriptReferenceIndex; }
-
-private:
-    bool        m_IsActive : 1;
-    bool        m_IsCreatedByScript : 1;
-    bool        m_MakesNoise : 1;
-    bool        m_IsBeingExtinguished : 1;
-    bool        m_IsFirstGeneration : 1;
-    int16       m_ScriptReferenceIndex;
-    CVector     m_Position;
-    CEntity*    m_EntityOnFire;
-    CEntity*    m_EntityStartedFire;
-    uint32      m_TimeToBurn;
-    float       m_Strength;
-    uint8       m_NumGenerationsAllowed;
-    uint8       m_RemovalDist;
-    FxSystem_c* m_FxSystem;
+    auto GetId() { return m_nScriptReferenceIndex; }
 };
+
 VALIDATE_SIZE(CFire, 0x28);

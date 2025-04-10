@@ -12,6 +12,7 @@
 #include <string_view>
 #include <chrono>
 #include "Radar.h"
+#include "extensions/enumerate.hpp"
 
 using namespace ImGui;
 
@@ -289,7 +290,7 @@ void TeleportDebugModule::ProcessShortcuts() {
         }
 
         // Find `i`th visible element and teleport to it
-        for (auto&& [itemIdx, loc] : rngv::enumerate(GetVisibleItems())) {
+        for (auto&& [itemIdx, loc] : notsa::enumerate(GetVisibleItems())) {
             if (k == itemIdx) {
                 DoTeleportTo(loc.FindGroundZ ? GetPositionWithGroundHeight(loc.Pos) : loc.Pos, loc.AreaCode);
                 break;

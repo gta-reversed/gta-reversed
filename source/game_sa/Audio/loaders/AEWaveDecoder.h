@@ -2,7 +2,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 
-#include "winincl.h"
+#include <Windows.h>
 #include <mmreg.h> // WAVEFORMAT
 
 #include "AEStreamingDecoder.h"

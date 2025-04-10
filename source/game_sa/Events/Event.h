@@ -1,12 +1,11 @@
 #pragma once
 
+
 #include "eEventType.h"
-#include <Vector.h>
 #include "Base.h"
 
 class CPed;
 class CEntity;
-class CPedGroup;
 
 class NOTSA_EXPORT_VTABLE CEvent {
 public:

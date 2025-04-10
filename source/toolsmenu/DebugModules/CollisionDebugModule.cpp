@@ -87,7 +87,7 @@ void RenderShapeShapeCollisionStuff() {
 
         // If checkbox's state changed, reflect it
         if (cbStateChanged) {
-            for (auto&& [si, ssState] : rngv::enumerate(states[s])) {
+            for (auto&& [si, ssState] : notsa::enumerate(states[s])) {
                 if (ssState != State::NOT_SUPPORTED) {
                     SetSSState((Shape)s, (Shape)si, cbState);
                 }
@@ -99,7 +99,7 @@ void RenderShapeShapeCollisionStuff() {
         }
 
         // Draw shape checkboxes
-        for (auto&& [si, ssState] : rngv::enumerate(states[s])) {
+        for (auto&& [si, ssState] : notsa::enumerate(states[s])) {
             if (si != 0) {
                 ImGui::SameLine();
             }

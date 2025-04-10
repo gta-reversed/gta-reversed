@@ -1,17 +1,5 @@
 #pragma once
 
-enum class eLoadMonitorDisplay : uint32 {
-    NONE,
-    COMPACT,
-    COMPACT_GRAPH,
-};
-
-enum class eProcessingLevel : uint32 {
-    OK,
-    MED,
-    HIGH,
-};
-
 /*
 TODO: size of CLoadMonitor is unknown, and it's uncomplete.
 */
@@ -37,7 +25,7 @@ public:
     uint32              m_VarConsoleDisplayType;
     EProcessingLevel    m_eProcLevel;
     EProcessingLevel    m_eProcLevelToForce;    
-    bool                m_bEnableAmbientCrime;
+    char  field_1C;
     char  field_1D;
     char  field_1E;
     char  field_1F;

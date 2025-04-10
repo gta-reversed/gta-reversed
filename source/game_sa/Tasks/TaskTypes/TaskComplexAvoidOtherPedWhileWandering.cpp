@@ -218,9 +218,6 @@ void CTaskComplexAvoidOtherPedWhileWandering::SetUpIK(CPed* ped) {
     if (!ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_IK)) {
         return;
     }
-    if (!m_Parent) {
-        return;
-    }
     switch (m_Parent->GetTaskType()) {
     case TASK_COMPLEX_AVOID_OTHER_PED_WHILE_WANDERING:
     case TASK_COMPLEX_AVOID_ENTITY:
@@ -244,7 +241,7 @@ void CTaskComplexAvoidOtherPedWhileWandering::SetUpIK(CPed* ped) {
 // 0x671FE0
 bool CTaskComplexAvoidOtherPedWhileWandering::NearbyPedsInSphere(CPed* ped, const CColSphere& colSphere, PedsToAvoidArray& pedsToCheck, PedsToAvoidArray& pedsInSphere) {
     bool anyInSphere = false;
-    for (auto&& [i, pedToCheck] : rngv::enumerate(pedsToCheck)) {
+    for (auto&& [i, pedToCheck] : notsa::enumerate(pedsToCheck)) {
         if (!pedToCheck) {
             continue;
         }
@@ -270,7 +267,7 @@ bool CTaskComplexAvoidOtherPedWhileWandering::NearbyPedsInSphere(CPed* ped, cons
 // 0x672080
 void CTaskComplexAvoidOtherPedWhileWandering::ComputeAvoidSphere(CPed* ped, CColSphere& outSp) {
     PedsToAvoidArray pedsToCheck{};
-    for (auto&& [i, entityToCheck] : rngv::enumerate(ped->GetIntelligence()->GetPedScanner().m_apEntities)) { // Can't use GetEntities<CPed>() because it filters null entries
+    for (auto&& [i, entityToCheck] : notsa::enumerate(ped->GetIntelligence()->GetPedScanner().m_apEntities)) { // Can't use GetEntities<CPed>() because it filters null entries
         const auto pedToCheck = entityToCheck->AsPed();
         pedsToCheck[i] = pedToCheck != m_PedToAvoid && !CPedGroups::AreInSameGroup(ped, pedToCheck) // Inverted
             ? pedToCheck

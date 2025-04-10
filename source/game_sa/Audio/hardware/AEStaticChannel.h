@@ -18,7 +18,7 @@ public:
     uint16                field_82;
     IDirectSound3DBuffer* m_pBuffer;
     uint16                field_88;
-    bool                  m_IsHardwareMixAvailable;
+    bool                  field_8A;
     char                  field_8B;
     int32                 field_8C;
 

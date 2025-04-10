@@ -411,11 +411,12 @@ void CBoat::FillBoatList() {
     vecCamDir.Normalise();
 
     auto iCurBoat = 0u;
-    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
-        if (!vehicle.IsBoat())
+    for (int32 iInd = 0; iInd < GetVehiclePool()->GetSize(); ++iInd) {
+        auto vehicle = GetVehiclePool()->GetAt(iInd);
+        if (!vehicle || !vehicle->IsBoat())
             continue;
 
-        auto boat = vehicle.AsBoat();
+        auto boat = vehicle->AsBoat();
         if (!boat->m_nNumWaterTrailPoints)
             continue;
 

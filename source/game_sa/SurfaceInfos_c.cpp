@@ -258,7 +258,7 @@ void SurfaceInfos_c::LoadAdhesiveLimits()
     auto* file = CFileMgr::OpenFile("data\\surface.dat", "rb");
 #if FIX_BUGS
     if (!file) {
-        NOTSA_LOG_DEBUG("[SurfaceInfos_c] Failed to open surface.dat");
+        DEV_LOG("[SurfaceInfos_c] Failed to open surface.dat");
         CFileMgr::CloseFile(file);
         return;
     }
@@ -283,7 +283,7 @@ void SurfaceInfos_c::LoadSurfaceInfos()
     auto* file = CFileMgr::OpenFile("data\\surfinfo.dat", "r");
 #if FIX_BUGS
     if (!file) {
-        NOTSA_LOG_DEBUG("[SurfaceInfos_c] Failed to open surfinfo.dat");
+        DEV_LOG("[SurfaceInfos_c] Failed to open surfinfo.dat");
         CFileMgr::CloseFile(file);
         return;
     }
@@ -360,7 +360,7 @@ void SurfaceInfos_c::LoadSurfaceAudioInfos()
     auto* file = CFileMgr::OpenFile("data\\surfaud.dat", "r");
 #if FIX_BUGS
     if (!file) {
-        NOTSA_LOG_DEBUG("[SurfaceInfos_c] Failed to open surfaud.dat");
+        DEV_LOG("[SurfaceInfos_c] Failed to open surfaud.dat");
         CFileMgr::CloseFile(file);
         return;
     }

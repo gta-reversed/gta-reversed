@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Plugins/TwoDEffectPlugin/2dEffect.h"
+#include "Plugins\TwoDEffectPlugin\2dEffect.h"
 #include "PedTaskPair.h"
 #include "SArray.h"
 #include <Enums/eMoveState.h>

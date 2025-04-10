@@ -161,6 +161,6 @@ void CLoadedCarGroup::AddMember(eModelID member) {
     if (end != m_models.end()) {
         *end = (int16)(member);
     } else {
-        NOTSA_LOG_DEBUG("Failed to add model to group [Out of memory]");
+        DEV_LOG("Failed to add model to group [Out of memory]");
     }
 }

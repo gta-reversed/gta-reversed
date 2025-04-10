@@ -60,7 +60,7 @@ Simple::Simple(std::string fnName, uint32 installAddress, void* addressToJumpTo,
             InstallHook(true);
         }
         else {
-            NOTSA_LOG_WARN("Couldn't find the jump for address = 0x{:08X}\n", installAddress);
+            printf("HookInstall: Couldn't find the jump for address = %#.8x\n", installAddress);
             InstallHook(false);
         }
     }

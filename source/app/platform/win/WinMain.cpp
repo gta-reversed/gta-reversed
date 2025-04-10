@@ -10,8 +10,8 @@
 
 #include "VideoPlayer.h"
 #include "VideoMode.h"
-#include "WinInput.h"
-#include "WinPlatform.h"
+#include "Input.h"
+#include "Platform.h"
 #include "WndProc.h"
 
 #include "extensions/Configs/FastLoader.hpp"

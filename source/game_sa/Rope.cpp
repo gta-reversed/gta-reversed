@@ -66,7 +66,7 @@ void CRope::CreateHookObjectForRope() {
             NOTSA_UNREACHABLE(); //assert(0);
         }
     }();
-    if (modelIndex == ModelIndex{ MODEL_INVALID }) { // Must do it like this because `ModelIndex` is u16, `MODEL_ID` is i32, and u16 -1 casted to int32 is 0xffff...
+    if (modelIndex == MODEL_INVALID) {
         return;
     }
 

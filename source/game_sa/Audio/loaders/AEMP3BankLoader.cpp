@@ -212,7 +212,7 @@ void CAEMP3BankLoader::LoadSound(eSoundBank bankId, eSoundID soundId, eSoundBank
 
 // 0x4DFE30
 void CAEMP3BankLoader::Service() {
-    for (auto&& [i, req] : rngv::enumerate(m_Requests)) {
+    for (auto&& [i, req] : notsa::enumerate(m_Requests)) {
         const auto AllocateMemoryAndRead = [&](size_t readSizeBytes) {
             // Convert bytes to sectors
             const auto readSizeSectors = (readSizeBytes / STREAMING_SECTOR_SIZE) + 2;

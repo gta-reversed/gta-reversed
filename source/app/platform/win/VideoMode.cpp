@@ -1,17 +1,21 @@
 #include "StdInc.h"
 
 #include "VideoMode.h"
-#include "WinPlatform.h"
+#include "platform.h"
 #include "PostEffects.h"
 
 // todo: "2014/12/07 [nick7]: is it related to streaming memory (45M default?)?"
 #define GAME_FREE_VIDEO_MEM_REQUIRED (45 * 1024 * 1024)
 
-#ifdef NOTSA_VIDEO_MODE_LOGS
-    #define VIDEO_MODE_LOG(...) NOTSA_LOG_DEBUG(__VA_ARGS__)
-#else
-    #define VIDEO_MODE_LOG(...)
-#endif
+void VideoModeInjectHooks() {
+    RH_ScopedNamespaceName("VideoMode");
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedGlobalInstall(GetVideoModeList, 0x745AF0);
+    RH_ScopedGlobalInstall(FreeVideoModeList, 0x745A80);
+    RH_ScopedGlobalInstall(SetVideoMode, 0x745C70);
+    RH_ScopedGlobalInstall(IsVideoModeExclusive, 0x745CA0);
+}
 
 // 0x745AF0
 char** GetVideoModeList() {
@@ -34,18 +38,24 @@ char** GetVideoModeList() {
 
         gVideoModes[modeId] = nullptr;
         if ((vmi.flags & rwVIDEOMODEEXCLUSIVE) == 0) {
-            VIDEO_MODE_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: video mode not exclusive]", modeId, videoMode.width, videoMode.height, videoMode.depth);
+#ifdef VIDEO_MODE_LOGS
+            DEV_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: video mode not exclusive]", modeId, videoMode.width, videoMode.height, videoMode.depth);
+#endif
             continue;
         }
 
         if (vmi.width < APP_MINIMAL_WIDTH || vmi.height < APP_MINIMAL_HEIGHT) {
-            VIDEO_MODE_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: size]", modeId, videoMode.width, videoMode.height, videoMode.depth);
+#ifdef VIDEO_MODE_LOGS
+            DEV_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: size]", modeId, videoMode.width, videoMode.height, videoMode.depth);
+#endif
             continue;
         }
 
         float fRatio = float(vmi.height) / float(vmi.width);
         if (!IS_FULLSCREEN_RATIO(fRatio) && !IS_WIDESCREEN_RATIO(fRatio)) {
-            VIDEO_MODE_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: ratio {:0.2f}]", modeId, videoMode.width, videoMode.height, videoMode.depth, fRatio);
+#ifdef VIDEO_MODE_LOGS
+            DEV_LOG("Unavailable video mode id={:02d}: {} X {} X {} [reason: ratio {:0.2f}]", modeId, videoMode.width, videoMode.height, videoMode.depth, fRatio);
+#endif
             continue;
         }
 
@@ -58,7 +68,9 @@ char** GetVideoModeList() {
         gVideoModes[modeId] = (char*)CMemoryMgr::Calloc(100, sizeof(char));                                  // 100 chars
         sprintf_s(gVideoModes[modeId], 100 * sizeof(char), "%lu X %lu X %lu", vmi.width, vmi.height, vmi.depth); // rwsprintf
 
-        VIDEO_MODE_LOG("Available video mode id={:02d}: {}", modeId, gVideoModes[modeId]);
+#ifdef VIDEO_MODE_LOGS
+        DEV_LOG("Available video mode id={:02d}: {}", modeId, gVideoModes[modeId]);
+#endif
     }
 
     return gVideoModes;
@@ -81,7 +93,9 @@ bool FreeVideoModeList() {
 void SetVideoMode(int32 mode) {
     assert(mode < RwEngineGetNumVideoModes());
 
-    VIDEO_MODE_LOG("Changing Video Mode to {} ({})", mode, gVideoModes ? gVideoModes[mode] : "unknown");
+#ifdef VIDEO_MODE_LOGS
+    DEV_LOG("Changing Video Mode to {} ({})", mode, gVideoModes ? gVideoModes[mode] : "unknown");
+#endif
 
     RwD3D9ChangeVideoMode(mode);
     CPostEffects::SetupBackBufferVertex();
@@ -94,14 +108,4 @@ bool IsVideoModeExclusive() { // AKA isCurrentModeFullscreen
     RwVideoMode vmi;
     RwEngineGetVideoModeInfo(&vmi, gCurrentVideoMode);
     return vmi.flags & rwVIDEOMODEEXCLUSIVE;
-}
-
-void VideoModeInjectHooks() {
-    RH_ScopedNamespaceName("VideoMode");
-    RH_ScopedCategoryGlobal();
-
-    RH_ScopedGlobalInstall(GetVideoModeList, 0x745AF0);
-    RH_ScopedGlobalInstall(FreeVideoModeList, 0x745A80);
-    RH_ScopedGlobalInstall(SetVideoMode, 0x745C70);
-    RH_ScopedGlobalInstall(IsVideoModeExclusive, 0x745CA0);
 }

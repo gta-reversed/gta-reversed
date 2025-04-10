@@ -108,7 +108,7 @@ bool CWaterLevel::LoadDataFile() {
 
         // Check if we have enough vertices
         if (nvertices < 3) {
-            NOTSA_LOG_DEBUG("[Warning]: Not enough vertices, got {}, expected 3 or 4. [Line: {}]", nvertices, nline);
+            DEV_LOG("[Warning]: Not enough vertices, got {}, expected 3 or 4. [Line: {}]", nvertices, nline);
             continue;
             //return false; // Just stop here, this parser is way too primitive to be able to recover from errors
         }
@@ -143,7 +143,7 @@ bool CWaterLevel::LoadDataFile() {
         }
         #undef ArgUnpack
     }
-    NOTSA_LOG_DEBUG("Successfully loaded! [Quads: {}; Tris: {}]", nquad, ntri);
+    DEV_LOG("Successfully loaded! [Quads: {}; Tris: {}]", nquad, ntri);
     return true;
 }
 
@@ -830,7 +830,7 @@ uint32 CWaterLevel::AddWaterLevelVertex(int32 X, int32 Y, CRenPar P) {
     }
 
     // Try finding a vertex with the same coords, and use that
-    for (auto&& [id, vtx] : rngv::enumerate(m_aVertices | rng::views::take(NumWaterVertices))) {
+    for (auto&& [id, vtx] : notsa::enumerate(m_aVertices | rng::views::take(NumWaterVertices))) {
         if (vtx.x == X && vtx.y == Y && vtx.rp.z == P.z) {
             return id;
         }
