@@ -16,7 +16,7 @@ void CRoadBlocks::InjectHooks() {
     RH_ScopedInstall(CreateRoadBlockBetween2Points, 0x4619C0, { .reversed = false });
     RH_ScopedInstall(GenerateRoadBlockCopsForCar, 0x461170);
     RH_ScopedInstall(GenerateRoadBlocks, 0x4629E0, { .reversed = false });
-    RH_ScopedInstall(GetRoadBlockNodeInfo, 0x460EE0, { .reversed = false });
+    RH_ScopedInstall(GetRoadBlockNodeInfo, 0x460EE0);
     RH_ScopedInstall(RegisterScriptRoadBlock, 0x460DF0);
 }
 
@@ -232,8 +232,28 @@ void CRoadBlocks::GenerateRoadBlocks() {
 }
 
 // 0x460EE0
-bool CRoadBlocks::GetRoadBlockNodeInfo(CNodeAddress address, float& width, CVector& vec) {
-    return false;
+bool CRoadBlocks::GetRoadBlockNodeInfo(CNodeAddress nodeAddress, float& outWidth, CVector& outDir) {
+    auto* const node = ThePaths.GetPathNode(nodeAddress);
+    assert(node);
+
+    const auto naviLinkAddrA = ThePaths.GetNaviLink(nodeAddress.m_wAreaId, node->m_wBaseLinkId + 0),
+               naviLinkAddrB = ThePaths.GetNaviLink(nodeAddress.m_wAreaId, node->m_wBaseLinkId + 1);
+    if (!ThePaths.IsAreaLoaded(naviLinkAddrA.m_wAreaId) || !ThePaths.IsAreaLoaded(naviLinkAddrB.m_wAreaId)) {
+        return false;
+    }
+
+    const auto &naviLinkA = ThePaths.GetCarPathLink(naviLinkAddrA),
+               &naviLinkB = ThePaths.GetCarPathLink(naviLinkAddrB);
+
+    const auto maxNumLanes = std::max(
+        naviLinkA.m_numOppositeDirLanes + naviLinkA.m_numSameDirLanes,
+        naviLinkB.m_numOppositeDirLanes + naviLinkB.m_numSameDirLanes
+    );
+
+    outWidth = ((float)maxNumLanes + 1.f) * 5.f;
+    outDir   = CVector{ (naviLinkB.GetNodeCoors() - naviLinkA.GetNodeCoors()).GetPerpRight(), 0.f };
+
+    return true;
 }
 
 // 0x460DF0

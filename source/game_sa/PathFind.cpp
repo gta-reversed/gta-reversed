@@ -597,6 +597,13 @@ CPathNode* CPathFind::GetPathNode(CNodeAddress address) {
     return &m_pPathNodes[address.m_wAreaId][address.m_wNodeId];
 }
 
+// notsa
+CCarPathLinkAddress CPathFind::GetNaviLink(uint16 area, uint16 linkId) const {
+    assert(area < NUM_PATH_MAP_AREAS);
+    assert(linkId < m_anNumCarPathLinks[area]);
+    return m_pNaviLinks[area][linkId];
+}
+
 // NOTSA
 bool CPathFind::FindNodeCoorsForScript(CVector& outPos, CNodeAddress addr) {
     bool valid{};

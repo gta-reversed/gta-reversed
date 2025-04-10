@@ -28,7 +28,7 @@ public:
     static void CreateRoadBlockBetween2Points(CVector a1, CVector a2, uint32 a3);
     static void GenerateRoadBlockCopsForCar(CVehicle* vehicle, int32 a2, ePedType pedType);
     static void GenerateRoadBlocks();
-    static bool GetRoadBlockNodeInfo(CNodeAddress address, float& width, CVector& vec);
+    static bool GetRoadBlockNodeInfo(CNodeAddress nodeAddress, float& outWidth, CVector& outDir);
     static void RegisterScriptRoadBlock(CVector cornerA, CVector cornerB, bool isGangRoute);
 
 public:
