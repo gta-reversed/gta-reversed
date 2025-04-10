@@ -4,10 +4,6 @@
 #include "VideoMode.h"
 #include "platform/platform.h"
 
-#ifdef NOTSA_USE_SDL3
-#include <SDL3/SDL.h>
-#endif
-
 //
 // TODO:
 // For the final exe we have to add win.rc (A resource file that contains the definition of this dialogbox)
@@ -58,14 +54,7 @@ void FillAvailableVMs(HWND hVMSel) {
         RwVideoMode vmi;
         RwEngineGetVideoModeInfo(&vmi, i);
 
-        // Allow non-fulllscreen modes too
-        if (!notsa::IsFixBugs()) {
-            if ((vmi.flags & rwVIDEOMODEEXCLUSIVE) == 0) {
-                continue;
-            }
-        }
-
-        if (vmi.width < APP_MINIMAL_WIDTH || vmi.height < APP_MINIMAL_HEIGHT) {
+        if ((vmi.flags & rwVIDEOMODEEXCLUSIVE) == 0 || vmi.width < APP_MINIMAL_WIDTH || vmi.height < APP_MINIMAL_HEIGHT) {
             continue;
         }
 
@@ -77,14 +66,8 @@ void FillAvailableVMs(HWND hVMSel) {
 
         // NOTSA: Provide aspect ratio info (W:H) instead of 'FULLSCREEN' and 'WIDESCREEN'.
         if (IsFullScreenRatio(aspectr) || IsWideScreenRatio(aspectr)) {
-            char vmName[1024];
-            notsa::format_to_sz(
-                vmName,
-                "{} x {} x {} ({}:{}) {}",
-                vmi.width, vmi.height, vmi.depth,
-                ratioW, ratioH,
-                vmi.flags & rwVIDEOMODEEXCLUSIVE ? "[FULLSCREEN]" : "[WINDOWED]"
-            );
+            static char vmName[1024];
+            *std::format_to(vmName, "{} x {} x {} ({}:{})", vmi.width, vmi.height, vmi.depth, ratioW, ratioH) = 0;
             const auto idx = SendMessage(hVMSel, CB_ADDSTRING, NULL, (LPARAM)vmName); // Add entry, and get it's index
             SendMessage(hVMSel, CB_SETITEMDATA, idx, i);                              // Set index of that entry to correspond to `i`
         } else {

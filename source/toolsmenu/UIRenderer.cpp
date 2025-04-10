@@ -11,18 +11,12 @@
 #include "TaskComplexFleeAnyMeans.h"
 #include "TaskComplexDriveWander.h"
 #include "TaskComplexCarSlowBeDraggedOut.h"
-
 #include <imgui.h>
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx9.h"
+#include <imgui_stdlib.h>
 #include <imgui_internal.h>
-#include <libs/imgui/misc/cpp/imgui_stdlib.h>
-
-#ifdef NOTSA_USE_SDL3
-#include <SDL3/SDL.h>
-#include <libs/imgui/bindings/imgui_impl_sdl3.h>
-#else
-#include <libs/imgui/bindings/imgui_impl_win32.h>
-#endif
-#include <libs/imgui/bindings/imgui_impl_dx9.h>
+#include <Curves.h>
 
 #include <Windows.h>
 #include "DebugModules/DebugModules.h"
@@ -35,68 +29,22 @@ UIRenderer::UIRenderer() :
 {
     IMGUI_CHECKVERSION();
 
-    m_ImIO->ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard
-                        | ImGuiConfigFlags_NavEnableGamepad
-                        | ImGuiConfigFlags_DockingEnable
-                        | ImGuiConfigFlags_ViewportsEnable;
+    m_ImIO->ConfigFlags = ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad | ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
     m_ImIO->DisplaySize = ImVec2(SCREEN_WIDTH, SCREEN_HEIGHT);
+    m_ImIO->NavActive   = false;
 
-#ifdef NOTSA_USE_SDL3
-    ImGui_ImplSDL3_InitForD3D((SDL_Window*)(PSGLOBAL(sdlWindow)));
-#else
     ImGui_ImplWin32_Init(PSGLOBAL(window));
-#endif
-    ImGui_ImplDX9_Init(GetD3D9Device());
-
-    SetIsActive(false);
+    ImGui_ImplDX9_Init(GetD3DDevice());
 
     NOTSA_LOG_DEBUG("I say hello!");
 }
 
 UIRenderer::~UIRenderer() {
     ImGui_ImplDX9_Shutdown();
-#ifdef NOTSA_USE_SDL3
-    ImGui_ImplSDL3_Shutdown();
-#else
     ImGui_ImplWin32_Shutdown();
-#endif
     ImGui::DestroyContext(m_ImCtx);
 
     //NOTSA_LOG_DEBUG("Good bye!");
-}
-
-void UIRenderer::SetIsActive(bool active) {
-    const auto pad = CPad::GetPad(0);
-
-    m_InputActive = active;
-
-    if (active) { // Clear controller states
-        pad->OldMouseControllerState
-            = pad->NewMouseControllerState
-            = CMouseControllerState{};
-    } else {
-        SetFocus(PSGLOBAL(window)); // Re-focus GTA main window
-    }
-    pad->Clear(false, true);
-
-    m_ImIO->MouseDrawCursor = active;
-    m_ImIO->ConfigNavCaptureKeyboard = active;
-    
-    if (active) {
-        m_ImIO->ConfigFlags &= ~(ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard);
-    } else {
-        m_ImIO->ConfigFlags |= ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard;
-    }
-
-    if (active) {
-        ImGui::TeleportMousePos(m_LastMousePos);
-    } else {
-        m_LastMousePos = ImGui::GetMousePos();
-    }
-
-#ifdef NOTSA_USE_SDL3
-    SDL_SetWindowRelativeMouseMode((SDL_Window*)(PSGLOBAL(sdlWindow)), !active);
-#endif
 }
 
 void UIRenderer::PreRenderUpdate() {
@@ -109,13 +57,32 @@ void UIRenderer::PreRenderUpdate() {
     DebugCode();
     ReversibleHooks::CheckAll();
 
-    if (ImGui::IsKeyChordPressed(ImGuiKey_F7, ImGuiInputFlags_RouteAlways) || CPad::GetPad()->IsFKeyJustDown(FKEY7)) {
-        SetIsActive(!m_InputActive);
+    // A delay of a frame has to be added, otherwise
+    // the release of F7 wont be processed and the menu will close
+    const auto Shortcut = [](ImGuiKeyChord chord) {
+        return ImGui::IsKeyChordPressed(chord, ImGuiInputFlags_RouteAlways);
+    };
+    if (Shortcut(ImGuiKey_F7) || Shortcut(ImGuiKey_M | ImGuiMod_Ctrl)) {
+        const auto pad = CPad::GetPad(0);
+
+        m_InputActive = !m_InputActive;
+
+        if (m_InputActive) { // Clear controller states
+            pad->OldMouseControllerState
+                = pad->NewMouseControllerState
+                = CMouseControllerState{};
+        } else {
+            SetFocus(PSGLOBAL(window)); // Re-focus GTA main window
+        }
+        pad->Clear(false, true);
+
+        m_ImIO->MouseDrawCursor = m_InputActive;
+        m_ImIO->NavActive       = m_InputActive;
     }
 }
 
 void UIRenderer::PostRenderUpdate() {
-    //m_ImIO->NavActive = m_InputActive; // ImGUI clears `NavActive` every frame, so have to set it here.
+    m_ImIO->NavActive = m_InputActive; // ImGUI clears `NavActive` every frame, so have to set it here.
 }
 
 void UIRenderer::DrawLoop() {
@@ -127,11 +94,7 @@ void UIRenderer::DrawLoop() {
     }
 
     PreRenderUpdate();
-#ifdef NOTSA_USE_SDL3
-    ImGui_ImplSDL3_NewFrame();
-#else
     ImGui_ImplWin32_NewFrame();
-#endif
     ImGui_ImplDX9_NewFrame();
     ImGui::NewFrame();
 
@@ -168,7 +131,7 @@ void UIRenderer::DebugCode() {
 
     const auto player = FindPlayerPed();
 
-    if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
+    if (UIRenderer::Visible() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
 
     if (pad->IsStandardKeyJustPressed('8')) {
@@ -234,6 +197,10 @@ void UIRenderer::DebugCode() {
     }
     if (pad->IsStandardKeyJustPressed('6')) {
         FindPlayerPed()->Say(CTX_GLOBAL_JACKED_CAR);
+    }
+
+    if (pad->IsStandardKeyJustPressed('T')) {
+        CCurves::TestCurves();
     }
 
     //if (pad->IsStandardKeyJustPressed('T')) {

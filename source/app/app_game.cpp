@@ -325,13 +325,9 @@ void Idle(void* param) {
     }
 
     if (!FrontEndMenuManager.m_bMenuActive && TheCamera.GetScreenFadeStatus() != eNameState::NAME_FADE_IN) {
-
-        // SDL already constraints the mouse pointer using relative mode
-#ifndef NOTSA_USE_SDL3
-        if (!notsa::ui::UIRenderer::GetSingleton().IsActive()) {
+        if (!notsa::ui::UIRenderer::GetSingleton().GetImIO()->NavActive) { // If imgui nav is active don't center the cursor
             FrontEndMenuManager.CentreMousePointer();
         }
-#endif
 
         CRenderer::ConstructRenderList();
         CRenderer::PreRender();

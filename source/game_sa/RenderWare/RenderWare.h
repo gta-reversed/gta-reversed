@@ -26,7 +26,7 @@ static inline auto& geometryTKList =  StaticRef<RwPluginRegistry>(0x8D628C);
 static inline auto& RpUVAnimDictSchema =  StaticRef<RtDictSchema>(0x8DED50);
 static inline auto& AmbientSaturated = StaticRef<RwRGBAReal>(0x8E2418);
 
-inline IDirect3DDevice9 *GetD3D9Device() {
+inline IDirect3DDevice9 *GetD3DDevice() {
     return *reinterpret_cast<IDirect3DDevice9 **>(0xC97C28);
 }
 

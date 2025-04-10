@@ -10,18 +10,13 @@ public:
     UIRenderer();
     ~UIRenderer();
 
+    bool Visible() { return m_InputActive; }
 
     //! Request restart of render (done on before frame)
     void RequestReInit() { m_ReInitRequested = true; }
 
     //! Same as ImGui::GetIO(), but won't crash the code if called before ctx is created
     auto GetImIO() const { return m_ImIO; }
-
-    //! Set active
-    void SetIsActive(bool active);
-
-    //! Is active
-    bool IsActive() { return m_InputActive; }
 
 private:
     //! Render 3D stuff in the world (If rendered elsewhere it won't be visible)
@@ -56,7 +51,6 @@ private:
     ImGuiContext* m_ImCtx{};
     ImGuiIO*      m_ImIO{};
     DebugModules  m_DebugModules{ m_ImCtx };
-    ImVec2        m_LastMousePos{};
 };
 }; // namespace ui
 }; // namespace notsa

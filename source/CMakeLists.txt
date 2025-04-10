@@ -2,11 +2,6 @@
 # Game features
 #--------------------------------------------------------------------
 option(${RE_PROJECT}_WITH_OPENAL "Use OpenAL" OFF)
-option(${RE_PROJECT}_WITH_SDL3 "Use SDL3" OFF)
-
-if (${RE_PROJECT}_WITH_SDL3)
-    add_compile_definitions(NOTSA_USE_SDL3)
-endif()
 
 #--------------------------------------------------------------------
 # Build options
@@ -18,6 +13,7 @@ option(${RE_PROJECT}_WITH_CLEO_COMMANDS "Enable CLEO script commands" OFF)
 option(${RE_PROJECT}_WITH_SCRIPT_COMMAND_HOOKS "Create script command hooks in the UI (Command hooks are installed regardless)" OFF)
 
 if(${RE_PROJECT}_WITH_SCRIPT_COMMAND_HOOKS)
+    message(STATUS "Script command hooks enabled")
     add_compile_definitions(NOTSA_WITH_SCRIPT_COMMAND_HOOKS)
 endif()
 
@@ -88,7 +84,6 @@ add_dependency(
     Vorbis
     imgui
     libjpeg-turbo
-    SDL3
 )
 
 target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
@@ -104,7 +99,6 @@ target_link_libraries(${RE_PROJECT_LIB_NAME} PRIVATE
     dxguid
     strmiids
     d3d9
-    SDL3::SDL3
 )
 
 
@@ -153,7 +147,6 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     game_sa/Tasks/TaskTypes/SeekEntity/
 
     app/
-    app/imgui
     app/platform/
     app/platform/android/
     app/platform/win/
@@ -162,8 +155,6 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     app/securom/
 
     oswrapper
-
-    libs/imgui
 )
 
 target_sources(${RE_PROJECT_LIB_NAME} PRIVATE
@@ -176,7 +167,6 @@ target_compile_definitions(${RE_PROJECT_LIB_NAME} PRIVATE
     USE_GTASA_ALLOCATOR
     EXTRA_DEBUG_FEATURES
     FIX_BUGS
-    NOTSA_WINDOWED_MODE # NOTE: This is a workaround for the game to run in windowed mode, and it must be enabled, otherwise shit's gonna crash
     SA_SKINNED_PEDS
 
     USE_D3D9 # TODO

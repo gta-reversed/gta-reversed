@@ -1,7 +1,7 @@
 #include <StdInc.h>
 #include "BugsDebugModule.hpp"
 #include <reversiblebugfixes/Bugs.hpp>
-#include <libs/imgui/misc/cpp/imgui_stdlib.h>
+#include <imgui_stdlib.h>
 
 namespace notsa { 
 namespace debugmodules {

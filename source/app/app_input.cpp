@@ -63,7 +63,6 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
         case rsPLUS:     return &tks.add;
         case rsMINUS:    return &tks.sub;
         case rsPADDEL:   return &tks.decimal;
-
         case rsPADEND:   return &tks.num1;
         case rsPADDOWN:  return &tks.num2;
         case rsPADPGDN:  return &tks.num3;
@@ -75,7 +74,6 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
         case rsPADUP:    return &tks.num8;
         case rsPADPGUP:  return &tks.num9;
         case rsPADINS:   return &tks.num0;
-
         case rsPADENTER: return &tks.enter;
         case rsSCROLL:   return &tks.scroll;
         case rsPAUSE:    return &tks.pause;
@@ -88,8 +86,8 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
         case rsSHIFT:    return &tks.shift;
         case rsLCTRL:    return &tks.lctrl;
         case rsRCTRL:    return &tks.rctrl;
-        case rsLALT:     return &tks.lalt;
-        case rsRALT:     return &tks.ralt;
+        case rsLALT:     return &tks.lmenu;
+        case rsRALT:     return &tks.rmenu;
         case rsLWIN:     return &tks.lwin;
         case rsRWIN:     return &tks.rwin;
         case rsAPPS:     return &tks.apps;
@@ -101,43 +99,43 @@ RsEventStatus HandleKeyEvent(bool isDown, RsKeyStatus* ks) {
     }
 
     // Then if a pad is plugged in, possibly handle that as well
-    if (CPad::padNumber != 0) {
+    if (CPad::padNumber) {
         const auto [pPadBtnState, downValue] = [&]() -> std::pair<int16*, int16> {
             auto& pctks = CPad::GetPad(1)->PCTempKeyState; // Why pad 1?
-            switch (ks->keyScanCode) {
-            case 'D':   return { &pctks.LeftStickX,      128 };
-            case 'A':   return { &pctks.LeftStickX,     -128 };
+            switch (ks->keyScanCode) { // TODO: Enums
+            case 68:   return { &pctks.LeftStickX,      128 };
+            case 65:   return { &pctks.LeftStickX,     -128 };
 
-            case 'W':   return { &pctks.LeftStickY,      128 };
-            case 'S':   return { &pctks.LeftStickY,     -128 };
+            case 87:   return { &pctks.LeftStickY,      128 };
+            case 83:   return { &pctks.LeftStickY,     -128 };
 
-            case 'J':   return { &pctks.RightStickX,     128 };
-            case 'G':   return { &pctks.RightStickX,    -128 };
+            case 74:   return { &pctks.RightStickX,     128 };
+            case 71:   return { &pctks.RightStickX,    -128 };
 
-            case 'Y':   return { &pctks.RightStickY,     128 };
-            case 'H':   return { &pctks.RightStickY,    -128 };
+            case 89:   return { &pctks.RightStickY,     128 };
+            case 72:   return { &pctks.RightStickY,    -128 };
 
-            case 'Z':   return { &pctks.LeftShoulder1,   255 };
-            case 'X':   return { &pctks.LeftShoulder2,   255 };
+            case 90:   return { &pctks.LeftShoulder1,   255 };
+            case 88:   return { &pctks.LeftShoulder2,   255 };
 
-            case 'C':   return { &pctks.RightShoulder1,  255 };
-            case 'V':   return { &pctks.RightShoulder2,  255 };
+            case 67:   return { &pctks.RightShoulder1,  255 };
+            case 86:   return { &pctks.RightShoulder2,  255 };
 
-            case 'O':   return { &pctks.DPadUp,          255 };
-            case 'L':   return { &pctks.DPadDown,        255 };
-            case 'K':   return { &pctks.DPadLeft,        255 };
-            case ';':   return { &pctks.DPadRight,       255 };
+            case 79:   return { &pctks.DPadUp,          255 };
+            case 76:   return { &pctks.DPadDown,        255 };
+            case 75:   return { &pctks.DPadLeft,        255 };
+            case 59:   return { &pctks.DPadRight,       255 };
 
-            case 'B':   return { &pctks.Start,           255 };
-            case 'N':   return { &pctks.Select,          255 };
+            case 66:   return { &pctks.Start,           255 };
+            case 78:   return { &pctks.Select,          255 };
 
-            case 'M':   return { &pctks.ButtonSquare,    255 };
-            case ',':   return { &pctks.ButtonTriangle,  255 };
-            case '.':   return { &pctks.ButtonCross,     255 };
-            case '/':   return { &pctks.ButtonCircle,    255 };
+            case 77:   return { &pctks.ButtonSquare,    255 };
+            case 44:   return { &pctks.ButtonTriangle,  255 };
+            case 46:   return { &pctks.ButtonCross,     255 };
+            case 47:   return { &pctks.ButtonCircle,    255 };
 
-            case rsRSHIFT: return { &pctks.ShockButtonL,    255 };
-            case rsRCTRL:  return { &pctks.ShockButtonR,    255 };
+            case 1047: return { &pctks.ShockButtonL,    255 };
+            case 1050: return { &pctks.ShockButtonR,    255 };
             }
             return { NULL, NULL };
         }();

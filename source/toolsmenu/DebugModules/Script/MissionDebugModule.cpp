@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include <imgui.h>
-#include <libs/imgui/misc/cpp/imgui_stdlib.h>
+#include <imgui_stdlib.h>
 #include <imgui_internal.h>
 
 #include "MissionDebugModule.h"

@@ -75,11 +75,11 @@
     ReversibleHooks::Install(RHCurrentCat.name + "/" + RHCurrentScopeName.name, fnName, fnAddr, &RHCurrentNS::fn __VA_OPT__(,) __VA_ARGS__)
 
 #define RH_ScopedVMTOverloadedInstall(fn, suffix, fnGTAAddr, addrCast, ...) \
-    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionToVoidPtr(static_cast<addrCast>(&fn)), nVirtFns __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn "-" suffix, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionPointerToVoidP(static_cast<addrCast>(&fn)), nVirtFns __VA_OPT__(,) __VA_ARGS__)
 
 // Install a hook on a virtual function. To use it, `RH_ScopedVirtualClass` must be used instead of `RH_ScopedClass`
 #define RH_ScopedVMTInstall(fn, fnGTAAddr, ...) \
-    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionToVoidPtr(&RHCurrentNS::fn), nVirtFns __VA_OPT__(,) __VA_ARGS__)
+    ReversibleHooks::InstallVirtual(RHCurrentCat.name + "/" + RHCurrentScopeName.name, #fn, pGTAVTbl, pOurVTbl, (void*)fnGTAAddr, FunctionPointerToVoidP(&RHCurrentNS::fn), nVirtFns __VA_OPT__(,) __VA_ARGS__)
 
 //! Install a script hook
 #define RH_ScopedInstallScriptCommand(cmd) \
@@ -155,7 +155,7 @@ namespace ReversibleHooks {
 
     template <typename T>
     static void Install(std::string_view category, std::string fnName, DWORD installAddress, T addressToJumpTo, HookInstallOptions&& opt = {}) {
-        auto ptr = FunctionToVoidPtr(addressToJumpTo);
+        auto ptr = FunctionPointerToVoidP(addressToJumpTo);
         detail::HookInstall(category, std::move(fnName), installAddress, ptr, std::move(opt));
     }
 
