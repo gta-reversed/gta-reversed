@@ -863,6 +863,7 @@ void CControllerConfigManager::InitialiseControllerActionNameArray() {
     SetActionName(eControllerAction::TAKE_SCREEN_SHOT, "TAKE_SCREEN_SHOT"_gxt);
 }
 
+// 0x531F20
 void CControllerConfigManager::ReinitControls() {
     CMouseControllerState MouseSetUp;
     ControlsManager.MakeControllerActionsBlank();
