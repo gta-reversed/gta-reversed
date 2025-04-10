@@ -446,7 +446,7 @@ void CCam::Process_1rstPersonPedOnPC(const CVector& target, float orientation, f
     const auto fov    = m_fFOV / 80.0f;
     const auto amountMouseMoved = pad1->NewMouseControllerState.GetAmountMouseMoved();
 
-    if (amountMouseMoved.x != 0.0f || amountMouseMoved.y != 0.0f) {
+    if (!amountMouseMoved.IsZero()) {
         m_fHorizontalAngle += -3.0f * amountMouseMoved.x * fov * CCamera::m_fMouseAccelHorzntl;
         m_fVerticalAngle += +4.0f * amountMouseMoved.y * fov * CCamera::m_fMouseAccelVertical;
     } else {
@@ -890,7 +890,7 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
     const auto fov    = m_fFOV / 80.0f;
     const auto amountMouseMoved = pad1->NewMouseControllerState.GetAmountMouseMoved();
     
-    if (amountMouseMoved.x != 0.0f || amountMouseMoved.y != 0.0f) {
+    if (!amountMouseMoved.IsZero()) {
         m_fHorizontalAngle += -3.0f * amountMouseMoved.x * fov * CCamera::m_fMouseAccelHorzntl;
         m_fVerticalAngle += +4.0f * amountMouseMoved.y * fov * CCamera::m_fMouseAccelVertical;
     } else {
