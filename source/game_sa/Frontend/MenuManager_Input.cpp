@@ -104,11 +104,9 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
         ProcessMenuOptions(0, GoBackOneMenu, EnterMenuOption);
 
         if (!GoBackOneMenu) {
-            eMenuEntryType menuType = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType;
-            
             // Audio feedback based on menu type and status
-            const bool isSlot = (menuType >= eMenuEntryType::TI_SLOT1 && menuType <= eMenuEntryType::TI_SLOT8) ? true : false;
-            if (field_F4 || (isSlot && GetSavedGameState(m_nCurrentScreenItem - 1) == eSlotState::SLOT_FILLED)) {
+            eMenuEntryType menuType = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType;
+            if (field_F4 || (IsSaveSlot(menuType) && GetSavedGameState(m_nCurrentScreenItem - 1) == eSlotState::SLOT_FILLED)) {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);
             } else {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR, 0.0, 1.0);

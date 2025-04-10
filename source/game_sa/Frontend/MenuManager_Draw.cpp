@@ -516,66 +516,72 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             continue;
         }
 
-        const bool isSlot = (itemType >= eMenuEntryType::TI_SLOT1 && itemType <= eMenuEntryType::TI_SLOT8) ? true : false;
-
         itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
+        const bool isSlot = IsSaveSlot(itemType);
+
         float xOffset = 0;
 
-        if (!isSlot) {
-            if (itemType == eMenuEntryType::TI_MPACK) {
-                /*
+        switch (itemType) {
+        case eMenuEntryType::TI_MPACK: {
+            /*
                 if (.../) { // HELP NEED
                     AsciiToGxtChar(.../, (GxtChar*)gString);
                     pTextToShow                                    = (GxtChar*)gString;
                     aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_MPACK;
                 } else {
                 */
-                    aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_SKIP;
-                    pTextToShow = nullptr;
-                /*
+            aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_SKIP;
+            pTextToShow                                          = nullptr;
+            /*
                 }
                 */
-            } else if (itemType == eMenuEntryType::TI_MOUSEJOYPAD) {
-                pTextToShow = (GxtChar *)TheText.Get((m_ControlMethod == 1) ? "FEJ_TIT" : "FEC_MOU");
-            } else {
-                pTextToShow = (GxtChar *)TheText.Get(aScreens[m_nCurrentScreen].m_aItems[i].m_szName);
-            }
-        } else {
-            aScreens[m_nCurrentScreen].m_aItems[i].m_X = 80;
-            CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+            break;
+        }
+        case eMenuEntryType::TI_MOUSEJOYPAD:
+            pTextToShow = (GxtChar*)TheText.Get((m_ControlMethod == 1) ? "FEJ_TIT" : "FEC_MOU");
+            break;
+        default: {
+            if (isSlot) {
+                aScreens[m_nCurrentScreen].m_aItems[i].m_X = 80;
+                CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
 
-            switch (GetSavedGameState(i - 1)) {
-            case eSlotState::SLOT_FILLED: { // Valid save
-                AsciiToGxtChar(std::string((const char *)GetNameOfSavedGame(i - 1)).c_str(), gGxtString);
-                pTextToShow = gGxtString;
+                switch (GetSavedGameState(i - 1)) {
+                case eSlotState::SLOT_FILLED: { // Valid save
+                    AsciiToGxtChar(std::string((const char*)GetNameOfSavedGame(i - 1)).c_str(), gGxtString);
+                    pTextToShow = gGxtString;
 
-                if (GxtCharStrlen(gGxtString) >= 254) {
-                    AsciiToGxtChar("...", gGxtString2);
-                    GxtCharStrcat(gGxtString, gGxtString2);
+                    if (GxtCharStrlen(gGxtString) >= 254) {
+                        AsciiToGxtChar("...", gGxtString2);
+                        GxtCharStrcat(gGxtString, gGxtString2);
+                    }
+
+                    pTextToShow_RightColumn = GetSavedGameDateAndTime(i - 1);
+                    break;
                 }
-
-                pTextToShow_RightColumn = GetSavedGameDateAndTime(i - 1);
-                break;
-            }
-            case eSlotState::SLOT_CORRUPTED: { // Corrupted save
-                pTextToShow = (GxtChar *)TheText.Get("FESZ_CS");
-                if (!pTextToShow) {
+                case eSlotState::SLOT_CORRUPTED: { // Corrupted save
+                    pTextToShow = (GxtChar*)TheText.Get("FESZ_CS");
+                    if (!pTextToShow) {
+                        CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
+                        aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
+                        pTextToShow                                = (GxtChar*)TheText.Get(std::format("FEM_SL{}", i).c_str());
+                        xOffset                                    = SCREEN_STRETCH_X(40.0);
+                    }
+                    break;
+                }
+                default: { // Empty slot
+                    AsciiToGxtChar(std::format("FEM_SL{}", i).c_str(), gGxtString);
                     CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
                     aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
-                    pTextToShow = (GxtChar *)TheText.Get(std::format("FEM_SL{}", i).c_str());
-                    xOffset = SCREEN_STRETCH_X(40.0);
+                    pTextToShow                                = (GxtChar*)TheText.Get((const char*)gGxtString);
+                    xOffset                                    = SCREEN_STRETCH_X(40.0);
+                    break;
+                }
                 }
                 break;
             }
-            default: { // Empty slot
-                AsciiToGxtChar(std::format("FEM_SL{}", i).c_str(), gGxtString);
-                CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
-                aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
-                pTextToShow = (GxtChar *)TheText.Get((const char *)gGxtString);
-                xOffset = SCREEN_STRETCH_X(40.0);
-                break;
-            }
-            }
+            pTextToShow = (GxtChar*)TheText.Get(aScreens[m_nCurrentScreen].m_aItems[i].m_szName);
+            break;
+        }
         }
 
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
