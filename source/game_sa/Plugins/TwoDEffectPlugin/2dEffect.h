@@ -8,6 +8,7 @@
 
 #include "Vector.h"
 #include "RGBA.h"
+#include "Interior/Interior_c.h"
 #include <extensions/Casting.hpp>
 #include <CoverPoint.h>
 
@@ -17,7 +18,7 @@ enum e2dEffectType : uint8 {
     EFFECT_MISSING_OR_UNK= 2,
     EFFECT_ATTRACTOR     = 3,
     EFFECT_SUN_GLARE     = 4,
-    EFFECT_INTERIOR      = 5,
+    EFFECT_INTERIOR      = 5, // AKA EFFECT_FURNITURE
     EFFECT_ENEX          = 6,
     EFFECT_ROADSIGN      = 7,
     EFFECT_TRIGGER_POINT = 8, // todo: EFFECT_SLOTMACHINE_WHEEL?
@@ -101,6 +102,8 @@ struct tEffectLight {
 VALIDATE_SIZE(tEffectLight, 0x30);
 
 struct tEffectParticle {
+    static inline constexpr e2dEffectType Type = EFFECT_PARTICLE;
+
     char m_szName[24];
 };
 VALIDATE_SIZE(tEffectParticle, 0x18);
@@ -189,10 +192,10 @@ VALIDATE_SIZE(tEffectEscalator, 0x28);
 struct tEffectInterior {
     static inline constexpr e2dEffectType Type = EFFECT_INTERIOR;
 
-    uint8 m_type;
+    eInteriorTypeS8 m_IntType;
     int8  m_groupId;
-    uint8 m_width;
-    uint8 m_depth;
+    uint8 m_width; // max tiles on X axis
+    uint8 m_depth; // max tiles on Y axis
     uint8 m_height;
     int8  m_door;
     int8  m_lDoorStart;
@@ -212,8 +215,12 @@ struct tEffectInterior {
     int8  m_noGoWidth[3];
     int8  m_noGoDepth[3];
     uint8 m_seed;
-    uint8 m_status;
+    uint8 m_status; // AKA wealth
     float m_rot;
+
+    float GetWidth() const { return static_cast<float>(m_width); }
+    float GetHeight() const { return static_cast<float>(m_height); }
+    float GetDepth() const { return static_cast<float>(m_depth); }
 };
 VALIDATE_SIZE(tEffectInterior, 0x34 - 0x10);
 
