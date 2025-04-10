@@ -1,7 +1,5 @@
 #include "StdInc.h"
 
-#include <extensions/enumerate.hpp>
-
 #include "3dMarkers.h"
 #include "PostEffects.h"
 
@@ -149,7 +147,7 @@ C3dMarker* C3dMarkers::FindFree() {
 // Returns slot index; -1 if not found
 //> 0x721120
 int32 C3dMarkers::DirectionArrowFindFirstFreeSlot() {
-    for (const auto& [index, arrow] : notsa::enumerate(ms_directionArrows)) {
+    for (const auto& [index, arrow] : rngv::enumerate(ms_directionArrows)) {
         if (!arrow.m_bIsUsed) {
             return index;
         }
@@ -567,7 +565,7 @@ void C3dMarkers::User3dMarkerDeleteAll() {
 // Returns slot index; -1 if not found
 //> 0x720FB0
 int32 C3dMarkers::User3dMarkerFindFirstFreeSlot() {
-    for (const auto& [index, marker] : notsa::enumerate(ms_user3dMarkers)) {
+    for (const auto& [index, marker] : rngv::enumerate(ms_user3dMarkers)) {
         if (!marker.m_bIsUsed) {
             return index;
         }

@@ -55,18 +55,7 @@ void CReferences::RemoveReferencesToPlayer() {
 }
 
 void CReferences::PruneAllReferencesInWorld() {
-    for (int32 i = 0; i < GetPedPool()->GetSize(); ++i) {
-        if (auto ped = GetPedPool()->GetAt(i))
-            ped->PruneReferences();
-    }
-
-    for (int32 i = 0; i < GetVehiclePool()->GetSize(); ++i) {
-        if (auto vehicle = GetVehiclePool()->GetAt(i))
-            vehicle->PruneReferences();
-    }
-
-    for (int32 i = 0; i < GetObjectPool()->GetSize(); ++i) {
-        if (auto obj = GetObjectPool()->GetAt(i))
-            obj->PruneReferences();
-    }
+    rng::for_each(GetPedPool()->GetAllValid(), &CEntity::PruneReferences);
+    rng::for_each(GetVehiclePool()->GetAllValid(), &CEntity::PruneReferences);
+    rng::for_each(GetObjectPool()->GetAllValid(), &CEntity::PruneReferences);
 }

@@ -24,25 +24,25 @@ CMouseControllerState* CMouseControllerState::Constructor() {
 
 // 0x53F250
 void CMouseControllerState::Clear() {
-    m_bLeftButton = 0;
-    m_bRightButton = 0;
-    m_bMiddleButton = 0;
-    m_bWheelMovedUp = 0;
-    m_bWheelMovedDown = 0;
-    m_bMsFirstXButton = 0;
-    m_bMsSecondXButton = 0;
+    isMouseLeftButtonPressed = 0;
+    isMouseRightButtonPressed = 0;
+    isMouseMiddleButtonPressed = 0;
+    isMouseWheelMovedUp = 0;
+    isMouseWheelMovedDown = 0;
+    isMouseFirstXPressed = 0;
+    isMouseSecondXPressed = 0;
 }
 
 // 0x53F270
 bool CMouseControllerState::CheckForInput() const {
     return (
-        m_bLeftButton
-        || m_bRightButton
-        || m_bMiddleButton
-        || m_bWheelMovedUp
-        || m_bWheelMovedDown
-        || m_bMsFirstXButton
-        || m_bMsSecondXButton
+        isMouseLeftButtonPressed
+        || isMouseRightButtonPressed
+        || isMouseMiddleButtonPressed
+        || isMouseWheelMovedUp
+        || isMouseWheelMovedDown
+        || isMouseFirstXPressed
+        || isMouseSecondXPressed
         || m_AmountMoved.x != 0.0f
         || m_AmountMoved.y != 0.0f
     );

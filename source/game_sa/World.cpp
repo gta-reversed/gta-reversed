@@ -612,7 +612,7 @@ void CWorld::ShutDown() {
                 sprintf_s(gString, "%s overlap list %d,%d not empty\n", listName, x, y);
                 list.Flush();
             #ifdef _DEBUG
-                DEV_LOG(gString); // Lets also print this string
+                NOTSA_LOG_DEBUG(gString); // Lets also print this string
             #endif
             }
         };
@@ -1219,20 +1219,19 @@ void CWorld::RemoveFallenCars() {
 
 // 0x5660B0
 void CWorld::UseDetonator(CPed* creator) {
-    const auto vehPool = GetVehiclePool();
-    for (auto i = 0; i < vehPool->GetSize(); i++) {
-        if (const auto veh = vehPool->GetAt(i)) {
-            if (veh->m_nBombOnBoard != 3)
-                continue;
-
-            if (veh->m_pWhoInstalledBombOnMe != creator)
-                continue;
-
-            veh->m_nBombOnBoard = 0;
-            veh->m_wBombTimer = 500;
-            veh->m_pWhoDetonatedMe = creator;
-            creator->RegisterReference(reinterpret_cast<CEntity**>(&veh->m_pWhoDetonatedMe));
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        if (veh.m_nBombOnBoard != 3) {
+            continue;
         }
+
+        if (veh.m_pWhoInstalledBombOnMe != creator) {
+            continue;
+        }
+
+        veh.m_nBombOnBoard    = 0;
+        veh.m_wBombTimer      = 500;
+        veh.m_pWhoDetonatedMe = creator;
+        creator->RegisterReference(reinterpret_cast<CEntity**>(&veh.m_pWhoDetonatedMe));
     }
     CProjectileInfo::RemoveDetonatorProjectiles();
 }
@@ -1292,7 +1291,7 @@ void CWorld::PrintCarChanges() {
     static int32 s_aModelIndexes[110];
 
     const auto poolSize = GetVehiclePool()->GetSize();
-    for (auto i = 0; i < poolSize; i++) {
+    for (auto i = 0u; i < poolSize; i++) {
         const auto vehicle = GetVehiclePool()->GetAt(i);
 
         uint16 modelIndex;
@@ -1304,7 +1303,7 @@ void CWorld::PrintCarChanges() {
 
         auto prevModelIndex = s_aModelIndexes[poolSize];
         if (modelIndex != prevModelIndex) {
-            DEV_LOG("Car ModelIndex (slot: {}) has changed from {} into {}", poolSize, prevModelIndex, modelIndex);
+            NOTSA_LOG_DEBUG("Car ModelIndex (slot: {}) has changed from {} into {}", poolSize, prevModelIndex, modelIndex);
             s_aModelIndexes[poolSize] = modelIndex;
         }
     }
@@ -1350,34 +1349,27 @@ void CWorld::TestForUnusedModels() {
 // 0x566610
 void CWorld::ClearCarsFromArea(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
     CBoundingBox box{ {minX, minY, minZ}, {maxX, maxY, maxZ} }; // NOTSA, but makes code cleaner
-    const auto vehPool = GetVehiclePool();
-    for (int32 i = 0; i < vehPool->GetSize(); i++) {
-        const auto veh = vehPool->GetAt(i);
-        if (!veh)
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        if (veh.IsBoat() && FindPlayerPed()->m_pContactEntity == &veh)
             continue;
 
-        if (veh->IsBoat() && FindPlayerPed()->m_pContactEntity == veh)
+        if (!box.IsPointWithin(veh.GetPosition()))
             continue;
 
-        if (!box.IsPointWithin(veh->GetPosition()))
+        if (veh.vehicleFlags.bIsLocked || !veh.CanBeDeleted())
             continue;
 
-        if (veh->vehicleFlags.bIsLocked || !veh->CanBeDeleted())
-            continue;
-
-        RemoveVehicleAndItsOccupants(veh);
+        RemoveVehicleAndItsOccupants(&veh);
     }
 }
 
 // 0x5667F0
 void CWorld::ClearPedsFromArea(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
     CBoundingBox box{ {minX, minY, minZ}, {maxX, maxY, maxZ} }; // NOTSA, but makes code cleaner
-    for (int32 i = 0; i < GetPedPool()->GetSize(); i++) {
-        if (CPed* ped = GetPedPool()->GetAt(i)) {
-            if (!ped->IsPlayer() && ped->CanBeDeleted()) {
-                if (box.IsPointWithin(ped->GetPosition())) {
-                    CPopulation::RemovePed(ped);
-                }
+    for (auto& ped : GetPedPool()->GetAllValid()) {
+        if (!ped.IsPlayer() && ped.CanBeDeleted()) {
+            if (box.IsPointWithin(ped.GetPosition())) {
+                CPopulation::RemovePed(&ped);
             }
         }
     }
@@ -1385,20 +1377,16 @@ void CWorld::ClearPedsFromArea(float minX, float minY, float minZ, float maxX, f
 
 // 0x5668F0
 void CWorld::SetAllCarsCanBeDamaged(bool enable) {
-    for (int32 i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        if (CVehicle* veh = GetVehiclePool()->GetAt(i)) {
-            veh->vehicleFlags.bCanBeDamaged = enable;
-        }
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        veh.vehicleFlags.bCanBeDamaged = enable;
     }
 }
 
 // 0x566950
 void CWorld::ExtinguishAllCarFiresInArea(CVector point, float radius) {
-    for (int32 i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        if (CVehicle* veh = GetVehiclePool()->GetAt(i)) {
-            if (DistanceBetweenPointsSquared(point, veh->GetPosition()) <= radius * radius) {
-                veh->ExtinguishCarFire();
-            }
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        if (DistanceBetweenPointsSquared(point, veh.GetPosition()) <= sq(radius)) {
+            veh.ExtinguishCarFire();
         }
     }
 }
@@ -1420,11 +1408,9 @@ void CWorld::CallOffChaseForArea(float minX, float minY, float maxX, float maxY)
 
 // 0x566C10
 void CWorld::StopAllLawEnforcersInTheirTracks() {
-    for (int32 i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        if (CVehicle* veh = GetVehiclePool()->GetAt(i)) {
-            if (veh->vehicleFlags.bIsLawEnforcer) {
-                veh->m_vecMoveSpeed = CVector{};
-            }
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        if (veh.vehicleFlags.bIsLawEnforcer) {
+            veh.m_vecMoveSpeed = CVector{};
         }
     }
 }
@@ -1433,15 +1419,11 @@ void CWorld::StopAllLawEnforcersInTheirTracks() {
 CVehicle* CWorld::FindUnsuspectingTargetCar(CVector point, CVector playerPosn) {
     float nearestDist2D = std::numeric_limits<float>::max();
     CVehicle* nearestVeh{};
-    for (int32 i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        CVehicle* veh = GetVehiclePool()->GetAt(i);
-        if (!veh)
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        if (!veh.IsCreatedBy(eVehicleCreatedBy::RANDOM_VEHICLE) || !veh.IsSubAutomobile())
             continue;
 
-        if (!veh->IsCreatedBy(eVehicleCreatedBy::RANDOM_VEHICLE) || !veh->IsSubAutomobile())
-            continue;
-
-        switch (veh->m_nStatus) {
+        switch (veh.m_nStatus) {
         case eEntityStatus::STATUS_PHYSICS:
         case eEntityStatus::STATUS_SIMPLE:
             break;
@@ -1449,14 +1431,14 @@ CVehicle* CWorld::FindUnsuspectingTargetCar(CVector point, CVector playerPosn) {
             continue;
         }
 
-        const float dist2D = DistanceBetweenPoints2D(veh->GetPosition(), point);
+        const float dist2D = DistanceBetweenPoints2D(veh.GetPosition(), point);
         if (dist2D >= nearestDist2D)
             continue;
 
-        if (DotProduct(playerPosn - veh->GetPosition(), veh->GetForward()) <= 0.0f)
+        if (DotProduct(playerPosn - veh.GetPosition(), veh.GetForward()) <= 0.0f)
             continue; // `point` is behind the ped
 
-        nearestVeh = veh;
+        nearestVeh = &veh;
         nearestDist2D = dist2D;
     }
     return nearestVeh;
@@ -1466,31 +1448,27 @@ CVehicle* CWorld::FindUnsuspectingTargetCar(CVector point, CVector playerPosn) {
 CPed* CWorld::FindUnsuspectingTargetPed(CVector point, CVector playerPosn) {
     float nearestDist2D = std::numeric_limits<float>::max();
     CPed* nearestPed{};
-    for (int32 i = 0; i < GetPedPool()->GetSize(); i++) {
-        CPed* ped = GetPedPool()->GetAt(i);
-        if (!ped)
+    for (auto& ped : GetPedPool()->GetAllValid()) {
+        if (!ped.IsCreatedBy(ePedCreatedBy::PED_GAME) || !ped.IsAlive())
             continue;
 
-        if (!ped->IsCreatedBy(ePedCreatedBy::PED_GAME) || !ped->IsAlive())
-            continue;
-
-        if (ped->m_nPedType <= PED_TYPE_GANG1 || ped->m_nPedType >= PED_TYPE_GANG10)
-            if (ped->m_nPedType != PED_TYPE_CIVMALE)
+        if (ped.m_nPedType <= PED_TYPE_GANG1 || ped.m_nPedType >= PED_TYPE_GANG10)
+            if (ped.m_nPedType != PED_TYPE_CIVMALE)
                 continue;
 
-        if (CTask* pActive = ped->GetTaskManager().GetActiveTask())
+        if (CTask* pActive = ped.GetTaskManager().GetActiveTask())
             if (pActive->GetTaskType() != TASK_COMPLEX_WANDER)
                 continue;
 
-        const CVector pedPos = ped->GetPosition();
+        const CVector pedPos = ped.GetPosition();
         const float dist2D = DistanceBetweenPoints2D(pedPos, point);
         if (dist2D >= nearestDist2D)
             continue;
 
-        if (DotProduct(playerPosn - pedPos, ped->GetForward()) <= 0.0f)
+        if (DotProduct(playerPosn - pedPos, ped.GetForward()) <= 0.0f)
             continue; // `point` is behind the ped
 
-        nearestPed    = ped;
+        nearestPed    = &ped;
         nearestDist2D = dist2D;
     }
     return nearestPed;
@@ -2115,7 +2093,7 @@ void CWorld::Process() {
 
     CMessages::Process();
 
-    for (auto&& [i, p] : notsa::enumerate(Players)) {
+    for (auto&& [i, p] : rngv::enumerate(Players)) {
         if (p.m_pPed) {
             p.Process((uint32)i);
         }
@@ -2343,7 +2321,7 @@ float CWorld::FindRoofZFor3DCoord(float x, float y, float z, bool* outResult) {
         if (outResult)
             *outResult = false;
         else
-            DEV_LOG("THERE IS NO MAP BELOW THE FOLLOWING COORS:{} {} {}. (FindGroundZFor3DCoord)", x, y, z); // R* triggered
+            NOTSA_LOG_DEBUG("THERE IS NO MAP BELOW THE FOLLOWING COORS:{} {} {}. (FindGroundZFor3DCoord)", x, y, z); // R* triggered
         return 20.0f;
     }
 }
@@ -2499,42 +2477,34 @@ void CWorld::ClearExcitingStuffFromArea(const CVector& point, float radius, uint
     const auto playerGroup = CPedGroups::GetPedsGroup(playerPed);
 
     // Remove all peds in radius who aren't followers of the p's group
-    const auto pedPool = GetPedPool();
-    for (auto i = 0; i < pedPool->GetSize(); i++) {
-        if (auto ped = pedPool->GetAt(i)) {
-            if (!ped->IsPlayer() && ped->CanBeDeleted()) {
-                if (DistanceBetweenPointsSquared2D(point, ped->GetPosition()) < radius * radius) {
-                    if (!playerGroup || !ped->IsFollowerOfGroup(*playerGroup)) {
-                        CPopulation::RemovePed(ped);
-                    }
+    for (auto& ped : GetPedPool()->GetAllValid()) {
+        if (!ped.IsPlayer() && ped.CanBeDeleted()) {
+            if (DistanceBetweenPointsSquared2D(point, ped.GetPosition()) < radius * radius) {
+                if (!playerGroup || !ped.IsFollowerOfGroup(*playerGroup)) {
+                    CPopulation::RemovePed(&ped);
                 }
             }
         }
     }
 
     // Remove all vehicles in radius in which there are no peds who're follower's of the p's group
-    const auto vehPool = GetVehiclePool();
-    for (auto i = 0; i < vehPool->GetSize(); i++) {
-        const auto veh = vehPool->GetAt(i);
-        if (!veh)
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        if (playerGroup && veh.AreAnyOfPassengersFollowerOfGroup(*playerGroup))
             continue;
 
-        if (playerGroup && veh->AreAnyOfPassengersFollowerOfGroup(*playerGroup))
+        if (playerPed->m_pContactEntity == &veh && veh.IsBoat())
             continue;
 
-        if (playerPed->m_pContactEntity == veh && veh->IsBoat())
+        if (DistanceBetweenPointsSquared2D(point, veh.GetPosition()) >= radius * radius)
             continue;
 
-        if (DistanceBetweenPointsSquared2D(point, veh->GetPosition()) >= radius * radius)
+        if (veh.vehicleFlags.bIsLocked || !veh.CanBeDeleted())
             continue;
 
-        if (veh->vehicleFlags.bIsLocked || !veh->CanBeDeleted())
+        if (CGarages::IsPointWithinHideOutGarage(veh.GetPosition()))
             continue;
 
-        if (CGarages::IsPointWithinHideOutGarage(veh->GetPosition()))
-            continue;
-
-        RemoveVehicleAndItsOccupants(veh);
+        RemoveVehicleAndItsOccupants(&veh);
     }
 
     CObject::DeleteAllTempObjectsInArea(point, radius);

@@ -3,21 +3,25 @@
 #include "Game.h"
 
 // Type of menu entries
-enum eMenuEntryType : int8 {
-    MENU_ENTRY_NONE,
-    MENU_ENTRY_SAVE_1 = 1,
-    MENU_ENTRY_SAVE_2,
-    MENU_ENTRY_SAVE_3,
-    MENU_ENTRY_SAVE_4,
-    MENU_ENTRY_SAVE_5,
-    MENU_ENTRY_SAVE_6,
-    MENU_ENTRY_SAVE_7,
-    MENU_ENTRY_SAVE_8,
-
-    MENU_ENTRY_MPACK,       // mission pack
-    MENU_ENTRY_JOY_MOUSE,
-    MENU_ENTRY_BUTTON,
-    MENU_ENTRY_OPTION,
+enum eMenuEntryType : int8 { // Originally it has no name.
+    TI_STRING       = 0,
+    TI_SLOT1        = 1,
+    FIRST_SAVE_SLOT = TI_SLOT1,
+    TI_SLOT2,
+    TI_SLOT3,
+    TI_SLOT4,
+    TI_SLOT5,
+    TI_SLOT6,
+    TI_SLOT7,
+    TI_SLOT8,
+    MAX_SAVE_SLOT = TI_SLOT8,
+    // TI_SLOTAUTO
+    // TI_SLOTCP1
+    // TI_SLOTCP2
+    TI_MPACK = 9,
+    TI_MOUSEJOYPAD,
+    TI_ENTER,
+    TI_OPTION,
 };
 
 enum eMenuScreen : int8 {
@@ -229,6 +233,13 @@ enum {
     FRONTEND_SPRITE_CROSS_HAIR,
 };
 
-static inline tMenuScreen (&aScreens)[43] = *(tMenuScreen(*)[43])0x8CE008;
 extern SpriteFileName FrontEndFilenames[];
-extern tMenuScreen aScreensX[];
+/*
+static inline tMenuScreen (&aScreens)[43] = *(tMenuScreen(*)[43])0x8CE008;
+*/ 
+extern tMenuScreen aScreens[];
+
+// NOTSA
+inline const bool IsSaveSlot(eMenuEntryType slot) {
+    return ((slot >= eMenuEntryType::FIRST_SAVE_SLOT && slot <= eMenuEntryType::MAX_SAVE_SLOT) ? true : false);
+}

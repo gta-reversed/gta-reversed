@@ -125,19 +125,15 @@ enum eJOY_BUTTONS {
     JOYBUTTON_SIXTEEN = 16,
 };
 
-struct CControllerKey {
-    using KeyCode = uint32;
+using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
 
-    KeyCode m_uiActionInitiator{};   //!< `RsKeyCodes` (and ASCII chars) for keyboards (`rsNULL` -> unset)
-                      //!< `ePadButton` for mouse/joystick/pad (`0` -> unset)
-    eContSetOrder m_uiSetOrder{}; //!< m_uiSetOrder in which this key/button was defined,
-                      //!< - If set, [1, CONTROLLER_NUM],
-                      //!< - `0` used if this key is not set,
-                      //!< - -1 for disabling (?)
+struct CControllerKey {
+    KeyCode m_uiActionInitiator{};
+    eContSetOrder m_uiSetOrder{};
 };
 
 struct CControllerAction {
-    CControllerKey Keys[CONTROLLER_NUM]{};
+    CControllerKey Keys[eControllerType::CONTROLLER_NUM]{};
 };
 
 struct CPadConfig {
@@ -164,10 +160,10 @@ public:
     std::array<GxtChar[40], NUM_OF_MAX_CONTROLLER_ACTIONS>   m_ControllerActionName{};
     bool                                                     m_ButtonStates[17]{};     // True if down, false if up or missing, enum ePadButton?
     std::array<CControllerAction, NUM_OF_MAX_CONTROLLER_ACTIONS> m_Actions;
-    bool                                                     m_bStickL_X_Rgh_Lft_MovementBothDown[CONTROLLER_NUM];
-    bool                                                     m_bStickL_Up_Dwn_MovementBothDown[CONTROLLER_NUM];
-    bool                                                     m_bStickR_X_Rgh_Lft_MovementBothDown[CONTROLLER_NUM];
-    bool                                                     m_bStickR_Up_Dwn_MovementBothDown[CONTROLLER_NUM];
+    bool                                                     m_bStickL_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool                                                     m_bStickL_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool                                                     m_bStickR_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool                                                     m_bStickR_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
     bool                                                     m_MouseFoundInitSet;
 
 public:
@@ -175,52 +171,52 @@ public:
 
     CControllerConfigManager();
 
-    void ClearPedMappings(eControllerAction action, CControllerKey::KeyCode button, eControllerType controllerType);
-    void ClearCommonMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type);
-    bool SetControllerKeyAssociatedWithAction(eControllerAction action, CControllerKey::KeyCode button, eControllerType type);
-    void ClearVehicleMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type);
-    void Clear1st3rdPersonMappings(eControllerAction action, CControllerKey::KeyCode button, eControllerType type);
+    void ClearPedMappings(eControllerAction action, KeyCode button, eControllerType controllerType);
+    void ClearCommonMappings(eControllerAction nop, KeyCode button, eControllerType type);
+    bool SetControllerKeyAssociatedWithAction(eControllerAction action, KeyCode button, eControllerType type);
+    void ClearVehicleMappings(eControllerAction nop, KeyCode button, eControllerType type);
+    void Clear1st3rdPersonMappings(eControllerAction action, KeyCode button, eControllerType type);
     void StoreJoyButtonStates();
     const GxtChar* GetActionKeyName(eControllerAction action);
     const GxtChar* GetControllerSettingText(eControllerAction action, eContSetOrder priority);
-    void ClearSniperZoomMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type);
-    void UnmapVehicleEnterExit(CControllerKey::KeyCode button, eControllerType type);
-    eControllerType AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
-    CControllerState* AffectControllerStateOn_ButtonDown_AllStates(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
+    void ClearSniperZoomMappings(eControllerAction nop, KeyCode button, eControllerType type);
+    void UnmapVehicleEnterExit(KeyCode button, eControllerType type);
+    eControllerType AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state);
+    CControllerState* AffectControllerStateOn_ButtonDown_AllStates(KeyCode button, eControllerType type, CControllerState* state);
     int32 GetMouseButtonAssociatedWithAction(eControllerAction action);
-    eControllerType AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
-    int32 AffectControllerStateOn_ButtonDown_ThirdPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
+    eControllerType AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state);
+    int32 AffectControllerStateOn_ButtonDown_ThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state);
     bool GetIsActionAButtonCombo(eControllerAction action);
     int32 GetControllerKeyAssociatedWithAction(eControllerAction action, eControllerType type);
-    int32 AffectControllerStateOn_ButtonDown_FirstPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
-    int32 HandleButtonRelease(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
-    eControllerType AffectControllerStateOn_ButtonDown_Driving(CControllerKey::KeyCode button, eControllerType type, CControllerState* state);
+    int32 AffectControllerStateOn_ButtonDown_FirstPersonOnly(KeyCode button, eControllerType type, CControllerState* state);
+    int32 HandleButtonRelease(KeyCode button, eControllerType type, CControllerState* state);
+    eControllerType AffectControllerStateOn_ButtonDown_Driving(KeyCode button, eControllerType type, CControllerState* state);
     void ResetSettingOrder(eControllerAction action);
     void HandleJoyButtonUpDown(int32 joyNo, bool isDown);
     bool LoadSettings(FILESTREAM file);
-    int32 SaveSettings(FILESTREAM file);
+    bool SaveSettings(FILESTREAM file);
     void InitDefaultControlConfigJoyPad(uint32 buttonCount);
     void InitDefaultControlConfiguration();
     void InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller);
     void InitialiseControllerActionNameArray();
-    bool ReinitControls();
-    int8 SetMouseButtonAssociatedWithAction(eControllerAction action, CControllerKey::KeyCode button);
+    void ReinitControls();
+    int8 SetMouseButtonAssociatedWithAction(eControllerAction action, KeyCode button);
     void StoreMouseButtonState(eMouseButtons button, bool state);
-    void UpdateJoyInConfigMenus_ButtonDown(CControllerKey::KeyCode button, int32 padNumber);
-    void UpdateJoy_ButtonDown(CControllerKey::KeyCode button, eControllerType type);
+    void UpdateJoyInConfigMenus_ButtonDown(KeyCode button, int32 padNumber);
+    void UpdateJoy_ButtonDown(KeyCode button, eControllerType type);
     void AffectControllerStateOn_ButtonDown_DebugStuff(int32, eControllerType);
-    void UpdateJoyInConfigMenus_ButtonUp(CControllerKey::KeyCode button, int32 padNumber);
-    void UpdateJoy_ButtonUp(CControllerKey::KeyCode button, eControllerType type);
+    void UpdateJoyInConfigMenus_ButtonUp(KeyCode button, int32 padNumber);
+    void UpdateJoy_ButtonUp(KeyCode button, eControllerType type);
     void AffectControllerStateOn_ButtonUp_DebugStuff(int32, eControllerType);
     void ClearSimButtonPressCheckers();
     int32 GetJoyButtonJustUp();
     int32 GetJoyButtonJustDown();
-    bool GetIsKeyboardKeyDown(CControllerKey::KeyCode button);
-    bool GetIsKeyboardKeyJustDown(CControllerKey::KeyCode button);
-    bool GetIsMouseButtonDown(CControllerKey::KeyCode button);
-    bool GetIsMouseButtonUp(CControllerKey::KeyCode button);
-    bool GetIsMouseButtonJustUp(CControllerKey::KeyCode button);
-    bool GetIsKeyBlank(CControllerKey::KeyCode button, eControllerType controller);
+    bool GetIsKeyboardKeyDown(KeyCode button);
+    bool GetIsKeyboardKeyJustDown(KeyCode button);
+    bool GetIsMouseButtonDown(KeyCode button);
+    bool GetIsMouseButtonUp(KeyCode button);
+    bool GetIsMouseButtonJustUp(KeyCode button);
+    bool GetIsKeyBlank(KeyCode button, eControllerType controller);
     eActionType GetActionType(eControllerAction action);
     void ClearSettingsAssociatedWithAction(eControllerAction action, eControllerType type);
     const GxtChar* GetControllerSettingTextMouse(eControllerAction action);
@@ -228,7 +224,7 @@ public:
     void MakeControllerActionsBlank();
     void AffectPadFromKeyBoard();
     void AffectPadFromMouse();
-    void DeleteMatchingActionInitiators(eControllerAction action, CControllerKey::KeyCode button, eControllerType controllerType);
+    void DeleteMatchingActionInitiators(eControllerAction action, KeyCode button, eControllerType controllerType);
     const GxtChar* GetKeyNameForKeyboard(eControllerAction action, eControllerType type);
     const GxtChar* GetButtonComboText(eControllerAction event);
 
@@ -238,12 +234,12 @@ public:
     eControllerAction GetActionIDByName(std::string_view name);
 
 private:
-    bool CheckMouseButtonState(CControllerKey::KeyCode button);
-    bool CheckMouseButtonJustUpState(CControllerKey::KeyCode button);
+    bool CheckMouseButtonState(KeyCode button);
+    bool CheckMouseButtonJustUpState(KeyCode button);
     bool IsCheckSpecificGamepad();
-    void CheckAndClear(eControllerAction action, eControllerType type, CControllerKey::KeyCode button);
-    void CheckAndSetButton(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& state);
-    void CheckAndSetPad(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& dpad, int16& oppositeDpad);
+    void CheckAndClear(eControllerAction action, eControllerType type, KeyCode button);
+    void CheckAndSetButton(eControllerAction action, eControllerType type, KeyCode button, int16& state);
+    void CheckAndSetPad(eControllerAction action, eControllerType type, KeyCode button, int16& dpad, int16& oppositeDpad);
     static bool UseDrivingControls();
     static bool UseFirstPersonControls();
     static CControllerState& GetControllerState(CPad& pad, eControllerType ctrl);

@@ -10,7 +10,7 @@
 #include "RenderWare.h"
 #include "ColModel.h"
 #include "KeyGen.h"
-#include "Plugins\TwoDEffectPlugin\2dEffect.h"
+#include "Plugins/TwoDEffectPlugin/2dEffect.h"
 
 #include "eModelID.h"
 

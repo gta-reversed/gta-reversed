@@ -10,8 +10,8 @@
 
 #include "VideoPlayer.h"
 #include "VideoMode.h"
-#include "Input.h"
-#include "Platform.h"
+#include "WinInput.h"
+#include "WinPlatform.h"
 #include "WndProc.h"
 
 #include "extensions/Configs/FastLoader.hpp"
@@ -380,11 +380,7 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     // 0x748995
     CFileMgr::SetDirMyDocuments();
 
-#ifdef NOTSA_INI_SETTINGS
     if (auto* file = CFileMgr::OpenFile("gta_sa_controls.ini", "rb")) {
-#else
-    if (auto* file = CFileMgr::OpenFile("gta_sa.set", "rb")) {
-#endif
         if (!ControlsManager.LoadSettings(file)) {
             ControlsManager.ReinitControls();
         }

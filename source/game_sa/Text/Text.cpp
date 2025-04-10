@@ -115,7 +115,7 @@ void CText::Unload(bool unloadMissionData) {
 // NOTSA
 const char* GetGxtName() {
     switch (FrontEndMenuManager.m_nPrefsLanguage) {
-    case eLanguage::AMERICAN:
+    case eLanguage::ENGLISH:
         return "AMERICAN.GXT";
     case eLanguage::FRENCH:
         return "FRENCH.GXT";
@@ -148,7 +148,7 @@ void CheckFileEncoding(const char* file, uint16 version, uint16 encoding) {
             return std::format("{}-bit unknown", e);
         }
     };
-    DEV_LOG("Loading '{}' version={:02d} ({})", file, version, GetEncodingName(encoding));
+    NOTSA_LOG_DEBUG("Loading '{}' version={:02d} ({})", file, version, GetEncodingName(encoding));
     if (encoding != GAME_ENCODING) {
         NOTSA_UNREACHABLE("File {} was compiled with {} encoding but {} is required.", file, GetEncodingName(encoding), GetEncodingName(GAME_ENCODING));
     }
@@ -262,7 +262,7 @@ void CText::LoadMissionText(const char* mission) {
 
     char tablName[8]{0};
     CFileMgr::Read(file, tablName, sizeof(tablName));
-    // DEV_LOG("[CText]: Loaded a text table for mission: '{}'", tablName);
+    // NOTSA_LOG_DEBUG("[CText]: Loaded a text table for mission: '{}'", tablName);
     // RET_IGNORED(strncmp(tablName, mission, sizeof(tablName))); // ?
 
     uint32 offset = sizeof(uint16) * 2; // skip version and encoding
@@ -332,7 +332,7 @@ void CText::LoadMissionPackText() {
 
     bool bKey = false, bText = false;
     while (!bKey && !bText) {
-        if (ReadChunkHeader(&header, file, &offset, false)) {
+        if (!ReadChunkHeader(&header, file, &offset, false)) {
             m_bIsMissionPackLoaded = false;
             CFileMgr::CloseFile(file);
             return;

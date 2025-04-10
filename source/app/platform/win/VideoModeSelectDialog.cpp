@@ -71,7 +71,7 @@ void FillAvailableVMs(HWND hVMSel) {
             const auto idx = SendMessage(hVMSel, CB_ADDSTRING, NULL, (LPARAM)vmName); // Add entry, and get it's index
             SendMessage(hVMSel, CB_SETITEMDATA, idx, i);                              // Set index of that entry to correspond to `i`
         } else {
-            DEV_LOG("Not listing video mode ({}) to device select! [{} x {} ({}:{})]", i, vmi.width, vmi.height, ratioW, ratioH);
+            NOTSA_LOG_DEBUG("Not listing video mode ({}) to device select! [{} x {} ({}:{})]", i, vmi.width, vmi.height, ratioW, ratioH);
         }
     }
 }

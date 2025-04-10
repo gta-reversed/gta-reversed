@@ -78,7 +78,7 @@ void CFont::InjectHooks() {
     RH_ScopedInstall(GetStringWidth, 0x71A0E0);
     RH_ScopedInstall(DrawFonts, 0x71A210);
     RH_ScopedInstall(ProcessCurrentString, 0x71A220, { .reversed = false });
-    RH_ScopedInstall(GetNumberLines, 0x71A5E0);
+    RH_ScopedInstall(GetNumberLinesNoPrint, 0x71A5E0);
     RH_ScopedInstall(ProcessStringToDisplay, 0x71A600);
     RH_ScopedInstall(GetTextRect, 0x71A620);
     RH_ScopedInstall(PrintString, 0x71A700);
@@ -691,7 +691,7 @@ int16 CFont::ProcessCurrentString(bool print, float x, float y, const GxtChar* t
 }
 
 // 0x71A5E0
-int16 CFont::GetNumberLines(float x, float y, const GxtChar* text) {
+int16 CFont::GetNumberLinesNoPrint(float x, float y, const GxtChar* text) {
     return ProcessCurrentString(false, x, y, text);
 }
 
@@ -716,7 +716,7 @@ void CFont::GetTextRect(CRect* rect, float x, float y, const GxtChar* text) {
     }
 
     rect->top = y - 4.0f;
-    rect->bottom = y + 4.0f + GetHeight() * (float)GetNumberLines(x, y, text);
+    rect->bottom = y + 4.0f + GetHeight() * (float)GetNumberLinesNoPrint(x, y, text);
 }
 
 // 0x71A700
@@ -748,7 +748,7 @@ void CFont::PrintString(float x, float y, const GxtChar* text) {
 
 // 0x71A820
 void CFont::PrintStringFromBottom(float x, float y, const GxtChar* text) {
-    float drawY = y - GetHeight() * (float)GetNumberLines(x, y, text);
+    float drawY = y - GetHeight() * (float)GetNumberLinesNoPrint(x, y, text);
 
     if (m_fSlant != 0.0f)
         drawY -= (m_fSlantRefPoint.x - x) * m_fSlant + m_fSlantRefPoint.y;

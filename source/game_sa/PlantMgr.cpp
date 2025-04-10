@@ -7,7 +7,6 @@
 #include "PlantSurfPropMgr.h"
 #include "ColHelpers.h"
 #include "ProcObjectMan.h"
-#include <extensions/enumerate.hpp>
 
 // 0x5DD100 (todo: move)
 static void AtomicCreatePrelitIfNeeded(RpAtomic* atomic) {
@@ -134,8 +133,8 @@ bool CPlantMgr::Initialise() {
             return texture;
         };
 
-        for (auto&& [i, tab] : notsa::enumerate(PC_PlantTextureTab | rng::views::take(2))) {
-            for (auto&& [j, tex] : notsa::enumerate(tab)) {
+        for (auto&& [i, tab] : rngv::enumerate(PC_PlantTextureTab | rng::views::take(2))) {
+            for (auto&& [j, tex] : rngv::enumerate(tab)) {
                 tex = ReadTexture(std::format("txgrass{}_{}", i, j).c_str());
             }
         }
@@ -615,7 +614,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEnt
             vertices[0],
             vertices[1],
             vertices[2],
-            CVector::AverageN(vertices, 3),
+            CVector::Centroid(vertices),
             (vertices[0] + vertices[1]) / 2.0f,
             (vertices[0] + vertices[2]) / 2.0f,
             (vertices[1] + vertices[2]) / 2.0f

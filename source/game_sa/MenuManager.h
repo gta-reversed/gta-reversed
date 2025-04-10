@@ -130,8 +130,8 @@ public:
 
     bool      m_RedefiningControls;
     bool      m_bDrawMouse; // m_bMouseMoved
-    int32     m_nMousePosX;
-    int32     m_nMousePosY;
+    float     m_nMousePosX;
+    float     m_nMousePosY;
     bool      m_bPrefsMipMapping;
     bool      m_bTracksAutoScan;
     int32     m_nPrefsAntialiasing;
@@ -141,8 +141,8 @@ public:
     int32     m_nDisplayVideoMode;
     int32     m_nCurrentRwSubsystem; // initialized | not used
 
-    int32     m_nMousePosWinX; // xPos = GET_X_LPARAM(lParam); 0x748323
-    int32     m_nMousePosWinY; // yPos = GET_Y_LPARAM(lParam);
+    float     m_nMousePosWinX; // xPos = GET_X_LPARAM(lParam); 0x748323
+    float     m_nMousePosWinY; // yPos = GET_Y_LPARAM(lParam);
 
     bool      m_bSavePhotos;
     bool      m_bMainMenuSwitch;
@@ -165,7 +165,7 @@ public:
     bool  m_bTexturesLoaded;
     eMenuScreen m_nCurrentScreen;
     eMenuScreen m_nPrevScreen; // Used only in SwitchToNewScreen
-    uint8 m_bSelectedSaveGame; // boolean? wtf
+    uint8 m_SelectedSlot;
     uint8 m_nMissionPackGameId;
     MPack m_MissionPacks[25];
     bool  m_bDoVideoModeUpdate;
@@ -306,11 +306,11 @@ public:
     [[nodiscard]] bool CheckFrontEndLeftInput() const;
     [[nodiscard]] bool CheckFrontEndRightInput() const;
     void CheckForMenuClosing();
-    [[nodiscard]] bool CheckHover(int32 left, int32 right, int32 top, int32 bottom) const;
+    [[nodiscard]] bool CheckHover(float left, float right, float top, float bottom) const;
     bool CheckMissionPackValidMenu();
     void CheckCodesForControls(eControllerType type);
 
-    int32 DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing);
+    float DisplaySlider(float x, float y, float h1, float h2, float length, float value, float spacing);
 
     void DisplayHelperText(const char* key);
     void SetHelperText(eHelperText messageId);
