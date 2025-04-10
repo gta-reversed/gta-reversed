@@ -20,7 +20,7 @@
 
 
 // mouse states 
-CMouseControllerState& CPad::TempMouseControllerState = *(CMouseControllerState*)0xB73404; // Updated in `CPad::UpdateMouse`
+CMouseControllerState& CPad::PCTempMouseControllerState = *(CMouseControllerState*)0xB73404; // Updated in `CPad::UpdateMouse`
 CMouseControllerState& CPad::NewMouseControllerState = *(CMouseControllerState*)0xB73418;
 CMouseControllerState& CPad::OldMouseControllerState = *(CMouseControllerState*)0xB7342C;
 
@@ -140,7 +140,7 @@ void CPad::ClearKeyBoardHistory() {
 
 // 0x541BD0
 void CPad::ClearMouseHistory() {
-    TempMouseControllerState.Clear();
+    PCTempMouseControllerState.Clear();
     NewMouseControllerState.Clear();
     OldMouseControllerState.Clear();
 }
@@ -250,7 +250,7 @@ void CPad::UpdateMouse() {
 
         CMouseControllerState state =
 #ifdef NOTSA_USE_SDL3
-            TempMouseControllerState;
+            PCTempMouseControllerState;
 #else
             WinInput::GetMouseState();
 #endif
@@ -264,10 +264,10 @@ void CPad::UpdateMouse() {
         CPad::NewMouseControllerState.m_AmountMoved.y *= invertY;
 
 #ifdef NOTSA_USE_SDL3
-        TempMouseControllerState.m_AmountMoved.x = 0.f;
-        TempMouseControllerState.m_AmountMoved.y = 0.f;
-        TempMouseControllerState.wheelDown = false;
-        TempMouseControllerState.wheelUp   = false;
+        PCTempMouseControllerState.m_AmountMoved.x = 0.f;
+        PCTempMouseControllerState.m_AmountMoved.y = 0.f;
+        PCTempMouseControllerState.isMouseWheelMovedDown = false;
+        PCTempMouseControllerState.isMouseWheelMovedUp   = false;
 #endif
     }
 }

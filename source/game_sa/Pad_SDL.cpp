@@ -8,23 +8,22 @@ bool CPad::ProcessMouseEvent(const SDL_Event& e, CMouseControllerState& ms) {
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
     case SDL_EVENT_MOUSE_BUTTON_UP: {
         switch (e.button.button) {
-        case SDL_BUTTON_LEFT:   ms.lmb = e.button.down;  break;
-        case SDL_BUTTON_RIGHT:  ms.rmb = e.button.down;  break;
-        case SDL_BUTTON_MIDDLE: ms.mmb = e.button.down;  break;
-        case SDL_BUTTON_X1:     ms.bmx1 = e.button.down; break;
-        case SDL_BUTTON_X2:     ms.bmx2 = e.button.down; break;
+        case SDL_BUTTON_LEFT:   ms.isMouseLeftButtonPressed = e.button.down;  break;
+        case SDL_BUTTON_RIGHT:  ms.isMouseRightButtonPressed = e.button.down;  break;
+        case SDL_BUTTON_MIDDLE: ms.isMouseMiddleButtonPressed = e.button.down;  break;
+        case SDL_BUTTON_X1:     ms.isMouseFirstXPressed = e.button.down; break;
+        case SDL_BUTTON_X2:     ms.isMouseSecondXPressed = e.button.down; break;
         }
         return true;
     }
     case SDL_EVENT_MOUSE_WHEEL: {
-        ms.Z        += e.wheel.y;
-        ms.wheelUp   = e.wheel.y > 0.f;
-        ms.wheelDown = e.wheel.y < 0.f;
+        ms.isMouseWheelMovedUp   = e.wheel.y > 0.f;
+        ms.isMouseWheelMovedDown = e.wheel.y < 0.f;
         return true;
     }
     case SDL_EVENT_MOUSE_MOTION: {
-        ms.X = e.motion.xrel;
-        ms.Y = e.motion.yrel;
+        ms.m_AmountMoved.x = e.motion.xrel;
+        ms.m_AmountMoved.y = e.motion.yrel;
         return true;
     }
     case SDL_EVENT_MOUSE_ADDED:
@@ -170,7 +169,7 @@ bool CPad::ProcessJoyStickEvent(const SDL_Event& e, CControllerState& cs) {
 
 bool CPad::ProcessEvent(const SDL_Event& e, bool ignoreMouseEvents, bool ignoreKeyboardEvents) {
     // Mouse/keyboard events are meant to be handled by Pad 0
-    if (!ignoreMouseEvents && GetPad(0)->ProcessMouseEvent(e, TempMouseControllerState)) {
+    if (!ignoreMouseEvents && GetPad(0)->ProcessMouseEvent(e, PCTempMouseControllerState)) {
         return true;
     }
     if (!ignoreKeyboardEvents && GetPad(0)->ProcessKeyboardEvent(e, TempKeyState)) {

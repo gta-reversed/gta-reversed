@@ -767,7 +767,6 @@ void InjectHooksMain() {
     CLocalisation::InjectHooks();
     CSimpleVariablesSaveStructure::InjectHooks();
     CPedGeometryAnalyser::InjectHooks();
-    CControllerConfigManager::InjectHooks();
 
     NodeNamePlugin::InjectHooks();
     JPegPlugin::InjectHooks();

@@ -484,10 +484,10 @@ void CMenuManager::CheckForMenuClosing() {
 [[nodiscard]] bool CMenuManager::CheckHover(float left, float right, float top, float bottom) const {  
     // debug: CSprite2d::DrawRect(CRect(left, top, right, bottom), CRGBA(255, 0, 0, 255));
     return (
-        m_nMousePosX > left  &&
-        m_nMousePosX < right &&
-        m_nMousePosY > top   &&
-        m_nMousePosY < bottom
+        (float)m_nMousePosX > left  &&
+        (float)m_nMousePosX < right &&
+        (float)m_nMousePosY > top   &&
+        (float)m_nMousePosY < bottom
     );
 }
 

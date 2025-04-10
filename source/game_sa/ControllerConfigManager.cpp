@@ -10,7 +10,6 @@ GxtChar (&NewStringWithNumber)[32] = *(GxtChar(*)[32])0xB7147C;
 void CControllerConfigManager::InjectHooks() {
     RH_ScopedClass(CControllerConfigManager);
     RH_ScopedCategoryGlobal();
-
     RH_ScopedInstall(Constructor, 0x531EE0);
     RH_ScopedInstall(LoadSettings, 0x530530);
     RH_ScopedInstall(SaveSettings, 0x52D200);
@@ -869,8 +868,8 @@ void CControllerConfigManager::ReinitControls() {
     CMouseControllerState MouseSetUp;
     ControlsManager.MakeControllerActionsBlank();
     ControlsManager.InitDefaultControlConfiguration();
-    auto mouseState = WinInput::GetMouseState();
-    ControlsManager.InitDefaultControlConfigMouse(mouseState, !FrontEndMenuManager.m_ControlMethod);
+    //auto mouseState = WinInput::GetMouseState();
+    //ControlsManager.InitDefaultControlConfigMouse(mouseState, !FrontEndMenuManager.m_ControlMethod);
     // ControlsManager.InitDefaultControlConfigJoyPad(44u); // NOTSA
 }
 
@@ -1185,7 +1184,7 @@ int32 CControllerConfigManager::GetJoyButtonJustDown() {
     return eJOY_BUTTONS::NO_JOYBUTTONS;
 }
 
-bool IsKeyboardKeyDownInState(CKeyboardState& state, RsKeyCodes key) {
+bool IsKeyboardKeyDownInState(CKeyboardState& state, KeyCode key) {
     if (key >= 0 && key < 0xFF) {
         return state.standardKeys[key] != 0;
     }
@@ -1245,12 +1244,12 @@ bool IsKeyboardKeyDownInState(CKeyboardState& state, RsKeyCodes key) {
 }
 
 // 0x52DDB0
-bool CControllerConfigManager::GetIsKeyboardKeyDown(RsKeyCodes key) {
+bool CControllerConfigManager::GetIsKeyboardKeyDown(KeyCode key) {
     return IsKeyboardKeyDownInState(CPad::NewKeyState, key);
 }
 
 // 0x52E450
-bool CControllerConfigManager::GetIsKeyboardKeyJustDown(RsKeyCodes key) {
+bool CControllerConfigManager::GetIsKeyboardKeyJustDown(KeyCode key) {
     return IsKeyboardKeyDownInState(CPad::NewKeyState, key) && !IsKeyboardKeyDownInState(CPad::OldKeyState, key);
 }
 

@@ -397,18 +397,12 @@ void CMenuManager::DoSettingsBeforeStartingAGame() {
 
 // 0x5733E0
 float CMenuManager::StretchX(float x) {
-    if (SCREEN_WIDTH == DEFAULT_SCREEN_WIDTH)
-        return x;
-    else
-        return SCREEN_STRETCH_X(x);
+    return SCREEN_STRETCH_X(x);
 }
 
 // 0x573410
 float CMenuManager::StretchY(float y) {
-    if (SCREEN_HEIGHT == DEFAULT_SCREEN_HEIGHT)
-        return y;
-    else
-        return SCREEN_STRETCH_Y(y);
+    return SCREEN_STRETCH_Y(y);
 }
 
 // 0x573680

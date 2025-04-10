@@ -99,7 +99,7 @@ public:
     char    _pad131[3];
 
 public:
-    static CMouseControllerState& TempMouseControllerState;
+    static CMouseControllerState& PCTempMouseControllerState;
     static CMouseControllerState& NewMouseControllerState;
     static CMouseControllerState& OldMouseControllerState;
 
