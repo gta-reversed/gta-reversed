@@ -880,7 +880,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
 
         if (pTextToShow && pTextToShow != nullptr) {
-            buttonTextPosY = (29 * CFont::GetNumberLinesNoPrint(60.0, buttonTextPosY, (const GxtChar *)pTextToShow)) + buttonTextPosY;
+            buttonTextPosY = (29 * CFont::GetNumberLines(60.0, buttonTextPosY, (const GxtChar *)pTextToShow)) + buttonTextPosY;
         }
         if (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType == 32) {
             buttonTextPosY = buttonTextPosY + 70.0f;

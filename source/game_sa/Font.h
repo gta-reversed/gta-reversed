@@ -154,7 +154,7 @@ public:
     static float GetStringWidth(const GxtChar* string, bool full, bool scriptText);
     static void DrawFonts();
     static int16 ProcessCurrentString(bool print, float x, float y, const GxtChar* text);
-    static int16 GetNumberLinesNoPrint(float x, float y, const GxtChar* text);
+    static int16 GetNumberLines(float x, float y, const GxtChar* text);
     static int16 ProcessStringToDisplay(float x, float y, const GxtChar* text);
     static void GetTextRect(CRect* rect, float x, float y, const GxtChar* text);
     static void PrintString(float x, float y, const GxtChar* text);

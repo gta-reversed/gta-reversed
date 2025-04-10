@@ -1151,7 +1151,7 @@ void CMenuManager::SmallMessageScreen(const char* key) {
     float x = StretchX(320.0f);
     float y = StretchY(190.0f);
 
-    const auto lines = CFont::GetNumberLinesNoPrint(StretchX(320.0f), StretchX(135.0f), TheText.Get(key));
+    const auto lines = CFont::GetNumberLines(StretchX(320.0f), StretchX(135.0f), TheText.Get(key));
     if (lines > 1) {
         y = StretchY(float(200 - lines * 9));
     }
