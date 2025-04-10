@@ -3,7 +3,7 @@
 #include "Game.h"
 
 // Type of menu entries
-enum eMenuEntryType : int8 { // Originally hasnt mame
+enum eMenuEntryType : int8 { // Originally it has no name.
     TI_STRING = 0,
     TI_SLOT1  = 1,
     TI_SLOT2,

@@ -80,7 +80,7 @@ void CMenuManager::ProcessFileActions() {
     switch (m_nCurrentScreen) {
     case SCREEN_LOAD_FIRST_SAVE:
         if (field_1B3C) {
-            if (CGenericGameStorage::CheckSlotDataValid(m_bSelectedSaveGame)) {
+            if (CGenericGameStorage::CheckSlotDataValid(m_SelectedSlot)) {
                 if (!m_bMainMenuSwitch) {
                     DoSettingsBeforeStartingAGame();
                 }
@@ -103,7 +103,7 @@ void CMenuManager::ProcessFileActions() {
 
     case SCREEN_DELETE_FINISHED:
         if (field_1B3D) {
-            if (s_PcSaveHelper.DeleteSlot(m_bSelectedSaveGame)) {
+            if (s_PcSaveHelper.DeleteSlot(m_SelectedSlot)) {
                 s_PcSaveHelper.PopulateSlotInfo();
                 SwitchToNewScreen(SCREEN_DELETE_SUCCESSFUL);
                 m_nCurrentScreenItem = true;
@@ -139,7 +139,7 @@ void CMenuManager::ProcessFileActions() {
                 }
             }
 
-            if (s_PcSaveHelper.SaveSlot(m_bSelectedSaveGame)) {
+            if (s_PcSaveHelper.SaveSlot(m_SelectedSlot)) {
                 // Save Game
                 //
                 // Save failed! There was an error while saving the current game.
@@ -200,7 +200,8 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
     case MENU_ACTION_SAVE_SLOT:
         if (item->m_nType >= eMenuEntryType::TI_SLOT1 && item->m_nType <= eMenuEntryType::TI_SLOT8) {
             auto slot = CGenericGameStorage::ms_Slots[m_nCurrentScreenItem - 1];
-            m_bSelectedSaveGame = m_nCurrentScreenItem - 1;
+            
+            m_SelectedSlot = m_nCurrentScreenItem - 1;
 
             if (m_nCurrentScreen == SCREEN_DELETE_GAME && slot != eSlotState::SLOT_FREE) {
                 SwitchToNewScreen(SCREEN_DELETE_GAME_ASK);
@@ -220,7 +221,7 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
     case MENU_ACTION_SAVE_GAME:
         if (item->m_nType >= eMenuEntryType::TI_SLOT1 && item->m_nType <= eMenuEntryType::TI_SLOT8) {
             auto slot = CGenericGameStorage::ms_Slots[m_nCurrentScreenItem - 1];
-            m_bSelectedSaveGame = m_nCurrentScreenItem - 1;
+            m_SelectedSlot = m_nCurrentScreenItem - 1;
 
             SwitchToNewScreen(SCREEN_SAVE_WRITE_ASK);
         }

@@ -165,7 +165,7 @@ public:
     bool  m_bTexturesLoaded;
     eMenuScreen m_nCurrentScreen;
     eMenuScreen m_nPrevScreen; // Used only in SwitchToNewScreen
-    uint8 m_bSelectedSaveGame; // boolean? wtf
+    uint8 m_SelectedSlot;
     uint8 m_nMissionPackGameId;
     MPack m_MissionPacks[25];
     bool  m_bDoVideoModeUpdate;

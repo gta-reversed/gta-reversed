@@ -173,7 +173,7 @@ void CMenuManager::Initialise() {
     m_nPlayerNumber = 0;
     field_1B1C = 0;
     m_nCurrentScreenItem = 0;
-    m_bSelectedSaveGame = 0;
+    m_SelectedSlot = 0;
     if (m_bDoVideoModeUpdate) {
         RwD3D9ChangeMultiSamplingLevels(m_nPrefsAntialiasing);
         SetVideoMode(m_nPrefsVideoMode);
@@ -1177,7 +1177,7 @@ void CMenuManager::SmallMessageScreen(const char* key) {
 //! NOTSA
 void CMenuManager::SimulateGameLoad(bool newGame, uint32 slot) {
     m_bDontDrawFrontEnd     = newGame;
-    m_bSelectedSaveGame     = slot;
+    m_SelectedSlot     = slot;
     CGame::bMissionPackGame = false;
     if (newGame) {
         DoSettingsBeforeStartingAGame();

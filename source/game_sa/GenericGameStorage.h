@@ -69,8 +69,8 @@ public:
     static inline bool& ms_bFailed = *(bool*)0xC16EFC;
     static inline bool& ms_bLoading = *(bool*)0xC16EFD;
     static inline const char ms_BlockTagName[] = "BLOCK";
-    static inline tSlotSaveDate(&ms_SlotSaveDate)[MAX_SAVEGAME_SLOTS] = *(tSlotSaveDate(*)[MAX_SAVEGAME_SLOTS])0xC16138;
-    static inline tSlotFileName(&ms_SlotFileName)[MAX_SAVEGAME_SLOTS] = *(tSlotFileName(*)[MAX_SAVEGAME_SLOTS])0xC16368;
+    static inline std::array<tSlotSaveDate, MAX_SAVEGAME_SLOTS>& ms_SlotSaveDate = StaticRef<std::array<tSlotSaveDate, MAX_SAVEGAME_SLOTS>, 0xC16138>();
+    static inline std::array<tSlotFileName, MAX_SAVEGAME_SLOTS>& ms_SlotFileName = StaticRef<std::array<tSlotFileName, MAX_SAVEGAME_SLOTS>, 0xC16368>();
     static inline std::array<eSlotState, MAX_SAVEGAME_SLOTS>& ms_Slots = StaticRef<std::array<eSlotState, MAX_SAVEGAME_SLOTS>, 0xC16EBC>();
 public:
     static void InjectHooks();
@@ -93,19 +93,30 @@ public:
     static bool OpenFileForReading(const char* fileName, int32 slot);
     static bool CheckDataNotCorrupt(int32 slot, const char* fileName);
     static bool RestoreForStartLoad();
-    inline GxtChar* GetNameOfSavedGame(int SlotNumber) { return CGenericGameStorage::ms_SlotFileName[SlotNumber]; }
-
+    
     // NOTSA
     template<typename T>
     static bool LoadDataFromWorkBuffer(T& data) { return LoadDataFromWorkBuffer((void*)&data, sizeof(T)); }
-
+    
     template<typename T>
     static T LoadDataFromWorkBuffer() { T data; LoadDataFromWorkBuffer((void*)&data, sizeof(T)); return data; }
-
+    
     template<typename T>
     static bool SaveDataToWorkBuffer(const T& data) { return SaveDataToWorkBuffer(const_cast<void*>((const void*)&data), sizeof(T)); }
-private:
+    private:
     static const char* GetBlockName(eBlocks);
 };
 
 const GxtChar* GetSavedGameDateAndTime(int32 slot);
+
+ // Maybe NOTSA
+ inline const GxtChar* GetNameOfSavedGame(int32 slot) {
+    assert(slot < MAX_SAVEGAME_SLOTS);
+    return CGenericGameStorage::ms_SlotFileName[slot];
+}
+
+ // Maybe NOTSA
+inline const eSlotState GetSavedGameState(int32 slot) {
+    assert(slot < MAX_SAVEGAME_SLOTS);
+    return CGenericGameStorage::ms_Slots[slot];
+}

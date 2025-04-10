@@ -449,7 +449,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             textOne = TheText.Get((!m_bMainMenuSwitch) ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FES_LCG");
             break;
         case eMenuScreen::SCREEN_SAVE_WRITE_ASK: {
-            eSlotState slotToCheck = CGenericGameStorage::ms_Slots[m_bSelectedSaveGame];
+            eSlotState slotToCheck = GetSavedGameState(m_SelectedSlot);
             textOne = TheText.Get((eSlotState::SLOT_FILLED != slotToCheck) ? (slotToCheck != eSlotState::SLOT_CORRUPTED ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FESZ_QC") : "FESZ_QO");
             break;
         }
@@ -542,11 +542,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             aScreens[m_nCurrentScreen].m_aItems[i].m_X = 80;
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
 
-            switch (CGenericGameStorage::ms_Slots[i - 1]) {
+            switch (GetSavedGameState(i - 1)) {
             case eSlotState::SLOT_FILLED: { // Valid save
-                auto saveName = CGenericGameStorage::ms_SlotFileName[i - 1];
-                std::string formattedString = (char *)saveName;
-                AsciiToGxtChar(formattedString.c_str(), gGxtString);
+                AsciiToGxtChar(std::string((const char *)GetNameOfSavedGame(i - 1)).c_str(), gGxtString);
                 pTextToShow = gGxtString;
 
                 if (GxtCharStrlen(gGxtString) >= 254) {
@@ -675,9 +673,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         case eMenuAction::MENU_ACTION_MIP_MAPPING:
             pTextToShow_RightColumn = TheText.Get(m_bPrefsMipMapping ? "FEM_ON" : "FEM_OFF");
-            if (!m_bMainMenuSwitch) {
-                CFont::SetColor(CRGBA(14, 30, 47, 255));
-            }
+            if (!m_bMainMenuSwitch) { CFont::SetColor(CRGBA(14, 30, 47, 255)); }
             break;
         case eMenuAction::MENU_ACTION_ANTIALIASING: {
             if (m_nDisplayAntialiasing <= 1) {
@@ -722,10 +718,10 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
         if (pTextToShow) {
             const bool isSlot = (itemType >= eMenuEntryType::TI_SLOT1 && itemType <= eMenuEntryType::TI_SLOT8) ? true : false;
-            if ((isSlot && CGenericGameStorage::ms_Slots[itemType - 1] != eSlotState::SLOT_FILLED) || !isSlot) {
+            if ((isSlot && GetSavedGameState(itemType - 1) != eSlotState::SLOT_FILLED) || !isSlot) {
                 CFont::PrintString(scaledPosX, scaledPosY, pTextToShow);
             // v1.01 +
-            } else if (isSlot && CGenericGameStorage::ms_Slots[itemType - 1] == eSlotState::SLOT_FILLED) {
+            } else if (isSlot && GetSavedGameState(itemType - 1) == eSlotState::SLOT_FILLED) {
                 CFont::PrintString(SCREEN_STRETCH_X(25.0f + aScreens[m_nCurrentScreen].m_aItems[i].m_X), scaledPosY, pTextToShow);
                 AsciiToGxtChar(std::format("{}:", i).c_str(), gGxtString);
                 CFont::PrintString(scaledPosX, scaledPosY, gGxtString);
