@@ -887,19 +887,20 @@ int8 CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAct
 // 0x52DA30
 void CControllerConfigManager::StoreMouseButtonState(eMouseButtons button, bool state) {
     switch (button) {
-    case MOUSE_BUTTON_LEFT:           CPad::PCTempMouseControllerState.lmb = state; break;
-    case MOUSE_BUTTON_MIDDLE:         CPad::PCTempMouseControllerState.mmb = state; break;
-    case MOUSE_BUTTON_RIGHT:          CPad::PCTempMouseControllerState.rmb = state; break;
-    case MOUSE_BUTTON_WHEEL_UP:       CPad::PCTempMouseControllerState.wheelUp = state; break;
-    case MOUSE_BUTTON_WHEEL_DOWN:     CPad::PCTempMouseControllerState.wheelDown = state; break;
-    case MOUSE_BUTTON_WHEEL_XBUTTON1: CPad::PCTempMouseControllerState.bmx1 = state; break;
-    case MOUSE_BUTTON_WHEEL_XBUTTON2: CPad::PCTempMouseControllerState.bmx2 = state; break;
+    case MOUSE_BUTTON_LEFT:           CPad::PCTempMouseControllerState.isMouseLeftButtonPressed = state; break;
+    case MOUSE_BUTTON_MIDDLE:         CPad::PCTempMouseControllerState.isMouseMiddleButtonPressed = state; break;
+    case MOUSE_BUTTON_RIGHT:          CPad::PCTempMouseControllerState.isMouseRightButtonPressed = state; break;
+    case MOUSE_BUTTON_WHEEL_UP:       CPad::PCTempMouseControllerState.isMouseWheelMovedUp = state; break;
+    case MOUSE_BUTTON_WHEEL_DOWN:     CPad::PCTempMouseControllerState.isMouseWheelMovedDown = state; break;
+    case MOUSE_BUTTON_WHEEL_XBUTTON1: CPad::PCTempMouseControllerState.isMouseFirstXPressed = state; break;
+    case MOUSE_BUTTON_WHEEL_XBUTTON2: CPad::PCTempMouseControllerState.isMouseSecondXPressed = state; break;
     default:                          NOTSA_UNREACHABLE();
+    }
 }
 
 // 0x52DAB0
-void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(KeyCode ButtonPress, int32 PadNumber) {
-    CPad* pad = CPad::GetPad(PadNumber);
+void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(KeyCode ButtonPress, int32 padNumber) {
+    CPad* pad = CPad::GetPad(padNumber);
     if (!pad || ButtonPress == 0) {
         return;
     }
@@ -927,11 +928,9 @@ void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(KeyCode ButtonP
         pad->PCTempJoyState.ShockButtonR = 255;
         break;
     case eJOY_BUTTONS::JOYBUTTON_TWELVE:
-        /*
-        if (padNumber == 1) {
+        if (padNumber == 1 || notsa::IsFixBugs()) {
             pad->PCTempJoyState.Start = 255;
-        }*/
-        pad->PCTempJoyState.Start = 255; // FIX: You can press start on any pad to exit the menu.
+        }
         break;
     case eJOY_BUTTONS::JOYBUTTON_THIRTEEN:
         pad->PCTempJoyState.DPadUp = 255;
@@ -1012,8 +1011,8 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_DebugStuff(int
 }
 
 // 0x52DC20
-void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(KeyCode ButtonPress, int32 PadNumber) {
-    CPad* pad = CPad::GetPad(PadNumber);
+void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(KeyCode ButtonPress, int32 padNumber) {
+    CPad* pad = CPad::GetPad(padNumber);
     if (!pad || ButtonPress == 0) {
         return;
     }
@@ -1041,11 +1040,9 @@ void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(KeyCode ButtonPre
         pad->PCTempJoyState.ShockButtonR = 0;
         break;
     case eJOY_BUTTONS::JOYBUTTON_TWELVE:
-        /*
-        if (padNumber == 1) {
+        if (padNumber == 1 || notsa::IsFixBugs()) {
             pad->PCTempJoyState.Start = 0;
-        }*/
-        pad->PCTempJoyState.Start = 0; // FIX: You can press start on any pad to exit the menu.
+        }
         break;
     case eJOY_BUTTONS::JOYBUTTON_THIRTEEN:
         pad->PCTempJoyState.DPadUp = 0;
