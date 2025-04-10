@@ -3,7 +3,7 @@
 #include "EventEditableResponse.h"
 
 #include <Enums/eTaskType.h>
-#include "./EventEditableResponse.h"
+#include "EventEditableResponse.h"
 #include "IKChainManager_c.h"
 
 

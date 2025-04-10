@@ -1,12 +1,15 @@
 #pragma once
 
 #include "PedDamageResponse.h"
-#include "Enums\eWeaponType.h"
+#include "Enums/eWeaponType.h"
+#include "Enums/eEventType.h"
 #include "Event.h"
 #include "EventEditableResponse.h"
 
 class CEntity;
 class CPedDamageResponseCalculator;
+class CPed;
+class CPedGroup;
 
 class NOTSA_EXPORT_VTABLE CEventDamage : public CEventEditableResponse {
 public:

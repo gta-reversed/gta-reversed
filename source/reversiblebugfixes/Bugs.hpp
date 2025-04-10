@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./ReversibleBugFix.hpp"
+#include "ReversibleBugFix.hpp"
 
 /*!
 * This is where the bugs are defined.

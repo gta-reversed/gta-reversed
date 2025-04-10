@@ -1,7 +1,8 @@
 #include "StdInc.h"
+#include "WinInput.h" // Ensure the correct header file is included for WinInput
 
 #include "ControllerConfigManager.h"
-#include "Input.h"
+//#include "Input.h"
 
 CControllerConfigManager& ControlsManager = *(CControllerConfigManager *) 0xB70198;
 GxtChar (&NewStringWithNumber)[32] = *(GxtChar(*)[32])0xB7147C;
@@ -193,7 +194,7 @@ void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction actio
 
 // 0x52F510
 void CControllerConfigManager::StoreJoyButtonStates() {
-    for (auto&& [idx, bs] : notsa::enumerate(m_ButtonStates)) {
+    for (auto&& [idx, bs] : rngv::enumerate(m_ButtonStates)) {
         bs = (m_NewJoyState.rgbButtons[idx] & 0x80) != 0;
     }
 }
@@ -764,7 +765,7 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
 
     // Apply mappings for available buttons
     for (size_t i = 0; i < mappingCount; i++) {
-        if (mappings[i].buttonNum <= buttonCount) {
+        if (mappings[i].buttonNum <= (eJOY_BUTTONS)buttonCount) {
             SetControllerKeyAssociatedWithAction(
                 mappings[i].action,
                 (RsKeyCodes)mappings[i].buttonNum,
@@ -1458,7 +1459,7 @@ void CControllerConfigManager::MakeControllerActionsBlank() {
 void CControllerConfigManager::AffectPadFromKeyBoard() {
     constexpr eControllerType CONTROLLER_TYPES[] = {eControllerType::KEYBOARD, eControllerType::OPTIONAL_EXTRA_KEY};
 
-    RsKeyCodes keyCode;
+    //RsKeyCodes keyCode;
 
     // GTATranslateShiftKey(&keyCode); // No matter what you do, it won't work.
     
@@ -1753,14 +1754,12 @@ const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerActio
 
 // NOTSA
 eControllerAction CControllerConfigManager::GetActionIDByName(std::string_view name) {
-    for (auto&& [i, actionName] : notsa::enumerate(m_ControllerActionName)) {
-        char actionNameUTF8[128] = {0}; // Initialize with zeros to ensure null termination
-        GxtCharToUTF8(actionNameUTF8, actionName);
-        if (std::string_view{ actionNameUTF8 } == name) {
-            return (eControllerAction)(i);
+    for (auto&& [i, actionName] : rngv::enumerate(m_ControllerActionName)) {
+        if (std::string_view(reinterpret_cast<const char*>(actionName)) == name) {
+            return (eControllerAction)i;
         }
     }
-    return eControllerAction(-1);
+    return (eControllerAction)-1;
 }
 
 // NOTSA

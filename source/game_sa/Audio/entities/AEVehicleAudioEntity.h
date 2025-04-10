@@ -340,7 +340,6 @@ public:
     bool PlayGenericEngineSound(int16 index, int16 bank, int16 slotInBank,
                                 float fVolume = 1.0f, float fSpeed = 1.0f, float fSoundDistance = 1.0f,
                                 float fTimeScale = 1.0f, eSoundEnvironment individualEnvironment = SOUND_REQUEST_UPDATES, int16 playPos = 0);
-#undef PlaySound
     CAESound* PlaySound(int16 bank, int16 slotInBank,
                         float fVolume = 1.0f, float fSpeed = 1.0f, float fSoundDistance = 1.0f,
                         float fTimeScale = 1.0f, eSoundEnvironment individualEnvironment = SOUND_REQUEST_UPDATES, int16 playPos = 0);

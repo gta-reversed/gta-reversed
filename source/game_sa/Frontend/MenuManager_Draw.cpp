@@ -1376,7 +1376,7 @@ void CMenuManager::DrawControllerSetupScreen() {
  * @see Audio Setup -> Radio or SFX volume
  * @addr 0x576860
  */
-int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing) {
+float CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, float spacing) {
     // return plugin::CallMethodAndReturn<int32, 0x576860, CMenuManager*, float, float, float, float, float, float, float>(this, x, y, h1, h2, length, value, size);
 
     const auto BARS = 16;
@@ -1386,7 +1386,7 @@ int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float le
 
     CRGBA color;
 
-    auto lastActiveBarX = 0;
+    auto lastActiveBarX = 0.0f;
     for (auto i = 0; i < BARS; i++) {
         const auto fi = float(i);
 

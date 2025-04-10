@@ -5,7 +5,6 @@
     Do not delete this comment block. Respect others' work!
 */
 #include "StdInc.h"
-#include <extensions/enumerate.hpp>
 #include "PathFind.h"
 
 // TODO: Move into the class itself
@@ -694,7 +693,7 @@ void CPathFind::UnLoadPathFindData(int32 index) {
 void CPathFind::LoadSceneForPathNodes(CVector point) {
     rng::fill(ToBeStreamed, false);
     MarkRegionsForCoors(point, 350.f);
-    for (const auto [areaId, load] : notsa::enumerate(ToBeStreamed)) {
+    for (const auto [areaId, load] : rngv::enumerate(ToBeStreamed)) {
         if (load) {
             CStreaming::RequestModel(DATToModelId((int32)areaId), STREAMING_DEFAULT);
         }
@@ -785,7 +784,7 @@ void CPathFind::UpdateStreaming(bool bForceStreaming) {
     }
 
     // Load/unload areas as per `ToBeStreamed`
-    for (const auto [areaId, shouldBeLoaded] : notsa::enumerate(ToBeStreamed)) {
+    for (const auto [areaId, shouldBeLoaded] : rngv::enumerate(ToBeStreamed)) {
         if (shouldBeLoaded) {
             if (!IsAreaLoaded(areaId)) {
                 CStreaming::RequestModel(
@@ -794,11 +793,11 @@ void CPathFind::UpdateStreaming(bool bForceStreaming) {
                         ? STREAMING_MISSION_REQUIRED
                         : STREAMING_KEEP_IN_MEMORY
                 );
-                DEV_LOG("Requested area: {}", (int)areaId);
+                NOTSA_LOG_DEBUG("Requested area: {}", (int)areaId);
             }
         } else if (IsAreaLoaded(areaId)) {
             CStreaming::RemoveModel(DATToModelId(areaId));
-            DEV_LOG("Removed area: {}", (int)areaId);
+            NOTSA_LOG_DEBUG("Removed area: {}", (int)areaId);
         }
     }
 }
