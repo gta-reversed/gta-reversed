@@ -80,7 +80,7 @@ CControllerConfigManager::CControllerConfigManager() {
 }
 
 // 0x531730
-void CControllerConfigManager::ClearPedMappings(eControllerAction action, CControllerKey::KeyCode button, eControllerType type) {
+void CControllerConfigManager::ClearPedMappings(eControllerAction action, KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -111,7 +111,7 @@ void CControllerConfigManager::ClearPedMappings(eControllerAction action, CContr
 
 
 // 0x531670
-void CControllerConfigManager::ClearCommonMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type) {
+void CControllerConfigManager::ClearCommonMappings(eControllerAction nop, KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -125,7 +125,7 @@ void CControllerConfigManager::ClearCommonMappings(eControllerAction nop, CContr
 }
 
 // 0x530490
-bool CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerAction action, CControllerKey::KeyCode button, eControllerType type) {
+bool CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerAction action, KeyCode button, eControllerType type) {
     ResetSettingOrder(action);
     auto existingMappings = 0u;
     for (auto i = 0u; i < eControllerType::CONTROLLER_NUM; ++i) {
@@ -139,7 +139,7 @@ bool CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerA
 }
 
 // 0x5319D0
-void CControllerConfigManager::ClearVehicleMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type) {
+void CControllerConfigManager::ClearVehicleMappings(eControllerAction nop, KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -169,7 +169,7 @@ void CControllerConfigManager::ClearVehicleMappings(eControllerAction nop, CCont
 }
 
 // 0x5318C0
-void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction action, CControllerKey::KeyCode button, eControllerType type) {
+void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction action, KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -229,7 +229,7 @@ const GxtChar* CControllerConfigManager::GetControllerSettingText(eControllerAct
 }
 
 // 0x531C20
-void CControllerConfigManager::ClearSniperZoomMappings(eControllerAction nop, CControllerKey::KeyCode button, eControllerType type) {
+void CControllerConfigManager::ClearSniperZoomMappings(eControllerAction nop, KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -239,7 +239,7 @@ void CControllerConfigManager::ClearSniperZoomMappings(eControllerAction nop, CC
 }
 
 // 0x531BC0
-void CControllerConfigManager::UnmapVehicleEnterExit(CControllerKey::KeyCode button, eControllerType type) {
+void CControllerConfigManager::UnmapVehicleEnterExit(KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -259,13 +259,13 @@ void CControllerConfigManager::ClearSettingsAssociatedWithAction(eControllerActi
 
 // unused
 // 0x52FD20
-eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
+eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state) {
     CheckAndSetButton(eControllerAction::VEHICLE_ENTER_EXIT, type, button, state->ButtonTriangle);
     return type;
 }
 
 // 0x52FCA0
-CControllerState* CControllerConfigManager::AffectControllerStateOn_ButtonDown_AllStates(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
+CControllerState* CControllerConfigManager::AffectControllerStateOn_ButtonDown_AllStates(KeyCode button, eControllerType type, CControllerState* state) {
     CheckAndSetButton(eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS, type, button, state->Select);
     CheckAndSetPad(eControllerAction::CONVERSATION_NO, type, button, state->DPadLeft, state->DPadRight);
     CheckAndSetPad(eControllerAction::CONVERSATION_YES, type, button, state->DPadRight, state->DPadLeft);
@@ -279,7 +279,7 @@ int32 CControllerConfigManager::GetMouseButtonAssociatedWithAction(eControllerAc
 }
 
 // 0x52FAB0
-eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
+eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state) {
     const auto CheckAndSetStick = [&](eControllerAction action, int16& stickValue, bool& stickFlag, int16 value) {
         if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
             if (stickFlag || (stickValue != 0 && stickValue != value)) {
@@ -317,7 +317,7 @@ eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Fir
 }
 
 // 0x52FA20
-int32 CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
+int32 CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state) {
     CheckAndSetButton(eControllerAction::PED_LOOKBEHIND, type, button, state->ShockButtonR);
     CheckAndSetButton(eControllerAction::PED_JUMPING, type, button, state->ButtonSquare);
     CheckAndSetButton(eControllerAction::PED_ANSWER_PHONE, type, button, state->LeftShoulder1);
@@ -344,7 +344,7 @@ int32 CControllerConfigManager::GetControllerKeyAssociatedWithAction(eController
 }
 
 // 0x52F9E0
-int32 CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstPersonOnly(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
+int32 CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstPersonOnly(KeyCode button, eControllerType type, CControllerState* state) {
     CheckAndSetButton(eControllerAction::PED_SNIPER_ZOOM_IN, type, button, state->ButtonSquare);
     CheckAndSetButton(eControllerAction::PED_SNIPER_ZOOM_OUT, type, button, state->ButtonCross);
     CheckAndSetButton(eControllerAction::PED_DUCK, type, button, state->ShockButtonL);
@@ -352,7 +352,7 @@ int32 CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstPersonOn
 }
 
 // 0x52FD40
-int32 CControllerConfigManager::HandleButtonRelease(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
+int32 CControllerConfigManager::HandleButtonRelease(KeyCode button, eControllerType type, CControllerState* state) {
     const auto CheckAndReset = [&](eControllerAction action, int16& stateFlag) {
         if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
             stateFlag = 0;
@@ -364,7 +364,7 @@ int32 CControllerConfigManager::HandleButtonRelease(CControllerKey::KeyCode butt
 }
 
 // 0x52F7B0
-eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Driving(CControllerKey::KeyCode button, eControllerType type, CControllerState* state) {
+eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Driving(KeyCode button, eControllerType type, CControllerState* state) {
     const auto CheckAndSetStick = [&](eControllerAction action, int16& stickValue, bool& stickFlag, int16 value) {
         if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
             if (stickFlag) {
@@ -875,7 +875,7 @@ void CControllerConfigManager::ReinitControls() {
 }
 
 // 0x52F590
-int8 CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAction actionID, CControllerKey::KeyCode button) {
+int8 CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAction actionID, KeyCode button) {
     auto& action = m_Actions[actionID];
     const auto order = 1 + rng::count_if(action.Keys, [](auto&& key) { /* 1 + count of previously set keys for this control */
         return key.m_uiActionInitiator != rsNULL && key.m_uiActionInitiator != 0;
@@ -900,7 +900,7 @@ void CControllerConfigManager::StoreMouseButtonState(eMouseButtons button, bool 
 }
 
 // 0x52DAB0
-void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(CControllerKey::KeyCode ButtonPress, int32 PadNumber) {
+void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(KeyCode ButtonPress, int32 PadNumber) {
     CPad* pad = CPad::GetPad(PadNumber);
     if (!pad || ButtonPress == 0) {
         return;
@@ -985,7 +985,7 @@ void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(CControllerKey:
 }
 
 // 0x530ED0
-void CControllerConfigManager::UpdateJoy_ButtonDown(CControllerKey::KeyCode button, eControllerType type) {
+void CControllerConfigManager::UpdateJoy_ButtonDown(KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -1014,7 +1014,7 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_DebugStuff(int
 }
 
 // 0x52DC20
-void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(CControllerKey::KeyCode ButtonPress, int32 PadNumber) {
+void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(KeyCode ButtonPress, int32 PadNumber) {
     CPad* pad = CPad::GetPad(PadNumber);
     if (!pad || ButtonPress == 0) {
         return;
@@ -1099,7 +1099,7 @@ void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(CControllerKey::K
 }
 
 // 0x531070
-void CControllerConfigManager::UpdateJoy_ButtonUp(CControllerKey::KeyCode button, eControllerType type) {
+void CControllerConfigManager::UpdateJoy_ButtonUp(KeyCode button, eControllerType type) {
     bool             shouldProcessEvent = false;
     CControllerState p_PCTempKeyState;
     const auto       pad = CPad::GetPad();
@@ -1186,7 +1186,7 @@ int32 CControllerConfigManager::GetJoyButtonJustDown() {
 }
 
 // 0x52DDB0
-bool CControllerConfigManager::GetIsKeyboardKeyDown(CControllerKey::KeyCode key) {
+bool CControllerConfigManager::GetIsKeyboardKeyDown(KeyCode key) {
     CPad* pad = CPad::GetPad();
     if (key < 255 && pad->NewKeyState.standardKeys[key]) {
         return true;
@@ -1248,7 +1248,7 @@ bool CControllerConfigManager::GetIsKeyboardKeyDown(CControllerKey::KeyCode key)
 }
 
 // 0x52E450
-bool CControllerConfigManager::GetIsKeyboardKeyJustDown(CControllerKey::KeyCode key) {
+bool CControllerConfigManager::GetIsKeyboardKeyJustDown(KeyCode key) {
     CPad* pad = CPad::GetPad();
     if (key < 255 && pad->NewKeyState.standardKeys[key] && !pad->OldKeyState.standardKeys[key]) {
         return true;
@@ -1313,23 +1313,23 @@ bool CControllerConfigManager::GetIsKeyboardKeyJustDown(CControllerKey::KeyCode 
 }
 
 // 0x52EF30
-bool CControllerConfigManager::GetIsMouseButtonDown(CControllerKey::KeyCode key) {
+bool CControllerConfigManager::GetIsMouseButtonDown(KeyCode key) {
     return CheckMouseButtonState(key);
 }
  
 // 0x52F020
-bool CControllerConfigManager::GetIsMouseButtonUp(CControllerKey::KeyCode key) {
+bool CControllerConfigManager::GetIsMouseButtonUp(KeyCode key) {
     return !CheckMouseButtonState(key);
 }
 
 // 0x52F110
-bool CControllerConfigManager::GetIsMouseButtonJustUp(CControllerKey::KeyCode key) {
+bool CControllerConfigManager::GetIsMouseButtonJustUp(KeyCode key) {
     return CheckMouseButtonJustUpState(key);
 }
     
 // unused
 // 0x52F2A0
-bool CControllerConfigManager::GetIsKeyBlank(CControllerKey::KeyCode key, eControllerType type) {
+bool CControllerConfigManager::GetIsKeyBlank(KeyCode key, eControllerType type) {
     switch (type) {
     case eControllerType::KEYBOARD:
     case eControllerType::OPTIONAL_EXTRA_KEY:
@@ -1571,7 +1571,7 @@ void CControllerConfigManager::AffectPadFromMouse() {
 }
 
 // 0x531C90
-void CControllerConfigManager::DeleteMatchingActionInitiators(eControllerAction action, CControllerKey::KeyCode button, eControllerType type) {
+void CControllerConfigManager::DeleteMatchingActionInitiators(eControllerAction action, KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -1763,7 +1763,7 @@ eControllerAction CControllerConfigManager::GetActionIDByName(std::string_view n
 }
 
 // NOTSA
-bool CControllerConfigManager::CheckMouseButtonState(CControllerKey::KeyCode key) {
+bool CControllerConfigManager::CheckMouseButtonState(KeyCode key) {
     const auto* pad = CPad::GetPad();
     switch (key) {
     case rsMOUSE_LEFT_BUTTON:       return pad->IsMouseLButton();
@@ -1779,7 +1779,7 @@ bool CControllerConfigManager::CheckMouseButtonState(CControllerKey::KeyCode key
 }
 
 // NOTSA
-bool CControllerConfigManager::CheckMouseButtonJustUpState(CControllerKey::KeyCode key) {
+bool CControllerConfigManager::CheckMouseButtonJustUpState(KeyCode key) {
     const auto* pad = CPad::GetPad();
     switch (key) {
     case rsMOUSE_LEFT_BUTTON:       return pad->IsMouseLButtonPressed();
@@ -1802,21 +1802,21 @@ bool CControllerConfigManager::IsCheckSpecificGamepad()
 }
 
 // NOTSA
-void CControllerConfigManager::CheckAndClear(eControllerAction action, eControllerType type, CControllerKey::KeyCode button) {
+void CControllerConfigManager::CheckAndClear(eControllerAction action, eControllerType type, KeyCode button) {
     if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
         ClearSettingsAssociatedWithAction(action, type);
     }
 };
 
 // NOTSA
-void CControllerConfigManager::CheckAndSetButton(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& stateButton) {
+void CControllerConfigManager::CheckAndSetButton(eControllerAction action, eControllerType type, KeyCode button, int16& stateButton) {
     if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
         stateButton = 255;
     }
 }
 
 // NOTSA
-void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControllerType type, CControllerKey::KeyCode button, int16& dpad, int16& oppositeDpad) {
+void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControllerType type, KeyCode button, int16& dpad, int16& oppositeDpad) {
     if (m_Actions[action].Keys[type].m_uiActionInitiator == button) {
         if (dpad) {
             dpad         = 0;
