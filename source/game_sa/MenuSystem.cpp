@@ -611,15 +611,15 @@ void CMenuSystem::FillGridWithCarColours(MenuId id) {
 
 // Insert menu column
 // 0x581E00
-void CMenuSystem::InsertMenu(MenuId id, uint8 column, std::string_view colHeader, std::string_view row0, std::string_view row1, std::string_view row2, std::string_view row3, std::string_view row4, std::string_view row5, std::string_view row6, std::string_view row7, std::string_view row8, std::string_view row9, std::string_view row10, std::string_view row11) {
+void CMenuSystem::InsertMenu(MenuId id, uint8 column, char* colHeader, char* row0, char* row1, char* row2, char* row3, char* row4, char* row5, char* row6, char* row7, char* row8, char* row9, char* row10, char* row11) {
     assert(column < MENU_COL_COUNT);
     auto* menu = MenuNumber[id];
 
-    SetColumnHeader(id, column, colHeader.data());
+    SetColumnHeader(id, column, colHeader);
 
     const auto rows = std::array{ row0, row1, row2, row3, row4, row5, row6, row7, row8, row9, row10, row11 };
     for (auto rowId = 0u; rowId < std::size(rows); rowId++) {
-        SetRowTitle(id, column, rowId, rows[rowId].data());
+        SetRowTitle(id, column, rowId, rows[rowId]);
     }
 
     for (auto i = 0; i < MENU_COL_COUNT; ++i) {
