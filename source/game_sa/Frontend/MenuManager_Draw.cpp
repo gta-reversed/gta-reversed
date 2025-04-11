@@ -9,6 +9,12 @@
 #include "MenuSystem.h"
 #include "PostEffects.h"
 #include "app/platform/platform.h"
+#include "ControllerConfigManager.h"
+
+// TODO: Rename
+static uint32 dword_865598[] = {0,2,3,12,13,11,10,4,5,6,7,14,15,16,22,23,24,26,27,28,29,34,36,37,38}; // 0x865598
+static uint32 dword_865608[] = {0,1,4,5,6,7,8,9,16,10,17,18,19,20,21,22,25,34,35,36,37,30,31,32,33}; // 0x865608
+static GxtChar dword_86539C[] = "FEM_ON"; // 0x86539C
 
 // 0x57C290
 void CMenuManager::DrawFrontEnd() {
@@ -412,13 +418,11 @@ void CMenuManager::DrawControllerScreenExtraText(int32 a1) {
 }
 
 // 0x57E6E0
-void CMenuManager::DrawControllerBound(uint16 a1, bool a2) {
-    plugin::CallMethod<0x57E6E0, CMenuManager*, uint16, bool>(this, a1, a2);
+void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isRedefining) {
 }
 
 // 0x57F300
 void CMenuManager::DrawControllerSetupScreen() {
-    plugin::CallMethod<0x57F300, CMenuManager*>(this);
 }
 
 /**

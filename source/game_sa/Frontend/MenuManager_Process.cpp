@@ -335,12 +335,12 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         SwitchToNewScreen(m_nController == 1 ? SCREEN_JOYPAD_SETTINGS : SCREEN_MOUSE_SETTINGS);
         return true;
     case MENU_ACTION_CTRLS_FOOT: // Redefine Controls -> Foot Controls
-        field_B7 = 0;
+        m_RedefiningControls = false;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
     case MENU_ACTION_CTRLS_CAR: // Redefine Controls -> Vehicle Controls
-        field_B7 = 1;
+        m_RedefiningControls = true;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
@@ -432,10 +432,10 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         return true;
     }
     case MENU_ACTION_45:
-        field_1B14 = 1;
-        field_1B09 = 1;
+        m_CanBeDefined = true;
+        m_EditingControlOptions = true;
         m_bJustOpenedControlRedefWindow = true;
-        field_1B0C = m_nCurrentScreenItem;
+        m_OptionToChange = m_nCurrentScreenItem;
         m_pPressedKey = &m_KeyPressedCode;
         return true;
     case MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:

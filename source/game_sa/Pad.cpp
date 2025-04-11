@@ -232,8 +232,8 @@ void CPad::UpdatePads() {
     if (!isDebugUIActive) {
         ControlsManager.AffectPadFromKeyBoard();
         ControlsManager.AffectPadFromMouse();
-        GetPad(0)->Update(0);
-        GetPad(1)->Update(1);
+        GetPad(PAD1)->Update(PAD1);
+        GetPad(PAD2)->Update(PAD2);
     }
 
     OldKeyState = std::exchange(NewKeyState, TempKeyState);
@@ -299,9 +299,9 @@ void CPad::ProcessPad(ePadID padID) {
  
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
 
-    if (ControlsManager.m_bJoyJustInitialised) {
+    if (ControlsManager.m_WasJoyJustInitialised) {
         ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState = joyState;
-        ControlsManager.m_bJoyJustInitialised = false;
+        ControlsManager.m_WasJoyJustInitialised = false;
     } else {
         ControlsManager.m_OldJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
     }

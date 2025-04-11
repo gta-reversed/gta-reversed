@@ -154,6 +154,7 @@ void diPadInit() {
         WIN_FCHECK(diPadSetRanges(dev, padNum));
         diPadSetPIDVID(dev, padNum);
         PadConfigs[padNum].present  = true;
+        ControlsManager.InitDefaultControlConfigJoyPad(36u);
     };
     InitializePad(PSGLOBAL(diDevice1), 0);
     InitializePad(PSGLOBAL(diDevice2), 1);
