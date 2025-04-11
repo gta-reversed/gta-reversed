@@ -152,7 +152,7 @@ public:
     int8        m_nPlayerNumber;
     bool        m_bLanguageChanged; // useless?
     int32       field_EC;
-    RsKeyCodes* m_pPressedKey; // any pressed key, in order of CKeyboardState; rsNULL means no key pressed - aka pControlEdit
+    RsKeyCodes* m_pPressedKey; // any pressed key, in order of CKeyboardState; rsNULL means no key pressed
     bool        m_isPreInitialised; // field_F4
 
     union {
@@ -314,7 +314,7 @@ public:
     [[nodiscard]] bool              CheckHover(float left, float right, float top, float bottom) const;
 
     bool CheckMissionPackValidMenu();
-    void CheckCodesForControls(RsInputDeviceType type);
+    void CheckCodesForControls(eControllerType type);
 
     int32 DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing);
 
