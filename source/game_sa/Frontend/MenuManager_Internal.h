@@ -15,13 +15,15 @@ enum eMenuEntryType : int8 { // Originally it has no name.
     TI_SLOT7,
     TI_SLOT8,
     MAX_SAVE_SLOT = TI_SLOT8,
-    // TI_SLOTAUTO
-    // TI_SLOTCP1
-    // TI_SLOTCP2
+    /*
+    TI_SLOTAUTO
+    TI_SLOTCP1
+    TI_SLOTCP2
+    */
     TI_MPACK = 9,
-    TI_MOUSEJOYPAD,
-    TI_ENTER,
-    TI_OPTION,
+    TI_MOUSEJOYPAD = 10,
+    TI_ENTER = 11,
+    TI_OPTION = 12,
 };
 
 enum eMenuScreen : int8 {
@@ -164,6 +166,7 @@ enum eMenuAction : int8 { // There's many actions @0x57702E and @0x57CD88
 # if defined(USE_GALLERY)
     MENU_ACTION_GALLERY, // (xbox #34)
 # endif
+    MENU_ACTION_COUNT
 };
 
 enum eMenuAlign : int8 {

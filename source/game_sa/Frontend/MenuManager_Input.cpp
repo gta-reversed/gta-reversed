@@ -42,16 +42,11 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
         auto screenIdx = m_nCurrentScreen;
         m_nCurrentScreenItem++;
         
-        // Skip entries marked as MENU_ACTION_SKIP
-        if (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP) {
-            do {
-                m_nCurrentScreenItem++;
-            } while (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP);
-        }
-        
+        for (; (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem++);
+
         // Wrap around if reached end or empty item
-        if (m_nCurrentScreenItem >= 12 || !aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType) {
-            m_nCurrentScreenItem = (aScreens[screenIdx].m_aItems[0].m_nActionType == 1) ? 1 : 0;
+        if (m_nCurrentScreenItem >= eMenuEntryType::TI_OPTION || !aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType) {
+            m_nCurrentScreenItem = (aScreens[screenIdx].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) ? 1 : 0;
         }
     }
 
@@ -66,30 +61,23 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
 
         if (m_nCurrentScreenItem <= (firstItemSpecial ? 1 : 0)) {
             // Wrap to end
-            if (m_nCurrentScreenItem < 11) {
+            if (m_nCurrentScreenItem < eMenuEntryType::TI_ENTER) {
                 do {
                     if (!aScreens[screenIdx].m_aItems[m_nCurrentScreenItem + 1].m_nActionType)
                         break;
                     m_nCurrentScreenItem++;
-                } while (m_nCurrentScreenItem < 11);
+                } while (m_nCurrentScreenItem < eMenuEntryType::TI_ENTER);
             }
 
             // Skip entries marked as SKIP_THIS_ENTRY (backwards)
-            if (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP) {
-                do {
-                    m_nCurrentScreenItem--;
-                } while (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP);
-            }
+            for (; (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
+
         } else {
             // Move to previous item
             m_nCurrentScreenItem--;
 
             // Skip entries marked as SKIP_THIS_ENTRY (backwards)
-            if (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP) {
-                do {
-                    m_nCurrentScreenItem--;
-                } while (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP);
-            }
+            for (; (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
         }
     }
 
@@ -118,7 +106,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
 
     // Handle slider movement with wheel input
     if (LeftRight) {
-        if (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType == 12) {
+        if (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType == eMenuEntryType::TI_OPTION) {
             ProcessMenuOptions(LeftRight, GoBackOneMenu, 0);
             CheckSliderMovement(LeftRight);
         }
@@ -128,7 +116,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
     if (GoBackOneMenu) {
         if (m_bRadioAvailable) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
-            SwitchToNewScreen(eMenuScreen(-2)); // Go back one screen
+            SwitchToNewScreen(eMenuScreen::SCREEN_GO_BACK); // Go back one screen
         } else {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
         }
