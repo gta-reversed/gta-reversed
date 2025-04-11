@@ -143,7 +143,7 @@ CMenuManager::CMenuManager() {
     m_bMenuActive             = false;
     m_bIsSaveDone             = false;
     m_bLoadingData            = false;
-    field_F4                  = false;
+    m_isPreInitialised                  = false;
     m_fStatsScrollSpeed       = 150.0f;
     m_nStatsScrollDirection   = 1;
     m_KeyPressedCode          = (RsKeyCodes)-1;
@@ -205,7 +205,7 @@ void CMenuManager::Initialise() {
 
     CRadar::SetMapCentreToPlayerCoords();
     CPad::StopPadsShaking();
-    if (!field_F4) {
+    if (!m_isPreInitialised) {
         m_nCurrentScreen = SCREEN_INITIAL;
         m_bMapLoaded = true;
         m_nOldMousePosX = 0;

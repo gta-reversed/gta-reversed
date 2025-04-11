@@ -61,22 +61,16 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
 
         if (m_nCurrentScreenItem <= (firstItemSpecial ? 1 : 0)) {
             // Wrap to end
-            if (m_nCurrentScreenItem < eMenuEntryType::TI_ENTER) {
-                do {
-                    if (!aScreens[screenIdx].m_aItems[m_nCurrentScreenItem + 1].m_nActionType)
-                        break;
-                    m_nCurrentScreenItem++;
-                } while (m_nCurrentScreenItem < eMenuEntryType::TI_ENTER);
-            }
+            for (; m_nCurrentScreenItem < eMenuEntryType::TI_ENTER && aScreens[screenIdx].m_aItems[m_nCurrentScreenItem + 1].m_nActionType; m_nCurrentScreenItem++);
 
-            // Skip entries marked as SKIP_THIS_ENTRY (backwards)
+            // Skip entries marked as MENU_ACTION_SKIP (backwards)
             for (; (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
 
         } else {
             // Move to previous item
             m_nCurrentScreenItem--;
 
-            // Skip entries marked as SKIP_THIS_ENTRY (backwards)
+            // Skip entries marked as MENU_ACTION_SKIP (backwards)
             for (; (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
         }
     }
@@ -96,7 +90,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
             eMenuEntryType menuType = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType;
             
             // Audio feedback based on menu type and status
-            if ((!field_F4 && !IsSaveSlot(menuType)) || (IsSaveSlot(menuType) && GetSavedGameState(m_nCurrentScreenItem - 1) == eSlotState::SLOT_FILLED)) {
+            if ((!m_isPreInitialised && !IsSaveSlot(menuType)) || (IsSaveSlot(menuType) && GetSavedGameState(m_nCurrentScreenItem - 1) == eSlotState::SLOT_FILLED)) {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);
             } else {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR, 0.0, 1.0);
@@ -342,7 +336,7 @@ void CMenuManager::CheckForMenuClosing() {
             }
 
             if (m_bMenuActive) {
-                if (!field_F4) {
+                if (!m_isPreInitialised) {
                     // enter menu
                     DoRWStuffStartOfFrame(0, 0, 0, 0, 0, 0, 255);
                     DoRWStuffEndOfFrame();
@@ -412,7 +406,7 @@ void CMenuManager::CheckForMenuClosing() {
 
                 SetBrightness((float)m_PrefsBrightness, true);
 
-                if (field_F4) {
+                if (m_isPreInitialised) {
                     auto player = FindPlayerPed();
 
                     if (player->GetActiveWeapon().m_Type != WEAPON_CAMERA
@@ -423,7 +417,7 @@ void CMenuManager::CheckForMenuClosing() {
                         TheCamera.Fade(0.2f, eFadeFlag::FADE_OUT);
                     }
                 }
-                field_F4 = false;
+                m_isPreInitialised = false;
                 pad->DisablePlayerControls = field_1B34;
             }
         }
@@ -447,7 +441,7 @@ void CMenuManager::CheckForMenuClosing() {
         pad->DisablePlayerControls = true;
         m_bIsSaveDone = false;
         m_bMenuActive = true;
-        field_F4 = true;
+        m_isPreInitialised = true;
 
 #ifndef NOTSA_USE_SDL3
         if (IsVideoModeExclusive()) {

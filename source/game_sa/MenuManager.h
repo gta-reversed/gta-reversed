@@ -153,7 +153,7 @@ public:
     bool        m_bLanguageChanged; // useless?
     int32       field_EC;
     RsKeyCodes* m_pPressedKey; // any pressed key, in order of CKeyboardState; rsNULL means no key pressed
-    bool        field_F4;      // m_bPreInitialised
+    bool        m_isPreInitialised; // field_F4
 
     union {
         struct {
