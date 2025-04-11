@@ -547,14 +547,23 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
                 switch (GetSavedGameState(i - 1)) {
                 case eSlotState::SLOT_FILLED: { // Valid save
-                    AsciiToGxtChar(std::string((const char*)GetNameOfSavedGame(i - 1)).c_str(), gGxtString);
-                    
+                    /*
+                    GxtCharStrcpy(gGxtString, GetNameOfSavedGame(i - 1));
                     if (GxtCharStrlen(gGxtString) >= 254) {
+                        gGxtString[254] = '\0';
                         AsciiToGxtChar("...", gGxtString2);
                         GxtCharStrcat(gGxtString, gGxtString2);
-                    }
-                    pTextToShow = gGxtString2;
+                    }*/
 
+                    // NOTSA: Right way for modern GxtChar
+                    auto stringSavegame = std::string(GxtCharToUTF8(GetNameOfSavedGame(i - 1)));
+                    if (stringSavegame.length() >= 32) {
+                        stringSavegame.resize(32 - 4);
+                        stringSavegame += "...";
+                    }/* NOTSA END */
+
+                    AsciiToGxtChar(stringSavegame.c_str(), gGxtString);
+                    pTextToShow = gGxtString;
                     pTextToShow_RightColumn = GetSavedGameDateAndTime(i - 1);
                     break;
                 }
