@@ -53,8 +53,8 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(DrawWindowedText, 0x578F50);
     RH_ScopedInstall(DrawQuitGameScreen, 0x57D860);
     RH_ScopedInstall(DrawControllerScreenExtraText, 0x57D8D0, { .reversed = false });
-    RH_ScopedInstall(DrawControllerBound, 0x57E6E0);
-    RH_ScopedInstall(DrawControllerSetupScreen, 0x57F300);
+    RH_ScopedInstall(DrawControllerBound, 0x57E6E0, { .reversed = false });
+    RH_ScopedInstall(DrawControllerSetupScreen, 0x57F300, { .reversed = false });
 
     RH_ScopedInstall(CentreMousePointer, 0x57C520);
     RH_ScopedInstall(LoadSettings, 0x57C8F0);

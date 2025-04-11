@@ -225,7 +225,7 @@ void CPad::UpdatePads() {
         GetPad(0)->UpdateMouse();
     }
 
-    ProcessPad(0);
+    ProcessPad(PAD1);
 
     ControlsManager.ClearSimButtonPressCheckers();
 

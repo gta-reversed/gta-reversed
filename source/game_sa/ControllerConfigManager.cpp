@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include "ControllerConfigManager.h"
-#include "Input.h"
+#include "WinInput.h"
 #include "WndProc.h"
 
 CControllerConfigManager& ControlsManager = *(CControllerConfigManager*)0xB70198;
@@ -191,7 +191,7 @@ void CControllerConfigManager::DeleteMatching1rst3rdPersonControls(eControllerAc
 
 // 0x52F510
 void CControllerConfigManager::StoreJoyButtonStates() {
-    for (auto&& [idx, bs] : notsa::enumerate(m_ButtonStates)) {
+    for (auto&& [idx, bs] : rngv::enumerate(m_ButtonStates)) {
         bs = (m_NewJoyState.rgbButtons[idx] & 0x80) != 0;
     }
 }
@@ -730,7 +730,11 @@ void CControllerConfigManager::InitialiseControllerActionNameArray() {
 void CControllerConfigManager::ReinitControls() {
     ControlsManager.MakeControllerActionsBlank();
     ControlsManager.InitDefaultControlConfiguration();
+#ifdef NOTSA_USE_SDL3
+    const auto MouseSetUp = CMouseControllerState{};
+#else
     const auto MouseSetUp = WinInput::GetMouseState();
+#endif
     ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, !FrontEndMenuManager.m_nController);
 }
 
@@ -751,13 +755,13 @@ void CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAct
 // 0x52DA30
 void CControllerConfigManager::StoreMouseButtonState(eMouseButtons button, bool state) {
     switch (button) {
-    case MOUSE_BUTTON_LEFT:           CPad::PCTempMouseControllerState.lmb = state; break;
-    case MOUSE_BUTTON_MIDDLE:         CPad::PCTempMouseControllerState.mmb = state; break;
-    case MOUSE_BUTTON_RIGHT:          CPad::PCTempMouseControllerState.rmb = state; break;
-    case MOUSE_BUTTON_WHEEL_UP:       CPad::PCTempMouseControllerState.wheelUp = state; break;
-    case MOUSE_BUTTON_WHEEL_DOWN:     CPad::PCTempMouseControllerState.wheelDown = state; break;
-    case MOUSE_BUTTON_WHEEL_XBUTTON1: CPad::PCTempMouseControllerState.bmx1 = state; break;
-    case MOUSE_BUTTON_WHEEL_XBUTTON2: CPad::PCTempMouseControllerState.bmx2 = state; break;
+    case MOUSE_BUTTON_LEFT:           CPad::TempMouseControllerState.lmb = state; break;
+    case MOUSE_BUTTON_MIDDLE:         CPad::TempMouseControllerState.mmb = state; break;
+    case MOUSE_BUTTON_RIGHT:          CPad::TempMouseControllerState.rmb = state; break;
+    case MOUSE_BUTTON_WHEEL_UP:       CPad::TempMouseControllerState.wheelUp = state; break;
+    case MOUSE_BUTTON_WHEEL_DOWN:     CPad::TempMouseControllerState.wheelDown = state; break;
+    case MOUSE_BUTTON_WHEEL_XBUTTON1: CPad::TempMouseControllerState.bmx1 = state; break;
+    case MOUSE_BUTTON_WHEEL_XBUTTON2: CPad::TempMouseControllerState.bmx2 = state; break;
     default:                          NOTSA_UNREACHABLE();
     }
 }
@@ -1045,8 +1049,8 @@ bool CControllerConfigManager::GetIsKeyboardKeyDown(CControllerKey::KeyCode key)
     case rsSHIFT:    return pad->NewKeyState.shift;
     case rsLCTRL:    return pad->NewKeyState.lctrl;
     case rsRCTRL:    return pad->NewKeyState.rctrl;
-    case rsLALT:     return pad->NewKeyState.lmenu;
-    case rsRALT:     return pad->NewKeyState.rmenu;
+    case rsLALT:     return pad->NewKeyState.lalt;
+    case rsRALT:     return pad->NewKeyState.ralt;
     case rsLWIN:     return pad->NewKeyState.lwin;
     case rsRWIN:     return pad->NewKeyState.rwin;
     case rsAPPS:     return pad->NewKeyState.apps;
@@ -1109,8 +1113,8 @@ bool CControllerConfigManager::GetIsKeyboardKeyJustDown(CControllerKey::KeyCode 
     case rsSHIFT:    return pad->NewKeyState.shift && !pad->OldKeyState.shift;
     case rsLCTRL:    return pad->NewKeyState.lctrl && !pad->OldKeyState.lctrl;
     case rsRCTRL:    return pad->NewKeyState.rctrl && !pad->OldKeyState.rctrl;
-    case rsLALT:     return pad->NewKeyState.lmenu && !pad->OldKeyState.lmenu;
-    case rsRALT:     return pad->NewKeyState.rmenu && !pad->OldKeyState.rmenu;
+    case rsLALT:     return pad->NewKeyState.lalt && !pad->OldKeyState.lalt;
+    case rsRALT:     return pad->NewKeyState.ralt && !pad->OldKeyState.ralt;
     case rsLWIN:     return pad->NewKeyState.lwin && !pad->OldKeyState.lwin;
     case rsRWIN:     return pad->NewKeyState.rwin && !pad->OldKeyState.rwin;
     case rsAPPS:     return pad->NewKeyState.apps && !pad->OldKeyState.apps;
@@ -1267,8 +1271,10 @@ void CControllerConfigManager::MakeControllerActionsBlank() {
 
 // 0x531140
 void CControllerConfigManager::AffectPadFromKeyBoard() {
+    #ifndef NOTSA_USE_SDL3
     RsKeyCodes keyCode;
     GTATranslateShiftKey(&keyCode); // No matter what you do, it won't work.
+    #endif
     const auto inMenu = !CPad::padNumber && !FrontEndMenuManager.m_bMenuActive;
 
     for (const auto& action : m_Actions ) {
@@ -1528,7 +1534,7 @@ const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerActio
 
 // NOTSA
 eControllerAction CControllerConfigManager::GetActionIDByName(std::string_view name) {
-    for (auto&& [i, actionName] : notsa::enumerate(m_ControllerActionName)) {
+    for (auto&& [i, actionName] : rngv::enumerate(m_ControllerActionName)) {
         char actionNameUTF8[128] = {0};
         GxtCharToUTF8(actionNameUTF8, actionName);
         if (std::string_view{ actionNameUTF8 } == name) {
