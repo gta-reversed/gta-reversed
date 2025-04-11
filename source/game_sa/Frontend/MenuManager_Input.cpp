@@ -29,55 +29,53 @@ void CMenuManager::UserInput() {
  * @addr 0x57B480
  */
 void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMenuOption, bool GoBackOneMenu, int8 LeftRight) {
-    if (m_nCurrentScreen == SCREEN_EMPTY || CheckRedefineControlInput()) {
+    if (m_nCurrentScreen == eMenuScreen::SCREEN_EMPTY || CheckRedefineControlInput()) {
         return;
     }
 
     // Handle down navigation
     if (GetNumberOfMenuOptions() > 1 && GoDownMenu) {
-        if (m_nCurrentScreen != SCREEN_MAP) {
+        if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
         }
 
-        auto screenIdx = m_nCurrentScreen;
         m_nCurrentScreenItem++;
         
-        for (; (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem++);
+        for (; (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem++);
 
         // Wrap around if reached end or empty item
-        if (m_nCurrentScreenItem >= eMenuEntryType::TI_OPTION || !aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType) {
-            m_nCurrentScreenItem = (aScreens[screenIdx].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) ? 1 : 0;
+        if (m_nCurrentScreenItem >= eMenuEntryType::TI_OPTION || !aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType) {
+            m_nCurrentScreenItem = (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) ? 1 : 0;
         }
     }
 
     // Handle up navigation
     if (GetNumberOfMenuOptions() > 1 && GoUpMenu) {
-        if (m_nCurrentScreen != SCREEN_MAP) {
+        if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
         }
 
-        auto screenIdx = m_nCurrentScreen;
-        auto firstItemSpecial = (aScreens[screenIdx].m_aItems[0].m_nActionType == 1);
+        auto firstItemSpecial = (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == 1);
 
         if (m_nCurrentScreenItem <= (firstItemSpecial ? 1 : 0)) {
             // Wrap to end
-            for (; m_nCurrentScreenItem < eMenuEntryType::TI_ENTER && aScreens[screenIdx].m_aItems[m_nCurrentScreenItem + 1].m_nActionType; m_nCurrentScreenItem++);
+            for (; m_nCurrentScreenItem < eMenuEntryType::TI_ENTER && aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem + 1].m_nActionType; m_nCurrentScreenItem++);
 
             // Skip entries marked as MENU_ACTION_SKIP (backwards)
-            for (; (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
+            for (; (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
 
         } else {
             // Move to previous item
             m_nCurrentScreenItem--;
 
             // Skip entries marked as MENU_ACTION_SKIP (backwards)
-            for (; (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
+            for (; (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
         }
     }
 
     // Handle accept action
     if (EnterMenuOption) {
-        if (m_nCurrentScreen == SCREEN_CONTROLS_DEFINITION) {
+        if (m_nCurrentScreen == eMenuScreen::SCREEN_CONTROLS_DEFINITION) {
             m_EditingControlOptions = true;
             m_bJustOpenedControlRedefWindow = true;
             m_pPressedKey = &m_KeyPressedCode;
