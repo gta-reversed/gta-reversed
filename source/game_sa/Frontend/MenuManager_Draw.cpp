@@ -548,12 +548,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 switch (GetSavedGameState(i - 1)) {
                 case eSlotState::SLOT_FILLED: { // Valid save
                     AsciiToGxtChar(std::string((const char*)GetNameOfSavedGame(i - 1)).c_str(), gGxtString);
-                    pTextToShow = gGxtString;
-
+                    
                     if (GxtCharStrlen(gGxtString) >= 254) {
                         AsciiToGxtChar("...", gGxtString2);
                         GxtCharStrcat(gGxtString, gGxtString2);
                     }
+                    pTextToShow = gGxtString2;
 
                     pTextToShow_RightColumn = GetSavedGameDateAndTime(i - 1);
                     break;
@@ -811,7 +811,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         // Handle sliders
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
         case eMenuAction::MENU_ACTION_BRIGHTNESS: { // Brightness slider
-            const float sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), m_PrefsBrightness * 0.0026041667f, SCREEN_STRETCH_X(3.0f));
+            const auto sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), m_PrefsBrightness * 0.0026041667f, int32(SCREEN_STRETCH_X(3.0f)));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                 if (CheckHover(0, sliderFieldPos - SCREEN_STRETCH_X(3.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
                     m_MouseInBounds = 7;
@@ -824,7 +824,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_RADIO_VOL: { // Radio volume slider
-            const float sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(95.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), m_nRadioVolume * 0.015625f, SCREEN_STRETCH_X(3.0f));
+            const auto sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(95.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), m_nRadioVolume * 0.015625f, int32(SCREEN_STRETCH_X(3.0f)));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                 if (CheckHover(0, sliderFieldPos - SCREEN_STRETCH_X(3.0f), SCREEN_STRETCH_Y(95.0f), SCREEN_STRETCH_Y(120.0f))) {
                     m_MouseInBounds = 11;
@@ -837,7 +837,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_SFX_VOL: { // SFX volume slider
-            const float sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), m_nSfxVolume * 0.015625f, SCREEN_STRETCH_X(3.0f));
+            const auto sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), m_nSfxVolume * 0.015625f, int32(SCREEN_STRETCH_X(3.0f)));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                 if (CheckHover(0, sliderFieldPos - SCREEN_STRETCH_X(3.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
                     m_MouseInBounds = 13;
@@ -850,7 +850,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_DRAW_DIST: { // Draw distance slider
-            const float sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), (m_fDrawDistance - 0.92500001f) * 1.1428572f, SCREEN_STRETCH_X(3.0f));
+            const auto sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), (m_fDrawDistance - 0.92500001f) * 1.1428572f, int32(SCREEN_STRETCH_X(3.0f)));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                 if (CheckHover(0, sliderFieldPos - SCREEN_STRETCH_X(3.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
                     m_MouseInBounds = 9;
@@ -863,7 +863,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_MOUSE_SENS: { // Mouse sensitivity slider
-            const float sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), CCamera::m_fMouseAccelHorzntl / 0.0049999999f, SCREEN_STRETCH_X(3.0f));
+            const auto sliderFieldPos = DisplaySlider(SCREEN_STRETCH_X(500.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(4.0f), SCREEN_STRETCH_Y(20.0f), SCREEN_STRETCH_X(100.0f), CCamera::m_fMouseAccelHorzntl / 0.0049999999f, int32(SCREEN_STRETCH_X(3.0f)));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                 if (CheckHover(0, sliderFieldPos - SCREEN_STRETCH_X(3.0f), SCREEN_STRETCH_Y(125.0f), SCREEN_STRETCH_Y(150.0f))) {
                     m_MouseInBounds = 15;
@@ -880,7 +880,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
 
         if (pTextToShow && pTextToShow != nullptr) {
-            buttonTextPosY = (29 * CFont::GetNumberLinesNoPrint(60.0, buttonTextPosY, (const GxtChar *)pTextToShow)) + buttonTextPosY;
+            buttonTextPosY = (29 * CFont::GetNumberLines(60.0, buttonTextPosY, (const GxtChar *)pTextToShow)) + buttonTextPosY;
         }
         if (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType == 32) {
             buttonTextPosY = buttonTextPosY + 70.0f;
@@ -1376,8 +1376,7 @@ void CMenuManager::DrawControllerSetupScreen() {
  * @see Audio Setup -> Radio or SFX volume
  * @addr 0x576860
  */
-float CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, float spacing) {
-    // return plugin::CallMethodAndReturn<int32, 0x576860, CMenuManager*, float, float, float, float, float, float, float>(this, x, y, h1, h2, length, value, size);
+int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing) {
 
     const auto BARS = 16;
     const auto COLOR_ON  = CRGBA(172, 203, 241, 255); // Fresh Air
@@ -1386,7 +1385,7 @@ float CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float le
 
     CRGBA color;
 
-    auto lastActiveBarX = 0.0f;
+    auto lastActiveBarX = 0;
     for (auto i = 0; i < BARS; i++) {
         const auto fi = float(i);
 
@@ -1394,7 +1393,7 @@ float CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float le
 
         if (fi / (float)BARS + 1 / (BARS * 2.f) < value) {
             color = COLOR_ON;
-            lastActiveBarX = (float)curBarX;
+            lastActiveBarX = (int32)curBarX;
         } else {
             color = COLOR_OFF;
         }

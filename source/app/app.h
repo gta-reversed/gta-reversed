@@ -130,5 +130,4 @@ float GetDayNightBalance();
 
 // 0x746870
 void MessageLoop();
-
 char* getDvdGamePath();

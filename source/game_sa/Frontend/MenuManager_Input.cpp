@@ -1,12 +1,13 @@
 #include "StdInc.h"
 
+#include <SDL3/SDL.h>
+
 #include "MenuManager.h"
 #include "MenuManager_Internal.h"
 #include "MenuSystem.h"
 #include "app/app.h"
 #include "VideoMode.h" // todo
 #include "ControllerConfigManager.h"
-
 #include "extensions/Configs/FastLoader.hpp"
 
 
@@ -16,10 +17,10 @@
 void CMenuManager::UserInput() {
     { // NOTSA
     const auto pad = CPad::GetPad();
-    if (pad->IsStandardKeyJustPressed('q') || pad->IsStandardKeyJustPressed('Q')) {
-        CFont::PrintString(50, 250, "switched"_gxt);
-        ReversibleHooks::SwitchHook("DisplaySlider");
-    }
+        if (pad->IsStandardKeyJustPressed('q') || pad->IsStandardKeyJustPressed('Q')) {
+            CFont::PrintString(50, 250, "switched"_gxt);
+            ReversibleHooks::SwitchHook("DisplaySlider");
+        }
     }
     plugin::CallMethod<0x57FD70, CMenuManager*>(this);
 }
@@ -28,73 +29,53 @@ void CMenuManager::UserInput() {
  * @addr 0x57B480
  */
 void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMenuOption, bool GoBackOneMenu, int8 LeftRight) {
-    if (m_nCurrentScreen == SCREEN_EMPTY || CheckRedefineControlInput()) {
+    if (m_nCurrentScreen == eMenuScreen::SCREEN_EMPTY || CheckRedefineControlInput()) {
         return;
     }
 
     // Handle down navigation
     if (GetNumberOfMenuOptions() > 1 && GoDownMenu) {
-        if (m_nCurrentScreen != SCREEN_MAP) {
+        if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
         }
 
-        auto screenIdx = m_nCurrentScreen;
         m_nCurrentScreenItem++;
         
-        // Skip entries marked as MENU_ACTION_SKIP
-        if (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP) {
-            do {
-                m_nCurrentScreenItem++;
-            } while (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP);
-        }
-        
+        for (; (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem++);
+
         // Wrap around if reached end or empty item
-        if (m_nCurrentScreenItem >= 12 || !aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType) {
-            m_nCurrentScreenItem = (aScreens[screenIdx].m_aItems[0].m_nActionType == 1) ? 1 : 0;
+        if (m_nCurrentScreenItem >= eMenuEntryType::TI_OPTION || !aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType) {
+            m_nCurrentScreenItem = (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) ? 1 : 0;
         }
     }
 
     // Handle up navigation
     if (GetNumberOfMenuOptions() > 1 && GoUpMenu) {
-        if (m_nCurrentScreen != SCREEN_MAP) {
+        if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
         }
 
-        auto screenIdx = m_nCurrentScreen;
-        auto firstItemSpecial = (aScreens[screenIdx].m_aItems[0].m_nActionType == 1);
+        auto firstItemSpecial = (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == 1);
 
         if (m_nCurrentScreenItem <= (firstItemSpecial ? 1 : 0)) {
             // Wrap to end
-            if (m_nCurrentScreenItem < 11) {
-                do {
-                    if (!aScreens[screenIdx].m_aItems[m_nCurrentScreenItem + 1].m_nActionType)
-                        break;
-                    m_nCurrentScreenItem++;
-                } while (m_nCurrentScreenItem < 11);
-            }
+            for (; m_nCurrentScreenItem < eMenuEntryType::TI_ENTER && aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem + 1].m_nActionType; m_nCurrentScreenItem++);
 
-            // Skip entries marked as SKIP_THIS_ENTRY (backwards)
-            if (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP) {
-                do {
-                    m_nCurrentScreenItem--;
-                } while (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP);
-            }
+            // Skip entries marked as MENU_ACTION_SKIP (backwards)
+            for (; (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
+
         } else {
             // Move to previous item
             m_nCurrentScreenItem--;
 
-            // Skip entries marked as SKIP_THIS_ENTRY (backwards)
-            if (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP) {
-                do {
-                    m_nCurrentScreenItem--;
-                } while (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP);
-            }
+            // Skip entries marked as MENU_ACTION_SKIP (backwards)
+            for (; (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
         }
     }
 
     // Handle accept action
     if (EnterMenuOption) {
-        if (m_nCurrentScreen == SCREEN_CONTROLS_DEFINITION) {
+        if (m_nCurrentScreen == eMenuScreen::SCREEN_CONTROLS_DEFINITION) {
             m_EditingControlOptions = true;
             m_bJustOpenedControlRedefWindow = true;
             m_pPressedKey = &m_KeyPressedCode;
@@ -104,9 +85,10 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
         ProcessMenuOptions(0, GoBackOneMenu, EnterMenuOption);
 
         if (!GoBackOneMenu) {
-            // Audio feedback based on menu type and status
             eMenuEntryType menuType = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType;
-            if (field_F4 || (IsSaveSlot(menuType) && GetSavedGameState(m_nCurrentScreenItem - 1) == eSlotState::SLOT_FILLED)) {
+            
+            // Audio feedback based on menu type and status
+            if ((!m_isPreInitialised && !IsSaveSlot(menuType)) || (IsSaveSlot(menuType) && GetSavedGameState(m_nCurrentScreenItem - 1) == eSlotState::SLOT_FILLED)) {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);
             } else {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR, 0.0, 1.0);
@@ -116,7 +98,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
 
     // Handle slider movement with wheel input
     if (LeftRight) {
-        if (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType == 12) {
+        if (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType == eMenuEntryType::TI_OPTION) {
             ProcessMenuOptions(LeftRight, GoBackOneMenu, 0);
             CheckSliderMovement(LeftRight);
         }
@@ -126,7 +108,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
     if (GoBackOneMenu) {
         if (m_bRadioAvailable) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
-            SwitchToNewScreen(eMenuScreen(-2)); // Go back one screen
+            SwitchToNewScreen(eMenuScreen::SCREEN_GO_BACK); // Go back one screen
         } else {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
         }
@@ -352,7 +334,7 @@ void CMenuManager::CheckForMenuClosing() {
             }
 
             if (m_bMenuActive) {
-                if (!field_F4) {
+                if (!m_isPreInitialised) {
                     // enter menu
                     DoRWStuffStartOfFrame(0, 0, 0, 0, 0, 0, 255);
                     DoRWStuffEndOfFrame();
@@ -365,10 +347,13 @@ void CMenuManager::CheckForMenuClosing() {
                     pad->ClearKeyBoardHistory();
                     pad->ClearMouseHistory();
 
+#ifndef NOTSA_USE_SDL3
                     if (IsVideoModeExclusive()) {
                         DIReleaseMouse();
                         InitialiseMouse(false);
                     }
+#endif // NOTSA_USE_SDL3
+
                     Initialise();
                     LoadAllTextures();
 
@@ -388,6 +373,7 @@ void CMenuManager::CheckForMenuClosing() {
                 pad->ClearKeyBoardHistory();
                 pad->ClearMouseHistory();
 
+#ifndef NOTSA_USE_SDL3
                 if (IsVideoModeExclusive()) {
                     DIReleaseMouse();
 #ifdef FIX_BUGS // Causes the retarded fucktard code to not dispatch mouse input to WndProc => ImGUI mouse not working. Amazing piece of technology.
@@ -396,6 +382,7 @@ void CMenuManager::CheckForMenuClosing() {
                     InitialiseMouse(true);
 #endif // !FIX_BUGS
                 }
+#endif // NOTSA_USE_SDL3
 
                 m_fStatsScrollSpeed = 150.0f;
                 SaveSettings();
@@ -417,7 +404,7 @@ void CMenuManager::CheckForMenuClosing() {
 
                 SetBrightness((float)m_PrefsBrightness, true);
 
-                if (field_F4) {
+                if (m_isPreInitialised) {
                     auto player = FindPlayerPed();
 
                     if (player->GetActiveWeapon().m_Type != WEAPON_CAMERA
@@ -428,7 +415,7 @@ void CMenuManager::CheckForMenuClosing() {
                         TheCamera.Fade(0.2f, eFadeFlag::FADE_OUT);
                     }
                 }
-                field_F4 = false;
+                m_isPreInitialised = false;
                 pad->DisablePlayerControls = field_1B34;
             }
         }
@@ -452,12 +439,14 @@ void CMenuManager::CheckForMenuClosing() {
         pad->DisablePlayerControls = true;
         m_bIsSaveDone = false;
         m_bMenuActive = true;
-        field_F4 = true;
+        m_isPreInitialised = true;
 
+#ifndef NOTSA_USE_SDL3
         if (IsVideoModeExclusive()) {
             DIReleaseMouse();
             InitialiseMouse(false);
         }
+#endif // NOTSA_USE_SDL3
 
         Initialise();
         LoadAllTextures();
@@ -472,13 +461,13 @@ void CMenuManager::CheckForMenuClosing() {
 }
 
 // 0x57C4F0
-[[nodiscard]] bool CMenuManager::CheckHover(float left, float right, float top, float bottom) const {  
+[[nodiscard]] bool CMenuManager::CheckHover(float left, float right, float top, float bottom) const {
     // debug: CSprite2d::DrawRect(CRect(left, top, right, bottom), CRGBA(255, 0, 0, 255));
     return (
-        m_nMousePosX > left  &&
-        m_nMousePosX < right &&
-        m_nMousePosY > top   &&
-        m_nMousePosY < bottom
+        (float)m_nMousePosX > left  &&
+        (float)m_nMousePosX < right &&
+        (float)m_nMousePosY > top   &&
+        (float)m_nMousePosY < bottom
     );
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-tMenuScreen aScreens[] = {
+tMenuScreen aScreensX[] = {
   // 00 Stats
   {
     "FEP_STA",

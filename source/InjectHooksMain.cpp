@@ -72,6 +72,7 @@
 
 #include "UIRenderer.h"
 
+#include "ControllerConfigManager.h"
 #include "CarGenerator.h"
 #include "TheCarGenerators.h"
 #include "Radar.h"
@@ -506,11 +507,17 @@
 
 #include "ReversibleHooks/RootHookCategory.h"
 
+#include "WindowedMode.hpp"
+
 void InjectHooksMain() {
     HookInstall(0x53E230, &Render2dStuff);   // [ImGui] This one shouldn't be reversible, it contains imgui debug menu logic, and makes game unplayable without
     HookInstall(0x541DD0, CPad::UpdatePads); // [ImGui] Changes logic of the function and shouldn't be toggled on/off
     HookInstall(0x459F70, CVehicleRecording::Render); // [ImGui] Debug stuff rendering
 
+#ifdef NOTSA_WINDOWED_MODE
+    notsa::InjectWindowedModeHooks();
+#endif
+    CControllerConfigManager::InjectHooks();
     CFormation::InjectHooks();
     CHandShaker::InjectHooks();
     CCutsceneMgr::InjectHooks();
@@ -760,7 +767,6 @@ void InjectHooksMain() {
     CLocalisation::InjectHooks();
     CSimpleVariablesSaveStructure::InjectHooks();
     CPedGeometryAnalyser::InjectHooks();
-    CControllerConfigManager::InjectHooks();
 
     NodeNamePlugin::InjectHooks();
     JPegPlugin::InjectHooks();

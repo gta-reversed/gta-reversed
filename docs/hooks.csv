@@ -2118,7 +2118,7 @@ CFont,DrawFonts,0x0071A210,1,0,0
 CFont,FindSubFontCharacter,0x007192C0,0,1,0
 CFont,GetCharacterSize,0x00719750,1,0,0
 CFont,GetLetterIdPropValue,0x00718770,1,0,0
-CFont,GetNumberLinesNoPrint,0x0071A5E0,1,0,0
+CFont,GetNumberLines,0x0071A5E0,1,0,0
 CFont,GetStringWidth,0x0071A0E0,1,0,0
 CFont,GetTextRect,0x0071A620,1,0,0
 CFont,InitPerFrame,0x00719800,1,0,0

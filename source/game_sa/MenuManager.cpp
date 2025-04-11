@@ -67,7 +67,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(CheckFrontEndDownInput, 0x5738B0);
     RH_ScopedInstall(CheckFrontEndLeftInput, 0x573920);
     RH_ScopedInstall(CheckFrontEndRightInput, 0x573990);
-    RH_ScopedInstall(CheckForMenuClosing, 0x576B70, { .locked = true });  // Must be hooked at all times otherwise imgui stops working! [The input at least does]
+    RH_ScopedInstall(CheckForMenuClosing, 0x576B70, { .locked = true });  // Must be hooked at all times otherwise imgui/sdl stops working! [The input at least does]
     RH_ScopedInstall(CheckHover, 0x57C4F0);
     RH_ScopedInstall(CheckMissionPackValidMenu, 0x57D720);
     RH_ScopedInstall(CheckCodesForControls, 0x57DB20);
@@ -143,7 +143,7 @@ CMenuManager::CMenuManager() {
     m_bMenuActive             = false;
     m_bIsSaveDone             = false;
     m_bLoadingData            = false;
-    field_F4                  = false;
+    m_isPreInitialised                  = false;
     m_fStatsScrollSpeed       = 150.0f;
     m_nStatsScrollDirection   = 1;
     m_KeyPressedCode          = (RsKeyCodes)-1;
@@ -205,7 +205,7 @@ void CMenuManager::Initialise() {
 
     CRadar::SetMapCentreToPlayerCoords();
     CPad::StopPadsShaking();
-    if (!field_F4) {
+    if (!m_isPreInitialised) {
         m_nCurrentScreen = SCREEN_INITIAL;
         m_bMapLoaded = true;
         m_nOldMousePosX = 0;
@@ -397,18 +397,12 @@ void CMenuManager::DoSettingsBeforeStartingAGame() {
 
 // 0x5733E0
 float CMenuManager::StretchX(float x) {
-    if (SCREEN_WIDTH == DEFAULT_SCREEN_WIDTH)
-        return x;
-    else
-        return SCREEN_STRETCH_X(x);
+    return SCREEN_STRETCH_X(x);
 }
 
 // 0x573410
 float CMenuManager::StretchY(float y) {
-    if (SCREEN_HEIGHT == DEFAULT_SCREEN_HEIGHT)
-        return y;
-    else
-        return SCREEN_STRETCH_Y(y);
+    return SCREEN_STRETCH_Y(y);
 }
 
 // 0x573680
@@ -1157,7 +1151,7 @@ void CMenuManager::SmallMessageScreen(const char* key) {
     float x = StretchX(320.0f);
     float y = StretchY(190.0f);
 
-    const auto lines = CFont::GetNumberLinesNoPrint(StretchX(320.0f), StretchX(135.0f), TheText.Get(key));
+    const auto lines = CFont::GetNumberLines(StretchX(320.0f), StretchX(135.0f), TheText.Get(key));
     if (lines > 1) {
         y = StretchY(float(200 - lines * 9));
     }

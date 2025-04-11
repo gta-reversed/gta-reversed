@@ -13,11 +13,26 @@
 #include "ControllerState.h"
 
 // Taken from GTA3 Script Compiler (miss2.exe)
-enum {
+enum ePadID {
     PAD1 = 0,
     PAD2 = 1,
 
     MAX_PADS
+};
+
+enum eFKeyID : uint8 {
+    FKEY1,
+    FKEY2,
+    FKEY3,
+    FKEY4,
+    FKEY5,
+    FKEY6,
+    FKEY7,
+    FKEY8,
+    FKEY9,
+    FKEY10,
+    FKEY11,
+    FKEY12,
 };
 
 #define KEY_IS_PRESSED(btn)    (NewKeyState.btn && !OldKeyState.btn)
@@ -30,6 +45,10 @@ enum {
 #define MOUSE_IS_DOWN(btn)     (NewMouseControllerState.btn)
 
 class CPed;
+
+#ifdef NOTSA_USE_SDL3
+union SDL_Event;
+#endif
 
 class CPad {
 public:
@@ -102,12 +121,23 @@ public:
     static void Initialise();
     static void ClearKeyBoardHistory();
     static void ClearMouseHistory();
+
+    /* SDL Support, see `Pad_SDL.cpp` */
+#ifdef NOTSA_USE_SDL3
+    bool ProcessMouseEvent(const SDL_Event& e, CMouseControllerState& ms);
+    bool ProcessKeyboardEvent(const SDL_Event& e, CKeyboardState& ks);
+    bool ProcessGamepadEvent(const SDL_Event & e, CControllerState& cs);
+    bool ProcessJoyStickEvent(const SDL_Event& e, CControllerState& cs);
+
+    static bool ProcessEvent(const SDL_Event& e, bool ignoreMouseEvents, bool ignoreKeyboardEvents);
+#endif
+
     void Clear(bool enablePlayerControls, bool resetPhase);
 
     void Update(int32 pad);
     static void UpdatePads();
     void UpdateMouse();
-    static void ProcessPad(int numPad);
+    static void ProcessPad(ePadID padID);
     void ProcessPCSpecificStuff();
     CControllerState& ReconcileTwoControllersInput(CControllerState& out, const CControllerState& controllerA, const CControllerState& controllerB);
 
@@ -190,20 +220,20 @@ public:
     [[nodiscard]] bool GroupControlBackJustDown() const noexcept            { return !DisablePlayerControls && IsDPadDownPressed(); }                                        // 0x541260
 
     // KEYBOARD
-    [[nodiscard]] bool IsFKeyJustDown(uint8 key) const noexcept             { return NewKeyState.FKeys[key] && OldKeyState.FKeys[key]; }
-    [[nodiscard]] bool IsFKeyJustPressed(uint8 key) const noexcept          { return NewKeyState.FKeys[key] && !OldKeyState.FKeys[key]; }
-    [[nodiscard]] bool IsF1JustPressed() const noexcept                     { return IsFKeyJustPressed(0); }
-    [[nodiscard]] bool IsF2JustPressed() const noexcept                     { return IsFKeyJustPressed(1); }
-    [[nodiscard]] bool IsF3JustPressed() const noexcept                     { return IsFKeyJustPressed(2); }
-    [[nodiscard]] bool IsF4JustPressed() const noexcept                     { return IsFKeyJustPressed(3); }
-    [[nodiscard]] bool IsF5JustPressed() const noexcept                     { return IsFKeyJustPressed(4); }
-    [[nodiscard]] bool IsF6JustPressed() const noexcept                     { return IsFKeyJustPressed(5); }
-    [[nodiscard]] bool IsF7JustPressed() const noexcept                     { return IsFKeyJustPressed(6); }
-    [[nodiscard]] bool IsF8JustPressed() const noexcept                     { return IsFKeyJustPressed(7); }
-    [[nodiscard]] bool IsF9JustPressed() const noexcept                     { return IsFKeyJustPressed(8); }
-    [[nodiscard]] bool IsF10JustPressed() const noexcept                    { return IsFKeyJustPressed(9); }
-    [[nodiscard]] bool IsF11JustPressed() const noexcept                    { return IsFKeyJustPressed(10); }
-    [[nodiscard]] bool IsF12JustPressed() const noexcept                    { return IsFKeyJustPressed(11); }
+    [[nodiscard]] bool IsFKeyJustDown(eFKeyID key) const noexcept           { return NewKeyState.FKeys[key] && OldKeyState.FKeys[key]; }
+    [[nodiscard]] bool IsFKeyJustPressed(eFKeyID key) const noexcept        { return NewKeyState.FKeys[key] && !OldKeyState.FKeys[key]; }
+    [[nodiscard]] bool IsF1JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY1); }
+    [[nodiscard]] bool IsF2JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY2); }
+    [[nodiscard]] bool IsF3JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY3); }
+    [[nodiscard]] bool IsF4JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY4); }
+    [[nodiscard]] bool IsF5JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY5); }
+    [[nodiscard]] bool IsF6JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY6); }
+    [[nodiscard]] bool IsF7JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY7); }
+    [[nodiscard]] bool IsF8JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY8); }
+    [[nodiscard]] bool IsF9JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY9); }
+    [[nodiscard]] bool IsF10JustPressed() const noexcept                    { return IsFKeyJustPressed(FKEY10); }
+    [[nodiscard]] bool IsF11JustPressed() const noexcept                    { return IsFKeyJustPressed(FKEY11); }
+    [[nodiscard]] bool IsF12JustPressed() const noexcept                    { return IsFKeyJustPressed(FKEY12); }
 
     [[nodiscard]] bool IsStandardKeyJustDown(uint8 key) const noexcept      { return NewKeyState.standardKeys[key] && OldKeyState.standardKeys[key]; }                       //
     [[nodiscard]] bool IsStandardKeyJustPressed(uint8 key) const noexcept   { return NewKeyState.standardKeys[key] && !OldKeyState.standardKeys[key]; }                      // 0x4D59B0
@@ -222,7 +252,7 @@ public:
     static bool IsEnterJustPressed() noexcept                               { return IsPadEnterJustPressed() || IsReturnJustPressed(); }                                     // 0x4D5980
     static bool f0x57C330() { return !NewKeyState.enter && OldKeyState.enter || !NewKeyState.extenter && OldKeyState.extenter; }                                             // 0x57C330
 
-    static bool IsMenuKeyJustPressed() noexcept                             { return KEY_IS_PRESSED(lmenu); }                                                                // 0x744D50
+    static bool IsMenuKeyJustPressed() noexcept                             { return KEY_IS_PRESSED(lalt); }                                                                // 0x744D50
     static bool IsTabJustPressed() noexcept                                 { return KEY_IS_PRESSED(tab); }                                                                  // 0x744D90
     static bool IsEscJustPressed() noexcept                                 { return KEY_IS_PRESSED(esc); }                                                                  // 0x572DB0
 
@@ -339,8 +369,10 @@ VALIDATE_SIZE(CPad, 0x134);
 int GetCurrentKeyPressed(RsKeyCodes& keys);
 
 // todo: move these fucks out
+#ifndef NOTSA_USE_SDL3
 IDirectInputDevice8* DIReleaseMouse();
 void InitialiseMouse(bool exclusive);
+#endif
 
 /*
 Android has 99 funcs

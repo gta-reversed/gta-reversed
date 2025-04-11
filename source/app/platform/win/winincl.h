@@ -3,7 +3,6 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOGDICAPMASKS
 #define NOSYSMETRICS
-#define NOMENUS
 #define NOICONS
 #define NOSYSCOMMANDS
 #define NORASTEROPS
@@ -34,6 +33,7 @@
 
 #define INC_OLE2 // for `V_VT` and `V_UNION` macros at some headers of Windows SDK
 
+// #define NOMENUS -- `GetMenu` in `_rwD3D9CameraClear`
 // #define NOCOLOR -- Used at ImGui Win32 impl.
 // #define NOCTLMGR -- for LPCDLGTEMPLATE at some headers of Windows SDK
 // #define NONLS -- for GetACP at common.h
