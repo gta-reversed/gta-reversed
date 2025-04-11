@@ -553,14 +553,14 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                         gGxtString[254] = '\0';
                         AsciiToGxtChar("...", gGxtString2);
                         GxtCharStrcat(gGxtString, gGxtString2);
-                    }*/
+                    }
+                    */
 
                     // NOTSA: Right way for modern GxtChar
                     auto stringSavegame = std::string(GxtCharToUTF8(GetNameOfSavedGame(i - 1)));
                     if (stringSavegame.length() >= 32) {
-                        stringSavegame.resize(32 - 4);
-                        stringSavegame += "...";
-                    }/* NOTSA END */
+                        stringSavegame = std::format("{}...", stringSavegame.substr(0, 32 - 4));
+                    }
 
                     AsciiToGxtChar(stringSavegame.c_str(), gGxtString);
                     pTextToShow = gGxtString;
