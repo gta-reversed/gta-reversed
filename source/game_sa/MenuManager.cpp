@@ -87,7 +87,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(UserInput, 0x57FD70, { .reversed = false });
     RH_ScopedInstall(AdditionalOptionInput, 0x5773D0, { .reversed = false });
     RH_ScopedInstall(CheckRedefineControlInput, 0x57E4D0);
-    RH_ScopedInstall(RedefineScreenUserInput, 0x57EF50, { .reversed = false });
+    RH_ScopedInstall(RedefineScreenUserInput, 0x57EF50);
 
     RH_ScopedInstall(Process, 0x57B440);
     RH_ScopedInstall(ProcessStreaming, 0x573CF0);

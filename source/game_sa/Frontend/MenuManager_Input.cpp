@@ -29,55 +29,53 @@ void CMenuManager::UserInput() {
  * @addr 0x57B480
  */
 void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMenuOption, bool GoBackOneMenu, int8 LeftRight) {
-    if (m_nCurrentScreen == SCREEN_EMPTY || CheckRedefineControlInput()) {
+    if (m_nCurrentScreen == eMenuScreen::SCREEN_EMPTY || CheckRedefineControlInput()) {
         return;
     }
 
     // Handle down navigation
     if (GetNumberOfMenuOptions() > 1 && GoDownMenu) {
-        if (m_nCurrentScreen != SCREEN_MAP) {
+        if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
         }
 
-        auto screenIdx = m_nCurrentScreen;
         m_nCurrentScreenItem++;
         
-        for (; (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem++);
+        for (; (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem++);
 
         // Wrap around if reached end or empty item
-        if (m_nCurrentScreenItem >= eMenuEntryType::TI_OPTION || !aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType) {
-            m_nCurrentScreenItem = (aScreens[screenIdx].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) ? 1 : 0;
+        if (m_nCurrentScreenItem >= eMenuEntryType::TI_OPTION || !aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType) {
+            m_nCurrentScreenItem = (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) ? 1 : 0;
         }
     }
 
     // Handle up navigation
     if (GetNumberOfMenuOptions() > 1 && GoUpMenu) {
-        if (m_nCurrentScreen != SCREEN_MAP) {
+        if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
         }
 
-        auto screenIdx = m_nCurrentScreen;
-        auto firstItemSpecial = (aScreens[screenIdx].m_aItems[0].m_nActionType == 1);
+        auto firstItemSpecial = (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == 1);
 
         if (m_nCurrentScreenItem <= (firstItemSpecial ? 1 : 0)) {
             // Wrap to end
-            for (; m_nCurrentScreenItem < eMenuEntryType::TI_ENTER && aScreens[screenIdx].m_aItems[m_nCurrentScreenItem + 1].m_nActionType; m_nCurrentScreenItem++);
+            for (; m_nCurrentScreenItem < eMenuEntryType::TI_ENTER && aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem + 1].m_nActionType; m_nCurrentScreenItem++);
 
             // Skip entries marked as MENU_ACTION_SKIP (backwards)
-            for (; (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
+            for (; (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
 
         } else {
             // Move to previous item
             m_nCurrentScreenItem--;
 
             // Skip entries marked as MENU_ACTION_SKIP (backwards)
-            for (; (aScreens[screenIdx].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
+            for (; (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem--);
         }
     }
 
     // Handle accept action
     if (EnterMenuOption) {
-        if (m_nCurrentScreen == SCREEN_CONTROLS_DEFINITION) {
+        if (m_nCurrentScreen == eMenuScreen::SCREEN_CONTROLS_DEFINITION) {
             m_EditingControlOptions = true;
             m_bJustOpenedControlRedefWindow = true;
             m_pPressedKey = &m_KeyPressedCode;
@@ -127,8 +125,131 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
 /*!
  * @addr 0x57EF50
  */
-void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
-    plugin::CallMethod<0x57EF50, CMenuManager*, bool*, bool*>(this, accept, cancel);
+void CMenuManager::RedefineScreenUserInput(bool* enterPressed, bool* exitPressed) {
+    int selectionCount = 1; // Default value
+
+    if (!m_EditingControlOptions) {
+        // Calculate selection count based on screen and state
+        if (m_nCurrentScreen == SCREEN_CONTROLS_DEFINITION) {
+            if (!m_RedefiningControls) {
+                selectionCount = m_RedefiningControls != 0 ? 28 : 22;
+            } else if (m_RedefiningControls == 1) {
+                selectionCount = 25;
+            }
+        }
+
+        // Check for enter input
+        CPad::GetPad(0);
+        if ((CPad::NewKeyState.enter && !CPad::OldKeyState.enter || 
+             CPad::NewKeyState.extenter && !CPad::OldKeyState.extenter) && 
+            (m_nSysMenu & 0x80u) != 0 || 
+            (CPad::GetPad(0)->NewState.ButtonCross && !CPad::GetPad(0)->OldState.ButtonCross)) {
+            m_bDrawMouse = 0;
+            *enterPressed = 1;
+        }
+
+        // Handle back key for control definition
+        CPad::GetPad(0);
+        if (CPad::NewKeyState.back && !CPad::OldKeyState.back && 
+            m_nCurrentScreen == SCREEN_CONTROLS_DEFINITION && 
+            !m_JustExitedRedefine) {
+            m_MouseInBounds = 16;
+            m_EditingControlOptions = 1;
+            m_bJustOpenedControlRedefWindow = 1;
+            m_DeleteAllBoundControls = 1;
+            m_pPressedKey = &m_KeyPressedCode;
+        } else {
+            m_JustExitedRedefine = 0;
+        }
+
+        // Reset flags after timeout
+        if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B64 > 0xC8) {
+            *&field_1AF0 = 0;
+            field_1AF4 = 0;
+            FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
+        }
+
+        // Handle UP input
+        bool upPressed = CPad::NewKeyState.up || 
+                         CPad::GetAnaloguePadLeft() || 
+                         (CPad::GetPad(0)->NewState.DPadUp && !CPad::GetPad(0)->OldState.DPadUp);
+
+        bool mouseWheelUp = CPad::GetPad(0)->IsMouseWheelUp();
+        
+        if (upPressed) {
+            m_bDrawMouse = 0;
+        } else if (mouseWheelUp) {
+            m_bDrawMouse = 1;
+        }
+
+        if ((upPressed || mouseWheelUp) && !field_1AF2) {
+            field_1AF2 = 1;
+            FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
+            if (m_ListSelection > 0) {
+                m_ListSelection--;
+            } else {
+                m_ListSelection = selectionCount - 1;
+            }
+        } else if (!upPressed && !mouseWheelUp) {
+            field_1AF2 = 0;
+        }
+
+        // Handle DOWN input
+        bool downPressed = CPad::NewKeyState.down || 
+                          CPad::GetAnaloguePadDown() || 
+                          (CPad::GetPad(0)->NewState.DPadDown && !CPad::GetPad(0)->OldState.DPadDown);
+
+        bool mouseWheelDown = CPad::GetPad(0)->IsMouseWheelDown();
+        
+        if (downPressed) {
+            m_bDrawMouse = 0;
+        } else if (mouseWheelDown) {
+            m_bDrawMouse = 1;
+        }
+
+        if ((downPressed || mouseWheelDown) && !field_1AF3) {
+            field_1AF3 = 1;
+            FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
+            if (m_ListSelection == selectionCount - 1) {
+                m_ListSelection = 0;
+            } else if (m_ListSelection < selectionCount - 1) {
+                m_ListSelection++;
+            }
+        } else if (!downPressed && !mouseWheelDown) {
+            field_1AF3 = 0;
+        }
+
+        // Handle ESC / exit input
+        if ((CPad::NewKeyState.esc && !CPad::OldKeyState.esc) || 
+            (CPad::GetPad(0)->NewState.ButtonTriangle && !CPad::GetPad(0)->OldState.ButtonTriangle)) {
+            m_bDrawMouse = 0;
+            *exitPressed = 1;
+        }
+
+        // Handle mouse input for exit
+        if (CPad::GetPad(0)->IsMouseLButtonPressed() && m_MouseInBounds == 3) {
+            *exitPressed = 1;
+        }
+
+        // Handle mouse input for selection
+        if (CPad::GetPad(0)->IsMouseLButtonPressed() && m_MouseInBounds == 4) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);
+            m_MouseInBounds = 5;
+        }
+
+        // Process exit action
+        if (*exitPressed) {
+            if (m_bRadioAvailable) {
+                m_RedefiningControls = m_RedefiningControls == 0;
+                CMenuManager::DrawControllerBound(0x45u, 1u);
+                if (!m_bRadioAvailable) {
+                    m_nControllerError = (m_RedefiningControls != 0) + 1;
+                }
+            } else {
+                m_nControllerError = 3;
+            }
+        }
+    }
 }
 
 /*!
