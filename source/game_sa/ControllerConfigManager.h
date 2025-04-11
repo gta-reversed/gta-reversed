@@ -8,99 +8,132 @@
 
 #include "RenderWare.h"
 
-#include "ePadButton.h"
-
 enum eMouseButtons {
-    MOUSE_BUTTON_NONE = 0,
+    MOUSE_BUTTON_NONE,
     MOUSE_BUTTON_LEFT,
     MOUSE_BUTTON_MIDDLE,
     MOUSE_BUTTON_RIGHT,
     MOUSE_BUTTON_WHEEL_UP,
     MOUSE_BUTTON_WHEEL_DOWN,
     MOUSE_BUTTON_WHEEL_XBUTTON1,
-    MOUSE_BUTTON_WHEEL_XBUTTON2
+    MOUSE_BUTTON_WHEEL_XBUTTON2,
+    MOUSE_BUTTON_NUM
 };
 
 enum eActionType {
-    ACTION_0,
-    ACTION_1,
-    ACTION_2,
-    ACTION_3,
-    ACTION_4,
-    ACTION_5,
-    ACTION_6,
+    ACTION_FIRST_PERSON,
+    ACTION_THIRD_PERSON,
+    ACTION_IN_CAR,
+    ACTION_IN_CAR_THIRD_PERSON,
+    ACTION_COMMON_CONTROLS,
+    ACTION_FIRST_THIRD_PERSON,
+    ACTION_NOT_TYPE
 };
 
 enum eControllerAction {
-    CA_PED_FIREWEAPON,
-    CA_PED_FIREWEAPON_ALT,
-    CA_PED_CYCLE_WEAPON_RIGHT,
-    CA_PED_CYCLE_WEAPON_LEFT,
-    CA_GO_FORWARD,
-    CA_GO_BACK,
-    CA_GO_LEFT,
-    CA_GO_RIGHT,
-    CA_PED_SNIPER_ZOOM_IN,
-    CA_PED_SNIPER_ZOOM_OUT,
-    CA_VEHICLE_ENTER_EXIT,
-    CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS,
-    CA_PED_JUMPING,
-    CA_PED_SPRINT,
-    CA_PED_LOOKBEHIND,
-    CA_PED_DUCK,
-    CA_PED_ANSWER_PHONE,
-    CA_SNEAK_ABOUT,
-    CA_VEHICLE_FIREWEAPON,
-    CA_VEHICLE_FIREWEAPON_ALT,
-    CA_VEHICLE_STEERLEFT,
-    CA_VEHICLE_STEERRIGHT,
-    CA_VEHICLE_STEERUP,
-    CA_VEHICLE_STEERDOWN,
-    CA_VEHICLE_ACCELERATE,
-    CA_VEHICLE_BRAKE,
-    CA_VEHICLE_RADIO_STATION_UP,
-    CA_VEHICLE_RADIO_STATION_DOWN,
-    CA_UNKNOWN_28,
-    CA_VEHICLE_HORN = 29,
-    CA_TOGGLE_SUBMISSIONS,
-    CA_VEHICLE_HANDBRAKE,
-    CA_PED_1RST_PERSON_LOOK_LEFT,
-    CA_PED_1RST_PERSON_LOOK_RIGHT,
-    CA_VEHICLE_LOOKLEFT,
-    CA_VEHICLE_LOOKRIGHT,
-    CA_VEHICLE_LOOKBEHIND,
-    CA_VEHICLE_MOUSELOOK,
-    CA_VEHICLE_TURRETLEFT,
-    CA_VEHICLE_TURRETRIGHT,
-    CA_VEHICLE_TURRETUP,
-    CA_VEHICLE_TURRETDOWN,
-    CA_PED_CYCLE_TARGET_LEFT,
-    CA_PED_CYCLE_TARGET_RIGHT,
-    CA_PED_CENTER_CAMERA_BEHIND_PLAYER,
-    CA_PED_LOCK_TARGET,
-    CA_NETWORK_TALK,
-    CA_CONVERSATION_YES,
-    CA_CONVERSATION_NO,
-    CA_GROUP_CONTROL_FWD,
-    CA_GROUP_CONTROL_BWD,
-    CA_PED_1RST_PERSON_LOOK_UP,
-    CA_PED_1RST_PERSON_LOOK_DOWN,
-    CA_UNKNOWN_53,
-    CA_TOGGLE_DPAD = 54,
-    CA_SWITCH_DEBUG_CAM_ON,
-    CA_TAKE_SCREEN_SHOT,
-    CA_SHOW_MOUSE_POINTER_TOGGLE,
+    PED_FIRE_WEAPON = 0,
+    PED_FIRE_WEAPON_ALT = 1,
+    PED_CYCLE_WEAPON_RIGHT = 2,
+    PED_CYCLE_WEAPON_LEFT = 3,
+    GO_FORWARD = 4,
+    GO_BACK = 5,
+    GO_LEFT = 6,
+    GO_RIGHT = 7,
+    PED_SNIPER_ZOOM_IN = 8,
+    PED_SNIPER_ZOOM_OUT = 9,
+    VEHICLE_ENTER_EXIT = 10,
+    CAMERA_CHANGE_VIEW_ALL_SITUATIONS = 11,
+    PED_JUMPING = 12,
+    PED_SPRINT = 13,
+    PED_LOOKBEHIND = 14,
+    PED_DUCK = 15,
+    PED_ANSWER_PHONE = 16,
+    PED_WALK = 17,
+    VEHICLE_FIRE_WEAPON = 18,
+    VEHICLE_FIRE_WEAPON_ALT = 19,
+    VEHICLE_STEER_LEFT = 20,
+    VEHICLE_STEER_RIGHT = 21,
+    VEHICLE_STEER_UP = 22,
+    VEHICLE_STEER_DOWN = 23,
+    VEHICLE_ACCELERATE = 24,
+    VEHICLE_BRAKE = 25,
+    VEHICLE_RADIO_STATION_UP = 26,
+    VEHICLE_RADIO_STATION_DOWN = 27,
+    VEHICLE_RADIO_TRACK_SKIP = 28,
+    VEHICLE_HORN = 29,
+    TOGGLE_SUBMISSIONS = 30,
+    VEHICLE_HANDBRAKE = 31,
+    PED_1RST_PERSON_LOOK_LEFT = 32,
+    PED_1RST_PERSON_LOOK_RIGHT = 33,
+    VEHICLE_LOOKLEFT = 34,
+    VEHICLE_LOOKRIGHT = 35,
+    VEHICLE_LOOKBEHIND = 36,
+    VEHICLE_MOUSELOOK = 37,
+    VEHICLE_TURRETLEFT = 38,
+    VEHICLE_TURRETRIGHT = 39,
+    VEHICLE_TURRETUP = 40,
+    VEHICLE_TURRETDOWN = 41,
+    PED_CYCLE_TARGET_LEFT = 42,
+    PED_CYCLE_TARGET_RIGHT = 43,
+    PED_CENTER_CAMERA_BEHIND_PLAYER = 44,
+    PED_LOCK_TARGET = 45,
+    NETWORK_TALK = 46,
+    CONVERSATION_YES = 47,
+    CONVERSATION_NO = 48,
+    GROUP_CONTROL_FWD = 49,
+    GROUP_CONTROL_BWD = 50,
+    PED_1RST_PERSON_LOOK_UP = 51,
+    PED_1RST_PERSON_LOOK_DOWN = 52,
+    NUM_OF_1ST_PERSON_ACTIONS = 53,
+    TOGGLE_DPAD = 54,
+    SWITCH_DEBUG_CAM_ON = 55,
+    TAKE_SCREEN_SHOT = 56,
+    SHOW_MOUSE_POINTER_TOGGLE = 57,
+    SWITCH_CAM_DEBUG_MENU = 58,
 
-    CA_COUNT = 59
+    // notsa
+    NUM_OF_MAX_CONTROLLER_ACTIONS,
+    NUM_OF_MIN_CONTROLLER_ACTIONS = 0,
 };
 
+
+enum eContSetOrder {
+    NO_ORDER_SET = 0,
+    FIRST = 1,
+    SECOND = 2,
+    THIRD = 3,
+    FOURTH = 4,
+};
+
+enum eJOY_BUTTONS {
+    NO_JOYBUTTONS = 0,        
+    JOYBUTTON_ONE = 1,
+    JOYBUTTON_TWO = 2,
+    JOYBUTTON_THREE = 3,
+    JOYBUTTON_FOUR = 4,
+    JOYBUTTON_FIVE = 5,
+    JOYBUTTON_SIX = 6,
+    JOYBUTTON_SEVEN = 7,
+    JOYBUTTON_EIGHT = 8,
+    JOYBUTTON_NINE = 9,
+    JOYBUTTON_TEN = 10,
+    JOYBUTTON_ELEVEN = 11,
+    JOYBUTTON_TWELVE = 12,
+    JOYBUTTON_THIRTEEN = 13,
+    JOYBUTTON_FOURTEEN = 14,
+    JOYBUTTON_FIFTHTEEN = 15,
+    JOYBUTTON_SIXTEEN = 16,
+};
+
+using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
+
 struct CControllerKey {
-    uint32 KeyCode;
-    uint32 Priority;
+    KeyCode m_uiActionInitiator{};
+    eContSetOrder m_uiSetOrder{};
 };
 
 struct CControllerAction {
-    CControllerKey Keys[4];
+    CControllerKey Keys[eControllerType::CONTROLLER_NUM]{};
 };
 
 struct CPadConfig {
@@ -114,79 +147,107 @@ public:
     int32 vendorId{};
     int32 productId{};
 };
-VALIDATE_SIZE(CPadConfig, 16);
-static inline auto& PadConfigs = StaticRef<std::array<CPadConfig, 2>, 0xC92144>();
+VALIDATE_SIZE(CPadConfig, 0x10);
+static inline auto& PadConfigs = StaticRef<std::array<CPadConfig, MAX_PADS>, 0xC92144>();
 
 using ControlName = char[40];
 
 class CControllerConfigManager {
 public:
-    bool              m_bJoyJustInitialised;
-
-    DIJOYSTATE2       m_OldJoyState;
-    DIJOYSTATE2       m_NewJoyState;
-
-    char              m_arrControllerActionName[CA_COUNT][40]; // todo: 182
-    bool              m_ButtonStates[17];   // True if down, false if up or missing
-    CControllerAction m_Actions[CA_COUNT]; //!< Index is `eControllerAction`
-
-    bool m_bStickL_X_Rgh_Lft_MovementBothDown[4];
-    bool m_bStickL_Up_Dwn_MovementBothDown[4];
-    bool m_bStickR_X_Rgh_Lft_MovementBothDown[4];
-    bool m_bStickR_Up_Dwn_MovementBothDown[4];
-
-    bool MouseFoundInitSet;
-
+    bool                                                     m_WasJoyJustInitialised{};
+    DIJOYSTATE2                                              m_OldJoyState{};
+    DIJOYSTATE2                                              m_NewJoyState{};
+    std::array<GxtChar[40], NUM_OF_MAX_CONTROLLER_ACTIONS>   m_ControllerActionName{};
+    bool                                                     m_ButtonStates[17]{};     // True if down, false if up or missing, enum ePadButton?
+    std::array<CControllerAction, NUM_OF_MAX_CONTROLLER_ACTIONS> m_Actions;
+    bool                                                     m_bStickL_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool                                                     m_bStickL_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool                                                     m_bStickR_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool                                                     m_bStickR_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool                                                     m_MouseFoundInitSet;
 public:
     static void InjectHooks();
 
     CControllerConfigManager();
-    CControllerConfigManager* Constructor();
 
-
+    void ClearPedMappings(eControllerAction action, KeyCode button, eControllerType controllerType);
+    void ClearCommonMappings(eControllerAction nop, KeyCode button, eControllerType type);
+    void SetControllerKeyAssociatedWithAction(eControllerAction action, KeyCode button, eControllerType type);
+    void ClearVehicleMappings(eControllerAction nop, KeyCode button, eControllerType type);
+    void Clear1st3rdPersonMappings(eControllerAction action, KeyCode button, eControllerType type);
+    void StoreJoyButtonStates();
+    const GxtChar* GetActionKeyName(eControllerAction action);
+    const GxtChar* GetControllerSettingText(eControllerAction action, eContSetOrder priority);
+    void ClearSniperZoomMappings(eControllerAction nop, KeyCode button, eControllerType type);
+    void UnmapVehicleEnterExit(KeyCode button, eControllerType type);
+    eControllerType AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state);
+    CControllerState* AffectControllerStateOn_ButtonDown_AllStates(KeyCode button, eControllerType type, CControllerState* state);
+    int32 GetMouseButtonAssociatedWithAction(eControllerAction action);
+    eControllerType AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state);
+    int32 AffectControllerStateOn_ButtonDown_ThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state);
+    bool GetIsActionAButtonCombo(eControllerAction action);
+    int32 GetControllerKeyAssociatedWithAction(eControllerAction action, eControllerType type);
+    int32 AffectControllerStateOn_ButtonDown_FirstPersonOnly(KeyCode button, eControllerType type, CControllerState* state);
+    int32 HandleButtonRelease(KeyCode button, eControllerType type, CControllerState* state);
+    eControllerType AffectControllerStateOn_ButtonDown_Driving(KeyCode button, eControllerType type, CControllerState* state);
+    void ResetSettingOrder(eControllerAction action);
+    void HandleJoyButtonUpDown(int32 joyNo, bool isDown);
     bool LoadSettings(FILESTREAM file);
-    void SaveSettings(FILESTREAM file);
-
+    bool SaveSettings(FILESTREAM file);
+    void InitDefaultControlConfigJoyPad(uint32 buttonCount);
     void InitDefaultControlConfiguration();
     void InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller);
     void InitialiseControllerActionNameArray();
     void ReinitControls();
-
-    void SetMouseButtonAssociatedWithAction(eControllerAction action, RsKeyCodes button);
-
+    int8 SetMouseButtonAssociatedWithAction(eControllerAction action, KeyCode button);
     void StoreMouseButtonState(eMouseButtons button, bool state);
-    void UpdateJoyInConfigMenus_ButtonDown(ePadButton button, int32 padNumber);
-    void UpdateJoy_ButtonDown(ePadButton button, int32 unk);
+    void UpdateJoyInConfigMenus_ButtonDown(KeyCode button, int32 padNumber);
+    void UpdateJoy_ButtonDown(KeyCode button, eControllerType type);
     void AffectControllerStateOn_ButtonDown_DebugStuff(int32, eControllerType);
-    void UpdateJoyInConfigMenus_ButtonUp(ePadButton button, int32 padNumber);
-    void UpdateJoy_ButtonUp(ePadButton button, int32 unk);
+    void UpdateJoyInConfigMenus_ButtonUp(KeyCode button, int32 padNumber);
+    void UpdateJoy_ButtonUp(KeyCode button, eControllerType type);
     void AffectControllerStateOn_ButtonUp_DebugStuff(int32, eControllerType);
     void ClearSimButtonPressCheckers();
-
-    bool GetJoyButtonJustUp();
-    bool GetJoyButtonJustDown();
-    bool GetIsKeyboardKeyDown(RsKeyCodes key);
-    bool GetIsKeyboardKeyJustDown(RsKeyCodes key);
-    bool GetIsMouseButtonDown(RsKeyCodes key);
-    bool GetIsMouseButtonUp(RsKeyCodes key);
-    bool GetIsMouseButtonJustUp(RsKeyCodes key);
-    bool GetIsKeyBlank(int32 a1, eControllerType controller);
+    int32 GetJoyButtonJustUp();
+    int32 GetJoyButtonJustDown();
+    bool GetIsKeyboardKeyDown(KeyCode button);
+    bool GetIsKeyboardKeyJustDown(KeyCode button);
+    bool GetIsMouseButtonDown(KeyCode button);
+    bool GetIsMouseButtonUp(KeyCode button);
+    bool GetIsMouseButtonJustUp(KeyCode button);
+    bool GetIsKeyBlank(KeyCode button, eControllerType controller);
     eActionType GetActionType(eControllerAction action);
-    char* GetControllerSettingTextMouse(eControllerAction action);
-    char* GetControllerSettingTextJoystick(eControllerAction action);
-    void StoreJoyButtonStates();
-    void HandleJoyButtonUpDown(int32 joyNo, bool isDown); // NOTSA
-
     void ClearSettingsAssociatedWithAction(eControllerAction action, eControllerType type);
+    const GxtChar* GetControllerSettingTextMouse(eControllerAction action);
+    const GxtChar* GetControllerSettingTextJoystick(eControllerAction action);
     void MakeControllerActionsBlank();
     void AffectPadFromKeyBoard();
     void AffectPadFromMouse();
-    void DeleteMatchingActionInitiators(eControllerAction Action, int32 KeyToBeChecked, eControllerType ControllerTypeToBeChecked);
+    void DeleteMatchingActionInitiators(eControllerAction action, KeyCode button, eControllerType controllerType);
+    const GxtChar* GetKeyNameForKeyboard(eControllerAction action, eControllerType type);
+    const GxtChar* GetButtonComboText(eControllerAction event);
 
-    void GetDefinedKeyByGxtName(uint16 actionId, char* buf, uint16 bufsz);
+    const GxtChar* GetDefinedKeyByGxtName(eControllerAction action);
 
     // NOTSA
-    uint16 GetActionIDByName(std::string_view name);
+    eControllerAction GetActionIDByName(std::string_view name);
+
+private:
+    bool CheckMouseButtonState(KeyCode button);
+    bool CheckMouseButtonJustUpState(KeyCode button);
+    bool IsCheckSpecificGamepad();
+    void CheckAndClear(eControllerAction action, eControllerType type, KeyCode button);
+    void CheckAndSetButton(eControllerAction action, eControllerType type, KeyCode button, int16& state);
+    void CheckAndSetPad(eControllerAction action, eControllerType type, KeyCode button, int16& dpad, int16& oppositeDpad);
+    static bool UseDrivingControls();
+    static bool UseFirstPersonControls();
+    static CControllerState& GetControllerState(CPad& pad, eControllerType ctrl);
+
+private:
+    CControllerConfigManager* Constructor() {
+        this->CControllerConfigManager::CControllerConfigManager();
+        return this;
+    }
 };
 VALIDATE_SIZE(CControllerConfigManager, 0x12E4);
 

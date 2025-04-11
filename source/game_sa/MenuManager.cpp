@@ -48,13 +48,13 @@ void CMenuManager::InjectHooks() {
 
     RH_ScopedInstall(DrawFrontEnd, 0x57C290);
     RH_ScopedInstall(DrawBackground, 0x57B750);
-    RH_ScopedInstall(DrawStandardMenus, 0x5794A0, { .reversed = false });
+    RH_ScopedInstall(DrawStandardMenus, 0x5794A0);
     RH_ScopedInstall(DrawWindow, 0x573EE0);
     RH_ScopedInstall(DrawWindowedText, 0x578F50);
     RH_ScopedInstall(DrawQuitGameScreen, 0x57D860);
-    RH_ScopedInstall(DrawControllerScreenExtraText, 0x57D8D0, { .reversed = false });
-    RH_ScopedInstall(DrawControllerBound, 0x57E6E0, { .reversed = false });
-    RH_ScopedInstall(DrawControllerSetupScreen, 0x57F300, { .reversed = false });
+    RH_ScopedInstall(DrawControllerScreenExtraText, 0x57D8D0);
+    RH_ScopedInstall(DrawControllerBound, 0x57E6E0);
+    RH_ScopedInstall(DrawControllerSetupScreen, 0x57F300);
 
     RH_ScopedInstall(CentreMousePointer, 0x57C520);
     RH_ScopedInstall(LoadSettings, 0x57C8F0);
@@ -70,7 +70,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(CheckForMenuClosing, 0x576B70, { .locked = true });  // Must be hooked at all times otherwise imgui/sdl stops working! [The input at least does]
     RH_ScopedInstall(CheckHover, 0x57C4F0);
     RH_ScopedInstall(CheckMissionPackValidMenu, 0x57D720);
-    RH_ScopedInstall(CheckCodesForControls, 0x57DB20, { .reversed = false });
+    RH_ScopedInstall(CheckCodesForControls, 0x57DB20);
 
     RH_ScopedInstall(DisplaySlider, 0x576860);
     RH_ScopedInstall(DisplayHelperText, 0x57E240);
@@ -92,7 +92,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(Process, 0x57B440);
     RH_ScopedInstall(ProcessStreaming, 0x573CF0);
     RH_ScopedInstall(ProcessFileActions, 0x578D60);
-    RH_ScopedInstall(ProcessUserInput, 0x57B480, { .reversed = false });
+    RH_ScopedInstall(ProcessUserInput, 0x57B480);
     RH_ScopedInstall(ProcessMenuOptions, 0x576FE0);
     RH_ScopedInstall(ProcessPCMenuOptions, 0x57CD50);
     RH_ScopedInstall(ProcessMissionPackNewGame, 0x57D520);
@@ -113,7 +113,7 @@ CMenuManager::CMenuManager() {
     m_MenuIsAbleToQuit            = false;
     m_nTitleLanguage              = 9;
     m_nUserTrackIndex             = 0;
-    m_nController                 = 0;
+    m_ControlMethod                 = false;
     CCamera::m_bUseMouse3rdPerson = 1;
     m_nMousePosX                  = m_nMousePosWinX;
     m_ListSelection               = 0;
@@ -132,9 +132,9 @@ CMenuManager::CMenuManager() {
     m_bAllStreamingStuffLoaded = false;
 
     m_bLanguageChanged  = false;
-    m_nPrefsLanguage    = eLanguage::AMERICAN;
+    m_nPrefsLanguage    = eLanguage::ENGLISH;
     m_nTextLanguage     = 0;
-    m_nPreviousLanguage = eLanguage::AMERICAN;
+    m_nPreviousLanguage = eLanguage::ENGLISH;
     m_SystemLanguage    = 0;
 
     m_DisplayControllerOnFoot = false;
@@ -143,7 +143,7 @@ CMenuManager::CMenuManager() {
     m_bMenuActive             = false;
     m_bIsSaveDone             = false;
     m_bLoadingData            = false;
-    field_F4                  = false;
+    m_isPreInitialised                  = false;
     m_fStatsScrollSpeed       = 150.0f;
     m_nStatsScrollDirection   = 1;
     m_KeyPressedCode          = (RsKeyCodes)-1;
@@ -173,7 +173,7 @@ void CMenuManager::Initialise() {
     m_nPlayerNumber = 0;
     field_1B1C = 0;
     m_nCurrentScreenItem = 0;
-    m_bSelectedSaveGame = 0;
+    m_SelectedSlot = 0;
     if (m_bDoVideoModeUpdate) {
         RwD3D9ChangeMultiSamplingLevels(m_nPrefsAntialiasing);
         SetVideoMode(m_nPrefsVideoMode);
@@ -205,7 +205,7 @@ void CMenuManager::Initialise() {
 
     CRadar::SetMapCentreToPlayerCoords();
     CPad::StopPadsShaking();
-    if (!field_F4) {
+    if (!m_isPreInitialised) {
         m_nCurrentScreen = SCREEN_INITIAL;
         m_bMapLoaded = true;
         m_nOldMousePosX = 0;
@@ -339,7 +339,7 @@ void CMenuManager::InitialiseChangedLanguageSettings(bool reinitControls) {
     auto lang88 = static_cast<eLanguage>(m_SystemLanguage);
     if (lang88 != eLanguage::FRENCH && lang88 != eLanguage::GERMAN) {
         switch (m_nPrefsLanguage) {
-        case eLanguage::AMERICAN:
+        case eLanguage::ENGLISH:
         case eLanguage::GERMAN:
         case eLanguage::ITALIAN:
         case eLanguage::SPANISH:
@@ -397,18 +397,12 @@ void CMenuManager::DoSettingsBeforeStartingAGame() {
 
 // 0x5733E0
 float CMenuManager::StretchX(float x) {
-    if (SCREEN_WIDTH == DEFAULT_SCREEN_WIDTH)
-        return x;
-    else
-        return SCREEN_STRETCH_X(x);
+    return SCREEN_STRETCH_X(x);
 }
 
 // 0x573410
 float CMenuManager::StretchY(float y) {
-    if (SCREEN_HEIGHT == DEFAULT_SCREEN_HEIGHT)
-        return y;
-    else
-        return SCREEN_STRETCH_Y(y);
+    return SCREEN_STRETCH_Y(y);
 }
 
 // 0x573680
@@ -560,12 +554,12 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_bShowSubtitles                 = true;
         break;
     case SCREEN_CONTROLLER_SETUP:
-        m_nController                    = 0;
+        m_ControlMethod                    = false;
         CCamera::m_fMouseAccelHorzntl    = 0.0025f;
         CCamera::m_bUseMouse3rdPerson    = true;
         CVehicle::m_bEnableMouseFlying   = true;
         CVehicle::m_bEnableMouseSteering = false;
-        bInvertMouseY                    = false;
+        bInvertMouseY                    = false; // NOSTA FIX
         m_bInvertPadX1                   = false;
         m_bInvertPadY1                   = false;
         m_bInvertPadX2                   = false;
@@ -648,176 +642,191 @@ void CMenuManager::CentreMousePointer() {
 // 0x57C8F0
 void CMenuManager::LoadSettings() {
     CFileMgr::SetDirMyDocuments();
+    FILE* file = nullptr;
+    eLanguage prevLanguage = m_nPrefsLanguage;
+    // bInvertMouseY = true; // NOSTA FIX
+    
+    try {
+        file = CFileMgr::OpenFile("gta_sa.set", "rb");
+        if (!file) {
+            throw std::runtime_error("Cannot open settings file");
+        }
 
-    auto file = CFileMgr::OpenFile("gta_sa.set", "rb");
-    if (!file) {
-        CFileMgr::SetDir("");
-        return;
+        const auto ReadFromFile = [&](auto& ref, size_t size = 0u) {
+            CFileMgr::Read(file, &ref, size != 0 ? size : sizeof(ref));
+        };
+
+        // Check for invalid file
+        char buf[29]{0};
+        ReadFromFile(buf, 29u);
+        if (!strncmp(buf, TopLineEmptyFile, 26u)) {
+            throw std::runtime_error("Invalid file format");
+        }
+
+        // Reset position
+        CFileMgr::Seek(file, 0, 0);
+
+        uint32 version = 0u;
+        struct { uint8 m_unk; uint8 m_separator; uint8 m_underscore; uint8 _align; } constants;
+        FxQuality_e fxQuality = FX_QUALITY_HIGH;
+        auto previousLang = m_nPrefsLanguage;
+
+        ReadFromFile(version);
+        if (version < SETTINGS_FILE_VERSION || !ControlsManager.LoadSettings(file)) {
+            throw std::runtime_error("Incompatible settings version");
+        }
+
+        ReadFromFile(CCamera::m_fMouseAccelHorzntl);
+        ReadFromFile(bInvertMouseY);
+        ReadFromFile(CVehicle::m_bEnableMouseSteering);
+        ReadFromFile(CVehicle::m_bEnableMouseFlying);
+        ReadFromFile(m_nSfxVolume);
+        ReadFromFile(m_nRadioVolume);
+        ReadFromFile(m_nRadioStation);
+        ReadFromFile(m_bRadioAutoSelect);
+        ReadFromFile(m_bRadioEq);
+        ReadFromFile(m_PrefsBrightness);
+        ReadFromFile(m_bPrefsMipMapping);
+        ReadFromFile(m_bTracksAutoScan);
+        ReadFromFile(m_nDisplayAntialiasing);
+        ReadFromFile(fxQuality);
+        ReadFromFile(constants.m_unk);
+        ReadFromFile(m_fDrawDistance);
+        ReadFromFile(m_bShowSubtitles);
+        ReadFromFile(m_bWidescreenOn);
+        ReadFromFile(m_bPrefsFrameLimiter);
+        ReadFromFile(m_nDisplayVideoMode);
+        ReadFromFile(m_ControlMethod);
+        ReadFromFile(m_nPrefsLanguage);
+        ReadFromFile(m_bHudOn);
+        ReadFromFile(m_nRadarMode);
+        ReadFromFile(m_nRadioMode);
+        ReadFromFile(m_bSavePhotos);
+        ReadFromFile(constants.m_separator);
+        ReadFromFile(m_bInvertPadX1);
+        ReadFromFile(m_bInvertPadY1);
+        ReadFromFile(m_bInvertPadX2);
+        ReadFromFile(m_bInvertPadY2);
+        ReadFromFile(m_bSwapPadAxis1);
+        ReadFromFile(m_bSwapPadAxis2);
+        ReadFromFile(m_bMapLegend);
+        ReadFromFile(m_nUserTrackIndex);
+        ReadFromFile(m_nCurrentRwSubsystem);
+        ReadFromFile(constants.m_underscore);
+
+        if (constants.m_unk != 'T' ||
+            constants.m_separator != 0x1D || // ASCII GS - Group Separator
+            constants.m_underscore != '_') 
+        {
+            throw std::runtime_error("Invalid settings data");
+        }
+
+        // Apply settings
+        CCamera::m_bUseMouse3rdPerson = (m_ControlMethod == false) ? true : false;
+        CRenderer::ms_lodDistScale = m_fDrawDistance;
+        g_fx.SetFxQuality(fxQuality);
+        SetBrightness(static_cast<float>(m_PrefsBrightness), true);
+        m_nPrefsAntialiasing = m_nDisplayAntialiasing;
+        m_bDoVideoModeUpdate = true;
+        AudioEngine.SetMusicMasterVolume(m_nRadioVolume);
+        AudioEngine.SetEffectsMasterVolume(m_nSfxVolume);
+        AudioEngine.SetBassEnhanceOnOff(m_bRadioEq);
+        AudioEngine.SetRadioAutoRetuneOnOff(m_bRadioAutoSelect);
+        AudioEngine.RetuneRadio(m_nRadioStation);
+
+        // Handle language change
+        if (previousLang == m_nPrefsLanguage) {
+            field_8C = false;
+        } else {
+            field_8C = true;
+            TheText.Load(false);
+            m_bLanguageChanged = true;
+            InitialiseChangedLanguageSettings(false);
+            OutputDebugStringA("The previously saved language is now in use"); // SA
+        }
     }
-
-    const auto SetToDefaultSettings = [&]() {
+    catch (const std::exception&) {
+        // In case of any error, set defaults
         SetDefaultPreferences(SCREEN_AUDIO_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
         SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
-        m_nPrefsVideoMode = 0;
-        m_nPrefsLanguage = eLanguage::AMERICAN;
+        m_nCurrentRwSubsystem = 0;
+        m_nPrefsLanguage = prevLanguage;
         m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
+    }
 
+    // Clean up
+    if (file) {
         CFileMgr::CloseFile(file);
-        CFileMgr::SetDir("");
-    };
-
-    const auto ReadFromFile = [&](auto& ref, size_t size = 0u) {
-        CFileMgr::Read(file, &ref, size != 0 ? size : sizeof(ref));
-    };
-
-    {
-        char buf[29]{0};
-        ReadFromFile(buf, 29u);
-        if (!strncmp(buf, TopLineEmptyFile, 26u)) {
-            return SetToDefaultSettings();
-        }
-
-        CFileMgr::Seek(file, 0, 0);
     }
-
-    uint32 version = 0u;
-    struct { uint8 m_unk; uint8 m_separator; uint8 m_underscore; uint8 _align; } constants;
-    FxQuality_e fxQuality = FX_QUALITY_HIGH;
-    auto previousLang = m_nPrefsLanguage;
-
-    ReadFromFile(version);
-    if (version < SETTINGS_FILE_VERSION || !ControlsManager.LoadSettings(file)) {
-        return SetToDefaultSettings();
-    }
-
-    ReadFromFile(CCamera::m_fMouseAccelHorzntl);
-    ReadFromFile(bInvertMouseY);
-    ReadFromFile(CVehicle::m_bEnableMouseSteering);
-    ReadFromFile(CVehicle::m_bEnableMouseFlying);
-    ReadFromFile(m_nSfxVolume);
-    ReadFromFile(m_nRadioVolume);
-    ReadFromFile(m_nRadioStation);
-    ReadFromFile(m_bRadioAutoSelect);
-    ReadFromFile(m_bRadioEq);
-    ReadFromFile(m_PrefsBrightness);
-    ReadFromFile(m_bPrefsMipMapping);
-    ReadFromFile(m_bTracksAutoScan);
-    ReadFromFile(m_nDisplayAntialiasing);
-    ReadFromFile(fxQuality);
-    ReadFromFile(constants.m_unk);
-    ReadFromFile(m_fDrawDistance);
-    ReadFromFile(m_bShowSubtitles);
-    ReadFromFile(m_bWidescreenOn);
-    ReadFromFile(m_bPrefsFrameLimiter);
-    ReadFromFile(m_nDisplayVideoMode);
-    ReadFromFile(m_nController);
-    ReadFromFile(m_nPrefsLanguage);
-    ReadFromFile(m_bHudOn);
-    ReadFromFile(m_nRadarMode);
-    ReadFromFile(m_nRadioMode);
-    ReadFromFile(m_bSavePhotos);
-    ReadFromFile(constants.m_separator);
-    ReadFromFile(m_bInvertPadX1);
-    ReadFromFile(m_bInvertPadY1);
-    ReadFromFile(m_bInvertPadX2);
-    ReadFromFile(m_bInvertPadY2);
-    ReadFromFile(m_bSwapPadAxis1);
-    ReadFromFile(m_bSwapPadAxis2);
-    ReadFromFile(m_bMapLegend);
-    ReadFromFile(m_nUserTrackIndex);
-    ReadFromFile(m_nCurrentRwSubsystem);
-    ReadFromFile(constants.m_underscore);
-
-    if (constants.m_unk != 'T' ||
-        constants.m_separator != 0x1D || // ASCII GS - Group Separator
-        constants.m_underscore != '_'
-    ) {
-        return SetToDefaultSettings();
-    }
-
-    CCamera::m_bUseMouse3rdPerson = m_nController == 0;
-    CRenderer::ms_lodDistScale = m_fDrawDistance;
-    g_fx.SetFxQuality(fxQuality);
-    SetBrightness(static_cast<float>(m_PrefsBrightness), true);
-    m_nPrefsAntialiasing = m_nDisplayAntialiasing;
-    m_bDoVideoModeUpdate = true;
-    AudioEngine.SetMusicMasterVolume(m_nRadioVolume);
-    AudioEngine.SetEffectsMasterVolume(m_nSfxVolume);
-    AudioEngine.SetBassEnhanceOnOff(m_bRadioEq);
-    AudioEngine.SetRadioAutoRetuneOnOff(m_bRadioAutoSelect);
-    AudioEngine.RetuneRadio(m_nRadioStation);
-
-    if (previousLang == m_nPrefsLanguage) {
-        field_8C = false;
-    } else {
-        field_8C = true;
-        TheText.Load(false);
-        m_bLanguageChanged = true;
-        InitialiseChangedLanguageSettings(false);
-        OutputDebugStringA("The previously saved language is now in use"); // SA
-    }
-
-    CFileMgr::CloseFile(file);
     CFileMgr::SetDir("");
 }
 
 // 0x57C660
 void CMenuManager::SaveSettings() {
     CFileMgr::SetDirMyDocuments();
+    FILE* file = nullptr;
+    
+    try {
+        file = CFileMgr::OpenFile("gta_sa.set", "w+b");
+        if (!file) {
+            throw std::runtime_error("Cannot create settings file");
+        }
 
-    auto file = CFileMgr::OpenFile("gta_sa.set", "w+b");
-    if (!file) {
-        CFileMgr::SetDir("");
-        return;
+        const auto WriteToFile = [&](auto&& v, size_t size = 0u) {
+            CFileMgr::Write(file, &v, size != 0 ? size : sizeof(v));
+        };
+
+        // Write file version and settings
+        WriteToFile(SETTINGS_FILE_VERSION);
+        ControlsManager.SaveSettings(file);
+        WriteToFile(CCamera::m_fMouseAccelHorzntl);
+        WriteToFile(bInvertMouseY);
+        WriteToFile(CVehicle::m_bEnableMouseSteering);
+        WriteToFile(CVehicle::m_bEnableMouseFlying);
+        WriteToFile(m_nSfxVolume);
+        WriteToFile(m_nRadioVolume);
+        WriteToFile(m_nRadioStation);
+        WriteToFile(m_bRadioAutoSelect);
+        WriteToFile(m_bRadioEq);
+        WriteToFile(m_PrefsBrightness);
+        WriteToFile(m_bPrefsMipMapping);
+        WriteToFile(m_bTracksAutoScan);
+        WriteToFile(m_nPrefsAntialiasing);
+        WriteToFile(g_fx.GetFxQuality());
+        WriteToFile(int8(84)); // 'T'
+        WriteToFile(m_fDrawDistance);
+        WriteToFile(m_bShowSubtitles);
+        WriteToFile(m_bWidescreenOn);
+        WriteToFile(m_bPrefsFrameLimiter);
+        WriteToFile(m_nPrefsVideoMode);
+        WriteToFile(m_ControlMethod);
+        WriteToFile(m_nPrefsLanguage);
+        WriteToFile(m_bHudOn);
+        WriteToFile(m_nRadarMode);
+        WriteToFile(m_nRadioMode);
+        WriteToFile(m_bSavePhotos);
+        WriteToFile(int8(29)); // ASCII GS - Group Separator (0x1D)
+        WriteToFile(m_bInvertPadX1);
+        WriteToFile(m_bInvertPadY1);
+        WriteToFile(m_bInvertPadX2);
+        WriteToFile(m_bInvertPadY2);
+        WriteToFile(m_bSwapPadAxis1);
+        WriteToFile(m_bSwapPadAxis2);
+        WriteToFile(m_bMapLegend);
+        WriteToFile(m_nUserTrackIndex);
+        WriteToFile(RwEngineGetCurrentSubSystem());
+        WriteToFile(int8(95)); // '_' underscore
     }
-
-    const auto WriteToFile = [&](auto&& v, size_t size = 0u) {
-        CFileMgr::Write(file, &v, size != 0 ? size : sizeof(v));
-    };
-
-    WriteToFile(SETTINGS_FILE_VERSION);
-    ControlsManager.SaveSettings(file);
-    WriteToFile(CCamera::m_fMouseAccelHorzntl);
-    WriteToFile(bInvertMouseY);
-    WriteToFile(CVehicle::m_bEnableMouseSteering);
-    WriteToFile(CVehicle::m_bEnableMouseFlying);
-    WriteToFile(m_nSfxVolume);
-    WriteToFile(m_nRadioVolume);
-    WriteToFile(m_nRadioStation);
-    WriteToFile(m_bRadioAutoSelect);
-    WriteToFile(m_bRadioEq);
-    WriteToFile(m_PrefsBrightness);
-    WriteToFile(m_bPrefsMipMapping);
-    WriteToFile(m_bTracksAutoScan);
-    WriteToFile(m_nPrefsAntialiasing);
-    WriteToFile(g_fx.GetFxQuality());
-    WriteToFile(int8(84)); // T
-    WriteToFile(m_fDrawDistance);
-    WriteToFile(m_bShowSubtitles);
-    WriteToFile(m_bWidescreenOn);
-    WriteToFile(m_bPrefsFrameLimiter);
-    WriteToFile(m_nPrefsVideoMode);
-    WriteToFile(m_nController);
-    WriteToFile(m_nPrefsLanguage);
-    WriteToFile(m_bHudOn);
-    WriteToFile(m_nRadarMode);
-    WriteToFile(m_nRadioMode);
-    WriteToFile(m_bSavePhotos);
-    WriteToFile(int8(29)); // GS - Group Separator
-    WriteToFile(m_bInvertPadX1);
-    WriteToFile(m_bInvertPadY1);
-    WriteToFile(m_bInvertPadX2);
-    WriteToFile(m_bInvertPadY2);
-    WriteToFile(m_bSwapPadAxis1);
-    WriteToFile(m_bSwapPadAxis2);
-    WriteToFile(m_bMapLegend);
-    WriteToFile(m_nUserTrackIndex);
-    WriteToFile(RwEngineGetCurrentSubSystem());
-    WriteToFile(int8(95)); // _ underscore
-
-    CFileMgr::CloseFile(file);
+    catch (const std::exception&) {
+        // Simply ignore write errors, but ensure cleanup
+    }
+    
+    // Clean up
+    if (file) {
+        CFileMgr::CloseFile(file);
+    }
     CFileMgr::SetDir("");
 }
 
@@ -1162,7 +1171,7 @@ void CMenuManager::SmallMessageScreen(const char* key) {
 //! NOTSA
 void CMenuManager::SimulateGameLoad(bool newGame, uint32 slot) {
     m_bDontDrawFrontEnd     = newGame;
-    m_bSelectedSaveGame     = slot;
+    m_SelectedSlot     = slot;
     CGame::bMissionPackGame = false;
     if (newGame) {
         DoSettingsBeforeStartingAGame();

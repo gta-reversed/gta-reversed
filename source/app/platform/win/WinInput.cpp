@@ -154,6 +154,7 @@ void diPadInit() {
         WIN_FCHECK(diPadSetRanges(dev, padNum));
         diPadSetPIDVID(dev, padNum);
         PadConfigs[padNum].present  = true;
+        ControlsManager.InitDefaultControlConfigJoyPad(36u);
     };
     InitializePad(PSGLOBAL(diDevice1), 0);
     InitializePad(PSGLOBAL(diDevice2), 1);
@@ -201,16 +202,14 @@ CMouseControllerState GetMouseState() {
 
     if (PSGLOBAL(diMouse)) {
         if (SUCCEEDED(PSGLOBAL(diMouse)->GetDeviceState(sizeof(DIMOUSESTATE2), &mouseState))) {
-            state.X = static_cast<float>(mouseState.lX);
-            state.Y = static_cast<float>(mouseState.lY);
-            state.Z = static_cast<float>(mouseState.lZ);
-            state.wheelUp = (mouseState.lZ > 0);
-            state.wheelDown = (mouseState.lZ < 0);
-            state.lmb = mouseState.rgbButtons[0] & 0x80;
-            state.rmb = mouseState.rgbButtons[1] & 0x80;
-            state.mmb = mouseState.rgbButtons[2] & 0x80;
-            state.bmx1 = mouseState.rgbButtons[3] & 0x80;
-            state.bmx2 = mouseState.rgbButtons[4] & 0x80;
+            state.m_AmountMoved = CVector2D(static_cast<float>(mouseState.lX), static_cast<float>(mouseState.lY));
+            state.isMouseWheelMovedUp = (mouseState.lZ > 0);
+            state.isMouseWheelMovedDown = (mouseState.lZ < 0);
+            state.isMouseLeftButtonPressed = mouseState.rgbButtons[0] & 0x80;
+            state.isMouseRightButtonPressed = mouseState.rgbButtons[1] & 0x80;
+            state.isMouseMiddleButtonPressed = mouseState.rgbButtons[2] & 0x80;
+            state.isMouseFirstXPressed = mouseState.rgbButtons[3] & 0x80;
+            state.isMouseSecondXPressed = mouseState.rgbButtons[4] & 0x80;
         }
     } else {
 		diMouseInit(!FrontEndMenuManager.m_bMenuActive && IsVideoModeExclusive());

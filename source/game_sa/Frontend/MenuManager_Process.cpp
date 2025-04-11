@@ -80,7 +80,7 @@ void CMenuManager::ProcessFileActions() {
     switch (m_nCurrentScreen) {
     case SCREEN_LOAD_FIRST_SAVE:
         if (field_1B3C) {
-            if (CGenericGameStorage::CheckSlotDataValid(m_bSelectedSaveGame)) {
+            if (CGenericGameStorage::CheckSlotDataValid(m_SelectedSlot)) {
                 if (!m_bMainMenuSwitch) {
                     DoSettingsBeforeStartingAGame();
                 }
@@ -103,7 +103,7 @@ void CMenuManager::ProcessFileActions() {
 
     case SCREEN_DELETE_FINISHED:
         if (field_1B3D) {
-            if (s_PcSaveHelper.DeleteSlot(m_bSelectedSaveGame)) {
+            if (s_PcSaveHelper.DeleteSlot(m_SelectedSlot)) {
                 s_PcSaveHelper.PopulateSlotInfo();
                 SwitchToNewScreen(SCREEN_DELETE_SUCCESSFUL);
                 m_nCurrentScreenItem = true;
@@ -139,7 +139,7 @@ void CMenuManager::ProcessFileActions() {
                 }
             }
 
-            if (s_PcSaveHelper.SaveSlot(m_bSelectedSaveGame)) {
+            if (s_PcSaveHelper.SaveSlot(m_SelectedSlot)) {
                 // Save Game
                 //
                 // Save failed! There was an error while saving the current game.
@@ -198,13 +198,14 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
         DoSettingsBeforeStartingAGame();
         return;
     case MENU_ACTION_SAVE_SLOT:
-        if (item->m_nType >= MENU_ENTRY_SAVE_1 && item->m_nType <= MENU_ENTRY_SAVE_8) {
+        if (item->m_nType >= eMenuEntryType::TI_SLOT1 && item->m_nType <= eMenuEntryType::TI_SLOT8) {
             auto slot = CGenericGameStorage::ms_Slots[m_nCurrentScreenItem - 1];
-            m_bSelectedSaveGame = m_nCurrentScreenItem - 1;
+            
+            m_SelectedSlot = m_nCurrentScreenItem - 1;
 
-            if (m_nCurrentScreen == SCREEN_DELETE_GAME && slot != eSlotState::EMPTY) {
+            if (m_nCurrentScreen == SCREEN_DELETE_GAME && slot != eSlotState::SLOT_FREE) {
                 SwitchToNewScreen(SCREEN_DELETE_GAME_ASK);
-            } else if (slot == eSlotState::IN_USE) {
+            } else if (slot == eSlotState::SLOT_FILLED) {
                 SwitchToNewScreen(SCREEN_LOAD_GAME_ASK);
             }
         }
@@ -218,9 +219,9 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
         m_bDontDrawFrontEnd = true;
         return;
     case MENU_ACTION_SAVE_GAME:
-        if (item->m_nType >= MENU_ENTRY_SAVE_1 && item->m_nType <= MENU_ENTRY_SAVE_8) {
+        if (item->m_nType >= eMenuEntryType::TI_SLOT1 && item->m_nType <= eMenuEntryType::TI_SLOT8) {
             auto slot = CGenericGameStorage::ms_Slots[m_nCurrentScreenItem - 1];
-            m_bSelectedSaveGame = m_nCurrentScreenItem - 1;
+            m_SelectedSlot = m_nCurrentScreenItem - 1;
 
             SwitchToNewScreen(SCREEN_SAVE_WRITE_ASK);
         }
@@ -303,10 +304,10 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
     case MENU_ACTION_LANGUAGE: {
         // todo: MORE_LANGUAGES; does this ever execute?
         auto prevLanguage = m_nPrefsLanguage;
-        if (pressedLR <= 0 && prevLanguage == eLanguage::AMERICAN) {
+        if (pressedLR <= 0 && prevLanguage == eLanguage::ENGLISH) {
             m_nPrefsLanguage = eLanguage::SPANISH;
         } else if (prevLanguage == eLanguage::SPANISH) {
-            m_nPrefsLanguage = eLanguage::AMERICAN;
+            m_nPrefsLanguage = eLanguage::ENGLISH;
         }
 
         m_nPreviousLanguage = (eLanguage)-99; // what the fuck
@@ -332,15 +333,15 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         m_bScanningUserTracks = true;
         return true;
     case MENU_ACTION_CTRLS_JOYPAD:
-        SwitchToNewScreen(m_nController == 1 ? SCREEN_JOYPAD_SETTINGS : SCREEN_MOUSE_SETTINGS);
+        SwitchToNewScreen(m_ControlMethod ? SCREEN_JOYPAD_SETTINGS : SCREEN_MOUSE_SETTINGS);
         return true;
     case MENU_ACTION_CTRLS_FOOT: // Redefine Controls -> Foot Controls
-        field_B7 = 0;
+        m_RedefiningControls = false;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
     case MENU_ACTION_CTRLS_CAR: // Redefine Controls -> Vehicle Controls
-        field_B7 = 1;
+        m_RedefiningControls = true;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
@@ -416,6 +417,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
             }
             m_nPrefsAntialiasing = m_nDisplayAntialiasing;
             RwD3D9ChangeMultiSamplingLevels(m_nDisplayAntialiasing);
+            // ((void(*)(int))0x745C70)(m_nPrefsVideoMode);
             SetVideoMode(m_nPrefsVideoMode);
             SaveSettings();
             return true;
@@ -432,14 +434,14 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         return true;
     }
     case MENU_ACTION_45:
-        field_1B14 = 1;
-        field_1B09 = 1;
+        m_CanBeDefined = true;
+        m_EditingControlOptions = true;
         m_bJustOpenedControlRedefWindow = true;
-        field_1B0C = m_nCurrentScreenItem;
+        m_OptionToChange = m_nCurrentScreenItem;
         m_pPressedKey = &m_KeyPressedCode;
         return true;
     case MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
-        bInvertMouseY = bInvertMouseY == 0;
+        bInvertMouseY ^= true;
         SaveSettings();
         return true;
     case MENU_ACTION_CONTROLS_JOY_INVERT_X:
@@ -540,24 +542,24 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         return true;
     }
     case MENU_ACTION_CONTROL_TYPE:
-        if (m_nController == 1) {
-            m_nController = 0;
+        if (m_ControlMethod) {
+            m_ControlMethod = false;
             CCamera::m_bUseMouse3rdPerson = true;
         } else {
-            m_nController = 1;
+            m_ControlMethod = true;
             CCamera::m_bUseMouse3rdPerson = false;
         }
         SaveSettings();
         return true;
     case MENU_ACTION_MOUSE_STEERING:
-        if (m_nController) {
+        if (m_ControlMethod) {
             return true;
         }
         CVehicle::m_bEnableMouseSteering ^= true;
         SaveSettings();
         return true;
     case MENU_ACTION_MOUSE_FLY:
-        if (m_nController) {
+        if (m_ControlMethod) {
             return true;
         }
         CVehicle::m_bEnableMouseFlying ^= true;

@@ -20,7 +20,7 @@
 
 
 // mouse states 
-CMouseControllerState& CPad::TempMouseControllerState = *(CMouseControllerState*)0xB73404; // Updated in `CPad::UpdateMouse`
+CMouseControllerState& CPad::PCTempMouseControllerState = *(CMouseControllerState*)0xB73404; // Updated in `CPad::UpdateMouse`
 CMouseControllerState& CPad::NewMouseControllerState = *(CMouseControllerState*)0xB73418;
 CMouseControllerState& CPad::OldMouseControllerState = *(CMouseControllerState*)0xB7342C;
 
@@ -112,8 +112,8 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(ConversationNoJustDown, 0x541200);
     RH_ScopedInstall(GroupControlForwardJustDown, 0x541230);
     RH_ScopedInstall(GroupControlBackJustDown, 0x541260);
-    RH_ScopedInstall(sub_540BD0, 0x540BD0, {.reversed = true});
-    RH_ScopedInstall(sub_540CC0, 0x540CC0, {.reversed = true});
+    RH_ScopedInstall(LookAroundLeftRight, 0x540BD0, {.reversed = true});
+    RH_ScopedInstall(LookAroundUpDown, 0x540CC0, {.reversed = true});
 }
 
 // 0x541D80
@@ -140,7 +140,7 @@ void CPad::ClearKeyBoardHistory() {
 
 // 0x541BD0
 void CPad::ClearMouseHistory() {
-    TempMouseControllerState.Clear();
+    PCTempMouseControllerState.Clear();
     NewMouseControllerState.Clear();
     OldMouseControllerState.Clear();
 }
@@ -232,8 +232,8 @@ void CPad::UpdatePads() {
     if (!isDebugUIActive) {
         ControlsManager.AffectPadFromKeyBoard();
         ControlsManager.AffectPadFromMouse();
-        GetPad(0)->Update(0);
-        GetPad(1)->Update(1);
+        GetPad(PAD1)->Update(PAD1);
+        GetPad(PAD2)->Update(PAD2);
     }
 
     OldKeyState = std::exchange(NewKeyState, TempKeyState);
@@ -246,11 +246,11 @@ void CPad::UpdateMouse() {
         int32_t invertX, invertY;
 
         invertX = FrontEndMenuManager.bInvertMouseX ? -1 : 1;
-        invertY = FrontEndMenuManager.bInvertMouseY ? -1 : 1;
+        invertY = FrontEndMenuManager.bInvertMouseY ? 1 : -1; // NOSTA FIX
 
         CMouseControllerState state =
 #ifdef NOTSA_USE_SDL3
-            TempMouseControllerState;
+            PCTempMouseControllerState;
 #else
             WinInput::GetMouseState();
 #endif
@@ -260,15 +260,14 @@ void CPad::UpdateMouse() {
 
         // Write directly to NewMouseControllerState
         CPad::OldMouseControllerState = std::exchange(CPad::NewMouseControllerState, state);
-        CPad::NewMouseControllerState.X *= invertX;
-        CPad::NewMouseControllerState.Y *= invertY;
+        CPad::NewMouseControllerState.m_AmountMoved.x *= invertX;
+        CPad::NewMouseControllerState.m_AmountMoved.y *= invertY;
 
 #ifdef NOTSA_USE_SDL3
-        TempMouseControllerState.X         = 0.f;
-        TempMouseControllerState.Y         = 0.f;
-        TempMouseControllerState.Z         = 0.f;
-        TempMouseControllerState.wheelDown = false;
-        TempMouseControllerState.wheelUp   = false;
+        PCTempMouseControllerState.m_AmountMoved.x = 0.f;
+        PCTempMouseControllerState.m_AmountMoved.y = 0.f;
+        PCTempMouseControllerState.isMouseWheelMovedDown = false;
+        PCTempMouseControllerState.isMouseWheelMovedUp   = false;
 #endif
     }
 }
@@ -299,9 +298,9 @@ void CPad::ProcessPad(ePadID padID) {
  
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
 
-    if (ControlsManager.m_bJoyJustInitialised) {
+    if (ControlsManager.m_WasJoyJustInitialised) {
         ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState = joyState;
-        ControlsManager.m_bJoyJustInitialised = false;
+        ControlsManager.m_WasJoyJustInitialised = false;
     } else {
         ControlsManager.m_OldJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
     }
@@ -1144,7 +1143,7 @@ int16 CPad::AimWeaponUpDown(CPed* ped) const {
 }
 
 // 0x540BD0
-int16 CPad::sub_540BD0(CPed* ped) noexcept {
+int16 CPad::LookAroundLeftRight(CPed* ped) noexcept {
     if (DisablePlayerControls) {
         return 0;
     }
@@ -1167,7 +1166,7 @@ int16 CPad::sub_540BD0(CPed* ped) noexcept {
 }
 
 // 0x540CC0
-int16 CPad::sub_540CC0(CPed* ped) noexcept {
+int16 CPad::LookAroundUpDown(CPed* ped) noexcept {
     if (DisablePlayerControls) {
         return 0;
     }

@@ -1,7 +1,7 @@
 #pragma once
 
 enum class eLanguage : uint8 {
-    AMERICAN = 0,
+    ENGLISH = 0,
     FRENCH   = 1,
     GERMAN   = 2,
     ITALIAN  = 3,

@@ -115,7 +115,7 @@ void CText::Unload(bool unloadMissionData) {
 // NOTSA
 const char* GetGxtName() {
     switch (FrontEndMenuManager.m_nPrefsLanguage) {
-    case eLanguage::AMERICAN:
+    case eLanguage::ENGLISH:
         return "AMERICAN.GXT";
     case eLanguage::FRENCH:
         return "FRENCH.GXT";
