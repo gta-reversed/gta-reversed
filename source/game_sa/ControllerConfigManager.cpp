@@ -857,7 +857,9 @@ void CControllerConfigManager::ReinitControls() {
     const auto MouseSetUp = WinInput::GetMouseState();
 #endif
     ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, !FrontEndMenuManager.m_ControlMethod);
-    // ControlsManager.InitDefaultControlConfigJoyPad(44u); // TODO: Evaluate add that in future - NOTSA
+    if (PadConfigs[PAD1].present) {
+        ControlsManager.InitDefaultControlConfigJoyPad(44u);
+    }
 }
 
 // 0x52F590
