@@ -2,7 +2,6 @@
 #include "WinInput.h" // Ensure the correct header file is included for WinInput
 
 #include "ControllerConfigManager.h"
-//#include "Input.h"
 
 CControllerConfigManager& ControlsManager = *(CControllerConfigManager *) 0xB70198;
 GxtChar (&NewStringWithNumber)[32] = *(GxtChar(*)[32])0xB7147C;
@@ -865,12 +864,15 @@ void CControllerConfigManager::InitialiseControllerActionNameArray() {
 
 // 0x531F20
 void CControllerConfigManager::ReinitControls() {
-    CMouseControllerState MouseSetUp;
     ControlsManager.MakeControllerActionsBlank();
     ControlsManager.InitDefaultControlConfiguration();
-    //auto mouseState = WinInput::GetMouseState();
-    //ControlsManager.InitDefaultControlConfigMouse(mouseState, !FrontEndMenuManager.m_ControlMethod);
-    // ControlsManager.InitDefaultControlConfigJoyPad(44u); // NOTSA
+#ifdef NOTSA_USE_SDL3
+    const auto MouseSetUp = CMouseControllerState{};
+#else
+    const auto MouseSetUp = WinInput::GetMouseState();
+#endif
+    ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, !FrontEndMenuManager.m_ControlMethod);
+    // ControlsManager.InitDefaultControlConfigJoyPad(44u); // TODO: Evaluate add that in future - NOTSA
 }
 
 // 0x52F590
