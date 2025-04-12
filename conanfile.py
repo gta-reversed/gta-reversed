@@ -44,8 +44,15 @@ class saRecipe(ConanFile):
         tc.user_presets_path = 'ConanPresets.json'
         if self.options['with_command_hooks']:
             tc.cache_variables["GTASA_WITH_SCRIPT_COMMAND_HOOKS"] = "ON"
-        if self.options['use_sdl3']:
+            
+        use_sdl3_value = self.options.use_sdl3
+        print(f"SDL3 option value: {use_sdl3_value}")
+        
+        if use_sdl3_value:
             tc.cache_variables["GTASA_WITH_SDL3"] = "ON"
+        else:
+            tc.cache_variables["GTASA_WITH_SDL3"] = "OFF"
+
         tc.generate()
 
         # Copy ImGui bindings
@@ -60,7 +67,11 @@ class saRecipe(ConanFile):
                 os.path.join(self.dependencies["imgui"].package_folder, "res", "bindings"),
                 os.path.join(IMGUI_LIBS_FOLDER, "bindings")
             )
-        copy_imgui_bindings("*imgui_impl_sdl3*" if self.options['use_sdl3'] else "*imgui_impl_win32*")
+        if use_sdl3_value:
+            copy_imgui_bindings("*imgui_impl_sdl3*")
+        else:
+            copy_imgui_bindings("*imgui_impl_win32*")
+
         copy_imgui_bindings("*imgui_impl_dx9*")
 
         # Copy ImGui misc stuff
