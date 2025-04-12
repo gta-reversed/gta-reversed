@@ -134,77 +134,36 @@ bool CPad::ProcessKeyboardEvent(const SDL_Event& e, CKeyboardState& ks) {
     return false;
 }
 
-bool CPad::ProcessGamepadEvent(const SDL_Event& e, CControllerState& cs) {
+bool CPad::ProcessGamepadEvent(const SDL_Event & e, CControllerState& cs) {
+    //switch (e.type) {
+    //case SDL_EVENT_GAMEPAD_AXIS_MOTION: {
+    //    const auto UpdateAxis = [&](int16& outA, int16& outB, bool isInverted, bool isSwapped) {
+    //        int16 pos = e.gaxis.value;
+    //        if (fabs(pos) > 0.3f) {
+    //            pos = isInverted ? -pos : pos;
+    //            pos /= 128; // SDL values are [-32768 to 32767], need to map to [-128, 127] (Actually should be [-128, 128] (?))
+    //            (isSwapped ? outA : outB) = pos;
+    //        }
+    //    };
+    //    switch (e.gaxis.axis) {
+    //    case SDL_GAMEPAD_AXIS_LEFTX:
+    //    case SDL_GAMEPAD_AXIS_LEFTY:
+    //    case SDL_GAMEPAD_AXIS_RIGHTX:
+    //    case SDL_GAMEPAD_AXIS_RIGHTY:
+    //    }
+    //        
+    //    UpdateAxis(cs.LeftStickY, cs.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
+    //    UpdateAxis(cs.LeftStickX, cs.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis2);
+    //
+    //    UpdateAxis(cs.LeftStickY, cs.LeftStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis1);
+    //    UpdateAxis(cs.LeftStickX, cs.LeftStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
+    //    return true;
+    //}
+    //}
     return false;
 }
 
 bool CPad::ProcessJoyStickEvent(const SDL_Event& e, CControllerState& cs) {
-    switch (e.type) {
-        case SDL_EVENT_GAMEPAD_AXIS_MOTION: {
-            // SDL values are [-32768 to 32767], need to map appropriately
-            const auto UpdateAxis = [&](int16& outA, int16& outB, bool isInverted, bool isSwapped) {
-                float pos = e.gaxis.value / 256.0f; // Convert to comparable range
-                if (fabs(pos) > 0.3f) {
-                    pos = isInverted ? -pos : pos;
-                    (isSwapped ? outA : outB) = static_cast<int16>(pos);
-                }
-            };
-
-            switch (e.gaxis.axis) {
-            case SDL_GAMEPAD_AXIS_LEFTX:
-                UpdateAxis(cs.LeftStickY, cs.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
-                return true;
-            case SDL_GAMEPAD_AXIS_LEFTY:
-                UpdateAxis(cs.LeftStickX, cs.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis2);
-                return true;
-            case SDL_GAMEPAD_AXIS_RIGHTX:
-                UpdateAxis(cs.RightStickY, cs.RightStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis1);
-                return true;
-            case SDL_GAMEPAD_AXIS_RIGHTY:
-                UpdateAxis(cs.RightStickX, cs.RightStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
-                return true;
-            case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:
-                cs.LeftShoulder2 = static_cast<uint8>(e.gaxis.value > 1000 ? 255 : 0);
-                return true;
-            case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER:
-                cs.RightShoulder2 = static_cast<uint8>(e.gaxis.value > 1000 ? 255 : 0);
-                return true;
-            }
-            return false;
-        }
-        case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-        case SDL_EVENT_GAMEPAD_BUTTON_UP: {
-            const auto s = e.gbutton.down ? 255 : 0;
-            switch (e.gbutton.button) {
-            case SDL_GAMEPAD_BUTTON_SOUTH:      cs.ButtonCross = s;    break; // A
-            case SDL_GAMEPAD_BUTTON_EAST:       cs.ButtonCircle = s;   break; // B
-            case SDL_GAMEPAD_BUTTON_WEST:       cs.ButtonSquare = s;   break; // X
-            case SDL_GAMEPAD_BUTTON_NORTH:      cs.ButtonTriangle = s; break; // Y
-            case SDL_GAMEPAD_BUTTON_BACK:       cs.Select = s;         break;
-            //case SDL_GAMEPAD_BUTTON_GUIDE:      cs.Home = s;           break;
-            case SDL_GAMEPAD_BUTTON_START:      cs.Start = s;          break;
-            case SDL_GAMEPAD_BUTTON_DPAD_UP:    cs.DPadUp = s;         break;
-            case SDL_GAMEPAD_BUTTON_DPAD_DOWN:  cs.DPadDown = s;       break;
-            case SDL_GAMEPAD_BUTTON_DPAD_LEFT:  cs.DPadLeft = s;       break;
-            case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: cs.DPadRight = s;      break;
-            case SDL_GAMEPAD_BUTTON_LEFT_SHOULDER:  cs.LeftShoulder1 = s;  break; // L1
-            case SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER: cs.RightShoulder1 = s; break; // R1
-            //case SDL_GAMEPAD_BUTTON_LEFT_STICK:     cs.LeftStickDown = s;  break; // L3
-            //case SDL_GAMEPAD_BUTTON_RIGHT_STICK:    cs.RightStickDown = s; break; // R3
-            default:
-                return false;
-            }
-            return true;
-        }
-        case SDL_EVENT_GAMEPAD_ADDED: {
-            NOTSA_LOG_DEBUG("SDL: Gamepad ({}) added", e.gdevice.which);
-            return true;
-        }
-        case SDL_EVENT_GAMEPAD_REMOVED: {
-            NOTSA_LOG_DEBUG("SDL: Gamepad ({}) removed", e.gdevice.which);
-            return true;
-        }
-    }
     return false;
 }
 
