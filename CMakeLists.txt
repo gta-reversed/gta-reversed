@@ -22,15 +22,6 @@ if (MSVC)
     add_link_options(/SAFESEH:NO)
 endif()
 
-# SDL3 option
-option(GTASA_WITH_SDL3 "Use SDL3 instead of DirectInput" ON)
-if(GTASA_WITH_SDL3)
-    add_compile_definitions(NOTSA_USE_SDL3)
-    message("-- Using SDL3 for input")
-else()
-    message("-- Using DirectInput for input")
-endif()
-
 option(BUILD_DOC "Build documentation" OFF)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
