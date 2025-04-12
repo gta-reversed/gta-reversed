@@ -345,7 +345,7 @@ void CPad::ProcessPad(ePadID padID) {
     CPad* pPad = CPad::GetPad(padID);
     if (pPad) {
         // Update the current joystick state directly in PCTempJoyState
-        pPad->UpdateJoystick(pPad->PCTempJoyState);
+        pPad->UpdateJoystick(pPad->PCTempJoyState, padID);
     }
 #endif
 }

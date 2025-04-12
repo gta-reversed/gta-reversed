@@ -136,53 +136,56 @@ bool CPad::ProcessKeyboardEvent(const SDL_Event& e, CKeyboardState& ks) {
 }
 
 // New function to directly poll the joystick state
-void CPad::UpdateJoystick(CControllerState& cs) {
+void CPad::UpdateJoystick(CControllerState& cs, ePadID padID) {
 #ifdef NOTSA_USE_SDL3
     // Get all available gamepads
     int sdl_gamepads_count = 0;
     SDL_JoystickID* sdl_gamepads = SDL_GetGamepads(&sdl_gamepads_count);
     
     if (sdl_gamepads_count > 0) {
-        // Select the first gamepad (or a specific one by ID)
-        SDL_Gamepad* gamepad = SDL_OpenGamepad(sdl_gamepads[0]);
-        if (gamepad) {
-            // Update analog axes
-            const auto UpdateAxis = [&](int16& outA, int16& outB, SDL_GamepadAxis axis, bool isInverted, bool isSwapped) {
-                float value = SDL_GetGamepadAxis(gamepad, axis) / 256.0f; // Convert to comparable range
-                if (fabs(value) > 0.3f) { // Threshold to prevent drift
-                    value = isInverted ? -value : value;
-                    (isSwapped ? outA : outB) = static_cast<int16>(value);
-                }
-            };
-            
-            // Update analog axes
-            UpdateAxis(cs.LeftStickY, cs.LeftStickX, SDL_GAMEPAD_AXIS_LEFTX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
-            UpdateAxis(cs.LeftStickX, cs.LeftStickY, SDL_GAMEPAD_AXIS_LEFTY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis2);
-            UpdateAxis(cs.RightStickY, cs.RightStickX, SDL_GAMEPAD_AXIS_RIGHTX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis1);
-            UpdateAxis(cs.RightStickX, cs.RightStickY, SDL_GAMEPAD_AXIS_RIGHTY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
-            
-            // Update triggers
-            cs.LeftShoulder2 = static_cast<uint8>(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 1000 ? 255 : 0);
-            cs.RightShoulder2 = static_cast<uint8>(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 1000 ? 255 : 0);
-            
-            // Update buttons
-            cs.ButtonCross = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH) ? 255 : 0;
-            cs.ButtonCircle = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_EAST) ? 255 : 0;
-            cs.ButtonSquare = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST) ? 255 : 0;
-            cs.ButtonTriangle = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_NORTH) ? 255 : 0;
-            cs.Select = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_BACK) ? 255 : 0;
-            cs.Start = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START) ? 255 : 0;
-            cs.DPadUp = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP) ? 255 : 0;
-            cs.DPadDown = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN) ? 255 : 0;
-            cs.DPadLeft = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT) ? 255 : 0;
-            cs.DPadRight = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT) ? 255 : 0;
-            cs.LeftShoulder1 = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER) ? 255 : 0;
-            cs.RightShoulder1 = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER) ? 255 : 0;
-            cs.ShockButtonL = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_LEFT_STICK) ? 255 : 0;
-            cs.ShockButtonR = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_RIGHT_STICK) ? 255 : 0;
-            
-            // Close the gamepad
-            SDL_CloseGamepad(gamepad);
+        // Select the gamepad based on padID (ensure we don't exceed available gamepads)
+        int padIndex = (padID == PAD1) ? 0 : 1;
+        if (padIndex < sdl_gamepads_count) {
+            SDL_Gamepad* gamepad = SDL_OpenGamepad(sdl_gamepads[padIndex]);
+            if (gamepad) {
+                // Update analog axes
+                const auto UpdateAxis = [&](int16& outA, int16& outB, SDL_GamepadAxis axis, bool isInverted, bool isSwapped) {
+                    float value = SDL_GetGamepadAxis(gamepad, axis) / 256.0f; // Convert to comparable range
+                    if (fabs(value) > 0.3f) { // Threshold to prevent drift
+                        value = isInverted ? -value : value;
+                        (isSwapped ? outA : outB) = static_cast<int16>(value);
+                    }
+                };
+                
+                // Update analog axes
+                UpdateAxis(cs.LeftStickY, cs.LeftStickX, SDL_GAMEPAD_AXIS_LEFTX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
+                UpdateAxis(cs.LeftStickX, cs.LeftStickY, SDL_GAMEPAD_AXIS_LEFTY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis2);
+                UpdateAxis(cs.RightStickY, cs.RightStickX, SDL_GAMEPAD_AXIS_RIGHTX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis1);
+                UpdateAxis(cs.RightStickX, cs.RightStickY, SDL_GAMEPAD_AXIS_RIGHTY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
+                
+                // Update triggers
+                cs.LeftShoulder2 = static_cast<uint8>(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 1000 ? 255 : 0);
+                cs.RightShoulder2 = static_cast<uint8>(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 1000 ? 255 : 0);
+                
+                // Update buttons
+                cs.ButtonCross = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH) ? 255 : 0;
+                cs.ButtonCircle = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_EAST) ? 255 : 0;
+                cs.ButtonSquare = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST) ? 255 : 0;
+                cs.ButtonTriangle = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_NORTH) ? 255 : 0;
+                cs.Select = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_BACK) ? 255 : 0;
+                cs.Start = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START) ? 255 : 0;
+                cs.DPadUp = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP) ? 255 : 0;
+                cs.DPadDown = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN) ? 255 : 0;
+                cs.DPadLeft = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT) ? 255 : 0;
+                cs.DPadRight = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT) ? 255 : 0;
+                cs.LeftShoulder1 = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER) ? 255 : 0;
+                cs.RightShoulder1 = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER) ? 255 : 0;
+                cs.ShockButtonL = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_LEFT_STICK) ? 255 : 0;
+                cs.ShockButtonR = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_RIGHT_STICK) ? 255 : 0;
+                
+                // Close the gamepad
+                SDL_CloseGamepad(gamepad);
+            }
         }
         SDL_free(sdl_gamepads);
     }
