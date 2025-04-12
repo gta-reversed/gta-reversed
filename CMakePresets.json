@@ -11,32 +11,14 @@
             "name": "default-unity",
             "inherits": "conan-default",
             "cacheVariables": {
-                "GTASA_UNITY_BUILD": "ON",
-                "GTASA_WITH_SDL3": "ON"
+                "GTASA_UNITY_BUILD": "ON"
             }
         },
         {
             "name": "default",
             "inherits": "conan-default",
             "cacheVariables": {
-                "GTASA_UNITY_BUILD": "OFF",
-                "GTASA_WITH_SDL3": "ON"
-            }
-        },
-        {
-            "name": "default-unity-nosdl",
-            "inherits": "conan-default",
-            "cacheVariables": {
-                "GTASA_UNITY_BUILD": "ON",
-                "GTASA_WITH_SDL3": "OFF"
-            }
-        },
-        {
-            "name": "default-nosdl",
-            "inherits": "conan-default",
-            "cacheVariables": {
-                "GTASA_UNITY_BUILD": "OFF",
-                "GTASA_WITH_SDL3": "OFF"
+                "GTASA_UNITY_BUILD": "OFF"
             }
         }
     ]

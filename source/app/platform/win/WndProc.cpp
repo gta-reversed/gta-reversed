@@ -177,8 +177,8 @@ LRESULT CALLBACK __MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         return 0;
     }
     case WM_MOUSEMOVE: { //< 0x748323
-        FrontEndMenuManager.m_nMousePosWinX = GET_X_LPARAM(lParam);
-        FrontEndMenuManager.m_nMousePosWinY = GET_Y_LPARAM(lParam);
+        FrontEndMenuManager.m_nMousePosWinX = (float)GET_X_LPARAM(lParam);
+        FrontEndMenuManager.m_nMousePosWinY = (float)GET_Y_LPARAM(lParam);
         break;
     }
     case WM_LBUTTONDOWN:

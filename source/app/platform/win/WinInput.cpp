@@ -2,6 +2,7 @@
 
 #ifndef NOTSA_USE_SDL3
 
+#include "Input.h"
 #include "WinInput.h"
 #include "ControllerConfigManager.h"
 #include "WinPlatform.h"
