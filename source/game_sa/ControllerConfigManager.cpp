@@ -97,13 +97,11 @@ void CControllerConfigManager::ClearPedMappings(eControllerAction action, KeyCod
     CheckAndClear(eControllerAction::PED_LOOKBEHIND, type, button);
     CheckAndClear(eControllerAction::PED_DUCK, type, button);
 
-    if (action != eControllerAction::PED_FIRE_WEAPON_ALT && FrontEndMenuManager.m_IsUseController || !FrontEndMenuManager.m_IsUseController) {
+    if (action != eControllerAction::PED_FIRE_WEAPON_ALT && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD || !FrontEndMenuManager.m_ControlMethod) {
         CheckAndClear(eControllerAction::PED_ANSWER_PHONE, type, button);
     }
-
     CheckAndClear(eControllerAction::PED_WALK, type, button);
-
-    if (FrontEndMenuManager.m_IsUseController) {
+    if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
         CheckAndClear(eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER, type, button);
     }
 }
@@ -167,16 +165,14 @@ void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction actio
         return;
     }
 
-    if (action != eControllerAction::PED_ANSWER_PHONE && FrontEndMenuManager.m_IsUseController || !FrontEndMenuManager.m_IsUseController) {
+    if (action != eControllerAction::PED_ANSWER_PHONE && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD || !FrontEndMenuManager.m_ControlMethod) {
         CheckAndClear(eControllerAction::PED_FIRE_WEAPON_ALT, type, button);
     }
-
     CheckAndClear(eControllerAction::PED_FIRE_WEAPON, type, button);
     CheckAndClear(eControllerAction::PED_LOCK_TARGET, type, button);
     CheckAndClear(eControllerAction::GO_FORWARD, type, button);
     CheckAndClear(eControllerAction::GO_BACK, type, button);
-
-    if (FrontEndMenuManager.m_IsUseController) {
+    if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
         CheckAndClear(eControllerAction::PED_1RST_PERSON_LOOK_LEFT, type, button);
         CheckAndClear(eControllerAction::PED_1RST_PERSON_LOOK_RIGHT, type, button);
         CheckAndClear(eControllerAction::PED_1RST_PERSON_LOOK_DOWN, type, button);
@@ -289,7 +285,7 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstAndThirdP
     CheckAndSetPad(eControllerAction::GROUP_CONTROL_BWD, type, button, state->DPadDown, state->DPadUp);    
     CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_LEFT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128);
     CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_RIGHT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);  
-    if (FrontEndMenuManager.m_IsUseController) {
+    if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
         CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_UP, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128);
         CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_DOWN, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
     }
@@ -305,7 +301,7 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOnl
     CheckAndSetButton(eControllerAction::PED_SPRINT, type, button, state->ButtonCross);
     CheckAndSetButton(eControllerAction::PED_DUCK, type, button, state->ShockButtonL);
 
-    if (FrontEndMenuManager.m_IsUseController) {
+    if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
         CheckAndSetButton(eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER, type, button, state->LeftShoulder1);
     }
 }
@@ -825,7 +821,7 @@ void CControllerConfigManager::ReinitControls() {
 #else
     const auto MouseSetUp = WinInput::GetMouseSetUp();
 #endif
-    ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, !FrontEndMenuManager.m_IsUseController);
+    ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, !FrontEndMenuManager.m_ControlMethod);
     if (PadConfigs[PAD1].present) {
         ControlsManager.InitDefaultControlConfigJoyPad(44u);
     }
@@ -1402,7 +1398,7 @@ const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction ac
 
 // 0x5303D0
 const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerAction action) {
-    if (FrontEndMenuManager.m_IsUseController) {
+    if (FrontEndMenuManager.m_ControlMethod) {
         if (const auto keyCode = m_Actions[action].Keys[JOY_STICK].m_uiActionInitiator) {
             CMessages::InsertNumberInString(TheText.Get("FEC_JBO"), keyCode, -1, -1, -1, -1, -1, NewStringWithNumber); // JOY~1~
             return NewStringWithNumber;

@@ -12,63 +12,63 @@
 #include "ControllerConfigManager.h"
 #include "VideoMode.h"
 
-constexpr eControllerAction ControllerActionsAvailableOnFoot[] = { 
-    eControllerAction::PED_FIRE_WEAPON,             // 0
-    eControllerAction::PED_CYCLE_WEAPON_RIGHT,      // 2
-    eControllerAction::PED_CYCLE_WEAPON_LEFT,       // 3
-    eControllerAction::PED_JUMPING,                 // 12
-    eControllerAction::PED_SPRINT,                  // 13
-    eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS, // 11
-    eControllerAction::VEHICLE_ENTER_EXIT,          // 10
-    eControllerAction::GO_FORWARD,                  // 4
-    eControllerAction::GO_BACK,                     // 5
-    eControllerAction::GO_LEFT,                     // 6
-    eControllerAction::GO_RIGHT,                    // 7
-    eControllerAction::PED_LOOKBEHIND,              // 14
-    eControllerAction::PED_DUCK,                    // 15
-    eControllerAction::PED_ANSWER_PHONE,            // 16
-    eControllerAction::VEHICLE_STEER_UP,            // 22
-    eControllerAction::VEHICLE_STEER_DOWN,          // 23
-    eControllerAction::VEHICLE_ACCELERATE,          // 24
-    eControllerAction::VEHICLE_RADIO_STATION_UP,    // 26
-    eControllerAction::VEHICLE_RADIO_STATION_DOWN,  // 27
-    eControllerAction::VEHICLE_RADIO_TRACK_SKIP,    // 28
-    eControllerAction::VEHICLE_HORN,                // 29
-    eControllerAction::VEHICLE_LOOKLEFT,            // 34
-    eControllerAction::VEHICLE_LOOKBEHIND,          // 36
-    eControllerAction::VEHICLE_MOUSELOOK,           // 37
-    eControllerAction::VEHICLE_TURRETLEFT,          // 38
-    eControllerAction::VEHICLE_TURRETRIGHT,         // 39
-    eControllerAction::PED_CYCLE_TARGET_LEFT,       // 42
-    eControllerAction::PED_FIRE_WEAPON_ALT          // 1
+constexpr eControllerAction ControllerActionsAvailableOnFoot[] = {
+    eControllerAction::PED_FIRE_WEAPON,
+    eControllerAction::PED_CYCLE_WEAPON_RIGHT,
+    eControllerAction::PED_CYCLE_WEAPON_LEFT,
+    eControllerAction::PED_JUMPING,
+    eControllerAction::PED_SPRINT,
+    eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS,
+    eControllerAction::VEHICLE_ENTER_EXIT,
+    eControllerAction::GO_FORWARD,
+    eControllerAction::GO_BACK,
+    eControllerAction::GO_LEFT,
+    eControllerAction::GO_RIGHT,
+    eControllerAction::PED_LOOKBEHIND,
+    eControllerAction::PED_DUCK,
+    eControllerAction::PED_ANSWER_PHONE,
+    eControllerAction::VEHICLE_STEER_UP,
+    eControllerAction::VEHICLE_STEER_DOWN,
+    eControllerAction::VEHICLE_ACCELERATE,
+    eControllerAction::VEHICLE_RADIO_STATION_UP,
+    eControllerAction::VEHICLE_RADIO_STATION_DOWN,
+    eControllerAction::VEHICLE_RADIO_TRACK_SKIP,
+    eControllerAction::VEHICLE_HORN,
+    eControllerAction::VEHICLE_LOOKLEFT,
+    eControllerAction::VEHICLE_LOOKBEHIND,
+    eControllerAction::VEHICLE_MOUSELOOK,
+    eControllerAction::VEHICLE_TURRETLEFT,
+    eControllerAction::VEHICLE_TURRETRIGHT,
+    eControllerAction::PED_CYCLE_TARGET_LEFT,
+    eControllerAction::PED_FIRE_WEAPON_ALT
 }; // 0x865598
 
 constexpr eControllerAction ControllerActionsAvailableInCar[] = {
-    eControllerAction::PED_FIRE_WEAPON,             // 0
-    eControllerAction::PED_FIRE_WEAPON_ALT,         // 1
-    eControllerAction::GO_FORWARD,                  // 4
-    eControllerAction::GO_BACK,                     // 5
-    eControllerAction::GO_LEFT,                     // 6
-    eControllerAction::GO_RIGHT,                    // 7
-    eControllerAction::PED_SNIPER_ZOOM_IN,          // 8
-    eControllerAction::PED_SNIPER_ZOOM_OUT,         // 9
-    eControllerAction::PED_ANSWER_PHONE,            // 16
-    eControllerAction::VEHICLE_ENTER_EXIT,          // 10
-    eControllerAction::PED_WALK,                    // 17
-    eControllerAction::VEHICLE_FIRE_WEAPON,         // 18
-    eControllerAction::VEHICLE_FIRE_WEAPON_ALT,     // 19
-    eControllerAction::VEHICLE_STEER_LEFT,          // 20
-    eControllerAction::VEHICLE_STEER_RIGHT,         // 21
-    eControllerAction::VEHICLE_STEER_UP,            // 22
-    eControllerAction::VEHICLE_BRAKE,               // 25
-    eControllerAction::VEHICLE_LOOKLEFT,            // 34
-    eControllerAction::VEHICLE_LOOKRIGHT,           // 35
-    eControllerAction::VEHICLE_LOOKBEHIND,          // 36
-    eControllerAction::VEHICLE_MOUSELOOK,           // 37
-    eControllerAction::TOGGLE_SUBMISSIONS,          // 30
-    eControllerAction::VEHICLE_HANDBRAKE,           // 31
-    eControllerAction::PED_1RST_PERSON_LOOK_LEFT,   // 32
-    eControllerAction::PED_1RST_PERSON_LOOK_RIGHT   // 33
+    eControllerAction::PED_FIRE_WEAPON,
+    eControllerAction::PED_FIRE_WEAPON_ALT,
+    eControllerAction::GO_FORWARD,
+    eControllerAction::GO_BACK,
+    eControllerAction::GO_LEFT,
+    eControllerAction::GO_RIGHT,
+    eControllerAction::PED_SNIPER_ZOOM_IN,
+    eControllerAction::PED_SNIPER_ZOOM_OUT,
+    eControllerAction::PED_ANSWER_PHONE,
+    eControllerAction::VEHICLE_ENTER_EXIT,
+    eControllerAction::PED_WALK,
+    eControllerAction::VEHICLE_FIRE_WEAPON,
+    eControllerAction::VEHICLE_FIRE_WEAPON_ALT,
+    eControllerAction::VEHICLE_STEER_LEFT,
+    eControllerAction::VEHICLE_STEER_RIGHT,
+    eControllerAction::VEHICLE_STEER_UP,
+    eControllerAction::VEHICLE_BRAKE,
+    eControllerAction::VEHICLE_LOOKLEFT,
+    eControllerAction::VEHICLE_LOOKRIGHT,
+    eControllerAction::VEHICLE_LOOKBEHIND,
+    eControllerAction::VEHICLE_MOUSELOOK,
+    eControllerAction::TOGGLE_SUBMISSIONS,
+    eControllerAction::VEHICLE_HANDBRAKE,
+    eControllerAction::PED_1RST_PERSON_LOOK_LEFT,
+    eControllerAction::PED_1RST_PERSON_LOOK_RIGHT
 }; // 0x865608
 
 // 0x57C290
@@ -369,13 +369,13 @@ void CMenuManager::DrawBackground() {
 
             rect.left   = x + StretchX(6.0f);
             rect.bottom    = y + StretchY(3.0f);
-            rect.right  = x + StretchX(24.0f);
+            rect.right  = x + SCREEN_STRETCH_X(24.0f);
             rect.top = y + SCREEN_SCALE_Y(21.0f);
             m_aFrontEndSprites[spriteId].Draw(rect, { 100, 100, 100, 50 }); // shadow
 
             rect.left   = x;
             rect.bottom    = y;
-            rect.right  = x + StretchX(18.0f);
+            rect.right  = x + SCREEN_STRETCH_X(18.0f);
             rect.top = y + SCREEN_SCALE_Y(18.0f);
             m_aFrontEndSprites[spriteId].Draw(rect, { 255, 255, 255, 255 });
         };
@@ -408,14 +408,14 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     CFont::SetCentreSize(SCREEN_WIDTH);
 
     if (m_nCurrentScreen == eMenuScreen::SCREEN_STATS) {
-        CMenuManager::PrintStats();
+        PrintStats();
     }
     if (m_nCurrentScreen == eMenuScreen::SCREEN_BRIEF) {
-        CMenuManager::PrintBriefs();
+        PrintBriefs();
     }
 
     if (m_nCurrentScreen == eMenuScreen::SCREEN_AUDIO_SETTINGS && drawTitle) {
-        CMenuManager::PrintRadioStationList();
+        PrintRadioStationList();
     }
 
     if (drawTitle && aScreens[m_nCurrentScreen].m_szTitleName[0]) {
@@ -470,7 +470,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         if (m_EditingControlOptions) {
             shouldDrawStandardItems = false;
         }
-        CMenuManager::DrawControllerScreenExtraText(-8);
+        DrawControllerScreenExtraText(-8);
     }
 
     const bool weHaveLabel = aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT;
@@ -538,7 +538,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuEntryType::TI_MOUSEJOYPAD:
-            pTextToShow = (GxtChar*)TheText.Get(m_IsUseController ? "FEJ_TIT" : "FEC_MOU");
+            pTextToShow = (GxtChar*)TheText.Get(m_ControlMethod ? "FEJ_TIT" : "FEC_MOU");
             break;
         default: {
             if (isSlot) {
@@ -713,17 +713,17 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_CONTROL_TYPE:
-            pTextToShow_RightColumn = TheText.Get(m_IsUseController ? "FET_CCN" : "FET_SCN");
+            pTextToShow_RightColumn = (m_ControlMethod == eController::JOYPAD) ? (m_ControlMethod != eController::JOYPAD ? nullptr : TheText.Get("FET_CCN")) : TheText.Get("FET_SCN");
             break;
         case eMenuAction::MENU_ACTION_MOUSE_STEERING:
             pTextToShow_RightColumn = TheText.Get((CVehicle::m_bEnableMouseSteering) ? "FEM_ON" : "FEM_OFF");
-            if (m_IsUseController) {
+            if (m_ControlMethod == eController::JOYPAD) {
                 CFont::SetColor(CRGBA(14, 30, 47, 255));
             }
             break;
         case eMenuAction::MENU_ACTION_MOUSE_FLY:
             pTextToShow_RightColumn = TheText.Get((CVehicle::m_bEnableMouseFlying) ? "FEM_ON" : "FEM_OFF");
-            if (m_IsUseController) {
+            if (m_ControlMethod == eController::JOYPAD) {
                 CFont::SetColor(CRGBA(14, 30, 47, 255));
             }
             break;
@@ -793,22 +793,22 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
         // Check for video mode changes
         if (m_nDisplayVideoMode == m_nPrefsVideoMode && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES") && m_nHelperText == FET_APP) {
-            CMenuManager::ResetHelperText();
+            ResetHelperText();
         }
         if (m_nDisplayAntialiasing == m_nPrefsAntialiasing && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS") && m_nHelperText == FET_APP) {
-            CMenuManager::ResetHelperText();
+            ResetHelperText();
         }
         if (m_nDisplayVideoMode != m_nPrefsVideoMode && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
-            CMenuManager::SetHelperText(eHelperText::FET_APP);
+            SetHelperText(eHelperText::FET_APP);
         }
         if (m_nDisplayAntialiasing != m_nPrefsAntialiasing && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
-            CMenuManager::SetHelperText(eHelperText::FET_APP);
+            SetHelperText(eHelperText::FET_APP);
         }
         if (m_nDisplayAntialiasing != m_nPrefsAntialiasing) {
             if (strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
                 if (m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_ADVANCED) {
                     m_nDisplayAntialiasing = m_nPrefsAntialiasing;
-                    CMenuManager::SetHelperText(eHelperText::FET_RSO);
+                    SetHelperText(eHelperText::FET_RSO);
                 }
             }
         }
@@ -816,7 +816,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             if (strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
                 if (m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_ADVANCED) {
                     m_nDisplayVideoMode = m_nPrefsVideoMode;
-                    CMenuManager::SetHelperText(eHelperText::FET_RSO);
+                    SetHelperText(eHelperText::FET_RSO);
                 }
             }
         }
@@ -908,7 +908,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     case eMenuScreen::SCREEN_CONTROLLER_SETUP:
     case eMenuScreen::SCREEN_MOUSE_SETTINGS:
     case eMenuScreen::SCREEN_JOYPAD_SETTINGS:
-        CMenuManager::DisplayHelperText(0);
+        DisplayHelperText(0);
         break;
     default:
         return;
@@ -989,30 +989,14 @@ void CMenuManager::DrawQuitGameScreen() {
 
 // 0x57D8D0
 void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
-    eControllerAction maxActions = eControllerAction::NUM_OF_MIN_CONTROLLER_ACTIONS;
-    uint8 verticalSpacing;
-
-    if (m_RedefiningControls == 1) {
-        maxActions = eControllerAction::VEHICLE_BRAKE;
-        verticalSpacing = 13;
-    } else {
-        if (m_IsUseController) {
-            verticalSpacing = 11;
-            maxActions = eControllerAction::VEHICLE_RADIO_TRACK_SKIP;
-        } else {
-            verticalSpacing = 15;
-            maxActions = eControllerAction::VEHICLE_STEER_UP;
-        }
-    }
-
+    const auto maxActions      = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
+    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
     if (maxActions > 0) {
-        float posX = 0.0f;
-        
         for (auto actionIndex : std::views::iota(static_cast<int>(eControllerAction::NUM_OF_MIN_CONTROLLER_ACTIONS), static_cast<int>(maxActions))) {
-            posX = StretchX(240.0f);
+            float posX = StretchX(240.0f);
             float posY = StretchY(float(startingYPos));
             
-            for (const auto order : {eContSetOrder::FIRST, eContSetOrder::SECOND, eContSetOrder::THIRD, eContSetOrder::FOURTH}) {
+            for (const auto& order : CONTROLLER_ORDERS_VALID) {
                 const auto buttonText = ControlsManager.GetControllerSettingText(static_cast<eControllerAction>(actionIndex), order);
                 if (buttonText) {
                     CFont::PrintString(posX, posY, buttonText);
@@ -1020,7 +1004,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
                 }
             }
             
-            if (static_cast<eControllerAction>(actionIndex) == m_ListSelection) {
+            if ((eControllerAction)actionIndex == m_ListSelection) {
                 if (m_EditingControlOptions) {
                     if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.LastFlash > 150) {
                         FrontEndMenuManager.ColourSwitch = (FrontEndMenuManager.ColourSwitch) ? false : true;
@@ -1029,7 +1013,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
                     
                     if (FrontEndMenuManager.ColourSwitch) {
                         CFont::SetColor({0, 0, 0, 255});
-                        CFont::PrintString(posX, posY, TheText.Get("FEC_QUE"));
+                        CFont::PrintString(posX, posY, TheText.Get("FEC_QUE")); // ???
                         CFont::SetColor({74, 90, 107, 255});
                     }
                 }
@@ -1052,12 +1036,12 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
 
 // 0x57E6E0
 void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScreen) {
-    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * !m_IsUseController + 11u);
-    const auto maxActions      = m_RedefiningControls ? 25u : (m_IsUseController ? 28u : 22u);
+    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
+    const auto maxActions      = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
 
     struct ControlActionMapping {
         eControllerAction actionToTest;
-        int controllerAction;
+        int32 controllerAction;
     };
 
     static constexpr ControlActionMapping CarActionMappings[] = {
@@ -1104,7 +1088,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::VEHICLE_MOUSELOOK,                 35 },
     };
 
-    static constexpr ControlActionMapping PedActionMappings[] = {
+    static const ControlActionMapping PedActionMappings[] = {
         { eControllerAction::PED_FIRE_WEAPON,                   0  },
         { eControllerAction::VEHICLE_RADIO_TRACK_SKIP,          0  },
         { eControllerAction::PED_FIRE_WEAPON_ALT,               2  },
@@ -1133,10 +1117,10 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::PED_WALK,                          45 },
         { eControllerAction::VEHICLE_FIRE_WEAPON,               15 },
         { eControllerAction::VEHICLE_FIRE_WEAPON_ALT,           16 },
-        { eControllerAction::VEHICLE_STEER_UP,                  32 },
-        { eControllerAction::CONVERSATION_YES,                  32 },
-        { eControllerAction::VEHICLE_STEER_DOWN,                3  },
-        { eControllerAction::CONVERSATION_NO,                   33 },
+        { eControllerAction::VEHICLE_STEER_UP,                  m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 32 : -1},
+        { eControllerAction::CONVERSATION_YES,                  m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 32 : -1},
+        { eControllerAction::VEHICLE_STEER_DOWN,                m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 33 : -1},
+        { eControllerAction::CONVERSATION_NO,                   m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 33 : -1},
         { eControllerAction::VEHICLE_TURRETLEFT,                -1 },
         { eControllerAction::VEHICLE_TURRETRIGHT,               -1 },
         { eControllerAction::VEHICLE_TURRETUP,                  -1 },
@@ -1163,7 +1147,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
     unsigned int actionIndex = 0; // Corresponds to v7 in old code
     // Main loop - process each action
     while (actionIndex < maxActions) {
-        auto currentX         = StretchX(270.0f);
+        auto  currentX         = StretchX(270.0f);
         int32 controllerAction = (eControllerAction)-1; // type eControllerAction
 
         // Set default text color
@@ -1180,7 +1164,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         } else {
             for (auto& mapping : PedActionMappings) {
                 if (mapping.actionToTest == actionIndex) {
-                    controllerAction = !(!m_IsUseController && notsa::contains({ eControllerAction::VEHICLE_STEER_UP, eControllerAction::CONVERSATION_YES, eControllerAction::VEHICLE_STEER_DOWN, eControllerAction::CONVERSATION_NO }, mapping.actionToTest)) ? mapping.controllerAction : -1;
+                    controllerAction = mapping.controllerAction;
                     break;
                 }
             }
@@ -1190,13 +1174,12 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 
         // Highlight selected action
         if (isSelected) {
-            CSprite2d::DrawRect(
-                CRect(
+            CSprite2d::DrawRect({
                     StretchX(260.0f),
-                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.0f),
+                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f),
                     SCREEN_WIDTH - StretchX(20.0f),
-                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.0f + 10.0f)
-                ),
+                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f + 10.f)
+                },
                 { 172, 203, 241, 255 }
             );
             CFont::SetColor({ 255, 255, 255, 255 });
@@ -1294,8 +1277,8 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 // 0x57F300
 void CMenuManager::DrawControllerSetupScreen() {
     // Calculate spacing and max items based on control scheme
-    const auto verticalSpacing   = m_RedefiningControls ? 13u : (4u * !m_IsUseController + 11u);
-    const auto maxControlActions = m_RedefiningControls ? 25u : (m_IsUseController ? 28u : 22u);
+    const auto verticalSpacing   = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
+    const auto maxControlActions = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
 
     const char* keys[]{
         "FEC_FIR", "FEC_FIA", "FEC_NWE", "FEC_PWE", m_RedefiningControls ? "FEC_ACC" : "FEC_FOR", m_RedefiningControls ? "FEC_BRA" : "FEC_BAC", "FEC_LEF", "FEC_RIG", "FEC_PLU", "FEC_PLD", m_RedefiningControls ? "FEC_TSK" : "FEC_COY", "FEC_CON", "FEC_GPF", "FEC_GPB", "FEC_ZIN", "FEC_ZOT", "FEC_EEX", "FEC_RSC", "FEC_RSP", "FEC_RTS", "FEC_HRN", "FEC_SUB", "FEC_CMR", "FEC_JMP", "FEC_SPN", "FEC_HND", "FEC_TAR", "FEC_CRO", "FEC_ANS", "FEC_PDW", "FEC_TFL", "FEC_TFR", "FEC_TFU", "FEC_TFD", "FEC_LBA", "FEC_VML", "FEC_LOL", "FEC_LOR", "FEC_LDU", "FEC_LUD", "", "", "FEC_CEN", nullptr
@@ -1308,7 +1291,7 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
     CFont::PrintString(
-        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_IsUseController ? "FET_CCN" : "FET_SCN")
+        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_ControlMethod ? "FET_CCN" : "FET_SCN")
     );
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::PrintString(
@@ -1393,6 +1376,7 @@ void CMenuManager::DrawControllerSetupScreen() {
  * @addr 0x576860
  */
 int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing) {
+    // return plugin::CallMethodAndReturn<int32, 0x576860, CMenuManager*, float, float, float, float, float, float, int32>(this, x, y, h1, h2, length, value, size);
 
     const auto BARS = 16;
     const auto COLOR_ON  = CRGBA(172, 203, 241, 255); // Fresh Air

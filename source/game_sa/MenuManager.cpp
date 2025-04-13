@@ -113,7 +113,7 @@ CMenuManager::CMenuManager() {
     m_MenuIsAbleToQuit            = false;
     m_nTitleLanguage              = 9;
     m_nUserTrackIndex             = 0;
-    m_IsUseController             = false;
+    m_ControlMethod               = eController::MOUSE_PLUS_KEYS;
     CCamera::m_bUseMouse3rdPerson = 1;
     m_nMousePosX                  = m_nMousePosWinX;
     m_ListSelection               = 0;
@@ -559,7 +559,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_bShowSubtitles                 = true;
         break;
     case SCREEN_CONTROLLER_SETUP:
-        m_IsUseController                = false;
+        m_ControlMethod                  = eController::MOUSE_PLUS_KEYS;
         CCamera::m_fMouseAccelHorzntl    = 0.0025f;
         CCamera::m_bUseMouse3rdPerson    = true;
         CVehicle::m_bEnableMouseFlying   = true;
@@ -711,7 +711,7 @@ void CMenuManager::LoadSettings() {
     ReadFromFile(m_bWidescreenOn);
     ReadFromFile(m_bPrefsFrameLimiter);
     ReadFromFile(m_nDisplayVideoMode);
-    ReadFromFile(m_IsUseController);
+    ReadFromFile(m_ControlMethod);
     ReadFromFile(m_nPrefsLanguage);
     ReadFromFile(m_bHudOn);
     ReadFromFile(m_nRadarMode);
@@ -736,7 +736,7 @@ void CMenuManager::LoadSettings() {
         return SetToDefaultSettings();
     }
 
-    CCamera::m_bUseMouse3rdPerson = !m_IsUseController;
+    CCamera::m_bUseMouse3rdPerson = m_ControlMethod == eController::MOUSE_PLUS_KEYS;
     CRenderer::ms_lodDistScale = m_fDrawDistance;
     g_fx.SetFxQuality(fxQuality);
     SetBrightness(static_cast<float>(m_PrefsBrightness), true);
@@ -798,7 +798,7 @@ void CMenuManager::SaveSettings() {
     WriteToFile(m_bWidescreenOn);
     WriteToFile(m_bPrefsFrameLimiter);
     WriteToFile(m_nPrefsVideoMode);
-    WriteToFile(m_IsUseController);
+    WriteToFile(m_ControlMethod);
     WriteToFile(m_nPrefsLanguage);
     WriteToFile(m_bHudOn);
     WriteToFile(m_nRadarMode);

@@ -105,7 +105,12 @@ enum eContSetOrder {
     FOURTH = 4,
 };
 
-constexpr eContSetOrder CONTROLLER_ORDERS_VALID[] = { FIRST, SECOND, THIRD, FOURTH }; // NOTSA
+constexpr eContSetOrder CONTROLLER_ORDERS_VALID[] = {
+    eContSetOrder::FIRST,
+    eContSetOrder::SECOND,
+    eContSetOrder::THIRD,
+    eContSetOrder::FOURTH
+}; // NOTSA
 
 enum eJOY_BUTTONS {
     NO_JOYBUTTONS = 0,        

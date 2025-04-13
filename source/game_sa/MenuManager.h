@@ -36,6 +36,11 @@ struct MPack {
     char  m_Name[260];
 };
 
+enum eController : int8 {
+    MOUSE_PLUS_KEYS = 0,
+    JOYPAD = 1
+};
+
 constexpr auto FRONTEND_MAP_RANGE_MIN = 300.0f;
 constexpr auto FRONTEND_MAP_RANGE_MAX = 1100.0f;
 
@@ -136,7 +141,7 @@ public:
     bool      m_bTracksAutoScan;
     int32     m_nPrefsAntialiasing;
     int32     m_nDisplayAntialiasing;
-    bool      m_IsUseController;
+    eController m_ControlMethod;
     int32     m_nPrefsVideoMode;
     int32     m_nDisplayVideoMode;
     int32     m_nCurrentRwSubsystem; // initialized | not used
@@ -286,7 +291,7 @@ public:
     void DrawWindowedText(float x, float y, float wrap, const char* title, const char* message, eFontAlignment alignment);
     void DrawQuitGameScreen();
     void DrawControllerScreenExtraText(int32);
-    void DrawControllerBound(uint16, bool);
+    void DrawControllerBound(uint16 verticalOffset, bool isOppositeScreen);
     void DrawControllerSetupScreen();
 #ifdef USE_GALLERY
     void DrawGallery();
