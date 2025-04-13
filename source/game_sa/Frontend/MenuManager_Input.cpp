@@ -97,11 +97,9 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
     }
 
     // Handle slider movement with wheel input
-    if (LeftRight) {
-        if (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType == eMenuEntryType::TI_OPTION) {
-            ProcessMenuOptions(LeftRight, GoBackOneMenu, 0);
-            CheckSliderMovement(LeftRight);
-        }
+    if (LeftRight && aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType == eMenuEntryType::TI_OPTION) {
+        ProcessMenuOptions(LeftRight, GoBackOneMenu, 0);
+        CheckSliderMovement(LeftRight);
     }
 
     // Handle cancel/back action

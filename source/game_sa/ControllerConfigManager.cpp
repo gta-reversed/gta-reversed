@@ -521,6 +521,8 @@ bool CControllerConfigManager::LoadSettings(FILE* file) {
                 break;
             }
         }
+
+        // NOTSA: If no assignment found, check if it's a special action that can be blank
         if (!hasAssignment && !notsa::contains({NETWORK_TALK, NUM_OF_1ST_PERSON_ACTIONS, TOGGLE_DPAD, SWITCH_DEBUG_CAM_ON, TAKE_SCREEN_SHOT, SHOW_MOUSE_POINTER_TOGGLE, SWITCH_CAM_DEBUG_MENU}, (eControllerAction)i)) {
             return false; // No valid assignment found for this action
         }
@@ -1405,9 +1407,7 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
                 CPad* pad = CPad::GetPad(0);
                 
                 bool useDrivingControls = CControllerConfigManager::UseDrivingControls();
-                auto& cameraMode = TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode;
-                if (notsa::contains({MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER, 
-                    MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_CAMERA}, cameraMode)) {
+                if (CControllerConfigManager::UseFirstPersonControls()) {
                     useFirstPersonControls = true;
                 }
                 
@@ -1767,6 +1767,7 @@ void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControl
     }
 }
 
+// NOTSA
 bool CControllerConfigManager::UseDrivingControls() {
     // FindPlayerPed() && FindPlayerVehicle() && FindPlayerPed()->GetPedState() == PEDSTATE_DRIVING && !pad->DisablePlayerControls
     if (const auto* const plyr = FindPlayerPed()) {
@@ -1777,10 +1778,12 @@ bool CControllerConfigManager::UseDrivingControls() {
     return false;
 }
 
+// NOTSA
 bool CControllerConfigManager::UseFirstPersonControls() {
     return notsa::contains({ MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_CAMERA }, TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode);
 }
 
+// NOTSA
 CControllerState& CControllerConfigManager::GetControllerState(CPad& pad, eControllerType ctrl) {
     switch (ctrl) {
     case eControllerType::KEYBOARD:
