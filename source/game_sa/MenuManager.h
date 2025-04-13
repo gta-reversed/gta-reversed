@@ -32,8 +32,8 @@ enum eRadarMode : int32 {
 };
 
 enum eController : int8 {
-    USED,
-    NO_USED
+    NO_USED,
+    USED_JOY_STICK
 };
 
 struct MPack {

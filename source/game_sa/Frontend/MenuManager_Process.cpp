@@ -542,10 +542,10 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
     }
     case MENU_ACTION_CONTROL_TYPE:
         if (m_ControlMethod) {
-            m_ControlMethod = false;
+            m_ControlMethod = eController::NO_USED;
             CCamera::m_bUseMouse3rdPerson = true;
         } else {
-            m_ControlMethod = true;
+            m_ControlMethod = eController::USED_JOY_STICK;
             CCamera::m_bUseMouse3rdPerson = false;
         }
         SaveSettings();

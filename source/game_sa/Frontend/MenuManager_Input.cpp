@@ -11,7 +11,7 @@
 #include "extensions/Configs/FastLoader.hpp"
 
 /*!
-* @addr 0x57FD70
+ * @addr 0x57FD70
  */
 void CMenuManager::UserInput() {
     { // NOTSA
