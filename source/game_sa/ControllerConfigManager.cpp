@@ -123,17 +123,13 @@ void CControllerConfigManager::ClearCommonMappings(eControllerAction nop, KeyCod
 }
 
 // 0x530490
-void CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerAction action, KeyCode button, eControllerType type) {
-    ResetSettingOrder(action);
-    auto existingMappings = 0u;
-    for (auto i = 0u; i < eControllerType::CONTROLLER_NUM; ++i) {
-        if (m_Actions[action].Keys[i].m_uiActionInitiator != rsNULL) {
-            existingMappings++;
-        }
-    }
-    m_Actions[action].Keys[type].m_uiActionInitiator  = button;
-    m_Actions[action].Keys[type].m_uiSetOrder = (eContSetOrder)existingMappings++;
+void CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerAction Action, KeyCode KeyCode, eControllerType ControllerArraytoEnter) {
+    ResetSettingOrder(Action);
+    auto numOfSettings = GetNumOfSettingsForAction(Action);
+    m_Actions[Action].Keys[ControllerArraytoEnter].m_uiActionInitiator = KeyCode;
+    m_Actions[Action].Keys[ControllerArraytoEnter].m_uiSetOrder = eContSetOrder(numOfSettings + 1);
 }
+
 
 // 0x5319D0
 void CControllerConfigManager::ClearVehicleMappings(eControllerAction nop, KeyCode button, eControllerType type) {
@@ -525,6 +521,8 @@ bool CControllerConfigManager::LoadSettings(FILE* file) {
                 break;
             }
         }
+
+        // NOTSA: If no assignment found, check if it's a special action that can be blank
         if (!hasAssignment && !notsa::contains({NETWORK_TALK, NUM_OF_1ST_PERSON_ACTIONS, TOGGLE_DPAD, SWITCH_DEBUG_CAM_ON, TAKE_SCREEN_SHOT, SHOW_MOUSE_POINTER_TOGGLE, SWITCH_CAM_DEBUG_MENU}, (eControllerAction)i)) {
             return false; // No valid assignment found for this action
         }
@@ -657,21 +655,6 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
     SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_TARGET_RIGHT, (RsKeyCodes)']', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_TARGET_RIGHT, (RsKeyCodes)']', eControllerType::KEYBOARD);
 
-    // NOTSA
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_MOUSELOOK,         rsMOUSE_RIGHT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_DOWN, rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_IN,         rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
-
-
     ClearSimButtonPressCheckers();
 }
 
@@ -709,9 +692,9 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
         { JOYBUTTON_SEVEN,     eControllerAction::PED_FIRE_WEAPON_ALT               },
         { JOYBUTTON_SEVEN,     eControllerAction::VEHICLE_FIRE_WEAPON_ALT           },
         { JOYBUTTON_SIX,       eControllerAction::PED_CYCLE_WEAPON_RIGHT            },
-        { JOYBUTTON_SIX,       eControllerAction::VEHICLE_LOOKRIGHT                },
+        { JOYBUTTON_SIX,       eControllerAction::VEHICLE_LOOKRIGHT                 },
         { JOYBUTTON_FIVE,      eControllerAction::PED_CYCLE_WEAPON_LEFT             },
-        { JOYBUTTON_FIVE,      eControllerAction::VEHICLE_LOOKLEFT                 },
+        { JOYBUTTON_FIVE,      eControllerAction::VEHICLE_LOOKLEFT                  },
         { JOYBUTTON_FOUR,      eControllerAction::VEHICLE_BRAKE                     },
         { JOYBUTTON_FOUR,      eControllerAction::PED_JUMPING                       },
         { JOYBUTTON_FOUR,      eControllerAction::PED_SNIPER_ZOOM_IN                },
@@ -773,21 +756,29 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
 }
 
 // 0x52F6F0
-void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller) {
-    if (state.isMouseLeftButtonPressed) {
-        m_MouseFoundInitSet = true;
+// NOTSA: Direct mouse keys assignement.
+void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& MouseSetUp, bool bMouseControls) {
+
+#ifdef NOTSA_USE_SDL3
+    constexpr bool isForceMouse = true;
+#else
+    constexpr bool isForceMouse = false;
+#endif
+
+    if (MouseSetUp.isMouseLeftButtonPressed || isForceMouse) {
+        m_MouseFoundInitSet = bMouseControls; // NOP
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON);
     }
-    if (state.isMouseRightButtonPressed) {                                                      
+    if (MouseSetUp.isMouseRightButtonPressed || isForceMouse) {                                                      
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_MOUSELOOK,          rsMOUSE_RIGHT_BUTTON);
     }
-    if (state.isMouseMiddleButtonPressed) {                                                      
+    if (MouseSetUp.isMouseMiddleButtonPressed || isForceMouse) {                                                      
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON);
     }
-    if (state.isMouseWheelMovedUp || state.isMouseWheelMovedDown) {
+    if (MouseSetUp.isMouseWheelMovedUp || MouseSetUp.isMouseWheelMovedDown || isForceMouse) {
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON);
@@ -869,21 +860,19 @@ void CControllerConfigManager::ReinitControls() {
 #ifdef NOTSA_USE_SDL3
     const auto MouseSetUp = CMouseControllerState{};
 #else
-    const auto MouseSetUp = WinInput::GetMouseState();
+    const auto MouseSetUp = WinInput::GetMouseSetUp();
 #endif
     ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, !FrontEndMenuManager.m_ControlMethod);
-    // ControlsManager.InitDefaultControlConfigJoyPad(44u); // TODO: Evaluate add that in future - NOTSA
+    if (PadConfigs[PAD1].present) {
+        ControlsManager.InitDefaultControlConfigJoyPad(44u);
+    }
 }
 
 // 0x52F590
-int8 CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAction actionID, KeyCode button) {
-    auto& action = m_Actions[actionID];
-    const auto order = 1 + rng::count_if(action.Keys, [](auto&& key) { /* 1 + count of previously set keys for this control */
-        return key.m_uiActionInitiator != rsNULL && key.m_uiActionInitiator != 0;
-    });
-    action.Keys[eControllerType::MOUSE].m_uiActionInitiator  = button;
-    action.Keys[eControllerType::MOUSE].m_uiSetOrder = (eContSetOrder)order;
-    return order;
+void CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAction Action, KeyCode MouseAction) {
+	auto numOfSettings = GetNumOfSettingsForAction(Action);
+    m_Actions[Action].Keys[eControllerType::MOUSE].m_uiActionInitiator = MouseAction;
+    m_Actions[Action].Keys[eControllerType::MOUSE].m_uiSetOrder = eContSetOrder(numOfSettings + 1);
 }
 
 // unused
@@ -1418,9 +1407,7 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
                 CPad* pad = CPad::GetPad(0);
                 
                 bool useDrivingControls = CControllerConfigManager::UseDrivingControls();
-                auto& cameraMode = TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode;
-                if (notsa::contains({MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER, 
-                    MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_CAMERA}, cameraMode)) {
+                if (CControllerConfigManager::UseFirstPersonControls()) {
                     useFirstPersonControls = true;
                 }
                 
@@ -1692,6 +1679,19 @@ const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerActio
     return 0;
 }
 
+// Missing addresses (inlined)
+const int32 CControllerConfigManager::GetNumOfSettingsForAction(eControllerAction Action) {
+    int32 num = 0;
+    for (auto i = 0u; i < eControllerType::CONTROLLER_NUM; ++i) {
+        const auto type = (eControllerType)i;
+        const auto key = m_Actions[Action].Keys[type].m_uiActionInitiator;
+        if (!GetIsKeyBlank(key, type)) {
+            num++;
+        }
+    }
+    return num;
+}
+
 // NOTSA
 eControllerAction CControllerConfigManager::GetActionIDByName(std::string_view name) {
     for (auto&& [i, actionName] : rngv::enumerate(m_ControllerActionName)) {
@@ -1767,6 +1767,7 @@ void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControl
     }
 }
 
+// NOTSA
 bool CControllerConfigManager::UseDrivingControls() {
     // FindPlayerPed() && FindPlayerVehicle() && FindPlayerPed()->GetPedState() == PEDSTATE_DRIVING && !pad->DisablePlayerControls
     if (const auto* const plyr = FindPlayerPed()) {
@@ -1777,10 +1778,12 @@ bool CControllerConfigManager::UseDrivingControls() {
     return false;
 }
 
+// NOTSA
 bool CControllerConfigManager::UseFirstPersonControls() {
     return notsa::contains({ MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_CAMERA }, TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode);
 }
 
+// NOTSA
 CControllerState& CControllerConfigManager::GetControllerState(CPad& pad, eControllerType ctrl) {
     switch (ctrl) {
     case eControllerType::KEYBOARD:

@@ -134,58 +134,37 @@ bool CPad::ProcessKeyboardEvent(const SDL_Event& e, CKeyboardState& ks) {
     return false;
 }
 
-// New function to directly poll the joystick state
-void CPad::UpdateJoystick(CControllerState& cs) {
-#ifdef NOTSA_USE_SDL3
-    // Get all available gamepads
-    int sdl_gamepads_count = 0;
-    SDL_JoystickID* sdl_gamepads = SDL_GetGamepads(&sdl_gamepads_count);
-    
-    if (sdl_gamepads_count > 0) {
-        // Select the first gamepad (or a specific one by ID)
-        SDL_Gamepad* gamepad = SDL_OpenGamepad(sdl_gamepads[0]);
-        if (gamepad) {
-            // Update analog axes
-            const auto UpdateAxis = [&](int16& outA, int16& outB, SDL_GamepadAxis axis, bool isInverted, bool isSwapped) {
-                float value = SDL_GetGamepadAxis(gamepad, axis) / 256.0f; // Convert to comparable range
-                if (fabs(value) > 0.3f) { // Threshold to prevent drift
-                    value = isInverted ? -value : value;
-                    (isSwapped ? outA : outB) = static_cast<int16>(value);
-                }
-            };
-            
-            // Update analog axes
-            UpdateAxis(cs.LeftStickY, cs.LeftStickX, SDL_GAMEPAD_AXIS_LEFTX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
-            UpdateAxis(cs.LeftStickX, cs.LeftStickY, SDL_GAMEPAD_AXIS_LEFTY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis2);
-            UpdateAxis(cs.RightStickY, cs.RightStickX, SDL_GAMEPAD_AXIS_RIGHTX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis1);
-            UpdateAxis(cs.RightStickX, cs.RightStickY, SDL_GAMEPAD_AXIS_RIGHTY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
-            
-            // Update triggers
-            cs.LeftShoulder2 = static_cast<uint8>(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 1000 ? 255 : 0);
-            cs.RightShoulder2 = static_cast<uint8>(SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 1000 ? 255 : 0);
-            
-            // Update buttons
-            cs.ButtonCross = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_SOUTH) ? 255 : 0;
-            cs.ButtonCircle = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_EAST) ? 255 : 0;
-            cs.ButtonSquare = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_WEST) ? 255 : 0;
-            cs.ButtonTriangle = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_NORTH) ? 255 : 0;
-            cs.Select = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_BACK) ? 255 : 0;
-            cs.Start = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_START) ? 255 : 0;
-            cs.DPadUp = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP) ? 255 : 0;
-            cs.DPadDown = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN) ? 255 : 0;
-            cs.DPadLeft = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT) ? 255 : 0;
-            cs.DPadRight = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT) ? 255 : 0;
-            cs.LeftShoulder1 = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER) ? 255 : 0;
-            cs.RightShoulder1 = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER) ? 255 : 0;
-            cs.ShockButtonL = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_LEFT_STICK) ? 255 : 0;
-            cs.ShockButtonR = SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_RIGHT_STICK) ? 255 : 0;
-            
-            // Close the gamepad
-            SDL_CloseGamepad(gamepad);
-        }
-        SDL_free(sdl_gamepads);
-    }
-#endif
+bool CPad::ProcessGamepadEvent(const SDL_Event & e, CControllerState& cs) {
+    //switch (e.type) {
+    //case SDL_EVENT_GAMEPAD_AXIS_MOTION: {
+    //    const auto UpdateAxis = [&](int16& outA, int16& outB, bool isInverted, bool isSwapped) {
+    //        int16 pos = e.gaxis.value;
+    //        if (fabs(pos) > 0.3f) {
+    //            pos = isInverted ? -pos : pos;
+    //            pos /= 128; // SDL values are [-32768 to 32767], need to map to [-128, 127] (Actually should be [-128, 128] (?))
+    //            (isSwapped ? outA : outB) = pos;
+    //        }
+    //    };
+    //    switch (e.gaxis.axis) {
+    //    case SDL_GAMEPAD_AXIS_LEFTX:
+    //    case SDL_GAMEPAD_AXIS_LEFTY:
+    //    case SDL_GAMEPAD_AXIS_RIGHTX:
+    //    case SDL_GAMEPAD_AXIS_RIGHTY:
+    //    }
+    //        
+    //    UpdateAxis(cs.LeftStickY, cs.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
+    //    UpdateAxis(cs.LeftStickX, cs.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis2);
+    //
+    //    UpdateAxis(cs.LeftStickY, cs.LeftStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis1);
+    //    UpdateAxis(cs.LeftStickX, cs.LeftStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
+    //    return true;
+    //}
+    //}
+    return false;
+}
+
+bool CPad::ProcessJoyStickEvent(const SDL_Event& e, CControllerState& cs) {
+    return false;
 }
 
 bool CPad::ProcessEvent(const SDL_Event& e, bool ignoreMouseEvents, bool ignoreKeyboardEvents) {
@@ -195,6 +174,13 @@ bool CPad::ProcessEvent(const SDL_Event& e, bool ignoreMouseEvents, bool ignoreK
     }
     if (!ignoreKeyboardEvents && GetPad(0)->ProcessKeyboardEvent(e, TempKeyState)) {
         return true;
+    }
+
+    // Other events (I guess) can be handled by any pad
+    for (auto& pad : Pads) {
+        if (pad.ProcessJoyStickEvent(e, pad.PCTempJoyState)) {
+            return true;
+        }
     }
 
     // Event not processed

@@ -199,7 +199,7 @@ public:
     void InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller);
     void InitialiseControllerActionNameArray();
     void ReinitControls();
-    int8 SetMouseButtonAssociatedWithAction(eControllerAction action, KeyCode button);
+    void SetMouseButtonAssociatedWithAction(eControllerAction action, KeyCode button);
     void StoreMouseButtonState(eMouseButtons button, bool state);
     void UpdateJoyInConfigMenus_ButtonDown(KeyCode button, int32 padNumber);
     void UpdateJoy_ButtonDown(KeyCode button, eControllerType type);
@@ -228,6 +228,8 @@ public:
     const GxtChar* GetButtonComboText(eControllerAction event);
 
     const GxtChar* GetDefinedKeyByGxtName(eControllerAction action);
+
+    const int32 GetNumOfSettingsForAction(eControllerAction Action);
 
     // NOTSA
     eControllerAction GetActionIDByName(std::string_view name);
