@@ -137,6 +137,9 @@ public:
     void Update(int32 pad);
     static void UpdatePads();
     void UpdateMouse();
+#ifndef NOTSA_USE_SDL3
+    HRESULT GetMouseState(DIMOUSESTATE2* dm);
+#endif
     static void ProcessPad(ePadID padID);
     void ProcessPCSpecificStuff();
     CControllerState& ReconcileTwoControllersInput(CControllerState& out, const CControllerState& controllerA, const CControllerState& controllerB);

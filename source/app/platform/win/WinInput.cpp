@@ -2,7 +2,6 @@
 
 #ifndef NOTSA_USE_SDL3
 
-#include "Input.h"
 #include "WinInput.h"
 #include "ControllerConfigManager.h"
 #include "WinPlatform.h"
@@ -195,27 +194,55 @@ BOOL CALLBACK EnumDevicesCallback(LPCDIDEVICEINSTANCEA inst, LPVOID) {
 }
 
 // 0x53F2D0
-// NOTSA(Grinch_): Directly returning CMouseControllerState
-CMouseControllerState GetMouseState() {
-    DIMOUSESTATE2 mouseState;
+CMouseControllerState GetMouseSetUp() {
     CMouseControllerState state;
 
-    if (PSGLOBAL(diMouse)) {
-        if (SUCCEEDED(PSGLOBAL(diMouse)->GetDeviceState(sizeof(DIMOUSESTATE2), &mouseState))) {
-            state.m_AmountMoved = CVector2D(static_cast<float>(mouseState.lX), static_cast<float>(mouseState.lY));
-            state.isMouseWheelMovedUp = (mouseState.lZ > 0);
-            state.isMouseWheelMovedDown = (mouseState.lZ < 0);
-            state.isMouseLeftButtonPressed = mouseState.rgbButtons[0] & 0x80;
-            state.isMouseRightButtonPressed = mouseState.rgbButtons[1] & 0x80;
-            state.isMouseMiddleButtonPressed = mouseState.rgbButtons[2] & 0x80;
-            state.isMouseFirstXPressed = mouseState.rgbButtons[3] & 0x80;
-            state.isMouseSecondXPressed = mouseState.rgbButtons[4] & 0x80;
-        }
-    } else {
-		diMouseInit(!FrontEndMenuManager.m_bMenuActive && IsVideoModeExclusive());
+    if ( PSGLOBAL(diMouse) == nullptr ) {
+        WinInput::diMouseInit(!FrontEndMenuManager.m_bMenuActive && IsVideoModeExclusive());
     }
 
-	return state;
+    if ( PSGLOBAL(diMouse) != nullptr )
+    {
+        DIDEVCAPS devCaps;
+        devCaps.dwSize = sizeof(DIDEVCAPS);
+
+        // Get device capabilities
+        if (SUCCEEDED(PSGLOBAL(diMouse)->GetCapabilities(&devCaps))) {
+            switch ( devCaps.dwButtons )
+            {
+                case 8:
+                case 7:
+                case 6:
+                case 5:
+                case 4:
+                case 3:
+                    state.isMouseMiddleButtonPressed = true; // Assumes button 3+ implies MMB exists
+                    [[fallthrough]];
+                case 2:
+                    state.isMouseRightButtonPressed = true; // Assumes button 2+ implies RMB exists
+                    [[fallthrough]];
+                case 1:
+                    state.isMouseLeftButtonPressed = true; // Assumes button 1+ implies LMB exists
+                    [[fallthrough]];
+                default:
+                    break;
+            }
+
+            if ( devCaps.dwAxes >= 3 )
+            {
+                state.isMouseWheelMovedDown = true;
+                state.isMouseWheelMovedUp = true;
+            }
+
+            if (devCaps.dwButtons >= 4) {
+                 state.isMouseFirstXPressed = true;
+            }
+            if (devCaps.dwButtons >= 5) {
+                 state.isMouseSecondXPressed = true;
+            }
+        }
+    }
+    return state;
 }
 
 void InjectHooks() {
@@ -228,6 +255,7 @@ void InjectHooks() {
     RH_ScopedGlobalInstall(EnumDevicesCallback, 0x747020);
     RH_ScopedGlobalInstall(diPadInit, 0x7485C0);
     RH_ScopedGlobalInstall(diPadSetRanges, 0x746D80);
+    RH_ScopedGlobalInstall(GetMouseSetUp, 0x53F2D0);
 }
 
 bool IsKeyPressed(unsigned int keyCode) {

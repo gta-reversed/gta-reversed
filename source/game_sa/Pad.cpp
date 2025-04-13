@@ -12,7 +12,7 @@
 #include "ControllerConfigManager.h"
 #include "app.h"
 #include "platform/win/WinPlatform.h"
-
+#include "platform/win/VideoMode.h"
 #ifdef NOTSA_USE_SDL3
 #include <SDL3/SDL.h>
 #include <SDLWrapper.hpp>
@@ -112,8 +112,11 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(ConversationNoJustDown, 0x541200);
     RH_ScopedInstall(GroupControlForwardJustDown, 0x541230);
     RH_ScopedInstall(GroupControlBackJustDown, 0x541260);
-    RH_ScopedInstall(LookAroundLeftRight, 0x540BD0, {.reversed = true});
-    RH_ScopedInstall(LookAroundUpDown, 0x540CC0, {.reversed = true});
+    RH_ScopedInstall(LookAroundLeftRight, 0x540BD0);
+    RH_ScopedInstall(LookAroundUpDown, 0x540CC0);
+#ifndef NOTSA_USE_SDL3
+    RH_ScopedInstall(GetMouseState, 0x746ED0);
+#endif
 }
 
 // 0x541D80
@@ -239,37 +242,89 @@ void CPad::UpdatePads() {
     OldKeyState = std::exchange(NewKeyState, TempKeyState);
 }
 
-// 0x53F3C0
-// NOTSA(Grinch_): Game does this a bit differently, but does the same thing
-void CPad::UpdateMouse() {
-    if (ForegroundApp) {
-        int32_t invertX, invertY;
-
-        invertX = FrontEndMenuManager.bInvertMouseX ? -1 : 1;
-        invertY = FrontEndMenuManager.bInvertMouseY ? 1 : -1; // NOSTA FIX
-
-        CMouseControllerState state =
-#ifdef NOTSA_USE_SDL3
-            PCTempMouseControllerState;
-#else
-            WinInput::GetMouseState();
-#endif
-        if (state.CheckForInput()) {
-            SetTouched();
-        }
-
-        // Write directly to NewMouseControllerState
-        CPad::OldMouseControllerState = std::exchange(CPad::NewMouseControllerState, state);
-        CPad::NewMouseControllerState.m_AmountMoved.x *= invertX;
-        CPad::NewMouseControllerState.m_AmountMoved.y *= invertY;
-
-#ifdef NOTSA_USE_SDL3
-        PCTempMouseControllerState.m_AmountMoved.x = 0.f;
-        PCTempMouseControllerState.m_AmountMoved.y = 0.f;
-        PCTempMouseControllerState.isMouseWheelMovedDown = false;
-        PCTempMouseControllerState.isMouseWheelMovedUp   = false;
-#endif
+// 0x746ED0
+#ifndef NOTSA_USE_SDL3 // SDL doesn't use DirectInput
+HRESULT CPad::GetMouseState(DIMOUSESTATE2 *dm) {
+    if (!PSGLOBAL(diMouse)) {
+        return 1;
     }
+
+    // Zero out the mouse state
+    dm->lX = dm->lY = dm->lZ = 0;
+    std::fill(std::begin(dm->rgbButtons), std::end(dm->rgbButtons), 0);
+
+    // Try to get the device state
+    HRESULT hr = PSGLOBAL(diMouse)->GetDeviceState(sizeof(DIMOUSESTATE2), dm);
+    if (SUCCEEDED(hr)) {
+        return 0; // Success
+    }
+
+    // If failed, try to reacquire the device
+    while (PSGLOBAL(diMouse)->Acquire() == DIERR_INPUTLOST) {
+        // Keep trying until acquisition succeeds or fails with a different error
+    }
+
+    // Zero out the mouse state again
+    dm->lX = dm->lY = dm->lZ = 0;
+    std::fill(std::begin(dm->rgbButtons), std::end(dm->rgbButtons), 0);
+
+    // Try one more time to get the state
+    return PSGLOBAL(diMouse)->GetDeviceState(sizeof(DIMOUSESTATE2), dm);
+}
+#endif
+
+// 0x53F3C0
+void CPad::UpdateMouse() {
+    int32 invertX = 1, invertY = 1;
+    if (!IsForegroundApp()) {
+        return;
+    }
+    if (!FrontEndMenuManager.m_bMenuActive) {
+        invertX = FrontEndMenuManager.bInvertMouseX ? -1 : 1;
+        invertY = FrontEndMenuManager.bInvertMouseY ? 1 : -1; // NOTSA: Original code had -1 for inverted Y
+    }
+
+#ifndef NOTSA_USE_SDL3
+    DIMOUSESTATE2 mouseState;
+    if (PSGLOBAL(diMouse)) {
+        if (PSGLOBAL(diMouse) && SUCCEEDED(CPad::GetMouseState(&mouseState))) {
+            PCTempMouseControllerState.m_AmountMoved.x = static_cast<float>(invertX * mouseState.lX);
+            PCTempMouseControllerState.m_AmountMoved.y = static_cast<float>(invertY * mouseState.lY);
+            PCTempMouseControllerState.isMouseWheelMovedUp = (mouseState.lZ > 0);
+            PCTempMouseControllerState.isMouseWheelMovedDown = (mouseState.lZ < 0);
+            PCTempMouseControllerState.isMouseLeftButtonPressed = (mouseState.rgbButtons[0] & 0x80) != 0;
+            PCTempMouseControllerState.isMouseRightButtonPressed = (mouseState.rgbButtons[1] & 0x80) != 0;
+            PCTempMouseControllerState.isMouseMiddleButtonPressed = (mouseState.rgbButtons[2] & 0x80) != 0;
+            PCTempMouseControllerState.isMouseFirstXPressed = (mouseState.rgbButtons[3] & 0x80) != 0;
+            PCTempMouseControllerState.isMouseSecondXPressed = (mouseState.rgbButtons[4] & 0x80) != 0;
+            OldMouseControllerState = std::exchange(NewMouseControllerState, PCTempMouseControllerState);
+
+            if (NewMouseControllerState.CheckForInput()) {
+                SetTouched();
+            }
+        }
+    } else {
+        WinInput::diMouseInit(!FrontEndMenuManager.m_bMenuActive && IsVideoModeExclusive());
+    }
+#else // NOTSA_USE_SDL3
+      // Use the temporary state populated by SDL events
+    CMouseControllerState state = PCTempMouseControllerState;
+
+    if (state.CheckForInput()) {
+        SetTouched();
+    }
+
+    // Update states
+    OldMouseControllerState = std::exchange(NewMouseControllerState, state);
+    NewMouseControllerState.m_AmountMoved.x *= invertX;
+    NewMouseControllerState.m_AmountMoved.y *= invertY;
+
+    // Clear the temporary SDL state delta values
+    PCTempMouseControllerState.m_AmountMoved.x = 0.f;
+    PCTempMouseControllerState.m_AmountMoved.y = 0.f;
+    PCTempMouseControllerState.isMouseWheelMovedDown = false;
+    PCTempMouseControllerState.isMouseWheelMovedUp = false;
+#endif
 }
 
 // 0x746A10
@@ -294,7 +349,6 @@ void CPad::ProcessPad(ePadID padID) {
         (*pDiDevice)->Acquire();
         return;
     }
-
  
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
 
