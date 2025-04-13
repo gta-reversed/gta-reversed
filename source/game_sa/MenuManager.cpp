@@ -113,7 +113,7 @@ CMenuManager::CMenuManager() {
     m_MenuIsAbleToQuit            = false;
     m_nTitleLanguage              = 9;
     m_nUserTrackIndex             = 0;
-    m_ControlMethod               = 0;
+    m_ControlMethod               = eController::NO_USED;
     CCamera::m_bUseMouse3rdPerson = 1;
     m_nMousePosX                  = m_nMousePosWinX;
     m_ListSelection               = 0;
@@ -397,19 +397,14 @@ void CMenuManager::DoSettingsBeforeStartingAGame() {
 
 // 0x5733E0
 float CMenuManager::StretchX(float x) {
-    if (SCREEN_WIDTH == DEFAULT_SCREEN_WIDTH)
-        return x;
-    else
-        return SCREEN_STRETCH_X(x);
+    return (SCREEN_WIDTH == DEFAULT_SCREEN_WIDTH) ? x : SCREEN_STRETCH_X(x);
 }
 
 // 0x573410
 float CMenuManager::StretchY(float y) {
-    if (SCREEN_HEIGHT == DEFAULT_SCREEN_HEIGHT)
-        return y;
-    else
-        return SCREEN_STRETCH_Y(y);
+    return (SCREEN_HEIGHT == DEFAULT_SCREEN_HEIGHT) ? y : SCREEN_STRETCH_Y(y);
 }
+
 
 // 0x573680
 void CMenuManager::SwitchToNewScreen(eMenuScreen screen) {
@@ -560,7 +555,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_bShowSubtitles                 = true;
         break;
     case SCREEN_CONTROLLER_SETUP:
-        m_ControlMethod                  = 0;
+        m_ControlMethod                  = eController::NO_USED;
         CCamera::m_fMouseAccelHorzntl    = 0.0025f;
         CCamera::m_bUseMouse3rdPerson    = true;
         CVehicle::m_bEnableMouseFlying   = true;

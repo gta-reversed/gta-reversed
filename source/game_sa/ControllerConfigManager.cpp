@@ -1770,7 +1770,7 @@ void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControl
 // NOTSA
 bool CControllerConfigManager::UseDrivingControls() {
     // FindPlayerPed() && FindPlayerVehicle() && FindPlayerPed()->GetPedState() == PEDSTATE_DRIVING && !pad->DisablePlayerControls
-    if (const auto* const plyr = FindPlayerPed()) {
+    if (auto plyr = FindPlayerPed()) {
         if (FindPlayerVehicle()) {
             return plyr->GetPedState() == PEDSTATE_DRIVING && !CPad::GetPad(0)->DisablePlayerControls;
         }
