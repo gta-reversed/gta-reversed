@@ -13,6 +13,7 @@
 #include "app.h"
 #include "platform/win/WinPlatform.h"
 #include "platform/win/VideoMode.h"
+
 #ifdef NOTSA_USE_SDL3
 #include <SDL3/SDL.h>
 #include <SDLWrapper.hpp>
@@ -320,8 +321,7 @@ void CPad::UpdateMouse() {
     NewMouseControllerState.m_AmountMoved.y *= invertY;
 
     // Clear the temporary SDL state delta values
-    TempMouseControllerState.m_AmountMoved.x = 0.f;
-    TempMouseControllerState.m_AmountMoved.y = 0.f;
+    TempMouseControllerState.m_AmountMoved.Reset();
     TempMouseControllerState.isMouseWheelMovedDown = false;
     TempMouseControllerState.isMouseWheelMovedUp = false;
 #endif
@@ -349,7 +349,8 @@ void CPad::ProcessPad(ePadID padID) {
         (*pDiDevice)->Acquire();
         return;
     }
- 
+
+
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
 
     if (ControlsManager.m_WasJoyJustInitialised) {

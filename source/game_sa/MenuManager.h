@@ -31,6 +31,11 @@ enum eRadarMode : int32 {
     OFF
 };
 
+enum eController : int8 {
+    USED,
+    NO_USED
+};
+
 struct MPack {
     uint8 m_Id;
     char  m_Name[260];
@@ -70,7 +75,6 @@ public:
     float     m_fDrawDistance;
 
     bool      m_bShowSubtitles;
-
     union {
         struct {
             bool m_ShowLocationsBlips;
@@ -137,7 +141,7 @@ public:
     bool      m_bTracksAutoScan;
     int32     m_nPrefsAntialiasing;
     int32     m_nDisplayAntialiasing;
-    int8      m_ControlMethod; // TODO: Change to enum
+    eController m_ControlMethod;
     int32     m_nPrefsVideoMode;
     int32     m_nDisplayVideoMode;
     int32     m_nCurrentRwSubsystem; // initialized | not used
@@ -151,7 +155,7 @@ public:
     bool      m_bLanguageChanged; // useless?
     int32     field_EC;
     RsKeyCodes* m_pPressedKey; // any pressed key, in order of CKeyboardState; rsNULL means no key pressed
-    bool      m_bPreInitialised;
+    bool      m_isPreInitialised;
 
     union {
         struct {
@@ -222,6 +226,7 @@ public:
     char   field_1B45;
     int16  field_1B46;
     uint32 field_1B48;
+
     union {
         struct {
             uint32 field_1B4C_b1 : 1;

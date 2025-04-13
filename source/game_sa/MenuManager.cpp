@@ -113,7 +113,7 @@ CMenuManager::CMenuManager() {
     m_MenuIsAbleToQuit            = false;
     m_nTitleLanguage              = 9;
     m_nUserTrackIndex             = 0;
-    m_ControlMethod                 = false;
+    m_ControlMethod               = 0;
     CCamera::m_bUseMouse3rdPerson = 1;
     m_nMousePosX                  = m_nMousePosWinX;
     m_ListSelection               = 0;
@@ -143,7 +143,7 @@ CMenuManager::CMenuManager() {
     m_bMenuActive             = false;
     m_bIsSaveDone             = false;
     m_bLoadingData            = false;
-    m_isPreInitialised                  = false;
+    m_isPreInitialised        = false;
     m_fStatsScrollSpeed       = 150.0f;
     m_nStatsScrollDirection   = 1;
     m_KeyPressedCode          = (RsKeyCodes)-1;
@@ -401,7 +401,6 @@ float CMenuManager::StretchX(float x) {
         return x;
     else
         return SCREEN_STRETCH_X(x);
-    return SCREEN_STRETCH_X(x);
 }
 
 // 0x573410
@@ -410,7 +409,6 @@ float CMenuManager::StretchY(float y) {
         return y;
     else
         return SCREEN_STRETCH_Y(y);
-    return SCREEN_STRETCH_Y(y);
 }
 
 // 0x573680
@@ -562,7 +560,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_bShowSubtitles                 = true;
         break;
     case SCREEN_CONTROLLER_SETUP:
-        m_ControlMethod                    = false;
+        m_ControlMethod                  = 0;
         CCamera::m_fMouseAccelHorzntl    = 0.0025f;
         CCamera::m_bUseMouse3rdPerson    = true;
         CVehicle::m_bEnableMouseFlying   = true;
@@ -1179,7 +1177,7 @@ void CMenuManager::SmallMessageScreen(const char* key) {
 //! NOTSA
 void CMenuManager::SimulateGameLoad(bool newGame, uint32 slot) {
     m_bDontDrawFrontEnd     = newGame;
-    m_SelectedSlot     = slot;
+    m_SelectedSlot          = slot;
     CGame::bMissionPackGame = false;
     if (newGame) {
         DoSettingsBeforeStartingAGame();
