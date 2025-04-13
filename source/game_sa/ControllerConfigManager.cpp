@@ -123,17 +123,13 @@ void CControllerConfigManager::ClearCommonMappings(eControllerAction nop, KeyCod
 }
 
 // 0x530490
-void CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerAction action, KeyCode button, eControllerType type) {
-    ResetSettingOrder(action);
-    auto existingMappings = 0u;
-    for (auto i = 0u; i < eControllerType::CONTROLLER_NUM; ++i) {
-        if (m_Actions[action].Keys[i].m_uiActionInitiator != rsNULL) {
-            existingMappings++;
-        }
-    }
-    m_Actions[action].Keys[type].m_uiActionInitiator  = button;
-    m_Actions[action].Keys[type].m_uiSetOrder = (eContSetOrder)existingMappings++;
+void CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerAction Action, KeyCode KeyCode, eControllerType ControllerArraytoEnter) {
+    ResetSettingOrder(Action);
+    auto numOfSettings = GetNumOfSettingsForAction(Action);
+    m_Actions[Action].Keys[ControllerArraytoEnter].m_uiActionInitiator = KeyCode;
+    m_Actions[Action].Keys[ControllerArraytoEnter].m_uiSetOrder = eContSetOrder(numOfSettings + 1);
 }
+
 
 // 0x5319D0
 void CControllerConfigManager::ClearVehicleMappings(eControllerAction nop, KeyCode button, eControllerType type) {
@@ -694,9 +690,9 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
         { JOYBUTTON_SEVEN,     eControllerAction::PED_FIRE_WEAPON_ALT               },
         { JOYBUTTON_SEVEN,     eControllerAction::VEHICLE_FIRE_WEAPON_ALT           },
         { JOYBUTTON_SIX,       eControllerAction::PED_CYCLE_WEAPON_RIGHT            },
-        { JOYBUTTON_SIX,       eControllerAction::VEHICLE_LOOKRIGHT                },
+        { JOYBUTTON_SIX,       eControllerAction::VEHICLE_LOOKRIGHT                 },
         { JOYBUTTON_FIVE,      eControllerAction::PED_CYCLE_WEAPON_LEFT             },
-        { JOYBUTTON_FIVE,      eControllerAction::VEHICLE_LOOKLEFT                 },
+        { JOYBUTTON_FIVE,      eControllerAction::VEHICLE_LOOKLEFT                  },
         { JOYBUTTON_FOUR,      eControllerAction::VEHICLE_BRAKE                     },
         { JOYBUTTON_FOUR,      eControllerAction::PED_JUMPING                       },
         { JOYBUTTON_FOUR,      eControllerAction::PED_SNIPER_ZOOM_IN                },
@@ -760,46 +756,27 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
 // 0x52F6F0
 // NOTSA: Direct mouse keys assignement.
 void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& MouseSetUp, bool bMouseControls) {
-    /*
-    if (MouseSetUp.isMouseLeftButtonPressed) {
-        m_MouseFoundInitSet = true;
+    // if (MouseSetUp.isMouseLeftButtonPressed) {
+        m_MouseFoundInitSet = bMouseControls;
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON);
-    }
-    if (MouseSetUp.isMouseRightButtonPressed) {                                                      
-        m_MouseFoundInitSet = true;
+    // }
+    // if (MouseSetUp.isMouseRightButtonPressed) {                                                      
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_MOUSELOOK,          rsMOUSE_RIGHT_BUTTON);
-    }
-    if (MouseSetUp.isMouseMiddleButtonPressed) {                                                      
-        m_MouseFoundInitSet = true;
+    // }
+    // if (MouseSetUp.isMouseMiddleButtonPressed) {                                                      
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON);
-    }
-    if (MouseSetUp.isMouseWheelMovedUp || MouseSetUp.isMouseWheelMovedDown) {
-        m_MouseFoundInitSet = true;
+    // }
+    // if (MouseSetUp.isMouseWheelMovedUp || MouseSetUp.isMouseWheelMovedDown) {
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_DOWN, rsMOUSE_WHEEL_DOWN_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_IN,         rsMOUSE_WHEEL_UP_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON);
-    }
-    */
-
-    m_MouseFoundInitSet = true;
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_MOUSELOOK,          rsMOUSE_RIGHT_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_DOWN, rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_IN,         rsMOUSE_WHEEL_UP_BUTTON, eControllerType::MOUSE);
-    SetControllerKeyAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON, eControllerType::MOUSE);
+    // }
 }
 
 // 0x52D260
@@ -883,14 +860,10 @@ void CControllerConfigManager::ReinitControls() {
 }
 
 // 0x52F590
-int8 CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAction actionID, KeyCode button) {
-    auto& action = m_Actions[actionID];
-    const auto order = 1 + rng::count_if(action.Keys, [](auto&& key) { /* 1 + count of previously set keys for this control */
-        return key.m_uiActionInitiator != rsNULL && key.m_uiActionInitiator != 0;
-    });
-    action.Keys[eControllerType::MOUSE].m_uiActionInitiator  = button;
-    action.Keys[eControllerType::MOUSE].m_uiSetOrder = (eContSetOrder)order;
-    return order;
+void CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAction Action, KeyCode MouseAction) {
+	auto numOfSettings = GetNumOfSettingsForAction(Action);
+    m_Actions[Action].Keys[eControllerType::MOUSE].m_uiActionInitiator = MouseAction;
+    m_Actions[Action].Keys[eControllerType::MOUSE].m_uiSetOrder = eContSetOrder(numOfSettings + 1);
 }
 
 // unused
@@ -1697,6 +1670,19 @@ const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerActio
     }
 
     return 0;
+}
+
+// Missing addresses (inlined)
+const int32 CControllerConfigManager::GetNumOfSettingsForAction(eControllerAction Action) {
+    int32 num = 0;
+    for (auto i = 0u; i < eControllerType::CONTROLLER_NUM; ++i) {
+        const auto type = (eControllerType)i;
+        const auto key = m_Actions[Action].Keys[type].m_uiActionInitiator;
+        if (!GetIsKeyBlank(key, type)) {
+            num++;
+        }
+    }
+    return num;
 }
 
 // NOTSA
