@@ -787,6 +787,7 @@ void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControl
     }
     */
 
+    m_MouseFoundInitSet = true;
     SetControllerKeyAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
     SetControllerKeyAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON, eControllerType::MOUSE);
     SetControllerKeyAssociatedWithAction(eControllerAction::PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON, eControllerType::MOUSE);
