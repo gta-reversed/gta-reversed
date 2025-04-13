@@ -11,6 +11,7 @@ public:
     bool isMouseSecondXPressed{}; // BMX2
     float m_fWheelMoved{}; // Wheel movement
     CVector2D m_AmountMoved{}; // Mouse movement
+
 public:
     static void InjectHooks();
 
@@ -20,6 +21,5 @@ public:
     void Clear();
     [[nodiscard]] bool CheckForInput() const;
     [[nodiscard]] auto GetAmountMouseMoved() const { return m_AmountMoved; }
-
 };
 VALIDATE_SIZE(CMouseControllerState, 0x14);
