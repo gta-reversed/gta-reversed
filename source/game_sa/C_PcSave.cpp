@@ -80,8 +80,6 @@ void C_PcSave::PopulateSlotInfo() {
         } else {
             CMessages::InsertNumberInString(TheText.Get("FEC_SLC"), i, -1, -1, -1, -1, -1, CGenericGameStorage::ms_SlotFileName[i]);
             // CGenericGameStorage::ms_Slots[i] = eSlotState::SLOT_CORRUPTED; // NOTSA: Missing corrupted slot
-            // CGenericGameStorage::ms_SlotFileName[i][24] = 0; // TODO: Why 24?
-            // CGenericGameStorage::ms_SlotSaveDate[i][0] = 0;
         }
     }
 }

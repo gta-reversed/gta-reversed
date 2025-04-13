@@ -20,7 +20,7 @@
 
 
 // mouse states 
-CMouseControllerState& CPad::PCTempMouseControllerState = *(CMouseControllerState*)0xB73404; // Updated in `CPad::UpdateMouse`
+CMouseControllerState& CPad::TempMouseControllerState = *(CMouseControllerState*)0xB73404; // Updated in `CPad::UpdateMouse`
 CMouseControllerState& CPad::NewMouseControllerState = *(CMouseControllerState*)0xB73418;
 CMouseControllerState& CPad::OldMouseControllerState = *(CMouseControllerState*)0xB7342C;
 
@@ -143,7 +143,7 @@ void CPad::ClearKeyBoardHistory() {
 
 // 0x541BD0
 void CPad::ClearMouseHistory() {
-    PCTempMouseControllerState.Clear();
+    TempMouseControllerState.Clear();
     NewMouseControllerState.Clear();
     OldMouseControllerState.Clear();
 }
@@ -288,16 +288,16 @@ void CPad::UpdateMouse() {
     DIMOUSESTATE2 mouseState;
     if (PSGLOBAL(diMouse)) {
         if (PSGLOBAL(diMouse) && SUCCEEDED(CPad::GetMouseState(&mouseState))) {
-            PCTempMouseControllerState.m_AmountMoved.x = static_cast<float>(invertX * mouseState.lX);
-            PCTempMouseControllerState.m_AmountMoved.y = static_cast<float>(invertY * mouseState.lY);
-            PCTempMouseControllerState.isMouseWheelMovedUp = (mouseState.lZ > 0);
-            PCTempMouseControllerState.isMouseWheelMovedDown = (mouseState.lZ < 0);
-            PCTempMouseControllerState.isMouseLeftButtonPressed = (mouseState.rgbButtons[0] & 0x80) != 0;
-            PCTempMouseControllerState.isMouseRightButtonPressed = (mouseState.rgbButtons[1] & 0x80) != 0;
-            PCTempMouseControllerState.isMouseMiddleButtonPressed = (mouseState.rgbButtons[2] & 0x80) != 0;
-            PCTempMouseControllerState.isMouseFirstXPressed = (mouseState.rgbButtons[3] & 0x80) != 0;
-            PCTempMouseControllerState.isMouseSecondXPressed = (mouseState.rgbButtons[4] & 0x80) != 0;
-            OldMouseControllerState = std::exchange(NewMouseControllerState, PCTempMouseControllerState);
+            TempMouseControllerState.m_AmountMoved.x = static_cast<float>(invertX * mouseState.lX);
+            TempMouseControllerState.m_AmountMoved.y = static_cast<float>(invertY * mouseState.lY);
+            TempMouseControllerState.isMouseWheelMovedUp = (mouseState.lZ > 0);
+            TempMouseControllerState.isMouseWheelMovedDown = (mouseState.lZ < 0);
+            TempMouseControllerState.isMouseLeftButtonPressed = (mouseState.rgbButtons[0] & 0x80) != 0;
+            TempMouseControllerState.isMouseRightButtonPressed = (mouseState.rgbButtons[1] & 0x80) != 0;
+            TempMouseControllerState.isMouseMiddleButtonPressed = (mouseState.rgbButtons[2] & 0x80) != 0;
+            TempMouseControllerState.isMouseFirstXPressed = (mouseState.rgbButtons[3] & 0x80) != 0;
+            TempMouseControllerState.isMouseSecondXPressed = (mouseState.rgbButtons[4] & 0x80) != 0;
+            OldMouseControllerState = std::exchange(NewMouseControllerState, TempMouseControllerState);
 
             if (NewMouseControllerState.CheckForInput()) {
                 SetTouched();
@@ -308,7 +308,7 @@ void CPad::UpdateMouse() {
     }
 #else // NOTSA_USE_SDL3
       // Use the temporary state populated by SDL events
-    CMouseControllerState state = PCTempMouseControllerState;
+    CMouseControllerState state = TempMouseControllerState;
 
     if (state.CheckForInput()) {
         SetTouched();
@@ -320,10 +320,10 @@ void CPad::UpdateMouse() {
     NewMouseControllerState.m_AmountMoved.y *= invertY;
 
     // Clear the temporary SDL state delta values
-    PCTempMouseControllerState.m_AmountMoved.x = 0.f;
-    PCTempMouseControllerState.m_AmountMoved.y = 0.f;
-    PCTempMouseControllerState.isMouseWheelMovedDown = false;
-    PCTempMouseControllerState.isMouseWheelMovedUp = false;
+    TempMouseControllerState.m_AmountMoved.x = 0.f;
+    TempMouseControllerState.m_AmountMoved.y = 0.f;
+    TempMouseControllerState.isMouseWheelMovedDown = false;
+    TempMouseControllerState.isMouseWheelMovedUp = false;
 #endif
 }
 

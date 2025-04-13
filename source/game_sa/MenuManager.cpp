@@ -397,11 +397,19 @@ void CMenuManager::DoSettingsBeforeStartingAGame() {
 
 // 0x5733E0
 float CMenuManager::StretchX(float x) {
+    if (SCREEN_WIDTH == DEFAULT_SCREEN_WIDTH)
+        return x;
+    else
+        return SCREEN_STRETCH_X(x);
     return SCREEN_STRETCH_X(x);
 }
 
 // 0x573410
 float CMenuManager::StretchY(float y) {
+    if (SCREEN_HEIGHT == DEFAULT_SCREEN_HEIGHT)
+        return y;
+    else
+        return SCREEN_STRETCH_Y(y);
     return SCREEN_STRETCH_Y(y);
 }
 
@@ -559,7 +567,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         CCamera::m_bUseMouse3rdPerson    = true;
         CVehicle::m_bEnableMouseFlying   = true;
         CVehicle::m_bEnableMouseSteering = false;
-        bInvertMouseY                    = false; // NOSTA FIX
+        bInvertMouseY                    = false;
         m_bInvertPadX1                   = false;
         m_bInvertPadY1                   = false;
         m_bInvertPadX2                   = false;

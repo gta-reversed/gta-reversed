@@ -200,7 +200,6 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
     case MENU_ACTION_SAVE_SLOT:
         if (item->m_nType >= eMenuEntryType::TI_SLOT1 && item->m_nType <= eMenuEntryType::TI_SLOT8) {
             auto slot = CGenericGameStorage::ms_Slots[m_nCurrentScreenItem - 1];
-            
             m_SelectedSlot = m_nCurrentScreenItem - 1;
 
             if (m_nCurrentScreen == SCREEN_DELETE_GAME && slot != eSlotState::SLOT_FREE) {

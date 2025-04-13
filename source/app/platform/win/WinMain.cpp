@@ -379,12 +379,10 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     PSGLOBAL(instance) = instance; // Not used anywhere, just set here
 
     // 0x7487CF
-#ifdef NOTSA_USE_SDL3
-    ControlsManager.ReinitControls();
-#else
+#ifndef NOTSA_USE_SDL3
     VERIFY(WinInput::Initialise());
-    ControlsManager.ReinitControls();
 #endif
+    ControlsManager.ReinitControls();
 
     // 0x748847
     if (RsEventHandler(rsRWINITIALIZE, PSGLOBAL(window)) == rsEVENTERROR) {
@@ -427,7 +425,6 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
 
     // 0x748995
     CFileMgr::SetDirMyDocuments();
-
     if (auto* file = CFileMgr::OpenFile("gta_sa.set", "rb")) {
         if (!ControlsManager.LoadSettings(file)) {
             ControlsManager.ReinitControls();

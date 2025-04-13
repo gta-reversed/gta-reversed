@@ -10,10 +10,9 @@
 #include "ControllerConfigManager.h"
 #include "extensions/Configs/FastLoader.hpp"
 
-
 /*!
 * @addr 0x57FD70
-*/ 
+ */
 void CMenuManager::UserInput() {
     { // NOTSA
     const auto pad = CPad::GetPad();
@@ -22,6 +21,7 @@ void CMenuManager::UserInput() {
             ReversibleHooks::SwitchHook("DisplaySlider");
         }
     }
+
     plugin::CallMethod<0x57FD70, CMenuManager*>(this);
 }
 

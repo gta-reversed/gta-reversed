@@ -169,7 +169,7 @@ bool CPad::ProcessJoyStickEvent(const SDL_Event& e, CControllerState& cs) {
 
 bool CPad::ProcessEvent(const SDL_Event& e, bool ignoreMouseEvents, bool ignoreKeyboardEvents) {
     // Mouse/keyboard events are meant to be handled by Pad 0
-    if (!ignoreMouseEvents && GetPad(0)->ProcessMouseEvent(e, PCTempMouseControllerState)) {
+    if (!ignoreMouseEvents && GetPad(0)->ProcessMouseEvent(e, TempMouseControllerState)) {
         return true;
     }
     if (!ignoreKeyboardEvents && GetPad(0)->ProcessKeyboardEvent(e, TempKeyState)) {
