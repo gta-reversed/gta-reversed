@@ -332,7 +332,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         m_bScanningUserTracks = true;
         return true;
     case MENU_ACTION_CTRLS_JOYPAD:
-        SwitchToNewScreen(m_ControlMethod ? SCREEN_JOYPAD_SETTINGS : SCREEN_MOUSE_SETTINGS);
+        SwitchToNewScreen(m_IsUseController ? SCREEN_JOYPAD_SETTINGS : SCREEN_MOUSE_SETTINGS);
         return true;
     case MENU_ACTION_CTRLS_FOOT: // Redefine Controls -> Foot Controls
         m_RedefiningControls = false;
@@ -541,24 +541,24 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         return true;
     }
     case MENU_ACTION_CONTROL_TYPE:
-        if (m_ControlMethod) {
-            m_ControlMethod = eController::NO_USED;
+        if (m_IsUseController) {
+            m_IsUseController = false;
             CCamera::m_bUseMouse3rdPerson = true;
         } else {
-            m_ControlMethod = eController::USED_JOY_STICK;
+            m_IsUseController = true;
             CCamera::m_bUseMouse3rdPerson = false;
         }
         SaveSettings();
         return true;
     case MENU_ACTION_MOUSE_STEERING:
-        if (m_ControlMethod) {
+        if (m_IsUseController) {
             return true;
         }
         CVehicle::m_bEnableMouseSteering ^= true;
         SaveSettings();
         return true;
     case MENU_ACTION_MOUSE_FLY:
-        if (m_ControlMethod) {
+        if (m_IsUseController) {
             return true;
         }
         CVehicle::m_bEnableMouseFlying ^= true;

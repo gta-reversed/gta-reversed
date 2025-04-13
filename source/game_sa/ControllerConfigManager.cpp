@@ -102,7 +102,7 @@ void CControllerConfigManager::ClearPedMappings(eControllerAction action, KeyCod
 
     CheckAndClear(eControllerAction::PED_WALK, type, button);
 
-    if (FrontEndMenuManager.m_ControlMethod) {
+    if (FrontEndMenuManager.m_IsUseController) {
         CheckAndClear(eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER, type, button);
     }
 }
@@ -177,7 +177,7 @@ void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction actio
     CheckAndClear(eControllerAction::GO_FORWARD, type, button);
     CheckAndClear(eControllerAction::GO_BACK, type, button);
 
-    if (FrontEndMenuManager.m_ControlMethod) {
+    if (FrontEndMenuManager.m_IsUseController) {
         CheckAndClear(eControllerAction::PED_1RST_PERSON_LOOK_LEFT, type, button);
         CheckAndClear(eControllerAction::PED_1RST_PERSON_LOOK_RIGHT, type, button);
         CheckAndClear(eControllerAction::PED_1RST_PERSON_LOOK_DOWN, type, button);
@@ -301,7 +301,7 @@ eControllerType CControllerConfigManager::AffectControllerStateOn_ButtonDown_Fir
     CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_LEFT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], -128); 
     CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_RIGHT, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[type], 128);  
 
-    if (FrontEndMenuManager.m_ControlMethod) {
+    if (FrontEndMenuManager.m_IsUseController) {
         CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_UP, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], 128); 
         CheckAndSetStick(eControllerAction::PED_1RST_PERSON_LOOK_DOWN, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[type], -128);
     }
@@ -319,7 +319,7 @@ int32 CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOn
     CheckAndSetButton(eControllerAction::PED_SPRINT, type, button, state->ButtonCross);
     CheckAndSetButton(eControllerAction::PED_DUCK, type, button, state->ShockButtonL);
 
-    if (FrontEndMenuManager.m_ControlMethod) {
+    if (FrontEndMenuManager.m_IsUseController) {
         CheckAndSetButton(eControllerAction::PED_CENTER_CAMERA_BEHIND_PLAYER, type, button, state->LeftShoulder1);
     }
     return button;
@@ -862,7 +862,7 @@ void CControllerConfigManager::ReinitControls() {
 #else
     const auto MouseSetUp = WinInput::GetMouseSetUp();
 #endif
-    ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, !FrontEndMenuManager.m_ControlMethod);
+    ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, !FrontEndMenuManager.m_IsUseController);
     if (PadConfigs[PAD1].present) {
         ControlsManager.InitDefaultControlConfigJoyPad(44u);
     }
@@ -1652,7 +1652,7 @@ const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction ev
 // 0x5303D0
 const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerAction action) {
     static thread_local GxtChar s_ButtonName[64]; // 0xB7147C
-    if (FrontEndMenuManager.m_ControlMethod) {
+    if (FrontEndMenuManager.m_IsUseController) {
         if (const auto keyCode = m_Actions[action].Keys[eControllerType::JOY_STICK].m_uiActionInitiator) {
             const auto joyButtonText = TheText.Get("FEC_JBO");
             CMessages::InsertNumberInString(joyButtonText, keyCode, -1, -1, -1, -1, -1, s_ButtonName);
