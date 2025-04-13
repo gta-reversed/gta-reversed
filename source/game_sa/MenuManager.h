@@ -69,7 +69,7 @@ public:
     int32     m_PrefsBrightness;
     float     m_fDrawDistance;
 
-    bool m_bShowSubtitles;
+    bool      m_bShowSubtitles;
     union {
         struct {
             bool m_ShowLocationsBlips;
@@ -80,7 +80,6 @@ public:
         };
         bool m_abPrefsMapBlips[5];
     };
-
     bool      m_bMapLegend;
     bool      m_bWidescreenOn;
     bool      m_bPrefsFrameLimiter;
@@ -142,16 +141,16 @@ public:
     int32     m_nDisplayVideoMode;
     int32     m_nCurrentRwSubsystem; // initialized | not used
 
-    int32 m_nMousePosWinX; // xPos = GET_X_LPARAM(lParam); 0x748323
-    int32 m_nMousePosWinY; // yPos = GET_Y_LPARAM(lParam);
+    int32     m_nMousePosWinX; // xPos = GET_X_LPARAM(lParam); 0x748323
+    int32     m_nMousePosWinY; // yPos = GET_Y_LPARAM(lParam);
 
-    bool        m_bSavePhotos;
-    bool        m_bMainMenuSwitch;
-    int8        m_nPlayerNumber;
-    bool        m_bLanguageChanged; // useless?
-    int32       field_EC;
+    bool      m_bSavePhotos;
+    bool      m_bMainMenuSwitch;
+    int8      m_nPlayerNumber;
+    bool      m_bLanguageChanged; // useless?
+    int32     field_EC;
     RsKeyCodes* m_pPressedKey; // any pressed key, in order of CKeyboardState; rsNULL means no key pressed
-    bool        m_isPreInitialised;
+    bool      m_isPreInitialised;
 
     union {
         struct {
@@ -308,7 +307,6 @@ public:
     [[nodiscard]] bool CheckFrontEndRightInput() const;
     void CheckForMenuClosing();
     [[nodiscard]] bool CheckHover(float left, float right, float top, float bottom) const;
-
     bool CheckMissionPackValidMenu();
     void CheckCodesForControls(eControllerType type);
 
