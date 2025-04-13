@@ -395,6 +395,7 @@ void CMenuManager::DoSettingsBeforeStartingAGame() {
     TheCamera.Fade(2.0f, eFadeFlag::FADE_OUT);
 }
 
+// 0x5733E0
 float CMenuManager::StretchX(float x) {
     return (SCREEN_WIDTH == DEFAULT_SCREEN_WIDTH) ? x : SCREEN_STRETCH_X(x);
 }
