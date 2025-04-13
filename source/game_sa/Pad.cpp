@@ -350,7 +350,7 @@ void CPad::ProcessPad(ePadID padID) {
         return;
     }
 
-
+ 
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
 
     if (ControlsManager.m_WasJoyJustInitialised) {
