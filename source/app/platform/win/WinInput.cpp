@@ -101,11 +101,11 @@ HRESULT diPadSetRanges(LPDIRECTINPUTDEVICE8 dev, DWORD padNum) {
         return res;
     };
 
-    if (SetProperyAndSetFlag(DIJOFS_Z, PadConfigs[padNum].zAxisPresent) == PROP_READ_ONLY) {
+    if (SetProperyAndSetFlag(DIJOFS_Z, AllValidWinJoys.JoyStickNum[padNum].bZAxisPresent) == PROP_READ_ONLY) {
         return S_FALSE;
     }
 
-    if (SetProperyAndSetFlag(DIJOFS_RZ, PadConfigs[padNum].rzAxisPresent) == PROP_READ_ONLY) {
+    if (SetProperyAndSetFlag(DIJOFS_RZ, AllValidWinJoys.JoyStickNum[padNum].bZRotPresent) == PROP_READ_ONLY) {
         return S_FALSE;
     }
 
@@ -123,10 +123,11 @@ void diPadSetPIDVID(LPDIRECTINPUTDEVICE8 dev, DWORD padNum) {
         }
     };
     WIN_FCHECK(dev->GetProperty(DIPROP_VIDPID, &vidpid.diph));
-    auto& cfg = PadConfigs[padNum];
-    cfg.vendorId = LOWORD(vidpid.dwData);
-    cfg.productId = HIWORD(vidpid.dwData);
-    cfg.present = true;
+    auto& cfg = AllValidWinJoys.JoyStickNum[padNum];
+    cfg.wDeviceID = vidpid.dwData;
+    cfg.wVendorID = LOWORD(vidpid.dwData);
+    cfg.wProductID = HIWORD(vidpid.dwData);
+    cfg.bJoyAttachedToPort = true;
 }
 
 // 0x7469A0
@@ -139,7 +140,7 @@ void diMouseInit(bool exclusive) {
 
 // 0x7485C0
 void diPadInit() {
-    rng::fill(PadConfigs, CPadConfig{});
+    AllValidWinJoys = CJoySticks{};
 
     // Initialize devices (+ Set PSGLOBAL(diDeviceX) vars)
     WIN_FCHECK(PSGLOBAL(diInterface)->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumDevicesCallback, NULL, DIEDFL_ALLDEVICES));
@@ -152,7 +153,7 @@ void diPadInit() {
         }
         WIN_FCHECK(diPadSetRanges(dev, padNum));
         diPadSetPIDVID(dev, padNum);
-        PadConfigs[padNum].present  = true;
+        AllValidWinJoys.JoyStickNum[padNum].bJoyAttachedToPort  = true;
         ControlsManager.InitDefaultControlConfigJoyPad(36u);
     };
     InitializePad(PSGLOBAL(diDevice1), 0);

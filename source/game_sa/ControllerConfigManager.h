@@ -7,6 +7,7 @@
 #pragma once
 
 #include "RenderWare.h"
+#include "eControllerType.h"
 
 enum eMouseButtons {
     MOUSE_BUTTON_NONE,
@@ -134,30 +135,41 @@ enum eJOY_BUTTONS {
     JOYBUTTON_COUNT
 };
 
-using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
+using KeyCode = uint32_t; // NOTSA: Originally that is RW type, but we use uint32 for consistency
+typedef unsigned int UINT;
 
 struct CControllerKey {
-    KeyCode m_uiActionInitiator{};
+    KeyCode       m_uiActionInitiator{};
     eContSetOrder m_uiSetOrder{};
 };
+
+VALIDATE_SIZE(CControllerKey, 0x8);
 
 struct CControllerAction {
     CControllerKey Keys[eControllerType::CONTROLLER_NUM]{};
 };
 
-struct CPadConfig {
-    int32 field_0{};
-    bool present{};         // Device exists
-    bool zAxisPresent{};    // Has property DIJOFS_Z
-    bool rzAxisPresent{};   // Has property DIJOFS_RZ
-private:
+VALIDATE_SIZE(CControllerAction, 0x20);
+
+struct JoyStruct {
+    UINT wDeviceID{};
+    bool     bJoyAttachedToPort{};
+    bool     bZAxisPresent{};
+    bool     bZRotPresent{};
+    private:
     char __align{};
-public:
-    int32 vendorId{};
-    int32 productId{};
+    public:
+    DWORD wVendorID{};
+    DWORD wProductID{};
 };
-VALIDATE_SIZE(CPadConfig, 0x10);
-static inline auto& PadConfigs = StaticRef<std::array<CPadConfig, MAX_PADS>, 0xC92144>();
+VALIDATE_SIZE(JoyStruct, 0x10);
+
+struct CJoySticks {
+    JoyStruct JoyStickNum[MAX_PADS]{};
+};
+
+VALIDATE_SIZE(CJoySticks, 0x20);
+static inline auto& AllValidWinJoys = StaticRef<CJoySticks, 0xC92144>();
 
 using ControlName = GxtChar[40];
 

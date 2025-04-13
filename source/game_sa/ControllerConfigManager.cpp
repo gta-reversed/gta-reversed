@@ -822,7 +822,7 @@ void CControllerConfigManager::ReinitControls() {
     const auto MouseSetUp = WinInput::GetMouseSetUp();
 #endif
     ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, !FrontEndMenuManager.m_ControlMethod);
-    if (PadConfigs[PAD1].present) {
+    if (AllValidWinJoys.JoyStickNum[PAD1].bJoyAttachedToPort) {
         ControlsManager.InitDefaultControlConfigJoyPad(44u);
     }
 }
@@ -1207,8 +1207,8 @@ void CControllerConfigManager::MakeControllerActionsBlank() {
 // 0x531140
 void CControllerConfigManager::AffectPadFromKeyBoard() {
 #ifndef NOTSA_USE_SDL3
-    RsKeyCodes keyCode;
-    GTATranslateShiftKey(&keyCode); // No matter what you do, it won't work.
+    // RsKeyCodes keyCode;
+    //GTATranslateShiftKey(&keyCode); // No matter what you do, it won't work.
 #endif
 
     const auto inMenu = !CPad::padNumber && !FrontEndMenuManager.m_bMenuActive;
@@ -1463,9 +1463,9 @@ bool CControllerConfigManager::CheckMouseButtonJustUpState(KeyCode key) {
     }
 }
 
-// TODO: Reverse CPadConfig
+// TODO: Reverse JoyStruct
 bool CControllerConfigManager::IsCheckSpecificGamepad() {
-    return (PadConfigs[0].vendorId == 0x3427 && PadConfigs[0].productId == 0x1190);
+    return (AllValidWinJoys.JoyStickNum[0].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[0].wProductID == 0x1190);
 }
 
 // iniline

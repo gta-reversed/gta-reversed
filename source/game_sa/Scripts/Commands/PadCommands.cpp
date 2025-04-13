@@ -21,7 +21,7 @@ MultiRet<float, float> GetPCMouseMovement() {
 }
 
 bool IsPCUsingJoyPad() {
-    return FrontEndMenuManager.m_ControlMethod != eController::MOUSE_PLUS_KEYS;
+    return FrontEndMenuManager.m_ControlMethod == eController::JOYPAD;
 }
 
 bool IsMouseUsingVerticalInversion() {

@@ -371,7 +371,7 @@ void CPad::ProcessPad(ePadID padID) {
             padX1 = sin(joyState.rgdwPOV[1] / 5730.0f);
             padY1 = cos(joyState.rgdwPOV[1] / 5730.0f) * -1.0f;
         }
-        if (PadConfigs[padID].rzAxisPresent && PadConfigs[padID].zAxisPresent) {
+        if (AllValidWinJoys.JoyStickNum[padID].bZRotPresent && AllValidWinJoys.JoyStickNum[padID].bZAxisPresent) {
             padX2 = joyState.lZ / 2000.0f;
             padY2 = joyState.lRz / 2000.0f;
         }
