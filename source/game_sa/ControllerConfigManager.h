@@ -130,6 +130,8 @@ enum eJOY_BUTTONS {
     JOYBUTTON_FOURTEEN = 14,
     JOYBUTTON_FIFTHTEEN = 15,
     JOYBUTTON_SIXTEEN = 16,
+
+    JOYBUTTON_COUNT
 };
 
 using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
@@ -165,13 +167,13 @@ public:
     DIJOYSTATE2       m_OldJoyState{};
     DIJOYSTATE2       m_NewJoyState{};
     ControlName       m_ControllerActionName[NUM_OF_MAX_CONTROLLER_ACTIONS]{};
-    bool              m_ButtonStates[17]{}; // True if down, false if up or missing, enum ePadButton?
+    bool              m_ButtonStates[JOYBUTTON_COUNT]{}; // True if down, false if up or missing
     CControllerAction m_Actions[NUM_OF_MAX_CONTROLLER_ACTIONS]{};
-    bool              m_bStickL_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
-    bool              m_bStickL_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
-    bool              m_bStickR_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
-    bool              m_bStickR_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
-    bool              m_MouseFoundInitSet;
+    bool              m_bStickL_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM]{};
+    bool              m_bStickL_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM]{};
+    bool              m_bStickR_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM]{};
+    bool              m_bStickR_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM]{};
+    bool              m_MouseFoundInitSet{};
 public:
     static void InjectHooks();
 

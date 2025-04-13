@@ -1160,7 +1160,7 @@ eActionType CControllerConfigManager::GetActionType(eControllerAction action) {
 
 // 0x52F390
 const GxtChar* CControllerConfigManager::GetControllerSettingTextMouse(eControllerAction action) {
-    const auto button = m_Actions[action].Keys[eControllerType::MOUSE].m_uiActionInitiator;
+    const auto button = GetMouseButtonAssociatedWithAction(action);
     switch (button) {
     case rsMOUSE_LEFT_BUTTON:       return TheText.Get("FEC_MSL"); // LMB
     case rsMOUSE_MIDDLE_BUTTON:     return TheText.Get("FEC_MSM"); // MMB
@@ -1175,13 +1175,11 @@ const GxtChar* CControllerConfigManager::GetControllerSettingTextMouse(eControll
 
 // 0x52F450
 const GxtChar* CControllerConfigManager::GetControllerSettingTextJoystick(eControllerAction action) {
-    const auto keyCode = m_Actions[action].Keys[eControllerType::JOY_STICK].m_uiActionInitiator;
-    if (!keyCode) {
-        return nullptr; // 0x52F460 - Invert
+    if (const auto keyCode = GetIsKeyBlank(GetControllerKeyAssociatedWithAction(action, eControllerType::JOY_STICK), eControllerType::JOY_STICK)) {
+        CMessages::InsertNumberInString(TheText.Get("FEC_JBO"), keyCode, -1, -1, -1, -1, -1, NewStringWithNumber); // JOY~1~
+        return NewStringWithNumber;
     }
-
-    CMessages::InsertNumberInString(TheText.Get("FEC_JBO"), keyCode, -1, -1, -1, -1, -1, NewStringWithNumber); // JOY~1~
-    return NewStringWithNumber;
+    return nullptr;
 }
 
 // unused
@@ -1306,16 +1304,15 @@ const GxtChar* CControllerConfigManager::GetKeyNameForKeyboard(eControllerAction
     GxtChar(&s_KeyName)[50] = *(GxtChar(*)[50])0xB714BC; // temp value
     rng::fill(s_KeyName, 0);
 
-    const auto key = m_Actions[action].Keys[type].m_uiActionInitiator;
+    const auto key = GetControllerKeyAssociatedWithAction(action, type);
+    if (GetIsKeyBlank(key, type)) {
+        return nullptr;
+    }
 
     const auto KeyNameWithNumber = [&](const GxtChar* text, int32 key) {
         CMessages::InsertNumberInString(text, key, -1, -1, -1, -1, -1, s_KeyName);
         return s_KeyName;
     };
-
-    if (key == rsNULL) {
-        return 0;
-    }
 
     if (key >= rsF1 && key <= rsF12) {
         return KeyNameWithNumber(TheText.Get("FEC_FNC"), key - rsF1 + 1); // F~1~
@@ -1399,9 +1396,8 @@ const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction ac
 // 0x5303D0
 const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerAction action) {
     if (FrontEndMenuManager.m_ControlMethod) {
-        if (const auto keyCode = m_Actions[action].Keys[JOY_STICK].m_uiActionInitiator) {
-            CMessages::InsertNumberInString(TheText.Get("FEC_JBO"), keyCode, -1, -1, -1, -1, -1, NewStringWithNumber); // JOY~1~
-            return NewStringWithNumber;
+        if (const auto keyText = GetControllerSettingTextJoystick(action)) {
+            return keyText;
         }
     }
 
@@ -1418,7 +1414,7 @@ const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerActio
         return keyText;
     }
 
-    if (m_Actions[action].Keys[JOY_STICK].m_uiActionInitiator == (RsKeyCodes)0) {
+    if (GetIsKeyBlank(GetControllerKeyAssociatedWithAction(action, eControllerType::JOY_STICK), eControllerType::JOY_STICK)) {
         return GetControllerSettingTextMouse(action);
     }
 
