@@ -261,7 +261,7 @@ public:
     eControllerAction GetActionIDByName(std::string_view name);
     
     private:
-    // iniline region
+    // inline region
     bool IsCheckSpecificGamepad();
     void CheckAndClear(eControllerAction action, eControllerType type, KeyCode button);
     void CheckAndSetButton(eControllerAction action, eControllerType type, KeyCode button, int16& state);
@@ -273,6 +273,7 @@ public:
     void HandleButtonDownBasedOnControlState(KeyCode button, eControllerType type);
     bool IsKeyboardKeyDownInState(CKeyboardState& state, KeyCode key);
     CControllerState& GetControllerState(CPad& pad, eControllerType type);
+
     template<eMouseCheckType CheckType>
     bool CheckMouseButton(KeyCode key);
 

@@ -1435,28 +1435,28 @@ bool CControllerConfigManager::IsCheckSpecificGamepad() {
     return (AllValidWinJoys.JoyStickNum[0].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[0].wProductID == 0x1190);
 }
 
-// iniline
+// inline
 void CControllerConfigManager::CheckAndClear(eControllerAction action, eControllerType type, KeyCode button) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
         ClearSettingsAssociatedWithAction(action, type);
     }
 };
 
-// iniline
+// inline
 void CControllerConfigManager::CheckAndReset(eControllerAction action, eControllerType type, KeyCode button, int16& state) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
         state = 0;
     }
 }
 
-// iniline
+// inline
 void CControllerConfigManager::CheckAndSetButton(eControllerAction action, eControllerType type, KeyCode button, int16& state) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
         state = 255;
     }
 }
 
-// iniline
+// inline
 void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControllerType type, KeyCode button, int16& dpad, int16& oppositeDpad) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
         if (dpad) {
@@ -1468,7 +1468,7 @@ void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControl
     }
 }
 
-// iniline
+// inline
 void CControllerConfigManager::CheckAndSetStick(eControllerAction action, eControllerType type, KeyCode button, int16& state, bool& movementBothDown, int16 value) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
         if (movementBothDown) {
@@ -1480,7 +1480,7 @@ void CControllerConfigManager::CheckAndSetStick(eControllerAction action, eContr
     }
 };
 
-// iniline
+// inline
 bool CControllerConfigManager::UseDrivingControls() {
     // FindPlayerPed() && FindPlayerVehicle() && FindPlayerPed()->GetPedState() == PEDSTATE_DRIVING && !pad->DisablePlayerControls
     if (auto ped = FindPlayerPed()) {
@@ -1491,12 +1491,12 @@ bool CControllerConfigManager::UseDrivingControls() {
     return false;
 }
 
-// iniline
+// inline
 bool CControllerConfigManager::UseFirstPersonControls() {
     return notsa::contains({ MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_CAMERA }, TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode);
 }
 
-// iniline
+// inline
 void CControllerConfigManager::HandleButtonDownBasedOnControlState(KeyCode button, eControllerType type) {
     const auto ped = CPad::GetPad();
     if (!ped) {
@@ -1521,7 +1521,7 @@ void CControllerConfigManager::HandleButtonDownBasedOnControlState(KeyCode butto
     }
 }
 
-// iniline
+// inline
 bool CControllerConfigManager::IsKeyboardKeyDownInState(CKeyboardState& state, KeyCode key) {
     if (key >= 0 && key < 0xFF) {
         return state.standardKeys[key];
@@ -1581,7 +1581,7 @@ bool CControllerConfigManager::IsKeyboardKeyDownInState(CKeyboardState& state, K
     return false;
 }
 
-// iniline
+// inline
 CControllerState& CControllerConfigManager::GetControllerState(CPad& pad, eControllerType ctrl) {
     switch (ctrl) {
     case eControllerType::KEYBOARD:
