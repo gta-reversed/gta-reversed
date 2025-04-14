@@ -717,7 +717,6 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
 }
 
 // 0x52F6F0
-// NOTSA: Direct mouse keys assignement.
 void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& MouseSetUp, bool bMouseControls) {
 #ifdef NOTSA_USE_SDL3
     constexpr bool isForceMouse = true;
@@ -725,6 +724,7 @@ void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControl
     constexpr bool isForceMouse = false;
 #endif
 
+    m_MouseFoundInitSet = false;
     if (MouseSetUp.isMouseLeftButtonPressed || isForceMouse) {
         m_MouseFoundInitSet = true;
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON);
@@ -747,8 +747,9 @@ void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControl
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON);
     }
 
-    /* NOTSA: This assert maybe is in the original game, but probably is missing by release build.
-              Prevents 'wrong' vehicle keys init. In cases where the mouse starts incorrectly.  */
+    /*  This assert maybe is in the original game, but probably is missing by release build.
+        Prevents 'wrong' vehicle keys init. In cases where the mouse starts incorrectly.  
+    */
     assert(m_MouseFoundInitSet == bMouseControls);
 }
 
@@ -824,7 +825,7 @@ void CControllerConfigManager::ReinitControls() {
 #else
     const auto MouseSetUp = WinInput::GetMouseSetUp();
 #endif
-    ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, !FrontEndMenuManager.m_ControlMethod);
+    ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, bool(FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS));
     if (AllValidWinJoys.JoyStickNum[PAD1].bJoyAttachedToPort) {
         ControlsManager.InitDefaultControlConfigJoyPad(44u);
     }
