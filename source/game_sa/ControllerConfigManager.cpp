@@ -726,7 +726,7 @@ void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControl
 #endif
 
     if (MouseSetUp.isMouseLeftButtonPressed || isForceMouse) {
-        m_MouseFoundInitSet = bMouseControls; // NOP
+        m_MouseFoundInitSet = true;
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON);
     }
@@ -746,6 +746,10 @@ void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControl
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_IN,         rsMOUSE_WHEEL_UP_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON);
     }
+
+    /* NOTSA: This assert maybe is in the original game, but probably is missing by release build.
+              Prevents 'wrong' vehicle keys init. In cases where the mouse starts incorrectly.  */
+    assert(m_MouseFoundInitSet == bMouseControls);
 }
 
 // 0x52D260
