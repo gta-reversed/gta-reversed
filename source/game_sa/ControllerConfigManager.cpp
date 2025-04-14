@@ -1169,7 +1169,7 @@ const GxtChar* CControllerConfigManager::GetControllerSettingTextMouse(eControll
     case rsMOUSE_WHEEL_DOWN_BUTTON: return TheText.Get("FEC_MWB"); // MS WHEEL DN
     case rsMOUSE_X1_BUTTON:         return TheText.Get("FEC_MXO"); // MXB1
     case rsMOUSE_X2_BUTTON:         return TheText.Get("FEC_MXT"); // MXB2
-    default:                        NOTSA_UNREACHABLE("Invalid button ({})", (int32)button);
+    default:                        return nullptr; // Please not add 'NOTSA_UNREACHABLE' !!!
     }
 }
 
@@ -1363,7 +1363,7 @@ const GxtChar* CControllerConfigManager::GetKeyNameForKeyboard(eControllerAction
         case rsLWIN:     return TheText.Get("FEC_LWD");                       // LWIN
         case rsRWIN:     return TheText.Get("FEC_RWD");                       // RWIN
         case rsAPPS:     return TheText.Get("FEC_WRC");                       // WINCLICK
-        default:         NOTSA_UNREACHABLE();
+        default:         return nullptr; // Please not add 'NOTSA_UNREACHABLE' !!!
         }
     } else { /* ASCII keys */
         switch (key) {
@@ -1385,7 +1385,7 @@ const GxtChar* CControllerConfigManager::GetKeyNameForKeyboard(eControllerAction
             return s_KeyName;
         }
     }
-    NOTSA_UNREACHABLE();
+    return nullptr; // Please not add 'NOTSA_UNREACHABLE' !!!
 }
 
 // 0x52F560
@@ -1401,7 +1401,6 @@ const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerActio
         }
     }
 
-    // TODO: replace to swith good idea?
     if (const auto keyText = GetControllerSettingTextMouse(action)) {
         return keyText;
     }
@@ -1418,7 +1417,7 @@ const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerActio
         return GetControllerSettingTextMouse(action);
     }
 
-    NOTSA_UNREACHABLE();
+    return nullptr; // NOTE: It may happen, please do not add NOTSA_UNREACHABLE here.
 }
 
 // NOTSA
