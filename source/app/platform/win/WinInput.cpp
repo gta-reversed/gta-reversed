@@ -202,7 +202,7 @@ CMouseControllerState GetMouseSetUp() {
         WinInput::diMouseInit(!FrontEndMenuManager.m_bMenuActive && IsVideoModeExclusive());
     }
 
-    if (PSGLOBAL(diMouse)) {
+    if (!PSGLOBAL(diMouse)) {
         return state; // No mouse device
     }
     

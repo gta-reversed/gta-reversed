@@ -1039,12 +1039,9 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
     const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
     const auto maxActions      = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
 
-    struct ControlActionMapping {
-        eControllerAction actionToTest;
-        int32 controllerAction;
-    };
+    using ControlActionMapping = std::pair<eControllerAction, int32>;
 
-    static constexpr ControlActionMapping CarActionMappings[41] = {
+    static constexpr std::array<ControlActionMapping, 41> CarActionMappings = {{
         { eControllerAction::PED_CYCLE_WEAPON_RIGHT,            -1 },
         { eControllerAction::PED_CYCLE_WEAPON_LEFT,             -1 },
         { eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS, -1 },
@@ -1086,9 +1083,9 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::VEHICLE_LOOKRIGHT,                 37 },
         { eControllerAction::VEHICLE_LOOKBEHIND,                34 },
         { eControllerAction::VEHICLE_MOUSELOOK,                 35 },
-    };
+    }};
 
-    static constexpr ControlActionMapping PedActionMappings[51] = {
+    static constexpr std::array<ControlActionMapping, 51> PedActionMappings = {{
         { eControllerAction::PED_FIRE_WEAPON,                   0  },
         { eControllerAction::VEHICLE_RADIO_TRACK_SKIP,          0  },
         { eControllerAction::PED_FIRE_WEAPON_ALT,               2  },
@@ -1140,7 +1137,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::VEHICLE_STEER_LEFT,                17 },
         { eControllerAction::VEHICLE_STEER_RIGHT,               14 },
         { eControllerAction::PED_LOCK_TARGET,                   14 },
-    };
+    }};
 
     auto currentY = StretchY(float(verticalOffset));
 
@@ -1155,19 +1152,19 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 
         // Map action index to controller action
         if (m_RedefiningControls == 1) {
-            for (auto& mapping : CarActionMappings) {
-                if (mapping.actionToTest == ControllerActionsAvailableInCar[actionIndex]) {
-                    controllerAction = mapping.controllerAction;
+            for (const auto& mapping : CarActionMappings) {
+                if (mapping.first == ControllerActionsAvailableInCar[actionIndex]) {
+                    controllerAction = mapping.second;
                     break;
                 }
             }
         } else {
-            for (auto& mapping : PedActionMappings) {
-                if (mapping.actionToTest == actionIndex) {
-                    if (m_ControlMethod == eController::MOUSE_PLUS_KEYS && notsa::contains({ eControllerAction::VEHICLE_STEER_UP, eControllerAction::CONVERSATION_YES, eControllerAction::VEHICLE_STEER_DOWN, eControllerAction::CONVERSATION_NO }, mapping.actionToTest)) {
+            for (const auto& mapping : PedActionMappings) {
+                if (mapping.first == (eControllerAction)actionIndex) { // Cast actionIndex to eControllerAction for comparison
+                    if (m_ControlMethod == eController::MOUSE_PLUS_KEYS && notsa::contains({ eControllerAction::VEHICLE_STEER_UP, eControllerAction::CONVERSATION_YES, eControllerAction::VEHICLE_STEER_DOWN, eControllerAction::CONVERSATION_NO }, mapping.first)) {
                         controllerAction = -1;
                     } else {
-                        controllerAction = mapping.controllerAction;
+                        controllerAction = mapping.second;
                     }
                     break;
                 }

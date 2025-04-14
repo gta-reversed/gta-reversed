@@ -629,10 +629,7 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
     }
 
     // Define all possible button mappings in order from highest to lowest button number
-    struct ButtonMapping {
-        eJoyButtons      buttonNum;
-        eControllerAction action;
-    };
+    using ButtonMapping = std::pair<eJoyButtons, eControllerAction>;
 
     // Arrays for specific and standard controller configurations
     constexpr ButtonMapping specificMappings[] = {
@@ -706,10 +703,10 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
 
     // Apply mappings for available buttons
     for (auto i = 0u; i < mappingCount; i++) {
-        if (mappings[i].buttonNum <= (eJoyButtons)buttonCount) {
+        if (mappings[i].first <= (eJoyButtons)buttonCount) {
             SetControllerKeyAssociatedWithAction(
-                mappings[i].action,
-                (RsKeyCodes)mappings[i].buttonNum,
+                mappings[i].second,
+                (RsKeyCodes)mappings[i].first,
                 eControllerType::JOY_STICK
             );
         }
@@ -719,26 +716,26 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
 // 0x52F6F0
 void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& MouseSetUp, bool bMouseControls) {
 #ifdef NOTSA_USE_SDL3
-    constexpr bool isForceMouse = true;
+    constexpr bool isForcedMouseBlinding = true;
 #else
-    constexpr bool isForceMouse = false;
+    constexpr bool isForcedMouseBlinding = false;
 #endif
 
     m_MouseFoundInitSet = false;
-    if (MouseSetUp.isMouseLeftButtonPressed || isForceMouse) {
+    if (MouseSetUp.isMouseLeftButtonPressed || isForcedMouseBlinding) {
         m_MouseFoundInitSet = true;
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_FIRE_WEAPON,            rsMOUSE_LEFT_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_FIRE_WEAPON,        rsMOUSE_LEFT_BUTTON);
     }
-    if (MouseSetUp.isMouseRightButtonPressed || isForceMouse) {                                                      
+    if (MouseSetUp.isMouseRightButtonPressed || isForcedMouseBlinding) {                                                      
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_LOCK_TARGET,            rsMOUSE_RIGHT_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_MOUSELOOK,          rsMOUSE_RIGHT_BUTTON);
     }
-    if (MouseSetUp.isMouseMiddleButtonPressed || isForceMouse) {                                                      
+    if (MouseSetUp.isMouseMiddleButtonPressed || isForcedMouseBlinding) {                                                      
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_LOOKBEHIND,         rsMOUSE_MIDDLE_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_LOOKBEHIND,             rsMOUSE_MIDDLE_BUTTON);
     }
-    if (MouseSetUp.isMouseWheelMovedUp || MouseSetUp.isMouseWheelMovedDown || isForceMouse) {
+    if (MouseSetUp.isMouseWheelMovedUp || MouseSetUp.isMouseWheelMovedDown || isForcedMouseBlinding) {
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_LEFT,      rsMOUSE_WHEEL_UP_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_CYCLE_WEAPON_RIGHT,     rsMOUSE_WHEEL_DOWN_BUTTON);
         SetMouseButtonAssociatedWithAction(eControllerAction::VEHICLE_RADIO_STATION_UP,   rsMOUSE_WHEEL_UP_BUTTON);
