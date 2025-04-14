@@ -624,13 +624,13 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
     m_WasJoyJustInitialised = true;
     buttonCount             = std::min(buttonCount, 16u);
 
-    if (buttonCount >= eJoyButtons::NO_JOYBUTTONS) {
+    if (buttonCount >= eJOY_BUTTONS::NO_JOYBUTTONS) {
         return;
     }
 
     // Define all possible button mappings in order from highest to lowest button number
     struct ButtonMapping {
-        eJoyButtons      buttonNum;
+        eJOY_BUTTONS      buttonNum;
         eControllerAction action;
     };
 
@@ -700,13 +700,13 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
     };
 
     // Choose which mapping array to use
-    const auto  isSpecific   = AllValidWinJoys.JoyStickNum[0].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[0].wProductID == 0x1190;
+    const auto  isSpecific   = IsCheckSpecificGamepad();
     const auto* mappings     = isSpecific ? specificMappings : standardMappings;
     const auto  mappingCount = isSpecific ? std::size(specificMappings) : std::size(standardMappings);
 
     // Apply mappings for available buttons
     for (auto i = 0u; i < mappingCount; i++) {
-        if (mappings[i].buttonNum <= (eJoyButtons)buttonCount) {
+        if (mappings[i].buttonNum <= (eJOY_BUTTONS)buttonCount) {
             SetControllerKeyAssociatedWithAction(
                 mappings[i].action,
                 (RsKeyCodes)mappings[i].buttonNum,
@@ -719,6 +719,7 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
 // 0x52F6F0
 // NOTSA: Direct mouse keys assignement.
 void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& MouseSetUp, bool bMouseControls) {
+
 #ifdef NOTSA_USE_SDL3
     constexpr bool isForceMouse = true;
 #else
@@ -850,14 +851,85 @@ void CControllerConfigManager::StoreMouseButtonState(eMouseButtons button, bool 
 }
 
 // 0x52DAB0
-void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(KeyCode button, int32 padNumber) {
+void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(KeyCode ButtonPress, int32 padNumber) {
     CPad* pad = CPad::GetPad(padNumber);
-    if (!pad || !button) {
+    if (!pad || ButtonPress == 0) {
         return;
     }
 
-    if ((button != eJoyButtons::JOYBUTTON_TWELVE && padNumber != 1) || notsa::IsFixBugs()) {
-        GetControllerStateJoyStick(*pad, button) = 255;
+    switch (ButtonPress) {
+    case eJOY_BUTTONS::JOYBUTTON_FIVE:
+        pad->PCTempJoyState.LeftShoulder2 = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_SIX:
+        pad->PCTempJoyState.RightShoulder2 = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_SEVEN:
+        pad->PCTempJoyState.LeftShoulder1 = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_EIGHT:
+        pad->PCTempJoyState.RightShoulder1 = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_NINE:
+        pad->PCTempJoyState.Select = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_TEN:
+        pad->PCTempJoyState.ShockButtonL = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_ELEVEN:
+        pad->PCTempJoyState.ShockButtonR = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_TWELVE:
+        if (padNumber == 1 || notsa::IsFixBugs()) {
+            pad->PCTempJoyState.Start = 255;
+        }
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_THIRTEEN:
+        pad->PCTempJoyState.DPadUp = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_FOURTEEN:
+        pad->PCTempJoyState.DPadRight = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_FIFTHTEEN:
+        pad->PCTempJoyState.DPadDown = 255;
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_SIXTEEN:
+        pad->PCTempJoyState.DPadLeft = 255;
+        break;
+    default:
+        break;
+    }
+
+    if (IsCheckSpecificGamepad()) {
+        switch (ButtonPress) {
+        case eJOY_BUTTONS::JOYBUTTON_ONE:
+            pad->PCTempJoyState.ButtonTriangle = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_TWO:
+            pad->PCTempJoyState.ButtonCircle = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_THREE:
+            pad->PCTempJoyState.ButtonCross = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_FOUR:
+            pad->PCTempJoyState.ButtonSquare = 255;
+            break;
+        }
+    } else {
+        switch (ButtonPress) {
+        case eJOY_BUTTONS::JOYBUTTON_ONE:
+            pad->PCTempJoyState.ButtonCircle = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_TWO:
+            pad->PCTempJoyState.ButtonCross = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_THREE:
+            pad->PCTempJoyState.ButtonSquare = 255;
+            break;
+        case eJOY_BUTTONS::JOYBUTTON_FOUR:
+            pad->PCTempJoyState.ButtonTriangle = 255;
+            break;
+        }
     }
 }
 
@@ -884,8 +956,35 @@ void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(KeyCode button, i
         return;
     }
 
-    if ((button != eJoyButtons::JOYBUTTON_TWELVE && padNumber != 1) || notsa::IsFixBugs()) {
-        GetControllerStateJoyStick(*pad, button) = 0;
+    int16* state = nullptr;
+    const auto specGamepad = IsCheckSpecificGamepad();
+
+    switch (button) {
+    case eJOY_BUTTONS::JOYBUTTON_ONE:    state = specGamepad ? &pad->PCTempJoyState.ButtonTriangle : &pad->PCTempJoyState.ButtonCircle; break;
+    case eJOY_BUTTONS::JOYBUTTON_TWO:    state = specGamepad ? &pad->PCTempJoyState.ButtonCircle : &pad->PCTempJoyState.ButtonCross; break;
+    case eJOY_BUTTONS::JOYBUTTON_THREE:  state = specGamepad ? &pad->PCTempJoyState.ButtonCross : &pad->PCTempJoyState.ButtonSquare; break;
+    case eJOY_BUTTONS::JOYBUTTON_FOUR:   state = specGamepad ? &pad->PCTempJoyState.ButtonSquare : &pad->PCTempJoyState.ButtonTriangle; break;
+    case eJOY_BUTTONS::JOYBUTTON_FIVE:   state = &pad->PCTempJoyState.LeftShoulder2; break;
+    case eJOY_BUTTONS::JOYBUTTON_SIX:    state = &pad->PCTempJoyState.RightShoulder2; break;
+    case eJOY_BUTTONS::JOYBUTTON_SEVEN:  state = &pad->PCTempJoyState.LeftShoulder1; break;
+    case eJOY_BUTTONS::JOYBUTTON_EIGHT:  state = &pad->PCTempJoyState.RightShoulder1; break;
+    case eJOY_BUTTONS::JOYBUTTON_NINE:   state = &pad->PCTempJoyState.Select; break;
+    case eJOY_BUTTONS::JOYBUTTON_TEN:    state = &pad->PCTempJoyState.ShockButtonL; break;
+    case eJOY_BUTTONS::JOYBUTTON_ELEVEN: state = &pad->PCTempJoyState.ShockButtonR; break;
+    case eJOY_BUTTONS::JOYBUTTON_TWELVE:
+        if (padNumber == 1 || notsa::IsFixBugs()) {
+            state = &pad->PCTempJoyState.Start;
+        }
+        break;
+    case eJOY_BUTTONS::JOYBUTTON_THIRTEEN:  state = &pad->PCTempJoyState.DPadUp; break;
+    case eJOY_BUTTONS::JOYBUTTON_FOURTEEN:  state = &pad->PCTempJoyState.DPadRight; break;
+    case eJOY_BUTTONS::JOYBUTTON_FIFTHTEEN: state = &pad->PCTempJoyState.DPadDown; break;
+    case eJOY_BUTTONS::JOYBUTTON_SIXTEEN:   state = &pad->PCTempJoyState.DPadLeft; break;
+    default:                                NOTSA_UNREACHABLE("Invalid button ({})", (int32)button);
+    }
+
+    if (state != nullptr) {
+        *state = 0;
     }
 }
 
@@ -916,37 +1015,37 @@ void CControllerConfigManager::ClearSimButtonPressCheckers() {
 
 // unused
 // 0x52D1C0
-eJoyButtons CControllerConfigManager::GetJoyButtonJustUp() {
+eJOY_BUTTONS CControllerConfigManager::GetJoyButtonJustUp() {
     // Check each button from 0 to JOYBUTTON_SIXTEEN-1
-    for (int32 buttonIndex = eJoyButtons::NO_JOYBUTTONS; buttonIndex < eJoyButtons::JOYBUTTON_SIXTEEN; buttonIndex++) {
+    for (int32 buttonIndex = eJOY_BUTTONS::NO_JOYBUTTONS; buttonIndex < eJOY_BUTTONS::JOYBUTTON_SIXTEEN; buttonIndex++) {
         // Check if button is released in current state but was pressed in previous state
         const bool isCurrentlyPressed = (m_NewJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
         const bool wasPreviouslyPressed = (m_OldJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
         
         if (!isCurrentlyPressed && wasPreviouslyPressed) {
             // Return the button ID (1-based index)
-            return (eJoyButtons)(buttonIndex + 1);
+            return (eJOY_BUTTONS)(buttonIndex + 1);
         }
     }
     // No button was found that was just released
-    return eJoyButtons::NO_JOYBUTTONS;
+    return eJOY_BUTTONS::NO_JOYBUTTONS;
 }
 
 // 0x52D1E0
-eJoyButtons CControllerConfigManager::GetJoyButtonJustDown() {
+eJOY_BUTTONS CControllerConfigManager::GetJoyButtonJustDown() {
     // Check each button from 0 to JOYBUTTON_SIXTEEN-1
-    for (int32 buttonIndex = eJoyButtons::NO_JOYBUTTONS; buttonIndex < eJoyButtons::JOYBUTTON_SIXTEEN; buttonIndex++) {
+    for (int32 buttonIndex = eJOY_BUTTONS::NO_JOYBUTTONS; buttonIndex < eJOY_BUTTONS::JOYBUTTON_SIXTEEN; buttonIndex++) {
         // Check if button is pressed in current state but wasn't pressed in previous state
         const bool isCurrentlyPressed = (m_NewJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
         const bool wasPreviouslyPressed = (m_OldJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
         
         if (isCurrentlyPressed && !wasPreviouslyPressed) {
             // Return the button ID (1-based index)
-            return (eJoyButtons)(buttonIndex + 1);
+            return (eJOY_BUTTONS)(buttonIndex + 1);
         }
     }
     // No button was found that was just pressed
-    return eJoyButtons::NO_JOYBUTTONS;
+    return eJOY_BUTTONS::NO_JOYBUTTONS;
 }
 
 // 0x52DDB0
@@ -979,10 +1078,13 @@ bool CControllerConfigManager::GetIsMouseButtonJustUp(KeyCode Key) {
 bool CControllerConfigManager::GetIsKeyBlank(KeyCode key, eControllerType type) {
     switch (type) {
     case eControllerType::KEYBOARD:
-    case eControllerType::OPTIONAL_EXTRA_KEY: return key == rsNULL;
+    case eControllerType::OPTIONAL_EXTRA_KEY:
+        return key == rsNULL;
     case eControllerType::MOUSE:
-    case eControllerType::JOY_STICK:          return key == 0;
-    default:                                  NOTSA_UNREACHABLE();
+    case eControllerType::JOY_STICK:
+        return key == 0;
+    default:
+        NOTSA_UNREACHABLE();
     }
 }
 
@@ -1073,7 +1175,7 @@ const GxtChar* CControllerConfigManager::GetControllerSettingTextMouse(eControll
 
 // 0x52F450
 const GxtChar* CControllerConfigManager::GetControllerSettingTextJoystick(eControllerAction action) {
-    if (const auto keyCode = !GetIsKeyBlank(GetControllerKeyAssociatedWithAction(action, eControllerType::JOY_STICK), eControllerType::JOY_STICK)) {
+    if (const auto keyCode = GetIsKeyBlank(GetControllerKeyAssociatedWithAction(action, eControllerType::JOY_STICK), eControllerType::JOY_STICK)) {
         CMessages::InsertNumberInString(TheText.Get("FEC_JBO"), keyCode, -1, -1, -1, -1, -1, NewStringWithNumber); // JOY~1~
         return NewStringWithNumber;
     }
@@ -1261,7 +1363,7 @@ const GxtChar* CControllerConfigManager::GetKeyNameForKeyboard(eControllerAction
         case rsLWIN:     return TheText.Get("FEC_LWD");                       // LWIN
         case rsRWIN:     return TheText.Get("FEC_RWD");                       // RWIN
         case rsAPPS:     return TheText.Get("FEC_WRC");                       // WINCLICK
-        default:         return nullptr; // Please not add 'NOTSA_UNREACHABLE' !!!
+        default:         nullptr; // Please not add 'NOTSA_UNREACHABLE' !!!
         }
     } else { /* ASCII keys */
         switch (key) {
@@ -1325,7 +1427,12 @@ eControllerAction CControllerConfigManager::GetActionIDByName(std::string_view n
             return (eControllerAction)i;
         }
     }
-    return eControllerAction::NUM_OF_NONE_CONTROLLER_ACTIONS;
+    return (eControllerAction)-1;
+}
+
+// TODO: Reverse JoyStruct
+bool CControllerConfigManager::IsCheckSpecificGamepad() {
+    return (AllValidWinJoys.JoyStickNum[0].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[0].wProductID == 0x1190);
 }
 
 // inline
@@ -1475,8 +1582,8 @@ bool CControllerConfigManager::IsKeyboardKeyDownInState(CKeyboardState& state, K
 }
 
 // inline
-CControllerState& CControllerConfigManager::GetControllerState(CPad& pad, eControllerType type) {
-    switch (type) {
+CControllerState& CControllerConfigManager::GetControllerState(CPad& pad, eControllerType ctrl) {
+    switch (ctrl) {
     case eControllerType::KEYBOARD:
     case eControllerType::OPTIONAL_EXTRA_KEY: return pad.PCTempKeyState;
     case eControllerType::MOUSE:              return pad.PCTempMouseState;
@@ -1485,49 +1592,25 @@ CControllerState& CControllerConfigManager::GetControllerState(CPad& pad, eContr
     }
 }
 
-// inline
-int16& CControllerConfigManager::GetControllerStateJoyStick(CPad& pad, KeyCode button) {
-    const auto specGamepad = AllValidWinJoys.JoyStickNum[0].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[0].wProductID == 0x1190;
-    switch (button) {
-    case eJoyButtons::JOYBUTTON_ONE:       return specGamepad ? pad.PCTempJoyState.ButtonTriangle : pad.PCTempJoyState.ButtonCircle;
-    case eJoyButtons::JOYBUTTON_TWO:       return specGamepad ? pad.PCTempJoyState.ButtonCircle : pad.PCTempJoyState.ButtonCross;
-    case eJoyButtons::JOYBUTTON_THREE:     return specGamepad ? pad.PCTempJoyState.ButtonCross : pad.PCTempJoyState.ButtonSquare;
-    case eJoyButtons::JOYBUTTON_FOUR:      return specGamepad ? pad.PCTempJoyState.ButtonSquare : pad.PCTempJoyState.ButtonTriangle;
-    case eJoyButtons::JOYBUTTON_FIVE:      return pad.PCTempJoyState.LeftShoulder2;
-    case eJoyButtons::JOYBUTTON_SIX:       return pad.PCTempJoyState.RightShoulder2;
-    case eJoyButtons::JOYBUTTON_SEVEN:     return pad.PCTempJoyState.LeftShoulder1;
-    case eJoyButtons::JOYBUTTON_EIGHT:     return pad.PCTempJoyState.RightShoulder1;
-    case eJoyButtons::JOYBUTTON_NINE:      return pad.PCTempJoyState.Select;
-    case eJoyButtons::JOYBUTTON_TEN:       return pad.PCTempJoyState.ShockButtonL;
-    case eJoyButtons::JOYBUTTON_ELEVEN:    return pad.PCTempJoyState.ShockButtonR;
-    case eJoyButtons::JOYBUTTON_TWELVE:    return pad.PCTempJoyState.Start;
-    case eJoyButtons::JOYBUTTON_THIRTEEN:  return pad.PCTempJoyState.DPadUp;
-    case eJoyButtons::JOYBUTTON_FOURTEEN:  return pad.PCTempJoyState.DPadRight;
-    case eJoyButtons::JOYBUTTON_FIFTHTEEN: return pad.PCTempJoyState.DPadDown;
-    case eJoyButtons::JOYBUTTON_SIXTEEN:   return pad.PCTempJoyState.DPadLeft;
-    default:                               NOTSA_UNREACHABLE("Invalid button ({})", (uint32)button);
-    }
-}
-
-// NOTSA: But at the moment of compile is 1:1.
+// NOTSA: Notsa but at the moment of compile is 1:1.
 template<eMouseCheckType CheckType>
 bool CControllerConfigManager::CheckMouseButton(KeyCode key) {
+    bool result = false;
     auto* pad = CPad::GetPad();
-    if (!pad || !key) {
+    if (!pad || key == 0) {
         return false;
     }
 
-    bool result = false;
     if constexpr (CheckType == eMouseCheckType::JUST_UP) {
         switch (key) {
-        case rsMOUSE_LEFT_BUTTON:       result = pad->IsMouseLButtonPressed(); break;
-        case rsMOUSE_MIDDLE_BUTTON:     result = pad->IsMouseMButtonPressed(); break;
-        case rsMOUSE_RIGHT_BUTTON:      result = pad->IsMouseRButtonPressed(); break;
-        case rsMOUSE_WHEEL_UP_BUTTON:   result = pad->IsMouseWheelUpPressed(); break;
-        case rsMOUSE_WHEEL_DOWN_BUTTON: result = pad->IsMouseWheelDownPressed(); break;
-        case rsMOUSE_X1_BUTTON:         result = pad->IsMouseBmx1Pressed(); break;
-        case rsMOUSE_X2_BUTTON:         result = pad->IsMouseBmx2Pressed(); break;
-        default:                        NOTSA_UNREACHABLE("Invalid Key: {}", (uint32)key); break;
+        case rsMOUSE_LEFT_BUTTON:       result = pad->IsMouseLButtonPressed();
+        case rsMOUSE_MIDDLE_BUTTON:     result = pad->IsMouseMButtonPressed();
+        case rsMOUSE_RIGHT_BUTTON:      result = pad->IsMouseRButtonPressed();
+        case rsMOUSE_WHEEL_UP_BUTTON:   result = pad->IsMouseWheelUpPressed();
+        case rsMOUSE_WHEEL_DOWN_BUTTON: result = pad->IsMouseWheelDownPressed();
+        case rsMOUSE_X1_BUTTON:         result = pad->IsMouseBmx1Pressed();
+        case rsMOUSE_X2_BUTTON:         result = pad->IsMouseBmx2Pressed();
+        default:                        NOTSA_UNREACHABLE("Invalid Key: {}", (int32)key); result = false; break;
         }
     } else if constexpr (CheckType == eMouseCheckType::IS_DOWN || CheckType == eMouseCheckType::IS_UP) {
         switch (key) {
@@ -1538,14 +1621,15 @@ bool CControllerConfigManager::CheckMouseButton(KeyCode key) {
         case rsMOUSE_WHEEL_DOWN_BUTTON: result = pad->IsMouseWheelDown(); break;
         case rsMOUSE_X1_BUTTON:         result = pad->IsMouseBmx1(); break;
         case rsMOUSE_X2_BUTTON:         result = pad->IsMouseBmx2(); break;
-        default:                        NOTSA_UNREACHABLE("Invalid Key: {}", (uint32)key); break;
+        default:                        NOTSA_UNREACHABLE("Invalid Key: {}", (int32)key); result = false; break;
         }
     }
 
     if constexpr (CheckType == eMouseCheckType::IS_UP) {
-        return !result;
+        return result ? false : true;
     } else if constexpr (CheckType == eMouseCheckType::IS_DOWN || CheckType == eMouseCheckType::JUST_UP) {
         return result;
     }
-    NOTSA_UNREACHABLE("Invalid CheckType: {}", (uint32)CheckType); // Unreachable
+    NOTSA_UNREACHABLE("Invalid CheckType: {}", (int32)CheckType);
+    return false; // Unreachable
 }
