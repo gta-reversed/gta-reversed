@@ -12,7 +12,7 @@
 #include "ControllerConfigManager.h"
 #include "VideoMode.h"
 
-constexpr eControllerAction ControllerActionsAvailableOnFoot[] = {
+constexpr std::array<eControllerAction, 28> ControllerActionsAvailableOnFoot = {
     eControllerAction::PED_FIRE_WEAPON,
     eControllerAction::PED_CYCLE_WEAPON_RIGHT,
     eControllerAction::PED_CYCLE_WEAPON_LEFT,
@@ -43,7 +43,7 @@ constexpr eControllerAction ControllerActionsAvailableOnFoot[] = {
     eControllerAction::PED_FIRE_WEAPON_ALT
 }; // 0x865598
 
-constexpr eControllerAction ControllerActionsAvailableInCar[] = {
+constexpr std::array<eControllerAction, 25> ControllerActionsAvailableInCar = {
     eControllerAction::PED_FIRE_WEAPON,
     eControllerAction::PED_FIRE_WEAPON_ALT,
     eControllerAction::GO_FORWARD,
@@ -1044,7 +1044,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         int32 controllerAction;
     };
 
-    static constexpr ControlActionMapping CarActionMappings[] = {
+    static constexpr ControlActionMapping CarActionMappings[41] = {
         { eControllerAction::PED_CYCLE_WEAPON_RIGHT,            -1 },
         { eControllerAction::PED_CYCLE_WEAPON_LEFT,             -1 },
         { eControllerAction::CAMERA_CHANGE_VIEW_ALL_SITUATIONS, -1 },
@@ -1088,7 +1088,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::VEHICLE_MOUSELOOK,                 35 },
     };
 
-    static const ControlActionMapping PedActionMappings[] = {
+    static const ControlActionMapping PedActionMappings[51] = {
         { eControllerAction::PED_FIRE_WEAPON,                   0  },
         { eControllerAction::VEHICLE_RADIO_TRACK_SKIP,          0  },
         { eControllerAction::PED_FIRE_WEAPON_ALT,               2  },
@@ -1279,9 +1279,52 @@ void CMenuManager::DrawControllerSetupScreen() {
     // Calculate spacing and max items based on control scheme
     const auto verticalSpacing   = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
     const auto maxControlActions = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
-
-    const char* keys[]{
-        "FEC_FIR", "FEC_FIA", "FEC_NWE", "FEC_PWE", m_RedefiningControls ? "FEC_ACC" : "FEC_FOR", m_RedefiningControls ? "FEC_BRA" : "FEC_BAC", "FEC_LEF", "FEC_RIG", "FEC_PLU", "FEC_PLD", m_RedefiningControls ? "FEC_TSK" : "FEC_COY", "FEC_CON", "FEC_GPF", "FEC_GPB", "FEC_ZIN", "FEC_ZOT", "FEC_EEX", "FEC_RSC", "FEC_RSP", "FEC_RTS", "FEC_HRN", "FEC_SUB", "FEC_CMR", "FEC_JMP", "FEC_SPN", "FEC_HND", "FEC_TAR", "FEC_CRO", "FEC_ANS", "FEC_PDW", "FEC_TFL", "FEC_TFR", "FEC_TFU", "FEC_TFD", "FEC_LBA", "FEC_VML", "FEC_LOL", "FEC_LOR", "FEC_LDU", "FEC_LUD", "", "", "FEC_CEN", nullptr
+    // Create a std::array of GxtChar pointers with all entries
+    std::array<const GxtChar*, 44> keys = {
+        TheText.Get("FEC_FIR"),                                                      // 0
+        TheText.Get("FEC_FIA"),                                                      // 1
+        TheText.Get("FEC_NWE"),                                                      // 2
+        TheText.Get("FEC_PWE"),                                                      // 3
+        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_ACC" : "FEC_FOR"), // 4
+        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_BRA" : "FEC_BAC"), // 5
+        TheText.Get("FEC_LEF"),                                                      // 6
+        TheText.Get("FEC_RIG"),                                                      // 7
+        TheText.Get("FEC_PLU"),                                                      // 8
+        TheText.Get("FEC_PLD"),                                                      // 9
+        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_TSK" : "FEC_COY"), // 10
+        TheText.Get("FEC_CON"),                                                      // 11
+        TheText.Get("FEC_GPF"),                                                      // 12
+        TheText.Get("FEC_GPB"),                                                      // 13
+        TheText.Get("FEC_ZIN"),                                                      // 14
+        TheText.Get("FEC_ZOT"),                                                      // 15
+        TheText.Get("FEC_EEX"),                                                      // 16
+        TheText.Get("FEC_RSC"),                                                      // 17
+        TheText.Get("FEC_RSP"),                                                      // 18
+        TheText.Get("FEC_RTS"),                                                      // 19
+        TheText.Get("FEC_HRN"),                                                      // 20
+        TheText.Get("FEC_SUB"),                                                      // 21
+        TheText.Get("FEC_CMR"),                                                      // 22
+        TheText.Get("FEC_JMP"),                                                      // 23
+        TheText.Get("FEC_SPN"),                                                      // 24
+        TheText.Get("FEC_HND"),                                                      // 25
+        TheText.Get("FEC_TAR"),                                                      // 26
+        TheText.Get("FEC_CRO"),                                                      // 27
+        TheText.Get("FEC_ANS"),                                                      // 28
+        TheText.Get("FEC_PDW"),                                                      // 29
+        TheText.Get("FEC_TFL"),                                                      // 30
+        TheText.Get("FEC_TFR"),                                                      // 31
+        TheText.Get("FEC_TFU"),                                                      // 32
+        TheText.Get("FEC_TFD"),                                                      // 33
+        TheText.Get("FEC_LBA"),                                                      // 34
+        TheText.Get("FEC_VML"),                                                      // 35
+        TheText.Get("FEC_LOL"),                                                      // 36
+        TheText.Get("FEC_LOR"),                                                      // 37
+        TheText.Get("FEC_LDU"),                                                      // 38
+        TheText.Get("FEC_LUD"),                                                      // 39
+        nullptr,                                                                     // 40
+        nullptr,                                                                     // 41
+        TheText.Get("FEC_CEN"),                                                      // 42
+        nullptr                                                                      // 43
     };
 
     // 0x57F68E
@@ -1322,7 +1365,16 @@ void CMenuManager::DrawControllerSetupScreen() {
         CFont::SetScale(StretchX(0.4f), StretchY(0.6f));
         CFont::SetFontStyle(FONT_MENU);
         CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
-        CFont::PrintString(StretchX(40.0f), StretchY(i * verticalSpacing + 69.0f), TheText.Get(keys[m_RedefiningControls ? ControllerActionsAvailableInCar[i] : ControllerActionsAvailableOnFoot[i]]));
+        const GxtChar* actionText = nullptr;
+        if (m_RedefiningControls == 1) {
+            actionText = keys[ControllerActionsAvailableInCar[i]];
+        } else {
+            actionText = keys[ControllerActionsAvailableOnFoot[i]];
+        }
+        
+        if (actionText) {
+            CFont::PrintString(StretchX(40.0f), StretchY(i * verticalSpacing + 69.0f), actionText);
+        }
     }
 
     // 0x57FAF9

@@ -1603,13 +1603,13 @@ bool CControllerConfigManager::CheckMouseButton(KeyCode key) {
 
     if constexpr (CheckType == eMouseCheckType::JUST_UP) {
         switch (key) {
-        case rsMOUSE_LEFT_BUTTON:       result = pad->IsMouseLButtonPressed();
-        case rsMOUSE_MIDDLE_BUTTON:     result = pad->IsMouseMButtonPressed();
-        case rsMOUSE_RIGHT_BUTTON:      result = pad->IsMouseRButtonPressed();
-        case rsMOUSE_WHEEL_UP_BUTTON:   result = pad->IsMouseWheelUpPressed();
-        case rsMOUSE_WHEEL_DOWN_BUTTON: result = pad->IsMouseWheelDownPressed();
-        case rsMOUSE_X1_BUTTON:         result = pad->IsMouseBmx1Pressed();
-        case rsMOUSE_X2_BUTTON:         result = pad->IsMouseBmx2Pressed();
+        case rsMOUSE_LEFT_BUTTON:       result = pad->IsMouseLButtonPressed(); break;
+        case rsMOUSE_MIDDLE_BUTTON:     result = pad->IsMouseMButtonPressed(); break;
+        case rsMOUSE_RIGHT_BUTTON:      result = pad->IsMouseRButtonPressed(); break;
+        case rsMOUSE_WHEEL_UP_BUTTON:   result = pad->IsMouseWheelUpPressed(); break;
+        case rsMOUSE_WHEEL_DOWN_BUTTON: result = pad->IsMouseWheelDownPressed(); break;
+        case rsMOUSE_X1_BUTTON:         result = pad->IsMouseBmx1Pressed(); break;
+        case rsMOUSE_X2_BUTTON:         result = pad->IsMouseBmx2Pressed(); break;
         default:                        NOTSA_UNREACHABLE("Invalid Key: {}", (int32)key); result = false; break;
         }
     } else if constexpr (CheckType == eMouseCheckType::IS_DOWN || CheckType == eMouseCheckType::IS_UP) {
