@@ -106,6 +106,13 @@ enum eContSetOrder {
     FOURTH = 4,
 };
 
+// Enum to specify what type of mouse check to perform
+enum eMouseCheckType {
+    IS_DOWN,       // Button is currently down
+    IS_UP,         // Button is currently up
+    JUST_UP        // Button was just released this frame
+};
+
 constexpr eContSetOrder CONTROLLER_ORDERS_VALID[] = {
     eContSetOrder::FIRST,
     eContSetOrder::SECOND,
@@ -252,11 +259,9 @@ public:
 
     // NOTSA
     eControllerAction GetActionIDByName(std::string_view name);
-
-private:
+    
+    private:
     // iniline region
-    bool CheckMouseButtonState(KeyCode button);
-    bool CheckMouseButtonJustUpState(KeyCode button);
     bool IsCheckSpecificGamepad();
     void CheckAndClear(eControllerAction action, eControllerType type, KeyCode button);
     void CheckAndSetButton(eControllerAction action, eControllerType type, KeyCode button, int16& state);
@@ -268,6 +273,8 @@ private:
     void HandleButtonDownBasedOnControlState(KeyCode button, eControllerType type);
     bool IsKeyboardKeyDownInState(CKeyboardState& state, KeyCode key);
     CControllerState& GetControllerState(CPad& pad, eControllerType type);
+    template<eMouseCheckType CheckType>
+    bool CheckMouseButton(KeyCode key);
 
 private:
     CControllerConfigManager* Constructor() {

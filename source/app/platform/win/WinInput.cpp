@@ -198,49 +198,48 @@ BOOL CALLBACK EnumDevicesCallback(LPCDIDEVICEINSTANCEA inst, LPVOID) {
 CMouseControllerState GetMouseSetUp() {
     CMouseControllerState state;
 
-    if ( PSGLOBAL(diMouse) == nullptr ) {
+    if (!PSGLOBAL(diMouse)) {
         WinInput::diMouseInit(!FrontEndMenuManager.m_bMenuActive && IsVideoModeExclusive());
     }
 
-    if ( PSGLOBAL(diMouse) != nullptr )
-    {
-        DIDEVCAPS devCaps;
-        devCaps.dwSize = sizeof(DIDEVCAPS);
+    if (PSGLOBAL(diMouse)) {
+        return state; // No mouse device
+    }
+    
+    DIDEVCAPS devCaps;
+    devCaps.dwSize = sizeof(DIDEVCAPS);
 
-        // Get device capabilities
-        if (SUCCEEDED(PSGLOBAL(diMouse)->GetCapabilities(&devCaps))) {
-            switch ( devCaps.dwButtons )
-            {
-                case 8:
-                case 7:
-                case 6:
-                case 5:
-                case 4:
-                case 3:
-                    state.isMouseMiddleButtonPressed = true; // Assumes button 3+ implies MMB exists
-                    [[fallthrough]];
-                case 2:
-                    state.isMouseRightButtonPressed = true; // Assumes button 2+ implies RMB exists
-                    [[fallthrough]];
-                case 1:
-                    state.isMouseLeftButtonPressed = true; // Assumes button 1+ implies LMB exists
-                    [[fallthrough]];
-                default:
-                    break;
-            }
+    // Get device capabilities
+    if (SUCCEEDED(PSGLOBAL(diMouse)->GetCapabilities(&devCaps))) {
+        switch (devCaps.dwButtons) {
+        case 8:
+        case 7:
+        case 6:
+        case 5:
+        case 4:
+        case 3:
+            state.isMouseMiddleButtonPressed = true; // Assumes button 3+ implies MMB exists
+            [[fallthrough]];
+        case 2:
+            state.isMouseRightButtonPressed = true; // Assumes button 2+ implies RMB exists
+            [[fallthrough]];
+        case 1:
+            state.isMouseLeftButtonPressed = true; // Assumes button 1+ implies LMB exists
+            [[fallthrough]];
+        default:
+            break;
+        }
 
-            if ( devCaps.dwAxes >= 3 )
-            {
-                state.isMouseWheelMovedDown = true;
-                state.isMouseWheelMovedUp = true;
-            }
+        if (devCaps.dwAxes >= 3) {
+            state.isMouseWheelMovedDown = true;
+            state.isMouseWheelMovedUp = true;
+        }
 
-            if (devCaps.dwButtons >= 4) {
-                 state.isMouseFirstXPressed = true;
-            }
-            if (devCaps.dwButtons >= 5) {
-                 state.isMouseSecondXPressed = true;
-            }
+        if (devCaps.dwButtons >= 4) {
+            state.isMouseFirstXPressed = true;
+        }
+        if (devCaps.dwButtons >= 5) {
+            state.isMouseSecondXPressed = true;
         }
     }
     return state;

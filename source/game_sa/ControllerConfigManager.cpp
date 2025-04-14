@@ -1059,20 +1059,20 @@ bool CControllerConfigManager::GetIsKeyboardKeyJustDown(KeyCode key) {
 }
 
 // 0x52EF30
-bool CControllerConfigManager::GetIsMouseButtonDown(KeyCode key) {
-    return CheckMouseButtonState(key);
+bool CControllerConfigManager::GetIsMouseButtonDown(KeyCode Key) {
+    return CheckMouseButton<eMouseCheckType::IS_DOWN>(Key);
 }
- 
+
 // 0x52F020
-bool CControllerConfigManager::GetIsMouseButtonUp(KeyCode key) {
-    return !CheckMouseButtonState(key);
+bool CControllerConfigManager::GetIsMouseButtonUp(KeyCode Key) {
+    return CheckMouseButton<eMouseCheckType::IS_UP>(Key);
 }
 
 // 0x52F110
-bool CControllerConfigManager::GetIsMouseButtonJustUp(KeyCode key) {
-    return CheckMouseButtonJustUpState(key);
+bool CControllerConfigManager::GetIsMouseButtonJustUp(KeyCode Key) {
+    return CheckMouseButton<eMouseCheckType::JUST_UP>(Key);
 }
-    
+
 // unused
 // 0x52F2A0
 bool CControllerConfigManager::GetIsKeyBlank(KeyCode key, eControllerType type) {
@@ -1363,7 +1363,7 @@ const GxtChar* CControllerConfigManager::GetKeyNameForKeyboard(eControllerAction
         case rsLWIN:     return TheText.Get("FEC_LWD");                       // LWIN
         case rsRWIN:     return TheText.Get("FEC_RWD");                       // RWIN
         case rsAPPS:     return TheText.Get("FEC_WRC");                       // WINCLICK
-        default:         return nullptr; // Please not add 'NOTSA_UNREACHABLE' !!!
+        default:         nullptr; // Please not add 'NOTSA_UNREACHABLE' !!!
         }
     } else { /* ASCII keys */
         switch (key) {
@@ -1417,7 +1417,7 @@ const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerActio
         return GetControllerSettingTextMouse(action);
     }
 
-    return nullptr; // NOTE: It may happen, please do not add NOTSA_UNREACHABLE here.
+    return nullptr;
 }
 
 // NOTSA
@@ -1428,38 +1428,6 @@ eControllerAction CControllerConfigManager::GetActionIDByName(std::string_view n
         }
     }
     return (eControllerAction)-1;
-}
-
-// NOTSA
-bool CControllerConfigManager::CheckMouseButtonState(KeyCode key) {
-    const auto* pad = CPad::GetPad();
-    switch (key) {
-    case rsMOUSE_LEFT_BUTTON:       return pad->IsMouseLButton();
-    case rsMOUSE_RIGHT_BUTTON:      return pad->IsMouseRButton();
-    case rsMOUSE_MIDDLE_BUTTON:     return pad->IsMouseMButton();
-    case rsMOUSE_WHEEL_UP_BUTTON:   return pad->IsMouseWheelUp();
-    case rsMOUSE_WHEEL_DOWN_BUTTON: return pad->IsMouseWheelDown();
-    case rsMOUSE_X1_BUTTON:         return pad->IsMouseBmx1();
-    case rsMOUSE_X2_BUTTON:         return pad->IsMouseBmx2();
-    case 0:                         return false; /* unset button */
-    default:                        NOTSA_UNREACHABLE("Invalid key ({})", (int32)key);
-    }
-}
-
-// NOTSA
-bool CControllerConfigManager::CheckMouseButtonJustUpState(KeyCode key) {
-    const auto* pad = CPad::GetPad();
-    switch (key) {
-    case rsMOUSE_LEFT_BUTTON:       return pad->IsMouseLButtonPressed();
-    case rsMOUSE_RIGHT_BUTTON:      return pad->IsMouseRButtonPressed();
-    case rsMOUSE_MIDDLE_BUTTON:     return pad->IsMouseMButtonPressed();
-    case rsMOUSE_WHEEL_UP_BUTTON:   return pad->IsMouseWheelUpPressed();
-    case rsMOUSE_WHEEL_DOWN_BUTTON: return pad->IsMouseWheelDownPressed();
-    case rsMOUSE_X1_BUTTON:         return pad->IsMouseBmx1Pressed();
-    case rsMOUSE_X2_BUTTON:         return pad->IsMouseBmx2Pressed();
-    case 0:                         return false; /* unset button */
-    default:                        NOTSA_UNREACHABLE("Invalid key ({})", (int32)key);
-    }
 }
 
 // TODO: Reverse JoyStruct
@@ -1622,4 +1590,46 @@ CControllerState& CControllerConfigManager::GetControllerState(CPad& pad, eContr
     case eControllerType::JOY_STICK:          return pad.PCTempJoyState;
     default:                                  NOTSA_UNREACHABLE();
     }
+}
+
+// NOTSA: Notsa but at the moment of compile is 1:1.
+template<eMouseCheckType CheckType>
+bool CControllerConfigManager::CheckMouseButton(KeyCode key) {
+    bool result = false;
+    auto* pad = CPad::GetPad();
+    if (!pad || key == 0) {
+        return false;
+    }
+
+    if constexpr (CheckType == eMouseCheckType::JUST_UP) {
+        switch (key) {
+        case rsMOUSE_LEFT_BUTTON:       result = pad->IsMouseLButtonPressed();
+        case rsMOUSE_MIDDLE_BUTTON:     result = pad->IsMouseMButtonPressed();
+        case rsMOUSE_RIGHT_BUTTON:      result = pad->IsMouseRButtonPressed();
+        case rsMOUSE_WHEEL_UP_BUTTON:   result = pad->IsMouseWheelUpPressed();
+        case rsMOUSE_WHEEL_DOWN_BUTTON: result = pad->IsMouseWheelDownPressed();
+        case rsMOUSE_X1_BUTTON:         result = pad->IsMouseBmx1Pressed();
+        case rsMOUSE_X2_BUTTON:         result = pad->IsMouseBmx2Pressed();
+        default:                        NOTSA_UNREACHABLE("Invalid Key: {}", (int32)key); result = false; break;
+        }
+    } else if constexpr (CheckType == eMouseCheckType::IS_DOWN || CheckType == eMouseCheckType::IS_UP) {
+        switch (key) {
+        case rsMOUSE_LEFT_BUTTON:       result = pad->IsMouseLButton(); break;
+        case rsMOUSE_MIDDLE_BUTTON:     result = pad->IsMouseMButton(); break;
+        case rsMOUSE_RIGHT_BUTTON:      result = pad->IsMouseRButton(); break;
+        case rsMOUSE_WHEEL_UP_BUTTON:   result = pad->IsMouseWheelUp(); break;
+        case rsMOUSE_WHEEL_DOWN_BUTTON: result = pad->IsMouseWheelDown(); break;
+        case rsMOUSE_X1_BUTTON:         result = pad->IsMouseBmx1(); break;
+        case rsMOUSE_X2_BUTTON:         result = pad->IsMouseBmx2(); break;
+        default:                        NOTSA_UNREACHABLE("Invalid Key: {}", (int32)key); result = false; break;
+        }
+    }
+
+    if constexpr (CheckType == eMouseCheckType::IS_UP) {
+        return result ? false : true;
+    } else if constexpr (CheckType == eMouseCheckType::IS_DOWN || CheckType == eMouseCheckType::JUST_UP) {
+        return result;
+    }
+    NOTSA_UNREACHABLE("Invalid CheckType: {}", (int32)CheckType);
+    return false; // Unreachable
 }
