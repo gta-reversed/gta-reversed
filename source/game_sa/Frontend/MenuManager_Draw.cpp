@@ -992,7 +992,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
     const auto maxActions      = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
     const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
     if (maxActions > 0) {
-        for (auto actionIndex : std::views::iota(static_cast<int>(eControllerAction::NUM_OF_MIN_CONTROLLER_ACTIONS), static_cast<int>(maxActions))) {
+        for (auto actionIndex = 0u; actionIndex < maxActions; actionIndex++) {
             float posX = StretchX(240.0f);
             float posY = StretchY(float(startingYPos));
             
@@ -1088,7 +1088,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::VEHICLE_MOUSELOOK,                 35 },
     };
 
-    static const ControlActionMapping PedActionMappings[51] = {
+    static constexpr ControlActionMapping PedActionMappings[51] = {
         { eControllerAction::PED_FIRE_WEAPON,                   0  },
         { eControllerAction::VEHICLE_RADIO_TRACK_SKIP,          0  },
         { eControllerAction::PED_FIRE_WEAPON_ALT,               2  },
@@ -1117,10 +1117,10 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::PED_WALK,                          45 },
         { eControllerAction::VEHICLE_FIRE_WEAPON,               15 },
         { eControllerAction::VEHICLE_FIRE_WEAPON_ALT,           16 },
-        { eControllerAction::VEHICLE_STEER_UP,                  m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 32 : -1},
-        { eControllerAction::CONVERSATION_YES,                  m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 32 : -1},
-        { eControllerAction::VEHICLE_STEER_DOWN,                m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 33 : -1},
-        { eControllerAction::CONVERSATION_NO,                   m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 33 : -1},
+        { eControllerAction::VEHICLE_STEER_UP,                  32 },
+        { eControllerAction::CONVERSATION_YES,                  32 },
+        { eControllerAction::VEHICLE_STEER_DOWN,                33 },
+        { eControllerAction::CONVERSATION_NO,                   33 },
         { eControllerAction::VEHICLE_TURRETLEFT,                -1 },
         { eControllerAction::VEHICLE_TURRETRIGHT,               -1 },
         { eControllerAction::VEHICLE_TURRETUP,                  -1 },
@@ -1148,7 +1148,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
     // Main loop - process each action
     while (actionIndex < maxActions) {
         auto  currentX         = StretchX(270.0f);
-        int32 controllerAction = (eControllerAction)-1; // type eControllerAction
+        int32 controllerAction = eControllerAction::NUM_OF_NONE_CONTROLLER_ACTIONS;
 
         // Set default text color
         CFont::SetColor({ 255, 255, 255, 255 });
@@ -1164,7 +1164,11 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         } else {
             for (auto& mapping : PedActionMappings) {
                 if (mapping.actionToTest == actionIndex) {
-                    controllerAction = mapping.controllerAction;
+                    if (m_ControlMethod == eController::MOUSE_PLUS_KEYS && notsa::contains({ eControllerAction::VEHICLE_STEER_UP, eControllerAction::CONVERSATION_YES, eControllerAction::VEHICLE_STEER_DOWN, eControllerAction::CONVERSATION_NO }, mapping.actionToTest)) {
+                        controllerAction = -1;
+                    } else {
+                        controllerAction = mapping.controllerAction;
+                    }
                     break;
                 }
             }
@@ -1193,8 +1197,8 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 
         // Draw control bindings
         auto hasControl = false;
-        if (controllerAction != (eControllerAction)-1 && controllerAction != (eControllerAction)-2) {
-            for (auto type = 1u; type <= CONTROLLER_NUM; type++) {
+        if (controllerAction != eControllerAction::NUM_OF_NONE_CONTROLLER_ACTIONS && controllerAction != eControllerAction::COMBOLOCK) {
+            for (const auto& type : CONTROLLER_TYPES_ALL) {
                 if (m_DeleteAllNextDefine && m_ListSelection == actionIndex) {
                     break;
                 }
@@ -1211,7 +1215,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         // NOTE: Deal with the logic further, because beautifully and fixing the display of “UNBOUND” and “???” at once is not possible
 
         // 0x57EBD9 + 0x57EBEA
-        if (controllerAction == (eControllerAction)-2) {
+        if (controllerAction == eControllerAction::COMBOLOCK) {
             CFont::SetColor({ 0, 0, 0, 255 });
             if (!isOppositeScreen) {
                 CFont::PrintString(currentX, currentY, TheText.Get("FEC_CMP")); // COMBO: Uses LOOK LEFT + LOOK RIGHT together

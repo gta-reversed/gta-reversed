@@ -32,85 +32,86 @@ enum eActionType {
 };
 
 enum eControllerAction {
-    PED_FIRE_WEAPON = 0,
-    PED_FIRE_WEAPON_ALT = 1,
-    PED_CYCLE_WEAPON_RIGHT = 2,
-    PED_CYCLE_WEAPON_LEFT = 3,
-    GO_FORWARD = 4,
-    GO_BACK = 5,
-    GO_LEFT = 6,
-    GO_RIGHT = 7,
-    PED_SNIPER_ZOOM_IN = 8,
-    PED_SNIPER_ZOOM_OUT = 9,
-    VEHICLE_ENTER_EXIT = 10,
+    COMBOLOCK                         = -2,
+    NUM_OF_NONE_CONTROLLER_ACTIONS    = -1,
+    PED_FIRE_WEAPON                   = 0,
+    PED_FIRE_WEAPON_ALT               = 1,
+    PED_CYCLE_WEAPON_RIGHT            = 2,
+    PED_CYCLE_WEAPON_LEFT             = 3,
+    GO_FORWARD                        = 4,
+    GO_BACK                           = 5,
+    GO_LEFT                           = 6,
+    GO_RIGHT                          = 7,
+    PED_SNIPER_ZOOM_IN                = 8,
+    PED_SNIPER_ZOOM_OUT               = 9,
+    VEHICLE_ENTER_EXIT                = 10,
     CAMERA_CHANGE_VIEW_ALL_SITUATIONS = 11,
-    PED_JUMPING = 12,
-    PED_SPRINT = 13,
-    PED_LOOKBEHIND = 14,
-    PED_DUCK = 15,
-    PED_ANSWER_PHONE = 16,
-    PED_WALK = 17,
-    VEHICLE_FIRE_WEAPON = 18,
-    VEHICLE_FIRE_WEAPON_ALT = 19,
-    VEHICLE_STEER_LEFT = 20,
-    VEHICLE_STEER_RIGHT = 21,
-    VEHICLE_STEER_UP = 22,
-    VEHICLE_STEER_DOWN = 23,
-    VEHICLE_ACCELERATE = 24,
-    VEHICLE_BRAKE = 25,
-    VEHICLE_RADIO_STATION_UP = 26,
-    VEHICLE_RADIO_STATION_DOWN = 27,
-    VEHICLE_RADIO_TRACK_SKIP = 28,
-    VEHICLE_HORN = 29,
-    TOGGLE_SUBMISSIONS = 30,
-    VEHICLE_HANDBRAKE = 31,
-    PED_1RST_PERSON_LOOK_LEFT = 32,
-    PED_1RST_PERSON_LOOK_RIGHT = 33,
-    VEHICLE_LOOKLEFT = 34,
-    VEHICLE_LOOKRIGHT = 35,
-    VEHICLE_LOOKBEHIND = 36,
-    VEHICLE_MOUSELOOK = 37,
-    VEHICLE_TURRETLEFT = 38,
-    VEHICLE_TURRETRIGHT = 39,
-    VEHICLE_TURRETUP = 40,
-    VEHICLE_TURRETDOWN = 41,
-    PED_CYCLE_TARGET_LEFT = 42,
-    PED_CYCLE_TARGET_RIGHT = 43,
-    PED_CENTER_CAMERA_BEHIND_PLAYER = 44,
-    PED_LOCK_TARGET = 45,
-    NETWORK_TALK = 46,
-    CONVERSATION_YES = 47,
-    CONVERSATION_NO = 48,
-    GROUP_CONTROL_FWD = 49,
-    GROUP_CONTROL_BWD = 50,
-    PED_1RST_PERSON_LOOK_UP = 51,
-    PED_1RST_PERSON_LOOK_DOWN = 52,
-    NUM_OF_1ST_PERSON_ACTIONS = 53,
-    TOGGLE_DPAD = 54,
-    SWITCH_DEBUG_CAM_ON = 55,
-    TAKE_SCREEN_SHOT = 56,
-    SHOW_MOUSE_POINTER_TOGGLE = 57,
-    SWITCH_CAM_DEBUG_MENU = 58,
+    PED_JUMPING                       = 12,
+    PED_SPRINT                        = 13,
+    PED_LOOKBEHIND                    = 14,
+    PED_DUCK                          = 15,
+    PED_ANSWER_PHONE                  = 16,
+    PED_WALK                          = 17,
+    VEHICLE_FIRE_WEAPON               = 18,
+    VEHICLE_FIRE_WEAPON_ALT           = 19,
+    VEHICLE_STEER_LEFT                = 20,
+    VEHICLE_STEER_RIGHT               = 21,
+    VEHICLE_STEER_UP                  = 22,
+    VEHICLE_STEER_DOWN                = 23,
+    VEHICLE_ACCELERATE                = 24,
+    VEHICLE_BRAKE                     = 25,
+    VEHICLE_RADIO_STATION_UP          = 26,
+    VEHICLE_RADIO_STATION_DOWN        = 27,
+    VEHICLE_RADIO_TRACK_SKIP          = 28,
+    VEHICLE_HORN                      = 29,
+    TOGGLE_SUBMISSIONS                = 30,
+    VEHICLE_HANDBRAKE                 = 31,
+    PED_1RST_PERSON_LOOK_LEFT         = 32,
+    PED_1RST_PERSON_LOOK_RIGHT        = 33,
+    VEHICLE_LOOKLEFT                  = 34,
+    VEHICLE_LOOKRIGHT                 = 35,
+    VEHICLE_LOOKBEHIND                = 36,
+    VEHICLE_MOUSELOOK                 = 37,
+    VEHICLE_TURRETLEFT                = 38,
+    VEHICLE_TURRETRIGHT               = 39,
+    VEHICLE_TURRETUP                  = 40,
+    VEHICLE_TURRETDOWN                = 41,
+    PED_CYCLE_TARGET_LEFT             = 42,
+    PED_CYCLE_TARGET_RIGHT            = 43,
+    PED_CENTER_CAMERA_BEHIND_PLAYER   = 44,
+    PED_LOCK_TARGET                   = 45,
+    NETWORK_TALK                      = 46,
+    CONVERSATION_YES                  = 47,
+    CONVERSATION_NO                   = 48,
+    GROUP_CONTROL_FWD                 = 49,
+    GROUP_CONTROL_BWD                 = 50,
+    PED_1RST_PERSON_LOOK_UP           = 51,
+    PED_1RST_PERSON_LOOK_DOWN         = 52,
+    NUM_OF_1ST_PERSON_ACTIONS         = 53,
+    TOGGLE_DPAD                       = 54,
+    SWITCH_DEBUG_CAM_ON               = 55,
+    TAKE_SCREEN_SHOT                  = 56,
+    SHOW_MOUSE_POINTER_TOGGLE         = 57,
+    SWITCH_CAM_DEBUG_MENU             = 58,
 
     // notsa
     NUM_OF_MAX_CONTROLLER_ACTIONS,
     NUM_OF_MIN_CONTROLLER_ACTIONS = 0,
 };
 
-
 enum eContSetOrder {
     NO_ORDER_SET = 0,
-    FIRST = 1,
-    SECOND = 2,
-    THIRD = 3,
-    FOURTH = 4,
+    FIRST        = 1,
+    SECOND       = 2,
+    THIRD        = 3,
+    FOURTH       = 4,
 };
 
 // Enum to specify what type of mouse check to perform
 enum eMouseCheckType {
-    IS_DOWN,       // Button is currently down
-    IS_UP,         // Button is currently up
-    JUST_UP        // Button was just released this frame
+    IS_DOWN, // Button is currently down
+    IS_UP,   // Button is currently up
+    JUST_UP  // Button was just released this frame
 };
 
 constexpr eContSetOrder CONTROLLER_ORDERS_VALID[] = {
@@ -120,30 +121,29 @@ constexpr eContSetOrder CONTROLLER_ORDERS_VALID[] = {
     eContSetOrder::FOURTH
 }; // NOTSA
 
-enum eJOY_BUTTONS {
-    NO_JOYBUTTONS = 0,        
-    JOYBUTTON_ONE = 1,
-    JOYBUTTON_TWO = 2,
-    JOYBUTTON_THREE = 3,
-    JOYBUTTON_FOUR = 4,
-    JOYBUTTON_FIVE = 5,
-    JOYBUTTON_SIX = 6,
-    JOYBUTTON_SEVEN = 7,
-    JOYBUTTON_EIGHT = 8,
-    JOYBUTTON_NINE = 9,
-    JOYBUTTON_TEN = 10,
-    JOYBUTTON_ELEVEN = 11,
-    JOYBUTTON_TWELVE = 12,
-    JOYBUTTON_THIRTEEN = 13,
-    JOYBUTTON_FOURTEEN = 14,
+enum eJoyButtons {
+    NO_JOYBUTTONS       = 0,
+    JOYBUTTON_ONE       = 1,
+    JOYBUTTON_TWO       = 2,
+    JOYBUTTON_THREE     = 3,
+    JOYBUTTON_FOUR      = 4,
+    JOYBUTTON_FIVE      = 5,
+    JOYBUTTON_SIX       = 6,
+    JOYBUTTON_SEVEN     = 7,
+    JOYBUTTON_EIGHT     = 8,
+    JOYBUTTON_NINE      = 9,
+    JOYBUTTON_TEN       = 10,
+    JOYBUTTON_ELEVEN    = 11,
+    JOYBUTTON_TWELVE    = 12,
+    JOYBUTTON_THIRTEEN  = 13,
+    JOYBUTTON_FOURTEEN  = 14,
     JOYBUTTON_FIFTHTEEN = 15,
-    JOYBUTTON_SIXTEEN = 16,
+    JOYBUTTON_SIXTEEN   = 16,
 
     JOYBUTTON_COUNT
 };
 
-using KeyCode = uint32_t; // NOTSA: Originally that is RW type, but we use uint32 for consistency
-typedef unsigned int UINT;
+using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
 
 struct CControllerKey {
     KeyCode       m_uiActionInitiator{};
@@ -159,16 +159,17 @@ struct CControllerAction {
 VALIDATE_SIZE(CControllerAction, 0x20);
 
 struct JoyStruct {
-    UINT wDeviceID{};
-    bool     bJoyAttachedToPort{};
-    bool     bZAxisPresent{};
-    bool     bZRotPresent{};
-    private:
+    uint32 wDeviceID{};
+    bool   bJoyAttachedToPort{};
+    bool   bZAxisPresent{};
+    bool   bZRotPresent{};
+private:
     char __align{};
-    public:
+public:
     DWORD wVendorID{};
     DWORD wProductID{};
 };
+
 VALIDATE_SIZE(JoyStruct, 0x10);
 
 struct CJoySticks {
@@ -236,8 +237,8 @@ public:
     void UpdateJoy_ButtonUp(KeyCode button, eControllerType type);
     void AffectControllerStateOn_ButtonUp_DebugStuff(int32, eControllerType);
     void ClearSimButtonPressCheckers();
-    eJOY_BUTTONS GetJoyButtonJustUp();
-    eJOY_BUTTONS GetJoyButtonJustDown();
+    eJoyButtons GetJoyButtonJustUp();
+    eJoyButtons GetJoyButtonJustDown();
     bool GetIsKeyboardKeyDown(KeyCode button);
     bool GetIsKeyboardKeyJustDown(KeyCode button);
     bool GetIsMouseButtonDown(KeyCode button);
@@ -259,10 +260,8 @@ public:
 
     // NOTSA
     eControllerAction GetActionIDByName(std::string_view name);
-    
-    private:
+private:
     // inline region
-    bool IsCheckSpecificGamepad();
     void CheckAndClear(eControllerAction action, eControllerType type, KeyCode button);
     void CheckAndSetButton(eControllerAction action, eControllerType type, KeyCode button, int16& state);
     void CheckAndReset(eControllerAction action, eControllerType type, KeyCode button, int16& state);
@@ -273,7 +272,7 @@ public:
     void HandleButtonDownBasedOnControlState(KeyCode button, eControllerType type);
     bool IsKeyboardKeyDownInState(CKeyboardState& state, KeyCode key);
     CControllerState& GetControllerState(CPad& pad, eControllerType type);
-
+    int16& GetControllerStateJoyStick(CPad& pad, KeyCode button);
     template<eMouseCheckType CheckType>
     bool CheckMouseButton(KeyCode key);
 
@@ -283,6 +282,7 @@ private:
         return this;
     }
 };
+
 VALIDATE_SIZE(CControllerConfigManager, 0x12E4);
 
-extern CControllerConfigManager &ControlsManager;
+extern CControllerConfigManager& ControlsManager;
