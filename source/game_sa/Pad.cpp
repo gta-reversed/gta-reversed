@@ -327,11 +327,16 @@ void CPad::UpdateMouse() {
 #endif
 }
 
+#define DEVICE_AXIS_MIN -2000
+#define DEVICE_AXIS_MAX 2000
+
 // 0x746A10
 void CPad::ProcessPad(ePadID padID) {
 #ifndef NOTSA_USE_SDL3
     LPDIRECTINPUTDEVICE8* pDiDevice = nullptr;
     DIJOYSTATE2 joyState;
+    RwV2d leftStickPos{};
+    RwV2d rightStickPos{};
 
     if (padID == PAD1) {
         pDiDevice = &PSGLOBAL(diDevice1);
@@ -345,54 +350,73 @@ void CPad::ProcessPad(ePadID padID) {
         return;
     }
 
-    if (FAILED((*pDiDevice)->Poll())) {
-        (*pDiDevice)->Acquire();
-        return;
+    // Poll the device to read the current state
+    HRESULT hr = (*pDiDevice)->Poll();
+    
+    if (FAILED(hr)) {
+        // DInput is telling us that the input stream has been
+        // interrupted. We just re-acquire and try again.
+        hr = (*pDiDevice)->Acquire();
+        while (hr == DIERR_INPUTLOST) 
+            hr = (*pDiDevice)->Acquire();
+        
+        // Return if acquisition failed due to other reasons
+        if (FAILED(hr))
+            return;
+        
+        hr = (*pDiDevice)->Poll();
+        if (FAILED(hr))
+            return;
     }
 
-
+    // Get the device state
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
 
     if (ControlsManager.m_WasJoyJustInitialised) {
-        ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState = joyState;
+        memcpy(&ControlsManager.m_OldJoyState, &joyState, sizeof(DIJOYSTATE2));
+        memcpy(&ControlsManager.m_NewJoyState, &joyState, sizeof(DIJOYSTATE2));
         ControlsManager.m_WasJoyJustInitialised = false;
     } else {
-        ControlsManager.m_OldJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
+        memcpy(&ControlsManager.m_OldJoyState, &ControlsManager.m_NewJoyState, sizeof(DIJOYSTATE2));
+        memcpy(&ControlsManager.m_NewJoyState, &joyState, sizeof(DIJOYSTATE2));
     }
+
     RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padID);
 
     if (*pDiDevice) {
-        float padX1 = joyState.lX / 2000.0f;
-        float padX2 = joyState.lY / 2000.0f;
-        float padY1 = 0.0f;
-        float padY2 = 0.0f;
-
-        if (joyState.rgdwPOV[1] >= 0) {
-            padX1 = sin(joyState.rgdwPOV[1] / 5730.0f);
-            padY1 = cos(joyState.rgdwPOV[1] / 5730.0f) * -1.0f;
+        // Calculate left stick position
+        leftStickPos.x = (float)joyState.lX / (float)((DEVICE_AXIS_MAX - DEVICE_AXIS_MIN) / 2);
+        leftStickPos.y = (float)joyState.lY / (float)((DEVICE_AXIS_MAX - DEVICE_AXIS_MIN) / 2);
+        
+        // Handle POV
+        if (LOWORD(joyState.rgdwPOV[0]) != 0xFFFF) {
+            float angle = (float)joyState.rgdwPOV[0] / 100.0f * (3.14159f / 180.0f); // DEGTORAD
+            leftStickPos.x = sin(angle);
+            leftStickPos.y = -cos(angle);
         }
+        
+        // Calculate right stick position
         if (AllValidWinJoys.JoyStickNum[padID].bZRotPresent && AllValidWinJoys.JoyStickNum[padID].bZAxisPresent) {
-            padX2 = joyState.lZ / 2000.0f;
-            padY2 = joyState.lRz / 2000.0f;
+            rightStickPos.x = (float)joyState.lZ / (float)((DEVICE_AXIS_MAX - DEVICE_AXIS_MIN) / 2);
+            rightStickPos.y = (float)joyState.lRz / (float)((DEVICE_AXIS_MAX - DEVICE_AXIS_MIN) / 2);
         }
 
         RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padID);
         RsPadEventHandler(RsEvent::rsPADBUTTONDOWN, &padID);
         CPad* pPad = CPad::GetPad(padID);
 
-        const auto UpdateJoyStickPosition = [](float pos, int16& outA, int16& outB, bool isInverted, bool isSwapped) {
-            if (fabs(pos) > 0.3f) {
-                pos = isInverted ? -pos : pos;
-                pos /= 128.f;
-                (isSwapped ? outA : outB) = (int32)pos;
-            }
-        };
-
-        UpdateJoyStickPosition(padX1, pPad->PCTempJoyState.LeftStickY, pPad->PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
-        UpdateJoyStickPosition(padY1, pPad->PCTempJoyState.LeftStickX, pPad->PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis2);
-
-        UpdateJoyStickPosition(padX2, pPad->PCTempJoyState.LeftStickY, pPad->PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis1);
-        UpdateJoyStickPosition(padY2, pPad->PCTempJoyState.LeftStickX, pPad->PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
+        // Update joystick state
+        if (fabs(leftStickPos.x) > 0.3f)
+            pPad->PCTempJoyState.LeftStickX = (int32)(leftStickPos.x * 128.0f);
+        
+        if (fabs(leftStickPos.y) > 0.3f)
+            pPad->PCTempJoyState.LeftStickY = (int32)(leftStickPos.y * 128.0f);
+        
+        if (fabs(rightStickPos.x) > 0.3f)
+            pPad->PCTempJoyState.RightStickX = (int32)(rightStickPos.x * 128.0f);
+        
+        if (fabs(rightStickPos.y) > 0.3f)
+            pPad->PCTempJoyState.RightStickY = (int32)(rightStickPos.y * 128.0f);
     }
 #endif
 }
