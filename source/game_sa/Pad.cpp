@@ -327,12 +327,14 @@ void CPad::UpdateMouse() {
 #endif
 }
 
-#define DEVICE_AXIS_MIN -2000
-#define DEVICE_AXIS_MAX 2000
 
 // 0x746A10
 void CPad::ProcessPad(ePadID padID) {
-#ifndef NOTSA_USE_SDL3
+    #ifndef NOTSA_USE_SDL3
+    constexpr int deviceAxisMin = -2000;
+    constexpr int deviceAxisMax = 2000;
+    constexpr float deviceAxisOffset = float(float(deviceAxisMax - deviceAxisMin)  / 2.0f);
+
     LPDIRECTINPUTDEVICE8* pDiDevice = nullptr;
     DIJOYSTATE2 joyState;
     RwV2d leftStickPos{};
@@ -346,7 +348,7 @@ void CPad::ProcessPad(ePadID padID) {
         return;
     }
     
-    if (!*pDiDevice) {
+    if (!pDiDevice || !*pDiDevice) {
         return;
     }
 
@@ -372,54 +374,61 @@ void CPad::ProcessPad(ePadID padID) {
     // Get the device state
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
 
+    // Update NewJoyState with the current joyState and get the previous value
+    DIJOYSTATE2 previousNewJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
+
     if (ControlsManager.m_WasJoyJustInitialised) {
-        memcpy(&ControlsManager.m_OldJoyState, &joyState, sizeof(DIJOYSTATE2));
-        memcpy(&ControlsManager.m_NewJoyState, &joyState, sizeof(DIJOYSTATE2));
+        ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState;
         ControlsManager.m_WasJoyJustInitialised = false;
     } else {
-        memcpy(&ControlsManager.m_OldJoyState, &ControlsManager.m_NewJoyState, sizeof(DIJOYSTATE2));
-        memcpy(&ControlsManager.m_NewJoyState, &joyState, sizeof(DIJOYSTATE2));
+        ControlsManager.m_OldJoyState = previousNewJoyState;
     }
 
     RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padID);
 
     if (*pDiDevice) {
         // Calculate left stick position
-        leftStickPos.x = (float)joyState.lX / (float)((DEVICE_AXIS_MAX - DEVICE_AXIS_MIN) / 2);
-        leftStickPos.y = (float)joyState.lY / (float)((DEVICE_AXIS_MAX - DEVICE_AXIS_MIN) / 2);
+        leftStickPos.x = (float)joyState.lX / deviceAxisOffset;
+        leftStickPos.y = (float)joyState.lY / deviceAxisOffset;
         
         // Handle POV
         if (LOWORD(joyState.rgdwPOV[0]) != 0xFFFF) {
-            float angle = (float)joyState.rgdwPOV[0] / 100.0f * (3.14159f / 180.0f); // DEGTORAD
+            float angle = DegreesToRadians((float)joyState.rgdwPOV[0] / 100.0f);
             leftStickPos.x = sin(angle);
             leftStickPos.y = -cos(angle);
         }
         
         // Calculate right stick position
         if (AllValidWinJoys.JoyStickNum[padID].bZRotPresent && AllValidWinJoys.JoyStickNum[padID].bZAxisPresent) {
-            rightStickPos.x = (float)joyState.lZ / (float)((DEVICE_AXIS_MAX - DEVICE_AXIS_MIN) / 2);
-            rightStickPos.y = (float)joyState.lRz / (float)((DEVICE_AXIS_MAX - DEVICE_AXIS_MIN) / 2);
+            rightStickPos.x = (float)joyState.lZ / deviceAxisOffset;
+            rightStickPos.y = (float)joyState.lRz / deviceAxisOffset;
         }
 
         RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padID);
         RsPadEventHandler(RsEvent::rsPADBUTTONDOWN, &padID);
-        CPad* pPad = CPad::GetPad(padID);
+        CPad& pPad = *CPad::GetPad(padID);
 
-        // Update joystick state
-        if (fabs(leftStickPos.x) > 0.3f)
-            pPad->PCTempJoyState.LeftStickX = (int32)(leftStickPos.x * 128.0f);
-        
-        if (fabs(leftStickPos.y) > 0.3f)
-            pPad->PCTempJoyState.LeftStickY = (int32)(leftStickPos.y * 128.0f);
-        
-        if (fabs(rightStickPos.x) > 0.3f)
-            pPad->PCTempJoyState.RightStickX = (int32)(rightStickPos.x * 128.0f);
-        
-        if (fabs(rightStickPos.y) > 0.3f)
-            pPad->PCTempJoyState.RightStickY = (int32)(rightStickPos.y * 128.0f);
+        const auto UpdateJoyStickPosition = [&](float& pos, int16& outSwapped, int16& outNormal, bool isInverted, bool isSwapped) {
+            if (std::fabs(pos) <= 0.3f) {
+                return;
+            }
+            if (isInverted) {
+                pos *= -1.0f;
+            }
+            (isSwapped) ? outSwapped : outNormal = static_cast<int32>(pos * 128.0f);
+        };
+
+        // Left stick
+        UpdateJoyStickPosition(leftStickPos.x, pPad.PCTempJoyState.LeftStickY, pPad.PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
+        UpdateJoyStickPosition(leftStickPos.y, pPad.PCTempJoyState.LeftStickX, pPad.PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis1);
+
+        // Right stick
+        UpdateJoyStickPosition(rightStickPos.x, pPad.PCTempJoyState.RightStickY, pPad.PCTempJoyState.RightStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis2);
+        UpdateJoyStickPosition(rightStickPos.y, pPad.PCTempJoyState.RightStickX, pPad.PCTempJoyState.RightStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
     }
 #endif
 }
+
 
 // 0x53FB40
 void CPad::ProcessPCSpecificStuff() {
@@ -1198,7 +1207,7 @@ int16 CPad::AimWeaponLeftRight(CPed* ped) const {
 
     if (!CCamera::m_bUseMouse3rdPerson && ped) {
         if (ped->m_pAttachedTo || ped->IsInVehicleAsPassenger()) {
-            if (fabs(GetRightStickX()) < fabs(GetLeftStickX())) {
+            if (std::fabs(GetRightStickX()) < std::fabs(GetLeftStickX())) {
                 return GetLeftStickX();
             }
         }
@@ -1213,7 +1222,7 @@ int16 CPad::AimWeaponUpDown(CPed* ped) const {
 
     if (!CCamera::m_bUseMouse3rdPerson && ped) {
         if (ped->m_pAttachedTo || ped->IsInVehicleAsPassenger()) {
-            if (fabs(GetRightStickY()) < fabs(GetLeftStickY())) {
+            if (std::fabs(GetRightStickY()) < std::fabs(GetLeftStickY())) {
                 return bInvertLook4Pad ? -GetLeftStickY() : GetLeftStickY();
             }
         }

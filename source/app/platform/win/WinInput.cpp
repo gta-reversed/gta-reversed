@@ -139,8 +139,8 @@ void diMouseInit(bool exclusive) {
 }
 
 // 0x7485C0
-#define DEVICE_AXIS_MIN -2000
-#define DEVICE_AXIS_MAX 2000
+static constexpr auto DEVICE_AXIS_MIN = -2000;
+static constexpr auto DEVICE_AXIS_MAX = 2000;
 
 // Context structure for device enumeration callback
 struct EnumDevicesContext {
