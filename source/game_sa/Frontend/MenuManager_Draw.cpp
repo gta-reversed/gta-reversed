@@ -996,8 +996,8 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
             float posX = StretchX(240.0f);
             float posY = StretchY(float(startingYPos));
             
-            for (const auto& order : CONTROLLER_ORDERS_VALID) {
-                const auto buttonText = ControlsManager.GetControllerSettingText(static_cast<eControllerAction>(actionIndex), order);
+            for (const auto& order : CONTROLLER_ORDERS_SET) {
+                const auto buttonText = ControlsManager.GetControllerSettingText(static_cast<eControllerAction>(actionIndex), (eContSetOrder)order);
                 if (buttonText) {
                     CFont::PrintString(posX, posY, buttonText);
                     posX += StretchX(75.0f);
@@ -1195,11 +1195,12 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         // Draw control bindings
         auto hasControl = false;
         if (controllerAction != eControllerAction::NUM_OF_NONE_CONTROLLER_ACTIONS && controllerAction != eControllerAction::COMBOLOCK) {
-            for (const auto& type : CONTROLLER_TYPES_ALL) {
+
+            for (const auto& order : CONTROLLER_ORDERS_SET) {
                 if (m_DeleteAllNextDefine && m_ListSelection == actionIndex) {
                     break;
                 }
-                if (const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)controllerAction, (eContSetOrder)type)) {
+                if (const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)controllerAction, (eContSetOrder)order)) {
                     hasControl = true;
                     if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, buttonText);

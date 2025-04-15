@@ -107,6 +107,7 @@ enum eContSetOrder {
     FOURTH       = 4,
 };
 
+
 // Enum to specify what type of mouse check to perform
 enum eMouseCheckType {
     IS_DOWN, // Button is currently down
@@ -114,11 +115,12 @@ enum eMouseCheckType {
     JUST_UP  // Button was just released this frame
 };
 
-constexpr eContSetOrder CONTROLLER_ORDERS_VALID[] = {
+constexpr std::array<eContSetOrder, 5> CONTROLLER_ORDERS_SET = {
     eContSetOrder::FIRST,
     eContSetOrder::SECOND,
     eContSetOrder::THIRD,
-    eContSetOrder::FOURTH
+    eContSetOrder::FOURTH,
+    (eContSetOrder)5, // Extra value for JOY controller
 }; // NOTSA
 
 enum eJoyButtons : uint32 {
@@ -183,7 +185,7 @@ using ControlName = GxtChar[40];
 
 class CControllerConfigManager {
 public:
-    bool              m_WasJoyJustInitialised{};
+    bool              m_bJoyJustInitialised{};
     DIJOYSTATE2       m_OldJoyState{};
     DIJOYSTATE2       m_NewJoyState{};
     ControlName       m_ControllerActionName[NUM_OF_MAX_CONTROLLER_ACTIONS]{};

@@ -364,7 +364,7 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_Driving(KeyCod
 void CControllerConfigManager::ResetSettingOrder(eControllerAction action) {
     eControllerType result = KEYBOARD;
 
-    for (const auto& order : CONTROLLER_ORDERS_VALID) {
+    for (const auto& order : CONTROLLER_ORDERS_SET) {
         // Check if any key already has this priority level
         bool priorityExists = false;
 
@@ -394,7 +394,7 @@ void CControllerConfigManager::ResetSettingOrder(eControllerAction action) {
 
             // If we found a key with higher priority, adjust it to the current level
             if (found) {
-                m_Actions[action].Keys[result].m_uiSetOrder = order;
+                m_Actions[action].Keys[result].m_uiSetOrder = (eContSetOrder)order;
             }
         }
     }
@@ -621,7 +621,7 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
 
 // 0x530B00
 void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount) {
-    m_WasJoyJustInitialised = true;
+    m_bJoyJustInitialised = true;
 
     // Define all possible button mappings in order from highest to lowest button number
     using ButtonMapping = std::pair<eJoyButtons, eControllerAction>;

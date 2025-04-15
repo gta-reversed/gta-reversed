@@ -377,9 +377,9 @@ void CPad::ProcessPad(ePadID padID) {
     // Update NewJoyState with the current joyState and get the previous value
     DIJOYSTATE2 previousNewJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
 
-    if (ControlsManager.m_WasJoyJustInitialised) {
+    if (ControlsManager.m_bJoyJustInitialised) {
         ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState;
-        ControlsManager.m_WasJoyJustInitialised = false;
+        ControlsManager.m_bJoyJustInitialised = false;
     } else {
         ControlsManager.m_OldJoyState = previousNewJoyState;
     }
