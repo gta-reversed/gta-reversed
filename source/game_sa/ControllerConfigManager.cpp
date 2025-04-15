@@ -21,8 +21,8 @@ void CControllerConfigManager::InjectHooks() {
     RH_ScopedInstall(StoreMouseButtonState, 0x52DA30);
     RH_ScopedInstall(UpdateJoyInConfigMenus_ButtonDown, 0x52DAB0);
     RH_ScopedInstall(UpdateJoy_ButtonDown, 0x530ED0);
-    RH_ScopedInstall(UpdateJoy_ButtonUp, 0x531070);
-    RH_ScopedInstall(StoreJoyButtonStates, 0x52F510);
+    RH_ScopedInstall(AffectControllerStateOn_ButtonUp, 0x531070);
+    RH_ScopedInstall(UpdateJoyButtonState, 0x52F510);
     RH_ScopedInstall(AffectControllerStateOn_ButtonDown_DebugStuff, 0x52DC10);
     RH_ScopedInstall(UpdateJoyInConfigMenus_ButtonUp, 0x52DC20);
     RH_ScopedInstall(AffectControllerStateOn_ButtonUp_DebugStuff, 0x52DD80);
@@ -181,7 +181,7 @@ void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction actio
 }
 
 // 0x52F510
-void CControllerConfigManager::StoreJoyButtonStates() {
+void CControllerConfigManager::UpdateJoyButtonState(int32 PadID) { //finish
     for (auto&& [idx, bs] : rngv::enumerate(m_ButtonStates)) {
         bs = (m_NewJoyState.rgbButtons[idx] & 0x80) != 0;
     }
@@ -402,7 +402,7 @@ void CControllerConfigManager::ResetSettingOrder(eControllerAction action) {
 
 // NOTSA [Code combined from 0x7448B0 and 0x744930]
 void CControllerConfigManager::HandleJoyButtonUpDown(int32 joyNo, bool isDown) {
-    StoreJoyButtonStates();
+    UpdateJoyButtonState(joyNo);
     const auto forceConfigMenuMode = !isDown && notsa::contains({ MODE_FLYBY, MODE_FIXED }, TheCamera.GetActiveCamera().m_nMode); // Probably leftover debug stuff?
     for (auto i = isDown ? 1u : 2u; i < std::size(m_ButtonStates); i++) { // TODO: Why is this starting from 1/2?
         const auto padBtn = ((m_ButtonStates[i - 1] == isDown) ? i : 0); // This doesn't make sense
@@ -416,7 +416,7 @@ void CControllerConfigManager::HandleJoyButtonUpDown(int32 joyNo, bool isDown) {
             if (isDown) {
                 UpdateJoy_ButtonDown(padBtn, eControllerType::JOY_STICK);
             } else {
-                UpdateJoy_ButtonUp(padBtn, eControllerType::JOY_STICK);
+                AffectControllerStateOn_ButtonUp(padBtn, eControllerType::JOY_STICK);
             }
         }
     }
@@ -869,7 +869,7 @@ void CControllerConfigManager::UpdateJoy_ButtonDown(KeyCode button, eControllerT
         return;
     }
 
-    HandleButtonDownBasedOnControlState(button, type);
+    AffectControllerStateOn_ButtonDown(button, type);
 }
 
 // unused
@@ -892,7 +892,7 @@ void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(KeyCode button, i
 }
 
 // 0x531070
-void CControllerConfigManager::UpdateJoy_ButtonUp(KeyCode button, eControllerType type) {
+void CControllerConfigManager::AffectControllerStateOn_ButtonUp(KeyCode button, eControllerType type) {
     const auto pad = CPad::GetPad();
     if (!GetIsKeyBlank(button, type) && pad && !FrontEndMenuManager.m_bMenuActive) {
         HandleButtonRelease(button, type, &GetControllerState(*pad, type));
@@ -1119,7 +1119,7 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
 
             if (GetIsKeyboardKeyDown(key) && inMenu && !GetIsKeyBlank(key, type)) {
                 if (inMenu) {
-                    HandleButtonDownBasedOnControlState(key, type);
+                    AffectControllerStateOn_ButtonDown(key, type);
                 }
                 auto* pad = CPad::GetPad();
                 if (!pad || FrontEndMenuManager.m_bMenuActive) {
@@ -1139,7 +1139,7 @@ void CControllerConfigManager::AffectPadFromMouse() {
 
         if (GetIsMouseButtonDown(button)) {
             if (inMenu && !GetIsKeyBlank(button, eControllerType::MOUSE)) {
-                HandleButtonDownBasedOnControlState(button, eControllerType::MOUSE);
+                AffectControllerStateOn_ButtonDown(button, eControllerType::MOUSE);
             }
         }
 
@@ -1391,8 +1391,8 @@ bool CControllerConfigManager::UseFirstPersonControls() {
     return notsa::contains({ MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_CAMERA }, TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode);
 }
 
-// inline
-void CControllerConfigManager::HandleButtonDownBasedOnControlState(KeyCode button, eControllerType type) {
+// ?????????
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown(KeyCode button, eControllerType type) {
     const auto ped = CPad::GetPad();
     if (!ped) {
         return;

@@ -204,7 +204,7 @@ public:
     void SetControllerKeyAssociatedWithAction(eControllerAction action, KeyCode button, eControllerType type);
     void ClearVehicleMappings(eControllerAction nop, KeyCode button, eControllerType type);
     void Clear1st3rdPersonMappings(eControllerAction action, KeyCode button, eControllerType type);
-    void StoreJoyButtonStates();
+    void UpdateJoyButtonState(int32 PadID);
     const GxtChar* GetActionKeyName(eControllerAction action);
     const GxtChar* GetControllerSettingText(eControllerAction action, eContSetOrder order);
     void ClearSniperZoomMappings(eControllerAction nop, KeyCode button, eControllerType type);
@@ -234,7 +234,7 @@ public:
     void UpdateJoy_ButtonDown(KeyCode button, eControllerType type);
     void AffectControllerStateOn_ButtonDown_DebugStuff(int32, eControllerType);
     void UpdateJoyInConfigMenus_ButtonUp(KeyCode button, int32 padNumber);
-    void UpdateJoy_ButtonUp(KeyCode button, eControllerType type);
+    void AffectControllerStateOn_ButtonUp(KeyCode button, eControllerType type);
     void AffectControllerStateOn_ButtonUp_DebugStuff(int32, eControllerType);
     void ClearSimButtonPressCheckers();
     eJoyButtons GetJoyButtonJustUp();
@@ -257,6 +257,7 @@ public:
     const GxtChar* GetKeyNameForKeyboard(eControllerAction action, eControllerType type);
     const GxtChar* GetButtonComboText(eControllerAction event);
     const GxtChar* GetDefinedKeyByGxtName(eControllerAction action);
+    void AffectControllerStateOn_ButtonDown(KeyCode button, eControllerType type);
 
     // NOTSA
     eControllerAction GetActionIDByName(std::string_view name);
@@ -269,7 +270,6 @@ private:
     void CheckAndSetStick(eControllerAction action, eControllerType type, KeyCode button, int16& state, bool& movementBothDown, int16 value);
     bool UseDrivingControls();
     bool UseFirstPersonControls();
-    void HandleButtonDownBasedOnControlState(KeyCode button, eControllerType type);
     bool IsKeyboardKeyDownInState(CKeyboardState& state, KeyCode key);
     CControllerState& GetControllerState(CPad& pad, eControllerType type);
     int16& GetControllerStateJoyStick(CPad& pad, KeyCode button);
