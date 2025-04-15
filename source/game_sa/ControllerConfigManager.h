@@ -121,7 +121,7 @@ constexpr eContSetOrder CONTROLLER_ORDERS_VALID[] = {
     eContSetOrder::FOURTH
 }; // NOTSA
 
-enum eJoyButtons {
+enum eJoyButtons : uint32 {
     NO_JOYBUTTONS       = 0,
     JOYBUTTON_ONE       = 1,
     JOYBUTTON_TWO       = 2,
@@ -220,7 +220,7 @@ public:
     void HandleButtonRelease(KeyCode button, eControllerType type, CControllerState* state);
     void AffectControllerStateOn_ButtonDown_Driving(KeyCode button, eControllerType type, CControllerState* state);
     void ResetSettingOrder(eControllerAction action);
-    void HandleJoyButtonUpDown(int32 joyNo, bool isDown);
+    // void HandleJoyButtonUpDown(int32 joyNo, bool isDown);
     bool LoadSettings(FILESTREAM file);
     bool SaveSettings(FILESTREAM file);
     void InitDefaultControlConfigJoyPad(uint32 buttonCount);

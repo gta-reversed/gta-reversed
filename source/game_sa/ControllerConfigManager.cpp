@@ -181,9 +181,9 @@ void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction actio
 }
 
 // 0x52F510
-void CControllerConfigManager::UpdateJoyButtonState(int32 PadID) { //finish
-    for (auto&& [idx, bs] : rngv::enumerate(m_ButtonStates)) {
-        bs = (m_NewJoyState.rgbButtons[idx] & 0x80) != 0;
+void CControllerConfigManager::UpdateJoyButtonState(int32 padnumber) {
+    for (auto i = 0; i < JOYBUTTON_COUNT; i++) {
+        m_ButtonStates[i] = (m_NewJoyState.rgbButtons[i] & 0x80) ? true : false;
     }
 }
 
@@ -401,26 +401,26 @@ void CControllerConfigManager::ResetSettingOrder(eControllerAction action) {
 }
 
 // NOTSA [Code combined from 0x7448B0 and 0x744930]
-void CControllerConfigManager::HandleJoyButtonUpDown(int32 joyNo, bool isDown) {
-    UpdateJoyButtonState(joyNo);
-    const auto forceConfigMenuMode = !isDown && notsa::contains({ MODE_FLYBY, MODE_FIXED }, TheCamera.GetActiveCamera().m_nMode); // Probably leftover debug stuff?
-    for (auto i = isDown ? 1u : 2u; i < std::size(m_ButtonStates); i++) { // TODO: Why is this starting from 1/2?
-        const auto padBtn = ((m_ButtonStates[i - 1] == isDown) ? i : 0); // This doesn't make sense
-        if (forceConfigMenuMode || FrontEndMenuManager.m_bMenuActive || joyNo != 0) {
-            if (isDown) {
-                UpdateJoyInConfigMenus_ButtonDown(padBtn, joyNo);
-            } else {
-                UpdateJoyInConfigMenus_ButtonUp(padBtn, joyNo);
-            }
-        } else {
-            if (isDown) {
-                UpdateJoy_ButtonDown(padBtn, eControllerType::JOY_STICK);
-            } else {
-                AffectControllerStateOn_ButtonUp(padBtn, eControllerType::JOY_STICK);
-            }
-        }
-    }
-}
+// void CControllerConfigManager::HandleJoyButtonUpDown(int32 joyNo, bool isDown) {
+//     UpdateJoyButtonState(joyNo);
+//     const auto forceConfigMenuMode = !isDown && notsa::contains({ MODE_FLYBY, MODE_FIXED }, TheCamera.GetActiveCamera().m_nMode); // Probably leftover debug stuff?
+//     for (auto i = isDown ? 1u : 2u; i < std::size(m_ButtonStates); i++) { // TODO: Why is this starting from 1/2?
+//         const auto padBtn = ((m_ButtonStates[i - 1] == isDown) ? i : 0); // This doesn't make sense
+//         if (forceConfigMenuMode || FrontEndMenuManager.m_bMenuActive || joyNo != 0) {
+//             if (isDown) {
+//                 UpdateJoyInConfigMenus_ButtonDown(padBtn, joyNo);
+//             } else {
+//                 UpdateJoyInConfigMenus_ButtonUp(padBtn, joyNo);
+//             }
+//         } else {
+//             if (isDown) {
+//                 UpdateJoy_ButtonDown(padBtn, eControllerType::JOY_STICK);
+//             } else {
+//                 AffectControllerStateOn_ButtonUp(padBtn, eControllerType::JOY_STICK);
+//             }
+//         }
+//     }
+// }
 
 // 0x530530
 bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
@@ -622,17 +622,14 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
 // 0x530B00
 void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount) {
     m_WasJoyJustInitialised = true;
-    buttonCount             = std::min(buttonCount, 16u);
-
-    if (buttonCount >= eJoyButtons::NO_JOYBUTTONS) {
-        return;
-    }
 
     // Define all possible button mappings in order from highest to lowest button number
     using ButtonMapping = std::pair<eJoyButtons, eControllerAction>;
 
+    constexpr int mappingCount = 29;
+
     // Arrays for specific and standard controller configurations
-    constexpr ButtonMapping specificMappings[] = {
+    constexpr ButtonMapping specificMappings[mappingCount] = {
         { JOYBUTTON_SIXTEEN,   eControllerAction::CONVERSATION_NO                   },
         { JOYBUTTON_FIFTHTEEN, eControllerAction::GROUP_CONTROL_BWD                 },
         { JOYBUTTON_FIFTHTEEN, eControllerAction::VEHICLE_RADIO_STATION_DOWN        },
@@ -664,7 +661,7 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
         { JOYBUTTON_ONE,       eControllerAction::VEHICLE_ENTER_EXIT                }
     };
 
-    constexpr ButtonMapping standardMappings[] = {
+    constexpr ButtonMapping standardMappings[mappingCount] = {
         { JOYBUTTON_SIXTEEN,   eControllerAction::CONVERSATION_NO                   },
         { JOYBUTTON_FIFTHTEEN, eControllerAction::GROUP_CONTROL_BWD                 },
         { JOYBUTTON_FIFTHTEEN, eControllerAction::VEHICLE_RADIO_STATION_DOWN        },
@@ -697,18 +694,11 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
     };
 
     // Choose which mapping array to use
-    const auto  isSpecific   = AllValidWinJoys.JoyStickNum[0].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[0].wProductID == 0x1190;
-    const auto* mappings     = isSpecific ? specificMappings : standardMappings;
-    const auto  mappingCount = isSpecific ? std::size(specificMappings) : std::size(standardMappings);
+    const auto& mappings = (AllValidWinJoys.JoyStickNum[0].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[0].wProductID == 0x1190) ? specificMappings : standardMappings;
 
-    // Apply mappings for available buttons
-    for (auto i = 0u; i < mappingCount; i++) {
+    for (size_t i = 0; i < std::size(mappings); ++i) {
         if (mappings[i].first <= (eJoyButtons)buttonCount) {
-            SetControllerKeyAssociatedWithAction(
-                mappings[i].second,
-                (RsKeyCodes)mappings[i].first,
-                eControllerType::JOY_STICK
-            );
+            SetControllerKeyAssociatedWithAction(mappings[i].second, (RsKeyCodes)mappings[i].first, eControllerType::JOY_STICK);
         }
     }
 }
@@ -747,7 +737,7 @@ void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControl
     /*  This assert maybe is in the original game, but probably is missing by release build.
         Prevents 'wrong' vehicle keys init. In cases where the mouse starts incorrectly.  
     */
-    assert(m_MouseFoundInitSet == bMouseControls);
+    assert(m_MouseFoundInitSet == bMouseControls || !bMouseControls );
 }
 
 // 0x52D260
@@ -824,7 +814,13 @@ void CControllerConfigManager::ReinitControls() {
 #endif
     ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, bool(FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS));
     if (AllValidWinJoys.JoyStickNum[PAD1].bJoyAttachedToPort) {
-        ControlsManager.InitDefaultControlConfigJoyPad(44u);
+
+
+        DIDEVCAPS devCaps;
+        devCaps.dwSize = sizeof(DIDEVCAPS);
+        if (!FAILED(PSGLOBAL(diDevice1)->GetCapabilities(&devCaps))) {
+            ControlsManager.InitDefaultControlConfigJoyPad(devCaps.dwButtons);
+        }
     }
 }
 
@@ -1415,6 +1411,33 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown(KeyCode button
         }
     }
 }
+
+// void __fastcall CControllerConfigManager::UpdateJoyButtonState(CControllerConfigManager *this, int PadID)
+// {
+//   bool *v2; // x9
+
+//   v2 = &this->m_bJoyJustInitialised + 17 * PadID;
+//   v2[14588] = 0;
+//   *(v2 + 14580) = 0LL;
+//   *(v2 + 14572) = 0LL;
+//   v2[14572] = this->m_NewJoyState & 1;
+//   v2[14573] = (this->m_NewJoyState & 2) != 0;
+//   v2[14574] = (this->m_NewJoyState & 4) != 0;
+//   v2[14575] = (this->m_NewJoyState & 8) != 0;
+//   v2[14576] = (this->m_NewJoyState & 0x10) != 0;
+//   v2[14577] = (this->m_NewJoyState & 0x20) != 0;
+//   v2[14578] = (this->m_NewJoyState & 0x40) != 0;
+//   v2[14579] = (this->m_NewJoyState & 0x80) != 0;
+//   v2[14580] = BYTE1(this->m_NewJoyState) & 1;
+//   v2[14581] = (this->m_NewJoyState & 0x200) != 0;
+//   v2[14582] = (this->m_NewJoyState & 0x400) != 0;
+//   v2[14583] = (this->m_NewJoyState & 0x800) != 0;
+//   v2[14584] = (this->m_NewJoyState & 0x1000) != 0;
+//   v2[14585] = (this->m_NewJoyState & 0x2000) != 0;
+//   v2[14586] = (this->m_NewJoyState & 0x4000) != 0;
+//   v2[14587] = (this->m_NewJoyState & 0x8000) != 0;
+//   v2[14588] = HIWORD(this->m_NewJoyState) & 1;
+// }
 
 // inline
 bool CControllerConfigManager::IsKeyboardKeyDownInState(CKeyboardState& state, KeyCode key) {
