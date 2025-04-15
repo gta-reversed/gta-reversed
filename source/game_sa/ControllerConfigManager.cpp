@@ -1071,11 +1071,13 @@ const GxtChar* CControllerConfigManager::GetControllerSettingTextMouse(eControll
 
 // 0x52F450
 const GxtChar* CControllerConfigManager::GetControllerSettingTextJoystick(eControllerAction action) {
-    if (const auto keyCode = !GetIsKeyBlank(GetControllerKeyAssociatedWithAction(action, eControllerType::JOY_STICK), eControllerType::JOY_STICK)) {
-        CMessages::InsertNumberInString(TheText.Get("FEC_JBO"), keyCode, -1, -1, -1, -1, -1, NewStringWithNumber); // JOY~1~
-        return NewStringWithNumber;
+    const auto keyCode = GetControllerKeyAssociatedWithAction(action, eControllerType::JOY_STICK);
+    if (GetIsKeyBlank(keyCode, eControllerType::JOY_STICK)) {
+        return nullptr; // Please not add 'NOTSA_UNREACHABLE' !!!
     }
-    return nullptr;
+    
+    CMessages::InsertNumberInString(TheText.Get("FEC_JBO"), keyCode, -1, -1, -1, -1, -1, NewStringWithNumber); // JOY~1~
+    return NewStringWithNumber;
 }
 
 // unused
