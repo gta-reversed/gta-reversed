@@ -1342,24 +1342,10 @@ bool CPad::sub_540A10() {
 }
 
 // 0x540950
-bool CPad::GetAnaloguePadLeft() {
-    static int16 oldfStickX = 0; // 0xB736F0
-    auto leftStickX = GetPad()->GetLeftStickX();
-    
-    if (leftStickX < -15 && oldfStickX >= -5) {
-        oldfStickX = leftStickX;
-        return true;
-    } else {
-        oldfStickX = leftStickX;
-        return false;
-    }
-}
-
-// 0x5409B0
 bool CPad::GetAnaloguePadUp() {
-    static int16 oldfStickY = 0; // 0xB736F8
+    static int16 oldfStickY = 0; // 0xB736F0
     auto leftStickY = GetPad()->GetLeftStickY();
-    
+
     if (leftStickY < -15 && oldfStickY >= -5) {
         oldfStickY = leftStickY;
         return true;
@@ -1369,11 +1355,25 @@ bool CPad::GetAnaloguePadUp() {
     }
 }
 
+// 0x5409B0
+bool CPad::GetAnaloguePadLeft() {
+    static int16 oldfStickX = 0; // 0xB736F8
+    auto leftStickX = GetPad()->GetLeftStickX();
+
+    if (leftStickX < -15 && oldfStickX >= -5) {
+        oldfStickX = leftStickX;
+        return true;
+    } else {
+        oldfStickX = leftStickX;
+        return false;
+    }
+}
+
 // 0x5409E0
 bool CPad::GetAnaloguePadRight() {
     static int16 oldfStickX = 0; // 0xB736FC
     auto leftStickX = GetPad()->GetLeftStickX();
-    
+
     if (leftStickX > 15 && oldfStickX <= 5) {
         oldfStickX = leftStickX;
         return true;
@@ -1387,7 +1387,7 @@ bool CPad::GetAnaloguePadRight() {
 bool CPad::GetAnaloguePadDown() {
     static int16 oldfStickY = 0; // 0xB736F4
     auto leftStickY = GetPad()->GetLeftStickY();
-    
+
     if (leftStickY > 15 && oldfStickY <= 5) {
         oldfStickY = leftStickY;
         return true;
