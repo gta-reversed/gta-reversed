@@ -107,20 +107,12 @@ enum eContSetOrder {
     FOURTH       = 4,
 };
 
-
-// Enum to specify what type of mouse check to perform
-enum eMouseCheckType {
-    IS_DOWN, // Button is currently down
-    IS_UP,   // Button is currently up
-    JUST_UP  // Button was just released this frame
-};
-
 constexpr std::array<eContSetOrder, 5> CONTROLLER_ORDERS_SET = {
-    eContSetOrder::FIRST,
-    eContSetOrder::SECOND,
-    eContSetOrder::THIRD,
-    eContSetOrder::FOURTH,
-    (eContSetOrder)5, // Extra value for JOY controller
+    eContSetOrder(NO_ORDER_SET + 1),
+    eContSetOrder(FIRST + 1),
+    eContSetOrder(SECOND + 1),
+    eContSetOrder(THIRD + 1),
+    eContSetOrder(FOURTH + 1)
 }; // NOTSA
 
 enum eJoyButtons : uint32 {
@@ -141,9 +133,10 @@ enum eJoyButtons : uint32 {
     JOYBUTTON_FOURTEEN  = 14,
     JOYBUTTON_FIFTHTEEN = 15,
     JOYBUTTON_SIXTEEN   = 16,
-
-    JOYBUTTON_COUNT
 };
+
+constexpr int JOY_BUTTONS = int(JOYBUTTON_SIXTEEN);
+constexpr int JOYBUTTON_COUNT = int(JOY_BUTTONS + 1 ); // Please don't add more values to this enum, it is used in the array size of m_ButtonStates
 
 using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
 
@@ -274,10 +267,6 @@ private:
     bool UseFirstPersonControls();
     bool IsKeyboardKeyDownInState(CKeyboardState& state, KeyCode key);
     CControllerState& GetControllerState(CPad& pad, eControllerType type);
-    int16& GetControllerStateJoyStick(CPad& pad, KeyCode button);
-    template<eMouseCheckType CheckType>
-    bool CheckMouseButton(KeyCode key);
-
 private:
     CControllerConfigManager* Constructor() {
         this->CControllerConfigManager::CControllerConfigManager();

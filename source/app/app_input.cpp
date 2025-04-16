@@ -178,7 +178,7 @@ static RsEventStatus HandlePadButtonDown(RsPadButtonStatus* padButtonStatus) {
 
     CPad* pad = CPad::GetPad(padNumber);
 
-    if (CPad::padNumber != 0) { // NOTSA: Use CPad::padNumber instead of CPad::m_bMapPadOneToPadTwo
+    if (CPad::padNumber != 0) {
         padNumber = 1;
     }
 
@@ -188,16 +188,16 @@ static RsEventStatus HandlePadButtonDown(RsPadButtonStatus* padButtonStatus) {
 
     ControlsManager.UpdateJoyButtonState(padNumber);
 
-    for (int32 i = 0; i < 16; i++) // NOTSA: Use 16 instead of _TODOCONST(16)
+    for (int32 i = 1; i < JOY_BUTTONS; i++)
     {
-        RsPadButtons btn = (RsPadButtons)0;
-        if (ControlsManager.m_ButtonStates[i] == true) {
-            btn = (RsPadButtons)(i + 1);
+        RsPadButtons btn = RsPadButtons(0);
+        if (ControlsManager.m_ButtonStates[i - 1] == true) {
+            btn = RsPadButtons(i);
 
             if (FrontEndMenuManager.m_bMenuActive || bPadTwo) {
                 ControlsManager.UpdateJoyInConfigMenus_ButtonDown(btn, padNumber);
             } else {
-                ControlsManager.AffectControllerStateOn_ButtonDown((KeyCode)btn, eControllerType::JOY_STICK); // NOTSA: Use enum
+                ControlsManager.AffectControllerStateOn_ButtonDown((KeyCode)btn, eControllerType::JOY_STICK);
             }
         }
     }
@@ -211,7 +211,7 @@ static RsEventStatus HandlePadButtonUp(RsPadButtonStatus* padButtonStatus) {
 
     CPad* pad = CPad::GetPad(padNumber);
 
-    if (CPad::padNumber != 0) { // NOTSA: Use CPad::padNumber instead of CPad::m_bMapPadOneToPadTwo
+    if (CPad::padNumber != 0) {
         padNumber = 1;
     }
 
@@ -227,16 +227,15 @@ static RsEventStatus HandlePadButtonUp(RsPadButtonStatus* padButtonStatus) {
 
     ControlsManager.UpdateJoyButtonState(padNumber);
 
-    for (int32 i = 1; i < 16; i++) // NOTSA: Use 16 instead of _TODOCONST(16)
-    {
-        RsPadButtons btn = (RsPadButtons)0;
-        if (ControlsManager.m_ButtonStates[i] == false) {
-            btn = (RsPadButtons)(i + 1); // bug ?, cycle begins from 1(not zero), 1+1==2==rsPADBUTTON2, so we skip rsPADBUTTON1, right ?
+    for (int32 i = 2; i < JOY_BUTTONS; i++) {
+        RsPadButtons btn = RsPadButtons(0);
+        if (ControlsManager.m_ButtonStates[i - 1] == false) {
+            btn = RsPadButtons(i);
 
             if (FrontEndMenuManager.m_bMenuActive || bPadTwo || bCam) {
                 ControlsManager.UpdateJoyInConfigMenus_ButtonUp(btn, padNumber);
             } else {
-                ControlsManager.AffectControllerStateOn_ButtonUp((KeyCode)btn, eControllerType::JOY_STICK); // NOTSA: Use enum
+                ControlsManager.AffectControllerStateOn_ButtonUp((KeyCode)btn, eControllerType::JOY_STICK);
             }
         }
     }

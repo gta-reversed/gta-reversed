@@ -1029,9 +1029,10 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
         if (comboText) {
             CFont::SetColor({200, 50, 50, 255});
             CFont::PrintString(posX, StretchY(float(drawTitle + 10)), comboText);
-            }
+        }
     }
     */
+    
 }
 
 // 0x57E6E0
