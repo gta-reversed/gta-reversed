@@ -114,6 +114,7 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(GroupControlForwardJustDown, 0x541230);
     RH_ScopedInstall(GroupControlBackJustDown, 0x541260);
     RH_ScopedInstall(LookAroundLeftRight, 0x540BD0);
+    RH_ScopedInstall(LookAroundUpDown, 0x540CC0);
     RH_ScopedInstall(GetAnaloguePadUp, 0x540950);
     RH_ScopedInstall(GetAnaloguePadLeft, 0x5409B0);
     RH_ScopedInstall(GetAnaloguePadRight, 0x5409E0);
@@ -122,7 +123,7 @@ void CPad::InjectHooks() {
     RH_ScopedInstall(GetMouseState, 0x746ED0);
 #endif
 }
-    
+
 // 0x541D80
 CPad::CPad() {
     Clear(true, true);
