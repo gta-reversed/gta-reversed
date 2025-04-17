@@ -309,12 +309,11 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOnl
 // 0x52F550
 bool CControllerConfigManager::GetIsActionAButtonCombo(eControllerAction Action)
 {  
-    /* From others GTA games, not used in SA, handled in other way maybe?
-	switch (Action)
-	{
+    /* NOT USED IN SA, but explains some things
+	switch (Action) {
 	case VEHICLE_LOOKBEHIND:
-	case PED_CYCLE_TARGET_LEFT:
-	case PED_CYCLE_TARGET_RIGHT:
+	// case PED_CYCLE_TARGET_LEFT:
+	// case PED_CYCLE_TARGET_RIGHT:
 		return true;
 	}
     */

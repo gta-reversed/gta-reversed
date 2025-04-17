@@ -562,7 +562,7 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
         // Joystick/controller input
         controllerType = eControllerType::JOY_STICK;
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
-        field_1AE8 = (GetIsActionAButtonCombo(actionId)) ? 1 : 0;
+        field_1AE8 = (ControlsManager.GetIsActionAButtonCombo(actionId)) ? 1 : 0;
         break;
     }
 

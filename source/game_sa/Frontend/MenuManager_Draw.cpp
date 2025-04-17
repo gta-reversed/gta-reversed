@@ -1017,20 +1017,18 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
                 }
             }
 
+            if (field_1AE8) {
+                auto comboText = ControlsManager.GetButtonComboText((eControllerAction)m_ListSelection);
+                if (comboText) {
+                    CFont::SetColor({200, 50, 50, 255});
+                    CFont::PrintString(posX, StretchY(float(posY + 10)), comboText);
+                }
+            }
+
             startingYPos += verticalSpacing;
         }
     }
-    /*
-    // Handle combo text display - Dummy function deprecated
-    if (DEPRECATEDCOMBO) {
-        auto comboText = CControllerConfigManager::GetButtonComboText(m_ListSelection);
-        if (comboText) {
-            CFont::SetColor({200, 50, 50, 255});
-            CFont::PrintString(posX, StretchY(float(drawTitle + 10)), comboText);
-        }
-    }
-    */
-    
+
 }
 
 // 0x57E6E0
