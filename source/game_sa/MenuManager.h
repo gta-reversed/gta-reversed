@@ -172,7 +172,7 @@ public:
     eMenuScreen m_nPrevScreen; // Used only in SwitchToNewScreen
     uint8 m_SelectedSlot; // Orginally that hasnt 'm_' prefix
     uint8 m_nMissionPackGameId;
-    MPack m_MissionPacks[25];
+    MPack m_MissionPacks[MPACK_COUNT];
     bool  m_bDoVideoModeUpdate;
     RsKeyCodes m_nPressedMouseButton; // used in redefine controls
     int32 m_nJustDownJoyButton; // used in redefine controls; set via CControllerConfigManager::GetJoyButtonJustDown

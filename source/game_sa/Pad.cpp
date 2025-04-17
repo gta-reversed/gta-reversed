@@ -1209,7 +1209,7 @@ int16 CPad::AimWeaponLeftRight(CPed* ped) const {
 
     if (!CCamera::m_bUseMouse3rdPerson && ped) {
         if (ped->m_pAttachedTo || ped->IsInVehicleAsPassenger()) {
-            if (fabs(GetRightStickX()) < fabs(GetLeftStickX())) {
+            if (std::fabs(GetRightStickX()) < std::fabs(GetLeftStickX())) {
                 return GetLeftStickX();
             }
         }
@@ -1224,7 +1224,7 @@ int16 CPad::AimWeaponUpDown(CPed* ped) const {
 
     if (!CCamera::m_bUseMouse3rdPerson && ped) {
         if (ped->m_pAttachedTo || ped->IsInVehicleAsPassenger()) {
-            if (fabs(GetRightStickY()) < fabs(GetLeftStickY())) {
+            if (std::fabs(GetRightStickY()) < std::fabs(GetLeftStickY())) {
                 return bInvertLook4Pad ? -GetLeftStickY() : GetLeftStickY();
             }
         }
