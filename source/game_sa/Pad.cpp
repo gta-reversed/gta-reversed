@@ -331,7 +331,6 @@ void CPad::UpdateMouse() {
 #endif
 }
 
-
 // 0x746A10
 void CPad::ProcessPad(ePadID padID) {
     #ifndef NOTSA_USE_SDL3
@@ -432,7 +431,6 @@ void CPad::ProcessPad(ePadID padID) {
     }
 #endif
 }
-
 
 // 0x53FB40
 void CPad::ProcessPCSpecificStuff() {

@@ -645,7 +645,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         case eMenuAction::MENU_ACTION_LANGUAGE:
             switch (m_nPrefsLanguage) {
-            case eLanguage::ENGLISH:
+            case eLanguage::AMERICAN:
                 pTextToShow_RightColumn = TheText.Get("FEL_ENG");
                 break;
             case eLanguage::FRENCH:

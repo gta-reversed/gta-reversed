@@ -72,7 +72,7 @@ void CControllerConfigManager::InjectHooks() {
 // 0x531EE0
 CControllerConfigManager::CControllerConfigManager() {
     /* Member variable init done in header */
-    
+
     MakeControllerActionsBlank();
     InitDefaultControlConfiguration();
     InitialiseControllerActionNameArray();
@@ -734,9 +734,8 @@ void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControl
         SetMouseButtonAssociatedWithAction(eControllerAction::PED_SNIPER_ZOOM_OUT,        rsMOUSE_WHEEL_DOWN_BUTTON);
     }
 
-    /*  This assert maybe is in the original game, but probably is missing by release build.
-        Prevents 'wrong' vehicle keys init. In cases where the mouse starts incorrectly.  
-    */
+    // This assert maybe is in the original game, but probably is missing by release build.
+    // Prevents 'wrong' vehicle keys init. In cases where the mouse starts incorrectly.
     assert(m_MouseFoundInitSet == bMouseControls || !bMouseControls );
 }
 
@@ -1463,7 +1462,7 @@ bool CControllerConfigManager::UseFirstPersonControls() {
     return notsa::contains({ MODE_1STPERSON, MODE_SNIPER, MODE_ROCKETLAUNCHER, MODE_ROCKETLAUNCHER_HS, MODE_M16_1STPERSON, MODE_CAMERA }, TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode);
 }
 
-// ?????????
+// inline
 void CControllerConfigManager::AffectControllerStateOn_ButtonDown(KeyCode button, eControllerType type) {
     const auto ped = CPad::GetPad();
     if (!ped) {

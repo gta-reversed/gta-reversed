@@ -245,12 +245,11 @@ static RsEventStatus HandlePadButtonUp(RsPadButtonStatus* padButtonStatus) {
 // 0x7449F0
 static RsEventStatus PadHandler(RsEvent event, void* param) {
     switch (event) {
-    case rsPADBUTTONDOWN: {
+    case rsPADBUTTONDOWN:
         return HandlePadButtonDown((RsPadButtonStatus*)param);
-    } case rsPADBUTTONUP: {
+    case rsPADBUTTONUP:
         return HandlePadButtonUp((RsPadButtonStatus*)param);
-    } default: {
+    default:
         return rsEVENTNOTPROCESSED;
-    }
     }
 }

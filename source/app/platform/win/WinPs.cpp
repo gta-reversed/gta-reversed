@@ -84,14 +84,14 @@ static void InitialiseLanguage() {
 		case LANG_SPANISH: return eLanguage::SPANISH;
 		case LANG_FRENCH:  return eLanguage::FRENCH;
 		case LANG_ITALIAN: return eLanguage::ITALIAN;
-		default:           return eLanguage::ENGLISH;
+		default:           return eLanguage::AMERICAN;
 	    }
     }();
 
     FrontEndMenuManager.m_nPrefsLanguage = [&] {
         switch (usrDefaultLCID) {
         case LANG_SPANISH: return eLanguage::SPANISH;
-        default:           return eLanguage::ENGLISH;
+        default:           return eLanguage::AMERICAN;
         }
     }();
 

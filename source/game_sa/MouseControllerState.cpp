@@ -13,6 +13,7 @@ void CMouseControllerState::InjectHooks() {
 
 // 0x53F220
 CMouseControllerState::CMouseControllerState() {
+    m_fWheelMoved = 0.f;
     m_AmountMoved.Reset();
     Clear();
 }

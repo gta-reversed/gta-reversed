@@ -305,10 +305,10 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
     case MENU_ACTION_LANGUAGE: {
         // todo: MORE_LANGUAGES; does this ever execute?
         auto prevLanguage = m_nPrefsLanguage;
-        if (pressedLR <= 0 && prevLanguage == eLanguage::ENGLISH) {
+        if (pressedLR <= 0 && prevLanguage == eLanguage::AMERICAN) {
             m_nPrefsLanguage = eLanguage::SPANISH;
         } else if (prevLanguage == eLanguage::SPANISH) {
-            m_nPrefsLanguage = eLanguage::ENGLISH;
+            m_nPrefsLanguage = eLanguage::AMERICAN;
         }
 
         m_nPreviousLanguage = (eLanguage)-99; // what the fuck

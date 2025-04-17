@@ -18,8 +18,10 @@ enum eMouseButtons {
     MOUSE_BUTTON_WHEEL_DOWN,
     MOUSE_BUTTON_WHEEL_XBUTTON1,
     MOUSE_BUTTON_WHEEL_XBUTTON2,
-    MOUSE_BUTTON_NUM
 };
+
+[[nodiscard]]constexpr int MOUSE_BUTTONS = int(MOUSE_BUTTON_WHEEL_XBUTTON2 + 1);
+[[nodiscard]]constexpr int MOUSE_BUTTON_COUNT = int(MOUSE_BUTTONS + 1); // Please don't add more values to this enum, it is used in the array size of m_ButtonStates
 
 enum eActionType {
     ACTION_FIRST_PERSON,
@@ -183,12 +185,12 @@ public:
     DIJOYSTATE2       m_NewJoyState{};
     ControlName       m_ControllerActionName[NUM_OF_MAX_CONTROLLER_ACTIONS]{};
     bool              m_ButtonStates[JOYBUTTON_COUNT]{}; // True if down, false if up or missing
-    CControllerAction m_Actions[NUM_OF_MAX_CONTROLLER_ACTIONS]{};
-    bool              m_bStickL_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM]{};
-    bool              m_bStickL_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM]{};
-    bool              m_bStickR_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM]{};
-    bool              m_bStickR_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM]{};
-    bool              m_MouseFoundInitSet{};
+    CControllerAction m_Actions[NUM_OF_MAX_CONTROLLER_ACTIONS];
+    bool              m_bStickL_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool              m_bStickL_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool              m_bStickR_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool              m_bStickR_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool              m_MouseFoundInitSet;
 public:
     static void InjectHooks();
 
