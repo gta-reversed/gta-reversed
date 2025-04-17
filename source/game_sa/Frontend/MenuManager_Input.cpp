@@ -158,12 +158,12 @@ bool CMenuManager::CheckRedefineControlInput() {
             m_nJustDownJoyButton = ControlsManager.GetJoyButtonJustDown();
 
             auto TypeOfControl = eControllerType::KEYBOARD;
-			if (m_nJustDownJoyButton)
-				TypeOfControl = eControllerType::JOY_STICK;
-			if (m_nPressedMouseButton)
-				TypeOfControl = eControllerType::MOUSE;
-			if (*m_pPressedKey != rsNULL)
-				TypeOfControl = eControllerType::KEYBOARD;
+            if (m_nJustDownJoyButton)
+                TypeOfControl = eControllerType::JOY_STICK;
+            if (m_nPressedMouseButton)
+                TypeOfControl = eControllerType::MOUSE;
+            if (*m_pPressedKey != rsNULL)
+                TypeOfControl = eControllerType::KEYBOARD;
 
             if (m_CanBeDefined) {
                 if (m_DeleteAllBoundControls) {
@@ -520,16 +520,17 @@ bool CMenuManager::CheckMissionPackValidMenu() {
 // 0x57DB20
 void CMenuManager::CheckCodesForControls(eControllerType type) {
     auto actionId          = (eControllerAction)m_OptionToChange;
-    bool escapePressed = false;
+    bool escapePressed     = false;
     bool invalidKeyPressed = false;
     // field_1AE8 = 0;
     eControllerType controllerType = eControllerType::KEYBOARD;
 
     // Handle different input types
-    if (type == eControllerType::KEYBOARD) {
+    switch (type) {
+    case eControllerType::KEYBOARD: {
         // Handle keyboard input
         RsKeyCodes keyCode = *m_pPressedKey;
-        
+
         if (keyCode == rsESC) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
             escapePressed = true;
@@ -542,15 +543,20 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
                 controllerType = eControllerType::OPTIONAL_EXTRA_KEY;
             }
         }
-    } else if (type == eControllerType::MOUSE) {
+        break;
+    }
+    case eControllerType::MOUSE: {
         // Mouse input
         controllerType = eControllerType::MOUSE;
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
-    } else if (type == eControllerType::JOY_STICK) {
+        break;
+    }
+    case eControllerType::JOY_STICK:
         // Joystick/controller input
         controllerType = eControllerType::JOY_STICK;
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
         // field_1AE8 = (DEPRECATEDCOMBOFUNC(actionId)) ? 1 : 0;
+        break;
     }
 
     // Handle escape key or invalid key press
