@@ -331,7 +331,6 @@ void CPad::UpdateMouse() {
 #endif
 }
 
-
 // 0x746A10
 void CPad::ProcessPad(ePadID padID) {
     #ifndef NOTSA_USE_SDL3
@@ -432,7 +431,6 @@ void CPad::ProcessPad(ePadID padID) {
     }
 #endif
 }
-
 
 // 0x53FB40
 void CPad::ProcessPCSpecificStuff() {
@@ -1211,7 +1209,7 @@ int16 CPad::AimWeaponLeftRight(CPed* ped) const {
 
     if (!CCamera::m_bUseMouse3rdPerson && ped) {
         if (ped->m_pAttachedTo || ped->IsInVehicleAsPassenger()) {
-            if (std::fabs(GetRightStickX()) < std::fabs(GetLeftStickX())) {
+            if (fabs(GetRightStickX()) < fabs(GetLeftStickX())) {
                 return GetLeftStickX();
             }
         }
@@ -1226,7 +1224,7 @@ int16 CPad::AimWeaponUpDown(CPed* ped) const {
 
     if (!CCamera::m_bUseMouse3rdPerson && ped) {
         if (ped->m_pAttachedTo || ped->IsInVehicleAsPassenger()) {
-            if (std::fabs(GetRightStickY()) < std::fabs(GetLeftStickY())) {
+            if (fabs(GetRightStickY()) < fabs(GetLeftStickY())) {
                 return bInvertLook4Pad ? -GetLeftStickY() : GetLeftStickY();
             }
         }

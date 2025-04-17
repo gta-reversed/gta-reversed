@@ -132,9 +132,9 @@ CMenuManager::CMenuManager() {
     m_bAllStreamingStuffLoaded = false;
 
     m_bLanguageChanged  = false;
-    m_nPrefsLanguage    = eLanguage::ENGLISH;
+    m_nPrefsLanguage    = eLanguage::AMERICAN;
     m_nTextLanguage     = 0;
-    m_nPreviousLanguage = eLanguage::ENGLISH;
+    m_nPreviousLanguage = eLanguage::AMERICAN;
     m_SystemLanguage    = 0;
 
     m_DisplayControllerOnFoot = false;
@@ -339,7 +339,7 @@ void CMenuManager::InitialiseChangedLanguageSettings(bool reinitControls) {
     auto lang88 = static_cast<eLanguage>(m_SystemLanguage);
     if (lang88 != eLanguage::FRENCH && lang88 != eLanguage::GERMAN) {
         switch (m_nPrefsLanguage) {
-        case eLanguage::ENGLISH:
+        case eLanguage::AMERICAN:
         case eLanguage::GERMAN:
         case eLanguage::ITALIAN:
         case eLanguage::SPANISH:
@@ -613,6 +613,7 @@ void CMenuManager::JumpToGenericMessageScreen(eMenuScreen screen, const char* ti
     SwitchToNewScreen(screen);
 
     auto& mscreen = aScreens[m_nCurrentScreen];
+
     switch (screen) {
     case SCREEN_GAME_SAVED:
         mscreen.m_aItems[0].m_nTargetMenu = SCREEN_START_GAME;
@@ -623,7 +624,6 @@ void CMenuManager::JumpToGenericMessageScreen(eMenuScreen screen, const char* ti
     default:
         break;
     }
-
     std::snprintf(mscreen.m_szTitleName, sizeof(mscreen.m_szTitleName), "%s", titleKey);
     std::snprintf(mscreen.m_aItems[0].m_szName, sizeof(mscreen.m_aItems[0].m_szName), "%s", textKey);
 }
@@ -659,7 +659,7 @@ void CMenuManager::LoadSettings() {
         SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
         SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
         m_nPrefsVideoMode = 0;
-        m_nPrefsLanguage = eLanguage::ENGLISH;
+        m_nPrefsLanguage = eLanguage::AMERICAN;
         m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
 
         CFileMgr::CloseFile(file);

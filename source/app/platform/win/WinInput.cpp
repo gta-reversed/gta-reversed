@@ -324,7 +324,6 @@ void diPadInit() {
             spdlog::info("Initialized default controls for pad 0 with {} buttons.", devCaps.dwButtons);
         }
     };
-
     FinalizePadSetup(PSGLOBAL(diDevice1), 0);
     FinalizePadSetup(PSGLOBAL(diDevice2), 1);
 }
