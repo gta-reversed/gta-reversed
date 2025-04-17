@@ -168,14 +168,14 @@ void CMenuManager::ProcessFileActions() {
 // @param pressedLR Arrow button pressed. <0 for left, >0 for right
 // @param cancelPressed Returns true to go back.
 // @param acceptPressed Is enter pressed. Used for AA mode and resolution
-// @addr 0x57CD50
+// @addr 0x576FE0
 void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool acceptPressed) {
     if (ProcessPCMenuOptions(pressedLR, acceptPressed))
         return;
 
     tMenuScreen* screen   = &aScreens[m_nCurrentScreen];
     tMenuScreenItem* item = &screen->m_aItems[m_nCurrentScreenItem];
-
+    
     switch (item->m_nActionType) {
     case MENU_ACTION_BACK:
         cancelPressed = true;
@@ -188,14 +188,15 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
     case MENU_ACTION_NEW_GAME:
         ProcessMissionPackNewGame();
         return;
-    case MENU_ACTION_MPACK:
-        // -1 for 0-based index, additional -1 for skipping the standard game opt?
-        m_nMissionPackGameId = m_MissionPacks[m_nCurrentScreenItem - 2].m_Id;
-        // std::cout << "Selected mission pack: " << m_nCurrentScreenItem << std::endl;
+    case MENU_ACTION_MPACK:{
+        const auto& MPacks = reinterpret_cast<const std::array<MPack, MPACK_COUNT>&>(m_MissionPacks).at(m_nCurrentScreenItem - 2);
+        m_nMissionPackGameId = MPacks.m_Id;
         SwitchToNewScreen(SCREEN_MISSION_PACK_LOADING_ASK);
         return;
+    } 
     case MENU_ACTION_MPACKGAME:
         CGame::bMissionPackGame = m_nMissionPackGameId;
+        
         DoSettingsBeforeStartingAGame();
         return;
     case MENU_ACTION_SAVE_SLOT:
