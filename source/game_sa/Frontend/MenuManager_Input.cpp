@@ -130,7 +130,7 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
 /*!
  * @addr 0x57E4D0
  */
-// NOTE: Android version. The PC version uses the RW classes.
+// NOTE: Mix Android version. The PC version uses the RW classes.
 bool CMenuManager::CheckRedefineControlInput() {
     if (m_EditingControlOptions) {
         if (m_bJustOpenedControlRedefWindow) {
@@ -156,16 +156,20 @@ bool CMenuManager::CheckRedefineControlInput() {
             } else if (pad->IsMouseBmx2Pressed()) {
                 m_nPressedMouseButton = rsMOUSE_X2_BUTTON;
             }
+
             m_nJustDownJoyButton = ControlsManager.GetJoyButtonJustDown();
 
             // Android
             auto TypeOfControl = eControllerType::KEYBOARD;
-            if (m_nJustDownJoyButton)
+            if (m_nJustDownJoyButton) {
                 TypeOfControl = eControllerType::JOY_STICK;
-            if (m_nPressedMouseButton)
+            } else if (m_nPressedMouseButton) {
                 TypeOfControl = eControllerType::MOUSE;
-            if (*m_pPressedKey != rsNULL)
+            } if (*m_pPressedKey != rsNULL) {
                 TypeOfControl = eControllerType::KEYBOARD;
+            } else {
+                NOTSA_UNREACHABLE();
+            }
 
             if (m_CanBeDefined) {
                 if (m_DeleteAllBoundControls) {
@@ -520,7 +524,7 @@ bool CMenuManager::CheckMissionPackValidMenu() {
 }
 
 // 0x57DB20
-// NOTE: Android version. The PC version uses the RW classes..
+// NOTE: Mix of Android version. The PC version uses the RW classes.
 void CMenuManager::CheckCodesForControls(eControllerType type) {
     auto actionId          = (eControllerAction)m_OptionToChange;
     bool escapePressed     = false;
@@ -575,8 +579,8 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
     if (!invalidKeyPressed) {
         // Process delete all bound controls
         if (m_DeleteAllNextDefine) {
-            for (int i = 0; i < 4; i++) {
-                ControlsManager.ClearSettingsAssociatedWithAction(actionId, (eControllerType)i);
+            for (const auto controlType : CONTROLLER_TYPES_ALL) {
+                ControlsManager.ClearSettingsAssociatedWithAction(actionId, controlType);
             }
             m_DeleteAllNextDefine = 0;
         }
@@ -585,17 +589,25 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
         ControlsManager.ClearSettingsAssociatedWithAction(actionId, controllerType);
 
         // Set the new control based on input type
-        if (type == eControllerType::MOUSE) {
+        switch (type) {
+        case eControllerType::MOUSE: {
             ControlsManager.DeleteMatchingActionInitiators(actionId, m_nPressedMouseButton, eControllerType::MOUSE);
             ControlsManager.SetControllerKeyAssociatedWithAction(actionId, m_nPressedMouseButton, controllerType);
-        } else if (type == eControllerType::JOY_STICK) {
+        }
+        case eControllerType::JOY_STICK: {
             ControlsManager.DeleteMatchingActionInitiators(actionId, m_nJustDownJoyButton, eControllerType::JOY_STICK);
             ControlsManager.SetControllerKeyAssociatedWithAction(actionId, m_nJustDownJoyButton, controllerType);
-        } else {
-            // Keyboard
+        }
+        // Keyboard + Optional Extra Key
+        case eControllerType::KEYBOARD:
+        case eControllerType::OPTIONAL_EXTRA_KEY: {
             ControlsManager.DeleteMatchingActionInitiators(actionId, *m_pPressedKey, eControllerType::KEYBOARD);
             ControlsManager.DeleteMatchingActionInitiators(actionId, *m_pPressedKey, eControllerType::OPTIONAL_EXTRA_KEY);
             ControlsManager.SetControllerKeyAssociatedWithAction(actionId, *m_pPressedKey, controllerType);
+        }
+        default:
+            NOTSA_UNREACHABLE();
+            break;
         }
 
         // Reset state
