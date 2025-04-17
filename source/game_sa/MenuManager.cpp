@@ -610,18 +610,22 @@ uint32 CMenuManager::GetNumberOfMenuOptions() {
 
 // 0x576AE0
 void CMenuManager::JumpToGenericMessageScreen(eMenuScreen screen, const char* titleKey, const char* textKey) {
-    // plugin::CallMethod<0x576AE0, CMenuManager*, eMenuPage, const char*, const char*>(this, screen, titleKey, textKey);
+    SwitchToNewScreen(screen);
 
     auto& mscreen = aScreens[m_nCurrentScreen];
-
-    SwitchToNewScreen(screen);
-    if (screen == SCREEN_GAME_SAVED) {
-        mscreen.m_aItems[1].m_nTargetMenu = SCREEN_START_GAME;
-    } else if (screen == SCREEN_GAME_LOADED) {
-        mscreen.m_aItems[1].m_nTargetMenu = SCREEN_GAME_SAVE;
+    switch (screen) {
+    case SCREEN_GAME_SAVED:
+        mscreen.m_aItems[0].m_nTargetMenu = SCREEN_START_GAME;
+        break;
+    case SCREEN_GAME_LOADED:
+        mscreen.m_aItems[0].m_nTargetMenu = SCREEN_GAME_SAVE;
+        break;
+    default:
+        break;
     }
-    strncpy_s(mscreen.m_szTitleName, titleKey, sizeof(mscreen.m_szTitleName));
-    strncpy_s(mscreen.m_aItems[0].m_szName, textKey, sizeof(mscreen.m_aItems[0].m_szName));
+
+    std::snprintf(mscreen.m_szTitleName, sizeof(mscreen.m_szTitleName), "%s", titleKey);
+    std::snprintf(mscreen.m_aItems[0].m_szName, sizeof(mscreen.m_aItems[0].m_szName), "%s", textKey);
 }
 
 // 0x57C520
@@ -1162,7 +1166,7 @@ void CMenuManager::SimulateGameLoad(bool newGame, uint32 slot) {
         DoSettingsBeforeStartingAGame();
     } else {
         m_nCurrentScreen = SCREEN_LOAD_FIRST_SAVE;
-        field_1B3C = true;
+        m_CurrentlyLoading = true;
     } 
 }
 

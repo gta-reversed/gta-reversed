@@ -217,9 +217,9 @@ public:
     int16  field_1B34; // CPad::DisablePlayerControls
     int16  field_1B36;
     int32  field_1B38;
-    char   field_1B3C;
-    char   field_1B3D;
-    char   field_1B3E; // mpack related
+    bool   m_CurrentlyLoading;
+    bool   m_CurrentlyDeleting;
+    bool   m_WaitedForScreen; // mpack related
     char   field_1B3F;
     uint32 m_nUserTrackScanningTimeMs;
     char   field_1B44;
