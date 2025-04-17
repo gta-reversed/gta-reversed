@@ -130,6 +130,7 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
 /*!
  * @addr 0x57E4D0
  */
+// NOTE: Android version. The PC version uses the RW classes.
 bool CMenuManager::CheckRedefineControlInput() {
     if (m_EditingControlOptions) {
         if (m_bJustOpenedControlRedefWindow) {
@@ -157,6 +158,7 @@ bool CMenuManager::CheckRedefineControlInput() {
             }
             m_nJustDownJoyButton = ControlsManager.GetJoyButtonJustDown();
 
+            // Android
             auto TypeOfControl = eControllerType::KEYBOARD;
             if (m_nJustDownJoyButton)
                 TypeOfControl = eControllerType::JOY_STICK;
@@ -518,6 +520,7 @@ bool CMenuManager::CheckMissionPackValidMenu() {
 }
 
 // 0x57DB20
+// NOTE: Android version. The PC version uses the RW classes..
 void CMenuManager::CheckCodesForControls(eControllerType type) {
     auto actionId          = (eControllerAction)m_OptionToChange;
     bool escapePressed     = false;
