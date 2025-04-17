@@ -523,12 +523,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
         switch (itemType) {
         case eMenuEntryType::TI_MPACK: {
-            if (m_MissionPacks[i - 1].m_Name[0] == '\0') {
+            if (m_MissionPacks[i - 2].m_Name[0] == '\0') {
                 aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_SKIP;
                 pTextToShow = nullptr;
                 aScreens[m_nCurrentScreen].m_aItems[i].m_Y = aScreens[m_nCurrentScreen].m_aItems[i - 1].m_Y;
             } else {
-                AsciiToGxtChar(m_MissionPacks[i - 1].m_Name, (GxtChar*)gString);
+                AsciiToGxtChar(m_MissionPacks[i - 2].m_Name, (GxtChar*)gString);
                 pTextToShow = (GxtChar*)gString;
                 aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_MPACK;
             }
