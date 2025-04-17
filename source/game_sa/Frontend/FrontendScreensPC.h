@@ -1,6 +1,6 @@
 #pragma once
 
-tMenuScreen aScreens[] = {
+tMenuScreen aScreensX[] = {
   // 00 Stats
   {
     "FEP_STA",
@@ -15,7 +15,7 @@ tMenuScreen aScreens[] = {
       { MENU_ACTION_STAT, "FES_ACH", eMenuEntryType::TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Achievements
       { MENU_ACTION_STAT, "FES_MIS", eMenuEntryType::TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Mission
       { MENU_ACTION_STAT, "FES_MSC", eMenuEntryType::TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Misc
-      { MENU_ACTION_BACK, "FEDS_TB", TI_ENTER, SCREEN_INITIAL, 320, 380,   MENU_ALIGN_CENTER }, // Back
+      { MENU_ACTION_BACK, "FEDS_TB", eMenuEntryType::TI_ENTER, SCREEN_INITIAL, 320, 380,   MENU_ALIGN_CENTER }, // Back
     }
   },
 
