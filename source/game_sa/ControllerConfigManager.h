@@ -20,8 +20,8 @@ enum eMouseButtons {
     MOUSE_BUTTON_WHEEL_XBUTTON2,
 };
 
-[[nodiscard]]constexpr int MOUSE_BUTTONS = int(MOUSE_BUTTON_WHEEL_XBUTTON2 + 1);
-[[nodiscard]]constexpr int MOUSE_BUTTON_COUNT = int(MOUSE_BUTTONS + 1); // Please don't add more values to this enum, it is used in the array size of m_ButtonStates
+constexpr int MOUSE_BUTTONS = int(MOUSE_BUTTON_WHEEL_XBUTTON2 + 1);
+constexpr int MOUSE_BUTTON_COUNT = int(MOUSE_BUTTONS + 1); // Please don't add more values to this enum, it is used in the array size of m_ButtonStates
 
 enum eActionType {
     ACTION_FIRST_PERSON,
