@@ -366,6 +366,6 @@ private:
     static void SetBrightness(float brightness, bool arg2);
 };
 
-VALIDATE_SIZE(CMenuManager, 0x1B7C);
+VALIDATE_SIZE(CMenuManager, 0x1B78);
 
 extern CMenuManager& FrontEndMenuManager;
