@@ -176,7 +176,6 @@ public:
     bool  m_bDoVideoModeUpdate;
     RsKeyCodes m_nPressedMouseButton; // used in redefine controls
     int32 m_nJustDownJoyButton; // used in redefine controls; set via CControllerConfigManager::GetJoyButtonJustDown
-    char field_1AE8;
     bool  m_MenuIsAbleToQuit;
     bool  m_bRadioAvailable;
     uint8 m_nControllerError;

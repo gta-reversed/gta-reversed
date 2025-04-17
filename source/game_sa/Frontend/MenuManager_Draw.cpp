@@ -1017,7 +1017,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
                 }
             }
 
-            if (field_1AE8) {
+            if (m_MenuIsAbleToQuit) {
                 auto comboText = ControlsManager.GetButtonComboText((eControllerAction)m_ListSelection);
                 if (comboText) {
                     CFont::SetColor({200, 50, 50, 255});

@@ -529,7 +529,7 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
     auto actionId          = (eControllerAction)m_OptionToChange;
     bool escapePressed     = false;
     bool invalidKeyPressed = false;
-    field_1AE8 = false;
+    m_MenuIsAbleToQuit = false;
     eControllerType controllerType = eControllerType::KEYBOARD;
 
     // Handle different input types
@@ -562,12 +562,12 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
         // Joystick/controller input
         controllerType = eControllerType::JOY_STICK;
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
-        field_1AE8 = (ControlsManager.GetIsActionAButtonCombo(actionId)) ? 1 : 0;
+        m_MenuIsAbleToQuit = (ControlsManager.GetIsActionAButtonCombo(actionId)) ? 1 : 0;
         break;
     }
 
     // Handle escape key or invalid key press
-    if (escapePressed || invalidKeyPressed || (field_1AE8 && escapePressed)) {
+    if (escapePressed || invalidKeyPressed || (m_MenuIsAbleToQuit && escapePressed)) {
         m_DeleteAllNextDefine = 0;
         m_pPressedKey = nullptr;
         m_EditingControlOptions = false;
