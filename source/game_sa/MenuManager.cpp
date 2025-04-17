@@ -1166,7 +1166,7 @@ void CMenuManager::SimulateGameLoad(bool newGame, uint32 slot) {
         DoSettingsBeforeStartingAGame();
     } else {
         m_nCurrentScreen = SCREEN_LOAD_FIRST_SAVE;
-        CurrentlyLoading = true;
+        m_CurrentlyLoading = true;
     } 
 }
 

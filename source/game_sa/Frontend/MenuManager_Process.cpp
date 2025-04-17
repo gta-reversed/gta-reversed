@@ -79,7 +79,7 @@ void CMenuManager::ProcessStreaming(bool streamAll) {
 void CMenuManager::ProcessFileActions() {
     switch (m_nCurrentScreen) {
     case SCREEN_LOAD_FIRST_SAVE:
-        if (CurrentlyLoading) {
+        if (m_CurrentlyLoading) {
             if (CGenericGameStorage::CheckSlotDataValid(m_SelectedSlot)) {
                 if (!m_bMainMenuSwitch) {
                     DoSettingsBeforeStartingAGame();
@@ -95,14 +95,14 @@ void CMenuManager::ProcessFileActions() {
                 // Please check your savegame directory and try again.
                 JumpToGenericMessageScreen(SCREEN_GAME_SAVED, "FET_LG", "FES_LCE");
             }
-            CurrentlyLoading = false;
+            m_CurrentlyLoading = false;
         } else {
-            CurrentlyLoading = true;
+            m_CurrentlyLoading = true;
         }
         break;
 
     case SCREEN_DELETE_FINISHED:
-        if (CurrentlyDeleting) {
+        if (m_CurrentlyDeleting) {
             if (s_PcSaveHelper.DeleteSlot(m_SelectedSlot)) {
                 s_PcSaveHelper.PopulateSlotInfo();
                 SwitchToNewScreen(SCREEN_DELETE_SUCCESSFUL);
@@ -114,14 +114,14 @@ void CMenuManager::ProcessFileActions() {
                 // Please check your savegame directory and try again.
                 JumpToGenericMessageScreen(SCREEN_GAME_SAVED, "FES_DEL", "FES_DEE");
             }
-            CurrentlyDeleting = false;
+            m_CurrentlyDeleting = false;
         } else {
-            CurrentlyDeleting = true;
+            m_CurrentlyDeleting = true;
         }
         break;
 
     case SCREEN_SAVE_DONE_1:
-        if (CurrentlySaving) {
+        if (m_CurrentlySaving) {
             if (CGame::bMissionPackGame) {
                 CFileMgr::SetDirMyDocuments();
                 sprintf_s(gString, "MPACK//MPACK%d//SCR.SCM", CGame::bMissionPackGame);
@@ -153,9 +153,9 @@ void CMenuManager::ProcessFileActions() {
             }
             s_PcSaveHelper.PopulateSlotInfo();
 
-            CurrentlySaving = false;
+            m_CurrentlySaving = false;
         } else {
-            CurrentlySaving = true;
+            m_CurrentlySaving = true;
         }
         break;
 
