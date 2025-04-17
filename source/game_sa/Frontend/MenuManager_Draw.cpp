@@ -523,18 +523,15 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
         switch (itemType) {
         case eMenuEntryType::TI_MPACK: {
-            /*
-                if (.../) { // HELP NEED
-                    AsciiToGxtChar(.../, (GxtChar*)gString);
-                    pTextToShow                                    = (GxtChar*)gString;
-                    aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_MPACK;
-                } else {
-                */
-            aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_SKIP;
-            pTextToShow                                          = nullptr;
-            /*
-                }
-                */
+            if (m_MissionPacks[i - 1].m_Name[0] == '\0') {
+                aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_SKIP;
+                pTextToShow = nullptr;
+                aScreens[m_nCurrentScreen].m_aItems[i].m_Y = aScreens[m_nCurrentScreen].m_aItems[i - 1].m_Y;
+            } else {
+                AsciiToGxtChar(m_MissionPacks[i - 1].m_Name, (GxtChar*)gString);
+                pTextToShow = (GxtChar*)gString;
+                aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_MPACK;
+            }
             break;
         }
         case eMenuEntryType::TI_MOUSEJOYPAD:
