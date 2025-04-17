@@ -176,6 +176,7 @@ public:
     bool  m_bDoVideoModeUpdate;
     RsKeyCodes m_nPressedMouseButton; // used in redefine controls
     int32 m_nJustDownJoyButton; // used in redefine controls; set via CControllerConfigManager::GetJoyButtonJustDown
+    char field_1AE8;
     bool  m_MenuIsAbleToQuit;
     bool  m_bRadioAvailable;
     uint8 m_nControllerError;
@@ -366,6 +367,6 @@ private:
     static void SetBrightness(float brightness, bool arg2);
 };
 
-VALIDATE_SIZE(CMenuManager, 0x1B78);
+VALIDATE_SIZE(CMenuManager, 0x1B7C);
 
 extern CMenuManager& FrontEndMenuManager;

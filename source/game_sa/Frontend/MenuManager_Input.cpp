@@ -529,7 +529,7 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
     auto actionId          = (eControllerAction)m_OptionToChange;
     bool escapePressed     = false;
     bool invalidKeyPressed = false;
-    // field_1AE8 = 0;
+    field_1AE8 = false;
     eControllerType controllerType = eControllerType::KEYBOARD;
 
     // Handle different input types
@@ -562,12 +562,12 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
         // Joystick/controller input
         controllerType = eControllerType::JOY_STICK;
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
-        // field_1AE8 = (DEPRECATEDCOMBOFUNC(actionId)) ? 1 : 0;
+        field_1AE8 = (GetIsActionAButtonCombo(actionId)) ? 1 : 0;
         break;
     }
 
     // Handle escape key or invalid key press
-    if (escapePressed || invalidKeyPressed /* || (field_1AE8 && escapePressed)*/) {
+    if (escapePressed || invalidKeyPressed || (field_1AE8 && escapePressed)) {
         m_DeleteAllNextDefine = 0;
         m_pPressedKey = nullptr;
         m_EditingControlOptions = false;
@@ -593,10 +593,12 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
         case eControllerType::MOUSE: {
             ControlsManager.DeleteMatchingActionInitiators(actionId, m_nPressedMouseButton, eControllerType::MOUSE);
             ControlsManager.SetControllerKeyAssociatedWithAction(actionId, m_nPressedMouseButton, controllerType);
+            break;
         }
         case eControllerType::JOY_STICK: {
             ControlsManager.DeleteMatchingActionInitiators(actionId, m_nJustDownJoyButton, eControllerType::JOY_STICK);
             ControlsManager.SetControllerKeyAssociatedWithAction(actionId, m_nJustDownJoyButton, controllerType);
+            break;
         }
         // Keyboard + Optional Extra Key
         case eControllerType::KEYBOARD:
@@ -604,6 +606,7 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
             ControlsManager.DeleteMatchingActionInitiators(actionId, *m_pPressedKey, eControllerType::KEYBOARD);
             ControlsManager.DeleteMatchingActionInitiators(actionId, *m_pPressedKey, eControllerType::OPTIONAL_EXTRA_KEY);
             ControlsManager.SetControllerKeyAssociatedWithAction(actionId, *m_pPressedKey, controllerType);
+            break;
         }
         default:
             NOTSA_UNREACHABLE();
