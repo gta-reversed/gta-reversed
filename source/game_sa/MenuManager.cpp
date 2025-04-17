@@ -467,7 +467,7 @@ void CMenuManager::SwitchToNewScreen(eMenuScreen screen) {
     if (m_bMainMenuSwitch) {
         switch (m_nCurrentScreen) {
         case SCREEN_NEW_GAME_ASK:
-            CGame::bMissionPackGame = false;
+            CGame::bMissionPackGame = 0;
             DoSettingsBeforeStartingAGame();
             m_bDontDrawFrontEnd = true;
             break;
