@@ -192,7 +192,7 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
         std::array<MPack, 25> missionPacksArray = std::to_array(m_MissionPacks);
         const auto& MPacks = missionPacksArray[m_nCurrentScreenItem - 2];
         m_nMissionPackGameId = MPacks.m_Id;
-        std::cout << "Selected mission pack: " << (int)MPacks.m_Id << std::endl;
+        NOTSA_LOG_DEBUG("Selected mission pack: {}", (int)MPacks.m_Id);
         SwitchToNewScreen(SCREEN_MISSION_PACK_LOADING_ASK);
         return;
     }
