@@ -120,7 +120,7 @@ enum eMenuAction : int8 { // There's many actions @0x57702E and @0x57CD88
     MENU_ACTION_RADAR_MODE,               // 34
     MENU_ACTION_HUD_MODE,                 // 35
 
-    MENU_ACTION_LANGUAGE,                 // 36  Old way to switch language?
+    MENU_ACTION_LANGUAGE,                  // 36  Old way to switch language?
     MENU_ACTION_LANG_ENGLISH,              // 37
     MENU_ACTION_LANG_FRENCH,               // 38
     MENU_ACTION_LANG_GERMAN,               // 39
