@@ -189,8 +189,8 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
         ProcessMissionPackNewGame();
         return;
     case MENU_ACTION_MPACK:
-        const auto& MPacks = reinterpret_cast<const std::array<MPack, MPACK_COUNT>&>(m_MissionPacks).at(m_nCurrentScreenItem - 2);
-        m_nMissionPackGameId = MPacks.m_Id;
+        // -1 for 0-based index, additional -1 for skipping the standard game opt?
+        m_nMissionPackGameId = m_MissionPacks[m_nCurrentScreenItem - 2].m_Id; // todo: maybe wrong
         SwitchToNewScreen(SCREEN_MISSION_PACK_LOADING_ASK);
         return;
     case MENU_ACTION_MPACKGAME:

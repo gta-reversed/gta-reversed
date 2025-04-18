@@ -310,15 +310,15 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOnl
 bool CControllerConfigManager::GetIsActionAButtonCombo(eControllerAction Action)
 {  
     /* NOT USED IN SA, but explains some things
-	switch (Action) {
-	case VEHICLE_LOOKBEHIND:
-	// case PED_CYCLE_TARGET_LEFT:
-	// case PED_CYCLE_TARGET_RIGHT:
-		return true;
-	}
+    switch (Action) {
+    case VEHICLE_LOOKBEHIND:
+    // case PED_CYCLE_TARGET_LEFT:
+    // case PED_CYCLE_TARGET_RIGHT:
+        return true;
+    }
     */
 
-	return false;
+    return false;
 }
 
 // 0x52F4F0
@@ -886,7 +886,6 @@ void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(KeyCode button,
     }
 }
 
-
 // 0x52DC20
 void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(KeyCode button, int32 padNumber) {
     CPad* pad = CPad::GetPad(padNumber);
@@ -1432,7 +1431,7 @@ void CControllerConfigManager::CheckAndSetStick(eControllerAction action, eContr
 };
 
 // inlined
-constexpr inline int16& GetControllerStateJoyStick(CPad& pad, KeyCode button) {
+int16& CControllerConfigManager::GetControllerStateJoyStick(CPad& pad, KeyCode button) {
     const auto specGamepad = AllValidWinJoys.JoyStickNum[0].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[0].wProductID == 0x1190;
     switch (button) {
     case eJoyButtons::JOYBUTTON_ONE:       return specGamepad ? pad.PCTempJoyState.ButtonTriangle : pad.PCTempJoyState.ButtonCircle;
