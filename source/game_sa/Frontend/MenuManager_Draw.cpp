@@ -1429,10 +1429,10 @@ void CMenuManager::DrawControllerSetupScreen() {
 int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing) {
     // return plugin::CallMethodAndReturn<int32, 0x576860, CMenuManager*, float, float, float, float, float, float, int32>(this, x, y, h1, h2, length, value, size);
 
-    const auto BARS = 16;
-    const auto COLOR_ON  = CRGBA(172, 203, 241, 255); // Fresh Air
-    const auto COLOR_OFF = CRGBA(74, 90, 107, 255);   // Deep Space Sparkle
-    const auto COLOR_SHADOW = CRGBA(0, 0, 0, 200);
+    constexpr auto BARS = 16;
+    constexpr auto COLOR_ON  = CRGBA(172, 203, 241, 255); // Fresh Air
+    constexpr auto COLOR_OFF = CRGBA(74, 90, 107, 255);   // Deep Space Sparkle
+    constexpr auto COLOR_SHADOW = CRGBA(0, 0, 0, 200);
 
     CRGBA color;
 

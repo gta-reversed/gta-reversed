@@ -381,7 +381,105 @@ void CMenuManager::PrintMap() {
 
 // 0x574900
 void CMenuManager::PrintStats() {
-    plugin::CallMethod<0x574900, CMenuManager*>(this);
+    constexpr float STATS_SCROLL_SMOOTHNESS = 2.0f;
+
+    static uint16 &currentStatId = *reinterpret_cast<uint16 *>(0xB794CC);
+    static int &prevScreenItem = *reinterpret_cast<int *>(0x8CDFF8);
+    static float &scrollPos = *reinterpret_cast<float *>(0x8CDFF4);
+
+    if (m_nCurrentScreenItem >= 8) {
+        m_nCurrentScreenItem = 8;
+    }
+
+    if (prevScreenItem != m_nCurrentScreenItem) {
+        scrollPos = -120;
+        prevScreenItem = m_nCurrentScreenItem;
+    }
+
+    int numStats = CStats::ConstructStatLine(99'999, m_nCurrentScreenItem);
+    CFont::SetFontStyle(FONT_MENU);
+    CFont::SetScale(StretchX(0.3f), StretchY(0.75f));
+
+    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B24 > 20) {
+        if (m_fStatsScrollSpeed > 0.0f) {
+            float scrollDelta = StretchY(100.0f / STATS_SCROLL_SMOOTHNESS) / m_fStatsScrollSpeed;
+            scrollPos += m_nStatsScrollDirection ? scrollDelta : -scrollDelta;
+        }
+        FrontEndMenuManager.field_1B24 = CTimer::m_snTimeInMillisecondsPauseMode;
+    }
+
+    const float fadeTopStart = StretchY(80.0f);
+    const float fadeTopEnd = StretchY(115.0f);
+    const float fadeBottomStart = StretchY(295.0f);
+    const float fadeBottomEnd = StretchY(330.0f);
+    const float fadeMultiplier = 10.0f;
+
+    const float minY = StretchY(50.0f);
+    const float maxY = SCREEN_HEIGHT - StretchY(50.0f);
+    const float visibleTop = StretchY(50.0f);
+    const float visibleBottom = StretchY(360.0f);
+
+    for (int i = 0; i < numStats; ++i) {
+        float yPos = StretchY(54.0f) * i + StretchY(50.0f) - scrollPos;
+        float totalHeight = (numStats + 7) * StretchY(54.0);
+
+        if (yPos < minY || yPos > maxY) {
+            float offset = (yPos < minY) ? std::ceil((minY - yPos) / totalHeight) : -std::ceil((yPos - maxY) / totalHeight);
+            yPos += offset * totalHeight;
+        }
+
+        if (yPos > visibleTop && yPos < visibleBottom) {
+            int curStat = i;
+            CStats::ConstructStatLine(curStat, m_nCurrentScreenItem);
+
+            if (!gGxtString[0]) {
+                yPos -= StretchY(37.0f);
+            }
+
+            double alpha;
+            if (yPos < fadeTopEnd) {
+                alpha = (yPos <= fadeTopStart) ? 0.0 : ((yPos - fadeTopStart) / (fadeTopEnd - fadeTopStart)) * 255.0 * fadeMultiplier;
+            } else if (yPos > fadeBottomStart) {
+                alpha = (yPos >= fadeBottomEnd) ? 0.0 : ((fadeBottomEnd - yPos) / (fadeBottomEnd - fadeBottomStart)) * 255.0 * fadeMultiplier;
+            } else {
+                alpha = 255.0;
+            }
+
+            alpha = std::clamp(alpha, 0.0, 255.0);
+            uint8 alphaValue = static_cast<uint8>(alpha);
+
+            CFont::SetDropColor(CRGBA(0, 0, 0, alphaValue));
+            CFont::SetEdge(1);
+            CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
+            CFont::SetColor(CRGBA(0xE1, 0xE1, 0xE1, alphaValue));
+
+            float xPos = StretchX(450.0);
+            CFont::PrintString(xPos, yPos, gGxtString);
+
+            if (currentStatId) {
+                const auto val = float(CStats::GetStatValue((eStats)currentStatId) * 0.001f * 100.0f);
+                const float clamped = std::min(val, 1000.0f);
+
+                CSprite2d::DrawBarChart(StretchX(400.0f), StretchY(17.0f) + yPos, static_cast<uint16>(StretchX(100.0)), static_cast<uint8>(StretchY(10.0)), clamped, 0, 0, 1, CRGBA(0xAC, 0xCB, 0xF1, alphaValue), CRGBA(0, 0, 0, 0));
+            } else {
+                CFont::SetColor(CRGBA(0xAC, 0xCB, 0xF1, alphaValue));
+                CFont::PrintString(StretchX(450.0f), StretchY(17.0f) + yPos, gGxtString2);
+            }
+        }
+    }
+
+    CFont::SetEdge(1);
+    CFont::SetDropColor(CRGBA(0, 0, 0, 255));
+    CFont::SetColor(CRGBA(0xE1, 0xE1, 0xE1, 255));
+    CFont::SetFontStyle(eFontStyle::FONT_PRICEDOWN);
+    CFont::SetScale(StretchX(0.6f), StretchY(0.8f));
+    CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
+
+    GxtChar ratingText[80];
+    AsciiToGxtChar(std::format("{}", CStats::FindCriminalRatingNumber()).c_str(), ratingText);
+    GxtCharStrcpy(gGxtString, CStats::FindCriminalRatingString());
+    CFont::PrintString(StretchX(450.0f), StretchY(40.0f), gGxtString);
+    CFont::PrintString(StretchX(450.0f), StretchY(57.0f), ratingText);
 }
 
 // 0x576320
