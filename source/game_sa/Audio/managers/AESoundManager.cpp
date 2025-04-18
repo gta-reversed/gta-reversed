@@ -225,23 +225,25 @@ void CAESoundManager::Service() {
     }
 
     // 0x4F0628 - Play sounds that require that
-    for (auto i = 0, chN = 0; i < m_AllocatedPhysicalChannels; ++i, ++chN) {
+    for (auto i = 0, chN = 0; i < m_AllocatedPhysicalChannels; ++i) {
         const auto ref = m_PrioritisedSoundList[i];
         if (ref == -1) {
             continue;
         }
 
-        while (m_PhysicallyPlayingSoundList[chN] != -1 && ++chN < m_AllocatedPhysicalChannels);
+        // Find a free channel to use
+        while (chN < m_AllocatedPhysicalChannels && m_PhysicallyPlayingSoundList[chN] != -1) {
+            chN++;
+        }
         if (chN >= m_AllocatedPhysicalChannels) {
-            continue; // TODO: Probably want to `break` here instead?
+            break;
         }
 
         m_PhysicallyPlayingSoundList[chN] = ref;
         auto& sound               = m_VirtuallyPlayingSoundList[ref];
         sound.m_nHasStarted       = true;
 
-        auto freq        = sound.GetRelativePlaybackFrequencyWithDoppler();
-        auto slomoFactor = sound.GetSlowMoFrequencyScalingFactor();
+        const auto freqFactor = sound.GetRelativePlaybackFrequencyWithDoppler() * sound.GetSlowMoFrequencyScalingFactor();
 
         CAEAudioHardwarePlayFlags flags{};
         flags.CopyFromAESound(sound);
@@ -249,7 +251,7 @@ void CAESoundManager::Service() {
         AEAudioHardware.PlaySound(m_AudioHardwareHandle, chN, sound.m_nSoundIdInSlot, sound.m_nBankSlotId, sound.m_nCurrentPlayPosition, flags.m_nFlags, sound.m_fSpeed);
         AEAudioHardware.SetChannelVolume(m_AudioHardwareHandle, chN, sound.m_fFinalVolume, 0);
         AEAudioHardware.SetChannelPosition(m_AudioHardwareHandle, chN, sound.GetRelativePosition(), 0);
-        AEAudioHardware.SetChannelFrequencyScalingFactor(m_AudioHardwareHandle, chN, freq * slomoFactor);
+        AEAudioHardware.SetChannelFrequencyScalingFactor(m_AudioHardwareHandle, chN, freqFactor);
     }
 
     // 0x4F0894
