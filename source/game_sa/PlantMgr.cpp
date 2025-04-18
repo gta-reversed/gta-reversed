@@ -614,7 +614,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEnt
             vertices[0],
             vertices[1],
             vertices[2],
-            CVector::AverageN(vertices, 3),
+            CVector::Centroid(vertices),
             (vertices[0] + vertices[1]) / 2.0f,
             (vertices[0] + vertices[2]) / 2.0f,
             (vertices[1] + vertices[2]) / 2.0f

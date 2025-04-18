@@ -8,7 +8,7 @@
 
 #include <PtrNode.h>
 
-// Doing it like this because including `Pools.h` here is a suicide
+// Can't include <Pool.h> here, because it would cause circular dependency
 namespace details {
 void* CPtrNodeSingleLink__operator_new(size_t sz);
 void  CPtrNodeSingleLink__operator_delete(void* data, size_t sz);

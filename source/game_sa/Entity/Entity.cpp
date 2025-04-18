@@ -454,7 +454,7 @@ void CEntity::PreRender() {
                 RpGeometryForAllMaterials(RpAtomicGetGeometry(ami->m_pRwAtomic), MaterialUpdateUVAnimCB, nullptr);
             }
         }
-
+        
         mi->IncreaseAlpha();
 
         // PC Only
@@ -552,7 +552,7 @@ void CEntity::PreRender() {
                     vecPos,
                     fRand * 6.0F,
                     300.0F,
-                    gpCoronaTexture[0],
+                    gpCoronaTexture[CORONATYPE_SHINYSTAR],
                     eCoronaFlareType::FLARETYPE_NONE,
                     true,
                     false,
@@ -612,7 +612,7 @@ void CEntity::PreRender() {
                 vecPos,
                 fRand * 6.0F,
                 300.0F,
-                gpCoronaTexture[0],
+                gpCoronaTexture[CORONATYPE_SHINYSTAR],
                 eCoronaFlareType::FLARETYPE_NONE,
                 true,
                 false,
@@ -1121,9 +1121,10 @@ void CEntity::CreateEffects()
             );
 
             if (iEnExId != -1) {
-                auto addedEffect = CEntryExitManager::mp_poolEntryExits->GetAt(iEnExId);
-                if (addedEffect->m_pLink && !addedEffect->m_pLink->bEnableAccess)
-                    addedEffect->bEnableAccess = false;
+                if (auto* const enex = CEntryExitManager::GetInSlot(iEnExId)) {
+                    if (enex->m_pLink && !enex->m_pLink->bEnableAccess)
+                        enex->bEnableAccess = false;
+                }
             }
             break;
         }
@@ -1197,7 +1198,7 @@ void CEntity::DestroyEffects()
             auto vecWorld = TransformFromObjectSpace(effect->m_Pos);
             auto iNearestEnex = CEntryExitManager::FindNearestEntryExit(vecWorld, 1.5F, -1);
             if (iNearestEnex != -1) {
-                auto enex = CEntryExitManager::mp_poolEntryExits->GetAt(iNearestEnex);
+                auto enex = CEntryExitManager::GetInSlot(iNearestEnex);
                 if (enex->bEnteredWithoutExit)
                     enex->bDeleteEnex = true;
                 else
@@ -1813,7 +1814,7 @@ void CEntity::ProcessLightsForEntity()
                 vecEffPos,
                 fRadius,
                 120.0F,
-                gpCoronaTexture[0],
+                gpCoronaTexture[CORONATYPE_SHINYSTAR],
                 eCoronaFlareType::FLARETYPE_NONE,
                 false,
                 false,
@@ -2250,15 +2251,11 @@ void CEntity::ProcessLightsForEntity()
 // 0x717900
 void CEntity::RemoveEscalatorsForEntity()
 {
-    for (auto& escalator : CEscalators::aEscalators) {
-        if (!escalator.m_bExist)
-            continue;
-
-        if (escalator.m_pEntity != this)
-            continue;
-
-        escalator.SwitchOff();
-        escalator.m_bExist = false;
+    for (auto& escalator : CEscalators::GetAllExists()) {
+        if (escalator.GetEntity() == this) {
+            escalator.Remove();
+            return;
+        }
     }
 }
 

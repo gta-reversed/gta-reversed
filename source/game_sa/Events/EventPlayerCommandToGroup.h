@@ -2,6 +2,9 @@
 
 #include "EventEditableResponse.h"
 
+class CPedGroup;
+class CPed;
+
 enum ePlayerGroupCommand : int32
 {
     PLAYER_GROUP_COMMAND_ATTACK = 0,

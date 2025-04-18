@@ -134,6 +134,10 @@ struct psGlobalType {
     LPDIRECTINPUTDEVICE8 diMouse;
     LPDIRECTINPUTDEVICE8 diDevice1;
     LPDIRECTINPUTDEVICE8 diDevice2;
+
+#ifdef NOTSA_USE_SDL3
+    void* sdlWindow; // SDL_Window*
+#endif
 };
 
 typedef struct RsGlobalType RsGlobalType;

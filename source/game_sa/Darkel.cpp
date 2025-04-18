@@ -38,12 +38,12 @@ void CDarkel::InjectHooks() {
 
 // 0x43CEB0
 void CDarkel::Init() {
-    Status = DARKEL_STATUS_0;
+    Status = eDarkelStatus::INITIAL;
 }
 
 // 0x43D1F0
 bool CDarkel::FrenzyOnGoing() {
-    return Status == DARKEL_STATUS_1 || Status == DARKEL_STATUS_4;
+    return Status == eDarkelStatus::FRENZY_ON_GOING || Status == eDarkelStatus::FRENZY_ON_GOING_2P;
 }
 
 // 0x43CEC0
@@ -100,7 +100,7 @@ void CDarkel::DrawMessages() {
         CFont::PrintString(SCREEN_SCALE_FROM_RIGHT(32.0f), remainingKillsY, gGxtString);
     }
 
-    if (Status == DARKEL_STATUS_2 && bStandardSoundAndMessages && elapsed < 5000) {
+    if (Status == eDarkelStatus::FRENZY_PASSED && bStandardSoundAndMessages && elapsed < 5'000) {
         CMessages::AddBigMessage(TheText.Get("KILLPA"), 3000, STYLE_MIDDLE);
     }
 }
@@ -155,10 +155,10 @@ void CDarkel::StartFrenzy(eWeaponType weaponType, int32 timeLimit, uint16 killsN
     const eWeaponType weapon = (WeaponType != WEAPON_UZI_DRIVEBY) ? weaponType : WEAPON_MICRO_UZI;
 
     if (CGameLogic::IsCoopGameGoingOn()) {
-        Status = DARKEL_STATUS_4;
+        Status = eDarkelStatus::FRENZY_ON_GOING_2P;
         CGameLogic::DoWeaponStuffAtStartOf2PlayerGame(false);
     } else {
-        Status = DARKEL_STATUS_1;
+        Status = eDarkelStatus::FRENZY_ON_GOING;
     }
 
     ModelToKill[3] = modelToKill;
@@ -372,7 +372,7 @@ void CDarkel::Update() {
         return;
 
     const auto StartFrenzy = [&] {
-        Status = DARKEL_STATUS_3;
+        Status = eDarkelStatus::FRENZY_FAILED;
         CPopulation::m_AllRandomPedsThisType = -1;
         TimeOfFrenzyStart = CTimer::GetTimeInMS();
         DealWithWeaponChangeAtEndOfFrenzy();
@@ -380,11 +380,11 @@ void CDarkel::Update() {
 
     const int32 remaining = TimeOfFrenzyStart + TimeLimit - CTimer::GetTimeInMS();
     if (remaining <= 0 && TimeLimit >= 0) {
-        if (Status == DARKEL_STATUS_4) {
+        if (Status == eDarkelStatus::FRENZY_ON_GOING_2P) {
             CGameLogic::SetMissionFailed();
         }
         StartFrenzy();
-    } else if (Status != DARKEL_STATUS_4 || FindPlayerPed(PED_TYPE_PLAYER2)) {
+    } else if (Status != eDarkelStatus::FRENZY_ON_GOING_2P || FindPlayerPed(PED_TYPE_PLAYER2)) {
         if (remaining / 1000 != PreviousTime) {
             if (PreviousTime < 12) {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_TIMER_COUNT);
@@ -397,12 +397,12 @@ void CDarkel::Update() {
     }
 
     if (KillsNeeded <= 0) {
-        if (Status == DARKEL_STATUS_4) {
+        if (Status == eDarkelStatus::FRENZY_ON_GOING_2P) {
             CGameLogic::GameState = GAMELOGIC_STATE_MISSION_PASSED;
             CGameLogic::TimeOfLastEvent = CTimer::GetTimeInMS();
         }
 
-        Status = DARKEL_STATUS_2;
+        Status = eDarkelStatus::FRENZY_PASSED;
         CPopulation::m_AllRandomPedsThisType = -1;
 
         if (bProperKillFrenzy) {
@@ -419,7 +419,7 @@ void CDarkel::Update() {
 void CDarkel::ResetOnPlayerDeath() {
     CHud::SetHelpMessage(nullptr, true, false, false);
     if (FrenzyOnGoing()) {
-        Status = DARKEL_STATUS_3;
+        Status = eDarkelStatus::FRENZY_FAILED;
         CPopulation::m_AllRandomPedsThisType = -1;
         TimeOfFrenzyStart = CTimer::GetTimeInMS();
         DealWithWeaponChangeAtEndOfFrenzy();
@@ -428,7 +428,7 @@ void CDarkel::ResetOnPlayerDeath() {
 
 // 0x43DC60
 void CDarkel::FailKillFrenzy() {
-    if (Status == DARKEL_STATUS_4) {
+    if (Status == eDarkelStatus::FRENZY_ON_GOING_2P) {
         CGameLogic::SetMissionFailed();
     }
     ResetOnPlayerDeath();

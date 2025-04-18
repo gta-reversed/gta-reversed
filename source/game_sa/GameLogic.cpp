@@ -372,10 +372,9 @@ void CGameLogic::RestorePlayerStuffDuringResurrection(CPlayerPed* player, CVecto
     playerData->m_nDrugLevel = 0;
     player->ClearAdrenaline();
     player->ResetSprintEnergy();
-    if (auto& fire = player->m_pFire) {
-        fire->createdByScript = false;
+    if (auto* const fire = std::exchange(player->m_pFire, nullptr)) {
+        fire->SetIsScript(false);
         fire->Extinguish();
-        fire = nullptr;
     }
     player->GetAE().TurnOffJetPack();
     player->bInVehicle = false;

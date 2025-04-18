@@ -10,7 +10,7 @@
 #include <string>
 #include <initializer_list>
 #include <RenderWare.h>
-
+#include <GxtChar.h>
 #include "AnimationEnums.h"
 #include "Vector.h"
 #include "Vector2D.h"

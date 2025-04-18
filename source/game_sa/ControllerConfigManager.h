@@ -89,7 +89,9 @@ enum eControllerAction {
     CA_TOGGLE_DPAD = 54,
     CA_SWITCH_DEBUG_CAM_ON,
     CA_TAKE_SCREEN_SHOT,
-    CA_SHOW_MOUSE_POINTER_TOGGLE
+    CA_SHOW_MOUSE_POINTER_TOGGLE,
+
+    CA_COUNT = 59
 };
 
 struct CControllerKey {
@@ -124,9 +126,9 @@ public:
     DIJOYSTATE2       m_OldJoyState;
     DIJOYSTATE2       m_NewJoyState;
 
-    char              m_arrControllerActionName[59][40]; // todo: 182
+    char              m_arrControllerActionName[CA_COUNT][40]; // todo: 182
     bool              m_ButtonStates[17];   // True if down, false if up or missing
-    CControllerAction m_Actions[59];
+    CControllerAction m_Actions[CA_COUNT]; //!< Index is `eControllerAction`
 
     bool m_bStickL_X_Rgh_Lft_MovementBothDown[4];
     bool m_bStickL_Up_Dwn_MovementBothDown[4];

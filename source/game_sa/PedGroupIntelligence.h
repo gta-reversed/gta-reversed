@@ -7,9 +7,10 @@
 #pragma once
 
 #include <concepts>
-
+#include <PedGroup.h>
 #include "PedTaskPair.h"
 #include "DecisionMakerTypes.h"
+#include <TaskManager.h>
 #include "Tasks/TaskTypes/TaskSimpleNone.h"
 #include "Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorType.h"
 

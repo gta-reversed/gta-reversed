@@ -504,7 +504,7 @@ bool CFileLoader::LoadCollisionFile(uint8* buff, uint32 buffSize, uint8 colId) {
 
         auto mi = IsModelDFF(h.modelId) ? CModelInfo::GetModelInfo(h.modelId) : nullptr;
         if (!mi || mi->m_nKey != CKeyGen::GetUppercaseKey(h.modelName)) {
-            auto colDef = CColStore::ms_pColPool->GetAt(colId);
+            auto colDef = CColStore::GetInSlot(colId);
             mi = CModelInfo::GetModelInfo(h.modelName, colDef->m_nModelIdStart, colDef->m_nModelIdEnd);
         }
 
@@ -1066,7 +1066,7 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
         {
             if (cm->m_nColSlot) 
             {
-                CColStore::ms_pColPool->GetAt(cm->m_nColSlot)->m_Area.Restrict(newEntity->GetBoundRect());
+                CColStore::GetInSlot(cm->m_nColSlot)->m_Area.Restrict(newEntity->GetBoundRect());
             }
         }
         else
@@ -1208,7 +1208,7 @@ void CFileLoader::LoadEntryExit(const char* line) {
         numOfPeds,
         name
     );
-    auto enex = CEntryExitManager::mp_poolEntryExits->GetAt(enexPoolIdx);
+    auto enex = CEntryExitManager::GetInSlot(enexPoolIdx);
     assert(enex);
 
     enum Flags {

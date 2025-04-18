@@ -2007,7 +2007,7 @@ bool CRadar::Load() {
     for (auto& trace : ms_RadarTrace) {
         CGenericGameStorage::LoadDataFromWorkBuffer(trace);
         if (trace.m_EntryExitPoolInd) {
-            trace.m_pEntryExit = CEntryExitManager::mp_poolEntryExits->GetAt(trace.m_EntryExitPoolInd - 1);
+            trace.m_pEntryExit = CEntryExitManager::GetInSlot(trace.m_EntryExitPoolInd - 1);
         }
     }
 
@@ -2022,8 +2022,8 @@ bool CRadar::Save() {
     for (auto& trace : ms_RadarTrace) {
         CEntryExit* savedEnex = nullptr;
         if (trace.m_pEntryExit) {
-            const auto index = CEntryExitManager::mp_poolEntryExits->GetIndex(trace.m_pEntryExit);
-            if (CEntryExitManager::mp_poolEntryExits->IsIndexInBounds(index) && !CEntryExitManager::mp_poolEntryExits->IsFreeSlotAtIndex(index)) {
+            const auto index = CEntryExitManager::GetPool()->GetIndex(trace.m_pEntryExit);
+            if (CEntryExitManager::GetPool()->IsIndexInBounds(index) && !CEntryExitManager::GetPool()->IsFreeSlotAtIndex(index)) {
                 savedEnex = trace.m_pEntryExit;
                 trace.m_EntryExitPoolInd = index + 1; // Assign the pool index for save duration, restore it later
             }

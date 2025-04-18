@@ -21,6 +21,8 @@
 #include "Vector2D.h"
 #include "AnimBlendAssociation.h"
 #include "Fire.h"
+#include "PedGroups.h"
+#include <Enums/eBoneTag.h>
 
 #include <Audio/Enums/PedSpeechContexts.h>
 #include "AnimationEnums.h"

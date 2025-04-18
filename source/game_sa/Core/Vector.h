@@ -152,11 +152,11 @@ public:
         return projectOnTo * (Dot(projectOnTo) + offset);
     }
 
-    //! Calculate the average position
-    static CVector Average(const CVector* begin, const CVector* end);
-
-    static CVector AverageN(const CVector* begin, size_t n) {
-        return Average(begin, begin + n);
+    //! Calculate the center of all provided vectors. Same operation as averaging.
+    template<rng::input_range R = std::initializer_list<CVector>>
+        requires rng::sized_range<R>
+    static CVector Centroid(R&& rng) {
+        return rng::fold_left(rng, CVector{}, std::plus{}) / std::size(rng);
     }
 
     auto GetComponents() const {

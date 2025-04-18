@@ -10,6 +10,7 @@
 #include "PtrListDoubleLink.h"
 #include "PtrNodeDoubleLink.h"
 
+class CPedGroup;
 class CPlayerInfo;
 class CColPoint;
 class CStoredCollPoly;

@@ -4,7 +4,8 @@
 
 #include "StdInc.h"
 
-#include "imgui_impl_win32.h"
+#ifndef NOTSA_USE_SDL3
+#include <libs/imgui/bindings/imgui_impl_win32.h>
 
 #include "winincl.h"
 #include <rwplcore.h>
@@ -405,3 +406,4 @@ void InjectHooksWndProcStuff() {
     RH_ScopedGlobalInstall(GTATranslateKey, 0x747820);
     RH_ScopedGlobalInstall(__MainWndProc, 0x747EB0, {.locked = true}); // Locked because of ImGui
 }
+#endif
