@@ -12,21 +12,22 @@ enum eSoundPlayingStatus : int16 {
     SOUND_HAS_STARTED = 2,
 };
 
+using tSoundReference = int16;
+
 class CAESoundManager {
 public:
-    uint16   m_nNumAvailableChannels;
-    int16    m_nChannel;
-    CAESound m_aSounds[MAX_NUM_SOUNDS];
-    int16*   m_aChannelSoundTable;
-    int16*   m_aChannelSoundPlayTimes;
-    int16*   m_aChannelSoundUncancellable;
-    int16    m_aSoundLengths[MAX_NUM_SOUNDS];
-    int16    m_aSoundLoopStartTimes[MAX_NUM_SOUNDS];
-    uint32   m_nUpdateTime;
-    bool     m_bPauseTimeInUse;
-    bool     m_bManuallyPaused;
-    uint8    field_8CB6[2];
-    uint32   m_nPauseUpdateTime;
+    uint16           m_AllocatedPhysicalChannels;
+    int16            m_AudioHardwareHandle;
+    CAESound         m_VirtuallyPlayingSoundList[MAX_NUM_SOUNDS];
+    tSoundReference* m_PhysicallyPlayingSoundList;                        //!< List of sounds that are currently playing (Size: `m_AllocatedPhysicalChannels`)
+    int16*           m_ChannelPosition;                                   //!< Sound position in the channel (Size: `m_AllocatedPhysicalChannels`)
+    tSoundReference* m_PrioritisedSoundList;                              //!< List of sounds that are currently playing and are uncancellable (Size: `m_AllocatedPhysicalChannels`)
+    int16            m_VirtualChannelSoundLengths[MAX_NUM_SOUNDS];        //!< Sound lengths in ms (Size: `m_AllocatedPhysicalChannels`)
+    int16            m_VirtualChannelSoundLoopStartTimes[MAX_NUM_SOUNDS]; //!< Sound loop start times in ms (Size: `m_AllocatedPhysicalChannels`)
+    uint32           m_TimeLastCalled;
+    bool             m_WasGamePausedLastFrame;
+    bool             m_IsManuallyPaused;
+    uint32           m_TimeLastCalledUnpaused;
 
 public:
     static void InjectHooks();
@@ -78,7 +79,7 @@ private:
     CAESound* GetFreeSound(size_t* outIdx);
 
 public:
-    bool IsPaused() const { return CTimer::GetIsPaused() || m_bManuallyPaused; }
+    bool IsPaused() const { return CTimer::GetIsPaused() || m_IsManuallyPaused; }
     bool IsSoundPaused(const CAESound& sound) const { return CAESoundManager::IsPaused() && !sound.GetUnpausable(); }
 };
 VALIDATE_SIZE(CAESoundManager, 0x8CBC);
