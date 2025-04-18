@@ -188,16 +188,18 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
     case MENU_ACTION_NEW_GAME:
         ProcessMissionPackNewGame();
         return;
-    case MENU_ACTION_MPACK:
-        // -1 for 0-based index, additional -1 for skipping the standard game opt?
-        m_nMissionPackGameId = m_MissionPacks[m_nCurrentScreenItem - 2].m_Id; // todo: maybe wrong
+    case MENU_ACTION_MPACK: {
+        const auto& MPacks = reinterpret_cast<const std::array<MPack, MPACK_COUNT>&>(m_MissionPacks).at(m_nCurrentScreenItem - 2);
+        m_nMissionPackGameId = MPacks.m_Id;
+        std::cout << "Selected mission pack: " << MPacks.m_Id << std::endl;
         SwitchToNewScreen(SCREEN_MISSION_PACK_LOADING_ASK);
         return;
+    }
     case MENU_ACTION_MPACKGAME:
         CGame::bMissionPackGame = m_nMissionPackGameId;
         DoSettingsBeforeStartingAGame();
         return;
-    case MENU_ACTION_SAVE_SLOT:
+    case MENU_ACTION_SAVE_SLOT: {
         if (item->m_nType >= eMenuEntryType::TI_SLOT1 && item->m_nType <= eMenuEntryType::TI_SLOT8) {
             auto slot = CGenericGameStorage::ms_Slots[m_nCurrentScreenItem - 1];
             m_SelectedSlot = m_nCurrentScreenItem - 1;
@@ -209,6 +211,7 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
             }
         }
         return;
+    }
     case MENU_ACTION_STANDARD_GAME:
         CGame::bMissionPackGame = 0;
         DoSettingsBeforeStartingAGame();
@@ -217,7 +220,7 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
     case MENU_ACTION_15:
         m_bDontDrawFrontEnd = true;
         return;
-    case MENU_ACTION_SAVE_GAME:
+    case MENU_ACTION_SAVE_GAME: {
         if (item->m_nType >= eMenuEntryType::TI_SLOT1 && item->m_nType <= eMenuEntryType::TI_SLOT8) {
             auto slot = CGenericGameStorage::ms_Slots[m_nCurrentScreenItem - 1];
             m_SelectedSlot = m_nCurrentScreenItem - 1;
@@ -225,7 +228,8 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
             SwitchToNewScreen(SCREEN_SAVE_WRITE_ASK);
         }
         return;
-    case MENU_ACTION_STAT:
+    }
+    case MENU_ACTION_STAT: {
         // todo: refactor
         if (pressedLR != 1) {
             if (m_nStatsScrollDirection) {
@@ -262,6 +266,7 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
             }
         }
         break;
+    }
     case MENU_ACTION_INVERT_PAD:
         CPad::bInvertLook4Pad ^= true;
         return;
