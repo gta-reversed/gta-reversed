@@ -271,68 +271,32 @@ void CMenuManager::UserInput() {
         }
         
         // Check for left/right slider movement
-        bool leftKeyPressed = CPad::NewKeyState.left;
-        bool analogLeftUsed = pad->GetPedWalkLeftRight() < 0;
-        bool dpadLeftUsed = pad->NewState.DPadLeft;
-
-        if (leftKeyPressed || analogLeftUsed || dpadLeftUsed) {
-            // Process slide left move with time delay
-            if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.m_nTimeSlideLeftMove > 200) {
-                int actionType = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType;
-                
-                switch (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType) {
-                    case 0x15:
-                    case 0x1B:
-                    case 0x1C:
-                    case 0x1D:
-                    case 0x3D:
-                    case 0x3E:
-                        sliderMove = -1;
-                        break;
-                    default:
-                        break;
-                }
-                
-                FrontEndMenuManager.m_nTimeSlideLeftMove = CTimer::m_snTimeInMillisecondsPauseMode;
-            }
-        } else {
-            bool rightKeyPressed = CPad::NewKeyState.right;
-            bool analogRightUsed = pad->GetPedWalkLeftRight() > 0;
-            bool dpadRightUsed = pad->NewState.DPadRight;
+        const bool isMouseWheelUsed[2] = {CPad::NewKeyState.left || pad->GetPedWalkLeftRight() < 0 || pad->NewState.DPadLeft,  CPad::NewKeyState.right || pad->GetPedWalkLeftRight() > 0 || pad->NewState.DPadRight};
+        if (isMouseWheelUsed[0] || isMouseWheelUsed[1]) {
+            auto& sliderMoveTime = isMouseWheelUsed[0] ? FrontEndMenuManager.m_nTimeSlideLeftMove : FrontEndMenuManager.m_nTimeSlideRightMove;
             
-            if (rightKeyPressed || analogRightUsed || dpadRightUsed) {
-                // Process slide right move with time delay
-                if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.m_nTimeSlideRightMove > 200) {                    
-                    switch (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType) {
-                        case 0x15:
-                        case 0x1B:
-                        case 0x1C:
-                        case 0x1D:
-                        case 0x3D:
-                        case 0x3E:
-                            sliderMove = 1;
-                            break;
-                        default:
-                            break;
-                    }
-                    
-                    FrontEndMenuManager.m_nTimeSlideRightMove = CTimer::m_snTimeInMillisecondsPauseMode;
-                }
+            // Process slide left move with time delay
+            static constexpr auto sliders = {MENU_ACTION_STAT, MENU_ACTION_BRIGHTNESS, MENU_ACTION_RADIO_VOL, MENU_ACTION_SFX_VOL, MENU_ACTION_DRAW_DIST, MENU_ACTION_MOUSE_SENS};
+            if (CTimer::m_snTimeInMillisecondsPauseMode - sliderMoveTime > 200 && notsa::contains(sliders, aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType)) {               
+                sliderMove = isMouseWheelUsed[0] ? -1 : 1;
+                sliderMoveTime = CTimer::m_snTimeInMillisecondsPauseMode;
             }
         }
         
         // Handle mouse wheel movement
-        const bool wheelMovedUp = pad->IsMouseWheelUpPressed();
-        if ( (wheelMovedUp || pad->IsMouseWheelDownPressed()) && m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
-            sliderMove = wheelMovedUp ? 1 : -1;
-        } else {
-            // Check front end directional input
-            if (CMenuManager::CheckFrontEndRightInput()) {
-                m_DisplayTheMouse = false;
-                sliderMove = 1;
-            } else if (CMenuManager::CheckFrontEndLeftInput()) {
-                m_DisplayTheMouse = false;
-                sliderMove = -1;
+        if (sliderMove == 0) {
+            const bool wheelMovedUp = pad->IsMouseWheelUpPressed();
+            if ( (wheelMovedUp || pad->IsMouseWheelDownPressed()) && m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
+                sliderMove = wheelMovedUp ? 1 : -1;
+            } else {
+                // Check front end directional input
+                if (CMenuManager::CheckFrontEndRightInput()) {
+                    m_DisplayTheMouse = false;
+                    sliderMove = 1;
+                } else if (CMenuManager::CheckFrontEndLeftInput()) {
+                    m_DisplayTheMouse = false;
+                    sliderMove = -1;
+                }
             }
         }
 
