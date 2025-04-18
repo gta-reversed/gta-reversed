@@ -248,7 +248,7 @@ public:
     int32 m_nTimeSlideLeftMove;
     int32 m_nTimeSlideRightMove;
     int32 field_1B70;
-    int32 field_1B74;
+    int32 field_1B74; // ???
 
     static int32& nLastMenuPage;
 
