@@ -265,6 +265,7 @@ private:
     void CheckAndReset(eControllerAction action, eControllerType type, KeyCode button, int16& state);
     void CheckAndSetPad(eControllerAction action, eControllerType type, KeyCode button, int16& dpad, int16& oppositeDpad);
     void CheckAndSetStick(eControllerAction action, eControllerType type, KeyCode button, int16& state, bool& movementBothDown, int16 value);
+    int16& GetControllerStateJoyStick(CPad& pad, KeyCode button);
     bool UseDrivingControls();
     bool UseFirstPersonControls();
     bool IsKeyboardKeyDownInState(CKeyboardState& state, KeyCode key);

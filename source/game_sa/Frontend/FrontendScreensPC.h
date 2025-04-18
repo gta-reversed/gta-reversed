@@ -7,15 +7,15 @@ tMenuScreen aScreensX[] = {
     SCREEN_INITIAL,
     3,
     {
-      { MENU_ACTION_STAT, "FES_PLA", eMenuEntryType::TI_OPTION, SCREEN_NOP,      57, 120,   MENU_ALIGN_LEFT   }, // Player
-      { MENU_ACTION_STAT, "FES_MON", eMenuEntryType::TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Money
-      { MENU_ACTION_STAT, "FES_WEA", eMenuEntryType::TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Weapons
-      { MENU_ACTION_STAT, "FES_CRI", eMenuEntryType::TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Crimes
-      { MENU_ACTION_STAT, "FES_GAN", eMenuEntryType::TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Gangs
-      { MENU_ACTION_STAT, "FES_ACH", eMenuEntryType::TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Achievements
-      { MENU_ACTION_STAT, "FES_MIS", eMenuEntryType::TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Mission
-      { MENU_ACTION_STAT, "FES_MSC", eMenuEntryType::TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Misc
-      { MENU_ACTION_BACK, "FEDS_TB", eMenuEntryType::TI_ENTER, SCREEN_INITIAL, 320, 380,   MENU_ALIGN_CENTER }, // Back
+      { MENU_ACTION_STAT, "FES_PLA", TI_OPTION, SCREEN_NOP,      57, 120,   MENU_ALIGN_LEFT   }, // Player
+      { MENU_ACTION_STAT, "FES_MON", TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Money
+      { MENU_ACTION_STAT, "FES_WEA", TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Weapons
+      { MENU_ACTION_STAT, "FES_CRI", TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Crimes
+      { MENU_ACTION_STAT, "FES_GAN", TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Gangs
+      { MENU_ACTION_STAT, "FES_ACH", TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Achievements
+      { MENU_ACTION_STAT, "FES_MIS", TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Mission
+      { MENU_ACTION_STAT, "FES_MSC", TI_OPTION, SCREEN_NOP,       0,   0,   MENU_ALIGN_LEFT   }, // Misc
+      { MENU_ACTION_BACK, "FEDS_TB", TI_ENTER,  SCREEN_INITIAL, 320, 380,   MENU_ALIGN_CENTER }, // Back
     }
   },
 
@@ -52,10 +52,10 @@ tMenuScreen aScreensX[] = {
       { MENU_ACTION_SFX_VOL,       "FEA_SFX", TI_OPTION, SCREEN_AUDIO_SETTINGS,              0,   0,   MENU_ALIGN_LEFT   }, // SFX
       { MENU_ACTION_RADIO_EQ,      "FEA_BAS", TI_OPTION, SCREEN_AUDIO_SETTINGS,              0,   0,   MENU_ALIGN_LEFT   }, // Radio EQ
       { MENU_ACTION_RADIO_RETUNE,  "FEA_ART", TI_OPTION, SCREEN_AUDIO_SETTINGS,              0,   0,   MENU_ALIGN_LEFT   }, // Radio Auto-Tune
-      { MENU_ACTION_MENU,          "FEA_TIT", TI_ENTER, SCREEN_USER_TRACKS_OPTIONS,       320, 225,   MENU_ALIGN_CENTER }, // User Radio Options
+      { MENU_ACTION_MENU,          "FEA_TIT", TI_ENTER,  SCREEN_USER_TRACKS_OPTIONS,       320, 225,   MENU_ALIGN_CENTER }, // User Radio Options
       { MENU_ACTION_RADIO_STATION, "FEA_RSS", TI_OPTION, SCREEN_AUDIO_SETTINGS,             57, 260,   MENU_ALIGN_LEFT   }, // Radio station
-      { MENU_ACTION_MENU,          "FET_DEF", TI_ENTER, SCREEN_ASK_AUDIO_DEFAULT_SETS,    320, 367,   MENU_ALIGN_CENTER }, // Restore Defaults
-      { MENU_ACTION_BACK,          "FEDS_TB", TI_ENTER, SCREEN_INITIAL,                     0,   0,   MENU_ALIGN_CENTER }, // Back
+      { MENU_ACTION_MENU,          "FET_DEF", TI_ENTER,  SCREEN_ASK_AUDIO_DEFAULT_SETS,    320, 367,   MENU_ALIGN_CENTER }, // Restore Defaults
+      { MENU_ACTION_BACK,          "FEDS_TB", TI_ENTER,  SCREEN_INITIAL,                     0,   0,   MENU_ALIGN_CENTER }, // Back
     }
   },
 
@@ -71,9 +71,9 @@ tMenuScreen aScreensX[] = {
       { MENU_ACTION_HUD_MODE,     "FED_HUD", TI_OPTION, SCREEN_DISPLAY_SETTINGS,            0,   0,   MENU_ALIGN_LEFT   }, // HUD Mode
       { MENU_ACTION_SUBTITLES,    "FED_SUB", TI_OPTION, SCREEN_DISPLAY_SETTINGS,            0,   0,   MENU_ALIGN_LEFT   }, // Subtitles
       { MENU_ACTION_STORE_PHOTOS, "FED_GLS", TI_OPTION, SCREEN_DISPLAY_SETTINGS,            0,   0,   MENU_ALIGN_LEFT   }, // Store Gallery Photos
-      { MENU_ACTION_MENU,         "FED_ADV", TI_ENTER, SCREEN_DISPLAY_ADVANCED,          320, 320,   MENU_ALIGN_CENTER }, // Advanced
-      { MENU_ACTION_MENU,         "FET_DEF", TI_ENTER, SCREEN_ASK_DISPLAY_DEFAULT_SETS,  320, 365,   MENU_ALIGN_CENTER }, // Restore Defaults
-      { MENU_ACTION_BACK,         "FEDS_TB", TI_ENTER, SCREEN_OPTIONS,                     0,   0,   MENU_ALIGN_CENTER }, // Back
+      { MENU_ACTION_MENU,         "FED_ADV", TI_ENTER,  SCREEN_DISPLAY_ADVANCED,          320, 320,   MENU_ALIGN_CENTER }, // Advanced
+      { MENU_ACTION_MENU,         "FET_DEF", TI_ENTER,  SCREEN_ASK_DISPLAY_DEFAULT_SETS,  320, 365,   MENU_ALIGN_CENTER }, // Restore Defaults
+      { MENU_ACTION_BACK,         "FEDS_TB", TI_ENTER,  SCREEN_OPTIONS,                     0,   0,   MENU_ALIGN_CENTER }, // Back
     }
   },
 
@@ -105,8 +105,8 @@ tMenuScreen aScreensX[] = {
     SCREEN_START_GAME,
     0,
     {
-      { MENU_ACTION_TEXT,  "FEN_NGS", TI_STRING,   SCREEN_NOP,            0,   0,   MENU_ALIGN_LEFT },   // Please select which new game you wish to start:
-      { MENU_ACTION_MENU,  "FEN_NGX", TI_ENTER, SCREEN_NEW_GAME_ASK, 320, 150,   MENU_ALIGN_CENTER }, // San Andreas (standard game)
+      { MENU_ACTION_TEXT,  "FEN_NGS", TI_STRING, SCREEN_NOP,            0,   0,   MENU_ALIGN_LEFT },   // Please select which new game you wish to start:
+      { MENU_ACTION_MENU,  "FEN_NGX", TI_ENTER,  SCREEN_NEW_GAME_ASK, 320, 150,   MENU_ALIGN_CENTER }, // San Andreas (standard game)
       { MENU_ACTION_MPACK, "FEN_MPX", TI_MPACK,  SCREEN_NOP,            0,   0,   MENU_ALIGN_CENTER }, // Mission Pack
       { MENU_ACTION_MPACK, "FEN_MPX", TI_MPACK,  SCREEN_NOP,            0,   0,   MENU_ALIGN_CENTER }, // Mission Pack
       { MENU_ACTION_MPACK, "FEN_MPX", TI_MPACK,  SCREEN_NOP,            0,   0,   MENU_ALIGN_CENTER }, // Mission Pack
@@ -138,16 +138,16 @@ tMenuScreen aScreensX[] = {
     SCREEN_START_GAME,
     1,
     {
-      { MENU_ACTION_TEXT,      "FES_SEL", TI_STRING,   SCREEN_NOP,     0,   0,   MENU_ALIGN_LEFT   }, // Select save file to load:
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL1", TI_SLOT1, SCREEN_NOP,    80, 150,   MENU_ALIGN_LEFT   }, // Save File 1 Not Present
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL2", TI_SLOT2, SCREEN_NOP,    80, 170,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL3", TI_SLOT3, SCREEN_NOP,    80, 190,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL4", TI_SLOT4, SCREEN_NOP,    80, 210,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL5", TI_SLOT5, SCREEN_NOP,    80, 230,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL6", TI_SLOT6, SCREEN_NOP,    80, 250,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL7", TI_SLOT7, SCREEN_NOP,    80, 270,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL8", TI_SLOT8, SCREEN_NOP,    80, 290,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_BACK,      "FEDS_TB", TI_ENTER, SCREEN_NOP,   490, 380,   MENU_ALIGN_CENTER }, // Back
+      { MENU_ACTION_TEXT,      "FES_SEL", TI_STRING, SCREEN_NOP,     0,   0,   MENU_ALIGN_LEFT   }, // Select save file to load:
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL1", TI_SLOT1,  SCREEN_NOP,    80, 150,   MENU_ALIGN_LEFT   }, // Save File 1 Not Present
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL2", TI_SLOT2,  SCREEN_NOP,    80, 170,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL3", TI_SLOT3,  SCREEN_NOP,    80, 190,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL4", TI_SLOT4,  SCREEN_NOP,    80, 210,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL5", TI_SLOT5,  SCREEN_NOP,    80, 230,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL6", TI_SLOT6,  SCREEN_NOP,    80, 250,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL7", TI_SLOT7,  SCREEN_NOP,    80, 270,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL8", TI_SLOT8,  SCREEN_NOP,    80, 290,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_BACK,      "FEDS_TB", TI_ENTER,  SCREEN_NOP,   490, 380,   MENU_ALIGN_CENTER }, // Back
     }
   },
 
@@ -157,16 +157,16 @@ tMenuScreen aScreensX[] = {
     SCREEN_START_GAME,
     2,
     {
-      { MENU_ACTION_TEXT,      "FES_SED", TI_STRING,   SCREEN_NOP,   0,   0, MENU_ALIGN_LEFT   }, // Select save file to delete:
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL1", TI_SLOT1, SCREEN_NOP,  80, 150, MENU_ALIGN_LEFT   }, // Save File 1 Not Present
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL2", TI_SLOT2, SCREEN_NOP,  80, 170, MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL3", TI_SLOT3, SCREEN_NOP,  80, 190, MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL4", TI_SLOT4, SCREEN_NOP,  80, 210, MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL5", TI_SLOT5, SCREEN_NOP,  80, 230, MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL6", TI_SLOT6, SCREEN_NOP,  80, 250, MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL7", TI_SLOT7, SCREEN_NOP,  80, 270, MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_SLOT, "FEM_SL8", TI_SLOT8, SCREEN_NOP,  80, 290, MENU_ALIGN_LEFT   },
-      { MENU_ACTION_BACK,      "FEDS_TB", TI_ENTER, SCREEN_NOP, 490, 380, MENU_ALIGN_CENTER }, // Back
+      { MENU_ACTION_TEXT,      "FES_SED", TI_STRING, SCREEN_NOP,   0,   0, MENU_ALIGN_LEFT   }, // Select save file to delete:
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL1", TI_SLOT1,  SCREEN_NOP,  80, 150, MENU_ALIGN_LEFT   }, // Save File 1 Not Present
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL2", TI_SLOT2,  SCREEN_NOP,  80, 170, MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL3", TI_SLOT3,  SCREEN_NOP,  80, 190, MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL4", TI_SLOT4,  SCREEN_NOP,  80, 210, MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL5", TI_SLOT5,  SCREEN_NOP,  80, 230, MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL6", TI_SLOT6,  SCREEN_NOP,  80, 250, MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL7", TI_SLOT7,  SCREEN_NOP,  80, 270, MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_SLOT, "FEM_SL8", TI_SLOT8,  SCREEN_NOP,  80, 290, MENU_ALIGN_LEFT   },
+      { MENU_ACTION_BACK,      "FEDS_TB", TI_ENTER,  SCREEN_NOP, 490, 380, MENU_ALIGN_CENTER }, // Back
     }
   },
 
@@ -225,16 +225,16 @@ tMenuScreen aScreensX[] = {
     SCREEN_NONE,
     0,
     {
-      { MENU_ACTION_TEXT,      "FES_SES", TI_STRING,   SCREEN_NOP,              0,   0,   MENU_ALIGN_LEFT   }, // Select file you wish to save to:
-      { MENU_ACTION_SAVE_GAME, "FEM_SL1", TI_SLOT1, SCREEN_SAVE_WRITE_ASK,  80, 150,   MENU_ALIGN_LEFT   }, // Save File 1 Not Present
-      { MENU_ACTION_SAVE_GAME, "FEM_SL2", TI_SLOT2, SCREEN_SAVE_WRITE_ASK,  80, 170,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_GAME, "FEM_SL3", TI_SLOT3, SCREEN_SAVE_WRITE_ASK,  80, 190,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_GAME, "FEM_SL4", TI_SLOT4, SCREEN_SAVE_WRITE_ASK,  80, 210,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_GAME, "FEM_SL5", TI_SLOT5, SCREEN_SAVE_WRITE_ASK,  80, 230,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_GAME, "FEM_SL6", TI_SLOT6, SCREEN_SAVE_WRITE_ASK,  80, 250,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_GAME, "FEM_SL7", TI_SLOT7, SCREEN_SAVE_WRITE_ASK,  80, 270,   MENU_ALIGN_LEFT   },
-      { MENU_ACTION_SAVE_GAME, "FEM_SL8", TI_SLOT8, SCREEN_SAVE_WRITE_ASK,  80, 290,   MENU_ALIGN_LEFT   }, // Save File 8 Not Present
-      { MENU_ACTION_15,        "FESZ_CA", TI_ENTER, SCREEN_NOP,            470, 380,   MENU_ALIGN_CENTER }, // Cancel
+      { MENU_ACTION_TEXT,      "FES_SES", TI_STRING, SCREEN_NOP,              0,   0,   MENU_ALIGN_LEFT   }, // Select file you wish to save to:
+      { MENU_ACTION_SAVE_GAME, "FEM_SL1", TI_SLOT1,  SCREEN_SAVE_WRITE_ASK,  80, 150,   MENU_ALIGN_LEFT   }, // Save File 1 Not Present
+      { MENU_ACTION_SAVE_GAME, "FEM_SL2", TI_SLOT2,  SCREEN_SAVE_WRITE_ASK,  80, 170,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_GAME, "FEM_SL3", TI_SLOT3,  SCREEN_SAVE_WRITE_ASK,  80, 190,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_GAME, "FEM_SL4", TI_SLOT4,  SCREEN_SAVE_WRITE_ASK,  80, 210,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_GAME, "FEM_SL5", TI_SLOT5,  SCREEN_SAVE_WRITE_ASK,  80, 230,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_GAME, "FEM_SL6", TI_SLOT6,  SCREEN_SAVE_WRITE_ASK,  80, 250,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_GAME, "FEM_SL7", TI_SLOT7,  SCREEN_SAVE_WRITE_ASK,  80, 270,   MENU_ALIGN_LEFT   },
+      { MENU_ACTION_SAVE_GAME, "FEM_SL8", TI_SLOT8,  SCREEN_SAVE_WRITE_ASK,  80, 290,   MENU_ALIGN_LEFT   }, // Save File 8 Not Present
+      { MENU_ACTION_15,        "FESZ_CA", TI_ENTER,  SCREEN_NOP,            470, 380,   MENU_ALIGN_CENTER }, // Cancel
     }
   },
 
@@ -344,8 +344,8 @@ tMenuScreen aScreensX[] = {
     4,
     {
       { MENU_ACTION_TEXT,                  "FEA_SUB"   }, // To play your own music in-game, create Short-Cuts to your music tracks in the 'User Tracks' folder.
-      { MENU_ACTION_USER_TRACKS_PLAY_MODE, "FEA_MPM",  TI_OPTION,  SCREEN_USER_TRACKS_OPTIONS,  57, 190,   MENU_ALIGN_LEFT   }, // Play Mode
-      { MENU_ACTION_USER_TRACKS_AUTO_SCAN, "FEA_AMS",  TI_OPTION,  SCREEN_USER_TRACKS_OPTIONS,   0,   0,   MENU_ALIGN_LEFT   }, // Automatic Media Scan
+      { MENU_ACTION_USER_TRACKS_PLAY_MODE, "FEA_MPM",  TI_OPTION, SCREEN_USER_TRACKS_OPTIONS,  57, 190,   MENU_ALIGN_LEFT   }, // Play Mode
+      { MENU_ACTION_USER_TRACKS_AUTO_SCAN, "FEA_AMS",  TI_OPTION, SCREEN_USER_TRACKS_OPTIONS,   0,   0,   MENU_ALIGN_LEFT   }, // Automatic Media Scan
       { MENU_ACTION_USER_TRACKS_SCAN,      "FEA_SCN",  TI_ENTER,  SCREEN_USER_TRACKS_OPTIONS,   0,   0,   MENU_ALIGN_LEFT   }, // Scan User Tracks
       { MENU_ACTION_BACK,                  "FEDS_TB",  TI_ENTER,  SCREEN_AUDIO_SETTINGS,      320, 360,   MENU_ALIGN_CENTER }, // Back
     }
@@ -357,13 +357,13 @@ tMenuScreen aScreensX[] = {
     SCREEN_DISPLAY_SETTINGS,
     3,
     {
-      { MENU_ACTION_DRAW_DIST,     "FEM_LOD", TI_OPTION,  SCREEN_DISPLAY_ADVANCED,  57, 127,   MENU_ALIGN_LEFT   }, // Draw Distance
-      { MENU_ACTION_FRAME_LIMITER, "FEM_FRM", TI_OPTION,  SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Frame Limiter
-      { MENU_ACTION_WIDESCREEN,    "FED_WIS", TI_OPTION,  SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Widescreen
-      { MENU_ACTION_FX_QUALITY,    "FED_FXQ", TI_OPTION,  SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Visual FX Quality
-      { MENU_ACTION_MIP_MAPPING,   "FED_MIP", TI_OPTION,  SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Mip Mapping
-      { MENU_ACTION_ANTIALIASING,  "FED_AAS", TI_OPTION,  SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Anti Aliasing
-      { MENU_ACTION_RESOLUTION,    "FED_RES", TI_OPTION,  SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Resolution
+      { MENU_ACTION_DRAW_DIST,     "FEM_LOD", TI_OPTION, SCREEN_DISPLAY_ADVANCED,  57, 127,   MENU_ALIGN_LEFT   }, // Draw Distance
+      { MENU_ACTION_FRAME_LIMITER, "FEM_FRM", TI_OPTION, SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Frame Limiter
+      { MENU_ACTION_WIDESCREEN,    "FED_WIS", TI_OPTION, SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Widescreen
+      { MENU_ACTION_FX_QUALITY,    "FED_FXQ", TI_OPTION, SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Visual FX Quality
+      { MENU_ACTION_MIP_MAPPING,   "FED_MIP", TI_OPTION, SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Mip Mapping
+      { MENU_ACTION_ANTIALIASING,  "FED_AAS", TI_OPTION, SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Anti Aliasing
+      { MENU_ACTION_RESOLUTION,    "FED_RES", TI_OPTION, SCREEN_DISPLAY_ADVANCED,   0,   0,   MENU_ALIGN_LEFT   }, // Resolution
       { MENU_ACTION_BACK,          "FEDS_TB", TI_ENTER,  SCREEN_DISPLAY_SETTINGS, 320, 360,   MENU_ALIGN_CENTER }, // Back
     }
   },
@@ -442,7 +442,7 @@ tMenuScreen aScreensX[] = {
     5,
     {
 #ifdef GAME_ADVANCED_OPTIONS
-      { MENU_ACTION_MENU,        "FEO_GAM",  TI_ENTER,  SCREEN_GAME_OPTIONS,               210, 125,   MENU_ALIGN_CENTER }, // Game
+      { MENU_ACTION_MENU, "FEO_GAM", TI_ENTER, SCREEN_GAME_OPTIONS,     210, 125,   MENU_ALIGN_CENTER }, // Game
 #endif
       { MENU_ACTION_MENU, "FEO_CON", TI_ENTER, SCREEN_CONTROLLER_SETUP, 210, 152,   MENU_ALIGN_CENTER }, // Controller Setup
       { MENU_ACTION_MENU, "FEO_AUD", TI_ENTER, SCREEN_AUDIO_SETTINGS,     0,   0,   MENU_ALIGN_CENTER }, // Audio Setup
@@ -491,7 +491,7 @@ tMenuScreen aScreensX[] = {
       { 77,                       "MOB_LAN",  TI_OPTION,  SCREEN_NOP,  57, 210,   MENU_ALIGN_LEFT   }, // Lane Correction
       { 78,                       "MOB_TAR",  TI_OPTION,  SCREEN_NOP,  57, 245,   MENU_ALIGN_LEFT   }, // Targeting Mode
       { 80,                       "MOB_ACC",  TI_OPTION,  SCREEN_NOP,  57, 280,   MENU_ALIGN_LEFT   }, // Accelerometer
-      { MENU_ACTION_BACK,         "FEDS_TB",  TI_ENTER,  SCREEN_NOP, 320, 315,   MENU_ALIGN_CENTER }, // Back
+      { MENU_ACTION_BACK,         "FEDS_TB",  TI_ENTER,   SCREEN_NOP, 320, 315,   MENU_ALIGN_CENTER }, // Back
     }
   },
 #endif
@@ -503,20 +503,20 @@ tMenuScreen aScreensX[] = {
     0,
     {
 #ifdef USE_ADVANCED_OPTIONS_MENU
-      { 61,                       "FEC_CFG",  TI_OPTION,    SCREEN_CONTROLLER_SETUP,       57, 140,   MENU_ALIGN_LEFT   }, // Configuration
-      { 81,                       "FEC_TOU",  TI_OPTION,    SCREEN_NOP,                    57, 175,   MENU_ALIGN_LEFT   }, // Touch Layout
-      { 74,                       "FEC_STE",  TI_OPTION,    SCREEN_NOP,                    57, 210,   MENU_ALIGN_LEFT   }, // Touch Steering
-      { MENU_ACTION_MENU,         "FEC_RED",  TI_ENTER,    SCREEN_CONTROLS_DEFINITION,   320, 245,   MENU_ALIGN_CENTER }, // Redefine Controls
-      { 69,                       "FEC_ADJ",  TI_ENTER,    SCREEN_CONTROLS_DEFINITION,   320, 280,   MENU_ALIGN_CENTER }, // Change Button Position
+      { 61,                       "FEC_CFG",  TI_OPTION,      SCREEN_CONTROLLER_SETUP,       57, 140,   MENU_ALIGN_LEFT   }, // Configuration
+      { 81,                       "FEC_TOU",  TI_OPTION,      SCREEN_NOP,                    57, 175,   MENU_ALIGN_LEFT   }, // Touch Layout
+      { 74,                       "FEC_STE",  TI_OPTION,      SCREEN_NOP,                    57, 210,   MENU_ALIGN_LEFT   }, // Touch Steering
+      { MENU_ACTION_MENU,         "FEC_RED",  TI_ENTER,       SCREEN_CONTROLS_DEFINITION,   320, 245,   MENU_ALIGN_CENTER }, // Redefine Controls
+      { 69,                       "FEC_ADJ",  TI_ENTER,       SCREEN_CONTROLS_DEFINITION,   320, 280,   MENU_ALIGN_CENTER }, // Change Button Position
       { MENU_ACTION_CTRLS_JOYPAD, "FEC_CFG",  TI_MOUSEJOYPAD, SCREEN_CONTROLLER_SETUP,      320, 315,   MENU_ALIGN_CENTER }, // Configuration
-      { MENU_ACTION_MENU,         "FET_DEF",  TI_ENTER,    SCREEN_CONTROLS_RESET,        320, 350,   MENU_ALIGN_CENTER }, // Restore Defaults
+      { MENU_ACTION_MENU,         "FET_DEF",  TI_ENTER,       SCREEN_CONTROLS_RESET,        320, 350,   MENU_ALIGN_CENTER }, // Restore Defaults
 #else
-      { MENU_ACTION_CONTROL_TYPE, "FEC_CFG", TI_OPTION,    SCREEN_CONTROLLER_SETUP,       57, 150,   MENU_ALIGN_LEFT    }, // Configuration
-      { MENU_ACTION_MENU,         "FEC_RED", TI_ENTER,    SCREEN_REDEFINE_CONTROLS,     320, 195,   MENU_ALIGN_CENTER  }, // Redefine Controls
-      { MENU_ACTION_CTRLS_JOYPAD, "FEC_CFG", TI_MOUSEJOYPAD, SCREEN_CONTROLLER_SETUP,        0,   0,   MENU_ALIGN_CENTER  }, // Configuration
-      { MENU_ACTION_MENU,         "FET_DEF", TI_ENTER,    SCREEN_CONTROLS_RESET,        320, 275,   MENU_ALIGN_CENTER  }, // Restore Defaults
+      { MENU_ACTION_CONTROL_TYPE, "FEC_CFG", TI_OPTION,       SCREEN_CONTROLLER_SETUP,       57, 150,   MENU_ALIGN_LEFT    }, // Configuration
+      { MENU_ACTION_MENU,         "FEC_RED", TI_ENTER,        SCREEN_REDEFINE_CONTROLS,     320, 195,   MENU_ALIGN_CENTER  }, // Redefine Controls
+      { MENU_ACTION_CTRLS_JOYPAD, "FEC_CFG", TI_MOUSEJOYPAD,  SCREEN_CONTROLLER_SETUP,        0,   0,   MENU_ALIGN_CENTER  }, // Configuration
+      { MENU_ACTION_MENU,         "FET_DEF", TI_ENTER,        SCREEN_CONTROLS_RESET,        320, 275,   MENU_ALIGN_CENTER  }, // Restore Defaults
 #endif
-      { MENU_ACTION_BACK,         "FEDS_TB", TI_ENTER,    SCREEN_NOP,                     0,   0,   MENU_ALIGN_CENTER  }, // Back
+      { MENU_ACTION_BACK,         "FEDS_TB", TI_ENTER,        SCREEN_NOP,                     0,   0,   MENU_ALIGN_CENTER  }, // Back
     }
   },
 
@@ -545,10 +545,10 @@ tMenuScreen aScreensX[] = {
     SCREEN_CONTROLLER_SETUP,
     2,
     {
-      { MENU_ACTION_MOUSE_SENS,              "FEC_MSH",  TI_OPTION,  SCREEN_MOUSE_SETTINGS,      40, 130,   MENU_ALIGN_LEFT   }, // Mouse Sensitivity
-      { MENU_ACTION_CONTROLS_MOUSE_INVERT_Y, "FEC_IVV",  TI_OPTION,  SCREEN_MOUSE_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Invert Mouse Vertically
-      { MENU_ACTION_MOUSE_STEERING,          "FET_MST",  TI_OPTION,  SCREEN_MOUSE_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Steer With Mouse
-      { MENU_ACTION_MOUSE_FLY,               "FET_MFL",  TI_OPTION,  SCREEN_MOUSE_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Fly With Mouse
+      { MENU_ACTION_MOUSE_SENS,              "FEC_MSH",  TI_OPTION, SCREEN_MOUSE_SETTINGS,      40, 130,   MENU_ALIGN_LEFT   }, // Mouse Sensitivity
+      { MENU_ACTION_CONTROLS_MOUSE_INVERT_Y, "FEC_IVV",  TI_OPTION, SCREEN_MOUSE_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Invert Mouse Vertically
+      { MENU_ACTION_MOUSE_STEERING,          "FET_MST",  TI_OPTION, SCREEN_MOUSE_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Steer With Mouse
+      { MENU_ACTION_MOUSE_FLY,               "FET_MFL",  TI_OPTION, SCREEN_MOUSE_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Fly With Mouse
       { MENU_ACTION_BACK,                    "FEDS_TB",  TI_ENTER,  SCREEN_NOP,                320, 290,   MENU_ALIGN_CENTER }, // Back
     }
   },
@@ -559,12 +559,12 @@ tMenuScreen aScreensX[] = {
     SCREEN_CONTROLLER_SETUP,
     2,
     {
-      { MENU_ACTION_CONTROLS_JOY_INVERT_X,   "FEJ_INX",  TI_OPTION,  SCREEN_JOYPAD_SETTINGS,      40, 130,   MENU_ALIGN_LEFT   }, // Invert left stick x
-      { MENU_ACTION_CONTROLS_JOY_INVERT_Y,   "FEJ_INY",  TI_OPTION,  SCREEN_JOYPAD_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Invert left stick y
-      { MENU_ACTION_CONTROLS_JOY_SWAP_AXIS1, "FEJ_INA",  TI_OPTION,  SCREEN_JOYPAD_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Invert left axis
-      { MENU_ACTION_CONTROLS_JOY_INVERT_X2,  "FEJ_RNX",  TI_OPTION,  SCREEN_JOYPAD_SETTINGS,      40, 245,   MENU_ALIGN_LEFT   }, // Invert right stick x
-      { MENU_ACTION_CONTROLS_JOY_INVERT_Y2,  "FEJ_RNY",  TI_OPTION,  SCREEN_JOYPAD_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Invert right stick y
-      { MENU_ACTION_CONTROLS_JOY_SWAP_AXIS2, "FEJ_RNA",  TI_OPTION,  SCREEN_JOYPAD_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Invert right axis
+      { MENU_ACTION_CONTROLS_JOY_INVERT_X,   "FEJ_INX",  TI_OPTION, SCREEN_JOYPAD_SETTINGS,      40, 130,   MENU_ALIGN_LEFT   }, // Invert left stick x
+      { MENU_ACTION_CONTROLS_JOY_INVERT_Y,   "FEJ_INY",  TI_OPTION, SCREEN_JOYPAD_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Invert left stick y
+      { MENU_ACTION_CONTROLS_JOY_SWAP_AXIS1, "FEJ_INA",  TI_OPTION, SCREEN_JOYPAD_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Invert left axis
+      { MENU_ACTION_CONTROLS_JOY_INVERT_X2,  "FEJ_RNX",  TI_OPTION, SCREEN_JOYPAD_SETTINGS,      40, 245,   MENU_ALIGN_LEFT   }, // Invert right stick x
+      { MENU_ACTION_CONTROLS_JOY_INVERT_Y2,  "FEJ_RNY",  TI_OPTION, SCREEN_JOYPAD_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Invert right stick y
+      { MENU_ACTION_CONTROLS_JOY_SWAP_AXIS2, "FEJ_RNA",  TI_OPTION, SCREEN_JOYPAD_SETTINGS,       0,   0,   MENU_ALIGN_LEFT   }, // Invert right axis
       { MENU_ACTION_BACK,                    "FEDS_TB",  TI_ENTER,  SCREEN_NOP,                 320, 370,   MENU_ALIGN_CENTER }, // Back
     }
   },
