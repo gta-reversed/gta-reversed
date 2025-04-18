@@ -170,7 +170,7 @@ public:
     bool  m_bTexturesLoaded;
     eMenuScreen m_nCurrentScreen;
     eMenuScreen m_nPrevScreen; // Used only in SwitchToNewScreen
-    uint8 m_SelectedSlot; // Orginally that hasnt 'm_' prefix
+    uint8 m_SelectedSlot;
     uint8 m_nMissionPackGameId;
     MPack m_MissionPacks[MPACK_COUNT];
     bool  m_bDoVideoModeUpdate;

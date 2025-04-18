@@ -874,30 +874,6 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_DebugStuff(int
     return;
 }
 
-// inlined
-constexpr inline int16& GetControllerStateJoyStick(CPad& pad, KeyCode button) {
-    const auto specGamepad = AllValidWinJoys.JoyStickNum[0].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[0].wProductID == 0x1190;
-    switch (button) {
-    case eJoyButtons::JOYBUTTON_ONE:       return specGamepad ? pad.PCTempJoyState.ButtonTriangle : pad.PCTempJoyState.ButtonCircle;
-    case eJoyButtons::JOYBUTTON_TWO:       return specGamepad ? pad.PCTempJoyState.ButtonCircle : pad.PCTempJoyState.ButtonCross;
-    case eJoyButtons::JOYBUTTON_THREE:     return specGamepad ? pad.PCTempJoyState.ButtonCross : pad.PCTempJoyState.ButtonSquare;
-    case eJoyButtons::JOYBUTTON_FOUR:      return specGamepad ? pad.PCTempJoyState.ButtonSquare : pad.PCTempJoyState.ButtonTriangle;
-    case eJoyButtons::JOYBUTTON_FIVE:      return pad.PCTempJoyState.LeftShoulder2;
-    case eJoyButtons::JOYBUTTON_SIX:       return pad.PCTempJoyState.RightShoulder2;
-    case eJoyButtons::JOYBUTTON_SEVEN:     return pad.PCTempJoyState.LeftShoulder1;
-    case eJoyButtons::JOYBUTTON_EIGHT:     return pad.PCTempJoyState.RightShoulder1;
-    case eJoyButtons::JOYBUTTON_NINE:      return pad.PCTempJoyState.Select;
-    case eJoyButtons::JOYBUTTON_TEN:       return pad.PCTempJoyState.ShockButtonL;
-    case eJoyButtons::JOYBUTTON_ELEVEN:    return pad.PCTempJoyState.ShockButtonR;
-    case eJoyButtons::JOYBUTTON_TWELVE:    return pad.PCTempJoyState.Start;
-    case eJoyButtons::JOYBUTTON_THIRTEEN:  return pad.PCTempJoyState.DPadUp;
-    case eJoyButtons::JOYBUTTON_FOURTEEN:  return pad.PCTempJoyState.DPadRight;
-    case eJoyButtons::JOYBUTTON_FIFTHTEEN: return pad.PCTempJoyState.DPadDown;
-    case eJoyButtons::JOYBUTTON_SIXTEEN:   return pad.PCTempJoyState.DPadLeft;
-    default:                               NOTSA_UNREACHABLE("Invalid button ({})", (uint32)button);
-    }
-}
-
 // 0x52DAB0
 void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonDown(KeyCode button, int32 padNumber) {
     CPad* pad = CPad::GetPad(padNumber);
@@ -1454,6 +1430,30 @@ void CControllerConfigManager::CheckAndSetStick(eControllerAction action, eContr
         }
     }
 };
+
+// inlined
+constexpr inline int16& GetControllerStateJoyStick(CPad& pad, KeyCode button) {
+    const auto specGamepad = AllValidWinJoys.JoyStickNum[0].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[0].wProductID == 0x1190;
+    switch (button) {
+    case eJoyButtons::JOYBUTTON_ONE:       return specGamepad ? pad.PCTempJoyState.ButtonTriangle : pad.PCTempJoyState.ButtonCircle;
+    case eJoyButtons::JOYBUTTON_TWO:       return specGamepad ? pad.PCTempJoyState.ButtonCircle : pad.PCTempJoyState.ButtonCross;
+    case eJoyButtons::JOYBUTTON_THREE:     return specGamepad ? pad.PCTempJoyState.ButtonCross : pad.PCTempJoyState.ButtonSquare;
+    case eJoyButtons::JOYBUTTON_FOUR:      return specGamepad ? pad.PCTempJoyState.ButtonSquare : pad.PCTempJoyState.ButtonTriangle;
+    case eJoyButtons::JOYBUTTON_FIVE:      return pad.PCTempJoyState.LeftShoulder2;
+    case eJoyButtons::JOYBUTTON_SIX:       return pad.PCTempJoyState.RightShoulder2;
+    case eJoyButtons::JOYBUTTON_SEVEN:     return pad.PCTempJoyState.LeftShoulder1;
+    case eJoyButtons::JOYBUTTON_EIGHT:     return pad.PCTempJoyState.RightShoulder1;
+    case eJoyButtons::JOYBUTTON_NINE:      return pad.PCTempJoyState.Select;
+    case eJoyButtons::JOYBUTTON_TEN:       return pad.PCTempJoyState.ShockButtonL;
+    case eJoyButtons::JOYBUTTON_ELEVEN:    return pad.PCTempJoyState.ShockButtonR;
+    case eJoyButtons::JOYBUTTON_TWELVE:    return pad.PCTempJoyState.Start;
+    case eJoyButtons::JOYBUTTON_THIRTEEN:  return pad.PCTempJoyState.DPadUp;
+    case eJoyButtons::JOYBUTTON_FOURTEEN:  return pad.PCTempJoyState.DPadRight;
+    case eJoyButtons::JOYBUTTON_FIFTHTEEN: return pad.PCTempJoyState.DPadDown;
+    case eJoyButtons::JOYBUTTON_SIXTEEN:   return pad.PCTempJoyState.DPadLeft;
+    default:                               NOTSA_UNREACHABLE("Invalid button ({})", (uint32)button);
+    }
+}
 
 // inline
 bool CControllerConfigManager::UseDrivingControls() {
