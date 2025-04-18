@@ -7,6 +7,7 @@
 class CPed;
 class CEntity;
 class CPedGroup;
+class CEventEditableResponse;
 
 class NOTSA_EXPORT_VTABLE CEvent {
 public:

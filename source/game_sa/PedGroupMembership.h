@@ -139,7 +139,7 @@ public:
     }
 
     /// Wrapper around `GetMemberClosestToIf`, using an always-true predicate
-    auto GetMemberClosestTo(CPed* ped, bool includeLeader = true) { return GetMemberClosestToIf(ped, [](CPed&) { return true; }, includeLeader); }
+    auto GetMemberClosestTo(CPed* ped, bool includeLeader = true) -> FindClosestMemberResult;
 
     //! Find follower closest to the leader
     auto FindClosestFollowerToLeader() -> FindClosestMemberResult;
