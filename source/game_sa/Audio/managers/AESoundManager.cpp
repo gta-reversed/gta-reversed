@@ -34,23 +34,23 @@ bool CAESoundManager::Initialise() {
         return false;
     }
 
-    m_AllocatedPhysicalChannels = availChannels >= MAX_NUM_SOUNDS ? MAX_NUM_SOUNDS : availChannels;
-    m_AudioHardwareHandle       = AEAudioHardware.AllocateChannels(m_AllocatedPhysicalChannels);
+    m_NumAllocatedPhysicalChannels = availChannels >= MAX_NUM_SOUNDS ? MAX_NUM_SOUNDS : availChannels;
+    m_AudioHardwareHandle       = AEAudioHardware.AllocateChannels(m_NumAllocatedPhysicalChannels);
     if (m_AudioHardwareHandle == -1) {
         return false;
     }
 
     // BUG? There's some int16 weird logic in the original code, I simplified it to what's actually used i think
-    m_PhysicallyPlayingSoundList = new int16[m_AllocatedPhysicalChannels];
-    m_ChannelPosition            = new int16[m_AllocatedPhysicalChannels];
-    m_PrioritisedSoundList       = new int16[m_AllocatedPhysicalChannels];
+    m_PhysicallyPlayingSoundList = new int16[m_NumAllocatedPhysicalChannels];
+    m_ChannelPosition            = new int16[m_NumAllocatedPhysicalChannels];
+    m_PrioritisedSoundList       = new int16[m_NumAllocatedPhysicalChannels];
 
     for (CAESound& sound : m_VirtuallyPlayingSoundList) {
         sound.m_nIsUsed     = 0;
-        sound.m_nHasStarted = 0;
+        sound.m_IsPhysicallyPlaying = 0;
     }
 
-    std::fill_n(m_PhysicallyPlayingSoundList, m_AllocatedPhysicalChannels, -1);
+    std::fill_n(m_PhysicallyPlayingSoundList, m_NumAllocatedPhysicalChannels, -1);
 
     m_TimeLastCalled         = CTimer::GetTimeInMS();
     m_WasGamePausedLastFrame = false;
@@ -91,7 +91,7 @@ void CAESoundManager::PauseManually(uint8 bPause) {
 // 0x4F0000
 void CAESoundManager::Service() {
     // Clear sounds uncancellable status for this frame
-    std::fill_n(m_PrioritisedSoundList, m_AllocatedPhysicalChannels, -1);
+    std::fill_n(m_PrioritisedSoundList, m_NumAllocatedPhysicalChannels, -1);
 
     // Calculate time diff from last update
     uint32 timeSinceLastUpdate;
@@ -117,14 +117,14 @@ void CAESoundManager::Service() {
     AEAudioHardware.GetVirtualChannelSoundLengths(m_VirtualChannelSoundLengths);
     AEAudioHardware.GetVirtualChannelSoundLoopStartTimes(m_VirtualChannelSoundLoopStartTimes);
 
-    // Initialize sounds that are using percentage specified start positions 0x4F011C
+    // 0x4F011C - Initialize sounds that are using percentage specified start positions
     for (auto&& [i, sound] : rngv::enumerate(m_VirtuallyPlayingSoundList)) {
         if (!sound.IsUsed() || !sound.WasServiced() || !sound.GetStartPercentage()) {
             continue;
         }
 
         sound.SetIndividualEnvironment(eSoundEnvironment::SOUND_START_PERCENTAGE, false);
-        if (sound.m_nHasStarted) {
+        if (sound.m_IsPhysicallyPlaying) {
             continue;
         }
 
@@ -132,135 +132,149 @@ void CAESoundManager::Service() {
         sound.m_nCurrentPlayPosition = static_cast<uint16>((float)(sound.m_nCurrentPlayPosition * m_VirtualChannelSoundLengths[i]) / 100.0f);
     }
 
-    // Stop sounds that turned inactive
-    for (auto i = 0; i < m_AllocatedPhysicalChannels; ++i) {
-        const auto channelSound = m_PhysicallyPlayingSoundList[i];
-        if (channelSound == -1) {
+    // 0x4F016D - Stop sounds that turned inactive
+    for (auto&& [i, ref] : rngv::enumerate(GetPhysicallyPlayingSoundList())) {
+        if (ref == -1) {
             continue;
         }
-
-        auto& sound                  = m_VirtuallyPlayingSoundList[channelSound];
+        auto& sound                  = m_VirtuallyPlayingSoundList[ref];
         sound.m_nCurrentPlayPosition = m_ChannelPosition[i];
-        if (sound.m_nPlayingState != eSoundState::SOUND_ACTIVE) {
+        if (sound.GetPlayingState() != eSoundState::SOUND_ACTIVE) {
             AEAudioHardware.StopSound(m_AudioHardwareHandle, i);
         }
     }
 
-    // Update sounds playtime
+    // 0x4F01E4 - Update sounds playtime
     for (auto&& [i, sound] : rngv::enumerate(m_VirtuallyPlayingSoundList)) {
-        if (!sound.IsUsed() || !sound.WasServiced() || sound.m_nIgnoredServiceCycles) {
+        if (!sound.IsUsed() || !sound.WasServiced() || sound.m_FrameDelay) {
             continue;
         }
-
         auto usedProgress = CAESoundManager::IsSoundPaused(sound) ? 0 : timeSinceLastUpdate;
         sound.UpdatePlayTime(m_VirtualChannelSoundLengths[i], m_VirtualChannelSoundLoopStartTimes[i], usedProgress);
     }
 
-    // Remove songs that ended from sounds table
-    for (auto i = 0; i < m_AllocatedPhysicalChannels; ++i) {
-        if (m_ChannelPosition[i] == -1) {
-            m_PhysicallyPlayingSoundList[i] = -1;
+    // 0x4F02FB - Remove sounds that ended from sounds table
+    for (auto&& [chN, ref] : rngv::enumerate(GetChannelPositions())) {
+        if (ref == -1) {
+            GetPhysicallyPlayingSoundList()[chN] = -1;
         }
     }
 
-    // Mark songs that ended as finished
+    // 0x4F0329 - Mark sounds that ended as finished
     for (CAESound& sound : m_VirtuallyPlayingSoundList) {
         if (!sound.IsUsed() || !sound.WasServiced() || sound.m_nCurrentPlayPosition != -1) {
             continue;
         }
-
         sound.SoundHasFinished();
     }
 
-    // Update song positions and volumes
+    // 0x4F03E5, 0x4F040D - Update sounds positions and volumes
     for (CAESound& sound : m_VirtuallyPlayingSoundList) {
-        if (sound.IsUsed()) {
-            sound.UpdateParameters(sound.m_nCurrentPlayPosition);
-            sound.CalculateVolume();
-        }
-    }
-
-    // Mark uncancellable songs as so for this frame
-    auto numUncancellableSoundsThisFrame = 0;
-    for (auto i = 0; i < m_AllocatedPhysicalChannels; ++i) {
-        const auto channelSound = m_PhysicallyPlayingSoundList[i];
-        if (channelSound == -1 || !m_VirtuallyPlayingSoundList[channelSound].GetUncancellable()) {
+        if (!sound.IsUsed()) {
             continue;
         }
+        sound.UpdateParameters(sound.m_nCurrentPlayPosition);
+        sound.CalculateVolume();
+    }
 
-        m_PrioritisedSoundList[numUncancellableSoundsThisFrame] = channelSound;
-        ++numUncancellableSoundsThisFrame;
+    // 0x4F042C - Find prioritized sounds
+    auto numPrioritisedSounds = 0;
+    for (auto&& [i, ref] : rngv::enumerate(GetPhysicallyPlayingSoundList())) {
+        if (ref == -1) {
+            continue;
+        }
+        if (!m_VirtuallyPlayingSoundList[ref].GetUncancellable()) {
+            continue;
+        }
+        m_PrioritisedSoundList[numPrioritisedSounds++] = ref;
     }
 
     // Mark some more songs as uncancellable under specific conditions
     for (auto&& [i, sound] : rngv::enumerate(m_VirtuallyPlayingSoundList)) {
-        if (!sound.IsUsed() || (sound.m_nHasStarted && sound.GetUncancellable()) || sound.m_nIgnoredServiceCycles) {
+        if (!sound.IsUsed()) {
+            continue;
+        }
+        if (sound.m_IsPhysicallyPlaying && sound.GetUncancellable()) {
+            continue;
+        }
+        if (sound.m_FrameDelay != 0) {
             continue;
         }
 
-        int32 iCurUncancell;
-        for (iCurUncancell = m_AllocatedPhysicalChannels - 1; iCurUncancell >= numUncancellableSoundsThisFrame; --iCurUncancell) {
-            if (m_PrioritisedSoundList[iCurUncancell] == -1) {
-                continue;
-            }
+        int16 chN = m_NumAllocatedPhysicalChannels - 1;
 
-            auto& uncancellSound = m_VirtuallyPlayingSoundList[m_PrioritisedSoundList[iCurUncancell]];
-            if (sound.m_fFinalVolume < uncancellSound.m_fFinalVolume && sound.GetPlayPhysically() <= uncancellSound.GetPlayPhysically()) {
+        // 0x4F04CE - Find last slot in use
+        for (; chN > numPrioritisedSounds; chN--) {
+            if (GetPrioritisedSoundList()[chN] != -1) {
                 break;
             }
         }
 
-        auto iFreeUncancellInd = iCurUncancell + 1;
-        if (iFreeUncancellInd != m_AllocatedPhysicalChannels) {
-            for (auto ind = m_AllocatedPhysicalChannels - 1; ind > iFreeUncancellInd; --ind) {
-                m_PrioritisedSoundList[ind] = m_PrioritisedSoundList[ind - 1];
+        // 0x4F04EB - Find where to insert
+        for (; chN >= numPrioritisedSounds; chN--) {
+            const auto& soundB = m_VirtuallyPlayingSoundList[m_PrioritisedSoundList[chN]];
+            if (sound.m_ListenerVolume >= soundB.m_ListenerVolume) {
+                continue;
+            }
+            if (sound.GetPlayPhysically() <= soundB.GetPlayPhysically()) {
+                continue;
+            }
+            break;
+        }
+
+        // 0x4F0529 - Insert at given index
+        if (chN != m_NumAllocatedPhysicalChannels - 1) {
+            // Shift to right
+            for (auto i = m_NumAllocatedPhysicalChannels - 1; i > chN + 1; --i) {
+                m_PrioritisedSoundList[i] = m_PrioritisedSoundList[i - 1];
             }
 
-            m_PrioritisedSoundList[iFreeUncancellInd] = i;
+            // Insert
+            m_PrioritisedSoundList[chN + 1] = i;
         }
     }
 
-    // Stop songs that aren't marked as uncancellable in this frame
-    for (auto i = 0; i < m_AllocatedPhysicalChannels; ++i) {
-        const auto channelSound = m_PhysicallyPlayingSoundList[i];
-        if (channelSound == -1) {
+    // 0x4F0585 - Stop songs that aren't marked as uncancellable in this frame
+    for (auto i = 0; i < m_NumAllocatedPhysicalChannels; ++i) {
+        const auto ref = m_PhysicallyPlayingSoundList[i];
+        if (ref == -1) {
             continue;
         }
 
-        int32 uncancellIndex;
-        for (uncancellIndex = 0; uncancellIndex < m_AllocatedPhysicalChannels; ++uncancellIndex) {
-            if (channelSound == m_PrioritisedSoundList[uncancellIndex]) {
+        int32 chN;
+        for (chN = 0; chN < m_NumAllocatedPhysicalChannels; ++chN) {
+            if (ref == m_PrioritisedSoundList[chN]) {
                 break;
             }
         }
 
-        if (uncancellIndex == m_AllocatedPhysicalChannels) {
-            m_VirtuallyPlayingSoundList[channelSound].m_nHasStarted = false;
-            m_PhysicallyPlayingSoundList[i]                         = -1;
+        if (chN == m_NumAllocatedPhysicalChannels) {
+            m_VirtuallyPlayingSoundList[ref].m_IsPhysicallyPlaying = false;
+            m_PhysicallyPlayingSoundList[i]                        = -1;
             AEAudioHardware.StopSound(m_AudioHardwareHandle, i);
         } else {
-            m_PrioritisedSoundList[uncancellIndex] = -1;
+            m_PrioritisedSoundList[chN] = -1;
         }
     }
 
     // 0x4F0628 - Play sounds that require that
-    for (auto i = 0, chN = 0; i < m_AllocatedPhysicalChannels; ++i) {
+    for (auto i = 0, chN = 0; i < m_NumAllocatedPhysicalChannels; ++i) {
         const auto ref = m_PrioritisedSoundList[i];
         if (ref == -1) {
             continue;
         }
 
         // Find a free channel to use
-        while (chN < m_AllocatedPhysicalChannels && m_PhysicallyPlayingSoundList[chN] != -1) {
+        while (chN < m_NumAllocatedPhysicalChannels && m_PhysicallyPlayingSoundList[chN] != -1) {
             chN++;
         }
-        if (chN >= m_AllocatedPhysicalChannels) {
+        if (chN >= m_NumAllocatedPhysicalChannels) {
             break;
         }
 
         m_PhysicallyPlayingSoundList[chN] = ref;
         auto& sound                       = m_VirtuallyPlayingSoundList[ref];
-        sound.m_nHasStarted               = true;
+        sound.m_IsPhysicallyPlaying               = true;
 
         const auto freqFactor = sound.GetRelativePlaybackFrequencyWithDoppler() * sound.GetSlowMoFrequencyScalingFactor();
 
@@ -268,25 +282,25 @@ void CAESoundManager::Service() {
         flags.CopyFromAESound(sound);
 
         AEAudioHardware.PlaySound(m_AudioHardwareHandle, chN, sound.m_nSoundIdInSlot, sound.m_nBankSlotId, sound.m_nCurrentPlayPosition, flags.m_nFlags, sound.m_fSpeed);
-        AEAudioHardware.SetChannelVolume(m_AudioHardwareHandle, chN, sound.m_fFinalVolume, 0);
+        AEAudioHardware.SetChannelVolume(m_AudioHardwareHandle, chN, sound.m_ListenerVolume, 0);
         AEAudioHardware.SetChannelPosition(m_AudioHardwareHandle, chN, sound.GetRelativePosition(), 0);
         AEAudioHardware.SetChannelFrequencyScalingFactor(m_AudioHardwareHandle, chN, freqFactor);
     }
 
     // 0x4F0894
-    for (auto i = 0; i < m_AllocatedPhysicalChannels; ++i) {
-        const auto channelSound = m_PhysicallyPlayingSoundList[i];
-        if (channelSound == -1) {
+    for (auto i = 0; i < m_NumAllocatedPhysicalChannels; ++i) {
+        const auto ref = m_PhysicallyPlayingSoundList[i];
+        if (ref == -1) {
             continue;
         }
 
-        auto& sound = m_VirtuallyPlayingSoundList[channelSound];
+        auto& sound = m_VirtuallyPlayingSoundList[ref];
         if (!sound.IsUsed()) {
             continue;
         }
 
         if (!CAESoundManager::IsSoundPaused(sound)) {
-            AEAudioHardware.SetChannelVolume(m_AudioHardwareHandle, i, sound.m_fFinalVolume, 0);
+            AEAudioHardware.SetChannelVolume(m_AudioHardwareHandle, i, sound.m_ListenerVolume, 0);
             auto freq        = sound.GetRelativePlaybackFrequencyWithDoppler();
             auto slomoFactor = sound.GetSlowMoFrequencyScalingFactor();
             AEAudioHardware.SetChannelFrequencyScalingFactor(m_AudioHardwareHandle, i, freq * slomoFactor);
@@ -307,8 +321,8 @@ void CAESoundManager::Service() {
         }
 
         sound.m_bWasServiced = true;
-        if (sound.m_nIgnoredServiceCycles > 0 && !CAESoundManager::IsSoundPaused(sound)) {
-            --sound.m_nIgnoredServiceCycles;
+        if (sound.m_FrameDelay > 0 && !CAESoundManager::IsSoundPaused(sound)) {
+            --sound.m_FrameDelay;
         }
     }
 }
@@ -360,7 +374,7 @@ int16 CAESoundManager::AreSoundsPlayingInBankSlot(int16 bankSlot) {
         if (!sound.IsUsed() || sound.m_nBankSlotId != bankSlot) {
             continue;
         }
-        if (sound.m_nHasStarted) {
+        if (sound.m_IsPhysicallyPlaying) {
             return eSoundPlayingStatus::SOUND_HAS_STARTED;
         }
         nPlaying = eSoundPlayingStatus::SOUND_PLAYING;
@@ -375,7 +389,7 @@ int16 CAESoundManager::AreSoundsOfThisEventPlayingForThisEntity(int16 eventId, C
         if (!sound.IsUsed() || sound.m_nEvent != eventId || sound.m_pBaseAudio != audioEntity) {
             continue;
         }
-        if (sound.m_nHasStarted) {
+        if (sound.m_IsPhysicallyPlaying) {
             return eSoundPlayingStatus::SOUND_HAS_STARTED;
         }
         nPlaying = eSoundPlayingStatus::SOUND_PLAYING;
@@ -391,7 +405,7 @@ int16 CAESoundManager::AreSoundsOfThisEventPlayingForThisEntityAndPhysical(int16
         if (!sound.IsUsed() || sound.m_nEvent != eventId || sound.m_pBaseAudio != audioEntity || sound.m_pPhysicalEntity != physical) {
             continue;
         }
-        if (sound.m_nHasStarted) {
+        if (sound.m_IsPhysicallyPlaying) {
             return eSoundPlayingStatus::SOUND_HAS_STARTED;
         }
         nPlaying = eSoundPlayingStatus::SOUND_PLAYING;
@@ -451,7 +465,7 @@ void CAESoundManager::CancelSoundsOwnedByAudioEntity(CAEAudioEntity* audioEntity
 // 0x4EF630, unused
 int16 CAESoundManager::GetVirtualChannelForPhysicalChannel(int16 physicalChannel) const {
     const auto chIdx = physicalChannel - m_AudioHardwareHandle;
-    if (chIdx < 0 || chIdx >= m_AllocatedPhysicalChannels) {
+    if (chIdx < 0 || chIdx >= m_NumAllocatedPhysicalChannels) {
         return -1;
     }
     return m_PhysicallyPlayingSoundList[chIdx];

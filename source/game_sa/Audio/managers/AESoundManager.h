@@ -16,11 +16,11 @@ using tSoundReference = int16;
 
 class CAESoundManager {
 public:
-    uint16           m_AllocatedPhysicalChannels;
+    uint16           m_NumAllocatedPhysicalChannels;
     int16            m_AudioHardwareHandle;
     CAESound         m_VirtuallyPlayingSoundList[MAX_NUM_SOUNDS];
     tSoundReference* m_PhysicallyPlayingSoundList;                        //!< List of sounds that are currently playing (Size: `m_AllocatedPhysicalChannels`)
-    int16*           m_ChannelPosition;                                   //!< Sound position in the channel (Size: `m_AllocatedPhysicalChannels`)
+    int16*           m_ChannelPosition;                                   //!< Sound positions (Size: `m_AllocatedPhysicalChannels`)
     tSoundReference* m_PrioritisedSoundList;                              //!< List of sounds that are currently playing and are uncancellable (Size: `m_AllocatedPhysicalChannels`)
     int16            m_VirtualChannelSoundLengths[MAX_NUM_SOUNDS];        //!< Sound lengths in ms (Size: `m_AllocatedPhysicalChannels`)
     int16            m_VirtualChannelSoundLoopStartTimes[MAX_NUM_SOUNDS]; //!< Sound loop start times in ms (Size: `m_AllocatedPhysicalChannels`)
@@ -74,6 +74,10 @@ public:
     void      CancelSoundsInBankSlot(int16 bankSlot, bool bFullStop);
     void      CancelSoundsOwnedByAudioEntity(CAEAudioEntity* audioEntity, bool bFullStop);
     int16     GetVirtualChannelForPhysicalChannel(int16 physicalChannel) const;
+
+    auto GetPhysicallyPlayingSoundList() const { return std::span{ m_PhysicallyPlayingSoundList, m_NumAllocatedPhysicalChannels }; }
+    auto GetChannelPositions() const { return std::span{ m_ChannelPosition, m_NumAllocatedPhysicalChannels }; }
+    auto GetPrioritisedSoundList() const { return std::span{ m_PrioritisedSoundList, m_NumAllocatedPhysicalChannels }; }
 
 private:
     CAESound* GetFreeSound(size_t* outIdx);

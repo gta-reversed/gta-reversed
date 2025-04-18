@@ -58,12 +58,12 @@ CAESound::CAESound(CAESound& sound) {
     m_fCurrCamDist = sound.m_fCurrCamDist;
     m_fPrevCamDist = sound.m_fPrevCamDist;
     m_fTimeScale = sound.m_fTimeScale;
-    m_nIgnoredServiceCycles = sound.m_nIgnoredServiceCycles;
+    m_FrameDelay = sound.m_FrameDelay;
     m_nEnvironmentFlags = sound.m_nEnvironmentFlags;
     m_nIsUsed = sound.m_nIsUsed;
     m_nCurrentPlayPosition = sound.m_nCurrentPlayPosition;
-    m_nHasStarted = sound.m_nHasStarted;
-    m_fFinalVolume = sound.m_fFinalVolume;
+    m_IsPhysicallyPlaying = sound.m_IsPhysicallyPlaying;
+    m_ListenerVolume = sound.m_ListenerVolume;
     m_fFrequency = sound.m_fFrequency;
     m_nPlayingState = sound.m_nPlayingState;
     m_fSoundHeadRoom = sound.m_fSoundHeadRoom;
@@ -95,14 +95,14 @@ CAESound::CAESound(int16 bankSlotId, int16 sfxId, CAEAudioEntity* baseAudio, CVe
     m_fSoundDistance = fDistance;
     m_fSpeed = speed;
     m_fTimeScale = timeScale;
-    m_nIgnoredServiceCycles = ignoredServiceCycles;
+    m_FrameDelay = ignoredServiceCycles;
     m_nEnvironmentFlags = environmentFlags;
-    m_nHasStarted = 0;
+    m_IsPhysicallyPlaying = 0;
     m_nCurrentPlayPosition = 0;
     m_fSoundHeadRoom = 0.0F;
     m_fSpeedVariability = speedVariability;
     m_nIsUsed = 1;
-    m_fFinalVolume = -100.0F;
+    m_ListenerVolume = -100.0F;
     m_fFrequency = 1.0F;
     m_nSoundLength = -1;
 }
@@ -134,12 +134,12 @@ CAESound& CAESound::operator=(const CAESound& sound) {
     m_fCurrCamDist          = sound.m_fCurrCamDist;
     m_fPrevCamDist          = sound.m_fPrevCamDist;
     m_fTimeScale            = sound.m_fTimeScale;
-    m_nIgnoredServiceCycles = sound.m_nIgnoredServiceCycles;
+    m_FrameDelay = sound.m_FrameDelay;
     m_nEnvironmentFlags     = sound.m_nEnvironmentFlags;
     m_nIsUsed               = sound.m_nIsUsed;
     m_nCurrentPlayPosition  = sound.m_nCurrentPlayPosition;
-    m_nHasStarted           = sound.m_nHasStarted;
-    m_fFinalVolume          = sound.m_fFinalVolume;
+    m_IsPhysicallyPlaying           = sound.m_IsPhysicallyPlaying;
+    m_ListenerVolume          = sound.m_ListenerVolume;
     m_fFrequency            = sound.m_fFrequency;
     m_nPlayingState         = sound.m_nPlayingState;
     m_fSoundHeadRoom        = sound.m_fSoundHeadRoom;
@@ -173,7 +173,7 @@ void CAESound::SetIndividualEnvironment(uint16 envFlag, uint16 bEnabled) {
 // 0x4EF2E0
 void CAESound::UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 playProgress) {
     m_nSoundLength = soundLength;
-    if (m_nHasStarted)
+    if (m_IsPhysicallyPlaying)
         return;
 
     if (m_nPlayingState != eSoundState::SOUND_ACTIVE) {
@@ -242,7 +242,7 @@ float CAESound::GetSlowMoFrequencyScalingFactor() const {
 
 // 0x4EF7A0
 void CAESound::NewVPSLentry() {
-    m_nHasStarted = 0;
+    m_IsPhysicallyPlaying = 0;
     m_nPlayingState = eSoundState::SOUND_ACTIVE;
     m_bWasServiced = 0;
     m_nIsUsed = 1;
@@ -300,11 +300,11 @@ void CAESound::SetPosition(CVector pos) {
 // 0x4EFA10
 void CAESound::CalculateVolume() {
     if (GetFrontEnd())
-        m_fFinalVolume = m_fVolume - m_fSoundHeadRoom;
+        m_ListenerVolume = m_fVolume - m_fSoundHeadRoom;
     else {
         const auto relativeToCamPos = CAEAudioEnvironment::GetPositionRelativeToCamera(m_vecCurrPosn);
         const auto attenuation      = CAEAudioEnvironment::GetDistanceAttenuation(relativeToCamPos.Magnitude() / m_fSoundDistance);
-        m_fFinalVolume              = CAEAudioEnvironment::GetDirectionalMikeAttenuation(relativeToCamPos) + attenuation + m_fVolume - m_fSoundHeadRoom;
+        m_ListenerVolume              = CAEAudioEnvironment::GetDirectionalMikeAttenuation(relativeToCamPos) + attenuation + m_fVolume - m_fSoundHeadRoom;
     }
 }
 
@@ -331,14 +331,14 @@ void CAESound::Initialise(
 
     m_fTimeScale            = doppler;
     m_nSoundLength          = -1;
-    m_nHasStarted           = 0;
+    m_IsPhysicallyPlaying           = 0;
     m_nPlayingState         = eSoundState::SOUND_ACTIVE;
     m_fSoundHeadRoom        = 0.0F;
-    m_nIgnoredServiceCycles = frameDelay;
+    m_FrameDelay = frameDelay;
     m_nEnvironmentFlags     = flags;
     m_nIsUsed               = 1;
     m_nCurrentPlayPosition  = playTime;
-    m_fFinalVolume          = -100.0F;
+    m_ListenerVolume          = -100.0F;
     m_fFrequency            = 1.0F;
 }
 
@@ -363,6 +363,6 @@ void CAESound::SoundHasFinished() {
     UpdateParameters(-1);
     UnregisterWithPhysicalEntity();
     m_nIsUsed = 0;
-    m_nHasStarted = 0;
+    m_IsPhysicallyPlaying = 0;
     m_nCurrentPlayPosition = 0;
 }
