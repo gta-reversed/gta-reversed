@@ -523,7 +523,8 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
         switch (itemType) {
         case eMenuEntryType::TI_MPACK: {
-            const auto& MPacks = reinterpret_cast<const std::array<MPack, MPACK_COUNT>&>(m_MissionPacks).at(i - 2);
+            std::array<MPack, 25> missionPacksArray = std::to_array(m_MissionPacks);
+            const auto& MPacks = missionPacksArray[i - 2];
             if (MPacks.m_Name[0] == '\0') {
                 aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_SKIP;
                 pTextToShow = nullptr;

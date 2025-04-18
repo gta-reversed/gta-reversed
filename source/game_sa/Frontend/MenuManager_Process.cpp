@@ -189,9 +189,10 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
         ProcessMissionPackNewGame();
         return;
     case MENU_ACTION_MPACK: {
-        const auto& MPacks = reinterpret_cast<const std::array<MPack, MPACK_COUNT>&>(m_MissionPacks).at(m_nCurrentScreenItem - 2);
+        std::array<MPack, 25> missionPacksArray = std::to_array(m_MissionPacks);
+        const auto& MPacks = missionPacksArray[m_nCurrentScreenItem - 2];
         m_nMissionPackGameId = MPacks.m_Id;
-        // std::cout << "Selected mission pack: " << (int)MPacks.m_Id << std::endl;
+        std::cout << "Selected mission pack: " << (int)MPacks.m_Id << std::endl;
         SwitchToNewScreen(SCREEN_MISSION_PACK_LOADING_ASK);
         return;
     }
