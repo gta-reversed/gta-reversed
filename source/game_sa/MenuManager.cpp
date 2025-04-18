@@ -84,7 +84,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(PrintBriefs, 0x576320);
     RH_ScopedInstall(PrintRadioStationList, 0x5746F0);
 
-    RH_ScopedInstall(UserInput, 0x57FD70, { .reversed = false });
+    RH_ScopedInstall(UserInput, 0x57FD70);
     RH_ScopedInstall(AdditionalOptionInput, 0x5773D0, { .reversed = false });
     RH_ScopedInstall(CheckRedefineControlInput, 0x57E4D0);
     RH_ScopedInstall(RedefineScreenUserInput, 0x57EF50, { .reversed = false });
@@ -121,7 +121,7 @@ CMenuManager::CMenuManager() {
     m_nMousePosY                  = m_nMousePosWinY;
     m_nOldMousePosX               = 0;
     m_nOldMousePosY               = 0;
-    m_bDrawMouse                  = false;
+    m_DisplayTheMouse                  = false;
     m_MouseInBounds               = 16;
     m_nTargetBlipIndex            = 0;
     m_bMenuAccessWidescreen       = false;
@@ -180,7 +180,7 @@ void CMenuManager::Initialise() {
         m_bDoVideoModeUpdate = false;
     }
     CentreMousePointer();
-    m_bDrawMouse = false;
+    m_DisplayTheMouse = false;
 
     m_nSelectedRow = 3;
     m_nSysMenu     = CMenuSystem::MENU_UNDEFINED;
@@ -210,7 +210,7 @@ void CMenuManager::Initialise() {
         m_bMapLoaded = true;
         m_nOldMousePosX = 0;
         m_nOldMousePosY = 0;
-        m_bDrawMouse = false;
+        m_DisplayTheMouse = false;
     }
     m_nRadioStation = AudioEngine.GetCurrentRadioStationID();
     CFileMgr::SetDir("");

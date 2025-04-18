@@ -119,7 +119,7 @@ void CMenuManager::PrintMap() {
     const auto pad = CPad::GetPad(m_nPlayerNumber);
     if (CPad::NewKeyState.standardKeys['Z'] || CPad::NewKeyState.standardKeys['z']) {
         m_bMapLoaded = false;
-        m_bDrawMouse = false;
+        m_DisplayTheMouse = false;
     }
     m_bDrawingMap = true;
     CRadar::InitFrontEndMap();

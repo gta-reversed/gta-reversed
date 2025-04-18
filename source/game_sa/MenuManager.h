@@ -96,7 +96,7 @@ public:
 
     eRadioID  m_nRadioStation;
     char      field_53;
-    int32     m_nCurrentScreenItem;
+    int32     m_nCurrentScreenItem; // CurrentOption
     bool      m_bQuitGameNoDVD; // CMenuManager::WaitForUserCD 0x57C5E0
 
     bool      m_bDrawingMap;
@@ -134,7 +134,7 @@ public:
     bool      m_bSwapPadAxis2;
 
     bool      m_RedefiningControls;
-    bool      m_bDrawMouse; // m_bMouseMoved
+    bool      m_DisplayTheMouse; // m_bMouseMoved
     int32     m_nMousePosX;
     int32     m_nMousePosY;
     bool      m_bPrefsMipMapping;

@@ -358,7 +358,7 @@ void CMenuManager::DrawBackground() {
                 return;
             }
         }
-    } else if (m_bDrawMouse) { // 0x57BF62
+    } else if (m_DisplayTheMouse) { // 0x57BF62
         CFont::RenderFontBuffer();
 
         auto x = float(m_nMousePosX);
@@ -978,7 +978,7 @@ void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* ti
 
 // 0x57D860
 void CMenuManager::DrawQuitGameScreen() {
-    m_bDrawMouse = false;
+    m_DisplayTheMouse = false;
     CRect coords(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT);
     CSprite2d::DrawRect(coords, { 0, 0, 0, 255 });
     SaveSettings();

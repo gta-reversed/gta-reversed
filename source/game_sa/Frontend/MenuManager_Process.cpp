@@ -484,7 +484,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
                 m_nPrefsVideoMode = m_nDisplayVideoMode;
                 SetVideoMode(m_nDisplayVideoMode);
                 CentreMousePointer();
-                m_bDrawMouse = true;
+                m_DisplayTheMouse = true;
                 m_nCurrentScreenItem = 5;
                 SaveSettings();
                 CPostEffects::DoScreenModeDependentInitializations();
