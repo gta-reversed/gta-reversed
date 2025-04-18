@@ -238,11 +238,15 @@ void CPedIntelligence::AddTaskEventResponseNonTemp(CTask* task, int32 unUsed) {
 
 // 0x600E20
 void CPedIntelligence::AddTaskPrimaryMaybeInGroup(CTask* task, bool bAffectsPed) {
-    CPedGroup* grp = m_pPed->GetGroup();
-    if (m_pPed->IsPlayer() || !grp) {
-        m_eventGroup.Add(CEventScriptCommand{TASK_PRIMARY_PRIMARY, task, bAffectsPed});
-    } else {
-        grp->GetIntelligence().SetScriptCommandTask(m_pPed, *task);
+    CPedGroup* pegGroup = CPedGroups::GetPedsGroup(m_pPed);
+    if (m_pPed->IsPlayer() || !pegGroup)
+    {
+        CEventScriptCommand eventScriptCommand(TASK_PRIMARY_PRIMARY, task, bAffectsPed);
+        m_eventGroup.Add(&eventScriptCommand, false);
+    }
+    else
+    {
+        pegGroup->GetIntelligence().SetScriptCommandTask(m_pPed, task);
         delete task;
     }
 }
@@ -742,7 +746,7 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
             (dislike && (pedFlag & dislike))
         );
         if (bAcquaintancesFlagSet && target->GetGroup()) {
-            const auto oe = target->GetGroup()->GetIntelligence().GetCurrentEvent();
+            const auto oe = target->GetGroup()->GetIntelligence().GetOldEvent();
             if (oe && oe->GetSourceEntity() == m_pPed && bAcquaintancesFlagSet) {
                 return false;
             }

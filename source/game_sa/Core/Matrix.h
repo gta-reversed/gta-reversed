@@ -8,7 +8,6 @@
 
 #include "RenderWare.h"
 #include "Quaternion.h"
-#include <Vector.h>
 
 enum eMatrixEulerFlags : uint32 {
     SWAP_XZ = 0x01,

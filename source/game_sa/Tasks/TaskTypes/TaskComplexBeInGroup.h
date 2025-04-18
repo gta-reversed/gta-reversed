@@ -27,10 +27,8 @@ public:
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
 
-    auto  GetGroupID() const { return m_nGroupId; }
-    auto& GetGroup() const { return CPedGroups::GetGroup(m_nGroupId); }
-
 private:
+    auto& GetGroup() const { return CPedGroups::GetGroup(m_nGroupId); }
 
     friend void InjectHooksMain();
     static void InjectHooks();

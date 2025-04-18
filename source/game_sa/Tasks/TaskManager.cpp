@@ -101,7 +101,7 @@ CTask* CTaskManager::FindActiveTaskByType(eTaskType taskType) {
 }
 
 // 0x6817D0
-CTask* CTaskManager::FindTaskByType(ePrimaryTasks taskIndex, eTaskType taskId) const {
+CTask* CTaskManager::FindTaskByType(ePrimaryTasks taskIndex, eTaskType taskId) {
     return FindFirstTaskOfType(GetTaskPrimary(taskIndex), taskId);
 }
 

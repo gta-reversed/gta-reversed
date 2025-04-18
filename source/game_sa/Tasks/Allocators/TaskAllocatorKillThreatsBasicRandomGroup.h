@@ -2,15 +2,10 @@
 
 #include "TaskAllocatorKillThreatsBasic.h"
 
-class NOTSA_EXPORT_VTABLE CTaskAllocatorKillThreatsBasicRandomGroup final : public CTaskAllocatorKillThreatsBasic {
+class CTaskAllocatorKillThreatsBasicRandomGroup : public CTaskAllocatorKillThreatsBasic {
 public:
-    constexpr static inline auto Type = eTaskAllocatorType::KILL_THREATS_BASIC_RANDOM_GROUP;
-
-    static void InjectHooks();
-
     using CTaskAllocatorKillThreatsBasic::CTaskAllocatorKillThreatsBasic;
-    ~CTaskAllocatorKillThreatsBasicRandomGroup() override = default;
 
-    eTaskAllocatorType GetType() override { return eTaskAllocatorType::KILL_THREATS_BASIC_RANDOM_GROUP; }; // 0x5F68F0
+    eTaskAllocatorType GetType() override { return TASK_ALLOCATOR_KILL_THREATS_BASIC_RANDOM_GROUP; }; // 0x5F68F0
     void AllocateTasks(CPedGroupIntelligence* intel) override;
 };

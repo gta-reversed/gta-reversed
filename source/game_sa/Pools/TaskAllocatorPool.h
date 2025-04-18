@@ -3,7 +3,7 @@
 #include "Pool.h"
 #include "Allocators/TaskAllocator.h"
 
-class CTaskAllocatorPool : public CPool<CTaskAllocator, char[32]> { // char[32] == CTaskAllocatorPlayerCommandAttack
+class CTaskAllocatorPool : public CPool<CTaskAllocator, CTaskAllocator> {
 public:
     static void InjectHooks() {
         RH_ScopedClass(CTaskAllocatorPool);

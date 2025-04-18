@@ -3,10 +3,8 @@
 #include "TaskAllocator.h"
 
 // Android
-class NOTSA_EXPORT_VTABLE CTaskAllocatorRetreat final : public CTaskAllocator {
+class CTaskAllocatorRetreat : public CTaskAllocator {
 public:
-    constexpr static inline auto Type = eTaskAllocatorType::RETREAT;
-
-    eTaskAllocatorType GetType() override { return eTaskAllocatorType::RETREAT; }; // 0x5F68F0
-    void AllocateTasks(CPedGroupIntelligence* intel) override { /* nop */ }
+    eTaskAllocatorType GetType() override { return TASK_ALLOCATOR_RETREAT; }; // 0x5F68F0
+    void AllocateTasks(CPedGroupIntelligence* intel) override;
 };

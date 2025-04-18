@@ -5,33 +5,20 @@
 
 class NOTSA_EXPORT_VTABLE CTaskAllocatorAttack : public CTaskAllocator {
 public:
-    constexpr static inline auto Type = eTaskAllocatorType::ATTACK;
-
-    static void InjectHooks();
-
-    CTaskAllocatorAttack(CPed* target, int32 groupTargetID, CPed* originator);
-    ~CTaskAllocatorAttack() override = default;
-
-    eTaskAllocatorType GetType() override { return eTaskAllocatorType::ATTACK; } // 0x69C2C0
-    void               AllocateTasks(CPedGroupIntelligence* intel) override;
-    CTaskAllocator*    ProcessGroup(CPedGroupIntelligence* intel) override;
+    int32    f14;
+    int8     f18;
+    int8     f19;
+    int32    m_nGroupId;
+    ePedType m_PedType;
+    uint32   m_nTime;
+    uint32   m_nTimeOffset;
+    bool     m_bAllocated;
+    bool     m_bUpdateTime;
 
 public:
-    CPed::Ref  m_Target;
-    int32      m_GroupTargetID;
-    CPed::Ref  m_Originator;
-    CTaskTimer m_NextUpdateTimer;
+    CTaskAllocatorAttack(CPed* ped0, int, CPed* ped1);
 
-private: // Wrappers for hooks
-    // 0x69C240
-    CTaskAllocatorAttack* Constructor(CPed * ped1, int32 groupId, CPed * ped2) {
-        this->CTaskAllocatorAttack::CTaskAllocatorAttack(ped1, groupId, ped2);
-        return this;
-    }
-
-    // 0x69C2D0
-    CTaskAllocatorAttack* Destructor() {
-        this->CTaskAllocatorAttack::~CTaskAllocatorAttack();
-        return this;
-    }
+    eTaskAllocatorType GetType() override { return TASK_ALLOCATOR_ATTACK; }; // 0x69C2C0
+    void AllocateTasks(CPedGroupIntelligence* intel) override;
+    void ProcessGroup(CPedGroupIntelligence* intel) override;
 };

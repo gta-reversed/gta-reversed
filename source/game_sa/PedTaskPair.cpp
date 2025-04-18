@@ -14,5 +14,5 @@ void CPedTaskPair::Flush() {
     m_Ped = nullptr;
     delete m_Task;
     m_Task = nullptr;
-    m_Slot = TASK_SECONDARY_INVALID;
+    m_Slot = -1;
 }

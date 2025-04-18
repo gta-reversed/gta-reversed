@@ -5,7 +5,6 @@
 #include <string>
 #include <filesystem>
 
-#include "HookSystem.h"
 #include <Enums/eScriptCommands.h>
 #include "ReversibleHook/Base.h"
 

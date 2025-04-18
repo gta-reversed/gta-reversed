@@ -33,7 +33,7 @@ public:
     ~CTaskComplexSeekCoverUntilTargetDead();
 
     CPed* GetCoverPed(CPed* ped);
-    CPed* GetTargetPed() const;
+    CPed* GetTargetPed();
 
     CTask*    Clone() const override { return new CTaskComplexSeekCoverUntilTargetDead{ *this }; }
     eTaskType GetTaskType() const override { return Type; }

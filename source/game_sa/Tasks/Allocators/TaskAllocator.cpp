@@ -12,18 +12,24 @@ void CTaskAllocator::operator delete(void* obj) {
     GetTaskAllocatorPool()->Delete(static_cast<CTaskAllocator*>(obj));
 }
 
-bool CTaskAllocator::IsFinished(CPedGroupIntelligence* intel) {
-    return rng::all_of(
-        intel->GetPedTaskPairs(),
-        [](const CPedTaskPair& tp) { return !tp.m_Task; }
-    );
+CTaskAllocator::CTaskAllocator(CPed* ped) {
+    m_Ped0 = ped;
+    m_GroupId = 0;
+    m_Ped1 = nullptr;
+    m_Time = 0; // bad
 }
 
-void CTaskAllocator::InjectHooks() {
-    RH_ScopedVirtualClass(CTaskAllocator, 0x870E30, 6);
-    RH_ScopedCategory("Tasks/Allocators/TaskAllocator");
+// 0x69BB50
+void CTaskAllocator::ProcessGroup(CPedGroupIntelligence* intel) {
+    // NOP
+}
 
-    RH_ScopedVMTInstall(ProcessGroup, 0x69BB50);
-    RH_ScopedVMTInstall(IsFinished, 0x69C3C0);
-    RH_ScopedVMTInstall(Abort, 0x5F68E0);
+// 0x69C3C0
+bool CTaskAllocator::IsFinished(CPedGroupIntelligence* intel) {
+    return plugin::CallMethodAndReturn<bool, 0x69C3C0, CTaskAllocator*, CPedGroupIntelligence*>(this, intel);
+}
+
+// 0x5F68E0
+void CTaskAllocator::Abort() {
+    // NOP
 }
