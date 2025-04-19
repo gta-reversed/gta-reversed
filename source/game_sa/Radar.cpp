@@ -1861,7 +1861,7 @@ void CRadar::DrawBlips() {
             if (!CPad::IsMouseLButton() &&
                 mouseX > SCREEN_STRETCH_X(60.0f) && mouseX < SCREEN_STRETCH_FROM_RIGHT(60.0f) &&
                 mouseY > SCREEN_STRETCH_Y(60.0f) && mouseY < SCREEN_STRETCH_FROM_BOTTOM(60.0f) ||
-                !FrontEndMenuManager.m_bDrawMouse)
+                !FrontEndMenuManager.m_DisplayTheMouse)
             {
                 auto drawPos = TransformRealWorldPointToBlipSpace(FrontEndMenuManager.m_vMousePos);
                 LimitToMap(drawPos.x, drawPos.y);

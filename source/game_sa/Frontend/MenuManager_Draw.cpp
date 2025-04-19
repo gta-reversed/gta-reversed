@@ -9,6 +9,67 @@
 #include "MenuSystem.h"
 #include "PostEffects.h"
 #include "app/platform/platform.h"
+#include "ControllerConfigManager.h"
+#include "VideoMode.h"
+
+constexpr std::array<eControllerAction, 28> ControllerActionsAvailableOnFoot = {
+    eControllerAction::CA_PED_FIRE_WEAPON,
+    eControllerAction::CA_PED_CYCLE_WEAPON_RIGHT,
+    eControllerAction::CA_PED_CYCLE_WEAPON_LEFT,
+    eControllerAction::CA_PED_JUMPING,
+    eControllerAction::CA_PED_SPRINT,
+    eControllerAction::CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS,
+    eControllerAction::CA_VEHICLE_ENTER_EXIT,
+    eControllerAction::CA_GO_FORWARD,
+    eControllerAction::CA_GO_BACK,
+    eControllerAction::CA_GO_LEFT,
+    eControllerAction::CA_GO_RIGHT,
+    eControllerAction::CA_PED_LOOKBEHIND,
+    eControllerAction::CA_PED_DUCK,
+    eControllerAction::CA_PED_ANSWER_PHONE,
+    eControllerAction::CA_VEHICLE_STEER_UP,
+    eControllerAction::CA_VEHICLE_STEER_DOWN,
+    eControllerAction::CA_VEHICLE_ACCELERATE,
+    eControllerAction::CA_VEHICLE_RADIO_STATION_UP,
+    eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN,
+    eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP,
+    eControllerAction::CA_VEHICLE_HORN,
+    eControllerAction::CA_VEHICLE_LOOKLEFT,
+    eControllerAction::CA_VEHICLE_LOOKBEHIND,
+    eControllerAction::CA_VEHICLE_MOUSELOOK,
+    eControllerAction::CA_VEHICLE_TURRETLEFT,
+    eControllerAction::CA_VEHICLE_TURRETRIGHT,
+    eControllerAction::CA_PED_CYCLE_TARGET_LEFT,
+    eControllerAction::CA_PED_FIRE_WEAPON_ALT
+}; // 0x865598
+
+constexpr std::array<eControllerAction, 25> ControllerActionsAvailableInCar = {
+    eControllerAction::CA_PED_FIRE_WEAPON,
+    eControllerAction::CA_PED_FIRE_WEAPON_ALT,
+    eControllerAction::CA_GO_FORWARD,
+    eControllerAction::CA_GO_BACK,
+    eControllerAction::CA_GO_LEFT,
+    eControllerAction::CA_GO_RIGHT,
+    eControllerAction::CA_PED_SNIPER_ZOOM_IN,
+    eControllerAction::CA_PED_SNIPER_ZOOM_OUT,
+    eControllerAction::CA_PED_ANSWER_PHONE,
+    eControllerAction::CA_VEHICLE_ENTER_EXIT,
+    eControllerAction::CA_PED_WALK,
+    eControllerAction::CA_VEHICLE_FIRE_WEAPON,
+    eControllerAction::CA_VEHICLE_FIRE_WEAPON_ALT,
+    eControllerAction::CA_VEHICLE_STEER_LEFT,
+    eControllerAction::CA_VEHICLE_STEER_RIGHT,
+    eControllerAction::CA_VEHICLE_STEER_UP,
+    eControllerAction::CA_VEHICLE_BRAKE,
+    eControllerAction::CA_VEHICLE_LOOKLEFT,
+    eControllerAction::CA_VEHICLE_LOOKRIGHT,
+    eControllerAction::CA_VEHICLE_LOOKBEHIND,
+    eControllerAction::CA_VEHICLE_MOUSELOOK,
+    eControllerAction::CA_TOGGLE_SUBMISSIONS,
+    eControllerAction::CA_VEHICLE_HANDBRAKE,
+    eControllerAction::CA_PED_1RST_PERSON_LOOK_LEFT,
+    eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT
+}; // 0x865608
 
 // 0x57C290
 void CMenuManager::DrawFrontEnd() {
@@ -297,7 +358,7 @@ void CMenuManager::DrawBackground() {
                 return;
             }
         }
-    } else if (m_bDrawMouse) { // 0x57BF62
+    } else if (m_DisplayTheMouse) { // 0x57BF62
         CFont::RenderFontBuffer();
 
         auto x = float(m_nMousePosX);
@@ -321,7 +382,7 @@ void CMenuManager::DrawBackground() {
 
         CRect mapRect(StretchX(60.0f), StretchY(60.0f), SCREEN_WIDTH - StretchX(60.0f), SCREEN_HEIGHT - StretchY(60.0f));
 
-        if (m_nCurrentScreen == SCREEN_MAP && CPad::NewMouseControllerState.lmb && mapRect.IsPointInside(CVector2D(x, y))) {
+        if (m_nCurrentScreen == SCREEN_MAP && CPad::NewMouseControllerState .isMouseLeftButtonPressed && mapRect.IsPointInside(CVector2D(x, y))) {
             DrawCursor(FRONTEND_SPRITE_CROSS_HAIR);
         } else {
             DrawCursor(FRONTEND_SPRITE_MOUSE);
@@ -330,8 +391,532 @@ void CMenuManager::DrawBackground() {
 }
 
 // 0x5794A0
-void CMenuManager::DrawStandardMenus(uint8 a1) {
-    plugin::CallMethod<0x5794A0, CMenuManager*, uint8>(this, a1);
+void CMenuManager::DrawStandardMenus(bool drawTitle) {
+    constexpr uint16 MENU_DEFAULT_CONTENT_X = 320;
+    constexpr uint16 MENU_DEFAULT_CONTENT_Y = 130;
+
+    const GxtChar *pTextToShow_RightColumn; // text for right column
+    GxtChar *pTextToShow = nullptr;         // text to display
+
+    float buttonTextPosY = 0.0;
+    bool shouldDrawStandardItems = true;
+    CFont::SetBackground(0, 0);
+    CFont::SetProportional(1);
+    CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+    CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(10.0f));
+    CFont::SetRightJustifyWrap(SCREEN_SCALE_X(10.0));
+    CFont::SetCentreSize(SCREEN_WIDTH);
+
+    if (m_nCurrentScreen == eMenuScreen::SCREEN_STATS) {
+        PrintStats();
+    }
+    if (m_nCurrentScreen == eMenuScreen::SCREEN_BRIEF) {
+        PrintBriefs();
+    }
+
+    if (m_nCurrentScreen == eMenuScreen::SCREEN_AUDIO_SETTINGS && drawTitle) {
+        PrintRadioStationList();
+    }
+
+    if (drawTitle && aScreens[m_nCurrentScreen].m_szTitleName[0]) {
+        if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP || !m_bMapLoaded) {
+            CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+            CFont::SetFontStyle(eFontStyle::FONT_GOTHIC);
+            CFont::SetScale(StretchX(1.3f), StretchY(2.1f));
+            CFont::SetEdge(1);
+            CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
+            CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
+            CFont::PrintString(StretchX(40.0f), StretchY(28.0f), TheText.Get(aScreens[m_nCurrentScreen].m_szTitleName));
+        }
+    }
+
+    if (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) {
+        CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(40.0f));
+        CFont::SetFontStyle(FONT_SUBTITLES);
+        CFont::SetScale(StretchX(0.5f), StretchY(1.2f));
+        CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+        CFont::SetEdge(2);
+        CFont::SetDropColor(CRGBA(0, 0, 0, 0xFFu));
+        CFont::SetColor(CRGBA(0x4Au, 0x5Au, 0x6Bu, 0xFFu));
+
+        const GxtChar *textOne;
+
+        switch (m_nCurrentScreen) {
+        case eMenuScreen::SCREEN_NEW_GAME_ASK:
+            textOne = TheText.Get((!m_bMainMenuSwitch) ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FESZ_QQ");
+            break;
+        case eMenuScreen::SCREEN_LOAD_GAME_ASK:
+            textOne = TheText.Get((!m_bMainMenuSwitch) ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FES_LCG");
+            break;
+        case eMenuScreen::SCREEN_SAVE_WRITE_ASK: {
+            eSlotState slotToCheck = GetSavedGameState(m_SelectedSlot);
+            textOne = TheText.Get((eSlotState::SLOT_FILLED != slotToCheck) ? (slotToCheck != eSlotState::SLOT_CORRUPTED ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FESZ_QC") : "FESZ_QO");
+            break;
+        }
+        case eMenuScreen::SCREEN_QUIT_GAME_ASK:
+            textOne = TheText.Get((!m_bMainMenuSwitch) ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FEQ_SRW");
+            break;
+        default:
+            textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
+            break;
+        }
+
+        CFont::PrintString(StretchX(60.0f), StretchY(97.0f), textOne);
+        CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(10.0f));
+        CFont::SetRightJustifyWrap(SCREEN_SCALE_X(10.0f));
+    }
+
+    if (m_nCurrentScreen == eMenuScreen::SCREEN_CONTROLS_DEFINITION) {
+        if (m_EditingControlOptions) {
+            shouldDrawStandardItems = false;
+        }
+        DrawControllerScreenExtraText(-8);
+    }
+
+    const bool weHaveLabel = aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT;
+
+    for (int i = 0; i < std::size(aScreens[m_nCurrentScreen].m_aItems); i++) {
+        auto itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
+        pTextToShow_RightColumn = 0;
+        int MENU_DEFAULT_LINE_HEIGHT = (itemType == eMenuEntryType::TI_MPACK) ? 20 : 30;
+        CFont::SetFontStyle(FONT_MENU);
+        if (itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
+            CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
+            CFont::SetEdge(2);
+        } else {
+            CFont::SetEdge(1);
+            CFont::SetScale(StretchX(0.42f), StretchY(0.95f));
+        }
+        CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
+        CFont::SetColor((i == m_nCurrentScreenItem && m_bMapLoaded) ? CRGBA(172, 203, 241, 255) : CRGBA(74, 90, 107, 255));
+
+        switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nAlign) {
+        case eMenuAlign::MENU_ALIGN_LEFT:
+            CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+            break;
+        case eMenuAlign::MENU_ALIGN_RIGHT:
+            CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
+            break;
+        default:
+            CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
+            break;
+        }
+
+        if (!aScreens[m_nCurrentScreen].m_aItems[i].m_X && !aScreens[m_nCurrentScreen].m_aItems[i].m_Y) {
+            if (i == 0 || (i == 1 && weHaveLabel)) {
+                aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
+                aScreens[m_nCurrentScreen].m_aItems[i].m_Y = MENU_DEFAULT_CONTENT_Y;
+            } else {
+                aScreens[m_nCurrentScreen].m_aItems[i].m_X = aScreens[m_nCurrentScreen].m_aItems[i - 1].m_X;
+                aScreens[m_nCurrentScreen].m_aItems[i].m_Y = aScreens[m_nCurrentScreen].m_aItems[i - 1].m_Y + MENU_DEFAULT_LINE_HEIGHT;
+            }
+        }
+
+        if (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType == eMenuAction::MENU_ACTION_TEXT || std::string(aScreens[m_nCurrentScreen].m_aItems[i].m_szName).empty()) {
+            continue;
+        }
+
+        itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
+        const bool isSlot = IsSaveSlot(itemType);
+
+        float xOffset = 0;
+
+        switch (itemType) {
+        case eMenuEntryType::TI_MPACK: {
+            std::array<MPack, MPACK_COUNT> missionPacksArray = std::to_array(m_MissionPacks);
+            // Check if the index is within bounds
+            if (i - 2 < MPACK_COUNT && i - 2 >= 0) {
+                const auto& MPacks = missionPacksArray[i - 2];
+                if (std::string(MPacks.m_Name).empty()) {
+                    aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_SKIP;
+                    pTextToShow = nullptr;
+                    aScreens[m_nCurrentScreen].m_aItems[i].m_Y = aScreens[m_nCurrentScreen].m_aItems[i - 1].m_Y;
+                } else {
+                    AsciiToGxtChar(MPacks.m_Name, (GxtChar*)gString);
+                    pTextToShow = (GxtChar*)gString;
+                    aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_MPACK;
+                }
+            } else {
+                NOTSA_UNREACHABLE("Index out of bounds for missionPacksArray");
+            }
+            break;
+        }
+        case eMenuEntryType::TI_MOUSEJOYPAD:
+            pTextToShow = (GxtChar*)TheText.Get(m_ControlMethod ? "FEJ_TIT" : "FEC_MOU");
+            break;
+        default: {
+            if (isSlot) {
+                aScreens[m_nCurrentScreen].m_aItems[i].m_X = 80;
+                CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+
+                switch (GetSavedGameState(i - 1)) {
+                case eSlotState::SLOT_FILLED: { // Valid save
+                    /*
+                    GxtCharStrcpy(gGxtString, GetNameOfSavedGame(i - 1));
+                    if (GxtCharStrlen(gGxtString) >= 254) {
+                        gGxtString[254] = '\0';
+                        AsciiToGxtChar("...", gGxtString2);
+                        GxtCharStrcat(gGxtString, gGxtString2);
+                    }
+                    */
+
+                    // NOTSA: Right way for modern GxtChar
+                    auto stringSavegame = std::string(GxtCharToUTF8(GetNameOfSavedGame(i - 1)));
+                    if (stringSavegame.length() >= 32) {
+                        stringSavegame = std::format("{}...", stringSavegame.substr(0, 32 - 4));
+                    }
+
+                    AsciiToGxtChar(stringSavegame.c_str(), gGxtString);
+                    pTextToShow = gGxtString;
+                    pTextToShow_RightColumn = GetSavedGameDateAndTime(i - 1);
+                    break;
+                }
+                case eSlotState::SLOT_CORRUPTED: { // Corrupted save
+                    pTextToShow = (GxtChar*)TheText.Get("FESZ_CS");
+                    if (!pTextToShow) {
+                        CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
+                        aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
+                        pTextToShow                                = (GxtChar*)TheText.Get(std::format("FEM_SL{}", i).c_str());
+                        xOffset                                    = StretchX(40.0);
+                    }
+                    break;
+                }
+                default: { // Empty slot
+                    AsciiToGxtChar(std::format("FEM_SL{}", i).c_str(), gGxtString);
+                    CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
+                    aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
+                    pTextToShow                                = (GxtChar*)TheText.Get((const char*)gGxtString);
+                    xOffset                                    = StretchX(40.0);
+                    break;
+                }
+                }
+                break;
+            }
+            pTextToShow = (GxtChar*)TheText.Get(aScreens[m_nCurrentScreen].m_aItems[i].m_szName);
+            break;
+        }
+        }
+
+        switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
+        case eMenuAction::MENU_ACTION_RADIO_STATION:
+            pTextToShow_RightColumn = AudioEngine.GetRadioStationName(m_nRadioStation);
+            break;
+        case eMenuAction::MENU_ACTION_FRAME_LIMITER:
+            pTextToShow_RightColumn = TheText.Get(m_bPrefsFrameLimiter ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_SUBTITLES:
+            pTextToShow_RightColumn = TheText.Get(m_bShowSubtitles ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_WIDESCREEN:
+            pTextToShow_RightColumn = TheText.Get(m_bWidescreenOn ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_RADIO_EQ:
+            pTextToShow_RightColumn = TheText.Get(m_bRadioEq ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_RADIO_RETUNE:
+            pTextToShow_RightColumn = TheText.Get(m_bRadioAutoSelect ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_SHOW_LEGEND:
+            pTextToShow_RightColumn = TheText.Get(m_bMapLegend ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_HUD_MODE:
+            pTextToShow_RightColumn = TheText.Get(m_bHudOn ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_X:
+            pTextToShow_RightColumn = TheText.Get(m_bInvertPadX1 ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_Y:
+            pTextToShow_RightColumn = TheText.Get(m_bInvertPadY1 ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_X2:
+            pTextToShow_RightColumn = TheText.Get(m_bInvertPadX2 ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_Y2:
+            pTextToShow_RightColumn = TheText.Get(m_bInvertPadY2 ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_SWAP_AXIS1:
+            pTextToShow_RightColumn = TheText.Get(m_bSwapPadAxis1 ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_SWAP_AXIS2:
+            pTextToShow_RightColumn = TheText.Get(m_bSwapPadAxis2 ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_USER_TRACKS_AUTO_SCAN:
+            pTextToShow_RightColumn = TheText.Get(m_bTracksAutoScan ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_STORE_PHOTOS:
+            pTextToShow_RightColumn = TheText.Get(m_bSavePhotos ? "FEM_ON" : "FEM_OFF");
+            break;
+        case eMenuAction::MENU_ACTION_RADAR_MODE:
+            pTextToShow_RightColumn = TheText.Get(m_nRadarMode == 0 ? "FED_RDM" : (m_nRadarMode == 1 ? "FED_RDB" : "FEM_OFF"));
+            break;
+        case eMenuAction::MENU_ACTION_LANGUAGE:
+            switch (m_nPrefsLanguage) {
+            case eLanguage::AMERICAN:
+                pTextToShow_RightColumn = TheText.Get("FEL_ENG");
+                break;
+            case eLanguage::FRENCH:
+                pTextToShow_RightColumn = TheText.Get("FEL_FRE");
+                break;
+            case eLanguage::GERMAN:
+                pTextToShow_RightColumn = TheText.Get("FEL_GER");
+                break;
+            case eLanguage::ITALIAN:
+                pTextToShow_RightColumn = TheText.Get("FEL_ITA");
+                break;
+            case eLanguage::SPANISH:
+                pTextToShow_RightColumn = TheText.Get("FEL_SPA");
+                break;
+            default:
+                break;
+            }
+            break;
+        case eMenuAction::MENU_ACTION_FX_QUALITY:
+            switch (g_fx.GetFxQuality()) {
+            case FxQuality_e::FX_QUALITY_LOW:
+                pTextToShow_RightColumn = TheText.Get("FED_FXL");
+                break;
+
+            case FxQuality_e::FX_QUALITY_MEDIUM:
+                pTextToShow_RightColumn = TheText.Get("FED_FXM");
+                break;
+
+            case FxQuality_e::FX_QUALITY_HIGH:
+                pTextToShow_RightColumn = TheText.Get("FED_FXH");
+                break;
+
+            case FxQuality_e::FX_QUALITY_VERY_HIGH:
+                pTextToShow_RightColumn = TheText.Get("FED_FXV");
+                break;
+
+            default:
+                break;
+            }
+            break;
+        case eMenuAction::MENU_ACTION_MIP_MAPPING:
+            pTextToShow_RightColumn = TheText.Get(m_bPrefsMipMapping ? "FEM_ON" : "FEM_OFF");
+            if (!m_bMainMenuSwitch) { CFont::SetColor(CRGBA(14, 30, 47, 255)); }
+            break;
+        case eMenuAction::MENU_ACTION_ANTIALIASING: {
+            if (m_nDisplayAntialiasing <= 1) {
+                pTextToShow_RightColumn = TheText.Get("FEM_OFF");
+            } else {
+                GxtChar tmpBuffer[64];
+                AsciiToGxtChar(std::format("{}", m_nDisplayAntialiasing - 1).c_str(), tmpBuffer);
+                pTextToShow_RightColumn = tmpBuffer;
+            }
+            break;
+        }
+        case eMenuAction::MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
+            pTextToShow_RightColumn = TheText.Get((bInvertMouseY) ? "FEM_ON" : "FEM_OFF"); // NOSTA FIX
+            break;
+        case eMenuAction::MENU_ACTION_RESOLUTION: {
+            GxtChar tmpBuffer[1'024];
+            auto Videomodes = GetVideoModeList();
+            AsciiToGxtChar(std::format("{}", Videomodes[m_nDisplayVideoMode]).c_str(), tmpBuffer);
+            pTextToShow_RightColumn = tmpBuffer;
+            break;
+        }
+        case eMenuAction::MENU_ACTION_CONTROL_TYPE:
+            pTextToShow_RightColumn = (m_ControlMethod == eController::JOYPAD) ? (m_ControlMethod != eController::JOYPAD ? nullptr : TheText.Get("FET_CCN")) : TheText.Get("FET_SCN");
+            break;
+        case eMenuAction::MENU_ACTION_MOUSE_STEERING:
+            pTextToShow_RightColumn = TheText.Get((CVehicle::m_bEnableMouseSteering) ? "FEM_ON" : "FEM_OFF");
+            if (m_ControlMethod == eController::JOYPAD) {
+                CFont::SetColor(CRGBA(14, 30, 47, 255));
+            }
+            break;
+        case eMenuAction::MENU_ACTION_MOUSE_FLY:
+            pTextToShow_RightColumn = TheText.Get((CVehicle::m_bEnableMouseFlying) ? "FEM_ON" : "FEM_OFF");
+            if (m_ControlMethod == eController::JOYPAD) {
+                CFont::SetColor(CRGBA(14, 30, 47, 255));
+            }
+            break;
+        case eMenuAction::MENU_ACTION_USER_TRACKS_PLAY_MODE:
+            pTextToShow_RightColumn = TheText.Get(m_nRadioMode == 0 ? "FEA_PR1" : (m_nRadioMode == 1 ? "FEA_PR2" : "FEA_PR3"));
+            break;
+        default:
+            break;
+        }
+        
+        const auto scaledPosX = StretchX(aScreens[m_nCurrentScreen].m_aItems[i].m_X);
+        const auto scaledPosY = StretchY(aScreens[m_nCurrentScreen].m_aItems[i].m_Y);
+
+        if (pTextToShow) {
+            if ((isSlot && GetSavedGameState(itemType - 1) != eSlotState::SLOT_FILLED) || !isSlot) {
+                CFont::PrintString(scaledPosX, scaledPosY, pTextToShow);
+            // v1.01 +
+            } else if (isSlot && GetSavedGameState(itemType - 1) == eSlotState::SLOT_FILLED) {
+                CFont::PrintString(StretchX(25.0f + aScreens[m_nCurrentScreen].m_aItems[i].m_X), scaledPosY, pTextToShow);
+                AsciiToGxtChar(std::format("{}:", i).c_str(), gGxtString);
+                CFont::PrintString(scaledPosX, scaledPosY, gGxtString);
+            }
+        }
+
+        if (pTextToShow_RightColumn) {
+            CFont::SetFontStyle(FONT_MENU);
+            CFont::SetEdge(1);
+            CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
+            if (!isSlot) {
+                CFont::SetScale(StretchX((m_nCurrentScreen == SCREEN_AUDIO_SETTINGS && i == 5) ? 0.56f : 0.7f), StretchY(1.0f));
+            } else {
+                CFont::SetScale(StretchX(0.35f), StretchY(0.95f));
+            }
+
+            CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(40.0f), scaledPosY, pTextToShow_RightColumn);
+        }
+
+        // Check if text was properly initialized and we're on the current selection
+        if ((pTextToShow && i == m_nCurrentScreenItem) && (m_nCurrentScreen != SCREEN_MAP && m_nCurrentScreen != SCREEN_BRIEF)) {
+            // Calculate X position for highlighted item if not already done
+            if (!xOffset) {
+                const auto align = aScreens[m_nCurrentScreen].m_aItems[i].m_nAlign;
+                xOffset = [&]() -> float {
+                    switch (align) {
+                    case eMenuAlign::MENU_ALIGN_LEFT:
+                        return scaledPosX - StretchX(40.0f);
+                    case eMenuAlign::MENU_ALIGN_RIGHT:
+                        return StretchX(40.0f) + scaledPosX;
+                    default:
+                        return scaledPosX - StretchX(40.0f) - CFont::GetStringWidth(pTextToShow, 1, 0) * 0.5f;
+                    }
+                }();
+            }
+
+            // Draw highlight rectangle for selected item if map is loaded
+            if (m_bMapLoaded) {
+                if (m_nCurrentScreen != eMenuScreen::SCREEN_LOAD_FIRST_SAVE && m_nCurrentScreen != eMenuScreen::SCREEN_DELETE_FINISHED && m_nCurrentScreen != eMenuScreen::SCREEN_SAVE_DONE_1) {
+                    CRect rect(xOffset, // left
+                               scaledPosY - StretchX(5.0f), // top
+                               xOffset + StretchX(32.0f),   // right
+                               scaledPosY + StretchX(47.0f) // bottom
+                    );
+                    m_aFrontEndSprites[0].Draw(rect, CRGBA(255, 255, 255, 255));
+                }
+            }
+        }
+
+        // Check for video mode changes
+        if (m_nDisplayVideoMode == m_nPrefsVideoMode && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES") && m_nHelperText == FET_APP) {
+            ResetHelperText();
+        }
+        if (m_nDisplayAntialiasing == m_nPrefsAntialiasing && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS") && m_nHelperText == FET_APP) {
+            ResetHelperText();
+        }
+        if (m_nDisplayVideoMode != m_nPrefsVideoMode && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
+            SetHelperText(eHelperText::FET_APP);
+        }
+        if (m_nDisplayAntialiasing != m_nPrefsAntialiasing && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
+            SetHelperText(eHelperText::FET_APP);
+        }
+        if (m_nDisplayAntialiasing != m_nPrefsAntialiasing) {
+            if (strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
+                if (m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_ADVANCED) {
+                    m_nDisplayAntialiasing = m_nPrefsAntialiasing;
+                    SetHelperText(eHelperText::FET_RSO);
+                }
+            }
+        }
+        if (m_nDisplayVideoMode != m_nPrefsVideoMode) {
+            if (strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
+                if (m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_ADVANCED) {
+                    m_nDisplayVideoMode = m_nPrefsVideoMode;
+                    SetHelperText(eHelperText::FET_RSO);
+                }
+            }
+        }
+
+        // Handle sliders
+        switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
+        case eMenuAction::MENU_ACTION_BRIGHTNESS: { // Brightness slider
+            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_PrefsBrightness * 0.0026041667f, int32(StretchX(3.0f)));
+            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
+                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = 7;
+                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(SCREEN_WIDTH), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 6;
+                } else {
+                    m_MouseInBounds = 16;
+                }
+            }
+            break;
+        }
+        case eMenuAction::MENU_ACTION_RADIO_VOL: { // Radio volume slider
+            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(95.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nRadioVolume * 0.015625f, int32(StretchX(3.0f)));
+            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
+                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(95.0f), StretchY(120.0f))) {
+                    m_MouseInBounds = 11;
+                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(SCREEN_WIDTH), StretchY(95.0f), StretchY(120.0f))) {
+                    m_MouseInBounds = StretchX(500.0f) <= m_nMousePosX && StretchY(95.0f) <= m_nMousePosY && StretchY(120.0f) >= m_nMousePosY ? 10 : 16;
+                } else {
+                    m_MouseInBounds = 16;
+                }
+            }
+            break;
+        }
+        case eMenuAction::MENU_ACTION_SFX_VOL: { // SFX volume slider
+            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nSfxVolume * 0.015625f, int32(StretchX(3.0f)));
+            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
+                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = 13;
+                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(SCREEN_WIDTH), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 12;
+                } else {
+                    m_MouseInBounds = 16;
+                }
+            }
+            break;
+        }
+        case eMenuAction::MENU_ACTION_DRAW_DIST: { // Draw distance slider
+            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), (m_fDrawDistance - 0.92500001f) * 1.1428572f, int32(StretchX(3.0f)));
+            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
+                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = 9;
+                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(SCREEN_WIDTH), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 8;
+                } else {
+                    m_MouseInBounds = 16;
+                }
+            }
+            break;
+        }
+        case eMenuAction::MENU_ACTION_MOUSE_SENS: { // Mouse sensitivity slider
+            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), CCamera::m_fMouseAccelHorzntl / 0.0049999999f, int32(StretchX(3.0f)));
+            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
+                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = 15;
+                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(SCREEN_WIDTH), StretchY(125.0f), StretchY(150.0f))) {
+                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : 14;
+                } else {
+                    m_MouseInBounds = 16;
+                }
+            }
+            break;
+        }
+        default:
+            break;
+        }
+
+        if (pTextToShow && pTextToShow != nullptr) {
+            buttonTextPosY = (29 * CFont::GetNumberLines(60.0, buttonTextPosY, (const GxtChar *)pTextToShow)) + buttonTextPosY;
+        }
+        if (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType == 32) {
+            buttonTextPosY = buttonTextPosY + 70.0f;
+        }
+    }
+    switch (m_nCurrentScreen) {
+    case eMenuScreen::SCREEN_STATS:
+    case eMenuScreen::SCREEN_AUDIO_SETTINGS:
+    case eMenuScreen::SCREEN_DISPLAY_SETTINGS:
+    case eMenuScreen::SCREEN_USER_TRACKS_OPTIONS:
+    case eMenuScreen::SCREEN_DISPLAY_ADVANCED:
+    case eMenuScreen::SCREEN_CONTROLLER_SETUP:
+    case eMenuScreen::SCREEN_MOUSE_SETTINGS:
+    case eMenuScreen::SCREEN_JOYPAD_SETTINGS:
+        DisplayHelperText(0);
+        break;
+    default:
+        return;
+    }
 }
 
 // 0x573EE0
@@ -399,7 +984,7 @@ void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* ti
 
 // 0x57D860
 void CMenuManager::DrawQuitGameScreen() {
-    m_bDrawMouse = false;
+    m_DisplayTheMouse = false;
     CRect coords(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT);
     CSprite2d::DrawRect(coords, { 0, 0, 0, 255 });
     SaveSettings();
@@ -407,18 +992,431 @@ void CMenuManager::DrawQuitGameScreen() {
 }
 
 // 0x57D8D0
-void CMenuManager::DrawControllerScreenExtraText(int32 a1) {
-    plugin::CallMethod<0x57D8D0, CMenuManager*, int32>(this, a1);
+void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
+    const auto maxActions      = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
+    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
+    if (maxActions > 0) {
+        for (auto actionIndex = 0u; actionIndex < maxActions; actionIndex++) {
+            float posX = StretchX(240.0f);
+            float posY = StretchY(float(startingYPos));
+            
+            for (const auto& order : CONTROLLER_ORDERS_SET) {
+                const auto buttonText = ControlsManager.GetControllerSettingText(static_cast<eControllerAction>(actionIndex), (eContSetOrder)order);
+                if (buttonText) {
+                    CFont::PrintString(posX, posY, buttonText);
+                    posX += StretchX(75.0f);
+                }
+            }
+            
+            if ((eControllerAction)actionIndex == m_ListSelection) {
+                if (m_EditingControlOptions) {
+                    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.LastFlash > 150) {
+                        FrontEndMenuManager.ColourSwitch = (FrontEndMenuManager.ColourSwitch) ? false : true;
+                        FrontEndMenuManager.LastFlash  = CTimer::m_snTimeInMillisecondsPauseMode;
+                    }
+                    
+                    if (FrontEndMenuManager.ColourSwitch) {
+                        CFont::SetColor({0, 0, 0, 255});
+                        CFont::PrintString(posX, posY, TheText.Get("FEC_QUE")); // ???
+                        CFont::SetColor({74, 90, 107, 255});
+                    }
+                }
+            }
+
+            if (m_MenuIsAbleToQuit) {
+                auto comboText = ControlsManager.GetButtonComboText((eControllerAction)m_ListSelection);
+                if (comboText) {
+                    CFont::SetColor({200, 50, 50, 255});
+                    CFont::PrintString(posX, StretchY(float(posY + 10)), comboText);
+                }
+            }
+
+            startingYPos += verticalSpacing;
+        }
+    }
+
 }
 
 // 0x57E6E0
-void CMenuManager::DrawControllerBound(uint16 a1, bool a2) {
-    plugin::CallMethod<0x57E6E0, CMenuManager*, uint16, bool>(this, a1, a2);
+void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScreen) {
+    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
+    const auto maxActions      = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
+
+    using ControlActionMapping = std::pair<eControllerAction, int32>;
+
+    static constexpr std::array<ControlActionMapping, 41> CarActionMappings = {{
+        { eControllerAction::CA_PED_CYCLE_WEAPON_RIGHT,            -1 },
+        { eControllerAction::CA_PED_CYCLE_WEAPON_LEFT,             -1 },
+        { eControllerAction::CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, -1 },
+        { eControllerAction::CA_PED_JUMPING,                       -1 },
+        { eControllerAction::CA_PED_SPRINT,                        -1 },
+        { eControllerAction::CA_PED_LOOKBEHIND,                    -1 },
+        { eControllerAction::CA_PED_DUCK,                          -1 },
+        { eControllerAction::CA_VEHICLE_STEER_DOWN,                -1 },
+        { eControllerAction::CA_VEHICLE_ACCELERATE,                -1 },
+        { eControllerAction::CA_VEHICLE_RADIO_STATION_UP,          -1 },
+        { eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN,        -1 },
+        { eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP,          -1 },
+        { eControllerAction::CA_VEHICLE_HORN,                      -1 },
+        { eControllerAction::CA_VEHICLE_TURRETLEFT,                -1 },
+        { eControllerAction::CA_VEHICLE_TURRETRIGHT,               -1 },
+        { eControllerAction::CA_PED_CYCLE_TARGET_LEFT,             -1 },
+        { eControllerAction::CA_PED_FIRE_WEAPON,                   18 },
+        { eControllerAction::CA_PED_FIRE_WEAPON_ALT,               19 },
+        { eControllerAction::CA_GO_FORWARD,                        24 },
+        { eControllerAction::CA_GO_BACK,                           25 },
+        { eControllerAction::CA_GO_LEFT,                           20 },
+        { eControllerAction::CA_GO_RIGHT,                          21 },
+        { eControllerAction::CA_PED_SNIPER_ZOOM_IN,                22 },
+        { eControllerAction::CA_PED_SNIPER_ZOOM_OUT,               23 },
+        { eControllerAction::CA_VEHICLE_ENTER_EXIT,                47 },
+        { eControllerAction::CA_PED_ANSWER_PHONE,                  10 },
+        { eControllerAction::CA_PED_WALK,                          26 },
+        { eControllerAction::CA_VEHICLE_FIRE_WEAPON,               27 },
+        { eControllerAction::CA_VEHICLE_FIRE_WEAPON_ALT,           28 },
+        { eControllerAction::CA_VEHICLE_STEER_LEFT,                29 },
+        { eControllerAction::CA_VEHICLE_STEER_RIGHT,               30 },
+        { eControllerAction::CA_VEHICLE_STEER_UP,                  11 },
+        { eControllerAction::CA_VEHICLE_BRAKE,                     31 },
+        { eControllerAction::CA_TOGGLE_SUBMISSIONS,                38 },
+        { eControllerAction::CA_VEHICLE_HANDBRAKE,                 39 },
+        { eControllerAction::CA_PED_1RST_PERSON_LOOK_LEFT,         41 },
+        { eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT,        40 },
+        { eControllerAction::CA_VEHICLE_LOOKLEFT,                  36 },
+        { eControllerAction::CA_VEHICLE_LOOKRIGHT,                 37 },
+        { eControllerAction::CA_VEHICLE_LOOKBEHIND,                34 },
+        { eControllerAction::CA_VEHICLE_MOUSELOOK,                 35 },
+    }};
+
+    static constexpr std::array<ControlActionMapping, 51> PedActionMappings = {{
+        { eControllerAction::CA_PED_FIRE_WEAPON,                   0  },
+        { eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP,          0  },
+        { eControllerAction::CA_PED_FIRE_WEAPON_ALT,               2  },
+        { eControllerAction::CA_PED_CYCLE_WEAPON_RIGHT,            3  },
+        { eControllerAction::CA_PED_CYCLE_WEAPON_LEFT,             49 },
+        { eControllerAction::CA_GO_FORWARD,                        50 },
+        { eControllerAction::CA_GO_BACK,                           48 },
+        { eControllerAction::CA_GO_LEFT,                           47 },
+        { eControllerAction::CA_VEHICLE_MOUSELOOK,                 47 },
+        { eControllerAction::CA_GO_RIGHT,                          4  },
+        { eControllerAction::CA_TOGGLE_SUBMISSIONS,                4  },
+        { eControllerAction::CA_PED_SNIPER_ZOOM_IN,                5  },
+        { eControllerAction::CA_VEHICLE_HANDBRAKE,                 5  },
+        { eControllerAction::CA_PED_SNIPER_ZOOM_OUT,               6  },
+        { eControllerAction::CA_PED_1RST_PERSON_LOOK_LEFT,         6  },
+        { eControllerAction::CA_VEHICLE_ENTER_EXIT,                7  },
+        { eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT,        7  },
+        { eControllerAction::CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, 8  },
+        { eControllerAction::CA_PED_JUMPING,                       9  },
+        { eControllerAction::CA_PED_SPRINT,                        10 },
+        { eControllerAction::CA_VEHICLE_LOOKBEHIND,                10 },
+        { eControllerAction::CA_PED_LOOKBEHIND,                    11 },
+        { eControllerAction::CA_PED_CYCLE_TARGET_RIGHT,            11 },
+        { eControllerAction::CA_PED_DUCK,                          12 },
+        { eControllerAction::CA_PED_ANSWER_PHONE,                  13 },
+        { eControllerAction::CA_PED_WALK,                          45 },
+        { eControllerAction::CA_VEHICLE_FIRE_WEAPON,               15 },
+        { eControllerAction::CA_VEHICLE_FIRE_WEAPON_ALT,           16 },
+        { eControllerAction::CA_VEHICLE_STEER_UP,                  32 },
+        { eControllerAction::CA_CONVERSATION_YES,                  32 },
+        { eControllerAction::CA_VEHICLE_STEER_DOWN,                33 },
+        { eControllerAction::CA_CONVERSATION_NO,                   33 },
+        { eControllerAction::CA_VEHICLE_TURRETLEFT,                -1 },
+        { eControllerAction::CA_VEHICLE_TURRETRIGHT,               -1 },
+        { eControllerAction::CA_VEHICLE_TURRETUP,                  -1 },
+        { eControllerAction::CA_VEHICLE_TURRETDOWN,                -1 },
+        { eControllerAction::CA_PED_CYCLE_TARGET_LEFT,             -1 },
+        { eControllerAction::CA_PED_CENTER_CAMERA_BEHIND_PLAYER,   -1 },
+        { eControllerAction::CA_NETWORK_TALK,                      -1 },
+        { eControllerAction::CA_GROUP_CONTROL_FWD,                 -1 },
+        { eControllerAction::CA_GROUP_CONTROL_BWD,                 -1 },
+        { eControllerAction::CA_PED_1RST_PERSON_LOOK_UP,           -1 },
+        { eControllerAction::CA_PED_1RST_PERSON_LOOK_DOWN,         -1 },
+        { eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN,        1  },
+        { eControllerAction::CA_VEHICLE_HORN,                      1  },
+        { eControllerAction::CA_VEHICLE_RADIO_STATION_UP,          44 },
+        { eControllerAction::CA_VEHICLE_BRAKE,                     52 },
+        { eControllerAction::CA_VEHICLE_ACCELERATE,                51 },
+        { eControllerAction::CA_VEHICLE_STEER_LEFT,                17 },
+        { eControllerAction::CA_VEHICLE_STEER_RIGHT,               14 },
+        { eControllerAction::CA_PED_LOCK_TARGET,                   14 },
+    }};
+
+    auto currentY = StretchY(float(verticalOffset));
+
+    unsigned int actionIndex = 0; // Corresponds to v7 in old code
+    // Main loop - process each action
+    while (actionIndex < maxActions) {
+        auto  currentX         = StretchX(270.0f);
+        int32 controllerAction = eControllerAction::CA_NONE;
+
+        // Set default text color
+        CFont::SetColor({ 255, 255, 255, 255 });
+
+        // Map action index to controller action
+        if (m_RedefiningControls == 1) {
+            for (const auto& mapping : CarActionMappings) {
+                if (mapping.first == ControllerActionsAvailableInCar[actionIndex]) {
+                    controllerAction = mapping.second;
+                    break;
+                }
+            }
+        } else {
+            for (const auto& mapping : PedActionMappings) {
+                if (mapping.first == (eControllerAction)actionIndex) { // Cast actionIndex to eControllerAction for comparison
+                    if (m_ControlMethod == eController::MOUSE_PLUS_KEYS && notsa::contains({ eControllerAction::CA_VEHICLE_STEER_UP, eControllerAction::CA_CONVERSATION_YES, eControllerAction::CA_VEHICLE_STEER_DOWN, eControllerAction::CA_CONVERSATION_NO }, mapping.first)) {
+                        controllerAction = -1;
+                    } else {
+                        controllerAction = mapping.second;
+                    }
+                    break;
+                }
+            }
+        }
+
+        const auto isSelected = (m_ListSelection == actionIndex && !isOppositeScreen);
+
+        // Highlight selected action
+        if (isSelected) {
+            CSprite2d::DrawRect({
+                    StretchX(260.0f),
+                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f),
+                    SCREEN_WIDTH - StretchX(20.0f),
+                    StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f + 10.f)
+                },
+                { 172, 203, 241, 255 }
+            );
+            CFont::SetColor({ 255, 255, 255, 255 });
+        }
+
+        // Set text properties
+        CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+        CFont::SetScale(StretchX(0.3f), StretchY(0.6f));
+        CFont::SetFontStyle(FONT_SUBTITLES);
+        CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
+
+        // Draw control bindings
+        auto hasControl = false;
+        if (controllerAction != eControllerAction::CA_NONE && controllerAction != eControllerAction::CA_COMBOLOCK) {
+
+            for (const auto& order : CONTROLLER_ORDERS_SET) {
+                if (m_DeleteAllNextDefine && m_ListSelection == actionIndex) {
+                    break;
+                }
+                if (const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)controllerAction, (eContSetOrder)order)) {
+                    hasControl = true;
+                    if (!isOppositeScreen) {
+                        CFont::PrintString(currentX, currentY, buttonText);
+                    }
+                    currentX += StretchX(75.0f);
+                }
+            }
+        }
+
+        // NOTE: Deal with the logic further, because beautifully and fixing the display of “UNBOUND” and “???” at once is not possible
+
+        // 0x57EBD9 + 0x57EBEA
+        if (controllerAction == eControllerAction::CA_COMBOLOCK) {
+            CFont::SetColor({ 0, 0, 0, 255 });
+            if (!isOppositeScreen) {
+                CFont::PrintString(currentX, currentY, TheText.Get("FEC_CMP")); // COMBO: Uses LOOK LEFT + LOOK RIGHT together
+            }
+            break;
+        } else {
+            const auto isEditable = controllerAction >= 0;
+            const auto shouldUpdateBlink = isSelected && isEditable && m_EditingControlOptions;
+            if (shouldUpdateBlink) {
+                // 0x57ECEB
+                if (CTimer::m_snTimeInMillisecondsPauseMode - m_lastBlinkTime > 150) {
+                    m_isTextBlinking = !m_isTextBlinking;
+                    m_lastBlinkTime  = CTimer::m_snTimeInMillisecondsPauseMode;
+                }
+            }
+
+            const auto isQuestionMarkVisible = shouldUpdateBlink && !hasControl && m_isTextBlinking;
+            if (!hasControl && isEditable) {
+                if (isQuestionMarkVisible) {
+                    // 0x57ED19
+                    CFont::SetColor({ 0, 0, 0, 255 });
+                    if (!isOppositeScreen) {
+                        CFont::PrintString(currentX, currentY, TheText.Get("FEC_QUE")); // ???
+                    }
+                } else if (!isSelected || !m_EditingControlOptions) {
+                    // 0x57EC1F - 0x57EC9A
+                    m_bRadioAvailable = 0;
+                    CFont::SetColor({ 200, 50, 50, 255 });
+                    if (!isOppositeScreen) {
+                        CFont::PrintString(currentX, currentY, TheText.Get("FEC_UNB")); // UNBOUND
+                    }
+                }
+            }
+
+            // 0x57ECAA
+            if (isSelected) {
+                if (!isEditable) {
+                    DisplayHelperText("FET_EIG"); // CANNOT SET A CONTROL FOR THIS ACTION
+                } else {
+                    m_OptionToChange = (eControllerAction)controllerAction;
+                    if (m_EditingControlOptions) {
+                        if (m_DeleteAllBoundControls) {
+                            DisplayHelperText("FET_CIG"); // BACKSPACE - CLEAR~n~CLICK LMB / RETURN - CHANGE
+                        } else {
+                            DisplayHelperText("FET_RIG"); // SELECT A NEW CONTROL FOR THIS ACTION~n~ESC - CANCEL
+                        }
+                        m_CanBeDefined = true;
+                    } else {
+                        DisplayHelperText("FET_CIG"); // BACKSPACE - CLEAR~n~CLICK LMB / RETURN - CHANGE
+                        m_CanBeDefined = false;
+                        m_DeleteAllBoundControls = false;
+                    }
+                }
+            }
+        }
+
+        // Move to next line and action
+        actionIndex++;
+        currentY = StretchY(float(verticalOffset + actionIndex * verticalSpacing));
+    }
 }
 
 // 0x57F300
 void CMenuManager::DrawControllerSetupScreen() {
-    plugin::CallMethod<0x57F300, CMenuManager*>(this);
+    // Calculate spacing and max items based on control scheme
+    const auto verticalSpacing   = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
+    const auto maxControlActions = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
+    // Create a std::array of GxtChar pointers with all entries
+    std::array<const GxtChar*, 44> keys = {
+        TheText.Get("FEC_FIR"),                                                      // 0
+        TheText.Get("FEC_FIA"),                                                      // 1
+        TheText.Get("FEC_NWE"),                                                      // 2
+        TheText.Get("FEC_PWE"),                                                      // 3
+        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_ACC" : "FEC_FOR"), // 4
+        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_BRA" : "FEC_BAC"), // 5
+        TheText.Get("FEC_LEF"),                                                      // 6
+        TheText.Get("FEC_RIG"),                                                      // 7
+        TheText.Get("FEC_PLU"),                                                      // 8
+        TheText.Get("FEC_PLD"),                                                      // 9
+        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_TSK" : "FEC_COY"), // 10
+        TheText.Get("FEC_CON"),                                                      // 11
+        TheText.Get("FEC_GPF"),                                                      // 12
+        TheText.Get("FEC_GPB"),                                                      // 13
+        TheText.Get("FEC_ZIN"),                                                      // 14
+        TheText.Get("FEC_ZOT"),                                                      // 15
+        TheText.Get("FEC_EEX"),                                                      // 16
+        TheText.Get("FEC_RSC"),                                                      // 17
+        TheText.Get("FEC_RSP"),                                                      // 18
+        TheText.Get("FEC_RTS"),                                                      // 19
+        TheText.Get("FEC_HRN"),                                                      // 20
+        TheText.Get("FEC_SUB"),                                                      // 21
+        TheText.Get("FEC_CMR"),                                                      // 22
+        TheText.Get("FEC_JMP"),                                                      // 23
+        TheText.Get("FEC_SPN"),                                                      // 24
+        TheText.Get("FEC_HND"),                                                      // 25
+        TheText.Get("FEC_TAR"),                                                      // 26
+        TheText.Get("FEC_CRO"),                                                      // 27
+        TheText.Get("FEC_ANS"),                                                      // 28
+        TheText.Get("FEC_PDW"),                                                      // 29
+        TheText.Get("FEC_TFL"),                                                      // 30
+        TheText.Get("FEC_TFR"),                                                      // 31
+        TheText.Get("FEC_TFU"),                                                      // 32
+        TheText.Get("FEC_TFD"),                                                      // 33
+        TheText.Get("FEC_LBA"),                                                      // 34
+        TheText.Get("FEC_VML"),                                                      // 35
+        TheText.Get("FEC_LOL"),                                                      // 36
+        TheText.Get("FEC_LOR"),                                                      // 37
+        TheText.Get("FEC_LDU"),                                                      // 38
+        TheText.Get("FEC_LUD"),                                                      // 39
+        nullptr,                                                                     // 40
+        nullptr,                                                                     // 41
+        TheText.Get("FEC_CEN"),                                                      // 42
+        nullptr                                                                      // 43
+    };
+
+    // 0x57F68E
+    CFont::SetFontStyle(FONT_GOTHIC);
+    CFont::SetScale(StretchX(0.9f), StretchY(1.7f));
+    CFont::SetEdge(0);
+    CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
+    CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
+    CFont::PrintString(
+        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_ControlMethod ? "FET_CCN" : "FET_SCN")
+    );
+    CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+    CFont::PrintString(
+        StretchX(48.0f), StretchY(11.0f), TheText.Get(m_RedefiningControls ? "FET_CCR" : "FET_CFT")
+    );
+    CSprite2d::DrawRect({ StretchX(20.0f), StretchY(50.0f), SCREEN_WIDTH - StretchX(20.0f), SCREEN_HEIGHT - StretchY(50.0f) }, { 49, 101, 148, 100 });
+
+    // 0x57F8C0
+    for (auto i = 0u; i < maxControlActions; i++) {
+        if (!m_EditingControlOptions) {
+            if (StretchX(20.0f) < m_nMousePosX && StretchX(600.0f) > m_nMousePosX) {
+                if (StretchY(i * verticalSpacing + 69.0f) < m_nMousePosY && StretchY(verticalSpacing * (i + 1) + 69.0f) > m_nMousePosY) {
+                    m_CurrentMouseOption = i;
+                    if (m_nOldMousePosX != m_nMousePosX || m_nOldMousePosY != m_nMousePosY) {
+                        m_ListSelection = i;
+                    }
+                    if (m_MouseInBounds == 5 && i == m_ListSelection) {
+                        m_EditingControlOptions         = true;
+                        m_bJustOpenedControlRedefWindow = true;
+                        m_pPressedKey                   = &m_KeyPressedCode;
+                    }
+                    m_MouseInBounds = 16;
+                }
+            }
+        }
+        // 0x57F9E1
+        CFont::SetColor({ 74, 90, 107, 255 });
+        CFont::SetScale(StretchX(0.4f), StretchY(0.6f));
+        CFont::SetFontStyle(FONT_MENU);
+        CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
+        const GxtChar* actionText = nullptr;
+        if (m_RedefiningControls == 1) {
+            actionText = keys[ControllerActionsAvailableInCar[i]];
+        } else {
+            actionText = keys[ControllerActionsAvailableOnFoot[i]];
+        }
+        
+        if (actionText) {
+            CFont::PrintString(StretchX(40.0f), StretchY(i * verticalSpacing + 69.0f), actionText);
+        }
+    }
+
+    // 0x57FAF9
+    DrawControllerBound(0x45u, false);
+    if (!m_EditingControlOptions) {
+        CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
+        const auto color = StretchX(
+            CFont::GetStringWidth(TheText.Get("FEDS_TB"), true, false)
+        );
+        if (StretchX(35.0f) + color <= m_nMousePosX
+            || StretchX(15.0f) >= m_nMousePosX
+            || SCREEN_HEIGHT - StretchY(33.0f) >= m_nMousePosY
+            || SCREEN_HEIGHT - StretchY(10.0f) <= m_nMousePosY) {
+            if (StretchX(20.0f) >= m_nMousePosX
+                || StretchX(600.0f) <= m_nMousePosX
+                || StretchY(48.0f) >= m_nMousePosY
+                || SCREEN_HEIGHT - StretchY(33.0f) <= m_nMousePosY) {
+                m_MouseInBounds = 16;
+            } else {
+                m_MouseInBounds = 4;
+            }
+        } else {
+            m_MouseInBounds = 3;
+        }
+    }
+
+    // 0x57FCC4
+    CFont::SetFontStyle(FONT_MENU);
+    CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
+    CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
+    CFont::SetEdge(0);
+    CFont::SetColor({ 74, 90, 107, 255 });
+    CFont::PrintString(
+        StretchX(33.0f),
+        SCREEN_HEIGHT - StretchY(38.0f),
+        TheText.Get("FEDS_TB")
+    );
 }
 
 /**
@@ -437,10 +1435,10 @@ void CMenuManager::DrawControllerSetupScreen() {
 int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing) {
     // return plugin::CallMethodAndReturn<int32, 0x576860, CMenuManager*, float, float, float, float, float, float, int32>(this, x, y, h1, h2, length, value, size);
 
-    const auto BARS = 16;
-    const auto COLOR_ON  = CRGBA(172, 203, 241, 255); // Fresh Air
-    const auto COLOR_OFF = CRGBA(74, 90, 107, 255);   // Deep Space Sparkle
-    const auto COLOR_SHADOW = CRGBA(0, 0, 0, 200);
+    constexpr auto BARS = 16;
+    constexpr auto COLOR_ON  = CRGBA(172, 203, 241, 255); // Fresh Air
+    constexpr auto COLOR_OFF = CRGBA(74, 90, 107, 255);   // Deep Space Sparkle
+    constexpr auto COLOR_SHADOW = CRGBA(0, 0, 0, 200);
 
     CRGBA color;
 

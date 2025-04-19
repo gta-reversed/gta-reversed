@@ -379,12 +379,10 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     PSGLOBAL(instance) = instance; // Not used anywhere, just set here
 
     // 0x7487CF
-#ifdef NOTSA_USE_SDL3
-    ControlsManager.InitDefaultControlConfigMouse(CMouseControllerState{}, !FrontEndMenuManager.m_nController); // TODO
-#else
+#ifndef NOTSA_USE_SDL3
     VERIFY(WinInput::Initialise());
-    ControlsManager.InitDefaultControlConfigMouse(WinInput::GetMouseState(), !FrontEndMenuManager.m_nController);
 #endif
+    ControlsManager.ReinitControls();
 
     // 0x748847
     if (RsEventHandler(rsRWINITIALIZE, PSGLOBAL(window)) == rsEVENTERROR) {

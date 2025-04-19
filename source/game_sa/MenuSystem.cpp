@@ -164,7 +164,7 @@ void CMenuSystem::InputStandardMenu(MenuId id) {
     if (menu->m_nNumRows <= 1)
         return;
 
-    if (CPad::GetAnaloguePadLeft() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadUpPressed() || CTimer::GetIsPaused() && CPad::IsUpPressed()) {
+    if (CPad::GetAnaloguePadUp() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadUpPressed() || CTimer::GetIsPaused() && CPad::IsUpPressed()) {
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0f, 1.0f);
 
         do {
@@ -225,7 +225,7 @@ void CMenuSystem::InputGridMenu(MenuId id) {
     if (menu->m_nAcceptedRow != menu->m_nSelectedRow)
         menu->m_nAcceptedRow = UNDEFINED;
 
-    if (CPad::GetAnaloguePadLeft() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadUpPressed()) {
+    if (CPad::GetAnaloguePadUp() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadUpPressed()) {
         if (menu->m_nSelectedRow >= menu->m_nNumColumns)
             menu->m_nSelectedRow -= menu->m_nNumColumns;
     }
@@ -235,7 +235,7 @@ void CMenuSystem::InputGridMenu(MenuId id) {
             menu->m_nSelectedRow += menu->m_nNumColumns;
     }
 
-    if (CPad::GetAnaloguePadUp() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadLeftPressed()) {
+    if (CPad::GetAnaloguePadLeft() || menu->m_abColumnInteractive[INTERACTIVE_DPAD] && pad->IsDPadLeftPressed()) {
         if (menu->m_nSelectedRow > 0)
             menu->m_nSelectedRow -= 1;
     }

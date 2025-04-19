@@ -2,16 +2,15 @@
 
 class CMouseControllerState {
 public:
-    uint8 lmb{};       //!< Left mouse button
-    uint8 rmb{};       //!< Right mouse button
-    uint8 mmb{};       //!< Middle mouse button
-    uint8 wheelUp{};   //!< Is scroll wheel going up
-    uint8 wheelDown{}; //!< Is scroll wheel going down
-    uint8 bmx1{};      //!< Side mouse button 1
-    uint8 bmx2{};      //!< Side mouse button 2
-    float Z{};         //!< Scroll wheel delta
-    float X{};         //!< Mouse delta X
-    float Y{};         //!< Mouse delta Y
+    bool      isMouseLeftButtonPressed{};   // LMB
+    bool      isMouseRightButtonPressed{};  // RMB
+    bool      isMouseMiddleButtonPressed{}; // MMB
+    bool      isMouseWheelMovedUp{};        // Wheel up
+    bool      isMouseWheelMovedDown{};      // Wheel down
+    bool      isMouseFirstXPressed{};       // BMX1
+    bool      isMouseSecondXPressed{};      // BMX2
+    float     m_fWheelMoved{};              // Wheel movement
+    CVector2D m_AmountMoved{};              // Mouse movement
 
 public:
     static void InjectHooks();
@@ -21,5 +20,6 @@ public:
 
     void Clear();
     [[nodiscard]] bool CheckForInput() const;
+    [[nodiscard]] auto GetAmountMouseMoved() const { return m_AmountMoved; }
 };
 VALIDATE_SIZE(CMouseControllerState, 0x14);
