@@ -189,7 +189,7 @@ void CAESoundManager::Service() {
         m_PrioritisedSoundList[numPrioritisedSounds++] = ref;
     }
 
-    // Mark some more songs as uncancellable under specific conditions
+    // Check if we need to insert any of the already playing sounds into the list
     for (auto&& [i, sound] : rngv::enumerate(m_VirtuallyPlayingSoundList)) {
         if (!sound.IsUsed()) {
             continue;
