@@ -95,11 +95,11 @@ enum eControllerAction {
     TAKE_SCREEN_SHOT                  = 56,
     SHOW_MOUSE_POINTER_TOGGLE         = 57,
     SWITCH_CAM_DEBUG_MENU             = 58,
-
-    // notsa
-    NUM_OF_MAX_CONTROLLER_ACTIONS,
-    NUM_OF_MIN_CONTROLLER_ACTIONS = 0,
 };
+
+// notsa
+constexpr int NUM_OF_MIN_CONTROLLER_ACTIONS = 0;
+constexpr int NUM_OF_MAX_CONTROLLER_ACTIONS = SWITCH_CAM_DEBUG_MENU + 1;
 
 enum eContSetOrder {
     NO_ORDER_SET = 0,
