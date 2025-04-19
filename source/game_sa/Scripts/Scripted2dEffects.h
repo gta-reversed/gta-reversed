@@ -15,16 +15,14 @@ public:
 
 class CScriptedEffectPairs {
 public:
-    int32 m_nCurrentPairIndex;
-    CScriptedEffectPair pair1[4];
-    CScriptedEffectPair pair2[4];
+    enum {
+        MAX_NUM_EFFECT_PAIRS = 0x4,
+    };
 
-    void Flush() {
-        rng::fill(pair1, CScriptedEffectPair{});
-        m_nCurrentPairIndex  = 0;
-    }
+    int32 NumPairs{};
+    CScriptedEffectPair Pairs[MAX_NUM_EFFECT_PAIRS]{};
 };
-VALIDATE_SIZE(CScriptedEffectPairs, 0x124);
+VALIDATE_SIZE(CScriptedEffectPairs, 148);
 
 struct tUserList_Child {
     int32 m_Id;      // eModelID
@@ -43,7 +41,7 @@ constexpr auto NUM_SCRIPTED_2D_EFFECTS = 64;
 
 class CScripted2dEffects {
 public:
-    static inline auto& ms_effects               = *(std::array<C2dEffect, NUM_SCRIPTED_2D_EFFECTS>*)0xC3AB00; // class maybe
+    static inline auto& ms_effects               = *(std::array<C2dEffect, NUM_SCRIPTED_2D_EFFECTS>*)0xC3AB00; // actual type is `C2dEffectPedAttractor`
     static inline auto& ms_effectPairs           = *(std::array<CScriptedEffectPairs, NUM_SCRIPTED_2D_EFFECTS>*)0xC3BB00;
     static inline auto& ms_userLists             = *(std::array<tUserList, NUM_SCRIPTED_2D_EFFECTS>*)0xC3A200; // class maybe
     static inline auto& ms_activated             = *(std::array<bool, NUM_SCRIPTED_2D_EFFECTS>*)0xC3A1A0;
@@ -57,14 +55,18 @@ public:
 
     static void Init();
 
-    static CScriptedEffectPairs* GetEffectPairs(const C2dEffect* effect);
-    static int32 GetIndex(const C2dEffectBase* effect);
+    static CScriptedEffectPairs* GetEffectPairs(const C2dEffectPedAttractor* effect);
+    static int32 GetIndex(const C2dEffectPedAttractor* effect);
 
     static int32 AddScripted2DEffect(float radius);
     static void ReturnScripted2DEffect(int32 index);
 
     /// Index of the effect if it's from `ms_effects` `nullopt` otherwise.
-    static auto IndexOfEffect(const C2dEffectBase* effect) ->std::optional<size_t>;
+    static auto IndexOfEffect(const C2dEffectPedAttractor* effect) ->std::optional<size_t>;
+
+    static auto GetEffect(int32 index) -> C2dEffectPedAttractor* {
+        return notsa::cast<C2dEffectPedAttractor>(&ms_effects[index]);
+    }
 
     static void Load() { } // NOP
     static void Save() { } // NOP

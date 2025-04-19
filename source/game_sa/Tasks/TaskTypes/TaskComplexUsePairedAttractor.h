@@ -24,8 +24,13 @@ public:
     CTask*    Clone() const override { return new CTaskComplexUsePairedAttractor{ *this }; }
     eTaskType GetTaskType() const override { return Type; }
     CTask*    CreateNextSubTask(CPed* ped) override;
-    CTask*    CreateFirstSubTask(CPed* ped) override;
+    CTask* CreateFirstSubTask(CPed* ped) override { return CreateSubTask(TASK_COMPLEX_USE_SCRIPTED_ATTRACTOR, ped); } // 0x639F70
     CTask*    ControlSubTask(CPed* ped) override;
+
+protected:
+    void SetPartnership(CPed* partner, bool isLeader, const CScriptedEffectPair* pair);
+    void ClearPartnership();
+    void SeekPartnership(CPed* ped);
 
 private: // Wrappers for hooks
     // 0x6331A0
@@ -42,9 +47,9 @@ private: // Wrappers for hooks
 
 public:
     CPedAttractor*             m_Attractor{};
-    CPed*                      m_Partner{};
+    notsa::EntityRef<CPed>     m_Partner{};
     bool                       m_IsLeader{};
     const CScriptedEffectPair* m_CurrentFxPair{};
-    int32                      m_PartnerProgress{};
+    int32                      m_PartnerProgress{}; //!< Index into `CScriptedEffectPairs::Pairs`
     int32                      m_SoloProgress{};
 };
