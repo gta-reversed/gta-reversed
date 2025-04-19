@@ -13,7 +13,7 @@ void CPedAttractor::InjectHooks() {
 
     RH_ScopedInstall(SetTaskForPed, 0x5EECA0);
     RH_ScopedInstall(RegisterPed, 0x5EEE30);
-    RH_ScopedInstall(DeRegisterPed, 0x5EC5B0, { .reversed = false });
+    RH_ScopedInstall(DeRegisterPed, 0x5EC5B0);
     RH_ScopedInstall(IsRegisteredWithPed, 0x5EB4C0, { .reversed = false });
     RH_ScopedInstall(IsAtHeadOfQueue, 0x5EB530, { .reversed = false });
     RH_ScopedInstall(GetTaskForPed, 0x5EC500, { .reversed = false });
@@ -121,7 +121,12 @@ bool CPedAttractor::RegisterPed(CPed* ped) {
 
 // 0x5EC5B0
 bool CPedAttractor::DeRegisterPed(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x5EC5B0, CPedAttractor*, CPed*>(this, ped);
+    m_PedTaskPairs.erase(rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped));
+    if (const auto it = rng::find(m_ArrivedPeds, ped); it != m_ArrivedPeds.end()) { // inverted (!)
+        m_AttractPeds.erase(it);
+        return true;
+    }
+    return BroadcastDeparture(ped);
 }
 
 // 0x5EB4C0
@@ -208,8 +213,8 @@ void CPedAttractor::ComputeAttractHeading(int32 bQueue, float& heading) {
 }
 
 // 0x5EF160
-void CPedAttractor::BroadcastDeparture(CPed* ped) {
-    plugin::CallMethod<0x5EF160, CPedAttractor*, CPed*>(this, ped);
+bool CPedAttractor::BroadcastDeparture(CPed* ped) {
+    return plugin::CallMethodAndReturn<bool, 0x5EF160, CPedAttractor*, CPed*>(this, ped);
 }
 
 // 0x5EEF80

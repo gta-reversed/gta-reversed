@@ -71,7 +71,7 @@ public:
     virtual void ComputeAttractHeading(int32 bQueue, float& heading);
     float        ComputeAttractHeading(int32 bQueue) { float heading; ComputeAttractHeading(bQueue, heading); return heading; }
 
-    virtual void BroadcastDeparture(CPed* ped);
+    virtual bool BroadcastDeparture(CPed* ped);
     bool         BroadcastArrival(CPed* ped);
 
     void AbortPedTasks();
