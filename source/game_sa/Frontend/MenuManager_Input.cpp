@@ -408,7 +408,7 @@ void CMenuManager::CheckSliderMovement(int32 LeftRight) {
 
     switch (item.m_nActionType) {
     case MENU_ACTION_BRIGHTNESS:
-        m_PrefsBrightness = std::clamp<int32>(LeftRight * int32(360.0f / 15.0f) + m_PrefsBrightness, 0, 384);
+        m_PrefsBrightness = std::clamp<int32>(LeftRight * int32(363.0f / 15.0f) + m_PrefsBrightness, 0, 384);
         SetBrightness((float)m_PrefsBrightness, false);
         break;
     case MENU_ACTION_RADIO_VOL: {
