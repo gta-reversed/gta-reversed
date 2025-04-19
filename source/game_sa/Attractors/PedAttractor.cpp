@@ -17,7 +17,7 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(IsRegisteredWithPed, 0x5EB4C0);
     RH_ScopedInstall(IsAtHeadOfQueue, 0x5EB530);
     RH_ScopedInstall(GetTaskForPed, 0x5EC500);
-    RH_ScopedInstall(GetQueueSlot, 0x5EB550, { .reversed = false });
+    RH_ScopedInstall(GetQueueSlot, 0x5EB550);
     //RH_ScopedInstall(GetNoOfRegisteredPeds, 0xdeadbeef, { .reversed = false }); // Address incorrect
     RH_ScopedInstall(GetHeadOfQueue, 0x5EB590);
     RH_ScopedInstall(GetTailOfQueue, 0x5EB5B0);
@@ -137,7 +137,7 @@ bool CPedAttractor::IsRegisteredWithPed(const CPed* ped) const {
 
 // 0x5EB530
 bool CPedAttractor::IsAtHeadOfQueue(CPed* ped) {
-    return m_ArrivedPeds.front() == ped;
+    return !m_ArrivedPeds.empty() && m_ArrivedPeds.front() == ped; // NOTE/BUGFIX: Check if the array is empty
 }
 
 // 0x5EC500
@@ -154,8 +154,9 @@ CTask* CPedAttractor::GetTaskForPed(CPed* ped) {
 }
 
 // 0x5EB550
-int32 CPedAttractor::GetQueueSlot(const CPed*) {
-    return plugin::CallMethodAndReturn<int32, 0x5EB550, CPedAttractor*>(this);
+int32 CPedAttractor::GetQueueSlot(const CPed* ped) {
+    assert(rng::find(m_ArrivedPeds, ped) != m_ArrivedPeds.end());
+    return rng::distance(m_ArrivedPeds.begin(), rng::find(m_ArrivedPeds, ped));
 }
 
 // 0x5EB590

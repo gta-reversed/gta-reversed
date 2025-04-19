@@ -57,9 +57,10 @@ public:
     auto begin() const { return _First; }
     auto end() const { return _Last; }
     auto empty() const { return size() == 0; }
-    auto front() const { return *_First; }
-    auto back() const { return *(_Last - 1); }
+    auto front() const { assert(!empty()); return *_First; }
+    auto back() const { assert(!empty()); return *(_Last - 1); }
     void clear() { // in this implementation for the sake of simplicity `clear` actually deallocates all memory and destructs all items
+        rng::destroy(begin(), end());
         delete[] std::exchange(_First, nullptr);
         _Last = nullptr;
         _End  = nullptr;
