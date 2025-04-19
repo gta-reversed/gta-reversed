@@ -3,6 +3,9 @@
 #include "PedAttractor.h"
 
 #include "Tasks/TaskTypes/TaskComplexGoToAttractor.h"
+#include "Tasks/TaskTypes/TaskComplexWaitAtAttractor.h"
+#include "Tasks/TaskTypes/TaskComplexUseAttractor.h"
+#include "Tasks/TaskTypes/TaskComplexUsePairedAttractor.h"
 #include "Tasks/TaskTypes/TaskSimpleStandStill.h"
 
 void CPedAttractor::InjectHooks() {
@@ -30,7 +33,7 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedOverloadedInstall(ComputeAttractPos, "v", 0x5EA110, void(CPedAttractor::*)(int32, CVector&));
     RH_ScopedOverloadedInstall(ComputeAttractHeading, "v", 0x5EA1C0, void(CPedAttractor::*)(int32, float&));
     RH_ScopedInstall(BroadcastDeparture, 0x5EF160);
-    RH_ScopedInstall(BroadcastArrival, 0x5EEF80, { .reversed = false });
+    RH_ScopedInstall(BroadcastArrival, 0x5EEF80);
     RH_ScopedInstall(AbortPedTasks, 0x5EAF60, { .reversed = false });
 }
 
@@ -238,9 +241,9 @@ bool CPedAttractor::BroadcastDeparture(CPed* ped) {
     }
     m_PedTaskPairs.erase(rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped)); // 0x5EF2F6
     m_ArrivedPeds.erase(it); // 0x5EF334
-    for (auto* const ped : m_AttractPeds) { // 0x5EF371
-        const auto n = (int32)(m_ArrivedPeds.size() - 1);
-        SetTaskForPed(ped, new CTaskComplexGoToAttractor({
+    for (auto* const attractedPed : m_AttractPeds) { // 0x5EF371
+        const auto n = (int32)(m_ArrivedPeds.size());
+        SetTaskForPed(attractedPed, new CTaskComplexGoToAttractor({
             this,
             ComputeAttractPos(n),
             ComputeAttractHeading(n),
@@ -254,7 +257,31 @@ bool CPedAttractor::BroadcastDeparture(CPed* ped) {
 
 // 0x5EEF80
 bool CPedAttractor::BroadcastArrival(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x5EEF80, CPedAttractor*, CPed*>(this, ped);
+    if (!rng::contains(m_ArrivedPeds, ped)) {
+        m_ArrivedPeds.emplace_back(ped); // 0x5EEFCB
+        m_AttractPeds.erase(rng::find(m_AttractPeds, ped)); // 0x5EF002
+        for (auto* const attractedPed : m_AttractPeds) { // 0x5EF098
+            const auto idx = (int32)(m_ArrivedPeds.size());
+            SetTaskForPed(attractedPed, new CTaskComplexGoToAttractor{ // 0x5EF090
+                this,
+                ComputeAttractPos(idx),
+                ComputeAttractHeading(idx),
+                m_AchieveQueueTime,
+                idx,
+                m_MoveState
+            });
+        }
+    }
+
+    if (!IsAtHeadOfQueue(ped)) { // 0x5EF129
+        SetTaskForPed(ped, new CTaskComplexWaitAtAttractor{ this, GetQueueSlot(ped) });
+    } else if (GetType() == PED_ATTRACTOR_SCRIPTED) { // 0x5EF0D6 - inverted (!)
+        SetTaskForPed(ped, new CTaskComplexUsePairedAttractor{ this });
+    } else { // 0x5EF0FA
+        SetTaskForPed(ped, new CTaskComplexUseAttractor{ this });
+    }
+
+    return true;
 }
 
 // 0x5EAF60
