@@ -9,7 +9,7 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x5EDFB0);
     RH_ScopedInstall(Destructor, 0x5EC410);
 
-    RH_ScopedInstall(SetTaskForPed, 0x5EECA0, { .reversed = false });
+    RH_ScopedInstall(SetTaskForPed, 0x5EECA0);
     RH_ScopedInstall(RegisterPed, 0x5EEE30, { .reversed = false });
     RH_ScopedInstall(DeRegisterPed, 0x5EC5B0, { .reversed = false });
     RH_ScopedInstall(IsRegisteredWithPed, 0x5EB4C0, { .reversed = false });
@@ -83,7 +83,16 @@ void CPedAttractor::Shutdown() {
 
 // 0x5EECA0
 void CPedAttractor::SetTaskForPed(CPed* ped, CTask* task) {
-    return plugin::CallMethod<0x5EECA0, CPedAttractor*, CPed*, CTask*>(this, ped, task);
+    if (const auto pair = rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped); pair != m_PedTaskPairs.end()) {
+        if (!pair->UsedTask) { // 0x5EED79
+            ms_tasks.erase(rng::find(ms_tasks, pair->Task)); // 0x5EEDA0, 0x5EEDAD
+            delete pair->Task; // 0x5EEDD1
+        }
+        pair->Task     = task;
+        pair->UsedTask = false;
+    } else {
+        m_PedTaskPairs.emplace_back(CPedTaskPair{ .Ped = ped, .Task = task });
+    }
 }
 
 // 0x5EEE30
