@@ -273,13 +273,16 @@ void CPools::MakeSureSlotInObjectPoolIsEmpty(int32 slot) {
         return;
 
     auto* obj = GetObjectPool()->GetAt(slot);
-    if (obj->IsTemporary()) {
+    if (obj->IsTemporary())
+    {
         CWorld::Remove(obj);
         delete obj;
-    } else if (CProjectileInfo::RemoveIfThisIsAProjectile(obj)) {
+    }
+    else if (CProjectileInfo::RemoveIfThisIsAProjectile(obj))
+    {
         auto newObj = new CObject(obj->m_nModelIndex, false);
         CWorld::Remove(obj);
-        *newObj = *obj;
+        GetObjectPool()->CopyItem(newObj, obj);
         CWorld::Add(newObj);
 
         obj->m_pRwObject = nullptr;
