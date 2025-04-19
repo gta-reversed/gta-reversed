@@ -16,7 +16,7 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(DeRegisterPed, 0x5EC5B0);
     RH_ScopedInstall(IsRegisteredWithPed, 0x5EB4C0);
     RH_ScopedInstall(IsAtHeadOfQueue, 0x5EB530);
-    RH_ScopedInstall(GetTaskForPed, 0x5EC500, { .reversed = false });
+    RH_ScopedInstall(GetTaskForPed, 0x5EC500);
     RH_ScopedInstall(GetQueueSlot, 0x5EB550, { .reversed = false });
     //RH_ScopedInstall(GetNoOfRegisteredPeds, 0xdeadbeef, { .reversed = false }); // Address incorrect
     RH_ScopedInstall(GetHeadOfQueue, 0x5EB590);
@@ -142,7 +142,15 @@ bool CPedAttractor::IsAtHeadOfQueue(CPed* ped) {
 
 // 0x5EC500
 CTask* CPedAttractor::GetTaskForPed(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x5EC500, CPedAttractor*>(this);
+    const auto it = rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped);
+    if (it == m_PedTaskPairs.end()) {
+        return nullptr;
+    }
+    if (!it->UsedTask) {
+        ms_tasks.erase(rng::find(ms_tasks, it->Task));
+    }
+    it->UsedTask = true;
+    return it->Task;
 }
 
 // 0x5EB550
