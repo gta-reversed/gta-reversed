@@ -2,6 +2,8 @@
 
 #include "PedAttractor.h"
 
+#include "Tasks/TaskTypes/TaskComplexGoToAttractor.h"
+
 void CPedAttractor::InjectHooks() {
     RH_ScopedVirtualClass(CPedAttractor, 0x86C538, 6);
     RH_ScopedCategory("Attractors");
@@ -10,7 +12,7 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x5EC410);
 
     RH_ScopedInstall(SetTaskForPed, 0x5EECA0);
-    RH_ScopedInstall(RegisterPed, 0x5EEE30, { .reversed = false });
+    RH_ScopedInstall(RegisterPed, 0x5EEE30);
     RH_ScopedInstall(DeRegisterPed, 0x5EC5B0, { .reversed = false });
     RH_ScopedInstall(IsRegisteredWithPed, 0x5EB4C0, { .reversed = false });
     RH_ScopedInstall(IsAtHeadOfQueue, 0x5EB530, { .reversed = false });
@@ -70,9 +72,9 @@ CPedAttractor::CPedAttractor(
     const CMatrix mat = entity
         ? entity->GetMatrix()
         : CMatrix::Unity();
-    m_Pos             = CPedAttractorManager::ComputeEffectPos(fx, mat);
-    m_QueueDir        = CPedAttractorManager::ComputeEffectQueueDir(fx, mat);
-    m_UseDir          = CPedAttractorManager::ComputeEffectUseDir(fx, mat);
+    m_Pos      = CPedAttractorManager::ComputeEffectPos(fx, mat);
+    m_QueueDir = CPedAttractorManager::ComputeEffectQueueDir(fx, mat);
+    m_UseDir   = CPedAttractorManager::ComputeEffectUseDir(fx, mat);
 
     strcpy_s(m_ScriptName, fx->m_szScriptName);
 }
@@ -97,7 +99,24 @@ void CPedAttractor::SetTaskForPed(CPed* ped, CTask* task) {
 
 // 0x5EEE30
 bool CPedAttractor::RegisterPed(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x5EEE30, CPedAttractor*, CPed*>(this, ped);
+    if (const auto it = rng::find(m_AttractPeds, ped); it != m_AttractPeds.end()) {
+        m_AttractPeds.erase(it);
+        return false;
+    }
+    if (m_AttractPeds.size() + m_ArrivedPeds.size() >= m_MaxNumPeds) {
+        return false;
+    }
+    m_ArrivedPeds.emplace_back(ped);
+    const auto idx = (int32)(m_ArrivedPeds.size() - 1);
+    SetTaskForPed(ped, new CTaskComplexGoToAttractor{
+        this,
+        ComputeAttractPos(idx),
+        ComputeAttractHeading(idx),
+        m_AchieveQueueTime,
+        idx,
+        m_MoveState
+    });
+    return true;
 }
 
 // 0x5EC5B0

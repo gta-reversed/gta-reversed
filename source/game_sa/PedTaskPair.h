@@ -15,7 +15,7 @@ public:
     CTask*         Task{};
     eSecondaryTask Slot{ TASK_SECONDARY_INVALID };
     int32          MatchID{};
-    int8           UsedTask{};
+    bool           UsedTask{};
 
 public:
     static void InjectHooks();
