@@ -14,7 +14,7 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(SetTaskForPed, 0x5EECA0);
     RH_ScopedInstall(RegisterPed, 0x5EEE30);
     RH_ScopedInstall(DeRegisterPed, 0x5EC5B0);
-    RH_ScopedInstall(IsRegisteredWithPed, 0x5EB4C0, { .reversed = false });
+    RH_ScopedInstall(IsRegisteredWithPed, 0x5EB4C0);
     RH_ScopedInstall(IsAtHeadOfQueue, 0x5EB530, { .reversed = false });
     RH_ScopedInstall(GetTaskForPed, 0x5EC500, { .reversed = false });
     RH_ScopedInstall(GetQueueSlot, 0x5EB550, { .reversed = false });
@@ -131,7 +131,8 @@ bool CPedAttractor::DeRegisterPed(CPed* ped) {
 
 // 0x5EB4C0
 bool CPedAttractor::IsRegisteredWithPed(const CPed* ped) const {
-    return plugin::CallMethodAndReturn<bool, 0x5EB4C0, const CPedAttractor*, const CPed*>(this, ped);
+    return rng::contains(m_AttractPeds, ped)
+        || rng::contains(m_ArrivedPeds, ped);
 }
 
 // 0x5EB530
