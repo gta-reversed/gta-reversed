@@ -405,27 +405,20 @@ void CMenuManager::CheckSliderMovement(int8 value) {
 
     switch (item->m_nActionType) {
     case MENU_ACTION_BRIGHTNESS:
-#ifdef FIX_BUGS
-        m_PrefsBrightness += value * (384 / 16); // todo:
-#else
-        m_PrefsBrightness += value * 24.19f;
-#endif
+        m_PrefsBrightness += (int)value * (384/16); // or 387*16 ... compiler optimization things...
         m_PrefsBrightness = std::clamp(m_PrefsBrightness, 0, 384);
-
-        SetBrightness((float)m_PrefsBrightness, false);
+        SetBrightness((float)m_PrefsBrightness, false); 
         break;
     case MENU_ACTION_RADIO_VOL: {
         m_nRadioVolume += int8(4) * value;
         m_nRadioVolume = std::clamp<int8>(m_nRadioVolume, 0, 64);
         AudioEngine.SetMusicMasterVolume(m_nRadioVolume);
-        SaveSettings();
         break;
     }
     case MENU_ACTION_SFX_VOL: {
         m_nSfxVolume += int8(4) * value;
         m_nSfxVolume = std::clamp<int8>(m_nSfxVolume, 0, 64);
         AudioEngine.SetEffectsMasterVolume(m_nSfxVolume);
-        SaveSettings();
         break;
     }
     case MENU_ACTION_DRAW_DIST: {
@@ -434,7 +427,6 @@ void CMenuManager::CheckSliderMovement(int8 value) {
         m_fDrawDistance = std::clamp(newDist, 0.925f, 1.8f);
 
         CRenderer::ms_lodDistScale = m_fDrawDistance;
-        SaveSettings();
         break;
     }
     case MENU_ACTION_MOUSE_SENS: {
@@ -446,14 +438,15 @@ void CMenuManager::CheckSliderMovement(int8 value) {
         CCamera::m_fMouseAccelHorzntl = std::clamp(val, minMouseAccel, 0.005f);
 
 #ifdef FIX_BUGS
-        CCamera::m_fMouseAccelVertical = CCamera::m_fMouseAccelHorzntl;
+        CCamera::m_fMouseAccelVertical = CCamera::m_fMouseAccelHorzntl * 0.6f;
 #endif
-        SaveSettings();
         break;
     }
     default:
         return;
     }
+
+    SaveSettings();
 }
 
 // 0x573840
