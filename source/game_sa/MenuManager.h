@@ -305,7 +305,7 @@ public:
     void SaveStatsToFile();
     void SaveLoadFileError_SetUpErrorScreen();
 
-    void CheckSliderMovement(int8 value);
+    void CheckSliderMovement(int32 value);
     [[nodiscard]] bool CheckFrontEndUpInput() const;
     [[nodiscard]] bool CheckFrontEndDownInput() const;
     [[nodiscard]] bool CheckFrontEndLeftInput() const;

@@ -397,53 +397,41 @@ bool CMenuManager::CheckRedefineControlInput() {
     return field_EC || m_pPressedKey;
 }
 
-// value: -1 or 1
 // 0x573440
-void CMenuManager::CheckSliderMovement(int8 value) {
-    tMenuScreen* screen   = &aScreens[m_nCurrentScreen];
-    tMenuScreenItem* item = &screen->m_aItems[m_nCurrentScreenItem];
-    
-    // Check zero value for slider
-    if ((int)value == 0) {
-        assert(false && "value is 0 in CheckSliderMovement()");
+void CMenuManager::CheckSliderMovement(int32 LeftRight) {
+    auto& screen = aScreens[m_nCurrentScreen];
+    auto& item   = screen.m_aItems[m_nCurrentScreenItem];
+
+    if (LeftRight != 1 && LeftRight != -1) {
+        assert(false && "value invalid in CheckSliderMovement()");
     }
 
-    switch (item->m_nActionType) {
+    switch (item.m_nActionType) {
     case MENU_ACTION_BRIGHTNESS:
-        m_PrefsBrightness += (int)value * (384/16); // or 387*16 ... compiler optimization things...
-        m_PrefsBrightness = std::clamp(m_PrefsBrightness, 0, 384);
-        SetBrightness((float)m_PrefsBrightness, false); 
+        m_PrefsBrightness = std::clamp<int32>(LeftRight * int32(360.0f / 15.0f) + m_PrefsBrightness, 0, 384);
+        SetBrightness((float)m_PrefsBrightness, false);
         break;
     case MENU_ACTION_RADIO_VOL: {
-        m_nRadioVolume += int8(4) * value;
-        m_nRadioVolume = std::clamp<int8>(m_nRadioVolume, 0, 64);
+        m_nRadioVolume = std::clamp<int8>(4 * LeftRight + m_nRadioVolume, 0, 64);
         AudioEngine.SetMusicMasterVolume(m_nRadioVolume);
         break;
     }
     case MENU_ACTION_SFX_VOL: {
-        m_nSfxVolume += int8(4) * value;
-        m_nSfxVolume = std::clamp<int8>(m_nSfxVolume, 0, 64);
+        m_nSfxVolume = std::clamp<int8>(4 * LeftRight + m_nSfxVolume, 0, 64);
         AudioEngine.SetEffectsMasterVolume(m_nSfxVolume);
         break;
     }
     case MENU_ACTION_DRAW_DIST: {
-        constexpr auto step = 7.0f / 128.0f;
-        float newDist = value <= 0 ? m_fDrawDistance - step : m_fDrawDistance + step;
-        m_fDrawDistance = std::clamp(newDist, 0.925f, 1.8f);
-
+        constexpr auto step        = 7.0f / 128.0f;
+        float          newDist     = LeftRight <= 0 ? m_fDrawDistance - step : m_fDrawDistance + step;
+        m_fDrawDistance            = std::clamp<float>(newDist, 0.925f, 1.8f);
         CRenderer::ms_lodDistScale = m_fDrawDistance;
         break;
     }
     case MENU_ACTION_MOUSE_SENS: {
-        // todo: [0.00813f; 0.0055f]; min value is changed by 0x84ED80.
-
-        static float& minMouseAccel = *reinterpret_cast<float*>(0xBA672C);
-
-        float val = (float)value / 3000.0f + CCamera::m_fMouseAccelHorzntl;
-        CCamera::m_fMouseAccelHorzntl = std::clamp(val, minMouseAccel, 0.005f);
-
+        TheCamera.m_fMouseAccelHorzntl = std::fminf(std::fmaxf(((LeftRight * (1.0f / 200.0f)) / 15.0f) + TheCamera.m_fMouseAccelHorzntl, 1.0f/3200.0f), (1.0f / 200.0f));
 #ifdef FIX_BUGS
-        CCamera::m_fMouseAccelVertical = CCamera::m_fMouseAccelHorzntl * 0.6f;
+        TheCamera.m_fMouseAccelVertical = TheCamera.m_fMouseAccelHorzntl * 0.6f;
 #endif
         break;
     }
