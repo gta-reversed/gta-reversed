@@ -338,7 +338,7 @@ void CAESound::Initialise(
     m_nEnvironmentFlags     = flags;
     m_nIsUsed               = 1;
     m_nCurrentPlayPosition  = playTime;
-    m_ListenerVolume          = -100.0F;
+    m_ListenerVolume        = -100.0F;
     m_fFrequency            = 1.0F;
 }
 

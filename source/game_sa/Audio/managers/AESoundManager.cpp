@@ -46,7 +46,7 @@ bool CAESoundManager::Initialise() {
     m_PrioritisedSoundList       = new int16[m_NumAllocatedPhysicalChannels];
 
     for (CAESound& sound : m_VirtuallyPlayingSoundList) {
-        sound.m_nIsUsed     = 0;
+        sound.m_nIsUsed             = 0;
         sound.m_IsPhysicallyPlaying = 0;
     }
 
