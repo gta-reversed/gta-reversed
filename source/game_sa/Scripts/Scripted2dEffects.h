@@ -2,36 +2,25 @@
 
 struct C2dEffect;
 
-struct CScriptedEffectPair {
-    int32 dword0;
-    int32 dword4;
-    int32 dword8;
-    int32 dwordC;
-    int32 dword10;
-    int32 dword14;
-    int32 dword18;
-    int32 dword1C;
-    int8  byte20;
-
-    void Flush() {
-        dword0  = -1;
-        dword4  = -1;
-        dwordC  = -1;
-        dword10 = -1;
-        dword8  = -1;
-        dword14 = -1;
-        dword1C = -1;
-        byte20  = 0;
-    }
+class CScriptedEffectPair {
+public:
+    struct {
+        int32 Effect{ -1 };
+        int32 WaitingTask{ -1 };
+        int32 PartnerTask{ -1 }; //!< Sequence index (See `CTaskComplexUseSequence`)
+        int32 PartnerUseMode{ -1 };
+    } Effects[2];
+    bool UsePartnerImmediately{ false };
 };
 
-struct CScriptedEffectPairs {
+class CScriptedEffectPairs {
+public:
     int32 m_nCurrentPairIndex;
     CScriptedEffectPair pair1[4];
     CScriptedEffectPair pair2[4];
 
     void Flush() {
-        std::ranges::for_each(pair1, [](auto& pair) { pair.Flush(); });
+        rng::fill(pair1, CScriptedEffectPair{});
         m_nCurrentPairIndex  = 0;
     }
 };
