@@ -23,7 +23,7 @@ public:
             if (ped && tp.Ped != ped) {
                 continue;
             }
-            assert(!tp.m_Task);
+            assert(!tp.Task);
             tp.Task = new CTaskComplexBeStill{}; // Skipping the unnecessary leader check because they both get the same task
             if (notsa::IsFixBugs()) {
                 if (ped) {

@@ -24,7 +24,7 @@ public:
             if (ped && tp.Ped != ped) {
                 continue;
             }
-            assert(!tp.m_Task);
+            assert(!tp.Task);
             if (ped == leader) {
                 tp.Task = new CTaskComplexFollowLeaderInFormation{
                     pedGroup,
