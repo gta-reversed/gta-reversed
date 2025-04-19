@@ -402,6 +402,11 @@ bool CMenuManager::CheckRedefineControlInput() {
 void CMenuManager::CheckSliderMovement(int8 value) {
     tMenuScreen* screen   = &aScreens[m_nCurrentScreen];
     tMenuScreenItem* item = &screen->m_aItems[m_nCurrentScreenItem];
+    
+    // Check zero value for slider
+    if ((int8)value == 0) {
+        assert(false && "value is 0 in CheckSliderMovement()");
+    }
 
     switch (item->m_nActionType) {
     case MENU_ACTION_BRIGHTNESS:
