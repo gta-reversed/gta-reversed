@@ -286,5 +286,10 @@ bool CPedAttractor::BroadcastArrival(CPed* ped) {
 
 // 0x5EAF60
 void CPedAttractor::AbortPedTasks() {
-    plugin::CallMethod<0x5EAF60, CPedAttractor*>(this);
+    for (auto& p : m_PedTaskPairs) {
+        p.Ped = nullptr;
+        delete std::exchange(p.Task, nullptr);
+        p.Slot = TASK_SECONDARY_INVALID;
+    }
+    // TODO/NOTE: Why not clear the array?
 }
