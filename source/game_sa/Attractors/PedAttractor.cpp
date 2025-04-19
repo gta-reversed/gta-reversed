@@ -24,8 +24,8 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(ComputeDeltaPos, 0x5E9600);
     RH_ScopedInstall(ComputeDeltaHeading, 0x5E9640);
     RH_ScopedInstall(ComputeAttractTime, 0x5E95E0);
-    RH_ScopedInstall(ComputeAttractPos, 0x5EA110);
-    RH_ScopedInstall(ComputeAttractHeading, 0x5EA1C0);
+    RH_ScopedOverloadedInstall(ComputeAttractPos, "v", 0x5EA110, void(CPedAttractor::*)(int32, CVector&));
+    RH_ScopedOverloadedInstall(ComputeAttractHeading, "v", 0x5EA1C0, void(CPedAttractor::*)(int32, float&));
     RH_ScopedInstall(BroadcastDeparture, 0x5EF160, { .reversed = false });
     RH_ScopedInstall(BroadcastArrival, 0x5EEF80, { .reversed = false });
     RH_ScopedInstall(AbortPedTasks, 0x5EAF60, { .reversed = false });

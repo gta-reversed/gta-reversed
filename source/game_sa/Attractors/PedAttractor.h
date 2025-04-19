@@ -64,8 +64,12 @@ public:
     float        ComputeDeltaHeading() const;
 
     void         ComputeAttractTime(int32 slotIdx, bool hasArrived, float& outTime) const;
+
     virtual void ComputeAttractPos(int32 pedId, CVector& outPos);
+    CVector      ComputeAttractPos(int32 pedId) { CVector pos;  ComputeAttractPos(pedId, pos); return pos; }
+
     virtual void ComputeAttractHeading(int32 bQueue, float& heading);
+    float        ComputeAttractHeading(int32 bQueue) { float heading; ComputeAttractHeading(bQueue, heading); return heading; }
 
     virtual void BroadcastDeparture(CPed* ped);
     bool         BroadcastArrival(CPed* ped);
