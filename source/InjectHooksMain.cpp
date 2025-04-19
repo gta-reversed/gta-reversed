@@ -166,6 +166,7 @@
 #include "PedIK.h"
 #include "HandShaker.h"
 #include "TempColModels.h"
+#include "ControllerConfigManager.h"
 
 // Plant
 #include "PlantMgr.h"
