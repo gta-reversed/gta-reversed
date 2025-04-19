@@ -3,6 +3,7 @@
 #include "PedAttractor.h"
 
 #include "Tasks/TaskTypes/TaskComplexGoToAttractor.h"
+#include "Tasks/TaskTypes/TaskSimpleStandStill.h"
 
 void CPedAttractor::InjectHooks() {
     RH_ScopedVirtualClass(CPedAttractor, 0x86C538, 6);
@@ -28,7 +29,7 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(ComputeAttractTime, 0x5E95E0);
     RH_ScopedOverloadedInstall(ComputeAttractPos, "v", 0x5EA110, void(CPedAttractor::*)(int32, CVector&));
     RH_ScopedOverloadedInstall(ComputeAttractHeading, "v", 0x5EA1C0, void(CPedAttractor::*)(int32, float&));
-    RH_ScopedInstall(BroadcastDeparture, 0x5EF160, { .reversed = false });
+    RH_ScopedInstall(BroadcastDeparture, 0x5EF160);
     RH_ScopedInstall(BroadcastArrival, 0x5EEF80, { .reversed = false });
     RH_ScopedInstall(AbortPedTasks, 0x5EAF60, { .reversed = false });
 }
@@ -224,7 +225,31 @@ void CPedAttractor::ComputeAttractHeading(int32 bQueue, float& heading) {
 
 // 0x5EF160
 bool CPedAttractor::BroadcastDeparture(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x5EF160, CPedAttractor*, CPed*>(this, ped);
+    const auto it = rng::find(m_AttractPeds, ped);
+    if (it == m_AttractPeds.end()) {
+        return false;
+    }
+    const auto idx = rng::distance(m_AttractPeds.begin(), it);
+    for (auto i = idx + 1; i < (int32)(m_AttractPeds.size()); ++i) { // 0x5EF1C6
+        SetTaskForPed(m_AttractPeds[i], new CTaskComplexSequence{
+            new CTaskSimpleStandStill{ 2000 * i },
+            new CTaskComplexGoToAttractor{ this, ComputeAttractPos(i), ComputeAttractHeading(i), m_AchieveQueueShuffleTime, i, PEDMOVE_WALK },
+        });
+    }
+    m_PedTaskPairs.erase(rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped)); // 0x5EF2F6
+    m_ArrivedPeds.erase(it); // 0x5EF334
+    for (auto* const ped : m_AttractPeds) { // 0x5EF371
+        const auto n = (int32)(m_ArrivedPeds.size() - 1);
+        SetTaskForPed(ped, new CTaskComplexGoToAttractor({
+            this,
+            ComputeAttractPos(n),
+            ComputeAttractHeading(n),
+            m_AchieveQueueTime,
+            n,
+            PEDMOVE_WALK
+        }));
+    }
+    return true;
 }
 
 // 0x5EEF80

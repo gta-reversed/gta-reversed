@@ -104,5 +104,7 @@ public:
     void erase(T* iter) {
         erase(iter, iter + 1);
     }
+
+    auto operator[](size_t idx) const { assert(idx < size()); return _First[idx]; }
 };
 VALIDATE_SIZE(SArray<int32>, 0x10);
