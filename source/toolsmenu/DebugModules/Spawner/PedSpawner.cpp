@@ -315,7 +315,7 @@ CPed* SpawnPed(int32 modelId, CVector position) {
 void SpawnRandomPed() {
     SpawnPed(
         notsa::random_iter(m_pedsMap)->first,
-        FindPlayerPed()->TransformFromObjectSpace(CVector(2.0f, 2.0f, 0.0f))
+        FindPlayerPed()->TransformIntoWorldSpace(CVector(2.0f, 2.0f, 0.0f))
     );
 }
 
@@ -358,7 +358,7 @@ void ProcessImGui() {
             selectedId = id;
         }
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0) && selectedId != -1)
-            SpawnPed(selectedId, FindPlayerPed()->TransformFromObjectSpace(CVector(2.0f, 2.0f, 0.0f)));
+            SpawnPed(selectedId, FindPlayerPed()->TransformIntoWorldSpace(CVector(2.0f, 2.0f, 0.0f)));
         ImGui::NextColumn();
         ImGui::PopID();
     }
@@ -368,7 +368,7 @@ void ProcessImGui() {
 
     ImGui::SetCursorPosX(117);
     if (ImGui::Button("SPAWN PED", ImVec2(250, 0)) && selectedId != -1) {
-        SpawnPed(selectedId, FindPlayerPed()->TransformFromObjectSpace(CVector(2.0f, 2.0f, 0.0f)));
+        SpawnPed(selectedId, FindPlayerPed()->TransformIntoWorldSpace(CVector(2.0f, 2.0f, 0.0f)));
     }
 }
 

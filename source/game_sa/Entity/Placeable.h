@@ -48,6 +48,9 @@ public:
     void AllocateMatrix();
     void SetMatrix(CMatrix& matrix);
 
+    void  TransformIntoWorldSpace(RwV3d& result, const RwV3d& vec) const;
+    RwV3d TransformIntoWorldSpace(const RwV3d&) const;
+
     // NOTSA
     bool IsPointInRange(const CVector& point, float range);
     bool IsEntityInRange(const CPlaceable* entity, float range) { return IsPointInRange(entity->GetPosition(), range); }

@@ -215,8 +215,7 @@ void CPhysical::Remove()
 // 0x5449B0
 CRect CPhysical::GetBoundRect()
 {
-    CVector boundCentre;
-    CEntity::GetBoundCentre(&boundCentre);
+    CVector boundCentre = CEntity::GetBoundCentre();
     const float fRadius = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundRadius();
     return CRect(
         boundCentre.x - fRadius, 
@@ -1980,9 +1979,7 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
     float fMaxColPointDepth = 0.0f;
     CVector vecShift{};
     CColPoint colPoints[32];
-    CVector vecBoundCentre{};
-
-    GetBoundCentre(&vecBoundCentre);
+    CVector vecBoundCentre = GetBoundCentre();
 
     int32 totalAcceptableColPoints = 0;
     const auto ProcessSectorList = [&]<typename PtrListType>(PtrListType& list) {
@@ -3954,8 +3951,7 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
     CBaseModelInfo* mi = CModelInfo::GetModelInfo(m_nModelIndex);
     float fBoundingSphereRadius = mi->GetColModel()->GetBoundRadius();
 
-    CVector vecBoundCentre;
-    GetBoundCentre(&vecBoundCentre);
+    CVector vecBoundCentre = GetBoundCentre();
 
     const auto ProcessSectorList = [&]<typename PtrListType>(PtrListType& list) {
         auto* const thisObject = AsObject();
@@ -4464,8 +4460,7 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
         return false;
     }
 
-    CVector vecBoundingCentre;
-    GetBoundCentre(&vecBoundingCentre);
+    CVector vecBoundingCentre = GetBoundCentre();
 
     float fBoundingRadius = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundRadius();
 
