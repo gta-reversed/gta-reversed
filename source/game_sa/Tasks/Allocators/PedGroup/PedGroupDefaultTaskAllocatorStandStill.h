@@ -17,14 +17,14 @@ public:
     // 0x5F6DA0
     void AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override {
         for (auto& tp : pedGroup->GetIntelligence().GetDefaultPedTaskPairs()) {
-            if (!tp.m_Ped) {
+            if (!tp.Ped) {
                 continue;
             }
-            if (ped && tp.m_Ped != ped) {
+            if (ped && tp.Ped != ped) {
                 continue;
             }
             assert(!tp.m_Task);
-            tp.m_Task = new CTaskComplexBeStill{}; // Skipping the unnecessary leader check because they both get the same task
+            tp.Task = new CTaskComplexBeStill{}; // Skipping the unnecessary leader check because they both get the same task
             if (notsa::IsFixBugs()) {
                 if (ped) {
                     break; // There are no duplicate entries in the array, so we can stop now

@@ -18,22 +18,22 @@ public:
     void AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override {
         const auto leader = pedGroup->GetMembership().GetLeader();
         for (auto&& [i, tp] : rngv::enumerate(pedGroup->GetIntelligence().GetDefaultPedTaskPairs())) {
-            if (!tp.m_Ped) {
+            if (!tp.Ped) {
                 continue;
             }
-            if (ped && tp.m_Ped != ped) {
+            if (ped && tp.Ped != ped) {
                 continue;
             }
             assert(!tp.m_Task);
             if (ped == leader) {
-                tp.m_Task = new CTaskComplexFollowLeaderInFormation{
+                tp.Task = new CTaskComplexFollowLeaderInFormation{
                     pedGroup,
                     leader,
                     CVector{CTaskComplexFollowLeaderInFormation::ms_offsets.Offsets[i]},
                     10.f
                 };
             } else {
-                tp.m_Task = new CTaskComplexWanderGang{
+                tp.Task = new CTaskComplexWanderGang{
                     PEDMOVE_WALK,
                     CGeneral::RandomNodeHeading(),
                     5'000,
