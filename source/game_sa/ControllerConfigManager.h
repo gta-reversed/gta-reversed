@@ -35,7 +35,7 @@ enum eActionType {
 
 enum eControllerAction {
     CA_COMBOLOCK                         = -2,
-    CA_NONE    = -1,
+    CA_NONE                              = -1,
     CA_PED_FIRE_WEAPON                   = 0,
     CA_PED_FIRE_WEAPON_ALT               = 1,
     CA_PED_CYCLE_WEAPON_RIGHT            = 2,
