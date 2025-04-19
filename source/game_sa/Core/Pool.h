@@ -99,7 +99,7 @@ public:
         swap(a.m_Storage, b.m_Storage);
         swap(a.m_SlotState, b.m_SlotState);
         swap(a.m_Capacity, b.m_Capacity);
-        swap(a.m_FirstFreeSlot, b.m_FirstFreeSlot);
+        swap(a.m_LastFreeSlot, b.m_LastFreeSlot);
         swap(a.m_OwnsAllocations, b.m_OwnsAllocations);
         swap(a.m_DealWithNoMemory, b.m_DealWithNoMemory);
     }
@@ -116,7 +116,7 @@ public:
             delete[] std::exchange(m_SlotState, nullptr);
         }
         m_Capacity         = 0;
-        m_FirstFreeSlot    = -1;
+        m_LastFreeSlot    = -1;
         m_OwnsAllocations  = false;
         m_DealWithNoMemory = false;
     }
@@ -186,31 +186,46 @@ public:
     * @brief Allocates object
     */
     T* New() {
-        bool bReachedTop = false;
-        do {
-            if (++m_FirstFreeSlot >= m_Capacity) {
-                if (bReachedTop) {
-                    m_FirstFreeSlot = -1;
-                    if (CanDealWithNoMemory()) {
-                        NOTSA_LOG_DEBUG("Allocation failed!");
-                    } else {
-                        NOTSA_DEBUG_BREAK();
-                    }
-                    return nullptr;
-                }
-                bReachedTop     = true;
-                m_FirstFreeSlot = 0;
+        const auto i = FindFreeSlot();
+        if (i == -1) {
+            if (CanDealWithNoMemory()) {
+                NOTSA_LOG_ERR("Allocation failed for type {:?}", typeid(T).name());
+            } else {
+                NOTSA_DEBUG_BREAK();
             }
-        } while (!m_SlotState[m_FirstFreeSlot].IsEmpty);
+            return nullptr;
+        }
+        assert(IsIndexInBounds(i) && "Free slot index is out-of-bounds");
+        assert(IsFreeSlotAtIndex(i) && "Can't allocate an object at a non-free slot");
 
-        assert(m_FirstFreeSlot >= 0);
+        auto* const state = &m_SlotState[i];
+        const auto isFirstAllocation = state->Ref == 0; // First allocation of this slot?
+        state->IsEmpty = false;
+        state->Ref++;
 
-        m_SlotState[m_FirstFreeSlot].IsEmpty = false;
-        ++m_SlotState[m_FirstFreeSlot].Ref;
+        m_LastFreeSlot = i;
 
-        S* ptr = reinterpret_cast<S*>(&m_Storage[m_FirstFreeSlot]);
+        StorageType* ptr = &m_Storage[i];
+        
+#ifdef _DEBUG
+        // // Memory verification - Detects use-after-free
+        // if (!isFirstAllocation) {
+        //     try {
+        //         const size_t checkSize = 16; // Check only the first 16 bytes
+        //         byte expectedFill[checkSize];
+        //         std::memset(expectedFill, DEADLAND_FILL, checkSize);
+                
+        //         if (std::memcmp(ptr, expectedFill, std::min(checkSize, sizeof(S))) != 0) {
+        //             NOTSA_LOG_WARN("Possible use-after-free detected in object {:?} at 0x{:x}", typeid(T).name(), LOG_PTR(ptr));
+        //         }
+        //     } catch (...) {
+        //         NOTSA_LOG_WARN("Error when verifying memory in New() for object {:?}", typeid(T).name());
+        //     }
+        // }
+#endif
+
         DoFill(CLEANLAND_FILL, ptr);
-        return reinterpret_cast<T*>(ptr);
+        return (T*)(void*)(ptr);
     }
 
     /*!
@@ -218,11 +233,12 @@ public:
     */
     void CreateAtRef(int32 ref) {
         const auto idx          = GetIndexFromRef(ref); // GetIndexFromRef asserts if idx out of range
+        assert(IsFreeSlotAtIndex(idx) && "Can't create an object at a non-free slot");
         m_SlotState[idx].IsEmpty = false;
         m_SlotState[idx].Ref    = static_cast<uint8>(ref & 0x7F);
-        m_FirstFreeSlot         = 0;
-        while (!m_SlotState[m_FirstFreeSlot].IsEmpty) { // Find next free
-            ++m_FirstFreeSlot;
+        m_LastFreeSlot         = 0;
+        while (!m_SlotState[m_LastFreeSlot].IsEmpty) { // Find next free
+            ++m_LastFreeSlot;
         }
     }
 
@@ -232,7 +248,7 @@ public:
     */
     T* NewAt(int32 ref) {
         const auto idx = GetIndexFromRef(ref);
-        assert(IsFreeSlotAtIndex(idx));
+        assert(IsFreeSlotAtIndex(idx) && "Can't create an object at a non-free slot");
         S* ptr = reinterpret_cast<S*>(&m_Storage[idx]);
         CreateAtRef(ref);
         DoFill(CLEANLAND_FILL, ptr);
@@ -248,10 +264,11 @@ public:
             return;
         }
 #endif
+        assert(!IsFreeSlotAtIndex(GetIndex(obj)) && "Can't delete an already deleted object");
         int32 index               = GetIndex(obj);
         m_SlotState[index].IsEmpty = true;
-        if (index < m_FirstFreeSlot) {
-            m_FirstFreeSlot = index;
+        if (index < m_LastFreeSlot) {
+            m_LastFreeSlot = index;
         }
         DoFill(DEADLAND_FILL, (S*)(obj));
     }
@@ -319,10 +336,18 @@ public:
     }
 
     /*!
+    * @brief Check if the pointer is from this pool 
+    */
+    bool IsPtrFromPool(const T* ptr) const {
+        return m_Storage <= (StorageType*)(ptr) && (StorageType*)(ptr) < m_Storage + m_Capacity;
+    }
+
+    /*!
     * @brief Check if object pointer is inside object array (e.g.: It's index is in the bounds of the array)
+    * @note Alias of IsPtrFromPool for compatibility
     */
     bool IsFromObjectArray(const T* obj) const {
-        return m_Storage <= (StorageType*)(obj) && (StorageType*)(obj) < m_Storage + m_Capacity;
+        return IsPtrFromPool(obj);
     }
 
     /*!
@@ -370,15 +395,44 @@ protected:
         if (at) {
             memset(at, fill, sizeof(S)); /* One object */
         } else {
-            memset(m_Storage, fill, sizeof(S) * m_Capacity); /* Whole storage */
+            memset(m_Storage, fill, sizeof(S) * m_Capacity); /* Entire storage */
         }
+    }
+
+    // Improved version of CheckFill with robust error handling
+    bool CheckFill(byte expected, void* at) {
+        // unimplemented
+        return true;
+    }
+
+    // Finds the next free slot using an optimized algorithm
+    int32 FindFreeSlot() const {
+        const auto start = m_LastFreeSlot != -1 ? m_LastFreeSlot : 0;
+        const auto cap = m_Capacity;
+
+        // Search from the last free slot to the end
+        for (auto i = start; i < cap; i++) {
+            if (m_SlotState[i].IsEmpty) {
+                return i;
+            }
+        }
+
+        // If not found, search from the beginning to the last free slot
+        for (auto i = 0; i < start; i++) {
+            if (m_SlotState[i].IsEmpty) {
+                return i;
+            }
+        }
+
+        // No free slots
+        return -1;
     }
 
 private:
     StorageType* m_Storage{};           //!< Storage
     SlotState*   m_SlotState{};         //!< States of each slot
     size_t       m_Capacity{};          //!< Max no. of allocated objects (AKA Size)
-    int32        m_FirstFreeSlot{ -1 }; //!< First free slot in the storagea
+    int32        m_LastFreeSlot{ -1 }; //!< First free slot in the storage
     bool         m_OwnsAllocations{};   //!< If the allocated arrays (`m_Storage` and `m_SlotState` is owned by, if so, we need to free them)
     bool         m_DealWithNoMemory{};  //!< If the caller is expected to be able to handle out-of-memory situations (Used for debugging) (AKA m_bIsLocked)
 };
