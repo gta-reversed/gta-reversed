@@ -7,7 +7,6 @@
 #pragma once
 
 #include <Vector.h>
-#include "PedGroupMembership.h"
 
 class CPedList;
 class CPointList;
