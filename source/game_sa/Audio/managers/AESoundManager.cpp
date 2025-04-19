@@ -41,9 +41,9 @@ bool CAESoundManager::Initialise() {
     }
 
     // BUG? There's some int16 weird logic in the original code, I simplified it to what's actually used i think
-    m_PhysicallyPlayingSoundList = new int16[m_NumAllocatedPhysicalChannels];
+    m_PhysicallyPlayingSoundList = new tSoundReference[m_NumAllocatedPhysicalChannels];
     m_ChannelPosition            = new int16[m_NumAllocatedPhysicalChannels];
-    m_PrioritisedSoundList       = new int16[m_NumAllocatedPhysicalChannels];
+    m_PrioritisedSoundList       = new tSoundReference[m_NumAllocatedPhysicalChannels];
 
     for (CAESound& sound : m_VirtuallyPlayingSoundList) {
         sound.m_nIsUsed             = 0;
