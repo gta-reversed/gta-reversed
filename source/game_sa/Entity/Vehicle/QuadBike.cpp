@@ -257,14 +257,14 @@ void CQuadBike::ProcessControlInputs(uint8 playerNum) {
         m_sRideAnimData.m_fLeanFwd += (float(-pad->GetSteeringUpDown()) / 128.0f - m_sRideAnimData.m_fLeanFwd) * CTimer::GetTimeStep() / 5.0f;
     } else {
         if (CPad::NewMouseControllerState.m_AmountMoved.IsZero() &&
-            (std::fabs(m_fRawSteerAngle) <= 0.0f || m_nLastControlInput != eControllerType::MOUSE || pad->IsSteeringInAnyDirection())
+            (std::fabs(m_fRawSteerAngle) <= 0.0f || m_nLastControlInput != CONTROLLER_MOUSE || pad->IsSteeringInAnyDirection())
         ) {
-            if (pad->GetSteeringUpDown() || m_nLastControlInput != eControllerType::MOUSE) {
-                m_nLastControlInput = eControllerType::KEYBOARD;
+            if (pad->GetSteeringUpDown() || m_nLastControlInput != CONTROLLER_MOUSE) {
+                m_nLastControlInput = CONTROLLER_KEYBOARD;
                 m_sRideAnimData.m_fLeanFwd += (float(-pad->GetSteeringUpDown()) / 128.0f - m_sRideAnimData.m_fLeanFwd) * CTimer::GetTimeStep() / 5.0f;
             }
         } else {
-            m_nLastControlInput = eControllerType::MOUSE;
+            m_nLastControlInput = CONTROLLER_MOUSE;
             if (!pad->NewState.m_bVehicleMouseLook) {
                 m_sRideAnimData.m_fLeanFwd += CPad::NewMouseControllerState.m_AmountMoved.y * -0.035f;
             }

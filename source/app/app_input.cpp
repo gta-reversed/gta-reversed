@@ -177,28 +177,24 @@ static RsEventStatus HandlePadButtonDown(RsPadButtonStatus* padButtonStatus) {
     int32 padNumber = padButtonStatus->padID;
 
     CPad* pad = CPad::GetPad(padNumber);
-
-    if (CPad::padNumber != 0) {
+    if (CPad::padNumber) {
         padNumber = 1;
-    }
-
-    if (padNumber == 1) {
-        bPadTwo = true;
+        bPadTwo   = true;
+    } else {
+        padNumber = 0;
     }
 
     ControlsManager.UpdateJoyButtonState(padNumber);
 
-    for (int32 i = 1; i < JOY_BUTTONS; i++)
-    {
+    for (auto i = 1u; i < JOYBUTTON_COUNT; i++) {
         RsPadButtons btn = RsPadButtons(0);
-        if (ControlsManager.m_ButtonStates[i - 1] == true) {
+        if (ControlsManager.m_ButtonStates[i - 1]) {
             btn = RsPadButtons(i);
-
-            if (FrontEndMenuManager.m_bMenuActive || bPadTwo) {
-                ControlsManager.UpdateJoyInConfigMenus_ButtonDown(btn, padNumber);
-            } else {
-                ControlsManager.AffectControllerStateOn_ButtonDown((KeyCode)btn, eControllerType::JOY_STICK);
-            }
+        }
+        if (FrontEndMenuManager.m_bMenuActive || bPadTwo) {
+            ControlsManager.UpdateJoyInConfigMenus_ButtonDown(btn, padNumber);
+        } else {
+            ControlsManager.AffectControllerStateOn_ButtonDown((KeyCode)btn, CONTROLLER_JOY_STICK);
         }
     }
     return rsEVENTPROCESSED;
@@ -210,33 +206,27 @@ static RsEventStatus HandlePadButtonUp(RsPadButtonStatus* padButtonStatus) {
     int32 padNumber = padButtonStatus->padID;
 
     CPad* pad = CPad::GetPad(padNumber);
-
-    if (CPad::padNumber != 0) {
+    if (CPad::padNumber) {
         padNumber = 1;
-    }
-
-    if (padNumber == 1) {
         bPadTwo = true;
+    } else {
+        padNumber = 0;
     }
 
-    bool  bCam = false;
-    int16 mode = TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode;
-    if (mode == MODE_FLYBY || mode == MODE_FIXED) {
-        bCam = true;
-    }
+    const auto mode = TheCamera.m_aCams[TheCamera.m_nActiveCam].m_nMode;
+    const auto bCam = mode == MODE_FLYBY || mode == MODE_FIXED;
 
     ControlsManager.UpdateJoyButtonState(padNumber);
 
-    for (int32 i = 2; i < JOY_BUTTONS; i++) {
+    for (auto i = 2u; i < JOYBUTTON_COUNT; i++) {
         RsPadButtons btn = RsPadButtons(0);
-        if (ControlsManager.m_ButtonStates[i - 1] == false) {
+        if (!ControlsManager.m_ButtonStates[i - 1]) {
             btn = RsPadButtons(i);
-
-            if (FrontEndMenuManager.m_bMenuActive || bPadTwo || bCam) {
-                ControlsManager.UpdateJoyInConfigMenus_ButtonUp(btn, padNumber);
-            } else {
-                ControlsManager.AffectControllerStateOn_ButtonUp((KeyCode)btn, eControllerType::JOY_STICK);
-            }
+        }
+        if (FrontEndMenuManager.m_bMenuActive || bPadTwo || bCam) {
+            ControlsManager.UpdateJoyInConfigMenus_ButtonUp(btn, padNumber);
+        } else {
+            ControlsManager.AffectControllerStateOn_ButtonUp((KeyCode)btn, CONTROLLER_JOY_STICK);
         }
     }
     return rsEVENTPROCESSED;

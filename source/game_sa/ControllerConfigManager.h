@@ -17,11 +17,8 @@ enum eMouseButtons {
     MOUSE_BUTTON_WHEEL_UP,
     MOUSE_BUTTON_WHEEL_DOWN,
     MOUSE_BUTTON_WHEEL_XBUTTON1,
-    MOUSE_BUTTON_WHEEL_XBUTTON2,
+    MOUSE_BUTTON_WHEEL_XBUTTON2
 };
-
-constexpr int MOUSE_BUTTONS = int(MOUSE_BUTTON_WHEEL_XBUTTON2 + 1);
-constexpr int MOUSE_BUTTON_COUNT = int(MOUSE_BUTTONS + 1); // Please don't add more values to this enum, it is used in the array size of m_ButtonStates
 
 enum eActionType {
     ACTION_FIRST_PERSON,
@@ -34,90 +31,89 @@ enum eActionType {
 };
 
 enum eControllerAction {
-    COMBOLOCK                         = -2,
-    NUM_OF_NONE_CONTROLLER_ACTIONS    = -1,
-    PED_FIRE_WEAPON                   = 0,
-    PED_FIRE_WEAPON_ALT               = 1,
-    PED_CYCLE_WEAPON_RIGHT            = 2,
-    PED_CYCLE_WEAPON_LEFT             = 3,
-    GO_FORWARD                        = 4,
-    GO_BACK                           = 5,
-    GO_LEFT                           = 6,
-    GO_RIGHT                          = 7,
-    PED_SNIPER_ZOOM_IN                = 8,
-    PED_SNIPER_ZOOM_OUT               = 9,
-    VEHICLE_ENTER_EXIT                = 10,
-    CAMERA_CHANGE_VIEW_ALL_SITUATIONS = 11,
-    PED_JUMPING                       = 12,
-    PED_SPRINT                        = 13,
-    PED_LOOKBEHIND                    = 14,
-    PED_DUCK                          = 15,
-    PED_ANSWER_PHONE                  = 16,
-    PED_WALK                          = 17,
-    VEHICLE_FIRE_WEAPON               = 18,
-    VEHICLE_FIRE_WEAPON_ALT           = 19,
-    VEHICLE_STEER_LEFT                = 20,
-    VEHICLE_STEER_RIGHT               = 21,
-    VEHICLE_STEER_UP                  = 22,
-    VEHICLE_STEER_DOWN                = 23,
-    VEHICLE_ACCELERATE                = 24,
-    VEHICLE_BRAKE                     = 25,
-    VEHICLE_RADIO_STATION_UP          = 26,
-    VEHICLE_RADIO_STATION_DOWN        = 27,
-    VEHICLE_RADIO_TRACK_SKIP          = 28,
-    VEHICLE_HORN                      = 29,
-    TOGGLE_SUBMISSIONS                = 30,
-    VEHICLE_HANDBRAKE                 = 31,
-    PED_1RST_PERSON_LOOK_LEFT         = 32,
-    PED_1RST_PERSON_LOOK_RIGHT        = 33,
-    VEHICLE_LOOKLEFT                  = 34,
-    VEHICLE_LOOKRIGHT                 = 35,
-    VEHICLE_LOOKBEHIND                = 36,
-    VEHICLE_MOUSELOOK                 = 37,
-    VEHICLE_TURRETLEFT                = 38,
-    VEHICLE_TURRETRIGHT               = 39,
-    VEHICLE_TURRETUP                  = 40,
-    VEHICLE_TURRETDOWN                = 41,
-    PED_CYCLE_TARGET_LEFT             = 42,
-    PED_CYCLE_TARGET_RIGHT            = 43,
-    PED_CENTER_CAMERA_BEHIND_PLAYER   = 44,
-    PED_LOCK_TARGET                   = 45,
-    NETWORK_TALK                      = 46,
-    CONVERSATION_YES                  = 47,
-    CONVERSATION_NO                   = 48,
-    GROUP_CONTROL_FWD                 = 49,
-    GROUP_CONTROL_BWD                 = 50,
-    PED_1RST_PERSON_LOOK_UP           = 51,
-    PED_1RST_PERSON_LOOK_DOWN         = 52,
-    NUM_OF_1ST_PERSON_ACTIONS         = 53,
-    TOGGLE_DPAD                       = 54,
-    SWITCH_DEBUG_CAM_ON               = 55,
-    TAKE_SCREEN_SHOT                  = 56,
-    SHOW_MOUSE_POINTER_TOGGLE         = 57,
-    SWITCH_CAM_DEBUG_MENU             = 58,
+    CA_COMBOLOCK                         = -2,
+    CA_NONE                              = -1,
+    CA_PED_FIRE_WEAPON                   = 0,
+    CA_PED_FIRE_WEAPON_ALT               = 1,
+    CA_PED_CYCLE_WEAPON_RIGHT            = 2,
+    CA_PED_CYCLE_WEAPON_LEFT             = 3,
+    CA_GO_FORWARD                        = 4,
+    CA_GO_BACK                           = 5,
+    CA_GO_LEFT                           = 6,
+    CA_GO_RIGHT                          = 7,
+    CA_PED_SNIPER_ZOOM_IN                = 8,
+    CA_PED_SNIPER_ZOOM_OUT               = 9,
+    CA_VEHICLE_ENTER_EXIT                = 10,
+    CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS = 11,
+    CA_PED_JUMPING                       = 12,
+    CA_PED_SPRINT                        = 13,
+    CA_PED_LOOKBEHIND                    = 14,
+    CA_PED_DUCK                          = 15,
+    CA_PED_ANSWER_PHONE                  = 16,
+    CA_PED_WALK                          = 17,
+    CA_VEHICLE_FIRE_WEAPON               = 18,
+    CA_VEHICLE_FIRE_WEAPON_ALT           = 19,
+    CA_VEHICLE_STEER_LEFT                = 20,
+    CA_VEHICLE_STEER_RIGHT               = 21,
+    CA_VEHICLE_STEER_UP                  = 22,
+    CA_VEHICLE_STEER_DOWN                = 23,
+    CA_VEHICLE_ACCELERATE                = 24,
+    CA_VEHICLE_BRAKE                     = 25,
+    CA_VEHICLE_RADIO_STATION_UP          = 26,
+    CA_VEHICLE_RADIO_STATION_DOWN        = 27,
+    CA_VEHICLE_RADIO_TRACK_SKIP          = 28,
+    CA_VEHICLE_HORN                      = 29,
+    CA_TOGGLE_SUBMISSIONS                = 30,
+    CA_VEHICLE_HANDBRAKE                 = 31,
+    CA_PED_1RST_PERSON_LOOK_LEFT         = 32,
+    CA_PED_1RST_PERSON_LOOK_RIGHT        = 33,
+    CA_VEHICLE_LOOKLEFT                  = 34,
+    CA_VEHICLE_LOOKRIGHT                 = 35,
+    CA_VEHICLE_LOOKBEHIND                = 36,
+    CA_VEHICLE_MOUSELOOK                 = 37,
+    CA_VEHICLE_TURRETLEFT                = 38,
+    CA_VEHICLE_TURRETRIGHT               = 39,
+    CA_VEHICLE_TURRETUP                  = 40,
+    CA_VEHICLE_TURRETDOWN                = 41,
+    CA_PED_CYCLE_TARGET_LEFT             = 42,
+    CA_PED_CYCLE_TARGET_RIGHT            = 43,
+    CA_PED_CENTER_CAMERA_BEHIND_PLAYER   = 44,
+    CA_PED_LOCK_TARGET                   = 45,
+    CA_NETWORK_TALK                      = 46,
+    CA_CONVERSATION_YES                  = 47,
+    CA_CONVERSATION_NO                   = 48,
+    CA_GROUP_CONTROL_FWD                 = 49,
+    CA_GROUP_CONTROL_BWD                 = 50,
+    CA_PED_1RST_PERSON_LOOK_UP           = 51,
+    CA_PED_1RST_PERSON_LOOK_DOWN         = 52,
+    CA_NUM_OF_1ST_PERSON_ACTIONS         = 53,
+    CA_TOGGLE_DPAD                       = 54,
+    CA_SWITCH_DEBUG_CAM_ON               = 55,
+    CA_TAKE_SCREEN_SHOT                  = 56,
+    CA_SHOW_MOUSE_POINTER_TOGGLE         = 57,
+    CA_SWITCH_CAM_DEBUG_MENU             = 58,
 
     // notsa
     NUM_OF_MAX_CONTROLLER_ACTIONS,
     NUM_OF_MIN_CONTROLLER_ACTIONS = 0,
 };
 
-enum eContSetOrder {
+enum class eContSetOrder {
     NO_ORDER_SET = 0,
     FIRST        = 1,
     SECOND       = 2,
     THIRD        = 3,
-    FOURTH       = 4,
+    FOURTH       = 4
 };
 
 constexpr std::array<eContSetOrder, 5> CONTROLLER_ORDERS_SET = {
-    eContSetOrder(NO_ORDER_SET + 1),
-    eContSetOrder(FIRST + 1),
-    eContSetOrder(SECOND + 1),
-    eContSetOrder(THIRD + 1),
-    eContSetOrder(FOURTH + 1)
+    eContSetOrder::FIRST,
+    eContSetOrder::SECOND,
+    eContSetOrder::THIRD,
+    eContSetOrder::FOURTH
 }; // NOTSA
 
-enum eJoyButtons : uint32 {
+enum eJoyButtons {
     NO_JOYBUTTONS       = 0,
     JOYBUTTON_ONE       = 1,
     JOYBUTTON_TWO       = 2,
@@ -134,23 +130,22 @@ enum eJoyButtons : uint32 {
     JOYBUTTON_THIRTEEN  = 13,
     JOYBUTTON_FOURTEEN  = 14,
     JOYBUTTON_FIFTHTEEN = 15,
-    JOYBUTTON_SIXTEEN   = 16,
+    JOYBUTTON_SIXTEEN   = 16
 };
 
-constexpr int JOY_BUTTONS = int(JOYBUTTON_SIXTEEN);
-constexpr int JOYBUTTON_COUNT = int(JOY_BUTTONS + 1 ); // Please don't add more values to this enum, it is used in the array size of m_ButtonStates
+constexpr auto JOYBUTTON_COUNT = 17;
 
 using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
 
 struct CControllerKey {
-    KeyCode       m_uiActionInitiator{};
-    eContSetOrder m_uiSetOrder{};
+    KeyCode       m_uiActionInitiator;
+    eContSetOrder m_uiSetOrder;
 };
 
 VALIDATE_SIZE(CControllerKey, 0x8);
 
 struct CControllerAction {
-    CControllerKey Keys[eControllerType::CONTROLLER_NUM]{};
+    CControllerKey Keys[eControllerType::CONTROLLER_COUNT]{};
 };
 
 VALIDATE_SIZE(CControllerAction, 0x20);
@@ -163,8 +158,8 @@ struct JoyStruct {
 private:
     char __align{};
 public:
-    DWORD wVendorID{};
-    DWORD wProductID{};
+    DWORD wVendorID;
+    DWORD wProductID;
 };
 
 VALIDATE_SIZE(JoyStruct, 0x10);
@@ -186,10 +181,10 @@ public:
     ControlName       m_ControllerActionName[NUM_OF_MAX_CONTROLLER_ACTIONS]{};
     bool              m_ButtonStates[JOYBUTTON_COUNT]{}; // True if down, false if up or missing
     CControllerAction m_Actions[NUM_OF_MAX_CONTROLLER_ACTIONS];
-    bool              m_bStickL_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
-    bool              m_bStickL_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
-    bool              m_bStickR_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_NUM];
-    bool              m_bStickR_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_NUM];
+    bool              m_bStickL_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_COUNT];
+    bool              m_bStickL_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_COUNT];
+    bool              m_bStickR_X_Rgh_Lft_MovementBothDown[eControllerType::CONTROLLER_COUNT];
+    bool              m_bStickR_Up_Dwn_MovementBothDown[eControllerType::CONTROLLER_COUNT];
     bool              m_MouseFoundInitSet;
 public:
     static void InjectHooks();
