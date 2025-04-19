@@ -456,7 +456,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
     // Verify file format by checking action IDs
     auto actionId = 0u;
     for (const auto& type : CONTROLLER_TYPES_ALL) {
-        for (auto action = 0u; action < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; action++) {
+        for (auto action = 0u; action < NUM_OF_MAX_CONTROLLER_ACTIONS; action++) {
             CFileMgr::Read(file, &actionId, 4);
             if (actionId != action) {
                 return false;
@@ -473,7 +473,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
     
     // Read key mappings for all controller types
     for (const auto& type : CONTROLLER_TYPES_ALL) {
-        for (auto action = 0u; action < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; action++) {
+        for (auto action = 0u; action < NUM_OF_MAX_CONTROLLER_ACTIONS; action++) {
             // Skip action ID
             CFileMgr::Seek(file, 4, 1);
             
@@ -484,7 +484,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
 
     // NOTSA: Check if there's at least one valid assignment for each action
     if (notsa::IsFixBugs()) {
-        for (auto action = 0u; action < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; action++) {
+        for (auto action = 0u; action < NUM_OF_MAX_CONTROLLER_ACTIONS; action++) {
             bool hasAssignment = false;
             for (const auto& type : CONTROLLER_TYPES_ALL) {
                 if (!GetIsKeyBlank(m_Actions[action].Keys[type].m_uiActionInitiator, type)) {
@@ -510,7 +510,7 @@ bool CControllerConfigManager::SaveSettings(FILESTREAM file) {
     }
     
     for (int32 controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
-        for (int32 actionId = 0; actionId < eControllerAction::NUM_OF_MAX_CONTROLLER_ACTIONS; actionId++) {
+        for (int32 actionId = 0; actionId < NUM_OF_MAX_CONTROLLER_ACTIONS; actionId++) {
             // Write action ID
             CFileMgr::Write(file, &actionId, eControllerType::CONTROLLER_NUM);
             
