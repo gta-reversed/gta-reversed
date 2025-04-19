@@ -58,111 +58,50 @@ float CCurves::CalcSpeedScaleFactor(const CVector2D& ptA, const CVector2D& ptB, 
 // 0x43C880
 float CCurves::CalcCorrectedDist(float curr, float total, float variance, float& outT) {
     if (total >= 0.00001f) {
-        const auto prog = curr / total;
-        outT            = 0.5f - std::cos(PI * prog) * 0.5f;
-        return std::sin(prog * TWO_PI) * (total / TWO_PI) * variance
-            + (1.f - (variance * 2.f) + 1.f) * 0.5f * curr;
+        outT = 0.5f - (std::cos((curr / total) * 3.1416f) * 0.5f);
+        return ((total / 6.2832f) * variance) * std::sin((curr * 6.2832f) / total) + ((((variance * -2.0f) + 1.0f) * 0.5f) + 0.5f) * curr;
     } else {
         outT = 0.5f;
-        return 0.f;
+        return 0.0f;
     }
 }
 
 // 0x43C900
-void CCurves::CalcCurvePoint(
-    const CVector& ptA3D,
-    const CVector& ptB3D,
-    const CVector& dirA3D,
-    const CVector& dirB3D,
-    float          t,
-    int32          traversalTimeMs,
+void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors, const CVector& startDir, const CVector& endDir, float Time, int32 TraverselTimeInMillis, CVector& resultCoor, CVector& resultSpeed) {
+    float actualFactor = CalcSpeedScaleFactor(startCoors, endCoors, startDir, endDir);
+        
+    CVector2D dir1 = CVector2D(startDir.x, startDir.y) * actualFactor;
+    CVector2D dir2 = CVector2D(endDir.x, endDir.y) * actualFactor;
     
-    CVector&       outPos,
-    CVector&       outSpeed
-) {
-    // This function calculates a point on a smooth curve between two positions with direction vectors.
-    // The curve consists of straight segments and a bend connecting them for natural-looking movement.
-
-    const CVector2D ptA{ ptA3D };
-    const CVector2D dirA{ dirA3D };
-
-    const CVector2D ptB{ ptB3D };
-    const CVector2D dirB{ dirB3D };
+    float t1 = std::abs(DotProduct2D(startCoors - endCoors, startDir));
+    float t2 = std::abs(DotProduct2D(endCoors - startCoors, endDir));
     
-    // Normalize time parameter to ensure calculations remain within valid range
-    t = std::clamp(t, 0.0f, 1.0f);
-
-    // Get speed adjustment factor needed for realistic bends (slower in curves, faster on straights)
-    float speedVariation = CalcSpeedVariationInBend(ptA3D, ptB3D, dirA, dirB);
-
-    // Find where the ray from start position would intersect with end ray
-    float distToCrossA = DistForLineToCrossOtherLine(ptA, dirA, ptB, dirB);
-
-    // Find where the ray from end position would intersect with start ray (negative because direction is flipped)
-    float distToCrossB = -DistForLineToCrossOtherLine(ptB, dirB, ptA, dirA);
-
-    const auto CalculateSpeed = [&](float totalDist) {
-        outSpeed = CVector{ lerp(dirA, dirB, t) * (totalDist / (traversalTimeMs / 1000.f)) };
-    };
-
-    // If rays don't intersect properly, fall back to a simpler curved path approximation
-    // This happens when the directions would never cross or are almost parallel
-    if (distToCrossA <= 0.0f || distToCrossB <= 0.0f)
-    {
-        const float straightDist = (ptA3D - ptB3D).Magnitude2D();
-
-        // Calculate path distances adjusted for speed variation
-        const float dist = straightDist / (1.0f - speedVariation);
-        const float currDist = CalcCorrectedDist(dist * t, dist, speedVariation, speedVariation);
-
-        // Blend between the two projected positions based on speed variation
-        outPos = lerp(ptA3D + (dirA3D * currDist), ptB3D + (dirB3D * (currDist - straightDist)), speedVariation);
-
-        // Zero speed for this special case (likely a placeholder as this value isn't used)
-        CalculateSpeed(0.f);
-
-        return;
+    float curveCoef;
+    if (t1 > t2) {
+        if (Time < (t1 - t2) / (t1 + t2))
+            curveCoef = 0.0f;
+        else
+            curveCoef = 0.5f - 0.5f * std::cos(PI * (t1 + t2) / (2 * t2) * (Time - (t1 - t2) / (t1 + t2)));
     }
-
-    // For properly intersecting rays, create a three-segment path:
-    // 1. Straight segment from start
-    // 2. Curved bend in the middle
-    // 3. Straight segment to end
-
-    // Limit how sharp the bend can be for natural movement
-    const float bendDistOneSegment = std::min({ distToCrossA, distToCrossB, 5.f });
-
-    // Calculate the three segment lengths
-    const float straightDistA = distToCrossA - bendDistOneSegment;
-    const float straightDistB = distToCrossB - bendDistOneSegment;
-    const float bendDist      = bendDistOneSegment * 2.0f;
-    const float totalDist     = straightDistA + bendDist + straightDistB;
-    const float currDist      = totalDist * t;
-
-    if (currDist < straightDistA) {
-        // 1. Position is on the first straight segment (linear interpolation from start)
-        outPos = ptA3D + (dirA3D * currDist);
-    } else if (currDist > (straightDistA + bendDist)) {
-        // 2. Position is on the final straight segment (linear interpolation to end)
-        outPos = ptB3D + (dirB3D * (currDist - (straightDistA + bendDist)));
-    } else {
-        // 3. Position is in the curved bend section - requires double interpolation
-        //    First interpolate through the bend progress, then between the influenced points
-        const float bendT = (currDist - straightDistA) / bendDist;
-
-        // Blend between influence points that extendoutward
-        // from the bend endpoints to create a curved path
-        outPos = lerp(
-            ptA3D + (dirA3D * straightDistA) + (dirA3D * (bendDistOneSegment * bendT)),
-            ptB3D - (dirB3D * straightDistB) - (dirB3D * (bendDistOneSegment * (1.0f - bendT))),
-            bendT
-        );
+    else {
+        if (2 * t1 / (t1 + t2) < Time)
+            curveCoef = 1.0f;
+        else {
+            curveCoef = 0.5f - 0.5f * std::cos(PI * Time * (t1 + t2) / (2 * t1));
+        }
     }
-
-    CalculateSpeed(totalDist);
+    
+    resultCoor = CVector(
+        (startCoors.x + Time * dir1.x) * (1.0f - curveCoef) + (endCoors.x - (1 - Time) * dir2.x) * curveCoef,
+        (startCoors.y + Time * dir1.y) * (1.0f - curveCoef) + (endCoors.y - (1 - Time) * dir2.y) * curveCoef,
+        0.0f);
+        
+    resultSpeed = CVector(
+        (dir1.x * (1.0f - curveCoef) + dir2.x * curveCoef) / (TraverselTimeInMillis * 0.001f),
+        (dir1.y * (1.0f - curveCoef) + dir2.y * curveCoef) / (TraverselTimeInMillis * 0.001f),
+        0.0f);
 }
 
-// unused
 // 0x43C600
 void CCurves::TestCurves() {
     // https://github.com/ifarbod/sa-curves-test
