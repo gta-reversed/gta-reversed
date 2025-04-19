@@ -512,7 +512,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             }
         }
 
-        if (!(aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType != eMenuAction::MENU_ACTION_TEXT && aScreens[m_nCurrentScreen].m_aItems[i].m_szName[0] != '\0')) {
+        if (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType == eMenuAction::MENU_ACTION_TEXT || std::string(aScreens[m_nCurrentScreen].m_aItems[i].m_szName).empty()) {
             continue;
         }
 
@@ -523,16 +523,21 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
         switch (itemType) {
         case eMenuEntryType::TI_MPACK: {
-            std::array<MPack, 25> missionPacksArray = std::to_array(m_MissionPacks);
-            const auto& MPacks = missionPacksArray[i - 2];
-            if (MPacks.m_Name[0] == '\0') {
-                aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_SKIP;
-                pTextToShow = nullptr;
-                aScreens[m_nCurrentScreen].m_aItems[i].m_Y = aScreens[m_nCurrentScreen].m_aItems[i - 1].m_Y;
+            std::array<MPack, MPACK_COUNT> missionPacksArray = std::to_array(m_MissionPacks);
+            // Check if the index is within bounds
+            if (i - 2 < MPACK_COUNT && i - 2 >= 0) {
+                const auto& MPacks = missionPacksArray[i - 2];
+                if (std::string(MPacks.m_Name).empty()) {
+                    aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_SKIP;
+                    pTextToShow = nullptr;
+                    aScreens[m_nCurrentScreen].m_aItems[i].m_Y = aScreens[m_nCurrentScreen].m_aItems[i - 1].m_Y;
+                } else {
+                    AsciiToGxtChar(MPacks.m_Name, (GxtChar*)gString);
+                    pTextToShow = (GxtChar*)gString;
+                    aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_MPACK;
+                }
             } else {
-                AsciiToGxtChar(MPacks.m_Name, (GxtChar*)gString);
-                pTextToShow = (GxtChar*)gString;
-                aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType = eMenuAction::MENU_ACTION_MPACK;
+                NOTSA_UNREACHABLE("Index out of bounds for missionPacksArray");
             }
             break;
         }

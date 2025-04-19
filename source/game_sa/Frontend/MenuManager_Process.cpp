@@ -189,11 +189,15 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
         ProcessMissionPackNewGame();
         return;
     case MENU_ACTION_MPACK: {
-        std::array<MPack, 25> missionPacksArray = std::to_array(m_MissionPacks);
-        const auto& MPacks = missionPacksArray[m_nCurrentScreenItem - 2];
-        m_nMissionPackGameId = MPacks.m_Id;
-        NOTSA_LOG_DEBUG("Selected mission pack: {}", (int)MPacks.m_Id);
-        SwitchToNewScreen(SCREEN_MISSION_PACK_LOADING_ASK);
+        std::array<MPack, MPACK_COUNT> missionPacksArray = std::to_array(m_MissionPacks);
+        if (m_nCurrentScreenItem - 2 < MPACK_COUNT && m_nCurrentScreenItem - 2 >= 0) {
+            const auto& MPacks = missionPacksArray[m_nCurrentScreenItem - 2];
+            m_nMissionPackGameId = MPacks.m_Id;
+            NOTSA_LOG_DEBUG("Selected mission pack: {}", (int)MPacks.m_Id);
+            SwitchToNewScreen(SCREEN_MISSION_PACK_LOADING_ASK);
+        } else {
+            NOTSA_UNREACHABLE("Index out of bounds for missionPacksArray");
+        }
         return;
     }
     case MENU_ACTION_MPACKGAME:
