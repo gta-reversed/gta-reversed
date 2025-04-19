@@ -93,11 +93,15 @@ public:
         }
         std::construct_at(_Last++, std::forward<Args>(args)...);
     }
+    void erase(T* first, T* last) {
+        assert(first >= _First && first < _Last);
+        assert(last >= first && last <= _Last);
+        rng::destroy(first, last);
+        rng::move_backward(last, _Last, first); // Move the rest of the elements
+        _Last -= (last - first);
+    }
     void erase(T* iter) {
-        assert(iter >= _First && iter < _Last);
-        std::destroy_at(iter);
-        rng::shift_left(iter + 1, _Last, 1);
-        _Last--;
+        erase(iter, iter + 1);
     }
 };
 VALIDATE_SIZE(SArray<int32>, 0x10);
