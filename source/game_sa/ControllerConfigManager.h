@@ -143,8 +143,8 @@ constexpr int JOYBUTTON_COUNT = int(JOY_BUTTONS + 1 ); // Please don't add more 
 using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
 
 struct CControllerKey {
-    KeyCode       m_uiActionInitiator{};
-    eContSetOrder m_uiSetOrder{};
+    KeyCode       m_uiActionInitiator;
+    eContSetOrder m_uiSetOrder;
 };
 
 VALIDATE_SIZE(CControllerKey, 0x8);
