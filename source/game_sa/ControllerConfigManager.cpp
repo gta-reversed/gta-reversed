@@ -631,6 +631,7 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
 // 0x530B00
 void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount) {
     m_bJoyJustInitialised = true;
+    buttonCount = std::min(buttonCount, 16);
 
     // Define all possible button mappings in order from highest to lowest button number
     using ButtonMapping = std::pair<eJoyButtons, eControllerAction>;
