@@ -35,7 +35,7 @@ CTaskSimpleDuck::CTaskSimpleDuck(eDuckControlType duckControlType, uint16 length
     // Rest set in the header!
 }
 
-// Notsa
+// notsa
 CTaskSimpleDuck::CTaskSimpleDuck(const CTaskSimpleDuck& o) :
     CTaskSimpleDuck{o.m_DuckControlType, o.m_LengthOfDuck, o.m_ShotWhizzingCounter}
 {
@@ -166,7 +166,7 @@ void CTaskSimpleDuck::RestartTask(CPed* ped) {
 void CTaskSimpleDuck::ControlDuckMove(CVector2D moveDir) {
     m_bIsInControl = true;
 
-    // If going full fwd/bwd ignore left/right commmands
+    // If going full fwd/bwd ignore left/right commands
     if (std::abs(m_MoveCmd.x) == 1.f) { // Originally checked if either -1 or 1 (this achieves the same thing)
         return;
     }
