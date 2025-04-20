@@ -4,7 +4,7 @@ class CScriptedEffectPair;
 class CPed;
 class CTaskComplexUseAttractorPartner;
 
-class CTaskComplexUseAttractorPartner final : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexUseAttractorPartner final : public CTaskComplex {
 public:
     static constexpr auto Type = eTaskType::TASK_COMPLEX_USE_ATTRACTOR_PARTNER;
 
