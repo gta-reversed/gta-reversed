@@ -163,8 +163,8 @@ struct JoyStruct {
 private:
     char __align{};
 public:
-    DWORD wVendorID{};
-    DWORD wProductID{};
+    DWORD wVendorID;
+    DWORD wProductID;
 };
 
 VALIDATE_SIZE(JoyStruct, 0x10);
