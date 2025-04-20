@@ -34,6 +34,6 @@ private: // Wrappers for hooks
     }
 
 protected:
-    bool                       m_IsLeader;
-    const CScriptedEffectPair* m_CurrentFxPair;
+    bool                       m_IsLeader{};
+    const CScriptedEffectPair* m_CurrentFxPair{};
 };

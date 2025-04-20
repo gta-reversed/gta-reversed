@@ -66,10 +66,21 @@ void CScripted2dEffects::ReturnScripted2DEffect(int32 index) {
     GetPedAttractorManager()->RemoveEffect(notsa::cast<C2dEffectPedAttractor>(&ms_effects[index]));
 }
 
+// notsa
 auto CScripted2dEffects::IndexOfEffect(const C2dEffectPedAttractor* effect) -> std::optional<size_t> {
     const auto fx = reinterpret_cast<const C2dEffect*>(effect);
     if (ms_effects.data() <= fx && fx < ms_effects.data() + ms_effects.size()) {
         return (size_t)(fx - ms_effects.data());
     }
     return std::nullopt;
+}
+
+// notsa
+int32 CScripted2dEffects::FindFreeSlot()  {
+    for (auto&& [i, activated] : rngv::enumerate(ms_activated)) {
+        if (!activated) {
+            return (int32)(i);
+        }
+    }
+    return -1;
 }

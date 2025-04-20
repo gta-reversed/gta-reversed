@@ -67,8 +67,9 @@ CTask* CTaskComplexUsePairedAttractor::CreateNextSubTask(CPed* ped) {
         }
         CTask* ret;
         switch (m_CurrentFxPair->Effects[m_IsLeader ? 0 : 1].PartnerUseMode) {
-        case 0: ret = CreateSubTask(TASK_FINISHED, ped); break;                       // 0x639F24
-        case 1: ret = CreateSubTask(TASK_COMPLEX_USE_SCRIPTED_ATTRACTOR, ped); break; // 0x639F37
+        case CScriptedEffectPair::eMode::USE_PARTNER_ONCE :         ret = CreateSubTask(TASK_FINISHED, ped); break;                       // 0x639F24
+        case CScriptedEffectPair::eMode::LOOK_FOR_ANOTHER_PARTNER : ret = CreateSubTask(TASK_COMPLEX_USE_SCRIPTED_ATTRACTOR, ped); break; // 0x639F37
+        default: NOTSA_UNREACHABLE();
         }
         ClearPartnership();
         return ret;

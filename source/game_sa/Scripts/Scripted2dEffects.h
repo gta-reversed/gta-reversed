@@ -4,11 +4,18 @@ struct C2dEffect;
 
 class CScriptedEffectPair {
 public:
+    enum class eMode : int32 {
+        NONE = -1,
+        USE_PARTNER_ONCE = 0x0,
+        LOOK_FOR_ANOTHER_PARTNER = 0x1,
+    };
+
+public:
     struct {
-        int32 Effect{ -1 };
-        int32 WaitingTask{ -1 };
-        int32 PartnerTask{ -1 }; //!< Sequence index (See `CTaskComplexUseSequence`)
-        int32 PartnerUseMode{ -1 };
+        int32 Effect{ -1 };                  //!< Index of the effect (See `CScripted2dEffects::GetEffect`)
+        int32 WaitingTask{ -1 };             //!< Task sequence index (Used in `CTaskComplexAttractorPartnerWait`)
+        int32 PartnerTask{ -1 };             //!< Task sequence index (Used in `CTaskComplexUseAttractorPartner`)
+        eMode PartnerUseMode{ eMode::NONE }; //!< Use mode
     } Effects[2];
     bool UsePartnerImmediately{ false };
 };
@@ -72,13 +79,5 @@ public:
     static void Save() { } // NOP
 
     // NOTSA
-    static int32 FindFreeSlot() {
-        for (auto&& [i, activated] : rngv::enumerate(ms_activated)) {
-            if (!activated) {
-                return (int32)i;
-            }
-        }
-
-        return -1;
-    }
+    static int32 FindFreeSlot();
 };

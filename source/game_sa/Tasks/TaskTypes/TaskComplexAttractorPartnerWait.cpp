@@ -21,6 +21,12 @@ CTaskComplexAttractorPartnerWait::CTaskComplexAttractorPartnerWait(bool isLeader
 {
 }
 
+// 0x636CF0
+CTaskComplexAttractorPartnerWait::CTaskComplexAttractorPartnerWait(const CTaskComplexAttractorPartnerWait& o) :
+    CTaskComplexAttractorPartnerWait{ o.m_IsLeader, *o.m_CurrentFxPair }
+{
+}
+
 // 0x638F20
 CTask* CTaskComplexAttractorPartnerWait::CreateFirstSubTask(CPed* ped) {
     return new CTaskComplexUseSequence{ m_CurrentFxPair->Effects[m_IsLeader ? 0 : 1].WaitingTask };
