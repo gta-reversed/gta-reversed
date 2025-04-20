@@ -14,6 +14,9 @@ void CTaskComplexUsePairedAttractor::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x6331E0);
 
     RH_ScopedInstall(CreateSubTask, 0x638D30);
+    RH_ScopedInstall(SetPartnership, 0x6331F0);
+    RH_ScopedInstall(ClearPartnership, 0x633220);
+    RH_ScopedInstall(SeekPartnership, 0x638AE0);
     RH_ScopedVMTInstall(Clone, 0x636C70);
     RH_ScopedVMTInstall(GetTaskType, 0x6331D0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x639E40);
@@ -23,7 +26,7 @@ void CTaskComplexUsePairedAttractor::InjectHooks() {
 
 // 0x6331A0
 CTaskComplexUsePairedAttractor::CTaskComplexUsePairedAttractor(CPedAttractor* attractor) :
-    m_Attractor{attractor}
+    m_Attractor{ attractor }
 {
     assert(attractor);
 }
@@ -142,7 +145,7 @@ void CTaskComplexUsePairedAttractor::SetPartnership(CPed* partner, bool isLeader
     m_CurrentFxPair = pair;
 }
 
-// 633220
+// 0x633220
 void CTaskComplexUsePairedAttractor::ClearPartnership() {
     m_Partner       = nullptr;
     m_IsLeader      = false;
