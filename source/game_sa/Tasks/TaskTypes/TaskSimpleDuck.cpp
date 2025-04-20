@@ -18,6 +18,7 @@ void CTaskSimpleDuck::InjectHooks() {
     RH_ScopedInstall(SetMoveAnim, 0x6939F0);
     RH_ScopedInstall(ForceStopMove, 0x6924B0);
     RH_ScopedInstall(SetDuckTimer, 0x692530);
+    RH_ScopedInstall(SetControlType, 0x6924F0);
     RH_ScopedVMTInstall(Clone, 0x692CF0);
     RH_ScopedVMTInstall(GetTaskType, 0x692020);
     RH_ScopedVMTInstall(MakeAbortable, 0x692100);
@@ -260,6 +261,20 @@ void CTaskSimpleDuck::SetDuckTimer(uint16 time) {
     if (m_DuckControlType != DUCK_SCRIPT_CONTROLLED) {
         m_LengthOfDuck = time;
     }
+}
+
+// 0x6924F0
+bool CTaskSimpleDuck::SetControlType(eDuckControlType controlType) {
+    if (m_bIsFinished || m_bIsAborting) {
+        return;
+    }
+    if (controlType == DUCK_SCRIPT_CONTROLLED) {
+        m_LengthOfDuck = 0;
+    }
+    m_DuckControlType = controlType;
+    m_StartTime       = CTimer::GetTimeInMS();
+    m_bIsInControl    = true;
+    return true;
 }
 
 // 0x692100

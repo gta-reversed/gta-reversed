@@ -157,6 +157,7 @@ public:
     //! Get the vehicle the ped is entering now (If any)
     CVehicle* GetEnteringVehicle();
 
+    CTaskManager&    GetTaskManager()     { return m_TaskMgr; }
     CEventHandler&   GetEventHandler()    { return m_eventHandler; }
     CEventGroup&     GetEventGroup()      { return m_eventGroup; }
     CEventScanner&   GetEventScanner()    { return m_eventScanner; }
