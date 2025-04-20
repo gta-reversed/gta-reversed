@@ -24,7 +24,7 @@ public:
     CTask*    Clone() const override { return new CTaskComplexUsePairedAttractor{ *this }; }
     eTaskType GetTaskType() const override { return Type; }
     CTask*    CreateNextSubTask(CPed* ped) override;
-    CTask* CreateFirstSubTask(CPed* ped) override { return CreateSubTask(TASK_COMPLEX_USE_SCRIPTED_ATTRACTOR, ped); } // 0x639F70
+    CTask*    CreateFirstSubTask(CPed* ped) override { return CreateSubTask(TASK_COMPLEX_USE_SCRIPTED_ATTRACTOR, ped); } // 0x639F70
     CTask*    ControlSubTask(CPed* ped) override;
 
 protected:

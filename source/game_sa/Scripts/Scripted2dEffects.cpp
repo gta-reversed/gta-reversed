@@ -76,6 +76,11 @@ auto CScripted2dEffects::IndexOfEffect(const C2dEffectPedAttractor* effect) -> s
 }
 
 // notsa
+auto CScripted2dEffects::GetEffect(int32 index) -> C2dEffectPedAttractor* {
+    return notsa::cast<C2dEffectPedAttractor>(&ms_effects[index]);
+}
+
+// notsa
 int32 CScripted2dEffects::FindFreeSlot()  {
     for (auto&& [i, activated] : rngv::enumerate(ms_activated)) {
         if (!activated) {
