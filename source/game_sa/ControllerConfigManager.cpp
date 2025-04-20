@@ -1163,8 +1163,8 @@ void CControllerConfigManager::MakeControllerActionsBlank() {
 // 0x531140
 void CControllerConfigManager::AffectPadFromKeyBoard() {
 #ifndef NOTSA_USE_SDL3
-    // RsKeyCodes keyCode;
-    //GTATranslateShiftKey(&keyCode); // No matter what you do, it won't work.
+    RsKeyCodes keyCode;
+    GTATranslateShiftKey(&keyCode); // No matter what you do, it won't work.
 #endif
 
     const auto inMenu = !CPad::padNumber && !FrontEndMenuManager.m_bMenuActive;
