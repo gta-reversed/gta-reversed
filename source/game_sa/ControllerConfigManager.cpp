@@ -704,7 +704,7 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
     };
 
     // Choose which mapping array to use
-    const auto& mappings = (AllValidWinJoys.JoyStickNum[0].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[0].wProductID == 0x1190) ? specificMappings : standardMappings;
+    const auto& mappings = (AllValidWinJoys.JoyStickNum[PAD1].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[PAD1].wProductID == 0x1190) ? specificMappings : standardMappings;
 
     for (size_t i = 0; i < std::size(mappings); ++i) {
         if (mappings[i].first <= (eJoyButtons)buttonCount) {
