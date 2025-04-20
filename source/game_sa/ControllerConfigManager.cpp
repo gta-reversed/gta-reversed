@@ -509,13 +509,13 @@ bool CControllerConfigManager::SaveSettings(FILESTREAM file) {
         return false;
     }
     
-    for (int32 controllerType = 0; controllerType < eControllerType::CONTROLLER_NUM; controllerType++) {
+    for (auto type : CONTROLLER_TYPES_ALL) {
         for (int32 actionId = 0; actionId < NUM_OF_MAX_CONTROLLER_ACTIONS; actionId++) {
             // Write action ID
-            CFileMgr::Write(file, &actionId, eControllerType::CONTROLLER_NUM);
+            CFileMgr::Write(file, &actionId, 4);
             
             // Write key mapping data
-            CFileMgr::Write(file, &m_Actions[actionId].Keys[controllerType], 8);
+            CFileMgr::Write(file, &m_Actions[actionId].Keys[type], 8);
         }
     }
 
