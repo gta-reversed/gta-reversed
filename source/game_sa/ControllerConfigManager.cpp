@@ -631,7 +631,10 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
 // 0x530B00
 void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount) {
     m_bJoyJustInitialised = true;
-    buttonCount = std::min(buttonCount, 16);
+
+    if (buttonCount > MAX_JOY_BUTTONS) {
+        buttonCount = MAX_JOY_BUTTONS;
+    }
 
     // Define all possible button mappings in order from highest to lowest button number
     using ButtonMapping = std::pair<eJoyButtons, eControllerAction>;
@@ -707,7 +710,7 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
     const auto& mappings = (AllValidWinJoys.JoyStickNum[PAD1].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[PAD1].wProductID == 0x1190) ? specificMappings : standardMappings;
 
     for (size_t i = 0; i < std::size(mappings); ++i) {
-        if (mappings[i].first <= (eJoyButtons)buttonCount) {
+        if (mappings[i].first <= buttonCount) {
             SetControllerKeyAssociatedWithAction(mappings[i].second, (RsKeyCodes)mappings[i].first, eControllerType::JOY_STICK);
         }
     }
