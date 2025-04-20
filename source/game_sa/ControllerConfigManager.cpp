@@ -632,8 +632,8 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
 void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount) {
     m_bJoyJustInitialised = true;
 
-    if (buttonCount > MAX_JOY_BUTTONS) {
-        buttonCount = MAX_JOY_BUTTONS;
+    if (buttonCount >= JOYBUTTON_COUNT) {
+        buttonCount = JOYBUTTON_COUNT - 1;
     }
 
     // Define all possible button mappings in order from highest to lowest button number
