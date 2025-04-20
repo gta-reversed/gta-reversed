@@ -70,8 +70,8 @@ CTask* CTaskComplexUsePairedAttractor::CreateNextSubTask(CPed* ped) {
         }
         CTask* ret;
         switch (m_CurrentFxPair->Effects[m_IsLeader ? 0 : 1].PartnerUseMode) {
-        case CScriptedEffectPair::eMode::USE_PARTNER_ONCE :         ret = CreateSubTask(TASK_FINISHED, ped); break;                       // 0x639F24
-        case CScriptedEffectPair::eMode::LOOK_FOR_ANOTHER_PARTNER : ret = CreateSubTask(TASK_COMPLEX_USE_SCRIPTED_ATTRACTOR, ped); break; // 0x639F37
+        case CScriptedEffectPair::eMode::USE_PARTNER_ONCE:         ret = CreateSubTask(TASK_FINISHED, ped); break;                       // 0x639F24
+        case CScriptedEffectPair::eMode::LOOK_FOR_ANOTHER_PARTNER: ret = CreateSubTask(TASK_COMPLEX_USE_SCRIPTED_ATTRACTOR, ped); break; // 0x639F37
         default: NOTSA_UNREACHABLE();
         }
         ClearPartnership();
@@ -175,6 +175,11 @@ void CTaskComplexUsePairedAttractor::SeekPartnership(CPed* us) {
         m_PartnerProgress = i;
         SetPartnership(partner, true, pair);
         tPartnerUsePairedAttractor->SetPartnership(us, false, pair);
-        // TODO/NOTE: Why not break here?
+
+    // NOTSA: 
+    // After SetPartnership call m_Partner becomes != nullptr, so 
+    // every next iteration would end up  with a `continue` above, thus, 
+    // no need to continue
+    return;
     }
 }
