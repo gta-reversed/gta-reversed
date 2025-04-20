@@ -118,26 +118,26 @@ constexpr std::array<eContSetOrder, 5> CONTROLLER_ORDERS_SET = {
 }; // NOTSA
 
 enum eJoyButtons : uint32 {
-    NO_JOYBUTTONS       = 0,
-    JOYBUTTON_ONE       = 1,
-    JOYBUTTON_TWO       = 2,
-    JOYBUTTON_THREE     = 3,
-    JOYBUTTON_FOUR      = 4,
-    JOYBUTTON_FIVE      = 5,
-    JOYBUTTON_SIX       = 6,
-    JOYBUTTON_SEVEN     = 7,
-    JOYBUTTON_EIGHT     = 8,
-    JOYBUTTON_NINE      = 9,
-    JOYBUTTON_TEN       = 10,
-    JOYBUTTON_ELEVEN    = 11,
-    JOYBUTTON_TWELVE    = 12,
-    JOYBUTTON_THIRTEEN  = 13,
-    JOYBUTTON_FOURTEEN  = 14,
-    JOYBUTTON_FIFTHTEEN = 15,
-    JOYBUTTON_SIXTEEN   = 16,
+    NO_JOYBUTTONS       = 0u,
+    JOYBUTTON_ONE       = 1u,
+    JOYBUTTON_TWO       = 2u,
+    JOYBUTTON_THREE     = 3u,
+    JOYBUTTON_FOUR      = 4u,
+    JOYBUTTON_FIVE      = 5u,
+    JOYBUTTON_SIX       = 6u,
+    JOYBUTTON_SEVEN     = 7u,
+    JOYBUTTON_EIGHT     = 8u,
+    JOYBUTTON_NINE      = 9u,
+    JOYBUTTON_TEN       = 10u,
+    JOYBUTTON_ELEVEN    = 11u,
+    JOYBUTTON_TWELVE    = 12u,
+    JOYBUTTON_THIRTEEN  = 13u,
+    JOYBUTTON_FOURTEEN  = 14u,
+    JOYBUTTON_FIFTHTEEN = 15u,
+    JOYBUTTON_SIXTEEN   = 16u,
 };
 
-constexpr auto JOYBUTTON_COUNT = JOYBUTTON_SIXTEEN + 1;
+constexpr auto JOYBUTTON_COUNT = JOYBUTTON_SIXTEEN + 1u;
 constexpr auto JOYBUTTON_MAX = JOYBUTTON_SIXTEEN;
 
 using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
