@@ -821,7 +821,7 @@ void CControllerConfigManager::ReinitControls() {
 #else
     const auto MouseSetUp = WinInput::GetMouseSetUp();
 #endif
-    ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, bool(FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS));
+    ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS);
 
     if (AllValidWinJoys.JoyStickNum[PAD1].bJoyAttachedToPort) {
 #ifdef NOTSA_USE_SDL3
