@@ -137,7 +137,8 @@ enum eJoyButtons : uint32 {
     JOYBUTTON_SIXTEEN   = 16,
 };
 
-constexpr auto JOYBUTTON_COUNT = JOYBUTTON_SIXTEEN + 1; // Please don't add more values to this enum, it is used in the array size of m_ButtonStates
+constexpr auto JOYBUTTON_COUNT = JOYBUTTON_SIXTEEN + 1;
+constexpr auto JOYBUTTON_MAX = JOYBUTTON_SIXTEEN;
 
 using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
 
