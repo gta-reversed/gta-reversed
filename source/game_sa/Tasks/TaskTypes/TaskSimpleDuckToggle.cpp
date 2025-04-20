@@ -42,10 +42,10 @@ bool CTaskSimpleDuckToggle::ProcessPed(CPed* ped) {
         auto* const tSecondaryDuck = intel->GetTaskDuck(true);
 
         const auto SetScriptControlledDuckTask = [intel] {
-            intel->GetTaskManager().SetTaskSecondary(new CTaskSimpleDuck{ DUCK_SCRIPT_CONTROLLED, 0 }, TASK_SECONDARY_DUCK); // 0x62F7E9
+            intel->GetTaskManager().SetTaskSecondary(new CTaskSimpleDuck{ DUCK_SCRIPT_CONTROLLED, 0 }, TASK_SECONDARY_DUCK);
         };
 
-        if (!tSecondaryDuck) {   // 0x62F791
+        if (!tSecondaryDuck) { // 0x62F791
             if (tSimplestDuck) { // 0x62F79C
                 tSimplestDuck->MakeAbortable(ped, ABORT_PRIORITY_URGENT);
             }
@@ -54,7 +54,7 @@ bool CTaskSimpleDuckToggle::ProcessPed(CPed* ped) {
                 tUseGun->ClearAnim(ped);
             }
         } else if (tSecondaryDuck->GetControlType() != DUCK_SCRIPT_CONTROLLED) { // 0x62F821
-            if (tSimplestDuck) {                                                 // 0x62F82F
+            if (tSimplestDuck) { // 0x62F82F
                 tSimplestDuck->AbortBecauseOfOtherDuck(ped);
             }
             if (!tSecondaryDuck->SetControlType(DUCK_SCRIPT_CONTROLLED)) { // 0x62F84A

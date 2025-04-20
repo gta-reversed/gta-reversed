@@ -266,7 +266,7 @@ void CTaskSimpleDuck::SetDuckTimer(uint16 time) {
 // 0x6924F0
 bool CTaskSimpleDuck::SetControlType(eDuckControlType controlType) {
     if (m_bIsFinished || m_bIsAborting) {
-        return;
+        return false;
     }
     if (controlType == DUCK_SCRIPT_CONTROLLED) {
         m_LengthOfDuck = 0;
