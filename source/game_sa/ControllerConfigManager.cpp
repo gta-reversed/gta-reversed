@@ -482,7 +482,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
         }
     }
 
-    // NOTSA: Check if there's at least one valid assignment for each action
+    // NOTSA: Check if there's at least one valid assignment for each action. (Mouse fix)
     if (notsa::IsFixBugs()) {
         for (auto action = 0u; action < NUM_OF_MAX_CONTROLLER_ACTIONS; action++) {
             bool hasAssignment = false;
@@ -494,7 +494,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
             }
 
             // NOTSA: If no assignment found, check if it's a special action that can be blank
-            if (!hasAssignment && !notsa::contains({ CA_NETWORK_TALK, CA_NUM_OF_1ST_PERSON_ACTIONS, CA_TOGGLE_DPAD, CA_SWITCH_DEBUG_CAM_ON, CA_TAKE_SCREEN_SHOT, CA_SHOW_MOUSE_POINTER_TOGGLE, CA_SWITCH_CAM_DEBUG_MENU }, (eControllerAction)action)) {
+            if (!hasAssignment && GetActionType((eControllerAction)action) == eActionType::ACTION_NOT_TYPE) {
                 return false; // No valid assignment found for this action
             }
         }
@@ -1046,73 +1046,26 @@ bool CControllerConfigManager::GetIsKeyBlank(KeyCode key, eControllerType type) 
 }
 
 // 0x52F2F0
-eActionType CControllerConfigManager::GetActionType(eControllerAction action) {
-    switch (action) {
-    case eControllerAction::CA_PED_FIRE_WEAPON:
-    case eControllerAction::CA_PED_FIRE_WEAPON_ALT:
-    case eControllerAction::CA_GO_FORWARD:
-    case eControllerAction::CA_GO_BACK:
-    case eControllerAction::CA_GO_LEFT:
-    case eControllerAction::CA_GO_RIGHT:
-    case eControllerAction::CA_PED_SNIPER_ZOOM_IN:
-    case eControllerAction::CA_PED_SNIPER_ZOOM_OUT:
-    case eControllerAction::CA_PED_1RST_PERSON_LOOK_LEFT:
-    case eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT:
-    case eControllerAction::CA_PED_LOCK_TARGET:
-    case eControllerAction::CA_PED_1RST_PERSON_LOOK_UP:
-    case eControllerAction::CA_PED_1RST_PERSON_LOOK_DOWN:
-        return ACTION_FIRST_THIRD_PERSON;
-    case eControllerAction::CA_PED_CYCLE_WEAPON_RIGHT:
-    case eControllerAction::CA_PED_CYCLE_WEAPON_LEFT:
-    case eControllerAction::CA_PED_JUMPING:
-    case eControllerAction::CA_PED_SPRINT:
-    case eControllerAction::CA_PED_LOOKBEHIND:
-    case eControllerAction::CA_PED_DUCK:
-    case eControllerAction::CA_PED_ANSWER_PHONE:
-    case eControllerAction::CA_PED_WALK:
-    case eControllerAction::CA_PED_CYCLE_TARGET_LEFT:
-    case eControllerAction::CA_PED_CYCLE_TARGET_RIGHT:
-    case eControllerAction::CA_PED_CENTER_CAMERA_BEHIND_PLAYER:
-    case eControllerAction::CA_CONVERSATION_YES:
-    case eControllerAction::CA_CONVERSATION_NO:
-    case eControllerAction::CA_GROUP_CONTROL_FWD:
-    case eControllerAction::CA_GROUP_CONTROL_BWD:
-        return ACTION_THIRD_PERSON;
-    case eControllerAction::CA_VEHICLE_ENTER_EXIT:
-        return ACTION_IN_CAR_THIRD_PERSON;
-    case eControllerAction::CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS:
-    case eControllerAction::CA_NETWORK_TALK:
-    case eControllerAction::CA_TOGGLE_DPAD:
-    case eControllerAction::CA_SWITCH_DEBUG_CAM_ON:
-    case eControllerAction::CA_TAKE_SCREEN_SHOT:
-    case eControllerAction::CA_SHOW_MOUSE_POINTER_TOGGLE:
-        return ACTION_COMMON_CONTROLS;
-    case eControllerAction::CA_VEHICLE_FIRE_WEAPON:
-    case eControllerAction::CA_VEHICLE_FIRE_WEAPON_ALT:
-    case eControllerAction::CA_VEHICLE_STEER_LEFT:
-    case eControllerAction::CA_VEHICLE_STEER_RIGHT:
-    case eControllerAction::CA_VEHICLE_STEER_UP:
-    case eControllerAction::CA_VEHICLE_STEER_DOWN:
-    case eControllerAction::CA_VEHICLE_ACCELERATE:
-    case eControllerAction::CA_VEHICLE_BRAKE:
-    case eControllerAction::CA_VEHICLE_RADIO_STATION_UP:
-    case eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN:
-    case eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP:
-    case eControllerAction::CA_VEHICLE_HORN:
-    case eControllerAction::CA_TOGGLE_SUBMISSIONS:
-    case eControllerAction::CA_VEHICLE_HANDBRAKE:
-    case eControllerAction::CA_VEHICLE_LOOKLEFT:
-    case eControllerAction::CA_VEHICLE_LOOKRIGHT:
-    case eControllerAction::CA_VEHICLE_LOOKBEHIND:
-    case eControllerAction::CA_VEHICLE_MOUSELOOK:
-    case eControllerAction::CA_VEHICLE_TURRETLEFT:
-    case eControllerAction::CA_VEHICLE_TURRETRIGHT:
-    case eControllerAction::CA_VEHICLE_TURRETUP:
-    case eControllerAction::CA_VEHICLE_TURRETDOWN:
-        return ACTION_IN_CAR;
-    default:
-        return ACTION_NOT_TYPE;
+eActionType CControllerConfigManager::GetActionType(eControllerAction Action) {
+    static constexpr auto firstThirdPersonActions = {CA_PED_FIRE_WEAPON, CA_PED_FIRE_WEAPON_ALT, CA_GO_FORWARD, CA_GO_BACK, CA_GO_LEFT, CA_GO_RIGHT, CA_PED_SNIPER_ZOOM_IN, CA_PED_SNIPER_ZOOM_OUT, CA_PED_1RST_PERSON_LOOK_LEFT, CA_PED_1RST_PERSON_LOOK_RIGHT, CA_PED_LOCK_TARGET, CA_PED_1RST_PERSON_LOOK_UP, CA_PED_1RST_PERSON_LOOK_DOWN};
+    static constexpr auto thirdPersonActions = {CA_PED_CYCLE_WEAPON_RIGHT, CA_PED_CYCLE_WEAPON_LEFT, CA_PED_JUMPING, CA_PED_SPRINT, CA_PED_LOOKBEHIND, CA_PED_DUCK, CA_PED_ANSWER_PHONE, CA_PED_WALK, CA_PED_CYCLE_TARGET_LEFT, CA_PED_CYCLE_TARGET_RIGHT, CA_PED_CENTER_CAMERA_BEHIND_PLAYER, CA_CONVERSATION_YES, CA_CONVERSATION_NO, CA_GROUP_CONTROL_FWD, CA_GROUP_CONTROL_BWD};
+    static constexpr auto commonControlActions = {CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, CA_NETWORK_TALK, CA_TOGGLE_DPAD, CA_SWITCH_DEBUG_CAM_ON, CA_TAKE_SCREEN_SHOT, CA_SHOW_MOUSE_POINTER_TOGGLE};
+    static constexpr auto inCarActions = {CA_VEHICLE_FIRE_WEAPON, CA_VEHICLE_FIRE_WEAPON_ALT, CA_VEHICLE_STEER_LEFT, CA_VEHICLE_STEER_RIGHT, CA_VEHICLE_STEER_UP, CA_VEHICLE_STEER_DOWN, CA_VEHICLE_ACCELERATE, CA_VEHICLE_BRAKE, CA_VEHICLE_RADIO_STATION_UP, CA_VEHICLE_RADIO_STATION_DOWN, CA_VEHICLE_RADIO_TRACK_SKIP, CA_VEHICLE_HORN, CA_TOGGLE_SUBMISSIONS, CA_VEHICLE_HANDBRAKE, CA_VEHICLE_LOOKLEFT, CA_VEHICLE_LOOKRIGHT, CA_VEHICLE_LOOKBEHIND, CA_VEHICLE_MOUSELOOK, CA_VEHICLE_TURRETLEFT, CA_VEHICLE_TURRETRIGHT, CA_VEHICLE_TURRETUP, CA_VEHICLE_TURRETDOWN};
+
+    // Check if action is in any of the arrays
+    if (notsa::contains(firstThirdPersonActions, Action)) {
+        return eActionType::ACTION_FIRST_THIRD_PERSON;
+    } else if (notsa::contains(thirdPersonActions, Action)) {
+        return eActionType::ACTION_THIRD_PERSON;
+    } else if (Action == eControllerAction::CA_VEHICLE_ENTER_EXIT) {
+        return eActionType::ACTION_IN_CAR_THIRD_PERSON;
+    } else if (notsa::contains(commonControlActions, Action)) {
+        return eActionType::ACTION_COMMON_CONTROLS;
+    } else if (notsa::contains(inCarActions, Action)) {
+        return eActionType::ACTION_IN_CAR;
     }
+
+    return eActionType::ACTION_NOT_TYPE;
 }
 
 // 0x52F390
