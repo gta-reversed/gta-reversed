@@ -94,6 +94,10 @@ RpMaterial* CCustomBuildingPipeline::CustomPipeMaterialSetup(RpMaterial* materia
 
 // 0x5D77D0
 void CCustomBuildingPipeline::CustomPipeRenderCB(RwResEntry* resEntry, void* object, RwUInt8 type, RwUInt32 rxGeoFlags) {
+    const auto atomic = (RpAtomic*)(object);
+
+    _rwD3D9EnableClippingIfNeeded(atomic, type);
+
     DWORD isLightingEnabled = 0;
     RwD3D9GetRenderState(D3DRS_LIGHTING, &isLightingEnabled);
 
@@ -156,7 +160,7 @@ void CCustomBuildingPipeline::CustomPipeRenderCB(RwResEntry* resEntry, void* obj
             RxD3D9InstanceDataRender(header, mesh);
         } else { // 0x5D7A1A - Render with ligthing
             if (isLightingEnabled) {
-                RwD3D9SetSurfaceProperties(&meshes->material->surfaceProps, &meshes->material->color, rxGeoFlags);
+                RwD3D9SetSurfaceProperties(&mesh->material->surfaceProps, &mesh->material->color, rxGeoFlags);
             }
             RxD3D9InstanceDataRenderLighting(header, mesh, rxGeoFlags, mesh->material->texture); // 0x5D7A41
         }
