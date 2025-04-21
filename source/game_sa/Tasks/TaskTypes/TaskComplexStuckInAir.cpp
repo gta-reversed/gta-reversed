@@ -125,7 +125,7 @@ CTask* CTaskComplexStuckInAir::CreateSubTask(eTaskType taskType, CPed* ped) {
     case TASK_COMPLEX_FLEE_POINT: { // 0x67BBDD
         const CVector point = ped->GetPosition()
             - ped->GetForward() * 0.5f
-            + ped->GetRight() * std::copysign(0.5f, CGeneral::DoCoinFlip() ? 1.f : -1.f);
+            + ped->GetRight() * (CGeneral::DoCoinFlip() ? 0.5f : -0.5f);
         return new CTaskComplexFleePoint{ point, false, 5.f, 10'000 };
     }
     case TASK_FINISHED: { // 0x67BBE5
