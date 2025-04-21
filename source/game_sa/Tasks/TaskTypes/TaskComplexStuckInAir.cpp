@@ -72,7 +72,12 @@ CTask* CTaskComplexStuckInAir::ControlSubTask(CPed* ped) {
 
 // 0x67BE20
 CTask* CTaskComplexStuckInAir::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x67BE20, CTaskComplexStuckInAir*, CPed*>(this, ped);
+    return CreateSubTask(
+        ped->GetIntelligence()->GetStuckChecker().GetState() == PED_STUCK_STATE_WAS_STUCK
+            ? TASK_COMPLEX_FALL_AND_GET_UP
+            : TASK_SIMPLE_STAND_STILL,
+        ped
+    );        
 }
 
 // 0x67BD10
@@ -92,7 +97,7 @@ void CTaskComplexStuckInAir::InjectHooks() {
     RH_ScopedGlobalInstall(CreateSubTask, 0x67BA80, { .reversed = false });
     RH_ScopedVMTInstall(Clone, 0x67C700);
     RH_ScopedVMTInstall(GetTaskType, 0x67BA60);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x67BE20);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x67BD10, { .reversed = false });
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x67BE20, { .reversed = false });
     RH_ScopedVMTInstall(ControlSubTask, 0x67BE50);
 }
