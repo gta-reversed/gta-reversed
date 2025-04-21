@@ -826,7 +826,7 @@ void CControllerConfigManager::ReinitControls() {
 
     if (AllValidWinJoys.JoyStickNum[PAD1].bJoyAttachedToPort) {
 #ifdef NOTSA_USE_SDL3
-        ControlsManager.InitDefaultControlConfigJoyPad(16);
+        ControlsManager.InitDefaultControlConfigJoyPad(JOYBUTTON_MAX);
 #else
         DIDEVCAPS devCaps;
         devCaps.dwSize = sizeof(DIDEVCAPS);
