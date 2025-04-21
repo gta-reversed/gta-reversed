@@ -1,8 +1,11 @@
 #include "StdInc.h"
 
+#include "TaskComplexFleePoint.h"
 #include "TaskSimpleFall.h"
 #include "TaskComplexJump.h"
 #include "TaskSimpleInAir.h"
+#include "TaskSimpleStandStill.h"
+#include "TaskComplexFallAndGetUp.h"
 
 #include "PedStuckChecker.h"
 #include "TaskComplexStuckInAir.h"
@@ -118,14 +121,46 @@ CTask* CTaskComplexStuckInAir::CreateNextSubTask(CPed* ped) {
 
 // 0x67BA80
 CTask* CTaskComplexStuckInAir::CreateSubTask(eTaskType taskType, CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x67BA80, CTaskComplexStuckInAir*, eTaskType, CPed*>(this, taskType, ped);
+    switch (taskType) {
+    case TASK_COMPLEX_FLEE_POINT: { // 0x67BBDD
+        const CVector point = ped->GetPosition()
+            - ped->GetForward() * 0.5f
+            + ped->GetRight() * std::copysign(0.5f, CGeneral::DoCoinFlip() ? 1.f : -1.f);
+        return new CTaskComplexFleePoint{ point, false, 5.f, 10'000 };
+    }
+    case TASK_FINISHED: { // 0x67BBE5
+        return nullptr;
+    }
+    case TASK_COMPLEX_JUMP: { // 0x67BB74
+        ped->bIsStanding = true;
+
+        auto* const sc = &ped->GetIntelligence()->GetStuckChecker();
+        sc->m_radius   = 0;
+        sc->m_state    = PED_STUCK_STATE_NONE;
+
+        return new CTaskComplexJump{ CTaskComplexJump::eForceClimb::DISABLE };
+    }
+    case TASK_SIMPLE_STAND_STILL: { // 0x67BB2C
+        ped->bIsStanding = true;
+
+        return new CTaskSimpleStandStill{ 5'000 };
+    }
+    case TASK_COMPLEX_FALL_AND_GET_UP: { // 0x67BAC9
+        auto* const sc = &ped->GetIntelligence()->GetStuckChecker();
+        sc->m_radius   = 0;
+        sc->m_state    = PED_STUCK_STATE_NONE;
+
+        return new CTaskComplexFallAndGetUp{ ANIM_ID_KO_SKID_BACK, ANIM_GROUP_DEFAULT, 1'000 };
+    }
+    }
+    NOTSA_UNREACHABLE("task type was {}", taskType);
 }
 
 void CTaskComplexStuckInAir::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexStuckInAir, 0x870608, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedGlobalInstall(CreateSubTask, 0x67BA80, { .reversed = false });
+    RH_ScopedGlobalInstall(CreateSubTask, 0x67BA80);
     RH_ScopedVMTInstall(Clone, 0x67C700);
     RH_ScopedVMTInstall(GetTaskType, 0x67BA60);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x67BE20);
