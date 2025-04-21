@@ -640,6 +640,39 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
     constexpr int mappingCount = 29;
 
     // Arrays for specific and standard controller configurations
+    // constexpr ButtonMapping modernMapping[mappingCount] = {
+    //     { JOYBUTTON_SIXTEEN,   eControllerAction::CA_CONVERSATION_NO                   },
+    //     { JOYBUTTON_FIFTHTEEN, eControllerAction::CA_GROUP_CONTROL_BWD                 },
+    //     { JOYBUTTON_FIFTHTEEN, eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN        },
+    //     { JOYBUTTON_FOURTEEN,  eControllerAction::CA_CONVERSATION_YES                  },
+    //     { JOYBUTTON_THIRTEEN,  eControllerAction::CA_GROUP_CONTROL_FWD                 },
+    //     { JOYBUTTON_THIRTEEN,  eControllerAction::CA_VEHICLE_RADIO_STATION_UP          },
+    //     { JOYBUTTON_ELEVEN,    eControllerAction::CA_PED_LOOKBEHIND                    },
+    //     { JOYBUTTON_ELEVEN,    eControllerAction::CA_TOGGLE_SUBMISSIONS                },
+    //     { JOYBUTTON_TEN,       eControllerAction::CA_VEHICLE_HORN                      },
+    //     { JOYBUTTON_TEN,       eControllerAction::CA_PED_DUCK                          },
+    //     { JOYBUTTON_NINE,      eControllerAction::CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS },
+    //     { JOYBUTTON_EIGHT,     eControllerAction::CA_VEHICLE_HANDBRAKE                 },
+    //     { JOYBUTTON_EIGHT,     eControllerAction::CA_PED_LOCK_TARGET                   },
+    //     { JOYBUTTON_SEVEN,     eControllerAction::CA_PED_ANSWER_PHONE                  },
+    //     { JOYBUTTON_SEVEN,     eControllerAction::CA_PED_FIRE_WEAPON_ALT               },
+    //     { JOYBUTTON_SEVEN,     eControllerAction::CA_VEHICLE_FIRE_WEAPON_ALT           },
+    //     { JOYBUTTON_SIX,       eControllerAction::CA_PED_CYCLE_WEAPON_RIGHT            },
+    //     { JOYBUTTON_SIX,       eControllerAction::CA_VEHICLE_LOOKRIGHT                 },
+    //     { JOYBUTTON_FIVE,      eControllerAction::CA_PED_CYCLE_WEAPON_LEFT             },
+    //     { JOYBUTTON_FIVE,      eControllerAction::CA_VEHICLE_LOOKLEFT                  },
+    //     { JOYBUTTON_FOUR,      eControllerAction::CA_VEHICLE_BRAKE                     },
+    //     { JOYBUTTON_FOUR,      eControllerAction::CA_PED_JUMPING                       },
+    //     { JOYBUTTON_FOUR,      eControllerAction::CA_PED_SNIPER_ZOOM_IN                },
+    //     { JOYBUTTON_THREE,     eControllerAction::CA_VEHICLE_ACCELERATE                },
+    //     { JOYBUTTON_THREE,     eControllerAction::CA_PED_SPRINT                        },
+    //     { JOYBUTTON_THREE,     eControllerAction::CA_PED_SNIPER_ZOOM_OUT               },
+    //     { JOYBUTTON_TWO,       eControllerAction::CA_PED_FIRE_WEAPON                   },
+    //     { JOYBUTTON_TWO,       eControllerAction::CA_VEHICLE_FIRE_WEAPON               },
+    //     { JOYBUTTON_ONE,       eControllerAction::CA_VEHICLE_ENTER_EXIT                }
+    // };
+
+    // Arrays for specific and standard controller configurations
     constexpr ButtonMapping specificMappings[mappingCount] = {
         { JOYBUTTON_SIXTEEN,   eControllerAction::CA_CONVERSATION_NO                   },
         { JOYBUTTON_FIFTHTEEN, eControllerAction::CA_GROUP_CONTROL_BWD                 },
@@ -704,8 +737,16 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
         { JOYBUTTON_ONE,       eControllerAction::CA_VEHICLE_FIRE_WEAPON               }
     };
 
-    // Choose which mapping array to use
-    const auto& mappings = (AllValidWinJoys.JoyStickNum[PAD1].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[PAD1].wProductID == 0x1190) ? specificMappings : standardMappings;
+    // constexpr modernMappingOn = true; // This is a placeholder, replace with actual condition to check if modern mapping is needed
+
+    // if (!modernMappingOn) {
+        // Choose which mapping array to use
+        const auto& mappings = (AllValidWinJoys.JoyStickNum[PAD1].wVendorID == 0x3427 && AllValidWinJoys.JoyStickNum[PAD1].wProductID == 0x1190) ? specificMappings : standardMappings;
+
+    // } else {
+    //     // Use modern mapping array
+    //     const auto& mappings = modernMapping;
+    // }
 
     for (size_t i = 0; i < std::size(mappings); ++i) {
         if (mappings[i].first <= buttonCount) {
