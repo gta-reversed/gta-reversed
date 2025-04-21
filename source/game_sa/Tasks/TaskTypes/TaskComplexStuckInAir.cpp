@@ -67,7 +67,7 @@ CTask* CTaskComplexStuckInAir::ControlSubTask(CPed* ped) {
         return m_pSubTask;
     }
     }
-    NOTSA_UNREACHABLE("SubTask type was {}", m_pSubTask->GetTaskType());
+    NOTSA_UNREACHABLE("sub-task type was {}", m_pSubTask->GetTaskType());
 }
 
 // 0x67BE20
@@ -82,7 +82,38 @@ CTask* CTaskComplexStuckInAir::CreateFirstSubTask(CPed* ped) {
 
 // 0x67BD10
 CTask* CTaskComplexStuckInAir::CreateNextSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x67BD10, CTaskComplexStuckInAir*, CPed*>(this, ped);
+    switch (m_pSubTask->GetTaskType()) {
+    case TASK_COMPLEX_FALL_AND_GET_UP: // 0x67BD39
+    case TASK_COMPLEX_FLEE_POINT: { // 0x67BDFA
+        return CreateSubTask(
+            ped->GetIntelligence()->GetStuckChecker().GetState() == PED_STUCK_STATE_NONE
+                ? TASK_FINISHED
+                : TASK_SIMPLE_STAND_STILL,
+            ped
+        );
+    }
+    case TASK_SIMPLE_STAND_STILL: { // 0x67BD7C
+        return CreateSubTask(
+            ped->GetIntelligence()->GetStuckChecker().GetState() == PED_STUCK_STATE_NONE
+                ? TASK_FINISHED
+                : ped->IsPlayer() // inverted
+                    ? TASK_SIMPLE_STAND_STILL
+                    : TASK_COMPLEX_JUMP,
+            ped
+        );
+    }
+    case TASK_COMPLEX_JUMP: { // 0x67BDC1
+        return CreateSubTask(
+            ped->GetIntelligence()->GetStuckChecker().GetState() != PED_STUCK_STATE_NONE
+                ? TASK_SIMPLE_STAND_STILL
+                : ped->IsPlayer()
+                    ? TASK_FINISHED
+                    : TASK_COMPLEX_FLEE_POINT,
+            ped
+        );
+    }
+    }
+    NOTSA_UNREACHABLE("sub-task type was {}", m_pSubTask->GetTaskType());
 }
 
 // 0x67BA80
