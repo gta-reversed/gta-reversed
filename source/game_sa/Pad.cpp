@@ -430,7 +430,7 @@ void CPad::ProcessPad(ePadID padID) {
         UpdateJoyStickPosition(rightStickPos.y, pPad.PCTempJoyState.RightStickX, pPad.PCTempJoyState.RightStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
     }
 #else
-    // Synchronous approach for SDL3: use direct polling
+    // Use direct polling for gamepads
     if (CPad* pad = CPad::GetPad(padID); pad) {
         // Update the current joystick state directly in PCTempJoyState
         pad->UpdateJoystick(pad->PCTempJoyState, padID);
