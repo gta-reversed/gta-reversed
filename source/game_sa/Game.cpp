@@ -261,15 +261,7 @@ bool CGame::Shutdown() {
     col1[1].m_boundBox.m_vecMin.z = 0.0f;
     col1[0].m_pColData = nullptr;
     CTaskSimpleClimb::Shutdown();
-
-    { // todo: move to CPedAttractor::Shutdown() or something
-        // delete CPedAttractor::ms_tasks.First;
-        // CPedAttractor::ms_tasks.First = 0;
-        // CPedAttractor::ms_tasks.Last = 0;
-        // CPedAttractor::ms_tasks.End = 0;
-        CPedAttractor::ms_tasks = {};
-    }
-
+    CPedAttractor::Shutdown();
     CTheScripts::RemoveScriptTextureDictionary();
     CMBlur::MotionBlurClose();
     CdStreamRemoveImages();
@@ -360,7 +352,7 @@ bool CGame::Init1(char const *datFile) {
     CGangWars::InitAtStartOfGame();
     CConversations::Clear();
     CPedToPlayerConversations::Clear();
-    CQuadTreeNode::InitPool();
+    CQuadTreeNode<void*>::InitPool();
 
     if (!CPlantMgr::Initialise() || !CCustomRoadsignMgr::Initialise()) {
         return false;
@@ -448,7 +440,7 @@ bool CGame::Init2(const char* datFile) {
     CDraw::ms_fLODDistance = 0.0f;
 
     if (!CCustomCarPlateMgr::Initialise()) {
-        DEV_LOG("[CGame::Init2] CCustomCarPlateMgr::Initialise() failed");
+        NOTSA_LOG_DEBUG("[CGame::Init2] CCustomCarPlateMgr::Initialise() failed");
         return false;
     }
 
@@ -616,9 +608,14 @@ bool CGame::InitialiseRenderWare() {
 
     const auto frame = RwFrameCreate();
     rwObjectHasFrameSetFrame(&camera->object.object, frame);
-    camera->frameBuffer = RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPECAMERA);
-    camera->zBuffer = RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPEZBUFFER);
-    if (!camera->object.object.parent) {
+
+    RwCameraSetRaster(camera, RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPECAMERA));
+    assert(RwCameraGetRaster(camera));
+
+    RwCameraSetZRaster(camera, RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPEZBUFFER));
+    assert(RwCameraGetZRaster(camera));
+
+    if (!RwCameraGetFrame(camera)) {
         CameraDestroy(camera);
         return false;
     }

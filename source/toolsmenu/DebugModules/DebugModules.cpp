@@ -5,36 +5,38 @@
 #include "DebugModules.h"
 #include "imgui.h"
 
-#include "./CollisionDebugModule.h"
-#include "./CheatDebugModule.h"
-#include "./PedDebugModule.h"
-#include "./Script/MissionDebugModule.h"
-#include "./Audio/CutsceneTrackManagerDebugModule.h"
-#include "./Audio/AmbienceTrackManagerDebugModule.h"
-#include "./Audio/UserRadioTrackDebugModule.h"
-#include "./Audio/Entities/PoliceScannerAudioEntityDebugModule.h"
-#include "./Audio/Entities/VehicleAudioEntityDebugModule.hpp"
-#include "./Audio/AudioDebugModule.hpp"
-#include "./CStreamingDebugModule.h"
-#include "./CPickupsDebugModule.h"
-#include "./CDarkelDebugModule.h"
-#include "./HooksDebugModule.h"
-#include "./CTeleportDebugModule.h"
-#include "./ParticleDebugModule.h"
-#include "./PostEffectsDebugModule.h"
-#include "./PoolsDebugModule.h"
-#include "./TimeCycleDebugModule.h"
-#include "./CullZonesDebugModule.h"
-#include "./TextDebugModule.h"
-#include "./ProcObjectDebugModule.h"
-#include "./Spawner/SpawnerDebugModule.hpp"
-#include "./ImGuiDebugModule.hpp"
-#include "./ScriptDebugModule.hpp"
-#include "./CloudsDebugModule.hpp"
-#include "./AudioZonesDebugModule.h"
-#include "./WeaponDebugModule.hpp"
-#include "./CheckpointsDebugModule.hpp"
-#include "./VehicleInfoDebugModule.h"
+#include "CollisionDebugModule.h"
+#include "CheatDebugModule.h"
+#include "PedDebugModule.h"
+#include "Script/MissionDebugModule.h"
+#include "Audio/CutsceneTrackManagerDebugModule.h"
+#include "Audio/AmbienceTrackManagerDebugModule.h"
+#include "Audio/PoliceScannerAudioEntityDebugModule.h"
+#include "Audio/Entities/VehicleAudioEntityDebugModule.hpp"
+#include "Audio/UserRadioTrackDebugModule.h"
+#include "CStreamingDebugModule.h"
+#include "CPickupsDebugModule.h"
+#include "CDarkelDebugModule.h"
+#include "HooksDebugModule.h"
+#include "CTeleportDebugModule.h"
+#include "ParticleDebugModule.h"
+#include "PostEffectsDebugModule.h"
+#include "PoolsDebugModule.h"
+#include "TimeCycleDebugModule.h"
+#include "CullZonesDebugModule.h"
+#include "TextDebugModule.h"
+#include "ProcObjectDebugModule.h"
+#include "Spawner/SpawnerDebugModule.hpp"
+#include "ImGuiDebugModule.hpp"
+#include "ScriptDebugModule.hpp"
+#include "CloudsDebugModule.hpp"
+#include "AudioZonesDebugModule.h"
+#include "WeaponDebugModule.hpp"
+#include "CheckpointsDebugModule.hpp"
+#include "BugsDebugModule.hpp"
+#include "TwoDEffectsDebugModule.hpp"
+#include "VehicleInfoDebugModule.h"
+#include "CoverPointsDebugModule.hpp"
 
 DebugModules::DebugModules(ImGuiContext* ctx) :
     m_ImCtx(ctx)
@@ -90,6 +92,7 @@ void DebugModules::CreateModules() {
     // "Settings" menu
     Add<HooksDebugModule>();
     Add<PostEffectsDebugModule>();
+    Add<notsa::debugmodules::BugsDebugModule>();
 
     // "Visualization" menu
     Add<CollisionDebugModule>();
@@ -118,6 +121,8 @@ void DebugModules::CreateModules() {
     Add<VehicleInfoDebugModule>();
 
     // Stuff that is present in multiple menus
+    Add<notsa::debugmodules::TwoDEffectsDebugModule>(); // Visualization + Extra
+    Add<notsa::debugmodules::CoverPointsDebugModule>(); // Visualization + Extra
     Add<TimeCycleDebugModule>(); // Visualization + Extra
     Add<CullZonesDebugModule>(); // Visualization + Extra
     Add<COcclusionDebugModule>(); // Visualization + Extra

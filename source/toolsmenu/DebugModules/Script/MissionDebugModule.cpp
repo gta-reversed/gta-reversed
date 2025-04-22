@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include <imgui.h>
-#include <imgui_stdlib.h>
+#include <libs/imgui/misc/cpp/imgui_stdlib.h>
 #include <imgui_internal.h>
 
 #include "MissionDebugModule.h"
@@ -156,9 +156,9 @@ MissionDebugModule::MissionDebugModule() {
 void InitializeAndStartNewScript() {
     CTheScripts::WipeLocalVariableMemoryForMissionScript();
     CRunningScript* script = CTheScripts::StartNewScript(&CTheScripts::MissionBlock[0]);
-    script->m_bUseMissionCleanup = true;
-    script->m_bIsMission = true;
-    script->m_pBaseIP = &CTheScripts::MissionBlock[0];
+    script->m_UsesMissionCleanup = true;
+    script->m_ThisMustBeTheOnlyMissionRunning = true;
+    script->m_BaseIP = &CTheScripts::MissionBlock[0];
     CTheScripts::bAlreadyRunningAMissionScript = true;
     CGameLogic::ClearSkip(false);
 }

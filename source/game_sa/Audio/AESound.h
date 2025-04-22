@@ -83,6 +83,7 @@ public:
     void  CalculateVolume();
     void  UpdateParameters(int16 curPlayPos);
     void  SoundHasFinished();
+    eSoundState GetPlayingState() const { return (eSoundState)(m_nPlayingState); }
 
     void SetSpeed(float s) noexcept { m_Speed = s; }
     auto GetSpeed() const noexcept  { return m_Speed; }

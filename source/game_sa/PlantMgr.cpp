@@ -7,7 +7,6 @@
 #include "PlantSurfPropMgr.h"
 #include "ColHelpers.h"
 #include "ProcObjectMan.h"
-#include <extensions/enumerate.hpp>
 
 // 0x5DD100 (todo: move)
 static void AtomicCreatePrelitIfNeeded(RpAtomic* atomic) {
@@ -134,8 +133,8 @@ bool CPlantMgr::Initialise() {
             return texture;
         };
 
-        for (auto&& [i, tab] : notsa::enumerate(PC_PlantTextureTab | rng::views::take(2))) {
-            for (auto&& [j, tex] : notsa::enumerate(tab)) {
+        for (auto&& [i, tab] : rngv::enumerate(PC_PlantTextureTab | rng::views::take(2))) {
+            for (auto&& [j, tex] : rngv::enumerate(tab)) {
                 tex = ReadTexture(std::format("txgrass{}_{}", i, j).c_str());
             }
         }
@@ -534,9 +533,7 @@ void CPlantMgr::_ColEntityCache_Update(const CVector& cameraPos, bool fast) {
 
     CWorld::IncrementCurrentScanCode();
     CWorld::IterateSectorsOverlappedByRect({ cameraPos, PROC_OBJECTS_MAX_DISTANCE }, [cameraPos](int32 x, int32 y) {
-        for (auto i = GetSector(x, y)->m_buildings.GetNode(); i; i = i->m_next) {
-            const auto item = static_cast<CEntity*>(i->m_item);
-
+        for (auto* const item : GetSector(x, y)->m_buildings) {
             if (item->m_bIsProcObject || item->IsScanCodeCurrent() || !item->IsInCurrentAreaOrBarberShopInterior())
                 continue;
 
@@ -617,7 +614,7 @@ void CPlantMgr::_ProcessEntryCollisionDataSections_AddLocTris(const CPlantColEnt
             vertices[0],
             vertices[1],
             vertices[2],
-            CVector::AverageN(vertices, 3),
+            CVector::Centroid(vertices),
             (vertices[0] + vertices[1]) / 2.0f,
             (vertices[0] + vertices[2]) / 2.0f,
             (vertices[1] + vertices[2]) / 2.0f

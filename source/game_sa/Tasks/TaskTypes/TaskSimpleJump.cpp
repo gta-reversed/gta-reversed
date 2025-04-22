@@ -80,9 +80,7 @@ bool CTaskSimpleJump::ProcessPed(CPed* ped) {
     if (!m_bIsJumpBlocked) {
         Launch(ped);
     } else if (ped->IsPlayer()) {
-        CVector empty{};
-        CEventSoundQuiet event(ped, 45.0F, -1, empty);
-        GetEventGlobalGroup()->Add(&event, false);
+        GetEventGlobalGroup()->Add(CEventSoundQuiet{ ped, 45.f, (uint32)(-1), CVector{}});
     }
 
     return true;

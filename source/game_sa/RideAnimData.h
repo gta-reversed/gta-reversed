@@ -8,13 +8,13 @@
 
 class CRideAnimData {
 public:
-    AssocGroupId AnimGroup{};
-    float        BarSteerAngle{};
-    float        LeanAngle{};
-    float        DesiredLeanAngle{};
-    float        LeanFwd{};
-    float        AnimLeanLeft{};
-    float        AnimLeanFwd{};
+    AssocGroupId m_nAnimGroup{};
+    float        m_fSteerAngle{};
+    float        m_fAnimLean{};
+    int32        dwordC{};
+    float        m_fLeanFwd{};
+    float        m_fHandlebarsAngle{};
+    float        m_fAnimPercentageState{};
 
 public:
     CRideAnimData() = default; // 0x6D0B10

@@ -42,7 +42,7 @@ public:
 
 class NOTSA_EXPORT_VTABLE CTaskComplexCarDriveMissionKillPed : public CTaskComplexCarDriveMission {
 public:
-    CTaskComplexCarDriveMissionKillPed(CVehicle* vehicle, CEntity* targetVehicle) : CTaskComplexCarDriveMission(vehicle, targetVehicle, MISSION_36, DRIVING_STYLE_PLOUGH_THROUGH, 40.0f) { } // 0x4B8A00
+    CTaskComplexCarDriveMissionKillPed(CVehicle* vehicle, CEntity* targetVehicle) : CTaskComplexCarDriveMission(vehicle, targetVehicle, MISSION_KILLPED_FARAWAY, DRIVING_STYLE_PLOUGH_THROUGH, 40.0f) { } // 0x4B8A00
     ~CTaskComplexCarDriveMissionKillPed() override = default; // 0x4B8AD0
 
     static constexpr auto Type = TASK_COMPLEX_CAR_DRIVE_MISSION_KILL_PED;

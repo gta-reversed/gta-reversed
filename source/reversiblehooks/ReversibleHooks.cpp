@@ -1,7 +1,7 @@
 #include "StdInc.h"
 #include <unordered_set>
 
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 #include "ReversibleHook/ScriptCommand.h"
 #endif
 #include "ReversibleHooks.h"
@@ -117,7 +117,7 @@ void AddItemToCategory(std::string_view category, std::shared_ptr<ReversibleHook
     s_RootCategory.AddItemToNamedCategory(category, std::move(item));
 }
 
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 void InstallScriptCommand(std::string_view category, eScriptCommands cmd) {
     AddItemToCategory( \
         category,
@@ -137,15 +137,16 @@ void WriteHooksToFile(const std::filesystem::path& file) {
                 << cat.Name() << "," // class
                 << item->Name() << "," // fn_name
                 << "0x" << std::hex << [&] { // address
-                switch (item->Type()) {
-                case Base::HookType::Virtual:
-                    return std::static_pointer_cast<Virtual>(item)->GetHookGTAAddress();
-                case Base::HookType::Simple:
-                    return std::static_pointer_cast<Simple>(item)->GetHookGTAAddress();
-                default:
-                    NOTSA_UNREACHABLE();
-                }
-            }() << std::dec << ","
+                        switch (item->Type()) {
+                        case Base::HookType::Virtual:
+                            return std::static_pointer_cast<Virtual>(item)->GetHookGTAAddress();
+                        case Base::HookType::Simple:
+                            return std::static_pointer_cast<Simple>(item)->GetHookGTAAddress();
+                        default:
+                            NOTSA_UNREACHABLE();
+                        }
+                    }()
+                << std::dec << ","
                 << item->Hooked() << "," // reversed // TODO: Improve this (Add `m_isReversed` to `Base`) - For now this will do
                 << item->Locked() << "," // locked
                 << (item->Type() == Base::HookType::Virtual) << '\n'; // is_virtual

@@ -29,8 +29,8 @@ public:
     CVector        GetTargetPos() const;
     CVehicle*      GetCameraAvoidVehicle();
 
-
     auto GetTargetCar() const { return m_Car; }
+    void SetMoveState(eMoveState ms) { m_MoveState = ms; }
 protected:
     virtual CTask* CreateNextSubTask_AfterSimpleCarAlign(CPed* ped);
 

@@ -12,6 +12,13 @@
 
 using json = nlohmann::json;
 
+#include <ranges>
+namespace rng = std::ranges;
+namespace rngv = std::views;
+
+#include <filesystem>
+namespace fs = std::filesystem;
+
 #define PLUGIN_API
 
 #define VALIDATE_SIZE(struc, size) static_assert(sizeof(struc) == size, "Invalid structure size of " #struc)
@@ -59,10 +66,8 @@ typedef uint32    bool32;
 #if _DEBUG
 #include <format>
 #include <winuser.h>
-#include <filesystem>
 
 namespace notsa {
-namespace fs = std::filesystem;
 static const fs::path SOURCE_PATH = fs::path(__FILE__).parent_path();
 
 template<typename... Ts>
@@ -107,10 +112,11 @@ template<typename... Ts>
 // Since all the code here is perfectly valid, so the compiler might
 // still complain that, for example, the function doesn't return on all code paths, etc
 #define IMPL_NOTSA_UNREACHABLE_FMT_ARGS(...) std::format(__VA_ARGS__)
-#define NOTSA_UNREACHABLE(...) do { notsa::unreachable(__FUNCTION__, __FILE__, __LINE__ __VA_OPT__(,IMPL_NOTSA_UNREACHABLE_FMT_ARGS(__VA_ARGS__))); } while (false)
+#define NOTSA_UNREACHABLE(...) do { ::notsa::unreachable(__FUNCTION__, __FILE__, __LINE__ __VA_OPT__(,IMPL_NOTSA_UNREACHABLE_FMT_ARGS(__VA_ARGS__))); } while (false)
 #else 
 #define NOTSA_UNREACHABLE(...) UNREACHABLE_INTRINSIC()
 #endif
+#define NOTSA_UNUSED_FUNCTION() NOTSA_UNREACHABLE("Unused Function")
 
 #ifdef _DEBUG
 #define NOTSA_DEBUG_BREAK() __debugbreak()

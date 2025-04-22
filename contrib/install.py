@@ -19,7 +19,7 @@ def main():
         print('Allow the launch as an administrator!')
         return ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
 
-    git_repo_root = Path.cwd()
+    git_repo_root = Path(__file__).resolve().parent # Get path of this script
     if git_repo_root.parts[-1] == 'contrib':
         git_repo_root = git_repo_root.parent
 
@@ -49,7 +49,6 @@ def main():
         # This fails [WinError 1314] if the script isn't run with admin rights [softlinks require it]
         os.symlink(config_bin_dir / filename, dst)
 
-    print("The Env variables are changing... If VS is open with the Modern solution, restart VS")
     set_env_var('GTA_SA_EXE', gta_sa_file)
     set_env_var('GTA_SA_DIR', gta_root_dir)
     input('Done! Press Enter...')

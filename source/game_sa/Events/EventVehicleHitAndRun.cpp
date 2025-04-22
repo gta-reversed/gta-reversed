@@ -33,12 +33,6 @@ CEventVehicleHitAndRun* CEventVehicleHitAndRun::Constructor(CPed* victim, CVehic
     return this;
 }
 
-// 0x4B7100
-CEvent* CEventVehicleHitAndRun::Clone()
-{
-    return new CEventVehicleHitAndRun(m_victim, m_vehicle);
-}
-
 // 0x4B27D0
 void CEventVehicleHitAndRun::ReportCriminalEvent(CPed* ped)
 {

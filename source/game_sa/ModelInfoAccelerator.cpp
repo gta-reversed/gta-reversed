@@ -79,7 +79,7 @@ void CModelInfoAccelerator::EndOfLoadPhase() {
             CFileMgr::Write(file, m_pIDs, BUFFER_SIZE);
             CFileMgr::CloseFile(file);
         } else { // FIX_BUGS
-            DEV_LOG("Failed to open file {} in CModelInfoAccelerator::EndOfLoadPhase", m_szFilePath);
+            NOTSA_LOG_DEBUG("Failed to open file {} in CModelInfoAccelerator::EndOfLoadPhase", m_szFilePath);
             CFileMgr::CloseFile(file);
         }
     }

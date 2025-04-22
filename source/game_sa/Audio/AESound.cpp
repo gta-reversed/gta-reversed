@@ -6,7 +6,7 @@
 */
 
 #include "StdInc.h"
-
+#include <reversiblebugfixes/Bugs.hpp>
 #include "AESound.h"
 
 #include "AEAudioEnvironment.h"
@@ -123,6 +123,7 @@ void CAESound::SetFlags(uint16 envFlag, uint16 bEnabled) {
 // 0x4EF2E0
 void CAESound::UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 playProgress) {
     m_Length = soundLength;
+
     if (m_IsPhysicallyPlaying) {
         return;
     }
@@ -145,7 +146,7 @@ void CAESound::UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 play
     // Avoid division by 0
     // This seems to have been fixed the same way in Android
     // The cause is/can be missing audio files, but I'm lazy to fix it, so this is gonna be fine for now
-    m_PlayTime = !notsa::IsFixBugs() || soundLength > 0
+    m_PlayTime = !notsa::bugfixes::AESound_UpdatePlayTime_DivisionByZero || soundLength > 0
         ? loopStartTime + (m_PlayTime % soundLength)
         : loopStartTime;
 }
@@ -159,7 +160,9 @@ CVector CAESound::GetRelativePosition() const {
 
 // 0x4EF350 - Matches the original calling convention, to be used by reversible hooks, use the version returning CVector instead in our code
 void CAESound::GetRelativePosition(CVector* outVec) const {
-    *outVec = IsFrontEnd() ? m_CurrPos : CAEAudioEnvironment::GetPositionRelativeToCamera(m_CurrPos);
+    *outVec = IsFrontEnd()
+        ? m_CurrPos
+        : CAEAudioEnvironment::GetPositionRelativeToCamera(m_CurrPos);
 }
 
 // 0x4EF390
@@ -235,11 +238,11 @@ void CAESound::SetPosition(CVector pos) {
 
 // 0x4EFA10
 void CAESound::CalculateVolume() {
+    m_ListenerVolume = m_Volume - m_Headroom;
     if (!IsFrontEnd()) {
-        m_ListenerVolume = CAEAudioEnvironment::GetDirectionalMikeAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(m_CurrPos))
-            + CAEAudioEnvironment::GetDistanceAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(m_CurrPos).Magnitude() / m_RollOffFactor);
+        m_ListenerVolume += CAEAudioEnvironment::GetDirectionalMikeAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(m_CurrPos))
+                          + CAEAudioEnvironment::GetDistanceAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(m_CurrPos).Magnitude() / m_RollOffFactor);
     }
-    m_ListenerVolume += m_Volume - m_Headroom;
 }
 
 // 0x4EFF50

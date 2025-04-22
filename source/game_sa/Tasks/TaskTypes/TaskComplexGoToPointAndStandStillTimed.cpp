@@ -53,8 +53,12 @@ CTask* CTaskComplexGoToPointAndStandStillTimed::CreateFirstSubTask(CPed* ped) {
 // 0x66DCE0
 CTask* CTaskComplexGoToPointAndStandStillTimed::ControlSubTask(CPed* ped) {
     if (m_timer.Reset()) {
-        if (m_timer.IsOutOfTime() && m_pSubTask->GetTaskType() != TASK_SIMPLE_STAND_STILL && CPedPlacement::FindZCoorForPed(m_vecTargetPoint)) {
-            ped->SetPosn(m_vecTargetPoint);
+        if (m_timer.IsOutOfTime() && m_pSubTask->GetTaskType() != TASK_SIMPLE_STAND_STILL) {
+            const auto [pos, foundZ] = CPedPlacement::FindZCoorForPed(m_vecTargetPoint);
+            if (foundZ) {
+                m_vecTargetPoint = pos;
+                ped->SetPosn(m_vecTargetPoint);
+            }
         }
     }
     return CTaskComplexGoToPointAndStandStill::ControlSubTask(ped);

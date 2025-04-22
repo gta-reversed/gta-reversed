@@ -20,10 +20,10 @@ void CEventKnockOffBike::InjectHooks()
     RH_ScopedInstall(SetPedSafePosition, 0x4B4AC0);
 }
 
-CEventKnockOffBike::CEventKnockOffBike(CVehicle* vehicle, CVector* moveSpeed, CVector* collisionImpactVelocity, float damageIntensity, float a6, uint8 knockOffType, uint8 knockOffDirection, int32 time, CPed* ped, bool isVictimDriver, bool forceKnockOff)
+CEventKnockOffBike::CEventKnockOffBike(CVehicle* vehicle, const CVector& moveSpeed, const CVector& collisionImpactVelocity, float damageIntensity, float a6, uint8 knockOffType, uint8 knockOffDirection, int32 time, CPed* ped, bool isVictimDriver, bool forceKnockOff)
 {
-    m_moveSpeed = *moveSpeed;
-    m_collisionImpactVelocity = *collisionImpactVelocity;
+    m_moveSpeed = moveSpeed;
+    m_collisionImpactVelocity = collisionImpactVelocity;
     m_time = time;
     m_damageIntensity = damageIntensity;
     field_28 = a6;
@@ -60,7 +60,7 @@ CEventKnockOffBike::~CEventKnockOffBike()
 
 CEventKnockOffBike* CEventKnockOffBike::Constructor(CVehicle* vehicle, CVector* moveSpeed, CVector* collisionImpactVelocity, float damageIntensity, float a6, uint8 knockOffType, uint8 knockOffDirection, int32 time, CPed* ped, bool isVictimDriver, bool forceKnockOff)
 {
-    this->CEventKnockOffBike::CEventKnockOffBike(vehicle, moveSpeed, collisionImpactVelocity, damageIntensity, a6, knockOffType, knockOffDirection, time, ped, isVictimDriver, forceKnockOff);
+    this->CEventKnockOffBike::CEventKnockOffBike(vehicle, *moveSpeed, *collisionImpactVelocity, damageIntensity, a6, knockOffType, knockOffDirection, time, ped, isVictimDriver, forceKnockOff);
     return this;
 }
 

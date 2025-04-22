@@ -172,7 +172,7 @@ void CBaseModelInfo::DeleteCollisionModel() {
     m_pColModel = nullptr;
 }
 
-C2dEffect* CBaseModelInfo::Get2dEffect(int32 index) {
+C2dEffect* CBaseModelInfo::Get2dEffect(int32 index) const {
     auto uiStoredEffectsCount = m_n2dfxCount;
     RpGeometry* geometry = nullptr;
     if (m_pRwObject) {

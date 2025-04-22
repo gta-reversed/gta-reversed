@@ -10,12 +10,12 @@
 
 class CVehicle;
 
-enum eDarkelStatus {
-    DARKEL_STATUS_0,
-    DARKEL_STATUS_1,
-    DARKEL_STATUS_2,
-    DARKEL_STATUS_3,
-    DARKEL_STATUS_4,
+enum class eDarkelStatus {
+    INITIAL,
+    FRENZY_ON_GOING,
+    FRENZY_PASSED,
+    FRENZY_FAILED,
+    FRENZY_ON_GOING_2P,
 };
 
 class CDarkel {

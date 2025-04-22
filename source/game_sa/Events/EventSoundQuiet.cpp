@@ -20,10 +20,10 @@ CEventSoundQuiet::CEventSoundQuiet(CEntity* entity, float fLocalSoundLevel, uint
     m_entity = entity;
     m_position = position;
     CEntity::SafeRegisterRef(m_entity);
-    if (m_startTimeInMs != (uint32)-1)
-        return;
-    m_startTimeInMs = CTimer::GetTimeInMS();
-    m_position = m_entity->GetPosition();
+    if (m_startTimeInMs == (uint32)(-1)) {
+        m_startTimeInMs = CTimer::GetTimeInMS();
+        m_position = m_entity->GetPosition();
+    }
 }
 
 CEventSoundQuiet::~CEventSoundQuiet()
@@ -60,7 +60,7 @@ bool CEventSoundQuiet::AffectsPed(CPed* ped)
 }
 
 // 0x5E0670
-CEventEditableResponse* CEventSoundQuiet::CloneEditable()
+CEventEditableResponse* CEventSoundQuiet::CloneEditable() const noexcept
 {
     return new CEventSoundQuiet(m_entity, m_fLocalSoundLevel, m_startTimeInMs, m_position);
 }

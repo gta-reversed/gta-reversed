@@ -411,12 +411,11 @@ void CBoat::FillBoatList() {
     vecCamDir.Normalise();
 
     auto iCurBoat = 0u;
-    for (int32 iInd = 0; iInd < GetVehiclePool()->GetSize(); ++iInd) {
-        auto vehicle = GetVehiclePool()->GetAt(iInd);
-        if (!vehicle || !vehicle->IsBoat())
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (!vehicle.IsBoat())
             continue;
 
-        auto boat = vehicle->AsBoat();
+        auto boat = vehicle.AsBoat();
         if (!boat->m_nNumWaterTrailPoints)
             continue;
 
@@ -469,7 +468,7 @@ void CBoat::ProcessControl() {
     PruneWakeTrail();
     CVehicle::ProcessDelayedExplosion();
     auto fMassCheck = (m_fMass * 0.008F * 100.0F) / 125.0F;
-    if (physicalFlags.bDestroyed && fMassCheck < m_fBuoyancyConstant)
+    if (physicalFlags.bRenderScorched && fMassCheck < m_fBuoyancyConstant)
         m_fBuoyancyConstant -= ((m_fMass * 0.001F) * 0.008F);
 
     auto wanted = FindPlayerWanted();
@@ -477,7 +476,7 @@ void CBoat::ProcessControl() {
         auto vehicle = FindPlayerVehicle();
         if (vehicle && vehicle->GetVehicleAppearance() == eVehicleAppearance::VEHICLE_APPEARANCE_BOAT) {
             auto iCarMission = m_autoPilot.m_nCarMission;
-            if (iCarMission == eCarMission::MISSION_ATTACKPLAYER ||
+            if (iCarMission == eCarMission::MISSION_BOAT_ATTACKPLAYER ||
                 (iCarMission >= eCarMission::MISSION_RAMPLAYER_FARAWAY && iCarMission <= eCarMission::MISSION_BLOCKPLAYER_CLOSE)
             ) {
                 if (CTimer::GetTimeInMS() > m_nAttackPlayerTime) {
@@ -926,14 +925,14 @@ void CBoat::ProcessControlInputs(uint8 ucPadNum) {
     // Mouse steering
     // TODO: Try copy paste code from `CAutomobile::ProcessControlInputs` for this...
     if (CCamera::m_bUseMouse3rdPerson && CVehicle::m_bEnableMouseSteering) {
-        auto bChangedInput = CVehicle::m_nLastControlInput != eControllerType::CONTROLLER_MOUSE || pad->GetSteeringLeftRight();
-        if (CPad::NewMouseControllerState.X == 0.0F && bChangedInput) { // No longer using mouse controls
+        auto bChangedInput = CVehicle::m_nLastControlInput != eControllerType::MOUSE || pad->GetSteeringLeftRight();
+        if (CPad::NewMouseControllerState.m_AmountMoved.x == 0.0F && bChangedInput) { // No longer using mouse controls
             m_fRawSteerAngle += (static_cast<float>(-pad->GetSteeringLeftRight()) * (1.0F / 128.0F) - m_fRawSteerAngle) * 0.2F * CTimer::GetTimeStep();
-            CVehicle::m_nLastControlInput = eControllerType::CONTROLLER_KEYBOARD1;
+            CVehicle::m_nLastControlInput = eControllerType::KEYBOARD;
         } else if (m_fRawSteerAngle != 0.0F || m_fRawSteerAngle != 0.0F) { // todo: doesn't match OG and duplicateExpression: Same expression on both sides of '||'.
-            CVehicle::m_nLastControlInput = eControllerType::CONTROLLER_MOUSE;
+            CVehicle::m_nLastControlInput = eControllerType::MOUSE;
             if (!pad->NewState.m_bVehicleMouseLook) {
-                m_fRawSteerAngle += CPad::NewMouseControllerState.X * -0.0035F;
+                m_fRawSteerAngle += CPad::NewMouseControllerState.m_AmountMoved.x * -0.0035F;
             }
 
             if (std::fabs(m_fRawSteerAngle) < 0.5f || pad->NewState.m_bVehicleMouseLook) {
@@ -942,7 +941,7 @@ void CBoat::ProcessControlInputs(uint8 ucPadNum) {
         }
     } else {
         m_fRawSteerAngle += (static_cast<float>(-pad->GetSteeringLeftRight()) * (1.0F / 128.0F) - m_fRawSteerAngle) * 0.2F * CTimer::GetTimeStep();
-        CVehicle::m_nLastControlInput = eControllerType::CONTROLLER_KEYBOARD1;
+        CVehicle::m_nLastControlInput = eControllerType::KEYBOARD;
     }
 
     m_fRawSteerAngle = std::clamp(m_fRawSteerAngle, -1.0F, 1.0F);
@@ -964,7 +963,7 @@ void CBoat::BlowUpCar(CEntity* damager, bool bHideExplosion) {
     if (!vehicleFlags.bCanBeDamaged)
         return;
 
-    physicalFlags.bDestroyed = true;
+    physicalFlags.bRenderScorched = true;
     m_nStatus = eEntityStatus::STATUS_WRECKED;
     CVisibilityPlugins::SetClumpForAllAtomicsFlag(m_pRwClump, eAtomicComponentFlag::ATOMIC_IS_BLOWN_UP);
     m_vecMoveSpeed.z += 0.13F;

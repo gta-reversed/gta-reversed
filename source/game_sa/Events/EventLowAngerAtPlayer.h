@@ -13,6 +13,6 @@ class NOTSA_EXPORT_VTABLE CEventLowAngerAtPlayer : public CEventEditableResponse
     int32 GetEventPriority() const override { return 33; }
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override { return ped->IsAlive(); }
-    CEventEditableResponse* CloneEditable() override { return new CEventLowAngerAtPlayer(); }
+    CEventEditableResponse* CloneEditable() const noexcept override { return new CEventLowAngerAtPlayer(); }
 };
 VALIDATE_SIZE(CEventLowAngerAtPlayer, 0x14);

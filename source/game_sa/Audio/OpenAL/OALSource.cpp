@@ -2,7 +2,6 @@
 #include "OALSource.h"
 #include "OALBuffer.h"
 
-#ifdef USE_OPENAL
 OALSource::~OALSource() {
     if (m_oalBuffer && m_type != OALSourceType::OST_Preloop) {
         if (m_sourceId)
@@ -154,4 +153,3 @@ void OALSource::Update() {
         alSourceQueueBuffers(m_sourceId, 1, &m_oalBuffer->m_bufferId);
     }
 }
-#endif

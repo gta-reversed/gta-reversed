@@ -36,6 +36,11 @@ struct MPack {
     char  m_Name[260];
 };
 
+enum eController : int8 {
+    MOUSE_PLUS_KEYS = 0,
+    JOYPAD = 1
+};
+
 constexpr auto FRONTEND_MAP_RANGE_MIN = 300.0f;
 constexpr auto FRONTEND_MAP_RANGE_MAX = 1100.0f;
 
@@ -91,7 +96,7 @@ public:
 
     eRadioID  m_nRadioStation;
     char      field_53;
-    int32     m_nCurrentScreenItem;
+    int32     m_nCurrentScreenItem; // CurrentOption
     bool      m_bQuitGameNoDVD; // CMenuManager::WaitForUserCD 0x57C5E0
 
     bool      m_bDrawingMap;
@@ -116,7 +121,7 @@ public:
     bool      field_8C;
     int32     m_ListSelection;      // controller related
     int32     field_94;      // unused
-    char*     m_pJPegBuffer; //!< +0x98  \see JPegCompress file
+    uint8*    m_GalleryImgBuffer;   //!< +0x98  \see JPegCompress file
     char      field_9C[16];
     int32     m_nUserTrackIndex;
     int8      m_nRadioMode;
@@ -128,15 +133,15 @@ public:
     bool      m_bSwapPadAxis1;
     bool      m_bSwapPadAxis2;
 
-    char      field_B7;
-    bool      m_bDrawMouse; // m_bMouseMoved
+    bool      m_RedefiningControls;
+    bool      m_DisplayTheMouse; // m_bMouseMoved
     int32     m_nMousePosX;
     int32     m_nMousePosY;
     bool      m_bPrefsMipMapping;
     bool      m_bTracksAutoScan;
     int32     m_nPrefsAntialiasing;
     int32     m_nDisplayAntialiasing;
-    int8      m_nController;
+    eController m_ControlMethod;
     int32     m_nPrefsVideoMode;
     int32     m_nDisplayVideoMode;
     int32     m_nCurrentRwSubsystem; // initialized | not used
@@ -150,7 +155,7 @@ public:
     bool      m_bLanguageChanged; // useless?
     int32     field_EC;
     RsKeyCodes* m_pPressedKey; // any pressed key, in order of CKeyboardState; rsNULL means no key pressed
-    bool      field_F4; // m_bPreInitialised
+    bool      m_isPreInitialised;
 
     union {
         struct {
@@ -165,9 +170,9 @@ public:
     bool  m_bTexturesLoaded;
     eMenuScreen m_nCurrentScreen;
     eMenuScreen m_nPrevScreen; // Used only in SwitchToNewScreen
-    uint8 m_bSelectedSaveGame;
+    uint8 m_SelectedSlot;
     uint8 m_nMissionPackGameId;
-    MPack m_MissionPacks[25];
+    MPack m_MissionPacks[MPACK_COUNT];
     bool  m_bDoVideoModeUpdate;
     RsKeyCodes m_nPressedMouseButton; // used in redefine controls
     int32 m_nJustDownJoyButton; // used in redefine controls; set via CControllerConfigManager::GetJoyButtonJustDown
@@ -184,18 +189,18 @@ public:
     int32 m_nOldMousePosX;
     int32 m_nOldMousePosY;
     int32 m_MouseInBounds;
-    int32 field_1B04;
-    char  m_bJustOpenedControlRedefWindow;
-    char  field_1B09; // controller
+    int32 m_CurrentMouseOption;
+    bool  m_bJustOpenedControlRedefWindow;
+    bool  m_EditingControlOptions;
     bool  m_DeleteAllBoundControls;
     bool  m_DeleteAllNextDefine;
-    int32 field_1B0C;
+    int32 m_OptionToChange;
     char  field_1B10;
     char  field_1B11;
     char  field_1B12;
     char  field_1B13;
-    char  field_1B14;
-    char  field_1B15;
+    bool  m_CanBeDefined;
+    bool  m_JustExitedRedefine;
     char  field_1B16;
     char  field_1B17;
     eHelperText m_nHelperText;
@@ -212,9 +217,9 @@ public:
     int16  field_1B34; // CPad::DisablePlayerControls
     int16  field_1B36;
     int32  field_1B38;
-    char   field_1B3C;
-    char   field_1B3D;
-    char   field_1B3E; // mpack related
+    bool   m_CurrentlyLoading;
+    bool   m_CurrentlyDeleting;
+    bool   m_CurrentlySaving; // mpack related
     char   field_1B3F;
     uint32 m_nUserTrackScanningTimeMs;
     char   field_1B44;
@@ -231,19 +236,19 @@ public:
     };
 
     int8  m_nBackgroundSprite;
-    char  field_1B51;
+    bool  m_isTextBlinking;
     int16 field_1B52;
-    int32 field_1B54;
+    int32 m_lastBlinkTime;
     uint32 m_nTimeHelperTextUpdated;
-    char  field_1B5C;
+    bool  ColourSwitch;
     char  field_1B5D;
     int16 field_1B5E;
-    int32 field_1B60;
+    int32 LastFlash;
     int32 field_1B64;
     int32 m_nTimeSlideLeftMove;
     int32 m_nTimeSlideRightMove;
     int32 field_1B70;
-    int32 field_1B74;
+    int32 field_1B74; // ???
 
     static int32& nLastMenuPage;
 
@@ -281,12 +286,12 @@ public:
     void DrawFrontEnd();
     void DrawBuildInfo();
     void DrawBackground();
-    void DrawStandardMenus(uint8);
+    void DrawStandardMenus(bool);
     void DrawWindow(const CRect& coords, const char* key, uint8 color, CRGBA backColor, bool unused, bool background);
     void DrawWindowedText(float x, float y, float wrap, const char* title, const char* message, eFontAlignment alignment);
     void DrawQuitGameScreen();
     void DrawControllerScreenExtraText(int32);
-    void DrawControllerBound(uint16, bool);
+    void DrawControllerBound(uint16 verticalOffset, bool isOppositeScreen);
     void DrawControllerSetupScreen();
 #ifdef USE_GALLERY
     void DrawGallery();
@@ -300,15 +305,15 @@ public:
     void SaveStatsToFile();
     void SaveLoadFileError_SetUpErrorScreen();
 
-    void CheckSliderMovement(int8 value);
+    void CheckSliderMovement(int32 value);
     [[nodiscard]] bool CheckFrontEndUpInput() const;
     [[nodiscard]] bool CheckFrontEndDownInput() const;
     [[nodiscard]] bool CheckFrontEndLeftInput() const;
     [[nodiscard]] bool CheckFrontEndRightInput() const;
     void CheckForMenuClosing();
-    [[nodiscard]] bool CheckHover(int32 left, int32 right, int32 top, int32 bottom) const;
+    [[nodiscard]] bool CheckHover(float left, float right, float top, float bottom) const;
     bool CheckMissionPackValidMenu();
-    bool CheckCodesForControls(RsInputDeviceType type);
+    void CheckCodesForControls(eControllerType type);
 
     int32 DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing);
 
@@ -338,7 +343,7 @@ public:
     void Process();
     void ProcessStreaming(bool streamAll);
     void ProcessFileActions();
-    void ProcessUserInput(bool downPressed, bool upPressed, bool acceptPressed, bool cancelPressed, int8 pressedLR);
+    void ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMenuOption, bool GoBackOneMenu, int8 LeftRight);
     void ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool acceptPressed);
     bool ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed);
     void ProcessMissionPackNewGame();

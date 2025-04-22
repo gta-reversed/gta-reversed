@@ -504,7 +504,7 @@ bool CFileLoader::LoadCollisionFile(uint8* buff, uint32 buffSize, uint8 colId) {
 
         auto mi = IsModelDFF(h.modelId) ? CModelInfo::GetModelInfo(h.modelId) : nullptr;
         if (!mi || mi->m_nKey != CKeyGen::GetUppercaseKey(h.modelName)) {
-            auto colDef = CColStore::ms_pColPool->GetAt(colId);
+            auto colDef = CColStore::GetInSlot(colId);
             mi = CModelInfo::GetModelInfo(h.modelName, colDef->m_nModelIdStart, colDef->m_nModelIdEnd);
         }
 
@@ -968,8 +968,8 @@ void CFileLoader::Load2dEffect(const char* line) {
 
     auto& effect = CModelInfo::Get2dEffectStore()->AddItem();
     CModelInfo::GetModelInfo(modelId)->Add2dEffect(&effect);
-    effect.m_pos = pos;
-    effect.m_type = *reinterpret_cast<e2dEffectType*>(type);
+    effect.m_Pos = pos;
+    effect.m_Type = *reinterpret_cast<e2dEffectType*>(type);
 
     switch (type) {
     case EFFECT_LIGHT:
@@ -1066,7 +1066,7 @@ CEntity* CFileLoader::LoadObjectInstance(CFileObjectInstance* objInstance, const
         {
             if (cm->m_nColSlot) 
             {
-                CColStore::ms_pColPool->GetAt(cm->m_nColSlot)->m_Area.Restrict(newEntity->GetBoundRect());
+                CColStore::GetInSlot(cm->m_nColSlot)->m_Area.Restrict(newEntity->GetBoundRect());
             }
         }
         else
@@ -1208,7 +1208,7 @@ void CFileLoader::LoadEntryExit(const char* line) {
         numOfPeds,
         name
     );
-    auto enex = CEntryExitManager::mp_poolEntryExits->GetAt(enexPoolIdx);
+    auto enex = CEntryExitManager::GetInSlot(enexPoolIdx);
     assert(enex);
 
     enum Flags {
@@ -1414,16 +1414,14 @@ void CFileLoader::LoadOcclusionVolume(const char* line, const char* filename) {
     float fRotX = 0.0F, fRotY = 0.0F;
     uint32 nFlags = 0;
     float fCenterX, fCenterY, fBottomZ, fWidth, fLength, fHeight, fRotZ;
-
     VERIFY(sscanf_s(line, "%f %f %f %f %f %f %f %f %f %d ", &fCenterX, &fCenterY, &fBottomZ, &fWidth, &fLength, &fHeight, &fRotX, &fRotY, &fRotZ, &nFlags) == 10);
-    auto fCenterZ = fHeight * 0.5F + fBottomZ;
-    auto strLen = strlen(filename);
-
-    bool bIsInterior = false;
-    if (filename[strLen - 7] == 'i' && filename[strLen - 6] == 'n' && filename[strLen - 5] == 't') // todo:
-        bIsInterior = true;
-
-    COcclusion::AddOne(fCenterX, fCenterY, fCenterZ, fWidth, fLength, fHeight, fRotX, fRotY, fRotZ, nFlags, bIsInterior);
+    COcclusion::AddOne(
+        fCenterX, fCenterY, fHeight * 0.5F + fBottomZ,
+        fWidth, fLength, fHeight,
+        fRotX, fRotY, fRotZ,
+        nFlags,
+        std::string_view{filename}.ends_with("int.ipl")
+    );
 }
 
 // 0x5B41C0

@@ -61,12 +61,12 @@ void CCustomCarEnvMapPipeline::InjectHooks() {
 bool CCustomCarEnvMapPipeline::RegisterPlugin() {
     ms_envMapPluginOffset = RpMaterialRegisterPlugin(4, rwID_ENVMAPPLUGIN, pluginEnvMatConstructorCB, pluginEnvMatDestructorCB, pluginEnvMatCopyConstructorCB);
     if (ms_envMapPluginOffset < 0) {
-        DEV_LOG("Failed to register Env Map Plugin");
+        NOTSA_LOG_DEBUG("Failed to register Env Map Plugin");
         return false;
     }
     if (RpMaterialRegisterPluginStream(rwID_ENVMAPPLUGIN, pluginEnvMatStreamReadCB, pluginEnvMatStreamWriteCB, pluginEnvMatStreamGetSizeCB) < 0) {
         ms_envMapPluginOffset = -1;
-        DEV_LOG("Failed to register Env Map Plugin");
+        NOTSA_LOG_DEBUG("Failed to register Env Map Plugin");
         return false;
     }
 
@@ -74,18 +74,18 @@ bool CCustomCarEnvMapPipeline::RegisterPlugin() {
 
     ms_envMapAtmPluginOffset = RpAtomicRegisterPlugin(4, rwID_ENVMAPATMPLUGIN, pluginEnvAtmConstructorCB, pluginEnvAtmDestructorCB, pluginEnvAtmCopyConstructorCB);
     if (ms_envMapAtmPluginOffset < 0) {
-        DEV_LOG("Failed to register Env Map Atm Plugin");
+        NOTSA_LOG_DEBUG("Failed to register Env Map Atm Plugin");
         return false;
     }
 
     ms_specularMapPluginOffset = RpMaterialRegisterPlugin(4, rwID_SPECMAPATMPLUGIN, pluginSpecMatConstructorCB, pluginSpecMatDestructorCB, pluginSpecMatCopyConstructorCB);
     if (ms_specularMapPluginOffset < 0) {
-        DEV_LOG("Failed to register Specular Map Plugin");
+        NOTSA_LOG_DEBUG("Failed to register Specular Map Plugin");
         return false;
     }
     if (RpMaterialRegisterPluginStream(rwID_SPECMAPATMPLUGIN, pluginSpecMatStreamReadCB, pluginSpecMatStreamWriteCB, pluginSpecMatStreamGetSizeCB) < 0) {
         ms_specularMapPluginOffset = -1;
-        DEV_LOG("Failed to register Specular Map Plugin");
+        NOTSA_LOG_DEBUG("Failed to register Specular Map Plugin");
         return false;
     }
 

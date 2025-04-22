@@ -99,7 +99,7 @@ public:
             uint32 bAddMovingCollisionSpeed : 1;
             uint32 bTouchingWater : 1;
             uint32 bCanBeCollidedWith : 1;
-            uint32 bDestroyed : 1;
+            uint32 bRenderScorched : 1;
             uint32 b31 : 1;
             uint32 b32 : 1;
         } physicalFlags;
@@ -119,7 +119,7 @@ public:
     float               m_fBuoyancyConstant;
     CVector             m_vecCentreOfMass;
     CEntryInfoList      m_pCollisionList;
-    CPtrNodeDoubleLink* m_pMovingList;
+    CPtrNodeDoubleLink<CPhysical*>* m_pMovingList;
     uint8               m_nFakePhysics;
     uint8               m_nNumEntitiesCollided;
     eSurfaceType        m_nContactSurface;
@@ -237,6 +237,7 @@ public:
     void ResetFrictionMoveSpeed() { m_vecFrictionMoveSpeed = CVector(); }
     void ResetFrictionTurnSpeed() { m_vecFrictionTurnSpeed = CVector(); }
 
+    float GetMass() const { return m_fMass; }
     [[nodiscard]] float GetMass(const CVector& pos, const CVector& dir) const {
         return 1.0f / (CrossProduct(pos, dir).SquaredMagnitude() / m_fTurnMass + 1.0f / m_fMass);
     }
