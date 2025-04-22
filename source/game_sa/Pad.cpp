@@ -336,13 +336,14 @@ void CPad::ProcessPad(ePadID padID) {
     #ifndef NOTSA_USE_SDL3
     constexpr int deviceAxisMin = -2000;
     constexpr int deviceAxisMax = 2000;
-    constexpr float deviceAxisOffset = float(float(deviceAxisMax - deviceAxisMin)  / 2.0f);
-
-    LPDIRECTINPUTDEVICE8* pDiDevice = nullptr;
-    DIJOYSTATE2 joyState;
+    constexpr float deviceAxisOffset = float(float(deviceAxisMax - deviceAxisMin) / 2.0f);
     RwV2d leftStickPos{};
     RwV2d rightStickPos{};
+    pad->UpdateJoystick(pad->PCTempJoyState, padID);
 
+// #ifndef NOTSA_USE_SDL3
+    LPDIRECTINPUTDEVICE8* pDiDevice = nullptr;
+    DIJOYSTATE2 joyState;
     if (padID == PAD1) {
         pDiDevice = &PSGLOBAL(diDevice1);
     } else if (padID == PAD2) {
@@ -376,9 +377,10 @@ void CPad::ProcessPad(ePadID padID) {
 
     // Get the device state
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
+// #endif
 
     // Update NewJoyState with the current joyState and get the previous value
-    DIJOYSTATE2 previousNewJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
+    auto previousNewJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
 
     if (ControlsManager.m_bJoyJustInitialised) {
         ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState;

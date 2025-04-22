@@ -969,8 +969,8 @@ void CControllerConfigManager::ClearSimButtonPressCheckers() {
 // unused
 // 0x52D1C0
 eJoyButtons CControllerConfigManager::GetJoyButtonJustUp() {
-    // Check each button from 0 to JOYBUTTON_SIXTEEN-1
-    for (int32 buttonIndex = eJoyButtons::NO_JOYBUTTONS; buttonIndex < eJoyButtons::JOYBUTTON_SIXTEEN; buttonIndex++) {
+    // Check each button from 0 to JOYBUTTON_SIXTEEN
+    for (auto buttonIndex = 0; buttonIndex < int32(notsa::IsFixBugs() ? JOYBUTTON_COUNT : JOYBUTTON_MAX); buttonIndex++) {
         // Check if button is released in current state but was pressed in previous state
         const bool isCurrentlyPressed = (m_NewJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
         const bool wasPreviouslyPressed = (m_OldJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
@@ -986,8 +986,8 @@ eJoyButtons CControllerConfigManager::GetJoyButtonJustUp() {
 
 // 0x52D1E0
 eJoyButtons CControllerConfigManager::GetJoyButtonJustDown() {
-    // Check each button from 0 to JOYBUTTON_SIXTEEN-1
-    for (int32 buttonIndex = eJoyButtons::NO_JOYBUTTONS; buttonIndex < eJoyButtons::JOYBUTTON_SIXTEEN; buttonIndex++) {
+    // Check each button from 0 to JOYBUTTON_SIXTEEN
+    for (auto buttonIndex = 0; buttonIndex < int32(notsa::IsFixBugs() ? JOYBUTTON_COUNT : JOYBUTTON_MAX); buttonIndex++) {
         // Check if button is pressed in current state but wasn't pressed in previous state
         const bool isCurrentlyPressed = (m_NewJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
         const bool wasPreviouslyPressed = (m_OldJoyState.rgbButtons[buttonIndex] & 0x80) != 0;
