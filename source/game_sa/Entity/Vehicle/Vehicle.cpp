@@ -4300,10 +4300,10 @@ void CVehicle::PossiblyDropFreeFallBombForPlayer(eOrdnanceType type, bool arg1) 
 #ifndef FRAMERATE_VIGILANTE
 // Legacy implementation ('Ghidra').
 void CVehicle::ProcessSirenAndHorn(bool canHorn) {
-    CPad *currentPad = (this->m_pDriver->IsPlayer()) ? CPad::GetPad(0) : CPad::GetPad(1);
+    CPad *currentPad = (m_pDriver->IsPlayer()) ? CPad::GetPad(0) : CPad::GetPad(1);
     auto& currHorn = currentPad->iCurrHornHistory;
     auto& hornHistory = currentPad->bHornHistory;
-    if (this->UsesSiren()) {
+    if (UsesSiren()) {
         m_nHornCounter = 0;
         if (hornHistory[currHorn]) {
             if (hornHistory[(currHorn + 4) % 5] && hornHistory[(currHorn + 3) % 5]) {
@@ -4324,7 +4324,7 @@ void CVehicle::ProcessSirenAndHorn(bool canHorn) {
     static bool hornHasPressed = false;
     static bool hornJustUp = false;
 
-    CPad *currentPad = (this->m_pDriver->IsPlayer()) ? CPad::GetPad(0) : CPad::GetPad(1);
+    CPad *currentPad = (m_pDriver->IsPlayer()) ? CPad::GetPad(0) : CPad::GetPad(1);
 
     // Store horn state
     if (currentPad->HornJustDown()) {
@@ -4337,24 +4337,24 @@ void CVehicle::ProcessSirenAndHorn(bool canHorn) {
         hornJustUp = false;
     }
 
-    if (this->UsesSiren()) {
+    if (UsesSiren()) {
         // Original siren logic with modifications
         if (currentPad->GetHorn() && CTimer::m_snTimeInMilliseconds - hornPressLastTime >= 150) {
             // Horn held - do horn action (original horn sound)
-            this->m_nHornCounter = 1;
+            m_nHornCounter = 1;
         } else if (hornJustUp && CTimer::m_snTimeInMilliseconds - hornPressLastTime < 150) {
             // Short press - toggle siren
             hornJustUp = false;
             hornHasPressed = false;
-            this->vehicleFlags.bSirenOrAlarm = this->vehicleFlags.bSirenOrAlarm ? false : true;
-            this->m_nHornCounter = 0;
+            vehicleFlags.bSirenOrAlarm = vehicleFlags.bSirenOrAlarm ? false : true;
+            m_nHornCounter = 0;
         } else {
             // No action - reset counter
-            this->m_nHornCounter = 0;
+            m_nHornCounter = 0;
         }
     } else if (canHorn) {
         if (CanUpdateHornCounter()) {
-            this->m_nHornCounter = currentPad->GetHorn();
+            m_nHornCounter = currentPad->GetHorn();
         }
     }
 }
