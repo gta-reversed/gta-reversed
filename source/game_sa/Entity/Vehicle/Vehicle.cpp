@@ -4297,35 +4297,34 @@ void CVehicle::PossiblyDropFreeFallBombForPlayer(eOrdnanceType type, bool arg1) 
 }
 
 // 0x6E0950
-// #ifdef USE_DEFAULT_FUNCTIONS
-// Legacy implementation (Part of the code is lost 'only viewable with Ghidra').
-// 0x6E0950
-// void CVehicle::ProcessSirenAndHorn(bool bPlaySound)
-// {
-//     CPad* currentPad = (this->m_pDriver->IsPlayer()) ? CPad::GetPad(0) : CPad::GetPad(1);
-//     if (this->UsesSiren()) {
-//         m_nHornCounter = 0;
-//         if (currentPad->bHornHistory[currentPad->iCurrHornHistory]) {
-//             if (currentPad->bHornHistory[(currentPad->iCurrHornHistory+4) % 5] && currentPad->bHornHistory[(currentPad->iCurrHornHistory+3) % 5]) {
-//                 m_nHornCounter = 1;
-//             }
-//         } else if (currentPad->bHornHistory[(currentPad->iCurrHornHistory+4) % 5] && !currentPad->bHornHistory[(currentPad->iCurrHornHistory+1) % 5]) {
-//             vehicleFlags.bSirenOrAlarm = !vehicleFlags.bSirenOrAlarm;
-//         }
-//     } else if (bPlaySound && CanUpdateHornCounter()) {
-//         m_nHornCounter = currentPad->GetHorn() ? 1 : 0;
-//     }
-// }
-// #else
+#ifndef FRAMERATE_VIGILANTE
+// Legacy implementation ('Ghidra').
+void CVehicle::ProcessSirenAndHorn(bool canHorn) {
+    CPad *currentPad = (this->m_pDriver->IsPlayer()) ? CPad::GetPad(0) : CPad::GetPad(1);
+    auto& currHorn = currentPad->iCurrHornHistory;
+    auto& hornHistory = currentPad->bHornHistory;
+    if (this->UsesSiren()) {
+        m_nHornCounter = 0;
+        if (hornHistory[currHorn]) {
+            if (hornHistory[(currHorn + 4) % 5] && hornHistory[(currHorn + 3) % 5]) {
+                m_nHornCounter = 1;
+            }
+        } else if (hornHistory[(currHorn + 4) % 5] && !hornHistory[(currHorn + 1) % 5]) {
+            vehicleFlags.bSirenOrAlarm = vehicleFlags.bSirenOrAlarm ? false : true;
+        }
+    } else if (canHorn && CanUpdateHornCounter()) {
+        m_nHornCounter = currentPad->GetHorn() ? 1 : 0;
+    }
+}
+#else
 // NOTSA: Based on JuniorDjjr implementation. The vanilla function is broken.
 // Based on JuniorDjjr implementation
-void CVehicle::ProcessSirenAndHorn(bool canHorn)
-{
-    static unsigned int hornPressLastTime = 0;
+void CVehicle::ProcessSirenAndHorn(bool canHorn) {
+    static uint32 hornPressLastTime = 0u;
     static bool hornHasPressed = false;
     static bool hornJustUp = false;
 
-    CPad* currentPad = this->m_pDriver == CWorld::Players[0].m_pPed ? CPad::GetPad(0) : CPad::GetPad(1);
+    CPad *currentPad = (this->m_pDriver->IsPlayer()) ? CPad::GetPad(0) : CPad::GetPad(1);
 
     // Store horn state
     if (currentPad->HornJustDown()) {
@@ -4338,33 +4337,28 @@ void CVehicle::ProcessSirenAndHorn(bool canHorn)
         hornJustUp = false;
     }
 
-    if (this->UsesSiren())
-    {
+    if (this->UsesSiren()) {
         // Original siren logic with modifications
         if (currentPad->GetHorn() && CTimer::m_snTimeInMilliseconds - hornPressLastTime >= 150) {
             // Horn held - do horn action (original horn sound)
             this->m_nHornCounter = 1;
-        }
-        else if (hornJustUp && CTimer::m_snTimeInMilliseconds - hornPressLastTime < 150) {
+        } else if (hornJustUp && CTimer::m_snTimeInMilliseconds - hornPressLastTime < 150) {
             // Short press - toggle siren
             hornJustUp = false;
             hornHasPressed = false;
             this->vehicleFlags.bSirenOrAlarm = this->vehicleFlags.bSirenOrAlarm ? false : true;
             this->m_nHornCounter = 0;
-        }
-        else {
+        } else {
             // No action - reset counter
             this->m_nHornCounter = 0;
         }
-    }
-    else if (canHorn)
-    {
+    } else if (canHorn) {
         if (CanUpdateHornCounter()) {
             this->m_nHornCounter = currentPad->GetHorn();
         }
     }
 }
-// #endif
+#endif
 
 // 0x6E0A50
 bool CVehicle::DoHeadLightEffect(eVehicleDummy dummyId, CMatrix& vehicleMatrix, uint8 lightId, uint8 lightState) {
