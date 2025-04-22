@@ -1564,6 +1564,7 @@ void CAEVehicleAudioEntity::PlayBicycleSound(int16 engineState, int16 bankSlotId
 // 0x4F99D0
 void CAEVehicleAudioEntity::PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenOrAlarm, bool bPlayHorn, cVehicleParams& params) {
     return plugin::CallMethod<0x4F99D0, CAEVehicleAudioEntity*, bool, bool, bool, cVehicleParams&>(this, bPlayHornTone, bPlaySirenOrAlarm, bPlayHorn, params);
+
     const auto nHornToneSoundInBank = m_Settings.m_nHornToneSoundInBank;
     const auto DoTryStopHornSound = [&] {
         if (m_HornTonSound) {
