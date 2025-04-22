@@ -240,6 +240,11 @@ void CPedGroupMembership::SetLeader(CPed* ped) {
     GivePedRandomObjectToHold(ped);
 }
 
+// notsa
+auto CPedGroupMembership::GetMemberClosestTo(CPed* ped, bool includeLeader) -> FindClosestMemberResult {
+    return GetMemberClosestToIf(ped, [](CPed&) { return true; }, includeLeader);
+}
+
 // NOTSA
 auto CPedGroupMembership::FindClosestFollowerToLeader() -> FindClosestMemberResult {
     if (const auto leader = GetLeader()) {

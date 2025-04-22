@@ -175,6 +175,22 @@
 #include "PPTriPlantBuffer.h"
 #include "PlantSurfPropMgr.h"
 
+// Task ped group default allocators
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorFollowAnyMeans.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorFollowLimited.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorStandStill.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorChat.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorSitInLeaderCar.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocatorRandom.h>
+#include <Tasks/Allocators/PedGroup/PedGroupDefaultTaskAllocators.h>
+
+#include <Tasks/Allocators/TaskAllocatorKillThreatsBasic.h>
+#include <Tasks/Allocators/TaskAllocatorKillThreatsDriveby.h>
+#include <Tasks/Allocators/TaskAllocatorKillThreatsBasicRandomGroup.h>
+#include <Tasks/Allocators/TaskAllocatorKillOnFoot.h>
+#include <Tasks/Allocators/TaskAllocatorAttack.h>
+#include <Tasks/Allocators/TaskAllocatorPlayerCommandAttack.h>
+
 // Tasks
 #include "TaskSimpleKillPedWithCar.h"
 #include "TaskComplexSitDownThenIdleThenStandUp.h"
@@ -225,6 +241,7 @@
 #include "Interior/TaskInteriorSitAtDesk.h"
 #include "TaskComplexFollowLeaderAnyMeans.h"
 #include "TaskSimpleFightingControl.h"
+#include "TaskSimpleFinishBrain.h"
 #include "TaskComplexGetUpAndStandStill.h"
 #include "TaskComplexGoPickUpEntity.h"
 #include "TaskSimpleDie.h"
@@ -886,6 +903,28 @@ void InjectHooksMain() {
     Plant();
 
     const auto Tasks = []() {
+        const auto Allocators = [] {
+            const auto PedGroup = [] {
+                CPedGroupDefaultTaskAllocatorFollowAnyMeans::InjectHooks();
+                CPedGroupDefaultTaskAllocatorFollowLimited::InjectHooks();
+                CPedGroupDefaultTaskAllocatorStandStill::InjectHooks();
+                CPedGroupDefaultTaskAllocatorChat::InjectHooks();
+                CPedGroupDefaultTaskAllocatorSitInLeaderCar::InjectHooks();
+                CPedGroupDefaultTaskAllocatorRandom::InjectHooks();
+                CPedGroupDefaultTaskAllocators::InjectHooks();
+            };
+            PedGroup();
+
+            CTaskAllocator::InjectHooks();
+            CTaskAllocatorKillThreatsBasic::InjectHooks();
+            CTaskAllocatorKillThreatsDriveby::InjectHooks();
+            CTaskAllocatorKillThreatsBasicRandomGroup::InjectHooks();
+            CTaskAllocatorKillOnFoot::InjectHooks();
+            CTaskAllocatorAttack::InjectHooks();
+            CTaskAllocatorPlayerCommandAttack::InjectHooks();
+        };
+        Allocators();
+
         const auto Interior = [] {
             CTaskInteriorBeInHouse::InjectHooks();
             CTaskInteriorBeInOffice::InjectHooks();
@@ -1061,7 +1100,7 @@ void InjectHooksMain() {
         // CTaskSimpleEvasiveDive::InjectHooks();
         // CTaskSimpleEvasiveStep::InjectHooks();
         CTaskSimpleFightingControl::InjectHooks();
-        // CTaskSimpleFinishBrain::InjectHooks();
+        CTaskSimpleFinishBrain::InjectHooks();
         CTaskSimpleGunControl::InjectHooks();
         // CTaskSimpleHailTaxi::InjectHooks();
         // CTaskSimpleHailTaxiAndPause::InjectHooks();

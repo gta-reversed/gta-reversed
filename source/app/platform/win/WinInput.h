@@ -10,7 +10,7 @@ void diMouseInit(bool exclusive);
 void diPadInit();
 
 BOOL CALLBACK EnumDevicesCallback(LPCDIDEVICEINSTANCEA pInst, LPVOID);
-CMouseControllerState GetMouseState();
+CMouseControllerState GetMouseSetUp();
 
 void InjectHooks();
 bool Initialise();

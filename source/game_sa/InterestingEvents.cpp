@@ -40,7 +40,7 @@ CInterestingEvents::CInterestingEvents() {
     };
 
     SetOptions(INTERESTING_EVENT_0,     5,  2000);
-    SetOptions(PEDS_CHATTING,     1,  5000);
+    SetOptions(PEDS_CHATTING,           1,  5000);
     SetOptions(INTERESTING_EVENT_2,     1,  5000);
     SetOptions(INTERESTING_EVENT_3,     1,  5000);
     SetOptions(INTERESTING_EVENT_4,     2,  3000);
@@ -62,10 +62,10 @@ CInterestingEvents::CInterestingEvents() {
     SetOptions(INTERESTING_EVENT_20,    7,  6000);
     SetOptions(INTERESTING_EVENT_21,    8,  8000);
     SetOptions(INTERESTING_EVENT_22,    9,  5000);
-    SetOptions(INTERESTING_EVENT_23,    9,  6000);
-    SetOptions(INTERESTING_EVENT_24,    9,  6000);
+    SetOptions(GANG_ATTACKING_PED,      9,  6000);
+    SetOptions(GANG_FIGHT,              9,  6000);
     SetOptions(INTERESTING_EVENT_25,    9,  6000);
-    SetOptions(ZELDICK_OCCUPATION,      9, 8000);
+    SetOptions(ZELDICK_OCCUPATION,      9,  8000);
     SetOptions(EVENT_ATTRACTOR,         10, 4000);
     SetOptions(INTERESTING_EVENT_28,    10, 4000);
 }

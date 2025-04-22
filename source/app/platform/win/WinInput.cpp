@@ -101,11 +101,11 @@ HRESULT diPadSetRanges(LPDIRECTINPUTDEVICE8 dev, DWORD padNum) {
         return res;
     };
 
-    if (SetProperyAndSetFlag(DIJOFS_Z, PadConfigs[padNum].zAxisPresent) == PROP_READ_ONLY) {
+    if (SetProperyAndSetFlag(DIJOFS_Z, AllValidWinJoys.JoyStickNum[padNum].bZAxisPresent) == PROP_READ_ONLY) {
         return S_FALSE;
     }
 
-    if (SetProperyAndSetFlag(DIJOFS_RZ, PadConfigs[padNum].rzAxisPresent) == PROP_READ_ONLY) {
+    if (SetProperyAndSetFlag(DIJOFS_RZ, AllValidWinJoys.JoyStickNum[padNum].bZRotPresent) == PROP_READ_ONLY) {
         return S_FALSE;
     }
 
@@ -123,10 +123,11 @@ void diPadSetPIDVID(LPDIRECTINPUTDEVICE8 dev, DWORD padNum) {
         }
     };
     WIN_FCHECK(dev->GetProperty(DIPROP_VIDPID, &vidpid.diph));
-    auto& cfg = PadConfigs[padNum];
-    cfg.vendorId = LOWORD(vidpid.dwData);
-    cfg.productId = HIWORD(vidpid.dwData);
-    cfg.present = true;
+    auto& cfg = AllValidWinJoys.JoyStickNum[padNum];
+    cfg.wDeviceID = vidpid.dwData;
+    cfg.wVendorID = LOWORD(vidpid.dwData);
+    cfg.wProductID = HIWORD(vidpid.dwData);
+    cfg.bJoyAttachedToPort = true;
 }
 
 // 0x7469A0
@@ -138,24 +139,193 @@ void diMouseInit(bool exclusive) {
 }
 
 // 0x7485C0
-void diPadInit() {
-    rng::fill(PadConfigs, CPadConfig{});
+static constexpr auto DEVICE_AXIS_MIN = -2000;
+static constexpr auto DEVICE_AXIS_MAX = 2000;
 
-    // Initialize devices (+ Set PSGLOBAL(diDeviceX) vars)
-    WIN_FCHECK(PSGLOBAL(diInterface)->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumDevicesCallback, NULL, DIEDFL_ALLDEVICES));
-    
-    // Pirulax: Original code queried the capabilities [for pad 0] too, but did nothing with it, so I'll skip that.
+// Context structure for device enumeration callback
+struct EnumDevicesContext {
+    int count = 0;
+};
 
-    const auto InitializePad = [](LPDIRECTINPUTDEVICE8 dev, DWORD padNum) {
-        if (dev == NULL) {
-            return;
+// Based on _InputEnumDevicesCallback, using context instead of static count
+BOOL CALLBACK EnumDevicesCallback_Old( const DIDEVICEINSTANCE* pdidInstance, VOID* pContextData )
+{
+    HRESULT hr;
+    EnumDevicesContext* ctx = static_cast<EnumDevicesContext*>(pContextData);
+
+    LPDIRECTINPUTDEVICE8 *pJoystick = nullptr;
+
+    if ( ctx->count == 0 )
+        pJoystick = &PSGLOBAL(diDevice1);
+    else if ( ctx->count == 1 )
+        pJoystick = &PSGLOBAL(diDevice2);
+    else {
+        // Already have 2 devices, stop enumerating
+        return DIENUM_STOP;
+    }
+
+    // Obtain an interface to the enumerated joystick.
+    hr = PSGLOBAL(diInterface)->CreateDevice( pdidInstance->guidInstance, pJoystick, nullptr );
+
+    // If it failed, then we can't use this joystick. (Maybe the user unplugged
+    // it while we were in the middle of enumerating it.)
+    if( FAILED(hr) )
+        return DIENUM_CONTINUE;
+
+    // Set the data format to use DirectInput's standard joystick control structure.
+    hr = (*pJoystick)->SetDataFormat( &c_dfDIJoystick2 );
+    if( FAILED(hr) )
+    {
+        (*pJoystick)->Release();
+        *pJoystick = nullptr; // Ensure it's null if setup fails
+        return DIENUM_CONTINUE;
+    }
+
+    // Set the cooperative level to share access with other applications.
+    hr = (*pJoystick)->SetCooperativeLevel( PSGLOBAL(window), DISCL_NONEXCLUSIVE|DISCL_FOREGROUND );
+    if( FAILED(hr) )
+    {
+        (*pJoystick)->Release();
+        *pJoystick = nullptr; // Ensure it's null if setup fails
+        return DIENUM_CONTINUE;
+    }
+
+    ctx->count++;
+
+    // Stop enumeration if we have found two devices.
+    if ( ctx->count >= 2 ) // todo: Use JOYPAD_COUNT or similar constant
+        return DIENUM_STOP;
+
+    return DIENUM_CONTINUE;
+}
+
+
+// Based on _InputAddJoyStick - Sets axis ranges and detects axis presence
+void diPadAddJoyStick(LPDIRECTINPUTDEVICE8 lpDevice, INT padNum)
+{
+    if (!lpDevice) {
+        return;
+    }
+
+    DIDEVICEOBJECTINSTANCE objInst;
+    objInst.dwSize = sizeof( DIDEVICEOBJECTINSTANCE );
+
+    DIPROPRANGE range;
+    range.diph.dwSize = sizeof(DIPROPRANGE);
+    range.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+    range.lMin = DEVICE_AXIS_MIN;
+    range.lMax = DEVICE_AXIS_MAX;
+    range.diph.dwHow = DIPH_BYOFFSET;
+
+    // Set X range
+    range.diph.dwObj = DIJOFS_X;
+    if ( SUCCEEDED( lpDevice->GetObjectInfo( &objInst,	DIJOFS_X, DIPH_BYOFFSET ) ) ) {
+        // Attempt to set range, ignore failure (might be read-only or unsupported)
+        lpDevice->SetProperty( DIPROP_RANGE, &range.diph );
+    }
+
+    // Set Y range
+    range.diph.dwObj = DIJOFS_Y;
+    if ( SUCCEEDED( lpDevice->GetObjectInfo( &objInst,	DIJOFS_Y, DIPH_BYOFFSET ) ) ) {
+        lpDevice->SetProperty( DIPROP_RANGE, &range.diph );
+    }
+
+    // Set Z range and check presence
+    range.diph.dwObj = DIJOFS_Z;
+    if ( SUCCEEDED( lpDevice->GetObjectInfo( &objInst,	DIJOFS_Z, DIPH_BYOFFSET ) ) ) {
+        // Only mark as present if setting the range succeeds (implies axis is usable)
+        if( SUCCEEDED( lpDevice->SetProperty( DIPROP_RANGE, &range.diph ) ) ) {
+            AllValidWinJoys.JoyStickNum[padNum].bZAxisPresent = true;
         }
-        WIN_FCHECK(diPadSetRanges(dev, padNum));
-        diPadSetPIDVID(dev, padNum);
-        PadConfigs[padNum].present  = true;
+    }
+
+    // Set RZ (Rotation Z) range and check presence
+    range.diph.dwObj = DIJOFS_RZ;
+    if ( SUCCEEDED( lpDevice->GetObjectInfo( &objInst,	DIJOFS_RZ, DIPH_BYOFFSET ) ) ) {
+        if( SUCCEEDED( lpDevice->SetProperty( DIPROP_RANGE, &range.diph ) ) ) {
+             AllValidWinJoys.JoyStickNum[padNum].bZRotPresent = true;
+        }
+    }
+}
+
+// Based on _InputAddJoys - Enumerates and sets up joysticks
+HRESULT diPadAddJoys()
+{
+    HRESULT hr;
+    EnumDevicesContext context; // Use context for enumeration count
+
+    // Enumerate attached game controllers
+    hr = PSGLOBAL(diInterface)->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumDevicesCallback_Old, &context, DIEDFL_ATTACHEDONLY );
+
+    if( FAILED(hr) ) {
+        spdlog::error("DirectInput EnumDevices failed with HRESULT: {:#x}", hr);
+        return hr;
+    }
+
+    // If no devices were successfully initialized, return S_FALSE
+    if ( PSGLOBAL(diDevice1) == nullptr && PSGLOBAL(diDevice2) == nullptr) {
+        spdlog::info("No joysticks found or initialized.");
+        return S_FALSE;
+    }
+
+    // Configure ranges and detect axes for the initialized devices
+    diPadAddJoyStick(PSGLOBAL(diDevice1), 0);
+    diPadAddJoyStick(PSGLOBAL(diDevice2), 1);
+
+    return S_OK;
+}
+
+
+// Based on _InputInitialiseJoys - Main initialization function for pads
+void diPadInit() {
+    AllValidWinJoys = CJoySticks{}; // Clear existing joystick info
+
+    // Enumerate, create, and perform basic setup for joystick devices
+    if (FAILED(diPadAddJoys())) {
+        // Error already logged in diPadAddJoys if EnumDevices failed.
+        // If S_FALSE, it means no devices were found, which is not necessarily an error.
+        spdlog::info("diPadAddJoys completed (possibly with no devices found).");
+    }
+
+    // Get VID/PID, capabilities, and finalize setup for successfully initialized devices
+    const auto FinalizePadSetup = [](LPDIRECTINPUTDEVICE8 dev, DWORD padNum) {
+        if (dev == nullptr) {
+            return; // Skip if device wasn't initialized
+        }
+
+        DIDEVCAPS devCaps;
+        devCaps.dwSize = sizeof(DIDEVCAPS);
+        if (FAILED(dev->GetCapabilities(&devCaps))) {
+            spdlog::warn("Failed to get capabilities for pad {}", padNum);
+            // Continue without capabilities if needed, or handle error
+        }
+
+        DIPROPDWORD prop;
+        prop.diph.dwSize = sizeof(DIPROPDWORD);
+        prop.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+        prop.diph.dwObj = 0;
+        prop.diph.dwHow = DIPH_DEVICE; // Use DIPH_DEVICE for VIDPID
+
+        if (SUCCEEDED(dev->GetProperty(DIPROP_VIDPID, &prop.diph))) {
+            auto& joyInfo = AllValidWinJoys.JoyStickNum[padNum];
+            joyInfo.wVendorID = LOWORD(prop.dwData);
+            joyInfo.wProductID = HIWORD(prop.dwData);
+            joyInfo.wDeviceID = prop.dwData; // Store the full VIDPID
+            spdlog::info("Pad {} VID: {:#06x}, PID: {:#06x}", padNum, joyInfo.wVendorID, joyInfo.wProductID);
+        } else {
+            spdlog::warn("Failed to get VID/PID for pad {}", padNum);
+        }
+
+        AllValidWinJoys.JoyStickNum[padNum].bJoyAttachedToPort = true; // Mark as initialized/attached
+
+        // Initialize default controls only for the first pad, based on original logic
+        if (padNum == 0) {
+            ControlsManager.InitDefaultControlConfigJoyPad(devCaps.dwButtons);
+            spdlog::info("Initialized default controls for pad 0 with {} buttons.", devCaps.dwButtons);
+        }
     };
-    InitializePad(PSGLOBAL(diDevice1), 0);
-    InitializePad(PSGLOBAL(diDevice2), 1);
+    FinalizePadSetup(PSGLOBAL(diDevice1), 0);
+    FinalizePadSetup(PSGLOBAL(diDevice2), 1);
 }
 
 // 0x747020
@@ -193,41 +363,66 @@ BOOL CALLBACK EnumDevicesCallback(LPCDIDEVICEINSTANCEA inst, LPVOID) {
 }
 
 // 0x53F2D0
-// NOTSA(Grinch_): Directly returning CMouseControllerState
-CMouseControllerState GetMouseState() {
-    DIMOUSESTATE2 mouseState;
+CMouseControllerState GetMouseSetUp() {
     CMouseControllerState state;
 
-    if (PSGLOBAL(diMouse)) {
-        if (SUCCEEDED(PSGLOBAL(diMouse)->GetDeviceState(sizeof(DIMOUSESTATE2), &mouseState))) {
-            state.X = static_cast<float>(mouseState.lX);
-            state.Y = static_cast<float>(mouseState.lY);
-            state.Z = static_cast<float>(mouseState.lZ);
-            state.wheelUp = (mouseState.lZ > 0);
-            state.wheelDown = (mouseState.lZ < 0);
-            state.lmb = mouseState.rgbButtons[0] & 0x80;
-            state.rmb = mouseState.rgbButtons[1] & 0x80;
-            state.mmb = mouseState.rgbButtons[2] & 0x80;
-            state.bmx1 = mouseState.rgbButtons[3] & 0x80;
-            state.bmx2 = mouseState.rgbButtons[4] & 0x80;
-        }
-    } else {
-		diMouseInit(!FrontEndMenuManager.m_bMenuActive && IsVideoModeExclusive());
+    if (!PSGLOBAL(diMouse)) {
+        WinInput::diMouseInit(!FrontEndMenuManager.m_bMenuActive && IsVideoModeExclusive());
     }
 
-	return state;
+    if (!PSGLOBAL(diMouse)) {
+        return state; // No mouse device
+    }
+    
+    DIDEVCAPS devCaps;
+    devCaps.dwSize = sizeof(DIDEVCAPS);
+
+    // Get device capabilities
+    if (SUCCEEDED(PSGLOBAL(diMouse)->GetCapabilities(&devCaps))) {
+        switch (devCaps.dwButtons) {
+        case 8:
+        case 7:
+        case 6:
+        case 5:
+        case 4:
+        case 3:
+            state.isMouseMiddleButtonPressed = true; // Assumes button 3+ implies MMB exists
+            [[fallthrough]];
+        case 2:
+            state.isMouseRightButtonPressed = true; // Assumes button 2+ implies RMB exists
+            [[fallthrough]];
+        case 1:
+            state.isMouseLeftButtonPressed = true; // Assumes button 1+ implies LMB exists
+            [[fallthrough]];
+        default:
+            break;
+        }
+
+        if (devCaps.dwAxes >= 3) {
+            state.isMouseWheelMovedDown = true;
+            state.isMouseWheelMovedUp = true;
+        }
+
+        if (devCaps.dwButtons >= 4) {
+            state.isMouseFirstXPressed = true;
+        }
+        if (devCaps.dwButtons >= 5) {
+            state.isMouseSecondXPressed = true;
+        }
+    }
+    return state;
 }
 
 void InjectHooks() {
     RH_ScopedCategory("Win");
     RH_ScopedNamespaceName("Input");
 
-    //RH_ScopedGlobalInstall(Initialise, 0x7487CF, { .reversed = false }); 
+    RH_ScopedGlobalInstall(Initialise, 0x7487CF); 
     RH_ScopedGlobalInstall(diMouseInit, 0x7469A0, {.locked = true}); // Can't be hooked because it fails with ACCESS DENIED and crashes
-    //RH_ScopedGlobalInstall(InitialiseJoys, 0x7485C0, {.reversed = false});
     RH_ScopedGlobalInstall(EnumDevicesCallback, 0x747020);
     RH_ScopedGlobalInstall(diPadInit, 0x7485C0);
     RH_ScopedGlobalInstall(diPadSetRanges, 0x746D80);
+    RH_ScopedGlobalInstall(GetMouseSetUp, 0x53F2D0);
 }
 
 bool IsKeyPressed(unsigned int keyCode) {

@@ -1015,7 +1015,7 @@ int32 CTaskSimplePlayerOnFoot::PlayerControlZelda(CPlayerPed* player, bool bAvoi
             player->ClearWeaponTarget();
             if (const auto task = player->GetTaskManager().GetActiveTask()) {
                 if (!notsa::isa<CTaskComplexJump>(task)) {
-                    player->GetTaskManager().SetTask(new CTaskComplexJump(COMPLEX_JUMP_TYPE_JUMP), TASK_PRIMARY_PRIMARY, false);
+                    player->GetTaskManager().SetTask(new CTaskComplexJump{}, TASK_PRIMARY_PRIMARY, false);
                 }
             }
         }

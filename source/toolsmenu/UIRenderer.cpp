@@ -236,6 +236,36 @@ void UIRenderer::DebugCode() {
         FindPlayerPed()->Say(CTX_GLOBAL_JACKED_CAR);
     }
 
+    if (pad->IsStandardKeyJustPressed('T')) {
+        auto i = CPedGroups::AddGroup();
+        CPedGroups::RemoveGroup(i);
+        CPedGroupPlacer{}.PlaceGroup(
+            PED_TYPE_GANG2,
+            7,
+            player->GetPosition() + player->GetForward() * 6.f,
+            ePedGroupDefaultTaskAllocatorType::RANDOM
+        );
+        //auto* grp = &CPedGroups::GetGroup(i);
+        //grp->GetMembership().SetLeader(player);
+
+        //auto* const grp = &CPedGroups::GetGroup(CPedGroups::AddGroup());
+        //grp->GetMembership().SetLeader(player);
+        //
+        ////CStreaming::RequestModel(MODEL_WMYDRUG, STREAMING_PRIORITY_REQUEST);
+        ////CStreaming::LoadAllRequestedModels(true);
+        //
+        //for (int32 i = 0; i < 7; i++) {
+        //    auto* f = CPopulation::AddPed(ePedType::PED_TYPE_CRIMINAL, MODEL_MALE01, player->GetPosition() + player->GetForward() * (float)(i), false);
+        //    f->SetCreatedBy(PED_GAME);
+        //    f->SetModelIndex(MODEL_MALE01);
+        //    f->SetHeading(player->GetHeading());
+        //    CWorld::Add(f);
+        //    f->SetPosn(player->GetPosition() + player->GetForward() * (float)(i));
+        //    f->PositionAnyPedOutOfCollision();
+        //    grp->GetMembership().AddFollower(f);
+        //}
+    }
+
     //if (pad->IsStandardKeyJustPressed('T')) {
     //    const auto ped = new CPed(ePedType::PED_TYPE_GANG1);
     //    ped->SetCreatedBy(PED_GAME);
