@@ -188,7 +188,7 @@ float CAESound::GetRelativePlaybackFrequencyWithDoppler() const {
 
 // 0x4EF440
 float CAESound::GetSlowMoFrequencyScalingFactor() const {
-    return IsPausable() || !CTimer::GetIsSlowMotionActive() || CCamera::GetActiveCamera().m_nMode == eCamMode::MODE_CAMERA
+    return IsUnpausable() || !CTimer::GetIsSlowMotionActive() || CCamera::GetActiveCamera().m_nMode == eCamMode::MODE_CAMERA
         ? 1.f
         : fSlowMoFrequencyScalingFactor;
 }

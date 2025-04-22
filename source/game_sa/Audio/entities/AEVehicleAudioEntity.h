@@ -625,7 +625,7 @@ public:
     static tVehicleAudioSettings GetVehicleAudioSettings(int16 vehId);
 
     void AddAudioEvent(eAudioEvents event, float p1 = 0.f);
-    void AddAudioEvent(eAudioEvents event, CVehicle* vehicle);
+    void AddAudioEvent(eAudioEvents event, CPhysical* physical);
 
     void Service();
     static void StaticService();

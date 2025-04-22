@@ -104,7 +104,7 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
             }
             return std::nullopt;
         };
-        for (auto&& [i, es] : notsa::enumerate(ae->m_EngineSounds)) {
+        for (auto&& [i, es] : rngv::enumerate(ae->m_EngineSounds)) {
             const auto st = SoundTypeToString((AE::eVehicleEngineSoundType)(i)).value_or("<unknown>");
             if (const auto* const s = es.Sound) {
                 FormattedText(
@@ -270,7 +270,7 @@ void VehicleAudioEntityDebugModule::RenderGlobalVars() {
     //    }
     //    if (ImGui::TreeNode("AC")) {
     //        if (ImGui::TreeNode("FrqPerGearFactor")) {
-    //            for (auto&& [i, gf] : notsa::enumerate(pe->AC.FrqPerGearFactor)) {
+    //            for (auto&& [i, gf] : rngv::enumerate(pe->AC.FrqPerGearFactor)) {
     //                char buf[1024];
     //                *std::format_to(buf, "Gear {}", i) = 0;
     //                ImGui::DragFloat(buf, &gf, 1.f, -100.f, 100.f);

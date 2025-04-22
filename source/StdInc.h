@@ -428,9 +428,6 @@
 #include "Fx\FxManager.h"
 #include "Fx\FxPrtMult.h"
 #include "Fx\Fx.h"
-#include "Audio/config/eAudioBank.h"
-#include "Audio/config/eAudioSlot.h"
-#include "Audio/config/eSFX.h"
 
 #include "Fx/eFxInfoType.h"
 #include "Fx/FxManager.h"

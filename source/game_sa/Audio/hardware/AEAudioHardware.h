@@ -28,14 +28,14 @@ union CAEAudioHardwarePlayFlags {
 
     void CopyFromAESound(const CAESound& sound) {
         m_bIsFrontend        = sound.IsFrontEnd();
-        m_bIsUncompressable  = sound.IsCompressable();
-        m_bIsUnduckable      = sound.IsDuckablle();
-        m_bIsStartPercentage = sound.GetIsStartPercentage();
+        m_bIsUncompressable  = sound.IsIncompressible();
+        m_bIsUnduckable      = sound.IsUnduckable();
+        m_bIsStartPercentage = sound.GetPlayTimeIsPercentage();
         m_bIsMusicMastered   = sound.IsMusicMastered();
         m_bIsRolledOff       = sound.GetRolledOff();
         m_bIsSmoothDucking   = sound.GetSmoothDucking();
         m_bIsForcedFront     = sound.IsForcedFront();
-        m_IsPausable         = m_bIsFrontend && sound.IsPausable();
+        m_IsPausable         = m_bIsFrontend && sound.IsUnpausable();
     }
 };
 
@@ -123,7 +123,7 @@ public:
     int8 GetSoundBankLoadingStatus(eSoundBank bank, eSoundBankSlot slot);
     bool EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot slot, bool checkLoadingTune = false);
 
-    bool LoadSound(eSoundBank bank, eSoundID sfx, eSoundBankSlot slot);
+    void LoadSound(eSoundBank bank, eSoundID sfx, eSoundBankSlot slot);
     bool IsSoundLoaded(eSoundBank bank, eSoundID sfx, eSoundBankSlot slot);
     bool GetSoundLoadingStatus(eSoundBank bank, eSoundID sfx, eSoundBankSlot slot);
 
@@ -184,7 +184,7 @@ public:
     void Service();
 
     // notsa
-    const CAEBankSlot* GetBankSlot(eSoundBankSlot slot) const;
+    const CAEBankSlot& GetBankSlot(eSoundBankSlot slot) const;
 
 private:
     auto GetChannels() const { return std::span{m_aChannels, m_nNumChannels}; }

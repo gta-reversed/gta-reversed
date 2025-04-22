@@ -347,6 +347,6 @@ void CAEMP3BankLoader::Service() {
     }
 }
 
-const CAEBankSlot* CAEMP3BankLoader::GetBankSlot(eSoundBankSlot slot) const {
-    return &m_paBankSlots[slot];
+CAEBankSlot& CAEMP3BankLoader::GetBankSlot(eSoundBankSlot slot) const {
+    return m_BankSlots[slot];
 }

@@ -61,7 +61,7 @@ void CAETwinLoopSoundEntity::Initialise(
 
 // 0x4F29A0
 void CAETwinLoopSoundEntity::UpdateTwinLoopSound(CVector pos, float volume, float speed) {
-    for (auto&& [i, sound] : notsa::enumerate(m_Sounds)) {
+    for (auto&& [i, sound] : rngv::enumerate(m_Sounds)) {
         if (!sound) {
             continue;
         }
@@ -155,7 +155,7 @@ void CAETwinLoopSoundEntity::PlayTwinLoopSound(CVector pos, float volume, float 
     for (int32 i = 0; i < NUM_SOUNDS; i++) {
         assert(!m_Sounds[i]);
         m_Sounds[i] = AESoundManager.PlaySound({
-            .BankSlot      = m_BankSlot,
+            .BankSlotID      = m_BankSlot,
             .SoundID       = m_SoundIDs[i],
             .AudioEntity   = this,
             .Pos           = pos,

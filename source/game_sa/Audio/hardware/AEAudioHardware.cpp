@@ -321,10 +321,10 @@ bool CAEAudioHardware::EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot s
 }
 
 // 0x4D8ED0
-// NOTSA: Original function returns void!
-bool CAEAudioHardware::LoadSound(eSoundBank bank, eSoundID sound, eSoundBankSlot slot) {
-    return !m_bDisableEffectsLoading
-        && m_pMP3BankLoader->LoadSound(bank, sound, slot);
+void CAEAudioHardware::LoadSound(eSoundBank bank, eSoundID sound, eSoundBankSlot slot) {
+    if (!m_bDisableEffectsLoading) {
+        m_pMP3BankLoader->LoadSound(bank, sound, slot);
+    }
 }
 
 // 0x4D8EF0
@@ -663,6 +663,6 @@ void CAEAudioHardware::Service() {
     m_pMP3BankLoader->Service();
 }
 
-const CAEBankSlot* CAEAudioHardware::GetBankSlot(eSoundBankSlot slot) const {
+const CAEBankSlot& CAEAudioHardware::GetBankSlot(eSoundBankSlot slot) const {
     return m_pMP3BankLoader->GetBankSlot(slot);
 }

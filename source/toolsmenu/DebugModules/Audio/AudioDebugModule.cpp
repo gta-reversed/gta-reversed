@@ -58,8 +58,8 @@ void AudioDebugModule::DrawBankSlots() {
         return;
     }
 
-    const auto info = AEAudioHardware.GetBankSlot(d->SelectedSlot);
-    if (!info) {
+    auto* const info = &AEAudioHardware.GetBankSlot(d->SelectedSlot);
+    if (info->NumSounds == 0) {
         ImGui::Text("SLOT NOT IN USE");
         return;
     }
@@ -74,7 +74,7 @@ void AudioDebugModule::DrawBankSlots() {
     }
     
     if (ImGui::TreeNode("Slot Info")) {
-        ImGui::Text("Offset: %i", (int32)(info->Offset));
+        ImGui::Text("OffsetBytes: %i", (int32)(info->OffsetBytes));
         ImGui::Text("NumBytes: %i", (int32)(info->NumBytes));
         ImGui::Text("NumSounds: %i", (int32)(info->NumSounds));
 
@@ -100,7 +100,7 @@ void AudioDebugModule::DrawBankSlots() {
         if (ImGui::Button("Play Sound")) {
             StopCurrentSoundIfAny();
             d->PlayedSound = AESoundManager.PlaySound({
-                .BankSlot    = d->SelectedSlot,
+                .BankSlotID    = d->SelectedSlot,
                 .SoundID     = (eSoundID)(d->SoundToPlayID),
                 .AudioEntity = nullptr,
                 .Pos         = TheCamera.GetPosition(),

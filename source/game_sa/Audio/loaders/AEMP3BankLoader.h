@@ -32,11 +32,10 @@ public:
     void   LoadSound(eSoundBank bankId, eSoundID soundId, eSoundBankSlot bankSlot);
     void   Service();
 
+    // notsa
+    CAEBankSlot& GetBankSlot(eSoundBankSlot slot) const;
 private:
     void AddRequest(eSoundBank bank, eSoundBankSlot slot, std::optional<eSoundID> sound);
-
-    // notsa
-    const CAEBankSlot* GetBankSlot(eSoundBankSlot slot) const;
 
 private:
     // NOTSA

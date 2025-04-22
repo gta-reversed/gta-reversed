@@ -501,7 +501,7 @@ void CAEWeaponAudioEntity::ReportStealthKill(eWeaponType type, CPhysical* entity
 
     const auto PlayStealthKillSound = [&](eSoundBankSlot bankSlotID, eSoundID soundID, float volumeOffsetdB, int32 eventID) {
         AESoundManager.PlaySound({
-            .BankSlot           = bankSlotID,
+            .BankSlotID           = bankSlotID,
             .SoundID            = soundID,
             .AudioEntity        = this,
             .Pos                = entity->GetPosition(),
@@ -602,7 +602,7 @@ void CAEWeaponAudioEntity::PlayWeaponLoopSound(CPhysical* entity, int16 sfxId, e
         return;
     }
     AESoundManager.PlaySound({
-        .BankSlot           = SND_BANK_SLOT_WEAPON_GEN,
+        .BankSlotID           = SND_BANK_SLOT_WEAPON_GEN,
         .SoundID            = sfxId,
         .AudioEntity        = this,
         .Pos                = entity->GetPosition(),
@@ -682,7 +682,7 @@ void CAEWeaponAudioEntity::PlayMiniGunFireSounds(CPhysical* entity, eAudioEvents
                 break;
             }
             AESoundManager.PlaySound({
-                .BankSlot           = SND_BANK_SLOT_WEAPON_GEN,
+                .BankSlotID           = SND_BANK_SLOT_WEAPON_GEN,
                 .SoundID            = 14,
                 .AudioEntity        = this,
                 .Pos                = entity->GetPosition(),
@@ -774,7 +774,7 @@ void CAEWeaponAudioEntity::PlayFlameThrowerIdleGasLoop(CPhysical* entity) {
         return;
     }
     m_FlameThrowerIdleGasLoopSound = AESoundManager.PlaySound({
-        .BankSlot         = SND_BANK_SLOT_WEAPON_GEN,
+        .BankSlotID         = SND_BANK_SLOT_WEAPON_GEN,
         .SoundID            = 10,
         .AudioEntity        = this,
         .Pos                = entity->GetPosition(),
@@ -797,7 +797,7 @@ void CAEWeaponAudioEntity::PlayChainsawStopSound(CPhysical* entity) {
     if (entity && AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_CHAINSAW_P, SND_BANK_SLOT_PLAYER_ENGINE_P)) {
         if (m_ChainsawState != eChainsawState::STOPPING) {
             AESoundManager.PlaySound({
-                .BankSlot           = SND_BANK_SLOT_PLAYER_ENGINE_P,
+                .BankSlotID           = SND_BANK_SLOT_PLAYER_ENGINE_P,
                 .SoundID            = 2,
                 .AudioEntity        = this,
                 .Pos                = entity->GetPosition(),
@@ -820,7 +820,7 @@ void CAEWeaponAudioEntity::PlayCameraSound(CPhysical* entity, eAudioEvents event
         return;
     }
     AESoundManager.PlaySound({
-        .BankSlot           = SND_BANK_SLOT_WEAPON_GEN,
+        .BankSlotID           = SND_BANK_SLOT_WEAPON_GEN,
         .SoundID            = 45,
         .AudioEntity        = this,
         .Pos                = entity->GetPosition(),
@@ -852,7 +852,7 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     }
     case AE_WEAPON_SOUND_CAT_FLAME: { // 0x504BC3
         if (m_LastFlameThrowerFireTimeMs + 300 >= CTimer::GetTimeInMS()) {
-            sound->m_Volume = std::min(GetDefaultVolume(AE_WEAPON_FIRE) - 14.f, sound->m_fVolume + 2.f); // TODO: Use TimeStep
+            sound->m_Volume = std::min(GetDefaultVolume(AE_WEAPON_FIRE) - 14.f, sound->GetVolume() + 2.f); // TODO: Use TimeStep
         } else {
             sound->StopSoundAndForget();
             m_LastFlameThrowerFireTimeMs = 0;
@@ -868,7 +868,7 @@ void CAEWeaponAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     }
     case AE_WEAPON_SOUND_CAT_EXT: { // 0x504C5F
         if (m_LastFireExtFireTimeMs + 300 >= CTimer::GetTimeInMS()) {
-            sound->m_Speed = std::min(0.85f, sound->m_fSpeed + 0.01f); // TODO: Use TimeStep
+            sound->m_Speed = std::min(0.85f, sound->GetSpeed() + 0.01f); // TODO: Use TimeStep
         } else {
             sound->StopSoundAndForget();
             m_LastFireExtFireTimeMs = 0;

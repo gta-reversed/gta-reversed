@@ -66,7 +66,7 @@ void CAEGlobalWeaponAudioEntity::ProjectileFire(eWeaponType weaponType, CPhysica
 
     const auto PlayRocketSound = [&](eSoundBankSlot bankSlotID, eSoundID soundID, float speedMult, float volumeOffsetdB) {
         AESoundManager.PlaySound({
-            .BankSlot = bankSlotID,
+            .BankSlotID = bankSlotID,
             .SoundID = soundID,
             .AudioEntity = this,
             .Pos = physical->GetPosition(),
@@ -152,7 +152,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
             }
             const auto PlayWaterfallSound = [&](int32 i, float speed) {
                 pWaterfall[i] = AESoundManager.PlaySound({
-                    .BankSlot    = SND_BANK_SLOT_COLLISIONS,
+                    .BankSlotID    = SND_BANK_SLOT_COLLISIONS,
                     .SoundID       = 3,
                     .AudioEntity   = this,
                     .Pos           = s_WaterfallPositions[i],
@@ -190,7 +190,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
             }
 
             pFogHorn = AESoundManager.PlaySound({
-                .BankSlot    = SND_BANK_SLOT_HORN_AND_SIREN,
+                .BankSlotID    = SND_BANK_SLOT_HORN_AND_SIREN,
                 .SoundID       = 13,
                 .AudioEntity   = this,
                 .Pos           = s_FogHornPositions[0],
@@ -257,7 +257,7 @@ void CAEGlobalWeaponAudioEntity::ServiceAmbientGunFire() {
         }
         if (!pFogHorn) {
             pFogHorn = AESoundManager.PlaySound({
-                .BankSlot      = SND_BANK_SLOT_HORN_AND_SIREN,
+                .BankSlotID      = SND_BANK_SLOT_HORN_AND_SIREN,
                 .SoundID       = 13,
                 .AudioEntity   = this,
                 .Pos           = s_FogHornPositions[1],

@@ -45,7 +45,7 @@ public:
     CAESound* RequestNewSound(CAESound* pSound);
 
     struct tSoundPlayParams {
-        int16           BankSlotID;               //!< The slot to play the sound from (From the currently loaded bank (?))
+        eSoundBankSlot  BankSlotID;               //!< The slot to play the sound from
         eSoundID        SoundID;                  //!< The sound ID to play (From the specified bank slot)
         CAEAudioEntity* AudioEntity;              //!< The audio entity that requested this sound
         CVector         Pos;                      //!< The position
@@ -86,7 +86,7 @@ private:
 
 public:
     bool IsPaused() const { return CTimer::GetIsPaused() || m_IsManuallyPaused; }
-    bool IsSoundPaused(const CAESound& sound) const { return CAESoundManager::IsPaused() && !sound.GetUnpausable(); }
+    bool IsSoundPaused(const CAESound& sound) const { return CAESoundManager::IsPaused() && !sound.IsUnpausable(); }
 };
 VALIDATE_SIZE(CAESoundManager, 0x8CBC);
 

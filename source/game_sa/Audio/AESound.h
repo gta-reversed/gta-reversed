@@ -9,6 +9,8 @@
 #include "Vector.h"
 #include "Enums/eSoundBankSlot.h"
 #include "Enums/SoundIDs.h"
+#include "Enums/eAudioEvents.h"
+#include <extensions/EntityRef.hpp>
 
 class CAEAudioEntity;
 class CEntity;
@@ -83,7 +85,6 @@ public:
     void  CalculateVolume();
     void  UpdateParameters(int16 curPlayPos);
     void  SoundHasFinished();
-    eSoundState GetPlayingState() const { return (eSoundState)(m_nPlayingState); }
 
     void SetSpeed(float s) noexcept { m_Speed = s; }
     auto GetSpeed() const noexcept  { return m_Speed; }
@@ -93,16 +94,16 @@ public:
 
     auto GetSoundLength() const noexcept { return m_Length; }
 
-    bool IsCancellable() const { return m_IsCancellable; }
     bool IsFrontEnd() const { return m_IsFrontEnd; }
     bool GetRequestUpdates() const { return m_RequestUpdates; }
-    bool IsPausable() const { return m_IsPausable; }
+    bool IsUnpausable() const { return m_IsUnpausable; }
     bool GetPlayPhysically() const { return m_PlayPhysically; };
-    bool GetIsStartPercentage() const { return m_PlayTimeIsPercentage; }
+    bool GetPlayTimeIsPercentage() const { return m_PlayTimeIsPercentage; }
     bool IsMusicMastered() const { return m_IsMusicMastered; }
     bool IsLifespanTiedToPhysicalEntity() const { return m_IsLifespanTiedToPhysicalEntity; }
-    bool IsDuckablle() const { return m_IsDuckable; }
-    bool IsCompressable() const { return m_IsCompressable; }
+    bool IsUnduckable() const { return m_IsUnduckable; }
+    bool IsIncompressible() const { return m_IsIncompressible; }
+    bool IsUnancellable() const { return m_IsUnancellable; }
     bool GetRolledOff() const { return m_IsRolledOff; }
     bool GetSmoothDucking() const { return m_HasSmoothDucking; }
     bool IsForcedFront() const { return m_IsForcedFront; }
@@ -111,40 +112,40 @@ public:
     bool IsPhysicallyPlaying() const { return m_IsPhysicallyPlaying; }
 
 public:
-    eSoundBankSlot  m_BankSlot{};             //!< Slot to use for the sound
-    eSoundID        m_SoundID{};              //!< Sound ID in the bank that's loaded into the slot
-    CAEAudioEntity* m_AudioEntity{};          //!< The entity that's playing this sound
-    CEntity::Ref    m_PhysicalEntity{};       //!< If set, the sound is tied to this entity
-    int32           m_Event{ AE_UNDEFINED };  //!< Not necessarily `eAudioEvents`, for ex. see `CAEWeaponAudioEntity`
-    float           m_ClientVariable{ -1.f }; //!< Custom variable set when playing the sound
-    float           m_Volume{};               //!< Volume of the sound (Used to calculate the final volume, `ListenerVolume`)
-    float           m_RollOffFactor{};        //!< Roll-off factor
-    float           m_Speed{};                //!< Speed of the sound (Used to calculate the final frequency, `ListenerSpeed`)
-    float           m_SpeedVariance{};        //!< Speed variability
-    CVector         m_CurrPos{};              //!< Current position of the sound
-    CVector         m_PrevPos{};              //!< Previous position of the sound the last time it was updated
-    int32           m_LastFrameUpdatedAt{};   //!< Frame count when the sound was last updated (`CTimer::GetFrameCounter()`)
-    int32           m_CurrTimeUpdateMs{};     //!< Time in milliseconds when the sound was updated (`CTimer::GetTimeInMS()`)
-    int32           m_PrevTimeUpdateMs{};     //!< Time in milliseconds when the sound was last updated (`CTimer::GetTimeInMS()`)
-    float           m_CurrCamDist{};          //!< Distance to the camera
-    float           m_PrevCamDist{};          //!< Distance to the camera the last time the sound was updated
-    float           m_Doppler{};              //!< Doppler effect
-    uint8           m_FrameDelay{};           //!< Seemingly never used, but CAESoundManager::Service still checks for that
-    char            __pad;
-    union {
+    eSoundBankSlot     m_BankSlot{};             //!< Slot to use for the sound
+    eSoundID           m_SoundID{};              //!< Sound ID in the bank that's loaded into the slot
+    CAEAudioEntity*    m_AudioEntity{};          //!< The entity that's playing this sound
+    notsa::EntityRef<> m_PhysicalEntity{};       //!< If set, the sound is tied to this entity
+    int32              m_Event{ AE_UNDEFINED };  //!< Not necessarily `eAudioEvents`, for ex. see `CAEWeaponAudioEntity`
+    float              m_ClientVariable{ -1.f }; //!< Custom variable set when playing the sound
+    float              m_Volume{};               //!< Volume of the sound (Used to calculate the final volume, `ListenerVolume`)
+    float              m_RollOffFactor{};        //!< Roll-off factor
+    float              m_Speed{};                //!< Speed of the sound (Used to calculate the final frequency, `ListenerSpeed`)
+    float              m_SpeedVariance{};        //!< Speed variability
+    CVector            m_CurrPos{};              //!< Current position of the sound
+    CVector            m_PrevPos{};              //!< Previous position of the sound the last time it was updated
+    int32              m_LastFrameUpdatedAt{};   //!< Frame count when the sound was last updated (`CTimer::GetFrameCounter()`)
+    int32              m_CurrTimeUpdateMs{};     //!< Time in milliseconds when the sound was updated (`CTimer::GetTimeInMS()`)
+    int32              m_PrevTimeUpdateMs{};     //!< Time in milliseconds when the sound was last updated (`CTimer::GetTimeInMS()`)
+    float              m_CurrCamDist{};          //!< Distance to the camera
+    float              m_PrevCamDist{};          //!< Distance to the camera the last time the sound was updated
+    float              m_Doppler{};              //!< Doppler effect
+    uint8              m_FrameDelay{};           //!< How many frames to delay the sound (0 = play immediately)
+    char               __pad;
+    union {            
         uint16 m_Flags{};
         struct {
             uint16 m_IsFrontEnd : 1;
-            uint16 m_IsCancellable : 1;
+            uint16 m_IsUnancellable : 1;
             uint16 m_RequestUpdates : 1;
             uint16 m_PlayPhysically : 1;
-            uint16 m_IsPausable : 1;
+            uint16 m_IsUnpausable : 1;
             uint16 m_PlayTimeIsPercentage : 1;
             uint16 m_IsMusicMastered : 1;
             uint16 m_IsLifespanTiedToPhysicalEntity : 1;
 
-            uint16 m_IsDuckable : 1;
-            uint16 m_IsCompressable : 1;
+            uint16 m_IsUnduckable : 1;
+            uint16 m_IsIncompressible : 1;
             uint16 m_IsRolledOff : 1;
             uint16 m_HasSmoothDucking : 1;
             uint16 m_IsForcedFront : 1;

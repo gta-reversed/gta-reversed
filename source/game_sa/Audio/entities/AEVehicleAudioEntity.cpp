@@ -546,7 +546,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
     case AE_CAR_REAR_RIGHT_DOOR_OPEN: { // 0x4F64B3
         const auto PlaySound = [&](eSoundID sfx) {
             AESoundManager.PlaySound({
-                .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+                .BankSlotID          = SND_BANK_SLOT_VEHICLE_GEN,
                 .SoundID           = sfx,
                 .AudioEntity       = this,
                 .Pos               = GetVehicle()->GetPosition(),
@@ -573,7 +573,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
     case AE_CAR_REAR_RIGHT_DOOR_CLOSE: { // 0x4F654D
         const auto PlaySound = [&](eSoundID sfx) {
             AESoundManager.PlaySound({
-                .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+                .BankSlotID          = SND_BANK_SLOT_VEHICLE_GEN,
                 .SoundID           = sfx,
                 .AudioEntity       = this,
                 .Pos               = GetVehicle()->GetPosition(),
@@ -594,7 +594,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
     }
     case AE_TYRE_BURST: { // 0x4F65BD
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_BULLET_HITS,
+            .BankSlotID          = SND_BANK_SLOT_BULLET_HITS,
             .SoundID           = SND_GENRL_BULLET_HITS_BLOWOUT,
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -604,7 +604,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
     }
     case AE_WINDSCREEN_SHATTER: { // 0x4F6608
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .BankSlotID          = SND_BANK_SLOT_COLLISIONS,
             .SoundID           = SND_GENRL_COLLISIONS_WINDSCREEN,
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -614,7 +614,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
     }
     case AE_LIGHT_SMASH: { // 0x4F64AC
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .BankSlotID          = SND_BANK_SLOT_COLLISIONS,
             .SoundID           = SND_GENRL_COLLISIONS_HEADLIGHT,
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -639,7 +639,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             break;
         }
         AESoundManager.PlaySound({
-            .BankSlot    = SND_BANK_SLOT_COLLISIONS,
+            .BankSlotID    = SND_BANK_SLOT_COLLISIONS,
             .SoundID     = SND_GENRL_COLLISIONS_SPLASH_END,
             .AudioEntity = this,
             .Pos         = GetVehicle()->GetPosition(),
@@ -654,7 +654,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             }
         }
         AESoundManager.PlaySound({
-            .BankSlot          = m_DummySlot,
+            .BankSlotID          = m_DummySlot,
             .SoundID           = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(SND_GENRL_TRAIN_D_TRACK_JOIN_3, SND_GENRL_TRAIN_D_TRACK_JOIN_5),
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -672,7 +672,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             break;
         }
         AESoundManager.PlaySound({
-            .BankSlot           = SND_BANK_SLOT_WEAPON_GEN,
+            .BankSlotID           = SND_BANK_SLOT_WEAPON_GEN,
             .SoundID            = SND_GENRL_WEAPONS_TRIGGER,
             .AudioEntity        = this,
             .Pos                = GetVehicle()->GetPosition(),
@@ -687,7 +687,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
     }
     case AE_START_ENGINE: { // AE_START_ENGINE
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .BankSlotID          = SND_BANK_SLOT_VEHICLE_GEN,
             .SoundID           = SND_GENRL_VEHICLE_GEN_GENERIC_START,
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -703,7 +703,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             break;
         }
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .BankSlotID          = SND_BANK_SLOT_VEHICLE_GEN,
             .SoundID           = SND_GENRL_VEHICLE_GEN_HYDRAULIC_SUSPENSION,
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -716,7 +716,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
     }
     case AE_SUSPENSION_BOUNCE: { // 0x4F6EE7
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .BankSlotID          = SND_BANK_SLOT_VEHICLE_GEN,
             .SoundID           = SND_GENRL_VEHICLE_GEN_BOUNCE_SUSPENSION,
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -729,7 +729,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
     }
     case AE_SUSPENSION_TRIGGER: { // 0x4F6F88
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .BankSlotID          = SND_BANK_SLOT_VEHICLE_GEN,
             .SoundID           = SND_GENRL_VEHICLE_GEN_TRIGGER_SUSPENSION,
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -744,7 +744,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
     }
     case AE_SUSPENSION_ON: { // 0x4F7035
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .BankSlotID          = SND_BANK_SLOT_VEHICLE_GEN,
             .SoundID           = SND_GENRL_VEHICLE_GEN_TRIGGER_SUSPENSION,
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -759,7 +759,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
     }
     case AE_SUSPENSION_OFF: { // 0x4F7183
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_VEHICLE_GEN,
+            .BankSlotID          = SND_BANK_SLOT_VEHICLE_GEN,
             .SoundID           = SND_GENRL_VEHICLE_GEN_HYDRAULIC_SUSPENSION,
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -783,7 +783,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             break;
         }
         AESoundManager.PlaySound({
-            .BankSlot           = SND_BANK_SLOT_WEAPON_GEN,
+            .BankSlotID           = SND_BANK_SLOT_WEAPON_GEN,
             .SoundID            = SND_GENRL_WEAPONS_SAWNOFF_B,
             .AudioEntity        = this,
             .Pos                = GetVehicle()->GetPosition(),
@@ -807,7 +807,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             break;
         }
         AESoundManager.PlaySound({
-            .BankSlot           = SND_BANK_SLOT_WEAPON_GEN,
+            .BankSlotID           = SND_BANK_SLOT_WEAPON_GEN,
             .SoundID            = SND_GENRL_WEAPONS_SAWNOFF_B,
             .AudioEntity        = this,
             .Pos                = GetVehicle()->GetPosition(),
@@ -828,7 +828,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             break;
         }
         AESoundManager.PlaySound({
-            .BankSlot           = SND_BANK_SLOT_PLAYER_ENGINE_P,
+            .BankSlotID           = SND_BANK_SLOT_PLAYER_ENGINE_P,
             .SoundID            = 4,
             .AudioEntity        = this,
             .Pos                = GetVehicle()->GetPosition(),
@@ -846,7 +846,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
         }
         const auto PlaySound = [&](float frq, int16 playTime) {
             AESoundManager.PlaySound({
-                .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+                .BankSlotID          = SND_BANK_SLOT_COLLISIONS,
                 .SoundID           = SND_GENRL_COLLISIONS_COLCARPED,
                 .AudioEntity       = this,
                 .Pos               = GetVehicle()->GetPosition(),
@@ -871,7 +871,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             break;
         }
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .BankSlotID          = SND_BANK_SLOT_COLLISIONS,
             .SoundID           = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(SND_GENRL_COLLISIONS_GORE_SPLAT1, SND_GENRL_COLLISIONS_GORE_SPLAT3),
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -887,7 +887,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             break;
         }
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .BankSlotID          = SND_BANK_SLOT_COLLISIONS,
             .SoundID           = SND_GENRL_COLLISIONS_COLSOLIDWOOD,
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -897,7 +897,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             .EventID           = AE_PED_KNOCK_DOWN
         });
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .BankSlotID          = SND_BANK_SLOT_COLLISIONS,
             .SoundID           = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(SND_GENRL_COLLISIONS_COLCAR01, SND_GENRL_COLLISIONS_COLCAR12),
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -915,7 +915,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             break;
         }
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .BankSlotID          = SND_BANK_SLOT_COLLISIONS,
             .SoundID           = SND_GENRL_COLLISIONS_COLGRASS,
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -925,7 +925,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             .EventID           = AE_PED_BOUNCE
         });
         AESoundManager.PlaySound({
-            .BankSlot          = SND_BANK_SLOT_COLLISIONS,
+            .BankSlotID          = SND_BANK_SLOT_COLLISIONS,
             .SoundID           = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(SND_GENRL_COLLISIONS_COLCAR01, SND_GENRL_COLLISIONS_COLCAR12),
             .AudioEntity       = this,
             .Pos               = GetVehicle()->GetPosition(),
@@ -942,7 +942,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
 }
 
 // 0x4F7580
-void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, CVehicle* vehicle) {
+void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, CPhysical* physical) {
     if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN)) {
         return;
     }
@@ -952,18 +952,18 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, CVehicle* vehicle)
     if (event != AE_BONNET_FLUBBER_FLUBBER) {
         return;
     }
-    if (!vehicle) {
+    if (!physical) {
         return;
     }
     AESoundManager.PlaySound({
-        .BankSlot           = SND_BANK_SLOT_VEHICLE_GEN,
+        .BankSlotID         = SND_BANK_SLOT_VEHICLE_GEN,
         .SoundID            = SND_GENRL_VEHICLE_GEN_HOOD_FLY,
         .AudioEntity        = this,
-        .Pos                = vehicle->GetPosition(),
-        .Volume             = GetDefaultVolume(AE_BONNET_FLUBBER_FLUBBER) + GetFlyingMetalVolume(vehicle),
+        .Pos                = physical->GetPosition(),
+        .Volume             = GetDefaultVolume(AE_BONNET_FLUBBER_FLUBBER) + GetFlyingMetalVolume(physical),
         .RollOffFactor      = 0.85f,
         .Flags              = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY | SOUND_REQUEST_UPDATES,
-        .RegisterWithEntity = vehicle,
+        .RegisterWithEntity = physical,
         .EventID            = AE_BONNET_FLUBBER_FLUBBER
     });
 }
@@ -1276,7 +1276,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float ratio, float fadeRatio)
     if (GetVehicle()->vehicleFlags.bIsDrowning) {
         volume -= s_Config.DummyEngine.VolumeUnderwaterOffset;
     }
-    if (GetVehicle()->m_pTrailer) {
+    if (GetVehicle()->m_pVehicleBeingTowed) {
         volume += s_Config.DummyEngine.VolumeTrailerOffset;
     }
     return volume + m_AuSettings.EngineVolumeOffset;
@@ -1330,7 +1330,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyRev(float ratio, float fadeRatio) 
     if (GetVehicle()->vehicleFlags.bIsDrowning) {
         volume -= s_Config.DummyEngine.VolumeUnderwaterOffset;
     }
-    if (GetVehicle()->m_pTrailer) {
+    if (GetVehicle()->m_pVehicleBeingTowed) {
         volume += s_Config.DummyEngine.VolumeTrailerOffset;
     }
     return volume + m_AuSettings.EngineVolumeOffset;
@@ -1440,7 +1440,7 @@ void CAEVehicleAudioEntity::RequestNewPlayerCarEngineSound(eVehicleEngineSoundTy
 
     const auto DoPlayEngineSoundSound = [&](eSoundBankSlot slot, eSoundID sfx, float rollOffFactor, uint32 flags = 0, int16 playTime = 0) {
         m_EngineSounds[st].Sound = AESoundManager.PlaySound({
-            .BankSlot      = slot,
+            .BankSlotID      = slot,
             .SoundID       = sfx,
             .AudioEntity   = this,
             .Pos           = m_Entity->GetPosition(),
@@ -1537,7 +1537,7 @@ void CAEVehicleAudioEntity::StartVehicleEngineSound(eVehicleEngineSoundType st, 
 
     const auto PlayEngineSound = [&](eSoundID sfx, float rollOffFactor) {
         m_EngineSounds[st].Sound = AESoundManager.PlaySound({
-            .BankSlot      = m_DummySlot,
+            .BankSlotID      = m_DummySlot,
             .SoundID       = sfx,
             .AudioEntity   = this,
             .Pos           = m_Entity->GetPosition(),
@@ -1864,7 +1864,7 @@ void PlayGenericSound(
         GracefullyStopSound(s);
         if ((currSfx = newSfx) != -1) {
             s = AESoundManager.PlaySound({
-                .BankSlot      = slot,
+                .BankSlotID      = slot,
                 .SoundID       = newSfx,
                 .AudioEntity   = self,
                 .Pos           = self->GetVehicle()->GetPosition(),
@@ -1978,7 +1978,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
     if (isHornOn && !m_IsHornOn) {
         const auto PlayHornSound = [&](float speed) {
             m_HornSound = AESoundManager.PlaySound({
-                .BankSlot      = SND_BANK_SLOT_HORN_AND_SIREN,
+                .BankSlotID      = SND_BANK_SLOT_HORN_AND_SIREN,
                 .SoundID       = (eSoundID)(m_AuSettings.HornType),
                 .AudioEntity   = this,
                 .Pos           = m_Entity->GetPosition(),
@@ -2026,7 +2026,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
     //
     const auto PlaySirenSound = [&](eSoundBankSlot slot, eSoundID sid) {
         return AESoundManager.PlaySound({
-            .BankSlot    = slot,
+            .BankSlotID    = slot,
             .SoundID       = sid,
             .AudioEntity   = this,
             .Pos           = m_Entity->GetPosition(),
@@ -2088,7 +2088,7 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& vp) {
         if (!*GetNumOfContactWheels(vp)) {
             return;
         }
-        for (auto&& [i, wstate] : notsa::enumerate(wheelStates)) {
+        for (auto&& [i, wstate] : rngv::enumerate(wheelStates)) {
             const auto isFrontWheel = i == CAR_WHEEL_FRONT_LEFT
                                    || i == CAR_WHEEL_FRONT_RIGHT;
 
@@ -2242,7 +2242,7 @@ void CAEVehicleAudioEntity::UpdateGenericVehicleSound(eVehicleEngineSoundType st
         s->SetSpeed(speed);
     } else if (AEAudioHardware.IsSoundBankLoaded(bank, bankSlot)) {
         s = AESoundManager.PlaySound({
-            .BankSlot      = bankSlot,
+            .BankSlotID      = bankSlot,
             .SoundID       = sfx,
             .AudioEntity   = this,
             .Pos           = m_Entity->GetPosition(),
@@ -2407,7 +2407,7 @@ void CAEVehicleAudioEntity::ProcessRainOnVehicle(tVehicleParams& params) {
     }
     m_RainDropCounter = 0;
     AESoundManager.PlaySound({
-        .BankSlot          = SND_BANK_SLOT_WEATHER,
+        .BankSlotID          = SND_BANK_SLOT_WEATHER,
         .SoundID           = (eSoundID)(CAEAudioUtility::GetRandomNumberInRange(12, 15)),
         .AudioEntity       = this,
         .Pos               = m_Entity->GetPosition(),
@@ -2587,7 +2587,7 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(tVehicleParams& vp, eVeh
     if (GetVehicle()->vehicleFlags.bIsDrowning) {
         volume -= s_Config.DummyEngine.VolumeUnderwaterOffset;
     }
-    if (GetVehicle()->m_pTrailer) {
+    if (GetVehicle()->m_pVehicleBeingTowed) {
         volume += s_Config.DummyEngine.VolumeTrailerOffset;
     }
     if (m_bNitroOnLastFrame && m_CurrentNitroRatio <= 1.0f && m_CurrentNitroRatio >= 0.0f) {
@@ -3234,7 +3234,7 @@ void CAEVehicleAudioEntity::PlayAircraftSound(eAircraftSoundType st, eSoundBankS
     }
     const auto DoPlaySound = [&](float rollOff, float doppler = 1.0f, std::optional<CVector> pos = std::nullopt) {
         m_EngineSounds[st].Sound = AESoundManager.PlaySound({
-            .BankSlot      = slot,
+            .BankSlotID      = slot,
             .SoundID       = sfx,
             .AudioEntity   = this,
             .Pos           = pos.value_or(m_Entity->GetPosition()),
@@ -4087,7 +4087,7 @@ void CAEVehicleAudioEntity::UpdateTrainSound(eTrainEngineSoundType st, eSoundBan
             return;
         }
         m_EngineSounds[st].Sound = AESoundManager.PlaySound({
-            .BankSlot      = slot,
+            .BankSlotID      = slot,
             .SoundID       = sfx,
             .AudioEntity   = this,
             .Pos           = m_Entity->GetPosition(),
@@ -4204,7 +4204,7 @@ void CAEVehicleAudioEntity::UpdateBoatSound(eBoatEngineSoundType st, eSoundBankS
 
     const auto DoPlaySound = [&](float rollOff) {
         m_EngineSounds[st].Sound = AESoundManager.PlaySound({
-            .BankSlot      = slot,
+            .BankSlotID      = slot,
             .SoundID       = sfx,
             .AudioEntity   = this,
             .Pos           = m_Entity->GetPosition(),
@@ -4251,7 +4251,7 @@ void CAEVehicleAudioEntity::PlayBicycleSound(eBicycleSoundType st, eSoundBankSlo
 
     const auto DoPlaySound = [&](eSoundID sfx, float rollOff, uint32 flags = 0, int16 playTime = 0) {
         m_EngineSounds[st].Sound = AESoundManager.PlaySound({
-            .BankSlot      = slot,
+            .BankSlotID      = slot,
             .SoundID       = sfx,
             .AudioEntity   = this,
             .Pos           = m_Entity->GetPosition(),
@@ -4856,5 +4856,5 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(Service, 0x502280, { .locked = true }); // -||-
 
     RH_ScopedOverloadedInstall(AddAudioEvent, "0", 0x4F6420, void(CAEVehicleAudioEntity::*)(eAudioEvents, float));
-    RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CVehicle*));
+    RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CPhysical*));
 }

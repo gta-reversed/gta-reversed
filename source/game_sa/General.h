@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstdlib> // RAND_MAX
+#include <extensions/utility.hpp>
 
 //! If you see this value USE THE INTEGER VERSION of `GetRandomNumberInRange`
 //! It's very important to do that, because the int version will is exclusive

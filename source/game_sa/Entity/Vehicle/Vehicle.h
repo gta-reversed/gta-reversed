@@ -358,8 +358,8 @@ public:
     float            m_fGearChangeCount; // used as parameter for cTransmission::CalculateDriveAcceleration, but doesn't change
     float            m_fWheelSpinForAudio;
     float            m_fHealth; // 1000.0f = full health. 0 -> explode
-    CVehicle*        m_pTowingVehicle;
-    CVehicle*        m_pVehicleBeingTowed;
+    CVehicle*        m_pTowingVehicle;            // m_pTractor
+    CVehicle*        m_pVehicleBeingTowed;        // m_pTrailer
     CPed*            m_pWhoInstalledBombOnMe;
     uint32           m_nTimeTillWeNeedThisCar;     // game won't try to delete this car while this time won't reach
     uint32           m_nGunFiringTime;             // last time when gun on vehicle was fired (used on boats)
