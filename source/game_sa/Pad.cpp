@@ -342,10 +342,9 @@ void CPad::ProcessPad(ePadID padID) {
     }
 #else
     // Synchronous approach for SDL3: use direct polling
-    CPad* pPad = CPad::GetPad(padID);
-    if (pPad) {
+    if (CPad* pad = CPad::GetPad(padID); pad) {
         // Update the current joystick state directly in PCTempJoyState
-        pPad->UpdateJoystick(pPad->PCTempJoyState, padID);
+        pad->UpdateJoystick(pad->PCTempJoyState, padID);
     }
 #endif
 }
