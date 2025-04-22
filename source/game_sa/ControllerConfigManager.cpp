@@ -482,24 +482,6 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
         }
     }
 
-    // NOTSA: Check if there's at least one valid assignment for each action. (Mouse fix)
-    if (notsa::IsFixBugs()) {
-        for (auto action = 0u; action < NUM_OF_MAX_CONTROLLER_ACTIONS; action++) {
-            bool hasAssignment = false;
-            for (const auto& type : CONTROLLER_TYPES_ALL) {
-                if (!GetIsKeyBlank(m_Actions[action].Keys[type].m_uiActionInitiator, type)) {
-                    hasAssignment = true;
-                    break;
-                }
-            }
-
-            // NOTSA: If no assignment found, check if it's a special action that can be blank
-            if (!hasAssignment && GetActionType((eControllerAction)action) == eActionType::ACTION_NOT_TYPE) {
-                return false; // No valid assignment found for this action
-            }
-        }
-    }
-
     return true;
 }
 
