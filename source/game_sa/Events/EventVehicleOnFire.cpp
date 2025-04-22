@@ -52,7 +52,7 @@ bool CEventVehicleOnFire::AffectsPed(CPed* ped)
 }
 
 // 0x4B7740
-CEventEditableResponse* CEventVehicleOnFire::CloneEditable()
+CEventEditableResponse* CEventVehicleOnFire::CloneEditable() const noexcept
 {
     return new CEventVehicleOnFire(m_vehicle);
 }

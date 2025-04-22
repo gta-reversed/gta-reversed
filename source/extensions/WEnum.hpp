@@ -23,6 +23,10 @@ struct WEnum {
     //! Implicitly convert back to the underlaying `Enum` type
     operator Enum() const { return static_cast<Enum>(m_Value); }
 
+    //! Implicitly cast to underlaying type ref, pointer
+    explicit operator StoreAs*() { return &m_Value; }
+    explicit operator StoreAs&() { return m_Value; }
+
     //! Use this in cases you want to cast to an int (for cout or something)
     Enum get() const { return static_cast<Enum>(m_Value); }
 

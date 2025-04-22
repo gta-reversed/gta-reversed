@@ -7,6 +7,9 @@
 #pragma once
 
 #include "AnimSequenceFrames.h"
+#include <Enums/eBoneTag.h>
+
+#undef MoveMemory
 
 /*!
  * @brief Animation key-frames of a single node (bone)

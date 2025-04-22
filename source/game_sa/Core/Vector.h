@@ -40,10 +40,21 @@ public:
     float NormaliseAndMag();
 
     /// Get a normalized copy of this vector
-    auto Normalized() const -> CVector;
+    auto Normalized(float* outMag = nullptr) const -> CVector {
+        CVector cpy = *this;
+        if (outMag) {
+            *outMag = cpy.NormaliseAndMag();
+        } else {
+            cpy.Normalise();
+        }
+        return cpy;
+    }
 
     /// Perform a dot product with this and `o`, returning the result
     auto Dot(const CVector& o) const -> float;
+
+    /// Perform a 2D dot product with this and `o`, returning the result
+    auto Dot2D(const CVector& o) const -> float;
 
     /*!
     * @notsa
@@ -141,11 +152,11 @@ public:
         return projectOnTo * (Dot(projectOnTo) + offset);
     }
 
-    //! Calculate the average position
-    static CVector Average(const CVector* begin, const CVector* end);
-
-    static CVector AverageN(const CVector* begin, size_t n) {
-        return Average(begin, begin + n);
+    //! Calculate the center of all provided vectors. Same operation as averaging.
+    template<rng::input_range R = std::initializer_list<CVector>>
+        requires rng::sized_range<R>
+    static CVector Centroid(R&& rng) {
+        return rng::fold_left(rng, CVector{}, std::plus{}) / std::size(rng);
     }
 
     auto GetComponents() const {

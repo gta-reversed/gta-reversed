@@ -80,9 +80,9 @@ ProcObjectListItem* ProcSurfaceInfo_c::AddObject(CVector pos, CVector normal, tC
     auto modelInfo  = CModelInfo::GetModelInfo(m_ModelIndex);
     bool isBuilding = modelInfo->m_nObjectInfoIndex == -1;
     if (isBuilding) {
-        CPools::ms_pBuildingPool->m_bIsLocked = true;
+        GetBuildingPool()->SetDealWithNoMemory(true);
         head->m_Obj                           = new CBuilding();
-        CPools::ms_pBuildingPool->m_bIsLocked = false;
+        GetBuildingPool()->SetDealWithNoMemory(false);
         if (!head->m_Obj) {
             return nullptr;
         }
@@ -93,9 +93,9 @@ ProcObjectListItem* ProcSurfaceInfo_c::AddObject(CVector pos, CVector normal, tC
             return nullptr;
         }
 
-        CPools::ms_pObjectPool->m_bIsLocked = true;
+        GetObjectPool()->SetDealWithNoMemory(true);
         head->m_Obj                         = new CObject(m_ModelIndex, false);
-        CPools::ms_pObjectPool->m_bIsLocked = false;
+        GetObjectPool()->SetDealWithNoMemory(false);
         if (!head->m_Obj) {
             return nullptr;
         }

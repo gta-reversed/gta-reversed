@@ -19,7 +19,7 @@ public:
     eEventType GetEventType() const override { return EVENT_AREA_CODES; }
     int32 GetEventPriority() const override { return 55; }
     int32 GetLifeTime() override { return 0; }
-    CEventAreaCodes* Clone() override { return new CEventAreaCodes(m_ped); }
+    CEventAreaCodes* Clone() const noexcept override { return new CEventAreaCodes(m_ped); }
     bool AffectsPed(CPed* ped) override;
     bool TakesPriorityOver(const CEvent& refEvent) override;
 

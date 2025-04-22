@@ -18,7 +18,7 @@ void CAEAudioHardware::InjectHooks() {
 
     RH_ScopedInstall(AllocateChannels, 0x5B9340);
     RH_ScopedInstall(RequestVirtualChannelSoundInfo, 0x4D8E60);
-    RH_ScopedInstall(Query3DSoundEffects, 0x4D8490, { .reversed = false });
+    RH_ScopedInstall(Query3DSoundEffects, 0x4D8490);
     RH_ScopedInstall(GetNumAvailableChannels, 0x4D8810);
     RH_ScopedInstall(GetChannelPlayTimes, 0x4D8820);
     RH_ScopedInstall(SetChannelVolume, 0x4D8870);
@@ -67,13 +67,12 @@ void CAEAudioHardware::InjectHooks() {
     RH_ScopedInstall(InitDirectSoundListener, 0x4D9640);
     RH_ScopedInstall(Terminate, 0x4D97A0);
     RH_ScopedInstall(Service, 0x4D9870);
-    RH_ScopedInstall(Initialise, 0x4D9930, { .reversed = false });
+    RH_ScopedInstall(Initialise, 0x4D9930);
 }
 
 // 0x4D83E0
 CAEAudioHardware::CAEAudioHardware() {
-    rng::fill(m_afChannelVolumes, -1000.f);
-    // Rest done using member initializers
+    rng::fill(m_afChannelVolumes, -1000.0f);
 }
 
 // 0x4D9930
@@ -101,7 +100,7 @@ bool CAEAudioHardware::Initialise() {
     if (FAILED(DirectSoundCreate8(&DSDEVID_DefaultPlayback, &m_pDSDevice, 0)))
         return false;
 
-    m_dsCaps.dwSize = 96;
+    m_dsCaps.dwSize = sizeof(DSCAPS);
     m_pDSDevice->GetCaps(&m_dsCaps);
 
     if (FAILED(m_pDSDevice->SetCooperativeLevel(PSGLOBAL(window), DSSCL_PRIORITY))
@@ -113,20 +112,20 @@ bool CAEAudioHardware::Initialise() {
     m_pStreamingChannel = new CAEStreamingChannel(m_pDSDevice, 0);
     m_pStreamingChannel->Initialise();
 
-    const uint32 freeHw3DAllBuffers = m_dsCaps.dwFreeHw3DAllBuffers;
-    if (freeHw3DAllBuffers < 24) {
+    const uint32 numFree3dBuffers = m_dsCaps.dwFreeHw3DAllBuffers;
+    if (numFree3dBuffers < 24) {
         m_nNumChannels = 48;
         AESmoothFadeThread.m_nNumAvailableBuffers = 48;
-        field_4 = 0;
+        m_IsHardwareMixAvailable = false;
     } else {
-        m_nNumChannels = (uint16)std::min(freeHw3DAllBuffers, 64u) - 7;
-        field_4 = 1;
+        m_nNumChannels = (uint16)std::min(numFree3dBuffers, 64u) - 7;
+        m_IsHardwareMixAvailable = true;
         AESmoothFadeThread.m_nNumAvailableBuffers = 7;
     }
 
     m_aChannels[0] = m_pStreamingChannel;
     for (auto i = 1u; i < m_nNumChannels; i++) {
-        m_aChannels[i] = new CAEStaticChannel(m_pDSDevice, i, field_4, 44'100, 16);
+        m_aChannels[i] = new CAEStaticChannel(m_pDSDevice, i, m_IsHardwareMixAvailable, 44'100, 16);
     }
 
     m_pStreamingChannel->SetVolume(-100.0f);
@@ -137,7 +136,7 @@ bool CAEAudioHardware::Initialise() {
 
         // Wait other threads until scanning is done.
         auto& state = AEUserRadioTrackManager.m_nUserTracksScanState;
-        while (state != USER_TRACK_SCAN_IN_PROGRESS) {
+        while (state == USER_TRACK_SCAN_IN_PROGRESS) {
             switch (state) {
             case USER_TRACK_SCAN_COMPLETE:
             case USER_TRACK_SCAN_ERROR:
@@ -245,24 +244,28 @@ void CAEAudioHardware::PlaySound(int16 channel, uint16 channelSlot, uint16 sound
 
 // 0x5B9340
 int16 CAEAudioHardware::AllocateChannels(uint16 numChannels) {
-    if (!numChannels || numChannels > m_nNumAvailableChannels)
+    if (!numChannels || numChannels > m_nNumAvailableChannels) {
         return -1;
+    }
 
-    auto slot = 0;
-    while (m_anNumChannelsInSlot[slot] && slot < MAX_NUM_AUDIO_CHANNELS)
+    size_t slot = 0;
+    while (slot < MAX_NUM_AUDIO_CHANNELS && m_anNumChannelsInSlot[slot]) {
         slot += m_anNumChannelsInSlot[slot];
+    }
 
-    if (slot >= MAX_NUM_AUDIO_CHANNELS)
+    if (slot >= MAX_NUM_AUDIO_CHANNELS) {
         return -1;
+    }
 
     m_anNumChannelsInSlot[slot] = numChannels;
-    m_nNumAvailableChannels -= numChannels;
-    return slot;
+    m_nNumAvailableChannels    -= numChannels;
+
+    return (int16)slot;
 }
 
 // 0x4D94A0
 void CAEAudioHardware::SetBassSetting(int8 nBassSet, float fBassEqGain) {
-    m_nBassSet = nBassSet;
+    m_nBassSet    = nBassSet;
     m_fBassEqGain = fBassEqGain;
     m_pStreamingChannel->SetBassEQ(nBassSet, fBassEqGain);
 }
@@ -291,36 +294,35 @@ void CAEAudioHardware::SetChannelVolume(int16 channel, uint16 channelId, float v
 // 0x4D88A0
 void CAEAudioHardware::LoadSoundBank(uint16 bankId, int16 bankSlotId) {
     if (!m_bDisableEffectsLoading) {
-        m_pMP3BankLoader->LoadSoundBank(bankId, bankSlotId);
+        m_pMP3BankLoader->LoadSoundBank((eSoundBank)(bankId), (eSoundBankSlot)(bankSlotId));
     }
 }
 
 // 0x4D88C0
 bool CAEAudioHardware::IsSoundBankLoaded(uint16 bankId, int16 bankSlotId) {
-    return m_pMP3BankLoader->IsSoundBankLoaded(bankId, bankSlotId);
+    return m_pMP3BankLoader->IsSoundBankLoaded((eSoundBank)(bankId), (eSoundBankSlot)(bankSlotId));
 }
 
 // 0x4D88D0
 int8 CAEAudioHardware::GetSoundBankLoadingStatus(uint16 bankId, int16 bankSlotId) {
-    return m_pMP3BankLoader->GetSoundBankLoadingStatus(bankId, bankSlotId);
+    return m_pMP3BankLoader->GetSoundBankLoadingStatus((eSoundBank)(bankId), (eSoundBankSlot)(bankSlotId));
 }
 
 // 0x4D8ED0
-bool CAEAudioHardware::LoadSound(uint16 bank, uint16 sound, int16 slot) {
+void CAEAudioHardware::LoadSound(uint16 bank, uint16 sound, int16 slot) {
     if (!m_bDisableEffectsLoading) {
-        return m_pMP3BankLoader->LoadSound(bank, sound, slot);
+        m_pMP3BankLoader->LoadSound((eSoundBank)(bank), sound, (eSoundBankSlot)(slot));
     }
-    return false;
 }
 
 // 0x4D8EF0
 bool CAEAudioHardware::IsSoundLoaded(uint16 bankId, uint16 sfxId, int16 bankSlot) {
-    return m_pMP3BankLoader->IsSoundLoaded(bankId, sfxId, bankSlot);
+    return m_pMP3BankLoader->IsSoundLoaded((eSoundBank)(bankId), sfxId, (eSoundBankSlot)(bankSlot));
 }
 
 // 0x4D8F00
 bool CAEAudioHardware::GetSoundLoadingStatus(uint16 bankId, uint16 sfxId, int16 bankSlot) {
-    return m_pMP3BankLoader->GetSoundLoadingStatus(bankId, sfxId, bankSlot);
+    return m_pMP3BankLoader->GetSoundLoadingStatus((eSoundBank)(bankId), sfxId, (eSoundBankSlot)(bankSlot));
 }
 
 // 0x4D88E0
@@ -374,7 +376,7 @@ void CAEAudioHardware::UpdateReverbEnvironment() {
 
 // 0x4D8E30
 float CAEAudioHardware::GetSoundHeadroom(uint16 sfxId, int16 bankSlotId) {
-    return m_pMP3BankLoader->GetSoundHeadroom(sfxId, bankSlotId);
+    return m_pMP3BankLoader->GetSoundHeadroom(sfxId, (eSoundBankSlot)(bankSlotId));
 }
 
 // 0x4D8E40
@@ -450,50 +452,51 @@ void CAEAudioHardware::GetBeatInfo(tBeatInfo* beatInfo) {
         return;
     }
 
-    const auto tId       = m_pStreamThread.GetActiveTrackID();
-    const auto tInfo     = std::unique_ptr<tTrackInfo>{m_pMP3TrackLoader->GetTrackInfo(tId)};
-    const auto tPlayTime = m_pStreamThread.GetTrackPlayTime();
+    const auto trkId       = m_pStreamThread.GetActiveTrackID();
+    const auto trkInfo     = std::unique_ptr<tTrackInfo>{ m_pMP3TrackLoader->GetTrackInfo(trkId) };
+    const auto trkPlayTime = m_pStreamThread.GetTrackPlayTime();
 
+    // Index of the first beat in the given time window
     size_t i = 0;
 
-    if (tPlayTime < 0 || tInfo->m_aBeats[0].m_nTime < 0) {
-        if (tPlayTime != -7) {
+    if (trkPlayTime < 0 || trkInfo->m_aBeats[0].m_nTime < 0) {
+        if (trkPlayTime != -7) {
             bi->IsBeatInfoPresent = false;
             rng::fill(bi->BeatWindow, tTrackInfo::tBeat{});
         }
     } else {
         const auto beatTimeWindowBegin = bi->BeatNumber
-            ? std::max(0u, (uint32)tPlayTime - 50u)
-            : (uint32)tPlayTime;
+            ? std::max(0u, (uint32)trkPlayTime - 50u)
+            : (uint32)trkPlayTime;
 
-        bi->IsBeatInfoPresent  = true;
+        bi->IsBeatInfoPresent = true;
         bi->BeatTypeThisFrame = 0;
         bi->BeatNumber        = -1;
         rng::fill(bi->BeatWindow, tTrackInfo::tBeat{});
 
         //> 0x4D904C - Find first beat in the given time window
-        for (; tInfo->m_aBeats[i].m_nKey && tInfo->m_aBeats[i].m_nTime < beatTimeWindowBegin; i++);
+        for (; trkInfo->m_aBeats[i].m_nKey && trkInfo->m_aBeats[i].m_nTime < beatTimeWindowBegin; i++);
     }
 
     // 0x4D9346 and 0x4D9088 combined - Copy beats at the beginning of the time window
     for (auto k = 0u; k < std::min(10u, i); k++) {
         auto& beat    = bi->BeatWindow[10 - i];
-        beat          = tInfo->m_aBeats[i - k - 1];
-        beat.m_nTime -= tPlayTime;
+        beat          = trkInfo->m_aBeats[i - k - 1];
+        beat.m_nTime -= trkPlayTime;
     }
 
-    if (tInfo->m_aBeats[i].m_nKey != 0) {
+    if (trkInfo->m_aBeats[i].m_nKey != 0) {
         // 0x4D9078
         if (i != bi->BeatNumber && i > 0) {
-            bi->BeatTypeThisFrame = tInfo->m_aBeats[i - 1].m_nKey;
+            bi->BeatTypeThisFrame = trkInfo->m_aBeats[i - 1].m_nKey;
         }
 
         // 0x4D91A9
-        for (auto k = 0u; k < std::min(std::size(tInfo->m_aBeats) - i, 10u); k++) { // Copy beats towards the end
+        for (auto k = 0u; k < std::min(std::size(trkInfo->m_aBeats) - i, 10u); k++) { // Copy beats towards the end
             auto& beat = bi->BeatWindow[10 + i];
             if (beat.m_nKey) {
-                beat         =  tInfo->m_aBeats[i + k];
-                beat.m_nTime -= tPlayTime;
+                beat         =  trkInfo->m_aBeats[i + k];
+                beat.m_nTime -= trkPlayTime;
             }
         }
     }

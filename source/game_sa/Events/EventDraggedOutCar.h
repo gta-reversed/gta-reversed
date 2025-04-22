@@ -23,7 +23,7 @@ public:
     bool AffectsPedGroup(CPedGroup* pedGroup) override;
     CEntity* GetSourceEntity() const override { return m_CarJacker; }
     float GetLocalSoundLevel() override { return 100.0f; }
-    CEventEditableResponse* CloneEditable() override;
+    CEventEditableResponse* CloneEditable() const noexcept override;
 
 private:
     friend void InjectHooksMain();

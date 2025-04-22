@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include <Base.h>
 #include "CompressedVector.h"
 #include "Vector.h"
 #include "NodeAddress.h"

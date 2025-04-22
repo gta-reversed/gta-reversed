@@ -29,6 +29,8 @@ void InjectCommonHooks() {
     RH_ScopedGlobalOverloadedInstall(CalcScreenCoors, "VVff", 0x71DA00, bool(*)(const CVector&, CVector&, float&, float&), { .reversed = true });
     RH_ScopedGlobalOverloadedInstall(CalcScreenCoors, "VV", 0x71DAB0, bool(*)(const CVector&, CVector&), { .reversed = true });
     RH_ScopedGlobalInstall(LittleTest, 0x541330);
+    RH_ScopedGlobalInstall(DoesInfiniteLineTouchScreen, 0x71DB80);
+    RH_ScopedGlobalInstall(IsPointInsideLine, 0x71E050);
 }
 
 // 0x54ECE0
@@ -104,17 +106,15 @@ void WriteRaster(RwRaster* raster, const char* filename) {
 }
 
 // 0x71DA00
-bool CalcScreenCoors(const CVector& in, CVector& out, float& screenX, float& screenY) {
-    const auto screen = TheCamera.GetViewMatrix().TransformPoint(in);
-    if (screen.z <= 1.0f)
+bool CalcScreenCoors(const CVector& in, CVector& out, float& scaleX, float& scaleY) {
+    if (!CalcScreenCoors(in, out)) {
         return false;
+    }
 
-    const float depth = 1.0f / screen.z;
+    const float r = 1.f / out.z / CDraw::ms_fFOV * 70.0f;
+    scaleX = SCREEN_WIDTH * r;
+    scaleY = SCREEN_HEIGHT * r;
 
-    out.x *= SCREEN_WIDTH * depth;
-    out.y *= SCREEN_HEIGHT * depth;
-    screenX = SCREEN_WIDTH * depth / CDraw::ms_fFOV * 70.0f;
-    screenY = SCREEN_HEIGHT * depth / CDraw::ms_fFOV * 70.0f;
     return true;
 }
 
@@ -131,9 +131,9 @@ bool CalcScreenCoors(const CVector& in, CVector& out) {
         return false;
     }
 
-    const auto depthRecp = 1.0f / out.z;
-    out.x = SCREEN_WIDTH * depthRecp * out.x;
-    out.y = SCREEN_HEIGHT * depthRecp * out.y;
+    const auto recpZ = 1.0f / out.z;
+    out.x *= SCREEN_WIDTH * recpZ;
+    out.y *= SCREEN_HEIGHT * recpZ;
 
     return true;
 }
@@ -143,16 +143,54 @@ void LittleTest() {
     ++g_nNumIm3dDrawCalls;
 }
 
+// @notsa
+// Similar to `CCollision::DistAlongLine2D`, but instead of calcualting the dot product
+// on the line itself, it's actually calculated on a perpendicular line on the right
+float DistAlongPerpRightLine2D(CVector2D origin, CVector2D dir, CVector2D pt) {
+    // return (pt.x - origin.x) * dir.y - (pt.y - origin.y) * dir.x
+    return (pt - origin).Dot(dir.GetPerpRight());
+}
+
+// @unk
+bool DoesInfiniteLineCrossFiniteLine(
+    CVector2D finiteA,
+    CVector2D finiteB,
+    CVector2D origin,
+    CVector2D dir
+) {
+    //return (((finiteA.x - origin.x) * dir.y) - ((finiteA.y - origin.y) * dir.x))
+    //    * (((finiteB.x - origin.x) * dir.y) - ((finiteB.y - origin.y) * dir.x)) < 0.0;
+    return DistAlongPerpRightLine2D(origin, dir, finiteA) * DistAlongPerpRightLine2D(origin, dir, finiteB) < 0.f;
+}
+
 // used only in COccluder::ProcessLineSegment
 // 0x71DB80
-bool DoesInfiniteLineTouchScreen(float baseX, float baseY, float deltaX, float deltaY) {
-    return plugin::CallAndReturn<bool, 0x71DB80, float, float, float, float>(baseX, baseY, deltaX, deltaY);
+bool DoesInfiniteLineTouchScreen(
+    //float oX, float oY, float dX, float dY
+    CVector2D origin,
+    CVector2D dir
+) {
+    // Point is on screen
+    if (IsPointInRect2D(origin, { 0.f, 0.f }, { SCREEN_WIDTH, SCREEN_HEIGHT })) {
+        return true;
+    }
+
+    // Or line touches any of the screen's bezzles (?)
+    return DoesInfiniteLineCrossFiniteLine({0.f, 0.f},           {SCREEN_WIDTH, 0.f},           origin, dir)
+        || DoesInfiniteLineCrossFiniteLine({0.f, 0.f},           {0.f, SCREEN_HEIGHT},          origin, dir)
+        || DoesInfiniteLineCrossFiniteLine({SCREEN_WIDTH, 0.f},  {SCREEN_WIDTH, SCREEN_HEIGHT}, origin, dir)
+        || DoesInfiniteLineCrossFiniteLine({0.f, SCREEN_HEIGHT}, {SCREEN_WIDTH, SCREEN_HEIGHT}, origin, dir);
 }
 
 // Used only in COcclusion, COccluder, CActiveOccluder
 // 0x71E050
-bool IsPointInsideLine(float fLineBaseX, float fLineBaseY, float fDeltaX, float fDeltaY, float fTestPointX, float fTestPointY, float fRadius) {
-    return (fTestPointX - fLineBaseX) * fDeltaY - (fTestPointY - fLineBaseY) * fDeltaX >= fRadius;
+bool IsPointInsideLine(
+    CVector2D origin,
+    CVector2D dir,
+    CVector2D pt,
+    float     radius
+) {
+    return DistAlongPerpRightLine2D(origin, dir, pt) >= radius;
 }
 
 // Convert UTF-8 string to Windows Unicode. Free pointer using delete[]

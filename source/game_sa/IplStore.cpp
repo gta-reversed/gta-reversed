@@ -8,52 +8,14 @@
 #include "StdInc.h"
 #include "IplStore.h"
 #include "tBinaryIplFile.h"
-#include "extensions/enumerate.hpp"
 #include "TheCarGenerators.h"
 
+using IplTreeNode  = CQuadTreeNode<IplDef*>;
+auto& ms_pQuadTree = StaticRef<IplTreeNode*>(0x8E3FAC);
+
+auto& ms_pPool = StaticRef<CIplPool*>(0x8E3FB0);
+
 int32& ms_currentIPLAreaCode = *(int32*)0x8E3EF8;
-
-// Izzotop: tested, but not reviewed
-
-void CIplStore::InjectHooks() {
-    RH_ScopedClass(CIplStore);
-    RH_ScopedCategoryGlobal();
-
-    RH_ScopedInstall(AddIplsNeededAtPosn, 0x4045B0);
-    RH_ScopedInstall(LoadIpl, 0x406080);
-    RH_ScopedInstall(Shutdown, 0x405FA0);
-    RH_ScopedInstall(Initialise, 0x405EC0);
-    RH_ScopedInstall(LoadIplBoundingBox, 0x405C00);
-    RH_ScopedInstall(RemoveIplSlot, 0x405B60);
-    RH_ScopedInstall(AddIplSlot, 0x405AC0);
-    RH_ScopedInstall(RemoveIplWhenFarAway, 0x4058D0);
-    RH_ScopedInstall(RemoveIplAndIgnore, 0x405890);
-    RH_ScopedInstall(RequestIplAndIgnore, 0x405850);
-    RH_ScopedInstall(LoadAllRemainingIpls, 0x405780);
-    RH_ScopedInstall(RemoveAllIpls, 0x405720);
-    RH_ScopedInstall(HaveIplsLoaded, 0x405600);
-    RH_ScopedInstall(RequestIpls, 0x405520);
-    RH_ScopedInstall(Load, 0x5D54A0);
-    RH_ScopedInstall(Save, 0x5D5420);
-    RH_ScopedInstall(EnsureIplsAreInMemory, 0x4053F0);
-    RH_ScopedInstall(RemoveRelatedIpls, 0x405110);
-    RH_ScopedInstall(SetupRelatedIpls, 0x404DE0, { .reversed = false });
-    RH_ScopedInstall(EnableDynamicStreaming, 0x404D30);
-    RH_ScopedInstall(IncludeEntity, 0x404C90);
-    RH_ScopedInstall(GetBoundingBox, 0x404C70);
-    RH_ScopedInstall(RemoveIpl, 0x404B20);
-    RH_ScopedInstall(FindIplSlot, 0x404AC0);
-    RH_ScopedInstall(SetIsInterior, 0x404A90);
-    RH_ScopedInstall(GetIplName, 0x404A60);
-    RH_ScopedInstall(GetIplEntityIndexArray, 0x4047B0);
-    RH_ScopedInstall(GetNewIplEntityIndexArray, 0x404780);
-    RH_ScopedInstall(SetIplsRequired, 0x404700);
-    RH_ScopedInstall(ClearIplsNeededAtPosn, 0x4045E0);
-    RH_ScopedInstall(LoadIpls, 0x405170);
-    RH_ScopedGlobalInstall(SetIfInteriorIplIsRequired, 0x4045F0);
-    RH_ScopedGlobalInstall(SetIfIplIsRequired, 0x404660);
-    RH_ScopedGlobalInstall(SetIfIplIsRequiredReducedBB, 0x404690);
-}
 
 /*!
  * @addr 0x405EC0
@@ -71,7 +33,7 @@ void CIplStore::Initialise() {
     NumIplEntityIndexArrays = 0;
     ppCurrIplInstance = nullptr;
 
-    ms_pQuadTree = new CQuadTreeNode(WORLD_BOUNDS, 3);
+    ms_pQuadTree = new IplTreeNode(WORLD_BOUNDS, 3);
     assert(ms_pQuadTree);
 }
 
@@ -80,10 +42,8 @@ void CIplStore::Initialise() {
  */
 void CIplStore::Shutdown() {
     RemoveAllIpls();
-    for (auto i = 0; i < ms_pPool->GetSize(); i++) {
-        if (!ms_pPool->IsFreeSlotAtIndex(i)) {
-            RemoveIplSlot(i);
-        }
+    for (auto&& [i, _] : ms_pPool->GetAllValidWithIndex()) {
+        RemoveIplSlot(i);
     }
     delete ms_pPool;
     ms_pPool = nullptr;
@@ -95,6 +55,52 @@ void CIplStore::Shutdown() {
 
     delete ms_pQuadTree;
     ms_pQuadTree = nullptr;
+}
+
+/*!
+* @addr 0x404660
+* @brief Callback used in `SetIplsRequired`
+*/
+void SetIfIplIsRequired(const CVector2D& posn, IplDef* def) {
+    if (def->isInterior && def->bb.IsPointInside(posn, -140.f)) {
+        def->loadRequested = true;
+    }
+}
+
+/*!
+* @addr 0x404690
+* @brief Callback used in `SetIplsRequired`
+*/
+void SetIfIplIsRequiredReducedBB(const CVector2D& posn, IplDef* def) {
+    if (def->bb.IsPointInside(posn, -160.f)) {
+        if (ms_currentIPLAreaCode != AREA_CODE_NORMAL_WORLD) {
+            if (!def->isInterior) {
+                return;
+            }
+        } else if (def->isInterior) {
+            return;
+        }
+        def->loadRequested = true;
+    }
+}
+
+/*!
+* @addr 0x4045F0
+* @brief Callback used in `SetIplsRequired`
+*/
+void SetIfInteriorIplIsRequired(const CVector2D& posn, IplDef* def) {
+    if (def->isInterior) {
+        if (!ms_currentIPLAreaCode) {
+            return;
+        }
+        if (def->bb.IsPointInside(posn, -140.f)) {
+            def->loadRequested = true;
+        }
+    } else {
+        if (def->bb.IsPointInside(posn)) {
+            def->loadRequested = true;
+        }
+    }
 }
 
 /*!
@@ -299,7 +305,7 @@ void CIplStore::LoadAllRemainingIpls() {
         if (CColAccel::isCacheLoading()) {
             *def = CColAccel::getIplDef(slot);
             def->loaded = false;
-            ms_pQuadTree->AddItem(&def, def->bb);
+            ms_pQuadTree->AddItem(def, def->bb);
         } else {
             CStreaming::RequestModel(IPLToModelId(slot), STREAMING_PRIORITY_REQUEST | STREAMING_KEEP_IN_MEMORY);
             CStreaming::LoadAllRequestedModels(true);
@@ -729,12 +735,12 @@ bool ExtractIPLNameFromPath(const char* iplFilePath, char(&out)[N]) {
     // Extract name of IPL from path
     const auto fileNameWithExt = strrchr(iplFilePath, '\\');
     if (!fileNameWithExt) {
-        DEV_LOG("Failed to extract ipl name from path ({}) [No path separator]", iplFilePath);
+        NOTSA_LOG_DEBUG("Failed to extract ipl name from path ({}) [No path separator]", iplFilePath);
         return false;
     }
     const auto dot = strchr(fileNameWithExt, '.');
     if (!dot) {
-        DEV_LOG("Failed to extract ipl name from path ({}) [No file ext]", iplFilePath);
+        NOTSA_LOG_DEBUG("Failed to extract ipl name from path ({}) [No file ext]", iplFilePath);
         return false;
     }
     memcpy_s(out, rng::size(out), fileNameWithExt + 1, dot - (fileNameWithExt + 1)); // They used a manual loop, but this is better.
@@ -791,7 +797,7 @@ int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** p
 bool CIplStore::Save() {
     const auto num = ms_pPool->GetSize();
     CGenericGameStorage::SaveDataToWorkBuffer(num);
-    for (auto i = 1; i < num; i++) { // skips 1st
+    for (auto i = 1u; i < num; i++) { // skips 1st
         const auto ipl = ms_pPool->GetAt(i);
         CGenericGameStorage::SaveDataToWorkBuffer(ipl && ipl->loaded && ipl->disableDynamicStreaming);
     }
@@ -820,54 +826,52 @@ bool CIplStore::Load() {
     return true;
 }
 
-/*!
- * @addr 0x4045F0
- * @brief Callback used in `SetIplsRequired`
- */
-void SetIfInteriorIplIsRequired(const CVector2D& posn, void* data) {
-    auto& def = *static_cast<IplDef*>(data);
-
-    if (def.isInterior) {
-        if (!ms_currentIPLAreaCode) {
-            return;
-        }
-        if (def.bb.IsPointInside(posn, -140.f)) {
-            def.loadRequested = true;
-        }
-    } else {
-        if (def.bb.IsPointInside(posn)) {
-            def.loadRequested = true;
-        }
-    }
+// notsa
+IplDef* CIplStore::GetInSlot(int32 slot) {
+    return ms_pPool->GetAt(slot);
 }
 
-/*!
- * @addr 0x404660
- * @brief Callback used in `SetIplsRequired`
- */
-void SetIfIplIsRequired(const CVector2D& posn, void* data) {
-    auto& def = *static_cast<IplDef*>(data);
-
-    if (def.isInterior && def.bb.IsPointInside(posn, -140.f)) {
-        def.loadRequested = true;
-    }
+// notsa
+CIplPool* CIplStore::GetPool() {
+    return ms_pPool;
 }
 
-/*!
- * @addr 0x404690
- * @brief Callback used in `SetIplsRequired`
- */
-void SetIfIplIsRequiredReducedBB(const CVector2D& posn, void* data) {
-    auto& def = *static_cast<IplDef*>(data);
+void CIplStore::InjectHooks() {
+    RH_ScopedClass(CIplStore);
+    RH_ScopedCategoryGlobal();
 
-    if (def.bb.IsPointInside(posn, -160.f)) {
-        if (ms_currentIPLAreaCode != AREA_CODE_NORMAL_WORLD) {
-            if (!def.isInterior) {
-                return;
-            }
-        } else if (def.isInterior) {
-            return;
-        }
-        def.loadRequested = true;
-    }
+    RH_ScopedInstall(AddIplsNeededAtPosn, 0x4045B0);
+    RH_ScopedInstall(LoadIpl, 0x406080);
+    RH_ScopedInstall(Shutdown, 0x405FA0);
+    RH_ScopedInstall(Initialise, 0x405EC0);
+    RH_ScopedInstall(LoadIplBoundingBox, 0x405C00);
+    RH_ScopedInstall(RemoveIplSlot, 0x405B60);
+    RH_ScopedInstall(AddIplSlot, 0x405AC0);
+    RH_ScopedInstall(RemoveIplWhenFarAway, 0x4058D0);
+    RH_ScopedInstall(RemoveIplAndIgnore, 0x405890);
+    RH_ScopedInstall(RequestIplAndIgnore, 0x405850);
+    RH_ScopedInstall(LoadAllRemainingIpls, 0x405780);
+    RH_ScopedInstall(RemoveAllIpls, 0x405720);
+    RH_ScopedInstall(HaveIplsLoaded, 0x405600);
+    RH_ScopedInstall(RequestIpls, 0x405520);
+    RH_ScopedInstall(Load, 0x5D54A0);
+    RH_ScopedInstall(Save, 0x5D5420);
+    RH_ScopedInstall(EnsureIplsAreInMemory, 0x4053F0);
+    RH_ScopedInstall(RemoveRelatedIpls, 0x405110);
+    RH_ScopedInstall(SetupRelatedIpls, 0x404DE0, { .reversed = false });
+    RH_ScopedInstall(EnableDynamicStreaming, 0x404D30);
+    RH_ScopedInstall(IncludeEntity, 0x404C90);
+    RH_ScopedInstall(GetBoundingBox, 0x404C70);
+    RH_ScopedInstall(RemoveIpl, 0x404B20);
+    RH_ScopedInstall(FindIplSlot, 0x404AC0);
+    RH_ScopedInstall(SetIsInterior, 0x404A90);
+    RH_ScopedInstall(GetIplName, 0x404A60);
+    RH_ScopedInstall(GetIplEntityIndexArray, 0x4047B0);
+    RH_ScopedInstall(GetNewIplEntityIndexArray, 0x404780);
+    RH_ScopedInstall(SetIplsRequired, 0x404700);
+    RH_ScopedInstall(ClearIplsNeededAtPosn, 0x4045E0);
+    RH_ScopedInstall(LoadIpls, 0x405170);
+    RH_ScopedGlobalInstall(SetIfInteriorIplIsRequired, 0x4045F0);
+    RH_ScopedGlobalInstall(SetIfIplIsRequired, 0x404660);
+    RH_ScopedGlobalInstall(SetIfIplIsRequiredReducedBB, 0x404690);
 }

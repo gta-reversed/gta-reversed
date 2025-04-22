@@ -20,6 +20,6 @@ bool CEventGotKnockedOverByCar::AffectsPed(CPed* ped) {
 }
 
 // 0x4B7960
-CEventEditableResponse* CEventGotKnockedOverByCar::CloneEditable() {
+CEventEditableResponse* CEventGotKnockedOverByCar::CloneEditable() const noexcept {
     return new CEventGotKnockedOverByCar(m_vehicle);
 }

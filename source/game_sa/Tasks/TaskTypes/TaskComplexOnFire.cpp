@@ -27,7 +27,7 @@ void CTaskComplexOnFire::ComputeFireDamage(CPed* ped, CPedDamageResponse& outRes
     }
 
     CPedDamageResponseCalculator calc{
-        ped->m_pFire ? ped->m_pFire->m_pEntityCreator : nullptr,
+        ped->m_pFire ? ped->m_pFire->GetEntityStartedFire() : nullptr,
         CTimer::GetTimeStep() * ped->m_fireDmgMult * 500.f / 1000.f, // TODO: Magic numberz
         WEAPON_FLAMETHROWER,
         PED_PIECE_TORSO,
@@ -99,7 +99,7 @@ CTask* CTaskComplexOnFire::ControlSubTask(CPed* ped) {
         CPedDamageResponse resp{};
         ComputeFireDamage(ped, resp);
         if (resp.m_bHealthZero && MakeAbortable(ped)) {
-            CEventHandler::RegisterKill(ped, ped->m_pFire->m_pEntityCreator, WEAPON_MOLOTOV, false);
+            CEventHandler::RegisterKill(ped, ped->m_pFire->GetEntityStartedFire(), WEAPON_MOLOTOV, false);
             return CreateSubTask(TASK_COMPLEX_DIE);
         }
         break;

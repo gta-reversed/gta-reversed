@@ -38,7 +38,7 @@ bool CEventDeadPed::AffectsPed(CPed* ped) {
 }
 
 // 0x4B6E70
-CEventEditableResponse* CEventDeadPed::CloneEditable() {
+CEventEditableResponse* CEventDeadPed::CloneEditable() const noexcept {
     return new CEventDeadPed(m_ped, field_18, m_deathTimeInMs);
 
 }

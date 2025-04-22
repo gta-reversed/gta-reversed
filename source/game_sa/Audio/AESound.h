@@ -11,7 +11,7 @@
 class CAEAudioEntity;
 class CEntity;
 
-using tSoundID = int16;
+using eSoundID = int16;
 
 enum eSoundEnvironment : uint16 {
     SOUND_DEFAULT                          = 0x0,
@@ -55,7 +55,7 @@ public:
     float           m_fCurrCamDist;
     float           m_fPrevCamDist;
     float           m_fTimeScale;
-    uint8           m_nIgnoredServiceCycles; // Seemingly never used, but CAESoundManager::Service still checks for that
+    uint8           m_FrameDelay; // Seemingly never used, but CAESoundManager::Service still checks for that
     char            field_55;
     union {
         uint16 m_nEnvironmentFlags;
@@ -79,8 +79,8 @@ public:
     uint16 m_nIsUsed;
     int16  m_bWasServiced;
     int16  m_nCurrentPlayPosition;
-    int16  m_nHasStarted;
-    float  m_fFinalVolume;
+    int16  m_IsPhysicallyPlaying;
+    float  m_ListenerVolume;
     float  m_fFrequency;
     int16  m_nPlayingState; // see eSoundState
     char   field_6A[2];
@@ -145,6 +145,7 @@ public:
     void  CalculateVolume();
     void  UpdateParameters(int16 curPlayPos);
     void  SoundHasFinished();
+    eSoundState GetPlayingState() const { return (eSoundState)(m_nPlayingState); }
 
 public:
     bool IsUsed() const { return m_nIsUsed; }

@@ -11,6 +11,16 @@ void CheatDebugModule::RenderMenuEntry() {
     });
 }
 
+void CheatDebugModule::Update() {
+    if (!m_GodMode) {
+        return;
+    }
+    if (const auto plyr = FindPlayerPed()) {
+        plyr->m_fHealth = plyr->m_fMaxHealth;
+        plyr->m_fArmour = 100.f;
+    }
+}
+
 void CheatDebugModule::RenderWindow() {
     const notsa::ui::ScopedWindow window{ "Cheats", { 500.f, 700.f }, m_IsOpen };
     if (!m_IsOpen) {
@@ -25,6 +35,7 @@ void CheatDebugModule::RenderWindow() {
     //};
 
     if (ImGui::CollapsingHeader("Player")) {
+        ImGui::Checkbox("God Mode", &m_GodMode);
         if (ImGui::RadioButton("Adrenaline", false)) {
             CCheat::AdrenalineCheat();
         }

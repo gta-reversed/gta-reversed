@@ -5,8 +5,8 @@
 #include "ReadArg.hpp"
 #include "RunningScript.h"
 
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
-#include <ScriptCommand.h>
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
+#include <reversiblehooks/ReversibleHook/ScriptCommand.h>
 #endif
 
 class CRunningScript;
@@ -66,7 +66,7 @@ inline OpcodeResult CollectArgsAndCall(CRunningScript* S, eScriptCommands comman
 //! That is, ones that aren't used anywhere.
 //! If this ever gets called, that means that the command is used after all, and shouldn't be hooked as unimplemented.
 inline auto NotImplemented(CRunningScript& S, eScriptCommands cmd) {
-    DEV_LOG("[{}][IP: {:#x} + {:#x}]: Unimplemented command has been called! [ID: {:04X}; Name: {}]", S.m_szName, LOG_PTR(S.m_pBaseIP), LOG_PTR(S.m_IP - S.m_pBaseIP), (unsigned)(cmd), GetScriptCommandName(cmd));
+    NOTSA_LOG_DEBUG("[{}][IP: {:#x} + {:#x}]: Unimplemented command has been called! [ID: {:04X}; Name: {}]", S.m_szName, LOG_PTR(S.m_BaseIP), LOG_PTR(S.m_IP - S.m_BaseIP), (unsigned)(cmd), GetScriptCommandName(cmd));
     NOTSA_DEBUGBREAK(); // Something went horribly wrong here, and the game will crash after this [if the function is supposed to take/return any arguments], so better stop here.
     return OR_INTERRUPT; // Vanilla SA behavior
 }
@@ -107,7 +107,7 @@ constexpr inline auto AddressOfFunction(T fn) {
 };
 
 //! Register a custom command handler
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 //! Use this before calling any of the 
 #define REGISTER_COMMAND_HANDLER_BEGIN(_namespace) \
     RH_ScopedCategory("Scripts/Commands") \

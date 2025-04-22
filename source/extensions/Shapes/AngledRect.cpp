@@ -19,7 +19,7 @@ bool AngledRect::IsPointWithin(const CVector2D& pos) const {
 }
 
 void AngledRect::DrawWireFrame(CRGBA color, float z, const CMatrix& transform) const {
-    const auto colorARGB = color.ToIntRGBA();
+    const auto colorARGB = color.ToIntARGB();
 
     // Calculate corners
     CVector corners[4];

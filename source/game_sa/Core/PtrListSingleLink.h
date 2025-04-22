@@ -6,21 +6,42 @@
 */
 #pragma once
 
-#include "PtrList.h"
 #include "PtrNodeSingleLink.h"
+#include "PtrList.h"
 
-class CPtrListSingleLink : public CPtrList {
-public:
-    ~CPtrListSingleLink() { Flush(); }
+namespace details {
+template<typename ItemType>
+struct PtrListSingleLinkTraits {
+    using NodeType = CPtrNodeSingleLink<ItemType>;
 
-    static void InjectHooks();
+    static NodeType* AddNode(NodeType*& head, NodeType* node) {
+        node->Next = std::exchange(head, node);
+        return node;
+    }
 
-    void Flush();
-    CPtrNodeSingleLink* AddItem(void* item);
-    void DeleteItem(void* item);
-    void DeleteNode(CPtrNodeSingleLink* node, CPtrNodeSingleLink* lastNode); // Most likely inlined in the final exe,
+    static NodeType* UnlinkNode(NodeType*& head, NodeType* node, NodeType* prev) {
+        assert(node);
+        assert(head && "Can't remove node from empty list");
 
-    CPtrNodeSingleLink* GetNode() { return reinterpret_cast<CPtrNodeSingleLink*>(m_node); }
+        NodeType* next = node->Next;
+        if (head == node) { // Node is the head?
+            assert(!prev && "Head node must have no `prev`"); 
+            head = next;
+        } else {
+            assert(prev && "All nodes other than the `head` must have a valid `prev`!");
+            assert(prev->Next == node && "`prev->next` must point to `node`");
+            prev->Next = next;
+        }
+        return next;
+    }
+};
 };
 
-VALIDATE_SIZE(CPtrListSingleLink, 4);
+/*!
+* @brief A list of single-linked nodes (forward list)
+*/
+template<typename ItemType>
+class CPtrListSingleLink : public CPtrList<details::PtrListSingleLinkTraits<ItemType>> {
+public:
+    using CPtrList<details::PtrListSingleLinkTraits<ItemType>>::CPtrList;
+};

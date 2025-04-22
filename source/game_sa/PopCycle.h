@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include <Base.h>
 #include "ZoneInfo.h"
 #include "ePedRace.h"
 
@@ -190,32 +191,7 @@ enum ePopcycleCarGroup {
 
 class CPopCycle {
 public:
-    // Based on `popcycle.dat`
-    enum class ZoneType {
-        BUSINESS,
-        DESERT,
-        ENTERTAINMENT,
-        COUNTRYSIDE,
-        RESIDENTIAL_RICH,
-        RESIDENTIAL_AVERAGE,
-        RESIDENTIAL_POOR,
-        GANGLAND,
-        BEACH,
-        SHOPPING,
-        PARK,
-        INDUSTRY,
-        ENTERTAINMENT_BUSY,
-        SHOPPING_BUSY,
-        SHOPPING_POSH,
-        RESIDENTIAL_RICH_SECLUDED,
-        AIRPORT,
-        GOLF_CLUB,
-        OUT_OF_TOWN_FACTORY,
-        AIRPORT_RUNWAY,
-
-        // Add above this
-        COUNT,
-    };
+    
 public:
     static inline float& m_NumOther_Cars = *(float*)0xC0BC30;
     static inline float& m_NumCops_Cars = *(float*)0xC0BC34;
@@ -243,7 +219,7 @@ public:
     static constexpr auto PERC_DATA_TIME_RESOLUTION_HR = 2;
 
     // TODO: Eventually use an array of structs instead of 7x 4 dimensional arrays....
-    using PercDataArray = uint8[24 / PERC_DATA_TIME_RESOLUTION_HR /*time resolution (hr)*/][2 /*weekday and weekend*/][(uint32)(ZoneType::COUNT)];
+    using PercDataArray = uint8[24 / PERC_DATA_TIME_RESOLUTION_HR /*time resolution (hr)*/][2 /*weekday and weekend*/][(uint32)(eZonePopulationType::COUNT)];
     static inline PercDataArray& m_nPercOther = *(PercDataArray*)0xC0DE38;
     static inline PercDataArray& m_nPercCops = *(PercDataArray*)0xC0E018;
     static inline PercDataArray& m_nPercGang = *(PercDataArray*)0xC0E1F8;
@@ -252,7 +228,7 @@ public:
     static inline PercDataArray& m_nMaxNumPeds = *(PercDataArray*)0xC0E798;
 
     //! See `Initialise` for more info about this array.
-    static inline uint8 (&m_nPercTypeGroup)[24 / PERC_DATA_TIME_RESOLUTION_HR][2 /*weekday or weekend*/][(uint32)(ZoneType::COUNT)][POPCYCLE_TOTAL_GROUP_PERCS] = *(uint8(*)[12][2][20][18])0xC0BC78;
+    static inline uint8 (&m_nPercTypeGroup)[24 / PERC_DATA_TIME_RESOLUTION_HR][2 /*weekday or weekend*/][(uint32)(eZonePopulationType::COUNT)][POPCYCLE_TOTAL_GROUP_PERCS] = *(uint8(*)[12][2][20][18])0xC0BC78;
 
     static void InjectHooks();
 
@@ -313,7 +289,7 @@ public:
 
 
     static uint8 GetCurrentPercTypeGroup(int32 groupId) {
-        return m_nPercTypeGroup[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_pCurrZoneInfo->zonePopulationType][groupId];
+        return m_nPercTypeGroup[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_pCurrZoneInfo->PopType][groupId];
     }
 
     static bool IsPedInGroupTheseGroups(int32 modelIndex, std::initializer_list<ePopcycleGroup> groups) {

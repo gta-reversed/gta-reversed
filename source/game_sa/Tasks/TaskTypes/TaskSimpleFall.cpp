@@ -212,7 +212,7 @@ void CTaskSimpleFall::ProcessFall(CPed* ped)
         else
         {
             if (pFirstAnim && pFirstAnim->m_CurrentTime > pFirstAnim->m_BlendHier->m_fTotalTime * 0.8F)
-                CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, pFirstAnim->m_Flags & ANIMATION_800 ? ANIM_ID_FALL_FRONT : ANIM_ID_FALL_BACK, 8.0F);
+                CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_DEFAULT, pFirstAnim->m_Flags & ANIMATION_IS_FRONT ? ANIM_ID_FALL_FRONT : ANIM_ID_FALL_BACK, 8.0F);
         }
     }
     else if ((ped->bKnockedUpIntoAir || ped->bKnockedOffBike)

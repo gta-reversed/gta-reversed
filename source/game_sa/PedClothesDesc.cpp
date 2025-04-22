@@ -45,7 +45,7 @@ void CPedClothesDesc::SetModel(const char* model, eClothesModelPart modelPart) {
 
 // 0x5A7950
 bool CPedClothesDesc::GetIsWearingBalaclava() {
-    return m_anModelKeys[9] == CKeyGen::GetUppercaseKey("balaclava");
+    return IsWearingModel("balaclava", CLOTHES_MODEL_SPECIAL);
 }
 
 // 0x5A7970

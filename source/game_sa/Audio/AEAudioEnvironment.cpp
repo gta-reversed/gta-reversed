@@ -13,7 +13,7 @@ void CAEAudioEnvironment::InjectHooks() {
     RH_ScopedInstall(GetDistanceAttenuation, 0x4D7F20);
     RH_ScopedInstall(GetDirectionalMikeAttenuation, 0x4D7F60);
     RH_ScopedInstall(GetReverbEnvironmentAndDepth, 0x4D8010);
-    RH_ScopedOverloadedInstall(GetPositionRelativeToCamera, "vec", 0x4D80B0, CVector(*)(const CVector&));
+    RH_ScopedOverloadedInstall(GetPositionRelativeToCamera, "vec", 0x4D80B0, CVector(*)(const CVector&), { .locked = true }); // Unook -> Crash due to different signature
     RH_ScopedOverloadedInstall(GetPositionRelativeToCamera, "placeable", 0x4D8340, CVector(*)(CPlaceable*));
 }
 
@@ -99,24 +99,22 @@ void CAEAudioEnvironment::GetReverbEnvironmentAndDepth(int8* reverbEnv, int32* d
 // 0x4D80B0
 CVector CAEAudioEnvironment::GetPositionRelativeToCamera(const CVector& pt) {
     const auto& camMat = TheCamera.m_mCameraMatrix;
-    const auto Calculate = [&](CVector offset) {
-        const auto posOS = pt - TheCamera.GetPosition() + offset;
-        return camMat.InverseTransformVector(CVector{-posOS.x, posOS.y, posOS.z});
+    const auto Calculate = [&](CVector camOffset) -> CVector { // @ 0x4D82DF
+        const auto p = camMat.InverseTransformVector(pt - (TheCamera.GetPosition() - camOffset));
+        return { -p.x, p.y, p.z };
     };
+
     switch (CCamera::GetActiveCamera().m_nMode) {
     case eCamMode::MODE_SNIPER:
     case eCamMode::MODE_ROCKETLAUNCHER:
-    case eCamMode::MODE_1STPERSON: {
-        return Calculate(-camMat.GetForward() * 2.f);
+    case eCamMode::MODE_1STPERSON:
+        return Calculate(camMat.GetForward() * 2.f);
     }
-    default: {
-        const auto* player = FindPlayerPed();
-        const auto camDist = player
-            ? std::clamp(CVector::Dist(camMat.GetPosition(), player->GetPosition()), 0.0F, 0.5F)
-            : 0.f;
-        return Calculate(camMat.GetForward() * camDist);
-    }
-    }
+
+    const auto camDist = FindPlayerPed()
+        ? CVector::Dist(camMat.GetPosition(), FindPlayerPed()->GetPosition())
+        : 0.5f;
+    return Calculate(camMat.GetBackward() * std::clamp(camDist - 0.5f, 0.f, 0.5f));
 }
 
 // 0x4D8340

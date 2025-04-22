@@ -114,7 +114,7 @@ CCopPed::CCopPed(uint32_t copTypeOrModelID) :
     m_pedSpeech.Initialise(this);
     m_pCopPartner = nullptr;
     std::ranges::fill(m_apCriminalsToKill, nullptr);
-    field_7C0 = 0;
+    m_isTheDriver = 0;
 }
 
 // 0x5DDC60
@@ -174,42 +174,29 @@ size_t CCopPed::GetEmptySlotForCriminalToKill() {
 }
 
 // 0x5DDEB0
-void CCopPed::AddCriminalToKill(CPed* criminal) {
+int32 CCopPed::AddCriminalToKill(CPed* criminal) {
     if (!criminal)
-        return;
+        return -1;
 
-    if (criminal->IsPlayer())
-        return;
-
-    switch (criminal->m_nPedType) {
-    case PED_TYPE_COP:
-    case PED_TYPE_MEDIC:
-    case PED_TYPE_FIREMAN:
-        return;
+    if (!criminal->CanBeCriminal()) {
+        return -1;
     }
-    if ((unsigned)criminal->m_nPedType >= (unsigned)PED_TYPE_MISSION1)
-        return;
-
-    if (criminal->IsCreatedBy(ePedCreatedBy::PED_MISSION))
-        return;
 
     ClearCriminalListFromDeadPeds();
 
     if (criminal->m_fHealth <= 0.0f)
-        return;
+        return -1;
 
     if (IsCriminalInList(criminal))
-        return;
+        return -1;
 
     /* Find slot, put criminal in there */
-    {
-        size_t slot = GetEmptySlotForCriminalToKill();
-        if (slot == -1)
-            return; /* no free slot, return */
+    size_t slot = GetEmptySlotForCriminalToKill();
+    if (slot == -1)
+        return -1; /* no free slot, return */
 
-        criminal->RegisterReference(reinterpret_cast<CEntity**>(&m_apCriminalsToKill[slot]));
-        m_apCriminalsToKill[slot] = criminal;
-    }
+    criminal->RegisterReference(reinterpret_cast<CEntity**>(&m_apCriminalsToKill[slot]));
+    m_apCriminalsToKill[slot] = criminal;
 
     criminal->bWantedByPolice = true;
     criminal->bCullExtraFarAway = true;
@@ -222,6 +209,8 @@ void CCopPed::AddCriminalToKill(CPed* criminal) {
     }
     if (m_pCopPartner)
         m_pCopPartner->AddCriminalToKill(criminal);
+
+    return slot;
 }
 
 // 0x5DE040

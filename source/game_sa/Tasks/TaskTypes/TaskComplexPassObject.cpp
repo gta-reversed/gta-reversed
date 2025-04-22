@@ -58,7 +58,7 @@ bool CTaskComplexPassObject::MakeAbortable(CPed* ped, eAbortPriority priority, C
 
 // 0x6612C0
 CTask* CTaskComplexPassObject::CreateNextSubTask(CPed* ped) {
-    if (m_ped && CTask::IsA<CTaskComplexTurnToFaceEntityOrCoord>(m_pSubTask)) {
+    if (m_ped && notsa::isa<CTaskComplexTurnToFaceEntityOrCoord>(m_pSubTask)) {
         g_ikChainMan.PointArm("CTaskComplexPassObject", eIKArm::IK_ARM_RIGHT, ped, nullptr, eBoneTag::BONE_UNKNOWN, &m_targetPos, 0.25f, 250, 30.f);
         return new CTaskSimpleStandStill{ 999'999 };
     }

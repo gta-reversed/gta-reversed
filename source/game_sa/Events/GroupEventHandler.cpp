@@ -101,7 +101,7 @@ void MaybeAdjustTaskOfGroupThreatEvent(const CEventEditableResponse& e, CPedGrou
     if (pg->m_bIsMissionGroup && srcPed->IsPlayer()) {
         if (const auto l = pg->GetMembership().GetLeader()) {
             if (!l->GetActiveWeapon().IsTypeMelee() && !l->GetIntelligence()->IsFriendlyWith(*originator)) {
-                const_cast<CEventEditableResponse*>(&e)->m_taskId = TASK_GROUP_KILL_THREATS_BASIC; // nice R*
+                const_cast<CEventEditableResponse*>(&e)->m_TaskId = TASK_GROUP_KILL_THREATS_BASIC; // nice R*
             }
         }
     }
@@ -112,8 +112,8 @@ bool CGroupEventHandler::IsKillTaskAppropriate(CPedGroup* g, CPed* threat) {
     if (g->m_bIsMissionGroup || threat->GetActiveWeapon().IsTypeMelee()) {
         return true;
     }
-    for (auto& m : g->GetMembership().GetMembers()) {
-        if (!m.GetActiveWeapon().IsTypeMelee()) {
+    for (auto* const m : g->GetMembership().GetMembers()) {
+        if (!m->GetActiveWeapon().IsTypeMelee()) {
             return true;
         }
     }
@@ -136,9 +136,9 @@ CTaskAllocator* CGroupEventHandler::ComputeStareResponse(CPedGroup* pg, CPed* st
     if ((stareAt->GetPosition() - pg->GetMembership().GetLeader()->GetPosition()).SquaredMagnitude2D() >= sq(8.f)) {
         return nullptr;
     }
-    for (auto& m : pg->GetMembership().GetMembers()) {
+    for (auto* const m : pg->GetMembership().GetMembers()) {
         pg->GetIntelligence().SetEventResponseTask(
-            &m,
+            m,
             CTaskComplexStareAtPed{
                 pg,
                 stareAt,
@@ -155,7 +155,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseVehicleDamage(const CEventVeh
         return nullptr;
     }
     const auto threat = e.m_attacker->AsPed();
-    switch (e.m_taskId) {
+    switch (e.m_TaskId) {
     case TASK_GROUP_KILL_THREATS_BASIC:  return ComputeKillThreatsBasicResponse(pg, threat, originator, true);
     case TASK_GROUP_KILL_PLAYER_BASIC:   return ComputeKillPlayerBasicResponse(pg, threat, originator, true); 
     case TASK_GROUP_FLEE_THREAT:         return ComputeFleePedResponse(pg, threat, originator, true);         
@@ -171,7 +171,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseShotFired(const CEventGunShot
         return nullptr;
     }
     const auto threat = e.m_firedBy->AsPed();
-    switch (e.m_taskId) {
+    switch (e.m_TaskId) {
     case TASK_GROUP_KILL_THREATS_BASIC:  return ComputeKillThreatsBasicResponse(pg, threat, originator, false);
     case TASK_GROUP_FLEE_THREAT:         return ComputeFleePedResponse(pg, threat, originator, false);
     case TASK_GROUP_USE_MEMBER_DECISION: return ComputeMemberResponses(e, pg, originator);
@@ -190,7 +190,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseSexyPed(const CEventSexyPed& 
     if (IsPedInPlayersGroup(pg, e.m_SexyPed)) {
         return nullptr;
     }
-    switch (e.m_taskId) {
+    switch (e.m_TaskId) {
     case TASK_GROUP_STARE_AT_PED:    return ComputeStareResponse(pg, e.m_SexyPed, originator, CGeneral::GetRandomNumberInRange(3000, 5000), 1000);
     case TASK_GROUP_HASSLE_SEXY_PED: return ComputeHassleSexyPedResponse(pg, e.m_SexyPed, originator);
     }
@@ -199,7 +199,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseSexyPed(const CEventSexyPed& 
 
 // 0x5FBCB0
 CTaskAllocator* CGroupEventHandler::ComputeResponseSeenCop(const CEventSeenCop& e, CPedGroup* pg, CPed* originator) {
-    switch (e.m_taskId) {
+    switch (e.m_TaskId) {
     case TASK_GROUP_KILL_THREATS_BASIC: return ComputeKillThreatsBasicResponse(pg, e.m_AcquaintancePed, originator, false);
     case TASK_GROUP_FLEE_THREAT:        return ComputeFleePedResponse(pg, e.m_AcquaintancePed, originator, false);
     case TASK_GROUP_HAND_SIGNAL:        return ComputeHandSignalResponse(pg, e.m_AcquaintancePed, originator);
@@ -233,7 +233,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponsePedThreat(const CEventAcquain
     if (pg->GetMembership().IsMember(e.m_AcquaintancePed)) {
         return nullptr;
     }
-    switch (e.m_taskId) {
+    switch (e.m_TaskId) {
     case TASK_GROUP_KILL_THREATS_BASIC:    return ComputeKillThreatsBasicResponse(pg, e.m_AcquaintancePed, originator, false);
     case TASK_GROUP_STARE_AT_PED:          return ComputeStareResponse(pg, e.m_AcquaintancePed, originator, 99'999'999, false); // 1.15740739583 days
     case TASK_GROUP_FLEE_THREAT:           return ComputeFleePedResponse(pg, e.m_AcquaintancePed, originator, false);
@@ -253,7 +253,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponsePedFriend(const CEventAcquain
     if (IsPedInPlayersGroup(pg, e.m_AcquaintancePed)) {
         return nullptr;
     }
-    switch (e.m_taskId) {
+    switch (e.m_TaskId) {
     case TASK_GROUP_PARTNER_DEAL:  return ComputeDoDealResponse(pg, e.m_AcquaintancePed, originator);
     case TASK_GROUP_PARTNER_GREET: return ComputeGreetResponse(pg, e.m_AcquaintancePed, originator);
     }
@@ -284,23 +284,23 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseNewGangMember(const CEventNew
 // 0x5F90A0
 CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderExitedCar(const CEventEditableResponse&, CPedGroup* pg, CPed* originator) {
     const auto leader = pg->GetMembership().GetLeader();
-    for (auto&& [i, m] : notsa::enumerate(pg->GetMembership().GetFollowers())) {
-        if (m.m_pVehicle && m.bInVehicle && m.m_pVehicle == leader->m_pVehicle) { // Already in the leader's vehicle
+    for (auto&& [i, m] : rngv::enumerate(pg->GetMembership().GetFollowers())) {
+        if (m->m_pVehicle && m->bInVehicle && m->m_pVehicle == leader->m_pVehicle) { // Already in the leader's vehicle
             continue; 
         }
         CVehicle* mveh{};
-        if (const auto t = m.GetTaskManager().Find<CTaskComplexEnterCarAsPassengerWait>(false); !t || !(mveh = t->GetCar())) {
-            if (const auto t = m.GetTaskManager().Find<CTaskComplexEnterCarAsPassenger>(false); !t || !(mveh = t->GetTargetCar())) {
+        if (const auto t = m->GetTaskManager().Find<CTaskComplexEnterCarAsPassengerWait>(false); !t || !(mveh = t->GetCar())) {
+            if (const auto t = m->GetTaskManager().Find<CTaskComplexEnterCarAsPassenger>(false); !t || !(mveh = t->GetTargetCar())) {
                 continue;
             }
         }
-        const auto SetTask = [&](const auto& task) {
-            pg->GetIntelligence().SetEventResponseTask(&m, task);
+        const auto SetResponseTask = [&](const auto& task) {
+            pg->GetIntelligence().SetEventResponseTask(m, task);
         };
         const auto isVehOnFire = mveh->m_pFireParticle && mveh->m_pFireParticle->GetPlayStatus() == eFxSystemPlayStatus::FX_PLAYING;
         if (notsa::contains<int>({ 15, 16 }, mveh->m_pHandlingData->m_nAnimGroup)) { // TODO: Enums
             if (isVehOnFire) { // INVERTED - 0x5F9483 
-                SetTask(CTaskComplexSequence{
+                SetResponseTask(CTaskComplexSequence{
                     new CTaskComplexLeaveCarAsPassengerWait{mveh},
                     new CTaskComplexSmartFleeEntity{
                         mveh,
@@ -312,7 +312,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderExitedCar(const CEventE
                     }
                 });
             } else { // 0x5F937C
-                SetTask(CTaskComplexLeaveCarAsPassengerWait{
+                SetResponseTask(CTaskComplexLeaveCarAsPassengerWait{
                     mveh
                 });
             }
@@ -323,7 +323,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderExitedCar(const CEventE
             // - Use an `for i` loop [to iterate the array]
             // But I'm way too fancy to do that, so...
             if (isVehOnFire) { // INVERTED
-                SetTask(CTaskComplexSequence{ // 0x5F9193
+                SetResponseTask(CTaskComplexSequence{ // 0x5F9193
                     new CTaskComplexLeaveCar{
                         mveh,
                         eTargetDoor::TARGET_DOOR_FRONT_LEFT,
@@ -341,7 +341,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderExitedCar(const CEventE
                     }
                 });
             } else { // 0x5F92E7
-                SetTask(CTaskComplexLeaveCar{
+                SetResponseTask(CTaskComplexLeaveCar{
                      mveh,
                     eTargetDoor::TARGET_DOOR_FRONT_LEFT,
                     CGeneral::GetRandomNumberInRange(-250, 250) + i * 500, // SEE NOTE
@@ -366,15 +366,15 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderEnterExit(const CEventL
     if (!leader) {
         return nullptr;
     }
-    for (auto& m : pgms->GetFollowers()) {
-        if (m.bInVehicle) {
+    for (auto* const m : pgms->GetFollowers()) {
+        if (m->bInVehicle) {
             continue;
         }
         CTaskSimpleWaitUntilLeaderAreaCodesMatch task{leader};
-        if (task.ProcessPed(&m)) {
-            m.m_bUsesCollision = true;
+        if (task.ProcessPed(m)) {
+            m->m_bUsesCollision = true;
         } else {
-            pg->GetIntelligence().SetEventResponseTask(&m, task);
+            pg->GetIntelligence().SetEventResponseTask(m, task);
         }
     }
     return nullptr;
@@ -388,7 +388,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseGunAimedAt(const CEventGunAim
     }
     const auto srcPed = src->AsPed();
     MaybeAdjustTaskOfGroupThreatEvent(e, pg, originator, srcPed);
-    switch (e.m_taskId) {
+    switch (e.m_TaskId) {
     case TASK_GROUP_KILL_THREATS_BASIC:  return ComputeKillThreatsBasicResponse(pg, srcPed, originator, false);
     case TASK_GROUP_FLEE_THREAT:         return ComputeFleePedResponse(pg, srcPed, originator, false);
     case TASK_GROUP_USE_MEMBER_DECISION: return ComputeMemberResponses(e, pg, originator);
@@ -398,9 +398,9 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseGunAimedAt(const CEventGunAim
 
 // 0x5F99F0
 CTaskAllocator* CGroupEventHandler::ComputeResponseGather(const CEventPlayerCommandToGroupGather& e, CPedGroup* pg, CPed* originator) {
-    for (auto& m : pg->GetMembership().GetFollowers()) {
+    for (auto* const m : pg->GetMembership().GetFollowers()) {
         pg->GetIntelligence().SetEventResponseTask(
-            &m,
+            m,
             CTaskComplexSeekEntity<CEntitySeekPosCalculatorStandard>{
                 originator,
                 50'000,
@@ -423,7 +423,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseDraggedOutCar(const CEventDra
         return nullptr;
     }
     assert(e.m_CarJacker->IsPed()); // Original code just `returns nullptr` in this case, but but since `m_CarJacker` is typed as `CPed*` it *should* be at least a `CPed*`
-    switch (e.m_taskId) {
+    switch (e.m_TaskId) {
     case TASK_GROUP_KILL_THREATS_BASIC:
         return e.m_CarJacker->IsPlayer() && originator && originator->GetIntelligence()->Respects(e.m_CarJacker) && !pg->m_bIsMissionGroup
             ? ComputeFleePedResponse(pg, e.m_CarJacker, originator, false)
@@ -441,7 +441,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseDanger(const CEventDanger& e,
     if (!esrc || !esrc->IsPed()) {
         return nullptr;
     }
-    switch (e.m_taskId) {
+    switch (e.m_TaskId) {
     case TASK_GROUP_FLEE_THREAT: return ComputeFleePedResponse(pg, esrc->AsPed(), originator, false);
     }
     return nullptr;
@@ -455,7 +455,7 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseDamage(const CEventDamage& e,
     }
     const auto srcPed = src->AsPed();
     MaybeAdjustTaskOfGroupThreatEvent(e, pg, originator, srcPed);
-    switch (e.m_taskId) {
+    switch (e.m_TaskId) {
     case TASK_GROUP_KILL_THREATS_BASIC:  return ComputeKillThreatsBasicResponse(pg, srcPed, originator,  true);
     case TASK_GROUP_KILL_PLAYER_BASIC:   return ComputeKillPlayerBasicResponse(pg, srcPed, originator, true);
     case TASK_GROUP_FLEE_THREAT:         return ComputeFleePedResponse(pg, srcPed, originator, true);
@@ -471,16 +471,16 @@ CTaskAllocator* CGroupEventHandler::ComputeResponsLeaderQuitEnteringCar(const CE
 
 // 0x5FAA50
 CTaskAllocator* CGroupEventHandler::ComputeMemberResponses(const CEventEditableResponse& e, CPedGroup* pg, CPed* originator) {
-    const std::unique_ptr<CEventEditableResponse> ce{ static_cast<CEventEditableResponse*>(const_cast<CEventEditableResponse&>(e).Clone()) };
-    for (auto& m : pg->GetMembership().GetFollowers()) {
-        if (!m.IsAlive()) {
+    const std::unique_ptr<CEventEditableResponse> clone{ static_cast<CEventEditableResponse*>(const_cast<CEventEditableResponse&>(e).Clone()) };
+    for (auto* const m : pg->GetMembership().GetFollowers()) {
+        if (!m->IsAlive()) {
             continue;
         }
-        if (ce->HasEditableResponse()) {
-            ce->m_taskId = TASK_NONE;
-            ce->ComputeResponseTaskType(&m, true);
-        } else if (const auto rt = std::unique_ptr<CTask>(CEventHandler::ComputeEventResponseTask(m, *ce))) {
-            pg->GetIntelligence().SetEventResponseTask(&m, *rt);
+        if (clone->HasEditableResponse()) {
+            clone->m_TaskId = TASK_NONE;
+            clone->ComputeResponseTaskType(m, true);
+        } else if (const auto rt = std::unique_ptr<CTask>(CEventHandler::ComputeEventResponseTask(*m, *clone))) {
+            pg->GetIntelligence().SetEventResponseTask(m, *rt);
         }
     }
     return nullptr;
@@ -518,9 +518,9 @@ CTaskAllocator* CGroupEventHandler::ComputeKillPlayerBasicResponse(CPedGroup* pg
     if (!IsKillTaskAppropriate(pg, threat)) {
         return ComputeFleePedResponse(pg, threat, originator, false);
     }
-    for (auto& m : pg->GetMembership().GetMembers()) {
+    for (auto* const m : pg->GetMembership().GetMembers()) {
         pg->GetIntelligence().SetEventResponseTask(
-            &m,
+            m,
             CTaskComplexKillPedOnFoot{ threat }
         );
     }
@@ -539,9 +539,9 @@ CTaskAllocator* CGroupEventHandler::ComputeHassleThreatResponse(CPedGroup* pg, C
     if ((leader->GetPosition() - threat->GetPosition()).SquaredMagnitude() >= sq(12.f)) {
         return nullptr;
     }
-    for (auto& m : pg->GetMembership().GetMembers()) {
+    for (auto* const m : pg->GetMembership().GetMembers()) {
         const auto SetTask = [&](const auto& t) {
-            pg->GetIntelligence().SetEventResponseTask(&m, t);
+            pg->GetIntelligence().SetEventResponseTask(m, t);
         };
         if (threat->IsInVehicle() && threat->m_pVehicle->IsSubAutomobile()) {
             if (!bBeAggressive) {
@@ -572,12 +572,12 @@ CTaskAllocator* CGroupEventHandler::ComputeHassleSexyPedResponse(CPedGroup* pg, 
     if (!sexyPed) {
         return nullptr;
     }
-    for (auto& m : pg->GetMembership().GetFollowers()) {
+    for (auto* const m : pg->GetMembership().GetFollowers()) {
         if (!CGeneral::RandomBool(25.f)) {
             continue;
         }
         pg->GetIntelligence().SetEventResponseTask(
-            &m,
+            m,
             CTaskGangHasslePed{sexyPed, 0, 8'000, 12'000}
         );
     }
@@ -589,12 +589,12 @@ CTaskAllocator* CGroupEventHandler::ComputeHandSignalResponse(CPedGroup* pg, CPe
     if (!signalAt) {
         return nullptr;
     }
-    for (auto& m : pg->GetMembership().GetMembers()) {
-        if (m.IsPlayer()) {
+    for (auto* const m : pg->GetMembership().GetMembers()) {
+        if (m->IsPlayer()) {
             continue;
         }
         pg->GetIntelligence().SetEventResponseTask(
-            &m,
+            m,
             CTaskComplexSignalAtPed{signalAt}
         );
     }
@@ -635,13 +635,13 @@ CTaskAllocator* CGroupEventHandler::ComputeGreetResponse(CPedGroup* pg, CPed* to
         false,
         0.f // Seems odd
     });
-    for (auto& m : pg->GetMembership().GetMembers()) {
-        if (&m == closestToGreeter) {
+    for (auto* const m : pg->GetMembership().GetMembers()) {
+        if (m == closestToGreeter) {
             continue;
         }
         g_ikChainMan.LookAt(
             "CompGreetResp",
-            &m,
+            m,
             closestToGreeter,
             CGeneral::GetRandomNumberInRange(3000, 6000),
             BONE_HEAD,
@@ -689,13 +689,13 @@ CTaskAllocator* CGroupEventHandler::ComputeDoDealResponse(CPedGroup* pg, CPed* d
         false,
         0.f // Seems odd
     });
-    for (auto& m : pg->GetMembership().GetMembers()) {
-        if (&m == closestToGreeter) {
+    for (auto* const m : pg->GetMembership().GetMembers()) {
+        if (m == closestToGreeter) {
             continue;
         }
         g_ikChainMan.LookAt(
             "CompGreetResp",
-            &m,
+            m,
             closestToGreeter,
             CGeneral::GetRandomNumberInRange(3000, 6000),
             BONE_HEAD,
@@ -724,9 +724,9 @@ CTaskAllocator* CGroupEventHandler::ComputeFleePedResponse(CPedGroup* pg, CPed* 
         return nullptr;
     }
     /* rand(); */
-    for (auto& m : pg->GetMembership().GetMembers()) {
+    for (auto* const m : pg->GetMembership().GetMembers()) {
         pg->GetIntelligence().SetEventResponseTask(
-            &m,
+            m,
             CTaskComplexSmartFleeEntity{
                 threat,
                 false,

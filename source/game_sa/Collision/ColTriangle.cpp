@@ -8,7 +8,7 @@ void CColTriangle::DrawWireFrame(CRGBA color, const CompressedVector* vertices, 
     const CVector b = transform.TransformPoint(UncompressVector(vertices[vB]));
     const CVector c = transform.TransformPoint(UncompressVector(vertices[vC]));
 
-    const auto colorARGB = color.ToIntRGBA();
+    const auto colorARGB = color.ToIntARGB();
     CLines::RenderLineNoClipping(a, b, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(a, c, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(b, c, colorARGB, colorARGB);

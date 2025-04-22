@@ -64,7 +64,7 @@ CTask* CTaskComplexGoToPointAndStandStill::CreateNextSubTask(CPed* ped) {
         return CreateSubTask(ped->bInVehicle ? TASK_FINISHED : TASK_SIMPLE_GO_TO_POINT, ped);
     }
     case TASK_SIMPLE_GO_TO_POINT: {
-        m_bWasSuccessful = CTask::Cast<CTaskSimpleGoToPoint>(m_pSubTask)->gotoPointFlags.m_b03;
+        m_bWasSuccessful = notsa::cast<CTaskSimpleGoToPoint>(m_pSubTask)->gotoPointFlags.m_b03;
         return CreateSubTask(TASK_SIMPLE_STAND_STILL, ped);
     }
     default:

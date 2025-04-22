@@ -123,10 +123,10 @@ void CTaskComplexDieInCar::PreparePedVehicleForPedDeath(CVehicle *vehicle) {
     if (vehicle->m_nStatus == STATUS_SIMPLE) {
         CCarCtrl::SwitchVehicleToRealPhysics(vehicle);
     }
-    vehicle->m_autoPilot.m_nCruiseSpeed    = 0;
-    vehicle->m_autoPilot.m_nCarMission     = eCarMission::MISSION_NONE;
-    vehicle->m_autoPilot.m_nTempAction     = 6;
-    vehicle->m_autoPilot.m_nTempActionTime = CTimer::GetTimeInMS() + 2000;
+    const auto ap      = &vehicle->m_autoPilot;
+    ap->SetCruiseSpeed(0);
+    ap->m_nCarMission  = eCarMission::MISSION_NONE;
+    ap->SetTempAction(TEMPACT_HANDBRAKESTRAIGHT, 2'000);
 }
 
 // 0x637850

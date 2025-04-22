@@ -592,7 +592,7 @@ CTask* CTaskComplexEnterCar::ControlSubTask(CPed* ped) {
         }
     }
 
-    if (const auto tGoToCarDoor = CTask::DynCast<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) { // 0x63AB28 - Moved up here to simplify the code
+    if (const auto tGoToCarDoor = notsa::dyn_cast_if_present<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) { // 0x63AB28 - Moved up here to simplify the code
         if (tGoToCarDoor->GetTargetDoor() != 0) {
             m_TargetDoorPos = tGoToCarDoor->GetTargetPt();
         }
@@ -664,7 +664,7 @@ CTask* CTaskComplexEnterCar::CreateSubTask(eTaskType taskType, CPed* ped) {
 
         if (m_Car && m_CruiseSpeed >= 0.f) {
             if (ped->IsPlayer() ? !ped->bInVehicle && m_Car->m_pDriver && m_bQuitAfterOpeningDoor : ped->bInVehicle) {  // 0x63E7A4 - NOTE/BUG: Why is it checking `!bInVehicle` for the player? Typo?
-                m_Car->m_autoPilot.m_nCruiseSpeed = (uint32)m_CruiseSpeed;
+                m_Car->m_autoPilot.SetCruiseSpeed((uint32)m_CruiseSpeed);
             }
         }
 
@@ -772,7 +772,7 @@ void CTaskComplexEnterCar::PrepareVehicleForPedEnter(CPed* ped) {
         m_CruiseSpeed = (float)carCruiseSpeed;
     }
     if (!ped->IsPlayer() || !CCarEnterExit::CarHasDoorToOpen(m_Car, (eDoors)m_TargetDoor) || CCarEnterExit::CarHasOpenableDoor(m_Car, m_TargetDoor, ped)) {
-        m_Car->m_autoPilot.m_nCruiseSpeed = 0;
+        m_Car->m_autoPilot.SetCruiseSpeed(0);
     }
 }
 
@@ -816,7 +816,7 @@ CVector CTaskComplexEnterCar::GetTargetPos() const {
     if (m_TargetDoor != 0) { // TODO: Enum
         return m_TargetDoorPos;
     }
-    if (const auto tGoTo = CTask::DynCast<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) {
+    if (const auto tGoTo = notsa::dyn_cast_if_present<CTaskComplexGoToCarDoorAndStandStill>(m_pSubTask)) {
         return tGoTo->GetTargetPt();
     }
     return {};

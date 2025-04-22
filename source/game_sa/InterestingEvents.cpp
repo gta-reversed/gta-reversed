@@ -40,7 +40,7 @@ CInterestingEvents::CInterestingEvents() {
     };
 
     SetOptions(INTERESTING_EVENT_0,     5,  2000);
-    SetOptions(PEDS_CHATTING,     1,  5000);
+    SetOptions(PEDS_CHATTING,           1,  5000);
     SetOptions(INTERESTING_EVENT_2,     1,  5000);
     SetOptions(INTERESTING_EVENT_3,     1,  5000);
     SetOptions(INTERESTING_EVENT_4,     2,  3000);
@@ -62,10 +62,10 @@ CInterestingEvents::CInterestingEvents() {
     SetOptions(INTERESTING_EVENT_20,    7,  6000);
     SetOptions(INTERESTING_EVENT_21,    8,  8000);
     SetOptions(INTERESTING_EVENT_22,    9,  5000);
-    SetOptions(INTERESTING_EVENT_23,    9,  6000);
-    SetOptions(INTERESTING_EVENT_24,    9,  6000);
+    SetOptions(GANG_ATTACKING_PED,      9,  6000);
+    SetOptions(GANG_FIGHT,              9,  6000);
     SetOptions(INTERESTING_EVENT_25,    9,  6000);
-    SetOptions(ZELDICK_OCCUPATION,      9, 8000);
+    SetOptions(ZELDICK_OCCUPATION,      9,  8000);
     SetOptions(EVENT_ATTRACTOR,         10, 4000);
     SetOptions(INTERESTING_EVENT_28,    10, 4000);
 }
@@ -94,7 +94,7 @@ void CInterestingEvents::Add(CInterestingEvents::EType type, CEntity* entity) {
     if (!m_b1 || !entity)
         return;
 
-    DEV_LOG("type={}, model={}", (int32)(type), entity->m_nModelIndex);
+    NOTSA_LOG_DEBUG("type={}, model={}", (int32)(type), entity->m_nModelIndex);
 
     const auto& camPos = CCamera::GetActiveCamera().m_vecSource;
     if (m_nLastFrameUpdate != CTimer::GetFrameCounter()) {
@@ -193,13 +193,9 @@ void CInterestingEvents::ScanForNearbyEntities() {
 
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            auto& list = repeatSector->GetList(REPEATSECTOR_PEDS);
+            CRepeatSector* const rs = GetRepeatSector(sectorX, sectorY);
 
-            for (CPtrNode *it = list.m_node, *next{}; it; it = next) {
-                next = it->GetNext();
-
-                auto* ped = static_cast<CPed*>(it->m_item);
+            for (auto* const ped : rs->Peds) {
                 if (ped->IsScanCodeCurrent())
                     continue;
 
@@ -233,14 +229,12 @@ void CInterestingEvents::ScanForNearbyEntities() {
                 }
             }
 
-            for (CPtrNode *it = list.m_node, *next{}; it; it = next) {
-                next = it->GetNext();
-                auto* vehicle = static_cast<CVehicle*>(it->m_item);
+            for (auto* const vehicle : rs->Vehicles) {
                 if (vehicle->m_nScanCode == GetCurrentScanCode())
                     continue;
 
                 vehicle->m_nScanCode = GetCurrentScanCode();
-                if (vehicle->physicalFlags.bDestroyed != 0)
+                if (vehicle->physicalFlags.bRenderScorched != 0)
                     continue;
 
                 if (!vehicle->m_pDriver)
@@ -250,7 +244,7 @@ void CInterestingEvents::ScanForNearbyEntities() {
                 if (!style)
                     continue;
 
-                if (style == (DRIVING_STYLE_STOP_FOR_CARS_IGNORE_LIGHTS | DRIVING_STYLE_AVOID_CARS))
+                if (style == DRIVING_STYLE_DRIVINGMODE_AVOIDCARS_STOPFORPEDS_OBEYLIGHTS)
                     continue;
 
                 Add(INTERESTING_EVENT_14, vehicle);

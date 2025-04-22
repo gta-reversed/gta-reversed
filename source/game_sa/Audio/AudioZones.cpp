@@ -28,7 +28,7 @@ void CAudioZones::RegisterAudioBox(char name[8], int32 id, bool isActive, CVecto
 
     tAudioZoneBox audioZoneBox;
     strcpy_s(audioZoneBox.m_szName, name);
-    audioZoneBox.m_bIsActive = isActive; // TODO: m_nFlags field has only 1 flag - Active or inactive and takes only 1 bit. Although gta uses 2 bytes for this, but how is the idea to define this single flag so as not to be confused in the future
+    audioZoneBox.m_IsActive = isActive; // TODO: m_nFlags field has only 1 flag - Active or inactive and takes only 1 bit. Although gta uses 2 bytes for this, but how is the idea to define this single flag so as not to be confused in the future
     audioZoneBox.m_nAudioZone = id;
     audioZoneBox.m_Box = CompressedBox{
         .m_vecMin = CompressLargeVector(min),
@@ -42,7 +42,7 @@ void CAudioZones::RegisterAudioSphere(char name[8], int32 id, bool isActive, CVe
     tAudioZoneSphere audioZoneSphere;
     strcpy_s(audioZoneSphere.m_szName, name);
     audioZoneSphere.m_nAudioZone = id;
-    audioZoneSphere.m_bIsActive = isActive; // TODO: m_nFlags field has only 1 flag - Active or inactive and takes only 1 bit. Although gta uses 2 bytes for this, but how is the idea to define this single flag so as not to be confused in the future
+    audioZoneSphere.m_IsActive = isActive; // TODO: m_nFlags field has only 1 flag - Active or inactive and takes only 1 bit. Although gta uses 2 bytes for this, but how is the idea to define this single flag so as not to be confused in the future
     audioZoneSphere.m_Sphere = {position, radius};
 
     m_aSpheres[m_NumSpheres++] = audioZoneSphere;
@@ -52,12 +52,12 @@ void CAudioZones::RegisterAudioSphere(char name[8], int32 id, bool isActive, CVe
 void CAudioZones::SwitchAudioZone(const char* zoneName, bool enable) {
     for (auto& sphere : GetAvailableSpheres()) {
         if (!_stricmp(zoneName, sphere.m_szName))
-            sphere.m_bIsActive = enable;
+            sphere.m_IsActive = enable;
     }
 
     for (auto& box : GetAvailableBoxes()) {
         if (!_stricmp(zoneName, box.m_szName))
-            box.m_bIsActive = enable;
+            box.m_IsActive = enable;
     }
 }
 
@@ -74,24 +74,24 @@ void CAudioZones::Update(bool forceUpdate, CVector posn) {
     LastUpdateCoors = posn;
     m_NumActiveSpheres = m_NumActiveBoxes = 0;
 
-    for (auto&& [idx, sphere] : notsa::enumerate(GetAvailableSpheres())) {
+    for (auto&& [idx, sphere] : rngv::enumerate(GetAvailableSpheres())) {
         // Do not add more to list if it's filled.
         if (m_NumActiveSpheres >= std::size(m_aActiveSpheres))
             break;
 
-        if (!sphere.m_bIsActive)
+        if (!sphere.m_IsActive)
             continue;
 
         if (sphere.m_Sphere.IsPointWithin(posn))
             m_aActiveSpheres[m_NumActiveSpheres++] = idx;
     }
 
-    for (auto&& [idx, box] : notsa::enumerate(GetAvailableBoxes())) {
+    for (auto&& [idx, box] : rngv::enumerate(GetAvailableBoxes())) {
         // Do not add more to list if it's filled.
         if (m_NumActiveBoxes >= std::size(m_aActiveBoxes))
             break;
 
-        if (!box.m_bIsActive)
+        if (!box.m_IsActive)
             continue;
 
         if (CBox{box.m_Box}.IsPointInside(posn))

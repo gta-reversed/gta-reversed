@@ -24,27 +24,27 @@ class CPlayerPed;
 
 class NOTSA_EXPORT_VTABLE CTaskSimpleSwim : public CTaskSimple {
 public:
-    bool        m_bFinishedBlending;
-    bool        m_bAnimBlockRefAdded;
-    eSwimState  m_nSwimState;
-    AnimationId m_AnimID;
-    float       m_fAnimSpeed;
-    CVector     m_vecPos;
-    CPed*       m_pPed;
-    float       m_fRotationX;           // updated all the time.
-    float       m_fTurningRotationY;    // updated when ped is turning.
-    float       m_fUpperTorsoRotationX; //  updated when ped diving or coming back to surface
-    float       m_fAimingRotation;      // The direction that the ped is facing. Updated all the time.
-    float       m_fStateChanger;        // It is normally 0, but updated when changing swimming states.
-    CEntity*    m_pEntity;
-    CVector     m_pClimbPos;
-    float       m_fAngle;
-    uint8       m_nSurfaceType;
-    float       m_fRandomMoveBlendRatio; // Used in CTaskSimpleSwim::ProcessControlAI
-    float       m_fSwimStopTime;
-    uint32      m_nTimeStep;
-    FxSystem_c* m_pFxSystem;
-    bool        m_bTriggerWaterSplash;
+    bool         m_bFinishedBlending;
+    bool         m_bAnimBlockRefAdded;
+    eSwimState   m_nSwimState;
+    AnimationId  m_AnimID;
+    float        m_fAnimSpeed;
+    CVector      m_vecPos;
+    CPed*        m_pPed;
+    float        m_fRotationX;           // updated all the time.
+    float        m_fTurningRotationY;    // updated when ped is turning.
+    float        m_fUpperTorsoRotationX; //  updated when ped diving or coming back to surface
+    float        m_fAimingRotation;      // The direction that the ped is facing. Updated all the time.
+    float        m_fStateChanger;        // It is normally 0, but updated when changing swimming states.
+    CEntity*     m_pEntity;
+    CVector      m_pClimbPos;
+    float        m_fAngle;
+    eSurfaceType m_nSurfaceType;
+    float        m_fRandomMoveBlendRatio; // Used in CTaskSimpleSwim::ProcessControlAI
+    float        m_fSwimStopTime;
+    uint32       m_nTimeStep;
+    FxSystem_c*  m_pFxSystem;
+    bool         m_bTriggerWaterSplash;
 
     static constexpr inline float SWIM_DIVE_UNDER_ANGLE = -35.0f; // 0x8D2FC4
     static constexpr inline float SWIM_STOP_TIME = 15.0f; // 0x8D2FC0

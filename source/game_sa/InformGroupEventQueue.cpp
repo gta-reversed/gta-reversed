@@ -42,7 +42,7 @@ bool CInformGroupEventQueue::Add(CPed* ped, CPedGroup* pedGroup, CEventEditableR
         event->ComputeResponseTaskType(pedGroup);
         if (FindPlayerPed()->GetPlayerGroup().GetMembership().IsMember(ped) ||
             ped->IsCreatedByMission() || !static_cast<CEventAcquaintancePed*>(event)->m_AcquaintancePed->bInVehicle ||
-            event->m_taskId == TASK_NONE) {
+            event->m_TaskId == TASK_NONE) {
             return 0;
         }
 

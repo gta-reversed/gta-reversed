@@ -151,7 +151,7 @@ bool CCutsceneObject::SetupLighting() {
 
 // 0x5533F0
 void CCutsceneObject::RemoveLighting(bool bRemove) {
-    if (!physicalFlags.bDestroyed)
+    if (!physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 
     SetAmbientColours();

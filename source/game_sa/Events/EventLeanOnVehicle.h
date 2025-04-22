@@ -17,7 +17,7 @@ public:
     eEventType GetEventType() const override { return EVENT_LEAN_ON_VEHICLE; }
     int32 GetEventPriority() const override { return 12; }
     int32 GetLifeTime() override { return 0; }
-    CEventLeanOnVehicle* Clone() override { return new CEventLeanOnVehicle(m_vehicle, m_leanAnimDurationInMs); }
+    CEventLeanOnVehicle* Clone() const noexcept override { return new CEventLeanOnVehicle(m_vehicle, m_leanAnimDurationInMs); }
     bool AffectsPed(CPed* ped) override { return true; }
     bool IsValid(CPed* ped) override;
 
