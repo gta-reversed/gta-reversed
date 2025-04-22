@@ -143,7 +143,7 @@ void CPad::UpdateJoystick(CControllerState& cs, ePadID padID) {
     
     if (sdl_gamepads_count > 0) {
         // Select the gamepad based on padID (ensure we don't exceed available gamepads)
-        int padIndex = (padID == PAD1) ? 0 : 1;
+        const auto padIndex = (padID == PAD1) ? 0 : 1;
         if (padIndex < sdl_gamepads_count) {
             SDL_Gamepad* gamepad = SDL_OpenGamepad(sdl_gamepads[padIndex]);
             if (gamepad) {
