@@ -157,19 +157,10 @@ RsEventStatus RsMouseEventHandler(RsEvent event, void* param) {
 
 // 0x6195A0
 RsEventStatus RsPadEventHandler(RsEvent event, void* param) {
-#ifdef NOTSA_USE_SDL3
-    // Process SDL events to keep the gamepad state updated
-    SDL_PumpEvents();
     if (RsGlobal.pad.used) {
         return RsGlobal.pad.inputEventHandler(event, param);
     }
-    return rsEVENTPROCESSED;
-#else
-    if (RsGlobal.pad.used) {
-        return RsGlobal.pad.inputEventHandler(event, param);
-    }
-    return rsEVENTPROCESSED;
-#endif
+    return rsEVENTNOTPROCESSED;
 }
 
 // 0x6195D0

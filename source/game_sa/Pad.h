@@ -126,7 +126,8 @@ public:
 #ifdef NOTSA_USE_SDL3
     bool ProcessMouseEvent(const SDL_Event& e, CMouseControllerState& ms);
     bool ProcessKeyboardEvent(const SDL_Event& e, CKeyboardState& ks);
-    void UpdateJoystick(CControllerState& cs, ePadID padID);
+    bool ProcessGamepadEvent(const SDL_Event & e, CControllerState& cs);
+    bool ProcessJoyStickEvent(const SDL_Event& e, CControllerState& cs);
 
     static bool ProcessEvent(const SDL_Event& e, bool ignoreMouseEvents, bool ignoreKeyboardEvents);
 #endif

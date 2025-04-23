@@ -331,17 +331,18 @@ void CPad::UpdateMouse() {
 #endif
 }
 
-static RwV2d leftStickPos[2];
-static RwV2d rightStickPos[2];
 // 0x746A10
-/* void CPad::ProcessPad(ePadID padID) {
-#ifndef NOTSA_USE_SDL3
+void CPad::ProcessPad(ePadID padID) {
+    #ifndef NOTSA_USE_SDL3
     constexpr int deviceAxisMin = -2000;
     constexpr int deviceAxisMax = 2000;
-    constexpr float deviceAxisOffset = float(float(deviceAxisMax - deviceAxisMin) / 2.0f);
+    constexpr float deviceAxisOffset = float(float(deviceAxisMax - deviceAxisMin)  / 2.0f);
 
     LPDIRECTINPUTDEVICE8* pDiDevice = nullptr;
     DIJOYSTATE2 joyState;
+    RwV2d leftStickPos{};
+    RwV2d rightStickPos{};
+
     if (padID == PAD1) {
         pDiDevice = &PSGLOBAL(diDevice1);
     } else if (padID == PAD2) {
@@ -377,7 +378,7 @@ static RwV2d rightStickPos[2];
     WIN_FCHECK((*pDiDevice)->GetDeviceState(sizeof(joyState), &joyState));
 
     // Update NewJoyState with the current joyState and get the previous value
-    auto previousNewJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
+    DIJOYSTATE2 previousNewJoyState = std::exchange(ControlsManager.m_NewJoyState, joyState);
 
     if (ControlsManager.m_bJoyJustInitialised) {
         ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState;
@@ -424,349 +425,11 @@ static RwV2d rightStickPos[2];
         UpdateJoyStickPosition(leftStickPos.x, pPad.PCTempJoyState.LeftStickY, pPad.PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
         UpdateJoyStickPosition(leftStickPos.y, pPad.PCTempJoyState.LeftStickX, pPad.PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis1);
 
-        // Right stick 
+        // Right stick
         UpdateJoyStickPosition(rightStickPos.x, pPad.PCTempJoyState.RightStickY, pPad.PCTempJoyState.RightStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis2);
         UpdateJoyStickPosition(rightStickPos.y, pPad.PCTempJoyState.RightStickX, pPad.PCTempJoyState.RightStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
     }
-} */
-
-static const float flt_7656D8[2] = {0.05f, 0.3f};  // Deadzone thresholds: Generic, Xbox360
-
-// Enumerations and structs
-enum OSgamepadType {
-    OSGT_Generic = 0,
-    OSGT_Xbox360 = 1,
-    OSGT_Invalid = -1
-};
-static OSgamepadType lastgamepadType[2];           // Gamepad type per pad
-static float lastGamepadAxis[2][6];                // Axis values per pad
-static uint32_t lastGamepadMask[2];                // Button masks per pad
-
-
-// Constants for axis and button IDs
-const uint32_t AXIS_LEFT_X = 0x40;
-const uint32_t AXIS_LEFT_Y = 0x41;
-const uint32_t AXIS_RIGHT_X = 0x42;
-const uint32_t AXIS_RIGHT_Y = 0x43;
-const uint32_t AXIS_LEFT_TRIGGER = 0x44;
-const uint32_t AXIS_RIGHT_TRIGGER = 0x45;
-
-// SDL3-specific globals
-#ifdef NOTSA_USE_SDL3
-static SDL_Gamepad* sdlGamepads[2] = {nullptr, nullptr}; // Cache opened gamepads for padID 0 and 1
-static bool sdlInitialized = false;                      // Track SDL initialization
 #endif
-
-// Initialize SDL3 gamepad subsystem
-#ifdef NOTSA_USE_SDL3
-static void InitializeSDLGamepads() {
-    if (!sdlInitialized) {
-        //if (
-        SDL_InitSubSystem(SDL_INIT_GAMEPAD); //< 0) {
-            // Log error (replace with your logging mechanism)
-            // spdlog::error("SDL_InitSubSystem(SDL_INIT_GAMEPAD) failed: {}", SDL_GetError());
-            //return;
-        //}
-        sdlInitialized = true;
-    }
-}
-#endif
-
-// Open or refresh gamepad for a given padID
-#ifdef NOTSA_USE_SDL3
-static SDL_Gamepad* GetGamepadForPadID(uint32_t padId) {
-    if (padId >= 2) return nullptr; // Support only padID 0 and 1
-
-    // If gamepad is already opened, return it
-    if (sdlGamepads[padId]) {
-        return sdlGamepads[padId];
-    }
-
-    // Get available gamepads
-    int numGamepads = 0;
-    SDL_JoystickID* gamepadIDs = SDL_GetGamepads(&numGamepads);
-    if (!gamepadIDs || numGamepads == 0) {
-        SDL_free(gamepadIDs);
-        return nullptr;
-    }
-
-    // Select gamepad based on padId (0 -> first gamepad, 1 -> second gamepad)
-    int index = (int)padId < numGamepads ? padId : 0;
-    SDL_JoystickID joystickID = gamepadIDs[index];
-    SDL_Gamepad* gamepad = SDL_OpenGamepad(joystickID);
-    SDL_free(gamepadIDs);
-
-    if (gamepad) {
-        sdlGamepads[padId] = gamepad;
-        // Determine gamepad type (simplified; could use SDL_GetgamepadType)
-        lastgamepadType[padId] = OSGT_Generic;
-    }
-
-    return gamepad;
-}
-#endif
-
-// Close all opened gamepads
-#ifdef NOTSA_USE_SDL3
-static void CleanupSDLGamepads() {
-    for (int i = 0; i < 2; ++i) {
-        if (sdlGamepads[i]) {
-            SDL_CloseGamepad(sdlGamepads[i]);
-            sdlGamepads[i] = nullptr;
-            lastgamepadType[i] = OSGT_Invalid;
-        }
-    }
-}
-#endif
-
-// SDL3-compatible OS_GamepadIsConnected
-static bool OS_GamepadIsConnected(uint32_t padId, OSgamepadType* setType) {
-#ifdef NOTSA_USE_SDL3
-    InitializeSDLGamepads();
-    SDL_Gamepad* gamepad = GetGamepadForPadID(padId);
-    if (!gamepad) {
-        if (setType) *setType = OSGT_Invalid;
-        return false;
-    }
-    if (setType) *setType = lastgamepadType[padId];
-    return true;
-#else
-    OSgamepadType type = lastgamepadType[padId];
-    if (type == OSGT_Invalid) {
-        return false;
-    }
-    if (setType) {
-        *setType = type;
-    }
-    return true;
-#endif
-}
-
-// SDL3-compatible OS_GamepadAxis
-static float OS_GamepadAxis(uint32_t padId, uint32_t axisId) {
-#ifdef NOTSA_USE_SDL3
-    if (padId >= 2 || axisId - 64 > 5) {
-        return 0.0f;
-    }
-
-    SDL_Gamepad* gamepad = GetGamepadForPadID(padId);
-    if (!gamepad) {
-        return 0.0f;
-    }
-
-    // Map axisId to SDL_GamepadAxis
-    static const SDL_GamepadAxis axisMap[] = {
-        SDL_GAMEPAD_AXIS_LEFTX,        // 0x40
-        SDL_GAMEPAD_AXIS_LEFTY,        // 0x41
-        SDL_GAMEPAD_AXIS_RIGHTX,       // 0x42
-        SDL_GAMEPAD_AXIS_RIGHTY,       // 0x43
-        SDL_GAMEPAD_AXIS_LEFT_TRIGGER, // 0x44
-        SDL_GAMEPAD_AXIS_RIGHT_TRIGGER // 0x45
-    };
-
-    int axisIndex = axisId - 64;
-    float value = SDL_GetGamepadAxis(gamepad, axisMap[axisIndex]) / 32768.0f; // Normalize to [-1.0, 1.0]
-    return value;
-#else
-    if (axisId - 64 > 5 || lastgamepadType[padId] == OSGT_Invalid) {
-        return 0.0f;
-    }
-    return lastGamepadAxis[padId][axisId - 64];
-#endif
-}
-
-// SDL3-compatible OS_GamepadButton
-static bool OS_GamepadButton(uint32_t padId, eJoyButtons buttonId) {
-#ifdef NOTSA_USE_SDL3
-    if (padId >= 2 || static_cast<int>(buttonId) > 16) {
-        return false;
-    }
-
-    SDL_Gamepad* gamepad = GetGamepadForPadID(padId);
-    if (!gamepad) {
-        return false;
-    }
-
-    // Map eJoyButtons to SDL_GamepadButton
-    static const SDL_GamepadButton buttonMap[] = {
-        SDL_GAMEPAD_BUTTON_INVALID,     // 0: Not used
-        SDL_GAMEPAD_BUTTON_EAST,        // 1: JOYBUTTON_ONE (Circle)
-        SDL_GAMEPAD_BUTTON_SOUTH,       // 2: JOYBUTTON_TWO (Cross)
-        SDL_GAMEPAD_BUTTON_WEST,        // 3: JOYBUTTON_THREE (Square)
-        SDL_GAMEPAD_BUTTON_NORTH,       // 4: JOYBUTTON_FOUR (Triangle)
-        SDL_GAMEPAD_BUTTON_INVALID,     // 5: JOYBUTTON_FIVE (Left Shoulder 2 - analog trigger)
-        SDL_GAMEPAD_BUTTON_INVALID,     // 6: JOYBUTTON_SIX (Right Shoulder 2 - analog trigger)
-        SDL_GAMEPAD_BUTTON_LEFT_SHOULDER,  // 7: JOYBUTTON_SEVEN (Left Shoulder 1)
-        SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER, // 8: JOYBUTTON_EIGHT (Right Shoulder 1)
-        SDL_GAMEPAD_BUTTON_BACK,        // 9: JOYBUTTON_NINE (Select)
-        SDL_GAMEPAD_BUTTON_LEFT_STICK,  // 10: JOYBUTTON_TEN (Shock Button L)
-        SDL_GAMEPAD_BUTTON_RIGHT_STICK, // 11: JOYBUTTON_ELEVEN (Shock Button R)
-        SDL_GAMEPAD_BUTTON_START,       // 12: JOYBUTTON_TWELVE (Start)
-        SDL_GAMEPAD_BUTTON_DPAD_UP,     // 13: JOYBUTTON_THIRTEEN (D-pad Up)
-        SDL_GAMEPAD_BUTTON_DPAD_RIGHT,  // 14: JOYBUTTON_FOURTEEN (D-pad Right)
-        SDL_GAMEPAD_BUTTON_DPAD_DOWN,   // 15: JOYBUTTON_FIFTHTEEN (D-pad Down)
-        SDL_GAMEPAD_BUTTON_DPAD_LEFT    // 16: JOYBUTTON_SIXTEEN (D-pad Left)
-    };
-
-    // Handle analog triggers
-    if (buttonId == JOYBUTTON_FIVE) { // Left Trigger (L2)
-        return SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 24576;
-    }
-    if (buttonId == JOYBUTTON_SIX) { // Right Trigger (R2)
-        return SDL_GetGamepadAxis(gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 24576;
-    }
-
-    int buttonIndex = static_cast<int>(buttonId);
-    if (buttonIndex > 0 && buttonIndex <= 16 && buttonMap[buttonIndex] != SDL_GAMEPAD_BUTTON_INVALID) {
-        return SDL_GetGamepadButton(gamepad, buttonMap[buttonIndex]);
-    }
-    return false;
-#else
-    if (static_cast<int>(buttonId) > 16 || lastgamepadType[padId] == OSGT_Invalid) {
-        return false;
-    }
-    return (lastGamepadMask[padId] & (1 << static_cast<int>(buttonId))) != 0;
-#endif
-}
-
-static OSgamepadType gamepadType = OSGT_Invalid;
-// static OSgamepadType lastgamepadType[2];           // Gamepad type per pad
-
-// Convert float axis value to integer with scaling
-static inline int32_t ConvertAxisToInt(float value, float scale) {
-    return static_cast<int32_t>(value * scale);
-}
-
-void CPad::ProcessPad(ePadID padID) {
-    uint32_t currentPadID = padID;
-
-    // Handle joystick state initialization
-    if (ControlsManager.m_bJoyJustInitialised) {
-        std::memset(&ControlsManager.m_OldJoyState, 0, sizeof(JoyState2));
-        ControlsManager.m_bJoyJustInitialised = false;
-    } else {
-        ControlsManager.m_OldJoyState = ControlsManager.m_NewJoyState;
-    }
-
-    bool HANDLE_EVENTS = false;
-    static bool initConfig = true;
-    // Check gamepad connection
-    if (!OS_GamepadIsConnected(padID, &gamepadType)) {
-        std::memset(&ControlsManager.m_NewJoyState, 0, sizeof(JoyState2));
-        gamepadType = OSGT_Invalid;
-        HANDLE_EVENTS = true;
-    } else if (initConfig == true) {
-        initConfig = false;
-#ifdef NOTSA_USE_SDL3
-        ControlsManager.InitDefaultControlConfigJoyPad(JOYBUTTON_SIXTEEN);
-#endif
-    }
-
-    CPad* pad = CPad::GetPad(padID);
-    if (!HANDLE_EVENTS) {
-        
-        const uint32_t AXIS_RIGHT_X = 0x42;
-        const uint32_t AXIS_RIGHT_Y = 0x43;
-        // Read analog stick positions
-        leftStickPos[padID].x = OS_GamepadAxis(padID, AXIS_LEFT_X);
-        leftStickPos[padID].y = OS_GamepadAxis(padID, AXIS_LEFT_Y);
-        rightStickPos[padID].x = OS_GamepadAxis(padID, AXIS_RIGHT_X);
-        rightStickPos[padID].y = OS_GamepadAxis(padID, AXIS_RIGHT_Y);
-        
-        // Reset new joy state and set gamepad type
-        std::memset(&ControlsManager.m_NewJoyState, 0, sizeof(JoyState2));    
-        
-            for (int i = 0; i < 32; i++) {
-                ControlsManager.m_NewJoyState.rgbButtons[i] = OS_GamepadButton(padID, static_cast<eJoyButtons>(i)) ? 0x80 : 0;
-            }
-
-    
-    } else {
-        // Update button states using eJoyButtons enum
-        pad->PCTempJoyState.ButtonCircle = OS_GamepadButton(padID, JOYBUTTON_ONE) ? 255 : 0;
-        pad->PCTempJoyState.ButtonCross = OS_GamepadButton(padID, JOYBUTTON_TWO) ? 255 : 0;
-        pad->PCTempJoyState.ButtonSquare = OS_GamepadButton(padID, JOYBUTTON_THREE) ? 255 : 0;
-        pad->PCTempJoyState.ButtonTriangle = OS_GamepadButton(padID, JOYBUTTON_FOUR) ? 255 : 0;
-        pad->PCTempJoyState.LeftShoulder2 = OS_GamepadButton(padID, JOYBUTTON_FIVE) ? 255 : 0;
-        pad->PCTempJoyState.RightShoulder2 = OS_GamepadButton(padID, JOYBUTTON_SIX) ? 255 : 0;
-        pad->PCTempJoyState.LeftShoulder1 = OS_GamepadButton(padID, JOYBUTTON_SEVEN) ? 255 : 0;
-        pad->PCTempJoyState.RightShoulder1 = OS_GamepadButton(padID, JOYBUTTON_EIGHT) ? 255 : 0;
-        pad->PCTempJoyState.Select = OS_GamepadButton(padID, JOYBUTTON_NINE) ? 255 : 0;
-        pad->PCTempJoyState.ShockButtonL = OS_GamepadButton(padID, JOYBUTTON_TEN) ? 255 : 0;
-        pad->PCTempJoyState.ShockButtonR = OS_GamepadButton(padID, JOYBUTTON_ELEVEN) ? 255 : 0;
-        pad->PCTempJoyState.Start = OS_GamepadButton(padID, JOYBUTTON_TWELVE) ? 255 : 0;
-        pad->PCTempJoyState.DPadUp =    OS_GamepadButton(padID, JOYBUTTON_THIRTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadRight = OS_GamepadButton(padID, JOYBUTTON_FOURTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadDown =  OS_GamepadButton(padID, JOYBUTTON_FIFTHTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadLeft =  OS_GamepadButton(padID, JOYBUTTON_SIXTEEN) ? 255 : 0;
-        // Handle D-pad buttons
-        pad->PCTempJoyState.DPadUp = OS_GamepadButton(padID, JOYBUTTON_THIRTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadRight = OS_GamepadButton(padID, JOYBUTTON_FOURTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadDown = OS_GamepadButton(padID, JOYBUTTON_FIFTHTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadLeft = OS_GamepadButton(padID, JOYBUTTON_SIXTEEN) ? 255 : 0;
-        
-        // Emulate POV hat behavior: When D-pad is pressed, also update analog stick values
-        if (pad->PCTempJoyState.DPadUp || pad->PCTempJoyState.DPadRight || 
-            pad->PCTempJoyState.DPadDown || pad->PCTempJoyState.DPadLeft) {
-            // Calculate direction from D-pad inputs
-            float x = 0.0f, y = 0.0f;
-            if (pad->PCTempJoyState.DPadRight) x += 1.0f;
-            if (pad->PCTempJoyState.DPadLeft) x -= 1.0f;
-            if (pad->PCTempJoyState.DPadDown) y += 1.0f;
-            if (pad->PCTempJoyState.DPadUp) y -= 1.0f;
-            
-            // Normalize diagonal movement
-            if (x != 0.0f && y != 0.0f) {
-                const float length = sqrt(x*x + y*y);
-                x /= length;
-                y /= length;
-            }
-            
-            // Override left stick values with D-pad input
-            leftStickPos[padID].x = x;
-            leftStickPos[padID].y = y;
-        }
-    }
-
-
-
-    // Apply hack for next tick if enabled
-    // if (hackNextTick) {
-    //     hackNextTick = false;
-    //     ControlsManager.m_NewJoyState.rgbButtons[BUTTON_A] = 1;
-    //     ControlsManager.m_ButtonStates[BUTTON_A] = true;
-    // }
-
-    // Process pad events
-    RsPadEventHandler(rsPADBUTTONUP, &currentPadID);
-    // if (CPad::m_bMapPadOneToPadTwo) {
-        // currentPadID = 1;
-    // }
-    RsPadEventHandler(rsPADBUTTONUP, &currentPadID);
-    RsPadEventHandler(rsPADBUTTONDOWN, &currentPadID);
-
-    // Update pad state with stick positions
-    // uint32_t targetPadID = CPad::m_bMapPadOneToPadTwo ? 1 : padID;
-    auto targetPadID = padID;
-    pad = CPad::GetPad(targetPadID);
-    // Apply deadzone and update stick positions
-    float deadzone = flt_7656D8[gamepadType == OSGT_Xbox360 ? 1 : 0];
-
-    // Apply deadzone and convert analog stick values
-    if (std::fabs(leftStickPos[padID].x) > deadzone) {
-        pad->PCTempJoyState.LeftStickX = ConvertAxisToInt(leftStickPos[padID].x, 128.0f);
-    }
-    if (std::fabs(leftStickPos[padID].y) > deadzone) {
-        pad->PCTempJoyState.LeftStickY = ConvertAxisToInt(leftStickPos[padID].y, 128.0f);
-    }
-    if (std::fabs(rightStickPos[padID].x) > deadzone) {
-        pad->PCTempJoyState.RightStickX = ConvertAxisToInt(rightStickPos[padID].x, 128.0f);
-    }
-    if (std::fabs(rightStickPos[padID].y) > deadzone) {
-        pad->PCTempJoyState.RightStickY = ConvertAxisToInt(rightStickPos[padID].y, -128.0f); // Inverted Y-axis
-    }
-
-    return;
 }
 
 // 0x53FB40
