@@ -181,9 +181,15 @@ void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction actio
 }
 
 // 0x52F510
-void CControllerConfigManager::UpdateJoyButtonState(int32 padnumber) {
-    for (auto i = 0; i < JOYBUTTON_COUNT; i++) {
-        m_ButtonStates[i] = (m_NewJoyState.rgbButtons[i] & 0x80) ? true : false;
+void CControllerConfigManager::UpdateJoyButtonState(int32 padNo) {
+    m_ButtonStates[0] = false;
+    m_ButtonStates[4] = false;
+    m_ButtonStates[8] = false;
+    m_ButtonStates[12] = false;
+    m_ButtonStates[16] = false;
+
+    for (auto i = 0u; i < JOYBUTTON_COUNT; ++i) {
+        m_ButtonStates[i] = (m_NewJoyState.rgbButtons[i] & 128) != 0;
     }
 }
 
