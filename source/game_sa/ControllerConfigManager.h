@@ -218,13 +218,8 @@ public:
 class CControllerConfigManager {
 public:
     bool              m_bJoyJustInitialised{};
-    #ifdef NOTSA_USE_SDL3
     JoyState2         m_OldJoyState;
     JoyState2         m_NewJoyState;
-    #else
-    DIJOYSTATE2 m_OldJoyState{};
-    DIJOYSTATE2 m_NewJoyState{};
-    #endif
     ControlName       m_ControllerActionName[NUM_OF_MAX_CONTROLLER_ACTIONS]{};
     bool              m_ButtonStates[JOYBUTTON_COUNT]{}; // True if down, false if up or missing
     CControllerAction m_Actions[NUM_OF_MAX_CONTROLLER_ACTIONS];

@@ -866,9 +866,7 @@ void CControllerConfigManager::ReinitControls() {
     ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS);
 
     if (AllValidWinJoys.JoyStickNum[PAD1].bJoyAttachedToPort) {
-#ifdef NOTSA_USE_SDL3
-        ControlsManager.InitDefaultControlConfigJoyPad(JOYBUTTON_MAX);
-#else
+#ifndef NOTSA_USE_SDL3
         DIDEVCAPS devCaps;
         devCaps.dwSize = sizeof(DIDEVCAPS);
         if (!FAILED(PSGLOBAL(diDevice1)->GetCapabilities(&devCaps))) {
