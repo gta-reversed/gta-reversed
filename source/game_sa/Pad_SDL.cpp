@@ -1,5 +1,5 @@
 #include <StdInc.h>
-
+#include <ControllerConfigManager.h>
 #ifdef NOTSA_USE_SDL3
 #include <SDL3/SDL.h>
 
@@ -134,39 +134,6 @@ bool CPad::ProcessKeyboardEvent(const SDL_Event& e, CKeyboardState& ks) {
     return false;
 }
 
-bool CPad::ProcessGamepadEvent(const SDL_Event & e, CControllerState& cs) {
-    //switch (e.type) {
-    //case SDL_EVENT_GAMEPAD_AXIS_MOTION: {
-    //    const auto UpdateAxis = [&](int16& outA, int16& outB, bool isInverted, bool isSwapped) {
-    //        int16 pos = e.gaxis.value;
-    //        if (fabs(pos) > 0.3f) {
-    //            pos = isInverted ? -pos : pos;
-    //            pos /= 128; // SDL values are [-32768 to 32767], need to map to [-128, 127] (Actually should be [-128, 128] (?))
-    //            (isSwapped ? outA : outB) = pos;
-    //        }
-    //    };
-    //    switch (e.gaxis.axis) {
-    //    case SDL_GAMEPAD_AXIS_LEFTX:
-    //    case SDL_GAMEPAD_AXIS_LEFTY:
-    //    case SDL_GAMEPAD_AXIS_RIGHTX:
-    //    case SDL_GAMEPAD_AXIS_RIGHTY:
-    //    }
-    //        
-    //    UpdateAxis(cs.LeftStickY, cs.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
-    //    UpdateAxis(cs.LeftStickX, cs.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis2);
-    //
-    //    UpdateAxis(cs.LeftStickY, cs.LeftStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis1);
-    //    UpdateAxis(cs.LeftStickX, cs.LeftStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
-    //    return true;
-    //}
-    //}
-    return false;
-}
-
-bool CPad::ProcessJoyStickEvent(const SDL_Event& e, CControllerState& cs) {
-    return false;
-}
-
 bool CPad::ProcessEvent(const SDL_Event& e, bool ignoreMouseEvents, bool ignoreKeyboardEvents) {
     // Mouse/keyboard events are meant to be handled by Pad 0
     if (!ignoreMouseEvents && GetPad(0)->ProcessMouseEvent(e, TempMouseControllerState)) {
@@ -174,13 +141,6 @@ bool CPad::ProcessEvent(const SDL_Event& e, bool ignoreMouseEvents, bool ignoreK
     }
     if (!ignoreKeyboardEvents && GetPad(0)->ProcessKeyboardEvent(e, TempKeyState)) {
         return true;
-    }
-
-    // Other events (I guess) can be handled by any pad
-    for (auto& pad : Pads) {
-        if (pad.ProcessJoyStickEvent(e, pad.PCTempJoyState)) {
-            return true;
-        }
     }
 
     // Event not processed

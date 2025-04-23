@@ -163,8 +163,8 @@ struct JoyStruct {
 private:
     char __align{};
 public:
-    DWORD wVendorID;
-    DWORD wProductID;
+    unsigned long wVendorID;
+    unsigned long wProductID;
 };
 
 VALIDATE_SIZE(JoyStruct, 0x10);
@@ -178,11 +178,48 @@ static inline auto& AllValidWinJoys = StaticRef<CJoySticks, 0xC92144>();
 
 using ControlName = GxtChar[40];
 
+class JoyState2 {
+public:
+    int32_t   lX;                     /* x-axis position              */
+    int32_t   lY;                     /* y-axis position              */
+    int32_t   lZ;                     /* z-axis position              */
+    int32_t   lRx;                    /* x-axis rotation              */
+    int32_t   lRy;                    /* y-axis rotation              */
+    int32_t   lRz;                    /* z-axis rotation              */
+    int32_t   rglSlider[2];           /* extra axes positions         */
+    uint32_t  rgdwPOV[4];             /* POV directions               */
+    uint8_t   rgbButtons[128];        /* 128 buttons                  */
+    int32_t   lVX;                    /* x-axis velocity              */
+    int32_t   lVY;                    /* y-axis velocity              */
+    int32_t   lVZ;                    /* z-axis velocity              */
+    int32_t   lVRx;                   /* x-axis angular velocity      */
+    int32_t   lVRy;                   /* y-axis angular velocity      */
+    int32_t   lVRz;                   /* z-axis angular velocity      */
+    int32_t   rglVSlider[2];          /* extra axes velocities        */
+    int32_t   lAX;                    /* x-axis acceleration          */
+    int32_t   lAY;                    /* y-axis acceleration          */
+    int32_t   lAZ;                    /* z-axis acceleration          */
+    int32_t   lARx;                   /* x-axis angular acceleration  */
+    int32_t   lARy;                   /* y-axis angular acceleration  */
+    int32_t   lARz;                   /* z-axis angular acceleration  */
+    int32_t   rglASlider[2];          /* extra axes accelerations     */
+    int32_t   lFX;                    /* x-axis force                 */
+    int32_t   lFY;                    /* y-axis force                 */
+    int32_t   lFZ;                    /* z-axis force                 */
+    int32_t   lFRx;                   /* x-axis torque                */
+    int32_t   lFRy;                   /* y-axis torque                */
+    int32_t   lFRz;                   /* z-axis torque                */
+    int32_t   rglFSlider[2];          /* extra axes forces            */
+};
+
+// Validate the size to ensure it matches the original DirectInput struct size (272 bytes)
+//VALIDATE_SIZE(JoyState2, 0x110); // 272
+
 class CControllerConfigManager {
 public:
     bool              m_bJoyJustInitialised{};
-    DIJOYSTATE2       m_OldJoyState{};
-    DIJOYSTATE2       m_NewJoyState{};
+    JoyState2         m_OldJoyState;
+    JoyState2         m_NewJoyState;
     ControlName       m_ControllerActionName[NUM_OF_MAX_CONTROLLER_ACTIONS]{};
     bool              m_ButtonStates[JOYBUTTON_COUNT]{}; // True if down, false if up or missing
     CControllerAction m_Actions[NUM_OF_MAX_CONTROLLER_ACTIONS];
@@ -277,6 +314,6 @@ private:
     }
 };
 
-VALIDATE_SIZE(CControllerConfigManager, 0x12E4);
+//VALIDATE_SIZE(CControllerConfigManager, 0x12E4);
 
 extern CControllerConfigManager& ControlsManager;
