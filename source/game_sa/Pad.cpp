@@ -676,34 +676,59 @@ void CPad::ProcessPad(ePadID padID) {
         // Reset new joy state and set gamepad type
         std::memset(&ControlsManager.m_NewJoyState, 0, sizeof(JoyState2));    
         
-        // Update button states in m_NewJoyState for Windows compatibility layer
-// #ifdef NOTSA_USE_SDL3
-//         SDL_Gamepad* gamepad = GetGamepadForPadID(padID);
-//         if (gamepad) {
             for (int i = 0; i < 32; i++) {
                 ControlsManager.m_NewJoyState.rgbButtons[i] = OS_GamepadButton(padID, static_cast<eJoyButtons>(i)) ? 0x80 : 0;
             }
-//         }
-// #endif
-        
+
+    
+    } else {
         // Update button states using eJoyButtons enum
-        // pad->PCTempJoyState.ButtonCircle = OS_GamepadButton(padID, JOYBUTTON_ONE) ? 255 : 0;
-        // pad->PCTempJoyState.ButtonCross = OS_GamepadButton(padID, JOYBUTTON_TWO) ? 255 : 0;
-        // pad->PCTempJoyState.ButtonSquare = OS_GamepadButton(padID, JOYBUTTON_THREE) ? 255 : 0;
-        // pad->PCTempJoyState.ButtonTriangle = OS_GamepadButton(padID, JOYBUTTON_FOUR) ? 255 : 0;
-        // pad->PCTempJoyState.LeftShoulder2 = OS_GamepadButton(padID, JOYBUTTON_FIVE) ? 255 : 0;
-        // pad->PCTempJoyState.RightShoulder2 = OS_GamepadButton(padID, JOYBUTTON_SIX) ? 255 : 0;
-        // pad->PCTempJoyState.LeftShoulder1 = OS_GamepadButton(padID, JOYBUTTON_SEVEN) ? 255 : 0;
-        // pad->PCTempJoyState.RightShoulder1 = OS_GamepadButton(padID, JOYBUTTON_EIGHT) ? 255 : 0;
-        // pad->PCTempJoyState.Select = OS_GamepadButton(padID, JOYBUTTON_NINE) ? 255 : 0;
-        // pad->PCTempJoyState.ShockButtonL = OS_GamepadButton(padID, JOYBUTTON_TEN) ? 255 : 0;
-        // pad->PCTempJoyState.ShockButtonR = OS_GamepadButton(padID, JOYBUTTON_ELEVEN) ? 255 : 0;
-        // pad->PCTempJoyState.Start = OS_GamepadButton(padID, JOYBUTTON_TWELVE) ? 255 : 0;
-        // pad->PCTempJoyState.DPadUp = OS_GamepadButton(padID, JOYBUTTON_THIRTEEN) ? 255 : 0;
-        // pad->PCTempJoyState.DPadRight = OS_GamepadButton(padID, JOYBUTTON_FOURTEEN) ? 255 : 0;
-        // pad->PCTempJoyState.DPadDown = OS_GamepadButton(padID, JOYBUTTON_FIFTHTEEN) ? 255 : 0;
-        // pad->PCTempJoyState.DPadLeft = OS_GamepadButton(padID, JOYBUTTON_SIXTEEN) ? 255 : 0;
+        pad->PCTempJoyState.ButtonCircle = OS_GamepadButton(padID, JOYBUTTON_ONE) ? 255 : 0;
+        pad->PCTempJoyState.ButtonCross = OS_GamepadButton(padID, JOYBUTTON_TWO) ? 255 : 0;
+        pad->PCTempJoyState.ButtonSquare = OS_GamepadButton(padID, JOYBUTTON_THREE) ? 255 : 0;
+        pad->PCTempJoyState.ButtonTriangle = OS_GamepadButton(padID, JOYBUTTON_FOUR) ? 255 : 0;
+        pad->PCTempJoyState.LeftShoulder2 = OS_GamepadButton(padID, JOYBUTTON_FIVE) ? 255 : 0;
+        pad->PCTempJoyState.RightShoulder2 = OS_GamepadButton(padID, JOYBUTTON_SIX) ? 255 : 0;
+        pad->PCTempJoyState.LeftShoulder1 = OS_GamepadButton(padID, JOYBUTTON_SEVEN) ? 255 : 0;
+        pad->PCTempJoyState.RightShoulder1 = OS_GamepadButton(padID, JOYBUTTON_EIGHT) ? 255 : 0;
+        pad->PCTempJoyState.Select = OS_GamepadButton(padID, JOYBUTTON_NINE) ? 255 : 0;
+        pad->PCTempJoyState.ShockButtonL = OS_GamepadButton(padID, JOYBUTTON_TEN) ? 255 : 0;
+        pad->PCTempJoyState.ShockButtonR = OS_GamepadButton(padID, JOYBUTTON_ELEVEN) ? 255 : 0;
+        pad->PCTempJoyState.Start = OS_GamepadButton(padID, JOYBUTTON_TWELVE) ? 255 : 0;
+        pad->PCTempJoyState.DPadUp =    OS_GamepadButton(padID, JOYBUTTON_THIRTEEN) ? 255 : 0;
+        pad->PCTempJoyState.DPadRight = OS_GamepadButton(padID, JOYBUTTON_FOURTEEN) ? 255 : 0;
+        pad->PCTempJoyState.DPadDown =  OS_GamepadButton(padID, JOYBUTTON_FIFTHTEEN) ? 255 : 0;
+        pad->PCTempJoyState.DPadLeft =  OS_GamepadButton(padID, JOYBUTTON_SIXTEEN) ? 255 : 0;
+        // Handle D-pad buttons
+        pad->PCTempJoyState.DPadUp = OS_GamepadButton(padID, JOYBUTTON_THIRTEEN) ? 255 : 0;
+        pad->PCTempJoyState.DPadRight = OS_GamepadButton(padID, JOYBUTTON_FOURTEEN) ? 255 : 0;
+        pad->PCTempJoyState.DPadDown = OS_GamepadButton(padID, JOYBUTTON_FIFTHTEEN) ? 255 : 0;
+        pad->PCTempJoyState.DPadLeft = OS_GamepadButton(padID, JOYBUTTON_SIXTEEN) ? 255 : 0;
+        
+        // Emulate POV hat behavior: When D-pad is pressed, also update analog stick values
+        if (pad->PCTempJoyState.DPadUp || pad->PCTempJoyState.DPadRight || 
+            pad->PCTempJoyState.DPadDown || pad->PCTempJoyState.DPadLeft) {
+            // Calculate direction from D-pad inputs
+            float x = 0.0f, y = 0.0f;
+            if (pad->PCTempJoyState.DPadRight) x += 1.0f;
+            if (pad->PCTempJoyState.DPadLeft) x -= 1.0f;
+            if (pad->PCTempJoyState.DPadDown) y += 1.0f;
+            if (pad->PCTempJoyState.DPadUp) y -= 1.0f;
+            
+            // Normalize diagonal movement
+            if (x != 0.0f && y != 0.0f) {
+                const float length = sqrt(x*x + y*y);
+                x /= length;
+                y /= length;
+            }
+            
+            // Override left stick values with D-pad input
+            leftStickPos[padID].x = x;
+            leftStickPos[padID].y = y;
+        }
     }
+
+
 
     // Apply hack for next tick if enabled
     // if (hackNextTick) {
@@ -726,6 +751,8 @@ void CPad::ProcessPad(ePadID padID) {
     pad = CPad::GetPad(targetPadID);
     // Apply deadzone and update stick positions
     float deadzone = flt_7656D8[gamepadType == OSGT_Xbox360 ? 1 : 0];
+
+    // Apply deadzone and convert analog stick values
     if (std::fabs(leftStickPos[padID].x) > deadzone) {
         pad->PCTempJoyState.LeftStickX = ConvertAxisToInt(leftStickPos[padID].x, 128.0f);
     }

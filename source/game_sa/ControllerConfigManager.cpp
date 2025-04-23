@@ -870,16 +870,18 @@ void CControllerConfigManager::ReinitControls() {
     const auto MouseSetUp = WinInput::GetMouseSetUp();
 #endif
     ControlsManager.InitDefaultControlConfigMouse(MouseSetUp, FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS);
+#ifndef NOTSA_USE_SDL3
 
     if (AllValidWinJoys.JoyStickNum[PAD1].bJoyAttachedToPort) {
-#ifndef NOTSA_USE_SDL3
         DIDEVCAPS devCaps;
         devCaps.dwSize = sizeof(DIDEVCAPS);
         if (!FAILED(PSGLOBAL(diDevice1)->GetCapabilities(&devCaps))) {
             ControlsManager.InitDefaultControlConfigJoyPad(devCaps.dwButtons);
         }
-#endif
     }
+#else
+        ControlsManager.InitDefaultControlConfigJoyPad(32);
+#endif
 }
 
 // 0x52F590
@@ -973,6 +975,10 @@ void CControllerConfigManager::ClearSimButtonPressCheckers() {
 // unused
 // 0x52D1C0
 eJoyButtons CControllerConfigManager::GetJoyButtonJustUp() {
+    if (m_bJoyJustInitialised) {
+        return eJoyButtons::NO_JOYBUTTONS;
+    }
+    
     // Check each button from 0 to JOYBUTTON_SIXTEEN
     for (auto buttonIndex = 0; buttonIndex < int32(notsa::IsFixBugs() ? JOYBUTTON_COUNT : JOYBUTTON_MAX); buttonIndex++) {
         // Check if button is released in current state but was pressed in previous state
@@ -990,6 +996,9 @@ eJoyButtons CControllerConfigManager::GetJoyButtonJustUp() {
 
 // 0x52D1E0
 eJoyButtons CControllerConfigManager::GetJoyButtonJustDown() {
+    if (m_bJoyJustInitialised) {
+        return eJoyButtons::NO_JOYBUTTONS;
+    }
     // Check each button from 0 to JOYBUTTON_SIXTEEN
     for (auto buttonIndex = 0; buttonIndex < int32(notsa::IsFixBugs() ? JOYBUTTON_COUNT : JOYBUTTON_MAX); buttonIndex++) {
         // Check if button is pressed in current state but wasn't pressed in previous state
