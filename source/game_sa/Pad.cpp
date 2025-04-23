@@ -677,10 +677,15 @@ void CPad::ProcessPad(ePadID padID) {
         std::memset(&ControlsManager.m_NewJoyState, 0, sizeof(JoyState2));    
         
         // Update button states in m_NewJoyState for Windows compatibility layer
-        for (int i = 0; i < 32; i++) {
-            ControlsManager.m_NewJoyState.rgbButtons[i] = OS_GamepadButton(padID, static_cast<eJoyButtons>(i)) ? 0x80 : 0;
-        }
-    
+// #ifdef NOTSA_USE_SDL3
+//         SDL_Gamepad* gamepad = GetGamepadForPadID(padID);
+//         if (gamepad) {
+            for (int i = 0; i < 32; i++) {
+                ControlsManager.m_NewJoyState.rgbButtons[i] = OS_GamepadButton(padID, static_cast<eJoyButtons>(i)) ? 0x80 : 0;
+            }
+//         }
+// #endif
+        
         // Update button states using eJoyButtons enum
         // pad->PCTempJoyState.ButtonCircle = OS_GamepadButton(padID, JOYBUTTON_ONE) ? 255 : 0;
         // pad->PCTempJoyState.ButtonCross = OS_GamepadButton(padID, JOYBUTTON_TWO) ? 255 : 0;
