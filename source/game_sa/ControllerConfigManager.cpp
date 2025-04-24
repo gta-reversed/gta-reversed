@@ -609,7 +609,12 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN, (RsKeyCodes)'R', eControllerType::OPTIONAL_EXTRA_KEY);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_CYCLE_TARGET_LEFT, (RsKeyCodes)'[', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_CYCLE_TARGET_RIGHT, (RsKeyCodes)']', eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_CYCLE_TARGET_RIGHT, (RsKeyCodes)']', eControllerType::KEYBOARD);
+
+    // NOTE: If by chance there is no mouse the key assignment will fail, keep this.
+    if (notsa::IsFixBugs()) {
+        SetControllerKeyAssociatedWithAction(eControllerAction::CA_VEHICLE_LOOKBEHIND, rsPAD5, eControllerType::KEYBOARD);
+        SetControllerKeyAssociatedWithAction(eControllerAction::CA_VEHICLE_MOUSELOOK, '*', eControllerType::KEYBOARD);
+    }
 
     ClearSimButtonPressCheckers();
 }
