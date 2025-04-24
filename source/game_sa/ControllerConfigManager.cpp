@@ -544,7 +544,7 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_FIRE_WEAPON, rsLCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_SNIPER_ZOOM_IN, rsPGUP, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_SNIPER_ZOOM_OUT, rsPGDN, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_FIRE_WEAPON_ALT, notsa::IsFixBugs() ? (RsKeyCodes)'0' : (RsKeyCodes)'\\', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_FIRE_WEAPON_ALT, RsKeyCodes(notsa::IsFixBugs() ? '0' : '\\'), eControllerType::KEYBOARD); // Fixes key mapping issue between old Windows 98 and modern systems
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_GROUP_CONTROL_FWD, (RsKeyCodes)'G', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_GROUP_CONTROL_BWD, (RsKeyCodes)'H', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_CONVERSATION_NO, (RsKeyCodes)'N', eControllerType::KEYBOARD);
@@ -564,7 +564,7 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT, rsPADRIGHT, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_1RST_PERSON_LOOK_UP, rsPADDOWN, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_1RST_PERSON_LOOK_DOWN, rsPADUP, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_CENTER_CAMERA_BEHIND_PLAYER, !notsa::IsFixBugs() ? (RsKeyCodes)'3' : (RsKeyCodes)'#', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_CENTER_CAMERA_BEHIND_PLAYER, RsKeyCodes(notsa::IsFixBugs() ? '3' : '#'), eControllerType::KEYBOARD); // Fixes key mapping issue between old Windows 98 and modern systems
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_LOOKBEHIND, rsPADEND, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_VEHICLE_STEER_UP, rsUP, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_VEHICLE_STEER_DOWN, rsDOWN, eControllerType::KEYBOARD);
