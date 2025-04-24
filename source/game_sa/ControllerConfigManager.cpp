@@ -1152,10 +1152,10 @@ void CControllerConfigManager::MakeControllerActionsBlank() {
 
 // 0x531140
 void CControllerConfigManager::AffectPadFromKeyBoard() {
-#ifndef NOTSA_USE_SDL3
-    RsKeyCodes keyCode;
-    GTATranslateShiftKey(&keyCode); // TODO: It bugs the build with DINPUT and i am too lazy to fix it 
-#endif
+// #ifndef NOTSA_USE_SDL3
+//     RsKeyCodes keyCode;
+//     GTATranslateShiftKey(&keyCode); // TODO: It bugs the build with DINPUT and i am too lazy to fix it 
+// #endif
 
     const auto inMenu = !CPad::padNumber && !FrontEndMenuManager.m_bMenuActive;
     for (auto& action : m_Actions) {
