@@ -22,8 +22,8 @@ bool CPad::ProcessMouseEvent(const SDL_Event& e, CMouseControllerState& ms) {
         return true;
     }
     case SDL_EVENT_MOUSE_MOTION: {
-        ms.m_AmountMoved.x = e.motion.xrel;
-        ms.m_AmountMoved.y = e.motion.yrel;
+        ms.m_AmountMoved.x += e.motion.xrel;
+        ms.m_AmountMoved.y += e.motion.yrel;
         return true;
     }
     case SDL_EVENT_MOUSE_ADDED:
