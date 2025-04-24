@@ -575,6 +575,28 @@ static float OS_GamepadAxis(uint32_t padId, uint32_t axisId) {
 #endif
 }
 
+// Check if gamepad has L3 R3 support
+static bool OS_GamepadHasL3R3(uint32_t padId) {
+#ifdef NOTSA_USE_SDL3
+    SDL_Gamepad* gamepad = GetGamepadForPadID(padId);
+    if (!gamepad) {
+        return false;
+    }
+    
+    // Check if L3 (left stick button) works by trying to get its state
+    bool hasL3 = SDL_GamepadHasButton(gamepad, SDL_GAMEPAD_BUTTON_LEFT_STICK);
+    
+    // Check if R3 (right stick button) works by trying to get its state
+    bool hasR3 = SDL_GamepadHasButton(gamepad, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
+    
+    // Return true only if both L3 and R3 are supported
+    return hasL3 && hasR3;
+#else
+    // For non-SDL3 implementation, assume L3/R3 are present if the gamepad is connected
+    return (lastgamepadType[padId] != OSGT_Invalid);
+#endif
+}
+
 // SDL3-compatible OS_GamepadButton
 static bool OS_GamepadButton(uint32_t padId, eJoyButtons buttonId) {
 #ifdef NOTSA_USE_SDL3
@@ -658,7 +680,8 @@ void CPad::ProcessPad(ePadID padID) {
     } else if (initConfig == true) {
         initConfig = false;
 #ifdef NOTSA_USE_SDL3
-        ControlsManager.InitDefaultControlConfigJoyPad(JOYBUTTON_SIXTEEN);
+        int totalButtons = OS_GamepadHasL3R3(padID) ? 16 : 12;
+        ControlsManager.InitDefaultControlConfigJoyPad(totalButtons);
 #endif
     }
 
@@ -676,11 +699,31 @@ void CPad::ProcessPad(ePadID padID) {
         // Reset new joy state and set gamepad type
         std::memset(&ControlsManager.m_NewJoyState, 0, sizeof(JoyState2));    
         
-            for (int i = 0; i < 32; i++) {
-                ControlsManager.m_NewJoyState.rgbButtons[i] = OS_GamepadButton(padID, static_cast<eJoyButtons>(i)) ? 0x80 : 0;
-            }
+        // Map OS_GamepadButton inputs to ControlsManager button states
+        ControlsManager.m_NewJoyState.rgbButtons[0] = OS_GamepadButton(padID, JOYBUTTON_ONE) ? 0x80 : 0;      // Fire weapon
+        ControlsManager.m_NewJoyState.rgbButtons[1] = OS_GamepadButton(padID, JOYBUTTON_TWO) ? 0x80 : 0;       // Accelerate / Sprint
+        ControlsManager.m_NewJoyState.rgbButtons[2] = OS_GamepadButton(padID, JOYBUTTON_THREE) ? 0x80 : 0;    // Brake/Reverse / Jump
+        ControlsManager.m_NewJoyState.rgbButtons[3] = OS_GamepadButton(padID, JOYBUTTON_FOUR) ? 0x80 : 0;   // Exit/Enter vehicle
 
-    
+        // Shoulders - L2/R2 (triggers) and L1/R1 (bumpers)
+        ControlsManager.m_NewJoyState.rgbButtons[4] = OS_GamepadButton(padID, JOYBUTTON_FIVE) ? 0x80 : 0;         // Left Shoulder 2
+        ControlsManager.m_NewJoyState.rgbButtons[5] = OS_GamepadButton(padID, JOYBUTTON_SIX) ? 0x80 : 0;          // Right Shoulder 2
+        ControlsManager.m_NewJoyState.rgbButtons[6] = OS_GamepadButton(padID, JOYBUTTON_SEVEN) ? 0x80 : 0;        // Left Shoulder 1
+        ControlsManager.m_NewJoyState.rgbButtons[7] = OS_GamepadButton(padID, JOYBUTTON_EIGHT) ? 0x80 : 0;        // Right Shoulder 1 (target/handbrake)
+
+        // Select/Start and thumbstick clicks
+        ControlsManager.m_NewJoyState.rgbButtons[8] = OS_GamepadButton(padID, JOYBUTTON_NINE) ? 0x80 : 0;     // Camera modes
+        ControlsManager.m_NewJoyState.rgbButtons[11] = OS_GamepadButton(padID, JOYBUTTON_TWELVE) ? 0x80 : 0;    // Pause
+
+        // D-pad
+        ControlsManager.m_NewJoyState.rgbButtons[9] = OS_GamepadButton(padID, JOYBUTTON_ELEVEN) ? 0x80 : 0;       // Right stick click
+        ControlsManager.m_NewJoyState.rgbButtons[10] = OS_GamepadButton(padID, JOYBUTTON_TEN) ? 0x80 : 0;          // Left stick click
+        ControlsManager.m_NewJoyState.rgbButtons[12] = OS_GamepadButton(padID, JOYBUTTON_THIRTEEN) ? 0x80 : 0;     // Radio up
+        ControlsManager.m_NewJoyState.rgbButtons[13] = OS_GamepadButton(padID, JOYBUTTON_FOURTEEN) ? 0x80 : 0;  // Next track
+        ControlsManager.m_NewJoyState.rgbButtons[14] = OS_GamepadButton(padID, JOYBUTTON_FIFTHTEEN) ? 0x80 : 0;  // Radio down
+        ControlsManager.m_NewJoyState.rgbButtons[15] = OS_GamepadButton(padID, JOYBUTTON_SIXTEEN) ? 0x80 : 0;    // Skip trip/Action
+
+        
     } else {
         // Update button states using eJoyButtons enum
         pad->PCTempJoyState.ButtonCircle = OS_GamepadButton(padID, JOYBUTTON_ONE) ? 255 : 0;
@@ -699,58 +742,69 @@ void CPad::ProcessPad(ePadID padID) {
         pad->PCTempJoyState.DPadRight = OS_GamepadButton(padID, JOYBUTTON_FOURTEEN) ? 255 : 0;
         pad->PCTempJoyState.DPadDown =  OS_GamepadButton(padID, JOYBUTTON_FIFTHTEEN) ? 255 : 0;
         pad->PCTempJoyState.DPadLeft =  OS_GamepadButton(padID, JOYBUTTON_SIXTEEN) ? 255 : 0;
-        // Handle D-pad buttons
-        pad->PCTempJoyState.DPadUp = OS_GamepadButton(padID, JOYBUTTON_THIRTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadRight = OS_GamepadButton(padID, JOYBUTTON_FOURTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadDown = OS_GamepadButton(padID, JOYBUTTON_FIFTHTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadLeft = OS_GamepadButton(padID, JOYBUTTON_SIXTEEN) ? 255 : 0;
-        
-        // Emulate POV hat behavior: When D-pad is pressed, also update analog stick values
-        if (pad->PCTempJoyState.DPadUp || pad->PCTempJoyState.DPadRight || 
-            pad->PCTempJoyState.DPadDown || pad->PCTempJoyState.DPadLeft) {
-            // Calculate direction from D-pad inputs
-            float x = 0.0f, y = 0.0f;
-            if (pad->PCTempJoyState.DPadRight) x += 1.0f;
-            if (pad->PCTempJoyState.DPadLeft) x -= 1.0f;
-            if (pad->PCTempJoyState.DPadDown) y += 1.0f;
-            if (pad->PCTempJoyState.DPadUp) y -= 1.0f;
-            
-            // Normalize diagonal movement
-            if (x != 0.0f && y != 0.0f) {
-                const float length = sqrt(x*x + y*y);
-                x /= length;
-                y /= length;
-            }
-            
-            // Override left stick values with D-pad input
-            leftStickPos[padID].x = x;
-            leftStickPos[padID].y = y;
-        }
     }
+    
 
-
-
+    
     // Apply hack for next tick if enabled
     // if (hackNextTick) {
     //     hackNextTick = false;
     //     ControlsManager.m_NewJoyState.rgbButtons[BUTTON_A] = 1;
     //     ControlsManager.m_ButtonStates[BUTTON_A] = true;
     // }
-
+    
     // Process pad events
     RsPadEventHandler(rsPADBUTTONUP, &currentPadID);
     // if (CPad::m_bMapPadOneToPadTwo) {
-        // currentPadID = 1;
+    // currentPadID = 1;
     // }
     RsPadEventHandler(rsPADBUTTONUP, &currentPadID);
     RsPadEventHandler(rsPADBUTTONDOWN, &currentPadID);
-
+    
     // Update pad state with stick positions
     // uint32_t targetPadID = CPad::m_bMapPadOneToPadTwo ? 1 : padID;
     auto targetPadID = padID;
     pad = CPad::GetPad(targetPadID);
     // Apply deadzone and update stick positions
     float deadzone = flt_7656D8[gamepadType == OSGT_Xbox360 ? 1 : 0];
+
+    // Menu
+    if (!OS_GamepadHasL3R3(padID) || FrontEndMenuManager.m_bMenuActive) {
+        // Handle D-pad buttons
+        pad->PCTempJoyState.DPadUp = OS_GamepadButton(padID, JOYBUTTON_THIRTEEN) ? 255 : 0;
+        pad->PCTempJoyState.DPadRight = OS_GamepadButton(padID, JOYBUTTON_FOURTEEN) ? 255 : 0;
+        pad->PCTempJoyState.DPadDown = OS_GamepadButton(padID, JOYBUTTON_FIFTHTEEN) ? 255 : 0;
+        pad->PCTempJoyState.DPadLeft = OS_GamepadButton(padID, JOYBUTTON_SIXTEEN) ? 255 : 0;
+
+        // Emulate POV hat behavior: When D-pad is pressed, also update analog stick values
+        if (pad->PCTempJoyState.DPadUp || pad->PCTempJoyState.DPadRight || pad->PCTempJoyState.DPadDown || pad->PCTempJoyState.DPadLeft) {
+            // Calculate direction from D-pad inputs
+            float x = 0.0f, y = 0.0f;
+            if (pad->PCTempJoyState.DPadRight) {
+                x += 1.0f;
+            }
+            if (pad->PCTempJoyState.DPadLeft) {
+                x -= 1.0f;
+            }
+            if (pad->PCTempJoyState.DPadDown) {
+                y += 1.0f;
+            }
+            if (pad->PCTempJoyState.DPadUp) {
+                y -= 1.0f;
+            }
+
+            // Normalize diagonal movement
+            if (x != 0.0f && y != 0.0f) {
+                const float length = sqrt(x * x + y * y);
+                x /= length;
+                y /= length;
+            }
+
+            // Override left stick values with D-pad input
+            leftStickPos[padID].x = x;
+            leftStickPos[padID].y = y;
+        }
+    }
 
     // Apply deadzone and convert analog stick values
     if (std::fabs(leftStickPos[padID].x) > deadzone) {
