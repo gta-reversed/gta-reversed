@@ -482,24 +482,6 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
         }
     }
 
-    // NOTSA: Check if there's at least one valid assignment for each action. (Mouse fix)
-    if (notsa::IsFixBugs()) {
-        for (auto action = 0u; action < NUM_OF_MAX_CONTROLLER_ACTIONS; action++) {
-            bool hasAssignment = false;
-            for (const auto& type : CONTROLLER_TYPES_ALL) {
-                if (!GetIsKeyBlank(m_Actions[action].Keys[type].m_uiActionInitiator, type)) {
-                    hasAssignment = true;
-                    break;
-                }
-            }
-
-            // NOTSA: If no assignment found, check if it's a special action that can be blank
-            if (!hasAssignment && GetActionType((eControllerAction)action) == eActionType::ACTION_NOT_TYPE) {
-                return false; // No valid assignment found for this action
-            }
-        }
-    }
-
     return true;
 }
 
@@ -558,7 +540,7 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_FIRE_WEAPON, rsLCTRL, eControllerType::OPTIONAL_EXTRA_KEY);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_SNIPER_ZOOM_IN, rsPGUP, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_SNIPER_ZOOM_OUT, rsPGDN, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_FIRE_WEAPON_ALT, (RsKeyCodes)'\\', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_FIRE_WEAPON_ALT, notsa::IsFixBugs() ? (RsKeyCodes)'\\' : (RsKeyCodes)'0', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_GROUP_CONTROL_FWD, (RsKeyCodes)'G', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_GROUP_CONTROL_BWD, (RsKeyCodes)'H', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_CONVERSATION_NO, (RsKeyCodes)'N', eControllerType::KEYBOARD);
@@ -578,7 +560,7 @@ void CControllerConfigManager::InitDefaultControlConfiguration() {
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT, rsPADRIGHT, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_1RST_PERSON_LOOK_UP, rsPADDOWN, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_1RST_PERSON_LOOK_DOWN, rsPADUP, eControllerType::KEYBOARD);
-    SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_CENTER_CAMERA_BEHIND_PLAYER, (RsKeyCodes)'#', eControllerType::KEYBOARD);
+    SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_CENTER_CAMERA_BEHIND_PLAYER, notsa::IsFixBugs() ? (RsKeyCodes)'#' : (RsKeyCodes)'3', eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_PED_LOOKBEHIND, rsPADEND, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_VEHICLE_STEER_UP, rsUP, eControllerType::KEYBOARD);
     SetControllerKeyAssociatedWithAction(eControllerAction::CA_VEHICLE_STEER_DOWN, rsDOWN, eControllerType::KEYBOARD);
@@ -793,65 +775,65 @@ void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControl
 
 // 0x52D260
 void CControllerConfigManager::InitialiseControllerActionNameArray() {
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_LOOKBEHIND], "CA_PED_LOOKBEHIND"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_CYCLE_WEAPON_LEFT], "CA_PED_CYCLE_WEAPON_LEFT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_CYCLE_WEAPON_RIGHT], "CA_PED_CYCLE_WEAPON_RIGHT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_LOCK_TARGET], "CA_PED_LOCK_TARGET"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_JUMPING], "CA_PED_JUMPING"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_SPRINT], "CA_PED_SPRINT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_LOOKBEHIND], "PED_LOOKBEHIND"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_CYCLE_WEAPON_LEFT], "PED_CYCLE_WEAPON_LEFT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_CYCLE_WEAPON_RIGHT], "PED_CYCLE_WEAPON_RIGHT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_LOCK_TARGET], "PED_LOCK_TARGET"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_JUMPING], "PED_JUMPING"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_SPRINT], "PED_SPRINT"_gxt);
     GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_WALK], "SNEAK_ABOUT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_CYCLE_TARGET_LEFT], "CA_PED_CYCLE_TARGET_LEFT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_CYCLE_TARGET_RIGHT], "CA_PED_CYCLE_TARGET_RIGHT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_CENTER_CAMERA_BEHIND_PLAYER], "CA_PED_CENTER_CAMERA_BEHIND_PLAYER"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_LOOKBEHIND], "CA_VEHICLE_LOOKBEHIND"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_DUCK], "CA_PED_DUCK"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_ANSWER_PHONE], "CA_PED_ANSWER_PHONE"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_CYCLE_TARGET_LEFT], "PED_CYCLE_TARGET_LEFT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_CYCLE_TARGET_RIGHT], "PED_CYCLE_TARGET_RIGHT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_CENTER_CAMERA_BEHIND_PLAYER], "PED_CENTER_CAMERA_BEHIND_PLAYER"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_LOOKBEHIND], "VEHICLE_LOOKBEHIND"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_DUCK], "PED_DUCK"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_ANSWER_PHONE], "PED_ANSWER_PHONE"_gxt);
     GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_STEER_LEFT], "VEHICLE_STEERLEFT"_gxt);
     GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_STEER_RIGHT], "VEHICLE_STEERRIGHT"_gxt);
     GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_STEER_UP], "VEHICLE_STEERUP"_gxt);
     GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_STEER_DOWN], "VEHICLE_STEERDOWN"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_LOOKLEFT], "CA_VEHICLE_LOOKLEFT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_LOOKRIGHT], "CA_VEHICLE_LOOKRIGHT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_MOUSELOOK], "CA_VEHICLE_MOUSELOOK"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_HORN], "CA_VEHICLE_HORN"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_HANDBRAKE], "CA_VEHICLE_HANDBRAKE"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_ACCELERATE], "CA_VEHICLE_ACCELERATE"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_BRAKE], "CA_VEHICLE_BRAKE"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_RADIO_STATION_UP], "CA_VEHICLE_RADIO_STATION_UP"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN], "CA_VEHICLE_RADIO_STATION_DOWN"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_LOOKLEFT], "VEHICLE_LOOKLEFT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_LOOKRIGHT], "VEHICLE_LOOKRIGHT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_MOUSELOOK], "VEHICLE_MOUSELOOK"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_HORN], "VEHICLE_HORN"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_HANDBRAKE], "VEHICLE_HANDBRAKE"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_ACCELERATE], "VEHICLE_ACCELERATE"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_BRAKE], "VEHICLE_BRAKE"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_RADIO_STATION_UP], "VEHICLE_RADIO_STATION_UP"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN], "VEHICLE_RADIO_STATION_DOWN"_gxt);
     if (notsa::IsFixBugs()) { // Fix: Missing on vanilla game
-        GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP], "CA_VEHICLE_RADIO_TRACK_SKIP"_gxt);
+        GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP], "VEHICLE_RADIO_TRACK_SKIP"_gxt);
     }
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_TOGGLE_SUBMISSIONS], "CA_TOGGLE_SUBMISSIONS"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_SNIPER_ZOOM_IN], "CA_PED_SNIPER_ZOOM_IN"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_SNIPER_ZOOM_OUT], "CA_PED_SNIPER_ZOOM_OUT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_1RST_PERSON_LOOK_LEFT], "CA_PED_1RST_PERSON_LOOK_LEFT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT], "CA_PED_1RST_PERSON_LOOK_RIGHT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_1RST_PERSON_LOOK_UP], "CA_PED_1RST_PERSON_LOOK_UP"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_1RST_PERSON_LOOK_DOWN], "CA_PED_1RST_PERSON_LOOK_DOWN"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_SHOW_MOUSE_POINTER_TOGGLE], "CA_SHOW_MOUSE_POINTER_TOGGLE"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS], "CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_TOGGLE_SUBMISSIONS], "TOGGLE_SUBMISSIONS"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_SNIPER_ZOOM_IN], "PED_SNIPER_ZOOM_IN"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_SNIPER_ZOOM_OUT], "PED_SNIPER_ZOOM_OUT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_1RST_PERSON_LOOK_LEFT], "PED_1RST_PERSON_LOOK_LEFT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT], "PED_1RST_PERSON_LOOK_RIGHT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_1RST_PERSON_LOOK_UP], "PED_1RST_PERSON_LOOK_UP"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_1RST_PERSON_LOOK_DOWN], "PED_1RST_PERSON_LOOK_DOWN"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_SHOW_MOUSE_POINTER_TOGGLE], "SHOW_MOUSE_POINTER_TOGGLE"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS], "CAMERA_CHANGE_VIEW_ALL_SITUATIONS"_gxt);
     GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_FIRE_WEAPON], "PED_FIREWEAPON"_gxt);
     GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_PED_FIRE_WEAPON_ALT], "PED_FIREWEAPON_ALT"_gxt);
     GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_FIRE_WEAPON], "VEHICLE_FIREWEAPON"_gxt);
     GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_FIRE_WEAPON_ALT], "VEHICLE_FIREWEAPON_ALT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_ENTER_EXIT], "CA_VEHICLE_ENTER_EXIT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_CONVERSATION_NO], "CA_CONVERSATION_NO"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_CONVERSATION_YES], "CA_CONVERSATION_YES"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GROUP_CONTROL_FWD], "CA_GROUP_CONTROL_FWD"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GROUP_CONTROL_BWD], "CA_GROUP_CONTROL_BWD"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GO_LEFT], "CA_GO_LEFT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GO_RIGHT], "CA_GO_RIGHT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GO_FORWARD], "CA_GO_FORWARD"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GO_BACK], "CA_GO_BACK"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_TURRETLEFT], "CA_VEHICLE_TURRETLEFT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_TURRETRIGHT], "CA_VEHICLE_TURRETRIGHT"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_TURRETUP], "CA_VEHICLE_TURRETUP"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_TURRETDOWN], "CA_VEHICLE_TURRETDOWN"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_NETWORK_TALK], "CA_NETWORK_TALK"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_TOGGLE_DPAD], "CA_TOGGLE_DPAD"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_SWITCH_DEBUG_CAM_ON], "CA_SWITCH_DEBUG_CAM_ON"_gxt);
-    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_TAKE_SCREEN_SHOT], "CA_TAKE_SCREEN_SHOT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_ENTER_EXIT], "VEHICLE_ENTER_EXIT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_CONVERSATION_NO], "CONVERSATION_NO"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_CONVERSATION_YES], "CONVERSATION_YES"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GROUP_CONTROL_FWD], "GROUP_CONTROL_FWD"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GROUP_CONTROL_BWD], "GROUP_CONTROL_BWD"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GO_LEFT], "GO_LEFT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GO_RIGHT], "GO_RIGHT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GO_FORWARD], "GO_FORWARD"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_GO_BACK], "GO_BACK"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_TURRETLEFT], "VEHICLE_TURRETLEFT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_TURRETRIGHT], "VEHICLE_TURRETRIGHT"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_TURRETUP], "VEHICLE_TURRETUP"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_VEHICLE_TURRETDOWN], "VEHICLE_TURRETDOWN"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_NETWORK_TALK], "NETWORK_TALK"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_TOGGLE_DPAD], "TOGGLE_DPAD"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_SWITCH_DEBUG_CAM_ON], "SWITCH_DEBUG_CAM_ON"_gxt);
+    GxtCharStrcpy(m_ControllerActionName[eControllerAction::CA_TAKE_SCREEN_SHOT], "TAKE_SCREEN_SHOT"_gxt);
 }
 
 // 0x531F20
@@ -1159,7 +1141,7 @@ void CControllerConfigManager::MakeControllerActionsBlank() {
 void CControllerConfigManager::AffectPadFromKeyBoard() {
 #ifndef NOTSA_USE_SDL3
     RsKeyCodes keyCode;
-    GTATranslateShiftKey(&keyCode); // No matter what you do, it won't work.
+    GTATranslateShiftKey(&keyCode); // TODO: It bugs the build with DINPUT and i am too lazy to fix it 
 #endif
 
     const auto inMenu = !CPad::padNumber && !FrontEndMenuManager.m_bMenuActive;
