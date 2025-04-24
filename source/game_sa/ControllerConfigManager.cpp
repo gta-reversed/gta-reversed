@@ -101,7 +101,7 @@ void CControllerConfigManager::ClearPedMappings(eControllerAction action, KeyCod
     CheckAndClear(eControllerAction::CA_PED_LOOKBEHIND, type, button);
     CheckAndClear(eControllerAction::CA_PED_DUCK, type, button);
 
-    if (action != eControllerAction::CA_PED_FIRE_WEAPON_ALT && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD || !FrontEndMenuManager.m_ControlMethod) {
+    if (action != eControllerAction::CA_PED_FIRE_WEAPON_ALT && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD || FrontEndMenuManager.m_ControlMethod != eController::MOUSE_PLUS_KEYS) {
         CheckAndClear(eControllerAction::CA_PED_ANSWER_PHONE, type, button);
     }
     CheckAndClear(eControllerAction::CA_PED_WALK, type, button);
