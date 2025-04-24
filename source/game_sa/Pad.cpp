@@ -767,7 +767,11 @@ void CPad::ProcessPad(ePadID padID) {
     pad = CPad::GetPad(targetPadID);
     // Apply deadzone and update stick positions
     float deadzone = flt_7656D8[gamepadType == OSGT_Xbox360 ? 1 : 0];
-
+        // Read analog stick positions
+        leftStickPos[padID].x = OS_GamepadAxis(padID, AXIS_LEFT_X);
+        leftStickPos[padID].y = OS_GamepadAxis(padID, AXIS_LEFT_Y);
+        rightStickPos[padID].x = OS_GamepadAxis(padID, AXIS_RIGHT_X);
+        rightStickPos[padID].y = OS_GamepadAxis(padID, AXIS_RIGHT_Y);
     // Menu
     if (!OS_GamepadHasL3R3(padID) || FrontEndMenuManager.m_bMenuActive) {
         // Handle D-pad buttons
