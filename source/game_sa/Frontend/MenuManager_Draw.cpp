@@ -880,7 +880,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_MOUSE_SENS: { // Mouse sensitivity slider
-            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), CCamera::m_fMouseAccelHorzntl / 0.0049999999f, int32(StretchX(3.0f)));
+            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), CCamera::m_fMouseAccelHorzntl / 0.005f, int32(StretchX(3.0f)));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                 if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
                     m_MouseInBounds = 15;
