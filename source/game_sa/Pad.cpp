@@ -332,6 +332,9 @@ void CPad::UpdateMouse() {
 }
 
 // 0x746A10
+static CVector2D leftStickPos[2];
+static CVector2D rightStickPos[2];
+
 void CPad::ProcessPad(ePadID padID) {
     #ifndef NOTSA_USE_SDL3
     constexpr int deviceAxisMin = -2000;
@@ -340,8 +343,6 @@ void CPad::ProcessPad(ePadID padID) {
 
     LPDIRECTINPUTDEVICE8* pDiDevice = nullptr;
     DIJOYSTATE2 joyState;
-    RwV2d leftStickPos{};
-    RwV2d rightStickPos{};
 
     if (padID == PAD1) {
         pDiDevice = &PSGLOBAL(diDevice1);
@@ -391,20 +392,20 @@ void CPad::ProcessPad(ePadID padID) {
 
     if (*pDiDevice) {
         // Calculate left stick position
-        leftStickPos.x = (float)joyState.lX / deviceAxisOffset;
-        leftStickPos.y = (float)joyState.lY / deviceAxisOffset;
+        leftStickPos[padID].x = (float)joyState.lX / deviceAxisOffset;
+        leftStickPos[padID].y = (float)joyState.lY / deviceAxisOffset;
         
         // Handle POV
         if (LOWORD(joyState.rgdwPOV[0]) != 0xFFFF) {
             float angle = DegreesToRadians((float)joyState.rgdwPOV[0] / 100.0f);
-            leftStickPos.x = sin(angle);
-            leftStickPos.y = -cos(angle);
+            leftStickPos[padID].x = sin(angle);
+            leftStickPos[padID].y = -cos(angle);
         }
         
         // Calculate right stick position
         if (AllValidWinJoys.JoyStickNum[padID].bZRotPresent && AllValidWinJoys.JoyStickNum[padID].bZAxisPresent) {
-            rightStickPos.x = (float)joyState.lZ / deviceAxisOffset;
-            rightStickPos.y = (float)joyState.lRz / deviceAxisOffset;
+            rightStickPos[padID].x = (float)joyState.lZ / deviceAxisOffset;
+            rightStickPos[padID].y = (float)joyState.lRz / deviceAxisOffset;
         }
 
         RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padID);
@@ -422,12 +423,12 @@ void CPad::ProcessPad(ePadID padID) {
         };
 
         // Left stick
-        UpdateJoyStickPosition(leftStickPos.x, pPad.PCTempJoyState.LeftStickY, pPad.PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
-        UpdateJoyStickPosition(leftStickPos.y, pPad.PCTempJoyState.LeftStickX, pPad.PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis1);
+        UpdateJoyStickPosition(leftStickPos[padID].x, pPad.PCTempJoyState.LeftStickY, pPad.PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
+        UpdateJoyStickPosition(leftStickPos[padID].y, pPad.PCTempJoyState.LeftStickX, pPad.PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis1);
 
         // Right stick
-        UpdateJoyStickPosition(rightStickPos.x, pPad.PCTempJoyState.RightStickY, pPad.PCTempJoyState.RightStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis2);
-        UpdateJoyStickPosition(rightStickPos.y, pPad.PCTempJoyState.RightStickX, pPad.PCTempJoyState.RightStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
+        UpdateJoyStickPosition(rightStickPos[padID].x, pPad.PCTempJoyState.RightStickY, pPad.PCTempJoyState.RightStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis2);
+        UpdateJoyStickPosition(rightStickPos[padID].y, pPad.PCTempJoyState.RightStickX, pPad.PCTempJoyState.RightStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
     }
 #endif
 }
