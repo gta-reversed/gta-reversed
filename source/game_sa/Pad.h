@@ -223,6 +223,7 @@ public:
     [[nodiscard]] bool GroupControlBackJustDown() const noexcept            { return !DisablePlayerControls && IsDPadDownPressed(); }                                        // 0x541260
 
     // KEYBOARD
+    [[nodiscard]] bool IsFKeyJustUp(eFKeyID key) const noexcept             { return !NewKeyState.FKeys[key] && OldKeyState.FKeys[key]; }
     [[nodiscard]] bool IsFKeyJustDown(eFKeyID key) const noexcept           { return NewKeyState.FKeys[key] && OldKeyState.FKeys[key]; }
     [[nodiscard]] bool IsFKeyJustPressed(eFKeyID key) const noexcept        { return NewKeyState.FKeys[key] && !OldKeyState.FKeys[key]; }
     [[nodiscard]] bool IsF1JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY1); }
@@ -237,7 +238,8 @@ public:
     [[nodiscard]] bool IsF10JustPressed() const noexcept                    { return IsFKeyJustPressed(FKEY10); }
     [[nodiscard]] bool IsF11JustPressed() const noexcept                    { return IsFKeyJustPressed(FKEY11); }
     [[nodiscard]] bool IsF12JustPressed() const noexcept                    { return IsFKeyJustPressed(FKEY12); }
-
+    
+    [[nodiscard]] bool IsStandardKeyJustUp(uint8 key) const noexcept        { return !NewKeyState.standardKeys[key] && OldKeyState.standardKeys[key]; }
     [[nodiscard]] bool IsStandardKeyJustDown(uint8 key) const noexcept      { return NewKeyState.standardKeys[key] && OldKeyState.standardKeys[key]; }                       //
     [[nodiscard]] bool IsStandardKeyJustPressed(uint8 key) const noexcept   { return NewKeyState.standardKeys[key] && !OldKeyState.standardKeys[key]; }                      // 0x4D59B0
     [[nodiscard]] bool IsLeftCtrlJustPressed() const noexcept               { return KEY_IS_PRESSED(lctrl); }                                                                //
@@ -263,6 +265,7 @@ public:
 
     bool IsRadioTrackSkipPressed() { return BUTTON_IS_PRESSED(m_bRadioTrackSkip); } // 0x4E7F20
     static bool f0x57C360() { return NewKeyState.back && !OldKeyState.back; }       // 0x57C360
+    static bool IsBackspaceJustUp() { return !NewKeyState.back && OldKeyState.back; }
 
     // KEYBOARD END
 

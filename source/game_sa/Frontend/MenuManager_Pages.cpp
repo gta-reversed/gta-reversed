@@ -81,36 +81,36 @@ void CMenuManager::RadarZoomIn() {
         m_vMapOrigin.y -= (y * m_fMapZoom - v115);
     }
 
-    auto radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
+    auto radar = CRadar::GetWorldPointInRadarSpace(m_vMousePos);
     CRadar::LimitRadarPoint(radar);
-    auto screen = CRadar::TransformRadarPointToScreenSpace(radar);
+    auto screen = CRadar::GetRadarPointInScreenSpace(radar);
 
     while (screen.x > 576.0f) {
         m_vMousePos.x = m_vMousePos.x - 1.0f;
-        radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
+        radar = CRadar::GetWorldPointInRadarSpace(m_vMousePos);
         CRadar::LimitRadarPoint(radar);
-        screen = CRadar::TransformRadarPointToScreenSpace(radar);
+        screen = CRadar::GetRadarPointInScreenSpace(radar);
     }
 
     while (screen.x < 64.0f) {
         m_vMousePos.x = m_vMousePos.x + 1.0f;
-        radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
+        radar = CRadar::GetWorldPointInRadarSpace(m_vMousePos);
         CRadar::LimitRadarPoint(radar);
-        screen = CRadar::TransformRadarPointToScreenSpace(radar);
+        screen = CRadar::GetRadarPointInScreenSpace(radar);
     }
 
     while (screen.y < 64.0f) {
         m_vMousePos.y = m_vMousePos.y - 1.0f;
-        radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
+        radar = CRadar::GetWorldPointInRadarSpace(m_vMousePos);
         CRadar::LimitRadarPoint(radar);
-        screen = CRadar::TransformRadarPointToScreenSpace(radar);
+        screen = CRadar::GetRadarPointInScreenSpace(radar);
     }
 
     while (screen.y > 384.0f) {
         m_vMousePos.y = m_vMousePos.y + 1.0f;
-        radar = CRadar::TransformRealWorldPointToRadarSpace(m_vMousePos);
+        radar = CRadar::GetWorldPointInRadarSpace(m_vMousePos);
         CRadar::LimitRadarPoint(radar);
-        screen = CRadar::TransformRadarPointToScreenSpace(radar);
+        screen = CRadar::GetRadarPointInScreenSpace(radar);
     }
 }
 
@@ -131,9 +131,9 @@ void CMenuManager::PrintMap() {
 
         m_vMapOrigin = CVector2D(320.0f, 206.0f);
         m_fMapZoom = 140.0f;
-        auto radar = CRadar::TransformRealWorldPointToRadarSpace(FindPlayerCentreOfWorld_NoSniperShift(0));
+        auto radar = CRadar::GetWorldPointInRadarSpace(FindPlayerCentreOfWorld_NoSniperShift(0));
         CRadar::LimitRadarPoint(radar);
-        const auto screen = CRadar::TransformRadarPointToScreenSpace(radar);
+        const auto screen = CRadar::GetRadarPointInScreenSpace(radar);
 
         const auto d{ screen - m_vMapOrigin };
         const auto BOUNDARY = 140.0f;

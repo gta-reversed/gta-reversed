@@ -406,21 +406,17 @@ uint8 CRadar::CalculateBlipAlpha(float distance) {
  * @brief Transforms a radar point to screen.
  * @addr 0x583480
  */
-CVector2D CRadar::TransformRadarPointToScreenSpace(const CVector2D& in) {
+void CRadar::TransformRadarPointToScreenSpace(CVector2D& screenPt, const CVector2D& radarPt) {
     // CRadar::DrawRadarSection assumes this function won't spoil EDX, but it does, so we need to keep it up to data.
-    _asm { push edx };
+    // _asm { push edx };
     if (FrontEndMenuManager.m_bDrawingMap) {
-        _asm { pop edx };
-        return {
-            FrontEndMenuManager.m_vMapOrigin.x + FrontEndMenuManager.m_fMapZoom * in.x,
-            FrontEndMenuManager.m_vMapOrigin.y - FrontEndMenuManager.m_fMapZoom * in.y
-        };
+        // _asm { pop edx };
+        screenPt.x = FrontEndMenuManager.m_vMapOrigin.x + FrontEndMenuManager.m_fMapZoom * radarPt.x;
+        screenPt.y = FrontEndMenuManager.m_vMapOrigin.y - FrontEndMenuManager.m_fMapZoom * radarPt.y;
     } else {
-        _asm { pop edx };
-        return {
-            SCREEN_STRETCH_X(94.0f) / 2.0f + SCREEN_STRETCH_X(40.0f) + SCREEN_STRETCH_X(94.0f * in.x) / 2.0f,
-            SCREEN_STRETCH_FROM_BOTTOM(104.0f) + SCREEN_STRETCH_Y(76.0f) / 2.0f - SCREEN_STRETCH_Y(76.0f * in.y) / 2.0f
-        };
+        // _asm { pop edx };
+        screenPt.x = SCREEN_STRETCH_X(94.0f) / 2.0f + SCREEN_STRETCH_X(40.0f) + SCREEN_STRETCH_X(94.0f * radarPt.x) / 2.0f;
+        screenPt.y = SCREEN_STRETCH_FROM_BOTTOM(104.0f) + SCREEN_STRETCH_Y(76.0f) / 2.0f - SCREEN_STRETCH_Y(76.0f * radarPt.y) / 2.0f;
     }
 }
 
@@ -428,27 +424,30 @@ CVector2D CRadar::TransformRadarPointToScreenSpace(const CVector2D& in) {
  * @brief Transforms a real coordinate to radar coordinate.
  * @addr 0x583530
  */
-CVector2D CRadar::TransformRealWorldPointToRadarSpace(const CVector2D& in) {
-    return CachedRotateClockwise((in - vec2DRadarOrigin) / m_radarRange);
+void CRadar::TransformRealWorldPointToRadarSpace(CVector2D &radarPt, const CVector2D &worldPt) {
+    radarPt = CachedRotateClockwise((worldPt - vec2DRadarOrigin) / m_radarRange);
 }
 
 /*!
  * @brief Transforms a radar coordinate to real coordinate. (Unused)
  * @addr 0x5835A0
  */
-CVector2D CRadar::TransformRadarPointToRealWorldSpace(const CVector2D& in) {
-    return CachedRotateCounterclockwise(in) * m_radarRange + vec2DRadarOrigin;
+void CRadar::TransformRadarPointToRealWorldSpace(CVector2D &worldPt, const CVector2D &radar) {
+    worldPt = CachedRotateCounterclockwise(radar) * m_radarRange + vec2DRadarOrigin;
 }
 
 /*!
  * @brief Transforms a radar coordinate to texture coordinate. (Inlined, see CRadar::DrawRadarSection)
  * @addr 0x583600
  */
-CVector2D CRadar::TransformRealWorldToTexCoordSpace(const CVector2D& in, int32 x, int32 y) {
-    return CVector2D{
-        +(in.x - (float(500 * x) - 3000.0f)),
-        -(in.y - ((500 * float(MAX_RADAR_HEIGHT_TILES - y)) - 3000.0f))
-    } / 500.0f;
+void CRadar::TransformRealWorldToTexCoordSpace(
+    CVector2D &texCoord,
+    const CVector2D &worldPt,
+    int32 tileX,
+    int32 tileY)
+{
+    texCoord.x = +(worldPt.x - (float(500 * tileX) - 3000.0f)) / 500.0f;
+    texCoord.y = -(worldPt.y - ((500 * float(MAX_RADAR_HEIGHT_TILES - tileY)) - 3000.0f)) / 500.0f;
 }
 
 // 0x583670
@@ -1137,7 +1136,7 @@ void CRadar::DrawAreaOnRadar(const CRect& rect, const CRGBA& color, bool inMenu)
     // Corner positions - Transformed, not yet clipped
     CVector2D polyUnclippedVertices[4];
     rng::transform(rectCorners, polyUnclippedVertices, [](auto&& v) {
-        return TransformRealWorldPointToRadarSpace(v);
+        return GetWorldPointInRadarSpace(v);
     });
 
     CVector2D polyVertices[8];
@@ -1150,7 +1149,7 @@ void CRadar::DrawAreaOnRadar(const CRect& rect, const CRGBA& color, bool inMenu)
     const auto scaleX = SCREEN_STRETCH_X(1.0f);
     const auto scaleY = SCREEN_STRETCH_Y(1.0f);
     for (auto i = 0; i < numVerts; i++) {
-        texCoords[i] = TransformRadarPointToScreenSpace(polyVertices[i]);
+        texCoords[i] = GetRadarPointInScreenSpace(polyVertices[i]);
         if (FrontEndMenuManager.m_bDrawingMap) {
             texCoords[i] *= CVector2D(scaleX, scaleY);
             polyVertices[i] *= CVector2D(scaleX, scaleY);
@@ -1191,13 +1190,13 @@ void CRadar::DrawRadarMask() {
         // First point is always the corner itself
         in.x = corner.x;
         in.y = corner.y;
-        out[0] = TransformRadarPointToScreenSpace(in);
+        out[0] = GetRadarPointInScreenSpace(in);
 
         // Then generate a quarter of the circle
         for (auto j = 0; j < 7; j++) {
             in.x = corner.x * std::cos(float(j) * (FRAC_PI_2 / 6.0f));
             in.y = corner.y * std::sin(float(j) * (FRAC_PI_2 / 6.0f));
-            out[j + 1] = TransformRadarPointToScreenSpace(in);
+            out[j + 1] = GetRadarPointInScreenSpace(in);
         };
 
         CSprite2d::SetMaskVertices(std::size(out), out, CSprite2d::GetNearScreenZ());
@@ -1294,7 +1293,7 @@ void CRadar::SetMapCentreToPlayerCoords() {
     if (CTheScripts::HideAllFrontEndMapBlips || CTheScripts::bPlayerIsOffTheMap)
         posReal.Set(0.0f, 0.0f);
 
-    auto posRadar = TransformRealWorldPointToRadarSpace(posReal);
+    auto posRadar = GetWorldPointInRadarSpace(posReal);
     LimitRadarPoint(posRadar);
 
     FrontEndMenuManager.m_vMousePos = posReal;
@@ -1450,8 +1449,8 @@ void CRadar::DrawRadarSection(int32 x, int32 y) {
     CVector2D texCoords[8]{};
     CVector2D verts[8]{};
     for (auto i = 0; i < numVerts; i++) {
-        texCoords[i] = TransformRealWorldToTexCoordSpace(vec2DRadarOrigin + CachedRotateCounterclockwise(clipped[i]) * m_radarRange, x, y);
-        verts[i]     = TransformRadarPointToScreenSpace(clipped[i]);
+        texCoords[i] = GetWorldPointInTexCoordSpace(vec2DRadarOrigin + CachedRotateCounterclockwise(clipped[i]) * m_radarRange, x, y);
+        verts[i]     = GetRadarPointInScreenSpace(clipped[i]);
     }
 
     if (!IsMapSectionInBounds(x, y)) { // there is no land here, draw the sea.
@@ -1848,9 +1847,9 @@ void CRadar::DrawBlips() {
     RwRenderStateSet(rwRENDERSTATEFOGENABLE,         RWRSTATE(false));
 
     const auto TransformRealWorldPointToBlipSpace = [](const CVector2D& pos) {
-        auto radar = TransformRealWorldPointToRadarSpace(pos);
+        auto radar = GetWorldPointInRadarSpace(pos);
         LimitRadarPoint(radar);
-        return TransformRadarPointToScreenSpace(radar);
+        return GetRadarPointInScreenSpace(radar);
     };
 
     if (FrontEndMenuManager.m_bDrawingMap) {
@@ -1952,7 +1951,7 @@ void CRadar::DrawBlips() {
             cachedCos * playerDirection.y - cachedSin * playerDirection.x
         };
         LimitRadarPoint(rotatedPos);
-        return TransformRadarPointToScreenSpace(rotatedPos);
+        return GetRadarPointInScreenSpace(rotatedPos);
     };
 
     if (!FrontEndMenuManager.m_bDrawingMap) {
@@ -2191,14 +2190,14 @@ CVector tRadarTrace::GetWorldPos() const {
 std::pair<CVector2D, CVector2D> tRadarTrace::GetRadarAndScreenPos(float* radarPointDist) const {
     const auto world = GetWorldPos();
 
-    auto radar = CRadar::TransformRealWorldPointToRadarSpace(world);
+    auto radar = CRadar::GetWorldPointInRadarSpace(world);
 
     const auto dist = CRadar::LimitRadarPoint(radar); // Normalises vector `radar`
     if (radarPointDist) {
         *radarPointDist = dist;
     }
 
-    const auto screen = CRadar::TransformRadarPointToScreenSpace(radar);
+    const auto screen = CRadar::GetRadarPointInScreenSpace(radar);
 
     return std::make_pair(radar, screen);
 }

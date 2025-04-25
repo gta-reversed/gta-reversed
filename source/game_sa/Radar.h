@@ -236,10 +236,37 @@ public:
     static float LimitRadarPoint(CVector2D& point);
     static void LimitToMap(float& x, float& y);
     static uint8 CalculateBlipAlpha(float distance);
-    static CVector2D TransformRadarPointToScreenSpace(const CVector2D& in);
-    static CVector2D TransformRealWorldPointToRadarSpace(const CVector2D& in);
-    static CVector2D TransformRadarPointToRealWorldSpace(const CVector2D& in);
-    static CVector2D TransformRealWorldToTexCoordSpace(const CVector2D& in, int32 x, int32 y);
+    static void TransformRadarPointToScreenSpace(CVector2D& screenPt, const CVector2D& radarPt);
+    static void TransformRealWorldPointToRadarSpace(CVector2D& radarPt, const CVector2D& worldPt);
+    static void TransformRadarPointToRealWorldSpace(CVector2D& worldPt, const CVector2D& radar);
+    static void TransformRealWorldToTexCoordSpace(CVector2D& texCoord, const CVector2D& worldPt, int32 tileX, int32 tileY);
+
+    // NOTSA
+    static inline CVector2D GetRadarPointInScreenSpace(const CVector2D& in) {
+       CVector2D result;
+       TransformRadarPointToScreenSpace(result, in);
+       return result;
+    }
+    
+    static inline CVector2D GetWorldPointInRadarSpace(const CVector2D& in) {
+       CVector2D result;
+       TransformRealWorldPointToRadarSpace(result, in);
+       return result;
+    }
+    
+    static inline CVector2D GetRadarPointInWorldSpace(const CVector2D& in) {
+       CVector2D result;
+       TransformRadarPointToRealWorldSpace(result, in);
+       return result;
+    }
+    
+    static inline CVector2D GetWorldPointInTexCoordSpace(const CVector2D& in, int32 x, int32 y) {
+       CVector2D result;
+       TransformRealWorldToTexCoordSpace(result, in, x, y);
+       return result;
+    }
+    // NOTSA END
+
     static void CalculateCachedSinCos();
     static tBlipHandle SetCoordBlip(eBlipType type, CVector posn, eBlipColour color, eBlipDisplay blipDisplay, const char* scriptName = nullptr);
     static tBlipHandle SetShortRangeCoordBlip(eBlipType type, CVector posn, eBlipColour color, eBlipDisplay blipDisplay, const char* scriptName = nullptr);

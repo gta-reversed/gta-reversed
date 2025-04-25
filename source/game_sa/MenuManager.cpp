@@ -87,7 +87,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(UserInput, 0x57FD70);
     RH_ScopedInstall(AdditionalOptionInput, 0x5773D0, { .reversed = false });
     RH_ScopedInstall(CheckRedefineControlInput, 0x57E4D0);
-    RH_ScopedInstall(RedefineScreenUserInput, 0x57EF50, { .reversed = false });
+    RH_ScopedInstall(RedefineScreenUserInput, 0x57EF50);
 
     RH_ScopedInstall(Process, 0x57B440);
     RH_ScopedInstall(ProcessStreaming, 0x573CF0);
@@ -110,7 +110,7 @@ CMenuManager::CMenuManager() {
     SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
     field_EC                      = 0;
     m_pPressedKey                 = 0;
-    m_MenuIsAbleToQuit            = false;
+    m_DisplayComboButtonErrMsg    = false;
     m_nTitleLanguage              = 9;
     m_nUserTrackIndex             = 0;
     m_ControlMethod               = eController::MOUSE_PLUS_KEYS;

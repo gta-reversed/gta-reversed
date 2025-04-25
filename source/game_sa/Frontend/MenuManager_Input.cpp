@@ -303,7 +303,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
 
     // Handle cancel/back action
     if (GoBackOneMenu) {
-        if (m_bRadioAvailable) {
+        if (m_MenuIsAbleToQuit) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
             SwitchToNewScreen(eMenuScreen::SCREEN_GO_BACK); // Go back one screen
         } else {
@@ -313,17 +313,784 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
 }
 
 /*!
- * @addr 0x5773D0
- */
-void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
-    plugin::CallMethod<0x5773D0, CMenuManager*, bool*, bool*>(this, upPressed, downPressed);
+* @addr 0x5773D0
+*/
+void CMenuManager::AdditionalOptionInput(bool *pGoUpMenu, bool *pGoDownMenu) {
+    // It hasn't been fully tested, it has a small bug when clicking that causes it to go back.
+    plugin::CallMethod<0x5773D0, CMenuManager*, bool*, bool*>(this, pGoUpMenu, pGoDownMenu);
+    /*
+    // Define lambdas for the helper functions
+    auto toggleBlipOption = [this](char menuResult) {
+        switch (menuResult) {
+            case 0: this->m_ShowLocationsBlips = !this->m_ShowLocationsBlips; break;
+            case 1: this->m_ShowContactsBlips = !this->m_ShowContactsBlips; break;
+            case 2: this->m_ShowMissionBlips = !this->m_ShowMissionBlips; break;
+            case 3: this->m_ShowOtherBlips = !this->m_ShowOtherBlips; break;
+            case 4: this->m_ShowGangAreaBlips = !this->m_ShowGangAreaBlips; break;
+        }
+    };
+
+    auto femText = [](bool on) -> char* {
+        return on ? (char*)"FEM_ON" : (char*)"FEM_OFF";
+    };
+
+    float v5;            // st7
+    CPad *Pad;           // eax
+    float v8;            // st7
+    int32 blip;          // eax
+    bool8 v10;           // bl
+    float v12;           // st7
+    float v13;           // st7
+    float v14;           // st6
+    float v15;           // st7
+    float v16;           // st7
+    float v17;           // st6
+    float v18;           // st7
+    float v19;           // st7
+    float v20;           // st6
+    float v21;           // st7
+    float v22;           // st7
+    float v23;           // st6
+    float v24;           // st7
+    bool8 v25;           // bl
+    float v27;           // st7
+    float v1;            // di
+    unsigned __int8 v30; // bl
+    float v32;           // st7
+    bool8 v33;           // bl
+    int32 v34;           // ecx
+    float v35;           // st7
+    float v37;           // st7
+    float v38;           // st7
+    float v39;           // st7
+    float v40;           // st6
+    float v41;           // st7
+    // float v42 = 0;       // edx // UNREACHABLE
+    float v43;           // st7
+    float v44;           // st6
+    float v45;           // st7
+    float v46;           // st7
+    float v47;           // st6
+    float v48;           // st7
+    // float v49 = 0;       // edx // UNREACHABLE
+    float v50;           // st7
+    float v51;           // st6
+    float v52;           // st7
+    float v53;           // st7
+    float v54;           // st6
+    float v55;           // st7
+    uint32 v56;          // ecx
+    float v57;           // st7
+    float v58;           // st7
+    float v59;           // st6
+    float v60;           // st7
+    float v61;           // st7
+    float v62;           // st7
+    float v63;           // st6
+    float v64;           // st7
+    float v65;           // st7
+    float v66;           // st7
+    float v67;           // st6
+    float v68;           // st7
+    float v69;           // st7
+    float v70;           // st6
+    uint8 NewMenu;       // al
+    char v72;            // al
+    char v73;            // al
+    uint8 v75;           // al
+    float v76;           // [esp+0h] [ebp-13Ch]
+    int v77;             // [esp+4h] [ebp-138h]
+    float v78;           // [esp+4h] [ebp-138h]
+    float v79;           // [esp+8h] [ebp-134h]
+    int v81;             // [esp+18h] [ebp-124h]
+    float v82;           // [esp+2Ch] [ebp-110h]
+
+    float v91;      // [esp+2Ch] [ebp-110h]
+    float v92;      // [esp+2Ch] [ebp-110h]
+    float v93;      // [esp+2Ch] [ebp-110h]
+    float v94;      // [esp+2Ch] [ebp-110h]
+    CVector2D v99;  // [esp+30h] [ebp-10Ch] BYREF
+    char v100;      // [esp+3Bh] [ebp-101h]
+    CVector2D v101; // [esp+3Ch] [ebp-100h] BYREF
+    // char 50;      // [esp+47h] [ebp-F5h]
+    float v103;     // [esp+48h] [ebp-F4h]
+    float v104;     // [esp+4Ch] [ebp-F0h]
+    float v105;     // [esp+50h] [ebp-ECh]
+    float x;        // [esp+54h] [ebp-E8h]
+    float y;        // [esp+58h] [ebp-E4h]
+    int v108;       // [esp+5Ch] [ebp-E0h]
+    float v114;     // [esp+94h] [ebp-A8h]
+    float v115;     // [esp+98h] [ebp-A4h]
+    float v116;     // [esp+9Ch] [ebp-A0h]
+    float v117;     // [esp+A0h] [ebp-9Ch]
+    CVector2D v118; // [esp+A4h] [ebp-98h] BYREF
+    CVector2D v119; // [esp+ACh] [ebp-90h] BYREF
+    CVector2D v120; // [esp+B4h] [ebp-88h] BYREF
+    CVector2D v121; // [esp+BCh] [ebp-80h] BYREF
+    CVector2D v122; // [esp+C4h] [ebp-78h] BYREF
+    CVector2D v123; // [esp+CCh] [ebp-70h] BYREF
+    CVector2D v124; // [esp+D4h] [ebp-68h] BYREF
+    CVector2D v125; // [esp+DCh] [ebp-60h] BYREF
+    CVector2D v126; // [esp+E4h] [ebp-58h] BYREF
+    CVector2D v127; // [esp+ECh] [ebp-50h] BYREF
+    CVector2D v128; // [esp+F4h] [ebp-48h] BYREF
+    CVector2D v129; // [esp+FCh] [ebp-40h] BYREF
+    CVector2D v130; // [esp+104h] [ebp-38h] BYREF
+    CVector2D v131; // [esp+10Ch] [ebp-30h] BYREF
+    CVector2D v132; // [esp+114h] [ebp-28h] BYREF
+    CVector2D v133; // [esp+11Ch] [ebp-20h] BYREF
+    CVector2D v134; // [esp+124h] [ebp-18h] BYREF
+    CVector2D v135; // [esp+12Ch] [ebp-10h] BYREF
+    CVector2D v136; // [esp+134h] [ebp-8h] BYREF
+
+    if (this->m_nCurrentScreen) {
+        if (this->m_nCurrentScreen == SCREEN_BRIEF) {
+            if (CMenuManager::CheckFrontEndUpInput()) {
+                m_nSelectedRow = this->m_nSelectedRow;
+                if (m_nSelectedRow < 0x13u) {
+                    if (CMessages::PreviousBriefs[m_nSelectedRow + 1].Text) {
+                        this->m_nSelectedRow = m_nSelectedRow + 1;
+                        *pGoUpMenu = 1;
+                    }
+                }
+            }
+            if (CMenuManager::CheckFrontEndDownInput()) {
+                v75 = this->m_nSelectedRow;
+                if (v75 > 3u) {
+                    this->m_nSelectedRow = v75 - 1;
+                    *pGoDownMenu = 1;
+                }
+            }
+        } else if (this->m_nCurrentScreen == SCREEN_MAP && !this->m_bAllStreamingStuffLoaded) {
+            FrontEndMenuManager.m_bDrawingMap = 1;
+            m_nSysMenu = this->m_nSysMenu;
+            v116 = this->m_vMapOrigin.y - this->m_fMapZoom;
+            v104 = this->m_fMapZoom + this->m_vMapOrigin.y;
+            v114 = this->m_vMapOrigin.x - this->m_fMapZoom;
+            v105 = this->m_vMapOrigin.x + this->m_fMapZoom;
+            v103 = 320.0f - this->m_vMapOrigin.x;
+            v115 = 224.0f - this->m_vMapOrigin.y;
+            v5 = 1.0f / this->m_fMapZoom;
+            v117 = v103 * v5;
+            v82 = v5 * v115;
+            if (m_nSysMenu >= 0) {
+            LABEL_171:
+                CPad::GetPad(this->m_nPlayerNumber);
+                if (CPad::NewKeyState.standardKeys[32]) {
+                    CPad::GetPad(this->m_nPlayerNumber);
+                    if (CPad::OldKeyState.standardKeys[32]) {
+                        if (this->m_nSysMenu == 0x9D) {
+                            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0f, 1.0f);
+                            v79 = CMenuManager::StretchX(100.0f);
+                            v78 = CMenuManager::StretchY(250.0f);
+                            v76 = CMenuManager::StretchX(77.0f);
+                            NewMenu = CMenuSystem::CreateNewMenu(CMenuSystem::eMenuType::MENU_TYPE_DEFAULT, "FEP_OPT", v76, v78, v79, 2, 1, 1, eFontAlignment::ALIGN_LEFT);
+                            this->m_nSysMenu = NewMenu;
+                            CMenuSystem::InsertMenu(NewMenu, 0, 0, (char *)"FED_BL1", (char *)"FED_BL2", (char *)"FED_BL3", (char *)"FED_BL4", (char *)"FED_BL5", 0, 0, 0, 0, 0, 0, 0);
+
+                            CMenuSystem::InsertMenu(m_nSysMenu, 1, 0, femText(m_ShowLocationsBlips), femText(m_ShowContactsBlips), femText(m_ShowMissionBlips), femText(m_ShowOtherBlips), femText(m_ShowGangAreaBlips), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+                        }
+                    }
+                }
+                if ((this->m_nSysMenu & 0x80u) == 0) {
+                    v72 = CMenuSystem::CheckForAccept(this->m_nSysMenu);
+                    if (v72 >= 0) {
+                        ToggleBlipOption(this, v72);
+                        CMenuSystem::InsertMenu(m_nSysMenu, 1, 0, femText(m_ShowLocationsBlips), femText(m_ShowContactsBlips), femText(m_ShowMissionBlips), femText(m_ShowOtherBlips), femText(m_ShowGangAreaBlips), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+
+                        if (CMenuSystem::CheckForSelected(this->m_nSysMenu) == 4) {
+                            CMenuSystem::SetActiveMenuItem(this->m_nSysMenu, 0);
+                        } else {
+                            v73 = CMenuSystem::CheckForSelected(this->m_nSysMenu);
+                            CMenuSystem::SetActiveMenuItem(this->m_nSysMenu, v73 + 1);
+                        }
+                    }
+                    CPad::GetPad(this->m_nPlayerNumber);
+                    if (!CPad::NewKeyState.standardKeys[32]) {
+                        CPad::GetPad(this->m_nPlayerNumber);
+                        if (!CPad::OldKeyState.standardKeys[32]) {
+                            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK, 0.0f, 1.0f);
+                            CMenuSystem::SwitchOffMenu(this->m_nSysMenu);
+                            this->m_nSysMenu = -99;
+                        }
+                    }
+                }
+                CPad::GetPad(this->m_nPlayerNumber);
+                if (CPad::NewKeyState.standardKeys[76] && (CPad::GetPad(this->m_nPlayerNumber), !CPad::OldKeyState.standardKeys[76]) ||
+                    (CPad::GetPad(this->m_nPlayerNumber), CPad::NewKeyState.standardKeys[108]) && (CPad::GetPad(this->m_nPlayerNumber), !CPad::OldKeyState.standardKeys[108])) {
+                    this->m_bMapLegend = !this->m_bMapLegend;
+                }
+                if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B38 > 0x14) {
+                    FrontEndMenuManager.field_1B38 = CTimer::m_snTimeInMillisecondsPauseMode;
+                }
+                FrontEndMenuManager.m_bDrawingMap = 0;
+                return;
+            }
+            Pad = CPad::GetPad(this->m_nPlayerNumber);
+            if (Pad->NewState.ButtonCircle && !Pad->OldState.ButtonCircle ||
+                (CPad::GetPad(this->m_nPlayerNumber), CPad::IsMouseRButtonPressed()) && (CPad::GetPad(this->m_nPlayerNumber), !CPad::NewMouseControllerState.isMouseLeftButtonPressed) ||
+                (CPad::GetPad(this->m_nPlayerNumber), CPad::NewKeyState.standardKeys[84]) && (CPad::GetPad(this->m_nPlayerNumber), !CPad::OldKeyState.standardKeys[84]) ||
+                (CPad::GetPad(this->m_nPlayerNumber), CPad::NewKeyState.standardKeys[116]) && (CPad::GetPad(this->m_nPlayerNumber), !CPad::OldKeyState.standardKeys[116])) {
+                if (!CTheScripts::HideAllFrontEndMapBlips && !CTheScripts::bPlayerIsOffTheMap) {
+                    if (this->m_nTargetBlipIndex) {
+                        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK, 0.0f, 1.0f);
+                        CRadar::ClearBlip(this->m_nTargetBlipIndex);
+                        this->m_nTargetBlipIndex = 0;
+                    } else {
+                        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0f, 1.0f);
+                        v8 = this->m_vMousePos.y;
+                        x = this->m_vMousePos.x;
+                        y = v8;
+                        v108 = 0;
+                        blip = CRadar::SetCoordBlip(BLIP_COORD, CVector(x, y, 0.0f), eBlipColour::BLIP_COLOUR_RED, eBlipDisplay::BLIP_DISPLAY_BLIPONLY);
+                        this->m_nTargetBlipIndex = blip;
+                        CRadar::SetBlipSprite(blip, eRadarSprite::RADAR_SPRITE_WAYPOINT);
+                    }
+                }
+            }
+            if (CPad::GetPad(this->m_nPlayerNumber)->NewState.LeftShoulder2 && !CPad::GetPad(this->m_nPlayerNumber)->NewState.RightShoulder2 ||
+                (v10 = CPad::NewMouseControllerState.isMouseWheelMovedUp, CPad::GetPad(this->m_nPlayerNumber), v10) || (CPad::GetPad(this->m_nPlayerNumber), CPad::NewKeyState.pgup)) {
+                if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B38 > 0x14) {
+                    if (this->m_fMapZoom >= 1100.0f) {
+                        this->m_fMapZoom = 1100.0f;
+                    } else {
+                        m_nPlayerNumber = this->m_nPlayerNumber;
+                        this->m_fMapZoom = this->m_fMapZoom + 7.0f;
+                        CPad::GetPad(m_nPlayerNumber);
+                        if (CPad::NewMouseControllerState.isMouseWheelMovedUp) {
+                            this->m_fMapZoom = this->m_fMapZoom + 21.0f;
+                        }
+                        this->m_vMapOrigin.x = this->m_vMapOrigin.x - (v117 * this->m_fMapZoom - v103);
+                        this->m_vMapOrigin.y = this->m_vMapOrigin.y - (v82 * this->m_fMapZoom - v115);
+                    }
+                    v12 = this->m_vMousePos.y;
+                    v121.x = this->m_vMousePos.x;
+                    v121.y = v12;
+                    CRadar::TransformRealWorldPointToRadarSpace(v99, v121);
+                    CRadar::LimitRadarPoint(v99);
+                    CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                    while (v101.x > 576.0f) {
+                        v13 = this->m_vMousePos.x - 1.0f;
+                        this->m_vMousePos.x = v13;
+                        v14 = v13;
+                        v15 = this->m_vMousePos.y;
+                        v134.x = v14;
+                        v134.y = v15;
+                        CRadar::TransformRealWorldPointToRadarSpace(v99, v134);
+                        CRadar::LimitRadarPoint(v99);
+                        CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                    }
+                    while (v101.x < 64.0f) {
+                        v16 = this->m_vMousePos.x + 1.0f;
+                        this->m_vMousePos.x = v16;
+                        v17 = v16;
+                        v18 = this->m_vMousePos.y;
+                        v136.x = v17;
+                        v136.y = v18;
+                        CRadar::TransformRealWorldPointToRadarSpace(v99, v136);
+                        CRadar::LimitRadarPoint(v99);
+                        CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                    }
+                    while (v101.y < 64.0f) {
+                        v19 = this->m_vMousePos.y - 1.0f;
+                        this->m_vMousePos.y = v19;
+                        v20 = v19;
+                        v21 = this->m_vMousePos.x;
+                        y = v20;
+                        v135.y = y;
+                        v135.x = v21;
+                        CRadar::TransformRealWorldPointToRadarSpace(v99, v135);
+                        CRadar::LimitRadarPoint(v99);
+                        CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                    }
+                    while (v101.y > 384.0f) {
+                        v22 = this->m_vMousePos.y + 1.0f;
+                        this->m_vMousePos.y = v22;
+                        v23 = v22;
+                        v24 = this->m_vMousePos.x;
+                        y = v23;
+                        v118.y = y;
+                        v118.x = v24;
+                        CRadar::TransformRealWorldPointToRadarSpace(v99, v118);
+                        CRadar::LimitRadarPoint(v99);
+                        CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                    }
+                }
+            }
+            if (CPad::GetPad(this->m_nPlayerNumber)->NewState.RightShoulder2 && !CPad::GetPad(this->m_nPlayerNumber)->NewState.LeftShoulder2 ||
+                (v25 = CPad::NewMouseControllerState.isMouseWheelMovedDown, CPad::GetPad(this->m_nPlayerNumber), v25) || (CPad::GetPad(this->m_nPlayerNumber), CPad::NewKeyState.pgdn)) {
+                if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B38 > 0x14) {
+                    if (this->m_fMapZoom <= 300.0f) {
+                        this->m_fMapZoom = 300.0f;
+                    } else {
+                        v81 = this->m_nPlayerNumber;
+                        this->m_fMapZoom = this->m_fMapZoom - 7.0f;
+                        // isMouseWheelMovedDown = CPad::NewMouseControllerState.isMouseWheelMovedDown;
+                        CPad::GetPad(v81);
+                        if (CPad::NewMouseControllerState.isMouseWheelMovedDown) {
+                            this->m_fMapZoom = this->m_fMapZoom - 21.0f;
+                        }
+                        this->m_vMapOrigin.x = this->m_vMapOrigin.x - (v117 * this->m_fMapZoom - v103);
+                        this->m_vMapOrigin.y = this->m_vMapOrigin.y - (v82 * this->m_fMapZoom - v115);
+                    }
+                }
+            }
+            v27 = this->m_vMousePos.y;
+            v129.x = this->m_vMousePos.x;
+            v129.y = v27;
+            CRadar::TransformRealWorldPointToRadarSpace(v99, v129);
+            CRadar::LimitRadarPoint(v99);
+            CRadar::TransformRadarPointToScreenSpace(v101, v99);
+            v1 = 0;
+            v77 = this->m_nPlayerNumber;
+            v103 = 0.0f;
+            CPad::GetPad(v77);
+            if (CPad::NewKeyState.up) {
+                v103 = -128;
+            }
+            CPad::GetPad(this->m_nPlayerNumber);
+            if (CPad::NewKeyState.down) {
+                (v103) = 128;
+            }
+            CPad::GetPad(this->m_nPlayerNumber);
+            if (CPad::NewKeyState.left) {
+                v1 = -128;
+            }
+            CPad::GetPad(this->m_nPlayerNumber);
+            if (CPad::NewKeyState.right) {
+                v1 = 128;
+            }
+            if (CPad::GetPad(this->m_nPlayerNumber)->NewState.LeftStickX) {
+                v1 = CPad::GetPad(this->m_nPlayerNumber)->NewState.LeftStickX;
+            }
+            if (CPad::GetPad(this->m_nPlayerNumber)->NewState.LeftStickY) {
+                (v103) = CPad::GetPad(this->m_nPlayerNumber)->NewState.LeftStickY;
+            }
+            if (CPad::GetPad(this->m_nPlayerNumber)->NewState.LeftStickX) {
+                v1 = CPad::GetPad(this->m_nPlayerNumber)->NewState.LeftStickX;
+            }
+            if (CPad::GetPad(this->m_nPlayerNumber)->NewState.DPadUp) {
+                (v103) = -(CPad::GetPad(this->m_nPlayerNumber)->NewState.DPadUp * 0.60000002f);
+            }
+            if (CPad::GetPad(this->m_nPlayerNumber)->NewState.DPadDown) {
+                (v103) = (CPad::GetPad(this->m_nPlayerNumber)->NewState.DPadDown * 0.60000002f);
+            }
+            if (CPad::GetPad(this->m_nPlayerNumber)->NewState.DPadLeft) {
+                v1 = -(CPad::GetPad(this->m_nPlayerNumber)->NewState.DPadLeft * 0.60000002f);
+            }
+            if (CPad::GetPad(this->m_nPlayerNumber)->NewState.DPadRight) {
+                v1 = (CPad::GetPad(this->m_nPlayerNumber)->NewState.DPadRight * 0.60000002f);
+            }
+            m_DisplayTheMouse = this->m_DisplayTheMouse;
+            v30 = 2;
+            v100 = 0;
+            if (!m_DisplayTheMouse) {
+                v100 = 1;
+            LABEL_84:
+                if (v1 > 0) {
+                    if (v105 > 580.0f && v101.x >= 320.0f && v100) {
+                        if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B38 > 0x14) {
+                            this->m_vMapOrigin.x = this->m_vMapOrigin.x - v1 * 0.0078125f * 7.0f;
+                        }
+                        v38 = this->m_vMousePos.y;
+                        v119.x = this->m_vMousePos.x;
+                        v119.y = v38;
+                        CRadar::TransformRealWorldPointToRadarSpace(v99, v119);
+                        CRadar::LimitRadarPoint(v99);
+                        CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                        while (v105 > 580.0f) {
+                            if (v101.x >= 320.0f) {
+                                break;
+                            }
+                            v39 = this->m_vMousePos.x + 1.0f;
+                            this->m_vMousePos.x = v39;
+                            v40 = v39;
+                            v41 = this->m_vMousePos.y;
+                            v120.x = v40;
+                            v120.y = v41;
+                            CRadar::TransformRealWorldPointToRadarSpace(v99, v120);
+                            CRadar::LimitRadarPoint(v99);
+                            CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                        }
+                    } else {
+                        v56 = CTimer::m_snTimeInMillisecondsPauseMode;
+                        if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B38 <= 0x14 || v101.x >= 576.0f) {
+                        LABEL_114:
+                            if (v1 >= 0) {
+                                goto LABEL_128;
+                            }
+                            if (v114 < 60.0f && v101.x <= 320.0f && v100) {
+                                if (v56 - FrontEndMenuManager.field_1B38 > 0x14) {
+                                    this->m_vMapOrigin.x = -v1 * 0.0078125f * 7.0f + this->m_vMapOrigin.x;
+                                }
+                                v57 = this->m_vMousePos.y;
+                                v122.x = this->m_vMousePos.x;
+                                v122.y = v57;
+                                CRadar::TransformRealWorldPointToRadarSpace(v99, v122);
+                                CRadar::LimitRadarPoint(v99);
+                                CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                                while (v114 < 60.0f) {
+                                    if (v101.x <= 320.0f) {
+                                        break;
+                                    }
+                                    v58 = this->m_vMousePos.x - 1.0f;
+                                    this->m_vMousePos.x = v58;
+                                    v59 = v58;
+                                    v60 = this->m_vMousePos.y;
+                                    v124.x = v59;
+                                    v124.y = v60;
+                                    CRadar::TransformRealWorldPointToRadarSpace(v99, v124);
+                                    CRadar::LimitRadarPoint(v99);
+                                    CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                                }
+                            } else {
+                                if (v56 - FrontEndMenuManager.field_1B38 <= 0x14 || v101.x <= 64.0f) {
+                                LABEL_128:
+                                    if ((v103) > 0) {
+                                        if (v104 > 388.0f && v101.y >= 224.0f && v100) {
+                                            if (v56 - FrontEndMenuManager.field_1B38 > 0x14) {
+                                                this->m_vMapOrigin.y = this->m_vMapOrigin.y - (v103) * 0.0078125f * 7.0f;
+                                            }
+                                            v61 = this->m_vMousePos.y;
+                                            v126.x = this->m_vMousePos.x;
+                                            v126.y = v61;
+                                            CRadar::TransformRealWorldPointToRadarSpace(v99, v126);
+                                            CRadar::LimitRadarPoint(v99);
+                                            CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                                            while (v104 > 388.0f) {
+                                                if (v101.y >= 224.0f) {
+                                                    break;
+                                                }
+                                                v62 = this->m_vMousePos.y - 1.0f;
+                                                this->m_vMousePos.y = v62;
+                                                v63 = v62;
+                                                v64 = this->m_vMousePos.x;
+                                                y = v63;
+                                                v128.y = y;
+                                                v128.x = v64;
+                                                CRadar::TransformRealWorldPointToRadarSpace(v99, v128);
+                                                CRadar::LimitRadarPoint(v99);
+                                                CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                                            }
+                                        } else {
+                                            if (v56 - FrontEndMenuManager.field_1B38 <= 0x14 || v101.y >= 384.0f) {
+                                                goto LABEL_142;
+                                            }
+                                            this->m_vMousePos.y = this->m_vMousePos.y - (7 * v30) * ((v103) * 0.0078125f);
+                                        }
+                                        v56 = CTimer::m_snTimeInMillisecondsPauseMode;
+                                    }
+                                LABEL_142:
+                                    if ((v103) < 0) {
+                                        if (v116 < 60.0f && v101.y <= 224.0f && v100) {
+                                            if (v56 - FrontEndMenuManager.field_1B38 > 0x14) {
+                                                this->m_vMapOrigin.y = -(v103) * 0.0078125f * 7.0f + this->m_vMapOrigin.y;
+                                            }
+                                            v65 = this->m_vMousePos.y;
+                                            v130.x = this->m_vMousePos.x;
+                                            v130.y = v65;
+                                            CRadar::TransformRealWorldPointToRadarSpace(v99, v130);
+                                            CRadar::LimitRadarPoint(v99);
+                                            CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                                            while (v116 < 60.0f) {
+                                                if (v101.y <= 224.0f) {
+                                                    break;
+                                                }
+                                                v66 = this->m_vMousePos.y + 1.0f;
+                                                this->m_vMousePos.y = v66;
+                                                v67 = v66;
+                                                v68 = this->m_vMousePos.x;
+                                                y = v67;
+                                                v132.y = y;
+                                                v132.x = v68;
+                                                CRadar::TransformRealWorldPointToRadarSpace(v99, v132);
+                                                CRadar::LimitRadarPoint(v99);
+                                                CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                                            }
+                                        } else if (v56 - FrontEndMenuManager.field_1B38 > 0x14 && v101.y > 64.0f) {
+                                            this->m_vMousePos.y = -(v103) * 0.0078125f * (7 * v30) + this->m_vMousePos.y;
+                                        }
+                                    }
+                                LABEL_155:
+                                    v69 = this->m_vMapOrigin.y - this->m_fMapZoom;
+                                    v104 = this->m_fMapZoom + this->m_vMapOrigin.y;
+                                    v70 = this->m_vMapOrigin.x - this->m_fMapZoom;
+                                    v105 = this->m_vMapOrigin.x + this->m_fMapZoom;
+                                    if (v70 > 60.0f) {
+                                        this->m_vMapOrigin.x = this->m_vMapOrigin.x - (v70 - 60.0f);
+                                    }
+                                    if (v105 < 580.0f) {
+                                        this->m_vMapOrigin.x = 580.0f - v105 + this->m_vMapOrigin.x;
+                                    }
+                                    if (v69 > 60.0f) {
+                                        this->m_vMapOrigin.y = this->m_vMapOrigin.y - (v69 - 60.0f);
+                                    }
+                                    if (v104 < 388.0f) {
+                                        this->m_vMapOrigin.y = 388.0f - v104 + this->m_vMapOrigin.y;
+                                    }
+                                    if (this->m_vMousePos.x > 3000.0f) {
+                                        this->m_vMousePos.x = 3000.0f;
+                                    }
+                                    if (this->m_vMousePos.x < -3000.0f) {
+                                        this->m_vMousePos.x = -3000.0f;
+                                    }
+                                    if (this->m_vMousePos.y > 3000.0f) {
+                                        this->m_vMousePos.y = 3000.0f;
+                                    }
+                                    if (this->m_vMousePos.y < -3000.0f) {
+                                        this->m_vMousePos.y = -3000.0f;
+                                    }
+                                    goto LABEL_171;
+                                }
+                                this->m_vMousePos.x = (7 * v30) * (v1 * 0.0078125f) + this->m_vMousePos.x;
+                            }
+                            v56 = CTimer::m_snTimeInMillisecondsPauseMode;
+                            goto LABEL_128;
+                        }
+                        this->m_vMousePos.x = this->m_vMousePos.x - -v1 * 0.0078125f * (7 * v30);
+                    }
+                }
+                v56 = CTimer::m_snTimeInMillisecondsPauseMode;
+                goto LABEL_114;
+            }
+
+            if (CMenuManager::StretchY(60.0f) >= m_nMousePosY) {
+                v30 = 50;
+                goto LABEL_84;
+            }
+            if (CMenuManager::StretchY(388.0f) <= m_nMousePosY) {
+                v30 = 50;
+                goto LABEL_84;
+            }
+            if (CMenuManager::StretchX(60.0f) >= m_nMousePosX || CMenuManager::StretchX(580.0f) <= m_nMousePosX) {
+                v30 = 50;
+                goto LABEL_84;
+            }
+            v32 = this->m_vMousePos.y;
+            v123.x = this->m_vMousePos.x;
+            v123.y = v32;
+            CRadar::TransformRealWorldPointToRadarSpace(v99, v123);
+            CRadar::LimitRadarPoint(v99);
+            CRadar::TransformRadarPointToScreenSpace(v101, v99);
+            v33 = CPad::NewMouseControllerState.isMouseLeftButtonPressed;
+            CPad::GetPad(this->m_nPlayerNumber);
+            if (!v33) {
+                v91 = (float)this->m_nMousePosX;
+                if (CMenuManager::StretchX(v101.x) > v91) {
+                    do {
+                        if (v101.x <= 64.0f) {
+                            break;
+                        }
+                        v43 = this->m_vMousePos.x - 14.0f;
+                        this->m_vMousePos.x = v43;
+                        v44 = v43;
+                        v45 = this->m_vMousePos.y;
+                        v133.x = v44;
+                        v133.y = v45;
+                        CRadar::TransformRealWorldPointToRadarSpace(v99, v133);
+                        CRadar::LimitRadarPoint(v99);
+                        CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                        v92 = (float)this->m_nMousePosX;
+                    } while (CMenuManager::StretchX(v101.x) > v92);
+                }
+                v93 = (float)this->m_nMousePosX;
+                // if (CMenuManager::StretchX(v42) < v93) {
+                if (CMenuManager::StretchX(v101.x) < v93) { // Probably v101.x
+                    do {
+                        if (v101.x >= 576.0f) {
+                            break;
+                        }
+                        v46 = this->m_vMousePos.x - -14.0f;
+                        this->m_vMousePos.x = v46;
+                        v47 = v46;
+                        v48 = this->m_vMousePos.y;
+                        v125.x = v47;
+                        v125.y = v48;
+                        CRadar::TransformRealWorldPointToRadarSpace(v99, v125);
+                        CRadar::LimitRadarPoint(v99);
+                        CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                        v94 = (float)this->m_nMousePosX;
+                    } while (CMenuManager::StretchX(v101.x) < v94);
+                }
+                if (CMenuManager::StretchY(v101.y) > this->m_nMousePosY) {
+                    do {
+                        if (v101.y <= 64.0f) {
+                            break;
+                        }
+                        v50 = this->m_vMousePos.y + 14.0f;
+                        this->m_vMousePos.y = v50;
+                        v51 = v50;
+                        v52 = this->m_vMousePos.x;
+                        y = v51;
+                        v131.y = y;
+                        v131.x = v52;
+                        CRadar::TransformRealWorldPointToRadarSpace(v99, v131);
+                        CRadar::LimitRadarPoint(v99);
+                        CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                    } while (CMenuManager::StretchY(v101.y) > this->m_nMousePosY);
+                }
+                // if (CMenuManager::StretchY(v49) < this->m_nMousePosY) {
+                if (CMenuManager::StretchY(v101.y) < this->m_nMousePosY) {
+                    do {
+                        if (v101.y >= 384.0f) {
+                            break;
+                        }
+                        v53 = this->m_vMousePos.y - 14.0f;
+                        this->m_vMousePos.y = v53;
+                        v54 = v53;
+                        v55 = this->m_vMousePos.x;
+                        y = v54;
+                        v127.y = y;
+                        v127.x = v55;
+                        CRadar::TransformRealWorldPointToRadarSpace(v99, v127);
+                        CRadar::LimitRadarPoint(v99);
+                        CRadar::TransformRadarPointToScreenSpace(v101, v99);
+                    } while (CMenuManager::StretchY(v101.y) < this->m_nMousePosY);
+                }
+                goto LABEL_155;
+            }
+            v34 = this->m_nMousePosX;
+            v100 = 1;
+            if (v34 >= RsGlobal.maximumWidth / 2) {
+                if (v34 <= RsGlobal.maximumWidth / 2) {
+                LABEL_80:
+                    if (this->m_nMousePosY >= RsGlobal.maximumHeight / 2) {
+                        if (this->m_nMousePosY <= RsGlobal.maximumHeight / 2) {
+                            v30 = 50;
+                            goto LABEL_84;
+                        }
+                        v37 = (this->m_nMousePosY - CMenuManager::StretchY(224.0f)) / CMenuManager::StretchY(224.0f) * 128.0f;
+                    } else {
+                        v37 = -((128.0f - this->m_nMousePosY) / CMenuManager::StretchY(224.0f) * 128.0f);
+                    }
+                    (v103) = v37;
+                    v30 = 50;
+                    goto LABEL_84;
+                }
+                v35 = ((float)v34 - CMenuManager::StretchX(320.0f)) / CMenuManager::StretchX(320.0f) * 128.0f;
+            } else {
+                v35 = -(128.0f - (float)v34 / CMenuManager::StretchX(320.0f) * 128.0f);
+            }
+            v1 = (short)v35;
+            goto LABEL_80;
+        }
+    } else {
+        CPad::GetPad(this->m_nPlayerNumber);
+        if (CPad::NewKeyState.standardKeys[83] && (CPad::GetPad(this->m_nPlayerNumber), !CPad::OldKeyState.standardKeys[83]) ||
+            (CPad::GetPad(this->m_nPlayerNumber), CPad::NewKeyState.standardKeys[115]) && (CPad::GetPad(this->m_nPlayerNumber), !CPad::OldKeyState.standardKeys[115])) {
+            CMenuManager::SaveStatsToFile();
+        }
+    }*/
 }
 
 /*!
  * @addr 0x57EF50
  */
-void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
-    plugin::CallMethod<0x57EF50, CMenuManager*, bool*, bool*>(this, accept, cancel);
+void CMenuManager::RedefineScreenUserInput(bool* enter, bool* exit) {
+    if (m_EditingControlOptions) {
+        return;
+    }
+
+    auto& pad = *CPad::GetPad(0);
+    int   listSize;
+
+    if (m_nCurrentScreen != 0x26) {
+        listSize = *enter ? 1 : 0;
+    } else {
+        switch (m_RedefiningControls) {
+        case 0:
+            listSize = m_ControlMethod ? 28 : 22;
+            break;
+        case 1:
+            listSize = 25;
+            break;
+        }
+    }
+
+    // Enter key handling
+    if ((pad.NewKeyState.enter && !pad.OldKeyState.enter || pad.NewKeyState.extenter && !pad.OldKeyState.extenter) && (m_nSysMenu & 0x80u) != 0 || pad.NewState.ButtonCross && !pad.OldState.ButtonCross) {
+        m_DisplayTheMouse = 0;
+        *enter            = 1;
+    }
+
+    // Back key handling
+    if (pad.NewKeyState.back && !pad.OldKeyState.back && m_nCurrentScreen == 0x26 && !m_JustExitedRedefine) {
+        m_MouseInBounds                 = 16;
+        m_EditingControlOptions         = 1;
+        m_bJustOpenedControlRedefWindow = 1;
+        m_DeleteAllBoundControls        = 1;
+        m_pPressedKey                   = &m_KeyPressedCode;
+    } else {
+        m_JustExitedRedefine = 0;
+    }
+
+    // Timing check
+    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.m_LastPressed > 200) {
+        field_1AF0                        = 0;
+        field_1AF4                        = 0;
+        FrontEndMenuManager.m_LastPressed = CTimer::m_snTimeInMillisecondsPauseMode;
+    }
+
+    // Up navigation
+    if (pad.NewKeyState.up || pad.GetAnaloguePadUp() || (pad.NewMouseControllerState.isMouseWheelMovedUp && !pad.OldMouseControllerState.isMouseWheelMovedUp)) {
+        m_DisplayTheMouse = 1;
+        if (!field_1AF2) {
+            field_1AF2                        = 1;
+            FrontEndMenuManager.m_LastPressed = CTimer::m_snTimeInMillisecondsPauseMode;
+            if (m_ListSelection > 0) {
+                m_ListSelection--;
+            } else {
+                m_ListSelection = listSize - 1;
+            }
+        }
+    } else {
+        field_1AF2 = 0;
+    }
+
+    // Down navigation
+    if (pad.NewKeyState.down || pad.GetAnaloguePadDown() || (pad.NewMouseControllerState.isMouseWheelMovedDown && !pad.OldMouseControllerState.isMouseWheelMovedDown)) {
+        m_DisplayTheMouse = 1;
+        if (!field_1AF3) {
+            field_1AF3                        = 1;
+            FrontEndMenuManager.m_LastPressed = CTimer::m_snTimeInMillisecondsPauseMode;
+            if (m_ListSelection < listSize - 1) {
+                m_ListSelection++;
+            } else {
+                m_ListSelection = 0;
+            }
+        }
+    } else {
+        field_1AF3 = 0;
+    }
+
+    // Exit handling
+    if ((pad.NewKeyState.esc && !pad.OldKeyState.esc) || (pad.NewState.ButtonTriangle && !pad.OldState.ButtonTriangle)) {
+        m_DisplayTheMouse = 0;
+        *exit             = 1;
+    }
+
+    // Mouse click handling
+    if (pad.NewMouseControllerState.isMouseLeftButtonPressed && !pad.OldMouseControllerState.isMouseLeftButtonPressed) {
+        if (m_MouseInBounds == 3) {
+            *exit = 1;
+        } else if (m_MouseInBounds == 4) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0f, 1.0f);
+            m_MouseInBounds = 5;
+        }
+    }
+
+    // Final state update
+    if (*exit) {
+        if (m_MenuIsAbleToQuit) {
+            m_RedefiningControls = !m_RedefiningControls;
+            DrawControllerBound(0x45, true);
+            if (!m_MenuIsAbleToQuit && m_RedefiningControls) {
+                m_nControllerError = 2;
+            }
+        } else {
+            m_nControllerError = m_RedefiningControls;
+        }
+    }
 }
 
 /*!
@@ -337,7 +1104,7 @@ bool CMenuManager::CheckRedefineControlInput() {
         } else {
             GetCurrentKeyPressed(*m_pPressedKey);
             m_nPressedMouseButton = (RsKeyCodes)0;
-            m_nJustDownJoyButton = 0;
+            m_JustDownJoyButton = 0;
 
             auto pad = CPad::GetPad();
             if (pad->IsMouseLButtonPressed()) {
@@ -356,11 +1123,11 @@ bool CMenuManager::CheckRedefineControlInput() {
                 m_nPressedMouseButton = rsMOUSE_X2_BUTTON;
             }
 
-            m_nJustDownJoyButton = ControlsManager.GetJoyButtonJustDown();
+            m_JustDownJoyButton = ControlsManager.GetJoyButtonJustDown();
 
             // Android
             auto TypeOfControl = eControllerType::KEYBOARD;
-            if (m_nJustDownJoyButton != NO_JOYBUTTONS) {
+            if (m_JustDownJoyButton != NO_JOYBUTTONS) {
                 TypeOfControl = eControllerType::JOY_STICK;
             } else if (m_nPressedMouseButton) {
                 TypeOfControl = eControllerType::MOUSE;
@@ -375,7 +1142,7 @@ bool CMenuManager::CheckRedefineControlInput() {
                     m_DeleteAllNextDefine = true;
                     m_DeleteAllBoundControls = false;
                 } else {
-                    if (*m_pPressedKey != rsNULL || m_nPressedMouseButton || m_nJustDownJoyButton) {
+                    if (*m_pPressedKey != rsNULL || m_nPressedMouseButton || m_JustDownJoyButton) {
                         CheckCodesForControls(TypeOfControl);
                     }
                     m_JustExitedRedefine = true;
@@ -576,7 +1343,7 @@ void CMenuManager::CheckForMenuClosing() {
                 SaveSettings();
                 m_pPressedKey = nullptr;
                 field_EC = 0;
-                m_MenuIsAbleToQuit = 0;
+                m_DisplayComboButtonErrMsg = 0;
                 m_bDontDrawFrontEnd = false;
                 m_bActivateMenuNextFrame = false;
                 m_EditingControlOptions = false;
@@ -713,7 +1480,7 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
     auto actionId          = (eControllerAction)m_OptionToChange;
     bool escapePressed     = false;
     bool invalidKeyPressed = false;
-    m_MenuIsAbleToQuit = false;
+    m_DisplayComboButtonErrMsg = false;
     eControllerType controllerType = eControllerType::KEYBOARD;
 
     // Handle different input types
@@ -746,12 +1513,12 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
         // Joystick/controller input
         controllerType = eControllerType::JOY_STICK;
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
-        m_MenuIsAbleToQuit = (ControlsManager.GetIsActionAButtonCombo(actionId)) ? 1 : 0;
+        m_DisplayComboButtonErrMsg = (ControlsManager.GetIsActionAButtonCombo(actionId)) ? 1 : 0;
         break;
     }
 
     // Handle escape key or invalid key press
-    if (escapePressed || invalidKeyPressed || (m_MenuIsAbleToQuit && escapePressed)) {
+    if (escapePressed || invalidKeyPressed || (m_DisplayComboButtonErrMsg && escapePressed)) {
         m_DeleteAllNextDefine = 0;
         m_pPressedKey = nullptr;
         m_EditingControlOptions = false;
@@ -780,8 +1547,8 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
             break;
         }
         case eControllerType::JOY_STICK: {
-            ControlsManager.DeleteMatchingActionInitiators(actionId, m_nJustDownJoyButton, eControllerType::JOY_STICK);
-            ControlsManager.SetControllerKeyAssociatedWithAction(actionId, m_nJustDownJoyButton, controllerType);
+            ControlsManager.DeleteMatchingActionInitiators(actionId, m_JustDownJoyButton, eControllerType::JOY_STICK);
+            ControlsManager.SetControllerKeyAssociatedWithAction(actionId, m_JustDownJoyButton, controllerType);
             break;
         }
         // Keyboard + Optional Extra Key

@@ -175,9 +175,9 @@ public:
     MPack m_MissionPacks[MPACK_COUNT];
     bool  m_bDoVideoModeUpdate;
     RsKeyCodes m_nPressedMouseButton; // used in redefine controls
-    int32 m_nJustDownJoyButton; // used in redefine controls; set via CControllerConfigManager::GetJoyButtonJustDown
+    int32 m_JustDownJoyButton; // used in redefine controls; set via CControllerConfigManager::GetJoyButtonJustDown
+    bool  m_DisplayComboButtonErrMsg; // Some shit related to combos
     bool  m_MenuIsAbleToQuit;
-    bool  m_bRadioAvailable;
     uint8 m_nControllerError;
     bool  m_bScanningUserTracks;
     int32 m_nHelperTextFadingAlpha;
@@ -244,7 +244,7 @@ public:
     char  field_1B5D;
     int16 field_1B5E;
     int32 LastFlash;
-    int32 field_1B64;
+    int32 m_LastPressed;
     int32 m_nTimeSlideLeftMove;
     int32 m_nTimeSlideRightMove;
     int32 field_1B70;

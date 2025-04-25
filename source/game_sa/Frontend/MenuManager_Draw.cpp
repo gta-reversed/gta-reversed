@@ -82,7 +82,7 @@ void CMenuManager::DrawFrontEnd() {
     DefinedState2d();
     SetFrontEndRenderStates();
 
-    m_bRadioAvailable = !AudioEngine.IsRadioRetuneInProgress();
+    m_MenuIsAbleToQuit = !AudioEngine.IsRadioRetuneInProgress();
 
     if (m_nCurrentScreen == SCREEN_INITIAL) {
         m_nCurrentScreen = m_bMainMenuSwitch ? SCREEN_MAIN_MENU : SCREEN_PAUSE_MENU;
@@ -1023,7 +1023,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
                 }
             }
 
-            if (m_MenuIsAbleToQuit) {
+            if (m_DisplayComboButtonErrMsg) {
                 auto comboText = ControlsManager.GetButtonComboText((eControllerAction)m_ListSelection);
                 if (comboText) {
                     CFont::SetColor({200, 50, 50, 255});
@@ -1243,7 +1243,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                     }
                 } else if (!isSelected || !m_EditingControlOptions) {
                     // 0x57EC1F - 0x57EC9A
-                    m_bRadioAvailable = 0;
+                    m_MenuIsAbleToQuit = 0;
                     CFont::SetColor({ 200, 50, 50, 255 });
                     if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, TheText.Get("FEC_UNB")); // UNBOUND
