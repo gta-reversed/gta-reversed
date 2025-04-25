@@ -45,14 +45,6 @@ void LoadSceneInDirection(CVector point, float heading) {
     CTimer::Update();
 }
 
-void AddStuckCarCheck(int32 carHandle, float distance, uint32 time) {
-    CTheScripts::StuckCars.AddCarToCheck(carHandle, distance, time, 0, false, false, false, 0);
-}
-
-void RemoveStuckCarCheck(int32 carHandle) {
-    CTheScripts::StuckCars.RemoveCarFromCheck(carHandle);
-}
-
 void LoadMissionAudio(uint32 slotId, int32 sampleId) {
     AudioEngine.PreloadMissionAudio(slotId - 1, sampleId);
 }
@@ -112,8 +104,6 @@ void notsa::script::commands::script::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_ALL_SCRIPT_FIRES, RemoveAllScriptFires);
     REGISTER_COMMAND_HANDLER(COMMAND_LOAD_SCENE, LoadScene);
     REGISTER_COMMAND_HANDLER(COMMAND_LOAD_SCENE_IN_DIRECTION, LoadSceneInDirection);
-    REGISTER_COMMAND_HANDLER(COMMAND_ADD_STUCK_CAR_CHECK, AddStuckCarCheck);
-    REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_STUCK_CAR_CHECK, RemoveStuckCarCheck);
     REGISTER_COMMAND_HANDLER(COMMAND_LOAD_MISSION_AUDIO, LoadMissionAudio);
     REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_MISSION_AUDIO_TO_CAR, AttachMissionAudioToCar);
     REGISTER_COMMAND_HANDLER(COMMAND_REPORT_MISSION_AUDIO_EVENT_AT_CHAR, ReportMissionAudioEventAtChar);
