@@ -101,7 +101,7 @@ void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors,
         float curveSegment = 2.0f * blend;
         float endSegment = intersectionS - blend;
         scaleFactor = startSegment + curveSegment + endSegment;
-        float param = clampedTime * totalParam;
+        float param = clampedTime * scaleFactor;
 
         if (param < startSegment) {
             // First segment: move along start direction
@@ -137,11 +137,10 @@ void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors,
 
         // Create adjusted start and end positions
         CVector startAdjusted = startCoors + startDir * correctedDist;
-        CVector endAdjusted = endCoors + endDir * (correctedDist - distance);
+        CVector endAdjusted = endCoors + endDir * (correctedDist - scaleFactor);
 
         // Interpolate between adjusted positions using lerp function
         resultCoor = lerp(startAdjusted, endAdjusted, interpFactor);
-        scaleFactor = scaleFactor;
     }
 
     // Calculate speed using lerp for direction interpolation
@@ -160,7 +159,7 @@ void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors,
 void CCurves::TestCurves() {
 
     // Test the CalcCurvePoint comparison - this is the main test we need
-    std::cout << "Testing CalcCurvePoint against CCurves::CalcCurvePoint..." << std::endl;
+    NOTSA_LOG_DEBUG("Testing CalcCurvePoint against CCurves::CalcCurvePoint...");
 
     // Define test cases with various input parameters
     struct TestCase {
@@ -172,7 +171,9 @@ void CCurves::TestCurves() {
         CVector expectedSpeed;
     };
 
-    auto printVector = [](const CVector &v) { std::cout << "(" << v.x << ", " << v.y << ", " << v.z << ")" << std::endl; };
+    auto printVector = [](const CVector &v) { 
+        NOTSA_LOG_DEBUG("({}, {}, {})", v.x, v.y, v.z);
+    };
 
     auto vectorsAlmostEqual = [](const CVector &v1, const CVector &v2, float tolerance) -> bool {
         return std::abs(v1.x - v2.x) < tolerance && std::abs(v1.y - v2.y) < tolerance && std::abs(v1.z - v2.z) < tolerance;
@@ -220,25 +221,24 @@ void CCurves::TestCurves() {
         bool coordsMatch = vectorsAlmostEqual(resultCoor1, resultCoor2, compareTolerance);
         bool speedsMatch = vectorsAlmostEqual(resultSpeed1, resultSpeed2, compareTolerance);
 
-        std::cout << "Test: " << test.name << " - ";
-        if (coordsMatch && speedsMatch) {
-            std::cout << "PASSED" << std::endl;
-            passed++;
-        } else {
-            std::cout << "FAILED" << std::endl;
-        }
-        std::cout << "  Expected position: ";
+        NOTSA_LOG_DEBUG("Test: {} - {}", test.name, (coordsMatch && speedsMatch) ? "PASSED" : "FAILED");
+        
+        NOTSA_LOG_DEBUG("  Expected position: ");
         printVector(resultCoor1);
-        std::cout << "  Actual position:   ";
+        NOTSA_LOG_DEBUG("  Actual position:   ");
         printVector(resultCoor2);
 
-        std::cout << "  Expected speed:    ";
+        NOTSA_LOG_DEBUG("  Expected speed:    ");
         printVector(resultSpeed1);
-        std::cout << "  Actual speed:      ";
+        NOTSA_LOG_DEBUG("  Actual speed:      ");
         printVector(resultSpeed2);
+        
+        if (coordsMatch && speedsMatch) {
+            passed++;
+        }
     }
 
-    std::cout << "CalcCurvePoint comparison test: " << passed << "/" << total << " tests passed." << std::endl;
+    NOTSA_LOG_DEBUG("CalcCurvePoint comparison test: {}/{} tests passed.", passed, total);
 
     assert(passed == total);
 }
