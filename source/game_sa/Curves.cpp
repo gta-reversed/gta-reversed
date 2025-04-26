@@ -1,11 +1,11 @@
 #include "Curves.h"
-#include "StdInc.h"
+#include "common.h"
 
 void CCurves::InjectHooks() {
     RH_ScopedClass(CCurves);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedGlobalInstall(TestCurves, 0x43C600, {.locked = true});
+    RH_ScopedGlobalInstall(TestCurves, 0x43C600, {.locked=true});
     RH_ScopedGlobalInstall(DistForLineToCrossOtherLine, 0x43C610);
     RH_ScopedGlobalInstall(CalcSpeedVariationInBend, 0x43C660);
     RH_ScopedGlobalInstall(CalcSpeedScaleFactor, 0x43C710);
@@ -24,21 +24,21 @@ float CCurves::CalcSpeedVariationInBend(const CVector &startCoors, const CVector
     float dotProduct = (StartDirY * EndDirY) + (StartDirX * EndDirX);
 
     if (dotProduct <= 0.0f) {
-        return 0.33333f;
+        return ONE_THIRD;
     }
 
     if (dotProduct <= 0.7f) {
-        return ((dotProduct / -0.7f) * 0.33333f) + 0.33333f;
+        return ((dotProduct / -0.7f) * ONE_THIRD) + ONE_THIRD;
     }
 
     float distToLine = CCollision::DistToMathematicalLine2D(endCoors.x, endCoors.y, EndDirX, EndDirY, startCoors.x, startCoors.y);
     float totalDist = CVector::Dist(startCoors, endCoors);
-    return (distToLine / totalDist) * 0.33333f;
+    return (distToLine / totalDist) * ONE_THIRD;
 }
 
 // 0x43C880
 float CCurves::CalcCorrectedDist(float Current, float Total, float SpeedVariation, float &pInterPol) {
-    if (Total >= 0.00001f) {
+    if (Total >= EPSILON) {
         float progress = Current / Total;
         pInterPol = 0.5f * (1.0f - std::cos(PI * progress));
         return (Total / TWO_PI) * SpeedVariation * std::sin(progress * TWO_PI) + (1.0f - SpeedVariation) * Current;
@@ -55,8 +55,8 @@ float CCurves::CalcSpeedScaleFactor(const CVector &startCoors, const CVector &en
     if (distOne <= 0.0f || disTwo >= 0.0f) {
         float totalDist = CVector::Dist(startCoors, endCoors);
         float scale = 1.0f - CalcSpeedVariationInBend(startCoors, endCoors, StartDirX, StartDirY, EndDirX, EndDirY);
-        if (scale < 0.00001f) {
-            scale = 0.00001f;
+        if (scale < EPSILON) {
+            scale = EPSILON;
         }
         return totalDist / scale;
     }
@@ -82,12 +82,10 @@ void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors,
         if (param < startSegment) {
             resultCoor = startCoors + startDir * param;
         } else if (param < startSegment + curveSegment) {
-            float t = (param - startSegment) / curveSegment;
-            float u = 1.0f - t;
-            CVector startBase = startCoors + startDir * startSegment;
-            CVector endBase = endCoors - endDir * endSegment;
-            CVector startPoint = startBase + startDir * (blend * t);
-            CVector endPoint = endBase - endDir * (blend * u);
+            const float t = (param - startSegment) / curveSegment;
+            const float u = 1.0f - t;
+            CVector startPoint = (startCoors + startDir * startSegment) + startDir * (blend * t);
+            CVector endPoint = (endCoors - endDir * endSegment) - endDir * (blend * u);
             resultCoor = Lerp(startPoint, endPoint, t);
         } else {
             float offset = param - totalParam;
@@ -105,8 +103,8 @@ void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors,
         resultCoor = Lerp(startAdjusted, endAdjusted, interpFactor);
         scaleFactor = distance;
     }
-
-    float timeInSeconds = std::max(traversalTimeInMillis * 0.001f, 0.00001f);
+    constexpr float timeScale = 0.001f; // Dont confuse with EPSILON, this is a constant for time scale
+    float timeInSeconds = std::max(traversalTimeInMillis * timeScale, EPSILON);
     CVector interpolatedDir = Lerp(startDir, endDir, clampedTime);
     resultSpeed = interpolatedDir * (scaleFactor / timeInSeconds);
     resultSpeed.z = 0.0f;

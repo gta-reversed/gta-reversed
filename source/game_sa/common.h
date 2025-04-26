@@ -112,10 +112,10 @@ constexpr float SQRT_2          = 1.41421f;          // √2
 constexpr float SQRT_3          = 1.73205f;          // √3
 constexpr float TWO_PI          = 6.28318f;          // τ (TAU)
 constexpr float TWO_PI_OVER_256 = TWO_PI / 256.0F;   // Here because the compiler shits itself when this it put into FixedFloat's template
-constexpr float DEG_TO_RAD     = 0.01745329252f;    // π / 180
-
-
-constexpr float COS_45         = SQRT_2 / 2.f;      // cos(45°)
+constexpr float DEG_TO_RAD      = 0.01745329252f;    // π / 180
+constexpr float COS_45          = SQRT_2 / 2.f;      // cos(45°)
+constexpr float EPSILON         = 0.00001f;          // 0.00001f - Special value for avoid div by zero
+constexpr float ONE_THIRD       = 1.0f / 3.0f;       // Or 0.33333f - Fraction of 1/3
 
 template<typename T>
 NOTSA_FORCEINLINE constexpr T sq(T x) { return x * x; }
