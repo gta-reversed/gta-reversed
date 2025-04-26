@@ -600,7 +600,7 @@ CPathNode* CPathFind::GetPathNode(CNodeAddress address) {
 // NOTSA
 bool CPathFind::FindNodeCoorsForScript(CVector& outPos, CNodeAddress addr) {
     bool valid{};
-    FindNodeCoorsForScript(addr, &valid);
+    outPos = FindNodeCoorsForScript(addr, &valid);
     return valid;
 }
 
@@ -1032,6 +1032,11 @@ size_t CPathFind::CountNeighboursToBeSwitchedOff(const CPathNode& node) {
     const auto ret = (size_t)rng::count_if(GetNodeLinkedNodes(node), &CPathNode::HasToBeSwitchedOff);
     __asm mov eax, this // It has to be `this`
     return ret;
+}
+
+// 0x450320
+float CPathFind::FindNodeOrientationForCarPlacement(CNodeAddress nodeInfo) {
+    return plugin::CallMethodAndReturn<float, 0x450320, CPathFind*, CNodeAddress>(this, nodeInfo);
 }
 
 // 0x452160
