@@ -5,7 +5,7 @@ void CCurves::InjectHooks() {
     RH_ScopedClass(CCurves);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedGlobalInstall(TestCurves, 0x43C600, {.locked = true});
+    RH_ScopedGlobalInstall(TestCurves, 0x43C600, {.locked=true});
     RH_ScopedGlobalInstall(DistForLineToCrossOtherLine, 0x43C610);
     RH_ScopedGlobalInstall(CalcSpeedVariationInBend, 0x43C660);
     RH_ScopedGlobalInstall(CalcSpeedScaleFactor, 0x43C710);
