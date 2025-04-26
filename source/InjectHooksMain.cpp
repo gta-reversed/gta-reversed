@@ -1432,6 +1432,9 @@ void InjectHooksMain() {
     Vehicle();
     Interior();
     Scripts();
+    #if _DEBUG
+        CCurves::TestCurves();
+    #endif
 }
 
 void InjectHooksMain(HMODULE hThisDLL) {
