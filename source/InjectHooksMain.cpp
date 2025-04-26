@@ -241,6 +241,7 @@
 #include "Interior/TaskInteriorSitAtDesk.h"
 #include "TaskComplexFollowLeaderAnyMeans.h"
 #include "TaskSimpleFightingControl.h"
+#include "TaskSimpleFinishBrain.h"
 #include "TaskComplexGetUpAndStandStill.h"
 #include "TaskComplexGoPickUpEntity.h"
 #include "TaskSimpleDie.h"
@@ -1100,7 +1101,7 @@ void InjectHooksMain() {
         // CTaskSimpleEvasiveDive::InjectHooks();
         // CTaskSimpleEvasiveStep::InjectHooks();
         CTaskSimpleFightingControl::InjectHooks();
-        // CTaskSimpleFinishBrain::InjectHooks();
+        CTaskSimpleFinishBrain::InjectHooks();
         CTaskSimpleGunControl::InjectHooks();
         // CTaskSimpleHailTaxi::InjectHooks();
         // CTaskSimpleHailTaxiAndPause::InjectHooks();

@@ -643,7 +643,7 @@ void CEventHandler::ComputeBuildingCollisionResponse(CEventBuildingCollision* e,
                 if (e->m_moveState > eMoveState::PEDMOVE_WALK) {
                     return new CTaskComplexMoveBackAndJump{};
                 }
-                return new CTaskComplexJump{COMPLEX_JUMP_TYPE_JUMP};
+                return new CTaskComplexJump{};
             }
 
             if (tKillPedOnFoot) { // 0x4BF5C2
@@ -2442,7 +2442,7 @@ void CEventHandler::ComputeVehicleCollisionResponse(CEventVehicleCollision* e, C
         if ((!m_Ped->IsPlayer() || m_Ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_PRIMARY)) && tsimplest && CTask::IsGoToTask(tsimplest)) {
             if (e->m_vehicle == m_Ped->m_standingOnEntity) {
                 if (std::abs(m_Ped->m_fCurrentRotation - m_Ped->m_fCurrentRotation) < 0.01f && CPedGeometryAnalyser::CanPedJumpObstacle(*m_Ped, *e->m_vehicle)) {
-                    return new CTaskComplexJump{ COMPLEX_JUMP_TYPE_JUMP }; // 0x4BD925
+                    return new CTaskComplexJump{}; // 0x4BD925
                 }
             }    
             return new CTaskComplexWalkRoundCar{ // 0x4BD997
