@@ -6,6 +6,7 @@
 #include <bindings/imgui_impl_sdl3.h>
 #include <WindowedMode.hpp>
 #include "PostEffects.h"
+#include "UIRenderer.h"
 
 namespace notsa {
 namespace SDLWrapper {
@@ -43,6 +44,9 @@ void ProcessEvents() {
             continue;
         }
         case SDL_EVENT_MOUSE_MOTION: {
+            if (notsa::ui::UIRenderer::GetSingleton().IsActive()) {
+                break;
+            }
             static CVector2D s_MousePos{};
             if (FrontEndMenuManager.m_bMenuActive) {
                 s_MousePos.x += e.motion.xrel * CCamera::m_fMouseAccelHorzntl * 100.f;
