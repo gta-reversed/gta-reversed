@@ -63,7 +63,7 @@ void CPickup::ExtractAmmoFromPickup(CPlayerPed* player) {
 const char* CPickup::FindStringForTextIndex(ePickupPropertyText index) {
     switch (index) {
     case PICKUP_PROPERTY_TEXT_CAN_BUY:
-        return "PROP_3"; // Press ~k~~PED_ANSWER_PHONE~ to buy this property.
+        return "PROP_3"; // Press ~k~~CA_PED_ANSWER_PHONE~ to buy this property.
 
     case PICKUP_PROPERTY_TEXT_CANT_BUY:
         return "PROP_4"; // You cannot buy this property yet.

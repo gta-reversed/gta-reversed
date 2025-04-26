@@ -18,21 +18,21 @@ void CTaskComplexJump::InjectHooks() {
     RH_ScopedVMTInstall(MakeAbortable, 0x67A070);
 }
 
-CTaskComplexJump* CTaskComplexJump::Constructor(eComplexJumpType jumpType) {
+CTaskComplexJump* CTaskComplexJump::Constructor(eForceClimb jumpType) {
     this->CTaskComplexJump::CTaskComplexJump(jumpType);
     return this;
 }
 
 // 0x67A030
-CTaskComplexJump::CTaskComplexJump(eComplexJumpType type) : CTaskComplex() {
-    m_nType = type;
-    m_bHighJump = false;
+CTaskComplexJump::CTaskComplexJump(eForceClimb forceClimb) : CTaskComplex() {
+    m_ForceClimb = forceClimb;
+    m_UsePlayerLaunchForce = false;
 }
 
 // 0x67C5A0
 CTask* CTaskComplexJump::Clone() const {
-    auto newTask = new CTaskComplexJump(m_nType);
-    newTask->m_bHighJump = this->m_bHighJump;
+    auto newTask = new CTaskComplexJump(m_ForceClimb);
+    newTask->m_UsePlayerLaunchForce = this->m_UsePlayerLaunchForce;
     return newTask;
 }
 
@@ -62,7 +62,7 @@ CTask* CTaskComplexJump::CreateNextSubTask(CPed* ped) {
         } if (jumpTask->m_bIsJumpBlocked) {
             ped->bIsLanding = true;
             return CreateSubTask(TASK_SIMPLE_HIT_HEAD, ped);
-        } else if (jumpTask->m_pClimbEntity && m_nType != -1) {
+        } else if (jumpTask->m_pClimbEntity && m_ForceClimb != eForceClimb::DISABLE) {
             ped->bIsInTheAir = true;
             return CreateSubTask(TASK_SIMPLE_CLIMB, ped);
         } else {
@@ -109,8 +109,8 @@ CTask* CTaskComplexJump::CreateSubTask(eTaskType taskType, CPed* ped) {
         ped->bIsInTheAir = false;
         return nullptr;
     case TASK_SIMPLE_JUMP: {
-        auto t = new CTaskSimpleJump(m_nType == COMPLEX_JUMP_TYPE_CLIMB);
-        if (m_bHighJump || CPedGroups::IsInPlayersGroup(ped))
+        auto t = new CTaskSimpleJump(m_ForceClimb == eForceClimb::FORCE);
+        if (m_UsePlayerLaunchForce || CPedGroups::IsInPlayersGroup(ped))
             t->m_bHighJump = true;
         return t;
     }
@@ -122,7 +122,7 @@ CTask* CTaskComplexJump::CreateSubTask(eTaskType taskType, CPed* ped) {
                 tJump->m_fClimbAngle,
                 tJump->m_nClimbSurfaceType,
                 tJump->m_vecClimbPos.z - ped->GetPosition().z < CTaskSimpleClimb::ms_fMinForStretchGrab ? CLIMB_PULLUP : CLIMB_GRAB,
-                m_nType == COMPLEX_JUMP_TYPE_CLIMB
+                m_ForceClimb == eForceClimb::FORCE
             );
         }
         return new CTaskComplexInAirAndLand(true, false);
