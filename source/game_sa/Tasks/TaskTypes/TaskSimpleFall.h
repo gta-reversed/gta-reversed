@@ -30,6 +30,8 @@ public:
     void ProcessFall(CPed* ped);
     static void FinishFallAnimCB(CAnimBlendAssociation* anim, void* data); // data is CTaskSimpleFall
 
+    auto IsFinished() const { return m_bIsFinished; }
+
 private:
     friend void InjectHooksMain();
     static void InjectHooks();

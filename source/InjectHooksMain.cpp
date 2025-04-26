@@ -241,6 +241,7 @@
 #include "Interior/TaskInteriorSitAtDesk.h"
 #include "TaskComplexFollowLeaderAnyMeans.h"
 #include "TaskSimpleFightingControl.h"
+#include "TaskSimpleFinishBrain.h"
 #include "TaskComplexGetUpAndStandStill.h"
 #include "TaskComplexGoPickUpEntity.h"
 #include "TaskSimpleDie.h"
@@ -381,6 +382,8 @@
 #include "TaskComplexDie.h"
 #include "TaskComplexEnterBoatAsDriver.h"
 #include "TaskComplexUseAttractor.h"
+#include "TaskComplexUseAttractorPartner.h"
+#include "TaskComplexAttractorPartnerWait.h"
 #include "TaskSimpleFight.h"
 #include "TaskComplexUseWaterCannon.h"
 #include "TaskComplexDriveToPoint.h"
@@ -440,6 +443,7 @@
 #include "TaskComplexDieInCar.h"
 #include "TaskComplexFallToDeath.h"
 #include "TaskSimpleDrownInCar.h"
+#include "TaskSimpleDuckToggle.h"
 #include "TaskSimpleThrowControl.h"
 #include "TaskSimpleDieInCar.h"
 #include "TaskComplexTurnToFaceEntityOrCoord.h"
@@ -1043,7 +1047,8 @@ void InjectHooksMain() {
         CTaskComplexTrackEntity::InjectHooks();
         CTaskComplexTurnToFaceEntityOrCoord::InjectHooks();
         CTaskComplexUseAttractor::InjectHooks();
-        // CTaskComplexUseAttractorPartner::InjectHooks();
+        CTaskComplexUseAttractorPartner::InjectHooks();
+        CTaskComplexAttractorPartnerWait::InjectHooks();
         // CTaskComplexUseClosestFreeScriptedAttractor::InjectHooks();
         // CTaskComplexUseClosestFreeScriptedAttractorRun::InjectHooks();
         // CTaskComplexUseClosestFreeScriptedAttractorSprint::InjectHooks();
@@ -1094,12 +1099,12 @@ void InjectHooksMain() {
         // CTaskSimpleDoHandSignal::InjectHooks();
         CTaskSimpleDrown::InjectHooks();
         CTaskSimpleDrownInCar::InjectHooks();
-        // CTaskSimpleDuckToggle::InjectHooks();
+        CTaskSimpleDuckToggle::InjectHooks();
         // CTaskSimpleDuckWhileShotsWhizzing::InjectHooks();
         // CTaskSimpleEvasiveDive::InjectHooks();
         // CTaskSimpleEvasiveStep::InjectHooks();
         CTaskSimpleFightingControl::InjectHooks();
-        // CTaskSimpleFinishBrain::InjectHooks();
+        CTaskSimpleFinishBrain::InjectHooks();
         CTaskSimpleGunControl::InjectHooks();
         // CTaskSimpleHailTaxi::InjectHooks();
         // CTaskSimpleHailTaxiAndPause::InjectHooks();
