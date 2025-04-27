@@ -28,10 +28,11 @@ int32 CPedGroups::AddGroup() {
 
 // 0x5FB870
 void CPedGroups::RemoveGroup(int32 groupId) {
+    auto* const group = &GetGroup(groupId);
     if (!std::exchange(ms_activeGroups[groupId], false)) {
         return;
     }
-    GetGroup(groupId).Flush();
+    group->Flush();
 }
 
 // 0x5FB8A0
