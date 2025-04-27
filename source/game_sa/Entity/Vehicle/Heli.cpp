@@ -632,7 +632,7 @@ void CHeli::PreRender() {
         for (int i = 0; i < 4; ++i) {
             float& wheelPos = m_wheelPosition[i];
 
-            // Get wheel position from model (x, y, z offset relative to vehicle)
+            // Get 'wheel' position from model (x, y, z offset relative to vehicle)
             CVector wheelOffset;
             modelInfo->GetWheelPosn(i, wheelOffset, true);
 
@@ -690,18 +690,13 @@ void CHeli::PreRender() {
     }
 
     auto updateRotor = [this](eHeliNodes rotorNode) {
-        if (auto rotorFrame = m_aCarNodes[rotorNode]) {            
-            CMatrix mat;
-            CVector pos;
-            mat.Attach(RwFrameGetMatrix(rotorFrame), false);
-            pos = mat.GetPosition();
-            if (notsa::contains({HELI_STATIC_ROTOR, HELI_MOVING_ROTOR}, rotorNode)) {
-                mat.SetRotateZ(m_fMainRotorAngle);
-            } else {
-                mat.SetRotateX(m_fRearRotorAngle);
-            }
-            mat.SetTranslate(pos);
-            mat.UpdateRW();
+        if (auto rotorFrame = m_aCarNodes[rotorNode]) {
+           CMatrix mat;
+           mat.Attach(RwFrameGetMatrix(rotorFrame), false);
+           CVector pos = mat.GetPosition();
+           notsa::contains({HELI_STATIC_ROTOR, HELI_MOVING_ROTOR}, rotorNode) ? mat.SetRotateZ(m_fMainRotorAngle) : mat.SetRotateX(m_fRearRotorAngle);
+           mat.SetTranslateOnly(pos);
+           mat.UpdateRW();
         }
     };
 
