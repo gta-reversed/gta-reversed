@@ -1,9 +1,6 @@
 #include "StdInc.h"
 #include "WinInput.h"
 
-#ifndef NOTSA_USE_SDL3
-#include "WndProc.h"
-#endif
 
 #include "ControllerConfigManager.h"
 
