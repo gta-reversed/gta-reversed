@@ -92,7 +92,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessRainOnVehicle, 0x4F92C0);
     RH_ScopedInstall(PlayAircraftSound, 0x4F93C0, { .reversed = false });
     RH_ScopedInstall(PlayBicycleSound, 0x4F9710, { .reversed = false });
-    RH_ScopedInstall(PlayHornOrSiren, 0x4F99D0);
+    RH_ScopedInstall(PlayHornOrSiren, 0x4F99D0, { .reversed = false });
     RH_ScopedInstall(UpdateBoatSound, 0x4F9E90, { .reversed = false });
     RH_ScopedInstall(ProcessBoatMovingOverWater, 0x4FA0C0, { .reversed = false });
     RH_ScopedInstall(UpdateTrainSound, 0x4FA1C0, { .reversed = false });
