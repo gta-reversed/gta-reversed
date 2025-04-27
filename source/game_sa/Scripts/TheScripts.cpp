@@ -589,8 +589,8 @@ void CTheScripts::CleanUpThisPed(CPed* ped) {
             FixMission(MISSION_HELI_FLYTOCOORS);
 
             veh->m_autoPilot.m_vecDestinationCoors = CVector{ 10'000.0f, -10'000.0f, 1'000.0f };
-            veh->AsHeli()->m_fMinAltitude          = 1000.0f;
-            veh->AsHeli()->m_fMaxAltitude          = 1000.0f;
+            veh->AsHeli()->m_MinHeightAboveTerrain = 1000.0f;
+            veh->AsHeli()->m_LowestFlightHeight    = 1000.0f;
             break;
         }
         case eVehicleType::VEHICLE_TYPE_PLANE: {

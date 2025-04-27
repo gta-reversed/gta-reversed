@@ -667,7 +667,7 @@ void CAutomobile::ProcessControl()
             ProcessFlyingCarStuff();
         if (!autoFlags.bIsMonsterTruck) {
             for (int32 i = 0; i < 4; i++) {
-                float wheelRadius = 1.0f - m_aSuspensionSpringLength[i] / m_aSuspensionLineLength[i];
+                float wheelRadius = 1.0f - m_fSuspensionLength[i] / m_fLineLength[i];
                 m_fWheelsSuspensionCompression[i] = (m_fWheelsSuspensionCompression[i] - wheelRadius) / (1.0f - wheelRadius);
             }
         }
@@ -1075,8 +1075,7 @@ void CAutomobile::ProcessControl()
         && std::fabs(m_vecMoveSpeed.z) < 0.0045f)
     {
         if (m_fDamageIntensity <= 0.0f || m_pDamageEntity != FindPlayerPed()) {
-            if ((!IsSubPlane() || AsPlane()->m_fAccelerationBreakStatus == 0.0f) &&
-                (!IsSubHeli() || AsHeli()->m_fAccelerationBreakStatus == 0.0f))
+            if ((!IsSubPlane() || AsPlane()->m_fAccelerationBreakStatus == 0.0f) && (!IsSubHeli() || AsHeli()->m_fThrottleControl == 0.0f))
             {
                 if (((float)m_wMiscComponentAngle == 0.0f || m_wMiscComponentAngle == m_wMiscComponentAnglePrev)
                     && !physicalFlags.bSubmergedInWater)
@@ -1202,7 +1201,7 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
 
     bool extraPerfectHandling = !!(extraHandlingFlags & EXTRA_HANDLING_PERFECT);
     if (extraPerfectHandling || CCheat::IsActive(CHEAT_PERFECT_HANDLING)) {
-        m_vecCentreOfMass.z = m_aSuspensionSpringLength[CAR_WHEEL_FRONT_LEFT] * 0.3f - m_fFrontHeightAboveRoad;
+        m_vecCentreOfMass.z = m_fSuspensionLength[CAR_WHEEL_FRONT_LEFT] * 0.3f - m_fFrontHeightAboveRoad;
     }
     else if (m_nStatus == STATUS_PHYSICS) {
         if (handlingFlags.bHydraulicGeom) {
@@ -1679,10 +1678,10 @@ void CAutomobile::ProcessSuspension() {
         for (int32 i = 0; i < 4; i++) {
             CColLine& colLine = colData->m_pLines[wheelLineIndices[i]];
             contactPoints[i]  = colLine.m_vecStart;
-            contactPoints[i].z -= m_aSuspensionLineLength[i] * springLength[i];
+            contactPoints[i].z -= m_fLineLength[i] * springLength[i];
             contactPoints[i] = GetMatrix().TransformVector(contactPoints[i]);
 
-            auto springTension = 1.f - (m_aSuspensionSpringLength[i] / m_aSuspensionLineLength[i]);
+            auto springTension = 1.f - (m_fSuspensionLength[i] / m_fLineLength[i]);
             springLength[i]    = (springLength[i] - springTension) / (1.f - springTension);
         }
     }
@@ -1892,9 +1891,9 @@ int32 CAutomobile::ProcessEntityCollision(CEntity* entity, CColPoint* outColPoin
             }
             const auto compressionNow = std::min(
                 originalWheelSuspCompr[i],
-                lerp(m_fWheelsSuspensionCompressionPrev[i], 1.f, 1.f - m_aSuspensionSpringLength[i] / m_aSuspensionLineLength[i])
+                lerp(m_fWheelsSuspensionCompressionPrev[i], 1.f, 1.f - m_fSuspensionLength[i] / m_fLineLength[i])
             );
-            const auto suspComprDelta = (compressionNow - m_fWheelsSuspensionCompression[i]) * m_aSuspensionLineLength[i]; // Suspension compression delta (In meters)
+            const auto suspComprDelta = (compressionNow - m_fWheelsSuspensionCompression[i]) * m_fLineLength[i]; // Suspension compression delta (In meters)
             if (suspComprDelta <= 0.1f /* 0x8D3200 */) {
                 continue;
             }
@@ -2606,8 +2605,8 @@ void CAutomobile::SetupSuspensionLines() {
         colLine.m_vecEnd   = CVector{ wheelPos.x, wheelPos.y, wheelPos.z + handling.m_fSuspensionLowerLimit - mi.GetSizeOfWheel((eCarWheel)i) / 2.f };
 
         m_wheelPosition[i]           = wheelPos.z; // Originally set earlier in the loop, but should be fine.
-        m_aSuspensionSpringLength[i] = handling.m_fSuspensionUpperLimit - handling.m_fSuspensionLowerLimit;
-        m_aSuspensionLineLength[i]   = colLine.m_vecStart.z - colLine.m_vecEnd.z;
+        m_fSuspensionLength[i] = handling.m_fSuspensionUpperLimit - handling.m_fSuspensionLowerLimit;
+        m_fLineLength[i]   = colLine.m_vecStart.z - colLine.m_vecEnd.z;
     }
 
     /* NOP code - 0x6A6764
@@ -2616,7 +2615,7 @@ void CAutomobile::SetupSuspensionLines() {
     }*/
 
     const auto CalculateHeightAboveRoad = [&](eCarWheel wheel) {
-        return (1.f - 1.f / (handling.m_fSuspensionForceLevel * 4.f)) * m_aSuspensionSpringLength[(size_t)wheel] + mi.GetSizeOfWheel(wheel) / 2.f - cd.m_pLines[(size_t)wheel].m_vecStart.z;
+        return (1.f - 1.f / (handling.m_fSuspensionForceLevel * 4.f)) * m_fSuspensionLength[(size_t)wheel] + mi.GetSizeOfWheel(wheel) / 2.f - cd.m_pLines[(size_t)wheel].m_vecStart.z;
     };
 
     // 0x6A65D0
@@ -2740,8 +2739,8 @@ void CAutomobile::DoBurstAndSoftGroundRatios()
 
     for (auto i = 0u; i < 4; i++) {
         const auto& wheelCP = m_wheelColPoint[i];
-        const auto& springLen = m_aSuspensionSpringLength[i];
-        const auto& lineLen = m_aSuspensionLineLength[i];
+        const auto& springLen = m_fSuspensionLength[i];
+        const auto& lineLen = m_fLineLength[i];
         auto& compression = m_fWheelsSuspensionCompression[i];
         auto& rotation = m_wheelRotation[i];
 
@@ -3584,14 +3583,14 @@ void CAutomobile::HydraulicControl() {
         if (m_wMiscComponentAngle >= 500) {
             for (int32 i = 0; i < 4; i++) {
                 CColLine& line = colData->m_pLines[i];
-                wheelPositions[i] = line.m_vecStart.z - m_aSuspensionLineLength[i] * m_fWheelsSuspensionCompression[i];
+                wheelPositions[i] = line.m_vecStart.z - m_fLineLength[i] * m_fWheelsSuspensionCompression[i];
                 modelInfo->GetWheelPosn(i, pos, false);
                 pos.z += extendedUpperLimit;
                 line.m_vecStart = pos;
                 pos.z -= lineLength;
                 line.m_vecEnd = pos;
-                m_aSuspensionSpringLength[i] = extendedSpringLength;
-                m_aSuspensionLineLength[i] = lineLength;
+                m_fSuspensionLength[i] = extendedSpringLength;
+                m_fLineLength[i] = lineLength;
                 if (m_fWheelsSuspensionCompression[i] < 1.0f) {
                     float compressed = (line.m_vecStart.z - wheelPositions[i]) / lineLength;
                     m_fWheelsSuspensionCompression[i] = std::min(compressed, 1.0f);
@@ -3603,14 +3602,14 @@ void CAutomobile::HydraulicControl() {
             lineLength = normalSpringLength + wheelRadius;
             for (int32 i = 0; i < 4; i++) {
                 CColLine& line = colData->m_pLines[i];
-                wheelPositions[i] = line.m_vecStart.z - m_fWheelsSuspensionCompression[i] * m_aSuspensionLineLength[i];
+                wheelPositions[i] = line.m_vecStart.z - m_fWheelsSuspensionCompression[i] * m_fLineLength[i];
                 modelInfo->GetWheelPosn(i, pos, false);
                 pos.z += normalUpperLimit;
                 line.m_vecStart = pos;
                 pos.z -= lineLength;
                 line.m_vecEnd = pos;
-                m_aSuspensionSpringLength[i] = normalSpringLength;
-                m_aSuspensionLineLength[i] = lineLength;
+                m_fSuspensionLength[i] = normalSpringLength;
+                m_fLineLength[i] = lineLength;
                 if (m_fWheelsSuspensionCompression[i] < 1.0f) {
                     float compressed = (line.m_vecStart.z - wheelPositions[i]) / lineLength;
                     m_fWheelsSuspensionCompression[i] = std::min(compressed, 1.0f);
@@ -3666,15 +3665,15 @@ void CAutomobile::HydraulicControl() {
                 suspensionChange[i] = std::min(suspensionChange[i], 1.0f);
                 float springLength = (extendedSpringLength - normalSpringLength) * suspensionChange[i] + normalSpringLength;
                 float lineLength = springLength + wheelRadius;
-                wheelPositions[i] = line.m_vecStart.z - m_aSuspensionLineLength[i] * m_fWheelsSuspensionCompression[i];
+                wheelPositions[i] = line.m_vecStart.z - m_fLineLength[i] * m_fWheelsSuspensionCompression[i];
                 modelInfo->GetWheelPosn(i, pos, false);
                 pos.z += (extendedUpperLimit - normalUpperLimit) * suspensionChange[i] + normalUpperLimit;
                 line.m_vecStart = pos;
                 pos.z -= lineLength;
                 maxDelta = std::max(fabs(maxDelta), fabs(pos.z - line.m_vecEnd.z));
                 line.m_vecEnd = pos;
-                m_aSuspensionLineLength[i] = lineLength;
-                m_aSuspensionSpringLength[i] = springLength;
+                m_fLineLength[i] = lineLength;
+                m_fSuspensionLength[i] = springLength;
                 if (m_fWheelsSuspensionCompression[i] < 1.0f) {
                     float compressed = (line.m_vecStart.z - wheelPositions[i]) / lineLength;
                     m_fWheelsSuspensionCompression[i] = std::min(compressed, 1.0f);
@@ -3689,7 +3688,7 @@ void CAutomobile::HydraulicControl() {
                 CColLine& line = colData->m_pLines[i];
                 suspensionChange[i] = std::min(suspensionChange[i], 1.0f);
                 float springLength = (normalSpringLength - extendedSpringLength) * suspensionChange[i] + extendedSpringLength;
-                wheelPositions[i] = line.m_vecStart.z - m_aSuspensionLineLength[i] * m_fWheelsSuspensionCompression[i];
+                wheelPositions[i] = line.m_vecStart.z - m_fLineLength[i] * m_fWheelsSuspensionCompression[i];
                 modelInfo->GetWheelPosn(i, pos, false);
                 pos.z += (normalUpperLimit - extendedUpperLimit) * suspensionChange[i] + extendedUpperLimit;
                 float lineLength = springLength + wheelRadius;
@@ -3697,8 +3696,8 @@ void CAutomobile::HydraulicControl() {
                 pos.z -= lineLength;
                 maxDelta = std::max(std::fabs(maxDelta), std::fabs(pos.z - line.m_vecEnd.z));
                 line.m_vecEnd = pos;
-                m_aSuspensionLineLength[i] = lineLength;
-                m_aSuspensionSpringLength[i] = springLength;
+                m_fLineLength[i] = lineLength;
+                m_fSuspensionLength[i] = springLength;
                 if (m_fWheelsSuspensionCompression[i] < 1.0f) {
                     float compressed = (line.m_vecStart.z - wheelPositions[i]) / lineLength;
                     m_fWheelsSuspensionCompression[i] = std::min(compressed, 1.0f);
@@ -3722,8 +3721,8 @@ void CAutomobile::HydraulicControl() {
 
     if (setPrevRatio || suspensionTriggered) {
         for (int32 i = 0; i < MAX_CARWHEELS; i++) {
-            const float t = 1.f - m_aSuspensionSpringLength[i] / m_aSuspensionLineLength[i];
-            // same as `(m_fWheelsSuspensionCompression[i] - 1.f + k) / k` where `k = m_aSuspensionSpringLength[i] / m_aSuspensionLineLength[i]`
+            const float t = 1.f - m_fSuspensionLength[i] / m_fLineLength[i];
+            // same as `(m_fWheelsSuspensionCompression[i] - 1.f + k) / k` where `k = m_fSuspensionLength[i] / m_fLineLength[i]`
             m_fWheelsSuspensionCompressionPrev[i] = (m_fWheelsSuspensionCompression[i] - t) / (1.0f - t); 
         }
     }
@@ -3911,13 +3910,13 @@ float CAutomobile::GetMovingCollisionOffset() {
 }
 
 // 0x6A2390
-void CAutomobile::TellHeliToGoToCoors(float x, float y, float z, float altitudeMin, float altitudeMax) {
-    m_autoPilot.m_vecDestinationCoors = CVector{ x, y, z };
+void CAutomobile::TellHeliToGoToCoors(CVector target, float minHeightAboveTerrain, float lowestFlightHeight) {
+    m_autoPilot.m_vecDestinationCoors = target;
     m_autoPilot.SetCarMission(MISSION_HELI_FLYTOCOORS);
     m_autoPilot.SetCruiseSpeed(100);
 
-    AsHeli()->m_fMinAltitude = altitudeMin;
-    AsHeli()->m_fMaxAltitude = altitudeMax;
+    AsHeli()->m_MinHeightAboveTerrain = minHeightAboveTerrain;
+    AsHeli()->m_LowestFlightHeight    = lowestFlightHeight;
 
     m_nStatus = STATUS_PHYSICS;
 

@@ -82,8 +82,8 @@ public:
     uint16 m_wMiscComponentAnglePrev;               // 0x86E
     uint32 m_nBusDoorTimerEnd;                      // 0x870
     uint32 m_nBusDoorTimerStart;                    // 0x874
-    std::array<float, 4> m_aSuspensionSpringLength; // 0x878 // By default SuspensionUpperLimit - SuspensionLowerLimit
-    std::array<float, 4> m_aSuspensionLineLength;   // 0x888 // By default SuspensionUpperLimit - SuspensionLowerLimit + mi.GetSizeOfWheel(<corresponding wheel>) / 2.f - So I assume line is always longer than the spring
+    std::array<float, 4> m_fSuspensionLength; // 0x878 // By default SuspensionUpperLimit - SuspensionLowerLimit
+    std::array<float, 4> m_fLineLength;   // 0x888 // By default SuspensionUpperLimit - SuspensionLowerLimit + mi.GetSizeOfWheel(<corresponding wheel>) / 2.f - So I assume line is always longer than the spring
     float m_fFrontHeightAboveRoad;
     float m_fRearHeightAboveRoad;
     float m_fCarTraction;
@@ -207,7 +207,7 @@ public:
     // Called at 098D opcode (GET_CAR_MOVING_COMPONENT_OFFSET)
     float GetMovingCollisionOffset();
     // Makes the helicopter fly to the specified location, keeping a specific Z height/altitude. This must be called for helis only.
-    void TellHeliToGoToCoors(float x, float y, float z, float altitudeMin, float altitudeMax);
+    void TellHeliToGoToCoors(CVector target, float MinHeightAboveTerrain, float LowestFlightHeight);
     // Force orientation for heli to specified angle (radians)
     void SetHeliOrientation(float angle);
     // Cancel orientation forcing (m_fForcedOrientation = -1.0f)

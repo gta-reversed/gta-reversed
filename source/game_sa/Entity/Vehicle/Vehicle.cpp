@@ -2692,7 +2692,7 @@ void CVehicle::SetFiringRateMultiplier(float multiplier) {
         AsPlane()->m_nFiringMultiplier = uint8(multiplier * 16.0f);
         break;
     case VEHICLE_TYPE_HELI:
-        AsHeli()->m_nFiringMultiplier = uint8(multiplier * 16.0f);
+        AsHeli()->m_FiringRateMultiplier = uint8(multiplier * 16.0f);
         break;
     }
 }
@@ -2703,7 +2703,7 @@ float CVehicle::GetFiringRateMultiplier() {
     case VEHICLE_TYPE_PLANE:
         return float(AsPlane()->m_nFiringMultiplier) / 16.0f;
     case VEHICLE_TYPE_HELI:
-        return float(AsHeli()->m_nFiringMultiplier) / 16.0f;
+        return float(AsHeli()->m_FiringRateMultiplier) / 16.0f;
     default:
         return 1.0f;
     }
@@ -2882,7 +2882,7 @@ void CVehicle::DoPlaneGunFireFX(CWeapon* weapon, CVector& particlePos, CVector& 
         break;
     }
     case VEHICLE_TYPE_HELI: {
-        DoFx(AsHeli()->m_pParticlesList);
+        DoFx(AsHeli()->m_GunflashFxPtrs);
         break;
     }
     default: {

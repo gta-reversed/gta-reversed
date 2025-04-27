@@ -257,8 +257,6 @@ public:
     tScriptParam* GetPointerToLocalArrayElement(int32 arrVarOffset, uint16 arrElemIdx, uint8 arrayEntriesSizeAsParams);
     tScriptParam* GetPointerToScriptVariable(eScriptVariableType variableType);
 
-    tScriptParam* GetPointerToGlobalArrayElement(int32 arrBase, uint16 arrIdx, uint8 arrayEntriesSizeAsParams);
-    tScriptParam* GetPointerToGlobalVariable(int32 varId);
     uint16        GetIndexOfGlobalVariable();
 
     void DoDeathArrestCheck(); // original name DoDeatharrestCheck
@@ -282,9 +280,9 @@ public:
     OpcodeResult Process();
 
     void SetName(const char* name)      { strcpy_s(m_szName, name); }
-    void SetName(std::string_view name) { assert(name.size() < sizeof(m_szName)); strncpy_s(m_szName, name.data(), name.size()); }
-    void SetBaseIp(uint8* ip)           { assert(ip); m_BaseIP = ip; }
-    void SetCurrentIp(uint8* ip)        { assert(ip); m_IP = ip; }
+    void SetName(std::string_view name) { (name.size() < sizeof(m_szName)); strncpy_s(m_szName, name.data(), name.size()); }
+    void SetBaseIp(uint8* ip)           { (ip); m_BaseIP = ip; }
+    void SetCurrentIp(uint8* ip)        { (ip); m_IP = ip; }
     void SetActive(bool active)         { m_IsActive = active; }
     void SetExternal(bool external)     { m_IsExternal = external; }
 

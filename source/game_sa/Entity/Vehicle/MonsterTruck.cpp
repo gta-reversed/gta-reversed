@@ -140,7 +140,7 @@ void CMonsterTruck::SetupSuspensionLines() {
 // 0x6C7DE0
 void CMonsterTruck::PreRender() {
     for (auto i = 0; i < 4; i++) {
-        m_wheelPosition[i] = std::min(m_wheelPosition[i], m_aSuspensionSpringLength[i]);
+        m_wheelPosition[i] = std::min(m_wheelPosition[i], m_fSuspensionLength[i]);
     }
 
     CAutomobile::PreRender();

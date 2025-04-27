@@ -37,10 +37,10 @@ void VehicleInfoDebugModule::RenderWindow() {
                 ImGui::Text("%.2f", automobile->m_fWheelsSuspensionCompression[i]);
 
                 ImGui::TableNextColumn();
-                ImGui::Text("%.2f", automobile->m_aSuspensionSpringLength[i]);
+                ImGui::Text("%.2f", automobile->m_fSuspensionLength[i]);
 
                 ImGui::TableNextColumn();
-                ImGui::Text("%.2f", automobile->m_aSuspensionLineLength[i]);
+                ImGui::Text("%.2f", automobile->m_fLineLength[i]);
             }
 
             ImGui::EndTable();
