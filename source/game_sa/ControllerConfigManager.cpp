@@ -1,8 +1,11 @@
 #include "StdInc.h"
 #include "WinInput.h"
 
-
 #include "ControllerConfigManager.h"
+
+#ifndef  NOTSA_USE_SDL3
+#include "WinPlatform.h"
+#endif // !NOTSA_USE_SDL3
 
 CControllerConfigManager& ControlsManager = *(CControllerConfigManager *) 0xB70198;
 GxtChar (&NewStringWithNumber)[32] = *(GxtChar(*)[32])0xB7147C;
