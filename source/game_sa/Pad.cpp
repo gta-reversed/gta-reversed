@@ -234,6 +234,7 @@ void CPad::UpdatePads() {
     }
 
     ProcessPad(PAD1);
+    ProcessPad(PAD2); // NOTSA: GTA PS2
 
     ControlsManager.ClearSimButtonPressCheckers();
 
@@ -723,28 +724,7 @@ void CPad::ProcessPad(ePadID padID) {
         ControlsManager.m_NewJoyState.rgbButtons[14] = OS_GamepadButton(padID, JOYBUTTON_FIFTHTEEN) ? 0x80 : 0;  // Radio down
         ControlsManager.m_NewJoyState.rgbButtons[15] = OS_GamepadButton(padID, JOYBUTTON_SIXTEEN) ? 0x80 : 0;    // Skip trip/Action
 
-        
-    } else {
-        // Update button states using eJoyButtons enum
-        pad->PCTempJoyState.ButtonCircle = OS_GamepadButton(padID, JOYBUTTON_ONE) ? 255 : 0;
-        pad->PCTempJoyState.ButtonCross = OS_GamepadButton(padID, JOYBUTTON_TWO) ? 255 : 0;
-        pad->PCTempJoyState.ButtonSquare = OS_GamepadButton(padID, JOYBUTTON_THREE) ? 255 : 0;
-        pad->PCTempJoyState.ButtonTriangle = OS_GamepadButton(padID, JOYBUTTON_FOUR) ? 255 : 0;
-        pad->PCTempJoyState.LeftShoulder2 = OS_GamepadButton(padID, JOYBUTTON_FIVE) ? 255 : 0;
-        pad->PCTempJoyState.RightShoulder2 = OS_GamepadButton(padID, JOYBUTTON_SIX) ? 255 : 0;
-        pad->PCTempJoyState.LeftShoulder1 = OS_GamepadButton(padID, JOYBUTTON_SEVEN) ? 255 : 0;
-        pad->PCTempJoyState.RightShoulder1 = OS_GamepadButton(padID, JOYBUTTON_EIGHT) ? 255 : 0;
-        pad->PCTempJoyState.Select = OS_GamepadButton(padID, JOYBUTTON_NINE) ? 255 : 0;
-        pad->PCTempJoyState.ShockButtonL = OS_GamepadButton(padID, JOYBUTTON_TEN) ? 255 : 0;
-        pad->PCTempJoyState.ShockButtonR = OS_GamepadButton(padID, JOYBUTTON_ELEVEN) ? 255 : 0;
-        pad->PCTempJoyState.Start = OS_GamepadButton(padID, JOYBUTTON_TWELVE) ? 255 : 0;
-        pad->PCTempJoyState.DPadUp =    OS_GamepadButton(padID, JOYBUTTON_THIRTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadRight = OS_GamepadButton(padID, JOYBUTTON_FOURTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadDown =  OS_GamepadButton(padID, JOYBUTTON_FIFTHTEEN) ? 255 : 0;
-        pad->PCTempJoyState.DPadLeft =  OS_GamepadButton(padID, JOYBUTTON_SIXTEEN) ? 255 : 0;
     }
-    
-
     
     // Apply hack for next tick if enabled
     // if (hackNextTick) {
