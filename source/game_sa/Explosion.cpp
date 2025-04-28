@@ -143,7 +143,7 @@ bool DoesNeedToVehProcessBombTimer(eExplosionType type) {
     case eExplosionType::EXPLOSION_QUICK_CAR:
     case eExplosionType::EXPLOSION_MINE:
     case eExplosionType::EXPLOSION_OBJECT:
-    case eExplosionType::EXPLOSION_TANK_FIRE:
+    case eExplosionType::EXPLOSION_TANK_GRENADE:
         return true;
     }
     return false;
@@ -298,7 +298,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
         break;
     }
     case eExplosionType::EXPLOSION_BOAT:
-    case eExplosionType::EXPLOSION_AIRCRAFT: {
+    case eExplosionType::EXPLOSION_HELI: {
         if (!bInvisible) {
             exp->m_fRadius = 25.0f;
             exp->m_fVisibleDistance = 600.0f;
@@ -332,7 +332,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
             m_ExplosionAudioEntity.AddAudioEvent(AE_EXPLOSION, exp->m_vecPosition, 0.0f);
         break;
     }
-    case eExplosionType::EXPLOSION_TANK_FIRE: {
+    case eExplosionType::EXPLOSION_TANK_GRENADE: {
         if (!bInvisible) {
             exp->m_fRadius = 10.0f;
             exp->m_fVisibleDistance = 150.0f;
@@ -354,7 +354,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
         CreateAndPlayFxWithSound("explosion_small");
         break;
     }
-    case eExplosionType::EXPLOSION_RC_VEHICLE: {
+    case eExplosionType::EXPLOSION_TINY: {
         if (!bInvisible) {
             exp->m_fRadius = 3.0f;
             exp->m_fVisibleDistance = 90.0f;
@@ -442,13 +442,13 @@ void CExplosion::Update() {
             case eExplosionType::EXPLOSION_GRENADE:
             case eExplosionType::EXPLOSION_ROCKET:
             case eExplosionType::EXPLOSION_WEAK_ROCKET:
-            case eExplosionType::EXPLOSION_AIRCRAFT:
+            case eExplosionType::EXPLOSION_HELI:
             case eExplosionType::EXPLOSION_MINE:
             case eExplosionType::EXPLOSION_OBJECT: {
                 if (CTimer::GetFrameCounter() % 2) {
                     CPointLights::AddLight(ePointLightType::PLTYPE_POINTLIGHT, exp.m_vecPosition, {}, 20.0f, 1.0f, 1.0f, 0.5f, 0, false, nullptr);
                 }
-                if (exp.m_nType == eExplosionType::EXPLOSION_AIRCRAFT && CGeneral::GetRandomNumberInRange(0, 100) < 5) {
+                if (exp.m_nType == eExplosionType::EXPLOSION_HELI && CGeneral::GetRandomNumberInRange(0, 100) < 5) {
                     if (exp.m_pVictim) {
                         CExplosion::AddExplosion(exp.m_pVictim, exp.m_pCreator, eExplosionType::EXPLOSION_ROCKET, exp.m_pVictim->GetPosition(), 0, true, -1.0f, false);
                     }
@@ -499,7 +499,7 @@ void CExplosion::Update() {
             case eExplosionType::EXPLOSION_CAR:
             case eExplosionType::EXPLOSION_QUICK_CAR:
             case eExplosionType::EXPLOSION_BOAT:
-            case eExplosionType::EXPLOSION_AIRCRAFT: {
+            case eExplosionType::EXPLOSION_HELI: {
                 const float fFuelTimerProgress = (float)exp.m_nFuelTimer / 1000.0f;
                 for (auto i = 0; i < NUM_FUEL; i++) {
                     const float& fOffsetDistance = exp.m_fFuelOffsetDistance[i];

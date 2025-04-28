@@ -367,7 +367,7 @@ public:
     int16            m_nCopsInCarTimer;            // timer for police car (which is following player) occupants to stay in car. If this timer reachs
                                             // some value, they will leave a car. The timer increases each frame if player is stopped in car,
                                             // otherway it resets
-    int16           m_wBombTimer;           // goes down with each frame
+    int16           m_DelayedExplosion;           // goes down with each frame
     CPed*           m_pWhoDetonatedMe;      // if vehicle was detonated, game copies m_pWhoInstalledBombOnMe here
     float           m_fVehicleFrontGroundZ; // we get these values from CCollision::IsStoredPolyStillValidVerticalLine
     float           m_fVehicleRearGroundZ;  // or CWorld::ProcessVerticalLine

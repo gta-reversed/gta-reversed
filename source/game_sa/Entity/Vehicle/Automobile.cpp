@@ -471,7 +471,7 @@ void CAutomobile::ProcessControl()
     UpdatePassengerList();
     if (m_pDriver) {
         if (!vehicleFlags.bDriverLastFrame && m_nBombOnBoard == BOMB_IGNITION_ACTIVATED) {
-            m_wBombTimer = 1000;
+            m_DelayedExplosion = 1000;
             m_pWhoDetonatedMe = m_pWhoInstalledBombOnMe;
             CEntity::SafeRegisterRef(m_pWhoDetonatedMe);
         }
@@ -2404,7 +2404,7 @@ void CAutomobile::BlowUpCar_Impl(CEntity* dmgr, bool bDontShakeCam, bool bDontSp
 
     m_nBombOnBoard = 0;
     m_fHealth      = 0.f;
-    m_wBombTimer   = 0;
+    m_DelayedExplosion   = 0;
 
     if (!bDontShakeCam) {
         TheCamera.CamShake(0.4f, GetPosition());
@@ -5785,7 +5785,7 @@ void CAutomobile::TankControl()
             CVector explosionPos = endPoint;
             if (entity)
                 explosionPos = colPoint.m_vecPoint - (colPoint.m_vecPoint - newTurretPosition) * 0.04f;
-            CExplosion::AddExplosion(nullptr, FindPlayerPed(), EXPLOSION_TANK_FIRE, explosionPos, 0, true, -1.0f, false);
+            CExplosion::AddExplosion(nullptr, FindPlayerPed(), EXPLOSION_TANK_GRENADE, explosionPos, 0, true, -1.0f, false);
             CVector target = explosionPos - newTurretPosition;
             g_fx.TriggerTankFire(newTurretPosition, target);
         }

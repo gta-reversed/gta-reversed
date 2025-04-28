@@ -27,6 +27,7 @@ void CHeli::InjectHooks() {
     RH_ScopedVMTInstall(BurstTyre, 0x6C4330);
     RH_ScopedVMTInstall(SetUpWheelColModel, 0x6C4320);
     RH_ScopedVMTInstall(PreRender, 0x6C5420);
+    RH_ScopedVMTInstall(BlowUpCar, 0x6C6D30);
 
 }
 
@@ -409,7 +410,117 @@ void CHeli::RenderAllHeliSearchLights() {
 
 // 0x6C6D30
 void CHeli::BlowUpCar(CEntity* damager, bool bHideExplosion) {
-    plugin::CallMethod<0x6C6D30, CHeli*, CEntity*, uint8>(this, damager, bHideExplosion);
+    if (!vehicleFlags.bCanBeDamaged) {
+        m_autoPilot.m_nCarMission = eCarMission::MISSION_HELI_CRASH_AND_BURN;
+        m_fHealth = 0.0f;
+        return;
+    }
+
+    if (GetStatus() <= STATUS_PHYSICS || m_autoPilot.m_nCarMission == eCarMission::MISSION_HELI_CRASH_AND_BURN || m_nModelIndex == MODEL_RCGOBLIN || m_nModelIndex == MODEL_RCRAIDER) {
+        
+        // Update player stats if player caused explosion
+        if (damager == FindPlayerPed() || damager == FindPlayerVehicle()) {
+            auto& player = CWorld::Players[CWorld::PlayerInFocus]; // find
+            player.m_fCurrentChaseValue += 10.0f;
+            player.m_nHavocCaused += 20;
+            CStats::IncrementStat(STAT_COST_OF_PROPERTY_DAMAGED, (float)CGeneral::GetRandomNumberInRange(4000, 10000));
+        }
+
+        // Special case for news helicopter
+        if (m_nModelIndex == MODEL_VCNMAV) {
+            CWanted::bUseNewsHeliInAdditionToPolice = false;
+        }
+
+        // Reset vehicle movement if it's not physics
+        if (GetStatus() <= STATUS_PHYSICS) { // check
+            m_vecMoveSpeed = CVector(0.0f, 0.0f, 0.0f);
+            m_vecTurnSpeed = CVector(0.0f, 0.0f, 0.0f);
+            physicalFlags.bDisableZ = false;
+            physicalFlags.bDisableMoveForce = false;
+        }
+
+        // Set appropriate status flags
+        SetStatus(STATUS_WRECKED);
+        physicalFlags.bRenderScorched = true;
+        
+        // Mark time of death and set proper visibility
+        m_nTimeWhenBlowedUp = CTimer::GetTimeInMS();
+
+        CVisibilityPlugins::SetClumpAlpha(m_pRwClump, 0xFF);
+        
+        // Damage all parts
+        m_damageManager.FuckCarCompletely(false);
+
+        // Destroy components for normal helicopters (not RC models)
+        if (m_nModelIndex != MODEL_RCGOBLIN && m_nModelIndex != MODEL_RCRAIDER) {
+            // Set all body parts to damaged state
+            auto& automobile = *AsAutomobile();
+            
+            // Damage all body panels
+            automobile.SetBumperDamage(FRONT_BUMPER, false);
+            automobile.SetBumperDamage(REAR_BUMPER, false);
+            
+            // Damage all doors
+            for (auto door : {DOOR_BONNET, DOOR_BOOT, DOOR_LEFT_FRONT, DOOR_RIGHT_FRONT, DOOR_LEFT_REAR, DOOR_RIGHT_REAR}) {
+                automobile.SetDoorDamage(door, false);
+            }
+            
+            // Spawn flying rotor component
+            automobile.SpawnFlyingComponent((eCarNodes)PLANE_STATIC_PROP, FLIGHT_MODEL_HELI);
+            
+            // Hide top rotor
+            auto pCurrentAtomic = (void *)nullptr;
+            if (RwFrameForAllObjects(m_aCarNodes[PLANE_STATIC_PROP], GetCurrentAtomicObjectCB, &pCurrentAtomic); pCurrentAtomic) {
+                RpAtomicSetFlags(pCurrentAtomic, 0);
+            }
+        }
+
+        // Set remaining state
+        m_fHealth = 0.0f;
+        m_DelayedExplosion = 0;
+        vehicleFlags.bDriverLastFrame = false;
+        vehicleFlags.bSirenOrAlarm = false;
+        vehicleFlags.bCreatedAsPoliceVehicle = false;
+        
+        // Camera shake effect
+        TheCamera.CamShake(0.4f, GetPosition());
+        
+        // Kill passengers
+        KillPedsInVehicle();
+        KillPedsGettingInVehicle(); // NOTSA
+        
+        // Reset vehicle flags // todo: check if this is correct
+        vehicleFlags.bIsHandbrakeOn = false;
+        vehicleFlags.bLightsOn = false;
+        vehicleFlags.bFreebies = false;
+        vehicleFlags.bIsBig = false;
+        vehicleFlags.bEngineOn = false;
+        
+        // Handle emergency vehicle counts
+        if (vehicleFlags.bIsAmbulanceOnDuty) {
+            vehicleFlags.bIsAmbulanceOnDuty = false;
+            --CCarCtrl::NumAmbulancesOnDuty;
+        }
+        
+        if (vehicleFlags.bIsFireTruckOnDuty) {
+            vehicleFlags.bIsFireTruckOnDuty = false;
+            --CCarCtrl::NumFireTrucksOnDuty;
+        }
+        
+        // Reset law enforcer state
+        ChangeLawEnforcerState(false);
+        
+        // Start fire
+        gFireManager.StartFire((CEntity*)this, damager, 0.8f, true, 7'000, 0);
+        
+        // Register car blown up for Darkel missions
+        CDarkel::RegisterCarBlownUpByPlayer(*AsVehicle(), false);
+        
+        // Create explosion
+        eExplosionType explosionType = (m_nModelIndex == MODEL_RCRAIDER || m_nModelIndex == MODEL_RCGOBLIN) ? eExplosionType::EXPLOSION_TINY : eExplosionType::EXPLOSION_HELI;
+        
+        CExplosion::AddExplosion((CEntity*)this, (CEntity*)damager, explosionType, GetPosition(), false, true, -1.0f, false);
+    }
 }
 
 // 0x6C4530
@@ -566,7 +677,7 @@ void CHeli::ProcessFlyingCarStuff() {
         }
 
         vehicleType->vehicleFlags.bEngineOn = false;
-        float speedReduction                   = CTimer::ms_fTimeStep * 0.00055f;
+        float speedReduction = CTimer::GetTimeInMS() * 0.00055f;
         if (speedReduction >= vehicleType->m_fHeliRotorSpeed) {
             vehicleType->m_fHeliRotorSpeed = 0.0f;
         } else {
@@ -667,7 +778,7 @@ void CHeli::PreRender() {
     }
 
     // Update main rotor angle based on wheel speed and time step
-    m_fMainRotorAngle -= CTimer::ms_fTimeStep * m_wheelSpeed[1] * rotorSpeedMultiplier;
+    m_fMainRotorAngle -= CTimer::GetTimeInMS() * m_wheelSpeed[1] * rotorSpeedMultiplier;
     
     // Normalize main rotor angle to [0, TWO_PI)
     while (m_fMainRotorAngle < 0.0f) {
@@ -679,7 +790,7 @@ void CHeli::PreRender() {
 
     // Update rear rotor angle with model-specific multiplier
     float rearRotorMultiplier = (m_nModelIndex == 417) ? 2.0f : 2.3f;
-    m_fRearRotorAngle -= CTimer::ms_fTimeStep * m_wheelSpeed[1] * rearRotorMultiplier;
+    m_fRearRotorAngle -= CTimer::GetTimeInMS() * m_wheelSpeed[1] * rearRotorMultiplier;
     
     // Normalize rear rotor angle to [0, TWO_PI)
     while (m_fRearRotorAngle < 0.0f) {
@@ -690,13 +801,18 @@ void CHeli::PreRender() {
     }
 
     auto updateRotor = [this](eHeliNodes rotorNode) {
-        if (auto rotorFrame = m_aCarNodes[rotorNode]) {
-           CMatrix mat;
-           mat.Attach(RwFrameGetMatrix(rotorFrame), false);
-           CVector pos = mat.GetPosition();
-           notsa::contains({HELI_STATIC_ROTOR, HELI_MOVING_ROTOR}, rotorNode) ? mat.SetRotateZ(m_fMainRotorAngle) : mat.SetRotateX(m_fRearRotorAngle);
-           mat.SetTranslateOnly(pos);
-           mat.UpdateRW();
+        if (auto rotorFrame = m_aCarNodes[rotorNode]) {            
+            CMatrix mat;
+            CVector pos;
+            mat.Attach(RwFrameGetMatrix(rotorFrame), false);
+            pos = mat.GetPosition();
+            if (notsa::contains({HELI_STATIC_ROTOR, HELI_MOVING_ROTOR}, rotorNode)) {
+                mat.SetRotateZ(m_fMainRotorAngle);
+            } else {
+                mat.SetRotateX(m_fRearRotorAngle);
+            }
+            mat.SetTranslate(pos);
+            mat.UpdateRW();
         }
     };
 

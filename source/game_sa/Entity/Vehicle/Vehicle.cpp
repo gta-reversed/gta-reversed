@@ -305,7 +305,7 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     m_vehicleSpecialColIndex = -1;
 
     m_pWhoInstalledBombOnMe = nullptr;
-    m_wBombTimer = 0;
+    m_DelayedExplosion = 0;
     m_pWhoDetonatedMe = nullptr;
     m_nTimeWhenBlowedUp = 0;
 
@@ -1343,14 +1343,14 @@ bool CVehicle::CanVehicleBeDamaged(CEntity* damager, eWeaponType weapon, bool& b
 
 // 0x6D1340
 void CVehicle::ProcessDelayedExplosion() {
-    if (!m_wBombTimer) {
+    if (!m_DelayedExplosion) {
         return;
     }
 
     const auto period = (int16)(CTimer::GetTimeStep() * (100.0f / 6.0f));
-    m_wBombTimer = std::max(m_wBombTimer - period, 0);
+    m_DelayedExplosion = std::max(m_DelayedExplosion - period, 0);
 
-    if (!m_wBombTimer) {
+    if (!m_DelayedExplosion) {
         BlowUpCar(m_pWhoDetonatedMe, false);
     }
 }
@@ -1831,7 +1831,7 @@ void CVehicle::ActivateBomb() {
     switch (m_nBombOnBoard) {
     case BOMB_TIMED_NOT_ACTIVATED: {
         m_nBombOnBoard = BOMB_TIMED_ACTIVATED;
-        m_wBombTimer = 7000;
+        m_DelayedExplosion = 7000;
         m_pWhoDetonatedMe = FindPlayerPed();
         break;
     }
@@ -1850,7 +1850,7 @@ void CVehicle::ActivateBomb() {
 void CVehicle::ActivateBombWhenEntered() {
     if (m_pDriver) {
         if (!vehicleFlags.bDriverLastFrame && m_nBombOnBoard == BOMB_IGNITION_ACTIVATED) { // If the driver just entered and there's an ignition bomb...
-            m_wBombTimer = 1000;
+            m_DelayedExplosion = 1000;
             m_pWhoDetonatedMe = m_pWhoInstalledBombOnMe; // NOTE: `m_pWhoInstalledBombOnMe` isn't set in `ActivateBomb` weird...
             CEntity::RegisterReference(m_pWhoDetonatedMe);
         }

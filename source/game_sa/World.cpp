@@ -1229,7 +1229,7 @@ void CWorld::UseDetonator(CPed* creator) {
         }
 
         veh.m_nBombOnBoard    = 0;
-        veh.m_wBombTimer      = 500;
+        veh.m_DelayedExplosion      = 500;
         veh.m_pWhoDetonatedMe = creator;
         creator->RegisterReference(reinterpret_cast<CEntity**>(&veh.m_pWhoDetonatedMe));
     }
@@ -1775,8 +1775,8 @@ void CWorld::TriggerExplosionSectorList(PtrListType& ptrList, const CVector& poi
             veh->InflictDamage(creator, WEAPON_EXPLOSION, entityRelDistToRadiusEnd_Doubled * damage * 1100.f, {});
 
             if (processVehicleBombTimer) {
-                if (veh->m_wBombTimer) {
-                    veh->m_wBombTimer = veh->m_wBombTimer / 10 + 1;
+                if (veh->m_DelayedExplosion) {
+                    veh->m_DelayedExplosion = veh->m_DelayedExplosion / 10 + 1;
                 }
             }
 

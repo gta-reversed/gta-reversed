@@ -10,7 +10,7 @@
 
 class CAEExplosionAudioEntity;
 
-enum eExplosionType : int32 {
+enum eExplosionType : uint32 {
     EXPLOSION_UNDEFINED = -1,
     EXPLOSION_GRENADE = 0,
     EXPLOSION_MOLOTOV,
@@ -19,12 +19,12 @@ enum eExplosionType : int32 {
     EXPLOSION_CAR,
     EXPLOSION_QUICK_CAR,
     EXPLOSION_BOAT,
-    EXPLOSION_AIRCRAFT,
+    EXPLOSION_HELI,
     EXPLOSION_MINE,
     EXPLOSION_OBJECT,
-    EXPLOSION_TANK_FIRE,
+    EXPLOSION_TANK_GRENADE,
     EXPLOSION_SMALL,
-    EXPLOSION_RC_VEHICLE
+    EXPLOSION_TINY
 };
 
 class CEntity;

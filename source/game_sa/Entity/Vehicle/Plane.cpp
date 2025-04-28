@@ -233,7 +233,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         }
         // this->m_nBombLightsWinchFlags &= 0xF8u;
         m_fHealth = 0.0f;
-        m_wBombTimer = 0;
+        m_DelayedExplosion = 0;
 
         TheCamera.CamShake(0.4f, GetPosition());
         KillPedsInVehicle();
@@ -258,10 +258,10 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         gFireManager.StartFire(this, damager, 0.8f, 1, 7000, 0);
         CDarkel::RegisterCarBlownUpByPlayer(*this, 0);
         if (m_nModelIndex == MODEL_RCBARON) {
-            CExplosion::AddExplosion(this, damager, EXPLOSION_RC_VEHICLE, GetPosition(), 0, 1, -1.0f, 0);
+            CExplosion::AddExplosion(this, damager, EXPLOSION_TINY, GetPosition(), 0, 1, -1.0f, 0);
         } else {
 
-            CExplosion::AddExplosion(this, damager, EXPLOSION_AIRCRAFT, GetPosition(), 0, 1, -1.0f, 0);
+            CExplosion::AddExplosion(this, damager, EXPLOSION_HELI, GetPosition(), 0, 1, -1.0f, 0);
         }
     } else {
         m_autoPilot.SetCarMission(MISSION_PLANE_CRASH_AND_BURN);

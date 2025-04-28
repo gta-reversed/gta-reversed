@@ -1747,7 +1747,7 @@ bool CWeapon::Fire(CEntity* firedBy, CVector* startPosn, CVector* barrelPosn, CE
             ) {
                 return { FireM16_1stPerson(firedByPed), true };
             }
-            const auto fired = FireInstantHit(firedBy, startPosn, shotOrigin, targetEnt, targetPosn, altPosn, false, true);
+            const auto fired = FireInstantHit(firedBy, startPosn, shotOrigin, targetEnt, targetPosn, altPosn, false, true); // TODO: Fix crash here
             if (firedByPed) { // 0x74255B
                 if (!firedByPed->bInVehicle) {
                     return { fired, false };
