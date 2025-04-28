@@ -19,7 +19,7 @@ static int32 oldOption = -99; // 0x8CE004
 void CMenuManager::UserInput() {
     static constexpr auto actionSelect       = { MENU_ACTION_BRIGHTNESS, MENU_ACTION_RADIO_VOL, MENU_ACTION_DRAW_DIST, MENU_ACTION_MOUSE_SENS };
     static constexpr auto mainMenu           = { SCREEN_MAIN_MENU, SCREEN_PAUSE_MENU, SCREEN_GAME_SAVE, SCREEN_GAME_WARNING_DONT_SAVE, SCREEN_SAVE_DONE_1, SCREEN_DELETE_FINISHED, SCREEN_EMPTY };
-    static constexpr auto slidersActions     = { MENU_ACTION_BRIGHTNESS, MENU_ACTION_RADIO_VOL, MENU_ACTION_SFX_VOL, MENU_ACTION_DRAW_DIST, MENU_ACTION_MOUSE_SENS };
+    static constexpr auto SLIDER_ACTIONS     = { MENU_ACTION_BRIGHTNESS, MENU_ACTION_RADIO_VOL, MENU_ACTION_SFX_VOL, MENU_ACTION_DRAW_DIST, MENU_ACTION_MOUSE_SENS };
     static constexpr auto specialScreens     = { SCREEN_AUDIO_SETTINGS, SCREEN_USER_TRACKS_OPTIONS, SCREEN_DISPLAY_SETTINGS, SCREEN_DISPLAY_ADVANCED, SCREEN_CONTROLLER_SETUP, SCREEN_MOUSE_SETTINGS };
     static constexpr auto specialMenuActions = { MENU_ACTION_BACK, MENU_ACTION_MENU, MENU_ACTION_CTRLS_JOYPAD, MENU_ACTION_CTRLS_FOOT, MENU_ACTION_CTRLS_CAR, MENU_ACTION_BRIGHTNESS, MENU_ACTION_RADIO_VOL, MENU_ACTION_SFX_VOL, MENU_ACTION_RADIO_STATION, MENU_ACTION_RESET_CFG, MENU_ACTION_DRAW_DIST, MENU_ACTION_MOUSE_SENS };
 
@@ -78,7 +78,7 @@ void CMenuManager::UserInput() {
                 }
 
                 // Update mouse bounds based on action type
-                if ((notsa::contains(slidersActions, curScreen[rowToCheck].m_nActionType) == false)) {
+                if ((notsa::contains(SLIDER_ACTIONS, curScreen[rowToCheck].m_nActionType) == false)) {
                     m_MouseInBounds = 2;
                 }
 
@@ -145,7 +145,7 @@ void CMenuManager::UserInput() {
                   ((m_nCurrentScreen != eMenuScreen::SCREEN_MAP && CMenuManager::StretchY(388.0f) < m_nMousePosY) ||
                    m_DisplayTheMouse);
 
-        // Handle slider movement
+        // 0x58020F - Handle slider movement
         if (pad->IsMouseLButton()) {
             if (notsa::contains({6, 8, 10, 12, 14}, m_MouseInBounds)) {
                 CMenuManager::CheckSliderMovement(1);
@@ -183,17 +183,17 @@ void CMenuManager::UserInput() {
         }
 
         // Check for left/right slider movement
-        const bool isRightPressed = pad->IsLeftDown() || pad->GetPedWalkLeftRight() < 0 || pad->f0x57C380();
-        if (isRightPressed || pad->IsRightDown() || pad->GetPedWalkLeftRight() > 0 || pad->f0x57C390()) {
-            auto &sliderMoveTime =
-                isRightPressed ? FrontEndMenuManager.m_nTimeSlideLeftMove : FrontEndMenuManager.m_nTimeSlideRightMove;
-
-            // Process slide left move with time delay
-            if (CTimer::m_snTimeInMillisecondsPauseMode - sliderMoveTime > 200 &&
-                (notsa::contains(slidersActions, curScreen[m_nCurrentScreenItem].m_nActionType) ||
-                 curScreen[m_nCurrentScreenItem].m_nActionType == MENU_ACTION_STAT)) {
-                sliderMove = isRightPressed ? -1 : 1;
-                sliderMoveTime = CTimer::m_snTimeInMillisecondsPauseMode;
+        const bool isLeftPressed = pad->IsLeftDown() || pad->GetPedWalkLeftRight() < 0 || pad->f0x57C380();
+        const bool isRightPressed = pad->IsRightDown() || pad->GetPedWalkLeftRight() > 0 || pad->f0x57C390();
+        if (isLeftPressed || isRightPressed) {
+            auto &lastSliderMoveTime = isLeftPressed
+                ? FrontEndMenuManager.m_nTimeSlideLeftMove
+                : FrontEndMenuManager.m_nTimeSlideRightMove;
+            if (CTimer::m_snTimeInMillisecondsPauseMode - lastSliderMoveTime > 200) {
+                if (notsa::contains(SLIDER_ACTIONS, curScreen[m_nCurrentScreenItem].m_nActionType) || curScreen[m_nCurrentScreenItem].m_nActionType == MENU_ACTION_STAT) {
+                    sliderMove         = isLeftPressed ? -1 : 1;
+                    lastSliderMoveTime = CTimer::GetTimeInMSPauseMode();
+                }
             }
         }
 
@@ -295,7 +295,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
         }
     }
 
-    // Handle slider movement with wheel input
+    // 0x57B6D9 - Handle slider movement with wheel input
     if (LeftRight && aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType == eMenuEntryType::TI_OPTION) {
         ProcessMenuOptions(LeftRight, GoBackOneMenu, 0);
         CheckSliderMovement(LeftRight);

@@ -35,6 +35,7 @@ enum eFKeyID : uint8 {
     FKEY12,
 };
 
+#define KEY_IS_DOWN(btn)       (NewKeyState.btn)
 #define KEY_IS_PRESSED(btn)    (NewKeyState.btn && !OldKeyState.btn)
 
 #define BUTTON_IS_PRESSED(btn) (NewState.btn && !OldState.btn)
@@ -246,8 +247,8 @@ public:
     [[nodiscard]] bool IsLeftCtrlJustDown() const noexcept                  { return NewKeyState.lctrl && OldKeyState.lctrl; }                                               //
     [[nodiscard]] bool IsRightCtrlJustDown() const noexcept                 { return NewKeyState.rctrl && OldKeyState.rctrl; }                                               //
     [[nodiscard]] bool IsCtrlPressed() const noexcept                       { return IsLeftCtrlJustDown() || IsRightCtrlJustDown(); }                                        //
-    [[nodiscard]] static bool IsRightDown() noexcept                        { return NewKeyState.left; }                                                                 //
-    [[nodiscard]] static bool IsLeftDown() noexcept                         { return NewKeyState.right; }                                                                //
+    [[nodiscard]] static bool IsRightDown() noexcept                        { return KEY_IS_DOWN(right); }                                                                   //
+    [[nodiscard]] static bool IsLeftDown() noexcept                         { return KEY_IS_DOWN(left); }                                                                    //
     [[nodiscard]] static bool IsUpPressed() noexcept                        { return KEY_IS_PRESSED(up); }                                                                   //
     [[nodiscard]] static bool IsDownPressed() noexcept                      { return KEY_IS_PRESSED(down); }                                                                 //
     [[nodiscard]] static bool IsLeftPressed() noexcept                      { return KEY_IS_PRESSED(left); }                                                                 //

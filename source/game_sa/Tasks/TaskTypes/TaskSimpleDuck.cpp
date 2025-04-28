@@ -18,6 +18,7 @@ void CTaskSimpleDuck::InjectHooks() {
     RH_ScopedInstall(SetMoveAnim, 0x6939F0);
     RH_ScopedInstall(ForceStopMove, 0x6924B0);
     RH_ScopedInstall(SetDuckTimer, 0x692530);
+    RH_ScopedInstall(SetControlType, 0x6924F0);
     RH_ScopedVMTInstall(Clone, 0x692CF0);
     RH_ScopedVMTInstall(GetTaskType, 0x692020);
     RH_ScopedVMTInstall(MakeAbortable, 0x692100);
@@ -34,7 +35,7 @@ CTaskSimpleDuck::CTaskSimpleDuck(eDuckControlType duckControlType, uint16 length
     // Rest set in the header!
 }
 
-// Notsa
+// notsa
 CTaskSimpleDuck::CTaskSimpleDuck(const CTaskSimpleDuck& o) :
     CTaskSimpleDuck{o.m_DuckControlType, o.m_LengthOfDuck, o.m_ShotWhizzingCounter}
 {
@@ -165,7 +166,7 @@ void CTaskSimpleDuck::RestartTask(CPed* ped) {
 void CTaskSimpleDuck::ControlDuckMove(CVector2D moveDir) {
     m_bIsInControl = true;
 
-    // If going full fwd/bwd ignore left/right commmands
+    // If going full fwd/bwd ignore left/right commands
     if (std::abs(m_MoveCmd.x) == 1.f) { // Originally checked if either -1 or 1 (this achieves the same thing)
         return;
     }
@@ -260,6 +261,20 @@ void CTaskSimpleDuck::SetDuckTimer(uint16 time) {
     if (m_DuckControlType != DUCK_SCRIPT_CONTROLLED) {
         m_LengthOfDuck = time;
     }
+}
+
+// 0x6924F0
+bool CTaskSimpleDuck::SetControlType(eDuckControlType controlType) {
+    if (m_bIsFinished || m_bIsAborting) {
+        return false;
+    }
+    if (controlType == DUCK_SCRIPT_CONTROLLED) {
+        m_LengthOfDuck = 0;
+    }
+    m_DuckControlType = controlType;
+    m_StartTime       = CTimer::GetTimeInMS();
+    m_bIsInControl    = true;
+    return true;
 }
 
 // 0x692100
