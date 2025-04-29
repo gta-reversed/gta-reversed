@@ -25,17 +25,17 @@ void CScripted2dEffects::Init() {
         ms_radii[i]                 = -1.0f;
         rng::fill(ms_userLists[i].m_UserTypes, -1);
         rng::fill(ms_userLists[i].m_UserTypesByPedType, -1);
-        ms_effectPairs[i].Flush();
+        ms_effectPairs[i] = CScriptedEffectPairs{};
     }
 }
 
 // 0x6FA840
-CScriptedEffectPairs* CScripted2dEffects::GetEffectPairs(const C2dEffect* effect) {
+CScriptedEffectPairs* CScripted2dEffects::GetEffectPairs(const C2dEffectPedAttractor* effect) {
     return &ms_effectPairs[GetIndex(effect)];
 }
 
 // 0x6F9F60
-int32 CScripted2dEffects::GetIndex(const C2dEffectBase* effect) {
+int32 CScripted2dEffects::GetIndex(const C2dEffectPedAttractor* effect) {
     if (const auto idx = IndexOfEffect(effect)) {
         return (int32)*idx;
     }
@@ -56,7 +56,7 @@ int32 CScripted2dEffects::AddScripted2DEffect(float radius) {
     ms_radii[slot]                 = radius;
     rng::fill(ms_userLists[slot].m_UserTypes, -1);
     rng::fill(ms_userLists[slot].m_UserTypesByPedType, -1);
-    ms_effectPairs[slot].Flush();
+    ms_effectPairs[slot] = CScriptedEffectPairs{};
     return slot;
 }
 
@@ -66,10 +66,26 @@ void CScripted2dEffects::ReturnScripted2DEffect(int32 index) {
     GetPedAttractorManager()->RemoveEffect(notsa::cast<C2dEffectPedAttractor>(&ms_effects[index]));
 }
 
-auto CScripted2dEffects::IndexOfEffect(const C2dEffectBase* effect) -> std::optional<size_t> {
+// notsa
+auto CScripted2dEffects::IndexOfEffect(const C2dEffectPedAttractor* effect) -> std::optional<size_t> {
     const auto fx = reinterpret_cast<const C2dEffect*>(effect);
     if (ms_effects.data() <= fx && fx < ms_effects.data() + ms_effects.size()) {
         return (size_t)(fx - ms_effects.data());
     }
     return std::nullopt;
+}
+
+// notsa
+auto CScripted2dEffects::GetEffect(int32 index) -> C2dEffectPedAttractor* {
+    return notsa::cast<C2dEffectPedAttractor>(&ms_effects[index]);
+}
+
+// notsa
+int32 CScripted2dEffects::FindFreeSlot()  {
+    for (auto&& [i, activated] : rngv::enumerate(ms_activated)) {
+        if (!activated) {
+            return (int32)(i);
+        }
+    }
+    return -1;
 }

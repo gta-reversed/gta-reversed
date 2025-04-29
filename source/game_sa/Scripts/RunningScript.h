@@ -283,8 +283,8 @@ public:
 
     void SetName(const char* name)      { strcpy_s(m_szName, name); }
     void SetName(std::string_view name) { assert(name.size() < sizeof(m_szName)); strncpy_s(m_szName, name.data(), name.size()); }
-    void SetBaseIp(uint8* ip)           { m_BaseIP = ip; }
-    void SetCurrentIp(uint8* ip)        { m_IP = ip; }
+    void SetBaseIp(uint8* ip)           { assert(ip); m_BaseIP = ip; }
+    void SetCurrentIp(uint8* ip)        { assert(ip); m_IP = ip; }
     void SetActive(bool active)         { m_IsActive = active; }
     void SetExternal(bool external)     { m_IsExternal = external; }
 
