@@ -4,6 +4,10 @@
 #include "VideoMode.h"
 #include "app/app.h"
 
+#ifdef NOTSA_USE_SDL3
+#include <SDL3/SDL.h>
+#endif
+
 void RsInjectHooks() {
     RH_ScopedNamespaceName("Rs");
     RH_ScopedCategoryGlobal();
