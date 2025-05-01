@@ -2315,10 +2315,10 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
 
 
 // 0x414D70
-bool CCollision::IsStoredPolyStillValidVerticalLine(const CVector& lineOrigin, float lnMag, CColPoint& colPoint, CStoredCollPoly* collPoly) {
+bool CCollision::IsStoredPolyStillValidVerticalLine(const CVector& lineOrigin, float lnMag, CColPoint& colPoint, CStoredCollPoly& collPoly) {
     ZoneScoped;
 
-    if (!collPoly->valid) {
+    if (!collPoly.isValidPolyStored) {
         return false;
     }
 
