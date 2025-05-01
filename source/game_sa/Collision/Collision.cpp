@@ -2328,8 +2328,8 @@ bool CCollision::IsStoredPolyStillValidVerticalLine(const CVector& lineOrigin, f
             lineOrigin,
             { lineOrigin.x, lineOrigin.y, lineOrigin.z * lnMag }
         },
-        *collPoly,
-        CColTrianglePlane{ *collPoly },
+        collPoly,
+        CColTrianglePlane{ collPoly },
         nullptr,
         nullptr,
         nullptr
