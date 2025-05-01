@@ -332,11 +332,12 @@ void CPad::UpdateMouse() {
 #endif
 }
 
-static RwV2d leftStickPos[2];
-static RwV2d rightStickPos[2];
 // 0x746A10
-/* void CPad::ProcessPad(ePadID padID) {
+static CVector2D leftStickPos[2];
+static CVector2D rightStickPos[2];
+
 #ifndef NOTSA_USE_SDL3
+void CPad::ProcessPad(ePadID padID) {
     constexpr int deviceAxisMin = -2000;
     constexpr int deviceAxisMax = 2000;
     constexpr float deviceAxisOffset = float(float(deviceAxisMax - deviceAxisMin) / 2.0f);
@@ -391,20 +392,20 @@ static RwV2d rightStickPos[2];
 
     if (*pDiDevice) {
         // Calculate left stick position
-        leftStickPos.x = (float)joyState.lX / deviceAxisOffset;
-        leftStickPos.y = (float)joyState.lY / deviceAxisOffset;
+        leftStickPos[padID].x = (float)joyState.lX / deviceAxisOffset;
+        leftStickPos[padID].y = (float)joyState.lY / deviceAxisOffset;
         
         // Handle POV
         if (LOWORD(joyState.rgdwPOV[0]) != 0xFFFF) {
             float angle = DegreesToRadians((float)joyState.rgdwPOV[0] / 100.0f);
-            leftStickPos.x = sin(angle);
-            leftStickPos.y = -cos(angle);
+            leftStickPos[padID].x = sin(angle);
+            leftStickPos[padID].y = -cos(angle);
         }
         
         // Calculate right stick position
         if (AllValidWinJoys.JoyStickNum[padID].bZRotPresent && AllValidWinJoys.JoyStickNum[padID].bZAxisPresent) {
-            rightStickPos.x = (float)joyState.lZ / deviceAxisOffset;
-            rightStickPos.y = (float)joyState.lRz / deviceAxisOffset;
+            rightStickPos[padID].x = (float)joyState.lZ / deviceAxisOffset;
+            rightStickPos[padID].y = (float)joyState.lRz / deviceAxisOffset;
         }
 
         RsPadEventHandler(RsEvent::rsPADBUTTONUP, &padID);
@@ -422,15 +423,17 @@ static RwV2d rightStickPos[2];
         };
 
         // Left stick
-        UpdateJoyStickPosition(leftStickPos.x, pPad.PCTempJoyState.LeftStickY, pPad.PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
-        UpdateJoyStickPosition(leftStickPos.y, pPad.PCTempJoyState.LeftStickX, pPad.PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis1);
+        UpdateJoyStickPosition(leftStickPos[padID].x, pPad.PCTempJoyState.LeftStickY, pPad.PCTempJoyState.LeftStickX, FrontEndMenuManager.m_bInvertPadX1, FrontEndMenuManager.m_bSwapPadAxis1);
+        UpdateJoyStickPosition(leftStickPos[padID].y, pPad.PCTempJoyState.LeftStickX, pPad.PCTempJoyState.LeftStickY, FrontEndMenuManager.m_bInvertPadY1, FrontEndMenuManager.m_bSwapPadAxis1);
 
-        // Right stick 
-        UpdateJoyStickPosition(rightStickPos.x, pPad.PCTempJoyState.RightStickY, pPad.PCTempJoyState.RightStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis2);
-        UpdateJoyStickPosition(rightStickPos.y, pPad.PCTempJoyState.RightStickX, pPad.PCTempJoyState.RightStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
+        // Right stick
+        UpdateJoyStickPosition(rightStickPos[padID].x, pPad.PCTempJoyState.RightStickY, pPad.PCTempJoyState.RightStickX, FrontEndMenuManager.m_bInvertPadX2, FrontEndMenuManager.m_bSwapPadAxis2);
+        UpdateJoyStickPosition(rightStickPos[padID].y, pPad.PCTempJoyState.RightStickX, pPad.PCTempJoyState.RightStickY, FrontEndMenuManager.m_bInvertPadY2, FrontEndMenuManager.m_bSwapPadAxis2);
     }
-} */
+}
+#endif // NOTSA_USE_SDL3
 
+#ifdef NOTSA_USE_SDL3
 static const float flt_7656D8[2] = {0.05f, 0.3f};  // Deadzone thresholds: Generic, Xbox360
 
 // Enumerations and structs
@@ -453,13 +456,11 @@ const uint32_t AXIS_LEFT_TRIGGER = 0x44;
 const uint32_t AXIS_RIGHT_TRIGGER = 0x45;
 
 // SDL3-specific globals
-#ifdef NOTSA_USE_SDL3
+// #ifdef NOTSA_USE_SDL3
 static SDL_Gamepad* sdlGamepads[2] = {nullptr, nullptr}; // Cache opened gamepads for padID 0 and 1
 static bool sdlInitialized = false;                      // Track SDL initialization
-#endif
 
 // Initialize SDL3 gamepad subsystem
-#ifdef NOTSA_USE_SDL3
 static void InitializeSDLGamepads() {
     if (!sdlInitialized) {
         //if (
@@ -467,14 +468,12 @@ static void InitializeSDLGamepads() {
             // Log error (replace with your logging mechanism)
             // spdlog::error("SDL_InitSubSystem(SDL_INIT_GAMEPAD) failed: {}", SDL_GetError());
             //return;
-        //}
+            //}
         sdlInitialized = true;
     }
 }
-#endif
 
 // Open or refresh gamepad for a given padID
-#ifdef NOTSA_USE_SDL3
 static SDL_Gamepad* GetGamepadForPadID(uint32_t padId) {
     if (padId >= 2) return nullptr; // Support only padID 0 and 1
 
@@ -496,7 +495,7 @@ static SDL_Gamepad* GetGamepadForPadID(uint32_t padId) {
     SDL_JoystickID joystickID = gamepadIDs[index];
     SDL_Gamepad* gamepad = SDL_OpenGamepad(joystickID);
     SDL_free(gamepadIDs);
-
+    
     if (gamepad) {
         sdlGamepads[padId] = gamepad;
         // Determine gamepad type (simplified; could use SDL_GetgamepadType)
@@ -505,10 +504,8 @@ static SDL_Gamepad* GetGamepadForPadID(uint32_t padId) {
 
     return gamepad;
 }
-#endif
 
 // Close all opened gamepads
-#ifdef NOTSA_USE_SDL3
 static void CleanupSDLGamepads() {
     for (int i = 0; i < 2; ++i) {
         if (sdlGamepads[i]) {
@@ -518,11 +515,10 @@ static void CleanupSDLGamepads() {
         }
     }
 }
-#endif
+// #endif // NOTSA_USE_SDL3
 
 // SDL3-compatible OS_GamepadIsConnected
 static bool OS_GamepadIsConnected(uint32_t padId, OSgamepadType* setType) {
-#ifdef NOTSA_USE_SDL3
     InitializeSDLGamepads();
     SDL_Gamepad* gamepad = GetGamepadForPadID(padId);
     if (!gamepad) {
@@ -531,21 +527,10 @@ static bool OS_GamepadIsConnected(uint32_t padId, OSgamepadType* setType) {
     }
     if (setType) *setType = lastgamepadType[padId];
     return true;
-#else
-    OSgamepadType type = lastgamepadType[padId];
-    if (type == OSGT_Invalid) {
-        return false;
-    }
-    if (setType) {
-        *setType = type;
-    }
-    return true;
-#endif
 }
 
 // SDL3-compatible OS_GamepadAxis
 static float OS_GamepadAxis(uint32_t padId, uint32_t axisId) {
-#ifdef NOTSA_USE_SDL3
     if (padId >= 2 || axisId - 64 > 5) {
         return 0.0f;
     }
@@ -568,17 +553,10 @@ static float OS_GamepadAxis(uint32_t padId, uint32_t axisId) {
     int axisIndex = axisId - 64;
     float value = SDL_GetGamepadAxis(gamepad, axisMap[axisIndex]) / 32768.0f; // Normalize to [-1.0, 1.0]
     return value;
-#else
-    if (axisId - 64 > 5 || lastgamepadType[padId] == OSGT_Invalid) {
-        return 0.0f;
-    }
-    return lastGamepadAxis[padId][axisId - 64];
-#endif
 }
 
 // Check if gamepad has L3 R3 support
 static bool OS_GamepadHasL3R3(uint32_t padId) {
-#ifdef NOTSA_USE_SDL3
     SDL_Gamepad* gamepad = GetGamepadForPadID(padId);
     if (!gamepad) {
         return false;
@@ -592,15 +570,10 @@ static bool OS_GamepadHasL3R3(uint32_t padId) {
     
     // Return true only if both L3 and R3 are supported
     return hasL3 && hasR3;
-#else
-    // For non-SDL3 implementation, assume L3/R3 are present if the gamepad is connected
-    return (lastgamepadType[padId] != OSGT_Invalid);
-#endif
 }
 
 // SDL3-compatible OS_GamepadButton
 static bool OS_GamepadButton(uint32_t padId, eJoyButtons buttonId) {
-#ifdef NOTSA_USE_SDL3
     if (padId >= 2 || static_cast<int>(buttonId) > 16) {
         return false;
     }
@@ -644,12 +617,6 @@ static bool OS_GamepadButton(uint32_t padId, eJoyButtons buttonId) {
         return SDL_GetGamepadButton(gamepad, buttonMap[buttonIndex]);
     }
     return false;
-#else
-    if (static_cast<int>(buttonId) > 16 || lastgamepadType[padId] == OSGT_Invalid) {
-        return false;
-    }
-    return (lastGamepadMask[padId] & (1 << static_cast<int>(buttonId))) != 0;
-#endif
 }
 
 static OSgamepadType gamepadType = OSGT_Invalid;
@@ -680,10 +647,10 @@ void CPad::ProcessPad(ePadID padID) {
         HANDLE_EVENTS = true;
     } else if (initConfig == true) {
         initConfig = false;
-#ifdef NOTSA_USE_SDL3
+// #ifdef NOTSA_USE_SDL3
         int totalButtons = OS_GamepadHasL3R3(padID) ? 16 : 12;
         ControlsManager.InitDefaultControlConfigJoyPad(totalButtons);
-#endif
+// #endif
     }
 
     CPad* pad = CPad::GetPad(padID);
@@ -817,6 +784,7 @@ void CPad::ProcessPad(ePadID padID) {
 
     return;
 }
+#endif // NOTSA_USE_SDL3
 
 // 0x53FB40
 void CPad::ProcessPCSpecificStuff() {
