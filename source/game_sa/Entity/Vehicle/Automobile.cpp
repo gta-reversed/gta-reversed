@@ -5825,37 +5825,36 @@ void CAutomobile::BlowUpCarsInPath() {
 // 0x6AF420
 void CAutomobile::PlaceOnRoadProperly() {
     CColPoint colPoint{};
-    CEntity *colEntity = nullptr;
+    CEntity*  colEntity = nullptr;
 
-    auto *cm = GetColModel();
-    auto fStartY = cm->m_pColData->m_pLines[0].m_vecStart.y;
-    auto fEndY = -cm->m_pColData->m_pLines[3].m_vecStart.y;
+    auto* cm      = GetColModel();
+    auto  fStartY = cm->m_pColData->m_pLines[0].m_vecStart.y;
+    auto  fEndY   = -cm->m_pColData->m_pLines[3].m_vecStart.y;
 
-    auto lambdaCheck = [&](CVector &point) {
+    auto lambdaCheck = [&](CVector& point, CStoredCollPoly& colStore) {
         bool upFound = CWorld::ProcessVerticalLine(point, point.z + 5.0f, colPoint, colEntity, true);
         if (upFound || CWorld::ProcessVerticalLine(point, point.z - 5.0f, colPoint, colEntity, true)) {
             if (!upFound || (upFound && std::fabs(point.z - colPoint.m_vecPoint.z) > std::fabs(point.z - colPoint.m_vecPoint.z))) {
-                m_pEntityWeAreOn = colEntity;
-                m_bTunnel = colEntity->m_bTunnel;
+                m_pEntityWeAreOn    = colEntity;
+                m_bTunnel           = colEntity->m_bTunnel;
                 m_bTunnelTransition = colEntity->m_bTunnelTransition;
             }
-            point.z = colPoint.m_vecPoint.z;
+            point.z           = colPoint.m_vecPoint.z;
+            colStore.ligthing = colPoint.m_nLightingB;
         }
     };
 
-    const auto &vecPos = GetPosition();
-    CVector vecAlongLength = GetForward();
+    const auto& vecPos         = GetPosition();
+    CVector     vecAlongLength = GetForward();
 
     CVector frontPoint = vecPos + (vecAlongLength * fStartY);
-    frontPoint.z = vecPos.z;
+    frontPoint.z       = vecPos.z;
     lambdaCheck(frontPoint);
-    m_FrontCollPoly.ligthing = colPoint.m_nLightingB;
     frontPoint.z += GetHeightAboveRoad();
 
     CVector rearPoint = vecPos - (vecAlongLength * fEndY);
-    rearPoint.z = vecPos.z;
+    rearPoint.z       = vecPos.z;
     lambdaCheck(rearPoint);
-    m_RearCollPoly.ligthing = colPoint.m_nLightingB;
     rearPoint.z += m_fRearHeightAboveRoad;
 
     auto fLength = fEndY + fStartY;
@@ -5867,7 +5866,7 @@ void CAutomobile::PlaceOnRoadProperly() {
     GetForward() = frontVec;
 
     CVector up = CrossProduct(GetRight(), GetForward());
-    GetUp() = up;
+    GetUp()    = up;
 
     CVector resultCoors = (frontPoint * fEndY + rearPoint * fStartY) / fLength;
     SetPosn(resultCoors);
