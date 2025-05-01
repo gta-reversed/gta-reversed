@@ -1,5 +1,6 @@
 #include "StdInc.h"
 
+#include "EventBuildingCollision.h"
 #include "CollisionEventScanner.h"
 #include "PedClothesDesc.h"
 
@@ -18,8 +19,8 @@ void CCollisionEventScanner::ScanForCollisionEvents(CPed* ped, CEventGroup* eg) 
             ped->m_nPieceType,
             ped->m_fDamageIntensity,
             o,
-            &ped->m_vecLastCollisionImpactVelocity,
-            &ped->m_vecLastCollisionPosn,
+            ped->m_vecLastCollisionImpactVelocity,
+            ped->m_vecLastCollisionPosn,
             pedMoveState
         });
         break;

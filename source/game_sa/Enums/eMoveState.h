@@ -1,5 +1,7 @@
 #pragma once
 
+#include <extensions/WEnum.hpp>
+
 enum eMoveState : uint32 {
     PEDMOVE_NONE = 0,
     PEDMOVE_STILL,
@@ -10,3 +12,4 @@ enum eMoveState : uint32 {
     PEDMOVE_RUN,
     PEDMOVE_SPRINT
 };
+NOTSA_WENUM_DEFS_FOR(eMoveState);
