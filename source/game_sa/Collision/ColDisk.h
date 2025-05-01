@@ -24,7 +24,7 @@ public:
         m_fEndRadius = endRadius;
         m_Surface.m_nMaterial = material;
         m_Surface.m_nPiece = pieceType;
-        m_Surface.ligthing = lighting;
+        m_Surface.lighting = lighting;
     }
     */
 };

@@ -158,7 +158,7 @@ void CCustomBuildingPipeline::CustomPipeRenderCB(RwResEntry* resEntry, void* obj
 
         if (geoHasNoLighting) { // 0x5D7A12 - Render without lighting
             RxD3D9InstanceDataRender(header, mesh);
-        } else { // 0x5D7A1A - Render with ligthing
+        } else { // 0x5D7A1A - Render with lighting
             if (isLightingEnabled) {
                 RwD3D9SetSurfaceProperties(&mesh->material->surfaceProps, &mesh->material->color, rxGeoFlags);
             }

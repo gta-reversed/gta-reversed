@@ -333,8 +333,8 @@ CVehicle::CVehicle(eVehicleCreatedBy createdBy) : CPhysical(), m_vehicleAudio(),
     field_511 = 0;
     field_512 = 0;
     m_comedyControlState = eComedyControlState::INACTIVE;
-    m_FrontCollPoly.valid = false;
-    m_RearCollPoly.valid = false;
+    m_StoredCollPolys[0].isValidPolyStored = false;
+    m_StoredCollPolys[1].isValidPolyStored = false;
     m_pHandlingData = nullptr;
     m_nHandlingFlagsIntValue = static_cast<eVehicleHandlingFlags>(0);
     m_autoPilot.m_nTempAction = TEMPACT_NONE;
@@ -1188,11 +1188,11 @@ void CVehicle::SetCollisionLighting(tColLighting lighting) {
 
 // 0x6D0CC0
 void CVehicle::UpdateLightingFromStoredPolys() {
-    m_anCollisionLighting[0] = m_FrontCollPoly.ligthing;
-    m_anCollisionLighting[1] = m_FrontCollPoly.ligthing;
+    m_anCollisionLighting[0] = m_StoredCollPolys[0].lighting;
+    m_anCollisionLighting[1] = m_StoredCollPolys[0].lighting;
 
-    m_anCollisionLighting[2] = m_RearCollPoly.ligthing;
-    m_anCollisionLighting[3] = m_RearCollPoly.ligthing;
+    m_anCollisionLighting[2] = m_StoredCollPolys[1].lighting;
+    m_anCollisionLighting[3] = m_StoredCollPolys[1].lighting;
 }
 
 // 0x6D0CF0

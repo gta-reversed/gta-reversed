@@ -388,8 +388,7 @@ public:
     char            m_nCarHornTimer; // car horn related
     eComedyControlState m_comedyControlState;
     char            m_nHasslePosId;
-    CStoredCollPoly m_FrontCollPoly;          // poly which is under front part of car
-    CStoredCollPoly m_RearCollPoly;           // poly which is under rear part of car
+    CStoredCollPoly m_StoredCollPolys[2];
     tColLighting    m_anCollisionLighting[4]; // left front, left rear, right front, right rear
     FxSystem_c*     m_pOverheatParticle;
     FxSystem_c*     m_pFireParticle;

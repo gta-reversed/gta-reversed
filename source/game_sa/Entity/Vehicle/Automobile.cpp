@@ -5840,7 +5840,7 @@ void CAutomobile::PlaceOnRoadProperly() {
                 m_bTunnelTransition = colEntity->m_bTunnelTransition;
             }
             point.z           = colPoint.m_vecPoint.z;
-            colStore.ligthing = colPoint.m_nLightingB;
+            colStore.lighting = colPoint.m_nLightingB;
         }
     };
 
@@ -5849,24 +5849,23 @@ void CAutomobile::PlaceOnRoadProperly() {
 
     CVector frontPoint = vecPos + (vecAlongLength * fStartY);
     frontPoint.z       = vecPos.z;
-    lambdaCheck(frontPoint, m_FrontCollPoly);
+    lambdaCheck(frontPoint, m_StoredCollPolys[0]);
     frontPoint.z += GetHeightAboveRoad();
 
     CVector rearPoint = vecPos - (vecAlongLength * fEndY);
     rearPoint.z       = vecPos.z;
-    lambdaCheck(rearPoint, m_RearCollPoly);
+    lambdaCheck(rearPoint, m_StoredCollPolys[1]);
     rearPoint.z += m_fRearHeightAboveRoad;
 
     auto fLength = fEndY + fStartY;
 
-    GetRight().Set((frontPoint.y - rearPoint.y) / fLength, -((frontPoint.x - rearPoint.x) / fLength), 0.0F);
+    GetRight().Set((frontPoint.y - rearPoint.y) / fLength, -((frontPoint.x - rearPoint.x) / fLength), 0.0f);
 
     CVector frontVec = frontPoint - rearPoint;
     frontVec.Normalise();
     GetForward() = frontVec;
 
-    CVector up = CrossProduct(GetRight(), GetForward());
-    GetUp()    = up;
+    GetUp()    = CrossProduct(GetRight(), GetForward());
 
     CVector resultCoors = (frontPoint * fEndY + rearPoint * fStartY) / fLength;
     SetPosn(resultCoors);
