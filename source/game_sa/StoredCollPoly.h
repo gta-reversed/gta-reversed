@@ -10,8 +10,8 @@
 
 struct CStoredCollPoly {
     CVector      verts[3]{}; // triangle vertices
-    bool         isValidPolyStored;
+    bool         valid{};
     char         _pad[3];
-    tColLighting lighting;
+    tColLighting ligthing{}; // TOOD: Fix typo to lighting
 };
 VALIDATE_SIZE(CStoredCollPoly, 0x2C);

@@ -1835,7 +1835,7 @@ bool CCollision::ProcessVerticalLine(
     cp.m_vecPoint  = transform.TransformPoint(cp.m_vecPoint);
     cp.m_vecNormal = transform.TransformVector(cp.m_vecNormal);
 
-    if (outColPoly && storedColPoly.isValidPolyStored) {
+    if (outColPoly && storedColPoly.valid) {
         for (auto& vtx : storedColPoly.verts) {
             vtx = transform.TransformPoint(vtx); // Transform back from object space
         }
@@ -2318,7 +2318,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
 bool CCollision::IsStoredPolyStillValidVerticalLine(const CVector& lineOrigin, float lnMag, CColPoint& colPoint, CStoredCollPoly& collPoly) {
     ZoneScoped;
 
-    if (!collPoly.isValidPolyStored) {
+    if (!collPoly.valid) {
         return false;
     }
 

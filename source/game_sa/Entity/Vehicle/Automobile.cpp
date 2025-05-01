@@ -5831,7 +5831,7 @@ void CAutomobile::PlaceOnRoadProperly() {
     auto  fStartY = cm->m_pColData->m_pLines[0].m_vecStart.y;
     auto  fEndY   = -cm->m_pColData->m_pLines[3].m_vecStart.y;
 
-    auto lambdaCheck = [&](CVector& point, CStoredCollPoly& colStore) {
+    const auto ProcessPoint = [&](CVector& point, CStoredCollPoly& colPoly) {
         bool upFound = CWorld::ProcessVerticalLine(point, point.z + 5.0f, colPoint, colEntity, true);
         if (upFound || CWorld::ProcessVerticalLine(point, point.z - 5.0f, colPoint, colEntity, true)) {
             if (!upFound || (upFound && std::fabs(point.z - colPoint.m_vecPoint.z) > std::fabs(point.z - colPoint.m_vecPoint.z))) {
@@ -5840,7 +5840,7 @@ void CAutomobile::PlaceOnRoadProperly() {
                 m_bTunnelTransition = colEntity->m_bTunnelTransition;
             }
             point.z           = colPoint.m_vecPoint.z;
-            colStore.lighting = colPoint.m_nLightingB;
+            colPoly.ligthing = colPoint.m_nLightingB;
         }
     };
 
@@ -5849,12 +5849,12 @@ void CAutomobile::PlaceOnRoadProperly() {
 
     CVector frontPoint = vecPos + (vecAlongLength * fStartY);
     frontPoint.z       = vecPos.z;
-    lambdaCheck(frontPoint, m_StoredCollPolys[0]);
+    ProcessPoint(frontPoint, m_StoredCollPolys[COL_FRONT]);
     frontPoint.z += GetHeightAboveRoad();
 
     CVector rearPoint = vecPos - (vecAlongLength * fEndY);
     rearPoint.z       = vecPos.z;
-    lambdaCheck(rearPoint, m_StoredCollPolys[1]);
+    ProcessPoint(rearPoint, m_StoredCollPolys[COL_REAR]);
     rearPoint.z += m_fRearHeightAboveRoad;
 
     auto fLength = fEndY + fStartY;
