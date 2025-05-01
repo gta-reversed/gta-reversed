@@ -132,6 +132,9 @@ void WriteHooksToFile(const std::filesystem::path& file) {
     s_RootCategory.ForEachCategory([&](const HookCategory& cat) {
         using namespace ReversibleHook;
         for (const auto& item : cat.Items()) {
+            if (item->Type() == Base::HookType::ScriptCommand) {
+                continue;
+            }
             const auto isVirtual = item->Type() == Base::HookType::Virtual;
             of
                 << cat.Name() << "," // class
