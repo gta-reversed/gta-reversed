@@ -2,6 +2,8 @@
 #ifndef RPMATFX_H
 #define RPMATFX_H
 
+#include "Base.h"
+
 /*===========================================================================*
  *--- Include files ---------------------------------------------------------*
  *===========================================================================*/
@@ -14,6 +16,7 @@
 #ifndef RPMATFX_MATFX_H
 #define RPMATFX_MATFX_H
 
+static inline auto& MatFXMaterialDataOffset = StaticRef<RwInt32>(0xC9AB74);
 
 /**
  * \defgroup rpmatfx RpMatFX
@@ -49,6 +52,93 @@ enum RpMatFXMaterialFlags
 };
 typedef enum RpMatFXMaterialFlags  RpMatFXMaterialFlags;
 
+
+/*===========================================================================*
+*--- Types -----------------------------------------------------------------*
+*===========================================================================*/
+enum MatFXPass
+{
+    rpSECONDPASS = 0,
+    rpTHIRDPASS  = 1,
+    rpMAXPASS    = 2
+};
+typedef enum MatFXPass MatFXPass;
+
+typedef struct MatFXBumpMapData RWALIGN(MatFXBumpMapData, rpMATFXALIGNMENT);
+
+typedef struct MatFXEnvMapData RWALIGN(MatFXEnvMapData, rpMATFXALIGNMENT);
+struct MatFXEnvMapData
+{
+    RwFrame   *frame;
+    RwTexture *texture;
+    RwReal    coef;
+    RwBool    useFrameBufferAlpha;
+};
+
+typedef struct MatFXUVAnimData RWALIGN(MatFXUVAnimData, rpMATFXALIGNMENT);
+struct MatFXUVAnimData
+{
+    RwMatrix *baseTransform;
+    RwMatrix *dualTransform;
+};
+
+/*
+* MatFXDualData is device specific as it contains extra data
+* on the PS2 for the blend modes.
+*/
+struct MatFXDualData
+{
+    RwTexture          *texture;
+    RwBlendFunction     srcBlendMode;
+    RwBlendFunction     dstBlendMode;
+
+    /*--- device specific ---*/
+};
+
+struct MatFXBumpMapData
+{
+    RwFrame   *frame;
+    RwTexture *texture;
+    RwTexture *bumpTexture;
+    RwReal    coef;
+    RwReal    invBumpWidth;
+};
+typedef struct MatFXDualData RWALIGN(MatFXDualData, rpMATFXALIGNMENT);
+
+typedef union MatFXEffectUnion RWALIGN(MatFXEffectUnion, rpMATFXALIGNMENT);
+union MatFXEffectUnion
+{
+    MatFXBumpMapData  bumpMap;
+    MatFXEnvMapData   envMap;
+    MatFXDualData     dual;
+    MatFXUVAnimData   uvAnim;
+
+#if (defined (MULTITEXD3D8_H))
+    MatFXD3D8Material d3d8Mat;
+#endif
+};
+
+typedef struct MatFXEffectData RWALIGN(MatFXEffectData, rpMATFXALIGNMENT);
+struct MatFXEffectData
+{
+    MatFXEffectUnion     data;
+    RpMatFXMaterialFlags flag;
+
+#if (defined (SKY2_DRVMODEL_H))
+    MatFXSkyMaterial     skyMat;
+#endif
+};
+
+struct rpMatFXMaterialData
+{
+    MatFXEffectData      data[rpMAXPASS];
+    RpMatFXMaterialFlags flags;
+};
+
+#define MATFXD3D9ENVMAPGETDATA(material, pass)                          \
+  &((*((rpMatFXMaterialData **)                                         \
+       (((RwUInt8 *)material) +                                         \
+        MatFXMaterialDataOffset)))->data[pass].data.envMap)
 
 /*===========================================================================*
  *--- Plugin API Functions --------------------------------------------------*
