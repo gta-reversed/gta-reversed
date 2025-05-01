@@ -5849,12 +5849,12 @@ void CAutomobile::PlaceOnRoadProperly() {
 
     CVector frontPoint = vecPos + (vecAlongLength * fStartY);
     frontPoint.z       = vecPos.z;
-    lambdaCheck(frontPoint);
+    lambdaCheck(frontPoint, m_FrontCollPoly);
     frontPoint.z += GetHeightAboveRoad();
 
     CVector rearPoint = vecPos - (vecAlongLength * fEndY);
     rearPoint.z       = vecPos.z;
-    lambdaCheck(rearPoint);
+    lambdaCheck(rearPoint, m_RearCollPoly);
     rearPoint.z += m_fRearHeightAboveRoad;
 
     auto fLength = fEndY + fStartY;
