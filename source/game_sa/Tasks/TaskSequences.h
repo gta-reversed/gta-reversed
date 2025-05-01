@@ -21,4 +21,5 @@ public:
     static inline void AddTaskToActiveSequence(CTask* task) {
         ms_taskSequence[ms_iActiveSequence].AddTask(task);
     }
+    static auto Get(uint32 slot) { return &ms_taskSequence[slot]; }
 };

@@ -4,5 +4,8 @@
 
 void CompressedBox::DrawWireFrame(CRGBA color, const CMatrix& transform) const
 {
-    CBox{UncompressLargeVector(m_vecMin), UncompressLargeVector(m_vecMax)}.DrawWireFrame(color, transform);
+    CBox(*this).DrawWireFrame(color, transform);
+}
+CompressedBox::operator CBox() const {
+    return CBox{UncompressLargeVector(m_vecMin), UncompressLargeVector(m_vecMax)};
 }

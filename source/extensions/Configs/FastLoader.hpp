@@ -14,7 +14,7 @@ inline struct FastLoaderConfig {
 
     INI_CONFIG_SECTION("FastLoader");
 
-    int32  SaveGameToLoad       = -2;         //< -2 - Don't load, -1 = Load first available, 0 <= - load from save slot
+    int32  SaveGameToLoad       = -2;         //< -2 - Don't load, -1 = Load first available, 0 = unused, 1 <= - load from save slot
     uint32 SkipSaveGameLoadKey  = VK_CONTROL; //< Skip auto-loading save game (If enabled)
     uint32 SoundDelay           = 50;
 
@@ -39,28 +39,28 @@ inline struct FastLoaderConfig {
     bool StartGame(int32 slot) {
         const auto CheckIfSaveFileExists = [](int32 slot) {
             CFileMgr::SetDirMyDocuments();
-            const bool exists = std::filesystem::exists(std::format("GTASAsf{}.b", slot + 1));
+            const bool exists = std::filesystem::exists(std::format("GTASAsf{}.b", slot));
             CFileMgr::ChangeDir("");
             return exists;
         };
 
         if (slot == -1) { // Find first valid slot and load that
-            for (auto i = 0u; i < MAX_SAVEGAME_SLOTS; i++) {
-                if (CheckIfSaveFileExists(i)) { // Save file IDs start from 1, not 0
+            for (auto i = 1u; i <= MAX_SAVEGAME_SLOTS; i++) {
+                if (CheckIfSaveFileExists(i)) {
                     return StartGame(i); // Load this slot
                 }
             }
-            DEV_LOG("Couldn't find any savegame to load!");
+            NOTSA_LOG_TRACE("Couldn't find any savegame to load!");
             return false;
         }
 
         // Load game from slot
-        assert(slot >= 0);
+        assert(slot > 0);
         if (!CheckIfSaveFileExists(slot)) {
-            DEV_LOG("Save slot {} is empty!", slot + 1);
+            NOTSA_LOG_WARN("Save slot {} is empty!", slot);
             return false;
         }
-        DEV_LOG("Loading game from slot ({})", slot + 1);
+        NOTSA_LOG_TRACE("Loading game from slot {}", slot);
 
         if (!NoLoadingTune) {
             for (size_t i = 0; i < SoundDelay; i++) {
@@ -69,7 +69,7 @@ inline struct FastLoaderConfig {
         }
 
         // Actually load the game (By simulating the user going in the menu and doing it)
-        FrontEndMenuManager.SimulateGameLoad(false, slot);
+        FrontEndMenuManager.SimulateGameLoad(false, slot - 1);
 
         return true;
     }

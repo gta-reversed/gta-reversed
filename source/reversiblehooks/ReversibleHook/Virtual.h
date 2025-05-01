@@ -25,15 +25,16 @@ private:
     constexpr static auto GTA = 0u;
     constexpr static auto OUR = 1u;
 
-    // Original function pointers
+    //! Original function pointers
     void* m_pfns[2]{};
 
-    // vtables
+    //! vtables
     void** m_vtbls[2]{};
 
-    // Function index in vtable
+    //! Function index in vtable
     size_t m_fnIdx{};
 
+    //! This makes sure direct calls (so not thru the vtbl) are also hooked properly
     Simple m_simpleHook;
 };
 

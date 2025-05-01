@@ -62,25 +62,22 @@ CDecisionMakerTypes* CDecisionMakerTypes::GetInstance() {
 }
 
 // 0x606E70
-void CDecisionMakerTypes::MakeDecision(CPed* ped, int32 eventType, int32 eventSourceType, bool bIsPedInVehicle, int32 taskId1, int32 taskId2, int32 taskId3, int32 taskId4,
-                                       bool bInGroup, int16& taskId, int16& field_10) {
-    plugin::CallMethod<0x606E70, CDecisionMakerTypes*, CPed*, int32, int32, bool, int32, int32, int32, int32, bool, int16&, int16&>(
-        this, ped, eventType, eventSourceType, bIsPedInVehicle, taskId1, taskId2, taskId3, taskId4, bInGroup, taskId, field_10);
+void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskTypeToAvoid1, eTaskType taskTypeToAvoid2, eTaskType taskTypeToAvoid3, eTaskType taskTypeToSeek, bool bUseInGroupDecisionMaker, int16& taskType, int16& facialTaskType) {
+    plugin::CallMethod<0x606E70>(this, ped, eventType, eventSourceType, bIsPedInVehicle, taskTypeToAvoid1, taskTypeToAvoid2, taskTypeToAvoid3, taskTypeToSeek, bUseInGroupDecisionMaker, &taskType, &facialTaskType);
 }
 
 // 0x606F80
-int32 CDecisionMakerTypes::MakeDecision(CPedGroup* pedGroup, int32 eventType, int32 eventSourceType, bool bIsPedInVehicle, int32 taskId1, int32 taskId2, int32 taskId3,
-                                        int32 taskId4) {
-    return plugin::CallMethodAndReturn<int32, 0x606F80, CDecisionMakerTypes*, CPedGroup*, int32, int32, bool, int32, int32, int32, int32>(
+eTaskType CDecisionMakerTypes::MakeDecision(CPedGroup* pedGroup, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskId1, eTaskType taskId2, eTaskType taskId3, eTaskType taskId4) {
+    return plugin::CallMethodAndReturn<eTaskType, 0x606F80, CDecisionMakerTypes*, CPedGroup*, int32, int32, bool, int32, int32, int32, int32>(
         this, pedGroup, eventType, eventSourceType, bIsPedInVehicle, taskId1, taskId2, taskId3, taskId4);
 }
 
 // 0x6044C0
-void CDecisionMakerTypes::AddEventResponse(int32 decisionMakerIndex, int32 eventType, int32 taskId, float* responseChances, int32* flags) {
+void CDecisionMakerTypes::AddEventResponse(int32 decisionMakerIndex, eEventType eventType, eTaskType taskId, float* responseChances, int32* flags) {
     plugin::CallMethod<0x6044C0, CDecisionMakerTypes*, int32, int32, int32, float*, int32*>(this, decisionMakerIndex, eventType, taskId, responseChances, flags);
 }
 
 // 0x604490
-void CDecisionMakerTypes::FlushDecisionMakerEventResponse(int32 decisionMakerIndex, int32 eventId) {
-    plugin::CallMethod<0x604490, CDecisionMakerTypes*, int32, int32>(this, decisionMakerIndex, eventId);
+void CDecisionMakerTypes::FlushDecisionMakerEventResponse(int32 decisionMakerIndex, eEventType eventId) {
+    plugin::CallMethod<0x604490>(this, decisionMakerIndex, eventId);
 }

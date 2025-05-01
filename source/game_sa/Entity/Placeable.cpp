@@ -9,7 +9,7 @@
 #include "Placeable.h"
 
 void CPlaceable::InjectHooks() {
-    RH_ScopedClass(CPlaceable);
+    RH_ScopedVirtualClass(CPlaceable, 0x863C40, 1);
     RH_ScopedCategory("Entity");
 
     RH_ScopedOverloadedInstall(SetPosn, "xyz", 0x420B80, void(CPlaceable::*)(float, float, float));
@@ -89,7 +89,7 @@ void CPlaceable::SetHeading(float heading) {
         m_placement.m_fHeading = heading;
 }
 
-float CPlaceable::GetHeading() {
+float CPlaceable::GetHeading() const {
     if (!m_matrix) {
         return m_placement.m_fHeading;
     }

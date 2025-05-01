@@ -3,19 +3,19 @@
 #include "CarCtrl.h"
 
 void CTaskComplexCarDriveMission::InjectHooks() {
-    RH_ScopedClass(CTaskComplexCarDriveMission);
+    RH_ScopedVirtualClass(CTaskComplexCarDriveMission, 0x86E9A4, 14);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x63CC30);
     RH_ScopedInstall(Destructor, 0x63CCC0);
-    RH_ScopedVirtualInstall(Clone, 0x63DD70);
-    RH_ScopedVirtualInstall(GetTaskType, 0x63CCB0);
-    RH_ScopedVirtualInstall(SetUpCar, 0x63CD20);
+    RH_ScopedVMTInstall(Clone, 0x63DD70);
+    RH_ScopedVMTInstall(GetTaskType, 0x63CCB0);
+    RH_ScopedVMTInstall(SetUpCar, 0x63CD20);
 }
 
 // 0x63CC30
 CTaskComplexCarDriveMission::CTaskComplexCarDriveMission(CVehicle* vehicle, CEntity* targetVehicle, eCarMission carDriveMission, eCarDrivingStyle carDrivingStyle, float fSpeed) :
-    CTaskComplexCarDrive{ vehicle, fSpeed, -1, carDrivingStyle }
+    CTaskComplexCarDrive{ vehicle, fSpeed, MODEL_INVALID, carDrivingStyle }
 {
     // assert(targetVehicle->IsVehicle());
     m_pTargetVehicle = static_cast<CVehicle*>(targetVehicle);
@@ -32,18 +32,16 @@ CTaskComplexCarDriveMission::~CTaskComplexCarDriveMission() {
 void CTaskComplexCarDriveMission::SetUpCar() {
     CTaskComplexCarDrive::SetUpCar();
 
-    CCarCtrl::JoinCarWithRoadSystem(m_pVehicle);
-    m_pVehicle->m_nStatus = STATUS_PHYSICS;
+    CCarCtrl::JoinCarWithRoadSystem(m_Veh);
+    m_Veh->m_nStatus = STATUS_PHYSICS;
 
-    auto& autopilot = m_pVehicle->m_autoPilot;
-    autopilot.m_nCarMission         = m_nCarMission;
-    autopilot.m_nCruiseSpeed        = (uint32)m_fSpeed;
+    auto& autopilot = m_Veh->m_autoPilot;
+    autopilot.m_nCruiseSpeed        = (uint32)m_CruiseSpeed;
     autopilot.m_speed               = (float)autopilot.m_nCruiseSpeed;
-    autopilot.m_nCarDrivingStyle    = (eCarDrivingStyle)m_nCarDrivingStyle;
-    autopilot.m_pTargetCar          = m_pTargetVehicle;
-    autopilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
+    autopilot.m_nCarDrivingStyle    = (eCarDrivingStyle)m_CarDrivingStyle;
+    autopilot.m_TargetEntity          = m_pTargetVehicle;
+    autopilot.SetCarMission(m_nCarMission, 0);
+    CEntity::SafeRegisterRef(autopilot.m_TargetEntity);
 
-    CEntity::SafeRegisterRef(autopilot.m_pTargetCar);
-
-    m_pVehicle->vehicleFlags.bEngineOn = m_pVehicle->vehicleFlags.bEngineBroken ? false : true;
+    m_Veh->vehicleFlags.bEngineOn = m_Veh->vehicleFlags.bEngineBroken ? false : true;
 }

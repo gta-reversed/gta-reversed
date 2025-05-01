@@ -24,7 +24,7 @@ class CPed;
 class CNodeAddress;
 class CVector;
 
-class CTaskComplexWander : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexWander : public CTaskComplex {
 public:
     eMoveState   m_nMoveState;
     uint8        m_nDir;
@@ -49,7 +49,7 @@ public:
     CTaskComplexWander(eMoveState moveState, uint8 dir, bool bWanderSensibly = true, float fTargetRadius = 0.5f);
     ~CTaskComplexWander() override = default;
 
-    eTaskType GetTaskType() override { return Type; } // 0x460CD0
+    eTaskType GetTaskType() const override { return Type; } // 0x460CD0
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
@@ -74,10 +74,5 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
     CTaskComplexWander* Constructor(eMoveState moveState, uint8 dir, bool bWanderSensibly = true, float fTargetRadius = 0.5f);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
-    void UpdateDir_Reversed(CPed* ped);
-    void UpdatePathNodes_Reversed(const CPed* ped, uint8 dir, CNodeAddress& originNode, CNodeAddress& targetNode, uint8& outDir);
 };
 VALIDATE_SIZE(CTaskComplexWander, 0x28);

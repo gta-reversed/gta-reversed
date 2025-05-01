@@ -27,7 +27,7 @@ public:
     uint32   field_7A4;
     CCopPed* m_pCopPartner;
     CPed*    m_apCriminalsToKill[5];
-    char     field_7C0;
+    bool     m_isTheDriver; //< Whenever this ped should be a passenger or a driver when entering a vehicle
 
 public:
     //! Get model ID used for a given cop type
@@ -38,7 +38,7 @@ public:
     ~CCopPed() override;
 
     void SetPartner(CCopPed* partner);
-    void AddCriminalToKill(CPed* criminal);
+    int32 AddCriminalToKill(CPed* criminal);
     void RemoveCriminalToKill(int32 unk, int32 nCriminalLocalIdx);
     void ClearCriminalsToKill();
     void ClearCriminalListFromDeadPeds();
@@ -53,7 +53,6 @@ private:
     CCopPed* Constructor(uint32_t copTypeOrModelID);
     CCopPed* Destructor();
 
-    void ProcessControl_Reversed();
 };
 
 VALIDATE_SIZE(CCopPed, 0x7C4);

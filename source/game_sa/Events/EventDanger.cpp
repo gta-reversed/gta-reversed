@@ -3,19 +3,16 @@
 #include "EventDanger.h"
 
 void CEventDanger::InjectHooks() {
-    RH_ScopedClass(CEventDanger);
+    RH_ScopedVirtualClass(CEventDanger, 0x85B848, 17);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x4B2600);
-    RH_ScopedVirtualInstall(AffectsPed, 0x4B5470);
-    RH_ScopedVirtualInstall(AffectsPedGroup, 0x4B54E0);
-    RH_ScopedVirtualInstall(GetSourceEntity, 0x4B2700);
+    RH_ScopedVMTInstall(AffectsPed, 0x4B5470);
+    RH_ScopedVMTInstall(AffectsPedGroup, 0x4B54E0);
+    RH_ScopedVMTInstall(GetSourceEntity, 0x4B2700);
 }
 
 CEventDanger* CEventDanger::Constructor(CEntity* dangerFrom, float dangerRadius) { this->CEventDanger::CEventDanger(dangerFrom, dangerRadius); return this; }
-bool CEventDanger::AffectsPed(CPed* ped) { return CEventDanger::AffectsPed_Reversed(ped); }
-bool CEventDanger::AffectsPedGroup(CPedGroup* pedGroup) { return CEventDanger::AffectsPedGroup_Reversed(pedGroup); }
-CEntity* CEventDanger::GetSourceEntity() const { return CEventDanger::GetSourceEntity_Reversed(); }
 
 // 0x4B2600
 CEventDanger::CEventDanger(CEntity* dangerFrom, float dangerRadius) : CEventEditableResponse() {
@@ -29,7 +26,7 @@ CEventDanger::~CEventDanger() {
 }
 
 // 0x4B5470
-bool CEventDanger::AffectsPed_Reversed(CPed* ped) {
+bool CEventDanger::AffectsPed(CPed* ped) {
     if (m_dangerFrom && m_dangerFrom != ped->m_pVehicle) {
         CVector2D distance = ped->GetPosition() - m_dangerFrom->GetPosition();
         if (m_dangerRadius * m_dangerRadius >= distance.SquaredMagnitude())
@@ -39,7 +36,7 @@ bool CEventDanger::AffectsPed_Reversed(CPed* ped) {
 }
 
 // 0x4B54E0
-bool CEventDanger::AffectsPedGroup_Reversed(CPedGroup* pedGroup) {
+bool CEventDanger::AffectsPedGroup(CPedGroup* pedGroup) {
     if (GetSourceEntity() && GetSourceEntity()->IsPed()) {
         CPed* leader = pedGroup->GetMembership().GetLeader();
         if (leader) {
@@ -51,7 +48,7 @@ bool CEventDanger::AffectsPedGroup_Reversed(CPedGroup* pedGroup) {
 }
 
 // 0x4B2700
-CEntity* CEventDanger::GetSourceEntity_Reversed() const {
+CEntity* CEventDanger::GetSourceEntity() const {
     if (m_dangerFrom && !m_dangerFrom->IsPed() && m_dangerFrom->IsVehicle()) {
         CVehicle* vehicle = m_dangerFrom->AsVehicle();
         if (vehicle->m_pDriver)

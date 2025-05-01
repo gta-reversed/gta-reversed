@@ -87,8 +87,7 @@ void CPedType::LoadPedData() {
 void CPedType::Load() {
     for (uint32 i = 0; i < PED_TYPE_COUNT; ++i ) {
         for (auto id = 0; id < ACQUAINTANCE_NUM; ++id) {
-            uint32 value;
-            CGenericGameStorage::LoadDataFromWorkBuffer(&value, sizeof(uint32));
+            auto value = CGenericGameStorage::LoadDataFromWorkBuffer<uint32>();
             GetPedTypeAcquaintances(static_cast<ePedType>(i)).SetAcquaintances(id, value);
         }
     }
@@ -99,7 +98,7 @@ void CPedType::Save() {
     for (uint32 i = 0; i < PED_TYPE_COUNT; ++i ) {
         for (auto id = 0; id < ACQUAINTANCE_NUM; ++id) {
             uint32 value = GetPedTypeAcquaintances(static_cast<ePedType>(i)).GetAcquaintances(id);
-            CGenericGameStorage::SaveDataToWorkBuffer(&value, 4);
+            CGenericGameStorage::SaveDataToWorkBuffer(value);
         }
     }
 }

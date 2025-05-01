@@ -45,11 +45,11 @@ public:
     union {
         uint32 m_nFlags{0};
         struct {
-            bool bGunReachedTarget : 1;
-            bool bTorsoUsed : 1;
-            bool bUseArm : 1;
-            bool bSlopePitch : 1;
-            bool bUnk : 1;
+            bool bGunReachedTarget : 1; // 0x1
+            bool bTorsoUsed : 1; // 0x2
+            bool bUseArm : 1; // 0x4
+            bool bSlopePitch : 1; // 0x8
+            bool bEverythingUsed : 1; // 0x10
         };
     };
 

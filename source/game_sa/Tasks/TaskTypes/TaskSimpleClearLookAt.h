@@ -15,9 +15,9 @@ public:
     CTaskSimpleClearLookAt() = default;
     ~CTaskSimpleClearLookAt() = default;
 
-    CTask*    Clone() override { return new CTaskSimpleClearLookAt(*this); }
-    eTaskType GetTaskType() override { return Type; }
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override { return true; }
+    CTask*    Clone() const override { return new CTaskSimpleClearLookAt(*this); }
+    eTaskType GetTaskType() const override { return Type; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return true; }
     bool      ProcessPed(CPed* ped) override;
 
 private: // Wrappers for hooks

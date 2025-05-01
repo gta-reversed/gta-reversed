@@ -6,9 +6,9 @@ enum eAudioFileType
     AUDIO_FILE_TYPE_VORBIS,
     AUDIO_FILE_TYPE_WAV,
     AUDIO_FILE_TYPE_WMA,
-    AUDIO_FILE_TYPE_QUICKTIME,
-#if 0
-    AUDIO_FILE_TYPE_FLAC, // SilentPatch-specific
+    AUDIO_FILE_TYPE_QUICKTIME, // NOTSA: We switched it to MediaFoundation.
+#ifdef USERTRACK_FLAC_SUPPORT
+    AUDIO_FILE_TYPE_FLAC,
 #endif
     TOTAL_AUDIO_FILE_TYPE
 };

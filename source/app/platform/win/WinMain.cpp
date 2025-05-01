@@ -4,23 +4,34 @@
 
 #include "StdInc.h"
 
+#include <SDL3/SDL.h>
+#include "SDLWrapper.hpp"
+
 #include "LoadingScreen.h"
 #include "ControllerConfigManager.h"
 #include "Gamma.h"
 
 #include "VideoPlayer.h"
 #include "VideoMode.h"
-#include "Input.h"
-#include "Platform.h"
+#include "WinInput.h"
+#include "WinPlatform.h"
 #include "WndProc.h"
+#include "WindowedMode.hpp"
 
 #include "extensions/Configs/FastLoader.hpp"
-#include "extensions/Configs/WindowedMode.hpp"
 
 constexpr auto NO_FOREGROUND_PAUSE = true;
 
+// 0x747300
+char* getDvdGamePath() {
+    return plugin::CallAndReturn<char*, 0x747300>();
+}
+
 // 0x746870
 void MessageLoop() {
+#ifdef NOTSA_USE_SDL3
+    notsa::SDLWrapper::ProcessEvents();
+#else
     MSG msg;
     while (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE | PM_NOYIELD)) {
         if (msg.message == WM_QUIT) {
@@ -30,10 +41,12 @@ void MessageLoop() {
             DispatchMessageA(&msg);
         }
     }
+#endif
 }
 
+#ifndef NOTSA_USE_SDL3
 // 0x7486A0
-bool InitApplication(HINSTANCE hInstance) {
+bool Win32_InitApplication(HINSTANCE hInstance) {
     WNDCLASS windowClass      = { 0 };
     windowClass.style         = CS_BYTEALIGNWINDOW;
     windowClass.lpfnWndProc   = __MainWndProc;
@@ -45,35 +58,26 @@ bool InitApplication(HINSTANCE hInstance) {
 }
 
 // 0x745560
-HWND InitInstance(HINSTANCE hInstance) {
-    // NOTSA/HACK: With this hack we can set a specific value for
-    // windowed mode. Also this is so stupid it needs to be changed
-    // after 'window-stretch-freeze' bug fixed.
-    RsGlobal.maximumWidth = g_WindowedModeConfig.WindowWidth;
-    RsGlobal.maximumHeight = g_WindowedModeConfig.WindowHeight;
-
-    RECT winRt;
-    GetClientRect(GetDesktopWindow(), &winRt);
-
+auto Win32_InitInstance(HINSTANCE hInstance) {
     RECT rect = { 0, 0, RsGlobal.maximumWidth, RsGlobal.maximumHeight };
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
-    const auto width = rect.right - rect.left, height = rect.bottom - rect.top;
 
     return CreateWindowEx(
         0,
         APP_CLASS,
         RsGlobal.appName,
         WS_OVERLAPPEDWINDOW,
-        (g_WindowedModeConfig.Centered) ? (winRt.right - winRt.left - width) / 2  : CW_USEDEFAULT,
-        (g_WindowedModeConfig.Centered) ? (winRt.bottom - winRt.top - height) / 2 : CW_USEDEFAULT,
-        width,
-        height,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        rect.right - rect.left,
+        rect.bottom - rect.top,
         nullptr,
         nullptr,
         hInstance,
         nullptr
     );
 }
+#endif
 
 // 0x7468E0
 bool IsAlreadyRunning() {
@@ -93,26 +97,25 @@ bool IsForegroundApp() {
     return ForegroundApp;
 }
 
-// 0x746480
-char** CommandLineToArgv(char* cmdLine, int* argCount) {
-    return plugin::CallAndReturn<char**, 0x746480, char*, int*>(cmdLine, argCount);
-}
-
 // Code from winmain, 0x748DCF
-bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
+bool ProcessGameLogic(INT nCmdShow) {
     if (RsGlobal.quit || FrontEndMenuManager.m_bStartGameLoading) {
         return false;
     }
 
+#ifdef NOTSA_USE_SDL3
+    notsa::SDLWrapper::ProcessEvents();
+#else
     // Process Window messages
-    if (PeekMessage(&Msg, NULL, NULL, NULL, PM_REMOVE | PM_NOYIELD)) {
-        if (Msg.message == WM_QUIT) {
+    if (MSG msg; PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE | PM_NOYIELD)) {
+        if (msg.message == WM_QUIT) {
             return false;
         }
-        TranslateMessage(&Msg);
-        DispatchMessage(&Msg);
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
         return true;
     }
+#endif
 
     // Game is in background
     if (!NO_FOREGROUND_PAUSE && !ForegroundApp) {
@@ -122,7 +125,7 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         Sleep(100);
         return true;
     }
-    
+
     FrameMark;
 
     // TODO: Move this out from here (It's not platform specific at all)
@@ -195,7 +198,12 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         }
         CGame::InitialiseCoreDataAfterRW();
         ChangeGameStateTo(GAME_STATE_FRONTEND_LOADED);
-        anisotropySupportedByGFX = (RwD3D9GetCaps()->RasterCaps & D3DPRASTERCAPS_ANISOTROPY) != 0; // todo: func
+        anisotropySupportedByGFX = (((const D3DCAPS9*)RwD3D9GetCaps())->RasterCaps & D3DPRASTERCAPS_ANISOTROPY) != 0; // todo: func
+
+#ifdef NOTSA_WINDOWED_MODE
+        RwCameraClear(Scene.m_pRwCamera, &gColourTop, rwCAMERACLEARZ);
+#endif
+
         break;
     }
     case GAME_STATE_FRONTEND_LOADED: {
@@ -244,6 +252,7 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
         FrontEndMenuManager.m_bMainMenuSwitch = false;
 
         AudioEngine.InitialisePostLoading();
+
         break;
     }
     case GAME_STATE_IDLE: {
@@ -267,8 +276,8 @@ bool ProcessGameLogic(INT nCmdShow, MSG& Msg) {
 }
 
 // Code from winmain, 0x7489FB
-void MainLoop(INT nCmdShow, MSG& Msg) {
-    bool bNewGameFirstTime = false;
+void MainLoop(INT nCmdShow) {
+    bool isNewGameFirstTime = true;
     while (true) {
         RwInitialized = true;
 
@@ -279,7 +288,7 @@ void MainLoop(INT nCmdShow, MSG& Msg) {
         gamma.Init();
 
         // Game logic main loop
-        while (ProcessGameLogic(nCmdShow, Msg));
+        while (ProcessGameLogic(nCmdShow));
 
         // 0x748DDA
         RwInitialized = false;
@@ -296,7 +305,7 @@ void MainLoop(INT nCmdShow, MSG& Msg) {
             CGame::ShutDownForRestart();
             CGame::InitialiseWhenRestarting();
             FrontEndMenuManager.m_bLoadingData = false;
-        } else if (bNewGameFirstTime) {
+        } else if (isNewGameFirstTime) {
             CTimer::Stop();
             ChangeGameStateTo(
                 FrontEndMenuManager.m_nGameState != 1
@@ -310,7 +319,7 @@ void MainLoop(INT nCmdShow, MSG& Msg) {
             CGame::InitialiseWhenRestarting();
         }
 
-        bNewGameFirstTime = false;
+        isNewGameFirstTime = false;
         FrontEndMenuManager.m_nGameState = 0;
         FrontEndMenuManager.m_bStartGameLoading = false;
     }
@@ -324,32 +333,56 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
         return false;
     }
 
-    auto initializeEvent = RsEventHandler(rsINITIALIZE, nullptr);
-    if (rsEVENTERROR == initializeEvent) {
+    if (rsEVENTERROR == RsEventHandler(rsINITIALIZE, nullptr)) {
         return false;
     }
 
-    if (!InitApplication(instance)) {
+#ifdef NOTSA_USE_SDL3
+    if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC)) {
+        NOTSA_UNREACHABLE("Failed to initialize SDL: {}", SDL_GetError());
+        return -1;
+    }
+#else
+    if (!Win32_InitApplication(instance)) {
         return false;
     }
+#endif
 
-    cmdLine = GetCommandLine();
-    int argc;
-    char** argv = CommandLineToArgv(cmdLine, &argc);
+    char** argv = __argv;
+    int    argc = __argc;
     for (int i = 0; i < argc; i++) {
         RsEventHandler(rsPREINITCOMMANDLINE, argv[i]);
     }
 
-    PSGLOBAL(window) = InitInstance(instance);
+    // Dirty fix for crash in crt when trying to free cmd line args
+    // Yeah we leak memory, but who cares
+    // Crash was in `uninitialize_allocated_io_buffers` (`C:\Program Files (x86)\Windows Kits\10\Source\<Win 10 SDK Version>\ucrt\internal\initialization.cpp`)
+    __argc  = 0;
+    __argv  = nullptr;
+    __wargv = nullptr;
+
+#ifdef NOTSA_USE_SDL3
+    SDL_Window* sdlWnd = SDL_CreateWindow(
+        APP_CLASS,
+        APP_DEFAULT_WIDTH, APP_DEFAULT_HEIGHT,
+        SDL_WINDOW_RESIZABLE  //| SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS// | SDL_WINDOW_MOUSE_GRABBED | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS
+    );
+    PSGLOBAL(sdlWindow) = sdlWnd;
+    PSGLOBAL(window) = (HWND)(SDL_GetPointerProperty(SDL_GetWindowProperties(sdlWnd), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL)); // NOTE/TODO: Hacky, but required due to RW
+#else
+    PSGLOBAL(window) = Win32_InitInstance(instance);
+#endif
+
     if (!PSGLOBAL(window)) {
         return false;
     }
-    PSGLOBAL(instance) = instance;
+    PSGLOBAL(instance) = instance; // Not used anywhere, just set here
 
     // 0x7487CF
+#ifndef NOTSA_USE_SDL3
     VERIFY(WinInput::Initialise());
-
-    ControlsManager.InitDefaultControlConfigMouse(WinInput::GetMouseState(), !FrontEndMenuManager.m_nController);
+#endif
+    ControlsManager.ReinitControls();
 
     // 0x748847
     if (RsEventHandler(rsRWINITIALIZE, PSGLOBAL(window)) == rsEVENTERROR) {
@@ -363,10 +396,12 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
         RsEventHandler(rsCOMMANDLINE, argv[i]);
     }
 
+#ifndef NOTSA_USE_SDL3
     if (MultipleSubSystems || PSGLOBAL(fullScreen)) {
         SetWindowLongPtr(PSGLOBAL(window), GWL_STYLE, (LONG_PTR)WS_POPUP);
         SetWindowPos(PSGLOBAL(window), nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
     }
+#endif
 
     RwRect rect{ 0, 0, RsGlobal.maximumWidth, RsGlobal.maximumHeight };
     RsEventHandler(rsCAMERASIZE, &rect);
@@ -379,8 +414,14 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     STICKYKEYS pvParam1 = { .cbSize = sizeof(STICKYKEYS), .dwFlags = SKF_TWOKEYSOFF };
     SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &pvParam1, 2u);
 
-    ShowWindow(PSGLOBAL(window), nCmdShow);
     UpdateWindow(PSGLOBAL(window));
+#ifdef NOTSA_USE_SDL3
+    SDL_SetWindowFocusable(sdlWnd, true);
+    SDL_SetWindowPosition(sdlWnd, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    SDL_RaiseWindow(sdlWnd);
+#else
+    ShowWindow(PSGLOBAL(window), nCmdShow);
+#endif
 
     // 0x748995
     CFileMgr::SetDirMyDocuments();
@@ -395,8 +436,7 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     SetErrorMode(SEM_FAILCRITICALERRORS);
 
     // 0x7489FB
-    MSG Msg;
-    MainLoop(nCmdShow, Msg);
+    MainLoop(nCmdShow);
 
     // if game is loaded, shut it down
     if (gGameState == GAME_STATE_IDLE) {
@@ -419,7 +459,7 @@ INT WINAPI NOTSA_WinMain(HINSTANCE instance, HINSTANCE hPrevInstance, LPSTR cmdL
     // nullsub_0x72F3C0()
     SetErrorMode(0);
 
-    return Msg.wParam;
+    return 0; // Msg.wParam
 }
 
 void InjectWinMainStuff() {
@@ -428,9 +468,13 @@ void InjectWinMainStuff() {
 
     RH_ScopedGlobalInstall(IsForegroundApp, 0x746060);
     RH_ScopedGlobalInstall(IsAlreadyRunning, 0x7468E0);
-    RH_ScopedGlobalInstall(CommandLineToArgv, 0x746480, { .reversed = false });
 
     // Unhooking these 2 after the game has started will do nothing
-    RH_ScopedGlobalInstall(NOTSA_WinMain, 0x748710, { .locked = true });
-    RH_ScopedGlobalInstall(InitInstance, 0x745560);
+    RH_ScopedGlobalInstall(NOTSA_WinMain, 0x748710, {.locked = true});
+    RH_ScopedGlobalInstall(MessageLoop, 0x746870, {.locked = true});
+
+#ifndef NOTSA_USE_SDL3
+    RH_ScopedGlobalInstall(Win32_InitApplication, 0x7486A0);
+    RH_ScopedGlobalInstall(Win32_InitInstance, 0x745560, {.locked = true});
+#endif
 }

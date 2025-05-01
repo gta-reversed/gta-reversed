@@ -6,6 +6,8 @@
 #define BUILD_PC
 #define USE_BUILD_INFORMATION
 
+#undef TRACY_ENABLE // TODO
+
 #ifndef BAREBONES
 
 #define MORE_LANGUAGES

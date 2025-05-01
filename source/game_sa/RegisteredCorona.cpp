@@ -2,15 +2,25 @@
 
 #include "RegisteredCorona.h"
 
+void CRegisteredCorona::InjectHooks() {
+    RH_ScopedClass(CRegisteredCorona);
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedInstall(Update, 0x6FABF0, { .reversed = false });
+}
+
+void CRegisteredCorona::Update() {
+}
+
 //! Calculate the position to use for rendering
 auto CRegisteredCorona::GetPosition() const -> CVector {
     if (!m_pAttachedTo) {
         return m_vPosn;
     }
     if (m_pAttachedTo->GetType() == ENTITY_TYPE_VEHICLE && m_pAttachedTo->AsVehicle()->IsSubBike()) {
-        return m_pAttachedTo->AsBike()->m_mLeanMatrix * m_vPosn;
+        return m_pAttachedTo->AsBike()->m_mLeanMatrix.TransformPoint(m_vPosn);
     }
-    return m_pAttachedTo->GetMatrix() * m_vPosn;
+    return m_pAttachedTo->GetMatrix().TransformPoint(m_vPosn);
 }
 
 auto CRegisteredCorona::CalculateIntensity(float scrZ, float farClip) const -> float {

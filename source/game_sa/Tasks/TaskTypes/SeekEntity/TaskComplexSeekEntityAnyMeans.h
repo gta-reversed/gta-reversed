@@ -54,11 +54,11 @@ public:
         CEntity::SafeCleanUpRef(m_entity);
     }
 
-    CTask* Clone() override {
+    CTask* Clone() const override {
         return new CTaskComplexSeekEntityAnyMeans{ *this };
     }
 
-    eTaskType GetTaskType() override {
+    eTaskType GetTaskType() const override {
         return Type;
     }
 
@@ -74,7 +74,7 @@ public:
         if (m_entity) {
             if (m_scanTimer.IsOutOfTime()) {
                 m_scanTimer.Start(m_scanInterval);
-                CTask::Cast<CTaskComplexDriveToPoint>(m_pSubTask)->GoToPoint(GetSeekPos(ped));
+                notsa::cast<CTaskComplexDriveToPoint>(m_pSubTask)->GoToPoint(GetSeekPos(ped));
             }
             return m_pSubTask;
         }

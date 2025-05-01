@@ -3,7 +3,7 @@
 #include "Dummy.h"
 
 void CDummy::InjectHooks() {
-    RH_ScopedClass(CDummy);
+    RH_ScopedVirtualClass(CDummy, 0x8638C0, 22);
     RH_ScopedCategory("Entity/Dummy");
 
     RH_ScopedGlobalInstall(IsDummyPointerValid, 0x532730);

@@ -2,8 +2,10 @@
 
 #include "Event.h"
 
-class CVehicle;
-class CVector;
+#include "Event.h"
+#include "TaskSimpleGoTo.h"
+#include "TaskComplexWalkRoundCar.h"
+#include "TaskComplexHitPedWithCar.h"
 
 enum eVehicleEvadeType {
     VEHICLE_EVADE_NONE = 0,
@@ -19,8 +21,7 @@ public:
     CVector   m_impactNormal;
     CVector   m_impactPos;
     int8      m_moveState;
-    int8      field_31;
-    int8      field_32[2];
+    uint8     m_DirectionToWalkRoundCar;
 
 public:
     static void InjectHooks();
@@ -31,14 +32,11 @@ public:
     eEventType GetEventType() const override { return EVENT_VEHICLE_COLLISION; }
     int32 GetEventPriority() const override { return 58; }
     int32 GetLifeTime() override { return 0; }
-    CEvent* Clone() override;
+    CEvent* Clone() const noexcept override { return new CEventVehicleCollision(m_pieceType, m_fDamageIntensity, m_vehicle, m_impactNormal, m_impactPos, m_moveState, VEHICLE_EVADE_NONE); } // 0x4B6BC0
     bool AffectsPed(CPed* ped) override;
     bool TakesPriorityOver(const CEvent& refEvent) override { return true; }
 
 private:
     CEventVehicleCollision* Constructor(int16 pieceType, float damageIntensity, CVehicle* vehicle, const CVector& collisionImpactVelocity, const CVector& collisionPosition, int8 moveState, int16 evadeType);
-    CEvent* Clone_Reversed();
-    bool AffectsPed_Reversed(CPed* ped);
 };
-
 VALIDATE_SIZE(CEventVehicleCollision, 0x34);

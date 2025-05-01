@@ -1,7 +1,7 @@
 #include <StdInc.h>
 
 #include "Entity/Vehicle/Vehicle.h" // eCarPiece
-#include "./eCarWheel.h"
+#include "eCarWheel.h"
 
 eCarPiece CarWheelToCarPiece(eCarWheel i) {
     switch ((eCarWheel)i) {

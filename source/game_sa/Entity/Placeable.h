@@ -12,7 +12,7 @@
 class CBox;
 class CRect;
 
-class CPlaceable {
+class NOTSA_EXPORT_VTABLE CPlaceable {
 public:
     CSimpleTransform m_placement;
     CMatrixLink *m_matrix;
@@ -39,7 +39,7 @@ public:
     void SetOrientation(CVector radians) { SetOrientation(radians.x, radians.y, radians.z); } // TODO: Replace method above with this
     void GetOrientation(float& x, float& y, float& z);
     void SetHeading(float heading);
-    float GetHeading();
+    float GetHeading() const;
     float GetRoll() const;
     bool IsWithinArea(float x1, float y1, float x2, float y2) const;
     bool IsWithinArea(float x1, float y1, float z1, float x2, float y2, float z2) const;

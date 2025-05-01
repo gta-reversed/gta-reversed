@@ -140,12 +140,12 @@ class CWaterLevel {
     static inline auto& m_CurrentFlow        = *(CVector2D*)0xC22890;
     static inline auto& m_CurrentDesiredFlow = *(CVector2D*)0xC22898;
 
-    static constexpr uint32 WATER_BLOCK_SIZE                       = 500u;
-    static constexpr uint32 NUM_WATER_BLOCKS_ROWCOL                = 6000 / WATER_BLOCK_SIZE; // 6000 => map size
+    static constexpr int32 WATER_BLOCK_SIZE                       = 500;
+    static constexpr int32 NUM_WATER_BLOCKS_ROWCOL                = 6000 / WATER_BLOCK_SIZE; // 6000 => map size
     static inline    int32  m_MaxNumBlocksOutsideWorldToBeRendered = 70; // NOTSA: We just want a variable for the debug tool. Value may never be higher than the below array's size.
     static inline    auto&  m_NumBlocksOutsideWorldToBeRendered    = *(uint32*)0xC215EC;
-    static inline    auto&  m_BlocksToBeRenderedOutsideWorldX      = *(std::array<int32, 70>*)0xC21560;
-    static inline    auto&  m_BlocksToBeRenderedOutsideWorldY      = *(std::array<int32, 70>*)0xC214D0;
+    static inline    auto&  m_BlocksToBeRenderedOutsideWorldX      = *(std::array<int16, 70>*)0xC21560;
+    static inline    auto&  m_BlocksToBeRenderedOutsideWorldY      = *(std::array<int16, 70>*)0xC214D0;
 
     // NOTSA: Color of wake segment parts (So we can make rainbows)
     static inline struct {
@@ -265,9 +265,9 @@ public:
     static void SetUpWaterFog(int32 a1, int32 a2, int32 a3, int32 a4);
     static void RenderWakeSegment(const CVector2D& a1, const CVector2D& a2, const CVector2D& a3, const CVector2D& a4, const float& widthA, const float& widthB, const float& alphaA, const float& alphaB, const float& wakeZ);
     static void FindNearestWaterAndItsFlow();
-    static bool GetWaterLevelNoWaves(CVector pos, float * pOutWaterLevel, float * fUnkn1, float * fUnkn2);
+    static bool GetWaterLevelNoWaves(CVector pos, float * pOutWaterLevel, float * fUnkn1 = nullptr, float * fUnkn2 = nullptr);
     static void RenderWaterFog();
-    static void CalculateWavesOnlyForCoordinate(int32 x, int32 y, float lowFreqMult, float midHighFreqMult, float& outWave, float& colorMult, float& glare, CVector& vecNormal);
+    static void CalculateWavesOnlyForCoordinate(int32 x, int32 y, float bigWavesAmplitude, float smallWavesAmplitude, float& outWave, float& colorMult, float& glare, CVector& vecNormal);
     static void MarkQuadsAndPolysToBeRendered(int32 blockX, int32 blockY, bool isInInterior);
     static void BlockHit(int32 X, int32 Y);
 

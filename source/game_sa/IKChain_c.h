@@ -4,12 +4,16 @@
 #include <rwplcore.h>
 #include <span>
 
+#include <extensions/WEnum.hpp>
 #include "ListItem_c.h"
 #include "BoneNode_c.h"
 #include "Vector.h"
+#include "Enums/eIKChainSlot.h"
 
 class CEntity;
 class CPed;
+class AnimBlendFrameData;
+
 
 class IKChain_c : public ListItem_c<IKChain_c> {
 public:
@@ -18,42 +22,50 @@ public:
     IKChain_c() = default;
     ~IKChain_c() = default;
 
-    bool Init(const char* name, int32 indexInList, CPed* ped, ePedBones bone, RwV3d bonePosn, ePedBones bone2, CEntity* entity, int32 offsetBoneTag, RwV3d posn, float speed, int8 priority);
+    bool Init(const char* name, eIKChainSlot slot, CPed* ped, eBoneTag32 effectorBone, RwV3d effectorPos, eBoneTag32 pivotBone, CEntity* entity, eBoneTag32 offsetBone, RwV3d offsetPos, float speed, int8 priority);
     void Exit();
     void Update(float timeStep);
     bool IsAtTarget(float maxDist, float* outDist) const;
-    bool IsFacingTarget();
+    bool IsFacingTarget() const;
     void UpdateTarget(bool target);
-    void UpdateOffset(int32 offsetBoneTag, CVector offsetPosn);
-    void ClampLimits(int32 boneTag, bool LimitX, bool LimitY, bool LimitZ, bool UseCurrentLimits);
+    void UpdateOffset(eBoneTag32 offsetBoneTag, CVector offsetPosn);
+    void ClampLimits(eBoneTag32 boneTag, bool LimitX, bool LimitY, bool LimitZ, bool UseCurrentLimits);
     void UpdateEntity(CEntity* entity);
-    BoneNode_c* GetBoneNodeFromTag(int32 tag);
+    BoneNode_c* GetBoneNodeFromTag(eBoneTag32 tag);
     int8 GetPriority() const;
     void SetOffsetPos(CVector value);
-    void SetOffsetBoneTag(int32 value);
+    void SetOffsetBoneTag(eBoneTag32 value);
     void SetBlend(float value);
     void MoveBonesToTarget();
-    void SetupBones(ePedBones boneTag, CVector posn, ePedBones bone, AnimBlendFrameData* frames);
-    void GetLimits(int32 boneTag, eRotationAxis axis, float& outMin, float& outMax);
+    void SetupBones(eBoneTag32 boneTag, CVector posn, eBoneTag32 bone, AnimBlendFrameData* frames);
+    void GetLimits(eBoneTag32 boneTag, eRotationAxis axis, float& outMin, float& outMax);
 
-    auto GetBones() { return std::span{ m_Bones, (size_t)m_Count }; }
+    auto GetBones() const { return std::span{ m_Bones, (size_t)m_BonesCount }; }
+    auto GetBones()       { return std::span{ m_Bones, (size_t)m_BonesCount }; }
 
-public:
-    CPed*        m_Ped;
-    int32        m_Count;
-    BoneNode_c** m_Bones; // BoneNode_c*[m_count] -> Array
-    RwMatrix*    m_Matrix;
-    float        m_Blend;
-    uint16       m_Bone1;
-    RwV3d        m_BonePosn;
-    ePedBones    m_Bone;
-    CEntity*     m_Entity;
-    int32        m_OffsetBoneTag; // ePedBones.. Just that we have to use int32 here... :D
-    CVector      m_OffsetPos;
-    float        m_Speed;
-    CVector      m_Offset;   //< `m_offsetPos` transformed with `m_entity`'s modelling matrix. See `MoveBonesToTarget`
-    bool         m_TargetMB; // Mouse Button
-    uint8        m_IndexInList;
-    int8         m_Priority;
+    auto GetIKSlot() const { return m_IKSlot; }
+    CPed* GetPed() const { return m_Ped; }
+
+private:
+    CPed::Ref                    m_Ped{};
+    int32                        m_BonesCount{};
+    BoneNode_c**                 m_Bones{}; //!< Array, size of `m_BonesCount`. Use `GetBones()`.
+    RwMatrix*                    m_PivotBoneMatrix{};
+    float                        m_Blend{};
+    eBoneTag16                   m_EffectorBone{};
+    RwV3d                        m_EffectorPos{};
+    eBoneTag16                   m_PivotBone{};
+    notsa::EntityRef<>           m_TargetEntity{};
+    eBoneTag32                   m_OffsetBone{};   //!< Offset bone
+    CVector                      m_OffsetPos{};    //!< - If `m_TargetEntity` is set:
+                                                   //!<   - And `m_OffsetBone` is set too: This is a position relative to that bone
+                                                   //!<   - Otherwise this is an object-space value, otherwise it's a world-space value.
+                                                   //!< - Otherwise:
+                                                   //!    - It's a word-space offset
+    float                        m_Speed{};        //!< IK animation speed
+    CVector                      m_OffsetPosWS{};  //!< World-space offset (Calculated from `m_OffsetPos`, see `MoveBonesToTarget`)
+    bool                         m_UpdateTarget{}; //!< Whenever the target was updated, and we need to re-calculate stuff related to them
+    notsa::WEnumS8<eIKChainSlot> m_IKSlot{};       //!< The IK slot we're in
+    int8                         m_Priority{};
 };
 VALIDATE_SIZE(IKChain_c, 0x58);

@@ -12,13 +12,13 @@
 
 class CEntity;
 
-class CAEAudioEntity {
+class NOTSA_EXPORT_VTABLE CAEAudioEntity {
 public:
     CEntity* m_pEntity;
     CAESound m_tempSound;
 
 private:
-    static int8*& m_pAudioEventVolumes;
+    static int8*& m_pAudioEventVolumes; // Use `GetDefaultVolume` to access!
 
 protected:
     CAEAudioEntity();

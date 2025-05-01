@@ -1,5 +1,6 @@
 #include "StdInc.h"
 
+#include "rpdbgerr.h"
 #include "rtanim.h"
 
 void RtAnimAnimationFreeListCreateParams(RwInt32 blockSize, RwInt32 numBlocksToPrealloc) {
@@ -57,9 +58,106 @@ RtAnimInterpolator* RtAnimInterpolatorCreate(RwInt32 numNodes, RwInt32 maxInterp
 void RtAnimInterpolatorDestroy(RtAnimInterpolator* anim) {
     ((void(__cdecl *)(RtAnimInterpolator*))0x7CD590)(anim);
 }
+ 
+/**
+ * \ingroup rtanim
+ * \ref RtAnimInterpolatorSetCurrentAnim sets the current animation on the
+ * animation interpolator. It is assumed that the animation is designed for the
+ * animation interpolator it is being set on since no animation interpolator structure
+ * comparisons are made. The animation defines the interpolation schemes used
+ * and they will be setup on the animation interpolator at this call. The maximum
+ * keyframe size of the animation interpolator must be sufficient to support the
+ * keyframe size required by the interpolation scheme. The animation is
+ * initialized to time zero at this call.
+ *
+ * \param animI Pointer to the \ref RtAnimInterpolator.
+ * \param anim Pointer to the \ref RtAnimAnimation.
+ *
+ * \return \ref RwBool, TRUE on success, FALSE if an error occurs.
+ *
+ */
+RwBool
+RtAnimInterpolatorSetCurrentAnim(RtAnimInterpolator *animI,
+                               RtAnimAnimation *anim)
+{
+    RtAnimInterpolatorInfo     *interpInfo;
+    RwInt32                     i;
+    void                       *kf1, *kf2, *interpFrame;
 
-RwBool RtAnimInterpolatorSetCurrentAnim(RtAnimInterpolator* animI, RtAnimAnimation* anim) {
-    return ((RwBool(__cdecl *)(RtAnimInterpolator*, RtAnimAnimation*))0x7CD5A0)(animI, anim);
+    RWAPIFUNCTION(RWSTRING("RtAnimInterpolatorSetCurrentAnim"));
+    RWASSERT(animI);
+    RWASSERT(anim);
+    RWASSERT(anim->numFrames >= animI->numNodes * 2);
+
+    animI->pCurrentAnim = anim;
+    animI->currentTime = 0.0f;
+
+    /* Get interpolator functions */
+    interpInfo = anim->interpInfo;
+    animI->currentInterpKeyFrameSize = interpInfo->interpKeyFrameSize;
+    RWASSERT(animI->currentInterpKeyFrameSize <= animI->maxInterpKeyFrameSize);
+    animI->currentAnimKeyFrameSize = interpInfo->animKeyFrameSize;
+
+    animI->keyFrameApplyCB = interpInfo->keyFrameApplyCB;
+    animI->keyFrameBlendCB = interpInfo->keyFrameBlendCB;
+    animI->keyFrameInterpolateCB = interpInfo->keyFrameInterpolateCB;
+    animI->keyFrameAddCB = interpInfo->keyFrameAddCB;
+
+    /*
+     * Set up initial interpolation frames for time=0
+     * First copy the time=0 keyframes to the interpolated frame array
+     */
+    //TODO: convert these don't copy
+    for (i=0; i < animI->numNodes; i++)
+    {
+        animI->keyFrameInterpolateCB(rtANIMGETINTERPFRAME(animI, i),
+                                     ((RwUInt8 *)anim->pFrames) + (i * animI->currentAnimKeyFrameSize),
+                                     ((RwUInt8 *)anim->pFrames) + ((i + animI->numNodes) * animI->currentAnimKeyFrameSize),
+                                     0.0f, anim->customData);
+    }
+
+    /*
+     * Now initialize the interpolated frame headers to point to the initial
+     * keyframe pairs.
+     */
+    if (!notsa::IsFixBugs() || anim->interpInfo->typeID != rwID_RPANIMBLENDPLUGIN) {
+        /*
+         * In RW there is an RtAnimAnimation, which holds the raw keyframes of an animation.
+         * To play an animation, an RtAnimAnimation is given to an RtAnimInterpolator which
+         * then interpolates the keyframes into interpolation frames which are then used to
+         * animate e.g. a hierarchy by generating matrices from them.
+         * But R* hasn't really used RW's animation system since III.
+         * In III and VC R* wrote their own interpolated animation data into a dummy
+         * RtAnimAnimation and practically didn't use the RtAnimInterpolator.
+         * In SA they went a step further and now write into the interpolation frames of
+         * the RtAnimInterpolator instead, almost completely avoid RtAnimAnimation.
+         * Almost! They're still attaching an RtAnimAnimation to an RtAnimInterpolator
+         * and this is where stuff breaks.
+         *
+         * So, instead of corrupting our lovely `RpHAnimBlendInterpFrame`'s, we leave them alone ;)
+         *
+         * For more info see: https://gtaforums.com/topic/669045-silentpatch/page/154/#comment-1068971599
+         */
+
+        interpFrame = rtANIMGETINTERPFRAME(animI, 0);
+        kf1 = anim->pFrames;
+        kf2 = (RwInt8 *)anim->pFrames + animI->numNodes * animI->currentAnimKeyFrameSize;
+
+        for (i=0; i < animI->numNodes; i++)
+        {
+            RtAnimInterpFrameHeader  *hdr = (RtAnimInterpFrameHeader *)interpFrame;
+
+            hdr->keyFrame1 = (RtAnimKeyFrameHeader*)kf1;
+            hdr->keyFrame2 = (RtAnimKeyFrameHeader*)kf2;
+           
+            interpFrame = (RwInt8 *)interpFrame + animI->currentInterpKeyFrameSize;
+            kf1 = (RwInt8 *)kf1 + animI->currentAnimKeyFrameSize;
+            kf2 = (RwInt8 *)kf2 + animI->currentAnimKeyFrameSize;
+        }
+    }
+    animI->pNextFrame = (RwUInt8 *)anim->pFrames + (animI->numNodes * animI->currentAnimKeyFrameSize * 2);
+
+    RWRETURN(TRUE);
 }
 
 RwBool RtAnimInterpolatorSetKeyFrameCallBacks(RtAnimInterpolator* anim, RwInt32 keyFrameTypeID) {
@@ -112,4 +210,11 @@ RwBool RtAnimInterpolatorBlendSubInterpolator(RtAnimInterpolator* outAnim, RtAni
 
 RwBool RtAnimInterpolatorAddSubInterpolator(RtAnimInterpolator* outAnim, RtAnimInterpolator* mainAnim, RtAnimInterpolator* subAnim) {
     return ((RwBool(__cdecl *)(RtAnimInterpolator*, RtAnimInterpolator*, RtAnimInterpolator*))0x7CDEF0)(outAnim, mainAnim, subAnim);
+}
+
+void RtAnim::InjectHooks() {
+    RH_ScopedNamespaceName("RtAnim");
+    RH_ScopedCategory("Plugins");
+
+    RH_ScopedGlobalInstall(RtAnimInterpolatorSetCurrentAnim, 0x7CD5A0);
 }

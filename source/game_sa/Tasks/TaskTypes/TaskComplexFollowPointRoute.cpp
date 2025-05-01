@@ -77,15 +77,15 @@ eTaskType CTaskComplexFollowPointRoute::GetSubTaskType() {
         return TASK_FINISHED;
     }
 
-    if (m_currPointIdx + 1 < m_route->m_nNumPoints) { // Current is not the last
+    if (m_currPointIdx + 1 < m_route->m_NumEntries) { // Current is not the last
         return TASK_SIMPLE_GO_TO_POINT;
     }
 
-    if (m_currPointIdx + 1 == m_route->m_nNumPoints) { // Current will the last point
+    if (m_currPointIdx + 1 == m_route->m_NumEntries) { // Current will the last point
         return m_bStandStillAfterMove ? TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL : TASK_SIMPLE_GO_TO_POINT;
     }
 
-    if (m_currPointIdx == m_route->m_nNumPoints) { // Current is the last point
+    if (m_currPointIdx == m_route->m_NumEntries) { // Current is the last point
         m_nRouteTraversals++;
 
         switch (m_mode) {
@@ -119,7 +119,7 @@ eTaskType CTaskComplexFollowPointRoute::GetSubTaskType() {
 CTask* CTaskComplexFollowPointRoute::CreateTask(eTaskType taskType, CPed* ped) {
     switch (taskType) {
     case TASK_SIMPLE_GO_TO_POINT_FINE: {
-        const auto task = new CTaskSimpleGoToPointFine{ CTaskSimpleGoToPointFine::BaseRatio(m_moveState), m_route->GetPoints()[m_currPointIdx] };
+        const auto task = new CTaskSimpleGoToPointFine{ CTaskSimpleGoToPointFine::BaseRatio(m_moveState), m_route->GetAll()[m_currPointIdx] };
         if (m_bSlowingDown) {
             task->gotoFlags.m_targetCircledFlags = 0;
         }
@@ -128,7 +128,7 @@ CTask* CTaskComplexFollowPointRoute::CreateTask(eTaskType taskType, CPed* ped) {
     case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL:
         return new CTaskComplexGoToPointAndStandStill{
             m_moveState,
-            m_route->GetPoints()[m_currPointIdx],
+            m_route->GetAll()[m_currPointIdx],
             m_targetRadius,
             [this] {
                 switch (m_mode) {
@@ -142,12 +142,12 @@ CTask* CTaskComplexFollowPointRoute::CreateTask(eTaskType taskType, CPed* ped) {
                 }
             }(),
             false,
-            m_pParentTask && m_pParentTask->GetTaskType() == TASK_COMPLEX_WALK_ROUND_CAR && static_cast<CTaskComplexWalkRoundCar*>(m_pParentTask)->IsGoingForDoor()
+            m_Parent && m_Parent->GetTaskType() == TASK_COMPLEX_WALK_ROUND_CAR && static_cast<CTaskComplexWalkRoundCar*>(m_Parent)->GoingForDoor()
         };
     case TASK_SIMPLE_GO_TO_POINT:
         return new CTaskSimpleGoToPoint{
             m_moveState,
-            m_route->m_vecPoints[this->m_currPointIdx],
+            m_route->m_Entries[this->m_currPointIdx],
             0.5f,
             false,
             m_bMustOvershootTarget
@@ -167,8 +167,8 @@ CTask* CTaskComplexFollowPointRoute::CreateTask(eTaskType taskType, CPed* ped) {
 
 // 0x669340
 CVector CTaskComplexFollowPointRoute::GetLastWaypoint(CPed* ped) {
-    if (m_route->m_nNumPoints == 1) {
-        return m_route->GetPoints().front();
+    if (m_route->m_NumEntries == 1) {
+        return m_route->GetAll().front();
     }
 
     switch (m_mode) {
@@ -188,14 +188,14 @@ CVector CTaskComplexFollowPointRoute::GetLastWaypoint(CPed* ped) {
 
     // Ternary inverted
     return m_nRouteTraversals
-        ? m_route->GetPoints().back() // Last point was the previous
+        ? m_route->GetAll().back() // Last point was the previous
         : ped->GetPosition();         // Unlikely scenario, but just in case
 }
 
 // 0x669420
 CVector CTaskComplexFollowPointRoute::GetNextWaypoint(CPed* ped) {
-    if (m_route->m_nNumPoints == 1) {
-        return m_route->GetPoints().front();
+    if (m_route->m_NumEntries == 1) {
+        return m_route->GetAll().front();
     }
 
     if (m_mode == Mode::LOOP) {
@@ -207,9 +207,9 @@ CVector CTaskComplexFollowPointRoute::GetNextWaypoint(CPed* ped) {
     case Mode::ONE_WAY:
     case Mode::RETURN:
     case Mode::BACK_AND_FORTH:
-        return (*m_route)[next < m_route->m_nNumPoints ? next : m_currPointIdx - 1];
+        return (*m_route)[next < m_route->m_NumEntries ? next : m_currPointIdx - 1];
     case Mode::LOOP:
-        return (*m_route)[next == m_route->m_nNumPoints ? 0 : next];
+        return (*m_route)[next == m_route->m_NumEntries ? 0 : next];
     default:
         NOTSA_UNREACHABLE();
         return {}; // SA
@@ -229,7 +229,7 @@ eTaskType CTaskComplexFollowPointRoute::CalcGoToTaskType(CPed* ped, eTaskType su
             return subTaskType;
         }
 
-        const auto  currPt    = std::min(m_currPointIdx, m_route->m_nNumPoints - 1); // Not sure why they do this?
+        const auto  currPt    = std::min(m_currPointIdx, m_route->m_NumEntries - 1); // Not sure why they do this?
         const auto& currPtPos = (*m_route)[currPt];
         const auto currToNextDotToPrev = DotProduct2D(
             CVector2D{ currPtPos - GetLastWaypoint(ped) }.Normalized(),
@@ -300,7 +300,7 @@ float CTaskComplexFollowPointRoute::CalcBlendRatio(CPed* ped, bool slowing) {
 bool CTaskComplexFollowPointRoute::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     
     // Adjust GoTo tatk's radius if event is `CEventVehicleCollision` or `CEventPotentialWalkIntoVehicle`
-    if (event && m_currPointIdx + 1 < m_route->m_nNumPoints) {
+    if (event && m_currPointIdx + 1 < m_route->m_NumEntries) {
         const auto vehicle =
             [event]() -> CVehicle* {
             switch (event->GetEventType()) {
@@ -349,7 +349,7 @@ CTask* CTaskComplexFollowPointRoute::CreateNextSubTask(CPed* ped) {
     case TASK_NONE:
     case TASK_SIMPLE_STAND_STILL:
     case TASK_SIMPLE_GO_TO_POINT: {
-        if (m_currPointIdx + 1 == m_route->m_nNumPoints && !m_bStandStillAfterMove) {
+        if (m_currPointIdx + 1 == m_route->m_NumEntries && !m_bStandStillAfterMove) {
             return CreateTask(TASK_FINISHED, ped);
         }
         break;
@@ -388,7 +388,7 @@ CTask* CTaskComplexFollowPointRoute::CreateFirstSubTask(CPed* ped) {
         auto closestNextPtIdx    = -1;
 
         const auto& pedPos = ped->GetPosition();
-        const auto  npts = m_route->m_nNumPoints;
+        const auto  npts = m_route->m_NumEntries;
         {
             auto closestNextPtDistSq = std::numeric_limits<float>::max();
             for (auto i = 0u; i < npts; i++) {

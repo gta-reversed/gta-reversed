@@ -18,15 +18,15 @@
 #include "TaskComplexLeaveCar.h"
 
 void CTaskComplexWander::InjectHooks() {
-    RH_ScopedClass(CTaskComplexWander);
+    RH_ScopedVirtualClass(CTaskComplexWander, 0x86FE84, 15);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x66F450);
-    RH_ScopedInstall(CreateNextSubTask_Reversed, 0x674140, { .reversed = false });
-    RH_ScopedInstall(CreateFirstSubTask_Reversed, 0x6740E0);
-    RH_ScopedInstall(ControlSubTask_Reversed, 0x674C30);
-    RH_ScopedInstall(UpdateDir_Reversed, 0x669DA0);
-    RH_ScopedInstall(UpdatePathNodes_Reversed, 0x669ED0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x674140, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6740E0);
+    RH_ScopedVMTInstall(ControlSubTask, 0x674C30);
+    RH_ScopedVMTInstall(UpdateDir, 0x669DA0);
+    RH_ScopedVMTInstall(UpdatePathNodes, 0x669ED0);
     RH_ScopedInstall(CreateSubTask, 0x671CB0);
     RH_ScopedInstall(ComputeTargetPos, 0x669F60);
     RH_ScopedInstall(ComputeTargetHeading, 0x66F530);
@@ -37,11 +37,6 @@ void CTaskComplexWander::InjectHooks() {
     RH_ScopedInstall(GetWanderTaskByPedType, 0x673D00);
 }
 CTaskComplexWander* CTaskComplexWander::Constructor(eMoveState moveState, uint8 dir, bool bWanderSensibly, float fTargetRadius) { this->CTaskComplexWander::CTaskComplexWander(moveState, dir, bWanderSensibly, fTargetRadius); return this; }
-CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) { return CreateNextSubTask_Reversed(ped); }
-CTask* CTaskComplexWander::CreateFirstSubTask(CPed* ped) { return CreateFirstSubTask_Reversed(ped); }
-CTask* CTaskComplexWander::ControlSubTask(CPed* ped) { return ControlSubTask_Reversed(ped); }
-void CTaskComplexWander::UpdateDir(CPed* ped) { return UpdateDir_Reversed(ped); }
-void CTaskComplexWander::UpdatePathNodes(const CPed* ped, uint8 dir, CNodeAddress& originNode, CNodeAddress& targetNode, uint8& outDir) { return UpdatePathNodes_Reversed(ped, dir, originNode, targetNode, outDir); }
 
 // 0x66F450
 CTaskComplexWander::CTaskComplexWander(eMoveState moveState, uint8 dir, bool bWanderSensibly, float fTargetRadius) : CTaskComplex() {
@@ -53,7 +48,9 @@ CTaskComplexWander::CTaskComplexWander(eMoveState moveState, uint8 dir, bool bWa
 }
 
 // 0x674140
-CTask* CTaskComplexWander::CreateNextSubTask_Reversed(CPed* ped) {
+
+
+CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
     return plugin::CallMethodAndReturn<CTask*, 0x674140, CTaskComplexWander*, CPed*>(this, ped); // untested
 
     switch (m_pSubTask->GetTaskType()) {
@@ -124,7 +121,9 @@ CTask* CTaskComplexWander::CreateNextSubTask_Reversed(CPed* ped) {
 }
 
 // 0x6740E0
-CTask* CTaskComplexWander::CreateFirstSubTask_Reversed(CPed* ped) {
+
+
+CTask* CTaskComplexWander::CreateFirstSubTask(CPed* ped) {
     if (ped->bInVehicle) {
         return CreateSubTask(ped, TASK_COMPLEX_LEAVE_CAR);
     }
@@ -135,7 +134,9 @@ CTask* CTaskComplexWander::CreateFirstSubTask_Reversed(CPed* ped) {
 }
 
 // 0x674C30
-CTask* CTaskComplexWander::ControlSubTask_Reversed(CPed* ped) {
+
+
+CTask* CTaskComplexWander::ControlSubTask(CPed* ped) {
     auto subTaskId = m_pSubTask->GetTaskType();
     if (subTaskId == TASK_COMPLEX_LEAVE_CAR || subTaskId == TASK_SIMPLE_CAR_DRIVE_TIMED) {
         return m_pSubTask;
@@ -160,12 +161,12 @@ CTask* CTaskComplexWander::ControlSubTask_Reversed(CPed* ped) {
         if (subTaskId == TASK_SIMPLE_GO_TO_POINT) {
             static_cast<CTaskSimpleGoToPoint*>(m_pSubTask)->m_moveState = m_nMoveState;
             if (m_nMoveState <= PEDMOVE_WALK) {
-                ped->Say(45);
+                ped->Say(CTX_GLOBAL_CHAT);
             }
         }
 
         if (ped->m_pIntelligence->m_AnotherStaticCounter > 30) {
-            if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+            if (m_pSubTask->MakeAbortable(ped)) {
                 return CreateSubTask(ped, TASK_SIMPLE_SCRATCH_HEAD);
             }
         }
@@ -174,7 +175,9 @@ CTask* CTaskComplexWander::ControlSubTask_Reversed(CPed* ped) {
 }
 
 // 0x669DA0
-void CTaskComplexWander::UpdateDir_Reversed(CPed* ped) {
+
+
+void CTaskComplexWander::UpdateDir(CPed* ped) {
     uint8 newDir = m_nDir;
     if (m_NextNode.IsAreaValid()) {
         const CPathNode* pathNodes = ThePaths.m_pPathNodes[m_NextNode.m_wAreaId];
@@ -217,7 +220,9 @@ void CTaskComplexWander::UpdateDir_Reversed(CPed* ped) {
 }
 
 // 0x669ED0
-void CTaskComplexWander::UpdatePathNodes_Reversed(const CPed* ped, uint8 dir, CNodeAddress& originNode, CNodeAddress& targetNode, uint8& outDir) {
+
+// 0x0
+void CTaskComplexWander::UpdatePathNodes(const CPed* ped, uint8 dir, CNodeAddress& originNode, CNodeAddress& targetNode, uint8& outDir) {
     originNode = targetNode;
     targetNode.m_wAreaId = (uint16)-1;
     const CVector& pos = ped->GetPosition();
@@ -342,7 +347,7 @@ float CTaskComplexWander::GetDistSqOfClosestPathNodeToPed(CPed* ped) {
         std::array{ m_NextNode, m_LastNode }
      | rng::views::transform([ped](CNodeAddress node) {
             if (node.IsValid() && ThePaths.IsAreaNodesAvailable(node)) {
-                return (ped->GetPosition() - ThePaths.GetPathNode(node)->GetNodeCoors()).SquaredMagnitude();
+                return (ped->GetPosition() - ThePaths.GetPathNode(node)->GetPosition()).SquaredMagnitude();
             }
             return 999'999.f;
         })

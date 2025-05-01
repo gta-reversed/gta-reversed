@@ -24,9 +24,6 @@ public:
     void SetClump(RpClump* clump) override;
 
     // VTable implementations
-    ModelInfoType GetModelType_Reversed();
-    void Init_Reversed();
-    void SetClump_Reversed(RpClump* clump);
 };
 
 VALIDATE_SIZE(CWeaponModelInfo, 0x28);

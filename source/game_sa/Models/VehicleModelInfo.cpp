@@ -34,7 +34,7 @@ float& fRearDoubleWheelOffsetFactor = *(float*)0x8A7784;
 
 void CVehicleModelInfo::InjectHooks()
 {
-    RH_ScopedClass(CVehicleModelInfo);
+    RH_ScopedVirtualClass(CVehicleModelInfo, 0x85C5C8, 17);
     RH_ScopedCategory("Models");
 
     { // ClinkedUpgradeList
@@ -44,14 +44,14 @@ void CVehicleModelInfo::InjectHooks()
         RH_ScopedInstall(FindOtherUpgrade, 0x4C74D0);
     }
 
-    RH_ScopedVirtualInstall(GetModelType, 0x4C7650);
-    RH_ScopedVirtualInstall(Init, 0x4C7630);
-    RH_ScopedVirtualInstall(DeleteRwObject, 0x4C9890);
-    RH_ScopedVirtualInstall(CreateInstance, 0x4C9680);
-    RH_ScopedVirtualInstall(SetAnimFile, 0x4C7670);
-    RH_ScopedVirtualInstall(ConvertAnimFileIndex, 0x4C76D0);
-    RH_ScopedVirtualInstall(GetAnimFileIndex, 0x4C7660);
-    RH_ScopedVirtualInstall(SetClump, 0x4C95C0);
+    RH_ScopedVMTInstall(GetModelType, 0x4C7650);
+    RH_ScopedVMTInstall(Init, 0x4C7630);
+    RH_ScopedVMTInstall(DeleteRwObject, 0x4C9890);
+    RH_ScopedVMTInstall(CreateInstance, 0x4C9680);
+    RH_ScopedVMTInstall(SetAnimFile, 0x4C7670);
+    RH_ScopedVMTInstall(ConvertAnimFileIndex, 0x4C76D0);
+    RH_ScopedVMTInstall(GetAnimFileIndex, 0x4C7660);
+    RH_ScopedVMTInstall(SetClump, 0x4C95C0);
     RH_ScopedInstall(SetAtomicRenderCallbacks, 0x4C7B10);
     RH_ScopedInstall(SetVehicleComponentFlags, 0x4C7C10);
     RH_ScopedInstall(GetWheelPosn, 0x4C7D20);
@@ -136,20 +136,14 @@ CVehicleModelInfo::CVehicleModelInfo() : CClumpModelInfo()
     std::ranges::fill(m_anRemapTxds, -1);
 }
 
+// 0x4C7650
 ModelInfoType CVehicleModelInfo::GetModelType()
-{
-    return CVehicleModelInfo::GetModelType_Reversed();
-}
-ModelInfoType CVehicleModelInfo::GetModelType_Reversed()
 {
     return ModelInfoType::MODEL_INFO_VEHICLE;
 }
 
+// 0x4C7630
 void CVehicleModelInfo::Init()
-{
-    CVehicleModelInfo::Init_Reversed();
-}
-void CVehicleModelInfo::Init_Reversed()
 {
     CClumpModelInfo::Init();
     m_nVehicleType     = VEHICLE_TYPE_IGNORE;
@@ -157,11 +151,8 @@ void CVehicleModelInfo::Init_Reversed()
     m_fBikeSteerAngle  = 999.99F;
 }
 
+// 0x4C9890
 void CVehicleModelInfo::DeleteRwObject()
-{
-    CVehicleModelInfo::DeleteRwObject_Reversed();
-}
-void CVehicleModelInfo::DeleteRwObject_Reversed()
 {
     delete m_pVehicleStruct;
     m_pVehicleStruct = nullptr;
@@ -170,10 +161,6 @@ void CVehicleModelInfo::DeleteRwObject_Reversed()
 
 // 0x4C9680
 RwObject* CVehicleModelInfo::CreateInstance()
-{
-    return CVehicleModelInfo::CreateInstance_Reversed();
-}
-RwObject* CVehicleModelInfo::CreateInstance_Reversed()
 {
     auto clump = reinterpret_cast<RpClump*>(CClumpModelInfo::CreateInstance());
     if (m_pVehicleStruct->m_nNumExtras) {
@@ -220,11 +207,8 @@ RwObject* CVehicleModelInfo::CreateInstance_Reversed()
     return reinterpret_cast<RwObject*>(clump);
 }
 
+// 0x4C7670
 void CVehicleModelInfo::SetAnimFile(const char* filename)
-{
-    return CVehicleModelInfo::SetAnimFile_Reversed(filename);
-}
-void CVehicleModelInfo::SetAnimFile_Reversed(const char* filename)
 {
     if (!strcmp(filename, "null")) {
         m_nAnimBlockIndex = -1;
@@ -237,11 +221,8 @@ void CVehicleModelInfo::SetAnimFile_Reversed(const char* filename)
     strcpy_s(name, size, filename);
 }
 
+// 0x4C76D0
 void CVehicleModelInfo::ConvertAnimFileIndex()
-{
-    CVehicleModelInfo::ConvertAnimFileIndex_Reversed();
-}
-void CVehicleModelInfo::ConvertAnimFileIndex_Reversed()
 {
     if (m_nAnimBlockIndex == -1)
         return;
@@ -251,20 +232,14 @@ void CVehicleModelInfo::ConvertAnimFileIndex_Reversed()
     m_nAnimBlockIndex = iIndex;
 }
 
+// 0x4C7660
 int32 CVehicleModelInfo::GetAnimFileIndex()
-{
-    return CVehicleModelInfo::GetAnimFileIndex_Reversed();
-}
-int32 CVehicleModelInfo::GetAnimFileIndex_Reversed()
 {
     return m_nAnimBlockIndex;
 }
 
+// 0x4C95C0
 void CVehicleModelInfo::SetClump(RpClump* clump)
-{
-    CVehicleModelInfo::SetClump_Reversed(clump);
-}
-void CVehicleModelInfo::SetClump_Reversed(RpClump* clump)
 {
     m_pVehicleStruct = new CVehicleStructure();
     CClumpModelInfo::SetClump(clump);
@@ -392,16 +367,13 @@ int32 CVehicleModelInfo::ChooseComponent()
 
 int32 CVehicleModelInfo::ChooseSecondComponent()
 {
-    auto result = ms_compsToUse[1];
-    if (result != -2) {
-        ms_compsToUse[1] = -2;
-        return result;
+    if (ms_compsToUse[1] != -2) {
+        return std::exchange(ms_compsToUse[1], -2);
     }
 
     if (m_extraComps.nExtraBRule && IsValidCompRule(m_extraComps.nExtraBRule)) {
         return ::ChooseComponent(m_extraComps.nExtraBRule, m_extraComps.nExtraBComp);
-    }
-    else if (CGeneral::GetRandomNumberInRange(0, 3) < 2) {
+    } else if (m_extraComps.nExtraARule && IsValidCompRule(m_extraComps.nExtraARule) && CGeneral::GetRandomNumberInRange(0, 3) < 2) {
         int32 anVariations[6];
         auto numComps = GetListOfComponentsNotUsedByRules(m_extraComps.m_nComps, m_pVehicleStruct->m_nNumExtras, anVariations);
         if (numComps)
@@ -599,7 +571,7 @@ void CVehicleModelInfo::PreprocessHierarchy()
             RwFrameForAllChildren(RpClumpGetFrame(m_pRwClump), CClumpModelInfo::FindFrameFromNameWithoutIdCB, &searchStruct);
             if (searchStruct.m_pFrame) {
                 if (flags.bIsDummy) {
-                    auto& vecDummyPos = *GetModelDummyPosition(static_cast<eVehicleDummy>(nameIdAssoc->m_dwHierarchyId));
+                    auto& vecDummyPos = GetModelDummyPosition(static_cast<eVehicleDummy>(nameIdAssoc->m_dwHierarchyId));
                     vecDummyPos = *RwMatrixGetPos(RwFrameGetMatrix(searchStruct.m_pFrame));
                     auto parent = RwFrameGetParent(searchStruct.m_pFrame);
                     if (parent) {
@@ -765,7 +737,7 @@ int32 CVehicleModelInfo::GetMaximumNumberOfPassengersFromNumberOfDoors(int32 mod
         if (iDoorsNum)
             break;
 
-        if (mi->IsBike() || gHandlingDataMgr.GetVehiclePointer(mi->m_nHandlingId)->m_bTandemSeats) {
+        if (mi->IsBike() || mi->IsBMX() || mi->IsQuad() || gHandlingDataMgr.GetVehiclePointer(mi->m_nHandlingId)->m_bTandemSeats) {
             return mi->m_pVehicleStruct->IsDummyActive(eVehicleDummy::DUMMY_SEAT_REAR) ? 1 : 0;
         }
         else {

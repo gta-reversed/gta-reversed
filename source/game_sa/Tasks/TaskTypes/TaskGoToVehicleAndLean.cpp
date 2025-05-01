@@ -3,7 +3,7 @@
 #include "TaskGoToVehicleAndLean.h"
 
 void CTaskGoToVehicleAndLean::InjectHooks() {
-    RH_ScopedClass(CTaskGoToVehicleAndLean);
+    RH_ScopedVirtualClass(CTaskGoToVehicleAndLean, 0x86FAC8, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x660E60);

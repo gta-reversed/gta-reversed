@@ -76,11 +76,15 @@ HRESULT CAEDataStream::Write(const void* src, ULONG size, ULONG* written) {
 HRESULT CAEDataStream::Seek(LARGE_INTEGER offset, DWORD whence, ULARGE_INTEGER* newOffset) {
     // C-style cast is not a good idea here
     // but I can't figure out which cast is best to preserve
-    // the sign-bit of LARGE_INTEGER
-    if (m_bIsOpen == false)
+    // the sign-bit of LARGE_INTEGER.
+    //
+    // TODO: Implement 64-bit variants?
+
+    if (!m_bIsOpen)
         return E_INVALIDARG;
 
-    unsigned long pos = Seek((long)offset.QuadPart, static_cast<int32>(whence));
+    assert(std::in_range<long>(offset.QuadPart));
+    unsigned long pos = Seek(static_cast<long>(offset.QuadPart), static_cast<int32>(whence));
     if (newOffset)
         newOffset->QuadPart = pos;
 
@@ -119,7 +123,7 @@ HRESULT CAEDataStream::UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb,
 
 // 0x4dc3a0
 HRESULT CAEDataStream::Stat(STATSTG* statout, DWORD flags) {
-    if (m_bIsOpen == false || statout == nullptr || flags != STATFLAG_NONAME)
+    if (!m_bIsOpen || statout == nullptr || flags != STATFLAG_NONAME)
         return E_INVALIDARG;
 
     auto fileSize = CFileMgr::GetTotalSize(m_pFileHandle);
@@ -136,7 +140,7 @@ HRESULT CAEDataStream::Clone(IStream** target) {
 
 // 0x4dc1c0
 size_t CAEDataStream::FillBuffer(void* dest, size_t size) {
-    if (m_bIsOpen == false)
+    if (!m_bIsOpen)
         return 0;
 
     size_t sizeToRead = static_cast<size_t>((m_nCurrentPosition - m_nLength) - m_nStartPosition);
@@ -160,7 +164,7 @@ uint32 CAEDataStream::GetCurrentPosition() {
 
 // 0x4dc250
 uint32 CAEDataStream::Seek(long offset, int32 whence) {
-    if (m_bIsOpen == false)
+    if (!m_bIsOpen)
         return uint32(-1);
 
     if (whence == SEEK_SET) {
@@ -190,7 +194,7 @@ bool CAEDataStream::Initialise() {
     if (m_bIsOpen)
         return true;
 
-    // MikuAuahDark: Rewrite it to use CFileMgr
+    // NOTSA(MikuAuahDark): Rewrite it to use CFileMgr
     CFileMgr::SetDir("");
     m_pFileHandle = CFileMgr::OpenFile(m_pszFilename, "rb");
 
@@ -209,15 +213,20 @@ void CAEDataStream::InjectHooks() {
     RH_ScopedClass(CAEDataStream);
     RH_ScopedCategory("Audio/Loaders");
 
-    RH_ScopedInstall(Constructor, 0x4dc620);
-    RH_ScopedInstall(Destructor, 0x4dc490);
-    RH_ScopedInstall(Initialise, 0x4dc2b0);
-    RH_ScopedInstall(FillBuffer, 0x4dc1c0);
-    RH_ScopedInstall(GetCurrentPosition, 0x4dc230);
-    RH_ScopedOverloadedInstall(Seek, "uint32", 0x4dc250, uint32(CAEDataStream::*)(long offset, int32 whence));
-    RH_ScopedOverloadedInstall(Seek, "", 0x4dc340, HRESULT(__stdcall CAEDataStream::*)(LARGE_INTEGER, DWORD, ULARGE_INTEGER*));
+    // NOTSA: This class used Win32 file functions to deal with files, we converted
+    // them to C-compatible ones. So all of them have to be locked.
+
+    RH_ScopedInstall(Constructor, 0x4dc620, {.locked = true});
+    RH_ScopedInstall(Destructor, 0x4dc490, {.locked = true});
+    RH_ScopedInstall(Initialise, 0x4dc2b0, {.locked = true});
+    RH_ScopedInstall(FillBuffer, 0x4dc1c0, {.locked = true});
+    RH_ScopedInstall(GetCurrentPosition, 0x4dc230, {.locked = true});
+    RH_ScopedOverloadedInstall(Seek, "OG", 0x4dc250, uint32(CAEDataStream::*)(long offset, int32 whence), {.locked = true});
+
+    // IStream implementation. These depend on functions above so most of them don't have to be locked.
     RH_ScopedInstall(Read, 0x4dc320);
-    RH_ScopedInstall(Stat, 0x4dc3a0);
+    RH_ScopedOverloadedInstall(Seek, "istream", 0x4dc340, HRESULT(__stdcall CAEDataStream::*)(LARGE_INTEGER, DWORD, ULARGE_INTEGER*));
+    RH_ScopedInstall(Stat, 0x4dc3a0, {.locked = false}); // Uses CFileMgr::GetTotalSize
     RH_ScopedInstall(QueryInterface, 0x4dc410);
     RH_ScopedInstall(AddRef, 0x4dc460);
     RH_ScopedInstall(Write, 0x4dc4d0);

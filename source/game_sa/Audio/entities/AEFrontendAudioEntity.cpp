@@ -569,7 +569,7 @@ void CAEFrontendAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos)
 }
 
 void CAEFrontendAudioEntity::InjectHooks() {
-    RH_ScopedClass(CAEFrontendAudioEntity);
+    RH_ScopedVirtualClass(CAEFrontendAudioEntity, 0x862E54, 1);
     RH_ScopedCategory("Audio/Entities");
 
     RH_ScopedInstall(Initialise, 0x5B9AB0);
@@ -577,9 +577,5 @@ void CAEFrontendAudioEntity::InjectHooks() {
     RH_ScopedInstall(AddAudioEvent, 0x4DD4A0, { .reversed = false });
     RH_ScopedInstall(IsRadioTuneSoundActive, 0x4DD480);
     RH_ScopedInstall(IsLoadingTuneActive, 0x4DD470);
-    RH_ScopedVirtualInstall(UpdateParameters, 0x4DEDA0, { .reversed = false });
-}
-
-void CAEFrontendAudioEntity::UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) {
-    CAEFrontendAudioEntity::UpdateParameters(sound, curPlayPos);
+    RH_ScopedVMTInstall(UpdateParameters, 0x4DEDA0, { .reversed = false });
 }

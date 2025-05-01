@@ -2,6 +2,9 @@
 
 #include "EventEditableResponse.h"
 
+#include "EventEditableResponse.h"
+
+
 class CEventSoundLoud : public CEventEditableResponse {
 public:
     CEntity* m_Entity;
@@ -16,5 +19,6 @@ public:
     bool AffectsPed(CPed* ped) override;
     CEntity* GetSourceEntity() const override { return m_Entity; } // ?
     float GetLocalSoundLevel() override { return 100.0f; }
-    CEventEditableResponse* CloneEditable() override { return nullptr; }
+    CEventEditableResponse* CloneEditable() const noexcept override { return nullptr; }
 };
+

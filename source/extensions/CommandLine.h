@@ -2,9 +2,9 @@
 
 namespace CommandLine {
     // Hook features
-    extern bool unhookAll;
-    extern std::vector<std::string_view> unhookSome;
-    extern std::vector<std::string_view> unhookExcept;
+    extern bool s_UnhookAll;
+    extern std::vector<std::string_view> s_UnhookSome;
+    extern std::vector<std::string_view> s_UnhookExcept;
 
     // Debug features
     extern bool waitForDebugger;

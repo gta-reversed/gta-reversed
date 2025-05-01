@@ -26,29 +26,30 @@ CVector& CPhysical::fxDirection = *(CVector*)0xB73720;
 
 void CPhysical::InjectHooks()
 {
-    RH_ScopedClass(CPhysical);
+    RH_ScopedVirtualClass(CPhysical, 0x863BA0, 23);
     RH_ScopedCategory("Entity");
 
     RH_ScopedInstall(Constructor, 0x542260);
     RH_ScopedInstall(Destructor, 0x542450);
-    RH_ScopedInstall(RemoveAndAdd, 0x542560);
+
+    RH_ScopedInstall(RemoveAndAdd, 0x542560, {.enabled=false, .locked=true});
     RH_ScopedInstall(ApplyTurnForce, 0x542A50);
     RH_ScopedInstall(ApplyForce, 0x542B50);
     RH_ScopedInstall(GetSpeed, 0x542CE0);
-    RH_ScopedInstall(ApplyMoveSpeed, 0x542DD0, { .reversed = false }); // Go to the function definition and see why this is commented
+    RH_ScopedInstall(ApplyMoveSpeed, 0x542DD0);
     RH_ScopedInstall(ApplyTurnSpeed, 0x542E20);
     RH_ScopedOverloadedInstall(ApplyMoveForce, "vec", 0x5429F0, void(CPhysical::*)(CVector force));
     RH_ScopedInstall(SetDamagedPieceRecord, 0x5428C0);
     RH_ScopedInstall(RemoveFromMovingList, 0x542860);
     RH_ScopedInstall(AddToMovingList, 0x542800);
-    RH_ScopedVirtualInstall(Add, 0x544A30);
-    RH_ScopedVirtualInstall(Remove, 0x5424C0);
-    RH_ScopedVirtualInstall(GetBoundRect, 0x5449B0);
-    RH_ScopedVirtualInstall(ProcessControl, 0x5485E0);
-    RH_ScopedVirtualInstall(ProcessCollision, 0x54DFB0);
-    RH_ScopedVirtualInstall(ProcessShift, 0x54DB10);
-    RH_ScopedVirtualInstall(TestCollision, 0x54DEC0);
-    RH_ScopedVirtualInstall(ProcessEntityCollision, 0x546D00);
+    RH_ScopedVMTInstall(Add, 0x544A30, {.enabled=false, .locked=true});
+    RH_ScopedVMTInstall(Remove, 0x5424C0);
+    RH_ScopedVMTInstall(GetBoundRect, 0x5449B0);
+    RH_ScopedVMTInstall(ProcessControl, 0x5485E0);
+    RH_ScopedVMTInstall(ProcessCollision, 0x54DFB0);
+    RH_ScopedVMTInstall(ProcessShift, 0x54DB10);
+    RH_ScopedVMTInstall(TestCollision, 0x54DEC0);
+    RH_ScopedVMTInstall(ProcessEntityCollision, 0x546D00);
     RH_ScopedInstall(ApplyGravity, 0x542FE0);
     RH_ScopedInstall(ApplyFrictionMoveForce, 0x5430A0);
     RH_ScopedInstall(ApplyFrictionForce, 0x543220);
@@ -56,8 +57,8 @@ void CPhysical::InjectHooks()
     RH_ScopedInstall(AddCollisionRecord, 0x543490);
     RH_ScopedInstall(GetHasCollidedWith, 0x543540);
     RH_ScopedInstall(GetHasCollidedWithAnyObject, 0x543580);
-    RH_ScopedOverloadedInstall(ApplyCollision, "1", 0x5435C0, bool(CPhysical::*)(CEntity*, CColPoint&, float&));
-    RH_ScopedOverloadedInstall(ApplySoftCollision, "1", 0x543890, bool(CPhysical::*)(CEntity*, CColPoint&, float&));
+    RH_ScopedOverloadedInstall(ApplyCollision, "1", 0x5435C0, bool(CPhysical::*)(CEntity*, const CColPoint&, float&));
+    RH_ScopedOverloadedInstall(ApplySoftCollision, "1", 0x543890, bool(CPhysical::*)(CEntity*, const CColPoint&, float&));
     RH_ScopedInstall(ApplySpringCollision, 0x543C90);
     RH_ScopedInstall(ApplySpringCollisionAlt, 0x543D60);
     RH_ScopedInstall(ApplySpringDampening, 0x543E90);
@@ -152,13 +153,14 @@ CPhysical::~CPhysical()
 // 0x544A30
 void CPhysical::Add()
 {
+    // TODO: Refactor `CEntryInfoNode` to be templated then use it here
+#if 0
     if (m_bIsBIGBuilding) {
         CEntity::Add();
         return;
     }
 
-    CRect boundRect;
-    GetBoundRect(&boundRect);
+    const auto boundRect = GetBoundRect();
     int32 startSectorX = CWorld::GetSectorX(boundRect.left);
     int32 startSectorY = CWorld::GetSectorY(boundRect.bottom);
     int32 endSectorX = CWorld::GetSectorX(boundRect.right);
@@ -169,13 +171,13 @@ void CPhysical::Add()
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
             switch (m_nType) {
             case ENTITY_TYPE_VEHICLE:
-                list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
+                list = &repeatSector->Vehicles;
                 break;
             case ENTITY_TYPE_PED:
-                list = &repeatSector->GetList(REPEATSECTOR_PEDS);
+                list = &repeatSector->Peds;
                 break;
             case ENTITY_TYPE_OBJECT:
-                list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
+                list = &repeatSector->Objects;
                 break;
             }
 
@@ -189,6 +191,7 @@ void CPhysical::Add()
             m_pCollisionList.m_node = newEntityInfoNode;
         }
     }
+#endif
 }
 
 // 0x5424C0
@@ -210,13 +213,17 @@ void CPhysical::Remove()
 }
 
 // 0x5449B0
-CRect* CPhysical::GetBoundRect(CRect* rect)
+CRect CPhysical::GetBoundRect()
 {
     CVector boundCentre;
     CEntity::GetBoundCentre(&boundCentre);
-    float fRadius = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundRadius();
-    *rect = CRect(boundCentre.x - fRadius, boundCentre.y - fRadius, boundCentre.x + fRadius, boundCentre.y + fRadius);
-    return rect;
+    const float fRadius = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundRadius();
+    return CRect(
+        boundCentre.x - fRadius, 
+        boundCentre.y - fRadius, 
+        boundCentre.x + fRadius, 
+        boundCentre.y + fRadius
+    );
 }
 
 // 0x5485E0
@@ -319,8 +326,8 @@ void CPhysical::ProcessCollision() {
 
                 CColPoint* wheelColPoint = &wheelsColPoints[collisionIndex];
                 CColLine* colLine = &colData->m_pLines[collisionIndex];
-                CVector vecColLinePosStart = *m_matrix * colLine->m_vecStart;
-                CVector vecColLinePosEnd = *m_matrix * colLine->m_vecEnd;
+                CVector vecColLinePosStart = m_matrix->TransformPoint(colLine->m_vecStart);
+                CVector vecColLinePosEnd = m_matrix->TransformPoint(colLine->m_vecEnd);
                 wheelColPoint->m_vecNormal = CVector(0.0f, 0.0f, 1.0f);
                 wheelColPoint->m_nSurfaceTypeA = SURFACE_WHEELBASE;
                 wheelColPoint->m_nSurfaceTypeB = SURFACE_TARMAC;
@@ -466,8 +473,7 @@ void CPhysical::ProcessCollision() {
 void CPhysical::ProcessShift() {
     ZoneScoped;
 
-    CRect boundingBox;
-    GetBoundRect(&boundingBox);
+    CRect boundingBox = GetBoundRect();
     m_fMovingSpeed = 0.0f;
 
     bool bPhysicalFlagsSet = m_nPhysicalFlags & (PHYSICAL_DISABLE_MOVE_FORCE | PHYSICAL_INFINITE_MASS | PHYSICAL_DISABLE_Z);
@@ -603,8 +609,9 @@ int32 CPhysical::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint) {
 }
 
 // 0x542560
-void CPhysical::RemoveAndAdd()
-{
+void CPhysical::RemoveAndAdd() {
+// TODO: Refactor `CEntryInfoNode` to be templated, otherwise this function will be a mess
+#if 0
     if (m_bIsBIGBuilding) {
         CEntity::Remove();
         CEntity::Add();
@@ -612,66 +619,52 @@ void CPhysical::RemoveAndAdd()
     }
 
     CEntryInfoNode* entryInfoNode = m_pCollisionList.m_node;
-    CRect boundRect;
-    GetBoundRect(&boundRect);
+    CRect boundRect = GetBoundRect();
     int32 startSectorX = CWorld::GetSectorX(boundRect.left);
     int32 startSectorY = CWorld::GetSectorY(boundRect.bottom);
     int32 endSectorX = CWorld::GetSectorX(boundRect.right);
     int32 endSectorY = CWorld::GetSectorY(boundRect.top);
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CPtrListDoubleLink* list = nullptr;
-            CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            switch (m_nType) {
-            case ENTITY_TYPE_VEHICLE:
-                list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
-                break;
-            case ENTITY_TYPE_PED:
-                list = &repeatSector->GetList(REPEATSECTOR_PEDS);
-                break;
-            case ENTITY_TYPE_OBJECT:
-                list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
-                break;
-            }
+            CRepeatSector* const rs = GetRepeatSector(sectorX, sectorY);
+            const auto ProcessSectorList = [&]<typename PtrListType>(PtrListType& list) {
+                if (entryInfoNode) {
+                    auto* doubleLink = reinterpret_cast<typename PtrListType::NodeType*>(entryInfoNode->m_doubleLink);
 
-            if (entryInfoNode) {
-                CPtrNodeDoubleLink* doubleLink = entryInfoNode->m_doubleLink;
-                if (entryInfoNode->m_doubleLinkList->m_node == (CPtrNode*)doubleLink)
-                    entryInfoNode->m_doubleLinkList->m_node = (CPtrNode*)doubleLink->m_next;
-
-                CPtrNodeDoubleLink* doubleLinkPrevious = doubleLink->m_prev;
-                if (doubleLinkPrevious)
-                    doubleLinkPrevious->m_next = doubleLink->m_next;
-
-                CPtrNodeDoubleLink* doubleLinkNext = doubleLink->m_next;
-                if (doubleLinkNext)
-                    doubleLinkNext->m_prev = doubleLink->m_prev;
-
-                doubleLink->AddToList(list);
-
-                entryInfoNode->m_repeatSector = repeatSector;
-                entryInfoNode->m_doubleLinkList = list;
-                entryInfoNode = entryInfoNode->m_next;
-            } else {
-                auto newEntityInfoNode = new CEntryInfoNode();
-                if (newEntityInfoNode) {
-                    newEntityInfoNode->m_doubleLink = list->AddItem(this);
-                    newEntityInfoNode->m_repeatSector = repeatSector;
-                    newEntityInfoNode->m_doubleLinkList = list;
+                    entryInfoNode->m_doubleLinkList->UnlinkNode(doubleLink);
+                    list.AddNode(doubleLink);
+   
+                    entryInfoNode->m_repeatSector = rs;
+                    entryInfoNode->m_doubleLinkList = &list;
+                    entryInfoNode = entryInfoNode->m_next;
+                } else {
+                    auto newEntityInfoNode = new CEntryInfoNode();
+                    if (newEntityInfoNode) {
+                        newEntityInfoNode->m_doubleLink = list.AddItem(this);
+                        newEntityInfoNode->m_repeatSector = rs;
+                        newEntityInfoNode->m_doubleLinkList = &list;
+                    }
+                    newEntityInfoNode->AddToList(m_pCollisionList.m_node);
+                    m_pCollisionList.m_node = newEntityInfoNode;
                 }
-                newEntityInfoNode->AddToList(m_pCollisionList.m_node);
-                m_pCollisionList.m_node = newEntityInfoNode;
+            };
+            switch (m_nType) {
+            case ENTITY_TYPE_VEHICLE: ProcessSectorList(rs->Vehicles); break;
+            case ENTITY_TYPE_PED:     ProcessSectorList(rs->Peds);     break;
+            case ENTITY_TYPE_OBJECT:  ProcessSectorList(rs->Objects);  break;
             }
         }
     }
 
     while (entryInfoNode) {
         CEntryInfoNode* nextEntryInfoNode = entryInfoNode->m_next;
+
         entryInfoNode->m_doubleLinkList->DeleteNode(entryInfoNode->m_doubleLink);
         m_pCollisionList.DeleteNode(entryInfoNode);
 
         entryInfoNode = nextEntryInfoNode;
     }
+#endif
 }
 
 // 0x542800
@@ -694,7 +687,7 @@ void CPhysical::RemoveFromMovingList()
 }
 
 // 0x5428C0
-void CPhysical::SetDamagedPieceRecord(float fDamageIntensity, CEntity* entity, CColPoint& colPoint, float fDistanceMult)
+void CPhysical::SetDamagedPieceRecord(float fDamageIntensity, CEntity* entity, const CColPoint& colPoint, float fDistanceMult)
 {
     auto* object = AsObject();
     if (fDamageIntensity > m_fDamageIntensity) {
@@ -739,21 +732,23 @@ void CPhysical::ApplyMoveForce(CVector force)
 }
 
 // 0x542A50
-void CPhysical::ApplyTurnForce(CVector force, CVector point)
-{
-    if (!physicalFlags.bDisableTurnForce)
-    {
-        CVector vecCentreOfMassMultiplied{};
-        if (!physicalFlags.bInfiniteMass)
-            vecCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
-
-        if (physicalFlags.bDisableMoveForce) {
-            point.z = 0.0f;
-            force.z = 0.0f;
-        }
-        CVector vecDifference = point - vecCentreOfMassMultiplied;
-        m_vecTurnSpeed += CrossProduct(vecDifference, force) / m_fTurnMass;
+void CPhysical::ApplyTurnForce(CVector force, CVector point) {
+    if (physicalFlags.bDisableTurnForce) {
+        return;
     }
+
+    if (physicalFlags.bDisableMoveForce) {
+        point.z = 0.0f;
+        force.z = 0.0f;
+    }
+
+    // Adjust point to be relative to the centre-of-mass
+    if (!physicalFlags.bInfiniteMass)  {
+        point -= GetMatrix().TransformVector(m_vecCentreOfMass);
+    }
+    
+    // Apply angular velocity around this point now
+    m_vecTurnSpeed += CrossProduct(point, force) / m_fTurnMass;
 }
 
 // 0x542B50
@@ -772,7 +767,7 @@ void CPhysical::ApplyForce(CVector vecForce, CVector point, bool bUpdateTurnSpee
         if (physicalFlags.bInfiniteMass)
             fTurnMass += m_vecCentreOfMass.z * m_fMass * m_vecCentreOfMass.z * 0.5f;
         else
-            vecCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+            vecCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
 
         if (physicalFlags.bDisableMoveForce) {
             point.z = 0.0f;
@@ -789,7 +784,7 @@ CVector CPhysical::GetSpeed(CVector point)
 {
     CVector vecCentreOfMassMultiplied{};
     if (!physicalFlags.bInfiniteMass)
-        vecCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+        vecCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
 
     CVector distance = point - vecCentreOfMassMultiplied;
     CVector vecTurnSpeed = m_vecTurnSpeed + m_vecFrictionTurnSpeed;
@@ -798,15 +793,6 @@ CVector CPhysical::GetSpeed(CVector point)
     return speed;
 }
 
-/*
-    The code for this function is fine, but it will crash if we hook it. This function should be
-    only hooked after reversing all references to this function:
-    CPhysical::ApplySpeed (done)
-    CWorld::Process (done)
-    CAutoMobile::ProcessControlCollisionCheck
-    CBike::ProcessControlCollisionCheck
-    CTrain::ProcessControl (Done)
-*/
 void CPhysical::ApplyMoveSpeed()
 {
     if (physicalFlags.bDontApplySpeed || physicalFlags.bDisableMoveForce)
@@ -833,7 +819,7 @@ void CPhysical::ApplyTurnSpeed()
         GetUp() += vecCrossProduct;
         if (!physicalFlags.bInfiniteMass && !physicalFlags.bDisableMoveForce) {
             CVector vecNegativeCentreOfMass = m_vecCentreOfMass * -1.0f;
-            CVector vecCentreOfMassMultiplied = Multiply3x3(GetMatrix(), vecNegativeCentreOfMass);
+            CVector vecCentreOfMassMultiplied = GetMatrix().TransformVector(vecNegativeCentreOfMass);
             GetPosition() += CrossProduct(vecTurnSpeedTimeStep, vecCentreOfMassMultiplied);
         }
     }
@@ -845,7 +831,7 @@ void CPhysical::ApplyGravity()
     if (physicalFlags.bApplyGravity && !physicalFlags.bDisableMoveForce) {
         if (physicalFlags.bInfiniteMass) {
             float fMassTimeStep = CTimer::GetTimeStep() * m_fMass;
-            CVector point = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+            CVector point = GetMatrix().TransformVector(m_vecCentreOfMass);
             CVector force (0.0f, 0.0f, fMassTimeStep * -0.008f);
             ApplyForce(force, point, true);
         }
@@ -897,7 +883,7 @@ void CPhysical::ApplyFrictionForce(CVector vecMoveForce, CVector point)
         if (physicalFlags.bInfiniteMass)
             fTurnMass += m_vecCentreOfMass.z * m_fMass * m_vecCentreOfMass.z * 0.5f;
         else
-            vecCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+            vecCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
 
         if (physicalFlags.bDisableMoveForce)
         {
@@ -998,11 +984,9 @@ bool CPhysical::GetHasCollidedWithAnyObject()
 }
 
 // 0x5435C0
-bool CPhysical::ApplyCollision(CEntity* entity, CColPoint& colPoint, float& damageIntensity)
-{
-    if (physicalFlags.bDisableTurnForce)
-    {
-        float fSpeedDotProduct = DotProduct(&m_vecMoveSpeed, &colPoint.m_vecNormal);
+bool CPhysical::ApplyCollision(CEntity* entity, const CColPoint& colPoint, float& damageIntensity) {
+    if (physicalFlags.bDisableTurnForce) {
+        float fSpeedDotProduct = m_vecMoveSpeed.Dot(colPoint.m_vecNormal);
         if (fSpeedDotProduct < 0.0f)
         {
             damageIntensity = -(fSpeedDotProduct * m_fMass);
@@ -1013,9 +997,7 @@ bool CPhysical::ApplyCollision(CEntity* entity, CColPoint& colPoint, float& dama
             AudioEngine.ReportCollision(this, entity, colPoint.m_nSurfaceTypeA, colPoint.m_nSurfaceTypeB, colPoint.m_vecPoint, &colPoint.m_vecNormal, fCollisionImpact1, 1.0f, false, false);
             return true;
         }
-    }
-    else
-    {
+    } else {
         CVector vecDistanceToPoint = colPoint.m_vecPoint - GetPosition();
         CVector vecSpeed = GetSpeed(vecDistanceToPoint);
 
@@ -1023,7 +1005,7 @@ bool CPhysical::ApplyCollision(CEntity* entity, CColPoint& colPoint, float& dama
         float fSpeedDotProduct = DotProduct(&vecMoveDirection, &vecSpeed);
         if (fSpeedDotProduct < 0.0f)
         {
-            CVector vecCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+            CVector vecCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
             CVector vecDifference = vecDistanceToPoint - vecCentreOfMassMultiplied;
             CVector vecSpeedCrossProduct = CrossProduct(vecDifference, vecMoveDirection);
             float fSquaredMagnitude = vecMoveDirection.SquaredMagnitude();
@@ -1052,7 +1034,7 @@ bool CPhysical::ApplyCollision(CEntity* entity, CColPoint& colPoint, float& dama
 }
 
 // 0x543890
-bool CPhysical::ApplySoftCollision(CEntity* entity, CColPoint& colPoint, float& outDamageIntensity)
+bool CPhysical::ApplySoftCollision(CEntity* entity, const CColPoint& colPoint, float& outDamageIntensity)
 {
     if (physicalFlags.bDisableTurnForce)
     {
@@ -1087,7 +1069,7 @@ bool CPhysical::ApplySoftCollision(CEntity* entity, CColPoint& colPoint, float& 
     }
 
     float fSpeedDotProduct = DotProduct(&vecSpeed, &vecMoveDirection);
-    CVector vecCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+    CVector vecCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
 
     if (physicalFlags.bInfiniteMass)
     {
@@ -1205,7 +1187,7 @@ bool CPhysical::ApplySpringDampening(float fDampingForce, float fSpringForceDamp
             fDampingSpeed = -fCollisionPointSpeedDotProduct;
     }
 
-    CVector center = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+    CVector center = GetMatrix().TransformVector(m_vecCentreOfMass);
     CVector distance = collisionPoint - center;
     float fSpringForceDamping = GetMass(distance, direction) * fDampingSpeed;
     fSpringForceDampingLimit = fabs(fSpringForceDampingLimit) * DAMPING_LIMIT_OF_SPRING_FORCE;
@@ -1530,7 +1512,7 @@ bool CPhysical::ApplyCollisionAlt(CPhysical* entity, CColPoint& colPoint, float&
         return false;
     }
 
-    CVector vecCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+    CVector vecCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
     if (physicalFlags.bInfiniteMass)
     {
         vecCentreOfMassMultiplied = CVector(0.0f, 0.0f, 0.0f);
@@ -1680,7 +1662,7 @@ bool CPhysical::ApplyCollisionAlt(CPhysical* entity, CColPoint& colPoint, float&
             outVecMoveSpeed += vecSpeed;
         }
 
-        vecCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+        vecCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
         float fTurnMass = m_fTurnMass;
         CVector vecDifference = vecDistanceToPointFromThis - vecCentreOfMassMultiplied; // todo: shadow var
         CVector vecCrossProduct = CrossProduct(vecDifference, vecMoveSpeed);            // todo: shadow var
@@ -1748,7 +1730,7 @@ bool CPhysical::ApplyFriction(float fFriction, CColPoint& colPoint)
 
     CVector vecMoveDirection = vecSpeedDifference / fMoveSpeedMagnitude;
 
-    CVector vecCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+    CVector vecCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
     CVector vecDifference = vecDistanceToPointFromThis - vecCentreOfMassMultiplied;
     CVector vecSpeedCrossProduct = CrossProduct(vecDifference, vecMoveDirection);
     float squaredMagnitude = vecSpeedCrossProduct.SquaredMagnitude();
@@ -1846,7 +1828,7 @@ bool CPhysical::ApplyFriction(CPhysical* entity, float fFriction, CColPoint& col
         float fEntitySpeedMagnitude = vecEntitySpeedDifference.Magnitude();
 
         CVector vecMoveDirection = vecThisSpeedDifference * (1.0f / fThisSpeedMagnitude);
-        CVector vecEntityCentreOfMassMultiplied = Multiply3x3(entity->GetMatrix(), entity->m_vecCentreOfMass);
+        CVector vecEntityCentreOfMassMultiplied = entity->GetMatrix().TransformVector(entity->m_vecCentreOfMass);
         CVector vecEntityDifference = vecDistanceToPoint - vecEntityCentreOfMassMultiplied;
         CVector vecEntitySpeedCrossProduct = CrossProduct(vecEntityDifference, vecMoveDirection);
         float squaredMagnitude = vecEntitySpeedCrossProduct.SquaredMagnitude();
@@ -1902,14 +1884,14 @@ bool CPhysical::ApplyFriction(CPhysical* entity, float fFriction, CColPoint& col
 
         CVector vecMoveDirection = vecThisSpeedDifference * (1.0f / fThisSpeedMagnitude);
 
-        CVector vecThisCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+        CVector vecThisCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
 
         CVector vecThisDifference = vecDistanceToPointFromThis - vecThisCentreOfMassMultiplied;
         CVector vecThisSpeedCrossProduct = CrossProduct(vecThisDifference, vecMoveDirection);
         float squaredMagnitude = vecThisSpeedCrossProduct.SquaredMagnitude();
         float fThisCollisionMass = 1.0f / (squaredMagnitude / m_fTurnMass + 1.0f / m_fMass);
 
-        CVector vecEntityCentreOfMassMultiplied = Multiply3x3(entity->GetMatrix(), entity->m_vecCentreOfMass);
+        CVector vecEntityCentreOfMassMultiplied = entity->GetMatrix().TransformVector(entity->m_vecCentreOfMass);
 
         CVector vecEntityDifference = vecDistanceToPoint - vecEntityCentreOfMassMultiplied;
         CVector vecEntitySpeedCrossProduct = CrossProduct(vecEntityDifference, vecMoveDirection);
@@ -1959,7 +1941,7 @@ bool CPhysical::ApplyFriction(CPhysical* entity, float fFriction, CColPoint& col
 
     CVector vecMoveDirection = vecThisSpeedDifference * (1.0f / fThisSpeedMagnitude);
 
-    CVector vecThisCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+    CVector vecThisCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
 
     CVector vecThisDifference = vecDistanceToPointFromThis - vecThisCentreOfMassMultiplied;
     CVector vecThisSpeedCrossProduct = CrossProduct(vecThisDifference, vecMoveDirection);
@@ -2002,145 +1984,123 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
 
     GetBoundCentre(&vecBoundCentre);
 
-    CSector* sector = GetSector(sectorX, sectorY);
-    CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-
     int32 totalAcceptableColPoints = 0;
-    int32 scanListIndex = 4;
-    do
-    {
-        CPtrListDoubleLink* list = nullptr;
-        switch (--scanListIndex)
-        {
-        case 0:
-            list = &sector->m_buildings;
-            break;
-        case 1:
-            list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
-            break;
-        case 2:
-            list = &repeatSector->GetList(REPEATSECTOR_PEDS);
-            break;
-        case 3:
-            list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
-            break;
-        }
-        CPtrNodeDoubleLink* node = list->GetNode();
-        if (list->GetNode())
-        {
-            do
+    const auto ProcessSectorList = [&]<typename PtrListType>(PtrListType& list) {
+        bool bProcessEntityCollision = true;
+        for (CEntity* const entity : list) {
+            if (!entity->IsBuilding() && (!entity->IsObject() || !entity->AsPhysical()->physicalFlags.bDisableCollisionForce))
             {
-                auto* entity = reinterpret_cast<CPhysical*>(node->m_item);
-                node = node->m_next;
-
-                bool bProcessEntityCollision = true;
-                if (!entity->IsBuilding() && (!entity->IsObject() || !entity->physicalFlags.bDisableCollisionForce))
+                if (!IsPed() || !entity->IsObject()
+                    || !entity->IsStatic()
+                    || entity->AsObject()->objectFlags.bIsExploded)
                 {
-                    if (!IsPed() || !entity->IsObject()
-                        || !entity->IsStatic()
-                        || entity->AsObject()->objectFlags.bIsExploded)
-                    {
-                        bProcessEntityCollision = false;
-                    }
+                    bProcessEntityCollision = false;
                 }
-                if (entity != this
-                    && !entity->IsScanCodeCurrent()
-                    && entity->m_bUsesCollision && (!m_bHasHitWall || bProcessEntityCollision))
+            }
+            if (entity != this
+                && !entity->IsScanCodeCurrent()
+                && entity->m_bUsesCollision && (!m_bHasHitWall || bProcessEntityCollision))
+            {
+                if (entity->GetIsTouching(vecBoundCentre, fBoundingSphereRadius))
                 {
-                    if (entity->GetIsTouching(vecBoundCentre, fBoundingSphereRadius))
+                    bool bCollisionDisabled = false;
+                    bool bCollidedEntityCollisionIgnored = false;
+                    bool bCollidedEntityUnableToMove = false;
+                    bool bThisOrCollidedEntityStuck = false;
+                    if (entity->IsBuilding())
                     {
-                        bool bCollisionDisabled = false;
-                        bool bCollidedEntityCollisionIgnored = false;
-                        bool bCollidedEntityUnableToMove = false;
-                        bool bThisOrCollidedEntityStuck = false;
-                        if (entity->IsBuilding())
+                        if (physicalFlags.bDisableCollisionForce
+                            && (!IsVehicle() || entity->AsVehicle()->IsSubTrain()))
                         {
-                            if (physicalFlags.bDisableCollisionForce
-                                && (!IsVehicle() || entity->AsVehicle()->IsSubTrain()))
-                            {
-                                bCollisionDisabled = true;
-                            }
-                            else
-                            {
-                                if (m_pAttachedTo)
-                                {
-                                    if (m_pAttachedTo->IsPhysical() && m_pAttachedTo->physicalFlags.bDisableCollisionForce)
-                                    {
-                                        bCollisionDisabled = true;
-                                    }
-                                }
-                                else if (m_pEntityIgnoredCollision == entity)
-                                {
-                                    bCollisionDisabled = true;
-                                }
-
-                                else if (!physicalFlags.bDisableZ || physicalFlags.bApplyGravity)
-                                {
-                                    if (   physicalFlags.bDontCollideWithFlyers
-                                        && m_nStatus // todo:  == STATUS_PLAYER_PLAYBACK_FROM_BUFFER
-                                        && m_nStatus != STATUS_REMOTE_CONTROLLED
-                                        && entity->DoesNotCollideWithFlyers()
-                                    ) {
-                                        bCollisionDisabled = true;
-                                    }
-                                }
-                                else
-                                {
-                                    bCollisionDisabled = true;
-                                }
-                            }
+                            bCollisionDisabled = true;
                         }
                         else
                         {
-                            SpecialEntityPreCollisionStuff(
-                                entity,
-                                true,
-                                bCollisionDisabled,
-                                bCollidedEntityCollisionIgnored,
-                                bCollidedEntityUnableToMove,
-                                bThisOrCollidedEntityStuck
-                            );
+                            if (m_pAttachedTo)
+                            {
+                                if (m_pAttachedTo->IsPhysical() && m_pAttachedTo->physicalFlags.bDisableCollisionForce)
+                                {
+                                    bCollisionDisabled = true;
+                                }
+                            }
+                            else if (m_pEntityIgnoredCollision == entity)
+                            {
+                                bCollisionDisabled = true;
+                            }
+
+                            else if (!physicalFlags.bDisableZ || physicalFlags.bApplyGravity)
+                            {
+                                if (physicalFlags.bDontCollideWithFlyers
+                                    && m_nStatus // todo:  == STATUS_PLAYER_PLAYBACK_FROM_BUFFER
+                                    && m_nStatus != STATUS_REMOTE_CONTROLLED
+                                    && entity->DoesNotCollideWithFlyers()
+                                    ) {
+                                    bCollisionDisabled = true;
+                                }
+                            }
+                            else
+                            {
+                                bCollisionDisabled = true;
+                            }
                         }
+                    }
+                    else
+                    {
+                        SpecialEntityPreCollisionStuff(
+                            entity->AsPhysical(),
+                            true,
+                            bCollisionDisabled,
+                            bCollidedEntityCollisionIgnored,
+                            bCollidedEntityUnableToMove,
+                            bThisOrCollidedEntityStuck
+                        );
+                    }
 
-                        if (IsPed())
-                        {
-                            physicalFlags.bSkipLineCol = true;
-                        }
+                    if (IsPed())
+                    {
+                        physicalFlags.bSkipLineCol = true;
+                    }
 
-                        if (bCollidedEntityCollisionIgnored || bCollisionDisabled)
-                            continue;
+                    if (bCollidedEntityCollisionIgnored || bCollisionDisabled)
+                        continue;
 
-                        entity->SetCurrentScanCode() ;
-                        int32 totalColPointsToProcess = ProcessEntityCollision(entity, colPoints);
-                        if (totalColPointsToProcess <= 0)
-                            continue;
+                    entity->SetCurrentScanCode();
+                    int32 totalColPointsToProcess = ProcessEntityCollision(entity, colPoints);
+                    if (totalColPointsToProcess <= 0)
+                        continue;
 
-                        for (int32 colpointIndex = 0; colpointIndex < totalColPointsToProcess; colpointIndex++) {
-                            CColPoint* colPoint = &colPoints[colpointIndex];
-                            if (colPoint->m_fDepth > 0.0f) {
-                                uint8 pieceTypeB = colPoint->m_nPieceTypeB;
-                                if (pieceTypeB < 13 || pieceTypeB > 16) {
-                                    totalAcceptableColPoints++;
-                                    if (IsVehicle() && entity->IsPed() && colPoint->m_vecNormal.z < 0.0f) {
-                                        vecShift.x += colPoint->m_vecNormal.x;
-                                        vecShift.y += colPoint->m_vecNormal.y;
-                                        vecShift.z += colPoint->m_vecNormal.z * 0.0f;
+                    for (int32 colpointIndex = 0; colpointIndex < totalColPointsToProcess; colpointIndex++) {
+                        CColPoint* colPoint = &colPoints[colpointIndex];
+                        if (colPoint->m_fDepth > 0.0f) {
+                            uint8 pieceTypeB = colPoint->m_nPieceTypeB;
+                            if (pieceTypeB < 13 || pieceTypeB > 16) {
+                                totalAcceptableColPoints++;
+                                if (IsVehicle() && entity->IsPed() && colPoint->m_vecNormal.z < 0.0f) {
+                                    vecShift.x += colPoint->m_vecNormal.x;
+                                    vecShift.y += colPoint->m_vecNormal.y;
+                                    vecShift.z += colPoint->m_vecNormal.z * 0.0f;
+                                    fMaxColPointDepth = std::max(fMaxColPointDepth, colPoint->m_fDepth);
+                                } else {
+                                    if (!IsPed() || !entity->IsObject() || !entity->AsPhysical()->physicalFlags.bDisableMoveForce ||
+                                        fabs(colPoint->m_vecNormal.z) <= 0.1f) {
+                                        vecShift += colPoint->m_vecNormal;
                                         fMaxColPointDepth = std::max(fMaxColPointDepth, colPoint->m_fDepth);
-                                    } else {
-                                        if (!IsPed() || !entity->IsObject() || !entity->physicalFlags.bDisableMoveForce ||
-                                            fabs(colPoint->m_vecNormal.z) <= 0.1f) {
-                                            vecShift += colPoint->m_vecNormal;
-                                            fMaxColPointDepth = std::max(fMaxColPointDepth, colPoint->m_fDepth);
-                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            } while (node);
+            }
         }
-    } while (scanListIndex);
+    };
+
+    CSector* s = GetSector(sectorX, sectorY);
+    CRepeatSector* rs = GetRepeatSector(sectorX, sectorY);
+    ProcessSectorList(s->m_buildings);
+    ProcessSectorList(rs->Vehicles);
+    ProcessSectorList(rs->Peds);
+    ProcessSectorList(rs->Objects);
 
     if (totalAcceptableColPoints == 0) {
         return false;
@@ -2188,7 +2148,7 @@ bool CPhysical::ProcessShiftSectorList(int32 sectorX, int32 sectorY)
 // 0x546DB0
 void CPhysical::PlacePhysicalRelativeToOtherPhysical(CPhysical* relativeToPhysical, CPhysical* physicalToPlace, CVector offset)
 {
-    CVector vecRelativePosition = *relativeToPhysical->m_matrix * offset;
+    CVector vecRelativePosition = relativeToPhysical->m_matrix->TransformPoint(offset);
     vecRelativePosition += (CTimer::GetTimeStep() * 0.9f) * relativeToPhysical->m_vecMoveSpeed;
     CWorld::Remove(physicalToPlace);
     *(CMatrix*)physicalToPlace->m_matrix = *relativeToPhysical->m_matrix;
@@ -2236,7 +2196,7 @@ void CPhysical::PositionAttachedEntity()
         RtQuatConvertToMatrix((RtQuat*)&m_qAttachedEntityRotation, &rotationMatrix);
         attachedEntityMatrix.UpdateMatrix(&rotationMatrix);
         attachedEntityMatrix = attachedToEntityMatrix * attachedEntityMatrix;
-        CVector vecTranslation = attachedToEntityMatrix * m_vecAttachOffset;
+        CVector vecTranslation = attachedToEntityMatrix.TransformPoint(m_vecAttachOffset);
         attachedEntityMatrix.SetTranslateOnly(vecTranslation);
     }
     else {
@@ -2249,7 +2209,7 @@ void CPhysical::PositionAttachedEntity()
             attachedEntityMatrix = attachedToEntityMatrix;
             attachedEntityMatrix *= attachedEntityRotationMatrix;
         }
-        attachedEntityMatrix.GetPosition() = MultiplyMatrixWithVector(attachedToEntityMatrix, m_vecAttachOffset);
+        attachedEntityMatrix.GetPosition() = attachedToEntityMatrix.TransformPoint(m_vecAttachOffset);
     }
     SetMatrix(attachedEntityMatrix);
 
@@ -2344,7 +2304,7 @@ void CPhysical::PositionAttachedEntity()
         CVector vecMoveSpeedDifference = vecMoveSpeed - m_vecMoveSpeed;
         m_vecMoveSpeed = vecMoveSpeed;
         CVector vecForce = vecMoveSpeedDifference * m_fMass * -1.0f;
-        CVector vecCenterOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
+        CVector vecCenterOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
         ApplyForce(vecForce, vecCenterOfMassMultiplied, true);
         if (m_pAttachedTo->IsVehicle() || m_pAttachedTo->IsObject()) {
             if (m_pAttachedTo->m_bUsesCollision && !m_pAttachedTo->physicalFlags.bDisableCollisionForce) {
@@ -2496,7 +2456,7 @@ void CPhysical::ApplySpeed()
                 ApplyFriction(10.0f * fAbsoluteMoveSpeed, colPoint);
                 if (IsObject())
                 {
-                    AudioEngine.ReportMissionAudioEvent(AE_CAS4_FE, object);
+                    AudioEngine.ReportMissionAudioEvent(AE_SCRIPT_POOL_HIT_CUSHION, object);
                     object->m_nLastWeaponDamage = 4 * (object->m_nLastWeaponDamage == 0xFF) + WEAPON_RUNOVERBYCAR;
                 }
             }
@@ -2670,9 +2630,9 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
             fEntityMassFactor = 10.0f;
         }
     }
-    else if (IsVehicle() && thisVehicle->m_pTrailer)
+    else if (IsVehicle() && thisVehicle->m_pVehicleBeingTowed)
     {
-        fEntityMassFactor = (thisVehicle->m_pTrailer->m_fMass + m_fMass) / m_fMass;
+        fEntityMassFactor = (thisVehicle->m_pVehicleBeingTowed->m_fMass + m_fMass) / m_fMass;
     }
     else
     {
@@ -2690,8 +2650,8 @@ bool CPhysical::ApplyCollision(CEntity* theEntity, CColPoint& colPoint, float& t
         bThisPedIsStandingOnEntity = false;
     }
 
-    CVector vecThisCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
-    CVector vecEntityCentreOfMassMultiplied = Multiply3x3(entity->GetMatrix(), entity->m_vecCentreOfMass);
+    CVector vecThisCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
+    CVector vecEntityCentreOfMassMultiplied = entity->GetMatrix().TransformVector(entity->m_vecCentreOfMass);
 
     if (physicalFlags.bInfiniteMass)
     {
@@ -3426,8 +3386,8 @@ bool CPhysical::ApplySoftCollision(CPhysical* physical, CColPoint& colPoint, flo
         bThisPedIsStandingOnEntity = false;
     }
 
-    CVector vecThisCentreOfMassMultiplied = Multiply3x3(GetMatrix(), m_vecCentreOfMass);
-    CVector vecEntityCentreOfMassMultiplied = Multiply3x3(physical->GetMatrix(), physical->m_vecCentreOfMass);
+    CVector vecThisCentreOfMassMultiplied = GetMatrix().TransformVector(m_vecCentreOfMass);
+    CVector vecEntityCentreOfMassMultiplied = physical->GetMatrix().TransformVector(physical->m_vecCentreOfMass);
 
     if (physicalFlags.bInfiniteMass)
     {
@@ -3997,528 +3957,498 @@ bool CPhysical::ProcessCollisionSectorList(int32 sectorX, int32 sectorY)
     CVector vecBoundCentre;
     GetBoundCentre(&vecBoundCentre);
 
-    CSector* sector = GetSector(sectorX, sectorY);
-    CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
+    const auto ProcessSectorList = [&]<typename PtrListType>(PtrListType& list) {
+        auto* const thisObject = AsObject();
+        auto* const thisPed = AsPed();
+        auto* const thisVehicle = AsVehicle();
+        for (auto* const entity : list) {
+            auto* const physicalEntity = entity->AsPhysical();
+            auto* const entityObject = entity->AsObject();
+            auto* const entityPed = entity->AsPed();
+            auto* const entityVehicle = entity->AsVehicle();
 
-    int32 scanListIndex = 4;
-    do {
-        CPtrListDoubleLink* list = nullptr;
-        --scanListIndex;
-        switch (scanListIndex) {
-        case 0:
-            list = &repeatSector->GetList(REPEATSECTOR_PEDS);
-            break;
-        case 1:
-            list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
-            break;
-        case 2:
-            list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
-            break;
-        case 3:
-            list = &sector->m_buildings;
-            break;
-        }
-        CPtrNodeDoubleLink* node = list->GetNode();
-        if (node) {
-            CEntity* entity = nullptr;
+            if (!entity->m_bUsesCollision || physicalEntity == this || entity->IsScanCodeCurrent()) {
+                continue;
+            }
 
-            CPhysical* physicalEntity = nullptr;
-            CObject* entityObject = nullptr;
-            CPed* entityPed = nullptr;
-            CVehicle* entityVehicle = nullptr;
-
-            CObject* thisObject = nullptr;
-            CPed* thisPed = nullptr;
-            CVehicle* thisVehicle = nullptr;
-
-            while (node) {
-                entity = (CEntity*)node->m_item;
-                assert(entity);
-
-                node = node->m_next;
-
-                physicalEntity = entity->AsPhysical();
-                entityObject = entity->AsObject();
-                entityPed = entity->AsPed();
-                entityVehicle = entity->AsVehicle();
-
-                thisObject = AsObject();
-                thisPed = AsPed();
-                thisVehicle = AsVehicle();
-
-                if (!entity->m_bUsesCollision || physicalEntity == this || entity->IsScanCodeCurrent()) {
-                    continue;
+            if (!entity->GetIsTouching(vecBoundCentre, fBoundingSphereRadius)) {
+                if (m_pEntityIgnoredCollision == entity && static_cast<CEntity*>(m_pAttachedTo) != entity) {
+                    m_pEntityIgnoredCollision = nullptr;
                 }
 
-                if (!entity->GetIsTouching(vecBoundCentre, fBoundingSphereRadius)) {
-                    if (m_pEntityIgnoredCollision == entity && m_pAttachedTo != entity) {
+                if (entity->IsPhysical() && physicalEntity->m_pEntityIgnoredCollision == this &&
+                    physicalEntity->m_pAttachedTo != this) {
+                    physicalEntity->m_pEntityIgnoredCollision = nullptr;
+                }
+                continue;
+            }
+
+            bCollisionDisabled = false;
+            bCollidedEntityCollisionIgnored = false;
+            bCollidedEntityUnableToMove = false;
+            bThisOrCollidedEntityStuck = false;
+
+            physicalFlags.bSkipLineCol = false;
+
+            if (entity->IsBuilding()) {
+                bCollidedEntityCollisionIgnored = false;
+                if (physicalFlags.bInfiniteMass && m_bIsStuck) {
+                    bThisOrCollidedEntityStuck = true;
+                }
+
+                if (physicalFlags.bDisableCollisionForce && (!IsVehicle() || thisVehicle->IsSubTrain())) {
+                    bCollisionDisabled = true;
+                } else {
+                    if (m_pAttachedTo && m_pAttachedTo->IsPhysical() &&
+                        m_pAttachedTo->physicalFlags.bDisableCollisionForce) {
+                        bCollisionDisabled = true;
+                    } else if (m_pEntityIgnoredCollision == entity) {
+                        bCollisionDisabled = true;
+                    } else if (!physicalFlags.bDisableZ || physicalFlags.bApplyGravity) {
+                        if (physicalFlags.bDontCollideWithFlyers) {
+                            if (m_nStatus) {
+                                if (m_nStatus != STATUS_REMOTE_CONTROLLED && entity->DoesNotCollideWithFlyers()) {
+                                    bCollisionDisabled = true;
+                                }
+                            }
+                        }
+                    } else {
+                        bCollisionDisabled = true;
+                    }
+                }
+            } else {
+                SpecialEntityPreCollisionStuff(
+                    entity->AsPhysical(),
+                    false,
+                    bCollisionDisabled,
+                    bCollidedEntityCollisionIgnored,
+                    bCollidedEntityUnableToMove,
+                    bThisOrCollidedEntityStuck
+                );
+            }
+
+            if (!m_bUsesCollision || bCollidedEntityCollisionIgnored || bCollisionDisabled) {
+                entity->SetCurrentScanCode() ;
+                if (!bCollisionDisabled) // if collision is enabled then
+                {
+                    int32 totalColPointsToProcess = ProcessEntityCollision(physicalEntity, &colPoints[0]);
+                    if (physicalFlags.b17 && !bCollidedEntityCollisionIgnored && totalColPointsToProcess > 0) {
+                        return true;
+                    }
+                    if (!totalColPointsToProcess && m_pEntityIgnoredCollision == entity && this == FindPlayerPed()) {
                         m_pEntityIgnoredCollision = nullptr;
                     }
-
-                    if (entity->IsPhysical() && physicalEntity->m_pEntityIgnoredCollision == this &&
-                        physicalEntity->m_pAttachedTo != this) {
-                        physicalEntity->m_pEntityIgnoredCollision = nullptr;
-                    }
-                    continue;
                 }
+                continue;
+            }
 
-                bCollisionDisabled = false;
-                bCollidedEntityCollisionIgnored = false;
-                bCollidedEntityUnableToMove = false;
-                bThisOrCollidedEntityStuck = false;
+            if (entity->IsBuilding() || physicalEntity->physicalFlags.bCollidable || bCollidedEntityUnableToMove) {
+                entity->SetCurrentScanCode() ;
 
-                physicalFlags.bSkipLineCol = false;
+                int32 totalAcceptableColPoints = 0;
+                float fThisMaxDamageIntensity = 0.0f;
+                CVector vecMoveSpeed = CVector(0.0f, 0.0f, 0.0f);
+                CVector vecTurnSpeed = CVector(0.0f, 0.0f, 0.0f);
 
-                if (entity->IsBuilding()) {
-                    bCollidedEntityCollisionIgnored = false;
-                    if (physicalFlags.bInfiniteMass && m_bIsStuck) {
-                        bThisOrCollidedEntityStuck = true;
-                    }
-
-                    if (physicalFlags.bDisableCollisionForce && (!IsVehicle() || thisVehicle->IsSubTrain())) {
-                        bCollisionDisabled = true;
-                    } else {
-                        if (m_pAttachedTo && m_pAttachedTo->IsPhysical() &&
-                            m_pAttachedTo->physicalFlags.bDisableCollisionForce) {
-                            bCollisionDisabled = true;
-                        } else if (m_pEntityIgnoredCollision == entity) {
-                            bCollisionDisabled = true;
-                        } else if (!physicalFlags.bDisableZ || physicalFlags.bApplyGravity) {
-                            if (physicalFlags.bDontCollideWithFlyers) {
-                                if (m_nStatus) {
-                                    if (m_nStatus != STATUS_REMOTE_CONTROLLED && entity->DoesNotCollideWithFlyers()) {
-                                        bCollisionDisabled = true;
-                                    }
-                                }
-                            }
-                        } else {
-                            bCollisionDisabled = true;
-                        }
-                    }
-                } else {
-                    SpecialEntityPreCollisionStuff(
-                        entity->AsPhysical(),
-                        false,
-                        bCollisionDisabled,
-                        bCollidedEntityCollisionIgnored,
-                        bCollidedEntityUnableToMove,
-                        bThisOrCollidedEntityStuck
-                    );
-                }
-
-                if (!m_bUsesCollision || bCollidedEntityCollisionIgnored || bCollisionDisabled) {
-                    entity->SetCurrentScanCode() ;
-                    if (!bCollisionDisabled) // if collision is enabled then
-                    {
-                        int32 totalColPointsToProcess = ProcessEntityCollision(physicalEntity, &colPoints[0]);
-                        if (physicalFlags.b17 && !bCollidedEntityCollisionIgnored && totalColPointsToProcess > 0) {
-                            return true;
-                        }
-                        if (!totalColPointsToProcess && m_pEntityIgnoredCollision == entity && this == FindPlayerPed()) {
-                            m_pEntityIgnoredCollision = nullptr;
-                        }
-                    }
-                    continue;
-                }
-
-                if (entity->IsBuilding() || physicalEntity->physicalFlags.bCollidable || bCollidedEntityUnableToMove) {
-                    entity->SetCurrentScanCode() ;
-
-                    int32 totalAcceptableColPoints = 0;
-                    float fThisMaxDamageIntensity = 0.0f;
-                    CVector vecMoveSpeed = CVector(0.0f, 0.0f, 0.0f);
-                    CVector vecTurnSpeed = CVector(0.0f, 0.0f, 0.0f);
-
-                    int32 totalColPointsToProcess = ProcessEntityCollision(physicalEntity, &colPoints[0]);
-                    if (totalColPointsToProcess > 0) {
-                        if (m_bHasContacted) {
-                            if (totalColPointsToProcess > 0) {
-                                for (int32 colPointIndex = 0; colPointIndex < totalColPointsToProcess; colPointIndex++) {
-                                    CColPoint* colPoint = &colPoints[colPointIndex];
-                                    if (bThisOrCollidedEntityStuck || (colPoint->m_nPieceTypeA >= 13 && colPoint->m_nPieceTypeA <= 16)) {
-                                        ApplySoftCollision(entity, *colPoint, fThisDamageIntensity);
-                                    } else if (ApplyCollisionAlt(physicalEntity, *colPoint, fThisDamageIntensity, vecMoveSpeed, vecTurnSpeed)) {
-                                        ++totalAcceptableColPoints;
-                                        if (fThisDamageIntensity > fThisMaxDamageIntensity) {
-                                            fThisMaxDamageIntensity = fThisDamageIntensity;
-                                        }
-
-                                        if (IsVehicle()) {
-                                            if (!thisVehicle->IsBoat() || colPoint->m_nSurfaceTypeB != SURFACE_WOOD_SOLID) {
-                                                SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint, 1.0f);
-                                            }
-                                        } else {
-                                            SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint, 1.0f);
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
+                int32 totalColPointsToProcess = ProcessEntityCollision(physicalEntity, &colPoints[0]);
+                if (totalColPointsToProcess > 0) {
+                    if (m_bHasContacted) {
+                        if (totalColPointsToProcess > 0) {
                             for (int32 colPointIndex = 0; colPointIndex < totalColPointsToProcess; colPointIndex++) {
                                 CColPoint* colPoint = &colPoints[colPointIndex];
                                 if (bThisOrCollidedEntityStuck || (colPoint->m_nPieceTypeA >= 13 && colPoint->m_nPieceTypeA <= 16)) {
-                                    if (ApplySoftCollision(entity, *colPoint, fThisDamageIntensity) &&
-                                        (colPoint->m_nSurfaceTypeA != SURFACE_WHEELBASE || colPoint->m_nSurfaceTypeB != SURFACE_WHEELBASE)) {
-                                        float fSurfaceFriction = g_surfaceInfos.GetAdhesiveLimit(colPoint);
-                                        if (ApplyFriction(fSurfaceFriction, *colPoint)) {
-                                            m_bHasContacted = true;
-                                        }
-                                        continue;
-                                    }
+                                    ApplySoftCollision(entity, *colPoint, fThisDamageIntensity);
                                 } else if (ApplyCollisionAlt(physicalEntity, *colPoint, fThisDamageIntensity, vecMoveSpeed, vecTurnSpeed)) {
                                     ++totalAcceptableColPoints;
                                     if (fThisDamageIntensity > fThisMaxDamageIntensity) {
                                         fThisMaxDamageIntensity = fThisDamageIntensity;
                                     }
 
+                                    if (IsVehicle()) {
+                                        if (!thisVehicle->IsBoat() || colPoint->m_nSurfaceTypeB != SURFACE_WOOD_SOLID) {
+                                            SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint, 1.0f);
+                                        }
+                                    } else {
+                                        SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint, 1.0f);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        for (int32 colPointIndex = 0; colPointIndex < totalColPointsToProcess; colPointIndex++) {
+                            CColPoint* colPoint = &colPoints[colPointIndex];
+                            if (bThisOrCollidedEntityStuck || (colPoint->m_nPieceTypeA >= 13 && colPoint->m_nPieceTypeA <= 16)) {
+                                if (ApplySoftCollision(entity, *colPoint, fThisDamageIntensity) &&
+                                    (colPoint->m_nSurfaceTypeA != SURFACE_WHEELBASE || colPoint->m_nSurfaceTypeB != SURFACE_WHEELBASE)) {
                                     float fSurfaceFriction = g_surfaceInfos.GetAdhesiveLimit(colPoint);
-                                    float fFriction = fSurfaceFriction / totalColPointsToProcess;
-                                    if (!IsVehicle()) {
-                                        fFriction *= 150.0f * fThisDamageIntensity;
-                                        SetDamagedPieceRecord(fThisDamageIntensity, entity, *colPoint, 1.0f);
-                                        if (ApplyFriction(fFriction, *colPoint)) {
-                                            m_bHasContacted = true;
-                                        }
-                                        continue;
+                                    if (ApplyFriction(fSurfaceFriction, *colPoint)) {
+                                        m_bHasContacted = true;
                                     }
-                                    if (!thisVehicle->IsBoat() || colPoint->m_nSurfaceTypeB != SURFACE_WOOD_SOLID) {
-                                        SetDamagedPieceRecord(fThisDamageIntensity, entity, *colPoint, 1.0f);
-                                    } else {
-                                        fFriction = 0.0f;
-                                    }
+                                    continue;
+                                }
+                            } else if (ApplyCollisionAlt(physicalEntity, *colPoint, fThisDamageIntensity, vecMoveSpeed, vecTurnSpeed)) {
+                                ++totalAcceptableColPoints;
+                                if (fThisDamageIntensity > fThisMaxDamageIntensity) {
+                                    fThisMaxDamageIntensity = fThisDamageIntensity;
+                                }
 
-                                    if (m_nModelIndex == MODEL_RCBANDIT) {
-                                        fFriction *= 0.2f;
-                                    } else {
-                                        if (thisVehicle->IsBoat()) {
-                                            if (colPoint->m_vecNormal.z > 0.6f) {
-                                                if (g_surfaceInfos.GetAdhesionGroup(colPoint->m_nSurfaceTypeB) == ADHESION_GROUP_LOOSE ||
-                                                    g_surfaceInfos.GetAdhesionGroup(colPoint->m_nSurfaceTypeB) == ADHESION_GROUP_SAND) {
-                                                    fFriction *= 3.0f;
-                                                }
-                                            } else {
-                                                fFriction = 0.0f;
-                                            }
-                                        }
-
-                                        if (!thisVehicle->IsTrain()) {
-                                            if (m_nStatus == STATUS_WRECKED) {
-                                                fFriction *= 3.0f;
-                                            } else {
-                                                if (GetUp().z > 0.3f && m_vecMoveSpeed.SquaredMagnitude() < 0.02f && m_vecTurnSpeed.SquaredMagnitude() < 0.01f) {
-                                                    fFriction = 0.0f;
-                                                } else {
-                                                    if (m_nStatus != STATUS_ABANDONED && DotProduct(&colPoint->m_vecNormal, &GetUp()) >= 0.707f) {
-                                                    } else {
-                                                        fFriction = 150.0f / m_fMass * fFriction * fThisDamageIntensity;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    if (IsVehicle() && thisVehicle->IsSubTrain()) {
-                                        fFriction = fFriction + fFriction;
-                                    }
+                                float fSurfaceFriction = g_surfaceInfos.GetAdhesiveLimit(colPoint);
+                                float fFriction = fSurfaceFriction / totalColPointsToProcess;
+                                if (!IsVehicle()) {
+                                    fFriction *= 150.0f * fThisDamageIntensity;
+                                    SetDamagedPieceRecord(fThisDamageIntensity, entity, *colPoint, 1.0f);
                                     if (ApplyFriction(fFriction, *colPoint)) {
                                         m_bHasContacted = true;
                                     }
+                                    continue;
                                 }
-                            }
-                        }
-                    }
-
-                    if (totalAcceptableColPoints) {
-                        float fSpeedFactor = 1.0f / totalAcceptableColPoints;
-                        m_vecMoveSpeed += vecMoveSpeed * fSpeedFactor;
-                        m_vecTurnSpeed += vecTurnSpeed * fSpeedFactor;
-                        if (!CWorld::bNoMoreCollisionTorque) {
-                            if (!m_nStatus && IsVehicle()) {
-                                float fThisMoveSpeedX = m_vecMoveSpeed.x;
-                                if (m_vecMoveSpeed.x < 0.0f) {
-                                    fThisMoveSpeedX = -fThisMoveSpeedX;
-                                }
-
-                                if (fThisMoveSpeedX > 0.2f) {
-                                    float fThisMoveSpeedY = m_vecMoveSpeed.y;
-                                    if (m_vecMoveSpeed.y < 0.0f) {
-                                        fThisMoveSpeedY = -fThisMoveSpeedY;
-                                    }
-                                    if (fThisMoveSpeedY > 0.2f) {
-                                        if (!physicalFlags.bSubmergedInWater) {
-                                            m_vecFrictionMoveSpeed.x -= vecMoveSpeed.x * 0.3f / (float)totalColPointsToProcess;
-                                            m_vecFrictionMoveSpeed.y -= vecMoveSpeed.y * 0.3f / (float)totalColPointsToProcess;
-                                            m_vecFrictionTurnSpeed += (vecTurnSpeed * -0.3f) / (float)totalColPointsToProcess;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (entity->IsObject() && entityObject->m_nColDamageEffect && fThisMaxDamageIntensity > 20.0f) {
-                            entityObject->ObjectDamage(fThisMaxDamageIntensity, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, this, WEAPON_UNIDENTIFIED);
-                        }
-                        if (!CWorld::bSecondShift) {
-                            return true;
-                        }
-
-                        bResult = true;
-                    }
-                } else {
-                    entity->SetCurrentScanCode() ;
-
-                    int32 totalAcceptableColPoints = 0;
-                    int32 totalColPointsToProcess = ProcessEntityCollision(physicalEntity, &colPoints[0]);
-                    if (totalColPointsToProcess <= 0)
-                        continue;
-
-                    fThisMaxDamageIntensity = 0.0f;
-                    fEntityMaxDamageIntensity = 0.0f;
-                    if (m_bHasContacted && entity->m_bHasContacted) {
-                        if (totalColPointsToProcess > 0) {
-                            for (int32 colPointIndex4 = 0; colPointIndex4 < totalColPointsToProcess; colPointIndex4++) {
-                                CColPoint* colPoint2 = &colPoints[colPointIndex4];
-                                if (bThisOrCollidedEntityStuck || (colPoint2->m_nPieceTypeA >= 13 && colPoint2->m_nPieceTypeA <= 16) ||
-                                    (colPoint2->m_nPieceTypeB >= 13 && colPoint2->m_nPieceTypeB <= 16)) {
-                                    ++totalAcceptableColPoints;
-                                    ApplySoftCollision(physicalEntity, *colPoint2, fThisDamageIntensity, fEntityDamageIntensity);
+                                if (!thisVehicle->IsBoat() || colPoint->m_nSurfaceTypeB != SURFACE_WOOD_SOLID) {
+                                    SetDamagedPieceRecord(fThisDamageIntensity, entity, *colPoint, 1.0f);
                                 } else {
-                                    if (ApplyCollision(entity, *colPoint2, fThisDamageIntensity, fEntityDamageIntensity)) {
-                                        if (fThisDamageIntensity > fThisMaxDamageIntensity) {
-                                            fThisMaxDamageIntensity = fThisDamageIntensity;
-                                        }
-                                        if (fEntityDamageIntensity > fEntityMaxDamageIntensity) {
-                                            fEntityMaxDamageIntensity = fEntityDamageIntensity;
-                                        }
-
-                                        SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint2, 1.0f);
-                                        physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint2, -1.0f);
-                                    }
+                                    fFriction = 0.0f;
                                 }
-                            }
-                        }
-                    } else if (m_bHasContacted) {
-                        m_bHasContacted = false;
-                        CVector vecThisFrictionMoveSpeed = m_vecFrictionMoveSpeed;
-                        CVector vecThisFrictionTurnSpeed = m_vecFrictionTurnSpeed;
-                        ResetFrictionMoveSpeed();
-                        ResetFrictionTurnSpeed();
-                        if (totalColPointsToProcess > 0) {
-                            for (int32 colPointIndex1 = 0; colPointIndex1 < totalColPointsToProcess; colPointIndex1++) {
-                                CColPoint* colPoint1 = &colPoints[colPointIndex1];
-                                if (bThisOrCollidedEntityStuck || (colPoint1->m_nPieceTypeA >= 13 && colPoint1->m_nPieceTypeA <= 16) ||
-                                    (colPoint1->m_nPieceTypeB >= 13 && colPoint1->m_nPieceTypeB <= 16)) {
-                                    ++totalAcceptableColPoints;
-                                    ApplySoftCollision(physicalEntity, *colPoint1, fThisDamageIntensity, fEntityDamageIntensity);
-                                    if (colPoint1->m_nPieceTypeB >= 13 && colPoint1->m_nPieceTypeB <= 16) {
-                                        physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint1, -1.0f);
-                                    }
-                                } else if (ApplyCollision(physicalEntity, *colPoint1, fThisDamageIntensity, fEntityDamageIntensity)) {
-                                    if (fThisDamageIntensity > fThisMaxDamageIntensity) {
-                                        fThisMaxDamageIntensity = fThisDamageIntensity;
-                                    }
-                                    if (fEntityDamageIntensity > fEntityMaxDamageIntensity) {
-                                        fEntityMaxDamageIntensity = fEntityDamageIntensity;
-                                    }
 
-                                    SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint1, 1.0f);
-                                    physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint1, -1.0f);
-
-                                    float fSurfaceFriction1 = g_surfaceInfos.GetAdhesiveLimit(colPoint1);
-                                    float fFriction3 = fSurfaceFriction1 / totalColPointsToProcess;
-                                    if (IsVehicle() && entity->IsVehicle() &&
-                                        (m_vecMoveSpeed.SquaredMagnitude() > 0.02f || m_vecTurnSpeed.SquaredMagnitude() > 0.01f)) {
-                                        fFriction3 *= 1.0f * fThisDamageIntensity;
-                                    }
-
-                                    if (entity->IsStatic()) {
-                                        if (ApplyFriction(fFriction3, *colPoint1)) {
-                                            m_bHasContacted = true;
-                                        }
-                                    } else if (ApplyFriction(physicalEntity, fFriction3, *colPoint1)) {
-                                        m_bHasContacted = true;
-                                        entity->m_bHasContacted = true;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (!m_bHasContacted) {
-                            m_bHasContacted = true;
-                            m_vecFrictionMoveSpeed = vecThisFrictionMoveSpeed;
-                            m_vecFrictionTurnSpeed = vecThisFrictionTurnSpeed;
-                        }
-                    } else {
-                        if (entity->m_bHasContacted) {
-                            entity->m_bHasContacted = false;
-                            CVector vecEntityMoveSpeed = physicalEntity->m_vecFrictionMoveSpeed;
-                            CVector vecEntityFrictionTurnSpeed = physicalEntity->m_vecFrictionTurnSpeed;
-                            physicalEntity->ResetFrictionMoveSpeed();
-                            physicalEntity->ResetFrictionTurnSpeed();
-
-                            if (totalColPointsToProcess > 0) {
-                                for (int32 colPointIndex3 = 0; colPointIndex3 < totalColPointsToProcess; colPointIndex3++) {
-                                    CColPoint* colPoint4 = &colPoints[colPointIndex3];
-                                    if (bThisOrCollidedEntityStuck || (colPoint4->m_nPieceTypeA >= 13 && colPoint4->m_nPieceTypeA <= 16) ||
-                                        (colPoint4->m_nPieceTypeB >= 13 && colPoint4->m_nPieceTypeB <= 16)) {
-                                        ++totalAcceptableColPoints;
-                                        ApplySoftCollision(physicalEntity, *colPoint4, fThisDamageIntensity, fEntityDamageIntensity);
-                                        if (colPoint4->m_nPieceTypeB >= 13 && colPoint4->m_nPieceTypeB <= 16) {
-                                            physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint4, -1.0f);
-                                        }
-                                    } else if (ApplyCollision(physicalEntity, *colPoint4, fThisDamageIntensity, fEntityDamageIntensity)) {
-                                        if (fThisDamageIntensity > fThisMaxDamageIntensity) {
-                                            fThisMaxDamageIntensity = fThisDamageIntensity;
-                                        }
-
-                                        if (fEntityDamageIntensity > fEntityMaxDamageIntensity) {
-                                            fEntityMaxDamageIntensity = fEntityDamageIntensity;
-                                        }
-
-                                        SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint4, 1.0f);
-                                        physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint4, -1.0f);
-
-                                        float fSurfaceFriction1 = g_surfaceInfos.GetAdhesiveLimit(colPoint4);
-
-                                        float fFriction2 = fSurfaceFriction1 / totalColPointsToProcess;
-                                        if (IsVehicle() && entity->IsVehicle() &&
-                                            (m_vecMoveSpeed.SquaredMagnitude() > 0.02f || m_vecTurnSpeed.SquaredMagnitude() > 0.01f)) {
-                                            fFriction2 *= 1.0f * fThisDamageIntensity;
-                                        }
-
-                                        if (entity->IsStatic()) {
-                                            if (ApplyFriction(fFriction2, *colPoint4)) {
-                                                m_bHasContacted = true;
+                                if (m_nModelIndex == MODEL_RCBANDIT) {
+                                    fFriction *= 0.2f;
+                                } else {
+                                    if (thisVehicle->IsBoat()) {
+                                        if (colPoint->m_vecNormal.z > 0.6f) {
+                                            if (g_surfaceInfos.GetAdhesionGroup(colPoint->m_nSurfaceTypeB) == ADHESION_GROUP_LOOSE ||
+                                                g_surfaceInfos.GetAdhesionGroup(colPoint->m_nSurfaceTypeB) == ADHESION_GROUP_SAND) {
+                                                fFriction *= 3.0f;
                                             }
-                                        } else if (ApplyFriction(physicalEntity, fFriction2, *colPoint4)) {
-                                            m_bHasContacted = true;
-                                            entity->m_bHasContacted = true;
+                                        } else {
+                                            fFriction = 0.0f;
+                                        }
+                                    }
+
+                                    if (!thisVehicle->IsTrain()) {
+                                        if (m_nStatus == STATUS_WRECKED) {
+                                            fFriction *= 3.0f;
+                                        } else {
+                                            if (GetUp().z > 0.3f && m_vecMoveSpeed.SquaredMagnitude() < 0.02f && m_vecTurnSpeed.SquaredMagnitude() < 0.01f) {
+                                                fFriction = 0.0f;
+                                            } else {
+                                                if (m_nStatus != STATUS_ABANDONED && DotProduct(&colPoint->m_vecNormal, &GetUp()) >= 0.707f) {
+                                                } else {
+                                                    fFriction = 150.0f / m_fMass * fFriction * fThisDamageIntensity;
+                                                }
+                                            }
                                         }
                                     }
                                 }
+
+                                if (IsVehicle() && thisVehicle->IsSubTrain()) {
+                                    fFriction = fFriction + fFriction;
+                                }
+                                if (ApplyFriction(fFriction, *colPoint)) {
+                                    m_bHasContacted = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (totalAcceptableColPoints) {
+                    float fSpeedFactor = 1.0f / totalAcceptableColPoints;
+                    m_vecMoveSpeed += vecMoveSpeed * fSpeedFactor;
+                    m_vecTurnSpeed += vecTurnSpeed * fSpeedFactor;
+                    if (!CWorld::bNoMoreCollisionTorque) {
+                        if (!m_nStatus && IsVehicle()) {
+                            float fThisMoveSpeedX = m_vecMoveSpeed.x;
+                            if (m_vecMoveSpeed.x < 0.0f) {
+                                fThisMoveSpeedX = -fThisMoveSpeedX;
                             }
 
-                            if (!entity->m_bHasContacted) {
-                                entity->m_bHasContacted = true;
-                                physicalEntity->m_vecFrictionMoveSpeed = vecEntityMoveSpeed;
-                                physicalEntity->m_vecFrictionTurnSpeed = vecEntityFrictionTurnSpeed;
-                            }
-                        } else if (totalColPointsToProcess > 0) {
-                            for (int32 colPointIndex2 = 0; colPointIndex2 < totalColPointsToProcess; colPointIndex2++) {
-                                CColPoint* colPoint3 = &colPoints[colPointIndex2];
-                                if (bThisOrCollidedEntityStuck || (colPoint3->m_nPieceTypeA >= 13 && colPoint3->m_nPieceTypeA <= 16)
-                                    // || (colPoint3->m_nPieceTypeA >= 13 && colPoint3->m_nPieceTypeA <= 16) // BUG: I think it should be m_nPieceTypeB
-                                ) {
-                                    ++totalAcceptableColPoints;
-                                    ApplySoftCollision(physicalEntity, *colPoint3, fThisDamageIntensity, fEntityDamageIntensity);
-                                    if (colPoint3->m_nPieceTypeB >= 13 && colPoint3->m_nPieceTypeB <= 16) {
-                                        physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint3, -1.0f);
-                                    }
-                                } else if (ApplyCollision(physicalEntity, *colPoint3, fThisDamageIntensity, fEntityDamageIntensity)) {
-                                    if (fThisDamageIntensity > fThisMaxDamageIntensity) {
-                                        fThisMaxDamageIntensity = fThisDamageIntensity;
-                                    }
-
-                                    if (fEntityDamageIntensity > fEntityMaxDamageIntensity) {
-                                        fEntityMaxDamageIntensity = fEntityDamageIntensity;
-                                    }
-
-                                    SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint3, 1.0f);
-                                    physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint3, -1.0f);
-
-                                    float fSurfaceFirction2 = g_surfaceInfos.GetAdhesiveLimit(colPoint3);
-                                    float fFriction1 = fSurfaceFirction2 / totalColPointsToProcess;
-                                    if (IsVehicle() && entity->IsVehicle() &&
-                                        (m_vecMoveSpeed.SquaredMagnitude() > 0.02f || m_vecTurnSpeed.SquaredMagnitude() > 0.01f)) {
-                                        fFriction1 *= 1.0f * fThisDamageIntensity;
-                                    }
-
-                                    if (entity->IsStatic()) {
-                                        if (ApplyFriction(fFriction1, *colPoint3)) {
-                                            m_bHasContacted = true;
-                                        }
-                                    } else if (ApplyFriction(physicalEntity, fFriction1, *colPoint3)) {
-                                        m_bHasContacted = true;
-                                        entity->m_bHasContacted = true;
+                            if (fThisMoveSpeedX > 0.2f) {
+                                float fThisMoveSpeedY = m_vecMoveSpeed.y;
+                                if (m_vecMoveSpeed.y < 0.0f) {
+                                    fThisMoveSpeedY = -fThisMoveSpeedY;
+                                }
+                                if (fThisMoveSpeedY > 0.2f) {
+                                    if (!physicalFlags.bSubmergedInWater) {
+                                        m_vecFrictionMoveSpeed.x -= vecMoveSpeed.x * 0.3f / (float)totalColPointsToProcess;
+                                        m_vecFrictionMoveSpeed.y -= vecMoveSpeed.y * 0.3f / (float)totalColPointsToProcess;
+                                        m_vecFrictionTurnSpeed += (vecTurnSpeed * -0.3f) / (float)totalColPointsToProcess;
                                     }
                                 }
                             }
                         }
                     }
 
-                    if (entity->IsPed() && IsVehicle()) {
-                        float fThisMoveSpeedDot = m_vecMoveSpeed.SquaredMagnitude();
-                        if (!entityPed->IsPlayer() || entity->m_bIsStuck && m_vecMoveSpeed.SquaredMagnitude() > 0.0025f) {
-                            entityPed->KillPedWithCar(AsVehicle(), fEntityMaxDamageIntensity, false);
-                        }
-                    } else if (IsPed() && entity->IsVehicle() && entityVehicle->IsSubTrain() &&
-                               (DotProduct(&entityVehicle->m_vecMoveSpeed, &m_vecLastCollisionImpactVelocity) > 0.2f ||
-                                thisPed->bFallenDown && entityVehicle->m_vecMoveSpeed.SquaredMagnitude() > 0.0005f)) {
-                        float fDamageIntensity = fThisMaxDamageIntensity + fThisMaxDamageIntensity;
-                        thisPed->KillPedWithCar(entityVehicle, fDamageIntensity, false);
-                    } else if (entity->IsObject() && IsVehicle() && entity->m_bUsesCollision) {
-                        if (entityObject->m_nColDamageEffect && fEntityMaxDamageIntensity > 20.0f) {
-                            entityObject->ObjectDamage(fEntityMaxDamageIntensity, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, this, WEAPON_RUNOVERBYCAR);
-                        } else {
-                            if (entityObject->m_nColDamageEffect >= COL_DAMAGE_EFFECT_SMASH_COMPLETELY) {
-                                CBaseModelInfo* pEntityModelInfo = CModelInfo::GetModelInfo(entity->m_nModelIndex);
-                                CColModel* colModel = pEntityModelInfo->GetColModel();
-                                CVector boundBoxPos = entity->GetMatrix() * colModel->m_boundBox.GetSize();
-
-                                bool bObjectDamage = false;
-                                if (GetPosition().z > boundBoxPos.z) {
-                                    bObjectDamage = true;
-                                } else {
-                                    CMatrix invertedMatrix;
-                                    invertedMatrix = Invert(*m_matrix, invertedMatrix);
-                                    if ((invertedMatrix * boundBoxPos).z < 0.0f)
-                                        bObjectDamage = true;
-                                }
-                                if (bObjectDamage)
-                                    entityObject->ObjectDamage(50.0f, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, this, WEAPON_RUNOVERBYCAR);
-                            }
-                        }
-                    } else if (IsObject() && entity->IsVehicle() && m_bUsesCollision) {
-                        if (thisObject->m_nColDamageEffect && fEntityMaxDamageIntensity > 20.0f) {
-                            thisObject->ObjectDamage(fEntityMaxDamageIntensity, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, entity, WEAPON_RUNOVERBYCAR);
-                        } else {
-                            // BUG: entity is a vehicle here, but we are treating it as an object?
-                            if (entityObject->m_nColDamageEffect >= COL_DAMAGE_EFFECT_SMASH_COMPLETELY) {
-
-                                CColModel* colModel = mi->GetColModel();
-                                CVector boundBoxPos = (*m_matrix) * colModel->m_boundBox.GetSize();
-
-                                bool bObjectDamage = false;
-                                if (boundBoxPos.z < entity->GetPosition().z) {
-                                    bObjectDamage = true;
-                                } else {
-                                    CMatrix invertedMatrix;
-                                    invertedMatrix = Invert(entity->GetMatrix(), invertedMatrix);
-                                    if ((invertedMatrix * boundBoxPos).z < 0.0f)
-                                        bObjectDamage = true;
-                                }
-
-                                if (bObjectDamage)
-                                    thisObject->ObjectDamage(50.0f, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, entity, WEAPON_RUNOVERBYCAR);
-                            }
-                        }
+                    if (entity->IsObject() && entityObject->m_nColDamageEffect && fThisMaxDamageIntensity > 20.0f) {
+                        entityObject->ObjectDamage(fThisMaxDamageIntensity, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, this, WEAPON_UNIDENTIFIED);
                     }
-
-                    if (entity->m_nStatus == STATUS_SIMPLE) {
-                        entity->m_nStatus = STATUS_PHYSICS;
-                        if (entity->IsVehicle()) {
-                            CCarCtrl::SwitchVehicleToRealPhysics(entityVehicle);
-                        }
-                    }
-                    if (CWorld::bSecondShift) {
-                        bResult = true;
-                    } else if (totalColPointsToProcess > totalAcceptableColPoints) {
+                    if (!CWorld::bSecondShift) {
                         return true;
                     }
+
+                    bResult = true;
+                }
+            } else {
+                entity->SetCurrentScanCode() ;
+
+                int32 totalAcceptableColPoints = 0;
+                int32 totalColPointsToProcess = ProcessEntityCollision(physicalEntity, &colPoints[0]);
+                if (totalColPointsToProcess <= 0)
+                    continue;
+
+                fThisMaxDamageIntensity = 0.0f;
+                fEntityMaxDamageIntensity = 0.0f;
+                if (m_bHasContacted && entity->m_bHasContacted) {
+                    if (totalColPointsToProcess > 0) {
+                        for (int32 colPointIndex4 = 0; colPointIndex4 < totalColPointsToProcess; colPointIndex4++) {
+                            CColPoint* colPoint2 = &colPoints[colPointIndex4];
+                            if (bThisOrCollidedEntityStuck || (colPoint2->m_nPieceTypeA >= 13 && colPoint2->m_nPieceTypeA <= 16) ||
+                                (colPoint2->m_nPieceTypeB >= 13 && colPoint2->m_nPieceTypeB <= 16)) {
+                                ++totalAcceptableColPoints;
+                                ApplySoftCollision(physicalEntity, *colPoint2, fThisDamageIntensity, fEntityDamageIntensity);
+                            } else {
+                                if (ApplyCollision(entity, *colPoint2, fThisDamageIntensity, fEntityDamageIntensity)) {
+                                    if (fThisDamageIntensity > fThisMaxDamageIntensity) {
+                                        fThisMaxDamageIntensity = fThisDamageIntensity;
+                                    }
+                                    if (fEntityDamageIntensity > fEntityMaxDamageIntensity) {
+                                        fEntityMaxDamageIntensity = fEntityDamageIntensity;
+                                    }
+
+                                    SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint2, 1.0f);
+                                    physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint2, -1.0f);
+                                }
+                            }
+                        }
+                    }
+                } else if (m_bHasContacted) {
+                    m_bHasContacted = false;
+                    CVector vecThisFrictionMoveSpeed = m_vecFrictionMoveSpeed;
+                    CVector vecThisFrictionTurnSpeed = m_vecFrictionTurnSpeed;
+                    ResetFrictionMoveSpeed();
+                    ResetFrictionTurnSpeed();
+                    if (totalColPointsToProcess > 0) {
+                        for (int32 colPointIndex1 = 0; colPointIndex1 < totalColPointsToProcess; colPointIndex1++) {
+                            CColPoint* colPoint1 = &colPoints[colPointIndex1];
+                            if (bThisOrCollidedEntityStuck || (colPoint1->m_nPieceTypeA >= 13 && colPoint1->m_nPieceTypeA <= 16) ||
+                                (colPoint1->m_nPieceTypeB >= 13 && colPoint1->m_nPieceTypeB <= 16)) {
+                                ++totalAcceptableColPoints;
+                                ApplySoftCollision(physicalEntity, *colPoint1, fThisDamageIntensity, fEntityDamageIntensity);
+                                if (colPoint1->m_nPieceTypeB >= 13 && colPoint1->m_nPieceTypeB <= 16) {
+                                    physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint1, -1.0f);
+                                }
+                            } else if (ApplyCollision(physicalEntity, *colPoint1, fThisDamageIntensity, fEntityDamageIntensity)) {
+                                if (fThisDamageIntensity > fThisMaxDamageIntensity) {
+                                    fThisMaxDamageIntensity = fThisDamageIntensity;
+                                }
+                                if (fEntityDamageIntensity > fEntityMaxDamageIntensity) {
+                                    fEntityMaxDamageIntensity = fEntityDamageIntensity;
+                                }
+
+                                SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint1, 1.0f);
+                                physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint1, -1.0f);
+
+                                float fSurfaceFriction1 = g_surfaceInfos.GetAdhesiveLimit(colPoint1);
+                                float fFriction3 = fSurfaceFriction1 / totalColPointsToProcess;
+                                if (IsVehicle() && entity->IsVehicle() &&
+                                    (m_vecMoveSpeed.SquaredMagnitude() > 0.02f || m_vecTurnSpeed.SquaredMagnitude() > 0.01f)) {
+                                    fFriction3 *= 1.0f * fThisDamageIntensity;
+                                }
+
+                                if (entity->IsStatic()) {
+                                    if (ApplyFriction(fFriction3, *colPoint1)) {
+                                        m_bHasContacted = true;
+                                    }
+                                } else if (ApplyFriction(physicalEntity, fFriction3, *colPoint1)) {
+                                    m_bHasContacted = true;
+                                    entity->m_bHasContacted = true;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!m_bHasContacted) {
+                        m_bHasContacted = true;
+                        m_vecFrictionMoveSpeed = vecThisFrictionMoveSpeed;
+                        m_vecFrictionTurnSpeed = vecThisFrictionTurnSpeed;
+                    }
+                } else {
+                    if (entity->m_bHasContacted) {
+                        entity->m_bHasContacted = false;
+                        CVector vecEntityMoveSpeed = physicalEntity->m_vecFrictionMoveSpeed;
+                        CVector vecEntityFrictionTurnSpeed = physicalEntity->m_vecFrictionTurnSpeed;
+                        physicalEntity->ResetFrictionMoveSpeed();
+                        physicalEntity->ResetFrictionTurnSpeed();
+
+                        if (totalColPointsToProcess > 0) {
+                            for (int32 colPointIndex3 = 0; colPointIndex3 < totalColPointsToProcess; colPointIndex3++) {
+                                CColPoint* colPoint4 = &colPoints[colPointIndex3];
+                                if (bThisOrCollidedEntityStuck || (colPoint4->m_nPieceTypeA >= 13 && colPoint4->m_nPieceTypeA <= 16) ||
+                                    (colPoint4->m_nPieceTypeB >= 13 && colPoint4->m_nPieceTypeB <= 16)) {
+                                    ++totalAcceptableColPoints;
+                                    ApplySoftCollision(physicalEntity, *colPoint4, fThisDamageIntensity, fEntityDamageIntensity);
+                                    if (colPoint4->m_nPieceTypeB >= 13 && colPoint4->m_nPieceTypeB <= 16) {
+                                        physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint4, -1.0f);
+                                    }
+                                } else if (ApplyCollision(physicalEntity, *colPoint4, fThisDamageIntensity, fEntityDamageIntensity)) {
+                                    if (fThisDamageIntensity > fThisMaxDamageIntensity) {
+                                        fThisMaxDamageIntensity = fThisDamageIntensity;
+                                    }
+
+                                    if (fEntityDamageIntensity > fEntityMaxDamageIntensity) {
+                                        fEntityMaxDamageIntensity = fEntityDamageIntensity;
+                                    }
+
+                                    SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint4, 1.0f);
+                                    physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint4, -1.0f);
+
+                                    float fSurfaceFriction1 = g_surfaceInfos.GetAdhesiveLimit(colPoint4);
+
+                                    float fFriction2 = fSurfaceFriction1 / totalColPointsToProcess;
+                                    if (IsVehicle() && entity->IsVehicle() &&
+                                        (m_vecMoveSpeed.SquaredMagnitude() > 0.02f || m_vecTurnSpeed.SquaredMagnitude() > 0.01f)) {
+                                        fFriction2 *= 1.0f * fThisDamageIntensity;
+                                    }
+
+                                    if (entity->IsStatic()) {
+                                        if (ApplyFriction(fFriction2, *colPoint4)) {
+                                            m_bHasContacted = true;
+                                        }
+                                    } else if (ApplyFriction(physicalEntity, fFriction2, *colPoint4)) {
+                                        m_bHasContacted = true;
+                                        entity->m_bHasContacted = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!entity->m_bHasContacted) {
+                            entity->m_bHasContacted = true;
+                            physicalEntity->m_vecFrictionMoveSpeed = vecEntityMoveSpeed;
+                            physicalEntity->m_vecFrictionTurnSpeed = vecEntityFrictionTurnSpeed;
+                        }
+                    } else if (totalColPointsToProcess > 0) {
+                        for (int32 colPointIndex2 = 0; colPointIndex2 < totalColPointsToProcess; colPointIndex2++) {
+                            CColPoint* colPoint3 = &colPoints[colPointIndex2];
+                            if (bThisOrCollidedEntityStuck || (colPoint3->m_nPieceTypeA >= 13 && colPoint3->m_nPieceTypeA <= 16)
+                                // || (colPoint3->m_nPieceTypeA >= 13 && colPoint3->m_nPieceTypeA <= 16) // BUG: I think it should be m_nPieceTypeB
+                            ) {
+                                ++totalAcceptableColPoints;
+                                ApplySoftCollision(physicalEntity, *colPoint3, fThisDamageIntensity, fEntityDamageIntensity);
+                                if (colPoint3->m_nPieceTypeB >= 13 && colPoint3->m_nPieceTypeB <= 16) {
+                                    physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint3, -1.0f);
+                                }
+                            } else if (ApplyCollision(physicalEntity, *colPoint3, fThisDamageIntensity, fEntityDamageIntensity)) {
+                                if (fThisDamageIntensity > fThisMaxDamageIntensity) {
+                                    fThisMaxDamageIntensity = fThisDamageIntensity;
+                                }
+
+                                if (fEntityDamageIntensity > fEntityMaxDamageIntensity) {
+                                    fEntityMaxDamageIntensity = fEntityDamageIntensity;
+                                }
+
+                                SetDamagedPieceRecord(fThisDamageIntensity, physicalEntity, *colPoint3, 1.0f);
+                                physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint3, -1.0f);
+
+                                float fSurfaceFirction2 = g_surfaceInfos.GetAdhesiveLimit(colPoint3);
+                                float fFriction1 = fSurfaceFirction2 / totalColPointsToProcess;
+                                if (IsVehicle() && entity->IsVehicle() &&
+                                    (m_vecMoveSpeed.SquaredMagnitude() > 0.02f || m_vecTurnSpeed.SquaredMagnitude() > 0.01f)) {
+                                    fFriction1 *= 1.0f * fThisDamageIntensity;
+                                }
+
+                                if (entity->IsStatic()) {
+                                    if (ApplyFriction(fFriction1, *colPoint3)) {
+                                        m_bHasContacted = true;
+                                    }
+                                } else if (ApplyFriction(physicalEntity, fFriction1, *colPoint3)) {
+                                    m_bHasContacted = true;
+                                    entity->m_bHasContacted = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (entity->IsPed() && IsVehicle()) {
+                    float fThisMoveSpeedDot = m_vecMoveSpeed.SquaredMagnitude();
+                    if (!entityPed->IsPlayer() || entity->m_bIsStuck && m_vecMoveSpeed.SquaredMagnitude() > 0.0025f) {
+                        entityPed->KillPedWithCar(AsVehicle(), fEntityMaxDamageIntensity, false);
+                    }
+                } else if (IsPed() && entity->IsVehicle() && entityVehicle->IsSubTrain() &&
+                            (DotProduct(&entityVehicle->m_vecMoveSpeed, &m_vecLastCollisionImpactVelocity) > 0.2f ||
+                            thisPed->bFallenDown && entityVehicle->m_vecMoveSpeed.SquaredMagnitude() > 0.0005f)) {
+                    float fDamageIntensity = fThisMaxDamageIntensity + fThisMaxDamageIntensity;
+                    thisPed->KillPedWithCar(entityVehicle, fDamageIntensity, false);
+                } else if (entity->IsObject() && IsVehicle() && entity->m_bUsesCollision) {
+                    if (entityObject->m_nColDamageEffect && fEntityMaxDamageIntensity > 20.0f) {
+                        entityObject->ObjectDamage(fEntityMaxDamageIntensity, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, this, WEAPON_RUNOVERBYCAR);
+                    } else {
+                        if (entityObject->m_nColDamageEffect >= COL_DAMAGE_EFFECT_SMASH_COMPLETELY) {
+                            CBaseModelInfo* pEntityModelInfo = CModelInfo::GetModelInfo(entity->m_nModelIndex);
+                            CColModel* colModel = pEntityModelInfo->GetColModel();
+                            CVector boundBoxPos = entity->GetMatrix().TransformPoint(colModel->m_boundBox.GetSize());
+
+                            bool bObjectDamage = false;
+                            if (GetPosition().z > boundBoxPos.z) {
+                                bObjectDamage = true;
+                            } else {
+                                CMatrix invertedMatrix;
+                                invertedMatrix = Invert(*m_matrix, invertedMatrix);
+                                if ((invertedMatrix.TransformPoint(boundBoxPos)).z < 0.0f)
+                                    bObjectDamage = true;
+                            }
+                            if (bObjectDamage)
+                                entityObject->ObjectDamage(50.0f, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, this, WEAPON_RUNOVERBYCAR);
+                        }
+                    }
+                } else if (IsObject() && entity->IsVehicle() && m_bUsesCollision) {
+                    if (thisObject->m_nColDamageEffect && fEntityMaxDamageIntensity > 20.0f) {
+                        thisObject->ObjectDamage(fEntityMaxDamageIntensity, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, entity, WEAPON_RUNOVERBYCAR);
+                    } else {
+                        // BUG: entity is a vehicle here, but we are treating it as an object?
+                        if (entityObject->m_nColDamageEffect >= COL_DAMAGE_EFFECT_SMASH_COMPLETELY) {
+
+                            CColModel* colModel = mi->GetColModel();
+                            CVector boundBoxPos = (*m_matrix).TransformPoint(colModel->m_boundBox.GetSize());
+
+                            bool bObjectDamage = false;
+                            if (boundBoxPos.z < entity->GetPosition().z) {
+                                bObjectDamage = true;
+                            } else {
+                                CMatrix invertedMatrix;
+                                invertedMatrix = Invert(entity->GetMatrix(), invertedMatrix);
+                                if ((invertedMatrix.TransformPoint(boundBoxPos)).z < 0.0f)
+                                    bObjectDamage = true;
+                            }
+
+                            if (bObjectDamage)
+                                thisObject->ObjectDamage(50.0f, &colPoints[0].m_vecPoint, &CPhysical::fxDirection, entity, WEAPON_RUNOVERBYCAR);
+                        }
+                    }
+                }
+
+                if (entity->m_nStatus == STATUS_SIMPLE) {
+                    entity->m_nStatus = STATUS_PHYSICS;
+                    if (entity->IsVehicle()) {
+                        CCarCtrl::SwitchVehicleToRealPhysics(entityVehicle);
+                    }
+                }
+                if (CWorld::bSecondShift) {
+                    bResult = true;
+                } else if (totalColPointsToProcess > totalAcceptableColPoints) {
+                    return true;
                 }
             }
         }
-    } while (scanListIndex);
+        return false;
+    };
+    CSector* s = GetSector(sectorX, sectorY);
+    CRepeatSector* rs = GetRepeatSector(sectorX, sectorY);
+    if (   ProcessSectorList(s->m_buildings)
+        || ProcessSectorList(rs->Vehicles)
+        || ProcessSectorList(rs->Peds)
+        || ProcessSectorList(rs->Objects)
+    ) {
+        return true;
+    }
     return bResult;
 }
 
@@ -4538,62 +4468,34 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
     GetBoundCentre(&vecBoundingCentre);
 
     float fBoundingRadius = CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundRadius();
-    CPtrListDoubleLink* list = nullptr;
-
-    int32 scanListIndex = 2;
-    while (true) {
-        switch (--scanListIndex) {
-        case 0:
-            list = &repeatSector->GetList(REPEATSECTOR_VEHICLES);
-            break;
-        case 1:
-            list = &repeatSector->GetList(REPEATSECTOR_OBJECTS);
-            break;
-        }
-
-        if (list->GetNode()) {
-            break;
-        }
-
-        if (!scanListIndex) {
-            return false;
-        }
-    }
-
-    CEntity* entity = nullptr;
-    CPhysical* physicalEntity = nullptr;
 
     int32 totalColPointsToProcess = 0;
+    const auto ProcessSectorList = [&]<typename PtrListType>(PtrListType& list) -> CPhysical* {
+        for (auto* const entity : list) {
+            bool isLampTouchingGround = false;
+            if (entity->IsObject() && entity->AsObject()->IsFallenLampPost())
+                isLampTouchingGround = true;
 
-    CPtrNodeDoubleLink* node = list->GetNode();
-    while (node)
-    {
-        entity = reinterpret_cast<CEntity*>(node->m_item);
-        physicalEntity = entity->AsPhysical();
-        node = node->m_next;
-
-        bool isLampTouchingGround = false;
-        if (entity->IsObject() && entity->AsObject()->IsFallenLampPost())
-            isLampTouchingGround = true;
-
-        if (entity != this
-            && !isLampTouchingGround
-            && !entity->IsScanCodeCurrent())
-        {
-            if (entity->m_bUsesCollision && entity->GetIsTouching(vecBoundingCentre, fBoundingRadius)) {
-                entity->SetCurrentScanCode() ;
-                totalColPointsToProcess = ProcessEntityCollision(physicalEntity, &colPoints[0]);
-                if (totalColPointsToProcess > 0) {
-                    break;
+            if (entity != this
+                && !isLampTouchingGround
+                && !entity->IsScanCodeCurrent())
+            {
+                if (entity->m_bUsesCollision && entity->GetIsTouching(vecBoundingCentre, fBoundingRadius)) {
+                    entity->SetCurrentScanCode() ;
+                    totalColPointsToProcess = ProcessEntityCollision(entity, &colPoints[0]);
+                    if (totalColPointsToProcess > 0) {
+                        return entity;
+                    }
                 }
             }
         }
-    }
+        return nullptr;
+    };
 
-    if (!node)
-    {
-        if (!scanListIndex)
-        {
+    // Find entity we're colliding with
+    CPhysical* entity;
+    if (!(entity = ProcessSectorList(repeatSector->Vehicles))) {
+        if (!(entity = ProcessSectorList(repeatSector->Objects))) {
             return false;
         }
     }
@@ -4609,7 +4511,7 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
                 if (ApplyCollision(entity, *colPoint, fThisDamageIntensity, fEntityDamageIntensity))
                 {
                     SetDamagedPieceRecord(fThisDamageIntensity, entity, *colPoint, 1.0f);
-                    physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint, -1.0f);
+                    entity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint, -1.0f);
                 }
             }
         }
@@ -4630,10 +4532,10 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
                 if (ApplyCollision(entity, *colPoint, fThisDamageIntensity, fEntityDamageIntensity))
                 {
                     SetDamagedPieceRecord(fThisDamageIntensity, entity, *colPoint, 1.0f);
-                    physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint, -1.0f);
+                    entity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint, -1.0f);
                     float fSurfaceFriction = g_surfaceInfos.GetAdhesiveLimit(colPoint);
                     float fFriction = fSurfaceFriction / totalColPointsToProcess;
-                    if (ApplyFriction(physicalEntity, fFriction, *colPoint))
+                    if (ApplyFriction(entity, fFriction, *colPoint))
                     {
                         m_bHasContacted = true;
                         entity->m_bHasContacted = true;
@@ -4651,14 +4553,13 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
     }
     else
     {
-        assert(entity);
         if (entity->m_bHasContacted)
         {
-            assert(physicalEntity);
-            CVector vecOldFrictionMoveSpeed = physicalEntity->m_vecFrictionMoveSpeed;
-            CVector vecOldFrictionTurnSpeed = physicalEntity->m_vecFrictionTurnSpeed;
-            physicalEntity->ResetFrictionTurnSpeed();
-            physicalEntity->ResetFrictionMoveSpeed();
+            assert(entity);
+            CVector vecOldFrictionMoveSpeed = entity->m_vecFrictionMoveSpeed;
+            CVector vecOldFrictionTurnSpeed = entity->m_vecFrictionTurnSpeed;
+            entity->ResetFrictionTurnSpeed();
+            entity->ResetFrictionMoveSpeed();
             entity->m_bHasContacted = false;
 
             if (totalColPointsToProcess > 0)
@@ -4669,10 +4570,10 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
                     if (ApplyCollision(entity, *colPoint, fThisDamageIntensity, fEntityDamageIntensity))
                     {
                         SetDamagedPieceRecord(fThisDamageIntensity, entity, *colPoint, 1.0f);
-                        physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint, -1.0f);
+                        entity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint, -1.0f);
                         float fSurfaceFriction = g_surfaceInfos.GetAdhesiveLimit(colPoint);
                         float fFriction = fSurfaceFriction / totalColPointsToProcess;
-                        if (ApplyFriction(physicalEntity, fFriction, *colPoint))
+                        if (ApplyFriction(entity, fFriction, *colPoint))
                         {
                             m_bHasContacted = true;
                             entity->m_bHasContacted = true;
@@ -4682,8 +4583,8 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
             }
             if (!entity->m_bHasContacted)
             {
-                physicalEntity->m_vecFrictionMoveSpeed = vecOldFrictionMoveSpeed;
-                physicalEntity->m_vecFrictionTurnSpeed = vecOldFrictionTurnSpeed;
+                entity->m_vecFrictionMoveSpeed = vecOldFrictionMoveSpeed;
+                entity->m_vecFrictionTurnSpeed = vecOldFrictionTurnSpeed;
                 entity->m_bHasContacted = true;
             }
         }
@@ -4695,10 +4596,10 @@ bool CPhysical::ProcessCollisionSectorList_SimpleCar(CRepeatSector* repeatSector
                 if (ApplyCollision(entity, *colPoint, fThisDamageIntensity, fEntityDamageIntensity))
                 {
                     SetDamagedPieceRecord(fThisDamageIntensity, entity, *colPoint, 1.0f);
-                    physicalEntity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint, -1.0f);
+                    entity->SetDamagedPieceRecord(fEntityDamageIntensity, this, *colPoint, -1.0f);
                     float fSurfaceFriction = g_surfaceInfos.GetAdhesiveLimit(colPoint);
                     float fFriction = fSurfaceFriction / totalColPointsToProcess;
-                    if (ApplyFriction(physicalEntity, fFriction, *colPoint))
+                    if (ApplyFriction(entity, fFriction, *colPoint))
                     {
                         m_bHasContacted = true;
                         entity->m_bHasContacted = true;
@@ -4832,13 +4733,11 @@ bool CPhysical::CheckCollision()
         if (ped->IsPlayer()) {
             CTaskSimpleClimb* taskClimb = ped->m_pIntelligence->GetTaskClimb();
             if (taskClimb) {
-                switch (taskClimb->m_nHeightForPos) {
+                switch (taskClimb->GetHeightForPos()) {
                 case CLIMB_GRAB:
                 case CLIMB_PULLUP:
                 case CLIMB_STANDUP:
-                case CLIMB_VAULT:
-                    physicalFlags.bSkipLineCol = true;
-                    break;
+                case CLIMB_VAULT: physicalFlags.bSkipLineCol = true; break;
                 }
             }
         }
@@ -4846,8 +4745,7 @@ bool CPhysical::CheckCollision()
 
     CWorld::IncrementCurrentScanCode();
 
-    CRect boundRect;
-    GetBoundRect(&boundRect);
+    CRect boundRect = GetBoundRect();
     int32 startSectorX = CWorld::GetSectorX(boundRect.left);
     int32 startSectorY = CWorld::GetSectorY(boundRect.bottom);
     int32 endSectorX = CWorld::GetSectorX(boundRect.right);

@@ -148,7 +148,7 @@ void CheckFileEncoding(const char* file, uint16 version, uint16 encoding) {
             return std::format("{}-bit unknown", e);
         }
     };
-    DEV_LOG("Loading '{}' version={:02d} ({})", file, version, GetEncodingName(encoding));
+    NOTSA_LOG_DEBUG("Loading '{}' version={:02d} ({})", file, version, GetEncodingName(encoding));
     if (encoding != GAME_ENCODING) {
         NOTSA_UNREACHABLE("File {} was compiled with {} encoding but {} is required.", file, GetEncodingName(encoding), GetEncodingName(GAME_ENCODING));
     }
@@ -204,7 +204,8 @@ void CText::Load(bool keepMissionPack) {
     m_MainKeyArray.Update(m_MainText.m_data);
     CFileMgr::CloseFile(file);
 
-    strcpy_s(m_szCdErrorText, GxtCharToAscii(Get("CDERROR"), 0));
+    static char gxtErrText[255]{};
+    strcpy_s(m_szCdErrorText, GxtCharToUTF8(gxtErrText, Get("CDERROR")));
     m_bCdErrorLoaded = true;
 
     CFileMgr::SetDir("");
@@ -261,7 +262,7 @@ void CText::LoadMissionText(const char* mission) {
 
     char tablName[8]{0};
     CFileMgr::Read(file, tablName, sizeof(tablName));
-    // DEV_LOG("[CText]: Loaded a text table for mission: '{}'", tablName);
+    // NOTSA_LOG_DEBUG("[CText]: Loaded a text table for mission: '{}'", tablName);
     // RET_IGNORED(strncmp(tablName, mission, sizeof(tablName))); // ?
 
     uint32 offset = sizeof(uint16) * 2; // skip version and encoding
@@ -331,7 +332,7 @@ void CText::LoadMissionPackText() {
 
     bool bKey = false, bText = false;
     while (!bKey && !bText) {
-        if (ReadChunkHeader(&header, file, &offset, false)) {
+        if (!ReadChunkHeader(&header, file, &offset, false)) {
             m_bIsMissionPackLoaded = false;
             CFileMgr::CloseFile(file);
             return;
@@ -366,7 +367,7 @@ void CText::LoadMissionPackText() {
 }
 
 // 0x6A0050
-const char* CText::Get(const char* key) {
+const GxtChar* CText::Get(const char* key) {
     if (key[0] && key[0] != ' ') {
         bool found = false;
         auto str = m_MainKeyArray.Search(key, found);
@@ -392,7 +393,7 @@ const char* CText::Get(const char* key) {
 // Writes loaded mission text into outStr
 // 0x69FBD0
 void CText::GetNameOfLoadedMissionText(char* outStr) {
-    strcpy_s(outStr, std::size(m_szMissionName), m_szMissionName);
+    notsa::string_copy(outStr, m_szMissionName, std::size(m_szMissionName));
 }
 
 // 0x69F940

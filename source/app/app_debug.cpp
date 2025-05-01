@@ -197,6 +197,7 @@ LONG WINAPI WindowsExceptionHandler(PEXCEPTION_POINTERS pExceptionInfo) {
 }
 
 notsa::Logging::Logging() {
+    using namespace std::chrono_literals;
 #if 0
     while (!IsDebuggerPresent()) {
         Sleep(1);
@@ -213,7 +214,8 @@ notsa::Logging::Logging() {
     m_sinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 
     spdlog::set_default_logger(Create("default"));
-
+    spdlog::flush_every(100ms);
+    
     AddVectoredExceptionHandler(1, WindowsExceptionHandler);
 }
 

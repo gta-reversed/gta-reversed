@@ -3,7 +3,7 @@
 #include "TaskComplexKillPedOnFoot.h"
 
 void CTaskComplexKillPedOnFoot::InjectHooks() {
-    RH_ScopedClass(CTaskComplexKillPedOnFoot);
+    RH_ScopedVirtualClass(CTaskComplexKillPedOnFoot, 0x86D894, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x620E30);
 }

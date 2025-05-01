@@ -36,13 +36,13 @@ CTask* CTaskComplexBeInCouple::CreateFirstSubTask(CPed* ped) {
 
 // 0x6837F0
 void CTaskComplexBeInCouple::AbortArmIK(CPed* ped) {
-    if (IKChainManager_c::IsArmPointing(0, ped)) {
-        IKChainManager_c::AbortPointArm(0, ped, 250);
-    }
-
-    if (IKChainManager_c::IsArmPointing(1, ped)) {
-        IKChainManager_c::AbortPointArm(1, ped, 250);
-    }
+    const auto DoAbortArmIK = [ped](eIKArm arm) {
+        if (IKChainManager_c::IsArmPointing(arm, ped)) {
+            IKChainManager_c::AbortPointArm(arm, ped, 250);
+        }
+    };
+    DoAbortArmIK(eIKArm::IK_ARM_RIGHT);
+    DoAbortArmIK(eIKArm::IK_ARM_LEFT);
 }
 
 // 0x6847C0

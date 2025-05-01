@@ -119,7 +119,7 @@ void CSkidmark::Render() const {
         constexpr float coordsV[] = { 0.0f, 1.0f };
         const     RwRGBA color    = GetColorForPart(part);
         for (unsigned vert = 0; vert < 2; vert++) {
-            RxObjSpace3DVertex* vertex = &aTempBufferVertices[2 * part + vert];
+            RxObjSpace3DVertex* vertex = &TempBufferVertices.m_3d[2 * part + vert];
 
             RxObjSpace3DVertexSetPreLitColor(vertex, &color);
             RxObjSpace3DVertexSetPos(vertex, &pos[vert]);
@@ -130,7 +130,7 @@ void CSkidmark::Render() const {
 
     LittleTest();
 
-    if (RwIm3DTransform(aTempBufferVertices, 2 * m_nNumParts + 2, nullptr, rwIM3D_VERTEXUV)) {
+    if (RwIm3DTransform(TempBufferVertices.m_3d, 2 * m_nNumParts + 2, nullptr, rwIM3D_VERTEXUV)) {
         RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, CSkidmarks::m_aIndices, 6 * m_nNumParts);
         RwIm3DEnd();
     }

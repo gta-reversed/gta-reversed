@@ -18,7 +18,7 @@ enum eZoneType : uint8 {
 
 class CZone {
 public:
-    auto GetTranslatedName() const -> const char*;
+    auto GetTranslatedName() const -> const GxtChar*;
     auto GetInfoLabel()      const { return std::string_view{ m_InfoLabel }; }
     auto GetNaviLabel()      const { return std::string_view{ m_TextLabel }; }
     auto GetRect()           const { return CRect{ (float)m_fX1, (float)m_fY1, (float)m_fX2, (float)m_fY2 }; }
@@ -33,7 +33,7 @@ public:
     int16      m_fX2{};
     int16      m_fY2{};
     int16      m_fZ2{};
-    int16      m_nZoneExtraIndexInfo{};
+    int16      m_ZoneInfoIndex{};
     eZoneType  m_nType{};
     eLevelName m_nLevel{};
 

@@ -6,6 +6,7 @@
 #include "AECollisionAudioEntity.h"
 #include "AEGlobalWeaponAudioEntity.h"
 #include "AEPedlessSpeechAudioEntity.h"
+#include "AETrackLoader.h"
 
 class CEntity;
 class CColPoint;
@@ -13,19 +14,19 @@ class CVector;
 
 class tBeatInfo {
 public:
-    char  f0[12];
-    char  fC[148];
-    int32 m_beatInfoPresent;
-    char  fA4[8];
+    tTrackInfo::tBeat BeatWindow[20];
+    int32             IsBeatInfoPresent;
+    int32             BeatTypeThisFrame;
+    int32             BeatNumber;
 };
 VALIDATE_SIZE(tBeatInfo, 0xAC);
 
 class CAudioEngine {
 public:
-    bool                        field_0;
-    bool                        field_1;
-    RadioStationId              m_nCurrentRadioStationId;
-    RadioStationId              m_nSavedRadioStationId;
+    bool                        m_bPlayingMissionCompleteTrack;
+    bool                        m_bStoppingMissionCompleteTrack;
+    eRadioID                    m_nCurrentRadioStationId;
+    eRadioID                    m_nSavedRadioStationId;
     int32                       m_nBackgroundAudioChannel;
     tBeatInfo                   m_BeatInfo;
     CAEFrontendAudioEntity      m_FrontendAE;
@@ -72,8 +73,8 @@ public:
     static void EnableEffectsLoading();
     static void DisableEffectsLoading();
 
-    void ReportCollision(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, CVector& point, CVector* normal, float fCollisionImpact1, float fCollisionImpact2, bool playOnlyOneShotCollisionSound, bool unknown);
-    void ReportBulletHit(CEntity* entity, eSurfaceType surface, CVector& posn, float angleWithColPointNorm);
+    void ReportCollision(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, const CVector& pos, const CVector* normal, float fCollisionImpact1, float fCollisionImpact2, bool playOnlyOneShotCollisionSound, bool unknown);
+    void ReportBulletHit(CEntity* entity, eSurfaceType surface, const CVector& posn, float angleWithColPointNorm);
     void ReportObjectDestruction(CEntity* entity);
     void ReportGlassCollisionEvent(eAudioEvents glassSoundType, Const CVector& posn);
     void ReportWaterSplash(CVector posn, float volume);
@@ -87,21 +88,21 @@ public:
     void ReportMissionAudioEvent(uint16 eventId, CPhysical* physical, float a3, float a4);
     void ReportFrontendAudioEvent(eAudioEvents eventId, float volumeChange = 0.0f, float speed = 1.0f);
 
-    void InitialiseRadioStationID(RadioStationId id);
+    void InitialiseRadioStationID(eRadioID id);
     void StartRadio(tVehicleAudioSettings* settings);
-    void StartRadio(int8, int8);
+    void StartRadio(eRadioID id, int8 bassValue);
     void StopRadio(tVehicleAudioSettings* settings, bool bDuringPause);
     void SetRadioAutoRetuneOnOff(bool);
     void SetBassEnhanceOnOff(bool enable);
     void SetRadioBassSetting(int8);
     bool HasRadioRetuneJustStarted();
-    const char* GetRadioStationName(RadioStationId id);
-    void GetRadioStationNameKey(RadioStationId id, char* outStr);
+    const GxtChar* GetRadioStationName(eRadioID id);
+    void GetRadioStationNameKey(eRadioID id, char* outStr);
     int32* GetRadioStationListenTimes();
     void DisplayRadioStationName();
-    RadioStationId GetCurrentRadioStationID();
+    eRadioID GetCurrentRadioStationID();
     void PlayRadioAnnouncement(uint32);
-    void RetuneRadio(int8);
+    void RetuneRadio(eRadioID id);
 
     void PreloadCutsceneTrack(int16 trackId, bool wait);
     static void PlayPreloadedCutsceneTrack();
@@ -129,7 +130,7 @@ public:
     CVector* AttachMissionAudioToObject(uint8 sampleId, CObject* object);
     CVector* AttachMissionAudioToPhysical(uint8 sampleId, CPhysical* physical);
 
-    void SayPedless(int32 a1, int16 a2, CEntity* entity, uint32 playOffset, float a5, uint8 a6, uint8 a7, uint8 a8);
+    void SayPedless(eAudioEvents audioEvent, eGlobalSpeechContext gCtx, CEntity* attachTo, uint32 startTimeDelayMs, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd);
 
     void EnablePoliceScanner();
     void DisablePoliceScanner(uint8, uint8);
@@ -146,6 +147,18 @@ public:
     void Save();
     void Load();
 #endif
+private: // Wrappers for hooks
+
+    // 0x507670
+    CAudioEngine* Constructor() {
+        this->CAudioEngine::CAudioEngine();
+        return this;
+    }
+    // 0x506CD0
+    CAudioEngine* Destructor() {
+        this->CAudioEngine::~CAudioEngine();
+        return this;
+    }
 };
 
 VALIDATE_SIZE(CAudioEngine, 0x1FD8);

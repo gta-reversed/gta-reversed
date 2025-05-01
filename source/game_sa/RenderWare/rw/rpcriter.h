@@ -1,10 +1,3 @@
-/*
-    Plugin-SDK file
-    Authors: GTA Community. See more here
-    https://github.com/DK22Pac/plugin-sdk
-    Do not delete this comment block. Respect others' work!
-*/
-#pragma once
 /***************************************************************************
  * Module  : rpcriter.h                                                    *
  *                                                                         *
@@ -225,6 +218,13 @@
  * See \ref RwEngineRegisterPlugin
  */
 #define rwID_UVANIMPLUGIN    MAKECHUNKID(rwVENDORID_CRITERIONTK, 0x35)
+
+/**
+ * \ingroup rwengine
+ * \def rwID_ENVIRONMENTPLUGIN defines the pluginID for background environment
+ * settings for a scene. For internal use.
+ */
+#define rwID_ENVIRONMENTPLUGIN    MAKECHUNKID(rwVENDORID_CRITERIONTK, 0x36)
 
 /* These are toolkits */
 
@@ -447,5 +447,6 @@
  * See \ref RwEngineRegisterPlugin
  */
 #define rwID_UVANIMPARAM       MAKECHUNKID(rwVENDORID_CRITERIONTK, 0xc1)
+
 
 

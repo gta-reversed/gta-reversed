@@ -2,96 +2,71 @@
 
 #include "AEPedlessSpeechAudioEntity.h"
 
-// 0x4E6070
-CAEPedlessSpeechAudioEntity::CAEPedlessSpeechAudioEntity() : CAEPedSpeechAudioEntity() {
-    // NOP
+
+void CAEPedlessSpeechAudioEntity::InjectHooks() {
+    RH_ScopedVirtualClass(CAEPedlessSpeechAudioEntity, 0x85F330, 8);
+    RH_ScopedCategory("Audio/Entities");
+
+    RH_ScopedInstall(Constructor, 0x4E6070);
+    RH_ScopedInstall(Initialise, 0x4E4E10);
+    RH_ScopedInstall(StopCurrentSpeech, 0x4E4E80);
+    RH_ScopedInstall(AddSayEvent, 0x4E60D0);
+    RH_ScopedVMTInstall(IsPedFemaleForAudio, 0x4E60C0);
+    RH_ScopedVMTInstall(GetPedType, 0x4E60B0);
+    RH_ScopedVMTInstall(UpdateParameters, 0x4E4D10);
+    RH_ScopedVMTInstall(Terminate, 0x4E6300);
+    RH_ScopedVMTInstall(PlayLoadedSound, 0x4E6380);
+    RH_ScopedVMTInstall(GetAllocatedVoice, 0x4E6090);
+    RH_ScopedVMTInstall(WillPedChatAboutTopic, 0x4E60A0);
 }
 
 // 0x4E4E10
 void CAEPedlessSpeechAudioEntity::Initialise() {
-    m_pEntity                  = nullptr;
-    m_Entity                   = nullptr;
-    m_pSound                   = nullptr;
-    m_fVoiceVolume             = -100.0f;
-    m_nCurrentPhraseId         = -1;
-    m_bTalking                 = false;
-    m_bSpeechDisabled          = false;
-    m_bSpeechForScriptsDisabled= false;
-    m_nVocalEnableFlag         = 0;
-    field_9C                   = 0;
-    m_nVoiceGender             = 0;
-    m_nVoiceType               = 4;
-    f90                        = true;
-
-    memset(field_B4, 0, sizeof(field_B4));
-
+    *this = CAEPedlessSpeechAudioEntity{PED_TYPE_GFD};
 }
 
 // 0x4E4E80
 void CAEPedlessSpeechAudioEntity::StopCurrentSpeech() {
-    plugin::CallMethod<0x4E4E80, CAEPedlessSpeechAudioEntity*>(this);
+    if (!m_IsInitialized || !m_IsPlayingSpeech) {
+        return;
+    }
+    auto* const speech = GetCurrentSpeech();
+    if (speech->Status == CAEPedSpeechSlot::eStatus::PLAYING) {
+        if (const auto s = std::exchange(m_Sound, nullptr)) {
+            s->StopSoundAndForget();
+        }
+    }
+    *speech = {};
 }
 
 // 0x4E60D0
-int16 CAEPedlessSpeechAudioEntity::AddSayEvent(int32 a1, int16 a2, CEntity* entity, uint32 playOffset, float a6, bool a3, bool a8, bool a9) {
-    return plugin::CallMethodAndReturn<int16, 0x4E60D0, CAEPedlessSpeechAudioEntity*, int32, int16, CEntity*, uint32, float, bool, bool, bool>(this, a1, a2, entity, playOffset, a6, a3, a8, a9);
-}
-
-// 0x4E6080
-void CAEPedlessSpeechAudioEntity::AddScriptSayEvent(int32, int32, uint8, uint8, uint8) {
-    // NOP
+int16 CAEPedlessSpeechAudioEntity::AddSayEvent(eAudioEvents audioEvent, eGlobalSpeechContext gCtx, CEntity* attachTo, uint32 startTimeDelayMs, float probability, bool overrideSilence, bool isForceAudible, bool isFrontEnd) {
+    if (!attachTo) {
+        return -1;
+    }
+    m_AttachedTo = attachTo;
+    return I_AddSayEvent<true>(attachTo->GetPosition(), audioEvent, gCtx, startTimeDelayMs, probability, overrideSilence, isForceAudible, isFrontEnd);
 }
 
 // 0x4E4D10
-void CAEPedlessSpeechAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
-    plugin::CallMethod<0x4E4D10, CAEPedlessSpeechAudioEntity*, CAESound*, int16>(this, sound, curPlayPos);
+void CAEPedlessSpeechAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
+    return I_UpdateParameters<true>(sound, playTime);
 }
 
 // 0x4E6300
 void CAEPedlessSpeechAudioEntity::Terminate() {
-    plugin::CallMethod<0x4E6300, CAEPedlessSpeechAudioEntity*>(this);
+    StopCurrentSpeech();
+    *this = CAEPedlessSpeechAudioEntity{};
 }
 
 // 0x4E6380
 void CAEPedlessSpeechAudioEntity::PlayLoadedSound() {
-    plugin::CallMethod<0x4E6380, CAEPedlessSpeechAudioEntity*>(this);
-}
-
-// 0x4E6090
-int16 CAEPedlessSpeechAudioEntity::GetAllocatedVoice() {
-    return -1;
-}
-
-// 0x4E60A0
-bool CAEPedlessSpeechAudioEntity::WillPedChatAboutTopic(int16) {
-    return false;
-}
-
-// 0x4E60B0
-int16 CAEPedlessSpeechAudioEntity::GetPedType() {
-    return -1;
-}
-
-// 0x4E60C0
-bool CAEPedlessSpeechAudioEntity::IsPedFemaleForAudio() {
-    return false;
-}
-
-void CAEPedlessSpeechAudioEntity::InjectHooks() {
-    RH_ScopedClass(CAEPedlessSpeechAudioEntity);
-    RH_ScopedCategory("Audio/Entities");
-
-    RH_ScopedInstall(Constructor, 0x4E6070, { .reversed = false });
-    RH_ScopedInstall(GetPedType, 0x4E60B0);
-    RH_ScopedInstall(IsPedFemaleForAudio, 0x4E60C0);
-    RH_ScopedInstall(Initialise, 0x4E4E10, { .reversed = false });
-    RH_ScopedInstall(StopCurrentSpeech, 0x4E4E80, { .reversed = false });
-    RH_ScopedInstall(AddSayEvent, 0x4E60D0, { .reversed = false });
-    RH_ScopedVirtualInstall(UpdateParameters, 0x4E4D10, { .reversed = false });
-    RH_ScopedVirtualInstall(Terminate, 0x4E6300, { .reversed = false });
-    RH_ScopedVirtualInstall(PlayLoadedSound, 0x4E6380, { .reversed = false });
-    RH_ScopedVirtualInstall(GetAllocatedVoice, 0x4E6090);
-    RH_ScopedVirtualInstall(WillPedChatAboutTopic, 0x4E60A0);
+    if (m_AttachedTo) {
+        I_PlayLoadedSound<true>(m_AttachedTo);
+        m_AttachedTo = nullptr;
+    } else {
+        StopCurrentSpeech();
+    }
 }
 
 CAEPedlessSpeechAudioEntity* CAEPedlessSpeechAudioEntity::Constructor() {
@@ -102,24 +77,4 @@ CAEPedlessSpeechAudioEntity* CAEPedlessSpeechAudioEntity::Constructor() {
 CAEPedlessSpeechAudioEntity* CAEPedlessSpeechAudioEntity::Destructor() {
     this->CAEPedlessSpeechAudioEntity::~CAEPedlessSpeechAudioEntity();
     return this;
-}
-
-void CAEPedlessSpeechAudioEntity::UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) {
-    CAEPedlessSpeechAudioEntity::UpdateParameters(sound, curPlayPos);
-}
-
-void CAEPedlessSpeechAudioEntity::Terminate_Reversed() {
-    CAEPedlessSpeechAudioEntity::Terminate();
-}
-
-void CAEPedlessSpeechAudioEntity::PlayLoadedSound_Reversed() {
-    CAEPedlessSpeechAudioEntity::PlayLoadedSound();
-}
-
-int16 CAEPedlessSpeechAudioEntity::GetAllocatedVoice_Reversed() {
-    return CAEPedlessSpeechAudioEntity::GetAllocatedVoice();
-}
-
-bool CAEPedlessSpeechAudioEntity::WillPedChatAboutTopic_Reversed(int16 topic) {
-    return CAEPedlessSpeechAudioEntity::WillPedChatAboutTopic(topic);
 }

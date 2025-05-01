@@ -6,16 +6,16 @@
 */
 #pragma once
 
+template<typename TItemType, typename TLinkType>
 class CPtrNode {
 public:
-    void*     m_item;
-    CPtrNode* m_next;
+    using LinkType = TLinkType;
 
-    CPtrNode(void* item) : m_item(item) {}
-    CPtrNode* GetNext() const { return m_next; }
+public:
+    CPtrNode(TItemType item) :
+        Item(item)
+    { assert(item); }
 
-    template<typename T>
-    T* ItemAs() { return reinterpret_cast<T*>(m_item); }
+    TItemType Item{};
+    LinkType* Next{};
 };
-
-VALIDATE_SIZE(CPtrNode, 8);

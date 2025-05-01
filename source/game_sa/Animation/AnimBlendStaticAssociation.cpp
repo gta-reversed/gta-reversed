@@ -3,52 +3,70 @@
 #include "AnimBlendStaticAssociation.h"
 
 void CAnimBlendStaticAssociation::InjectHooks() {
-    RH_ScopedClass(CAnimBlendStaticAssociation);
+    RH_ScopedVirtualClass(CAnimBlendStaticAssociation, 0x85C6CC, 1);
     RH_ScopedCategory("Animation");
 
-    //RH_ScopedInstall(Constructor0, 0x4CE940, { .reversed = false });
-    //RH_ScopedInstall(Constructor1, 0x4CEF60, { .reversed = false });
-    //RH_ScopedInstall(Destructor, 0x4CDF50, { .reversed = false });
-    RH_ScopedInstall(Init, 0x4CEC20, { .reversed = false });
+    RH_ScopedInstall(Constructor1, 0x4CE940);
+    RH_ScopedInstall(Constructor2, 0x4CEF60);
+    RH_ScopedInstall(Destructor, 0x4CDF50);
+
+    RH_ScopedInstall(Init, 0x4CEC20);
     RH_ScopedInstall(AllocateSequenceArray, 0x4CE960);
     RH_ScopedInstall(FreeSequenceArray, 0x4CE9A0);
 }
 
-// 0x4CE940
-CAnimBlendStaticAssociation::CAnimBlendStaticAssociation() {
-    m_nAnimId = -1;
-    m_nAnimGroup = -1;
-    m_nFlags = 0;
-    m_pSequenceArray = 0;
-    m_pHierarchy = 0;
-}
-
 // 0x4CEF60
-CAnimBlendStaticAssociation::CAnimBlendStaticAssociation(RpClump* clump, CAnimBlendHierarchy* hier) {
-    plugin::CallMethod<0x4CEF60, CAnimBlendStaticAssociation*, RpClump*, CAnimBlendHierarchy*>(this, clump, hier);
+CAnimBlendStaticAssociation::CAnimBlendStaticAssociation(RpClump* clump, CAnimBlendHierarchy* h) {
+    Init(clump, h);
 }
 
-// 0x4CDF50 virtual
+// 0x4CEC00 (We hook with the vtbl with a deleting destructor wrapper, not this fn directly)
 CAnimBlendStaticAssociation::~CAnimBlendStaticAssociation() {
-    assert(0);
+    FreeSequenceArray();
 }
 
 // 0x4CEC20
-void CAnimBlendStaticAssociation::Init(RpClump* clump, CAnimBlendHierarchy* hier) {
-    plugin::CallMethod<0x4CEC20, CAnimBlendStaticAssociation*, RpClump*, CAnimBlendHierarchy*>(this, clump, hier);
+void CAnimBlendStaticAssociation::Init(RpClump* clump, CAnimBlendHierarchy* h) {
+    m_BlendHier = h;
+
+    if (!clump) {
+        return;
+    }
+
+    const auto clumpAnimData = RpAnimBlendClumpGetData(clump);
+    assert(clumpAnimData);
+
+    m_NumBlendNodes = clumpAnimData->m_NumFrameData;
+    AllocateSequenceArray(m_NumBlendNodes);
+
+    // Initialize sequences from the data in the clump
+    for (auto& seq : m_BlendHier->GetSequences()) {
+        if (!seq.m_FramesNum) {
+            continue;
+        }
+        const auto frameData = seq.IsUsingBoneTag()
+            ? RpAnimBlendClumpFindBone(clump, seq.GetBoneTag())
+            : RpAnimBlendClumpFindFrameFromHashKey(clump, seq.GetNameHashKey());
+        if (!frameData) {
+            continue;
+        }
+        const auto nodeIdx = frameData - clumpAnimData->m_FrameDatas;
+        assert(nodeIdx >= 0 && nodeIdx < m_NumBlendNodes);
+        m_BlendSeqs[nodeIdx] = &seq;
+    }
 }
 
 // 0x4CE960
 void CAnimBlendStaticAssociation::AllocateSequenceArray(int32 count) {
-    m_pSequenceArray = (CAnimBlendSequence**)CMemoryMgr::Malloc(sizeof(CAnimBlendSequence*) * count);
-    for (auto& array : std::span{ m_pSequenceArray, (size_t)count }) {
+    m_BlendSeqs = (CAnimBlendSequence**)CMemoryMgr::Malloc(sizeof(CAnimBlendSequence*) * count);
+    for (auto& array : std::span{ m_BlendSeqs, (size_t)count }) {
         array = nullptr;
     }
 }
 
 // 0x4CE9A0
 void CAnimBlendStaticAssociation::FreeSequenceArray() {
-    if (m_pSequenceArray) {
-        CMemoryMgr::Free(m_pSequenceArray);
+    if (m_BlendSeqs) {
+        CMemoryMgr::Free(m_BlendSeqs);
     }
 }

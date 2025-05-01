@@ -21,9 +21,7 @@
 
 CAEUserRadioTrackManager& AEUserRadioTrackManager = *(CAEUserRadioTrackManager*)0xB6B970;
 
-#if 0
-// This is the default list
-static tAudioExtensionType defaultAudioExtensionTypes[] = {
+static auto audioExtensionTypes = std::to_array<tAudioExtensionType>({
     {".ogg", AUDIO_FILE_TYPE_VORBIS},
     {".mp3", AUDIO_FILE_TYPE_QUICKTIME}, // replaced to AUDIO_FILE_TYPE_WMA if QuickTime is not installed
     {".wav", AUDIO_FILE_TYPE_WAV},
@@ -31,24 +29,33 @@ static tAudioExtensionType defaultAudioExtensionTypes[] = {
     {".wmv", AUDIO_FILE_TYPE_WMA},
     {".aac", AUDIO_FILE_TYPE_QUICKTIME},
     {".m4a", AUDIO_FILE_TYPE_QUICKTIME},
-};
+#ifdef USERTRACK_FLAC_SUPPORT
+    {".flac", AUDIO_FILE_TYPE_FLAC},
 #endif
-tAudioExtensionType (&CAEUserRadioTrackManager::audioExtensionTypes)[7] = *reinterpret_cast<tAudioExtensionType (*)[7]>(0x8cbb28);
+});
 
 // 0x4f35b0
 bool CAEUserRadioTrackManager::Initialise() {
     m_bUserTracksLoaded = ReadUserTracks();
     m_bUserTracksLoadedCopy = m_bUserTracksLoaded;
-    memset(m_baDecodersSupported, 0, sizeof(m_baDecodersSupported));
+    rng::fill(m_baDecodersSupported, 0);
+
     m_baDecodersSupported[AUDIO_FILE_TYPE_VORBIS] = true;
     m_baDecodersSupported[AUDIO_FILE_TYPE_WAV] = true;
     m_baDecodersSupported[AUDIO_FILE_TYPE_WMA] = CAEWMADecoder::InitLibrary();
     m_baDecodersSupported[AUDIO_FILE_TYPE_QUICKTIME] = CAEMFDecoder::InitLibrary();
 
-    if (m_baDecodersSupported[AUDIO_FILE_TYPE_QUICKTIME] == false)
+    if (!m_baDecodersSupported[AUDIO_FILE_TYPE_QUICKTIME]) {
         // change MP3 decoder from QuickTime to WMA
-        audioExtensionTypes[1].type = AUDIO_FILE_TYPE_WMA;
+        const auto typeMP3 = rng::find_if(audioExtensionTypes, [](const auto& type) {
+            return std::string_view{type.extension} == ".mp3";
+        });
 
+        if (typeMP3 != audioExtensionTypes.end()) {
+            typeMP3->type = AUDIO_FILE_TYPE_WMA;
+            NOTSA_LOG_DEBUG("Assigned MP3 decoder to be WMA because MediaFoundation decoder failed to load.");
+        }
+    }
     return true;
 }
 
@@ -89,14 +96,14 @@ char* CAEUserRadioTrackManager::GetTrackPath(int32 trackID) const {
 
 // 0x4f35f0
 CAEStreamingDecoder* CAEUserRadioTrackManager::LoadUserTrack(int32 trackID) {
-    if (m_bUserTracksLoaded == false)
+    if (!m_bUserTracksLoaded)
         return nullptr;
 
     if (trackID < 0 || trackID >= m_nUserTracksCount)
         return nullptr;
 
     tUserTracksInfo& targetOffset = m_pUserTracksInfo[trackID];
-    if (m_baDecodersSupported[targetOffset.fileType] == false)
+    if (!m_baDecodersSupported[targetOffset.fileType])
         return nullptr;
 
     char* filename = GetTrackPath(trackID);
@@ -116,29 +123,25 @@ CAEStreamingDecoder* CAEUserRadioTrackManager::LoadUserTrack(int32 trackID) {
         bool dataStreamInitialized = dataStream->Initialise();
         CFileMgr::SetDir("");
 
-        if (dataStreamInitialized == false) {
+        if (!dataStreamInitialized) {
             delete dataStream;
             return nullptr;
         }
 
         switch (targetOffset.fileType) {
         case AUDIO_FILE_TYPE_UNKNOWN:
-        default: {
-            delete dataStream;
-            return nullptr;
-        }
-        case AUDIO_FILE_TYPE_VORBIS: {
+        case AUDIO_FILE_TYPE_VORBIS:
             decoder = new CAEVorbisDecoder(dataStream, true);
             break;
-        }
-        case AUDIO_FILE_TYPE_WAV: {
+        case AUDIO_FILE_TYPE_WAV:
             decoder = new CAEWaveDecoder(dataStream);
             break;
-        }
-        case AUDIO_FILE_TYPE_WMA: {
+        case AUDIO_FILE_TYPE_WMA:
             decoder = new CAEWMADecoder(dataStream);
             break;
-        }
+        default:
+            delete dataStream;
+            return nullptr;
         }
     }
 
@@ -151,20 +154,21 @@ bool CAEUserRadioTrackManager::ReadUserTracks() {
     auto file = CFileMgr::OpenFile("sa-utrax.dat", "rb");
     CFileMgr::SetDir("");
 
-    if (file == nullptr)
+    if (!file)
         return false;
 
-    auto size = CFileMgr::GetTotalSize(file);
+    const auto size = CFileMgr::GetTotalSize(file);
     if (size == 0) {
         CFileMgr::CloseFile(file);
         return false;
     }
 
-    m_nUserTracksCount = size / sizeof(tUserTracksInfo);
-
+    // NOTSA: Don't leak memory in case of multiple calls.
     if (m_pUserTracksInfo) {
         CMemoryMgr::Free(m_pUserTracksInfo);
     }
+
+    m_nUserTracksCount = size / sizeof(tUserTracksInfo);
     m_pUserTracksInfo = (tUserTracksInfo*)CMemoryMgr::Malloc(size);
 
     CFileMgr::Read(file, m_pUserTracksInfo, size);
@@ -195,8 +199,8 @@ bool CAEUserRadioTrackManager::ScanUserTracks() {
 void CAEUserRadioTrackManager::DeleteUserTracksInfo() {
     TerminateThread(m_hwndUserTracksScanThreadHandle, 0);
     CFileMgr::SetDirMyDocuments();
-    remove("sa-ufiles.dat"); // todo: cross-platform
-    remove("sa-utrax.dat");
+    fs::remove("sa-ufiles.dat");
+    fs::remove("sa-utrax.dat");
     CFileMgr::SetDir("");
 
     m_nUserTracksScanState = USER_TRACK_SCAN_OFF;
@@ -237,8 +241,7 @@ int32 CAEUserRadioTrackManager::SelectUserTrackIndex() const {
 
 // 0x4f31f0
 eAudioFileType CAEUserRadioTrackManager::GetAudioFileType(const char* filename) {
-    constexpr size_t AUDIO_EXTENSIONS = sizeof(CAEUserRadioTrackManager::audioExtensionTypes) / sizeof(tAudioExtensionType);
-    const char*      dotPosition = strrchr(filename, '.');
+    const char* dotPosition = strrchr(filename, '.');
 
     if (dotPosition == nullptr)
         return AUDIO_FILE_TYPE_UNKNOWN;
@@ -268,41 +271,36 @@ DWORD __stdcall CAEUserRadioTrackManager::WriteUserTracksThread(CAEUserRadioTrac
 
     // Open sa-ufiles.dat
     CFileMgr::SetDirMyDocuments();
-    auto file = CFileMgr::OpenFile("sa-ufiles.dat", "wb");
 
-    if (file == nullptr) {
-        self->m_nUserTracksScanState = USER_TRACK_SCAN_ERROR;
-    } else {
-        // Create path to "User Tracks"
-        size_t                       documentsDirLen = strlen(CFileMgr::ms_dirName), dummy = 0;
-        size_t                       userTracksDirSize = documentsDirLen + 15;
-        char*                        userTracksDir = new char[userTracksDirSize];
+    if (const auto ufiles = CFileMgr::OpenFile("sa-ufiles.dat", "wb")) {
+        size_t dummy{};
         std::vector<tUserTracksInfo> offsets;
 
-        // Concat
-        strcpy_s(userTracksDir, userTracksDirSize, CFileMgr::ms_dirName);
-        strcat_s(userTracksDir, userTracksDirSize, "\\User Tracks\\");
-
         // Retrieve all user tracks info
-        int32 amountOfTracks = self->WriteUserTracksFile(userTracksDir, dummy, file, offsets, 0);
-        CFileMgr::CloseFile(file);
+        int32 amountOfTracks = self->WriteUserTracksFile(fs::path(CFileMgr::ms_dirName) / "User Tracks", dummy, ufiles, offsets, 0);
+        CFileMgr::CloseFile(ufiles);
 
         // Open sa-utrax.dat containing the offsets
-        file = CFileMgr::OpenFile("sa-utrax.dat", "wb");
-
-        // todo: FIX_BUGS
-        // MikuAuahDark: GTASA doesn't check if sa-utrax.dat fails to open
-        if (file == nullptr) {
-            self->m_nUserTracksScanState = USER_TRACK_SCAN_ERROR;
-        } else {
+        if (const auto utrax = CFileMgr::OpenFile("sa-utrax.dat", "wb")) {
             if (amountOfTracks > 0)
-                CFileMgr::Write(file, offsets.data(), amountOfTracks * sizeof(tUserTracksInfo));
+                CFileMgr::Write(utrax, offsets.data(), amountOfTracks * sizeof(tUserTracksInfo));
 
-            CFileMgr::CloseFile(file);
+            // SA: Game duplicates the entry if there is only one?
+            if (amountOfTracks == 1)
+                CFileMgr::Write(utrax, offsets.data(), sizeof(tUserTracksInfo));
+
+            CFileMgr::CloseFile(utrax);
 
             FrontEndMenuManager.m_nUserTrackIndex = 0;
             self->m_nUserTracksScanState = USER_TRACK_SCAN_COMPLETE;
+
+            CoUninitialize();
+        } else {
+            // NOTSA(MikuAuahDark): GTASA doesn't check if sa-utrax.dat fails to open
+            self->m_nUserTracksScanState = USER_TRACK_SCAN_ERROR;
         }
+    } else {
+        self->m_nUserTracksScanState = USER_TRACK_SCAN_ERROR;
     }
 
     // Read user tracks back
@@ -322,62 +320,46 @@ int32 CAEUserRadioTrackManager::WriteUserTracksFile(const char* dir, size_t& cur
 
 int32 CAEUserRadioTrackManager::WriteUserTracksFile(const std::wstring& dir, size_t& currentLength, auto file, std::vector<tUserTracksInfo>& offsets, int32 depth) {
     // Limit folder scan to 16 folders deep
-    if (depth >= 15)
+    if (depth >= 15 || !fs::exists(dir))
         return 0;
 
-    int32 amountOfTracks = 0;
+    int32 numTracks{};
+    for (auto& entry : fs::directory_iterator(dir)) {
+        if (fs::is_directory(entry)) {
+            // NOTE: STD can also do recursive search, maybe use that?
+            numTracks += WriteUserTracksFile(entry.path(), currentLength, file, offsets, depth + 1);
+            continue;
+        }
 
-    // Copy search directory
-    std::wstring dirSearch = dir + L"\\*.*";
+        auto path = entry.path();
+#ifdef WIN32
+        if (path.extension() == ".lnk")
+            path = ResolveShortcut(path.wstring());
+#endif
 
-    WIN32_FIND_DATAW findData;
-    HANDLE           findHandle = FindFirstFileW(dirSearch.c_str(), &findData);
+        // TODO: symlink
+        if (!fs::is_regular_file(path))
+            continue;
 
-    if (findHandle != INVALID_HANDLE_VALUE) {
-        do {
-            if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                if (wcscmp(findData.cFileName, L".") && wcscmp(findData.cFileName, L".."))
-                    // Nested scan
-                    amountOfTracks += WriteUserTracksFile(dir + findData.cFileName + L"\\", currentLength, file, offsets, depth + 1);
-            } else {
-                size_t       filenameLength = wcslen(findData.cFileName);
-                std::wstring path = dir + L"\\" + findData.cFileName;
+        // if shortcut was a directory.
+        if (fs::is_directory(path)) {
+            numTracks += WriteUserTracksFile(path, currentLength, file, offsets, depth + 1);
+            continue;
+        }
 
-                // If the file is a shortcut, then resolve the target
-                const wchar_t* extension = wcsrchr(findData.cFileName, L'.');
-                if (path.rfind(L".lnk") == path.length() - 4)
-                    path = ResolveShortcut(path);
-
-                // "path" now points to target file (if it's a shortcut)
-                // or the actual file (if it's regular file)
-                DWORD fileAttr;
-                if ((fileAttr = GetFileAttributesW(path.c_str())) != INVALID_FILE_ATTRIBUTES) {
-                    // If path pointed by the shortcut is a directory
-                    // then perform 15 deep scan on those folders too.
-                    // MikuAuahDark: Note that GTASA code actually do this. My minor
-                    // improvement is only to ensure it uses UTF-8 chars by operating
-                    // on wide char.
-                    if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
-                        amountOfTracks += WriteUserTracksFile(path + L"\\", currentLength, file, offsets, 1);
-                    else {
-                        std::string    pathChar = UnicodeToUTF8(path);
-                        eAudioFileType fileType = GetAudioFileType(pathChar.c_str());
-
-                        if (fileType != AUDIO_FILE_TYPE_UNKNOWN) {
-                            size_t pathLen = pathChar.length();
-                            CFileMgr::Write(file, pathChar.c_str(), pathLen);
-                            offsets.push_back({currentLength, pathLen, fileType});
-                            currentLength += pathLen;
-                            amountOfTracks++;
-                        }
-                    }
-                }
-            }
-        } while (FindNextFileW(findHandle, &findData));
+        // NOTSA: Use UTF-8 generic path (POSIX like) instead of Windows paths.
+        const auto pathStr = UnicodeToUTF8(path.generic_wstring());
+        const auto fileType = GetAudioFileType(pathStr.c_str());
+        if (fileType != AUDIO_FILE_TYPE_UNKNOWN) {
+            size_t pathLen = pathStr.length();
+            CFileMgr::Write(file, pathStr.c_str(), pathLen);
+            offsets.push_back({currentLength, pathLen, fileType});
+            currentLength += pathLen;
+            numTracks++;
+        }
     }
 
-    FindClose(findHandle);
-    return amountOfTracks;
+    return numTracks;
 }
 
 // todo: FIX_BUGS
@@ -391,21 +373,22 @@ char* CAEUserRadioTrackManager::ResolveShortcut(const char* path) {
 }
 
 std::wstring CAEUserRadioTrackManager::ResolveShortcut(const std::wstring& path) {
-    IShellLinkW*  shellLink = nullptr;
-    IPersistFile* persistFile = nullptr;
+    IShellLinkW* shellLink{};
+    IPersistFile* persistFile{};
 
     if (FAILED(CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void**)&shellLink))) {
-        assert(true && "CoCreateInstance failed");
+        NOTSA_UNREACHABLE("CoCreateInstance(CLSID_ShellLink) failed");
     }
 
     if (FAILED(shellLink->QueryInterface(IID_IPersistFile, (void**)&persistFile))) {
+        NOTSA_LOG_ERR("QueryInterface(IID_IPersistFile) failed.");
         shellLink->Release();
-        return std::wstring();
+        return {};
     }
 
-    wchar_t*         target = new wchar_t[MAX_PATH];
+    std::wstring target(MAX_PATH, L'\0');
     WIN32_FIND_DATAW findData{};
-    if (FAILED(persistFile->Load(path.c_str(), STGM_READ)) || FAILED(shellLink->GetPath(target, MAX_PATH, &findData, 0))) {
+    if (FAILED(persistFile->Load(path.c_str(), STGM_READ)) || FAILED(shellLink->GetPath(target.data(), MAX_PATH, &findData, 0))) {
         persistFile->Release();
         shellLink->Release();
         NOTSA_UNREACHABLE("Load or GetPath failed");
@@ -414,9 +397,7 @@ std::wstring CAEUserRadioTrackManager::ResolveShortcut(const std::wstring& path)
     persistFile->Release();
     shellLink->Release();
 
-    std::wstring out = target;
-    delete[] target;
-    return out;
+    return target;
 }
 
 void CAEUserRadioTrackManager::InjectHooks() {
@@ -435,7 +416,7 @@ void CAEUserRadioTrackManager::InjectHooks() {
     RH_ScopedInstall(LoadUserTrack, 0x4f35f0);
     RH_ScopedInstall(GetUserTrackPlayMode, 0x4f3330);
     RH_ScopedInstall(SetUserTrackIndex, 0x4f3340);
-    RH_ScopedOverloadedInstall(WriteUserTracksFile, "", 0x4f4690, int32(CAEUserRadioTrackManager::*)(const char*, size_t&, FILE*, std::vector<tUserTracksInfo>&, int32));
-    RH_ScopedInstall(WriteUserTracksThread, 0x4f4a20);
+    RH_ScopedOverloadedInstall(WriteUserTracksFile, "", 0x4f4690, int32(CAEUserRadioTrackManager::*)(const char*, size_t&, FILE*, std::vector<tUserTracksInfo>&, int32), {.locked=true});
+    RH_ScopedInstall(WriteUserTracksThread, 0x4f4a20, {.locked=true});
     RH_ScopedInstall(ScanUserTracks, 0x4f4ba0);
 }

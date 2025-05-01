@@ -3,6 +3,7 @@
 #include <charconv>
 #include <initializer_list>
 #include <Vector.h>
+#include <unordered_map>
 #include "Base.h"
 
 namespace notsa {
@@ -16,7 +17,87 @@ namespace notsa {
 //private:
 //    TChar m_chars[N]{};
 //};
+
 namespace rng = std::ranges;
+
+namespace detail {
+template<typename K, typename V, size_t N>
+struct Mapping {
+    using value_type     = std::pair<const K, const V>;
+    using storage_type   = std::array<value_type, N>;
+    using iterator       = storage_type::iterator;
+    using const_iterator = storage_type::const_iterator;
+
+    constexpr Mapping(value_type (&&m)[N]) : 
+        m_mapping{std::to_array(m)} 
+    {
+    }
+
+    constexpr const_iterator find(auto&& needle) const { // Using auto&& instead of K&& to allow transparent lookup
+        for (auto it = begin(); it != end(); it++) {
+            if (it->first == needle) {
+                return it;
+            }
+        }
+        return end();
+    }
+        
+    constexpr auto begin() const { return m_mapping.begin(); }
+    constexpr auto end() const { return m_mapping.end(); }
+
+protected:
+    storage_type m_mapping;
+};
+};
+
+/*!
+* @brief Create a mapping of k-v pairs. Dynamically chooses between an unordered_map and a custom fixed-size mapping.
+*/
+template<typename K, typename V, size_t N>
+auto make_mapping(std::pair<const K, const V> (&&m)[N]) {
+    if constexpr (N > 10) { // After 10 or so elements unordered_map becomes faster
+        return std::unordered_map<K, V>{std::begin(m), std::end(m)};
+    } else { // Otherwise the stack allocated one is faster
+        return detail::Mapping<K, V, N>{std::move(m)};
+    }
+}
+
+/*!
+* @brief Helper function to get kv-mapping value from a key.
+* @brief Unlike `.find()`, this returns the value directly
+*/
+constexpr inline auto find_value_or(auto&& mapping, auto&& needle, auto&& defval) {
+    const auto it = mapping.find(needle);
+    return it != mapping.end()
+        ? it->second
+        : defval;
+}
+
+/*!
+* @brief Helper function to get kv-mapping value from a key.
+* @brief Unlike `.find()`, this returns the value directly, or asserts if the key is not found.
+*/
+constexpr inline auto find_value(auto&& mapping, auto&& needle) {
+    const auto it = mapping.find(needle);
+    if (it != mapping.end()) {
+        return it->second;
+    }
+    NOTSA_UNREACHABLE("Needle not in the mapping!");
+}
+
+template<rng::input_range R>
+ptrdiff_t indexof(R&& r, const rng::range_value_t<R>& v, ptrdiff_t defaultIdx = -1) {
+    const auto it = rng::find(r, v);
+    return it != rng::end(r)
+        ? rng::distance(rng::begin(r), it)
+        : defaultIdx;
+}
+
+//! [mostly] Works like C#'s `??` (null coalescing operator) or GCC's `?:`
+template<typename T>
+T coalesce(T a, T b) {
+    return a ? a : b;
+}
 
 /*!
 * Much like std::stoi [and variants] but takes an `std::string_view` + in debug does error checking [unlike the C stuff]
@@ -54,22 +135,6 @@ T ston(std::string_view str, std::chars_format fmt = std::chars_format::general,
 }
 
 /*
-* Parse a string into a 3D vector. The format is `X Y Z` (There might be multiple spaces, they're ignored)
-* [On failure asserts in debug]
-*/
-CVector stov3d(std::string_view str, std::chars_format fmt = std::chars_format::general) {
-    CVector v3d;
-    for (auto i = 0; i < 3; i++) {
-        const char* end;
-        v3d[i] = ston<float>(str, fmt, &end);
-        if (i < 2) {
-            str = str.substr(end - str.data() + 1);
-        }
-    }
-    return v3d;
-}
-
-/*
 * Want to know something funny?
 * `std::initializer_list` is just a proxy object for a stack allocated array.
 * So, if you return one from a function you're dommed to be fucked :)
@@ -103,10 +168,40 @@ constexpr auto IsFixBugs() {
 #endif
 }
 
+template<rng::input_range R, typename T_Ptr = rng::range_value_t<R>>
+    requires std::is_pointer_v<T_Ptr> 
+auto SpatialQuery(R&& r, CVector distToPos, T_Ptr ignored, T_Ptr closest = nullptr) {
+    const auto GetDistSq = [distToPos](T_Ptr e) {
+        return (e->GetPosition() - distToPos).SquaredMagnitude();
+    };
+
+    float closestDistSq = closest
+        ? GetDistSq(closest)
+        : std::numeric_limits<float>::max();
+    for (T_Ptr e : r) {
+        if (ignored && e == ignored) {
+            continue;
+        }
+        const auto distSq = GetDistSq(e);
+        if (closestDistSq > distSq) {
+            closestDistSq = distSq;
+            closest       = e;
+        }
+    }
+
+    struct Ret{ T_Ptr entity; float distSq; };
+    return Ret{ closest, closestDistSq };
+}
+
 /// Predicate to check if `value` is null
-template<typename T>
-    requires(std::is_pointer_v<T>)
-bool IsNull(T value) { return value == nullptr; }
+struct IsNull {
+    template<typename T>
+        requires(std::is_pointer_v<T>)
+    bool operator()(T ptr) { return ptr == nullptr; }
+};
+//template<typename T>
+//    requires(std::is_pointer_v<T>)
+//bool IsNull(T value) { return value == nullptr; }
 
 /// Negate another predicate function
 template<typename T>
@@ -152,7 +247,7 @@ using mdarray = typename mdarray_impl<T, Ds...>::type;
 *
 * @brief Check if a range contains a value, uses `rng::find`. NOTE: If you plan on using the iterator, just use `rng::find` instead..
 */
-template<rng::input_range R, class T, class Proj = std::identity>
+template<rng::input_range R, class T = rng::range_value_t<R>, class Proj = std::identity>
     requires std::indirect_binary_predicate<rng::equal_to, std::projected<rng::iterator_t<R>, Proj>, const T*>
 bool contains(R&& r, const T& value, Proj proj = {}) {
     return rng::find(r, value, proj) != rng::end(r);
@@ -162,8 +257,8 @@ bool contains(R&& r, const T& value, Proj proj = {}) {
 /*!
 * Helper (Of your fingers) - Reduces typing needed for Python style `value in {}`
 */
-template<typename Y, typename T>
-bool contains(std::initializer_list<Y> r, const T& value) {
+template<typename Y>
+bool contains(std::initializer_list<Y> r, const Y& value) {
     return contains(r, value, {});
 }
 
@@ -274,4 +369,36 @@ concept is_any_of_type_v = (std::same_as<T, Ts> || ...);
 template<typename T>
 inline constexpr bool is_standard_integer = std::is_integral_v<T> && !is_any_of_type_v<T, bool, char, wchar_t, char8_t, char16_t, char32_t>;
 
+//! Null terminated `std::format_to`. Use inplace of sprintf.
+//! NOTE: Not a complete replacement for std::format_to,
+//! e.g. it doesn't use output iterators. i don't care.
+template<size_t N, class... Args>
+void format_to_sz(char(&out)[N], std::string_view fmt, Args&&... args) {
+    *std::vformat_to(out, fmt, std::make_format_args(args...)) = '\0';
+}
+
+//! Reads a pointer as specified type.
+template<typename T> requires std::is_trivially_constructible_v<T>
+T ReadAs(void* ptr) {
+    return *static_cast<T*>(ptr);
+}
+//! Safe C string copying, use this instead of strcpy.
+inline void string_copy(char* out, const char* from, size_t size) {
+    std::snprintf(out, size, "%s", from);
+}
+
+//! Safe C string copying, use this instead of strcpy.
+template<size_t N>
+void string_copy(char (&out)[N], const char* from) {
+    std::snprintf(out, N, "%s", from);
+}
+
+// Like clamp, but wraps the number - https://stackoverflow.com/a/64273069/15363969
+template<std::floating_point F>
+F wrap(F x, F min, F max) {
+    if (min > max) {
+        std::swap(min, max);
+    }
+    return (x < 0 ? max : min) + std::fmod(x, max - min);
+}
 };

@@ -73,9 +73,12 @@ void DrawChannelStates() {
 
 void DrawListSizes() {
     constexpr auto GetListSize = [](auto begin, auto end) {
-        uint32 n{};
-        for (auto it = begin->GetNext(); it != end; it = it->GetNext())
-            n++;
+        uint32 n = 0;
+        if (begin && end) {
+            for (auto it = begin->GetNext(); it != end; it = it->GetNext()) {
+                n++;
+            }
+        }
         return n;
     };
     Text("Req. list size: %u", GetListSize(CStreaming::ms_pStartRequestedList, CStreaming::ms_pEndRequestedList));

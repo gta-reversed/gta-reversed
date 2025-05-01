@@ -11,6 +11,8 @@
 class CAEAudioEntity;
 class CEntity;
 
+using eSoundID = int16;
+
 enum eSoundEnvironment : uint16 {
     SOUND_DEFAULT                          = 0x0,
     SOUND_FRONT_END                        = 0x1,
@@ -39,8 +41,8 @@ public:
     int16           m_nSoundIdInSlot;
     CAEAudioEntity* m_pBaseAudio;
     CEntity*        m_pPhysicalEntity;
-    eAudioEvents    m_nEvent;
-    float           m_fMaxVolume;
+    int32           m_nEvent; // Not necessarily `eAudioEvents`, for ex. see `CAEWeaponAudioEntity`
+    float           m_ClientVariable;
     float           m_fVolume;
     float           m_fSoundDistance;
     float           m_fSpeed;
@@ -53,7 +55,7 @@ public:
     float           m_fCurrCamDist;
     float           m_fPrevCamDist;
     float           m_fTimeScale;
-    uint8           m_nIgnoredServiceCycles; // Seemingly never used, but CAESoundManager::Service still checks for that
+    uint8           m_FrameDelay; // Seemingly never used, but CAESoundManager::Service still checks for that
     char            field_55;
     union {
         uint16 m_nEnvironmentFlags;
@@ -77,8 +79,8 @@ public:
     uint16 m_nIsUsed;
     int16  m_bWasServiced;
     int16  m_nCurrentPlayPosition;
-    int16  m_nHasStarted;
-    float  m_fFinalVolume;
+    int16  m_IsPhysicallyPlaying;
+    float  m_ListenerVolume;
     float  m_fFrequency;
     int16  m_nPlayingState; // see eSoundState
     char   field_6A[2];
@@ -98,14 +100,20 @@ public:
 
     CAESound& operator=(const CAESound& sound);
 
-    void Initialise(int16 bankSlotId, int16 sfxId, CAEAudioEntity* baseAudio, CVector posn, float volume,
-                    float maxDistance = 1.0f,
-                    float speed = 1.0f,
-                    float timeScale = 1.0f,
-                    uint8 ignoredServiceCycles = 0,
-                    eSoundEnvironment environmentFlags = static_cast<eSoundEnvironment>(0),
-                    float speedVariability = 0,
-                    int16 currPlayPosn = 0);
+    void Initialise(
+        int16           bankSlotId,
+        int16           soundID,
+        CAEAudioEntity* audioEntity,
+        CVector         pos,
+        float           volume,
+        float           rollOffFactor = 1.f,
+        float           relativeFrequency = 1.f, // Speed
+        float           doppler = 1.f,
+        uint8           frameDelay = 0,
+        uint32          flags = 0,
+        float           frequencyVariance = 0.f,
+        int16           playTime = 0
+    );
 
     void  UnregisterWithPhysicalEntity();
     void  StopSound();
@@ -124,11 +132,12 @@ public:
     bool  GetForcedFront() const { return m_bForcedFront; }
     void  SetIndividualEnvironment(uint16 envFlag, uint16 bEnabled); // pass eSoundEnvironment as envFlag
     void  UpdatePlayTime(int16 soundLength, int16 loopStartTime, int16 playProgress);
-    void  GetRelativePosition(CVector* outPos);
+    CVector GetRelativePosition() const;
+    void  GetRelativePosition(CVector* outVec) const;
     void  CalculateFrequency();
     void  UpdateFrequency();
-    float GetRelativePlaybackFrequencyWithDoppler();
-    float GetSlowMoFrequencyScalingFactor();
+    float GetRelativePlaybackFrequencyWithDoppler() const;
+    float GetSlowMoFrequencyScalingFactor() const;
     void  NewVPSLentry();
     void  RegisterWithPhysicalEntity(CEntity* entity);
     void  StopSoundAndForget();
@@ -136,6 +145,7 @@ public:
     void  CalculateVolume();
     void  UpdateParameters(int16 curPlayPos);
     void  SoundHasFinished();
+    eSoundState GetPlayingState() const { return (eSoundState)(m_nPlayingState); }
 
 public:
     bool IsUsed() const { return m_nIsUsed; }

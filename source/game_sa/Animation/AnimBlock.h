@@ -8,13 +8,11 @@
 
 class CAnimBlock {
 public:
-    char         szName[16];
-    bool         bLoaded;
-    char         pad;
-    int16        usRefs;
-    int32        startAnimation;
-    int32        animationCount;
-    AssocGroupId animationStyle;
+    char         Name[16];
+    bool         IsLoaded;
+    int16        RefCnt;
+    int32        FirstAnimIdx;
+    uint32       NumAnims;
+    AssocGroupId GroupId;
 };
-
 VALIDATE_SIZE(CAnimBlock, 0x20);

@@ -9,7 +9,8 @@
 #include <ranges>
 #include <concepts>
 
-class CPed;
+#include "Ped.h"
+
 class CPedGroup;
 
 const int32 TOTAL_PED_GROUP_MEMBERS = 8;
@@ -18,10 +19,8 @@ const int32 TOTAL_PED_GROUP_FOLLOWERS = TOTAL_PED_GROUP_MEMBERS - 1;
 
 class CPedGroupMembership {
 public:
-    using FindMemberResult = std::tuple<CPed*, float>;
 
     static constexpr int32 LEADER_MEM_ID = 7; ///< Leader's member ID
-
     //static const float& ms_fMaxSeparation;
     //static const float& ms_fPlayerGroupMaxSeparation;
 
@@ -95,14 +94,20 @@ public:
     //! Whenever `AddFollower` can be called to add a new follower
     bool CanAddFollower();
 
-    //! Get all the present members [Returns a view of references]
+    //! Get all the present members [Returns a view of NON-NULL pointers]
     auto GetMembers(bool bIncludeLeader = true) {
-        assert(LEADER_MEM_ID == m_members.size() - 1); // the drop below requires this
+        const auto max = m_members.size();
+        assert(LEADER_MEM_ID == max - 1); // the drop below requires this
         return m_members
-             | rng::views::drop(bIncludeLeader ? 0 : 1) // Last member is the leader
-             | rng::views::filter(notsa::NotIsNull{})
-             | rng::views::transform([](CPed* mem) -> CPed& { return *mem; }); // Dereference
+            | rng::views::take(bIncludeLeader ? max : max - 1) // Last member is the leader
+            | rng::views::filter(notsa::NotIsNull{});
     }
+
+    //! Get followers [that is, members excl. the leader]
+    auto GetFollowers() { return GetMembers(false); }
+
+    // Closest member, closest member distance sq
+    using FindClosestMemberResult = std::tuple<CPed*, float>;
 
     /*!
     * @notsa
@@ -114,33 +119,33 @@ public:
     * @return The closest member (may be null, in which case the distance should be considered invalid), and it's sq. dist from `ped`
     */
     template<std::predicate<CPed&> Pred>
-    auto GetMemberClosestToIf(CPed* ped, Pred&& pred) -> FindMemberResult {
+    auto GetMemberClosestToIf(CPed* ped, Pred&& pred, bool includeLeader = true) -> FindClosestMemberResult {
         const auto& pedPos = ped->GetPosition();
-
         float closestDistSq{ std::numeric_limits<float>::max() };
         CPed* closest{};
-        for (auto& mem : GetMembers()) {
-            if (&mem == ped) {
+        for (auto* const mem : GetMembers(includeLeader)) {
+            if (mem == ped) {
                 continue;
             }
-
-            if (!std::invoke(pred, mem)) {
+            if (!std::invoke(pred, *mem)) {
                 continue;
             }
-            if (const auto distSq = (pedPos - mem.GetPosition()).SquaredMagnitude(); closestDistSq > distSq) {
+            if (const auto distSq = (pedPos - mem->GetPosition()).SquaredMagnitude(); closestDistSq > distSq) {
                 closestDistSq = distSq;
-                closest       = &mem;
+                closest       = mem;
             }
         }
-
         return { closest, closestDistSq };
     }
 
     /// Wrapper around `GetMemberClosestToIf`, using an always-true predicate
-    auto GetMemberClosestTo(CPed* ped) { return GetMemberClosestToIf(ped, [](CPed&) { return true; }); }
+    auto GetMemberClosestTo(CPed* ped, bool includeLeader = true) -> FindClosestMemberResult;
 
     //! Find follower closest to the leader
-    auto FindClosestFollowerToLeader() -> FindMemberResult;
+    auto FindClosestFollowerToLeader() -> FindClosestMemberResult;
+
+    //! @notsa
+    CPed* GetFirstAvailableMember();
 
     static eModelID GetObjectForPedToHold();
 private:

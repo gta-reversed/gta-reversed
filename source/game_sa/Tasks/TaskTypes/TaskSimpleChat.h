@@ -4,7 +4,7 @@
 
 class CPed;
 
-class  CTaskSimpleChat : public CTaskSimpleRunTimedAnim {
+class NOTSA_EXPORT_VTABLE  CTaskSimpleChat : public CTaskSimpleRunTimedAnim {
 public:
     static constexpr auto Type = TASK_SIMPLE_CHAT;
 
@@ -14,7 +14,7 @@ public:
     CTaskSimpleChat(const CTaskSimpleChat& o);
     ~CTaskSimpleChat();
 
-    virtual CTask* Clone() { return new CTaskSimpleChat{ *this }; }
+    virtual CTask* Clone() const { return new CTaskSimpleChat{ *this }; }
     virtual bool   IsInterruptable(CPed const* ped) { return false; }
  
 private:

@@ -2,12 +2,14 @@
 
 #include "DebugModule.h"
 
-class CullZonesDebugModule : public DebugModule {
+class CullZonesDebugModule final : public DebugModule {
 public:
     void RenderWindow() override final;
     void Render3D() override final;
     void RenderMenuEntry() override final;
 
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(CullZonesDebugModule, m_IsOpen, m_ZOffset, m_DrawMirrors, m_DrawTunnels, m_DrawCulls);
+    
 private:
     bool m_IsOpen{};
     float m_ZOffset{};

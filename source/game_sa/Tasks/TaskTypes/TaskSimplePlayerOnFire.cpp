@@ -17,7 +17,7 @@ void CTaskSimplePlayerOnFire::InjectHooks() {
 
 // 0x6335C0
 bool CTaskSimplePlayerOnFire::ProcessPed(CPed* ped) {
-    m_timer.StartIfNotAlready(5000u);
+    m_timer.StartIfNotAlready(5000);
 
     if (!ped->m_pFire) {
         return true;
@@ -37,7 +37,7 @@ bool CTaskSimplePlayerOnFire::ProcessPed(CPed* ped) {
     CTaskComplexOnFire::ComputeFireDamage(ped, dmgResp);
     if (!dmgResp.m_bHealthZero || m_bAddedDamageEvent) {
         if (CLocalisation::PedsOnFire()) { // Moved code a little to avoid dup
-            ped->Say(346, 0, 0.1f); // Screaming
+            ped->Say(CTX_GLOBAL_PAIN_ON_FIRE, 0, 0.1f); // Screaming
         }
     }
 

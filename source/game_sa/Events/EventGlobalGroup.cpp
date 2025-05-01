@@ -1,9 +1,9 @@
 #include "StdInc.h"
-
 #include "EventGlobalGroup.h"
 
+
 void CEventGlobalGroup::InjectHooks() {
-    RH_ScopedClass(CEventGlobalGroup);
+    RH_ScopedVirtualClass(CEventGlobalGroup, 0x85AAB4, 1);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(GetSoundLevel, 0x4AB900);
@@ -42,3 +42,4 @@ void CEventGlobalGroup::AddEventsToGroup(CPedGroup* pedGroup) {
         delete clonedEvent;
     }
 }
+

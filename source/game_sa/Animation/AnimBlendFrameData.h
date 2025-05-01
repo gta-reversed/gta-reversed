@@ -13,33 +13,28 @@ class AnimBlendFrameData {
 public:
     union {
         struct {
-            uint8 m_bf1 : 1;                                    // doesn't seem to be used
-            uint8 m_IsIFrameOrientationToAffectedByNodes : 1;   // m_IFrame orientation will be affected
-            uint8 m_IsIFrameTranslationToAffectedByNodes : 1;   // m_IFrame translation will be affected
-            uint8 m_bIsInitialized : 1;
-            uint8 m_bUpdateSkinnedWith3dVelocityExtraction : 1;
-            uint8 m_bCheckBlendNodeClumpKeyFrames : 1;          // key frames of CAnimBlendNode bones will be checked
-            uint8 m_bIsCompressed : 1;
-            uint8 m_bUpdatingFrame : 1;                         // doesn't seem to be used
+            bool bf1 : 1;                                //!< doesn't seem to be used
+            bool KeyFramesIgnoreNodeOrientation : 1; //!< Whenever orientation 
+            bool KeyFramesIgnoreNodeTranslation : 1; //!< Whenever translation 
+            bool HasVelocity : 1;                        //!< If true the translation is used to move the ped
+            bool HasZVelocity : 1;                       //!< If true 3D velocity extraction is used, otherwise 2D
+            bool NeedsKeyFrameUpdate : 1;                //!< If `RpAnimBlendNodeUpdateKeyFrames` needs to be called on update
+            bool IsCompressed : 1;                       //!< Is the anim data for this frame compressed
+            bool IsUpdatingFrame : 1;                    //!< Doesn't seem to be used
         };
-        uint8 m_nFlags;
+        uint8 Flags;
     };
 
-    /* todo
     union {
-      RwV3d_0 m_posn;
-      RwV3d_0 m_bonePosition;
+        CVector BonePos;  // For skinned clumps (?)
+        CVector FramePos; // For non-skinned clumps (?)
     };
-    */
-    CVector                  m_vecOffset;
-    union {
-        RpHAnimBlendInterpFrame* m_pIFrame; // TODO: Rename to `m_pStdKeyFrame`
-        RwFrame*                 m_pFrame;
-    };
-    uint32                   m_nNodeId; // In case of peds it's ePedBone (NOTE: I might be wrong, see `IsPedHeadAbovePos`)
 
-    // NOTSA
-    CQuaternion& GetFrameOrientation() const { return m_pIFrame->orientation; }
-    CVector& GetFrameTranslation() const { return m_pIFrame->translation; }
+    union {
+        RpHAnimBlendInterpFrame* KeyFrame; // For skinned clumps
+        RwFrame*                 Frame;    // For non-skinned clumps
+    };
+
+    uint32 BoneTag; // If `BONE_UNKNOWN` (-1) this is a non-skinned clump, otherwise a skinned one
 };
 VALIDATE_SIZE(AnimBlendFrameData, 0x18);

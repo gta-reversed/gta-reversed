@@ -14,8 +14,9 @@ void CScriptsForBrains::InjectHooks() {
     RH_ScopedInstall(HasAttractorScriptBrainWithThisNameLoaded, 0x46AB20);
     //RH_ScopedInstall(StartNewStreamedScriptBrain, 0x46B270, {.reversed = false});
     RH_ScopedInstall(StartAttractorScriptBrainWithThisName, 0x46B390);
-    //RH_ScopedInstall(StartOrRequestNewStreamedScriptBrain, 0x46CD80, {.reversed = false});
+    RH_ScopedInstall(StartOrRequestNewStreamedScriptBrain, 0x46CD80, {.reversed = false});
     //RH_ScopedInstall(StartOrRequestNewStreamedScriptBrainWithThisName, 0x46CED0, {.reversed = false});
+    RH_ScopedInstall(IsObjectWithinBrainActivationRange, 0x46B3D0, {.reversed=false});
 }
 
 
@@ -42,16 +43,24 @@ void CScriptsForBrains::StartNewStreamedScriptBrain(uint8 index, CEntity* entity
     plugin::CallMethodAndReturn<void, 0x46B270, CScriptsForBrains*, uint8, CEntity*, uint8>(this, index, entity, bHasAScriptBrain);
 }
 
+void CScriptsForBrains::StartOrRequestNewStreamedScriptBrain(uint8 index, CEntity* entity, int8 attachType, bool bAddToWaitingArray) {
+    NOTSA_UNREACHABLE();
+}
+
 bool CScriptsForBrains::HasAttractorScriptBrainWithThisNameLoaded(const char* name) {
     if (const auto idx = GetIndexOfScriptBrainWithThisName(name, 5); idx >= 0) {
-        return CStreaming::IsModelLoaded(SCMToModelId(m_aScriptForBrains[idx].m_nIMGindex));
+        return CStreaming::IsModelLoaded(SCMToModelId(m_aScriptForBrains[idx].m_StreamedScriptIndex));
     }
     return false;
 }
 
-int16 CScriptsForBrains::GetIndexOfScriptBrainWithThisName(const char* name, int8 attachType) {
+bool CScriptsForBrains::IsObjectWithinBrainActivationRange(CObject* entity, const CVector& point) {
+    NOTSA_UNREACHABLE();
+}
+
+int16 CScriptsForBrains::GetIndexOfScriptBrainWithThisName(const char* name, int8 type) {
     const auto it = rng::find_if(m_aScriptForBrains, [=](tScriptForBrains& script) {
-        return script.m_nAttachType == attachType && !_stricmp(script.m_scriptName, name);
+        return script.m_TypeOfBrain == type && !_stricmp(script.m_ScriptName, name);
     });
     return it != m_aScriptForBrains.end()
         ? rng::distance(m_aScriptForBrains.begin(), it)

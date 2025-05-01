@@ -6,11 +6,12 @@
 #include "platform.h"
 
 #include "Clouds.h"
+#include "CarFXRenderer.h"
 
 #include "Plugins/BreakablePlugin/BreakablePlugin.h"
 #include "Pipelines/CustomBuilding/CustomBuildingRenderer.h"
 
-#include "platform/win/Platform.h"
+#include "platform/win/WinPlatform.h"
 
 void AppInjectHooks() {
     RH_ScopedCategory("App");
@@ -121,7 +122,7 @@ RsEventStatus AppEventHandler(RsEvent event, void* param) {
 bool PluginAttach() {
     const auto Attach = [](auto name, auto attachFn) {
         if (!attachFn()) {
-            DEV_LOG("Couldn't attach {} plugin", name);
+            NOTSA_LOG_DEBUG("Couldn't attach {} plugin", name);
             return false;
         }
         return true;

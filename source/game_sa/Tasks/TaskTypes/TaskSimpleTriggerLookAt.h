@@ -10,7 +10,7 @@
 #include "AnimBlendAssociation.h"
 #include "Entity.h"
 
-class CTaskSimpleTriggerLookAt : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleTriggerLookAt : public CTaskSimple {
 public:
     CEntity* m_pEntity;
     int32    m_time;

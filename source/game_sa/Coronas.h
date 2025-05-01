@@ -11,21 +11,26 @@
 class CCoronas {
 public:
     // are there any obstacles between sun and camera
-    static inline auto& SunBlockedByClouds = StaticRef<bool, 0xC3E030>();
-    // change coronas brightness immediately
-    static bool& bChangeBrightnessImmediately;
+    static inline auto& SunBlockedByClouds = StaticRef<bool>(0xC3E030);
+
+    // change coronas brightness immediately (TODO: Most likely some enum type)
+    static inline auto& bChangeBrightnessImmediately = StaticRef<uint8>(0xC3E034);
+
     // num of registered coronas in frame
-    static uint32& NumCoronas;
+    static inline auto& NumCoronas = StaticRef<uint32>(0xC3E038);
+
     // coronas intensity multiplier
-    static float& LightsMult;
     // this is used to control moon size when you shooting it with sniper
-    static uint32& MoonSize;
+    static inline auto& MoonSize = StaticRef<uint32>(0x8D4B60); // 3
+
+    static inline auto& SunScreenY = StaticRef<float>(0xC3E02C); // unused
+    static inline auto& SunScreenX = StaticRef<float>(0xC3E028); // unused
+    static inline auto& LightsMult = StaticRef<float>(0x8D4B5C); // 1.0f
+    static inline auto& ms_aEntityLightsOffsets = StaticRef<std::array<uint16, 8>>(0x8D5028);
+
     // Coronas array. count: MAX_NUM_CORONAS (default: 64)
-    static constexpr int32 MAX_NUM_CORONAS = 64;
-    static CRegisteredCorona (&aCoronas)[MAX_NUM_CORONAS];
-
-    static uint16 (&ms_aEntityLightsOffsets)[8];
-
+    static inline auto& aCoronas = StaticRef<std::array<CRegisteredCorona, 64>>(0xC3E058);
+   
     inline static struct { // NOTSA
         bool DisableWetRoadReflections;
         bool AlwaysRenderWetRoadReflections; // Ignored if if `DisableReflections == false`
@@ -56,6 +61,7 @@ public:
     */
     static void RenderSunReflection();
 
+    // TODO: var r, g, b, a -> class RGBA
     static void RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 green, uint8 blue, uint8 alpha, const CVector& posn,
                                float radius, float farClip, RwTexture* texture, eCoronaFlareType flareType, bool enableReflection, bool checkObstacles, int32 _param_not_used,
                                float angle, bool longDistance, float nearClip, uint8 fadeState, float fadeSpeed, bool onlyFromBelow, bool reflectionDelay);
@@ -65,8 +71,11 @@ public:
 
     static void UpdateCoronaCoors(uint32 id, const CVector& posn, float farClip, float angle);
     static void DoSunAndMoon();
+    // Inlined
+    static CRegisteredCorona* GetCoronaByID(int32 id);
+    // Inlined
+    static CRegisteredCorona* GetFree();
 };
 
-extern uint32 MAX_CORONAS;
-constexpr int32 CORONA_TEXTURES_COUNT = 10;
-extern RwTexture* (&gpCoronaTexture)[CORONA_TEXTURES_COUNT];
+inline auto& gpCoronaTexture = StaticRef<std::array<RwTexture*, eCoronaType::CORONATYPE_COUNT>>(0xC3E000);
+

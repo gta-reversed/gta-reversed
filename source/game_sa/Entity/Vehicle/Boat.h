@@ -110,16 +110,7 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    void SetModelIndex_Reversed(uint32 index);
-    void ProcessControl_Reversed();
-    void Teleport_Reversed(CVector destination, bool resetRotation);
-    void PreRender_Reversed();
     void inline ProcessBoatNodeRendering(eBoatNodes eNode, float fRotation, RwUInt8 ucAlpha);
-    void Render_Reversed();
-    void ProcessControlInputs_Reversed(uint8 ucPadNum);
-    void GetComponentWorldPosition_Reversed(int32 componentId, CVector& outPos);
-    void ProcessOpenDoor_Reversed(CPed* ped, uint32 doorComponentId, uint32 arg2, uint32 arg3, float arg4);
-    void BlowUpCar_Reversed(CEntity* damager, bool bHideExplosion);
 
 private: // Wrappers for hooks
     // 0x6F2940

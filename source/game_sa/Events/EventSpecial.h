@@ -1,6 +1,9 @@
 #pragma once
 
-class CEventSpecial : public CEventEditableResponse {
+#include "EventEditableResponse.h"
+
+
+class NOTSA_EXPORT_VTABLE CEventSpecial : public CEventEditableResponse {
 public:
     CEventSpecial() = default; // 0x4B1AE0
     ~CEventSpecial() override = default; // 0x4B6750 ?
@@ -9,6 +12,6 @@ public:
     int32 GetEventPriority() const override { return 52; }
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override { return true; }
-    CEventSpecial* CloneEditable() override { return new CEventSpecial(); }
+    CEventSpecial* CloneEditable() const noexcept override { return new CEventSpecial(); }
 };
 VALIDATE_SIZE(CEventSpecial, 0x14);

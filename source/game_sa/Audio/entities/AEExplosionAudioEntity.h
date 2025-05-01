@@ -22,7 +22,6 @@ public:
 
     void AddAudioEvent(eAudioEvents audioEvent, CVector& posn, float volume);
     void UpdateParameters(CAESound* sound, int16 curPlayPos) override;
-    void UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos);
 };
 
 VALIDATE_SIZE(CAEExplosionAudioEntity, 0x80);

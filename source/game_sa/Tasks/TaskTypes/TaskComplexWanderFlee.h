@@ -14,7 +14,7 @@ public:
     CTaskComplexWanderFlee(const CTaskComplexWanderFlee&);
     ~CTaskComplexWanderFlee() = default;
 
-    CTask*      Clone() override { return new CTaskComplexWanderFlee{ *this }; }
+    CTask*      Clone() const override { return new CTaskComplexWanderFlee{ *this }; }
     eWanderType GetWanderType() override { return WANDER_TYPE_FLEE; }
     void        ScanForStuff(CPed* ped) override { /*nop*/ }
 

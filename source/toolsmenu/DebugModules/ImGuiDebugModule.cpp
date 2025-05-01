@@ -6,7 +6,7 @@ using namespace ImGui;
 
 namespace notsa {
 namespace debugmodules {
-void ImGui::RenderWindow() {
+void ImGuiDebugModule::RenderWindow() {
     if (m_MetricsOpen) {
         ShowMetricsWindow(&m_MetricsOpen);
     }
@@ -30,7 +30,7 @@ void ImGui::RenderWindow() {
     }
 }
 
-void ImGui::RenderMenuEntry() {
+void ImGuiDebugModule::RenderMenuEntry() {
     notsa::ui::DoNestedMenuIL({ "Stats" }, [&] {
         MenuItem("ImGui", nullptr, &m_MetricsOpen);
     });

@@ -12,8 +12,8 @@
 #include "RenderWare.h"
 #include "LinkList.h"
 #include "constants.h"
+#include <CdStreamInfo.h>
 
-class CPtrList;
 class CEntity;
 class CLoadedCarGroup;
 class CDirectory;
@@ -78,18 +78,16 @@ enum class eModelType {
 };
 
 // Helper functions to deal with modelID's
+constexpr bool IsModelDFF(int32 model) { return RESOURCE_ID_DFF <= model && model < RESOURCE_ID_TXD; }
+constexpr bool IsModelTXD(int32 model) { return RESOURCE_ID_TXD <= model && model < RESOURCE_ID_COL; }
+constexpr bool IsModelCOL(int32 model) { return RESOURCE_ID_COL <= model && model < RESOURCE_ID_IPL; }
+constexpr bool IsModelIPL(int32 model) { return RESOURCE_ID_IPL <= model && model < RESOURCE_ID_DAT; }
+constexpr bool IsModelDAT(int32 model) { return RESOURCE_ID_DAT <= model && model < RESOURCE_ID_IFP; }
+constexpr bool IsModelIFP(int32 model) { return RESOURCE_ID_IFP <= model && model < RESOURCE_ID_RRR; }
+constexpr bool IsModelRRR(int32 model) { return RESOURCE_ID_RRR <= model && model < RESOURCE_ID_SCM; }
+constexpr bool IsModelSCM(int32 model) { return RESOURCE_ID_SCM <= model && model < RESOURCE_ID_LOADED_LIST_START; }
 
-
-inline bool IsModelDFF(int32 model) { return RESOURCE_ID_DFF <= model && model < RESOURCE_ID_TXD; }
-inline bool IsModelTXD(int32 model) { return RESOURCE_ID_TXD <= model && model < RESOURCE_ID_COL; }
-inline bool IsModelCOL(int32 model) { return RESOURCE_ID_COL <= model && model < RESOURCE_ID_IPL; }
-inline bool IsModelIPL(int32 model) { return RESOURCE_ID_IPL <= model && model < RESOURCE_ID_DAT; }
-inline bool IsModelDAT(int32 model) { return RESOURCE_ID_DAT <= model && model < RESOURCE_ID_IFP; }
-inline bool IsModelIFP(int32 model) { return RESOURCE_ID_IFP <= model && model < RESOURCE_ID_RRR; }
-inline bool IsModelRRR(int32 model) { return RESOURCE_ID_RRR <= model && model < RESOURCE_ID_SCM; }
-inline bool IsModelSCM(int32 model) { return RESOURCE_ID_SCM <= model && model < RESOURCE_ID_LOADED_LIST_START; }
-
-inline eModelType GetModelType(int32 model) {
+constexpr eModelType GetModelType(int32 model) {
     if (IsModelDFF(model))
         return eModelType::DFF;
 
@@ -121,24 +119,24 @@ inline eModelType GetModelType(int32 model) {
 }
 
 // Turn relative IDs into absolute ones.
-inline int32 DFFToModelId(int32 relativeId) { return RESOURCE_ID_DFF + relativeId; }
-inline int32 TXDToModelId(int32 relativeId) { return RESOURCE_ID_TXD + relativeId; }
-inline int32 COLToModelId(int32 relativeId) { return RESOURCE_ID_COL + relativeId; }
-inline int32 IPLToModelId(int32 relativeId) { return RESOURCE_ID_IPL + relativeId; }
-inline int32 DATToModelId(size_t relativeId) { return (size_t)RESOURCE_ID_DAT + relativeId; }
-inline int32 IFPToModelId(int32 relativeId) { return RESOURCE_ID_IFP + relativeId; }
-inline int32 RRRToModelId(int32 relativeId) { return RESOURCE_ID_RRR + relativeId; }
-inline int32 SCMToModelId(int32 relativeId) { return RESOURCE_ID_SCM + relativeId; }
+constexpr int32 DFFToModelId(int32 relativeId) { return RESOURCE_ID_DFF + relativeId; }
+constexpr int32 TXDToModelId(int32 relativeId) { return RESOURCE_ID_TXD + relativeId; }
+constexpr int32 COLToModelId(int32 relativeId) { return RESOURCE_ID_COL + relativeId; }
+constexpr int32 IPLToModelId(int32 relativeId) { return RESOURCE_ID_IPL + relativeId; }
+constexpr int32 DATToModelId(size_t relativeId) { return (size_t)RESOURCE_ID_DAT + relativeId; }
+constexpr int32 IFPToModelId(int32 relativeId) { return RESOURCE_ID_IFP + relativeId; }
+constexpr int32 RRRToModelId(int32 relativeId) { return RESOURCE_ID_RRR + relativeId; }
+constexpr int32 SCMToModelId(int32 relativeId) { return RESOURCE_ID_SCM + relativeId; }
 
 // Turn absolute IDs into relative ones
-inline int32 ModelIdToDFF(int32 absId) { return absId - RESOURCE_ID_DFF; }
-inline int32 ModelIdToTXD(int32 absId) { return absId - RESOURCE_ID_TXD; }
-inline int32 ModelIdToCOL(int32 absId) { return absId - RESOURCE_ID_COL; }
-inline int32 ModelIdToIPL(int32 absId) { return absId - RESOURCE_ID_IPL; }
-inline int32 ModelIdToDAT(int32 absId) { return absId - RESOURCE_ID_DAT; }
-inline int32 ModelIdToIFP(int32 absId) { return absId - RESOURCE_ID_IFP; }
-inline int32 ModelIdToRRR(int32 absId) { return absId - RESOURCE_ID_RRR; }
-inline int32 ModelIdToSCM(int32 absId) { return absId - RESOURCE_ID_SCM; }
+constexpr int32 ModelIdToDFF(int32 absId) { return absId - RESOURCE_ID_DFF; }
+constexpr int32 ModelIdToTXD(int32 absId) { return absId - RESOURCE_ID_TXD; }
+constexpr int32 ModelIdToCOL(int32 absId) { return absId - RESOURCE_ID_COL; }
+constexpr int32 ModelIdToIPL(int32 absId) { return absId - RESOURCE_ID_IPL; }
+constexpr int32 ModelIdToDAT(int32 absId) { return absId - RESOURCE_ID_DAT; }
+constexpr int32 ModelIdToIFP(int32 absId) { return absId - RESOURCE_ID_IFP; }
+constexpr int32 ModelIdToRRR(int32 absId) { return absId - RESOURCE_ID_RRR; }
+constexpr int32 ModelIdToSCM(int32 absId) { return absId - RESOURCE_ID_SCM; }
 
 struct tRwStreamInitializeData {
     uint8* m_pBuffer;
@@ -151,17 +149,17 @@ struct tStreamingFileDesc {
     tStreamingFileDesc() = default;
 
     tStreamingFileDesc(const char* name, bool bNotPlayerImg) :
-          m_bNotPlayerImg(bNotPlayerImg),
-          m_StreamHandle(CdStreamOpen(name))
+          IsNotPlayerImg(bNotPlayerImg),
+          StreamHandle(CdStreamOpen(name))
     {
-        strncpy_s(m_szName, name, std::size(m_szName));
+        strncpy_s(Name, name, std::size(Name));
     }
 
-    [[nodiscard]] bool IsInUse() const noexcept { return m_szName[0]; }
+    [[nodiscard]] bool IsInUse() const noexcept { return Name[0]; }
 
-    char  m_szName[40]{}; // If this string is empty (eg.: first elem in array is NULL) the entry isnt in use
-    bool  m_bNotPlayerImg{};
-    int32 m_StreamHandle{-1};
+    char   Name[40]{}; // If this string is empty (eg.: first elem in array is NULL) the entry isnt in use
+    bool   IsNotPlayerImg{};
+    uint32 StreamHandle{(uint32)(-1)};
 };
 
 VALIDATE_SIZE(tStreamingFileDesc, 0x30);
@@ -170,8 +168,8 @@ struct tStreamingChannel {
     int32               modelIds[16];
     int32               modelStreamingBufferOffsets[16];
     eChannelState       LoadStatus;
-    int32               iLoadingLevel; // the value gets modified, but it's not used
-    int32               offsetAndHandle;
+    int32               loadingLevel; // the value gets modified, but it's not used
+    CdStreamPos         pos;
     int32               sectorCount;
     int32               totalTries;
     eCdStreamStatus     m_nCdStreamStatus;
@@ -273,9 +271,12 @@ public:
     static bool DeleteLeastUsedEntityRwObject(bool bNotOnScreen, int32 flags);
     static void DeleteRwObjectsAfterDeath(const CVector& point);
     static void DeleteRwObjectsBehindCamera(size_t memoryToCleanInBytes);
-    static bool DeleteRwObjectsBehindCameraInSectorList(CPtrList& list, size_t memoryToCleanInBytes);
-    static void DeleteRwObjectsInSectorList(CPtrList& list, int32 sectorX = -1, int32 sectorY = -1);
-    static bool DeleteRwObjectsNotInFrustumInSectorList(CPtrList& list, size_t memoryToCleanInBytes);
+    template<typename PtrListType>
+    static bool DeleteRwObjectsBehindCameraInSectorList(PtrListType& list, size_t memoryToCleanInBytes);
+    template<typename PtrListType>
+    static void DeleteRwObjectsInSectorList(PtrListType& list, int32 sectorX = -1, int32 sectorY = -1);
+    template<typename PtrListType>
+    static bool DeleteRwObjectsNotInFrustumInSectorList(PtrListType& list, size_t memoryToCleanInBytes);
 
     /*!
     * @addr 0x40D2F0
@@ -304,13 +305,14 @@ public:
     static void Init2();
     static void InitImageList();
     static void InstanceLoadedModels(const CVector& point);
-    static void InstanceLoadedModelsInSectorList(CPtrList& list);
+    template<typename PtrListType>
+    static void InstanceLoadedModelsInSectorList(PtrListType& list);
     static bool IsCarModelNeededInCurrentZone(int32 modelId);
     static bool IsInitialised();
     static bool IsObjectInCdImage(int32 modelId);
     static bool IsVeryBusy();
     static void LoadAllRequestedModels(bool bOnlyPriorityRequests);
-    static void LoadCdDirectory(const char* filename, int32 archiveId);
+    static void LoadCdDirectory(const char* filename, StreamingImgID img);
     static void LoadCdDirectory();
     static void LoadInitialPeds();
     static void LoadInitialVehicles();
@@ -321,8 +323,10 @@ public:
     static void LoadZoneVehicle(const CVector& point);
     static void MakeSpaceFor(size_t memoryToCleanInBytes);
     static void PossiblyStreamCarOutAfterCreation(int32 modelId);
-    static void ProcessEntitiesInSectorList(CPtrList& list, float posX, float posY, float minX, float minY, float maxX, float maxY, float radius, int32 flags);
-    static void ProcessEntitiesInSectorList(CPtrList& list, int32 flags);
+    template<typename PtrListType>
+    static void ProcessEntitiesInSectorList(PtrListType& list, float posX, float posY, float minX, float minY, float maxX, float maxY, float radius, int32 flags);
+    template<typename PtrListType>
+    static void ProcessEntitiesInSectorList(PtrListType& list, int32 flags);
     static bool ProcessLoadingChannel(int32 channelIndex);
     static void PurgeRequestList();
     static void ReInit();
@@ -345,7 +349,7 @@ public:
     static void RemoveUnusedModelsInLoadedList();
     static void RenderEntity(CLink<CEntity*>* streamingLink);
     static void RequestBigBuildings(const CVector& point);
-    static void RequestFile(int32 modelId, int32 posn, uint32 size, int32 imgId, int32 streamingFlags);
+    static void RequestFile(int32 modelId, CdStreamPos posn, uint32 size, StreamingImgID imgId, int32 streamingFlags);
     static void RequestFilesInChannel(int32 channelId);
     static void RequestModel(int32 modelId, int32 flags);
     static void RequestModelStream(int32 channelId);
@@ -387,7 +391,7 @@ public:
     static bool Save();
 
     // Inlined or NOTSA
-    static bool IsModelLoaded(int32 model) { return ms_aInfoForModel[model].m_nLoadState == eStreamingLoadState::LOADSTATE_LOADED; }
+    static bool IsModelLoaded(int32 model) { return ms_aInfoForModel[model].m_LoadState == eStreamingLoadState::LOADSTATE_LOADED; }
     static CStreamingInfo& GetInfo(int32 modelId) { assert(modelId >= 0); return ms_aInfoForModel[modelId]; }
     static bool IsRequestListEmpty() { return ms_pEndRequestedList->GetPrev() == ms_pStartRequestedList; }
     static ptrdiff_t GetModelFromInfo(const CStreamingInfo* info) { return info - CStreaming::ms_aInfoForModel; }

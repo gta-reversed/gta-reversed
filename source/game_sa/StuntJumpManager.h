@@ -25,14 +25,14 @@ typedef CPool<CStuntJump> CStuntJumpsPool;
 
 class CStuntJumpManager {
 public:
-    static inline CStuntJumpsPool*&  mp_poolStuntJumps = *(CStuntJumpsPool**)0xA9A888;
-    static inline CStuntJump*&        mp_Active = *(CStuntJump**)0xA9A88C; // nullptr
-    static inline bool&               m_bActive = *(bool*)0xA9A890;
-    static inline bool&               m_bHitReward = *(bool*)0xA9A891;
-    static inline uint32&             m_iTimer = *(uint32*)0xA9A894;
-    static inline eJumpState&         m_jumpState = *(eJumpState*)0xA9A898;
-    static inline int32&              m_iNumJumps = *(int32*)0xA9A89C;
-    static inline uint32&             m_iNumCompleted = *(uint32*)0xA9A8A0;
+    static inline CStuntJumpsPool*& mp_poolStuntJumps = *(CStuntJumpsPool**)0xA9A888;
+    static inline CStuntJump*&      mp_Active         = *(CStuntJump**)0xA9A88C; // nullptr
+    static inline bool&             m_bActive         = *(bool*)0xA9A890;
+    static inline bool&             m_bHitReward      = *(bool*)0xA9A891;
+    static inline uint32&           m_iTimer          = *(uint32*)0xA9A894;
+    static inline eJumpState&       m_jumpState       = *(eJumpState*)0xA9A898;
+    static inline int32&            m_iNumJumps       = *(int32*)0xA9A89C;
+    static inline uint32&           m_iNumCompleted   = *(uint32*)0xA9A8A0;
 
 public:
     static void InjectHooks();

@@ -12,3 +12,4 @@ public:
 public:
     bool m_bAlreadyHitByCar;
 };
+VALIDATE_SIZE(CCollisionEventScanner, 0x1);

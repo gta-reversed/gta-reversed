@@ -1,6 +1,7 @@
 #pragma once
 
-class CEventEditableResponse;
+#include "EventEditableResponse.h"
+
 
 class NOTSA_EXPORT_VTABLE CEventVehicleThreat : public CEventEditableResponse {
 public:
@@ -14,5 +15,6 @@ public:
     int32 GetEventPriority() const override { return 19; }
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override;
-    CEventEditableResponse* CloneEditable() override { return new CEventVehicleThreat(m_Vehicle); }
+    CEventEditableResponse* CloneEditable() const noexcept override { return new CEventVehicleThreat(m_Vehicle); }
 };
+VALIDATE_SIZE(CEventVehicleThreat, 0x18);

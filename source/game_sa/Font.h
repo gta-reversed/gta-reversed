@@ -8,6 +8,7 @@
 
 #include "RGBA.h"
 #include "eFontAlignment.h"
+#include <extensions/WEnum.hpp>
 
 class CSprite2d;
 
@@ -80,6 +81,7 @@ enum eFontStyle : uint8 {
     FONT_MENU,
     FONT_PRICEDOWN
 };
+NOTSA_WENUM_DEFS_FOR(eFontStyle);
 
 class CFont {
 public:
@@ -149,14 +151,14 @@ public:
     static void InitPerFrame();
     static void RenderFontBuffer();
     static float GetHeight(bool a1 = false);
-    static float GetStringWidth(const char* string, bool full, bool scriptText);
+    static float GetStringWidth(const GxtChar* string, bool full, bool scriptText);
     static void DrawFonts();
-    static int16 ProcessCurrentString(bool print, float x, float y, const char* text);
-    static int16 GetNumberLines(float x, float y, const char* text);
-    static int16 ProcessStringToDisplay(float x, float y, const char* text);
-    static void GetTextRect(CRect* rect, float x, float y, const char* text);
-    static void PrintString(float x, float y, const char* text);
-    static void PrintStringFromBottom(float x, float y, const char* text);
+    static int16 ProcessCurrentString(bool print, float x, float y, const GxtChar* text);
+    static int16 GetNumberLines(float x, float y, const GxtChar* text);
+    static int16 ProcessStringToDisplay(float x, float y, const GxtChar* text);
+    static void GetTextRect(CRect* rect, float x, float y, const GxtChar* text);
+    static void PrintString(float x, float y, const GxtChar* text);
+    static void PrintStringFromBottom(float x, float y, const GxtChar* text);
     static float GetCharacterSize(uint8 ch);
     static uint8 FindSubFontCharacter(uint8 letterId, uint8 fontStyle);
 };

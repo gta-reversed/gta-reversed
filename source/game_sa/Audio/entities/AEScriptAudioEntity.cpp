@@ -125,11 +125,10 @@ void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, int32 sampleId) {
 void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVector& posn, CPhysical* physical, float volume, float speed) {
     return plugin::CallMethod<0x4ECCF0, CAEScriptAudioEntity*, eAudioEvents, CVector&, CPhysical*, float, float>(this, eventId, posn, physical, volume, speed);
 
-    // untested
+    /*
+    * Untested
+    * Need to fix case's
     switch (eventId) {
-    /**
-     * AE_CAS4
-     * */
     case AE_CAS4_NE:
     case AE_CAS4_NG:
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PURCHASE_WEAPON);
@@ -413,9 +412,6 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
         PlayMissionBankSound(eventId, posn, physical, sfxId, 3u);
         break;
     }
-    /**
-     * AE_CAS5
-     * */
     case AE_CAS5_AA:
         PlayMissionBankSound(eventId, posn, physical, 0, 3u);
         break;
@@ -460,9 +456,6 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
     case AE_CAS5_CC:
         AEAmbienceTrackManager.StopSpecialMissionAmbienceTrack();
         break;
-    /**
-     * AE_CAS6
-     * */
     case AE_CAS6_AE:
     case AE_CAS6_FK:
     case AE_CAS6_GB:
@@ -721,9 +714,6 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
     case AE_CAS6_LD:
         AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_RAIN_COLLISION);
         break;
-    /**
-     * AE_CAS9
-     */
     case AE_CAS9_AA:
     case AE_CAS9_AC:
         AEAmbienceTrackManager.StopSpecialMissionAmbienceTrack();
@@ -733,7 +723,7 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
         break;
     case AE_CAS9_AD:
         if (CLocalisation::Blood() && physical && physical->IsPed()) {
-            physical->AsPed()->m_pedAudio.AddAudioEvent(AE_PED_CRUNCH, 0.0f, 1.0f, physical, 0, 0, 0);
+            physical->AsPed()->GetAE().AddAudioEvent(AE_PED_CRUNCH, 0.0f, 1.0f, physical, 0, 0, 0);
         }
         break;
     case AE_CAS9_BA: {
@@ -755,6 +745,7 @@ void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, CVecto
     default:
         return;
     }
+    */
 }
 
 // 0x4EE960
@@ -769,8 +760,8 @@ void CAEScriptAudioEntity::ReportMissionAudioEvent(eAudioEvents eventId, CVector
 }
 
 // 0x4EC970
-void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
-    plugin::CallMethod<0x4EC970, CAEScriptAudioEntity*, CAESound*, int16>(this, sound, curPlayPos);
+void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
+    plugin::CallMethod<0x4EC970, CAEScriptAudioEntity*, CAESound*, int16>(this, sound, playTime);
 }
 
 // 0x4EC900
@@ -778,14 +769,14 @@ void CAEScriptAudioEntity::Service() {
     CVector posn = {-1000.0f, -1000.0f, -1000.0f};
     if (!m_Physical)
         return;
-    if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_CAS4_FH, this) != 0)
+    if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_SCRIPT_CRANE_ENTER, this) != 0)
         return;
 
-    PlayResidentSoundEvent(40, 44, 0, AE_CAS4_FH, posn, m_Physical, 0.0f, 1.0f, 0, 2.5f);
+    PlayResidentSoundEvent(40, 44, 0, AE_SCRIPT_CRANE_ENTER, posn, m_Physical, 0.0f, 1.0f, 0, 2.5f);
 }
 
 void CAEScriptAudioEntity::InjectHooks() {
-    RH_ScopedClass(CAEScriptAudioEntity);
+    RH_ScopedVirtualClass(CAEScriptAudioEntity, 0x862E58, 1);
     RH_ScopedCategory("Audio/Entities");
 
     RH_ScopedInstall(Constructor, 0x5074D0);
@@ -806,14 +797,10 @@ void CAEScriptAudioEntity::InjectHooks() {
     RH_ScopedInstall(ProcessMissionAudioEvent, 0x4ECCF0, { .reversed = false });
     RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "1", 0x4EE960, void (CAEScriptAudioEntity::*)(eAudioEvents, CPhysical*, float, float));
     RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "2", 0x4EE940, void (CAEScriptAudioEntity::*)(eAudioEvents, CVector&));
-    RH_ScopedVirtualInstall(UpdateParameters, 0x4EC970, { .reversed = false });
+    RH_ScopedVMTInstall(UpdateParameters, 0x4EC970, { .reversed = false });
 }
 
 CAEScriptAudioEntity* CAEScriptAudioEntity::Constructor() {
     this->CAEScriptAudioEntity::CAEScriptAudioEntity();
     return this;
-}
-
-void CAEScriptAudioEntity::UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) {
-    CAEScriptAudioEntity::UpdateParameters(sound, curPlayPos);
 }

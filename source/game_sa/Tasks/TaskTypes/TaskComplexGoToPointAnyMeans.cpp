@@ -3,7 +3,7 @@
 #include "TaskComplexGoToPointAnyMeans.h"
 
 void CTaskComplexGoToPointAnyMeans::InjectHooks() {
-    RH_ScopedClass(CTaskComplexGoToPointAnyMeans);
+    RH_ScopedVirtualClass(CTaskComplexGoToPointAnyMeans, 0x86FF68, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedOverloadedInstall(Constructor, "1", 0x66B720, CTaskComplexGoToPointAnyMeans*(CTaskComplexGoToPointAnyMeans::*)(int32, CVector const&, float, int32));

@@ -2,11 +2,13 @@
 
 #include "DebugModule.h"
 
-class TimeCycleDebugModule : public DebugModule {
+class TimeCycleDebugModule final : public DebugModule {
 public:
     void RenderWindow() override final;
     void Render3D() override final;
     void RenderMenuEntry() override final;
+
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(TimeCycleDebugModule, m_IsOpen, m_ShowBoxes);
 
 private:
     void SyncFromGame();

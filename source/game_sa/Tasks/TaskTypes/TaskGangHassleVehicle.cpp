@@ -3,7 +3,7 @@
 #include "TaskGangHassleVehicle.h"
 
 void CTaskGangHassleVehicle::InjectHooks() {
-    RH_ScopedClass(CTaskGangHassleVehicle);
+    RH_ScopedVirtualClass(CTaskGangHassleVehicle, 0x86F9D4, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x65FAC0);

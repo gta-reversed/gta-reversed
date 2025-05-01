@@ -8,15 +8,16 @@
 
 #include "TaskComplexEnterCar.h"
 
-class CTaskComplexEnterCarAsPassenger : public CTaskComplexEnterCar {
+class NOTSA_EXPORT_VTABLE CTaskComplexEnterCarAsPassenger : public CTaskComplexEnterCar {
 public:
     static constexpr auto Type = TASK_COMPLEX_ENTER_CAR_AS_PASSENGER;
 
-    CTaskComplexEnterCarAsPassenger(CVehicle* targetVehicle, int32 nTargetSeat, bool bCarryOnAfterFallingOff);
+    CTaskComplexEnterCarAsPassenger(CVehicle* targetVehicle, int32 nTargetSeat = 0, bool bCarryOnAfterFallingOff = false);
+    CTaskComplexEnterCarAsPassenger(const CTaskComplexEnterCarAsPassenger&);
     ~CTaskComplexEnterCarAsPassenger() override = default;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskComplexEnterCarAsPassenger{*this}; } // 0x6437F0
 };
 
 VALIDATE_SIZE(CTaskComplexEnterCarAsPassenger, 0x50);

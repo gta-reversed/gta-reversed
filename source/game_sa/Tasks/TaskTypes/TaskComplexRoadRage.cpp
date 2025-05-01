@@ -16,7 +16,7 @@ void CTaskComplexRoadRage::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x6220A0);
     RH_ScopedInstall(Destructor, 0x622110);
 
-    RH_ScopedInstall(CreateSubTask, 0x629080, { .reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x629080);
 
     RH_ScopedVMTInstall(Clone, 0x623670);
     RH_ScopedVMTInstall(GetTaskType, 0x622100);
@@ -57,8 +57,8 @@ CTask* CTaskComplexRoadRage::CreateSubTask(eTaskType taskType, CPed* ped) {
     case TASK_COMPLEX_SEEK_ENTITY:
         return new CTaskComplexSeekEntityStandard{
             ped->m_pVehicle,
-            20'000u,
-            1000u,
+            20'000,
+            1'000,
             m_rageWith->m_pVehicle->GetModelInfo()->GetColModel()->GetBoundRadius() + 1.f,
             2.f,
             2.f,
@@ -69,6 +69,8 @@ CTask* CTaskComplexRoadRage::CreateSubTask(eTaskType taskType, CPed* ped) {
         return new CTaskComplexDestroyCar{ m_rageWith->m_pVehicle };
     case TASK_COMPLEX_KILL_PED_ON_FOOT:
         return new CTaskComplexKillPedOnFoot{ m_rageWith, -1, 0, 0, 0, true };
+    case TASK_FINISHED:
+        return nullptr;
     default:
         NOTSA_UNREACHABLE();
     }
@@ -84,7 +86,6 @@ CTask* CTaskComplexRoadRage::CreateNextSubTask(CPed* ped) {
     if (!m_rageWith) {
         return nullptr;
     }
-
     switch (m_pSubTask->GetTaskType()) {
     case TASK_COMPLEX_TURN_TO_FACE_ENTITY:
         return CreateSubTask(TASK_SIMPLE_SHAKE_FIST, ped);
@@ -102,7 +103,8 @@ CTask* CTaskComplexRoadRage::CreateNextSubTask(CPed* ped) {
         ); 
     case TASK_COMPLEX_ENTER_CAR_AS_DRIVER: {
         if (ped->m_pVehicle) {
-            ped->m_pVehicle->m_autoPilot.SetCarMission(MISSION_CRUISE, 10);
+            ped->m_pVehicle->m_autoPilot.SetCarMission(MISSION_CRUISE);
+            ped->m_pVehicle->m_autoPilot.SetCruiseSpeed(10);
         }
         return CreateSubTask(TASK_FINISHED, ped);
     }

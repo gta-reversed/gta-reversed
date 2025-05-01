@@ -6,24 +6,20 @@
 #include "TaskComplexPolicePursuit.h"
 
 void CTaskComplexWanderCop::InjectHooks() {
-    RH_ScopedClass(CTaskComplexWanderCop);
+    RH_ScopedVirtualClass(CTaskComplexWanderCop, 0x859C80, 15);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x460C80);
-    RH_ScopedVirtualInstall(CreateNextSubTask, 0x674860);
-    RH_ScopedVirtualInstall(CreateFirstSubTask, 0x674750);
-    RH_ScopedVirtualInstall(ControlSubTask, 0x674D80);
-    RH_ScopedVirtualInstall(ScanForStuff, 0x6702B0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x674860);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x674750);
+    RH_ScopedVMTInstall(ControlSubTask, 0x674D80);
+    RH_ScopedVMTInstall(ScanForStuff, 0x6702B0);
     RH_ScopedInstall(LookForCarAlarms, 0x66B1B0);
     RH_ScopedInstall(LookForStolenCopCars, 0x66B290);
     RH_ScopedInstall(LookForCriminals, 0x66B300);
     RH_ScopedInstall(ShouldPursuePlayer, 0x66B160);
 }
 CTaskComplexWanderCop* CTaskComplexWanderCop::Constructor(eMoveState moveState, uint8 dir) { this->CTaskComplexWanderCop::CTaskComplexWanderCop(moveState, dir); return this; }
-CTask* CTaskComplexWanderCop::CreateNextSubTask(CPed* ped) { return CreateNextSubTask_Reversed(ped); }
-CTask* CTaskComplexWanderCop::CreateFirstSubTask(CPed* ped) { return CreateFirstSubTask_Reversed(ped); }
-CTask* CTaskComplexWanderCop::ControlSubTask(CPed* ped) { return ControlSubTask_Reversed(ped); }
-void CTaskComplexWanderCop::ScanForStuff(CPed* ped) { return ScanForStuff_Reversed(ped); }
 
 // 0x460D80
 CTaskComplexWanderCop::CTaskComplexWanderCop(eMoveState moveState, uint8 dir) : CTaskComplexWander(moveState, dir, true, 0.5f) {
@@ -39,7 +35,7 @@ CTaskComplexWanderCop::~CTaskComplexWanderCop() {
 }
 
 // 0x674860
-CTask* CTaskComplexWanderCop::CreateNextSubTask_Reversed(CPed* ped) {
+CTask* CTaskComplexWanderCop::CreateNextSubTask(CPed* ped) {
     if (ped->m_nPedType != PED_TYPE_COP)
         return CTaskComplexWander::CreateNextSubTask(ped);
 
@@ -69,7 +65,7 @@ CTask* CTaskComplexWanderCop::CreateNextSubTask_Reversed(CPed* ped) {
 }
 
 // 0x674750
-CTask* CTaskComplexWanderCop::CreateFirstSubTask_Reversed(CPed* ped) {
+CTask* CTaskComplexWanderCop::CreateFirstSubTask(CPed* ped) {
     if (ped->m_nPedType != PED_TYPE_COP)
         return CTaskComplexWander::CreateFirstSubTask(ped);
 
@@ -88,7 +84,7 @@ CTask* CTaskComplexWanderCop::CreateFirstSubTask_Reversed(CPed* ped) {
 }
 
 // 0x674D80
-CTask* CTaskComplexWanderCop::ControlSubTask_Reversed(CPed* ped) {
+CTask* CTaskComplexWanderCop::ControlSubTask(CPed* ped) {
     if (ped->m_nPedType != PED_TYPE_COP)
         return CTaskComplexWander::ControlSubTask(ped);
 
@@ -99,7 +95,7 @@ CTask* CTaskComplexWanderCop::ControlSubTask_Reversed(CPed* ped) {
         return CTaskComplexWander::ControlSubTask(ped);
     }
 
-    if (m_nSubTaskCreatedTimer.m_bStarted && !m_nSubTaskCreatedTimer.IsOutOfTime() || !m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+    if (m_nSubTaskCreatedTimer.m_bStarted && !m_nSubTaskCreatedTimer.IsOutOfTime() || !m_pSubTask->MakeAbortable(ped)) {
         return m_pSubTask;
     }
 
@@ -107,7 +103,7 @@ CTask* CTaskComplexWanderCop::ControlSubTask_Reversed(CPed* ped) {
 }
 
 // 0x6702B0
-void CTaskComplexWanderCop::ScanForStuff_Reversed(CPed* ped) {
+void CTaskComplexWanderCop::ScanForStuff(CPed* ped) {
     if (!m_nScanForStuffTimer.m_bStarted) {
         m_nScanForStuffTimer.m_nStartTime = CTimer::GetTimeInMS();
         m_nScanForStuffTimer.m_nInterval = 50;

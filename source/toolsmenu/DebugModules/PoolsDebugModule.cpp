@@ -20,35 +20,45 @@ void PoolsDebugModule::RenderWindow() {
     ImGui::TableSetupColumn("Size");
     ImGui::TableSetupColumn("Active objects");
     ImGui::TableSetupColumn("Usage (%)");
-    ImGui::TableSetupColumn("Locked");
+    ImGui::TableSetupColumn("DealWithNoMemory");
     ImGui::TableHeadersRow();
 
     const auto Draw = [](auto* pool, const char* name) {
-        ImGui::TableNextRow();
-        ImGui::PushID(&pool);
 
-        ImGui::TableNextColumn();
-        ImGui::Text("%s", name);
+        if (!pool) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", name);
 
-        ImGui::TableNextColumn();
-        ImGui::Text("%d", pool->GetSize());
+            ImGui::TableNextColumn();
+            ImGui::Text("NOT INITIALIZED");
+        } else {
+            ImGui::TableNextRow();
+            ImGui::PushID(&pool);
 
-        const auto used = pool->GetNoOfUsedSpaces();
-        const auto percentage = (float)(used) / (float)(pool->GetSize());
-        ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f * percentage, 1.0f - percentage, 0.0f, 1.0f });
-        
-        ImGui::TableNextColumn();
-        ImGui::Text("%d", used);
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", name);
 
-        ImGui::TableNextColumn();
-        ImGui::Text("%.1f %%", (double)(percentage) * 100.0); // Avoid MSVC warning
+            ImGui::TableNextColumn();
+            ImGui::Text("%d", pool->GetSize());
 
-        ImGui::PopStyleColor();
+            const auto used       = pool->GetNoOfUsedSpaces();
+            const auto percentage = (float)(used) / (float)(pool->GetSize());
+            ImGui::PushStyleColor(ImGuiCol_Text, { 1.0f * percentage, 1.0f - percentage, 0.0f, 1.0f });
 
-        ImGui::TableNextColumn();
-        ImGui::Text(pool->m_bIsLocked ? "T" : "F");
+            ImGui::TableNextColumn();
+            ImGui::Text("%d", used);
 
-        ImGui::PopID();
+            ImGui::TableNextColumn();
+            ImGui::Text("%.1f %%", (double)(percentage) * 100.0); // Avoid MSVC warning
+
+            ImGui::PopStyleColor();
+
+            ImGui::TableNextColumn();
+            ImGui::Text(pool->CanDealWithNoMemory() ? "T" : "F");
+
+            ImGui::PopID();
+        }
     };
 
     // CPools
@@ -72,11 +82,11 @@ void PoolsDebugModule::RenderWindow() {
 
     // Other pools
     Draw(CTxdStore::ms_pTxdPool, "TXD");
-    Draw(CIplStore::ms_pPool, "IPL");
-    Draw(CEntryExitManager::mp_poolEntryExits, "Entry Exits");
+    Draw(CIplStore::GetPool(), "IPL");
+    Draw(CEntryExitManager::GetPool(), "Entry Exits");
     Draw(CStuntJumpManager::mp_poolStuntJumps, "Stunt Jumps");
-    Draw(CColStore::ms_pColPool, "Collision");
-    Draw(CQuadTreeNode::ms_pQuadTreeNodePool, "Quad Tree Node");
+    Draw(CColStore::GetPool(), "Collision");
+    Draw(CQuadTreeNode<void*>::GetPool(), "Quad Tree Node");
     Draw(CVehicleModelInfo::CVehicleStructure::m_pInfoPool, "Vehicle Structure");
 
     Draw(CCustomCarEnvMapPipeline::m_gEnvMapPipeMatDataPool, "Env Map Pipe: Material Data");

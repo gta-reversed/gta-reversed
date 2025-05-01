@@ -40,7 +40,7 @@ void CKeyArray::Update(char* offset) {
 }
 
 // 0x6A0000
-const char* CKeyArray::Search(const char* key, bool& found) {
+const GxtChar* CKeyArray::Search(const char* key, bool& found) {
     const auto entry = BinarySearch(CKeyGen::GetUppercaseKey(key), m_data, 0, m_size - 1);
     found = entry != nullptr;
 

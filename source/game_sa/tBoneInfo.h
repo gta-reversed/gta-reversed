@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Base.h"
-#include "ePedBones.h"
+#include "eBoneTag.h"
 
 struct tBoneInfo {
-    ePedBones m_current; // This bone
-    ePedBones m_prev;    // Previous connected bone
+    eBoneTag m_current; // This bone
+    eBoneTag m_prev;    // Previous connected bone
     CVector   m_Max;
     CVector   m_Min;
     CVector   m_ABC;

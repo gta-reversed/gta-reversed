@@ -26,7 +26,7 @@ enum class ePlantField {
     ALL_FIELDS_READED
 };
 
-struct Plant {
+struct CPlantSurfPropPlantData {
     uint16 model_id = uint16(-1);
     uint16 uv_offset = 0;
     CRGBA  color{ 255, 255, 255, 255 };
@@ -40,18 +40,18 @@ struct Plant {
     float  wind_blending_scale = 0.0f;
     float  wind_blending_variation = 0.0f;
 };
-VALIDATE_SIZE(Plant, 0x28);
+VALIDATE_SIZE(CPlantSurfPropPlantData, 0x28);
 
-struct tSurfPropTab {
+struct CPlantSurfProp {
     uint16 m_SlotId;
-    Plant  m_Plants[3];
+    CPlantSurfPropPlantData  m_Plants[3];
 };
 
 class CPlantSurfPropMgr {
 public:
-    static inline std::array<tSurfPropTab*, 178>& m_SurfPropPtrTab = *(std::array<tSurfPropTab*, 178>*)0xC38070;
+    static inline std::array<CPlantSurfProp*, 178>& m_SurfPropPtrTab = *(std::array<CPlantSurfProp*, 178>*)0xC38070;
     static inline uint32& m_countSurfPropsAllocated = *(uint32*)0xC39ED4;
-    static inline tSurfPropTab (&m_SurfPropTab)[MAX_SURFACE_PROPERTIES] = *(tSurfPropTab(*)[57])0xC38338;
+    static inline CPlantSurfProp (&m_SurfPropTab)[MAX_SURFACE_PROPERTIES] = *(CPlantSurfProp(*)[57])0xC38338;
 
 public:
     static void InjectHooks();
@@ -60,6 +60,6 @@ public:
     static void Shutdown();
 
     static bool LoadPlantsDat(const char* filename);
-    static tSurfPropTab* AllocSurfProperties(uint16 surfaceId, bool clearAllocCount);
-    static tSurfPropTab* GetSurfProperties(uint16 index);
+    static CPlantSurfProp* AllocSurfProperties(uint16 surfaceId, bool clearAllocCount);
+    static CPlantSurfProp* GetSurfProperties(uint16 index);
 };

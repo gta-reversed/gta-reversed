@@ -3,7 +3,7 @@
 #include "TaskComplexGotoDoorAndOpen.h"
 
 void CTaskComplexGotoDoorAndOpen::InjectHooks() {
-    RH_ScopedClass(CTaskComplexGotoDoorAndOpen);
+    RH_ScopedVirtualClass(CTaskComplexGotoDoorAndOpen, 0x86FFC0, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedOverloadedInstall(Constructor, "0", 0x66BB20, CTaskComplexGotoDoorAndOpen*(CTaskComplexGotoDoorAndOpen::*)(CObject *));
@@ -47,7 +47,7 @@ CTaskComplexGotoDoorAndOpen::~CTaskComplexGotoDoorAndOpen() {
 }
 
 // 0x66BCA0
-CTask* CTaskComplexGotoDoorAndOpen::Clone() {
+CTask* CTaskComplexGotoDoorAndOpen::Clone() const {
     if ((m_nFlags & 1) != 0) { // todo: flags
         return new CTaskComplexGotoDoorAndOpen(m_Object);
     } else {

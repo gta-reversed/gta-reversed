@@ -11,14 +11,14 @@ class CVector;
 
 struct tPickupMessage {
 public:
-    CVector pos;
-    float   width;
-    float   height;
-    CRGBA   color;
-    uint8   flags;
-    char    field_19;
-    uint32  price;
-    char*   text;
+    CVector  pos;
+    float    width;
+    float    height;
+    CRGBA    color;
+    uint8    flags;
+    char     field_19;
+    uint32   price;
+    GxtChar* text;
 };
 
 VALIDATE_SIZE(tPickupMessage, 0x24);

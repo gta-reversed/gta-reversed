@@ -14,7 +14,6 @@
 #include "ColHelpers.h"
 #include "PedModelInfo.h"
 #include "TaskSimpleHoldEntity.h"
-#include "extensions/enumerate.hpp"
 
 #include "TaskComplexEnterCarAsDriver.h"
 #include "TaskComplexEnterCarAsPassenger.h"
@@ -61,24 +60,25 @@ void CCollision::SortOutCollisionAfterLoad() {
 void CCollision::CalculateTrianglePlanes(CCollisionData* colData) {
     ZoneScoped;
 
-    if (!colData->m_nNumTriangles)
+    if (!colData->m_nNumTriangles) { // No triangles => no planes to calculate
         return;
+    }
 
-    if (colData->m_pTrianglePlanes) {
-        auto* link = colData->GetLinkPtr();
-        link->Remove();
-        ms_colModelCache.usedListHead.Insert(link);
+    if (colData->m_pTrianglePlanes) { // Planes already calculated?
+        ms_colModelCache.Insert(*colData->GetLinkPtr()); // Re-insert link at front
     } else {
-        auto* link = ms_colModelCache.Insert(colData);
-        if (!link) {
-            auto* toRemove = ms_colModelCache.usedListTail.prev;
-            toRemove->data->RemoveTrianglePlanes();
-            ms_colModelCache.Remove(toRemove);
-            link = ms_colModelCache.Insert(colData);
-        }
+        auto l = ms_colModelCache.Insert(colData);
+        if (!l) { // No more free space?
+            // Remove least-recently used item
+            const auto llr = ms_colModelCache.GetTail();
+            llr->data->RemoveTrianglePlanes();
+            ms_colModelCache.Remove(llr);
 
+            // This should succeed now
+            VERIFY(l = ms_colModelCache.Insert(colData));
+        }
         colData->CalculateTrianglePlanes();
-        colData->SetLinkPtr(link);
+        colData->SetLinkPtr(l);
     }
 }
 
@@ -86,11 +86,12 @@ void CCollision::CalculateTrianglePlanes(CCollisionData* colData) {
 void CCollision::RemoveTrianglePlanes(CCollisionData* colData) {
     ZoneScoped;
 
-    if (!colData->m_pTrianglePlanes)
+    if (!colData->m_pTrianglePlanes) {
         return;
+    }
 
-    auto* link = colData->GetLinkPtr();
-    ms_colModelCache.Remove(link);
+    const auto l = colData->GetLinkPtr();
+    ms_colModelCache.Remove(l);
     colData->RemoveTrianglePlanes();
 }
 
@@ -1236,8 +1237,8 @@ bool CCollision::ProcessDiscCollision(
 ) {
     ZoneScoped;
 
-    const auto cp       = matBA * tempTriCol.m_vecPoint;
-    const auto cpNormal = Multiply3x3(matBA, tempTriCol.m_vecNormal);
+    const auto cp       = matBA.TransformPoint(tempTriCol.m_vecPoint);
+    const auto cpNormal = matBA.TransformVector(tempTriCol.m_vecNormal);
     
     if (std::abs((cpNormal * disk.m_vThickness).ComponentwiseSum()) >= 0.77f ||
         std::abs((((cp - disk.m_vecCenter) * disk.m_vThickness).ComponentwiseSum()) >= disk.m_fThickness)
@@ -1265,7 +1266,7 @@ bool CCollision::ProcessDiscCollision(
 
 /*!
 * Process line-triangle intersection, internal function (used to implement `ProcessLineTriangle` and `TestLineTriangle`)
-* @tparam TestOnly If we're only doing an intersecetion check, and are not interested in the intersection point, normal, etc. In this case the last 3 arguments can be nullptr.
+* @tparam TestOnly If we're only doing an intersection check, and are not interested in the intersection point, normal, etc. In this case the last 3 arguments can be nullptr.
 * @notsa
 */
 template<bool TestOnly>
@@ -1695,7 +1696,7 @@ bool CCollision::TestLineOfSight(
     CalculateTrianglePlanes(cd);
     const auto verts = cd->GetTriVerts();
     const auto pls   = cd->GetTriPlanes();
-    for (const auto&& [idx, tri] : notsa::enumerate(cd->GetTris())) { // TODO: rng::zip
+    for (const auto&& [idx, tri] : rngv::enumerate(cd->GetTris())) { // TODO: rng::zip
         if (ShouldTest(tri.GetSurfaceType()) && TestLineTriangle(lnos, verts, tri, pls[idx])) {
             return true;
         }
@@ -1720,8 +1721,8 @@ bool CCollision::ProcessLineOfSight(const CColLine& lnws, const CMatrix& transfo
 
     // Transform lime into object space
     const CColLine line_OS = {
-        MultiplyMatrixWithVector(invertedTransform, lnws.m_vecStart),
-        MultiplyMatrixWithVector(invertedTransform, lnws.m_vecEnd),
+        invertedTransform.TransformPoint(lnws.m_vecStart),
+        invertedTransform.TransformPoint(lnws.m_vecEnd),
     };
 
     if (!TestLineBox_DW(line_OS, colModel.GetBoundingBox()))
@@ -1756,8 +1757,8 @@ bool CCollision::ProcessLineOfSight(const CColLine& lnws, const CMatrix& transfo
     }
 
     if (localMinTouchDist < maxTouchDistance) {
-        colPoint.m_vecPoint = MultiplyMatrixWithVector(transform, colPoint.m_vecPoint);
-        colPoint.m_vecNormal = Multiply3x3(transform, colPoint.m_vecNormal);
+        colPoint.m_vecPoint = transform.TransformPoint(colPoint.m_vecPoint);
+        colPoint.m_vecNormal = transform.TransformVector(colPoint.m_vecNormal);
         maxTouchDistance = localMinTouchDist;
         return true;
     }
@@ -1819,7 +1820,7 @@ bool CCollision::ProcessVerticalLine(
     CStoredCollPoly storedColPoly{};
     const auto verts = cd->GetTriVerts();
     const auto pls   = cd->GetTriPlanes();
-    for (const auto&& [idx, tri] : notsa::enumerate(cd->GetTris())) { // TODO: rng::zip
+    for (const auto&& [idx, tri] : rngv::enumerate(cd->GetTris())) { // TODO: rng::zip
         if (ShouldTest(tri.GetSurfaceType())) {
             ProcessLineTriangle(lnos, verts, tri, pls[idx], cp, localMaxTouchDist, &storedColPoly);
         }
@@ -1831,12 +1832,12 @@ bool CCollision::ProcessVerticalLine(
     maxTouchDistance = localMaxTouchDist;
 
     // Transform back from object space
-    cp.m_vecPoint  = transform * cp.m_vecPoint;
-    cp.m_vecNormal = Multiply3x3(transform, cp.m_vecNormal);
+    cp.m_vecPoint  = transform.TransformPoint(cp.m_vecPoint);
+    cp.m_vecNormal = transform.TransformVector(cp.m_vecNormal);
 
     if (outColPoly && storedColPoly.valid) {
         for (auto& vtx : storedColPoly.verts) {
-            vtx = transform * vtx; // Transform back from object space
+            vtx = transform.TransformPoint(vtx); // Transform back from object space
         }
         *outColPoly = storedColPoly;
     }
@@ -1935,7 +1936,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
     const auto transformAtoB = Invert(transformB) * transformA;
 
     // A's bounding bb in B's space
-    const CColSphere colABoundSphereSpaceB{MultiplyMatrixWithVector(transformAtoB, cmA.m_boundSphere.m_vecCenter), cmA.m_boundSphere.m_fRadius};
+    const CColSphere colABoundSphereSpaceB{transformAtoB.TransformPoint(cmA.m_boundSphere.m_vecCenter), cmA.m_boundSphere.m_fRadius};
 
     if (!TestSphereBox(colABoundSphereSpaceB, cmB.m_boundBox)) {
         return 0;
@@ -1956,14 +1957,14 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
     const auto TransformSpheres = []<size_t n>(auto&& spheres, const CMatrix& transform, CColSphere(&outSpheres)[n]) {
         std::ranges::transform(spheres, outSpheres, [&](const auto& sp) {
             CColSphere transformed = sp;                                                   // Copy sphere
-            transformed.m_vecCenter = MultiplyMatrixWithVector(transform, sp.m_vecCenter); // Set copy's center as the transformed point
+            transformed.m_vecCenter = transform.TransformPoint(sp.m_vecCenter); // Set copy's center as the transformed point
             return transformed;
         });
     };
 
     // Test `spheres` against bounding bb `bb` and store all colliding sphere's indices in `collidedIdxs`
     const auto TestSpheresAgainstBB = []<size_t n>(auto&& spheres, const auto& bb, uint32& numCollided, uint32(&collidedIdxs)[n]) {
-        for (const auto& [triIdx, sp] : notsa::enumerate(spheres)) {
+        for (const auto& [triIdx, sp] : rngv::enumerate(spheres)) {
             if (TestSphereBox(sp, bb)) {
                 assert(numCollided < n); // Avoid out-of-bounds (Game originally didn'maxTouchDist check)
                 collidedIdxs[numCollided++] = (uint32)triIdx;
@@ -2008,7 +2009,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
     // Test B's boxes against A's bounding sphere
     static uint32 collBoxB[MAX_BOXES]; // Indices of B's boxes colliding with A's bounding sphere
     uint32 numCollBoxB{};
-    for (auto&& [triIdx, bb] : notsa::enumerate(cdB.GetBoxes())) {
+    for (auto&& [triIdx, bb] : rngv::enumerate(cdB.GetBoxes())) {
         if (TestSphereBox(colABoundSphereSpaceB, bb)) {
             collBoxB[numCollBoxB++] = triIdx;
             if (numCollBoxB >= MAX_BOXES) {
@@ -2039,12 +2040,15 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
                 if (TestSphereBox(colABoundSphereSpaceB, group.bb)) { // Quick BB check
                     for (auto triIdx{group.first}; triIdx <= group.last; triIdx++) { // Check all triangles in this group
                         ProcessOneTri(triIdx);
+                        if (numCollTrisB >= MAX_TRIS) {
+                            break;
+                        }
                     }
                 }
             }
         } else { // Game checked here if B.m_nNumTriangles > 0, but that is a redundant check.
             // 0x418C40
-            for (auto triIdx = 0u; triIdx < cdB.m_nNumTriangles; triIdx++) {
+            for (auto triIdx = 0u; triIdx < cdB.m_nNumTriangles && numCollTrisB < MAX_TRIS; triIdx++) {
                 ProcessOneTri(triIdx);
             }
         }
@@ -2135,7 +2139,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
         // 0x41996E
         // Transform all colpoints into world space (Originally not here)
         for (auto&& cp : std::span{sphereCPs, nNumSphereCPs}) {
-            cp.m_vecPoint = MultiplyMatrixWithVector(transformB, cp.m_vecPoint);
+            cp.m_vecPoint = transformB.TransformPoint(cp.m_vecPoint);
             cp.m_vecNormal = Multiply3x3(transformB, cp.m_vecNormal);
         }
     }
@@ -2161,8 +2165,8 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
         for (auto lineIdx = 0u; lineIdx < cdA.m_nNumLines; lineIdx++) {
             const CColLine lineA{
                 // A's line in B's space
-                MultiplyMatrixWithVector(transformAtoB, cdA.m_pLines[lineIdx].m_vecStart),
-                MultiplyMatrixWithVector(transformAtoB, cdA.m_pLines[lineIdx].m_vecEnd),
+                transformAtoB.TransformPoint(cdA.m_pLines[lineIdx].m_vecStart),
+                transformAtoB.TransformPoint(cdA.m_pLines[lineIdx].m_vecEnd),
             };
 
             // if (!TestLineSphere(line, CColSphere{ cmB.m_boundSphere })) { // NOTSA: Quick check to (possibly) speed things up
@@ -2195,7 +2199,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
             // 0x4198DA
             // Now, transform colpoint if it the line collided into world space
             if (hasCollided) {
-                thisLineCP.m_vecPoint = MultiplyMatrixWithVector(transformB, thisLineCP.m_vecPoint);
+                thisLineCP.m_vecPoint = transformB.TransformPoint(thisLineCP.m_vecPoint);
                 thisLineCP.m_vecNormal = Multiply3x3(transformB, thisLineCP.m_vecNormal);
             }
         }
@@ -2208,7 +2212,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
     // Find all A's triangles and boxes colliding with B's b.sphere
     // Then process them all against B's colliding spheres
     if (numCollSphB && (cdA.m_nNumTriangles || cdA.m_nNumBoxes)) {
-        const CColSphere colBSphereInASpace{MultiplyMatrixWithVector(transformBtoA, cmB.m_boundSphere.m_vecCenter), cmB.m_boundSphere.m_fRadius};
+        const CColSphere colBSphereInASpace{transformBtoA.TransformPoint(cmB.m_boundSphere.m_vecCenter), cmB.m_boundSphere.m_fRadius};
 
         const auto numCPsPrev{nNumSphereCPs};
 
@@ -2291,7 +2295,7 @@ int32 CCollision::ProcessColModels(const CMatrix& transformA, CColModel& cmA,
         // Transform added colpoints into world space
         if (numCPsPrev != nNumSphereCPs) {                                                   // If we've processed any items..
             for (auto& cp : std::span{sphereCPs + numCPsPrev, nNumSphereCPs - numCPsPrev}) { // Transform all newly added colpoints
-                cp.m_vecPoint = MultiplyMatrixWithVector(transformA, cp.m_vecPoint);
+                cp.m_vecPoint = transformA.TransformPoint(cp.m_vecPoint);
                 cp.m_vecNormal = Multiply3x3(transformA, cp.m_vecNormal);
 
                 // Weird stuff, idk why they do this
@@ -2399,11 +2403,7 @@ bool CCollision::CheckCameraCollisionPeds(
     bool addedAny = false;
 
     const auto& sector = GetRepeatSector(sectorX, sectorY);
-    for (CPtrNodeDoubleLink* it = sector->GetList(REPEATSECTOR_PEDS).GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-        
-        const auto ped = it->GetItem<CPed>();
-
+    for (auto* const ped : sector->Peds) {
         if (ped->IsScanCodeCurrent()) {
             continue;
         }
@@ -2811,7 +2811,7 @@ bool CCollision::SphereCastVsEntity(
     };
 
     // Process spheres
-    for (auto&& [idx, sp] : notsa::enumerate(ecd->GetSpheres())) {
+    for (auto&& [idx, sp] : rngv::enumerate(ecd->GetSpheres())) {
         if (!SphereCastVsSphere(spAos, spBos, sp)) {
             continue;
         }
@@ -2872,7 +2872,7 @@ bool CCollision::SphereCastVsEntity(
     }
 
     // Process boxes
-    for (auto&& [idx, bb] : notsa::enumerate(ecd->GetBoxes())) {
+    for (auto&& [idx, bb] : rngv::enumerate(ecd->GetBoxes())) {
         if (SphereCastVsBBox(spAos, spBos, bb)) {
             if (AddEntryToColCache(BOX, idx)) {
                 return true;
@@ -2898,10 +2898,7 @@ bool CCollision::CheckCameraCollisionBuildings(
     const auto checkFlyerCollision = plyrVeh && plyrVeh->physicalFlags.bDontCollideWithFlyers;
 
     bool anyCollided = false;
-    for (CPtrNodeDoubleLink* it = GetSector(X, Y)->m_buildings.GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-
-        const auto entity = it->GetItem<CBuilding>();
+    for (auto* const entity : GetSector(X, Y)->m_buildings) {
         if (!entity->ProcessScan()) {
             continue;
         }
@@ -2935,11 +2932,7 @@ bool CCollision::CheckCameraCollisionVehicles(
     static auto& gpLastSittingOnEntity   = StaticRef<CEntity*, 0x9689D8>();
 
     bool anyCollided = false;
-    for (CPtrNodeDoubleLink* it = GetRepeatSector(X, Y)->GetList(REPEATSECTOR_VEHICLES).GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-
-        const auto entity = it->GetItem<CVehicle>();
-
+    for (auto* const entity : GetRepeatSector(X, Y)->Vehicles) {
         if (!entity->ProcessScan()) {
             continue;
         }
@@ -2990,10 +2983,7 @@ bool CCollision::CheckCameraCollisionObjects(
     // Pirulax: At this point I'm certain R* devs were paid by lines written
 
     bool anyCollided = false;
-    for (CPtrNodeDoubleLink* it = GetRepeatSector(X, Y)->GetList(REPEATSECTOR_OBJECTS).GetNode(), *next{}; it; it = next) {
-        next = it->GetNext();
-
-        const auto entity = it->GetItem<CObject>();
+    for (auto* const entity : GetRepeatSector(X, Y)->Objects) {
         if (!entity->ProcessScan()) {
             continue;
         }
@@ -3180,80 +3170,83 @@ void CCollision::InjectHooks() {
     // Test & Process
     ////
 
-    RH_ScopedInstall(Test2DLineAgainst2DLine, 0x4138D0);
+    // Hooks disabled due to bad performance in debug mode
+    const bool bEnableHooks = false;
+    
+    RH_ScopedInstall(Test2DLineAgainst2DLine, 0x4138D0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
 
-    RH_ScopedInstall(ProcessDiscCollision, 0x413960);
+    RH_ScopedInstall(ProcessDiscCollision, 0x413960, { .enabled = bEnableHooks, .locked = !bEnableHooks });
 
-    RH_ScopedInstall(TestLineBox_DW, 0x412C70);
-    RH_ScopedInstall(TestLineBox, 0x413070);
-    RH_ScopedInstall(ProcessLineBox, 0x413100);
-    RH_ScopedInstall(TestVerticalLineBox, 0x413080);
+    RH_ScopedInstall(TestLineBox_DW, 0x412C70, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(TestLineBox, 0x413070, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ProcessLineBox, 0x413100, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(TestVerticalLineBox, 0x413080, { .enabled = bEnableHooks, .locked = !bEnableHooks });
 
-    RH_ScopedInstall(TestLineTriangle, 0x413AC0);
-    RH_ScopedInstall(ProcessLineTriangle, 0x4140F0);
-    RH_ScopedInstall(ProcessVerticalLineTriangle, 0x4147E0);
+    RH_ScopedInstall(TestLineTriangle, 0x413AC0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ProcessLineTriangle, 0x4140F0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ProcessVerticalLineTriangle, 0x4147E0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
 
-    RH_ScopedInstall(TestLineSphere, 0x417470);
-    RH_ScopedInstall(ProcessLineSphere, 0x412AA0);
+    RH_ScopedInstall(TestLineSphere, 0x417470, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ProcessLineSphere, 0x412AA0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
 
-    RH_ScopedInstall(TestSphereBox, 0x4120C0);
-    RH_ScopedInstall(ProcessSphereBox, 0x412130);
+    RH_ScopedInstall(TestSphereBox, 0x4120C0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ProcessSphereBox, 0x412130, { .enabled = bEnableHooks, .locked = !bEnableHooks });
 
-    RH_ScopedInstall(TestSphereSphere, 0x411E70);
-    RH_ScopedInstall(ProcessSphereSphere, 0x416450);
+    RH_ScopedInstall(TestSphereSphere, 0x411E70, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ProcessSphereSphere, 0x416450, { .enabled = bEnableHooks, .locked = !bEnableHooks });
 
-    RH_ScopedInstall(TestSphereTriangle, 0x4165B0);
-    RH_ScopedInstall(ProcessSphereTriangle, 0x416BA0);
+    RH_ScopedInstall(TestSphereTriangle, 0x4165B0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ProcessSphereTriangle, 0x416BA0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
 
     RH_ScopedInstall(ProcessColModels, 0x4185C0, { .reversed = false });
 
-    RH_ScopedInstall(TestLineOfSight, 0x417730);
-    RH_ScopedInstall(ProcessLineOfSight, 0x417950);
-    RH_ScopedInstall(ProcessVerticalLine, 0x417BF0);
+    RH_ScopedInstall(TestLineOfSight, 0x417730, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ProcessLineOfSight, 0x417950, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ProcessVerticalLine, 0x417BF0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
 
     ////
     // Rest
     ////
 
-    RH_ScopedInstall(Init, 0x416260);
-    RH_ScopedInstall(Shutdown, 0x4162E0);
-    RH_ScopedInstall(Update, 0x411E20);
-    RH_ScopedInstall(SortOutCollisionAfterLoad, 0x411E30);
-    RH_ScopedGlobalInstall(CalculateColPointInsideBox, 0x411EC0);
-    RH_ScopedInstall(PointInTriangle, 0x412700);
-    RH_ScopedInstall(DistToLineSqr, 0x412850);
-    RH_ScopedInstall(DistToMathematicalLine, 0x412970);
-    RH_ScopedInstall(DistToMathematicalLine2D, 0x412A30);
-    RH_ScopedInstall(DistAlongLine2D, 0x412A80);
-    RH_ScopedInstall(IsStoredPolyStillValidVerticalLine, 0x414D70);
-    RH_ScopedInstall(GetBoundingBoxFromTwoSpheres, 0x415230);
-    RH_ScopedInstall(IsThisVehicleSittingOnMe, 0x4152C0);
-    RH_ScopedInstall(CheckCameraCollisionPeds, 0x415320);
-    RH_ScopedInstall(CheckPeds, 0x4154A0);
-    RH_ScopedGlobalInstall(ResetMadeInvisibleObjects, 0x415540);
-    RH_ScopedInstall(SphereCastVsBBox, 0x415590);
-    RH_ScopedInstall(RayPolyPOP, 0x415620);
-    RH_ScopedInstall(GetPrincipleAxis, 0x4156D0);
-    RH_ScopedInstall(PointInPoly, 0x415730);
-    RH_ScopedInstall(Closest3, 0x415950);
-    RH_ScopedGlobalInstall(ClosestSquaredDistanceBetweenFiniteLines, 0x415A40);
-    RH_ScopedInstall(SphereCastVersusVsPoly, 0x415CF0);
-    RH_ScopedInstall(DistToLine, 0x417610); 
-    RH_ScopedInstall(SphereCastVsSphere, 0x417F20, { .locked = true }); // Can only be unhooked if `TestSphereSphere` is unhooked too
-    RH_ScopedInstall(ClosestPointOnLine, 0x417FD0);
-    RH_ScopedInstall(ClosestPointsOnPoly, 0x418100);
-    RH_ScopedInstall(ClosestPointOnPoly, 0x418150);
-    RH_ScopedInstall(SphereCastVsCaches, 0x4181B0);
-    RH_ScopedInstall(SphereCastVsEntity, 0x419F00);
-    RH_ScopedInstall(SphereVsEntity, 0x41A5A0);
-    RH_ScopedInstall(CheckCameraCollisionBuildings, 0x41A820);
-    RH_ScopedInstall(CheckCameraCollisionVehicles, 0x41A990);
-    RH_ScopedInstall(CheckCameraCollisionObjects, 0x41AB20);
-    RH_ScopedInstall(BuildCacheOfCameraCollision, 0x41AC40);
-    RH_ScopedInstall(CameraConeCastVsWorldCollision, 0x41B000);
+    RH_ScopedInstall(Init, 0x416260, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(Shutdown, 0x4162E0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(Update, 0x411E20, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(SortOutCollisionAfterLoad, 0x411E30, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedGlobalInstall(CalculateColPointInsideBox, 0x411EC0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(PointInTriangle, 0x412700, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(DistToLineSqr, 0x412850, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(DistToMathematicalLine, 0x412970, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(DistToMathematicalLine2D, 0x412A30, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(DistAlongLine2D, 0x412A80, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(IsStoredPolyStillValidVerticalLine, 0x414D70, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(GetBoundingBoxFromTwoSpheres, 0x415230, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(IsThisVehicleSittingOnMe, 0x4152C0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(CheckCameraCollisionPeds, 0x415320, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(CheckPeds, 0x4154A0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedGlobalInstall(ResetMadeInvisibleObjects, 0x415540, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(SphereCastVsBBox, 0x415590, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(RayPolyPOP, 0x415620, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(GetPrincipleAxis, 0x4156D0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(PointInPoly, 0x415730, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(Closest3, 0x415950, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedGlobalInstall(ClosestSquaredDistanceBetweenFiniteLines, 0x415A40, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(SphereCastVersusVsPoly, 0x415CF0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(DistToLine, 0x417610, { .enabled = bEnableHooks, .locked = !bEnableHooks }); 
+    RH_ScopedInstall(SphereCastVsSphere, 0x417F20, { .locked = true }); // Can only be unhooked if `TestSphereSphere` is unhooked t, { .enabled = bEnableHooks, .locked = !bEnableHooks }oo
+    RH_ScopedInstall(ClosestPointOnLine, 0x417FD0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ClosestPointsOnPoly, 0x418100, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(ClosestPointOnPoly, 0x418150, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(SphereCastVsCaches, 0x4181B0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(SphereCastVsEntity, 0x419F00, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(SphereVsEntity, 0x41A5A0, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(CheckCameraCollisionBuildings, 0x41A820, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(CheckCameraCollisionVehicles, 0x41A990, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(CheckCameraCollisionObjects, 0x41AB20, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(BuildCacheOfCameraCollision, 0x41AC40, { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedInstall(CameraConeCastVsWorldCollision, 0x41B000, { .enabled = bEnableHooks, .locked = !bEnableHooks });
 
-    RH_ScopedOverloadedInstall(CalculateTrianglePlanes, "colData", 0x416330, void (*)(CCollisionData*));
-    RH_ScopedOverloadedInstall(RemoveTrianglePlanes, "colData", 0x416400, void (*)(CCollisionData*));
+    RH_ScopedOverloadedInstall(CalculateTrianglePlanes, "colData", 0x416330, void (*)(CCollisionData*), { .enabled = bEnableHooks, .locked = !bEnableHooks });
+    RH_ScopedOverloadedInstall(RemoveTrianglePlanes, "colData", 0x416400, void (*)(CCollisionData*), { .enabled = bEnableHooks, .locked = !bEnableHooks });
 }
 
 void CCollision::Tests(int32 i) {

@@ -4,7 +4,7 @@
 #include "TheScripts.h"
 
 void CDummyObject::InjectHooks() {
-    RH_ScopedClass(CDummyObject);
+    RH_ScopedVirtualClass(CDummyObject, 0x866E78, 22);
     RH_ScopedCategory("Entity/Dummy");
 
     RH_ScopedInstall(CreateObject, 0x59EAC0);

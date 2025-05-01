@@ -26,12 +26,12 @@ bool IsSurfaceAudioEitherGravelWaterSand(eSurfaceType surface) {
 }
 
 void CAEVehicleAudioEntity::InjectHooks() {
-    RH_ScopedClass(CAEVehicleAudioEntity);
+    RH_ScopedVirtualClass(CAEVehicleAudioEntity, 0x862CEC, 1);
     RH_ScopedCategory("Audio/Entities");
 
     RH_ScopedInstall(Constructor, 0x4F63E0);
     RH_ScopedInstall(Destructor, 0x6D0A10);
-    RH_ScopedVirtualInstall(UpdateParameters, 0x4FB6C0);
+    RH_ScopedVMTInstall(UpdateParameters, 0x4FB6C0);
     RH_ScopedInstall(Initialise, 0x4F7670);
     RH_ScopedInstall(StaticInitialise, 0x5B99F0);
     RH_ScopedInstall(Terminate, 0x4FB8C0);
@@ -136,7 +136,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(Service, 0x502280, { .reversed = false });
 
     RH_ScopedOverloadedInstall(AddAudioEvent, "0", 0x4F6420, void(CAEVehicleAudioEntity::*)(eAudioEvents, float), { .reversed = false });
-    RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CVehicle*), { .reversed = false });
+    RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CEntity*), { .reversed = false });
 }
 
 // 0x4F63E0
@@ -535,11 +535,8 @@ tVehicleAudioSettings CAEVehicleAudioEntity::GetVehicleAudioSettings(int16 vehId
     return gVehicleAudioSettings[vehId - 400];
 }
 
-void CAEVehicleAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
-    CAEVehicleAudioEntity::UpdateParameters_Reversed(sound, curPlayPos);
-}
 // 0x4FB6C0
-void CAEVehicleAudioEntity::UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) {
+void CAEVehicleAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     if (!sound)
         return;
 
@@ -604,8 +601,8 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float fVolume) {
 }
 
 // 0x4F7580
-void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, CVehicle* vehicle) {
-    plugin::CallMethod<0x4F7580, CAEVehicleAudioEntity*, eAudioEvents, CVehicle*>(this, event, vehicle);
+void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, CEntity* entity) {
+    plugin::CallMethod<0x4F7580, CAEVehicleAudioEntity*, eAudioEvents, CEntity*>(this, event, entity);
 }
 
 // 0x502280
@@ -757,7 +754,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float fGearRevProgress, float
         volume -= 6.0f;
     }
 
-    if (vehicle->m_pTrailer) {
+    if (vehicle->m_pVehicleBeingTowed) {
         volume += 6.0f;
     }
 
@@ -837,7 +834,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyRev(float fRatio, float fFadeRatio
         volume -= 6.0f;
     }
 
-    if (m_pEntity->AsAutomobile()->m_pTrailer) {
+    if (m_pEntity->AsAutomobile()->m_pVehicleBeingTowed) {
         volume += 6.0f;
     }
 
@@ -1139,7 +1136,7 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(cVehicleParams& params, 
     if (vehicle->vehicleFlags.bIsDrowning)
         fVolume -= 6.0f;
 
-    if (vehicle->m_pTrailer)
+    if (vehicle->m_pVehicleBeingTowed)
         fVolume += 6.0f;
 
     if (m_bNitroSoundPresent && field_248 <= 1.0f && field_248 >= 0.0f)
@@ -1866,7 +1863,7 @@ void CAEVehicleAudioEntity::ProcessReverseGear(cVehicleParams& params) {
 
         float fReverseGearVelocityProgress = 0.0f;
         if (vehicle->m_nWheelsOnGround) {
-            fReverseGearVelocityProgress = params.fSpeed / params.Transmission->m_maxReverseGearVelocity;
+            fReverseGearVelocityProgress = params.fSpeed / params.Transmission->m_MaxReverseVelocity;
         } else {
             if (vehicle->m_wheelsOnGrounPrev)
                 vehicle->m_fGasPedalAudio *= 0.4f;

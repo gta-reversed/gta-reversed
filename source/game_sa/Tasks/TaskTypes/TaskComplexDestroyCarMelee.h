@@ -8,15 +8,15 @@ class CVehicle;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexDestroyCarMelee : public CTaskComplex {
 public:
-    bool      m_bNeedsToCreatefirstSubTask{};
-    bool      byteD{};
+    bool      m_AbortAtLeisure{};
+    bool      m_HasNewTarget{};
     CVehicle* m_VehToDestroy{};
-    CVector   m_VehiclePos{};
-    float     m_MaxTargetFightDist{};
-    float     m_PedVehicleAngleRad{};
-    float     m_MaxFightCtrlRadius{};
-    int32     dword2C{};
-    int32     m_nTimeMs{ -1 };
+    CVector   m_VehPos{};
+    float     m_MaxAtkRange{};
+    float     m_MaxAtkAngleRad{};
+    float     m_MaxArriveRange{};
+    uint32    m_LastAtkTime{};
+    int32     m_PauseTimer{ -1 };
 
 public:
     static void InjectHooks();
@@ -29,9 +29,9 @@ public:
     void CalculateSearchPositionAndRanges(CPed* ped);
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask*    Clone() override { return new CTaskComplexDestroyCarMelee(m_VehToDestroy); } // 0x6235A0
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask*    Clone() const override { return new CTaskComplexDestroyCarMelee(m_VehToDestroy); } // 0x6235A0
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;

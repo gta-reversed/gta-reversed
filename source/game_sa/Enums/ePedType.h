@@ -11,7 +11,9 @@ enum ePedType : uint32 {
     PED_TYPE_PLAYER_UNUSED,
     PED_TYPE_CIVMALE,
     PED_TYPE_CIVFEMALE,
+
     PED_TYPE_COP,
+
     PED_TYPE_GANG1,         // Ballas
     PED_TYPE_GANG2,         // Grove Street Families
     PED_TYPE_GANG3,         // Los Santos Vagos
@@ -22,6 +24,7 @@ enum ePedType : uint32 {
     PED_TYPE_GANG8,         // Varrio Los Aztecas
     PED_TYPE_GANG9,         // Russian Mafia
     PED_TYPE_GANG10,        // Bikers
+
     PED_TYPE_DEALER,
     PED_TYPE_MEDIC,
     PED_TYPE_FIREMAN,
@@ -56,6 +59,15 @@ static constexpr auto s_GangPedTypes = std::to_array({ // TODO: Get rid of this 
 
 static constexpr bool IsPedTypeGang(ePedType ptype) {
     return std::ranges::find(s_GangPedTypes, ptype) != s_GangPedTypes.end();
+}
+
+constexpr inline bool IsPedTypePlayer(ePedType pt) {
+    switch (pt) {
+    case PED_TYPE_PLAYER1:
+    case PED_TYPE_PLAYER2:
+        return true;
+    }
+    return false;
 }
 
 inline bool IsPedTypeFemale(ePedType type) {

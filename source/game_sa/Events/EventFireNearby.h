@@ -1,6 +1,9 @@
 #pragma once
 
-class CEventFireNearby : public CEventEditableResponse {
+#include "EventEditableResponse.h"
+
+
+class NOTSA_EXPORT_VTABLE CEventFireNearby : public CEventEditableResponse {
 public:
     CVector m_position;
 
@@ -13,6 +16,6 @@ public:
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override;
     bool TakesPriorityOver(const CEvent& refevent) override { return true; }
-    CEventFireNearby* CloneEditable() override { return new CEventFireNearby(m_position); }
+    CEventFireNearby* CloneEditable() const noexcept override { return new CEventFireNearby(m_position); }
 };
 VALIDATE_SIZE(CEventFireNearby, 0x20);

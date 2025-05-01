@@ -30,8 +30,8 @@ public:
     void ComputeTargetPos(CPed* ped, CVector& targetPos);
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
-    CTask*    Clone() override { return new CTaskComplexInvestigateDeadPed{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
+    CTask*    Clone() const override { return new CTaskComplexInvestigateDeadPed{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
     CTask*    CreateNextSubTask(CPed * ped) override;
     CTask*    CreateFirstSubTask(CPed * ped) override;
     CTask*    ControlSubTask(CPed * ped) override;

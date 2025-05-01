@@ -30,9 +30,9 @@ public:
     void ProcessDoorOpen(CPed const* ped); // NOTSA
 
 
-    CTask* Clone() override { return new CTaskSimpleCarCloseDoorFromOutside{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
+    CTask* Clone() const override { return new CTaskSimpleCarCloseDoorFromOutside{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool ProcessPed(CPed* ped) override;
     bool SetPedPosition(CPed* ped) override;
 

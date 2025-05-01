@@ -9,7 +9,7 @@
 
 class BoneNodeManager_c {
 public:
-    static inline std::array<tBoneInfo, 32>& ms_boneInfos = *(std::array<tBoneInfo, 32>*)0x8D26D0;
+    static inline std::array<tBoneInfo, MAX_BONE_NUM>& ms_boneInfos = *(std::array<tBoneInfo, MAX_BONE_NUM>*)0x8D26D0;
 
 public:
     std::array<BoneNode_c, 128> m_Space;

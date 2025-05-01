@@ -12,7 +12,7 @@
 
 class CPed;
 
-class CAEPedAudioEntity : public CAEAudioEntity {
+class NOTSA_EXPORT_VTABLE CAEPedAudioEntity : public CAEAudioEntity {
 public:
     bool                   m_bCanAddEvent;
     char                   field_7D;
@@ -68,7 +68,6 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    void UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) { UpdateParameters(sound, curPlayPos); }
 };
 
 VALIDATE_SIZE(CAEPedAudioEntity, 0x15C);

@@ -4,7 +4,7 @@
 // #include "PointRoute.h"
 
 void CTaskComplexWalkRoundObject::InjectHooks() {
-    RH_ScopedClass(CTaskComplexWalkRoundObject);
+    RH_ScopedVirtualClass(CTaskComplexWalkRoundObject, 0x86F364, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x655020);

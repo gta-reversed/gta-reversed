@@ -92,7 +92,7 @@ CTask* CTaskComplexReactToGunAimedAt::CreateNextSubTask(CPed* ped) {
             if (ped->m_pStats->m_flags & 0x80) {
                 return TASK_SIMPLE_COWER; // => TASK_COMPLEX_SMART_FLEE_ENTITY
             } else {
-                ped->Say(114);
+                ped->Say(CTX_GLOBAL_GUN_COOL);
                 return TASK_SIMPLE_HANDS_UP; // => TASK_COMPLEX_WANDER
             }
         }

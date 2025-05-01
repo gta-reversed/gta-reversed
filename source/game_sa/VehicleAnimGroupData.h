@@ -112,6 +112,9 @@ public:
     uint8 m_ucSecondGroup; // see AssocGroupId
     char  _pad[2];
 
+    AssocGroupId GetFirstGroup()  const { return (AssocGroupId)m_ucFirstGroup; }
+    AssocGroupId GetSecondGroup() const { return (AssocGroupId)m_ucSecondGroup; }
+
 public:
     sVehicleAnimDataGroupFlags   m_animFlags;
     sVehicleAnimDataSpecialFlags m_specialFlags;
@@ -122,11 +125,11 @@ public:
 public:
     static void InjectHooks();
 
-    void    InitAnimGroup(uint8 firstGroup, uint8 secondGroup, int32 animFlags, int32 animSpecialFlags, sVehAnimGroupGeneralTiming* generalTiming, sVehAnimGroupInOutTiming* startTiming, sVehAnimGroupInOutTiming* endTiming);
-    void    CopyAnimGroup(CVehicleAnimGroup* src);
-    uint32  GetGroup(AnimationId animId);
-    float   ComputeCriticalBlendTime(AnimationId animId);
-    CVector ComputeAnimDoorOffsets(eVehAnimDoorOffset doorId);
+    void         InitAnimGroup(uint8 firstGroup, uint8 secondGroup, int32 animFlags, int32 animSpecialFlags, sVehAnimGroupGeneralTiming* generalTiming, sVehAnimGroupInOutTiming* startTiming, sVehAnimGroupInOutTiming* endTiming);
+    void         CopyAnimGroup(CVehicleAnimGroup* src);
+    AssocGroupId GetGroup(AnimationId animId) const;
+    float        ComputeCriticalBlendTime(AnimationId animId);
+    CVector      ComputeAnimDoorOffsets(eVehAnimDoorOffset doorId);
 
     /// NOTSA: Helper of `CVehicleAnimGroupData::InitAGroupFromData`
     int32 InitFromData(const char* line);
@@ -145,10 +148,10 @@ public:
 public:
     static void InjectHooks();
 
-    static void    GetInOutTimings(AssocGroupId groupId, eInOutTimingMode mode, float* pfAnimStart, float* pfAnimEnd);
-    static int32   GetGroupForAnim(AssocGroupId groupId, AnimationId animId);
-    static CVector GetAnimDoorOffset(AssocGroupId groupId, eVehAnimDoorOffset doorId);
-    static float   ComputeCriticalBlendTime(AssocGroupId groupId, AnimationId animId);
+    static void         GetInOutTimings(AssocGroupId groupId, eInOutTimingMode mode, float* pfAnimStart, float* pfAnimEnd);
+    static AssocGroupId GetGroupForAnim(AssocGroupId groupId, AnimationId animId);
+    static CVector      GetAnimDoorOffset(AssocGroupId groupId, eVehAnimDoorOffset doorId);
+    static float        ComputeCriticalBlendTime(AssocGroupId groupId, AnimationId animId);
 
     static bool UsesTruckDrivingAnims(AssocGroupId groupId);
     static bool UsesKartDrivingAnims(AssocGroupId groupId);

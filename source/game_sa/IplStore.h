@@ -12,13 +12,8 @@
 
 class CEntity;
 
-typedef CPool<IplDef> CIplPool;
-
+using CIplPool = CPool<IplDef>;
 class CIplStore {
-public:
-    static inline CQuadTreeNode*& ms_pQuadTree = *(CQuadTreeNode**)0x8E3FAC;
-    static inline CIplPool*&      ms_pPool     = *(CIplPool**)0x8E3FB0;
-
 public:
     static void InjectHooks();
 
@@ -55,24 +50,18 @@ public:
     static bool Save();
     static bool Load();
 
-    inline static bool HasDynamicStreamingDisabled(int32 iplSlotIndex) { return GetInSlot(iplSlotIndex)->ignore; } // 0x59EB20
+    inline static bool HasDynamicStreamingDisabled(int32 iplSlotIndex) { return GetInSlot(iplSlotIndex)->disableDynamicStreaming; } // 0x59EB20
 
-    // NOTSA
-    static IplDef* GetInSlot(int32 slot) { return ms_pPool->GetAt(slot); }
+    static IplDef* GetInSlot(int32 slot);
+    static CIplPool* GetPool();
 };
 
-constexpr uint32 MAX_IPL_ENTITY_INDEX_ARRAYS = 40;
-constexpr uint32 MAX_IPL_INSTANCES = 1000;
+static inline auto& ppCurrIplInstance = StaticRef<CEntity**>(0x8E3EFC);
+static inline auto& NumIplEntityIndexArrays = StaticRef<int32>(0x8E3F00);
+static inline auto& IplEntityIndexArrays = StaticRef<std::array<CEntity**, 40>>(0x8E3F08); // Array of CEntity* array pointers
+static inline auto& gbIplsNeededAtPosn = StaticRef<bool>(0x8E3FA8);
+static inline auto& gvecIplsNeededAtPosn = StaticRef<CVector>(0x8E3FD0);
+static inline auto& gNumLoadedBuildings = StaticRef<uint32>(0xBCC0D8);
+static inline auto& gpLoadedBuildings = StaticRef<std::array<CEntity*, 4'096>>(0xBCC0E0);
 
-static inline CEntity**& ppCurrIplInstance = *(CEntity***)0x8E3EFC;
-static inline int32& NumIplEntityIndexArrays = *(int32*)0x8E3F00;
-static inline std::array<CEntity**, 40>& IplEntityIndexArrays = *(std::array<CEntity**, 40>*)0x8E3F08; // Array of CEntity* array pointers
-static inline bool& gbIplsNeededAtPosn = *(bool*)0x8E3FA8;
-static inline CVector& gvecIplsNeededAtPosn = *(CVector*)0x8E3FD0;
-static inline uint32& gCurrIplInstancesCount = *(uint32*)0xBCC0D8;
-static inline std::array<CEntity*, 1000>& gCurrIplInstances = *(std::array<CEntity*, 1000>*)0xBCC0E0;
-
-
-void SetIfInteriorIplIsRequired(const CVector2D& posn, void* data);
-void SetIfIplIsRequired(const CVector2D& posn, void* data);
-void SetIfIplIsRequiredReducedBB(const CVector2D& posn, void* data);
+inline auto GetLoadedBuildings() { return gpLoadedBuildings | rng::views::take(gNumLoadedBuildings); }

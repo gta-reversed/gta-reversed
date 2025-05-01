@@ -13,10 +13,10 @@
 class CDirectory { // Also referred to as an img file
 public:
     struct DirectoryInfo {
-        uint32 m_nOffset;           // Offset (in sectors)
-        uint16 m_nStreamingSize;    // Size (in sectors)
-        uint16 m_nSizeInArchive;    // Size in archive (in sectors) (always 0 when read)
-        char   m_szName[24];        // Name of the file with extension (null terminated).
+        CdStreamPos Pos;           //!< Offset (in sectors)
+        uint16      Size;          //!< Size (in sectors)
+        uint16      SizeInArchive; //!< Size in archive (in sectors) (always 0 when read)
+        char        Name[24];      //!< Name of the file with extension (null terminated).
     };
 
     DirectoryInfo* m_pEntries{};
@@ -31,12 +31,12 @@ public:
 
     void Init(int32 capacity, DirectoryInfo* entries);
     void AddItem(const DirectoryInfo& dirInfo);
-    void AddItem(const DirectoryInfo &dirInfo, int32 imgId);
+    void AddItem(const DirectoryInfo &dirInfo, CdStreamID streamID);
     void ReadDirFile(const char* filename);
     bool WriteDirFile(const char* fileName);
     DirectoryInfo* FindItem(const char* itemName) const;
-    bool FindItem(const char* name, uint32& outOffset, uint32& outStreamingSize) const;
-    bool FindItem(uint32 hashKey, uint32& outOffset, uint32& outStreamingSize) const;
+    bool FindItem(const char* name, CdStreamPos& pos, uint32& outSize) const;
+    bool FindItem(uint32 hashKey, CdStreamPos& pos, uint32& outSize) const;
 
     // notsa
     bool HasLoaded() const { return m_nNumEntries != 0; }

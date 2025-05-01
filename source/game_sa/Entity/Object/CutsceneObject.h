@@ -34,11 +34,6 @@ public:
     void RemoveLighting(bool bRemove) override;
 
 private:
-    void SetModelIndex_Reversed(uint32 index);
-    void ProcessControl_Reversed();
-    void PreRender_Reversed();
-    bool SetupLighting_Reversed();
-    void RemoveLighting_Reversed(bool bRemove);
 
 private: // Functions fully inlined in android idb, and unnamed in PC idb
     static void      SetupCarPipeAtomicsForClump(uint32 modelId, RpClump* clump);

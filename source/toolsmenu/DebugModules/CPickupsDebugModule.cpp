@@ -6,7 +6,6 @@
 #include "imgui.h"
 #include "Pickup.h"
 #include "Pickups.h"
-#include "extensions/enumerate.hpp"
 
 using namespace ImGui;
 
@@ -54,7 +53,7 @@ void CPickupsDebugModule::DrawTable() {
     TableSetupColumn("Ammo", ImGuiTableColumnFlags_WidthFixed);
     TableHeadersRow();
 
-    for (const auto& [i, pickup] : notsa::enumerate(CPickups::aPickUps)) {
+    for (const auto& [i, pickup] : rngv::enumerate(CPickups::aPickUps)) {
         if (m_FilterInvisible && !pickup.IsVisible() || m_FilterInactive && pickup.m_nPickupType == PICKUP_NONE) {
             continue;
         }
@@ -122,7 +121,7 @@ void CPickupsDebugModule::RenderWindow() {
 
         if (markm_SelectedPickupIdx) {
             CVector screenCoors{};
-            if (CalcScreenCoors(posn, &screenCoors)) {
+            if (CalcScreenCoors(posn, screenCoors)) {
                 CSprite2d::DrawRect({screenCoors, 5.0f}, pickup.m_nFlags.bDisabled ? CRGBA{255, 0, 0, 255} : CRGBA{0, 255, 0, 255});
             }
         }

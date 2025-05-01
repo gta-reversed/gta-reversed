@@ -32,11 +32,11 @@ struct FileHeader {
 
         // Get version based on fourcc
         [[nodiscard]] auto GetVersion() const {
-            switch (make_fourcc4(fourcc)) {
-            case make_fourcc4("COLL"): return ColModelVersion::COLL;
-            case make_fourcc4("COL2"): return ColModelVersion::COL2;
-            case make_fourcc4("COL3"): return ColModelVersion::COL3;
-            case make_fourcc4("COL4"): return ColModelVersion::COL4;
+            switch (MakeFourCC(fourcc)) {
+            case MakeFourCC("COLL"): return ColModelVersion::COLL;
+            case MakeFourCC("COL2"): return ColModelVersion::COL2;
+            case MakeFourCC("COL3"): return ColModelVersion::COL3;
+            case MakeFourCC("COL4"): return ColModelVersion::COL4;
             default:
                 // It's ok if this happens - Since the buffer it was read from might not contain more col data, and we've just read padding.
                 return ColModelVersion::NONE;

@@ -47,7 +47,16 @@ public:
 
     static constexpr auto Type = eTaskType::TASK_COMPLEX_FOLLOW_POINT_ROUTE;
 
-    CTaskComplexFollowPointRoute(eMoveState moveState, CPointRoute const& route, Mode mode, float targetRadius, float slowDownDist, bool overshootTarget, bool useBlending, bool standStillAfterMove);
+    CTaskComplexFollowPointRoute(
+        eMoveState         moveState,
+        CPointRoute const& route,
+        Mode               mode                 = Mode::ONE_WAY,
+        float              targetRadius         = 0.5f,
+        float              slowDownDist         = 0.f,
+        bool               overshootTarget      = true,
+        bool               useBlending          = false,
+        bool               standStillAfterMove  = false
+    );
     CTaskComplexFollowPointRoute(const CTaskComplexFollowPointRoute&);
     ~CTaskComplexFollowPointRoute() override;
 
@@ -58,9 +67,9 @@ public:
     eTaskType CalcGoToTaskType(CPed* ped, eTaskType subTaskType);
     float     CalcBlendRatio(CPed* ped, bool slowing);
 
-    CTask*    Clone() override { return new CTaskComplexFollowPointRoute{*this}; }
-    eTaskType GetTaskType() override { return Type; }
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
+    CTask*    Clone() const override { return new CTaskComplexFollowPointRoute{*this}; }
+    eTaskType GetTaskType() const override { return Type; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;

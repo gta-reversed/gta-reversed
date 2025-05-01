@@ -13,7 +13,7 @@ public:
     CTaskSimpleHitWall();
     CTaskSimpleHitWall(const CTaskSimpleHitWall& o);
 
-    CTask* Clone() override { return new CTaskSimpleHitWall{ *this }; }
+    CTask* Clone() const override { return new CTaskSimpleHitWall{ *this }; }
     virtual bool IsInterruptable(CPed const* ped) { return false; }
 private: // Wrappers for hooks
     // 0x652F90

@@ -3,7 +3,7 @@
 #include "TaskComplex.h"
 class CVehicle;
 
-class CTaskGoToVehicleAndLean : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskGoToVehicleAndLean : public CTaskComplex {
 public:
     CVehicle* m_Vehicle;
     int32     m_LeanAnimDurationInMs;
@@ -17,9 +17,9 @@ public:
     CTaskGoToVehicleAndLean(CVehicle* vehicle, int32 leanAnimDurationInMs);
     ~CTaskGoToVehicleAndLean() override;
 
-    eTaskType GetTaskType() override { return Type; } // 0x660ED0
-    CTask* Clone() override { return new CTaskGoToVehicleAndLean(m_Vehicle, m_LeanAnimDurationInMs); } // 0x6621B0
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; } // 0x660ED0
+    CTask* Clone() const override { return new CTaskGoToVehicleAndLean(m_Vehicle, m_LeanAnimDurationInMs); } // 0x6621B0
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;

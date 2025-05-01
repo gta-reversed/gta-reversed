@@ -6,7 +6,7 @@ int32& gBuildings = *(int32*)0xB71804;
 
 void CBuilding::InjectHooks()
 {
-    RH_ScopedClass(CBuilding);
+    RH_ScopedVirtualClass(CBuilding, 0x8585C8, 22);
     RH_ScopedCategory("Entity");
 
     RH_ScopedInstall(ReplaceWithNewModel, 0x403EC0);

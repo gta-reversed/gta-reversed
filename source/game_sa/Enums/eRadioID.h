@@ -7,7 +7,9 @@
 #pragma once
 
 // Genre-based names
-enum eRadioID : uint8 {
+enum eRadioID : int8 {
+    RADIO_INVALID = -1,    // Used in CAudioEngine code.
+
     RADIO_EMERGENCY_AA,    // AA
     RADIO_CLASSIC_HIP_HOP, // Playback FM
     RADIO_COUNTRY,         // K-Rose

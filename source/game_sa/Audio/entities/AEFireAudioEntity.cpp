@@ -77,7 +77,7 @@ void CAEFireAudioEntity::PlayFireSounds(eAudioEvents audioId, CVector& posn) {
         0.0f,
         0
     );
-    sound.m_fMaxVolume = volume + 3.0f;
+    sound.m_ClientVariable = volume + 3.0f;
     sound.m_nEvent = AE_FRONTEND_SELECT;
     AESoundManager.RequestNewSound(&sound);
 }
@@ -117,10 +117,10 @@ void CAEFireAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
 
     switch (sound->m_nEvent) {
     case AE_FRONTEND_SELECT:
-        if (sound->m_fVolume >= sound->m_fMaxVolume) {
+        if (sound->m_fVolume >= sound->m_ClientVariable) {
             sound->m_nEvent = AE_FRONTEND_BACK;
         } else {
-            sound->m_fVolume = std::min(sound->m_fVolume + 2.0f, sound->m_fMaxVolume);
+            sound->m_fVolume = std::min(sound->m_fVolume + 2.0f, sound->m_ClientVariable);
         }
         break;
     case AE_FRONTEND_BACK:
@@ -145,7 +145,7 @@ void CAEFireAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
 }
 
 void CAEFireAudioEntity::InjectHooks() {
-    RH_ScopedClass(CAEFireAudioEntity);
+    RH_ScopedVirtualClass(CAEFireAudioEntity, 0x85AA94, 1);
     RH_ScopedCategory("Audio/Entities");
 
     RH_ScopedInstall(Initialise, 0x4DCF20);
@@ -154,9 +154,5 @@ void CAEFireAudioEntity::InjectHooks() {
     RH_ScopedInstall(AddAudioEvent, 0x4DD3C0);
     RH_ScopedInstall(PlayFireSounds, 0x4DD0D0);
     RH_ScopedInstall(PlayWaterSounds, 0x4DD270);
-    RH_ScopedVirtualInstall(UpdateParameters, 0x4DCF60);
-}
-
-void CAEFireAudioEntity::UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) {
-    CAEFireAudioEntity::UpdateParameters(sound, curPlayPos);
+    RH_ScopedVMTInstall(UpdateParameters, 0x4DCF60);
 }

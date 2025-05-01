@@ -30,6 +30,9 @@ public:
     //! Check is point within the box
     bool IsPointInside(const CVector& point) const;
 
+    //! Stretch the bounding box so that the point `pt` will be inside it
+    void StretchToPoint(const CVector& pt);
+
     /*!
     * @addr notsa
     * @brief Render the box in the 3D world (Be sure to call from a place where 3D stuff is rendered, if called from elsewhere you won't see the lines!)

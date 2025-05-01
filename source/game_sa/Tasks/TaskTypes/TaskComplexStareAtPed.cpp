@@ -51,7 +51,7 @@ CTaskComplexStareAtPed::~CTaskComplexStareAtPed() {
 
 // 0x660420
 CTask* CTaskComplexStareAtPed::CreateNextSubTask(CPed* ped) {
-    if (const auto turnToFace = CTask::DynCast<CTaskComplexTurnToFaceEntityOrCoord>(m_pSubTask)) {
+    if (const auto turnToFace = notsa::dyn_cast_if_present<CTaskComplexTurnToFaceEntityOrCoord>(m_pSubTask)) {
         return new CTaskSimpleStandStill{ CGeneral::GetRandomNumberInRange(500, 1000) };
     }
     return new CTaskComplexTurnToFaceEntityOrCoord{ m_pPed };
@@ -74,7 +74,7 @@ CTask* CTaskComplexStareAtPed::ControlSubTask(CPed* ped) {
         }
     } else if (CTaskComplexGangLeader::ShouldLoadGangAnims()) {
         const auto blk = CAnimManager::GetAnimationBlockIndex("gangs");
-        if (CAnimManager::ms_aAnimBlocks[blk].bLoaded) {
+        if (CAnimManager::GetAnimBlocks()[blk].IsLoaded) {
             CAnimManager::AddAnimBlockRef(blk);
             m_animsReferenced = true;
         } else {

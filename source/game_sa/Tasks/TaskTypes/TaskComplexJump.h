@@ -8,41 +8,39 @@
 
 #include "TaskComplex.h"
 
-enum eComplexJumpType : uint32 {
-    COMPLEX_JUMP_TYPE_JUMP  = 0,
-    COMPLEX_JUMP_TYPE_CLIMB = 1
-};
-
-class CTaskComplexJump : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexJump : public CTaskComplex {
 public:
-    eComplexJumpType m_nType;
-    bool             m_bHighJump;
+    enum class eForceClimb : int32 {
+        DISABLE = -1,
+        OK      = 0,
+        FORCE   = 1
+    };
 
 public:
     static constexpr auto Type = TASK_COMPLEX_JUMP;
 
-    explicit CTaskComplexJump(eComplexJumpType type);
+    explicit CTaskComplexJump(eForceClimb forceClimb = CTaskComplexJump::eForceClimb::OK);
     ~CTaskComplexJump() override = default;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override;
     CTask* ControlSubTask(CPed* ped) override { return m_pSubTask; }
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* CreateNextSubTask(CPed* ped) override;
-    bool   MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    bool   MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
 
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTaskComplexJump* Constructor(eComplexJumpType jumpType);
+    CTaskComplexJump* Constructor(eForceClimb jumpType);
 
-    CTask* Clone_Reversed();
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    bool   MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
+ 
+public:
+    eForceClimb m_ForceClimb;
+    bool        m_UsePlayerLaunchForce;
 };
 
 VALIDATE_SIZE(CTaskComplexJump, 0x14);

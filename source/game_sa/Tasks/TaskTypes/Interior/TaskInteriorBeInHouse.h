@@ -3,18 +3,11 @@
 #include "TaskComplex.h"
 
 class CPed;
-class CTaskInteriorBeInHouse;
 class InteriorGroup_c;
 class Interior_c;
-class InteriorInfo_t;
+struct InteriorInfo_t;
 
 class NOTSA_EXPORT_VTABLE CTaskInteriorBeInHouse : public CTaskComplex {
-
-public:
-    InteriorGroup_c* m_intGrp{};  /// Current interior's group (Used to find the interior to use for the ped)
-    Interior_c*      m_int{};     /// Current inerior
-    InteriorInfo_t*  m_intInfo{}; /// Current interior's info
-
 public:
     static void InjectHooks();
 
@@ -26,8 +19,8 @@ public:
 
     void GetInfoForPedToUse(CPed* ped, int32* outDuration);
 
-    CTask*    Clone() override { return new CTaskInteriorBeInHouse{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
+    CTask*    Clone() const override { return new CTaskInteriorBeInHouse{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
     CTask*    CreateNextSubTask(CPed* ped) override { return CreateFirstSubTask(ped); }
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override { return m_pSubTask; }
@@ -43,4 +36,9 @@ private: // Wrappers for hooks
         this->CTaskInteriorBeInHouse::~CTaskInteriorBeInHouse();
         return this;
     }
+
+private:
+    InteriorGroup_c* m_intGrp{};  //< Current interior's group (Used to find the interior to use for the ped)
+    Interior_c*      m_int{};     //< Current inerior
+    InteriorInfo_t*  m_intInfo{}; //< Current interior's info
 };

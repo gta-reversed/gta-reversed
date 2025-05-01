@@ -10,11 +10,11 @@
 
 template <typename T> class CLinkList {
 public:
-    CLink<T>  usedListHead;
-    CLink<T>  usedListTail;
-    CLink<T>  freeListHead;
-    CLink<T>  freeListTail;
-    CLink<T>* links;
+    CLink<T>  usedListHead{};
+    CLink<T>  usedListTail{};
+    CLink<T>  freeListHead{};
+    CLink<T>  freeListTail{};
+    CLink<T>* links{};
 
     void* operator new(unsigned size) {
         return ((void*(__cdecl*)(uint32))0x821195)(size);
@@ -29,15 +29,24 @@ public:
         usedListTail.prev = &usedListHead;
         freeListHead.next = &freeListTail;
         freeListTail.prev = &freeListHead;
+
         links = new CLink<T>[count];
         for (int32 i = count - 1; i >= 0; i--) {
-            freeListHead.Insert(&links[i]);
+            links[i].Insert(&freeListHead);
         }
     }
 
     void Shutdown() {
-        delete[] links;
-        links = nullptr;
+        delete[] std::exchange(links, nullptr);
+    }
+
+    /*!
+     * @brief Insert `link` at head
+     * @param link The link to insert
+    */
+    void Insert(CLink<T>& link) {
+        link.Remove();
+        link.Insert(&usedListHead);
     }
 
     CLink<T>* Insert(T const& data) {
@@ -45,8 +54,7 @@ public:
         if (link == &freeListTail)
             return nullptr;
         link->data = data;
-        link->Remove();
-        usedListHead.Insert(link);
+        Insert(*link);
         return link;
     }
 
@@ -61,7 +69,8 @@ public:
             return nullptr;
         link->data = data;
         link->Remove();
-        i->prev->Insert(link);
+        link->Insert(i->prev);
+        //i->prev->Insert(link);
         return link;
     }
 
@@ -71,13 +80,28 @@ public:
         }
     }
 
-    void Remove(CLink<T>* link) {
-        link->Remove();
-        freeListHead.Insert(link);
+    auto Remove(CLink<T>* l) {
+        l->Remove();
+        l->Insert(&freeListHead);
+        return l;
     }
 
     auto GetTail() { return usedListTail.prev; }
+    auto& GetTailLink() { return usedListTail; }
+
     auto GetHead() { return usedListHead.next; }
+    auto& GetHeadLink() { return usedListHead; }
+
+
+    //void SetHead(CLink<T>* l) {
+    //    auto& h = usedListHead;
+    //
+    //    l->next = h.next;
+    //    h.next->prev = l;
+    //
+    //    l->prev = reinterpret_cast<CLink<T>*>(this);
+    //    h.next = l;
+    //}
 };
 
 VALIDATE_SIZE(CLinkList<void*>, 0x34);

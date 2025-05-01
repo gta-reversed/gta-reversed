@@ -287,8 +287,8 @@ void CCarGenerator::DoInternalProcessing()
                 {
                     vehicle->SetVehicleCreatedBy(RANDOM_VEHICLE);
                     vehicle->m_autoPilot.m_currentAddress = pathLink;
-                    vehicle->m_autoPilot.m_nCruiseSpeed = 7;
-                    vehicle->m_autoPilot.m_nCarMission = eCarMission::MISSION_CRUISE;
+                    vehicle->m_autoPilot.SetCruiseSpeed(7);
+                    vehicle->m_autoPilot.SetCarMission(eCarMission::MISSION_CRUISE);
                     vehicle->m_autoPilot.m_startingRouteNode = baseLink;
                     vehicle->m_nStatus = eEntityStatus::STATUS_PHYSICS;
                     vehicle->vehicleFlags.bNeverUseSmallerRemovalRange = true;
@@ -383,7 +383,7 @@ void CCarGenerator::Process()
 }
 
 // 0x6F2E50
-void CCarGenerator::Setup(const CVector& posn, float angle, int32 modelId, int16 color1, int16 color2, uint8 bForceSpawn,
+void CCarGenerator::Setup(CVector posn, float angle, int32 modelId, int16 color1, int16 color2, uint8 bForceSpawn,
                           uint8 alarmChance, uint8 doorLockChance, uint16 minDelay, uint16 maxDelay,
                           uint8 iplId, bool ignorePopulationLimit)
 {

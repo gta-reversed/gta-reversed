@@ -4,15 +4,15 @@
 #include "PedAtmAttractor.h"
 
 void CTaskComplexGoToAttractor::InjectHooks() {
-    RH_ScopedClass(CTaskComplexGoToAttractor);
+    RH_ScopedVirtualClass(CTaskComplexGoToAttractor, 0x86FF3C, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x66B640);
     RH_ScopedInstall(Destructor, 0x66B6A0);
 
-    RH_ScopedVirtualInstall2(Clone, 0x66D130, { .reversed = false });
-    RH_ScopedVirtualInstall2(CreateNextSubTask, 0x66B6C0, { .reversed = false });
-    RH_ScopedVirtualInstall2(CreateFirstSubTask, 0x670420, { .reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x66D130, { .reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x66B6C0, { .reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x670420, { .reversed = false });
 }
 
 // 0x66B640

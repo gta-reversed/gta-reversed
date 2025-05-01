@@ -3,17 +3,15 @@
 #include "TaskSimpleHitHead.h"
 
 void CTaskSimpleHitHead::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleHitHead);
+    RH_ScopedVirtualClass(CTaskSimpleHitHead, 0x86F1D0, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x653060);
     RH_ScopedInstall(FinishAnimCB, 0x653150);
-    RH_ScopedInstall(MakeAbortable_Reversed, 0x6530F0);
-    RH_ScopedInstall(ProcessPed_Reversed, 0x657A10);
+    RH_ScopedVMTInstall(MakeAbortable, 0x6530F0);
+    RH_ScopedVMTInstall(ProcessPed, 0x657A10);
 }
 CTaskSimpleHitHead* CTaskSimpleHitHead::Constructor() { this->CTaskSimpleHitHead::CTaskSimpleHitHead(); return this; }
-bool CTaskSimpleHitHead::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) { return MakeAbortable_Reversed(ped, priority, event); }
-bool CTaskSimpleHitHead::ProcessPed(CPed* ped) { return ProcessPed_Reversed(ped); }
 
 // 0x653060
 CTaskSimpleHitHead::CTaskSimpleHitHead() : CTaskSimple() {
@@ -36,10 +34,12 @@ void CTaskSimpleHitHead::FinishAnimCB(CAnimBlendAssociation* anim, void* data) {
 }
 
 // 0x6530F0
-bool CTaskSimpleHitHead::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) {
+
+
+bool CTaskSimpleHitHead::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     if (priority == ABORT_PRIORITY_URGENT || priority == ABORT_PRIORITY_IMMEDIATE) {
         if (m_pAnim) {
-            m_pAnim->m_fBlendDelta = -4.0F;
+            m_pAnim->m_BlendDelta = -4.0F;
             m_pAnim->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
             m_pAnim = nullptr;
         }
@@ -49,13 +49,15 @@ bool CTaskSimpleHitHead::MakeAbortable_Reversed(CPed* ped, eAbortPriority priori
     }
 
     if (m_pAnim) {
-        m_pAnim->m_fBlendDelta = -4.0F;
+        m_pAnim->m_BlendDelta = -4.0F;
     }
     return false;
 }
 
 // 0x657A10
-bool CTaskSimpleHitHead::ProcessPed_Reversed(CPed* ped) {
+
+// 0x0
+bool CTaskSimpleHitHead::ProcessPed(CPed* ped) {
     if (m_bIsFinished)
         return true;
 

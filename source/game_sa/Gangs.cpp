@@ -29,7 +29,7 @@ void CGangs::Initialise() {
 // 0x5D3A90
 bool CGangs::Load() {
     for (auto& gang : Gang) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&gang, sizeof(CGangInfo));
+        CGenericGameStorage::LoadDataFromWorkBuffer(gang);
     }
     return true;
 }
@@ -37,7 +37,7 @@ bool CGangs::Load() {
 // 0x5D3A60
 bool CGangs::Save() {
     for (auto& gang : Gang) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&gang, sizeof(CGangInfo));
+        CGenericGameStorage::SaveDataToWorkBuffer(gang);
     }
     return true;
 }

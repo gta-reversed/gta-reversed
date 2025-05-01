@@ -16,17 +16,17 @@
 #include "InterestingEvents.h"
 
 void CTaskComplexMedicTreatInjuredPed::InjectHooks() {
-    RH_ScopedClass(CTaskComplexMedicTreatInjuredPed);
+    RH_ScopedVirtualClass(CTaskComplexMedicTreatInjuredPed, 0x86F518, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x658BA0);
     RH_ScopedInstall(CreateSubTask, 0x658DB0);
     RH_ScopedInstall(CreateDealWithNextAccidentTask, 0x65A020);
     RH_ScopedInstall(FindNearestAccident, 0x658CC0);
-    RH_ScopedInstall(FindAccidentPosition, 0x658D20);
-    RH_ScopedVirtualInstall(Clone, 0x659AF0);
-    RH_ScopedVirtualInstall(CreateFirstSubTask, 0x659FE0);
-    RH_ScopedVirtualInstall(CreateNextSubTask, 0x65A990);
-    RH_ScopedVirtualInstall(ControlSubTask, 0x65ABF0);
+    RH_ScopedInstall(CalcTargetPosWithOffset, 0x658D20);
+    RH_ScopedVMTInstall(Clone, 0x659AF0);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x659FE0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x65A990);
+    RH_ScopedVMTInstall(ControlSubTask, 0x65ABF0);
 }
 
 CTaskComplexMedicTreatInjuredPed* CTaskComplexMedicTreatInjuredPed::Constructor(CVehicle* vehicle, CPed* ped, bool isDriver) {
@@ -35,9 +35,9 @@ CTaskComplexMedicTreatInjuredPed* CTaskComplexMedicTreatInjuredPed::Constructor(
 }
 
 // 0x658BA0
-CTaskComplexMedicTreatInjuredPed::CTaskComplexMedicTreatInjuredPed(CVehicle* vehicle, CPed* ped, bool isDriver) : CTaskComplex() {
+CTaskComplexMedicTreatInjuredPed::CTaskComplexMedicTreatInjuredPed(CVehicle* vehicle, CPed* partner, bool isDriver) : CTaskComplex() {
     m_pVehicle      = vehicle;
-    m_pPartnerMedic = ped;
+    m_pPartnerMedic = partner;
     m_bIsDriver     = isDriver;
     m_pAccident     = nullptr;
     m_bLeftCarOnce  = false;
@@ -71,7 +71,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::CreateSubTask(eTaskType taskType) {
     case TASK_SIMPLE_CAR_DRIVE:
         return new CTaskSimpleCarDrive(m_pVehicle, nullptr, false);
     case TASK_COMPLEX_CAR_DRIVE_TO_POINT:
-        return new CTaskComplexDriveToPoint(m_pVehicle, m_vecAccidentPosition, 30.0F, 0, -1, -1.0F, DRIVING_STYLE_AVOID_CARS);
+        return new CTaskComplexDriveToPoint(m_pVehicle, m_vecAccidentPosition, 30.0F, 0, MODEL_INVALID, -1.0F, DRIVING_STYLE_AVOID_CARS);
     case TASK_COMPLEX_CAR_DRIVE_WANDER:
         return new CTaskComplexCarDriveWander(m_pVehicle, DRIVING_STYLE_AVOID_CARS, 30.0F);
     case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL:
@@ -88,7 +88,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::CreateDealWithNextAccidentTask(CPed* pe
     m_pAccident = CAccidentManager::GetInstance()->GetNearestFreeAccidentExceptThisOne(ped->GetPosition(), accident, true);
     if (m_pAccident && m_pAccident->m_pPed) {
         m_pAccident->m_bIsTreated = true;
-        FindAccidentPosition(ped, m_pAccident->m_pPed);
+        CalcTargetPosWithOffset(ped, m_pAccident->m_pPed);
         if (m_pSubTask && m_pSubTask->GetTaskType() == TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL) {
             auto subTask = reinterpret_cast<CTaskComplexGoToPointAndStandStill*>(m_pSubTask);
             subTask->GoToPoint(m_vecAccidentPosition, 0.5F, 2.0F, false);
@@ -106,39 +106,17 @@ void CTaskComplexMedicTreatInjuredPed::FindNearestAccident(CVector& posn) {
 }
 
 // 0x658D20
-void CTaskComplexMedicTreatInjuredPed::FindAccidentPosition(CPed* ped, CPed* targetPed) {
-    CVector bonePositions[2];
-
-    targetPed->GetBonePosition(bonePositions[0], BONE_L_THIGH, false);
-    targetPed->GetBonePosition(bonePositions[1], BONE_R_THIGH, false);
-    m_vecAccidentPosition = (bonePositions[0] + bonePositions[1]) * 0.5F;
+void CTaskComplexMedicTreatInjuredPed::CalcTargetPosWithOffset(CPed* ped, CPed* injuredPed) {
+    m_vecAccidentPosition = (injuredPed->GetBonePosition(BONE_L_THIGH) + injuredPed->GetBonePosition(BONE_R_THIGH)) * 0.5F;
 }
 
 // 0x659AF0
-CTask* CTaskComplexMedicTreatInjuredPed::Clone() {
-    return Clone_Reversed();
+CTask* CTaskComplexMedicTreatInjuredPed::Clone() const {
+    return new CTaskComplexMedicTreatInjuredPed(m_pVehicle, m_pPartnerMedic, m_bIsDriver);
 }
 
 // 0x659FE0
 CTask* CTaskComplexMedicTreatInjuredPed::CreateFirstSubTask(CPed* ped) {
-    return CreateFirstSubTask_Reversed(ped);
-}
-
-// 0x65A990
-CTask* CTaskComplexMedicTreatInjuredPed::CreateNextSubTask(CPed* ped) {
-    return CreateNextSubTask_Reversed(ped);
-}
-
-// 0x65ABF0
-CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask(CPed* ped) {
-    return ControlSubTask_Reversed(ped);
-}
-
-CTask* CTaskComplexMedicTreatInjuredPed::Clone_Reversed() {
-    return new CTaskComplexMedicTreatInjuredPed(m_pVehicle, m_pPartnerMedic, m_bIsDriver);
-}
-
-CTask* CTaskComplexMedicTreatInjuredPed::CreateFirstSubTask_Reversed(CPed* ped) {
     if (!m_pVehicle)
         return CreateSubTask(TASK_COMPLEX_WANDER);
 
@@ -148,7 +126,8 @@ CTask* CTaskComplexMedicTreatInjuredPed::CreateFirstSubTask_Reversed(CPed* ped) 
     return CreateSubTask(TASK_SIMPLE_CAR_DRIVE);
 }
 
-CTask* CTaskComplexMedicTreatInjuredPed::CreateNextSubTask_Reversed(CPed* ped) {
+// 0x65A990
+CTask* CTaskComplexMedicTreatInjuredPed::CreateNextSubTask(CPed* ped) {
     eTaskType subTaskId = m_pSubTask->GetTaskType();
 
     if (subTaskId == TASK_COMPLEX_TREAT_ACCIDENT) {
@@ -157,7 +136,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::CreateNextSubTask_Reversed(CPed* ped) {
             return CreateSubTask(m_bIsDriver ? TASK_COMPLEX_ENTER_CAR_AS_DRIVER : TASK_COMPLEX_ENTER_CAR_AS_PASSENGER);
         else {
             m_pAccident->m_bIsTreated = true;
-            FindAccidentPosition(ped, m_pAccident->m_pPed);
+            CalcTargetPosWithOffset(ped, m_pAccident->m_pPed);
             return CreateSubTask(TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL);
         }
     }
@@ -171,13 +150,13 @@ CTask* CTaskComplexMedicTreatInjuredPed::CreateNextSubTask_Reversed(CPed* ped) {
     if (subTaskId == TASK_COMPLEX_LEAVE_CAR) {
         g_InterestingEvents.Add(CInterestingEvents::EType::INTERESTING_EVENT_12, ped);
         if (m_bIsDriver && m_pAccident->m_pPed && m_pAccident->m_bIsTreated) {
-            FindAccidentPosition(ped, m_pAccident->m_pPed);
+            CalcTargetPosWithOffset(ped, m_pAccident->m_pPed);
             return CreateSubTask(TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL);
         } else {
             FindNearestAccident(ped->GetPosition());
             if (m_pAccident) {
                 m_pAccident->m_bIsTreated = true;
-                FindAccidentPosition(ped, m_pAccident->m_pPed);
+                CalcTargetPosWithOffset(ped, m_pAccident->m_pPed);
                 return CreateSubTask(TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL);
             } else {
                 return CreateSubTask(m_bIsDriver ? TASK_COMPLEX_ENTER_CAR_AS_DRIVER : TASK_SIMPLE_STAND_STILL);
@@ -196,7 +175,8 @@ CTask* CTaskComplexMedicTreatInjuredPed::CreateNextSubTask_Reversed(CPed* ped) {
     return nullptr;
 }
 
-CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask_Reversed(CPed* ped) {
+// 0x65ABF0
+CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask(CPed* ped) {
     eTaskType subTaskId = m_pSubTask->GetTaskType();
 
     if (subTaskId == TASK_SIMPLE_CAR_DRIVE) {
@@ -210,7 +190,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask_Reversed(CPed* ped) {
                 if (taskTreat->m_pAccident && taskTreat->m_pAccident->m_pPed) {
                     m_vecAccidentPosition = taskTreat->m_vecAccidentPosition;
                     if (DistanceBetweenPointsSquared(m_vecAccidentPosition, m_pVehicle->GetPosition()) < 100.0f) {
-                        ped->Say(231, 0, 1.0F);
+                        ped->Say(CTX_GLOBAL_VAN, 0, 1.0F);
                         return CreateSubTask(TASK_COMPLEX_LEAVE_CAR);
                     }
                 }
@@ -224,7 +204,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask_Reversed(CPed* ped) {
                 return CreateSubTask(TASK_COMPLEX_CAR_DRIVE_WANDER);
 
             if (DistanceBetweenPointsSquared(m_vecAccidentPosition, m_pVehicle->GetPosition()) < 100.0f) {
-                ped->Say(231, 0, 1.0F);
+                ped->Say(CTX_GLOBAL_VAN, 0, 1.0F);
                 return CreateSubTask(TASK_COMPLEX_LEAVE_CAR);
             }
         }
@@ -235,7 +215,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask_Reversed(CPed* ped) {
             FindNearestAccident(ped->GetPosition());
             if (m_pAccident) {
                 m_pAccident->m_bIsTreated = true;
-                FindAccidentPosition(ped, m_pAccident->m_pPed);
+                CalcTargetPosWithOffset(ped, m_pAccident->m_pPed);
                 return CreateSubTask(TASK_COMPLEX_CAR_DRIVE_TO_POINT);
             }
         }
@@ -253,7 +233,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask_Reversed(CPed* ped) {
                 }
             }
 
-            FindAccidentPosition(ped, m_pAccident->m_pPed);
+            CalcTargetPosWithOffset(ped, m_pAccident->m_pPed);
             subTask->m_moveState = PEDMOVE_WALK;
             subTask->GoToPoint(m_vecAccidentPosition, 0.5F, 2.0F, false);
         }

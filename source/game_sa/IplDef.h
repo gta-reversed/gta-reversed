@@ -21,8 +21,8 @@ struct IplDef {
     int16 staticIdx{ -1 }; // entity arrays index
     bool  isInterior{};
     char  loaded{}; 
-    bool  required{};
-    bool  ignore{ true };
+    bool  loadRequested{};
+    bool  disableDynamicStreaming{ true };
     char  ignoreWhenDeleted{};
     char  isLarge{}; // Makes bounding box bigger. (+350 vs +200 units). See `CIplStore::LoadIpl`
 

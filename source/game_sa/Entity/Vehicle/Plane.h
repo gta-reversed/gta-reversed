@@ -37,7 +37,7 @@ enum ePlaneNodes {
     PLANE_NUM_NODES
 };
 
-class CPlane : public CAutomobile {
+class NOTSA_EXPORT_VTABLE CPlane : public CAutomobile {
 public:
     float        m_fLeftRightSkid;
     float        m_fSteeringUpDown;
@@ -121,18 +121,6 @@ private:
     CPlane* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) { this->CPlane::CPlane(modelIndex, createdBy); return this; }
     CPlane* Destroy() { this->CPlane::~CPlane(); return this; }
 
-    bool SetUpWheelColModel_Reversed(CColModel* wheelCol) { return CPlane::SetUpWheelColModel(wheelCol); };
-    bool BurstTyre_Reversed(uint8 tyreComponentId, bool bPhysicalEffect) { return CPlane::BurstTyre(tyreComponentId, bPhysicalEffect); };
-    void ProcessControl_Reversed() { CPlane::ProcessControl(); };
-    void ProcessControlInputs_Reversed(uint8 playerNum) { CPlane::ProcessControlInputs(playerNum); };
-    void ProcessFlyingCarStuff_Reversed() { CPlane::ProcessFlyingCarStuff(); };
-    void PreRender_Reversed() { CPlane::PreRender(); };
-    void Render_Reversed() { CPlane::Render(); };
-    void BlowUpCar_Reversed(CEntity* damager, bool bHideExplosion) { CPlane::BlowUpCar(damager, bHideExplosion); };
-    void Fix_Reversed() { CPlane::Fix(); };
-    void OpenDoor_Reversed(CPed* ped, int32 componentId, eDoors door, float doorOpenRatio, bool playSound) { CPlane::OpenDoor(ped, componentId, door, doorOpenRatio, playSound); };
-    void SetupDamageAfterLoad_Reversed() { CPlane::SetupDamageAfterLoad(); };
-    void VehicleDamage_Reversed(float damageIntensity, eVehicleCollisionComponent component, CEntity* damager, CVector* vecCollisionCoors, CVector* vecCollisionDirection, eWeaponType weapon) { CPlane::VehicleDamage(damageIntensity, component, damager, vecCollisionCoors, vecCollisionDirection, weapon); };
 };
 
 VALIDATE_SIZE(CPlane, 0xA04);

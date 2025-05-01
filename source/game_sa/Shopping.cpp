@@ -1,7 +1,6 @@
 #include "StdInc.h"
 #include "Shopping.h"
 #include "PedClothesDesc.h"
-#include <extensions/enumerate.hpp>
 
 void CShopping::InjectHooks() {
     RH_ScopedClass(CShopping);
@@ -56,7 +55,7 @@ void CShopping::InjectHooks() {
 int32 GetChangingStatIndex(const char* stat) {
     static constexpr const char* statNames[] = {"fat", "respect", "sexy", "health", "stamina", "calories"};
 
-    // todo: use notsa::enumerate
+    // todo: use rngv::enumerate
     for (auto i = 0u; i < std::size(statNames); i++) {
         if (!strcmp(statNames[i], stat)) {
             return i;
@@ -232,7 +231,7 @@ void CShopping::Buy(uint32 key, int32 extraInfo) {
  */
 int32 CShopping::FindItem(uint32 itemKey) {
     if (ms_numPrices >= 1) {
-        for (auto&& [i, p] : notsa::enumerate(std::span{ms_prices.data(), (size_t)ms_numPrices})) {
+        for (auto&& [i, p] : rngv::enumerate(std::span{ms_prices.data(), (size_t)ms_numPrices})) {
             if (p.key == itemKey) {
                 return i;
             }
@@ -298,7 +297,7 @@ int32 CShopping::GetExtraInfo(uint32 itemKey, int32 index) {
  * @returns 'Absolute' index of the item
  */
 int32 CShopping::GetItemIndex(uint32 itemKey) {
-    for (const auto&& [i, key] : notsa::enumerate(ms_keys)) {
+    for (const auto&& [i, key] : rngv::enumerate(ms_keys)) {
         if (key == itemKey) {
             return i;
         }
@@ -372,7 +371,7 @@ int32 CShopping::GetPrice(uint32 itemKey) {
 
 // 0x49AAD0
 ePriceSection CShopping::GetPriceSectionFromName(const char* name) {
-    for (const auto&& [i, sectionName] : notsa::enumerate(ms_sectionNames)) {
+    for (const auto&& [i, sectionName] : rngv::enumerate(ms_sectionNames)) {
         if (!_stricmp(name, sectionName)) {
             return static_cast<ePriceSection>(i);
         }
@@ -654,7 +653,7 @@ void CShopping::RemovePriceModifier(uint32 key) {
     if (ms_numPriceModifiers <= 0)
         return;
 
-    for (const auto&& [i, priceMod] : notsa::enumerate(std::span{ms_priceModifiers.data(), (size_t)ms_numPriceModifiers})) {
+    for (const auto&& [i, priceMod] : rngv::enumerate(std::span{ms_priceModifiers.data(), (size_t)ms_numPriceModifiers})) {
         if (key == priceMod.key) {
             ms_numPriceModifiers--;
             if (ms_numPriceModifiers >= 1u) {
@@ -679,7 +678,7 @@ void CShopping::StoreVehicleMods() {
         return;
 
     const auto& damage = veh->AsAutomobile()->m_damageManager;
-    for (const auto& [i, state] : notsa::enumerate(gComponentDamageState)) {
+    for (const auto& [i, state] : rngv::enumerate(gComponentDamageState)) {
         switch (i) {
         case 2:
             state = (eDamageState)damage.GetWheelStatus(CAR_WHEEL_FRONT_RIGHT);
@@ -723,7 +722,7 @@ void CShopping::RestoreClothesState() {
 void CShopping::RestoreVehicleMods() {
     const auto veh = FindPlayerVehicle();
 
-    for (auto&& [i, storedMod] : notsa::enumerate(gStoredVehicleMods)) {
+    for (auto&& [i, storedMod] : rngv::enumerate(gStoredVehicleMods)) {
         auto& upgrade = veh->m_anUpgrades[i];
 
         if (upgrade != -1) {
@@ -747,7 +746,7 @@ void CShopping::RestoreVehicleMods() {
         return;
 
     auto& damage = veh->AsAutomobile()->m_damageManager;
-    for (const auto& [i, state] : notsa::enumerate(gComponentDamageState)) {
+    for (const auto& [i, state] : rngv::enumerate(gComponentDamageState)) {
         if (state == DAMAGE_STATE_OK)
             continue;
 
@@ -796,22 +795,22 @@ void CShopping::UpdateStats(size_t index, bool increment) {
 
 // 0x5D3E40
 void CShopping::Load() {
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_numPriceModifiers, sizeof(int32));
+    CGenericGameStorage::LoadDataFromWorkBuffer(ms_numPriceModifiers);
     for (auto i = 0; i < ms_numPriceModifiers; i++) {
-        CGenericGameStorage::LoadDataFromWorkBuffer(&ms_priceModifiers[i], sizeof(PriceModifier));
+        CGenericGameStorage::LoadDataFromWorkBuffer(ms_priceModifiers[i]);
     }
 
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_numBuyableItems, sizeof(uint32));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_bHasBought, ms_numBuyableItems);
+    CGenericGameStorage::LoadDataFromWorkBuffer(ms_numBuyableItems);
+    CGenericGameStorage::LoadDataFromWorkBuffer(&ms_bHasBought, ms_numBuyableItems); // TODO: This looks funky, check if we don't have a bug on our hands
 }
 
 // 0x5D3DE0
 void CShopping::Save() {
-    CGenericGameStorage::SaveDataToWorkBuffer(&ms_numPriceModifiers, sizeof(int32));
+    CGenericGameStorage::SaveDataToWorkBuffer(ms_numPriceModifiers);
     for (auto i = 0; i < ms_numPriceModifiers; i++) {
-        CGenericGameStorage::SaveDataToWorkBuffer(&ms_priceModifiers[i], sizeof(PriceModifier));
+        CGenericGameStorage::SaveDataToWorkBuffer(ms_priceModifiers[i]);
     }
 
-    CGenericGameStorage::SaveDataToWorkBuffer(&ms_numBuyableItems, sizeof(uint32));
-    CGenericGameStorage::SaveDataToWorkBuffer(&ms_bHasBought, ms_numBuyableItems);
+    CGenericGameStorage::SaveDataToWorkBuffer(ms_numBuyableItems);
+    CGenericGameStorage::SaveDataToWorkBuffer(&ms_bHasBought, ms_numBuyableItems); // TODO: This looks funky, check if we don't have a bug on our hands
 }

@@ -21,14 +21,14 @@ public:
 
     static constexpr auto Type = eTaskType::TASK_COMPLEX_LEAVE_CAR_AND_WANDER;
 
-    CTaskComplexLeaveCarAndWander(CVehicle* veh, eTargetDoor door, int32 leaveDelayMs, bool sensibleLeaveVeh);
+    CTaskComplexLeaveCarAndWander(CVehicle* veh, eTargetDoor door = TARGET_DOOR_FRONT_LEFT, int32 leaveDelayMs = 0, bool sensibleLeaveVeh = true);
     CTaskComplexLeaveCarAndWander(const CTaskComplexLeaveCarAndWander&);
     ~CTaskComplexLeaveCarAndWander();
 
     CTask* CreateSubTask(eTaskType taskType);
 
-    CTask*    Clone() override { return new CTaskComplexLeaveCarAndWander{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
+    CTask*    Clone() const override { return new CTaskComplexLeaveCarAndWander{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override { return m_pSubTask; }

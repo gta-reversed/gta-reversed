@@ -170,19 +170,13 @@ void CAETwinLoopSoundEntity::PlayTwinLoopSound(CVector posn, float volume, float
 
     m_nTimeToSwapSounds = CTimer::GetTimeInMSPauseMode() + CAEAudioUtility::GetRandomNumberInRange(m_nPlayTimeMin, m_nPlayTimeMax);
     m_bPlayingFirstSound = true;
-}
-
-void CAETwinLoopSoundEntity::UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos) {
-    CAETwinLoopSoundEntity::UpdateParameters(sound, curPlayPos);
-}
-
-void CAETwinLoopSoundEntity::InjectHooks() {
-    RH_ScopedClass(CAETwinLoopSoundEntity);
+}void CAETwinLoopSoundEntity::InjectHooks() {
+    RH_ScopedVirtualClass(CAETwinLoopSoundEntity, 0x85F438, 1);
     RH_ScopedCategory("Audio/Entities");
 
     RH_ScopedInstall(Initialise, 0x4F28A0);
     RH_ScopedInstall(UpdateTwinLoopSound, 0x4F29A0);
-    RH_ScopedVirtualInstall(UpdateParameters, 0x4F2E90);
+    RH_ScopedVMTInstall(UpdateParameters, 0x4F2E90);
     RH_ScopedInstall(SwapSounds, 0x4F2C10);
     RH_ScopedInstall(StopSoundAndForget, 0x4F2960);
     RH_ScopedInstall(PlayTwinLoopSound, 0x4F2CB0);

@@ -24,9 +24,9 @@ public:
     CTaskComplexFleeShooting(const CTaskComplexFleeShooting&);
     ~CTaskComplexFleeShooting();
 
-    CTask*    Clone() override { return new CTaskComplexFleeShooting{ *this }; }
-    eTaskType GetTaskType() override { return Type; }
-    bool      MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
+    CTask*    Clone() const override { return new CTaskComplexFleeShooting{ *this }; }
+    eTaskType GetTaskType() const override { return Type; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override; 
 private: // Wrappers for hooks

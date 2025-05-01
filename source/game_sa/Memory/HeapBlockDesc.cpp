@@ -75,5 +75,5 @@ void HeapBlockDesc::_DumpBlockInfo() const {
         }
     }
 
-    // DEV_LOG("  {:6s} [{:03d}]: 0x{:08x} {:11d} bytes   ^ 0x{:08x}   < {} >   {}\n", type, p->m_nMemId & 0xFF, p, p->m_nSize, p->m_PrevBlock, szMem, info);
+    // NOTSA_LOG_DEBUG("  {:6s} [{:03d}]: 0x{:08x} {:11d} bytes   ^ 0x{:08x}   < {} >   {}\n", type, p->m_nMemId & 0xFF, p, p->NumBytes, p->m_PrevBlock, szMem, info);
 }

@@ -24,9 +24,9 @@ public:
     ~CTaskSimpleStandStill() override = default;
 
 public:
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskSimpleStandStill(m_nTime, m_bLooped, m_bUseAnimIdleStance, m_fBlendData); } // 0x635CF0
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskSimpleStandStill(m_nTime, m_bLooped, m_bUseAnimIdleStance, m_fBlendData); } // 0x635CF0
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool ProcessPed(CPed* ped) override;
 
 private:
@@ -34,7 +34,5 @@ private:
     static void InjectHooks();
 
     CTaskSimpleStandStill* Constructor(int32 nTime, bool Looped, bool bUseAnimIdleStance, float fBlendData) { this->CTaskSimpleStandStill::CTaskSimpleStandStill(nTime, Looped, bUseAnimIdleStance, fBlendData); return this; }
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool ProcessPed_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskSimpleStandStill, 0x20);

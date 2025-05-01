@@ -2,16 +2,16 @@
 #include "TaskSimpleThrowControl.h"
 
 void CTaskSimpleThrowControl::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleThrowControl);
+    RH_ScopedVirtualClass(CTaskSimpleThrowControl, 0x86D7B4, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x61F8B0);
     RH_ScopedInstall(Destructor, 0x61F950);
 
-    RH_ScopedVirtualInstall2(Clone, 0x6230B0);
-    RH_ScopedVirtualInstall2(GetTaskType, 0x61F940);
-    RH_ScopedVirtualInstall2(MakeAbortable, 0x61F9B0);
-    RH_ScopedVirtualInstall2(ProcessPed, 0x61F9F0, { .enabled = false, .locked = true });
+    RH_ScopedVMTInstall(Clone, 0x6230B0);
+    RH_ScopedVMTInstall(GetTaskType, 0x61F940);
+    RH_ScopedVMTInstall(MakeAbortable, 0x61F9B0);
+    RH_ScopedVMTInstall(ProcessPed, 0x61F9F0, { .enabled = false, .locked = true });
 }
 
 // 0x61F8B0

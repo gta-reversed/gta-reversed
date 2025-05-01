@@ -1,8 +1,8 @@
 #pragma once
 
 struct CKeyEntry {
-    const char* string; // relative to TKEY block; need to call update after reading
-    uint32      hash;   // name hash
+    const GxtChar* string; // relative to TKEY block; need to call update after reading
+    uint32      hash;      // name hash
 };
 
 // TKEY block
@@ -28,7 +28,7 @@ public:
      *
      * @return The text identified by the given key or null if not found
      */
-    [[nodiscard]] const char* Search(const char* key, bool& found);
+    [[nodiscard]] const GxtChar* Search(const char* key, bool& found);
 
 private:
     CKeyEntry* BinarySearch(uint32 key, CKeyEntry* entries, int16 firstIndex, int16 lastIndex);

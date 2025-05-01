@@ -28,18 +28,18 @@ void CAEPedWeaponAudioEntity::AddAudioEvent(eAudioEvents event) {
         return;
 
     const auto& weapon = m_Ped->GetActiveWeapon();
-    if (weapon.m_nType == WEAPON_UNARMED)
+    if (weapon.m_Type == WEAPON_UNARMED)
         return;
 
     switch (event) {
     case AE_WEAPON_FIRE:
     case AE_WEAPON_FIRE_MINIGUN_AMMO:
     case AE_WEAPON_FIRE_MINIGUN_NO_AMMO:
-        WeaponFire(weapon.m_nType, m_Ped, event);
+        WeaponFire(weapon.m_Type, m_Ped, event);
         break;
     case AE_WEAPON_RELOAD_A:
     case AE_WEAPON_RELOAD_B:
-        WeaponReload(weapon.m_nType, m_Ped, event);
+        WeaponReload(weapon.m_Type, m_Ped, event);
         break;
     case AE_WEAPON_CHAINSAW_IDLE:
     case AE_WEAPON_CHAINSAW_ACTIVE:
@@ -47,7 +47,7 @@ void CAEPedWeaponAudioEntity::AddAudioEvent(eAudioEvents event) {
         ReportChainsawEvent(m_Ped, event);
         break;
     case AE_WEAPON_STEALTH_KILL:
-        ReportStealthKill(weapon.m_nType, m_Ped, event);
+        ReportStealthKill(weapon.m_Type, m_Ped, event);
         break;
     default:
         return;
@@ -59,7 +59,7 @@ void CAEPedWeaponAudioEntity::Service() {
     if (  !m_Ped
         || m_Ped->bCollidedWithMyVehicle
         || m_Ped->GetIntelligence()->GetTaskSwim()
-        || m_Ped->GetActiveWeapon().m_nType != WEAPON_FLAMETHROWER
+        || m_Ped->GetActiveWeapon().m_Type != WEAPON_FLAMETHROWER
     ) {
         StopFlameThrowerIdleGasLoop();
     } else {

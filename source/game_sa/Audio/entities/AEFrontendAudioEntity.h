@@ -34,7 +34,6 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    void UpdateParameters_Reversed(CAESound* sound, int16 curPlayPos);
 };
 
 VALIDATE_SIZE(CAEFrontendAudioEntity, 0x1EC);

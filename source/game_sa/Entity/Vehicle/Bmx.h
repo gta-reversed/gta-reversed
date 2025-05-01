@@ -24,7 +24,7 @@ enum eBmxNodes {
     BMX_NUM_NODES
 };
 
-class CBmx : public CBike {
+class NOTSA_EXPORT_VTABLE CBmx : public CBike {
 public:
     float m_fControlJump;
     float m_fControlPedaling;     // always 0.0f
@@ -62,13 +62,5 @@ private:
     CBmx* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) { this->CBmx::CBmx(modelIndex, createdBy); return this; }
     CBmx* Destructor() { this->CBmx::~CBmx(); return this; }
 
-    void BlowUpCar_Reversed(CEntity* damager, bool bHideExplosion) { CBmx::BlowUpCar(damager, bHideExplosion); }
-    bool SetUpWheelColModel_Reversed(CColModel* wheelCol) { return CBmx::SetUpWheelColModel(wheelCol); }
-    bool BurstTyre_Reversed(uint8 tyreComponentId, bool bPhysicalEffect) { return CBmx::BurstTyre(tyreComponentId, bPhysicalEffect); }
-    void ProcessControl_Reversed() { CBmx::ProcessControl(); }
-    void ProcessDrivingAnims_Reversed(CPed* driver, bool blend) { CBmx::ProcessDrivingAnims(driver, blend); }
-    float FindWheelWidth_Reversed(bool bRear) { return CBmx::FindWheelWidth(bRear); }
-    void PreRender_Reversed() { CBmx::PreRender(); }
-    bool ProcessAI_Reversed(uint32& extraHandlingFlags) { return CBmx::ProcessAI(extraHandlingFlags); }
-};
+                                };
 VALIDATE_SIZE(CBmx, 0x838);

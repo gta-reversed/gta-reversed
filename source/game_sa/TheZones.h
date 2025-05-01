@@ -64,10 +64,10 @@ public:
     static void PostZoneCreation();
 
     // NOTSA
-    static const char* GetZoneName(const CVector& point);
+    static const GxtChar* GetZoneName(const CVector& point);
 
     static CZoneInfo* GetZoneInfo(const CZone* zone) {
-        auto idx = zone->m_nZoneExtraIndexInfo;
+        auto idx = zone->m_ZoneInfoIndex;
 
         if (!idx)
             return nullptr;

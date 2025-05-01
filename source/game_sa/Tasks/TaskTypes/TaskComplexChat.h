@@ -1,17 +1,18 @@
 #pragma once
 
 #include "TaskComplex.h"
+#include <Audio/Enums/PedSpeechContexts.h>
 
 class CEntity;
 
-class CTaskComplexChat : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexChat : public CTaskComplex {
 public:
-    bool  m_IsChatter{};
-    CPed* m_ChatPartner{};
-    int32 m_Stage{};
-    int16 m_GlobalSpeechContext{};
-    bool  m_TaskFinished{};
-    int32 m_NoChatTimeout{};
+    bool                 m_IsChatter{};
+    CPed*                m_ChatPartner{};
+    int32                m_Stage{};
+    eGlobalSpeechContext m_GlobalSpeechContext{};
+    bool                 m_TaskFinished{};
+    int32                m_NoChatTimeout{};
 
 public:
     static constexpr auto Type = TASK_COMPLEX_CHAT;
@@ -22,8 +23,8 @@ public:
     CTaskComplexChat(const CTaskComplexChat&);
     ~CTaskComplexChat() override;
 
-    eTaskType GetTaskType() override { return Type; } // 0x682D30
-    CTask*    Clone()       override { return new CTaskComplexChat{*this}; }
+    eTaskType GetTaskType() const override { return Type; } // 0x682D30
+    CTask*    Clone() const       override { return new CTaskComplexChat{*this}; }
     CTask*    ControlSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    CreateNextSubTask(CPed* ped) override;

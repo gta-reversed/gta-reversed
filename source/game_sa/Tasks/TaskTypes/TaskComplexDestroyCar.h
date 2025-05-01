@@ -19,9 +19,9 @@ public:
     CTaskComplexDestroyCar(CVehicle* vehicleToDestroy, uint32 a3 = 0, uint32 a4 = 0, uint32 a5 = 0);
     ~CTaskComplexDestroyCar() override;
 
-    eTaskType GetTaskType() override { return Type; } // 0x621C70
-    CTask* Clone() override { return new CTaskComplexDestroyCar(m_VehicleToDestroy, m_unused, m_unused2, m_unused3); } // 0x623530
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) override;
+    eTaskType GetTaskType() const override { return Type; } // 0x621C70
+    CTask* Clone() const override { return new CTaskComplexDestroyCar(m_VehicleToDestroy, m_unused, m_unused2, m_unused3); } // 0x623530
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;

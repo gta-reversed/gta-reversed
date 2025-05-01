@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexEvasiveCower : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexEvasiveCower : public CTaskComplex {
 public:
     CVector  m_Pos;
     CEntity* m_Entity;
@@ -10,11 +10,11 @@ public:
 public:
     static constexpr auto Type = TASK_COMPLEX_EVASIVE_COWER;
 
-    CTaskComplexEvasiveCower(CEntity* entity, CVector& pos);
+    CTaskComplexEvasiveCower(CEntity* entity, const CVector& pos);
     ~CTaskComplexEvasiveCower() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskComplexEvasiveCower(m_Entity, m_Pos); }
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskComplexEvasiveCower(m_Entity, m_Pos); }
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override { return m_pSubTask; }

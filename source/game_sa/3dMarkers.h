@@ -24,7 +24,7 @@ struct tUser3dMarker {
     auto GetColor() const { return CRGBA((uint8)m_nRed, (uint8)m_nGreen, (uint8)m_nBlue, 255u); }
 
     auto IsInUse() const { return m_bIsUsed; }
-    void Render(RpClump* clump);
+    void Render(RpClump* clump) const;
 };
 
 VALIDATE_SIZE(tUser3dMarker, 0x1C);
@@ -93,7 +93,7 @@ public:
     //
 
     //! This shit does modify `posn`, sadly we can't make it into a constant....
-    static C3dMarker* PlaceMarker(uint32 id, e3dMarkerType type, CVector& posn, float size, uint8 red, uint8 green, uint8 blue, uint8 alpha, uint16 pulsePeriod, float pulseFraction, int16 rotateRate, float nrm_x, float nrm_y, float nrm_z, bool zCheck);
+    static C3dMarker* PlaceMarker(uint32 id, e3dMarkerType type, CVector& posn, float size, uint8 red, uint8 green, uint8 blue, uint8 alpha, uint16 pulsePeriod, float pulseFraction, int16 rotateRate, CVector dir, bool zCheck);
 
     //! This shit does modify `posn`, sadly we can't make it into a constant....
     static void PlaceMarkerCone(uint32 id, CVector& point, float size, uint8 red, uint8 green, uint8 blue, uint8 alpha, uint16 pulsePeriod, float pulseFraction, int16 rotateRate, bool bEnableCollision);
@@ -102,6 +102,12 @@ public:
     static void PlaceMarkerSet(uint32 id, e3dMarkerType type, CVector& posn, float size, uint8 red, uint8 green, uint8 blue, uint8 alpha, uint16 pulsePeriod, float pulseFraction, int16 rotateRate);
 
     static void Render3dMarkers();
+
+private:
+    static C3dMarker* FindById(uint32 id);
+    static C3dMarker* FindFree();
+
+public:
 
     //
     // User markers
