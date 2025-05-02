@@ -88,6 +88,14 @@ typedef CPool<CustomSpecMapPipeMaterialData, CustomSpecMapPipeMaterialData> Cust
 
 class CCustomCarEnvMapPipeline {
 public:
+    enum eMaterialFlags {
+        MF_NONE            = 0,
+        MF_HAS_SHINE_CAM   = 1 << 0,
+        MF_HAS_SHINE_WAVE  = 1 << 1,
+        MF_HAS_SPECULARITY = 1 << 2,
+    };
+
+public:
     static inline int32& ms_envMapPluginOffset = *(int32*)0x8D12C4;      // -1
     static inline int32& ms_envMapAtmPluginOffset = *(int32*)0x8D12C8;   // -1
     static inline int32& ms_specularMapPluginOffset = *(int32*)0x8D12CC; // -1
@@ -170,4 +178,7 @@ public:
     static RwTexture* GetFxSpecTexture(const RpMaterial* material);
     static void SetFxSpecTexture(RpMaterial* material, RwTexture* texture);
     static void SetFxSpecSpecularity(RpMaterial* material, float value);
+
+    static RwUInt32 GetMaterialFlags(RpMaterial* material);
+    static void SetMaterialFlags(RpMaterial* material, RwUInt32 flags);
 };
