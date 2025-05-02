@@ -735,7 +735,7 @@ void CMenuManager::LoadSettings() {
         return SetToDefaultSettings();
     }
 
-    CCamera::m_bUseMouse3rdPerson = m_ControlMethod == eController::MOUSE_PLUS_KEYS;
+    CCamera::m_bUseMouse3rdPerson = (m_ControlMethod == eController::MOUSE_PLUS_KEYS);
     CRenderer::ms_lodDistScale = m_fDrawDistance;
     g_fx.SetFxQuality(fxQuality);
     SetBrightness(static_cast<float>(m_PrefsBrightness), true);
