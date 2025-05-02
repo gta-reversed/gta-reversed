@@ -413,7 +413,6 @@
 #include "TaskSimpleIKPointArm.h"
 #include "TaskSimpleCarSlowDragPedOut.h"
 #include "TaskSimpleWaitUntilPedIsOutCar.h"
-#include "TaskComplexAvoidEntity.h"
 #include "TaskGangHasslePed.h"
 #include "TaskGangHassleVehicle.h"
 #include "TaskGoToVehicleAndLean.h"
@@ -1148,7 +1147,6 @@ void InjectHooksMain() {
         CTaskSimpleWaitUntilAreaCodesMatch::InjectHooks();
         CTaskSimpleWaitUntilLeaderAreaCodesMatch::InjectHooks();
         CTaskSimpleWaitUntilPedIsInCar::InjectHooks();
-        CTaskComplexAvoidEntity::InjectHooks();
         CTaskSimpleWaitUntilPedIsOutCar::InjectHooks();
         CTaskComplexSequence::InjectHooks();
         CTaskSimpleCarSlowDragPedOut::InjectHooks();
