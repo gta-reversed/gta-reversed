@@ -16,11 +16,10 @@ void CCurves::InjectHooks() {
 // 0x43C610 - inlined
 // Modified to use CVector2D instead of individual floats
 float CCurves::DistForLineToCrossOtherLine(CVector2D lineBase, CVector2D lineDir, CVector2D otherLineBase, CVector2D otherLineDir) {
-    const auto crossAB = lineDir.Cross(otherLineDir);
-    if (crossAB == 0.f) {
-        return -1.f;
+    if (const auto crossAB = lineDir.Cross(otherLineDir); crossAB != 0.0f) {
+        return (lineBase - otherLineBase).Cross(otherLineDir) * (-1.0f / crossAB);
     }
-    return (lineBase - otherLineBase).Cross(otherLineDir) * (-1.f / crossAB);
+    return -1.0f;
 }
 
 // 0x43C660 - inlined
@@ -54,103 +53,74 @@ float CCurves::CalcCorrectedDist(float current, float total, float speedVariatio
     }
 }
 
-// 0x43C710
+// 0x43C710 - not inlined
 float CCurves::CalcSpeedScaleFactor(const CVector &startCoors, const CVector &endCoors, const CVector2D StartDir, const CVector2D EndDir) {
     // Calculate intersection distances for both lines
     float distOne = DistForLineToCrossOtherLine(CVector2D(startCoors.x, startCoors.y), StartDir, CVector2D(endCoors.x, endCoors.y), EndDir);
     float distTwo = DistForLineToCrossOtherLine(CVector2D(endCoors.x, endCoors.y), EndDir, CVector2D(startCoors.x, startCoors.y), StartDir);
-
-    // If lines don't intersect properly
-    if (distOne <= 0.0f || distTwo >= 0.0f) {
-        // Calculate the straight-line distance
-        float dx = startCoors.x - endCoors.x;
-        float dy = startCoors.y - endCoors.y;
-        float totalDist = std::sqrt(dx * dx + dy * dy);
-
-        // Adjust distance using speed variation
-        float scale = 1.0f - CalcSpeedVariationInBend(startCoors, endCoors, StartDir, EndDir);
-
-        // Avoid division by zero
-        if (scale == 0.0f) {
-            scale = 0.00001f;
-        }
-
-        return totalDist / scale;
-    }
-
-    // Return the path distance
-    return distOne - distTwo;
+    return (distOne <= 0.0f || distTwo >= 0.0f) ? std::hypot(startCoors.x - endCoors.x, startCoors.y - endCoors.y) / (1.0f - CalcSpeedVariationInBend(startCoors, endCoors, StartDir, EndDir)) : distOne - distTwo;
 }
 
-// 0x43C900
-void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors, const CVector &startDir, const CVector &endDir, float time, int32 traversalTimeInMillis, CVector &resultCoor,
-                             CVector &resultSpeed) {
+// 0x43C900 - not inlined
+void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors, const CVector &startDir, const CVector &endDir, float time, int32 traversalTimeInMillis, CVector &resultCoor, CVector &resultSpeed) {
+    
+    float scaleFactor, interpFactor;
+
+    // Calculate intersection parameters - Already check zero
+    float distToCrossA = DistForLineToCrossOtherLine(CVector2D(startCoors), CVector2D(startDir), CVector2D(endCoors), CVector2D(endDir));
+    float distToCrossB = -DistForLineToCrossOtherLine(CVector2D(endCoors), CVector2D(endDir), CVector2D(startCoors), CVector2D(startDir));
+
     // Clamp time between 0 and 1
-    float scaleFactor;
-    float clampedTime = std::clamp(time, 0.0f, 1.0f);
+    time = std::clamp(time, 0.0f, 1.0f);
 
-
-    // Calculate intersection parameters
-    float intersectionT = DistForLineToCrossOtherLine(CVector2D(startCoors), CVector2D(startDir), CVector2D(endCoors), CVector2D(endDir));
-    float intersectionS = -DistForLineToCrossOtherLine(CVector2D(endCoors), CVector2D(endDir), CVector2D(startCoors), CVector2D(startDir));
-
-    if (intersectionT > 0.0f && intersectionS > 0.0f) {
-        // Use three-segment path
-        float blend = std::min({intersectionT, intersectionS, 5.0f});
-        float startSegment = intersectionT - blend;
-        float curveSegment = 2.0f * blend;
-        float endSegment = intersectionS - blend;
-        scaleFactor = startSegment + curveSegment + endSegment;
-        float param = clampedTime * scaleFactor;
-
-        if (param < startSegment) {
-            // First segment: move along start direction
-            resultCoor = startCoors + startDir * param;
-        } else if (param < startSegment + curveSegment) {
-            // Middle segment: interpolate between adjusted points
-            float t = (param - startSegment) / curveSegment;
-            float u = 1.0f - t;
-
-            // Create base points
-            CVector startBase = startCoors + startDir * startSegment;
-            CVector endBase = endCoors - endDir * endSegment;
-
-            // Create control points
-            CVector startPoint = startBase + startDir * (blend * t);
-            CVector endPoint = endBase - endDir * (blend * u);
-
-            // Interpolate between control points using lerp function
-            resultCoor = lerp(startPoint, endPoint, t);
-        } else {
-            // Final segment: move along end direction
-            float offset = param - scaleFactor;
-            resultCoor = endCoors + endDir * offset;
-        }
-    } else {
+    // If rays don't intersect properly, fall back to a simpler curved path approximation
+    // This happens when the directions would never cross or are almost parallel
+    if (distToCrossA <= 0.0f || distToCrossB <= 0.0f) {
         // Lines are parallel, use speed variation method
-        float speedVariation = CalcSpeedVariationInBend(startCoors, endCoors, CVector2D(startDir), CVector2D(endDir));
+        const float speedVariation = CalcSpeedVariationInBend(startCoors, endCoors, CVector2D(startDir), CVector2D(endDir));
         scaleFactor = (startCoors - endCoors).Magnitude2D();
-        float speedScale = scaleFactor / (1.0f - speedVariation);
+        const float speedScale = scaleFactor / (1.0f - speedVariation);
+        const auto correctedDist = CalcCorrectedDist(time * speedScale, speedScale, speedVariation, interpFactor);
+        resultCoor = lerp((startCoors + startDir * correctedDist), (endCoors + endDir * (correctedDist - scaleFactor)), interpFactor);
+    } else {
+        // For properly intersecting rays, create a three-segment path:
+        // 1. Straight segment from start
+        // 2. Curved bend in the middle
+        // 3. Straight segment to end
 
-        float interpFactor;
-        float correctedDist = CalcCorrectedDist(clampedTime * speedScale, speedScale, speedVariation, interpFactor);
+        // Limit how sharp the bend can be for natural movement
+        const float bendDistOneSegment = std::min({distToCrossA, distToCrossB, 5.0f});
 
-        // Create adjusted start and end positions
-        CVector startAdjusted = startCoors + startDir * correctedDist;
-        CVector endAdjusted = endCoors + endDir * (correctedDist - scaleFactor);
+        const float straightDistA = distToCrossA - bendDistOneSegment;
+        const float straightDistB = distToCrossB - bendDistOneSegment;
+        const float curveSegment = 2.0f * bendDistOneSegment;
+        scaleFactor = straightDistA + curveSegment + straightDistB;
+        const float currDist = time * scaleFactor;
 
-        // Interpolate between adjusted positions using lerp function
-        resultCoor = lerp(startAdjusted, endAdjusted, interpFactor);
+        if (currDist < straightDistA) {
+            // 1. Position is on the first straight segment (linear interpolation from start)
+            resultCoor = startCoors + startDir * currDist;
+        } else if (currDist > (straightDistA + curveSegment)) {
+            // 2. Position is on the final straight segment (linear interpolation to end)
+            resultCoor = endCoors + endDir * (currDist - scaleFactor);
+        } else {
+            // 3. Position is in the curved bend section - requires double interpolation
+            //    First interpolate through the bend progress, then between the influenced points
+            const float bendT = (currDist - straightDistA) / curveSegment;
+    
+            // Blend between influence points that extendoutward
+            // from the bend endpoints to create a curved path
+            resultCoor = lerp(
+                startCoors + (startDir * straightDistA) + (startDir * (bendDistOneSegment * bendT)),
+                endCoors - (endDir * straightDistB) - (endDir * (bendDistOneSegment * (1.0f - bendT))),
+                bendT
+            );
+        }
+
     }
 
-    // Calculate speed using lerp for direction interpolation
-    float timeInSeconds = std::max(traversalTimeInMillis * 0.001f, 0.00001f);
-
-    // Interpolate between start and end directions
-    CVector interpolatedDir = lerp(startDir, endDir, clampedTime);
-
-    // Scale the interpolated direction by scaleFactor/time
-    resultSpeed = interpolatedDir * (scaleFactor / timeInSeconds);
+    // We dont need lambda - scale the interpolated direction by scaleFactor/time
+    resultSpeed = lerp(startDir, endDir, time) * (scaleFactor / std::max(traversalTimeInMillis * 0.001f, EPSILON));
     resultSpeed.z = 0.0f; // Zero out vertical speed component
 }
 
