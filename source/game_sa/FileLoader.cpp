@@ -1790,37 +1790,37 @@ int32 CFileLoader::LoadTimeObject(const char* line) {
 
 // 0x5B6F30
 int32 CFileLoader::LoadVehicleObject(const char* line) {
-    auto  modelId{ MODEL_INVALID };
-    char  modelName[24]{};
-    char  texName[24]{};
-    char  type[8]{};
-    char  handlingName[16]{};
-    char  gameName[32]{};
-    char  anims[16]{};
-    char  vehCls[16]{};
-    uint32 frq{}, flags{};
+    auto               modelId{ MODEL_INVALID };
+    char               modelName[24]{};
+    char               texName[24]{};
+    char               type[8]{};
+    char               handlingName[16]{};
+    char               gameName[32]{};
+    char               anims[16]{};
+    char               vehCls[16]{};
+    uint32             frq{}, flags{};
     tVehicleCompsUnion vehComps{};
-    uint32 misc{}; // `m_fBikeSteerAngle` if model type is BMX/Bike, otherwise `m_nWheelModelIndex`
-    float wheelSizeFront{}, wheelSizeRear{};
-    int32 wheelUpgradeCls{ -1 };
+    uint32             misc{};                                        // `m_fBikeSteerAngle` if model type is BMX/Bike, otherwise `m_nWheelModelIndex`
+    float              wheelSizeFront{ 0.7f }, wheelSizeRear{ 0.7f }; // NOTSA/BUG: Properly default initialize this value (See https://cookieplmonster.github.io/2025/04/23/gta-san-andreas-win11-24h2-bug/)
+    int32              wheelUpgradeCls{ -1 };
 
     VERIFY(sscanf_s(line, "%d %s %s %s %s %s %s %s %d %d %x %d %f %f %d",
-        &modelId,
-        SCANF_S_STR(modelName),
-        SCANF_S_STR(texName),
-        SCANF_S_STR(type),
-        SCANF_S_STR(handlingName),
-        SCANF_S_STR(gameName),
-        SCANF_S_STR(anims),
-        SCANF_S_STR(vehCls),
-        &frq,
-        &flags,             // optional
-        &vehComps.m_nComps, // optional
-        &misc,              // optional
-        &wheelSizeFront,    // optional
-        &wheelSizeRear,     // optional
-        &wheelUpgradeCls    // optional
-    ) >= 10);
+        &modelId,                  // 1
+        SCANF_S_STR(modelName),    // 2
+        SCANF_S_STR(texName),      // 3
+        SCANF_S_STR(type),         // 4
+        SCANF_S_STR(handlingName), // 5
+        SCANF_S_STR(gameName),     // 6
+        SCANF_S_STR(anims),        // 7
+        SCANF_S_STR(vehCls),       // 8
+        &frq,                      // 9
+        &flags,                    // 10
+        &vehComps.m_nComps,        // 11
+        &misc,                     // 12 [optional]
+        &wheelSizeFront,           // 13 [optional]
+        &wheelSizeRear,            // 14 [optional]
+        &wheelUpgradeCls           // 15 [optional]
+    ) >= 11);
 
     auto mi = CModelInfo::AddVehicleModel(modelId);
     mi->SetModelName(modelName);
@@ -1854,15 +1854,12 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
             { "bmx",     VEHICLE_TYPE_BMX        },
             { "trailer", VEHICLE_TYPE_TRAILER    },
         };
-
         for (const auto& [name, vtype] : mapping) {
             if (name == type) {
                 return vtype;
             }
         }
-
-        assert(0);             // NOTSA - Something went really wrong
-        return VEHICLE_TYPE_IGNORE; // fix warning
+        NOTSA_UNREACHABLE("Invalid vehicle type");
     };
 
     mi->m_nVehicleType = GetVehicleType();
@@ -1885,7 +1882,7 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
     case VEHICLE_TYPE_BIKE:
     case VEHICLE_TYPE_BMX: {
         mi->SetWheelSizes(wheelSizeFront, wheelSizeRear);
-        mi->m_fBikeSteerAngle = (float)misc;
+        mi->m_fBikeSteerAngle = (float)(misc);
         break;
     }
     }
