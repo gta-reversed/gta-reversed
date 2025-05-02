@@ -45,4 +45,7 @@ inline bool& Windowed = *(bool*)0xC920CC;
 
 void Win32InjectHooks();
 
+BOOL GTATranslateShiftKey(RsKeyCodes*);
+BOOL GTATranslateKey(RsKeyCodes* ck, LPARAM lParam, UINT vk);
+
 #define IDI_MAIN_ICON                   1042
