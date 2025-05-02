@@ -14,26 +14,21 @@ void CCurves::InjectHooks() {
 }
 
 // 0x43C610
-float CCurves::DistForLineToCrossOtherLine(const CVector2D LineBase, const CVector2D LineDir, const CVector2D OtherLineBase, const CVector2D OtherLineDir) {
-    // Cross product of direction vectors to check if lines are parallel
-    float determinant = -LineDir.Cross(OtherLineDir);
-    if (determinant == 0.0f) {
-        return -1.0f;
-    } else {
-        // Cross product of (LineBase - OtherLineBase) and OtherLineDir
-        CVector2D baseOffset = LineBase - OtherLineBase;
-        return -baseOffset.Cross(OtherLineDir) / determinant;
+float CCurves::DistForLineToCrossOtherLine(CVector2D originA, CVector2D dirA, CVector2D originB, CVector2D dirB) {
+    const auto crossAB = dirA.Cross(dirB);
+    if (crossAB == 0.f) {
+        return -1.f;
     }
+    return (originA - originB).Cross(dirB) * (-1.f / crossAB);
 }
 
 // 0x43C660
 float CCurves::CalcSpeedVariationInBend(const CVector2D& ptA, const CVector2D& ptB, CVector2D dirA, CVector2D dirB) {
-    constexpr float fractionOffset = 1.f / 3.f;
     const auto dot = dirA.Dot(dirB);
     if (dot <= 0.f) { // Directions point in the opposite direction
-        return fractionOffset;
+        return 1.f / 3.f;
     } else if (dot <= 0.7f) { // Directions are more than ~45 degrees apart
-        return ((dot / -0.7f) * fractionOffset) + fractionOffset;
+        return (1.f - dot / 0.7f) / 3.f;
     } else { // Directions are less than ~45 degrees apart
         return CCollision::DistToMathematicalLine2D(ptB.x, ptB.y, dirB.x, dirB.y, ptA.x, ptA.y) / (ptA - ptB).Magnitude() / 3.f;
     }
@@ -63,85 +58,108 @@ float CCurves::CalcSpeedScaleFactor(const CVector2D& ptA, const CVector2D& ptB, 
 // 0x43C880
 float CCurves::CalcCorrectedDist(float curr, float total, float variance, float& outT) {
     if (total >= 0.00001f) {
-        outT = 0.5f - (std::cos((curr / total) * PI) * 0.5f);
-        return ((total / TWO_PI) * variance) * std::sin((curr * TWO_PI) / total) + ((((variance * -2.0f) + 1.0f) * 0.5f) + 0.5f) * curr;
+        const auto prog = curr / total;
+        outT            = 0.5f - std::cos(PI * prog) * 0.5f;
+        return std::sin(prog * TWO_PI) * (total / TWO_PI) * variance
+            + (1.f - (variance * 2.f) + 1.f) * 0.5f * curr;
     } else {
         outT = 0.5f;
-        return 0.0f;
+        return 0.f;
     }
 }
 
 // 0x43C900
-void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors, const CVector &startDir, const CVector &endDir, float Time, int32 traversalTimeInMS, CVector &resultCoor, CVector &resultSpeed) {
-    float x = startDir.x;
-    float y = startDir.y;
-    float endDirX = endDir.x;
-    float endDirY = endDir.y;
-    float timeClipped = fmaxf(Time, 0.0f);
-    float speedVariation = CCurves::CalcSpeedVariationInBend(CVector2D(startCoors), CVector2D(endCoors), CVector2D(startDir), CVector2D(endDir));
-    float crossProduct = -((y * endDirX) - (x * endDirY));
-    float t = fminf(timeClipped, 1.0f);
-    if (crossProduct != 0.0f) {
-        // Calculate distances to where lines would cross
-        float distToCrossA = CCurves::DistForLineToCrossOtherLine(CVector2D(startCoors), CVector2D(startDir), CVector2D(endCoors), CVector2D(endDir));
-        float distToCrossB = -CCurves::DistForLineToCrossOtherLine(CVector2D(endCoors), CVector2D(endDir), CVector2D(startCoors), CVector2D(startDir));
-        
-        if (distToCrossA > 0.0f && distToCrossB > 0.0f) {
-            // Limit bend distance
-            float bendDistOneSegment = fminf(fminf(distToCrossA, distToCrossB), 5.0f);
-            
-            // Calculate segment lengths
-            float straightDistA = distToCrossA - bendDistOneSegment;
-            float bendDist = bendDistOneSegment * 2.0f;
-            float straightDistB = distToCrossB - bendDistOneSegment;
-            float totalDist = straightDistA + bendDist + straightDistB;
-            float currDist = t * totalDist;
-            
-            // Determine which segment we're on and calculate position
-            if (currDist < straightDistA) {
-                // First straight segment
-                resultCoor = startCoors + (startDir * currDist);
-            } else if (currDist >= (straightDistA + bendDist)) {
-                // Final straight segment
-                float segmentDist = currDist - totalDist;
-                resultCoor = endCoors + (endDir * segmentDist);
-            } else {
-                // Curved bend segment
-                float bendT = (currDist - straightDistA) / bendDist;
+void CCurves::CalcCurvePoint(
+    const CVector& ptA3D,
+    const CVector& ptB3D,
+    const CVector& dirA3D,
+    const CVector& dirB3D,
+    float          t,
+    int32          traversalTimeMs,
+    
+    CVector&       outPos,
+    CVector&       outSpeed
+) {
+    // This function calculates a point on a smooth curve between two positions with direction vectors.
+    // The curve consists of straight segments and a bend connecting them for natural-looking movement.
 
-                // Calculate the two influence points that create the bend
-                CVector influenceA = startCoors + (startDir * straightDistA) + (startDir * bendDistOneSegment * bendT);
-                CVector influenceB = endCoors - (endDir * straightDistB) - (endDir * bendDistOneSegment * (1.0f - bendT));
+    const CVector2D ptA{ ptA3D };
+    const CVector2D dirA{ dirA3D };
 
-                // Linear interpolation between the two influence points
-                resultCoor = lerp(influenceA, influenceB, bendT);
-            }
-            
-            // Calculate speed based on total distance and interpolated direction
-            float secondsToTravel = traversalTimeInMS * 0.001f;
-            float speed = totalDist / secondsToTravel;
-            resultSpeed = lerp(startDir, endDir, t) * speed;
-            resultSpeed.z = 0.0f;
-            return;
-        }
+    const CVector2D ptB{ ptB3D };
+    const CVector2D dirB{ dirB3D };
+    
+    // Normalize time parameter to ensure calculations remain within valid range
+    t = std::clamp(t, 0.0f, 1.0f);
+
+    // Get speed adjustment factor needed for realistic bends (slower in curves, faster on straights)
+    float speedVariation = CalcSpeedVariationInBend(ptA3D, ptB3D, dirA, dirB);
+
+    // Find where the ray from start position would intersect with end ray
+    float distToCrossA = DistForLineToCrossOtherLine(ptA, dirA, ptB, dirB);
+
+    // Find where the ray from end position would intersect with start ray (negative because direction is flipped)
+    float distToCrossB = -DistForLineToCrossOtherLine(ptB, dirB, ptA, dirA);
+
+    const auto CalculateSpeed = [&](float totalDist) {
+        outSpeed = CVector{ lerp(dirA, dirB, t) * (totalDist / (traversalTimeMs / 1000.f)) };
+    };
+
+    // If rays don't intersect properly, fall back to a simpler curved path approximation
+    // This happens when the directions would never cross or are almost parallel
+    if (distToCrossA <= 0.0f || distToCrossB <= 0.0f)
+    {
+        const float straightDist = (ptA3D - ptB3D).Magnitude2D();
+
+        // Calculate path distances adjusted for speed variation
+        const float dist = straightDist / (1.0f - speedVariation);
+        const float currDist = CalcCorrectedDist(dist * t, dist, speedVariation, speedVariation);
+
+        // Blend between the two projected positions based on speed variation
+        outPos = lerp(ptA3D + (dirA3D * currDist), ptB3D + (dirB3D * (currDist - straightDist)), speedVariation);
+
+        // Zero speed for this special case (likely a placeholder as this value isn't used)
+        CalculateSpeed(0.f);
+
+        return;
     }
 
-    // Fallback: when lines are parallel or don't intersect properly
-    float straightDist = (CVector2D(startCoors) - CVector2D(endCoors)).Magnitude();
-    float totalDist = straightDist / (1.0f - speedVariation);
-    float interpol;
-    float correctedDist = CalcCorrectedDist(t * totalDist, totalDist, speedVariation, interpol);
+    // For properly intersecting rays, create a three-segment path:
+    // 1. Straight segment from start
+    // 2. Curved bend in the middle
+    // 3. Straight segment to end
 
-    // Interpolate between adjusted start and end points
-    resultCoor = lerp(startCoors + (startDir * correctedDist),
-        endCoors + (endDir * (correctedDist - straightDist)),
-        interpol);
+    // Limit how sharp the bend can be for natural movement
+    const float bendDistOneSegment = std::min({ distToCrossA, distToCrossB, 5.f });
 
-    // Calculate speed based on straight distance
-    float secondsToTravel = traversalTimeInMS * 0.001f;
-    float speed = straightDist / secondsToTravel;
-    resultSpeed = lerp(startDir, endDir, t) * speed;
-    resultSpeed.z = 0.0f;
+    // Calculate the three segment lengths
+    const float straightDistA = distToCrossA - bendDistOneSegment;
+    const float straightDistB = distToCrossB - bendDistOneSegment;
+    const float bendDist      = bendDistOneSegment * 2.0f;
+    const float totalDist     = straightDistA + bendDist + straightDistB;
+    const float currDist      = totalDist * t;
+
+    if (currDist < straightDistA) {
+        // 1. Position is on the first straight segment (linear interpolation from start)
+        outPos = ptA3D + (dirA3D * currDist);
+    } else if (currDist > (straightDistA + bendDist)) {
+        // 2. Position is on the final straight segment (linear interpolation to end)
+        outPos = ptB3D + (dirB3D * (currDist - (straightDistA + bendDist)));
+    } else {
+        // 3. Position is in the curved bend section - requires double interpolation
+        //    First interpolate through the bend progress, then between the influenced points
+        const float bendT = (currDist - straightDistA) / bendDist;
+
+        // Blend between influence points that extendoutward
+        // from the bend endpoints to create a curved path
+        outPos = lerp(
+            ptA3D + (dirA3D * straightDistA) + (dirA3D * (bendDistOneSegment * bendT)),
+            ptB3D - (dirB3D * straightDistB) - (dirB3D * (bendDistOneSegment * (1.0f - bendT))),
+            bendT
+        );
+    }
+
+    CalculateSpeed(totalDist);
 }
 
 // unused
