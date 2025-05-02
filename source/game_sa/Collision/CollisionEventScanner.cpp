@@ -1,27 +1,32 @@
 #include "StdInc.h"
 
-#include "EventBuildingCollision.h"
 #include "CollisionEventScanner.h"
 #include "PedClothesDesc.h"
 
-void CCollisionEventScanner::ScanForCollisionEvents(CPed* ped, CEventGroup* eg) {
+#include "EventPedCollisionWithPlayer.h"
+#include "EventPlayerCollisionWithPed.h"
+#include "EventBuildingCollision.h"
+#include "EventAcquaintancePedHate.h"
+
+void CCollisionEventScanner::ScanForCollisionEvents(CPed* ped, CEventGroup* eventGroup) {
     if (!ped->m_pDamageEntity || ped->m_fDamageIntensity == 0.f) {
         m_bAlreadyHitByCar = false;
         return;
     }
-
-    const auto pedMoveState = ped->GetIntelligence()->GetMoveStateFromGoToTask();
+    const auto GetPedMoveState = [](CPed* p) {
+        return p->GetIntelligence()->GetMoveStateFromGoToTask();
+    };
 
     switch (ped->m_pDamageEntity->GetType()) {
     case eEntityType::ENTITY_TYPE_BUILDING: { // 0x605127
         const auto o = ped->m_pDamageEntity->AsBuilding();
-        eg->Add(CEventBuildingCollision{
+        eventGroup->Add(CEventBuildingCollision{
             ped->m_nPieceType,
             ped->m_fDamageIntensity,
             o,
             ped->m_vecLastCollisionImpactVelocity,
             ped->m_vecLastCollisionPosn,
-            pedMoveState
+            GetPedMoveState(ped)
         });
         break;
     }
@@ -88,7 +93,7 @@ void CCollisionEventScanner::ScanForCollisionEvents(CPed* ped, CEventGroup* eg) 
         } else if (ped->m_pAttachedTo && ped->m_pAttachedTo->IsVehicle()) { // 0x604A34
             DoEventDamage();
         } else if (!ped->IsPlayer()) { // 0x604AE1
-            eg->Add(CEventVehicleCollision{
+            eventGroup->Add(CEventVehicleCollision{
                 ped->m_nPieceType,
                 ped->m_fDamageIntensity,
                 v,
@@ -100,11 +105,65 @@ void CCollisionEventScanner::ScanForCollisionEvents(CPed* ped, CEventGroup* eg) 
         }
         break;
     }
-    case ENTITY_TYPE_PED: { // 0x604B63 
+    case eEntityType::ENTITY_TYPE_PED: { // 0x604B63
+        const auto ProcessCollision = [GetPedMoveState](CEventGroup* eg, CPed* pedA, CPed* pedB, bool say, bool opposite) {
+            const auto dir = opposite
+                ? pedA->m_vecLastCollisionImpactVelocity * -1.f
+                : pedA->m_vecLastCollisionImpactVelocity;
+            if (pedA->IsPlayer()) { // 0x604B67/0x604D8C - We're a player ?
+                eg->Add(CEventPlayerCollisionWithPed{
+                    pedA->m_nPieceType,
+                    pedA->m_fDamageIntensity,
+                    pedB,
+                    dir,
+                    pedA->m_vecLastCollisionPosn,
+                    GetPedMoveState(pedA),
+                    GetPedMoveState(pedB),
+                });
+                if (say) {
+                    pedB->Say(CTX_GLOBAL_BUMP);
+                }
+            } else if (pedB->IsPlayer()) { // 0x604C1D/0x604E0F - We aren't a player, but the other ped is
+                eg->Add(CEventPedCollisionWithPlayer{
+                    pedA->m_nPieceType,
+                    pedA->m_fDamageIntensity,
+                    pedB,
+                    dir,
+                    pedA->m_vecLastCollisionPosn,
+                    GetPedMoveState(pedA),
+                    GetPedMoveState(pedB)
+                });
 
+                pedA->GetIntelligence()->IncrementAngerAtPlayer();
+
+                if (say) {
+                    pedA->Say(CTX_GLOBAL_BUMP);
+                }
+
+                if (CPedType::GetPedFlag(pedB->m_nPedType) & pedA->m_acquaintance.GetAcquaintances(ACQUAINTANCE_HATE)) {
+                    eg->Add(CEventAcquaintancePedHate{ pedB });
+                }
+            } else { // 0x604D01/0x604F2C - Neither ped is a player
+                eg->Add(CEventPedCollisionWithPed{
+                    pedA->m_nPieceType,
+                    pedA->m_fDamageIntensity,
+                    pedB,
+                    dir,
+                    pedA->m_vecLastCollisionPosn,
+                    GetPedMoveState(pedA),
+                    GetPedMoveState(pedB)
+                });
+            }
+        };
+        auto* const damagePed = ped->m_pDamageEntity->AsPed();
+        ProcessCollision(eventGroup, ped, damagePed, true, false);
+        if (!damagePed->m_pDamageEntity) {
+            ProcessCollision(eventGroup, damagePed, ped, false, true);
+        }
         break;
     }
     }
+
     // 0x60515F
     if (const auto pd = ped->m_pPlayerData) {
         const auto dmge = ped->m_pDamageEntity;
