@@ -7,6 +7,7 @@
 #include "EventPlayerCollisionWithPed.h"
 #include "EventBuildingCollision.h"
 #include "EventAcquaintancePedHate.h"
+#include "EventObjectCollision.h"
 
 void CCollisionEventScanner::ScanForCollisionEvents(CPed* ped, CEventGroup* eventGroup) {
     if (!ped->m_pDamageEntity || ped->m_fDamageIntensity == 0.f) {
@@ -160,6 +161,47 @@ void CCollisionEventScanner::ScanForCollisionEvents(CPed* ped, CEventGroup* even
         if (!damagePed->m_pDamageEntity) {
             ProcessCollision(eventGroup, damagePed, ped, false, true);
         }
+        break;
+    }
+    case ENTITY_TYPE_OBJECT: { // 0x604F76
+        auto* const dmgObj = ped->m_pDamageEntity->AsObject();
+
+        float intensity = ped->m_fDamageIntensity;
+        if (ped->bIsStanding && !dmgObj->IsStatic()) {
+            if (const auto dot = CVector2D{ ped->m_vecLastCollisionImpactVelocity }.Dot(ped->m_vecAnimMovingShift); dot < 0.f) {
+                intensity = std::max(0.f, dot * ped->GetMass() + intensity);
+            }
+        }
+        const auto maxIntensity = ped->IsPlayer()
+            ? 2.f
+            : 1.f;
+
+        if (intensity <= maxIntensity
+         || dmgObj->IsStatic()
+         || !ped->bIsStanding
+         || dmgObj == ped->m_pContactEntity
+         || dmgObj->m_pAttachedTo == ped
+        )  { // 0x6050C9
+            eventGroup->Add(CEventObjectCollision{
+                ped->m_nPieceType,
+                ped->m_fDamageIntensity,
+                dmgObj,
+                ped->m_vecLastCollisionImpactVelocity,
+                ped->m_vecLastCollisionPosn,
+                GetPedMoveState(ped)
+            });
+        } else { // 0x605044
+            CWeapon::GenerateDamageEvent(
+                ped,
+                ped->m_pDamageEntity,
+                WEAPON_FALL,
+                (int32)(intensity / maxIntensity * 10.f),
+                PED_PIECE_TORSO,
+                ped->GetLocalDirection(-ped->m_vecLastCollisionImpactVelocity)
+            );
+            ped->m_pEntityIgnoredCollision = ped->m_pDamageEntity;
+        }
+
         break;
     }
     }
