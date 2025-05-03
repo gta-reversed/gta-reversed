@@ -5,6 +5,8 @@
 
 #include "TristateCheckbox.h"
 
+struct ImGuiTextFilter;
+
 // Always returns `true` if either strings are empty (This matches the behaviour of `haystack.find(needle) != npos`)
 static bool StringContainsString(std::string_view haystack, std::string_view needle, bool caseSensitive = true) {
     if (caseSensitive) {
@@ -32,8 +34,6 @@ static auto SplitStringView(std::string_view str, std::string_view delim) {
 #endif
         });
 }
-
-
 
 namespace notsa {
 namespace ui {
@@ -128,4 +128,19 @@ inline auto TreeNodeWithTriStateCheckBox(const char* label, ImGui::ImTristate cb
 };
 }; // namespace ui
 }; // namespace notsa
+
+/*!
+* @brief ImGuiTextFilter serialization
+*/
+inline void to_json(json& j, const ImGuiTextFilter& filter) {
+    j = json{
+        { "InputBuf", filter.InputBuf }
+    };
+}
+inline void from_json(const json& j, ImGuiTextFilter& filter) {
+    std::string buf;
+    j.at("InputBuf").get_to(buf);
+    strncpy_s(filter.InputBuf, buf.c_str(), sizeof(filter.InputBuf));
+    filter.Build();
+}
 

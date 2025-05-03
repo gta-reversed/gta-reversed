@@ -1,15 +1,8 @@
 #include <StdInc.h>
 
 #include <imgui.h>
-
 #include "SpawnerDebugModule.hpp"
-#include "PedSpawner.h"
-#include "VehicleSpawner.h"
 
-SpawnerDebugModule::SpawnerDebugModule()  {
-    VehicleDebugModule::Initialise();
-    PedSpawnerModule::Initialise();
-}
 
 void SpawnerDebugModule::RenderWindow() {
     const notsa::ui::ScopedWindow window{ "Spawner", { 500.f, 400.f }, m_IsOpen };
