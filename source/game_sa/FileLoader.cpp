@@ -1835,12 +1835,8 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
     mi->m_nFlags = flags;
     mi->m_extraComps = vehComps;
 
-
-    // This isn't exactly R* did it, but that code is hot garbage anyways
-    // They've used strcmp all the way, and.. It's bad.
-
-    const auto GetVehicleType = [&] {
-        static constexpr struct { std::string_view name; eVehicleType type; } mapping[] = {
+    mi->m_nVehicleType = notsa::find_value(
+        notsa::make_mapping<std::string_view, eVehicleType>({
             { "car",     VEHICLE_TYPE_AUTOMOBILE },
             { "mtruck",  VEHICLE_TYPE_MTRUCK     },
             { "quad",    VEHICLE_TYPE_QUAD       },
@@ -1853,16 +1849,10 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
             { "bike",    VEHICLE_TYPE_BIKE       },
             { "bmx",     VEHICLE_TYPE_BMX        },
             { "trailer", VEHICLE_TYPE_TRAILER    },
-        };
-        for (const auto& [name, vtype] : mapping) {
-            if (name == type) {
-                return vtype;
-            }
-        }
-        NOTSA_UNREACHABLE("Invalid vehicle type");
-    };
+        }),
+        type
+    );
 
-    mi->m_nVehicleType = GetVehicleType();
     switch (mi->m_nVehicleType) {
     case VEHICLE_TYPE_AUTOMOBILE:
     case VEHICLE_TYPE_MTRUCK:
@@ -1890,8 +1880,8 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
     mi->SetHandlingId(handlingName);
     mi->m_nWheelUpgradeClass = wheelUpgradeCls;
 
-    const auto GetVehicleClass = [&] {
-        static constexpr struct { std::string_view name; eVehicleClass cls; } mapping[] = {
+    mi->m_nVehicleClass = notsa::find_value(
+        notsa::make_mapping<std::string_view, eVehicleClass>({
             { "normal",      VEHICLE_CLASS_NORMAL      },
             { "poorfamily",  VEHICLE_CLASS_POORFAMILY  },
             { "richfamily",  VEHICLE_CLASS_RICHFAMILY  },
@@ -1905,19 +1895,9 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
             { "workerboat",  VEHICLE_CLASS_WORKERBOAT  },
             { "bicycle",     VEHICLE_CLASS_BICYCLE     },
             { "ignore",      VEHICLE_CLASS_IGNORE      },
-        };
-
-        for (const auto& [name, cls] : mapping) {
-            if (name == vehCls) {
-                return cls;
-            }
-        }
-
-        // NOTSA - Something has went really wrong
-        DebugBreak();
-        return (eVehicleClass)-1;
-    };
-    mi->m_nVehicleClass = GetVehicleClass();
+        }),
+        vehCls
+    );
     if (mi->m_nVehicleClass != eVehicleClass::VEHICLE_CLASS_IGNORE) {
         mi->m_nFrq = frq;
     }
