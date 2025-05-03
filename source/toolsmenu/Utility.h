@@ -138,9 +138,8 @@ inline void to_json(json& j, const ImGuiTextFilter& filter) {
     };
 }
 inline void from_json(const json& j, ImGuiTextFilter& filter) {
-    std::string buf;
-    j.at("InputBuf").get_to(buf);
-    strncpy_s(filter.InputBuf, buf.c_str(), sizeof(filter.InputBuf));
+    const auto buf = j.at("InputBuf").get<std::string_view>();
+    strncpy(filter.InputBuf, buf.data(), std::min(sizeof(filter.InputBuf) - 1, buf.size()));
     filter.Build();
 }
 
