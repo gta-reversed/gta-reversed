@@ -1800,7 +1800,7 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
     char               vehCls[16]{};
     uint32             frq{}, flags{};
     tVehicleCompsUnion vehComps{};
-    uint32             misc{};                                        // `m_fBikeSteerAngle` if model type is BMX/Bike, otherwise `m_nWheelModelIndex`
+    uint32             misc{ -1 };                                    // `m_fBikeSteerAngle` if model type is BMX/Bike, otherwise `m_nWheelModelIndex`
     float              wheelSizeFront{ 0.7f }, wheelSizeRear{ 0.7f }; // NOTSA/BUG: Properly default initialize this value (See https://cookieplmonster.github.io/2025/04/23/gta-san-andreas-win11-24h2-bug/)
     int32              wheelUpgradeCls{ -1 };
 
