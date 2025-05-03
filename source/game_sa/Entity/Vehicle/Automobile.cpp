@@ -5893,19 +5893,9 @@ void CAutomobile::PlaceOnRoadProperly()
         vecRearCheck.z = fColZ;
     }
 
-    //FIXME: Not originally in this function, we can't spawn skimmer from debug menu cause those 2 values aren't initialized,
-    //       resulting in garbage results further down, either we have a bug somewhere, or it's like that in original SA too
-    if (m_nModelIndex == MODEL_SKIMMER) {
-        m_fFrontHeightAboveRoad = 0.0F;
-        m_fRearHeightAboveRoad = 0.0F;
-        vecFrontCheck.z += 4.0F;
-        vecRearCheck.z += 4.0F;
-    }
-    else {
-        auto fHeightAboveRoad = GetHeightAboveRoad();
-        vecFrontCheck.z += fHeightAboveRoad;
-        vecRearCheck.z += m_fRearHeightAboveRoad;
-    }
+    auto fHeightAboveRoad = GetHeightAboveRoad();
+    vecFrontCheck.z += fHeightAboveRoad;
+    vecRearCheck.z += m_fRearHeightAboveRoad;
 
     auto fLength = fEndY + fStartY;
     GetRight().Set((vecFrontCheck.y - vecRearCheck.y) / fLength, -((vecFrontCheck.x - vecRearCheck.x) / fLength), 0.0F);
