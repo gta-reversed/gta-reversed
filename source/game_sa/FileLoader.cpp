@@ -19,6 +19,13 @@
 #include "LoadingScreen.h"
 #include "Garages.h"
 
+#define CHECK_ARG_COUNT(_n, _expected) \
+    do { \
+        if (_n < _expected) { \
+            NOTSA_LOG_WARN("[Line: {}] Expected {} values to be read, got {}. Default initialized values will be used instead", _expected, _n); \
+        } \
+    } \
+
 char(&CFileLoader::ms_line)[512] = *reinterpret_cast<char(*)[512]>(0xB71848);
 uint32& gAtomicModelId = *reinterpret_cast<uint32*>(0xB71840);
 
@@ -1800,7 +1807,7 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
     char               vehCls[16]{};
     uint32             frq{}, flags{};
     tVehicleCompsUnion vehComps{};
-    uint32             misc{ -1 };                                    // `m_fBikeSteerAngle` if model type is BMX/Bike, otherwise `m_nWheelModelIndex`
+    int32              misc{ -1 };                                    // `m_fBikeSteerAngle` if model type is BMX/Bike, otherwise `m_nWheelModelIndex`
     float              wheelSizeFront{ 0.7f }, wheelSizeRear{ 0.7f }; // NOTSA/BUG: Properly default initialize this value (See https://cookieplmonster.github.io/2025/04/23/gta-san-andreas-win11-24h2-bug/)
     int32              wheelUpgradeCls{ -1 };
 
@@ -1861,12 +1868,12 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
     case VEHICLE_TYPE_PLANE:
     case VEHICLE_TYPE_TRAILER: {
         mi->SetWheelSizes(wheelSizeFront, wheelSizeRear);
-        mi->m_nWheelModelIndex = misc;
+        mi->m_nWheelModelIndex = (int16)(misc);
         break;
     }
     case VEHICLE_TYPE_FPLANE: {
         mi->SetWheelSizes(1.0f, 1.0f);
-        mi->m_nWheelModelIndex = misc;
+        mi->m_nWheelModelIndex = (int16)(misc);
         break;
     }
     case VEHICLE_TYPE_BIKE:
