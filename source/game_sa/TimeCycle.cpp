@@ -211,12 +211,12 @@ void CTimeCycle::StopExtraColour(bool bNoExtraColorInterior) {
 
 // 0x55FF40
 void CTimeCycle::AddOne(CBox& box, int16 farClip, int32 m_ExtraColor, float strength, float falloff, float lodDistMult) {
-    m_aBoxes[m_NumBoxes].m_Box = box;
-    m_aBoxes[m_NumBoxes].m_FarClip = farClip;
-    m_aBoxes[m_NumBoxes].m_ExtraColor = m_ExtraColor;
-    m_aBoxes[m_NumBoxes].m_Strength = strength / 100.0f;
-    m_aBoxes[m_NumBoxes].m_Falloff = falloff;
-    m_aBoxes[m_NumBoxes].m_LodDistMult = (uint8)(std::min(lodDistMult, 4.0f) * 32.0f);
+    m_aBoxes[m_NumBoxes].Box = box;
+    m_aBoxes[m_NumBoxes].FarClip = farClip;
+    m_aBoxes[m_NumBoxes].ExtraColor = m_ExtraColor;
+    m_aBoxes[m_NumBoxes].Strength = strength / 100.0f;
+    m_aBoxes[m_NumBoxes].Falloff = falloff;
+    m_aBoxes[m_NumBoxes].LodDistMult = (uint8)(std::min(lodDistMult, 4.0f) * 32.0f);
     m_NumBoxes++;
 }
 
@@ -232,7 +232,7 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
 
     if (farBox1) {
         FindTimeCycleBox(point, &farBox2, &farBox2Interp, false, true, farBox1);
-        if (farBox2 && farBox2->m_Box.GetWidth() > farBox1->m_Box.GetWidth()) {
+        if (farBox2 && farBox2->Box.GetWidth() > farBox1->Box.GetWidth()) {
             std::swap(farBox1, farBox2);
             std::swap(farBox1Interp, farBox2Interp);
         }
@@ -260,8 +260,8 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
 
     int boxHour, boxWeather;
     if (weatherBox) {
-        boxHour = weatherBox->m_ExtraColor % 8;
-        boxWeather = (weatherBox->m_ExtraColor / NUM_HOURS) + 21;
+        boxHour = weatherBox->ExtraColor % 8;
+        boxWeather = (weatherBox->ExtraColor / NUM_HOURS) + 21;
     }
 
     CColourSet currentOld(curHourSel, CWeather::OldWeatherType);
@@ -320,8 +320,8 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     vec->Normalise();
 
     // 0x560AAE
-    if (weatherBox && weatherBox->m_ExtraColor >= 0) {
-        float boxf = weatherBoxInterp * weatherBox->m_Strength;
+    if (weatherBox && weatherBox->ExtraColor >= 0) {
+        float boxf = weatherBoxInterp * weatherBox->Strength;
         float invboxf = 1.0f - boxf;
 
         set->m_nSkyTopRed      = uint16((float)set->m_nSkyTopRed   * invboxf + (float)m_nSkyTopRed[boxHour][boxWeather] * boxf);
@@ -363,14 +363,14 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     }
 
     if (lodBox) {
-        set->m_fLodDistMult *= (1.0f - lodBoxInterp) + (float)lodBox->m_LodDistMult / 32.0f * lodBoxInterp;
+        set->m_fLodDistMult *= (1.0f - lodBoxInterp) + (float)lodBox->LodDistMult / 32.0f * lodBoxInterp;
     }
 
-    if (farBox1 && (float)farBox1->m_FarClip < set->m_fFarClip) {
-        set->m_fFarClip = set->m_fFarClip * (1.0f - farBox1Interp) + (float)farBox1->m_FarClip * farBox1Interp;
+    if (farBox1 && (float)farBox1->FarClip < set->m_fFarClip) {
+        set->m_fFarClip = set->m_fFarClip * (1.0f - farBox1Interp) + (float)farBox1->FarClip * farBox1Interp;
     }
-    if (farBox2 && (float)farBox2->m_FarClip < set->m_fFarClip) {
-        set->m_fFarClip = set->m_fFarClip * (1.0f - farBox2Interp) + (float)farBox2->m_FarClip * farBox2Interp;
+    if (farBox2 && (float)farBox2->FarClip < set->m_fFarClip) {
+        set->m_fFarClip = set->m_fFarClip * (1.0f - farBox2Interp) + (float)farBox2->FarClip * farBox2Interp;
     }
 
     float inc = CTimer::GetTimeStep() / 120.0f;

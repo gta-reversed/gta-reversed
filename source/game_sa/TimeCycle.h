@@ -8,12 +8,12 @@ class CBox;
 
 class CTimeCycleBox {
 public:
-    CBox  m_Box;
-    int16 m_FarClip;
-    uint8 m_LodDistMult;
-    int32 m_ExtraColor;
-    float m_Strength;
-    float m_Falloff;
+    CBox  Box;
+    int16 FarClip;
+    uint8 LodDistMult;
+    int32 ExtraColor;
+    float Strength;
+    float Falloff;
 };
 VALIDATE_SIZE(CTimeCycleBox, 0x28);
 
