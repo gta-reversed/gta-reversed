@@ -142,7 +142,14 @@ public:
     static void AddOne(CBox& box, int16 farClip, int32 extraColor, float strength, float falloff, float lodDistMult);
     static void CalcColoursForPoint(CVector point, CColourSet* set);
     static float FindFarClipForCoors(CVector cameraPos);
-    static void FindTimeCycleBox(CVector pos, CTimeCycleBox** outBox, float* interpolation, bool bCheckLod, bool bCheckFar, CTimeCycleBox* exclude);
+    static void FindTimeCycleBox(
+        CVector         pos,
+        CTimeCycleBox** out,
+        float*          currentBox,
+        bool            isLOD,
+        bool            isFarClip,
+        CTimeCycleBox*  alreadyFoundBox
+    );
     static void SetConstantParametersForPostFX();
 
     static float GetAmbientRed()                    { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientRed; }       // 0x560330

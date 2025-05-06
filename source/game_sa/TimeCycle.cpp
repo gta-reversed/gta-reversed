@@ -21,7 +21,7 @@ void CTimeCycle::InjectHooks() {
     RH_ScopedInstall(AddOne, 0x55FF40);
     RH_ScopedInstall(CalcColoursForPoint, 0x5603D0, { .reversed = false });
     RH_ScopedInstall(FindFarClipForCoors, 0x5616E0);
-    RH_ScopedInstall(FindTimeCycleBox, 0x55FFD0, { .reversed = false });
+    RH_ScopedInstall(FindTimeCycleBox, 0x55FFD0);
     RH_ScopedInstall(SetConstantParametersForPostFX, 0x560210);
     RH_ScopedInstall(GetAmbientRed, 0x560330);
     RH_ScopedInstall(GetAmbientGreen, 0x560340);
@@ -529,14 +529,46 @@ float CTimeCycle::FindFarClipForCoors(CVector cameraPos) {
 }
 
 // 0x55FFD0
-void CTimeCycle::FindTimeCycleBox(CVector pos, CTimeCycleBox** outBox, float* interpolation, bool bCheckLod, bool bCheckFar, CTimeCycleBox* exclude) {
-    return plugin::Call<0x55FFD0, CVector, CTimeCycleBox**, float*, bool, bool, CTimeCycleBox*>(pos, outBox, interpolation, bCheckLod, bCheckFar, exclude);
-
-    *outBox = nullptr;
+void CTimeCycle::FindTimeCycleBox(
+    CVector         pos,
+    CTimeCycleBox** curr,
+    float*          interpolation,
+    bool            isLOD,
+    bool            isFarClip,
+    CTimeCycleBox*  prev
+) {
+    *curr          = nullptr;
     *interpolation = 0.0f;
 
-    for (auto& box : std::span{ m_aBoxes, m_NumBoxes }) {
+    for (auto& v : std::span{ m_aBoxes, m_NumBoxes }) {
+        if (isLOD && v.LodDistMult == 32.f) { // 0x560013
+            continue;
+        }
+        if (isFarClip && !v.FarClip) { // 0x560038
+            continue;
+        }
 
+        // Check if the point is at least within the `FallOff`
+        const auto CheckPointWithin = [&](int32 i, float tolerance) {
+            return v.Box.m_vecMin[i] - tolerance > pos[i] || v.Box.m_vecMax[i] + tolerance < pos[i];
+        };
+        if (CheckPointWithin(0, v.Falloff) || CheckPointWithin(1, v.Falloff) || CheckPointWithin(2, v.Falloff / 3.f)) {
+            continue;
+        }
+
+        // Calculate the distance to the box and interpolation
+        const auto vdist = v.Box.GetShortestVectorDistToPt(pos); // 0x5600EC
+        const auto dist  = CVector{ vdist.x, vdist.y, vdist.z * 3.f }.Magnitude(); // 0x560188
+        if (dist > 0.f) { // Point not inside the box, but within `FallOff`
+            const auto t = 1.f - dist / v.Falloff;
+            if (t > *interpolation) {
+                *curr          = &v;
+                *interpolation = t;
+            }
+        } else { // Point inside the box
+            *curr          = &v;
+            *interpolation = 1.f;
+        }
     }
 }
 
