@@ -267,25 +267,25 @@ void TimeCycleDebugModule::RenderBoxesGUI() {
     for (auto& box : CTimeCycle::GetBoxes()) {
         ImGui::PushID(&box);
 
-        const auto& boxCenter = box.m_Box.GetCenter();
+        const auto& boxCenter = box.Box.GetCenter();
 
         ImGui::TableNextColumn();
         ImGui::Text("%s", CTheZones::FindSmallestZoneForPosition(boxCenter, false)->GetTranslatedName());
 
         ImGui::TableNextColumn();
-        ImGui::Text("%d", box.m_FarClip);
+        ImGui::Text("%d", box.FarClip);
 
         ImGui::TableNextColumn();
-        ImGui::Text("%d", box.m_LodDistMult);
+        ImGui::Text("%d", box.LodDistMult);
 
         ImGui::TableNextColumn();
-        ImGui::Text("%d", box.m_ExtraColor);
+        ImGui::Text("%d", box.ExtraColor);
 
         ImGui::TableNextColumn();
-        ImGui::Text("%f", box.m_Strength);
+        ImGui::Text("%f", box.Strength);
 
         ImGui::TableNextColumn();
-        ImGui::Text("%f", box.m_Falloff);
+        ImGui::Text("%f", box.Falloff);
 
         ImGui::TableNextColumn();
         if (bool selected = false; ImGui::Selectable("Teleport", &selected, ImGuiSelectableFlags_SpanAllColumns)) {
@@ -305,7 +305,7 @@ void TimeCycleDebugModule::Render3D() {
     }
 
     for (auto& box : CTimeCycle::GetBoxes()) {
-        box.m_Box.DrawWireFrame({ 255, 0, 0, 255 }, CMatrix::Unity());
+        box.Box.DrawWireFrame({ 255, 0, 0, 255 }, CMatrix::Unity());
     }
 }
 
