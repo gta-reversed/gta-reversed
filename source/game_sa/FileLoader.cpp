@@ -19,12 +19,13 @@
 #include "LoadingScreen.h"
 #include "Garages.h"
 
-#define CHECK_ARG_COUNT(_n, _expected) \
+#define CHECK_ARG_COUNT(_l, _expected, _n) \
     do { \
         if (_n < _expected) { \
-            NOTSA_LOG_WARN("[Line: {}] Expected {} values to be read, got {}. Default initialized values will be used instead", _expected, _n); \
+            NOTSA_LOG_WARN("Expected {} values to be read, got {}. Default initialized values will be used instead", _expected, _n); \
+            NOTSA_LOG_WARN("Line: {:?}", _l); \
         } \
-    } \
+    } while (0)
 
 char(&CFileLoader::ms_line)[512] = *reinterpret_cast<char(*)[512]>(0xB71848);
 uint32& gAtomicModelId = *reinterpret_cast<uint32*>(0xB71840);
@@ -1811,7 +1812,7 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
     float              wheelSizeFront{ 0.7f }, wheelSizeRear{ 0.7f }; // NOTSA/BUG: Properly default initialize this value (See https://cookieplmonster.github.io/2025/04/23/gta-san-andreas-win11-24h2-bug/)
     int32              wheelUpgradeCls{ -1 };
 
-    VERIFY(sscanf_s(line, "%d %s %s %s %s %s %s %s %d %d %x %d %f %f %d",
+    const auto N = sscanf_s(line, "%d %s %s %s %s %s %s %s %d %d %x %d %f %f %d",
         &modelId,                  // 1
         SCANF_S_STR(modelName),    // 2
         SCANF_S_STR(texName),      // 3
@@ -1827,7 +1828,7 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
         &wheelSizeFront,           // 13 [optional]
         &wheelSizeRear,            // 14 [optional]
         &wheelUpgradeCls           // 15 [optional]
-    ) >= 11);
+    );
 
     auto mi = CModelInfo::AddVehicleModel(modelId);
     mi->SetModelName(modelName);
@@ -1867,21 +1868,30 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
     case VEHICLE_TYPE_HELI:
     case VEHICLE_TYPE_PLANE:
     case VEHICLE_TYPE_TRAILER: {
+        CHECK_ARG_COUNT(line, 14, N);
+
         mi->SetWheelSizes(wheelSizeFront, wheelSizeRear);
         mi->m_nWheelModelIndex = (int16)(misc);
         break;
     }
     case VEHICLE_TYPE_FPLANE: {
+        CHECK_ARG_COUNT(line, 12, N);
+
         mi->SetWheelSizes(1.0f, 1.0f);
         mi->m_nWheelModelIndex = (int16)(misc);
         break;
     }
     case VEHICLE_TYPE_BIKE:
     case VEHICLE_TYPE_BMX: {
+        CHECK_ARG_COUNT(line, 14, N);
+
         mi->SetWheelSizes(wheelSizeFront, wheelSizeRear);
         mi->m_fBikeSteerAngle = (float)(misc);
         break;
     }
+    default:
+        CHECK_ARG_COUNT(line, 11, N);
+        break;
     }
 
     mi->SetHandlingId(handlingName);
