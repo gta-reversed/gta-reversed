@@ -75,16 +75,16 @@ void TimeCycleDebugModule::RenderWindow() {
     }
 
     ImGui::NewLine();
-    if (ImGui::ColorEdit3("Current RGB 1", (float*)&m_CurrentRGB1)) {
-        CTimeCycle::m_fCurrentRGB1Red   = m_CurrentRGB1.r * 255.0f;
-        CTimeCycle::m_fCurrentRGB1Green = m_CurrentRGB1.g * 255.0f;
-        CTimeCycle::m_fCurrentRGB1Blue  = m_CurrentRGB1.b * 255.0f;
+    if (ImGui::ColorEdit3("Post Fx 1", (float*)&m_PostFx1)) {
+        CTimeCycle::m_CurrentColours.m_fPostFx1Red   = m_PostFx1.r * 255.0f;
+        CTimeCycle::m_CurrentColours.m_fPostFx1Green = m_PostFx1.g * 255.0f;
+        CTimeCycle::m_CurrentColours.m_fPostFx1Blue  = m_PostFx1.b * 255.0f;
     }
 
-    if (ImGui::ColorEdit3("Current RGB 2", (float*)&m_CurrentRGB2)) {
-        CTimeCycle::m_fCurrentRGB2Red   = m_CurrentRGB2.r * 255.0f;
-        CTimeCycle::m_fCurrentRGB2Green = m_CurrentRGB2.r * 255.0f;
-        CTimeCycle::m_fCurrentRGB2Blue  = m_CurrentRGB2.r * 255.0f;
+    if (ImGui::ColorEdit3("Post Fx 2", (float*)&m_PostFx2)) {
+        CTimeCycle::m_CurrentColours.m_fPostFx2Red   = m_PostFx2.r * 255.0f;
+        CTimeCycle::m_CurrentColours.m_fPostFx2Green = m_PostFx2.r * 255.0f;
+        CTimeCycle::m_CurrentColours.m_fPostFx2Blue  = m_PostFx2.r * 255.0f;
     }
 
     ImGui::NewLine();
@@ -317,13 +317,13 @@ void TimeCycleDebugModule::SyncFromGame() {
     m_Hours                      = CClock::ms_nGameClockHours;
     m_Minutes                    = CClock::ms_nGameClockMinutes;
 
-    m_CurrentRGB1.r              = ColorF32(CTimeCycle::m_fCurrentRGB1Red);
-    m_CurrentRGB1.g              = ColorF32(CTimeCycle::m_fCurrentRGB1Green);
-    m_CurrentRGB1.b              = ColorF32(CTimeCycle::m_fCurrentRGB1Blue);
+    m_PostFx1.r              = ColorF32(CTimeCycle::m_CurrentColours.m_fPostFx1Red);
+    m_PostFx1.g              = ColorF32(CTimeCycle::m_CurrentColours.m_fPostFx1Green);
+    m_PostFx1.b              = ColorF32(CTimeCycle::m_CurrentColours.m_fPostFx1Blue);
 
-    m_CurrentRGB2.r              = ColorF32(CTimeCycle::m_fCurrentRGB2Red);
-    m_CurrentRGB2.g              = ColorF32(CTimeCycle::m_fCurrentRGB2Green);
-    m_CurrentRGB2.b              = ColorF32(CTimeCycle::m_fCurrentRGB2Blue);
+    m_PostFx2.r              = ColorF32(CTimeCycle::m_CurrentColours.m_fPostFx2Red);
+    m_PostFx2.g              = ColorF32(CTimeCycle::m_CurrentColours.m_fPostFx2Green);
+    m_PostFx2.b              = ColorF32(CTimeCycle::m_CurrentColours.m_fPostFx2Blue);
 
     m_AmbRGB.r                   = ColorF32(CTimeCycle::m_nAmbientRed[m_TimeId][m_WeatherId]);
     m_AmbRGB.g                   = ColorF32(CTimeCycle::m_nAmbientGreen[m_TimeId][m_WeatherId]);
