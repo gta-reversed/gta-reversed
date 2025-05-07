@@ -13,8 +13,8 @@ class SpawnerDebugModule final : public DebugModule {
         };
 
     public:
-        EntitySpawner(std::vector<Item> items) :
-            m_Items{ std::move(items) }
+        EntitySpawner(std::vector<Item>&& items) :
+            m_Items{ items }
         {
         }
         virtual ~EntitySpawner() = default;
