@@ -28,6 +28,8 @@ void CPlaceable::InjectHooks() {
     RH_ScopedInstall(ShutdownMatrixArray, 0x54EFD0);
     RH_ScopedInstall(InitMatrixArray, 0x54F3A0);
     RH_ScopedInstall(FreeStaticMatrix, 0x54F010);
+    RH_ScopedOverloadedInstall(TransformIntoWorldSpace, "ref", 0x5334F0, RwV3d(CPlaceable::*)(const RwV3d&) const);
+    RH_ScopedOverloadedInstall(TransformIntoWorldSpace, "ptr", 0x533560, void(CPlaceable::*)(RwV3d&, const RwV3d&) const);
 }
 
 CPlaceable::CPlaceable() : m_placement() {
@@ -188,6 +190,21 @@ void CPlaceable::SetMatrix(CMatrix& matrix) {
     }
 
     *static_cast<CMatrix*>(m_matrix) = matrix;
+}
+
+void CPlaceable::TransformIntoWorldSpace(RwV3d& result, const RwV3d& vec) const {
+    result = TransformIntoWorldSpace(vec);
+}
+
+RwV3d CPlaceable::TransformIntoWorldSpace(const RwV3d& vec) const {
+    auto result = CVector();
+    if (m_matrix) {
+        result = m_matrix->TransformPoint(vec);
+        return result;
+    }
+
+    TransformPoint(result, m_placement, vec);
+    return result;
 }
 
 // NOTSA

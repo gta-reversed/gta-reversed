@@ -137,6 +137,7 @@ public:
     virtual void RemoveLighting(bool bRemove);                                                                        // VTab: 20
     virtual void FlagToDestroyWhenNextProcessed();                                                                    // VTab: 21
 
+    uint32 GetModelIndex() const;
     void UpdateRwFrame();
     void UpdateRpHAnim();
     bool HasPreRenderEffects();
@@ -149,13 +150,10 @@ public:
     void SetRwObjectAlpha(int32 alpha);
     CVector* FindTriggerPointCoors(CVector* pOutVec, int32 triggerIndex);
     C2dEffect* GetRandom2dEffect(int32 effectType, bool bCheckForEmptySlot);
-    CVector TransformFromObjectSpace(const CVector& offset);
-    CVector* TransformFromObjectSpace(CVector& outPos, const CVector& offset);
     void CreateEffects();
     void DestroyEffects();
     void AttachToRwObject(RwObject* object, bool updateEntityMatrix);
     void DetachFromRwObject();
-    CVector* GetBoundCentre(CVector* pOutCentre);
     void GetBoundCentre(CVector& outCentre);
     CVector GetBoundCentre();
     void RenderEffects();
