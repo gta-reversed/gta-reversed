@@ -57,7 +57,7 @@ public:
         };
         uint8         m_nFlags;
     };
-    uint32            m_nLastFrameUpdate;
+    uint32            m_LastFrameUpdateMs;
     uint32            m_nLastScanTimeUpdate;
     float             m_fRadius;
     CVector           m_vecCenter;

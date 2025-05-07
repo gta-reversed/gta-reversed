@@ -35,8 +35,8 @@ void CAECollisionAudioEntity::Initialise() {
 
 // 0x4DA050
 void CAECollisionAudioEntity::InitialisePostLoading() {
-    AEAudioHardware.LoadSoundBank(39, SLOT_LOADING_TUNE_LEFT);
-    AEAudioHardware.LoadSoundBank(27, 3);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_BULLET_HITS, SND_BANK_SLOT_BULLET_HITS);
 }
 
 // 0x4DA320
@@ -160,7 +160,7 @@ void CAECollisionAudioEntity::PlayBulletHitCollisionSound(eSurfaceType surface, 
 
     if (iRand >= 0) {
         CAESound sound;
-        sound.Initialise(3, iRand, this, posn, volume, maxDistance, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.02f, 0);
+        sound.Initialise(SND_BANK_SLOT_BULLET_HITS, iRand, this, posn, volume, maxDistance, 1.0f, 1.0f, 0, SOUND_DEFAULT, 0.02f, 0);
         AESoundManager.RequestNewSound(&sound);
         m_nLastBulletHitSoundID = iRand;
     }
@@ -194,7 +194,7 @@ void CAECollisionAudioEntity::ReportGlassCollisionEvent(eAudioEvents glassSoundT
         return;
 
     m_tempSound.Initialise(
-        2,
+        SND_BANK_SLOT_COLLISIONS,
         sfxId,
         this,
         posn,
@@ -206,22 +206,19 @@ void CAECollisionAudioEntity::ReportGlassCollisionEvent(eAudioEvents glassSoundT
     if (time) {
         auto& snd = m_tempSound;
         snd.m_ClientVariable = (float)(time + CTimer::GetTimeInMS());
-        snd.m_nEvent = glassSoundType;
-        snd.m_bRequestUpdates = true;
+        snd.m_Event = glassSoundType;
+        snd.m_RequestUpdates = true;
     }
 }
 
 // 0x4DA190
 void CAECollisionAudioEntity::ReportWaterSplash(CVector posn, float volume) {
-    if (!AEAudioHardware.IsSoundBankLoaded(39, 2)) {
-        if (!AudioEngine.IsLoadingTuneActive())
-            AEAudioHardware.LoadSoundBank(39, 2);
-
+    if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS, true)) {
         return;
     }
 
     m_tempSound.Initialise(
-        2,
+        SND_BANK_SLOT_COLLISIONS,
         67,
         this,
         posn,
@@ -232,11 +229,11 @@ void CAECollisionAudioEntity::ReportWaterSplash(CVector posn, float volume) {
         0u,
         SOUND_REQUEST_UPDATES
     );
-    m_tempSound.m_nEvent = AE_FRONTEND_SELECT;
+    m_tempSound.m_Event = AE_FRONTEND_SELECT;
     AESoundManager.RequestNewSound(&m_tempSound);
 
     m_tempSound.Initialise(
-        2,
+        SND_BANK_SLOT_COLLISIONS,
         66,
         this,
         posn,
@@ -247,7 +244,7 @@ void CAECollisionAudioEntity::ReportWaterSplash(CVector posn, float volume) {
         0u,
         SOUND_REQUEST_UPDATES
     );
-    m_tempSound.m_nEvent = AE_FRONTEND_BACK;
+    m_tempSound.m_Event = AE_FRONTEND_BACK;
     m_tempSound.m_ClientVariable = static_cast<float>(CTimer::GetTimeInMS() + 166);
 }
 
@@ -268,10 +265,10 @@ void CAECollisionAudioEntity::ReportCollision(CEntity* entity1, CEntity* entity2
 
 // 0x4DBDF0
 void CAECollisionAudioEntity::ReportBulletHit(CEntity* entity, eSurfaceType surface, const CVector& posn, float angleWithColPointNorm) {
-    if (AEAudioHardware.IsSoundBankLoaded(27, 3)) {
+    if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_BULLET_HITS, SND_BANK_SLOT_BULLET_HITS)) {
         if (entity && entity->IsVehicle()) {
             surface = entity->AsVehicle()->IsSubBMX()
-                ? eSurfaceType(188) // todo: C* Surface
+                ? (eSurfaceType)(188) // todo: C* Surface
                 : SURFACE_CAR; 
         }
         PlayBulletHitCollisionSound(surface, posn, angleWithColPointNorm);

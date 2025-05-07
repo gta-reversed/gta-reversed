@@ -169,8 +169,8 @@ void ProcessTask(CTask* task, std::optional<size_t> idx) {
 
     const auto DoTreeNode = [&] {
         return idx // If set, this is a root task
-            ? TreeNodeEx(task, ImGuiTreeNodeFlags_DefaultOpen, "%i: %s", (int)*idx, GetTaskTypeName(taskType)) // For root tasks show index, eventually as a string from `ePrimaryTasks` and `eSecondaryTask`
-            : TreeNodeEx(GetTaskTypeName(taskType), ImGuiTreeNodeFlags_DefaultOpen);
+            ? TreeNodeEx(task, ImGuiTreeNodeFlags_DefaultOpen, "%i: %s", (int)*idx, EnumToString(taskType)) // For root tasks show index, eventually as a string from `ePrimaryTasks` and `eSecondaryTask`
+            : TreeNodeEx(EnumToString(taskType).value_or("<unknown>"), ImGuiTreeNodeFlags_DefaultOpen);
     };
 
     PushID((int)taskType);
