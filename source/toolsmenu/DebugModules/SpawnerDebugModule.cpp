@@ -1,5 +1,6 @@
 #include <StdInc.h>
 
+#include <extensions/random.hpp>
 #include <imgui.h>
 #include "SpawnerDebugModule.hpp"
 
@@ -36,8 +37,10 @@ void SpawnerDebugModule::RenderMenuEntry() {
 
 void SpawnerDebugModule::EntitySpawner::Render() {
     m_Filter.Draw();
-
-    if (!ImGui::BeginTable(
+    if (ImGui::Button("Spawn random", { -1.f, 0.f })) {
+        Spawn(notsa::random_value(m_Items));
+    }
+    if (ImGui::BeginTable(
         "ItemsTable",
         2,
         0
@@ -50,42 +53,39 @@ void SpawnerDebugModule::EntitySpawner::Render() {
         | ImGuiTableFlags_SizingFixedFit
         //| ImGuiTableFlags_SortMulti
     )) {
-        return;
-    }
+        ImGui::TableSetupColumn("Model ID", ImGuiTableColumnFlags_WidthStretch, 1.f);
+        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 5.f);
+        ImGui::TableHeadersRow();
 
-    ImGui::TableSetupColumn("Model ID", ImGuiTableColumnFlags_WidthStretch, 1.f);
-    ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 5.f);
-    ImGui::TableHeadersRow();
-
-    for (const auto& i : m_Items) {
-        // Check passes the filter
-        if (!m_Filter.PassFilter(i.Name)) {
-            continue;
-        }
-
-        ImGui::PushID(i.Model);
-        ImGui::BeginGroup();
-
-        // Model
-        ImGui::TableNextColumn();
-        ImGui::Text("%u", (int32)(i.Model));
-        ImGui::SameLine();
-        if (ImGui::Selectable("##s", m_Selected == i.Model, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
-            m_Selected = i.Model;
-            if (ImGui::IsMouseDoubleClicked(0)) {
-                Spawn(i);
+        for (const auto& i : m_Items) {
+            if (!m_Filter.PassFilter(i.Name)) {
+                continue;
             }
+
+            ImGui::PushID(i.Model);
+            ImGui::BeginGroup();
+
+            // Model
+            ImGui::TableNextColumn();
+            ImGui::Text("%u", (int32)(i.Model));
+            ImGui::SameLine();
+            if (ImGui::Selectable("##s", m_Selected == i.Model, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
+                m_Selected = i.Model;
+                if (ImGui::IsMouseDoubleClicked(0)) {
+                    Spawn(i);
+                }
+            }
+
+            // Name
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(i.Name);
+
+            ImGui::EndGroup();
+            ImGui::PopID();
         }
 
-        // Name
-        ImGui::TableNextColumn();
-        ImGui::TextUnformatted(i.Name);
-
-        ImGui::EndGroup();
-        ImGui::PopID();
+        ImGui::EndTable();
     }
-
-    ImGui::EndTable();
 }
 
 /*!
