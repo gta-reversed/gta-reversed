@@ -15,12 +15,12 @@
 */
 
 namespace {
-void TerminateAllScriptsWithThisName(const char* name) {
-    std::string scriptName{name};
-    rng::transform(scriptName, scriptName.begin(), [](char c) { return std::tolower(c); });
+void TerminateAllScriptsWithThisName(std::string_view name) {
+    const notsa::ci_string_view ciName{name}; // TODO: Support this natively in the parser
+    for (CRunningScript* script = CTheScripts::pActiveScripts, *next; script; script = next) {
+        next = script->m_pNext;
 
-    for (auto* script = CTheScripts::pActiveScripts; script; script = script->m_pNext) {
-        if (!strcmp(scriptName.c_str(), script->m_szName)) {
+        if (script->m_szName == ciName) {
             script->RemoveScriptFromList(&CTheScripts::pActiveScripts);
             script->AddScriptToList(&CTheScripts::pIdleScripts);
             script->ShutdownThisScript();
