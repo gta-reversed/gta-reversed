@@ -134,10 +134,8 @@ inline T Read(CRunningScript* S) {
             return scm::StringRef{ S->GetAtIPAs<scm::LongString>() };
 
         case SCRIPT_PARAM_STATIC_PASCAL_STRING: {
-            const auto sSize = S->GetAtIPAs<int8>(); // signed size, max size = 127, not 255
-            VERIFY(sSize >= 0);
-            const auto size = (size_t)(sSize);
-            return scm::StringRef{ &S->GetAtIPAs<char>(true, size), size, size + 1 }; // TODO: Check if `size + 1` is correct here
+            const auto size = S->GetAtIPAs<uint8>(); // size is unsigned (I've checked)
+            return scm::StringRef{ &S->GetAtIPAs<char>(true, size), size, size }; // Pascal strings are not null terminated!
         }
         default:
             NOTSA_UNREACHABLE("Unknown param type: {}", (int32)(ptype));
