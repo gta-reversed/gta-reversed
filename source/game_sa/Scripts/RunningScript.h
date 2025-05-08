@@ -92,8 +92,47 @@ constexpr auto COMMANDS_CHAR_BUFFER_SIZE   = 64;
 constexpr auto COMMANDS_CHAR_BUFFERS_COUNT = 16;
 
 namespace scm {
+constexpr size_t MAX_STRING_SIZE = 127 - 1; // Pascal string have signed size, thus max size is 127 characters, -1 for the null terminator
+
 using ShortString = char[SHORT_STRING_SIZE];
 using LongString = char[LONG_STRING_SIZE];
+
+/*!
+ * @notsa
+ * @brief Ref to a string (aka text label) inside the script.
+ * @brief Prefer `string_view` over it.
+ * @brief The only purpose it exists for is so we can write into it (as `string_view`'s data is `const`)
+ */
+struct StringRef {
+    StringRef() = default;
+    StringRef(char* str, size_t len, size_t cap) :
+        Data{ str },
+        Length{ (uint8)(len) },
+        Cap{ (uint8)(cap) }
+    {
+        assert(len < MAX_STRING_SIZE);
+        assert(cap < MAX_STRING_SIZE + 1);
+    }
+    explicit StringRef(ShortString& str) :
+        StringRef{ &str[0], strlen(str), sizeof(str) - 1 }
+    {
+    }
+    explicit StringRef(LongString& str) :
+        StringRef{ &str[0], strlen(str), sizeof(str) - 1 }
+    {
+    }
+
+    /* support for `notsa::ci_string_view`, `std::string_view` */
+    template<typename Traits>
+    operator std::basic_string_view<char, Traits>() const {
+        return { Data, Length };
+    }
+
+public:
+    char* Data{};   //!< Pointer to the string (This points to a memory location inside the script, so be careful)
+    uint8 Length{}; //!< Length of the string (not including the null terminator)
+    uint8 Cap{};    //!< Capacity of the string (not including the null terminator) - This is the size of the buffer (Usually 8 or 16 bytes) - 1
+};
 
 /** See https://gtamods.com/wiki/SCM_Instruction#Arrays */
 struct ArrayAccess {
