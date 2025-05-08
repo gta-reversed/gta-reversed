@@ -401,8 +401,6 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_TEXT_LABEL16);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_TEXT_LABEL16);
 
-    // TODO: `ReadArg` supports reading `string_view`, but it's `.data()` is const char*, thus we can't write to it
-    //       We need to introduce some intermediary type, like `ScriptStringRef` that stores a non-const `char*`
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL, SetTextLabel<8>);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL, SetTextLabel<8>);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL16, SetTextLabel<16>);
