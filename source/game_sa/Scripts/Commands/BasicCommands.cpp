@@ -214,12 +214,11 @@ bool AreTextLabelsEqual(std::string_view a, std::string_view b) {
     return a == b;
 }
 
-//template<size_t N>
-//void SetTextLabel(std::string_view a, std::string_view b) {
-//    assert(a.size() >= N);
-//    assert(b.size() >= N);
-//    strncpy(a.data(), b.data(), N);
-//}
+template<size_t N>
+void SetTextLabel(scm::StringRef dst, scm::StringRef src) {
+    assert(dst.Cap == src.Cap);
+    strncpy(dst.Data, src.Data, N);
+}
 };
 
 void notsa::script::commands::basic::RegisterHandlers() {
@@ -404,10 +403,10 @@ void notsa::script::commands::basic::RegisterHandlers() {
 
     // TODO: `ReadArg` supports reading `string_view`, but it's `.data()` is const char*, thus we can't write to it
     //       We need to introduce some intermediary type, like `ScriptStringRef` that stores a non-const `char*`
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL, SetTextLabel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL, SetTextLabel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL16, SetTextLabel);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL16, SetTextLabel);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL, SetTextLabel<8>);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL, SetTextLabel<8>);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_VAR_TEXT_LABEL16, SetTextLabel<16>);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_LVAR_TEXT_LABEL16, SetTextLabel<16>);
 
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_INT_VAR_NOT_EQUAL_TO_NUMBER);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_IS_INT_LVAR_NOT_EQUAL_TO_NUMBER);
