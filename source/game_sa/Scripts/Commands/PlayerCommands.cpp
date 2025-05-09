@@ -8,6 +8,7 @@
 #include "PedClothesDesc.h"
 #include "MBlur.h"
 #include "Ropes.h"
+#include "Conversations.h"
 
 #include <RunningScript.h>
 
@@ -117,11 +118,6 @@ bool IsPlayerTouchingObject(CPlayerPed& player, CObject& object) {
 bool IsPlayerTouchingObjectOnFoot(CPlayerPed& player, CObject& object) {
     return player.GetHasCollidedWith(&object);
 }
-
-// COMMAND_IS_PLAYER_IN_POSITION_FOR_CONVERSATION - 0x474983
-//bool IsPlayerInPositionForConversation(CPed& ped) { // Yes, it's CPed
-//
-//}
 
 /// ADD_SCORE(0109)
 void AddScore(CPlayerInfo& player, int32 score) {
@@ -241,7 +237,6 @@ void MakePlayerSafeForCutscene(uint32 playerIdx) {
     CCutsceneMgr::ms_cutsceneProcessing = true;
 }
 
-
 /// IS_PLAYER_TARGETTING_CHAR(0457)
 bool IsPlayerTargettingChar(CPlayerPed& player, CPed* target) {
     CEntity* targetedObject = player.m_pTargetedObject;
@@ -297,7 +292,7 @@ void SetPlayerCanDoDriveBy(CPlayerInfo& player, bool state) {
 
 /// SET_PLAYER_DRUNKENNESS(052C)
 void SetPlayerDrunkenness(CPlayerInfo& player, uint8 intensity) {
-    player.m_PlayerData.m_nDrunkenness = intensity;
+    player.m_PlayerData.m_nDrunkenness     = intensity;
     player.m_PlayerData.m_nFadeDrunkenness = 0;
     if (!intensity) {
         CMBlur::ClearDrunkBlur();
@@ -321,7 +316,7 @@ void EnsurePlayerHasDriveByWeapon(CPlayerPed& player, uint32 ammo) {
     if (!player.bInVehicle) {
         return;
     }
-    const auto type = player.GetWeaponInSlot(eWeaponSlot::SMG).GetType(); 
+    const auto type = player.GetWeaponInSlot(eWeaponSlot::SMG).GetType();
     if (type != WEAPON_UNARMED) {
         if (player.GetWeaponInSlot(eWeaponSlot::SMG).GetTotalAmmo() < ammo) {
             player.SetAmmo(type, ammo);
@@ -356,6 +351,32 @@ void DeletePlayer(uint32 playerIdx) {
     CPlayerPed::RemovePlayerPed(playerIdx);
 }
 
+/// SET_TWO_PLAYER_CAMERA_MODE(06E0)
+void SetTwoPlayerCameraMode(int32 unused) {
+    TheCamera.StartCooperativeCamMode();
+}
+
+/// LIMIT_TWO_PLAYER_DISTANCE(06F1)
+void LimitTwoPlayerDistance(float limit) {
+    CGameLogic::bLimitPlayerDistance = true;
+    CGameLogic::MaxPlayerDistance    = limit;
+}
+
+/// RELEASE_TWO_PLAYER_DISTANCE(06F2)
+void ReleaseTwoPlayerDistance() {
+    CGameLogic::bLimitPlayerDistance = false;
+}
+
+/// SET_PLAYER_PLAYER_TARGETTING(06F3)
+void SetPlayerPlayerTargetting(bool state) {
+    CGameLogic::bPlayersCannotTargetEachOther = !state;
+}
+
+/// SET_PLAYERS_CAN_BE_IN_SEPARATE_CARS(06FA)
+void SetPlayersCanBeInSeparateCars(bool state) {
+    CGameLogic::bPlayersCanBeInSeparateCars = state;
+}
+
 /// BUILD_PLAYER_MODEL(070D)
 void BuildPlayerModel(CPlayerPed* player) {
     CClothes::RebuildPlayer(player, false);
@@ -363,27 +384,25 @@ void BuildPlayerModel(CPlayerPed* player) {
 }
 
 /// GIVE_PLAYER_CLOTHES(0784)
-// TODO/FIXME: The hashes here should really be `uint32`,
-// but no can do, because `safe_arithmetic_cast` fails (when casting from the read `int32` to the requested `uint32`)
-void GivePlayerClothes(CPlayerPed& player, int32 textureHash, int32 modelHash, eClothesTexturePart bodyPart) {
+void GivePlayerClothes(CPlayerPed& player, notsa::script::Hash textureHash, notsa::script::Hash modelHash, eClothesTexturePart bodyPart) {
     player.GetClothesDesc()->SetTextureAndModel(textureHash, modelHash, bodyPart);
 }
 
 /// PLAYER_ENTERED_BUILDINGSITE_CRANE(079E)
 void PlayerEnteredBuildingsiteCrane() {
-    CRopes::PlayerControlsCrane = eControlledCrane::WRECKING_BALL;
+    CRopes::PlayerControlsCrane    = eControlledCrane::WRECKING_BALL;
     CWaterLevel::m_bWaterFogScript = false;
 }
 
 /// PLAYER_ENTERED_DOCK_CRANE(079D)
 void PlayerEnteredDockCrane() {
-    CRopes::PlayerControlsCrane = eControlledCrane::MAGNO_CRANE;
+    CRopes::PlayerControlsCrane    = eControlledCrane::MAGNO_CRANE;
     CWaterLevel::m_bWaterFogScript = false;
 }
 
 /// PLAYER_ENTERED_LAS_VEGAS_CRANE(07FA)
 void PlayerEnteredLasVegasCrane() {
-    CRopes::PlayerControlsCrane = eControlledCrane::LAS_VEGAS_CRANE;
+    CRopes::PlayerControlsCrane    = eControlledCrane::LAS_VEGAS_CRANE;
     CWaterLevel::m_bWaterFogScript = false;
 }
 
@@ -394,7 +413,7 @@ void PlayerEnteredQuarryCrane() {
 
 /// PLAYER_LEFT_CRANE(079F)
 void PlayerLeftCrane() {
-    CRopes::PlayerControlsCrane = eControlledCrane::NONE;
+    CRopes::PlayerControlsCrane    = eControlledCrane::NONE;
     CWaterLevel::m_bWaterFogScript = true;
 }
 
@@ -421,6 +440,21 @@ bool IsPlayerPerformingWheelie(CPlayerInfo& player) {
 /// IS_PLAYER_PERFORMING_STOPPIE(07F2)
 bool IsPlayerPerformingStoppie(CPlayerInfo& player) {
     return player.m_pPed->bInVehicle && player.m_pPed->m_pVehicle->GetVehicleAppearance() == eVehicleAppearance::VEHICLE_APPEARANCE_BIKE && player.m_nBikeFrontWheelCounter;
+}
+
+/// SET_PLAYER_FIRE_BUTTON(0881)
+void SetPlayerFireButton(uint32 playerIdx, bool state) {
+    CPad::GetPad(playerIdx)->bDisablePlayerFireWeapon = !state;
+}
+
+/// SET_PLAYER_JUMP_BUTTON(0901)
+void SetPlayerJumpButton(uint32 playerIdx, bool state) {
+    CPad::GetPad(playerIdx)->bDisablePlayerJump = !state;
+}
+
+/// HAS_PLAYER_BOUGHT_ITEM(0942)
+bool HasPlayerBoughtItem(uint32 itemId) {
+    return CShopping::HasPlayerBought(itemId);
 }
 
 };
@@ -467,6 +501,11 @@ void notsa::script::commands::player::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_IS_PLAYER_TARGETTING_ANYTHING, IsPlayerTargettingAnything);
     REGISTER_COMMAND_HANDLER(COMMAND_DISABLE_PLAYER_SPRINT, DisablePlayerSprint);
     REGISTER_COMMAND_HANDLER(COMMAND_DELETE_PLAYER, DeletePlayer);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_TWO_PLAYER_CAMERA_MODE, SetTwoPlayerCameraMode);
+    REGISTER_COMMAND_HANDLER(COMMAND_LIMIT_TWO_PLAYER_DISTANCE, LimitTwoPlayerDistance);
+    REGISTER_COMMAND_HANDLER(COMMAND_RELEASE_TWO_PLAYER_DISTANCE, ReleaseTwoPlayerDistance);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_PLAYER_TARGETTING, SetPlayerPlayerTargetting);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYERS_CAN_BE_IN_SEPARATE_CARS, SetPlayersCanBeInSeparateCars);
     REGISTER_COMMAND_HANDLER(COMMAND_BUILD_PLAYER_MODEL, BuildPlayerModel);
     REGISTER_COMMAND_HANDLER(COMMAND_GIVE_PLAYER_CLOTHES, GivePlayerClothes);
     REGISTER_COMMAND_HANDLER(COMMAND_PLAYER_ENTERED_DOCK_CRANE, PlayerEnteredDockCrane);
@@ -484,46 +523,9 @@ void notsa::script::commands::player::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_GROUP_TO_FOLLOW_ALWAYS, SetPlayerGroupToFollowAlways);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_SWIM_SPEED, SetSwimSpeed);
     REGISTER_COMMAND_HANDLER(COMMAND_IS_PLAYER_CLIMBING, IsPlayerClimbing);
-
-    // TODO:
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_CAMERA_IN_FRONT_OF_PLAYER, SetCameraInFrontOfPlayer);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_HOOKER, SetPlayerHooker);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_JAMES_CAR_ON_PATH_TO_PLAYER, SetJamesCarOnPathToPlayer);
-    //REGISTER_COMMAND_HANDLER(COMMAND_RESET_HAVOC_CAUSED_BY_PLAYER, ResetHavocCausedByPlayer);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_HAVOC_CAUSED_BY_PLAYER, GetHavocCausedByPlayer);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_CAN_DO_DRIVE_BY, SetPlayerCanDoDriveBy);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_AUTO_AIM, SetPlayerAutoAim);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CHECK_FOR_PED_MODEL_AROUND_PLAYER, CheckForPedModelAroundPlayer);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_HAS_MET_DEBBIE_HARRY, SetPlayerHasMetDebbieHarry);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_BUS_FARES_COLLECTED_BY_PLAYER, GetBusFaresCollectedByPlayer);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_GANG_ATTACK_PLAYER_WITH_COPS, SetGangAttackPlayerWithCops);
-    //REGISTER_COMMAND_HANDLER(COMMAND_TASK_PLAYER_ON_FOOT, TaskPlayerOnFoot);
-    //REGISTER_COMMAND_HANDLER(COMMAND_TASK_PLAYER_IN_CAR, TaskPlayerInCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_CLOSEST_BUYABLE_OBJECT_TO_PLAYER, GetClosestBuyableObjectToPlayer);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_TWO_PLAYER_CAMERA_MODE, SetTwoPlayerCameraMode);
-    //REGISTER_COMMAND_HANDLER(COMMAND_LIMIT_TWO_PLAYER_DISTANCE, LimitTwoPlayerDistance);
-    //REGISTER_COMMAND_HANDLER(COMMAND_RELEASE_TWO_PLAYER_DISTANCE, ReleaseTwoPlayerDistance);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_PLAYER_TARGETTING, SetPlayerPlayerTargetting);
-    //REGISTER_COMMAND_HANDLER(COMMAND_CLEAR_TWO_PLAYER_CAMERA_MODE, ClearTwoPlayerCameraMode);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_PASSENGER_CAN_SHOOT, SetPlayerPassengerCanShoot);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYERS_CAN_BE_IN_SEPARATE_CARS, SetPlayersCanBeInSeparateCars);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SWITCH_PLAYER_CROSSHAIR, SwitchPlayerCrosshair);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GIVE_PLAYER_TATTOO, GivePlayerTattoo);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_TWO_PLAYER_CAM_MODE_SEPARATE_CARS, SetTwoPlayerCamModeSeparateCars);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_TWO_PLAYER_CAM_MODE_SAME_CAR_SHOOTING, SetTwoPlayerCamModeSameCarShooting);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_TWO_PLAYER_CAM_MODE_SAME_CAR_NO_SHOOTING, SetTwoPlayerCamModeSameCarNoShooting);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_TWO_PLAYER_CAM_MODE_NOT_BOTH_IN_CAR, SetTwoPlayerCamModeNotBothInCar);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_FIRE_BUTTON, SetPlayerFireButton);
-    //REGISTER_COMMAND_HANDLER(COMMAND_IS_PLAYER_IN_POSITION_FOR_CONVERSATION, IsPlayerInPositionForConversation);
-    //REGISTER_COMMAND_HANDLER(COMMAND_PLANE_ATTACK_PLAYER_USING_DOG_FIGHT, PlaneAttackPlayerUsingDogFight);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_JUMP_BUTTON, SetPlayerJumpButton);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_CAN_BE_DAMAGED, SetPlayerCanBeDamaged);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GET_PLAYERS_GANG_IN_CAR_ACTIVE, GetPlayersGangInCarActive);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYERS_GANG_IN_CAR_ACTIVE, SetPlayersGangInCarActive);
-    //REGISTER_COMMAND_HANDLER(COMMAND_HAS_PLAYER_BOUGHT_ITEM, HasPlayerBoughtItem);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_FIRE_WITH_SHOULDER_BUTTON, SetPlayerFireWithShoulderButton);
-    //REGISTER_COMMAND_HANDLER(COMMAND_PLAYER_PUT_ON_GOGGLES, PlayerPutOnGoggles);
-    //REGISTER_COMMAND_HANDLER(COMMAND_SET_RENDER_PLAYER_WEAPON, SetRenderPlayerWeapon);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_FIRE_BUTTON, SetPlayerFireButton);
+    REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_JUMP_BUTTON, SetPlayerJumpButton);
+    REGISTER_COMMAND_HANDLER(COMMAND_HAS_PLAYER_BOUGHT_ITEM, HasPlayerBoughtItem);
 
     // -----------------------------[ NOP ]-----------------------------
     REGISTER_COMMAND_NOP(COMMAND_GIVE_REMOTE_CONTROLLED_CAR_TO_PLAYER);
