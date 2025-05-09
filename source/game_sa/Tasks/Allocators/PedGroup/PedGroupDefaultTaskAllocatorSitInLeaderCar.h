@@ -29,8 +29,8 @@ public:
         }
         const auto SetPedDefaultTask = [&](CPed* p, int32 i, CTask* task) {
             auto* const tp = &pedGroup->GetIntelligence().GetDefaultPedTaskPairs()[i];
-            if (tp->m_Ped && (!ped || tp->m_Ped == ped)) {
-                VERIFY(std::exchange(tp->m_Task, task) == nullptr);
+            if (tp->Ped && (!ped || tp->Ped == ped)) {
+                VERIFY(std::exchange(tp->Task, task) == nullptr);
             } else {
                 delete task;
             }
