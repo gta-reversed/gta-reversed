@@ -20,10 +20,10 @@
 class NOTSA_EXPORT_VTABLE CEventPotentialWalkIntoObject : public CEventEditableResponse {
 public:
     CObject* m_object;
-    int32 m_moveState;
+    eMoveState m_moveState;
 
 public:
-    CEventPotentialWalkIntoObject(CObject* object, int32 moveState);
+    CEventPotentialWalkIntoObject(CObject* object, eMoveState moveState);
     ~CEventPotentialWalkIntoObject() override;
 
     eEventType GetEventType() const override { return EVENT_POTENTIAL_WALK_INTO_OBJECT; }
@@ -37,7 +37,7 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CEventPotentialWalkIntoObject* Constructor(CObject* object, int32 moveState);
+    CEventPotentialWalkIntoObject* Constructor(CObject* object, eMoveState moveState);
 
 };
 VALIDATE_SIZE(CEventPotentialWalkIntoObject, 0x1C);
