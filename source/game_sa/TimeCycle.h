@@ -8,12 +8,12 @@ class CBox;
 
 class CTimeCycleBox {
 public:
-    CBox  m_Box;
-    int16 m_FarClip;
-    uint8 m_LodDistMult;
-    int32 m_ExtraColor;
-    float m_Strength;
-    float m_Falloff;
+    CBox  Box;
+    int16 FarClip;
+    uint8 LodDistMult;
+    int32 ExtraColor;
+    float Strength;
+    float Falloff;
 };
 VALIDATE_SIZE(CTimeCycleBox, 0x28);
 
@@ -22,6 +22,7 @@ static inline float& gfLaRiotsLightMult = *(float*)0x8CD060; // 1.0f
 class CTimeCycle {
 public:
     static constexpr auto NUM_HOURS = 8;
+
 
     static inline CVector& m_vecDirnLightToSun = *(CVector*)0xB7CB14;
     static inline RwRGBA& m_BelowHorizonGrey = *(RwRGBA*)0xB7CB10;
@@ -33,78 +34,73 @@ public:
     static inline uint32& m_bExtraColourOn = *(uint32*)0xB7C484;
     static inline CColourSet& m_CurrentColours = *(CColourSet*)0xB7C4A0;
 
-    static inline float& m_fCurrentRGB1Red = *(float*)0xB7C518;
-    static inline float& m_fCurrentRGB1Green = *(float*)0xB7C51C;
-    static inline float& m_fCurrentRGB1Blue = *(float*)0xB7C520;
+    template<typename T>
+    using Colors = notsa::mdarray<T, NUM_HOURS, NUM_WEATHERS>;
 
-    static inline float& m_fCurrentRGB2Red = *(float*)0xB7C528;
-    static inline float& m_fCurrentRGB2Green = *(float*)0xB7C52C;
-    static inline float& m_fCurrentRGB2Blue = *(float*)0xB7C530;
+    static inline auto& m_nAmbientRed = StaticRef<Colors<uint8>>(0xB7C3C8);
+    static inline auto& m_nAmbientGreen = StaticRef<Colors<uint8>>(0xB7C310);
+    static inline auto& m_nAmbientBlue = StaticRef<Colors<uint8>>(0xB7C258);
 
-    static inline uint8 (&m_nAmbientRed)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7C3C8;
-    static inline uint8 (&m_nAmbientGreen)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7C310;
-    static inline uint8 (&m_nAmbientBlue)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7C258;
+    static inline auto& m_nAmbientRed_Obj = StaticRef<Colors<uint8>>(0xB7C1A0);
+    static inline auto& m_nAmbientGreen_Obj = StaticRef<Colors<uint8>>(0xB7C0E8);
+    static inline auto& m_nAmbientBlue_Obj = StaticRef<Colors<uint8>>(0xB7C030);
 
-    static inline uint8 (&m_nAmbientRed_Obj)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7C1A0;
-    static inline uint8 (&m_nAmbientGreen_Obj)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7C0E8;
-    static inline uint8 (&m_nAmbientBlue_Obj)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7C030;
+    static inline auto& m_nSkyTopRed = StaticRef<Colors<uint8>>(0xB7BF78);
+    static inline auto& m_nSkyTopGreen = StaticRef<Colors<uint8>>(0xB7BEC0);
+    static inline auto& m_nSkyTopBlue = StaticRef<Colors<uint8>>(0xB7BE08);
 
-    static inline uint8 (&m_nSkyTopRed)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7BF78;
-    static inline uint8 (&m_nSkyTopGreen)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7BEC0;
-    static inline uint8 (&m_nSkyTopBlue)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7BE08;
+    static inline auto& m_nSkyBottomRed = StaticRef<Colors<uint8>>(0xB7BD50);
+    static inline auto& m_nSkyBottomGreen = StaticRef<Colors<uint8>>(0xB7BC98);
+    static inline auto& m_nSkyBottomBlue = StaticRef<Colors<uint8>>(0xB7BBE0);
 
-    static inline uint8 (&m_nSkyBottomRed)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7BD50;
-    static inline uint8 (&m_nSkyBottomGreen)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7BC98;
-    static inline uint8 (&m_nSkyBottomBlue)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7BBE0;
+    static inline auto& m_fSunSize = StaticRef<Colors<uint8>>(0xB7B6D8);
 
-    static inline uint8 (&m_fSunSize)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7B6D8;
+    static inline auto& m_nSunCoronaRed = StaticRef<Colors<uint8>>(0xB7B900);
+    static inline auto& m_nSunCoronaGreen = StaticRef<Colors<uint8>>(0xB7B848);
+    static inline auto& m_nSunCoronaBlue = StaticRef<Colors<uint8>>(0xB7B790);
 
-    static inline uint8 (&m_nSunCoronaRed)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7B900;
-    static inline uint8 (&m_nSunCoronaGreen)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7B848;
-    static inline uint8 (&m_nSunCoronaBlue)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7B790;
+    static inline auto& m_nSunCoreRed = StaticRef<Colors<uint8>>(0xB7BB28);
+    static inline auto& m_nSunCoreGreen = StaticRef<Colors<uint8>>(0xB7BA70);
+    static inline auto& m_nSunCoreBlue = StaticRef<Colors<uint8>>(0xB7B9B8);
 
-    static inline uint8 (&m_nSunCoreRed)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7BB28;
-    static inline uint8 (&m_nSunCoreGreen)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7BA70;
-    static inline uint8 (&m_nSunCoreBlue)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7B9B8;
+    static inline auto& m_fFarClip = StaticRef<Colors<uint16>>(0xB7B1D0);
+    static inline auto& m_fFogStart = StaticRef<Colors<uint16>>(0xB7B060);
+    static inline auto& m_fLightsOnGroundBrightness = StaticRef<Colors<uint8>>(0xB7AFA8);
 
-    static inline uint16 (&m_fFarClip)[NUM_HOURS][NUM_WEATHERS] = *(uint16(*)[NUM_HOURS][NUM_WEATHERS])0xB7B1D0;
-    static inline uint16 (&m_fFogStart)[NUM_HOURS][NUM_WEATHERS] = *(uint16(*)[NUM_HOURS][NUM_WEATHERS])0xB7B060;
-    static inline uint8 (&m_fLightsOnGroundBrightness)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7AFA8;
+    static inline auto& m_nShadowStrength = StaticRef<Colors<uint8>>(0xB7B4B0);
+    static inline auto& m_nLightShadowStrength = StaticRef<Colors<uint8>>(0xB7B3F8);
+    static inline auto& m_nPoleShadowStrength = StaticRef<Colors<uint8>>(0xB7B340);
 
-    static inline uint8 (&m_nShadowStrength)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7B4B0;
-    static inline uint8 (&m_nLightShadowStrength)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7B3F8;
-    static inline uint8 (&m_nPoleShadowStrength)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7B340;
+    static inline auto& m_fSpriteSize = StaticRef<Colors<uint8>>(0xB7B620);
+    static inline auto& m_fSpriteBrightness = StaticRef<Colors<uint8>>(0xB7B568);
 
-    static inline uint8 (&m_fSpriteSize)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7B620;
-    static inline uint8 (&m_fSpriteBrightness)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7B568;
+    static inline auto& m_nLowCloudsRed = StaticRef<Colors<uint8>>(0xB7AEF0);
+    static inline auto& m_nLowCloudsGreen = StaticRef<Colors<uint8>>(0xB7AE38);
+    static inline auto& m_nLowCloudsBlue = StaticRef<Colors<uint8>>(0xB7AD80);
 
-    static inline uint8 (&m_nLowCloudsRed)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7AEF0;
-    static inline uint8 (&m_nLowCloudsGreen)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7AE38;
-    static inline uint8 (&m_nLowCloudsBlue)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7AD80;
+    static inline auto& m_nFluffyCloudsBottomRed = StaticRef<Colors<uint8>>(0xB7ACC8);
+    static inline auto& m_nFluffyCloudsBottomGreen = StaticRef<Colors<uint8>>(0xB7AC10);
+    static inline auto& m_nFluffyCloudsBottomBlue = StaticRef<Colors<uint8>>(0xB7AB58);
 
-    static inline uint8 (&m_nFluffyCloudsBottomRed)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7ACC8;
-    static inline uint8 (&m_nFluffyCloudsBottomGreen)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7AC10;
-    static inline uint8 (&m_nFluffyCloudsBottomBlue)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7AB58;
+    static inline auto& m_fWaterRed = StaticRef<Colors<uint8>>(0xB7AAA0);
+    static inline auto& m_fWaterGreen = StaticRef<Colors<uint8>>(0xB7A9E8);
+    static inline auto& m_fWaterBlue = StaticRef<Colors<uint8>>(0xB7A930);
+    static inline auto& m_fWaterAlpha = StaticRef<Colors<uint8>>(0xB7A878);
 
-    static inline uint8 (&m_fWaterRed)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7AAA0;
-    static inline uint8 (&m_fWaterGreen)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A9E8;
-    static inline uint8 (&m_fWaterBlue)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A930;
-    static inline uint8 (&m_fWaterAlpha)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A878;
+    static inline auto& m_fPostFx1Red = StaticRef<Colors<uint8>>(0xB7A7C0);
+    static inline auto& m_fPostFx1Green = StaticRef<Colors<uint8>>(0xB7A708);
+    static inline auto& m_fPostFx1Blue = StaticRef<Colors<uint8>>(0xB7A650);
+    static inline auto& m_fPostFx1Alpha = StaticRef<Colors<uint8>>(0xB7A598);
 
-    static inline uint8 (&m_fPostFx1Red)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A7C0;
-    static inline uint8 (&m_fPostFx1Green)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A708;
-    static inline uint8 (&m_fPostFx1Blue)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A650;
-    static inline uint8 (&m_fPostFx1Alpha)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A598;
+    static inline auto& m_fPostFx2Red = StaticRef<Colors<uint8>>(0xB7A4E0);
+    static inline auto& m_fPostFx2Green = StaticRef<Colors<uint8>>(0xB7A428);
+    static inline auto& m_fPostFx2Blue = StaticRef<Colors<uint8>>(0xB7A370);
+    static inline auto& m_fPostFx2Alpha = StaticRef<Colors<uint8>>(0xB7A2B8);
 
-    static inline uint8 (&m_fPostFx2Red)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A4E0;
-    static inline uint8 (&m_fPostFx2Green)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A428;
-    static inline uint8 (&m_fPostFx2Blue)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A370;
-    static inline uint8 (&m_fPostFx2Alpha)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A2B8;
-
-    static inline uint8 (&m_fCloudAlpha)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A200;
-    static inline uint8 (&m_nHighLightMinIntensity)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A148;
-    static inline uint8 (&m_nWaterFogAlpha)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB7A090;
-    static inline uint8 (&m_nDirectionalMult)[NUM_HOURS][NUM_WEATHERS] = *(uint8(*)[NUM_HOURS][NUM_WEATHERS])0xB79FD8;
+    static inline auto& m_fCloudAlpha = StaticRef<Colors<uint8>>(0xB7A200);
+    static inline auto& m_nHighLightMinIntensity = StaticRef<Colors<uint8>>(0xB7A148);
+    static inline auto& m_nWaterFogAlpha = StaticRef<Colors<uint8>>(0xB7A090);
+    static inline auto& m_nDirectionalMult = StaticRef<Colors<uint8>>(0xB79FD8);
 
     static inline int32& m_CurrentStoredValue = *(int32*)0xB79FD0;
 
@@ -142,7 +138,14 @@ public:
     static void AddOne(CBox& box, int16 farClip, int32 extraColor, float strength, float falloff, float lodDistMult);
     static void CalcColoursForPoint(CVector point, CColourSet* set);
     static float FindFarClipForCoors(CVector cameraPos);
-    static void FindTimeCycleBox(CVector pos, CTimeCycleBox** outBox, float* interpolation, bool bCheckLod, bool bCheckFar, CTimeCycleBox* exclude);
+    static void FindTimeCycleBox(
+        CVector         pos,
+        CTimeCycleBox** out,
+        float*          currentBox,
+        bool            isLOD,
+        bool            isFarClip,
+        CTimeCycleBox*  alreadyFoundBox
+    );
     static void SetConstantParametersForPostFX();
 
     static float GetAmbientRed()                    { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientRed; }       // 0x560330
@@ -163,8 +166,8 @@ public: // NOTSA
 
     static auto GetPostFxColors() { return std::make_pair(m_CurrentColours.GetPostFx1(), m_CurrentColours.GetPostFx2()); }
 
-    static float SumOfCurrentRGB1() { return m_fCurrentRGB1Blue + m_fCurrentRGB1Green + m_fCurrentRGB1Red; }
-    static float SumOfCurrentRGB2() { return m_fCurrentRGB2Blue + m_fCurrentRGB2Green + m_fCurrentRGB2Red; }
+    static float SumOfCurrentRGB1() { return m_CurrentColours.m_fPostFx1Blue + m_CurrentColours.m_fPostFx1Green + m_CurrentColours.m_fPostFx1Red; }
+    static float SumOfCurrentRGB2() { return m_CurrentColours.m_fPostFx2Blue + m_CurrentColours.m_fPostFx2Green + m_CurrentColours.m_fPostFx2Red; }
 
     static auto GetBoxes() { return std::span{ m_aBoxes, m_NumBoxes}; }
     static bool ShouldIgnoreSky() {

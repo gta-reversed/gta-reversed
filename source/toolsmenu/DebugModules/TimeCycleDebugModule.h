@@ -28,8 +28,8 @@ private:
      int    m_NewWeatherType{};
      int    m_Hours{};
      int    m_Minutes{};
-     Color3 m_CurrentRGB1{};
-     Color3 m_CurrentRGB2{};
+     Color3 m_PostFx1{};
+     Color3 m_PostFx2{};
      Color3 m_AmbRGB{};
      Color3 m_AmbObjRGB{};
      Color3 m_SkyTopRGB{};

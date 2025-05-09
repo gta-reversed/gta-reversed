@@ -197,7 +197,12 @@ public:
     static void RemoveOilInArea(float x1, float x2, float y1, float y2);
     static void GunShotSetsOilOnFire(const CVector& shotOrigin, const CVector& shotTarget);
     static void PrintDebugPoly(CVector* a, CVector* b, CVector* c);
-    static void CalcPedShadowValues(CVector sunPosn, float& displacementX, float& displacementY, float& frontX, float& frontY, float& sideX, float& sideY);
+    static void CalcPedShadowValues(
+        CVector sunPosn,
+        float& frontX,        float& frontY,
+        float& sideX,         float& sideY,
+        float& displacementX, float& displacementY
+    );
     static void AffectColourWithLighting(eShadowType shadowType,
         uint8 dayNightIntensity,
         uint8 red, uint8 green, uint8 blue,

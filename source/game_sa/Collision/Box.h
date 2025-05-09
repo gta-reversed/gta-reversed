@@ -42,6 +42,13 @@ public:
     */
     void DrawWireFrame(CRGBA color, const CMatrix& transform = CMatrix::Unity()) const;
 
+    /*!
+     * @notsa
+     * @brief Find the shortest vector from the box to the point.
+     * @brief It's magnitude is `0` if `pt` is inside the box.
+     */
+    CVector GetShortestVectorDistToPt(const CVector& pt) const;
+
 public:
     static void InjectHooks();
 };

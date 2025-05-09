@@ -11,7 +11,7 @@ void CColourSet::InjectHooks() {
 }
 
 // 0x55F4B0
-CColourSet::CColourSet(int32 weatherId, int32 timeId) {
+CColourSet::CColourSet(int32 timeId, int32 weatherId) {
     m_fAmbientRed               = (float)CTimeCycle::m_nAmbientRed[timeId][weatherId];
     m_fAmbientGreen             = (float)CTimeCycle::m_nAmbientGreen[timeId][weatherId];
     m_fAmbientBlue              = (float)CTimeCycle::m_nAmbientBlue[timeId][weatherId];
