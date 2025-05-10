@@ -69,6 +69,10 @@ public:
     inline bool IsValid() {
         return *reinterpret_cast<uint16*>(this) != 0xFFFF;
     }
+
+    inline uint16 AsUInt16() {
+        return *reinterpret_cast<uint16*>(this);
+    }
 };
 VALIDATE_SIZE(CCarPathLinkAddress, 0x2);
 
@@ -618,3 +622,4 @@ public:
 VALIDATE_SIZE(CPathFind, 0x3C80);
 
 static inline CPathFind& ThePaths = *(CPathFind*)(0x96F050);
+static inline CNodeAddress& EmptyNodeAddress = *(CNodeAddress*)(0x8A5F44);
