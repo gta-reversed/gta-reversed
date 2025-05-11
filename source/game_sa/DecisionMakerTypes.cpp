@@ -48,7 +48,9 @@ void CDecisionMakerTypesFileLoader::LoadDefaultDecisionMaker() {
     for (int32 i = 0; i < +eDecisionMakerType::COUNT_TOTAL; i++) {
         UnloadDecisionMaker((eDecisionTypes)(i));
     }
-    
+
+    CDecisionMakerTypes::GetInstance()->LoadEventIndices();
+
     LoadDecisionMaker("RANDOM.ped", &CDecisionMakerTypes::GetInstance()->m_DefaultRandomPedDecisionMaker);
     LoadDecisionMaker("m_norm.ped", &CDecisionMakerTypes::GetInstance()->m_DefaultMissionPedDecisionMaker);
     LoadDecisionMaker("m_plyr.ped", &CDecisionMakerTypes::GetInstance()->m_DefaultPlayerPedDecisionMaker);
