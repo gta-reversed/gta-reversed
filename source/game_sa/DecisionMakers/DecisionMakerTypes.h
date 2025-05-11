@@ -38,19 +38,6 @@ enum class eDecisionMakerType : int32 {
     COUNT_TOTAL             = 20, // 0x14
 };
 
-class CDecisionMakerTypesFileLoader {
-public:
-    static void InjectHooks();
-
-    static void ReStart();
-    static void GetPedDMName(int32 index, char* name);
-    static void GetGrpDMName(int32 index, char* name);
-    static void LoadDefaultDecisionMaker();
-    static int32 LoadDecisionMaker(const char* filepath, eDecisionTypes decisionMakerType, bool bDecisionMakerForMission);
-    static bool LoadDecisionMaker(const char* filepath, CDecisionMaker* decisionMaker);
-    static void UnloadDecisionMaker(eDecisionTypes dm);
-};
-
 class CDecisionMakerTypes {
 public:
     static constexpr auto NUM_TYPES = 20u;

@@ -21,6 +21,8 @@
 
 #include <Attractors/PedAttractorPedPlacer.h>
 
+#include "DecisionMakers/DecisionMakerTypesFileLoader.h"
+
 #include <FireManager.h>
 #include <World.h>
 #include <EntryExitManager.h>
