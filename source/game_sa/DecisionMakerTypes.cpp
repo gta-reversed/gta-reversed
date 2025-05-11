@@ -8,7 +8,7 @@ void CDecisionMakerTypesFileLoader::InjectHooks() {
 
     RH_ScopedInstall(ReStart, 0x607D00);
     RH_ScopedInstall(GetPedDMName, 0x600860);
-    RH_ScopedInstall(GetGrpDMName, 0x600880, {.reversed = false});
+    RH_ScopedInstall(GetGrpDMName, 0x600880);
     RH_ScopedInstall(LoadDefaultDecisionMaker, 0x5BF400, {.reversed = false});
     RH_ScopedOverloadedInstall(LoadDecisionMaker, "enum", 0x607D30, int32(*)(const char*, eDecisionTypes, bool));
     RH_ScopedOverloadedInstall(LoadDecisionMaker, "ptr", 0x6076B0, void (*)(const char*, CDecisionMaker*), {.reversed = false});
@@ -36,7 +36,10 @@ void CDecisionMakerTypesFileLoader::GetPedDMName(int32 index, char* name) {
 
 // 0x600880
 void CDecisionMakerTypesFileLoader::GetGrpDMName(int32 index, char* name) {
-    plugin::Call<0x600880, int32, char*>(index, name);
+    constexpr auto names = std::to_array({ // 0x8D2378
+        "MISSION.grp"
+    });
+    strcpy(name, names[index]);
 }
 
 // 0x5BF400
