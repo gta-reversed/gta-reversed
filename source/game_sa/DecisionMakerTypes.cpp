@@ -6,7 +6,7 @@ void CDecisionMakerTypesFileLoader::InjectHooks() {
     RH_ScopedClass(CDecisionMakerTypesFileLoader);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(ReStart, 0x607D00, {.reversed = false});
+    RH_ScopedInstall(ReStart, 0x607D00);
     RH_ScopedInstall(GetPedDMName, 0x600860, {.reversed = false});
     RH_ScopedInstall(GetGrpDMName, 0x600880, {.reversed = false});
     RH_ScopedInstall(LoadDefaultDecisionMaker, 0x5BF400, {.reversed = false});
@@ -16,7 +16,9 @@ void CDecisionMakerTypesFileLoader::InjectHooks() {
 
 // 0x607D00
 void CDecisionMakerTypesFileLoader::ReStart() {
-    plugin::Call<0x607D00>();
+    for (int32 i = 0; i < +eDecisionMakerType::COUNT_GAME_DM; i++) {
+        CDecisionMakerTypes::GetInstance()->RemoveDecisionMaker((eDecisionTypes)(i));
+    }
 }
 
 // 0x600860
@@ -64,6 +66,11 @@ CDecisionMakerTypes* CDecisionMakerTypes::GetInstance() {
 // 0x606E70
 void CDecisionMakerTypes::MakeDecision(CPed* ped, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskTypeToAvoid1, eTaskType taskTypeToAvoid2, eTaskType taskTypeToAvoid3, eTaskType taskTypeToSeek, bool bUseInGroupDecisionMaker, int16& taskType, int16& facialTaskType) {
     plugin::CallMethod<0x606E70>(this, ped, eventType, eventSourceType, bIsPedInVehicle, taskTypeToAvoid1, taskTypeToAvoid2, taskTypeToAvoid3, taskTypeToSeek, bUseInGroupDecisionMaker, &taskType, &facialTaskType);
+}
+
+// 0x6043A0
+void CDecisionMakerTypes::RemoveDecisionMaker(eDecisionTypes dm) {
+    return plugin::Call<0x6043A0>(dm);
 }
 
 // 0x606F80
