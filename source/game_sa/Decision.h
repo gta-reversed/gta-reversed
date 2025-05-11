@@ -13,8 +13,8 @@
 enum eTaskType : int32;
 
 enum eDecisionTypes {
-    DECISION_ON_FOOT = 0,
-    DECISION_IN_VEHICLE = 1
+    DEFAULT_DECISION_MAKER = 0,
+    PLAYER_DECISION_MAKER = 1
 };
 
 enum eDecisionRelationship {
@@ -26,16 +26,22 @@ enum eDecisionRelationship {
 
 class CDecision {
 public:
-    eTaskType m_anTaskTypes[6];
-    uint8     m_anResponseChances[6][4]; // 4 different relationships : see eDecisionRelationship
-    uint8     m_anTypeFlags[2][6];       // 2 different types : see eDecisionTypes
+    constexpr static auto MAX_NUM_DECISIONS = 0x29; // 41
+    constexpr static auto MAX_NUM_CHOICES   = 0x6;  // 6
+
+public:
+    eTaskType m_anTaskTypes[MAX_NUM_CHOICES];
+    uint8     m_anResponseChances[MAX_NUM_CHOICES][4]; // 4 different relationships : see eDecisionRelationship
+    uint8     m_anTypeFlags[2][MAX_NUM_CHOICES];       // 2 different types : see eDecisionTypes
 
 public:
     static void InjectHooks();
 
     CDecision();
+    CDecision(const CDecision&) = default;
 
     void SetDefault();
+    void From(const CDecision& rhs);
 };
 
 VALIDATE_SIZE(CDecision, 0x3C);

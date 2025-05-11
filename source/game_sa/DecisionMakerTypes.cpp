@@ -9,7 +9,8 @@ void CDecisionMakerTypesFileLoader::InjectHooks() {
     RH_ScopedInstall(ReStart, 0x607D00);
     RH_ScopedInstall(GetPedDMName, 0x600860);
     RH_ScopedInstall(GetGrpDMName, 0x600880);
-    RH_ScopedInstall(LoadDefaultDecisionMaker, 0x5BF400, {.reversed = false});
+    RH_ScopedInstall(UnloadDecisionMaker, 0x607A70, { .enabled = false, .locked = true }); // Causes esp check failure
+    RH_ScopedInstall(LoadDefaultDecisionMaker, 0x5BF400);
     RH_ScopedOverloadedInstall(LoadDecisionMaker, "enum", 0x607D30, int32(*)(const char*, eDecisionTypes, bool));
     RH_ScopedOverloadedInstall(LoadDecisionMaker, "ptr", 0x6076B0, void (*)(const char*, CDecisionMaker*), {.reversed = false});
 }
@@ -17,7 +18,7 @@ void CDecisionMakerTypesFileLoader::InjectHooks() {
 // 0x607D00
 void CDecisionMakerTypesFileLoader::ReStart() {
     for (int32 i = 0; i < +eDecisionMakerType::COUNT_GAME_DM; i++) {
-        CDecisionMakerTypes::GetInstance()->RemoveDecisionMaker((eDecisionTypes)(i));
+        UnloadDecisionMaker((eDecisionTypes)(i));
     }
 }
 
@@ -44,19 +45,44 @@ void CDecisionMakerTypesFileLoader::GetGrpDMName(int32 index, char* name) {
 
 // 0x5BF400
 void CDecisionMakerTypesFileLoader::LoadDefaultDecisionMaker() {
-    plugin::Call<0x5BF400>();
+    for (int32 i = 0; i < +eDecisionMakerType::COUNT_TOTAL; i++) {
+        UnloadDecisionMaker((eDecisionTypes)(i));
+    }
+    
+    LoadDecisionMaker("RANDOM.ped", &CDecisionMakerTypes::GetInstance()->m_DefaultRandomPedDecisionMaker);
+    LoadDecisionMaker("m_norm.ped", &CDecisionMakerTypes::GetInstance()->m_DefaultMissionPedDecisionMaker);
+    LoadDecisionMaker("m_plyr.ped", &CDecisionMakerTypes::GetInstance()->m_DefaultPlayerPedDecisionMaker);
+
+    LoadDecisionMaker("RANDOM.grp", &CDecisionMakerTypes::GetInstance()->m_DefaultRandomPedGroupDecisionMaker);
+    LoadDecisionMaker("MISSION.grp", &CDecisionMakerTypes::GetInstance()->m_DefaultMissionPedGroupDecisionMaker);
+
+    LoadDecisionMaker("GangMbr.ped", DEFAULT_DECISION_MAKER, false);
+    LoadDecisionMaker("Cop.ped", DEFAULT_DECISION_MAKER, false);
+    LoadDecisionMaker("R_Norm.ped", DEFAULT_DECISION_MAKER, false);
+    LoadDecisionMaker("R_Tough.ped", DEFAULT_DECISION_MAKER, false);
+    LoadDecisionMaker("R_Weak.ped", DEFAULT_DECISION_MAKER, false);
+    LoadDecisionMaker("Fireman.ped", DEFAULT_DECISION_MAKER, false);
+    LoadDecisionMaker("m_empty.ped", DEFAULT_DECISION_MAKER, false);
+    LoadDecisionMaker("Indoors.ped", DEFAULT_DECISION_MAKER, false);
+    LoadDecisionMaker("RANDOM.grp", PLAYER_DECISION_MAKER, false);
+    LoadDecisionMaker("RANDOM2.grp", PLAYER_DECISION_MAKER, false);
 }
 
 // 0x607D30 - Returns script handle for the DM
-int32 CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, eDecisionTypes decisionMakerType, bool bUseMissionCleanup) {
+int32 CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, eDecisionTypes decisionMakerType, bool bDecisionMakerForMission) {
     CDecisionMaker decisionMaker;
     LoadDecisionMaker(filepath, &decisionMaker);
-    return CDecisionMakerTypes::GetInstance()->AddDecisionMaker(&decisionMaker, decisionMakerType, bUseMissionCleanup);
+    return CDecisionMakerTypes::GetInstance()->AddDecisionMaker(&decisionMaker, decisionMakerType, bDecisionMakerForMission);
 }
 
 // 0x6076B0
 void CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, CDecisionMaker* decisionMaker) {
     plugin::Call<0x6076B0, const char*, CDecisionMaker*>(filepath, decisionMaker);
+}
+
+// 0x607A70
+void CDecisionMakerTypesFileLoader::UnloadDecisionMaker(eDecisionTypes dm) {
+    CDecisionMakerTypes::GetInstance()->RemoveDecisionMaker(dm);
 }
 
 void CDecisionMakerTypes::InjectHooks() {
@@ -65,8 +91,8 @@ void CDecisionMakerTypes::InjectHooks() {
 }
 
 // 0x607050
-int32 CDecisionMakerTypes::AddDecisionMaker(CDecisionMaker* decisionMaker, eDecisionTypes decisionMakerType, bool bUseMissionCleanup) {
-    return plugin::CallMethodAndReturn<int32, 0x607050, CDecisionMakerTypes*, CDecisionMaker*, eDecisionTypes, bool>(this, decisionMaker, decisionMakerType, bUseMissionCleanup);
+int32 CDecisionMakerTypes::AddDecisionMaker(CDecisionMaker* decisionMaker, eDecisionTypes decisionMakerType, bool bDecisionMakerForMission) {
+    return plugin::CallMethodAndReturn<int32, 0x607050, CDecisionMakerTypes*, CDecisionMaker*, eDecisionTypes, bool>(this, decisionMaker, decisionMakerType, bDecisionMakerForMission);
 }
 
 // 0x4684F0

@@ -16,6 +16,11 @@ void CDecision::SetDefault() {
     plugin::CallMethod<0x600530, CDecision*>(this);
 }
 
+// 0x6006B0
+void CDecision::From(const CDecision& rhs) {
+    *this = rhs;
+}
+
 /*
 // 0x6040D0
 void CDecision::MakeDecision(int32, bool, int32, int32, int32, int32, int16&, int16&) {
@@ -24,11 +29,6 @@ void CDecision::MakeDecision(int32, bool, int32, int32, int32, int32, int16&, in
 
 // 0x600710
 bool CDecision::HasResponse() {
-
-}
-
-// 0x6006B0
-void CDecision::From(const CDecision& rhs) {
 
 }
 
