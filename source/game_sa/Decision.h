@@ -6,6 +6,8 @@
 */
 #pragma once
 
+#include <extensions/utility.hpp>
+
 /*
     https://gtamods.com/wiki/Decision_Maker
 */
@@ -30,9 +32,9 @@ public:
     constexpr static auto MAX_NUM_CHOICES   = 0x6;  // 6
 
 public:
-    eTaskType m_anTaskTypes[MAX_NUM_CHOICES];
-    uint8     m_anResponseChances[MAX_NUM_CHOICES][4]; // 4 different relationships : see eDecisionRelationship
-    uint8     m_anTypeFlags[2][MAX_NUM_CHOICES];       // 2 different types : see eDecisionTypes
+    eTaskType m_Tasks[MAX_NUM_CHOICES];
+    uint8     m_Probs[MAX_NUM_CHOICES][4]; // 4 different relationships : see eDecisionRelationship
+    bool      m_Bools[2][MAX_NUM_CHOICES]; // 2 different types : see eDecisionTypes
 
 public:
     static void InjectHooks();
@@ -42,6 +44,12 @@ public:
 
     void SetDefault();
     void From(const CDecision& rhs);
+    void Set(
+        notsa::mdarray<int32, MAX_NUM_CHOICES>&    tasks,
+        notsa::mdarray<float, MAX_NUM_CHOICES, 4>& probs,
+        notsa::mdarray<int32, MAX_NUM_CHOICES, 2>& bools,
+        notsa::mdarray<float, MAX_NUM_CHOICES, 6>& facialProbs
+    );
 };
 
 VALIDATE_SIZE(CDecision, 0x3C);

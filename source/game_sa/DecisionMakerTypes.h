@@ -47,7 +47,7 @@ public:
     static void GetGrpDMName(int32 index, char* name);
     static void LoadDefaultDecisionMaker();
     static int32 LoadDecisionMaker(const char* filepath, eDecisionTypes decisionMakerType, bool bDecisionMakerForMission);
-    static void LoadDecisionMaker(const char* filepath, CDecisionMaker* decisionMaker);
+    static bool LoadDecisionMaker(const char* filepath, CDecisionMaker* decisionMaker);
     static void UnloadDecisionMaker(eDecisionTypes dm);
 };
 
@@ -68,6 +68,7 @@ public:
     eTaskType MakeDecision(CPedGroup* pedGroup, eEventType eventType, int32 eventSourceType, bool bIsPedInVehicle, eTaskType taskId1, eTaskType taskId2, eTaskType taskId3, eTaskType taskId4);
     void AddEventResponse(int32 decisionMakerIndex, eEventType eventType, eTaskType taskId, float* responseChances, int32* flags);
     void FlushDecisionMakerEventResponse(int32 decisionMakerIndex, eEventType eventId);
+    void LoadEventIndices();
 
 public:
     int32          m_NoOfDecisionMakers{};

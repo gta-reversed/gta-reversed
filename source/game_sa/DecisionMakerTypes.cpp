@@ -12,7 +12,7 @@ void CDecisionMakerTypesFileLoader::InjectHooks() {
     RH_ScopedInstall(UnloadDecisionMaker, 0x607A70, { .enabled = false, .locked = true }); // Causes esp check failure
     RH_ScopedInstall(LoadDefaultDecisionMaker, 0x5BF400);
     RH_ScopedOverloadedInstall(LoadDecisionMaker, "enum", 0x607D30, int32(*)(const char*, eDecisionTypes, bool));
-    RH_ScopedOverloadedInstall(LoadDecisionMaker, "ptr", 0x6076B0, void (*)(const char*, CDecisionMaker*), {.reversed = false});
+    RH_ScopedOverloadedInstall(LoadDecisionMaker, "ptr", 0x6076B0, bool (*)(const char*, CDecisionMaker*));
 }
 
 // 0x607D00
@@ -78,8 +78,68 @@ int32 CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, eDe
 }
 
 // 0x6076B0
-void CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, CDecisionMaker* decisionMaker) {
-    plugin::Call<0x6076B0, const char*, CDecisionMaker*>(filepath, decisionMaker);
+// Mostly refactored
+bool CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, CDecisionMaker* decisionMaker) {
+    CFileMgr::SetDir("data\\decision\\allowed\\");
+    const auto file = CFileMgr::OpenFile(filepath, "r");
+    CFileMgr::SetDir("");
+
+    if (!file) {
+        NOTSA_LOG_WARN("Failed to open decision maker file: {}", filepath);
+        return false;
+    }
+    (void)(CFileLoader::LoadLine(file)); // Skip first line
+    for (;;) {
+        const auto line = CFileLoader::LoadLine(file);
+        if (!line) {
+            break;
+        }
+        size_t off = 0;
+
+        uint32 eventType{};
+        uint32 unused{};
+        VERIFY(sscanf(
+            line,
+            "%d %d %n",
+            &eventType, &unused, &off
+        ) == 2);
+
+        notsa::mdarray<int32, CDecision::MAX_NUM_CHOICES> tasks{};
+        notsa::mdarray<float, CDecision::MAX_NUM_CHOICES, 4> probs{};
+        notsa::mdarray<int32, CDecision::MAX_NUM_CHOICES, 2> bools{};
+        notsa::mdarray<float, CDecision::MAX_NUM_CHOICES, 6> facialProbs{};
+
+        for (int32 i = 0; i < CDecision::MAX_NUM_CHOICES; i++) {
+            uint32 n{};
+            VERIFY(sscanf(
+                line + off,
+                "%d %f %f %f %f %d %d %f %f %f %f %f %f %n",
+                &tasks[i],
+                &probs[i][DECISION_RELATIONSHIP_FRIEND],
+                &probs[i][DECISION_RELATIONSHIP_THREAT],
+                &probs[i][DECISION_RELATIONSHIP_PLAYER],
+                &probs[i][DECISION_RELATIONSHIP_NEUTRAL],
+                &bools[i][1],
+                &bools[i][0],
+                &facialProbs[i][0],
+                &facialProbs[i][1],
+                &facialProbs[i][2],
+                &facialProbs[i][3],
+                &facialProbs[i][4],
+                &facialProbs[i][5],
+                &n
+            ) == 13);
+            off += n;
+        };
+
+        auto* const d = &decisionMaker->m_aDecisions[CDecisionMakerTypes::GetInstance()->m_EventIndices[eventType]];
+        d->SetDefault();
+        d->Set(tasks, probs, bools, facialProbs);
+    }
+
+    CFileMgr::CloseFile(file);
+
+    return true;
 }
 
 // 0x607A70
@@ -126,4 +186,8 @@ void CDecisionMakerTypes::AddEventResponse(int32 decisionMakerIndex, eEventType 
 // 0x604490
 void CDecisionMakerTypes::FlushDecisionMakerEventResponse(int32 decisionMakerIndex, eEventType eventId) {
     plugin::CallMethod<0x604490>(this, decisionMakerIndex, eventId);
+}
+
+void CDecisionMakerTypes::LoadEventIndices() {
+    plugin::CallMethod<0x600840>(this);
 }
