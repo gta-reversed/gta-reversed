@@ -16,11 +16,11 @@ void CTaskComplexGoToAttractor::InjectHooks() {
 }
 
 // 0x66B640
-CTaskComplexGoToAttractor::CTaskComplexGoToAttractor(CPedAttractor* attractor, const CVector& pos, float heading, float attrTime, int32 queueNumber, int32 a7) : CTaskComplex() {
+CTaskComplexGoToAttractor::CTaskComplexGoToAttractor(CPedAttractor* attractor, const CVector& pos, float heading, float attrTime, int32 queueNumber, eMoveState ms) : CTaskComplex() {
     m_Attractor = attractor;
     m_vecAttrPosn = pos;
     m_fAttrHeading = heading;
-    field_28 = a7;
+    m_MoveState = ms;
     m_fAttrTime = attrTime;
     m_nQueueNumber = queueNumber;
 }
