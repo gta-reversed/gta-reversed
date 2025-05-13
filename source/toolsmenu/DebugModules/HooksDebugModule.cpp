@@ -489,9 +489,20 @@ void HooksDebugModule::RenderCategory(RH::HookCategory& cat) {
 }
 
 void HooksDebugModule::RenderWindow() {
-    const notsa::ui::ScopedWindow window{ "ReversibleHooks (TM) (R)", {500.f, 700.f}, m_IsOpen };
+    const notsa::ui::ScopedWindow window{ "ReversibleHooks (TM) (R)", {500.f, 700.f}, m_IsOpen, ImGuiWindowFlags_MenuBar };
     if (!m_IsOpen) {
         return;
+    }
+    if (ImGui::BeginMenuBar()) {
+        if (ImGui::BeginMenu("Tools")) {
+            if (ImGui::MenuItem("Export hooks.csv")) {
+                const auto path = fs::current_path() / "hooks.csv";
+                ReversibleHooks::WriteHooksToFile(path);
+                NOTSA_LOG_INFO("Exported hooks to {:?}", path.string());
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMenuBar();
     }
     m_SlideSetter.Mode = IsMouseDown(ImGuiMouseButton_Middle)
         ? SlideSetterMode::TOGGLE
