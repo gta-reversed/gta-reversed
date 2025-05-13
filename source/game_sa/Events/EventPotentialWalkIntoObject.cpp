@@ -12,7 +12,7 @@ void CEventPotentialWalkIntoObject::InjectHooks()
 }
 
 // 0x4AE5D0
-CEventPotentialWalkIntoObject::CEventPotentialWalkIntoObject(CObject* object, int32 moveState) {
+CEventPotentialWalkIntoObject::CEventPotentialWalkIntoObject(CObject* object, eMoveState moveState) {
     m_object = object;
     m_moveState = moveState;
     CEntity::SafeRegisterRef(m_object);
@@ -23,7 +23,7 @@ CEventPotentialWalkIntoObject::~CEventPotentialWalkIntoObject() {
 }
 
 // 0x4AE5D0
-CEventPotentialWalkIntoObject* CEventPotentialWalkIntoObject::Constructor(CObject* object, int32 moveState) {
+CEventPotentialWalkIntoObject* CEventPotentialWalkIntoObject::Constructor(CObject* object, eMoveState moveState) {
     this->CEventPotentialWalkIntoObject::CEventPotentialWalkIntoObject(object, moveState);
     return this;
 }
