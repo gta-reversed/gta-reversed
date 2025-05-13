@@ -3,8 +3,9 @@
 #include "Base.h"
 #include "FurnitureGroup_c.h"
 #include "FurnitureSubGroup_c.h"
-#include "FurnitureItem.h"
+#include "FurnitureEntity_c.h"
 #include "List_c.h"
+#include "InteriorGroup_c.h"
 
 class Furniture_c;
 
@@ -27,13 +28,16 @@ public:
     bool Init();
     void Exit();
     void LoadFurniture();
-    Furniture_c* GetFurniture(int32 furnitureGroupId, int32 furnitureSubgroupId, int16 id, uint8 wealth);
-    int32 GetRandomId(int32 groupId, int32 a3, uint8 a4);
+    Furniture_c* GetFurniture(eInteriorGroupIdS32 groupId, eInteriorSubGroupIdS32 subGroupId, int16 id, uint8 wealth);
+    int32 GetRandomId(eInteriorGroupIdS32 groupId, eInteriorSubGroupIdS32 subGroupId, uint8 wealth);
+
+    auto& GetFurnitureList() { return m_FurnitureList; }
+    auto& GetGroup(eInteriorGroupIdS32 groupId) { return m_Groups[groupId.get_underlying()]; }
 
 private:
     std::array<FurnitureGroup_c, 9> m_Groups;
-    std::array<FurnitureItem, 512>  m_FurnitureItem;
-    TList_c<FurnitureItem>          m_FurnitureList;
+    std::array<FurnitureEntity_c, 512>  m_FurnitureEntities;
+    TList_c<FurnitureEntity_c>          m_FurnitureList;
 };
 VALIDATE_SIZE(FurnitureManager_c, 0x2078);
 
