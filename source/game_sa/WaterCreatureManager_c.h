@@ -15,7 +15,7 @@ struct WaterCreatureInfo {
     float m_fMaxSpeed;
     float m_fMaxHeadingChange;
     float m_fChanceToRandomizeRotation;
-    float m_fSpeed;
+    float m_Speed;
 };
 VALIDATE_SIZE(WaterCreatureInfo, 0x2C);
 
