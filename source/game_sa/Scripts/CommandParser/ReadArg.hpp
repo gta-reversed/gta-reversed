@@ -213,7 +213,7 @@ inline T Read(CRunningScript* S) {
     #ifdef NOTSA_DEBUG
         if (ptr) {
             if constexpr (detail::is_derived_from_but_not_v<CVehicle, Y>) {
-                assert(Y::Type == ptr->m_nVehicleType);
+                assert(Y::Type == ptr->m_nVehicleSubType); // check specialized type, in case of e.g. CAutomobile and one of its derived classes: CPlane, CHeli, etc
             } else if constexpr (detail::is_derived_from_but_not_v<CTask, Y>) {
                 assert(Y::Type == ptr->GetTaskType());
             } // TODO: Eventually add this for `CEvent` too
