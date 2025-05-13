@@ -2,6 +2,7 @@
 
 #include "UIRenderer.h"
 
+#include "DecisionMakers/DecisionMakerTypesFileLoader.h"
 #include "WaterCannons.h"
 #include "TheCarGenerators.h"
 #include "Radar.h"
