@@ -34,11 +34,11 @@ constexpr std::array<eControllerAction, 28> ControllerActionsAvailableOnFoot = {
     eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN,
     eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP,
     eControllerAction::CA_VEHICLE_HORN,
-    eControllerAction::CA_VEHICLE_LOOKLEFT,
-    eControllerAction::CA_VEHICLE_LOOKBEHIND,
-    eControllerAction::CA_VEHICLE_MOUSELOOK,
-    eControllerAction::CA_VEHICLE_TURRETLEFT,
-    eControllerAction::CA_VEHICLE_TURRETRIGHT,
+    eControllerAction::CA_VEHICLE_LOOK_LEFT,
+    eControllerAction::CA_VEHICLE_LOOK_BEHIND,
+    eControllerAction::CA_VEHICLE_MOUSE_LOOK,
+    eControllerAction::CA_VEHICLE_TURRET_LEFT,
+    eControllerAction::CA_VEHICLE_TURRET_RIGHT,
     eControllerAction::CA_PED_CYCLE_TARGET_LEFT,
     eControllerAction::CA_PED_FIRE_WEAPON_ALT
 }; // 0x865598
@@ -61,10 +61,10 @@ constexpr std::array<eControllerAction, 25> ControllerActionsAvailableInCar = {
     eControllerAction::CA_VEHICLE_STEER_RIGHT,
     eControllerAction::CA_VEHICLE_STEER_UP,
     eControllerAction::CA_VEHICLE_BRAKE,
-    eControllerAction::CA_VEHICLE_LOOKLEFT,
-    eControllerAction::CA_VEHICLE_LOOKRIGHT,
-    eControllerAction::CA_VEHICLE_LOOKBEHIND,
-    eControllerAction::CA_VEHICLE_MOUSELOOK,
+    eControllerAction::CA_VEHICLE_LOOK_LEFT,
+    eControllerAction::CA_VEHICLE_LOOK_RIGHT,
+    eControllerAction::CA_VEHICLE_LOOK_BEHIND,
+    eControllerAction::CA_VEHICLE_MOUSE_LOOK,
     eControllerAction::CA_TOGGLE_SUBMISSIONS,
     eControllerAction::CA_VEHICLE_HANDBRAKE,
     eControllerAction::CA_PED_1RST_PERSON_LOOK_LEFT,
@@ -542,7 +542,11 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuEntryType::TI_MOUSEJOYPAD:
-            pTextToShow = (GxtChar*)TheText.Get(m_ControlMethod ? "FEJ_TIT" : "FEC_MOU");
+            if (m_ControlMethod == eController::JOYPAD) {
+                pTextToShow = (GxtChar*)TheText.Get("FEJ_TIT"); // Joypad Settings
+            } else {
+                pTextToShow = (GxtChar*)TheText.Get("FEC_MOU"); // Mouse Settings
+            }
             break;
         default: {
             if (isSlot) {
@@ -1058,8 +1062,8 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::CA_VEHICLE_RADIO_STATION_DOWN,        -1 },
         { eControllerAction::CA_VEHICLE_RADIO_TRACK_SKIP,          -1 },
         { eControllerAction::CA_VEHICLE_HORN,                      -1 },
-        { eControllerAction::CA_VEHICLE_TURRETLEFT,                -1 },
-        { eControllerAction::CA_VEHICLE_TURRETRIGHT,               -1 },
+        { eControllerAction::CA_VEHICLE_TURRET_LEFT,               -1 },
+        { eControllerAction::CA_VEHICLE_TURRET_RIGHT,              -1 },
         { eControllerAction::CA_PED_CYCLE_TARGET_LEFT,             -1 },
         { eControllerAction::CA_PED_FIRE_WEAPON,                   18 },
         { eControllerAction::CA_PED_FIRE_WEAPON_ALT,               19 },
@@ -1082,10 +1086,10 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::CA_VEHICLE_HANDBRAKE,                 39 },
         { eControllerAction::CA_PED_1RST_PERSON_LOOK_LEFT,         41 },
         { eControllerAction::CA_PED_1RST_PERSON_LOOK_RIGHT,        40 },
-        { eControllerAction::CA_VEHICLE_LOOKLEFT,                  36 },
-        { eControllerAction::CA_VEHICLE_LOOKRIGHT,                 37 },
-        { eControllerAction::CA_VEHICLE_LOOKBEHIND,                34 },
-        { eControllerAction::CA_VEHICLE_MOUSELOOK,                 35 },
+        { eControllerAction::CA_VEHICLE_LOOK_LEFT,                 36 },
+        { eControllerAction::CA_VEHICLE_LOOK_RIGHT,                37 },
+        { eControllerAction::CA_VEHICLE_LOOK_BEHIND,               34 },
+        { eControllerAction::CA_VEHICLE_MOUSE_LOOK,                35 },
     }};
 
     static constexpr std::array<ControlActionMapping, 51> PedActionMappings = {{
@@ -1097,7 +1101,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::CA_GO_FORWARD,                        50 },
         { eControllerAction::CA_GO_BACK,                           48 },
         { eControllerAction::CA_GO_LEFT,                           47 },
-        { eControllerAction::CA_VEHICLE_MOUSELOOK,                 47 },
+        { eControllerAction::CA_VEHICLE_MOUSE_LOOK,                47 },
         { eControllerAction::CA_GO_RIGHT,                          4  },
         { eControllerAction::CA_TOGGLE_SUBMISSIONS,                4  },
         { eControllerAction::CA_PED_SNIPER_ZOOM_IN,                5  },
@@ -1109,7 +1113,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::CA_CAMERA_CHANGE_VIEW_ALL_SITUATIONS, 8  },
         { eControllerAction::CA_PED_JUMPING,                       9  },
         { eControllerAction::CA_PED_SPRINT,                        10 },
-        { eControllerAction::CA_VEHICLE_LOOKBEHIND,                10 },
+        { eControllerAction::CA_VEHICLE_LOOK_BEHIND,               10 },
         { eControllerAction::CA_PED_LOOKBEHIND,                    11 },
         { eControllerAction::CA_PED_CYCLE_TARGET_RIGHT,            11 },
         { eControllerAction::CA_PED_DUCK,                          12 },
@@ -1121,10 +1125,10 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::CA_CONVERSATION_YES,                  32 },
         { eControllerAction::CA_VEHICLE_STEER_DOWN,                33 },
         { eControllerAction::CA_CONVERSATION_NO,                   33 },
-        { eControllerAction::CA_VEHICLE_TURRETLEFT,                -1 },
-        { eControllerAction::CA_VEHICLE_TURRETRIGHT,               -1 },
-        { eControllerAction::CA_VEHICLE_TURRETUP,                  -1 },
-        { eControllerAction::CA_VEHICLE_TURRETDOWN,                -1 },
+        { eControllerAction::CA_VEHICLE_TURRET_LEFT,               -1 },
+        { eControllerAction::CA_VEHICLE_TURRET_RIGHT,              -1 },
+        { eControllerAction::CA_VEHICLE_TURRET_UP,                 -1 },
+        { eControllerAction::CA_VEHICLE_TURRET_DOWN,               -1 },
         { eControllerAction::CA_PED_CYCLE_TARGET_LEFT,             -1 },
         { eControllerAction::CA_PED_CENTER_CAMERA_BEHIND_PLAYER,   -1 },
         { eControllerAction::CA_NETWORK_TALK,                      -1 },
@@ -1286,50 +1290,50 @@ void CMenuManager::DrawControllerSetupScreen() {
     const auto maxControlActions = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
     // Create a std::array of GxtChar pointers with all entries
     std::array<const GxtChar*, 44> keys = {
-        TheText.Get("FEC_FIR"),                                                      // 0
-        TheText.Get("FEC_FIA"),                                                      // 1
-        TheText.Get("FEC_NWE"),                                                      // 2
-        TheText.Get("FEC_PWE"),                                                      // 3
-        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_ACC" : "FEC_FOR"), // 4
-        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_BRA" : "FEC_BAC"), // 5
-        TheText.Get("FEC_LEF"),                                                      // 6
-        TheText.Get("FEC_RIG"),                                                      // 7
-        TheText.Get("FEC_PLU"),                                                      // 8
-        TheText.Get("FEC_PLD"),                                                      // 9
-        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_TSK" : "FEC_COY"), // 10
-        TheText.Get("FEC_CON"),                                                      // 11
-        TheText.Get("FEC_GPF"),                                                      // 12
-        TheText.Get("FEC_GPB"),                                                      // 13
-        TheText.Get("FEC_ZIN"),                                                      // 14
-        TheText.Get("FEC_ZOT"),                                                      // 15
-        TheText.Get("FEC_EEX"),                                                      // 16
-        TheText.Get("FEC_RSC"),                                                      // 17
-        TheText.Get("FEC_RSP"),                                                      // 18
-        TheText.Get("FEC_RTS"),                                                      // 19
-        TheText.Get("FEC_HRN"),                                                      // 20
-        TheText.Get("FEC_SUB"),                                                      // 21
-        TheText.Get("FEC_CMR"),                                                      // 22
-        TheText.Get("FEC_JMP"),                                                      // 23
-        TheText.Get("FEC_SPN"),                                                      // 24
-        TheText.Get("FEC_HND"),                                                      // 25
-        TheText.Get("FEC_TAR"),                                                      // 26
-        TheText.Get("FEC_CRO"),                                                      // 27
-        TheText.Get("FEC_ANS"),                                                      // 28
-        TheText.Get("FEC_PDW"),                                                      // 29
-        TheText.Get("FEC_TFL"),                                                      // 30
-        TheText.Get("FEC_TFR"),                                                      // 31
-        TheText.Get("FEC_TFU"),                                                      // 32
-        TheText.Get("FEC_TFD"),                                                      // 33
-        TheText.Get("FEC_LBA"),                                                      // 34
-        TheText.Get("FEC_VML"),                                                      // 35
-        TheText.Get("FEC_LOL"),                                                      // 36
-        TheText.Get("FEC_LOR"),                                                      // 37
-        TheText.Get("FEC_LDU"),                                                      // 38
-        TheText.Get("FEC_LUD"),                                                      // 39
-        nullptr,                                                                     // 40
-        nullptr,                                                                     // 41
-        TheText.Get("FEC_CEN"),                                                      // 42
-        nullptr                                                                      // 43
+        TheText.Get("FEC_FIR"),                                                      // Fire
+        TheText.Get("FEC_FIA"),                                                      // Secondary Fire
+        TheText.Get("FEC_NWE"),                                                      // Next weapon/target
+        TheText.Get("FEC_PWE"),                                                      // Previous weapon/target
+        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_ACC" : "FEC_FOR"), // Accelerate : Forward
+        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_BRA" : "FEC_BAC"), // Brake/Reverse : Backwards
+        TheText.Get("FEC_LEF"),                                                      // Left
+        TheText.Get("FEC_RIG"),                                                      // Right
+        TheText.Get("FEC_PLU"),                                                      // Steer Forward/Down
+        TheText.Get("FEC_PLD"),                                                      // Steer Back/Up
+        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_TSK" : "FEC_COY"), // Trip Skip : Conversation - Yes
+        TheText.Get("FEC_CON"),                                                      // Conversation - No
+        TheText.Get("FEC_GPF"),                                                      // Group Ctrl Forward
+        TheText.Get("FEC_GPB"),                                                      // Group Ctrl Back
+        TheText.Get("FEC_ZIN"),                                                      // Zoom in
+        TheText.Get("FEC_ZOT"),                                                      // Zoom out
+        TheText.Get("FEC_EEX"),                                                      // Enter+exit
+        TheText.Get("FEC_RSC"),                                                      // Next radio station
+        TheText.Get("FEC_RSP"),                                                      // Previous radio station
+        TheText.Get("FEC_RTS"),                                                      // User track skip
+        TheText.Get("FEC_HRN"),                                                      // Horn
+        TheText.Get("FEC_SUB"),                                                      // Sub-mission
+        TheText.Get("FEC_CMR"),                                                      // Change camera
+        TheText.Get("FEC_JMP"),                                                      // Jump
+        TheText.Get("FEC_SPN"),                                                      // Sprint
+        TheText.Get("FEC_HND"),                                                      // Handbrake
+        TheText.Get("FEC_TAR"),                                                      // Aim Weapon
+        TheText.Get("FEC_CRO"),                                                      // Crouch
+        TheText.Get("FEC_ANS"),                                                      // Action
+        TheText.Get("FEC_PDW"),                                                      // Walk
+        TheText.Get("FEC_TFL"),                                                      // Special Ctrl Left
+        TheText.Get("FEC_TFR"),                                                      // Special Ctrl Right
+        TheText.Get("FEC_TFU"),                                                      // Special Ctrl Up
+        TheText.Get("FEC_TFD"),                                                      // Special Ctrl Down
+        TheText.Get("FEC_LBA"),                                                      // Look behind
+        TheText.Get("FEC_VML"),                                                      // Mouse Look
+        TheText.Get("FEC_LOL"),                                                      // Look left
+        TheText.Get("FEC_LOR"),                                                      // Look right
+        TheText.Get("FEC_LDU"),                                                      // Look Down
+        TheText.Get("FEC_LUD"),                                                      // Look Up
+        nullptr,                                                                     // null, index 40
+        nullptr,                                                                     // null, index 41
+        TheText.Get("FEC_CEN"),                                                      // Center camera
+        nullptr                                                                      // null, index 43
     };
 
     // 0x57F68E
@@ -1338,14 +1342,27 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetEdge(0);
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-    CFont::PrintString(
-        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_ControlMethod ? "FET_CCN" : "FET_SCN")
-    );
+    GxtChar* text;
+    if (m_ControlMethod == eController::JOYPAD) {
+        text = (GxtChar*)TheText.Get("FET_CCN"); // Joypad
+    } else {
+        text = (GxtChar*)TheText.Get("FET_SCN"); // Mouse + Keys
+    }
+    CFont::PrintString(SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), text);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-    CFont::PrintString(
-        StretchX(48.0f), StretchY(11.0f), TheText.Get(m_RedefiningControls ? "FET_CCR" : "FET_CFT")
+    if (m_RedefiningControls) {
+        text = (GxtChar*)TheText.Get("FET_CCR"); // Vehicle Controls
+    } else {
+        text = (GxtChar*)TheText.Get("FET_CFT"); // Foot Controls
+    }
+    CFont::PrintString(StretchX(48.0f), StretchY(11.0f), text);
+    CSprite2d::DrawRect({
+        StretchX(20.0f),
+        StretchY(50.0f),
+        SCREEN_WIDTH - StretchX(20.0f),
+        SCREEN_HEIGHT - StretchY(50.0f)
+        }, { 49, 101, 148, 100 }
     );
-    CSprite2d::DrawRect({ StretchX(20.0f), StretchY(50.0f), SCREEN_WIDTH - StretchX(20.0f), SCREEN_HEIGHT - StretchY(50.0f) }, { 49, 101, 148, 100 });
 
     // 0x57F8C0
     for (auto i = 0u; i < maxControlActions; i++) {
@@ -1384,11 +1401,10 @@ void CMenuManager::DrawControllerSetupScreen() {
 
     // 0x57FAF9
     DrawControllerBound(0x45u, false);
+    const auto textBack = TheText.Get("FEDS_TB"); // Back
     if (!m_EditingControlOptions) {
         CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
-        const auto color = StretchX(
-            CFont::GetStringWidth(TheText.Get("FEDS_TB"), true, false)
-        );
+        const auto color = StretchX(CFont::GetStringWidth(textBack, true, false));
         if (StretchX(35.0f) + color <= m_nMousePosX
             || StretchX(15.0f) >= m_nMousePosX
             || SCREEN_HEIGHT - StretchY(33.0f) >= m_nMousePosY
@@ -1412,11 +1428,7 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetEdge(0);
     CFont::SetColor({ 74, 90, 107, 255 });
-    CFont::PrintString(
-        StretchX(33.0f),
-        SCREEN_HEIGHT - StretchY(38.0f),
-        TheText.Get("FEDS_TB")
-    );
+    CFont::PrintString(StretchX(33.0f), SCREEN_HEIGHT - StretchY(38.0f), textBack);
 }
 
 /**
@@ -1464,8 +1476,14 @@ int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float le
         float bottom = y + maxBarHeight;
 
         // Useless shadow for stripe. Drawing black on black = nothing. Change color to CRGBA(40, 40, 40, 200) to test
-        CSprite2d::DrawRect(CRect(left + StretchX(2.0f), top + StretchY(2.0f), right + StretchX(2.0f), bottom + StretchY(2.0f)), COLOR_SHADOW);
-        CSprite2d::DrawRect(CRect(left, top, right, bottom), color);
+        CSprite2d::DrawRect({
+            left + StretchX(2.0f),
+            top + StretchY(2.0f),
+            right + StretchX(2.0f),
+            bottom + StretchY(2.0f)
+            }, COLOR_SHADOW
+        );
+        CSprite2d::DrawRect({ left, top, right, bottom }, color);
     }
     return lastActiveBarX;
 }
