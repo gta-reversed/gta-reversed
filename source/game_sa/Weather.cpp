@@ -48,7 +48,7 @@ eWeatherType& CWeather::ForcedWeatherType = *(eWeatherType*)0xC81318;
 eWeatherType& CWeather::NewWeatherType = *(eWeatherType*)0xC8131C;
 eWeatherType& CWeather::OldWeatherType = *(eWeatherType*)0xC81320;
 CAEWeatherAudioEntity& CWeather::m_WeatherAudioEntity = *(CAEWeatherAudioEntity*)0xC81360;
-bool& CWeather::StreamAfterRainTimer = *(bool*)0x8D5EAC;
+int32& CWeather::StreamAfterRainTimer = *(int32*)0x8D5EAC; // 800
 
 float(&CWeather::saTreeWindOffsets)[16] = *(float(*)[16])0x8CCF30;
 float(&CWeather::saBannerWindOffsets)[32] = *(float(*)[32])0x8CCF70;
@@ -59,7 +59,7 @@ void CWeather::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Init, 0x72A480);
-    RH_ScopedInstall(AddRain, 0x72A9A0, { .reversed = false });
+    RH_ScopedInstall(AddRain, 0x72A9A0);
     RH_ScopedInstall(AddSandStormParticles, 0x72A820);
     RH_ScopedInstall(FindWeatherTypesList, 0x72A520);
     RH_ScopedInstall(ForceWeather, 0x72A4E0);
@@ -70,7 +70,7 @@ void CWeather::InjectHooks() {
     RH_ScopedInstall(SetWeatherToAppropriateTypeNow, 0x72A790);
     RH_ScopedInstall(Update, 0x72B850, { .reversed = false });
     RH_ScopedInstall(UpdateInTunnelness, 0x72B630, { .reversed = false });
-    //RH_ScopedInstall(UpdateWeatherRegion, 0x72A640, true, { .reversed = false }); // bad
+    RH_ScopedInstall(UpdateWeatherRegion, 0x72A640, { .reversed = false }); // bad
     RH_ScopedInstall(IsRainy, 0x4ABF50);
 }
 
@@ -93,12 +93,87 @@ void CWeather::Init() {
     InTunnelness = 0.0f;
     LightningStartX = 0;
     LightningStartY = 0;
-    StreamAfterRainTimer = false;
+    StreamAfterRainTimer = 0;
 }
 
 // 0x72A9A0
 void CWeather::AddRain() {
-    plugin::Call<0x72A9A0>();
+    float rainAlpha = StaticRef<float>(0xC81410);
+
+    if (CCullZones::CamNoRain() || CCullZones::PlayerNoRain() || CWeather::UnderWaterness > 0.0f || CGame::currArea || (FindPlayerPed() && FindPlayerPed()->m_nAreaCode)) {
+        return; // 0x72A9F9 - Invert
+    }
+
+    const auto& camPos = TheCamera.GetPosition();
+    auto* veh = FindPlayerVehicle();
+    if (camPos.z > 900.0f || (TheCamera.GetLookingLRBFirstPerson() && veh && veh->CarHasRoof())) {
+        return; // 0x72AA4E - Invert
+    }
+
+    static bool prevRain = false;
+    if (CWeather::Rain > 0.0f) {
+        prevRain = true;
+        CWeather::StreamAfterRainTimer = 800;
+    } else if (prevRain) {
+        if (CWeather::StreamAfterRainTimer <= 0) {
+            prevRain = false;
+        } else {
+            --CWeather::StreamAfterRainTimer;
+        }
+    }
+
+    if (CWeather::Wind > 1.01f && !CCullZones::CamNoRain() && !CCullZones::PlayerNoRain() && CWeather::UnderWaterness <= 0.0f) {
+        CWeather::AddSandStormParticles();
+    }
+
+    if (CWeather::Rain <= 0.1f && rainAlpha == 0.0f) {
+        return; // 0x72AB09 - Invert
+    }
+
+    const int32 particleCount = (int32)CWeather::Rain * 5;
+    const float radius = std::max(CWeather::Rain * 10.0f, 40.0f);
+    const int32 splashCount = std::max(15 - (int32)CWeather::Rain * -2, 0);
+
+    for (auto i = 0; i < particleCount; ++i) {
+        FxPrtMult_c particleData(1.0f, 1.0f, 1.0f, 0.25f, 0.02f, 0.0f, 0.03f);
+        CVector velocity{ 0.0f, 0.0f, 0.0f };
+        float max = CGeneral::GetRandomNumberInRange(0.0f, radius * 0.5f);
+
+        float angle = (rand() & 1) ? CGeneral::GetRandomNumberInRange(0.0f, 256.0f) * 0.024531251f
+                                   : (CGeneral::GetRandomNumberInRange(-128.0f, 128.0f) * 0.00625f + TheCamera.m_fOrientation);
+
+        const auto& posTransform = TheCamera.m_matrix->GetPosition();
+        CVector pos{ std::sin(angle) * max + posTransform.x, std::cos(angle) * max + posTransform.y, 0.0f };
+        CVector origin{ pos.x, pos.y, 40.0f };
+
+        CEntity*  colEntity = nullptr;
+        CColPoint colPoint;
+        if (CWorld::ProcessVerticalLine(origin, -40.0f, colPoint, colEntity)) {
+            pos.z = colPoint.m_vecPoint.z + 0.1f;
+            for (auto j = 0; j < splashCount; ++j) {
+                CVector splashPos{ pos.x + CGeneral::GetRandomNumberInRange(-15.0f, 15.0f),
+                                   pos.y + CGeneral::GetRandomNumberInRange(-15.0f, 15.0f),
+                                   pos.z };
+                g_fx.m_Splash->AddParticle(&splashPos, &velocity, 0.0f, &particleData, -1.0f, 1.2f, 0.6f, false);
+            }
+        }
+    }
+
+    float targetAlpha = CWeather::Rain * 0.2f;
+    rainAlpha = std::clamp(rainAlpha + (rainAlpha < targetAlpha ? 0.0025f : -0.0025f), 0.0f, targetAlpha);
+    rainAlpha = std::min(rainAlpha * 1.0f, 1.0f);
+
+    FxPrtMult_c particleData(0.9f, 0.9f, 1.0f, rainAlpha, 1.0f, 0.0f, 0.2f);
+    const auto& camTransform = TheCamera.GetPosition();
+    const auto& camForward   = TheCamera.GetForward();
+    CVector pos{ camTransform.x + camForward.x * 10.0f, camTransform.y + camForward.y * 10.0f, camTransform.z };
+
+    pos.x += CGeneral::GetRandomNumberInRange(-20.0f, 20.0f);
+    pos.y += CGeneral::GetRandomNumberInRange(-20.0f, 20.0f);
+    pos.z += CGeneral::GetRandomNumberInRange(-2.0f, 5.0f);
+
+    CVector velocity{ CWeather::WindDir.x * 15.0f, CWeather::WindDir.y * 15.0f, CWeather::WindDir.z * 15.0f };
+    g_fx.m_Sand2->AddParticle(&pos, &velocity, 0.0f, &particleData, -1.0f, 1.2f, 0.6f, false);
 }
 
 // 0x72A820

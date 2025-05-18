@@ -59,7 +59,7 @@ public:
     static eWeatherType &NewWeatherType;
     static eWeatherType &OldWeatherType;
     static CAEWeatherAudioEntity &m_WeatherAudioEntity;
-    static bool& StreamAfterRainTimer;
+    static int32& StreamAfterRainTimer;
 
     static float(&saTreeWindOffsets)[16];
     static float(&saBannerWindOffsets)[32];
