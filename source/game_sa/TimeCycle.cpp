@@ -19,7 +19,7 @@ void CTimeCycle::InjectHooks() {
     RH_ScopedInstall(StartExtraColour, 0x55FEC0);
     RH_ScopedInstall(StopExtraColour, 0x55FF20);
     RH_ScopedInstall(AddOne, 0x55FF40);
-    RH_ScopedInstall(CalcColoursForPoint, 0x5603D0, { .reversed = false });
+    RH_ScopedInstall(CalcColoursForPoint, 0x5603D0);
     RH_ScopedInstall(FindFarClipForCoors, 0x5616E0);
     RH_ScopedInstall(FindTimeCycleBox, 0x55FFD0, { .reversed = false });
     RH_ScopedInstall(SetConstantParametersForPostFX, 0x560210);
@@ -220,9 +220,6 @@ void CTimeCycle::AddOne(CBox& box, int16 farClip, int32 m_ExtraColor, float stre
 
 // 0x5603D0
 void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
-    return plugin::Call<0x5603D0, CVector, CColourSet*>(point, set);
-
-    // untested
     CTimeCycleBox *lodBox, *farBox1, *farBox2, *weatherBox;
     float lodBoxInterp, farBox1Interp, farBox2Interp, weatherBoxInterp;
     FindTimeCycleBox(point, &lodBox, &lodBoxInterp, true, false, nullptr);
@@ -240,7 +237,7 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     FindTimeCycleBox(point, &weatherBox, &weatherBoxInterp, false, false, nullptr);
 
     float time = (float)CClock::GetGameClockMinutes() / 60.0f + (float)CClock::GetGameClockSeconds() / 3600.0f + (float)CClock::GetGameClockHours();
-    time = std::min(time, 24.0f); // 23.999f ?
+    time = std::min(time, 23.999f);
 
     int curHourSel, nextHourSel;
     for (curHourSel = 0; time >= (float)gTimecycleHours[curHourSel + 1]; curHourSel++) {
@@ -249,16 +246,16 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
 
     nextHourSel = (curHourSel + 1) % NUM_HOURS;
     auto curHour = gTimecycleHours[curHourSel];
-    auto nextHour = gTimecycleHours[curHourSel + 1];
+    auto nextHour = gTimecycleHours[nextHourSel];
 
     float timeInterp       = (time - (float)curHour) / (float)(nextHour - curHour);
     float invTimeInterp    = 1.0f - timeInterp;
     float weatherInterp    = CWeather::InterpolationValue;
     float invWeatherInterp = 1.0f - weatherInterp;
 
-    int boxHour, boxWeather;
+    int boxHour = 0, boxWeather = 0;
     if (weatherBox) {
-        boxHour = weatherBox->m_ExtraColor % 8;
+        boxHour = weatherBox->m_ExtraColor % NUM_HOURS;
         boxWeather = (weatherBox->m_ExtraColor / NUM_HOURS) + 21;
     }
 
@@ -306,7 +303,7 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     set->m_nSkyBottomBlue  = std::min(uint16(float(set->m_nSkyBottomBlue)  * lightMult), uint16(255));
 
     if (m_FogReduction) {
-        set->m_fFarClip = set->m_fFarClip > float(m_FogReduction) * 10.15625f ? set->m_fFarClip : float(m_FogReduction) * 10.15625f;
+        set->m_fFarClip = std::min(set->m_fFarClip, float(m_FogReduction) * 10.15625f);
     }
 
     m_CurrentStoredValue = (m_CurrentStoredValue + 1) & 15;
@@ -330,38 +327,38 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
         set->m_nSkyBottomGreen = uint16((float)set->m_nSkyBottomGreen * invboxf + (float)m_nSkyBottomGreen[boxHour][boxWeather] * boxf);
         set->m_nSkyBottomBlue  = uint16((float)set->m_nSkyBottomBlue  * invboxf + (float)m_nSkyBottomBlue[boxHour][boxWeather] * boxf);
 
-        set->m_fWaterRed   *= invboxf + (float)m_fWaterRed[boxHour][boxWeather] * boxf;
-        set->m_fWaterGreen *= invboxf + (float)m_fWaterGreen[boxHour][boxWeather] * boxf;
-        set->m_fWaterBlue  *= invboxf + (float)m_fWaterBlue[boxHour][boxWeather] * boxf;
-        set->m_fWaterAlpha *= invboxf + (float)m_fWaterAlpha[boxHour][boxWeather] * boxf;
+        set->m_fWaterRed   = set->m_fWaterRed   * invboxf + (float)m_fWaterRed[boxHour][boxWeather] * boxf;
+        set->m_fWaterGreen = set->m_fWaterGreen * invboxf + (float)m_fWaterGreen[boxHour][boxWeather] * boxf;
+        set->m_fWaterBlue  = set->m_fWaterBlue  * invboxf + (float)m_fWaterBlue[boxHour][boxWeather] * boxf;
+        set->m_fWaterAlpha = set->m_fWaterAlpha * invboxf + (float)m_fWaterAlpha[boxHour][boxWeather] * boxf;
 
-        set->m_fAmbientRed   *= invboxf + (float)m_nAmbientRed[boxHour][boxWeather] * boxf;
-        set->m_fAmbientGreen *= invboxf + (float)m_nAmbientGreen[boxHour][boxWeather] * boxf;
-        set->m_fAmbientBlue  *= invboxf + (float)m_nAmbientBlue[boxHour][boxWeather] * boxf;
+        set->m_fAmbientRed   = set->m_fAmbientRed   * invboxf + (float)m_nAmbientRed[boxHour][boxWeather] * boxf;
+        set->m_fAmbientGreen = set->m_fAmbientGreen * invboxf + (float)m_nAmbientGreen[boxHour][boxWeather] * boxf;
+        set->m_fAmbientBlue  = set->m_fAmbientBlue  * invboxf + (float)m_nAmbientBlue[boxHour][boxWeather] * boxf;
 
-        set->m_fAmbientRed_Obj   *= invboxf + (float)m_nAmbientRed_Obj[boxHour][boxWeather] * boxf;
-        set->m_fAmbientGreen_Obj *= invboxf + (float)m_nAmbientGreen_Obj[boxHour][boxWeather] * boxf;
-        set->m_fAmbientBlue_Obj  *= invboxf + (float)m_nAmbientBlue_Obj[boxHour][boxWeather] * boxf;
+        set->m_fAmbientRed_Obj   = set->m_fAmbientRed_Obj   * invboxf + (float)m_nAmbientRed_Obj[boxHour][boxWeather] * boxf;
+        set->m_fAmbientGreen_Obj = set->m_fAmbientGreen_Obj * invboxf + (float)m_nAmbientGreen_Obj[boxHour][boxWeather] * boxf;
+        set->m_fAmbientBlue_Obj  = set->m_fAmbientBlue_Obj  * invboxf + (float)m_nAmbientBlue_Obj[boxHour][boxWeather] * boxf;
 
         if ((float)m_fFarClip[boxHour][boxWeather] < set->m_fFarClip) {
             set->m_fFarClip = set->m_fFarClip * invboxf + (float)m_fFarClip[boxHour][boxWeather] * boxf;
         }
 
-        set->m_fFogStart *= invboxf + (float)m_fFogStart[boxHour][boxWeather] * boxf;
+        set->m_fFogStart = set->m_fFogStart * invboxf + (float)m_fFogStart[boxHour][boxWeather] * boxf;
 
-        set->m_fPostFx1Red   *= invboxf + (float)m_fPostFx1Red[boxHour][boxWeather] * boxf;
-        set->m_fPostFx1Green *= invboxf + (float)m_fPostFx1Green[boxHour][boxWeather] * boxf;
-        set->m_fPostFx1Blue  *= invboxf + (float)m_fPostFx1Blue[boxHour][boxWeather] * boxf;
-        set->m_fPostFx1Alpha *= invboxf + (float)m_fPostFx1Alpha[boxHour][boxWeather] * boxf;
+        set->m_fPostFx1Red   = set->m_fPostFx1Red   * invboxf + (float)m_fPostFx1Red[boxHour][boxWeather] * boxf;
+        set->m_fPostFx1Green = set->m_fPostFx1Green * invboxf + (float)m_fPostFx1Green[boxHour][boxWeather] * boxf;
+        set->m_fPostFx1Blue  = set->m_fPostFx1Blue  * invboxf + (float)m_fPostFx1Blue[boxHour][boxWeather] * boxf;
+        set->m_fPostFx1Alpha = set->m_fPostFx1Alpha * invboxf + (float)m_fPostFx1Alpha[boxHour][boxWeather] * boxf;
 
-        set->m_fPostFx2Red   *= invboxf + (float)m_fPostFx2Red[boxHour][boxWeather] * boxf;
-        set->m_fPostFx2Green *= invboxf + (float)m_fPostFx2Green[boxHour][boxWeather] * boxf;
-        set->m_fPostFx2Blue  *= invboxf + (float)m_fPostFx2Blue[boxHour][boxWeather] * boxf;
-        set->m_fPostFx2Alpha *= invboxf + (float)m_fPostFx2Alpha[boxHour][boxWeather] * boxf;
+        set->m_fPostFx2Red   = set->m_fPostFx2Red   * invboxf + (float)m_fPostFx2Red[boxHour][boxWeather] * boxf;
+        set->m_fPostFx2Green = set->m_fPostFx2Green * invboxf + (float)m_fPostFx2Green[boxHour][boxWeather] * boxf;
+        set->m_fPostFx2Blue  = set->m_fPostFx2Blue  * invboxf + (float)m_fPostFx2Blue[boxHour][boxWeather] * boxf;
+        set->m_fPostFx2Alpha = set->m_fPostFx2Alpha * invboxf + (float)m_fPostFx2Alpha[boxHour][boxWeather] * boxf;
     }
 
     if (lodBox) {
-        set->m_fLodDistMult *= (1.0f - lodBoxInterp) + (float)lodBox->m_LodDistMult / 32.0f * lodBoxInterp;
+        set->m_fLodDistMult = set->m_fLodDistMult * (1.0f - lodBoxInterp) + (float)lodBox->m_LodDistMult / 32.0f * lodBoxInterp;
     }
 
     if (farBox1 && (float)farBox1->m_FarClip < set->m_fFarClip) {
@@ -416,25 +413,24 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     );
 
     if (TheCamera.m_mCameraMatrix.GetForward().z < -0.9f
-        || !CWeather::bScriptsForceRain
-        && (CCullZones::PlayerNoRain() || CCullZones::CamNoRain() || CCutsceneMgr::ms_running)
+        || (!CWeather::bScriptsForceRain
+            && (CCullZones::PlayerNoRain() || CCullZones::CamNoRain() || CCutsceneMgr::ms_running))
     ) {
         m_FogReduction++;
-        if (m_FogReduction > 64)
+        if (m_FogReduction > 64) {
             m_FogReduction = 64;
+        }
     } else {
         m_FogReduction--;
-        if (m_FogReduction < 0)
+        if (m_FogReduction < 0) {
             m_FogReduction = 0;
+        }
     }
 
     if (camPos.z > 200.0f) {
-        if (camPos.z <= 500.0f)
-        {
+        if (camPos.z <= 500.0f) {
             set->m_fFarClip = set->m_fFarClip * (1.0f - (camPos.z - 200.0f) / 300.0f) + 1000.0f * (camPos.z - 200.0f) / 300.0f;
-        }
-        else if (set->m_fFarClip >= 1000.0f)
-        {
+        } else if (set->m_fFarClip >= 1000.0f) {
             set->m_fFarClip = 1000.0f;
         }
     }
@@ -451,9 +447,7 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     const auto brightness = (float)FrontEndMenuManager.m_PrefsBrightness;
     if (brightness >= 256.0f) {
         f = (brightness - 256.0f) / 128.0f + 1.0f;
-        float max = set->m_fAmbientRed;
-        max = std::max(max, set->m_fAmbientGreen);
-        max = std::max(max, set->m_fAmbientBlue);
+        float max = std::max({ set->m_fAmbientRed, set->m_fAmbientGreen, set->m_fAmbientBlue });
         max = max * f - max;
         set->m_fAmbientRed   += max;
         set->m_fAmbientGreen += max;
@@ -466,14 +460,9 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     }
 
     if (f > 1.0f) {
-        float r, g, b;
+        float r = set->m_fAmbientRed, g = set->m_fAmbientGreen, b = set->m_fAmbientBlue;
         f = (f - 1.0f) * 0.06f;
-        float max = set->m_fAmbientRed;
-        max = std::max(max, set->m_fAmbientGreen);
-        max = std::max(max, set->m_fAmbientBlue);
-        r = set->m_fAmbientRed;
-        g = set->m_fAmbientGreen;
-        b = set->m_fAmbientBlue;
+        float max = std::max({ set->m_fAmbientRed, set->m_fAmbientGreen, set->m_fAmbientBlue });
         if (max == 0.0f) {
             set->m_fAmbientRed   = 0.001f;
             set->m_fAmbientGreen = 0.001f;
