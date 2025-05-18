@@ -73,7 +73,7 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(InitialiseEssentialsAfterRW, 0x5BA160);
     RH_ScopedInstall(InitialiseOnceBeforeRW, 0x53BB50);
     RH_ScopedInstall(InitialiseRenderWare, 0x5BD600);
-    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.enabled = false});
+    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680);
     RH_ScopedInstall(Process, 0x53BEE0);
     RH_ScopedInstall(ReInitGameObjectVariables, 0x53BCF0);
     RH_ScopedInstall(ReloadIPLs, 0x53BED0);
@@ -659,7 +659,7 @@ void CGame::InitialiseWhenRestarting() {
     CEventScanner::m_sDeadPedWalkingTimer = 0;
 
     if (FrontEndMenuManager.m_bLoadingData) {
-        FrontEndMenuManager.MessageScreen("FELD_WR", true, false);
+        FrontEndMenuManager.MessageScreen("FELD_WR", true, false); // Loading data, please wait...
         if (FrontEndMenuManager.m_bLoadingData) {
             CGenericGameStorage::RestoreForStartLoad();
             CStreaming::RemoveBigBuildings();
@@ -681,9 +681,9 @@ void CGame::InitialiseWhenRestarting() {
             for (auto i = 50; i > 0; --i) {
                 MessageLoop();
                 if (loaded) {
-                    FrontEndMenuManager.MessageScreen("FES_LOC", true, false);
+                    FrontEndMenuManager.MessageScreen("FES_LOC", true, false); // Load Failed! Save game is not compatible with this version of Grand Theft Auto: San Andreas.~n~~n~Now restarting game.
                 } else {
-                    FrontEndMenuManager.MessageScreen("FED_LFL", true, false);
+                    FrontEndMenuManager.MessageScreen("FED_LFL", true, false); // FED_LFL
                 }
             }
             TheCamera.SetFadeColour(0, 0, 0);
