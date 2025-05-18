@@ -69,7 +69,7 @@ void CWeather::InjectHooks() {
     RH_ScopedInstall(RenderRainStreaks, 0x72AF70);
     RH_ScopedInstall(SetWeatherToAppropriateTypeNow, 0x72A790);
     RH_ScopedInstall(Update, 0x72B850, { .reversed = false });
-    RH_ScopedInstall(UpdateInTunnelness, 0x72B630, { .reversed = false });
+    RH_ScopedInstall(UpdateInTunnelness, 0x72B630);
     RH_ScopedInstall(UpdateWeatherRegion, 0x72A640, { .reversed = false }); // bad
     RH_ScopedInstall(IsRainy, 0x4ABF50);
 }
@@ -392,7 +392,55 @@ void CWeather::Update() {
 
 // 0x72B630
 void CWeather::UpdateInTunnelness() {
-    plugin::Call<0x72B630>();
+    CVector TunnelEnd2 = StaticRef<CVector>(0xC81424);
+    CVector TunnelEnd1 = StaticRef<CVector>(0xC81430);
+    int32 UpdateInTunnelness = StaticRef<int32>(0xC8143C);
+
+    auto RequestedInTunnelness = 0.0f;
+    if (!(CCullZones::CurrentFlags_Camera & 0x2000)) {
+        RequestedInTunnelness = 1.0f;
+        auto targetDist = 100.0f;
+        const auto& camPos = TheCamera.GetPosition();
+        const CVector lineStart{ camPos.x, camPos.y, 0.0f };
+        CVector lineEnd;
+        if (TheCamera.m_matrix) {
+            lineEnd = TheCamera.GetForward();
+        } else {
+            float fHeading = TheCamera.m_placement.m_fHeading;
+            lineEnd.x = -sin(fHeading);
+            lineEnd.y = cos(fHeading);
+        }
+        lineEnd.z = 0.0f;
+        lineEnd.Normalise();
+
+        lineEnd = lineStart + lineEnd * 100.0f;
+        if (!(UpdateInTunnelness & 1)) {
+            UpdateInTunnelness |= 1;
+            TunnelEnd1 = CVector(85.0f, -1020.0f, 0.0f);
+        }
+        if (!(UpdateInTunnelness & 2)) {
+            UpdateInTunnelness |= 2;
+            TunnelEnd2 = CVector(1683.0f, -1956.0f, 0.0f);
+        }
+
+        if (const auto dist1 = CCollision::DistToLine(lineStart, lineEnd, TunnelEnd1) <= 100.0f) {
+            targetDist = dist1;
+        }
+
+        if (const auto dist2 = CCollision::DistToLine(lineStart, lineEnd, TunnelEnd2) <= targetDist) {
+            targetDist = dist2;
+        }
+
+        RequestedInTunnelness = std::min(targetDist * 0.01f, 1.0f);
+    }
+
+    float diff = RequestedInTunnelness - CWeather::InTunnelness;
+    float step = CTimer::ms_fTimeStep * 0.01f;
+    if (std::abs(diff) <= step) {
+        CWeather::InTunnelness = RequestedInTunnelness;
+    } else {
+        CWeather::InTunnelness += (diff > 0 ? step : -step);
+    }
 }
 
 // Based on 0x72A640
