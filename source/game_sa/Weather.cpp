@@ -70,7 +70,7 @@ void CWeather::InjectHooks() {
     RH_ScopedInstall(SetWeatherToAppropriateTypeNow, 0x72A790);
     RH_ScopedInstall(Update, 0x72B850, { .reversed = false });
     RH_ScopedInstall(UpdateInTunnelness, 0x72B630);
-    RH_ScopedInstall(UpdateWeatherRegion, 0x72A640, { .reversed = false }); // bad
+    RH_ScopedInstall(UpdateWeatherRegion, 0x72A640);
     RH_ScopedInstall(IsRainy, 0x4ABF50);
 }
 
@@ -443,26 +443,36 @@ void CWeather::UpdateInTunnelness() {
     }
 }
 
-// Based on 0x72A640
-eWeatherRegion CWeather::FindWeatherRegion(CVector2D pos) {
-    if (pos.x > 1000.0f && pos.y > 910.0f) {
-        return WEATHER_REGION_LV;
-    }
-    if (pos.x > -850.0f && pos.x < 1000.0f && pos.y > 1280.0f) {
-        return WEATHER_REGION_DESERT;
-    }
-    if (pos.x < -1430.0f && pos.y > -580.0f && pos.y < 1430.0f) {
-        return WEATHER_REGION_SF;
-    }
-    if (pos.x > 250.0f && pos.x < 3000.0f && pos.y > -3000.0f && pos.y < -850.0f) {
-        return WEATHER_REGION_LA;
-    }
-    return WEATHER_REGION_DEFAULT;
-}
-
 // 0x72A640
 void CWeather::UpdateWeatherRegion(CVector* posn) {
-    WeatherRegion = FindWeatherRegion(posn ? *posn : TheCamera.GetPosition());
+    const CVector2D pos = posn ? *posn : TheCamera.GetPosition();
+    if (notsa::IsFixBugs()) {
+        if (pos.x > 1000.0f && pos.y > 910.0f && pos.x < 3000.0f && pos.y < 1430.0f) {
+            CWeather::WeatherRegion = WEATHER_REGION_LV;
+        } else if (pos.x > -850.0f && pos.x < 1000.0f && pos.y > 1280.0f && pos.y < 1430.0f) {
+            CWeather::WeatherRegion = WEATHER_REGION_DESERT;
+        } else if (pos.x < -850.0f && pos.x > -1430.0f && pos.y > -580.0f && pos.y < 1430.0f) {
+            CWeather::WeatherRegion = WEATHER_REGION_SF;
+        } else {
+            CWeather::WeatherRegion = WEATHER_REGION_DEFAULT;
+        }
+    } else {
+        if (pos.x <= 1000.0f || pos.y <= 910.0f) {
+            if (pos.x <= -850.0f || pos.x >= 1000.0f || pos.y <= 1280.0f) {
+                if (pos.x >= -1430.0f || pos.y <= -580.0f || pos.y >= 1430.0f) {
+                    if (pos.x <= 250.0f || pos.x >= 3000.0f || pos.y <= -3000.0f || (CWeather::WeatherRegion == WEATHER_REGION_LA && pos.y >= -850.0f)) {
+                        CWeather::WeatherRegion = WEATHER_REGION_DEFAULT;
+                    }
+                } else {
+                    CWeather::WeatherRegion = WEATHER_REGION_SF;
+                }
+            } else {
+                CWeather::WeatherRegion = WEATHER_REGION_DESERT;
+            }
+        } else {
+            CWeather::WeatherRegion = WEATHER_REGION_LV;
+        }
+    }
 }
 
 // 0x4ABF50
