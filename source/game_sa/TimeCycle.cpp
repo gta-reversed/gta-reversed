@@ -12,7 +12,7 @@ void CTimeCycle::InjectHooks() {
     RH_ScopedClass(CTimeCycle);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Initialise, 0x5BBAC0, { .reversed = false });
+    RH_ScopedInstall(Initialise, 0x5BBAC0);
     RH_ScopedInstall(InitForRestart, 0x5601F0);
     RH_ScopedInstall(Shutdown, 0x5601E0);
     RH_ScopedInstall(Update, 0x561760);
@@ -36,8 +36,6 @@ void CTimeCycle::InjectHooks() {
 
 // 0x5BBAC0
 void CTimeCycle::Initialise() {
-    return plugin::Call<0x5BBAC0>(); // looks differ
-
     CFileMgr::SetDir("DATA");
     auto file = CFileMgr::OpenFile("TIMECYC.DAT", "rb");
     CFileMgr::SetDir("");
@@ -153,8 +151,8 @@ void CTimeCycle::Initialise() {
             m_fPostFx2Green[h][w] = (uint8)postFx2G;
             m_fPostFx2Blue[h][w]  = (uint8)postFx2B;
 
-            m_fPostFx1Alpha[h][w] = (uint8)sq(postFx1a);
-            m_fPostFx2Alpha[h][w] = (uint8)sq(postFx2a);
+            m_fPostFx1Alpha[h][w] = (uint8)(2 * postFx1a);
+            m_fPostFx2Alpha[h][w] = (uint8)(2 * postFx2a);
 
             m_fCloudAlpha[h][w]            = (uint8)cloudAlpha;
             m_nHighLightMinIntensity[h][w] = (uint8)highLightMinIntensity;
@@ -164,7 +162,7 @@ void CTimeCycle::Initialise() {
     }
 
     CFileMgr::CloseFile(file);
-                                                                               // Android values
+    // Android values
     m_vecDirnLightToSun.x = std::cos(-3.0f * PI / 4.0f) * std::cos(PI / 4.0f); // -0.5f
     m_vecDirnLightToSun.y = std::sin(-3.0f * PI / 4.0f) * std::cos(PI / 4.0f); // -0.5f
     m_vecDirnLightToSun.z = std::sin(PI / 4.0f);                               // std::cos(-3 * rwPI / 3.0f) * std::cos(rwPI / 4.0f);
