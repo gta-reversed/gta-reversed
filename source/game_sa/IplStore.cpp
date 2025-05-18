@@ -751,7 +751,7 @@ bool ExtractIPLNameFromPath(const char* iplFilePath, char(&out)[N]) {
  * @addr 0x404DE0
  */
 int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** ppLoadedBuildingsArray) {
-    char iplName[1024]{}; // OG Size: 32
+    char iplName[32]{};
     if (!ExtractIPLNameFromPath(filename, iplName)) {
         return 0;
     }
@@ -764,24 +764,22 @@ int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** p
 
     if (CColAccel::isCacheLoading()) { // NOTSA: Inverted conditional
         for (auto&& [slot, def] : ms_pPool->GetAllValidWithIndex()) {
-            if (_strnicmp(iplName, def.name, iplNameLen)) {
-                continue;
+            if (_strnicmp(iplName, def.name, iplNameLen) == 0) {
+                IplDef def = CColAccel::getIplDef(slot);
+                def.staticIdx = index;
+                def.isInterior = isIPLAnInterior;
+                def.loaded = false;
+                ms_pQuadTree->AddItem(&def, def.bb);
             }
-            def = CColAccel::getIplDef(slot);
-            def.staticIdx = index;
-            def.isInterior = isIPLAnInterior;
-            def.loaded = false;
-            ms_pQuadTree->AddItem(&def, def.bb);
         }
     } else {
         for (auto&& [slot, def] : ms_pPool->GetAllValidWithIndex()) {
-            if (_strnicmp(iplName, def.name, iplNameLen)) {
-                continue;
+            if (_strnicmp(iplName, def.name, iplNameLen) == 0) {
+                def.staticIdx = index;
+                def.isInterior = isIPLAnInterior;
+                def.disableDynamicStreaming = false; // NOTE: Inlined function was used to set this.
+                CStreaming::RequestModel(IPLToModelId(slot), STREAMING_KEEP_IN_MEMORY);
             }
-            def.staticIdx = index;
-            def.isInterior = isIPLAnInterior;
-            def.disableDynamicStreaming = false; // NOTE: Inlined function was used to set this.
-            CStreaming::RequestModel(IPLToModelId(slot), STREAMING_KEEP_IN_MEMORY);
         }
         CStreaming::LoadAllRequestedModels(false);
     }
@@ -858,7 +856,7 @@ void CIplStore::InjectHooks() {
     RH_ScopedInstall(Save, 0x5D5420);
     RH_ScopedInstall(EnsureIplsAreInMemory, 0x4053F0);
     RH_ScopedInstall(RemoveRelatedIpls, 0x405110);
-    RH_ScopedInstall(SetupRelatedIpls, 0x404DE0, { .reversed = false });
+    RH_ScopedInstall(SetupRelatedIpls, 0x404DE0);
     RH_ScopedInstall(EnableDynamicStreaming, 0x404D30);
     RH_ScopedInstall(IncludeEntity, 0x404C90);
     RH_ScopedInstall(GetBoundingBox, 0x404C70);
