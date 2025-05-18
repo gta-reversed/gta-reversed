@@ -28,7 +28,7 @@ void CLoadingScreen::InjectHooks() {
     RH_ScopedInstall(DisplayNextSplash, 0x5904D0);
     RH_ScopedInstall(StartFading, 0x590530);
     RH_ScopedInstall(DisplayPCScreen, 0x590570);
-    RH_ScopedInstall(Update, 0x5905E0, { .reversed = false });
+    RH_ScopedInstall(Update, 0x5905E0);
     RH_ScopedInstall(DoPCTitleFadeOut, 0x590860);
     RH_ScopedInstall(DoPCTitleFadeIn, 0x590990);
     RH_ScopedInstall(DoPCScreenChange, 0x590AC0);
@@ -365,9 +365,66 @@ void CLoadingScreen::NewChunkLoaded() {
     }
 }
 
-// 0x5905E0, unused
+// unused
+// 0x5905E0
 void CLoadingScreen::Update() {
-    plugin::Call<0x5905E0>();
+    float flt_BAB334 = StaticRef<float>(0xBAB334);
+
+    if (m_TimeBarAppeared > 0.0f) {
+        gfLoadingPercentage = std::min(
+            ((RsTimer() * 0.001f - m_PauseTime - m_TimeBarAppeared) * 100.0f) / (36.0f - (m_TimeBarAppeared - flt_BAB334)),
+            100.0f
+        );
+    }
+
+    if (!m_bReadyToDelete) {
+        if (m_bLegalScreen) {
+            if (RsTimer() * 0.001f - m_PauseTime - flt_BAB334 > 5.5f) {
+                DisplayNextSplash();
+            }
+        } else if (m_currDisplayedSplash * 16.666666f < gfLoadingPercentage) {
+            DisplayNextSplash();
+        }
+    }
+
+    if (m_bLegalScreen && !m_bFading && gfLoadingPercentage >= 100.0f) {
+        m_bReadyToDelete = true;
+        m_bFadeOutCurrSplashToBlack = true;
+        StartFading();
+    }
+
+    if (!m_bFading) {
+        return;
+    }
+
+    float elapsed = RsTimer() * 0.001f - m_PauseTime - m_StartFadeTime;
+    float fade_duration = (m_currDisplayedSplash >= 0 && (m_bLegalScreen || m_bFadeInNextSplashFromBlack)) ? 0.6f : 2.0f;
+    uint8 fade_alpha = elapsed <= fade_duration ? (uint8)(elapsed / fade_duration * 255.0f) : 255;
+    m_FadeAlpha = fade_alpha;
+
+    if (elapsed > fade_duration) {
+        m_bFading   = false;
+        m_FadeAlpha = 255;
+        if (m_bLegalScreen && m_bFadeOutCurrSplashToBlack) {
+            m_bFadeOutCurrSplashToBlack  = false;
+            m_bFadeInNextSplashFromBlack = true;
+            m_bLegalScreen               = false;
+            DisplayNextSplash();
+        } else {
+            m_bFadeInNextSplashFromBlack = false;
+            m_bFadeOutCurrSplashToBlack  = false;
+        }
+    }
+
+    if (!m_bLegalScreen) {
+        if (CLoadingScreen::m_bFadeInNextSplashFromBlack) {
+            AudioEngine.ServiceLoadingTune(fade_alpha * (1.f / 255.f));
+        } else if (m_bFadeOutCurrSplashToBlack) {
+            AudioEngine.ServiceLoadingTune((255.0f - fade_alpha) * (1.f / 255.f));
+        } else {
+            AudioEngine.ServiceLoadingTune(1.0f);
+        }
+    }
 }
 
 void CLoadingScreen::SkipCopyrightSplash() {
