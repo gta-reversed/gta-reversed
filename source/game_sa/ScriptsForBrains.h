@@ -12,17 +12,19 @@ class CEntity;
 class CObject;
 
 struct tScriptForBrains {
-    int16 m_StreamedScriptIndex{-1}; /// SCM ID for `CStreaming` (Translated using SCMToModelId)
+    int16 m_StreamedScriptIndex{ -1 }; /// SCM ID for `CStreaming` (Translated using SCMToModelId)
     int8  m_TypeOfBrain{ -1 };
     int8  m_ObjectGroupingId{ -1 };
     bool  m_bBrainActive{ true };
     float m_ObjectBrainActivationRadius{ 5.f };
+
     union {
         struct {
             int16  m_PedModelOrPedGeneratorIndex;
             uint16 m_PercentageChance;
             uint32 m_Pad;
         };
+
         char m_ScriptName[8]{};
     };
 };
@@ -37,24 +39,17 @@ public:
     static void InjectHooks();
 
     void Init();
-
     void AddNewScriptBrain(int16 ImgIndex, int16 Model, uint16 priority, int8 attachType, int8 Type, float Radius);
     void AddNewStreamedScriptBrainForCodeUse(int16 streamedScriptIndex, const char* scriptName, int8 brainType);
-
     void CheckIfNewEntityNeedsScript(CEntity* entity, int8 attachType, void* unused);
-
     int16 GetIndexOfScriptBrainWithThisName(const char* name, int8 type);
-
     bool HasAttractorScriptBrainWithThisNameLoaded(const char* name);
     bool IsObjectWithinBrainActivationRange(CObject* entity, const CVector& point);
-
     void MarkAttractorScriptBrainWithThisNameAsNoLongerNeeded(const char* name);
     void RequestAttractorScriptBrainWithThisName(const char* name);
-
     void StartAttractorScriptBrainWithThisName(const char* name, CPed* ped, bool bHasAScriptBrain);
     void StartNewStreamedScriptBrain(uint8 index, CEntity* entity, bool bHasAScriptBrain);
     void StartOrRequestNewStreamedScriptBrain(uint8 index, CEntity* entity, int8 attachType, bool bAddToWaitingArray);
     void StartOrRequestNewStreamedScriptBrainWithThisName(const char* name, CEntity* entity, int8 attachType);
-
     void SwitchAllObjectBrainsWithThisID(int8 objectGroupingId, bool bBrainOn);
 };
