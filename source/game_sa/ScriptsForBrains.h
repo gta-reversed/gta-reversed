@@ -27,6 +27,8 @@ struct tScriptForBrains {
     };
 };
 
+VALIDATE_SIZE(tScriptForBrains, 0x14);
+
 class CScriptsForBrains {
 public:
     std::array<tScriptForBrains, 70> m_aScriptForBrains;
