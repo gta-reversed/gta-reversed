@@ -11,6 +11,7 @@ void CScriptsForBrains::InjectHooks() {
     RH_ScopedInstall(AddNewScriptBrain, 0x46A930);
     RH_ScopedInstall(AddNewStreamedScriptBrainForCodeUse, 0x46A9C0);
     RH_ScopedInstall(GetIndexOfScriptBrainWithThisName, 0x46AA30);
+    RH_ScopedInstall(MarkAttractorScriptBrainWithThisNameAsNoLongerNeeded, 0x46AAE0);
     RH_ScopedInstall(HasAttractorScriptBrainWithThisNameLoaded, 0x46AB20);
     //RH_ScopedInstall(StartNewStreamedScriptBrain, 0x46B270, {.reversed = false});
     RH_ScopedInstall(StartAttractorScriptBrainWithThisName, 0x46B390);
@@ -74,8 +75,15 @@ void CScriptsForBrains::CheckIfNewEntityNeedsScript(CEntity* entity, int8 attach
     plugin::CallMethod<0x46FF20, CScriptsForBrains*, CEntity*, int8, void*>(this, entity, attachType, unused);
 }
 
-void CScriptsForBrains::MarkAttractorScriptBrainWithThisNameAsNoLongerNeeded(const char* name) {
-    plugin::CallMethod<0x46AAE0, CScriptsForBrains*, const char*>(this, name);
+// 0x46AAE0
+void CScriptsForBrains::MarkAttractorScriptBrainWithThisNameAsNoLongerNeeded(const char* scriptName) {
+    if (const auto scriptBrainIndex = GetIndexOfScriptBrainWithThisName(scriptName, 5) >= 0) {
+        const auto StreamedScriptIndex = m_aScriptForBrains[scriptBrainIndex].m_StreamedScriptIndex;
+        auto& m_NumberOfUsers = CTheScripts::StreamedScripts.m_aScripts[StreamedScriptIndex];
+        if (m_NumberOfUsers.m_NumberOfUsers) {
+            m_NumberOfUsers.m_NumberOfUsers--;
+        }
+    }
 }
 
 void CScriptsForBrains::RequestAttractorScriptBrainWithThisName(const char* name) {
