@@ -8,7 +8,7 @@ void CScriptsForBrains::InjectHooks() {
 
     RH_ScopedInstall(Init, 0x46A8C0, {.reversed = false});
     //RH_ScopedInstall(SwitchAllObjectBrainsWithThisID, 0x46A900, {.reversed = false});
-    //RH_ScopedInstall(AddNewScriptBrain, 0x46A930, {.reversed = false});
+    RH_ScopedInstall(AddNewScriptBrain, 0x46A930);
     //RH_ScopedInstall(AddNewStreamedScriptBrainForCodeUse, 0x46A9C0, {.reversed = false});
     RH_ScopedInstall(GetIndexOfScriptBrainWithThisName, 0x46AA30);
     RH_ScopedInstall(HasAttractorScriptBrainWithThisNameLoaded, 0x46AB20);
@@ -24,6 +24,22 @@ void CScriptsForBrains::InjectHooks() {
 void CScriptsForBrains::Init() {
     for (auto& script : m_aScriptForBrains) {
         script = tScriptForBrains();
+    }
+}
+
+// 0x46A930
+void CScriptsForBrains::AddNewScriptBrain(int16 ImgIndex, int16 Model, uint16 priority, int8 attachType, int8 Type, float Radius) {
+    for (auto& script : m_aScriptForBrains) {
+        if (script.m_StreamedScriptIndex == -1) {
+            script.m_StreamedScriptIndex = ImgIndex;
+            script.m_PercentageChance = priority;
+            script.m_ObjectGroupingId = Type;
+            script.m_PedModelOrPedGeneratorIndex = Model;
+            script.m_TypeOfBrain = attachType;
+            script.m_bBrainActive = true;
+            script.m_ObjectBrainActivationRadius = (Radius > 0.0f ? Radius : 5.0f);
+            return;
+        }
     }
 }
 
