@@ -56,5 +56,5 @@ public:
     void StartOrRequestNewStreamedScriptBrain(uint8 index, CEntity* entity, int8 attachType, bool bAddToWaitingArray);
     void StartOrRequestNewStreamedScriptBrainWithThisName(const char* name, CEntity* entity, int8 attachType);
 
-    void SwitchAllObjectBrainsWithThisID(int8 ID, bool bStatus);
+    void SwitchAllObjectBrainsWithThisID(int8 objectGroupingId, bool bBrainOn);
 };

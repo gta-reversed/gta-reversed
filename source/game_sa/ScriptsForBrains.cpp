@@ -7,7 +7,7 @@ void CScriptsForBrains::InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Init, 0x46A8C0, {.reversed = false});
-    //RH_ScopedInstall(SwitchAllObjectBrainsWithThisID, 0x46A900, {.reversed = false});
+    RH_ScopedInstall(SwitchAllObjectBrainsWithThisID, 0x46A900);
     RH_ScopedInstall(AddNewScriptBrain, 0x46A930);
     RH_ScopedInstall(AddNewStreamedScriptBrainForCodeUse, 0x46A9C0);
     RH_ScopedInstall(GetIndexOfScriptBrainWithThisName, 0x46AA30);
@@ -24,6 +24,18 @@ void CScriptsForBrains::InjectHooks() {
 void CScriptsForBrains::Init() {
     for (auto& script : m_aScriptForBrains) {
         script = tScriptForBrains();
+    }
+}
+
+// 0x46A900
+void CScriptsForBrains::SwitchAllObjectBrainsWithThisID(int8 objectGroupingId, bool bBrainOn) {
+    if (objectGroupingId >= 0) {
+        // NOTE: Why m_aScriptForBrains - 2 ?
+        for (auto& script : std::views::take(m_aScriptForBrains, 70)) {
+            if (script.m_ObjectGroupingId == objectGroupingId) {
+                script.m_bBrainActive = bBrainOn;
+            }
+        }
     }
 }
 
