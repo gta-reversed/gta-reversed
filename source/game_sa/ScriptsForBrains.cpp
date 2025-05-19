@@ -108,9 +108,8 @@ bool CScriptsForBrains::HasAttractorScriptBrainWithThisNameLoaded(const char* na
 bool CScriptsForBrains::IsObjectWithinBrainActivationRange(CObject* entity, const CVector& point) {
     const auto script = &m_aScriptForBrains[entity->m_nStreamedScriptBrainToLoad];
     if (script->m_TypeOfBrain == 1) {
-        const auto& v5 = entity->GetPosition();
-        const auto v6_v7 = point - v5;
-        if (sqrt(v6_v7.z * v6_v7.z + v6_v7.y * v6_v7.y + (point.x - v5.x) * (point.x - v5.x)) < script->m_ObjectBrainActivationRadius) {
+        const auto pos = point - entity->GetPosition();
+        if (pos.Magnitude() < script->m_ObjectBrainActivationRadius) {
             return true;
         }
     }
