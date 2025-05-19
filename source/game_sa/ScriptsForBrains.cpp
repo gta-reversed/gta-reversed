@@ -92,8 +92,17 @@ bool CScriptsForBrains::HasAttractorScriptBrainWithThisNameLoaded(const char* na
     return false;
 }
 
+// 0x46B3D0
 bool CScriptsForBrains::IsObjectWithinBrainActivationRange(CObject* entity, const CVector& point) {
-    NOTSA_UNREACHABLE();
+    const auto script = &m_aScriptForBrains[entity->m_nStreamedScriptBrainToLoad];
+    if (script->m_TypeOfBrain == 1) {
+        const auto& v5 = entity->GetPosition();
+        const auto v6_v7 = point - v5;
+        if (sqrt(v6_v7.z * v6_v7.z + v6_v7.y * v6_v7.y + (point.x - v5.x) * (point.x - v5.x)) < script->m_ObjectBrainActivationRadius) {
+            return true;
+        }
+    }
+    return false;
 }
 
 int16 CScriptsForBrains::GetIndexOfScriptBrainWithThisName(const char* name, int8 type) {
