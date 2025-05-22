@@ -9,6 +9,8 @@
 #include "eWeatherType.h"
 #include "game_sa/Data/Weather.def"
 
+#include <reversiblebugfixes/Bugs.hpp>
+
 float& CWeather::TrafficLightsBrightness = *(float*)0xC812A8;
 bool& CWeather::bScriptsForceRain = *(bool*)0xC812AC;
 float& CWeather::Earthquake = *(float*)0xC81340;
@@ -137,13 +139,17 @@ void CWeather::AddRain() {
     for (auto i = 0; i < particleCount; ++i) {
         FxPrtMult_c particleData(1.0f, 1.0f, 1.0f, 0.25f, 0.02f, 0.0f, 0.03f);
         CVector velocity{ 0.0f, 0.0f, 0.0f };
-        float max = CGeneral::GetRandomNumberInRange(0.0f, radius * 0.5f);
+        const float currRadius = CGeneral::GetRandomNumberInRange(0.0f, radius * 0.5f);
 
-        float angle = (rand() & 1) ? CGeneral::GetRandomNumberInRange(0.0f, 256.0f) * 0.024531251f
+        const float angle = (rand() & 1) ? CGeneral::GetRandomNumberInRange(0.0f, 256.0f) * 0.024531251f
                                    : (CGeneral::GetRandomNumberInRange(-128.0f, 128.0f) * 0.00625f + TheCamera.m_fOrientation);
 
         const auto& posTransform = TheCamera.m_matrix->GetPosition();
-        CVector pos{ std::sin(angle) * max + posTransform.x, std::cos(angle) * max + posTransform.y, 0.0f };
+        CVector pos{
+            std::sin(angle) * currRadius + posTransform.x,
+            std::cos(angle) * currRadius + posTransform.y,
+            0.0f
+        };
         CVector origin{ pos.x, pos.y, 40.0f };
 
         CEntity*  colEntity = nullptr;
@@ -151,9 +157,11 @@ void CWeather::AddRain() {
         if (CWorld::ProcessVerticalLine(origin, -40.0f, colPoint, colEntity)) {
             pos.z = colPoint.m_vecPoint.z + 0.1f;
             for (auto j = 0; j < splashCount; ++j) {
-                CVector splashPos{ pos.x + CGeneral::GetRandomNumberInRange(-15.0f, 15.0f),
-                                   pos.y + CGeneral::GetRandomNumberInRange(-15.0f, 15.0f),
-                                   pos.z };
+                CVector splashPos{
+                    pos.x + CGeneral::GetRandomNumberInRange(-15.0f, 15.0f),
+                    pos.y + CGeneral::GetRandomNumberInRange(-15.0f, 15.0f),
+                    pos.z
+                };
                 g_fx.m_Splash->AddParticle(&splashPos, &velocity, 0.0f, &particleData, -1.0f, 1.2f, 0.6f, false);
             }
         }
@@ -446,7 +454,7 @@ void CWeather::UpdateInTunnelness() {
 // 0x72A640
 void CWeather::UpdateWeatherRegion(CVector* posn) {
     const CVector2D pos = posn ? *posn : TheCamera.GetPosition();
-    if (notsa::IsFixBugs()) {
+    if (notsa::bugfixes::CWeather_UpdateWeatherRegion_CorrectRegionDefinition) {
         if (pos.x > 1000.0f && pos.y > 910.0f && pos.x < 3000.0f && pos.y < 1430.0f) {
             CWeather::WeatherRegion = WEATHER_REGION_LV;
         } else if (pos.x > -850.0f && pos.x < 1000.0f && pos.y > 1280.0f && pos.y < 1430.0f) {

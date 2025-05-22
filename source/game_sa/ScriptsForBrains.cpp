@@ -31,9 +31,9 @@ void CScriptsForBrains::Init() {
 void CScriptsForBrains::SwitchAllObjectBrainsWithThisID(int8 objectGroupingId, bool bBrainOn) {
     if (objectGroupingId >= 0) {
         // NOTE: Why m_aScriptForBrains - 2 ?
-        for (auto& script : std::views::take(m_aScriptForBrains, 70)) {
-            if (script.m_ObjectGroupingId == objectGroupingId) {
-                script.m_bBrainActive = bBrainOn;
+        for (auto i = 70; i; i--) {
+            if (m_aScriptForBrains[i].m_ObjectGroupingId == objectGroupingId) {
+                m_aScriptForBrains[i].m_bBrainActive = bBrainOn;
             }
         }
     }
@@ -103,11 +103,12 @@ void CScriptsForBrains::StartOrRequestNewStreamedScriptBrain(uint8 index, CEntit
 
 // 0x46CED0
 void CScriptsForBrains::StartOrRequestNewStreamedScriptBrainWithThisName(const char* name, CEntity* entity, int8 attachType) {
-    if (const auto IndexOfScriptBrainWithThisName = GetIndexOfScriptBrainWithThisName(name, attachType) >= 0) {
-        StartOrRequestNewStreamedScriptBrain(IndexOfScriptBrainWithThisName, entity, attachType, true);
+    if (const auto idx = GetIndexOfScriptBrainWithThisName(name, attachType) >= 0) {
+        StartOrRequestNewStreamedScriptBrain(idx, entity, attachType, true);
     }
 }
 
+// 0x46AB20
 bool CScriptsForBrains::HasAttractorScriptBrainWithThisNameLoaded(const char* name) {
     if (const auto idx = GetIndexOfScriptBrainWithThisName(name, 5); idx >= 0) {
         return CStreaming::IsModelLoaded(SCMToModelId(m_aScriptForBrains[idx].m_StreamedScriptIndex));
@@ -119,8 +120,7 @@ bool CScriptsForBrains::HasAttractorScriptBrainWithThisNameLoaded(const char* na
 bool CScriptsForBrains::IsObjectWithinBrainActivationRange(CObject* entity, const CVector& point) {
     const auto script = &m_aScriptForBrains[entity->m_nStreamedScriptBrainToLoad];
     if (script->m_TypeOfBrain == 1) {
-        const auto pos = point - entity->GetPosition();
-        if (pos.Magnitude() < script->m_ObjectBrainActivationRadius) {
+        if ((point - entity->GetPosition()).Magnitude() < script->m_ObjectBrainActivationRadius) {
             return true;
         }
     }

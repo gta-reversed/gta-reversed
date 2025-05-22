@@ -764,22 +764,24 @@ int32 CIplStore::SetupRelatedIpls(const char* filename, int32 index, CEntity** p
 
     if (CColAccel::isCacheLoading()) { // NOTSA: Inverted conditional
         for (auto&& [slot, def] : ms_pPool->GetAllValidWithIndex()) {
-            if (_strnicmp(iplName, def.name, iplNameLen) == 0) {
-                IplDef def = CColAccel::getIplDef(slot);
-                def.staticIdx = index;
-                def.isInterior = isIPLAnInterior;
-                def.loaded = false;
-                ms_pQuadTree->AddItem(&def, def.bb);
+            if (_strnicmp(iplName, def.name, iplNameLen)) {
+                continue;
             }
+            def = CColAccel::getIplDef(slot);
+            def.staticIdx = index;
+            def.isInterior = isIPLAnInterior;
+            def.loaded = false;
+            ms_pQuadTree->AddItem(&def, def.bb);
         }
     } else {
         for (auto&& [slot, def] : ms_pPool->GetAllValidWithIndex()) {
-            if (_strnicmp(iplName, def.name, iplNameLen) == 0) {
-                def.staticIdx = index;
-                def.isInterior = isIPLAnInterior;
-                def.disableDynamicStreaming = false; // NOTE: Inlined function was used to set this.
-                CStreaming::RequestModel(IPLToModelId(slot), STREAMING_KEEP_IN_MEMORY);
+            if (_strnicmp(iplName, def.name, iplNameLen)) {
+                continue;
             }
+            def.staticIdx = index;
+            def.isInterior = isIPLAnInterior;
+            def.disableDynamicStreaming = false; // NOTE: Inlined function was used to set this.
+            CStreaming::RequestModel(IPLToModelId(slot), STREAMING_KEEP_IN_MEMORY);
         }
         CStreaming::LoadAllRequestedModels(false);
     }

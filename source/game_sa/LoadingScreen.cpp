@@ -368,7 +368,7 @@ void CLoadingScreen::NewChunkLoaded() {
 // unused
 // 0x5905E0
 void CLoadingScreen::Update() {
-    float flt_BAB334 = StaticRef<float>(0xBAB334);
+    constexpr float flt_BAB334 = 0.0f; // 0xBAB334
 
     if (m_TimeBarAppeared > 0.0f) {
         gfLoadingPercentage = std::min(
@@ -398,11 +398,11 @@ void CLoadingScreen::Update() {
     }
 
     float elapsed = RsTimer() * 0.001f - m_PauseTime - m_StartFadeTime;
-    float fade_duration = (m_currDisplayedSplash >= 0 && (m_bLegalScreen || m_bFadeInNextSplashFromBlack)) ? 0.6f : 2.0f;
-    uint8 fade_alpha = elapsed <= fade_duration ? (uint8)(elapsed / fade_duration * 255.0f) : 255;
+    const float camelCase = (m_currDisplayedSplash >= 0 && (m_bLegalScreen || m_bFadeInNextSplashFromBlack)) ? 0.6f : 2.0f;
+    uint8 fade_alpha = elapsed <= camelCase ? (uint8)(elapsed / camelCase * 255.0f) : 255;
     m_FadeAlpha = fade_alpha;
 
-    if (elapsed > fade_duration) {
+    if (elapsed > camelCase) {
         m_bFading   = false;
         m_FadeAlpha = 255;
         if (m_bLegalScreen && m_bFadeOutCurrSplashToBlack) {
