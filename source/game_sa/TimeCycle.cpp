@@ -361,7 +361,7 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
             set->m_fWaterRed   = lerp<float>(set->m_fWaterRed, m_fWaterRed[boxHour][boxWeather], boxf);
             set->m_fWaterGreen = lerp<float>(set->m_fWaterGreen, m_fWaterGreen[boxHour][boxWeather], boxf);
             set->m_fWaterBlue  = lerp<float>(set->m_fWaterBlue, m_fWaterBlue[boxHour][boxWeather], boxf);
-            set->m_fWaterAlpha = lerp<float>(set->m_fWaterAlpha, m_fWaterBlue[boxHour][boxWeather], boxf);
+            set->m_fWaterAlpha = lerp<float>(set->m_fWaterAlpha, m_fWaterAlpha[boxHour][boxWeather], boxf);
         }
         if (m_nAmbientRed[boxHour][boxWeather] != 255) { // 0x560C5E
             set->m_fAmbientRed   = lerp<float>(set->m_fAmbientRed, m_nAmbientRed[boxHour][boxWeather], boxf);

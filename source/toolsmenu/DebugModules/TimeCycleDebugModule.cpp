@@ -83,8 +83,8 @@ void TimeCycleDebugModule::RenderWindow() {
 
     if (ImGui::ColorEdit3("Post Fx 2", (float*)&m_PostFx2)) {
         CTimeCycle::m_CurrentColours.m_fPostFx2Red   = m_PostFx2.r * 255.0f;
-        CTimeCycle::m_CurrentColours.m_fPostFx2Green = m_PostFx2.r * 255.0f;
-        CTimeCycle::m_CurrentColours.m_fPostFx2Blue  = m_PostFx2.r * 255.0f;
+        CTimeCycle::m_CurrentColours.m_fPostFx2Green = m_PostFx2.g * 255.0f;
+        CTimeCycle::m_CurrentColours.m_fPostFx2Blue  = m_PostFx2.b * 255.0f;
     }
 
     ImGui::NewLine();
