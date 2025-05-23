@@ -487,10 +487,12 @@ void CCarCtrl::FlyAIPlaneInCertainDirection(CPlane* pPlane) {
 
 // 0x422E10
 bool CCarCtrl::FindHeightForVerticalAngle(CPlane* a1, float a2, float a3, float* a4) {
+    return NULL;
 }
 
 // 0x422F80
 float CCarCtrl::FindFlightHeight(CPlane* plane, float a2) {
+    return NULL;
 }
 
 // 0x424210
@@ -867,11 +869,13 @@ void CCarCtrl::RemoveDistantCars() {
 // unused
 // 0x42CBD0
 bool CCarCtrl::sub_42CBD0(uint32 a1) {
+    return NULL;
 }
 
 // unused
 // 0x42CCF0
 int32 CCarCtrl::sub_42CCF0(uint32 a1) {
+    return NULL;
 }
 
 // 0x423ED0
@@ -1170,6 +1174,7 @@ bool CCarCtrl::ThisVehicleShouldTryNotToTurn(CVehicle* vehicle) {
 
 // 0x421A50
 bool CCarCtrl::TestForThisAngle(float arg0, float* arg4, float* arg8, CVector* a4, CVector* a5, float* a6, float* a7, CVector* a2, CVector* a3, float a10, float a11, float a12, char a13) {
+    return NULL;
 }
 
 // 0x429300
