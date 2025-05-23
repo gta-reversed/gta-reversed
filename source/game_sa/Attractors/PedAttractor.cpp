@@ -2,6 +2,12 @@
 
 #include "PedAttractor.h"
 
+#include "Tasks/TaskTypes/TaskComplexGoToAttractor.h"
+#include "Tasks/TaskTypes/TaskComplexWaitAtAttractor.h"
+#include "Tasks/TaskTypes/TaskComplexUseAttractor.h"
+#include "Tasks/TaskTypes/TaskComplexUsePairedAttractor.h"
+#include "Tasks/TaskTypes/TaskSimpleStandStill.h"
+
 void CPedAttractor::InjectHooks() {
     RH_ScopedVirtualClass(CPedAttractor, 0x86C538, 6);
     RH_ScopedCategory("Attractors");
@@ -9,13 +15,13 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x5EDFB0);
     RH_ScopedInstall(Destructor, 0x5EC410);
 
-    RH_ScopedInstall(SetTaskForPed, 0x5EECA0, { .reversed = false });
-    RH_ScopedInstall(RegisterPed, 0x5EEE30, { .reversed = false });
-    RH_ScopedInstall(DeRegisterPed, 0x5EC5B0, { .reversed = false });
-    RH_ScopedInstall(IsRegisteredWithPed, 0x5EB4C0, { .reversed = false });
-    RH_ScopedInstall(IsAtHeadOfQueue, 0x5EB530, { .reversed = false });
-    RH_ScopedInstall(GetTaskForPed, 0x5EC500, { .reversed = false });
-    RH_ScopedInstall(GetQueueSlot, 0x5EB550, { .reversed = false });
+    RH_ScopedInstall(SetTaskForPed, 0x5EECA0);
+    RH_ScopedInstall(RegisterPed, 0x5EEE30);
+    RH_ScopedInstall(DeRegisterPed, 0x5EC5B0);
+    RH_ScopedInstall(IsRegisteredWithPed, 0x5EB4C0);
+    RH_ScopedInstall(IsAtHeadOfQueue, 0x5EB530);
+    RH_ScopedInstall(GetTaskForPed, 0x5EC500);
+    RH_ScopedInstall(GetQueueSlot, 0x5EB550);
     //RH_ScopedInstall(GetNoOfRegisteredPeds, 0xdeadbeef, { .reversed = false }); // Address incorrect
     RH_ScopedInstall(GetHeadOfQueue, 0x5EB590);
     RH_ScopedInstall(GetTailOfQueue, 0x5EB5B0);
@@ -24,10 +30,10 @@ void CPedAttractor::InjectHooks() {
     RH_ScopedInstall(ComputeDeltaPos, 0x5E9600);
     RH_ScopedInstall(ComputeDeltaHeading, 0x5E9640);
     RH_ScopedInstall(ComputeAttractTime, 0x5E95E0);
-    RH_ScopedInstall(ComputeAttractPos, 0x5EA110);
-    RH_ScopedInstall(ComputeAttractHeading, 0x5EA1C0);
-    RH_ScopedInstall(BroadcastDeparture, 0x5EF160, { .reversed = false });
-    RH_ScopedInstall(BroadcastArrival, 0x5EEF80, { .reversed = false });
+    RH_ScopedOverloadedInstall(ComputeAttractPos, "v", 0x5EA110, void(CPedAttractor::*)(int32, CVector&));
+    RH_ScopedOverloadedInstall(ComputeAttractHeading, "v", 0x5EA1C0, void(CPedAttractor::*)(int32, float&));
+    RH_ScopedInstall(BroadcastDeparture, 0x5EF160);
+    RH_ScopedInstall(BroadcastArrival, 0x5EEF80);
     RH_ScopedInstall(AbortPedTasks, 0x5EAF60, { .reversed = false });
 }
 
@@ -70,9 +76,9 @@ CPedAttractor::CPedAttractor(
     const CMatrix mat = entity
         ? entity->GetMatrix()
         : CMatrix::Unity();
-    m_Pos             = CPedAttractorManager::ComputeEffectPos(fx, mat);
-    m_QueueDir        = CPedAttractorManager::ComputeEffectQueueDir(fx, mat);
-    m_UseDir          = CPedAttractorManager::ComputeEffectUseDir(fx, mat);
+    m_Pos      = CPedAttractorManager::ComputeEffectPos(fx, mat);
+    m_QueueDir = CPedAttractorManager::ComputeEffectQueueDir(fx, mat);
+    m_UseDir   = CPedAttractorManager::ComputeEffectUseDir(fx, mat);
 
     strcpy_s(m_ScriptName, fx->m_szScriptName);
 }
@@ -83,37 +89,78 @@ void CPedAttractor::Shutdown() {
 
 // 0x5EECA0
 void CPedAttractor::SetTaskForPed(CPed* ped, CTask* task) {
-    return plugin::CallMethod<0x5EECA0, CPedAttractor*, CPed*, CTask*>(this, ped, task);
+    if (const auto pair = rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped); pair != m_PedTaskPairs.end()) {
+        if (!pair->UsedTask) { // 0x5EED79
+            ms_tasks.erase(rng::find(ms_tasks, pair->Task)); // 0x5EEDA0, 0x5EEDAD
+            delete pair->Task; // 0x5EEDD1
+        }
+        pair->Task     = task;
+        pair->UsedTask = false;
+    } else {
+        m_PedTaskPairs.emplace_back(CPedTaskPair{ .Ped = ped, .Task = task });
+    }
 }
 
 // 0x5EEE30
 bool CPedAttractor::RegisterPed(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x5EEE30, CPedAttractor*, CPed*>(this, ped);
+    if (const auto it = rng::find(m_AttractPeds, ped); it != m_AttractPeds.end()) {
+        m_AttractPeds.erase(it);
+        return false;
+    }
+    if (m_AttractPeds.size() + m_ArrivedPeds.size() >= m_MaxNumPeds) {
+        return false;
+    }
+    m_ArrivedPeds.emplace_back(ped);
+    const auto idx = (int32)(m_ArrivedPeds.size() - 1);
+    SetTaskForPed(ped, new CTaskComplexGoToAttractor{
+        this,
+        ComputeAttractPos(idx),
+        ComputeAttractHeading(idx),
+        m_AchieveQueueTime,
+        idx,
+        m_MoveState
+    });
+    return true;
 }
 
 // 0x5EC5B0
 bool CPedAttractor::DeRegisterPed(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x5EC5B0, CPedAttractor*, CPed*>(this, ped);
+    m_PedTaskPairs.erase(rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped));
+    if (const auto it = rng::find(m_ArrivedPeds, ped); it != m_ArrivedPeds.end()) { // inverted (!)
+        m_AttractPeds.erase(it);
+        return true;
+    }
+    return BroadcastDeparture(ped);
 }
 
 // 0x5EB4C0
 bool CPedAttractor::IsRegisteredWithPed(const CPed* ped) const {
-    return plugin::CallMethodAndReturn<bool, 0x5EB4C0, const CPedAttractor*, const CPed*>(this, ped);
+    return rng::contains(m_AttractPeds, ped)
+        || rng::contains(m_ArrivedPeds, ped);
 }
 
 // 0x5EB530
 bool CPedAttractor::IsAtHeadOfQueue(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x5EB530, CPedAttractor*, CPed*>(this, ped);
+    return !m_ArrivedPeds.empty() && m_ArrivedPeds.front() == ped; // NOTE/BUGFIX: Check if the array is empty
 }
 
 // 0x5EC500
 CTask* CPedAttractor::GetTaskForPed(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x5EC500, CPedAttractor*>(this);
+    const auto it = rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped);
+    if (it == m_PedTaskPairs.end()) {
+        return nullptr;
+    }
+    if (!it->UsedTask) {
+        ms_tasks.erase(rng::find(ms_tasks, it->Task));
+    }
+    it->UsedTask = true;
+    return it->Task;
 }
 
 // 0x5EB550
-int32 CPedAttractor::GetQueueSlot(const CPed*) {
-    return plugin::CallMethodAndReturn<int32, 0x5EB550, CPedAttractor*>(this);
+int32 CPedAttractor::GetQueueSlot(const CPed* ped) {
+    assert(rng::find(m_ArrivedPeds, ped) != m_ArrivedPeds.end());
+    return rng::distance(m_ArrivedPeds.begin(), rng::find(m_ArrivedPeds, ped));
 }
 
 // 0x5EB590
@@ -180,16 +227,69 @@ void CPedAttractor::ComputeAttractHeading(int32 bQueue, float& heading) {
 }
 
 // 0x5EF160
-void CPedAttractor::BroadcastDeparture(CPed* ped) {
-    plugin::CallMethod<0x5EF160, CPedAttractor*, CPed*>(this, ped);
+bool CPedAttractor::BroadcastDeparture(CPed* ped) {
+    const auto it = rng::find(m_AttractPeds, ped);
+    if (it == m_AttractPeds.end()) {
+        return false;
+    }
+    const auto idx = rng::distance(m_AttractPeds.begin(), it);
+    for (auto i = idx + 1; i < (int32)(m_AttractPeds.size()); ++i) { // 0x5EF1C6
+        SetTaskForPed(m_AttractPeds[i], new CTaskComplexSequence{
+            new CTaskSimpleStandStill{ 2000 * i },
+            new CTaskComplexGoToAttractor{ this, ComputeAttractPos(i), ComputeAttractHeading(i), m_AchieveQueueShuffleTime, i, PEDMOVE_WALK },
+        });
+    }
+    m_PedTaskPairs.erase(rng::find(m_PedTaskPairs, ped, &CPedTaskPair::Ped)); // 0x5EF2F6
+    m_ArrivedPeds.erase(it); // 0x5EF334
+    for (auto* const attractedPed : m_AttractPeds) { // 0x5EF371
+        const auto n = (int32)(m_ArrivedPeds.size());
+        SetTaskForPed(attractedPed, new CTaskComplexGoToAttractor({
+            this,
+            ComputeAttractPos(n),
+            ComputeAttractHeading(n),
+            m_AchieveQueueTime,
+            n,
+            PEDMOVE_WALK
+        }));
+    }
+    return true;
 }
 
 // 0x5EEF80
 bool CPedAttractor::BroadcastArrival(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x5EEF80, CPedAttractor*, CPed*>(this, ped);
+    if (!rng::contains(m_ArrivedPeds, ped)) {
+        m_ArrivedPeds.emplace_back(ped); // 0x5EEFCB
+        m_AttractPeds.erase(rng::find(m_AttractPeds, ped)); // 0x5EF002
+        for (auto* const attractedPed : m_AttractPeds) { // 0x5EF098
+            const auto idx = (int32)(m_ArrivedPeds.size());
+            SetTaskForPed(attractedPed, new CTaskComplexGoToAttractor{ // 0x5EF090
+                this,
+                ComputeAttractPos(idx),
+                ComputeAttractHeading(idx),
+                m_AchieveQueueTime,
+                idx,
+                m_MoveState
+            });
+        }
+    }
+
+    if (!IsAtHeadOfQueue(ped)) { // 0x5EF129
+        SetTaskForPed(ped, new CTaskComplexWaitAtAttractor{ this, GetQueueSlot(ped) });
+    } else if (GetType() == PED_ATTRACTOR_SCRIPTED) { // 0x5EF0D6 - inverted (!)
+        SetTaskForPed(ped, new CTaskComplexUsePairedAttractor{ this });
+    } else { // 0x5EF0FA
+        SetTaskForPed(ped, new CTaskComplexUseAttractor{ this });
+    }
+
+    return true;
 }
 
 // 0x5EAF60
 void CPedAttractor::AbortPedTasks() {
-    plugin::CallMethod<0x5EAF60, CPedAttractor*>(this);
+    for (auto& p : m_PedTaskPairs) {
+        p.Ped = nullptr;
+        delete std::exchange(p.Task, nullptr);
+        p.Slot = TASK_SECONDARY_INVALID;
+    }
+    // TODO/NOTE: Why not clear the array?
 }
