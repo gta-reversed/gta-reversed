@@ -158,7 +158,7 @@ public:
     static float TestCollisionBetween2MovingRects(CVehicle* vehicle1, CVehicle* vehicle2, float arg3, float arg4, CVector* pos1, CVector* pos2);
     static float TestCollisionBetween2MovingRects_OnlyFrontBumper(CVehicle* vehicle1, CVehicle* vehicle2, float arg3, float arg4, CVector* pos1, CVector* pos2);
     static void TestWhetherToFirePlaneGuns(CVehicle* vehicle, CEntity* target);
-    static bool ThisVehicleShouldTryNotToTurn(CVehicle* vehicle);
+    static bool ThisVehicleShouldTryNotToTurn(CVehicle* veh);
     static bool TestForThisAngle(float arg0, float* arg4, float* arg8, CVector* a4, CVector* a5, float* a6, float* a7, CVector* a2, CVector* a3, float a10, float a11, float a12, char a13);
     static void TriggerDogFightMoves(CVehicle* vehicle1, CVehicle* vehicle2);
     static void UpdateCarCount(CVehicle* vehicle, uint8 bDecrease);

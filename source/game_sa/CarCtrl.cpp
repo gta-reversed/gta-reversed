@@ -57,7 +57,7 @@ void CCarCtrl::InjectHooks() {
     RH_ScopedInstall(ChooseBoatModel, 0x421970);
     RH_ScopedInstall(ChoosePoliceCarModel, 0x421980 , { .jmpCodeSize = 7 });
     RH_ScopedInstall(ChooseGangCarModel, 0x421A40 , { .jmpCodeSize = 7 });
-    RH_ScopedInstall(ThisVehicleShouldTryNotToTurn, 0x421FE0, { .reversed = false });
+    RH_ScopedInstall(ThisVehicleShouldTryNotToTurn, 0x421FE0);
     RH_ScopedInstall(TestForThisAngle, 0x421A50, { .reversed = false });
     RH_ScopedInstall(FindPathDirection, 0x422090, { .reversed = false });
     RH_ScopedInstall(SwitchBetweenPhysicsAndGhost, 0x4222A0, { .reversed = false });
@@ -1168,8 +1168,21 @@ void CCarCtrl::TestWhetherToFirePlaneGuns(CVehicle* vehicle, CEntity* target) {
 }
 
 // 0x421FE0
-bool CCarCtrl::ThisVehicleShouldTryNotToTurn(CVehicle* vehicle) {
-    return plugin::CallAndReturn<bool, 0x421FE0, CVehicle*>(vehicle);
+bool CCarCtrl::ThisVehicleShouldTryNotToTurn(CVehicle* veh) {
+    switch (veh->m_nModelIndex) {
+    case MODEL_LINERUN:
+    case MODEL_DUMPER:
+    case MODEL_BUS:
+    case MODEL_COACH:
+    case MODEL_PACKER:
+    case MODEL_FLATBED:
+    case MODEL_STUNT:
+    case MODEL_RDTRAIN:
+    case MODEL_CEMENT:
+        return true;
+    default:
+        return false;
+    }
 }
 
 // 0x421A50
