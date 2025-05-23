@@ -6,7 +6,7 @@ struct tVirtualChannelSettings {
     eSoundID       SoundIDs[300]{};
 
     tVirtualChannelSettings() {
-        rng::fill(BankSlotIDs, SND_BANK_SLOT_UNK);
+        rng::fill(BankSlotIDs, SND_BANK_SLOT_NONE);
         rng::fill(SoundIDs, -1);
     }
 };
@@ -32,6 +32,8 @@ public:
     void   LoadSound(eSoundBank bankId, eSoundID soundId, eSoundBankSlot bankSlot);
     void   Service();
 
+    // notsa
+    CAEBankSlot& GetBankSlot(eSoundBankSlot slot) const;
 private:
     void AddRequest(eSoundBank bank, eSoundBankSlot slot, std::optional<eSoundID> sound);
 

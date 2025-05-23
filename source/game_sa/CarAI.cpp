@@ -657,7 +657,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
             if (sq(FindSwitchDistanceFar(veh)) < vehPlyrDist2DSq) { // 0x41DD4F | 0x41E13A
                 if (!CCarCtrl::JoinCarWithRoadSystemGotoCoors(veh, FindPlayerCoors(), true, false)) {
                     ap->m_nCarMission               = MISSION_RAMPLAYER_FARAWAY;
-                    veh->m_nHornCounter             = 0;
+                    veh->m_HornCounter             = 0;
                     veh->vehicleFlags.bSirenOrAlarm = false;
                 }
                 if (veh->vehicleFlags.bIsLawEnforcer) {
@@ -813,7 +813,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
 
             if ((veh->GetPosition() - ap->m_TargetEntity->GetPosition()).SquaredMagnitude2D() >= sq(FindSwitchDistanceClose(veh))) {
                 veh->vehicleFlags.bSirenOrAlarm = false;
-                veh->m_nHornCounter             = 0;
+                veh->m_HornCounter              = 0;
                 CCarCtrl::JoinCarWithRoadSystem(veh);
             }
 
@@ -925,7 +925,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
                 }
             } else if (!CCarCtrl::JoinCarWithRoadSystemGotoCoors(veh, FindPlayerCoors())) {
                 veh->vehicleFlags.bSirenOrAlarm = false;
-                veh->m_nHornCounter             = 0;
+                veh->m_HornCounter              = 0;
                 ap->SetCarMission(MISSION_APPROACHPLAYER_FARAWAY);
             }
 
@@ -1262,7 +1262,7 @@ void CCarAI::UpdateCarAI(CVehicle* veh) {
 
     //> 0x4203C1
     if (veh->vehicleFlags.bSirenOrAlarm && ((uint8)veh->m_nRandomSeed ^ (uint8)rand()) == 0xAD) {
-        veh->m_nHornCounter = 45;
+        veh->m_HornCounter = 45;
     }
 
     //> 0x4203F0 - Handle speed mult change based on time
