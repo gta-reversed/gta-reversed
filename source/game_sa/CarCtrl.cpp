@@ -59,7 +59,7 @@ void CCarCtrl::InjectHooks() {
     RH_ScopedInstall(ChooseGangCarModel, 0x421A40 , { .jmpCodeSize = 7 });
     RH_ScopedInstall(ThisVehicleShouldTryNotToTurn, 0x421FE0);
     RH_ScopedInstall(TestForThisAngle, 0x421A50, { .reversed = false });
-    RH_ScopedInstall(FindPathDirection, 0x422090, { .reversed = false });
+    RH_ScopedInstall(FindPathDirection, 0x422090);
     RH_ScopedInstall(SwitchBetweenPhysicsAndGhost, 0x4222A0, { .reversed = false });
     RH_ScopedInstall(FindGhostRoadHeight, 0x422370, { .reversed = false });
     RH_ScopedInstall(FindSpeedMultiplier, 0x4224E0, { .reversed = false });
