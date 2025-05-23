@@ -10,8 +10,10 @@ template <typename T>
 class ListItem_c;
 
 //! Simple (and shit) linked list
-//! When Insert-ing an item, you have to make sure not to insert the same item twice. (Error checks are not possible due to game code and performance)
+//! When Insert-ing an item, you have to make sure not to insert the
+//! same item twice. (Error checks are not possible due to game code and performance)
 template <typename T>
+    //requires std::derived_from<T, ListItem_c<T>> // doesn't compile lul
 class TList_c {
     template<typename Y>
     class BaseIterator {
