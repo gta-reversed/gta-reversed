@@ -477,7 +477,7 @@ void CBike::FixHandsToBars(CPed* rider) {
 }
 
 // 0x6BEEB0
-void CBike::PlaceOnRoadProperly() {
+float CBike::PlaceOnRoadProperly() {
     ((void(__thiscall*)(CBike*))0x6BEEB0)(this);
 }
 
