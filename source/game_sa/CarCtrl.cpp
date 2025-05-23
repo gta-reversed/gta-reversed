@@ -424,8 +424,48 @@ void CCarCtrl::FindNodesThisCarIsNearestTo(CVehicle* vehicle, CNodeAddress& node
 }
 
 // 0x422090
-int8 CCarCtrl::FindPathDirection(CNodeAddress nodeAddress1, CNodeAddress nodeAddress2, CNodeAddress nodeAddress3, bool* arg4) {
-    return plugin::CallAndReturn<int8, 0x422090, CNodeAddress, CNodeAddress, CNodeAddress, bool*>(nodeAddress1, nodeAddress2, nodeAddress3, arg4);
+uint8 CCarCtrl::FindPathDirection(CNodeAddress node1, CNodeAddress node2, CNodeAddress node3, bool* isSharpTurn) {
+    *isSharpTurn = false;
+    if (!node1.IsAreaValid() || !node2.IsAreaValid() || !node3.IsAreaValid()) {
+        return 0;
+    }
+
+    const auto* pathNode1 = ThePaths.m_pPathNodes[node1.m_wAreaId];
+    const auto* pathNode2 = ThePaths.m_pPathNodes[node2.m_wAreaId];
+    const auto* pathNode3 = ThePaths.m_pPathNodes[node3.m_wAreaId];
+    if (!pathNode1 || !pathNode2 || !pathNode3) {
+        return 0;
+    }
+
+    const auto pos1 = pathNode1[node1.m_wNodeId].GetPosition();
+    const auto pos2 = pathNode2[node2.m_wNodeId].GetPosition();
+    const auto pos3 = pathNode3[node3.m_wNodeId].GetPosition();
+
+    const CVector2D vec1(pos2.x - pos1.x, pos2.y - pos1.y);
+    const auto dist1 = vec1.Magnitude();
+    if (dist1 == 0.0f) {
+        return 0;
+    }
+
+    const CVector2D vec2(pos3.x - pos2.x, pos3.y - pos2.y);
+    const auto dist2 = vec2.Magnitude();
+    if (dist2 == 0.0f) {
+        return 0;
+    }
+
+    const auto norm1 = vec1 / dist1;
+    const auto norm2 = vec2 / dist2;
+
+    const float cross = norm1.Cross(norm2);
+    const float dot   = norm1.Dot(norm2);
+
+    if (dot > 0.4f) {
+        return 1;
+    }
+    if (dot < -0.3f) {
+        *isSharpTurn = true;
+    }
+    return (cross <= 0.0f) ? 2 : 4;
 }
 
 // 0x422620
