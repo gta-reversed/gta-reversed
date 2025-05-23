@@ -15,7 +15,7 @@ void CTaskAllocator::operator delete(void* obj) {
 bool CTaskAllocator::IsFinished(CPedGroupIntelligence* intel) {
     return rng::all_of(
         intel->GetPedTaskPairs(),
-        [](const CPedTaskPair& tp) { return !tp.m_Task; }
+        [](const CPedTaskPair& tp) { return !tp.Task; }
     );
 }
 
