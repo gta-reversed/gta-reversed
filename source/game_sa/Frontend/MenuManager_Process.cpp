@@ -342,7 +342,10 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         m_bScanningUserTracks = true;
         return true;
     case MENU_ACTION_CTRLS_JOYPAD:
-        SwitchToNewScreen(m_ControlMethod == eController::JOYPAD ? SCREEN_JOYPAD_SETTINGS : SCREEN_MOUSE_SETTINGS);
+        switch (m_ControlMethod) {
+        case eController::JOYPAD: SwitchToNewScreen(SCREEN_JOYPAD_SETTINGS); break;
+        default:                  SwitchToNewScreen(SCREEN_MOUSE_SETTINGS); break;
+        }
         return true;
     case MENU_ACTION_CTRLS_FOOT: // Redefine Controls -> Foot Controls
         m_RedefiningControls = false;
@@ -553,12 +556,12 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
     case MENU_ACTION_CONTROL_TYPE:
         switch (m_ControlMethod) {
         case eController::JOYPAD:
-            CCamera::m_bUseMouse3rdPerson = true;
             m_ControlMethod = eController::MOUSE_PLUS_KEYS;
+            CCamera::m_bUseMouse3rdPerson = true;
             break;
-        case eController::MOUSE_PLUS_KEYS:
-            CCamera::m_bUseMouse3rdPerson = false;
+        default:
             m_ControlMethod = eController::JOYPAD;
+            CCamera::m_bUseMouse3rdPerson = false;
             break;
         }
         SaveSettings();
