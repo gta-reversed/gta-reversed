@@ -71,11 +71,16 @@ public:
     static int32 FindSequenceElement(int32 arg1);
     static float FindSpeedMultiplier(float arg1, float arg2, float arg3, float arg4);
     static float FindSpeedMultiplierWithSpeedFromNodes(int8 arg1);
+    static bool sub_4240F0();
+    static bool dummy_424100();
+    static bool sub_424110(int32 a1);
     static float FindGhostRoadHeight(CVehicle* vehicle);
     static void FireHeliRocketsAtTarget(CAutomobile* entityLauncher, CEntity* entity);
     static void FlyAIHeliInCertainDirection(CHeli* heli, float arg2, float arg3, bool arg4);
     static void FlyAIHeliToTarget_FixedOrientation(CHeli* heli, float fOrientation, CVector posn);
     static void FlyAIPlaneInCertainDirection(CPlane* pPlane);
+    static bool FindHeightForVerticalAngle(CPlane* a1, float a2, float a3, float* a4);
+    static float FindFlightHeight(CPlane* plane, float a2);
     static bool GenerateCarCreationCoors2(CVector posn, float radius, float arg3, float arg4, bool arg5, float arg6, float arg7, CVector* origin, CNodeAddress* nodeAddress1, CNodeAddress* nodeAddress2, float* arg11, bool arg12, bool arg13);
     static void GenerateEmergencyServicesCar();
     static CAutomobile* GenerateOneEmergencyServicesCar(uint32 modelID, CVector posn);
@@ -104,6 +109,8 @@ public:
     static void RegisterVehicleOfInterest(CVehicle* vehicle);
     static void RemoveCarsIfThePoolGetsFull();
     static void RemoveDistantCars();
+    static bool sub_42CBD0(uint32 a1);
+    static int32 sub_42CCF0(uint32 a1);
     static void RemoveFromInterestingVehicleList(CVehicle* vehicle);
     static void ScanForPedDanger(CVehicle* vehicle);
     static bool ScriptGenerateOneEmergencyServicesCar(uint32 modelId, CVector posn);
@@ -142,18 +149,22 @@ public:
     static void SteerAIHeliTowardsTargetCoors(CAutomobile* automobile);
     static void SteerAIPlaneToCrashAndBurn(CAutomobile* automobile);
     static void SteerAIPlaneToFollowEntity(CAutomobile* automobile);
+    static void sub_4237E0(CPlane* a1);
     static void SteerAIPlaneTowardsTargetCoors(CAutomobile* automobile);
     static bool StopCarIfNodesAreInvalid(CVehicle* vehicle);
     static void SwitchBetweenPhysicsAndGhost(CVehicle* vehicle);
     static void SwitchVehicleToRealPhysics(CVehicle* vehicle);
+    static void sub_423F80(CVehicle* vehicle, uint32* a2);
     static float TestCollisionBetween2MovingRects(CVehicle* vehicle1, CVehicle* vehicle2, float arg3, float arg4, CVector* pos1, CVector* pos2);
     static float TestCollisionBetween2MovingRects_OnlyFrontBumper(CVehicle* vehicle1, CVehicle* vehicle2, float arg3, float arg4, CVector* pos1, CVector* pos2);
     static void TestWhetherToFirePlaneGuns(CVehicle* vehicle, CEntity* target);
     static bool ThisVehicleShouldTryNotToTurn(CVehicle* vehicle);
+    static bool TestForThisAngle(float arg0, float* arg4, float* arg8, CVector* a4, CVector* a5, float* a6, float* a7, CVector* a2, CVector* a3, float a10, float a11, float a12, char a13);
     static void TriggerDogFightMoves(CVehicle* vehicle1, CVehicle* vehicle2);
     static void UpdateCarCount(CVehicle* vehicle, uint8 bDecrease);
     static void UpdateCarOnRails(CVehicle* vehicle);
     static void WeaveForObject(CEntity* entity, CVehicle* vehicle, float* arg3, float* arg4);
+    static void sub_426970(CPlayerPed* a1, int y, float* a3, float* a4);
     static void WeaveForOtherCar(CEntity* entity, CVehicle* vehicle, float* arg3, float* arg4);
     template<typename PtrListType>
     static void WeaveThroughCarsSectorList(PtrListType& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9);

@@ -153,6 +153,8 @@ public:
     CPedModelInfo*     AsPedModelInfoPtr()     { return reinterpret_cast<CPedModelInfo*>(this); }
     CWeaponModelInfo*  AsWeaponModelInfoPtr()  { return reinterpret_cast<CWeaponModelInfo*>(this); }
 
+    // 0x4082F0 & 0x424200
+    static CColModel* GetColModel(int32 modelIndex) { return CModelInfo::GetModelInfo(modelIndex)->m_pColModel; }
     [[nodiscard]] CColModel* GetColModel() const { return m_pColModel; }
 
     [[nodiscard]] bool GetIsDrawLast() const { return bDrawLast; }
