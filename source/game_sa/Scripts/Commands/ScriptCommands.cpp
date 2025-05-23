@@ -61,7 +61,6 @@ void ReportMissionAudioEventAtCar(CVehicle& vehicle, int eventId) {
     AudioEngine.ReportMissionAudioEvent(eventId, &vehicle);
 }
 
-
 void PlayMissionAudio(uint32 slotId) {
     AudioEngine.PlayLoadedMissionAudio(slotId - 1);
 }
@@ -86,15 +85,6 @@ void SetPlayerInStadium(bool enable) {
     CTheScripts::bPlayerIsOffTheMap = enable;
 }
 
-void SetUpConversationNodeWithScriptedSpeech(
-    const char* questionKey,
-    const char* answerYesKey,
-    const char* answerNoKey,
-    int32 questionWAV,
-    int32 answerYesWAV,
-    int32 answerNoWAV) {
-    CConversations::SetUpConversationNode(questionKey, answerYesKey, answerNoKey, questionWAV, answerYesWAV, answerNoWAV);
-}
 };
 
 void notsa::script::commands::script::RegisterHandlers() {
@@ -114,5 +104,4 @@ void notsa::script::commands::script::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DRAW_ODDJOB_TITLE_BEFORE_FADE, DrawOddJobTitleBeforeFade);
     REGISTER_COMMAND_HANDLER(COMMAND_DRAW_SUBTITLES_BEFORE_FADE, DrawSubtitlesBeforeFade);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_IS_IN_STADIUM, SetPlayerInStadium);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_UP_CONVERSATION_NODE_WITH_SCRIPTED_SPEECH, SetUpConversationNodeWithScriptedSpeech);
 }

@@ -125,6 +125,7 @@ target_include_directories(${RE_PROJECT_LIB_NAME} PRIVATE
     game_sa/Audio/Utility
 
     game_sa/Collision/
+    game_sa/Conversations/
     game_sa/Core/
     game_sa/Entity/
     game_sa/Entity/Dummy/

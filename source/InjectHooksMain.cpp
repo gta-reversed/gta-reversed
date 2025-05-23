@@ -166,6 +166,7 @@
 #include "PedIK.h"
 #include "HandShaker.h"
 #include "TempColModels.h"
+#include "Conversations.h"
 
 // Plant
 #include "PlantMgr.h"
@@ -813,6 +814,7 @@ void InjectHooksMain() {
     CCustomBuildingRenderer::InjectHooks();
     CCustomBuildingDNPipeline::InjectHooks();
     CCustomCarEnvMapPipeline::InjectHooks();
+    CConversations::InjectHooks();
 
     const auto Pools = [] {
         CPools::InjectHooks();
