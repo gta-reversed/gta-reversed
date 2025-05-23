@@ -1178,8 +1178,34 @@ bool CCarCtrl::StopCarIfNodesAreInvalid(CVehicle* vehicle) {
 }
 
 // 0x4222A0
-void CCarCtrl::SwitchBetweenPhysicsAndGhost(CVehicle* vehicle) {
-    plugin::Call<0x4222A0, CVehicle*>(vehicle);
+float CCarCtrl::SwitchBetweenPhysicsAndGhost(CAutomobile* veh) {
+    if ((veh->m_nPhysicalFlags & PHYSICAL_b15) != 0 && veh->m_nCreatedBy == MISSION_VEHICLE) {
+        if (!veh->IsSubBoat() && !veh->IsSubPlane() && !veh->IsSubHeli()) {
+            const auto status = veh->GetStatus();
+            if (status == STATUS_PHYSICS) {
+                if (!CColStore::HasCollisionLoaded(veh->GetPosition(), 0)) {
+                    veh->SetStatus(STATUS_GHOST);
+                    if (veh->IsSubAutomobile()) {
+                        for (auto i = 0; i < eCarWheel::MAX_CARWHEELS; ++i) {
+                            veh->m_damageManager.SetWheelStatus((eCarWheel)i, WHEEL_STATUS_OK);
+                        }
+                    }
+                }
+            } else if (status == STATUS_GHOST) {
+                if (CColStore::HasCollisionLoaded(veh->GetPosition(), 0)) {
+                    veh->SetStatus(STATUS_PHYSICS);
+                    if (veh->m_nVehicleType) {
+                        if (veh->IsBike()) {
+                            return veh->AsBike()->PlaceOnRoadProperly();
+                        }
+                    } else {
+                        veh->AsPlane()->PlaceOnRoadProperly();
+                    }
+                }
+            }
+        }
+    }
+    return 0.0f;
 }
 
 // 0x423FC0

@@ -152,7 +152,7 @@ public:
     static void sub_4237E0(CPlane* a1);
     static void SteerAIPlaneTowardsTargetCoors(CAutomobile* automobile);
     static bool StopCarIfNodesAreInvalid(CVehicle* vehicle);
-    static void SwitchBetweenPhysicsAndGhost(CVehicle* vehicle);
+    static float SwitchBetweenPhysicsAndGhost(CAutomobile* veh);
     static void SwitchVehicleToRealPhysics(CVehicle* vehicle);
     static void sub_423F80(CVehicle* vehicle, uint32* a2);
     static float TestCollisionBetween2MovingRects(CVehicle* vehicle1, CVehicle* vehicle2, float arg3, float arg4, CVector* pos1, CVector* pos2);
