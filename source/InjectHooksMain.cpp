@@ -167,6 +167,7 @@
 #include "HandShaker.h"
 #include "TempColModels.h"
 #include "Conversations.h"
+#include "DecisionMakers/DecisionMakerTypesFileLoader.h"
 
 // Plant
 #include "PlantMgr.h"
