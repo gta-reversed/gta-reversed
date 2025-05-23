@@ -43,14 +43,13 @@ int32& CCarCtrl::LastTimeLawEnforcerCreated = *(int32*)0x9690B8;
 CVehicle* (&apCarsToKeep)[2] = *(CVehicle*(*)[2])0x969084;
 uint32 (&aCarsToKeepTime)[2] = *(uint32(*)[2])0x96907C;
 
-void CCarCtrl::InjectHooks()
-{
+void CCarCtrl::InjectHooks() {
     RH_ScopedClass(CCarCtrl);
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Init, 0x4212E0);
     RH_ScopedInstall(ReInit, 0x4213B0);
-    RH_ScopedInstall(GetNewVehicleDependingOnCarModel, 0x421440 , { .reversed = false });
+    RH_ScopedInstall(GetNewVehicleDependingOnCarModel, 0x421440, { .reversed = false });
     RH_ScopedInstall(InitSequence, 0x421740);
     RH_ScopedInstall(FindSequenceElement, 0x421770, { .reversed = false });
     RH_ScopedInstall(SetUpDriverAndPassengersForVehicle, 0x4217C0, { .reversed = false });
@@ -176,19 +175,19 @@ void CCarCtrl::Init() {
     ZoneScoped;
 
     CarDensityMultiplier = 1.0f;
-    NumRandomCars = 0;
-    NumLawEnforcerCars = 0;
-    NumMissionCars = 0;
-    NumParkedCars = 0;
+    NumRandomCars        = 0;
+    NumLawEnforcerCars   = 0;
+    NumMissionCars       = 0;
+    NumParkedCars        = 0;
     NumPermanentVehicles = 0;
-    NumAmbulancesOnDuty = 0;
-    NumFireTrucksOnDuty = 0;
+    NumAmbulancesOnDuty  = 0;
+    NumFireTrucksOnDuty  = 0;
 
-    LastTimeAmbulanceCreated = 0;
-    LastTimeFireTruckCreated = 0;
+    LastTimeAmbulanceCreated           = 0;
+    LastTimeFireTruckCreated           = 0;
     bAllowEmergencyServicesToBeCreated = true;
-    bCarsGeneratedAroundCamera = false;
-    CountDownToCarsAtStart = 2;
+    bCarsGeneratedAroundCamera         = false;
+    CountDownToCarsAtStart             = 2;
 
     TimeNextMadDriverChaseCreated = CGeneral::GetRandomNumberInRange(600.0f, 1200.0f);
 
@@ -204,13 +203,13 @@ void CCarCtrl::Init() {
 // 0x4213B0
 void CCarCtrl::ReInit() {
     CarDensityMultiplier = 1.0f;
-    NumRandomCars = 0;
-    NumLawEnforcerCars = 0;
-    NumMissionCars = 0;
-    NumParkedCars = 0;
+    NumRandomCars        = 0;
+    NumLawEnforcerCars   = 0;
+    NumMissionCars       = 0;
+    NumParkedCars        = 0;
     NumPermanentVehicles = 0;
-    NumAmbulancesOnDuty = 0;
-    NumFireTrucksOnDuty = 0;
+    NumAmbulancesOnDuty  = 0;
+    NumFireTrucksOnDuty  = 0;
 
     LastTimeLawEnforcerCreated = 0;
 
@@ -261,23 +260,23 @@ int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreLvpd1Model) {
     CWanted* playerWanted = FindPlayerWanted();
     if (playerWanted->AreSwatRequired()
         && CStreaming::IsModelLoaded(MODEL_ENFORCER)
-        && CStreaming::IsModelLoaded(MODEL_SWAT)
-    ) {
-        if (CGeneral::GetRandomNumberInRange(0, 3) == 2)
+        && CStreaming::IsModelLoaded(MODEL_SWAT)) {
+        if (CGeneral::GetRandomNumberInRange(0, 3) == 2) {
             return MODEL_ENFORCER;
-    }
-    else
-    {
+        }
+    } else {
         if (playerWanted->AreFbiRequired()
             && CStreaming::IsModelLoaded(MODEL_FBIRANCH)
-            && CStreaming::IsModelLoaded(MODEL_FBI))
+            && CStreaming::IsModelLoaded(MODEL_FBI)) {
             return MODEL_FBIRANCH;
+        }
 
         if (playerWanted->AreArmyRequired()
             && CStreaming::IsModelLoaded(MODEL_RHINO)
             && CStreaming::IsModelLoaded(MODEL_BARRACKS)
-            && CStreaming::IsModelLoaded(MODEL_ARMY))
+            && CStreaming::IsModelLoaded(MODEL_ARMY)) {
             return (CGeneral::GetRandomNumber() < 0x3FFF) + MODEL_RHINO;
+        }
     }
     return CStreaming::GetDefaultCopCarModel(ignoreLvpd1Model);
 }
@@ -294,11 +293,11 @@ void CCarCtrl::ClitargetOrientationToLink(CVehicle* vehicle, CCarPathLinkAddress
 
 // 0x431F80
 CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissionCleanup) {
-    if (CModelInfo::IsBoatModel(modelid))
-    {
+    if (CModelInfo::IsBoatModel(modelid)) {
         auto* boat = new CBoat(modelid, eVehicleCreatedBy::MISSION_VEHICLE);
-        if (posn.z <= MAP_Z_LOW_LIMIT)
+        if (posn.z <= MAP_Z_LOW_LIMIT) {
             posn.z = CWorld::FindGroundZForCoord(posn.x, posn.y);
+        }
 
         posn.z += boat->GetDistanceFromCentreOfMassToBaseOfModel();
         boat->SetPosn(posn);
@@ -314,35 +313,39 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
         boat->m_autoPilot.m_speed = 20.0F;
         boat->m_autoPilot.SetCruiseSpeed(20);
 
-        if (doMissionCleanup)
+        if (doMissionCleanup) {
             boat->m_bIsStaticWaitingForCollision = true;
+        }
 
         boat->m_autoPilot.movementFlags.bIsStopped = true;
         CWorld::Add(boat);
 
-        if (doMissionCleanup)
+        if (doMissionCleanup) {
             CTheScripts::MissionCleanUp.AddEntityToList(GetVehiclePool()->GetRef(boat), MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
+        }
 
         return boat;
     }
 
     auto* vehicle = GetNewVehicleDependingOnCarModel(modelid, eVehicleCreatedBy::MISSION_VEHICLE);
-    if (posn.z <= MAP_Z_LOW_LIMIT)
+    if (posn.z <= MAP_Z_LOW_LIMIT) {
         posn.z = CWorld::FindGroundZForCoord(posn.x, posn.y);
+    }
 
     posn.z += vehicle->GetDistanceFromCentreOfMassToBaseOfModel();
     vehicle->SetPosn(posn);
 
-    if (!doMissionCleanup)
-    {
-        if (vehicle->IsAutomobile())
+    if (!doMissionCleanup) {
+        if (vehicle->IsAutomobile()) {
             vehicle->AsAutomobile()->PlaceOnRoadProperly();
-        else if (vehicle->IsBike())
+        } else if (vehicle->IsBike()) {
             vehicle->AsBike()->PlaceOnRoadProperly();
+        }
     }
 
-    if (vehicle->IsTrain())
+    if (vehicle->IsTrain()) {
         vehicle->AsTrain()->trainFlags.bNotOnARailRoad = true;
+    }
 
     CTheScripts::ClearSpaceForMissionEntity(posn, vehicle);
     vehicle->vehicleFlags.bIsLocked = true;
@@ -359,15 +362,18 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
     vehicle->m_autoPilot.m_nCurrentLane = 0;
     vehicle->m_autoPilot.m_nNextLane = 0;
 
-    if (doMissionCleanup)
+    if (doMissionCleanup) {
         vehicle->m_bIsStaticWaitingForCollision = true;
+    }
 
     CWorld::Add(vehicle);
-    if (doMissionCleanup)
+    if (doMissionCleanup) {
         CTheScripts::MissionCleanUp.AddEntityToList(GetVehiclePool()->GetRef(vehicle), MISSION_CLEANUP_ENTITY_TYPE_VEHICLE);
+    }
 
-    if (vehicle->IsSubRoadVehicle())
+    if (vehicle->IsSubRoadVehicle()) {
         vehicle->m_autoPilot.movementFlags.bIsStopped = true;
+    }
 
     return vehicle;
 }
@@ -521,7 +527,7 @@ void CCarCtrl::GenerateRandomCars() {
     if (NumRandomCars < 45) {
         if (CountDownToCarsAtStart) {
             CountDownToCarsAtStart--;
-            for (auto i = 100; i --> 0;) {
+            for (auto i = 100; i-- > 0;) {
                 GenerateOneRandomCar();
             }
             CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
@@ -530,7 +536,6 @@ void CCarCtrl::GenerateRandomCars() {
             GenerateOneRandomCar();
         }
     }
-
 }
 
 // 0x42F3C0
@@ -721,18 +726,20 @@ bool CCarCtrl::PickNextNodeToFollowPath(CVehicle* vehicle) {
 
 // 0x429600
 void CCarCtrl::PossiblyFireHSMissile(CVehicle* entityLauncher, CEntity* targetEntity) {
-    if (!targetEntity)
+    if (!targetEntity) {
         return;
+    }
 
-    if (CTimer::GetTimeInMS() / 2000u == CTimer::GetPreviousTimeInMS() / 2000u)
+    if (CTimer::GetTimeInMS() / 2'000u == CTimer::GetPreviousTimeInMS() / 2'000u) {
         return;
+    }
 
     const CVector launcherPos = entityLauncher->GetPosition();
     const CVector targetPos = targetEntity->GetPosition();
     CVector dir = targetPos - launcherPos;
     const float dist = dir.Magnitude();
     if (dist < 160.0f && dist > 30.0f) {
-        CMatrix launcherMat = entityLauncher->GetMatrix();
+        CMatrix launcherMat   = entityLauncher->GetMatrix();
         CVector dirNormalized = dir;
         dir.Normalise();
         if (DotProduct(launcherMat.GetForward(), dirNormalized) > 0.8f) {
@@ -760,7 +767,7 @@ void CCarCtrl::PruneVehiclesOfInterest() {
     if ((CTimer::GetFrameCounter() % 64) == 19 && FindPlayerCoors(-1).z < 950.0f) {
         for (size_t i = 0; i < std::size(apCarsToKeep); i++) {
             if (apCarsToKeep[i]) {
-                if (CTimer::GetTimeInMS() > aCarsToKeepTime[i] + 180000) {
+                if (CTimer::GetTimeInMS() > aCarsToKeepTime[i] + 180'000) {
                     apCarsToKeep[i] = nullptr;
                 }
             }
@@ -782,11 +789,13 @@ void CCarCtrl::RegisterVehicleOfInterest(CVehicle* vehicle) {
 void CCarCtrl::RemoveCarsIfThePoolGetsFull() {
     ZoneScoped;
 
-    if (CTimer::GetFrameCounter() % 8 != 3)
+    if (CTimer::GetFrameCounter() % 8 != 3) {
         return;
+    }
 
-    if (GetVehiclePool()->GetNoOfFreeSpaces() >= 8)
+    if (GetVehiclePool()->GetNoOfFreeSpaces() >= 8) {
         return;
+    }
 
     // Find closest deletable vehicle
     const CVector camPos = TheCamera.GetPosition();
@@ -1106,7 +1115,7 @@ void CCarCtrl::SwitchVehicleToRealPhysics(CVehicle* vehicle) {
 
 // unused
 // 0x423F80
-void CCarCtrl::sub_423F80(CVehicle* vehicle, uint32 *a2) {
+void CCarCtrl::sub_423F80(CVehicle* vehicle, uint32* a2) {
 }
 
 // 0x425B30
