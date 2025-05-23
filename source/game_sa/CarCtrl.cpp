@@ -52,7 +52,7 @@ void CCarCtrl::InjectHooks() {
     RH_ScopedInstall(GetNewVehicleDependingOnCarModel, 0x421440, { .reversed = false });
     RH_ScopedInstall(InitSequence, 0x421740);
     RH_ScopedInstall(FindSequenceElement, 0x421770);
-    RH_ScopedInstall(SetUpDriverAndPassengersForVehicle, 0x4217C0, { .reversed = false });
+    RH_ScopedInstall(SetUpDriverAndPassengersForVehicle, 0x4217C0);
     RH_ScopedInstall(ChooseCarModelToLoad, 0x421900);
     RH_ScopedInstall(ChooseBoatModel, 0x421970);
     RH_ScopedInstall(ChoosePoliceCarModel, 0x421980 , { .jmpCodeSize = 7 });
@@ -907,8 +907,34 @@ void CCarCtrl::SetCoordsOfScriptCar(CVehicle* vehicle, float x, float y, float z
 }
 
 // 0x4217C0
-void CCarCtrl::SetUpDriverAndPassengersForVehicle(CVehicle* vehicle, int32 arg2, int32 arg3, bool arg4, bool arg5, int32 passengersNum) {
-    plugin::Call<0x4217C0, CVehicle*, int32, int32, bool, bool, int32>(vehicle, arg2, arg3, arg4, arg5, passengersNum);
+void CCarCtrl::SetUpDriverAndPassengersForVehicle(CVehicle* veh, uint32 pedType, uint32 requestedPassengers, bool arg4, bool arg5, uint32 maxPassengers) {
+    veh->SetUpDriver(pedType, arg4, arg5);
+    if (pedType >= 14 && pedType <= 23 && CGeneral::GetRandomNumber() < 0x3FFF) {
+        veh->m_pDriver->GiveObjectToPedToHold(ModelIndices::MI_GANG_SMOKE, 1);
+    }
+
+    maxPassengers = std::min(maxPassengers, (uint32)veh->m_nMaxPassengers);
+    uint32 passengerCount = std::min(requestedPassengers, maxPassengers);
+    for (uint32 i = maxPassengers - requestedPassengers; i > 0; --i) {
+        passengerCount += CGeneral::GetRandomNumberInRange(0.0f, 1.0f) < 0.125f;
+    }
+    passengerCount = std::min(passengerCount, maxPassengers);
+
+    if (CModelInfo::IsCarModel(veh->m_nModelIndex)) {
+        if (CAnimManager::GetAnimationBlockIndex("van") == CModelInfo::ms_modelInfoPtrs[veh->m_nModelIndex]->GetAnimFileIndex()
+            && passengerCount >= 1) {
+            passengerCount = 1;
+        }
+    }
+
+    for (auto i = 0u; i < passengerCount; ++i) {
+        if (CPed* passenger = veh->SetupPassenger(i, pedType, arg4, arg5)) {
+            passenger->UpdateStatEnteringVehicle();
+            if (pedType >= 14 && pedType <= 23 && CGeneral::GetRandomNumber() < 0x3FFF) {
+                passenger->GiveObjectToPedToHold(ModelIndices::MI_GANG_SMOKE, 1);
+            }
+        }
+    }
 }
 
 // 0x432420

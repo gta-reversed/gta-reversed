@@ -115,7 +115,7 @@ public:
     static void ScanForPedDanger(CVehicle* vehicle);
     static bool ScriptGenerateOneEmergencyServicesCar(uint32 modelId, CVector posn);
     static void SetCoordsOfScriptCar(CVehicle* vehicle, float x, float y, float z, uint8 arg5, uint8 arg6);
-    static void SetUpDriverAndPassengersForVehicle(CVehicle* vehicle, int32 arg2, int32 arg3, bool arg4, bool arg5, int32 passengersNum);
+    static void         SetUpDriverAndPassengersForVehicle(CVehicle* veh, uint32 pedType, uint32 requestedPassengers, bool arg4, bool arg5, uint32 maxPassengers);
     template<typename PtrListType>
     static void SlowCarDownForCarsSectorList(PtrListType& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8);
     static void SlowCarDownForObject(CEntity* entity, CVehicle* vehicle, float* arg3, float arg4);
