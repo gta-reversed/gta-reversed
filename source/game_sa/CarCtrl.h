@@ -68,7 +68,7 @@ public:
     static void FindNodesThisCarIsNearestTo(CVehicle* vehicle, CNodeAddress& nodeAddress1, CNodeAddress& nodeAddress2);
     static int8 FindPathDirection(CNodeAddress nodeAddress1, CNodeAddress nodeAddress2, CNodeAddress nodeAddress3, bool* arg4);
     static float FindPercDependingOnDistToLink(CVehicle* vehicle, CCarPathLinkAddress linkAddress);
-    static int32 FindSequenceElement(int32 arg1);
+    static int32 FindSequenceElement(int32 index);
     static float FindSpeedMultiplier(float arg1, float arg2, float arg3, float arg4);
     static float FindSpeedMultiplierWithSpeedFromNodes(int8 arg1);
     static bool sub_4240F0();

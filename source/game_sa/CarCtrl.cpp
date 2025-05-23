@@ -51,7 +51,7 @@ void CCarCtrl::InjectHooks() {
     RH_ScopedInstall(ReInit, 0x4213B0);
     RH_ScopedInstall(GetNewVehicleDependingOnCarModel, 0x421440, { .reversed = false });
     RH_ScopedInstall(InitSequence, 0x421740);
-    RH_ScopedInstall(FindSequenceElement, 0x421770, { .reversed = false });
+    RH_ScopedInstall(FindSequenceElement, 0x421770);
     RH_ScopedInstall(SetUpDriverAndPassengersForVehicle, 0x4217C0, { .reversed = false });
     RH_ScopedInstall(ChooseCarModelToLoad, 0x421900);
     RH_ScopedInstall(ChooseBoatModel, 0x421970);
@@ -434,8 +434,12 @@ float CCarCtrl::FindPercDependingOnDistToLink(CVehicle* vehicle, CCarPathLinkAdd
 }
 
 // 0x421770
-int32 CCarCtrl::FindSequenceElement(int32 arg1) {
-    return plugin::CallAndReturn<int32, 0x421770, int32>(arg1);
+int32 CCarCtrl::FindSequenceElement(int32 index) {
+    if (bSequenceOtherWay) {
+        return (SequenceRandomOffset + index) % SequenceElements;
+    } else {
+        return (SequenceRandomOffset + SequenceElements - index) % SequenceElements;
+    }
 }
 
 // 0x4224E0
