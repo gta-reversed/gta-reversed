@@ -6,6 +6,8 @@
 */
 #pragma once
 
+#include "common.h"
+
 class CColourSet {
 public:
     float  m_fAmbientRed;
@@ -77,13 +79,13 @@ public:
 
 public:
     static void InjectHooks();
-    CColourSet* Constructor(int32 weatherId, int32 timeId) {
-        this->CColourSet::CColourSet(weatherId, timeId);
+    CColourSet* Constructor(int32 timeId, int32 weatherId) {
+        this->CColourSet::CColourSet(timeId, weatherId);
         return this;
     }
 
     CColourSet() = default;
-    CColourSet(int32 weatherId, int32 timeId);
+    CColourSet(int32 timeId, int32 weatherId);
     void Interpolate(CColourSet* a, CColourSet* b, float fa, float fb, bool bIgnoreSky);
 
     // helpers
@@ -114,5 +116,4 @@ public:
         };
     }
 };
-
 VALIDATE_SIZE(CColourSet, 0xAC);
