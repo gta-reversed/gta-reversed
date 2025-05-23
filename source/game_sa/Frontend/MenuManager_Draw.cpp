@@ -714,7 +714,11 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
-            pTextToShow_RightColumn = TheText.Get((bInvertMouseY) ? "FEM_ON" : "FEM_OFF"); // NOSTA FIX
+            if (notsa::IsFixBugs()) {
+                pTextToShow_RightColumn = TheText.Get(bInvertMouseY ? "FEM_ON" : "FEM_OFF");
+            } else {
+                pTextToShow_RightColumn = TheText.Get(bInvertMouseY ? "FEM_OFF" : "FEM_ON");
+            }
             break;
         case eMenuAction::MENU_ACTION_RESOLUTION: {
             GxtChar tmpBuffer[1'024];
