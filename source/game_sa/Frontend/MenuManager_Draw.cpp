@@ -545,14 +545,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
         case eMenuEntryType::TI_MOUSEJOYPAD:
             switch (m_ControlMethod) {
-            case eController::JOYPAD:
-                pTextToShow = (GxtChar*)TheText.Get("FEJ_TIT"); // Joypad Settings
-                break;
-            case eController::MOUSE_PLUS_KEYS:
-                pTextToShow = (GxtChar*)TheText.Get("FEC_MOU"); // Mouse Settings
-                break;
-            default:
-                NOTSA_UNREACHABLE();
+            case eController::JOYPAD:          pTextToShow = (GxtChar*)TheText.Get("FEJ_TIT"); break; // Joypad Settings
+            case eController::MOUSE_PLUS_KEYS: pTextToShow = (GxtChar*)TheText.Get("FEC_MOU"); break; // Mouse Settings
+            default:                           NOTSA_UNREACHABLE();
             }
             break;
         default: {
@@ -733,14 +728,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
         case eMenuAction::MENU_ACTION_CONTROL_TYPE:
             switch (m_ControlMethod) {
-            case eController::JOYPAD:
-                pTextToShow_RightColumn = TheText.Get("FET_CCN"); // Joypad
-                break;
-            case eController::MOUSE_PLUS_KEYS:
-                pTextToShow_RightColumn = TheText.Get("FET_SCN"); // Mouse + Keys
-                break;
-            default:
-                NOTSA_UNREACHABLE();
+            case eController::JOYPAD:          pTextToShow_RightColumn = TheText.Get("FET_CCN"); break; // Joypad
+            case eController::MOUSE_PLUS_KEYS: pTextToShow_RightColumn = TheText.Get("FET_SCN"); break; // Mouse + Keys
+            default:                           NOTSA_UNREACHABLE();
             }
             break;
         case eMenuAction::MENU_ACTION_MOUSE_STEERING:
@@ -1366,28 +1356,18 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetEdge(0);
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-    GxtChar* text;
+    const GxtChar* text;
     switch (m_ControlMethod) {
-    case eController::JOYPAD:
-        text = (GxtChar*)TheText.Get("FET_CCN"); // Joypad
-        break;
-    case eController::MOUSE_PLUS_KEYS:
-        text = (GxtChar*)TheText.Get("FET_SCN"); // Mouse + Keys
-        break;
-    default:
-        NOTSA_UNREACHABLE();
+    case eController::JOYPAD:          text = TheText.Get("FET_CCN"); break; // Joypad
+    case eController::MOUSE_PLUS_KEYS: text = TheText.Get("FET_SCN"); break; // Mouse + Keys
+    default:                           NOTSA_UNREACHABLE();
     }
     CFont::PrintString(SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), text);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     switch (m_RedefiningControls) {
-    case eControlMode::VEHICLE:
-        text = (GxtChar*)TheText.Get("FET_CCR"); // Vehicle Controls
-        break;
-    case eControlMode::FOOT:
-        text = (GxtChar*)TheText.Get("FET_CFT"); // Foot Controls
-        break;
-    default:
-        NOTSA_UNREACHABLE();
+    case eControlMode::VEHICLE: text = TheText.Get("FET_CCR"); break; // Vehicle Controls
+    case eControlMode::FOOT:    text = TheText.Get("FET_CFT"); break; // Foot Controls
+    default:                    NOTSA_UNREACHABLE();
     }
     CFont::PrintString(StretchX(48.0f), StretchY(11.0f), text);
     CSprite2d::DrawRect({
