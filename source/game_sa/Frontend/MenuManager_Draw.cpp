@@ -1403,14 +1403,9 @@ void CMenuManager::DrawControllerSetupScreen() {
         CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
         const GxtChar* actionText = nullptr;
         switch (m_RedefiningControls) {
-        case eControlMode::VEHICLE:
-            actionText = keys[+ControllerActionsAvailableInCar[i]];
-            break;
-        case eControlMode::FOOT:
-            actionText = keys[+ControllerActionsAvailableOnFoot[i]];
-            break;
-        default:
-            NOTSA_UNREACHABLE();
+        case eControlMode::VEHICLE: actionText = keys[+ControllerActionsAvailableInCar[i]]; break;
+        case eControlMode::FOOT:    actionText = keys[+ControllerActionsAvailableOnFoot[i]]; break;
+        default:                    NOTSA_UNREACHABLE();
         };
 
         if (actionText) {
