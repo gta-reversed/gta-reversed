@@ -317,9 +317,9 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOnl
 }
 
 // 0x52F550
-bool CControllerConfigManager::GetIsActionAButtonCombo(eControllerAction Action) {
+bool CControllerConfigManager::GetIsActionAButtonCombo(eControllerAction action) {
     /* NOT USED IN SA, but explains some things
-    switch (Action) {
+    switch (action) {
     case VEHICLE_LOOK_BEHIND:
     // case PED_CYCLE_TARGET_LEFT:
     // case PED_CYCLE_TARGET_RIGHT:
@@ -1094,8 +1094,7 @@ eActionType CControllerConfigManager::GetActionType(eControllerAction action) {
 
 // 0x52F390
 const GxtChar* CControllerConfigManager::GetControllerSettingTextMouse(eControllerAction action) {
-    const auto button = GetMouseButtonAssociatedWithAction(action);
-    switch (button) {
+    switch (GetMouseButtonAssociatedWithAction(action)) {
     case rsMOUSE_LEFT_BUTTON:       return TheText.Get("FEC_MSL"); // LMB
     case rsMOUSE_MIDDLE_BUTTON:     return TheText.Get("FEC_MSM"); // MMB
     case rsMOUSE_RIGHT_BUTTON:      return TheText.Get("FEC_MSR"); // RMB

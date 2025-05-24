@@ -343,17 +343,18 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         return true;
     case MENU_ACTION_CTRLS_JOYPAD:
         switch (m_ControlMethod) {
-        case eController::JOYPAD: SwitchToNewScreen(SCREEN_JOYPAD_SETTINGS); break;
-        default:                  SwitchToNewScreen(SCREEN_MOUSE_SETTINGS); break;
+        case eController::JOYPAD:          SwitchToNewScreen(SCREEN_JOYPAD_SETTINGS); break;
+        case eController::MOUSE_PLUS_KEYS: SwitchToNewScreen(SCREEN_MOUSE_SETTINGS); break;
+        default:                           NOTSA_UNREACHABLE();
         }
         return true;
     case MENU_ACTION_CTRLS_FOOT: // Redefine Controls -> Foot Controls
-        m_RedefiningControls = false;
+        m_RedefiningControls = eControlMode::FOOT;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
     case MENU_ACTION_CTRLS_CAR: // Redefine Controls -> Vehicle Controls
-        m_RedefiningControls = true;
+        m_RedefiningControls = eControlMode::VEHICLE;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
@@ -429,7 +430,6 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
             }
             m_nPrefsAntialiasing = m_nDisplayAntialiasing;
             RwD3D9ChangeMultiSamplingLevels(m_nDisplayAntialiasing);
-            // ((void(*)(int))0x745C70)(m_nPrefsVideoMode);
             SetVideoMode(m_nPrefsVideoMode);
             SaveSettings();
             return true;
@@ -559,10 +559,12 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
             m_ControlMethod = eController::MOUSE_PLUS_KEYS;
             CCamera::m_bUseMouse3rdPerson = true;
             break;
-        default:
+        case eController::MOUSE_PLUS_KEYS:
             m_ControlMethod = eController::JOYPAD;
             CCamera::m_bUseMouse3rdPerson = false;
             break;
+        default:
+            NOTSA_UNREACHABLE();
         }
         SaveSettings();
         return true;
