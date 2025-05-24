@@ -1122,7 +1122,7 @@ eContSetOrder CControllerConfigManager::GetNumOfSettingsForAction(eControllerAct
     eContSetOrder count = eContSetOrder::NONE;
     for (const auto& type : CONTROLLER_TYPES_ALL) {
         if (!GetIsKeyBlank(GetControllerKeyAssociatedWithAction(action, type), type)) {
-            (+count + 1);
+            count = (eContSetOrder)(+count + 1);
         }
     }
     return count;
