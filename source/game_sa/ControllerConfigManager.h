@@ -227,7 +227,7 @@ public:
     void ClearSettingsAssociatedWithAction(eControllerAction action, eControllerType type);
     const GxtChar* GetControllerSettingTextMouse(eControllerAction action);
     const GxtChar* GetControllerSettingTextJoystick(eControllerAction action);
-    eContSetOrder  GetNumOfSettingsForAction(eControllerAction action);
+    eContSetOrder GetNumOfSettingsForAction(eControllerAction action);
     void MakeControllerActionsBlank();
     void AffectPadFromKeyBoard();
     void AffectPadFromMouse();
