@@ -424,7 +424,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
     }
 
     // Check if file has valid header
-    char buffer[52] = { 0 };
+    char buffer[52] = {0};
     CFileMgr::Read(file, buffer, 29);
     if (!strncmp(buffer, "THIS FILE IS NOT VALID YET", 26)) {
         return true;
@@ -1328,7 +1328,7 @@ const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction ac
 
 // 0x5303D0
 const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerAction action) {
-    if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
+    if (FrontEndMenuManager.m_ControlMethod != eController::MOUSE_PLUS_KEYS) {
         if (const auto keyText = GetControllerSettingTextJoystick(action)) {
             return keyText;
         }

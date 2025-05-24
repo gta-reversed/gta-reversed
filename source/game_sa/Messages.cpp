@@ -85,15 +85,15 @@ void CMessages::AddMessage2(const GxtChar* text, uint32 time, uint16 flag, bool 
             numbers
         };
         if (bPreviousBrief && (showInstantly || p == &BriefMessages.front())) {
-            AddToPreviousBriefArray(
-                p->Text,
-                p->NumbersToInsert[0],
-                p->NumbersToInsert[1],
-                p->NumbersToInsert[2],
-                p->NumbersToInsert[3],
-                p->NumbersToInsert[4],
-                p->NumbersToInsert[5],
-                p->StringToInsert
+		    AddToPreviousBriefArray(
+			    p->Text,
+			    p->NumbersToInsert[0],
+			    p->NumbersToInsert[1],
+			    p->NumbersToInsert[2],
+			    p->NumbersToInsert[3],
+			    p->NumbersToInsert[4],
+			    p->NumbersToInsert[5],
+			    p->StringToInsert
             );
         }
     };
@@ -551,12 +551,12 @@ void CMessages::Process() {
     // Process big messages
     for (auto& omgVeryBig : BIGMessages) {
         ProcessMessagesArray(omgVeryBig.Stack);
-    }
+	}
 
     // Process briefs
     ProcessMessagesArray(BriefMessages);
     if (const auto f = BriefMessages.front(); f.IsValid()) {
-        AddToPreviousBriefArray(
+		AddToPreviousBriefArray(
             f.Text,
             f.NumbersToInsert[0],
             f.NumbersToInsert[1],
