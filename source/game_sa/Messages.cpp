@@ -503,7 +503,7 @@ void CMessages::InsertPlayerControlKeysInString(GxtChar* string) {
         const auto actionId   = ControlsManager.GetActionIDByName(actionName);
 
         // If not found we know the location of the next `~`, so skip to there
-        if (actionId == eControllerAction::NONE) {
+        if (actionId == eControllerAction::CA_NONE) {
             SkipTo((const GxtChar*)pNameEnd);
             NOTSA_LOG_DEBUG("Invalid action name({}) [String: {}]", std::string_view{ pNeedle, pNameEnd }, AsciiFromGxtChar(haystack));
             continue;

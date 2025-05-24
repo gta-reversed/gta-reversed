@@ -21,7 +21,7 @@ enum class eActionType {
 
 enum class eControllerAction {
     COMBOLOCK                         = -2,
-    NONE                              = -1,
+    CA_NONE                           = -1,
     PED_FIRE_WEAPON                   = 0,
     PED_FIRE_WEAPON_ALT               = 1,
     PED_CYCLE_WEAPON_RIGHT            = 2,
