@@ -1119,13 +1119,13 @@ const GxtChar* CControllerConfigManager::GetControllerSettingTextJoystick(eContr
 // unused
 // 0x52F4A0
 eContSetOrder CControllerConfigManager::GetNumOfSettingsForAction(eControllerAction action) {
-    auto count = 0u;
+    eContSetOrder count = eContSetOrder::NONE;
     for (const auto& type : CONTROLLER_TYPES_ALL) {
-        if (!GetIsKeyBlank(m_Actions[+action].Keys[+type].m_uiActionInitiator, type)) {
-            count++;
+        if (!GetIsKeyBlank(GetControllerKeyAssociatedWithAction(action, type), type)) {
+            +count + 1;
         }
     }
-    return (eContSetOrder)count;
+    return count;
 }
 
 // 0x530500
