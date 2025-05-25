@@ -1156,7 +1156,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 
     auto currentY = StretchY(float(verticalOffset));
 
-    uint32 actionIndex = 0u;
+    auto actionIndex = 0u;
     // Main loop - process each action
     while (actionIndex < maxActions) {
         auto currentX = StretchX(270.0f);
@@ -1238,7 +1238,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                 CFont::PrintString(currentX, currentY, TheText.Get("FEC_CMP")); // COMBO: Uses LOOK LEFT + LOOK RIGHT together
             }
         } else {
-            const auto isEditable = controllerAction >= eControllerAction::CA_NONE + 1;
+            const auto isEditable = controllerAction > eControllerAction::CA_NONE;
             const auto shouldUpdateBlink = isSelected && isEditable && m_EditingControlOptions;
             if (shouldUpdateBlink) {
                 // 0x57ECEB
@@ -1487,8 +1487,14 @@ int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float le
         float bottom = y + maxBarHeight;
 
         // Useless shadow for stripe. Drawing black on black = nothing. Change color to CRGBA(40, 40, 40, 200) to test
-        CSprite2d::DrawRect(CRect(left + StretchX(2.0f), top + StretchY(2.0f), right + StretchX(2.0f), bottom + StretchY(2.0f)), COLOR_SHADOW);
-        CSprite2d::DrawRect(CRect(left, top, right, bottom), color);
+        CSprite2d::DrawRect({
+                left + StretchX(2.0f),
+                top + StretchY(2.0f),
+                right + StretchX(2.0f),
+                bottom + StretchY(2.0f)
+            }, COLOR_SHADOW
+        );
+        CSprite2d::DrawRect({ left, top, right, bottom }, color);
     }
     return lastActiveBarX;
 }
