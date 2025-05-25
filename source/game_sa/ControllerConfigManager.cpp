@@ -1399,9 +1399,9 @@ void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControl
 // inline
 void CControllerConfigManager::CheckAndSetStick(eControllerAction action, eControllerType type, KeyCode button, int16& state, bool& movementBothDown, int16 value) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
-        if (movementBothDown) {
+        if (state == -value || movementBothDown) {
             state = 0;
-            movementBothDown = true; // Maybe nop
+            movementBothDown = true;
         } else {
             state = value;
         }
