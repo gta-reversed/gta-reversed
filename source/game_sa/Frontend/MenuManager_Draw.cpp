@@ -1363,7 +1363,6 @@ void CMenuManager::DrawControllerSetupScreen() {
     }
     CFont::PrintString(SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), text);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-    CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     switch (m_RedefiningControls) {
     case eControlMode::VEHICLE: text = TheText.Get("FET_CCR"); break; // Vehicle Controls
     case eControlMode::FOOT:    text = TheText.Get("FET_CFT"); break; // Foot Controls
