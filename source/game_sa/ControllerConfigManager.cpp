@@ -271,8 +271,8 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_VehicleAndThir
 // 0x52FCA0
 void CControllerConfigManager::AffectControllerStateOn_ButtonDown_AllStates(KeyCode button, eControllerType type, CControllerState* state) {
     CheckAndSetButton(CAMERA_CHANGE_VIEW_ALL_SITUATIONS, type, button, state->Select);
-    CheckAndSetPad(CONVERSATION_NO, type, button, state->DPadLeft, state->DPadRight);
-    CheckAndSetPad(CONVERSATION_YES, type, button, state->DPadRight, state->DPadLeft);
+    CheckAndSetPad(CONVERSATION_NO, type, button, state->DPadRight, state->DPadLeft);
+    CheckAndSetPad(CONVERSATION_YES, type, button, state->DPadLeft, state->DPadRight);
     CheckAndSetButton(NETWORK_TALK, type, button, state->m_bChatIndicated);
 }
 
@@ -291,8 +291,8 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstAndThirdP
     CheckAndSetStick(GO_LEFT, type, button, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[+type], -128);
     CheckAndSetStick(GO_RIGHT, type, button, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[+type], 128);
     CheckAndSetButton(PED_WALK, type, button, state->m_bPedWalk);
-    CheckAndSetPad(GROUP_CONTROL_FWD, type, button, state->DPadUp, state->DPadDown);
-    CheckAndSetPad(GROUP_CONTROL_BWD, type, button, state->DPadDown, state->DPadUp);
+    CheckAndSetPad(GROUP_CONTROL_FWD, type, button, state->DPadDown, state->DPadUp);
+    CheckAndSetPad(GROUP_CONTROL_BWD, type, button, state->DPadUp, state->DPadDown);
     CheckAndSetStick(PED_1RST_PERSON_LOOK_LEFT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[+type], -128);
     CheckAndSetStick(PED_1RST_PERSON_LOOK_RIGHT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[+type], 128);
     if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
@@ -1385,13 +1385,13 @@ void CControllerConfigManager::CheckAndSetButton(eControllerAction action, eCont
 }
 
 // inline
-void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControllerType type, KeyCode button, int16& dpad, int16& oppositeDpad) {
+void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControllerType type, KeyCode button, int16& primaryState, int16& secondaryState) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
-        if (dpad) {
-            dpad         = 0;
-            oppositeDpad = 0;
+        if (primaryState) {
+            primaryState   = 0;
+            secondaryState = 0;
         } else {
-            dpad = 255;
+            secondaryState = 255;
         }
     }
 }

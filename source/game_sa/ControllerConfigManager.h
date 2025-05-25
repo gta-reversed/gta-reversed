@@ -244,7 +244,7 @@ private:
     void CheckAndClear(eControllerAction action, eControllerType type, KeyCode button);
     void CheckAndSetButton(eControllerAction action, eControllerType type, KeyCode button, int16& state);
     void CheckAndReset(eControllerAction action, eControllerType type, KeyCode button, int16& state);
-    void CheckAndSetPad(eControllerAction action, eControllerType type, KeyCode button, int16& dpad, int16& oppositeDpad);
+    void CheckAndSetPad(eControllerAction action, eControllerType type, KeyCode button, int16& primaryState, int16& secondaryState);
     void CheckAndSetStick(eControllerAction action, eControllerType type, KeyCode button, int16& state, bool& movementBothDown, int16 value);
     int16& GetControllerStateJoyStick(CPad& pad, KeyCode button);
     bool UseDrivingControls();
