@@ -351,9 +351,9 @@ void CMenuManager::RedefineScreenUserInput(bool* enter, bool* back) {
 
     // 0x57F058
     // Reset key pressed state after a delay
-    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.m_nLastPressed > 200) {
+    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B64 > 200) {
         rng::fill(m_KeyPressed, false);
-        FrontEndMenuManager.m_nLastPressed = CTimer::m_snTimeInMillisecondsPauseMode;
+        FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
     }
 
     // 0x57F086
@@ -364,7 +364,7 @@ void CMenuManager::RedefineScreenUserInput(bool* enter, bool* back) {
         m_DisplayTheMouse = true;
         if (!m_KeyPressed[2]) {
             m_KeyPressed[2] = true;
-            FrontEndMenuManager.m_nLastPressed = CTimer::m_snTimeInMillisecondsPauseMode;
+            FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
             m_ListSelection = m_ListSelection > 0 ? m_ListSelection - 1 : maxAction - 1;
         }
     } else {
@@ -379,7 +379,7 @@ void CMenuManager::RedefineScreenUserInput(bool* enter, bool* back) {
         m_DisplayTheMouse = true;
         if (!m_KeyPressed[3]) {
             m_KeyPressed[3] = true;
-            FrontEndMenuManager.m_nLastPressed = CTimer::m_snTimeInMillisecondsPauseMode;
+            FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
             m_ListSelection = (m_ListSelection == maxAction - 1) ? 0 : m_ListSelection + 1;
         }
     } else {

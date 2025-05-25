@@ -1022,9 +1022,9 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
             
             if (action == m_ListSelection) {
                 if (m_EditingControlOptions) {
-                    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B64 > 150) {
+                    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.LastFlash > 150) {
                         FrontEndMenuManager.ColourSwitch ^= true;
-                        FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
+                        FrontEndMenuManager.LastFlash = CTimer::m_snTimeInMillisecondsPauseMode;
                     }
                     
                     if (FrontEndMenuManager.ColourSwitch) {

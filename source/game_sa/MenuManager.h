@@ -244,8 +244,8 @@ public:
     bool  ColourSwitch;
     char  field_1B5D;
     int16 field_1B5E;
+    uint32 LastFlash;
     uint32 field_1B64;
-    uint32 m_nLastPressed;
     int32 m_nTimeSlideLeftMove;
     int32 m_nTimeSlideRightMove;
     int32 field_1B70;
