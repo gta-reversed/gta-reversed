@@ -169,10 +169,7 @@ void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction actio
         return;
     }
 
-    if (action != eControllerAction::CA_PED_ANSWER_PHONE
-        && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD
-        || FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS
-    ) {
+    if (action != eControllerAction::CA_PED_ANSWER_PHONE && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD || FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS) {
         CheckAndClear(eControllerAction::CA_PED_FIRE_WEAPON_ALT, type, button);
     }
     CheckAndClear(eControllerAction::CA_PED_FIRE_WEAPON, type, button);
