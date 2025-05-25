@@ -36,14 +36,9 @@ struct MPack {
     char  m_Name[260];
 };
 
-enum class eController : uint8 {
+enum eController : int8 {
     MOUSE_PLUS_KEYS = 0,
-    JOYPAD          = 1
-};
-
-enum class eControlMode : uint8 {
-    FOOT    = 0,
-    VEHICLE = 1
+    JOYPAD = 1
 };
 
 constexpr auto FRONTEND_MAP_RANGE_MIN = 300.0f;
@@ -138,7 +133,7 @@ public:
     bool      m_bSwapPadAxis1;
     bool      m_bSwapPadAxis2;
 
-    eControlMode m_RedefiningControls;
+    bool      m_RedefiningControls;
     bool      m_DisplayTheMouse; // m_bMouseMoved
     int32     m_nMousePosX;
     int32     m_nMousePosY;
@@ -362,8 +357,6 @@ public:
         }
         return "movies\\GTAtitles.mpg";
     }
-    uint32 GetMaxAction();
-    uint32 GetVerticalSpacing();
 
     //! Simulate that we came into the menu and clicked to load game
     //! @param newGame If we should start a new game
