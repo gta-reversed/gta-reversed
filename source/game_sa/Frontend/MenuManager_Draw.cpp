@@ -542,7 +542,11 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuEntryType::TI_MOUSEJOYPAD:
-            pTextToShow = (GxtChar*)TheText.Get(m_ControlMethod ? "FEJ_TIT" : "FEC_MOU");
+            switch (m_ControlMethod) {
+            case eController::JOYPAD:          pTextToShow = (GxtChar*)TheText.Get("FEJ_TIT"); break; // Joypad Settings
+            case eController::MOUSE_PLUS_KEYS: pTextToShow = (GxtChar*)TheText.Get("FEC_MOU"); break; // Mouse Settings
+            default:                           NOTSA_UNREACHABLE();
+            }
             break;
         default: {
             if (isSlot) {
@@ -717,7 +721,11 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_CONTROL_TYPE:
-            pTextToShow_RightColumn = (m_ControlMethod == eController::JOYPAD) ? (m_ControlMethod != eController::JOYPAD ? nullptr : TheText.Get("FET_CCN")) : TheText.Get("FET_SCN");
+            switch (m_ControlMethod) {
+            case eController::JOYPAD:          pTextToShow_RightColumn = TheText.Get("FET_CCN"); break; // Joypad
+            case eController::MOUSE_PLUS_KEYS: pTextToShow_RightColumn = TheText.Get("FET_SCN"); break; // Mouse + Keys
+            default:                           NOTSA_UNREACHABLE();
+            }
             break;
         case eMenuAction::MENU_ACTION_MOUSE_STEERING:
             pTextToShow_RightColumn = TheText.Get((CVehicle::m_bEnableMouseSteering) ? "FEM_ON" : "FEM_OFF");
@@ -1338,9 +1346,14 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetEdge(0);
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-    CFont::PrintString(
-        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_ControlMethod ? "FET_CCN" : "FET_SCN")
-    );
+    const GxtChar* text;
+    switch (m_ControlMethod) {
+    case eController::JOYPAD:          text = TheText.Get("FET_CCN"); break; // Joypad
+    case eController::MOUSE_PLUS_KEYS: text = TheText.Get("FET_SCN"); break; // Mouse + Keys
+    default:                           NOTSA_UNREACHABLE();
+    }
+    CFont::PrintString(SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), text);
+    CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::PrintString(
         StretchX(48.0f), StretchY(11.0f), TheText.Get(m_RedefiningControls ? "FET_CCR" : "FET_CFT")

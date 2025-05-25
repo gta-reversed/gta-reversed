@@ -36,9 +36,9 @@ struct MPack {
     char  m_Name[260];
 };
 
-enum eController : int8 {
+enum class eController : int8 {
     MOUSE_PLUS_KEYS = 0,
-    JOYPAD = 1
+    JOYPAD          = 1
 };
 
 constexpr auto FRONTEND_MAP_RANGE_MIN = 300.0f;

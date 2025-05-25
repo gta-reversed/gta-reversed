@@ -169,7 +169,10 @@ void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction actio
         return;
     }
 
-    if (action != eControllerAction::CA_PED_ANSWER_PHONE && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD || !FrontEndMenuManager.m_ControlMethod) {
+    if (action != eControllerAction::CA_PED_ANSWER_PHONE
+        && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD
+        || FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS
+    ) {
         CheckAndClear(eControllerAction::CA_PED_FIRE_WEAPON_ALT, type, button);
     }
     CheckAndClear(eControllerAction::CA_PED_FIRE_WEAPON, type, button);
@@ -1337,7 +1340,7 @@ const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction ac
 
 // 0x5303D0
 const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerAction action) {
-    if (FrontEndMenuManager.m_ControlMethod) {
+    if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
         if (const auto keyText = GetControllerSettingTextJoystick(action)) {
             return keyText;
         }
