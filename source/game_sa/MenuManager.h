@@ -186,11 +186,7 @@ public:
     uint8 m_nControllerError;
     bool  m_bScanningUserTracks;
     int32 m_nHelperTextFadingAlpha;
-    char  field_1AF0;
-    char  field_1AF1;
-    char  field_1AF2;
-    char  field_1AF3;
-    int32 field_1AF4;
+    bool  m_KeyPressed[5];
     int32 m_nOldMousePosX;
     int32 m_nOldMousePosY;
     int32 m_MouseInBounds;
@@ -249,7 +245,7 @@ public:
     char  field_1B5D;
     int16 field_1B5E;
     int32 LastFlash;
-    int32 field_1B64;
+    uint32 m_nLastPressed;
     int32 m_nTimeSlideLeftMove;
     int32 m_nTimeSlideRightMove;
     int32 field_1B70;

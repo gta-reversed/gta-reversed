@@ -171,8 +171,8 @@ void CMenuManager::UserInput() {
         }
 
         // Only exit if not on main menus
-        if ((pad->IsTrianglePressed() || pad->IsEscJustPressed() || pad->f0x57C360()) &&
-            !notsa::contains(mainMenu, m_nCurrentScreen)) { // f0x57C360 notsa: back button
+        if ((pad->IsTrianglePressed() || pad->IsEscJustPressed() || pad->IsBackspacePressed()) &&
+            !notsa::contains(mainMenu, m_nCurrentScreen)) {
             m_DisplayTheMouse = false;
             bExit = true;
         }
@@ -322,8 +322,105 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
 /*!
  * @addr 0x57EF50
  */
-void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
-    plugin::CallMethod<0x57EF50, CMenuManager*, bool*, bool*>(this, accept, cancel);
+void CMenuManager::RedefineScreenUserInput(bool* enter, bool* back) {
+    if (m_EditingControlOptions) {
+        return; // 0x57EF53 - Invert
+    }
+
+    const auto maxAction = m_nCurrentScreen == SCREEN_CONTROLS_DEFINITION ? GetMaxAction() : 0u;
+    const auto pad = CPad::GetPad();
+
+    // 0x57EF97
+    // Handle enter key/button press
+    if ((CPad::IsEnterJustPressed() || pad->IsCrossPressed()) && (m_nSysMenu & 0x80u)) {
+        m_DisplayTheMouse = false;
+        *enter = true;
+    }
+
+    // 0x57EFF6
+    // Handle backspace key logic
+    if (!CPad::IsBackspacePressed() || m_nCurrentScreen != SCREEN_CONTROLS_DEFINITION || m_JustExitedRedefine) {
+        m_JustExitedRedefine = false;
+    } else {
+        m_MouseInBounds = 16;
+        m_EditingControlOptions = true;
+        m_bJustOpenedControlRedefWindow = true;
+        m_DeleteAllBoundControls = true;
+        m_pPressedKey = &m_KeyPressedCode;
+    }
+
+    // 0x57F058
+    // Reset key pressed state after a delay
+    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.m_nLastPressed > 200) {
+        rng::fill(m_KeyPressed, false);
+        FrontEndMenuManager.m_nLastPressed = CTimer::m_snTimeInMillisecondsPauseMode;
+    }
+
+    // 0x57F086
+    // Handle up navigation (keyboard, pad, or mouse wheel up)
+    if (CPad::IsUpPressed() || CPad::GetAnaloguePadUp() || pad->IsDPadUpPressed()) {
+        m_DisplayTheMouse = false;
+    } else if (CPad::IsMouseWheelUpPressed()) {
+        m_DisplayTheMouse = true;
+        if (!m_KeyPressed[2]) {
+            m_KeyPressed[2] = true;
+            FrontEndMenuManager.m_nLastPressed = CTimer::m_snTimeInMillisecondsPauseMode;
+            m_ListSelection = m_ListSelection > 0 ? m_ListSelection - 1 : maxAction - 1;
+        }
+    } else {
+        m_KeyPressed[2] = false;
+    }
+
+    // 0x57F138
+    // Handle down navigation (keyboard, pad, or mouse wheel down)
+    if (CPad::IsDownPressed() || CPad::GetAnaloguePadDown() || pad->IsDPadDownPressed()) {
+        m_DisplayTheMouse = false;
+    } else if (CPad::IsMouseWheelDownPressed()) {
+        m_DisplayTheMouse = true;
+        if (!m_KeyPressed[3]) {
+            m_KeyPressed[3] = true;
+            FrontEndMenuManager.m_nLastPressed = CTimer::m_snTimeInMillisecondsPauseMode;
+            m_ListSelection = (m_ListSelection == maxAction - 1) ? 0 : m_ListSelection + 1;
+        }
+    } else {
+        m_KeyPressed[3] = false;
+    }
+
+    // 0x57F1F0
+    // Handle escape/triangle button for back
+    if (CPad::IsEscJustPressed() || pad->IsTrianglePressed()) {
+        m_DisplayTheMouse = false;
+        *back = true;
+    }
+
+    // 0x57F235 - 0x57F299
+    // Handle mouse left button clicks
+    if (CPad::IsMouseLButtonPressed()) {
+        if (m_MouseInBounds == 3) {
+            *back = true;
+        } else if (m_MouseInBounds == 4) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0f, 1.0f);
+            m_MouseInBounds = 5;
+        }
+    }
+
+    // 0x57F2A3
+    // Handle back logic for control redefinition
+    if (*back) {
+        if (m_bRadioAvailable) {
+            m_RedefiningControls = (eControlMode)(m_RedefiningControls == eControlMode::FOOT);
+            DrawControllerBound(0x45u, true);
+            if (!m_bRadioAvailable) {
+                switch (m_RedefiningControls) {
+                case eControlMode::FOOT:    m_nControllerError = 2; break;
+                case eControlMode::VEHICLE: m_nControllerError = 1; break;
+                default:                    NOTSA_UNREACHABLE();
+                };
+            }
+        } else {
+            m_nControllerError = 3;
+        }
+    }
 }
 
 /*!

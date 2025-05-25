@@ -263,7 +263,7 @@ public:
     static bool IsEscJustPressed() noexcept                                 { return KEY_IS_PRESSED(esc); }                                                                  // 0x572DB0
 
     bool IsRadioTrackSkipPressed() { return BUTTON_IS_PRESSED(m_bRadioTrackSkip); } // 0x4E7F20
-    static bool f0x57C360() { return NewKeyState.back && !OldKeyState.back; }       // 0x57C360
+    static bool IsBackspacePressed() noexcept { return KEY_IS_PRESSED(back); }      // 0x57C360
 
     // KEYBOARD END
 
