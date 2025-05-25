@@ -342,15 +342,19 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         m_bScanningUserTracks = true;
         return true;
     case MENU_ACTION_CTRLS_JOYPAD:
-        SwitchToNewScreen(m_ControlMethod == eController::JOYPAD ? SCREEN_JOYPAD_SETTINGS : SCREEN_MOUSE_SETTINGS);
+        switch (m_ControlMethod) {
+        case eController::JOYPAD:          SwitchToNewScreen(SCREEN_JOYPAD_SETTINGS); break;
+        case eController::MOUSE_PLUS_KEYS: SwitchToNewScreen(SCREEN_MOUSE_SETTINGS); break;
+        default:                           NOTSA_UNREACHABLE();
+        }
         return true;
     case MENU_ACTION_CTRLS_FOOT: // Redefine Controls -> Foot Controls
-        m_RedefiningControls = false;
+        m_RedefiningControls = eControlMode::FOOT;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
     case MENU_ACTION_CTRLS_CAR: // Redefine Controls -> Vehicle Controls
-        m_RedefiningControls = true;
+        m_RedefiningControls = eControlMode::VEHICLE;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
@@ -553,13 +557,15 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
     case MENU_ACTION_CONTROL_TYPE:
         switch (m_ControlMethod) {
         case eController::JOYPAD:
-            CCamera::m_bUseMouse3rdPerson = true;
             m_ControlMethod = eController::MOUSE_PLUS_KEYS;
+            CCamera::m_bUseMouse3rdPerson = true;
             break;
         case eController::MOUSE_PLUS_KEYS:
-            CCamera::m_bUseMouse3rdPerson = false;
             m_ControlMethod = eController::JOYPAD;
+            CCamera::m_bUseMouse3rdPerson = false;
             break;
+        default:
+            NOTSA_UNREACHABLE();
         }
         SaveSettings();
         return true;

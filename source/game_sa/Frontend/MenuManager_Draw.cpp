@@ -1001,8 +1001,8 @@ void CMenuManager::DrawQuitGameScreen() {
 
 // 0x57D8D0
 void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
-    const auto maxActions      = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
-    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
+    const auto maxActions      = GetMaxAction();
+    const auto verticalSpacing = GetVerticalSpacing();
     if (maxActions > 0) {
         for (auto actionIndex = 0u; actionIndex < maxActions; actionIndex++) {
             float posX = StretchX(240.0f);
@@ -1047,8 +1047,8 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
 
 // 0x57E6E0
 void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScreen) {
-    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
-    const auto maxActions      = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
+    const auto verticalSpacing = GetVerticalSpacing();
+    const auto maxActions      = GetMaxAction();
 
     using ControlActionMapping = std::pair<eControllerAction, int32>;
 
@@ -1162,14 +1162,16 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         CFont::SetColor({ 255, 255, 255, 255 });
 
         // Map action index to controller action
-        if (m_RedefiningControls == 1) {
+        switch (m_RedefiningControls) {
+        case eControlMode::VEHICLE:
             for (const auto& mapping : CarActionMappings) {
                 if (mapping.first == ControllerActionsAvailableInCar[actionIndex]) {
                     controllerAction = mapping.second;
                     break;
                 }
             }
-        } else {
+            break;
+        case eControlMode::FOOT:
             for (const auto& mapping : PedActionMappings) {
                 if (mapping.first == (eControllerAction)actionIndex) { // Cast actionIndex to eControllerAction for comparison
                     if (m_ControlMethod == eController::MOUSE_PLUS_KEYS && notsa::contains({ eControllerAction::CA_VEHICLE_STEER_UP, eControllerAction::CA_CONVERSATION_YES, eControllerAction::CA_VEHICLE_STEER_DOWN, eControllerAction::CA_CONVERSATION_NO }, mapping.first)) {
@@ -1180,6 +1182,9 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                     break;
                 }
             }
+            break;
+        default:
+            NOTSA_UNREACHABLE();
         }
 
         const auto isSelected = (m_ListSelection == actionIndex && !isOppositeScreen);
@@ -1290,8 +1295,8 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 // 0x57F300
 void CMenuManager::DrawControllerSetupScreen() {
     // Calculate spacing and max items based on control scheme
-    const auto verticalSpacing   = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
-    const auto maxControlActions = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
+    const auto verticalSpacing = GetVerticalSpacing();
+    const auto maxActions      = GetMaxAction();
     // Create a std::array of GxtChar pointers with all entries
     std::array<const GxtChar*, 44> keys = {
         TheText.Get("FEC_FIR"),                                                      // 0
@@ -1355,13 +1360,17 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::PrintString(SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), text);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-    CFont::PrintString(
-        StretchX(48.0f), StretchY(11.0f), TheText.Get(m_RedefiningControls ? "FET_CCR" : "FET_CFT")
+    switch (m_RedefiningControls) {
+    case eControlMode::VEHICLE: text = TheText.Get("FET_CCR"); break; // Vehicle Controls
+    case eControlMode::FOOT:    text = TheText.Get("FET_CFT"); break; // Foot Controls
+    default:                    NOTSA_UNREACHABLE();
+    }
+    CFont::PrintString(StretchX(48.0f), StretchY(11.0f), text);
     );
     CSprite2d::DrawRect({ StretchX(20.0f), StretchY(50.0f), SCREEN_WIDTH - StretchX(20.0f), SCREEN_HEIGHT - StretchY(50.0f) }, { 49, 101, 148, 100 });
 
     // 0x57F8C0
-    for (auto i = 0u; i < maxControlActions; i++) {
+    for (auto i = 0u; i < maxActions; i++) {
         if (!m_EditingControlOptions) {
             if (StretchX(20.0f) < m_nMousePosX && StretchX(600.0f) > m_nMousePosX) {
                 if (StretchY(i * verticalSpacing + 69.0f) < m_nMousePosY && StretchY(verticalSpacing * (i + 1) + 69.0f) > m_nMousePosY) {
@@ -1384,12 +1393,12 @@ void CMenuManager::DrawControllerSetupScreen() {
         CFont::SetFontStyle(FONT_MENU);
         CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
         const GxtChar* actionText = nullptr;
-        if (m_RedefiningControls == 1) {
-            actionText = keys[ControllerActionsAvailableInCar[i]];
-        } else {
-            actionText = keys[ControllerActionsAvailableOnFoot[i]];
-        }
-        
+        switch (m_RedefiningControls) {
+        case eControlMode::VEHICLE: actionText = keys[+ControllerActionsAvailableInCar[i]]; break;
+        case eControlMode::FOOT:    actionText = keys[+ControllerActionsAvailableOnFoot[i]]; break;
+        default:                    NOTSA_UNREACHABLE();
+        };
+
         if (actionText) {
             CFont::PrintString(StretchX(40.0f), StretchY(i * verticalSpacing + 69.0f), actionText);
         }
@@ -1481,4 +1490,46 @@ int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float le
         CSprite2d::DrawRect(CRect(left, top, right, bottom), color);
     }
     return lastActiveBarX;
+}
+
+// NOTSA
+// Based on 0x57D914 - 0x57D933
+uint32 CMenuManager::GetMaxAction() {
+    // TODO: Magis values
+    switch (m_RedefiningControls) {
+    case eControlMode::FOOT:
+        switch (m_ControlMethod) {
+        case eController::MOUSE_PLUS_KEYS:
+            return 22;
+        case eController::JOYPAD:
+            return 28;
+        default:
+            NOTSA_UNREACHABLE();
+        }
+    case eControlMode::VEHICLE:
+        return 25;
+    default:
+        NOTSA_UNREACHABLE();
+    }
+}
+
+// NOTSA
+// Based on 0x57D8F1 - 0x57D905
+uint32 CMenuManager::GetVerticalSpacing() {
+    // TODO: Magis values
+    switch (m_RedefiningControls) {
+    case eControlMode::FOOT:
+        switch (m_ControlMethod) {
+        case eController::MOUSE_PLUS_KEYS:
+            return 15; // 4 * 1 + 11
+        case eController::JOYPAD:
+            return 11; // 4 * 0 + 11
+        default:
+            NOTSA_UNREACHABLE();
+        }
+    case eControlMode::VEHICLE:
+        return 13;
+    default:
+        NOTSA_UNREACHABLE();
+    }
 }
