@@ -1109,8 +1109,10 @@ const GxtChar* CControllerConfigManager::GetControllerSettingTextMouse(eControll
 // 0x52F450
 const GxtChar* CControllerConfigManager::GetControllerSettingTextJoystick(eControllerAction action) {
     GxtChar(&NewStringWithNumber)[32] = *(GxtChar(*)[32])0xB7147C;
-    if (const auto keyCode = GetControllerKeyAssociatedWithAction(action, eControllerType::JOY_STICK); !GetIsKeyBlank(keyCode, eControllerType::JOY_STICK)) {
-        CMessages::InsertNumberInString(TheText.Get("FEC_JBO"), keyCode, -1, -1, -1, -1, -1, NewStringWithNumber); // JOY~1~
+
+    const auto key = GetControllerKeyAssociatedWithAction(action, eControllerType::JOY_STICK);
+    if (!GetIsKeyBlank(key, eControllerType::JOY_STICK)) {
+        CMessages::InsertNumberInString(TheText.Get("FEC_JBO"), key, -1, -1, -1, -1, -1, NewStringWithNumber); // JOY~1~
         return NewStringWithNumber;
     }
     return nullptr; // Please not add 'NOTSA_UNREACHABLE' !!!
@@ -1119,13 +1121,13 @@ const GxtChar* CControllerConfigManager::GetControllerSettingTextJoystick(eContr
 // unused
 // 0x52F4A0
 eContSetOrder CControllerConfigManager::GetNumOfSettingsForAction(eControllerAction action) {
-    eContSetOrder count = eContSetOrder::NONE;
+    uint32 count = 0;
     for (const auto& type : CONTROLLER_TYPES_ALL) {
         if (!GetIsKeyBlank(GetControllerKeyAssociatedWithAction(action, type), type)) {
-            count = (eContSetOrder)(+count + 1);
+            count++;
         }
     }
-    return count;
+    return (eContSetOrder)count;
 }
 
 // 0x530500
@@ -1328,21 +1330,21 @@ const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction ac
 
 // 0x5303D0
 const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerAction action) {
-    if (FrontEndMenuManager.m_ControlMethod != eController::MOUSE_PLUS_KEYS) {
-        if (const auto keyText = GetControllerSettingTextJoystick(action)) {
+    if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
+        if (auto keyText = GetControllerSettingTextJoystick(action)) {
             return keyText;
         }
     }
 
-    if (const auto keyText = GetControllerSettingTextMouse(action)) {
+    if (auto keyText = GetControllerSettingTextMouse(action)) {
         return keyText;
     }
 
-    if (const auto keyText = GetKeyNameForKeyboard(action, eControllerType::KEYBOARD)) {
+    if (auto keyText = GetKeyNameForKeyboard(action, eControllerType::KEYBOARD)) {
         return keyText;
     }
 
-    if (const auto keyText = GetKeyNameForKeyboard(action, eControllerType::OPTIONAL_EXTRA_KEY)) {
+    if (auto keyText = GetKeyNameForKeyboard(action, eControllerType::OPTIONAL_EXTRA_KEY)) {
         return keyText;
     }
 

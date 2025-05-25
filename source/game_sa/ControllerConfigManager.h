@@ -100,6 +100,7 @@ constexpr std::array<eContSetOrder, 4> CONTROLLER_ORDERS_SET = {
     eContSetOrder::FOURTH
 }; // NOTSA
 
+// TODO: rename it based on CControllerState and GetControllerStateJoyStick
 enum eJoyButtons : uint32 {
     NO_JOYBUTTONS       = 0,
     JOYBUTTON_ONE       = 1,
@@ -233,7 +234,7 @@ public:
     void AffectPadFromMouse();
     void DeleteMatchingActionInitiators(eControllerAction action, KeyCode button, eControllerType type);
     const GxtChar* GetKeyNameForKeyboard(eControllerAction action, eControllerType type);
-    const GxtChar* GetButtonComboText(eControllerAction event);
+    const GxtChar* GetButtonComboText(eControllerAction action);
     const GxtChar* GetDefinedKeyByGxtName(eControllerAction action);
     void AffectControllerStateOn_ButtonDown(KeyCode button, eControllerType type);
 
