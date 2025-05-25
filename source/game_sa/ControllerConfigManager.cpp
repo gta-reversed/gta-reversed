@@ -104,7 +104,7 @@ void CControllerConfigManager::ClearPedMappings(eControllerAction action, KeyCod
 
     if (action != PED_FIRE_WEAPON_ALT
         && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD
-        || FrontEndMenuManager.m_ControlMethod != eController::MOUSE_PLUS_KEYS)
+        || FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS)
     {
         CheckAndClear(PED_ANSWER_PHONE, type, button);
     }
