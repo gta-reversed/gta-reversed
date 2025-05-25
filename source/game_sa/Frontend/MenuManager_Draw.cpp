@@ -1008,23 +1008,23 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
     const auto maxActions      = GetMaxAction();
     const auto verticalSpacing = GetVerticalSpacing();
     if (maxActions > 0) {
-        for (auto actionIndex = 0u; actionIndex < maxActions; actionIndex++) {
+        for (auto action = 0u; action < maxActions; action++) {
             float posX = StretchX(240.0f);
             float posY = StretchY(float(startingYPos));
             
             for (const auto& order : CONTROLLER_ORDERS_SET) {
-                const auto buttonText = ControlsManager.GetControllerSettingText(static_cast<eControllerAction>(actionIndex), (eContSetOrder)order);
+                const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)action, order);
                 if (buttonText) {
                     CFont::PrintString(posX, posY, buttonText);
                     posX += StretchX(75.0f);
                 }
             }
             
-            if ((eControllerAction)actionIndex == m_ListSelection) {
+            if (action == m_ListSelection) {
                 if (m_EditingControlOptions) {
-                    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.LastFlash > 150) {
-                        FrontEndMenuManager.ColourSwitch = (FrontEndMenuManager.ColourSwitch) ? false : true;
-                        FrontEndMenuManager.LastFlash  = CTimer::m_snTimeInMillisecondsPauseMode;
+                    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B64 > 150) {
+                        FrontEndMenuManager.ColourSwitch ^= true;
+                        FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
                     }
                     
                     if (FrontEndMenuManager.ColourSwitch) {
@@ -1035,18 +1035,18 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
                 }
             }
 
+            // 0x57DA95
             if (m_MenuIsAbleToQuit) {
-                auto comboText = ControlsManager.GetButtonComboText((eControllerAction)m_ListSelection);
+                const auto comboText = ControlsManager.GetButtonComboText((eControllerAction)m_ListSelection);
                 if (comboText) {
                     CFont::SetColor({200, 50, 50, 255});
-                    CFont::PrintString(posX, StretchY(float(posY + 10)), comboText);
+                    CFont::PrintString(posX, StretchY(posY + 10.f), comboText);
                 }
             }
 
             startingYPos += verticalSpacing;
         }
     }
-
 }
 
 // 0x57E6E0
@@ -1156,11 +1156,11 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 
     auto currentY = StretchY(float(verticalOffset));
 
-    unsigned int actionIndex = 0; // Corresponds to v7 in old code
+    uint32 actionIndex = 0u;
     // Main loop - process each action
     while (actionIndex < maxActions) {
-        auto  currentX         = StretchX(270.0f);
-        int32 controllerAction = eControllerAction::CA_NONE;
+        auto currentX = StretchX(270.0f);
+        eControllerAction controllerAction = eControllerAction::CA_NONE;
 
         // Set default text color
         CFont::SetColor({ 255, 255, 255, 255 });
@@ -1170,7 +1170,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         case eControlMode::VEHICLE:
             for (const auto& mapping : CarActionMappings) {
                 if (mapping.first == ControllerActionsAvailableInCar[actionIndex]) {
-                    controllerAction = mapping.second;
+                    controllerAction = (eControllerAction)mapping.second;
                     break;
                 }
             }
@@ -1179,9 +1179,9 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
             for (const auto& mapping : PedActionMappings) {
                 if (mapping.first == (eControllerAction)actionIndex) { // Cast actionIndex to eControllerAction for comparison
                     if (m_ControlMethod == eController::MOUSE_PLUS_KEYS && notsa::contains({ eControllerAction::CA_VEHICLE_STEER_UP, eControllerAction::CA_CONVERSATION_YES, eControllerAction::CA_VEHICLE_STEER_DOWN, eControllerAction::CA_CONVERSATION_NO }, mapping.first)) {
-                        controllerAction = -1;
+                        controllerAction = eControllerAction::CA_NONE;
                     } else {
-                        controllerAction = mapping.second;
+                        controllerAction = (eControllerAction)mapping.second;
                     }
                     break;
                 }
@@ -1200,8 +1200,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                     StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f),
                     SCREEN_WIDTH - StretchX(20.0f),
                     StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f + 10.f)
-                },
-                { 172, 203, 241, 255 }
+                }, { 172, 203, 241, 255 }
             );
             CFont::SetColor({ 255, 255, 255, 255 });
         }
@@ -1238,15 +1237,14 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
             if (!isOppositeScreen) {
                 CFont::PrintString(currentX, currentY, TheText.Get("FEC_CMP")); // COMBO: Uses LOOK LEFT + LOOK RIGHT together
             }
-            break;
         } else {
-            const auto isEditable = controllerAction >= 0;
+            const auto isEditable = controllerAction >= eControllerAction::CA_NONE + 1;
             const auto shouldUpdateBlink = isSelected && isEditable && m_EditingControlOptions;
             if (shouldUpdateBlink) {
                 // 0x57ECEB
                 if (CTimer::m_snTimeInMillisecondsPauseMode - m_lastBlinkTime > 150) {
-                    m_isTextBlinking = !m_isTextBlinking;
-                    m_lastBlinkTime  = CTimer::m_snTimeInMillisecondsPauseMode;
+                    m_isTextBlinking ^= true;
+                    m_lastBlinkTime = CTimer::m_snTimeInMillisecondsPauseMode;
                 }
             }
 
@@ -1273,7 +1271,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                 if (!isEditable) {
                     DisplayHelperText("FET_EIG"); // CANNOT SET A CONTROL FOR THIS ACTION
                 } else {
-                    m_OptionToChange = (eControllerAction)controllerAction;
+                    m_OptionToChange = (int32)controllerAction;
                     if (m_EditingControlOptions) {
                         if (m_DeleteAllBoundControls) {
                             DisplayHelperText("FET_CIG"); // BACKSPACE - CLEAR~n~CLICK LMB / RETURN - CHANGE
@@ -1414,11 +1412,10 @@ void CMenuManager::DrawControllerSetupScreen() {
 
     // 0x57FAF9
     DrawControllerBound(0x45u, false);
+    const auto textBack = TheText.Get("FEDS_TB"); // Back
     if (!m_EditingControlOptions) {
         CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
-        const auto color = StretchX(
-            CFont::GetStringWidth(TheText.Get("FEDS_TB"), true, false)
-        );
+        const auto color = StretchX(CFont::GetStringWidth(textBack, true, false));
         if (StretchX(35.0f) + color <= m_nMousePosX
             || StretchX(15.0f) >= m_nMousePosX
             || SCREEN_HEIGHT - StretchY(33.0f) >= m_nMousePosY
@@ -1442,11 +1439,7 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetEdge(0);
     CFont::SetColor({ 74, 90, 107, 255 });
-    CFont::PrintString(
-        StretchX(33.0f),
-        SCREEN_HEIGHT - StretchY(38.0f),
-        TheText.Get("FEDS_TB")
-    );
+    CFont::PrintString(StretchX(33.0f), SCREEN_HEIGHT - StretchY(38.0f), textBack);
 }
 
 /**
