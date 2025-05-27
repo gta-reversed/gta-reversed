@@ -969,7 +969,7 @@ void CMenuManager::DisplayHelperText(const char* key) {
 
     if (key) {
         CFont::SetColor({ 255, 255, 255, 255 });
-        CFont::PrintStringFromBottom(StretchX(x), SCREEN_HEIGHT - StretchY(y), TheText.Get(key));
+        CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), TheText.Get(key));
         return;
     }
 
@@ -1013,7 +1013,7 @@ void CMenuManager::DisplayHelperText(const char* key) {
     }
 
     if (text) {
-        CFont::PrintStringFromBottom(StretchX(x), SCREEN_HEIGHT - StretchY(y), text);
+        CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), text);
         return;
     }
 
@@ -1038,7 +1038,7 @@ void CMenuManager::DisplayHelperText(const char* key) {
     }
 
     if (text) {
-        CFont::PrintStringFromBottom(StretchX(x), SCREEN_HEIGHT - StretchY(y), text);
+        CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), text);
         return;
     }
 
@@ -1055,7 +1055,7 @@ void CMenuManager::DisplayHelperText(const char* key) {
         break;
     }
 
-    CFont::PrintStringFromBottom(StretchX(x), SCREEN_HEIGHT - StretchY(y), text);
+    CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), text);
 }
 
 // 0x57CD10
@@ -1123,13 +1123,12 @@ void CMenuManager::SmallMessageScreen(const char* key) {
     CFont::SetDropShadowPosition(0);
     CFont::SetScale(StretchX(0.56f), StretchY(1.0f));
 
-    DrawWindow(
-        CRect(
+    DrawWindow({
             StretchX(95.0f),
             StretchY(125.0f),
-            SCREEN_WIDTH - StretchX(95.0f),
-            SCREEN_HEIGHT - StretchY(165.0f)
-        ),
+            SCREEN_STRETCH_FROM_RIGHT(95.0f),
+            SCREEN_STRETCH_FROM_BOTTOM(165.0f)
+        },
         nullptr,
         0,
         { 0, 0, 0, 255 },

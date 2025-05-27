@@ -116,7 +116,7 @@ void CMenuManager::DrawBuildInfo() {
     CFont::SetColor({ 255, 255, 255, 100 });
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
     CFont::SetFontStyle(eFontStyle::FONT_SUBTITLES);
-    CFont::PrintStringFromBottom(SCREEN_WIDTH - StretchX(10.0f), SCREEN_HEIGHT - StretchY(10.0f), GxtCharFromAscii(buf));
+    CFont::PrintStringFromBottom(SCREEN_STRETCH_FROM_RIGHT(10.0f), SCREEN_STRETCH_FROM_BOTTOM(10.0f), GxtCharFromAscii(buf));
 }
 
 // 0x57B750
@@ -161,14 +161,14 @@ void CMenuManager::DrawBackground() {
         case SCREEN_LOAD_FIRST_SAVE:
         case SCREEN_SAVE_DONE_1:
             return {
-                SCREEN_WIDTH - StretchX(256.0f),
+                SCREEN_STRETCH_FROM_RIGHT(256.0f),
                 0.0f,
                 SCREEN_WIDTH,
                 StretchY(256.0f),
             };
         case SCREEN_DELETE_FINISHED:
             return {
-                SCREEN_WIDTH - StretchX(256.0f),
+                SCREEN_STRETCH_FROM_RIGHT(256.0f),
                 0.0f,
                 SCREEN_WIDTH,
                 StretchY(256.0f),
@@ -176,7 +176,7 @@ void CMenuManager::DrawBackground() {
         case SCREEN_DELETE_SUCCESSFUL:
         case SCREEN_SAVE_WRITE_ASK:
             return {
-                SCREEN_WIDTH - StretchX(256.0f),
+                SCREEN_STRETCH_FROM_RIGHT(256.0f),
                 0.0f,
                 SCREEN_WIDTH,
                 StretchY(256.0f),
@@ -190,7 +190,7 @@ void CMenuManager::DrawBackground() {
             };
         case SCREEN_SAVE_DONE_2:
             return {
-                SCREEN_WIDTH - StretchX(300.0f),
+                SCREEN_STRETCH_FROM_RIGHT(300.0f),
                 0.0f,
                 SCREEN_WIDTH,
                 StretchY(200.0f),
@@ -380,7 +380,7 @@ void CMenuManager::DrawBackground() {
             m_aFrontEndSprites[spriteId].Draw(rect, { 255, 255, 255, 255 });
         };
 
-        CRect mapRect(StretchX(60.0f), StretchY(60.0f), SCREEN_WIDTH - StretchX(60.0f), SCREEN_HEIGHT - StretchY(60.0f));
+        CRect mapRect(StretchX(60.0f), StretchY(60.0f), SCREEN_STRETCH_FROM_RIGHT(60.0f), SCREEN_STRETCH_FROM_BOTTOM(60.0f));
 
         if (m_nCurrentScreen == SCREEN_MAP && CPad::NewMouseControllerState .isMouseLeftButtonPressed && mapRect.IsPointInside(CVector2D(x, y))) {
             DrawCursor(FRONTEND_SPRITE_CROSS_HAIR);
@@ -1198,7 +1198,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
             CSprite2d::DrawRect({
                     StretchX(260.0f),
                     StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f),
-                    SCREEN_WIDTH - StretchX(20.0f),
+                    SCREEN_STRETCH_FROM_RIGHT(20.0f),
                     StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f + 10.f)
                 }, { 172, 203, 241, 255 }
             );
@@ -1359,7 +1359,7 @@ void CMenuManager::DrawControllerSetupScreen() {
     case eController::MOUSE_PLUS_KEYS: text = TheText.Get("FET_SCN"); break; // Mouse + Keys
     default:                           NOTSA_UNREACHABLE();
     }
-    CFont::PrintString(SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), text);
+    CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(48.0f), StretchY(11.0f), text);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     switch (m_RedefiningControls) {
     case eControlMode::VEHICLE: text = TheText.Get("FET_CCR"); break; // Vehicle Controls
@@ -1370,8 +1370,8 @@ void CMenuManager::DrawControllerSetupScreen() {
     CSprite2d::DrawRect({
         StretchX(20.0f),
         StretchY(50.0f),
-        SCREEN_WIDTH - StretchX(20.0f),
-        SCREEN_HEIGHT - StretchY(50.0f)
+        SCREEN_STRETCH_FROM_RIGHT(20.0f),
+        SCREEN_STRETCH_FROM_BOTTOM(50.0f)
         }, { 49, 101, 148, 100 }
     );
 
@@ -1418,12 +1418,12 @@ void CMenuManager::DrawControllerSetupScreen() {
         const auto color = StretchX(CFont::GetStringWidth(textBack, true, false));
         if (StretchX(35.0f) + color <= m_nMousePosX
             || StretchX(15.0f) >= m_nMousePosX
-            || SCREEN_HEIGHT - StretchY(33.0f) >= m_nMousePosY
-            || SCREEN_HEIGHT - StretchY(10.0f) <= m_nMousePosY) {
+            || SCREEN_STRETCH_FROM_BOTTOM(33.0f) >= m_nMousePosY
+            || SCREEN_STRETCH_FROM_BOTTOM(10.0f) <= m_nMousePosY) {
             if (StretchX(20.0f) >= m_nMousePosX
                 || StretchX(600.0f) <= m_nMousePosX
                 || StretchY(48.0f) >= m_nMousePosY
-                || SCREEN_HEIGHT - StretchY(33.0f) <= m_nMousePosY) {
+                || SCREEN_STRETCH_FROM_BOTTOM(33.0f) <= m_nMousePosY) {
                 m_MouseInBounds = 16;
             } else {
                 m_MouseInBounds = 4;
@@ -1439,7 +1439,7 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetEdge(0);
     CFont::SetColor({ 74, 90, 107, 255 });
-    CFont::PrintString(StretchX(33.0f), SCREEN_HEIGHT - StretchY(38.0f), textBack);
+    CFont::PrintString(StretchX(33.0f), SCREEN_STRETCH_FROM_BOTTOM(38.0f), textBack);
 }
 
 /**

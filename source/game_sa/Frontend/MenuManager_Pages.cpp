@@ -415,7 +415,7 @@ void CMenuManager::PrintStats() {
     const float fadeMultiplier = 10.0f;
 
     const float minY = StretchY(50.0f);
-    const float maxY = SCREEN_HEIGHT - StretchY(50.0f);
+    const float maxY = SCREEN_STRETCH_FROM_BOTTOM(50.0f);
     const float visibleTop = StretchY(50.0f);
     const float visibleBottom = StretchY(360.0f);
 
