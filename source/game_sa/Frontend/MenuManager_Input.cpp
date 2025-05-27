@@ -322,7 +322,7 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
 /*!
  * @addr 0x57EF50
  */
-void CMenuManager::RedefineScreenUserInput(bool* enter, bool* back) {
+void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
     if (m_EditingControlOptions) {
         return; // 0x57EF53 - Invert
     }
@@ -334,7 +334,7 @@ void CMenuManager::RedefineScreenUserInput(bool* enter, bool* back) {
     // Handle enter key/button press
     if ((CPad::IsEnterJustPressed() || pad->IsCrossPressed()) && (m_nSysMenu & 0x80u)) {
         m_DisplayTheMouse = false;
-        *enter = true;
+        *accept = true;
     }
 
     // 0x57EFF6
@@ -390,14 +390,14 @@ void CMenuManager::RedefineScreenUserInput(bool* enter, bool* back) {
     // Handle escape/triangle button for back
     if (CPad::IsEscJustPressed() || pad->IsTrianglePressed()) {
         m_DisplayTheMouse = false;
-        *back = true;
+        *cancel = true;
     }
 
     // 0x57F235 - 0x57F299
     // Handle mouse left button clicks
     if (CPad::IsMouseLButtonPressed()) {
         if (m_MouseInBounds == 3) {
-            *back = true;
+            *cancel = true;
         } else if (m_MouseInBounds == 4) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0f, 1.0f);
             m_MouseInBounds = 5;
@@ -406,7 +406,7 @@ void CMenuManager::RedefineScreenUserInput(bool* enter, bool* back) {
 
     // 0x57F2A3
     // Handle back logic for control redefinition
-    if (*back) {
+    if (*cancel) {
         if (m_bRadioAvailable) {
             m_RedefiningControls = (eControlMode)(m_RedefiningControls == eControlMode::FOOT);
             DrawControllerBound(0x45u, true);
