@@ -2,6 +2,8 @@
 
 #include "AESound.h"
 #include "Physical.h"
+#include "Timer.h"
+#include <Enums/eAudioEvents.h>
 
 static constexpr int32 MAX_NUM_SOUNDS = 300;
 static constexpr int32 MAX_NUM_AUDIO_CHANNELS = 64;

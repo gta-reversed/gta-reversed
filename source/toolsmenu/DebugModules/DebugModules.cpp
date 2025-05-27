@@ -36,6 +36,7 @@
 #include "TwoDEffectsDebugModule.hpp"
 #include "VehicleInfoDebugModule.h"
 #include "CoverPointsDebugModule.hpp"
+#include "Audio/SoundManagerDebugModule.hpp"
 
 DebugModules::DebugModules(ImGuiContext* ctx) :
     m_ImCtx(ctx)
@@ -116,6 +117,7 @@ void DebugModules::CreateModules() {
     Add<notsa::debugmodules::CheckpointsDebugModule>();
     Add<ProcObjectDebugModule>();
     Add<VehicleInfoDebugModule>();
+    Add<notsa::debugmodules::SoundManagerDebugModule>();
 
     // Stuff that is present in multiple menus
     Add<notsa::debugmodules::TwoDEffectsDebugModule>(); // Visualization + Extra
