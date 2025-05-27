@@ -79,7 +79,7 @@ void CAEPedAudioEntity::Terminate() {
 }
 
 // 0x4E2BB0
-void CAEPedAudioEntity::AddAudioEvent(eAudioEvents event, float volume, float speed, CPhysical* ped, uint8 surfaceId, int32 a7, uint32 maxVol) {
+void CAEPedAudioEntity::AddAudioEvent(eAudioEvents event, float volume, float speed, CPhysical* ped, eSurfaceType surfaceId, int32 a7, uint32 maxVol) {
     if (!m_bCanAddEvent)
         return;
 
