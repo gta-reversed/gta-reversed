@@ -121,7 +121,7 @@ CMenuManager::CMenuManager() {
     m_nMousePosY                  = m_nMousePosWinY;
     m_nOldMousePosX               = 0;
     m_nOldMousePosY               = 0;
-    m_DisplayTheMouse                  = false;
+    m_DisplayTheMouse             = false;
     m_MouseInBounds               = 16;
     m_nTargetBlipIndex            = 0;
     m_bMenuAccessWidescreen       = false;
@@ -517,13 +517,13 @@ void CMenuManager::SetFrontEndRenderStates() {
 void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
     switch (screen) {
     case SCREEN_AUDIO_SETTINGS:
-        m_nSfxVolume       = 64;
-        m_nRadioVolume     = 64;
-        field_4E           = 1;
-        m_bRadioEq         = true;
-        m_bRadioAutoSelect = true;
-        m_bTracksAutoScan  = false;
-        m_nRadioMode       = 0;
+        m_nSfxVolume           = 64;
+        m_nRadioVolume         = 64;
+        m_PrefsAudioOutputMode = true;
+        m_bRadioEq             = true;
+        m_bRadioAutoSelect     = true;
+        m_bTracksAutoScan      = false;
+        m_nRadioMode           = 0;
         AudioEngine.SetMusicMasterVolume(m_nRadioVolume);
         AudioEngine.SetEffectsMasterVolume(m_nSfxVolume);
         AudioEngine.SetBassEnhanceOnOff(m_bRadioEq);
@@ -532,8 +532,8 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
     case SCREEN_DISPLAY_SETTINGS:
     case SCREEN_DISPLAY_ADVANCED:
         g_fx.SetFxQuality(FX_QUALITY_HIGH);
-        SetBrightness(256.0f, true);
         m_PrefsBrightness                = 256;
+        SetBrightness(256.0f, true);
         m_fDrawDistance                  = 1.2f;
         CRenderer::ms_lodDistScale       = 1.2f;
         m_bPrefsFrameLimiter             = true;
@@ -555,11 +555,11 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         break;
     case SCREEN_CONTROLLER_SETUP:
         m_ControlMethod                  = eController::MOUSE_PLUS_KEYS;
+        bInvertMouseY                    = false;
+        CVehicle::m_bEnableMouseSteering = false;
         CCamera::m_fMouseAccelHorzntl    = 0.0025f;
         CCamera::m_bUseMouse3rdPerson    = true;
         CVehicle::m_bEnableMouseFlying   = true;
-        CVehicle::m_bEnableMouseSteering = false;
-        bInvertMouseY                    = false;
         m_bInvertPadX1                   = false;
         m_bInvertPadY1                   = false;
         m_bInvertPadX2                   = false;
