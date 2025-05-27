@@ -10,6 +10,8 @@
 #include "ControllerConfigManager.h"
 #include "extensions/Configs/FastLoader.hpp"
 
+static uint32 oldOption = -99; // 0x8CE005
+
 /*!
  * @addr 0x57FD70
  */
@@ -59,8 +61,8 @@ void CMenuManager::UserInput() {
             float itemPosY = curScreen[rowToCheck].m_Y;
             float itemBottomY = itemPosY + 26; // PLUS_LINE_HEIGHT_ON_SCREEN
 
-            bool mouseOverItem = (CMenuManager::StretchY(itemPosY) <= m_nMousePosY) &&
-                                 (CMenuManager::StretchY(itemBottomY) >= m_nMousePosY);
+            bool mouseOverItem = (StretchY(itemPosY) <= m_nMousePosY) &&
+                                 (StretchY(itemBottomY) >= m_nMousePosY);
 
             if (mouseOverItem) {
                 // Mouse is over this item
@@ -79,7 +81,7 @@ void CMenuManager::UserInput() {
 
                 // Update mouse bounds based on action type
                 if ((notsa::contains(SLIDER_ACTIONS, curScreen[rowToCheck].m_nActionType) == false)) {
-                    m_MouseInBounds = 2;
+                    m_MouseInBounds = eMouseInBounds::MENU_ITEM;
                 }
 
                 break;
@@ -111,16 +113,16 @@ void CMenuManager::UserInput() {
     // Handle special case for controls screen
     if (m_nCurrentScreen == eMenuScreen::SCREEN_CONTROLS_DEFINITION) {
         if (!m_nControllerError) {
-            CMenuManager::RedefineScreenUserInput(&bEnter, &bExit);
+            RedefineScreenUserInput(&bEnter, &bExit);
         }
     } else {
         // Process menu navigation for screens with multiple options
-        if (CMenuManager::GetNumberOfMenuOptions() > 1) {
-            CMenuManager::AdditionalOptionInput(&bUp, &bDown);
-            if (CMenuManager::CheckFrontEndDownInput()) {
+        if (GetNumberOfMenuOptions() > 1) {
+            AdditionalOptionInput(&bUp, &bDown);
+            if (CheckFrontEndDownInput()) {
                 bDown = true;
                 m_DisplayTheMouse = false;
-            } else if (CMenuManager::CheckFrontEndUpInput()) {
+            } else if (CheckFrontEndUpInput()) {
                 bUp = true;
                 m_DisplayTheMouse = false;
             }
@@ -141,16 +143,27 @@ void CMenuManager::UserInput() {
         }
 
         // Handle mouse click
-        bEnter |= (pad->f0x57C3C0() && m_MouseInBounds == 2) &&
-                  ((m_nCurrentScreen != eMenuScreen::SCREEN_MAP && CMenuManager::StretchY(388.0f) < m_nMousePosY) ||
+        bEnter |= (pad->f0x57C3C0() && m_MouseInBounds == eMouseInBounds::MENU_ITEM) &&
+                  ((m_nCurrentScreen != eMenuScreen::SCREEN_MAP && StretchY(388.0f) < m_nMousePosY) ||
                    m_DisplayTheMouse);
 
         // 0x58020F - Handle slider movement
         if (pad->IsMouseLButton()) {
-            if (notsa::contains({6, 8, 10, 12, 14}, m_MouseInBounds)) {
-                CMenuManager::CheckSliderMovement(1);
-            } else if (notsa::contains({7, 9, 11, 13, 15}, m_MouseInBounds)) {
-                CMenuManager::CheckSliderMovement(-1);
+            switch (m_MouseInBounds) {
+            case eMouseInBounds::SLIDER_RIGHT:
+            case eMouseInBounds::DRAW_DIST_RIGHT:
+            case eMouseInBounds::RADIO_VOL_RIGHT:
+            case eMouseInBounds::SFX_VOL_RIGHT:
+            case eMouseInBounds::MOUSE_SENS_RIGHT:
+                CheckSliderMovement(1);
+                break;
+            case eMouseInBounds::SLIDER_LEFT:
+            case eMouseInBounds::DRAW_DIST_LEFT:
+            case eMouseInBounds::RADIO_VOL_LEFT:
+            case eMouseInBounds::SFX_VOL_LEFT:
+            case eMouseInBounds::MOUSE_SENS_LEFT:
+                CheckSliderMovement(-1);
+                break;
             }
         }
 
@@ -204,10 +217,10 @@ void CMenuManager::UserInput() {
                 sliderMove = wheelMovedUp ? 1 : -1;
             } else {
                 // Check front end directional input
-                if (CMenuManager::CheckFrontEndRightInput()) {
+                if (CheckFrontEndRightInput()) {
                     m_DisplayTheMouse = false;
                     sliderMove = 1;
-                } else if (CMenuManager::CheckFrontEndLeftInput()) {
+                } else if (CheckFrontEndLeftInput()) {
                     m_DisplayTheMouse = false;
                     sliderMove = -1;
                 }
@@ -221,7 +234,7 @@ void CMenuManager::UserInput() {
     }
 
     // Process all user input
-    CMenuManager::ProcessUserInput(bDown, bUp, bEnter, bExit, sliderMove);
+    ProcessUserInput(bDown, bUp, bEnter, bExit, sliderMove);
 }
 
 /*!
@@ -278,7 +291,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
             m_EditingControlOptions = true;
             m_bJustOpenedControlRedefWindow = true;
             m_pPressedKey = &m_KeyPressedCode;
-            m_MouseInBounds = 16;
+            m_MouseInBounds = eMouseInBounds::NONE;
         }
 
         ProcessMenuOptions(0, GoBackOneMenu, EnterMenuOption);
@@ -342,7 +355,7 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
     if (!CPad::IsBackspacePressed() || m_nCurrentScreen != SCREEN_CONTROLS_DEFINITION || m_JustExitedRedefine) {
         m_JustExitedRedefine = false;
     } else {
-        m_MouseInBounds = 16;
+        m_MouseInBounds = eMouseInBounds::NONE;
         m_EditingControlOptions = true;
         m_bJustOpenedControlRedefWindow = true;
         m_DeleteAllBoundControls = true;
@@ -396,11 +409,11 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
     // 0x57F235 - 0x57F299
     // Handle mouse left button clicks
     if (CPad::IsMouseLButtonPressed()) {
-        if (m_MouseInBounds == 3) {
+        if (m_MouseInBounds == eMouseInBounds::BACK_BUTTON) {
             *cancel = true;
-        } else if (m_MouseInBounds == 4) {
+        } else if (m_MouseInBounds == eMouseInBounds::ENTER_MENU) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0f, 1.0f);
-            m_MouseInBounds = 5;
+            m_MouseInBounds = eMouseInBounds::SELECT;
         }
     }
 

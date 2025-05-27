@@ -31,6 +31,12 @@ enum eRadarMode : int32 {
     OFF
 };
 
+enum eRadioMode : int8 {
+    RADIO,
+    RANDOM,
+    SEQUENTIAL
+};
+
 struct MPack {
     uint8 m_Id;
     char  m_Name[260];
@@ -44,6 +50,27 @@ enum class eController : int8 {
 enum class eControlMode : uint8 {
     FOOT    = 0,
     VEHICLE = 1
+};
+
+enum class eMouseInBounds {
+    // 0 = unused
+    // 1 = unused
+
+    MENU_ITEM        = 2,
+    BACK_BUTTON      = 3,
+    ENTER_MENU       = 4,
+    SELECT           = 5,
+    SLIDER_RIGHT     = 6,
+    SLIDER_LEFT      = 7,
+    DRAW_DIST_RIGHT  = 8,
+    DRAW_DIST_LEFT   = 9,
+    RADIO_VOL_RIGHT  = 10,
+    RADIO_VOL_LEFT   = 11,
+    SFX_VOL_RIGHT    = 12,
+    SFX_VOL_LEFT     = 13,
+    MOUSE_SENS_RIGHT = 14,
+    MOUSE_SENS_LEFT  = 15,
+    NONE             = 16
 };
 
 constexpr auto FRONTEND_MAP_RANGE_MIN = 300.0f;
@@ -94,7 +121,7 @@ public:
     bool      m_bWidescreenOn;
     bool      m_bPrefsFrameLimiter;
     bool      m_bRadioAutoSelect;
-    char      field_4E;
+    bool      m_PrefsAudioOutputMode;
     int8      m_nSfxVolume;
     int8      m_nRadioVolume;
     bool      m_bRadioEq;
@@ -129,7 +156,7 @@ public:
     uint8*    m_GalleryImgBuffer;   //!< +0x98  \see JPegCompress file
     char      field_9C[16];
     int32     m_nUserTrackIndex;
-    int8      m_nRadioMode;
+    eRadioMode m_nRadioMode;
 
     bool      m_bInvertPadX1;
     bool      m_bInvertPadY1;
@@ -169,7 +196,7 @@ public:
             CSprite2d m_apAdditionalBackgroundTextures[2];
             CSprite2d m_apMouseTextures[2];
         };
-        CSprite2d m_aFrontEndSprites[25];
+        CSprite2d m_aFrontEndSprites[FRONTEND_SPRITE_COUNT];
     };
 
     bool  m_bTexturesLoaded;
@@ -189,7 +216,7 @@ public:
     bool  m_KeyPressed[5];
     int32 m_nOldMousePosX;
     int32 m_nOldMousePosY;
-    int32 m_MouseInBounds;
+    eMouseInBounds m_MouseInBounds;
     int32 m_CurrentMouseOption;
     bool  m_bJustOpenedControlRedefWindow;
     bool  m_EditingControlOptions;

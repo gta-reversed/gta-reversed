@@ -122,7 +122,7 @@ CMenuManager::CMenuManager() {
     m_nOldMousePosX               = 0;
     m_nOldMousePosY               = 0;
     m_DisplayTheMouse             = false;
-    m_MouseInBounds               = 16;
+    m_MouseInBounds               = eMouseInBounds::NONE;
     m_nTargetBlipIndex            = 0;
     m_bMenuAccessWidescreen       = false;
     SetDefaultPreferences(SCREEN_AUDIO_SETTINGS);
@@ -523,7 +523,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_bRadioEq             = true;
         m_bRadioAutoSelect     = true;
         m_bTracksAutoScan      = false;
-        m_nRadioMode           = 0;
+        m_nRadioMode           = eRadioMode::RADIO;
         AudioEngine.SetMusicMasterVolume(m_nRadioVolume);
         AudioEngine.SetEffectsMasterVolume(m_nSfxVolume);
         AudioEngine.SetBassEnhanceOnOff(m_bRadioEq);

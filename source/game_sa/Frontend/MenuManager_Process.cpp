@@ -583,10 +583,10 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         SaveSettings();
         return true;
     case MENU_ACTION_USER_TRACKS_PLAY_MODE:
-        m_nRadioMode += pressedLR;
+        m_nRadioMode = (eRadioMode)(m_nRadioMode + pressedLR);
 
         if (pressedLR + m_nRadioMode < 0) {
-            m_nRadioMode = 2;
+            m_nRadioMode = eRadioMode::SEQUENTIAL;
         }
 
         if (m_nRadioMode <= 2) {
@@ -594,7 +594,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
             return true;
         }
 
-        m_nRadioMode = 0;
+        m_nRadioMode = eRadioMode::RADIO;
         SaveSettings();
         return true;
     case MENU_ACTION_USER_TRACKS_AUTO_SCAN:
