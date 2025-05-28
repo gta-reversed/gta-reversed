@@ -10,7 +10,10 @@ namespace debugmodules {
 class SoundManagerDebugModule final : public DebugModule {
 public:
     struct SoundInfo {
-        std::stacktrace StackTrace;
+        std::stacktrace StackTrace{};
+        bool            IsPaused{};
+        float           OriginalVolume{};
+        float           OriginalSpeed{};
     };
 
 public:

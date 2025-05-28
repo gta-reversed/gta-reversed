@@ -23,7 +23,7 @@ void SoundManagerDebugModule::RenderMenuEntry() {
 void SoundManagerDebugModule::RenderSoundsTable() {
     if (!ImGui::BeginTable(
         "SoundsTable",
-        5,
+        7,
         ImGuiTableFlags_Sortable
         | ImGuiTableFlags_Resizable
         | ImGuiTableFlags_Reorderable
@@ -40,24 +40,27 @@ void SoundManagerDebugModule::RenderSoundsTable() {
     ig::TableSetupColumn("Sfx ID", ImGuiTableColumnFlags_NoResize, 60.f);
     ig::TableSetupColumn("Distance", ImGuiTableColumnFlags_NoResize, 90.f);
     ig::TableSetupColumn("Progress", ImGuiTableColumnFlags_NoResize, 90.f);
+    ig::TableSetupColumn("Volume", ImGuiTableColumnFlags_NoResize, 90.f);
+    ig::TableSetupColumn("Actions", ImGuiTableColumnFlags_NoResize, 90.f);
     //ig::TableSetupColumn("Color", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_NoSort, 10.f);
     //ig::TableSetupColumn("Type", ImGuiTableColumnFlags_NoResize, 120.f);
     //ig::TableSetupColumn("Entity", ImGuiTableColumnFlags_NoResize, 80.f);
     ig::TableHeadersRow();
 
-    for (const auto id : AESoundManager.GetPhysicallyPlayingSoundList()) {
-        if (id == -1) {
+    for (auto [i, ref] : rngv::enumerate(AESoundManager.GetPhysicallyPlayingSoundList())) {
+        if (ref == -1) {
             continue;
         }
 
-        auto* const sound = &AESoundManager.m_VirtuallyPlayingSoundList[id];
+        auto* const info = &m_SoundsInfo[ref];
+        auto* const sound = &AESoundManager.m_VirtuallyPlayingSoundList[ref];
 
-        ImGui::PushID(id);
+        ImGui::PushID(ref);
         ig::BeginGroup();
 
         // #
         ig::TableNextColumn();
-        ig::Text("%d", id);
+        ig::Text("%d", ref);
 
         // Bank ID
         ig::TableNextColumn();
@@ -75,8 +78,30 @@ void SoundManagerDebugModule::RenderSoundsTable() {
         ig::TableNextColumn();
         {
             int16 min = 0;
-            ig::SliderScalarN("Progress", ImGuiDataType_S16, &sound->m_nCurrentPlayPosition, 1, &min, &sound->m_nSoundLength, "%hd");
+            ig::SliderScalarN("##progress", ImGuiDataType_S16, &sound->m_nCurrentPlayPosition, 1, &min, &sound->m_nSoundLength, "%hd");
         }
+
+        // Volume
+        ig::TableNextColumn();
+        ig::SliderFloat("##volume", &sound->m_fVolume, -100.f, 100.f, "%.2f");
+
+        // Pause/resume - [Doesn't really work all that well sadly, can't find a better solution right now]
+        ig::TableNextColumn();
+        if (ig::Button(info->IsPaused ? "Resume" : "Pause")) {
+            if (!info->IsPaused) {
+                info->OriginalVolume = sound->m_fVolume;
+                info->OriginalSpeed  = sound->m_fSpeed;
+            }
+            info->IsPaused = !info->IsPaused;
+            sound->m_fVolume = info->IsPaused
+                ? -100.f
+                : info->OriginalVolume;
+            sound->m_fSpeed = info->IsPaused
+                ? 0.f
+                : info->OriginalSpeed;
+        }
+
+        ig::EndGroup();
 
         if (ig::IsItemHovered()) {
             char buf[4096]{};
@@ -84,12 +109,11 @@ void SoundManagerDebugModule::RenderSoundsTable() {
                 buf, sizeof(buf),
                 "Stack trace: \n"
                 "%s",
-                std::to_string(m_SoundsInfo[id].StackTrace).c_str()
+                std::to_string(info->StackTrace).c_str()
             );
             ig::SetTooltip(buf);
         }
 
-        ig::EndGroup();
         ImGui::PopID();
     }
 
