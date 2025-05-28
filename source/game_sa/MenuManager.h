@@ -52,6 +52,13 @@ enum class eControlMode : uint8 {
     VEHICLE = 1
 };
 
+enum class eControllerError : int8 {
+    NONE     = 0,
+    VEHICLE  = 1,
+    FOOT     = 2,
+    NOT_SETS = 3
+};
+
 enum class eMouseInBounds {
     // 0 = unused
     // 1 = unused
@@ -88,7 +95,7 @@ public:
     int8      m_nStatsScrollDirection;
     float     m_fStatsScrollSpeed;
     uint8     m_nSelectedRow; // CMenuSystem
-    char      field_9[23];
+    char      field_9[23]; // unused
     bool      m_PrefsUseVibration;
     bool      m_bHudOn;
     char      field_22[2]; // pad
@@ -100,8 +107,8 @@ public:
     bool      m_bDontDrawFrontEnd;
     bool      m_bActivateMenuNextFrame;
     bool      m_bMenuAccessWidescreen;
-    char      field_35;
-    char      field_36[2];
+    bool      field_35;
+    char      field_36[2]; // unused
     RsKeyCodes m_KeyPressedCode;
     int32     m_PrefsBrightness;
     float     m_fDrawDistance;
@@ -127,7 +134,7 @@ public:
     bool      m_bRadioEq;
 
     eRadioID  m_nRadioStation;
-    char      field_53;
+    char      field_53; // unused
     int32     m_nCurrentScreenItem; // CurrentOption
     bool      m_bQuitGameNoDVD; // CMenuManager::WaitForUserCD 0x57C5E0
 
@@ -150,12 +157,12 @@ public:
     eLanguage m_nPrefsLanguage;
     eLanguage m_nPreviousLanguage;
     int32     m_SystemLanguage;
-    bool      field_8C;
+    bool      m_bLoadedLanguage;
     int32     m_ListSelection;      // controller related
     int32     field_94;      // unused
     uint8*    m_GalleryImgBuffer;   //!< +0x98  \see JPegCompress file
-    char      field_9C[16];
-    int32     m_nUserTrackIndex;
+    char      field_9C[16]; // unused
+    uint32    m_nUserTrackIndex;
     eRadioMode m_nRadioMode;
 
     bool      m_bInvertPadX1;
@@ -183,7 +190,7 @@ public:
 
     bool      m_bSavePhotos;
     bool      m_bMainMenuSwitch;
-    int8      m_nPlayerNumber;
+    uint8     m_nPlayerNumber;
     bool      m_bLanguageChanged; // useless?
     int32     field_EC;
     RsKeyCodes* m_pPressedKey; // any pressed key, in order of CKeyboardState; rsNULL means no key pressed
@@ -191,10 +198,10 @@ public:
 
     union {
         struct {
-            CSprite2d m_apRadioSprites[13];
-            CSprite2d m_apBackgroundTextures[8];
-            CSprite2d m_apAdditionalBackgroundTextures[2];
-            CSprite2d m_apMouseTextures[2];
+            CSprite2d m_apRadioSprites[FRONTEND2_START];
+            CSprite2d m_apBackgroundTextures[FRONTEND3_START - FRONTEND2_START];
+            CSprite2d m_apAdditionalBackgroundTextures[FRONTEND4_START - FRONTEND3_START];
+            CSprite2d m_apMouseTextures[FRONTEND_SPRITE_COUNT - FRONTEND4_START];
         };
         CSprite2d m_aFrontEndSprites[FRONTEND_SPRITE_COUNT];
     };
@@ -210,7 +217,7 @@ public:
     int32 m_nJustDownJoyButton; // used in redefine controls; set via CControllerConfigManager::GetJoyButtonJustDown
     bool  m_MenuIsAbleToQuit;
     bool  m_bRadioAvailable;
-    uint8 m_nControllerError;
+    eControllerError m_nControllerError;
     bool  m_bScanningUserTracks;
     int32 m_nHelperTextFadingAlpha;
     bool  m_KeyPressed[5];
@@ -232,7 +239,7 @@ public:
     char  field_1B16;
     char  field_1B17;
     eHelperText m_nHelperText;
-    int32  field_1B1C;
+    int32  field_1B1C; // unused
     bool   m_bTexturesRound;
     uint8  m_nNumberOfMenuOptions;
     int16  field_1B22;

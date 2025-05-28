@@ -411,7 +411,7 @@ void CMenuManager::SwitchToNewScreen(eMenuScreen screen) {
 
     // Works well, but needs more attention because of the trash gotos
     m_nPrevScreen = m_nCurrentScreen;
-    m_nControllerError = 0;
+    m_nControllerError = eControllerError::NONE;
 
     ResetHelperText();
 
@@ -748,9 +748,9 @@ void CMenuManager::LoadSettings() {
     AudioEngine.RetuneRadio(m_nRadioStation);
 
     if (previousLang == m_nPrefsLanguage) {
-        field_8C = false;
+        m_bLoadedLanguage = false;
     } else {
-        field_8C = true;
+        m_bLoadedLanguage = true;
         TheText.Load(false);
         m_bLanguageChanged = true;
         InitialiseChangedLanguageSettings(false);
