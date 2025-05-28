@@ -1288,10 +1288,10 @@ void CMenuManager::DrawControllerSetupScreen() {
     }
     CFont::PrintString(StretchX(48.0f), StretchY(11.0f), text);
     CSprite2d::DrawRect({
-        StretchX(20.0f),
-        StretchY(50.0f),
-        SCREEN_STRETCH_FROM_RIGHT(20.0f),
-        SCREEN_STRETCH_FROM_BOTTOM(50.0f)
+            StretchX(20.0f),
+            StretchY(50.0f),
+            SCREEN_STRETCH_FROM_RIGHT(20.0f),
+            SCREEN_STRETCH_FROM_BOTTOM(50.0f)
         }, { 49, 101, 148, 100 }
     );
 
@@ -1331,26 +1331,23 @@ void CMenuManager::DrawControllerSetupScreen() {
     }
 
     // 0x57FAF9
-    DrawControllerBound(0x45u, false);
+    DrawControllerBound(69, false);
     auto textBack = TheText.Get("FEDS_TB"); // Back
     if (!m_EditingControlOptions) {
         CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
         const auto textWidth = StretchX(CFont::GetStringWidth(textBack, true, false));
-
-        // Check if mouse is within primary bounds
-        const bool inPrimaryBounds = m_nMousePosX >= StretchX(15.0f)
-            && m_nMousePosX <= StretchX(35.0f) + textWidth
-            && m_nMousePosY >= SCREEN_STRETCH_FROM_BOTTOM(33.0f)
-            && m_nMousePosY <= SCREEN_STRETCH_FROM_BOTTOM(10.0f);
-
-        if (!inPrimaryBounds) {
-            // Check secondary bounds
-            const bool inSecondaryBounds = m_nMousePosX >= StretchX(20.0f)
-                && m_nMousePosX <= StretchX(600.0f)
-                && m_nMousePosY >= StretchY(48.0f)
-                && m_nMousePosY <= SCREEN_STRETCH_FROM_BOTTOM(33.0f);
-
-            m_MouseInBounds = inSecondaryBounds ? eMouseInBounds::ENTER_MENU : eMouseInBounds::NONE;
+        if (StretchX(35.0f) + textWidth <= m_nMousePosX
+            || StretchX(15.0f) >= m_nMousePosX
+            || SCREEN_HEIGHT - StretchY(33.0f) >= m_nMousePosY
+            || SCREEN_HEIGHT - StretchY(10.0f) <= m_nMousePosY) {
+            if (StretchX(20.0f) >= m_nMousePosX
+                || StretchX(600.0f) <= m_nMousePosX
+                || StretchY(48.0f) >= m_nMousePosY
+                || SCREEN_HEIGHT - StretchY(33.0f) <= m_nMousePosY) {
+                m_MouseInBounds = eMouseInBounds::NONE;
+            } else {
+                m_MouseInBounds = eMouseInBounds::ENTER_MENU;
+            }
         } else {
             m_MouseInBounds = eMouseInBounds::BACK_BUTTON;
         }
