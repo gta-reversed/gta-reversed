@@ -394,7 +394,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     constexpr uint16 MENU_DEFAULT_CONTENT_Y = 130;
 
     const GxtChar *pTextToShow_RightColumn; // text for right column
-    const GxtChar *pTextToShow;         // text to display
+    const GxtChar *pTextToShow;             // text to display
 
     float buttonTextPosY = 0.0;
     bool shouldDrawStandardItems = true;

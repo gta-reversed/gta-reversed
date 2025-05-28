@@ -96,7 +96,7 @@ void CMenuManager::UserInput() {
             m_nCurrentScreenItem++;
             m_CurrentMouseOption++;
         }
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0f, 1.0f);
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT);
     }
 
     // Update mouse position
@@ -174,9 +174,9 @@ void CMenuManager::UserInput() {
             CPad::IsMouseWheelUpPressed() || CPad::IsMouseWheelDownPressed()) {
             int actionType = curScreen[m_nCurrentScreenItem].m_nActionType;
             if (notsa::contains(actionSelect, actionType)) {
-                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0f, 1.0f);
+                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
             } else if (actionType == 0x1D) {
-                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_NOISE_TEST, 0.0f, 1.0f);
+                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_NOISE_TEST);
             }
         }
 
@@ -226,7 +226,7 @@ void CMenuManager::UserInput() {
 
         if (sliderMove != 0 && notsa::contains(specialScreens, m_nCurrentScreen) &&
             !notsa::contains(specialMenuActions, curScreen[m_nCurrentScreenItem].m_nActionType)) {
-            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
         }
     }
 
@@ -245,7 +245,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
     // Handle down navigation
     if (GetNumberOfMenuOptions() > 1 && GoDownMenu) {
         if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
-            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT);
         }
 
         m_nCurrentScreenItem++;
@@ -261,7 +261,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
     // Handle up navigation
     if (GetNumberOfMenuOptions() > 1 && GoUpMenu) {
         if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
-            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT);
         }
 
         auto firstItemSpecial = (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == 1);
@@ -298,9 +298,9 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
 
             // Audio feedback based on menu type and status
             if ((!m_isPreInitialised && !IsSaveSlot(menuType)) || (IsSaveSlot(menuType) && GetSavedGameState(m_nCurrentScreenItem - 1) == eSlotState::SLOT_FILLED)) {
-                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);
+                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
             } else {
-                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR, 0.0, 1.0);
+                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
             }
         }
     }
@@ -402,7 +402,7 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
         if (m_MouseInBounds == eMouseInBounds::BACK_BUTTON) {
             *cancel = true;
         } else if (m_MouseInBounds == eMouseInBounds::ENTER_MENU) {
-            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0f, 1.0f);
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
             m_MouseInBounds = eMouseInBounds::SELECT;
         }
     }
