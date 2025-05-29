@@ -1370,55 +1370,48 @@ void CMenuManager::DrawControllerSetupScreen() {
  * Draws slider
  * @param x       widget pos x
  * @param y       widget pos y
- * @param h1      height of start strip
- * @param h2      height of end strip
+ * @param barHeight1      height of start strip
+ * @param barHeight2      height of end strip
  * @param length  widget length
  * @param value   current value in range [ 0.0f, 1.0f ] (progress)
- * @param spacing size of strip
+ * @param barSpacing size of strip
  * @return
  * @see Audio Setup -> Radio or SFX volume
  * @addr 0x576860
  */
-int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing) {
-    // return plugin::CallMethodAndReturn<int32, 0x576860, CMenuManager*, float, float, float, float, float, float, int32>(this, x, y, h1, h2, length, value, size);
-
-    constexpr auto BARS = 16;
-    constexpr auto COLOR_ON  = CRGBA(172, 203, 241, 255); // Fresh Air
-    constexpr auto COLOR_OFF = CRGBA(74, 90, 107, 255);   // Deep Space Sparkle
-    constexpr auto COLOR_SHADOW = CRGBA(0, 0, 0, 200);
-
-    CRGBA color;
-
+int32 CMenuManager::DisplaySlider(float x, float y, float barHeight1, float barHeight2, float length, float value, float barSpacing) {
+    constexpr auto kNumBars              = 16;
+    constexpr auto kBarWidthFactor       = 1.0f / kNumBars;        // 0.0625f
+    constexpr auto kValueThresholdOffset = kBarWidthFactor / 2.0f; // 0.03125f
+    
+    float maxBarHeight = std::max(barHeight1, barHeight2);
     auto lastActiveBarX = 0;
-    for (auto i = 0; i < BARS; i++) {
-        const auto fi = float(i);
 
-        float curBarX = fi * length / BARS + x;
+    for (auto i = 0; i < kNumBars; i++) {
+        float barIndex     = (float)i;
+        float currentBarX  = x + barIndex * length * kBarWidthFactor;
+        float barFreeSpace = (barHeight1 * (kNumBars - barIndex) + barHeight2 * barIndex) * kBarWidthFactor;
 
-        if (fi / (float)BARS + 1 / (BARS * 2.f) < value) {
-            color = COLOR_ON;
-            lastActiveBarX = (int32)curBarX;
-        } else {
-            color = COLOR_OFF;
+        // Set bar color based on value threshold
+        CRGBA color = barIndex * kBarWidthFactor + kValueThresholdOffset < value
+            ? MENU_TEXT_SELECTED
+            : MENU_TEXT_NORMAL;
+        if (color == MENU_TEXT_SELECTED) {
+            lastActiveBarX = (int32)currentBarX;
         }
 
-        float maxBarHeight = std::max(h1, h2);
+        CRect rect = {
+            currentBarX,
+            y + maxBarHeight - barFreeSpace,
+            currentBarX + barSpacing,
+            y + maxBarHeight
+        };
 
-        float curBarFreeSpace = ((BARS - fi) * h1 + fi * h2) / (float)BARS;
-        float left   = curBarX;
-        float top    = y + maxBarHeight - curBarFreeSpace;
-        float right  = float(spacing) + curBarX;
-        float bottom = y + maxBarHeight;
+        // Draw shadow rectangle with resolution scaling
+        CSprite2d::DrawRect(CRect(rect, StretchX(2.0f), StretchY(2.0f)), MENU_SHADOW);
 
-        // Useless shadow for stripe. Drawing black on black = nothing. Change color to CRGBA(40, 40, 40, 200) to test
-        CSprite2d::DrawRect({
-                left + StretchX(2.0f),
-                top + StretchY(2.0f),
-                right + StretchX(2.0f),
-                bottom + StretchY(2.0f)
-            }, COLOR_SHADOW
-        );
-        CSprite2d::DrawRect({ left, top, right, bottom }, color);
+        // Draw foreground rectangle
+        CSprite2d::DrawRect(rect, color);
     }
     return lastActiveBarX;
 }

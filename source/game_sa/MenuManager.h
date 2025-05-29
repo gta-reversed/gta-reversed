@@ -361,7 +361,7 @@ public:
     bool CheckMissionPackValidMenu();
     void CheckCodesForControls(eControllerType type);
 
-    int32 DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing);
+    int32 DisplaySlider(float x, float y, float h1, float h2, float length, float value, float spacing);
 
     void DisplayHelperText(const char* key);
     void SetHelperText(eHelperText messageId);
