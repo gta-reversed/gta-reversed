@@ -223,7 +223,7 @@ void CDarkel::ResetModelsKilledByPlayer(int32 playerId) {
 }
 
 // 0x43D6C0
-int16 CDarkel::QueryModelsKilledByPlayer(int32 modelId, int32 playerId) {
+int16 CDarkel::QueryModelsKilledByPlayer(eModelID modelId, int32 playerId) {
     return RegisteredKills[modelId][playerId];
 }
 
@@ -503,23 +503,23 @@ void CDarkel::RegisterKillByPlayer(const CPed& killedPed, eWeaponType damageWeap
         default:
             break;
         }
+    }
 
-        RegisteredKills[killedPed.m_nModelIndex][playerId]++;
-        CStats::IncrementStat(STAT_PEOPLE_YOUVE_WASTED);
-        CStats::PedsKilledOfThisType[killedPed.bChrisCriminal ? PED_TYPE_CRIMINAL : killedPed.m_nPedType]++;
+    RegisteredKills[killedPed.m_nModelIndex][playerId]++;
+    CStats::IncrementStat(STAT_PEOPLE_YOUVE_WASTED);
+    CStats::PedsKilledOfThisType[killedPed.bChrisCriminal ? PED_TYPE_CRIMINAL : killedPed.m_nPedType]++;
 
-        if (headShotted) {
-            CStats::IncrementStat(STAT_NUMBER_OF_HEADSHOTS);
-        }
-        CStats::IncrementStat(STAT_KILLS_SINCE_LAST_CHECKPOINT);
+    if (headShotted) {
+        CStats::IncrementStat(STAT_NUMBER_OF_HEADSHOTS);
+    }
+    CStats::IncrementStat(STAT_KILLS_SINCE_LAST_CHECKPOINT);
 
-        if (playerId == PED_TYPE_PLAYER1 && !FindPlayerPed(PED_TYPE_PLAYER1)->bInVehicle) {
-            CGangWars::AddKillToProvocation(killedPed.m_nPedType);
-        }
+    if (playerId == PED_TYPE_PLAYER1 && !FindPlayerPed(PED_TYPE_PLAYER1)->bInVehicle) {
+        CGangWars::AddKillToProvocation(killedPed.m_nPedType);
+    }
 
-        if (killedPed.m_nPedType >= PED_TYPE_DEALER) { // BUG?
-            CPopCycle::PlayerKilledADealer();
-        }
+    if (killedPed.m_nPedType >= PED_TYPE_DEALER) { // BUG?
+        CPopCycle::PlayerKilledADealer();
     }
 }
 

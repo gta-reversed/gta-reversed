@@ -19,6 +19,14 @@
 #include "LoadingScreen.h"
 #include "Garages.h"
 
+#define CHECK_ARG_COUNT(_l, _expected, _n) \
+    do { \
+        if (_n < _expected) { \
+            NOTSA_LOG_WARN("Expected {} values to be read, got {}. Default initialized values will be used instead", _expected, _n); \
+            NOTSA_LOG_WARN("Line: {:?}", _l); \
+        } \
+    } while (0)
+
 char(&CFileLoader::ms_line)[512] = *reinterpret_cast<char(*)[512]>(0xB71848);
 uint32& gAtomicModelId = *reinterpret_cast<uint32*>(0xB71840);
 
@@ -1790,37 +1798,37 @@ int32 CFileLoader::LoadTimeObject(const char* line) {
 
 // 0x5B6F30
 int32 CFileLoader::LoadVehicleObject(const char* line) {
-    auto  modelId{ MODEL_INVALID };
-    char  modelName[24]{};
-    char  texName[24]{};
-    char  type[8]{};
-    char  handlingName[16]{};
-    char  gameName[32]{};
-    char  anims[16]{};
-    char  vehCls[16]{};
-    uint32 frq{}, flags{};
+    auto               modelId{ MODEL_INVALID };
+    char               modelName[24]{};
+    char               texName[24]{};
+    char               type[8]{};
+    char               handlingName[16]{};
+    char               gameName[32]{};
+    char               anims[16]{};
+    char               vehCls[16]{};
+    uint32             frq{}, flags{};
     tVehicleCompsUnion vehComps{};
-    uint32 misc{}; // `m_fBikeSteerAngle` if model type is BMX/Bike, otherwise `m_nWheelModelIndex`
-    float wheelSizeFront{}, wheelSizeRear{};
-    int32 wheelUpgradeCls{ -1 };
+    int32              misc{ -1 };                                    // `m_fBikeSteerAngle` if model type is BMX/Bike, otherwise `m_nWheelModelIndex`
+    float              wheelSizeFront{ 0.7f }, wheelSizeRear{ 0.7f }; // NOTSA/BUG: Properly default initialize this value (See https://cookieplmonster.github.io/2025/04/23/gta-san-andreas-win11-24h2-bug/)
+    int32              wheelUpgradeCls{ -1 };
 
-    VERIFY(sscanf_s(line, "%d %s %s %s %s %s %s %s %d %d %x %d %f %f %d",
-        &modelId,
-        SCANF_S_STR(modelName),
-        SCANF_S_STR(texName),
-        SCANF_S_STR(type),
-        SCANF_S_STR(handlingName),
-        SCANF_S_STR(gameName),
-        SCANF_S_STR(anims),
-        SCANF_S_STR(vehCls),
-        &frq,
-        &flags,             // optional
-        &vehComps.m_nComps, // optional
-        &misc,              // optional
-        &wheelSizeFront,    // optional
-        &wheelSizeRear,     // optional
-        &wheelUpgradeCls    // optional
-    ) >= 10);
+    const auto N = sscanf_s(line, "%d %s %s %s %s %s %s %s %d %d %x %d %f %f %d",
+        &modelId,                  // 1
+        SCANF_S_STR(modelName),    // 2
+        SCANF_S_STR(texName),      // 3
+        SCANF_S_STR(type),         // 4
+        SCANF_S_STR(handlingName), // 5
+        SCANF_S_STR(gameName),     // 6
+        SCANF_S_STR(anims),        // 7
+        SCANF_S_STR(vehCls),       // 8
+        &frq,                      // 9
+        &flags,                    // 10
+        &vehComps.m_nComps,        // 11
+        &misc,                     // 12 [optional]
+        &wheelSizeFront,           // 13 [optional]
+        &wheelSizeRear,            // 14 [optional]
+        &wheelUpgradeCls           // 15 [optional]
+    );
 
     auto mi = CModelInfo::AddVehicleModel(modelId);
     mi->SetModelName(modelName);
@@ -1835,12 +1843,8 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
     mi->m_nFlags = flags;
     mi->m_extraComps = vehComps;
 
-
-    // This isn't exactly R* did it, but that code is hot garbage anyways
-    // They've used strcmp all the way, and.. It's bad.
-
-    const auto GetVehicleType = [&] {
-        static constexpr struct { std::string_view name; eVehicleType type; } mapping[] = {
+    mi->m_nVehicleType = notsa::find_value(
+        notsa::make_mapping<std::string_view, eVehicleType>({
             { "car",     VEHICLE_TYPE_AUTOMOBILE },
             { "mtruck",  VEHICLE_TYPE_MTRUCK     },
             { "quad",    VEHICLE_TYPE_QUAD       },
@@ -1853,19 +1857,10 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
             { "bike",    VEHICLE_TYPE_BIKE       },
             { "bmx",     VEHICLE_TYPE_BMX        },
             { "trailer", VEHICLE_TYPE_TRAILER    },
-        };
+        }),
+        type
+    );
 
-        for (const auto& [name, vtype] : mapping) {
-            if (name == type) {
-                return vtype;
-            }
-        }
-
-        assert(0);             // NOTSA - Something went really wrong
-        return VEHICLE_TYPE_IGNORE; // fix warning
-    };
-
-    mi->m_nVehicleType = GetVehicleType();
     switch (mi->m_nVehicleType) {
     case VEHICLE_TYPE_AUTOMOBILE:
     case VEHICLE_TYPE_MTRUCK:
@@ -1873,28 +1868,37 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
     case VEHICLE_TYPE_HELI:
     case VEHICLE_TYPE_PLANE:
     case VEHICLE_TYPE_TRAILER: {
+        CHECK_ARG_COUNT(line, 14, N);
+
         mi->SetWheelSizes(wheelSizeFront, wheelSizeRear);
-        mi->m_nWheelModelIndex = misc;
+        mi->m_nWheelModelIndex = (int16)(misc);
         break;
     }
     case VEHICLE_TYPE_FPLANE: {
+        CHECK_ARG_COUNT(line, 12, N);
+
         mi->SetWheelSizes(1.0f, 1.0f);
-        mi->m_nWheelModelIndex = misc;
+        mi->m_nWheelModelIndex = (int16)(misc);
         break;
     }
     case VEHICLE_TYPE_BIKE:
     case VEHICLE_TYPE_BMX: {
+        CHECK_ARG_COUNT(line, 14, N);
+
         mi->SetWheelSizes(wheelSizeFront, wheelSizeRear);
-        mi->m_fBikeSteerAngle = (float)misc;
+        mi->m_fBikeSteerAngle = (float)(misc);
         break;
     }
+    default:
+        CHECK_ARG_COUNT(line, 11, N);
+        break;
     }
 
     mi->SetHandlingId(handlingName);
     mi->m_nWheelUpgradeClass = wheelUpgradeCls;
 
-    const auto GetVehicleClass = [&] {
-        static constexpr struct { std::string_view name; eVehicleClass cls; } mapping[] = {
+    mi->m_nVehicleClass = notsa::find_value(
+        notsa::make_mapping<std::string_view, eVehicleClass>({
             { "normal",      VEHICLE_CLASS_NORMAL      },
             { "poorfamily",  VEHICLE_CLASS_POORFAMILY  },
             { "richfamily",  VEHICLE_CLASS_RICHFAMILY  },
@@ -1908,19 +1912,9 @@ int32 CFileLoader::LoadVehicleObject(const char* line) {
             { "workerboat",  VEHICLE_CLASS_WORKERBOAT  },
             { "bicycle",     VEHICLE_CLASS_BICYCLE     },
             { "ignore",      VEHICLE_CLASS_IGNORE      },
-        };
-
-        for (const auto& [name, cls] : mapping) {
-            if (name == vehCls) {
-                return cls;
-            }
-        }
-
-        // NOTSA - Something has went really wrong
-        DebugBreak();
-        return (eVehicleClass)-1;
-    };
-    mi->m_nVehicleClass = GetVehicleClass();
+        }),
+        vehCls
+    );
     if (mi->m_nVehicleClass != eVehicleClass::VEHICLE_CLASS_IGNORE) {
         mi->m_nFrq = frq;
     }

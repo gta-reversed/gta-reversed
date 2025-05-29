@@ -13,14 +13,25 @@
 
 namespace notsa {
 namespace script {
+namespace detail {
 
-// eModelID wrapper that is read either from a static
-// int32 value or UsedObjectArray.
-struct Model {
-    eModelID model;
+template<typename T, size_t UniqueTag = 0>
+struct StrongAlias {
+    T value;
 
-    operator eModelID() const { return model; }
+    auto& operator=(const T& o) {
+        value = o;
+        return *this;
+    }
+
+    operator T() const { return value; }
 };
+};
+
+// eModelID wrapper that is read either from a static int32 value or UsedObjectArray.
+using Model = detail::StrongAlias<eModelID>;
+// uint32 wrapper for reading an unsigned 32-bit integer that can be out of range for int32
+using Hash = detail::StrongAlias<uint32>;
 
 namespace detail {
 
@@ -202,7 +213,7 @@ inline T Read(CRunningScript* S) {
     #ifdef NOTSA_DEBUG
         if (ptr) {
             if constexpr (detail::is_derived_from_but_not_v<CVehicle, Y>) {
-                assert(Y::Type == ptr->m_nVehicleType);
+                assert(Y::Type == ptr->m_nVehicleSubType); // check specialized type, in case of e.g. CAutomobile and one of its derived classes: CPlane, CHeli, etc
             } else if constexpr (detail::is_derived_from_but_not_v<CTask, Y>) {
                 assert(Y::Type == ptr->GetTaskType());
             } // TODO: Eventually add this for `CEvent` too
@@ -243,6 +254,8 @@ inline T Read(CRunningScript* S) {
         }
 
         return {static_cast<eModelID>(value)};
+    } else if constexpr (std::is_same_v< T, script::Hash>) {
+        return { static_cast<uint32>(Read<int32>(S)) };
     }
     // If there's an error like "function must return a value" here,
     // that means that no suitable branch was found for `T`

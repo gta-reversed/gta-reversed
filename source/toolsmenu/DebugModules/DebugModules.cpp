@@ -26,7 +26,7 @@
 #include "CullZonesDebugModule.h"
 #include "TextDebugModule.h"
 #include "ProcObjectDebugModule.h"
-#include "Spawner/SpawnerDebugModule.hpp"
+#include "SpawnerDebugModule.hpp"
 #include "ImGuiDebugModule.hpp"
 #include "ScriptDebugModule.hpp"
 #include "CloudsDebugModule.hpp"

@@ -15,12 +15,12 @@
 */
 
 namespace {
-void TerminateAllScriptsWithThisName(const char* name) {
-    std::string scriptName{name};
-    rng::transform(scriptName, scriptName.begin(), [](char c) { return std::tolower(c); });
+void TerminateAllScriptsWithThisName(std::string_view name) {
+    const notsa::ci_string_view ciName{name}; // TODO: Support this natively in the parser
+    for (CRunningScript* script = CTheScripts::pActiveScripts, *next; script; script = next) {
+        next = script->m_pNext;
 
-    for (auto* script = CTheScripts::pActiveScripts; script; script = script->m_pNext) {
-        if (!strcmp(scriptName.c_str(), script->m_szName)) {
+        if (script->m_szName == ciName) {
             script->RemoveScriptFromList(&CTheScripts::pActiveScripts);
             script->AddScriptToList(&CTheScripts::pIdleScripts);
             script->ShutdownThisScript();
@@ -45,14 +45,6 @@ void LoadSceneInDirection(CVector point, float heading) {
     CTimer::Update();
 }
 
-void AddStuckCarCheck(int32 carHandle, float distance, uint32 time) {
-    CTheScripts::StuckCars.AddCarToCheck(carHandle, distance, time, 0, false, false, false, 0);
-}
-
-void RemoveStuckCarCheck(int32 carHandle) {
-    CTheScripts::StuckCars.RemoveCarFromCheck(carHandle);
-}
-
 void LoadMissionAudio(uint32 slotId, int32 sampleId) {
     AudioEngine.PreloadMissionAudio(slotId - 1, sampleId);
 }
@@ -68,7 +60,6 @@ void ReportMissionAudioEventAtChar(CPed& ped, int32 eventId) {
 void ReportMissionAudioEventAtCar(CVehicle& vehicle, int eventId) {
     AudioEngine.ReportMissionAudioEvent(eventId, &vehicle);
 }
-
 
 void PlayMissionAudio(uint32 slotId) {
     AudioEngine.PlayLoadedMissionAudio(slotId - 1);
@@ -94,15 +85,6 @@ void SetPlayerInStadium(bool enable) {
     CTheScripts::bPlayerIsOffTheMap = enable;
 }
 
-void SetUpConversationNodeWithScriptedSpeech(
-    const char* questionKey,
-    const char* answerYesKey,
-    const char* answerNoKey,
-    int32 questionWAV,
-    int32 answerYesWAV,
-    int32 answerNoWAV) {
-    CConversations::SetUpConversationNode(questionKey, answerYesKey, answerNoKey, questionWAV, answerYesWAV, answerNoWAV);
-}
 };
 
 void notsa::script::commands::script::RegisterHandlers() {
@@ -112,8 +94,6 @@ void notsa::script::commands::script::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_ALL_SCRIPT_FIRES, RemoveAllScriptFires);
     REGISTER_COMMAND_HANDLER(COMMAND_LOAD_SCENE, LoadScene);
     REGISTER_COMMAND_HANDLER(COMMAND_LOAD_SCENE_IN_DIRECTION, LoadSceneInDirection);
-    REGISTER_COMMAND_HANDLER(COMMAND_ADD_STUCK_CAR_CHECK, AddStuckCarCheck);
-    REGISTER_COMMAND_HANDLER(COMMAND_REMOVE_STUCK_CAR_CHECK, RemoveStuckCarCheck);
     REGISTER_COMMAND_HANDLER(COMMAND_LOAD_MISSION_AUDIO, LoadMissionAudio);
     REGISTER_COMMAND_HANDLER(COMMAND_ATTACH_MISSION_AUDIO_TO_CAR, AttachMissionAudioToCar);
     REGISTER_COMMAND_HANDLER(COMMAND_REPORT_MISSION_AUDIO_EVENT_AT_CHAR, ReportMissionAudioEventAtChar);
@@ -124,5 +104,4 @@ void notsa::script::commands::script::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DRAW_ODDJOB_TITLE_BEFORE_FADE, DrawOddJobTitleBeforeFade);
     REGISTER_COMMAND_HANDLER(COMMAND_DRAW_SUBTITLES_BEFORE_FADE, DrawSubtitlesBeforeFade);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_IS_IN_STADIUM, SetPlayerInStadium);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_UP_CONVERSATION_NODE_WITH_SCRIPTED_SPEECH, SetUpConversationNodeWithScriptedSpeech);
 }

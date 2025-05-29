@@ -520,8 +520,8 @@ bool CAudioEngine::IsAmbienceRadioActive() {
 }
 
 // 0x507290
-void CAudioEngine::PreloadMissionAudio(uint8 slotId, int32 sampleId) {
-    m_ScriptAE.PreloadMissionAudio(slotId, sampleId);
+void CAudioEngine::PreloadMissionAudio(uint8 slotId, int32 scriptSlotAudioEvent) {
+    m_ScriptAE.PreloadMissionAudio(slotId, scriptSlotAudioEvent);
 }
 
 // 0x5072B0
@@ -530,38 +530,38 @@ void CAudioEngine::PlayLoadedMissionAudio(uint8 slotId) {
 }
 
 // 0x5072D0
-int32 CAudioEngine::GetMissionAudioEvent(uint8 sampleId) {
-    return m_ScriptAE.GetMissionAudioEvent(sampleId);
+int32 CAudioEngine::GetMissionAudioEvent(uint8 slotId) {
+    return m_ScriptAE.GetMissionAudioEvent(slotId);
 }
 
 // 0x5072E0
-CVector* CAudioEngine::GetMissionAudioPosition(uint8 sampleId) {
-    return m_ScriptAE.GetMissionAudioPosition(sampleId);
+CVector* CAudioEngine::GetMissionAudioPosition(uint8 slotId) {
+    return m_ScriptAE.GetMissionAudioPosition(slotId);
 }
 
 // 0x5072F0
-void CAudioEngine::ClearMissionAudio(uint8 sampleId) {
-    m_ScriptAE.ClearMissionAudio(sampleId);
+void CAudioEngine::ClearMissionAudio(uint8 slotId) {
+    m_ScriptAE.ClearMissionAudio(slotId);
 }
 
 // 0x507300
-void CAudioEngine::SetMissionAudioPosition(uint8 sampleId, CVector& posn) {
-    m_ScriptAE.SetMissionAudioPosition(sampleId, posn);
+void CAudioEngine::SetMissionAudioPosition(uint8 slotId, CVector& posn) {
+    m_ScriptAE.SetMissionAudioPosition(slotId, posn);
 }
 
 // 0x507310
-CVector* CAudioEngine::AttachMissionAudioToPed(uint8 sampleId, CPed* ped) {
-    return m_ScriptAE.AttachMissionAudioToPhysical(sampleId, ped);
+CVector* CAudioEngine::AttachMissionAudioToPed(uint8 slotId, CPed* ped) {
+    return m_ScriptAE.AttachMissionAudioToPhysical(slotId, ped);
 }
 
 // 0x507320
-CVector* CAudioEngine::AttachMissionAudioToObject(uint8 sampleId, CObject* object) {
-    return m_ScriptAE.AttachMissionAudioToPhysical(sampleId, object);
+CVector* CAudioEngine::AttachMissionAudioToObject(uint8 slotId, CObject* object) {
+    return m_ScriptAE.AttachMissionAudioToPhysical(slotId, object);
 }
 
 // 0x507330
-CVector* CAudioEngine::AttachMissionAudioToPhysical(uint8 sampleId, CPhysical* physical) {
-    return m_ScriptAE.AttachMissionAudioToPhysical(sampleId, physical);
+CVector* CAudioEngine::AttachMissionAudioToPhysical(uint8 slotId, CPhysical* physical) {
+    return m_ScriptAE.AttachMissionAudioToPhysical(slotId, physical);
 }
 
 // 0x5073C0

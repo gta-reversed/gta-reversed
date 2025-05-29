@@ -42,7 +42,7 @@ public:
             uint32 m_bJustBeenSnacking : 1;               // If this bit is true we have just bought something from a vending machine
             uint32 m_bRequireHandleBreath : 1;
 
-            uint32 m_bGroupStuffDisabled : 1;             // if this is true the player can't recrout or give his group commands.
+            uint32 m_bGroupStuffDisabled : 1;             // if this is true the player can't recruit or give his group commands.
             uint32 m_bGroupAlwaysFollow : 1;              // The group is told to always follow the player (used for girlfriend missions)
             uint32 m_bGroupNeverFollow : 1;               // The group is told to always follow the player (used for girlfriend missions)
             uint32 m_bInVehicleDontAllowWeaponChange : 1; // stop weapon change once driveby weapon has been given
