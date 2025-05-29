@@ -444,31 +444,37 @@ void CMenuManager::PrintStats() {
                 yPos -= StretchY(37.0f);
             }
 
-            double alpha;
+            // 0x574BE1 - TODO: replace to normal
+            float alpha;
             if (yPos < fadeTopEnd) {
-                alpha = (yPos <= fadeTopStart) ? 0.0 : ((yPos - fadeTopStart) / (fadeTopEnd - fadeTopStart)) * 255.0 * fadeMultiplier;
+                alpha = (yPos <= fadeTopStart) ? 0.0f : ((yPos - fadeTopStart) / (fadeTopEnd - fadeTopStart)) * 255.0f * fadeMultiplier;
             } else if (yPos > fadeBottomStart) {
-                alpha = (yPos >= fadeBottomEnd) ? 0.0 : ((fadeBottomEnd - yPos) / (fadeBottomEnd - fadeBottomStart)) * 255.0 * fadeMultiplier;
+                alpha = (yPos >= fadeBottomEnd) ? 0.0f : ((fadeBottomEnd - yPos) / (fadeBottomEnd - fadeBottomStart)) * 255.0f * fadeMultiplier;
             } else {
-                alpha = 255.0;
+                alpha = 255.0f;
             }
 
-            alpha = std::clamp(alpha, 0.0, 255.0);
-            uint8 alphaValue = static_cast<uint8>(alpha);
+            alpha = std::clamp(alpha, 0.0f, 255.0f);
 
             CFont::SetDropColor(CRGBA(MENU_BG, (uint8)alpha));
             CFont::SetEdge(1);
             CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
             CFont::SetColor(CRGBA(MENU_TEXT_LIGHT_GRAY, (uint8)alpha));
 
-            float xPos = StretchX(450.0);
+            float xPos = StretchX(450.0f);
             CFont::PrintString(xPos, yPos, gGxtString);
 
+            // 0x574DD2
             if (currentStatId) {
-                const auto val = float(CStats::GetStatValue((eStats)currentStatId) * 0.001f * 100.0f);
+                const auto val = CStats::GetStatValue((eStats)currentStatId) * 0.001f * 100.0f;
                 const float clamped = std::min(val, 1000.0f);
 
-                CSprite2d::DrawBarChart(StretchX(400.0f), StretchY(17.0f) + yPos, static_cast<uint16>(StretchX(100.0)), static_cast<uint8>(StretchY(10.0)), clamped, 0, 0, 1, CRGBA(0xAC, 0xCB, 0xF1, alphaValue), CRGBA(0, 0, 0, 0));
+                CSprite2d::DrawBarChart(
+                    StretchX(400.0f), StretchY(17.0f) + yPos,
+                    (uint16)StretchX(100.0f), (uint8)StretchY(10.0f),
+                    clamped, 0, 0, 1,
+                    CRGBA(MENU_TEXT_SELECTED, (uint8)alpha), CRGBA()
+                );
             } else {
                 CFont::SetColor(CRGBA(MENU_TEXT_SELECTED, (uint8)alpha));
                 CFont::PrintString(StretchX(450.0f), StretchY(17.0f) + yPos, gGxtString2);
@@ -560,8 +566,9 @@ void CMenuManager::PrintBriefs() {
 void CMenuManager::PrintRadioStationList() {
     // draw all, except current
     for (auto i = 1u; i < std::size(m_apRadioSprites); i++) {
-        if (m_nRadioStation == i)
+        if (m_nRadioStation == i) {
             continue;
+        }
 
         m_apRadioSprites[i].Draw(
             StretchX(float(47 * (i - 1) + 44)),
@@ -575,7 +582,7 @@ void CMenuManager::PrintRadioStationList() {
     // highlight current radio station
     if (m_nRadioStation > 0 && m_nRadioStation < (int8)std::size(m_apRadioSprites)) {
         m_apRadioSprites[m_nRadioStation].Draw(
-            StretchX((float)(47 * m_nRadioStation - 15)),
+            StretchX(float(47 * m_nRadioStation - 15)),
             StretchY(290.0f),
             StretchX(60.0f),
             StretchY(60.0f),
