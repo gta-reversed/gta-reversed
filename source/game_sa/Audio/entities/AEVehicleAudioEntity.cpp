@@ -1,13 +1,14 @@
 #include "StdInc.h"
 
 #include "AEVehicleAudioEntity.h"
-
 #include "AEAudioHardware.h"
 #include "AEAudioUtility.h"
 #include "AESoundManager.h"
 #include "AEAudioUtility.h"
+
 #include <Enums/eSoundBankSlot.h>
 #include <DamageManager.h> // tComponent
+#include <reversiblebugfixes/Bugs.hpp>
 
 constexpr size_t HORN_NUM_PATTERNS = 8;
 constexpr size_t HORN_PATTERN_SIZE = 44;
@@ -396,7 +397,7 @@ void CAEVehicleAudioEntity::UpdateGasPedalAudio(CVehicle* vehicle, int32 vehicle
     float& value = vehicleType == VEHICLE_TYPE_BIKE
         ? vehicle->AsBike()->m_GasPedalAudioRevs
         : vehicle->AsAutomobile()->m_GasPedalAudioRevs;
-    value = notsa::step_to(value, current, cfg->StepUp, cfg->StepDown, notsa::IsFixBugs());
+    value = notsa::step_to(value, current, cfg->StepUp, cfg->StepDown, notsa::bugfixes::GenericFrameRate);
 }
 
 // 0x4F5080
@@ -878,7 +879,7 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float p1) {
             .Volume            = GetPedEventVolume(AE_PED_DRIVE_OVER),
             .RollOffFactor     = 1.5f,
             .FrequencyVariance = 0.06f,
-            .EventID           = notsa::IsFixBugs() ? AE_PED_DRIVE_OVER : AE_PED_KNOCK_DOWN
+            .EventID           = notsa::IsFixBugs() ? AE_PED_DRIVE_OVER : AE_PED_KNOCK_DOWN // Makes no sense for this to be `AE_PED_KNOCK_DOWN`
         });
         break;
     }
@@ -1104,7 +1105,7 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             const auto* const cfg = &s_Config.DummyCar.Transitions.FromIdleToIdle;
 
             // 0x4FCA49
-            m_FadeIn = notsa::step_up_to(m_FadeIn, 1.f, cfg->FadeInStep, notsa::IsFixBugs());
+            m_FadeIn = notsa::step_up_to(m_FadeIn, 1.f, cfg->FadeInStep, notsa::bugfixes::GenericFrameRate);
             UpdateVehicleEngineSound(
                 AE_SOUND_CAR_ID,
                 GetFrequencyForDummyIdle(ratio, m_FadeIn),
@@ -1112,7 +1113,7 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             );
 
             // 0x4FCAC0
-            m_FadeOut = notsa::step_up_to(m_FadeOut, 1.f, cfg->FadeOutStep, notsa::IsFixBugs());
+            m_FadeOut = notsa::step_up_to(m_FadeOut, 1.f, cfg->FadeOutStep, notsa::bugfixes::GenericFrameRate);
             if (m_FadeOut < 0.99f) {
                 UpdateVehicleEngineSound(
                     AE_SOUND_CAR_REV,
@@ -1173,7 +1174,7 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             const auto* const cfg = &s_Config.DummyCar.Transitions.FromCrzToCrz;
 
             // 0x4FCCE9
-            m_FadeIn = notsa::step_up_to(m_FadeIn, 1.f, cfg->FadeInStep, notsa::IsFixBugs());
+            m_FadeIn = notsa::step_up_to(m_FadeIn, 1.f, cfg->FadeInStep, notsa::bugfixes::GenericFrameRate);
             UpdateVehicleEngineSound(
                 AE_SOUND_CAR_REV,
                 GetFrequencyForDummyRev(ratio, m_FadeIn),
@@ -1181,7 +1182,7 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             );
              
             // 0x4FCD7C
-            m_FadeOut = notsa::step_up_to(m_FadeOut, 1.f, cfg->FadeOutStep, notsa::IsFixBugs());
+            m_FadeOut = notsa::step_up_to(m_FadeOut, 1.f, cfg->FadeOutStep, notsa::bugfixes::GenericFrameRate);
             if (m_FadeOut < 0.99f) {
                 if (0.65f < m_FadeOut && m_FadeOut < 0.75f) { // 0x4FCD94
                     vp.Vehicle->vehicleFlags.bAudioChangingGear = true;
@@ -2478,7 +2479,7 @@ void CAEVehicleAudioEntity::ProcessNitro(tVehicleParams& vp) {
 
         const auto nitro = (float)(vp.ThisAccel);
         m_CurrentNitroRatio = m_CurrentNitroRatio >= 0.f
-            ? notsa::step_to(m_CurrentNitroRatio, nitro, cfg->StepUp, cfg->StepDown, notsa::IsFixBugs())
+            ? notsa::step_to(m_CurrentNitroRatio, nitro, cfg->StepUp, cfg->StepDown, notsa::bugfixes::GenericFrameRate)
             : nitro;
 
         const auto* const s1 = &cfg->Sounds[0];
@@ -3113,7 +3114,7 @@ void CAEVehicleAudioEntity::UpdateDummyRCAcAndBrake(tVehicleParams& vp) {
 void CAEVehicleAudioEntity::UpdateRotorFreq(float freq, float stepUp, float stepDown) {
     m_CurrentRotorFrequency = m_CurrentRotorFrequency < 0.f
         ? freq
-        : notsa::step_to(m_CurrentRotorFrequency, freq, stepUp, stepDown, notsa::IsFixBugs());
+        : notsa::step_to(m_CurrentRotorFrequency, freq, stepUp, stepDown, notsa::bugfixes::GenericFrameRate);
 }
 
 // notsa
@@ -3226,7 +3227,7 @@ void CAEVehicleAudioEntity::ProcessAircraft(tVehicleParams& params) {
 
 // 0x4F93C0
 void CAEVehicleAudioEntity::PlayAircraftSound(eAircraftSoundType st, eSoundBankSlot slot, eSoundID sfx, float volume, float speed) {
-    if (notsa::IsFixBugs()) { // Most likely they left this out, because, for example, vehicle sounds (`ProcessPlayerVehicleEngine`) use `UpdateVehicleEngineSound` that does this too
+    if (notsa::bugfixes::CAEVehicleAudioEntity_PlayAircraftSound_VolumeFix) { // Most likely they left this out, because, for example, vehicle sounds (`ProcessPlayerVehicleEngine`) use `UpdateVehicleEngineSound` that does this too
         volume += m_EventVolume;
     }
     if (UpdateVehicleEngineSoundRawVolume(st, speed, volume)) {
@@ -4145,7 +4146,7 @@ void CAEVehicleAudioEntity::ProcessBoatEngine(tVehicleParams& vp) {
             + roll * cfg->FrqEngineRollFactor
             + es * (boat->m_nBoatFlags.bOnWater ? cfg->FrqEngineOnWaterFactor : cfg->FrqEngineInAirFactor);
         m_CurrentDummyEngineFrequency = m_CurrentDummyEngineFrequency >= 0.f
-            ? notsa::step_to(m_CurrentDummyEngineFrequency, speed, 0.02f, notsa::IsFixBugs())
+            ? notsa::step_to(m_CurrentDummyEngineFrequency, speed, 0.02f, notsa::bugfixes::GenericFrameRate)
             : speed;
     }
 
@@ -4154,7 +4155,7 @@ void CAEVehicleAudioEntity::ProcessBoatEngine(tVehicleParams& vp) {
         const auto volume = cfg->VolBase
             + es * cfg->VolEngineSpeedFactor;
         m_CurrentDummyEngineVolume = m_CurrentDummyEngineVolume >= 0.f
-            ? notsa::step_to(m_CurrentDummyEngineVolume, volume, 3.f, notsa::IsFixBugs())
+            ? notsa::step_to(m_CurrentDummyEngineVolume, volume, 3.f, notsa::bugfixes::GenericFrameRate)
             : volume;
     }
 
@@ -4242,7 +4243,7 @@ void CAEVehicleAudioEntity::UpdateBoatSound(eBoatEngineSoundType st, eSoundBankS
 #pragma region Bicycle
 // 0x4F9710
 void CAEVehicleAudioEntity::PlayBicycleSound(eBicycleSoundType st, eSoundBankSlot slot, eSoundID sfx, float volume, float speed) {
-    if (notsa::IsFixBugs()) { // Most likely they left this out, because, for example, vehicle sounds (`ProcessPlayerVehicleEngine`) use `UpdateVehicleEngineSound` that does this too
+    if (notsa::bugfixes::CAEVehicleAudioEntity_PlayBicycleSound_VolumeFix) { // Most likely they left this out, because, for example, vehicle sounds (`ProcessPlayerVehicleEngine`) use `UpdateVehicleEngineSound` that does this too
         volume += m_EventVolume;
     }
     if (m_DummySlot == SND_BANK_SLOT_NONE) {
