@@ -15,12 +15,12 @@
 */
 
 namespace {
-void TerminateAllScriptsWithThisName(const char* name) {
-    std::string scriptName{name};
-    rng::transform(scriptName, scriptName.begin(), [](char c) { return std::tolower(c); });
+void TerminateAllScriptsWithThisName(std::string_view name) {
+    const notsa::ci_string_view ciName{name}; // TODO: Support this natively in the parser
+    for (CRunningScript* script = CTheScripts::pActiveScripts, *next; script; script = next) {
+        next = script->m_pNext;
 
-    for (auto* script = CTheScripts::pActiveScripts; script; script = script->m_pNext) {
-        if (!strcmp(scriptName.c_str(), script->m_szName)) {
+        if (script->m_szName == ciName) {
             script->RemoveScriptFromList(&CTheScripts::pActiveScripts);
             script->AddScriptToList(&CTheScripts::pIdleScripts);
             script->ShutdownThisScript();
@@ -61,7 +61,6 @@ void ReportMissionAudioEventAtCar(CVehicle& vehicle, int eventId) {
     AudioEngine.ReportMissionAudioEvent(eventId, &vehicle);
 }
 
-
 void PlayMissionAudio(uint32 slotId) {
     AudioEngine.PlayLoadedMissionAudio(slotId - 1);
 }
@@ -86,15 +85,6 @@ void SetPlayerInStadium(bool enable) {
     CTheScripts::bPlayerIsOffTheMap = enable;
 }
 
-void SetUpConversationNodeWithScriptedSpeech(
-    const char* questionKey,
-    const char* answerYesKey,
-    const char* answerNoKey,
-    int32 questionWAV,
-    int32 answerYesWAV,
-    int32 answerNoWAV) {
-    CConversations::SetUpConversationNode(questionKey, answerYesKey, answerNoKey, questionWAV, answerYesWAV, answerNoWAV);
-}
 };
 
 void notsa::script::commands::script::RegisterHandlers() {
@@ -114,5 +104,4 @@ void notsa::script::commands::script::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_DRAW_ODDJOB_TITLE_BEFORE_FADE, DrawOddJobTitleBeforeFade);
     REGISTER_COMMAND_HANDLER(COMMAND_DRAW_SUBTITLES_BEFORE_FADE, DrawSubtitlesBeforeFade);
     REGISTER_COMMAND_HANDLER(COMMAND_SET_PLAYER_IS_IN_STADIUM, SetPlayerInStadium);
-    REGISTER_COMMAND_HANDLER(COMMAND_SET_UP_CONVERSATION_NODE_WITH_SCRIPTED_SPEECH, SetUpConversationNodeWithScriptedSpeech);
 }

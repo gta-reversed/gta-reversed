@@ -5,7 +5,7 @@
 #include <functional>
 
 /*
-* Basic language feature commands (Comparasions, assingments, etc...)
+* Basic language feature commands (Comparisons, assignments, etc...)
 */
 
 namespace {
@@ -127,7 +127,7 @@ auto ReturnFalse() {
     return false; 
 }
 
-//! Jump back to calle
+//! Jump back to callee
 auto Return(CRunningScript& S) { 
     S.m_IP = S.m_IPStack[--S.m_StackDepth]; 
 }
@@ -372,7 +372,7 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_HANDLER(COMMAND_ABS_LVAR_FLOAT, AbsStore<float>);
 
     REGISTER_COMMAND_HANDLER(COMMAND_GOTO, GoTo);
-    //REGISTER_COMMAND_HANDLER(COMMAND_GOTO_IF_FALSE, GoToIfFalse);
+    REGISTER_COMMAND_HANDLER(COMMAND_GOTO_IF_FALSE, GoToIfFalse);
     REGISTER_COMMAND_HANDLER(COMMAND_GOSUB,  GoToSub);
     REGISTER_COMMAND_HANDLER(COMMAND_RETURN_TRUE, ReturnTrue);
     REGISTER_COMMAND_HANDLER(COMMAND_RETURN_FALSE, ReturnFalse);
@@ -429,6 +429,9 @@ void notsa::script::commands::basic::RegisterHandlers() {
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_WHILENOT);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_ENDWHILE);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_REPEAT);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_ENDREPEAT);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_START_SCOPE);
+    REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_END_SCOPE);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_INT);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_VAR_FLOAT);
     REGISTER_COMMAND_UNIMPLEMENTED(COMMAND_LVAR_INT);
