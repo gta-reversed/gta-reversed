@@ -180,7 +180,7 @@ void CMenuManager::PrintMap() {
         }
         const CRect coords = { 0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT };
         if (FrontEndMenuManager.m_bViewRadar) {
-            CSprite2d::DrawRect(coords, CRGBA(111, 137, 170, 255)); // blue background
+            CSprite2d::DrawRect(coords, MENU_MAP_BACKGROUND);
             const auto stretchX = StretchX(zoomFactorForStretchX);
             const auto stretchY = StretchY(zoomFactorForStretchX);
             for (auto x = 0u; x < MAX_RADAR_WIDTH_TILES; x++) {
@@ -203,7 +203,7 @@ void CMenuManager::PrintMap() {
                 }
             }
         } else {
-            CSprite2d::DrawRect(coords, CRGBA(0, 0, 0, 255));
+            CSprite2d::DrawRect(coords, MENU_BG);
             SmallMessageScreen("FEM_PWT");
             m_bAllStreamingStuffLoaded = true;
         }
@@ -213,7 +213,7 @@ void CMenuManager::PrintMap() {
               StretchY(m_vMapOrigin.y - 145.0f),
               StretchX(m_vMapOrigin.x + 145.0f),
               StretchY(m_vMapOrigin.y + 145.0f) },
-            CRGBA(100, 100, 100, 255)
+            MENU_MAP_BORDER
         );
 
         CSprite2d::DrawRect(
@@ -221,7 +221,7 @@ void CMenuManager::PrintMap() {
               StretchY(m_vMapOrigin.y - 141.0f),
               StretchX(m_vMapOrigin.x + 141.0f),
               StretchY(m_vMapOrigin.y + 141.0f) },
-            CRGBA(0, 0, 0, 255)
+            MENU_BG
         );
 
         CSprite2d::DrawRect(
@@ -229,7 +229,7 @@ void CMenuManager::PrintMap() {
               StretchY(m_vMapOrigin.y - 140.0f),
               StretchX(m_vMapOrigin.x + 140.0f),
               StretchY(m_vMapOrigin.y + 140.0f) },
-            CRGBA(111, 137, 170, 255)
+            MENU_MAP_BACKGROUND
         );
 
         m_apBackgroundTextures[7].Draw(
@@ -237,7 +237,7 @@ void CMenuManager::PrintMap() {
               StretchY(m_vMapOrigin.y - m_fMapZoom),
               StretchX(m_vMapOrigin.x + m_fMapZoom),
               StretchY(m_vMapOrigin.y + m_fMapZoom) },
-            CRGBA(255, 255, 255, 255)
+            MENU_TEXT_WHITE
         );
     }
 
@@ -267,43 +267,43 @@ void CMenuManager::PrintMap() {
         // border between map and background
         CSprite2d::DrawRect(
             { 0.0f, 0.0f, SCREEN_WIDTH, mapArea.bottom },
-            CRGBA(100, 100, 100, 255)
+            MENU_MAP_BORDER
         );
 
         CSprite2d::DrawRect(
             { 0.0f, mapArea.top, SCREEN_WIDTH, SCREEN_HEIGHT },
-            CRGBA(100, 100, 100, 255)
+            MENU_MAP_BORDER
         );
 
         CSprite2d::DrawRect(
             { 0.0f, 0.0f, mapArea.left, SCREEN_HEIGHT },
-            CRGBA(100, 100, 100, 255)
+            MENU_MAP_BORDER
         );
 
         CSprite2d::DrawRect(
             { mapArea.right, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT },
-            CRGBA(100, 100, 100, 255)
+            MENU_MAP_BORDER
         );
 
         // background
         CSprite2d::DrawRect(
             { 0.0f, 0.0f, SCREEN_WIDTH, mapArea.bottom - StretchY(4.0f) },
-            CRGBA(0, 0, 0, 255)
+            MENU_BG
         );
 
         CSprite2d::DrawRect(
             { 0.0f, mapArea.top + StretchY(4.0f), SCREEN_WIDTH, SCREEN_HEIGHT },
-            CRGBA(0, 0, 0, 255)
+            MENU_BG
         );
 
         CSprite2d::DrawRect(
             { 0.0f, 0.0f, mapArea.left - StretchX(4.0f), SCREEN_HEIGHT },
-            CRGBA(0, 0, 0, 255)
+            MENU_BG
         );
 
         CSprite2d::DrawRect(
             { mapArea.right + StretchX(4.0f), 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT },
-            CRGBA(0, 0, 0, 255)
+            MENU_BG
         );
     }
 
@@ -316,9 +316,9 @@ void CMenuManager::PrintMap() {
             CPlaceName placeName;
             CFont::SetFontStyle(FONT_PRICEDOWN);
             CFont::SetWrapx(640.0);
-            CFont::SetDropColor(CRGBA(0, 0, 0, 255u));
+            CFont::SetDropColor(MENU_BG);
             CFont::SetScale(StretchX(0.8f), StretchY(0.8f));
-            CFont::SetColor(CRGBA(225, 225, 225, 255));
+            CFont::SetColor(MENU_TEXT_LIGHT_GRAY);
             CFont::SetEdge(2);
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
             CFont::PrintString(
@@ -341,11 +341,11 @@ void CMenuManager::PrintMap() {
             CFont::SetWrapx(SCREEN_WIDTH - 40);
             CFont::SetRightJustifyWrap(84.0);
             CFont::SetDropShadowPosition(1);
-            CFont::SetDropColor(CRGBA(0, 0, 0, 255));
+            CFont::SetDropColor(MENU_BG);
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
             CFont::SetFontStyle(FONT_MENU);
             CFont::SetScale(StretchX(0.3f), StretchY(0.55f));
-            CFont::SetColor(CRGBA(172, 203, 241, 255));
+            CFont::SetColor(MENU_TEXT_SELECTED);
             if (CRadar::MapLegendCounter) {
                 auto currentY = StretchY(127.0f);
                 auto currentX = StretchX(160.0f);
@@ -448,10 +448,10 @@ void CMenuManager::PrintStats() {
             alpha = std::clamp(alpha, 0.0, 255.0);
             uint8 alphaValue = static_cast<uint8>(alpha);
 
-            CFont::SetDropColor(CRGBA(0, 0, 0, alphaValue));
+            CFont::SetDropColor(CRGBA(MENU_BG, (uint8)alpha));
             CFont::SetEdge(1);
             CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
-            CFont::SetColor(CRGBA(0xE1, 0xE1, 0xE1, alphaValue));
+            CFont::SetColor(CRGBA(MENU_TEXT_LIGHT_GRAY, (uint8)alpha));
 
             float xPos = StretchX(450.0);
             CFont::PrintString(xPos, yPos, gGxtString);
@@ -462,15 +462,15 @@ void CMenuManager::PrintStats() {
 
                 CSprite2d::DrawBarChart(StretchX(400.0f), StretchY(17.0f) + yPos, static_cast<uint16>(StretchX(100.0)), static_cast<uint8>(StretchY(10.0)), clamped, 0, 0, 1, CRGBA(0xAC, 0xCB, 0xF1, alphaValue), CRGBA(0, 0, 0, 0));
             } else {
-                CFont::SetColor(CRGBA(0xAC, 0xCB, 0xF1, alphaValue));
+                CFont::SetColor(CRGBA(MENU_TEXT_SELECTED, (uint8)alpha));
                 CFont::PrintString(StretchX(450.0f), StretchY(17.0f) + yPos, gGxtString2);
             }
         }
     }
 
     CFont::SetEdge(1);
-    CFont::SetDropColor(CRGBA(0, 0, 0, 255));
-    CFont::SetColor(CRGBA(0xE1, 0xE1, 0xE1, 255));
+    CFont::SetDropColor(MENU_BG);
+    CFont::SetColor(MENU_TEXT_LIGHT_GRAY);
     CFont::SetFontStyle(eFontStyle::FONT_PRICEDOWN);
     CFont::SetScale(StretchX(0.6f), StretchY(0.8f));
     CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
@@ -484,8 +484,8 @@ void CMenuManager::PrintStats() {
 
 // 0x576320
 void CMenuManager::PrintBriefs() {
-    CFont::SetColor({ 255, 255, 255, 255 });
-    CFont::SetDropColor({0, 0, 0, 255});
+    CFont::SetColor(MENU_TEXT_WHITE);
+    CFont::SetDropColor(MENU_BG);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetFontStyle(FONT_SUBTITLES);
     CFont::SetScaleForCurrentLanguage(StretchX(0.49f), StretchY(0.7f));
@@ -531,7 +531,7 @@ void CMenuManager::PrintBriefs() {
                 StretchX(55.0f), StretchY(110.0f),
                 StretchX(45.0f), StretchY(110.0f),
                 StretchX(50.0f), StretchY(100.0f),
-                { 225, 225, 225, 255 }
+                MENU_TEXT_LIGHT_GRAY
             );
         }
 
@@ -542,7 +542,7 @@ void CMenuManager::PrintBriefs() {
                 StretchX(55.0f), StretchY(338.0f),
                 StretchX(45.0f), StretchY(338.0f),
                 StretchX(50.0f), StretchY(348.0f),
-                { 225, 225, 225, 255 }
+                MENU_TEXT_LIGHT_GRAY
             );
         }
     }
@@ -571,7 +571,7 @@ void CMenuManager::PrintRadioStationList() {
             StretchY(290.0f),
             StretchX(60.0f),
             StretchY(60.0f),
-            { 255, 255, 255, 255 }
+            MENU_TEXT_WHITE
         );
     }
 }

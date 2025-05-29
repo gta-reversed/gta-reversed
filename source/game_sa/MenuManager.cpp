@@ -18,6 +18,18 @@
 #include "Hud.h"
 #include "ControllerConfigManager.h"
 
+// notsa colors
+
+const CRGBA CMenuManager::MENU_BG              = CRGBA(0, 0, 0, 255);
+const CRGBA CMenuManager::MENU_TEXT_NORMAL     = CRGBA(74, 90, 107, 255);
+const CRGBA CMenuManager::MENU_TEXT_SELECTED   = CRGBA(172, 203, 241, 255);
+const CRGBA CMenuManager::MENU_TEXT_WHITE      = CRGBA(255, 255, 255, 255);
+const CRGBA CMenuManager::MENU_TEXT_LIGHT_GRAY = CRGBA(225, 225, 225, 255);
+const CRGBA CMenuManager::MENU_ERROR           = CRGBA(200, 50, 50, 255);
+const CRGBA CMenuManager::MENU_SHADOW          = CRGBA(0, 0, 0, 200);
+const CRGBA CMenuManager::MENU_MAP_BACKGROUND  = CRGBA(111, 137, 170, 255);
+const CRGBA CMenuManager::MENU_MAP_BORDER      = CRGBA(100, 100, 100, 255);
+
 CMenuManager& FrontEndMenuManager = *(CMenuManager*)0xBA6748;
 
 CMenuManager& GetMenu() {
@@ -968,7 +980,7 @@ void CMenuManager::DisplayHelperText(const char* key) {
     float y = 10.f;
 
     if (key) {
-        CFont::SetColor({ 255, 255, 255, 255 });
+        CFont::SetColor(MENU_TEXT_WHITE);
         CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), TheText.Get(key));
         return;
     }
@@ -1095,7 +1107,7 @@ void CMenuManager::MessageScreen(const char* key, bool blackBackground, bool cam
             return;
 
         if (blackBackground) {
-            CSprite2d::DrawRect(fullscreen, { 0, 0, 0, 255 });
+            CSprite2d::DrawRect(fullscreen, MENU_BG);
         }
     }
 
@@ -1105,7 +1117,7 @@ void CMenuManager::MessageScreen(const char* key, bool blackBackground, bool cam
     DefinedState2d();
 
     if (blackBackground) {
-        CSprite2d::DrawRect(fullscreen, { 0, 0, 0, 255 });
+        CSprite2d::DrawRect(fullscreen, MENU_BG);
     }
 
     SmallMessageScreen(key);
@@ -1131,7 +1143,7 @@ void CMenuManager::SmallMessageScreen(const char* key) {
         },
         nullptr,
         0,
-        { 0, 0, 0, 255 },
+        MENU_BG,
         false,
         true
     );

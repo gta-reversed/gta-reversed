@@ -206,10 +206,10 @@ void CMenuManager::DrawBackground() {
 
     // 0x57B7E1
     CRect rect(-5.0f, -5.0f, SCREEN_WIDTH + 5.0f, SCREEN_HEIGHT + 5.0f);
-    CSprite2d::DrawRect(rect, {0, 0, 0, 255});
+    CSprite2d::DrawRect(rect, MENU_BG);
 
     if (m_nBackgroundSprite) {
-        m_aFrontEndSprites[m_nBackgroundSprite].Draw(backgroundRect, { 255, 255, 255, 255 });
+        m_aFrontEndSprites[m_nBackgroundSprite].Draw(backgroundRect, MENU_TEXT_WHITE);
     }
 
     // 0x57BA02
@@ -314,7 +314,7 @@ void CMenuManager::DrawBackground() {
                 StretchY(245.0f),
                 StretchX(float(s_ProgressPosition + 5)),
                 StretchY(250.0f)
-            }, { 225, 225, 225, 255 }
+            }, MENU_TEXT_LIGHT_GRAY
         );
 
         CFont::DrawFonts();
@@ -375,7 +375,7 @@ void CMenuManager::DrawBackground() {
             rect.bottom    = y;
             rect.right  = x + SCREEN_STRETCH_X(18.0f);
             rect.top = y + SCREEN_SCALE_Y(18.0f);
-            m_aFrontEndSprites[spriteId].Draw(rect, { 255, 255, 255, 255 });
+            m_aFrontEndSprites[spriteId].Draw(rect, MENU_TEXT_WHITE);
         };
 
         CRect mapRect(StretchX(60.0f), StretchY(60.0f), SCREEN_STRETCH_FROM_RIGHT(60.0f), SCREEN_STRETCH_FROM_BOTTOM(60.0f));
@@ -434,8 +434,8 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         CFont::SetScale(StretchX(0.5f), StretchY(1.2f));
         CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
         CFont::SetEdge(2);
-        CFont::SetDropColor({ 0, 0, 0, 255 });
-        CFont::SetColor({ 74, 90, 107, 255 });
+        CFont::SetDropColor(MENU_BG);
+        CFont::SetColor(MENU_TEXT_NORMAL);
 
         const GxtChar *textOne;
 
@@ -486,7 +486,11 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             CFont::SetScale(StretchX(0.42f), StretchY(0.95f));
         }
         CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
-        CFont::SetColor((i == m_nCurrentScreenItem && m_bMapLoaded) ? CRGBA(172, 203, 241, 255) : CRGBA(74, 90, 107, 255));
+        if (i == m_nCurrentScreenItem && m_bMapLoaded) {
+            CFont::SetColor(MENU_TEXT_SELECTED);
+        } else {
+            CFont::SetColor(MENU_TEXT_NORMAL);
+        }
 
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nAlign) {
         case eMenuAlign::MENU_ALIGN_LEFT:  CFont::SetOrientation(eFontAlignment::ALIGN_LEFT); break;
@@ -760,7 +764,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                             scaledPosY - StretchX(5.0f),
                             xOffset + StretchX(32.0f),
                             scaledPosY + StretchX(47.0f)
-                        }, { 255, 255, 255, 255 }
+                        }, MENU_TEXT_WHITE
                     );
                     break;
                 }
@@ -859,8 +863,8 @@ void CMenuManager::DrawWindow(const CRect& coords, const char* key, uint8 color,
 
     if (key && *key) {
         CFont::SetWrapx(coords.right);
-        CFont::SetColor(CRGBA(225 - color, 225 - color, 225 - color, 255));
-        CFont::SetDropColor(CRGBA(0, 0, 0, 255));
+        CFont::SetColor(CRGBA(MENU_TEXT_LIGHT_GRAY - color, MENU_TEXT_LIGHT_GRAY.a));
+        CFont::SetDropColor(MENU_BG);
         CFont::SetEdge(2);
         CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
         CFont::SetFontStyle(FONT_GOTHIC);
@@ -887,9 +891,9 @@ void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* ti
     CFont::GetTextRect(&rt, x, y, TheText.Get(message));
     rt.left -= 4.0f;
     rt.bottom  += StretchY(22.0f);
-    CSprite2d::DrawRect(rt, {0, 0, 0, 255});
-    CFont::SetColor({225, 225, 225, 255});
-    CFont::SetDropColor({0, 0, 0, 255});
+    CSprite2d::DrawRect(rt, MENU_BG);
+    CFont::SetColor(MENU_TEXT_LIGHT_GRAY);
+    CFont::SetDropColor(MENU_BG);
     CFont::SetEdge(2);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetFontStyle(FONT_GOTHIC);
@@ -909,7 +913,7 @@ void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* ti
         CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
 
         CFont::SetDropShadowPosition(2);
-        CFont::SetDropColor({ 0, 0, 0, 255 });
+        CFont::SetDropColor(MENU_BG);
         CFont::PrintString(x, y + StretchY(15.0f), TheText.Get(message));
     }
 }
@@ -918,7 +922,7 @@ void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* ti
 void CMenuManager::DrawQuitGameScreen() {
     m_DisplayTheMouse = false;
     CRect coords(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT);
-    CSprite2d::DrawRect(coords, { 0, 0, 0, 255 });
+    CSprite2d::DrawRect(coords, MENU_BG);
     SaveSettings();
     RsEventHandler(rsQUITAPP, nullptr);
 }
@@ -948,9 +952,9 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
                     }
                     
                     if (FrontEndMenuManager.ColourSwitch) {
-                        CFont::SetColor({0, 0, 0, 255});
+                        CFont::SetColor(MENU_BG);
                         CFont::PrintString(posX, posY, TheText.Get("FEC_QUE")); // ???
-                        CFont::SetColor({74, 90, 107, 255});
+                        CFont::SetColor(MENU_TEXT_NORMAL);
                     }
                 }
             }
@@ -959,7 +963,7 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
             if (m_MenuIsAbleToQuit) {
                 const auto comboText = ControlsManager.GetButtonComboText((eControllerAction)m_ListSelection);
                 if (comboText) {
-                    CFont::SetColor({200, 50, 50, 255});
+                    CFont::SetColor(MENU_ERROR);
                     CFont::PrintString(posX, StretchY(posY + 10.f), comboText);
                 }
             }
@@ -1083,7 +1087,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         eControllerAction controllerAction = eControllerAction::CA_NONE;
 
         // Set default text color
-        CFont::SetColor({ 255, 255, 255, 255 });
+        CFont::SetColor(MENU_TEXT_WHITE);
 
         // Map action index to controller action
         switch (m_RedefiningControls) {
@@ -1120,9 +1124,9 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                     StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f),
                     SCREEN_STRETCH_FROM_RIGHT(20.0f),
                     StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f + 10.f)
-                }, { 172, 203, 241, 255 }
+                }, MENU_TEXT_SELECTED
             );
-            CFont::SetColor({ 255, 255, 255, 255 });
+            CFont::SetColor(MENU_TEXT_WHITE);
         }
 
         // Set text properties
@@ -1153,7 +1157,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 
         // 0x57EBD9 + 0x57EBEA
         if (controllerAction == eControllerAction::CA_COMBOLOCK) {
-            CFont::SetColor({ 0, 0, 0, 255 });
+            CFont::SetColor(MENU_BG);
             if (!isOppositeScreen) {
                 CFont::PrintString(currentX, currentY, TheText.Get("FEC_CMP")); // COMBO: Uses LOOK LEFT + LOOK RIGHT together
             }
@@ -1172,14 +1176,14 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
             if (!hasControl && isEditable) {
                 if (isQuestionMarkVisible) {
                     // 0x57ED19
-                    CFont::SetColor({ 0, 0, 0, 255 });
+                    CFont::SetColor(MENU_BG);
                     if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, TheText.Get("FEC_QUE")); // ???
                     }
                 } else if (!isSelected || !m_EditingControlOptions) {
                     // 0x57EC1F - 0x57EC9A
                     m_bRadioAvailable = 0;
-                    CFont::SetColor({ 200, 50, 50, 255 });
+                    CFont::SetColor(MENU_ERROR);
                     if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, TheText.Get("FEC_UNB")); // UNBOUND
                     }
@@ -1314,7 +1318,7 @@ void CMenuManager::DrawControllerSetupScreen() {
             }
         }
         // 0x57F9E1
-        CFont::SetColor({ 74, 90, 107, 255 });
+        CFont::SetColor(MENU_TEXT_NORMAL);
         CFont::SetScale(StretchX(0.4f), StretchY(0.6f));
         CFont::SetFontStyle(FONT_MENU);
         CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
@@ -1358,7 +1362,7 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetEdge(0);
-    CFont::SetColor({ 74, 90, 107, 255 });
+    CFont::SetColor(MENU_TEXT_NORMAL);
     CFont::PrintString(StretchX(33.0f), SCREEN_STRETCH_FROM_BOTTOM(38.0f), textBack);
 }
 

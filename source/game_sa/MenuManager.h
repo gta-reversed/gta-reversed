@@ -290,6 +290,17 @@ public:
     static inline bool& bInvertMouseX = *(bool*)0xBA6744;
     static inline bool& bInvertMouseY = *(bool*)0xBA6745;
 
+    // notsa colors
+
+    static const CRGBA MENU_BG;              // Black background
+    static const CRGBA MENU_TEXT_NORMAL;     // Plain text (not selected)
+    static const CRGBA MENU_TEXT_SELECTED;   // Highlighted text
+    static const CRGBA MENU_TEXT_WHITE;      // White text
+    static const CRGBA MENU_TEXT_LIGHT_GRAY; // Light gray text
+    static const CRGBA MENU_ERROR;           // Error/Warning color
+    static const CRGBA MENU_SHADOW;          // Semi-transparent shadow
+    static const CRGBA MENU_MAP_BACKGROUND;  // Map background
+    static const CRGBA MENU_MAP_BORDER;      // Map border
 public:
     static void InjectHooks();
 
