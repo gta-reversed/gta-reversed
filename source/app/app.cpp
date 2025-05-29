@@ -35,7 +35,7 @@ void AppInjectHooks() {
     AppLightInjectHooks();
 }
 
-inline void ChangeGameStateTo(eGameState newgs) {
+void ChangeGameStateTo(eGameState newgs) {
     if (gGameState != newgs) {
         //NOTSA_LOG_DEBUG("GS Change: `{}` to `{}`", (eGameState)(gGameState), (eGameState)(newgs)); // doesn't compile???
         gGameState = newgs;
