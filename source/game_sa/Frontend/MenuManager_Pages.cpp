@@ -334,12 +334,15 @@ void CMenuManager::PrintMap() {
                 y += StretchY(19.0f) * iterations;
             }
 
-            DrawWindow(
-                { StretchX(95.0f), StretchY(100.0f), StretchX(550.0f), y },
-                "FE_MLG", 0, CRGBA(0, 0, 0, 190), true, true
+            DrawWindow({
+                    StretchX(95.0f),
+                    StretchY(100.0f),
+                    StretchX(550.0f),
+                    y
+                }, "FE_MLG", 0, {0, 0, 0, 190}, true, true
             ); // map legend
-            CFont::SetWrapx(SCREEN_WIDTH - 40);
-            CFont::SetRightJustifyWrap(84.0);
+            CFont::SetWrapx(SCREEN_WIDTH - 40.f);
+            CFont::SetRightJustifyWrap(84.0f);
             CFont::SetDropShadowPosition(1);
             CFont::SetDropColor(MENU_BG);
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
@@ -371,10 +374,15 @@ void CMenuManager::PrintMap() {
         }
     }
     m_bDrawingMap = false;
-    CFont::SetWrapx(SCREEN_WIDTH - 10);
+    CFont::SetWrapx(SCREEN_WIDTH - 10.0f);
     CFont::SetRightJustifyWrap(10.0f);
     if (m_bMapLoaded) {
-        DisplayHelperText(m_nSysMenu != CMenuSystem::MENU_UNDEFINED ? "FEH_MPB" : "FEH_MPH");
+        if (m_nSysMenu != CMenuSystem::MENU_UNDEFINED) {
+            DisplayHelperText("FEH_MPB"); // CURSORS - MOVE UP/DOWN~n~RETURN - TOGGLE OPTION
+        } else {
+            DisplayHelperText("FEH_MPH"); // LMB/CURSORS - SCROLL~n~PGUP/PGDN/MSWHEEL - ZOOM~n~Z - OVERVIEW , L - LEGEND~n~RMB/T - TARGET , SPACEBAR - BLIPS MENU~n~ESC - BACK
+        }
+        
     }
     m_bMapLoaded = true;
 }
