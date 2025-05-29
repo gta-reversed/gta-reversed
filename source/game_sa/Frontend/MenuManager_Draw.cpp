@@ -460,8 +460,8 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
 
         CFont::PrintString(StretchX(60.0f), StretchY(97.0f), textOne);
-        CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(10.0f));
-        CFont::SetRightJustifyWrap(SCREEN_SCALE_X(10.0f));
+        CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(10.f));
+        CFont::SetRightJustifyWrap(10.0f);
     }
 
     if (m_nCurrentScreen == eMenuScreen::SCREEN_CONTROLS_DEFINITION) {
@@ -825,6 +825,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         case MENU_ACTION_RADIO_VOL:  processSlider(m_nRadioVolume * (64.f / 10.f), true, eMouseInBounds::RADIO_VOL_LEFT, eMouseInBounds::RADIO_VOL_RIGHT); break;
         case MENU_ACTION_SFX_VOL:    processSlider(m_nSfxVolume * (64.f / 10.f), false, eMouseInBounds::SFX_VOL_LEFT, eMouseInBounds::SFX_VOL_RIGHT); break;
         case MENU_ACTION_DRAW_DIST:  processSlider((m_fDrawDistance - 0.925f) * 1.1428572f, false, eMouseInBounds::DRAW_DIST_LEFT, eMouseInBounds::DRAW_DIST_RIGHT); break;
+        // BUG: when selecting on the 8 or 9 element, it randomly switches to the 9 or 8 element
         case MENU_ACTION_MOUSE_SENS: processSlider(CCamera::m_fMouseAccelHorzntl / 0.005f, false, eMouseInBounds::MOUSE_SENS_LEFT, eMouseInBounds::MOUSE_SENS_RIGHT); break;
         default:                     break;
         }
@@ -1225,50 +1226,50 @@ void CMenuManager::DrawControllerSetupScreen() {
     const auto maxActions      = GetMaxAction();
     // Create a std::array of GxtChar pointers with all entries
     std::array<const GxtChar*, 44> keys = {
-        TheText.Get("FEC_FIR"),                                                      // Fire
-        TheText.Get("FEC_FIA"),                                                      // Secondary Fire
-        TheText.Get("FEC_NWE"),                                                      // Next weapon/target
-        TheText.Get("FEC_PWE"),                                                      // Previous weapon/target
-        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_ACC" : "FEC_FOR"), // Accelerate : Forward
-        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_BRA" : "FEC_BAC"), // Brake/Reverse : Backwards
-        TheText.Get("FEC_LEF"),                                                      // Left
-        TheText.Get("FEC_RIG"),                                                      // Right
-        TheText.Get("FEC_PLU"),                                                      // Steer Forward/Down
-        TheText.Get("FEC_PLD"),                                                      // Steer Back/Up
-        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_TSK" : "FEC_COY"), // Trip Skip : Conversation - Yes
-        TheText.Get("FEC_CON"),                                                      // Conversation - No
-        TheText.Get("FEC_GPF"),                                                      // Group Ctrl Forward
-        TheText.Get("FEC_GPB"),                                                      // Group Ctrl Back
-        TheText.Get("FEC_ZIN"),                                                      // Zoom in
-        TheText.Get("FEC_ZOT"),                                                      // Zoom out
-        TheText.Get("FEC_EEX"),                                                      // Enter+exit
-        TheText.Get("FEC_RSC"),                                                      // Next radio station
-        TheText.Get("FEC_RSP"),                                                      // Previous radio station
-        TheText.Get("FEC_RTS"),                                                      // User track skip
-        TheText.Get("FEC_HRN"),                                                      // Horn
-        TheText.Get("FEC_SUB"),                                                      // Sub-mission
-        TheText.Get("FEC_CMR"),                                                      // Change camera
-        TheText.Get("FEC_JMP"),                                                      // Jump
-        TheText.Get("FEC_SPN"),                                                      // Sprint
-        TheText.Get("FEC_HND"),                                                      // Handbrake
-        TheText.Get("FEC_TAR"),                                                      // Aim Weapon
-        TheText.Get("FEC_CRO"),                                                      // Crouch
-        TheText.Get("FEC_ANS"),                                                      // Action
-        TheText.Get("FEC_PDW"),                                                      // Walk
-        TheText.Get("FEC_TFL"),                                                      // Special Ctrl Left
-        TheText.Get("FEC_TFR"),                                                      // Special Ctrl Right
-        TheText.Get("FEC_TFU"),                                                      // Special Ctrl Up
-        TheText.Get("FEC_TFD"),                                                      // Special Ctrl Down
-        TheText.Get("FEC_LBA"),                                                      // Look behind
-        TheText.Get("FEC_VML"),                                                      // Mouse Look
-        TheText.Get("FEC_LOL"),                                                      // Look left
-        TheText.Get("FEC_LOR"),                                                      // Look right
-        TheText.Get("FEC_LDU"),                                                      // Look Down
-        TheText.Get("FEC_LUD"),                                                      // Look Up
-        nullptr,                                                                     // index 40
-        nullptr,                                                                     // index 41
-        TheText.Get("FEC_CEN"),                                                      // Center camera
-        nullptr                                                                      // index 43
+        TheText.Get("FEC_FIR"),                                                             // Fire
+        TheText.Get("FEC_FIA"),                                                             // Secondary Fire
+        TheText.Get("FEC_NWE"),                                                             // Next weapon/target
+        TheText.Get("FEC_PWE"),                                                             // Previous weapon/target
+        TheText.Get(m_RedefiningControls == eControlMode::VEHICLE ? "FEC_ACC" : "FEC_FOR"), // Accelerate : Forward
+        TheText.Get(m_RedefiningControls == eControlMode::VEHICLE ? "FEC_BRA" : "FEC_BAC"), // Brake/Reverse : Backwards
+        TheText.Get("FEC_LEF"),                                                             // Left
+        TheText.Get("FEC_RIG"),                                                             // Right
+        TheText.Get("FEC_PLU"),                                                             // Steer Forward/Down
+        TheText.Get("FEC_PLD"),                                                             // Steer Back/Up
+        TheText.Get(m_RedefiningControls == eControlMode::VEHICLE ? "FEC_TSK" : "FEC_COY"), // Trip Skip : Conversation - Yes
+        TheText.Get("FEC_CON"),                                                             // Conversation - No
+        TheText.Get("FEC_GPF"),                                                             // Group Ctrl Forward
+        TheText.Get("FEC_GPB"),                                                             // Group Ctrl Back
+        TheText.Get("FEC_ZIN"),                                                             // Zoom in
+        TheText.Get("FEC_ZOT"),                                                             // Zoom out
+        TheText.Get("FEC_EEX"),                                                             // Enter+exit
+        TheText.Get("FEC_RSC"),                                                             // Next radio station
+        TheText.Get("FEC_RSP"),                                                             // Previous radio station
+        TheText.Get("FEC_RTS"),                                                             // User track skip
+        TheText.Get("FEC_HRN"),                                                             // Horn
+        TheText.Get("FEC_SUB"),                                                             // Sub-mission
+        TheText.Get("FEC_CMR"),                                                             // Change camera
+        TheText.Get("FEC_JMP"),                                                             // Jump
+        TheText.Get("FEC_SPN"),                                                             // Sprint
+        TheText.Get("FEC_HND"),                                                             // Handbrake
+        TheText.Get("FEC_TAR"),                                                             // Aim Weapon
+        TheText.Get("FEC_CRO"),                                                             // Crouch
+        TheText.Get("FEC_ANS"),                                                             // Action
+        TheText.Get("FEC_PDW"),                                                             // Walk
+        TheText.Get("FEC_TFL"),                                                             // Special Ctrl Left
+        TheText.Get("FEC_TFR"),                                                             // Special Ctrl Right
+        TheText.Get("FEC_TFU"),                                                             // Special Ctrl Up
+        TheText.Get("FEC_TFD"),                                                             // Special Ctrl Down
+        TheText.Get("FEC_LBA"),                                                             // Look behind
+        TheText.Get("FEC_VML"),                                                             // Mouse Look
+        TheText.Get("FEC_LOL"),                                                             // Look left
+        TheText.Get("FEC_LOR"),                                                             // Look right
+        TheText.Get("FEC_LDU"),                                                             // Look Down
+        TheText.Get("FEC_LUD"),                                                             // Look Up
+        nullptr,                                                                            // index 40
+        nullptr,                                                                            // index 41
+        TheText.Get("FEC_CEN"),                                                             // Center camera
+        nullptr                                                                             // index 43
     };
 
     // 0x57F68E

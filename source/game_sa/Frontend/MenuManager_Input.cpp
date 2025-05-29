@@ -35,7 +35,7 @@ void CMenuManager::UserInput() {
     }
 
     // Early return conditions
-    if (m_bScanningUserTracks || m_nControllerError == eControllerError::NONE) {
+    if (m_bScanningUserTracks || m_nControllerError != eControllerError::NONE) {
         return;
     }
 
