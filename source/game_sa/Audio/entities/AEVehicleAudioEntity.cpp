@@ -506,7 +506,7 @@ void CAEVehicleAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) 
         } else if (const auto it = rng::find(m_EngineSounds, sound, &tEngineSound::Sound); it != m_EngineSounds.end()) {
             it->Sound = nullptr;
         }
-    } else if (m_AuSettings.IsAircraftEngineSound() && GetEngineSound(AE_SOUND_AIRCRAFT_NEAR)) {
+    } else if (m_AuSettings.IsAircraftEngineSound() && GetEngineSound(AE_SOUND_AIRCRAFT_NEAR) == sound) { // 0x4FB7F1
         sound->SetPosition(GetAircraftNearPosition());
     } else {
         sound->SetPosition(m_Entity->GetPosition());

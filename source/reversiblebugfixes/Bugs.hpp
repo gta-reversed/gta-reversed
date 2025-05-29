@@ -64,4 +64,9 @@ inline const ReversibleBugFix CAEVehicleAudioEntity_PlayBicycleSound_VolumeFix{
     .Description = "Original code didn't account for event base volume",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CAEVehicleAudioEntity_PlayAircraftSound_VolumeFix{
+    .Name        = "CAEVehicleAudioEntity::PlayAircraftSound Volume fix",
+    .Description = "Original code didn't account for event base volume",
+    .Credit      = "Pirulax"
+};
 };
