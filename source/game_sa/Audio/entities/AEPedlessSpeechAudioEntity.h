@@ -5,7 +5,7 @@
 class NOTSA_EXPORT_VTABLE CAEPedlessSpeechAudioEntity final : public CAEPedSpeechAudioEntity {
 public:
     char         gap100[20];
-    CEntity::Ref m_AttachedTo{};
+    notsa::EntityRef<> m_AttachedTo{};
 
 public:
     using CAEPedSpeechAudioEntity::CAEPedSpeechAudioEntity;

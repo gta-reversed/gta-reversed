@@ -36,10 +36,10 @@ std::string make_hex_string(TInputIter first, TInputIter last, bool use_uppercas
 void LOG_HEX_SPAN(uint8* start, size_t size) {
     auto span = std::span(start, size);
     auto str  = make_hex_string(span.begin(), span.end(), true, true);
-    DEV_LOG("{}", str);
+    NOTSA_LOG_DEBUG("{}", str);
 }
 
-    #define LOG_SAVE(msg) DEV_LOG(msg)
+    #define LOG_SAVE(msg) NOTSA_LOG_DEBUG(msg)
 
 #else
 void LOG_HEX_SPAN(uint8* start, size_t size) {}

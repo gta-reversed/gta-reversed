@@ -7,6 +7,7 @@
 #pragma once
 
 class CTimer {
+public:
     /*!
     * Thanks guys for figuring this out for me!
     * 
@@ -16,7 +17,6 @@ class CTimer {
     static constexpr float TIMESTEP_PER_SECOND = 50.f;                         //!< Number of steps/second
     static constexpr float TIMESTEP_LEN_IN_MS  = 1000.f / TIMESTEP_PER_SECOND; //!< How long (in ms) a timestep is
 
-public:
     typedef uint64(__cdecl* TimerFunction_t)();
     static TimerFunction_t& ms_fnTimerFunction;
 

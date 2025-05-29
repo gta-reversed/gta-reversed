@@ -6,3 +6,8 @@ compiler.cppstd=23
 compiler.runtime=static
 compiler.version=194
 os=Windows
+
+[tool_requires]
+# TODO: Temporary fix for Vorbis not supporting CMake 4
+!cmake/*: cmake/[>=3 <4]
+

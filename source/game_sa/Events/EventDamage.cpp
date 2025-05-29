@@ -270,7 +270,7 @@ bool CEventDamage::DoInformVehicleOccupants(CPed* ped) {
 }
 
 // 0x4B5D40
-CEventEditableResponse* CEventDamage::CloneEditable() {
+CEventEditableResponse* CEventDamage::CloneEditable() const noexcept {
     auto* clonedEvent      = new CEventDamage(*this);
     clonedEvent->m_nAnimID = m_nAnimID;
     clonedEvent->m_bStealthMode     = m_bStealthMode;

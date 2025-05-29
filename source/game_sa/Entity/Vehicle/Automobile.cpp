@@ -566,11 +566,6 @@ void CAutomobile::ProcessControl()
     }
 
     for (auto& collisionEntity : m_apWheelCollisionEntity) {
-        // FIXME(yukani): I need this to test anything outside, do not remove
-        // until game doesn't crash on me here.
-        if (collisionEntity == (CPhysical*)0xffffffff) {
-            collisionEntity = nullptr;
-        }
         if (collisionEntity) {
             vehicleFlags.bRestingOnPhysical = true;
             if (!CWorld::bForceProcessControl && collisionEntity->m_bIsInSafePosition) {
@@ -1245,13 +1240,10 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
         if (m_nModelIndex != MODEL_TAXI && m_nModelIndex != MODEL_CABBIE) {
             CVector target = GetPosition();
             target += GetRight() * 3.0f + GetForward() * 10.0f;
-            CColPoint outColPoint{};
-            CEntity* outEntity = nullptr;
-            if (!CWorld::ProcessLineOfSight(GetPosition(), target, outColPoint, outEntity, true, true, true,
-                false, false, false, false, false)
-                || outEntity == this)
-            {
-                CCarAI::GetCarToParkAtCoors(this, &target);
+            CColPoint cp{};
+            CEntity* hit;
+            if (!CWorld::ProcessLineOfSight(GetPosition(), target, cp, hit, true, true, true, false, false, false, false, false) || hit == this) {
+                CCarAI::GetCarToParkAtCoors(this, target);
             }
         }
     }
@@ -1459,8 +1451,8 @@ bool CAutomobile::ProcessAI(uint32& extraHandlingFlags) {
     float steerLeftRight = (float)pad->GetSteeringLeftRight() / 128.0f;
     float steerUpDown    = (float)pad->GetSteeringUpDown() / 128.0f;
     if (CCamera::m_bUseMouse3rdPerson && std::fabs(steerLeftRight) < 0.05f && std::fabs(steerUpDown) < 0.05f) {
-        steerLeftRight = std::clamp<float>(CPad::NewMouseControllerState.X / 50.0f, -1.5f, 1.5f);
-        steerUpDown    = std::clamp<float>(CPad::NewMouseControllerState.Y / 50.0f, -1.5f, 1.5f);
+        steerLeftRight = std::clamp<float>(CPad::NewMouseControllerState.m_AmountMoved.x / 50.0f, -1.5f, 1.5f);
+        steerUpDown    = std::clamp<float>(CPad::NewMouseControllerState.m_AmountMoved.y / 50.0f, -1.5f, 1.5f);
     }
 
     // 0x6B4F69
@@ -1998,23 +1990,23 @@ void CAutomobile::ProcessControlInputs(uint8 playerNum) {
         };
     
         if (!CCamera::m_bUseMouse3rdPerson || !m_bEnableMouseSteering) {
-            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), CONTROLLER_KEYBOARD1 };
+            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), eControllerType::KEYBOARD };
         }
 
-        if (CPad::NewMouseControllerState.X == 0.f && (m_nLastControlInput != CONTROLLER_MOUSE || plyrpad->GetSteeringLeftRight() != 0)) { // Simplified `if` here
-            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), CONTROLLER_KEYBOARD1 };
+        if (CPad::NewMouseControllerState.m_AmountMoved.x == 0.f && (m_nLastControlInput != eControllerType::MOUSE || plyrpad->GetSteeringLeftRight() != 0)) { // Simplified `if` here
+            return { m_fRawSteerAngle + GetSteeringDeltaForFrame(), eControllerType::KEYBOARD };
         }
 
-        if (CPad::NewMouseControllerState.X != 0.f || m_fRawSteerAngle != 0.f) {
+        if (CPad::NewMouseControllerState.m_AmountMoved.x != 0.f || m_fRawSteerAngle != 0.f) {
             if (!plyrpad->NewState.m_bVehicleMouseLook) {
-                return { m_fRawSteerAngle - CPad::NewMouseControllerState.X * 0.0035f, CONTROLLER_MOUSE };
+                return { m_fRawSteerAngle - CPad::NewMouseControllerState.m_AmountMoved.x * 0.0035f, eControllerType::MOUSE };
             }
 
             if (plyrpad->NewState.m_bVehicleMouseLook || std::abs(m_fRawSteerAngle) <= 0.7f) { // Slowly steer back to 0
-                return { m_fRawSteerAngle * std::pow(0.975f, CTimer::GetTimeStep()), CONTROLLER_MOUSE };
+                return { m_fRawSteerAngle * std::pow(0.975f, CTimer::GetTimeStep()), eControllerType::MOUSE };
             }
 
-            return { m_fRawSteerAngle, CONTROLLER_MOUSE };
+            return { m_fRawSteerAngle, eControllerType::MOUSE };
         }
 
         return { m_fRawSteerAngle, m_nLastControlInput }; // No change
@@ -2917,8 +2909,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
             && lastImpactVel_Dot_Fwd < -0.4f // Impact was from behind - (-66, 66) deg
             && m_fDamageIntensity / m_fMass > 0.1f
         ) {
-            m_autoPilot.m_nTempAction = 19;
-            m_autoPilot.m_nTempActionTime = CTimer::GetTimeInMS() + 4000;
+            m_autoPilot.SetTempAction(TEMPACT_HEADON_COLLISION, 4'000);
         }
 
         if (m_pDamageEntity) {
@@ -2984,7 +2975,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
 
     // 0x6A79AB (Condition inverted)
     if (calcDmgIntensity > minDmgIntensity && m_nStatus != STATUS_WRECKED) {
-        // DEV_LOG("calcDmgIntensity: {.2f}", calcDmgIntensity); // NOTSA
+        // NOTSA_LOG_DEBUG("calcDmgIntensity: {.2f}", calcDmgIntensity); // NOTSA
         // 0x6A79C7
         // If we're a law enforcer, and the dmgr is the
         // player's plyrveh increase their wanted level.
@@ -3232,7 +3223,7 @@ void CAutomobile::VehicleDamage(float damageIntensity, eVehicleCollisionComponen
                     m_fHealth -= calcCollHealthLoss / 4.f;
                 }
             }
-            // DEV_LOG("Health: {.2f} (Loss: {.2f})", m_fHealth, prevHealth - m_fHealth); // NOTSA
+            // NOTSA_LOG_DEBUG("Health: {.2f} (Loss: {.2f})", m_fHealth, prevHealth - m_fHealth); // NOTSA
             // 0x6A8338
             if (CCheat::IsActive(CHEAT_SMASH_N_BOOM) && m_pDamageEntity && m_pDamageEntity == FindPlayerVehicle()) {
                 BlowUpCar(m_pDamageEntity, false);
@@ -3922,8 +3913,8 @@ float CAutomobile::GetMovingCollisionOffset() {
 // 0x6A2390
 void CAutomobile::TellHeliToGoToCoors(float x, float y, float z, float altitudeMin, float altitudeMax) {
     m_autoPilot.m_vecDestinationCoors = CVector{ x, y, z };
-    m_autoPilot.m_nCarMission = MISSION_HELI_FLYTOCOORS;
-    m_autoPilot.m_nCruiseSpeed = 100;
+    m_autoPilot.SetCarMission(MISSION_HELI_FLYTOCOORS);
+    m_autoPilot.SetCruiseSpeed(100);
 
     AsHeli()->m_fMinAltitude = altitudeMin;
     AsHeli()->m_fMaxAltitude = altitudeMax;
@@ -3956,8 +3947,8 @@ void CAutomobile::ClearHeliOrientation() {
 // 0x6A2470
 void CAutomobile::TellPlaneToGoToCoors(float x, float y, float z, float altitudeMin, float altitudeMax) {
     m_autoPilot.m_vecDestinationCoors = CVector{ x, y, z };
-    m_autoPilot.m_nCarMission = MISSION_PLANE_FLYTOCOORS;
-    m_autoPilot.m_nCruiseSpeed = 0;
+    m_autoPilot.SetCarMission(MISSION_PLANE_FLYTOCOORS);
+    m_autoPilot.SetCruiseSpeed(0);
 
     AsPlane()->m_minAltitude = std::max(altitudeMin, z);
     AsPlane()->m_maxAltitude = altitudeMax;
@@ -5051,9 +5042,9 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
         return nullptr; // No atomic means there's nothing to render :D
     }
 
-    GetObjectPool()->m_bIsLocked = true;
+    GetObjectPool()->SetDealWithNoMemory(true);
     auto obj = new CObject;
-    GetObjectPool()->m_bIsLocked = false;
+    GetObjectPool()->SetDealWithNoMemory(false);
 
     if (!obj) {
         return nullptr;
@@ -5340,11 +5331,9 @@ inline void CAutomobile::ProcessPedInVehicleBuoyancy(CPed* ped, bool bIsDriver) 
             ped->GetEventGroup().Add(&damageEvent, false);
         }
     } else {
-        auto vecCollisionImpact = m_vecMoveSpeed * -1.0F; // TODO: -m_vecMoveSpeed.Normalized()
-        vecCollisionImpact.Normalise();
         auto fDamageIntensity = m_vecMoveSpeed.Magnitude() * m_fMass; // TODO: It's "force"
 
-        auto knockOffBikeEvent = CEventKnockOffBike(this, &m_vecMoveSpeed, &vecCollisionImpact, fDamageIntensity,
+        auto knockOffBikeEvent = CEventKnockOffBike(this, m_vecMoveSpeed, (-m_vecMoveSpeed).Normalized(), fDamageIntensity,
             0.0F, KNOCK_OFF_TYPE_FALL, 0, 0, nullptr, false, false);
 
         ped->GetEventGroup().Add(&knockOffBikeEvent, false);
@@ -5904,19 +5893,9 @@ void CAutomobile::PlaceOnRoadProperly()
         vecRearCheck.z = fColZ;
     }
 
-    //FIXME: Not originally in this function, we can't spawn skimmer from debug menu cause those 2 values aren't initialized,
-    //       resulting in garbage results further down, either we have a bug somewhere, or it's like that in original SA too
-    if (m_nModelIndex == MODEL_SKIMMER) {
-        m_fFrontHeightAboveRoad = 0.0F;
-        m_fRearHeightAboveRoad = 0.0F;
-        vecFrontCheck.z += 4.0F;
-        vecRearCheck.z += 4.0F;
-    }
-    else {
-        auto fHeightAboveRoad = GetHeightAboveRoad();
-        vecFrontCheck.z += fHeightAboveRoad;
-        vecRearCheck.z += m_fRearHeightAboveRoad;
-    }
+    auto fHeightAboveRoad = GetHeightAboveRoad();
+    vecFrontCheck.z += fHeightAboveRoad;
+    vecRearCheck.z += m_fRearHeightAboveRoad;
 
     auto fLength = fEndY + fStartY;
     GetRight().Set((vecFrontCheck.y - vecRearCheck.y) / fLength, -((vecFrontCheck.x - vecRearCheck.x) / fLength), 0.0F);
@@ -6285,15 +6264,12 @@ void CAutomobile::SetDoorDamage(eDoors doorIdx, bool withoutVisualEffect)
 }
 
 // 0x6B3F70
-bool CAutomobile::RcbanditCheck1CarWheels(CPtrList& ptrList)
+bool CAutomobile::RcbanditCheck1CarWheels(CPtrListDoubleLink<CVehicle*>& ptrList)
 {
     CColModel* colModel = GetVehicleModelInfo()->GetColModel();
 
-    CPtrNode* next = nullptr;
-    for (CPtrNode* node = ptrList.m_node; node; node = next) {
-        next = node->m_next;
-        auto* vehicle = (CAutomobile*)node->m_item;
-        if (node->m_item == this || !vehicle->IsAutomobile())
+    for (auto* const vehicle : ptrList) {
+        if (vehicle == this || !vehicle->IsAutomobile())
             continue;
 
         if (!ModelIndices::IsRCBandit(vehicle->m_nModelIndex) && vehicle->m_nScanCode != GetCurrentScanCode())
@@ -6338,7 +6314,7 @@ bool CAutomobile::RcbanditCheckHitWheels() {
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
             CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            if (RcbanditCheck1CarWheels(repeatSector->GetList(REPEATSECTOR_VEHICLES)))
+            if (RcbanditCheck1CarWheels(repeatSector->Vehicles))
                 break;
         }
     }
@@ -6351,7 +6327,7 @@ void CAutomobile::FireTruckControl(CFire* fire) {
         if (m_nStatus != STATUS_PHYSICS || !fire)
             return;
 
-        CVector2D distance = fire->m_vecPosition - GetPosition();
+        CVector2D distance = fire->GetPosition() - GetPosition();
         float shootDir = std::atan2(-distance.x, distance.y);
         float heading = GetHeading();
         if (shootDir > heading + PI)

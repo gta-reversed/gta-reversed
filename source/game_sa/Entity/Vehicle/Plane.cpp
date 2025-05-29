@@ -264,7 +264,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
             CExplosion::AddExplosion(this, damager, EXPLOSION_AIRCRAFT, GetPosition(), 0, 1, -1.0f, 0);
         }
     } else {
-        m_autoPilot.m_nCarMission = MISSION_PLANE_CRASH_AND_BURN;
+        m_autoPilot.SetCarMission(MISSION_PLANE_CRASH_AND_BURN);
         m_fHealth = 0.0f;
     }
 }
@@ -336,9 +336,8 @@ void CPlane::SetGearDown() {
 // 0x6CCA50
 uint32 CPlane::CountPlanesAndHelis() {
     uint32 counter = 0;
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        auto vehicle = GetVehiclePool()->GetAt(i);
-        if (vehicle && (vehicle->IsSubHeli() || vehicle->IsSubPlane())) {
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (vehicle.IsSubHeli() || vehicle.IsSubPlane()) {
             counter++;
         }
     }

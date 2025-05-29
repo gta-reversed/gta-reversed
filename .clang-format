@@ -30,6 +30,8 @@ AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: true
+AlignConsecutiveShortCaseStatements: 
+  Enabled: true
 AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: InlineOnly
 AllowShortIfStatementsOnASingleLine: Never

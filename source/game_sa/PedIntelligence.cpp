@@ -38,8 +38,6 @@
 #include "TaskSimplePutDownEntity.h"
 #include <TaskComplexGoToCarDoorAndStandStill.h>
 #include "TaskSimplePickUpEntity.h"
-#include <extensions/enumerate.hpp>
-
 
 float& CPedIntelligence::STEALTH_KILL_RANGE = *reinterpret_cast<float*>(0x8D2398); // 2.5f
 float& CPedIntelligence::LIGHT_AI_LEVEL_MAX = *reinterpret_cast<float*>(0x8D2380); // 0.3f
@@ -240,15 +238,11 @@ void CPedIntelligence::AddTaskEventResponseNonTemp(CTask* task, int32 unUsed) {
 
 // 0x600E20
 void CPedIntelligence::AddTaskPrimaryMaybeInGroup(CTask* task, bool bAffectsPed) {
-    CPedGroup* pegGroup = CPedGroups::GetPedsGroup(m_pPed);
-    if (m_pPed->IsPlayer() || !pegGroup)
-    {
-        CEventScriptCommand eventScriptCommand(TASK_PRIMARY_PRIMARY, task, bAffectsPed);
-        m_eventGroup.Add(&eventScriptCommand, false);
-    }
-    else
-    {
-        pegGroup->GetIntelligence().SetScriptCommandTask(m_pPed, task);
+    CPedGroup* grp = m_pPed->GetGroup();
+    if (m_pPed->IsPlayer() || !grp) {
+        m_eventGroup.Add(CEventScriptCommand{TASK_PRIMARY_PRIMARY, task, bAffectsPed});
+    } else {
+        grp->GetIntelligence().SetScriptCommandTask(m_pPed, *task);
         delete task;
     }
 }
@@ -305,18 +299,11 @@ CTaskSimpleDuck* CPedIntelligence::GetTaskDuck(bool bIgnoreCheckingForSimplestAc
     if (const auto task = notsa::dyn_cast_if_present<CTaskSimpleDuck>(m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK))) {
         return task;
     }
-
-    auto* secondaryTask = m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_DUCK);
-    if (secondaryTask && secondaryTask->GetTaskType() == TASK_SIMPLE_DUCK) {
-        return (CTaskSimpleDuck*)secondaryTask;
-    }
-
     if (!bIgnoreCheckingForSimplestActiveTask) {
         if (const auto task = notsa::dyn_cast_if_present<CTaskSimpleDuck>(m_TaskMgr.GetSimplestActiveTask())) {
             return task;
         }
     }
-
     return nullptr;
 }
 
@@ -453,7 +440,7 @@ void CPedIntelligence::ClearTasks(bool bClearPrimaryTasks, bool bClearSecondaryT
     if (!bClearSecondaryTasks)
         return;
 
-    for (const auto [idx, task] : notsa::enumerate(m_TaskMgr.GetSecondaryTasks())) {
+    for (const auto [idx, task] : rngv::enumerate(m_TaskMgr.GetSecondaryTasks())) {
         if (!task) {
             continue;
         }
@@ -748,7 +735,7 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
             (dislike && (pedFlag & dislike))
         );
         if (bAcquaintancesFlagSet && target->GetGroup()) {
-            const auto oe = target->GetGroup()->GetIntelligence().GetOldEvent();
+            const auto oe = target->GetGroup()->GetIntelligence().GetCurrentEvent();
             if (oe && oe->GetSourceEntity() == m_pPed && bAcquaintancesFlagSet) {
                 return false;
             }

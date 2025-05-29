@@ -136,14 +136,14 @@ void TwoDEffectsDebugModule::UpdateEntitiesAndEffectsInRange() {
     m_FxInRange.clear();
     m_FxInRange.reserve(m_EntitiesInRange.size() * 2);
     for (size_t eN = 0; eN < m_EntitiesInRange.size(); eN++) {
-        auto* const       e  = m_EntitiesInRange[eN];
-        const auto* const mi = e->GetModelInfo();
+        auto* const       entity = m_EntitiesInRange[eN];
+        const auto* const mi     = entity->GetModelInfo();
         for (size_t fxN = 0; fxN < mi->m_n2dfxCount; fxN++) {
             auto* const fx    = mi->Get2dEffect(fxN);
-            const auto  fxPos = e->GetMatrix().TransformPoint(fx->m_Pos);
-            const auto  hash  = ImHashData(&fx, sizeof(&fx), ImHashData(&e, sizeof(&e)));
+            const auto  fxPos = entity->GetMatrix().TransformPoint(fx->m_Pos);
+            const auto  hash  = ImHashData(&fx, sizeof(&fx), ImHashData(&entity, sizeof(&entity)));
             const auto& entry = m_FxInRange.emplace_back(
-                e,
+                entity,
                 fx,
                 fxPos,
                 CVector::Dist(fxPos, FindPlayerCoors()),

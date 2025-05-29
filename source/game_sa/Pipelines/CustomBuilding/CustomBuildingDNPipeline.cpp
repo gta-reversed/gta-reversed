@@ -146,10 +146,12 @@ void CCustomBuildingDNPipeline::PreRenderUpdate(RpAtomic* a, bool ignoreDNBalanc
     NVCPipelineProcess(a, m_fDNBalanceParam);
 }
 
-// 0x5D72A0
-RpAtomic* CCustomBuildingDNPipeline::PreRenderUpdateRpAtomicCB(RpAtomic* atomic, void* data) {
-    PreRenderUpdate(atomic, *reinterpret_cast<bool*>(data));
-    return atomic;
+// 0x5D72C0
+void CCustomBuildingDNPipeline::PreRenderUpdate(RpClump* clump, bool ignoreDNBalanceParam) {
+    RpClumpForAllAtomics(clump, [](RpAtomic* atomic, void* data) { // 0x5D72A0
+        CCustomBuildingDNPipeline::PreRenderUpdate(atomic, *(bool*)(data));
+        return atomic;
+    }, &ignoreDNBalanceParam);
 }
 
 // 0x5D7100
@@ -195,7 +197,7 @@ void CCustomBuildingDNPipeline::DestroyPipe() {
     }
 }
 
-// sub_5D63E0
+// 0x5D63E0
 RwBool CCustomBuildingDNPipeline::CustomPipeInstanceCB(void* object, RwResEntry* resEntry, RxD3D9AllInOneInstanceCallBack instanceCallback) {
     if (instanceCallback) {
         auto entry = *reinterpret_cast<RwResEntrySA*>(resEntry);
@@ -293,9 +295,9 @@ void CCustomBuildingDNPipeline::InjectHooks() {
     RH_ScopedInstall(pluginExtraVertColourStreamReadCB, 0x5D6DE0);
     RH_ScopedInstall(pluginExtraVertColourStreamWriteCB, 0x5D6D80);
     RH_ScopedInstall(pluginExtraVertColourStreamGetSizeCB, 0x5D6DC0);
-    RH_ScopedInstall(PreRenderUpdate, 0x5D7200);
+    RH_ScopedOverloadedInstall(PreRenderUpdate, "Atomic", 0x5D7200, void(*)(RpAtomic*, bool));
+    RH_ScopedOverloadedInstall(PreRenderUpdate, "Clump", 0x5D72C0, void(*)(RpClump*, bool));
     RH_ScopedGlobalInstall(NVCPipelineProcess, 0x5D6850);
-    RH_ScopedInstall(PreRenderUpdateRpAtomicCB, 0x5D72A0);
     RH_ScopedInstall(CreatePipe, 0x5D7100);
     RH_ScopedInstall(DestroyPipe, 0x5D5FA0);
     RH_ScopedInstall(CreateCustomObjPipe, 0x5D6750);

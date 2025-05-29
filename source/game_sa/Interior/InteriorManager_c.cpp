@@ -40,7 +40,7 @@ void InteriorManager_c::Init() {
     for (auto& i : m_Interiors) {
         m_InteriorPool.AddItem(&i);
     }
-    for (auto&& [i, g] : notsa::enumerate(m_InteriorGroups)) {
+    for (auto&& [i, g] : rngv::enumerate(m_InteriorGroups)) {
         g.m_id = (uint8)i;
         m_InteriorGroupPool.AddItem(&g);
     }
@@ -362,7 +362,7 @@ void InteriorManager_c::SetStealableObjectStolen(CEntity* entity, uint8 isStolen
 
 // 0x598360
 int32 InteriorManager_c::FindStealableObjectId(CEntity* entity) const {
-    for (auto&& [i, v] : notsa::enumerate(GetObjects())) {
+    for (auto&& [i, v] : rngv::enumerate(GetObjects())) {
         if (v.entity == entity) {
             return i;
         }
@@ -372,7 +372,7 @@ int32 InteriorManager_c::FindStealableObjectId(CEntity* entity) const {
 
 // 0x5982F0
 int32 InteriorManager_c::FindStealableObjectId(int32 interiorId, int32 modelId, CVector point) const {
-    for (auto&& [i, v] : notsa::enumerate(GetObjects())) {
+    for (auto&& [i, v] : rngv::enumerate(GetObjects())) {
         if (v.interiorId == interiorId && v.modelId == modelId && v.pos == point) {
             return i;
         }

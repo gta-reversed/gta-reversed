@@ -108,6 +108,10 @@ public:
         y /= divisor;
     }
 
+    void Reset() {
+        Set(0.f, 0.f);
+    }
+
     inline void Set(float X, float Y) {
         x = X;
         y = Y;
@@ -116,6 +120,8 @@ public:
     //! Heading of the vector
     //! Tip: atan2(x, -y) is off by 180deg clockwise
     float Heading() const {
+        // -x, y is basically GetPerpRight()
+        // that's the same as std::atan(y, x) - 90deg;
         return std::atan2(-x, y);
     }
 
@@ -179,11 +185,11 @@ public:
     * @notsa
     * @return Make all component's values absolute (positive).
     */
-    static friend CVector2D abs(CVector2D v2) {
+    constexpr friend CVector2D abs(CVector2D v2) {
         return { std::abs(v2.x), std::abs(v2.y) };
     }
 
-    static friend CVector2D pow(CVector2D vec, float power) { // todo/note: maybe use operator^?
+    constexpr friend CVector2D pow(CVector2D vec, float power) { // todo/note: maybe use operator^?
         return { std::pow(vec.x, power), std::pow(vec.y, power) };
     }
 
@@ -194,6 +200,8 @@ public:
     float& operator[](size_t i) {
         return (&x)[i];
     }
+
+    bool ApproxEqualTo(CVector2D o, float epsilon);
 
     /*!
      * @brief Prefer this over (a - b).Magnitude()

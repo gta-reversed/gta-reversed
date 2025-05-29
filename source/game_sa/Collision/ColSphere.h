@@ -9,6 +9,7 @@
 #include "Sphere.h"
 #include "ColPoint.h"
 #include "ColSurface.h"
+#include "eSurfaceType.h"
 
 class CColSphere : public CSphere {
 public:
@@ -37,7 +38,7 @@ public:
     void Set(float radius, const CVector& center, eSurfaceType material, uint8 pieceType = 0, tColLighting lighting = tColLighting{0xFF});
     bool IntersectRay(const CVector& rayOrigin, const CVector& direction, CVector& intersectPoint1, CVector& intersectPoint2);
     bool IntersectEdge(const CVector& startPoint, const CVector& endPoint, CVector& intersectPoint1, CVector& intersectPoint2);
-    bool IntersectSphere(const CColSphere& right);
+    bool IntersectSphere(const CColSphere& right) const;
     bool IntersectPoint(const CVector& point);
 
     auto GetSurfaceType() const { return m_Surface.m_nMaterial; }

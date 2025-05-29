@@ -249,7 +249,7 @@ void ResetAllJumps() {
 void StuntJumpTestCode() {
     CPad* pad = CPad::GetPad(0);
     if (pad->IsStandardKeyJustDown('1')) {
-        DEV_LOG("ResetAllJumps");
+        NOTSA_LOG_DEBUG("ResetAllJumps");
         ResetAllJumps();
     }
     if (pad->IsStandardKeyJustDown('2')) {

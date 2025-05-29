@@ -8,6 +8,10 @@ void CPedList::InjectHooks() {
     RH_ScopedInstall(Empty, 0x699DB0);
     RH_ScopedInstall(BuildListFromGroup_NoLeader, 0x699DD0);
     RH_ScopedInstall(ExtractPedsWithGuns, 0x69A4C0);
+    RH_ScopedInstall(BuildListFromGroup_NotInCar_NoLeader, 0x69A340, { .reversed = false });
+    RH_ScopedInstall(BuildListOfPedsOfPedType, 0x69A3B0, { .reversed = false });
+    RH_ScopedInstall(RemovePedsAttackingPedType, 0x69A450, { .reversed = false });
+    RH_ScopedInstall(RemovePedsThatDontListenToPlayer, 0x69A420, { .reversed = false });
 }
 
 // 0x699DB0
@@ -18,11 +22,8 @@ void CPedList::Empty() {
 // 0x699DD0
 void CPedList::BuildListFromGroup_NoLeader(CPedGroupMembership& groupMembership) {
     m_count = 0;
-
-    for (auto i = 0; i < TOTAL_PED_GROUP_MEMBERS - 1; i++) { // last member is the leader, ignore him
-        if (CPed* ped = groupMembership.GetMember(i)) {
-            AddMember(ped);
-        }
+    for (auto* const mem : groupMembership.GetMembers(false)) {
+        AddMember(mem);
     }
     ClearUnused();
 }
@@ -43,6 +44,26 @@ void CPedList::ExtractPedsWithGuns(CPedList& from) {
 // array there might be a hole, so it has to be filled
 void CPedList::FillUpHoles() {
     rng::fill(rng::remove(m_peds, nullptr), nullptr);
+}
+
+// 0x69A340
+void CPedList::BuildListFromGroup_NotInCar_NoLeader(CPedGroupMembership* pedGroupMembership) {
+    plugin::CallMethod<0x69A340>(this, pedGroupMembership);
+}
+
+// 0x69A3B0
+void CPedList::BuildListOfPedsOfPedType(int32 pedType) {
+    plugin::CallMethod<0x69A3B0>(this, pedType);
+}
+
+// 0x69A450
+void CPedList::RemovePedsAttackingPedType(int32 pedType) {
+    plugin::CallMethod<0x69A450>(this, pedType);
+}
+
+// 0x69A420
+void CPedList::RemovePedsThatDontListenToPlayer() {
+    plugin::CallMethod<0x69A420>(this);
 }
 
 //

@@ -10,12 +10,12 @@
 
 class CVehicle;
 
-enum eDarkelStatus {
-    DARKEL_STATUS_0,
-    DARKEL_STATUS_1,
-    DARKEL_STATUS_2,
-    DARKEL_STATUS_3,
-    DARKEL_STATUS_4,
+enum class eDarkelStatus {
+    INITIAL,
+    FRENZY_ON_GOING,
+    FRENZY_PASSED,
+    FRENZY_FAILED,
+    FRENZY_ON_GOING_2P,
 };
 
 class CDarkel {
@@ -49,7 +49,7 @@ public:
     static bool ThisVehicleShouldBeKilledForFrenzy(const CVehicle& vehicle);
     static void StartFrenzy(eWeaponType weaponType, int32 timeLimit, uint16 killsNeeded, int32 modelToKill, const GxtChar* startMessage, int32 modelToKill2, int32 modelToKill3, int32 modelToKill4, bool standardSoundAndMessages, bool needHeadShot);
     static void ResetModelsKilledByPlayer(int32 playerId);
-    static int16 QueryModelsKilledByPlayer(int32 modelId, int32 playerId);
+    static int16 QueryModelsKilledByPlayer(eModelID modelId, int32 playerId);
     static int32 FindTotalPedsKilledByPlayer(int32 playerId);
     static void DealWithWeaponChangeAtEndOfFrenzy();
     static bool CheckDamagedWeaponType(eWeaponType damageWeaponId, eWeaponType expectedDamageWeaponId);

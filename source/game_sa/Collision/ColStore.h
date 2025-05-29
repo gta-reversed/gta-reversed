@@ -21,15 +21,9 @@ struct ColDef {
 };
 VALIDATE_SIZE(ColDef, 0x2C);
 
-typedef CPool<ColDef> CColPool;
-
-class CQuadTreeNode;
-
+using CColPool = CPool<ColDef>;
 class CColStore {
 public:
-    static CColPool*& ms_pColPool;
-    static CQuadTreeNode*& ms_pQuadTree;
-
     static CVector& ms_vecCollisionNeeded;
     static bool&    ms_bCollisionNeeded;
     static int32    ms_nRequiredCollisionArea;
@@ -60,7 +54,7 @@ public:
     static void RemoveRef(int32 colNum);
     static void RequestCollision(const CVector& pos, int32 areaCode);
     static void SetCollisionRequired(const CVector& pos, int32 areaCode);
-};
 
-void SetIfCollisionIsRequired(const CVector2D& vecPos, void* data); // data is ColDef*
-void SetIfCollisionIsRequiredReducedBB(const CVector2D& vecPos, void* data); // data is ColDef*
+    static ColDef* GetInSlot(int32 slot);
+    static CColPool* GetPool();
+};

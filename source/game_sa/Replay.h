@@ -9,7 +9,6 @@
 #include "eReplay.h"
 #include "ePedType.h"
 #include "eWeatherType.h"
-#include "extensions/enumerate.hpp"
 
 class CCamera;
 

@@ -15,7 +15,7 @@ public:
     //! Called once on ImGUI initialization
     virtual void OnImGuiInitialised(ImGuiContext* ctx) { /*nothing*/ }
     
-    //! Called once every frame
+    //! Called once every frame (pre-render)
     virtual void Update() { /*nothing*/ }
 
     //! Render 3D stuff here (lines, etc...). If rendered elsewhere they (probably) won't be visible.

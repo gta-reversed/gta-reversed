@@ -20,7 +20,7 @@ public:
     int32 GetEventPriority() const override { return 25; }
     bool AffectsPed(CPed* ped) override;
     bool CanBeInterruptedBySameEvent() override { return true; }
-    CEventEditableResponse* CloneEditable() override { return new CEventAcquaintancePedHateBadlyLit(m_AcquaintancePed, m_startTimeInMs, m_point); }
+    CEventEditableResponse* CloneEditable() const noexcept override { return new CEventAcquaintancePedHateBadlyLit(m_AcquaintancePed, m_startTimeInMs, m_point); }
 
 public:
     friend void InjectHooksMain();

@@ -119,7 +119,7 @@ public:
     float               m_fBuoyancyConstant;
     CVector             m_vecCentreOfMass;
     CEntryInfoList      m_pCollisionList;
-    CPtrNodeDoubleLink* m_pMovingList;
+    CPtrNodeDoubleLink<CPhysical*>* m_pMovingList;
     uint8               m_nFakePhysics;
     uint8               m_nNumEntitiesCollided;
     eSurfaceType        m_nContactSurface;

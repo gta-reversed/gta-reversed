@@ -643,7 +643,7 @@ void CEventHandler::ComputeBuildingCollisionResponse(CEventBuildingCollision* e,
                 if (e->m_moveState > eMoveState::PEDMOVE_WALK) {
                     return new CTaskComplexMoveBackAndJump{};
                 }
-                return new CTaskComplexJump{COMPLEX_JUMP_TYPE_JUMP};
+                return new CTaskComplexJump{};
             }
 
             if (tKillPedOnFoot) { // 0x4BF5C2
@@ -1610,7 +1610,7 @@ void CEventHandler::ComputePedEnteredVehicleResponse(CEventPedEnteredMyVehicle* 
             return new CTaskComplexScreamInCarThenLeave{ e->m_Vehicle, e->m_TargetDoor };
         }
         case TASK_COMPLEX_LEAVE_CAR: // 0x4C16CE
-            return new CTaskComplexLeaveCar{ e->m_Vehicle, e->m_TargetDoor, CGeneral::GetRandomNumberInRange(300, 600), false, true };
+            return new CTaskComplexLeaveCar{ e->m_Vehicle, (int32)e->m_TargetDoor, CGeneral::GetRandomNumberInRange(300, 600), false, true };
         case TASK_COMPLEX_LEAVE_CAR_AND_FLEE: // 0x4C18C9
             return LeaveCarAndFlee();
         case TASK_COMPLEX_LEAVE_CAR_AND_WANDER: // 0x4C1744
@@ -2442,7 +2442,7 @@ void CEventHandler::ComputeVehicleCollisionResponse(CEventVehicleCollision* e, C
         if ((!m_Ped->IsPlayer() || m_Ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_PRIMARY)) && tsimplest && CTask::IsGoToTask(tsimplest)) {
             if (e->m_vehicle == m_Ped->m_standingOnEntity) {
                 if (std::abs(m_Ped->m_fCurrentRotation - m_Ped->m_fCurrentRotation) < 0.01f && CPedGeometryAnalyser::CanPedJumpObstacle(*m_Ped, *e->m_vehicle)) {
-                    return new CTaskComplexJump{ COMPLEX_JUMP_TYPE_JUMP }; // 0x4BD925
+                    return new CTaskComplexJump{}; // 0x4BD925
                 }
             }    
             return new CTaskComplexWalkRoundCar{ // 0x4BD997
@@ -2862,7 +2862,7 @@ void CEventHandler::ComputeEventResponseTask(CEvent* e, CTask* pAbortedTaskEvent
         ? m_Ped->GetTaskManager().GetSimplestActiveTask()
         : nullptr;
     
-    //DEV_LOG("event: {} tactive: {} tsimplest: {}", (int32)event->GetEventType(), (int32)tactive->GetTaskType(), (int32)tsimplest->GetTaskType()); // NOTSA
+    //NOTSA_LOG_DEBUG("event: {} tactive: {} tsimplest: {}", (int32)event->GetEventType(), (int32)tactive->GetTaskType(), (int32)tsimplest->GetTaskType()); // NOTSA
 
     switch (e->GetEventType()) {
     case EVENT_VEHICLE_COLLISION:

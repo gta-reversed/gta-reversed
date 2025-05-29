@@ -47,7 +47,7 @@ void JPegCompressScreen(RwCamera* camera, jpeg_destination_mgr& dst) {
     cinfo.input_components = 4;
     jpeg_start_compress(&cinfo, true);
 
-    for (auto i = 0; i < cinfo.image_height; i++) {
+    for (auto i = 0u; i < cinfo.image_height; i++) {
         const auto* line = &RwImageGetPixels(image)[sizeof(RwRGBA) * i * cinfo.image_width];
         if (jpeg_write_scanlines(&cinfo, const_cast<uint8**>(&line), 1) != 1) {
             break;
@@ -130,7 +130,7 @@ void JPegCompressScreenToBuffer(RwCamera* cam, uint8** buffer, size_t& bufferSiz
 
     // 0x5D02D0
     dst.term_destination = [](j_compress_ptr c) {
-        if (c->dest->next_output_byte + TotalProcessed - g_ScreenshotFileBuf.data() < BufferSize) {
+        if (static_cast<size_t>(c->dest->next_output_byte + TotalProcessed - g_ScreenshotFileBuf.data()) < BufferSize) {
             std::memcpy(
                 *Buffer + TotalProcessed,
                 g_ScreenshotFileBuf.data(),

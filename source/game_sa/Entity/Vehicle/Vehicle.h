@@ -617,7 +617,8 @@ public:
     bool UsesSiren();
     bool IsSphereTouchingVehicle(CVector posn, float radius);
     void FlyingControl(eFlightModel flightModel, float leftRightSkid, float steeringUpDown, float steeringLeftRight, float accelerationBreakStatus);
-    bool BladeColSectorList(const CPtrList& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult);
+    template<typename PtrListType>
+    bool BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMatrix& matrix, int16 rotorType, float damageMult);
     void SetComponentRotation(RwFrame* component, eRotationAxis axis, float angle, bool bResetPosition);
     void SetTransmissionRotation(RwFrame* component, float angleL, float angleR, CVector wheelPos, bool isFront);
     void ProcessBoatControl(tBoatHandlingData* boatHandling, float* fWaterResistance, bool bCollidedWithWorld, bool bPostCollision);

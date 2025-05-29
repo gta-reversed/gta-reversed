@@ -11,8 +11,8 @@ void CPedTaskPair::InjectHooks() {
 
 // 0x5E95B0
 void CPedTaskPair::Flush() {
-    m_Ped = nullptr;
-    delete m_Task;
-    m_Task = nullptr;
-    m_Slot = -1;
+    Ped = nullptr;
+    delete Task;
+    Task = nullptr;
+    Slot = TASK_SECONDARY_INVALID;
 }

@@ -9,6 +9,7 @@
 #include "Vector.h"
 #include "RGBA.h"
 #include <extensions/Casting.hpp>
+#include <CoverPoint.h>
 
 enum e2dEffectType : uint8 {
     EFFECT_LIGHT         = 0,
@@ -170,8 +171,8 @@ VALIDATE_SIZE(tEffectSlotMachineWheel, 0x4);
 struct tEffectCoverPoint {
     static inline constexpr e2dEffectType Type = EFFECT_COVER_POINT;
 
-    RwV2d m_vecDirection;
-    uint8 m_nType;
+    RwV2d               m_DirOfCover;
+    CCoverPoint::eUsage m_Usage;
 };
 VALIDATE_SIZE(tEffectCoverPoint, 0xC);
 

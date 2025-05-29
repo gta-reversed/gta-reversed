@@ -20,7 +20,7 @@ void PoolsDebugModule::RenderWindow() {
     ImGui::TableSetupColumn("Size");
     ImGui::TableSetupColumn("Active objects");
     ImGui::TableSetupColumn("Usage (%)");
-    ImGui::TableSetupColumn("Locked");
+    ImGui::TableSetupColumn("DealWithNoMemory");
     ImGui::TableHeadersRow();
 
     const auto Draw = [](auto* pool, const char* name) {
@@ -55,7 +55,7 @@ void PoolsDebugModule::RenderWindow() {
             ImGui::PopStyleColor();
 
             ImGui::TableNextColumn();
-            ImGui::Text(pool->m_bIsLocked ? "T" : "F");
+            ImGui::Text(pool->CanDealWithNoMemory() ? "T" : "F");
 
             ImGui::PopID();
         }
@@ -82,11 +82,11 @@ void PoolsDebugModule::RenderWindow() {
 
     // Other pools
     Draw(CTxdStore::ms_pTxdPool, "TXD");
-    Draw(CIplStore::ms_pPool, "IPL");
-    Draw(CEntryExitManager::mp_poolEntryExits, "Entry Exits");
+    Draw(CIplStore::GetPool(), "IPL");
+    Draw(CEntryExitManager::GetPool(), "Entry Exits");
     Draw(CStuntJumpManager::mp_poolStuntJumps, "Stunt Jumps");
-    Draw(CColStore::ms_pColPool, "Collision");
-    Draw(CQuadTreeNode::ms_pQuadTreeNodePool, "Quad Tree Node");
+    Draw(CColStore::GetPool(), "Collision");
+    Draw(CQuadTreeNode<void*>::GetPool(), "Quad Tree Node");
     Draw(CVehicleModelInfo::CVehicleStructure::m_pInfoPool, "Vehicle Structure");
 
     Draw(CCustomCarEnvMapPipeline::m_gEnvMapPipeMatDataPool, "Env Map Pipe: Material Data");

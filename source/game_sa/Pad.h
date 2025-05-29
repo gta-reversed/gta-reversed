@@ -13,13 +13,29 @@
 #include "ControllerState.h"
 
 // Taken from GTA3 Script Compiler (miss2.exe)
-enum {
+enum ePadID {
     PAD1 = 0,
     PAD2 = 1,
 
     MAX_PADS
 };
 
+enum eFKeyID : uint8 {
+    FKEY1,
+    FKEY2,
+    FKEY3,
+    FKEY4,
+    FKEY5,
+    FKEY6,
+    FKEY7,
+    FKEY8,
+    FKEY9,
+    FKEY10,
+    FKEY11,
+    FKEY12,
+};
+
+#define KEY_IS_DOWN(btn)       (NewKeyState.btn)
 #define KEY_IS_PRESSED(btn)    (NewKeyState.btn && !OldKeyState.btn)
 
 #define BUTTON_IS_PRESSED(btn) (NewState.btn && !OldState.btn)
@@ -30,6 +46,10 @@ enum {
 #define MOUSE_IS_DOWN(btn)     (NewMouseControllerState.btn)
 
 class CPed;
+
+#ifdef NOTSA_USE_SDL3
+union SDL_Event;
+#endif
 
 class CPad {
 public:
@@ -80,7 +100,7 @@ public:
     char    _pad131[3];
 
 public:
-    static CMouseControllerState& PCTempMouseControllerState;
+    static CMouseControllerState& TempMouseControllerState;
     static CMouseControllerState& NewMouseControllerState;
     static CMouseControllerState& OldMouseControllerState;
 
@@ -102,12 +122,26 @@ public:
     static void Initialise();
     static void ClearKeyBoardHistory();
     static void ClearMouseHistory();
+
+    /* SDL Support, see `Pad_SDL.cpp` */
+#ifdef NOTSA_USE_SDL3
+    bool ProcessMouseEvent(const SDL_Event& e, CMouseControllerState& ms);
+    bool ProcessKeyboardEvent(const SDL_Event& e, CKeyboardState& ks);
+    bool ProcessGamepadEvent(const SDL_Event & e, CControllerState& cs);
+    bool ProcessJoyStickEvent(const SDL_Event& e, CControllerState& cs);
+
+    static bool ProcessEvent(const SDL_Event& e, bool ignoreMouseEvents, bool ignoreKeyboardEvents);
+#endif
+
     void Clear(bool enablePlayerControls, bool resetPhase);
 
     void Update(int32 pad);
     static void UpdatePads();
     void UpdateMouse();
-    static void ProcessPad(int numPad);
+#ifndef NOTSA_USE_SDL3
+    HRESULT GetMouseState(DIMOUSESTATE2* dm);
+#endif
+    static void ProcessPad(ePadID padID);
     void ProcessPCSpecificStuff();
     CControllerState& ReconcileTwoControllersInput(CControllerState& out, const CControllerState& controllerA, const CControllerState& controllerB);
 
@@ -129,7 +163,7 @@ public:
 
     int16 GetSteeringLeftRight();
     [[nodiscard]] int16 GetSteeringUpDown() const;
-    int32 GetSteeringMode(); // Android
+    //int32 GetSteeringMode(); // Android
 
     int16 GetPedWalkLeftRight(CPed* ped) const;
     [[nodiscard]] int16 GetPedWalkLeftRight() const;
@@ -190,20 +224,20 @@ public:
     [[nodiscard]] bool GroupControlBackJustDown() const noexcept            { return !DisablePlayerControls && IsDPadDownPressed(); }                                        // 0x541260
 
     // KEYBOARD
-    [[nodiscard]] bool IsFKeyJustDown(uint8 key) const noexcept             { return NewKeyState.FKeys[key] && OldKeyState.FKeys[key]; }
-    [[nodiscard]] bool IsFKeyJustPressed(uint8 key) const noexcept          { return NewKeyState.FKeys[key] && !OldKeyState.FKeys[key]; }
-    [[nodiscard]] bool IsF1JustPressed() const noexcept                     { return IsFKeyJustPressed(0); }
-    [[nodiscard]] bool IsF2JustPressed() const noexcept                     { return IsFKeyJustPressed(1); }
-    [[nodiscard]] bool IsF3JustPressed() const noexcept                     { return IsFKeyJustPressed(2); }
-    [[nodiscard]] bool IsF4JustPressed() const noexcept                     { return IsFKeyJustPressed(3); }
-    [[nodiscard]] bool IsF5JustPressed() const noexcept                     { return IsFKeyJustPressed(4); }
-    [[nodiscard]] bool IsF6JustPressed() const noexcept                     { return IsFKeyJustPressed(5); }
-    [[nodiscard]] bool IsF7JustPressed() const noexcept                     { return IsFKeyJustPressed(6); }
-    [[nodiscard]] bool IsF8JustPressed() const noexcept                     { return IsFKeyJustPressed(7); }
-    [[nodiscard]] bool IsF9JustPressed() const noexcept                     { return IsFKeyJustPressed(8); }
-    [[nodiscard]] bool IsF10JustPressed() const noexcept                    { return IsFKeyJustPressed(9); }
-    [[nodiscard]] bool IsF11JustPressed() const noexcept                    { return IsFKeyJustPressed(10); }
-    [[nodiscard]] bool IsF12JustPressed() const noexcept                    { return IsFKeyJustPressed(11); }
+    [[nodiscard]] bool IsFKeyJustDown(eFKeyID key) const noexcept           { return NewKeyState.FKeys[key] && OldKeyState.FKeys[key]; }
+    [[nodiscard]] bool IsFKeyJustPressed(eFKeyID key) const noexcept        { return NewKeyState.FKeys[key] && !OldKeyState.FKeys[key]; }
+    [[nodiscard]] bool IsF1JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY1); }
+    [[nodiscard]] bool IsF2JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY2); }
+    [[nodiscard]] bool IsF3JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY3); }
+    [[nodiscard]] bool IsF4JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY4); }
+    [[nodiscard]] bool IsF5JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY5); }
+    [[nodiscard]] bool IsF6JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY6); }
+    [[nodiscard]] bool IsF7JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY7); }
+    [[nodiscard]] bool IsF8JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY8); }
+    [[nodiscard]] bool IsF9JustPressed() const noexcept                     { return IsFKeyJustPressed(FKEY9); }
+    [[nodiscard]] bool IsF10JustPressed() const noexcept                    { return IsFKeyJustPressed(FKEY10); }
+    [[nodiscard]] bool IsF11JustPressed() const noexcept                    { return IsFKeyJustPressed(FKEY11); }
+    [[nodiscard]] bool IsF12JustPressed() const noexcept                    { return IsFKeyJustPressed(FKEY12); }
 
     [[nodiscard]] bool IsStandardKeyJustDown(uint8 key) const noexcept      { return NewKeyState.standardKeys[key] && OldKeyState.standardKeys[key]; }                       //
     [[nodiscard]] bool IsStandardKeyJustPressed(uint8 key) const noexcept   { return NewKeyState.standardKeys[key] && !OldKeyState.standardKeys[key]; }                      // 0x4D59B0
@@ -213,6 +247,8 @@ public:
     [[nodiscard]] bool IsLeftCtrlJustDown() const noexcept                  { return NewKeyState.lctrl && OldKeyState.lctrl; }                                               //
     [[nodiscard]] bool IsRightCtrlJustDown() const noexcept                 { return NewKeyState.rctrl && OldKeyState.rctrl; }                                               //
     [[nodiscard]] bool IsCtrlPressed() const noexcept                       { return IsLeftCtrlJustDown() || IsRightCtrlJustDown(); }                                        //
+    [[nodiscard]] static bool IsRightDown() noexcept                        { return KEY_IS_DOWN(right); }                                                                   //
+    [[nodiscard]] static bool IsLeftDown() noexcept                         { return KEY_IS_DOWN(left); }                                                                    //
     [[nodiscard]] static bool IsUpPressed() noexcept                        { return KEY_IS_PRESSED(up); }                                                                   //
     [[nodiscard]] static bool IsDownPressed() noexcept                      { return KEY_IS_PRESSED(down); }                                                                 //
     [[nodiscard]] static bool IsLeftPressed() noexcept                      { return KEY_IS_PRESSED(left); }                                                                 //
@@ -222,7 +258,7 @@ public:
     static bool IsEnterJustPressed() noexcept                               { return IsPadEnterJustPressed() || IsReturnJustPressed(); }                                     // 0x4D5980
     static bool f0x57C330() { return !NewKeyState.enter && OldKeyState.enter || !NewKeyState.extenter && OldKeyState.extenter; }                                             // 0x57C330
 
-    static bool IsMenuKeyJustPressed() noexcept                             { return KEY_IS_PRESSED(lmenu); }                                                                // 0x744D50
+    static bool IsMenuKeyJustPressed() noexcept                             { return KEY_IS_PRESSED(lalt); }                                                                 // 0x744D50
     static bool IsTabJustPressed() noexcept                                 { return KEY_IS_PRESSED(tab); }                                                                  // 0x744D90
     static bool IsEscJustPressed() noexcept                                 { return KEY_IS_PRESSED(esc); }                                                                  // 0x572DB0
 
@@ -291,25 +327,28 @@ public:
     // PAD END
 
     // MOUSE
-    static bool f0x57C3C0() noexcept               { return !NewMouseControllerState.lmb && OldMouseControllerState.lmb; }          // 0x57C3C0
-    static bool IsMouseLButtonPressed() noexcept   { return MOUSE_IS_PRESSED(lmb); }                                                // 0x4D5A00
-    static bool IsMouseRButtonPressed() noexcept   { return MOUSE_IS_PRESSED(rmb); }                                                // 0x572E70
-    static bool IsMouseMButtonPressed() noexcept   { return MOUSE_IS_PRESSED(mmb); }                                                // 0x57C3E0
-    static bool IsMouseWheelUpPressed() noexcept   { return MOUSE_IS_PRESSED(wheelUp); }                                            // 0x57C400
-    static bool IsMouseWheelDownPressed() noexcept { return MOUSE_IS_PRESSED(wheelDown); }                                          // 0x57C420
-    static bool IsMouseBmx1Pressed() noexcept      { return MOUSE_IS_PRESSED(bmx1); }                                               // 0x57C440
-    static bool IsMouseBmx2Pressed() noexcept      { return MOUSE_IS_PRESSED(bmx2); }                                               // 0x57C460
-    static bool IsMouseLButton() noexcept          { return MOUSE_IS_DOWN(lmb); }                                                   // 0x45AF70
-    static bool IsMouseRButton() noexcept          { return MOUSE_IS_DOWN(rmb); }                                                   // 0x45AF80
+    static bool f0x57C3C0() noexcept               { return !NewMouseControllerState.isMouseLeftButtonPressed && OldMouseControllerState.isMouseLeftButtonPressed; }         // 0x57C3C0
+    static bool IsMouseLButtonPressed() noexcept   { return MOUSE_IS_PRESSED(isMouseLeftButtonPressed); }                                                                    // 0x4D5A00
+    static bool IsMouseRButtonPressed() noexcept   { return MOUSE_IS_PRESSED(isMouseRightButtonPressed); }                                                                   // 0x572E70
+    static bool IsMouseMButtonPressed() noexcept   { return MOUSE_IS_PRESSED(isMouseMiddleButtonPressed); }                                                                  // 0x57C3E0
+    static bool IsMouseWheelUpPressed() noexcept   { return MOUSE_IS_PRESSED(isMouseWheelMovedUp); }                                                                         // 0x57C400
+    static bool IsMouseWheelDownPressed() noexcept { return MOUSE_IS_PRESSED(isMouseWheelMovedDown); }                                                                       // 0x57C420
+    static bool IsMouseBmx1Pressed() noexcept      { return MOUSE_IS_PRESSED(isMouseFirstXPressed); }                                                                        // 0x57C440
+    static bool IsMouseBmx2Pressed() noexcept      { return MOUSE_IS_PRESSED(isMouseSecondXPressed); }                                                                       // 0x57C460
+    static bool IsMouseLButton() noexcept          { return MOUSE_IS_DOWN(isMouseLeftButtonPressed); }                                                                       // 0x45AF70
+    static bool IsMouseRButton() noexcept          { return MOUSE_IS_DOWN(isMouseRightButtonPressed); }                                                                      // 0x45AF80
+    static bool IsMouseMButton() noexcept          { return MOUSE_IS_DOWN(isMouseMiddleButtonPressed); }                                                                     // 
+    static bool IsMouseWheelUp() noexcept          { return MOUSE_IS_DOWN(isMouseWheelMovedUp); }                                                                            // 0x572E60
+    static bool IsMouseWheelDown() noexcept        { return MOUSE_IS_DOWN(isMouseWheelMovedDown); }                                                                          // 0x572E50
+    static bool IsMouseBmx1() noexcept             { return MOUSE_IS_DOWN(isMouseFirstXPressed); }                                                                           // 
+    static bool IsMouseBmx2() noexcept             { return MOUSE_IS_DOWN(isMouseSecondXPressed); }                                                                          // 
     // MOUSE END
 
-    int16 sub_540BD0(CPed* entity) noexcept;
-    int16 sub_540CC0(CPed* ped) noexcept;
+    int16 LookAroundLeftRight(CPed* entity) noexcept;
+    int16 LookAroundUpDown(CPed* ped) noexcept;
 
     int32 sub_541320() { return AverageWeapon / AverageEntries; } // 0x541320
     int32 sub_541290();
-    bool sub_541170() const noexcept;
-    bool sub_541150() const noexcept;
     static bool sub_540A40();
     static bool sub_540A10();
     static bool GetAnaloguePadLeft();
@@ -334,8 +373,10 @@ VALIDATE_SIZE(CPad, 0x134);
 int GetCurrentKeyPressed(RsKeyCodes& keys);
 
 // todo: move these fucks out
+#ifndef NOTSA_USE_SDL3
 IDirectInputDevice8* DIReleaseMouse();
 void InitialiseMouse(bool exclusive);
+#endif
 
 /*
 Android has 99 funcs

@@ -67,7 +67,7 @@ void CCheckpoint::Render() {
             m_PulsePeriod,
             m_PulseFraction,
             1,
-            0.f, 0.f, 0.f,
+            { 0.f, 0.f, 0.f },
             !wasUnderwater // `!` needed because the variable is inverted
         );
         
@@ -110,9 +110,7 @@ void CCheckpoint::Render() {
             m_PulsePeriod,
             m_PulseFraction,
             m_RotateRate,
-            m_Fwd.x,
-            m_Fwd.y,
-            m_Fwd.z,
+            m_Fwd,
             false
         );
         break;
@@ -139,9 +137,7 @@ void CCheckpoint::Render() {
                 m_PulsePeriod,
                 m_PulseFraction,
                 m_RotateRate,
-                m_Fwd.x,
-                m_Fwd.y,
-                m_Fwd.z,
+                m_Fwd,
                 false
             );
         };

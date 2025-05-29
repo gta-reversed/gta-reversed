@@ -21,7 +21,7 @@ public:
     int32 GetEventPriority() const override { return 0; }
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override;
-    CEventEditableResponse* CloneEditable() override;
+    CEventEditableResponse* CloneEditable() const noexcept override;
 
     static bool IsEffectActive(CEntity* entity, const C2dEffectPedAttractor* effect);
 private:

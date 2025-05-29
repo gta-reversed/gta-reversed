@@ -66,7 +66,7 @@ bool CEventAttractor::AffectsPed(CPed* ped) {
 }
 
 // 0x4B7440
-CEventEditableResponse* CEventAttractor::CloneEditable()
+CEventEditableResponse* CEventAttractor::CloneEditable() const noexcept
 {
     return new CEventAttractor(m_2dEffect, m_entity, m_bAvoidLookingAtAttractor);
 }

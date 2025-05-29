@@ -7,7 +7,7 @@
 #include <AEAudioHardware.h>
 #include <Audio/Enums/eSoundBankSlot.h>
 
-#include "./PedSpeechAudioEntityLUTs.inc.h"
+#include "PedSpeechAudioEntityLUTs.inc.h"
 
 void CAEPedSpeechAudioEntity::InjectHooks() {
     RH_ScopedVirtualClass(CAEPedSpeechAudioEntity, 0x85F310, 8);
@@ -223,7 +223,7 @@ void CAEPedSpeechAudioEntity::StaticInitialise() {
 // 0x4E3710
 void CAEPedSpeechAudioEntity::Service() { // static
     s_bForceAudible = false;
-    for (auto&& [i, speech] : notsa::enumerate(s_PedSpeechSlots)) {
+    for (auto&& [i, speech] : rngv::enumerate(s_PedSpeechSlots)) {
         // Waiting for sound to load, and has loaded?
         if (speech.Status == CAEPedSpeechSlot::eStatus::LOADING && AEAudioHardware.IsSoundLoaded(speech.SoundBankID, speech.SoundID, SND_BANK_SLOT_SPEECH1 + i)) {
             speech.Status = CAEPedSpeechSlot::eStatus::WAITING;
@@ -481,10 +481,10 @@ eCJMood CAEPedSpeechAudioEntity::GetCurrentCJMood() {
             return false;
         case 1: { // Exactly one
             const auto& mem = plyrGrp.GetMembership().GetMembers().front(); // The one-and-only member (This isnt the same as `GetMember(0)`!!!)
-            if (mem.m_nPedType == PED_TYPE_GANG2) {
+            if (mem->m_nPedType == PED_TYPE_GANG2) {
                 return true;
             }
-            auto& memSpeech = mem.GetSpeechAE();
+            auto& memSpeech = mem->GetSpeechAE();
             return memSpeech.m_PedAudioType == PED_TYPE_GANG
                 && notsa::contains({ VOICE_GNG_RYDER, VOICE_GNG_SWEET, VOICE_GNG_SMOKE }, (eGngSpeechVoices)memSpeech.m_VoiceID);
         }
@@ -874,7 +874,7 @@ int16 CAEPedSpeechAudioEntity::GetSoundAndBankIDs(eGlobalSpeechContext gCtx, eSp
     // NOTE: Below is a better version of what they did (without using an intermediary array)
 
     const auto GetPhraseIndexInMemory = [this](int32 soundID) -> int16 {
-        for (auto&& [i, p] : notsa::enumerate(s_PhraseMemory)) {
+        for (auto&& [i, p] : rngv::enumerate(s_PhraseMemory)) {
             if (p.SoundID == soundID && p.BankID == m_BankID) {
                 return i;
             }

@@ -1,7 +1,7 @@
 #include "StdInc.h"
 #include <unordered_set>
 
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 #include "ReversibleHook/ScriptCommand.h"
 #endif
 #include "ReversibleHooks.h"
@@ -117,7 +117,7 @@ void AddItemToCategory(std::string_view category, std::shared_ptr<ReversibleHook
     s_RootCategory.AddItemToNamedCategory(category, std::move(item));
 }
 
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 void InstallScriptCommand(std::string_view category, eScriptCommands cmd) {
     AddItemToCategory( \
         category,
@@ -132,6 +132,9 @@ void WriteHooksToFile(const std::filesystem::path& file) {
     s_RootCategory.ForEachCategory([&](const HookCategory& cat) {
         using namespace ReversibleHook;
         for (const auto& item : cat.Items()) {
+            if (item->Type() == Base::HookType::ScriptCommand) {
+                continue;
+            }
             const auto isVirtual = item->Type() == Base::HookType::Virtual;
             of
                 << cat.Name() << "," // class

@@ -134,8 +134,8 @@ void CPlayerInfo::Process(uint32 playerIndex) {
 }
 
 // 0x56F4E0
-void CPlayerInfo::FindClosestCarSectorList(CPtrList& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle) {
-    plugin::CallMethod<0x56F4E0, CPlayerInfo*, CPtrList&, CPed*, float, float, float, float, float*, CVehicle**>(this, ptrList, ped, minX, minY, maxX, maxY, outVehDist, outVehicle);
+void CPlayerInfo::FindClosestCarSectorList(CPtrListDoubleLink<CVehicle*>& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle) {
+    plugin::CallMethod<0x56F4E0, CPlayerInfo*, CPtrListDoubleLink<CVehicle*>&, CPed*, float, float, float, float, float*, CVehicle**>(this, ptrList, ped, minX, minY, maxX, maxY, outVehDist, outVehicle);
 }
 
 // 0x56F330
