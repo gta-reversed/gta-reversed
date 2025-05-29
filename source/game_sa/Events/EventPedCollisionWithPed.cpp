@@ -14,7 +14,7 @@ void CEventPedCollisionWithPed::InjectHooks()
 }
 
 // 0x4AC990
-CEventPedCollisionWithPed::CEventPedCollisionWithPed(int16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState)
+CEventPedCollisionWithPed::CEventPedCollisionWithPed(uint16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState)
 {
     m_pieceType               = pieceType;
     m_damageIntensity         = damageIntensity;
@@ -32,7 +32,7 @@ CEventPedCollisionWithPed::~CEventPedCollisionWithPed()
 }
 
 // 0x4AC990
-CEventPedCollisionWithPed* CEventPedCollisionWithPed::Constructor(int16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState)
+CEventPedCollisionWithPed* CEventPedCollisionWithPed::Constructor(uint16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState)
 {
     this->CEventPedCollisionWithPed::CEventPedCollisionWithPed(pieceType, damageIntensity, victim, collisionImpactVelocity, collisionPos, moveState, victimMoveState);
     return this;

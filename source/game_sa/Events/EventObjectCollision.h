@@ -13,7 +13,7 @@
 
 class NOTSA_EXPORT_VTABLE CEventObjectCollision : public CEvent {
 public:
-    int16         m_pieceType;
+    uint16        m_pieceType;
     eMoveStateS16 m_moveState;
     float         m_damageIntensity;
     CObject*      m_object;
@@ -23,7 +23,7 @@ public:
 public:
     static void InjectHooks();
 
-    CEventObjectCollision(int16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState);
+    CEventObjectCollision(uint16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState);
     ~CEventObjectCollision() override;
 
     eEventType GetEventType() const override { return EVENT_OBJECT_COLLISION; }
@@ -34,6 +34,6 @@ public:
     bool AffectsPed(CPed* ped) override;
 
 private:
-    CEventObjectCollision* Constructor(int16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState);
+    CEventObjectCollision* Constructor(uint16 pieceType, float damageIntensity, CObject* object, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState);
 };
 VALIDATE_SIZE(CEventObjectCollision, 0x30);

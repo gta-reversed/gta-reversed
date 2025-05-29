@@ -207,10 +207,10 @@ void CCollisionEventScanner::ScanForCollisionEvents(CPed* ped, CEventGroup* even
     }
 
     // 0x60515F
-    if (const auto pd = ped->m_pPlayerData) {
-        const auto dmge = ped->m_pDamageEntity;
-        if (   notsa::contains({ ENTITY_TYPE_VEHICLE, ENTITY_TYPE_OBJECT }, dmge->GetType())
-            && pd->m_pPedClothesDesc->GetIsWearingBalaclava()
+    if (const auto playerData = ped->m_pPlayerData) {
+        const auto dmgEntity = ped->m_pDamageEntity;
+        if (   notsa::contains({ ENTITY_TYPE_VEHICLE, ENTITY_TYPE_OBJECT }, dmgEntity->GetType())
+            && playerData->m_pPedClothesDesc->GetIsWearingBalaclava()
         ) {
             const auto DoEventSoundQuiet = [&](float soundLevel, uint32& lastTime, uint32 interval) {
                 const auto now = CTimer::GetTimeInMS();
@@ -223,8 +223,8 @@ void CCollisionEventScanner::ScanForCollisionEvents(CPed* ped, CEventGroup* even
             auto& nLastBumpSoundEvent = StaticRef<uint32>(0xC0B1B0);
             auto& nLastDoorSoundEvent = StaticRef<uint32>(0xC0B1B4);
 
-            if (dmge->IsPhysical() && !dmge->AsPhysical()->physicalFlags.bDisableMoveForce) {
-                if (std::abs(dmge->AsPhysical()->GetTurnSpeed().z) > 0.04f) {
+            if (dmgEntity->IsPhysical() && !dmgEntity->AsPhysical()->physicalFlags.bDisableMoveForce) {
+                if (std::abs(dmgEntity->AsPhysical()->GetTurnSpeed().z) > 0.04f) {
                     DoEventSoundQuiet(40.f, nLastDoorSoundEvent, 2000);
                 }
             } else if (ped->m_fDamageIntensity > 1.f) {
