@@ -323,7 +323,7 @@ void CMenuManager::PrintMap() {
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
             CFont::PrintString(
                 mapArea.right - StretchX(30.0f), mapArea.top - StretchY(30.0f),
-                placeName.GetForMap(m_vMousePos.x, m_vMousePos.y)
+                placeName.GetForMap(m_vMousePos)
             );
         }
 
