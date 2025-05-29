@@ -233,7 +233,7 @@ void CMenuManager::DrawBackground() {
     } else if (m_nCurrentScreen == SCREEN_EMPTY) {
         DrawQuitGameScreen();
     } else {
-        DrawStandardMenus(1);
+        DrawStandardMenus(true);
     }
 
     auto pad = CPad::GetPad(m_nPlayerNumber);
@@ -390,8 +390,8 @@ void CMenuManager::DrawBackground() {
 
 // 0x5794A0
 void CMenuManager::DrawStandardMenus(bool drawTitle) {
-    constexpr uint16 MENU_DEFAULT_CONTENT_X = 320;
-    constexpr uint16 MENU_DEFAULT_CONTENT_Y = 130;
+    constexpr uint16 MENU_DEFAULT_CONTENT_X = APP_MINIMAL_WIDTH / 2;
+    constexpr uint16 MENU_DEFAULT_CONTENT_Y = APP_MINIMAL_HEIGHT / 4 + 10;
 
     const GxtChar *pTextToShow_RightColumn; // text for right column
     const GxtChar *pTextToShow;             // text to display
@@ -428,6 +428,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
     }
 
+    // 0x5796B4
     if (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) {
         CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(40.0f));
         CFont::SetFontStyle(FONT_SUBTITLES);
@@ -437,26 +438,25 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         CFont::SetDropColor(MENU_BG);
         CFont::SetColor(MENU_TEXT_NORMAL);
 
-        const GxtChar *textOne;
+        const auto GetText = [&](bool condition, const char* key) {
+            return TheText.Get(!condition ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : key);
+        };
+        const GxtChar* textOne;
 
+        // 0x57979A
         switch (m_nCurrentScreen) {
-        case eMenuScreen::SCREEN_NEW_GAME_ASK:
-            textOne = TheText.Get((!m_bMainMenuSwitch) ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FESZ_QQ");
-            break;
-        case eMenuScreen::SCREEN_LOAD_GAME_ASK:
-            textOne = TheText.Get((!m_bMainMenuSwitch) ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FES_LCG");
-            break;
+        case eMenuScreen::SCREEN_NEW_GAME_ASK:  textOne = GetText(m_bMainMenuSwitch, "FESZ_QQ"); break; // Are you sure you want to start a new game?
+        case eMenuScreen::SCREEN_LOAD_GAME_ASK: textOne = GetText(m_bMainMenuSwitch, "FES_LCG"); break; // Are you sure you want to load this save game?
         case eMenuScreen::SCREEN_SAVE_WRITE_ASK: {
-            eSlotState slotToCheck = GetSavedGameState(m_SelectedSlot);
-            textOne = TheText.Get((eSlotState::SLOT_FILLED != slotToCheck) ? (slotToCheck != eSlotState::SLOT_CORRUPTED ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FESZ_QC") : "FESZ_QO");
+            switch (GetSavedGameState(m_SelectedSlot)) {
+            case eSlotState::SLOT_FILLED:    textOne = TheText.Get("FESZ_QO"); break; // Are you sure you wish to overwrite this save file?
+            case eSlotState::SLOT_CORRUPTED: textOne = TheText.Get("FESZ_QC"); break; // Proceed with overwriting this corrupted save game?
+            default:                         textOne = GetText(false, ""); break;
+            }
             break;
         }
-        case eMenuScreen::SCREEN_QUIT_GAME_ASK:
-            textOne = TheText.Get((!m_bMainMenuSwitch) ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FEQ_SRW");
-            break;
-        default:
-            textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
-            break;
+        case eMenuScreen::SCREEN_QUIT_GAME_ASK: textOne = GetText(m_bMainMenuSwitch, "FEQ_SRW"); break; // Are you sure you want to quit the game?
+        default:                                textOne = GetText(false, ""); break;
         }
 
         CFont::PrintString(StretchX(60.0f), StretchY(97.0f), textOne);
@@ -473,10 +473,11 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
     const bool weHaveLabel = aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT;
 
+    // 0x5798CE
     for (auto i = 0; i < std::size(aScreens[m_nCurrentScreen].m_aItems); i++) {
         auto itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
         pTextToShow_RightColumn = 0;
-        int MENU_DEFAULT_LINE_HEIGHT = (itemType == eMenuEntryType::TI_MPACK) ? 20 : 30;
+        uint16 MENU_DEFAULT_LINE_HEIGHT = (itemType == eMenuEntryType::TI_MPACK) ? 20 : 30;
         CFont::SetFontStyle(FONT_MENU);
         if (itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
             CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
@@ -872,15 +873,13 @@ void CMenuManager::DrawWindow(const CRect& coords, const char* key, uint8 color,
         CFont::SetScale(SCREEN_SCALE_X(1.0f), SCREEN_SCALE_Y(1.4f));
 
         float x = coords.left + SCREEN_SCALE_X(10.0f);
-        float y = std::min(coords.bottom, coords.top) - SCREEN_SCALE_Y(16);
-        CFont::PrintString(x, y, TheText.Get(const_cast<char*>(key)));
+        float y = std::min(coords.bottom, coords.top) - SCREEN_SCALE_Y(16.0f);
+        CFont::PrintString(x, y, TheText.Get(key));
     }
 }
 
 // 0x578F50, untested
 void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* title, const char* message, eFontAlignment alignment) {
-    // return plugin::CallMethod<0x578F50, CMenuManager*, float, float, float, Const char*, Const char*, eFontAlignment>(this, x, y, a4, str, message, alignment);
-
     CFont::SetWrapx(x + wrap - StretchX(10.0f));
     CFont::SetRightJustifyWrap(StretchX(10.0f) + wrap);
     CFont::SetCentreSize(wrap - 2.0f * StretchX(10.0f));
@@ -922,8 +921,7 @@ void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* ti
 // 0x57D860
 void CMenuManager::DrawQuitGameScreen() {
     m_DisplayTheMouse = false;
-    CRect coords(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT);
-    CSprite2d::DrawRect(coords, MENU_BG);
+    CSprite2d::DrawRect({ 0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT }, MENU_BG);
     SaveSettings();
     RsEventHandler(rsQUITAPP, nullptr);
 }
@@ -1304,7 +1302,7 @@ void CMenuManager::DrawControllerSetupScreen() {
     for (auto i = 0u; i < maxActions; i++) {
         if (!m_EditingControlOptions) {
             if (StretchX(20.0f) < m_nMousePosX && StretchX(600.0f) > m_nMousePosX) {
-                if (StretchY(i * verticalSpacing + 69.0f) < m_nMousePosY && StretchY(verticalSpacing * (i + 1) + 69.0f) > m_nMousePosY) {
+                if (StretchY(i * verticalSpacing + 69.0f) < m_nMousePosY && StretchY(verticalSpacing * (i + 1) + 69.f) > m_nMousePosY) {
                     m_CurrentMouseOption = i;
                     if (m_nOldMousePosX != m_nMousePosX || m_nOldMousePosY != m_nMousePosY) {
                         m_ListSelection = i;
@@ -1331,7 +1329,7 @@ void CMenuManager::DrawControllerSetupScreen() {
         };
 
         if (actionText) {
-            CFont::PrintString(StretchX(40.0f), StretchY(i * verticalSpacing + 69.0f), actionText);
+            CFont::PrintString(StretchX(40.0f), StretchY(i * verticalSpacing + 69.f), actionText);
         }
     }
 
