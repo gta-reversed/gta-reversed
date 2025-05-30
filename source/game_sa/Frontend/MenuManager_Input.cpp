@@ -10,12 +10,11 @@
 #include "ControllerConfigManager.h"
 #include "extensions/Configs/FastLoader.hpp"
 
+static int32 oldOption = -99; // 0x8CE005
 /*!
  * @addr 0x57FD70
  */
 // Vanilla bug: Analogic directionals are not working in the menu for set setting ON/OFF.
-static int32 oldOption = -99; // 0x8CE004
-
 void CMenuManager::UserInput() {
     static constexpr auto actionSelect       = { MENU_ACTION_BRIGHTNESS, MENU_ACTION_RADIO_VOL, MENU_ACTION_DRAW_DIST, MENU_ACTION_MOUSE_SENS };
     static constexpr auto mainMenu           = { SCREEN_MAIN_MENU, SCREEN_PAUSE_MENU, SCREEN_GAME_SAVE, SCREEN_GAME_WARNING_DONT_SAVE, SCREEN_SAVE_DONE_1, SCREEN_DELETE_FINISHED, SCREEN_EMPTY };
@@ -36,7 +35,7 @@ void CMenuManager::UserInput() {
     }
 
     // Early return conditions
-    if (m_bScanningUserTracks || m_nControllerError) {
+    if (m_bScanningUserTracks || m_nControllerError != eControllerError::NONE) {
         return;
     }
 
@@ -45,7 +44,7 @@ void CMenuManager::UserInput() {
     bool bExit = false;
     bool bUp = false;
     bool bDown = false;
-    int8_t sliderMove = 0;
+    int8 sliderMove = 0;
 
     m_DisplayTheMouse |= !m_DisplayTheMouse && (m_nOldMousePosX && m_nOldMousePosY) &&
                          (m_nOldMousePosX != m_nMousePosX || m_nOldMousePosY != m_nMousePosY);
@@ -59,8 +58,8 @@ void CMenuManager::UserInput() {
             float itemPosY = curScreen[rowToCheck].m_Y;
             float itemBottomY = itemPosY + 26; // PLUS_LINE_HEIGHT_ON_SCREEN
 
-            bool mouseOverItem = (CMenuManager::StretchY(itemPosY) <= m_nMousePosY) &&
-                                 (CMenuManager::StretchY(itemBottomY) >= m_nMousePosY);
+            bool mouseOverItem = (StretchY(itemPosY) <= m_nMousePosY) &&
+                                 (StretchY(itemBottomY) >= m_nMousePosY);
 
             if (mouseOverItem) {
                 // Mouse is over this item
@@ -79,7 +78,7 @@ void CMenuManager::UserInput() {
 
                 // Update mouse bounds based on action type
                 if ((notsa::contains(SLIDER_ACTIONS, curScreen[rowToCheck].m_nActionType) == false)) {
-                    m_MouseInBounds = 2;
+                    m_MouseInBounds = eMouseInBounds::MENU_ITEM;
                 }
 
                 break;
@@ -97,7 +96,7 @@ void CMenuManager::UserInput() {
             m_nCurrentScreenItem++;
             m_CurrentMouseOption++;
         }
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT);
     }
 
     // Update mouse position
@@ -110,17 +109,17 @@ void CMenuManager::UserInput() {
 
     // Handle special case for controls screen
     if (m_nCurrentScreen == eMenuScreen::SCREEN_CONTROLS_DEFINITION) {
-        if (!m_nControllerError) {
-            CMenuManager::RedefineScreenUserInput(&bEnter, &bExit);
+        if (m_nControllerError == eControllerError::NONE) {
+            RedefineScreenUserInput(&bEnter, &bExit);
         }
     } else {
         // Process menu navigation for screens with multiple options
-        if (CMenuManager::GetNumberOfMenuOptions() > 1) {
-            CMenuManager::AdditionalOptionInput(&bUp, &bDown);
-            if (CMenuManager::CheckFrontEndDownInput()) {
+        if (GetNumberOfMenuOptions() > 1) {
+            AdditionalOptionInput(&bUp, &bDown);
+            if (CheckFrontEndDownInput()) {
                 bDown = true;
                 m_DisplayTheMouse = false;
-            } else if (CMenuManager::CheckFrontEndUpInput()) {
+            } else if (CheckFrontEndUpInput()) {
                 bUp = true;
                 m_DisplayTheMouse = false;
             }
@@ -141,16 +140,27 @@ void CMenuManager::UserInput() {
         }
 
         // Handle mouse click
-        bEnter |= (pad->f0x57C3C0() && m_MouseInBounds == 2) &&
-                  ((m_nCurrentScreen != eMenuScreen::SCREEN_MAP && CMenuManager::StretchY(388.0f) < m_nMousePosY) ||
+        bEnter |= (pad->f0x57C3C0() && m_MouseInBounds == eMouseInBounds::MENU_ITEM) &&
+                  ((m_nCurrentScreen != eMenuScreen::SCREEN_MAP && StretchY(388.0f) < m_nMousePosY) ||
                    m_DisplayTheMouse);
 
         // 0x58020F - Handle slider movement
         if (pad->IsMouseLButton()) {
-            if (notsa::contains({6, 8, 10, 12, 14}, m_MouseInBounds)) {
-                CMenuManager::CheckSliderMovement(1);
-            } else if (notsa::contains({7, 9, 11, 13, 15}, m_MouseInBounds)) {
-                CMenuManager::CheckSliderMovement(-1);
+            switch (m_MouseInBounds) {
+            case eMouseInBounds::SLIDER_RIGHT:
+            case eMouseInBounds::DRAW_DIST_RIGHT:
+            case eMouseInBounds::RADIO_VOL_RIGHT:
+            case eMouseInBounds::SFX_VOL_RIGHT:
+            case eMouseInBounds::MOUSE_SENS_RIGHT:
+                CheckSliderMovement(1);
+                break;
+            case eMouseInBounds::SLIDER_LEFT:
+            case eMouseInBounds::DRAW_DIST_LEFT:
+            case eMouseInBounds::RADIO_VOL_LEFT:
+            case eMouseInBounds::SFX_VOL_LEFT:
+            case eMouseInBounds::MOUSE_SENS_LEFT:
+                CheckSliderMovement(-1);
+                break;
             }
         }
 
@@ -164,15 +174,15 @@ void CMenuManager::UserInput() {
             CPad::IsMouseWheelUpPressed() || CPad::IsMouseWheelDownPressed()) {
             int actionType = curScreen[m_nCurrentScreenItem].m_nActionType;
             if (notsa::contains(actionSelect, actionType)) {
-                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);
+                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
             } else if (actionType == 0x1D) {
-                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_NOISE_TEST, 0.0, 1.0);
+                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_NOISE_TEST);
             }
         }
 
         // Only exit if not on main menus
-        if ((pad->IsTrianglePressed() || pad->IsEscJustPressed() || pad->f0x57C360()) &&
-            !notsa::contains(mainMenu, m_nCurrentScreen)) { // f0x57C360 notsa: back button
+        if ((pad->IsTrianglePressed() || pad->IsEscJustPressed() || pad->IsBackspacePressed()) &&
+            !notsa::contains(mainMenu, m_nCurrentScreen)) {
             m_DisplayTheMouse = false;
             bExit = true;
         }
@@ -204,10 +214,10 @@ void CMenuManager::UserInput() {
                 sliderMove = wheelMovedUp ? 1 : -1;
             } else {
                 // Check front end directional input
-                if (CMenuManager::CheckFrontEndRightInput()) {
+                if (CheckFrontEndRightInput()) {
                     m_DisplayTheMouse = false;
                     sliderMove = 1;
-                } else if (CMenuManager::CheckFrontEndLeftInput()) {
+                } else if (CheckFrontEndLeftInput()) {
                     m_DisplayTheMouse = false;
                     sliderMove = -1;
                 }
@@ -216,12 +226,12 @@ void CMenuManager::UserInput() {
 
         if (sliderMove != 0 && notsa::contains(specialScreens, m_nCurrentScreen) &&
             !notsa::contains(specialMenuActions, curScreen[m_nCurrentScreenItem].m_nActionType)) {
-            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
         }
     }
 
     // Process all user input
-    CMenuManager::ProcessUserInput(bDown, bUp, bEnter, bExit, sliderMove);
+    ProcessUserInput(bDown, bUp, bEnter, bExit, sliderMove);
 }
 
 /*!
@@ -235,11 +245,11 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
     // Handle down navigation
     if (GetNumberOfMenuOptions() > 1 && GoDownMenu) {
         if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
-            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT);
         }
 
         m_nCurrentScreenItem++;
-        
+
         for (; (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_SKIP); m_nCurrentScreenItem++);
 
         // Wrap around if reached end or empty item
@@ -251,7 +261,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
     // Handle up navigation
     if (GetNumberOfMenuOptions() > 1 && GoUpMenu) {
         if (m_nCurrentScreen != eMenuScreen::SCREEN_MAP) {
-            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT, 0.0, 1.0);
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_HIGHLIGHT);
         }
 
         auto firstItemSpecial = (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == 1);
@@ -278,19 +288,19 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
             m_EditingControlOptions = true;
             m_bJustOpenedControlRedefWindow = true;
             m_pPressedKey = &m_KeyPressedCode;
-            m_MouseInBounds = 16;
+            m_MouseInBounds = eMouseInBounds::NONE;
         }
 
         ProcessMenuOptions(0, GoBackOneMenu, EnterMenuOption);
 
         if (!GoBackOneMenu) {
             eMenuEntryType menuType = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nType;
-            
+
             // Audio feedback based on menu type and status
             if ((!m_isPreInitialised && !IsSaveSlot(menuType)) || (IsSaveSlot(menuType) && GetSavedGameState(m_nCurrentScreenItem - 1) == eSlotState::SLOT_FILLED)) {
-                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT, 0.0, 1.0);
+                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
             } else {
-                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR, 0.0, 1.0);
+                AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
             }
         }
     }
@@ -323,7 +333,92 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
  * @addr 0x57EF50
  */
 void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
-    plugin::CallMethod<0x57EF50, CMenuManager*, bool*, bool*>(this, accept, cancel);
+    if (m_EditingControlOptions) {
+        return; // 0x57EF53 - Invert
+    }
+
+    const auto maxAction = m_nCurrentScreen == SCREEN_CONTROLS_DEFINITION ? GetMaxAction() : 0u;
+    const auto pad = CPad::GetPad();
+
+    // 0x57EF97 - Handle enter key/button press
+    if ((CPad::IsEnterJustPressed() || pad->IsCrossPressed()) && (m_nSysMenu & 0x80u)) {
+        m_DisplayTheMouse = false;
+        *accept = true;
+    }
+
+    // 0x57EFF6 - Handle backspace key logic
+    if (!CPad::IsBackspacePressed() || m_nCurrentScreen != SCREEN_CONTROLS_DEFINITION || m_JustExitedRedefine) {
+        m_JustExitedRedefine = false;
+    } else {
+        m_MouseInBounds = eMouseInBounds::NONE;
+        m_EditingControlOptions = true;
+        m_bJustOpenedControlRedefWindow = true;
+        m_DeleteAllBoundControls = true;
+        m_pPressedKey = &m_KeyPressedCode;
+    }
+
+    // 0x57F058 - Reset key pressed state after a delay
+    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B64 > 200) {
+        rng::fill(m_KeyPressed, false);
+        FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
+    }
+
+    // 0x57F086 - Handle up navigation (keyboard, pad, or mouse wheel up)
+    if (CPad::IsUpPressed() || CPad::GetAnaloguePadUp() || pad->IsDPadUpPressed()) {
+        m_DisplayTheMouse = false;
+    } else if (CPad::IsMouseWheelUpPressed()) {
+        m_DisplayTheMouse = true;
+        if (!m_KeyPressed[2]) {
+            m_KeyPressed[2] = true;
+            FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
+            m_ListSelection = m_ListSelection > 0 ? m_ListSelection - 1 : maxAction - 1;
+        }
+    } else {
+        m_KeyPressed[2] = false;
+    }
+
+    // 0x57F138 - Handle down navigation (keyboard, pad, or mouse wheel down)
+    if (CPad::IsDownPressed() || CPad::GetAnaloguePadDown() || pad->IsDPadDownPressed()) {
+        m_DisplayTheMouse = false;
+    } else if (CPad::IsMouseWheelDownPressed()) {
+        m_DisplayTheMouse = true;
+        if (!m_KeyPressed[3]) {
+            m_KeyPressed[3] = true;
+            FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
+            m_ListSelection = (m_ListSelection == maxAction - 1) ? 0 : m_ListSelection + 1;
+        }
+    } else {
+        m_KeyPressed[3] = false;
+    }
+
+    // 0x57F1F0 - Handle escape/triangle button for back
+    if (CPad::IsEscJustPressed() || pad->IsTrianglePressed()) {
+        m_DisplayTheMouse = false;
+        *cancel = true;
+    }
+
+    // 0x57F235 - 0x57F299 - Handle mouse left button clicks
+    if (CPad::IsMouseLButtonPressed()) {
+        if (m_MouseInBounds == eMouseInBounds::BACK_BUTTON) {
+            *cancel = true;
+        } else if (m_MouseInBounds == eMouseInBounds::ENTER_MENU) {
+            AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
+            m_MouseInBounds = eMouseInBounds::SELECT;
+        }
+    }
+
+    // 0x57F2A3 - Handle back logic for control redefinition
+    if (*cancel) {
+        if (m_bRadioAvailable) {
+            m_RedefiningControls = (m_RedefiningControls == eControlMode::FOOT) ? eControlMode::VEHICLE : eControlMode::FOOT;
+            DrawControllerBound(69, true);
+            if (!m_bRadioAvailable) {
+                m_nControllerError = (m_RedefiningControls == eControlMode::FOOT) ? eControllerError::VEHICLE : eControllerError::FOOT;
+            }
+        } else {
+            m_nControllerError = eControllerError::NOT_SETS;
+        }
+    }
 }
 
 /*!
@@ -564,11 +659,11 @@ void CMenuManager::CheckForMenuClosing() {
 #ifndef NOTSA_USE_SDL3
                 if (IsVideoModeExclusive()) {
                     DIReleaseMouse();
-#ifdef FIX_BUGS // Causes the retarded fucktard code to not dispatch mouse input to WndProc => ImGUI mouse not working. Amazing piece of technology.
+    #ifdef FIX_BUGS // Causes the retarded fucktard code to not dispatch mouse input to WndProc => ImGUI mouse not working. Amazing piece of technology.
                     InitialiseMouse(false);
-#else
+    #else
                     InitialiseMouse(true);
-#endif // !FIX_BUGS
+    #endif // !FIX_BUGS
                 }
 #endif // NOTSA_USE_SDL3
 
@@ -686,14 +781,15 @@ bool CMenuManager::CheckMissionPackValidMenu() {
             //          is installed correctly!
             //
             //   Press RETURN to start a new standard game.
-            CMenuManager::MessageScreen("NO_PAK", true, false);
+            MessageScreen("NO_PAK", true, false);
 
             DoRWStuffStartOfFrame(0, 0, 0, 0, 0, 0, 0);
             DoRWStuffEndOfFrame();
             auto pad = CPad::GetPad();
 
-            if (CPad::IsEnterJustPressed() || CPad::IsReturnJustPressed() || pad->IsCrossPressed())
+            if (CPad::IsEnterJustPressed() || CPad::IsReturnJustPressed() || pad->IsCrossPressed()) {
                 break;
+            }
         }
         CTimer::EndUserPause();
         CGame::bMissionPackGame = false;
@@ -800,7 +896,7 @@ void CMenuManager::CheckCodesForControls(eControllerType type) {
         // Reset state
         m_pPressedKey = nullptr;
         m_EditingControlOptions = false;
-        m_KeyPressedCode = (RsKeyCodes) - 1;
+        m_KeyPressedCode = (RsKeyCodes)-1;
         m_bJustOpenedControlRedefWindow = false;
         SaveSettings();
     }

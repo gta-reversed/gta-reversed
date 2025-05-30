@@ -342,15 +342,19 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         m_bScanningUserTracks = true;
         return true;
     case MENU_ACTION_CTRLS_JOYPAD:
-        SwitchToNewScreen(m_ControlMethod == eController::JOYPAD ? SCREEN_JOYPAD_SETTINGS : SCREEN_MOUSE_SETTINGS);
+        switch (m_ControlMethod) {
+        case eController::JOYPAD:          SwitchToNewScreen(SCREEN_JOYPAD_SETTINGS); break;
+        case eController::MOUSE_PLUS_KEYS: SwitchToNewScreen(SCREEN_MOUSE_SETTINGS); break;
+        default:                           NOTSA_UNREACHABLE();
+        }
         return true;
     case MENU_ACTION_CTRLS_FOOT: // Redefine Controls -> Foot Controls
-        m_RedefiningControls = false;
+        m_RedefiningControls = eControlMode::FOOT;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
     case MENU_ACTION_CTRLS_CAR: // Redefine Controls -> Vehicle Controls
-        m_RedefiningControls = true;
+        m_RedefiningControls = eControlMode::VEHICLE;
         SwitchToNewScreen(SCREEN_CONTROLS_DEFINITION);
         m_ListSelection = 0;
         return true;
@@ -426,7 +430,6 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
             }
             m_nPrefsAntialiasing = m_nDisplayAntialiasing;
             RwD3D9ChangeMultiSamplingLevels(m_nDisplayAntialiasing);
-            // ((void(*)(int))0x745C70)(m_nPrefsVideoMode);
             SetVideoMode(m_nPrefsVideoMode);
             SaveSettings();
             return true;
@@ -553,13 +556,15 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
     case MENU_ACTION_CONTROL_TYPE:
         switch (m_ControlMethod) {
         case eController::JOYPAD:
-            CCamera::m_bUseMouse3rdPerson = true;
             m_ControlMethod = eController::MOUSE_PLUS_KEYS;
+            CCamera::m_bUseMouse3rdPerson = true;
             break;
         case eController::MOUSE_PLUS_KEYS:
-            CCamera::m_bUseMouse3rdPerson = false;
             m_ControlMethod = eController::JOYPAD;
+            CCamera::m_bUseMouse3rdPerson = false;
             break;
+        default:
+            NOTSA_UNREACHABLE();
         }
         SaveSettings();
         return true;
@@ -578,10 +583,10 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         SaveSettings();
         return true;
     case MENU_ACTION_USER_TRACKS_PLAY_MODE:
-        m_nRadioMode += pressedLR;
+        m_nRadioMode = (eRadioMode)(m_nRadioMode + pressedLR);
 
         if (pressedLR + m_nRadioMode < 0) {
-            m_nRadioMode = 2;
+            m_nRadioMode = eRadioMode::SEQUENTIAL;
         }
 
         if (m_nRadioMode <= 2) {
@@ -589,7 +594,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
             return true;
         }
 
-        m_nRadioMode = 0;
+        m_nRadioMode = eRadioMode::RADIO;
         SaveSettings();
         return true;
     case MENU_ACTION_USER_TRACKS_AUTO_SCAN:

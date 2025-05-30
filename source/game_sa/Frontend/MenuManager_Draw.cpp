@@ -116,7 +116,7 @@ void CMenuManager::DrawBuildInfo() {
     CFont::SetColor({ 255, 255, 255, 100 });
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
     CFont::SetFontStyle(eFontStyle::FONT_SUBTITLES);
-    CFont::PrintStringFromBottom(SCREEN_WIDTH - StretchX(10.0f), SCREEN_HEIGHT - StretchY(10.0f), GxtCharFromAscii(buf));
+    CFont::PrintStringFromBottom(SCREEN_STRETCH_FROM_RIGHT(10.0f), SCREEN_STRETCH_FROM_BOTTOM(10.0f), GxtCharFromAscii(buf));
 }
 
 // 0x57B750
@@ -161,14 +161,14 @@ void CMenuManager::DrawBackground() {
         case SCREEN_LOAD_FIRST_SAVE:
         case SCREEN_SAVE_DONE_1:
             return {
-                SCREEN_WIDTH - StretchX(256.0f),
+                SCREEN_STRETCH_FROM_RIGHT(256.0f),
                 0.0f,
                 SCREEN_WIDTH,
                 StretchY(256.0f),
             };
         case SCREEN_DELETE_FINISHED:
             return {
-                SCREEN_WIDTH - StretchX(256.0f),
+                SCREEN_STRETCH_FROM_RIGHT(256.0f),
                 0.0f,
                 SCREEN_WIDTH,
                 StretchY(256.0f),
@@ -176,7 +176,7 @@ void CMenuManager::DrawBackground() {
         case SCREEN_DELETE_SUCCESSFUL:
         case SCREEN_SAVE_WRITE_ASK:
             return {
-                SCREEN_WIDTH - StretchX(256.0f),
+                SCREEN_STRETCH_FROM_RIGHT(256.0f),
                 0.0f,
                 SCREEN_WIDTH,
                 StretchY(256.0f),
@@ -190,7 +190,7 @@ void CMenuManager::DrawBackground() {
             };
         case SCREEN_SAVE_DONE_2:
             return {
-                SCREEN_WIDTH - StretchX(300.0f),
+                SCREEN_STRETCH_FROM_RIGHT(300.0f),
                 0.0f,
                 SCREEN_WIDTH,
                 StretchY(200.0f),
@@ -206,10 +206,10 @@ void CMenuManager::DrawBackground() {
 
     // 0x57B7E1
     CRect rect(-5.0f, -5.0f, SCREEN_WIDTH + 5.0f, SCREEN_HEIGHT + 5.0f);
-    CSprite2d::DrawRect(rect, {0, 0, 0, 255});
+    CSprite2d::DrawRect(rect, MENU_BG);
 
     if (m_nBackgroundSprite) {
-        m_aFrontEndSprites[m_nBackgroundSprite].Draw(backgroundRect, { 255, 255, 255, 255 });
+        m_aFrontEndSprites[m_nBackgroundSprite].Draw(backgroundRect, MENU_TEXT_WHITE);
     }
 
     // 0x57BA02
@@ -233,12 +233,12 @@ void CMenuManager::DrawBackground() {
     } else if (m_nCurrentScreen == SCREEN_EMPTY) {
         DrawQuitGameScreen();
     } else {
-        DrawStandardMenus(1);
+        DrawStandardMenus(true);
     }
 
     auto pad = CPad::GetPad(m_nPlayerNumber);
     // 0x57BA6B
-    if (m_nControllerError) {
+    if (m_nControllerError != eControllerError::NONE) {
         if (!field_1B4C_b1) {
             field_1B4C_b1 = true;
             field_1B48 = CTimer::GetTimeInMSPauseMode();
@@ -250,25 +250,27 @@ void CMenuManager::DrawBackground() {
         }
 
         switch (m_nControllerError) {
-        case 1:
+        case eControllerError::VEHICLE:
             // Error! Changing controls on the 'In Vehicle' screen has caused one or more control actions to be unbound on the 'On Foot' screen.
             // Please check all control actions are set~n~Press ESC to continue
             MessageScreen("FEC_ER3", false, false);
             break;
-        case 2:
+        case eControllerError::FOOT:
             // Error! Changing controls on the 'On Foot' screen has caused one or more control actions to be unbound on the 'In Vehicle' screen.
             // Please check all control actions are set~n~Press ESC to continue
             MessageScreen("FEC_ER2", false, false);
             break;
-        default:
+        case eControllerError::NOT_SETS:
             // Error! One or more control actions are not bound to a key or button. Please check all control actions are set~n~Press ESC to continue
             MessageScreen("FEC_ERI", false, false);
             break;
+        default:
+            NOTSA_UNREACHABLE();
         }
         CFont::RenderFontBuffer();
         auto time = CTimer::GetTimeInMSPauseMode() - field_1B48;
         if (time > 7000 || (pad->IsEscJustPressed() && time > 1000)) {
-            m_nControllerError = 0;
+            m_nControllerError = eControllerError::NOT_SETS;
             field_1B44 = true;
         }
     }
@@ -299,24 +301,20 @@ void CMenuManager::DrawBackground() {
             }
         }
 
-        CSprite2d::DrawRect(
-            CRect(
-                StretchX(float(DEFAULT_SCREEN_WIDTH / 2 - 50)),
+        CSprite2d::DrawRect({
+                StretchX(DEFAULT_SCREEN_WIDTH / 2.f - 50.f),
                 StretchY(245.0f),
-                StretchX(float(DEFAULT_SCREEN_WIDTH / 2 + 50 + 5)),
+                StretchX(DEFAULT_SCREEN_WIDTH / 2.f + 50.f + 5.f),
                 StretchY(250.0f)
-            ),
-            { 50, 50, 50, 255 }
+            }, { 50, 50, 50, 255 }
         );
 
-        CSprite2d::DrawRect(
-            CRect(
+        CSprite2d::DrawRect({
                 StretchX(float(s_ProgressPosition)),
                 StretchY(245.0f),
                 StretchX(float(s_ProgressPosition + 5)),
                 StretchY(250.0f)
-            ),
-            { 225, 225, 225, 255 }
+            }, MENU_TEXT_LIGHT_GRAY
         );
 
         CFont::DrawFonts();
@@ -377,10 +375,10 @@ void CMenuManager::DrawBackground() {
             rect.bottom    = y;
             rect.right  = x + SCREEN_STRETCH_X(18.0f);
             rect.top = y + SCREEN_SCALE_Y(18.0f);
-            m_aFrontEndSprites[spriteId].Draw(rect, { 255, 255, 255, 255 });
+            m_aFrontEndSprites[spriteId].Draw(rect, MENU_TEXT_WHITE);
         };
 
-        CRect mapRect(StretchX(60.0f), StretchY(60.0f), SCREEN_WIDTH - StretchX(60.0f), SCREEN_HEIGHT - StretchY(60.0f));
+        CRect mapRect(StretchX(60.0f), StretchY(60.0f), SCREEN_STRETCH_FROM_RIGHT(60.0f), SCREEN_STRETCH_FROM_BOTTOM(60.0f));
 
         if (m_nCurrentScreen == SCREEN_MAP && CPad::NewMouseControllerState .isMouseLeftButtonPressed && mapRect.IsPointInside(CVector2D(x, y))) {
             DrawCursor(FRONTEND_SPRITE_CROSS_HAIR);
@@ -392,11 +390,11 @@ void CMenuManager::DrawBackground() {
 
 // 0x5794A0
 void CMenuManager::DrawStandardMenus(bool drawTitle) {
-    constexpr uint16 MENU_DEFAULT_CONTENT_X = 320;
-    constexpr uint16 MENU_DEFAULT_CONTENT_Y = 130;
+    constexpr uint16 MENU_DEFAULT_CONTENT_X = APP_MINIMAL_WIDTH / 2;
+    constexpr uint16 MENU_DEFAULT_CONTENT_Y = APP_MINIMAL_HEIGHT / 4 + 10;
 
     const GxtChar *pTextToShow_RightColumn; // text for right column
-    GxtChar *pTextToShow = nullptr;         // text to display
+    const GxtChar *pTextToShow;             // text to display
 
     float buttonTextPosY = 0.0;
     bool shouldDrawStandardItems = true;
@@ -430,40 +428,40 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
     }
 
+    // 0x5796B4
     if (aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT) {
         CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(40.0f));
         CFont::SetFontStyle(FONT_SUBTITLES);
         CFont::SetScale(StretchX(0.5f), StretchY(1.2f));
         CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
         CFont::SetEdge(2);
-        CFont::SetDropColor(CRGBA(0, 0, 0, 0xFFu));
-        CFont::SetColor(CRGBA(0x4Au, 0x5Au, 0x6Bu, 0xFFu));
+        CFont::SetDropColor(MENU_BG);
+        CFont::SetColor(MENU_TEXT_NORMAL);
 
-        const GxtChar *textOne;
+        const auto GetText = [&](bool condition, const char* key) {
+            return TheText.Get(!condition ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : key);
+        };
+        const GxtChar* textOne;
 
+        // 0x57979A
         switch (m_nCurrentScreen) {
-        case eMenuScreen::SCREEN_NEW_GAME_ASK:
-            textOne = TheText.Get((!m_bMainMenuSwitch) ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FESZ_QQ");
-            break;
-        case eMenuScreen::SCREEN_LOAD_GAME_ASK:
-            textOne = TheText.Get((!m_bMainMenuSwitch) ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FES_LCG");
-            break;
+        case eMenuScreen::SCREEN_NEW_GAME_ASK:  textOne = GetText(m_bMainMenuSwitch, "FESZ_QQ"); break; // Are you sure you want to start a new game?
+        case eMenuScreen::SCREEN_LOAD_GAME_ASK: textOne = GetText(m_bMainMenuSwitch, "FES_LCG"); break; // Are you sure you want to load this save game?
         case eMenuScreen::SCREEN_SAVE_WRITE_ASK: {
-            eSlotState slotToCheck = GetSavedGameState(m_SelectedSlot);
-            textOne = TheText.Get((eSlotState::SLOT_FILLED != slotToCheck) ? (slotToCheck != eSlotState::SLOT_CORRUPTED ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FESZ_QC") : "FESZ_QO");
+            switch (GetSavedGameState(m_SelectedSlot)) {
+            case eSlotState::SLOT_FILLED:    textOne = TheText.Get("FESZ_QO"); break; // Are you sure you wish to overwrite this save file?
+            case eSlotState::SLOT_CORRUPTED: textOne = TheText.Get("FESZ_QC"); break; // Proceed with overwriting this corrupted save game?
+            default:                         textOne = GetText(false, ""); break;
+            }
             break;
         }
-        case eMenuScreen::SCREEN_QUIT_GAME_ASK:
-            textOne = TheText.Get((!m_bMainMenuSwitch) ? aScreens[m_nCurrentScreen].m_aItems[0].m_szName : "FEQ_SRW");
-            break;
-        default:
-            textOne = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[0].m_szName);
-            break;
+        case eMenuScreen::SCREEN_QUIT_GAME_ASK: textOne = GetText(m_bMainMenuSwitch, "FEQ_SRW"); break; // Are you sure you want to quit the game?
+        default:                                textOne = GetText(false, ""); break;
         }
 
         CFont::PrintString(StretchX(60.0f), StretchY(97.0f), textOne);
-        CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(10.0f));
-        CFont::SetRightJustifyWrap(SCREEN_SCALE_X(10.0f));
+        CFont::SetWrapx(SCREEN_STRETCH_FROM_RIGHT(10.f));
+        CFont::SetRightJustifyWrap(10.0f);
     }
 
     if (m_nCurrentScreen == eMenuScreen::SCREEN_CONTROLS_DEFINITION) {
@@ -475,10 +473,11 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
     const bool weHaveLabel = aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT;
 
-    for (int i = 0; i < std::size(aScreens[m_nCurrentScreen].m_aItems); i++) {
+    // 0x5798CE
+    for (auto i = 0; i < std::size(aScreens[m_nCurrentScreen].m_aItems); i++) {
         auto itemType = aScreens[m_nCurrentScreen].m_aItems[i].m_nType;
         pTextToShow_RightColumn = 0;
-        int MENU_DEFAULT_LINE_HEIGHT = (itemType == eMenuEntryType::TI_MPACK) ? 20 : 30;
+        uint16 MENU_DEFAULT_LINE_HEIGHT = (itemType == eMenuEntryType::TI_MPACK) ? 20 : 30;
         CFont::SetFontStyle(FONT_MENU);
         if (itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
             CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
@@ -488,18 +487,16 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             CFont::SetScale(StretchX(0.42f), StretchY(0.95f));
         }
         CFont::SetDropColor(HudColour.GetRGB(HUD_COLOUR_BLACK));
-        CFont::SetColor((i == m_nCurrentScreenItem && m_bMapLoaded) ? CRGBA(172, 203, 241, 255) : CRGBA(74, 90, 107, 255));
+        if (i == m_nCurrentScreenItem && m_bMapLoaded) {
+            CFont::SetColor(MENU_TEXT_SELECTED);
+        } else {
+            CFont::SetColor(MENU_TEXT_NORMAL);
+        }
 
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nAlign) {
-        case eMenuAlign::MENU_ALIGN_LEFT:
-            CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-            break;
-        case eMenuAlign::MENU_ALIGN_RIGHT:
-            CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-            break;
-        default:
-            CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
-            break;
+        case eMenuAlign::MENU_ALIGN_LEFT:  CFont::SetOrientation(eFontAlignment::ALIGN_LEFT); break;
+        case eMenuAlign::MENU_ALIGN_RIGHT: CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT); break;
+        default:                           CFont::SetOrientation(eFontAlignment::ALIGN_CENTER); break;
         }
 
         if (!aScreens[m_nCurrentScreen].m_aItems[i].m_X && !aScreens[m_nCurrentScreen].m_aItems[i].m_Y) {
@@ -542,7 +539,11 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuEntryType::TI_MOUSEJOYPAD:
-            pTextToShow = (GxtChar*)TheText.Get(m_ControlMethod ? "FEJ_TIT" : "FEC_MOU");
+            switch (m_ControlMethod) {
+            case eController::JOYPAD:          pTextToShow = TheText.Get("FEJ_TIT"); break; // Joypad Settings
+            case eController::MOUSE_PLUS_KEYS: pTextToShow = TheText.Get("FEC_MOU"); break; // Mouse Settings
+            default:                           NOTSA_UNREACHABLE();
+            }
             break;
         default: {
             if (isSlot) {
@@ -572,12 +573,12 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                     break;
                 }
                 case eSlotState::SLOT_CORRUPTED: { // Corrupted save
-                    pTextToShow = (GxtChar*)TheText.Get("FESZ_CS");
+                    pTextToShow = TheText.Get("FESZ_CS");
                     if (!pTextToShow) {
                         CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
                         aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
-                        pTextToShow                                = (GxtChar*)TheText.Get(std::format("FEM_SL{}", i).c_str());
-                        xOffset                                    = StretchX(40.0);
+                        pTextToShow = TheText.Get(std::format("FEM_SL{}", i).c_str());
+                        xOffset = StretchX(40.0f);
                     }
                     break;
                 }
@@ -585,116 +586,72 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                     AsciiToGxtChar(std::format("FEM_SL{}", i).c_str(), gGxtString);
                     CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
                     aScreens[m_nCurrentScreen].m_aItems[i].m_X = MENU_DEFAULT_CONTENT_X;
-                    pTextToShow                                = (GxtChar*)TheText.Get((const char*)gGxtString);
-                    xOffset                                    = StretchX(40.0);
+                    pTextToShow = TheText.Get((const char*)gGxtString);
+                    xOffset = StretchX(40.0f);
                     break;
                 }
                 }
                 break;
             }
-            pTextToShow = (GxtChar*)TheText.Get(aScreens[m_nCurrentScreen].m_aItems[i].m_szName);
+            pTextToShow = TheText.Get(aScreens[m_nCurrentScreen].m_aItems[i].m_szName);
             break;
         }
         }
 
+        const auto GetOnOffText = [](bool condition) {
+            return TheText.Get(condition ? "FEM_ON" : "FEM_OFF"); // ON : OFF
+        };
+
+        // 0x579DA3
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
-        case eMenuAction::MENU_ACTION_RADIO_STATION:
-            pTextToShow_RightColumn = AudioEngine.GetRadioStationName(m_nRadioStation);
-            break;
-        case eMenuAction::MENU_ACTION_FRAME_LIMITER:
-            pTextToShow_RightColumn = TheText.Get(m_bPrefsFrameLimiter ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_SUBTITLES:
-            pTextToShow_RightColumn = TheText.Get(m_bShowSubtitles ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_WIDESCREEN:
-            pTextToShow_RightColumn = TheText.Get(m_bWidescreenOn ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_RADIO_EQ:
-            pTextToShow_RightColumn = TheText.Get(m_bRadioEq ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_RADIO_RETUNE:
-            pTextToShow_RightColumn = TheText.Get(m_bRadioAutoSelect ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_SHOW_LEGEND:
-            pTextToShow_RightColumn = TheText.Get(m_bMapLegend ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_HUD_MODE:
-            pTextToShow_RightColumn = TheText.Get(m_bHudOn ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_X:
-            pTextToShow_RightColumn = TheText.Get(m_bInvertPadX1 ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_Y:
-            pTextToShow_RightColumn = TheText.Get(m_bInvertPadY1 ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_X2:
-            pTextToShow_RightColumn = TheText.Get(m_bInvertPadX2 ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_Y2:
-            pTextToShow_RightColumn = TheText.Get(m_bInvertPadY2 ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_CONTROLS_JOY_SWAP_AXIS1:
-            pTextToShow_RightColumn = TheText.Get(m_bSwapPadAxis1 ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_CONTROLS_JOY_SWAP_AXIS2:
-            pTextToShow_RightColumn = TheText.Get(m_bSwapPadAxis2 ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_USER_TRACKS_AUTO_SCAN:
-            pTextToShow_RightColumn = TheText.Get(m_bTracksAutoScan ? "FEM_ON" : "FEM_OFF");
-            break;
-        case eMenuAction::MENU_ACTION_STORE_PHOTOS:
-            pTextToShow_RightColumn = TheText.Get(m_bSavePhotos ? "FEM_ON" : "FEM_OFF");
-            break;
+        case eMenuAction::MENU_ACTION_RADIO_STATION:           pTextToShow_RightColumn = AudioEngine.GetRadioStationName(m_nRadioStation); break;
+        case eMenuAction::MENU_ACTION_FRAME_LIMITER:           pTextToShow_RightColumn = GetOnOffText(m_bPrefsFrameLimiter); break;
+        case eMenuAction::MENU_ACTION_SUBTITLES:               pTextToShow_RightColumn = GetOnOffText(m_bShowSubtitles); break;
+        case eMenuAction::MENU_ACTION_WIDESCREEN:              pTextToShow_RightColumn = GetOnOffText(m_bWidescreenOn); break;
+        case eMenuAction::MENU_ACTION_RADIO_EQ:                pTextToShow_RightColumn = GetOnOffText(m_bRadioEq); break;
+        case eMenuAction::MENU_ACTION_RADIO_RETUNE:            pTextToShow_RightColumn = GetOnOffText(m_bRadioAutoSelect); break;
+        case eMenuAction::MENU_ACTION_SHOW_LEGEND:             pTextToShow_RightColumn = GetOnOffText(m_bMapLegend); break;
+        case eMenuAction::MENU_ACTION_HUD_MODE:                pTextToShow_RightColumn = GetOnOffText(m_bHudOn); break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_X:   pTextToShow_RightColumn = GetOnOffText(m_bInvertPadX1); break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_Y:   pTextToShow_RightColumn = GetOnOffText(m_bInvertPadY1); break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_X2:  pTextToShow_RightColumn = GetOnOffText(m_bInvertPadX2); break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_INVERT_Y2:  pTextToShow_RightColumn = GetOnOffText(m_bInvertPadY2); break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_SWAP_AXIS1: pTextToShow_RightColumn = GetOnOffText(m_bSwapPadAxis1); break;
+        case eMenuAction::MENU_ACTION_CONTROLS_JOY_SWAP_AXIS2: pTextToShow_RightColumn = GetOnOffText(m_bSwapPadAxis2); break;
+        case eMenuAction::MENU_ACTION_USER_TRACKS_AUTO_SCAN:   pTextToShow_RightColumn = GetOnOffText(m_bTracksAutoScan); break;
+        case eMenuAction::MENU_ACTION_STORE_PHOTOS:            pTextToShow_RightColumn = GetOnOffText(m_bSavePhotos); break;
         case eMenuAction::MENU_ACTION_RADAR_MODE:
-            pTextToShow_RightColumn = TheText.Get(m_nRadarMode == 0 ? "FED_RDM" : (m_nRadarMode == 1 ? "FED_RDB" : "FEM_OFF"));
+            switch (m_nRadarMode) {
+            case eRadarMode::MAPS_AND_BLIPS: pTextToShow_RightColumn = TheText.Get("FED_RDM"); break; // MAP & BLIPS
+            case eRadarMode::BLIPS_ONLY:     pTextToShow_RightColumn = TheText.Get("FED_RDB"); break; // BLIPS ONLY
+            case eRadarMode::OFF:            pTextToShow_RightColumn = TheText.Get("FEM_OFF"); break; // OFF
+            default:                         NOTSA_UNREACHABLE();
+            }
             break;
         case eMenuAction::MENU_ACTION_LANGUAGE:
             switch (m_nPrefsLanguage) {
-            case eLanguage::AMERICAN:
-                pTextToShow_RightColumn = TheText.Get("FEL_ENG");
-                break;
-            case eLanguage::FRENCH:
-                pTextToShow_RightColumn = TheText.Get("FEL_FRE");
-                break;
-            case eLanguage::GERMAN:
-                pTextToShow_RightColumn = TheText.Get("FEL_GER");
-                break;
-            case eLanguage::ITALIAN:
-                pTextToShow_RightColumn = TheText.Get("FEL_ITA");
-                break;
-            case eLanguage::SPANISH:
-                pTextToShow_RightColumn = TheText.Get("FEL_SPA");
-                break;
-            default:
-                break;
+            case eLanguage::AMERICAN: pTextToShow_RightColumn = TheText.Get("FEL_ENG"); break; // English
+            case eLanguage::FRENCH:   pTextToShow_RightColumn = TheText.Get("FEL_FRE"); break; // French
+            case eLanguage::GERMAN:   pTextToShow_RightColumn = TheText.Get("FEL_GER"); break; // German
+            case eLanguage::ITALIAN:  pTextToShow_RightColumn = TheText.Get("FEL_ITA"); break; // Italian
+            case eLanguage::SPANISH:  pTextToShow_RightColumn = TheText.Get("FEL_SPA"); break; // Spanish
+            default:                  NOTSA_UNREACHABLE();
             }
             break;
         case eMenuAction::MENU_ACTION_FX_QUALITY:
             switch (g_fx.GetFxQuality()) {
-            case FxQuality_e::FX_QUALITY_LOW:
-                pTextToShow_RightColumn = TheText.Get("FED_FXL");
-                break;
-
-            case FxQuality_e::FX_QUALITY_MEDIUM:
-                pTextToShow_RightColumn = TheText.Get("FED_FXM");
-                break;
-
-            case FxQuality_e::FX_QUALITY_HIGH:
-                pTextToShow_RightColumn = TheText.Get("FED_FXH");
-                break;
-
-            case FxQuality_e::FX_QUALITY_VERY_HIGH:
-                pTextToShow_RightColumn = TheText.Get("FED_FXV");
-                break;
-
-            default:
-                break;
+            case FxQuality_e::FX_QUALITY_LOW:       pTextToShow_RightColumn = TheText.Get("FED_FXL"); break; // LOW
+            case FxQuality_e::FX_QUALITY_MEDIUM:    pTextToShow_RightColumn = TheText.Get("FED_FXM"); break; // MEDIUM
+            case FxQuality_e::FX_QUALITY_HIGH:      pTextToShow_RightColumn = TheText.Get("FED_FXH"); break; // HIGH
+            case FxQuality_e::FX_QUALITY_VERY_HIGH: pTextToShow_RightColumn = TheText.Get("FED_FXV"); break; // VERY HIGH
+            default:                                NOTSA_UNREACHABLE();
             }
             break;
         case eMenuAction::MENU_ACTION_MIP_MAPPING:
-            pTextToShow_RightColumn = TheText.Get(m_bPrefsMipMapping ? "FEM_ON" : "FEM_OFF");
-            if (!m_bMainMenuSwitch) { CFont::SetColor(CRGBA(14, 30, 47, 255)); }
+            pTextToShow_RightColumn = GetOnOffText(m_bPrefsMipMapping);
+            if (!m_bMainMenuSwitch) {
+                CFont::SetColor({ 14, 30, 47, 255 });
+            }
             break;
         case eMenuAction::MENU_ACTION_ANTIALIASING: {
             if (m_nDisplayAntialiasing <= 1) {
@@ -707,7 +664,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
-            pTextToShow_RightColumn = TheText.Get((bInvertMouseY) ? "FEM_ON" : "FEM_OFF"); // NOSTA FIX
+            pTextToShow_RightColumn = notsa::IsFixBugs()
+                ? GetOnOffText(bInvertMouseY)
+                : GetOnOffText(!bInvertMouseY);
             break;
         case eMenuAction::MENU_ACTION_RESOLUTION: {
             GxtChar tmpBuffer[1'024];
@@ -717,22 +676,31 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_CONTROL_TYPE:
-            pTextToShow_RightColumn = (m_ControlMethod == eController::JOYPAD) ? (m_ControlMethod != eController::JOYPAD ? nullptr : TheText.Get("FET_CCN")) : TheText.Get("FET_SCN");
+            switch (m_ControlMethod) {
+            case eController::JOYPAD:          pTextToShow_RightColumn = TheText.Get("FET_CCN"); break; // Joypad
+            case eController::MOUSE_PLUS_KEYS: pTextToShow_RightColumn = TheText.Get("FET_SCN"); break; // Mouse + Keys
+            default:                           NOTSA_UNREACHABLE();
+            }
             break;
         case eMenuAction::MENU_ACTION_MOUSE_STEERING:
-            pTextToShow_RightColumn = TheText.Get((CVehicle::m_bEnableMouseSteering) ? "FEM_ON" : "FEM_OFF");
+            pTextToShow_RightColumn = GetOnOffText(CVehicle::m_bEnableMouseSteering);
             if (m_ControlMethod == eController::JOYPAD) {
-                CFont::SetColor(CRGBA(14, 30, 47, 255));
+                CFont::SetColor({ 14, 30, 47, 255 });
             }
             break;
         case eMenuAction::MENU_ACTION_MOUSE_FLY:
-            pTextToShow_RightColumn = TheText.Get((CVehicle::m_bEnableMouseFlying) ? "FEM_ON" : "FEM_OFF");
+            pTextToShow_RightColumn = GetOnOffText(CVehicle::m_bEnableMouseFlying);
             if (m_ControlMethod == eController::JOYPAD) {
-                CFont::SetColor(CRGBA(14, 30, 47, 255));
+                CFont::SetColor({ 14, 30, 47, 255 });
             }
             break;
         case eMenuAction::MENU_ACTION_USER_TRACKS_PLAY_MODE:
-            pTextToShow_RightColumn = TheText.Get(m_nRadioMode == 0 ? "FEA_PR1" : (m_nRadioMode == 1 ? "FEA_PR2" : "FEA_PR3"));
+            switch (m_nRadioMode) {
+            case eRadioMode::RADIO:      pTextToShow_RightColumn = TheText.Get("FEA_PR1"); break; // RADIO
+            case eRadioMode::RANDOM:     pTextToShow_RightColumn = TheText.Get("FEA_PR2"); break; // RANDOM
+            case eRadioMode::SEQUENTIAL: pTextToShow_RightColumn = TheText.Get("FEA_PR3"); break; // SEQUENTIAL
+            default:                     NOTSA_UNREACHABLE();
+            }
             break;
         default:
             break;
@@ -752,6 +720,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             }
         }
 
+        // 0x57A204
         if (pTextToShow_RightColumn) {
             CFont::SetFontStyle(FONT_MENU);
             CFont::SetEdge(1);
@@ -782,127 +751,96 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 }();
             }
 
+            // 0x57A50C
             // Draw highlight rectangle for selected item if map is loaded
             if (m_bMapLoaded) {
-                if (m_nCurrentScreen != eMenuScreen::SCREEN_LOAD_FIRST_SAVE && m_nCurrentScreen != eMenuScreen::SCREEN_DELETE_FINISHED && m_nCurrentScreen != eMenuScreen::SCREEN_SAVE_DONE_1) {
-                    CRect rect(xOffset, // left
-                               scaledPosY - StretchX(5.0f), // top
-                               xOffset + StretchX(32.0f),   // right
-                               scaledPosY + StretchX(47.0f) // bottom
+                switch (m_nCurrentScreen) {
+                case eMenuScreen::SCREEN_LOAD_FIRST_SAVE:
+                case eMenuScreen::SCREEN_DELETE_FINISHED:
+                case eMenuScreen::SCREEN_SAVE_DONE_1:
+                    break;
+                default:
+                    m_aFrontEndSprites[0].Draw({
+                            xOffset,
+                            scaledPosY - StretchX(5.0f),
+                            xOffset + StretchX(32.0f),
+                            scaledPosY + StretchX(47.0f)
+                        }, MENU_TEXT_WHITE
                     );
-                    m_aFrontEndSprites[0].Draw(rect, CRGBA(255, 255, 255, 255));
+                    break;
                 }
             }
         }
 
+        // 0x57A5F1
         // Check for video mode changes
-        if (m_nDisplayVideoMode == m_nPrefsVideoMode && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES") && m_nHelperText == FET_APP) {
-            ResetHelperText();
-        }
-        if (m_nDisplayAntialiasing == m_nPrefsAntialiasing && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS") && m_nHelperText == FET_APP) {
-            ResetHelperText();
-        }
-        if (m_nDisplayVideoMode != m_nPrefsVideoMode && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
-            SetHelperText(eHelperText::FET_APP);
-        }
-        if (m_nDisplayAntialiasing != m_nPrefsAntialiasing && !strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
-            SetHelperText(eHelperText::FET_APP);
-        }
-        if (m_nDisplayAntialiasing != m_nPrefsAntialiasing) {
-            if (strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_AAS")) {
-                if (m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_ADVANCED) {
-                    m_nDisplayAntialiasing = m_nPrefsAntialiasing;
-                    SetHelperText(eHelperText::FET_RSO);
-                }
+        const auto currentItemName = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName;
+        const bool isDisplaySettingsScreen = m_nCurrentScreen == SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == SCREEN_DISPLAY_ADVANCED;
+
+        if (!strcmp(currentItemName, "FED_RES")) {
+            if (m_nDisplayVideoMode == m_nPrefsVideoMode && m_nHelperText == eHelperText::FET_APP) {
+                ResetHelperText();
+            } else if (m_nDisplayVideoMode != m_nPrefsVideoMode) {
+                SetHelperText(eHelperText::FET_APP);
             }
-        }
-        if (m_nDisplayVideoMode != m_nPrefsVideoMode) {
-            if (strcmp(aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName, "FED_RES")) {
-                if (m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == eMenuScreen::SCREEN_DISPLAY_ADVANCED) {
-                    m_nDisplayVideoMode = m_nPrefsVideoMode;
-                    SetHelperText(eHelperText::FET_RSO);
-                }
-            }
+        } else if (m_nDisplayVideoMode != m_nPrefsVideoMode && isDisplaySettingsScreen) {
+            m_nDisplayVideoMode = m_nPrefsVideoMode;
+            SetHelperText(eHelperText::FET_RSO);
         }
 
+        if (!strcmp(currentItemName, "FED_AAS")) {
+            if (m_nDisplayAntialiasing == m_nPrefsAntialiasing && m_nHelperText == eHelperText::FET_APP) {
+                ResetHelperText();
+            } else if (m_nDisplayAntialiasing != m_nPrefsAntialiasing) {
+                SetHelperText(eHelperText::FET_APP);
+            }
+        } else if (m_nDisplayAntialiasing != m_nPrefsAntialiasing && isDisplaySettingsScreen) {
+            m_nDisplayAntialiasing = m_nPrefsAntialiasing;
+            SetHelperText(eHelperText::FET_RSO);
+        }
+
+        const auto processSlider = [&](float value, bool isRadioVolumeSlider, eMouseInBounds leftBound, eMouseInBounds rightBound) {
+            const auto verticalOffset = isRadioVolumeSlider ? 30.f : 0.f;
+            const auto sliderPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f - verticalOffset), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), value, StretchX(3.0f));
+            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
+                if (CheckHover(0, sliderPos - StretchX(3.0f), StretchY(125.0f - verticalOffset), StretchY(150.0f - verticalOffset))) {
+                    m_MouseInBounds = leftBound;
+                } else {
+                    if (CheckHover(StretchX(3.0f) + sliderPos, StretchX(SCREEN_WIDTH), StretchY(125.0f - verticalOffset), StretchY(150.0f - verticalOffset))) {
+                        m_MouseInBounds = rightBound;
+                        if (StretchX(500.0f) <= m_nMousePosX) {
+                            if (StretchY(125.0f - verticalOffset) <= m_nMousePosY && m_nMousePosY <= StretchY(150.0f - verticalOffset)) {
+                                return;
+                            }
+                        }
+                    }
+                    m_MouseInBounds = eMouseInBounds::NONE;
+                }
+            }
+        };
+
+        // 0x57A7D4
         // Handle sliders
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
-        case eMenuAction::MENU_ACTION_BRIGHTNESS: { // Brightness slider
-            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_PrefsBrightness * 0.0026041667f, int32(StretchX(3.0f)));
-            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = 7;
-                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(SCREEN_WIDTH), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 6;
-                } else {
-                    m_MouseInBounds = 16;
-                }
-            }
-            break;
-        }
-        case eMenuAction::MENU_ACTION_RADIO_VOL: { // Radio volume slider
-            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(95.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nRadioVolume * 0.015625f, int32(StretchX(3.0f)));
-            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(95.0f), StretchY(120.0f))) {
-                    m_MouseInBounds = 11;
-                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(SCREEN_WIDTH), StretchY(95.0f), StretchY(120.0f))) {
-                    m_MouseInBounds = StretchX(500.0f) <= m_nMousePosX && StretchY(95.0f) <= m_nMousePosY && StretchY(120.0f) >= m_nMousePosY ? 10 : 16;
-                } else {
-                    m_MouseInBounds = 16;
-                }
-            }
-            break;
-        }
-        case eMenuAction::MENU_ACTION_SFX_VOL: { // SFX volume slider
-            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), m_nSfxVolume * 0.015625f, int32(StretchX(3.0f)));
-            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = 13;
-                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(SCREEN_WIDTH), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 12;
-                } else {
-                    m_MouseInBounds = 16;
-                }
-            }
-            break;
-        }
-        case eMenuAction::MENU_ACTION_DRAW_DIST: { // Draw distance slider
-            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), (m_fDrawDistance - 0.92500001f) * 1.1428572f, int32(StretchX(3.0f)));
-            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = 9;
-                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(SCREEN_WIDTH), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : (m_nMousePosY < StretchY(125.0f) || m_nMousePosY > StretchY(150.0f)) ? 16 : 8;
-                } else {
-                    m_MouseInBounds = 16;
-                }
-            }
-            break;
-        }
-        case eMenuAction::MENU_ACTION_MOUSE_SENS: { // Mouse sensitivity slider
-            const auto sliderFieldPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), CCamera::m_fMouseAccelHorzntl / 0.005f, int32(StretchX(3.0f)));
-            if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
-                if (CheckHover(0, sliderFieldPos - StretchX(3.0f), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = 15;
-                } else if (CheckHover(StretchX(3.0f) + sliderFieldPos, StretchX(SCREEN_WIDTH), StretchY(125.0f), StretchY(150.0f))) {
-                    m_MouseInBounds = m_nMousePosX < StretchX(500.0f) ? 16 : 14;
-                } else {
-                    m_MouseInBounds = 16;
-                }
-            }
-            break;
-        }
-        default:
-            break;
+        case MENU_ACTION_BRIGHTNESS: processSlider(m_PrefsBrightness * 0.0026041667f, false, eMouseInBounds::SLIDER_LEFT, eMouseInBounds::SLIDER_RIGHT); break;
+        case MENU_ACTION_RADIO_VOL:  processSlider(m_nRadioVolume * (64.f / 10.f), true, eMouseInBounds::RADIO_VOL_LEFT, eMouseInBounds::RADIO_VOL_RIGHT); break;
+        case MENU_ACTION_SFX_VOL:    processSlider(m_nSfxVolume * (64.f / 10.f), false, eMouseInBounds::SFX_VOL_LEFT, eMouseInBounds::SFX_VOL_RIGHT); break;
+        case MENU_ACTION_DRAW_DIST:  processSlider((m_fDrawDistance - 0.925f) * 1.1428572f, false, eMouseInBounds::DRAW_DIST_LEFT, eMouseInBounds::DRAW_DIST_RIGHT); break;
+        // BUG: when selecting on the 8 or 9 element, it randomly switches to the 9 or 8 element
+        case MENU_ACTION_MOUSE_SENS: processSlider(CCamera::m_fMouseAccelHorzntl / 0.005f, false, eMouseInBounds::MOUSE_SENS_LEFT, eMouseInBounds::MOUSE_SENS_RIGHT); break;
+        default:                     break;
         }
 
+        // 0x57B239
         if (pTextToShow && pTextToShow != nullptr) {
-            buttonTextPosY = (29 * CFont::GetNumberLines(60.0, buttonTextPosY, (const GxtChar *)pTextToShow)) + buttonTextPosY;
+            buttonTextPosY = (29 * CFont::GetNumberLines(60.0f, buttonTextPosY, pTextToShow)) + buttonTextPosY;
         }
-        if (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType == 32) {
+        if (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType == MENU_ACTION_RADIO_STATION) {
             buttonTextPosY = buttonTextPosY + 70.0f;
         }
     }
+
+    // 0x57B29F
     switch (m_nCurrentScreen) {
     case eMenuScreen::SCREEN_STATS:
     case eMenuScreen::SCREEN_AUDIO_SETTINGS:
@@ -927,23 +865,21 @@ void CMenuManager::DrawWindow(const CRect& coords, const char* key, uint8 color,
 
     if (key && *key) {
         CFont::SetWrapx(coords.right);
-        CFont::SetColor(CRGBA(225 - color, 225 - color, 225 - color, 255));
-        CFont::SetDropColor(CRGBA(0, 0, 0, 255));
+        CFont::SetColor(CRGBA(MENU_TEXT_LIGHT_GRAY - color, MENU_TEXT_LIGHT_GRAY.a));
+        CFont::SetDropColor(MENU_BG);
         CFont::SetEdge(2);
         CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
         CFont::SetFontStyle(FONT_GOTHIC);
         CFont::SetScale(SCREEN_SCALE_X(1.0f), SCREEN_SCALE_Y(1.4f));
 
         float x = coords.left + SCREEN_SCALE_X(10.0f);
-        float y = std::min(coords.bottom, coords.top) - SCREEN_SCALE_Y(16);
-        CFont::PrintString(x, y, TheText.Get(const_cast<char*>(key)));
+        float y = std::min(coords.bottom, coords.top) - SCREEN_SCALE_Y(16.0f);
+        CFont::PrintString(x, y, TheText.Get(key));
     }
 }
 
 // 0x578F50, untested
 void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* title, const char* message, eFontAlignment alignment) {
-    // return plugin::CallMethod<0x578F50, CMenuManager*, float, float, float, Const char*, Const char*, eFontAlignment>(this, x, y, a4, str, message, alignment);
-
     CFont::SetWrapx(x + wrap - StretchX(10.0f));
     CFont::SetRightJustifyWrap(StretchX(10.0f) + wrap);
     CFont::SetCentreSize(wrap - 2.0f * StretchX(10.0f));
@@ -955,9 +891,9 @@ void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* ti
     CFont::GetTextRect(&rt, x, y, TheText.Get(message));
     rt.left -= 4.0f;
     rt.bottom  += StretchY(22.0f);
-    CSprite2d::DrawRect(rt, {0, 0, 0, 255});
-    CFont::SetColor({225, 225, 225, 255});
-    CFont::SetDropColor({0, 0, 0, 255});
+    CSprite2d::DrawRect(rt, MENU_BG);
+    CFont::SetColor(MENU_TEXT_LIGHT_GRAY);
+    CFont::SetDropColor(MENU_BG);
     CFont::SetEdge(2);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetFontStyle(FONT_GOTHIC);
@@ -977,7 +913,7 @@ void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* ti
         CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
 
         CFont::SetDropShadowPosition(2);
-        CFont::SetDropColor({ 0, 0, 0, 255 });
+        CFont::SetDropColor(MENU_BG);
         CFont::PrintString(x, y + StretchY(15.0f), TheText.Get(message));
     }
 }
@@ -985,62 +921,61 @@ void CMenuManager::DrawWindowedText(float x, float y, float wrap, const char* ti
 // 0x57D860
 void CMenuManager::DrawQuitGameScreen() {
     m_DisplayTheMouse = false;
-    CRect coords(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT);
-    CSprite2d::DrawRect(coords, { 0, 0, 0, 255 });
+    CSprite2d::DrawRect({ 0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT }, MENU_BG);
     SaveSettings();
     RsEventHandler(rsQUITAPP, nullptr);
 }
 
 // 0x57D8D0
 void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
-    const auto maxActions      = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
-    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
+    const auto maxActions      = GetMaxAction();
+    const auto verticalSpacing = GetVerticalSpacing();
     if (maxActions > 0) {
-        for (auto actionIndex = 0u; actionIndex < maxActions; actionIndex++) {
+        for (auto action = 0u; action < maxActions; action++) {
             float posX = StretchX(240.0f);
             float posY = StretchY(float(startingYPos));
             
             for (const auto& order : CONTROLLER_ORDERS_SET) {
-                const auto buttonText = ControlsManager.GetControllerSettingText(static_cast<eControllerAction>(actionIndex), (eContSetOrder)order);
+                const auto buttonText = ControlsManager.GetControllerSettingText((eControllerAction)action, order);
                 if (buttonText) {
                     CFont::PrintString(posX, posY, buttonText);
                     posX += StretchX(75.0f);
                 }
             }
             
-            if ((eControllerAction)actionIndex == m_ListSelection) {
+            if (action == m_ListSelection) {
                 if (m_EditingControlOptions) {
                     if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.LastFlash > 150) {
-                        FrontEndMenuManager.ColourSwitch = (FrontEndMenuManager.ColourSwitch) ? false : true;
-                        FrontEndMenuManager.LastFlash  = CTimer::m_snTimeInMillisecondsPauseMode;
+                        FrontEndMenuManager.ColourSwitch ^= true;
+                        FrontEndMenuManager.LastFlash = CTimer::m_snTimeInMillisecondsPauseMode;
                     }
                     
                     if (FrontEndMenuManager.ColourSwitch) {
-                        CFont::SetColor({0, 0, 0, 255});
+                        CFont::SetColor(MENU_BG);
                         CFont::PrintString(posX, posY, TheText.Get("FEC_QUE")); // ???
-                        CFont::SetColor({74, 90, 107, 255});
+                        CFont::SetColor(MENU_TEXT_NORMAL);
                     }
                 }
             }
 
+            // 0x57DA95
             if (m_MenuIsAbleToQuit) {
-                auto comboText = ControlsManager.GetButtonComboText((eControllerAction)m_ListSelection);
+                const auto comboText = ControlsManager.GetButtonComboText((eControllerAction)m_ListSelection);
                 if (comboText) {
-                    CFont::SetColor({200, 50, 50, 255});
-                    CFont::PrintString(posX, StretchY(float(posY + 10)), comboText);
+                    CFont::SetColor(MENU_ERROR);
+                    CFont::PrintString(posX, StretchY(posY + 10.f), comboText);
                 }
             }
 
             startingYPos += verticalSpacing;
         }
     }
-
 }
 
 // 0x57E6E0
 void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScreen) {
-    const auto verticalSpacing = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
-    const auto maxActions      = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
+    const auto verticalSpacing = GetVerticalSpacing();
+    const auto maxActions      = GetMaxAction();
 
     using ControlActionMapping = std::pair<eControllerAction, int32>;
 
@@ -1144,34 +1079,39 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 
     auto currentY = StretchY(float(verticalOffset));
 
-    unsigned int actionIndex = 0; // Corresponds to v7 in old code
+    auto actionIndex = 0u;
     // Main loop - process each action
     while (actionIndex < maxActions) {
-        auto  currentX         = StretchX(270.0f);
-        int32 controllerAction = eControllerAction::CA_NONE;
+        auto currentX = StretchX(270.0f);
+        eControllerAction controllerAction = eControllerAction::CA_NONE;
 
         // Set default text color
-        CFont::SetColor({ 255, 255, 255, 255 });
+        CFont::SetColor(MENU_TEXT_WHITE);
 
         // Map action index to controller action
-        if (m_RedefiningControls == 1) {
+        switch (m_RedefiningControls) {
+        case eControlMode::VEHICLE:
             for (const auto& mapping : CarActionMappings) {
                 if (mapping.first == ControllerActionsAvailableInCar[actionIndex]) {
-                    controllerAction = mapping.second;
+                    controllerAction = (eControllerAction)mapping.second;
                     break;
                 }
             }
-        } else {
+            break;
+        case eControlMode::FOOT:
             for (const auto& mapping : PedActionMappings) {
                 if (mapping.first == (eControllerAction)actionIndex) { // Cast actionIndex to eControllerAction for comparison
                     if (m_ControlMethod == eController::MOUSE_PLUS_KEYS && notsa::contains({ eControllerAction::CA_VEHICLE_STEER_UP, eControllerAction::CA_CONVERSATION_YES, eControllerAction::CA_VEHICLE_STEER_DOWN, eControllerAction::CA_CONVERSATION_NO }, mapping.first)) {
-                        controllerAction = -1;
+                        controllerAction = eControllerAction::CA_NONE;
                     } else {
-                        controllerAction = mapping.second;
+                        controllerAction = (eControllerAction)mapping.second;
                     }
                     break;
                 }
             }
+            break;
+        default:
+            NOTSA_UNREACHABLE();
         }
 
         const auto isSelected = (m_ListSelection == actionIndex && !isOppositeScreen);
@@ -1181,12 +1121,11 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
             CSprite2d::DrawRect({
                     StretchX(260.0f),
                     StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f),
-                    SCREEN_WIDTH - StretchX(20.0f),
+                    SCREEN_STRETCH_FROM_RIGHT(20.0f),
                     StretchY(actionIndex * verticalSpacing + verticalOffset + 1.f + 10.f)
-                },
-                { 172, 203, 241, 255 }
+                }, MENU_TEXT_SELECTED
             );
-            CFont::SetColor({ 255, 255, 255, 255 });
+            CFont::SetColor(MENU_TEXT_WHITE);
         }
 
         // Set text properties
@@ -1217,19 +1156,18 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 
         // 0x57EBD9 + 0x57EBEA
         if (controllerAction == eControllerAction::CA_COMBOLOCK) {
-            CFont::SetColor({ 0, 0, 0, 255 });
+            CFont::SetColor(MENU_BG);
             if (!isOppositeScreen) {
                 CFont::PrintString(currentX, currentY, TheText.Get("FEC_CMP")); // COMBO: Uses LOOK LEFT + LOOK RIGHT together
             }
-            break;
         } else {
-            const auto isEditable = controllerAction >= 0;
+            const auto isEditable = controllerAction > eControllerAction::CA_NONE;
             const auto shouldUpdateBlink = isSelected && isEditable && m_EditingControlOptions;
             if (shouldUpdateBlink) {
                 // 0x57ECEB
                 if (CTimer::m_snTimeInMillisecondsPauseMode - m_lastBlinkTime > 150) {
-                    m_isTextBlinking = !m_isTextBlinking;
-                    m_lastBlinkTime  = CTimer::m_snTimeInMillisecondsPauseMode;
+                    m_isTextBlinking ^= true;
+                    m_lastBlinkTime = CTimer::m_snTimeInMillisecondsPauseMode;
                 }
             }
 
@@ -1237,14 +1175,14 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
             if (!hasControl && isEditable) {
                 if (isQuestionMarkVisible) {
                     // 0x57ED19
-                    CFont::SetColor({ 0, 0, 0, 255 });
+                    CFont::SetColor(MENU_BG);
                     if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, TheText.Get("FEC_QUE")); // ???
                     }
                 } else if (!isSelected || !m_EditingControlOptions) {
                     // 0x57EC1F - 0x57EC9A
                     m_bRadioAvailable = 0;
-                    CFont::SetColor({ 200, 50, 50, 255 });
+                    CFont::SetColor(MENU_ERROR);
                     if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, TheText.Get("FEC_UNB")); // UNBOUND
                     }
@@ -1256,7 +1194,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                 if (!isEditable) {
                     DisplayHelperText("FET_EIG"); // CANNOT SET A CONTROL FOR THIS ACTION
                 } else {
-                    m_OptionToChange = (eControllerAction)controllerAction;
+                    m_OptionToChange = (int32)controllerAction;
                     if (m_EditingControlOptions) {
                         if (m_DeleteAllBoundControls) {
                             DisplayHelperText("FET_CIG"); // BACKSPACE - CLEAR~n~CLICK LMB / RETURN - CHANGE
@@ -1282,54 +1220,54 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
 // 0x57F300
 void CMenuManager::DrawControllerSetupScreen() {
     // Calculate spacing and max items based on control scheme
-    const auto verticalSpacing   = m_RedefiningControls ? 13u : (4u * (m_ControlMethod == eController::MOUSE_PLUS_KEYS) + 11u);
-    const auto maxControlActions = m_RedefiningControls ? 25u : (m_ControlMethod != eController::MOUSE_PLUS_KEYS ? 28u : 22u);
+    const auto verticalSpacing = GetVerticalSpacing();
+    const auto maxActions      = GetMaxAction();
     // Create a std::array of GxtChar pointers with all entries
     std::array<const GxtChar*, 44> keys = {
-        TheText.Get("FEC_FIR"),                                                      // 0
-        TheText.Get("FEC_FIA"),                                                      // 1
-        TheText.Get("FEC_NWE"),                                                      // 2
-        TheText.Get("FEC_PWE"),                                                      // 3
-        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_ACC" : "FEC_FOR"), // 4
-        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_BRA" : "FEC_BAC"), // 5
-        TheText.Get("FEC_LEF"),                                                      // 6
-        TheText.Get("FEC_RIG"),                                                      // 7
-        TheText.Get("FEC_PLU"),                                                      // 8
-        TheText.Get("FEC_PLD"),                                                      // 9
-        TheText.Get(m_ControlMethod == eController::JOYPAD ? "FEC_TSK" : "FEC_COY"), // 10
-        TheText.Get("FEC_CON"),                                                      // 11
-        TheText.Get("FEC_GPF"),                                                      // 12
-        TheText.Get("FEC_GPB"),                                                      // 13
-        TheText.Get("FEC_ZIN"),                                                      // 14
-        TheText.Get("FEC_ZOT"),                                                      // 15
-        TheText.Get("FEC_EEX"),                                                      // 16
-        TheText.Get("FEC_RSC"),                                                      // 17
-        TheText.Get("FEC_RSP"),                                                      // 18
-        TheText.Get("FEC_RTS"),                                                      // 19
-        TheText.Get("FEC_HRN"),                                                      // 20
-        TheText.Get("FEC_SUB"),                                                      // 21
-        TheText.Get("FEC_CMR"),                                                      // 22
-        TheText.Get("FEC_JMP"),                                                      // 23
-        TheText.Get("FEC_SPN"),                                                      // 24
-        TheText.Get("FEC_HND"),                                                      // 25
-        TheText.Get("FEC_TAR"),                                                      // 26
-        TheText.Get("FEC_CRO"),                                                      // 27
-        TheText.Get("FEC_ANS"),                                                      // 28
-        TheText.Get("FEC_PDW"),                                                      // 29
-        TheText.Get("FEC_TFL"),                                                      // 30
-        TheText.Get("FEC_TFR"),                                                      // 31
-        TheText.Get("FEC_TFU"),                                                      // 32
-        TheText.Get("FEC_TFD"),                                                      // 33
-        TheText.Get("FEC_LBA"),                                                      // 34
-        TheText.Get("FEC_VML"),                                                      // 35
-        TheText.Get("FEC_LOL"),                                                      // 36
-        TheText.Get("FEC_LOR"),                                                      // 37
-        TheText.Get("FEC_LDU"),                                                      // 38
-        TheText.Get("FEC_LUD"),                                                      // 39
-        nullptr,                                                                     // 40
-        nullptr,                                                                     // 41
-        TheText.Get("FEC_CEN"),                                                      // 42
-        nullptr                                                                      // 43
+        TheText.Get("FEC_FIR"),                                                             // Fire
+        TheText.Get("FEC_FIA"),                                                             // Secondary Fire
+        TheText.Get("FEC_NWE"),                                                             // Next weapon/target
+        TheText.Get("FEC_PWE"),                                                             // Previous weapon/target
+        TheText.Get(m_RedefiningControls == eControlMode::VEHICLE ? "FEC_ACC" : "FEC_FOR"), // Accelerate : Forward
+        TheText.Get(m_RedefiningControls == eControlMode::VEHICLE ? "FEC_BRA" : "FEC_BAC"), // Brake/Reverse : Backwards
+        TheText.Get("FEC_LEF"),                                                             // Left
+        TheText.Get("FEC_RIG"),                                                             // Right
+        TheText.Get("FEC_PLU"),                                                             // Steer Forward/Down
+        TheText.Get("FEC_PLD"),                                                             // Steer Back/Up
+        TheText.Get(m_RedefiningControls == eControlMode::VEHICLE ? "FEC_TSK" : "FEC_COY"), // Trip Skip : Conversation - Yes
+        TheText.Get("FEC_CON"),                                                             // Conversation - No
+        TheText.Get("FEC_GPF"),                                                             // Group Ctrl Forward
+        TheText.Get("FEC_GPB"),                                                             // Group Ctrl Back
+        TheText.Get("FEC_ZIN"),                                                             // Zoom in
+        TheText.Get("FEC_ZOT"),                                                             // Zoom out
+        TheText.Get("FEC_EEX"),                                                             // Enter+exit
+        TheText.Get("FEC_RSC"),                                                             // Next radio station
+        TheText.Get("FEC_RSP"),                                                             // Previous radio station
+        TheText.Get("FEC_RTS"),                                                             // User track skip
+        TheText.Get("FEC_HRN"),                                                             // Horn
+        TheText.Get("FEC_SUB"),                                                             // Sub-mission
+        TheText.Get("FEC_CMR"),                                                             // Change camera
+        TheText.Get("FEC_JMP"),                                                             // Jump
+        TheText.Get("FEC_SPN"),                                                             // Sprint
+        TheText.Get("FEC_HND"),                                                             // Handbrake
+        TheText.Get("FEC_TAR"),                                                             // Aim Weapon
+        TheText.Get("FEC_CRO"),                                                             // Crouch
+        TheText.Get("FEC_ANS"),                                                             // Action
+        TheText.Get("FEC_PDW"),                                                             // Walk
+        TheText.Get("FEC_TFL"),                                                             // Special Ctrl Left
+        TheText.Get("FEC_TFR"),                                                             // Special Ctrl Right
+        TheText.Get("FEC_TFU"),                                                             // Special Ctrl Up
+        TheText.Get("FEC_TFD"),                                                             // Special Ctrl Down
+        TheText.Get("FEC_LBA"),                                                             // Look behind
+        TheText.Get("FEC_VML"),                                                             // Mouse Look
+        TheText.Get("FEC_LOL"),                                                             // Look left
+        TheText.Get("FEC_LOR"),                                                             // Look right
+        TheText.Get("FEC_LDU"),                                                             // Look Down
+        TheText.Get("FEC_LUD"),                                                             // Look Up
+        nullptr,                                                                            // index 40
+        nullptr,                                                                            // index 41
+        TheText.Get("FEC_CEN"),                                                             // Center camera
+        nullptr                                                                             // index 43
     };
 
     // 0x57F68E
@@ -1338,58 +1276,70 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetEdge(0);
     CFont::SetColor(HudColour.GetRGB(HUD_COLOUR_LIGHT_BLUE));
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
-    CFont::PrintString(
-        SCREEN_WIDTH - StretchX(48.0f), StretchY(11.0f), TheText.Get(m_ControlMethod ? "FET_CCN" : "FET_SCN")
-    );
+    const GxtChar* text;
+    switch (m_ControlMethod) {
+    case eController::JOYPAD:          text = TheText.Get("FET_CCN"); break; // Joypad
+    case eController::MOUSE_PLUS_KEYS: text = TheText.Get("FET_SCN"); break; // Mouse + Keys
+    default:                           NOTSA_UNREACHABLE();
+    }
+    CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(48.0f), StretchY(11.0f), text);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-    CFont::PrintString(
-        StretchX(48.0f), StretchY(11.0f), TheText.Get(m_RedefiningControls ? "FET_CCR" : "FET_CFT")
+    switch (m_RedefiningControls) {
+    case eControlMode::VEHICLE: text = TheText.Get("FET_CCR"); break; // Vehicle Controls
+    case eControlMode::FOOT:    text = TheText.Get("FET_CFT"); break; // Foot Controls
+    default:                    NOTSA_UNREACHABLE();
+    }
+    CFont::PrintString(StretchX(48.0f), StretchY(11.0f), text);
+    CSprite2d::DrawRect({
+            StretchX(20.0f),
+            StretchY(50.0f),
+            SCREEN_STRETCH_FROM_RIGHT(20.0f),
+            SCREEN_STRETCH_FROM_BOTTOM(50.0f)
+        }, { 49, 101, 148, 100 }
     );
-    CSprite2d::DrawRect({ StretchX(20.0f), StretchY(50.0f), SCREEN_WIDTH - StretchX(20.0f), SCREEN_HEIGHT - StretchY(50.0f) }, { 49, 101, 148, 100 });
 
     // 0x57F8C0
-    for (auto i = 0u; i < maxControlActions; i++) {
+    for (auto i = 0u; i < maxActions; i++) {
         if (!m_EditingControlOptions) {
             if (StretchX(20.0f) < m_nMousePosX && StretchX(600.0f) > m_nMousePosX) {
-                if (StretchY(i * verticalSpacing + 69.0f) < m_nMousePosY && StretchY(verticalSpacing * (i + 1) + 69.0f) > m_nMousePosY) {
+                if (StretchY(i * verticalSpacing + 69.0f) < m_nMousePosY && StretchY(verticalSpacing * (i + 1) + 69.f) > m_nMousePosY) {
                     m_CurrentMouseOption = i;
                     if (m_nOldMousePosX != m_nMousePosX || m_nOldMousePosY != m_nMousePosY) {
                         m_ListSelection = i;
                     }
-                    if (m_MouseInBounds == 5 && i == m_ListSelection) {
+                    if (m_MouseInBounds == eMouseInBounds::SELECT && i == m_ListSelection) {
                         m_EditingControlOptions         = true;
                         m_bJustOpenedControlRedefWindow = true;
                         m_pPressedKey                   = &m_KeyPressedCode;
                     }
-                    m_MouseInBounds = 16;
+                    m_MouseInBounds = eMouseInBounds::NONE;
                 }
             }
         }
         // 0x57F9E1
-        CFont::SetColor({ 74, 90, 107, 255 });
+        CFont::SetColor(MENU_TEXT_NORMAL);
         CFont::SetScale(StretchX(0.4f), StretchY(0.6f));
         CFont::SetFontStyle(FONT_MENU);
         CFont::SetWrapx(StretchX(100.0f) + SCREEN_WIDTH);
         const GxtChar* actionText = nullptr;
-        if (m_RedefiningControls == 1) {
-            actionText = keys[ControllerActionsAvailableInCar[i]];
-        } else {
-            actionText = keys[ControllerActionsAvailableOnFoot[i]];
-        }
-        
+        switch (m_RedefiningControls) {
+        case eControlMode::VEHICLE: actionText = keys[+ControllerActionsAvailableInCar[i]]; break;
+        case eControlMode::FOOT:    actionText = keys[+ControllerActionsAvailableOnFoot[i]]; break;
+        default:                    NOTSA_UNREACHABLE();
+        };
+
         if (actionText) {
-            CFont::PrintString(StretchX(40.0f), StretchY(i * verticalSpacing + 69.0f), actionText);
+            CFont::PrintString(StretchX(40.0f), StretchY(i * verticalSpacing + 69.f), actionText);
         }
     }
 
     // 0x57FAF9
-    DrawControllerBound(0x45u, false);
+    DrawControllerBound(69, false);
+    auto textBack = TheText.Get("FEDS_TB"); // Back
     if (!m_EditingControlOptions) {
         CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
-        const auto color = StretchX(
-            CFont::GetStringWidth(TheText.Get("FEDS_TB"), true, false)
-        );
-        if (StretchX(35.0f) + color <= m_nMousePosX
+        const auto textWidth = StretchX(CFont::GetStringWidth(textBack, true, false));
+        if (StretchX(35.0f) + textWidth <= m_nMousePosX
             || StretchX(15.0f) >= m_nMousePosX
             || SCREEN_HEIGHT - StretchY(33.0f) >= m_nMousePosY
             || SCREEN_HEIGHT - StretchY(10.0f) <= m_nMousePosY) {
@@ -1397,12 +1347,12 @@ void CMenuManager::DrawControllerSetupScreen() {
                 || StretchX(600.0f) <= m_nMousePosX
                 || StretchY(48.0f) >= m_nMousePosY
                 || SCREEN_HEIGHT - StretchY(33.0f) <= m_nMousePosY) {
-                m_MouseInBounds = 16;
+                m_MouseInBounds = eMouseInBounds::NONE;
             } else {
-                m_MouseInBounds = 4;
+                m_MouseInBounds = eMouseInBounds::ENTER_MENU;
             }
         } else {
-            m_MouseInBounds = 3;
+            m_MouseInBounds = eMouseInBounds::BACK_BUTTON;
         }
     }
 
@@ -1411,61 +1361,98 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::SetEdge(0);
-    CFont::SetColor({ 74, 90, 107, 255 });
-    CFont::PrintString(
-        StretchX(33.0f),
-        SCREEN_HEIGHT - StretchY(38.0f),
-        TheText.Get("FEDS_TB")
-    );
+    CFont::SetColor(MENU_TEXT_NORMAL);
+    CFont::PrintString(StretchX(33.0f), SCREEN_STRETCH_FROM_BOTTOM(38.0f), textBack);
 }
 
 /**
  * Draws slider
  * @param x       widget pos x
  * @param y       widget pos y
- * @param h1      height of start strip
- * @param h2      height of end strip
+ * @param barHeight1      height of start strip
+ * @param barHeight2      height of end strip
  * @param length  widget length
  * @param value   current value in range [ 0.0f, 1.0f ] (progress)
- * @param spacing size of strip
+ * @param barSpacing size of strip
  * @return
  * @see Audio Setup -> Radio or SFX volume
  * @addr 0x576860
  */
-int32 CMenuManager::DisplaySlider(float x, float y, float h1, float h2, float length, float value, int32 spacing) {
-    // return plugin::CallMethodAndReturn<int32, 0x576860, CMenuManager*, float, float, float, float, float, float, int32>(this, x, y, h1, h2, length, value, size);
-
-    constexpr auto BARS = 16;
-    constexpr auto COLOR_ON  = CRGBA(172, 203, 241, 255); // Fresh Air
-    constexpr auto COLOR_OFF = CRGBA(74, 90, 107, 255);   // Deep Space Sparkle
-    constexpr auto COLOR_SHADOW = CRGBA(0, 0, 0, 200);
-
-    CRGBA color;
-
+int32 CMenuManager::DisplaySlider(float x, float y, float barHeight1, float barHeight2, float length, float value, float barSpacing) {
+    constexpr auto kNumBars              = 16;
+    constexpr auto kBarWidthFactor       = 1.0f / kNumBars;        // 0.0625f
+    constexpr auto kValueThresholdOffset = kBarWidthFactor / 2.0f; // 0.03125f
+    
+    float maxBarHeight = std::max(barHeight1, barHeight2);
     auto lastActiveBarX = 0;
-    for (auto i = 0; i < BARS; i++) {
-        const auto fi = float(i);
 
-        float curBarX = fi * length / BARS + x;
+    for (auto i = 0; i < kNumBars; i++) {
+        float barIndex     = (float)i;
+        float currentBarX  = x + barIndex * length * kBarWidthFactor;
+        float barFreeSpace = (barHeight1 * (kNumBars - barIndex) + barHeight2 * barIndex) * kBarWidthFactor;
 
-        if (fi / (float)BARS + 1 / (BARS * 2.f) < value) {
-            color = COLOR_ON;
-            lastActiveBarX = (int32)curBarX;
-        } else {
-            color = COLOR_OFF;
+        // Set bar color based on value threshold
+        CRGBA color = barIndex * kBarWidthFactor + kValueThresholdOffset < value
+            ? MENU_TEXT_SELECTED
+            : MENU_TEXT_NORMAL;
+        if (color == MENU_TEXT_SELECTED) {
+            lastActiveBarX = (int32)currentBarX;
         }
 
-        float maxBarHeight = std::max(h1, h2);
+        CRect rect = {
+            currentBarX,
+            y + maxBarHeight - barFreeSpace,
+            currentBarX + barSpacing,
+            y + maxBarHeight
+        };
 
-        float curBarFreeSpace = ((BARS - fi) * h1 + fi * h2) / (float)BARS;
-        float left   = curBarX;
-        float top    = y + maxBarHeight - curBarFreeSpace;
-        float right  = float(spacing) + curBarX;
-        float bottom = y + maxBarHeight;
+        // Draw shadow rectangle with resolution scaling
+        CSprite2d::DrawRect(CRect(rect, StretchX(2.0f), StretchY(2.0f)), MENU_SHADOW);
 
-        // Useless shadow for stripe. Drawing black on black = nothing. Change color to CRGBA(40, 40, 40, 200) to test
-        CSprite2d::DrawRect(CRect(left + StretchX(2.0f), top + StretchY(2.0f), right + StretchX(2.0f), bottom + StretchY(2.0f)), COLOR_SHADOW);
-        CSprite2d::DrawRect(CRect(left, top, right, bottom), color);
+        // Draw foreground rectangle
+        CSprite2d::DrawRect(rect, color);
     }
     return lastActiveBarX;
+}
+
+// NOTSA
+// Based on 0x57D914 - 0x57D933
+uint32 CMenuManager::GetMaxAction() {
+    // TODO: Magis values
+    switch (m_RedefiningControls) {
+    case eControlMode::FOOT:
+        switch (m_ControlMethod) {
+        case eController::MOUSE_PLUS_KEYS:
+            return 22;
+        case eController::JOYPAD:
+            return 28;
+        default:
+            NOTSA_UNREACHABLE();
+        }
+    case eControlMode::VEHICLE:
+        return 25;
+    default:
+        NOTSA_UNREACHABLE();
+    }
+}
+
+// NOTSA
+// Based on 0x57D8F1 - 0x57D905
+uint32 CMenuManager::GetVerticalSpacing() {
+    // TODO: Magis values
+    switch (m_RedefiningControls) {
+    case eControlMode::FOOT:
+        switch (m_ControlMethod) {
+        case eController::MOUSE_PLUS_KEYS:
+            return 15; // 4 * 1 + 11
+        case eController::JOYPAD:
+            return 11; // 4 * 0 + 11
+        default:
+            NOTSA_UNREACHABLE();
+        }
+    case eControlMode::VEHICLE:
+        return 13;
+    default:
+        NOTSA_UNREACHABLE();
+    }
 }

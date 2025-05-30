@@ -18,6 +18,18 @@
 #include "Hud.h"
 #include "ControllerConfigManager.h"
 
+// notsa colors
+
+const CRGBA CMenuManager::MENU_BG              = CRGBA(0, 0, 0, 255);
+const CRGBA CMenuManager::MENU_TEXT_NORMAL     = CRGBA(74, 90, 107, 255);
+const CRGBA CMenuManager::MENU_TEXT_SELECTED   = CRGBA(172, 203, 241, 255);
+const CRGBA CMenuManager::MENU_TEXT_WHITE      = CRGBA(255, 255, 255, 255);
+const CRGBA CMenuManager::MENU_TEXT_LIGHT_GRAY = CRGBA(225, 225, 225, 255);
+const CRGBA CMenuManager::MENU_ERROR           = CRGBA(200, 50, 50, 255);
+const CRGBA CMenuManager::MENU_SHADOW          = CRGBA(0, 0, 0, 200);
+const CRGBA CMenuManager::MENU_MAP_BACKGROUND  = CRGBA(111, 137, 170, 255);
+const CRGBA CMenuManager::MENU_MAP_BORDER      = CRGBA(100, 100, 100, 255);
+
 CMenuManager& FrontEndMenuManager = *(CMenuManager*)0xBA6748;
 
 CMenuManager& GetMenu() {
@@ -87,7 +99,7 @@ void CMenuManager::InjectHooks() {
     RH_ScopedInstall(UserInput, 0x57FD70);
     RH_ScopedInstall(AdditionalOptionInput, 0x5773D0, { .reversed = false });
     RH_ScopedInstall(CheckRedefineControlInput, 0x57E4D0);
-    RH_ScopedInstall(RedefineScreenUserInput, 0x57EF50, { .reversed = false });
+    RH_ScopedInstall(RedefineScreenUserInput, 0x57EF50);
 
     RH_ScopedInstall(Process, 0x57B440);
     RH_ScopedInstall(ProcessStreaming, 0x573CF0);
@@ -121,8 +133,8 @@ CMenuManager::CMenuManager() {
     m_nMousePosY                  = m_nMousePosWinY;
     m_nOldMousePosX               = 0;
     m_nOldMousePosY               = 0;
-    m_DisplayTheMouse                  = false;
-    m_MouseInBounds               = 16;
+    m_DisplayTheMouse             = false;
+    m_MouseInBounds               = eMouseInBounds::NONE;
     m_nTargetBlipIndex            = 0;
     m_bMenuAccessWidescreen       = false;
     SetDefaultPreferences(SCREEN_AUDIO_SETTINGS);
@@ -411,7 +423,7 @@ void CMenuManager::SwitchToNewScreen(eMenuScreen screen) {
 
     // Works well, but needs more attention because of the trash gotos
     m_nPrevScreen = m_nCurrentScreen;
-    m_nControllerError = 0;
+    m_nControllerError = eControllerError::NONE;
 
     ResetHelperText();
 
@@ -517,13 +529,13 @@ void CMenuManager::SetFrontEndRenderStates() {
 void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
     switch (screen) {
     case SCREEN_AUDIO_SETTINGS:
-        m_nSfxVolume       = 64;
-        m_nRadioVolume     = 64;
-        field_4E           = 1;
-        m_bRadioEq         = true;
-        m_bRadioAutoSelect = true;
-        m_bTracksAutoScan  = false;
-        m_nRadioMode       = 0;
+        m_nSfxVolume           = 64;
+        m_nRadioVolume         = 64;
+        m_PrefsAudioOutputMode = true;
+        m_bRadioEq             = true;
+        m_bRadioAutoSelect     = true;
+        m_bTracksAutoScan      = false;
+        m_nRadioMode           = eRadioMode::RADIO;
         AudioEngine.SetMusicMasterVolume(m_nRadioVolume);
         AudioEngine.SetEffectsMasterVolume(m_nSfxVolume);
         AudioEngine.SetBassEnhanceOnOff(m_bRadioEq);
@@ -532,8 +544,8 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
     case SCREEN_DISPLAY_SETTINGS:
     case SCREEN_DISPLAY_ADVANCED:
         g_fx.SetFxQuality(FX_QUALITY_HIGH);
-        SetBrightness(256.0f, true);
         m_PrefsBrightness                = 256;
+        SetBrightness(256.0f, true);
         m_fDrawDistance                  = 1.2f;
         CRenderer::ms_lodDistScale       = 1.2f;
         m_bPrefsFrameLimiter             = true;
@@ -555,11 +567,11 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         break;
     case SCREEN_CONTROLLER_SETUP:
         m_ControlMethod                  = eController::MOUSE_PLUS_KEYS;
+        bInvertMouseY                    = false;
+        CVehicle::m_bEnableMouseSteering = false;
         CCamera::m_fMouseAccelHorzntl    = 0.0025f;
         CCamera::m_bUseMouse3rdPerson    = true;
         CVehicle::m_bEnableMouseFlying   = true;
-        CVehicle::m_bEnableMouseSteering = false;
-        bInvertMouseY                    = false;
         m_bInvertPadX1                   = false;
         m_bInvertPadY1                   = false;
         m_bInvertPadX2                   = false;
@@ -748,9 +760,9 @@ void CMenuManager::LoadSettings() {
     AudioEngine.RetuneRadio(m_nRadioStation);
 
     if (previousLang == m_nPrefsLanguage) {
-        field_8C = false;
+        m_bLoadedLanguage = false;
     } else {
-        field_8C = true;
+        m_bLoadedLanguage = true;
         TheText.Load(false);
         m_bLanguageChanged = true;
         InitialiseChangedLanguageSettings(false);
@@ -968,8 +980,8 @@ void CMenuManager::DisplayHelperText(const char* key) {
     float y = 10.f;
 
     if (key) {
-        CFont::SetColor({ 255, 255, 255, 255 });
-        CFont::PrintStringFromBottom(StretchX(x), SCREEN_HEIGHT - StretchY(y), TheText.Get(key));
+        CFont::SetColor(MENU_TEXT_WHITE);
+        CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), TheText.Get(key));
         return;
     }
 
@@ -1013,7 +1025,7 @@ void CMenuManager::DisplayHelperText(const char* key) {
     }
 
     if (text) {
-        CFont::PrintStringFromBottom(StretchX(x), SCREEN_HEIGHT - StretchY(y), text);
+        CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), text);
         return;
     }
 
@@ -1038,7 +1050,7 @@ void CMenuManager::DisplayHelperText(const char* key) {
     }
 
     if (text) {
-        CFont::PrintStringFromBottom(StretchX(x), SCREEN_HEIGHT - StretchY(y), text);
+        CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), text);
         return;
     }
 
@@ -1055,7 +1067,7 @@ void CMenuManager::DisplayHelperText(const char* key) {
         break;
     }
 
-    CFont::PrintStringFromBottom(StretchX(x), SCREEN_HEIGHT - StretchY(y), text);
+    CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), text);
 }
 
 // 0x57CD10
@@ -1095,7 +1107,7 @@ void CMenuManager::MessageScreen(const char* key, bool blackBackground, bool cam
             return;
 
         if (blackBackground) {
-            CSprite2d::DrawRect(fullscreen, { 0, 0, 0, 255 });
+            CSprite2d::DrawRect(fullscreen, MENU_BG);
         }
     }
 
@@ -1105,7 +1117,7 @@ void CMenuManager::MessageScreen(const char* key, bool blackBackground, bool cam
     DefinedState2d();
 
     if (blackBackground) {
-        CSprite2d::DrawRect(fullscreen, { 0, 0, 0, 255 });
+        CSprite2d::DrawRect(fullscreen, MENU_BG);
     }
 
     SmallMessageScreen(key);
@@ -1123,16 +1135,15 @@ void CMenuManager::SmallMessageScreen(const char* key) {
     CFont::SetDropShadowPosition(0);
     CFont::SetScale(StretchX(0.56f), StretchY(1.0f));
 
-    DrawWindow(
-        CRect(
+    DrawWindow({
             StretchX(95.0f),
             StretchY(125.0f),
-            SCREEN_WIDTH - StretchX(95.0f),
-            SCREEN_HEIGHT - StretchY(165.0f)
-        ),
+            SCREEN_STRETCH_FROM_RIGHT(95.0f),
+            SCREEN_STRETCH_FROM_BOTTOM(165.0f)
+        },
         nullptr,
         0,
-        { 0, 0, 0, 255 },
+        MENU_BG,
         false,
         true
     );
