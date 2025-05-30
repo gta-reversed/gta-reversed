@@ -308,6 +308,17 @@ int8 CAEAudioHardware::GetSoundBankLoadingStatus(uint16 bankId, int16 bankSlotId
     return m_pMP3BankLoader->GetSoundBankLoadingStatus((eSoundBank)(bankId), (eSoundBankSlot)(bankSlotId));
 }
 
+bool CAEAudioHardware::EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot slot, bool checkLoadingTune) {
+    if (AEAudioHardware.IsSoundBankLoaded(bank, slot)) {
+        return true;
+    }
+    if (checkLoadingTune && AudioEngine.IsLoadingTuneActive()) {
+        return false;
+    }
+    LoadSoundBank(bank, slot);
+    return false;
+}
+
 // 0x4D8ED0
 void CAEAudioHardware::LoadSound(uint16 bank, uint16 sound, int16 slot) {
     if (!m_bDisableEffectsLoading) {

@@ -20,6 +20,17 @@ public:
     //! Process 3D rendering
     void Render3D();
 
+    //! Get a debug module by type
+    template<typename T>
+    T* GetModule() {
+        for (auto& m : m_Modules) {
+            if (auto* module = dynamic_cast<T*>(m.get())) {
+                return module;
+            }
+        }
+        return nullptr;
+    }
+
 private:
     //! Creates all modules
     void CreateModules();
