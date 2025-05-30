@@ -25,7 +25,7 @@ public:
     void SetSplashInfo(CVector posn, float magnitude);
     void ClearSplashInfo();
     void UpdateParameters(CAESound* sound, int16 curPlayPos) override;
-    void UpdateGenericWaterCannonSound(bool splashInfoEnabled, int16 id, int16 bankSlotId, int16 sfxId, float speed, float volume, CVector posn, float soundDistance);
+    void UpdateGenericWaterCannonSound(bool splashInfoEnabled, int16 id, eSoundBankSlot bankSlotId, int16 sfxId, float speed, float volume, CVector posn, float soundDistance);
     void Service();
 
 private:

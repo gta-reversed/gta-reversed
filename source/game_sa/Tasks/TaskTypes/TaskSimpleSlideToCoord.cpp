@@ -18,7 +18,7 @@ CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, floa
     CTaskSimpleRunNamedAnim(),
     m_SlideToPos{ slideToPos },
     m_fAimingRotation{ aimingRotation },
-    m_fSpeed{ speed },
+    m_Speed{ speed },
     m_bFirstTime{ true },
     m_bRunningAnim{ false }
 {
@@ -30,7 +30,7 @@ CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, floa
     CTaskSimpleRunNamedAnim{ animBlockName, animGroupName, animFlags, animBlendDelta, endTime, false, bRunInSequence, false, false },
     m_SlideToPos{ slideToPos },
     m_fAimingRotation{ aimingRotation },
-    m_fSpeed{ speed },
+    m_Speed{ speed },
     m_bFirstTime{ true },
     m_bRunningAnim{ false },
     m_Timer{ -1 }
@@ -40,8 +40,8 @@ CTaskSimpleSlideToCoord::CTaskSimpleSlideToCoord(const CVector& slideToPos, floa
 // 0x66D300
 CTask* CTaskSimpleSlideToCoord::Clone() const {
     return m_bRunningAnim
-        ? new CTaskSimpleSlideToCoord(m_SlideToPos, m_fAimingRotation, m_fSpeed, m_animName, m_animGroupName, m_animFlags, m_fBlendDelta, !!m_bRunInSequence, m_Time)
-        : new CTaskSimpleSlideToCoord(m_SlideToPos, m_fAimingRotation, m_fSpeed);
+        ? new CTaskSimpleSlideToCoord(m_SlideToPos, m_fAimingRotation, m_Speed, m_animName, m_animGroupName, m_animFlags, m_fBlendDelta, !!m_bRunInSequence, m_Time)
+        : new CTaskSimpleSlideToCoord(m_SlideToPos, m_fAimingRotation, m_Speed);
 }
 
 // 0x66C4D0
@@ -77,7 +77,7 @@ bool CTaskSimpleSlideToCoord::ProcessPed(CPed* ped) {
         ped->m_fAimingRotation = m_fAimingRotation;
     }
 
-    const auto pedToSlidePosDir = (m_SlideToPos - ped->GetPosition()) * m_fSpeed; // Originally they calculated this twice, but thats a waste of performance, so.. :D
+    const auto pedToSlidePosDir = (m_SlideToPos - ped->GetPosition()) * m_Speed; // Originally they calculated this twice, but thats a waste of performance, so.. :D
     const auto pedToSlidePosDistSq2D = pedToSlidePosDir.SquaredMagnitude2D();
     if (pedToSlidePosDir.SquaredMagnitude2D() < sq(0.05f)) {
         ped->m_vecAnimMovingShiftLocal = CVector2D{};
