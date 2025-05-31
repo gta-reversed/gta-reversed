@@ -8,6 +8,204 @@
 #include "eAudioBank.h"
 #include "eAudioSlot.h"
 
+notsa::mdarray<int32, TOTAL_NUM_SURFACE_TYPES + 16, 4> gCollisionLookup = {{ // No clue what the +16 is for
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { -1, -1, 0, 20 },
+    { -1, -1, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 35, 37, 90, 50 },
+    { 33, 33, 0, 50 },
+    { 40, 40, 60, 40 },
+    { -1, -1, 0, 30 },
+    { -1, -1, 0, 30 },
+    { -1, -1, 0, 30 },
+    { -1, -1, 0, 0 },
+    { -1, -1, 0, 0 },
+    { 46, 46, 90, 80 },
+    { 65, 65, 60, 100 },
+    { 62, 62, 80, 100 },
+    { 32, 32, 40, 100 },
+    { 69, 71, 80, 40 },
+    { 69, 71, 80, 40 },
+    { 65, 65, 60, 100 },
+    { 54, 54, 50, 100 },
+    { 30, 30, 60, 100 },
+    { 38, 38, 70, 60 },
+    { 60, 60, 0, 30 },
+    { 12, 14, 0, 40 },
+    { -1, -1, 0, 20 },
+    { 20, 28, 90, 100 },
+    { 20, 28, 90, 100 },
+    { 20, 28, 90, 100 },
+    { -1, -1, 1, 20 },
+    { 60, 60, 0, 30 },
+    { 4, 4, 60, 30 },
+    { 34, 34, 70, 100 },
+    { 19, 19, 80, 50 },
+    { 31, 31, 0, 20 },
+    { 33, 33, 0, 50 },
+    { 33, 33, 0, 50 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 33, 33, 0, 50 },
+    { 33, 33, 0, 50 },
+    { 33, 33, 0, 50 },
+    { 33, 33, 0, 50 },
+    { 33, 33, 0, 50 },
+    { 33, 33, 0, 50 },
+    { -1, -1, 0, 20 },
+    { -1, -1, 0, 20 },
+    { -1, -1, 0, 20 },
+    { -1, -1, 0, 20 },
+    { -1, -1, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 33, 33, 0, 50 },
+    { 34, 34, 70, 100 },
+    { 33, 33, 0, 50 },
+    { 33, 33, 0, 50 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 33, 33, 0, 50 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 34, 34, 70, 100 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 31, 31, 0, 20 },
+    { -1, -1, 0, 20 },
+    { -1, -1, 0, 20 },
+    { -1, -1, 0, 20 },
+    { 31, 31, 0, 20 },
+    { 33, 33, 0, 70 },
+    { 4, 4, 60, 30 },
+    { 31, 31, 0, 20 },
+    { 34, 34, 70, 100 },
+    { 65, 65, 60, 100 },
+    { 31, 31, 0, 20 },
+    { 65, 65, 60, 100 },
+    { 34, 34, 70, 100 },
+    { 10, 10, 40, 10 },
+    { 63, 64, 50, 80 },
+    { 55, 55, 60, 80 },
+    { 59, 59, 30, 20 },
+    { 4, 4, 60, 30 },
+    { 39, 39, 50, 80 },
+    { 45, 45, 70, 40 },
+    { 40, 40, 70, 50 },
+    { 40, 40, 70, 50 },
+    { 51, 51, 30, 50 },
+    { 52, 52, 50, 20 },
+    { 47, 49, 30, 20 },
+    { 65, 65, 60, 100 },
+    { -1, -1, 0, 0 },
+    { -1, -1, 0, 0 },
+    { -1, -1, 0, 0 },
+    { -1, -1, 0, 0 },
+    { -1, -1, 0, 0 },
+    { -1, -1, 0, 0 },
+    { -1, -1, 0, 0 },
+    { -1, -1, 0, 0 },
+    { -1, -1, 0, 0 },
+    { 5, 9, 90, 60 },
+    { 11, 11, 0, 30 },
+    { 61, 61, 0, 40 },
+    { 50, 50, 0, 30 },
+    { 0, 2, 0, 70 },
+    { 0, 2, 0, 30 },
+    { 4, 6, 0, 40 }
+}};
+
 void CAECollisionAudioEntity::InjectHooks() {
     RH_ScopedVirtualClass(CAECollisionAudioEntity, 0x862E64, 1);
     RH_ScopedCategory("Audio/Entities");
@@ -21,7 +219,7 @@ void CAECollisionAudioEntity::InjectHooks() {
     RH_ScopedInstall(GetCollisionSoundStatus, 0x4DA830, { .reversed = true });
     RH_ScopedInstall(ReportObjectDestruction, 0x4DAB60);
     RH_ScopedInstall(PlayOneShotCollisionSound, 0x4DB150, { .reversed = false });
-    RH_ScopedInstall(PlayLoopingCollisionSound, 0x4DB450, { .reversed = false });
+    RH_ScopedInstall(PlayLoopingCollisionSound, 0x4DB450);
     RH_ScopedInstall(PlayBulletHitCollisionSound, 0x4DB7C0, { .reversed = false });
     RH_ScopedInstall(ReportCollision, 0x4DBA10);
     RH_ScopedInstall(ReportBulletHit, 0x4DBDF0);
@@ -102,8 +300,54 @@ void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entity1, CEntit
 }
 
 // 0x4DB450
-void CAECollisionAudioEntity::PlayLoopingCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, CVector& posn, uint8 a7) {
-    plugin::CallMethod<0x4DB450, CAECollisionAudioEntity*, CEntity*, CEntity*, uint8, uint8, float, CVector&, uint8>(this, entity1, entity2, surf1, surf2, a5, posn, a7);
+void CAECollisionAudioEntity::PlayLoopingCollisionSound(CEntity* entityA, CEntity* entityB, eSurfaceType surfA, eSurfaceType surfB, float force, CVector& pos, uint8 isForceLooping) {
+    const auto PlaySound = [&](float volume, float speed) {
+        const auto GetSoundID = [&]() -> eSoundID { // 0x4DB6AF
+            if (g_surfaceInfos.IsAudioGrass(surfA) || g_surfaceInfos.IsAudioGrass(surfB)) {
+                return 0;
+            } else if (g_surfaceInfos.IsAudioWater(surfA) || g_surfaceInfos.IsAudioWater(surfB)) {
+                return 3;
+            } else if (g_surfaceInfos.IsAudioMetal(surfA) || g_surfaceInfos.IsAudioMetal(surfB)) {
+                return 2;
+            } else {
+                return 1;
+            }
+        };
+        if (auto* const sound = AESoundManager.PlaySound({
+                .BankSlotID    = SND_BANK_SLOT_COLLISIONS,
+                .SoundID       = GetSoundID(),
+                .AudioEntity   = this,
+                .Pos           = pos,
+                .Volume        = volume,
+                .RollOffFactor = 2.f,
+                .Speed         = std::max(speed, 0.75f) * 0.8f,
+                .Flags         = SOUND_REQUEST_UPDATES,
+        })) {
+            AddCollisionSoundToList(entityA, entityB, surfA, surfB, sound, COLLISION_SOUND_LOOPING);
+        }
+    };
+    const auto PlaySoundForCar = [&](CVector velocity, CVector turn) {
+        const auto mag = std::sqrt(std::max(turn.SquaredMagnitude(), velocity.SquaredMagnitude()));
+        if (mag == 0.f) {
+            PlaySound(-100.f, 0.f);
+        } else {
+            auto speed = std::min(std::sqrt(mag * ((gCollisionLookup[surfA][3] * gCollisionLookup[surfB][3]) / 10000.f)) * 3.f, 0.f);
+            if (isForceLooping) {
+                speed /= 6.f;
+            }
+            PlaySound(GetDefaultVolume(AE_GENERAL_COLLISION) + CAEAudioUtility::AudioLog10(std::min(speed / 0.75f, 1.f) * 20.f), speed);
+        }
+    };
+    if (surfA == SURFACE_CAR && surfB == SURFACE_CAR) {
+        const auto vehA = entityA->AsVehicle(),
+                   vehB = entityB->AsVehicle();
+        PlaySoundForCar(vehA->GetMoveSpeed() - vehB->GetMoveSpeed(), vehA->GetTurnSpeed() - vehB->GetTurnSpeed());
+    } else if ((surfB == SURFACE_PED || surfA != SURFACE_CAR) && (surfA == SURFACE_PED || surfB != SURFACE_CAR)) {
+        PlaySound(-100.f, 0.f);
+    } else {
+        const auto vehA = entityA->AsVehicle();
+        PlaySoundForCar(vehA->GetMoveSpeed(), vehA->GetTurnSpeed());
+    }
 }
 
 // 0x4DA540
