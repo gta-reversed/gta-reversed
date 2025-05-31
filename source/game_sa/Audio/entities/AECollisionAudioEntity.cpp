@@ -417,47 +417,41 @@ void CAECollisionAudioEntity::PlayBulletHitCollisionSound(eSurfaceType surface, 
 }
 
 // 0x4DA070
-void CAECollisionAudioEntity::ReportGlassCollisionEvent(eAudioEvents glassSoundType, Const CVector& posn, uint32 time) {
-    auto speed = 1.0f;
-    const auto sfxId = [glassSoundType, &speed] {
-        switch (glassSoundType) {
-        case AE_GLASS_HIT:
-            return 51;
-        case AE_GLASS_CRACK:
-            return 68;
-        case AE_GLASS_BREAK_SLOW:
-            speed = 0.75f;
-            return 56;
-        case AE_GLASS_BREAK_FAST:
-            return 56;
-        case AE_GLASS_HIT_GROUND:
-            return CAEAudioUtility::GetRandomNumberInRange(15, 18);
-        case AE_GLASS_HIT_GROUND_SLOW:
-            speed = 0.56f;
-            return CAEAudioUtility::GetRandomNumberInRange(15, 18);
-        default:
-            return -1; // Invalid audio event
+void CAECollisionAudioEntity::ReportGlassCollisionEvent(eAudioEvents event, const CVector& posn, uint32 time) {
+    const auto PlayCollisionSound = [&](eSoundID soundID, float speed) {
+        if (time) {
+            AESoundManager.PlaySound({
+                .BankSlotID     = SND_BANK_SLOT_COLLISIONS,
+                .SoundID        = soundID,
+                .AudioEntity    = this,
+                .Pos            = posn,
+                .Volume         = GetDefaultVolume(event),
+                .RollOffFactor  = 1.5f,
+                .Speed          = 0.f,
+                .Flags          = SOUND_REQUEST_UPDATES,
+                .EventID        = event,
+                .ClientVariable = (float)(time + CTimer::GetTimeInMS()),
+            });
+        } else {
+            AESoundManager.PlaySound({
+                .BankSlotID     = SND_BANK_SLOT_COLLISIONS,
+                .SoundID        = soundID,
+                .AudioEntity    = this,
+                .Pos            = posn,
+                .Volume         = GetDefaultVolume(event),
+                .RollOffFactor  = 1.5f,
+                .Speed          = speed,
+            });
         }
-    }();
-
-    if (sfxId == -1)
-        return;
-
-    m_tempSound.Initialise(
-        2,
-        sfxId,
-        this,
-        posn,
-        GetDefaultVolume(glassSoundType),
-        1.5f,
-        speed
-    );
-
-    if (time) {
-        auto& snd = m_tempSound;
-        snd.m_ClientVariable = (float)(time + CTimer::GetTimeInMS());
-        snd.m_nEvent = glassSoundType;
-        snd.m_bRequestUpdates = true;
+    };
+    switch (event) {
+    case AE_GLASS_HIT:             PlayCollisionSound(51, 1.f); break;
+    case AE_GLASS_CRACK:           PlayCollisionSound(68, 1.f); break;
+    case AE_GLASS_BREAK_SLOW:      PlayCollisionSound(56, 0.75f); break;
+    case AE_GLASS_BREAK_FAST:      PlayCollisionSound(56, 1.f); break;
+    case AE_GLASS_HIT_GROUND:      PlayCollisionSound(CAEAudioUtility::GetRandomNumberInRange(15, 18), 1.f); break;
+    case AE_GLASS_HIT_GROUND_SLOW: PlayCollisionSound(CAEAudioUtility::GetRandomNumberInRange(15, 18), 0.56f); break;
+    default:                       NOTSA_UNREACHABLE();
     }
 }
 
@@ -674,14 +668,15 @@ void CAECollisionAudioEntity::ReportCollision(
 
 // 0x4DBDF0
 void CAECollisionAudioEntity::ReportBulletHit(CEntity* entity, eSurfaceType surface, const CVector& posn, float angleWithColPointNorm) {
-    if (AEAudioHardware.IsSoundBankLoaded(27, 3)) {
-        if (entity && entity->IsVehicle()) {
-            surface = entity->AsVehicle()->IsSubBMX()
-                ? eSurfaceType(188) // todo: C* Surface
-                : SURFACE_CAR; 
-        }
-        PlayBulletHitCollisionSound(surface, posn, angleWithColPointNorm);
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_BULLET_HITS, SND_BANK_SLOT_BULLET_HITS)) {
+        return;
     }
+    if (entity && entity->IsVehicle()) {
+        surface = entity->AsVehicle()->IsSubBMX()
+            ? (eSurfaceType)(188) // todo: C* Surface
+            : SURFACE_CAR;
+    }
+    PlayBulletHitCollisionSound(surface, posn, angleWithColPointNorm);
 }
 
 // 0x4DA2C0
