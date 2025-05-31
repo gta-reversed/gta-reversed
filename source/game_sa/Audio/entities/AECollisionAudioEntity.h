@@ -77,6 +77,9 @@ public:
     void Service();
 
     bool CanAddNewSound() const { return m_Entries.size() != m_nActiveCollisionSounds; }
+
+protected:
+    eSoundID ChooseCollisionSoundID(eSurfaceType surface);
 };
 
 VALIDATE_SIZE(CAECollisionAudioEntity, 0x1978);
