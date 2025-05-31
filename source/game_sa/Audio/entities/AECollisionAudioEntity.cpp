@@ -511,27 +511,67 @@ void CAECollisionAudioEntity::ReportWaterSplash(CPhysical* physical, float heigh
 
 // 0x4DAB60
 void CAECollisionAudioEntity::ReportObjectDestruction(CEntity* entity) {
-    if (entity) {
-        const auto surface = [&]{
-            if (entity->GetModelID() == MODEL_MOLOTOV) { // 0x4DAB7B
-                return SURFACE_GLASS;
-            }
-            if (entity->GetModelID() == ModelIndices::MI_GRASSHOUSE) { // 0x4DAB89
-                const auto cd = entity->GetColData();
-                if (!cd) {
-                    return SURFACE_NONE;
-                }
-                if (const auto spheres = cd->GetSpheres(); !spheres.empty()) {
-                    return spheres[0].m_Surface.m_nMaterial;
-                }
-                if (const auto boxes = cd->GetBoxes(); !boxes.empty()) {
-                    return boxes[0].m_Surface.m_nMaterial;
-                }
-                if (const auto tris = cd->GetTris(); !tris.empty()) {
-                    return tris[0].GetSurfaceType();
-                }
-            }
-        }();
+    if (!entity) {
+        return;
+    }
+
+    if (entity->GetModelID() == ModelIndices::MI_GRASSHOUSE) { // 0x4DAB94 - Moved up here
+        AESoundManager.PlaySound({ // 0x4DABEF
+            .BankSlotID    = SND_BANK_SLOT_COLLISIONS,
+            .SoundID       = (eSoundID)(56),
+            .AudioEntity   = this,
+            .Pos           = entity->GetPosition(),
+            .Volume        = GetDefaultVolume(AE_GLASS_BREAK_SLOW),
+            .RollOffFactor = 1.5f,
+            .Speed         = 0.75f,
+        });
+        AESoundManager.PlaySound({ // 0x4DAC65
+            .BankSlotID    = SND_BANK_SLOT_COLLISIONS,
+            .SoundID       = (eSoundID)(CAEAudioUtility::GetRandomNumberInRange(15, 18)),
+            .AudioEntity   = this,
+            .Pos           = entity->GetPosition(),
+            .Volume        = GetDefaultVolume(AE_GLASS_HIT_GROUND_SLOW),
+            .RollOffFactor = 1.5f,
+            .Speed         = 0.0f,
+            .Flags         = SOUND_REQUEST_UPDATES,
+            .EventID        = AE_GLASS_HIT_GROUND_SLOW,
+            .ClientVariable = (float)(CTimer::GetTimeInMS() + 600),
+        });
+        return;
+    }
+
+    const auto PlaySoundForSurface = [&](eSurfaceType surface) {
+        const auto PlaySound = [&](eSoundID soundID) {
+            AESoundManager.PlaySound({
+                .BankSlotID        = SND_BANK_SLOT_COLLISIONS,
+                .SoundID           = soundID,
+                .AudioEntity       = this,
+                .Pos               = entity->GetPosition(),
+                .Volume            = GetDefaultVolume(AE_GENERAL_COLLISION),
+                .RollOffFactor     = 2.f,
+                .FrequencyVariance = 0.0588f,
+            });
+        };
+        switch (surface) {
+        case SURFACE_WOOD_CRATES:
+        case SURFACE_WOOD_BENCH:
+        case SURFACE_WOOD_PICKET_FENCE:
+        case SURFACE_WOOD_SLATTED_FENCE:
+        case SURFACE_WOOD_RANCH_FENCE:   PlaySound(CAEAudioUtility::GetRandomNumberInRange(41, 44)); break; // 0x4DAD14
+        case SURFACE_GLASS:              PlaySound(11); break;                                              // 0x4DAD43
+        default:                         break;
+        }
+    };
+    if (entity->GetModelID() == MODEL_MOLOTOV) { // 0x4DAB7B
+        PlaySoundForSurface(SURFACE_GLASS);
+    } else if (const auto cd = entity->GetColData()) { // 0x4DAB89
+        if (const auto spheres = cd->GetSpheres(); !spheres.empty()) {
+            PlaySoundForSurface(spheres.front().GetSurfaceType());
+        } else if (const auto boxes = cd->GetBoxes(); !boxes.empty()) {
+            PlaySoundForSurface(boxes.front().GetSurfaceType());
+        } else if (const auto tris = cd->GetTris(); !tris.empty()) {
+            PlaySoundForSurface(tris.front().GetSurfaceType());
+        }
     }
 }
 
