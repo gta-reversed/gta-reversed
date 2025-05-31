@@ -537,16 +537,16 @@ void CAECollisionAudioEntity::ReportObjectDestruction(CEntity* entity) {
 
 // 0x4DBA10
 void CAECollisionAudioEntity::ReportCollision(
-    CEntity* entity1,
-    CEntity* entity2,
-    eSurfaceType surf1,
-    eSurfaceType surf2,
-    CVector& position,
-    CVector* normal,
-    float impulseForce,
-    float relVelSq,
-    bool bForceOneShot,
-    bool bForceLooping
+    CEntity*     entityA,
+    CEntity*     entityB,
+    eSurfaceType surfA,
+    eSurfaceType surfB,
+    CVector&     pos,
+    CVector*     normal,
+    float        impulseForce,
+    float        relVelSq,
+    bool         isForceOneShot,
+    bool         isForceLooping
 ) {
     if (!AEAudioHardware.IsSoundBankLoaded(BANK_GENRL_COLLISIONS, BANK_SLOT_COLLISIONS)) {
         return;
@@ -605,28 +605,28 @@ void CAECollisionAudioEntity::ReportCollision(
         return SURFACE_CAR;
     };
 
-    surf1 = GetSurfaceToUse(entity1, surf1, entity2, surf2);
-    surf2 = GetSurfaceToUse(entity2, surf2, entity1, surf1);
+    surfA = GetSurfaceToUse(entityA, surfA, entityB, surfB);
+    surfB = GetSurfaceToUse(entityB, surfB, entityA, surfA);
 
-    if (bForceOneShot) { // 0x4DBC68
-        PlayOneShotCollisionSound(entity1, entity2, surf1, surf2, impulseForce, position);
+    if (isForceOneShot) { // 0x4DBC68
+        PlayOneShotCollisionSound(entityA, entityB, surfA, surfB, impulseForce, pos);
     } else  { // 0x4DBC83
         int32 soundIdx;
-        switch (const auto soundStatus = CAECollisionAudioEntity::GetCollisionSoundStatus(entity1, entity2, surf1, surf2, soundIdx)) {
+        switch (const auto soundStatus = CAECollisionAudioEntity::GetCollisionSoundStatus(entityA, entityB, surfA, surfB, soundIdx)) {
         case COLLISION_SOUND_INACTIVE: {
-            if (!bForceLooping) {
+            if (!isForceLooping) {
                 const auto e = &m_Entries[soundIdx];
-                return PlayOneShotCollisionSound(e->m_Entity1, e->m_Entity2, e->m_nSurface1, e->m_nSurface2, impulseForce, position);
+                return PlayOneShotCollisionSound(e->m_Entity1, e->m_Entity2, e->m_nSurface1, e->m_nSurface2, impulseForce, pos);
             }
             [[fallthrough]];
         }
         case COLLISION_SOUND_ONE_SHOT:
-            return PlayLoopingCollisionSound(entity1, entity2, surf1, surf2, impulseForce, position, bForceLooping);
+            return PlayLoopingCollisionSound(entityA, entityB, surfA, surfB, impulseForce, pos, isForceLooping);
         case COLLISION_SOUND_LOOPING: {
             const auto e = &m_Entries[soundIdx];
             e->m_nTime = CTimer::GetTimeInMS() + 100;
             if (e->m_Sound) {
-                UpdateLoopingCollisionSound(e->m_Sound, e->m_Entity1, e->m_Entity2, e->m_nSurface1, e->m_nSurface2, impulseForce, position, bForceLooping);
+                UpdateLoopingCollisionSound(e->m_Sound, e->m_Entity1, e->m_Entity2, e->m_nSurface1, e->m_nSurface2, impulseForce, pos, isForceLooping);
             }
         }
         default:
