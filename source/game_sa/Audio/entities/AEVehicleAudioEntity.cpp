@@ -1574,10 +1574,10 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenO
     };
 
     if (!m_bPlayHornTone && bPlayHornTone) {
-        const bool bBanksLoaded = AEAudioHardware.IsSoundBankLoaded(74u, BANK_SLOT_HORN_AND_SIREN) && AEAudioHardware.IsSoundBankLoaded(138u, 19);
+        const bool bBanksLoaded = AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_HORN, SND_BANK_SLOT_HORN_AND_SIREN) && AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN);
         const auto DoPlayHornSound = [&](float fSpeed) {
             const auto& posn = m_pEntity->GetPosition();
-            m_tempSound.Initialise(BANK_SLOT_HORN_AND_SIREN, nHornToneSoundInBank, this, posn, m_fHornVolume, 2.5f, fSpeed, 0.17f, false, SOUND_REQUEST_UPDATES);
+            m_tempSound.Initialise(SND_BANK_SLOT_HORN_AND_SIREN, nHornToneSoundInBank, this, posn, m_fHornVolume, 2.5f, fSpeed, 0.17f, false, SOUND_REQUEST_UPDATES);
             m_HornTonSound = AESoundManager.RequestNewSound(&m_tempSound);
             return true;
         };
@@ -1618,7 +1618,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenO
             // horn was playing and siren should've been playing, but couldn't have been
             // because the horn was playing (and not it isn't)
 
-            if (m_SirenSound || !AEAudioHardware.IsSoundBankLoaded(74u, BANK_SLOT_HORN_AND_SIREN))
+            if (m_SirenSound || !AEAudioHardware.IsSoundBankLoaded(74u, SND_BANK_SLOT_HORN_AND_SIREN))
                 return;
 
             const bool bIsWhoopieModel = params.Vehicle->m_nModelIndex == MODEL_MRWHOOP;
@@ -1626,7 +1626,7 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenO
                 if (!AEAudioHardware.IsSoundBankLoaded(79u, 40))
                     return;
 
-            m_SirenSound = PlaySound(bIsWhoopieModel ? 40 : BANK_SLOT_HORN_AND_SIREN, bIsWhoopieModel ? 3 : 10, GetDefaultVolume(AE_SIREN), 1.0f, 3.0f, 0.25f);
+            m_SirenSound = PlaySound(bIsWhoopieModel ? 40 : SND_BANK_SLOT_HORN_AND_SIREN, bIsWhoopieModel ? 3 : 10, GetDefaultVolume(AE_SIREN), 1.0f, 3.0f, 0.25f);
         }
     } else if (m_bSirenOrAlarmPlaying && !m_bHornPlaying && m_SirenSound) {
         m_SirenSound->StopSoundAndForget();
@@ -1634,8 +1634,8 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool bPlayHornTone, bool bPlaySirenO
     }
 
     if (bPlayHorn) {
-        if (!m_bHornPlaying && !m_PoliceSirenSound && AEAudioHardware.IsSoundBankLoaded(74u, BANK_SLOT_HORN_AND_SIREN)) {
-            m_PoliceSirenSound = PlaySound(BANK_SLOT_HORN_AND_SIREN, 11, GetDefaultVolume(AE_SIREN), 1.0f, 3.0f, 0.25f);
+        if (!m_bHornPlaying && !m_PoliceSirenSound && AEAudioHardware.IsSoundBankLoaded(74u, SND_BANK_SLOT_HORN_AND_SIREN)) {
+            m_PoliceSirenSound = PlaySound(SND_BANK_SLOT_HORN_AND_SIREN, 11, GetDefaultVolume(AE_SIREN), 1.0f, 3.0f, 0.25f);
         }
     } else if (m_bHornPlaying) {
         if (m_PoliceSirenSound) {
@@ -1996,7 +1996,7 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(cVehicleParams& params) {
 
 // 0x4F92C0
 void CAEVehicleAudioEntity::ProcessRainOnVehicle(cVehicleParams& params) {
-    if (!AEAudioHardware.IsSoundBankLoaded(BANK_GENRL_RAIN, BANK_SLOT_WEATHER))
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_RAIN, SND_BANK_SLOT_WEATHER))
         return;
 
     if (CAEWeatherAudioEntity::m_sfRainVolume <= -100.0f)
@@ -2009,7 +2009,7 @@ void CAEVehicleAudioEntity::ProcessRainOnVehicle(cVehicleParams& params) {
 
     const auto sfxId = (int16)CAEAudioUtility::GetRandomNumberInRange(12, 15);
     const auto volume = 0.0f + CAEWeatherAudioEntity::m_sfRainVolume;
-    m_tempSound.Initialise(BANK_SLOT_WEATHER, sfxId, this, m_pEntity->GetPosition(), volume);
+    m_tempSound.Initialise(SND_BANK_SLOT_WEATHER, sfxId, this, m_pEntity->GetPosition(), volume);
     m_tempSound.m_fSpeedVariability = 0.1f;
     m_tempSound.m_nEvent = AE_RAIN_COLLISION;
     AESoundManager.RequestNewSound(&m_tempSound);

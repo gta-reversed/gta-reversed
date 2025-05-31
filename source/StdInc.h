@@ -424,8 +424,6 @@
 #include "Entity/Vehicle/Train.h"
 #include "Entity/Vehicle/Vehicle.h"
 
-#include "Audio/config/eAudioBank.h"
-#include "Audio/config/eAudioSlot.h"
 #include "Audio/config/eSFX.h"
 
 #include "Fx/eFxInfoType.h"

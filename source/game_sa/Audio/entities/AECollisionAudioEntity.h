@@ -42,10 +42,10 @@ public:
 
     eCollisionSoundStatus GetCollisionSoundStatus(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, int32& outIndex);
 
-    void PlayLoopingCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, CVector& posn, uint8 a7);
-    void UpdateLoopingCollisionSound(CAESound *pSound, CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float impulseForce, CVector& position, bool bForceLooping);
+    void PlayLoopingCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, const CVector& posn, uint8 a7);
+    void UpdateLoopingCollisionSound(CAESound *pSound, CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float impulseForce, const CVector& position, bool bForceLooping);
 
-    void PlayOneShotCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, CVector& posn);
+    void PlayOneShotCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, const CVector& posn);
     void PlayBulletHitCollisionSound(eSurfaceType surface, const CVector& posn, float angleWithColPointNorm);
 
     void ReportGlassCollisionEvent(eAudioEvents glassSoundType, Const CVector& posn, uint32 time);
@@ -53,16 +53,16 @@ public:
     void ReportWaterSplash(CPhysical* physical, float height, bool splashMoreThanOnce);
     void ReportObjectDestruction(CEntity* entity);
     void ReportCollision(
-        CEntity* entity1,
-        CEntity* entity2,
-        eSurfaceType surf1,
-        eSurfaceType surf2,
-        CVector& position,
-        CVector* normal,
-        float impulseForce,
-        float relVelSq,
-        bool bForceOneShot,
-        bool bForceLooping
+        CEntity*       entityA,
+        CEntity*       entityB,
+        eSurfaceType   surfA,
+        eSurfaceType   surfB,
+        const CVector& pos,
+        const CVector* normal,
+        float          impulseForce,
+        float          relVelSq,
+        bool           isForceOneShot,
+        bool           isForceLooping
     );
     void ReportBulletHit(CEntity* entity, eSurfaceType surface, const CVector& posn, float angleWithColPointNorm);
 
