@@ -55,4 +55,9 @@ inline const ReversibleBugFix CCarCtrl_RemoveDistantCars_UseAfterFree{
     .Description = "Fix user-after-free of vehicles (possibly) deleted by PossiblyRemoveVehicle",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CWeather_UpdateWeatherRegion_CorrectRegionDefinition{
+    .Name        = "CWeather::UpdateWeatherRegion Correct Region Definition",
+    .Description = "Corrects the definition of regions ",
+    .Credit      = "Pirulax"
+};
 };

@@ -59,7 +59,7 @@ public:
     static eWeatherType &NewWeatherType;
     static eWeatherType &OldWeatherType;
     static CAEWeatherAudioEntity &m_WeatherAudioEntity;
-    static bool& StreamAfterRainTimer;
+    static int32& StreamAfterRainTimer;
 
     static float(&saTreeWindOffsets)[16];
     static float(&saBannerWindOffsets)[32];
@@ -79,12 +79,6 @@ public:
     static void SetWeatherToAppropriateTypeNow();
     static void Update();
     static void UpdateInTunnelness();
-    /*!
-    * @notsa
-    * @detail Based on code @ `0x72A640`
-    * @return The corresponding weather region at a given 2D position, or `WEATHER_REGION_DEFAULT` if no specific region was found
-    */
-    static eWeatherRegion FindWeatherRegion(CVector2D pos);
     static void UpdateWeatherRegion(CVector* posn);
     static bool IsRainy();
 
