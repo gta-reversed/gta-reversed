@@ -7,7 +7,7 @@ class CPointRoute;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexWalkRoundObject : public CTaskComplex {
 public:
-    int32        m_moveState;
+    eMoveState   m_moveState;
     CVector      m_targetPoint;
     CEntity*     m_object;
     CPointRoute* m_pointRoute;
@@ -20,7 +20,7 @@ public:
 public:
     static constexpr auto Type = TASK_COMPLEX_WALK_ROUND_OBJECT;
 
-    CTaskComplexWalkRoundObject(int32 moveState, const CVector& targetPoint, CEntity* object);
+    CTaskComplexWalkRoundObject(eMoveState moveState, const CVector& targetPoint, CEntity* object);
     ~CTaskComplexWalkRoundObject() override;
 
     eTaskType GetTaskType() const override { return Type; }
@@ -35,7 +35,7 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTaskComplexWalkRoundObject* Constructor(int32 moveState, const CVector& targetPoint, CEntity* object);
+    CTaskComplexWalkRoundObject* Constructor(eMoveState moveState, const CVector& targetPoint, CEntity* object);
 };
 
 VALIDATE_SIZE(CTaskComplexWalkRoundObject, 0x34);
