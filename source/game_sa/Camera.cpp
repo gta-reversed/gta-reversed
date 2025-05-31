@@ -1465,7 +1465,7 @@ void CCamera::ProcessVectorMoveLinear(float ratio) {
 
 // 0x516500
 void CCamera::ProcessFOVLerp() {
-    float now = static_cast<float>(CTimer::m_snTimeInMilliseconds);
+    auto now = static_cast<float>(CTimer::m_snTimeInMilliseconds);
 
     // Handle timer wrap-around (unsigned overflow)
     if (CTimer::m_snTimeInMilliseconds & 0x80000000u) {
@@ -1473,9 +1473,9 @@ void CCamera::ProcessFOVLerp() {
     }
 
     if (now < m_fEndZoomTime) {
-        float duration = m_fEndZoomTime - m_fStartZoomTime;
-        float t        = (now - m_fStartZoomTime) / duration;
-        this->ProcessFOVLerp(t);
+        const auto duration = m_fEndZoomTime - m_fStartZoomTime;
+        const auto t        = (now - m_fStartZoomTime) / duration;
+        ProcessFOVLerp(t);
         return;
     }
 
