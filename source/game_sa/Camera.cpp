@@ -145,7 +145,7 @@ void CCamera::InjectHooks() {
     RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "0", 0x50D430, void(CCamera::*)(float), { .reversed = false });
     RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "1", 0x5164A0, void(CCamera::*)(), { .reversed = false });
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "0", 0x50D510, void(CCamera::*)(float), { .reversed = false });
-    RH_ScopedOverloadedInstall(ProcessFOVLerp, "1", 0x516500, void(CCamera::*)(), { .reversed = false });
+    RH_ScopedOverloadedInstall(ProcessFOVLerp, "1", 0x516500, void(CCamera::*)(), { .reversed = true });
     //RH_ScopedOverloadedInstall(ProcessJiggle, "0", 0x516560, { .reversed = false });
 
     RH_ScopedGlobalInstall(CamShakeNoPos, 0x50A970);
@@ -1465,7 +1465,23 @@ void CCamera::ProcessVectorMoveLinear(float ratio) {
 
 // 0x516500
 void CCamera::ProcessFOVLerp() {
-    plugin::CallMethod<0x516500, CCamera*>(this);
+    float now = static_cast<float>(CTimer::m_snTimeInMilliseconds);
+
+    // Handle timer wrap-around (unsigned overflow)
+    if (CTimer::m_snTimeInMilliseconds & 0x80000000u) {
+        now += 4294967296.0f; // 2^32
+    }
+
+    if (now < m_fEndZoomTime) {
+        float duration = m_fEndZoomTime - m_fStartZoomTime;
+        float t        = (now - m_fStartZoomTime) / duration;
+        this->ProcessFOVLerp(t);
+        return;
+    }
+
+    if (m_bBlockZoom) {
+        m_bFOVLerpProcessed = true;
+    }
 }
 
 // 0x50D510
