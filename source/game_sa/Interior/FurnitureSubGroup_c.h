@@ -3,6 +3,7 @@
 #include "Base.h"
 
 #include "ListItem_c.h"
+#include "InteriorGroup_c.h"
 
 class Furniture_c;
 
@@ -19,10 +20,10 @@ public:
     void Exit();
 
 public:
-    int32                m_SubGroupId;
-    TList_c<Furniture_c> m_Furnitures;
-    bool                 m_bCanPlaceInFrontOfWindow;
-    bool                 m_bIsTall;
-    bool                 m_bCanSteal;
+    eInteriorSubGroupIdS32 m_SubGroupId;
+    TList_c<Furniture_c>   m_Furnitures;
+    bool                   m_bCanPlaceInFrontOfWindow;
+    bool                   m_bIsTall;
+    bool                   m_bCanSteal;
 };
 VALIDATE_SIZE(FurnitureSubGroup_c, 0x1C);

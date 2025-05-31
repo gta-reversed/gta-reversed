@@ -23,6 +23,9 @@ VALIDATE_SIZE(CPointRoute, 0x64);
 
 class CPedGeometryAnalyser {
 public:
+    static inline auto& ms_fPedNominalRadius = StaticRef<float>(0x8D22B0);
+
+public:
     static void InjectHooks();
     
     static bool CanPedJumpObstacle(const CPed& ped, const CEntity& entity);
