@@ -173,13 +173,13 @@ void CAudioEngine::InitialisePostLoading() {
     m_GlobalWeaponAE = new CAEGlobalWeaponAudioEntity();
     m_GlobalWeaponAE->Initialise();
 
-    while ( !AEAudioHardware.IsSoundBankLoaded(39, SLOT_LOADING_TUNE_LEFT)
+    while ( !AEAudioHardware.IsSoundBankLoaded(39, BANK_SLOT_COLLISIONS)
            || !AEAudioHardware.IsSoundBankLoaded(27, 3)
            || !AEAudioHardware.IsSoundBankLoaded(138, 19)
            || !AEAudioHardware.IsSoundBankLoaded(0, 41)
-           || !AEAudioHardware.IsSoundBankLoaded(BANK_EXTRAS, SLOT_EXTRAS)
+           || !AEAudioHardware.IsSoundBankLoaded(BANK_GENRL_FRONTEND_GAME, BANK_SLOT_FRONTEND_GAME)
            || !AEAudioHardware.IsSoundBankLoaded(52, 4)
-           || !AEAudioHardware.IsSoundBankLoaded(143, SLOT_LOADING_TUNE_RIGHT)
+           || !AEAudioHardware.IsSoundBankLoaded(143, BANK_SLOT_WEAPON_GEN)
            || !AEAudioHardware.IsSoundBankLoaded(51, 31)
            || !AEAudioHardware.IsSoundBankLoaded(105, 6)
            || !AEAudioHardware.IsSoundBankLoaded(74, 17)

@@ -5,6 +5,9 @@
 #include "AEAudioHardware.h"
 #include "AEAudioUtility.h"
 
+#include "eAudioBank.h"
+#include "eAudioSlot.h"
+
 void CAECollisionAudioEntity::InjectHooks() {
     RH_ScopedVirtualClass(CAECollisionAudioEntity, 0x862E64, 1);
     RH_ScopedCategory("Audio/Entities");
@@ -16,11 +19,11 @@ void CAECollisionAudioEntity::InjectHooks() {
     RH_ScopedInstall(ReportGlassCollisionEvent, 0x4DA070);
     RH_ScopedInstall(UpdateLoopingCollisionSound, 0x4DA540, { .reversed = false });
     RH_ScopedInstall(GetCollisionSoundStatus, 0x4DA830, { .reversed = true });
-    RH_ScopedInstall(ReportObjectDestruction, 0x4DAB60, { .reversed = false });
+    RH_ScopedInstall(ReportObjectDestruction, 0x4DAB60);
     RH_ScopedInstall(PlayOneShotCollisionSound, 0x4DB150, { .reversed = false });
     RH_ScopedInstall(PlayLoopingCollisionSound, 0x4DB450, { .reversed = false });
     RH_ScopedInstall(PlayBulletHitCollisionSound, 0x4DB7C0, { .reversed = false });
-    RH_ScopedInstall(ReportCollision, 0x4DBA10, { .reversed = false });
+    RH_ScopedInstall(ReportCollision, 0x4DBA10);
     RH_ScopedInstall(ReportBulletHit, 0x4DBDF0);
     RH_ScopedInstall(Service, 0x4DA2C0);
 
@@ -35,14 +38,14 @@ void CAECollisionAudioEntity::Initialise() {
 
 // 0x4DA050
 void CAECollisionAudioEntity::InitialisePostLoading() {
-    AEAudioHardware.LoadSoundBank(39, SLOT_LOADING_TUNE_LEFT);
+    AEAudioHardware.LoadSoundBank(39, BANK_SLOT_COLLISIONS);
     AEAudioHardware.LoadSoundBank(27, 3);
 }
 
 // 0x4DA320
 void CAECollisionAudioEntity::Reset() {
     for (auto& entry : m_Entries) {
-        if (entry.m_nStatus != COL_AUDIO_ENTRY_STATUS_2)
+        if (entry.m_nStatus != COLLISION_SOUND_LOOPING)
             continue;
 
         if (entry.m_Sound)
@@ -53,38 +56,44 @@ void CAECollisionAudioEntity::Reset() {
 }
 
 // 0x4DAAC0
-void CAECollisionAudioEntity::AddCollisionSoundToList(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, CAESound* sound,
-    eCollisionAudioEntryStatus status)
+void CAECollisionAudioEntity::AddCollisionSoundToList(
+    CEntity* entity1,
+    CEntity* entity2,
+    eSurfaceType surf1,
+    eSurfaceType surf2,
+    CAESound* sound,
+    eCollisionSoundStatus status
+)
 {
     // Find an entry with no sound.
-    const auto newEntry = rng::find_if(m_Entries, [](tCollisionAudioEntry& entry) {
-        return !entry.m_Sound;
-    });
-
-    if (newEntry == m_Entries.end()) {
+    const auto e = rng::find_if_not(m_Entries, &tCollisionAudioEntry::m_Sound);
+    if (e == m_Entries.end()) {
         return;
     }
 
-    // ? check
-    newEntry->m_Entity1 = entity1;
-    newEntry->m_Entity2 = entity2;
-    newEntry->m_nSurface1 = surf1;
-    newEntry->m_nSurface2 = surf2;
-    newEntry->m_Sound = sound;
-    newEntry->m_nStatus = status;
-    newEntry->m_nTime = status == COL_AUDIO_ENTRY_STATUS_2 ? CTimer::GetTimeInMS() + 100 : 0;
-    ++m_nActiveCollisionSounds;
+    e->m_Entity1    = entity1;
+    e->m_Entity2    = entity2;
+
+    e->m_nSurface1  = surf1;
+    e->m_nSurface2  = surf2;
+
+    e->m_Sound      = sound;
+    e->m_nStatus    = status;
+    e->m_nTime      = status == COLLISION_SOUND_LOOPING ? CTimer::GetTimeInMS() + 100 : 0;
+
+    m_nActiveCollisionSounds++;
 }
 
 // 0x4DA830
-void CAECollisionAudioEntity::GetCollisionSoundStatus(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, int32& outIndex) {
-    const auto foundEntry = rng::find_if(m_Entries, [entity1, entity2](tCollisionAudioEntry& entry) {
-        return entry.m_Entity1 == entity1 && entry.m_Entity2 == entity2
-            || entry.m_Entity1 == entity2 && entry.m_Entity2 == entity1;
-    });
-
-    // 300 is possibly unintended.
-    outIndex = foundEntry != m_Entries.end() ? std::distance(m_Entries.begin(), foundEntry) : 300;
+eCollisionSoundStatus CAECollisionAudioEntity::GetCollisionSoundStatus(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, int32& outIndex) {
+    for (auto&& [i, v] : notsa::enumerate(m_Entries)) {
+        if (v.m_Entity1 != entity1 && v.m_Entity2 != entity2 && v.m_Entity1 != entity2 && v.m_Entity2 != entity1) {
+            continue;
+        }
+        outIndex = (int32)i;
+        return v.m_nStatus;
+    }
+    NOTSA_UNREACHABLE();
 }
 
 // 0x4DB150
@@ -98,13 +107,13 @@ void CAECollisionAudioEntity::PlayLoopingCollisionSound(CEntity* entity1, CEntit
 }
 
 // 0x4DA540
-void CAECollisionAudioEntity::UpdateLoopingCollisionSound() {
-    return plugin::CallMethod<0x4DA540, CAECollisionAudioEntity*>(this);
+void CAECollisionAudioEntity::UpdateLoopingCollisionSound(CAESound *pSound, CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float impulseForce, CVector& position, bool bForceLooping) {
+    plugin::CallMethod<0x4DA540>(this, pSound, entity1, entity2, surf1, surf2, impulseForce, &position, bForceLooping);
 }
 
 // 0x4DB7C0
 void CAECollisionAudioEntity::PlayBulletHitCollisionSound(eSurfaceType surface, const CVector& posn, float angleWithColPointNorm) {
-    if (surface >= NUM_FUCKING_SURFACES)
+    if (surface >= SURFACE_UNKNOWN_194)
         return;
 
     int32 iRand;
@@ -258,12 +267,128 @@ void CAECollisionAudioEntity::ReportWaterSplash(CPhysical* physical, float heigh
 
 // 0x4DAB60
 void CAECollisionAudioEntity::ReportObjectDestruction(CEntity* entity) {
-    return plugin::CallMethod<0x4DAB60, CAECollisionAudioEntity*, CEntity*>(this, entity);
+    if (entity) {
+        const auto surface = [&]{
+            if (entity->GetModelID() == MODEL_MOLOTOV) { // 0x4DAB7B
+                return SURFACE_GLASS;
+            }
+            if (entity->GetModelID() == ModelIndices::MI_GRASSHOUSE) { // 0x4DAB89
+                const auto cd = entity->GetColData();
+                if (!cd) {
+                    return SURFACE_NONE;
+                }
+                if (const auto spheres = cd->GetSpheres(); !spheres.empty()) {
+                    return spheres[0].m_Surface.m_nMaterial;
+                }
+                if (const auto boxes = cd->GetBoxes(); !boxes.empty()) {
+                    return boxes[0].m_Surface.m_nMaterial;
+                }
+                if (const auto tris = cd->GetTris(); !tris.empty()) {
+                    return tris[0].GetSurfaceType();
+                }
+            }
+        }();
+    }
 }
 
 // 0x4DBA10
-void CAECollisionAudioEntity::ReportCollision(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, const CVector& pos, const CVector* normal, float collisionImpact1, float collisionImpact2, bool bOnlyPlayOneShotCollisionSound, bool unknown) {
-    return plugin::CallMethod<0x4DBA10, CAECollisionAudioEntity*, CEntity*, CEntity*, uint8, uint8, const CVector&, const CVector*, float, float, bool, bool>(this, entity1, entity2, surf1, surf2, pos, normal, collisionImpact1, collisionImpact2, bOnlyPlayOneShotCollisionSound, unknown);
+void CAECollisionAudioEntity::ReportCollision(
+    CEntity* entity1,
+    CEntity* entity2,
+    eSurfaceType surf1,
+    eSurfaceType surf2,
+    CVector& position,
+    CVector* normal,
+    float impulseForce,
+    float relVelSq,
+    bool bForceOneShot,
+    bool bForceLooping
+) {
+    if (!AEAudioHardware.IsSoundBankLoaded(BANK_GENRL_COLLISIONS, BANK_SLOT_COLLISIONS)) {
+        return;
+    }
+    if (!CanAddNewSound()) {
+        return;
+    }
+    if (relVelSq <= 0.f) {
+        return;
+    }
+
+    const auto GetSurfaceToUse = [&](
+        CEntity* eA, eSurfaceType& sA,
+        CEntity* eB, eSurfaceType& sB
+    ) {
+        if (!eA->IsVehicle()) {      
+            switch (eA->GetModelID()) {
+            case MODEL_MOLOTOV:
+                return SURFACE_GLASS;
+            case MODEL_SATCHEL:
+                return  SURFACE_UNKNOWN_190;
+            case MODEL_GRENADE:
+            case MODEL_BOMB:
+            case MODEL_TEARGAS:
+                return SURFACE_UNKNOWN_191;
+            }
+            const auto eAModelId = eA->GetModelID();
+            if (eAModelId == ModelIndices::MI_BASKETBALL) {
+                return SURFACE_UNKNOWN_193;
+            }
+            if (eAModelId == ModelIndices::MI_PUNCHBAG) {
+                return SURFACE_UNKNOWN_194;
+            }
+            if (eAModelId == ModelIndices::MI_GRASSHOUSE) {
+                return SURFACE_UNBREAKABLE_GLASS;
+            }
+            if (eAModelId == ModelIndices::MI_IMY_GRAY_CRATE) {
+                return SURFACE_WOOD_SOLID;
+            }
+            if (eA->IsPhysical() && eA->AsPhysical()->physicalFlags.bMakeMassTwiceAsBig) {
+                return SURFACE_UNKNOWN_192;
+            }
+            return sA;        
+        }
+        if (eB && eB->IsBuilding() && normal && eA->GetUp().Dot(*normal) > 0.6f) {
+            if (eA->AsVehicle()->IsSubBMX()) {
+                return SURFACE_UNKNOWN_188;
+            }
+            if (g_surfaceInfos.GetFrictionEffect(sB) != FRICTION_EFFECT_SPARKS) {
+                return SURFACE_RUBBER;
+            }
+        }
+        if (eA->AsVehicle()->IsSubBMX()) {
+            return SURFACE_UNKNOWN_188;
+        }
+        return SURFACE_CAR;
+    };
+
+    surf1 = GetSurfaceToUse(entity1, surf1, entity2, surf2);
+    surf2 = GetSurfaceToUse(entity2, surf2, entity1, surf1);
+
+    if (bForceOneShot) { // 0x4DBC68
+        PlayOneShotCollisionSound(entity1, entity2, surf1, surf2, impulseForce, position);
+    } else  { // 0x4DBC83
+        int32 soundIdx;
+        switch (const auto soundStatus = CAECollisionAudioEntity::GetCollisionSoundStatus(entity1, entity2, surf1, surf2, soundIdx)) {
+        case COLLISION_SOUND_INACTIVE: {
+            if (!bForceLooping) {
+                const auto e = &m_Entries[soundIdx];
+                return PlayOneShotCollisionSound(e->m_Entity1, e->m_Entity2, e->m_nSurface1, e->m_nSurface2, impulseForce, position);
+            }
+            [[fallthrough]];
+        }
+        case COLLISION_SOUND_ONE_SHOT:
+            return PlayLoopingCollisionSound(entity1, entity2, surf1, surf2, impulseForce, position, bForceLooping);
+        case COLLISION_SOUND_LOOPING: {
+            const auto e = &m_Entries[soundIdx];
+            e->m_nTime = CTimer::GetTimeInMS() + 100;
+            if (e->m_Sound) {
+                UpdateLoopingCollisionSound(e->m_Sound, e->m_Entity1, e->m_Entity2, e->m_nSurface1, e->m_nSurface2, impulseForce, position, bForceLooping);
+            }
+        }
+        default:
+            NOTSA_UNREACHABLE("Invalid soundStatus: {}", (int)soundStatus);
+        }
+    }
 }
 
 // 0x4DBDF0
@@ -282,7 +407,7 @@ void CAECollisionAudioEntity::ReportBulletHit(CEntity* entity, eSurfaceType surf
 void CAECollisionAudioEntity::Service() {
     const auto time = CTimer::GetTimeInMS();
     for (auto& entry : m_Entries) {
-        if (entry.m_nStatus != COL_AUDIO_ENTRY_STATUS_2 || time < entry.m_nTime)
+        if (entry.m_nStatus != COLLISION_SOUND_LOOPING || time < entry.m_nTime)
             continue;
 
         entry = {};
