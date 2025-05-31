@@ -9,15 +9,13 @@ enum eCollisionSoundStatus : uint8 {
 };
 
 struct tCollisionAudioEntry {
-    CEntity*  m_Entity1{nullptr};
-    CEntity*  m_Entity2{nullptr};
-    CAESound* m_Sound{nullptr};
-    uint32    m_nTime{0};
-    eCollisionSoundStatus m_nStatus{COLLISION_SOUND_INACTIVE};
-    eSurfaceType m_nSurface1{SURFACE_UNKNOWN_194 + 1}; // ?
-    eSurfaceType m_nSurface2{SURFACE_UNKNOWN_194 + 1}; // ?
-
-    tCollisionAudioEntry() = default;
+    CEntity*              EntityA{ nullptr };
+    CEntity*              EntityB{ nullptr };
+    CAESound*             Sound{ nullptr };
+    uint32                Time{ 0 };
+    eCollisionSoundStatus Status{ COLLISION_SOUND_INACTIVE };
+    eSurfaceType          SurfaceA{ SURFACE_UNKNOWN_194 + 1 }; // ?
+    eSurfaceType          SurfaceB{ SURFACE_UNKNOWN_194 + 1 }; // ?
 };
 VALIDATE_SIZE(tCollisionAudioEntry, 0x14);
 
@@ -42,9 +40,19 @@ public:
 
     eCollisionSoundStatus GetCollisionSoundStatus(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, int32& outIndex);
 
-    void PlayLoopingCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, const CVector& posn, uint8 a7);
-    void UpdateLoopingCollisionSound(CAESound *pSound, CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float impulseForce, const CVector& position, bool bForceLooping);
+    void PlayLoopingCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, const CVector& posn, bool isForceLooping);
+    void UpdateLoopingCollisionSound(
+        CAESound*      pSound,
+        CEntity*       entityA,
+        CEntity*       entityB,
+        eSurfaceType   surfA,
+        eSurfaceType   surfB,
+        float          impulseForce,
+        const CVector& position,
+        bool           isForceLooping
+    );
 
+    std::pair<float, float> GetLoopingCollisionSoundVolumeAndSpeed(CEntity* entityA, CEntity* entityB, eSurfaceType surfA, eSurfaceType surfB, bool isForceLooping); // notsa
     void PlayOneShotCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, const CVector& posn);
     void PlayBulletHitCollisionSound(eSurfaceType surface, const CVector& posn, float angleWithColPointNorm);
 

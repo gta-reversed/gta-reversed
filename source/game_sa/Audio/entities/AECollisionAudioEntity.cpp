@@ -212,8 +212,8 @@ void CAECollisionAudioEntity::InjectHooks() {
     RH_ScopedInstall(AddCollisionSoundToList, 0x4DAAC0);
     RH_ScopedInstall(Reset, 0x4DA320);
     RH_ScopedInstall(ReportGlassCollisionEvent, 0x4DA070);
-    RH_ScopedInstall(UpdateLoopingCollisionSound, 0x4DA540, { .reversed = false });
-    RH_ScopedInstall(GetCollisionSoundStatus, 0x4DA830, { .reversed = true });
+    RH_ScopedInstall(UpdateLoopingCollisionSound, 0x4DA540);
+    RH_ScopedInstall(GetCollisionSoundStatus, 0x4DA830);
     RH_ScopedInstall(ReportObjectDestruction, 0x4DAB60);
     RH_ScopedInstall(PlayOneShotCollisionSound, 0x4DB150, { .reversed = false });
     RH_ScopedInstall(PlayLoopingCollisionSound, 0x4DB450);
@@ -233,18 +233,20 @@ void CAECollisionAudioEntity::Initialise() {
 
 // 0x4DA050
 void CAECollisionAudioEntity::InitialisePostLoading() {
-    AEAudioHardware.LoadSoundBank(39, SND_BANK_SLOT_COLLISIONS);
-    AEAudioHardware.LoadSoundBank(27, 3);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_BULLET_HITS, SND_BANK_SLOT_BULLET_HITS);
 }
 
 // 0x4DA320
 void CAECollisionAudioEntity::Reset() {
     for (auto& entry : m_Entries) {
-        if (entry.m_nStatus != COLLISION_SOUND_LOOPING)
+        if (entry.Status != COLLISION_SOUND_LOOPING) {
             continue;
+        }
 
-        if (entry.m_Sound)
-            entry.m_Sound->StopSoundAndForget();
+        if (entry.Sound) {
+            entry.Sound->StopSoundAndForget();
+        }
 
         entry = {};
     }
@@ -252,104 +254,124 @@ void CAECollisionAudioEntity::Reset() {
 
 // 0x4DAAC0
 void CAECollisionAudioEntity::AddCollisionSoundToList(
-    CEntity* entity1,
-    CEntity* entity2,
-    eSurfaceType surf1,
-    eSurfaceType surf2,
+    CEntity* entityA,
+    CEntity* entityB,
+    eSurfaceType surfaceA,
+    eSurfaceType surfaceB,
     CAESound* sound,
     eCollisionSoundStatus status
 )
 {
     // Find an entry with no sound.
-    const auto e = rng::find_if_not(m_Entries, &tCollisionAudioEntry::m_Sound);
+    const auto e = rng::find_if_not(m_Entries, &tCollisionAudioEntry::Sound);
     if (e == m_Entries.end()) {
         return;
     }
 
-    e->m_Entity1    = entity1;
-    e->m_Entity2    = entity2;
+    e->EntityA  = entityA;
+    e->EntityB  = entityB;
 
-    e->m_nSurface1  = surf1;
-    e->m_nSurface2  = surf2;
+    e->SurfaceA = surfaceA;
+    e->SurfaceB = surfaceB;
 
-    e->m_Sound      = sound;
-    e->m_nStatus    = status;
-    e->m_nTime      = status == COLLISION_SOUND_LOOPING ? CTimer::GetTimeInMS() + 100 : 0;
+    e->Sound    = sound;
+    e->Status   = status;
+    e->Time     = status == COLLISION_SOUND_LOOPING
+        ? CTimer::GetTimeInMS() + 100
+        : 0;
 
     m_nActiveCollisionSounds++;
 }
 
 // 0x4DA830
-eCollisionSoundStatus CAECollisionAudioEntity::GetCollisionSoundStatus(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, int32& outIndex) {
+eCollisionSoundStatus CAECollisionAudioEntity::GetCollisionSoundStatus(CEntity* entityA, CEntity* entityB, eSurfaceType surfaceA, eSurfaceType surfaceB, int32& outIndex) {
     for (auto&& [i, v] : rngv::enumerate(m_Entries)) {
-        if (v.m_Entity1 != entity1 && v.m_Entity2 != entity2 && v.m_Entity1 != entity2 && v.m_Entity2 != entity1) {
+        if (v.EntityA != entityA && v.EntityB != entityB && v.EntityA != entityB && v.EntityB != entityA) {
             continue;
         }
-        outIndex = (int32)i;
-        return v.m_nStatus;
+        outIndex = (int32)(i);
+        return v.Status;
     }
     NOTSA_UNREACHABLE();
 }
 
 // 0x4DB150
-void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float a5, const CVector& posn) {
-    plugin::CallMethod<0x4DB150, CAECollisionAudioEntity*, CEntity*, CEntity*, uint8, uint8, float, const CVector&>(this, entity1, entity2, surf1, surf2, a5, posn);
+void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entityA, CEntity* entityB, eSurfaceType surfaceA, eSurfaceType surfaceB, float a5, const CVector& posn) {
+    plugin::CallMethod<0x4DB150, CAECollisionAudioEntity*, CEntity*, CEntity*, uint8, uint8, float, const CVector&>(this, entityA, entityB, surfaceA, surfaceB, a5, posn);
 }
 
-// 0x4DB450
-void CAECollisionAudioEntity::PlayLoopingCollisionSound(CEntity* entityA, CEntity* entityB, eSurfaceType surfA, eSurfaceType surfB, float force, const CVector& pos, uint8 isForceLooping) {
-    const auto PlaySound = [&](float volume, float speed) {
-        const auto GetSoundID = [&]() -> eSoundID { // 0x4DB6AF
-            if (g_surfaceInfos.IsAudioGrass(surfA) || g_surfaceInfos.IsAudioGrass(surfB)) {
-                return 0;
-            } else if (g_surfaceInfos.IsAudioWater(surfA) || g_surfaceInfos.IsAudioWater(surfB)) {
-                return 3;
-            } else if (g_surfaceInfos.IsAudioMetal(surfA) || g_surfaceInfos.IsAudioMetal(surfB)) {
-                return 2;
-            } else {
-                return 1;
-            }
-        };
-        if (auto* const sound = AESoundManager.PlaySound({
-                .BankSlotID    = SND_BANK_SLOT_COLLISIONS,
-                .SoundID       = GetSoundID(),
-                .AudioEntity   = this,
-                .Pos           = pos,
-                .Volume        = volume,
-                .RollOffFactor = 2.f,
-                .Speed         = std::max(speed, 0.75f) * 0.8f,
-                .Flags         = SOUND_REQUEST_UPDATES,
-        })) {
-            AddCollisionSoundToList(entityA, entityB, surfA, surfB, sound, COLLISION_SOUND_LOOPING);
-        }
-    };
-    const auto PlaySoundForCar = [&](CVector velocity, CVector turn) {
+// based on `PlayLoopingCollisionSound` and `UpdateLoopingCollisionSound`
+std::pair<float, float> CAECollisionAudioEntity::GetLoopingCollisionSoundVolumeAndSpeed(CEntity* entityA, CEntity* entityB, eSurfaceType surfaceA, eSurfaceType surfaceB, bool isForceLooping) {
+    assert(surfaceA == SURFACE_CAR || surfaceA == SURFACE_PED);
+    assert(surfaceB == SURFACE_CAR || surfaceB == SURFACE_PED);
+
+    const auto GetParametersForCar = [&](CVector velocity, CVector turn) -> std::pair<float, float> {
         const auto mag = std::sqrt(std::max(turn.SquaredMagnitude(), velocity.SquaredMagnitude()));
         if (mag == 0.f) {
-            PlaySound(-100.f, 0.f);
+            return { -100.f, 0.f };
         } else {
-            auto speed = std::min(std::sqrt(mag * ((gCollisionLookup[surfA][3] * gCollisionLookup[surfB][3]) / 10000.f)) * 3.f, 0.f);
+            auto speed = std::min(std::sqrt(mag * ((gCollisionLookup[surfaceA][3] * gCollisionLookup[surfaceB][3]) / 10000.f)) * 3.f, 0.f);
             if (isForceLooping) {
                 speed /= 6.f;
             }
-            PlaySound(GetDefaultVolume(AE_GENERAL_COLLISION) + CAEAudioUtility::AudioLog10(std::min(speed / 0.75f, 1.f) * 20.f), speed);
+            return { GetDefaultVolume(AE_GENERAL_COLLISION) + CAEAudioUtility::AudioLog10(std::min(speed / 0.75f, 1.f) * 20.f), speed };
         }
     };
-    if (surfA == SURFACE_CAR && surfB == SURFACE_CAR) {
+    if (surfaceA == SURFACE_CAR && surfaceB == SURFACE_CAR) {
         const auto vehA = entityA->AsVehicle(),
                    vehB = entityB->AsVehicle();
-        PlaySoundForCar(vehA->GetMoveSpeed() - vehB->GetMoveSpeed(), vehA->GetTurnSpeed() - vehB->GetTurnSpeed());
-    } else if ((surfB == SURFACE_PED || surfA != SURFACE_CAR) && (surfA == SURFACE_PED || surfB != SURFACE_CAR)) {
-        PlaySound(-100.f, 0.f);
-    } else {
+        return GetParametersForCar(vehA->GetMoveSpeed() - vehB->GetMoveSpeed(), vehA->GetTurnSpeed() - vehB->GetTurnSpeed());
+    } else if (surfaceB != SURFACE_PED && surfaceA == SURFACE_CAR || surfaceA != SURFACE_PED && surfaceB == SURFACE_CAR) { // 0x4DB5AB (Inverted)
         const auto vehA = entityA->AsVehicle();
-        PlaySoundForCar(vehA->GetMoveSpeed(), vehA->GetTurnSpeed());
+        return GetParametersForCar(vehA->GetMoveSpeed(), vehA->GetTurnSpeed());
+    } else { // 0x4DB54F
+        return { -100.f, 0.f };
+    }
+}
+
+// 0x4DB450
+void CAECollisionAudioEntity::PlayLoopingCollisionSound(CEntity* entityA, CEntity* entityB, eSurfaceType surfaceA, eSurfaceType surfaceB, float force, const CVector& pos, bool isForceLooping) {
+    const auto [volume, speed] = GetLoopingCollisionSoundVolumeAndSpeed(entityA, entityB, surfaceA, surfaceB, isForceLooping);
+    const auto GetSoundID = [&]() -> eSoundID { // 0x4DB6AF
+        if (g_surfaceInfos.IsAudioGrass(surfaceA) || g_surfaceInfos.IsAudioGrass(surfaceB)) {
+            return 0;
+        } else if (g_surfaceInfos.IsAudioWater(surfaceA) || g_surfaceInfos.IsAudioWater(surfaceB)) {
+            return 3;
+        } else if (g_surfaceInfos.IsAudioMetal(surfaceA) || g_surfaceInfos.IsAudioMetal(surfaceB)) {
+            return 2;
+        } else {
+            return 1;
+        }
+    };
+    if (auto* const sound = AESoundManager.PlaySound({
+            .BankSlotID    = SND_BANK_SLOT_COLLISIONS,
+            .SoundID       = GetSoundID(),
+            .AudioEntity   = this,
+            .Pos           = pos,
+            .Volume        = volume,
+            .RollOffFactor = 2.f,
+            .Speed         = std::max(speed, 0.75f) * 0.8f,
+            .Flags         = SOUND_REQUEST_UPDATES,
+    })) {
+        AddCollisionSoundToList(entityA, entityB, surfaceA, surfaceB, sound, COLLISION_SOUND_LOOPING);
     }
 }
 
 // 0x4DA540
-void CAECollisionAudioEntity::UpdateLoopingCollisionSound(CAESound *pSound, CEntity* entity1, CEntity* entity2, eSurfaceType surf1, eSurfaceType surf2, float impulseForce, const CVector& position, bool bForceLooping) {
-    plugin::CallMethod<0x4DA540>(this, pSound, entity1, entity2, surf1, surf2, impulseForce, &position, bForceLooping);
+void CAECollisionAudioEntity::UpdateLoopingCollisionSound(
+    CAESound*      sound,
+    CEntity*       entityA,
+    CEntity*       entityB,
+    eSurfaceType   surfaceA,
+    eSurfaceType   surfaceB,
+    float          impulseForce,
+    const CVector& pos,
+    bool           isForceLooping
+) {
+    const auto [volume, speed] = GetLoopingCollisionSoundVolumeAndSpeed(entityA, entityB, surfaceA, surfaceB, isForceLooping);
+    sound->m_fSpeed            = stepto(speed, sound->m_fSpeed, 0.1f);
+    sound->m_fVolume           = stepto(volume, sound->m_fVolume, 1.0f);
+    sound->SetPosition(pos);
 }
 
 // 0x4DB7C0
@@ -445,11 +467,11 @@ void CAECollisionAudioEntity::ReportGlassCollisionEvent(eAudioEvents event, cons
         }
     };
     switch (event) {
-    case AE_GLASS_HIT:             PlayCollisionSound(51, 1.f); break;
-    case AE_GLASS_CRACK:           PlayCollisionSound(68, 1.f); break;
-    case AE_GLASS_BREAK_SLOW:      PlayCollisionSound(56, 0.75f); break;
-    case AE_GLASS_BREAK_FAST:      PlayCollisionSound(56, 1.f); break;
-    case AE_GLASS_HIT_GROUND:      PlayCollisionSound(CAEAudioUtility::GetRandomNumberInRange(15, 18), 1.f); break;
+    case AE_GLASS_HIT:             PlayCollisionSound(51, 1.f);                                                break;
+    case AE_GLASS_CRACK:           PlayCollisionSound(68, 1.f);                                                break;
+    case AE_GLASS_BREAK_SLOW:      PlayCollisionSound(56, 0.75f);                                              break;
+    case AE_GLASS_BREAK_FAST:      PlayCollisionSound(56, 1.f);                                                break;
+    case AE_GLASS_HIT_GROUND:      PlayCollisionSound(CAEAudioUtility::GetRandomNumberInRange(15, 18), 1.f);   break;
     case AE_GLASS_HIT_GROUND_SLOW: PlayCollisionSound(CAEAudioUtility::GetRandomNumberInRange(15, 18), 0.56f); break;
     default:                       NOTSA_UNREACHABLE();
     }
@@ -570,8 +592,8 @@ void CAECollisionAudioEntity::ReportObjectDestruction(CEntity* entity) {
 void CAECollisionAudioEntity::ReportCollision(
     CEntity*       entityA,
     CEntity*       entityB,
-    eSurfaceType   surfA,
-    eSurfaceType   surfB,
+    eSurfaceType   surfaceA,
+    eSurfaceType   surfaceB,
     const CVector& pos,
     const CVector* normal,
     float          impulseForce,
@@ -636,28 +658,28 @@ void CAECollisionAudioEntity::ReportCollision(
         return SURFACE_CAR;
     };
 
-    surfA = GetSurfaceToUse(entityA, surfA, entityB, surfB);
-    surfB = GetSurfaceToUse(entityB, surfB, entityA, surfA);
+    surfaceA = GetSurfaceToUse(entityA, surfaceA, entityB, surfaceB);
+    surfaceB = GetSurfaceToUse(entityB, surfaceB, entityA, surfaceA);
 
     if (isForceOneShot) { // 0x4DBC68
-        PlayOneShotCollisionSound(entityA, entityB, surfA, surfB, impulseForce, pos);
+        PlayOneShotCollisionSound(entityA, entityB, surfaceA, surfaceB, impulseForce, pos);
     } else  { // 0x4DBC83
         int32 soundIdx;
-        switch (const auto soundStatus = CAECollisionAudioEntity::GetCollisionSoundStatus(entityA, entityB, surfA, surfB, soundIdx)) {
+        switch (const auto soundStatus = CAECollisionAudioEntity::GetCollisionSoundStatus(entityA, entityB, surfaceA, surfaceB, soundIdx)) {
         case COLLISION_SOUND_INACTIVE: {
             if (!isForceLooping) {
                 const auto e = &m_Entries[soundIdx];
-                return PlayOneShotCollisionSound(e->m_Entity1, e->m_Entity2, e->m_nSurface1, e->m_nSurface2, impulseForce, pos);
+                return PlayOneShotCollisionSound(e->EntityA, e->EntityB, e->SurfaceA, e->SurfaceB, impulseForce, pos);
             }
-            return PlayLoopingCollisionSound(entityA, entityB, surfA, surfB, impulseForce, pos, isForceLooping);
+            return PlayLoopingCollisionSound(entityA, entityB, surfaceA, surfaceB, impulseForce, pos, isForceLooping);
         }
         case COLLISION_SOUND_ONE_SHOT:
-            return PlayLoopingCollisionSound(entityA, entityB, surfA, surfB, impulseForce, pos, isForceLooping);
+            return PlayLoopingCollisionSound(entityA, entityB, surfaceA, surfaceB, impulseForce, pos, isForceLooping);
         case COLLISION_SOUND_LOOPING: {
             const auto e = &m_Entries[soundIdx];
-            e->m_nTime = CTimer::GetTimeInMS() + 100;
-            if (e->m_Sound) {
-                UpdateLoopingCollisionSound(e->m_Sound, e->m_Entity1, e->m_Entity2, e->m_nSurface1, e->m_nSurface2, impulseForce, pos, isForceLooping);
+            e->Time = CTimer::GetTimeInMS() + 100;
+            if (e->Sound) {
+                UpdateLoopingCollisionSound(e->Sound, e->EntityA, e->EntityB, e->SurfaceA, e->SurfaceB, impulseForce, pos, isForceLooping);
             }
         }
         default:
@@ -683,7 +705,7 @@ void CAECollisionAudioEntity::ReportBulletHit(CEntity* entity, eSurfaceType surf
 void CAECollisionAudioEntity::Service() {
     const auto time = CTimer::GetTimeInMS();
     for (auto& entry : m_Entries) {
-        if (entry.m_nStatus != COLLISION_SOUND_LOOPING || time < entry.m_nTime)
+        if (entry.Status != COLLISION_SOUND_LOOPING || time < entry.Time)
             continue;
 
         entry = {};
