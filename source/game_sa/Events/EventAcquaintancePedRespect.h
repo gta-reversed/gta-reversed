@@ -13,6 +13,6 @@ public:
 
     eEventType GetEventType() const override { return EVENT_ACQUAINTANCE_PED_RESPECT; }
     int32 GetEventPriority() const override { return 23; }
-    CEventEditableResponse* CloneEditable() override { return new CEventAcquaintancePedRespect(m_AcquaintancePed); }
+    CEventEditableResponse* CloneEditable() const noexcept override { return new CEventAcquaintancePedRespect(m_AcquaintancePed); }
 };
 VALIDATE_SIZE(CEventAcquaintancePedRespect, 0x18);

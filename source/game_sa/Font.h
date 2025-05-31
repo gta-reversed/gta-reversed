@@ -8,6 +8,7 @@
 
 #include "RGBA.h"
 #include "eFontAlignment.h"
+#include <extensions/WEnum.hpp>
 
 class CSprite2d;
 
@@ -80,6 +81,7 @@ enum eFontStyle : uint8 {
     FONT_MENU,
     FONT_PRICEDOWN
 };
+NOTSA_WENUM_DEFS_FOR(eFontStyle);
 
 class CFont {
 public:

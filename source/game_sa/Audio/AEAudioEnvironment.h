@@ -13,7 +13,7 @@ class CAEAudioEnvironment {
 public:
     static void InjectHooks();
 
-    static float GetDopplerRelativeFrequency(float prevDist, float curDist, uint32 prevTime, uint32 curTime, float timeScale);
+    static float GetDopplerRelativeFrequency(float prevDist, float curDist, uint32 prevTime, uint32 curTime, float dopplerScale);
     static float GetDistanceAttenuation(float dist);
     static float GetDirectionalMikeAttenuation(const CVector& soundDir);
     static void  GetReverbEnvironmentAndDepth(int8* reverbEnv, int32* depth);
@@ -23,6 +23,3 @@ public:
 
 static constexpr int32 NUM_AUDIO_ENVIRONMENTS = 68;
 extern sReverbEnvironment (&gAudioZoneToReverbEnvironmentMap)[NUM_AUDIO_ENVIRONMENTS];
-
-static constexpr int32 NUM_SOUND_DIST_ATTENUATION_ENTRIES = 1280;
-extern float (&gSoundDistAttenuationTable)[NUM_SOUND_DIST_ATTENUATION_ENTRIES];

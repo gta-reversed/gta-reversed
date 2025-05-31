@@ -41,12 +41,6 @@ CEventVehicleCollision* CEventVehicleCollision::Constructor(int16 pieceType, flo
     return this;
 }
 
-// 0x4B6BC0
-CEvent* CEventVehicleCollision::Clone()
-{
-    return new CEventVehicleCollision(m_pieceType, m_fDamageIntensity, m_vehicle, m_impactNormal, m_impactPos, m_moveState, VEHICLE_EVADE_NONE);
-}
-
 // 0x4B2EE0
 bool CEventVehicleCollision::AffectsPed(CPed* ped)
 {
@@ -71,7 +65,7 @@ bool CEventVehicleCollision::AffectsPed(CPed* ped)
         auto* pGoToTask = static_cast<CTaskSimpleGoTo*>(pSimplestActiveTask);
         int32 hitSide = CPedGeometryAnalyser::ComputeEntityHitSide(*ped, *m_vehicle);
         if (hitSide == CPedGeometryAnalyser::ComputeEntityHitSide(pGoToTask->m_vecTargetPoint, *m_vehicle)) {
-            if (!m_vehicle->m_pTractor && !m_vehicle->m_pTrailer)
+            if (!m_vehicle->m_pTowingVehicle && !m_vehicle->m_pVehicleBeingTowed)
                 return false;
 
             CVector boundingBoxPlanes[4];
@@ -97,8 +91,8 @@ bool CEventVehicleCollision::AffectsPed(CPed* ped)
             CVehicle* walkRoundVehicle = pTaskWalkRoundCar->m_Veh;
             if (walkRoundVehicle == m_vehicle)
                 return false;
-            if ((m_vehicle->m_pTrailer && m_vehicle->m_pTrailer == walkRoundVehicle) ||
-                (m_vehicle->m_pTractor && m_vehicle->m_pTractor == walkRoundVehicle))
+            if ((m_vehicle->m_pVehicleBeingTowed && m_vehicle->m_pVehicleBeingTowed == walkRoundVehicle) ||
+                (m_vehicle->m_pTowingVehicle && m_vehicle->m_pTowingVehicle == walkRoundVehicle))
             {
                 pTaskWalkRoundCar->SetNewVehicle(m_vehicle, 0);
             }

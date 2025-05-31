@@ -34,7 +34,7 @@ CTaskSimpleCarGoToPointNearDoorUntilDoorNotInUse::CTaskSimpleCarGoToPointNearDoo
 CTaskSimpleCarGoToPointNearDoorUntilDoorNotInUse::CTaskSimpleCarGoToPointNearDoorUntilDoorNotInUse(const CTaskSimpleCarGoToPointNearDoorUntilDoorNotInUse&) :
     CTaskSimpleCarGoToPointNearDoorUntilDoorNotInUse{
         m_TaskWaitForDoor->m_veh,
-        static_cast<eTargetDoor>(m_TaskWaitForDoor->m_doorsToWaitFor[0]),
+        static_cast<int32>(m_TaskWaitForDoor->m_doorsToWaitFor[0]),
         m_TaskGoToPoint->m_vecTargetPoint,
         m_TaskGoToPoint->m_moveState
     }

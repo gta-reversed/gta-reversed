@@ -102,8 +102,6 @@ CTask* CTaskComplexDie::CreateNextSubTask(CPed* ped) {
 }
 
 // 0x6302D0
-
-// 0x0
 CTask* CTaskComplexDie::CreateFirstSubTask(CPed* ped) {
     SayDeathSample(ped);
 

@@ -74,7 +74,7 @@ CTask* CTaskManager::GetActiveTask() {
 }
 
 size_t CTaskManager::GetActiveTaskIndex() const {
-    for (auto&& [i, task] : notsa::enumerate(m_aPrimaryTasks)) {
+    for (auto&& [i, task] : rngv::enumerate(m_aPrimaryTasks)) {
         if (task) {
             return (size_t)i;
         }
@@ -89,9 +89,9 @@ CTask* CTaskManager::FindActiveTaskByType(eTaskType taskType) {
         return task;
     }
 
-    // The same as above, but for all secondary tasks
+    // Now try secondaries and their sub-tasks
     for (const auto sec : m_aSecondaryTasks) {
-        if (const auto task = FindFirstTaskOfType(sec, taskType)) {
+        if (const auto task = FindFirstTaskOfType(sec, taskType)) { // NOTE: Original code doesn't break first match, but that's by a bug, not intentional.
             return task;
         }
     }
@@ -101,17 +101,20 @@ CTask* CTaskManager::FindActiveTaskByType(eTaskType taskType) {
 }
 
 // 0x6817D0
-CTask* CTaskManager::FindTaskByType(ePrimaryTasks taskIndex, eTaskType taskId) {
+CTask* CTaskManager::FindTaskByType(ePrimaryTasks taskIndex, eTaskType taskId) const {
     return FindFirstTaskOfType(GetTaskPrimary(taskIndex), taskId);
 }
 
 // 0x681810
 CTask* CTaskManager::GetTaskSecondary(eSecondaryTask taskIndex) {
+    if (notsa::IsFixBugs() && taskIndex == eSecondaryTask::TASK_SECONDARY_INVALID) {
+        return nullptr;
+    }
     return m_aSecondaryTasks[taskIndex];
 }
 
 CTaskComplexFacial* CTaskManager::GetTaskSecondaryFacial() {
-    return CTask::Cast<CTaskComplexFacial>(GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX));
+    return notsa::cast<CTaskComplexFacial>(GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX));
 }
 
 // NOTSA?
@@ -222,7 +225,7 @@ void CTaskManager::ParentsControlChildren(CTask* parent) {
             return;
         }
 
-        task = oldSubTask;
+        task = task->GetSubTask();
     }
 }
 

@@ -1,5 +1,6 @@
 #include "StdInc.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
 #include "PedDamageResponseCalculator.h"
 
 float& CPedDamageResponseCalculator::ms_damageFactor = *(float*)0x8A6260; // 5555.5498
@@ -12,7 +13,7 @@ void CPedDamageResponseCalculator::InjectHooks() {
     RH_ScopedInstall(AccountForPedDamageStats, 0x4AD430, { .reversed = false });
     RH_ScopedInstall(AccountForPedArmour, 0x4AD550, { .reversed = false });
     RH_ScopedInstall(ComputeWillForceDeath, 0x4AD610, { .reversed = false });
-    RH_ScopedInstall(ComputeWillKillPed, 0x4B3210, { .reversed = false });
+    RH_ScopedInstall(ComputeWillKillPed, 0x4B3210);
     RH_ScopedInstall(IsBleedingWeapon, 0x4B5C2A, { .reversed = false });
     RH_ScopedInstall(ComputeDamageResponse, 0x4B5AC0, { .reversed = false });
 }
@@ -77,7 +78,29 @@ void CPedDamageResponseCalculator::AccountForPedArmour(CPed* ped, CPedDamageResp
  * @addr Added in Android
  */
 void CPedDamageResponseCalculator::AdjustPedDamage(CPed* ped) {
+    // TODO: Reverted function from GTA SA 2.10 version ABI : arm64-v8a (x64)
+    // offset: 0x444370
 
+    if (!ped) {
+        return;
+    }
+
+    const auto plyr = FindPlayerPed(-1);
+    if (!plyr) {
+        return;
+    }
+
+    const bool isUnarmedBrassOrParachute = m_weaponType == WEAPON_UNARMED
+        || m_weaponType == WEAPON_BRASSKNUCKLE
+        || m_weaponType == WEAPON_PARACHUTE;
+
+    if (CCheat::m_aCheatsActive[CHEAT_COUNTRY_TRAFFIC] && m_weaponType <= eWeaponType::WEAPON_PARACHUTE && isUnarmedBrassOrParachute) {
+        m_fDamageFactor = ped->m_fHealth;
+    }
+
+    if (plyr == ped && CTheScripts::pActiveScripts && !strcmp(CTheScripts::pActiveScripts->m_szName, "intro1")) {
+        m_fDamageFactor = m_fDamageFactor * 0.77f;
+    }
 }
 
 /*!
@@ -98,8 +121,52 @@ bool CPedDamageResponseCalculator::ComputeWillForceDeath(CPed* ped, CPedDamageRe
  * @param bSpeak
  * @addr 0x4B3210
  */
-void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageResponse& response, bool bSpeak) {
-    plugin::CallMethod<0x4B3210, CPedDamageResponseCalculator*, CPed*, CPedDamageResponse&, bool>(this, ped, response, bSpeak);
+void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageResponse& rsp, bool bSpeak) {
+    if (ped->IsPlayer()) {
+        if (CCheat::IsActive(CHEAT_NO_ONE_CAN_STOP_US) && m_weaponType < WEAPON_LAST_WEAPON) {
+            return;
+        }
+    }
+
+    rsp.m_bForceDeath = ComputeWillForceDeath(ped, rsp);
+
+    if (CCheat::IsActive(CHEAT_MEGA_PUNCH)) {
+        if (notsa::contains({ WEAPON_UNARMED, WEAPON_BRASSKNUCKLE, WEAPON_PARACHUTE }, m_weaponType)) {
+            m_fDamageFactor = ped->m_fHealth;
+        }
+    }
+
+    if (!rsp.m_bForceDeath && m_weaponType == WEAPON_FALL && m_bSpeak) {
+        const auto prevHP   = ped->m_fHealth;
+        ped->m_fHealth      = std::max(prevHP - m_fDamageFactor, 5.0f);
+        rsp.m_bHealthZero   = false;
+        rsp.m_fDamageHealth = prevHP - ped->m_fHealth;
+        if (bSpeak) {
+            ped->Say(CTX_GLOBAL_PAIN_LOW, 0, 1.0, 0, 0, 0);
+        }
+        return;
+    }
+
+    if (rsp.m_bForceDeath || ped->m_fHealth - m_fDamageFactor < 1.0f) {
+        rsp.m_fDamageHealth = ped->m_fHealth;
+        rsp.m_bHealthZero   = true;
+        ped->m_fHealth      = 0.0f;
+        return;
+    }
+
+    rsp.m_bHealthZero   = false;
+    rsp.m_fDamageHealth = m_fDamageFactor;
+    ped->m_fHealth      = ped->m_fHealth - m_fDamageFactor;
+
+    if (bSpeak) {
+        ped->Say(
+            m_weaponType == WEAPON_DROWNING
+                ? CTX_GLOBAL_PAIN_CJ_DROWNING
+                : m_fDamageFactor < 5.0f && ped->m_fHealth > 10.0f
+                    ? CTX_GLOBAL_PAIN_LOW
+                    : CTX_GLOBAL_PAIN_HIGH
+        );
+    }
 }
 
 /*!

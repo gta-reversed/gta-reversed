@@ -33,7 +33,7 @@ public:
     int16      m_fX2{};
     int16      m_fY2{};
     int16      m_fZ2{};
-    int16      m_nZoneExtraIndexInfo{};
+    int16      m_ZoneInfoIndex{};
     eZoneType  m_nType{};
     eLevelName m_nLevel{};
 

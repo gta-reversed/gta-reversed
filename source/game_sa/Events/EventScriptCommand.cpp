@@ -58,12 +58,6 @@ int32 CEventScriptCommand::GetEventPriority() const
     return 71;
 }
 
-// 0x4B6490
-CEvent*  CEventScriptCommand::Clone()
-{
-    return new CEventScriptCommand(m_primaryTaskIndex, CloneScriptTask(), m_affectsDeadPeds);
-}
-
 // 0x4B0AF0
 bool CEventScriptCommand::AffectsPed(CPed* ped)
 {
@@ -90,7 +84,7 @@ bool CEventScriptCommand::IsValid(CPed* ped)
 }
 
 // 0x4B0AA0
-CTask* CEventScriptCommand::CloneScriptTask()
+CTask* CEventScriptCommand::CloneScriptTask() const
 {
     if (m_task)
         return m_task->Clone();

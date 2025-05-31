@@ -46,29 +46,28 @@ void CRope::CreateHookObjectForRope() {
         return;
 
     using namespace ModelIndices;
-    ModelIndex modelIndex = -1;
-    switch (m_nType) {
-    case eRopeType::CRANE_MAGNET1:
-    case eRopeType::CRANE_MAGNO:
-    case eRopeType::QUARRY_CRANE_ARM:
-    case eRopeType::CRANE_TROLLEY:
-        modelIndex = MI_CRANE_MAGNET;
-        break;
-    case eRopeType::CRANE_HARNESS:
-        modelIndex = MI_CRANE_HARNESS;
-        break;
-    case eRopeType::MAGNET:
-        modelIndex = MI_MINI_MAGNET;
-        break;
-    case eRopeType::WRECKING_BALL:
-        modelIndex = MI_WRECKING_BALL;
-        break;
-    case eRopeType::SWAT:
-        return; // Just so the assert below wont be hit.
-    default: {
-        assert(0); // NOTSA
+
+    const auto modelIndex = [&]() -> ModelIndex {
+        switch (m_nType) {
+        case eRopeType::CRANE_MAGNET1:
+        case eRopeType::CRANE_MAGNO:
+        case eRopeType::QUARRY_CRANE_ARM:
+        case eRopeType::CRANE_TROLLEY:
+            return MI_CRANE_MAGNET;
+        case eRopeType::CRANE_HARNESS:
+            return MI_CRANE_HARNESS;
+        case eRopeType::MAGNET:
+            return MI_MINI_MAGNET;
+        case eRopeType::WRECKING_BALL:
+            return MI_WRECKING_BALL;
+        case eRopeType::SWAT:
+            return MODEL_INVALID; // Just so the assert below wont be hit.
+        default:
+            NOTSA_UNREACHABLE(); //assert(0);
+        }
+    }();
+    if (modelIndex == ModelIndex{ MODEL_INVALID }) { // Must do it like this because `ModelIndex` is u16, `MODEL_ID` is i32, and u16 -1 casted to int32 is 0xffff...
         return;
-    }
     }
 
     auto* obj = new CObject(modelIndex, true);

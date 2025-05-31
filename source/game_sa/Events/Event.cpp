@@ -11,6 +11,16 @@ void CEvent::InjectHooks() {
     RH_ScopedInstall(GetSoundLevel, 0x4B2850);
 }
 
+// 0x4B5620
+void* CEvent::operator new(unsigned) {
+    return GetEventPool()->New();
+}
+
+// 0x4B5630
+void CEvent::operator delete(void* object) {
+    GetEventPool()->Delete(static_cast<CEvent*>(object));
+}
+
 // 0x4ABFC0
 CEvent::CEvent() {
     m_nTimeActive = 0;

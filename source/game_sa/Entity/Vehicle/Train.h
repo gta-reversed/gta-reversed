@@ -141,5 +141,6 @@ VALIDATE_OFFSET(CTrain, m_nTrainFlags, 0x5B8);
 
 void ProcessTrainAnnouncements();
 void PlayAnnouncement(uint8 arg0, uint8 arg1);
-void TrainHitStuff(CPtrList& ptrList, CEntity* entity);
+template<typename PtrListType>
+void TrainHitStuff(PtrListType& ptrList, CEntity* entity);
 void MarkSurroundingEntitiesForCollisionWithTrain(CVector pos, float radius, CEntity* entity, bool bOnlyVehicles);

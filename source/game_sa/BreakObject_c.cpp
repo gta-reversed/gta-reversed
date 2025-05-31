@@ -1,7 +1,7 @@
 #include "StdInc.h"
 
 #include "BreakObject_c.h"
-#include "Plugins\BreakablePlugin\BreakablePlugin.h"
+#include "Plugins/BreakablePlugin/BreakablePlugin.h"
 #include "PostEffects.h"
 
 void BreakObject_c::InjectHooks() {

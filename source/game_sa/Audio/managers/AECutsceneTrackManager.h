@@ -7,7 +7,7 @@ public:
         S1 = 1,
         S2 = 2,
         STATE_PLAYING = 3,
-        S4 = 4,
+        STATE_STOP_REQUESTED = 4,
         S5 = 5,
         S6 = 6,
         S7 = 7,

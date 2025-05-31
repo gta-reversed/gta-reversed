@@ -17,8 +17,8 @@ void CGamma::Init() {
     m_TargetLevel  = -1000.0f;
     m_PrevLevel    = 1000.0f;
 
-    auto* caps = RwD3D9GetCaps();
-    auto* dev  = RwD3D9GetCurrentD3DDevice();
+    auto* caps = (D3DCAPS9*)const_cast<void*>(RwD3D9GetCaps());
+    auto* dev  = (IDirect3DDevice9*)RwD3D9GetCurrentD3DDevice();
     D3DCAPS9 devCaps{}; // TODO: what's the difference with `caps`?
     dev->GetDeviceCaps(&devCaps);
 
@@ -27,8 +27,7 @@ void CGamma::Init() {
     }
 
     if (!(devCaps.Caps2 & D3DCAPS2_FULLSCREENGAMMA) && !(devCaps.Caps2 & D3DCAPS2_CANCALIBRATEGAMMA)) {
-        // No gamma support
-        m_IsEnabled = false;
+        m_IsEnabled = false; // No gamma support
     }
 }
 
@@ -44,7 +43,7 @@ void CGamma::SetGamma(float gammaLevel, bool fade) {
         return;
     }
 
-    auto* dev = RwD3D9GetCurrentD3DDevice();
+    auto* dev = (IDirect3DDevice9*)RwD3D9GetCurrentD3DDevice();
     if (!dev) {
         return;
     }

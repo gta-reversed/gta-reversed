@@ -93,18 +93,18 @@ public:
     float m_fMoveDirection;
     CVector m_moveForce;
     CVector m_turnForce;
-    std::array<float, 6> field_8CC; // Inited in ctor with random values, but seemingly unused.
+    std::array<float, 6> DoorRotation; // Inited in ctor with random values, but seemingly unused.
 
     float m_fBurnTimer;
 
-    std::array<CPhysical*, 4> m_apWheelCollisionEntity;
-    std::array<CVector, 4>    m_vWheelCollisionPos; // Bike::m_avTouchPointsLocalSpace
+    std::array<CPhysical*, 4> m_apWheelCollisionEntity{};
+    std::array<CVector, 4>    m_vWheelCollisionPos{}; // Bike::m_avTouchPointsLocalSpace
 
     CPed* m_pExplosionVictim;
     std::array<char, 24> field_928;
 
-    int32 field_940;
-    int32 field_944;
+    float LeftDoorOpenForDriveBys;
+    float RightDoorOpenForDriveBys;
     float m_fDoomVerticalRotation;
     float m_fDoomHorizontalRotation;
     float m_fForcedOrientation;
@@ -119,7 +119,7 @@ public:
 
     uint8 m_harvesterParticleCounter;
     uint8 m_fireParticleCounter;
-    int16 field_982;
+    int16 __pad_982;
     float m_heliDustFxTimeConst;
 
     // variables
@@ -153,16 +153,16 @@ public:
     //!!!!!!!!!!!!!!!!!!!
     // PAY CLOSE ATTENTION TO WHICH VERSION OF THE FUNCTIONS DOWN BELOW YOU'RE CALLING!
     //!!!!!!!!!!!!!!!!!!!
-    float GetDooorAngleOpenRatio(eDoors door) override;
     float GetDooorAngleOpenRatioU32(uint32 door) override;
-    bool IsDoorReady(eDoors door) override;
+    float GetDooorAngleOpenRatio(eDoors door) override;
     bool IsDoorReadyU32(uint32 door) override;
-    bool IsDoorFullyOpen(eDoors door) override;
+    bool IsDoorReady(eDoors door) override;
     bool IsDoorFullyOpenU32(uint32 door) override;
-    bool IsDoorClosed(eDoors door) override;
+    bool IsDoorFullyOpen(eDoors door) override;
     bool IsDoorClosedU32(uint32 door) override;
-    bool IsDoorMissing(eDoors door) override;
+    bool IsDoorClosed(eDoors door) override;
     bool IsDoorMissingU32(uint32 door) override;
+    bool IsDoorMissing(eDoors door) override;
 
     bool IsOpenTopCar() override;
     void RemoveRefsToVehicle(CEntity* entity) override;
@@ -196,6 +196,7 @@ public:
     int32 ProcessEntityCollision(CEntity* entity, CColPoint* colPoint) override;
 
     void PreRender() override;
+    void Render() override;
 
     // Find and save components ptrs (RwFrame) to m_modelNodes array
     void SetupModelNodes();
@@ -285,7 +286,7 @@ public:
     void SetBumperDamage(ePanels panel, bool withoutVisualEffect);
     void SetPanelDamage(ePanels panel, bool createWindowGlass);
     void SetDoorDamage(eDoors door, bool withoutVisualEffect);
-    bool RcbanditCheck1CarWheels(CPtrList& ptrList);
+    bool RcbanditCheck1CarWheels(CPtrListDoubleLink<CVehicle*>& ptrList);
     bool RcbanditCheckHitWheels();
     void FireTruckControl(CFire* fire);
     bool HasCarStoppedBecauseOfLight();

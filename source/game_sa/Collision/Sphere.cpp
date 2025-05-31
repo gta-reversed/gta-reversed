@@ -36,7 +36,7 @@ void CSphere::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
     CVector v61 = center;
     v61.y -= m_fRadius;
 
-    const auto colorARGB = color.ToInt();
+    const auto colorARGB = color.ToIntARGB();
     CLines::RenderLineNoClipping(v13, v32, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(v13, v41, colorARGB, colorARGB);
     CLines::RenderLineNoClipping(v21, v32, colorARGB, colorARGB);

@@ -14,7 +14,7 @@ public:
     eEventType GetEventType() const override { return EVENT_SEEN_COP; }
     int32 GetEventPriority() const override { return 21; }
     bool AffectsPed(CPed* ped) override { return CEventAcquaintancePed::AffectsPed(ped); }
-    CEventSeenCop* CloneEditable() override { return new CEventSeenCop(m_AcquaintancePed); }
+    CEventSeenCop* CloneEditable() const noexcept override { return new CEventSeenCop(m_AcquaintancePed); }
 
 public:
     friend void InjectHooksMain();

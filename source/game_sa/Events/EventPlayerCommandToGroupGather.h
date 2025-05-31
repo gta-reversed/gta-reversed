@@ -13,7 +13,7 @@ public:
 
     eEventType GetEventType() const override { return EVENT_PLAYER_COMMAND_TO_GROUP_GATHER; }
     int32 GetEventPriority() const override { return 45; }
-    CEventPlayerCommandToGroupGather* CloneEditable() override { return new CEventPlayerCommandToGroupGather(m_target); }
+    CEventPlayerCommandToGroupGather* CloneEditable() const noexcept override { return new CEventPlayerCommandToGroupGather(m_target); }
 
     CEventPlayerCommandToGroupGather* Constructor(CPed* target);
 };

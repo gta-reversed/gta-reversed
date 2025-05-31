@@ -1,10 +1,3 @@
-/*
-    Plugin-SDK file
-    Authors: GTA Community. See more here
-    https://github.com/DK22Pac/plugin-sdk
-    Do not delete this comment block. Respect others' work!
-*/
-#pragma once
 /******************************************/
 /*                                        */
 /*    RenderWare(TM) Graphics Library     */
@@ -29,17 +22,60 @@
 /*************************************************************************
  *
  * Filename: <C:/daily/rwsdk/include/d3d9/rwcore.h>
- * Automatically Generated on: Fri Oct 03 09:52:43 2003
+ * Automatically Generated on: Thu Feb 12 13:01:34 2004
  *
  ************************************************************************/
 
+#ifndef RWCORE_H
+#define RWCORE_H
+
 /*--- System Header Files ---*/
-#include "rwplcore.h"
+#include <rwplcore.h>
 
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/p2resort.h ---*/
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/p2macros.h ---*/
+
+#define RxClusterDecCursorByStride(_cluster, _stride)                           \
+    ((_cluster)->currentData =                                                  \
+      (void *)(((RwUInt8 *)(_cluster)->currentData) -                           \
+         (_stride)))
+
+#define RxClusterDecCursor(_cluster) \
+    RxClusterDecCursorByStride(_cluster, (_cluster)->stride)
+
+#define RxClusterIncCursorByStride(_cluster, _stride)                           \
+    ((_cluster)->currentData =                                                  \
+     (void *)(((RwUInt8 *)(_cluster)->currentData) +                            \
+              (_stride)))
+
+#define RxClusterIncCursor(_cluster) \
+    RxClusterIncCursorByStride(_cluster, (_cluster)->stride)
+
+#define RxClusterResetCursor(_cluster) \
+    ((_cluster)->currentData = (_cluster)->data)
+
+#define RxClusterGetCursorData(_cluster, _type) \
+    ((_type *)(_cluster)->currentData)
+
+#define RxClusterGetIndexedData(_cluster, _type, _index)                        \
+    ((_type *)(((RwUInt8 *)(_cluster)->data) + (_cluster)->stride*(_index)))
+
+#define RxClusterGetFreeIndex(_cluster) ( (_cluster)->numUsed++ )
+
+#define RxPipelineClusterAssertAttributeSet(_cluster, _attributeSet)    \
+    RWASSERT( (_cluster)->clusterRef->attributeSet != NULL &&           \
+              rwstrcmp((_cluster)->clusterRef->attributeSet,              \
+                     (_attributeSet)) == 0 )
+
+#define RxPipelineNodeParamGetData(_param) \
+    ( (_param)->dataParam )
+
+#define RxPipelineNodeParamGetHeap(_param) \
+    ( (_param)->heap )
+
+
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/p2heap.h ---*/
 
@@ -99,6 +135,27 @@ struct rxHeapBlockHeader
 };
 #endif /* (!defined(DOXYGEN)) */
 
+/* This wrapper cheaply early-outs when a heap doesn't *need* resetting */
+#define RxHeapReset(heap) \
+    ((FALSE == (heap)->dirty) ? (TRUE) : (_rxHeapReset(heap)))
+
+#ifdef __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
+
+extern RxHeap      *RxHeapCreate(RwUInt32 size);
+extern void         RxHeapDestroy(RxHeap * heap);
+extern RwBool       _rxHeapReset(RxHeap * heap);
+extern void        *RxHeapAlloc(RxHeap * heap, RwUInt32 size);
+extern void         RxHeapFree(RxHeap * heap, void *block);
+extern void        *RxHeapRealloc(RxHeap * heap, void *block,
+                                  RwUInt32 newSize, RwBool allowCopy);
+
+#ifdef __cplusplus
+}
+#endif                          /* __cplusplus */
+
 #if (defined(DISABLERWHEAP))
 
 typedef struct rxHeapMallocTrace rxHeapMallocTrace;
@@ -114,6 +171,11 @@ struct rxHeapMallocTrace
 /*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/p2dep.h ---*/
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/p2core.h ---*/
+
+extern RwInt32 _rxPipelineMaxNodes;
+extern RwInt32 _rxHeapInitialSize;
+/* LEGACY-SUPPORT MACRO */
+#define _rwRxHeapInitialSize _rxHeapInitialSize
 
 /* Beneficial padding of PowerPipe types is still being worked out... */
 #define PADCLUSTERSx
@@ -669,6 +731,519 @@ typedef RxPipelineNode * (*RxPipelineNodeOutputCallBack) (RxPipelineNode * node,
                                                   RxPipelineNode * outputnode,
                                                   void *callbackdata);
 
+
+#ifdef RWDEBUG
+#define RXCHECKFORUSERTRAMPLING(_pipeline)                       \
+    ( _rwPipelineCheckForTramplingOfNodePrivateSpace(_pipeline) )
+#endif /* RWDEBUG */
+
+#if (!defined(RXCHECKFORUSERTRAMPLING))
+#define RXCHECKFORUSERTRAMPLING(_pipeline) /* No op */
+#endif /* (!defined(RXCHECKFORUSERTRAMPLING)) */
+
+
+#ifdef    __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
+
+extern void
+RxPipelineSetFreeListCreateParams( RwInt32 blockSize, RwInt32 numBlocksToPrealloc );
+
+extern RwBool
+_rxPipelineOpen(void);
+
+extern RwBool
+_rxPipelineClose(void);
+
+extern RwBool
+rxPipelinePluginsAttach(void);
+
+extern RxPipeline *
+RxPipelineCreate(void);
+
+
+extern void
+_rxPipelineDestroy(RxPipeline * Pipeline);
+
+#define _RxPipelineDestroy(_ppln)  _rxPipelineDestroy(_ppln)
+#define RxPipelineDestroy(_ppln) (_rxPipelineDestroy(_ppln), TRUE)
+
+extern RxHeap      *
+RxHeapGetGlobalHeap(void);
+
+extern RxPipeline *
+RxPipelineExecute(RxPipeline  * pipeline,
+                  void        * data,
+                  RwBool       heapReset);
+
+extern RxPacket *
+RxPacketCreate(RxPipelineNode * node);
+
+extern RxCluster   *
+RxClusterSetStride(RxCluster * cluster,
+                   RwInt32 stride);
+
+extern RxCluster   *
+RxClusterSetExternalData(RxCluster * cluster,
+                         void *data,
+                         RwInt32 stride,
+                         RwInt32 numElements);
+
+extern RxCluster   *
+RxClusterSetData(RxCluster * cluster,
+                 void *data,
+                 RwInt32 stride,
+                 RwInt32 numElements);
+
+/* underlying PacketDestroy function */
+extern void
+_rxPacketDestroy(RxPacket * Packet);
+
+/* more convenient parameterization */
+#define RxPacketDestroy(pk, self) \
+    ( _rxPacketDestroy(pk) )
+
+#if (defined(RWDEBUG))
+extern RxPacket *RxPacketFetch(RxPipelineNode * Node);
+extern void      RxPacketDispatch(RxPacket * packet,
+                                  RwUInt32 output,
+                                  RxPipelineNode * self);
+extern void      RxPacketDispatchToPipeline(RxPacket * packet,
+                                            RxPipeline * dest,
+                                            RxPipelineNode * self);
+#else /* (defined(RWDEBUG)) */
+#define RxPacketFetch(_self) \
+    rxPacketFetchMacro(_self)
+#define RxPacketDispatch(     _packet, _output, _self) \
+    rxPacketDispatchMacro(_packet, _output, _self)
+#define RxPacketDispatchToPipeline(     _packet, _pipeline, _self) \
+    rxPacketDispatchToPipelineMacro(_packet, _pipeline, _self)
+#endif /* (defined(RWDEBUG)) */
+
+#define RxClusterInitialiseData(_clstr, _nmlmnts, _strd) \
+    ( RxClusterInitializeData((_clstr), (_nmlmnts), (_strd)) )
+extern RxCluster   *
+RxClusterInitializeData(RxCluster *cluster, RwUInt32 numElements, RwUInt16 stride);
+
+extern RxCluster   *
+RxClusterResizeData(RxCluster *CurrentCluster, RwUInt32 NumElements);
+
+extern RxCluster   *
+RxClusterDestroyData(RxCluster *CurrentCluster);
+
+#if (defined(RWDEBUG))
+
+extern RxCluster *RxClusterLockRead(RxPacket * packet, RwUInt32 clusterIndex);
+
+#else  /* !RWDEBUG */
+
+#define RXCLSLOT(PKT, CLIND)             \
+    ((PKT)->inputToClusterSlot[(CLIND)])
+
+#define RxClusterLockRead(PKT, CLIND)                               \
+    ( (((RwInt32)RXCLSLOT(PKT, CLIND)) == -1) ?                     \
+      ((RxCluster *)NULL) :                                         \
+      (RxClusterResetCursor(&PKT->clusters[RXCLSLOT(PKT, CLIND)]),  \
+       &PKT->clusters[RXCLSLOT(PKT, CLIND)]) )
+
+#endif /* !RWDEBUG */
+
+extern RxCluster   *
+RxClusterLockWrite(RxPacket * packet,
+                   RwUInt32 clusterIndex,
+                   RxPipelineNode * node);
+
+extern void
+RxClusterUnlock(RxCluster * cluster);
+
+extern RwUInt32
+RxPipelineNodeSendConfigMsg(RxPipelineNode * dest,
+                            RwUInt32 msg,
+                            RwUInt32 intparam,
+                            void *ptrparam);
+
+extern RxPipelineNode *
+RxPipelineNodeForAllConnectedOutputs(RxPipelineNode * node,
+                                     RxPipeline * pipeline,
+                                     RxPipelineNodeOutputCallBack callbackfn,
+                                     void *callbackdata);
+
+/* Cluster attributes api [pipeline construction time] */
+
+extern RxPipelineCluster *
+RxPipelineNodeGetPipelineCluster(RxPipelineNode *node,
+                                   RwUInt32 clustersOfInterestIndex);
+
+extern RwUInt32
+RxPipelineClusterGetCreationAttributes(RxPipelineCluster *cluster);
+
+extern RxPipelineCluster *
+RxPipelineClusterSetCreationAttributes(RxPipelineCluster *cluster,
+                                         RwUInt32 creationAttributes);
+
+/* Cluster attributes api [pipeline execution time] */
+
+extern RwUInt32
+RxClusterGetAttributes(RxCluster *cluster);
+
+extern RxCluster *
+RxClusterSetAttributes(RxCluster *cluster, RwUInt32 attributes);
+
+
+extern void
+_rxEmbeddedPacketBetweenPipelines(RxPipeline * fromPipeline,
+                                 RxPipeline * toPipeline);
+
+extern RxPipelineNode *
+_rxEmbeddedPacketBetweenNodes(RxPipeline     *pipeline,
+                             RxPipelineNode *nodeFrom,
+                             RwUInt32        whichOutput);
+
+extern RxExecutionContext _rxExecCtxGlobal;
+
+/* Summary of dispatch rules:
+ * o nodes that never fetch are safe to dispatch NULL, whether
+ *   nodes above pass them a packet or not
+ * o if you destroy the packet you can dispatch(NULL,,)
+ * o if you fetch/create and dispatch(NULL), it doesn't really
+ *   matter - the packet'll get passed on anyway */
+
+/* TODO: there's currently no way to prematurely terminate the pipeline
+ *      without doing so as an error condition. You should create an
+ *      enum for the exit code, either RXNODEEXITCONTINUE, RXNODEEXITTERMINATE
+ *      or RXNODEEXTTERMINATEERROR and then test for RXNODEEXITCONTINUE in
+ *      the below macros rather than FALSE. */
+
+/* TODO: _packet redundant here... create a new macro and legacy wrapper */
+#define rxPacketDispatchMacro(_packet, _output, _self)                      \
+MACRO_START                                                                 \
+{                                                                           \
+    RxPipeline *curPipeline = _rxExecCtxGlobal.pipeline;                    \
+                                                                            \
+    /* _packet is now an obsolete parameter */                              \
+                                                                            \
+    if ( FALSE != _rxExecCtxGlobal.exitCode )                               \
+    {                                                                       \
+        RxPipelineNode *nextNode =                                          \
+            _rxEmbeddedPacketBetweenNodes(curPipeline,                      \
+                                         _self,                             \
+                                         (_output));                        \
+        if ( nextNode != NULL )                                             \
+        {                                                                   \
+            RwUInt32 exitCode =                                             \
+                nextNode->nodeDef->nodeMethods.nodeBody(                    \
+                    nextNode, &(_rxExecCtxGlobal.params));                  \
+            /* Don't overwrite 'error' with 'success' */                    \
+            if (FALSE == exitCode) _rxExecCtxGlobal.exitCode = exitCode;    \
+        }                                                                   \
+    }                                                                       \
+    if ( curPipeline->embeddedPacketState > rxPKST_UNUSED                   \
+         /* !UNUSED and !PACKETLESS */ )                                    \
+    {                                                                       \
+        curPipeline->embeddedPacketState = rxPKST_INUSE;                    \
+        _rxPacketDestroy(curPipeline->embeddedPacket);                      \
+    }                                                                       \
+}                                                                           \
+MACRO_STOP
+
+/* TODO: _self redundant here... create a new macro and legacy wrapper */
+#define rxPacketDispatchToPipelineMacro(_packet, _pipeline, _self)          \
+MACRO_START                                                                 \
+{                                                                           \
+    RxPipeline *toPipeline = (_pipeline);                                   \
+                                                                            \
+    /* _packet is now an obsolete parameter */                              \
+                                                                            \
+    if ( FALSE != _rxExecCtxGlobal.exitCode )                               \
+    {                                                                       \
+        RwUInt32 exitCode;                                                  \
+        RxPipeline *fromPipeline = _rxExecCtxGlobal.pipeline; /* save */    \
+        _rxEmbeddedPacketBetweenPipelines(fromPipeline,                     \
+                                         toPipeline);                       \
+        _rxExecCtxGlobal.pipeline = toPipeline; /* modify */                \
+        exitCode =                                                          \
+            toPipeline->nodes[0].nodeDef->nodeMethods.nodeBody(             \
+                &toPipeline->nodes[0], &(_rxExecCtxGlobal.params));         \
+        if ( FALSE == exitCode ) _rxExecCtxGlobal.exitCode = exitCode;      \
+        _rxExecCtxGlobal.pipeline = fromPipeline; /* restore */             \
+    }                                                                       \
+    if ( toPipeline->embeddedPacketState > rxPKST_UNUSED                    \
+         /* !UNUSED and !PACKETLESS */ )                                    \
+    {                                                                       \
+        toPipeline->embeddedPacketState = rxPKST_INUSE;                     \
+        _rxPacketDestroy(toPipeline->embeddedPacket);                       \
+    }                                                                       \
+}                                                                           \
+MACRO_STOP
+
+#define rxPacketFetchMacro(_node)                                           \
+    ( ((_rxExecCtxGlobal.pipeline)->embeddedPacketState == rxPKST_PENDING) ?\
+      ((_rxExecCtxGlobal.pipeline)->embeddedPacketState = rxPKST_INUSE,     \
+       (_rxExecCtxGlobal.pipeline)->embeddedPacket) :                       \
+      (NULL) )
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+
+#ifdef RWDEBUG
+#define RXCHECKFORUSERTRAMPLING(_pipeline)                       \
+    ( _rwPipelineCheckForTramplingOfNodePrivateSpace(_pipeline) )
+#endif /* RWDEBUG */
+
+#if (!defined(RXCHECKFORUSERTRAMPLING))
+#define RXCHECKFORUSERTRAMPLING(_pipeline) /* No op */
+#endif /* (!defined(RXCHECKFORUSERTRAMPLING)) */
+
+
+#ifdef    __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
+
+extern void
+RxPipelineSetFreeListCreateParams( RwInt32 blockSize, RwInt32 numBlocksToPrealloc );
+
+extern RwBool
+_rxPipelineOpen(void);
+
+extern RwBool
+_rxPipelineClose(void);
+
+extern RwBool
+rxPipelinePluginsAttach(void);
+
+extern RxPipeline *
+RxPipelineCreate(void);
+
+
+extern void
+_rxPipelineDestroy(RxPipeline * Pipeline);
+
+#define _RxPipelineDestroy(_ppln)  _rxPipelineDestroy(_ppln)
+#define RxPipelineDestroy(_ppln) (_rxPipelineDestroy(_ppln), TRUE)
+
+extern RxHeap      *
+RxHeapGetGlobalHeap(void);
+
+extern RxPipeline *
+RxPipelineExecute(RxPipeline  * pipeline,
+                  void        * data,
+                  RwBool       heapReset);
+
+extern RxPacket *
+RxPacketCreate(RxPipelineNode * node);
+
+extern RxCluster   *
+RxClusterSetStride(RxCluster * cluster,
+                   RwInt32 stride);
+
+extern RxCluster   *
+RxClusterSetExternalData(RxCluster * cluster,
+                         void *data,
+                         RwInt32 stride,
+                         RwInt32 numElements);
+
+extern RxCluster   *
+RxClusterSetData(RxCluster * cluster,
+                 void *data,
+                 RwInt32 stride,
+                 RwInt32 numElements);
+
+/* underlying PacketDestroy function */
+extern void
+_rxPacketDestroy(RxPacket * Packet);
+
+/* more convenient parameterization */
+#define RxPacketDestroy(pk, self) \
+    ( _rxPacketDestroy(pk) )
+
+#if (defined(RWDEBUG))
+extern RxPacket *RxPacketFetch(RxPipelineNode * Node);
+extern void      RxPacketDispatch(RxPacket * packet,
+                                  RwUInt32 output,
+                                  RxPipelineNode * self);
+extern void      RxPacketDispatchToPipeline(RxPacket * packet,
+                                            RxPipeline * dest,
+                                            RxPipelineNode * self);
+#else /* (defined(RWDEBUG)) */
+#define RxPacketFetch(_self) \
+    rxPacketFetchMacro(_self)
+#define RxPacketDispatch(     _packet, _output, _self) \
+    rxPacketDispatchMacro(_packet, _output, _self)
+#define RxPacketDispatchToPipeline(     _packet, _pipeline, _self) \
+    rxPacketDispatchToPipelineMacro(_packet, _pipeline, _self)
+#endif /* (defined(RWDEBUG)) */
+
+#define RxClusterInitialiseData(_clstr, _nmlmnts, _strd) \
+    ( RxClusterInitializeData((_clstr), (_nmlmnts), (_strd)) )
+extern RxCluster   *
+RxClusterInitializeData(RxCluster *cluster, RwUInt32 numElements, RwUInt16 stride);
+
+extern RxCluster   *
+RxClusterResizeData(RxCluster *CurrentCluster, RwUInt32 NumElements);
+
+extern RxCluster   *
+RxClusterDestroyData(RxCluster *CurrentCluster);
+
+#if (defined(RWDEBUG))
+
+extern RxCluster *RxClusterLockRead(RxPacket * packet, RwUInt32 clusterIndex);
+
+#else  /* !RWDEBUG */
+
+#define RXCLSLOT(PKT, CLIND)             \
+    ((PKT)->inputToClusterSlot[(CLIND)])
+
+#define RxClusterLockRead(PKT, CLIND)                               \
+    ( (((RwInt32)RXCLSLOT(PKT, CLIND)) == -1) ?                     \
+      ((RxCluster *)NULL) :                                         \
+      (RxClusterResetCursor(&PKT->clusters[RXCLSLOT(PKT, CLIND)]),  \
+       &PKT->clusters[RXCLSLOT(PKT, CLIND)]) )
+
+#endif /* !RWDEBUG */
+
+extern RxCluster   *
+RxClusterLockWrite(RxPacket * packet,
+                   RwUInt32 clusterIndex,
+                   RxPipelineNode * node);
+
+extern void
+RxClusterUnlock(RxCluster * cluster);
+
+extern RwUInt32
+RxPipelineNodeSendConfigMsg(RxPipelineNode * dest,
+                            RwUInt32 msg,
+                            RwUInt32 intparam,
+                            void *ptrparam);
+
+extern RxPipelineNode *
+RxPipelineNodeForAllConnectedOutputs(RxPipelineNode * node,
+                                     RxPipeline * pipeline,
+                                     RxPipelineNodeOutputCallBack callbackfn,
+                                     void *callbackdata);
+
+/* Cluster attributes api [pipeline construction time] */
+
+extern RxPipelineCluster *
+RxPipelineNodeGetPipelineCluster(RxPipelineNode *node,
+                                   RwUInt32 clustersOfInterestIndex);
+
+extern RwUInt32
+RxPipelineClusterGetCreationAttributes(RxPipelineCluster *cluster);
+
+extern RxPipelineCluster *
+RxPipelineClusterSetCreationAttributes(RxPipelineCluster *cluster,
+                                         RwUInt32 creationAttributes);
+
+/* Cluster attributes api [pipeline execution time] */
+
+extern RwUInt32
+RxClusterGetAttributes(RxCluster *cluster);
+
+extern RxCluster *
+RxClusterSetAttributes(RxCluster *cluster, RwUInt32 attributes);
+
+
+extern void
+_rxEmbeddedPacketBetweenPipelines(RxPipeline * fromPipeline,
+                                 RxPipeline * toPipeline);
+
+extern RxPipelineNode *
+_rxEmbeddedPacketBetweenNodes(RxPipeline     *pipeline,
+                             RxPipelineNode *nodeFrom,
+                             RwUInt32        whichOutput);
+
+extern RxExecutionContext _rxExecCtxGlobal;
+
+/* Summary of dispatch rules:
+ * o nodes that never fetch are safe to dispatch NULL, whether
+ *   nodes above pass them a packet or not
+ * o if you destroy the packet you can dispatch(NULL,,)
+ * o if you fetch/create and dispatch(NULL), it doesn't really
+ *   matter - the packet'll get passed on anyway */
+
+/* TODO: there's currently no way to prematurely terminate the pipeline
+ *      without doing so as an error condition. You should create an
+ *      enum for the exit code, either RXNODEEXITCONTINUE, RXNODEEXITTERMINATE
+ *      or RXNODEEXTTERMINATEERROR and then test for RXNODEEXITCONTINUE in
+ *      the below macros rather than FALSE. */
+
+/* TODO: _packet redundant here... create a new macro and legacy wrapper */
+#define rxPacketDispatchMacro(_packet, _output, _self)                      \
+MACRO_START                                                                 \
+{                                                                           \
+    RxPipeline *curPipeline = _rxExecCtxGlobal.pipeline;                    \
+                                                                            \
+    /* _packet is now an obsolete parameter */                              \
+                                                                            \
+    if ( FALSE != _rxExecCtxGlobal.exitCode )                               \
+    {                                                                       \
+        RxPipelineNode *nextNode =                                          \
+            _rxEmbeddedPacketBetweenNodes(curPipeline,                      \
+                                         _self,                             \
+                                         (_output));                        \
+        if ( nextNode != NULL )                                             \
+        {                                                                   \
+            RwUInt32 exitCode =                                             \
+                nextNode->nodeDef->nodeMethods.nodeBody(                    \
+                    nextNode, &(_rxExecCtxGlobal.params));                  \
+            /* Don't overwrite 'error' with 'success' */                    \
+            if (FALSE == exitCode) _rxExecCtxGlobal.exitCode = exitCode;    \
+        }                                                                   \
+    }                                                                       \
+    if ( curPipeline->embeddedPacketState > rxPKST_UNUSED                   \
+         /* !UNUSED and !PACKETLESS */ )                                    \
+    {                                                                       \
+        curPipeline->embeddedPacketState = rxPKST_INUSE;                    \
+        _rxPacketDestroy(curPipeline->embeddedPacket);                      \
+    }                                                                       \
+}                                                                           \
+MACRO_STOP
+
+/* TODO: _self redundant here... create a new macro and legacy wrapper */
+#define rxPacketDispatchToPipelineMacro(_packet, _pipeline, _self)          \
+MACRO_START                                                                 \
+{                                                                           \
+    RxPipeline *toPipeline = (_pipeline);                                   \
+                                                                            \
+    /* _packet is now an obsolete parameter */                              \
+                                                                            \
+    if ( FALSE != _rxExecCtxGlobal.exitCode )                               \
+    {                                                                       \
+        RwUInt32 exitCode;                                                  \
+        RxPipeline *fromPipeline = _rxExecCtxGlobal.pipeline; /* save */    \
+        _rxEmbeddedPacketBetweenPipelines(fromPipeline,                     \
+                                         toPipeline);                       \
+        _rxExecCtxGlobal.pipeline = toPipeline; /* modify */                \
+        exitCode =                                                          \
+            toPipeline->nodes[0].nodeDef->nodeMethods.nodeBody(             \
+                &toPipeline->nodes[0], &(_rxExecCtxGlobal.params));         \
+        if ( FALSE == exitCode ) _rxExecCtxGlobal.exitCode = exitCode;      \
+        _rxExecCtxGlobal.pipeline = fromPipeline; /* restore */             \
+    }                                                                       \
+    if ( toPipeline->embeddedPacketState > rxPKST_UNUSED                    \
+         /* !UNUSED and !PACKETLESS */ )                                    \
+    {                                                                       \
+        toPipeline->embeddedPacketState = rxPKST_INUSE;                     \
+        _rxPacketDestroy(toPipeline->embeddedPacket);                       \
+    }                                                                       \
+}                                                                           \
+MACRO_STOP
+
+#define rxPacketFetchMacro(_node)                                           \
+    ( ((_rxExecCtxGlobal.pipeline)->embeddedPacketState == rxPKST_PENDING) ?\
+      ((_rxExecCtxGlobal.pipeline)->embeddedPacketState = rxPKST_INUSE,     \
+       (_rxExecCtxGlobal.pipeline)->embeddedPacket) :                       \
+      (NULL) )
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+
 /*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/d3d9/nodeD3D9SubmitNoLight.h ---*/
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/p2define.h ---*/
@@ -691,6 +1266,173 @@ typedef RxPipelineNode *RxNodeInput;
  * typedef for a reference to a locked pipeline 
  */
 typedef RxPipeline      RxLockedPipe;
+
+
+#ifdef    __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
+
+/* PIPELINENODE API */
+
+extern RxNodeOutput
+RxPipelineNodeFindOutputByName(RxPipelineNode *node,
+                               const RwChar *outputname);
+
+extern RxNodeOutput
+RxPipelineNodeFindOutputByIndex(RxPipelineNode *node,
+                                RwUInt32 outputindex);
+
+extern RxNodeInput
+RxPipelineNodeFindInput(RxPipelineNode *node);
+
+extern RxNodeDefinition *
+RxPipelineNodeCloneDefinition(RxPipelineNode *node,
+                              RxClusterDefinition *cluster2add);
+
+extern RxPipeline *
+RxPipelineNodeRequestCluster(RxPipeline *pipeline,
+                             RxPipelineNode *node,
+                             RxClusterDefinition *clusterDef);
+
+extern RxPipeline *
+RxPipelineNodeReplaceCluster(RxPipeline *pipeline,
+                             RxPipelineNode *node,
+                             RxClusterDefinition *oldClusterDef,
+                             RxClusterDefinition *newClusterDef);
+
+extern void *
+RxPipelineNodeGetInitData(RxPipelineNode *node);
+
+extern void *
+RxPipelineNodeCreateInitData(RxPipelineNode *node,
+                             RwUInt32 size);
+
+/* PIPELINE MANIPULATION API */
+
+extern RxPipeline *
+RxPipelineClone(RxPipeline *pipeline);
+
+extern RxPipelineNode *
+RxPipelineFindNodeByName(RxPipeline *pipeline,
+                         const RwChar *name,
+                         RxPipelineNode *start,
+                         RwInt32 *nodeIndex);
+
+extern RxPipelineNode *
+RxPipelineFindNodeByIndex(RxPipeline *pipeline,
+                          RwUInt32 nodeindex);
+
+extern RxLockedPipe *
+RxPipelineLock(RxPipeline *pipeline);
+
+extern RxPipeline *
+RxLockedPipeUnlock(RxLockedPipe *pipeline);
+
+
+extern RxLockedPipe *
+RxLockedPipeAddFragment(RxLockedPipe *pipeline,
+                        RwUInt32 *firstIndex,
+                        RxNodeDefinition *nodeDef0,
+                        RxNodeDefinition *__va_end__=NULL); // Actually uses ... (va list), but let's not complicate it...
+
+
+extern RxPipeline *
+RxLockedPipeReplaceNode(RxLockedPipe *pipeline,
+                        RxPipelineNode *node,
+                        RxNodeDefinition *nodeDef);
+
+extern RxPipeline *
+RxLockedPipeDeleteNode(RxLockedPipe *pipeline,
+                       RxPipelineNode *node);
+
+
+extern RxPipeline *
+RxLockedPipeSetEntryPoint(RxLockedPipe *pipeline,
+                          RxNodeInput in);
+
+
+extern RxPipelineNode *
+RxLockedPipeGetEntryPoint(RxLockedPipe *pipeline);
+
+
+extern RxPipeline *
+RxLockedPipeAddPath(RxLockedPipe *pipeline,
+                    RxNodeOutput out,
+                    RxNodeInput in);
+
+extern RxPipeline *
+RxLockedPipeDeletePath(RxLockedPipe *pipeline,
+                       RxNodeOutput out,
+                       RxNodeInput in);
+
+
+extern RxPipeline *
+RxPipelineInsertDebugNode(RxPipeline *pipeline,
+                          RxPipelineNode *before,
+                          RxPipelineNode *after,
+                          RxNodeDefinition *debugNode);
+
+#ifdef    __cplusplus
+}
+#endif /* __cplusplus */
+
+
+/*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/p2altmdl.h ---*/
+
+/*--- Automatically derived from: C:/daily/rwsdk/driver/d3d9/d3d9texdic.h ---*/
+
+/*--- Automatically derived from: C:/daily/rwsdk/driver/d3d9/d3d9vertexbuffer.h ---*/
+#ifdef    __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
+extern void
+RwD3D9VertexBufferManagerChangeDefaultSize(RwUInt32 defaultSize);
+
+/*
+ * To get a pointer to a static vertex buffer
+ * Use both functions, Create and Destroy, not only Create
+ */
+extern RwBool
+RwD3D9CreateVertexBuffer(RwUInt32 stride,
+                         RwUInt32 size,
+                         void **vertexBuffer,
+                         RwUInt32 *offset);
+
+extern void
+RwD3D9DestroyVertexBuffer(RwUInt32 stride,
+                          RwUInt32 size,
+                          void *vertexBuffer,
+                          RwUInt32 offset);
+
+/*
+ * To get a pointer to a Dynamic vertex buffer
+ * Use both functions, Create and Destroy, not only Create
+ */
+extern RwBool RwD3D9DynamicVertexBufferCreate(RwUInt32 size,
+                                              void **vertexBuffer);
+
+extern void RwD3D9DynamicVertexBufferDestroy(void *vertexBuffer);
+
+/*
+ * To get a temporary pointer to a Dynamic vertex buffer memory
+ * Don't use with the previous functions because
+ * it mantains an internal list of dinamic vertex buffers
+ */
+extern RwBool RwD3D9DynamicVertexBufferLock(RwUInt32 vertexSize,
+                                            RwUInt32 numVertex,
+                                            void **vertexBufferOut,
+                                            void **vertexDataOut,
+                                            RwUInt32 *baseIndexOut);
+
+extern RwBool RwD3D9DynamicVertexBufferUnlock(void *vertexBuffer);
+
+#ifdef    __cplusplus
+}
+#endif /* __cplusplus */
 
 /*--- Automatically derived from: C:/daily/rwsdk/driver/d3d9/d3d9rendst.h ---*/
 
@@ -897,6 +1639,7 @@ struct RwRaster
 };
 #endif /* (!defined(DOXYGEN)) */
 
+
 /****************************************************************************
  <macro/inline functionality
  */
@@ -947,6 +1690,280 @@ struct RwRaster
     RwRasterGetParentMacro(_raster)
 
 #endif /* (defined(RWDEBUG) || defined(RWSUPPRESSINLINE)) */
+
+
+/****************************************************************************
+ Function prototypes
+ */
+
+#ifdef    __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
+
+/* Creating destroying rasters */
+extern void RwRasterSetFreeListCreateParams( RwInt32 blockSize, RwInt32 numBlocksToPrealloc );
+
+extern RwRaster    *RwRasterCreate(RwInt32 width, RwInt32 height,
+                                   RwInt32 depth, RwInt32 flags);
+extern RwBool       RwRasterDestroy(RwRaster * raster);
+
+/* Pulling info out of raster structure */
+
+#if (defined(RWDEBUG) || defined(RWSUPPRESSINLINE))
+extern RwInt32      RwRasterGetWidth(const RwRaster *raster);
+extern RwInt32      RwRasterGetHeight(const RwRaster *raster);
+extern RwInt32      RwRasterGetStride(const RwRaster *raster);
+extern RwInt32      RwRasterGetDepth(const RwRaster *raster);
+extern RwInt32      RwRasterGetFormat(const RwRaster *raster);
+extern RwInt32      RwRasterGetType(const RwRaster *raster);
+extern RwRaster    *RwRasterGetParent(const RwRaster *raster);
+#endif /* (defined(RWDEBUG) || defined(RWSUPPRESSINLINE)) */
+
+extern RwRaster    *RwRasterGetOffset(RwRaster *raster, 
+                                      RwInt16 *xOffset, RwInt16 *yOffset);
+
+extern RwInt32      RwRasterGetNumLevels(RwRaster * raster);
+
+extern RwRaster    *RwRasterSubRaster(RwRaster * subRaster,
+                                      RwRaster * raster, RwRect * rect);
+
+extern RwRaster    *RwRasterRenderFast(RwRaster * raster, RwInt32 x,
+                                       RwInt32 y);
+extern RwRaster    *RwRasterRender(RwRaster * raster, RwInt32 x,
+                                       RwInt32 y);
+extern RwRaster    *RwRasterRenderScaled(RwRaster * raster,
+                                         RwRect * rect);
+
+/* Raster rendering context */
+extern RwRaster    *RwRasterPushContext(RwRaster * raster);
+extern RwRaster    *RwRasterPopContext(void);
+extern RwRaster    *RwRasterGetCurrentContext(void);
+
+/* Clearing rasters */
+extern RwBool       RwRasterClear(RwInt32 pixelValue);
+extern RwBool       RwRasterClearRect(RwRect * rpRect,
+                                          RwInt32 pixelValue);
+
+/* Displaying rasters */
+extern RwRaster    *RwRasterShowRaster(RwRaster * raster, void *dev,
+                                       RwUInt32 flags);
+
+/* Locking and releasing */
+extern RwUInt8     *RwRasterLock(RwRaster * raster, RwUInt8 level,
+                                 RwInt32 lockMode);
+extern RwRaster    *RwRasterUnlock(RwRaster * raster);
+extern RwUInt8     *RwRasterLockPalette(RwRaster * raster,
+                                        RwInt32 lockMode);
+extern RwRaster    *RwRasterUnlockPalette(RwRaster * raster);
+
+/* Attaching toolkits */
+extern RwInt32      RwRasterRegisterPlugin(RwInt32 size,
+                                           RwUInt32 pluginID,
+                                           RwPluginObjectConstructor
+                                           constructCB,
+                                           RwPluginObjectDestructor
+                                           destructCB,
+                                           RwPluginObjectCopy copyCB);
+extern RwInt32      RwRasterGetPluginOffset(RwUInt32 pluginID);
+extern RwBool       RwRasterValidatePlugins(const RwRaster * raster);
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+
+/*--- Automatically derived from: C:/daily/rwsdk/driver/d3d9/drvmodel.h ---*/
+#ifndef D3D9_DRVMODEL_H
+#define D3D9_DRVMODEL_H
+
+#if (defined(__ICL))
+/* Avoid voluminous
+ *   'warning #344: typedef name has already been declared (with same type)'
+ * warnings from MS include files
+ */
+#pragma warning( disable : 344 )
+#endif /* (defined(__ICL)) */
+
+
+#if (defined(RWDEBUG))
+#if (defined(RWMEMDEBUG) && !defined(_CRTDBG_MAP_ALLOC))
+#define _CRTDBG_MAP_ALLOC
+#endif /* defined(RWMEMDEBUG) && !defined(_CRTDBG_MAP_ALLOC)) */
+#include <crtdbg.h>
+#define ERR_WRAP(A) (_rwRePrintErrorDDD3D((A), __FILE__, __LINE__))
+#endif /* (defined(RWDEBUG)) */
+
+#if (!defined(ERR_WRAP))
+#define ERR_WRAP(A) (A)
+#endif /* (!defined(ERR_WRAP)) */
+
+/****************************************************************************
+ Defines
+ */
+
+/* Set true depth information (for fogging, eg) */
+#define RwIm2DVertexSetCameraX(vert, camx)          /* Nothing */
+#define RwIm2DVertexSetCameraY(vert, camy)          /* Nothing */
+#define RwIm2DVertexSetCameraZ(vert, camz)          /* Nothing */
+
+#define RwIm2DVertexSetRecipCameraZ(vert, recipz)   ((vert)->rhw = recipz)
+
+#define RwIm2DVertexGetCameraX(vert)                (cause an error)
+#define RwIm2DVertexGetCameraY(vert)                (cause an error)
+#define RwIm2DVertexGetCameraZ(vert)                (cause an error)
+#define RwIm2DVertexGetRecipCameraZ(vert)           ((vert)->rhw)
+
+/* Set screen space coordinates in a device vertex */
+#define RwIm2DVertexSetScreenX(vert, scrnx)         ((vert)->x = (scrnx))
+#define RwIm2DVertexSetScreenY(vert, scrny)         ((vert)->y = (scrny))
+#define RwIm2DVertexSetScreenZ(vert, scrnz)         ((vert)->z = (scrnz))
+#define RwIm2DVertexGetScreenX(vert)                ((vert)->x)
+#define RwIm2DVertexGetScreenY(vert)                ((vert)->y)
+#define RwIm2DVertexGetScreenZ(vert)                ((vert)->z)
+
+/* Set texture coordinates in a device vertex */
+#define RwIm2DVertexSetU(vert, texU, recipz)        ((vert)->u = (texU))
+#define RwIm2DVertexSetV(vert, texV, recipz)        ((vert)->v = (texV))
+#define RwIm2DVertexGetU(vert)                      ((vert)->u)
+#define RwIm2DVertexGetV(vert)                      ((vert)->v)
+
+/* Modify the luminance stuff */
+#define RwIm2DVertexSetRealRGBA(vert, red, green, blue, alpha)  \
+    ((vert)->emissiveColor =                                    \
+     (((RwFastRealToUInt32(alpha)) << 24) |                        \
+      ((RwFastRealToUInt32(red)) << 16) |                          \
+      ((RwFastRealToUInt32(green)) << 8) |                         \
+      ((RwFastRealToUInt32(blue)))))
+
+#define RwIm2DVertexSetIntRGBA(vert, red, green, blue, alpha)   \
+    ((vert)->emissiveColor =                                    \
+     ((((RwUInt32)(alpha)) << 24) |                             \
+      (((RwUInt32)(red)) << 16) |                               \
+      (((RwUInt32)(green)) << 8) |                              \
+      (((RwUInt32)(blue)))))
+
+#define RwIm2DVertexGetRed(vert)    \
+    (((vert)->emissiveColor >> 16) & 0xFF)
+
+#define RwIm2DVertexGetGreen(vert)  \
+    (((vert)->emissiveColor >> 8) & 0xFF)
+
+#define RwIm2DVertexGetBlue(vert)   \
+    ((vert)->emissiveColor & 0xFF)
+
+#define RwIm2DVertexGetAlpha(vert)  \
+    (((vert)->emissiveColor >> 24) & 0xFF)
+
+#define RwIm2DVertexCopyRGBA(dst, src)  \
+    ((dst)->emissiveColor = (src)->emissiveColor)
+
+/* Clipper stuff */
+
+#define RwIm2DVertexClipRGBA(o, i, n, f)                                \
+MACRO_START                                                             \
+{                                                                       \
+    const RwInt32        _factor =                                      \
+        (RwFastRealToUInt32(i * (RwReal)(255))) & 255;                  \
+                                                                        \
+    (o)->emissiveColor =                                                \
+        (((((RwIm2DVertexGetAlpha(f) - RwIm2DVertexGetAlpha(n)) *       \
+            _factor) >> 8) + RwIm2DVertexGetAlpha(n)) << 24) |          \
+        (((((RwIm2DVertexGetRed(f) - RwIm2DVertexGetRed(n)) *           \
+            _factor) >> 8) + RwIm2DVertexGetRed(n)) << 16) |            \
+        (((((RwIm2DVertexGetGreen(f) - RwIm2DVertexGetGreen(n)) *       \
+            _factor) >> 8) + RwIm2DVertexGetGreen(n)) << 8) |           \
+        (((((RwIm2DVertexGetBlue(f) - RwIm2DVertexGetBlue(n)) *         \
+            _factor) >> 8) + RwIm2DVertexGetBlue(n)));                  \
+}                                                                       \
+MACRO_STOP
+
+/****************************************************************************
+ Global Types
+ */
+
+/* We use RwD3D9Vertex to drive the hardware in 2D mode */
+
+/*
+ * D3D9 vertex structure definition for 2D geometry
+ */
+#if !defined(RWADOXYGENEXTERNAL)
+typedef struct RwD3D9Vertex RwD3D9Vertex;
+/**
+ * \ingroup rwcoredriverd3d9
+ * \struct RwD3D9Vertex
+ * D3D9 vertex structure definition for 2D geometry
+ */
+struct RwD3D9Vertex
+{
+    RwReal      x;              /**< Screen X */
+    RwReal      y;              /**< Screen Y */
+    RwReal      z;              /**< Screen Z */
+    RwReal      rhw;            /**< Reciprocal of homogeneous W */
+
+    RwUInt32    emissiveColor;  /**< Vertex color */
+
+    RwReal      u;              /**< Texture coordinate U */
+    RwReal      v;              /**< Texture coordinate V */
+};
+#endif /* !defined(RWADOXYGENEXTERNAL) */
+
+/* Define types used */
+
+#if !defined(RWADOXYGENEXTERNAL)
+/**
+ * \ingroup rwcoredriverd3d9
+ * \ref RwIm2DVertex
+ * Typedef for a RenderWare Graphics Immediate Mode 2D Vertex
+ */
+typedef RwD3D9Vertex    RwIm2DVertex;
+#endif /* !defined(RWADOXYGENEXTERNAL) */
+
+#if !defined(RWADOXYGENEXTERNAL)
+/**
+ * \ingroup rwcoredriverd3d9
+ * \ref RxVertexIndex
+ *
+ * Typedef for a RenderWare Graphics Powe   rPipe Immediate
+ * Mode Vertex
+ */
+typedef RwUInt16        RxVertexIndex;
+#endif /* !defined(RWADOXYGENEXTERNAL) */
+
+#if !defined(RWADOXYGENEXTERNAL)
+/**
+ * \ingroup rwcoredriverd3d9
+ * \ref RwImVertexIndex
+ * Typedef for a RenderWare Graphics Immediate Mode Vertex.
+ */
+typedef RxVertexIndex   RwImVertexIndex;
+#endif /* !defined(RWADOXYGENEXTERNAL) */
+
+#if !defined(RWADOXYGENEXTERNAL)
+/**
+ * \ingroup rwcoredriverd3d9
+ * \struct RwD3D9Metrics
+ * Structure containing metrics counters
+ */
+typedef struct
+{
+    RwUInt32    numRenderStateChanges;          /**< Number of Render States changed */
+    RwUInt32    numTextureStageStateChanges;    /**< Number of Texture Stage States changed */
+    RwUInt32    numSamplerStageStateChanges;    /**< Number of Sampler States changed */
+    RwUInt32    numMaterialChanges;             /**< Number of Material changes */
+    RwUInt32    numLightsChanged;               /**< Number of Lights changed */
+    RwUInt32    numVBSwitches;                  /**< Number of Vertex Buffer switches */
+}
+RwD3D9Metrics;
+#endif /* !defined(RWADOXYGENEXTERNAL) */
+
+#endif /* D3D9_DRVMODEL_H */
+
+/*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/d3d9/pip2model.h ---*/
+
+
+
+
 
 /****************************************************************************
  Global Defines
@@ -1195,6 +2212,23 @@ struct RxRenderStateVector
 #endif /* (!defined(RxRenderStateVectorAssign)) */
 
 
+
+#ifdef    __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
+extern       RxRenderStateVector *RxRenderStateVectorSetDefaultRenderStateVector(RxRenderStateVector *rsvp);
+extern const RxRenderStateVector *RxRenderStateVectorGetDefaultRenderStateVector(void);
+extern       RxRenderStateVector *RxRenderStateVectorCreate(RwBool current);
+extern       void                 RxRenderStateVectorDestroy(RxRenderStateVector *rsvp);
+extern       RxRenderStateVector *RxRenderStateVectorLoadDriverState(RxRenderStateVector *rsvp);
+
+#ifdef    __cplusplus
+}
+#endif /* __cplusplus */
+
+
 /*--- Automatically derived from: C:/daily/rwsdk/src/baimage.h ---*/
 
 /****************************************************************************
@@ -1345,6 +2379,110 @@ typedef RwImage *(*RwImageCallBackWrite)(RwImage *image, const RwChar *imageName
  Function prototypes
  */
 
+#ifdef    __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
+
+    /* Creating and destroying */
+
+extern void RwImageSetFreeListCreateParams( RwInt32 blockSize, RwInt32 numBlocksToPrealloc );
+
+extern void RwImageFormatSetFreeListCreateParams( RwInt32 blockSize, RwInt32 numBlocksToPrealloc );
+
+extern RwImage     *RwImageCreate(RwInt32 width, RwInt32 height,
+                                  RwInt32 depth);
+extern RwBool       RwImageDestroy(RwImage * image);
+
+    /* Allocating */
+extern RwImage     *RwImageAllocatePixels(RwImage * image);
+extern RwImage     *RwImageFreePixels(RwImage * image);
+
+    /* Converting images */
+extern RwImage     *RwImageCopy(RwImage * destImage,
+                                const RwImage * sourceImage);
+
+    /* Resizing images */
+extern RwImage     *RwImageResize(RwImage * image, RwInt32 width,
+                                  RwInt32 height);
+
+    /* Producing masks ! */
+extern RwImage     *RwImageApplyMask(RwImage * image,
+                                     const RwImage * mask);
+extern RwImage     *RwImageMakeMask(RwImage * image);
+
+    /* Helper functions */
+extern RwImage     *RwImageReadMaskedImage(const RwChar * imageName,
+                                           const RwChar * maskname);
+extern RwImage     *RwImageRead(const RwChar * imageName);
+extern RwImage     *RwImageWrite(RwImage * image,
+                                 const RwChar * imageName);
+
+    /* Setting and getting the default path for images */
+extern RwChar      *RwImageGetPath(void);
+extern const RwChar *RwImageSetPath(const RwChar * path);
+    /* Fast image path change */
+extern void        _rwImageSwapPath(RwChar **path, RwInt32 *size);
+
+    /* Setting */
+#if (defined(RWDEBUG) || defined(RWSUPPRESSINLINE))
+extern RwImage     *RwImageSetStride(RwImage * image, RwInt32 stride);
+extern RwImage     *RwImageSetPixels(RwImage * image, RwUInt8 * pixels);
+extern RwImage     *RwImageSetPalette(RwImage * image, RwRGBA * palette);
+
+    /* Getting */
+extern RwInt32      RwImageGetWidth(const RwImage * image);
+extern RwInt32      RwImageGetHeight(const RwImage * image);
+extern RwInt32      RwImageGetDepth(const RwImage * image);
+extern RwInt32      RwImageGetStride(const RwImage * image);
+extern RwUInt8     *RwImageGetPixels(const RwImage * image);
+extern RwRGBA      *RwImageGetPalette(const RwImage * image);
+#endif /* (defined(RWDEBUG) || defined(RWSUPPRESSINLINE)) */
+
+    /* Get device dependent pixel value */
+extern RwUInt32     RwRGBAToPixel(RwRGBA * rgbIn, RwInt32 rasterFormat);
+extern RwRGBA      *RwRGBASetFromPixel(RwRGBA * rgbOut,
+                                       RwUInt32 pixelValue,
+                                       RwInt32 rasterFormat);
+
+    /* Gamma correction */
+extern RwBool       RwImageSetGamma(RwReal gammaValue);
+extern RwReal       RwImageGetGamma(void);
+extern RwImage     *RwImageGammaCorrect(RwImage * image);
+
+    /* Adding and removing gamma correction */
+extern RwRGBA      *RwRGBAGammaCorrect(RwRGBA * rgb);
+
+    /* Attaching toolkits */
+extern RwInt32      RwImageRegisterPlugin(RwInt32 size, RwUInt32 pluginID,
+                                          RwPluginObjectConstructor
+                                          constructCB,
+                                          RwPluginObjectDestructor
+                                          destructCB,
+                                          RwPluginObjectCopy copyCB);
+extern RwInt32      RwImageGetPluginOffset(RwUInt32 pluginID);
+extern RwBool       RwImageValidatePlugins(const RwImage * image);
+
+extern RwBool       RwImageRegisterImageFormat(const RwChar * extension,
+                                               RwImageCallBackRead
+                                               imageRead,
+                                               RwImageCallBackWrite
+                                               imageWrite);
+
+    /* Finding an extension for an image to load */
+extern const RwChar *RwImageFindFileType(const RwChar * imageName);
+
+    /* Reading and writing images to streams */
+extern RwInt32      RwImageStreamGetSize(const RwImage * image);
+extern RwImage     *RwImageStreamRead(RwStream * stream);
+extern const RwImage *RwImageStreamWrite(const RwImage * image,
+                                         RwStream * stream);
+
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
 /*--- Automatically derived from: C:/daily/rwsdk/driver/common/palquant.h ---*/
 
 /****************************************************************************
@@ -1416,6 +2554,46 @@ struct RwPalQuant
 };
 
 #endif /* (!defined(DOXYGEN)) */
+
+/****************************************************************************
+ Function prototypes
+ */
+
+
+#ifdef    __cplusplus
+extern          "C"
+{
+#endif         /* __cplusplus */
+
+extern void
+RwPalQuantSetMaxDepth(RwUInt32 depth);
+
+extern RwUInt32
+RwPalQuantGetMaxDepth(void);
+
+extern RwBool
+RwPalQuantInit(RwPalQuant *pq);
+
+extern void
+RwPalQuantTerm(RwPalQuant *pq);
+
+
+extern void
+RwPalQuantAddImage(RwPalQuant *pq, RwImage *img, RwReal weight);
+
+
+extern RwInt32
+RwPalQuantResolvePalette(RwRGBA *palette, RwInt32 maxcols, RwPalQuant *pq);
+
+
+extern void
+RwPalQuantMatchImage(RwUInt8 *dstpixels, RwInt32 dststride, RwInt32 dstdepth,
+                      RwBool dstPacked, RwPalQuant *pq, RwImage *img);
+
+#ifdef    __cplusplus
+}
+#endif         /* __cplusplus */
+
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/batextur.h ---*/
 
@@ -1540,13 +2718,13 @@ typedef RwTexture *(*RwTextureCallBackFind)(const RwChar *name);
  * 
  * \param  texture   Pointer to the current texture.
  *
- * \param  data   User-defined data pointer.
+ * \param  pData   User-defined data pointer.
  *
  * \return Pointer to the current texture
  *
  * \see RwTexDictionaryForAllTextures
  */
-typedef RwTexture *(*RwTextureCallBack)(RwTexture *texture, void *data);
+typedef RwTexture *(*RwTextureCallBack)(RwTexture *texture, void *pData);
 
 
 /**
@@ -1561,7 +2739,7 @@ typedef RwTexture *(*RwTextureCallBack)(RwTexture *texture, void *data);
  * 
  * \param  dict   Pointer to the current texture dictionary.
  *
- * \param  data   User-defined data pointer.
+ * \param  pData   User-defined data pointer.
  *
  * \return Pointer to the current texture dictionary
  *
@@ -1739,6 +2917,173 @@ MACRO_STOP
     RwTextureGetAddressingVMacro(_tex)
 
 #endif /* !(defined(RWDEBUG) || defined(RWSUPPRESSINLINE)) */
+
+
+
+/****************************************************************************
+ Function prototypes
+ */
+
+#ifdef    __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
+
+    /* Reading mip maps */
+
+    /* Setting mip mapping states */
+extern RwBool       RwTextureSetMipmapping(RwBool enable);
+extern RwBool       RwTextureGetMipmapping(void);
+extern RwBool       RwTextureSetAutoMipmapping(RwBool enable);
+extern RwBool       RwTextureGetAutoMipmapping(void);
+
+    /* Setting and getting the mipmap generation function */
+extern              RwBool
+RwTextureSetMipmapGenerationCallBack(RwTextureCallBackMipmapGeneration
+                                     callback);
+extern              RwTextureCallBackMipmapGeneration
+RwTextureGetMipmapGenerationCallBack(void);
+
+    /* Setting and getting the mipmap file name generation function */
+extern              RwBool
+RwTextureSetMipmapNameCallBack(RwTextureCallBackMipmapName callback);
+extern RwTextureCallBackMipmapName RwTextureGetMipmapNameCallBack(void);
+
+    /* Generating mipmaps for a raster */
+extern RwBool       RwTextureGenerateMipmapName(RwChar * name,
+                                                RwChar * maskName,
+                                                RwUInt8 mipLevel,
+                                                RwInt32 format);
+extern RwBool       RwTextureRasterGenerateMipmaps(RwRaster * raster,
+                                                   RwImage * image);
+
+    /* LEGACY-SUPPORT mip mapping */
+extern RwBool       _rwTextureSetAutoMipMapState(RwBool enable);
+extern RwBool       _rwTextureGetAutoMipMapState(void);
+
+    /* Setting and getting the callback function */
+extern RwTextureCallBackRead RwTextureGetReadCallBack(void);
+extern RwBool       RwTextureSetReadCallBack(RwTextureCallBackRead callBack);
+
+extern RwTextureCallBackFind RwTextureGetFindCallBack(void);
+extern RwBool       RwTextureSetFindCallBack(RwTextureCallBackFind callBack);
+
+    /* Texture and mask names */
+extern RwTexture   *RwTextureSetName(RwTexture * texture,
+                                     const RwChar * name);
+extern RwTexture   *RwTextureSetMaskName(RwTexture * texture,
+                                         const RwChar * maskName);
+
+    /* Creating/destroying dictionaries */
+extern void RwTexDictionarySetFreeListCreateParams( RwInt32 blockSize, RwInt32 numBlocksToPrealloc );
+
+extern RwTexDictionary *RwTexDictionaryCreate(void);
+extern RwBool       RwTexDictionaryDestroy(RwTexDictionary * dict);
+
+    /* Textures */
+void RwTextureSetFreeListCreateParams( RwInt32 blockSize, RwInt32 numBlocksToPrealloc );
+
+extern RwTexture   *RwTextureCreate(RwRaster * raster);
+extern RwBool       RwTextureDestroy(RwTexture * texture);
+
+    /* Setting and getting texture map rasters */
+extern RwTexture   *RwTextureSetRaster(RwTexture * texture,
+                                       RwRaster * raster);
+
+    /* Dictionary access */
+extern RwTexture   *RwTexDictionaryAddTexture(RwTexDictionary * dict,
+                                              RwTexture * texture);
+extern RwTexture   *RwTexDictionaryRemoveTexture(RwTexture * texture);
+extern RwTexture   *RwTexDictionaryFindNamedTexture(RwTexDictionary *
+                                                    dict,
+                                                    const RwChar * name);
+
+    /* Reading a texture */
+extern RwTexture   *RwTextureRead(const RwChar * name,
+                                  const RwChar * maskName);
+
+    /* Setting the current dictionary */
+extern RwTexDictionary *RwTexDictionaryGetCurrent(void);
+extern RwTexDictionary *RwTexDictionarySetCurrent(RwTexDictionary * dict);
+
+    /* Enumerating textures */
+extern const RwTexDictionary *RwTexDictionaryForAllTextures(const
+                                                            RwTexDictionary
+                                                            * dict,
+                                                            RwTextureCallBack
+                                                            fpCallBack,
+                                                            void *pData);
+
+    /* Enumerating the texture dictionaries currently in the system */
+extern RwBool RwTexDictionaryForAllTexDictionaries(
+    RwTexDictionaryCallBack fpCallBack, void *pData);
+
+
+    /* Attaching toolkits */
+extern RwInt32      RwTextureRegisterPlugin(RwInt32 size,
+                                            RwUInt32 pluginID,
+                                            RwPluginObjectConstructor
+                                            constructCB,
+                                            RwPluginObjectDestructor
+                                            destructCB,
+                                            RwPluginObjectCopy copyCB);
+extern RwInt32      RwTexDictionaryRegisterPlugin(RwInt32 size,
+                                                  RwUInt32 pluginID,
+                                                  RwPluginObjectConstructor
+                                                  constructCB,
+                                                  RwPluginObjectDestructor
+                                                  destructCB,
+                                                  RwPluginObjectCopy
+                                                  copyCB);
+extern RwInt32      RwTextureGetPluginOffset(RwUInt32 pluginID);
+extern RwInt32      RwTexDictionaryGetPluginOffset(RwUInt32 pluginID);
+extern RwBool       RwTextureValidatePlugins(const RwTexture * texture);
+extern RwBool       RwTexDictionaryValidatePlugins(const RwTexDictionary *
+                                                   dict);
+
+#if (defined(RWDEBUG) || defined(RWSUPPRESSINLINE))
+/* Textures */
+extern RwRaster *RwTextureGetRaster(const RwTexture *texture);
+extern RwTexture *RwTextureAddRef(RwTexture *texture);
+
+/* Texture and mask names */
+extern RwChar *RwTextureGetName(RwTexture *texture);
+extern RwChar *RwTextureGetMaskName(RwTexture *texture);
+
+/* Get owner dictionary */
+extern RwTexDictionary *RwTextureGetDictionary(RwTexture *texture);
+
+/* Filtering */
+extern RwTexture *RwTextureSetFilterMode(RwTexture *texture,
+                                         RwTextureFilterMode filtering);
+
+extern RwTextureFilterMode RwTextureGetFilterMode(const RwTexture *texture);
+
+/* Addressing */
+extern RwTexture *RwTextureSetAddressing(RwTexture *texture,
+                                         RwTextureAddressMode addressing);
+extern RwTexture *RwTextureSetAddressingU(RwTexture *texture,
+                                          RwTextureAddressMode addressing);
+extern RwTexture *RwTextureSetAddressingV(RwTexture *texture,
+                                          RwTextureAddressMode addressing);
+
+extern RwTextureAddressMode RwTextureGetAddressing(const RwTexture *texture);
+extern RwTextureAddressMode RwTextureGetAddressingU(const RwTexture *texture);
+extern RwTextureAddressMode RwTextureGetAddressingV(const RwTexture *texture);
+
+#endif /* (defined(RWDEBUG) || defined(RWSUPPRESSINLINE)) */
+
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+#define RwTextureSetAutoMipMapState(_enable) \
+    _rwTextureSetAutoMipMapState(_enable)
+
+#define RwTextureGetAutoMipMapState() \
+    _rwTextureGetAutoMipMapState()
+
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/p2stdcls.h ---*/
 
@@ -2003,6 +3348,46 @@ struct RxVStep
  * typedef for \ref RwV3d used by the RxClVStep cluster */
 typedef RwV3d RxCamNorm;
 
+
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
+
+/* Uses the RxObjSpace3DVertex type (see pipmodel.h) */
+extern RxClusterDefinition RxClObjSpace3DVertices;
+/* Uses the RxCamSpace3DVertex type */
+extern RxClusterDefinition RxClCamSpace3DVertices;
+/* Uses the RxScrSpace2DVertex type (see pipmodel.h) */
+extern RxClusterDefinition RxClScrSpace2DVertices;
+/* Uses the RxInterp type */
+extern RxClusterDefinition RxClInterpolants;
+/* Uses the RxMeshStateVector type */
+extern RxClusterDefinition RxClMeshState;
+/* Uses the RxRenderStateVector type (p2renderstate.c/h) */
+extern RxClusterDefinition RxClRenderState;
+/* Uses the RxVertexIndex type */
+extern RxClusterDefinition RxClIndices;
+/* Uses the RxScatter type */
+extern RxClusterDefinition RxClScatter;
+/* Uses the RxUV type */
+extern RxClusterDefinition RxClUVs;
+/* Uses the RxVStep type */
+extern RxClusterDefinition RxClVSteps;
+/* Uses the RwRGBAReal type */
+extern RxClusterDefinition RxClRGBAs;
+/* Uses the RxCamNorm type */
+extern RxClusterDefinition RxClCamNorms;
+
+/* Uses the RxTriPlane type.
+ * NOTE: this is currently not used in any nodes that ship with the SDK */
+extern RxClusterDefinition RxClTriPlanes;
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+
 /*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/baim3d.h ---*/
 
 /**
@@ -2100,9 +3485,57 @@ struct rwImmediGlobals
 };
 #endif /* (!defined(DOXYGEN)) */
 
+
+#ifdef    __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
+extern rwIm3DPool *_rwIm3DGetPool( void );
+
+extern void  *RwIm3DTransform(RwIm3DVertex *pVerts, RwUInt32 numVerts,
+                              RwMatrix *ltm, RwUInt32 flags);
+extern RwBool RwIm3DEnd(void);
+
+extern RwBool RwIm3DRenderLine(RwInt32 vert1, RwInt32 vert2);
+extern RwBool RwIm3DRenderTriangle(RwInt32 vert1, RwInt32 vert2,
+                                   RwInt32 vert3);
+extern RwBool RwIm3DRenderIndexedPrimitive(RwPrimitiveType primType,
+                                           RwImVertexIndex *indices,
+                                           RwInt32 numIndices);
+extern RwBool RwIm3DRenderPrimitive(RwPrimitiveType primType);
+
+extern RxPipeline *RwIm3DGetTransformPipeline(void);
+extern RxPipeline *RwIm3DGetRenderPipeline(   RwPrimitiveType  primType);
+extern RxPipeline *RwIm3DSetTransformPipeline(RxPipeline *pipeline);
+extern RxPipeline *RwIm3DSetRenderPipeline(   RxPipeline *pipeline,
+                                              RwPrimitiveType primType);
+
+#ifdef    __cplusplus
+}
+#endif /* __cplusplus */
+
+
 /*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/d3d9/im3dpipe.h ---*/
 
 /*--- Automatically derived from: C:/daily/rwsdk/driver/d3d9/d3d9dxttex.h ---*/
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
+
+extern RwRaster *
+RwD3D9RasterStreamReadDDS(RwStream *stream);
+
+extern RwTexture *
+RwD3D9DDSTextureRead(const RwChar *name, const RwChar *maskname);
+
+extern RwBool
+RwD3D9RasterIsCompressed(const RwRaster *raster);
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
 
 /*--- Automatically derived from: C:/daily/rwsdk/driver/d3d9/drvfns.h ---*/
 
@@ -2127,7 +3560,602 @@ struct RxD3D9VertexStream
     RwUInt8 dynamicLock;    /**< Using RwD3D9DynamicVertexBufferLock */
 };
 
-typedef void(*rwD3D9DeviceRestoreCallBack)(void);
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
+
+/****************************************************************************
+ Function prototypes
+ */
+
+/*******/
+/* API */
+/*******/
+
+/* Reports on whether D3D9 can render S3TC textures */
+extern RwBool 
+RwD3D9DeviceSupportsDXTTexture(void);
+
+/* Get handle to D3D9 device - useful for setting D3D9 renderstate*/
+extern void *
+RwD3D9GetCurrentD3DDevice(void);
+
+/* Get maximun number of multisampling levels */
+extern RwUInt32
+RwD3D9EngineGetMaxMultiSamplingLevels(void);
+
+/* Set number of multisampling levels */
+extern void
+RwD3D9EngineSetMultiSamplingLevels(RwUInt32 numLevels);
+
+/* Set maximun full screen refresh rate */
+extern void
+RwD3D9EngineSetRefreshRate(RwUInt32 refreshRate);
+
+/* Create the Direct3D device as multithread safe */
+extern void
+RwD3D9EngineSetMultiThreadSafe(RwBool enable);
+
+/* Create the Direct3D device to use software vertex processing */
+extern void
+RwD3D9EngineSetSoftwareVertexProcessing(RwBool enable);
+
+/* Get handle to D3D9 rendering surface - useful for advanced blit ops */
+extern void *
+RwD3D9GetCurrentD3DRenderTarget(RwUInt32 index);
+
+extern RwBool
+RwD3D9SetRenderTarget(RwUInt32 index, RwRaster *raster);
+
+/* Change the video mode after RwEngineStart */
+extern RwBool
+RwD3D9ChangeVideoMode(RwInt32 modeIndex);
+
+/* Change multisampling levels after RwEngineStart */
+extern RwBool
+RwD3D9ChangeMultiSamplingLevels(RwUInt32 numLevels);
+
+/* Atach a window to a camera */
+extern RwBool
+RwD3D9CameraAttachWindow(void *camera, void *hwnd);
+
+/* Immediate mode rendering */
+extern void
+RwD3D9SetStreamSource(RwUInt32 streamNumber,
+                      void *streamData,
+                      RwUInt32 offset,
+                      RwUInt32 stride);
+
+/* Draw Primitive functions */
+#if (!defined(RWDEBUG) && !defined(RWSUPPRESSINLINE) && !defined(RWMETRICS))
+
+#ifdef _D3D9_H_
+
+static inline auto& _RwD3DDevice                     = *(LPDIRECT3DDEVICE9*)(0xC97C28);
+static inline auto& _rwD3D9LastFVFUsed               = *(RwUInt32*)(0x8E2440);
+static inline auto& _rwD3D9LastVertexDeclarationUsed = *(void**)(0x8E2444);
+static inline auto& _rwD3D9LastVertexShaderUsed      = *(void**)(0x8E2448);
+static inline auto& _rwD3D9LastPixelShaderUsed       = *(void**)(0x8E244C);
+static inline auto& _rwD3D9LastIndexBufferUsed       = *(void**)(0x8E2450);
+
+//extern LPDIRECT3DDEVICE9    _RwD3DDevice;
+//
+//extern RwUInt32 _rwD3D9LastFVFUsed;
+//extern void     *_rwD3D9LastVertexDeclarationUsed;
+//extern void     *_rwD3D9LastVertexShaderUsed;
+//extern void     *_rwD3D9LastPixelShaderUsed;
+//extern void     *_rwD3D9LastIndexBufferUsed;
+
+/* need to be call before any Draw Primitive */
+extern void
+_rwD3D9RenderStateFlushCache(void);
+
+#define _rwD3D9DrawIndexedPrimitiveUPMacro(primitiveType,           \
+                                           minIndex,                \
+                                           numVertices,             \
+                                           primitiveCount,          \
+                                           indexData,               \
+                                           vertexStreamZeroData,    \
+                                           vertexStreamZeroStride)  \
+{                                                                   \
+    RwD3D9SetStreamSource(0, NULL, 0, 0);                           \
+    RwD3D9SetIndices(NULL);                                         \
+    _rwD3D9RenderStateFlushCache();                                 \
+    IDirect3DDevice9_DrawIndexedPrimitiveUP(_RwD3DDevice,           \
+                                            primitiveType,          \
+                                            minIndex,               \
+                                            numVertices,            \
+                                            primitiveCount,         \
+                                            indexData,              \
+                                            D3DFMT_INDEX16,         \
+                                            vertexStreamZeroData,   \
+                                            vertexStreamZeroStride);\
+}
+
+#define _rwD3D9DrawPrimitiveUPMacro(primitiveType,              \
+                                    primitiveCount,             \
+                                    vertexStreamZeroData,       \
+                                    vertexStreamZeroStride)     \
+{                                                               \
+    RwD3D9SetStreamSource(0, NULL, 0, 0);                       \
+    _rwD3D9RenderStateFlushCache();                             \
+    IDirect3DDevice9_DrawPrimitiveUP(_RwD3DDevice,              \
+                                     primitiveType,             \
+                                     primitiveCount,            \
+                                     vertexStreamZeroData,      \
+                                     vertexStreamZeroStride);   \
+}
+
+#define _rwD3D9DrawIndexedPrimitiveMacro(primitiveType,     \
+                                         baseVertexIndex,   \
+                                         minIndex,          \
+                                         numVertices,       \
+                                         startIndex,        \
+                                         primitiveCount)    \
+{                                                           \
+    _rwD3D9RenderStateFlushCache();                         \
+    IDirect3DDevice9_DrawIndexedPrimitive(_RwD3DDevice,     \
+                                          primitiveType,    \
+                                          baseVertexIndex,  \
+                                          minIndex,         \
+                                          numVertices,      \
+                                          startIndex,       \
+                                          primitiveCount);  \
+}
+
+#define _rwD3D9DrawPrimitiveMacro(primitiveType,    \
+                                  startVertex,      \
+                                  primitiveCount)   \
+{                                                   \
+    _rwD3D9RenderStateFlushCache();                 \
+    IDirect3DDevice9_DrawPrimitive(_RwD3DDevice,    \
+                                   primitiveType,   \
+                                   startVertex,     \
+                                   primitiveCount); \
+}
+
+
+#define _rwD3D9SetVertexShaderConstantMacro(registerAddress,    \
+                                            constantData,       \
+                                            constantCount)      \
+{                                                               \
+    IDirect3DDevice9_SetVertexShaderConstantF(_RwD3DDevice,     \
+                                              registerAddress,  \
+                                              (const RwReal *)(constantData),     \
+                                              constantCount);   \
+}
+
+#define _rwD3D9SetPixelShaderConstantMacro(registerAddress,     \
+                                           constantData,        \
+                                           constantCount)       \
+{                                                               \
+    IDirect3DDevice9_SetPixelShaderConstantF(_RwD3DDevice,      \
+                                             registerAddress,   \
+                                             (const RwReal *)(constantData),  \
+                                             constantCount);    \
+}
+
+#define _rwD3D9SetFVFMacro(_fvf)                                \
+{                                                               \
+    if (_rwD3D9LastFVFUsed != (_fvf))                           \
+    {                                                           \
+        _rwD3D9LastFVFUsed = _fvf;                              \
+        _rwD3D9LastVertexDeclarationUsed = (void *)0xffffffff;  \
+        IDirect3DDevice9_SetFVF(_RwD3DDevice, _fvf);            \
+    }                                                           \
+}
+
+
+#define _rwD3D9SetVertexDeclarationMacro(_vertexDeclaration)    \
+{                                                               \
+    if (_rwD3D9LastVertexDeclarationUsed != (_vertexDeclaration)) \
+    {                                                           \
+        _rwD3D9LastVertexDeclarationUsed = _vertexDeclaration;  \
+        _rwD3D9LastFVFUsed = 0xffffffff;                        \
+        IDirect3DDevice9_SetVertexDeclaration(_RwD3DDevice, _vertexDeclaration);    \
+    }                                                           \
+}
+
+#define _rwD3D9SetVertexShaderMacro(_shader)                    \
+{                                                               \
+    if (_rwD3D9LastVertexShaderUsed != (_shader))               \
+    {                                                           \
+        _rwD3D9LastVertexShaderUsed = _shader;                  \
+        IDirect3DDevice9_SetVertexShader(_RwD3DDevice, _shader);    \
+    }                                                           \
+}
+
+#define _rwD3D9SetPixelShaderMacro(_shader)                     \
+{                                                               \
+    if (_rwD3D9LastPixelShaderUsed != (_shader))                \
+    {                                                           \
+        _rwD3D9LastPixelShaderUsed = _shader;                   \
+        IDirect3DDevice9_SetPixelShader(_RwD3DDevice, _shader); \
+    }                                                           \
+}
+
+#define _rwD3D9SetIndicesMacro(_indexBuffer)                    \
+{                                                               \
+    if (_rwD3D9LastIndexBufferUsed != (_indexBuffer))           \
+    {                                                           \
+        _rwD3D9LastIndexBufferUsed = _indexBuffer;              \
+        IDirect3DDevice9_SetIndices(_RwD3DDevice, _indexBuffer);    \
+    }                                                           \
+}
+
+#endif  /* _D3D9_H_ */
+
+#endif  /* (!defined(RWDEBUG) && !defined(RWSUPPRESSINLINE) && !defined(RWMETRICS)) */
+
+extern void
+_rwD3D9DrawIndexedPrimitiveUP(RwUInt32 primitiveType,
+                              RwUInt32 minIndex,
+                              RwUInt32 numVertices,
+                              RwUInt32 primitiveCount,
+                              const void *indexData,
+                              const void *vertexStreamZeroData,
+                              RwUInt32 VertexStreamZeroStride);
+
+extern void
+_rwD3D9DrawPrimitiveUP(RwUInt32 primitiveType,
+                       RwUInt32 primitiveCount,
+                       const void *vertexStreamZeroData,
+                       RwUInt32 VertexStreamZeroStride);
+
+extern void
+_rwD3D9DrawIndexedPrimitive(RwUInt32 primitiveType,
+                            RwInt32 baseVertexIndex,
+                            RwUInt32 minIndex,
+                            RwUInt32 numVertices,
+                            RwUInt32 startIndex,
+                            RwUInt32 primitiveCount);
+
+extern void
+_rwD3D9DrawPrimitive(RwUInt32 primitiveType,
+                     RwUInt32 startVertex,
+                     RwUInt32 primitiveCount);
+
+extern void
+_rwD3D9SetVertexShaderConstant(RwUInt32 registerAddress,
+                               const void *constantData,
+                               RwUInt32  constantCount);
+
+extern void
+_rwD3D9SetPixelShaderConstant(RwUInt32 registerAddress,
+                              const void *constantData,
+                              RwUInt32  constantCount);
+
+extern void
+_rwD3D9SetFVF(RwUInt32 fvf);
+
+extern void
+_rwD3D9SetVertexDeclaration(void *vertexDeclaration);
+
+extern void
+_rwD3D9SetVertexShader(void *shader);
+
+extern void
+_rwD3D9SetPixelShader(void *shader);
+
+extern void
+_rwD3D9SetIndices(void *indexBuffer);
+
+
+#ifdef _rwD3D9DrawIndexedPrimitiveUPMacro
+#define RwD3D9DrawIndexedPrimitiveUP    _rwD3D9DrawIndexedPrimitiveUPMacro
+#else
+#define RwD3D9DrawIndexedPrimitiveUP    _rwD3D9DrawIndexedPrimitiveUP
+#endif
+
+#ifdef _rwD3D9DrawPrimitiveUPMacro
+#define RwD3D9DrawPrimitiveUP    _rwD3D9DrawPrimitiveUPMacro
+#else
+#define RwD3D9DrawPrimitiveUP    _rwD3D9DrawPrimitiveUP
+#endif
+
+#ifdef _rwD3D9DrawIndexedPrimitiveMacro
+#define RwD3D9DrawIndexedPrimitive    _rwD3D9DrawIndexedPrimitiveMacro
+#else
+#define RwD3D9DrawIndexedPrimitive    _rwD3D9DrawIndexedPrimitive
+#endif
+
+#ifdef _rwD3D9DrawPrimitiveMacro
+#define RwD3D9DrawPrimitive    _rwD3D9DrawPrimitiveMacro
+#else
+#define RwD3D9DrawPrimitive    _rwD3D9DrawPrimitive
+#endif
+
+#ifdef _rwD3D9SetVertexShaderConstantMacro
+#define RwD3D9SetVertexShaderConstant    _rwD3D9SetVertexShaderConstantMacro
+#else
+#define RwD3D9SetVertexShaderConstant    _rwD3D9SetVertexShaderConstant
+#endif
+
+#ifdef _rwD3D9SetPixelShaderConstantMacro
+#define RwD3D9SetPixelShaderConstant    _rwD3D9SetPixelShaderConstantMacro
+#else
+#define RwD3D9SetPixelShaderConstant    _rwD3D9SetPixelShaderConstant
+#endif
+
+#ifdef _rwD3D9SetFVFMacro
+#define RwD3D9SetFVF    _rwD3D9SetFVFMacro
+#else
+#define RwD3D9SetFVF    _rwD3D9SetFVF
+#endif
+
+#ifdef _rwD3D9SetVertexDeclarationMacro
+#define RwD3D9SetVertexDeclaration    _rwD3D9SetVertexDeclarationMacro
+#else
+#define RwD3D9SetVertexDeclaration    _rwD3D9SetVertexDeclaration
+#endif
+
+#ifdef _rwD3D9SetVertexShaderMacro
+#define RwD3D9SetVertexShader    _rwD3D9SetVertexShaderMacro
+#else
+#define RwD3D9SetVertexShader    _rwD3D9SetVertexShader
+#endif
+
+#ifdef _rwD3D9SetPixelShaderMacro
+#define RwD3D9SetPixelShader    _rwD3D9SetPixelShaderMacro
+#else
+#define RwD3D9SetPixelShader    _rwD3D9SetPixelShader
+#endif
+
+#ifdef _rwD3D9SetIndicesMacro
+#define RwD3D9SetIndices    _rwD3D9SetIndicesMacro
+#else
+#define RwD3D9SetIndices    _rwD3D9SetIndices
+#endif
+
+
+extern void
+RwD3D9SetRenderState(RwUInt32 state, RwUInt32 value);
+
+extern void
+RwD3D9GetRenderState(RwUInt32 state, void *value);
+
+extern void
+RwD3D9SetTextureStageState(RwUInt32 stage, RwUInt32 type, RwUInt32 value);
+
+extern void
+RwD3D9GetTextureStageState(RwUInt32 stage, RwUInt32 type, void *value);
+
+extern void
+RwD3D9SetSamplerState(RwUInt32 stage, RwUInt32 type, RwUInt32 value);
+
+extern void
+RwD3D9GetSamplerState(RwUInt32 stage, RwUInt32 type, void *value);
+
+
+extern void
+_rwD3D9ForceRenderState(RwUInt32 state, RwUInt32 value);
+
+extern void
+_rwD3D9ForceTextureStageState(RwUInt32 stage, RwUInt32 type, RwUInt32 value);
+
+extern void
+_rwD3D9ForceSamplerState(RwUInt32 stage, RwUInt32 type, RwUInt32 value);
+
+
+extern void
+RwD3D9SetStencilClear(RwUInt32 stencilClear);
+
+extern RwUInt32
+RwD3D9GetStencilClear(void);
+
+
+extern RwBool
+RwD3D9SetTexture(RwTexture *texture, RwUInt32 stage);
+
+extern RwBool
+RwD3D9SetTransform(RwUInt32 state, const void *matrix);
+
+extern void
+RwD3D9GetTransform(RwUInt32 state, void *matrix);
+
+extern RwBool
+RwD3D9SetMaterial(const void *material);
+
+extern RwBool
+RwD3D9SetClipPlane(RwUInt32 index, const RwV4d *plane);
+
+
+/*
+ * To convert between RwMatrix to D3DMATRIX when setting the
+ * world matrix
+ */
+extern RwBool       RwD3D9SetTransformWorld(const RwMatrix *matrix);
+
+/*
+ * To convert between RpMaterial to D3DMATERIAL9
+ */
+extern RwBool       RwD3D9SetSurfaceProperties(const RwSurfaceProperties *surfaceProps,
+                                               const RwRGBA *color,
+                                               RwUInt32 flags);
+
+/*
+ * To set on that index the light from the descriptor
+ */
+extern RwBool       RwD3D9SetLight(RwInt32 index, const void *light);
+extern void         RwD3D9GetLight(RwInt32 index, void *light);
+
+extern RwBool       RwD3D9EnableLight(RwInt32 index, RwBool enable);
+
+/*
+ * To get a pointer to an Index vertex buffer
+ * It's created as WRITEONLY, MANAGED and D3DFMT_INDEX16
+ */
+extern RwBool RwD3D9IndexBufferCreate(RwUInt32 numIndices,
+                                       void **indexBuffer);
+
+/* Vertex declaration */
+extern RwBool
+RwD3D9CreateVertexDeclaration(const void *elements,
+                              void **vertexdeclaration);
+
+extern void
+RwD3D9DeleteVertexDeclaration(void *vertexdeclaration);
+
+/*
+ * To create a vertex shader from the declaration, also the function
+ * for deleting it.
+ */
+extern RwBool RwD3D9CreateVertexShader(const RwUInt32 *function,
+                                       void **shader);
+
+extern void RwD3D9DeleteVertexShader(void *shader);
+
+/*
+ * To create a pixel shader from the function, also the function
+ * for deleting it.
+ */
+extern RwBool RwD3D9CreatePixelShader(const RwUInt32 *function, void **shader);
+
+extern void RwD3D9DeletePixelShader(void *shader);
+
+/*
+ * Utility function for setting streams
+ */
+extern void
+_rwD3D9SetStreams(const RxD3D9VertexStream *streams,
+                  RwBool useOffsets);
+
+/*
+ * Get a const pointer to the D3DCAPS9 struct, (you need to do the cast)
+ */
+extern const void *RwD3D9GetCaps(void);
+
+/*
+ * Check if the sphere is fully inside of the frustum
+ */
+extern RwBool RwD3D9CameraIsSphereFullyInsideFrustum(const void *camera, const void *sphere);
+
+/*
+ * Check if the Bounding Box is fully inside of the frustum
+ */
+extern RwBool RwD3D9CameraIsBBoxFullyInsideFrustum(const void *camera, const void *boundingBox);
+
+/*
+ * Create native rasters
+ */
+extern RwRaster *
+RwD3D9RasterCreate(RwUInt32 width,
+                   RwUInt32 height,
+                   RwUInt32 d3dFormat,
+                   RwUInt32 flags);
+
+/*
+ * Convert palettized texture to a non palettized one
+ */
+extern void
+_rwD3D9RasterConvertToNonPalettized(RwRaster *raster);
+
+/*
+ * Cheking the CPU capabilities
+ */
+
+#if (defined(RWDEBUG) || defined(RWSUPPRESSINLINE))
+extern RwBool _rwIntelMMXsupported(void);
+extern RwBool _rwIntelSSEsupported(void);
+extern RwBool _rwIntelSSE2supported(void);
+extern RwBool _rwAMD3DNowSupported(void);
+
+#else
+extern RwBool _rwD3D9CPUSupportsMMX;
+extern RwBool _rwD3D9CPUSupportsSSE;
+extern RwBool _rwD3D9CPUSupportsSSE2;
+extern RwBool _rwD3D9CPUSupports3DNow;
+
+#define _rwIntelMMXsupported() _rwD3D9CPUSupportsMMX
+#define _rwIntelSSEsupported() _rwD3D9CPUSupportsSSE
+#define _rwIntelSSE2supported() _rwD3D9CPUSupportsSSE2
+#define _rwAMD3DNowSupported() _rwD3D9CPUSupports3DNow
+#endif
+
+/* Called from RwEngineInit to give the driver a chance to register plugins */
+extern RwBool _rwDeviceRegisterPlugin(void);
+
+/*
+ * Set a release device callback that would be called after a device lost.
+ * Be careful to call the previous callback (if different than NULL),
+ * right at the beginning of you own callback.
+ */
+typedef void (*rwD3D9DeviceReleaseCallBack)(void);
+
+extern void
+_rwD3D9DeviceSetReleaseCallback(rwD3D9DeviceReleaseCallBack callback);
+
+extern rwD3D9DeviceReleaseCallBack
+_rwD3D9DeviceGetReleaseCallback(void);
+
+/*
+ * Set a restore device callback that would be called after a device has been reset.
+ * Be careful to call the previous callback (if different than NULL),
+ * right at the beginning of you own callback.
+ */
+typedef void (*rwD3D9DeviceRestoreCallBack)(void);
+
+extern void
+_rwD3D9DeviceSetRestoreCallback(rwD3D9DeviceRestoreCallBack callback);
+
+extern rwD3D9DeviceRestoreCallBack
+_rwD3D9DeviceGetRestoreCallback(void);
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+
+/*--- Automatically derived from: C:/daily/rwsdk/src/baresamp.h ---*/
+
+/****************************************************************************
+ Function prototypes
+ */
+
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
+
+extern RwImage *RwImageResample(RwImage *dstImage, const RwImage *srcImage);
+extern RwImage *RwImageCreateResample(const RwImage *srcImage, RwInt32 width,
+                                                               RwInt32 height);
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+
+/*--- Automatically derived from: C:/daily/rwsdk/src/baimras.h ---*/
+/****************************************************************************
+ Function prototypes
+ */
+
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
+
+/* Images from rasters */
+extern RwImage *RwImageSetFromRaster(RwImage *image, RwRaster *raster);
+
+/* Rasters from images */
+extern RwRaster *RwRasterSetFromImage(RwRaster *raster, RwImage *image);
+
+/* Read a raster */
+extern RwRaster *RwRasterRead(const RwChar *filename);
+extern RwRaster *RwRasterReadMaskedRaster(const RwChar *filename, const RwChar *maskname);
+
+/* Finding appropriate raster formats */
+extern RwImage *RwImageFindRasterFormat(RwImage *ipImage,RwInt32 nRasterType,
+                                        RwInt32 *npWidth,RwInt32 *npHeight,
+                                        RwInt32 *npDepth,RwInt32 *npFormat);
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/baframe.h ---*/
 
@@ -2217,6 +4245,152 @@ typedef RwFrame *(*RwFrameCallBack)(RwFrame *frame, void *data);
 #define RwFrameGetMatrix(_f)    RwFrameGetMatrixMacro(_f)
 #endif
 
+
+
+/****************************************************************************
+ Function prototypes
+ */
+
+#ifdef    __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
+
+
+/* Finding what is attached to a frame */
+extern RwFrame *
+RwFrameForAllObjects(RwFrame * frame,
+                     RwObjectCallBack callBack,
+                     void *data);
+
+/* Matrix operations */
+extern RwFrame *
+RwFrameTranslate(RwFrame * frame,
+                 const RwV3d * v,
+                 RwOpCombineType combine);
+
+extern RwFrame *
+RwFrameRotate(RwFrame * frame,
+              const RwV3d * axis,
+              RwReal angle,
+              RwOpCombineType combine);
+
+extern RwFrame *
+RwFrameScale(RwFrame * frame,
+             const RwV3d * v,
+             RwOpCombineType combine);
+
+extern RwFrame *
+RwFrameTransform(RwFrame * frame,
+                 const RwMatrix * m,
+                 RwOpCombineType combine);
+
+extern RwFrame *
+RwFrameOrthoNormalize(RwFrame * frame);
+
+extern RwFrame *
+RwFrameSetIdentity(RwFrame * frame);
+
+/* Cloning */
+extern RwFrame *
+RwFrameCloneHierarchy(RwFrame * root);
+
+/* Destruction */
+extern RwBool
+RwFrameDestroyHierarchy(RwFrame * frame);
+
+/* Building a frame */
+extern RwFrame *
+RwFrameForAllChildren(RwFrame * frame,
+                      RwFrameCallBack callBack,
+                      void *data);
+
+extern RwFrame *
+RwFrameRemoveChild(RwFrame * child);
+
+extern RwFrame *
+RwFrameAddChild(RwFrame * parent, RwFrame * child);
+
+extern RwFrame *
+RwFrameAddChildNoUpdate(RwFrame *parent, RwFrame *child);
+
+#if ( defined(RWDEBUG) || defined(RWSUPPRESSINLINE) )
+extern RwFrame *
+RwFrameGetParent(const RwFrame * frame);
+#endif
+
+/* Getting the root */
+extern RwFrame *
+RwFrameGetRoot(const RwFrame * frame);
+
+/* Getting Matrices */
+extern RwMatrix *
+RwFrameGetLTM(RwFrame * frame);
+
+#if ( defined(RWDEBUG) || defined(RWSUPPRESSINLINE) )
+extern RwMatrix *
+RwFrameGetMatrix(RwFrame * frame);
+#endif
+
+/* Elements */
+extern RwFrame *
+RwFrameUpdateObjects(RwFrame * frame);
+
+/* Creating destroying frames */
+extern void
+RwFrameSetFreeListCreateParams( RwInt32 blockSize, RwInt32 numBlocksToPrealloc );
+
+extern RwFrame *
+RwFrameCreate(void);
+
+extern RwBool
+RwFrameDestroy(RwFrame * frame);
+
+/* Finding a frames state */
+extern RwBool
+RwFrameDirty(const RwFrame * frame);
+
+/* Find the amount of frames in a hierarchy */
+extern RwInt32
+RwFrameCount(RwFrame * frame);
+
+/* static frame functions */
+extern RwBool
+_rwFrameSetStaticPluginsSize(RwInt32 size);
+
+extern RwBool
+_rwFrameInit(RwFrame *frame);
+
+extern RwBool
+_rwFrameDeInit(RwFrame *frame);
+
+/* Plugins */
+extern RwInt32
+RwFrameRegisterPlugin(RwInt32 size,
+                      RwUInt32 pluginID,
+                      RwPluginObjectConstructor constructCB,
+                      RwPluginObjectDestructor destructCB,
+                      RwPluginObjectCopy copyCB);
+
+extern RwInt32
+RwFrameGetPluginOffset(RwUInt32 pluginID);
+
+extern RwBool
+RwFrameValidatePlugins(const RwFrame * frame);
+
+/* Cloning */
+extern RwFrame *
+_rwFrameCloneAndLinkClones(RwFrame * root);
+
+extern
+RwFrame *
+_rwFramePurgeClone(RwFrame *root);
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+
 /*--- Automatically derived from: C:/daily/rwsdk/src/batypehf.h ---*/
 
 typedef struct RwObjectHasFrame RwObjectHasFrame;
@@ -2230,6 +4404,15 @@ struct RwObjectHasFrame
     RwObjectHasFrameSyncFunction sync;
 };
 #endif /* (!defined(DOXYGEN)) */
+
+/****************************************************************************
+ Function prototypes
+ */
+
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
 
 /* Frames */
 extern void _rwObjectHasFrameSetFrame(void *object, RwFrame *frame);
@@ -2247,6 +4430,10 @@ MACRO_STOP
 #define rwObjectHasFrameSync(o) \
     ((RwObjectHasFrame *)(o))->sync(o)
 
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
 /* Compatibility macros */
 
 #define rwObjectHasFrameSetFrame(object, frame) \
@@ -2254,7 +4441,25 @@ MACRO_STOP
 #define rwObjectHasFrameReleaseFrame(object) \
         _rwObjectHasFrameReleaseFrame(object)
 
+
+
 /*--- Automatically derived from: C:/daily/rwsdk/src/basync.h ---*/
+
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
+    
+/* Sync all the dirty frames */
+extern RwBool _rwFrameSyncDirty(void);
+
+/* Syncing the LTMs in a hierarchy */
+extern void _rwFrameSyncHierarchyLTM(RwFrame *frame);
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/babintex.h ---*/
 /****************************************************************************
@@ -2279,6 +4484,71 @@ enum RwTextureStreamFlags
     rwTEXTURESTREAMFLAGSFORCEENUMSIZEINT = RWFORCEENUMSIZEINT
 };
 typedef enum RwTextureStreamFlags RwTextureStreamFlags;
+/****************************************************************************
+ Function prototypes
+ */
+
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
+
+/* Texture binary format */
+extern RwInt32
+RwTextureRegisterPluginStream(RwUInt32 pluginID,
+                              RwPluginDataChunkReadCallBack readCB,
+                              RwPluginDataChunkWriteCallBack writeCB,
+                              RwPluginDataChunkGetSizeCallBack getSizeCB);
+
+extern RwInt32
+RwTextureSetStreamAlwaysCallBack(RwUInt32 pluginID,
+                                 RwPluginDataChunkAlwaysCallBack alwaysCB);
+
+extern RwUInt32
+RwTextureStreamGetSize(const RwTexture *texture);
+
+extern RwTexture *
+RwTextureStreamRead(RwStream *stream);
+
+extern const RwTexture *
+RwTextureStreamWrite(const RwTexture *texture,
+                     RwStream *stream);
+
+/* Texture dictionary binary format */
+extern RwInt32
+RwTexDictionaryRegisterPluginStream(RwUInt32 pluginID,
+                                    RwPluginDataChunkReadCallBack readCB,
+                                    RwPluginDataChunkWriteCallBack writeCB,
+                                    RwPluginDataChunkGetSizeCallBack getSizeCB);
+
+extern RwInt32
+RwTexDictionarySetStreamAlwaysCallBack(RwUInt32 pluginID,
+                                       RwPluginDataChunkAlwaysCallBack alwaysCB);
+
+extern RwUInt32
+RwTexDictionaryStreamGetSize(const RwTexDictionary *texDict);
+
+extern RwTexDictionary
+*RwTexDictionaryStreamRead(RwStream *stream);
+
+extern const RwTexDictionary *
+RwTexDictionaryStreamWrite(const RwTexDictionary *texDict,
+                           RwStream *stream);
+
+extern RwTextureChunkInfo *
+_rwTextureChunkInfoRead(RwStream *stream,
+                        RwTextureChunkInfo *textureChunkInfo,
+                        RwInt32 *bytesRead);
+
+/* Compatibility macro */
+
+#define  RwTextureChunkInfoRead(_stream, _textureChunkInfo, _bytesRead) \
+        _rwTextureChunkInfoRead(_stream, _textureChunkInfo, _bytesRead) 
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/babinfrm.h ---*/
 /****************************************************************************
@@ -2294,6 +4564,85 @@ struct rwFrameList
     RwInt32 numFrames;
 };
 #endif /* (!defined(DOXYGEN)) */
+
+/****************************************************************************
+ Global Variables 
+ */
+
+/****************************************************************************
+ Function prototypes
+ */
+
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
+
+/* Frame binary format */
+
+extern void
+RwFrameListSetAutoUpdate(RwBool flag);
+
+
+extern RwInt32 
+RwFrameRegisterPluginStream(RwUInt32 pluginID,
+                            RwPluginDataChunkReadCallBack readCB,
+                            RwPluginDataChunkWriteCallBack writeCB,
+                            RwPluginDataChunkGetSizeCallBack getSizeCB);
+
+extern RwInt32 
+RwFrameSetStreamAlwaysCallBack(RwUInt32 pluginID,
+                               RwPluginDataChunkAlwaysCallBack alwaysCB);
+
+
+extern rwFrameList *
+_rwFrameListInitialize(rwFrameList *frameList,
+                      RwFrame *frame);
+
+extern RwBool 
+_rwFrameListFindFrame(const rwFrameList *frameList,
+                     const RwFrame *frame,
+                     RwInt32 *npIndex);
+
+extern rwFrameList *
+_rwFrameListDeinitialize(rwFrameList *frameList);
+
+extern RwUInt32 
+_rwFrameListStreamGetSize(const rwFrameList *frameList);
+
+extern rwFrameList *
+_rwFrameListStreamRead(RwStream *stream,
+                      rwFrameList *fl);
+
+extern const rwFrameList *
+_rwFrameListStreamWrite(const rwFrameList *frameList,
+                       RwStream *stream);
+
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+/* Comparibility macros */
+
+#define rwFrameListInitialize(frameList,frame) \
+       _rwFrameListInitialize(frameList,frame)
+
+#define rwFrameListFindFrame(frameList, frame, index) \
+       _rwFrameListFindFrame(frameList, frame, index)
+
+#define rwFrameListDeinitialize(frameList) \
+       _rwFrameListDeinitialize(frameList)
+
+#define rwFrameListStreamGetSize(frameList) \
+       _rwFrameListStreamGetSize(frameList)
+
+#define rwFrameListStreamRead(stream, fl) \
+       _rwFrameListStreamRead(stream, fl)
+
+#define rwFrameListStreamWrite(frameList, stream) \
+       _rwFrameListStreamWrite(frameList, stream)
+
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/babbox.h ---*/
 /****************************************************************************
@@ -2325,6 +4674,31 @@ struct RwBBox
     ( *(_target) = *(_source) )
 #endif /* (!defined(RwBBoxAssign)) */
 
+/****************************************************************************
+ Function prototypes
+ */
+
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
+
+
+extern RwBBox *RwBBoxCalculate(RwBBox *boundBox,
+                               const RwV3d *verts,
+                               RwInt32 numVerts);
+extern RwBBox *RwBBoxInitialize(RwBBox *boundBox,
+                                const RwV3d *vertex);
+extern RwBBox *RwBBoxAddPoint(RwBBox *boundBox,
+                              const RwV3d *vertex);
+extern RwBool RwBBoxContainsPoint(const RwBBox *boundBox,
+                                  const RwV3d *vertex);
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+
 /*--- Automatically derived from: C:/daily/rwsdk/src/bacamera.h ---*/
 
 /****************************************************************************
@@ -2334,30 +4708,6 @@ struct RwBBox
 /* Type ID */
 #define rwCAMERA 4
 
-/* RWPUBLICEND */
-
-/* Used by some drivers for overdraw frustums */
-
-#if defined(__GNUC__) \
-    && ((__GNUC__ > 2 ) || (__GNUC__ == 2) && (__GNUC_MINOR__ == 96))
-
-#define RWPLANESETCLOSEST(p)                            \
-    (p).closestX = (((p).plane.normal.x)>=((RwReal)0)); \
-    (p).closestY = (((p).plane.normal.y)>=((RwReal)0)); \
-    (p).closestZ = (((p).plane.normal.z)>=((RwReal)0))
-
-#else
-/* This version is not -fstrict-alias safe */
-/* 1 Bll 0 Fur */
-
-#define RWPLANESETCLOSEST(p)                                                 \
-    (p).closestX = (RwUInt8)(((*(RwInt32 *)(&(p).plane.normal.x))>>31) +1);  \
-    (p).closestY = (RwUInt8)(((*(RwInt32 *)(&(p).plane.normal.y))>>31) +1);  \
-    (p).closestZ = (RwUInt8)(((*(RwInt32 *)(&(p).plane.normal.z))>>31) +1)
-
-#endif
-
-/* RWPUBLIC */
 
 
 /****************************************************************************
@@ -2478,19 +4828,8 @@ MACRO_STOP
 #define RwCameraGetFrame(_camera)                               \
     RwCameraGetFrameMacro(_camera)
 
-#define RwRasterGetDepthMacro(_raster) ((_raster)->depth)
-#define RwRasterGetDepth(_raster) RwRasterGetDepthMacro(_raster)
-
-#define RwIm2DGetNearScreenZMacro() (RWSRCGLOBAL(dOpenDevice).zBufferNear)
-#define RwIm2DGetNearScreenZ() RwIm2DGetNearScreenZMacro()
-
-#define RwIm2DGetFarScreenZMacro() (RWSRCGLOBAL(dOpenDevice).zBufferFar)
-#define RwIm2DGetFarScreenZ() RwIm2DGetFarScreenZMacro()
-
-#define RwCameraGetNearClipPlaneMacro(_camera) ((_camera)->nearPlane)
-#define RwCameraGetNearClipPlane(_camera) RwCameraGetNearClipPlaneMacro(_camera)
-
 #endif /* !(defined(RWDEBUG) || defined(RWSUPPRESSINLINE)) */
+
 
 /****************************************************************************
  Global Types
@@ -2627,6 +4966,103 @@ struct RwCamera
  */
 typedef RwCamera *(*RwCameraCallBack)(RwCamera *camera, void *data);
 
+
+/****************************************************************************
+ Function prototypes
+ */
+
+#ifdef    __cplusplus
+extern              "C"
+{
+#endif                          /* __cplusplus */
+
+    /* Rendering */
+extern RwCamera    *RwCameraBeginUpdate(RwCamera * camera);
+extern RwCamera    *RwCameraEndUpdate(RwCamera * camera);
+
+extern RwCamera    *RwCameraClear(RwCamera * camera, RwRGBA * colour,
+                                  RwInt32 clearMode);
+
+/* Displaying results */
+extern RwCamera    *RwCameraShowRaster(RwCamera * camera, void *pDev,
+                                       RwUInt32 flags);
+
+/* Creation and destruction */
+extern void RwCameraSetFreeListCreateParams( RwInt32 blockSize,
+                                            RwInt32 numBlocksToPrealloc );
+extern RwBool       RwCameraDestroy(RwCamera * camera);
+extern RwCamera    *RwCameraCreate(void);
+extern RwCamera    *RwCameraClone(RwCamera * camera);
+
+/* Offset */
+extern RwCamera    *RwCameraSetViewOffset(RwCamera *camera,
+                                          const RwV2d *offset);
+
+/* View window */
+extern RwCamera    *RwCameraSetViewWindow(RwCamera *camera,
+                                          const RwV2d *viewWindow);
+
+/* Projection */
+extern RwCamera    *RwCameraSetProjection(RwCamera *camera,
+                                          RwCameraProjection projection);
+
+/* Clip planes */
+extern RwCamera    *RwCameraSetNearClipPlane(RwCamera *camera, RwReal nearClip);
+extern RwCamera    *RwCameraSetFarClipPlane(RwCamera *camera, RwReal farClip);
+
+/* Attaching toolkits */
+extern RwInt32      RwCameraRegisterPlugin(RwInt32 size,
+                                           RwUInt32 pluginID,
+                                           RwPluginObjectConstructor
+                                           constructCB,
+                                           RwPluginObjectDestructor
+                                           destructCB,
+                                           RwPluginObjectCopy copyCB);
+extern RwInt32      RwCameraGetPluginOffset(RwUInt32 pluginID);
+extern RwBool       RwCameraValidatePlugins(const RwCamera * camera);
+
+/* Frustum testing */
+extern RwFrustumTestResult RwCameraFrustumTestSphere(const RwCamera *
+                                                     camera,
+                                                     const RwSphere *
+                                                     sphere);
+
+#if (defined(RWDEBUG) || defined(RWSUPPRESSINLINE))
+
+/* Offset */
+extern const RwV2d *RwCameraGetViewOffset(const RwCamera *camera);
+
+/* Rasters */
+extern RwCamera    *RwCameraSetRaster(RwCamera *camera, RwRaster *raster);
+extern RwRaster    *RwCameraGetRaster(const RwCamera *camera);
+extern RwCamera    *RwCameraSetZRaster(RwCamera *camera, RwRaster *zRaster);
+extern RwRaster    *RwCameraGetZRaster(const RwCamera *camera);
+
+/* Clip planes */
+extern RwReal       RwCameraGetNearClipPlane(const RwCamera *camera);
+extern RwReal       RwCameraGetFarClipPlane(const RwCamera *camera);
+extern RwCamera    *RwCameraSetFogDistance(RwCamera *camera, RwReal fogDistance);
+extern RwReal       RwCameraGetFogDistance(const RwCamera *camera);
+
+extern RwCamera    *RwCameraGetCurrentCamera(void);
+
+/* Projection */
+extern RwCameraProjection RwCameraGetProjection(const RwCamera *camera);
+
+/* View window */
+extern const RwV2d *RwCameraGetViewWindow(const RwCamera *camera);
+
+extern RwMatrix    *RwCameraGetViewMatrix(RwCamera *camera);
+
+/* Frames */
+extern RwCamera    *RwCameraSetFrame(RwCamera *camera, RwFrame *frame);
+extern RwFrame     *RwCameraGetFrame(const RwCamera *camera);
+#endif /* (defined(RWDEBUG) || defined(RWSUPPRESSINLINE)) */
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
 /*--- Automatically derived from: C:/daily/rwsdk/src/bacamval.h ---*/
 
 /*--- Automatically derived from: C:/daily/rwsdk/src/pipe/p2/bapipe.h ---*/
@@ -2665,6 +5101,18 @@ typedef struct rwPipeGlobals rwPipeGlobals;
 
 #define RXPIPELINEGLOBAL(var) (RWPLUGINOFFSET(rwPipeGlobals, RwEngineInstance, _rxPipelineGlobalsOffset)->var)
 
+#ifdef    __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+
+extern RwInt32      _rxPipelineGlobalsOffset;
+
+#ifdef    __cplusplus
+}
+#endif /* __cplusplus */
+
+
 /*--- Automatically derived from: C:/daily/rwsdk/src/babincam.h ---*/
 /****************************************************************************
  Global types
@@ -2693,293 +5141,34 @@ struct rwStreamCamera
 };
 #endif /* (!defined(DOXYGEN)) */
 
-#define rwObjectHasFrameSetFrame(object, frame) _rwObjectHasFrameSetFrame(object, frame)
-#define rwObjectHasFrameReleaseFrame(object) _rwObjectHasFrameReleaseFrame(object)
+/****************************************************************************
+ Function prototypes
+ */
 
-RxHeap* RxHeapCreate(RwUInt32 size); // 0x809F90
-void RxHeapDestroy(RxHeap* heap); // 0x809F30
-RwBool _rxHeapReset(RxHeap* heap); // 0x809EC0
-void* RxHeapAlloc(RxHeap* heap, RwUInt32 size); // 0x809AA0
-void RxHeapFree(RxHeap* heap, void* block); // 0x8098B0
-void* RxHeapRealloc(RxHeap* heap, void* block, RwUInt32 newSize, RwBool allowCopy); // 0x809D10
-void RxPipelineSetFreeListCreateParams(RwInt32 blockSize, RwInt32 numBlocksToPrealloc); // 0x804FC0
-RwBool _rxPipelineOpen(); // 0x804FE0
-RwBool _rxPipelineClose(); // 0x804F60
-RxPipeline* RxPipelineCreate(); // 0x8057B0
-void _rxPipelineDestroy(RxPipeline* Pipeline); // 0x805820
-RxHeap* RxHeapGetGlobalHeap(); // 0x8052F0
-RxPipeline* RxPipelineExecute(RxPipeline* pipeline, void* data, RwBool heapReset); // 0x805710
-RxPacket* RxPacketCreate(RxPipelineNode* node); // 0x805300
-RxCluster* RxClusterSetStride(RxCluster* cluster, RwInt32 stride); // 0x805330
-RxCluster* RxClusterSetExternalData(RxCluster* cluster, void* data, RwInt32 stride, RwInt32 numElements); // 0x805340
-RxCluster* RxClusterSetData(RxCluster* cluster, void* data, RwInt32 stride, RwInt32 numElements); // 0x8053A0
-void _rxPacketDestroy(RxPacket* Packet); // 0x80F070
-RxCluster* RxClusterInitializeData(RxCluster* cluster, RwUInt32 numElements, RwUInt16 stride); // 0x805400
-RxCluster* RxClusterResizeData(RxCluster* CurrentCluster, RwUInt32 NumElements); // 0x805470
-RxCluster* RxClusterDestroyData(RxCluster* CurrentCluster); // 0x8054C0
-RxCluster* RxClusterLockWrite(RxPacket* packet, RwUInt32 clusterIndex, RxPipelineNode* node); // 0x8054F0
-void RxClusterUnlock(RxCluster* cluster); // 0x8055C0
-RwUInt32 RxPipelineNodeSendConfigMsg(RxPipelineNode* dest, RwUInt32 msg, RwUInt32 intparam, void* ptrparam); // 0x8055D0
-RxPipelineNode* RxPipelineNodeForAllConnectedOutputs(RxPipelineNode* node, RxPipeline* pipeline, RxPipelineNodeOutputCallBack callbackfn, void* callbackdata); // 0x8055F0
-RxPipelineCluster* RxPipelineNodeGetPipelineCluster(RxPipelineNode* node, RwUInt32 clustersOfInterestIndex); // 0x805680
-RwUInt32 RxPipelineClusterGetCreationAttributes(RxPipelineCluster* cluster); // 0x8056B0
-RxPipelineCluster* RxPipelineClusterSetCreationAttributes(RxPipelineCluster* cluster, RwUInt32 creationAttributes); // 0x8056C0
-RwUInt32 RxClusterGetAttributes(RxCluster* cluster); // 0x8056E0
-RxCluster* RxClusterSetAttributes(RxCluster* cluster, RwUInt32 attributes); // 0x8056F0
-RxNodeOutput RxPipelineNodeFindOutputByName(RxPipelineNode* node, const RwChar* outputname); // 0x805D10
-RxNodeOutput RxPipelineNodeFindOutputByIndex(RxPipelineNode* node, RwUInt32 outputindex); // 0x805D70
-RxNodeInput RxPipelineNodeFindInput(RxPipelineNode* node); // 0x805DA0
-RxNodeDefinition* RxPipelineNodeCloneDefinition(RxPipelineNode* node, RxClusterDefinition* cluster2add); // 0x8059C0
-RxPipeline* RxPipelineNodeRequestCluster(RxPipeline* pipeline, RxPipelineNode* node, RxClusterDefinition* clusterDef); // 0x805DB0
-RxPipeline* RxPipelineNodeReplaceCluster(RxPipeline* pipeline, RxPipelineNode* node, RxClusterDefinition* oldClusterDef, RxClusterDefinition* newClusterDef); // 0x805E20
-void* RxPipelineNodeGetInitData(RxPipelineNode* node); // 0x805F30
-void* RxPipelineNodeCreateInitData(RxPipelineNode* node, RwUInt32 size); // 0x805EA0
-RxPipeline* RxPipelineClone(RxPipeline* pipeline); // 0x806AC0
-RxPipelineNode* RxPipelineFindNodeByName(RxPipeline* pipeline, const RwChar* name, RxPipelineNode* start, RwInt32* nodeIndex); // 0x806B30
-RxPipelineNode* RxPipelineFindNodeByIndex(RxPipeline* pipeline, RwUInt32 nodeindex); // 0x806BC0
-RxLockedPipe* RxPipelineLock(RxPipeline* pipeline); // 0x806990
-RxPipeline* RxLockedPipeUnlock(RxLockedPipe* pipeline); // 0x805F40
-RxPipeline* RxLockedPipeReplaceNode(RxLockedPipe* pipeline, RxPipelineNode* node, RxNodeDefinition* nodeDef); // 0x806F20
-RxPipeline* RxLockedPipeDeleteNode(RxLockedPipe* pipeline, RxPipelineNode* node); // 0x807040
-RxPipeline* RxLockedPipeSetEntryPoint(RxLockedPipe* pipeline, RxNodeInput in); // 0x807070
-RxPipelineNode* RxLockedPipeGetEntryPoint(RxLockedPipe* pipeline); // 0x8070D0
-RxPipeline* RxLockedPipeAddFragment(RxLockedPipe* pipeline, RwUInt32 firstIndex, RxNodeDefinition* nodeDef0, RwUInt32 nodeUnk = 0); // 0x806BE0
-RxPipeline* RxLockedPipeAddPath(RxLockedPipe* pipeline, RxNodeOutput out, RxNodeInput in); // 0x807100
-RxPipeline* RxLockedPipeDeletePath(RxLockedPipe* pipeline, RxNodeOutput out, RxNodeInput in); // 0x807170
-RxPipeline* RxPipelineInsertDebugNode(RxPipeline* pipeline, RxPipelineNode* before, RxPipelineNode* after, RxNodeDefinition* debugNode); // 0x8071B0
-void RwD3D9VertexBufferManagerChangeDefaultSize(RwUInt32 defaultSize); // 0x7F57F0
-RwBool RwD3D9CreateVertexBuffer(RwUInt32 stride, RwUInt32 size, void* vertexBuffer, RwUInt32* offset); // 0x7F5500
-void RwD3D9DestroyVertexBuffer(RwUInt32 stride, RwUInt32 size, void* vertexBuffer, RwUInt32 offset); // 0x7F56A0
-RwBool RwD3D9DynamicVertexBufferCreate(RwUInt32 size, void* vertexBuffer); // 0x7F5A00
-void RwD3D9DynamicVertexBufferDestroy(); // 0x7F5AE0
-RwBool RwD3D9DynamicVertexBufferLock(RwUInt32 vertexSize, RwUInt32 numVertex, void* vertexBufferOut, void* vertexDataOut, RwUInt32* baseIndexOut); // 0x7F5B10
-RwBool RwD3D9DynamicVertexBufferUnlock(); // 0x7F5C90
-void RwRasterSetFreeListCreateParams(RwInt32 blockSize, RwInt32 numBlocksToPrealloc); // 0x7FB350
-// flags RwRasterFormat, RwRasterPrivateFlag
-RwRaster* RwRasterCreate(RwInt32 width, RwInt32 height, RwInt32 depth, RwInt32 flags); // 0x7FB230
-RwBool RwRasterDestroy(RwRaster* raster); // 0x7FB020
-RwRaster* RwRasterGetOffset(RwRaster* raster, RwInt16* xOffset, RwInt16* yOffset); // 0x7FAEA0
-RwInt32 RwRasterGetNumLevels(RwRaster* raster); // 0x7FB160
-RwRaster* RwRasterSubRaster(RwRaster* subRaster, RwRaster* raster, RwRect* rect); // 0x7FB1D0
-RwRaster* RwRasterRenderFast(RwRaster* raster, RwInt32 x, RwInt32 y); // 0x7FAF50
-RwRaster* RwRasterRender(RwRaster* raster, RwInt32 x, RwInt32 y); // 0x7FAFB0
-RwRaster* RwRasterRenderScaled(RwRaster* raster, RwRect* rect); // 0x7FAE80
-RwRaster* RwRasterPushContext(RwRaster* raster); // 0x7FB060
-RwRaster* RwRasterPopContext(); // 0x7FB110
-RwRaster* RwRasterGetCurrentContext(); // 0x7FAE60
-RwBool RwRasterClear(RwInt32 pixelValue); // 0x7FAEE0
-RwBool RwRasterClearRect(RwRect* rpRect, RwInt32 pixelValue); // 0x7FAF90
-RwRaster* RwRasterShowRaster(RwRaster* raster, void* dev, RwUInt32 flags); // 0x7FB1A0
-RwUInt8* RwRasterLock(RwRaster* raster, RwUInt8 level, RwInt32 lockMode); // 0x7FB2D0
-RwRaster* RwRasterUnlock(RwRaster* raster); // 0x7FAEC0
-RwUInt8* RwRasterLockPalette(RwRaster* raster, RwInt32 lockMode); // 0x7FB0E0
-RwRaster* RwRasterUnlockPalette(RwRaster* raster); // 0x7FAFF0
-RwInt32 RwRasterRegisterPlugin(RwInt32 size, RwUInt32 pluginID, RwPluginObjectConstructor constructCB, RwPluginObjectDestructor destructCB, RwPluginObjectCopy copyCB); // 0x7FB0B0
-RwInt32 RwRasterGetPluginOffset(RwUInt32 pluginID); // 0x7FAE40
-RxRenderStateVector* RxRenderStateVectorSetDefaultRenderStateVector(RxRenderStateVector* rsvp); // 0x80EA40
-RwImage* RwImageCreate(RwInt32 width, RwInt32 height, RwInt32 depth); // 0x8026E0
-RwBool RwImageDestroy(RwImage* image); // 0x802740
-RwImage* RwImageAllocatePixels(RwImage* image); // 0x8027A0
-RwImage* RwImageFreePixels(RwImage* image); // 0x802860
-RwImage* RwImageApplyMask(RwImage* image, const RwImage* mask); // 0x802AF0
-RwImage* RwImageMakeMask(RwImage* image); // 0x802A20
-RwImage* RwImageReadMaskedImage(const RwChar* imageName, const RwChar* maskname); // 0x8035C0
-RwImage* RwImageRead(const RwChar* imageName); // 0x802FD0
-const RwChar* RwImageSetPath(const RwChar* path); // 0x802EA0
-RwBool RwImageSetGamma(RwReal gammaValue); // 0x803FE0
-RwImage* RwImageGammaCorrect(RwImage* image); // 0x803E30
-RwBool RwPalQuantInit(RwPalQuant* pq); // 0x80C470
-void RwPalQuantTerm(RwPalQuant* pq); // 0x80C520
-void RwPalQuantAddImage(RwPalQuant* pq, RwImage* img, RwReal weight); // 0x80AA80
-RwInt32 RwPalQuantResolvePalette(RwRGBA* palette, RwInt32 maxcols, RwPalQuant* pq); // 0x80AF60
-void RwPalQuantMatchImage(RwUInt8* dstpixels, RwInt32 dststride, RwInt32 dstdepth, RwBool dstPacked, RwPalQuant* pq, RwImage* img); // 0x80BF20
-RwBool RwTextureSetMipmapping(RwBool enable); // 0x7F3530
-RwBool RwTextureGetMipmapping(); // 0x7F3550
-RwBool RwTextureSetAutoMipmapping(RwBool enable); // 0x7F3560
-RwBool RwTextureGetAutoMipmapping(); // 0x7F3580
-RwBool RwTextureSetMipmapGenerationCallBack(RwTextureCallBackMipmapGeneration callback); // 0x7F3C70
-RwTextureCallBackMipmapGeneration RwTextureGetMipmapGenerationCallBack(); // 0x7F3C90
-RwBool RwTextureSetMipmapNameCallBack(RwTextureCallBackMipmapName callback); // 0x7F3CA0
-RwTextureCallBackMipmapName RwTextureGetMipmapNameCallBack(); // 0x7F3CC0
-RwBool RwTextureGenerateMipmapName(RwChar* name, RwChar* maskName, RwUInt8 mipLevel, RwInt32 format); // 0x7F3AA0
-RwBool RwTextureRasterGenerateMipmaps(RwRaster* raster, RwImage* image); // 0x7F3CD0
-RwBool _rwTextureSetAutoMipMapState(RwBool enable); // 0x7F3590
-RwBool _rwTextureGetAutoMipMapState(); // 0x7F35C0
-RwTextureCallBackRead RwTextureGetReadCallBack(); // 0x7F3520
-RwBool RwTextureSetReadCallBack(RwTextureCallBackRead callBack); // 0x7F3500
-RwTextureCallBackFind RwTextureGetFindCallBack(); // 0x7F34F0
-RwBool RwTextureSetFindCallBack(RwTextureCallBackFind callBack); // 0x7F34D0
-RwTexture* RwTextureSetName(RwTexture* texture, const RwChar* name); // 0x7F38A0
-RwTexture* RwTextureSetMaskName(RwTexture* texture, const RwChar* maskName); // 0x7F3910
-void RwTexDictionarySetFreeListCreateParams(RwInt32 blockSize, RwInt32 numBlocksToPrealloc); // 0x7F3E80
-RwTexDictionary* RwTexDictionaryCreate(); // 0x7F3600
-RwBool RwTexDictionaryDestroy(RwTexDictionary* dict); // 0x7F36A0
-RwTexture* RwTextureCreate(RwRaster* raster); // 0x7F37C0
-RwTexture* RwTextureRead(const char* name, const char* maskName); // 0x7F3AC0
-RwBool RwTextureDestroy(RwTexture* texture); // 0x7F3820
-RwTexture* RwTextureSetRaster(RwTexture* texture, RwRaster* raster); // 0x7F35D0
-RwTexture* RwTexDictionaryAddTexture(RwTexDictionary* dict, RwTexture* texture); // 0x7F3980
-RwTexture* RwTexDictionaryRemoveTexture(RwTexture* texture); // 0x7F39C0
-RwTexture* RwTexDictionaryFindNamedTexture(RwTexDictionary* dict, const RwChar* name); // 0x7F39F0
-RwTexDictionary* RwTexDictionaryGetCurrent(); // 0x7F3A90
-RwTexDictionary* RwTexDictionarySetCurrent(RwTexDictionary* dict); // 0x7F3A70
-const RwTexDictionary* RwTexDictionaryForAllTextures(const RwTexDictionary* dict, RwTextureCallBack fpCallBack, void* data); // 0x7F3730
-RwBool RwTexDictionaryForAllTexDictionaries(RwTexDictionaryCallBack fpCallBack, void* data); // 0x7F3770
-RwInt32 RwTextureRegisterPlugin(RwInt32 size, RwUInt32 pluginID, RwPluginObjectConstructor constructCB, RwPluginObjectDestructor destructCB, RwPluginObjectCopy copyCB); // 0x7F3BB0
-RwInt32 RwTexDictionaryRegisterPlugin(RwInt32 size, RwUInt32 pluginID, RwPluginObjectConstructor constructCB, RwPluginObjectDestructor destructCB, RwPluginObjectCopy copyCB); // 0x7F3C10
-RwInt32 RwTextureGetPluginOffset(RwUInt32 pluginID); // 0x7F3BE0
-RwInt32 RwTexDictionaryGetPluginOffset(RwUInt32 pluginID); // 0x7F3C40
-RwBool RwTextureValidatePlugins(const RwTexture* texture); // 0x7F3C00
-RwBool RwTexDictionaryValidatePlugins(const RwTexDictionary* dict); // 0x7F3C60
-rwIm3DPool* _rwIm3DGetPool(); // 0x7EFDD0
-void* RwIm3DTransform(RwIm3DVertex* pVerts, RwUInt32 numVerts, RwMatrix* ltm, RwUInt32 flags); // 0x7EF450
-RwBool RwIm3DEnd(); // 0x7EF520
-RwBool RwIm3DRenderLine(RwInt32 vert1, RwInt32 vert2); // 0x7EF900
-RwBool RwIm3DRenderTriangle(RwInt32 vert1, RwInt32 vert2, RwInt32 vert3); // 0x7EF810
-RwBool RwIm3DRenderIndexedPrimitive(RwPrimitiveType primType, RwImVertexIndex* indices, RwInt32 numIndices); // 0x7EF550
-RwBool RwIm3DRenderPrimitive(RwPrimitiveType primType); // 0x7EF6B0
-RxPipeline* RwIm3DGetTransformPipeline(); // 0x7EF9D0
-RxPipeline* RwIm3DGetRenderPipeline(RwPrimitiveType primType); // 0x7EF9E0
-RxPipeline* RwIm3DSetTransformPipeline(RxPipeline* pipeline); // 0x7EFAC0
-RxPipeline* RwIm3DSetRenderPipeline(RxPipeline* pipeline, RwPrimitiveType primType); // 0x7EFB10
-RwRaster* RwD3D9RasterStreamReadDDS(RwStream* stream); // 0x81F360
-RwTexture* RwD3D9DDSTextureRead(const RwChar* name, const RwChar* maskname); // 0x820A10
-RwBool RwD3D9RasterIsCompressed(const RwRaster* raster); // 0x820C90
-RwBool RwD3D9DeviceSupportsDXTTexture(); // 0x7F9C30
-IDirect3DDevice9* RwD3D9GetCurrentD3DDevice(); // 0x7F9D50
-RwUInt32 RwD3D9EngineGetMaxMultiSamplingLevels(); // 0x7F84E0
-void RwD3D9EngineSetMultiSamplingLevels(RwUInt32 numLevels); // 0x7F84F0
-void RwD3D9EngineSetRefreshRate(RwUInt32 refreshRate); // 0x7F8580
-void RwD3D9EngineSetMultiThreadSafe(RwBool enable); // 0x7F8620
-void RwD3D9EngineSetSoftwareVertexProcessing(RwBool enable); // 0x7F8630
-void* RwD3D9GetCurrentD3DRenderTarget(RwUInt32 index); // 0x7F9E80
-RwBool RwD3D9SetRenderTarget(RwUInt32 index, RwRaster* raster); // 0x7F9E90
-RwBool RwD3D9ChangeVideoMode(RwInt32 modeIndex); // 0x7F8640
-RwBool RwD3D9ChangeMultiSamplingLevels(RwUInt32 numLevels); // 0x7F8A90
-RwBool RwD3D9CameraAttachWindow(void* camera, void* hwnd); // 0x7F8D70
-void RwD3D9SetStreamSource(RwUInt32 streamNumber, void* streamData, RwUInt32 offset, RwUInt32 stride); // 0x7FA030
-void _rwD3D9RenderStateFlushCache(); // 0x7FC200
-void _rwD3D9DrawIndexedPrimitiveUP(RwUInt32 primitiveType, RwUInt32 minIndex, RwUInt32 numVertices, RwUInt32 primitiveCount, const void* indexData, const void* vertexStreamZeroData, RwUInt32 VertexStreamZeroStride); // 0x7FA1F0
-void _rwD3D9DrawPrimitiveUP(RwUInt32 primitiveType, RwUInt32 primitiveCount, const void* vertexStreamZeroData, RwUInt32 VertexStreamZeroStride); // 0x7FA290
-void _rwD3D9DrawIndexedPrimitive(RwUInt32 primitiveType, RwInt32 baseVertexIndex, RwUInt32 minIndex, RwUInt32 numVertices, RwUInt32 startIndex, RwUInt32 primitiveCount); // 0x7FA320
-void _rwD3D9SetVertexShaderConstant(RwUInt32 registerAddress, const void* constantData, RwUInt32 constantCount); // 0x7FACA0
-void _rwD3D9SetPixelShaderConstant(RwUInt32 registerAddress, const void* constantData, RwUInt32 constantCount); // 0x7FAD00
-void _rwD3D9SetFVF(RwUInt32 fvf); // 0x7F9F30
-void _rwD3D9SetVertexShader(void *shader); // 0x7F9FB0
-void _rwD3D9SetPixelShader(void *shader); // 0x7F9FF0
-void RwD3D9SetRenderState(RwUInt32 state, RwUInt32 value); // 0x7FC2D0
-void RwD3D9GetRenderState(RwUInt32 state, void* value); // 0x7FC320
-void RwD3D9SetTextureStageState(RwUInt32 stage, RwUInt32 type, RwUInt32 value); // 0x7FC340
-void RwD3D9GetTextureStageState(RwUInt32 stage, RwUInt32 type, void* value); // 0x7FC3A0
-void RwD3D9SetSamplerState(RwUInt32 stage, RwUInt32 type, RwUInt32 value); // 0x7FC3C0
-void RwD3D9GetSamplerState(RwUInt32 stage, RwUInt32 type, void* value); // 0x7FC400
-void RwD3D9SetStencilClear(RwUInt32 stencilClear); // 0x7F9D30
-RwUInt32 RwD3D9GetStencilClear(); // 0x7F9D40
-RwBool RwD3D9SetTexture(RwTexture* texture, RwUInt32 stage); // 0x7FDE70
-RwBool RwD3D9SetTransform(RwUInt32 state, const void* matrix); // 0x7FA390
-void RwD3D9GetTransform(RwUInt32 state, void* matrix); // 0x7FA4F0
-RwBool RwD3D9SetMaterial(const void* material); // 0x7FC430
-RwBool RwD3D9SetClipPlane(RwUInt32 index, const RwV4d* plane); // 0x7FC4A0
-RwBool RwD3D9SetTransformWorld(const RwMatrix* matrix); // 0x7FA520
-RwBool RwD3D9SetSurfaceProperties(const RwSurfaceProperties* surfaceProps, const RwRGBA* color, RwUInt32 flags); // 0x7FC4D0
-RwBool RwD3D9SetLight(RwInt32 index, const void* light); // 0x7FA660
-void RwD3D9GetLight(RwInt32 index, void* light); // 0x7FA820
-RwBool RwD3D9EnableLight(RwInt32 index, RwBool enable); // 0x7FA860
-RwBool RwD3D9IndexBufferCreate(RwUInt32 numIndices, void* indexBuffer); // 0x4C9970
-RwBool RwD3D9CreateVertexDeclaration(const void* elements, void* vertexdeclaration); // 0x7FAA30
-void RwD3D9DeleteVertexDeclaration(); // 0x7FAC10
-void RwD3D9DeleteVertexShader(); // 0x7FAC90
-RwBool RwD3D9CreatePixelShader(const RwUInt32* function, void* shader); // 0x7FACC0
-void RwD3D9DeletePixelShader(); // 0x7FACF0
-D3DCAPS9* RwD3D9GetCaps(); // 0x7FAD20
-RwBool RwD3D9CameraIsSphereFullyInsideFrustum(const void* camera, const void* sphere); // 0x7FAD30
-RwBool RwD3D9CameraIsBBoxFullyInsideFrustum(const void* camera, const void* boundingBox); // 0x7FAD90
-void _rwD3D9RasterConvertToNonPalettized(RwRaster* raster); // 0x4CD250
-RwBool _rwDeviceRegisterPlugin(void); // 0x7F5F60
-void _rwD3D9DeviceSetRestoreCallback(rwD3D9DeviceRestoreCallBack callback); // 0x7FAE20
-rwD3D9DeviceRestoreCallBack _rwD3D9DeviceGetRestoreCallback(void); // 0x7FAE30
-RwImage* RwImageResample(RwImage* dstImage, const RwImage* srcImage); // 0x80C600
-RwImage* RwImageCreateResample(const RwImage* srcImage, RwInt32 width, RwInt32 height); // 0x80CD10
-RwImage* RwImageSetFromRaster(RwImage* image, RwRaster* raster); // 0x804250
-RwRaster* RwRasterSetFromImage(RwRaster* raster, RwImage* image); // 0x804290
-RwRaster* RwRasterRead(const RwChar* filename); // 0x8043F0
-RwRaster* RwRasterReadMaskedRaster(const RwChar* filename, const RwChar* maskname); // 0x8044E0
-RwImage* RwImageFindRasterFormat(RwImage* ipImage, RwInt32 nRasterType, RwInt32* npWidth, RwInt32* npHeight, RwInt32* npDepth, RwInt32* npFormat); // 0x8042C0
-RwFrame* RwFrameForAllObjects(RwFrame* frame, RwObjectCallBack callBack, void* data); // 0x7F1200
-RwFrame* RwFrameTranslate(RwFrame* frame, const RwV3d* v, RwOpCombineType combine); // 0x7F0E30
-RwFrame* RwFrameRotate(RwFrame* frame, const RwV3d* axis, RwReal angle, RwOpCombineType combine); // 0x7F1010
-RwFrame* RwFrameScale(RwFrame* frame, const RwV3d* v, RwOpCombineType combine); // 0x7F0ED0
-RwFrame* RwFrameTransform(RwFrame* frame, const RwMatrix* m, RwOpCombineType combine); // 0x7F0F70
-RwFrame* RwFrameOrthoNormalize(RwFrame* frame); // 0x7F1170
-RwFrame* RwFrameSetIdentity(RwFrame* frame); // 0x7F10B0
-RwFrame* RwFrameCloneHierarchy(RwFrame* root); // 0x7F0250
-RwBool RwFrameDestroyHierarchy(RwFrame* frame); // 0x7F08A0
-RwFrame* RwFrameForAllChildren(RwFrame* frame, RwFrameCallBack callBack, void* data); // 0x7F0DC0
-RwFrame* RwFrameRemoveChild(RwFrame* child); // 0x7F0CD0
-RwFrame* RwFrameAddChild(RwFrame* parent, RwFrame* child); // 0x7F0B00
-RwFrame* RwFrameAddChildNoUpdate(RwFrame* parent, RwFrame* child); // 0x7F09C0
-RwFrame* RwFrameGetRoot(const RwFrame* frame); // 0x7F09B0
-RwMatrix* RwFrameGetLTM(RwFrame* frame); // 0x7F0990
-RwFrame* RwFrameUpdateObjects(RwFrame* frame); // 0x7F0910
-void RwFrameSetFreeListCreateParams(RwInt32 blockSize, RwInt32 numBlocksToPrealloc); // 0x7EFED0
-RwFrame* RwFrameCreate(); // 0x7F0410
-RwBool RwFrameDestroy(RwFrame* frame); // 0x7F05A0
-void _rwFrameInit(RwFrame* frame); // 0x7F0450
-void _rwFrameDeInit(RwFrame* frame); // 0x7F06F0
-RwBool RwFrameDirty(const RwFrame* frame); // 0x7F0340
-RwInt32 RwFrameCount(RwFrame* frame); // 0x7F0E00
-RwInt32 RwFrameRegisterPlugin(RwInt32 size, RwUInt32 pluginID, RwPluginObjectConstructor constructCB, RwPluginObjectDestructor destructCB, RwPluginObjectCopy copyCB); // 0x7F1260
-RwInt32 RwFrameGetPluginOffset(RwUInt32 pluginID); // 0x7F1290
-RwBool RwFrameValidatePlugins(const RwFrame* frame); // 0x7F12B0
-RwFrame* _rwFrameCloneAndLinkClones(RwFrame* root); // 0x7EFFB0
-RwFrame* _rwFramePurgeClone(RwFrame* root); // 0x7F01A0
-void _rwObjectHasFrameReleaseFrame(); // 0x804F40
-RwBool _rwFrameSyncDirty(void); // 0x809550
-void _rwFrameSyncHierarchyLTM(RwFrame* frame); // 0x8097D0
-RwInt32 RwTextureRegisterPluginStream(RwUInt32 pluginID, RwPluginDataChunkReadCallBack readCB, RwPluginDataChunkWriteCallBack writeCB, RwPluginDataChunkGetSizeCallBack getSizeCB); // 0x804550
-RwInt32 RwTextureSetStreamAlwaysCallBack(RwUInt32 pluginID, RwPluginDataChunkAlwaysCallBack alwaysCB); // 0x804580
-RwUInt32 RwTextureStreamGetSize(const RwTexture* texture); // 0x8045A0
-RwTexture* RwTextureStreamRead(RwStream* stream); // 0x8046E0
-const RwTexture* RwTextureStreamWrite(const RwTexture* texture, RwStream* stream); // 0x8045E0
-RwInt32 RwTexDictionaryRegisterPluginStream(RwUInt32 pluginID, RwPluginDataChunkReadCallBack readCB, RwPluginDataChunkWriteCallBack writeCB, RwPluginDataChunkGetSizeCallBack getSizeCB); // 0x8048E0
-RwInt32 RwTexDictionarySetStreamAlwaysCallBack(RwUInt32 pluginID, RwPluginDataChunkAlwaysCallBack alwaysCB); // 0x804910
-RwUInt32 RwTexDictionaryStreamGetSize(const RwTexDictionary* texDict); // 0x804930
-RwTexDictionary* RwTexDictionaryStreamRead(RwStream* stream); // 0x804C30
-const RwTexDictionary* RwTexDictionaryStreamWrite(const RwTexDictionary* texDict, RwStream* stream); // 0x8049F0
-RwTextureChunkInfo* _rwTextureChunkInfoRead(RwStream* stream, RwTextureChunkInfo* textureChunkInfo, RwInt32* bytesRead); // 0x804E60
-void RwFrameListSetAutoUpdate(RwBool flag); // 0x807570
-RwInt32 RwFrameRegisterPluginStream(RwUInt32 pluginID, RwPluginDataChunkReadCallBack readCB, RwPluginDataChunkWriteCallBack writeCB, RwPluginDataChunkGetSizeCallBack getSizeCB); // 0x807580
-RwInt32 RwFrameSetStreamAlwaysCallBack(RwUInt32 pluginID, RwPluginDataChunkAlwaysCallBack alwaysCB); // 0x8075B0
-rwFrameList* _rwFrameListInitialize(rwFrameList* frameList, RwFrame* frame); // 0x8075D0
-RwBool _rwFrameListFindFrame(const rwFrameList* frameList, const RwFrame* frame, RwInt32* npIndex); // 0x8076E0
-rwFrameList* _rwFrameListDeinitialize(rwFrameList* frameList); // 0x807720
-RwUInt32 _rwFrameListStreamGetSize(const rwFrameList* frameList); // 0x807750
-rwFrameList* _rwFrameListStreamRead(RwStream* stream, rwFrameList* fl); // 0x807970
-const rwFrameList* _rwFrameListStreamWrite(const rwFrameList* frameList, RwStream* stream); // 0x8077A0
-RwBBox* RwBBoxCalculate(RwBBox* boundBox, const RwV3d* verts, RwInt32 numVerts); // 0x808F60
-RwBBox* RwBBoxInitialize(RwBBox* boundBox, const RwV3d* vertex); // 0x809020
-RwBBox* RwBBoxAddPoint(RwBBox* boundBox, const RwV3d* vertex); // 0x809060
-RwBool RwBBoxContainsPoint(const RwBBox* boundBox, const RwV3d* vertex); // 0x8090E0
-RwCamera* RwCameraBeginUpdate(RwCamera* camera); // 0x7EE190
-RwCamera* RwCameraEndUpdate(RwCamera* camera); // 0x7EE180
-RwCamera* RwCameraClear(RwCamera* camera, RwRGBA* colour, RwInt32 clearMode); // 0x7EE340
-RwCamera* RwCameraShowRaster(RwCamera* camera, void* pDev, RwUInt32 flags); // 0x7EE370
-void RwCameraSetFreeListCreateParams(RwInt32 blockSize, RwInt32 numBlocksToPrealloc); // 0x7EE0F0
-RwBool RwCameraDestroy(RwCamera* camera); // 0x7EE4B0
-RwCamera* RwCameraCreate(); // 0x7EE4F0
-RwCamera* RwCameraClone(RwCamera* camera); // 0x7EF3B0
-RwCamera* RwCameraSetViewOffset(RwCamera* camera, const RwV2d* offset); // 0x7EE1A0
-RwCamera* RwCameraSetViewWindow(RwCamera* camera, const RwV2d* viewWindow); // 0x7EE410
-RwCamera* RwCameraSetProjection(RwCamera* camera, RwCameraProjection projection); // 0x7EE3A0
-RwCamera* RwCameraSetNearClipPlane(RwCamera* camera, RwReal nearClip); // 0x7EE1D0
-RwCamera* RwCameraSetFarClipPlane(RwCamera* camera, RwReal farClip); // 0x7EE2A0
-RwInt32 RwCameraRegisterPlugin(RwInt32 size, RwUInt32 pluginID, RwPluginObjectConstructor constructCB, RwPluginObjectDestructor destructCB, RwPluginObjectCopy copyCB); // 0x7EE450
-RwInt32 RwCameraGetPluginOffset(RwUInt32 pluginID); // 0x7EE480
-RwBool RwCameraValidatePlugins(const RwCamera* camera); // 0x7EE4A0
-RwFrustumTestResult RwCameraFrustumTestSphere(const RwCamera* camera, const RwSphere* sphere); // 0x7EE2D0
-RwInt32 RwCameraRegisterPluginStream(RwUInt32 pluginID, RwPluginDataChunkReadCallBack readCB, RwPluginDataChunkWriteCallBack writeCB, RwPluginDataChunkGetSizeCallBack getSizeCB); // 0x808C90
-RwInt32 RwCameraSetStreamAlwaysCallBack(RwUInt32 pluginID, RwPluginDataChunkAlwaysCallBack alwaysCB); // 0x808CC0
-RwUInt32 RwCameraStreamGetSize(const RwCamera* camera); // 0x808CE0
-RwCamera* RwCameraStreamRead(RwStream* stream); // 0x808DE0
-const RwCamera* RwCameraStreamWrite(const RwCamera* camera, RwStream* stream); // 0x808D00
-RwCameraChunkInfo* RwCameraChunkInfoRead(RwStream* stream, RwCameraChunkInfo* cameraChunkInfo, RwInt32* bytesRead); // 0x808EF0
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
+
+/* Camera binary format */
+extern RwInt32 RwCameraRegisterPluginStream(RwUInt32 pluginID,
+                                            RwPluginDataChunkReadCallBack readCB,
+                                            RwPluginDataChunkWriteCallBack writeCB,
+                                            RwPluginDataChunkGetSizeCallBack getSizeCB);
+extern RwInt32 RwCameraSetStreamAlwaysCallBack(
+                   RwUInt32 pluginID,
+                   RwPluginDataChunkAlwaysCallBack alwaysCB);
+extern RwUInt32 RwCameraStreamGetSize(const RwCamera *camera);
+extern RwCamera *RwCameraStreamRead(RwStream *stream);
+extern const RwCamera *RwCameraStreamWrite(const RwCamera *camera,
+                                           RwStream *stream);
+extern RwCameraChunkInfo * RwCameraChunkInfoRead(RwStream *stream,
+                                                 RwCameraChunkInfo *cameraChunkInfo,
+                                                 RwInt32 *bytesRead);
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+
+#endif /* RWCORE_H */

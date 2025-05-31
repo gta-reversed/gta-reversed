@@ -10,6 +10,7 @@
 #include "Vector.h"
 #include "eVehicleHandlingModelFlags.h"
 #include "eVehicleHandlingFlags.h"
+#include <Enums/AnimationEnums.h>
 
 enum eVehicleLightsSize : uint8 {
     LIGHTS_LONG,
@@ -122,8 +123,8 @@ public:
             uint32 m_bOffroadAbility2 : 1;
             uint32 m_bHalogenLights : 1;
             uint32 m_bProcRearwheelFirst : 1;
-            uint32 m_bUseMaxspLimit : 1;
 
+            uint32 m_bUseMaxspLimit : 1;
             uint32 m_bLowRider : 1;
             uint32 m_bStreetRacer : 1;
             uint32 m_bSwingingChassis : 1;

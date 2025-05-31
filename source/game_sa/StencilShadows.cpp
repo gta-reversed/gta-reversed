@@ -5,6 +5,7 @@
 static inline auto& s_ShadowTrianglePointsUnk         = StaticRef<RxVertexIndex*>(0xC6A170);
 static inline auto& s_ShadowTrianglePoints            = StaticRef<CVector*>(0xC6A174);
 static inline auto& s_TransformedShadowTrianglePoints = StaticRef<CVector*>(0xC6A178);
+static inline auto& s_SunPosNrm                       = StaticRef<CVector>(0x8D5244); // CVector(1.0, 1.0, -2.0)
 
 void CStencilShadows::InjectHooks() {
     RH_ScopedClass(CStencilShadows);
@@ -13,13 +14,15 @@ void CStencilShadows::InjectHooks() {
     RH_ScopedInstall(Init, 0x70F9E0);
     RH_ScopedInstall(Shutdown, 0x711390);
     RH_ScopedInstall(Process, 0x711D90);
-    RH_ScopedInstall(GraphicsHighQuality, 0x70F9B0, {.reversed=false});
+    RH_ScopedInstall(GraphicsHighQuality, 0x70F9B0);
     RH_ScopedInstall(UpdateHierarchy, 0x710BC0);
     RH_ScopedInstall(RegisterStencilShadows, 0x711760, {.reversed=false});
     RH_ScopedInstall(RenderStencilShadows, 0x7113B0);
     RH_ScopedInstall(RenderForVehicle, 0x70FAE0, {.reversed=false});
     RH_ScopedInstall(RenderForObject, 0x710310, {.reversed=false});
     RH_ScopedInstall(Render, 0x710D50, {.reversed=false});
+    RH_ScopedInstall(RenderBuffer, 0x710B50);
+    RH_ScopedInstall(SunSetPositionFromEntity, 0x710AF0);
     RH_ScopedInstall(sub_710CC0, 0x710CC0);
 }
 
@@ -31,7 +34,7 @@ void CStencilShadows::Init() {
     pFirstAvailableStencilShadowObject = m_StencilShadowObjects.data();
     pFirstActiveStencilShadowObject = nullptr;
 
-    for (auto&& [i, obj] : notsa::enumerate(m_StencilShadowObjects)) {
+    for (auto&& [i, obj] : rngv::enumerate(m_StencilShadowObjects)) {
         obj.m_pOwner                = nullptr;
         obj.m_NumShadowFaces        = 0;
         obj.m_Type                  = eStencilShadowObjType::NONE;
@@ -89,6 +92,20 @@ void CStencilShadows::Render(const CRGBA& color) {
         }
     }
     */
+}
+
+// unused
+// 0x710AF0
+void CStencilShadows::SunSetPositionFromEntity(const CEntity* entity) {
+    if (!entity) {
+        return;
+    }
+    s_SunPosNrm = entity->GetPosition().Normalized();
+}
+
+// 0x710B50
+void CStencilShadows::RenderBuffer(const CVector& pos) {
+    s_SunPosNrm = pos.Normalized(); 
 }
 
 // 0x710CC0

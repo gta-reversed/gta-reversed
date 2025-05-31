@@ -84,14 +84,13 @@ float CVector::NormaliseAndMag()
     return 1.0F / fRecip;
 }
 
-auto CVector::Normalized() const -> CVector {
-    CVector cpy = *this;
-    cpy.Normalise();
-    return cpy;
-}
-
 auto CVector::Dot(const CVector& o) const -> float{
     return DotProduct(*this, o);
+}
+
+auto CVector::Dot2D(const CVector& o) const -> float {
+    return y * o.y
+         + x * o.x;
 }
 
 // notsa
@@ -168,10 +167,6 @@ void CVector::FromMultiply(const CMatrix& matrix, const CVector& vector) {
 
 void CVector::FromMultiply3x3(const CMatrix& matrix, const CVector& vector) {
     *this = matrix.TransformVector(vector);
-}
-
-CVector CVector::Average(const CVector* begin, const CVector* end) {
-    return std::accumulate(begin, end, CVector{}) / (float)std::distance(begin, end);
 }
 
 float CVector::Heading(bool limitAngle) const {

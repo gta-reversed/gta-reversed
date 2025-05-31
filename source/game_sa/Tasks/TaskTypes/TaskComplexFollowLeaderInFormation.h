@@ -17,9 +17,9 @@ public:
     static constexpr auto Type = TASK_COMPLEX_FOLLOW_LEADER_IN_FORMATION;
 
     struct Offsets {
-        std::array<CVector2D, TOTAL_PED_GROUP_MEMBERS> offsets;
-        std::array<CVector2D, TOTAL_PED_GROUP_MEMBERS> movingOffsets;
-        float                                          scale;
+        std::array<CVector2D, TOTAL_PED_GROUP_MEMBERS> Offsets;
+        std::array<CVector2D, TOTAL_PED_GROUP_MEMBERS> MovingOffsets;
+        float                                          Scale;
     };
     static inline auto& ms_offsets = StaticRef<Offsets, 0xC196E8>();
 

@@ -68,7 +68,9 @@ bool FxManager_c::Init() {
     m_Pool.Init();
 
     m_nCurrentMatrix = 0;
-    m_apMatrices.fill(RwMatrixCreate());
+    for (auto& matrix : m_apMatrices) {
+        matrix = RwMatrixCreate();
+    }
 
     m_FxEmitters = new FxEmitterPrt_c[FX_MANAGER_NUM_EMITTERS];
     for (auto i = 0; i < FX_MANAGER_NUM_EMITTERS; i++) {

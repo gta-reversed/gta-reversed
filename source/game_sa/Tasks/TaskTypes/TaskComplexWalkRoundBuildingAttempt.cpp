@@ -287,6 +287,10 @@ CTask* CTaskComplexWalkRoundBuildingAttempt::CreateFirstSubTask(CPed* ped) {
 
 // 0x658020
 CTask* CTaskComplexWalkRoundBuildingAttempt::ControlSubTask(CPed* ped) {
+    if (m_justAbort) {
+        return m_pSubTask;
+    }
+
     if (m_isWalkingAroundEntity) {
         if (!m_targetEntity || (m_targetEntity->GetMatrix().TransformPoint(m_offset - m_targetPos)).SquaredMagnitude() >= sq(4.f)) {
             m_justAbort = true;

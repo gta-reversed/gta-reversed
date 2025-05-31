@@ -2,8 +2,9 @@
 
 #include "Base.h"
 #include "eScriptCommands.h"
+#include "RunningScript.h"
 
-#ifdef ENABLE_SCRIPT_COMMAND_HOOKS
+#ifdef NOTSA_WITH_SCRIPT_COMMAND_HOOKS
 namespace ReversibleHooks {
 namespace ReversibleHook {
 struct ScriptCommand : Base {

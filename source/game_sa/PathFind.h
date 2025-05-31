@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include <Base.h>
 #include "CompressedVector.h"
 #include "Vector.h"
 #include "NodeAddress.h"
@@ -349,7 +350,7 @@ public:
         bool includeNodesWithoutLinks,
         bool waterPath
     ); 
-    void ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& address, CNodeRoute& nodeRoute);
+    void ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& startAddress, CNodeRoute* route);
     void SetLinksBridgeLights(float fXMin, float fXMax, float fYMin, float fYMax, bool bTrainCrossing);
 
     /*!
@@ -378,7 +379,7 @@ public:
     CVector FindNodeCoorsForScript(CNodeAddress nodeAddrA, CNodeAddress nodeAddrB, float& outHeadingDeg, bool* outFound);
 
     void Shutdown();
-    CVector TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, uint16 randomSeed);
+    CVector TakeWidthIntoAccountForWandering(CNodeAddress nodeAddress, int16 randomSeed);
     void TakeWidthIntoAccountForCoors(CNodeAddress address, CNodeAddress address2, uint16 seed, float* fOut1, float* fOut2);
 
     /*!

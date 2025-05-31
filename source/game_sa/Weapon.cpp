@@ -183,7 +183,9 @@ bool CWeapon::GenerateDamageEvent(CPed* victim, CEntity* creator, eWeaponType we
         const auto floorHitAnim = CAnimManager::BlendAnimation(
             victim->m_pRwClump,
             ANIM_GROUP_DEFAULT,
-            RpAnimBlendClumpGetFirstAssociation(victim->m_pRwClump, ANIMATION_800) ? ANIM_ID_FLOOR_HIT_F : ANIM_ID_FLOOR_HIT
+            RpAnimBlendClumpGetFirstAssociation(victim->m_pRwClump, ANIMATION_IS_FRONT)
+                ? ANIM_ID_FLOOR_HIT_F
+                : ANIM_ID_FLOOR_HIT
         );
         if (floorHitAnim) {
             floorHitAnim->SetFlag(ANIMATION_IS_FINISH_AUTO_REMOVE, false);
@@ -431,20 +433,20 @@ void CWeapon::StopWeaponEffect() {
 }
 
 // 0x73B380
-float CWeapon::TargetWeaponRangeMultiplier(CEntity* victim, CEntity* weaponOwner) {
-    if (!victim || !weaponOwner) {
+float CWeapon::TargetWeaponRangeMultiplier(CEntity* target, CEntity* weaponOwner) {
+    if (!target || !weaponOwner) {
         return 1.0f;
     }
 
-    switch (victim->m_nType) {
+    switch (target->m_nType) {
     case ENTITY_TYPE_VEHICLE: {
-        if (!victim->AsVehicle()->IsBike()) {
+        if (!target->AsVehicle()->IsBike()) {
             return 3.0f;
         }
         break;
     }
     case ENTITY_TYPE_PED: {
-        CPed* pedVictim = victim->AsPed();
+        CPed* pedVictim = target->AsPed();
 
         if (pedVictim->m_pVehicle && !pedVictim->m_pVehicle->IsBike()) {
             return 3.0f;
@@ -712,7 +714,7 @@ void CWeapon::DoBulletImpact(CEntity* firedBy, CEntity* victim, const CVector& s
                                 ? -(incrementalHit * (int32)wi->m_nDamage)
                                 : (int32)wi->m_nDamage;
                         }(),
-                        (ePedPieceTypes)hitCP.m_nSurfaceTypeB,
+                        (ePedPieceTypes)hitCP.m_nPieceTypeB,
                         victimPed->GetLocalDirection(startPoint - victimPed->GetPosition2D())
                     );
                 }();
@@ -1066,7 +1068,7 @@ void CWeapon::Update(CPed* owner) {
             if (wi->flags.bReload && (!owner->IsPlayer() || !FindPlayerInfo().m_bFastReload)) { // 0x73DCCE
                 auto animRLoad = RpAnimBlendClumpGetAssociation(
                     owner->m_pRwClump,
-                    ANIM_ID_RELOAD //(wi->m_nFlags & 0x1000) != 0 ? ANIM_ID_RELOAD : ANIM_ID_WALK // Always going to be `ANIM_ID_RELOAD`
+                    ANIM_ID_RELOAD //(wi->m_Flags & 0x1000) != 0 ? ANIM_ID_RELOAD : ANIM_ID_WALK // Always going to be `ANIM_ID_RELOAD`
                 );
                 if (!animRLoad) {
                     animRLoad = RpAnimBlendClumpGetAssociation(owner->m_pRwClump, wi->GetCrouchReloadAnimationID());
@@ -2049,4 +2051,12 @@ void FireOneInstantHitRound(const CVector& startPoint, const CVector& endPoint, 
             );
         }
     }
+}
+
+float CWeapon::GetWeaponRange(CPed* owner, CEntity* target) const noexcept {
+    const auto r = GetWeaponInfo(owner).m_fTargetRange;
+    if (target) {
+        return r * TargetWeaponRangeMultiplier(target, owner);
+    }
+    return r;
 }

@@ -9,6 +9,8 @@
 #include "eStats.h"
 #include "eStatModAbilities.h"
 #include "eStatsReactions.h"
+#include "Text/Text.h"
+#include <Enums/eRadioID.h>
 
 enum eStatUpdateState : uint8 {
     STAT_UPDATE_DECREASE = 0,
@@ -39,7 +41,7 @@ public:
     static constexpr size_t FIRST_INT_STAT = 120;
     static constexpr size_t FIRST_UNUSED_STAT = 82;
 
-    static tStatMessage (&StatMessage)[8];
+    static tStatMessage (&StatMessage)[128];
     static uint32& TotalNumStatMessages;
     static char (&LastMissionPassedName)[8];
     static int32 (&TimesMissionAttempted)[100];

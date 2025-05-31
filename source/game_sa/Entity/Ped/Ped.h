@@ -21,7 +21,7 @@
 #include "Vector2D.h"
 #include "AnimBlendAssociation.h"
 #include "Fire.h"
-#include "PedGroups.h"
+#include <Enums/eBoneTag.h>
 
 #include <Audio/Enums/PedSpeechContexts.h>
 #include "AnimationEnums.h"
@@ -291,7 +291,7 @@ public:
     CVector             field_578;
     CEntity*            m_pContactEntity;
     float               field_588;
-    CVehicle*           m_pVehicle;
+    CVehicle*           m_pVehicle;         //< Might be set even if the ped isn't in a vehicle, in that case it's the vehicle they should get back into. But (in theory) a ped is guaranteed to be in a vehicle if `bInVehicle` is set.
     CVehicle*           m_VehDeadInFrontOf; // Set if `bDeadPedInFrontOfCar` 
     int32               field_594;
     ePedType            m_nPedType;
@@ -303,7 +303,7 @@ public:
     uint8               m_nActiveWeaponSlot;
     uint8               m_nWeaponShootingRate;
     uint8               m_nWeaponAccuracy;
-    CEntity*            m_pTargetedObject;
+    CEntity*            m_pTargetedObject; // lock-on target
     int32               field_720;
     int32               field_724;
     int32               field_728;
@@ -323,8 +323,8 @@ public:
     char                m_nBodypartToRemove;
     char                field_755;
     int16               m_nMoneyCount; // Used for money pickup when ped is killed
-    float               field_758;
-    float               field_75C;
+    float               m_Wobble;
+    float               m_WobbleSpeed;
     char                m_nLastWeaponDamage; // See eWeaponType
     CEntity*            m_pLastEntityDamage;
     int32               field_768;
@@ -454,6 +454,7 @@ public:
     bool TurnBody();
     bool IsPointerValid();
     CVector GetBonePosition(eBoneTag boneId, bool updateSkinBones = false);
+    void GetBonePosition(CVector* outVec, eBoneTag bone, bool updateSkinBones);
     void GiveObjectToPedToHold(int32 modelIndex, uint8 replace);
     void SetPedState(ePedState pedState);
     ePedState GetPedState() { return m_nPedState; }
@@ -508,7 +509,8 @@ public:
     void RemoveWeaponAnims(int32 likeUnused, float blendDelta);
     bool IsPedHeadAbovePos(float zPos);
     void KillPedWithCar(CVehicle* car, float fDamageIntensity, bool bPlayDeadAnimation);
-    void MakeTyresMuddySectorList(CPtrList& ptrList);
+    template<typename PtrListType>
+    void MakeTyresMuddySectorList(PtrListType& ptrList);
     void DeadPedMakesTyresBloody();
     bool IsInVehicleThatHasADriver();
     void SetStayInSamePlace(bool enable) { bStayInSamePlace = enable; }
@@ -527,7 +529,7 @@ public:
     bool IsCreatedBy(ePedCreatedBy v) const noexcept { return v == m_nCreatedBy; }
     bool IsCreatedByMission() const noexcept { return IsCreatedBy(ePedCreatedBy::PED_MISSION); }
 
-    CPedGroup* GetGroup() const { return CPedGroups::GetPedsGroup(this); }
+    CPedGroup* GetGroup() const;
     int32 GetGroupId();
     CPedClothesDesc* GetClothesDesc() { return m_pPlayerData->m_pPedClothesDesc; }
 
@@ -545,6 +547,7 @@ public:
     CWeapon& GetActiveWeapon() noexcept { return GetWeaponInSlot(m_nActiveWeaponSlot); }
     CWeapon& GetWeapon(eWeaponType wt) noexcept { return GetWeaponInSlot(GetWeaponSlot(wt)); }
 
+    eWeaponType GetSavedWeapon() const { return m_nSavedWeapon; }
     void SetSavedWeapon(eWeaponType weapon) { m_nSavedWeapon = weapon; }
     bool IsStateDriving() const noexcept { return m_nPedState == PEDSTATE_DRIVING; }
     bool IsStateDead() const noexcept { return m_nPedState == PEDSTATE_DEAD; }
@@ -614,6 +617,12 @@ public:
      * @brief Returns vehicle's position if ped is in one, ped's otherwise.
      */
     CVector GetRealPosition() const { return IsInVehicle() ? m_pVehicle->GetPosition() : GetPosition(); }
+
+    /*!
+    * @notsa
+    * Can this ped be ever considered as a criminal
+    */
+    bool CanBeCriminal() const;
 
 private:
     void RenderThinBody() const;

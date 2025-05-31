@@ -84,12 +84,12 @@ void UpdateWindow() {
     HRESULT hr;
 
     if (FAILED(hr = pvVideoWindow->SetWindowPosition(rect.left, rect.top, rect.right, rect.bottom))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in pvVideoWindow->SetWindowPosition() failed/n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvVideoWindow->SetWindowPosition() failed/n", hr);
         return;
     }
 
     if (FAILED(hr = pvVideoWindow->put_MessageDrain((OAHWND) PSGLOBAL(window)))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in (pvVideoWindow->put_MessageDrain((OAHWND) PSGLOBAL(window)))\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in (pvVideoWindow->put_MessageDrain((OAHWND) PSGLOBAL(window)))\n", hr);
         return;
     }
 
@@ -112,59 +112,59 @@ void Play(int32 nCmdShow, const char* path) {
     HRESULT hr;
 
     if (FAILED(hr = CoInitialize(nullptr))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in CoInitialize(NULL)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in CoInitialize(NULL)\n", hr);
         return;
     }
 
     if (FAILED(hr = CoCreateInstance(CLSID_FilterGraph, nullptr, CLSCTX_INPROC, IID_IGraphBuilder, (void**)&pvGraphBuilder))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_IGraphBuilder, (void **)&pvGraphBuilder)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_IGraphBuilder, (void **)&pvGraphBuilder)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvGraphBuilder->RenderFile(&fileName[0], nullptr))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in pvGraphBuilder->RenderFile(&wFileName[0], NULL)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvGraphBuilder->RenderFile(&wFileName[0], NULL)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvGraphBuilder->QueryInterface(IID_IMediaControl, (void**)&pvMediaControl))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IMediaControl, (void **)&pvMediaControl)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IMediaControl, (void **)&pvMediaControl)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvGraphBuilder->QueryInterface(IID_IMediaEventEx, (void**)&pvMediaEvent))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IMediaEventEx, (void **)&pvMediaEvent)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IMediaEventEx, (void **)&pvMediaEvent)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvGraphBuilder->QueryInterface(IID_IMediaSeeking, (void**)&pvMediaSeeking))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IMediaSeeking, (void **)&pMS)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IMediaSeeking, (void **)&pMS)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvGraphBuilder->QueryInterface(IID_IVideoWindow, (void**)&pvVideoWindow))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IVideoWindow, (void **)&pvVideoWindow)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IVideoWindow, (void **)&pvVideoWindow)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvVideoWindow->put_Owner((OAHWND)PSGLOBAL(window)))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in pvVideoWindow->put_Owner((OAHWND) PSGLOBAL(window))\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvVideoWindow->put_Owner((OAHWND) PSGLOBAL(window))\n", hr);
         return;
     }
 
     if (FAILED(hr = pvVideoWindow->put_WindowStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in pvVideoWindow->put_WindowStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvVideoWindow->put_WindowStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvMediaEvent->SetNotifyWindow((OAHWND)PSGLOBAL(window), WM_GRAPHNOTIFY, 0))) {
-        DEV_LOG("FAILED(hr=0x{:x}) in pvMediaEvent->SetNotifyWindow((OAHWND)PSGLOBAL(window), WM_GRAPHNOTIFY, 0)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvMediaEvent->SetNotifyWindow((OAHWND)PSGLOBAL(window), WM_GRAPHNOTIFY, 0)\n", hr);
         return;
     }
 
     UpdateWindow();
 
     if (FAILED(hr = pvMediaControl->Run())) {
-        DEV_LOG("FAILED(hr=0x{:x}) in pvMediaControl->Run()\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvMediaControl->Run()\n", hr);
         return;
     }
 

@@ -294,8 +294,8 @@ bool CPedGeometryAnalyser::IsInAir(const CPed& ped) {
 }
 
 // 0x5F2F70
-CPedGeometryAnalyser::WanderPathClearness CPedGeometryAnalyser::IsWanderPathClear(const CVector& a1, const CVector& a2, float a3, int32 a4) {
-    return plugin::CallAndReturn<WanderPathClearness, 0x5F2F70, const CVector&, const CVector&, float, int32>(a1, a2, a3, a4);
+CPedGeometryAnalyser::WanderPathClearness CPedGeometryAnalyser::IsWanderPathClear(const CVector& from, const CVector& to, float maxHeightChange, int32 maxSamples) {
+    return plugin::CallAndReturn<WanderPathClearness, 0x5F2F70, const CVector&, const CVector&, float, int32>(from, to, maxHeightChange, maxSamples);
 }
 
 // 0x5F3880
@@ -305,10 +305,10 @@ bool CPedGeometryAnalyser::LiesInsideBoundingBox(const CPed& ped, const CVector&
 
 // 0x41B7C0
 void* CPointRoute::operator new(uint32 size) {
-    return CPools::ms_pPointRoutePool->New();
+    return GetPointRoutePool()->New();
 }
 
 // 0x41B7D0
 void CPointRoute::operator delete(void* ptr, size_t sz) {
-    CPools::ms_pPointRoutePool->Delete(reinterpret_cast<CPointRoute*>(ptr));
+    GetPointRoutePool()->Delete(reinterpret_cast<CPointRoute*>(ptr));
 }

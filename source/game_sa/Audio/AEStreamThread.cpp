@@ -45,10 +45,10 @@ bool CAEStreamThread::Initialise(CAEStreamingChannel* streamingChannel) {
 
     m_nHandle = CreateThread(nullptr, 0, &CAEStreamThread::MainLoop, this, CREATE_SUSPENDED, (LPDWORD)(&m_lpThreadId));
     assert(m_nHandle);
-    SetThreadPriority(m_nHandle, 0);
+    SetThreadPriority(m_nHandle, THREAD_PRIORITY_NORMAL);
     InitializeCriticalSection(&m_criticalSection);
+    //TODO: NOTSA: Replace CriticalSection usages in this class with platform independant mutex from oswrapper
 
-    OS_MutexObtain(&m_criticalSection);
     m_pStreamingChannel = streamingChannel;
 
     m_pMp3TrackLoader = new CAEMP3TrackLoader();
@@ -111,7 +111,7 @@ int32 CAEStreamThread::GetPlayingTrackID() const {
 
 // 0x4F1230
 void CAEStreamThread::PlayTrack(uint32 iTrackId, int32 iNextTrackId, uint32 a3, int32 a4, bool bIsUserTrack, bool bNextIsUserTrack) {
-    OS_MutexObtain(&m_criticalSection);
+    EnterCriticalSection(&m_criticalSection);
 
     if (m_pStreamingChannel->GetPlayTime() == -2) {
         m_pStreamingChannel->Stop();
@@ -125,7 +125,7 @@ void CAEStreamThread::PlayTrack(uint32 iTrackId, int32 iNextTrackId, uint32 a3, 
     m_bNextIsUserTrack = bNextIsUserTrack;
     m_bNeedsService = 1;
 
-    OS_MutexRelease(&m_criticalSection);
+    LeaveCriticalSection(&m_criticalSection);
 }
 
 // 0x4F1580
@@ -225,7 +225,7 @@ void CAEStreamThread::Service() {
     if (m_iNextTrackId == -1 || m_pStreamingChannel->GetPlayingTrackID() != m_iTrackId) {
         auto* currDecoder = LoadDecoder(m_bIsUserTrack, m_iTrackId);
         if (currDecoder) {
-            currDecoder->SetCursor(currDecoder->GetStreamLengthMs());
+            currDecoder->SetCursor(m_iNextTrackId % currDecoder->GetStreamLengthMs());
 
             m_pStreamingChannel->SetNextStream(nextDecoder);
             m_pStreamingChannel->PrepareStream(currDecoder, m_TrackFlags, 1u);
@@ -248,8 +248,9 @@ void CAEStreamThread::Service() {
     if (m_bPreparingStream) {
         m_nPlayingTrackId = m_iNextTrackId == -1 ? m_iTrackId : m_iNextTrackId;
         m_nActiveTrackId = m_iNextTrackId == -1 ? m_iTrackId : m_iNextTrackId;
+    } else {
+        SaveStreamingState();
     }
-    SaveStreamingState();
 
     LeaveCriticalSection(&m_criticalSection);
 }

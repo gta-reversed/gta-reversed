@@ -4,7 +4,8 @@
 
 #include "AEAudioUtility.h"
 
-uint64& CAEAudioUtility::startTimeMs = *reinterpret_cast<uint64*>(0xb610f8);
+auto& Frequency = StaticRef<LARGE_INTEGER>(0xB610F0);
+uint64& startTimeMs = *reinterpret_cast<uint64*>(0xb610f8);
 float (&CAEAudioUtility::m_sfLogLookup)[50][2] = *reinterpret_cast<float (*)[50][2]>(0xb61100);
 
 // NOTE: For me all values were 0... The below values should be the correct ones:
@@ -84,21 +85,28 @@ float CAEAudioUtility::GetPiecewiseLinear(float x, int16 dataCount, float (*data
 
 // 0x4d9e50
 float CAEAudioUtility::AudioLog10(float p) {
-    return 0.00001f <= p ? std::log10f(p) : -5.0f;
+    return p >= 0.00001f
+        ? std::log10f(p)
+        : -5.0f;
 }
 
 // REFACTORED
 // 0x4d9e80
 uint64 CAEAudioUtility::GetCurrentTimeInMS() {
     using namespace std::chrono;
-    auto nowMs = time_point_cast<milliseconds>(high_resolution_clock::now());
-    auto value = duration_cast<milliseconds>(nowMs.time_since_epoch());
-    return static_cast<uint64>(value.count());
+    const auto nowMs = time_point_cast<milliseconds>(high_resolution_clock::now());
+    const auto value = duration_cast<milliseconds>(nowMs.time_since_epoch());
+    return static_cast<uint64>(value.count()) - startTimeMs;
+
+    //For some reason this doesn't work (original code):
+    //LARGE_INTEGER counter;
+    //QueryPerformanceCounter(&counter);
+    //return counter.QuadPart / SampleFrequency.QuadPart * 1000 - startTimeMs;
 }
 
 // 0x4d9ef0
-uint32 CAEAudioUtility::ConvertFromBytesToMS(uint32 lengthInBytes, uint32 frequency, uint16 frequencyMult) {
-    return static_cast<uint32>(std::floorf(lengthInBytes / (float(frequency * frequencyMult) / 500.0f)));
+uint32 CAEAudioUtility::ConvertFromBytesToMS(uint32 lengthInBytes, uint32 sampleRate, uint16 numChannels) {
+    return static_cast<uint32>(std::floorf(lengthInBytes / (float(sampleRate * numChannels) / 500.0f)));
 }
 
 // 0x4d9f40
@@ -122,6 +130,7 @@ void CAEAudioUtility::StaticInitialise() {
         m_sfLogLookup[1][1] = log10f(v);
     }
 
+    VERIFY(QueryPerformanceFrequency(&Frequency));
     startTimeMs = GetCurrentTimeInMS();
 }
 
@@ -132,14 +141,15 @@ bool CAEAudioUtility::GetBankAndSoundFromScriptSlotAudioEvent(const eAudioEvents
     }
     if (scriptID < AE_SCRIPT_SLOT_FIRST) {
         outBankID = gScriptBanksLookup[scriptID - AE_SCRIPT_BANK_FIRST];
+        outSoundID = -1;
     } else if (scriptID == AE_SCRIPT_SLOT_USE_CUSTOM) {
         outBankID  = SND_BANK_SCRIPT_NULL;
         outSoundID = slot > 3
             ? 0
             : 2 * (slot % 2);
     } else {
-        outSoundID = (slot - 2'000) % 200;
-        outBankID  = (eSoundBank)(SND_BANK_SCRIPT_FIRST + outSoundID); //SND_BANK_SCRIPT_FIRST + static_cast<int32>(std::floor(float(slot - AE_SCRIPT_SLOT_FIRST) / 200.0f));
+        outSoundID = (scriptID - AE_SCRIPT_SLOT_FIRST) % 200;
+        outBankID  = (eSoundBank)(SND_BANK_SCRIPT_FIRST + (scriptID - AE_SCRIPT_SLOT_FIRST) / 200u); // Each sound bank contains 200 sounds
     }
     return true;
 }

@@ -134,8 +134,8 @@ void CPlayerInfo::Process(uint32 playerIndex) {
 }
 
 // 0x56F4E0
-void CPlayerInfo::FindClosestCarSectorList(CPtrList& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle) {
-    plugin::CallMethod<0x56F4E0, CPlayerInfo*, CPtrList&, CPed*, float, float, float, float, float*, CVehicle**>(this, ptrList, ped, minX, minY, maxX, maxY, outVehDist, outVehicle);
+void CPlayerInfo::FindClosestCarSectorList(CPtrListDoubleLink<CVehicle*>& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle) {
+    plugin::CallMethod<0x56F4E0, CPlayerInfo*, CPtrListDoubleLink<CVehicle*>&, CPed*, float, float, float, float, float*, CVehicle**>(this, ptrList, ped, minX, minY, maxX, maxY, outVehDist, outVehicle);
 }
 
 // 0x56F330
@@ -454,21 +454,18 @@ CVector CPlayerInfo::GetSpeed() const {
 
 // 0x5D3B00
 bool CPlayerInfo::Load() {
-    int32 dataSize;
-    CPlayerInfoSaveStructure data;
-    CGenericGameStorage::LoadDataFromWorkBuffer(&dataSize, sizeof(dataSize));
-    CGenericGameStorage::LoadDataFromWorkBuffer(&data, sizeof(CPlayerInfoSaveStructure));
+    CGenericGameStorage::LoadDataFromWorkBuffer<int32>(); // Discarded
+    auto data = CGenericGameStorage::LoadDataFromWorkBuffer<CPlayerInfoSaveStructure>();
     data.Extract(this);
     return true;
 }
 
 // 0x5D3AC0
 bool CPlayerInfo::Save() {
-    int32 dataSize{ sizeof(CPlayerInfoSaveStructure) };
     CPlayerInfoSaveStructure data;
     data.Construct(this);
-    CGenericGameStorage::SaveDataToWorkBuffer(&dataSize, sizeof(dataSize));
-    CGenericGameStorage::SaveDataToWorkBuffer(&data, sizeof(data));
+    CGenericGameStorage::SaveDataToWorkBuffer(sizeof(CPlayerInfoSaveStructure));
+    CGenericGameStorage::SaveDataToWorkBuffer(data);
     return true;
 }
 

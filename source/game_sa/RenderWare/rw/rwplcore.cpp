@@ -306,22 +306,6 @@ void* _rwSListGetEnd(RwSList* sList) {
     return ((void*(__cdecl *)(RwSList*))0x809540)(sList);
 }
 
-RwBool RwIm2DRenderPrimitive(RwPrimitiveType primType, RwIm2DVertex* vertices, RwInt32 numVertices) {
-    return ((int(__cdecl *)(RwPrimitiveType, RwIm2DVertex*, RwInt32))0x734E90)(primType, vertices, numVertices);
-}
-
-RwBool RwIm2DRenderIndexedPrimitive(RwPrimitiveType primType, RwIm2DVertex* vertices, RwInt32 numVertices, RwImVertexIndex* indices, RwInt32 numIndices) {
-    return ((int(__cdecl *)(RwPrimitiveType, RwIm2DVertex*, RwInt32, RwImVertexIndex*, RwInt32))0x734EA0)(primType, vertices, numVertices, indices, numIndices);
-}
-
-RwBool RwIm2DRenderTriangle(RwIm2DVertex* vertices, RwInt32 numVertices, RwInt32 vert1, RwInt32 vert2, RwInt32 vert3) {
-    return ((int(__cdecl *)(RwIm2DVertex*, RwInt32, RwInt32, RwInt32, RwInt32))0x734EB0)(vertices, numVertices, vert1, vert2, vert3);
-}
-
-RwBool RwIm2DRenderLine(RwIm2DVertex* vertices, RwInt32 numVertices, RwInt32 vert1, RwInt32 vert2) {
-    return ((int(__cdecl *)(RwIm2DVertex*, RwInt32, RwInt32, RwInt32))0x734EC0)(vertices, numVertices, vert1, vert2);
-}
-
 RwUInt32 RwEngineGetVersion() {
     return ((RwUInt32(__cdecl *)(void))0x7F2BA0)();
 }
@@ -378,8 +362,8 @@ RwInt32 RwEngineGetNumVideoModes() {
     return ((RwInt32(__cdecl *)(void))0x7F2CC0)();
 }
 
-RwVideoMode RwEngineGetVideoModeInfo(RwInt32 modeIndex) {
-    return ((RwVideoMode(__cdecl *)(RwInt32))0x7F2CF0)(modeIndex);
+RwVideoMode* RwEngineGetVideoModeInfo(RwVideoMode* vmi, RwInt32 modeIndex) {
+    return plugin::CallAndReturn<RwVideoMode*, 0x7F2CF0>(vmi, modeIndex);
 }
 
 RwInt32 RwEngineGetCurrentVideoMode() {
@@ -406,9 +390,9 @@ RwMetrics* RwEngineGetMetrics() {
     return ((RwMetrics*(__cdecl *)(void))0x7F2E10)();
 }
 
-RwFileFunctions* RwOsGetFileInterface() {
-    return ((RwFileFunctions*(__cdecl *)(void))0x804130)();
-}
+//RwFileFunctions* RwOsGetFileInterface() {
+//    return ((RwFileFunctions*(__cdecl *)(void))0x804130)();
+//}
 
 RwError* RwErrorGet(RwError* code) {
     return ((RwError*(__cdecl *)(RwError*))0x808880)(code);

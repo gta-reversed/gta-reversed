@@ -3,7 +3,7 @@
 #include "dsound.h"
 
 enum eSmoothFadeEntryStatus : uint32 {
-    STATE_INACTIVE = 0,
+    STATE_IDLE = 0,
     STATE_ACTIVE = 1,
     STATE_CANCELLED = 2,
 };
@@ -29,13 +29,13 @@ public:
     HANDLE           m_threadHandle;
     DWORD            m_dwThreadId;
     tSmoothFadeEntry m_aEntries[NUM_SMOOTHFADE_ENTRIES];
-    bool             m_bThreadCreated;
+    bool             m_bInitialized;
     bool             m_bActive;
-    uint16           m_wUnkn;
-    uint16           m_wUnkn2;
-    uint16           m_wUnkn3;
-    uint32           m_nLastServiceTime;
-    bool             m_bThreadInvalid;
+    uint16           m_numRequests;
+    uint16           m_lastRequest;
+    uint16           m_oldestRequest;
+    uint32           m_currentTime;
+    bool             m_bSmoothFadesDisabled;
     char             _pad2[3];
     uint32           m_nNumAvailableBuffers;
 

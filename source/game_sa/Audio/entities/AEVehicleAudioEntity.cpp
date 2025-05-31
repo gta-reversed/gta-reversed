@@ -136,7 +136,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     RH_ScopedInstall(Service, 0x502280, { .reversed = false });
 
     RH_ScopedOverloadedInstall(AddAudioEvent, "0", 0x4F6420, void(CAEVehicleAudioEntity::*)(eAudioEvents, float), { .reversed = false });
-    RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CVehicle*), { .reversed = false });
+    RH_ScopedOverloadedInstall(AddAudioEvent, "1", 0x4F7580, void(CAEVehicleAudioEntity::*)(eAudioEvents, CEntity*), { .reversed = false });
 }
 
 // 0x4F63E0
@@ -601,8 +601,8 @@ void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, float fVolume) {
 }
 
 // 0x4F7580
-void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, CVehicle* vehicle) {
-    plugin::CallMethod<0x4F7580, CAEVehicleAudioEntity*, eAudioEvents, CVehicle*>(this, event, vehicle);
+void CAEVehicleAudioEntity::AddAudioEvent(eAudioEvents event, CEntity* entity) {
+    plugin::CallMethod<0x4F7580, CAEVehicleAudioEntity*, eAudioEvents, CEntity*>(this, event, entity);
 }
 
 // 0x502280
@@ -754,7 +754,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyIdle(float fGearRevProgress, float
         volume -= 6.0f;
     }
 
-    if (vehicle->m_pTrailer) {
+    if (vehicle->m_pVehicleBeingTowed) {
         volume += 6.0f;
     }
 
@@ -834,7 +834,7 @@ float CAEVehicleAudioEntity::GetVolumeForDummyRev(float fRatio, float fFadeRatio
         volume -= 6.0f;
     }
 
-    if (m_pEntity->AsAutomobile()->m_pTrailer) {
+    if (m_pEntity->AsAutomobile()->m_pVehicleBeingTowed) {
         volume += 6.0f;
     }
 
@@ -1136,7 +1136,7 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(cVehicleParams& params, 
     if (vehicle->vehicleFlags.bIsDrowning)
         fVolume -= 6.0f;
 
-    if (vehicle->m_pTrailer)
+    if (vehicle->m_pVehicleBeingTowed)
         fVolume += 6.0f;
 
     if (m_bNitroSoundPresent && field_248 <= 1.0f && field_248 >= 0.0f)
@@ -1863,7 +1863,7 @@ void CAEVehicleAudioEntity::ProcessReverseGear(cVehicleParams& params) {
 
         float fReverseGearVelocityProgress = 0.0f;
         if (vehicle->m_nWheelsOnGround) {
-            fReverseGearVelocityProgress = params.fSpeed / params.Transmission->m_maxReverseGearVelocity;
+            fReverseGearVelocityProgress = params.fSpeed / params.Transmission->m_MaxReverseVelocity;
         } else {
             if (vehicle->m_wheelsOnGrounPrev)
                 vehicle->m_fGasPedalAudio *= 0.4f;

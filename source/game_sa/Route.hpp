@@ -1,9 +1,12 @@
 #pragma once
 
+#include <array>
+#include <Base.h>
+
 namespace notsa {
 // Implementation of CPointRoute and CNodeRoute [As they basically do the same shit]
 // TODO/NOTE: This shit is mostly just a simplified fixed vector implementation :D
-template<typename T>
+template<typename T, size_t N = 8>
 class Route {
 public:
     //! Get all active entries
@@ -41,13 +44,13 @@ public:
     auto GetSize() const { return m_NumEntries; }
 
     //! Resize to the given size
-    void ResizeTo(uint32 s) { assert(s < m_Entries.size()); m_NumEntries = s; }
+    void ResizeTo(uint32 s) { assert(s <= m_Entries.size()); m_NumEntries = s; }
 
     T& operator[](size_t idx)       { return GetAll()[idx]; }
     T  operator[](size_t idx) const { return GetAll()[idx]; }
 
 public: // TODO: Make private
     uint32           m_NumEntries{};
-    std::array<T, 8> m_Entries{};
+    std::array<T, N> m_Entries{};
 };
 };

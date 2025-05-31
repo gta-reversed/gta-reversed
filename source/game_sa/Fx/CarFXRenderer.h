@@ -1,5 +1,7 @@
 #pragma once
 
+static inline auto& gSpecIntensity = StaticRef<float>(0x8D12D0); // 1.0f
+
 class CCarFXRenderer {
 public:
     static constexpr int32 NUM_DIRT_TEXTURES = 16;

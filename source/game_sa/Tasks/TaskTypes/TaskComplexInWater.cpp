@@ -27,7 +27,7 @@ CTaskComplexInWater::CTaskComplexInWater(const CTaskComplexInWater& o) :
 
 // 0x635110
 CTask* CTaskComplexInWater::CreateNextSubTask(CPed* ped) {
-    if (const auto swim = CTask::DynCast<CTaskSimpleSwim>(m_pSubTask); swim && swim->m_pEntity) {
+    if (const auto swim = notsa::dyn_cast_if_present<CTaskSimpleSwim>(m_pSubTask); swim && swim->m_pEntity) {
         ped->bIsInTheAir = true;
         return new CTaskSimpleClimb{
             swim->m_pEntity,

@@ -20,6 +20,6 @@ CEventLeaderQuitEnteringCarAsDriver* CEventLeaderQuitEnteringCarAsDriver::Constr
 
 // 0x4B1010
 bool CEventLeaderQuitEnteringCarAsDriver::AffectsPedGroup(CPedGroup* pedGroup) {
-    const auto oe = pedGroup->GetIntelligence().GetOldEvent();
+    const auto oe = pedGroup->GetIntelligence().GetCurrentEvent();
     return oe && oe->GetEvent().GetEventType() == EVENT_LEADER_ENTERED_CAR_AS_DRIVER;
 }

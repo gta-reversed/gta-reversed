@@ -44,7 +44,7 @@ public:
     void Init() override;
     void Shutdown() override;
     void DeleteRwObject() override;
-    uint32 GetRwModelType() override;
+    uint32 GetRwModelType() const override { return rpCLUMP; }
     RwObject* CreateInstance() override;
     RwObject* CreateInstance(RwMatrix* matrix) override;
     void SetAnimFile(const char* filename) override;

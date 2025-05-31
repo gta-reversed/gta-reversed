@@ -92,6 +92,8 @@ public:
     void AddTaskEventResponseTemp(CTask* task, int32 unUsed);
     void AddTaskEventResponseNonTemp(CTask* task, int32 unUsed);
     void AddTaskPrimaryMaybeInGroup(CTask* task, bool bAffectsPed);
+
+    //!< Can be replaced using `CTaskManager::Find<T>(false);`
     CTask* FindTaskByType(eTaskType taskId);
     CTaskSimpleFight* GetTaskFighting();
     CTaskSimpleUseGun* GetTaskUseGun();
@@ -155,14 +157,16 @@ public:
     //! Get the vehicle the ped is entering now (If any)
     CVehicle* GetEnteringVehicle();
 
-    CEventHandler&   GetEventHandler()    { return m_eventHandler; }
-    CEventGroup&     GetEventGroup()      { return m_eventGroup; }
-    CEventScanner&   GetEventScanner()    { return m_eventScanner; }
-    CPedScanner&     GetPedScanner()      { return m_pedScanner; }
-    CVehicleScanner& GetVehicleScanner()  { return m_vehicleScanner; }
-    CEntity**        GetPedEntities()     { return m_pedScanner.m_apEntities.data(); }     // 0x4893E0
-    CEntity*         GetPedEntity(uint32 index) { return GetPedEntities()[index]; } // todo: GetPedEntity or degrades readability?
-    CEntity**        GetVehicleEntities() { return m_vehicleScanner.m_apEntities.data(); }
+    CTaskManager&    GetTaskManager()                  { return m_TaskMgr; }
+    CEventHandler&   GetEventHandler()                 { return m_eventHandler; }
+    CEventGroup&     GetEventGroup()                   { return m_eventGroup; }
+    CEventScanner&   GetEventScanner()                 { return m_eventScanner; }
+    CPedScanner&     GetPedScanner()                   { return m_pedScanner; }
+    CVehicleScanner& GetVehicleScanner()               { return m_vehicleScanner; }
+    CEntity**        GetPedEntities()                  { return m_pedScanner.m_apEntities.data(); }     // 0x4893E0
+    CEntity*         GetPedEntity(uint32 index)        { return GetPedEntities()[index]; } // todo: GetPedEntity or degrades readability?
+    CEntity**        GetVehicleEntities()              { return m_vehicleScanner.m_apEntities.data(); }
+    auto&            GetStuckChecker(this auto&& self) { return self.m_pedStuckChecker; }
 
 private:
     CPedIntelligence* Constructor(CPed* ped);

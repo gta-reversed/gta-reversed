@@ -14,18 +14,18 @@ class CStreamedScripts {
 public:
     static constexpr uint16 NUM_STREAMED_SCRIPTS = 82;
 
-    struct {
-        uint8* data;
-        char   m_nStatus;
-        char   field_5;
-        int16  m_nScmIndex;
-        char   m_Name[20];
-        int32  m_nSize;
-    } m_aScripts[NUM_STREAMED_SCRIPTS];
+    // Name is NOTSA, originally anonymous
+    struct CStreamedScriptInfo {
+        uint8* m_StreamedScriptMemory{};
+        uint8  m_NumberOfUsers{};
+        int16  m_IndexUsedByScriptFile{-1};
+        char   m_Filename[20]{};
+        int32  m_SizeInBytes{};
+    };
+    std::array<CStreamedScriptInfo, NUM_STREAMED_SCRIPTS> m_aScripts;
 
     int32 m_nLargestExternalSize;
     int16 m_nCountOfScripts;
-    int16 field_A46;
 
 public:
     static void     InjectHooks();
@@ -43,5 +43,10 @@ public:
     int32           RegisterScript(const char* scriptName);
     void            RemoveStreamedScriptFromMemory(int32 index);
     CRunningScript* StartNewStreamedScript(int32 index);
+
+    // NOTSA
+    auto GetActiveScripts() {
+        return m_aScripts | rng::views::take(m_nCountOfScripts);
+    }
 };
 VALIDATE_SIZE(CStreamedScripts, 0xA48);

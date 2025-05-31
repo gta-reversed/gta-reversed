@@ -10,27 +10,21 @@ CVector CPedShelterAttractor::GetDisplacement(int32 pedId) {
 }
 
 // 0x5EFC40
-
-
 void CPedShelterAttractor::ComputeAttractPos(int32 pedId, CVector& outPos) {
-    if (m_pEffect) {
+    if (m_Fx) {
         CVector displacement = GetDisplacement(pedId);
-        outPos = displacement + m_vecAttractorPosn;
+        outPos = displacement + m_Pos;
     }
 }
 
 // 0x5E9690
-
-
 void CPedShelterAttractor::ComputeAttractHeading(int32 bQueue, float& heading) {
     heading = CGeneral::GetRandomNumberInRange(0.0f, TWO_PI);
 }
 
 // 0x5EF570
-
-// 0x0
-void CPedShelterAttractor::BroadcastDeparture(CPed* ped) {
-    plugin::CallMethod<0x5EF570, CPedShelterAttractor*, CPed*>(this, ped);
+bool CPedShelterAttractor::BroadcastDeparture(CPed* ped) {
+    return plugin::CallMethodAndReturn<bool, 0x5EF570, CPedShelterAttractor*, CPed*>(this, ped);
 }
 
 void CPedShelterAttractor::InjectHooks() {

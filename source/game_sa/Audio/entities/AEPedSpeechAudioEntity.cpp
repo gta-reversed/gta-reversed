@@ -7,7 +7,7 @@
 #include <AEAudioHardware.h>
 #include <Audio/Enums/eSoundBankSlot.h>
 
-#include "./PedSpeechAudioEntityLUTs.inc.h"
+#include "PedSpeechAudioEntityLUTs.inc.h"
 
 void CAEPedSpeechAudioEntity::InjectHooks() {
     RH_ScopedVirtualClass(CAEPedSpeechAudioEntity, 0x85F310, 8);
@@ -223,7 +223,7 @@ void CAEPedSpeechAudioEntity::StaticInitialise() {
 // 0x4E3710
 void CAEPedSpeechAudioEntity::Service() { // static
     s_bForceAudible = false;
-    for (auto&& [i, speech] : notsa::enumerate(s_PedSpeechSlots)) {
+    for (auto&& [i, speech] : rngv::enumerate(s_PedSpeechSlots)) {
         // Waiting for sound to load, and has loaded?
         if (speech.Status == CAEPedSpeechSlot::eStatus::LOADING && AEAudioHardware.IsSoundLoaded(speech.SoundBankID, speech.SoundID, SND_BANK_SLOT_SPEECH1 + i)) {
             speech.Status = CAEPedSpeechSlot::eStatus::WAITING;
@@ -481,10 +481,10 @@ eCJMood CAEPedSpeechAudioEntity::GetCurrentCJMood() {
             return false;
         case 1: { // Exactly one
             const auto& mem = plyrGrp.GetMembership().GetMembers().front(); // The one-and-only member (This isnt the same as `GetMember(0)`!!!)
-            if (mem.m_nPedType == PED_TYPE_GANG2) {
+            if (mem->m_nPedType == PED_TYPE_GANG2) {
                 return true;
             }
-            auto& memSpeech = mem.GetSpeechAE();
+            auto& memSpeech = mem->GetSpeechAE();
             return memSpeech.m_PedAudioType == PED_TYPE_GANG
                 && notsa::contains({ VOICE_GNG_RYDER, VOICE_GNG_SWEET, VOICE_GNG_SMOKE }, (eGngSpeechVoices)memSpeech.m_VoiceID);
         }
@@ -742,7 +742,7 @@ void CAEPedSpeechAudioEntity::LoadAndPlaySpeech(uint32 playbackTimeOffsetMS) {
         return;
     }
 
-    VERIFY(AEAudioHardware.LoadSound(m_BankID, m_SoundID, SND_BANK_SLOT_SPEECH1 + m_PedSpeechSlotID));
+    AEAudioHardware.LoadSound(m_BankID, m_SoundID, SND_BANK_SLOT_SPEECH1 + m_PedSpeechSlotID);
     *speech = CAEPedSpeechSlot{
         .Status            = CAEPedSpeechSlot::eStatus::LOADING,
         .AudioEntity       = this,
@@ -854,6 +854,9 @@ int16 CAEPedSpeechAudioEntity::GetSoundAndBankIDs(eGlobalSpeechContext gCtx, eSp
             return m_VoiceID;
         }
     }();
+    if (voiceID == -1) {
+        return -1;
+    }
     m_BankID = GetVoiceSoundBank(gCtx, m_PedAudioType, voiceID);
 
     const auto* const ctx = GetSpecificSpeechContextInfo(sCtx, gCtx, m_PedAudioType, voiceID);
@@ -871,7 +874,7 @@ int16 CAEPedSpeechAudioEntity::GetSoundAndBankIDs(eGlobalSpeechContext gCtx, eSp
     // NOTE: Below is a better version of what they did (without using an intermediary array)
 
     const auto GetPhraseIndexInMemory = [this](int32 soundID) -> int16 {
-        for (auto&& [i, p] : notsa::enumerate(s_PhraseMemory)) {
+        for (auto&& [i, p] : rngv::enumerate(s_PhraseMemory)) {
             if (p.SoundID == soundID && p.BankID == m_BankID) {
                 return i;
             }
@@ -968,7 +971,7 @@ void CAEPedSpeechAudioEntity::StopCurrentSpeech() {
         return;
     }
 
-    if (auto* const tFacial = CTask::Cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
+    if (auto* const tFacial = notsa::cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
         tFacial->StopAll();
     }
 
@@ -1385,7 +1388,7 @@ void CAEPedSpeechAudioEntity::I_UpdateParameters(CAESound* sound, int16 playTime
                 }
             }
 
-            if (auto* const tFacial = CTask::Cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
+            if (auto* const tFacial = notsa::cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))) {
                 tFacial->StopAll();
             }
         }
@@ -1469,7 +1472,7 @@ void CAEPedSpeechAudioEntity::I_PlayLoadedSound(CEntity* attachTo) {
             case CTX_GLOBAL_STOMACH_RUMBLE:
                 break;
             default: {
-                CTask::Cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))->SetRequest(
+                notsa::cast<CTaskComplexFacial>(m_pEntity->AsPed()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_FACIAL_COMPLEX))->SetRequest(
                     eFacialExpression::TALKING,
                     2800
                 );

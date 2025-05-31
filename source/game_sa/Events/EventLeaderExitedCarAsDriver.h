@@ -19,7 +19,7 @@ public:
     bool AffectsPed(CPed* ped) override { return false; }
     bool AffectsPedGroup(CPedGroup* pedGroup) override;
     bool TakesPriorityOver(const CEvent& refEvent) override { return true; }
-    CEventLeaderExitedCarAsDriver* CloneEditable() override { return new CEventLeaderExitedCarAsDriver(); }
+    CEventLeaderExitedCarAsDriver* CloneEditable() const noexcept override { return new CEventLeaderExitedCarAsDriver(); }
 
 private:
     CEventLeaderExitedCarAsDriver* Constructor();

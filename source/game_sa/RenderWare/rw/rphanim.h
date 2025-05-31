@@ -63,7 +63,7 @@
                                 * allocation of unique ID's. This file defines
                                 * the ID's used by Criterion.
                                 */
-//#include <rphanim.rpe>          /* automatically generated header file */
+////#include <rphanim.rpe>          /* automatically generated header file */
 #include <rtquat.h>
 #include <rtanim.h>
 
@@ -339,12 +339,30 @@ RpHAnimRemoveDuplicates( RtAnimAnimation *animsrc,
                            RwReal          averageNodeSize);
 
 extern RtAnimAnimation *
-RpHAnimAnimationOptimize( RtAnimAnimation *animsrc,
-                          RwUInt32        *pushpops,
+RpHAnimRemoveInterpolate( RtAnimAnimation *animsrc,
                           RwInt32         numBones,
                           RwReal          tolerance,
-                          RwReal          averageNodeSize,
-                          RwBool          removeDuplicatesFirst);
+                          RwReal          averageNodeSize);
+
+extern RtAnimAnimation *
+RpHAnimRemoveInterpolateLoop( RtAnimAnimation *animsrc,
+                              RwInt32         numBones,
+                              RwReal          tolerance,
+                              RwReal          averageNodeSize);
+
+extern RtAnimAnimation *
+RpHAnimRemoveInterpolatesLoopLength( RtAnimAnimation *animsrc,
+                                     RwUInt32        *pushpops,
+                                     RwInt32         numBones,
+                                     RwReal          tolerance,
+                                     RwReal          averageNodeSize);
+
+extern RtAnimAnimation *
+RpHAnimRemoveNoLeafChange( RtAnimAnimation *animsrc,
+                           RwUInt32        *pushpops,
+                           RwInt32         numBones,
+                           RwReal          tolerance,
+                           RwReal          averageNodeSize);
 
 extern RpHAnimHierarchy *
 RpHAnimHierarchyAttach(RpHAnimHierarchy *hierarchy);
@@ -376,7 +394,7 @@ extern RwMatrix *
 RpHAnimHierarchyGetMatrixArray(RpHAnimHierarchy *hierarchy);
 
 extern RwMatrix *
-RpHAnimHierarchyGetNodeMatrix(RpHAnimHierarchy *hierarchy, RwInt32 boneID); // NOTSA
+RpHAnimHierarchyGetNodeMatrix(RpHAnimHierarchy *hierarchy, RwInt32 nodeID);
 
 extern RwBool
 RpHAnimHierarchyUpdateMatrices(RpHAnimHierarchy *hierarchy);

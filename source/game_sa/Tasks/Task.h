@@ -74,44 +74,17 @@ public:
     //! @return The parent of this task. The parent is always of base type `CTaskComplex` (Because only complex tasks can have sub-tasks)
     auto GetParent() const { return m_Parent; }
 
-    //! Works like `dynamic_cast` => Checks if task if ofthe required type, if so, returns it, otherwise nullptr
-    template<Task T>
-    static T* DynCast(CTask* task) {
-        if (task && task->GetTaskType() == T::Type) {
-            return static_cast<T*>(task);
-        }
-        return nullptr;
-    }
-
-    //! @brief Check if this task is any of the given types
-    template<eTaskType... Types>
-    static bool IsA(CTask* task) {
-        if (!task) {
-            return false;
-        }
-        const auto ttype = task->GetTaskType();
-        return ((ttype == Types) || ...);
-    }
-
-    template<Task... Ts>
-    static bool IsA(CTask* task) {
-        return IsA<Ts::Type...>(task);
-    }
-
-    //! @breif Works like `static_cast` + in debug mode asserts the type to be as expected.
-    template<Task T>
-    static T* Cast(CTask* task) {
-        assert(!task || task->GetTaskType() == T::Type);
-        return static_cast<T*>(task);
-    }
-
     //! @breif Clone a task and check if it's of the specified type
     template<Task T>
     static T* CloneIfIs(CTask* t) {
-        return t && IsA<T>(t)
-            ? DynCast<T>(t->Clone())
+        return t && notsa::isa<T>(t)
+            ? notsa::cast_if_present<T>(t->Clone())
             : nullptr;
     }
+
+public: // Casting.hpp support //
+    template<typename From, typename Self>
+    static constexpr bool classof(const From* f) { return f->GetTaskType() == Self::Type; }
 
 protected:
     CTaskComplex* m_Parent{};
