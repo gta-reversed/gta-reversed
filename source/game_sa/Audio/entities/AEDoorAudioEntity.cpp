@@ -95,11 +95,21 @@ void CAEDoorAudioEntity::PlayDoorSound(int16 sfxId, eAudioEvents event, CVector&
 
         const float eventVolume = GetDefaultVolume(event);
         const float volume = eventVolume + volumeDelta;
-        CAESound    sound;
-        sound.Initialise(SND_BANK_SLOT_DOORS, sfxId, this, position, volume, 2.0f, speed, 1.0f, 0, SOUND_REQUEST_UPDATES, 0.0f, 0);
-        sound.SetFlags(SOUND_FRONT_END, enabled);
-        sound.m_Event = event;
-        AESoundManager.RequestNewSound(&sound);
+        AESoundManager.PlaySound({
+            .BankSlotID        = SND_BANK_SLOT_DOORS,
+            .SoundID           = sfxId,
+            .AudioEntity       = this,
+            .Pos               = position,
+            .Volume            = volume,
+            .RollOffFactor     = 2.0f,
+            .Speed             = speed,
+            .Doppler           = 1.0f,
+            .FrameDelay        = 0,
+            .Flags             = (uint16)(SOUND_REQUEST_UPDATES | (enabled ? SOUND_FRONT_END : 0)),
+            .FrequencyVariance = 0.0f,
+            .PlayTime          = 0,
+            .EventID           = event
+        });
     } else {
         StaticInitialise();
     }
