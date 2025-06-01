@@ -49,7 +49,7 @@ void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& po
         PlayExplosionSound(2, 7.5f);
     }
     {
-        const auto PlayExplosionSound = [&](CVector pos, bool variance) {
+        const auto PlayExplosionSound = [&](CVector frontEndPos, bool variance) {
             auto speed = gfExplosionFrequencyVariations[m_Speed];
             if (variance) {
                 speed *= sqrt(sqrt(2.0f));
@@ -58,7 +58,7 @@ void CAEExplosionAudioEntity::AddAudioEvent(eAudioEvents audioEvent, CVector& po
                 .BankSlotID        = SND_BANK_SLOT_EXPLOSIONS,
                 .SoundID           = 1,
                 .AudioEntity       = this,
-                .Pos               = posn,
+                .Pos               = frontEndPos,
                 .Volume            = volume + CAEAudioEnvironment::GetDistanceAttenuation(CAEAudioEnvironment::GetPositionRelativeToCamera(posn).Magnitude() / 12.0f) - 3.0f,
                 .RollOffFactor     = 12.f,
                 .Speed             = gfExplosionFrequencyVariations[m_Speed],

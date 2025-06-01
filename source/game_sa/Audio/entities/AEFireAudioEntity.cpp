@@ -91,7 +91,6 @@ void CAEFireAudioEntity::PlayWaterSounds(eAudioEvents audioId, CVector& posn) {
          .PlayTime          = 0,
          .EventID           = AE_FRONTEND_HIGHLIGHT,
     });
-
     m_SoundRight = AESoundManager.PlaySound({
         .BankSlotID        = SND_BANK_SLOT_FRONTEND_GAME,
         .SoundID           = 0,
