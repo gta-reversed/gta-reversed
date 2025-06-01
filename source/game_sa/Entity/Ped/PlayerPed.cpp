@@ -176,8 +176,8 @@ void CPlayerPed::RemovePlayerPed(int32 playerId) {
         if (playerVehicle && playerVehicle->m_pDriver == player)
         {
             playerVehicle->m_nStatus = STATUS_PHYSICS;
-            playerVehicle->m_fGasPedal = 0.0f;
-            playerVehicle->m_fBreakPedal = 0.1f;
+            playerVehicle->m_GasPedal = 0.0f;
+            playerVehicle->m_BrakePedal = 0.1f;
         }
         CWorld::Remove(static_cast<CEntity*>(player));
         delete player;

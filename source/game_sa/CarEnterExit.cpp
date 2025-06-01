@@ -54,7 +54,7 @@ void CCarEnterExit::AddInCarAnim(const CVehicle* vehicle, CPed* ped, bool bAsDri
     const auto [grpId, animId] = [&]() -> std::pair<AssocGroupId, AnimationId> {
         if (bAsDriver) { // Inverted
             if (const auto data = const_cast<CVehicle*>(vehicle)->GetRideAnimData()) {
-                return { data->m_nAnimGroup, ANIM_ID_BIKE_RIDE };
+                return { data->AnimGroup, ANIM_ID_BIKE_RIDE };
             } else if (vehicle->IsBoat()) {
                 if (vehicle->m_pHandlingData->m_bSitInBoat) {
                     return { ANIM_GROUP_DEFAULT, ANIM_ID_DRIVE_BOAT };
@@ -66,7 +66,7 @@ void CCarEnterExit::AddInCarAnim(const CVehicle* vehicle, CPed* ped, bool bAsDri
             return { ANIM_GROUP_DEFAULT, ANIM_ID_CAR_SIT };
         } else {
             if (const auto data = const_cast<CVehicle*>(vehicle)->GetRideAnimData()) {
-                return { data->m_nAnimGroup, ANIM_ID_BIKE_RIDE };
+                return { data->AnimGroup, ANIM_ID_BIKE_RIDE };
             } else if (vehicle->vehicleFlags.bLowVehicle) {
                 return { ANIM_GROUP_DEFAULT, ANIM_ID_CAR_SITPLO };
             }

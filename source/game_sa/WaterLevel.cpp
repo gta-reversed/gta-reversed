@@ -868,8 +868,8 @@ auto DoVtxSortAndGetRange(SortableVtx (&verts)[N]) {
 
     // Return a range of vertex indices that can be passed to the constructor of `CWaterPolygon`
     return verts | rng::views::transform([](auto& vtx) {
-               return vtx.idx;
-           });
+        return vtx.idx;
+    });
 }
 
 // 0x6E7EF0

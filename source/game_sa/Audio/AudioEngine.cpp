@@ -31,8 +31,8 @@ void CAudioEngine::InjectHooks() {
     RH_ScopedInstall(IsAmbienceTrackActive, 0x507210);
     RH_ScopedInstall(PauseBeatTrack, 0x507200);
     RH_ScopedInstall(RetuneRadio, 0x507E10);
-    RH_ScopedOverloadedInstall(StartRadio, "", 0x507DF0, void (CAudioEngine::*)(tVehicleAudioSettings*));
-    RH_ScopedOverloadedInstall(StartRadio, "1", 0x507DC0, void (CAudioEngine::*)(eRadioID, int8));
+    RH_ScopedOverloadedInstall(StartRadio, "", 0x507DF0, void (CAudioEngine::*)(const tVehicleAudioSettings&));
+    RH_ScopedOverloadedInstall(StartRadio, "1", 0x507DC0, void (CAudioEngine::*)(eRadioID, eBassSetting));
     RH_ScopedInstall(ServiceLoadingTune, 0x5078A0);
     RH_ScopedInstall(ResumeAllSounds, 0x507440);
     RH_ScopedInstall(PauseAllSounds, 0x507430);
@@ -173,19 +173,19 @@ void CAudioEngine::InitialisePostLoading() {
     m_GlobalWeaponAE = new CAEGlobalWeaponAudioEntity();
     m_GlobalWeaponAE->Initialise();
 
-    while ( !AEAudioHardware.IsSoundBankLoaded(39, SND_BANK_SLOT_COLLISIONS)
-           || !AEAudioHardware.IsSoundBankLoaded(27, 3)
-           || !AEAudioHardware.IsSoundBankLoaded(138, 19)
-           || !AEAudioHardware.IsSoundBankLoaded(0, 41)
+    while (   !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_COLLISIONS, SND_BANK_SLOT_COLLISIONS)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_BULLET_HITS, SND_BANK_SLOT_BULLET_HITS)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_FEET_GENERIC, SND_BANK_SLOT_FOOTSTEPS_GENERIC)
            || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)
-           || !AEAudioHardware.IsSoundBankLoaded(52, 4)
-           || !AEAudioHardware.IsSoundBankLoaded(143, SND_BANK_SLOT_WEAPON_GEN)
-           || !AEAudioHardware.IsSoundBankLoaded(51, 31)
-           || !AEAudioHardware.IsSoundBankLoaded(105, 6)
-           || !AEAudioHardware.IsSoundBankLoaded(74, 17)
-           || !AEAudioHardware.IsSoundBankLoaded(128, 32)
-           || !AEAudioHardware.IsSoundBankLoaded(13, 18)
-   ) {
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_EXPLOSIONS, SND_BANK_SLOT_EXPLOSIONS)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_WEAPONS, SND_BANK_SLOT_WEAPON_GEN)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_DOORS, SND_BANK_SLOT_DOORS)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_RAIN, SND_BANK_SLOT_WEATHER)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_HORN, SND_BANK_SLOT_HORN_AND_SIREN)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_SWIMMING, SND_BANK_SLOT_SWIMMING)
+           || !AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_APACHE_D, SND_BANK_SLOT_COP_HELI)
+    ) {
         AEAudioHardware.Service();
     }
 }
@@ -270,8 +270,7 @@ bool CAudioEngine::IsMissionAudioSampleFinished(uint8 sampleId) {
 void CAudioEngine::PreloadBeatTrack(int16 trackId) {
     if (AERadioTrackManager.IsRadioOn()) {
         m_nCurrentRadioStationId = AERadioTrackManager.GetCurrentRadioStationID();
-        tVehicleAudioSettings* settings = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
-        AERadioTrackManager.StopRadio(settings, true);
+        AERadioTrackManager.StopRadio(CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio(), true);
         m_FrontendAE.AddAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
         while (AERadioTrackManager.IsRadioOn()) {
             AERadioTrackManager.Service(AEAudioHardware.GetTrackPlayTime());
@@ -407,8 +406,7 @@ void CAudioEngine::PlayRadioAnnouncement(uint32 a1) {
 void CAudioEngine::PreloadCutsceneTrack(int16 trackId, bool wait) {
     if (AERadioTrackManager.IsRadioOn()) {
         m_nCurrentRadioStationId = AERadioTrackManager.GetCurrentRadioStationID();
-        tVehicleAudioSettings* settings = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
-        AERadioTrackManager.StopRadio(settings, true);
+        AERadioTrackManager.StopRadio(CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio(), true);
         m_FrontendAE.AddAudioEvent(AE_FRONTEND_RADIO_RETUNE_STOP);
         while (AERadioTrackManager.IsRadioOn()) {
             AERadioTrackManager.Service(AEAudioHardware.GetTrackPlayTime());
@@ -457,16 +455,16 @@ void CAudioEngine::StopCutsceneTrack(bool bWaitForFinish) {
     }
     if (m_nCurrentRadioStationId < 0) {
         if (AERadioTrackManager.IsVehicleRadioActive()) {
-            tVehicleAudioSettings* settings = CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio();
-            AERadioTrackManager.StartRadio(settings);
+            AERadioTrackManager.StartRadio(*CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio());
             m_bPlayingMissionCompleteTrack = false;
             return;
         }
         m_bPlayingMissionCompleteTrack = false;
         return;
     }
-    if (AERadioTrackManager.IsVehicleRadioActive())
-        AERadioTrackManager.StartRadio(m_nCurrentRadioStationId, 0, 0, 0);
+    if (AERadioTrackManager.IsVehicleRadioActive()) {
+        AERadioTrackManager.StartRadio(m_nCurrentRadioStationId, eBassSetting::NORMAL, 0.f, false);
+    }
     m_nCurrentRadioStationId = RADIO_INVALID;
     m_bPlayingMissionCompleteTrack = false;
 }
@@ -620,7 +618,7 @@ void CAudioEngine::Service() {
         if (trackPlayTime == -6) {
             m_bStoppingMissionCompleteTrack = false;
             if (CAERadioTrackManager::IsVehicleRadioActive()) {
-                AERadioTrackManager.StartRadio(CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio());
+                AERadioTrackManager.StartRadio(*CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSettingsForRadio());
             }
         }
     }
@@ -745,15 +743,17 @@ int8 CAudioEngine::GetBeatTrackStatus() {
 }
 
 // 0x507DC0
-void CAudioEngine::StartRadio(eRadioID id, int8 bassValue) {
-    if (!GetBeatTrackStatus())
-        AERadioTrackManager.StartRadio(id, bassValue, 0, 0);
+void CAudioEngine::StartRadio(eRadioID id, eBassSetting bassSetting) {
+    if (!GetBeatTrackStatus()) {
+        AERadioTrackManager.StartRadio(id, bassSetting, 0.f, false);
+    }
 }
 
 // 0x507DF0
-void CAudioEngine::StartRadio(tVehicleAudioSettings* settings) {
-    if (!GetBeatTrackStatus())
+void CAudioEngine::StartRadio(const tVehicleAudioSettings& settings) {
+    if (!GetBeatTrackStatus()) {
         AERadioTrackManager.StartRadio(settings);
+    }
 }
 
 // 0x506F80
@@ -767,8 +767,8 @@ void CAudioEngine::SetBassEnhanceOnOff(bool enable) {
 }
 
 // 0x506FA0
-void CAudioEngine::SetRadioBassSetting(int8 nBassSet) {
-    AERadioTrackManager.SetBassSetting(nBassSet, 1.0f);
+void CAudioEngine::SetRadioBassSetting(eBassSetting bassSetting) {
+    AERadioTrackManager.SetBassSetting(bassSetting, 1.0f);
 }
 
 // 0x506FC0
