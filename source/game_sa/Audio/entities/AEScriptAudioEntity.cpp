@@ -101,20 +101,20 @@ void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBan
     }();
 
     AESoundManager.PlaySound({
-        .BankSlotID        = slot,
-        .SoundID           = sfx,
-        .AudioEntity       = this,
-        .Pos               = pos,
-        .Volume            = volume,
-        .RollOffFactor     = maxDistance,
-        .Speed             = speed,
-        .Doppler           = 1.0f,
-        .FrameDelay        = 0,
-        .Flags             = SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | (bFrontend ? SOUND_FRONT_END : 0),
-        .FrequencyVariance = 0.0f,
-        .PlayTime          = playPosn,
-        .EventID           = static_cast<eAudioEvents>(event),
-        .RegisterWithEntity = physical
+        .BankSlotID         = slot,
+        .SoundID            = sfx,
+        .AudioEntity        = this,
+        .Pos                = pos,
+        .Volume             = volume,
+        .RollOffFactor      = maxDistance,
+        .Speed              = speed,
+        .Doppler            = 1.0f,
+        .FrameDelay         = 0,
+        .Flags              = SOUND_START_PERCENTAGE | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | (bFrontend ? SOUND_FRONT_END : 0u),
+        .FrequencyVariance  = 0.0f,
+        .PlayTime           = playPosn,
+        .RegisterWithEntity = physical,
+        .EventID            = (eAudioEvents)(event),
     });
 }
 

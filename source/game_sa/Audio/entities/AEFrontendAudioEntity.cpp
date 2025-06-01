@@ -417,7 +417,7 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
         m_nLastFrameBulletPass = CTimer::GetFrameCounter();
         AESoundManager.PlaySound({
             .BankSlotID      = SND_BANK_SLOT_BULLET_PASS,
-            .SoundID         = CAEAudioUtility::GetRandomNumberInRange(0, 2),
+            .SoundID         = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(0, 2),
             .AudioEntity     = this,
             .Pos             = { -0.1f, -1.0f, 0.0f },
             .Volume          = volume,
@@ -448,7 +448,7 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
         m_nLastFrameBulletPass = CTimer::GetFrameCounter();
         AESoundManager.PlaySound({
             .BankSlotID      = SND_BANK_SLOT_BULLET_PASS,
-            .SoundID         = CAEAudioUtility::GetRandomNumberInRange(0, 2),
+            .SoundID         = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(0, 2),
             .AudioEntity     = this,
             .Pos             = { -0.1f, +1.0f, 0.0f },
             .Volume          = volume,
@@ -470,7 +470,7 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
             m_nLastFrameBulletPass = CTimer::GetFrameCounter();
             AESoundManager.PlaySound({
                 .BankSlotID      = SND_BANK_SLOT_BULLET_PASS,
-                .SoundID         = CAEAudioUtility::GetRandomNumberInRange(0, 2),
+                .SoundID         = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(0, 2),
                 .AudioEntity     = this,
                 .Pos             = { 0.1f, -1.0f, 0.0f },
                 .Volume          = volume,
@@ -499,7 +499,7 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
                 m_nLastFrameBulletPass = CTimer::GetFrameCounter();
                 AESoundManager.PlaySound({
                     .BankSlotID      = SND_BANK_SLOT_BULLET_PASS,
-                    .SoundID         = CAEAudioUtility::GetRandomNumberInRange(0, 2),
+                    .SoundID         = CAEAudioUtility::GetRandomNumberInRange<eSoundID>(0, 2),
                     .AudioEntity     = this,
                     .Pos             = { 0.1f, +1.0f, 0.0f },
                     .Volume          = volume,
