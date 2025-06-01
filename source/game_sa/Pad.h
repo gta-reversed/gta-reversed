@@ -249,6 +249,8 @@ public:
     [[nodiscard]] bool IsCtrlPressed() const noexcept                       { return IsLeftCtrlJustDown() || IsRightCtrlJustDown(); }                                        //
     [[nodiscard]] static bool IsRightDown() noexcept                        { return KEY_IS_DOWN(right); }                                                                   //
     [[nodiscard]] static bool IsLeftDown() noexcept                         { return KEY_IS_DOWN(left); }                                                                    //
+    [[nodiscard]] static bool IsUpDown() noexcept                           { return KEY_IS_DOWN(up); }                                                                      //
+    [[nodiscard]] static bool IsDownDown() noexcept                         { return KEY_IS_DOWN(down); }                                                                    //
     [[nodiscard]] static bool IsUpPressed() noexcept                        { return KEY_IS_PRESSED(up); }                                                                   //
     [[nodiscard]] static bool IsDownPressed() noexcept                      { return KEY_IS_PRESSED(down); }                                                                 //
     [[nodiscard]] static bool IsLeftPressed() noexcept                      { return KEY_IS_PRESSED(left); }                                                                 //
@@ -261,9 +263,7 @@ public:
     static bool IsMenuKeyJustPressed() noexcept                             { return KEY_IS_PRESSED(lalt); }                                                                 // 0x744D50
     static bool IsTabJustPressed() noexcept                                 { return KEY_IS_PRESSED(tab); }                                                                  // 0x744D90
     static bool IsEscJustPressed() noexcept                                 { return KEY_IS_PRESSED(esc); }                                                                  // 0x572DB0
-
-    bool IsRadioTrackSkipPressed() { return BUTTON_IS_PRESSED(m_bRadioTrackSkip); } // 0x4E7F20
-    static bool IsBackspacePressed() noexcept { return KEY_IS_PRESSED(back); }      // 0x57C360
+    static bool IsBackspacePressed() noexcept                               { return KEY_IS_PRESSED(back); }                                                                 // 0x57C360
 
     // KEYBOARD END
 
@@ -315,6 +315,9 @@ public:
 
     [[nodiscard]] bool IsRightShoulder2Pressed() const noexcept             { return BUTTON_IS_PRESSED(RightShoulder2); }                                                    //
     [[nodiscard]] bool IsRightShoulder2JustUp() const noexcept              { return BUTTON_JUST_UP(RightShoulder2); }                                                       // 0x53EE40
+
+    [[nodiscard]] bool IsRadioTrackSkipJustUp() const noexcept              { return BUTTON_JUST_UP(m_bRadioTrackSkip); }                                                    //
+    [[nodiscard]] bool IsRadioTrackSkipPressed() const noexcept             { return BUTTON_IS_PRESSED(m_bRadioTrackSkip); }                                                 // 0x4E7F20
 
     // returns angle in degrees
     [[nodiscard]] int16 GetLeftStickX() const noexcept                      { return BUTTON_IS_DOWN(LeftStickX); }

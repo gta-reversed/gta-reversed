@@ -199,7 +199,7 @@ void CMenuManager::UserInput() {
             auto &lastSliderMoveTime = isLeftPressed
                 ? FrontEndMenuManager.m_nTimeSlideLeftMove
                 : FrontEndMenuManager.m_nTimeSlideRightMove;
-            if (CTimer::m_snTimeInMillisecondsPauseMode - lastSliderMoveTime > 200) {
+            if (CTimer::GetTimeInMSPauseMode() - lastSliderMoveTime > 200) {
                 if (notsa::contains(SLIDER_ACTIONS, curScreen[m_nCurrentScreenItem].m_nActionType) || curScreen[m_nCurrentScreenItem].m_nActionType == MENU_ACTION_STAT) {
                     sliderMove         = isLeftPressed ? -1 : 1;
                     lastSliderMoveTime = CTimer::GetTimeInMSPauseMode();
@@ -329,9 +329,7 @@ void CMenuManager::AdditionalOptionInput(bool* upPressed, bool* downPressed) {
     plugin::CallMethod<0x5773D0, CMenuManager*, bool*, bool*>(this, upPressed, downPressed);
 }
 
-/*!
- * @addr 0x57EF50
- */
+// 0x57EF50
 void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
     if (m_EditingControlOptions) {
         return; // 0x57EF53 - Invert
@@ -341,7 +339,7 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
     const auto pad = CPad::GetPad();
 
     // 0x57EF97 - Handle enter key/button press
-    if ((CPad::IsEnterJustPressed() || pad->IsCrossPressed()) && (m_nSysMenu & 0x80u)) {
+    if ((CPad::IsEnterJustPressed() && (m_nSysMenu & 0x80u) != 0 || pad->IsCrossPressed())) {
         m_DisplayTheMouse = false;
         *accept = true;
     }
@@ -358,37 +356,43 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
     }
 
     // 0x57F058 - Reset key pressed state after a delay
-    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B64 > 200) {
+    if (CTimer::GetTimeInMSPauseMode() - FrontEndMenuManager.field_1B64 > 200) {
         rng::fill(m_KeyPressed, false);
-        FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
+        FrontEndMenuManager.field_1B64 = CTimer::GetTimeInMSPauseMode();
     }
 
     // 0x57F086 - Handle up navigation (keyboard, pad, or mouse wheel up)
-    if (CPad::IsUpPressed() || CPad::GetAnaloguePadUp() || pad->IsDPadUpPressed()) {
+    if (CPad::IsUpDown() || CPad::GetAnaloguePadUp() || pad->IsDPadUpPressed()) {
         m_DisplayTheMouse = false;
-    } else if (CPad::IsMouseWheelUpPressed()) {
-        m_DisplayTheMouse = true;
+    } else {
+        if (CPad::IsMouseWheelUpPressed()) {
+            m_DisplayTheMouse = true;
+        }
         if (!m_KeyPressed[2]) {
             m_KeyPressed[2] = true;
-            FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
+            FrontEndMenuManager.field_1B64 = CTimer::GetTimeInMSPauseMode();
             m_ListSelection = m_ListSelection > 0 ? m_ListSelection - 1 : maxAction - 1;
         }
-    } else {
-        m_KeyPressed[2] = false;
+        if (!CPad::IsMouseWheelUpPressed()) {
+            m_KeyPressed[2] = false;
+        }
     }
 
     // 0x57F138 - Handle down navigation (keyboard, pad, or mouse wheel down)
-    if (CPad::IsDownPressed() || CPad::GetAnaloguePadDown() || pad->IsDPadDownPressed()) {
+    if (CPad::IsDownDown() || CPad::GetAnaloguePadDown() || pad->IsDPadDownPressed()) {
         m_DisplayTheMouse = false;
-    } else if (CPad::IsMouseWheelDownPressed()) {
-        m_DisplayTheMouse = true;
+    } else {
+        if (CPad::IsMouseWheelDownPressed()) {
+            m_DisplayTheMouse = true;
+        }
         if (!m_KeyPressed[3]) {
             m_KeyPressed[3] = true;
             FrontEndMenuManager.field_1B64 = CTimer::m_snTimeInMillisecondsPauseMode;
             m_ListSelection = (m_ListSelection == maxAction - 1) ? 0 : m_ListSelection + 1;
         }
-    } else {
-        m_KeyPressed[3] = false;
+        if (!CPad::IsMouseWheelDownPressed()) {
+            m_KeyPressed[3] = false;
+        }
     }
 
     // 0x57F1F0 - Handle escape/triangle button for back
@@ -410,10 +414,14 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
     // 0x57F2A3 - Handle back logic for control redefinition
     if (*cancel) {
         if (m_bRadioAvailable) {
-            m_RedefiningControls = (m_RedefiningControls == eControlMode::FOOT) ? eControlMode::VEHICLE : eControlMode::FOOT;
+            m_RedefiningControls = m_RedefiningControls == eControlMode::FOOT
+                ? eControlMode::VEHICLE
+                : eControlMode::FOOT;
             DrawControllerBound(69, true);
             if (!m_bRadioAvailable) {
-                m_nControllerError = (m_RedefiningControls == eControlMode::FOOT) ? eControllerError::VEHICLE : eControllerError::FOOT;
+                m_nControllerError = m_RedefiningControls == eControlMode::FOOT
+                    ? eControllerError::VEHICLE
+                    : eControllerError::FOOT;
             }
         } else {
             m_nControllerError = eControllerError::NOT_SETS;
