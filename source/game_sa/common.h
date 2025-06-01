@@ -192,17 +192,6 @@ constexpr float RadiansToDegrees(float angleInRadians) {
     return angleInRadians * 180.0F / PI;
 }
 
-// Step `x` towards `to` in steps of `step`
-template<std::floating_point F>
-F step_to(F x, F to, F step) {
-    return x < to
-        ? std::max<F>(to, x + step)
-        : x > to
-            ? std::min<F>(to, x - step)
-            : to;
-}
-
-
 template<typename T>
 T lerp(const T& from, const T& to, float t) {
     // Same as `from + (to - from) * t` (Or `from + t * (to - from)`

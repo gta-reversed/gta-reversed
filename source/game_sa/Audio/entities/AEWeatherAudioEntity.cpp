@@ -20,18 +20,20 @@ CAEWeatherAudioEntity::CAEWeatherAudioEntity() : CAEAudioEntity() {
 
 // 0x5B9A70
 void CAEWeatherAudioEntity::StaticInitialise() {
-    AEAudioHardware.LoadSoundBank(105, 6);
+    AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_RAIN, SND_BANK_SLOT_WEATHER);
 }
 
 // 0x5052B0
 void CAEWeatherAudioEntity::StaticReset() {
     m_sfRainVolume = -100.0f;
 
-    if (m_sRainSoundL.m_bIsInitialised)
+    if (m_sRainSoundL.IsActive()) {
         m_sRainSoundL.StopSoundAndForget();
+    }
 
-    if (m_sRainSoundR.m_bIsInitialised)
+    if (m_sRainSoundR.IsActive()) {
         m_sRainSoundR.StopSoundAndForget();
+    }
 }
 
 // 0x506800, see discord gists channel
