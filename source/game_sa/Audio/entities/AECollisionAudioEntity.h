@@ -8,26 +8,26 @@ enum eCollisionSoundStatus : uint8 {
     COLLISION_SOUND_LOOPING,
 };
 
-struct tCollisionAudioEntry {
+struct tCollisionSound {
     CEntity*              EntityA{ nullptr };
     CEntity*              EntityB{ nullptr };
     CAESound*             Sound{ nullptr };
-    uint32                Time{ 0 };
+    uint32                LoopStopTimeMs{ 0 };
     eCollisionSoundStatus Status{ COLLISION_SOUND_INACTIVE };
-    eSurfaceType          SurfaceA{ SURFACE_UNKNOWN_194 + 1 }; // ?
-    eSurfaceType          SurfaceB{ SURFACE_UNKNOWN_194 + 1 }; // ?
+    eSurfaceType          SurfaceA{ SURFACE_NUM_TYPES_FOR_COLLISION }; // ?
+    eSurfaceType          SurfaceB{ SURFACE_NUM_TYPES_FOR_COLLISION }; // ?
 };
-VALIDATE_SIZE(tCollisionAudioEntry, 0x14);
+VALIDATE_SIZE(tCollisionSound, 0x14);
 
 class NOTSA_EXPORT_VTABLE CAECollisionAudioEntity : public CAEAudioEntity {
 public:
     static constexpr auto NUM_ENTRIES = 300u;
 
-    int16                m_aHistory[SURFACE_UNKNOWN_194]{255};
-    int16                m_nLastBulletHitSoundID{-1};
+    int16                m_CollisionSoundIDHistory[SURFACE_NUM_TYPES_FOR_COLLISION]{255};
+    int16                m_LastBulletHitSoundID{-1};
     int16                m_nRandom{-1};
-    int32                m_nActiveCollisionSounds{0};
-    std::array<tCollisionAudioEntry, NUM_ENTRIES> m_Entries{};
+    int32                m_NumActiveCollisionSounds{0};
+    std::array<tCollisionSound, NUM_ENTRIES> m_CollisionSoundList{};
 
 public:
     static void InjectHooks();
@@ -76,7 +76,7 @@ public:
 
     void Service();
 
-    bool CanAddNewSound() const { return m_Entries.size() != m_nActiveCollisionSounds; }
+    bool CanAddNewSound() const { return m_CollisionSoundList.size() != m_NumActiveCollisionSounds; }
 
 protected:
     eSoundID ChooseCollisionSoundID(eSurfaceType surface);
