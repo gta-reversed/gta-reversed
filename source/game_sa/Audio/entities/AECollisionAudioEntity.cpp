@@ -1,7 +1,8 @@
 #include "StdInc.h"
 
-#include "AECollisionAudioEntity.h"
+#include <extensions/utility.hpp>
 
+#include "AECollisionAudioEntity.h"
 #include "AEAudioHardware.h"
 #include "AEAudioUtility.h"
 
@@ -450,8 +451,8 @@ void CAECollisionAudioEntity::UpdateLoopingCollisionSound(
     bool           isForceLooping
 ) {
     const auto [volume, speed] = GetLoopingCollisionSoundVolumeAndSpeed(entityA, entityB, surfaceA, surfaceB, isForceLooping);
-    sound->m_fSpeed            = stepto(std::max(0.75f, speed), sound->m_fSpeed, 0.1f);
-    sound->m_fVolume           = stepto(volume, sound->m_fVolume, 1.0f);
+    sound->SetSpeed(notsa::step_to(std::max(0.75f, speed), sound->GetSpeed(), 0.1f));
+    sound->SetVolume(notsa::step_to(volume, sound->GetVolume(), 1.0f));
     sound->SetPosition(pos);
 }
 

@@ -320,17 +320,6 @@ bool CAEAudioHardware::EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot s
     return false;
 }
 
-bool CAEAudioHardware::EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot slot, bool checkLoadingTune) {
-    if (AEAudioHardware.IsSoundBankLoaded(bank, slot)) {
-        return true;
-    }
-    if (checkLoadingTune && AudioEngine.IsLoadingTuneActive()) {
-        return false;
-    }
-    LoadSoundBank(bank, slot);
-    return false;
-}
-
 // 0x4D8ED0
 void CAEAudioHardware::LoadSound(eSoundBank bank, eSoundID sound, eSoundBankSlot slot) {
     if (!m_bDisableEffectsLoading) {
