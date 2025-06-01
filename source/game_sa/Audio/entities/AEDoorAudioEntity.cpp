@@ -83,35 +83,31 @@ void CAEDoorAudioEntity::AddAudioEvent(eAudioEvents event, CVector& posn, float 
 
 // 0x4DC6D0
 void CAEDoorAudioEntity::PlayDoorSound(int16 sfxId, eAudioEvents event, CVector& posn, float volumeDelta, float speed) {
-    if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_DOORS, SND_BANK_SLOT_DOORS)) {
-        CVector position;
-        bool    enabled = false;
-        if (posn.x == -1000.0f && posn.y == -1000.0f && posn.z == -1000.0f || posn.x == 0.0f && posn.y == 0.0f && posn.z == 0.0f) {
-            position.Set(0.0f, 1.0f, 0.0f);
-            enabled = true;
-        } else {
-            position = posn;
-        }
-
-        const float eventVolume = GetDefaultVolume(event);
-        const float volume = eventVolume + volumeDelta;
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_DOORS, SND_BANK_SLOT_DOORS)) {
+        StaticInitialise();
+        return;
+    }
+    const auto PlaySound = [&](CVector pos, bool isFrontEnd) {
         AESoundManager.PlaySound({
             .BankSlotID        = SND_BANK_SLOT_DOORS,
             .SoundID           = sfxId,
             .AudioEntity       = this,
-            .Pos               = position,
-            .Volume            = volume,
+            .Pos               = pos,
+            .Volume            = GetDefaultVolume(event) + volumeDelta,
             .RollOffFactor     = 2.0f,
             .Speed             = speed,
             .Doppler           = 1.0f,
             .FrameDelay        = 0,
-            .Flags             = (uint16)(SOUND_REQUEST_UPDATES | (enabled ? SOUND_FRONT_END : 0)),
+            .Flags             = SOUND_REQUEST_UPDATES | (isFrontEnd ? SOUND_FRONT_END : 0u),
             .FrequencyVariance = 0.0f,
             .PlayTime          = 0,
             .EventID           = event
         });
+    };
+    if (posn.x == -1000.0f && posn.y == -1000.0f && posn.z == -1000.0f || posn.x == 0.0f && posn.y == 0.0f && posn.z == 0.0f) {
+        PlaySound({ 0.0f, 1.0f, 0.0f }, true);
     } else {
-        StaticInitialise();
+        PlaySound(posn, false);
     }
 }
 
