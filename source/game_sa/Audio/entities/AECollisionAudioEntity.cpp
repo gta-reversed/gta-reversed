@@ -265,11 +265,11 @@ void CAECollisionAudioEntity::AddCollisionSoundToList(
     eSurfaceType surfaceB,
     CAESound* sound,
     eCollisionSoundStatus status
-)
-{
+) {
     // Find an entry with no sound.
     const auto e = rng::find_if_not(m_Entries, &tCollisionAudioEntry::Sound);
-    if (e == m_Entries.end()) {
+    if (e != m_Entries.end()) {
+        NOTSA_LOG_WARN("Collision sound list is full");
         return;
     }
 
@@ -304,7 +304,7 @@ eCollisionSoundStatus CAECollisionAudioEntity::GetCollisionSoundStatus(CEntity* 
 }
 
 // 0x4DB150
-void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entityA, CEntity* entityB, eSurfaceType surfaceA, eSurfaceType surfaceB, float a5, const CVector& posn) {
+void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entityA, CEntity* entityB, eSurfaceType surfaceA, eSurfaceType surfaceB, float impulseMagnitude, const CVector& posn) {
     const auto ProcessSound = [&](CEntity* eA, CEntity* eB, eSurfaceType sA, eSurfaceType sB) {
         if (sB >= TOTAL_NUM_SURFACE_TYPES_FOR_COLLISION) {
             return false;
@@ -330,7 +330,7 @@ void CAECollisionAudioEntity::PlayOneShotCollisionSound(CEntity* entityA, CEntit
         if (soundID == -1) {
             return true;
         }
-        auto offset = ((float)(gCollisionLookup[sA].ParamD) * a5) / 100.f;
+        auto offset = ((float)(gCollisionLookup[sA].ParamD) * impulseMagnitude) / 100.f;
         if (sB == SURFACE_UNKNOWN_188 && sA == SURFACE_PED) { // 0x4DB2A6
             offset *= 10.f;
         }
