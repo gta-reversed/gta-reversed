@@ -195,7 +195,7 @@ float CAESound::GetSlowMoFrequencyScalingFactor() const {
 
 // 0x4EF7A0
 void CAESound::NewVPSLEntry() {
-    m_IsPhysicallyPlaying  = true;
+    m_IsPhysicallyPlaying  = false;
     m_HasRequestedStopped  = false;
     m_IsAudioHardwareAware = false;
     m_IsInUse              = true;
