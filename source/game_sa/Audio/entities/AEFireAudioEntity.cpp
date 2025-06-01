@@ -69,45 +69,43 @@ void CAEFireAudioEntity::PlayFireSounds(eAudioEvents audioId, CVector& posn) {
         .Flags           = SOUND_REQUEST_UPDATES,
         .FrequencyVariance = 0.0f,
         .PlayTime        = 0,
+        .EventID         = AE_FRONTEND_SELECT,
         .ClientVariable  = volume + 3.0f,
-        .EventID         = AE_FRONTEND_SELECT
     });
 }
 
 // 0x4DD270
 void CAEFireAudioEntity::PlayWaterSounds(eAudioEvents audioId, CVector& posn) {
     m_SoundLeft = AESoundManager.PlaySound({
-        .BankSlotID      = SND_BANK_SLOT_COLLISIONS,
-        .SoundID         = 3,
-        .AudioEntity     = this,
-        .Pos             = posn,
-        .Volume          = GetDefaultVolume(audioId),
-        .RollOffFactor   = 2.0f,
-        .Speed           = 0.75f,
-        .Doppler         = 0.6f,
-        .FrameDelay      = 0,
-        .Flags           = SOUND_REQUEST_UPDATES,
-        .FrequencyVariance = 0.0f,
-        .PlayTime        = 0,
-        .EventID         = AE_FRONTEND_HIGHLIGHT,
-        .SpeedVariance   = 0.06f
+         .BankSlotID        = SND_BANK_SLOT_COLLISIONS,
+         .SoundID           = 3,
+         .AudioEntity       = this,
+         .Pos               = posn,
+         .Volume            = GetDefaultVolume(audioId),
+         .RollOffFactor     = 2.0f,
+         .Speed             = 0.75f,
+         .Doppler           = 0.6f,
+         .FrameDelay        = 0,
+         .Flags             = SOUND_REQUEST_UPDATES,
+         .FrequencyVariance = 0.06f,
+         .PlayTime          = 0,
+         .EventID           = AE_FRONTEND_HIGHLIGHT,
     });
 
     m_SoundRight = AESoundManager.PlaySound({
-        .BankSlotID      = SND_BANK_SLOT_FRONTEND_GAME,
-        .SoundID         = 0,
-        .AudioEntity     = this,
-        .Pos             = posn,
-        .Volume          = GetDefaultVolume(audioId) + 20.0f,
-        .RollOffFactor   = 2.0f,
-        .Speed           = 1.78f,
-        .Doppler         = 0.6f,
-        .FrameDelay      = 0,
-        .Flags           = SOUND_REQUEST_UPDATES,
-        .FrequencyVariance = 0.0f,
-        .PlayTime        = 0,
-        .EventID         = AE_FRONTEND_ERROR,
-        .SpeedVariance   = 0.06f
+        .BankSlotID        = SND_BANK_SLOT_FRONTEND_GAME,
+        .SoundID           = 0,
+        .AudioEntity       = this,
+        .Pos               = posn,
+        .Volume            = GetDefaultVolume(audioId) + 20.0f,
+        .RollOffFactor     = 2.0f,
+        .Speed             = 1.78f,
+        .Doppler           = 0.6f,
+        .FrameDelay        = 0,
+        .Flags             = SOUND_REQUEST_UPDATES,
+        .FrequencyVariance = 0.06f,
+        .PlayTime          = 0,
+        .EventID           = AE_FRONTEND_ERROR,
     });
 }
 
