@@ -41,58 +41,74 @@ void CAEFireAudioEntity::PlayFireSounds(eAudioEvents audioId, CVector& posn) {
     m_snLastFireFrequencyIndex = (m_snLastFireFrequencyIndex + 1) % 5;
     const float volume = GetDefaultVolume(audioId);
 
-    CAESound sound;
-    sound.Initialise(
-        SND_BANK_SLOT_EXPLOSIONS,
-        0,
-        this,
-        posn,
-        volume,
-        2.0f,
-        gfFireFrequencyVariations[m_snLastFireFrequencyIndex],
-        1.0f,
-        0,
-        SOUND_REQUEST_UPDATES,
-        0.0f,
-        0
-    );
-    m_SoundLeft = AESoundManager.RequestNewSound(&sound);
+    m_SoundLeft = AESoundManager.PlaySound({
+        .BankSlotID      = SND_BANK_SLOT_EXPLOSIONS,
+        .SoundID         = 0,
+        .AudioEntity     = this,
+        .Pos             = posn,
+        .Volume          = volume,
+        .RollOffFactor   = 2.0f,
+        .Speed           = gfFireFrequencyVariations[m_snLastFireFrequencyIndex],
+        .Flags           = SOUND_REQUEST_UPDATES,
+    });
 
     if (!AEAudioHardware.EnsureSoundBankIsLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN)) {
         return;
     }
 
-    sound.Initialise(
-        SND_BANK_SLOT_VEHICLE_GEN,
-        26,
-        this,
-        posn,
-        volume - 17.0f,
-        2.0f,
-        gfFireFrequencyVariations[m_snLastFireFrequencyIndex] * 0.6f,
-        1.0f,
-        0,
-        SOUND_REQUEST_UPDATES,
-        0.0f,
-        0
-    );
-    sound.m_ClientVariable = volume + 3.0f;
-    sound.m_Event = AE_FRONTEND_SELECT;
-    AESoundManager.RequestNewSound(&sound);
+    AESoundManager.PlaySound({
+        .BankSlotID      = SND_BANK_SLOT_VEHICLE_GEN,
+        .SoundID         = 26,
+        .AudioEntity     = this,
+        .Pos             = posn,
+        .Volume          = volume - 17.0f,
+        .RollOffFactor   = 2.0f,
+        .Speed           = gfFireFrequencyVariations[m_snLastFireFrequencyIndex] * 0.6f,
+        .Doppler         = 1.0f,
+        .FrameDelay      = 0,
+        .Flags           = SOUND_REQUEST_UPDATES,
+        .FrequencyVariance = 0.0f,
+        .PlayTime        = 0,
+        .ClientVariable  = volume + 3.0f,
+        .EventID         = AE_FRONTEND_SELECT
+    });
 }
 
 // 0x4DD270
 void CAEFireAudioEntity::PlayWaterSounds(eAudioEvents audioId, CVector& posn) {
-    CAESound sound;
-    sound.Initialise(SND_BANK_SLOT_COLLISIONS, 3, this, posn, GetDefaultVolume(audioId), 2.0f, 0.75f, 0.6f, 0, SOUND_REQUEST_UPDATES, 0.0f, 0);
-    sound.m_Event = AE_FRONTEND_HIGHLIGHT;
-    sound.m_SpeedVariance = 0.06f;
-    m_SoundLeft = AESoundManager.RequestNewSound(&sound);
+    m_SoundLeft = AESoundManager.PlaySound({
+        .BankSlotID      = SND_BANK_SLOT_COLLISIONS,
+        .SoundID         = 3,
+        .AudioEntity     = this,
+        .Pos             = posn,
+        .Volume          = GetDefaultVolume(audioId),
+        .RollOffFactor   = 2.0f,
+        .Speed           = 0.75f,
+        .Doppler         = 0.6f,
+        .FrameDelay      = 0,
+        .Flags           = SOUND_REQUEST_UPDATES,
+        .FrequencyVariance = 0.0f,
+        .PlayTime        = 0,
+        .EventID         = AE_FRONTEND_HIGHLIGHT,
+        .SpeedVariance   = 0.06f
+    });
 
-    sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 0, this, posn, GetDefaultVolume(audioId) + 20.0f, 2.0f, 1.78f, 0.6f, 0, SOUND_REQUEST_UPDATES, 0.0f, 0);
-    sound.m_SpeedVariance = 0.06f;
-    sound.m_Event = AE_FRONTEND_ERROR;
-    m_SoundRight = AESoundManager.RequestNewSound(&sound);
+    m_SoundRight = AESoundManager.PlaySound({
+        .BankSlotID      = SND_BANK_SLOT_FRONTEND_GAME,
+        .SoundID         = 0,
+        .AudioEntity     = this,
+        .Pos             = posn,
+        .Volume          = GetDefaultVolume(audioId) + 20.0f,
+        .RollOffFactor   = 2.0f,
+        .Speed           = 1.78f,
+        .Doppler         = 0.6f,
+        .FrameDelay      = 0,
+        .Flags           = SOUND_REQUEST_UPDATES,
+        .FrequencyVariance = 0.0f,
+        .PlayTime        = 0,
+        .EventID         = AE_FRONTEND_ERROR,
+        .SpeedVariance   = 0.06f
+    });
 }
 
 // 0x4DCF60

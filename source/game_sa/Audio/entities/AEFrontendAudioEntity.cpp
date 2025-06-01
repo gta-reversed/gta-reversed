@@ -53,75 +53,125 @@ void CAEFrontendAudioEntity::AddAudioEvent(eAudioEvents event, float fVolumeBoos
     switch (event) {
     case AE_FRONTEND_START:
         if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_GAME, SND_BANK_SLOT_FRONTEND_GAME)) {
-            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 25, this, XVECM, volume);
-            sound.m_Speed = fSpeed;
-            sound.m_Flags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END;
-            AESoundManager.RequestNewSound(&sound);
-
-            sound.Initialise(SND_BANK_SLOT_FRONTEND_GAME, 26, this, XVECP, volume);
-            sound.m_Speed = fSpeed;
-            sound.m_Flags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END;
-            AESoundManager.RequestNewSound(&sound);
+            AESoundManager.PlaySound({
+                .BankSlotID      = SND_BANK_SLOT_FRONTEND_GAME,
+                .SoundID         = 25,
+                .AudioEntity     = this,
+                .Pos             = XVECM,
+                .Volume          = volume,
+                .Speed           = fSpeed,
+                .Flags           = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END
+            });
+            AESoundManager.PlaySound({
+                .BankSlotID      = SND_BANK_SLOT_FRONTEND_GAME,
+                .SoundID         = 26,
+                .AudioEntity     = this,
+                .Pos             = XVECP,
+                .Volume          = volume,
+                .Speed           = fSpeed,
+                .Flags           = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END
+            });
         }
         return;
     case AE_FRONTEND_SELECT:
         if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU)) {
-            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 6, this, XVECM, volume);
-            sound.m_Speed = fSpeed;
-            sound.m_Flags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END;
-            AESoundManager.RequestNewSound(&sound);
-
-            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 7, this, XVECP, volume);
-            sound.m_Speed = fSpeed;
-            sound.m_Flags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END;
-            AESoundManager.RequestNewSound(&sound);
+            AESoundManager.PlaySound({
+                .BankSlotID      = SND_BANK_SLOT_FRONTEND_MENU,
+                .SoundID         = 6,
+                .AudioEntity     = this,
+                .Pos             = XVECM,
+                .Volume          = volume,
+                .Speed           = fSpeed,
+                .Flags           = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END
+            });
+            AESoundManager.PlaySound({
+                .BankSlotID      = SND_BANK_SLOT_FRONTEND_MENU,
+                .SoundID         = 7,
+                .AudioEntity     = this,
+                .Pos             = XVECP,
+                .Volume          = volume,
+                .Speed           = fSpeed,
+                .Flags           = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END
+            });
         }
         return;
     case AE_FRONTEND_BACK:
         if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU)) {
-            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 0, this, XVECM, volume);
-            sound.m_Speed = fSpeed;
-            sound.m_Flags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END;
-            AESoundManager.RequestNewSound(&sound);
-
-            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 1, this, XVECP, volume);
-            sound.m_Speed = fSpeed;
-            sound.m_Flags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END;
-            AESoundManager.RequestNewSound(&sound);
+            AESoundManager.PlaySound({
+                .BankSlotID      = SND_BANK_SLOT_FRONTEND_MENU,
+                .SoundID         = 0,
+                .AudioEntity     = this,
+                .Pos             = XVECM,
+                .Volume          = volume,
+                .Speed           = fSpeed,
+                .Flags           = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END
+            });
+            AESoundManager.PlaySound({
+                .BankSlotID      = SND_BANK_SLOT_FRONTEND_MENU,
+                .SoundID         = 1,
+                .AudioEntity     = this,
+                .Pos             = XVECP,
+                .Volume          = volume,
+                .Speed           = fSpeed,
+                .Flags           = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END
+            });
         }
         return;
     case AE_FRONTEND_HIGHLIGHT:
         if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU)) {
-            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 4, this, XVECM, volume);
-            sound.m_Speed = fSpeed;
-            sound.m_Flags = SOUND_FORCED_FRONT | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END;
-            AESoundManager.RequestNewSound(&sound);
-
-            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 5, this, XVECP, volume);
-            sound.m_Speed = fSpeed;
-            sound.m_Flags = SOUND_FORCED_FRONT | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END;
-            AESoundManager.RequestNewSound(&sound);
+            AESoundManager.PlaySound({
+                .BankSlotID      = SND_BANK_SLOT_FRONTEND_MENU,
+                .SoundID         = 4,
+                .AudioEntity     = this,
+                .Pos             = XVECM,
+                .Volume          = volume,
+                .Speed           = fSpeed,
+                .Flags           = SOUND_FORCED_FRONT | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END
+            });
+            AESoundManager.PlaySound({
+                .BankSlotID      = SND_BANK_SLOT_FRONTEND_MENU,
+                .SoundID         = 5,
+                .AudioEntity     = this,
+                .Pos             = XVECP,
+                .Volume          = volume,
+                .Speed           = fSpeed,
+                .Flags           = SOUND_FORCED_FRONT | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END
+            });
         }
         return;
     case AE_FRONTEND_ERROR:
         if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU)) {
-            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 2, this, XVECM, volume);
-            sound.m_Speed = fSpeed;
-            sound.m_Flags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END;
-            AESoundManager.RequestNewSound(&sound);
-
-            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 3, this, XVECP, volume);
-            sound.m_Speed = fSpeed;
-            sound.m_Flags = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END;
-            AESoundManager.RequestNewSound(&sound);
+            AESoundManager.PlaySound({
+                .BankSlotID      = SND_BANK_SLOT_FRONTEND_MENU,
+                .SoundID         = 2,
+                .AudioEntity     = this,
+                .Pos             = XVECM,
+                .Volume          = volume,
+                .Speed           = fSpeed,
+                .Flags           = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END
+            });
+            AESoundManager.PlaySound({
+                .BankSlotID      = SND_BANK_SLOT_FRONTEND_MENU,
+                .SoundID         = 3,
+                .AudioEntity     = this,
+                .Pos             = XVECP,
+                .Volume          = volume,
+                .Speed           = fSpeed,
+                .Flags           = SOUND_FORCED_FRONT | SOUND_ROLLED_OFF | SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END
+            });
         }
         return;
     case AE_FRONTEND_NOISE_TEST:
         if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_FRONTEND_MENU, SND_BANK_SLOT_FRONTEND_MENU)) {
-            sound.Initialise(SND_BANK_SLOT_FRONTEND_MENU, 8, this, YVECP, volume);
-            sound.m_Speed = fSpeed;
-            sound.m_Flags = SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END;;
-            AESoundManager.RequestNewSound(&sound);
+            AESoundManager.PlaySound({
+                .BankSlotID      = SND_BANK_SLOT_FRONTEND_MENU,
+                .SoundID         = 8,
+                .AudioEntity     = this,
+                .Pos             = YVECP,
+                .Volume          = volume,
+                .Speed           = fSpeed,
+                .Flags           = SOUND_IS_DUCKABLE | SOUND_IS_PAUSABLE | SOUND_PLAY_PHYSICALLY | SOUND_IS_CANCELLABLE | SOUND_FRONT_END
+            });
         }
         return;
     case AE_FRONTEND_PICKUP_WEAPON:
