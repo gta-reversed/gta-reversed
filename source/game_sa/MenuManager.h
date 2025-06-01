@@ -28,13 +28,17 @@ enum eHelperText : int32 {
 enum eRadarMode : int32 {
     MAPS_AND_BLIPS,
     BLIPS_ONLY,
-    OFF
+    OFF,
+
+    RADAR_MODE_COUNT
 };
 
 enum eRadioMode : int8 {
     RADIO,
     RANDOM,
-    SEQUENTIAL
+    SEQUENTIAL,
+
+    RADIO_MODE_COUNT
 };
 
 struct MPack {

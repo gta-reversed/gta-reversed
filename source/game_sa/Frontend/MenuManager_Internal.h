@@ -15,11 +15,13 @@ enum eMenuEntryType : int8 { // Originally it has no name.
     TI_SLOT7,
     TI_SLOT8,
     MAX_SAVE_SLOT = TI_SLOT8,
+
     /*
     TI_SLOTAUTO
     TI_SLOTCP1
     TI_SLOTCP2
     */
+
     TI_MPACK = 9,
     TI_MOUSEJOYPAD = 10,
     TI_ENTER = 11,

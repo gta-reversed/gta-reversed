@@ -464,6 +464,7 @@ void CMenuManager::PrintStats() {
             float xPos = StretchX(450.0f);
             CFont::PrintString(xPos, yPos, gGxtString);
 
+            const auto color = CRGBA(MENU_TEXT_SELECTED, (uint8)alpha);
             // 0x574DD2
             if (currentStatId) {
                 const auto val = CStats::GetStatValue((eStats)currentStatId) * 0.001f * 100.0f;
@@ -472,11 +473,10 @@ void CMenuManager::PrintStats() {
                 CSprite2d::DrawBarChart(
                     StretchX(400.0f), StretchY(17.0f) + yPos,
                     (uint16)StretchX(100.0f), (uint8)StretchY(10.0f),
-                    clamped, 0, 0, 1,
-                    CRGBA(MENU_TEXT_SELECTED, (uint8)alpha), CRGBA()
+                    clamped, 0, 0, 1, color, CRGBA()
                 );
             } else {
-                CFont::SetColor(CRGBA(MENU_TEXT_SELECTED, (uint8)alpha));
+                CFont::SetColor(color);
                 CFont::PrintString(StretchX(450.0f), StretchY(17.0f) + yPos, gGxtString2);
             }
         }

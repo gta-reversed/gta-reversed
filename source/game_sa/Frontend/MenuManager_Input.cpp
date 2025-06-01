@@ -52,6 +52,7 @@ void CMenuManager::UserInput() {
     // Check for mouse hover on menu options
     oldOption = m_nCurrentScreenItem;
 
+    bool mouseOverAnyItem = false;
     for (int rowToCheck = 0; rowToCheck < 12; ++rowToCheck) {
         if (curScreen[rowToCheck].m_nActionType >= 2 &&
             curScreen[rowToCheck].m_nActionType != eMenuAction::MENU_ACTION_TEXT) {
@@ -77,22 +78,25 @@ void CMenuManager::UserInput() {
                 }
 
                 // Update mouse bounds based on action type
-                if ((notsa::contains(SLIDER_ACTIONS, curScreen[rowToCheck].m_nActionType) == false)) {
+                if (!notsa::contains(SLIDER_ACTIONS, curScreen[rowToCheck].m_nActionType)) {
                     m_MouseInBounds = eMouseInBounds::MENU_ITEM;
                 }
 
+                mouseOverAnyItem = true;
                 break;
-            }
-            if (m_DisplayTheMouse) {
-                m_nCurrentScreenItem = oldOption;
-                m_CurrentMouseOption = oldOption;
             }
         }
     }
 
+    // Reset selection only if mouse is not over any item
+    if (m_DisplayTheMouse && !mouseOverAnyItem) {
+        m_nCurrentScreenItem = oldOption;
+        m_CurrentMouseOption = oldOption;
+    }
+
     // Process mouse and selection changes
     if (m_DisplayTheMouse && oldOption != m_nCurrentScreenItem) {
-        if (curScreen[m_nCurrentScreenItem].m_nActionType == 1) {
+        if (curScreen[m_nCurrentScreenItem].m_nActionType == eMenuAction::MENU_ACTION_TEXT) {
             m_nCurrentScreenItem++;
             m_CurrentMouseOption++;
         }
@@ -125,15 +129,16 @@ void CMenuManager::UserInput() {
             }
         }
 
-        if (m_nCurrentScreenItem != eMenuScreen::SCREEN_STATS || m_nCurrentScreen != eMenuScreen::SCREEN_PAUSE_MENU) {
-            // Normal enter key handling
-            if ((pad->IsEnterJustPressed() && ((m_nSysMenu & 128u) != 0)) || pad->IsCrossPressed()) {
+        // Handle enter key or cross button
+        if (m_nCurrentScreenItem != 0 || m_nCurrentScreen != eMenuScreen::SCREEN_PAUSE_MENU) {
+            // Normal handling: key press
+            if ((CPad::IsEnterJustPressed() && ((m_nSysMenu & 128u) != 0)) || pad->IsCrossPressed()) {
                 m_DisplayTheMouse = false;
                 bEnter = true;
             }
         } else {
-            // Special handling for first item in main menu controls
-            if ((pad->f0x57C330() && ((m_nSysMenu & 128u) != 0)) || pad->f0x57C3A0()) {
+            // Special handling for first item in pause menu: key release
+            if ((!CPad::IsEnterJustPressed() && ((m_nSysMenu & 128u) != 0)) || !pad->IsCrossPressed()) {
                 m_DisplayTheMouse = false;
                 bEnter = true;
             }
@@ -144,7 +149,7 @@ void CMenuManager::UserInput() {
                   ((m_nCurrentScreen != eMenuScreen::SCREEN_MAP && StretchY(388.0f) < m_nMousePosY) ||
                    m_DisplayTheMouse);
 
-        // 0x58020F - Handle slider movement
+        // 0x580206 - Handle slider movement
         if (pad->IsMouseLButton()) {
             switch (m_MouseInBounds) {
             case eMouseInBounds::SLIDER_RIGHT:
@@ -175,7 +180,7 @@ void CMenuManager::UserInput() {
             int actionType = curScreen[m_nCurrentScreenItem].m_nActionType;
             if (notsa::contains(actionSelect, actionType)) {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
-            } else if (actionType == 0x1D) {
+            } else if (actionType == eMenuAction::MENU_ACTION_SFX_VOL) {
                 AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_NOISE_TEST);
             }
         }
