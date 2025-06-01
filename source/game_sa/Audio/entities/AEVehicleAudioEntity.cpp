@@ -4199,7 +4199,7 @@ void CAEVehicleAudioEntity::UpdateBoatSound(eBoatEngineSoundType st, eSoundBankS
         return;
     }
 
-    if (UpdateVehicleEngineSound(st, speed, volume)) { // Try updating existing sound
+    if (UpdateVehicleEngineSoundRawVolume(st, speed, volume)) { // Try updating existing sound
         return;
     }
 
@@ -4213,8 +4213,8 @@ void CAEVehicleAudioEntity::UpdateBoatSound(eBoatEngineSoundType st, eSoundBankS
             .RollOffFactor = rollOff,
             .Speed         = speed,
             .Flags         = SOUND_REQUEST_UPDATES
-            });
-        };
+        });
+    };
     switch (st) {
     case AE_SOUND_BOAT_ENGINE: {
         if (AEAudioHardware.IsSoundBankLoaded(m_DummyEngineBank, m_DummySlot)) {
