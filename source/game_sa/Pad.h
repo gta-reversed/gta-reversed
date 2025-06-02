@@ -294,11 +294,11 @@ public:
 
     [[nodiscard]] bool IsDPadLeftJustUp() const noexcept                    { return BUTTON_JUST_UP(DPadLeft); }                                                             //
     [[nodiscard]] bool f0x541170() const noexcept                           { return !DisablePlayerControls && NewState.DPadLeft != 0; }                                     // 0x541170
-    [[nodiscard]] bool f0x57C380() const noexcept                           { return NewState.DPadLeft != 0; }                                                               // 0x57C380
+    [[nodiscard]] bool f0x57C380() const noexcept                           { return BUTTON_IS_DOWN(DPadLeft); }                                                    // 0x57C380
 
     [[nodiscard]] bool IsDPadRightJustUp() const noexcept                   { return BUTTON_JUST_UP(DPadRight); }                                                            //
     [[nodiscard]] bool f0x541150() const noexcept                           { return !DisablePlayerControls && NewState.DPadRight != 0; }                                    // 0x541150
-    [[nodiscard]] bool f0x57C390() const noexcept                           { return NewState.DPadRight != 0; }                                                              // 0x57C390
+    [[nodiscard]] bool f0x57C390() const noexcept                           { return BUTTON_IS_DOWN(DPadRight); }                                                              // 0x57C390
 
     [[nodiscard]] bool IsDPadUpJustUp() const noexcept                      { return BUTTON_JUST_UP(DPadUp); }                                                               // 0x53EE80
     [[nodiscard]] bool IsDPadDownJustUp() const noexcept                    { return BUTTON_JUST_UP(DPadDown); }                                                             // 0x53EEC0

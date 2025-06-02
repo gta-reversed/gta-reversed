@@ -274,7 +274,7 @@ void CMenuManager::DrawBackground() {
     // 0x57BC19
     if (m_bScanningUserTracks) {
         static bool updateScanningTime = true; // 0x8CDFFA
-        static uint32 progressDirection = -1; // 0x8CDFFC
+        static int32 progressDirection = -1; // 0x8CDFFC
         static float progressPosition = DEFAULT_SCREEN_WIDTH / 2; // 0x8CE000
 
         if (!bScanningUserTracks) {
@@ -817,10 +817,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         // Handle sliders
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
         case MENU_ACTION_BRIGHTNESS: processSlider(m_PrefsBrightness * 0.0026041667f, false, eMouseInBounds::SLIDER_LEFT, eMouseInBounds::SLIDER_RIGHT); break;
-        case MENU_ACTION_RADIO_VOL:  processSlider(m_nRadioVolume * (64.f / 10.f), true, eMouseInBounds::RADIO_VOL_LEFT, eMouseInBounds::RADIO_VOL_RIGHT); break;
-        case MENU_ACTION_SFX_VOL:    processSlider(m_nSfxVolume * (64.f / 10.f), false, eMouseInBounds::SFX_VOL_LEFT, eMouseInBounds::SFX_VOL_RIGHT); break;
+        case MENU_ACTION_RADIO_VOL:  processSlider(m_nRadioVolume / (64.f / 1.f), true, eMouseInBounds::RADIO_VOL_LEFT, eMouseInBounds::RADIO_VOL_RIGHT); break;
+        case MENU_ACTION_SFX_VOL:    processSlider(m_nSfxVolume / (64.f / 1.f), false, eMouseInBounds::SFX_VOL_LEFT, eMouseInBounds::SFX_VOL_RIGHT); break;
         case MENU_ACTION_DRAW_DIST:  processSlider((m_fDrawDistance - 0.925f) * 1.1428572f, false, eMouseInBounds::DRAW_DIST_LEFT, eMouseInBounds::DRAW_DIST_RIGHT); break;
-        // BUG: when selecting on the 8 or 9 element, it randomly switches to the 9 or 8 element
         case MENU_ACTION_MOUSE_SENS: processSlider(CCamera::m_fMouseAccelHorzntl / 0.005f, false, eMouseInBounds::MOUSE_SENS_LEFT, eMouseInBounds::MOUSE_SENS_RIGHT); break;
         default:                     break;
         }
