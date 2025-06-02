@@ -193,7 +193,7 @@ struct tMenuScreen {
     char            m_szTitleName[8];
     eMenuScreen     m_nParentMenu;
     int8            m_nStartEntry;
-    tMenuScreenItem m_aItems[12];
+    tMenuScreenItem m_aItems[12]; // eMenuEntryType::TI_OPTION ?
 };
 VALIDATE_SIZE(tMenuScreen, 0xE2);
 

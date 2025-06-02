@@ -64,8 +64,11 @@ enum class eControllerError : int8 {
 };
 
 enum class eMouseInBounds {
-    // 0 = unused
-    // 1 = unused
+    /*
+    LEFT             = -1,
+    NONE_SIDE        = 0,
+    RIGNT            = 1,
+    */
 
     MENU_ITEM        = 2,
     BACK_BUTTON      = 3,
@@ -283,7 +286,7 @@ public:
     char  field_1B5D;
     int16 field_1B5E;
     uint32 LastFlash;
-    uint32 field_1B64;
+    uint32 lastTransitionTime;
     int32 m_nTimeSlideLeftMove;
     int32 m_nTimeSlideRightMove;
     int32 field_1B70;
