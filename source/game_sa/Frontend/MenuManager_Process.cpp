@@ -581,7 +581,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         SaveSettings();
         return true;
     case MENU_ACTION_USER_TRACKS_PLAY_MODE:
-        m_nRadioMode = (eRadioMode)(m_nRadioMode + pressedLR);
+        m_nRadioMode = (eRadioMode)(pressedLR + m_nRadioMode);
         if (m_nRadioMode < eRadioMode::RADIO) {
             m_nRadioMode = eRadioMode::SEQUENTIAL;
         }
