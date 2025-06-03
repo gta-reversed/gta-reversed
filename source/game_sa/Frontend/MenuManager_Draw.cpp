@@ -745,8 +745,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                 }();
             }
 
-            // 0x57A50C
-            // Draw highlight rectangle for selected item if map is loaded
+            // 0x57A50C - Draw highlight rectangle for selected item if map is loaded
             if (m_bMapLoaded) {
                 switch (m_nCurrentScreen) {
                 case eMenuScreen::SCREEN_LOAD_FIRST_SAVE:
@@ -766,8 +765,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             }
         }
 
-        // 0x57A5F1
-        // Check for video mode changes
+        // 0x57A5F1 - Check for video mode changes
         const auto currentItemName = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName;
         const bool isDisplaySettings = m_nCurrentScreen == SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == SCREEN_DISPLAY_ADVANCED;
 
@@ -813,8 +811,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             }
         };
 
-        // 0x57A7D4
-        // Handle sliders
+        // 0x57A7D4 - Handle sliders
         switch (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType) {
         case MENU_ACTION_BRIGHTNESS: processSlider(m_PrefsBrightness * 0.0026041667f, false, eMouseInBounds::SLIDER_LEFT, eMouseInBounds::SLIDER_RIGHT); break;
         case MENU_ACTION_RADIO_VOL:  processSlider(m_nRadioVolume / (64.f / 1.f), true, eMouseInBounds::RADIO_VOL_LEFT, eMouseInBounds::RADIO_VOL_RIGHT); break;
@@ -1068,12 +1065,10 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         { eControllerAction::CA_PED_LOCK_TARGET,                   14 },
     }};
 
-    auto currentY = StretchY(float(verticalOffset));
-
     // Main loop - process each action
     for (auto i = 0u; i < maxActions; i++) {
+        const auto currentY = StretchY(float(verticalOffset + i * verticalSpacing));
         auto currentX = StretchX(270.0f);
-        auto currentY = StretchY(float(verticalOffset + i * verticalSpacing));
         eControllerAction action = eControllerAction::CA_NONE;
 
         // Set default text color
@@ -1250,14 +1245,16 @@ void CMenuManager::DrawControllerSetupScreen() {
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
     CFont::PrintString(SCREEN_STRETCH_FROM_RIGHT(48.0f), StretchY(11.0f),
         TheText.Get(m_ControlMethod == eController::JOYPAD
-            ? "FET_CCN"  // Joypad
-            : "FET_SCN") // Mouse + Keys
+            ? "FET_CCN" // Joypad
+            : "FET_SCN" // Mouse + Keys
+        )
     );
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
     CFont::PrintString(StretchX(48.0f), StretchY(11.0f),
         TheText.Get(m_RedefiningControls == eControlMode::VEHICLE
-            ? "FET_CCR"  // Vehicle Controls
-            : "FET_CFT") // Foot Controls 
+            ? "FET_CCR" // Vehicle Controls
+            : "FET_CFT" // Foot Controls 
+        )
     ); 
     CSprite2d::DrawRect({
             StretchX(20.0f),
