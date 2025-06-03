@@ -26,17 +26,21 @@ enum eHelperText : int32 {
 };
 
 enum eRadarMode : int32 {
-    MAPS_AND_BLIPS,
-    BLIPS_ONLY,
-    OFF,
+    RADAR_MODE_START,
+
+    RADAR_MODE_MAPS_AND_BLIPS = 0,
+    RADAR_MODE_BLIPS_ONLY     = 1,
+    RADAR_MODE_OFF            = 2,
 
     RADAR_MODE_COUNT
 };
 
 enum eRadioMode : int8 {
-    RADIO,
-    RANDOM,
-    SEQUENTIAL,
+    RADIO_MODE_START,
+
+    RADIO_MODE_RADIO      = 0,
+    RADIO_MODE_RANDOM     = 1,
+    RADIO_MODE_SEQUENTIAL = 2,
 
     RADIO_MODE_COUNT
 };

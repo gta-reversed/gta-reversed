@@ -622,9 +622,9 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         case eMenuAction::MENU_ACTION_STORE_PHOTOS:            rightColumnText = GetOnOffText(m_bSavePhotos); break;
         case eMenuAction::MENU_ACTION_RADAR_MODE:
             switch (m_nRadarMode) {
-            case eRadarMode::MAPS_AND_BLIPS: rightColumnText = TheText.Get("FED_RDM"); break; // MAP & BLIPS
-            case eRadarMode::BLIPS_ONLY:     rightColumnText = TheText.Get("FED_RDB"); break; // BLIPS ONLY
-            case eRadarMode::OFF:            rightColumnText = TheText.Get("FEM_OFF"); break; // OFF
+            case eRadarMode::RADAR_MODE_MAPS_AND_BLIPS: rightColumnText = TheText.Get("FED_RDM"); break; // MAP & BLIPS
+            case eRadarMode::RADAR_MODE_BLIPS_ONLY:     rightColumnText = TheText.Get("FED_RDB"); break; // BLIPS ONLY
+            case eRadarMode::RADAR_MODE_OFF:            rightColumnText = TheText.Get("FEM_OFF"); break; // OFF
             default:                         NOTSA_UNREACHABLE();
             }
             break;

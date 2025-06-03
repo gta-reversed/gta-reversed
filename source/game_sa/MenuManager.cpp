@@ -535,7 +535,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_bRadioEq             = true;
         m_bRadioAutoSelect     = true;
         m_bTracksAutoScan      = false;
-        m_nRadioMode           = eRadioMode::RADIO;
+        m_nRadioMode           = eRadioMode::RADIO_MODE_RADIO;
         AudioEngine.SetMusicMasterVolume(m_nRadioVolume);
         AudioEngine.SetEffectsMasterVolume(m_nSfxVolume);
         AudioEngine.SetBassEnhanceOnOff(m_bRadioEq);
@@ -556,7 +556,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_nDisplayAntialiasing           = 1;
         m_bWidescreenOn                  = false;
         m_bMapLegend                     = false;
-        m_nRadarMode                     = eRadarMode::MAPS_AND_BLIPS;
+        m_nRadarMode                     = eRadarMode::RADAR_MODE_MAPS_AND_BLIPS;
         m_nDisplayVideoMode              = m_nPrefsVideoMode;
         m_ShowLocationsBlips             = true;
         m_ShowContactsBlips              = true;

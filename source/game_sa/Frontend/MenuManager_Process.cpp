@@ -371,14 +371,15 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         SaveSettings();
         return true;
     case MENU_ACTION_RADAR_MODE:
-        if (m_nRadarMode == eRadarMode::MAPS_AND_BLIPS) {
-            m_nRadarMode = eRadarMode::BLIPS_ONLY;
-        } else if (m_nRadarMode == eRadarMode::BLIPS_ONLY) {
-            m_nRadarMode = eRadarMode::OFF;
-        } else if (m_nRadarMode == eRadarMode::OFF) {
-            m_nRadarMode = eRadarMode::MAPS_AND_BLIPS;
+        if (notsa::IsFixBugs()) {
+            m_nRadarMode = eRadarMode(m_nRadarMode + pressedLR);
         } else {
-            NOTSA_UNREACHABLE();
+            m_nRadarMode = eRadarMode(m_nRadarMode + 1);
+        }
+        if (m_nRadarMode < eRadarMode::RADAR_MODE_START) {
+            m_nRadarMode = eRadarMode(RADAR_MODE_COUNT - 1);
+        } else if (m_nRadarMode >= eRadarMode::RADAR_MODE_COUNT) {
+            m_nRadarMode = eRadarMode::RADAR_MODE_START;
         }
         SaveSettings();
         return true;
@@ -404,16 +405,15 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         return true;
     }
     case MENU_ACTION_FX_QUALITY:
-        if (g_fx.GetFxQuality() == FX_QUALITY_LOW) {
-            g_fx.SetFxQuality(FX_QUALITY_MEDIUM);
-        } else if (g_fx.GetFxQuality() == FX_QUALITY_MEDIUM) {
-            g_fx.SetFxQuality(FX_QUALITY_HIGH);
-        } else if (g_fx.GetFxQuality() == FX_QUALITY_HIGH) {
-            g_fx.SetFxQuality(FX_QUALITY_VERY_HIGH);
-        } else if (g_fx.GetFxQuality() == FX_QUALITY_VERY_HIGH) {
-            g_fx.SetFxQuality(FX_QUALITY_LOW);
+        if (notsa::IsFixBugs()) {
+            g_fx.SetFxQuality(FxQuality_e(g_fx.m_FxQuality + pressedLR));
         } else {
-            NOTSA_UNREACHABLE();
+            g_fx.SetFxQuality(FxQuality_e(g_fx.m_FxQuality + 1));
+        }
+        if (g_fx.m_FxQuality < FX_QUALITY_START) {
+            g_fx.SetFxQuality(FxQuality_e(FX_QUALITY_COUNT - 1));
+        } else if (g_fx.m_FxQuality >= FX_QUALITY_COUNT) {
+            g_fx.SetFxQuality(FX_QUALITY_START);
         }
         SaveSettings();
         return true;
@@ -490,16 +490,14 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         SwitchToNewScreen(SCREEN_GO_BACK);
         return true;
     case MENU_ACTION_RESOLUTION: {
-        if (acceptPressed) {
-            if (m_nDisplayVideoMode != m_nPrefsVideoMode) {
-                m_nPrefsVideoMode = m_nDisplayVideoMode;
-                SetVideoMode(m_nDisplayVideoMode);
-                CentreMousePointer();
-                m_DisplayTheMouse = true;
-                m_nCurrentScreenItem = 5;
-                SaveSettings();
-                CPostEffects::DoScreenModeDependentInitializations();
-            }
+        if (acceptPressed && m_nDisplayVideoMode != m_nPrefsVideoMode) {
+            m_nPrefsVideoMode = m_nDisplayVideoMode;
+            SetVideoMode(m_nDisplayVideoMode);
+            CentreMousePointer();
+            m_DisplayTheMouse = true;
+            m_nCurrentScreenItem = 5;
+            SaveSettings();
+            CPostEffects::DoScreenModeDependentInitializations();
         }
 
         auto numVideoModes = RwEngineGetNumVideoModes();
@@ -581,12 +579,11 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         SaveSettings();
         return true;
     case MENU_ACTION_USER_TRACKS_PLAY_MODE:
-        m_nRadioMode = (eRadioMode)(pressedLR + m_nRadioMode);
-        if (m_nRadioMode < eRadioMode::RADIO) {
-            m_nRadioMode = eRadioMode::SEQUENTIAL;
-        }
-        if (m_nRadioMode >= eRadioMode::RADIO_MODE_COUNT) {
-            m_nRadioMode = eRadioMode::RADIO;
+        m_nRadioMode = eRadioMode(pressedLR + m_nRadioMode);
+        if (m_nRadioMode < eRadioMode::RADIO_MODE_START) {
+            m_nRadioMode = eRadioMode(RADIO_MODE_COUNT - 1);
+        } else if (m_nRadioMode >= eRadioMode::RADIO_MODE_COUNT) {
+            m_nRadioMode = eRadioMode::RADIO_MODE_START;
         }
         SaveSettings();
         return true;
