@@ -164,22 +164,22 @@ void CMenuManager::PrintMap() {
 
     if (m_bMapLoaded) {
         if (m_bStreamingDisabled && !m_bAllStreamingStuffLoaded) {
-            FrontEndMenuManager.m_iRadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
-            FrontEndMenuManager.m_bViewRadar = false;
+            m_iRadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
+            m_bViewRadar = false;
         }
-        if (CTimer::GetTimeInMSPauseMode() - FrontEndMenuManager.m_iRadarVisibilityChangeTime > 400) {
-            FrontEndMenuManager.m_bViewRadar = true;
+        if (CTimer::GetTimeInMSPauseMode() - m_iRadarVisibilityChangeTime > 400) {
+            m_bViewRadar = true;
         }
     } else {
-        FrontEndMenuManager.m_iRadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
-        FrontEndMenuManager.m_bViewRadar = false;
+        m_iRadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
+        m_bViewRadar = false;
     }
     if (m_bMapLoaded) {
         if (m_bAllStreamingStuffLoaded) {
             m_bStreamingDisabled = false;
         }
         const CRect coords = { 0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT };
-        if (FrontEndMenuManager.m_bViewRadar) {
+        if (m_bViewRadar) {
             CSprite2d::DrawRect(coords, MENU_MAP_BACKGROUND);
             const auto stretchX = StretchX(zoomFactorForStretchX);
             const auto stretchY = StretchY(zoomFactorForStretchX);
@@ -241,7 +241,7 @@ void CMenuManager::PrintMap() {
         );
     }
 
-    if (FrontEndMenuManager.m_bViewRadar || !m_bMapLoaded) {
+    if (m_bViewRadar || !m_bMapLoaded) {
         CRadar::DrawRadarGangOverlay(1);
         if (CTheZones::ZonesRevealed < 80) {
             for (auto x = 0u; x < MAX_RADAR_WIDTH_TILES - 2; x++) {
@@ -263,7 +263,7 @@ void CMenuManager::PrintMap() {
         }
     }
 
-    if ((FrontEndMenuManager.m_bViewRadar || m_bMapLoaded) && m_bMapLoaded) {
+    if ((m_bViewRadar || m_bMapLoaded) && m_bMapLoaded) {
         // border between map and background
         CSprite2d::DrawRect(
             { 0.0f, 0.0f, SCREEN_WIDTH, mapArea.bottom },
@@ -308,7 +308,7 @@ void CMenuManager::PrintMap() {
     }
 
     // 0x575E21
-    if (FrontEndMenuManager.m_bViewRadar) {
+    if (m_bViewRadar) {
         if (CTheZones::ZonesRevealed >= 80
             || CTheZones::GetCurrentZoneLockedOrUnlocked(m_vMousePos)
                 && !pad->NewMouseControllerState.isMouseLeftButtonPressed)
@@ -391,84 +391,86 @@ void CMenuManager::PrintMap() {
 void CMenuManager::PrintStats() {
     constexpr float STATS_SCROLL_SMOOTHNESS = 2.0f;
 
-    static uint16 &currentStatId = *reinterpret_cast<uint16 *>(0xB794CC);
-    static int &prevScreenItem = *reinterpret_cast<int *>(0x8CDFF8);
-    static float &scrollPos = *reinterpret_cast<float *>(0x8CDFF4);
+    static eStats& currentStatId  = StaticRef<eStats>(0xB794CC);
+    static float   scrollPos      = -120.0f; // 0x8CDFF4
+    static int8    prevScreenItem = 15;      // 0x8CDFF8
 
     if (m_nCurrentScreenItem >= 8) {
         m_nCurrentScreenItem = 8;
     }
 
+    // 0x574933
     if (prevScreenItem != m_nCurrentScreenItem) {
-        scrollPos = -120;
+        scrollPos = -120.0f;
         prevScreenItem = m_nCurrentScreenItem;
     }
 
-    int numStats = CStats::ConstructStatLine(99'999, m_nCurrentScreenItem);
-    CFont::SetFontStyle(FONT_MENU);
+    auto numStats = CStats::ConstructStatLine(99'999, m_nCurrentScreenItem);
+    CFont::SetFontStyle(eFontStyle::FONT_MENU);
     CFont::SetScale(StretchX(0.3f), StretchY(0.75f));
 
-    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B24 > 20) {
+    // 0x5749DA
+    if (CTimer::GetTimeInMSPauseMode() - StatsScrollTime > 40) {
         if (m_fStatsScrollSpeed > 0.0f) {
-            float scrollDelta = StretchY(100.0f / STATS_SCROLL_SMOOTHNESS) / m_fStatsScrollSpeed;
+            float scrollDelta = StretchY(100.0f / m_fStatsScrollSpeed);
             scrollPos += m_nStatsScrollDirection ? scrollDelta : -scrollDelta;
         }
-        FrontEndMenuManager.field_1B24 = CTimer::m_snTimeInMillisecondsPauseMode;
+        StatsScrollTime = CTimer::GetTimeInMSPauseMode();
     }
-
-    const float fadeTopStart = StretchY(80.0f);
-    const float fadeTopEnd = StretchY(115.0f);
-    const float fadeBottomStart = StretchY(295.0f);
-    const float fadeBottomEnd = StretchY(330.0f);
-    const float fadeMultiplier = 10.0f;
 
     const float minY = StretchY(50.0f);
     const float maxY = SCREEN_STRETCH_FROM_BOTTOM(50.0f);
     const float visibleTop = StretchY(50.0f);
     const float visibleBottom = StretchY(360.0f);
 
-    for (int i = 0; i < numStats; ++i) {
+    // 0x574A4E
+    for (auto i = 0; i < numStats; ++i) {
         float yPos = StretchY(54.0f) * i + StretchY(50.0f) - scrollPos;
-        float totalHeight = (numStats + 7) * StretchY(54.0);
+        float totalHeight = (numStats + 7) * StretchY(54.0f);
 
-        if (yPos < minY || yPos > maxY) {
-            float offset = (yPos < minY) ? std::ceil((minY - yPos) / totalHeight) : -std::ceil((yPos - maxY) / totalHeight);
-            yPos += offset * totalHeight;
+        if (yPos < minY) {
+            yPos += std::ceil((minY - yPos) / totalHeight) * totalHeight;
+        } else if (yPos > maxY) {
+            yPos -= std::ceil((yPos - maxY) / totalHeight) * totalHeight;
         }
 
         if (yPos > visibleTop && yPos < visibleBottom) {
-            int curStat = i;
-            CStats::ConstructStatLine(curStat, m_nCurrentScreenItem);
+            CStats::ConstructStatLine(i, m_nCurrentScreenItem);
 
             if (!gGxtString[0]) {
                 yPos -= StretchY(37.0f);
             }
 
-            // 0x574BE1 - TODO: replace to normal
+            // 0x574BE1
             float alpha;
-            if (yPos < fadeTopEnd) {
-                alpha = (yPos <= fadeTopStart) ? 0.0f : ((yPos - fadeTopStart) / (fadeTopEnd - fadeTopStart)) * 255.0f * fadeMultiplier;
-            } else if (yPos > fadeBottomStart) {
-                alpha = (yPos >= fadeBottomEnd) ? 0.0f : ((fadeBottomEnd - yPos) / (fadeBottomEnd - fadeBottomStart)) * 255.0f * fadeMultiplier;
+            if (yPos >= StretchY(330.0f) || yPos <= StretchY(300.0f)) {
+                alpha = 0.0f;
             } else {
+                alpha = (StretchY(330.0f) - yPos) * 8.0f;
+            }
+
+            if (yPos > StretchY(80.0f) && yPos < StretchY(110.0f)) {
+                alpha = (yPos - StretchY(80.0f)) * 8.0f;
+            }
+
+            if (yPos >= StretchY(110.0f) && yPos <= StretchY(300.0f) || alpha > 255.0f) {
                 alpha = 255.0f;
             }
 
-            alpha = std::clamp(alpha, 0.0f, 255.0f);
-
-            CFont::SetDropColor(CRGBA(MENU_BG, (uint8)alpha));
+            // 0x574D3B
+            CFont::SetDropColor(CRGBA(MENU_BG, uint8(alpha)));
             CFont::SetEdge(1);
             CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
-            CFont::SetColor(CRGBA(MENU_TEXT_LIGHT_GRAY, (uint8)alpha));
+            CFont::SetColor(CRGBA(MENU_TEXT_LIGHT_GRAY, uint8(alpha)));
 
             float xPos = StretchX(450.0f);
             CFont::PrintString(xPos, yPos, gGxtString);
 
-            const auto color = CRGBA(MENU_TEXT_SELECTED, (uint8)alpha);
+            const auto color = CRGBA(MENU_TEXT_SELECTED, uint8(alpha));
             // 0x574DD2
             if (currentStatId) {
-                const auto val = CStats::GetStatValue((eStats)currentStatId) * 0.001f * 100.0f;
-                const float clamped = std::min(val, 1000.0f);
+                float val = CStats::GetStatValue(currentStatId) * 0.001f * 100.0f;
+                float clamped = std::min(val, 1000.0f);
 
                 CSprite2d::DrawBarChart(
                     StretchX(400.0f), StretchY(17.0f) + yPos,
@@ -482,6 +484,7 @@ void CMenuManager::PrintStats() {
         }
     }
 
+    // 0x574F7E
     CFont::SetEdge(1);
     CFont::SetDropColor(MENU_BG);
     CFont::SetColor(MENU_TEXT_LIGHT_GRAY);
@@ -501,7 +504,7 @@ void CMenuManager::PrintBriefs() {
     CFont::SetColor(MENU_TEXT_WHITE);
     CFont::SetDropColor(MENU_BG);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-    CFont::SetFontStyle(FONT_SUBTITLES);
+    CFont::SetFontStyle(eFontStyle::FONT_SUBTITLES);
     CFont::SetScaleForCurrentLanguage(StretchX(0.49f), StretchY(0.7f));
     CFont::SetWrapx(StretchX(560.0f));
     CFont::SetDropShadowPosition(1);

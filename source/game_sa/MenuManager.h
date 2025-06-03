@@ -254,7 +254,7 @@ public:
     bool   m_bTexturesRound;
     uint8  m_nNumberOfMenuOptions;
     int16  field_1B22;
-    int32  field_1B24;
+    uint32  StatsScrollTime;
     bool   m_bViewRadar;
     char   field_1B29;
     int16  field_1B2A;
