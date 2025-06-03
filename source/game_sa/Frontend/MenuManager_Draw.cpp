@@ -250,16 +250,16 @@ void CMenuManager::DrawBackground() {
         }
 
         if (m_nControllerError == eControllerError::VEHICLE) {
-            // Error! Changing controls on the 'In Vehicle' screen has caused one or more control actions to be unbound on the 'On Foot' screen.
-            // Please check all control actions are set~n~Press ESC to continue
+            // Error! Changing controls on the 'In Vehicle' screen has caused one or more control actions to be unbound on the 'On Foot' screen. Please check all control actions are set
+            // Press ESC to continue
             MessageScreen("FEC_ER3", false, false);
         } else if (m_nControllerError == eControllerError::FOOT) {
-            // Error! Changing controls on the 'On Foot' screen has caused one or more control actions to be unbound on the 'In Vehicle' screen.
-            // Please check all control actions are set~n~Press ESC to continue
+            // Error! Changing controls on the 'On Foot' screen has caused one or more control actions to be unbound on the 'In Vehicle' screen. Please check all control actions are set
+            // Press ESC to continue
             MessageScreen("FEC_ER2", false, false);
         } else if (m_nControllerError == eControllerError::NOT_SETS) {
-            // Error! One or more control actions are not bound to a key or button.
-            // Please check all control actions are set~n~Press ESC to continue
+            // Error! One or more control actions are not bound to a key or button. Please check all control actions are set
+            // Press ESC to continue
             MessageScreen("FEC_ERI", false, false);
         }
 
