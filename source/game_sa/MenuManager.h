@@ -17,12 +17,12 @@ class CRect;
 
 enum eHelperText : int32 {
     HELPER_NONE,
-    FET_APP = 1, // CLICK LMB / RETURN - APPLY NEW SETTING
-    FET_HRD = 2, // DEFAULT SETTINGS RESTORED
-    FET_RSO = 3, // ORIGINAL SETTING RESTORED
-    FEA_SCF = 4, // FAILED TO SCAN USER TRACKS
-    FEA_SCS = 5, // USER TRACKS SCANNED SUCCESSFULLY
-    FEA_STS = 6, // STATS SAVED TO 'STATS.HTML'
+    FET_APP = 1,
+    FET_HRD = 2,
+    FET_RSO = 3,
+    FEA_SCF = 4,
+    FEA_SCS = 5,
+    FET_STS = 6,
 };
 
 enum eRadarMode : int32 {

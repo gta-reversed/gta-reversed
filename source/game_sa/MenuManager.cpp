@@ -846,7 +846,7 @@ void CMenuManager::SaveStatsToFile() {
     const auto End = [&]() {
         CFileMgr::SetDir("");
         CFileMgr::CloseFile(file); // FIX_BUGS
-        m_nHelperText = FEA_STS; // STATS SAVED TO 'STATS.HTML'
+        m_nHelperText = FET_STS;
         m_nHelperTextFadingAlpha = 300;
     };
     if (!file) {
@@ -963,28 +963,21 @@ void CMenuManager::SaveLoadFileError_SetUpErrorScreen() {
 
 // 0x57E240
 void CMenuManager::DisplayHelperText(const char* key) {
-    switch (m_nCurrentScreen) {
-    case SCREEN_MAP:
-        CFont::SetScale(StretchY(0.4f), StretchY(0.5f));
-        break;
-    default:
-        CFont::SetScale(StretchY(0.4f), StretchY(0.6f));
-        break;
-    }
-
+    CFont::SetScale(StretchX(0.4f), m_nCurrentScreen == SCREEN_MAP ? StretchY(0.5f) : StretchY(0.6f));
     CFont::SetFontStyle(eFontStyle::FONT_MENU);
     CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
     CFont::SetEdge(0);
 
-    float x = 610.f;
-    float y = 10.f;
+    const auto x = StretchX(610.0f);
+    const auto y = SCREEN_STRETCH_FROM_BOTTOM(10.0f);
 
-    if (key) {
+    if (key) { // 0x57E29D - Invert
         CFont::SetColor(MENU_TEXT_WHITE);
-        CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), TheText.Get(key));
+        CFont::PrintStringFromBottom(x, y, TheText.Get(key));
         return;
     }
 
+    // 0x57E2E2
     uint8 alpha = 255;
     if (m_nHelperText && m_nHelperText != 1) {
         if (CTimer::GetTimeInMSPauseMode() - m_nTimeHelperTextUpdated > 10) {
@@ -1000,74 +993,32 @@ void CMenuManager::DisplayHelperText(const char* key) {
     CFont::SetColor(CRGBA(255, 255, 255, alpha));
 
     const GxtChar* text{};
+    bool use_map_y = false;
+    // 0x57E369
     switch (m_nHelperText) {
-    case FET_APP:
-        text = TheText.Get("FET_APP"); // CLICK LMB / RETURN - APPLY NEW SETTING
-        break;
-    case FET_HRD:
-        text = TheText.Get("FET_HRD"); // DEFAULT SETTINGS RESTORED
-        break;
-    case FET_RSO:
-        text = TheText.Get("FET_RSO"); // ORIGINAL SETTING RESTORED
-        break;
-    case FEA_SCF:
-        text = TheText.Get("FEA_SCF"); // FAILED TO SCAN USER TRACKS
-        break;
-    case FEA_SCS:
-        text = TheText.Get("FEA_SCS"); // USER TRACKS SCANNED SUCCESSFULLY
-        break;
-    case FEA_STS:
-        text = TheText.Get("FET_STS"); // STATS SAVED TO 'STATS.HTML'
-        break;
+    case FET_APP: text = TheText.Get("FET_APP"); break; // CLICK LMB / RETURN - APPLY NEW SETTING
+    case FET_HRD: text = TheText.Get("FET_HRD"); break; // DEFAULT SETTINGS RESTORED
+    case FET_RSO: text = TheText.Get("FET_RSO"); break; // ORIGINAL SETTING RESTORED
+    case FEA_SCF: text = TheText.Get("FEA_SCF"); break; // FAILED TO SCAN USER TRACKS
+    case FEA_SCS: text = TheText.Get("FEA_SCS"); break; // USER TRACKS SCANNED SUCCESSFULLY
+    case FET_STS: text = TheText.Get("FET_STS"); break; // STATS SAVED TO 'STATS.HTML'
     default:
-        text = nullptr;
-        break;
+        switch (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType) {
+        case MENU_ACTION_BACK:             text = TheText.Get("FEH_BPO"); break; // CLICK LMB / RETURN - BACK
+        case MENU_ACTION_MENU:
+        case MENU_ACTION_CTRLS_JOYPAD:
+        case MENU_ACTION_CTRLS_FOOT:
+        case MENU_ACTION_CTRLS_CAR:        text = TheText.Get("FEH_JMP"); break; // CLICK LMB / RETURN - ENTER MENU
+        case MENU_ACTION_USER_TRACKS_SCAN: text = TheText.Get("FEH_SNC"); break; // CLICK LMB / RETURN - SCAN USER TRACKS
+        case MENU_ACTION_RESOLUTION:       text = TheText.Get("FET_MIG"); break; // LEFT / RIGHT / MOUSEWHEEL - ADJUST
+        default:
+            text      = TheText.Get(m_nCurrentScreen ? "FET_MIG" : "FEH_SSA"); // CURSORS - MOVE~n~S - SAVE TO FILE
+            use_map_y = m_nCurrentScreen == SCREEN_MAP;
+            break;
+        }
     }
 
-    if (text) {
-        CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), text);
-        return;
-    }
-
-    switch (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType) {
-    case MENU_ACTION_BACK:
-        text = TheText.Get("FEH_BPO"); // CLICK LMB / RETURN - BACK
-        break;
-    case MENU_ACTION_MENU:
-    case MENU_ACTION_CTRLS_JOYPAD:
-    case MENU_ACTION_CTRLS_FOOT:
-    case MENU_ACTION_CTRLS_CAR:
-        text = TheText.Get("FEH_JMP"); // CLICK LMB / RETURN - ENTER MENU
-        break;
-    case MENU_ACTION_USER_TRACKS_SCAN:
-        text = TheText.Get("FEH_SNC"); // CLICK LMB / RETURN - SCAN USER TRACKS
-        break;
-    case MENU_ACTION_RESOLUTION:
-        text = TheText.Get("FET_MIG"); // LEFT / RIGHT / MOUSEWHEEL - ADJUST
-        break;
-    default:
-        break;
-    }
-
-    if (text) {
-        CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), text);
-        return;
-    }
-
-    switch (m_nCurrentScreen) {
-    case SCREEN_STATS:
-        text = TheText.Get("FEH_SSA"); // CURSORS - MOVE~n~S - SAVE TO FILE
-        break;
-    case SCREEN_MAP:
-        text = TheText.Get("FET_MIG"); // LEFT / RIGHT / MOUSEWHEEL - ADJUST
-        y = 2.0f;
-        break;
-    default:
-        text = TheText.Get("FET_MIG"); // LEFT / RIGHT / MOUSEWHEEL - ADJUST
-        break;
-    }
-
-    CFont::PrintStringFromBottom(StretchX(x), SCREEN_STRETCH_FROM_BOTTOM(y), text);
+    CFont::PrintStringFromBottom(x, use_map_y ? SCREEN_STRETCH_FROM_BOTTOM(2.0f) : y, text);
 }
 
 // 0x57CD10
