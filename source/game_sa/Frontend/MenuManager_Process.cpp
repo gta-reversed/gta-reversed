@@ -110,6 +110,7 @@ void CMenuManager::ProcessFileActions() {
                 m_bLoadingData = true;
             } else {
                 // Load Game
+                //
                 // Load Failed! There was an error while loading the current game. Please check your savegame directory and try again.
                 JumpToGenericMessageScreen(SCREEN_GAME_SAVED, "FET_LG", "FES_LCE");
             }
@@ -128,6 +129,7 @@ void CMenuManager::ProcessFileActions() {
                 m_nCurrentScreenItem = true;
             } else {
                 // Delete Game
+                //
                 // Deleting Failed! There was an error while deleting the current game. Please check your savegame directory and try again.
                 JumpToGenericMessageScreen(SCREEN_GAME_SAVED, "FES_DEL", "FES_DEE");
             }
@@ -148,6 +150,7 @@ void CMenuManager::ProcessFileActions() {
 
                 if (!file) {
                     // Save Game
+                    //
                     // Save failed! The current Mission Pack is not available. Please recheck that the current Mission Pack is installed correctly.
                     return JumpToGenericMessageScreen(SCREEN_GAME_LOADED, "FET_SG", "FES_NIM");
                 } else {
@@ -157,10 +160,12 @@ void CMenuManager::ProcessFileActions() {
 
             if (s_PcSaveHelper.SaveSlot(m_SelectedSlot)) {
                 // Save Game
+                //
                 // Save failed! There was an error while saving the current game. Please check your savegame directory and try again.
                 JumpToGenericMessageScreen(SCREEN_GAME_LOADED, "FET_SG", "FES_CMP");
             } else {
                 // Save Game
+                //
                 // Save Successful. Select OK to continue.
                 SwitchToNewScreen(SCREEN_SAVE_DONE_2);
             }
@@ -371,11 +376,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         SaveSettings();
         return true;
     case MENU_ACTION_RADAR_MODE:
-        if (notsa::IsFixBugs()) {
-            m_nRadarMode = eRadarMode(m_nRadarMode + pressedLR);
-        } else {
-            m_nRadarMode = eRadarMode(m_nRadarMode + 1);
-        }
+        m_nRadarMode = eRadarMode(m_nRadarMode + (notsa::IsFixBugs() ? (pressedLR == 0 ? 1 : pressedLR) : 1));
         if (m_nRadarMode < eRadarMode::RADAR_MODE_START) {
             m_nRadarMode = eRadarMode(RADAR_MODE_COUNT - 1);
         } else if (m_nRadarMode >= eRadarMode::RADAR_MODE_COUNT) {
@@ -405,15 +406,11 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         return true;
     }
     case MENU_ACTION_FX_QUALITY:
-        if (notsa::IsFixBugs()) {
-            g_fx.SetFxQuality(FxQuality_e(g_fx.m_FxQuality + pressedLR));
-        } else {
-            g_fx.SetFxQuality(FxQuality_e(g_fx.m_FxQuality + 1));
-        }
+        g_fx.SetFxQuality(FxQuality_e(g_fx.m_FxQuality + (notsa::IsFixBugs() ? (pressedLR == 0 ? 1 : pressedLR) : 1)));
         if (g_fx.m_FxQuality < FX_QUALITY_START) {
             g_fx.SetFxQuality(FxQuality_e(FX_QUALITY_COUNT - 1));
         } else if (g_fx.m_FxQuality >= FX_QUALITY_COUNT) {
-            g_fx.SetFxQuality(FX_QUALITY_START);
+            g_fx.SetFxQuality(FxQuality_e(FX_QUALITY_START));
         }
         SaveSettings();
         return true;
@@ -579,7 +576,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         SaveSettings();
         return true;
     case MENU_ACTION_USER_TRACKS_PLAY_MODE:
-        m_nRadioMode = eRadioMode(pressedLR + m_nRadioMode);
+        m_nRadioMode = eRadioMode((notsa::IsFixBugs() ? (pressedLR == 0 ? 1 : pressedLR) : pressedLR) + m_nRadioMode);
         if (m_nRadioMode < eRadioMode::RADIO_MODE_START) {
             m_nRadioMode = eRadioMode(RADIO_MODE_COUNT - 1);
         } else if (m_nRadioMode >= eRadioMode::RADIO_MODE_COUNT) {
