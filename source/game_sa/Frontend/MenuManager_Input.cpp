@@ -20,7 +20,7 @@ void CMenuManager::UserInput() {
     static constexpr auto SLIDER_ACTIONS     = { MENU_ACTION_BRIGHTNESS, MENU_ACTION_RADIO_VOL, MENU_ACTION_SFX_VOL, MENU_ACTION_DRAW_DIST, MENU_ACTION_MOUSE_SENS };
     static constexpr auto specialScreens     = { SCREEN_AUDIO_SETTINGS, SCREEN_USER_TRACKS_OPTIONS, SCREEN_DISPLAY_SETTINGS, SCREEN_DISPLAY_ADVANCED, SCREEN_CONTROLLER_SETUP, SCREEN_MOUSE_SETTINGS };
     static constexpr auto specialMenuActions = { MENU_ACTION_BACK, MENU_ACTION_MENU, MENU_ACTION_CTRLS_JOYPAD, MENU_ACTION_CTRLS_FOOT, MENU_ACTION_CTRLS_CAR, MENU_ACTION_BRIGHTNESS, MENU_ACTION_RADIO_VOL, MENU_ACTION_SFX_VOL, MENU_ACTION_RADIO_STATION, MENU_ACTION_RESET_CFG, MENU_ACTION_DRAW_DIST, MENU_ACTION_MOUSE_SENS };
-    static int32 oldOption                   = -99; // 0x8CE004
+    static int8 oldOption                    = -99; // 0x8CE005
 
     // Early return conditions
     if (m_bScanningUserTracks || m_nControllerError != eControllerError::NONE) {
@@ -60,7 +60,6 @@ void CMenuManager::UserInput() {
                     field_1B70 = m_nCurrentScreen;
                 }
 
-                oldOption = m_CurrentMouseOption;
                 m_CurrentMouseOption = rowToCheck;
 
                 if (m_nOldMousePosX != m_nMousePosX || m_nOldMousePosY != m_nMousePosY) {
@@ -135,10 +134,16 @@ void CMenuManager::UserInput() {
             }
         }
 
-        // Handle mouse click
-        bEnter |= (pad->f0x57C3C0() && m_MouseInBounds == eMouseInBounds::MENU_ITEM) &&
-                  ((m_nCurrentScreen != eMenuScreen::SCREEN_MAP && StretchY(388.0f) < m_nMousePosY) ||
-                   m_DisplayTheMouse);
+        // 0x5801A0 - Handle mouse click
+        if (pad->f0x57C3C0() && m_MouseInBounds == eMouseInBounds::MENU_ITEM) {
+            if (m_nCurrentScreen == eMenuScreen::SCREEN_MAP) {
+                if (StretchY(388.0f) < m_nMousePosY) {
+                    bEnter = true;
+                }
+            } else if (m_DisplayTheMouse) {
+                bEnter = true;
+            }
+        }
 
         // 0x580206 - Handle slider movement
         if (pad->IsMouseLButton()) {
