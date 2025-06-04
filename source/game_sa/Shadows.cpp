@@ -298,19 +298,24 @@ void CShadows::PrintDebugPoly(CVector* a, CVector* b, CVector* c) {
 }
 
 // 0x7076C0
-void CShadows::CalcPedShadowValues(CVector sunPosn, float& displacementX, float& displacementY, float& frontX, float& frontY, float& sideX, float& sideY) {
+void CShadows::CalcPedShadowValues(
+    CVector sunPosn,
+    float& frontX,        float& frontY,
+    float& sideX,         float& sideY,
+    float& displacementX, float& displacementY
+) {
     const auto sunDist = sunPosn.Magnitude2D();
     const auto recip = 1.0f / sunDist;
+
     const auto mult = (sunDist + 1.0f) * recip;
+    frontX = -sunPosn.x * mult / 2.0f;
+    frontY = -sunPosn.y * mult / 2.0f;
 
-    displacementX = -sunPosn.x * mult / 2.0f;
-    displacementY = -sunPosn.y * mult / 2.0f;
+    sideX = -sunPosn.y * recip / 2.0f;
+    sideY = +sunPosn.x * recip / 2.0f;
 
-    frontX = -sunPosn.y * recip / 2.0f;
-    frontY = +sunPosn.x * recip / 2.0f;
-
-    sideX = -sunPosn.x / 2.0f;
-    sideY = -sunPosn.y / 2.0f;
+    displacementX = -sunPosn.x / 2.0f;
+    displacementY = -sunPosn.y / 2.0f;
 }
 
 // 0x707850
