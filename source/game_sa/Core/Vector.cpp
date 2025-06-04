@@ -63,7 +63,7 @@ float CVector::Magnitude2D() const
 // Normalises a vector
 void CVector::Normalise()
 {
-    NormaliseAndMag();
+    (void)NormaliseAndMag();
 }
 
 // Normalises a vector and returns length

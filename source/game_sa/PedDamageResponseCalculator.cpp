@@ -78,7 +78,29 @@ void CPedDamageResponseCalculator::AccountForPedArmour(CPed* ped, CPedDamageResp
  * @addr Added in Android
  */
 void CPedDamageResponseCalculator::AdjustPedDamage(CPed* ped) {
+    // TODO: Reverted function from GTA SA 2.10 version ABI : arm64-v8a (x64)
+    // offset: 0x444370
 
+    if (!ped) {
+        return;
+    }
+
+    const auto plyr = FindPlayerPed(-1);
+    if (!plyr) {
+        return;
+    }
+
+    const bool isUnarmedBrassOrParachute = m_weaponType == WEAPON_UNARMED
+        || m_weaponType == WEAPON_BRASSKNUCKLE
+        || m_weaponType == WEAPON_PARACHUTE;
+
+    if (CCheat::m_aCheatsActive[CHEAT_COUNTRY_TRAFFIC] && m_weaponType <= eWeaponType::WEAPON_PARACHUTE && isUnarmedBrassOrParachute) {
+        m_fDamageFactor = ped->m_fHealth;
+    }
+
+    if (plyr == ped && CTheScripts::pActiveScripts && !strcmp(CTheScripts::pActiveScripts->m_szName, "intro1")) {
+        m_fDamageFactor = m_fDamageFactor * 0.77f;
+    }
 }
 
 /*!
