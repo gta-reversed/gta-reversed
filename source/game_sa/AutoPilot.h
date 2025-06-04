@@ -74,7 +74,7 @@ public:
     float               m_speed;
     float               m_fMaxTrafficSpeed;
     uint8               m_nCruiseSpeed;
-    char                field_41;
+    int8                field_41;
     char                field_42[2];
     float               m_SpeedMult;
     uint8               m_ucHeliTargetDist;
