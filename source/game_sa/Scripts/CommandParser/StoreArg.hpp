@@ -22,8 +22,8 @@ inline void StoreArg(CRunningScript* S, T arg) {
 /*!
 * @brief Store an argument of type. NOTE: Increments script's IP.
 *
-* @param S The S to which the values should be stored to
-* @param arg    The argument to store
+* @param S The script to which the values should be stored to
+* @param arg The argument to store
 */
 template<typename T>
     requires (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
