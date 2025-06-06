@@ -134,15 +134,15 @@ int32 CCarCtrl::ChooseBoatModel() {
 }
 
 // 0x421900
-int32 CCarCtrl::ChooseCarModelToLoad(int32 arg1) {
+int32 CCarCtrl::ChooseCarModelToLoad(int32 groupID) {
     for (auto i = 0; i < 16; i++) { // TODO: Why 16?
-        const auto numCarsInGroup = CPopulation::m_nNumCarsInGroup[i];
+        const auto numCarsInGroup = CPopulation::m_nNumCarsInGroup[groupID];
 #ifdef FIX_BUGS
         if (!numCarsInGroup) {
             continue;
         }
 #endif
-        const auto model = CPopulation::m_CarGroups[i][CGeneral::GetRandomNumberInRange(numCarsInGroup)];
+        const auto model = CPopulation::m_CarGroups[groupID][CGeneral::GetRandomNumberInRange(numCarsInGroup)];
         if (!CStreaming::IsModelLoaded(model)) {
             return model;
         }
