@@ -164,23 +164,23 @@ void CMenuManager::PrintMap() {
 
     if (m_bMapLoaded) {
         if (m_bStreamingDisabled && !m_bAllStreamingStuffLoaded) {
-            FrontEndMenuManager.m_iRadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
-            FrontEndMenuManager.m_bViewRadar = false;
+            m_iRadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
+            m_bViewRadar = false;
         }
-        if (CTimer::GetTimeInMSPauseMode() - FrontEndMenuManager.m_iRadarVisibilityChangeTime > 400) {
-            FrontEndMenuManager.m_bViewRadar = true;
+        if (CTimer::GetTimeInMSPauseMode() - m_iRadarVisibilityChangeTime > 400) {
+            m_bViewRadar = true;
         }
     } else {
-        FrontEndMenuManager.m_iRadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
-        FrontEndMenuManager.m_bViewRadar = false;
+        m_iRadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
+        m_bViewRadar = false;
     }
     if (m_bMapLoaded) {
         if (m_bAllStreamingStuffLoaded) {
             m_bStreamingDisabled = false;
         }
         const CRect coords = { 0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT };
-        if (FrontEndMenuManager.m_bViewRadar) {
-            CSprite2d::DrawRect(coords, CRGBA(111, 137, 170, 255)); // blue background
+        if (m_bViewRadar) {
+            CSprite2d::DrawRect(coords, MENU_MAP_BACKGROUND);
             const auto stretchX = StretchX(zoomFactorForStretchX);
             const auto stretchY = StretchY(zoomFactorForStretchX);
             for (auto x = 0u; x < MAX_RADAR_WIDTH_TILES; x++) {
@@ -203,7 +203,7 @@ void CMenuManager::PrintMap() {
                 }
             }
         } else {
-            CSprite2d::DrawRect(coords, CRGBA(0, 0, 0, 255));
+            CSprite2d::DrawRect(coords, MENU_BG);
             SmallMessageScreen("FEM_PWT");
             m_bAllStreamingStuffLoaded = true;
         }
@@ -213,7 +213,7 @@ void CMenuManager::PrintMap() {
               StretchY(m_vMapOrigin.y - 145.0f),
               StretchX(m_vMapOrigin.x + 145.0f),
               StretchY(m_vMapOrigin.y + 145.0f) },
-            CRGBA(100, 100, 100, 255)
+            MENU_MAP_BORDER
         );
 
         CSprite2d::DrawRect(
@@ -221,7 +221,7 @@ void CMenuManager::PrintMap() {
               StretchY(m_vMapOrigin.y - 141.0f),
               StretchX(m_vMapOrigin.x + 141.0f),
               StretchY(m_vMapOrigin.y + 141.0f) },
-            CRGBA(0, 0, 0, 255)
+            MENU_BG
         );
 
         CSprite2d::DrawRect(
@@ -229,7 +229,7 @@ void CMenuManager::PrintMap() {
               StretchY(m_vMapOrigin.y - 140.0f),
               StretchX(m_vMapOrigin.x + 140.0f),
               StretchY(m_vMapOrigin.y + 140.0f) },
-            CRGBA(111, 137, 170, 255)
+            MENU_MAP_BACKGROUND
         );
 
         m_apBackgroundTextures[7].Draw(
@@ -241,7 +241,7 @@ void CMenuManager::PrintMap() {
         );
     }
 
-    if (FrontEndMenuManager.m_bViewRadar || !m_bMapLoaded) {
+    if (m_bViewRadar || !m_bMapLoaded) {
         CRadar::DrawRadarGangOverlay(1);
         if (CTheZones::ZonesRevealed < 80) {
             for (auto x = 0u; x < MAX_RADAR_WIDTH_TILES - 2; x++) {
@@ -263,52 +263,52 @@ void CMenuManager::PrintMap() {
         }
     }
 
-    if ((FrontEndMenuManager.m_bViewRadar || m_bMapLoaded) && m_bMapLoaded) {
+    if ((m_bViewRadar || m_bMapLoaded) && m_bMapLoaded) {
         // border between map and background
         CSprite2d::DrawRect(
             { 0.0f, 0.0f, SCREEN_WIDTH, mapArea.bottom },
-            CRGBA(100, 100, 100, 255)
+            MENU_MAP_BORDER
         );
 
         CSprite2d::DrawRect(
             { 0.0f, mapArea.top, SCREEN_WIDTH, SCREEN_HEIGHT },
-            CRGBA(100, 100, 100, 255)
+            MENU_MAP_BORDER
         );
 
         CSprite2d::DrawRect(
             { 0.0f, 0.0f, mapArea.left, SCREEN_HEIGHT },
-            CRGBA(100, 100, 100, 255)
+            MENU_MAP_BORDER
         );
 
         CSprite2d::DrawRect(
             { mapArea.right, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT },
-            CRGBA(100, 100, 100, 255)
+            MENU_MAP_BORDER
         );
 
         // background
         CSprite2d::DrawRect(
             { 0.0f, 0.0f, SCREEN_WIDTH, mapArea.bottom - StretchY(4.0f) },
-            CRGBA(0, 0, 0, 255)
+            MENU_BG
         );
 
         CSprite2d::DrawRect(
             { 0.0f, mapArea.top + StretchY(4.0f), SCREEN_WIDTH, SCREEN_HEIGHT },
-            CRGBA(0, 0, 0, 255)
+            MENU_BG
         );
 
         CSprite2d::DrawRect(
             { 0.0f, 0.0f, mapArea.left - StretchX(4.0f), SCREEN_HEIGHT },
-            CRGBA(0, 0, 0, 255)
+            MENU_BG
         );
 
         CSprite2d::DrawRect(
             { mapArea.right + StretchX(4.0f), 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT },
-            CRGBA(0, 0, 0, 255)
+            MENU_BG
         );
     }
 
     // 0x575E21
-    if (FrontEndMenuManager.m_bViewRadar) {
+    if (m_bViewRadar) {
         if (CTheZones::ZonesRevealed >= 80
             || CTheZones::GetCurrentZoneLockedOrUnlocked(m_vMousePos)
                 && !pad->NewMouseControllerState.isMouseLeftButtonPressed)
@@ -316,14 +316,14 @@ void CMenuManager::PrintMap() {
             CPlaceName placeName;
             CFont::SetFontStyle(FONT_PRICEDOWN);
             CFont::SetWrapx(640.0);
-            CFont::SetDropColor(CRGBA(0, 0, 0, 255u));
+            CFont::SetDropColor(MENU_BG);
             CFont::SetScale(StretchX(0.8f), StretchY(0.8f));
-            CFont::SetColor(CRGBA(225, 225, 225, 255));
+            CFont::SetColor(MENU_TEXT_LIGHT_GRAY);
             CFont::SetEdge(2);
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
             CFont::PrintString(
                 mapArea.right - StretchX(30.0f), mapArea.top - StretchY(30.0f),
-                placeName.GetForMap(m_vMousePos.x, m_vMousePos.y)
+                placeName.GetForMap(m_vMousePos)
             );
         }
 
@@ -334,18 +334,21 @@ void CMenuManager::PrintMap() {
                 y += StretchY(19.0f) * iterations;
             }
 
-            DrawWindow(
-                { StretchX(95.0f), StretchY(100.0f), StretchX(550.0f), y },
-                "FE_MLG", 0, CRGBA(0, 0, 0, 190), true, true
+            DrawWindow({
+                    StretchX(95.0f),
+                    StretchY(100.0f),
+                    StretchX(550.0f),
+                    y
+                }, "FE_MLG", 0, {0, 0, 0, 190}, true, true
             ); // map legend
-            CFont::SetWrapx(SCREEN_WIDTH - 40);
-            CFont::SetRightJustifyWrap(84.0);
+            CFont::SetWrapx(SCREEN_WIDTH - 40.f);
+            CFont::SetRightJustifyWrap(84.0f);
             CFont::SetDropShadowPosition(1);
-            CFont::SetDropColor(CRGBA(0, 0, 0, 255));
+            CFont::SetDropColor(MENU_BG);
             CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
             CFont::SetFontStyle(FONT_MENU);
             CFont::SetScale(StretchX(0.3f), StretchY(0.55f));
-            CFont::SetColor(CRGBA(172, 203, 241, 255));
+            CFont::SetColor(MENU_TEXT_SELECTED);
             if (CRadar::MapLegendCounter) {
                 auto currentY = StretchY(127.0f);
                 auto currentX = StretchX(160.0f);
@@ -371,10 +374,15 @@ void CMenuManager::PrintMap() {
         }
     }
     m_bDrawingMap = false;
-    CFont::SetWrapx(SCREEN_WIDTH - 10);
+    CFont::SetWrapx(SCREEN_WIDTH - 10.0f);
     CFont::SetRightJustifyWrap(10.0f);
     if (m_bMapLoaded) {
-        DisplayHelperText(m_nSysMenu != CMenuSystem::MENU_UNDEFINED ? "FEH_MPB" : "FEH_MPH");
+        if (m_nSysMenu != CMenuSystem::MENU_UNDEFINED) {
+            DisplayHelperText("FEH_MPB"); // CURSORS - MOVE UP/DOWN~n~RETURN - TOGGLE OPTION
+        } else {
+            DisplayHelperText("FEH_MPH"); // LMB/CURSORS - SCROLL~n~PGUP/PGDN/MSWHEEL - ZOOM~n~Z - OVERVIEW , L - LEGEND~n~RMB/T - TARGET , SPACEBAR - BLIPS MENU~n~ESC - BACK
+        }
+        
     }
     m_bMapLoaded = true;
 }
@@ -383,94 +391,103 @@ void CMenuManager::PrintMap() {
 void CMenuManager::PrintStats() {
     constexpr float STATS_SCROLL_SMOOTHNESS = 2.0f;
 
-    static uint16 &currentStatId = *reinterpret_cast<uint16 *>(0xB794CC);
-    static int &prevScreenItem = *reinterpret_cast<int *>(0x8CDFF8);
-    static float &scrollPos = *reinterpret_cast<float *>(0x8CDFF4);
+    static eStats& currentStatId  = StaticRef<eStats>(0xB794CC);
+    static float   scrollPos      = -120.0f; // 0x8CDFF4
+    static int8    prevScreenItem = 15;      // 0x8CDFF8
 
     if (m_nCurrentScreenItem >= 8) {
         m_nCurrentScreenItem = 8;
     }
 
+    // 0x574933
     if (prevScreenItem != m_nCurrentScreenItem) {
-        scrollPos = -120;
+        scrollPos = -120.0f;
         prevScreenItem = m_nCurrentScreenItem;
     }
 
-    int numStats = CStats::ConstructStatLine(99'999, m_nCurrentScreenItem);
-    CFont::SetFontStyle(FONT_MENU);
+    auto numStats = CStats::ConstructStatLine(99'999, m_nCurrentScreenItem);
+    CFont::SetFontStyle(eFontStyle::FONT_MENU);
     CFont::SetScale(StretchX(0.3f), StretchY(0.75f));
 
-    if (CTimer::m_snTimeInMillisecondsPauseMode - FrontEndMenuManager.field_1B24 > 20) {
+    // 0x5749DA
+    if (CTimer::GetTimeInMSPauseMode() - StatsScrollTime > 40) {
         if (m_fStatsScrollSpeed > 0.0f) {
-            float scrollDelta = StretchY(100.0f / STATS_SCROLL_SMOOTHNESS) / m_fStatsScrollSpeed;
+            float scrollDelta = StretchY(100.0f / m_fStatsScrollSpeed);
             scrollPos += m_nStatsScrollDirection ? scrollDelta : -scrollDelta;
         }
-        FrontEndMenuManager.field_1B24 = CTimer::m_snTimeInMillisecondsPauseMode;
+        StatsScrollTime = CTimer::GetTimeInMSPauseMode();
     }
 
-    const float fadeTopStart = StretchY(80.0f);
-    const float fadeTopEnd = StretchY(115.0f);
-    const float fadeBottomStart = StretchY(295.0f);
-    const float fadeBottomEnd = StretchY(330.0f);
-    const float fadeMultiplier = 10.0f;
-
     const float minY = StretchY(50.0f);
-    const float maxY = SCREEN_HEIGHT - StretchY(50.0f);
+    const float maxY = SCREEN_STRETCH_FROM_BOTTOM(50.0f);
     const float visibleTop = StretchY(50.0f);
     const float visibleBottom = StretchY(360.0f);
 
-    for (int i = 0; i < numStats; ++i) {
+    // 0x574A4E
+    for (auto i = 0; i < numStats; ++i) {
         float yPos = StretchY(54.0f) * i + StretchY(50.0f) - scrollPos;
-        float totalHeight = (numStats + 7) * StretchY(54.0);
+        float totalHeight = (numStats + 7) * StretchY(54.0f);
 
-        if (yPos < minY || yPos > maxY) {
-            float offset = (yPos < minY) ? std::ceil((minY - yPos) / totalHeight) : -std::ceil((yPos - maxY) / totalHeight);
-            yPos += offset * totalHeight;
+        if (yPos < minY) {
+            yPos += std::ceil((minY - yPos) / totalHeight) * totalHeight;
+        } else if (yPos > maxY) {
+            yPos -= std::ceil((yPos - maxY) / totalHeight) * totalHeight;
         }
 
         if (yPos > visibleTop && yPos < visibleBottom) {
-            int curStat = i;
-            CStats::ConstructStatLine(curStat, m_nCurrentScreenItem);
+            CStats::ConstructStatLine(i, m_nCurrentScreenItem);
 
             if (!gGxtString[0]) {
                 yPos -= StretchY(37.0f);
             }
 
-            double alpha;
-            if (yPos < fadeTopEnd) {
-                alpha = (yPos <= fadeTopStart) ? 0.0 : ((yPos - fadeTopStart) / (fadeTopEnd - fadeTopStart)) * 255.0 * fadeMultiplier;
-            } else if (yPos > fadeBottomStart) {
-                alpha = (yPos >= fadeBottomEnd) ? 0.0 : ((fadeBottomEnd - yPos) / (fadeBottomEnd - fadeBottomStart)) * 255.0 * fadeMultiplier;
+            // 0x574BE1
+            float alpha;
+            if (yPos >= StretchY(330.0f) || yPos <= StretchY(300.0f)) {
+                alpha = 0.0f;
             } else {
-                alpha = 255.0;
+                alpha = (StretchY(330.0f) - yPos) * 8.0f;
             }
 
-            alpha = std::clamp(alpha, 0.0, 255.0);
-            uint8 alphaValue = static_cast<uint8>(alpha);
+            if (yPos > StretchY(80.0f) && yPos < StretchY(110.0f)) {
+                alpha = (yPos - StretchY(80.0f)) * 8.0f;
+            }
 
-            CFont::SetDropColor(CRGBA(0, 0, 0, alphaValue));
+            if (yPos >= StretchY(110.0f) && yPos <= StretchY(300.0f) || alpha > 255.0f) {
+                alpha = 255.0f;
+            }
+
+            // 0x574D3B
+            CFont::SetDropColor(CRGBA(MENU_BG, uint8(alpha)));
             CFont::SetEdge(1);
             CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
-            CFont::SetColor(CRGBA(0xE1, 0xE1, 0xE1, alphaValue));
+            CFont::SetColor(CRGBA(MENU_TEXT_LIGHT_GRAY, uint8(alpha)));
 
-            float xPos = StretchX(450.0);
+            float xPos = StretchX(450.0f);
             CFont::PrintString(xPos, yPos, gGxtString);
 
+            const auto color = CRGBA(MENU_TEXT_SELECTED, uint8(alpha));
+            // 0x574DD2
             if (currentStatId) {
-                const auto val = float(CStats::GetStatValue((eStats)currentStatId) * 0.001f * 100.0f);
-                const float clamped = std::min(val, 1000.0f);
+                float val = CStats::GetStatValue(currentStatId) * 0.001f * 100.0f;
+                float clamped = std::min(val, 1000.0f);
 
-                CSprite2d::DrawBarChart(StretchX(400.0f), StretchY(17.0f) + yPos, static_cast<uint16>(StretchX(100.0)), static_cast<uint8>(StretchY(10.0)), clamped, 0, 0, 1, CRGBA(0xAC, 0xCB, 0xF1, alphaValue), CRGBA(0, 0, 0, 0));
+                CSprite2d::DrawBarChart(
+                    StretchX(400.0f), StretchY(17.0f) + yPos,
+                    (uint16)StretchX(100.0f), (uint8)StretchY(10.0f),
+                    clamped, 0, 0, 1, color, CRGBA()
+                );
             } else {
-                CFont::SetColor(CRGBA(0xAC, 0xCB, 0xF1, alphaValue));
+                CFont::SetColor(color);
                 CFont::PrintString(StretchX(450.0f), StretchY(17.0f) + yPos, gGxtString2);
             }
         }
     }
 
+    // 0x574F7E
     CFont::SetEdge(1);
-    CFont::SetDropColor(CRGBA(0, 0, 0, 255));
-    CFont::SetColor(CRGBA(0xE1, 0xE1, 0xE1, 255));
+    CFont::SetDropColor(MENU_BG);
+    CFont::SetColor(MENU_TEXT_LIGHT_GRAY);
     CFont::SetFontStyle(eFontStyle::FONT_PRICEDOWN);
     CFont::SetScale(StretchX(0.6f), StretchY(0.8f));
     CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
@@ -484,10 +501,10 @@ void CMenuManager::PrintStats() {
 
 // 0x576320
 void CMenuManager::PrintBriefs() {
-    CFont::SetColor({ 255, 255, 255, 255 });
-    CFont::SetDropColor({0, 0, 0, 255});
+    CFont::SetColor(MENU_TEXT_WHITE);
+    CFont::SetDropColor(MENU_BG);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
-    CFont::SetFontStyle(FONT_SUBTITLES);
+    CFont::SetFontStyle(eFontStyle::FONT_SUBTITLES);
     CFont::SetScaleForCurrentLanguage(StretchX(0.49f), StretchY(0.7f));
     CFont::SetWrapx(StretchX(560.0f));
     CFont::SetDropShadowPosition(1);
@@ -531,7 +548,7 @@ void CMenuManager::PrintBriefs() {
                 StretchX(55.0f), StretchY(110.0f),
                 StretchX(45.0f), StretchY(110.0f),
                 StretchX(50.0f), StretchY(100.0f),
-                { 225, 225, 225, 255 }
+                MENU_TEXT_LIGHT_GRAY
             );
         }
 
@@ -542,7 +559,7 @@ void CMenuManager::PrintBriefs() {
                 StretchX(55.0f), StretchY(338.0f),
                 StretchX(45.0f), StretchY(338.0f),
                 StretchX(50.0f), StretchY(348.0f),
-                { 225, 225, 225, 255 }
+                MENU_TEXT_LIGHT_GRAY
             );
         }
     }
@@ -552,26 +569,27 @@ void CMenuManager::PrintBriefs() {
 void CMenuManager::PrintRadioStationList() {
     // draw all, except current
     for (auto i = 1u; i < std::size(m_apRadioSprites); i++) {
-        if (m_nRadioStation == i)
+        if (m_nRadioStation == i) {
             continue;
+        }
 
         m_apRadioSprites[i].Draw(
             StretchX(float(47 * (i - 1) + 44)),
             StretchY(300.0f),
             StretchX(35.0f),
             StretchY(35.0f),
-            { 255, 255, 255, 30 } // todo: fix alpha
+            CRGBA(MENU_TEXT_WHITE, 30) // todo: fix alpha
         );
     }
 
     // highlight current radio station
     if (m_nRadioStation > 0 && m_nRadioStation < (int8)std::size(m_apRadioSprites)) {
         m_apRadioSprites[m_nRadioStation].Draw(
-            StretchX((float)(47 * m_nRadioStation - 15)),
+            StretchX(float(47 * m_nRadioStation - 15)),
             StretchY(290.0f),
             StretchX(60.0f),
             StretchY(60.0f),
-            { 255, 255, 255, 255 }
+            MENU_TEXT_WHITE
         );
     }
 }

@@ -1102,7 +1102,7 @@ void CHud::DrawOddJobMessage(bool displayImmediately) {
 void CHud::DrawRadar() {
     if (CEntryExitManager::ms_exitEnterState == EXIT_ENTER_STATE_1 ||
         CEntryExitManager::ms_exitEnterState == EXIT_ENTER_STATE_2 ||
-        FrontEndMenuManager.m_nRadarMode == eRadarMode::OFF ||
+        FrontEndMenuManager.m_nRadarMode == eRadarMode::RADAR_MODE_OFF ||
         (m_ItemToFlash == ITEM_RADAR && EachFrames(8))
     ) {
         return;
@@ -1113,7 +1113,7 @@ void CHud::DrawRadar() {
 
     CRadar::DrawMap();
 
-    if (FrontEndMenuManager.m_nRadarMode == eRadarMode::BLIPS_ONLY) {
+    if (FrontEndMenuManager.m_nRadarMode == eRadarMode::RADAR_MODE_BLIPS_ONLY) {
         CRadar::DrawBlips();
         return;
     }
