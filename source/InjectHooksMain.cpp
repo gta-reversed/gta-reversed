@@ -733,6 +733,7 @@ void InjectHooksMain() {
     CGangWars::InjectHooks();
     CPlayerPedData::InjectHooks();
     CTimeCycle::InjectHooks();
+    CColourSet::InjectHooks();
     CSkidmarks::InjectHooks();
     CMovingThings::InjectHooks();
     CRoadBlocks::InjectHooks();

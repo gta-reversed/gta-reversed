@@ -4,8 +4,6 @@
 #include "PostEffects.h"
 #include "Shadows.h"
 
-static uint8 gTimecycleHours[]      = { 5, 6, 7, 12, 19, 20, 22, 24 };    // 0x8CDECD
-static uint8 gTimecycleStartHours[] = { 30, 30, 30, 50, 60, 60, 50, 35 }; // 0x8CDED8
 int &TunnelWeather = *(int*)0x8CDEE0; // 9 = WEATHER_FOGGY_SF, unchanged
 
 void CTimeCycle::InjectHooks() {
@@ -19,9 +17,9 @@ void CTimeCycle::InjectHooks() {
     RH_ScopedInstall(StartExtraColour, 0x55FEC0);
     RH_ScopedInstall(StopExtraColour, 0x55FF20);
     RH_ScopedInstall(AddOne, 0x55FF40);
-    RH_ScopedInstall(CalcColoursForPoint, 0x5603D0, { .reversed = false });
+    RH_ScopedInstall(CalcColoursForPoint, 0x5603D0);
     RH_ScopedInstall(FindFarClipForCoors, 0x5616E0);
-    RH_ScopedInstall(FindTimeCycleBox, 0x55FFD0, { .reversed = false });
+    RH_ScopedInstall(FindTimeCycleBox, 0x55FFD0);
     RH_ScopedInstall(SetConstantParametersForPostFX, 0x560210);
     RH_ScopedInstall(GetAmbientRed, 0x560330);
     RH_ScopedInstall(GetAmbientGreen, 0x560340);
@@ -71,7 +69,7 @@ void CTimeCycle::Initialise() {
     char* line;
     for (auto w = 0; w < NUM_WEATHERS; w++) {
         for (auto h = 0; h < NUM_HOURS; h++) {
-            while (line = CFileLoader::LoadLine(file), line) {
+            while (line = CFileLoader::LoadLine(file)) {
                 if (line[0] != '/' && line[0] != '\0') {
                     break;
                 }
@@ -211,166 +209,201 @@ void CTimeCycle::StopExtraColour(bool bNoExtraColorInterior) {
 
 // 0x55FF40
 void CTimeCycle::AddOne(CBox& box, int16 farClip, int32 m_ExtraColor, float strength, float falloff, float lodDistMult) {
-    m_aBoxes[m_NumBoxes].m_Box = box;
-    m_aBoxes[m_NumBoxes].m_FarClip = farClip;
-    m_aBoxes[m_NumBoxes].m_ExtraColor = m_ExtraColor;
-    m_aBoxes[m_NumBoxes].m_Strength = strength / 100.0f;
-    m_aBoxes[m_NumBoxes].m_Falloff = falloff;
-    m_aBoxes[m_NumBoxes].m_LodDistMult = (uint8)(std::min(lodDistMult, 4.0f) * 32.0f);
+    m_aBoxes[m_NumBoxes].Box = box;
+    m_aBoxes[m_NumBoxes].FarClip = farClip;
+    m_aBoxes[m_NumBoxes].ExtraColor = m_ExtraColor;
+    m_aBoxes[m_NumBoxes].Strength = strength / 100.0f;
+    m_aBoxes[m_NumBoxes].Falloff = falloff;
+    m_aBoxes[m_NumBoxes].LodDistMult = (uint8)(std::min(lodDistMult, 4.0f) * 32.0f);
     m_NumBoxes++;
 }
 
 // 0x5603D0
 void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
-    return plugin::Call<0x5603D0, CVector, CColourSet*>(point, set);
+    constexpr auto TimeSamples         = std::to_array({ 0, 5, 6, 7, 12, 19, 20, 22, 24 }); // 0x8CDECC
+    constexpr auto GreyValuesDuringDay = std::to_array({ 30, 30, 30, 50, 60, 60, 50, 35 }); // 0x8CDED8
 
-    // untested
-    CTimeCycleBox *lodBox, *farBox1, *farBox2, *weatherBox;
-    float lodBoxInterp, farBox1Interp, farBox2Interp, weatherBoxInterp;
-    FindTimeCycleBox(point, &lodBox, &lodBoxInterp, true, false, nullptr);
-    FindTimeCycleBox(point, &farBox1, &farBox1Interp, false, true, nullptr);
+    CTimeCycleBox *lodBoxA, *farBoxA, *farBoxB, *weatherBox;
+    float lodBoxA_T, farBoxA_T, farBoxB_T, weatherBox_T;
 
-    if (farBox1) {
-        FindTimeCycleBox(point, &farBox2, &farBox2Interp, false, true, farBox1);
-        if (farBox2 && farBox2->m_Box.GetWidth() > farBox1->m_Box.GetWidth()) {
-            std::swap(farBox1, farBox2);
-            std::swap(farBox1Interp, farBox2Interp);
+    // Find LOD box
+    FindTimeCycleBox(point, &lodBoxA, &lodBoxA_T, true, false, nullptr);
+
+    // Find far boxes
+    FindTimeCycleBox(point, &farBoxA, &farBoxA_T, false, true, nullptr);
+    if (farBoxA) {
+        FindTimeCycleBox(point, &farBoxB, &farBoxB_T, false, true, farBoxA);
+        if (farBoxB && farBoxB->Box.GetWidth() > farBoxA->Box.GetWidth()) {
+            std::swap(farBoxA, farBoxB);
+            std::swap(farBoxA_T, farBoxB_T);
         }
     } else {
-        farBox2 = nullptr;
-    }
-    FindTimeCycleBox(point, &weatherBox, &weatherBoxInterp, false, false, nullptr);
-
-    float time = (float)CClock::GetGameClockMinutes() / 60.0f + (float)CClock::GetGameClockSeconds() / 3600.0f + (float)CClock::GetGameClockHours();
-    time = std::min(time, 24.0f); // 23.999f ?
-
-    int curHourSel, nextHourSel;
-    for (curHourSel = 0; time >= (float)gTimecycleHours[curHourSel + 1]; curHourSel++) {
-        ;
+        farBoxB = nullptr;
     }
 
-    nextHourSel = (curHourSel + 1) % NUM_HOURS;
-    auto curHour = gTimecycleHours[curHourSel];
-    auto nextHour = gTimecycleHours[curHourSel + 1];
+    // Find current weather box
+    FindTimeCycleBox(point, &weatherBox, &weatherBox_T, false, false, nullptr);
 
-    float timeInterp       = (time - (float)curHour) / (float)(nextHour - curHour);
-    float invTimeInterp    = 1.0f - timeInterp;
-    float weatherInterp    = CWeather::InterpolationValue;
-    float invWeatherInterp = 1.0f - weatherInterp;
+    // 0x560502 - Clamped hours
+    const auto hours = std::min(23.999f, CClock::GetHoursToday());
 
-    int boxHour, boxWeather;
+    // 0x560528 - Find sample index for current hour
+    int32 currSampleIdx{};
+    while (hours >= (float)(TimeSamples[currSampleIdx + 1])) {
+        currSampleIdx++;
+    }
+    const auto nextSampleIdx = (currSampleIdx + 1) % NUM_HOURS;
+
+    const float timeT = invLerp((float)(TimeSamples[currSampleIdx]), (float)(TimeSamples[currSampleIdx + 1]), hours);
+    const float invTimeT    = 1.0f - timeT;
+
+    const float t    = CWeather::InterpolationValue;
+
+    // 0x5605D5
+    eWeatherType boxWeather{ WEATHER_UNDEFINED };
+    int32        boxHour;
     if (weatherBox) {
-        boxHour = weatherBox->m_ExtraColor % 8;
-        boxWeather = (weatherBox->m_ExtraColor / NUM_HOURS) + 21;
+        boxHour    = weatherBox->ExtraColor % 8;
+        boxWeather = weatherBox->ExtraColor >= 8
+            ? WEATHER_EXTRACOLOURS_2
+            : WEATHER_EXTRACOLOURS_1;
     }
-
-    CColourSet currentOld(curHourSel, CWeather::OldWeatherType);
-    CColourSet nextOld(nextHourSel,   CWeather::OldWeatherType);
-    CColourSet currentNew(curHourSel, CWeather::NewWeatherType);
-    CColourSet nextNew(nextHourSel,   CWeather::NewWeatherType);
-
-    auto& camPos = TheCamera.GetPosition();
+    
+    const auto& camPos = TheCamera.GetPosition();
     float f = std::clamp((camPos.z - 20.0f) / 200.0f, 0.0f, 1.0f);
-    if (CWeather::OldWeatherType == WEATHER_EXTRASUNNY_SMOG_LA) {
-        CColourSet set1(curHourSel, WEATHER_EXTRASUNNY_LA);
-        currentOld.Interpolate(&currentOld, &set1, 1.0f - f, f, false);
-        CColourSet set2(nextHourSel, WEATHER_EXTRASUNNY_LA);
-        nextOld.Interpolate(&nextOld, &set2, 1.0f - f, f, false);
-    } else if (CWeather::OldWeatherType == WEATHER_SUNNY_SMOG_LA) {
-        CColourSet set1(curHourSel, WEATHER_SUNNY_LA);
-        currentOld.Interpolate(&currentOld, &set1, 1.0f - f, f, false);
-        CColourSet set2(nextHourSel, WEATHER_SUNNY_LA);
-        nextOld.Interpolate(&nextOld, &set2, 1.0f - f, f, false);
-    }
-    if (CWeather::NewWeatherType == WEATHER_EXTRASUNNY_SMOG_LA) {
-        CColourSet set1(curHourSel, WEATHER_EXTRASUNNY_LA);
-        currentNew.Interpolate(&currentNew, &set1, 1.0f - f, f, false);
-        CColourSet set2(nextHourSel, WEATHER_EXTRASUNNY_LA);
-        nextNew.Interpolate(&nextNew, &set2, 1.0f - f, f, false);
-    } else if (CWeather::NewWeatherType == WEATHER_SUNNY_SMOG_LA) {
-        CColourSet set1(curHourSel, WEATHER_SUNNY_LA);
-        currentNew.Interpolate(&currentNew, &set1, 1.0f - f, f, false);
-        CColourSet set2(nextHourSel, WEATHER_SUNNY_LA);
-        nextNew.Interpolate(&nextNew, &set2, 1.0f - f, f, false);
+
+    { // 0x5606B7
+        CColourSet currentOld(currSampleIdx, CWeather::OldWeatherType);
+        CColourSet nextOld(nextSampleIdx,   CWeather::OldWeatherType);
+
+        CColourSet currentNew(currSampleIdx, CWeather::NewWeatherType);
+        CColourSet nextNew(nextSampleIdx,   CWeather::NewWeatherType);
+
+        if (CWeather::OldWeatherType == WEATHER_EXTRASUNNY_SMOG_LA) {
+            CColourSet set1(currSampleIdx, WEATHER_EXTRASUNNY_LA);
+            currentOld.Interpolate(&currentOld, &set1, 1.0f - f, f, false);
+
+            CColourSet set2(nextSampleIdx, WEATHER_EXTRASUNNY_LA);
+            nextOld.Interpolate(&nextOld, &set2, 1.0f - f, f, false);
+        } else if (CWeather::OldWeatherType == WEATHER_SUNNY_SMOG_LA) {
+            CColourSet set1(currSampleIdx, WEATHER_SUNNY_LA);
+            currentOld.Interpolate(&currentOld, &set1, 1.0f - f, f, false);
+
+            CColourSet set2(nextSampleIdx, WEATHER_SUNNY_LA);
+            nextOld.Interpolate(&nextOld, &set2, 1.0f - f, f, false);
+        }
+
+        if (CWeather::NewWeatherType == WEATHER_EXTRASUNNY_SMOG_LA) {
+            CColourSet set1(currSampleIdx, WEATHER_EXTRASUNNY_LA);
+            currentNew.Interpolate(&currentNew, &set1, 1.0f - f, f, false);
+
+            CColourSet set2(nextSampleIdx, WEATHER_EXTRASUNNY_LA);
+            nextNew.Interpolate(&nextNew, &set2, 1.0f - f, f, false);
+        } else if (CWeather::NewWeatherType == WEATHER_SUNNY_SMOG_LA) {
+            CColourSet set1(currSampleIdx, WEATHER_SUNNY_LA);
+            currentNew.Interpolate(&currentNew, &set1, 1.0f - f, f, false);
+
+            CColourSet set2(nextSampleIdx, WEATHER_SUNNY_LA);
+            nextNew.Interpolate(&nextNew, &set2, 1.0f - f, f, false);
+        }
+
+        { // 0x560877
+            CColourSet a{}, b{};
+            a.Interpolate(&currentOld, &nextOld, invTimeT, timeT, false);
+            b.Interpolate(&currentNew, &nextNew, invTimeT, timeT, false);
+            set->Interpolate(&a, &b, 1.f - t, t, false);
+        }
     }
 
-    CColourSet oldInterp{}, newInterp{};
-    oldInterp.Interpolate(&currentOld, &nextOld, invTimeInterp, timeInterp, false);
-    newInterp.Interpolate(&currentNew, &nextNew, invTimeInterp, timeInterp, false);
-    set->Interpolate(&oldInterp, &newInterp, invWeatherInterp, weatherInterp, false);
+    // 0x5608E0 - Calculate sky colors
+    {
+        const float lightMult = (1.0f / CCoronas::LightsMult + 3.0f) * 0.25f;
 
-    float lightMult = (1.0f / CCoronas::LightsMult + 3.0f) * 0.25f;
-    set->m_nSkyTopRed      = std::min(uint16(float(set->m_nSkyTopRed)      * lightMult), uint16(255));
-    set->m_nSkyTopGreen    = std::min(uint16(float(set->m_nSkyTopGreen)    * lightMult), uint16(255));
-    set->m_nSkyTopBlue     = std::min(uint16(float(set->m_nSkyTopBlue)     * lightMult), uint16(255));
-    set->m_nSkyBottomRed   = std::min(uint16(float(set->m_nSkyBottomRed)   * lightMult), uint16(255));
-    set->m_nSkyBottomGreen = std::min(uint16(float(set->m_nSkyBottomGreen) * lightMult), uint16(255));
-    set->m_nSkyBottomBlue  = std::min(uint16(float(set->m_nSkyBottomBlue)  * lightMult), uint16(255));
+        set->m_nSkyTopRed   = std::min<uint16>((uint16)((float)(set->m_nSkyTopRed) * lightMult), 255);
+        set->m_nSkyTopGreen = std::min<uint16>((uint16)((float)(set->m_nSkyTopGreen) * lightMult), 255);
+        set->m_nSkyTopBlue  = std::min<uint16>((uint16)((float)(set->m_nSkyTopBlue) * lightMult), 255);
+
+        set->m_nSkyBottomRed   = std::min<uint16>((uint16)((float)(set->m_nSkyBottomRed) * lightMult), 255);
+        set->m_nSkyBottomGreen = std::min<uint16>((uint16)((float)(set->m_nSkyBottomGreen) * lightMult), 255);
+        set->m_nSkyBottomBlue  = std::min<uint16>((uint16)((float)(set->m_nSkyBottomBlue) * lightMult), 255);
+    }
 
     if (m_FogReduction) {
         set->m_fFarClip = set->m_fFarClip > float(m_FogReduction) * 10.15625f ? set->m_fFarClip : float(m_FogReduction) * 10.15625f;
     }
 
+    // 0x560A59
     m_CurrentStoredValue = (m_CurrentStoredValue + 1) & 15;
-    CVector* vec = &m_VectorToSun[m_CurrentStoredValue];
-    float sunAngle = CClock::GetMinutesToday() * PI / 720.0f;
-    vec->x = +0.7f + std::sin(sunAngle);
-    vec->y = -0.7f;
-    vec->z = +0.2f - std::cos(sunAngle);
-    vec->Normalise();
+
+    // 0x560A67
+    const float sunAngle = CClock::GetMinutesToday() * PI / 720.0f;
+    m_VectorToSun[m_CurrentStoredValue] = CVector{
+        +0.7f + std::sin(sunAngle),
+        -0.7f,
+        +0.2f - std::cos(sunAngle),
+    }.Normalized();
 
     // 0x560AAE
-    if (weatherBox && weatherBox->m_ExtraColor >= 0) {
-        float boxf = weatherBoxInterp * weatherBox->m_Strength;
+    if (weatherBox && weatherBox->ExtraColor >= 0) {
+        float boxf    = weatherBox_T * weatherBox->Strength;
         float invboxf = 1.0f - boxf;
 
-        set->m_nSkyTopRed      = uint16((float)set->m_nSkyTopRed   * invboxf + (float)m_nSkyTopRed[boxHour][boxWeather] * boxf);
-        set->m_nSkyTopGreen    = uint16((float)set->m_nSkyTopGreen * invboxf + (float)m_nSkyTopGreen[boxHour][boxWeather] * boxf);
-        set->m_nSkyTopBlue     = uint16((float)set->m_nSkyTopBlue  * invboxf + (float)m_nSkyTopBlue[boxHour][boxWeather] * boxf);
+        set->m_nSkyTopRed   = (uint16)(lerp<float>(set->m_nSkyTopRed, m_nSkyTopRed[boxHour][boxWeather], boxf));
+        set->m_nSkyTopGreen = (uint16)(lerp<float>(set->m_nSkyTopGreen, m_nSkyTopGreen[boxHour][boxWeather], boxf));
+        set->m_nSkyTopBlue  = (uint16)(lerp<float>(set->m_nSkyTopBlue, m_nSkyTopBlue[boxHour][boxWeather], boxf));
 
-        set->m_nSkyBottomRed   = uint16((float)set->m_nSkyBottomRed   * invboxf + (float)m_nSkyBottomRed[boxHour][boxWeather] * boxf);
-        set->m_nSkyBottomGreen = uint16((float)set->m_nSkyBottomGreen * invboxf + (float)m_nSkyBottomGreen[boxHour][boxWeather] * boxf);
-        set->m_nSkyBottomBlue  = uint16((float)set->m_nSkyBottomBlue  * invboxf + (float)m_nSkyBottomBlue[boxHour][boxWeather] * boxf);
-
-        set->m_fWaterRed   *= invboxf + (float)m_fWaterRed[boxHour][boxWeather] * boxf;
-        set->m_fWaterGreen *= invboxf + (float)m_fWaterGreen[boxHour][boxWeather] * boxf;
-        set->m_fWaterBlue  *= invboxf + (float)m_fWaterBlue[boxHour][boxWeather] * boxf;
-        set->m_fWaterAlpha *= invboxf + (float)m_fWaterAlpha[boxHour][boxWeather] * boxf;
-
-        set->m_fAmbientRed   *= invboxf + (float)m_nAmbientRed[boxHour][boxWeather] * boxf;
-        set->m_fAmbientGreen *= invboxf + (float)m_nAmbientGreen[boxHour][boxWeather] * boxf;
-        set->m_fAmbientBlue  *= invboxf + (float)m_nAmbientBlue[boxHour][boxWeather] * boxf;
-
-        set->m_fAmbientRed_Obj   *= invboxf + (float)m_nAmbientRed_Obj[boxHour][boxWeather] * boxf;
-        set->m_fAmbientGreen_Obj *= invboxf + (float)m_nAmbientGreen_Obj[boxHour][boxWeather] * boxf;
-        set->m_fAmbientBlue_Obj  *= invboxf + (float)m_nAmbientBlue_Obj[boxHour][boxWeather] * boxf;
-
-        if ((float)m_fFarClip[boxHour][boxWeather] < set->m_fFarClip) {
-            set->m_fFarClip = set->m_fFarClip * invboxf + (float)m_fFarClip[boxHour][boxWeather] * boxf;
+        if (m_nSkyBottomRed[boxHour][boxWeather] != 255) { // 0x560B6A
+            set->m_nSkyBottomRed   = (uint16)(lerp<float>(set->m_nSkyBottomRed, m_nSkyBottomRed[boxHour][boxWeather], boxf));
+            set->m_nSkyBottomGreen = (uint16)(lerp<float>(set->m_nSkyBottomGreen, m_nSkyBottomGreen[boxHour][boxWeather], boxf));
+            set->m_nSkyBottomBlue  = (uint16)(lerp<float>(set->m_nSkyBottomBlue, m_nSkyBottomBlue[boxHour][boxWeather], boxf));
         }
-
-        set->m_fFogStart *= invboxf + (float)m_fFogStart[boxHour][boxWeather] * boxf;
-
-        set->m_fPostFx1Red   *= invboxf + (float)m_fPostFx1Red[boxHour][boxWeather] * boxf;
-        set->m_fPostFx1Green *= invboxf + (float)m_fPostFx1Green[boxHour][boxWeather] * boxf;
-        set->m_fPostFx1Blue  *= invboxf + (float)m_fPostFx1Blue[boxHour][boxWeather] * boxf;
-        set->m_fPostFx1Alpha *= invboxf + (float)m_fPostFx1Alpha[boxHour][boxWeather] * boxf;
-
-        set->m_fPostFx2Red   *= invboxf + (float)m_fPostFx2Red[boxHour][boxWeather] * boxf;
-        set->m_fPostFx2Green *= invboxf + (float)m_fPostFx2Green[boxHour][boxWeather] * boxf;
-        set->m_fPostFx2Blue  *= invboxf + (float)m_fPostFx2Blue[boxHour][boxWeather] * boxf;
-        set->m_fPostFx2Alpha *= invboxf + (float)m_fPostFx2Alpha[boxHour][boxWeather] * boxf;
+        if (m_fWaterRed[boxHour][boxWeather] != 255) { // 0x560BED
+            set->m_fWaterRed   = lerp<float>(set->m_fWaterRed, m_fWaterRed[boxHour][boxWeather], boxf);
+            set->m_fWaterGreen = lerp<float>(set->m_fWaterGreen, m_fWaterGreen[boxHour][boxWeather], boxf);
+            set->m_fWaterBlue  = lerp<float>(set->m_fWaterBlue, m_fWaterBlue[boxHour][boxWeather], boxf);
+            set->m_fWaterAlpha = lerp<float>(set->m_fWaterAlpha, m_fWaterAlpha[boxHour][boxWeather], boxf);
+        }
+        if (m_nAmbientRed[boxHour][boxWeather] != 255) { // 0x560C5E
+            set->m_fAmbientRed   = lerp<float>(set->m_fAmbientRed, m_nAmbientRed[boxHour][boxWeather], boxf);
+            set->m_fAmbientGreen = lerp<float>(set->m_fAmbientGreen, m_nAmbientGreen[boxHour][boxWeather], boxf);
+            set->m_fAmbientBlue  = lerp<float>(set->m_fAmbientBlue, m_nAmbientBlue[boxHour][boxWeather], boxf);
+        }
+        if (m_nAmbientRed_Obj[boxHour][boxWeather] != 255) { // 0x560CB2
+            set->m_fAmbientRed_Obj   = lerp<float>(set->m_fAmbientRed_Obj, m_nAmbientRed_Obj[boxHour][boxWeather], boxf);
+            set->m_fAmbientGreen_Obj = lerp<float>(set->m_fAmbientGreen_Obj, m_nAmbientGreen_Obj[boxHour][boxWeather], boxf);
+            set->m_fAmbientBlue_Obj  = lerp<float>(set->m_fAmbientBlue_Obj, m_nAmbientBlue_Obj[boxHour][boxWeather], boxf);
+        }
+        if (m_fFarClip[boxHour][boxWeather] != 255) { // 0x560D08
+            if ((float)m_fFarClip[boxHour][boxWeather] < set->m_fFarClip) {
+                set->m_fFarClip = set->m_fFarClip * invboxf + (float)m_fFarClip[boxHour][boxWeather] * boxf;
+            }
+        }
+        if (m_fFogStart[boxHour][boxWeather] != 255) { // 0x560D3E
+            set->m_fFogStart = lerp(set->m_fFogStart, (float)m_fFogStart[boxHour][boxWeather], boxf);
+        }
+        if (m_fPostFx1Red[boxHour][boxWeather] != 255) { // 0x560D63
+            set->m_fPostFx1Red   = lerp(set->m_fPostFx1Red, (float)(m_fPostFx1Red[boxHour][boxWeather]), boxf);
+            set->m_fPostFx1Green = lerp(set->m_fPostFx1Green, (float)(m_fPostFx1Green[boxHour][boxWeather]), boxf);
+            set->m_fPostFx1Blue  = lerp(set->m_fPostFx1Blue, (float)(m_fPostFx1Blue[boxHour][boxWeather]), boxf);
+            set->m_fPostFx1Alpha = lerp(set->m_fPostFx1Alpha, (float)(m_fPostFx1Alpha[boxHour][boxWeather]), boxf);
+        }
+        if (m_fPostFx2Red[boxHour][boxWeather] != 255) { // 0x560DE0
+            set->m_fPostFx2Red   = lerp(set->m_fPostFx2Red, (float)(m_fPostFx2Red[boxHour][boxWeather]), boxf);
+            set->m_fPostFx2Green = lerp(set->m_fPostFx2Green, (float)(m_fPostFx2Green[boxHour][boxWeather]), boxf);
+            set->m_fPostFx2Blue  = lerp(set->m_fPostFx2Blue, (float)(m_fPostFx2Blue[boxHour][boxWeather]), boxf);
+            set->m_fPostFx2Alpha = lerp(set->m_fPostFx2Alpha, (float)(m_fPostFx2Alpha[boxHour][boxWeather]), boxf);
+        }
     }
 
-    if (lodBox) {
-        set->m_fLodDistMult *= (1.0f - lodBoxInterp) + (float)lodBox->m_LodDistMult / 32.0f * lodBoxInterp;
+    if (lodBoxA) {
+        set->m_fLodDistMult *= (1.0f - lodBoxA_T) + (float)lodBoxA->LodDistMult / 32.0f * lodBoxA_T;
     }
 
-    if (farBox1 && (float)farBox1->m_FarClip < set->m_fFarClip) {
-        set->m_fFarClip = set->m_fFarClip * (1.0f - farBox1Interp) + (float)farBox1->m_FarClip * farBox1Interp;
+    if (farBoxA && (float)farBoxA->FarClip < set->m_fFarClip) {
+        set->m_fFarClip = set->m_fFarClip * (1.0f - farBoxA_T) + (float)farBoxA->FarClip * farBoxA_T;
     }
-    if (farBox2 && (float)farBox2->m_FarClip < set->m_fFarClip) {
-        set->m_fFarClip = set->m_fFarClip * (1.0f - farBox2Interp) + (float)farBox2->m_FarClip * farBox2Interp;
+    if (farBoxB && (float)farBoxB->FarClip < set->m_fFarClip) {
+        set->m_fFarClip = set->m_fFarClip * (1.0f - farBoxB_T) + (float)farBoxB->FarClip * farBoxB_T;
     }
 
     float inc = CTimer::GetTimeStep() / 120.0f;
@@ -389,10 +422,10 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     }
 
     if (CWeather::UnderWaterness > 0.0f) {
-        CColourSet current(curHourSel, 20);
-        CColourSet next(nextHourSel, 20);
+        CColourSet current(currSampleIdx, 20);
+        CColourSet next(nextSampleIdx, 20);
         CColourSet tmp{};
-        tmp.Interpolate(&current, &next, invTimeInterp, timeInterp, false);
+        tmp.Interpolate(&current, &next, invTimeT, timeT, false);
         set->Interpolate(set, &tmp, 1.0f - CWeather::UnderWaterness, CWeather::UnderWaterness, false);
     }
 
@@ -412,22 +445,17 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     // 0x5612AA
     CShadows::CalcPedShadowValues(
         m_VectorToSun[m_CurrentStoredValue],
-        m_fShadowDisplacementX[m_CurrentStoredValue], m_fShadowDisplacementY[m_CurrentStoredValue],
         m_fShadowFrontX[m_CurrentStoredValue], m_fShadowFrontY[m_CurrentStoredValue],
-        m_fShadowSideX[m_CurrentStoredValue],  m_fShadowSideY[m_CurrentStoredValue]
+        m_fShadowSideX[m_CurrentStoredValue],  m_fShadowSideY[m_CurrentStoredValue],
+        m_fShadowDisplacementX[m_CurrentStoredValue], m_fShadowDisplacementY[m_CurrentStoredValue]
     );
 
-    if (TheCamera.m_mCameraMatrix.GetForward().z < -0.9f
-        || !CWeather::bScriptsForceRain
-        && (CCullZones::PlayerNoRain() || CCullZones::CamNoRain() || CCutsceneMgr::ms_running)
+    if (   TheCamera.m_mCameraMatrix.GetForward().z < -0.9f
+        || !CWeather::bScriptsForceRain && (CCullZones::PlayerNoRain() || CCullZones::CamNoRain() || CCutsceneMgr::ms_running)
     ) {
-        m_FogReduction++;
-        if (m_FogReduction > 64)
-            m_FogReduction = 64;
+        m_FogReduction = std::min(m_FogReduction + 1, 64);
     } else {
-        m_FogReduction--;
-        if (m_FogReduction < 0)
-            m_FogReduction = 0;
+        m_FogReduction = std::max(m_FogReduction - 1, 0);
     }
 
     if (camPos.z > 200.0f) {
@@ -441,7 +469,7 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
         }
     }
 
-    float horizon = (float)gTimecycleStartHours[curHourSel] * invTimeInterp + (float)gTimecycleStartHours[nextHourSel] * timeInterp;
+    float horizon = (float)GreyValuesDuringDay[currSampleIdx] * invTimeT + (float)GreyValuesDuringDay[nextSampleIdx] * timeT;
     m_BelowHorizonGrey.red   = uint8((float)m_CurrentColours.m_nSkyBottomRed   * CWeather::UnderWaterness + horizon * (1.0f - CWeather::UnderWaterness));
     m_BelowHorizonGrey.green = uint8((float)m_CurrentColours.m_nSkyBottomGreen * CWeather::UnderWaterness + horizon * (1.0f - CWeather::UnderWaterness));
     m_BelowHorizonGrey.blue  = uint8((float)m_CurrentColours.m_nSkyBottomBlue  * CWeather::UnderWaterness + horizon * (1.0f - CWeather::UnderWaterness));
@@ -529,14 +557,49 @@ float CTimeCycle::FindFarClipForCoors(CVector cameraPos) {
 }
 
 // 0x55FFD0
-void CTimeCycle::FindTimeCycleBox(CVector pos, CTimeCycleBox** outBox, float* interpolation, bool bCheckLod, bool bCheckFar, CTimeCycleBox* exclude) {
-    return plugin::Call<0x55FFD0, CVector, CTimeCycleBox**, float*, bool, bool, CTimeCycleBox*>(pos, outBox, interpolation, bCheckLod, bCheckFar, exclude);
-
-    *outBox = nullptr;
+void CTimeCycle::FindTimeCycleBox(
+    CVector         pos,
+    CTimeCycleBox** curr,
+    float*          interpolation,
+    bool            isLOD,
+    bool            isFarClip,
+    CTimeCycleBox*  ignored
+) {
+    *curr          = nullptr;
     *interpolation = 0.0f;
 
-    for (auto& box : std::span{ m_aBoxes, m_NumBoxes }) {
+    for (auto& v : std::span{ m_aBoxes, m_NumBoxes }) {
+        if (isLOD && v.LodDistMult == 32.f) { // 0x560013
+            continue;
+        }
+        if (isFarClip && !v.FarClip) { // 0x560038
+            continue;
+        }
+        if (ignored == &v) {
+            continue;
+        }
 
+        // Check if the point is at least within the `FallOff`
+        const auto CheckPointWithin = [&](int32 i, float tolerance) {
+            return v.Box.m_vecMin[i] - tolerance > pos[i] || v.Box.m_vecMax[i] + tolerance < pos[i];
+        };
+        if (CheckPointWithin(0, v.Falloff) || CheckPointWithin(1, v.Falloff) || CheckPointWithin(2, v.Falloff / 3.f)) {
+            continue;
+        }
+
+        // Calculate the distance to the box and interpolation
+        const auto vdist = v.Box.GetShortestVectorDistToPt(pos); // 0x5600EC
+        const auto dist  = CVector{ vdist.x, vdist.y, vdist.z * 3.f }.Magnitude(); // 0x560188
+        if (dist > 0.f) { // Point not inside the box, but within `FallOff`
+            const auto t = 1.f - dist / v.Falloff;
+            if (t > *interpolation) {
+                *curr          = &v;
+                *interpolation = t;
+            }
+        } else { // Point inside the box
+            *curr          = &v;
+            *interpolation = 1.f;
+        }
     }
 }
 

@@ -132,7 +132,7 @@ void CWorld::InjectHooks() {
     RH_ScopedGlobalInstall(FindPlayerEntity, 0x56E120);
     RH_ScopedGlobalInstall(FindPlayerTrain, 0x56E160);
     RH_ScopedGlobalInstall(FindPlayerCentreOfWorld, 0x56E250);
-    // RH_ScopedGlobalInstall(FindPlayerCentreOfWorld_NoSniperShift, 0x56E320);
+    RH_ScopedGlobalInstall(FindPlayerCentreOfWorld_NoSniperShift, 0x56E320);
     // RH_ScopedGlobalInstall(FindPlayerCentreOfWorld_NoInteriorShift, 0x56E400);
     RH_ScopedGlobalInstall(FindPlayerHeading, 0x56E450);
     RH_ScopedGlobalInstall(FindPlayerPed, 0x56E210);

@@ -3,6 +3,8 @@
 #include "AESound.h"
 #include "Physical.h"
 
+#undef PlaySound
+
 static constexpr int32 MAX_NUM_SOUNDS = 300;
 static constexpr int32 MAX_NUM_AUDIO_CHANNELS = 64;
 
@@ -43,7 +45,7 @@ public:
     CAESound* RequestNewSound(CAESound* pSound);
 
     struct tSoundPlayParams {
-        int16           BankSlotID;               //!< The slot to play the sound from (From the currently loaded bank (?))
+        eSoundBankSlot  BankSlotID;               //!< The slot to play the sound from
         eSoundID        SoundID;                  //!< The sound ID to play (From the specified bank slot)
         CAEAudioEntity* AudioEntity;              //!< The audio entity that requested this sound
         CVector         Pos;                      //!< The position
@@ -54,7 +56,7 @@ public:
         uint8           FrameDelay{ 0 };          //!< After how many frames the sound will be played
         uint32          Flags{ 0 };               //!< See `eSoundEnvironment`
         float           FrequencyVariance{ 0.f }; //!< Random speed variance (?)
-        int16           PlayTime{ 0 };            //!< Where to start the sound
+        int16           PlayTime{ 0 };            //!< Where to start the sound (AKA `CurrentPlayPosition`)
 
         // NOTSA Args //
         CEntity*        RegisterWithEntity{};     //!< The entity to register this sound with (Automatically adds the `SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY` flag)
@@ -84,7 +86,7 @@ private:
 
 public:
     bool IsPaused() const { return CTimer::GetIsPaused() || m_IsManuallyPaused; }
-    bool IsSoundPaused(const CAESound& sound) const { return CAESoundManager::IsPaused() && !sound.GetUnpausable(); }
+    bool IsSoundPaused(const CAESound& sound) const { return CAESoundManager::IsPaused() && !sound.IsUnpausable(); }
 };
 VALIDATE_SIZE(CAESoundManager, 0x8CBC);
 

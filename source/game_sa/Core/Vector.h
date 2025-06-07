@@ -42,10 +42,9 @@ public:
     /// Get a normalized copy of this vector
     auto Normalized(float* outMag = nullptr) const -> CVector {
         CVector cpy = *this;
+        const float mag = cpy.NormaliseAndMag();
         if (outMag) {
-            *outMag = cpy.NormaliseAndMag();
-        } else {
-            cpy.Normalise();
+            *outMag = mag;
         }
         return cpy;
     }
