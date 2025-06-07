@@ -237,7 +237,7 @@ void CMenuManager::PrintMap() {
               StretchY(m_vMapOrigin.y - m_fMapZoom),
               StretchX(m_vMapOrigin.x + m_fMapZoom),
               StretchY(m_vMapOrigin.y + m_fMapZoom) },
-            MENU_TEXT_WHITE
+            CRGBA(255, 255, 255, 255)
         );
     }
 
@@ -578,7 +578,7 @@ void CMenuManager::PrintRadioStationList() {
             StretchY(300.0f),
             StretchX(35.0f),
             StretchY(35.0f),
-            { 255, 255, 255, 30 } // todo: fix alpha
+            CRGBA(MENU_TEXT_WHITE, 30) // todo: fix alpha
         );
     }
 

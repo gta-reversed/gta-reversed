@@ -18,18 +18,6 @@
 #include "Hud.h"
 #include "ControllerConfigManager.h"
 
-// notsa colors
-
-const CRGBA CMenuManager::MENU_BG              = CRGBA(0, 0, 0, 255);
-const CRGBA CMenuManager::MENU_TEXT_NORMAL     = CRGBA(74, 90, 107, 255);
-const CRGBA CMenuManager::MENU_TEXT_SELECTED   = CRGBA(172, 203, 241, 255);
-const CRGBA CMenuManager::MENU_TEXT_WHITE      = CRGBA(255, 255, 255, 255);
-const CRGBA CMenuManager::MENU_TEXT_LIGHT_GRAY = CRGBA(225, 225, 225, 255);
-const CRGBA CMenuManager::MENU_ERROR           = CRGBA(200, 50, 50, 255);
-const CRGBA CMenuManager::MENU_SHADOW          = CRGBA(0, 0, 0, 200);
-const CRGBA CMenuManager::MENU_MAP_BACKGROUND  = CRGBA(111, 137, 170, 255);
-const CRGBA CMenuManager::MENU_MAP_BORDER      = CRGBA(100, 100, 100, 255);
-
 CMenuManager& FrontEndMenuManager = *(CMenuManager*)0xBA6748;
 
 CMenuManager& GetMenu() {
@@ -969,56 +957,56 @@ void CMenuManager::DisplayHelperText(const char* key) {
     CFont::SetEdge(0);
 
     const auto x = StretchX(610.0f);
-    const auto y = SCREEN_STRETCH_FROM_BOTTOM(10.0f);
+    auto y = SCREEN_STRETCH_FROM_BOTTOM(10.0f);
+    const GxtChar* text;
 
-    if (key) { // 0x57E29D - Invert
+    // 0x57E29D
+    if (key) {
+        text = TheText.Get(key);
         CFont::SetColor(MENU_TEXT_WHITE);
-        CFont::PrintStringFromBottom(x, y, TheText.Get(key));
-        return;
-    }
-
-    // 0x57E2E2
-    uint8 alpha = 255;
-    if (m_nHelperText && m_nHelperText != 1) {
-        if (CTimer::GetTimeInMSPauseMode() - m_nTimeHelperTextUpdated > 10) {
-            m_nTimeHelperTextUpdated = CTimer::GetTimeInMSPauseMode();
-            m_nHelperTextFadingAlpha -= 2;
+    } else {
+        // 0x57E2E2
+        uint8 alpha = 255;
+        if (m_nHelperText && m_nHelperText != 1) {
+            if (CTimer::GetTimeInMSPauseMode() - m_nTimeHelperTextUpdated > 10) {
+                m_nTimeHelperTextUpdated = CTimer::GetTimeInMSPauseMode();
+                m_nHelperTextFadingAlpha -= 2;
+            }
+            if (m_nHelperTextFadingAlpha < 1) {
+                ResetHelperText();
+            }
+            alpha = std::min(m_nHelperTextFadingAlpha, 255);
         }
-        if (m_nHelperTextFadingAlpha < 1) {
-            ResetHelperText();
-        }
-        alpha = std::min(m_nHelperTextFadingAlpha, 255);
-    }
+        CFont::SetColor(CRGBA(MENU_TEXT_WHITE, alpha));
 
-    CFont::SetColor(CRGBA(255, 255, 255, alpha));
-
-    const GxtChar* text{};
-    bool use_map_y = false;
-    // 0x57E369
-    switch (m_nHelperText) {
-    case FET_APP: text = TheText.Get("FET_APP"); break; // CLICK LMB / RETURN - APPLY NEW SETTING
-    case FET_HRD: text = TheText.Get("FET_HRD"); break; // DEFAULT SETTINGS RESTORED
-    case FET_RSO: text = TheText.Get("FET_RSO"); break; // ORIGINAL SETTING RESTORED
-    case FEA_SCF: text = TheText.Get("FEA_SCF"); break; // FAILED TO SCAN USER TRACKS
-    case FEA_SCS: text = TheText.Get("FEA_SCS"); break; // USER TRACKS SCANNED SUCCESSFULLY
-    case FET_STS: text = TheText.Get("FET_STS"); break; // STATS SAVED TO 'STATS.HTML'
-    default:
-        switch (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType) {
-        case MENU_ACTION_BACK:             text = TheText.Get("FEH_BPO"); break; // CLICK LMB / RETURN - BACK
-        case MENU_ACTION_MENU:
-        case MENU_ACTION_CTRLS_JOYPAD:
-        case MENU_ACTION_CTRLS_FOOT:
-        case MENU_ACTION_CTRLS_CAR:        text = TheText.Get("FEH_JMP"); break; // CLICK LMB / RETURN - ENTER MENU
-        case MENU_ACTION_USER_TRACKS_SCAN: text = TheText.Get("FEH_SNC"); break; // CLICK LMB / RETURN - SCAN USER TRACKS
-        case MENU_ACTION_RESOLUTION:       text = TheText.Get("FET_MIG"); break; // LEFT / RIGHT / MOUSEWHEEL - ADJUST
+        switch (m_nHelperText) {
+        case FET_APP: text = TheText.Get("FET_APP"); break; // CLICK LMB / RETURN - APPLY NEW SETTING
+        case FET_HRD: text = TheText.Get("FET_HRD"); break; // DEFAULT SETTINGS RESTORED
+        case FET_RSO: text = TheText.Get("FET_RSO"); break; // ORIGINAL SETTING RESTORED
+        case FEA_SCF: text = TheText.Get("FEA_SCF"); break; // FAILED TO SCAN USER TRACKS
+        case FEA_SCS: text = TheText.Get("FEA_SCS"); break; // USER TRACKS SCANNED SUCCESSFULLY
+        case FET_STS: text = TheText.Get("FET_STS"); break; // STATS SAVED TO 'STATS.HTML'
         default:
-            text      = TheText.Get(m_nCurrentScreen ? "FET_MIG" : "FEH_SSA"); // CURSORS - MOVE~n~S - SAVE TO FILE
-            use_map_y = m_nCurrentScreen == SCREEN_MAP;
+            switch (aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_nActionType) {
+            case MENU_ACTION_BACK:             text = TheText.Get("FEH_BPO"); break; // CLICK LMB / RETURN - BACK
+            case MENU_ACTION_MENU:
+            case MENU_ACTION_CTRLS_JOYPAD:
+            case MENU_ACTION_CTRLS_FOOT:
+            case MENU_ACTION_CTRLS_CAR:        text = TheText.Get("FEH_JMP"); break; // CLICK LMB / RETURN - ENTER MENU
+            case MENU_ACTION_USER_TRACKS_SCAN: text = TheText.Get("FEH_SNC"); break; // CLICK LMB / RETURN - SCAN USER TRACKS
+            case MENU_ACTION_RESOLUTION:       text = TheText.Get("FET_MIG"); break; // LEFT / RIGHT / MOUSEWHEEL - ADJUST
+            default:
+                text = TheText.Get(m_nCurrentScreen ? "FET_MIG" : "FEH_SSA"); // CURSORS - MOVE~n~S - SAVE TO FILE
+                if (m_nCurrentScreen == SCREEN_MAP) {
+                    y = SCREEN_STRETCH_FROM_BOTTOM(2.0f);
+                }
+                break;
+            }
             break;
         }
     }
 
-    CFont::PrintStringFromBottom(x, use_map_y ? SCREEN_STRETCH_FROM_BOTTOM(2.0f) : y, text);
+    CFont::PrintStringFromBottom(x, y, text);
 }
 
 // 0x57CD10

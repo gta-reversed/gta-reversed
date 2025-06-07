@@ -209,7 +209,7 @@ void CMenuManager::DrawBackground() {
     CSprite2d::DrawRect(screenRect, MENU_BG);
 
     if (m_nBackgroundSprite) {
-        m_aFrontEndSprites[m_nBackgroundSprite].Draw(backgroundRect, MENU_TEXT_WHITE);
+        m_aFrontEndSprites[m_nBackgroundSprite].Draw(backgroundRect, CRGBA(255, 255, 255, 255));
     }
 
     // 0x57BA02
@@ -273,9 +273,9 @@ void CMenuManager::DrawBackground() {
 
     // 0x57BC19
     if (m_bScanningUserTracks) {
-        static bool updateScanningTime = true; // 0x8CDFFA
-        static int32 progressDirection = -1; // 0x8CDFFC
-        static float progressPosition = DEFAULT_SCREEN_WIDTH / 2; // 0x8CE000
+        static bool updateScanningTime = StaticRef<bool>(0x8CDFFA); // true
+        static int32 progressDirection = StaticRef<int32>(0x8CDFFC); // -1
+        static float progressPosition = StaticRef<float>(0x8CE000); // DEFAULT_SCREEN_WIDTH / 2
 
         if (!bScanningUserTracks) {
             bScanningUserTracks = true;
@@ -316,7 +316,7 @@ void CMenuManager::DrawBackground() {
                 StretchY(botton),
                 StretchX(progressPosition + 5),
                 StretchY(top + 5),
-            }, MENU_TEXT_LIGHT_GRAY
+            }, CRGBA(225, 225, 225, 255)
         );
 
         CFont::DrawFonts();
@@ -377,7 +377,7 @@ void CMenuManager::DrawBackground() {
             rect.bottom = mouseY;
             rect.right  = mouseX + SCREEN_STRETCH_X(18.0f);
             rect.top    = mouseY + SCREEN_SCALE_Y(18.0f);
-            m_aFrontEndSprites[spriteId].Draw(rect, MENU_TEXT_WHITE);
+            m_aFrontEndSprites[spriteId].Draw(rect, CRGBA(255, 255, 255, 255));
         };
 
         CRect mapRect(StretchX(60.0f), StretchY(60.0f), SCREEN_STRETCH_FROM_RIGHT(60.0f), SCREEN_STRETCH_FROM_BOTTOM(60.0f));
@@ -758,7 +758,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
                             scaledY - StretchX(5.0f),
                             xOffset + StretchX(32.0f),
                             scaledY + StretchX(47.0f)
-                        }, MENU_TEXT_WHITE
+                        }, CRGBA(255, 255, 255, 255)
                     );
                     break;
                 }

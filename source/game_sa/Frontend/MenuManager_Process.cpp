@@ -377,10 +377,10 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         return true;
     case MENU_ACTION_RADAR_MODE:
         m_nRadarMode = eRadarMode(m_nRadarMode + (notsa::IsFixBugs() ? (pressedLR == 0 ? 1 : pressedLR) : 1));
-        if (m_nRadarMode < eRadarMode::RADAR_MODE_START) {
+        if (m_nRadarMode < eRadarMode::RADAR_MODE_MAPS_AND_BLIPS) {
             m_nRadarMode = eRadarMode(RADAR_MODE_COUNT - 1);
         } else if (m_nRadarMode >= eRadarMode::RADAR_MODE_COUNT) {
-            m_nRadarMode = eRadarMode::RADAR_MODE_START;
+            m_nRadarMode = eRadarMode::RADAR_MODE_MAPS_AND_BLIPS;
         }
         SaveSettings();
         return true;
@@ -407,10 +407,10 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
     }
     case MENU_ACTION_FX_QUALITY:
         g_fx.SetFxQuality(FxQuality_e(g_fx.m_FxQuality + (notsa::IsFixBugs() ? (pressedLR == 0 ? 1 : pressedLR) : 1)));
-        if (g_fx.m_FxQuality < FX_QUALITY_START) {
+        if (g_fx.m_FxQuality < FX_QUALITY_LOW) {
             g_fx.SetFxQuality(FxQuality_e(FX_QUALITY_COUNT - 1));
         } else if (g_fx.m_FxQuality >= FX_QUALITY_COUNT) {
-            g_fx.SetFxQuality(FxQuality_e(FX_QUALITY_START));
+            g_fx.SetFxQuality(FxQuality_e(FX_QUALITY_LOW));
         }
         SaveSettings();
         return true;
@@ -577,10 +577,10 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         return true;
     case MENU_ACTION_USER_TRACKS_PLAY_MODE:
         m_nRadioMode = eRadioMode((notsa::IsFixBugs() ? (pressedLR == 0 ? 1 : pressedLR) : pressedLR) + m_nRadioMode);
-        if (m_nRadioMode < eRadioMode::RADIO_MODE_START) {
+        if (m_nRadioMode < eRadioMode::RADIO_MODE_RADIO) {
             m_nRadioMode = eRadioMode(RADIO_MODE_COUNT - 1);
         } else if (m_nRadioMode >= eRadioMode::RADIO_MODE_COUNT) {
-            m_nRadioMode = eRadioMode::RADIO_MODE_START;
+            m_nRadioMode = eRadioMode::RADIO_MODE_RADIO;
         }
         SaveSettings();
         return true;

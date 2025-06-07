@@ -12,8 +12,6 @@
 class CVehicle;
 
 enum FxQuality_e : int32 {
-    FX_QUALITY_START,
-
     FX_QUALITY_LOW       = 0,
     FX_QUALITY_MEDIUM    = 1,
     FX_QUALITY_HIGH      = 2,

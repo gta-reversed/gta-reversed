@@ -26,8 +26,6 @@ enum eHelperText : int32 {
 };
 
 enum eRadarMode : int32 {
-    RADAR_MODE_START,
-
     RADAR_MODE_MAPS_AND_BLIPS = 0,
     RADAR_MODE_BLIPS_ONLY     = 1,
     RADAR_MODE_OFF            = 2,
@@ -36,8 +34,6 @@ enum eRadarMode : int32 {
 };
 
 enum eRadioMode : int8 {
-    RADIO_MODE_START,
-
     RADIO_MODE_RADIO      = 0,
     RADIO_MODE_RANDOM     = 1,
     RADIO_MODE_SEQUENTIAL = 2,
@@ -303,15 +299,23 @@ public:
 
     // notsa colors
 
-    static const CRGBA MENU_BG;              // Black background
-    static const CRGBA MENU_TEXT_NORMAL;     // Plain text (not selected)
-    static const CRGBA MENU_TEXT_SELECTED;   // Highlighted text
-    static const CRGBA MENU_TEXT_WHITE;      // White text
-    static const CRGBA MENU_TEXT_LIGHT_GRAY; // Light gray text
-    static const CRGBA MENU_ERROR;           // Error/Warning color
-    static const CRGBA MENU_SHADOW;          // Semi-transparent shadow
-    static const CRGBA MENU_MAP_BACKGROUND;  // Map background
-    static const CRGBA MENU_MAP_BORDER;      // Map border
+    static constexpr CRGBA MENU_BG              = CRGBA(0, 0, 0, 255); // Black background
+    static constexpr CRGBA MENU_BUILD_INFO_TEXT = CRGBA(255, 255, 255, 100);
+    static constexpr CRGBA MENU_CONTROLLER_BG   = CRGBA(49, 101, 148, 100);
+    static constexpr CRGBA MENU_CURSOR_SHADOW   = CRGBA(100, 100, 100, 50);
+    static constexpr CRGBA MENU_ERROR           = CRGBA(200, 50, 50, 255);   // Error/Warning color
+    static constexpr CRGBA MENU_MAP_BACKGROUND  = CRGBA(111, 137, 170, 255); // Map background
+    static constexpr CRGBA MENU_MAP_BORDER      = CRGBA(100, 100, 100, 255); // Map border
+    static constexpr CRGBA MENU_MAP_FOG         = CRGBA(111, 137, 170, 200);
+    static constexpr CRGBA MENU_PROGRESS_BG     = CRGBA(50, 50, 50, 255);
+    static constexpr CRGBA MENU_SHADOW          = CRGBA(0, 0, 0, 200); // Semi-transparent shadow
+    static constexpr CRGBA MENU_TEXT_DISABLED   = CRGBA(14, 30, 47, 255);
+    static constexpr CRGBA MENU_TEXT_INACTIVE   = CRGBA(255, 255, 255, 30);
+    static constexpr CRGBA MENU_TEXT_LIGHT_GRAY = CRGBA(225, 225, 225, 255); // Light gray text
+    static constexpr CRGBA MENU_TEXT_NORMAL     = CRGBA(74, 90, 107, 255);   // Plain text (not selected)
+    static constexpr CRGBA MENU_TEXT_SELECTED   = CRGBA(172, 203, 241, 255); // Highlighted text
+    static constexpr CRGBA MENU_TEXT_WHITE      = CRGBA(255, 255, 255, 255); // White text
+
 public:
     static void InjectHooks();
 
