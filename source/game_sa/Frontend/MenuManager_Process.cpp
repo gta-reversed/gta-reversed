@@ -20,21 +20,12 @@ void CMenuManager::Process() {
     ZoneScoped;
 
     if (m_bMenuActive) {
-        // Handle streaming based on whether all streaming stuff is loaded
         ProcessStreaming(m_bAllStreamingStuffLoaded);
-
-        // Process user input for menu navigation
         UserInput();
-
-        // Handle file actions like loading, saving, deleting games
         ProcessFileActions();
-
-        // Tidy up D3D resources
         D3DResourceSystem::TidyUpD3DIndexBuffers(1);
         D3DResourceSystem::TidyUpD3DTextures(1);
     }
-
-    // Check if the menu should be closed
     CheckForMenuClosing();
 }
 
@@ -182,6 +173,9 @@ void CMenuManager::ProcessFileActions() {
 }
 
 // 0x576FE0
+// @param pressedLR Arrow button pressed. <0 for left, >0 for right
+// @param cancelPressed Returns true to go back.
+// @param acceptPressed Is enter pressed. Used for AA mode and resolution
 void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool acceptPressed) {
     // Handle PC-specific options first
     if (ProcessPCMenuOptions(pressedLR, acceptPressed)) {
@@ -344,6 +338,8 @@ void CMenuManager::ProcessMenuOptions(int8 pressedLR, bool& cancelPressed, bool 
 }
 
 // 0x57CD50
+// @param pressedLR Arrow button pressed. <0 for left, >0 for right
+// @param acceptPressed Is enter pressed. Used for AA mode and resolution
 bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
     tMenuScreen* screen   = &aScreens[m_nCurrentScreen];
     tMenuScreenItem* item = &screen->m_aItems[m_nCurrentScreenItem];

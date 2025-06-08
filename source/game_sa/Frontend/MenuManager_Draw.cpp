@@ -770,7 +770,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         const auto currentItemName = aScreens[m_nCurrentScreen].m_aItems[m_nCurrentScreenItem].m_szName;
         const bool isDisplaySettings = m_nCurrentScreen == SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == SCREEN_DISPLAY_ADVANCED;
 
-        if (!strcmp(currentItemName, "FED_RES")) {
+        if (!strcmp(currentItemName, "FED_RES")) { // RESOLUTION
             if (m_nDisplayVideoMode == m_nPrefsVideoMode && m_nHelperText == eHelperText::FET_APP) {
                 ResetHelperText();
             } else if (m_nDisplayVideoMode != m_nPrefsVideoMode) {
@@ -781,7 +781,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             SetHelperText(eHelperText::FET_RSO);
         }
 
-        if (!strcmp(currentItemName, "FED_AAS")) {
+        if (!strcmp(currentItemName, "FED_AAS")) { // ANTI ALIASING
             if (m_nDisplayAntialiasing == m_nPrefsAntialiasing && m_nHelperText == eHelperText::FET_APP) {
                 ResetHelperText();
             } else if (m_nDisplayAntialiasing != m_nPrefsAntialiasing) {
@@ -824,10 +824,10 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
         // 0x57B239
         if (displayText) {
-            itemYPosition = (29 * CFont::GetNumberLines(60.0f, itemYPosition, displayText)) + itemYPosition;
+            itemYPosition += 29 * CFont::GetNumberLines(60.0f, itemYPosition, displayText);
         }
         if (aScreens[m_nCurrentScreen].m_aItems[i].m_nActionType == MENU_ACTION_RADIO_STATION) {
-            itemYPosition = itemYPosition + 70.0f;
+            itemYPosition += 70;
         }
     }
 
@@ -1096,10 +1096,8 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
             }
         }
 
-        bool isSelected = (m_ListSelection == i && !isOppositeScreen);
-
         // 0x57EA1E - Highlight selected action
-        if (isSelected) {
+        if (m_ListSelection == i && !isOppositeScreen) {
             CSprite2d::DrawRect({
                     StretchX(260.0f),
                     StretchY(float(i * verticalSpacing + verticalOffset + 1)),
@@ -1157,7 +1155,8 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         // 0x57ECA2 - Handle selection and state
         if (i == m_ListSelection) {
             if (action == eControllerAction::CA_NONE || action == eControllerAction::CA_COMBOLOCK) {
-                DisplayHelperText("FET_EIG"); // CANNOT SET A CONTROL FOR THIS ACTION
+                // CANNOT SET A CONTROL FOR THIS ACTION
+                DisplayHelperText("FET_EIG");
             } else {
                 m_OptionToChange = action;
                 if (m_EditingControlOptions) {
@@ -1172,13 +1171,19 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                         }
                     }
                     if (m_DeleteAllBoundControls) {
-                        DisplayHelperText("FET_CIG"); // BACKSPACE - CLEAR~n~CLICK LMB / RETURN - CHANGE
+                        // BACKSPACE - CLEAR
+                        // CLICK LMB / RETURN - CHANGE
+                        DisplayHelperText("FET_CIG"); 
                     } else {
-                        DisplayHelperText("FET_RIG"); // SELECT A NEW CONTROL FOR THIS ACTION~n~ESC - CANCEL
+                        // SELECT A NEW CONTROL FOR THIS ACTION
+                        // ESC - CANCEL
+                        DisplayHelperText("FET_RIG");
                     }
                     m_CanBeDefined = true;
                 } else {
-                    DisplayHelperText("FET_CIG"); // BACKSPACE - CLEAR~n~CLICK LMB / RETURN - CHANGE
+                    // BACKSPACE - CLEAR
+                    // CLICK LMB / RETURN - CHANGE
+                    DisplayHelperText("FET_CIG"); 
                     m_CanBeDefined = false;
                     m_DeleteAllBoundControls = false;
                 }
@@ -1307,13 +1312,13 @@ void CMenuManager::DrawControllerSetupScreen() {
         const auto textWidth = StretchX(CFont::GetStringWidth(backText, true, false));
         if (StretchX(35.0f) + textWidth > m_nMousePosX
             && StretchX(15.0f) < m_nMousePosX
-            && SCREEN_HEIGHT - StretchY(33.0f) < m_nMousePosY
-            && SCREEN_HEIGHT - StretchY(10.0f) > m_nMousePosY) {
+            && SCREEN_STRETCH_FROM_BOTTOM(33.0f) < m_nMousePosY
+            && SCREEN_STRETCH_FROM_BOTTOM(10.0f) > m_nMousePosY) {
             m_MouseInBounds = eMouseInBounds::BACK_BUTTON;
         } else if (StretchX(20.0f) < m_nMousePosX
             && StretchX(600.0f) > m_nMousePosX
             && StretchY(48.0f) < m_nMousePosY
-            && SCREEN_HEIGHT - StretchY(33.0f) > m_nMousePosY) {
+            && SCREEN_STRETCH_FROM_BOTTOM(33.0f) > m_nMousePosY) {
             m_MouseInBounds = eMouseInBounds::ENTER_MENU;
         } else {
             m_MouseInBounds = eMouseInBounds::NONE;
