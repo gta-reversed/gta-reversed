@@ -241,12 +241,12 @@ void CMenuManager::DrawBackground() {
     if (m_nControllerError != eControllerError::NONE) {
         if (!field_1B4C_b1) {
             field_1B4C_b1 = true;
-            field_1B48 = CTimer::GetTimeInMSPauseMode();
+            errorStartTime = CTimer::GetTimeInMSPauseMode();
         }
 
-        if (field_1B44) {
-            field_1B48 = CTimer::GetTimeInMSPauseMode();
-            field_1B44 = false;
+        if (isErrorPendingReset) {
+            errorStartTime = CTimer::GetTimeInMSPauseMode();
+            isErrorPendingReset = false;
         }
 
         if (m_nControllerError == eControllerError::VEHICLE) {
@@ -264,10 +264,10 @@ void CMenuManager::DrawBackground() {
         }
 
         CFont::RenderFontBuffer();
-        auto elapsedTime = CTimer::GetTimeInMSPauseMode() - field_1B48;
+        auto elapsedTime = CTimer::GetTimeInMSPauseMode() - errorStartTime;
         if (elapsedTime > 7'000 || pad->IsEscJustPressed() && elapsedTime > 1'000) {
             m_nControllerError = eControllerError::NONE;
-            field_1B44 = true;
+            isErrorPendingReset = true;
         }
     }
 
@@ -275,7 +275,7 @@ void CMenuManager::DrawBackground() {
     if (m_bScanningUserTracks) {
         static bool updateScanningTime = StaticRef<bool>(0x8CDFFA); // true
         static int32 progressDirection = StaticRef<int32>(0x8CDFFC); // -1
-        static float progressPosition = StaticRef<float>(0x8CE000); // DEFAULT_SCREEN_WIDTH / 2
+        static int32 progressPosition = StaticRef<int32>(0x8CE000); // DEFAULT_SCREEN_WIDTH / 2
 
         if (!bScanningUserTracks) {
             bScanningUserTracks = true;
@@ -283,40 +283,40 @@ void CMenuManager::DrawBackground() {
         }
 
         // SCANNING USER TRACKS - PLEASE WAIT
-        //        Press ESC to cancel
+        //
+        // Press ESC to cancel
         MessageScreen("FEA_SMP", false, false);
 
         const auto left = DEFAULT_SCREEN_WIDTH / 2 - 50;
-        const auto botton = DEFAULT_SCREEN_WIDTH / 2 - DEFAULT_SCREEN_HEIGHT / 6;
+        const auto bottom = DEFAULT_SCREEN_WIDTH / 2 - DEFAULT_SCREEN_HEIGHT / 6;
         const auto right = DEFAULT_SCREEN_WIDTH / 2 + 50;
         const auto top = DEFAULT_SCREEN_WIDTH / 2 - DEFAULT_SCREEN_HEIGHT / 6;
 
-        // calculate progress position
+        // Calculate progress position
         if ((CTimer::m_FrameCounter & 4) != 0) {
             progressPosition -= progressDirection;
-            if (progressPosition < right) {
-                if (progressPosition <= left) {
-                    progressDirection = -1;
-                }
-            } else {
+            if (progressPosition >= right) {
                 progressDirection = 1;
+            }
+            if (progressPosition <= left) {
+                progressDirection = -1;
             }
         }
 
         CSprite2d::DrawRect({
                 StretchX(left),
-                StretchY(botton),
+                StretchY(bottom),
                 StretchX(right + 5),
                 StretchY(top + 5),
-            }, CRGBA(50, 50, 50, 255)
+            }, MENU_PROGRESS_BG
         );
 
         CSprite2d::DrawRect({
-                StretchX(progressPosition),
-                StretchY(botton),
-                StretchX(progressPosition + 5),
+                StretchX(float(progressPosition)),
+                StretchY(bottom),
+                StretchX(float(progressPosition + 5)),
                 StretchY(top + 5),
-            }, CRGBA(225, 225, 225, 255)
+            }, MENU_TEXT_LIGHT_GRAY
         );
 
         CFont::DrawFonts();
@@ -472,7 +472,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         DrawControllerScreenExtraText(-8);
     }
 
-    bool hasLabel = aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT;
+    const bool hasLabel = aScreens[m_nCurrentScreen].m_aItems[0].m_nActionType == eMenuAction::MENU_ACTION_TEXT;
 
     // 0x5798CE
     for (auto i = 0; i < std::size(aScreens[m_nCurrentScreen].m_aItems); i++) {
@@ -664,6 +664,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             break;
         }
         case eMenuAction::MENU_ACTION_CONTROLS_MOUSE_INVERT_Y:
+            // Standard for all new games
             rightColumnText = notsa::IsFixBugs() ? GetOnOffText(bInvertMouseY) : GetOnOffText(!bInvertMouseY);
             break;
         case eMenuAction::MENU_ACTION_RESOLUTION: {
@@ -1370,7 +1371,13 @@ int32 CMenuManager::DisplaySlider(float x, float y, float barHeight1, float barH
         };
 
         // Draw shadow rectangle with resolution scaling
-        CSprite2d::DrawRect(CRect(barRect, StretchX(2.0f), StretchY(2.0f)), MENU_SHADOW);
+        CSprite2d::DrawRect({
+                barRect.left + StretchX(2.0f),
+                barRect.bottom + StretchY(2.0f),
+                barRect.right + StretchX(2.0f),
+                barRect.top + StretchY(2.0f)
+            },MENU_SHADOW
+        );
 
         // Draw foreground rectangle
         CSprite2d::DrawRect(barRect, barColor);

@@ -323,7 +323,7 @@ void CMenuManager::PrintMap() {
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
             CFont::PrintString(
                 mapArea.right - StretchX(30.0f), mapArea.top - StretchY(30.0f),
-                placeName.GetForMap(m_vMousePos)
+                placeName.GetForMap(m_vMousePos.x, m_vMousePos.y)
             );
         }
 
@@ -340,7 +340,7 @@ void CMenuManager::PrintMap() {
                     StretchX(550.0f),
                     y
                 }, "FE_MLG", 0, {0, 0, 0, 190}, true, true
-            ); // map legend
+            ); // Map Legend
             CFont::SetWrapx(SCREEN_WIDTH - 40.f);
             CFont::SetRightJustifyWrap(84.0f);
             CFont::SetDropShadowPosition(1);

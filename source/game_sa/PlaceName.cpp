@@ -32,9 +32,9 @@ void CPlaceName::ProcessAfterFrontEndShutDown() {
 }
 
 // 0x571D90
-const GxtChar* CPlaceName::GetForMap(CVector2D pos) {
+const GxtChar* CPlaceName::GetForMap(float x, float y) {
     CVector posn = CalcPosition();
-    CZone* zone = CTheZones::FindSmallestZoneForPosition(CVector{ pos, posn.z }, false);
+    CZone* zone = CTheZones::FindSmallestZoneForPosition({ x, y, posn.z }, false);
     return zone->GetTranslatedName();
 }
 

@@ -80,11 +80,6 @@ public:
     {
     }
 
-    constexpr CRect(const CRect& orig, float width, float height) :
-        CRect{ orig.left + width, orig.bottom + height, orig.right + width, orig.top + height }
-    {
-    }
-
     [[nodiscard]] constexpr inline bool IsFlipped() const { // 0x404190
         return left > right || bottom > top;
     }

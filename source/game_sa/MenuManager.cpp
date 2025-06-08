@@ -407,8 +407,6 @@ float CMenuManager::StretchY(float y) {
 
 // 0x573680
 void CMenuManager::SwitchToNewScreen(eMenuScreen screen) {
-    //return plugin::CallMethod<0x573680, CMenuManager*, eMenuScreen>(this, screen);
-
     // Works well, but needs more attention because of the trash gotos
     m_nPrevScreen = m_nCurrentScreen;
     m_nControllerError = eControllerError::NONE;
@@ -574,8 +572,6 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
 
 // 0x573E70
 uint32 CMenuManager::GetNumberOfMenuOptions() {
-    // return plugin::CallMethodAndReturn<uint32, 0x573E70, CMenuManager*>(this);
-
     static int32& s_PrevScreen = *(int32*)0x8CDFF0;
 
     if (m_nCurrentScreen == SCREEN_MAP || m_nCurrentScreen == SCREEN_BRIEF) {

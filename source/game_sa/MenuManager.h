@@ -264,10 +264,10 @@ public:
     bool   m_CurrentlySaving; // mpack related
     char   field_1B3F;
     uint32 m_nUserTrackScanningTimeMs;
-    char   field_1B44;
+    char   isErrorPendingReset;
     char   field_1B45;
     int16  field_1B46;
-    uint32 field_1B48;
+    uint32 errorStartTime;
 
     union {
         struct {
