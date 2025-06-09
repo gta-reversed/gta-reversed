@@ -544,7 +544,7 @@ void CMenuManager::PrintBriefs() {
 
     if (CTimer::GetTimeInMSPauseMode() - m_nBriefsArrowBlinkTimeMs > 700) {
         m_nBriefsArrowBlinkTimeMs = CTimer::GetTimeInMSPauseMode();
-        drawArrows = !drawArrows;
+        drawArrows ^= true;
     }
 
     if (drawArrows) {

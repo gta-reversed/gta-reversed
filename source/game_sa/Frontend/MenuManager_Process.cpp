@@ -45,30 +45,33 @@ void CMenuManager::ProcessStreaming(bool streamAll) {
     const float tileSizeX = (m_fMapZoom * 2.0f) / float(MAX_RADAR_WIDTH_TILES);
     const float tileSizeY = (m_fMapZoom * 2.0f) / float(MAX_RADAR_HEIGHT_TILES);
 
-    // Calculate visible area boundaries
-    const float mapLeft = m_vMapOrigin.x - m_fMapZoom;
-    const float mapTop = m_vMapOrigin.y - m_fMapZoom;
-    const float mapRight = mapLeft + m_fMapZoom * 2.0f;
-    const float mapBottom = mapTop + m_fMapZoom * 2.0f;
+    // Define map boundaries
+    const CVector2D mapArea(
+        m_vMapOrigin.x - m_fMapZoom,
+        m_vMapOrigin.y - m_fMapZoom
+    );
 
     // Define screen boundaries with padding for visibility
-    const float screenLeft = 60.0f - tileSizeX * 3.0f;
-    const float screenRight = float(DEFAULT_SCREEN_WIDTH - 60.0f) + tileSizeX * 3.0f;
-    const float screenTop = 60.0f - tileSizeY * 3.0f;
-    const float screenBottom = float(DEFAULT_SCREEN_HEIGHT - 60.0f) + tileSizeY * 3.0f;
+    const CRect screenArea(
+        60 - tileSizeX * 3,
+        60 - tileSizeY * 3,
+        DEFAULT_SCREEN_WIDTH - 60 + tileSizeX * 3,
+        DEFAULT_SCREEN_HEIGHT - 60 + tileSizeY * 3
+    );
 
     // Iterate over map tiles to determine which sections to load or remove
     for (auto x = 0; x < MAX_RADAR_WIDTH_TILES; x++) {
         for (auto y = 0; y < MAX_RADAR_HEIGHT_TILES; y++) {
-            // Calculate tile position in world coordinates
-            float tileLeft = mapLeft + x * tileSizeX;
-            float tileRight = tileLeft + tileSizeX;
-            float tileTop = mapTop + y * tileSizeY;
-            float tileBottom = tileTop + tileSizeY;
+            // Calculate tile position
+            const CRect tileRect(
+                mapArea.x + x * tileSizeX,
+                mapArea.y + y * tileSizeY,
+                mapArea.x + x * tileSizeX + tileSizeX,
+                mapArea.y + y * tileSizeY + tileSizeY
+            );
 
-            // Check if tile is outside visible screen area
-            if (tileRight <= screenLeft || tileLeft >= screenRight ||
-                tileBottom <= screenTop || tileTop >= screenBottom) {
+            // Check if tile overlaps with the visible screen area
+            if (!screenArea.OverlapsWith(tileRect)) {
                 CRadar::RemoveMapSection(x, y);
             } else {
                 CRadar::RequestMapSection(x, y);
@@ -161,6 +164,7 @@ void CMenuManager::ProcessFileActions() {
                 SwitchToNewScreen(SCREEN_SAVE_DONE_2);
             }
             s_PcSaveHelper.PopulateSlotInfo();
+
             m_CurrentlySaving = false;
         } else {
             m_CurrentlySaving = true;
@@ -624,6 +628,7 @@ void CMenuManager::ProcessMissionPackNewGame() {
         SwitchToNewScreen(SCREEN_SELECT_GAME);
     } else {
         SwitchToNewScreen(SCREEN_NEW_GAME_ASK);
+
         auto screen = &aScreens[m_nCurrentScreen];
         if (CGame::bMissionPackGame) {
             // Are you sure you want to start a new standard game?
