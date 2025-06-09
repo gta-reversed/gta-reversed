@@ -374,13 +374,20 @@ void CMenuManager::PrintMap() {
         }
     }
     m_bDrawingMap = false;
-    CFont::SetWrapx(SCREEN_WIDTH - 10.0f);
+    CFont::SetWrapx(SCREEN_WIDTH - 10);
     CFont::SetRightJustifyWrap(10.0f);
     if (m_bMapLoaded) {
         if (m_nSysMenu != CMenuSystem::MENU_UNDEFINED) {
-            DisplayHelperText("FEH_MPB"); // CURSORS - MOVE UP/DOWN~n~RETURN - TOGGLE OPTION
+            // CURSORS - MOVE UP/DOWN
+            // RETURN - TOGGLE OPTION
+            DisplayHelperText("FEH_MPB"); 
         } else {
-            DisplayHelperText("FEH_MPH"); // LMB/CURSORS - SCROLL~n~PGUP/PGDN/MSWHEEL - ZOOM~n~Z - OVERVIEW , L - LEGEND~n~RMB/T - TARGET , SPACEBAR - BLIPS MENU~n~ESC - BACK
+            // LMB/CURSORS - SCROLL
+            // PGUP/PGDN/MSWHEEL - ZOOM
+            // Z - OVERVIEW , L - LEGEND
+            // RMB/T - TARGET , SPACEBAR - BLIPS MENU
+            // ESC - BACK
+            DisplayHelperText("FEH_MPH"); 
         }
         
     }
