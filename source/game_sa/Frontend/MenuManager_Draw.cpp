@@ -225,12 +225,12 @@ void CMenuManager::DrawBackground() {
     if (m_nControllerError != eControllerError::NONE) {
         if (!field_1B4C_b1) {
             field_1B4C_b1 = true;
-            errorStartTime = CTimer::GetTimeInMSPauseMode();
+            m_ErrorStartTime = CTimer::GetTimeInMSPauseMode();
         }
 
-        if (isErrorPendingReset) {
-            errorStartTime = CTimer::GetTimeInMSPauseMode();
-            isErrorPendingReset = false;
+        if (m_ErrorPendingReset) {
+            m_ErrorStartTime = CTimer::GetTimeInMSPauseMode();
+            m_ErrorPendingReset = false;
         }
 
         if (m_nControllerError == eControllerError::VEHICLE) {
@@ -248,22 +248,22 @@ void CMenuManager::DrawBackground() {
         }
 
         CFont::RenderFontBuffer();
-        auto elapsedTime = CTimer::GetTimeInMSPauseMode() - errorStartTime;
+        auto elapsedTime = CTimer::GetTimeInMSPauseMode() - m_ErrorStartTime;
         if (elapsedTime > 7'000 || pad->IsEscJustPressed() && elapsedTime > 1'000) {
             m_nControllerError = eControllerError::NONE;
-            isErrorPendingReset = true;
+            m_ErrorPendingReset = true;
         }
     }
 
     // 0x57BC19
     if (m_bScanningUserTracks) {
         static bool updateScanningTime = StaticRef<bool>(0x8CDFFA); // true
-        static int32 progressDirection = StaticRef<int32>(0x8CDFFC); // -1
-        static int32 progressPosition = StaticRef<int32>(0x8CE000); // DEFAULT_SCREEN_WIDTH / 2
+        static int32 progressDir = StaticRef<int32>(0x8CDFFC); // -1
+        static int32 progressPos = StaticRef<int32>(0x8CE000); // DEFAULT_SCREEN_WIDTH / 2
 
         if (!bScanningUserTracks) {
             bScanningUserTracks = true;
-            m_nUserTrackScanningTimeMs = CTimer::GetTimeInMSPauseMode();
+            m_UserTrackScanningTime = CTimer::GetTimeInMSPauseMode();
         }
 
         // SCANNING USER TRACKS - PLEASE WAIT
@@ -276,8 +276,8 @@ void CMenuManager::DrawBackground() {
         const auto height = DEFAULT_SCREEN_WIDTH / 2 - DEFAULT_SCREEN_HEIGHT / 6;
 
         if ((CTimer::m_FrameCounter & 4) != 0) {
-            progressPosition -= progressDirection;
-            progressDirection = (progressPosition >= right) ? 1 : (progressPosition <= left) ? -1 : progressDirection;
+            progressPos -= progressDir;
+            progressDir = (progressPos >= right) ? 1 : (progressPos <= left) ? -1 : progressDir;
         }
 
         CSprite2d::DrawRect({
@@ -289,9 +289,9 @@ void CMenuManager::DrawBackground() {
         );
 
         CSprite2d::DrawRect({
-                StretchX(float(progressPosition)),
+                StretchX(float(progressPos)),
                 StretchY(height),
-                StretchX(float(progressPosition + 5)),
+                StretchX(float(progressPos + 5)),
                 StretchY(height + 5)
             }, MENU_TEXT_LIGHT_GRAY
         );
@@ -300,12 +300,12 @@ void CMenuManager::DrawBackground() {
         ResetHelperText();
 
         if (updateScanningTime) {
-            m_nUserTrackScanningTimeMs = CTimer::GetTimeInMSPauseMode();
+            m_UserTrackScanningTime = CTimer::GetTimeInMSPauseMode();
             updateScanningTime = false;
         }
 
         if (AEUserRadioTrackManager.ScanUserTracks() || pad->IsEscJustPressed()) {
-            if (CTimer::GetTimeInMSPauseMode() - m_nUserTrackScanningTimeMs > 3'000 || pad->IsEscJustPressed()) {
+            if (CTimer::GetTimeInMSPauseMode() - m_UserTrackScanningTime > 3'000 || pad->IsEscJustPressed()) {
                 auto helperText = HELPER_NONE;
                 switch (AEUserRadioTrackManager.m_nUserTracksScanState) {
                 case USER_TRACK_SCAN_COMPLETE:
@@ -772,7 +772,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
 
         const auto processSlider = [&](float value, eMouseInBounds leftBound, eMouseInBounds rightBound, bool isRadioVolumeSlider = false) {
             const auto verticalOffset = isRadioVolumeSlider ? 30.0f : 0.0f;
-            const auto sliderPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f - verticalOffset), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), value, int32(StretchX(3.0f)));
+            const auto sliderPos = DisplaySlider(StretchX(500.0f), StretchY(125.0f - verticalOffset), StretchY(4.0f), StretchY(20.0f), StretchX(100.0f), value, (int32)StretchX(3.0f));
             if (i == m_nCurrentScreenItem && shouldDrawStandardItems) {
                 if (CheckHover(0, sliderPos - StretchX(3.0f), StretchY(125.0f - verticalOffset), StretchY(150.0f - verticalOffset))) {
                     m_MouseInBounds = leftBound;
@@ -912,11 +912,11 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
             }
 
             if (action == m_ListSelection && m_EditingControlOptions) {
-                if (CTimer::GetTimeInMSPauseMode() - LastFlash > 150) {
-                    ColourSwitch ^= true;
-                    LastFlash = CTimer::GetTimeInMSPauseMode();
+                if (CTimer::GetTimeInMSPauseMode() - m_LastHighlightToggleTime > 150) {
+                    m_OptionFlashColorState ^= true;
+                    m_LastHighlightToggleTime = CTimer::GetTimeInMSPauseMode();
                 }
-                if (ColourSwitch) {
+                if (m_OptionFlashColorState) {
                     CFont::SetColor(MENU_BG);
                     CFont::PrintString(textX, textY, TheText.Get("FEC_QUE")); // ???
                     CFont::SetColor(MENU_TEXT_NORMAL);

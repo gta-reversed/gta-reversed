@@ -213,61 +213,56 @@ public:
         CSprite2d m_aFrontEndSprites[FRONTEND_SPRITE_COUNT];
     };
 
-    bool  m_bTexturesLoaded;
+    bool        m_bTexturesLoaded;
     eMenuScreen m_nCurrentScreen;
     eMenuScreen m_nPrevScreen; // Used only in SwitchToNewScreen
-    uint8 m_SelectedSlot;
-    uint8 m_nMissionPackGameId;
-    MPack m_MissionPacks[MPACK_COUNT];
-    bool  m_bDoVideoModeUpdate;
-    RsKeyCodes m_nPressedMouseButton; // used in redefine controls
-    int32 m_nJustDownJoyButton; // used in redefine controls; set via CControllerConfigManager::GetJoyButtonJustDown
-    bool  m_MenuIsAbleToQuit;
-    bool  m_bRadioAvailable;
+    uint8       m_SelectedSlot;
+    uint8       m_nMissionPackGameId;
+    MPack       m_MissionPacks[MPACK_COUNT];
+    bool        m_bDoVideoModeUpdate;
+    RsKeyCodes  m_nPressedMouseButton; // used in redefine controls
+    int32       m_nJustDownJoyButton;  // used in redefine controls; set via CControllerConfigManager::GetJoyButtonJustDown
+    bool        m_MenuIsAbleToQuit;
+    bool        m_bRadioAvailable;
     eControllerError m_nControllerError;
-    bool  m_bScanningUserTracks;
-    int32 m_nHelperTextFadingAlpha;
-    bool  m_KeyPressed[5];
-    int32 m_nOldMousePosX;
-    int32 m_nOldMousePosY;
+    bool        m_bScanningUserTracks;
+    int32       m_nHelperTextFadingAlpha;
+    bool        m_KeyPressed[5];
+    int32       m_nOldMousePosX;
+    int32       m_nOldMousePosY;
     eMouseInBounds m_MouseInBounds;
-    int32 m_CurrentMouseOption;
-    bool  m_bJustOpenedControlRedefWindow;
-    bool  m_EditingControlOptions;
-    bool  m_DeleteAllBoundControls;
-    bool  m_DeleteAllNextDefine;
-    int32 m_OptionToChange;
-    char  field_1B10;
-    char  field_1B11;
-    char  field_1B12;
-    char  field_1B13;
-    bool  m_CanBeDefined;
-    bool  m_JustExitedRedefine;
-    char  field_1B16;
-    char  field_1B17;
+    int32       m_CurrentMouseOption;
+    bool        m_bJustOpenedControlRedefWindow;
+    bool        m_EditingControlOptions;
+    bool        m_DeleteAllBoundControls;
+    bool        m_DeleteAllNextDefine;
+    int32       m_OptionToChange;
+    int32       m_OptionProcessing; // unused
+    bool        m_CanBeDefined;
+    bool        m_JustExitedRedefine;
+    char        field_1B16[2]; // unused
     eHelperText m_nHelperText;
-    int32  field_1B1C; // unused
-    bool   m_bTexturesRound;
-    uint8  m_nNumberOfMenuOptions;
-    int16  field_1B22;
-    uint32  StatsScrollTime;
-    bool   m_bViewRadar;
-    char   field_1B29;
-    int16  field_1B2A;
-    int32  m_iRadarVisibilityChangeTime;
-    uint32 m_nBriefsArrowBlinkTimeMs;
-    int16  field_1B34; // CPad::DisablePlayerControls
-    int16  field_1B36;
-    int32  field_1B38;
-    bool   m_CurrentlyLoading;
-    bool   m_CurrentlyDeleting;
-    bool   m_CurrentlySaving; // mpack related
-    char   field_1B3F;
-    uint32 m_nUserTrackScanningTimeMs;
-    char   isErrorPendingReset;
-    char   field_1B45;
-    int16  field_1B46;
-    uint32 errorStartTime;
+    uint32      m_TimeToStopPadShaking; // useless
+
+    bool        m_TexturesSwapped;
+    uint8       m_nNumberOfMenuOptions;
+    char        field_1B22[2]; // unused
+    uint32      m_StatsScrollTime;
+    bool        m_bViewRadar;
+    char        field_1B29[3]; // unused
+    uint32      m_RadarVisibilityChangeTime;
+    uint32      m_BriefsArrowBlinkTime;
+    uint16      m_StatusDisablePlayerControls;
+    char        field_1B36[2]; // unused
+    int32       m_LastActionTime;
+    bool        m_CurrentlyLoading;
+    bool        m_CurrentlyDeleting;
+    bool        m_CurrentlySaving; // mpack related
+    char        field_1B3F;        // unused
+    uint32      m_UserTrackScanningTime;
+    bool        m_ErrorPendingReset;
+    char        field_1B45[3]; // unused
+    uint32      m_ErrorStartTime;
 
     union {
         struct {
@@ -277,20 +272,19 @@ public:
         int32 field_1B4C;
     };
 
-    int8  m_nBackgroundSprite;
-    bool  m_isTextBlinking;
-    int16 field_1B52;
-    int32 m_lastBlinkTime;
-    uint32 m_nTimeHelperTextUpdated;
-    bool  ColourSwitch;
-    char  field_1B5D;
-    int16 field_1B5E;
-    uint32 LastFlash;
-    uint32 lastTransitionTime;
-    int32 m_nTimeSlideLeftMove;
-    int32 m_nTimeSlideRightMove;
-    int32 field_1B70;
-    int32 field_1B74; // ???
+    int8   m_nBackgroundSprite;
+    bool   m_isTextBlinking;
+    char   field_1B52[2]; // unused
+    int32  m_lastBlinkTime;
+    uint32 m_HelperTextUpdatedTime;
+    bool   m_OptionFlashColorState;
+    char   field_1B5D[3]; // unused
+    uint32 m_LastHighlightToggleTime;
+    uint32 m_LastTransitionTime;
+    uint32 m_SlideLeftMoveTime;
+    uint32 m_SlideRightMoveTime;
+    int32  field_1B70;
+    int32  field_1B74; // ???
 
     static int32& nLastMenuPage;
 
@@ -299,7 +293,7 @@ public:
 
     // notsa colors
 
-    static constexpr CRGBA MENU_BG              = CRGBA(0, 0, 0, 255); // Black background
+    static constexpr CRGBA MENU_BG              = CRGBA(0, 0, 0, 255);       // Black background
     static constexpr CRGBA MENU_BUILD_INFO_TEXT = CRGBA(255, 255, 255, 100);
     static constexpr CRGBA MENU_CONTROLLER_BG   = CRGBA(49, 101, 148, 100);
     static constexpr CRGBA MENU_CURSOR_SHADOW   = CRGBA(100, 100, 100, 50);
@@ -308,7 +302,7 @@ public:
     static constexpr CRGBA MENU_MAP_BORDER      = CRGBA(100, 100, 100, 255); // Map border
     static constexpr CRGBA MENU_MAP_FOG         = CRGBA(111, 137, 170, 200);
     static constexpr CRGBA MENU_PROGRESS_BG     = CRGBA(50, 50, 50, 255);
-    static constexpr CRGBA MENU_SHADOW          = CRGBA(0, 0, 0, 200); // Semi-transparent shadow
+    static constexpr CRGBA MENU_SHADOW          = CRGBA(0, 0, 0, 200);       // Semi-transparent shadow
     static constexpr CRGBA MENU_TEXT_DISABLED   = CRGBA(14, 30, 47, 255);
     static constexpr CRGBA MENU_TEXT_INACTIVE   = CRGBA(255, 255, 255, 30);
     static constexpr CRGBA MENU_TEXT_LIGHT_GRAY = CRGBA(225, 225, 225, 255); // Light gray text

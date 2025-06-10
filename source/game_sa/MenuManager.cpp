@@ -171,7 +171,7 @@ CMenuManager::~CMenuManager() {
 // 0x5744D0
 void CMenuManager::Initialise() {
     m_nPlayerNumber = 0;
-    field_1B1C = 0;
+    m_TimeToStopPadShaking = 0;
     m_nCurrentScreenItem = 0;
     m_SelectedSlot = 0;
     if (m_bDoVideoModeUpdate) {
@@ -257,7 +257,7 @@ void CMenuManager::LoadAllTextures() {
 // round always false;
 // 0x5730A0
 void CMenuManager::SwapTexturesRound(bool round) {
-    if (m_bTexturesRound == round)
+    if (m_TexturesSwapped == round)
         return; // Swap doesn't needed
 
     const auto LoadTexture = [](const char* txdName, const char* slotName, unsigned size) {
@@ -270,7 +270,7 @@ void CMenuManager::SwapTexturesRound(bool round) {
         CTxdStore::SetCurrentTxd(slot);
     };
 
-    m_bTexturesRound = round;
+    m_TexturesSwapped = round;
 
     if (round || !CTxdStore::FindTxdSlot("frontend3")) {
         auto slot = CTxdStore::FindTxdSlot("frontend2");
@@ -964,8 +964,8 @@ void CMenuManager::DisplayHelperText(const char* key) {
         // 0x57E2E2
         uint8 alpha = 255;
         if (m_nHelperText && m_nHelperText != 1) {
-            if (CTimer::GetTimeInMSPauseMode() - m_nTimeHelperTextUpdated > 10) {
-                m_nTimeHelperTextUpdated = CTimer::GetTimeInMSPauseMode();
+            if (CTimer::GetTimeInMSPauseMode() - m_HelperTextUpdatedTime > 10) {
+                m_HelperTextUpdatedTime = CTimer::GetTimeInMSPauseMode();
                 m_nHelperTextFadingAlpha -= 2;
             }
             if (m_nHelperTextFadingAlpha < 1) {

@@ -198,7 +198,7 @@ void CMenuManager::UserInput() {
         const bool isLeftPressed = CPad::IsLeftDown() || pad->GetPedWalkLeftRight() < 0 || pad->f0x57C380();
         const bool isRightPressed = CPad::IsRightDown() || pad->GetPedWalkLeftRight() > 0 || pad->f0x57C390();
         if (isLeftPressed || isRightPressed) {
-            auto& lastSliderMoveTime = isLeftPressed ? m_nTimeSlideLeftMove : m_nTimeSlideRightMove;
+            auto& lastSliderMoveTime = isLeftPressed ? m_SlideLeftMoveTime : m_SlideRightMoveTime;
             if (CTimer::GetTimeInMSPauseMode() - lastSliderMoveTime > 200) {
                 if (notsa::contains(SLIDER_ACTIONS, curScreen[m_nCurrentScreenItem].m_nActionType)
                     || curScreen[m_nCurrentScreenItem].m_nActionType == MENU_ACTION_STAT) {
@@ -358,9 +358,9 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
     }
 
     // 0x57F058 - Reset key pressed state after a delay
-    if (CTimer::GetTimeInMSPauseMode() - lastTransitionTime > 200) {
+    if (CTimer::GetTimeInMSPauseMode() - m_LastTransitionTime > 200) {
         rng::fill(m_KeyPressed, false);
-        lastTransitionTime = CTimer::GetTimeInMSPauseMode();
+        m_LastTransitionTime = CTimer::GetTimeInMSPauseMode();
     }
 
     // 0x57F086 - Handle up navigation (keyboard, pad, or mouse wheel up)
@@ -368,7 +368,7 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
         m_DisplayTheMouse = CPad::IsMouseWheelUpPressed();
         if (!m_KeyPressed[2]) {
             m_KeyPressed[2] = true;
-            lastTransitionTime = CTimer::GetTimeInMSPauseMode();
+            m_LastTransitionTime = CTimer::GetTimeInMSPauseMode();
             m_ListSelection = m_ListSelection > 0 ? m_ListSelection - 1 : maxAction - 1;
         }
     } else {
@@ -380,7 +380,7 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
         m_DisplayTheMouse = CPad::IsMouseWheelDownPressed();
         if (!m_KeyPressed[3]) {
             m_KeyPressed[3] = true;
-            lastTransitionTime = CTimer::GetTimeInMSPauseMode();
+            m_LastTransitionTime = CTimer::GetTimeInMSPauseMode();
             m_ListSelection = (m_ListSelection == maxAction - 1) ? 0 : m_ListSelection + 1;
         }
     } else {
@@ -626,7 +626,7 @@ void CMenuManager::CheckForMenuClosing() {
                     DoRWStuffEndOfFrame();
 
                     auto pad = CPad::GetPad(m_nPlayerNumber);
-                    field_1B34 = pad->DisablePlayerControls;
+                    m_StatusDisablePlayerControls = pad->DisablePlayerControls;
                     pad->Clear(false, true);
                     pad->ClearKeyBoardHistory();
                     pad->ClearMouseHistory();
@@ -700,7 +700,7 @@ void CMenuManager::CheckForMenuClosing() {
                     }
                 }
                 m_isPreInitialised = false;
-                pad->DisablePlayerControls = field_1B34;
+                pad->DisablePlayerControls = m_StatusDisablePlayerControls;
             }
         }
     }
@@ -719,7 +719,7 @@ void CMenuManager::CheckForMenuClosing() {
         }
 
         auto pad = CPad::GetPad(m_nPlayerNumber);
-        field_1B34 = pad->DisablePlayerControls;
+        m_StatusDisablePlayerControls = pad->DisablePlayerControls;
         pad->DisablePlayerControls = true;
         m_bIsSaveDone = false;
         m_bMenuActive = true;

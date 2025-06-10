@@ -67,7 +67,7 @@ void CMenuManager::RadarZoomIn() {
     auto x = v5 * v103;
     auto y = v5 * v115;
 
-    if (CTimer::GetTimeInMSPauseMode() - field_1B38 <= 20)
+    if (CTimer::GetTimeInMSPauseMode() - m_LastActionTime <= 20)
         return;
 
     if (m_fMapZoom >= FRONTEND_MAP_RANGE_MAX) {
@@ -164,14 +164,14 @@ void CMenuManager::PrintMap() {
 
     if (m_bMapLoaded) {
         if (m_bStreamingDisabled && !m_bAllStreamingStuffLoaded) {
-            m_iRadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
+            m_RadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
             m_bViewRadar = false;
         }
-        if (CTimer::GetTimeInMSPauseMode() - m_iRadarVisibilityChangeTime > 400) {
+        if (CTimer::GetTimeInMSPauseMode() - m_RadarVisibilityChangeTime > 400) {
             m_bViewRadar = true;
         }
     } else {
-        m_iRadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
+        m_RadarVisibilityChangeTime = CTimer::GetTimeInMSPauseMode();
         m_bViewRadar = false;
     }
     if (m_bMapLoaded) {
@@ -323,7 +323,7 @@ void CMenuManager::PrintMap() {
             CFont::SetOrientation(eFontAlignment::ALIGN_RIGHT);
             CFont::PrintString(
                 mapArea.right - StretchX(30.0f), mapArea.top - StretchY(30.0f),
-                placeName.GetForMap(m_vMousePos.x, m_vMousePos.y)
+                placeName.GetForMap(m_vMousePos)
             );
         }
 
@@ -417,12 +417,12 @@ void CMenuManager::PrintStats() {
     CFont::SetScale(StretchX(0.3f), StretchY(0.75f));
 
     // 0x5749DA
-    if (CTimer::GetTimeInMSPauseMode() - StatsScrollTime > 40) {
+    if (CTimer::GetTimeInMSPauseMode() - m_StatsScrollTime > 40) {
         if (m_fStatsScrollSpeed > 0.0f) {
             float scrollDelta = StretchY(100.0f / m_fStatsScrollSpeed);
             scrollPos += m_nStatsScrollDirection ? scrollDelta : -scrollDelta;
         }
-        StatsScrollTime = CTimer::GetTimeInMSPauseMode();
+        m_StatsScrollTime = CTimer::GetTimeInMSPauseMode();
     }
 
     const float minY = StretchY(50.0f);
@@ -537,13 +537,13 @@ void CMenuManager::PrintBriefs() {
     }
     CFont::SetJustify(false); // redundant
 
-    static bool& drawArrows = *reinterpret_cast<bool*>(0x8CDFF9);
+    static bool& drawArrows = StaticRef<bool>(0x8CDFF9); // true
 
     if (!m_bMapLoaded)
         return;
 
-    if (CTimer::GetTimeInMSPauseMode() - m_nBriefsArrowBlinkTimeMs > 700) {
-        m_nBriefsArrowBlinkTimeMs = CTimer::GetTimeInMSPauseMode();
+    if (CTimer::GetTimeInMSPauseMode() - m_BriefsArrowBlinkTime > 700) {
+        m_BriefsArrowBlinkTime = CTimer::GetTimeInMSPauseMode();
         drawArrows ^= true;
     }
 
