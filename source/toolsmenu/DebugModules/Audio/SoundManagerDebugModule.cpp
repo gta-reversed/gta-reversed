@@ -64,41 +64,37 @@ void SoundManagerDebugModule::RenderSoundsTable() {
 
         // Bank ID
         ig::TableNextColumn();
-        ig::Text("%d", sound->m_nBankSlotId);
+        ig::Text("%d", sound->m_BankSlot);
 
         // Sfx ID
         ig::TableNextColumn();
-        ig::Text("%d", sound->m_nSoundIdInSlot);
+        ig::Text("%d", sound->m_SoundID);
 
         // Distance
         ig::TableNextColumn();
-        ig::Text("%.2f m", CVector::Dist(TheCamera.GetPosition(), sound->m_vecCurrPosn));
+        ig::Text("%.2f m", CVector::Dist(TheCamera.GetPosition(), sound->m_CurrPos));
 
         // Progress
         ig::TableNextColumn();
         {
             int16 min = 0;
-            ig::SliderScalarN("##progress", ImGuiDataType_S16, &sound->m_nCurrentPlayPosition, 1, &min, &sound->m_nSoundLength, "%hd");
+            ig::SliderScalarN("##progress", ImGuiDataType_S16, &sound->m_PlayTime, 1, &min, &sound->m_Length, "%hd");
         }
 
         // Volume
         ig::TableNextColumn();
-        ig::SliderFloat("##volume", &sound->m_fVolume, -100.f, 100.f, "%.2f");
+        ig::SliderFloat("##volume", &sound->m_Volume, -100.f, 100.f, "%.2f");
 
         // Pause/resume - [Doesn't really work all that well sadly, can't find a better solution right now]
         ig::TableNextColumn();
         if (ig::Button(info->IsPaused ? "Resume" : "Pause")) {
             if (!info->IsPaused) {
-                info->OriginalVolume = sound->m_fVolume;
-                info->OriginalSpeed  = sound->m_fSpeed;
+                info->OriginalVolume = sound->GetVolume();
+                info->OriginalSpeed  = sound->GetSpeed();
             }
             info->IsPaused = !info->IsPaused;
-            sound->m_fVolume = info->IsPaused
-                ? -100.f
-                : info->OriginalVolume;
-            sound->m_fSpeed = info->IsPaused
-                ? 0.f
-                : info->OriginalSpeed;
+            sound->SetVolume(info->IsPaused ? -100.f : info->OriginalVolume);
+            sound->SetSpeed(info->IsPaused ? 0.f : info->OriginalSpeed);
         }
 
         ig::EndGroup();
