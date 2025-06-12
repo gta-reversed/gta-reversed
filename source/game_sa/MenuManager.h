@@ -102,10 +102,13 @@ public:
     int8      m_nStatsScrollDirection;
     float     m_fStatsScrollSpeed;
     uint8     m_nSelectedRow; // CMenuSystem
-    char      field_9[23]; // unused
+    int32     m_CurrentGallerySelected; // unused
+    int32     m_CurrentMaxGalleryImages; // unused
+    int32     m_CurrentMaxRealPhotos; // unused
+    int32     m_CurrentSelectedRealPhoto; // unused
+    uint32    m_ReloadImageTime; // unused
     bool      m_PrefsUseVibration;
     bool      m_bHudOn;
-    char      field_22[2]; // pad
     eRadarMode m_nRadarMode;
     char      field_28[4];
     int32     m_nTargetBlipIndex; // blip script handle
@@ -141,7 +144,7 @@ public:
     bool      m_bRadioEq;
 
     eRadioID  m_nRadioStation;
-    char      field_53; // unused
+    bool      m_RecheckNumPhotos; // unused
     int32     m_nCurrentScreenItem; // CurrentOption
     bool      m_bQuitGameNoDVD; // CMenuManager::WaitForUserCD 0x57C5E0
 
@@ -164,13 +167,16 @@ public:
     eLanguage m_nPrefsLanguage;
     eLanguage m_nPreviousLanguage;
     int32     m_SystemLanguage;
-    bool      m_bLoadedLanguage;
+    bool      m_LoadedLanguage;
     int32     m_ListSelection;      // controller related
-    int32     field_94;      // unused
+    int32     m_RenderScreenOnce;   // unused
     uint8*    m_GalleryImgBuffer;   //!< +0x98  \see JPegCompress file
-    char      field_9C[16]; // unused
-    uint32    m_nUserTrackIndex;
-    eRadioMode m_nRadioMode;
+    RwRaster* m_GpJpgTex; // unused
+    bool      m_StartUpFrontEndRequestedForPads; // unused
+    int32     m_ScreenXOffset; // unused
+    int32     m_ScreenYOffset; // unused
+    uint32    m_UserTrackIndex;
+    eRadioMode m_RadioMode;
 
     bool      m_bInvertPadX1;
     bool      m_bInvertPadY1;
@@ -240,28 +246,22 @@ public:
     int32       m_OptionProcessing; // unused
     bool        m_CanBeDefined;
     bool        m_JustExitedRedefine;
-    char        field_1B16[2]; // unused
     eHelperText m_nHelperText;
     uint32      m_TimeToStopPadShaking; // useless
 
     bool        m_TexturesSwapped;
     uint8       m_nNumberOfMenuOptions;
-    char        field_1B22[2]; // unused
     uint32      m_StatsScrollTime;
     bool        m_bViewRadar;
-    char        field_1B29[3]; // unused
     uint32      m_RadarVisibilityChangeTime;
     uint32      m_BriefsArrowBlinkTime;
     uint16      m_StatusDisablePlayerControls;
-    char        field_1B36[2]; // unused
     int32       m_LastActionTime;
     bool        m_CurrentlyLoading;
     bool        m_CurrentlyDeleting;
     bool        m_CurrentlySaving; // mpack related
-    char        field_1B3F;        // unused
     uint32      m_UserTrackScanningTime;
     bool        m_ErrorPendingReset;
-    char        field_1B45[3]; // unused
     uint32      m_ErrorStartTime;
 
     union {
@@ -275,7 +275,7 @@ public:
     int8   m_nBackgroundSprite;
     bool   m_isTextBlinking;
     char   field_1B52[2]; // unused
-    int32  m_lastBlinkTime;
+    uint32 m_LastBlinkTime;
     uint32 m_HelperTextUpdatedTime;
     bool   m_OptionFlashColorState;
     char   field_1B5D[3]; // unused
@@ -284,7 +284,13 @@ public:
     uint32 m_SlideLeftMoveTime;
     uint32 m_SlideRightMoveTime;
     int32  field_1B70;
-    int32  field_1B74; // ???
+
+    union {
+        struct {
+            uint32 field_1B74_b1 : 1;
+        };
+        int32 field_1B74; // ???
+    };
 
     static int32& nLastMenuPage;
 

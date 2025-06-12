@@ -576,11 +576,11 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         SaveSettings();
         return true;
     case MENU_ACTION_USER_TRACKS_PLAY_MODE:
-        m_nRadioMode = eRadioMode((notsa::IsFixBugs() ? (pressedLR == 0 ? 1 : pressedLR) : pressedLR) + m_nRadioMode);
-        if (m_nRadioMode < eRadioMode::RADIO_MODE_RADIO) {
-            m_nRadioMode = eRadioMode(RADIO_MODE_COUNT - 1);
-        } else if (m_nRadioMode >= eRadioMode::RADIO_MODE_COUNT) {
-            m_nRadioMode = eRadioMode::RADIO_MODE_RADIO;
+        m_RadioMode = eRadioMode((notsa::IsFixBugs() ? (pressedLR == 0 ? 1 : pressedLR) : pressedLR) + m_RadioMode);
+        if (m_RadioMode < eRadioMode::RADIO_MODE_RADIO) {
+            m_RadioMode = eRadioMode(RADIO_MODE_COUNT - 1);
+        } else if (m_RadioMode >= eRadioMode::RADIO_MODE_COUNT) {
+            m_RadioMode = eRadioMode::RADIO_MODE_RADIO;
         }
         SaveSettings();
         return true;

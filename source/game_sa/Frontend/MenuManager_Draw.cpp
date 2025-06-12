@@ -671,8 +671,8 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             }
             break;
         case eMenuAction::MENU_ACTION_USER_TRACKS_PLAY_MODE:
-            if (m_nRadioMode < RADIO_MODE_COUNT) {
-                rightColumnText = TheText.Get(std::format("FEA_PR{}", m_nRadioMode + 1).c_str());
+            if (m_RadioMode < RADIO_MODE_COUNT) {
+                rightColumnText = TheText.Get(std::format("FEA_PR{}", m_RadioMode + 1).c_str());
             }
             break;
         default:
@@ -1132,9 +1132,9 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
             } else {
                 m_OptionToChange = action;
                 if (m_EditingControlOptions) {
-                    if (CTimer::GetTimeInMSPauseMode() - m_lastBlinkTime > 150) {
+                    if (CTimer::GetTimeInMSPauseMode() - m_LastBlinkTime > 150) {
                         m_isTextBlinking ^= true;
-                        m_lastBlinkTime = CTimer::GetTimeInMSPauseMode();
+                        m_LastBlinkTime = CTimer::GetTimeInMSPauseMode();
                     }
                     if (m_isTextBlinking) {
                         CFont::SetColor(MENU_BG);

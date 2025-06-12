@@ -366,24 +366,28 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
     // 0x57F086 - Handle up navigation (keyboard, pad, or mouse wheel up)
     if (CPad::IsUpDown() || CPad::GetAnaloguePadUp() || pad->IsDPadUpPressed() || CPad::IsMouseWheelUpPressed()) {
         m_DisplayTheMouse = CPad::IsMouseWheelUpPressed();
+        // Only trigger once per key press, not while held
         if (!m_KeyPressed[2]) {
             m_KeyPressed[2] = true;
             m_LastTransitionTime = CTimer::GetTimeInMSPauseMode();
             m_ListSelection = m_ListSelection > 0 ? m_ListSelection - 1 : maxAction - 1;
         }
     } else {
+        // Reset when key released
         m_KeyPressed[2] = false;
     }
 
     // 0x57F138 - Handle down navigation (keyboard, pad, or mouse wheel down)
     if (CPad::IsDownDown() || CPad::GetAnaloguePadDown() || pad->IsDPadDownPressed() || CPad::IsMouseWheelDownPressed()) {
         m_DisplayTheMouse = CPad::IsMouseWheelDownPressed();
+        // Only trigger once per key press, not while held
         if (!m_KeyPressed[3]) {
             m_KeyPressed[3] = true;
             m_LastTransitionTime = CTimer::GetTimeInMSPauseMode();
             m_ListSelection = (m_ListSelection == maxAction - 1) ? 0 : m_ListSelection + 1;
         }
     } else {
+        // Reset when key released
         m_KeyPressed[3] = false;
     }
 

@@ -112,7 +112,7 @@ CMenuManager::CMenuManager() {
     m_pPressedKey                 = 0;
     m_MenuIsAbleToQuit            = false;
     m_nTitleLanguage              = 9;
-    m_nUserTrackIndex             = 0;
+    m_UserTrackIndex              = 0;
     m_ControlMethod               = eController::MOUSE_PLUS_KEYS;
     CCamera::m_bUseMouse3rdPerson = 1;
     m_nMousePosX                  = m_nMousePosWinX;
@@ -521,7 +521,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_bRadioEq             = true;
         m_bRadioAutoSelect     = true;
         m_bTracksAutoScan      = false;
-        m_nRadioMode           = eRadioMode::RADIO_MODE_RADIO;
+        m_RadioMode            = eRadioMode::RADIO_MODE_RADIO;
         AudioEngine.SetMusicMasterVolume(m_nRadioVolume);
         AudioEngine.SetEffectsMasterVolume(m_nSfxVolume);
         AudioEngine.SetBassEnhanceOnOff(m_bRadioEq);
@@ -710,7 +710,7 @@ void CMenuManager::LoadSettings() {
     ReadFromFile(m_nPrefsLanguage);
     ReadFromFile(m_bHudOn);
     ReadFromFile(m_nRadarMode);
-    ReadFromFile(m_nRadioMode);
+    ReadFromFile(m_RadioMode);
     ReadFromFile(m_bSavePhotos);
     ReadFromFile(constants.m_separator);
     ReadFromFile(m_bInvertPadX1);
@@ -720,7 +720,7 @@ void CMenuManager::LoadSettings() {
     ReadFromFile(m_bSwapPadAxis1);
     ReadFromFile(m_bSwapPadAxis2);
     ReadFromFile(m_bMapLegend);
-    ReadFromFile(m_nUserTrackIndex);
+    ReadFromFile(m_UserTrackIndex);
     ReadFromFile(m_nCurrentRwSubsystem);
     ReadFromFile(constants.m_underscore);
 
@@ -744,9 +744,9 @@ void CMenuManager::LoadSettings() {
     AudioEngine.RetuneRadio(m_nRadioStation);
 
     if (previousLang == m_nPrefsLanguage) {
-        m_bLoadedLanguage = false;
+        m_LoadedLanguage = false;
     } else {
-        m_bLoadedLanguage = true;
+        m_LoadedLanguage = true;
         TheText.Load(false);
         m_bLanguageChanged = true;
         InitialiseChangedLanguageSettings(false);
@@ -797,7 +797,7 @@ void CMenuManager::SaveSettings() {
     WriteToFile(m_nPrefsLanguage);
     WriteToFile(m_bHudOn);
     WriteToFile(m_nRadarMode);
-    WriteToFile(m_nRadioMode);
+    WriteToFile(m_RadioMode);
     WriteToFile(m_bSavePhotos);
     WriteToFile(int8(29)); // GS - Group Separator
     WriteToFile(m_bInvertPadX1);
@@ -807,7 +807,7 @@ void CMenuManager::SaveSettings() {
     WriteToFile(m_bSwapPadAxis1);
     WriteToFile(m_bSwapPadAxis2);
     WriteToFile(m_bMapLegend);
-    WriteToFile(m_nUserTrackIndex);
+    WriteToFile(m_UserTrackIndex);
     WriteToFile(RwEngineGetCurrentSubSystem());
     WriteToFile(int8(95)); // _ underscore
 
