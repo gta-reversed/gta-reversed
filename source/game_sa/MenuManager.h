@@ -118,7 +118,6 @@ public:
     bool      m_bActivateMenuNextFrame;
     bool      m_bMenuAccessWidescreen;
     bool      field_35;
-    char      field_36[2]; // unused
     RsKeyCodes m_KeyPressedCode;
     int32     m_PrefsBrightness;
     float     m_fDrawDistance;
