@@ -23,7 +23,7 @@ void CMenuManager::UserInput() {
     static int8 oldOption                    = -99; // 0x8CE005
 
     // Early return conditions
-    if (m_bScanningUserTracks || m_nControllerError != eControllerError::NONE) {
+    if (m_bScanningUserTracks || m_ControllerError != eControllerError::NONE) {
         return;
     }
 
@@ -54,10 +54,10 @@ void CMenuManager::UserInput() {
                                  (StretchY(itemPosY + 26) >= m_nMousePosY);
 
             if (mouseOverItem) {
-                // 0x57FEEC - Mouse is over this item
-                if ((field_1B74 & 1) == 0) {
-                    field_1B74 |= 1u;
-                    field_1B70 = m_nCurrentScreen;
+                // 0x57FEEC
+                if (!bMouseHoverInitialised) {
+                    bMouseHoverInitialised = true;
+                    m_nMouseHoverScreen = m_nCurrentScreen;
                 }
 
                 m_CurrentMouseOption = rowToCheck;
@@ -103,7 +103,7 @@ void CMenuManager::UserInput() {
 
     // 0x580050 - Handle special case for controls screen
     if (m_nCurrentScreen == eMenuScreen::SCREEN_CONTROLS_DEFINITION) {
-        if (m_nControllerError == eControllerError::NONE) {
+        if (m_ControllerError == eControllerError::NONE) {
             RedefineScreenUserInput(&bEnter, &bExit);
         }
     } else {
@@ -315,7 +315,7 @@ void CMenuManager::ProcessUserInput(bool GoDownMenu, bool GoUpMenu, bool EnterMe
 
     // Handle cancel/back action
     if (GoBackOneMenu) {
-        if (m_bRadioAvailable) {
+        if (m_RadioAvailable) {
             AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
             SwitchToNewScreen(eMenuScreen::SCREEN_GO_BACK); // Go back one screen
         } else {
@@ -409,18 +409,18 @@ void CMenuManager::RedefineScreenUserInput(bool* accept, bool* cancel) {
 
     // 0x57F2A3 - Handle back logic for control redefinition
     if (*cancel) {
-        if (m_bRadioAvailable) {
+        if (m_RadioAvailable) {
             m_RedefiningControls = m_RedefiningControls == eControlMode::FOOT
                 ? eControlMode::VEHICLE
                 : eControlMode::FOOT;
             DrawControllerBound(69, true);
-            if (!m_bRadioAvailable) {
-                m_nControllerError = m_RedefiningControls != eControlMode::FOOT
+            if (!m_RadioAvailable) {
+                m_ControllerError = m_RedefiningControls != eControlMode::FOOT
                     ? eControllerError::FOOT
                     : eControllerError::VEHICLE;
             }
         } else {
-            m_nControllerError = eControllerError::NOT_SETS;
+            m_ControllerError = eControllerError::NOT_SETS;
         }
     }
 }
@@ -436,7 +436,7 @@ bool CMenuManager::CheckRedefineControlInput() {
         } else {
             GetCurrentKeyPressed(*m_pPressedKey);
             m_nPressedMouseButton = (RsKeyCodes)0;
-            m_nJustDownJoyButton = 0;
+            m_nJustDownJoyButton = (eJoyButtons)0;
 
             auto pad = CPad::GetPad();
             if (pad->IsMouseLButtonPressed()) {

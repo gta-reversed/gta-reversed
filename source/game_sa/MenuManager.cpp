@@ -409,7 +409,7 @@ float CMenuManager::StretchY(float y) {
 void CMenuManager::SwitchToNewScreen(eMenuScreen screen) {
     // Works well, but needs more attention because of the trash gotos
     m_nPrevScreen = m_nCurrentScreen;
-    m_nControllerError = eControllerError::NONE;
+    m_ControllerError = eControllerError::NONE;
 
     ResetHelperText();
 
@@ -830,7 +830,7 @@ void CMenuManager::SaveStatsToFile() {
     const auto End = [&]() {
         CFileMgr::SetDir("");
         CFileMgr::CloseFile(file); // FIX_BUGS
-        m_nHelperText = FET_STS;
+        m_HelperText = FET_STS;
         m_nHelperTextFadingAlpha = 300;
     };
     if (!file) {
@@ -963,7 +963,7 @@ void CMenuManager::DisplayHelperText(const char* key) {
     } else {
         // 0x57E2E2
         uint8 alpha = 255;
-        if (m_nHelperText && m_nHelperText != 1) {
+        if (m_HelperText && m_HelperText != eHelperText::FET_APP) {
             if (CTimer::GetTimeInMSPauseMode() - m_HelperTextUpdatedTime > 10) {
                 m_HelperTextUpdatedTime = CTimer::GetTimeInMSPauseMode();
                 m_nHelperTextFadingAlpha -= 2;
@@ -975,7 +975,7 @@ void CMenuManager::DisplayHelperText(const char* key) {
         }
         CFont::SetColor(CRGBA(MENU_TEXT_WHITE, alpha));
 
-        switch (m_nHelperText) {
+        switch (m_HelperText) {
         case FET_APP: text = TheText.Get("FET_APP"); break; // CLICK LMB / RETURN - APPLY NEW SETTING
         case FET_HRD: text = TheText.Get("FET_HRD"); break; // DEFAULT SETTINGS RESTORED
         case FET_RSO: text = TheText.Get("FET_RSO"); break; // ORIGINAL SETTING RESTORED
@@ -1007,13 +1007,13 @@ void CMenuManager::DisplayHelperText(const char* key) {
 
 // 0x57CD10
 void CMenuManager::SetHelperText(eHelperText messageId) {
-    m_nHelperText            = messageId;
+    m_HelperText             = messageId;
     m_nHelperTextFadingAlpha = 300;
 }
 
 // 0x57CD30
 void CMenuManager::ResetHelperText() {
-    m_nHelperText            = HELPER_NONE;
+    m_HelperText             = HELPER_NONE;
     m_nHelperTextFadingAlpha = 300;
 }
 

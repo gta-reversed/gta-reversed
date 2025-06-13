@@ -432,61 +432,58 @@ void CMenuManager::PrintStats() {
 
     // 0x574A4E
     for (auto i = 0; i < numStats; ++i) {
-        float yPos = StretchY(54.0f) * i + StretchY(50.0f) - scrollPos;
+        float y = StretchY(54.0f) * i + StretchY(50.0f) - scrollPos;
         float totalHeight = (numStats + 7) * StretchY(54.0f);
 
-        if (yPos < minY) {
-            yPos += std::ceil((minY - yPos) / totalHeight) * totalHeight;
-        } else if (yPos > maxY) {
-            yPos -= std::ceil((yPos - maxY) / totalHeight) * totalHeight;
+        if (y < minY) {
+            y += std::ceil((minY - y) / totalHeight) * totalHeight;
+        } else if (y > maxY) {
+            y -= std::ceil((y - maxY) / totalHeight) * totalHeight;
         }
 
-        if (yPos > visibleTop && yPos < visibleBottom) {
+        if (y > visibleTop && y < visibleBottom) {
             CStats::ConstructStatLine(i, m_nCurrentScreenItem);
 
             if (!gGxtString[0]) {
-                yPos -= StretchY(37.0f);
+                y -= StretchY(37.0f);
             }
 
             // 0x574BE1
-            float alpha;
-            if (yPos >= StretchY(330.0f) || yPos <= StretchY(300.0f)) {
-                alpha = 0.0f;
-            } else {
-                alpha = (StretchY(330.0f) - yPos) * 8.0f;
+            float alpha_f;
+            if (y > StretchY(80.0f) && y < StretchY(330.0f)) {
+                if (y < StretchY(110.0f)) {
+                    // Fade In
+                    alpha_f = (y - StretchY(80.0f)) * 8.0f;
+                } else if (y > StretchY(300.0f)) {
+                    // Fade Out
+                    alpha_f = (StretchY(330.0f) - y) * 8.0f;
+                } else {
+                    alpha_f = 255.0f;
+                }
             }
-
-            if (yPos > StretchY(80.0f) && yPos < StretchY(110.0f)) {
-                alpha = (yPos - StretchY(80.0f)) * 8.0f;
-            }
-
-            if (yPos >= StretchY(110.0f) && yPos <= StretchY(300.0f) || alpha > 255.0f) {
-                alpha = 255.0f;
-            }
+            const uint8 alpha = static_cast<uint8>(std::clamp(alpha_f, 0.0f, 255.0f));
 
             // 0x574D3B
-            CFont::SetDropColor(CRGBA(MENU_BG, uint8(alpha)));
+            CFont::SetDropColor(CRGBA(MENU_BG, alpha));
             CFont::SetEdge(1);
             CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
-            CFont::SetColor(CRGBA(MENU_TEXT_LIGHT_GRAY, uint8(alpha)));
+            CFont::SetColor(CRGBA(MENU_TEXT_LIGHT_GRAY, alpha));
+            CFont::PrintString(StretchX(450.0f), y, gGxtString);
 
-            float xPos = StretchX(450.0f);
-            CFont::PrintString(xPos, yPos, gGxtString);
-
-            const auto color = CRGBA(MENU_TEXT_SELECTED, uint8(alpha));
+            const auto color = CRGBA(MENU_TEXT_SELECTED, alpha);
             // 0x574DD2
             if (currentStatId) {
                 float val = CStats::GetStatValue(currentStatId) * 0.001f * 100.0f;
                 float clamped = std::min(val, 1000.0f);
 
                 CSprite2d::DrawBarChart(
-                    StretchX(400.0f), StretchY(17.0f) + yPos,
+                    StretchX(400.0f), StretchY(17.0f) + y,
                     (uint16)StretchX(100.0f), (uint8)StretchY(10.0f),
                     clamped, 0, 0, 1, color, CRGBA()
                 );
             } else {
                 CFont::SetColor(color);
-                CFont::PrintString(StretchX(450.0f), StretchY(17.0f) + yPos, gGxtString2);
+                CFont::PrintString(StretchX(450.0f), StretchY(17.0f) + y, gGxtString2);
             }
         }
     }

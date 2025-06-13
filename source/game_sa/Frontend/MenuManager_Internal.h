@@ -197,7 +197,7 @@ struct tMenuScreen {
 };
 VALIDATE_SIZE(tMenuScreen, 0xE2);
 
-enum {
+enum eFrontend : int8 {
     FRONTEND1_START       = 0,
     FRONTEND2_START       = 13,
     FRONTEND3_START       = 21,

@@ -110,7 +110,7 @@ public:
     bool      m_PrefsUseVibration;
     bool      m_bHudOn;
     eRadarMode m_nRadarMode;
-    char      field_28[4];
+    int32     field_28;
     int32     m_nTargetBlipIndex; // blip script handle
     int8      m_nSysMenu; // CMenuSystem
     bool      m_DisplayControllerOnFoot;
@@ -228,8 +228,8 @@ public:
     RsKeyCodes  m_nPressedMouseButton; // used in redefine controls
     int32       m_nJustDownJoyButton;  // used in redefine controls; set via CControllerConfigManager::GetJoyButtonJustDown
     bool        m_MenuIsAbleToQuit;
-    bool        m_bRadioAvailable;
-    eControllerError m_nControllerError;
+    bool        m_RadioAvailable;
+    eControllerError m_ControllerError;
     bool        m_bScanningUserTracks;
     int32       m_nHelperTextFadingAlpha;
     bool        m_KeyPressed[5];
@@ -245,7 +245,7 @@ public:
     int32       m_OptionProcessing; // unused
     bool        m_CanBeDefined;
     bool        m_JustExitedRedefine;
-    eHelperText m_nHelperText;
+    eHelperText m_HelperText;
     uint32      m_TimeToStopPadShaking; // useless
 
     bool        m_TexturesSwapped;
@@ -265,28 +265,26 @@ public:
 
     union {
         struct {
-            uint32 field_1B4C_b1 : 1;
-            uint32 bScanningUserTracks : 1;
+            bool bWereError : 1;
+            bool bScanningUserTracks : 1;
         };
         int32 field_1B4C;
     };
 
-    int8   m_nBackgroundSprite;
-    bool   m_isTextBlinking;
-    char   field_1B52[2]; // unused
-    uint32 m_LastBlinkTime;
-    uint32 m_HelperTextUpdatedTime;
-    bool   m_OptionFlashColorState;
-    char   field_1B5D[3]; // unused
-    uint32 m_LastHighlightToggleTime;
-    uint32 m_LastTransitionTime;
-    uint32 m_SlideLeftMoveTime;
-    uint32 m_SlideRightMoveTime;
-    int32  field_1B70;
+    eFrontend m_BackgroundSprite;
+    bool      m_InputWaitBlink;
+    uint32    m_LastBlinkTime;
+    uint32    m_HelperTextUpdatedTime;
+    bool      m_OptionFlashColorState;
+    uint32    m_LastHighlightToggleTime;
+    uint32    m_LastTransitionTime;
+    uint32    m_SlideLeftMoveTime;
+    uint32    m_SlideRightMoveTime;
+    int32     m_nMouseHoverScreen;
 
     union {
         struct {
-            uint32 field_1B74_b1 : 1;
+            bool bMouseHoverInitialised : 1;
         };
         int32 field_1B74; // ???
     };

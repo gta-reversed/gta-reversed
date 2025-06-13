@@ -83,7 +83,7 @@ void CMenuManager::DrawFrontEnd() {
     DefinedState2d();
     SetFrontEndRenderStates();
 
-    m_bRadioAvailable = !AudioEngine.IsRadioRetuneInProgress();
+    m_RadioAvailable = !AudioEngine.IsRadioRetuneInProgress();
 
     if (m_nCurrentScreen == SCREEN_INITIAL) {
         m_nCurrentScreen = m_bMainMenuSwitch ? SCREEN_MAIN_MENU : SCREEN_PAUSE_MENU;
@@ -153,7 +153,7 @@ void CMenuManager::DrawBackground() {
     };
 
     const auto GetBackgroundRect = [=]() -> CRect {
-        switch (m_nBackgroundSprite) {
+        switch (m_BackgroundSprite) {
         case SCREEN_LOAD_FIRST_SAVE:
         case SCREEN_SAVE_DONE_1:
         case SCREEN_DELETE_FINISHED:
@@ -185,15 +185,15 @@ void CMenuManager::DrawBackground() {
         }
     };
 
-    m_nBackgroundSprite = GetSpriteId();
+    m_BackgroundSprite = GetSpriteId();
     auto backgroundRect = GetBackgroundRect();
 
     // 0x57B7E1
     CRect screenRect(-5.0f, -5.0f, SCREEN_WIDTH + 5.0f, SCREEN_HEIGHT + 5.0f);
     CSprite2d::DrawRect(screenRect, MENU_BG);
 
-    if (m_nBackgroundSprite) {
-        m_aFrontEndSprites[m_nBackgroundSprite].Draw(backgroundRect, CRGBA(255, 255, 255, 255));
+    if (m_BackgroundSprite) {
+        m_aFrontEndSprites[m_BackgroundSprite].Draw(backgroundRect, CRGBA(255, 255, 255, 255));
     }
 
     // 0x57BA02
@@ -222,9 +222,9 @@ void CMenuManager::DrawBackground() {
 
     auto pad = CPad::GetPad(m_nPlayerNumber);
     // 0x57BA6B
-    if (m_nControllerError != eControllerError::NONE) {
-        if (!field_1B4C_b1) {
-            field_1B4C_b1 = true;
+    if (m_ControllerError != eControllerError::NONE) {
+        if (!bWereError) {
+            bWereError = true;
             m_ErrorStartTime = CTimer::GetTimeInMSPauseMode();
         }
 
@@ -233,15 +233,15 @@ void CMenuManager::DrawBackground() {
             m_ErrorPendingReset = false;
         }
 
-        if (m_nControllerError == eControllerError::VEHICLE) {
+        if (m_ControllerError == eControllerError::VEHICLE) {
             // Error! Changing controls on the 'In Vehicle' screen has caused one or more control actions to be unbound on the 'On Foot' screen. Please check all control actions are set
             // Press ESC to continue
             MessageScreen("FEC_ER3", false, false);
-        } else if (m_nControllerError == eControllerError::FOOT) {
+        } else if (m_ControllerError == eControllerError::FOOT) {
             // Error! Changing controls on the 'On Foot' screen has caused one or more control actions to be unbound on the 'In Vehicle' screen. Please check all control actions are set
             // Press ESC to continue
             MessageScreen("FEC_ER2", false, false);
-        } else if (m_nControllerError == eControllerError::NOT_SETS) {
+        } else if (m_ControllerError == eControllerError::NOT_SETS) {
             // Error! One or more control actions are not bound to a key or button. Please check all control actions are set
             // Press ESC to continue
             MessageScreen("FEC_ERI", false, false);
@@ -250,7 +250,7 @@ void CMenuManager::DrawBackground() {
         CFont::RenderFontBuffer();
         auto elapsedTime = CTimer::GetTimeInMSPauseMode() - m_ErrorStartTime;
         if (elapsedTime > 7'000 || pad->IsEscJustPressed() && elapsedTime > 1'000) {
-            m_nControllerError = eControllerError::NONE;
+            m_ControllerError = eControllerError::NONE;
             m_ErrorPendingReset = true;
         }
     }
@@ -749,7 +749,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         const bool isDisplaySettings = m_nCurrentScreen == SCREEN_DISPLAY_SETTINGS || m_nCurrentScreen == SCREEN_DISPLAY_ADVANCED;
 
         if (!strcmp(currentItemName, "FED_RES")) { // RESOLUTION
-            if (m_nDisplayVideoMode == m_nPrefsVideoMode && m_nHelperText == eHelperText::FET_APP) {
+            if (m_nDisplayVideoMode == m_nPrefsVideoMode && m_HelperText == eHelperText::FET_APP) {
                 ResetHelperText();
             } else if (m_nDisplayVideoMode != m_nPrefsVideoMode) {
                 SetHelperText(eHelperText::FET_APP);
@@ -760,7 +760,7 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         }
 
         if (!strcmp(currentItemName, "FED_AAS")) { // ANTI ALIASING
-            if (m_nDisplayAntialiasing == m_nPrefsAntialiasing && m_nHelperText == eHelperText::FET_APP) {
+            if (m_nDisplayAntialiasing == m_nPrefsAntialiasing && m_HelperText == eHelperText::FET_APP) {
                 ResetHelperText();
             } else if (m_nDisplayAntialiasing != m_nPrefsAntialiasing) {
                 SetHelperText(eHelperText::FET_APP);
@@ -1115,7 +1115,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         // 0x57EB63 + 0x57EBD9 + 0x57EC13 - Handle unbound case
         if (action != eControllerAction::CA_NONE && action != eControllerAction::CA_COMBOLOCK && !hasControl) {
             // 0x57EC1F
-            m_bRadioAvailable = false;
+            m_RadioAvailable = false;
             if (m_ListSelection != i || !m_EditingControlOptions) {
                 CFont::SetColor(MENU_ERROR);
                 if (!isOppositeScreen) {
@@ -1133,10 +1133,10 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
                 m_OptionToChange = action;
                 if (m_EditingControlOptions) {
                     if (CTimer::GetTimeInMSPauseMode() - m_LastBlinkTime > 150) {
-                        m_isTextBlinking ^= true;
+                        m_InputWaitBlink ^= true;
                         m_LastBlinkTime = CTimer::GetTimeInMSPauseMode();
                     }
-                    if (m_isTextBlinking) {
+                    if (m_InputWaitBlink) {
                         CFont::SetColor(MENU_BG);
                         if (!isOppositeScreen) {
                             CFont::PrintString(currentX, currentY, TheText.Get("FEC_QUE")); // ???
