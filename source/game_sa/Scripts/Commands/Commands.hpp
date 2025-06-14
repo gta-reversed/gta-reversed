@@ -15,6 +15,7 @@ namespace math { void RegisterHandlers(); };
 namespace mission { void RegisterHandlers(); };
 namespace object { void RegisterHandlers(); };
 namespace pad { void RegisterHandlers(); };
+namespace path { void RegisterHandlers(); };
 namespace ped { void RegisterHandlers(); };
 namespace player { void RegisterHandlers(); };
 namespace script { void RegisterHandlers(); };
