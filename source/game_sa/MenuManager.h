@@ -255,7 +255,7 @@ public:
     uint32      m_RadarVisibilityChangeTime;
     uint32      m_BriefsArrowBlinkTime;
     uint16      m_StatusDisablePlayerControls;
-    int32       m_LastActionTime;
+    uint32      m_LastActionTime;
     bool        m_CurrentlyLoading;
     bool        m_CurrentlyDeleting;
     bool        m_CurrentlySaving; // mpack related

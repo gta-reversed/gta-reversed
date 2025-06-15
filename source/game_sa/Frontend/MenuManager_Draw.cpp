@@ -454,12 +454,11 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
     // 0x5798CE
     for (auto i = 0; i < std::size(aScreens[m_nCurrentScreen].m_aItems); i++) {
         auto& item = aScreens[m_nCurrentScreen].m_aItems[i];
-        auto itemType = item.m_nType;
         rightColumnText = nullptr;
-        uint16 lineHeight = (itemType == eMenuEntryType::TI_MPACK) ? 20 : 30;
+        const uint16 lineHeight = (item.m_nType == eMenuEntryType::TI_MPACK) ? 20 : 30;
 
         CFont::SetFontStyle(eFontStyle::FONT_MENU);
-        if (itemType < eMenuEntryType::TI_SLOT1 || itemType > eMenuEntryType::TI_SLOT8) {
+        if (item.m_nType < eMenuEntryType::TI_SLOT1 || item.m_nType > eMenuEntryType::TI_SLOT8) {
             CFont::SetScale(StretchX(0.7f), StretchY(1.0f));
             CFont::SetEdge(2);
         } else {
@@ -493,11 +492,11 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
             continue;
         }
 
-        const bool isSlot = IsSaveSlot(itemType);
+        const bool isSlot = IsSaveSlot(item.m_nType);
 
         float xOffset = 0;
 
-        switch (itemType) {
+        switch (item.m_nType) {
         case eMenuEntryType::TI_MPACK: {
             std::array<MPack, MPACK_COUNT> missionPacksArray = std::to_array(m_MissionPacks);
             // Check if the index is within bounds
@@ -683,10 +682,10 @@ void CMenuManager::DrawStandardMenus(bool drawTitle) {
         const auto scaledY = StretchY(item.m_Y);
 
         if (displayText) {
-            if ((isSlot && GetSavedGameState(itemType - 1) != eSlotState::SLOT_FILLED) || !isSlot) {
+            if ((isSlot && GetSavedGameState(item.m_nType - 1) != eSlotState::SLOT_FILLED) || !isSlot) {
                 CFont::PrintString(scaledX, scaledY, displayText);
             // v1.01 +
-            } else if (isSlot && GetSavedGameState(itemType - 1) == eSlotState::SLOT_FILLED) {
+            } else if (isSlot && GetSavedGameState(item.m_nType - 1) == eSlotState::SLOT_FILLED) {
                 CFont::PrintString(StretchX(25.0f + item.m_X), scaledY, displayText);
                 AsciiToGxtChar(std::format("{}:", i).c_str(), gGxtString);
                 CFont::PrintString(scaledX, scaledY, gGxtString);
