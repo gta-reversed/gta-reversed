@@ -15,11 +15,13 @@ enum eMenuEntryType : int8 { // Originally it has no name.
     TI_SLOT7,
     TI_SLOT8,
     MAX_SAVE_SLOT = TI_SLOT8,
+
     /*
     TI_SLOTAUTO
     TI_SLOTCP1
     TI_SLOTCP2
     */
+
     TI_MPACK = 9,
     TI_MOUSEJOYPAD = 10,
     TI_ENTER = 11,
@@ -191,11 +193,11 @@ struct tMenuScreen {
     char            m_szTitleName[8];
     eMenuScreen     m_nParentMenu;
     int8            m_nStartEntry;
-    tMenuScreenItem m_aItems[12];
+    tMenuScreenItem m_aItems[12]; // eMenuEntryType::TI_OPTION ?
 };
 VALIDATE_SIZE(tMenuScreen, 0xE2);
 
-enum {
+enum eFrontend : int8 {
     FRONTEND1_START       = 0,
     FRONTEND2_START       = 13,
     FRONTEND3_START       = 21,
