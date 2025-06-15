@@ -11,6 +11,4 @@ public:
 
     // Originally named `CosTabel` with argument named `Arg`, same story as above
     static float GetCosFast(float rad);
-
-    static inline float Log10(float x) { return log10f(x); }
 };

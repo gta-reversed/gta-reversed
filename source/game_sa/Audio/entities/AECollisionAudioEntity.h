@@ -23,10 +23,9 @@ class NOTSA_EXPORT_VTABLE CAECollisionAudioEntity : public CAEAudioEntity {
 public:
     static constexpr auto NUM_ENTRIES = 300u;
 
-    int16                m_CollisionSoundIDHistory[SURFACE_NUM_TYPES_FOR_COLLISION]{255};
-    int16                m_LastBulletHitSoundID{-1};
-    int16                m_nRandom{-1};
-    int32                m_NumActiveCollisionSounds{0};
+    int16                                    m_CollisionSoundIDHistory[SURFACE_NUM_TYPES_FOR_COLLISION]{ 255 };
+    int16                                    m_LastBulletHitSoundID{ -1 };
+    int32                                    m_NumActiveCollisionSounds{ 0 };
     std::array<tCollisionSound, NUM_ENTRIES> m_CollisionSoundList{};
 
 public:
@@ -76,6 +75,7 @@ public:
 
     void Service();
 
+    // notsa
     bool CanAddNewSound() const { return m_CollisionSoundList.size() != m_NumActiveCollisionSounds; }
 
 protected:
