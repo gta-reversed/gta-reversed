@@ -1468,7 +1468,7 @@ void CCamera::ProcessFOVLerp() {
     auto now = static_cast<float>(CTimer::m_snTimeInMilliseconds);
 
     // Handle timer wrap-around (unsigned overflow)
-    if (CTimer::m_snTimeInMilliseconds & 0x80000000u) {
+    if (static_cast<int>(CTimer::m_snTimeInMilliseconds) < 0) {
         now += 4294967296.0f; // 2^32
     }
 
