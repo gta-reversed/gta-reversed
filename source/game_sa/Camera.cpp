@@ -1479,9 +1479,10 @@ void CCamera::ProcessFOVLerp() {
         return;
     }
 
-    if (m_bBlockZoom) {
-        m_bFOVLerpProcessed = true;
+    if (!m_bBlockZoom) {
+        return;
     }
+    m_bFOVLerpProcessed = true;
 }
 
 // 0x50D510
