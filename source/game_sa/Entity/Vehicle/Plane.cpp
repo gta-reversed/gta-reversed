@@ -368,8 +368,8 @@ void CPlane::SwitchAmbientPlanes(bool enable) {
 }
 
 // 0x6CD090
-void CPlane::FindPlaneCreationCoors(CVector* pCoors, CVector* pTargetCoors, float* pPlaneOrientation, float* pFlightHeight, bool bBigPlane) {
-    plugin::Call<0x6CD090, CVector*, CVector*, float*, float*, bool>(pCoors, pTargetCoors, pPlaneOrientation, pFlightHeight, bBigPlane);
+void CPlane::FindPlaneCreationCoors(CVector* outCoors, CVector* outTargetCoors, float* outPlaneOrientation, float* outFlightHeight, bool isBigPlane) {
+    plugin::Call<0x6CD090, CVector*, CVector*, float*, float*, bool>(outCoors, outTargetCoors, outPlaneOrientation, outFlightHeight, isBigPlane);
 }
 
 // 0x6CD2F0
