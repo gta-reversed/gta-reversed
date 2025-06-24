@@ -69,4 +69,9 @@ inline const ReversibleBugFix CAEVehicleAudioEntity_PlayAircraftSound_VolumeFix{
     .Description = "Original code didn't account for event base volume",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CPathFind_SwitchRoadsOffInArea_StrayAreas{
+    .Name        = "CPathFind::SwitchRoadsOffInArea Stray-Areas",
+    .Description = "Fix multiple issues related to saving unused path areas after missions",
+    .Credit      = "Contributors"
+};
 };
