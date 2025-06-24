@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 
 #include "TaskComplexWander.h"
 #include "Ped.h"
