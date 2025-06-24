@@ -265,7 +265,7 @@ public:
     static RpAtomic* SetAtomicAlphaCB(RpAtomic* atomic, void* data);
     static RpMaterial* SetMaterialAlphaCB(RpMaterial* material, void* data);
 
-    [[nodiscard]] bool IsPhysical() const { return m_nType > ENTITY_TYPE_BUILDING && m_nType < ENTITY_TYPE_DUMMY; }
+    [[nodiscard]] bool IsPhysical() const { return m_nType > ENTITY_TYPE_BUILDING && m_nType < ENTITY_TYPE_DUMMY; } // 0x4DA030
     [[nodiscard]] bool IsNothing()  const { return m_nType == ENTITY_TYPE_NOTHING; }
     [[nodiscard]] bool IsVehicle()  const { return m_nType == ENTITY_TYPE_VEHICLE; }
     [[nodiscard]] bool IsPed()      const { return m_nType == ENTITY_TYPE_PED; }

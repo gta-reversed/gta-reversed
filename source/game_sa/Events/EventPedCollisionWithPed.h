@@ -7,7 +7,7 @@
 
 class NOTSA_EXPORT_VTABLE CEventPedCollisionWithPed : public CEvent {
 public:
-    int16                       m_pieceType;
+    uint16                      m_pieceType;
     char                        field_E[2];
     float                       m_damageIntensity;
     CPed*                       m_victim;
@@ -17,7 +17,7 @@ public:
     notsa::WEnumS16<eMoveState> m_victimMoveState;
 
 public:
-    CEventPedCollisionWithPed(int16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState);
+    CEventPedCollisionWithPed(uint16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState);
     ~CEventPedCollisionWithPed() override;
 
     eEventType GetEventType() const override { return EVENT_PED_COLLISION_WITH_PED; };
@@ -32,7 +32,7 @@ public:
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
-    CEventPedCollisionWithPed* Constructor(int16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState);
+    CEventPedCollisionWithPed* Constructor(uint16 pieceType, float damageIntensity, CPed* victim, const CVector& collisionImpactVelocity, const CVector& collisionPos, eMoveState moveState, eMoveState victimMoveState);
 
 };
 VALIDATE_SIZE(CEventPedCollisionWithPed, 0x34);
