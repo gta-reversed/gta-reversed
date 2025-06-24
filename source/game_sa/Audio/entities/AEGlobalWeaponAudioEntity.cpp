@@ -66,15 +66,18 @@ void CAEGlobalWeaponAudioEntity::ProjectileFire(eWeaponType weaponType, CPhysica
 
     const auto PlayRocketSound = [&](eSoundBankSlot bankSlotID, eSoundID soundID, float speedMult, float volumeOffsetdB) {
         AESoundManager.PlaySound({
-            .BankSlotID = bankSlotID,
-            .SoundID = soundID,
-            .AudioEntity = this,
-            .Pos = physical->GetPosition(),
-            .Volume = GetDefaultVolume(event) + volumeOffsetdB,
-            .RollOffFactor = 3.0f,
-            .Speed = gfRocketFrequencyVariations[m_FrequencyVariation] * speedMult,
-            .Flags = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY,
-            .FrequencyVariance = 0.02f,
+            .BankSlotID         = bankSlotID,
+            .SoundID            = soundID,
+            .AudioEntity        = this,
+            .Pos                = physical->GetPosition(),
+            .Volume             = GetDefaultVolume(event) + volumeOffsetdB,
+            .RollOffFactor      = 3.0f,
+            .Speed              = gfRocketFrequencyVariations[m_FrequencyVariation] * speedMult,
+            .Doppler            = 1.0f,
+            .FrameDelay         = 0,
+            .Flags              = SOUND_LIFESPAN_TIED_TO_PHYSICAL_ENTITY,
+            .FrequencyVariance  = 0.02f,
+            .PlayTime           = 0,
             .RegisterWithEntity = physical
         });
     };

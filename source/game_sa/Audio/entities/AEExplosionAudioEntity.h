@@ -10,7 +10,7 @@
 
 class NOTSA_EXPORT_VTABLE CAEExplosionAudioEntity : public CAEAudioEntity {
 public:
-    uint32 m_Speed;
+    uint32 m_Speed{};
 
 public:
     static void InjectHooks();
