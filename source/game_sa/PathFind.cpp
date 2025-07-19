@@ -611,11 +611,11 @@ void CPathFind::SwitchRoadsOffInAreaForOneRegion(float xMin, float xMax, float y
 
         SwitchOffNodeAndNeighbours(&node, next1, &next2, bSwitchOff, bBackToOriginal);
 
-        while (const auto nextNode = next1) {
-            SwitchOffNodeAndNeighbours(nextNode, next1, nullptr, bSwitchOff, bBackToOriginal);
+        for (auto iter = next1; iter;) {
+            SwitchOffNodeAndNeighbours(iter, iter, nullptr, bSwitchOff, bBackToOriginal);
         }
-        while (const auto nextNode = next2) {
-            SwitchOffNodeAndNeighbours(nextNode, next2, nullptr, bSwitchOff, bBackToOriginal);
+        for (auto iter = next2; iter;) {
+            SwitchOffNodeAndNeighbours(iter, iter, nullptr, bSwitchOff, bBackToOriginal);
         }
     }
 }
