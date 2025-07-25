@@ -4,6 +4,10 @@
 #include "VideoMode.h"
 #include "app/app.h"
 
+#define RW_MEMORY_FUNCTIONS_PTR 0x8D6228
+static const RwMemoryFunctions* g_rwMemFuncs = reinterpret_cast<const RwMemoryFunctions*>(RW_MEMORY_FUNCTIONS_PTR);
+
+
 void RsInjectHooks() {
     RH_ScopedNamespaceName("Rs");
     RH_ScopedCategoryGlobal();
@@ -38,7 +42,7 @@ void RsInjectHooks() {
 }
 
 static std::array<uint8, 256>& KeysShifted = *(std::array<uint8, 256>*)0x8D2D00;
-static std::array<uint8, 256>& KeysNormal = *(std::array<uint8, 256>*)0x8D2C00;
+static std::array<uint8, 256>& KeysNormal  = *(std::array<uint8, 256>*)0x8D2C00;
 
 // 0x6193F0
 uint8 RsKeyFromScanCode(uint8 scan, int32 shiftKeyDown) {
@@ -107,15 +111,15 @@ int32 RsInputDeviceAttach(RsInputDeviceType type, RsInputEventHandler eventHandl
     switch (type) {
     case rsKEYBOARD:
         RsGlobal.keyboard.inputEventHandler = eventHandler;
-        RsGlobal.keyboard.used = true;
+        RsGlobal.keyboard.used              = true;
         break;
     case rsMOUSE:
         RsGlobal.mouse.inputEventHandler = eventHandler;
-        RsGlobal.mouse.used = true;
+        RsGlobal.mouse.used              = true;
         break;
     case rsPAD:
         RsGlobal.pad.inputEventHandler = eventHandler;
-        RsGlobal.pad.used = true;
+        RsGlobal.pad.used              = true;
         break;
     default:
         return false;
@@ -187,23 +191,23 @@ void RsTerminate() {
 
 // 0x619600
 bool RsInitialize() {
-    RsGlobal.appName        = "GTA: San Andreas";
-    RsGlobal.maximumWidth   = DEFAULT_SCREEN_WIDTH;
-    RsGlobal.maximumHeight  = DEFAULT_SCREEN_HEIGHT;
-    RsGlobal.frameLimit     = APP_MAX_FPS;
-    RsGlobal.quit           = false;
+    RsGlobal.appName                    = "GTA: San Andreas";
+    RsGlobal.maximumWidth               = DEFAULT_SCREEN_WIDTH;
+    RsGlobal.maximumHeight              = DEFAULT_SCREEN_HEIGHT;
+    RsGlobal.frameLimit                 = APP_MAX_FPS;
+    RsGlobal.quit                       = false;
 
     RsGlobal.keyboard.inputDeviceType   = rsKEYBOARD;
     RsGlobal.keyboard.inputEventHandler = nullptr;
     RsGlobal.keyboard.used              = false;
 
-    RsGlobal.mouse.inputDeviceType   = rsMOUSE;
-    RsGlobal.mouse.inputEventHandler = nullptr;
-    RsGlobal.mouse.used              = false;
+    RsGlobal.mouse.inputDeviceType      = rsMOUSE;
+    RsGlobal.mouse.inputEventHandler    = nullptr;
+    RsGlobal.mouse.used                 = false;
 
-    RsGlobal.pad.inputDeviceType   = rsPAD;
-    RsGlobal.pad.inputEventHandler = nullptr;
-    RsGlobal.pad.used              = false;
+    RsGlobal.pad.inputDeviceType        = rsPAD;
+    RsGlobal.pad.inputEventHandler      = nullptr;
+    RsGlobal.pad.used                   = false;
 
     return psInitialize();
 }
@@ -231,35 +235,28 @@ void RsWarningMessage(const RwChar* msg) {
     psWarningMessage(msg);
 }
 
-/*
-static RwMemoryFunctions g_objMemFunctions = { // 0x8D6228
-    CMemoryMgr::Malloc,
-    CMemoryMgr::Free,
-    CMemoryMgr::Realloc,
-    CMemoryMgr::Calloc
-};
-*/
-
 // 0x745510
-RwMemoryFunctions* psGetMemoryFunctions() {
-    return plugin::CallAndReturn<RwMemoryFunctions*, 0x745510>();
-    // return &g_objMemFunctions;
+const RwMemoryFunctions* psGetMemoryFunctions() {
+    return g_rwMemFuncs;
 }
 
 // 0x619C90
 bool RsRwInitialize(void* param) { // Win32: Param is HWND
-    if (!RwEngineInit(psGetMemoryFunctions(), 0, rsRESOURCESDEFAULTARENASIZE))
+    if (!RwEngineInit(psGetMemoryFunctions(), 0, rsRESOURCESDEFAULTARENASIZE)) {
         return false;
+    }
 
     AppEventHandler(rsINITDEBUG, nullptr);
     psInstallFileSystem();
-    if (!AppEventHandler(rsPLUGINATTACH, nullptr))
+    if (!AppEventHandler(rsPLUGINATTACH, nullptr)) {
         return false;
+    }
 
-    if (!AppEventHandler(rsINPUTDEVICEATTACH, nullptr))
+    if (!AppEventHandler(rsINPUTDEVICEATTACH, nullptr)) {
         return false;
+    }
 
-    RwEngineOpenParams openParams = {.displayID = param};
+    RwEngineOpenParams openParams = { .displayID = param };
     if (!RwEngineOpen(&openParams)) {
         RwEngineTerm();
         return false;
@@ -291,11 +288,13 @@ bool RsRwInitialize(void* param) { // Win32: Param is HWND
 RsEventStatus RsEventHandler(RsEvent event, void* param) {
     RsEventStatus result = AppEventHandler(event, param);
 
-    if (event == rsQUITAPP)
+    if (event == rsQUITAPP) {
         RsGlobal.quit = true;
+    }
 
-    if (result != rsEVENTNOTPROCESSED)
+    if (result != rsEVENTNOTPROCESSED) {
         return result;
+    }
 
     switch (event) {
     case rsCOMMANDLINE:
@@ -306,7 +305,7 @@ RsEventStatus RsEventHandler(RsEvent event, void* param) {
     case rsREGISTERIMAGELOADER:
         return rsEVENTPROCESSED;
 
-    case rsRWINITIALIZE: // Win32: Param is HWND 
+    case rsRWINITIALIZE: // Win32: Param is HWND
         return RSEVENT_SUCCEED(RsRwInitialize(param));
 
     case rsRWTERMINATE:

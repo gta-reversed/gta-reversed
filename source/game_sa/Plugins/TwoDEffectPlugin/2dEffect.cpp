@@ -1,4 +1,9 @@
 #include "StdInc.h"
+typedef RwStream*(__cdecl* Rwt2dEffectPluginDataChunkRead_t)(RwStream*, RwInt32, void*, RwInt32, RwInt32);
+constexpr uintptr_t RWT2D_EFFECT_PLUGIN_DATA_CHUNK_READ_ADDR = 0x6F9FD0;
+
+Rwt2dEffectPluginDataChunkRead_t CallRwt2dEffectPluginDataChunkRead =
+    reinterpret_cast<Rwt2dEffectPluginDataChunkRead_t>(RWT2D_EFFECT_PLUGIN_DATA_CHUNK_READ_ADDR);
 
 uint32& C2dEffect::g2dEffectPluginOffset = *(uint32*)0xC3A1E0;
 uint32& C2dEffect::ms_nTxdSlot = *(uint32*)0x8D4948;
@@ -179,10 +184,9 @@ void* t2dEffectPluginCopyConstructor(void* dstObject, const void* srcObject, RwI
     return dstObject;
 }
 
-RwStream* Rwt2dEffectPluginDataChunkReadCallBack(RwStream* stream, RwInt32 binaryLength, void* object, RwInt32 offsetInObject, RwInt32 sizeInObject)
-{
-    return plugin::CallAndReturn<RwStream*, 0x6F9FD0, RwStream*, RwInt32, const void*, RwInt32, RwInt32>
-        (stream, binaryLength, object, offsetInObject, sizeInObject);
+RwStream* Rwt2dEffectPluginDataChunkReadCallBack(RwStream* stream,RwInt32   binaryLength,void* object,RwInt32 offsetInObject,RwInt32   sizeInObject
+) {
+    return CallRwt2dEffectPluginDataChunkRead(stream, binaryLength, object, offsetInObject, sizeInObject);
 }
 
 RwStream* Rwt2dEffectPluginDataChunkWriteCallBack(RwStream* stream, RwInt32 binaryLength, const void* object, RwInt32 offsetInObject, RwInt32 sizeInObject)
