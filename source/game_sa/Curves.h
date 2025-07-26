@@ -16,14 +16,10 @@ class CCurves {
 
     /// Calculate the smallest distance needed for two mathematical lines to cross.
     ///
-    /// \param LineBaseX The x-coordinate of the first line's base point.
-    /// \param LineBaseY The y-coordinate of the first line's base point.
-    /// \param LineDirX The x-component of the first line's direction vector.
-    /// \param LineDirY The y-component of the first line's direction vector.
-    /// \param OtherLineBaseX The x-coordinate of the other line's base point.
-    /// \param OtherLineBaseY The y-coordinate of the other line's base point.
-    /// \param OtherLineDirX The x-component of the other line's direction vector.
-    /// \param OtherLineDirY The y-component of the other line's direction vector.
+    /// \param lineBase The coordinates of the first line's base point.
+    /// \param lineDir The coordinates of the first line's direction vector.
+    /// \param otherLineBase The coordinates of the other line's base point.
+    /// \param otherLineDir The coordinates of the other line's direction vector.
     ///
     /// \return The distance along the first line to the point where it crosses the other line.
     ///         Returns -1.0 if the lines are parallel and do not intersect.
