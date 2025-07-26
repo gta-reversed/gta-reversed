@@ -318,7 +318,6 @@ bool CPathFind::GeneratePedCreationCoors_Interior(
     return true;
 }
 
-
 // 0x44D480
 bool CPathFind::TestForPedTrafficLight(CNodeAddress startNodeAddress, CNodeAddress targetNodeAddress) {
     const auto intersect = FindIntersection(startNodeAddress, targetNodeAddress);
@@ -396,7 +395,6 @@ CNodeAddress CPathFind::FindNthNodeClosestToCoors( CVector pos,uint8 nodeType,fl
     return result;
 }
 
-
 // 0x451B70
 void CPathFind::FindNextNodeWandering(uint8 nodeType,CVector vecPos,CNodeAddress* originAddress,CNodeAddress* targetAddress,uint8 dir,uint8* outDir) {
     if (!originAddress || !originAddress->IsValid()) {
@@ -439,7 +437,6 @@ void CPathFind::FindNextNodeWandering(uint8 nodeType,CVector vecPos,CNodeAddress
         *outDir = 0;
     }
 }
-
 
 // 0x4515D0
 void CPathFind::DoPathSearch(

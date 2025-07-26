@@ -4,10 +4,6 @@
 #include "VideoMode.h"
 #include "app/app.h"
 
-#define RW_MEMORY_FUNCTIONS_PTR 0x8D6228
-static const RwMemoryFunctions* g_rwMemFuncs = reinterpret_cast<const RwMemoryFunctions*>(RW_MEMORY_FUNCTIONS_PTR);
-
-
 void RsInjectHooks() {
     RH_ScopedNamespaceName("Rs");
     RH_ScopedCategoryGlobal();
@@ -237,7 +233,8 @@ void RsWarningMessage(const RwChar* msg) {
 
 // 0x745510
 const RwMemoryFunctions* psGetMemoryFunctions() {
-    return g_rwMemFuncs;
+    // Returns the RenderWare memory functions table pointer (static address for this version)
+    return reinterpret_cast<const RwMemoryFunctions*>(0x8D6228);
 }
 
 // 0x619C90

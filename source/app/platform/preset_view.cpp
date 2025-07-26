@@ -178,7 +178,6 @@ void RsLoadPresetViews() {
     CurrentPresetView = -1;
 }
 
-
 // 0x619FA0
 void RsSavePresetView() {
     if (!PresetViews || NumPresetViews == 0) {
