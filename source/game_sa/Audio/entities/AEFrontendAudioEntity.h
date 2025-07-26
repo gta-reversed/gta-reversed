@@ -8,8 +8,8 @@ protected:
     bool                   m_bAmplifierWakeUp;
     uint8                  m_nbLoadingTuneSeed;
     int16                  m_f7E; // unused
-    int16                  m_nNumBulletSounds;
-    int16                  m_nBankId;
+    int16                  m_BulletPassCount;
+    eSoundBank             m_BulletPassBank;
     uint32                 m_nLastFrameGeneral_or_nFrameCount;
     uint32                 m_nLastFrameMissionComplete;
     uint32                 m_nLastFrameBulletPass;

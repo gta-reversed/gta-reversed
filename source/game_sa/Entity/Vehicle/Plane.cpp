@@ -368,8 +368,8 @@ void CPlane::SwitchAmbientPlanes(bool enable) {
 }
 
 // 0x6CD090
-void CPlane::FindPlaneCreationCoors(CVector* center, CVector* playerCoords, float* outHeading, float* outHeight, bool arg4) {
-    plugin::Call<0x6CD090, CVector*, CVector*, float*, float*, bool>(center, playerCoords, outHeading, outHeight, arg4);
+void CPlane::FindPlaneCreationCoors(CVector* outCoors, CVector* outTargetCoors, float* outPlaneOrientation, float* outFlightHeight, bool isBigPlane) {
+    plugin::Call<0x6CD090, CVector*, CVector*, float*, float*, bool>(outCoors, outTargetCoors, outPlaneOrientation, outFlightHeight, isBigPlane);
 }
 
 // 0x6CD2F0
@@ -424,17 +424,17 @@ void CPlane::ProcessControl() {
 
     CAutomobile::ProcessControl();
 
-    m_vehicleAudio.field_7C = static_cast<int16>(field_9A0);
+    m_vehicleAudio.m_DoCountStalls = static_cast<int16>(field_9A0);
     if (field_9A0) {
         field_9A0 = 0;
     }
 
     CVehicle::ProcessWeapons();
     if (m_nModelIndex == MODEL_VORTEX) {
-        m_aWheelState[0] = WHEEL_STATE_NORMAL;
-        m_aWheelState[1] = WHEEL_STATE_NORMAL;
-        m_aWheelState[2] = WHEEL_STATE_NORMAL;
-        m_aWheelState[3] = WHEEL_STATE_NORMAL;
+        m_WheelStates[0] = WHEEL_STATE_NORMAL;
+        m_WheelStates[1] = WHEEL_STATE_NORMAL;
+        m_WheelStates[2] = WHEEL_STATE_NORMAL;
+        m_WheelStates[3] = WHEEL_STATE_NORMAL;
     }
 
     if (m_pSmokeParticle) {

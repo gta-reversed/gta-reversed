@@ -42,10 +42,9 @@ public:
     /// Get a normalized copy of this vector
     auto Normalized(float* outMag = nullptr) const -> CVector {
         CVector cpy = *this;
+        const float mag = cpy.NormaliseAndMag();
         if (outMag) {
-            *outMag = cpy.NormaliseAndMag();
-        } else {
-            cpy.Normalise();
+            *outMag = mag;
         }
         return cpy;
     }
@@ -176,11 +175,11 @@ public:
     * @notsa
     * @return Make all component's values absolute (positive).
     */
-    static friend CVector abs(CVector vec) {
+    constexpr friend CVector abs(CVector vec) {
         return { std::abs(vec.x), std::abs(vec.y), std::abs(vec.z) };
     }
 
-    static friend CVector pow(CVector vec, float power) {
+    constexpr friend CVector pow(CVector vec, float power) {
         return { std::pow(vec.x, power), std::pow(vec.y, power), std::pow(vec.z, power) };
     }
     

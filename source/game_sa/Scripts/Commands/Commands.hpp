@@ -7,6 +7,7 @@ namespace basic { void RegisterHandlers(); };
 namespace camera { void RegisterHandlers(); };
 namespace character { void RegisterHandlers(); };
 namespace clock { void RegisterHandlers(); };
+namespace conversation { void RegisterHandlers(); };
 namespace comparasion { void RegisterHandlers(); };
 namespace game { void RegisterHandlers(); };
 namespace generic { void RegisterHandlers(); };

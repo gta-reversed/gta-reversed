@@ -176,8 +176,8 @@ void CPlayerPed::RemovePlayerPed(int32 playerId) {
         if (playerVehicle && playerVehicle->m_pDriver == player)
         {
             playerVehicle->m_nStatus = STATUS_PHYSICS;
-            playerVehicle->m_fGasPedal = 0.0f;
-            playerVehicle->m_fBreakPedal = 0.1f;
+            playerVehicle->m_GasPedal = 0.0f;
+            playerVehicle->m_BrakePedal = 0.1f;
         }
         CWorld::Remove(static_cast<CEntity*>(player));
         delete player;
@@ -785,24 +785,26 @@ void CPlayerPed::DrawTriangleForMouseRecruitPed() {
 }
 
 // 0x60C0C0
-bool CPlayerPed::DoesTargetHaveToBeBroken(CEntity* entity, CWeapon* weapon) {
-    if (entity->m_bIsVisible)
+bool CPlayerPed::DoesTargetHaveToBeBroken(CEntity* target, CWeapon* weapon) {
+    if (!target->m_bIsVisible) {
         return true;
+    }
 
-    if (weapon->GetWeaponInfo(this).m_fTargetRange < (entity->GetPosition() - GetPosition()).Magnitude())
+    if (weapon->GetWeaponRange(this, target) < (target->GetPosition() - GetPosition()).Magnitude()) {
         return true;
+    }
 
     if (weapon->m_Type == eWeaponType::WEAPON_SPRAYCAN) {
-        if (entity->IsBuilding()) {
-            if (CTagManager::IsTag(entity)) {
-                if (CTagManager::GetAlpha(entity) == 255) { // they probably used -1
+        if (target->IsBuilding()) {
+            if (CTagManager::IsTag(target)) {
+                if (CTagManager::GetAlpha(target) == 255) { // they probably used -1
                     return true;
                 }
             }
         }
     }
 
-    return CanIKReachThisTarget(entity->GetPosition(), weapon, false);
+    return !CanIKReachThisTarget(target->GetPosition(), weapon, false);
 }
 
 // 0x60C1E0

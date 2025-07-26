@@ -27,7 +27,7 @@ void CTheScripts::InjectHooks() {
     RH_ScopedClass(CTheScripts);
     RH_ScopedCategory("Scripts");
 
-    RH_ScopedInstall(Init, 0x468D50, {.enabled = false });
+    RH_ScopedInstall(Init, 0x468D50);
     RH_ScopedInstall(InitialiseAllConnectLodObjects, 0x470960);
     RH_ScopedInstall(InitialiseConnectLodObjects, 0x470940);
     RH_ScopedInstall(InitialiseSpecialAnimGroupsAttachedToCharModels, 0x474730);
@@ -136,6 +136,7 @@ void CTheScripts::Init() {
             notsa::format_to_sz(scrFile, "MPACK//MPACK{:d}//SCR.SCM", CGame::bMissionPackGame);
 
             if (auto f = notsa::File(scrFile, "rb"); f && f.Read(ScriptSpace.data(), MAIN_SCRIPT_SIZE) >= 1) {
+                TheText.Load(false);
                 break;
             }
         }

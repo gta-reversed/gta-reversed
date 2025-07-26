@@ -113,6 +113,7 @@ void CRunningScript::InjectCustomCommandHooks() {
     c::vehicle::RegisterHandlers();
     c::zone::RegisterHandlers();
     c::stat::RegisterHandlers();
+    c::conversation::RegisterHandlers();
 
 #ifdef NOTSA_WITH_CLEO_SCRIPT_COMMANDS
     cleo::audiostream::RegisterHandlers();

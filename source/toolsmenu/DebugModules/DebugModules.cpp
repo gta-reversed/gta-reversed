@@ -11,7 +11,8 @@
 #include "Script/MissionDebugModule.h"
 #include "Audio/CutsceneTrackManagerDebugModule.h"
 #include "Audio/AmbienceTrackManagerDebugModule.h"
-#include "Audio/PoliceScannerAudioEntityDebugModule.h"
+#include "Audio/Entities/PoliceScannerAudioEntityDebugModule.h"
+#include "Audio/Entities/VehicleAudioEntityDebugModule.hpp"
 #include "Audio/UserRadioTrackDebugModule.h"
 #include "CStreamingDebugModule.h"
 #include "CPickupsDebugModule.h"
@@ -25,7 +26,7 @@
 #include "CullZonesDebugModule.h"
 #include "TextDebugModule.h"
 #include "ProcObjectDebugModule.h"
-#include "Spawner/SpawnerDebugModule.hpp"
+#include "SpawnerDebugModule.hpp"
 #include "ImGuiDebugModule.hpp"
 #include "ScriptDebugModule.hpp"
 #include "CloudsDebugModule.hpp"
@@ -36,6 +37,7 @@
 #include "TwoDEffectsDebugModule.hpp"
 #include "VehicleInfoDebugModule.h"
 #include "CoverPointsDebugModule.hpp"
+#include "Audio/AudioDebugModule.hpp"
 
 DebugModules::DebugModules(ImGuiContext* ctx) :
     m_ImCtx(ctx)
@@ -105,6 +107,8 @@ void DebugModules::CreateModules() {
     Add<DarkelDebugModule>();
     Add<CPickupsDebugModule>();
     Add<PoliceScannerAudioEntityDebugModule>();
+    Add<notsa::debugmodules::VehicleAudioEntityDebugModule>();
+    Add<notsa::debugmodules::AudioDebugModule>();
     Add<AmbienceTrackManagerDebugModule>();
     Add<CutsceneTrackManagerDebugModule>();
     Add<UserRadioTrackDebugModule>();

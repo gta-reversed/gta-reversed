@@ -587,9 +587,10 @@ void CCoronas::RegisterCorona(uint32 id, CEntity* attachTo, uint8 red, uint8 gre
 // 0x6FC4D0
 void CCoronas::UpdateCoronaCoors(uint32 id, const CVector& posn, float farClip, float angle) {
     if (sq(farClip) >= (TheCamera.GetPosition() - posn).SquaredMagnitude2D()) {
-        auto* corona = GetCoronaByID(id);
-        corona->m_vPosn = posn;
-        corona->m_fAngle = angle;
+        if (auto* const corona = GetCoronaByID(id)) {
+            corona->m_vPosn = posn;
+            corona->m_fAngle = angle;
+        }
     }
 }
 

@@ -223,7 +223,7 @@ void CDarkel::ResetModelsKilledByPlayer(int32 playerId) {
 }
 
 // 0x43D6C0
-int16 CDarkel::QueryModelsKilledByPlayer(int32 modelId, int32 playerId) {
+int16 CDarkel::QueryModelsKilledByPlayer(eModelID modelId, int32 playerId) {
     return RegisteredKills[modelId][playerId];
 }
 

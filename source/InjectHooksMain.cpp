@@ -166,6 +166,8 @@
 #include "PedIK.h"
 #include "HandShaker.h"
 #include "TempColModels.h"
+#include "Conversations.h"
+#include "DecisionMakers/DecisionMakerTypesFileLoader.h"
 
 // Plant
 #include "PlantMgr.h"
@@ -621,9 +623,14 @@ void InjectHooksMain() {
     CKeyboardState::InjectHooks();
     CMouseControllerState::InjectHooks();
     CRect::InjectHooks();
-    CVector2D::InjectHooks();
-    CQuaternion::InjectHooks();
-    CMatrix::InjectHooks();
+
+    /******* Don't hook these, performance is bad ********
+    /* CVector::InjectHooks();
+    /* CVector2D::InjectHooks();
+    /* CQuaternion::InjectHooks();
+    /* CMatrix::InjectHooks();
+    /****************************************************/
+
     CMatrixLink::InjectHooks();
     CMatrixLinkList::InjectHooks();
     CEntryInfoNode::InjectHooks();
@@ -731,6 +738,7 @@ void InjectHooksMain() {
     CGangWars::InjectHooks();
     CPlayerPedData::InjectHooks();
     CTimeCycle::InjectHooks();
+    CColourSet::InjectHooks();
     CSkidmarks::InjectHooks();
     CMovingThings::InjectHooks();
     CRoadBlocks::InjectHooks();
@@ -813,6 +821,7 @@ void InjectHooksMain() {
     CCustomBuildingRenderer::InjectHooks();
     CCustomBuildingDNPipeline::InjectHooks();
     CCustomCarEnvMapPipeline::InjectHooks();
+    CConversations::InjectHooks();
 
     const auto Pools = [] {
         CPools::InjectHooks();

@@ -303,7 +303,7 @@ public:
     uint8               m_nActiveWeaponSlot;
     uint8               m_nWeaponShootingRate;
     uint8               m_nWeaponAccuracy;
-    CEntity*            m_pTargetedObject;
+    CEntity*            m_pTargetedObject; // lock-on target
     int32               field_720;
     int32               field_724;
     int32               field_728;
@@ -547,6 +547,7 @@ public:
     CWeapon& GetActiveWeapon() noexcept { return GetWeaponInSlot(m_nActiveWeaponSlot); }
     CWeapon& GetWeapon(eWeaponType wt) noexcept { return GetWeaponInSlot(GetWeaponSlot(wt)); }
 
+    eWeaponType GetSavedWeapon() const { return m_nSavedWeapon; }
     void SetSavedWeapon(eWeaponType weapon) { m_nSavedWeapon = weapon; }
     bool IsStateDriving() const noexcept { return m_nPedState == PEDSTATE_DRIVING; }
     bool IsStateDead() const noexcept { return m_nPedState == PEDSTATE_DEAD; }
