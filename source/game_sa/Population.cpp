@@ -1783,20 +1783,35 @@ void CPopulation::ManageAllPopulation() {
 void CPopulation::ManagePopulation() {
     ZoneScoped;
 
-    // TODO: Implement original `framecounter % 32` pool splitting logic
-    //       It's just a perf optimization, so I didn't bother
-
     const auto& center = FindPlayerCentreOfWorld();
+    // It's just a perf optimization
+    const uint32_t frameSlice = CTimer::m_FrameCounter % 32;
     {
         ZoneScopedN("Manage Objects");
-        for (auto& obj : GetObjectPool()->GetAllValid()) {
-            ManageObject(&obj, center);
+        auto* pool = GetObjectPool();
+        const auto poolSize = pool->GetSize();
+        const auto startIdx = (poolSize * frameSlice) / 32;
+        const auto endIdx = (poolSize * (frameSlice + 1)) / 32;
+        for (auto i = startIdx; i < endIdx; ++i) {
+            if (pool->IsFreeSlotAtIndex(i)) {
+                if (auto* obj = pool->GetAt(i)) {
+                    ManageObject(obj, center);
+                }
+            }
         }
     }
     {
         ZoneScopedN("Manage Dummies");
-        for (auto& dummy : GetDummyPool()->GetAllValid()) {
-            ManageDummy(&dummy, center);
+        auto* pool = GetDummyPool();
+        const auto poolSize = pool->GetSize();
+        const auto startIdx = (poolSize * frameSlice) / 32;
+        const auto endIdx   = (poolSize * (frameSlice + 1)) / 32;
+        for (auto i = startIdx; i < endIdx; ++i) {
+            if (pool->IsFreeSlotAtIndex(i)) {
+                if (auto* dummy = pool->GetAt(i)) {
+                    ManageDummy(dummy, center);
+                }
+            }
         }
     }
     {

@@ -1,5 +1,5 @@
+#include "StdInc.h"
 #include "Curves.h"
-#include "common.h"
 
 void CCurves::InjectHooks() {
     RH_ScopedClass(CCurves);
@@ -16,62 +16,79 @@ void CCurves::InjectHooks() {
 // 0x43C610 - inlined
 // Modified to use CVector2D instead of individual floats
 float CCurves::DistForLineToCrossOtherLine(CVector2D lineBase, CVector2D lineDir, CVector2D otherLineBase, CVector2D otherLineDir) {
-    if (const auto crossAB = lineDir.Cross(otherLineDir); crossAB != 0.0f) {
-        return (lineBase - otherLineBase).Cross(otherLineDir) * (-1.0f / crossAB);
+    const auto dist = (lineBase - otherLineBase).Cross(otherLineDir);
+    const auto dir = lineDir.Cross(otherLineDir);
+    if (dir == 0.0f) {
+        return -1.0f;
     }
-    return -1.0f;
+    float distOfCrossing = -dist / dir;
+    return distOfCrossing;
 }
 
 // 0x43C660 - inlined
 // Modified to use CVector2D for direction parameters
-float CCurves::CalcSpeedVariationInBend(const CVector &startCoors, const CVector &endCoors, const CVector2D StartDir, const CVector2D EndDir) {
-    // Calculate dot product between direction vectors
-    float dotProduct = StartDir.Dot(EndDir);
-
+float CCurves::CalcSpeedVariationInBend(const CVector& startCoors, const CVector& endCoors, CVector2D startDir, CVector2D endDir) {
+    float returnVal;
+    float dotProduct = startDir.Dot(endDir);
     if (dotProduct <= 0.0f) {
-        return ONE_THIRD;
+        returnVal = ONE_THIRD;
     } else if (dotProduct <= 0.7f) {
-        return (dotProduct / -0.7f) * ONE_THIRD + ONE_THIRD;
+        // If the dot product is <= 0.7, interpolate the return value
+        returnVal = (1.0f - dotProduct / 0.7f) * ONE_THIRD;
+    } else {
+        // Calculate the distance from the start point to the mathematical line defined by the end point and direction
+        float distToLine = CCollision::DistToMathematicalLine2D(endCoors.x, endCoors.y,
+            endDir.x, endDir.y,
+            startCoors.x, startCoors.y);
+        float straightDist = (startCoors - endCoors).Magnitude2D();
+
+        // Normalize the distance to the line by the straight-line distance
+        returnVal = (distToLine / straightDist) * ONE_THIRD;
     }
 
-    // Calculate distance from a line to a point, scaled by the distance between endpoints
-    return (CCollision::DistToMathematicalLine2D(endCoors.x, endCoors.y, EndDir.x, EndDir.y, startCoors.x, startCoors.y) / (startCoors - endCoors).Magnitude2D()) * ONE_THIRD;
+    return returnVal;
 }
 
 // 0x43C880 - inlined
-float CCurves::CalcCorrectedDist(float current, float total, float speedVariation, float &pInterPol) {
-    if (total >= EPSILON) {
-        // Calculate corrected distance using sine wave variation
-        float correctedDist = (total / TWO_PI * speedVariation * std::sin(current * TWO_PI / total)) + (((1.0f - 2.0f * speedVariation) * 0.5f + 0.5f) * current);
-        // Calculate interpolation parameter using cosine
-        pInterPol = 0.5f - (std::cos(current / total * PI) * 0.5f);
-        return correctedDist;
-    } else {
+float CCurves::CalcCorrectedDist(float current, float total, float speedVariation, float* pInterPol) {
+    if (total < EPSILON) {
         // Handle case when total distance is too small
-        pInterPol = 0.5f;
+        *pInterPol = 0.5f;
         return 0.0f;
+    }
+
+    float AverageSpeed = (total / TWO_PI) * speedVariation;
+    float CorrectedDist = ((1.0f + speedVariation * -2.0f) * 0.5f + 0.5f) * current +
+                      (AverageSpeed * sinf((current * TWO_PI) / total));
+
+    float interp = 0.5f - (cosf((current / total) * PI) * 0.5f);
+
+    *pInterPol = interp;
+    return CorrectedDist;
+}
+
+// 0x43C710
+float CCurves::CalcSpeedScaleFactor(const CVector &startCoors, const CVector &endCoors, const CVector2D startDir, const CVector2D endDir) {
+    // Calculate intersection distances for both lines
+    float distOne = DistForLineToCrossOtherLine(startCoors, startDir, endCoors, endDir);
+    float distTwo = DistForLineToCrossOtherLine(endCoors, endDir, startCoors, startDir);
+    if (distOne <= 0.0f || distTwo >= 0.0f) {
+        return (startCoors - endCoors).Magnitude2D() / (1.0f - CalcSpeedVariationInBend(startCoors, endCoors, startDir, endDir));
+    } else {
+        return distOne - distTwo;
     }
 }
 
-// 0x43C710 - not inlined
-float CCurves::CalcSpeedScaleFactor(const CVector &startCoors, const CVector &endCoors, const CVector2D StartDir, const CVector2D EndDir) {
-    // Calculate intersection distances for both lines
-    float distOne = DistForLineToCrossOtherLine(CVector2D(startCoors.x, startCoors.y), StartDir, CVector2D(endCoors.x, endCoors.y), EndDir);
-    float distTwo = DistForLineToCrossOtherLine(CVector2D(endCoors.x, endCoors.y), EndDir, CVector2D(startCoors.x, startCoors.y), StartDir);
-    return (distOne <= 0.0f || distTwo >= 0.0f) ? std::hypot(startCoors.x - endCoors.x, startCoors.y - endCoors.y) / (1.0f - CalcSpeedVariationInBend(startCoors, endCoors, StartDir, EndDir)) : distOne - distTwo;
-}
-
-// 0x43C900 - not inlined
-void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors, const CVector &startDir, const CVector &endDir, float time, int32 traversalTimeInMillis, CVector &resultCoor, CVector &resultSpeed) {
-    
+// 0x43C900
+void CCurves::CalcCurvePoint(const CVector& startCoors, const CVector& endCoors, const CVector& startDir, const CVector& endDir, float time, int32 traversalTimeInMillis, CVector& resultCoor, CVector& resultSpeed) {
     float scaleFactor, interpFactor;
+
+    // Clamp time between 0 and 1
+    time = std::clamp(time, 0.0f, 1.0f);
 
     // Calculate intersection parameters - Already check zero
     float distToCrossA = DistForLineToCrossOtherLine(CVector2D(startCoors), CVector2D(startDir), CVector2D(endCoors), CVector2D(endDir));
     float distToCrossB = -DistForLineToCrossOtherLine(CVector2D(endCoors), CVector2D(endDir), CVector2D(startCoors), CVector2D(startDir));
-
-    // Clamp time between 0 and 1
-    time = std::clamp(time, 0.0f, 1.0f);
 
     // If rays don't intersect properly, fall back to a simpler curved path approximation
     // This happens when the directions would never cross or are almost parallel
@@ -80,7 +97,7 @@ void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors,
         const float speedVariation = CalcSpeedVariationInBend(startCoors, endCoors, CVector2D(startDir), CVector2D(endDir));
         scaleFactor = (startCoors - endCoors).Magnitude2D();
         const float speedScale = scaleFactor / (1.0f - speedVariation);
-        const auto correctedDist = CalcCorrectedDist(time * speedScale, speedScale, speedVariation, interpFactor);
+        const auto correctedDist = CalcCorrectedDist(time * speedScale, speedScale, speedVariation, &interpFactor);
         resultCoor = lerp((startCoors + startDir * correctedDist), (endCoors + endDir * (correctedDist - scaleFactor)), interpFactor);
     } else {
         // For properly intersecting rays, create a three-segment path:
@@ -107,7 +124,7 @@ void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors,
             // 3. Position is in the curved bend section - requires double interpolation
             //    First interpolate through the bend progress, then between the influenced points
             const float bendT = (currDist - straightDistA) / curveSegment;
-    
+
             // Blend between influence points that extendoutward
             // from the bend endpoints to create a curved path
             resultCoor = lerp(
@@ -116,7 +133,6 @@ void CCurves::CalcCurvePoint(const CVector &startCoors, const CVector &endCoors,
                 bendT
             );
         }
-
     }
 
     // We dont need lambda - scale the interpolated direction by scaleFactor/time
