@@ -127,8 +127,8 @@ void* RsGetPresetViewDescription() {
 
 // 0x619D60
 void RsLoadPresetViews() {
-    RsDestroyPresetViews(); // Liberar vistas antiguas
-    NumPresetViews = 0;     // Reiniciar contador
+    RsDestroyPresetViews(); // Release old views
+    NumPresetViews = 0;     // Reset counter
     FILE* file     = fopen(ViewsFileName, "rt");
     if (!file) {
         return;
@@ -182,16 +182,16 @@ void RsLoadPresetViews() {
 // 0x619FA0
 void RsSavePresetView() {
     if (!PresetViews || NumPresetViews == 0) {
-        return; // No hay vistas que guardar
+        return; // There are no views to save
     }
-    FILE* file = fopen(ViewsFileName, "wt"); // Abrir para escritura (texto)
+    FILE* file = fopen(ViewsFileName, "wt"); // Open for writing (text)
     if (!file) {
-        // Opcional: mostrar error o hacer log
+        // Optional: show error or log
         return;
     }
     PresetView* current = PresetViews;
     for (int i = 0; i < NumPresetViews && current != nullptr; i++, current = current->m_Next) {
-        // Formatear la línea igual que en el archivo original, con precisión y separación
+        // Format the line the same as in the original file, with precision and spacing
         fprintf(file, "%.6f %.6f %.6f %.6f %.6f %.6f %.6f %s\n", current->m_Translation.x, current->m_Translation.y, current->m_Translation.z, current->m_RotX, current->m_RotY, current->m_NearClip, current->m_FarClip, current->m_Description ? current->m_Description : "");
     }
     fclose(file);
