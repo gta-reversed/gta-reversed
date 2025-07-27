@@ -761,10 +761,43 @@ void CPathFind::MarkRoadNodeAsDontWander(float x, float y, float z) {
 }
 
 // 0x452820
-void CPathFind::SwitchRoadsOffInAreaForOneRegion(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax, bool bLowTraffic, uint8 nodeType, int32 areaId,
-                                                 uint8 bUnused) {
-    return plugin::CallMethod<0x452820, CPathFind*, float, float, float, float, float, float, bool, char, int32, bool>(this, xMin, xMax, yMin, yMax, zMin, zMax, bLowTraffic,
-                                                                                                                       nodeType, areaId, bUnused);
+void CPathFind::SwitchRoadsOffInAreaForOneRegion(float xMin,float xMax,float yMin,float yMax,float zMin,float zMax,bool bLowTraffic,uint8 nodeType,int32 areaId,uint8 bUnused)
+{
+    char* base      = reinterpret_cast<char*>(this);
+    char* nodeArray = *reinterpret_cast<char**>(base + 0x804 + 4 * nodeType);
+    int32 startIdx  = *reinterpret_cast<int32*>(base + 0x10C4 + 4 * nodeType);
+    int32 endIdx    = *reinterpret_cast<int32*>(base + 0xFA4 + 4 * nodeType);
+    if (!nodeArray || startIdx >= endIdx) {
+        return;
+    }
+
+    float scale = *reinterpret_cast<float*>(0x858C48);
+
+    for (int32 i = startIdx; i < endIdx; ++i) {
+        char* node  = nodeArray + i * 0x1C; 
+
+        float nodeX = static_cast<float>(*reinterpret_cast<short*>(node + 0x8)) * scale;
+        if (nodeX < xMin || nodeX > xMax) {
+            continue;
+        }
+
+        float nodeY = static_cast<float>(*reinterpret_cast<short*>(node + 0xA)) * scale;
+        if (nodeY < yMin || nodeY > yMax) {
+            continue;
+        }
+        bool pass = false;
+        if (bUnused) {
+            uint8 f1 = *reinterpret_cast<uint8*>(node + 0x18);
+            uint8 f2 = *reinterpret_cast<uint8*>(node + 0x19);
+            pass     = (((f1 >> 5) ^ f2) & 1) != 0;
+        } else {
+            uint8 f1 = *reinterpret_cast<uint8*>(node + 0x18);
+            pass     = ((f1 >> 5) & 1) == bLowTraffic;
+        }
+        if (!pass) {
+            continue;
+        }
+    }
 }
 
 // NOTSA
