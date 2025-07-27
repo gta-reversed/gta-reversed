@@ -121,7 +121,7 @@ void CTimeCycle::Initialise() {
                 &cloudAlpha, &highLightMinIntensity, &waterFogAlpha, &dirMult
             );
             if (n != 52 && n != 51) {
-                NOTSA_LOG_WARN("Bad timecyc line: '{}'", line); // TODO: fix
+                NOTSA_LOG_WARN("Bad timecyc line: '{}'", line);
             }
 
             m_nAmbientRed[h][w]   = ambR;
