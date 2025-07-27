@@ -24,7 +24,7 @@ enum eTimeType {
     TIME_5AM,
     TIME_6AM,
     TIME_7AM,
-    TIME_MIDDAY,
+    TIME_MIDDAY, // TIME_NOON
     TIME_7PM,
     TIME_8PM,
     TIME_10PM,

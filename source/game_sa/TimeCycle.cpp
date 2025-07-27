@@ -74,7 +74,7 @@ void CTimeCycle::Initialise() {
             }
 
             // TODO: Fix in original TIMECYC.dat line 320 (255 ... -> 22 22 22 ...)
-            sscanf(line,
+            const auto n = sscanf(line,
                 "%d %d %d " // Static ambience color
                 "%d %d %d " // Dynamic ambience color
                 "%d %d %d " // Direct light color - NOP
@@ -120,6 +120,9 @@ void CTimeCycle::Initialise() {
                 &postFx2A, &postFx2R, &postFx2G, &postFx2B,
                 &cloudAlpha, &highLightMinIntensity, &waterFogAlpha, &dirMult
             );
+            if (n != 52 && n != 51) {
+                NOTSA_LOG_WARN("Bad timecyc line: '{}'", line); // TODO: fix
+            }
 
             m_nAmbientRed[h][w]   = ambR;
             m_nAmbientGreen[h][w] = ambG;
