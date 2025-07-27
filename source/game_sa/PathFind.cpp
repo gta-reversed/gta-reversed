@@ -636,7 +636,35 @@ void CPathFind::DoPathSearch(
 
 // 0x452760
 void CPathFind::ComputeRoute(uint8 nodeType, const CVector& vecStart, const CVector& vecEnd, const CNodeAddress& startAddress, CNodeRoute* route) {
-    plugin::CallMethod<0x452760>(this, nodeType, &vecStart, &vecEnd, &startAddress, route);
+    route->Clear();
+    // Clear any previous route entries
+    route->Clear();
+    // Prepare a buffer for the path nodes (max 8, same as default Route size)
+    constexpr int MaxNodes = 8;
+    CNodeAddress  resultNodes[MaxNodes]{};
+    int16         outCount = 0;
+    // Find a route from start to end using GTA's built-in pathfinding
+    DoPathSearch(
+        (ePathType)nodeType, // Route type: vehicle or pedestrian
+        vecStart,            // Start position (world coordinates)
+        startAddress,        // Start node address (if known)
+        vecEnd,              // Target position (world coordinates)
+        resultNodes,         // Output array for route node addresses
+        outCount,            // Output: number of nodes found
+        MaxNodes,            // Maximum number of nodes to find
+        nullptr,             // Optional: pointer to store total distance (unused)
+        999999.88f,          // Maximum allowed search distance
+        nullptr,             // Optional: target node address (nullptr = use vecEnd)
+        10000.0f,            // Internal search limit (default value)
+        false,               // Only allow route on one side (default: false)
+        CNodeAddress(),      // Node address to avoid (default: none)
+        false,               // Include nodes without links (default: false)
+        false                // Allow water nodes (default: false)
+    );
+    // Store the resulting nodes in the output route (CNodeRoute)
+    for (int i = 0; i < outCount && !route->IsFull(); ++i) {
+        route->Add(resultNodes[i]);
+    }
 }
 
 // 0x44D960
