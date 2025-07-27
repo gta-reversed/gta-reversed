@@ -532,7 +532,7 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
             set->m_fAmbientRed   = 0.001f;
             set->m_fAmbientGreen = 0.001f;
             set->m_fAmbientBlue  = 0.001f;
-         }
+        }
         if (f > max) {
             f /= max;
             set->m_fAmbientRed   *= f;
