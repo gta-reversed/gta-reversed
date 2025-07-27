@@ -1206,7 +1206,7 @@ void CShadows::StoreShadowForPole(CEntity* entity, float offsetX, float offsetY,
         return;
     }
 
-    const auto intensity = 2.f * (mat.GetUp().z - 0.5f) * (float)(CTimeCycle::m_CurrentColours.m_nPoleShadowStrength);
+    const auto intensity = 2.f * (mat.GetUp().z - 0.5f) * CTimeCycle::m_CurrentColours.m_nPoleShadowStrength;
 
     const auto front     = CVector2D{ CTimeCycle::GetVectorToSun() } * (-poleHeight / 2.f);
     const auto right     = CVector2D{ CTimeCycle::GetShadowSide() } * poleWidth;

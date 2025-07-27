@@ -41,9 +41,10 @@ public:
     float  m_fSunSize;
     float  m_fSpriteSize;
     float  m_fSpriteBrightness;
-    uint16 m_nShadowStrength;
-    uint16 m_nLightShadowStrength;
-    uint16 m_nPoleShadowStrength;
+    int16  m_nShadowStrength;
+    int16  m_nLightShadowStrength;
+    int16  m_nPoleShadowStrength;
+
     float  m_fFarClip;
     float  m_fFogStart;
     float  m_fLightsOnGroundBrightness;
@@ -74,6 +75,7 @@ public:
     float  m_fCloudAlpha;
     int32 m_nHighLightMinIntensity;
     uint16 m_nWaterFogAlpha;
+
     float  m_fIllumination;
     float  m_fLodDistMult;
 
