@@ -1,29 +1,24 @@
 #include "StdInc.h"
-typedef RwStream*(__cdecl* Rwt2dEffectPluginDataChunkRead_t)(RwStream*, RwInt32, void*, RwInt32, RwInt32);
-constexpr uintptr_t RWT2D_EFFECT_PLUGIN_DATA_CHUNK_READ_ADDR = 0x6F9FD0;
-
-Rwt2dEffectPluginDataChunkRead_t CallRwt2dEffectPluginDataChunkRead =
-    reinterpret_cast<Rwt2dEffectPluginDataChunkRead_t>(RWT2D_EFFECT_PLUGIN_DATA_CHUNK_READ_ADDR);
+#include "rwcore.h"
 
 uint32& C2dEffect::g2dEffectPluginOffset = *(uint32*)0xC3A1E0;
-uint32& C2dEffect::ms_nTxdSlot = *(uint32*)0x8D4948;
+uint32& C2dEffect::ms_nTxdSlot           = *(uint32*)0x8D4948;
 
-void C2dEffect::InjectHooks()
-{
+void C2dEffect::InjectHooks() {
     RH_ScopedClass(C2dEffect);
     RH_ScopedCategory("Plugins");
 
-// Class methods
+    // Class methods
     RH_ScopedInstall(Shutdown, 0x4C57D0);
 
-// Statics
+    // Statics
     RH_ScopedInstall(Roadsign_GetNumLinesFromFlags, 0x6FA640);
     RH_ScopedInstall(Roadsign_GetNumLettersFromFlags, 0x6FA670);
     RH_ScopedInstall(Roadsign_GetPaletteIDFromFlags, 0x6FA6A0);
     RH_ScopedInstall(PluginAttach, 0x6FA970);
     RH_ScopedInstall(DestroyAtomic, 0x4C54E0);
 
-// RW PLUGIN
+    // RW PLUGIN
     RH_ScopedGlobalInstall(RpGeometryGet2dFxCount, 0x4C4340);
     RH_ScopedGlobalInstall(RpGeometryGet2dFxAtIndex, 0x4C4A40);
 
@@ -36,8 +31,7 @@ void C2dEffect::InjectHooks()
     RH_ScopedGlobalInstall(Rwt2dEffectPluginDataChunkGetSizeCallBack, 0x6FA630);
 }
 
-void C2dEffect::Shutdown()
-{
+void C2dEffect::Shutdown() {
     if (m_Type == e2dEffectType::EFFECT_ROADSIGN) {
         if (roadsign.m_pText) {
             CMemoryMgr::Free(roadsign.m_pText);
@@ -48,8 +42,7 @@ void C2dEffect::Shutdown()
             C2dEffect::DestroyAtomic(roadsign.m_pAtomic);
             roadsign.m_pAtomic = nullptr;
         }
-    }
-    else if (m_Type == e2dEffectType::EFFECT_LIGHT) {
+    } else if (m_Type == e2dEffectType::EFFECT_LIGHT) {
         if (light.m_pCoronaTex) {
             RwTextureDestroy(light.m_pCoronaTex);
             light.m_pCoronaTex = nullptr;
@@ -62,8 +55,7 @@ void C2dEffect::Shutdown()
     }
 }
 
-int32 C2dEffect::Roadsign_GetNumLinesFromFlags(CRoadsignAttrFlags flags)
-{
+int32 C2dEffect::Roadsign_GetNumLinesFromFlags(CRoadsignAttrFlags flags) {
     switch (flags.m_nNumOfLines) {
     case 1:
         return 1;
@@ -76,8 +68,7 @@ int32 C2dEffect::Roadsign_GetNumLinesFromFlags(CRoadsignAttrFlags flags)
     return 4;
 }
 
-int32 C2dEffect::Roadsign_GetNumLettersFromFlags(CRoadsignAttrFlags flags)
-{
+int32 C2dEffect::Roadsign_GetNumLettersFromFlags(CRoadsignAttrFlags flags) {
     switch (flags.m_nSymbolsPerLine) {
     case 1:
         return 2;
@@ -90,9 +81,7 @@ int32 C2dEffect::Roadsign_GetNumLettersFromFlags(CRoadsignAttrFlags flags)
     return 16;
 }
 
-int32 C2dEffect::Roadsign_GetPaletteIDFromFlags(CRoadsignAttrFlags flags)
-{
-
+int32 C2dEffect::Roadsign_GetPaletteIDFromFlags(CRoadsignAttrFlags flags) {
     switch (flags.m_nTextColor) {
     case 1:
         return 1;
@@ -105,8 +94,7 @@ int32 C2dEffect::Roadsign_GetPaletteIDFromFlags(CRoadsignAttrFlags flags)
     return 0;
 }
 
-bool C2dEffect::PluginAttach()
-{
+bool C2dEffect::PluginAttach() {
     C2dEffect::g2dEffectPluginOffset = RpGeometryRegisterPlugin(
         sizeof(t2dEffectPlugin),
         MAKECHUNKID(rwVENDORID_DEVELOPER, 0xF8),
@@ -125,10 +113,10 @@ bool C2dEffect::PluginAttach()
     return C2dEffect::g2dEffectPluginOffset != -1;
 }
 
-void C2dEffect::DestroyAtomic(RpAtomic* atomic)
-{
-    if (!atomic)
+void C2dEffect::DestroyAtomic(RpAtomic* atomic) {
+    if (!atomic) {
         return;
+    }
 
     auto frame = RpAtomicGetFrame(atomic);
     if (frame) {
@@ -138,32 +126,30 @@ void C2dEffect::DestroyAtomic(RpAtomic* atomic)
     RpAtomicDestroy(atomic);
 }
 
-uint32 RpGeometryGet2dFxCount(RpGeometry* geometry)
-{
+uint32 RpGeometryGet2dFxCount(RpGeometry* geometry) {
     auto plugin = C2DEFFECTPLG(geometry, m_pEffectEntries);
-    if (!plugin)
+    if (!plugin) {
         return 0;
+    }
 
     return plugin->m_nObjCount;
 }
 
-C2dEffect* RpGeometryGet2dFxAtIndex(RpGeometry* geometry, int32 iEffectInd)
-{
+C2dEffect* RpGeometryGet2dFxAtIndex(RpGeometry* geometry, int32 iEffectInd) {
     auto plugin = C2DEFFECTPLG(geometry, m_pEffectEntries);
     return &plugin->m_pObjects[iEffectInd];
 }
 
-void* t2dEffectPluginConstructor(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject)
-{
+void* t2dEffectPluginConstructor(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject) {
     C2DEFFECTPLG(object, m_pEffectEntries) = nullptr;
     return object;
 }
 
-void* t2dEffectPluginDestructor(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject)
-{
+void* t2dEffectPluginDestructor(void* object, RwInt32 offsetInObject, RwInt32 sizeInObject) {
     auto plugin = C2DEFFECTPLG(object, m_pEffectEntries);
-    if (!plugin)
+    if (!plugin) {
         return object;
+    }
 
     // It's the same as CModelInfo::ms_2dFXInfoStore cleaning, maybe the plugin has CStore inside too?
     // Dunno how that would work, as the size is decided at runtime, easy with some manual memory tricks tho.
@@ -172,29 +158,44 @@ void* t2dEffectPluginDestructor(void* object, RwInt32 offsetInObject, RwInt32 si
         effect.Shutdown();
     }
 
-    if (C2DEFFECTPLG(object, m_pEffectEntries))
+    if (C2DEFFECTPLG(object, m_pEffectEntries)) {
         CMemoryMgr::Free(C2DEFFECTPLG(object, m_pEffectEntries));
+    }
 
     return object;
 }
 
-void* t2dEffectPluginCopyConstructor(void* dstObject, const void* srcObject, RwInt32 offsetInObject, RwInt32 sizeInObject)
-{
+void* t2dEffectPluginCopyConstructor(void* dstObject, const void* srcObject, RwInt32 offsetInObject, RwInt32 sizeInObject) {
     C2DEFFECTPLG(dstObject, m_pEffectEntries) = nullptr;
     return dstObject;
 }
 
-RwStream* Rwt2dEffectPluginDataChunkReadCallBack(RwStream* stream,RwInt32   binaryLength,void* object,RwInt32 offsetInObject,RwInt32   sizeInObject
-) {
-    return CallRwt2dEffectPluginDataChunkRead(stream, binaryLength, object, offsetInObject, sizeInObject);
-}
+RwStream* Rwt2dEffectPluginDataChunkReadCallBack(RwStream* stream,RwInt32 binaryLength,void* object,RwInt32 offsetInObject,RwInt32 sizeInObject) {
+    // Check for invalid input parameters.
+    if (!stream || !object || binaryLength <= 0 || sizeInObject <= 0) {
+        return nullptr;
+    }
 
-RwStream* Rwt2dEffectPluginDataChunkWriteCallBack(RwStream* stream, RwInt32 binaryLength, const void* object, RwInt32 offsetInObject, RwInt32 sizeInObject)
-{
+    // Prevent reading out of bounds.
+    if ((offsetInObject + binaryLength) > sizeInObject) {
+        return nullptr;
+    }
+
+    // Read the chunk from the stream into the object at the specified offset.
+    char*   dst       = static_cast<char*>(object) + offsetInObject;
+    RwInt32 bytesRead = RwStreamRead(stream, dst, binaryLength);
+
+    if (bytesRead != binaryLength) {
+        return nullptr;
+    }
+
     return stream;
 }
 
-RwInt32 Rwt2dEffectPluginDataChunkGetSizeCallBack(const void* object, RwInt32 offsetInObject, RwInt32 sizeInObject)
-{
+RwStream* Rwt2dEffectPluginDataChunkWriteCallBack(RwStream* stream, RwInt32 binaryLength, const void* object, RwInt32 offsetInObject, RwInt32 sizeInObject) {
+    return stream;
+}
+
+RwInt32 Rwt2dEffectPluginDataChunkGetSizeCallBack(const void* object, RwInt32 offsetInObject, RwInt32 sizeInObject) {
     return -1;
 }

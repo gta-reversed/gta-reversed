@@ -1,4 +1,5 @@
 #include "StdInc.h"
+
 #include "platform.h"
 
 #include <cstdio>
