@@ -925,20 +925,31 @@ bool CPathFind::IsWaterNodeNearby(CVector position, float radius) {
 }
 
 // 0x44F460
-CNodeAddress CPathFind::FindNodeClosestToCoors(
-    CVector pos,
-    ePathType nodeType,
-    float maxDistance,
-    uint16 unk2,
-    int32 unk3,
-    uint16 unk4,
-    uint16 bBoatsOnly,
-    int32 unk6
-) {
-    CNodeAddress tempAddress;
-    plugin::CallMethodAndReturn<CNodeAddress*, 0x44F460, CPathFind*, CNodeAddress*, CVector, ePathType, float, uint16, int32, uint16, uint16, int32>(
-        this, &tempAddress, pos, nodeType, maxDistance, unk2, unk3, unk4, bBoatsOnly, unk6);
-    return tempAddress;
+CNodeAddress CPathFind::FindNodeClosestToCoors(CVector pos,ePathType nodeType,float maxDistance,uint16,int32,uint16,uint16 bBoatsOnly,int32)
+{
+    CNodeAddress bestAddress;
+    float        bestDistSq = maxDistance * maxDistance;
+
+    for (size_t areaId = 0; areaId < NUM_TOTAL_PATH_NODE_AREAS; ++areaId) {
+        auto nodes = GetPathNodesInArea(areaId, nodeType);
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            const auto& node = nodes[i];
+
+            if (node.m_isSwitchedOff) {
+                continue;
+            }
+            if (bBoatsOnly && !node.m_bWaterNode) {
+                continue;
+            }
+
+            float distSq = (node.GetPosition() - pos).SquaredMagnitude();
+            if (distSq < bestDistSq) {
+                bestDistSq  = distSq;
+                bestAddress = CNodeAddress((uint16)areaId, (uint16)i);
+            }
+        }
+    }
+    return bestAddress;
 }
 
 // 0x450A60
