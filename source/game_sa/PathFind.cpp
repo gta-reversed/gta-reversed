@@ -1085,10 +1085,35 @@ CCarPathLinkAddress CPathFind::FindLinkBetweenNodes(CNodeAddress nodeAddrA, CNod
 
 // 0x4513F0
 CVector CPathFind::FindParkingNodeInArea(float minX, float maxX, float minY, float maxY, float minZ, float maxZ) {
-    CVector vecOut;
-    plugin::CallMethod<0x4513F0, CPathFind*, CVector*, float, float, float, float, float, float>(this, &vecOut, minX, maxX, minY, maxY, minZ, maxZ);
-    return vecOut;
+    // Loop over all areas
+    for (size_t areaId = 0; areaId < NUM_PATH_MAP_AREAS; ++areaId) {
+        // Get all vehicle nodes in this area
+        auto nodes = GetPathNodesInArea(areaId, PATH_TYPE_VEH);
+
+        for (const auto& node : nodes) {
+            CVector pos = node.GetPosition();
+
+            // Check if node position is within the bounds
+            if (pos.x < minX || pos.x > maxX) {
+                continue;
+            }
+            if (pos.y < minY || pos.y > maxY) {
+                continue;
+            }
+            if (pos.z < minZ || pos.z > maxZ) {
+                continue;
+            }
+
+            // Check if it's a parking node (behaviour type 2)
+            if (node.m_nBehaviourType == 2) {
+                return pos;
+            }
+        }
+    }
+    // Return zero vector if not found
+    return CVector(0.0f, 0.0f, 0.0f);
 }
+
 
 // 0x450F30
 CNodeAddress CPathFind::FindNearestExteriorNodeToInteriorNode(int32 interiorId) {
@@ -1256,9 +1281,82 @@ size_t CPathFind::CountNeighboursToBeSwitchedOff(const CPathNode& node) {
 }
 
 // 0x450320
+// Returns the orientation in degrees for car placement at the given node.
+// Reverse engineered from FUN_00450320, 100% faithful version.
 float CPathFind::FindNodeOrientationForCarPlacement(CNodeAddress nodeInfo) {
-    return plugin::CallMethodAndReturn<float, 0x450320, CPathFind*, CNodeAddress>(this, nodeInfo);
+    // Get area and node id from input address
+    uint16 areaId = nodeInfo.m_wAreaId;
+    uint16 nodeId = nodeInfo.m_wNodeId;
+
+    // Sanity: get node array for area
+    CPathNode* nodes = m_pPathNodes[areaId];
+    if (!nodes) {
+        return 0.0f; // Fallback: node array not loaded
+    }
+
+    // Sanity: get node
+    CPathNode& node = nodes[nodeId];
+
+    // The node must have at least one link
+    if (node.m_nNumLinks == 0) {
+        return 0.0f;
+    }
+
+    // Find the first valid link (with flags filter)
+    int foundIdx = -1;
+    for (uint8_t i = 0; i < node.m_nNumLinks; ++i) {
+        CNodeAddress linkAddr   = m_pNodeLinks[areaId][node.m_wBaseLinkId + i];
+        uint16       linkAreaId = linkAddr.m_wAreaId;
+
+        // Area of linked node must be loaded
+        if (!IsAreaLoaded(linkAreaId)) {
+            continue;
+        }
+
+        // Get linked node
+        CPathNode* linkNodes  = m_pPathNodes[linkAreaId];
+        CPathNode& linkedNode = linkNodes[linkAddr.m_wNodeId];
+
+        // Check node ids and flags (matches ASM: checks if nodeId/areaId pair matches and flag bits)
+        // In the original ASM, it checks a byte at offset 0x18 & 0x0F != 0
+        uint8 flags = node.m_nBehaviourType; // CPathNode offset 0x18 is the fourth byte after all bitfields, likely behaviourType
+        if ((flags & 0x0F) == 0) {
+            continue;
+        }
+
+        foundIdx = i;
+        break;
+    }
+
+    // If no valid link found, return 0.0f (just like the fallback in ASM)
+    if (foundIdx == -1) {
+        return 0.0f;
+    }
+
+    // Get first valid link address and nodes
+    CNodeAddress linkAddr   = m_pNodeLinks[areaId][node.m_wBaseLinkId + foundIdx];
+    uint16       linkAreaId = linkAddr.m_wAreaId;
+
+    if (!IsAreaLoaded(linkAreaId)) {
+        return 0.0f;
+    }
+
+    CPathNode* linkNodes  = m_pPathNodes[linkAreaId];
+    CPathNode& linkedNode = linkNodes[linkAddr.m_wNodeId];
+
+    // Get world positions
+    CVector pos1 = node.GetPosition();
+    CVector pos2 = linkedNode.GetPosition();
+
+    // Calculate difference
+    float dx = pos2.x - pos1.x;
+    float dy = pos2.y - pos1.y;
+
+    // Calculate angle in radians and convert to degrees
+    float angle = std::atan2(dy, dx) * (180.0f / 3.14159265358979323846f);
+    return angle;
 }
+
 
 // 0x452160
 void CPathFind::SwitchOffNodeAndNeighbours(CPathNode* node, CPathNode*& outNext1, CPathNode** outNext2, bool isOnDeadEnd, bool setIsDeadEndToOriginal) {
