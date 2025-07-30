@@ -1353,7 +1353,7 @@ float CPathFind::FindNodeOrientationForCarPlacement(CNodeAddress nodeInfo) {
     float dy = pos2.y - pos1.y;
 
     // Calculate angle in radians and convert to degrees
-    float angle = std::atan2(dy, dx) * (180.0f / 3.14159265358979323846f);
+    float angle = RadiansToDegrees(std::atan2(dy, dx));
     return angle;
 }
 
