@@ -31,6 +31,23 @@
 #include "TaskComplexEnterCarAsDriver.h"
 #include "RealTimeShadowManager.h"
 #include "WindModifiers.h"
+#include "AnimBlendAssociation.h"
+
+#include "AnimBlendAssociation.h"
+#include "AnimBlendHierarchy.h"
+#include "AnimationEnums.h"
+#include "SurfaceInfo_c.h"
+#include "General.h"
+#include "PedStats.h"
+#include "AEAudioEntity.h"
+#include "AEAudioUtility.h"
+#include "PlayerPedData.h"
+#include "PedClothesDesc.h"
+#include "EventSoundQuiet.h"
+#include "EventGlobalGroup.h"
+#include "TaskSimpleLand.h"
+#include "TaskManager.h"
+#include "AnimManager.h"
 
 void CPed::InjectHooks() {
     RH_ScopedVirtualClass(CPed, 0x86C358, 26);
@@ -2161,21 +2178,24 @@ void CPed::DoFootLanded(bool leftFoot, uint8 arg1) {
 * @addr 0x5E57F0
 */
 void CPed::PlayFootSteps() {
-    return plugin::CallMethod<0x5E57F0>(this);
-    // Below code is kinda working.. kinda. I'm too lazy to fix it, good luck future me!
-    /* auto& anim = *RpAnimBlendClumpGetFirstAssociation(m_pRwClump);
+    // First, get the first animation association (main walk/run anim)
+    auto* anim = RpAnimBlendClumpGetFirstAssociation(m_pRwClump);
+    if (!anim) {
+        return;
+    }
 
+    // Lambda to check if the animation is walk/run/sprint
     const auto IsWalkRunSprintAnim = [&] {
-        switch (anim.m_nAnimId) {
+        switch (anim->m_AnimId) {
         case ANIM_ID_WALK:
         case ANIM_ID_RUN:
-        case ANIM_ID_SPRINT: {
+        case ANIM_ID_SPRINT:
             return true;
-        }
         }
         return false;
     };
 
+    // Handle bloody footprints
     if (bDoBloodyFootprints) {
         if (m_nDeathTimeMS && m_nDeathTimeMS < 300) {
             m_nDeathTimeMS -= 1;
@@ -2189,210 +2209,185 @@ void CPed::PlayFootSteps() {
         return;
     }
 
-    // 0x5E58FB, 0x5E5A0B, 0x5E5AB9, 0x5E5E64, 0x5E5D87
+    // Lambda for landing logic
     const auto DoProcessLanding = [this] {
-        if (bIsLanding) { // Redundant check.. probably inlined function?
-            if (const auto task = GetTaskManager().GetSimplestActiveTask(); task->GetTaskType() == TASK_SIMPLE_LAND) {
-                auto landedTask = task->As<CTaskSimpleLand>();
+        if (bIsLanding) {
+            auto task = GetTaskManager().GetSimplestActiveTask();
+            if (task && task->GetTaskType() == TASK_SIMPLE_LAND) {
+                auto* landedTask = static_cast<CTaskSimpleLand*>(task);
                 if (landedTask->RightFootLanded()) {
                     DoFootLanded(false, true);
-                } else if (landedTask->RightFootLanded()) {
+                } else if (landedTask->LeftFootLanded()) {
                     DoFootLanded(true, true);
                 }
             }
         }
     };
 
-    // TODO: Is this inlined? What is this doing exactly? (Anim stuff)
-    float walkBlendTotal{}, idleBlendTotal{};
-    CAnimBlendAssociation* walkAssoc{};
-    auto* lastAssoc = &anim;
-    do { // 0x5E58A1
-        if (lastAssoc->m_nFlags & ANIMATION_WALK) {
-            walkBlendTotal += lastAssoc->m_fBlendAmount;
+    // Calculate blend amounts for walking and idle
+    float                  walkBlendTotal = 0.0f, idleBlendTotal = 0.0f;
+    CAnimBlendAssociation* walkAssoc = nullptr;
+    auto*                  lastAssoc = anim;
+    do {
+        if (lastAssoc->m_Flags & ANIMATION_WALK) {
+            walkBlendTotal += lastAssoc->m_BlendAmount;
             walkAssoc = lastAssoc;
         } else {
-            if ((lastAssoc->m_nFlags & ANIMATION_ADD_TO_BLEND) == 0) {
-                if (lastAssoc->m_nAnimId != ANIM_ID_FIGHT_IDLE) {
-                    if (lastAssoc->m_nFlags & ANIMATION_IS_PARTIAL || bIsDucking) {
-                        idleBlendTotal += lastAssoc->m_fBlendAmount;
+            if ((lastAssoc->m_Flags & ANIMATION_DONT_ADD_TO_PARTIAL_BLEND) == 0) {
+                if (lastAssoc->m_AnimId != ANIM_ID_FIGHT_IDLE) {
+                    if ((lastAssoc->m_Flags & ANIMATION_IS_PARTIAL) || bIsDucking) {
+                        idleBlendTotal += lastAssoc->m_BlendAmount;
                     }
                 }
             }
         }
-
         lastAssoc = RpAnimBlendGetNextAssociation(lastAssoc);
     } while (lastAssoc);
 
-
-    if (!walkAssoc || walkBlendTotal <= 0.5f || idleBlendTotal >= 1.f) { // 0x5E58FB
+    // If not walking/running or blending is not enough, process landing only
+    if (!walkAssoc || walkBlendTotal <= 0.5f || idleBlendTotal >= 1.0f) {
         DoProcessLanding();
         return;
     }
 
-    auto* walkAssocHier = walkAssoc->m_pHierarchy;
-
-    float minAnimTime = walkAssocHier->m_fTotalTime / 15.f;
-    float maxAnimTime = walkAssocHier->m_fTotalTime / 2.f + minAnimTime; // Weird.. Why adding `minAnimTime` to it?
-
+    auto* walkAssocHier = walkAssoc->m_BlendHier;
+    float minAnimTime   = walkAssocHier->m_fTotalTime / 15.0f;
+    float maxAnimTime   = walkAssocHier->m_fTotalTime / 2.0f + minAnimTime;
     if (bIsDucking) {
         minAnimTime += 0.2f;
         maxAnimTime += 0.2f;
     }
 
-    if (m_pStats == &CPedStats::ms_apPedStats[STAT_BURGULAR_STATUS]) { // 0X5E5968
-
-        // NOTE: The number `15` seems to be reoccurring, it's used above as well.
-        const float animTimeMult = walkAssoc->m_nAnimId != AnimationId::ANIM_ID_WALK ? 8.f / 15.f : 5.f / 15.f;
-
-        float adhesionMult{ 1.f };
+    // Special handling for burglar stats
+    if (m_pStats == &CPedStats::ms_apPedStats[STAT_BURGULAR_STATUS]) {
+        const float animTimeMult = walkAssoc->m_AnimId != ANIM_ID_WALK ? 8.0f / 15.0f : 5.0f / 15.0f;
+        float       adhesionMult = 1.0f;
         switch (g_surfaceInfos.GetAdhesionGroup(m_nContactSurface)) {
-        case eAdhesionGroup::ADHESION_GROUP_SAND: { // 0X5E599F
+        case ADHESION_GROUP_SAND:
             if (CGeneral::GetRandomNumber() % 64) {
                 m_vecAnimMovingShiftLocal *= 0.2f;
             }
-
             DoProcessLanding();
             return;
-        }
-        case eAdhesionGroup::ADHESION_GROUP_WET: { // 0X5E59B1
+        case ADHESION_GROUP_WET:
             m_vecAnimMovingShiftLocal *= 0.3f;
             DoProcessLanding();
             return;
-        }
-        case eAdhesionGroup::ADHESION_GROUP_LOOSE: { // 0x5E5A25
+        case ADHESION_GROUP_LOOSE:
             if (CGeneral::GetRandomNumber() % 128) {
                 m_vecAnimMovingShiftLocal *= 0.5f;
             }
             adhesionMult = 0.5f;
             break;
-        }
+        default:
+            break;
         }
 
-        if (m_pedAudio.m_iRadioStationScriptRequest) { // Move condition out here, but originally it was at 0x5E5AFA and 0x5E5A68
-            const auto DoAddSkateAE = [&, this](eAudioEvents audio) {
-                // 0x5E5AB4
-                m_pedAudio.AddAudioEvent(audio,
-                    CAEAudioUtility::AudioLog10(adhesionMult) * 20.f,
-                    walkAssoc->m_nAnimId == AnimationId::ANIM_ID_WALK ? 1.f : 0.75f
-                );
-            };
+        // (Radio check was here - removed)
+        const auto DoAddSkateAE = [&, this](eAudioEvents audio) {
+            m_pedAudio.AddAudioEvent(audio, CAEAudioUtility::AudioLog10(adhesionMult) * 20.0f, walkAssoc->m_AnimId == ANIM_ID_WALK ? 1.0f : 0.75f);
+        };
 
-            if (   walkAssoc->m_fCurrentTime <= 0.f
-                || walkAssoc->m_fCurrentTime - walkAssoc->m_fTimeStep > 0.f
-            ) {
-                if (adhesionMult > 0.2f
-                    && walkAssoc->m_fCurrentTime > animTimeMult
-                    && walkAssoc->m_fCurrentTime - walkAssoc->m_fTimeStep <= animTimeMult
-                ) {
-                    // 0x5E5B46
-                    DoAddSkateAE(eAudioEvents::AE_PED_SKATE_RIGHT);
-                }
-            } else {
-                // 0x5E5AB4
-                DoAddSkateAE(eAudioEvents::AE_PED_SKATE_LEFT);
+        if (walkAssoc->m_CurrentTime <= 0.0f
+            || walkAssoc->m_CurrentTime - walkAssoc->m_TimeStep > 0.0f) {
+            if (adhesionMult > 0.2f
+                && walkAssoc->m_CurrentTime > animTimeMult
+                && walkAssoc->m_CurrentTime - walkAssoc->m_TimeStep <= animTimeMult) {
+                DoAddSkateAE(AE_PED_SKATE_RIGHT);
             }
+        } else {
+            DoAddSkateAE(AE_PED_SKATE_LEFT);
         }
 
         DoProcessLanding();
         return;
     }
 
-    // 0x5E5E56 and 0x5E5D57.. Seems like inlined?
+    // Regular footstep SFX logic (radio check removed)
     const auto DoFootStepAE = [&, this](bool isLeftFoot) {
-        if (m_pedAudio.m_iRadioStationScriptRequest) {
-            const auto DoAddFootStepAE = [&, this](float volume, float speed) {
-                m_pedAudio.AddAudioEvent(isLeftFoot ? eAudioEvents::AE_PED_FOOTSTEP_RIGHT : eAudioEvents::AE_PED_FOOTSTEP_LEFT, volume, speed);
+        const auto DoAddFootStepAE = [&, this](float volume, float speed) {
+            m_pedAudio.AddAudioEvent(isLeftFoot ? AE_PED_FOOTSTEP_RIGHT : AE_PED_FOOTSTEP_LEFT, volume, speed);
+        };
+
+        if (bIsDucking) {
+            DoAddFootStepAE(-18.0f, 0.8f);
+        } else {
+            const auto DoAddMovingFootStepAE = [&, this](float volume, float speed) {
+                if (m_nAnimGroup == ANIM_GROUP_PLAYERSNEAK) {
+                    DoAddFootStepAE(volume - 6.0f, speed - 0.1f);
+                } else {
+                    DoAddFootStepAE(volume, speed);
+                }
             };
 
-            if (bIsDucking) {
-                DoAddFootStepAE(-18.f, 0.8f);
-            } else {
-                const auto DoAddMovingFootStepAE = [&, this](float volume, float speed) {
-                    if (m_nAnimGroup == ANIM_GROUP_PLAYERSNEAK) {
-                        DoAddFootStepAE(volume - 6.f, speed - 0.1f);
-                    } else {
-                        DoAddFootStepAE(volume, speed);
-                    }
-                };
-
-                switch (m_nMoveState) {
-                case PEDMOVE_RUN:
-                    DoAddMovingFootStepAE(-6.f, 1.1f);
-                    break;
-                case PEDMOVE_SPRINT:
-                    DoAddMovingFootStepAE(0.f, 1.2f);
-                    break;
-                default:
-                    DoAddMovingFootStepAE(-12.f, 0.9f);
-                    break;
-                }
+            switch (m_nMoveState) {
+            case PEDMOVE_RUN:
+                DoAddMovingFootStepAE(-6.0f, 1.1f);
+                break;
+            case PEDMOVE_SPRINT:
+                DoAddMovingFootStepAE(0.0f, 1.2f);
+                break;
+            default:
+                DoAddMovingFootStepAE(-12.0f, 0.9f);
+                break;
             }
         }
         DoFootLanded(isLeftFoot, IsWalkRunSprintAnim());
     };
 
-    // 0x5E5B50
-    if (   minAnimTime > walkAssoc->m_fCurrentTime
-        || walkAssoc->m_fCurrentTime - walkAssoc->m_fTimeStep >= minAnimTime
-    ) {
-        // 0x5E5D8E
-        if (walkAssoc->m_fCurrentTime >= (double)maxAnimTime
-            && walkAssoc->m_fCurrentTime - walkAssoc->m_fTimeStep < maxAnimTime)
-        {
-            // 0x5E592B - 0x5E5E56
-            DoFootStepAE(false); // Do right footstep AE
+    if (minAnimTime > walkAssoc->m_CurrentTime
+        || walkAssoc->m_CurrentTime - walkAssoc->m_TimeStep >= minAnimTime) {
+        if (walkAssoc->m_CurrentTime >= maxAnimTime
+            && walkAssoc->m_CurrentTime - walkAssoc->m_TimeStep < maxAnimTime) {
+            DoFootStepAE(false); // right foot
             DoProcessLanding();
             return;
         }
     }
 
-    if (IsPlayer()) { // 0x5E5B79
+    // Player-specific extra footsteps/quiet sounds (unchanged, optional)
+    if (IsPlayer()) {
         if (const auto pd = m_pPlayerData) {
             const auto DoEventSoundQuiet = [this](float volume) {
-                // 0x5E5BCB
-                CEventSoundQuiet event{ this, volume, (uint32)-1, {0.f, 0.f, 0.f}};
+                CEventSoundQuiet event{
+                    this, volume, (uint32)-1, { 0.0f, 0.0f, 0.0f }
+                };
                 GetEventGlobalGroup()->Add(&event);
             };
 
             const auto isWearingBalaclava = pd->m_pPedClothesDesc->GetIsWearingBalaclava();
             switch (m_nMoveState) {
-            case PEDMOVE_JOG:   // 0x5E5BAD -- hehehe, 0x 5E5 - BAD
-            case PEDMOVE_RUN: { // 0x5E5BB6
-                // 0x5E5BDD
-                if (pd->m_fMoveBlendRatio >= 2.f) {
-                    DoEventSoundQuiet(isWearingBalaclava ? 55.f : 45.f);
+            case PEDMOVE_JOG:
+            case PEDMOVE_RUN:
+                if (pd->m_fMoveBlendRatio >= 2.0f) {
+                    DoEventSoundQuiet(isWearingBalaclava ? 55.0f : 45.0f);
                 } else {
                     const auto DoEventSoundQuiet_MoveBlendFactor = [&](float moveBlendFactor) {
-                        // 0x5E5C31
-                        if (const auto volume = (pd->m_fMoveBlendRatio - 1.f) * moveBlendFactor + 30.f; volume > 0.f) {
+                        float volume = (pd->m_fMoveBlendRatio - 1.0f) * moveBlendFactor + 30.0f;
+                        if (volume > 0.0f) {
                             DoEventSoundQuiet(volume);
                         }
                     };
 
-                    // 0x05E5BF3
                     if (isWearingBalaclava && pd->m_fMoveBlendRatio > 1.1f) {
-                        DoEventSoundQuiet_MoveBlendFactor(20.f);
+                        DoEventSoundQuiet_MoveBlendFactor(20.0f);
                     } else if (pd->m_fMoveBlendRatio > 1.5f) {
-                        DoEventSoundQuiet_MoveBlendFactor(15.f);
+                        DoEventSoundQuiet_MoveBlendFactor(15.0f);
                     }
                 }
                 break;
-            }
-            case PEDMOVE_SPRINT: { // 0x5E5BBB
-                DoEventSoundQuiet(isWearingBalaclava ? 65.f : 55.f);
+            case PEDMOVE_SPRINT:
+                DoEventSoundQuiet(isWearingBalaclava ? 65.0f : 55.0f);
                 break;
-            }
-            }
-            if (pd->m_pPedClothesDesc->GetIsWearingBalaclava()) {
+            default:
+                break;
             }
         }
     }
 
-    // 0x5E5C8D
-    DoFootStepAE(true); // Do left foot step AE
+    DoFootStepAE(true); // left foot
     DoFootLanded(true, IsWalkRunSprintAnim());
-    DoProcessLanding(); */
+    DoProcessLanding();
 }
 
 /*!
