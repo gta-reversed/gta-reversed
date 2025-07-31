@@ -33,7 +33,7 @@ void CTimeCycle::InjectHooks() {
 }
 
 // 0x5BBAC0
-void CTimeCycle::Initialise() {
+void CTimeCycle::Initialise(bool padFile) {
     CFileMgr::SetDir("DATA");
     auto file = CFileMgr::OpenFile("TIMECYC.DAT", "rb");
     CFileMgr::SetDir("");
@@ -120,7 +120,7 @@ void CTimeCycle::Initialise() {
                 &postFx2A, &postFx2R, &postFx2G, &postFx2B,
                 &cloudAlpha, &highLightMinIntensity, &waterFogAlpha, &dirMult
             );
-            if (n != 52 && n != 51) {
+            if (n < 51) {
                 NOTSA_LOG_WARN("Bad timecyc line: '{}'", line);
             }
 
@@ -150,8 +150,8 @@ void CTimeCycle::Initialise() {
             m_nSunCoronaGreen[h][w] = sunCoronaG;
             m_nSunCoronaBlue[h][w]  = sunCoronaB;
 
-            m_fSunSize[h][w] = int8(sunSize * 10.0f + 0.5f);
-            m_fSpriteSize[h][w] = int8(spriteSize * 10.0f + 0.5f);
+            m_fSunSize[h][w]          = int8(sunSize * 10.0f + 0.5f);
+            m_fSpriteSize[h][w]       = int8(spriteSize * 10.0f + 0.5f);
             m_fSpriteBrightness[h][w] = int8(spriteBrightness * 10.0f + 0.5f);
 
             m_nShadowStrength[h][w]      = shadowStrength;
@@ -674,3 +674,15 @@ void CTimeCycle::SetConstantParametersForPostFX() {
         m_CurrentColours.m_nSkyBottomBlue = 128;
     }
 }
+
+float CTimeCycle::GetAmbientRed()   { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientRed; }   // 0x560330
+float CTimeCycle::GetAmbientGreen() { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientGreen; } // 0x560340
+float CTimeCycle::GetAmbientBlue()  { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBlue; }  // 0x560350
+
+float CTimeCycle::GetAmbientRed_Obj()   { return m_CurrentColours.m_fAmbientRed_Obj; }   // 0x560360
+float CTimeCycle::GetAmbientGreen_Obj() { return m_CurrentColours.m_fAmbientGreen_Obj; } // 0x560370
+float CTimeCycle::GetAmbientBlue_Obj()  { return m_CurrentColours.m_fAmbientBlue_Obj; }  // 0x560380
+
+float CTimeCycle::GetAmbientRed_BeforeBrightness()   { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBeforeBrightnessRed; }   // 0x560390
+float CTimeCycle::GetAmbientGreen_BeforeBrightness() { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBeforeBrightnessGreen; } // 0x5603A0
+float CTimeCycle::GetAmbientBlue_BeforeBrightness()  { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBeforeBrightnessBlue; }  // 0x5603B0

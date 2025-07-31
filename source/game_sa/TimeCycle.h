@@ -34,15 +34,6 @@ enum eTimeType {
 
 class CTimeCycle {
 public:
-    static inline CVector& m_vecDirnLightToSun = *(CVector*)0xB7CB14;
-    static inline RwRGBA& m_BelowHorizonGrey = *(RwRGBA*)0xB7CB10;
-    static inline CVector (&m_VectorToSun)[16] = *(CVector(*)[16])0xB7CA50;
-
-    static inline CTimeCycleBox (&m_aBoxes)[20] = *(CTimeCycleBox(*)[20])0xB7C550;
-    static inline CColourSet& m_CurrentColours = *(CColourSet*)0xB7C4A0;
-    static inline uint32& m_bExtraColourOn = *(uint32*)0xB7C484;
-    static inline uint32& m_NumBoxes = *(uint32*)0xB7C480;
-
     template<typename T>
     using Colors = notsa::mdarray<T, NUM_HOURS, NUM_WEATHERS>;
 
@@ -111,66 +102,140 @@ public:
     static inline auto& m_nWaterFogAlpha = StaticRef<Colors<uint8>>(0xB7A090);
     static inline auto& m_nDirectionalMult = StaticRef<Colors<uint8>>(0xB79FD8);
 
-    static inline int32& m_CurrentStoredValue = *(int32*)0xB79FD0;
+    static inline CColourSet& m_CurrentColours = *(CColourSet*)0xB7C4A0;
 
-    static inline float (&m_fShadowFrontX)[16] = *(float (*)[16])0xB79F90;
-    static inline float (&m_fShadowFrontY)[16] = *(float (*)[16])0xB79F50;
+    static inline CTimeCycleBox (&m_aBoxes)[20] = *(CTimeCycleBox(*)[20])0xB7C550;
+    static inline uint32& m_NumBoxes = *(uint32*)0xB7C480;
 
-    static inline float (&m_fShadowSideX)[16] = *(float (*)[16])0xB79F10;
-    static inline float (&m_fShadowSideY)[16] = *(float (*)[16])0xB79ED0;
+    static inline uint32& m_CurrentStoredValue = *(uint32*)0xB79FD0;
+    static inline CVector (&m_VectorToSun)[16] = *(CVector(*)[16])0xB7CA50;
 
-    static inline float (&m_fShadowDisplacementX)[16] = *(float (*)[16])0xB79E90;
-    static inline float (&m_fShadowDisplacementY)[16] = *(float (*)[16])0xB79E50;
+    // TODO: CVector2D?
+    static inline float (&m_fShadowFrontX)[16] = *(float(*)[16])0xB79F90;
+    static inline float (&m_fShadowFrontY)[16] = *(float(*)[16])0xB79F50;
+    static inline float (&m_fShadowSideX)[16] = *(float(*)[16])0xB79F10;
+    static inline float (&m_fShadowSideY)[16] = *(float(*)[16])0xB79ED0;
+    static inline float (&m_fShadowDisplacementX)[16] = *(float(*)[16])0xB79E90;
+    static inline float (&m_fShadowDisplacementY)[16] = *(float(*)[16])0xB79E50;
 
     static inline int32& m_FogReduction = *(int32*)0xB79E48;
 
     static inline int32& m_ExtraColour = *(int32*)0xB79E44;
     static inline int32& m_ExtraColourWeatherType = *(int32*)0xB79E40;
+    static inline uint32& m_bExtraColourOn = *(uint32*)0xB7C484;
     static inline float& m_ExtraColourInter = *(float*)0xB79E3C;
+
+    static inline RwRGBA& m_BelowHorizonGrey = *(RwRGBA*)0xB7CB10;
 
     static inline float& m_BrightnessAddedToAmbientRed = *(float*)0xB79E38;
     static inline float& m_BrightnessAddedToAmbientGreen = *(float*)0xB79E34;
     static inline float& m_BrightnessAddedToAmbientBlue = *(float*)0xB79E30;
 
+    static inline CVector& m_vecDirnLightToSun = *(CVector*)0xB7CB14;
+
 public:
     static void InjectHooks();
 
-    static void Initialise();
-    static void InitForRestart();
+    static void Initialise(bool padFile);
+    static void Update();
+    static void CalcColoursForPoint(CVector point, CColourSet* set);
+    static float FindFarClipForCoors(CVector cameraPos);
     static void Shutdown();
 
-    static void Update();
+
+    static float GetAmbientRed();
+    static float GetAmbientGreen();
+    static float GetAmbientBlue();
+
+    static float GetAmbientRed_Obj();
+    static float GetAmbientGreen_Obj();
+    static float GetAmbientBlue_Obj();
+
+    static float GetAmbientRed_BeforeBrightness();
+    static float GetAmbientGreen_BeforeBrightness();
+    static float GetAmbientBlue_BeforeBrightness();
+
+    static uint16 GetSkyTopRed() { return m_CurrentColours.m_nSkyTopRed; };
+    static uint16 GetSkyTopGreen() { return m_CurrentColours.m_nSkyTopGreen; };
+    static uint16 GetSkyTopBlue() { return m_CurrentColours.m_nSkyTopBlue; };
+
+    static uint16 GetSkyBottomRed()   { return m_CurrentColours.m_nSkyBottomRed; };
+    static uint16 GetSkyBottomGreen() { return m_CurrentColours.m_nSkyBottomGreen; };
+    static uint16 GetSkyBottomBlue()  { return m_CurrentColours.m_nSkyBottomBlue; }
+
+    static uint16 GetFogRed()   { return m_CurrentColours.m_nSkyBottomRed; }
+    static uint16 GetFogGreen() { return m_CurrentColours.m_nSkyBottomGreen; }
+    static uint16 GetFogBlue()  { return m_CurrentColours.m_nSkyBottomBlue; }
+
+    static uint16 GetSunCoreRed()   { return m_CurrentColours.m_nSunCoreRed; };
+    static uint16 GetSunCoreGreen() { return m_CurrentColours.m_nSunCoreGreen; };
+    static uint16 GetSunCoreBlue()  { return m_CurrentColours.m_nSunCoreBlue; }
+
+    static uint16 GetSunCoronaRed()   { return m_CurrentColours.m_nSunCoronaRed; }
+    static uint16 GetSunCoronaGreen() { return m_CurrentColours.m_nSunCoronaGreen; }
+    static uint16 GetSunCoronaBlue()  { return m_CurrentColours.m_nSunCoronaBlue; }
+
+    static float GetSunSize() { return m_CurrentColours.m_fSunSize; }
+    static float GetSpriteSize() { return m_CurrentColours.m_fSpriteSize; }
+    static float GetSpriteBrightness() { return m_CurrentColours.m_fSpriteBrightness; }
+
+    static int16 GetShadowStrength() { return m_CurrentColours.m_nShadowStrength; }
+    static int16 GetLightShadowStrength() { return m_CurrentColours.m_nLightShadowStrength; }
+    static int16 GetPoleShadowStrength() { return m_CurrentColours.m_nPoleShadowStrength; }
+
+    static float GetFarClip() { return m_CurrentColours.m_fFarClip; }
+    static float GetFogStart() { return m_CurrentColours.m_fFogStart; }
+    static float GetLightsOnGroundBrightness() { return m_CurrentColours.m_fLightsOnGroundBrightness; }
+
+    static uint16 GetLowCloudsRed()   { return m_CurrentColours.m_nLowCloudsRed; }
+    static uint16 GetLowCloudsGreen() { return m_CurrentColours.m_nLowCloudsGreen; }
+    static uint16 GetLowCloudsBlue()  { return m_CurrentColours.m_nLowCloudsBlue; }
+
+    static uint16 GetFluffyCloudsBottomRed()   { return m_CurrentColours.m_nFluffyCloudsBottomRed; }
+    static uint16 GetFluffyCloudsBottomGreen() { return m_CurrentColours.m_nFluffyCloudsBottomGreen; }
+    static uint16 GetFluffyCloudsBottomBlue()  { return m_CurrentColours.m_nFluffyCloudsBottomBlue; }
+
+    static float GetWaterRed()   { return m_CurrentColours.m_fWaterRed; }
+    static float GetWaterGreen() { return m_CurrentColours.m_fWaterGreen; }
+    static float GetWaterBlue()  { return m_CurrentColours.m_fWaterBlue; }
+    static float GetWaterAlpha() { return m_CurrentColours.m_fWaterAlpha; }
+
+    static float GetPostFx1Red()  { return m_CurrentColours.m_fPostFx1Red; }
+    static float GetPostFx1Green() { return m_CurrentColours.m_fPostFx1Green; }
+    static float GetPostFx1Blue()  { return m_CurrentColours.m_fPostFx1Blue; }
+    static float GetPostFx1Alpha() { return m_CurrentColours.m_fPostFx1Alpha; }
+
+    static float GetPostFx2Red()   { return m_CurrentColours.m_fPostFx2Red; }
+    static float GetPostFx2Green() { return m_CurrentColours.m_fPostFx2Green; }
+    static float GetPostFx2Blue()  { return m_CurrentColours.m_fPostFx2Blue; }
+    static float GetPostFx2Alpha() { return m_CurrentColours.m_fPostFx2Alpha; }
+
+    static float GetCloudAlpha() { return m_CurrentColours.m_fCloudAlpha; }
+    static int32 GetHighLightMinIntensity() { return m_CurrentColours.m_nHighLightMinIntensity; }
+
+
+    static float GetLODMultiplier() { return m_CurrentColours.m_fLodDistMult; }
+
+    static void SetFogRed(uint16 value) { m_CurrentColours.m_nSkyBottomRed = value; }
+    static void SetFogGreen(uint16 value) { m_CurrentColours.m_nSkyBottomGreen = value; }
+    static void SetFogBlue(uint16 value) { m_CurrentColours.m_nSkyBottomBlue = value; }
+    
 
     static void StartExtraColour(int32 colour, bool bNoExtraColorInterior);
     static void StopExtraColour(bool bNoExtraColorInterior);
 
+
     static void AddOne(CBox& box, int16 farClip, int32 extraColor, float strength, float falloff, float lodDistMult);
-    static void CalcColoursForPoint(CVector point, CColourSet* set);
-    static float FindFarClipForCoors(CVector cameraPos);
-    static void FindTimeCycleBox(
-        CVector         pos,
-        CTimeCycleBox** out,
-        float*          currentBox,
-        bool            isLOD,
-        bool            isFarClip,
-        CTimeCycleBox*  alreadyFoundBox
-    );
+    static void FindTimeCycleBox(CVector pos, CTimeCycleBox** out, float* currentBox, bool isLOD, bool isFarClip, CTimeCycleBox* alreadyFoundBox);
+    static void InitForRestart();
+
+
     static void SetConstantParametersForPostFX();
 
-    static float GetAmbientRed()                    { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientRed; }       // 0x560330
-    static float GetAmbientGreen()                  { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientGreen; }     // 0x560340
-    static float GetAmbientBlue()                   { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBlue; }      // 0x560350
-    static float GetAmbientRed_BeforeBrightness()   { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBeforeBrightnessRed; }   // 0x560390
-    static float GetAmbientGreen_BeforeBrightness() { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBeforeBrightnessGreen; } // 0x5603A0
-    static float GetAmbientBlue_BeforeBrightness()  { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBeforeBrightnessBlue; }  // 0x5603B0
-    static float GetAmbientRed_Obj()                { return m_CurrentColours.m_fAmbientRed_Obj; }                        // 0x560360
-    static float GetAmbientGreen_Obj()              { return m_CurrentColours.m_fAmbientGreen_Obj; }                      // 0x560370
-    static float GetAmbientBlue_Obj()               { return m_CurrentColours.m_fAmbientBlue_Obj; }                       // 0x560380
-
+public: // NOTSA
     static auto GetVectorToSun() { return m_VectorToSun[m_CurrentStoredValue]; }
     static auto GetShadowSide() { return CVector2D{ m_fShadowSideX[m_CurrentStoredValue], m_fShadowSideY[m_CurrentStoredValue] }; }
 
-public: // NOTSA
     static CRGBA GetCurrentSkyBottomColor()         { return m_CurrentColours.GetSkyBottom(); }
 
     static auto GetPostFxColors() { return std::make_pair(m_CurrentColours.GetPostFx1(), m_CurrentColours.GetPostFx2()); }
@@ -187,3 +252,4 @@ public: // NOTSA
         );
     }
 };
+// VALIDATE_SIZE(CTimeCycle, 0x919); Maybe?

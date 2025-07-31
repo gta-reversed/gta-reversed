@@ -565,7 +565,7 @@ bool CGame::InitialiseCoreDataAfterRW() {
 
     g_surfaceInfos.Init();
     CPedStats::Initialise();
-    CTimeCycle::Initialise();
+    CTimeCycle::Initialise(false);
     CPopCycle::Initialise();
     CVehicleRecording::InitAtStartOfGame();
 
@@ -864,7 +864,7 @@ void CGame::ReInitGameObjectVariables() {
     CRadar::Initialise();
     CCarCtrl::ReInit();
     ThePaths.ReInit();
-    CTimeCycle::Initialise();
+    CTimeCycle::Initialise(false);
     CPopCycle::Initialise();
     CDraw::SetFOV(120.0f);
     CDraw::ms_fLODDistance = 500.0f;

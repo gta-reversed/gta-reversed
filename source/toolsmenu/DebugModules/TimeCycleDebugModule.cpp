@@ -50,7 +50,7 @@ void TimeCycleDebugModule::RenderWindow() {
     }
     ImGui::SameLine();
     if (ImGui::Button("Reset")) {
-        CTimeCycle::Initialise();
+        CTimeCycle::Initialise(false);
     }
     ImGui::Checkbox("Extra Colour On", reinterpret_cast<bool*>(&CTimeCycle::m_bExtraColourOn));
     ImGui::Checkbox("Show boxes", &m_ShowBoxes);
@@ -235,7 +235,7 @@ void TimeCycleDebugModule::RenderWindow() {
     }
 
     ImGui::NewLine();
-    ImGui::SliderInt("Current Stored Value", &CTimeCycle::m_CurrentStoredValue, 0, 16);
+    ImGui::SliderInt("Current Stored Value", (int32*)&CTimeCycle::m_CurrentStoredValue, 0, 16);
     ImGui::SliderFloat("Shadow Front X", &CTimeCycle::m_fShadowFrontX[0], 0.0f, 1.0f);
     ImGui::SliderFloat("Shadow Front Y", &CTimeCycle::m_fShadowFrontY[0], 0.0f, 1.0f);
     ImGui::SliderFloat("Shadow Side X", &CTimeCycle::m_fShadowSideX[0], 0.0f, 1.0f);
