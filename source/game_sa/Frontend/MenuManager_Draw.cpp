@@ -901,18 +901,18 @@ void CMenuManager::DrawControllerScreenExtraText(int32 startingYPos) {
     const auto maxActions      = GetMaxAction();
     const auto verticalSpacing = GetVerticalSpacing();
     if (maxActions > 0) {
-        for (auto action = 0u; action < maxActions; action++) {
+        for (auto actionIndex = 0u; actionIndex < maxActions; actionIndex++) {
             float textX = StretchX(240.0f);
             const float textY = StretchY(float(startingYPos));
 
             for (const auto& order : CONTROLLER_ORDERS_SET) {
-               if (const auto buttonText = ControlsManager.GetControllerSettingText(eControllerAction(action), order)) {
+                if (const auto buttonText = ControlsManager.GetControllerSettingTextWithOrderNumber(eControllerAction(actionIndex), order)) {
                     CFont::PrintString(textX, textY, buttonText);
                     textX += StretchX(75.0f);
                 }
             }
 
-            if (action == m_ListSelection && m_EditingControlOptions) {
+            if (actionIndex == m_ListSelection && m_EditingControlOptions) {
                 if (CTimer::GetTimeInMSPauseMode() - m_LastHighlightToggleTime > 150) {
                     m_OptionFlashColorState ^= true;
                     m_LastHighlightToggleTime = CTimer::GetTimeInMSPauseMode();
@@ -1043,8 +1043,8 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
     }};
 
     // Main loop - process each action
-    for (auto i = 0u; i < maxActions; i++) {
-        const auto currentY = StretchY(float(verticalOffset + i * verticalSpacing));
+    for (auto actionIndex = 0u; actionIndex < maxActions; actionIndex++) {
+        const auto currentY = StretchY(float(verticalOffset + actionIndex * verticalSpacing));
         auto currentX = StretchX(270.0f);
         eControllerAction action = eControllerAction::CA_NONE;
         CFont::SetColor(MENU_TEXT_WHITE);
@@ -1052,15 +1052,15 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         // Map action index to controller action
         if (m_RedefiningControls == eControlMode::VEHICLE) {
             for (const auto& mapping : CarActionMappings) {
-                if (mapping.first == ControllerActionsAvailableInCar[i]) {
+                if (mapping.first == ControllerActionsAvailableInCar[actionIndex]) {
                     action = (eControllerAction)mapping.second;
                     break;
                 }
             }
         } else if (m_RedefiningControls == eControlMode::FOOT) {
             for (const auto& mapping : PedActionMappings) {
-                if (mapping.first == (eControllerAction)i) { // Cast action to eControllerAction for comparison
-                    if (m_ControlMethod == eController::MOUSE_PLUS_KEYS && notsa::contains({ eControllerAction::CA_VEHICLE_STEER_UP, eControllerAction::CA_CONVERSATION_YES, eControllerAction::CA_VEHICLE_STEER_DOWN, eControllerAction::CA_CONVERSATION_NO }, mapping.first)) {
+                if (mapping.first == (eControllerAction)actionIndex) { // Cast actionIndex to eControllerAction for comparison
+                    if (m_ControlMethod == eController::MOUSE_PLUS_KEYS && notsa::contains({ VEHICLE_STEERUP, CONVERSATION_YES, VEHICLE_STEERDOWN, CONVERSATION_NO }, mapping.first)) {
                         action = eControllerAction::CA_NONE;
                     } else {
                         action = (eControllerAction)mapping.second;
@@ -1071,12 +1071,12 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         }
 
         // 0x57EA1E - Highlight selected action
-        if (m_ListSelection == i && !isOppositeScreen) {
+        if (m_ListSelection == actionIndex && !isOppositeScreen) {
             CSprite2d::DrawRect({
                     StretchX(260.0f),
-                    StretchY(float(i * verticalSpacing + verticalOffset + 1)),
+                    StretchY(float(actionIndex * verticalSpacing + verticalOffset + 1)),
                     SCREEN_STRETCH_FROM_RIGHT(20.0f),
-                    StretchY(float(i * verticalSpacing + verticalOffset + 1 + 10))
+                    StretchY(float(actionIndex * verticalSpacing + verticalOffset + 1 + 10))
                 }, MENU_TEXT_SELECTED
             );
             CFont::SetColor(MENU_TEXT_WHITE);
@@ -1091,10 +1091,10 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         bool hasControl = false;
         if (action != eControllerAction::CA_NONE) {
             for (const auto& order : CONTROLLER_ORDERS_SET) {
-                if (m_DeleteAllNextDefine && m_ListSelection == i) {
+                if (m_DeleteAllNextDefine && m_ListSelection == actionIndex) {
                     break;
                 }
-                if (auto buttonText = ControlsManager.GetControllerSettingText(action, order)) {
+                if (auto buttonText = ControlsManager.GetControllerSettingTextWithOrderNumber(action, order)) {
                     hasControl = true;
                     if (!isOppositeScreen) {
                         CFont::PrintString(currentX, currentY, buttonText);
@@ -1105,7 +1105,7 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         }
 
         // 0x57EBD9 + 0x57EBEA - Handle special cases and selection
-        if (action == eControllerAction::CA_COMBOLOCK) {
+        if (action == eControllerAction::COMBOLOCK) {
             // 0x57EBEA
             CFont::SetColor(MENU_BG);
             if (!isOppositeScreen) {
@@ -1114,10 +1114,10 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         }
 
         // 0x57EB63 + 0x57EBD9 + 0x57EC13 - Handle unbound case
-        if (action != eControllerAction::CA_NONE && action != eControllerAction::CA_COMBOLOCK && !hasControl) {
+        if (action != eControllerAction::CA_NONE && action != eControllerAction::COMBOLOCK && !hasControl) {
             // 0x57EC1F
             m_RadioAvailable = false;
-            if (m_ListSelection != i || !m_EditingControlOptions) {
+            if (m_ListSelection != actionIndex || !m_EditingControlOptions) {
                 CFont::SetColor(MENU_ERROR);
                 if (!isOppositeScreen) {
                     CFont::PrintString(currentX, currentY, TheText.Get("FEC_UNB")); // UNBOUND
@@ -1126,12 +1126,12 @@ void CMenuManager::DrawControllerBound(uint16 verticalOffset, bool isOppositeScr
         }
 
         // 0x57ECA2 - Handle selection and state
-        if (i == m_ListSelection) {
-            if (action == eControllerAction::CA_NONE || action == eControllerAction::CA_COMBOLOCK) {
+        if (actionIndex == m_ListSelection) {
+            if (action == eControllerAction::CA_NONE || action == eControllerAction::COMBOLOCK) {
                 // CANNOT SET A CONTROL FOR THIS ACTION
                 DisplayHelperText("FET_EIG");
             } else {
-                m_OptionToChange = action;
+                m_OptionToChange = (int32)action;
                 if (m_EditingControlOptions) {
                     if (CTimer::GetTimeInMSPauseMode() - m_LastBlinkTime > 150) {
                         m_InputWaitBlink ^= true;

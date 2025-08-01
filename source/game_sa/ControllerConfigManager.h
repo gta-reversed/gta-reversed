@@ -83,7 +83,7 @@ enum class eControllerAction {
     SHOW_MOUSE_POINTER_TOGGLE,
     SWITCH_CAM_DEBUG_MENU,
 
-    // android...
+    // android widget...
 
     CONTROLLER_ACTION_COUNT
 };
@@ -122,9 +122,9 @@ enum eJoyButtons : uint32 {
     JOYBUTTON_FOURTEEN,
     JOYBUTTON_FIFTHTEEN,
     JOYBUTTON_SIXTEEN,
-};
 
-constexpr auto JOYBUTTON_COUNT = 17;
+    JOYBUTTON_COUNT
+};
 
 using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
 
