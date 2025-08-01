@@ -309,9 +309,14 @@ int8 CAEAudioHardware::GetSoundBankLoadingStatus(eSoundBank bank, eSoundBankSlot
 }
 
 // notsa
-bool CAEAudioHardware::EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot slot, bool checkLoadingTune) {
+bool CAEAudioHardware::EnsureSoundBankIsLoaded(eSoundBank bank, eSoundBankSlot slot, bool checkLoadingTune, bool cancelSoundsInSlot) {
     if (AEAudioHardware.IsSoundBankLoaded(bank, slot)) {
         return true;
+    }
+    if (cancelSoundsInSlot) {
+        if (AESoundManager.AreSoundsPlayingInBankSlot(slot)) {
+            AESoundManager.CancelSoundsInBankSlot(slot, false);
+        }
     }
     if (checkLoadingTune && AudioEngine.IsLoadingTuneActive()) {
         return false;
