@@ -172,10 +172,7 @@ void CControllerConfigManager::DeleteMatching1rst3rdPersonControls(eControllerAc
         return;
     }
 
-    if (action != PED_ANSWER_PHONE
-        && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD
-        || FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS)
-    {
+    if (action != PED_ANSWER_PHONE && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD || FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS) {
         CheckAndClear(PED_FIRE_WEAPON_ALT, type, button);
     }
     CheckAndClear(PED_FIRE_WEAPON, type, button);

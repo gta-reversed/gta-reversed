@@ -30,7 +30,11 @@ inline const ReversibleBugFix GenericOOB{
     .Description = "Fixes generic out-of-bounds bugs across the codebase",
     .Credit      = "Contributors"
 };
-
+inline const ReversibleBugFix GenericFrameRate{
+    .Name        = "Generic framerate related bugs",
+    .Description = "Fixes parts of code to not be framerate dependent",
+    .Credit      = "Contributors"
+};
 
 //
 // Other bugs
@@ -53,6 +57,16 @@ inline const ReversibleBugFix AESound_UpdatePlayTime_DivisionByZero{
 inline const ReversibleBugFix CCarCtrl_RemoveDistantCars_UseAfterFree{
     .Name        = "CCarCtrl::RemoveDistantCars Use-After-Free",
     .Description = "Fix user-after-free of vehicles (possibly) deleted by PossiblyRemoveVehicle",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CAEVehicleAudioEntity_PlayBicycleSound_VolumeFix{
+    .Name        = "CAEVehicleAudioEntity::PlayBicycleSound Volume fix",
+    .Description = "Original code didn't account for event base volume",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CAEVehicleAudioEntity_PlayAircraftSound_VolumeFix{
+    .Name        = "CAEVehicleAudioEntity::PlayAircraftSound Volume fix",
+    .Description = "Original code didn't account for event base volume",
     .Credit      = "Pirulax"
 };
 };

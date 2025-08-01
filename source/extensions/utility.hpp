@@ -5,6 +5,7 @@
 #include <Vector.h>
 #include <unordered_map>
 #include "Base.h"
+#include <game_sa/Timer.h>
 
 namespace notsa {
 //template<typename TChar, size_t N>
@@ -85,6 +86,9 @@ constexpr inline auto find_value(auto&& mapping, auto&& needle) {
     NOTSA_UNREACHABLE("Needle not in the mapping!");
 }
 
+/*!
+* @brief Find the index of the first occurrence of a value in a range, returning a default index if not found.
+*/
 template<rng::input_range R>
 ptrdiff_t indexof(R&& r, const rng::range_value_t<R>& v, ptrdiff_t defaultIdx = -1) {
     const auto it = rng::find(r, v);
@@ -401,4 +405,45 @@ F wrap(F x, F min, F max) {
     }
     return (x < 0 ? max : min) + std::fmod(x, max - min);
 }
+
+template<std::floating_point F>
+F step_up_to(F x, F to, F step, bool useTimeStep = false) {
+    return std::min<F>(to, x + (useTimeStep ? std::pow(step, CTimer::GetTimeStep()) : step));
+}
+
+template<std::floating_point F>
+F step_down_to(F x, F to, F step, bool useTimeStep = false) {
+    return std::max<F>(to, x - (useTimeStep ? std::pow(step, CTimer::GetTimeStep()) : step));
+}
+
+/*!
+* @brief Step `x` towards `to` in steps
+* @brief This function is useful for interpolating changing values
+* @arg stepUp The step size when `x` is less than `to`
+* @arg stepDown The step size when `x` is greater than `to`
+* @arg useTimeStep Whether to use timestep for calculating the correct step size (Avoids FPS related issues somewhat)
+*********/
+template<std::floating_point F>
+F step_to(F x, F to, F stepUp, F stepDown, bool useTimeStep = false) {
+    assert(stepDown > 0.f);
+    assert(stepUp > 0.f);
+
+    if (x == to) {
+        return to;
+    }
+    return x < to
+        ? step_up_to<F>(x, to, stepUp, useTimeStep)
+        : step_down_to<F>(x, to, stepUp, useTimeStep);
+}
+
+// Step `x` towards `to` in steps
+template<std::floating_point F>
+F step_to(F x, F to, F step, bool useTimeStep = false) {
+    return step_to<F>(x, to, step, step, useTimeStep);
+}
+
+//! Range of a specific type
+//! See: https://stackoverflow.com/a/64228354/15363969
+template <typename R, typename T>
+concept range_of = rng::range<R> && std::same_as<rng::range_value_t<R>, T>;
 };

@@ -623,9 +623,14 @@ void InjectHooksMain() {
     CKeyboardState::InjectHooks();
     CMouseControllerState::InjectHooks();
     CRect::InjectHooks();
-    CVector2D::InjectHooks();
-    CQuaternion::InjectHooks();
-    CMatrix::InjectHooks();
+
+    /******* Don't hook these, performance is bad ********
+    /* CVector::InjectHooks();
+    /* CVector2D::InjectHooks();
+    /* CQuaternion::InjectHooks();
+    /* CMatrix::InjectHooks();
+    /****************************************************/
+
     CMatrixLink::InjectHooks();
     CMatrixLinkList::InjectHooks();
     CEntryInfoNode::InjectHooks();
@@ -733,6 +738,7 @@ void InjectHooksMain() {
     CGangWars::InjectHooks();
     CPlayerPedData::InjectHooks();
     CTimeCycle::InjectHooks();
+    CColourSet::InjectHooks();
     CSkidmarks::InjectHooks();
     CMovingThings::InjectHooks();
     CRoadBlocks::InjectHooks();
