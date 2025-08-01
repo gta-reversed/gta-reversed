@@ -73,7 +73,6 @@ void CTimeCycle::Initialise(bool padFile) {
                 }
             }
 
-            // TODO: Fix in original TIMECYC.dat line 320 (255 ... -> 22 22 22 ...)
             const auto n = sscanf(line,
                 "%d %d %d " // Static ambience color
                 "%d %d %d " // Dynamic ambience color
@@ -121,6 +120,10 @@ void CTimeCycle::Initialise(bool padFile) {
                 &cloudAlpha, &highLightMinIntensity, &waterFogAlpha, &dirMult
             );
             if (n < 51) {
+                // TODO:
+                // R* made a mistake in line 320:
+                // instead of the first 3 RGB values, only 255 is specified,
+                // which causes the entire line to shift and be read incorrectly
                 NOTSA_LOG_WARN("Bad timecyc line: '{}'", line);
             }
 
