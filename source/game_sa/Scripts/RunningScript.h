@@ -40,7 +40,7 @@ enum eScriptParameterType : uint8 {
     SCRIPT_PARAM_GLOBAL_SHORT_STRING_ARRAY, //< Global 8 byte string array
     SCRIPT_PARAM_LOCAL_SHORT_STRING_ARRAY,  //< Local 8 byte string array
 
-    SCRIPT_PARAM_STATIC_PASCAL_STRING, //< Pascal string is a sequence of characters with optional size specification. (So says Google)
+    SCRIPT_PARAM_STATIC_PASCAL_STRING, //< Variable-length string (1 byte (unsigned) length + string data)
     SCRIPT_PARAM_STATIC_LONG_STRING,    //< 16 byte string
 
     SCRIPT_PARAM_GLOBAL_LONG_STRING_VARIABLE, //< Global 16 byte string
@@ -92,8 +92,47 @@ constexpr auto COMMANDS_CHAR_BUFFER_SIZE   = 64;
 constexpr auto COMMANDS_CHAR_BUFFERS_COUNT = 16;
 
 namespace scm {
+constexpr size_t MAX_STRING_SIZE = 255 - 1; // Maximum string length
+
 using ShortString = char[SHORT_STRING_SIZE];
 using LongString = char[LONG_STRING_SIZE];
+
+/*!
+ * @notsa
+ * @brief Ref to a string (or text label) inside the script.
+ * @brief It's exactly like `string_view`, *but* the data it points to is mutable.
+ * @brief If you don't need mutability, use `string_view`
+ */
+struct StringRef {
+    StringRef() = default;
+    StringRef(char* str, size_t len, size_t cap) :
+        Data{ str },
+        Length{ (uint8)(len) },
+        Cap{ (uint8)(cap) }
+    {
+        assert(len < MAX_STRING_SIZE);
+        assert(cap < MAX_STRING_SIZE + 1);
+    }
+    explicit StringRef(ShortString& str) :
+        StringRef{ &str[0], strlen(str), sizeof(str) }
+    {
+    }
+    explicit StringRef(LongString& str) :
+        StringRef{ &str[0], strlen(str), sizeof(str) }
+    {
+    }
+
+    /* support for `notsa::ci_string_view`, `std::string_view` */
+    template<typename Traits>
+    operator std::basic_string_view<char, Traits>() const {
+        return { Data, Length };
+    }
+
+public:
+    char* Data{};   //!< Pointer to the string (This points to a memory location inside the script, so be careful)
+    uint8 Length{}; //!< Length of the string (not including the null terminator)
+    uint8 Cap{};    //!< Buffer capacity
+};
 
 /** See https://gtamods.com/wiki/SCM_Instruction#Arrays */
 struct ArrayAccess {
