@@ -689,6 +689,12 @@ void CPathFind::UnLoadPathFindData(int32 index) {
     m_pPathIntersections[index] = nullptr;
 }
 
+// 0x44E4F0
+void CPathFind::RemoveBadStartNode(CVector pos, CNodeAddress* address, int16* numPathFindNodes)
+{
+    plugin::CallMethod<0x44E4F0, CPathFind*, CVector, CNodeAddress*, int16*>(this, pos, address, numPathFindNodes);
+}
+
 // 0x44DE00
 void CPathFind::LoadSceneForPathNodes(CVector point) {
     rng::fill(ToBeStreamed, false);
