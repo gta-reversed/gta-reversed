@@ -142,7 +142,6 @@ public:
     static float FindFarClipForCoors(CVector cameraPos);
     static void Shutdown();
 
-
     static float GetAmbientRed();
     static float GetAmbientGreen();
     static float GetAmbientBlue();
@@ -213,22 +212,18 @@ public:
     static float GetCloudAlpha() { return m_CurrentColours.m_fCloudAlpha; }
     static int32 GetHighLightMinIntensity() { return m_CurrentColours.m_nHighLightMinIntensity; }
 
-
     static float GetLODMultiplier() { return m_CurrentColours.m_fLodDistMult; }
 
     static void SetFogRed(uint16 value)   { SetSkyBottomRed(value); }
     static void SetFogGreen(uint16 value) { SetSkyBottomGreen(value); }
     static void SetFogBlue(uint16 value)  { SetSkyBottomBlue(value); }
 
-
     static void StartExtraColour(int32 colour, bool bNoExtraColorInterior);
     static void StopExtraColour(bool bNoExtraColorInterior);
-
 
     static void AddOne(CBox& box, int16 farClip, int32 extraColor, float strength, float falloff, float lodDistMult);
     static void FindTimeCycleBox(CVector pos, CTimeCycleBox** out, float* currentBox, bool isLOD, bool isFarClip, CTimeCycleBox* alreadyFoundBox);
     static void InitForRestart();
-
 
     static void SetConstantParametersForPostFX();
 
