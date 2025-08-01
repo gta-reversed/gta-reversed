@@ -155,17 +155,17 @@ public:
     static float GetAmbientGreen_BeforeBrightness();
     static float GetAmbientBlue_BeforeBrightness();
 
-    static uint16 GetSkyTopRed() { return m_CurrentColours.m_nSkyTopRed; };
+    static uint16 GetSkyTopRed()   { return m_CurrentColours.m_nSkyTopRed; };
     static uint16 GetSkyTopGreen() { return m_CurrentColours.m_nSkyTopGreen; };
-    static uint16 GetSkyTopBlue() { return m_CurrentColours.m_nSkyTopBlue; };
+    static uint16 GetSkyTopBlue()  { return m_CurrentColours.m_nSkyTopBlue; };
 
     static uint16 GetSkyBottomRed()   { return m_CurrentColours.m_nSkyBottomRed; };
     static uint16 GetSkyBottomGreen() { return m_CurrentColours.m_nSkyBottomGreen; };
     static uint16 GetSkyBottomBlue()  { return m_CurrentColours.m_nSkyBottomBlue; }
 
-    static uint16 GetFogRed()   { return m_CurrentColours.m_nSkyBottomRed; }
-    static uint16 GetFogGreen() { return m_CurrentColours.m_nSkyBottomGreen; }
-    static uint16 GetFogBlue()  { return m_CurrentColours.m_nSkyBottomBlue; }
+    static uint16 GetFogRed()   { return GetSkyBottomRed(); }
+    static uint16 GetFogGreen() { return GetSkyBottomGreen(); }
+    static uint16 GetFogBlue()  { return GetSkyBottomBlue(); }
 
     static uint16 GetSunCoreRed()   { return m_CurrentColours.m_nSunCoreRed; };
     static uint16 GetSunCoreGreen() { return m_CurrentColours.m_nSunCoreGreen; };
@@ -200,7 +200,7 @@ public:
     static float GetWaterBlue()  { return m_CurrentColours.m_fWaterBlue; }
     static float GetWaterAlpha() { return m_CurrentColours.m_fWaterAlpha; }
 
-    static float GetPostFx1Red()  { return m_CurrentColours.m_fPostFx1Red; }
+    static float GetPostFx1Red()   { return m_CurrentColours.m_fPostFx1Red; }
     static float GetPostFx1Green() { return m_CurrentColours.m_fPostFx1Green; }
     static float GetPostFx1Blue()  { return m_CurrentColours.m_fPostFx1Blue; }
     static float GetPostFx1Alpha() { return m_CurrentColours.m_fPostFx1Alpha; }
@@ -216,10 +216,10 @@ public:
 
     static float GetLODMultiplier() { return m_CurrentColours.m_fLodDistMult; }
 
-    static void SetFogRed(uint16 value) { m_CurrentColours.m_nSkyBottomRed = value; }
-    static void SetFogGreen(uint16 value) { m_CurrentColours.m_nSkyBottomGreen = value; }
-    static void SetFogBlue(uint16 value) { m_CurrentColours.m_nSkyBottomBlue = value; }
-    
+    static void SetFogRed(uint16 value)   { SetSkyBottomRed(value); }
+    static void SetFogGreen(uint16 value) { SetSkyBottomGreen(value); }
+    static void SetFogBlue(uint16 value)  { SetSkyBottomBlue(value); }
+
 
     static void StartExtraColour(int32 colour, bool bNoExtraColorInterior);
     static void StopExtraColour(bool bNoExtraColorInterior);
@@ -233,6 +233,10 @@ public:
     static void SetConstantParametersForPostFX();
 
 public: // NOTSA
+    static void SetSkyBottomRed(uint16 value)   { m_CurrentColours.m_nSkyBottomRed = value; }
+    static void SetSkyBottomGreen(uint16 value) { m_CurrentColours.m_nSkyBottomGreen = value; }
+    static void SetSkyBottomBlue(uint16 value)  { m_CurrentColours.m_nSkyBottomBlue = value; }
+
     static auto GetVectorToSun() { return m_VectorToSun[m_CurrentStoredValue]; }
     static auto GetShadowSide() { return CVector2D{ m_fShadowSideX[m_CurrentStoredValue], m_fShadowSideY[m_CurrentStoredValue] }; }
 
