@@ -135,7 +135,7 @@ struct CControllerKey {
 VALIDATE_SIZE(CControllerKey, 0x8);
 
 struct CControllerAction {
-    CControllerKey Keys[CONTROLLER_TYPES_COUNT]{};
+    CControllerKey Keys[+eControllerType::CONTROLLER_TYPES_COUNT]{};
 };
 VALIDATE_SIZE(CControllerAction, 0x20);
 
@@ -170,11 +170,11 @@ public:
     bool m_ButtonStates[JOYBUTTON_COUNT]; // True if down, false if up or missing
     CControllerAction m_Actions[+eControllerAction::CONTROLLER_ACTION_COUNT]{};
 
-    bool m_bStickL_X_Rgh_Lft_MovementBothDown[CONTROLLER_TYPES_COUNT];
-    bool m_bStickL_Up_Dwn_MovementBothDown[CONTROLLER_TYPES_COUNT];
+    bool m_bStickL_X_Rgh_Lft_MovementBothDown[+eControllerType::CONTROLLER_TYPES_COUNT];
+    bool m_bStickL_Up_Dwn_MovementBothDown[+eControllerType::CONTROLLER_TYPES_COUNT];
 
-    bool m_bStickR_X_Rgh_Lft_MovementBothDown[CONTROLLER_TYPES_COUNT];
-    bool m_bStickR_Up_Dwn_MovementBothDown[CONTROLLER_TYPES_COUNT];
+    bool m_bStickR_X_Rgh_Lft_MovementBothDown[+eControllerType::CONTROLLER_TYPES_COUNT];
+    bool m_bStickR_Up_Dwn_MovementBothDown[+eControllerType::CONTROLLER_TYPES_COUNT];
     bool m_MouseFoundInitSet{};
 
 public:
