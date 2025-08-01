@@ -49,23 +49,23 @@ void CControllerConfigManager::InjectHooks() {
     RH_ScopedInstall(AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly, 0x52FAB0);
     RH_ScopedInstall(AffectControllerStateOn_ButtonDown_AllStates, 0x52FCA0);
     RH_ScopedInstall(AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly, 0x52FD20);
-    RH_ScopedInstall(HandleButtonRelease, 0x52FD40);
+    RH_ScopedInstall(AffectControllerStateOn_ButtonUp_All_Player_States, 0x52FD40);
     RH_ScopedInstall(ClearSettingsAssociatedWithAction, 0x52FD70);
-    RH_ScopedInstall(GetKeyNameForKeyboard, 0x52FE10);
-    RH_ScopedInstall(UnmapVehicleEnterExit, 0x531BC0);
-    RH_ScopedInstall(ClearSniperZoomMappings, 0x531C20);
+    RH_ScopedInstall(GetControllerSettingTextKeyBoard, 0x52FE10);
+    RH_ScopedInstall(DeleteMatchingVehicle_3rdPersonControls, 0x531BC0);
+    RH_ScopedInstall(DeleteMatching1rstPersonControls, 0x531C20);
     RH_ScopedInstall(DeleteMatchingActionInitiators, 0x531C90);
-    RH_ScopedInstall(GetControllerSettingText, 0x531E20);
-    RH_ScopedInstall(GetActionKeyName, 0x531E90);
-    RH_ScopedInstall(GetDefinedKeyByGxtName, 0x5303D0);
+    RH_ScopedInstall(GetControllerSettingTextWithOrderNumber, 0x531E20);
+    RH_ScopedInstall(GetFirstKeyboardControllerText, 0x531E90);
+    RH_ScopedInstall(GetGxtStringOfCommandKeys, 0x5303D0);
     RH_ScopedInstall(AffectPadFromMouse, 0x5314A0);
-    RH_ScopedInstall(Clear1st3rdPersonMappings, 0x5318C0);
-    RH_ScopedInstall(ClearVehicleMappings, 0x5319D0);
+    RH_ScopedInstall(DeleteMatching1rst3rdPersonControls, 0x5318C0);
+    RH_ScopedInstall(DeleteMatchingVehicleControls, 0x5319D0);
     RH_ScopedInstall(SetControllerKeyAssociatedWithAction, 0x530490);
     RH_ScopedInstall(MakeControllerActionsBlank, 0x530500);
     RH_ScopedInstall(AffectPadFromKeyBoard, 0x531140);
-    RH_ScopedInstall(ClearCommonMappings, 0x531670);
-    RH_ScopedInstall(ClearPedMappings, 0x531730);
+    RH_ScopedInstall(DeleteMatchingCommonControls, 0x531670);
+    RH_ScopedInstall(DeleteMatching3rdPersonControls, 0x531730);
     RH_ScopedInstall(UpdateJoyInConfigMenus_ButtonDown, 0x52DAB0);
     RH_ScopedInstall(UpdateJoyInConfigMenus_ButtonUp, 0x52DC20);
     RH_ScopedInstall(GetJoyButtonJustUp, 0x52D1C0);
@@ -84,7 +84,7 @@ CControllerConfigManager::CControllerConfigManager() {
 }
 
 // 0x531730
-void CControllerConfigManager::ClearPedMappings(eControllerAction action, KeyCode button, eControllerType type) {
+void CControllerConfigManager::DeleteMatching3rdPersonControls(eControllerAction action, KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -115,7 +115,7 @@ void CControllerConfigManager::ClearPedMappings(eControllerAction action, KeyCod
 }
 
 // 0x531670
-void CControllerConfigManager::ClearCommonMappings(eControllerAction nop, KeyCode button, eControllerType type) {
+void CControllerConfigManager::DeleteMatchingCommonControls(eControllerAction nop, KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -133,11 +133,11 @@ void CControllerConfigManager::SetControllerKeyAssociatedWithAction(eControllerA
     ResetSettingOrder(action);
     const auto numOfSettings = GetNumOfSettingsForAction(action);
     m_Actions[+action].Keys[+type].m_uiActionInitiator = button;
-    m_Actions[+action].Keys[+type].m_uiSetOrder = (eContSetOrder)(+numOfSettings + 1);
+    m_Actions[+action].Keys[+type].m_uiSetOrder = eContSetOrder(+numOfSettings + 1);
 }
 
 // 0x5319D0
-void CControllerConfigManager::ClearVehicleMappings(eControllerAction nop, KeyCode button, eControllerType type) {
+void CControllerConfigManager::DeleteMatchingVehicleControls(eControllerAction nop, KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -167,7 +167,7 @@ void CControllerConfigManager::ClearVehicleMappings(eControllerAction nop, KeyCo
 }
 
 // 0x5318C0
-void CControllerConfigManager::Clear1st3rdPersonMappings(eControllerAction action, KeyCode button, eControllerType type) {
+void CControllerConfigManager::DeleteMatching1rst3rdPersonControls(eControllerAction action, KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -199,23 +199,23 @@ void CControllerConfigManager::UpdateJoyButtonState(int32 padnumber) {
 
 // unused
 // 0x531E90
-const GxtChar* CControllerConfigManager::GetActionKeyName(eControllerAction action) {
+const GxtChar* CControllerConfigManager::GetFirstKeyboardControllerText(eControllerAction action) {
     ResetSettingOrder(action);
     for (const auto& type : CONTROLLER_TYPES_KEYBOARD) {
         if (m_Actions[+action].Keys[+type].m_uiSetOrder != eContSetOrder::NONE) {
-            return GetKeyNameForKeyboard(action, type);
+            return GetControllerSettingTextKeyBoard(action, type);
         }
     }
     return nullptr;
 }
 
 // 0x531E20
-const GxtChar* CControllerConfigManager::GetControllerSettingText(eControllerAction action, eContSetOrder order) {
+const GxtChar* CControllerConfigManager::GetControllerSettingTextWithOrderNumber(eControllerAction action, eContSetOrder order) {
     for (const auto& type : CONTROLLER_TYPES_ALL) {
         if (m_Actions[+action].Keys[+type].m_uiSetOrder == order) {
             switch (type) {
             case eControllerType::KEYBOARD:
-            case eControllerType::OPTIONAL_EXTRA_KEY: return GetKeyNameForKeyboard(action, type);
+            case eControllerType::OPTIONAL_EXTRA_KEY: return GetControllerSettingTextKeyBoard(action, type);
             case eControllerType::MOUSE:              return GetControllerSettingTextMouse(action);
             case eControllerType::JOY_STICK:          return GetControllerSettingTextJoystick(action);
             default:                                  NOTSA_UNREACHABLE();
@@ -226,7 +226,7 @@ const GxtChar* CControllerConfigManager::GetControllerSettingText(eControllerAct
 }
 
 // 0x531C20
-void CControllerConfigManager::ClearSniperZoomMappings(eControllerAction nop, KeyCode button, eControllerType type) {
+void CControllerConfigManager::DeleteMatching1rstPersonControls(eControllerAction nop, KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -236,7 +236,7 @@ void CControllerConfigManager::ClearSniperZoomMappings(eControllerAction nop, Ke
 }
 
 // 0x531BC0
-void CControllerConfigManager::UnmapVehicleEnterExit(KeyCode button, eControllerType type) {
+void CControllerConfigManager::DeleteMatchingVehicle_3rdPersonControls(KeyCode button, eControllerType type) {
     if (GetIsKeyBlank(button, type)) {
         return;
     }
@@ -264,16 +264,16 @@ void CControllerConfigManager::ClearSettingsAssociatedWithAction(eControllerActi
 
 // unused
 // 0x52FD20
-void CControllerConfigManager::AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state) {
-    CheckAndSetButton(VEHICLE_ENTER_EXIT, type, button, state->ButtonTriangle);
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(KeyCode button, eControllerType type, CControllerState& state) {
+    CheckAndSetButton(VEHICLE_ENTER_EXIT, type, button, state.ButtonTriangle);
 }
 
 // 0x52FCA0
-void CControllerConfigManager::AffectControllerStateOn_ButtonDown_AllStates(KeyCode button, eControllerType type, CControllerState* state) {
-    CheckAndSetButton(CAMERA_CHANGE_VIEW_ALL_SITUATIONS, type, button, state->Select);
-    CheckAndSetPad(CONVERSATION_NO, type, button, state->DPadRight, state->DPadLeft);
-    CheckAndSetPad(CONVERSATION_YES, type, button, state->DPadLeft, state->DPadRight);
-    CheckAndSetButton(NETWORK_TALK, type, button, state->m_bChatIndicated);
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_AllStates(KeyCode button, eControllerType type, CControllerState& state) {
+    CheckAndSetButton(CAMERA_CHANGE_VIEW_ALL_SITUATIONS, type, button, state.Select);
+    CheckAndSetPad(CONVERSATION_NO, type, button, state.DPadRight, state.DPadLeft);
+    CheckAndSetPad(CONVERSATION_YES, type, button, state.DPadLeft, state.DPadRight);
+    CheckAndSetButton(NETWORK_TALK, type, button, state.m_bChatIndicated);
 }
 
 // 0x52F580
@@ -282,37 +282,37 @@ KeyCode CControllerConfigManager::GetMouseButtonAssociatedWithAction(eController
 }
 
 // 0x52FAB0
-void CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state) {
-    CheckAndSetButton(PED_FIRE_WEAPON, type, button, state->ButtonCircle);
-    CheckAndSetButton(PED_FIRE_WEAPON_ALT, type, button, state->LeftShoulder1);
-    CheckAndSetButton(PED_LOCK_TARGET, type, button, state->RightShoulder1);
-    CheckAndSetStick(GO_FORWARD, type, button, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[+type], -128);
-    CheckAndSetStick(GO_BACK, type, button, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[+type], 128);
-    CheckAndSetStick(GO_LEFT, type, button, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[+type], -128);
-    CheckAndSetStick(GO_RIGHT, type, button, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[+type], 128);
-    CheckAndSetButton(PED_WALK, type, button, state->m_bPedWalk);
-    CheckAndSetPad(GROUP_CONTROL_FWD, type, button, state->DPadDown, state->DPadUp);
-    CheckAndSetPad(GROUP_CONTROL_BWD, type, button, state->DPadUp, state->DPadDown);
-    CheckAndSetStick(PED_1RST_PERSON_LOOK_LEFT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[+type], -128);
-    CheckAndSetStick(PED_1RST_PERSON_LOOK_RIGHT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[+type], 128);
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstAndThirdPersonOnly(KeyCode button, eControllerType type, CControllerState& state) {
+    CheckAndSetButton(PED_FIRE_WEAPON, type, button, state.ButtonCircle);
+    CheckAndSetButton(PED_FIRE_WEAPON_ALT, type, button, state.LeftShoulder1);
+    CheckAndSetButton(PED_LOCK_TARGET, type, button, state.RightShoulder1);
+    CheckAndSetStick(GO_FORWARD, type, button, state.LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[+type], -128);
+    CheckAndSetStick(GO_BACK, type, button, state.LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[+type], 128);
+    CheckAndSetStick(GO_LEFT, type, button, state.LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[+type], -128);
+    CheckAndSetStick(GO_RIGHT, type, button, state.LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[+type], 128);
+    CheckAndSetButton(PED_WALK, type, button, state.m_bPedWalk);
+    CheckAndSetPad(GROUP_CONTROL_FWD, type, button, state.DPadDown, state.DPadUp);
+    CheckAndSetPad(GROUP_CONTROL_BWD, type, button, state.DPadUp, state.DPadDown);
+    CheckAndSetStick(PED_1RST_PERSON_LOOK_LEFT, type, button, state.RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[+type], -128);
+    CheckAndSetStick(PED_1RST_PERSON_LOOK_RIGHT, type, button, state.RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[+type], 128);
     if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
-        CheckAndSetStick(PED_1RST_PERSON_LOOK_UP, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[+type], 128);
-        CheckAndSetStick(PED_1RST_PERSON_LOOK_DOWN, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[+type], -128);
+        CheckAndSetStick(PED_1RST_PERSON_LOOK_UP, type, button, state.RightStickY, m_bStickR_Up_Dwn_MovementBothDown[+type], 128);
+        CheckAndSetStick(PED_1RST_PERSON_LOOK_DOWN, type, button, state.RightStickY, m_bStickR_Up_Dwn_MovementBothDown[+type], -128);
     }
 }
 
 // 0x52FA20
-void CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOnly(KeyCode button, eControllerType type, CControllerState* state) {
-    CheckAndSetButton(PED_LOOKBEHIND, type, button, state->ShockButtonR);
-    CheckAndSetButton(PED_JUMPING, type, button, state->ButtonSquare);
-    CheckAndSetButton(PED_ANSWER_PHONE, type, button, state->LeftShoulder1);
-    CheckAndSetButton(PED_CYCLE_WEAPON_LEFT, type, button, state->LeftShoulder2);
-    CheckAndSetButton(PED_CYCLE_WEAPON_RIGHT, type, button, state->RightShoulder2);
-    CheckAndSetButton(PED_SPRINT, type, button, state->ButtonCross);
-    CheckAndSetButton(PED_DUCK, type, button, state->ShockButtonL);
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_ThirdPersonOnly(KeyCode button, eControllerType type, CControllerState& state) {
+    CheckAndSetButton(PED_LOOKBEHIND, type, button, state.ShockButtonR);
+    CheckAndSetButton(PED_JUMPING, type, button, state.ButtonSquare);
+    CheckAndSetButton(PED_ANSWER_PHONE, type, button, state.LeftShoulder1);
+    CheckAndSetButton(PED_CYCLE_WEAPON_LEFT, type, button, state.LeftShoulder2);
+    CheckAndSetButton(PED_CYCLE_WEAPON_RIGHT, type, button, state.RightShoulder2);
+    CheckAndSetButton(PED_SPRINT, type, button, state.ButtonCross);
+    CheckAndSetButton(PED_DUCK, type, button, state.ShockButtonL);
 
     if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
-        CheckAndSetButton(PED_CENTER_CAMERA_BEHIND_PLAYER, type, button, state->LeftShoulder1);
+        CheckAndSetButton(PED_CENTER_CAMERA_BEHIND_PLAYER, type, button, state.LeftShoulder1);
     }
 }
 
@@ -335,46 +335,46 @@ KeyCode CControllerConfigManager::GetControllerKeyAssociatedWithAction(eControll
 }
 
 // 0x52F9E0
-void CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstPersonOnly(KeyCode button, eControllerType type, CControllerState* state) {
-    CheckAndSetButton(PED_SNIPER_ZOOM_IN, type, button, state->ButtonSquare);
-    CheckAndSetButton(PED_SNIPER_ZOOM_OUT, type, button, state->ButtonCross);
-    CheckAndSetButton(PED_DUCK, type, button, state->ShockButtonL);
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_FirstPersonOnly(KeyCode button, eControllerType type, CControllerState& state) {
+    CheckAndSetButton(PED_SNIPER_ZOOM_IN, type, button, state.ButtonSquare);
+    CheckAndSetButton(PED_SNIPER_ZOOM_OUT, type, button, state.ButtonCross);
+    CheckAndSetButton(PED_DUCK, type, button, state.ShockButtonL);
 }
 
 // 0x52FD40
-void CControllerConfigManager::HandleButtonRelease(KeyCode button, eControllerType type, CControllerState* state) {
-    CheckAndReset(NETWORK_TALK, type, button, state->m_bChatIndicated);
-    CheckAndReset(VEHICLE_MOUSELOOK, type, button, state->m_bVehicleMouseLook);
+void CControllerConfigManager::AffectControllerStateOn_ButtonUp_All_Player_States(KeyCode button, eControllerType type, CControllerState& state) {
+    CheckAndReset(NETWORK_TALK, type, button, state.m_bChatIndicated);
+    CheckAndReset(VEHICLE_MOUSELOOK, type, button, state.m_bVehicleMouseLook);
 }
 
 // 0x52F7B0
-void CControllerConfigManager::AffectControllerStateOn_ButtonDown_Driving(KeyCode button, eControllerType type, CControllerState* state) {
-    CheckAndSetButton(VEHICLE_FIRE_WEAPON, type, button, state->ButtonCircle);
-    CheckAndSetButton(VEHICLE_FIRE_WEAPON_ALT, type, button, state->LeftShoulder1);
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_Driving(KeyCode button, eControllerType type, CControllerState& state) {
+    CheckAndSetButton(VEHICLE_FIRE_WEAPON, type, button, state.ButtonCircle);
+    CheckAndSetButton(VEHICLE_FIRE_WEAPON_ALT, type, button, state.LeftShoulder1);
 
     // NOTE: original double, check if you press both buttons you look behind
-    CheckAndSetButton(VEHICLE_LOOKBEHIND, type, button, state->LeftShoulder2);
-    CheckAndSetButton(VEHICLE_LOOKBEHIND, type, button, state->RightShoulder2);
+    CheckAndSetButton(VEHICLE_LOOKBEHIND, type, button, state.LeftShoulder2);
+    CheckAndSetButton(VEHICLE_LOOKBEHIND, type, button, state.RightShoulder2);
 
-    CheckAndSetButton(VEHICLE_LOOKLEFT, type, button, state->LeftShoulder2);
-    CheckAndSetButton(VEHICLE_LOOKRIGHT, type, button, state->RightShoulder2);
-    CheckAndSetButton(VEHICLE_MOUSELOOK, type, button, state->m_bVehicleMouseLook);
-    CheckAndSetButton(VEHICLE_HORN, type, button, state->ShockButtonL);
-    CheckAndSetButton(VEHICLE_HANDBRAKE, type, button, state->RightShoulder1);
-    CheckAndSetButton(VEHICLE_ACCELERATE, type, button, state->ButtonCross);
-    CheckAndSetButton(VEHICLE_BRAKE, type, button, state->ButtonSquare);
-    CheckAndSetStick(VEHICLE_STEERUP, type, button, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[+type], -128);
-    CheckAndSetStick(VEHICLE_STEERDOWN, type, button, state->LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[+type], 128);
-    CheckAndSetStick(VEHICLE_STEERLEFT, type, button, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[+type], -128);
-    CheckAndSetStick(VEHICLE_STEERRIGHT, type, button, state->LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[+type], 128);
-    CheckAndSetButton(VEHICLE_RADIO_STATION_UP, type, button, state->DPadUp);
-    CheckAndSetButton(VEHICLE_RADIO_STATION_DOWN, type, button, state->DPadDown);
-    CheckAndSetButton(VEHICLE_RADIO_TRACK_SKIP, type, button, state->m_bRadioTrackSkip);
-    CheckAndSetButton(TOGGLE_SUBMISSIONS, type, button, state->ShockButtonR);
-    CheckAndSetStick(VEHICLE_TURRETLEFT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[+type], -128);
-    CheckAndSetStick(VEHICLE_TURRETRIGHT, type, button, state->RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[+type], 128);
-    CheckAndSetStick(VEHICLE_TURRETUP, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[+type], 128);
-    CheckAndSetStick(VEHICLE_TURRETDOWN, type, button, state->RightStickY, m_bStickR_Up_Dwn_MovementBothDown[+type], -128);
+    CheckAndSetButton(VEHICLE_LOOKLEFT, type, button, state.LeftShoulder2);
+    CheckAndSetButton(VEHICLE_LOOKRIGHT, type, button, state.RightShoulder2);
+    CheckAndSetButton(VEHICLE_MOUSELOOK, type, button, state.m_bVehicleMouseLook);
+    CheckAndSetButton(VEHICLE_HORN, type, button, state.ShockButtonL);
+    CheckAndSetButton(VEHICLE_HANDBRAKE, type, button, state.RightShoulder1);
+    CheckAndSetButton(VEHICLE_ACCELERATE, type, button, state.ButtonCross);
+    CheckAndSetButton(VEHICLE_BRAKE, type, button, state.ButtonSquare);
+    CheckAndSetStick(VEHICLE_STEERUP, type, button, state.LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[+type], -128);
+    CheckAndSetStick(VEHICLE_STEERDOWN, type, button, state.LeftStickY, m_bStickL_Up_Dwn_MovementBothDown[+type], 128);
+    CheckAndSetStick(VEHICLE_STEERLEFT, type, button, state.LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[+type], -128);
+    CheckAndSetStick(VEHICLE_STEERRIGHT, type, button, state.LeftStickX, m_bStickL_X_Rgh_Lft_MovementBothDown[+type], 128);
+    CheckAndSetButton(VEHICLE_RADIO_STATION_UP, type, button, state.DPadUp);
+    CheckAndSetButton(VEHICLE_RADIO_STATION_DOWN, type, button, state.DPadDown);
+    CheckAndSetButton(VEHICLE_RADIO_TRACK_SKIP, type, button, state.m_bRadioTrackSkip);
+    CheckAndSetButton(TOGGLE_SUBMISSIONS, type, button, state.ShockButtonR);
+    CheckAndSetStick(VEHICLE_TURRETLEFT, type, button, state.RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[+type], -128);
+    CheckAndSetStick(VEHICLE_TURRETRIGHT, type, button, state.RightStickX, m_bStickR_X_Rgh_Lft_MovementBothDown[+type], 128);
+    CheckAndSetStick(VEHICLE_TURRETUP, type, button, state.RightStickY, m_bStickR_Up_Dwn_MovementBothDown[+type], 128);
+    CheckAndSetStick(VEHICLE_TURRETDOWN, type, button, state.RightStickY, m_bStickR_Up_Dwn_MovementBothDown[+type], -128);
 }
 
 // 0x52F5F0
@@ -442,7 +442,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
     // Verify file format by checking action IDs
     auto actionId = 0u;
     for (const auto& type : CONTROLLER_TYPES_ALL) {
-        for (auto action = 0u; action < CONTROLLER_ACTION_COUNT; action++) {
+        for (auto action = 0; action < +CONTROLLER_ACTION_COUNT; action++) {
             CFileMgr::Read(file, &actionId, 4);
             if (actionId != action) {
                 return false;
@@ -459,7 +459,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
 
     // Read key mappings for all controller types
     for (const auto& type : CONTROLLER_TYPES_ALL) {
-        for (auto action = 0u; action < CONTROLLER_ACTION_COUNT; action++) {
+        for (auto action = 0; action < +CONTROLLER_ACTION_COUNT; action++) {
             // Skip action ID
             CFileMgr::Seek(file, 4, 1);
 
@@ -478,7 +478,7 @@ bool CControllerConfigManager::SaveSettings(FILESTREAM file) {
     }
 
     for (auto type : CONTROLLER_TYPES_ALL) {
-        for (auto action = 0u; action < CONTROLLER_ACTION_COUNT; action++) {
+        for (auto action = 0; action < +CONTROLLER_ACTION_COUNT; action++) {
             // Write action ID
             CFileMgr::Write(file, &action, 4);
 
@@ -819,7 +819,7 @@ void CControllerConfigManager::SetMouseButtonAssociatedWithAction(eControllerAct
     ResetSettingOrder(action);
     const auto numOfSettings = GetNumOfSettingsForAction(action);
     m_Actions[+action].Keys[+eControllerType::MOUSE].m_uiActionInitiator = button;
-    m_Actions[+action].Keys[+eControllerType::MOUSE].m_uiSetOrder = (eContSetOrder)(+numOfSettings + 1);
+    m_Actions[+action].Keys[+eControllerType::MOUSE].m_uiSetOrder = eContSetOrder(+numOfSettings + 1);
 }
 
 // unused
@@ -848,7 +848,7 @@ void CControllerConfigManager::UpdateJoy_ButtonDown(KeyCode button, eControllerT
 
 // unused
 // 0x52DC10
-void CControllerConfigManager::AffectControllerStateOn_ButtonDown_DebugStuff(int32, eControllerType) {
+void CControllerConfigManager::AffectControllerStateOn_ButtonDown_DebugStuff(KeyCode button, eControllerType type) {
     // NOP
     return;
 }
@@ -881,7 +881,7 @@ void CControllerConfigManager::UpdateJoyInConfigMenus_ButtonUp(KeyCode button, i
 void CControllerConfigManager::AffectControllerStateOn_ButtonUp(KeyCode button, eControllerType type) {
     const auto pad = CPad::GetPad();
     if (!GetIsKeyBlank(button, type) && pad && !FrontEndMenuManager.m_bMenuActive) {
-        HandleButtonRelease(button, type, &GetControllerState(*pad, type));
+        AffectControllerStateOn_ButtonUp_All_Player_States(button, type, GetControllerState(*pad, type));
     }
 }
 
@@ -1133,7 +1133,7 @@ eContSetOrder CControllerConfigManager::GetNumOfSettingsForAction(eControllerAct
 // 0x530500
 void CControllerConfigManager::MakeControllerActionsBlank() {
     for (const auto& type : CONTROLLER_TYPES_ALL) {
-        for (auto action = 0u; action < CONTROLLER_ACTION_COUNT; ++action) {
+        for (auto action = 0; action < +CONTROLLER_ACTION_COUNT; ++action) {
             ClearSettingsAssociatedWithAction((eControllerAction)action, type);
         }
     }
@@ -1160,7 +1160,7 @@ void CControllerConfigManager::AffectPadFromKeyBoard() {
                 if (!pad || FrontEndMenuManager.m_bMenuActive) {
                     continue;
                 }
-                HandleButtonRelease(key, type, &GetControllerState(*pad, type));
+                AffectControllerStateOn_ButtonUp_All_Player_States(key, type, GetControllerState(*pad, type));
             }
         }
     }
@@ -1180,7 +1180,7 @@ void CControllerConfigManager::AffectPadFromMouse() {
 
         if (GetIsMouseButtonUp(button)) {
             if (auto* pad = CPad::GetPad()) {
-                HandleButtonRelease(button, eControllerType::MOUSE, &GetControllerState(*pad, eControllerType::MOUSE));
+                AffectControllerStateOn_ButtonUp_All_Player_States(button, eControllerType::MOUSE, GetControllerState(*pad, eControllerType::MOUSE));
             }
         }
     }
@@ -1193,41 +1193,41 @@ void CControllerConfigManager::DeleteMatchingActionInitiators(eControllerAction 
     }
     switch (GetActionType(action)) {
     case eActionType::FIRST_PERSON:
-        ClearCommonMappings(action, button, type);
-        ClearSniperZoomMappings(action, button, type);
-        Clear1st3rdPersonMappings(action, button, type);
+        DeleteMatchingCommonControls(action, button, type);
+        DeleteMatching1rstPersonControls(action, button, type);
+        DeleteMatching1rst3rdPersonControls(action, button, type);
         break;
     case eActionType::THIRD_PERSON:
-        ClearCommonMappings(action, button, type);
-        Clear1st3rdPersonMappings(action, button, type);
-        ClearPedMappings(action, button, type);
-        UnmapVehicleEnterExit(button, type);
+        DeleteMatchingCommonControls(action, button, type);
+        DeleteMatching1rst3rdPersonControls(action, button, type);
+        DeleteMatching3rdPersonControls(action, button, type);
+        DeleteMatchingVehicle_3rdPersonControls(button, type);
         break;
     case eActionType::IN_CAR:
-        ClearCommonMappings(action, button, type);
-        ClearVehicleMappings(action, button, type);
-        UnmapVehicleEnterExit(button, type);
+        DeleteMatchingCommonControls(action, button, type);
+        DeleteMatchingVehicleControls(action, button, type);
+        DeleteMatchingVehicle_3rdPersonControls(button, type);
         break;
     case eActionType::IN_CAR_THIRD_PERSON:
-        ClearCommonMappings(action, button, type);
-        Clear1st3rdPersonMappings(action, button, type);
-        ClearPedMappings(action, button, type);
-        ClearVehicleMappings(action, button, type);
+        DeleteMatchingCommonControls(action, button, type);
+        DeleteMatching1rst3rdPersonControls(action, button, type);
+        DeleteMatching3rdPersonControls(action, button, type);
+        DeleteMatchingVehicleControls(action, button, type);
         break;
     case eActionType::COMMON_CONTROLS:
-        ClearCommonMappings(action, button, type);
-        ClearSniperZoomMappings(action, button, type);
-        Clear1st3rdPersonMappings(action, button, type);
-        ClearPedMappings(action, button, type);
-        ClearVehicleMappings(action, button, type);
-        UnmapVehicleEnterExit(button, type);
+        DeleteMatchingCommonControls(action, button, type);
+        DeleteMatching1rstPersonControls(action, button, type);
+        DeleteMatching1rst3rdPersonControls(action, button, type);
+        DeleteMatching3rdPersonControls(action, button, type);
+        DeleteMatchingVehicleControls(action, button, type);
+        DeleteMatchingVehicle_3rdPersonControls(button, type);
         break;
     case eActionType::FIRST_THIRD_PERSON:
-        ClearCommonMappings(action, button, type);
-        ClearSniperZoomMappings(action, button, type);
-        Clear1st3rdPersonMappings(action, button, type);
-        ClearPedMappings(action, button, type);
-        UnmapVehicleEnterExit(button, type);
+        DeleteMatchingCommonControls(action, button, type);
+        DeleteMatching1rstPersonControls(action, button, type);
+        DeleteMatching1rst3rdPersonControls(action, button, type);
+        DeleteMatching3rdPersonControls(action, button, type);
+        DeleteMatchingVehicle_3rdPersonControls(button, type);
         break;
     default:
         return;
@@ -1235,7 +1235,7 @@ void CControllerConfigManager::DeleteMatchingActionInitiators(eControllerAction 
 }
 
 // 0x52FE10
-const GxtChar* CControllerConfigManager::GetKeyNameForKeyboard(eControllerAction action, eControllerType type) {
+const GxtChar* CControllerConfigManager::GetControllerSettingTextKeyBoard(eControllerAction action, eControllerType type) {
     GxtChar(&s_KeyName)[50] = *(GxtChar(*)[50])0xB714BC; // temp value
     rng::fill(s_KeyName, 0);
 
@@ -1329,30 +1329,36 @@ const GxtChar* CControllerConfigManager::GetButtonComboText(eControllerAction ac
 }
 
 // 0x5303D0
-const GxtChar* CControllerConfigManager::GetDefinedKeyByGxtName(eControllerAction action) {
+void CControllerConfigManager::GetGxtStringOfCommandKeys(eControllerAction action, GxtChar* pStringToFill, uint16 maximumLength) {
+    const auto setString = [pStringToFill, maximumLength](const GxtChar* var) {
+        const auto len = maximumLength - CMessages::GetStringLength(var);
+        CMessages::StringCopy(pStringToFill, var, len);
+    };
+
     if (FrontEndMenuManager.m_ControlMethod == eController::JOYPAD) {
         if (auto keyText = GetControllerSettingTextJoystick(action)) {
-            return keyText;
+            return setString(keyText);
         }
     }
 
     if (auto keyText = GetControllerSettingTextMouse(action)) {
-        return keyText;
+        return setString(keyText);
     }
 
-    if (auto keyText = GetKeyNameForKeyboard(action, eControllerType::KEYBOARD)) {
-        return keyText;
+    if (auto keyText = GetControllerSettingTextKeyBoard(action, eControllerType::KEYBOARD)) {
+        return setString(keyText);
     }
 
-    if (auto keyText = GetKeyNameForKeyboard(action, eControllerType::OPTIONAL_EXTRA_KEY)) {
-        return keyText;
+    if (auto keyText = GetControllerSettingTextKeyBoard(action, eControllerType::OPTIONAL_EXTRA_KEY)) {
+        return setString(keyText);
     }
 
-    if (GetIsKeyBlank(GetControllerKeyAssociatedWithAction(action, eControllerType::JOY_STICK), eControllerType::JOY_STICK)) {
-        return GetControllerSettingTextMouse(action);
+    if (auto keyText = GetControllerSettingTextJoystick(action)) {
+        return setString(keyText);
     }
 
-    return nullptr;
+    // Two call, ok
+    setString(GetControllerSettingTextMouse(action));
 }
 
 // NOTSA
@@ -1457,7 +1463,7 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown(KeyCode button
         return;
     }
 
-    auto* state = &GetControllerState(*ped, type);
+    auto state = GetControllerState(*ped, type);
     if (UseDrivingControls()) {
         AffectControllerStateOn_ButtonDown_Driving(button, type, state);
         AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(button, type, state);

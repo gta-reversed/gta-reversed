@@ -196,7 +196,7 @@ RsEventStatus HandlePadButtonDown(RsPadButtonStatus* padButtonStatus) {
             if (FrontEndMenuManager.m_bMenuActive || bPadTwo) {
                 ControlsManager.UpdateJoyInConfigMenus_ButtonDown(btn, padNumber);
             } else {
-                ControlsManager.AffectControllerStateOn_ButtonDown((KeyCode)btn, eControllerType::JOY_STICK);
+                ControlsManager.UpdateJoy_ButtonDown(btn, eControllerType::JOY_STICK);
             }
         }
     }
