@@ -104,7 +104,7 @@ constexpr std::array<eContSetOrder, 4> CONTROLLER_ORDERS_SET = {
 }; // NOTSA
 
 // TODO: rename it based on CControllerState and GetControllerStateJoyStick
-enum eJoyButtons {
+enum eJoyButtons : uint32 {
     NO_JOYBUTTONS = 0,
     JOYBUTTON_ONE,
     JOYBUTTON_TWO,

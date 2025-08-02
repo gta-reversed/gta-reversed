@@ -609,10 +609,8 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
     // Define all possible button mappings in order from highest to lowest button number
     using ButtonMapping = std::pair<eJoyButtons, eControllerAction>;
 
-    constexpr int mappingCount = 29;
-
     // Arrays for specific and standard controller configurations
-    constexpr ButtonMapping specificMappings[mappingCount] = {
+    constexpr ButtonMapping specificMappings[29] = {
         { JOYBUTTON_SIXTEEN,   CONVERSATION_NO                   },
         { JOYBUTTON_FIFTHTEEN, GROUP_CONTROL_BWD                 },
         { JOYBUTTON_FIFTHTEEN, VEHICLE_RADIO_STATION_DOWN        },
@@ -644,7 +642,7 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
         { JOYBUTTON_ONE,       VEHICLE_ENTER_EXIT                }
     };
 
-    constexpr ButtonMapping standardMappings[mappingCount] = {
+    constexpr ButtonMapping standardMappings[29] = {
         { JOYBUTTON_SIXTEEN,   CONVERSATION_NO                   },
         { JOYBUTTON_FIFTHTEEN, GROUP_CONTROL_BWD                 },
         { JOYBUTTON_FIFTHTEEN, VEHICLE_RADIO_STATION_DOWN        },
@@ -682,7 +680,7 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
         : standardMappings;
 
     for (size_t i = 0; i < std::size(mappings); ++i) {
-        if (mappings[i].first <= buttonCount) {
+        if (mappings[i].first <= (eJoyButtons)buttonCount) {
             SetControllerKeyAssociatedWithAction(mappings[i].second, (RsKeyCodes)mappings[i].first, eControllerType::JOY_STICK);
         }
     }

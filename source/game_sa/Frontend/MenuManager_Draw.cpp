@@ -1210,10 +1210,10 @@ void CMenuManager::DrawControllerSetupScreen() {
         TheText.Get("FEC_LOR"),                                                             // Look right
         TheText.Get("FEC_LDU"),                                                             // Look Down
         TheText.Get("FEC_LUD"),                                                             // Look Up
+        nullptr,                                                                            // index 40
         nullptr,                                                                            // index 41
-        nullptr,                                                                            // index 42
         TheText.Get("FEC_CEN"),                                                             // Center camera
-        nullptr                                                                             // index 44
+        nullptr                                                                             // index 43
     };
 
     // 0x57F68E
