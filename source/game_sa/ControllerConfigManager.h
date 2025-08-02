@@ -88,7 +88,7 @@ enum class eControllerAction {
     CONTROLLER_ACTION_COUNT
 };
 
-enum class eContSetOrder : uint32 {
+enum class eContSetOrder {
     NONE = 0,
     FIRST,
     SECOND,
@@ -104,7 +104,7 @@ constexpr std::array<eContSetOrder, 4> CONTROLLER_ORDERS_SET = {
 }; // NOTSA
 
 // TODO: rename it based on CControllerState and GetControllerStateJoyStick
-enum eJoyButtons : uint32 {
+enum eJoyButtons {
     NO_JOYBUTTONS = 0,
     JOYBUTTON_ONE,
     JOYBUTTON_TWO,
@@ -128,30 +128,39 @@ enum eJoyButtons : uint32 {
 
 using KeyCode = uint32; // NOTSA: Originally that is RW type, but we use uint32 for consistency
 
-struct CControllerKey {
+struct CControllerConfig {
     KeyCode       m_uiActionInitiator;
     eContSetOrder m_uiSetOrder;
 };
-VALIDATE_SIZE(CControllerKey, 0x8);
+
+VALIDATE_SIZE(CControllerConfig, 0x8);
 
 struct CControllerAction {
-    CControllerKey Keys[+eControllerType::CONTROLLER_TYPES_COUNT]{};
+    CControllerConfig Keys[+eControllerType::CONTROLLER_TYPES_COUNT]{};
 };
+
 VALIDATE_SIZE(CControllerAction, 0x20);
 
+const auto NUM_OF_GAME_JOYS = 2;
+
 struct JoyStruct {
-    uint32 wDeviceID{};
-    bool   bJoyAttachedToPort{};
-    bool   bZAxisPresent{};
-    bool   bZRotPresent{};
+    uint32 wDeviceID;
+    bool   bJoyAttachedToPort;
+    bool   bZAxisPresent;
+    bool   bZRotPresent;
     DWORD  wVendorID;
     DWORD  wProductID;
 };
+
 VALIDATE_SIZE(JoyStruct, 0x10);
 
 struct CJoySticks {
-    JoyStruct JoyStickNum[MAX_PADS]{};
+    CJoySticks();
+
+    JoyStruct JoyStickNum[NUM_OF_GAME_JOYS]{};
+    void      ClearJoyInfo(int32 JoyNumber);
 };
+
 VALIDATE_SIZE(CJoySticks, 0x20);
 
 static inline auto& AllValidWinJoys = StaticRef<CJoySticks, 0xC92144>();
@@ -258,6 +267,7 @@ protected:
 
     // Checks if the specified keyboard key was just pressed this frame
     bool GetIsKeyboardKeyJustDown(KeyCode button);
+
 private:
     // inline region, original this use define's?
     void CheckAndClear(eControllerAction action, eControllerType type, KeyCode button);
@@ -271,12 +281,14 @@ private:
     bool IsKeyboardKeyDownInState(CKeyboardState& state, KeyCode key);
     CControllerState& GetControllerState(CPad& pad, eControllerType type);
     int16& GetControllerStateJoyStick(CPad& pad, KeyCode button);
+
 private:
     CControllerConfigManager* Constructor() {
         this->CControllerConfigManager::CControllerConfigManager();
         return this;
     }
 };
+
 VALIDATE_SIZE(CControllerConfigManager, 0x12E4);
 
 extern CControllerConfigManager& ControlsManager;

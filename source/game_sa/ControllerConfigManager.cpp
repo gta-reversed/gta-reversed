@@ -1358,6 +1358,21 @@ void CControllerConfigManager::GetGxtStringOfCommandKeys(eControllerAction actio
     setString(GetControllerSettingTextMouse(action));
 }
 
+// unknown address
+CJoySticks::CJoySticks() {
+    ClearJoyInfo(0);
+    ClearJoyInfo(1);
+}
+
+// unused
+// 0x744DD0 ?
+void CJoySticks::ClearJoyInfo(int32 JoyNumber) {
+    JoyStickNum[JoyNumber].wDeviceID = 0;
+    JoyStickNum[JoyNumber].bJoyAttachedToPort = false;
+    JoyStickNum[JoyNumber].bZAxisPresent = false;
+    JoyStickNum[JoyNumber].bZRotPresent = false;
+}
+
 // NOTSA
 eControllerAction CControllerConfigManager::GetActionIDByName(std::string_view name) {
     for (auto&& [i, actionName] : rngv::enumerate(m_ControllerActionName)) {
@@ -1460,7 +1475,7 @@ void CControllerConfigManager::AffectControllerStateOn_ButtonDown(KeyCode button
         return;
     }
 
-    auto state = GetControllerState(*ped, type);
+    auto& state = GetControllerState(*ped, type);
     if (UseDrivingControls()) {
         AffectControllerStateOn_ButtonDown_Driving(button, type, state);
         AffectControllerStateOn_ButtonDown_VehicleAndThirdPersonOnly(button, type, state);
