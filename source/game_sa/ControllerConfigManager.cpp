@@ -103,9 +103,8 @@ void CControllerConfigManager::DeleteMatching3rdPersonControls(eControllerAction
     CheckAndClear(PED_DUCK, type, button);
 
     if (action != PED_FIRE_WEAPON_ALT
-        && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD
-        || FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS)
-    {
+            && FrontEndMenuManager.m_ControlMethod == eController::JOYPAD
+        || FrontEndMenuManager.m_ControlMethod == eController::MOUSE_PLUS_KEYS) {
         CheckAndClear(PED_ANSWER_PHONE, type, button);
     }
     CheckAndClear(PED_WALK, type, button);
@@ -423,7 +422,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
     // Check if file has valid header
     char buffer[52] = {0};
     CFileMgr::Read(file, buffer, 29);
-    if (!strncmp(buffer, "THIS FILE IS NOT VALID YET", 26)) {
+    if (!strncmp(buffer, TopLineEmptyFile, 26)) {
         return true;
     }
 
@@ -432,7 +431,7 @@ bool CControllerConfigManager::LoadSettings(FILESTREAM file) {
     int32 version = 0;
     CFileMgr::Read(file, &version, 4);
 
-    if (version < 6) {
+    if (version < SETTINGS_VERSION_NUM) {
         return true;
     }
 
@@ -483,7 +482,6 @@ bool CControllerConfigManager::SaveSettings(FILESTREAM file) {
             CFileMgr::Write(file, &m_Actions[action].Keys[+type], 8);
         }
     }
-
     return true;
 }
 
@@ -687,7 +685,7 @@ void CControllerConfigManager::InitDefaultControlConfigJoyPad(uint32 buttonCount
 }
 
 // 0x52F6F0
-void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& MouseSetUp, bool bMouseControls) {
+void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControllerState& MouseSetUp, bool mouseControls) {
 #ifdef NOTSA_USE_SDL3
     constexpr bool isForcedMouseBlinding = true;
 #else
@@ -719,7 +717,7 @@ void CControllerConfigManager::InitDefaultControlConfigMouse(const CMouseControl
 
     // This assert maybe is in the original game, but probably is missing by release build.
     // Prevents 'wrong' vehicle keys init. In cases where the mouse starts incorrectly.
-    assert(m_MouseFoundInitSet == bMouseControls || !bMouseControls);
+    assert(m_MouseFoundInitSet == mouseControls || !mouseControls);
 }
 
 // 0x52D260
@@ -1381,28 +1379,24 @@ eControllerAction CControllerConfigManager::GetActionIDByName(std::string_view n
     return CA_NONE;
 }
 
-// inline
 void CControllerConfigManager::CheckAndClear(eControllerAction action, eControllerType type, KeyCode button) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
         ClearSettingsAssociatedWithAction(action, type);
     }
 }
 
-// inline
 void CControllerConfigManager::CheckAndReset(eControllerAction action, eControllerType type, KeyCode button, int16& state) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
         state = 0;
     }
 }
 
-// inline
 void CControllerConfigManager::CheckAndSetButton(eControllerAction action, eControllerType type, KeyCode button, int16& state) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
         state = 255;
     }
 }
 
-// inline
 void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControllerType type, KeyCode button, int16& primaryState, int16& secondaryState) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
         if (primaryState) {
@@ -1414,7 +1408,6 @@ void CControllerConfigManager::CheckAndSetPad(eControllerAction action, eControl
     }
 }
 
-// inline
 void CControllerConfigManager::CheckAndSetStick(eControllerAction action, eControllerType type, KeyCode button, int16& state, bool& movementBothDown, int16 value) {
     if (GetControllerKeyAssociatedWithAction(action, type) == button) {
         if (state == -value || movementBothDown) {

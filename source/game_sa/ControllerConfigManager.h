@@ -9,6 +9,8 @@
 #include "RenderWare.h"
 #include "eControllerType.h"
 
+const int SETTINGS_VERSION_NUM = 6;
+
 enum class eActionType {
     FIRST_PERSON,
     THIRD_PERSON,
@@ -88,12 +90,14 @@ enum class eControllerAction {
     CONTROLLER_ACTION_COUNT
 };
 
-enum class eContSetOrder {
+enum class eContSetOrder : uint32 {
     NONE = 0,
     FIRST,
     SECOND,
     THIRD,
-    FOURTH
+    FOURTH,
+
+    NUM_OR_ORDER_STATES
 };
 
 constexpr std::array<eContSetOrder, 4> CONTROLLER_ORDERS_SET = {
@@ -196,7 +200,7 @@ public:
     eJoyButtons GetJoyButtonJustDown();
 
     void InitDefaultControlConfiguration();
-    void InitDefaultControlConfigMouse(const CMouseControllerState& state, bool controller);
+    void InitDefaultControlConfigMouse(const CMouseControllerState& state, bool mouseControls);
     void InitDefaultControlConfigJoyPad(uint32 buttonCount);
     void InitialiseControllerActionNameArray();
     void StoreMouseButtonState(RsKeyCodes button, bool state);

@@ -9,7 +9,7 @@ enum class eControllerType {
     CONTROLLER_TYPES_COUNT
 };
 
-constexpr eControllerType CONTROLLER_TYPES_ALL[+eControllerType::CONTROLLER_TYPES_COUNT] = {
+constexpr eControllerType CONTROLLER_TYPES_ALL[] = {
     eControllerType::KEYBOARD,
     eControllerType::OPTIONAL_EXTRA_KEY,
     eControllerType::MOUSE,
