@@ -130,6 +130,8 @@ public:
     );
     static void CalculateTrianglePlanes(CColModel* colModel);
     static void RemoveTrianglePlanes(CColModel* colModel);
+    // NOTSA TODO: Remove?
+    static int32 ProcessColModels(const CMatrix& transformA, CColModel& cmA, const CMatrix& transformB, CColModel& cmB, CColPoint* sphereCPs, CColPoint* lineCPs, float* maxTouchDistances, bool bReturnAllCollisions);
     // returns number of resulting collision points
     static int32 ProcessColModels(
         const CMatrix& transformA, CColModel& cmA,

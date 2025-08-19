@@ -622,7 +622,7 @@ void CVehicle::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgno
 }
 
 // 0x6D0E90
-uint8 CVehicle::SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2) {
+uint8 CVehicle::SpecialEntityCalcCollisionSteps(bool* bDoPreCheckAtFullSpeed, bool* bDoPreCheckAtHalfSpeed) {
     if (physicalFlags.bDisableCollisionForce)
         return 1;
 
@@ -652,9 +652,9 @@ uint8 CVehicle::SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSet
         fLongestDir *= 1.5F;
 
     if (fLongestDir < 1.0F)
-        bProcessCollisionBeforeSettingTimeStep = true;
+        *bDoPreCheckAtFullSpeed = true;
     else if (fLongestDir < 2.0F)
-        unk2 = true;
+        *bDoPreCheckAtHalfSpeed = true;
 
     return static_cast<uint8>(ceil(fMove));
 }
@@ -3283,7 +3283,7 @@ void CVehicle::ProcessWheel(CVector& wheelFwd, CVector& wheelRight,
             turnDirection = direction;
 
         float force = speed * m_fMass;
-        float turnForce = turnSpeed * GetMass(wheelContactPoint, turnDirection);
+        float turnForce = turnSpeed * GetTurnTorque(wheelContactPoint, turnDirection);
         ApplyMoveForce(force * direction);
         ApplyTurnForce(turnForce * turnDirection, wheelContactPoint);
     }

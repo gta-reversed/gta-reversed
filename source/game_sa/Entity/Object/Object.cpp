@@ -453,7 +453,7 @@ void CObject::SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnor
 }
 
 // 0x5A02E0
-uint8 CObject::SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2) {
+uint8 CObject::SpecialEntityCalcCollisionSteps(bool* bDoPreCheckAtFullSpeed, bool* bDoPreCheckAtHalfSpeed) {
     if (physicalFlags.bDisableZ || m_pObjectInfo->m_nSpecialColResponseCase == COL_SPECIAL_RESPONSE_GRENADE) {
         auto* cm = GetModelInfo()->GetColModel();
         const auto fMove = m_vecMoveSpeed.SquaredMagnitude() * sq(CTimer::GetTimeStep());

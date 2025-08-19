@@ -38,16 +38,14 @@ public:
 
     // col shape 1 info
     eSurfaceType m_nSurfaceTypeA;   // 0x20
-    uint8        m_nPieceTypeA;     // 0x21
+    uint8        m_nPieceTypeA;     // 0x21, eCarPiece?
     tColLighting m_nLightingA;      // 0x22
 
     // col shape 2 info
     eSurfaceType m_nSurfaceTypeB;   // 0x23
-    uint8 m_nPieceTypeB;            // 0x24
+    uint8        m_nPieceTypeB;     // 0x24, eCarPiece?
     tColLighting m_nLightingB;      // 0x25
 
-    char _align0x26[2];             // 0x26
-                            
     float m_fDepth;                 // 0x28
 
 public:
