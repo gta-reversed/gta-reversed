@@ -444,7 +444,7 @@ public:
     void SetModelIndex(uint32 index) override;
     void DeleteRwObject() override;
     void SpecialEntityPreCollisionStuff(CPhysical* colPhysical, bool bIgnoreStuckCheck, bool& bCollisionDisabled, bool& bCollidedEntityCollisionIgnored, bool& bCollidedEntityUnableToMove, bool& bThisOrCollidedEntityStuck) override;
-    uint8 SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2) override;
+    uint8 SpecialEntityCalcCollisionSteps(bool* bDoPreCheckAtFullSpeed, bool* bDoPreCheckAtHalfSpeed) override;
     void PreRender() override;
     void Render() override;
     bool SetupLighting() override;

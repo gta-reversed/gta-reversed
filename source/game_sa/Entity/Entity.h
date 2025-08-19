@@ -130,7 +130,7 @@ public:
                                                 bool& bCollidedEntityCollisionIgnored,
                                                 bool& bCollidedEntityUnableToMove,
                                                 bool& bThisOrCollidedEntityStuck);                                    // VTab: 15
-    virtual uint8 SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& unk2);          // VTab: 16
+    virtual uint8 SpecialEntityCalcCollisionSteps(bool* bDoPreCheckAtFullSpeed, bool* bDoPreCheckAtHalfSpeed);        // VTab: 16
     virtual void PreRender();                                                                                         // VTab: 17
     virtual void Render();                                                                                            // VTab: 18
     virtual bool SetupLighting();                                                                                     // VTab: 19
@@ -267,10 +267,10 @@ public:
 
     [[nodiscard]] bool IsPhysical() const { return m_nType > ENTITY_TYPE_BUILDING && m_nType < ENTITY_TYPE_DUMMY; }
     [[nodiscard]] bool IsNothing()  const { return m_nType == ENTITY_TYPE_NOTHING; }
+    [[nodiscard]] bool IsBuilding() const { return m_nType == ENTITY_TYPE_BUILDING; }
     [[nodiscard]] bool IsVehicle()  const { return m_nType == ENTITY_TYPE_VEHICLE; }
     [[nodiscard]] bool IsPed()      const { return m_nType == ENTITY_TYPE_PED; }
     [[nodiscard]] bool IsObject()   const { return m_nType == ENTITY_TYPE_OBJECT; }
-    [[nodiscard]] bool IsBuilding() const { return m_nType == ENTITY_TYPE_BUILDING; }
     [[nodiscard]] bool IsDummy()    const { return m_nType == ENTITY_TYPE_DUMMY; }
 
     [[nodiscard]] bool IsModelTempCollision() const { return m_nModelIndex >= MODEL_TEMPCOL_DOOR1 && m_nModelIndex <= MODEL_TEMPCOL_BODYPART2; }
@@ -315,4 +315,6 @@ RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data);
 
 bool IsGlassModel(CEntity* entity);
 
-static inline float& GAME_GRAVITY = *(float*)0x863984; // default 0.008f
+static inline float GAME_GRAVITY = 0.008f; // 0x863984
+static inline float TWO_GAME_GRAVITY = GAME_GRAVITY * 2.f; // 0x863C00
+static inline float HEDATIVE_GAME_GRAVITY = -GAME_GRAVITY; // 0x863BFC
