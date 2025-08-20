@@ -55,10 +55,10 @@ enum eZoneAttributes : uint16 {
 };
 
 struct CZoneDef {
-    int16 cornerX, cornerY;
-    int16 vec1X, vec1Y;
-    int16 vec2X, vec2Y;
-    int16 minZ, maxZ;
+    int16 m_cornerX, m_cornerY;
+    int16 m_vec1X, m_vec1Y;
+    int16 m_vec2X, m_vec2Y;
+    int16 m_minZ, m_maxZ;
 
     void Init(
         const CVector& center,
@@ -67,35 +67,35 @@ struct CZoneDef {
         float fWidthX, float y13,
         float fTopZ
     ) {
-        cornerX = (int16)(center.x - x12 - fWidthX);
-        cornerY = (int16)(center.y - fWidthY - y13);
+        m_cornerX = (int16)(center.x - x12 - fWidthX);
+        m_cornerY = (int16)(center.y - fWidthY - y13);
 
-        vec1X = (int16)(x12 + x12);
-        vec1Y = (int16)(fWidthY + fWidthY);
+        m_vec1X = (int16)(x12 + x12);
+        m_vec1Y = (int16)(fWidthY + fWidthY);
 
-        vec2X = (int16)(fWidthX + fWidthX);
-        vec2Y = (int16)(y13 + y13);
+        m_vec2X = (int16)(fWidthX + fWidthX);
+        m_vec2Y = (int16)(y13 + y13);
 
-        minZ = (int16)(fBottomZ);
-        maxZ = (int16)(fTopZ);
+        m_minZ = (int16)(fBottomZ);
+        m_maxZ = (int16)(fTopZ);
     }
 
     // 0x72D850
     [[nodiscard]] bool IsPointWithin(const CVector& point) const {
-        if ((float)minZ >= point.z || (float)maxZ <= point.z) {
+        if ((float)m_minZ >= point.z || (float)m_maxZ <= point.z) {
             return false;
         }
 
-        float dx = point.x - (float)cornerX;
-        float dy = point.y - (float)cornerY;
+        float dx = point.x - (float)m_cornerX;
+        float dy = point.y - (float)m_cornerY;
 
-        float sqMag0 = (float)vec1X * dx + (float)vec1Y * dy;
-        if (sqMag0 < 0.0f || sqMag0 > (sq(vec1Y) + sq(vec1X))) {
+        float sqMag0 = (float)m_vec1X * dx + (float)m_vec1Y * dy;
+        if (sqMag0 < 0.0f || sqMag0 > (sq(m_vec1Y) + sq(m_vec1X))) {
             return false;
         }
 
-        float sqMag1 = (float)vec2X * dx + (float)vec2Y * dy;
-        if (sqMag1 < 0.0f || sqMag1 > (sq(vec2Y) + sq(vec2X))) {
+        float sqMag1 = (float)m_vec2X * dx + (float)m_vec2Y * dy;
+        if (sqMag1 < 0.0f || sqMag1 > (sq(m_vec2Y) + sq(m_vec2X))) {
             return false;
         }
 
