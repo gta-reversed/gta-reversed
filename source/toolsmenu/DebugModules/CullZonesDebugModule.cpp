@@ -36,21 +36,21 @@ void CullZonesDebugModule::Render3D() {
         UNUSED(name);
 
         const auto& zdef = zone->zoneDef;
-        int32 x1 = zdef.m_x1, y1 = zdef.m_y1, ly = zdef.m_lenY, lx = zdef.m_lenX;
-        float bottomZ = zdef.bottomZ + m_ZOffset, topZ = zdef.topZ + m_ZOffset;
+        int32 x1 = zdef.cornerX, y1 = zdef.cornerY, ly = zdef.vec1Y, lx = zdef.vec2X;
+        float minZ = zdef.minZ + m_ZOffset, maxZ = zdef.maxZ + m_ZOffset;
 
-        RenderLine(x1 + lx, y1,      topZ,    x1,      y1,      topZ,    isActive);
-        RenderLine(x1,      y1,      topZ,    x1,      y1 + ly, topZ,    isActive);
-        RenderLine(x1 + lx, y1,      topZ,    x1 + lx, y1 + ly, topZ,    isActive);
-        RenderLine(x1 + lx, y1 + ly, topZ,    x1,      y1 + ly, topZ,    isActive);
-        RenderLine(x1 + lx, y1,      topZ,    x1 + lx, y1,      bottomZ, isActive);
-        RenderLine(x1,      y1,      topZ,    x1,      y1,      bottomZ, isActive);
-        RenderLine(x1,      y1 + ly, topZ,    x1,      y1 + ly, bottomZ, isActive);
-        RenderLine(x1 + lx, y1 + ly, topZ,    x1 + lx, y1 + ly, bottomZ, isActive);
-        RenderLine(x1,      y1,      bottomZ, x1,      y1 + ly, bottomZ, isActive);
-        RenderLine(x1 + lx, y1,      bottomZ, x1 + lx, y1 + ly, bottomZ, isActive);
-        RenderLine(x1 + lx, y1,      bottomZ, x1,      y1,      bottomZ, isActive);
-        RenderLine(x1 + lx, y1 + ly, bottomZ, x1,      y1 + ly, bottomZ, isActive);
+        RenderLine(x1 + lx, y1,      maxZ, x1,      y1,      maxZ, isActive);
+        RenderLine(x1,      y1,      maxZ, x1,      y1 + ly, maxZ, isActive);
+        RenderLine(x1 + lx, y1,      maxZ, x1 + lx, y1 + ly, maxZ, isActive);
+        RenderLine(x1 + lx, y1 + ly, maxZ, x1,      y1 + ly, maxZ, isActive);
+        RenderLine(x1 + lx, y1,      maxZ, x1 + lx, y1,      minZ, isActive);
+        RenderLine(x1,      y1,      maxZ, x1,      y1,      minZ, isActive);
+        RenderLine(x1,      y1 + ly, maxZ, x1,      y1 + ly, minZ, isActive);
+        RenderLine(x1 + lx, y1 + ly, maxZ, x1 + lx, y1 + ly, minZ, isActive);
+        RenderLine(x1,      y1,      minZ, x1,      y1 + ly, minZ, isActive);
+        RenderLine(x1 + lx, y1,      minZ, x1 + lx, y1 + ly, minZ, isActive);
+        RenderLine(x1 + lx, y1,      minZ, x1,      y1,      minZ, isActive);
+        RenderLine(x1 + lx, y1 + ly, minZ, x1,      y1 + ly, minZ, isActive);
     };
 
     m_MirrorCurrentIdx = m_TunnelCurrentIdx = m_CullCurrentIdx = -1;

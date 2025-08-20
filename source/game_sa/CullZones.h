@@ -55,17 +55,10 @@ enum eZoneAttributes : uint16 {
 };
 
 struct CZoneDef {
-    int16 m_x1; // start X
-    int16 m_y1; // start Y
-
-    int16 m_x2;
-    int16 m_lenY;
-
-    int16 m_lenX;
-    int16 m_y3;
-
-    int16 bottomZ;
-    int16 topZ;
+    int16 cornerX, cornerY;
+    int16 vec1X, vec1Y;
+    int16 vec2X, vec2Y;
+    int16 minZ, maxZ;
 
     void Init(
         const CVector& center,
@@ -74,38 +67,42 @@ struct CZoneDef {
         float fWidthX, float y13,
         float fTopZ
     ) {
-        m_x1    = (int16)(center.x - x12 - fWidthX);
-        m_y1    = (int16)(center.y - fWidthY - y13);
+        cornerX = (int16)(center.x - x12 - fWidthX);
+        cornerY = (int16)(center.y - fWidthY - y13);
 
-        m_x2    = (int16)(x12 + x12);
-        m_lenY  = (int16)(fWidthY + fWidthY);
+        vec1X = (int16)(x12 + x12);
+        vec1Y = (int16)(fWidthY + fWidthY);
 
-        m_lenX  = (int16)(fWidthX + fWidthX);
-        m_y3    = (int16)(y13 + y13);
+        vec2X = (int16)(fWidthX + fWidthX);
+        vec2Y = (int16)(y13 + y13);
 
-        bottomZ = (int16)(fBottomZ);
-        topZ    = (int16)(fTopZ);
+        minZ = (int16)(fBottomZ);
+        maxZ = (int16)(fTopZ);
     }
 
     // 0x72D850
     [[nodiscard]] bool IsPointWithin(const CVector& point) const {
-        if ((float)bottomZ >= point.z || (float)topZ <= point.z)
+        if ((float)minZ >= point.z || (float)maxZ <= point.z) {
             return false;
+        }
 
-        float dx = point.x - (float)m_x1;
-        float dy = point.y - (float)m_y1;
+        float dx = point.x - (float)cornerX;
+        float dy = point.y - (float)cornerY;
 
-        float sqMag0 = (float)m_x2 * dx + (float)m_lenY * dy;
-        if (sqMag0 < 0.0f || sqMag0 > (sq(m_lenY) + sq(m_x2)))
+        float sqMag0 = (float)vec1X * dx + (float)vec1Y * dy;
+        if (sqMag0 < 0.0f || sqMag0 > (sq(vec1Y) + sq(vec1X))) {
             return false;
+        }
 
-        float sqMag1 = (float)m_lenX * dx + (float)m_y3 * dy;
-        if (sqMag1 < 0.0f || sqMag1 > (sq(m_y3) + sq(m_lenX)))
+        float sqMag1 = (float)vec2X * dx + (float)vec2Y * dy;
+        if (sqMag1 < 0.0f || sqMag1 > (sq(vec2Y) + sq(vec2X))) {
             return false;
+        }
 
         return true;
     }
 };
+
 VALIDATE_SIZE(CZoneDef, 0x10);
 
 // https://gtaforums.com/topic/202532-sadoc-ipl-definitions/page/5/?tab=comments#comment-3875562
@@ -117,16 +114,18 @@ struct CCullZoneReflection {
     int8     vz;
     uint8    flags;
 
-    [[nodiscard]] bool IsPointWithin(const CVector& point) const { return zoneDef.IsPointWithin(point); };
+    [[nodiscard]] bool IsPointWithin(const CVector& point) const { return zoneDef.IsPointWithin(point); }
 };
+
 VALIDATE_SIZE(CCullZoneReflection, 0x18);
 
 struct CCullZone {
     CZoneDef zoneDef;
     eZoneAttributes flags;
 
-    [[nodiscard]] bool IsPointWithin(const CVector& point) const { return zoneDef.IsPointWithin(point); };
+    [[nodiscard]] bool IsPointWithin(const CVector& point) const { return zoneDef.IsPointWithin(point); }
 };
+
 VALIDATE_SIZE(CCullZone, 0x12);
 
 // CULL is a section in the item placement file.
@@ -135,19 +134,18 @@ VALIDATE_SIZE(CCullZone, 0x12);
 // when the player is within the zone.
 class CCullZones {
 public:
-    static inline int32& NumMirrorAttributeZones = *(int32*)0xC87AC4;
-    static inline CCullZoneReflection (&aMirrorAttributeZones)[72] = *(CCullZoneReflection(*)[72])0xC815C0;
-
-    static inline int32& NumTunnelAttributeZones = *(int32*)0xC87AC0;
-    static inline CCullZone (&aTunnelAttributeZones)[40] = *(CCullZone(*)[40])0xC81C80;
-
     static inline int32& NumAttributeZones = *(int32*)0xC87AC8;
-    static inline CCullZone (&aAttributeZones)[1300] = *(CCullZone(*)[1300])0xC81F50;
+    static inline int32& NumMirrorAttributeZones = *(int32*)0xC87AC4;
+    static inline int32& NumTunnelAttributeZones = *(int32*)0xC87AC0;
 
-    static inline int32& CurrentFlags_Player = *(int32*)0xC87AB8;
     static inline int32& CurrentFlags_Camera = *(int32*)0xC87ABC;
+    static inline int32& CurrentFlags_Player = *(int32*)0xC87AB8;
 
     static inline bool& bMilitaryZonesDisabled = *(bool*)0xC87ACD;
+
+    static inline CCullZone (&aAttributeZones)[1'300] = *(CCullZone(*)[1'300])0xC81F50;
+    static inline CCullZone (&aTunnelAttributeZones)[40] = *(CCullZone(*)[40])0xC81C80;
+    static inline CCullZoneReflection (&aMirrorAttributeZones)[72] = *(CCullZoneReflection(*)[72])0xC815C0;
 
 public:
     static void InjectHooks();
@@ -155,20 +153,24 @@ public:
     static void Init();
     static void Update();
 
+    static eZoneAttributes FindAttributesForCoors(CVector pos);
+    static eZoneAttributes FindTunnelAttributesForCoors(CVector point);
+    static CCullZoneReflection* FindMirrorAttributesForCoors(CVector cameraPosition);
+    static CCullZone* FindZoneWithStairsAttributeForPlayer();
     static void AddCullZone(const CVector& center, float unk1, float fWidthY, float fBottomZ, float fWidthX, float unk2, float fTopZ, uint16 flags);
     static void AddTunnelAttributeZone(const CVector& center, float unk1, float fWidthY, float fBottomZ, float fWidthX, float unk2, float fTopZ, uint16 flags);
     static void AddMirrorAttributeZone(const CVector& center, float unk1, float fWidthY, float fBottomZ, float fWidthX, float unk2, float fTopZ, eZoneAttributes flags, float cm, float vX, float vY, float vZ);
 
+    static bool CamCloseInForPlayer();
+    static bool CamStairsForPlayer();
+    static bool Cam1stPersonForPlayer();
+    static bool NoPolice();
+    static bool PoliceAbandonCars();
     static bool InRoomForAudio();
     static bool FewerCars();
+    static bool FewerPeds();
     static bool CamNoRain();
     static bool PlayerNoRain();
-    static bool FewerPeds();
-    static bool NoPolice();
-    static bool DoExtraAirResistanceForPlayer();
 
-    static eZoneAttributes FindTunnelAttributesForCoors(CVector point);
-    static CCullZoneReflection* FindMirrorAttributesForCoors(CVector cameraPosition);
-    static CCullZone* FindZoneWithStairsAttributeForPlayer();
-    static eZoneAttributes FindAttributesForCoors(CVector pos);
+    static bool DoExtraAirResistanceForPlayer();
 };

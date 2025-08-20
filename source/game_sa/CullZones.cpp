@@ -15,7 +15,11 @@ void CCullZones::InjectHooks() {
     RH_ScopedInstall(CamNoRain, 0x72DDB0);
     RH_ScopedInstall(PlayerNoRain, 0x72DDC0);
     RH_ScopedInstall(FewerPeds, 0x72DD90);
+    RH_ScopedInstall(CamCloseInForPlayer, 0x72DD20);
+    RH_ScopedInstall(CamStairsForPlayer, 0x72DD30);
+    RH_ScopedInstall(Cam1stPersonForPlayer, 0x72DD40);
     RH_ScopedInstall(NoPolice, 0x72DD50);
+    RH_ScopedInstall(PoliceAbandonCars, 0x72DD60);
     RH_ScopedInstall(DoExtraAirResistanceForPlayer, 0x72DDD0);
     RH_ScopedInstall(FindTunnelAttributesForCoors, 0x72D9F0);
     RH_ScopedInstall(FindMirrorAttributesForCoors, 0x72DA70);
@@ -47,7 +51,7 @@ void CCullZones::AddCullZone(const CVector& center, float unk1, float fWidthY, f
         zone.zoneDef.Init(center, unk1, fWidthY, fBottomZ, fWidthX, unk2, fTopZ);
         zone.flags = static_cast<eZoneAttributes>(flags);
 
-        NumAttributeZones += 1;
+        NumAttributeZones++;
     }
 }
 
@@ -59,7 +63,7 @@ void CCullZones::AddTunnelAttributeZone(const CVector& center, float unk1, float
     zone.zoneDef.Init(center, unk1, fWidthY, fBottomZ, fWidthX, unk2, fTopZ);
     zone.flags = static_cast<eZoneAttributes>(flags);
 
-    NumTunnelAttributeZones += 1;
+    NumTunnelAttributeZones++;
 }
 
 // 0x72DC10
@@ -73,7 +77,27 @@ void CCullZones::AddMirrorAttributeZone(const CVector& center, float unk1, float
     zone.vy = (int8)(vY * 100.0f);
     zone.vz = (int8)(vZ * 100.0f);
 
-    NumMirrorAttributeZones += 1;
+    NumMirrorAttributeZones++;
+}
+
+// 0x72DD20
+bool CCullZones::CamCloseInForPlayer() {
+    return CurrentFlags_Player & eZoneAttributes::CAM_CLOSE_IN_FOR_PLAYER;
+}
+
+// 0x72DD30
+bool CCullZones::CamStairsForPlayer() {
+    return (CurrentFlags_Player & eZoneAttributes::CAM_STAIRS_FOR_PLAYER) != 0;
+}
+
+// 0x72DD40
+bool CCullZones::Cam1stPersonForPlayer() {
+    return (CurrentFlags_Player & eZoneAttributes::CAM_1ST_PERSONS_FOR_PLAYER) != 0;
+}
+
+// 0x72DD60
+bool CCullZones::PoliceAbandonCars() {
+    return (CurrentFlags_Player & eZoneAttributes::POLICES_ABANDON_CARS) != 0;
 }
 
 // 0x72DD70
@@ -113,8 +137,9 @@ bool CCullZones::DoExtraAirResistanceForPlayer() {
 
 // 0x72D9F0
 eZoneAttributes CCullZones::FindTunnelAttributesForCoors(CVector point) {
-    if (NumTunnelAttributeZones <= 0)
+    if (NumTunnelAttributeZones <= 0) {
         return eZoneAttributes::NONE;
+    }
 
     int32 out = eZoneAttributes::NONE;
     for (CCullZone& zone : aTunnelAttributeZones) {
@@ -128,8 +153,9 @@ eZoneAttributes CCullZones::FindTunnelAttributesForCoors(CVector point) {
 
 // 0x72DA70
 CCullZoneReflection* CCullZones::FindMirrorAttributesForCoors(CVector cameraPosition) {
-    if (NumMirrorAttributeZones <= 0)
+    if (NumMirrorAttributeZones <= 0) {
         return nullptr;
+    }
 
     for (CCullZoneReflection& zone : aMirrorAttributeZones) {
         if (zone.IsPointWithin(cameraPosition)) {
@@ -142,13 +168,13 @@ CCullZoneReflection* CCullZones::FindMirrorAttributesForCoors(CVector cameraPosi
 
 // 0x72DAD0
 CCullZone* CCullZones::FindZoneWithStairsAttributeForPlayer() {
-    if (NumAttributeZones <= 0)
+    if (NumAttributeZones <= 0) {
         return nullptr;
+    }
 
     for (CCullZone& zone : aAttributeZones) {
-        if ((zone.flags & eZoneAttributes::CAM_STAIRS_FOR_PLAYER) != 0 &&
-            zone.IsPointWithin(FindPlayerCoors())
-        ) {
+        if ((zone.flags & eZoneAttributes::CAM_STAIRS_FOR_PLAYER) != 0
+            && zone.IsPointWithin(FindPlayerCoors())) {
             return &zone;
         }
     }
@@ -158,8 +184,9 @@ CCullZone* CCullZones::FindZoneWithStairsAttributeForPlayer() {
 
 // 0x72D970
 eZoneAttributes CCullZones::FindAttributesForCoors(CVector pos) {
-    if (NumAttributeZones <= 0)
+    if (NumAttributeZones <= 0) {
         return eZoneAttributes::NONE;
+    }
 
     int32 out = eZoneAttributes::NONE;
     for (CCullZone& zone : aAttributeZones) {
@@ -189,4 +216,21 @@ void CCullZones::Update() {
             }
         }
     }
+}
+
+// 0x72DDE0
+bool IsPointWithinArbitraryArea(CVector2D p, CVector2D p1, CVector2D p2, CVector2D p3, CVector2D p4) {
+    if ((p.x - p1.x) * (p2.y - p1.y) - (p.y - p1.y) * (p2.x - p1.x) < 0.0f) {
+        return false;
+    }
+    if ((p.x - p2.x) * (p3.y - p2.y) - (p.y - p2.y) * (p3.x - p2.x) < 0.0f) {
+        return false;
+    }
+    if ((p.x - p3.x) * (p4.y - p3.y) - (p.y - p3.y) * (p4.x - p3.x) < 0.0f) {
+        return false;
+    }
+    if ((p.x - p4.x) * (p1.y - p4.y) - (p.y - p4.y) * (p1.x - p4.x) < 0.0f) {
+        return false;
+    }
+    return true;
 }
