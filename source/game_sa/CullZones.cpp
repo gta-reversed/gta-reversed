@@ -87,52 +87,52 @@ bool CCullZones::CamCloseInForPlayer() {
 
 // 0x72DD30
 bool CCullZones::CamStairsForPlayer() {
-    return (CurrentFlags_Player & eZoneAttributes::CAM_STAIRS_FOR_PLAYER) != 0;
+    return CurrentFlags_Player & eZoneAttributes::CAM_STAIRS_FOR_PLAYER;
 }
 
 // 0x72DD40
 bool CCullZones::Cam1stPersonForPlayer() {
-    return (CurrentFlags_Player & eZoneAttributes::CAM_1ST_PERSONS_FOR_PLAYER) != 0;
-}
-
-// 0x72DD60
-bool CCullZones::PoliceAbandonCars() {
-    return (CurrentFlags_Player & eZoneAttributes::POLICES_ABANDON_CARS) != 0;
-}
-
-// 0x72DD70
-bool CCullZones::InRoomForAudio() {
-    return (CurrentFlags_Camera & eZoneAttributes::IN_ROOMS_FOR_AUDIO) != 0;
-}
-
-// 0x72DD80
-bool CCullZones::FewerCars() {
-    return (CurrentFlags_Player & eZoneAttributes::FEWER_CARS) != 0;
-}
-
-// 0x72DDB0
-bool CCullZones::CamNoRain() {
-    return (CurrentFlags_Camera & eZoneAttributes::CAM_NO_RAIN) != 0;
-}
-
-// 0x72DDC0
-bool CCullZones::PlayerNoRain() {
-    return (CurrentFlags_Player & eZoneAttributes::CAM_NO_RAIN) != 0;
-}
-
-// 0x72DD90
-bool CCullZones::FewerPeds() {
-    return (CurrentFlags_Player & eZoneAttributes::IN_ROOMS_FEWER_PEDS) != 0;
+    return CurrentFlags_Player & eZoneAttributes::CAM_1ST_PERSONS_FOR_PLAYER;
 }
 
 // 0x72DD50
 bool CCullZones::NoPolice() {
-    return (CurrentFlags_Player & eZoneAttributes::NO_POLICE) != 0;
+    return CurrentFlags_Player & eZoneAttributes::NO_POLICE;
+}
+
+// 0x72DD60
+bool CCullZones::PoliceAbandonCars() {
+    return CurrentFlags_Player & eZoneAttributes::POLICES_ABANDON_CARS;
+}
+
+// 0x72DD70
+bool CCullZones::InRoomForAudio() {
+    return CurrentFlags_Camera & eZoneAttributes::IN_ROOMS_FOR_AUDIO;
+}
+
+// 0x72DD80
+bool CCullZones::FewerCars() {
+    return CurrentFlags_Player & eZoneAttributes::FEWER_CARS;
+}
+
+// 0x72DD90
+bool CCullZones::FewerPeds() {
+    return CurrentFlags_Player & eZoneAttributes::IN_ROOMS_FEWER_PEDS;
+}
+
+// 0x72DDB0
+bool CCullZones::CamNoRain() {
+    return CurrentFlags_Camera & eZoneAttributes::CAM_NO_RAIN;
+}
+
+// 0x72DDC0
+bool CCullZones::PlayerNoRain() {
+    return CurrentFlags_Player & eZoneAttributes::CAM_NO_RAIN;
 }
 
 // 0x72DDD0
 bool CCullZones::DoExtraAirResistanceForPlayer() {
-    return (CurrentFlags_Player & eZoneAttributes::EXTRA_AIR_RESISTANCE) != 0;
+    return CurrentFlags_Player & eZoneAttributes::EXTRA_AIR_RESISTANCE;
 }
 
 // 0x72D9F0
