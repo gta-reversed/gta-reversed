@@ -23,6 +23,7 @@
 #include "DamageManager.h"
 #include "FxSystem.h"
 #include "Fire.h"
+#include "cHandlingDataMgr.h"
 
 #include <Enums/eControllerType.h>
 
@@ -385,7 +386,7 @@ public:
     eCarWeapon      m_nVehicleWeaponInUse;
     uint32          m_HornCounter;
     int8            m_HornPattern;
-    char            m_nCarHornTimer; // car horn related
+    uint8           m_nCarHornTimer; // car horn related
     eComedyControlState m_comedyControlState;
     char            m_nHasslePosId;
     CStoredCollPoly m_FrontCollPoly;          // poly which is under front part of car
@@ -456,7 +457,7 @@ public:
     // component index in m_apModelNodes array
     virtual void GetComponentWorldPosition(int32 componentId, CVector& outPos) { /* Do nothing */ }
     // component index in m_apModelNodes array
-    virtual bool IsComponentPresent(int32 componentId) { return false; }
+    virtual bool IsComponentPresent(int32 componentId) const { return false; }
     virtual void OpenDoor(CPed* ped, int32 componentId, eDoors door, float doorOpenRatio, bool playSound) { /* Do nothing */ }
     virtual void ProcessOpenDoor(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime);
 
@@ -465,14 +466,14 @@ public:
     //!!!!!!!!!!!!!!!!!!!
     virtual float GetDooorAngleOpenRatioU32(uint32 door) { return 0.0F; }
     virtual float GetDooorAngleOpenRatio(eDoors door) { return 0.0F; }
-    virtual bool IsDoorReadyU32(uint32 door) { return false; }
-    virtual bool IsDoorReady(eDoors door) { return false; }
-    virtual bool IsDoorFullyOpenU32(uint32 door) { return false; }
-    virtual bool IsDoorFullyOpen(eDoors door) { return false; }
-    virtual bool IsDoorClosedU32(uint32 door){ return false; }
-    virtual bool IsDoorClosed(eDoors door){ return false; }
-    virtual bool IsDoorMissingU32(uint32 door){ return false; }
-    virtual bool IsDoorMissing(eDoors door) { return false; }
+    virtual bool IsDoorReadyU32(uint32 door) const { return false; }
+    virtual bool IsDoorReady(eDoors door) const { return false; }
+    virtual bool IsDoorFullyOpenU32(uint32 door) const { return false; }
+    virtual bool IsDoorFullyOpen(eDoors door) const { return false; }
+    virtual bool IsDoorClosedU32(uint32 door) const { return false; }
+    virtual bool IsDoorClosed(eDoors door) const { return false; }
+    virtual bool IsDoorMissingU32(uint32 door) const { return false; }
+    virtual bool IsDoorMissing(eDoors door) const { return false; }
 
     // check if car has roof as extra
     virtual bool IsOpenTopCar(){ return false; }
@@ -492,7 +493,7 @@ public:
     virtual void Fix() { /* Do nothing */ } // 0x6D6390
     virtual void SetupDamageAfterLoad() { /* Do nothing */ }
     virtual void DoBurstAndSoftGroundRatios() { /* Do nothing */ }
-    virtual float GetHeightAboveRoad();
+    virtual float GetHeightAboveRoad() const;
     virtual void PlayCarHorn() { /* Do nothing */ }
     virtual int32 GetNumContactWheels() { return 4; }
     virtual void VehicleDamage(float damageIntensity, eVehicleCollisionComponent collisionComponent, CEntity* damager, CVector* vecCollisionCoors, CVector* vecCollisionDirection, eWeaponType weapon) { /* Do nothing */ }
@@ -741,7 +742,7 @@ public: // NOTSA functions
         if (m_pHandlingData->m_fDragMult <= 0.01f) {
             return m_pHandlingData->m_fDragMult;
         } else {
-            return m_pHandlingData->m_fDragMult / 1000.0f / 2.0f;
+            return m_pHandlingData->m_fDragMult / GAME_AIR_RESISTANCE_MASS / 2.0f;
         }
     }
 

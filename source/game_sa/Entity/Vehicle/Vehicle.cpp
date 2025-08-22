@@ -1028,7 +1028,7 @@ void CVehicle::ProcessDrivingAnims(CPed* driver, bool blend) {
 }
 
 // 0x871F54// 0x6D63F0
-float CVehicle::GetHeightAboveRoad() {
+float CVehicle::GetHeightAboveRoad() const {
     return CModelInfo::GetModelInfo(m_nModelIndex)->GetColModel()->GetBoundingBox().m_vecMin.z * -1.0F;
 }
 

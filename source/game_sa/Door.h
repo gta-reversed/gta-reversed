@@ -36,8 +36,8 @@ public:
     bool  ProcessImpact(CVehicle* vehicle, CVector& arg1, CVector& arg2, Const CVector& arg3);
     void  Open(float openRatio);
     float GetAngleOpenRatio();
-    bool  IsClosed();
-    bool  IsFullyOpen();
+    bool  IsClosed() const;
+    bool  IsFullyOpen() const;
 
     // NOTSA
     void    OpenFully()  { m_fAngle = m_fOpenAngle; }

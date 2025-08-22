@@ -2142,7 +2142,7 @@ void CAutomobile::GetComponentWorldPosition(int32 componentId, CVector& outPos)
 }
 
 // 0x6A2250
-bool CAutomobile::IsComponentPresent(int32 componentId)
+bool CAutomobile::IsComponentPresent(int32 componentId) const
 {
     return m_aCarNodes[componentId] != 0;
 }
@@ -2222,7 +2222,7 @@ float CAutomobile::GetDooorAngleOpenRatioU32(uint32 door)
 }
 
 // 0x6A2290
-bool CAutomobile::IsDoorReady(eDoors door)
+bool CAutomobile::IsDoorReady(eDoors door) const
 {
     if (m_doors[door].IsClosed())
         return true;
@@ -2234,7 +2234,7 @@ bool CAutomobile::IsDoorReady(eDoors door)
 }
 
 // 0x6A6350
-bool CAutomobile::IsDoorReadyU32(uint32 door)
+bool CAutomobile::IsDoorReadyU32(uint32 door) const
 {
     switch (door) {
     case 8:
@@ -2254,7 +2254,7 @@ bool CAutomobile::IsDoorReadyU32(uint32 door)
 }
 
 // 0x6A22D0
-bool CAutomobile::IsDoorFullyOpen(eDoors door)
+bool CAutomobile::IsDoorFullyOpen(eDoors door) const
 {
     if (m_doors[door].IsFullyOpen())
         return true;
@@ -2266,7 +2266,7 @@ bool CAutomobile::IsDoorFullyOpen(eDoors door)
 }
 
 // 0x6A63E0
-bool CAutomobile::IsDoorFullyOpenU32(uint32 door) {
+bool CAutomobile::IsDoorFullyOpenU32(uint32 door) const {
     switch (door) {
     case 8:  return IsDoorFullyOpen(DOOR_RIGHT_FRONT);
     case 9:  return IsDoorFullyOpen(DOOR_RIGHT_REAR);
@@ -2280,12 +2280,12 @@ bool CAutomobile::IsDoorFullyOpenU32(uint32 door) {
 }
 
 // 0x6A2310
-bool CAutomobile::IsDoorClosed(eDoors door) {
+bool CAutomobile::IsDoorClosed(eDoors door) const {
     return m_doors[door].IsClosed();
 }
 
 // 0x6A6470
-bool CAutomobile::IsDoorClosedU32(uint32 door) {
+bool CAutomobile::IsDoorClosedU32(uint32 door) const {
     switch (door) {
     case 8:  return IsDoorClosed(DOOR_RIGHT_FRONT);
     case 9:  return IsDoorClosed(DOOR_RIGHT_REAR);
@@ -2299,12 +2299,12 @@ bool CAutomobile::IsDoorClosedU32(uint32 door) {
 }
 
 // 0x6A2330
-bool CAutomobile::IsDoorMissing(eDoors door) {
+bool CAutomobile::IsDoorMissing(eDoors door) const {
     return m_damageManager.GetDoorStatus(door) == DAMSTATE_NOTPRESENT;
 }
 
 // 0x6A6500
-bool CAutomobile::IsDoorMissingU32(uint32 door) {
+bool CAutomobile::IsDoorMissingU32(uint32 door) const {
     switch (door) {
     case 8:  return IsDoorMissing(DOOR_RIGHT_FRONT);
     case 9:  return IsDoorMissing(DOOR_RIGHT_REAR);
@@ -2835,7 +2835,7 @@ void CAutomobile::PlayCarHorn()
 }
 
 // 0x6A62B0
-float CAutomobile::GetHeightAboveRoad() {
+float CAutomobile::GetHeightAboveRoad() const {
     return m_fFrontHeightAboveRoad;
 }
 
