@@ -404,7 +404,7 @@ public:
         } m_renderLights;
     };
     RwTexture*   m_pCustomCarPlate;
-    float        m_fRawSteerAngle; // AKA m_fSteeringLeftRight
+    float        m_fRawSteerAngle; // AKA m_fSteeringLeftRight or fSteer
     eVehicleType m_nVehicleType;    // Theory by forkerer:
     eVehicleType m_nVehicleSubType; // Hack to have stuff be 2 classes at once, like vortex which can act like a car and a boat
     int16        m_nPreviousRemapTxd;
@@ -456,7 +456,7 @@ public:
     // component index in m_apModelNodes array
     virtual void GetComponentWorldPosition(int32 componentId, CVector& outPos) { /* Do nothing */ }
     // component index in m_apModelNodes array
-    virtual bool IsComponentPresent(int32 componentId) { return false; }
+    virtual bool IsComponentPresent(int32 componentId) const { return false; }
     virtual void OpenDoor(CPed* ped, int32 componentId, eDoors door, float doorOpenRatio, bool playSound) { /* Do nothing */ }
     virtual void ProcessOpenDoor(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime);
 
@@ -728,6 +728,8 @@ public: // NOTSA functions
     /// get position of driver seat dummy (World Space)
     CVector GetDriverSeatDummyPositionWS(); // NOTSA
 
+    float GetNewSteeringAmt();
+
     [[nodiscard]] auto GetRopeID() const { return (uint32)&m_nFlags + 1; } // yep, flags + 1
     [[nodiscard]] CVehicleAnimGroup& GetAnimGroup() const;
     [[nodiscard]] AssocGroupId GetAnimGroupId() const;
@@ -791,7 +793,6 @@ void SetVehicleAtomicVisibility(RpAtomic* atomic, int16 state);
 CVehicle::ReduceVehicleDamage(float &);
 CVehicle::CanUseCameraHeightSetting();
 CVehicle::DoReverseLightEffect(int32, CMatrix&, uint8, uint8, uint32, uint8);
-CVehicle::GetNewSteeringAmt();
 void CVehicle::GetGasTankPosition();
 void CVehicle::SetTappedGasTankVehicle(CEntity* entity);
 bool CVehicle::GetHasDualExhausts() { return (m_pHandlingData->m_nModelFlags >> 13) & 1; // m_bNoExhaust }
