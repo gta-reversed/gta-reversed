@@ -193,13 +193,13 @@ public: // NOTSA
     void ProcessPedInVehicleBuoyancy(CPed* ped, bool bIsDriver);
     [[nodiscard]] bool IsAnyWheelMakingContactWithGround() const {
         return std::ranges::any_of(m_aWheelRatios, [](const auto& r) {
-            return r != 1.0F;
+            return r != BILLS_EXTENSION_LIMIT;
         });
     }
 
     [[nodiscard]] bool IsAnyWheelNotMakingContactWithGround() const {
         return std::ranges::any_of(m_aWheelRatios, [](const auto& r) {
-            return r == 1.0F;
+            return r == BILLS_EXTENSION_LIMIT;
         });
     }
 
