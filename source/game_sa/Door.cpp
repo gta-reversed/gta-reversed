@@ -31,13 +31,13 @@ float CDoor::GetAngleOpenRatio() {
 }
 
 // 0x6F4800
-bool CDoor::IsClosed() {
-    return plugin::CallMethodAndReturn<bool, 0x6F4800, CDoor*>(this);
+bool CDoor::IsClosed() const {
+    return m_fClosedAngle == m_fAngle;
 }
 
 // 0x6F4820
-bool CDoor::IsFullyOpen() {
-    return plugin::CallMethodAndReturn<bool, 0x6F4820, CDoor*>(this);
+bool CDoor::IsFullyOpen() const {
+    return fabs(m_fOpenAngle) - 0.5f <= fabs(m_fAngle);
 }
 
 CVector CDoor::GetRotation() const {
