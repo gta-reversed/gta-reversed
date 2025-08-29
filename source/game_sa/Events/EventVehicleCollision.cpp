@@ -16,7 +16,7 @@ void CEventVehicleCollision::InjectHooks()
     RH_ScopedVMTInstall(AffectsPed, 0x4B2EE0);
 }
 
-CEventVehicleCollision::CEventVehicleCollision(int16 pieceType, float damageIntensity, CVehicle* vehicle, const CVector& collisionImpactVelocity, const CVector& collisionPosition, int8 moveState, int16 evadeType)
+CEventVehicleCollision::CEventVehicleCollision(uint16 pieceType, float damageIntensity, CVehicle* vehicle, const CVector& collisionImpactVelocity, const CVector& collisionPosition, eMoveState moveState, int16 evadeType)
 {
     m_pieceType               = pieceType;
     m_evadeType               = evadeType;
@@ -35,7 +35,7 @@ CEventVehicleCollision::~CEventVehicleCollision()
 }
 
 // 0x4AC840
-CEventVehicleCollision* CEventVehicleCollision::Constructor(int16 pieceType, float damageIntensity, CVehicle* vehicle, const CVector& collisionImpactVelocity, const CVector& collisionPosition, int8 moveState, int16 evadeType)
+CEventVehicleCollision* CEventVehicleCollision::Constructor(uint16 pieceType, float damageIntensity, CVehicle* vehicle, const CVector& collisionImpactVelocity, const CVector& collisionPosition, eMoveState moveState, int16 evadeType)
 {
     this->CEventVehicleCollision::CEventVehicleCollision(pieceType, damageIntensity, vehicle, collisionImpactVelocity, collisionPosition, moveState, evadeType);
     return this;
