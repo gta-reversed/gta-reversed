@@ -38,7 +38,7 @@ class FxSystem_c;
 class NOTSA_EXPORT_VTABLE CAutomobile : public CVehicle {
 public:
     CDamageManager                      m_damageManager;
-    std::array<CDoor, 6>                m_doors{};
+    std::array<CDoor, 6>                m_doors;
     std::array<RwFrame*, CAR_NUM_NODES> m_aCarNodes;
     std::array<CBouncingPanel, 3>       m_panels;
     CDoor                               m_swingingChassis;
