@@ -84,14 +84,11 @@ void CTrailer::SetupSuspensionLines() {
         m_aSuspensionLineLength[i]   = colData->m_pLines[i].m_vecStart.z - colData->m_pLines[i].m_vecEnd.z;
     }
 
-    if (colData->m_pLines[0].m_vecEnd.z < cl->m_boundBox.m_vecMin.z) {
-        cl->m_boundBox.m_vecMin.z = colData->m_pLines[0].m_vecEnd.z;
-    }
+    cl->m_boundBox.m_vecMin.z = std::min(cl->m_boundBox.m_vecMin.z, colData->m_pLines[0].m_vecEnd.z);
 
+    // 0x6CF313
     const float maxDistSq = std::max(cl->m_boundBox.m_vecMin.Magnitude(), cl->m_boundBox.m_vecMax.Magnitude());
-    if (sqrt(maxDistSq) > cl->m_boundSphere.m_fRadius) {
-        cl->m_boundSphere.m_fRadius = sqrt(maxDistSq);
-    }
+    cl->m_boundSphere.m_fRadius = std::max(cl->m_boundSphere.m_fRadius, maxDistSq);
 
     if (m_aCarNodes[TRAILER_MISC_A]) {
         RwMatrix matrix;
@@ -109,7 +106,7 @@ void CTrailer::SetupSuspensionLines() {
     }
 
     CColLine* supportLines = &colData->m_pLines[NUM_TRAILER_WHEELS];
-    for (int i = 0; i < NUM_TRAILER_SUPPORTS; ++i) {
+    for (int32 i = 0; i < NUM_TRAILER_SUPPORTS; ++i) {
         CVector startPos;
         startPos.x = (i == 0) ? cl->m_boundBox.m_vecMin.x : -cl->m_boundBox.m_vecMin.x;
         startPos.y = cl->m_boundBox.m_vecMax.y;
@@ -459,13 +456,9 @@ bool CTrailer::ProcessAI(uint32& extraHandlingFlags) {
     }
 
     // Wheel turning for luggage trailers
-    float headingTow  = m_pTowingVehicle->m_matrix
-         ? std::atan2(-m_pTowingVehicle->m_matrix->GetForward().x, m_pTowingVehicle->m_matrix->GetForward().y)
-         : m_pTowingVehicle->m_placement.m_fHeading;
+    float headingTow = m_pTowingVehicle->GetHeading();
 
-    float headingSelf = m_matrix
-        ? std::atan2(-m_matrix->GetForward().x, m_matrix->GetForward().y)
-        : m_placement.m_fHeading;
+    float headingSelf = GetHeading();
 
     // Calculation of the shortest angle difference
     float angleDiff = headingTow - headingSelf;
@@ -478,7 +471,6 @@ bool CTrailer::ProcessAI(uint32& extraHandlingFlags) {
 
     return returnValue;
 }
-
 
 // 0x6CFAC0
 void CTrailer::PreRender() {
