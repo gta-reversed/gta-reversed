@@ -2801,7 +2801,7 @@ void CPed::PreRenderAfterTest()
         }
     }
 
-    if (m_bIsVisible && CTimeCycle::m_CurrentColours.m_nShadowStrength != 0) {
+    if (m_bIsVisible && CTimeCycle::GetShadowStrength()) {
         const auto [shadowNeeded, activeTask] = [&]() -> std::pair<bool, CTask*> {
             if (!bInVehicle) {
                 return std::make_pair(false, intel->m_TaskMgr.FindActiveTaskByType(TASK_COMPLEX_ENTER_ANY_CAR_AS_DRIVER));

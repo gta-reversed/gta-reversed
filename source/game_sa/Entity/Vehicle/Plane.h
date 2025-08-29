@@ -111,7 +111,7 @@ public:
     static bool AreWeInNoPlaneZone();
     static bool AreWeInNoBigPlaneZone();
     static void SwitchAmbientPlanes(bool enable);
-    static void FindPlaneCreationCoors(CVector* center, CVector* playerCoords, float* outHeading, float* outHeight, bool arg4);
+    static void FindPlaneCreationCoors(CVector* outCoors, CVector* outTargetCoors, float* outPlaneOrientation, float* outFlightHeight, bool isBigPlane);
     static void DoPlaneGenerationAndRemoval();
 
 private:

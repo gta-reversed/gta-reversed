@@ -999,22 +999,23 @@ bool CCam::Process_WheelCam(const CVector&, float, float, float) {
     return false;
 }
 
+// based on 0x51847C - 0x5184EC
 void CCam::ApplyUnderwaterMotionBlur() {
     static constexpr uint32 UNDERWATER_CAM_BLUR      = 20;    // 0x8CC7A4
     static constexpr float  UNDERWATER_CAM_MAG_LIMIT = 10.0f; // 0x8CC7A8
 
     const auto colorMag = std::sqrt(
-        sq(CTimeCycle::m_CurrentColours.m_fWaterRed) +
-        sq(CTimeCycle::m_CurrentColours.m_fWaterGreen) +
-        sq(CTimeCycle::m_CurrentColours.m_fWaterBlue)
+        sq(CTimeCycle::GetWaterRed()) +
+        sq(CTimeCycle::GetWaterGreen()) +
+        sq(CTimeCycle::GetWaterBlue())
     );
 
     const auto factor = (colorMag <= UNDERWATER_CAM_MAG_LIMIT) ? 1.0f : UNDERWATER_CAM_MAG_LIMIT / colorMag;
 
     TheCamera.SetMotionBlur(
-        static_cast<uint32>(factor * CTimeCycle::m_CurrentColours.m_fWaterRed),
-        static_cast<uint32>(factor * CTimeCycle::m_CurrentColours.m_fWaterGreen),
-        static_cast<uint32>(factor * CTimeCycle::m_CurrentColours.m_fWaterBlue),
+        static_cast<uint32>(factor * CTimeCycle::GetWaterRed()),
+        static_cast<uint32>(factor * CTimeCycle::GetWaterGreen()),
+        static_cast<uint32>(factor * CTimeCycle::GetWaterBlue()),
         UNDERWATER_CAM_BLUR,
         eMotionBlurType::LIGHT_SCENE
     );

@@ -50,7 +50,7 @@ void TimeCycleDebugModule::RenderWindow() {
     }
     ImGui::SameLine();
     if (ImGui::Button("Reset")) {
-        CTimeCycle::Initialise();
+        CTimeCycle::Initialise(false);
     }
     ImGui::Checkbox("Extra Colour On", reinterpret_cast<bool*>(&CTimeCycle::m_bExtraColourOn));
     ImGui::Checkbox("Show boxes", &m_ShowBoxes);
@@ -59,7 +59,7 @@ void TimeCycleDebugModule::RenderWindow() {
         ImGui::NewLine();
     }
 
-    ImGui::SliderInt("Selected Hour", &m_TimeId, 0, CTimeCycle::NUM_HOURS); // todo: Calc this from the current time
+    ImGui::SliderInt("Selected Hour", &m_TimeId, 0, eTimeType::NUM_HOURS); // todo: Calc this from the current time
     if (ImGui::Combo("Current Weather", &m_OldWeatherTypeId, WEATHER_NAMES, std::size(WEATHER_NAMES))) {
         CWeather::OldWeatherType = static_cast<eWeatherType>(m_OldWeatherTypeId);
     }
@@ -75,13 +75,13 @@ void TimeCycleDebugModule::RenderWindow() {
     }
 
     ImGui::NewLine();
-    if (ImGui::ColorEdit3("Post Fx 1", (float*)&m_PostFx1)) {
+    if (ImGui::ColorEdit3("Current Post Fx 1", (float*)&m_PostFx1)) {
         CTimeCycle::m_CurrentColours.m_fPostFx1Red   = m_PostFx1.r * 255.0f;
         CTimeCycle::m_CurrentColours.m_fPostFx1Green = m_PostFx1.g * 255.0f;
         CTimeCycle::m_CurrentColours.m_fPostFx1Blue  = m_PostFx1.b * 255.0f;
     }
 
-    if (ImGui::ColorEdit3("Post Fx 2", (float*)&m_PostFx2)) {
+    if (ImGui::ColorEdit3("Current Post Fx 2", (float*)&m_PostFx2)) {
         CTimeCycle::m_CurrentColours.m_fPostFx2Red   = m_PostFx2.r * 255.0f;
         CTimeCycle::m_CurrentColours.m_fPostFx2Green = m_PostFx2.g * 255.0f;
         CTimeCycle::m_CurrentColours.m_fPostFx2Blue  = m_PostFx2.b * 255.0f;
@@ -171,11 +171,11 @@ void TimeCycleDebugModule::RenderWindow() {
     }
 
     if (ImGui::SliderInt("Far Clip", &m_FarClip, INT16_MIN, INT16_MAX)) {
-        CTimeCycle::m_fFarClip[m_TimeId][m_WeatherId] = static_cast<uint16>(m_FarClip);
+        CTimeCycle::m_fFarClip[m_TimeId][m_WeatherId] = static_cast<int16>(m_FarClip);
     }
 
     if (ImGui::SliderInt("Fog Start", &m_FogStart, INT16_MIN, INT16_MAX)) {
-        CTimeCycle::m_fFogStart[m_TimeId][m_WeatherId] = static_cast<uint16>(m_FogStart);
+        CTimeCycle::m_fFogStart[m_TimeId][m_WeatherId] = static_cast<int16>(m_FogStart);
     }
 
     ImGui::NewLine();
@@ -235,7 +235,10 @@ void TimeCycleDebugModule::RenderWindow() {
     }
 
     ImGui::NewLine();
-    ImGui::SliderInt("Current Stored Value", &CTimeCycle::m_CurrentStoredValue, 0, 16);
+    if (ImGui::SliderInt("Current Stored Value", &m_CurrentStoredValue, 0, 16)) {
+        CTimeCycle::m_CurrentStoredValue = m_CurrentStoredValue;
+    }
+
     ImGui::SliderFloat("Shadow Front X", &CTimeCycle::m_fShadowFrontX[0], 0.0f, 1.0f);
     ImGui::SliderFloat("Shadow Front Y", &CTimeCycle::m_fShadowFrontY[0], 0.0f, 1.0f);
     ImGui::SliderFloat("Shadow Side X", &CTimeCycle::m_fShadowSideX[0], 0.0f, 1.0f);

@@ -10,7 +10,7 @@ void CTimeCycle::InjectHooks() {
     RH_ScopedClass(CTimeCycle);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(Initialise, 0x5BBAC0, { .reversed = false });
+    RH_ScopedInstall(Initialise, 0x5BBAC0);
     RH_ScopedInstall(InitForRestart, 0x5601F0);
     RH_ScopedInstall(Shutdown, 0x5601E0);
     RH_ScopedInstall(Update, 0x561760);
@@ -33,15 +33,13 @@ void CTimeCycle::InjectHooks() {
 }
 
 // 0x5BBAC0
-void CTimeCycle::Initialise() {
-    return plugin::Call<0x5BBAC0>(); // looks differ
-
+void CTimeCycle::Initialise(bool padFile) {
     CFileMgr::SetDir("DATA");
     auto file = CFileMgr::OpenFile("TIMECYC.DAT", "rb");
     CFileMgr::SetDir("");
 
     if (!file) { // NOTSA
-        NOTSA_LOG_DEBUG("[CTimeCycle] Failed to open TIMECYC.DAT");
+        NOTSA_LOG_WARN("[CTimeCycle] Failed to open TIMECYC.DAT");
         CFileMgr::CloseFile(file);
         return;
     }
@@ -59,8 +57,8 @@ void CTimeCycle::Initialise() {
     int32 lowCloudR, lowCloudG, lowCloudB;
     int32 bottomCloudR, bottomCloudG, bottomCloudB;
     float waterR, waterG, waterB, waterA;
-    float postFx1a, postFx1R, postFx1G, postFx1B;
-    float postFx2a, postFx2R, postFx2G, postFx2B;
+    float postFx1A, postFx1R, postFx1G, postFx1B;
+    float postFx2A, postFx2R, postFx2G, postFx2B;
     float cloudAlpha;
     int32 highLightMinIntensity;
     int32 waterFogAlpha;
@@ -75,26 +73,59 @@ void CTimeCycle::Initialise() {
                 }
             }
 
-            VERIFY(sscanf_s(line,
-                "%d %d %d  %d %d %d  %d %d %d  %d %d %d  %d %d %d" "%d %d %d  %d %d %d"
-                "%f %f %f %d %d %d %f %f %f"
-                "%d %d %d  %d %d %d  %f %f %f  %f %f %f  %f %f %f" "%f %f %f"
-                "%f %d %d %f",
-                &ambR,       &ambG,       &ambB,
-                &ambObjR,    &ambObjG,    &ambObjB,
-                &dirR,       &dirG,       &dirB,
-                &skyTopR,    &skyTopG,    &skyTopB,
-                &skyBotR,    &skyBotG,    &skyBotB,
-                &sunCoreR,   &sunCoreG,   &sunCoreB,
+            const auto n = sscanf(line,
+                "%d %d %d " // Static ambience color
+                "%d %d %d " // Dynamic ambience color
+                "%d %d %d " // Direct light color - NOP
+                "%d %d %d " // Sky top color
+                "%d %d %d " // Sky bottom color
+                "%d %d %d " // Sun core color
+                "%d %d %d " // Sun corona color
+                "%f "       // Sun core size
+                "%f "       // Sun corona size
+                "%f "       // Sprite brightness
+                "%d "       // Pole shading value
+                "%d "       // Light shading value
+                "%d "       // Pole shading value
+                "%f "       // Far clipping offset
+                "%f "       // Fog start offset
+                "%f "       // Light on ground
+                "%d %d %d " // Lower clouds color
+                "%d %d %d " // Upper clouds bottom color
+                "%f %f %f " // Water color
+                "%f "       // Water alpha level
+                "%f "       // Color correction 1 alpha
+                "%f %f %f " // Color correction 1
+                "%f "       // Color correction 2 alpha
+                "%f %f %f " // Color correction 2
+                "%f "       // Lower clouds alpha level
+                "%d "       // Highlight min intensity
+                "%d "       // Water fog alpha
+                "%f",       // Directional multiplier
+                &ambR, &ambG, &ambB,
+                &ambObjR, &ambObjG, &ambObjB,
+                &dirR, &dirG, &dirB,
+                &skyTopR, &skyTopG, &skyTopB,
+                &skyBotR, &skyBotG, &skyBotB,
+                &sunCoreR, &sunCoreG, &sunCoreB,
                 &sunCoronaR, &sunCoronaG, &sunCoronaB,
-                &sunSize, &spriteSize, &spriteBrightness, &shadowStrength, &lightShadowStrength, &poleShadowStrength, &farClip, &fogStart, &lightOnGround,
+                &sunSize, &spriteSize, &spriteBrightness,
+                &shadowStrength, &lightShadowStrength, &poleShadowStrength,
+                &farClip, &fogStart, &lightOnGround,
                 &lowCloudR, &lowCloudG, &lowCloudB,
                 &bottomCloudR, &bottomCloudG, &bottomCloudB,
                 &waterR, &waterG, &waterB, &waterA,
-                &postFx1a, &postFx1R, &postFx1G, &postFx1B,
-                &postFx2a, &postFx2R, &postFx2G, &postFx2B,
+                &postFx1A, &postFx1R, &postFx1G, &postFx1B,
+                &postFx2A, &postFx2R, &postFx2G, &postFx2B,
                 &cloudAlpha, &highLightMinIntensity, &waterFogAlpha, &dirMult
-            ) == 52);
+            );
+            if (n < 51) {
+                // TODO:
+                // R* made a mistake in line 320:
+                // instead of the first 3 RGB values, only 255 is specified,
+                // which causes the entire line to shift and be read incorrectly
+                NOTSA_LOG_WARN("Bad timecyc line: '{}'", line);
+            }
 
             m_nAmbientRed[h][w]   = ambR;
             m_nAmbientGreen[h][w] = ambG;
@@ -103,6 +134,8 @@ void CTimeCycle::Initialise() {
             m_nAmbientRed_Obj[h][w]   = ambObjR;
             m_nAmbientGreen_Obj[h][w] = ambObjG;
             m_nAmbientBlue_Obj[h][w]  = ambObjB;
+
+            // code dir RGB?
 
             m_nSkyTopRed[h][w]   = skyTopR;
             m_nSkyTopGreen[h][w] = skyTopG;
@@ -120,14 +153,16 @@ void CTimeCycle::Initialise() {
             m_nSunCoronaGreen[h][w] = sunCoronaG;
             m_nSunCoronaBlue[h][w]  = sunCoronaB;
 
-            m_fSunSize[h][w]    = uint8(sunSize * 10.0f + 0.5f);
-            m_fSpriteSize[h][w] = uint8(spriteSize * 10.0f + 0.5f);
-            m_fSpriteBrightness[h][w]    = uint8(spriteBrightness * 10.0f + 0.5f);
+            m_fSunSize[h][w]          = int8(sunSize * 10.0f + 0.5f);
+            m_fSpriteSize[h][w]       = int8(spriteSize * 10.0f + 0.5f);
+            m_fSpriteBrightness[h][w] = int8(spriteBrightness * 10.0f + 0.5f);
+
             m_nShadowStrength[h][w]      = shadowStrength;
             m_nLightShadowStrength[h][w] = lightShadowStrength;
             m_nPoleShadowStrength[h][w]  = poleShadowStrength;
-            m_fFarClip[h][w]  = (uint16)farClip;
-            m_fFogStart[h][w] = (uint16)fogStart;
+
+            m_fFarClip[h][w]  = (int16)farClip;
+            m_fFogStart[h][w] = (int16)fogStart;
             m_fLightsOnGroundBrightness[h][w] = uint8(lightOnGround * 10.0f + 0.5f);
 
             m_nLowCloudsRed[h][w]   = lowCloudR;
@@ -151,13 +186,13 @@ void CTimeCycle::Initialise() {
             m_fPostFx2Green[h][w] = (uint8)postFx2G;
             m_fPostFx2Blue[h][w]  = (uint8)postFx2B;
 
-            m_fPostFx1Alpha[h][w] = (uint8)sq(postFx1a);
-            m_fPostFx2Alpha[h][w] = (uint8)sq(postFx2a);
+            m_fPostFx1Alpha[h][w] = uint8(postFx1A * 2.f);
+            m_fPostFx2Alpha[h][w] = uint8(postFx2A * 2.f);
 
             m_fCloudAlpha[h][w]            = (uint8)cloudAlpha;
             m_nHighLightMinIntensity[h][w] = (uint8)highLightMinIntensity;
             m_nWaterFogAlpha[h][w]         = (uint8)waterFogAlpha;
-            m_nDirectionalMult[h][w]       = uint8(dirMult * 100.0f);
+            m_nDirectionalMult[h][w]       = uint8((uint8)dirMult * 100.0f);
         }
     }
 
@@ -248,7 +283,7 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     const auto hours = std::min(23.999f, CClock::GetHoursToday());
 
     // 0x560528 - Find sample index for current hour
-    int32 currSampleIdx{};
+    int32 currSampleIdx = 0;
     while (hours >= (float)(TimeSamples[currSampleIdx + 1])) {
         currSampleIdx++;
     }
@@ -329,7 +364,7 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     }
 
     if (m_FogReduction) {
-        set->m_fFarClip = set->m_fFarClip > float(m_FogReduction) * 10.15625f ? set->m_fFarClip : float(m_FogReduction) * 10.15625f;
+        set->m_fFarClip = std::max(set->m_fFarClip, (float)m_FogReduction * 10.15625f); // 10.15625f = 1/64 * 10 + 10 ?
     }
 
     // 0x560A59
@@ -373,12 +408,12 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
             set->m_fAmbientGreen_Obj = lerp<float>(set->m_fAmbientGreen_Obj, m_nAmbientGreen_Obj[boxHour][boxWeather], boxf);
             set->m_fAmbientBlue_Obj  = lerp<float>(set->m_fAmbientBlue_Obj, m_nAmbientBlue_Obj[boxHour][boxWeather], boxf);
         }
-        if (m_fFarClip[boxHour][boxWeather] != 255) { // 0x560D08
-            if ((float)m_fFarClip[boxHour][boxWeather] < set->m_fFarClip) {
+        if (m_fFarClip[boxHour][boxWeather] != -1) { // 0x560D08
+            if (m_fFarClip[boxHour][boxWeather] < set->m_fFarClip) {
                 set->m_fFarClip = set->m_fFarClip * invboxf + (float)m_fFarClip[boxHour][boxWeather] * boxf;
             }
         }
-        if (m_fFogStart[boxHour][boxWeather] != 255) { // 0x560D3E
+        if (m_fFogStart[boxHour][boxWeather] != -1) { // 0x560D3E
             set->m_fFogStart = lerp(set->m_fFogStart, (float)m_fFogStart[boxHour][boxWeather], boxf);
         }
         if (m_fPostFx1Red[boxHour][boxWeather] != 255) { // 0x560D63
@@ -396,24 +431,19 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     }
 
     if (lodBoxA) {
-        set->m_fLodDistMult *= (1.0f - lodBoxA_T) + (float)lodBoxA->LodDistMult / 32.0f * lodBoxA_T;
+        float newLodMult = (float)lodBoxA->LodDistMult / 32.0f; // 0.03125f = 1/32
+        set->m_fLodDistMult  = lerp(set->m_fLodDistMult, newLodMult, lodBoxA_T);
     }
 
-    if (farBoxA && (float)farBoxA->FarClip < set->m_fFarClip) {
-        set->m_fFarClip = set->m_fFarClip * (1.0f - farBoxA_T) + (float)farBoxA->FarClip * farBoxA_T;
+    if (farBoxA) {
+        set->m_fFarClip = lerp(set->m_fFarClip, std::min(set->m_fFarClip, (float)farBoxA->FarClip), farBoxA_T);
     }
-    if (farBoxB && (float)farBoxB->FarClip < set->m_fFarClip) {
-        set->m_fFarClip = set->m_fFarClip * (1.0f - farBoxB_T) + (float)farBoxB->FarClip * farBoxB_T;
+    if (farBoxB) {
+        set->m_fFarClip = lerp(set->m_fFarClip, std::min(set->m_fFarClip, (float)farBoxB->FarClip), farBoxB_T);
     }
 
     float inc = CTimer::GetTimeStep() / 120.0f;
-    if (m_bExtraColourOn) {
-        m_ExtraColourInter += inc;
-        m_ExtraColourInter = std::min(m_ExtraColourInter, 1.0f);
-    } else {
-        m_ExtraColourInter -= inc;
-        m_ExtraColourInter = std::max(m_ExtraColourInter, 0.0f);
-    }
+    m_ExtraColourInter = std::clamp(m_ExtraColourInter + (m_bExtraColourOn ? inc : -inc), 0.0f, 1.0f);
 
     if (m_ExtraColourInter > 0.0f) {
         CColourSet extra(m_ExtraColour, m_ExtraColourWeatherType);
@@ -445,45 +475,46 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     // 0x5612AA
     CShadows::CalcPedShadowValues(
         m_VectorToSun[m_CurrentStoredValue],
-        m_fShadowFrontX[m_CurrentStoredValue], m_fShadowFrontY[m_CurrentStoredValue],
-        m_fShadowSideX[m_CurrentStoredValue],  m_fShadowSideY[m_CurrentStoredValue],
-        m_fShadowDisplacementX[m_CurrentStoredValue], m_fShadowDisplacementY[m_CurrentStoredValue]
+        m_fShadowFrontX[m_CurrentStoredValue],
+        m_fShadowFrontY[m_CurrentStoredValue],
+        m_fShadowSideX[m_CurrentStoredValue],
+        m_fShadowSideY[m_CurrentStoredValue],
+        m_fShadowDisplacementX[m_CurrentStoredValue],
+        m_fShadowDisplacementY[m_CurrentStoredValue]
     );
 
-    if (   TheCamera.m_mCameraMatrix.GetForward().z < -0.9f
-        || !CWeather::bScriptsForceRain && (CCullZones::PlayerNoRain() || CCullZones::CamNoRain() || CCutsceneMgr::ms_running)
-    ) {
+    if (TheCamera.m_mCameraMatrix.GetForward().z < -0.9f || !CWeather::bScriptsForceRain
+        && (CCullZones::PlayerNoRain() || CCullZones::CamNoRain() || CCutsceneMgr::ms_running)) {
         m_FogReduction = std::min(m_FogReduction + 1, 64);
     } else {
         m_FogReduction = std::max(m_FogReduction - 1, 0);
     }
 
     if (camPos.z > 200.0f) {
-        if (camPos.z <= 500.0f)
-        {
-            set->m_fFarClip = set->m_fFarClip * (1.0f - (camPos.z - 200.0f) / 300.0f) + 1000.0f * (camPos.z - 200.0f) / 300.0f;
-        }
-        else if (set->m_fFarClip >= 1000.0f)
-        {
-            set->m_fFarClip = 1000.0f;
+        if (set->m_fFarClip > 1000.0f) {
+            if (camPos.z <= 500.0f) {
+                float t_alt = (camPos.z - 200.0f) / 300.0f;
+                set->m_fFarClip = lerp(set->m_fFarClip, 1000.0f, t_alt);
+            } else {
+                set->m_fFarClip = 1000.0f;
+            }
         }
     }
 
-    float horizon = (float)GreyValuesDuringDay[currSampleIdx] * invTimeT + (float)GreyValuesDuringDay[nextSampleIdx] * timeT;
-    m_BelowHorizonGrey.red   = uint8((float)m_CurrentColours.m_nSkyBottomRed   * CWeather::UnderWaterness + horizon * (1.0f - CWeather::UnderWaterness));
-    m_BelowHorizonGrey.green = uint8((float)m_CurrentColours.m_nSkyBottomGreen * CWeather::UnderWaterness + horizon * (1.0f - CWeather::UnderWaterness));
-    m_BelowHorizonGrey.blue  = uint8((float)m_CurrentColours.m_nSkyBottomBlue  * CWeather::UnderWaterness + horizon * (1.0f - CWeather::UnderWaterness));
+    float horizon = lerp((float)GreyValuesDuringDay[currSampleIdx], (float)GreyValuesDuringDay[nextSampleIdx], timeT);
+    m_BelowHorizonGrey.red   = (uint8)lerp(horizon, (float)m_CurrentColours.m_nSkyBottomRed, CWeather::UnderWaterness);
+    m_BelowHorizonGrey.green = (uint8)lerp(horizon, (float)m_CurrentColours.m_nSkyBottomGreen, CWeather::UnderWaterness);
+    m_BelowHorizonGrey.blue  = (uint8)lerp(horizon, (float)m_CurrentColours.m_nSkyBottomBlue, CWeather::UnderWaterness);
 
     set->m_fAmbientBeforeBrightnessRed   = set->m_fAmbientRed;
     set->m_fAmbientBeforeBrightnessGreen = set->m_fAmbientGreen;
     set->m_fAmbientBeforeBrightnessBlue  = set->m_fAmbientBlue;
 
+    // 0x561468
     const auto brightness = (float)FrontEndMenuManager.m_PrefsBrightness;
     if (brightness >= 256.0f) {
         f = (brightness - 256.0f) / 128.0f + 1.0f;
-        float max = set->m_fAmbientRed;
-        max = std::max(max, set->m_fAmbientGreen);
-        max = std::max(max, set->m_fAmbientBlue);
+        float max = std::max({ set->m_fAmbientRed, set->m_fAmbientGreen, set->m_fAmbientBlue });
         max = max * f - max;
         set->m_fAmbientRed   += max;
         set->m_fAmbientGreen += max;
@@ -498,13 +529,12 @@ void CTimeCycle::CalcColoursForPoint(CVector point, CColourSet* set) {
     if (f > 1.0f) {
         float r, g, b;
         f = (f - 1.0f) * 0.06f;
-        float max = set->m_fAmbientRed;
-        max = std::max(max, set->m_fAmbientGreen);
-        max = std::max(max, set->m_fAmbientBlue);
+        float max = std::max({ set->m_fAmbientRed, set->m_fAmbientGreen, set->m_fAmbientBlue });
         r = set->m_fAmbientRed;
         g = set->m_fAmbientGreen;
         b = set->m_fAmbientBlue;
         if (max == 0.0f) {
+            max = 0.001f;
             set->m_fAmbientRed   = 0.001f;
             set->m_fAmbientGreen = 0.001f;
             set->m_fAmbientBlue  = 0.001f;
@@ -647,3 +677,15 @@ void CTimeCycle::SetConstantParametersForPostFX() {
         m_CurrentColours.m_nSkyBottomBlue = 128;
     }
 }
+
+float CTimeCycle::GetAmbientRed()   { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientRed; }   // 0x560330
+float CTimeCycle::GetAmbientGreen() { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientGreen; } // 0x560340
+float CTimeCycle::GetAmbientBlue()  { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBlue; }  // 0x560350
+
+float CTimeCycle::GetAmbientRed_Obj()   { return m_CurrentColours.m_fAmbientRed_Obj; }   // 0x560360
+float CTimeCycle::GetAmbientGreen_Obj() { return m_CurrentColours.m_fAmbientGreen_Obj; } // 0x560370
+float CTimeCycle::GetAmbientBlue_Obj()  { return m_CurrentColours.m_fAmbientBlue_Obj; }  // 0x560380
+
+float CTimeCycle::GetAmbientRed_BeforeBrightness()   { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBeforeBrightnessRed; }   // 0x560390
+float CTimeCycle::GetAmbientGreen_BeforeBrightness() { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBeforeBrightnessGreen; } // 0x5603A0
+float CTimeCycle::GetAmbientBlue_BeforeBrightness()  { return gfLaRiotsLightMult * m_CurrentColours.m_fAmbientBeforeBrightnessBlue; }  // 0x5603B0

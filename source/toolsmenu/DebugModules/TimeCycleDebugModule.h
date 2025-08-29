@@ -55,6 +55,7 @@ private:
      int32  m_HighLightMinIntensity{};
      int32  m_WaterFogAlpha{};
      int32  m_DirectionalMult{};
+     int32  m_CurrentStoredValue{};
      Color3 m_BrightnessAddedToAmbient{};
      int32  m_TimeId{};
      int32  m_WeatherId{};
