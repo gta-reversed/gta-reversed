@@ -95,8 +95,7 @@ void CTrailer::SetupSuspensionLines() {
         RwFrame* wheelFront = m_aCarNodes[TRAILER_MISC_A];
         matrix = *RwFrameGetMatrix(wheelFront);
 
-        auto parent = RwFrameGetParent(wheelFront);
-        if (parent) {
+        if (auto parent = RwFrameGetParent(wheelFront)) {
             do {
                 RwMatrixTransform(&matrix, RwFrameGetMatrix(parent), rwCOMBINEPOSTCONCAT);
                 parent = RwFrameGetParent(parent);
