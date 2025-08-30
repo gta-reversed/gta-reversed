@@ -10,8 +10,6 @@
 
 #include "Buoyancy.h"
 
-// static variables:
-
 const float BRAKE_TO_REVERSE_DURATION = 20.0f; // 0x871288
 
 float BURST_GRIP_MULTIPLIER = 0.4f; // 0x87128C
@@ -84,19 +82,8 @@ float PED_BIKE_LEANBLENDLIMIT = 0.56f; // 0x871354
 float PED_BIKE_FWDBLENDOUTSTART = 0.3f; // 0x871358
 float PED_BIKE_MINBLENDSCALE = 0.01f; // 0x87135C
 
-// unused:
-
-// 0xC1C808 = 0x871274 * 0x858620
-float flt_C1C808 = 0.005f * 0.0625f;
-// 0xC1C80C = 1.0f / 0x87127C
-float flt_C1C80C = 1.0f / 50.0f;
-// 0xC1C810 = 100.0f / 0x871278
-float flt_C1C810 = 100.0f / 3.6f;
-// 0xC1C814 = 1.0f / (0x87127C * 0x87127C)
-float flt_C1C814 = 1.0f / (50.0f * 50.0f);
-
-// TODO: rename
-float flt_C1C818 = flt_C1C814 * 10.0f; // 0xC1C818
+//
+float flt_C1C818 = 0.004f * 10.0f; // 0xC1C818
 float flt_C1C81C = 0.277778f / 50.0f;  // 0xC1C81C
 
 void CBike::InjectHooks() {
@@ -108,11 +95,11 @@ void CBike::InjectHooks() {
     RH_ScopedInstall(dmgDrawCarCollidingParticles, 0x6B5A00);
     RH_ScopedInstall(DamageKnockOffRider, 0x6B5A10);
     RH_ScopedInstall(KnockOffRider, 0x6B5F40);
-    RH_ScopedInstall(SetRemoveAnimFlags, 0x6B5F50, { .reversed = false });
+    RH_ScopedInstall(SetRemoveAnimFlags, 0x6B5F50);
     RH_ScopedInstall(ReduceHornCounter, 0x6B5F90);
     RH_ScopedInstall(ProcessAI, 0x6BC930, { .reversed = false });
     RH_ScopedInstall(ProcessBuoyancy, 0x6B5FB0);
-    RH_ScopedInstall(ResetSuspension, 0x6B6740, { .reversed = false });
+    RH_ScopedInstall(ResetSuspension, 0x6B6740);
     RH_ScopedInstall(GetAllWheelsOffGround, 0x6B6790);
     RH_ScopedInstall(DebugCode, 0x6B67A0);
     RH_ScopedInstall(DoSoftGroundResistance, 0x6B6D40);
@@ -136,10 +123,10 @@ void CBike::InjectHooks() {
     RH_ScopedVMTInstall(VehicleDamage, 0x6B8EC0, { .reversed = false });
     RH_ScopedVMTInstall(SetupSuspensionLines, 0x6B89B0, { .reversed = false });
     RH_ScopedVMTInstall(SetModelIndex, 0x6B8970);
-    RH_ScopedVMTInstall(PlayCarHorn, 0x6B7080, { .reversed = false });
+    RH_ScopedVMTInstall(PlayCarHorn, 0x6B7080);
     RH_ScopedVMTInstall(SetupDamageAfterLoad, 0x6B7070);
     RH_ScopedVMTInstall(DoBurstAndSoftGroundRatios, 0x6B6950, { .reversed = false });
-    RH_ScopedVMTInstall(SetUpWheelColModel, 0x6B67E0, { .reversed = false });
+    RH_ScopedVMTInstall(SetUpWheelColModel, 0x6B67E0);
     RH_ScopedVMTInstall(RemoveRefsToVehicle, 0x6B67B0);
     RH_ScopedVMTInstall(ProcessControlCollisionCheck, 0x6B6620);
     RH_ScopedVMTInstall(GetComponentWorldPosition, 0x6B5990);
@@ -351,11 +338,13 @@ bool CBike::DamageKnockOffRider(CVehicle* pVehicle, float fImpulse, uint16 nPiec
     const auto v21 = pVehicle->m_pDriver;
     const auto v37 = fabs(v19);
     auto v33 = (fabs(v18) * v34 + v16 * v35 + v37 * 0.45f - v17 * a2a) * v32;
+
     if (v21->IsPlayer() && CCullZones::CamStairsForPlayer()) {
         if (CCullZones::FindZoneWithStairsAttributeForPlayer()) {
             v33 = 0.0f;
         }
     }
+
     if (v33 <= 75.0f && (pVehicle->m_pDriver->bCanExitCar || v33 <= 20.0f)) {
         return false;
     }
@@ -1015,7 +1004,8 @@ void CBike::VehicleDamage(float impulse, eVehicleCollisionComponent pieceType, C
     }
 
     float damageIntensity = m_fDamageIntensity;
-    if ((m_nType & 0xF8) == 0 && CStats::GetPercentageProgress() >= 100.0f) {
+    const auto status = GetStatus();
+    if (status == STATUS_PLAYER && CStats::GetPercentageProgress() >= 100.0f) {
         damageIntensity *= 0.5f;
     }
 
@@ -1056,10 +1046,13 @@ void CBike::VehicleDamage(float impulse, eVehicleCollisionComponent pieceType, C
 
         float collisionDamage = (damageIntensity - 25.0f) * m_pHandlingData->m_fCollisionDamageMultiplier;
         if (collisionDamage > 0.0f) {
-            if (collisionDamage > 5.0f && m_pDriver && damageEntity) {
-                if (damageEntity->IsVehicle() && (playerVehicle != this || LOBYTE(damageEntity->m_PedFrames[7]) != 2)) {
-                    if (damageEntity->m_roadRageWith) {
-                        m_pDriver->Say(CTX_GLOBAL_CRASH_BIKE, 0, 1.0f, 0, 0);
+            if (collisionDamage > 5.0f && m_pDriver) {
+                if (damageEntity->IsPed()) {
+                    const auto ped = damageEntity->AsPed();
+                    if (ped->IsVehicle() && (playerVehicle != this || ped->m_apBones[7] != PED_NODE_LEFT_LEG)) {
+                        if (ped->AsPed()->m_roadRageWith) {
+                            m_pDriver->Say(CTX_GLOBAL_CRASH_BIKE, 0, 1.0f, 0, 0);
+                        }
                     }
                 }
             }
@@ -1151,25 +1144,37 @@ void CBike::DoBurstAndSoftGroundRatios() {
 
 // 0x6B67E0
 bool CBike::SetUpWheelColModel(CColModel* cl) {
-    /*
-    RwMatrix* mat = RwMatrixCreate();
-    CVehicleModelInfo* mi = (CVehicleModelInfo*)CModelInfo::GetModelInfo(GetModelIndex());
-    CColModel*         vehColModel = mi->GetColModel();
+    const auto colData = cl->m_pColData;
+    CVehicleModelInfo* mi = CModelInfo::GetModelInfo(GetModelID())->AsVehicleModelInfoPtr();
+    const auto colModel = GetColModel();
+    cl->m_boundSphere = colModel->m_boundSphere;
+    cl->m_boundBox = colModel->m_boundBox;
 
-    cl->boundingSphere = vehColModel->m_pColData->m_pSpheres;
-    cl->boundingBox = vehColModel->m_pColData->m_pBoxes;
+    const auto v6 = m_aBikeNodes[4];
+    RwMatrix matrix = v6->modelling;
+    RwFrame* pParentFrame = (RwFrame*)v6->object.parent;
+    if (pParentFrame) {
+        do {
+            RwMatrixTransform(&matrix, &pParentFrame->modelling, rwCOMBINEPOSTCONCAT);
+            pParentFrame = (RwFrame*)pParentFrame->object.parent;
+        } while (pParentFrame != m_aBikeNodes[1] && pParentFrame);
+    }
 
-    GetRelativeMatrix(mat, m_aBikeNodes[BIKE_WHEEL_FRONT], m_aBikeNodes[BIKE_CHASSIS]);
-    cl->spheres[0].Set(0.5f * mi->m_wheelScale, *RwMatrixGetPos(mat), SURFACE_RUBBER, CAR_PIECE_WHEEL_LF);
-    GetRelativeMatrix(mat, m_aBikeNodes[BIKE_WHEEL_REAR], m_aBikeNodes[BIKE_CHASSIS]);
-    cl->spheres[1].Set(0.5f * mi->m_wheelScale, *RwMatrixGetPos(mat), SURFACE_RUBBER, CAR_PIECE_WHEEL_RL);
-    cl->m_pColData->m_nNumSpheres= 2;
-#ifdef FIX_BUGS
-    RwMatrixDestroy(mat);
-#endif
+    colData->m_pSpheres->Set(mi->m_fWheelSizeFront * 0.5f, matrix.pos, SURFACE_RUBBER, 13u);
+
+    const auto v10 = m_aBikeNodes[5];
+    matrix = v10->modelling;
+    RwFrame* parent = (RwFrame*)v10->object.parent;
+    if (parent) {
+        do {
+            RwMatrixTransform(&matrix, &parent->modelling, rwCOMBINEPOSTCONCAT);
+            parent = (RwFrame*)parent->object.parent;
+        } while (parent != m_aBikeNodes[1] && parent);
+    }
+
+    colData->m_pSpheres[1].Set(mi->m_fWheelSizeRear * 0.5f, matrix.pos, SURFACE_RUBBER, 15u);
+    colData->m_nNumSpheres = 2;
     return true;
-    */
-    return false;
 }
 
 // 0x6B67B0
