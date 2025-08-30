@@ -55,7 +55,6 @@ void CRegisteredCorona::Update() {
     m_bRegisteredThisFrame = false;
 }
 
-
 //! Calculate the position to use for rendering
 auto CRegisteredCorona::GetPosition() const -> CVector {
     if (!m_pAttachedTo) {
