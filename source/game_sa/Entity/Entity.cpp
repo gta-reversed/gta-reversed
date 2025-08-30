@@ -1758,6 +1758,8 @@ void CEntity::RegisterReference(CEntity** entity)
 // 0x6FC7A0
 void CEntity::ProcessLightsForEntity()
 {
+    constexpr static std::array<uint16, 8> ms_aEntityLightsOffsets = { 0, 27'034, 43'861, 52'326, 64'495, 38'437, 21'930, 39'117 }; // 0x8D5028
+
     auto fBalance = GetDayNightBalance();
     if (m_bRenderDamaged || !m_bIsVisible)
         return;
@@ -1778,7 +1780,7 @@ void CEntity::ProcessLightsForEntity()
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
         auto fIntensity = 1.0F;
-        auto uiRand = m_nRandomSeed ^ CCoronas::ms_aEntityLightsOffsets[iFxInd & 0x7];
+        auto uiRand = m_nRandomSeed ^ ms_aEntityLightsOffsets[iFxInd & 0x7];
 
         if (effect->m_Type == e2dEffectType::EFFECT_SUN_GLARE && CWeather::SunGlare >= 0.0F) {
             auto vecEffPos = TransformFromObjectSpace(effect->m_Pos);
