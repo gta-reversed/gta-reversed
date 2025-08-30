@@ -94,21 +94,21 @@ CTrain::CTrain(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(created
     SetupModelNodes();
 
     std::memset(&m_aDoors, 0, sizeof(m_aDoors));
-    m_aDoors[2].m_nDirn = 20;
-    m_aDoors[2].m_nAxis = 2;
+    m_aDoors[2].m_dirn = 20;
+    m_aDoors[2].m_axis = 2;
     if (m_nModelIndex == MODEL_STREAKC) {
-        m_aDoors[2].m_fOpenAngle = 1.25f;
-        m_aDoors[2].m_fClosedAngle = 0.25f;
-        m_aDoors[3].m_fOpenAngle = 1.25f;
-        m_aDoors[3].m_fClosedAngle = 0.25f;
+        m_aDoors[2].m_openAngle = 1.25f;
+        m_aDoors[2].m_closedAngle = 0.25f;
+        m_aDoors[3].m_openAngle = 1.25f;
+        m_aDoors[3].m_closedAngle = 0.25f;
     } else {
-        m_aDoors[2].m_fOpenAngle = TWO_PI / -5.0f;
-        m_aDoors[2].m_fClosedAngle = 0.0f;
-        m_aDoors[3].m_fOpenAngle = TWO_PI / +5.0f;
-        m_aDoors[3].m_fClosedAngle = 0.0f;
+        m_aDoors[2].m_openAngle = TWO_PI / -5.0f;
+        m_aDoors[2].m_closedAngle = 0.0f;
+        m_aDoors[3].m_openAngle = TWO_PI / +5.0f;
+        m_aDoors[3].m_closedAngle = 0.0f;
     }
-    m_aDoors[3].m_nAxis = 2;
-    m_aDoors[3].m_nDirn = 20;
+    m_aDoors[3].m_axis = 2;
+    m_aDoors[3].m_dirn = 20;
 
     { // todo:
     trainFlags.bClockwiseDirection = true;

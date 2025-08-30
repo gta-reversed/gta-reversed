@@ -109,15 +109,15 @@ CBoat::CBoat(int32 modelIndex, eVehicleCreatedBy createdBy) : CVehicle(createdBy
     rng::fill(m_wakePtCounters, 0.0f);
 
     m_nAmmoInClip = 20;
-    m_boatDoor.m_nAxis = AXIS_Y;
+    m_boatFlap.m_axis = AXIS_Y;
     if (m_nModelIndex == MODEL_MARQUIS) {
-        m_boatDoor.m_fOpenAngle = PI / 10.0F;
-        m_boatDoor.m_fClosedAngle = -PI / 10.0F;
-        m_boatDoor.m_nDirn = 4;
+        m_boatFlap.m_openAngle = PI / 10.0F;
+        m_boatFlap.m_closedAngle = -PI / 10.0F;
+        m_boatFlap.m_dirn = 4;
     } else {
-        m_boatDoor.m_fOpenAngle = TWO_PI / 10.0F;
-        m_boatDoor.m_fClosedAngle = -TWO_PI / 10.0F;
-        m_boatDoor.m_nDirn = 3;
+        m_boatFlap.m_openAngle = TWO_PI / 10.0F;
+        m_boatFlap.m_closedAngle = -TWO_PI / 10.0F;
+        m_boatFlap.m_dirn = 3;
     }
 
     m_vehicleAudio.Initialise(this);
@@ -720,13 +720,12 @@ void CBoat::PreRender() {
 
             m_boatDoor.Process(this, m_boatMoveForce, m_boatTurnForce, vecTransformed);
             CVector vecAxis;
-            if (m_boatDoor.m_nAxis == AXIS_X) {
-                vecAxis.Set(m_boatDoor.m_fAngle, 0.0F, 0.0F);
-            } else if (m_boatDoor.m_nAxis == AXIS_Y) {
-                vecAxis.Set(0.0F, m_boatDoor.m_fAngle, 0.0F);
-            } else if (m_boatDoor.m_nAxis == AXIS_Z) {
-                vecAxis.Set(0.0F, 0.0F, m_boatDoor.m_fAngle);
-            }
+            if (m_boatFlap.m_axis == AXIS_X)
+                vecAxis.Set(m_boatFlap.m_angle, 0.0F, 0.0F);
+            else if (m_boatFlap.m_axis == AXIS_Y)
+                vecAxis.Set(0.0F, m_boatFlap.m_angle, 0.0F);
+            else if (m_boatFlap.m_axis == AXIS_Z)
+                vecAxis.Set(0.0F, 0.0F, m_boatFlap.m_angle);
 
             tempMat.SetRotate(vecAxis.x, vecAxis.y, vecAxis.z);
             tempMat.GetPosition() += posCopy;
