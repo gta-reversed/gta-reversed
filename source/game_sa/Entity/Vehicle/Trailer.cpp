@@ -3,15 +3,17 @@
 #include "Trailer.h"
 #include "VehicleRecording.h"
 
+// define?
 constexpr float BAGGAGE_TRAILER_TOWED_RATIO = -1000.0f;
 
-// wtf
-float flt_C1CB28 = *(float*)0xC1CB28; // 0.004f ?
+
+// TODO: global var? a huge number of definitions of this number have been found
+float TRAILER_TRACTION_COEFF = 0.004f; // 0xC1CB28
 
 float TRAILER_TOWED_MINRATIO = 0.9f; // 0x8D346C
-const float TRAILER_SUPPORT_RETRACTION_RATE = 0.002f; // 0x871C14
-const float TRAILER_SUPPORT_EXTENSION_RATE = 0.002f; // 0x871C18
-const float TRAILER_SUPPORT_WAIT_EXTENSION_RATE = 0.0005f; // 0x871C1C
+constexpr float TRAILER_SUPPORT_RETRACTION_RATE = 0.002f; // 0x871C14
+constexpr float TRAILER_SUPPORT_EXTENSION_RATE = 0.002f; // 0x871C18
+constexpr float TRAILER_SUPPORT_WAIT_EXTENSION_RATE = 0.0005f; // 0x871C1C
 
 float TRAILER_TOWBAR_OFFSET_Y = -0.05f; // 0x871C20
 
@@ -280,7 +282,7 @@ void CTrailer::ProcessSuspension() {
             }
         }
 
-        const float traction = flt_C1CB28 * m_pHandlingData->m_fTractionMultiplier * 0.25f;
+        const float traction = m_pHandlingData->m_fTractionMultiplier * TRAILER_TRACTION_COEFF * 0.25f;
         CAutomobile::ProcessCarWheelPair(CAR_WHEEL_FRONT_LEFT, CAR_WHEEL_REAR_LEFT, 0.0f, contactSpeeds, contactPoints, traction, 0.0f, 1000.0f, true);
 
         m_damageManager.SetWheelStatus(CAR_WHEEL_FRONT_LEFT, originalWheelStatus[0]);

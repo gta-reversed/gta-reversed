@@ -18,7 +18,7 @@
 #include "eCarWheel.h"
 #include "eCarNodes.h"
 
-const float BILLS_EXTENSION_LIMIT = 1.0f;
+constexpr float BILLS_EXTENSION_LIMIT = 1.0f;
 
 enum class eSkidmarkType : uint32;
 
