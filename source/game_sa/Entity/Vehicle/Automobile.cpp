@@ -2142,7 +2142,7 @@ void CAutomobile::GetComponentWorldPosition(int32 componentId, CVector& outPos)
 }
 
 // 0x6A2250
-bool CAutomobile::IsComponentPresent(int32 componentId)
+bool CAutomobile::IsComponentPresent(int32 componentId) const
 {
     return m_aCarNodes[componentId] != 0;
 }
